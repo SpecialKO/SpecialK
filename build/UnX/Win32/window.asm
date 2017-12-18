@@ -11,8 +11,9 @@ INCLUDELIB OLDNAMES
 
 PUBLIC	?szDelete@ATL@@3QB_WB				; ATL::szDelete
 PUBLIC	_CLSID_Registrar
-PUBLIC	?pWindowManager@SK_WindowManager@@0PAV1@A	; SK_WindowManager::pWindowManager
+PUBLIC	?override_window_rects@@3_NA			; override_window_rects
 PUBLIC	_IID_IRegistrar
+PUBLIC	?pWindowManager@SK_WindowManager@@0PAV1@A	; SK_WindowManager::pWindowManager
 PUBLIC	_IID_IDocHostUIHandlerDispatch
 PUBLIC	?_pAtlAutoThreadModule@ATL@@3PAUIAtlAutoThreadModule@1@A ; ATL::_pAtlAutoThreadModule
 PUBLIC	?SetWindowPlacement_Original@@3P6GHPAUHWND__@@PBUtagWINDOWPLACEMENT@@@ZA ; SetWindowPlacement_Original
@@ -21,12 +22,12 @@ PUBLIC	?GetClientRect_Original@@3P6GHPAUHWND__@@PAUtagRECT@@@ZA ; GetClientRect_
 PUBLIC	_IID_IAxWinHostWindow
 PUBLIC	_IID_IAxWinHostWindowLic
 PUBLIC	?_pAtlModule@ATL@@3PAVCAtlModule@1@A		; ATL::_pAtlModule
+PUBLIC	_IID_IAxWinAmbientDispatch
+PUBLIC	_LIBID_ATLLib
 PUBLIC	?RegisterClassA_Original@@3P6GGPBUtagWNDCLASSA@@@ZA ; RegisterClassA_Original
 PUBLIC	?RegisterClassW_Original@@3P6GGPBUtagWNDCLASSW@@@ZA ; RegisterClassW_Original
 PUBLIC	?RegisterClassExA_Original@@3P6GGPBUtagWNDCLASSEXA@@@ZA ; RegisterClassExA_Original
 PUBLIC	?RegisterClassExW_Original@@3P6GGPBUtagWNDCLASSEXW@@@ZA ; RegisterClassExW_Original
-PUBLIC	_IID_IAxWinAmbientDispatch
-PUBLIC	_LIBID_ATLLib
 PUBLIC	?CreateWindowExA_Original@@3P6GPAUHWND__@@KPBD0KHHHHPAU1@PAUHMENU__@@PAUHINSTANCE__@@PAX@ZA ; CreateWindowExA_Original
 PUBLIC	?CreateWindowExW_Original@@3P6GPAUHWND__@@KPB_W0KHHHHPAU1@PAUHMENU__@@PAUHINSTANCE__@@PAX@ZA ; CreateWindowExW_Original
 PUBLIC	?TranslateMessage_Original@@3P6GHPBUtagMSG@@@ZA	; TranslateMessage_Original
@@ -35,21 +36,18 @@ PUBLIC	?PeekMessageA_Original@@3P6GHPAUtagMSG@@PAUHWND__@@III@ZA ; PeekMessageA_
 PUBLIC	?GetMessageA_Original@@3P6GHPAUtagMSG@@PAUHWND__@@II@ZA ; GetMessageA_Original
 PUBLIC	?GetMessageW_Original@@3P6GHPAUtagMSG@@PAUHWND__@@II@ZA ; GetMessageW_Original
 PUBLIC	?DispatchMessageW_Original@@3P6GJPBUtagMSG@@@ZA	; DispatchMessageW_Original
+PUBLIC	___pobjMapEntryFirst
 PUBLIC	?DispatchMessageA_Original@@3P6GJPBUtagMSG@@@ZA	; DispatchMessageA_Original
+PUBLIC	___pobjMapEntryLast
 PUBLIC	?caught_register@@3_NA				; caught_register
 PUBLIC	?last_message@@3PAUtagMSG@@A			; last_message
-PUBLIC	___pobjMapEntryFirst
-PUBLIC	___pobjMapEntryLast
-PUBLIC	?g_hkCallWndProc@@3PAUHHOOK__@@A		; g_hkCallWndProc
 PUBLIC	?_pPerfRegFunc@ATL@@3P6AJPAUHINSTANCE__@@@ZA	; ATL::_pPerfRegFunc
 PUBLIC	?_pPerfUnRegFunc@ATL@@3P6AJXZA			; ATL::_pPerfUnRegFunc
 PUBLIC	?_AtlRegisterPerUser@ATL@@3_NA			; ATL::_AtlRegisterPerUser
 PUBLIC	?_pModule@ATL@@3PAVCComModule@1@A		; ATL::_pModule
 PUBLIC	_IID_IAxWinAmbientDispatchEx
+PUBLIC	?g_hkCallWndProc@@3PAUHHOOK__@@A		; g_hkCallWndProc
 PUBLIC	_IID_IInternalConnection
-PUBLIC	?game_mouselook@@3KA				; game_mouselook
-PUBLIC	?game_x@@3HA					; game_x
-PUBLIC	?game_y@@3HA					; game_y
 PUBLIC	?ClipCursor_Original@@3P6GHPBUtagRECT@@@ZA	; ClipCursor_Original
 PUBLIC	?SetWindowPos_Original@@3P6GHPAUHWND__@@0HHHHI@ZA ; SetWindowPos_Original
 PUBLIC	?MoveWindow_Original@@3P6GHPAUHWND__@@HHHHH@ZA	; MoveWindow_Original
@@ -69,7 +67,9 @@ PUBLIC	?SetCursorPos_Original@@3P6GHHH@ZA		; SetCursorPos_Original
 PUBLIC	?GetCursorInfo_Original@@3P6GHPAUtagCURSORINFO@@@ZA ; GetCursorInfo_Original
 PUBLIC	?SendInput_Original@@3P6GIIPAUtagINPUT@@H@ZA	; SendInput_Original
 PUBLIC	?mouse_event_Original@@3P6GXKKKKK@ZA		; mouse_event_Original
-PUBLIC	?override_window_rects@@3_NA			; override_window_rects
+PUBLIC	?game_mouselook@@3KA				; game_mouselook
+PUBLIC	?game_x@@3HA					; game_x
+PUBLIC	?game_y@@3HA					; game_y
 PUBLIC	?chDirSep@ATL@@3_WB				; ATL::chDirSep
 PUBLIC	?chRightBracket@ATL@@3_WB			; ATL::chRightBracket
 PUBLIC	?chLeftBracket@ATL@@3_WB			; ATL::chLeftBracket
@@ -83,6 +83,9 @@ PUBLIC	?szValToken@ATL@@3QB_WB				; ATL::szValToken
 PUBLIC	?szForceRemove@ATL@@3QB_WB			; ATL::szForceRemove
 PUBLIC	?szNoRemove@ATL@@3QB_WB				; ATL::szNoRemove
 _BSS	SEGMENT
+?override_window_rects@@3_NA DB 01H DUP (?)		; override_window_rects
+	ALIGN	4
+
 ?pWindowManager@SK_WindowManager@@0PAV1@A DD 01H DUP (?) ; SK_WindowManager::pWindowManager
 _BSS	ENDS
 ;	COMDAT ?_pAtlAutoThreadModule@ATL@@3PAUIAtlAutoThreadModule@1@A
@@ -117,7 +120,6 @@ _BSS	SEGMENT
 
 ?last_message@@3PAUtagMSG@@A DD 01H DUP (?)		; last_message
 ?hModSteamOverlay@@3PAUHINSTANCE__@@A DD 01H DUP (?)	; hModSteamOverlay
-?g_hkCallWndProc@@3PAUHHOOK__@@A DD 01H DUP (?)		; g_hkCallWndProc
 _BSS	ENDS
 ;	COMDAT ?_pPerfRegFunc@ATL@@3P6AJPAUHINSTANCE__@@@ZA
 _BSS	SEGMENT
@@ -136,9 +138,7 @@ _BSS	SEGMENT
 ?_pModule@ATL@@3PAVCComModule@1@A DD 01H DUP (?)	; ATL::_pModule
 _BSS	ENDS
 _BSS	SEGMENT
-?game_mouselook@@3KA DD 01H DUP (?)			; game_mouselook
-?game_x@@3HA DD	01H DUP (?)				; game_x
-?game_y@@3HA DD	01H DUP (?)				; game_y
+?g_hkCallWndProc@@3PAUHHOOK__@@A DD 01H DUP (?)		; g_hkCallWndProc
 ?ClipCursor_Original@@3P6GHPBUtagRECT@@@ZA DD 01H DUP (?) ; ClipCursor_Original
 ?SetWindowPos_Original@@3P6GHPAUHWND__@@0HHHHI@ZA DD 01H DUP (?) ; SetWindowPos_Original
 ?MoveWindow_Original@@3P6GHPAUHWND__@@HHHHH@ZA DD 01H DUP (?) ; MoveWindow_Original
@@ -158,7 +158,9 @@ _BSS	SEGMENT
 ?GetCursorInfo_Original@@3P6GHPAUtagCURSORINFO@@@ZA DD 01H DUP (?) ; GetCursorInfo_Original
 ?SendInput_Original@@3P6GIIPAUtagINPUT@@H@ZA DD 01H DUP (?) ; SendInput_Original
 ?mouse_event_Original@@3P6GXKKKKK@ZA DD 01H DUP (?)	; mouse_event_Original
-?override_window_rects@@3_NA DB 01H DUP (?)		; override_window_rects
+?game_mouselook@@3KA DD 01H DUP (?)			; game_mouselook
+?game_x@@3HA DD	01H DUP (?)				; game_x
+?game_y@@3HA DD	01H DUP (?)				; game_y
 _BSS	ENDS
 ;	COMDAT ?szNoRemove@ATL@@3QB_WB
 CONST	SEGMENT
@@ -351,60 +353,60 @@ $SG170003 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 'n', 00H, 'a', 00H, 'p', 00H, 'i'
 	DB	00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG212002 DB	'MoveWindow_Detour', 00H
-	ORG $+2
-$SG212012 DB	'SetWindowPlacement_Detour', 00H
-	ORG $+2
-$SG212003 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
-	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
-	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
-	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
-	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
-	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
-	ORG $+2
-$SG212013 DB	'Window Mgr', 00H
-	ORG $+1
-$SG212014 DB	'[', 00H, '%', 00H, 'h', 00H, 's', 00H, ']', 00H, '[', 00H
-	DB	'!', 00H, ']', 00H, ' ', 00H, '%', 00H, '3', 00H, '2', 00H, 'h'
-	DB	00H, 's', 00H, ' ', 00H, '-', 00H, ' ', 00H, '%', 00H, 's', 00H
-	DB	00H, 00H
 $SG170050 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'N', 00H, 'o', 00H, 't', 00H, 'I', 00H, 'm'
 	DB	00H, 'p', 00H, 'l', 00H, 00H, 00H
-$SG212035 DB	'SetWindowPos_Detour', 00H
-$SG212039 DB	'SetWindowPos_Detour', 00H
-$SG212036 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
+$SG212073 DB	'MoveWindow_Detour', 00H
+	ORG $+2
+$SG212083 DB	'SetWindowPlacement_Detour', 00H
+	ORG $+2
+$SG212074 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG212040 DB	'Window Mgr', 00H
-	ORG $+1
-$SG212041 DB	'[', 00H, '%', 00H, 'h', 00H, 's', 00H, ']', 00H, '[', 00H
-	DB	'!', 00H, ']', 00H, ' ', 00H, '%', 00H, '3', 00H, '2', 00H, 'h'
-	DB	00H, 's', 00H, ' ', 00H, '-', 00H, ' ', 00H, '%', 00H, 's', 00H
-	DB	00H, 00H
-$SG212055 DB	'GetClientRect_Detour', 00H
-	ORG $+3
-$SG212056 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
-	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
-	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
-	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
-	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
-	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
-	ORG $+2
-$SG212069 DB	'GetWindowRect_Detour', 00H
-	ORG $+3
 $SG170097 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'A', 00H, 'l', 00H, 'l', 00H, 'o', 00H, 'c'
 	DB	00H, 'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
+$SG212084 DB	'Window Mgr', 00H
+	ORG $+1
+$SG212085 DB	'[', 00H, '%', 00H, 'h', 00H, 's', 00H, ']', 00H, '[', 00H
+	DB	'!', 00H, ']', 00H, ' ', 00H, '%', 00H, '3', 00H, '2', 00H, 'h'
+	DB	00H, 's', 00H, ' ', 00H, '-', 00H, ' ', 00H, '%', 00H, 's', 00H
+	DB	00H, 00H
+$SG212106 DB	'SetWindowPos_Detour', 00H
+$SG212110 DB	'SetWindowPos_Detour', 00H
+$SG212107 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
+	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
+	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
+	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
+	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
+	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
+	ORG $+2
+$SG212111 DB	'Window Mgr', 00H
+	ORG $+1
+$SG212112 DB	'[', 00H, '%', 00H, 'h', 00H, 's', 00H, ']', 00H, '[', 00H
+	DB	'!', 00H, ']', 00H, ' ', 00H, '%', 00H, '3', 00H, '2', 00H, 'h'
+	DB	00H, 's', 00H, ' ', 00H, '-', 00H, ' ', 00H, '%', 00H, 's', 00H
+	DB	00H, 00H
+$SG212126 DB	'GetClientRect_Detour', 00H
+	ORG $+3
+$SG212127 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
+	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
+	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
+	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
+	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
+	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
+	ORG $+2
 $SG170144 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'E', 00H, 'x', 00H, 'c', 00H, 'e', 00H, 'p'
 	DB	00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
-$SG212070 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
+$SG212140 DB	'GetWindowRect_Detour', 00H
+	ORG $+3
+$SG212141 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
@@ -415,7 +417,7 @@ $SG170191 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'T', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG212101 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
+$SG212172 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
 	DB	00H, 'A', 00H, 'd', 00H, 'j', 00H, 'u', 00H, 's', 00H, 't', 00H
 	DB	'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H, 'w', 00H, 'R'
@@ -427,7 +429,7 @@ $SG212101 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 	DB	'x', 00H, '%', 00H, '0', 00H, '4', 00H, 'X', 00H, ',', 00H, ' '
 	DB	00H, '%', 00H, 'l', 00H, 'i', 00H, ' ', 00H, ')', 00H, ' ', 00H
 	DB	'-', 00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
-$SG212121 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
+$SG212192 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
 	DB	00H, 'A', 00H, 'd', 00H, 'j', 00H, 'u', 00H, 's', 00H, 't', 00H
 	DB	'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H, 'w', 00H, 'R'
@@ -441,72 +443,67 @@ $SG212121 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 	DB	' ', 00H, '0', 00H, 'x', 00H, '%', 00H, '0', 00H, '4', 00H, 'X'
 	DB	00H, ' ', 00H, ')', 00H, ' ', 00H, '-', 00H, ' ', 00H, '%', 00H
 	DB	's', 00H, 00H, 00H
-$SG212161 DB	'SetWindowLongA_Detour', 00H
-	ORG $+2
 $SG170238 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'C', 00H, 'a', 00H, 'c', 00H, 'h', 00H, 'e'
 	DB	00H, 00H, 00H
-$SG212162 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
+$SG212232 DB	'SetWindowLongA_Detour', 00H
+	ORG $+2
+$SG212233 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG212172 DB	'SetWindowLongW_Detour', 00H
-	ORG $+2
-$SG212236 DB	'SetWindowLongPtrA_Detour', 00H
-	ORG $+3
-$SG212173 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
-	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
-	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
-	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
-	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
-	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
-	ORG $+2
-$SG212194 DB	'GetWindowLongA_Detour', 00H
-	ORG $+2
-$SG212247 DB	'SetWindowLongPtrW_Detour', 00H
-	ORG $+3
-$SG212195 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
-	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
-	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
-	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
-	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
-	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
-	ORG $+2
-$SG212204 DB	'GetWindowLongW_Detour', 00H
-	ORG $+2
-$SG212267 DB	'GetWindowLongPtrA_Detour', 00H
-	ORG $+3
-$SG212205 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
-	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
-	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
-	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
-	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
-	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
+$SG212243 DB	'SetWindowLongW_Detour', 00H
 	ORG $+2
 $SG170285 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'n', 00H, 'c'
 	DB	00H, 'i', 00H, 'l', 00H, 00H, 00H
-$SG281906 DB	'U', 00H, 'N', 00H, 'K', 00H, 'K', 00H, 'N', 00H, 'O', 00H
-	DB	'W', 00H, 'N', 00H, 00H, 00H
-	ORG $+2
-$SG212237 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
+$SG212307 DB	'SetWindowLongPtrA_Detour', 00H
+	ORG $+3
+$SG212244 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG281908 DB	'(', 00H, 'W', 00H, 'M', 00H, '_', 00H, 'A', 00H, 'C', 00H
-	DB	'T', 00H, 'I', 00H, 'V', 00H, 'A', 00H, 'T', 00H, 'E', 00H, ' '
-	DB	00H, '[', 00H, ' ', 00H, 'W', 00H, 'A', 00H, '_', 00H, 'A', 00H
-	DB	'C', 00H, 'T', 00H, 'I', 00H, 'V', 00H, 'E', 00H, ' ', 00H, ']'
-	DB	00H, ')', 00H, 00H, 00H
-$SG212277 DB	'GetWindowLongPtrW_Detour', 00H
+$SG212265 DB	'GetWindowLongA_Detour', 00H
+	ORG $+2
+$SG212318 DB	'SetWindowLongPtrW_Detour', 00H
 	ORG $+3
-$SG281873 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
+$SG212266 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
+	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
+	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
+	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
+	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
+	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
+	ORG $+2
+$SG212275 DB	'GetWindowLongW_Detour', 00H
+	ORG $+2
+$SG212338 DB	'GetWindowLongPtrA_Detour', 00H
+	ORG $+3
+$SG212276 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
+	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
+	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
+	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
+	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
+	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
+	ORG $+2
+$SG212348 DB	'GetWindowLongPtrW_Detour', 00H
+	ORG $+3
+$SG212308 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
+	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
+	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
+	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
+	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
+	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
+	ORG $+2
+$SG281986 DB	'U', 00H, 'N', 00H, 'K', 00H, 'K', 00H, 'N', 00H, 'O', 00H
+	DB	'W', 00H, 'N', 00H, 00H, 00H
+	ORG $+2
+$SG281947 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
 	DB	00H, 'N', 00H, 'e', 00H, 'w', 00H, ' ', 00H, 'H', 00H, 'W', 00H
 	DB	'N', 00H, 'D', 00H, ' ', 00H, 'd', 00H, 'e', 00H, 't', 00H, 'e'
@@ -520,22 +517,34 @@ $SG281873 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 	DB	'.', 00H, ' ', 00H, '(', 00H, 'O', 00H, 'l', 00H, 'd', 00H, '='
 	DB	00H, '%', 00H, 'p', 00H, ',', 00H, ' ', 00H, 'N', 00H, 'e', 00H
 	DB	'w', 00H, '=', 00H, '%', 00H, 'p', 00H, ')', 00H, 00H, 00H
-$SG281911 DB	'(', 00H, 'W', 00H, 'M', 00H, '_', 00H, 'A', 00H, 'C', 00H
+$SG170332 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'r', 00H, 'i', 00H, 'n'
+	DB	00H, 'g', 00H, 00H, 00H
+	ORG $+2
+$SG281988 DB	'(', 00H, 'W', 00H, 'M', 00H, '_', 00H, 'A', 00H, 'C', 00H
+	DB	'T', 00H, 'I', 00H, 'V', 00H, 'A', 00H, 'T', 00H, 'E', 00H, ' '
+	DB	00H, '[', 00H, ' ', 00H, 'W', 00H, 'A', 00H, '_', 00H, 'A', 00H
+	DB	'C', 00H, 'T', 00H, 'I', 00H, 'V', 00H, 'E', 00H, ' ', 00H, ']'
+	DB	00H, ')', 00H, 00H, 00H
+$SG281991 DB	'(', 00H, 'W', 00H, 'M', 00H, '_', 00H, 'A', 00H, 'C', 00H
 	DB	'T', 00H, 'I', 00H, 'V', 00H, 'A', 00H, 'T', 00H, 'E', 00H, ' '
 	DB	00H, '[', 00H, ' ', 00H, 'W', 00H, 'A', 00H, '_', 00H, 'I', 00H
 	DB	'N', 00H, 'A', 00H, 'C', 00H, 'T', 00H, 'I', 00H, 'V', 00H, 'E'
 	DB	00H, ' ', 00H, ']', 00H, ')', 00H, 00H, 00H
-$SG212248 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
+$SG212319 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG212345 DB	'SK_AdjustBorder', 00H
-$SG212346 DB	'Window Mgr', 00H
-	ORG $+1
-$SG281888 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
+$SG170379 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'M', 00H, 'a', 00H, 'p', 00H, 00H, 00H
+$SG170384 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'U', 00H, 't', 00H, 'i', 00H, 'l', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG281962 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
 	DB	00H, 'W', 00H, 'M', 00H, '_', 00H, 'M', 00H, 'O', 00H, 'U', 00H
 	DB	'S', 00H, 'E', 00H, 'A', 00H, 'C', 00H, 'T', 00H, 'I', 00H, 'V'
@@ -544,7 +553,7 @@ $SG281888 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 'a', 00H, 'n', 00H
 	DB	'd', 00H, ' ', 00H, 'E', 00H, 'a', 00H, 't', 00H, 00H, 00H
 	ORG $+2
-$SG281891 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
+$SG281965 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
 	DB	00H, 'W', 00H, 'M', 00H, '_', 00H, 'M', 00H, 'O', 00H, 'U', 00H
 	DB	'S', 00H, 'E', 00H, 'A', 00H, 'C', 00H, 'T', 00H, 'I', 00H, 'V'
@@ -553,11 +562,21 @@ $SG281891 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 	DB	00H, 'n', 00H, 'd', 00H, 'o', 00H, 'w', 00H, ')', 00H, ' ', 00H
 	DB	'=', 00H, '=', 00H, '>', 00H, ' ', 00H, 'A', 00H, 'c', 00H, 't'
 	DB	00H, 'i', 00H, 'v', 00H, 'a', 00H, 't', 00H, 'e', 00H, 00H, 00H
-$SG170384 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'U', 00H, 't', 00H, 'i', 00H, 'l', 00H, 00H
-	DB	00H
+$SG170431 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'S', 00H, 'e', 00H, 'c', 00H, 'u', 00H, 'r'
+	DB	00H, 'i', 00H, 't', 00H, 'y', 00H, 00H, 00H
 	ORG $+2
-$SG281900 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
+$SG212339 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
+	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
+	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
+	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
+	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
+	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
+	ORG $+2
+$SG212416 DB	'SK_AdjustBorder', 00H
+$SG212417 DB	'Window Mgr', 00H
+	ORG $+1
+$SG281976 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
 	DB	00H, 'A', 00H, 'p', 00H, 'p', 00H, 'l', 00H, 'i', 00H, 'c', 00H
 	DB	'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, ' ', 00H, 'A'
@@ -565,22 +584,7 @@ $SG281900 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 	DB	'e', 00H, 'd', 00H, ' ', 00H, '(', 00H, 'N', 00H, 'o', 00H, 'n'
 	DB	00H, '-', 00H, 'C', 00H, 'l', 00H, 'i', 00H, 'e', 00H, 'n', 00H
 	DB	't', 00H, ')', 00H, 00H, 00H
-$SG212268 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
-	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
-	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
-	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
-	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
-	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
-	ORG $+2
-$SG212347 DB	'[', 00H, '%', 00H, 'h', 00H, 's', 00H, ']', 00H, '[', 00H
-	DB	'!', 00H, ']', 00H, ' ', 00H, '%', 00H, '3', 00H, '2', 00H, 'h'
-	DB	00H, 's', 00H, ' ', 00H, '-', 00H, ' ', 00H, '%', 00H, 's', 00H
-	DB	00H, 00H
-$SG170431 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'S', 00H, 'e', 00H, 'c', 00H, 'u', 00H, 'r'
-	DB	00H, 'i', 00H, 't', 00H, 'y', 00H, 00H, 00H
-	ORG $+2
-$SG281903 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
+$SG281979 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
 	DB	00H, 'A', 00H, 'p', 00H, 'p', 00H, 'l', 00H, 'i', 00H, 'c', 00H
 	DB	'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, ' ', 00H, 'D'
@@ -592,101 +596,113 @@ $SG170478 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 'y', 00H, 'n', 00H, 'c', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG281909 DB	'(', 00H, 'W', 00H, 'M', 00H, '_', 00H, 'A', 00H, 'C', 00H
-	DB	'T', 00H, 'I', 00H, 'V', 00H, 'A', 00H, 'T', 00H, 'E', 00H, ' '
-	DB	00H, '[', 00H, ' ', 00H, 'W', 00H, 'A', 00H, '_', 00H, 'C', 00H
-	DB	'L', 00H, 'I', 00H, 'C', 00H, 'K', 00H, 'A', 00H, 'C', 00H, 'T'
-	DB	00H, 'I', 00H, 'V', 00H, 'E', 00H, ' ', 00H, ']', 00H, ')', 00H
-	DB	00H, 00H
-	ORG $+2
-$SG170379 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'M', 00H, 'a', 00H, 'p', 00H, 00H, 00H
-$SG282095 DB	'TranslateMessage', 00H
-	ORG $+3
-$SG212278 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
+$SG212349 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG282086 DB	'DefWindowProcW', 00H
-	ORG $+1
-$SG282088 DB	'CallWindowProcW', 00H
-$SG282101 DB	'GetMessageW', 00H
-$SG281915 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
+$SG212418 DB	'[', 00H, '%', 00H, 'h', 00H, 's', 00H, ']', 00H, '[', 00H
+	DB	'!', 00H, ']', 00H, ' ', 00H, '%', 00H, '3', 00H, '2', 00H, 'h'
+	DB	00H, 's', 00H, ' ', 00H, '-', 00H, ' ', 00H, '%', 00H, 's', 00H
+	DB	00H, 00H
+$SG170525 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'I', 00H, 'S', 00H, 'A', 00H, 'P', 00H, 'I'
+	DB	00H, 00H, 00H
+$SG281983 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
+	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
+	DB	00H, 'A', 00H, 'p', 00H, 'p', 00H, 'l', 00H, 'i', 00H, 'c', 00H
+	DB	'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, ' ', 00H, 'D'
+	DB	00H, 'e', 00H, 'a', 00H, 'c', 00H, 't', 00H, 'i', 00H, 'v', 00H
+	DB	'a', 00H, 't', 00H, 'e', 00H, 'd', 00H, ' ', 00H, '(', 00H, 'N'
+	DB	00H, 'o', 00H, 'n', 00H, '-', 00H, 'C', 00H, 'l', 00H, 'i', 00H
+	DB	'e', 00H, 'n', 00H, 't', 00H, ')', 00H, 00H, 00H
+$SG282176 DB	'TranslateMessage', 00H
+	ORG $+3
+$SG281989 DB	'(', 00H, 'W', 00H, 'M', 00H, '_', 00H, 'A', 00H, 'C', 00H
+	DB	'T', 00H, 'I', 00H, 'V', 00H, 'A', 00H, 'T', 00H, 'E', 00H, ' '
+	DB	00H, '[', 00H, ' ', 00H, 'W', 00H, 'A', 00H, '_', 00H, 'C', 00H
+	DB	'L', 00H, 'I', 00H, 'C', 00H, 'K', 00H, 'A', 00H, 'C', 00H, 'T'
+	DB	00H, 'I', 00H, 'V', 00H, 'E', 00H, ' ', 00H, ']', 00H, ')', 00H
+	DB	00H, 00H
+	ORG $+2
+$SG169509 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'G', 00H, 'e', 00H, 'n', 00H, 'e', 00H, 'r'
+	DB	00H, 'a', 00H, 'l', 00H, 00H, 00H
+$SG282182 DB	'GetMessageW', 00H
+$SG281995 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
 	DB	00H, 'A', 00H, 'p', 00H, 'p', 00H, 'l', 00H, 'i', 00H, 'c', 00H
 	DB	'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, ' ', 00H, 'D'
 	DB	00H, 'e', 00H, 'a', 00H, 'c', 00H, 't', 00H, 'i', 00H, 'v', 00H
 	DB	'a', 00H, 't', 00H, 'e', 00H, 'd', 00H, ' ', 00H, '%', 00H, 's'
 	DB	00H, 00H, 00H
-$SG281919 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
+$SG281999 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
 	DB	00H, 'A', 00H, 'p', 00H, 'p', 00H, 'l', 00H, 'i', 00H, 'c', 00H
 	DB	'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, ' ', 00H, 'A'
 	DB	00H, 'c', 00H, 't', 00H, 'i', 00H, 'v', 00H, 'a', 00H, 't', 00H
 	DB	'e', 00H, 'd', 00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
-$SG170332 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'r', 00H, 'i', 00H, 'n'
-	DB	00H, 'g', 00H, 00H, 00H
-	ORG $+2
-$SG281966 DB	'e', 00H, 'q', 00H, 'g', 00H, 'a', 00H, 'm', 00H, 'e', 00H
+$SG282046 DB	'e', 00H, 'q', 00H, 'g', 00H, 'a', 00H, 'm', 00H, 'e', 00H
 	DB	'.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG282087 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
-	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG282089 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
-	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG282091 DB	'DefWindowProcA', 00H
+$SG282167 DB	'DefWindowProcW', 00H
 	ORG $+1
-$SG282092 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+$SG282168 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG282093 DB	'CallWindowProcA', 00H
-$SG282094 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+$SG282169 DB	'CallWindowProcW', 00H
+$SG282170 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG282096 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+$SG282172 DB	'DefWindowProcA', 00H
+	ORG $+1
+$SG282173 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG282097 DB	'PeekMessageW', 00H
+$SG282174 DB	'CallWindowProcA', 00H
+$SG282175 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG282177 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG282178 DB	'PeekMessageW', 00H
 	ORG $+3
-$SG282098 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+$SG282179 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG282099 DB	'PeekMessageA', 00H
+$SG282180 DB	'PeekMessageA', 00H
 	ORG $+3
-$SG282100 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+$SG282181 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG282102 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+$SG282183 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG282103 DB	'DispatchMessageW', 00H
+$SG282184 DB	'DispatchMessageW', 00H
 	ORG $+3
-$SG282104 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+$SG282185 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG282105 DB	'GetMessageA', 00H
-$SG282106 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+$SG282186 DB	'GetMessageA', 00H
+$SG282187 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG282107 DB	'DispatchMessageA', 00H
+$SG282188 DB	'DispatchMessageA', 00H
 	ORG $+3
-$SG282108 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+$SG282189 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG282110 DB	'U', 00H, 'n', 00H, 'i', 00H, 'c', 00H, 'o', 00H, 'd', 00H
+$SG282191 DB	'U', 00H, 'n', 00H, 'i', 00H, 'c', 00H, 'o', 00H, 'd', 00H
 	DB	'e', 00H, 00H, 00H
-$SG282111 DB	'A', 00H, 'N', 00H, 'S', 00H, 'I', 00H, 00H, 00H
+$SG282192 DB	'A', 00H, 'N', 00H, 'S', 00H, 'I', 00H, 00H, 00H
 	ORG $+2
-$SG282129 DB	'Cursor.Timeout', 00H
+$SG282210 DB	'Cursor.Timeout', 00H
 	ORG $+1
-$SG282130 DB	'Cursor.KeysActivate', 00H
-$SG282112 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
+$SG282211 DB	'Cursor.KeysActivate', 00H
+$SG282193 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
 	DB	00H, 'H', 00H, 'o', 00H, 'o', 00H, 'k', 00H, 'i', 00H, 'n', 00H
 	DB	'g', 00H, ' ', 00H, 't', 00H, 'h', 00H, 'e', 00H, ' ', 00H, 'W'
@@ -703,51 +719,36 @@ $SG282112 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 	DB	00H, 'P', 00H, 'r', 00H, 'o', 00H, 'c', 00H, ':', 00H, ' ', 00H
 	DB	'%', 00H, 'p', 00H, ')', 00H, 00H, 00H
 	ORG $+2
-$SG282131 DB	'Window.BackgroundRender', 00H
-$SG170525 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'I', 00H, 'S', 00H, 'A', 00H, 'P', 00H, 'I'
-	DB	00H, 00H, 00H
-$SG282117 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
+$SG282212 DB	'Window.BackgroundRender', 00H
+$SG212596 DB	'Window Mgr', 00H
+	ORG $+1
+$SG282198 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'H', 00H, 'o', 00H
 	DB	'o', 00H, 'k', 00H, 'e', 00H, 'd', 00H, ' ', 00H, 'C', 00H, 'l'
 	DB	00H, 'a', 00H, 's', 00H, 's', 00H, 'P', 00H, 'r', 00H, 'o', 00H
 	DB	'c', 00H, '.', 00H, 00H, 00H
 	ORG $+2
-$SG282119 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
+$SG282200 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'H', 00H, 'o', 00H
 	DB	'o', 00H, 'k', 00H, 'e', 00H, 'd', 00H, ' ', 00H, 'W', 00H, 'n'
 	DB	00H, 'd', 00H, 'P', 00H, 'r', 00H, 'o', 00H, 'c', 00H, '.', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG282128 DB	'Cursor.Manage', 00H
+$SG282209 DB	'Cursor.Manage', 00H
 	ORG $+2
-$SG282132 DB	'ImGui.Visible', 00H
+$SG282213 DB	'ImGui.Visible', 00H
 	ORG $+2
-$SG169509 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'G', 00H, 'e', 00H, 'n', 00H, 'e', 00H, 'r'
-	DB	00H, 'a', 00H, 'l', 00H, 00H, 00H
-$SG212524 DB	'SK_AdjustWindow', 00H
-$SG212525 DB	'Window Mgr', 00H
-	ORG $+1
-$SG212526 DB	'[', 00H, '%', 00H, 'h', 00H, 's', 00H, ']', 00H, '[', 00H
+$SG169580 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'C', 00H, 'O', 00H, 'M', 00H, 00H, 00H
+$SG212595 DB	'SK_AdjustWindow', 00H
+$SG212597 DB	'[', 00H, '%', 00H, 'h', 00H, 's', 00H, ']', 00H, '[', 00H
 	DB	'!', 00H, ']', 00H, ' ', 00H, '%', 00H, '3', 00H, '2', 00H, 'h'
 	DB	00H, 's', 00H, ' ', 00H, '-', 00H, ' ', 00H, '%', 00H, 's', 00H
 	DB	00H, 00H
-$SG282161 DB	'RegisterClassA_Detour', 00H
-	ORG $+2
-$SG282162 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
-	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
-	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
-	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
-	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
-	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
-	ORG $+2
-$SG282185 DB	'RegisterClassExA_Detour', 00H
-$SG212576 DB	'N', 00H, 'o', 00H, 'n', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG212532 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
+$SG181925 DB	'A', 00H, 'p', 00H, 'p', 00H, 'I', 00H, 'D', 00H, 00H, 00H
+$SG212603 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '>', 00H, ' ', 00H, 'S', 00H, 'K', 00H, '_', 00H
 	DB	'A', 00H, 'd', 00H, 'j', 00H, 'u', 00H, 's', 00H, 't', 00H, 'W'
@@ -755,10 +756,9 @@ $SG212532 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 	DB	'(', 00H, 'F', 00H, 'u', 00H, 'l', 00H, 'l', 00H, 's', 00H, 'c'
 	DB	00H, 'r', 00H, 'e', 00H, 'e', 00H, 'n', 00H, ')', 00H, 00H, 00H
 	ORG $+2
-$SG282197 DB	'RegisterClassExW_Detour', 00H
-$SG212582 DB	'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG212534 DB	'[', 00H, 'B', 00H, 'o', 00H, 'r', 00H, 'd', 00H, 'e', 00H
+$SG282266 DB	'RegisterClassExA_Detour', 00H
+$SG181926 DB	'C', 00H, 'L', 00H, 'S', 00H, 'I', 00H, 'D', 00H, 00H, 00H
+$SG212605 DB	'[', 00H, 'B', 00H, 'o', 00H, 'r', 00H, 'd', 00H, 'e', 00H
 	DB	'r', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
 	DB	00H, 'F', 00H, 'U', 00H, 'L', 00H, 'L', 00H, 'S', 00H, 'C', 00H
 	DB	'R', 00H, 'E', 00H, 'E', 00H, 'N', 00H, ' ', 00H, '=', 00H, '>'
@@ -769,9 +769,9 @@ $SG212534 DB	'[', 00H, 'B', 00H, 'o', 00H, 'r', 00H, 'd', 00H, 'e', 00H
 	DB	00H, 'W', 00H, 'x', 00H, 'H', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'l', 00H, 'i', 00H, 'x', 00H, '%', 00H, 'l', 00H, 'i', 00H, ')'
 	DB	00H, 00H, 00H
-$SG212583 DB	' ', 00H, 'I', 00H, 'N', 00H, ' ', 00H, 00H, 00H
+$SG212647 DB	'N', 00H, 'o', 00H, 'n', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG212536 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
+$SG212607 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '>', 00H, ' ', 00H, 'S', 00H, 'K', 00H, '_', 00H
 	DB	'A', 00H, 'd', 00H, 'j', 00H, 'u', 00H, 's', 00H, 't', 00H, 'W'
@@ -779,37 +779,42 @@ $SG212536 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 	DB	'(', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H, 'w'
 	DB	00H, 'e', 00H, 'd', 00H, ')', 00H, 00H, 00H
 	ORG $+2
-$SG282173 DB	'RegisterClassW_Detour', 00H
+$SG282242 DB	'RegisterClassA_Detour', 00H
 	ORG $+2
-$SG282174 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
+$SG282243 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG212588 DB	'O', 00H, 'U', 00H, 'T', 00H, ' ', 00H, 00H, 00H
+$SG282254 DB	'RegisterClassW_Detour', 00H
 	ORG $+2
-$SG282186 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
+$SG282278 DB	'RegisterClassExW_Detour', 00H
+$SG181927 DB	'C', 00H, 'o', 00H, 'm', 00H, 'p', 00H, 'o', 00H, 'n', 00H
+	DB	'e', 00H, 'n', 00H, 't', 00H, ' ', 00H, 'C', 00H, 'a', 00H, 't'
+	DB	00H, 'e', 00H, 'g', 00H, 'o', 00H, 'r', 00H, 'i', 00H, 'e', 00H
+	DB	's', 00H, 00H, 00H
+	ORG $+2
+$SG282255 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG169580 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'C', 00H, 'O', 00H, 'M', 00H, 00H, 00H
-$SG212621 DB	'SK_GetSystemMetrics', 00H
-$SG212556 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
+$SG181928 DB	'F', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'T', 00H, 'y', 00H
+	DB	'p', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG212627 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
 	DB	00H, 'C', 00H, 'e', 00H, 'n', 00H, 't', 00H, 'e', 00H, 'r', 00H
 	DB	' ', 00H, '-', 00H, '-', 00H, '>', 00H, ' ', 00H, '(', 00H, '%'
 	DB	00H, 'l', 00H, 'i', 00H, ',', 00H, '%', 00H, 'l', 00H, 'i', 00H
 	DB	')', 00H, 00H, 00H
-$SG211599 DB	'U', 00H, 'N', 00H, 'K', 00H, 'K', 00H, 'N', 00H, 'O', 00H
-	DB	'W', 00H, 'N', 00H, 00H, 00H
-	ORG $+2
-$SG211539 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
+$SG181929 DB	'I', 00H, 'n', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'f', 00H
+	DB	'a', 00H, 'c', 00H, 'e', 00H, 00H, 00H
+$SG211610 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
 	DB	00H, 'W', 00H, 'M', 00H, '_', 00H, 'M', 00H, 'O', 00H, 'U', 00H
 	DB	'S', 00H, 'E', 00H, 'A', 00H, 'C', 00H, 'T', 00H, 'I', 00H, 'V'
@@ -818,20 +823,20 @@ $SG211539 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 'a', 00H, 'n', 00H
 	DB	'd', 00H, ' ', 00H, 'E', 00H, 'a', 00H, 't', 00H, 00H, 00H
 	ORG $+2
-$SG282198 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
+$SG282267 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG212600 DB	'GetSystemMetrics_Detour', 00H
-$SG211604 DB	'(', 00H, 'W', 00H, 'M', 00H, '_', 00H, 'A', 00H, 'C', 00H
-	DB	'T', 00H, 'I', 00H, 'V', 00H, 'A', 00H, 'T', 00H, 'E', 00H, ' '
-	DB	00H, '[', 00H, ' ', 00H, 'W', 00H, 'A', 00H, '_', 00H, 'I', 00H
-	DB	'N', 00H, 'A', 00H, 'C', 00H, 'T', 00H, 'I', 00H, 'V', 00H, 'E'
-	DB	00H, ' ', 00H, ']', 00H, ')', 00H, 00H, 00H
-$SG211543 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
+$SG169627 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'Q', 00H, 'I', 00H, 00H, 00H
+	ORG $+2
+$SG181930 DB	'H', 00H, 'a', 00H, 'r', 00H, 'd', 00H, 'w', 00H, 'a', 00H
+	DB	'r', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG211614 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
 	DB	00H, 'W', 00H, 'M', 00H, '_', 00H, 'M', 00H, 'O', 00H, 'U', 00H
 	DB	'S', 00H, 'E', 00H, 'A', 00H, 'C', 00H, 'T', 00H, 'I', 00H, 'V'
@@ -840,8 +845,9 @@ $SG211543 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 	DB	00H, 'n', 00H, 'd', 00H, 'o', 00H, 'w', 00H, ')', 00H, ' ', 00H
 	DB	'=', 00H, '=', 00H, '>', 00H, ' ', 00H, 'A', 00H, 'c', 00H, 't'
 	DB	00H, 'i', 00H, 'v', 00H, 'a', 00H, 't', 00H, 'e', 00H, 00H, 00H
-$SG181925 DB	'A', 00H, 'p', 00H, 'p', 00H, 'I', 00H, 'D', 00H, 00H, 00H
-$SG212574 DB	'(', 00H, 'F', 00H, 'r', 00H, 'a', 00H, 'm', 00H, 'e', 00H
+$SG181931 DB	'M', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG212645 DB	'(', 00H, 'F', 00H, 'r', 00H, 'a', 00H, 'm', 00H, 'e', 00H
 	DB	' ', 00H, '=', 00H, ' ', 00H, '%', 00H, 'l', 00H, 'i', 00H, 'p'
 	DB	00H, 'x', 00H, ' ', 00H, 'x', 00H, ' ', 00H, '%', 00H, 'l', 00H
 	DB	'i', 00H, 'p', 00H, 'x', 00H, ',', 00H, ' ', 00H, 'T', 00H, 'i'
@@ -849,7 +855,17 @@ $SG212574 DB	'(', 00H, 'F', 00H, 'r', 00H, 'a', 00H, 'm', 00H, 'e', 00H
 	DB	'%', 00H, 'l', 00H, 'i', 00H, 'p', 00H, 'x', 00H, ')', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG212577 DB	'[', 00H, 'B', 00H, 'o', 00H, 'r', 00H, 'd', 00H, 'e', 00H
+$SG282279 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
+	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
+	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
+	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
+	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
+	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
+	ORG $+2
+$SG181932 DB	'S', 00H, 'A', 00H, 'M', 00H, 00H, 00H
+$SG212653 DB	'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG212648 DB	'[', 00H, 'B', 00H, 'o', 00H, 'r', 00H, 'd', 00H, 'e', 00H
 	DB	'r', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
 	DB	00H, 'W', 00H, 'I', 00H, 'N', 00H, 'D', 00H, 'O', 00H, 'W', 00H
 	DB	' ', 00H, '=', 00H, '>', 00H, ' ', 00H, '{', 00H, 'L', 00H, 'e'
@@ -863,7 +879,7 @@ $SG212577 DB	'[', 00H, 'B', 00H, 'o', 00H, 'r', 00H, 'd', 00H, 'e', 00H
 	DB	'r', 00H, ':', 00H, ' ', 00H, '%', 00H, 's', 00H, ' ', 00H, '}'
 	DB	00H, 00H, 00H
 	ORG $+2
-$SG211557 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
+$SG211628 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
 	DB	00H, 'A', 00H, 'p', 00H, 'p', 00H, 'l', 00H, 'i', 00H, 'c', 00H
 	DB	'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, ' ', 00H, 'A'
@@ -871,7 +887,15 @@ $SG211557 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 	DB	'e', 00H, 'd', 00H, ' ', 00H, '(', 00H, 'N', 00H, 'o', 00H, 'n'
 	DB	00H, '-', 00H, 'C', 00H, 'l', 00H, 'i', 00H, 'e', 00H, 'n', 00H
 	DB	't', 00H, ')', 00H, 00H, 00H
-$SG211560 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
+$SG181933 DB	'S', 00H, 'E', 00H, 'C', 00H, 'U', 00H, 'R', 00H, 'I', 00H
+	DB	'T', 00H, 'Y', 00H, 00H, 00H
+	ORG $+2
+$SG212654 DB	' ', 00H, 'I', 00H, 'N', 00H, ' ', 00H, 00H, 00H
+	ORG $+2
+$SG181934 DB	'S', 00H, 'Y', 00H, 'S', 00H, 'T', 00H, 'E', 00H, 'M', 00H
+	DB	00H, 00H
+	ORG $+2
+$SG211631 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
 	DB	00H, 'A', 00H, 'p', 00H, 'p', 00H, 'l', 00H, 'i', 00H, 'c', 00H
 	DB	'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, ' ', 00H, 'D'
@@ -879,8 +903,12 @@ $SG211560 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 	DB	'a', 00H, 't', 00H, 'e', 00H, 'd', 00H, ' ', 00H, '(', 00H, 'N'
 	DB	00H, 'o', 00H, 'n', 00H, '-', 00H, 'C', 00H, 'l', 00H, 'i', 00H
 	DB	'e', 00H, 'n', 00H, 't', 00H, ')', 00H, 00H, 00H
-$SG181926 DB	'C', 00H, 'L', 00H, 'S', 00H, 'I', 00H, 'D', 00H, 00H, 00H
-$SG212587 DB	'[', 00H, 'C', 00H, 'u', 00H, 'r', 00H, 's', 00H, 'o', 00H
+$SG181935 DB	'S', 00H, 'o', 00H, 'f', 00H, 't', 00H, 'w', 00H, 'a', 00H
+	DB	'r', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG181936 DB	'T', 00H, 'y', 00H, 'p', 00H, 'e', 00H, 'L', 00H, 'i', 00H
+	DB	'b', 00H, 00H, 00H
+$SG212658 DB	'[', 00H, 'C', 00H, 'u', 00H, 'r', 00H, 's', 00H, 'o', 00H
 	DB	'r', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
 	DB	00H, 'N', 00H, 'e', 00H, 'e', 00H, 'd', 00H, ' ', 00H, 't', 00H
 	DB	'o', 00H, ' ', 00H, 't', 00H, 'r', 00H, 'a', 00H, 'n', 00H, 's'
@@ -890,17 +918,9 @@ $SG212587 DB	'[', 00H, 'C', 00H, 'u', 00H, 'r', 00H, 's', 00H, 'o', 00H
 	DB	'r', 00H, 'e', 00H, 'c', 00H, 't', 00H, '.', 00H, '.', 00H, '.'
 	DB	00H, 00H, 00H
 	ORG $+2
-$SG211601 DB	'(', 00H, 'W', 00H, 'M', 00H, '_', 00H, 'A', 00H, 'C', 00H
-	DB	'T', 00H, 'I', 00H, 'V', 00H, 'A', 00H, 'T', 00H, 'E', 00H, ' '
-	DB	00H, '[', 00H, ' ', 00H, 'W', 00H, 'A', 00H, '_', 00H, 'A', 00H
-	DB	'C', 00H, 'T', 00H, 'I', 00H, 'V', 00H, 'E', 00H, ' ', 00H, ']'
-	DB	00H, ')', 00H, 00H, 00H
-$SG181927 DB	'C', 00H, 'o', 00H, 'm', 00H, 'p', 00H, 'o', 00H, 'n', 00H
-	DB	'e', 00H, 'n', 00H, 't', 00H, ' ', 00H, 'C', 00H, 'a', 00H, 't'
-	DB	00H, 'e', 00H, 'g', 00H, 'o', 00H, 'r', 00H, 'i', 00H, 'e', 00H
-	DB	's', 00H, 00H, 00H
+$SG212659 DB	'O', 00H, 'U', 00H, 'T', 00H, ' ', 00H, 00H, 00H
 	ORG $+2
-$SG211574 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
+$SG211645 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
 	DB	00H, 'A', 00H, 'p', 00H, 'p', 00H, 'l', 00H, 'i', 00H, 'c', 00H
 	DB	'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, ' ', 00H, 'A'
@@ -908,17 +928,18 @@ $SG211574 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 	DB	'e', 00H, 'd', 00H, ' ', 00H, '(', 00H, 'N', 00H, 'o', 00H, 'n'
 	DB	00H, '-', 00H, 'C', 00H, 'l', 00H, 'i', 00H, 'e', 00H, 'n', 00H
 	DB	't', 00H, ')', 00H, 00H, 00H
-$SG212601 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
+$SG212671 DB	'GetSystemMetrics_Detour', 00H
+$SG212672 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG181928 DB	'F', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'T', 00H, 'y', 00H
-	DB	'p', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG211577 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
+$SG169674 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'g', 00H, 'i', 00H, 's'
+	DB	00H, 't', 00H, 'r', 00H, 'a', 00H, 'r', 00H, 00H, 00H
+$SG211648 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
 	DB	00H, 'A', 00H, 'p', 00H, 'p', 00H, 'l', 00H, 'i', 00H, 'c', 00H
 	DB	'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, ' ', 00H, 'D'
@@ -926,9 +947,8 @@ $SG211577 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 	DB	'a', 00H, 't', 00H, 'e', 00H, 'd', 00H, ' ', 00H, '(', 00H, 'N'
 	DB	00H, 'o', 00H, 'n', 00H, '-', 00H, 'C', 00H, 'l', 00H, 'i', 00H
 	DB	'e', 00H, 'n', 00H, 't', 00H, ')', 00H, 00H, 00H
-$SG181929 DB	'I', 00H, 'n', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'f', 00H
-	DB	'a', 00H, 'c', 00H, 'e', 00H, 00H, 00H
-$SG212603 DB	'[', 00H, 'R', 00H, 'e', 00H, 's', 00H, 'o', 00H, 'l', 00H
+$SG212692 DB	'SK_GetSystemMetrics', 00H
+$SG212674 DB	'[', 00H, 'R', 00H, 'e', 00H, 's', 00H, 'o', 00H, 'l', 00H
 	DB	'u', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, ']', 00H, ' '
 	DB	00H, 'G', 00H, 'e', 00H, 't', 00H, 'S', 00H, 'y', 00H, 's', 00H
 	DB	't', 00H, 'e', 00H, 'm', 00H, 'M', 00H, 'e', 00H, 't', 00H, 'r'
@@ -936,226 +956,220 @@ $SG212603 DB	'[', 00H, 'R', 00H, 'e', 00H, 's', 00H, 'o', 00H, 'l', 00H
 	DB	'4', 00H, 'l', 00H, 'i', 00H, ')', 00H, ' ', 00H, ':', 00H, ' '
 	DB	00H, '%', 00H, '-', 00H, '5', 00H, 'l', 00H, 'i', 00H, ' ', 00H
 	DB	'-', 00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
-$SG181930 DB	'H', 00H, 'a', 00H, 'r', 00H, 'd', 00H, 'w', 00H, 'a', 00H
-	DB	'r', 00H, 'e', 00H, 00H, 00H
+$SG211670 DB	'U', 00H, 'N', 00H, 'K', 00H, 'K', 00H, 'N', 00H, 'O', 00H
+	DB	'W', 00H, 'N', 00H, 00H, 00H
 	ORG $+2
-$SG282236 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
+$SG282317 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'H', 00H, 'o', 00H
 	DB	'o', 00H, 'k', 00H, 'e', 00H, 'd', 00H, ' ', 00H, 'C', 00H, 'l'
 	DB	00H, 'a', 00H, 's', 00H, 's', 00H, 'P', 00H, 'r', 00H, 'o', 00H
 	DB	'c', 00H, '.', 00H, 00H, 00H
 	ORG $+2
-$SG282238 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
+$SG282319 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '>', 00H, '>', 00H, ' ', 00H, 'H', 00H, 'o', 00H
 	DB	'o', 00H, 'k', 00H, 'e', 00H, 'd', 00H, ' ', 00H, 'W', 00H, 'n'
 	DB	00H, 'd', 00H, 'P', 00H, 'r', 00H, 'o', 00H, 'c', 00H, '.', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG181931 DB	'M', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG212622 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
+$SG211672 DB	'(', 00H, 'W', 00H, 'M', 00H, '_', 00H, 'A', 00H, 'C', 00H
+	DB	'T', 00H, 'I', 00H, 'V', 00H, 'A', 00H, 'T', 00H, 'E', 00H, ' '
+	DB	00H, '[', 00H, ' ', 00H, 'W', 00H, 'A', 00H, '_', 00H, 'A', 00H
+	DB	'C', 00H, 'T', 00H, 'I', 00H, 'V', 00H, 'E', 00H, ' ', 00H, ']'
+	DB	00H, ')', 00H, 00H, 00H
+$SG211675 DB	'(', 00H, 'W', 00H, 'M', 00H, '_', 00H, 'A', 00H, 'C', 00H
+	DB	'T', 00H, 'I', 00H, 'V', 00H, 'A', 00H, 'T', 00H, 'E', 00H, ' '
+	DB	00H, '[', 00H, ' ', 00H, 'W', 00H, 'A', 00H, '_', 00H, 'I', 00H
+	DB	'N', 00H, 'A', 00H, 'C', 00H, 'T', 00H, 'I', 00H, 'V', 00H, 'E'
+	DB	00H, ' ', 00H, ']', 00H, ')', 00H, 00H, 00H
+$SG212693 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG181932 DB	'S', 00H, 'A', 00H, 'M', 00H, 00H, 00H
-$SG181933 DB	'S', 00H, 'E', 00H, 'C', 00H, 'U', 00H, 'R', 00H, 'I', 00H
-	DB	'T', 00H, 'Y', 00H, 00H, 00H
+$SG169721 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'f', 00H, 'c', 00H, 'o'
+	DB	00H, 'u', 00H, 'n', 00H, 't', 00H, 00H, 00H
 	ORG $+2
-$SG211602 DB	'(', 00H, 'W', 00H, 'M', 00H, '_', 00H, 'A', 00H, 'C', 00H
+$SG211673 DB	'(', 00H, 'W', 00H, 'M', 00H, '_', 00H, 'A', 00H, 'C', 00H
 	DB	'T', 00H, 'I', 00H, 'V', 00H, 'A', 00H, 'T', 00H, 'E', 00H, ' '
 	DB	00H, '[', 00H, ' ', 00H, 'W', 00H, 'A', 00H, '_', 00H, 'C', 00H
 	DB	'L', 00H, 'I', 00H, 'C', 00H, 'K', 00H, 'A', 00H, 'C', 00H, 'T'
 	DB	00H, 'I', 00H, 'V', 00H, 'E', 00H, ' ', 00H, ']', 00H, ')', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG181935 DB	'S', 00H, 'o', 00H, 'f', 00H, 't', 00H, 'w', 00H, 'a', 00H
-	DB	'r', 00H, 'e', 00H, 00H, 00H
+$SG211734 DB	'S', 00H, 'K', 00H, 'I', 00H, 'M', 00H, 00H, 00H
 	ORG $+2
-$SG211608 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
+$SG211679 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
 	DB	00H, 'A', 00H, 'p', 00H, 'p', 00H, 'l', 00H, 'i', 00H, 'c', 00H
 	DB	'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, ' ', 00H, 'D'
 	DB	00H, 'e', 00H, 'a', 00H, 'c', 00H, 't', 00H, 'i', 00H, 'v', 00H
 	DB	'a', 00H, 't', 00H, 'e', 00H, 'd', 00H, ' ', 00H, '%', 00H, 's'
 	DB	00H, 00H, 00H
-$SG169627 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'Q', 00H, 'I', 00H, 00H, 00H
-	ORG $+2
-$SG211612 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
+$SG211683 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
 	DB	00H, 'A', 00H, 'p', 00H, 'p', 00H, 'l', 00H, 'i', 00H, 'c', 00H
 	DB	'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, ' ', 00H, 'A'
 	DB	00H, 'c', 00H, 't', 00H, 'i', 00H, 'v', 00H, 'a', 00H, 't', 00H
 	DB	'e', 00H, 'd', 00H, ' ', 00H, '%', 00H, 's', 00H, 00H, 00H
-$SG181934 DB	'S', 00H, 'Y', 00H, 'S', 00H, 'T', 00H, 'E', 00H, 'M', 00H
-	DB	00H, 00H
-	ORG $+2
-$SG181936 DB	'T', 00H, 'y', 00H, 'p', 00H, 'e', 00H, 'L', 00H, 'i', 00H
-	DB	'b', 00H, 00H, 00H
-$SG169674 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'g', 00H, 'i', 00H, 's'
-	DB	00H, 't', 00H, 'r', 00H, 'a', 00H, 'r', 00H, 00H, 00H
-$SG211663 DB	'S', 00H, 'K', 00H, 'I', 00H, 'M', 00H, 00H, 00H
-	ORG $+2
-$SG212697 DB	'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 'O', 00H, 'v', 00H
+$SG212768 DB	'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 'O', 00H, 'v', 00H
 	DB	'e', 00H, 'r', 00H, 'l', 00H, 'a', 00H, 'y', 00H, 'R', 00H, 'e'
 	DB	00H, 'n', 00H, 'd', 00H, 'e', 00H, 'r', 00H, 'e', 00H, 'r', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG212701 DB	'PeekMessageW_Detour', 00H
-$SG212702 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
+$SG212772 DB	'PeekMessageW_Detour', 00H
+$SG212773 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG212720 DB	'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 'O', 00H, 'v', 00H
-	DB	'e', 00H, 'r', 00H, 'l', 00H, 'a', 00H, 'y', 00H, 'R', 00H, 'e'
-	DB	00H, 'n', 00H, 'd', 00H, 'e', 00H, 'r', 00H, 'e', 00H, 'r', 00H
-	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG282356 DB	'SetWindowPos', 00H
-	ORG $+3
-$SG212724 DB	'PeekMessageA_Detour', 00H
-$SG282357 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
-	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG212725 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
-	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
-	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
-	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
-	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
-	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
-	ORG $+2
-$SG282358 DB	'SetWindowPlacement', 00H
-	ORG $+1
-$SG282359 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
-	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG282360 DB	'MoveWindow', 00H
-	ORG $+1
-$SG282361 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
-	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG169721 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'f', 00H, 'c', 00H, 'o'
-	DB	00H, 'u', 00H, 'n', 00H, 't', 00H, 00H, 00H
-	ORG $+2
-$SG282362 DB	'ClipCursor', 00H
-	ORG $+1
-$SG282363 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
-	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG282364 DB	'CreateWindowExW', 00H
-$SG282365 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
-	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG282366 DB	'CreateWindowExA', 00H
-$SG282367 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
-	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG282368 DB	'SetWindowLongA', 00H
-	ORG $+1
-$SG282369 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
-	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG282370 DB	'SetWindowLongW', 00H
-	ORG $+1
-$SG282371 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
-	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG282372 DB	'GetWindowLongA', 00H
-	ORG $+1
-$SG282373 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
-	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG212741 DB	'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 'O', 00H, 'v', 00H
-	DB	'e', 00H, 'r', 00H, 'l', 00H, 'a', 00H, 'y', 00H, 'R', 00H, 'e'
-	DB	00H, 'n', 00H, 'd', 00H, 'e', 00H, 'r', 00H, 'e', 00H, 'r', 00H
-	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG282374 DB	'GetWindowLongW', 00H
-	ORG $+1
-$SG282375 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
-	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG282376 DB	'GetWindowRect', 00H
-	ORG $+2
-$SG282377 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
-	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG212745 DB	'GetMessageA_Detour', 00H
-	ORG $+1
-$SG282378 DB	'GetClientRect', 00H
-	ORG $+2
-$SG212746 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
-	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
-	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
-	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
-	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
-	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
-	ORG $+2
-$SG282379 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
-	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG282380 DB	'AdjustWindowRect', 00H
-	ORG $+3
-$SG282381 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
-	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG282382 DB	'AdjustWindowRectEx', 00H
-	ORG $+1
-$SG282383 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
-	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG282384 DB	'GetSystemMetrics', 00H
-	ORG $+3
-$SG282385 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
-	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG212758 DB	'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 'O', 00H, 'v', 00H
-	DB	'e', 00H, 'r', 00H, 'l', 00H, 'a', 00H, 'y', 00H, 'R', 00H, 'e'
-	DB	00H, 'n', 00H, 'd', 00H, 'e', 00H, 'r', 00H, 'e', 00H, 'r', 00H
-	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG212762 DB	'GetMessageW_Detour', 00H
-	ORG $+1
-$SG212773 DB	'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 'O', 00H, 'v', 00H
-	DB	'e', 00H, 'r', 00H, 'l', 00H, 'a', 00H, 'y', 00H, 'R', 00H, 'e'
-	DB	00H, 'n', 00H, 'd', 00H, 'e', 00H, 'r', 00H, 'e', 00H, 'r', 00H
-	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 $SG169768 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o'
 	DB	00H, 'w', 00H, 'i', 00H, 'n', 00H, 'g', 00H, 00H, 00H
-$SG212763 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
+$SG212791 DB	'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 'O', 00H, 'v', 00H
+	DB	'e', 00H, 'r', 00H, 'l', 00H, 'a', 00H, 'y', 00H, 'R', 00H, 'e'
+	DB	00H, 'n', 00H, 'd', 00H, 'e', 00H, 'r', 00H, 'e', 00H, 'r', 00H
+	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG212795 DB	'PeekMessageA_Detour', 00H
+$SG282439 DB	'SetWindowPlacement', 00H
+	ORG $+1
+$SG212796 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG212777 DB	'DispatchMessageW_Detour', 00H
+$SG282437 DB	'SetWindowPos', 00H
+	ORG $+3
+$SG282438 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG282440 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG282441 DB	'MoveWindow', 00H
+	ORG $+1
+$SG282442 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG282443 DB	'ClipCursor', 00H
+	ORG $+1
+$SG282444 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG212812 DB	'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 'O', 00H, 'v', 00H
+	DB	'e', 00H, 'r', 00H, 'l', 00H, 'a', 00H, 'y', 00H, 'R', 00H, 'e'
+	DB	00H, 'n', 00H, 'd', 00H, 'e', 00H, 'r', 00H, 'e', 00H, 'r', 00H
+	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG282445 DB	'CreateWindowExW', 00H
+$SG282446 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG282447 DB	'CreateWindowExA', 00H
+$SG282448 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG212816 DB	'GetMessageA_Detour', 00H
+	ORG $+1
+$SG282449 DB	'SetWindowLongA', 00H
+	ORG $+1
+$SG212817 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
+	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
+	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
+	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
+	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
+	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
+	ORG $+2
+$SG282450 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG282451 DB	'SetWindowLongW', 00H
+	ORG $+1
+$SG282452 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG282453 DB	'GetWindowLongA', 00H
+	ORG $+1
+$SG282454 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG282455 DB	'GetWindowLongW', 00H
+	ORG $+1
 $SG169815 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'C', 00H, 'o', 00H, 'n', 00H, 't', 00H, 'r'
 	DB	00H, 'o', 00H, 'l', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG212778 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
+$SG282456 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG282457 DB	'GetWindowRect', 00H
+	ORG $+2
+$SG282458 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG282459 DB	'GetClientRect', 00H
+	ORG $+2
+$SG282460 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG282461 DB	'AdjustWindowRect', 00H
+	ORG $+3
+$SG212829 DB	'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 'O', 00H, 'v', 00H
+	DB	'e', 00H, 'r', 00H, 'l', 00H, 'a', 00H, 'y', 00H, 'R', 00H, 'e'
+	DB	00H, 'n', 00H, 'd', 00H, 'e', 00H, 'r', 00H, 'e', 00H, 'r', 00H
+	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG282462 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG282463 DB	'AdjustWindowRectEx', 00H
+	ORG $+1
+$SG282464 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG282465 DB	'GetSystemMetrics', 00H
+	ORG $+3
+$SG212833 DB	'GetMessageW_Detour', 00H
+	ORG $+1
+$SG282466 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG212834 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG212788 DB	'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 'O', 00H, 'v', 00H
+$SG212844 DB	'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 'O', 00H, 'v', 00H
 	DB	'e', 00H, 'r', 00H, 'l', 00H, 'a', 00H, 'y', 00H, 'R', 00H, 'e'
 	DB	00H, 'n', 00H, 'd', 00H, 'e', 00H, 'r', 00H, 'e', 00H, 'r', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG212792 DB	'DispatchMessageA_Detour', 00H
-$SG211846 DB	'ClipCursor_Detour', 00H
+$SG212848 DB	'DispatchMessageW_Detour', 00H
+$SG169909 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'C', 00H, 'l', 00H, 'i'
+	DB	00H, 'e', 00H, 'n', 00H, 't', 00H, 00H, 00H
 	ORG $+2
-$SG212793 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
+$SG212849 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
+	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
+	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
+	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
+	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
+	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
+	ORG $+2
+$SG212859 DB	'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 'O', 00H, 'v', 00H
+	DB	'e', 00H, 'r', 00H, 'l', 00H, 'a', 00H, 'y', 00H, 'R', 00H, 'e'
+	DB	00H, 'n', 00H, 'd', 00H, 'e', 00H, 'r', 00H, 'e', 00H, 'r', 00H
+	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG212863 DB	'DispatchMessageA_Detour', 00H
+$SG211917 DB	'ClipCursor_Detour', 00H
+	ORG $+2
+$SG212864 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
@@ -1165,11 +1179,8 @@ $SG212793 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 $SG169862 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'H', 00H, 'o', 00H, 's', 00H, 't', 00H, 'i'
 	DB	00H, 'n', 00H, 'g', 00H, 00H, 00H
-$SG169909 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'C', 00H, 'l', 00H, 'i'
-	DB	00H, 'e', 00H, 'n', 00H, 't', 00H, 00H, 00H
-	ORG $+2
-$SG211847 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
+$SG181235 DB	'S', 00H, 00H, 00H
+$SG211918 DB	'[', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o', 00H
 	DB	'w', 00H, ' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
@@ -1180,7 +1191,6 @@ $SG169956 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'P', 00H, 'r', 00H, 'o'
 	DB	00H, 'v', 00H, 'i', 00H, 'd', 00H, 'e', 00H, 'r', 00H, 00H, 00H
 	ORG $+2
-$SG181235 DB	'S', 00H, 00H, 00H
 $SG181237 DB	'M', 00H, 00H, 00H
 $SG181239 DB	'D', 00H, 00H, 00H
 $SG181241 DB	'B', 00H, 00H, 00H
@@ -1630,7 +1640,7 @@ PUBLIC	?getInstance@SK_WindowManager@@SAPAV1@XZ	; SK_WindowManager::getInstance
 PUBLIC	?muteGame@SK_WindowManager@@QAEX_N@Z		; SK_WindowManager::muteGame
 PUBLIC	??0value_s@state_s@SK_WindowManager@@QAE@XZ	; SK_WindowManager::state_s::value_s::value_s
 PUBLIC	??0state_s@SK_WindowManager@@QAE@XZ		; SK_WindowManager::state_s::state_s
-PUBLIC	??R<lambda_bc1c1ac12d37131fdb55160d65b430af>@@QBEXPAUHWND__@@_N@Z ; <lambda_bc1c1ac12d37131fdb55160d65b430af>::operator()
+PUBLIC	??R<lambda_d14c9bebe89e1ec31d27f11b18db1002>@@QBEXPAUHWND__@@_N@Z ; <lambda_d14c9bebe89e1ec31d27f11b18db1002>::operator()
 PUBLIC	??$emplace@AAPAUHWND__@@@?$_Hash@V?$_Uset_traits@PAUHWND__@@V?$_Uhash_compare@PAUHWND__@@U?$hash@PAUHWND__@@@std@@U?$equal_to@PAUHWND__@@@3@@std@@V?$allocator@PAUHWND__@@@3@$0A@@std@@@std@@QAE?AU?$pair@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHWND__@@@std@@@std@@@std@@_N@1@AAPAUHWND__@@@Z ; std::_Hash<std::_Uset_traits<HWND__ *,std::_Uhash_compare<HWND__ *,std::hash<HWND__ *>,std::equal_to<HWND__ *> >,std::allocator<HWND__ *>,0> >::emplace<HWND__ * &>
 PUBLIC	??0?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHWND__@@@std@@@std@@U_Iterator_base0@2@@std@@QAE@XZ ; std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HWND__ *> >,std::_Iterator_base0>::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HWND__ *> >,std::_Iterator_base0>
 PUBLIC	??0?$_List_unchecked_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHWND__@@@std@@@std@@U_Iterator_base0@2@@std@@QAE@PAU?$_List_node@PAUHWND__@@PAX@1@PBV?$_List_val@U?$_List_simple_types@PAUHWND__@@@std@@@1@@Z ; std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HWND__ *> >,std::_Iterator_base0>::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<HWND__ *> >,std::_Iterator_base0>
@@ -1970,8 +1980,8 @@ PUBLIC	??_C@_0BF@OJMMDOKI@Window?4ScaledXOffset?$AA@	; `string'
 PUBLIC	??_C@_0BF@CFGGDODG@Window?4ScaledYOffset?$AA@	; `string'
 PUBLIC	??_C@_0BD@KMBFFGAF@Window?4StaticRects?$AA@	; `string'
 PUBLIC	?ActivateWindow@@3V<lambda>@@A			; ActivateWindow
-PUBLIC	??_C@_0BE@JMFEDEEM@Window?4TopMost?5true?$AA@	; `string'
 PUBLIC	??_C@_0BF@DLJIEPHI@Window?4TopMost?5false?$AA@	; `string'
+PUBLIC	??_C@_0BE@JMFEDEEM@Window?4TopMost?5true?$AA@	; `string'
 PUBLIC	??_C@_1EI@CGANLFJM@?$AA?$FL?$AAW?$AAi?$AAn?$AAd?$AAo?$AAw?$AA?5?$AAM?$AAg?$AAr?$AA?$FN?$AA?5?$AAC?$AAo?$AAn?$AAf?$AAi?$AAn?$AAi?$AAn?$AAg?$AA?5?$AAM?$AAo?$AAu?$AAs?$AAe?$AA?5?$AAC?$AAu?$AAr@ ; `string'
 PUBLIC	??_C@_1EM@LBJEIGPM@?$AA?$FL?$AAW?$AAi?$AAn?$AAd?$AAo?$AAw?$AA?5?$AAM?$AAg?$AAr?$AA?$FN?$AA?5?$AAU?$AAn?$AAc?$AAo?$AAn?$AAf?$AAi?$AAn?$AAi?$AAn?$AAg?$AA?5?$AAM?$AAo?$AAu?$AAs?$AAe?$AA?5?$AAC@ ; `string'
 PUBLIC	?DeferCommand@@3V<lambda>@@A			; DeferCommand
@@ -2124,8 +2134,6 @@ EXTRN	__fltused:DWORD
 EXTRN	__tls_array:DWORD
 EXTRN	__tls_index:DWORD
 _BSS	SEGMENT
-	ALIGN	4
-
 ?game_window@@3Usk_window_s@@A DB 0e0H DUP (?)		; game_window
 _BSS	ENDS
 ;	COMDAT ?atlTraceGeneral@ATL@@3V?$CTraceCategoryEx@$00$0A@@1@A
@@ -2582,13 +2590,13 @@ CONST	SEGMENT
 	DB	00H, 'e', 00H, ' ', 00H, 'C', 00H, 'u', 00H, 'r', 00H, 's', 00H
 	DB	'o', 00H, 'r', 00H, 00H, 00H			; `string'
 CONST	ENDS
-;	COMDAT ??_C@_0BF@DLJIEPHI@Window?4TopMost?5false?$AA@
-CONST	SEGMENT
-??_C@_0BF@DLJIEPHI@Window?4TopMost?5false?$AA@ DB 'Window.TopMost false', 00H ; `string'
-CONST	ENDS
 ;	COMDAT ??_C@_0BE@JMFEDEEM@Window?4TopMost?5true?$AA@
 CONST	SEGMENT
 ??_C@_0BE@JMFEDEEM@Window?4TopMost?5true?$AA@ DB 'Window.TopMost true', 00H ; `string'
+CONST	ENDS
+;	COMDAT ??_C@_0BF@DLJIEPHI@Window?4TopMost?5false?$AA@
+CONST	SEGMENT
+??_C@_0BF@DLJIEPHI@Window?4TopMost?5false?$AA@ DB 'Window.TopMost false', 00H ; `string'
 CONST	ENDS
 ;	COMDAT ??_C@_0BD@KMBFFGAF@Window?4StaticRects?$AA@
 CONST	SEGMENT
@@ -3427,7 +3435,7 @@ _<_Args_2>$ = 20					; size = 4
 	je	SHORT $LN3@construct
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 6198 : #endif
+; 6235 : #endif
 
 	mov	eax, DWORD PTR _<_Args_1>$[ebp]
 	mov	eax, DWORD PTR [eax]
@@ -3477,7 +3485,7 @@ _<_Args_2>$ = 24					; size = 4
 	je	SHORT $LN14@construct
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 6198 : #endif
+; 6235 : #endif
 
 	mov	eax, DWORD PTR _<_Args_1>$[ebp]
 	mov	eax, DWORD PTR [eax]
@@ -3527,7 +3535,7 @@ _<_Args_2>$ = 20					; size = 4
 	je	SHORT $LN25@construct
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 6198 : #endif
+; 6235 : #endif
 
 	mov	eax, DWORD PTR _<_Args_1>$[ebp]
 	mov	eax, DWORD PTR [eax]
@@ -6535,7 +6543,7 @@ ___that$ = 8						; size = 4
 ??0?$tuple@ABQAUHWND__@@@std@@QAE@$$QAV01@@Z PROC	; std::tuple<HWND__ * const &>::tuple<HWND__ * const &>, COMDAT
 ; _this$ = ecx
 
-; 6198 : #endif
+; 6235 : #endif
 
 	npad	2
 	push	ebp
@@ -10573,19 +10581,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GHH@Z@@YAPAPAXPAP6GHH@Z@Z PROC	; static_cast_p2p<void,int __stdcall(int)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -10598,19 +10606,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GHPAUtagRECT@@KHK@Z@@YAPAPAXPAP6GHPAUtagRECT@@KHK@Z@Z PROC ; static_cast_p2p<void,int __stdcall(tagRECT *,unsigned long,int,unsigned long)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -10623,19 +10631,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GHPAUtagRECT@@KH@Z@@YAPAPAXPAP6GHPAUtagRECT@@KH@Z@Z PROC ; static_cast_p2p<void,int __stdcall(tagRECT *,unsigned long,int)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -10648,19 +10656,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GJPAUHWND__@@H@Z@@YAPAPAXPAP6GJPAUHWND__@@H@Z@Z PROC ; static_cast_p2p<void,long __stdcall(HWND__ *,int)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -10673,19 +10681,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GJPAUHWND__@@HJ@Z@@YAPAPAXPAP6GJPAUHWND__@@HJ@Z@Z PROC ; static_cast_p2p<void,long __stdcall(HWND__ *,int,long)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -10698,19 +10706,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GPAUHWND__@@KPBD0KHHHHPAU1@PAUHMENU__@@PAUHINSTANCE__@@PAX@Z@@YAPAPAXPAP6GPAUHWND__@@KPBD0KHHHHPAU0@PAUHMENU__@@PAUHINSTANCE__@@PAX@Z@Z PROC ; static_cast_p2p<void,HWND__ * __stdcall(unsigned long,char const *,char const *,unsigned long,int,int,int,int,HWND__ *,HMENU__ *,HINSTANCE__ *,void *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -10723,19 +10731,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GPAUHWND__@@KPB_W0KHHHHPAU1@PAUHMENU__@@PAUHINSTANCE__@@PAX@Z@@YAPAPAXPAP6GPAUHWND__@@KPB_W0KHHHHPAU0@PAUHMENU__@@PAUHINSTANCE__@@PAX@Z@Z PROC ; static_cast_p2p<void,HWND__ * __stdcall(unsigned long,wchar_t const *,wchar_t const *,unsigned long,int,int,int,int,HWND__ *,HMENU__ *,HINSTANCE__ *,void *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -10748,19 +10756,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GHPBUtagRECT@@@Z@@YAPAPAXPAP6GHPBUtagRECT@@@Z@Z PROC ; static_cast_p2p<void,int __stdcall(tagRECT const *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -10773,19 +10781,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GHPAUHWND__@@HHHHH@Z@@YAPAPAXPAP6GHPAUHWND__@@HHHHH@Z@Z PROC ; static_cast_p2p<void,int __stdcall(HWND__ *,int,int,int,int,int)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -10798,19 +10806,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GHPAUHWND__@@PBUtagWINDOWPLACEMENT@@@Z@@YAPAPAXPAP6GHPAUHWND__@@PBUtagWINDOWPLACEMENT@@@Z@Z PROC ; static_cast_p2p<void,int __stdcall(HWND__ *,tagWINDOWPLACEMENT const *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -10823,19 +10831,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GHPAUHWND__@@0HHHHI@Z@@YAPAPAXPAP6GHPAUHWND__@@0HHHHI@Z@Z PROC ; static_cast_p2p<void,int __stdcall(HWND__ *,HWND__ *,int,int,int,int,unsigned int)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -10875,13 +10883,13 @@ _hInstance$ = 48					; size = 4
 _lpParam$ = 52						; size = 4
 ?CreateWindowExW_Detour@@YGPAUHWND__@@KPB_W0KHHHHPAU1@PAUHMENU__@@PAUHINSTANCE__@@PAX@Z PROC ; CreateWindowExW_Detour
 
-; 5698 : {
+; 5735 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 5699 :   if (SK_GetCallingDLL () == SK_GetDLL ())
+; 5736 :   if (SK_GetCallingDLL () == SK_GetDLL ())
 
 	mov	eax, DWORD PTR __$ReturnAddr$[ebp]
 	push	esi
@@ -10894,45 +10902,45 @@ _lpParam$ = 52						; size = 4
 	jne	SHORT $LN6@CreateWind
 	pop	esi
 
-; 5726 :                               X, Y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
-; 5727 : 
-; 5728 :   //// Early render window detection. Every little bit helps when the possibility of installing this hook first exists.
-; 5729 :   //if (hWndRet != 0 && (hInstance == nullptr || hInstance == GetModuleHandle (nullptr)) && (! caught_register))
-; 5730 :   //{
-; 5731 :   //  if (dwStyle & (WS_OVERLAPPEDWINDOW))
-; 5732 :   //  {
-; 5733 :   //    caught_register = true;
-; 5734 :   //
-; 5735 :   //    SK_LOG0 ( (L"[!] > ApplicationWindow: [Class: %16ws, Title: %34ws]", lpClassName, lpWindowName), L"WindowFind" );
-; 5736 :   //
-; 5737 :   //    game_window.hWnd    = hWndRet;
-; 5738 :   //    game_window.unicode = true;
-; 5739 :   //    game_window.active  = true;
-; 5740 :   //
-; 5741 :   //    game_window.GetWindowLongPtr = GetWindowLongPtrW_Original;
-; 5742 :   //    game_window.SetWindowLongPtr = SetWindowLongPtrW_Original;
-; 5743 :   //  //game_window.SetClassLongPtr  = SetClassLongPtrW_Original;
-; 5744 :   //    game_window.DefWindowProc    = (DefWindowProc_pfn)
-; 5745 :   //      GetProcAddress ( GetModuleHandle (L"user32.dll"),
-; 5746 :   //                         "DefWindowProcW" );
-; 5747 :   //    game_window.CallWindowProc   = (CallWindowProc_pfn)
-; 5748 :   //      GetProcAddress ( GetModuleHandle (L"user32.dll"),
-; 5749 :   //                         "CallWindowProcW" );
-; 5750 :   //
-; 5751 :   //    SK_MakeWindowHook ((LPVOID)GetClassLongPtrW (hWndRet, GCLP_WNDPROC), (LPVOID)GetWindowLongPtrW (hWndRet, GWLP_WNDPROC));
-; 5752 :   //
-; 5753 :   //    //game_window.WndProc_Original = (WNDPROC)GetClassLongPtrW (hWndRet, GCLP_WNDPROC);
-; 5754 :   //    //                                        SetClassLongPtrW (hWndRet, GCLP_WNDPROC, (LONG_PTR)(WNDPROC)SK_DetourWindowProc);
-; 5755 :   //  }
-; 5756 :   //}
-; 5757 : 
-; 5758 :   return hWndRet;
-; 5759 : }
+; 5763 :                               X, Y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
+; 5764 : 
+; 5765 :   //// Early render window detection. Every little bit helps when the possibility of installing this hook first exists.
+; 5766 :   //if (hWndRet != 0 && (hInstance == nullptr || hInstance == GetModuleHandle (nullptr)) && (! caught_register))
+; 5767 :   //{
+; 5768 :   //  if (dwStyle & (WS_OVERLAPPEDWINDOW))
+; 5769 :   //  {
+; 5770 :   //    caught_register = true;
+; 5771 :   //
+; 5772 :   //    SK_LOG0 ( (L"[!] > ApplicationWindow: [Class: %16ws, Title: %34ws]", lpClassName, lpWindowName), L"WindowFind" );
+; 5773 :   //
+; 5774 :   //    game_window.hWnd    = hWndRet;
+; 5775 :   //    game_window.unicode = true;
+; 5776 :   //    game_window.active  = true;
+; 5777 :   //
+; 5778 :   //    game_window.GetWindowLongPtr = GetWindowLongPtrW_Original;
+; 5779 :   //    game_window.SetWindowLongPtr = SetWindowLongPtrW_Original;
+; 5780 :   //  //game_window.SetClassLongPtr  = SetClassLongPtrW_Original;
+; 5781 :   //    game_window.DefWindowProc    = (DefWindowProc_pfn)
+; 5782 :   //      GetProcAddress ( GetModuleHandle (L"user32.dll"),
+; 5783 :   //                         "DefWindowProcW" );
+; 5784 :   //    game_window.CallWindowProc   = (CallWindowProc_pfn)
+; 5785 :   //      GetProcAddress ( GetModuleHandle (L"user32.dll"),
+; 5786 :   //                         "CallWindowProcW" );
+; 5787 :   //
+; 5788 :   //    SK_MakeWindowHook ((LPVOID)GetClassLongPtrW (hWndRet, GCLP_WNDPROC), (LPVOID)GetWindowLongPtrW (hWndRet, GWLP_WNDPROC));
+; 5789 :   //
+; 5790 :   //    //game_window.WndProc_Original = (WNDPROC)GetClassLongPtrW (hWndRet, GCLP_WNDPROC);
+; 5791 :   //    //                                        SetClassLongPtrW (hWndRet, GCLP_WNDPROC, (LONG_PTR)(WNDPROC)SK_DetourWindowProc);
+; 5792 :   //  }
+; 5793 :   //}
+; 5794 : 
+; 5795 :   return hWndRet;
+; 5796 : }
 
 	pop	ebp
 
-; 5700 :   {
-; 5701 :     return
+; 5737 :   {
+; 5738 :     return
 
 	jmp	DWORD PTR ?CreateWindowExW_Original@@3P6GPAUHWND__@@KPB_W0KHHHHPAU1@PAUHMENU__@@PAUHINSTANCE__@@PAX@ZA ; CreateWindowExW_Original
 $LN6@CreateWind:
@@ -10940,7 +10948,7 @@ $LN6@CreateWind:
 	mov	ebx, DWORD PTR _dwStyle$[ebp]
 	test	ebx, ebx
 
-; 5706 :   if ((dwStyle & WS_POPUP) && static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid)))
+; 5743 :   if ((dwStyle & WS_POPUP) && static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid)))
 
 	jns	$LN5@CreateWind
 ; File c:\program files (x86)\windows kits\8.1\include\um\winnt.h
@@ -10950,7 +10958,7 @@ $LN6@CreateWind:
 	mov	eax, DWORD PTR ?SK_bypass_dialog_tid@@3JC ; SK_bypass_dialog_tid
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 5706 :   if ((dwStyle & WS_POPUP) && static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid)))
+; 5743 :   if ((dwStyle & WS_POPUP) && static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid)))
 
 	test	eax, eax
 	je	$LN5@CreateWind
@@ -10961,7 +10969,7 @@ $LN6@CreateWind:
 	mov	eax, DWORD PTR ?SK_bypass_dialog_active@@3JC ; SK_bypass_dialog_active
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 5708 :     if (ReadAcquire (&SK_bypass_dialog_active) && (GetCurrentThreadId () != static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid))))
+; 5745 :     if (ReadAcquire (&SK_bypass_dialog_active) && (GetCurrentThreadId () != static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid))))
 
 	test	eax, eax
 	je	$LN5@CreateWind
@@ -10973,14 +10981,14 @@ $LN6@CreateWind:
 	push	edi
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 5708 :     if (ReadAcquire (&SK_bypass_dialog_active) && (GetCurrentThreadId () != static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid))))
+; 5745 :     if (ReadAcquire (&SK_bypass_dialog_active) && (GetCurrentThreadId () != static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid))))
 
 	mov	edi, DWORD PTR __imp__GetCurrentThreadId@0
 	call	edi
 	cmp	eax, esi
 	je	SHORT $LN36@CreateWind
 
-; 5710 :       if (IsGUIThread (FALSE))
+; 5747 :       if (IsGUIThread (FALSE))
 
 	push	0
 	call	DWORD PTR __imp__IsGUIThread@4
@@ -10992,11 +11000,11 @@ $LN6@CreateWind:
 	mov	eax, DWORD PTR ?SK_bypass_dialog_active@@3JC ; SK_bypass_dialog_active
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 5710 :       if (IsGUIThread (FALSE))
+; 5747 :       if (IsGUIThread (FALSE))
 
 	je	SHORT $LN27@CreateWind
 
-; 5712 :         while (ReadAcquire ((&SK_bypass_dialog_active)) && (GetCurrentThreadId () != static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid))))
+; 5749 :         while (ReadAcquire ((&SK_bypass_dialog_active)) && (GetCurrentThreadId () != static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid))))
 
 	test	eax, eax
 	je	SHORT $LN36@CreateWind
@@ -11010,13 +11018,13 @@ $LL2@CreateWind:
 	mov	esi, DWORD PTR ?SK_bypass_dialog_tid@@3JC ; SK_bypass_dialog_tid
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 5712 :         while (ReadAcquire ((&SK_bypass_dialog_active)) && (GetCurrentThreadId () != static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid))))
+; 5749 :         while (ReadAcquire ((&SK_bypass_dialog_active)) && (GetCurrentThreadId () != static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid))))
 
 	call	edi
 	cmp	eax, esi
 	je	SHORT $LN35@CreateWind
 
-; 5713 :           MsgWaitForMultipleObjectsEx (0, nullptr, 1, QS_ALLINPUT, MWMO_ALERTABLE);
+; 5750 :           MsgWaitForMultipleObjectsEx (0, nullptr, 1, QS_ALLINPUT, MWMO_ALERTABLE);
 
 	push	2
 	push	1279					; 000004ffH
@@ -11031,19 +11039,19 @@ $LL2@CreateWind:
 	mov	eax, DWORD PTR ?SK_bypass_dialog_active@@3JC ; SK_bypass_dialog_active
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 5712 :         while (ReadAcquire ((&SK_bypass_dialog_active)) && (GetCurrentThreadId () != static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid))))
+; 5749 :         while (ReadAcquire ((&SK_bypass_dialog_active)) && (GetCurrentThreadId () != static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid))))
 
 	test	eax, eax
 	jne	SHORT $LL2@CreateWind
 
-; 5714 :       }
-; 5715 : 
-; 5716 :       else
+; 5751 :       }
+; 5752 : 
+; 5753 :       else
 
 	jmp	SHORT $LN35@CreateWind
 $LN27@CreateWind:
 
-; 5718 :         while (ReadAcquire ((&SK_bypass_dialog_active)) && (GetCurrentThreadId () != static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid))))
+; 5755 :         while (ReadAcquire ((&SK_bypass_dialog_active)) && (GetCurrentThreadId () != static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid))))
 
 	test	eax, eax
 	je	SHORT $LN36@CreateWind
@@ -11056,13 +11064,13 @@ $LL4@CreateWind:
 	mov	esi, DWORD PTR ?SK_bypass_dialog_tid@@3JC ; SK_bypass_dialog_tid
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 5718 :         while (ReadAcquire ((&SK_bypass_dialog_active)) && (GetCurrentThreadId () != static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid))))
+; 5755 :         while (ReadAcquire ((&SK_bypass_dialog_active)) && (GetCurrentThreadId () != static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid))))
 
 	call	edi
 	cmp	eax, esi
 	je	SHORT $LN35@CreateWind
 
-; 5719 :           WaitForMultipleObjectsEx (0, nullptr, 1, QS_ALLINPUT, MWMO_ALERTABLE);
+; 5756 :           WaitForMultipleObjectsEx (0, nullptr, 1, QS_ALLINPUT, MWMO_ALERTABLE);
 
 	push	2
 	push	1279					; 000004ffH
@@ -11077,7 +11085,7 @@ $LL4@CreateWind:
 	mov	eax, DWORD PTR ?SK_bypass_dialog_active@@3JC ; SK_bypass_dialog_active
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 5718 :         while (ReadAcquire ((&SK_bypass_dialog_active)) && (GetCurrentThreadId () != static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid))))
+; 5755 :         while (ReadAcquire ((&SK_bypass_dialog_active)) && (GetCurrentThreadId () != static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid))))
 
 	test	eax, eax
 	jne	SHORT $LL4@CreateWind
@@ -11087,12 +11095,12 @@ $LN36@CreateWind:
 	pop	edi
 $LN5@CreateWind:
 
-; 5720 :       }
-; 5721 :     }
-; 5722 :   }
-; 5723 : 
-; 5724 :   HWND hWndRet =
-; 5725 :     CreateWindowExW_Original (dwExStyle, lpClassName, lpWindowName, dwStyle,
+; 5757 :       }
+; 5758 :     }
+; 5759 :   }
+; 5760 : 
+; 5761 :   HWND hWndRet =
+; 5762 :     CreateWindowExW_Original (dwExStyle, lpClassName, lpWindowName, dwStyle,
 
 	push	DWORD PTR _lpParam$[ebp]
 	push	DWORD PTR _hInstance$[ebp]
@@ -11110,40 +11118,40 @@ $LN5@CreateWind:
 	pop	ebx
 	pop	esi
 
-; 5726 :                               X, Y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
-; 5727 : 
-; 5728 :   //// Early render window detection. Every little bit helps when the possibility of installing this hook first exists.
-; 5729 :   //if (hWndRet != 0 && (hInstance == nullptr || hInstance == GetModuleHandle (nullptr)) && (! caught_register))
-; 5730 :   //{
-; 5731 :   //  if (dwStyle & (WS_OVERLAPPEDWINDOW))
-; 5732 :   //  {
-; 5733 :   //    caught_register = true;
-; 5734 :   //
-; 5735 :   //    SK_LOG0 ( (L"[!] > ApplicationWindow: [Class: %16ws, Title: %34ws]", lpClassName, lpWindowName), L"WindowFind" );
-; 5736 :   //
-; 5737 :   //    game_window.hWnd    = hWndRet;
-; 5738 :   //    game_window.unicode = true;
-; 5739 :   //    game_window.active  = true;
-; 5740 :   //
-; 5741 :   //    game_window.GetWindowLongPtr = GetWindowLongPtrW_Original;
-; 5742 :   //    game_window.SetWindowLongPtr = SetWindowLongPtrW_Original;
-; 5743 :   //  //game_window.SetClassLongPtr  = SetClassLongPtrW_Original;
-; 5744 :   //    game_window.DefWindowProc    = (DefWindowProc_pfn)
-; 5745 :   //      GetProcAddress ( GetModuleHandle (L"user32.dll"),
-; 5746 :   //                         "DefWindowProcW" );
-; 5747 :   //    game_window.CallWindowProc   = (CallWindowProc_pfn)
-; 5748 :   //      GetProcAddress ( GetModuleHandle (L"user32.dll"),
-; 5749 :   //                         "CallWindowProcW" );
-; 5750 :   //
-; 5751 :   //    SK_MakeWindowHook ((LPVOID)GetClassLongPtrW (hWndRet, GCLP_WNDPROC), (LPVOID)GetWindowLongPtrW (hWndRet, GWLP_WNDPROC));
-; 5752 :   //
-; 5753 :   //    //game_window.WndProc_Original = (WNDPROC)GetClassLongPtrW (hWndRet, GCLP_WNDPROC);
-; 5754 :   //    //                                        SetClassLongPtrW (hWndRet, GCLP_WNDPROC, (LONG_PTR)(WNDPROC)SK_DetourWindowProc);
-; 5755 :   //  }
-; 5756 :   //}
-; 5757 : 
-; 5758 :   return hWndRet;
-; 5759 : }
+; 5763 :                               X, Y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
+; 5764 : 
+; 5765 :   //// Early render window detection. Every little bit helps when the possibility of installing this hook first exists.
+; 5766 :   //if (hWndRet != 0 && (hInstance == nullptr || hInstance == GetModuleHandle (nullptr)) && (! caught_register))
+; 5767 :   //{
+; 5768 :   //  if (dwStyle & (WS_OVERLAPPEDWINDOW))
+; 5769 :   //  {
+; 5770 :   //    caught_register = true;
+; 5771 :   //
+; 5772 :   //    SK_LOG0 ( (L"[!] > ApplicationWindow: [Class: %16ws, Title: %34ws]", lpClassName, lpWindowName), L"WindowFind" );
+; 5773 :   //
+; 5774 :   //    game_window.hWnd    = hWndRet;
+; 5775 :   //    game_window.unicode = true;
+; 5776 :   //    game_window.active  = true;
+; 5777 :   //
+; 5778 :   //    game_window.GetWindowLongPtr = GetWindowLongPtrW_Original;
+; 5779 :   //    game_window.SetWindowLongPtr = SetWindowLongPtrW_Original;
+; 5780 :   //  //game_window.SetClassLongPtr  = SetClassLongPtrW_Original;
+; 5781 :   //    game_window.DefWindowProc    = (DefWindowProc_pfn)
+; 5782 :   //      GetProcAddress ( GetModuleHandle (L"user32.dll"),
+; 5783 :   //                         "DefWindowProcW" );
+; 5784 :   //    game_window.CallWindowProc   = (CallWindowProc_pfn)
+; 5785 :   //      GetProcAddress ( GetModuleHandle (L"user32.dll"),
+; 5786 :   //                         "CallWindowProcW" );
+; 5787 :   //
+; 5788 :   //    SK_MakeWindowHook ((LPVOID)GetClassLongPtrW (hWndRet, GCLP_WNDPROC), (LPVOID)GetWindowLongPtrW (hWndRet, GWLP_WNDPROC));
+; 5789 :   //
+; 5790 :   //    //game_window.WndProc_Original = (WNDPROC)GetClassLongPtrW (hWndRet, GCLP_WNDPROC);
+; 5791 :   //    //                                        SetClassLongPtrW (hWndRet, GCLP_WNDPROC, (LONG_PTR)(WNDPROC)SK_DetourWindowProc);
+; 5792 :   //  }
+; 5793 :   //}
+; 5794 : 
+; 5795 :   return hWndRet;
+; 5796 : }
 
 	pop	ebp
 	ret	48					; 00000030H
@@ -11183,13 +11191,13 @@ _hInstance$ = 48					; size = 4
 _lpParam$ = 52						; size = 4
 ?CreateWindowExA_Detour@@YGPAUHWND__@@KPBD0KHHHHPAU1@PAUHMENU__@@PAUHINSTANCE__@@PAX@Z PROC ; CreateWindowExA_Detour
 
-; 5619 : {
+; 5656 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 5620 :   if (SK_GetCallingDLL () == SK_GetDLL ())
+; 5657 :   if (SK_GetCallingDLL () == SK_GetDLL ())
 
 	mov	eax, DWORD PTR __$ReturnAddr$[ebp]
 	push	esi
@@ -11202,46 +11210,46 @@ _lpParam$ = 52						; size = 4
 	jne	SHORT $LN6@CreateWind
 	pop	esi
 
-; 5647 :                               X, Y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
-; 5648 : 
-; 5649 : 
-; 5650 :   //// Early render window detection. Every little bit helps when the possibility of installing this hook first exists.
-; 5651 :   //if (hWndRet != 0 && (hInstance == nullptr || hInstance == GetModuleHandle (nullptr)) && (! caught_register))
-; 5652 :   //{
-; 5653 :   //  if (dwStyle & (WS_OVERLAPPEDWINDOW))
-; 5654 :   //  {
-; 5655 :   //    caught_register = true;
-; 5656 :   //      
-; 5657 :   //    SK_LOG0 ( (L"[!] > ApplicationWindow: [Class: %16hs, Title: %34hs]", lpClassName, lpWindowName), L"WindowFind" );
-; 5658 :   //
-; 5659 :   //    game_window.hWnd    = hWndRet;
-; 5660 :   //    game_window.unicode = false;
-; 5661 :   //    game_window.active  = true;
-; 5662 :   //
-; 5663 :   //    game_window.GetWindowLongPtr = GetWindowLongPtrA_Original;
-; 5664 :   //    game_window.SetWindowLongPtr = SetWindowLongPtrA_Original;
-; 5665 :   //  //game_window.SetClassLongPtr  = SetClassLongPtrW_Original;
-; 5666 :   //    game_window.DefWindowProc    = (DefWindowProc_pfn)
-; 5667 :   //      GetProcAddress ( GetModuleHandle (L"user32.dll"),
-; 5668 :   //                         "DefWindowProcA" );
-; 5669 :   //    game_window.CallWindowProc   = (CallWindowProc_pfn)
-; 5670 :   //      GetProcAddress ( GetModuleHandle (L"user32.dll"),
-; 5671 :   //                         "CallWindowProcA" );
-; 5672 :   //
-; 5673 :   //    SK_MakeWindowHook ((LPVOID)GetClassLongPtrA (hWndRet, GCLP_WNDPROC), (LPVOID)GetWindowLongPtrA (hWndRet, GWLP_WNDPROC));
-; 5674 :   //
-; 5675 :   //    //game_window.WndProc_Original = (WNDPROC)GetClassLongPtrA (hWndRet, GCLP_WNDPROC);
-; 5676 :   //    //                                        SetClassLongPtrA (hWndRet, GCLP_WNDPROC, (LONG_PTR)(WNDPROC)SK_DetourWindowProc);
-; 5677 :   //  }
-; 5678 :   //}
-; 5679 : 
-; 5680 :   return hWndRet;
-; 5681 : }
+; 5684 :                               X, Y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
+; 5685 : 
+; 5686 : 
+; 5687 :   //// Early render window detection. Every little bit helps when the possibility of installing this hook first exists.
+; 5688 :   //if (hWndRet != 0 && (hInstance == nullptr || hInstance == GetModuleHandle (nullptr)) && (! caught_register))
+; 5689 :   //{
+; 5690 :   //  if (dwStyle & (WS_OVERLAPPEDWINDOW))
+; 5691 :   //  {
+; 5692 :   //    caught_register = true;
+; 5693 :   //      
+; 5694 :   //    SK_LOG0 ( (L"[!] > ApplicationWindow: [Class: %16hs, Title: %34hs]", lpClassName, lpWindowName), L"WindowFind" );
+; 5695 :   //
+; 5696 :   //    game_window.hWnd    = hWndRet;
+; 5697 :   //    game_window.unicode = false;
+; 5698 :   //    game_window.active  = true;
+; 5699 :   //
+; 5700 :   //    game_window.GetWindowLongPtr = GetWindowLongPtrA_Original;
+; 5701 :   //    game_window.SetWindowLongPtr = SetWindowLongPtrA_Original;
+; 5702 :   //  //game_window.SetClassLongPtr  = SetClassLongPtrW_Original;
+; 5703 :   //    game_window.DefWindowProc    = (DefWindowProc_pfn)
+; 5704 :   //      GetProcAddress ( GetModuleHandle (L"user32.dll"),
+; 5705 :   //                         "DefWindowProcA" );
+; 5706 :   //    game_window.CallWindowProc   = (CallWindowProc_pfn)
+; 5707 :   //      GetProcAddress ( GetModuleHandle (L"user32.dll"),
+; 5708 :   //                         "CallWindowProcA" );
+; 5709 :   //
+; 5710 :   //    SK_MakeWindowHook ((LPVOID)GetClassLongPtrA (hWndRet, GCLP_WNDPROC), (LPVOID)GetWindowLongPtrA (hWndRet, GWLP_WNDPROC));
+; 5711 :   //
+; 5712 :   //    //game_window.WndProc_Original = (WNDPROC)GetClassLongPtrA (hWndRet, GCLP_WNDPROC);
+; 5713 :   //    //                                        SetClassLongPtrA (hWndRet, GCLP_WNDPROC, (LONG_PTR)(WNDPROC)SK_DetourWindowProc);
+; 5714 :   //  }
+; 5715 :   //}
+; 5716 : 
+; 5717 :   return hWndRet;
+; 5718 : }
 
 	pop	ebp
 
-; 5621 :   {
-; 5622 :     return
+; 5658 :   {
+; 5659 :     return
 
 	jmp	DWORD PTR ?CreateWindowExA_Original@@3P6GPAUHWND__@@KPBD0KHHHHPAU1@PAUHMENU__@@PAUHINSTANCE__@@PAX@ZA ; CreateWindowExA_Original
 $LN6@CreateWind:
@@ -11249,7 +11257,7 @@ $LN6@CreateWind:
 	mov	ebx, DWORD PTR _dwStyle$[ebp]
 	test	ebx, ebx
 
-; 5627 :   if ((dwStyle & WS_POPUP) && static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid)))
+; 5664 :   if ((dwStyle & WS_POPUP) && static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid)))
 
 	jns	$LN5@CreateWind
 ; File c:\program files (x86)\windows kits\8.1\include\um\winnt.h
@@ -11259,7 +11267,7 @@ $LN6@CreateWind:
 	mov	eax, DWORD PTR ?SK_bypass_dialog_tid@@3JC ; SK_bypass_dialog_tid
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 5627 :   if ((dwStyle & WS_POPUP) && static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid)))
+; 5664 :   if ((dwStyle & WS_POPUP) && static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid)))
 
 	test	eax, eax
 	je	$LN5@CreateWind
@@ -11270,7 +11278,7 @@ $LN6@CreateWind:
 	mov	eax, DWORD PTR ?SK_bypass_dialog_active@@3JC ; SK_bypass_dialog_active
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 5629 :     if (ReadAcquire (&SK_bypass_dialog_active) && (GetCurrentThreadId () != static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid))))
+; 5666 :     if (ReadAcquire (&SK_bypass_dialog_active) && (GetCurrentThreadId () != static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid))))
 
 	test	eax, eax
 	je	$LN5@CreateWind
@@ -11282,14 +11290,14 @@ $LN6@CreateWind:
 	push	edi
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 5629 :     if (ReadAcquire (&SK_bypass_dialog_active) && (GetCurrentThreadId () != static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid))))
+; 5666 :     if (ReadAcquire (&SK_bypass_dialog_active) && (GetCurrentThreadId () != static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid))))
 
 	mov	edi, DWORD PTR __imp__GetCurrentThreadId@0
 	call	edi
 	cmp	eax, esi
 	je	SHORT $LN36@CreateWind
 
-; 5631 :       if (IsGUIThread (FALSE))
+; 5668 :       if (IsGUIThread (FALSE))
 
 	push	0
 	call	DWORD PTR __imp__IsGUIThread@4
@@ -11301,11 +11309,11 @@ $LN6@CreateWind:
 	mov	eax, DWORD PTR ?SK_bypass_dialog_active@@3JC ; SK_bypass_dialog_active
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 5631 :       if (IsGUIThread (FALSE))
+; 5668 :       if (IsGUIThread (FALSE))
 
 	je	SHORT $LN27@CreateWind
 
-; 5633 :         while (ReadAcquire ((&SK_bypass_dialog_active)) && (GetCurrentThreadId () != static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid))))
+; 5670 :         while (ReadAcquire ((&SK_bypass_dialog_active)) && (GetCurrentThreadId () != static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid))))
 
 	test	eax, eax
 	je	SHORT $LN36@CreateWind
@@ -11319,13 +11327,13 @@ $LL2@CreateWind:
 	mov	esi, DWORD PTR ?SK_bypass_dialog_tid@@3JC ; SK_bypass_dialog_tid
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 5633 :         while (ReadAcquire ((&SK_bypass_dialog_active)) && (GetCurrentThreadId () != static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid))))
+; 5670 :         while (ReadAcquire ((&SK_bypass_dialog_active)) && (GetCurrentThreadId () != static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid))))
 
 	call	edi
 	cmp	eax, esi
 	je	SHORT $LN35@CreateWind
 
-; 5634 :           MsgWaitForMultipleObjectsEx (0, nullptr, 1, QS_ALLINPUT, MWMO_ALERTABLE);
+; 5671 :           MsgWaitForMultipleObjectsEx (0, nullptr, 1, QS_ALLINPUT, MWMO_ALERTABLE);
 
 	push	2
 	push	1279					; 000004ffH
@@ -11340,19 +11348,19 @@ $LL2@CreateWind:
 	mov	eax, DWORD PTR ?SK_bypass_dialog_active@@3JC ; SK_bypass_dialog_active
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 5633 :         while (ReadAcquire ((&SK_bypass_dialog_active)) && (GetCurrentThreadId () != static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid))))
+; 5670 :         while (ReadAcquire ((&SK_bypass_dialog_active)) && (GetCurrentThreadId () != static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid))))
 
 	test	eax, eax
 	jne	SHORT $LL2@CreateWind
 
-; 5635 :       }
-; 5636 : 
-; 5637 :       else
+; 5672 :       }
+; 5673 : 
+; 5674 :       else
 
 	jmp	SHORT $LN35@CreateWind
 $LN27@CreateWind:
 
-; 5639 :         while (ReadAcquire ((&SK_bypass_dialog_active)) && (GetCurrentThreadId () != static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid))))
+; 5676 :         while (ReadAcquire ((&SK_bypass_dialog_active)) && (GetCurrentThreadId () != static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid))))
 
 	test	eax, eax
 	je	SHORT $LN36@CreateWind
@@ -11365,13 +11373,13 @@ $LL4@CreateWind:
 	mov	esi, DWORD PTR ?SK_bypass_dialog_tid@@3JC ; SK_bypass_dialog_tid
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 5639 :         while (ReadAcquire ((&SK_bypass_dialog_active)) && (GetCurrentThreadId () != static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid))))
+; 5676 :         while (ReadAcquire ((&SK_bypass_dialog_active)) && (GetCurrentThreadId () != static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid))))
 
 	call	edi
 	cmp	eax, esi
 	je	SHORT $LN35@CreateWind
 
-; 5640 :           WaitForMultipleObjectsEx (0, nullptr, 1, QS_ALLINPUT, MWMO_ALERTABLE);
+; 5677 :           WaitForMultipleObjectsEx (0, nullptr, 1, QS_ALLINPUT, MWMO_ALERTABLE);
 
 	push	2
 	push	1279					; 000004ffH
@@ -11386,7 +11394,7 @@ $LL4@CreateWind:
 	mov	eax, DWORD PTR ?SK_bypass_dialog_active@@3JC ; SK_bypass_dialog_active
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 5639 :         while (ReadAcquire ((&SK_bypass_dialog_active)) && (GetCurrentThreadId () != static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid))))
+; 5676 :         while (ReadAcquire ((&SK_bypass_dialog_active)) && (GetCurrentThreadId () != static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid))))
 
 	test	eax, eax
 	jne	SHORT $LL4@CreateWind
@@ -11396,12 +11404,12 @@ $LN36@CreateWind:
 	pop	edi
 $LN5@CreateWind:
 
-; 5641 :       }
-; 5642 :     }
-; 5643 :   }
-; 5644 : 
-; 5645 :   HWND hWndRet =
-; 5646 :     CreateWindowExA_Original (dwExStyle, lpClassName, lpWindowName, dwStyle,
+; 5678 :       }
+; 5679 :     }
+; 5680 :   }
+; 5681 : 
+; 5682 :   HWND hWndRet =
+; 5683 :     CreateWindowExA_Original (dwExStyle, lpClassName, lpWindowName, dwStyle,
 
 	push	DWORD PTR _lpParam$[ebp]
 	push	DWORD PTR _hInstance$[ebp]
@@ -11419,41 +11427,41 @@ $LN5@CreateWind:
 	pop	ebx
 	pop	esi
 
-; 5647 :                               X, Y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
-; 5648 : 
-; 5649 : 
-; 5650 :   //// Early render window detection. Every little bit helps when the possibility of installing this hook first exists.
-; 5651 :   //if (hWndRet != 0 && (hInstance == nullptr || hInstance == GetModuleHandle (nullptr)) && (! caught_register))
-; 5652 :   //{
-; 5653 :   //  if (dwStyle & (WS_OVERLAPPEDWINDOW))
-; 5654 :   //  {
-; 5655 :   //    caught_register = true;
-; 5656 :   //      
-; 5657 :   //    SK_LOG0 ( (L"[!] > ApplicationWindow: [Class: %16hs, Title: %34hs]", lpClassName, lpWindowName), L"WindowFind" );
-; 5658 :   //
-; 5659 :   //    game_window.hWnd    = hWndRet;
-; 5660 :   //    game_window.unicode = false;
-; 5661 :   //    game_window.active  = true;
-; 5662 :   //
-; 5663 :   //    game_window.GetWindowLongPtr = GetWindowLongPtrA_Original;
-; 5664 :   //    game_window.SetWindowLongPtr = SetWindowLongPtrA_Original;
-; 5665 :   //  //game_window.SetClassLongPtr  = SetClassLongPtrW_Original;
-; 5666 :   //    game_window.DefWindowProc    = (DefWindowProc_pfn)
-; 5667 :   //      GetProcAddress ( GetModuleHandle (L"user32.dll"),
-; 5668 :   //                         "DefWindowProcA" );
-; 5669 :   //    game_window.CallWindowProc   = (CallWindowProc_pfn)
-; 5670 :   //      GetProcAddress ( GetModuleHandle (L"user32.dll"),
-; 5671 :   //                         "CallWindowProcA" );
-; 5672 :   //
-; 5673 :   //    SK_MakeWindowHook ((LPVOID)GetClassLongPtrA (hWndRet, GCLP_WNDPROC), (LPVOID)GetWindowLongPtrA (hWndRet, GWLP_WNDPROC));
-; 5674 :   //
-; 5675 :   //    //game_window.WndProc_Original = (WNDPROC)GetClassLongPtrA (hWndRet, GCLP_WNDPROC);
-; 5676 :   //    //                                        SetClassLongPtrA (hWndRet, GCLP_WNDPROC, (LONG_PTR)(WNDPROC)SK_DetourWindowProc);
-; 5677 :   //  }
-; 5678 :   //}
-; 5679 : 
-; 5680 :   return hWndRet;
-; 5681 : }
+; 5684 :                               X, Y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
+; 5685 : 
+; 5686 : 
+; 5687 :   //// Early render window detection. Every little bit helps when the possibility of installing this hook first exists.
+; 5688 :   //if (hWndRet != 0 && (hInstance == nullptr || hInstance == GetModuleHandle (nullptr)) && (! caught_register))
+; 5689 :   //{
+; 5690 :   //  if (dwStyle & (WS_OVERLAPPEDWINDOW))
+; 5691 :   //  {
+; 5692 :   //    caught_register = true;
+; 5693 :   //      
+; 5694 :   //    SK_LOG0 ( (L"[!] > ApplicationWindow: [Class: %16hs, Title: %34hs]", lpClassName, lpWindowName), L"WindowFind" );
+; 5695 :   //
+; 5696 :   //    game_window.hWnd    = hWndRet;
+; 5697 :   //    game_window.unicode = false;
+; 5698 :   //    game_window.active  = true;
+; 5699 :   //
+; 5700 :   //    game_window.GetWindowLongPtr = GetWindowLongPtrA_Original;
+; 5701 :   //    game_window.SetWindowLongPtr = SetWindowLongPtrA_Original;
+; 5702 :   //  //game_window.SetClassLongPtr  = SetClassLongPtrW_Original;
+; 5703 :   //    game_window.DefWindowProc    = (DefWindowProc_pfn)
+; 5704 :   //      GetProcAddress ( GetModuleHandle (L"user32.dll"),
+; 5705 :   //                         "DefWindowProcA" );
+; 5706 :   //    game_window.CallWindowProc   = (CallWindowProc_pfn)
+; 5707 :   //      GetProcAddress ( GetModuleHandle (L"user32.dll"),
+; 5708 :   //                         "CallWindowProcA" );
+; 5709 :   //
+; 5710 :   //    SK_MakeWindowHook ((LPVOID)GetClassLongPtrA (hWndRet, GCLP_WNDPROC), (LPVOID)GetWindowLongPtrA (hWndRet, GWLP_WNDPROC));
+; 5711 :   //
+; 5712 :   //    //game_window.WndProc_Original = (WNDPROC)GetClassLongPtrA (hWndRet, GCLP_WNDPROC);
+; 5713 :   //    //                                        SetClassLongPtrA (hWndRet, GCLP_WNDPROC, (LONG_PTR)(WNDPROC)SK_DetourWindowProc);
+; 5714 :   //  }
+; 5715 :   //}
+; 5716 : 
+; 5717 :   return hWndRet;
+; 5718 : }
 
 	pop	ebp
 	ret	48					; 00000030H
@@ -11466,14 +11474,14 @@ _class_proc$ = 8					; size = 4
 _wnd_proc$ = 12						; size = 4
 ?SK_MakeWindowHook@@YAXPAX0@Z PROC			; SK_MakeWindowHook
 
-; 5567 : {  
+; 5604 : {  
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	push	esi
 
-; 5568 :   if ( MH_OK ==
+; 5605 :   if ( MH_OK ==
 
 	mov	esi, DWORD PTR _class_proc$[ebp]
 	push	OFFSET ?game_window@@3Usk_window_s@@A+8
@@ -11483,33 +11491,33 @@ _wnd_proc$ = 12						; size = 4
 	test	eax, eax
 	jne	SHORT $LN2@SK_MakeWin
 
-; 5569 :          MH_CreateHook (
-; 5570 :                                                  class_proc,
-; 5571 :                                         SK_DetourWindowProc,
-; 5572 :                static_cast_p2p <void> (&game_window.WndProc_Original)
-; 5573 :          )
-; 5574 :     )
-; 5575 :   {
-; 5576 :     MH_QueueEnableHook (class_proc);
+; 5606 :          MH_CreateHook (
+; 5607 :                                                  class_proc,
+; 5608 :                                         SK_DetourWindowProc,
+; 5609 :                static_cast_p2p <void> (&game_window.WndProc_Original)
+; 5610 :          )
+; 5611 :     )
+; 5612 :   {
+; 5613 :     MH_QueueEnableHook (class_proc);
 
 	push	esi
 	call	_MH_QueueEnableHook@4
 
-; 5577 :   
-; 5578 :     dll_log.Log (L"[Window Mgr]  >> Hooked ClassProc.");
+; 5614 :   
+; 5615 :     dll_log.Log (L"[Window Mgr]  >> Hooked ClassProc.");
 
-	push	OFFSET $SG282236
+	push	OFFSET $SG282317
 
-; 5579 :   
-; 5580 :     game_window.hooked = false;
-; 5581 :   }
-; 5582 : 
-; 5583 :   else
+; 5616 :   
+; 5617 :     game_window.hooked = false;
+; 5618 :   }
+; 5619 : 
+; 5620 :   else
 
 	jmp	SHORT $LN12@SK_MakeWin
 $LN2@SK_MakeWin:
 
-; 5584 :   if ( MH_OK ==
+; 5621 :   if ( MH_OK ==
 
 	mov	esi, DWORD PTR _wnd_proc$[ebp]
 	push	OFFSET ?game_window@@3Usk_window_s@@A+8
@@ -11519,41 +11527,41 @@ $LN2@SK_MakeWin:
 	test	eax, eax
 	jne	SHORT $LN4@SK_MakeWin
 
-; 5585 :               MH_CreateHook (
-; 5586 :                                                     wnd_proc,
-; 5587 :                                          SK_DetourWindowProc,
-; 5588 :                 static_cast_p2p <void> (&game_window.WndProc_Original)
-; 5589 :               )
-; 5590 :           )
-; 5591 :   {
-; 5592 :     MH_QueueEnableHook (wnd_proc);
+; 5622 :               MH_CreateHook (
+; 5623 :                                                     wnd_proc,
+; 5624 :                                          SK_DetourWindowProc,
+; 5625 :                 static_cast_p2p <void> (&game_window.WndProc_Original)
+; 5626 :               )
+; 5627 :           )
+; 5628 :   {
+; 5629 :     MH_QueueEnableHook (wnd_proc);
 
 	push	esi
 	call	_MH_QueueEnableHook@4
 
-; 5593 :   
-; 5594 :     dll_log.Log (L"[Window Mgr]  >> Hooked WndProc.");
+; 5630 :   
+; 5631 :     dll_log.Log (L"[Window Mgr]  >> Hooked WndProc.");
 
-	push	OFFSET $SG282238
+	push	OFFSET $SG282319
 $LN12@SK_MakeWin:
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
-; 5595 :   
-; 5596 :     game_window.hooked = false;
+; 5632 :   
+; 5633 :     game_window.hooked = false;
 
 	mov	BYTE PTR ?game_window@@3Usk_window_s@@A+220, 0
 	add	esp, 8
 $LN4@SK_MakeWin:
 	pop	esi
 
-; 5600 : }
+; 5637 : }
 
 	pop	ebp
 
-; 5597 :   }
-; 5598 : 
-; 5599 :   SK_ApplyQueuedHooks ();
+; 5634 :   }
+; 5635 : 
+; 5636 :   SK_ApplyQueuedHooks ();
 
 	jmp	?SK_ApplyQueuedHooks@@YG?AW4MH_STATUS@@XZ ; SK_ApplyQueuedHooks
 ?SK_MakeWindowHook@@YAXPAX0@Z ENDP			; SK_MakeWindowHook
@@ -11565,21 +11573,21 @@ _wnd_class_ex$ = -48					; size = 48
 _lpWndClassEx$ = 8					; size = 4
 ?RegisterClassExW_Detour@@YGGPBUtagWNDCLASSEXW@@@Z PROC	; RegisterClassExW_Detour
 
-; 5519 : {
+; 5556 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	sub	esp, 48					; 00000030H
 
-; 5520 :   SK_LOG_FIRST_CALL
+; 5557 :   SK_LOG_FIRST_CALL
 
 	cmp	BYTE PTR ?called@?2??RegisterClassExW_Detour@@YGGPBUtagWNDCLASSEXW@@@Z@4_NA, 0
 	jne	SHORT $LN2@RegisterCl
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN3@RegisterCl
-	push	OFFSET $SG282197
-	push	OFFSET $SG282198
+	push	OFFSET $SG282278
+	push	OFFSET $SG282279
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -11588,13 +11596,13 @@ $LN3@RegisterCl:
 $LN2@RegisterCl:
 	push	esi
 
-; 5521 : 
-; 5522 :   auto wnd_class_ex = *lpWndClassEx;
+; 5558 : 
+; 5559 :   auto wnd_class_ex = *lpWndClassEx;
 
 	mov	esi, DWORD PTR _lpWndClassEx$[ebp]
 
-; 5523 : 
-; 5524 :   if (lpWndClassEx->hInstance == GetModuleHandle (nullptr))
+; 5560 : 
+; 5561 :   if (lpWndClassEx->hInstance == GetModuleHandle (nullptr))
 
 	push	0
 	movups	xmm0, XMMWORD PTR [esi]
@@ -11608,30 +11616,30 @@ $LN2@RegisterCl:
 	pop	esi
 	jne	SHORT $LN4@RegisterCl
 
-; 5525 :   {
-; 5526 :     game_window.WndProc_Original = wnd_class_ex.lpfnWndProc;
+; 5562 :   {
+; 5563 :     game_window.WndProc_Original = wnd_class_ex.lpfnWndProc;
 
 	mov	eax, DWORD PTR _wnd_class_ex$[ebp+8]
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+8, eax
 
-; 5527 :     wnd_class_ex.lpfnWndProc     = (WNDPROC)SK_DetourWindowProc;
+; 5564 :     wnd_class_ex.lpfnWndProc     = (WNDPROC)SK_DetourWindowProc;
 
 	mov	DWORD PTR _wnd_class_ex$[ebp+8], OFFSET ?SK_DetourWindowProc@@YGJPAUHWND__@@IIJ@Z ; SK_DetourWindowProc
 
-; 5528 :     caught_register              = true;
+; 5565 :     caught_register              = true;
 
 	mov	BYTE PTR ?caught_register@@3_NA, 1	; caught_register
 $LN4@RegisterCl:
 
-; 5529 :   }
-; 5530 : 
-; 5531 :   return RegisterClassExW_Original (&wnd_class_ex);
+; 5566 :   }
+; 5567 : 
+; 5568 :   return RegisterClassExW_Original (&wnd_class_ex);
 
 	lea	eax, DWORD PTR _wnd_class_ex$[ebp]
 	push	eax
 	call	DWORD PTR ?RegisterClassExW_Original@@3P6GGPBUtagWNDCLASSEXW@@@ZA ; RegisterClassExW_Original
 
-; 5532 : }
+; 5569 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -11645,21 +11653,21 @@ _wnd_class_ex$ = -48					; size = 48
 _lpWndClassEx$ = 8					; size = 4
 ?RegisterClassExA_Detour@@YGGPBUtagWNDCLASSEXA@@@Z PROC	; RegisterClassExA_Detour
 
-; 5501 : {
+; 5538 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	sub	esp, 48					; 00000030H
 
-; 5502 :   SK_LOG_FIRST_CALL
+; 5539 :   SK_LOG_FIRST_CALL
 
 	cmp	BYTE PTR ?called@?2??RegisterClassExA_Detour@@YGGPBUtagWNDCLASSEXA@@@Z@4_NA, 0
 	jne	SHORT $LN2@RegisterCl
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN3@RegisterCl
-	push	OFFSET $SG282185
-	push	OFFSET $SG282186
+	push	OFFSET $SG282266
+	push	OFFSET $SG282267
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -11668,13 +11676,13 @@ $LN3@RegisterCl:
 $LN2@RegisterCl:
 	push	esi
 
-; 5503 : 
-; 5504 :   auto wnd_class_ex = *lpWndClassEx;
+; 5540 : 
+; 5541 :   auto wnd_class_ex = *lpWndClassEx;
 
 	mov	esi, DWORD PTR _lpWndClassEx$[ebp]
 
-; 5505 : 
-; 5506 :   if (lpWndClassEx->hInstance == GetModuleHandle (nullptr))
+; 5542 : 
+; 5543 :   if (lpWndClassEx->hInstance == GetModuleHandle (nullptr))
 
 	push	0
 	movups	xmm0, XMMWORD PTR [esi]
@@ -11688,30 +11696,30 @@ $LN2@RegisterCl:
 	pop	esi
 	jne	SHORT $LN4@RegisterCl
 
-; 5507 :   {
-; 5508 :     game_window.WndProc_Original = wnd_class_ex.lpfnWndProc;
+; 5544 :   {
+; 5545 :     game_window.WndProc_Original = wnd_class_ex.lpfnWndProc;
 
 	mov	eax, DWORD PTR _wnd_class_ex$[ebp+8]
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+8, eax
 
-; 5509 :     wnd_class_ex.lpfnWndProc     = (WNDPROC)SK_DetourWindowProc;
+; 5546 :     wnd_class_ex.lpfnWndProc     = (WNDPROC)SK_DetourWindowProc;
 
 	mov	DWORD PTR _wnd_class_ex$[ebp+8], OFFSET ?SK_DetourWindowProc@@YGJPAUHWND__@@IIJ@Z ; SK_DetourWindowProc
 
-; 5510 :     caught_register              = true;
+; 5547 :     caught_register              = true;
 
 	mov	BYTE PTR ?caught_register@@3_NA, 1	; caught_register
 $LN4@RegisterCl:
 
-; 5511 :   }
-; 5512 : 
-; 5513 :   return RegisterClassExA_Original (&wnd_class_ex);
+; 5548 :   }
+; 5549 : 
+; 5550 :   return RegisterClassExA_Original (&wnd_class_ex);
 
 	lea	eax, DWORD PTR _wnd_class_ex$[ebp]
 	push	eax
 	call	DWORD PTR ?RegisterClassExA_Original@@3P6GGPBUtagWNDCLASSEXA@@@ZA ; RegisterClassExA_Original
 
-; 5514 : }
+; 5551 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -11725,21 +11733,21 @@ _wnd_class$ = -40					; size = 40
 _lpWndClass$ = 8					; size = 4
 ?RegisterClassW_Detour@@YGGPBUtagWNDCLASSW@@@Z PROC	; RegisterClassW_Detour
 
-; 5483 : {
+; 5520 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	sub	esp, 40					; 00000028H
 
-; 5484 :   SK_LOG_FIRST_CALL
+; 5521 :   SK_LOG_FIRST_CALL
 
 	cmp	BYTE PTR ?called@?2??RegisterClassW_Detour@@YGGPBUtagWNDCLASSW@@@Z@4_NA, 0
 	jne	SHORT $LN2@RegisterCl
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN3@RegisterCl
-	push	OFFSET $SG282173
-	push	OFFSET $SG282174
+	push	OFFSET $SG282254
+	push	OFFSET $SG282255
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -11748,13 +11756,13 @@ $LN3@RegisterCl:
 $LN2@RegisterCl:
 	push	esi
 
-; 5485 : 
-; 5486 :   auto wnd_class = *lpWndClass;
+; 5522 : 
+; 5523 :   auto wnd_class = *lpWndClass;
 
 	mov	esi, DWORD PTR _lpWndClass$[ebp]
 
-; 5487 : 
-; 5488 :   if (lpWndClass->hInstance == GetModuleHandle (nullptr))
+; 5524 : 
+; 5525 :   if (lpWndClass->hInstance == GetModuleHandle (nullptr))
 
 	push	0
 	movups	xmm0, XMMWORD PTR [esi]
@@ -11768,30 +11776,30 @@ $LN2@RegisterCl:
 	pop	esi
 	jne	SHORT $LN4@RegisterCl
 
-; 5489 :   {
-; 5490 :     game_window.WndProc_Original = wnd_class.lpfnWndProc;
+; 5526 :   {
+; 5527 :     game_window.WndProc_Original = wnd_class.lpfnWndProc;
 
 	mov	eax, DWORD PTR _wnd_class$[ebp+4]
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+8, eax
 
-; 5491 :     wnd_class.lpfnWndProc        = (WNDPROC)SK_DetourWindowProc;
+; 5528 :     wnd_class.lpfnWndProc        = (WNDPROC)SK_DetourWindowProc;
 
 	mov	DWORD PTR _wnd_class$[ebp+4], OFFSET ?SK_DetourWindowProc@@YGJPAUHWND__@@IIJ@Z ; SK_DetourWindowProc
 
-; 5492 :     caught_register              = true;
+; 5529 :     caught_register              = true;
 
 	mov	BYTE PTR ?caught_register@@3_NA, 1	; caught_register
 $LN4@RegisterCl:
 
-; 5493 :   }
-; 5494 : 
-; 5495 :   return RegisterClassW_Original (&wnd_class);
+; 5530 :   }
+; 5531 : 
+; 5532 :   return RegisterClassW_Original (&wnd_class);
 
 	lea	eax, DWORD PTR _wnd_class$[ebp]
 	push	eax
 	call	DWORD PTR ?RegisterClassW_Original@@3P6GGPBUtagWNDCLASSW@@@ZA ; RegisterClassW_Original
 
-; 5496 : }
+; 5533 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -11805,21 +11813,21 @@ _wnd_class$ = -40					; size = 40
 _lpWndClass$ = 8					; size = 4
 ?RegisterClassA_Detour@@YGGPBUtagWNDCLASSA@@@Z PROC	; RegisterClassA_Detour
 
-; 5465 : {
+; 5502 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	sub	esp, 40					; 00000028H
 
-; 5466 :   SK_LOG_FIRST_CALL
+; 5503 :   SK_LOG_FIRST_CALL
 
 	cmp	BYTE PTR ?called@?2??RegisterClassA_Detour@@YGGPBUtagWNDCLASSA@@@Z@4_NA, 0
 	jne	SHORT $LN2@RegisterCl
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN3@RegisterCl
-	push	OFFSET $SG282161
-	push	OFFSET $SG282162
+	push	OFFSET $SG282242
+	push	OFFSET $SG282243
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -11828,13 +11836,13 @@ $LN3@RegisterCl:
 $LN2@RegisterCl:
 	push	esi
 
-; 5467 : 
-; 5468 :   auto wnd_class = *lpWndClass;
+; 5504 : 
+; 5505 :   auto wnd_class = *lpWndClass;
 
 	mov	esi, DWORD PTR _lpWndClass$[ebp]
 
-; 5469 : 
-; 5470 :   if (lpWndClass->hInstance == GetModuleHandle (nullptr))
+; 5506 : 
+; 5507 :   if (lpWndClass->hInstance == GetModuleHandle (nullptr))
 
 	push	0
 	movups	xmm0, XMMWORD PTR [esi]
@@ -11848,30 +11856,30 @@ $LN2@RegisterCl:
 	pop	esi
 	jne	SHORT $LN4@RegisterCl
 
-; 5471 :   {
-; 5472 :     game_window.WndProc_Original = wnd_class.lpfnWndProc;
+; 5508 :   {
+; 5509 :     game_window.WndProc_Original = wnd_class.lpfnWndProc;
 
 	mov	eax, DWORD PTR _wnd_class$[ebp+4]
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+8, eax
 
-; 5473 :     wnd_class.lpfnWndProc        = (WNDPROC)SK_DetourWindowProc;
+; 5510 :     wnd_class.lpfnWndProc        = (WNDPROC)SK_DetourWindowProc;
 
 	mov	DWORD PTR _wnd_class$[ebp+4], OFFSET ?SK_DetourWindowProc@@YGJPAUHWND__@@IIJ@Z ; SK_DetourWindowProc
 
-; 5474 :     caught_register              = true;
+; 5511 :     caught_register              = true;
 
 	mov	BYTE PTR ?caught_register@@3_NA, 1	; caught_register
 $LN4@RegisterCl:
 
-; 5475 :   }
-; 5476 : 
-; 5477 :   return RegisterClassA_Original (&wnd_class);
+; 5512 :   }
+; 5513 : 
+; 5514 :   return RegisterClassA_Original (&wnd_class);
 
 	lea	eax, DWORD PTR _wnd_class$[ebp]
 	push	eax
 	call	DWORD PTR ?RegisterClassA_Original@@3P6GGPBUtagWNDCLASSA@@@ZA ; RegisterClassA_Original
 
-; 5478 : }
+; 5515 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -11885,19 +11893,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GJPAUHWND__@@IIJ@Z@@YAPAPAXPAP6GJPAUHWND__@@IIJ@Z@Z PROC ; static_cast_p2p<void,long __stdcall(HWND__ *,unsigned int,unsigned int,long)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -11910,19 +11918,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GJPBUtagMSG@@@Z@@YAPAPAXPAP6GJPBUtagMSG@@@Z@Z PROC ; static_cast_p2p<void,long __stdcall(tagMSG const *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -11935,19 +11943,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GHPAUtagMSG@@PAUHWND__@@II@Z@@YAPAPAXPAP6GHPAUtagMSG@@PAUHWND__@@II@Z@Z PROC ; static_cast_p2p<void,int __stdcall(tagMSG *,HWND__ *,unsigned int,unsigned int)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -11960,19 +11968,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GHPAUtagMSG@@PAUHWND__@@III@Z@@YAPAPAXPAP6GHPAUtagMSG@@PAUHWND__@@III@Z@Z PROC ; static_cast_p2p<void,int __stdcall(tagMSG *,HWND__ *,unsigned int,unsigned int,unsigned int)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -11985,19 +11993,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GHPBUtagMSG@@@Z@@YAPAPAXPAP6GHPBUtagMSG@@@Z@Z PROC ; static_cast_p2p<void,int __stdcall(tagMSG const *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -12010,39 +12018,39 @@ _TEXT	SEGMENT
 ??R<lambda_ec27c95e716e1dd504f9e8a0bc6e630e>@@QBE_NXZ PROC ; <lambda_ec27c95e716e1dd504f9e8a0bc6e630e>::operator(), COMDAT
 ; _this$ = ecx
 
-; 4446 :    []{
+; 4454 :    []{
 
 	npad	2
 	push	ebx
 
-; 4447 :        if (! last_mouse.cursor)
+; 4455 :        if (! last_mouse.cursor)
 
 	mov	bl, BYTE PTR ?last_mouse@@3U<unnamed-type-last_mouse>@@A+8
 	test	bl, bl
 	jne	SHORT $LN4@operator
 
-; 4448 :          return false;
+; 4456 :          return false;
 
 	xor	al, al
 	pop	ebx
 
-; 4464 :      };
+; 4472 :      };
 
 	ret	0
 $LN4@operator:
 
-; 4449 : 
-; 4450 :        bool was_active = last_mouse.cursor;
-; 4451 : 
-; 4452 :        if (last_mouse.sampled <= timeGetTime () - config.input.cursor.timeout)
+; 4457 : 
+; 4458 :        bool was_active = last_mouse.cursor;
+; 4459 : 
+; 4460 :        if (last_mouse.sampled <= timeGetTime () - config.input.cursor.timeout)
 
 	call	DWORD PTR __imp__timeGetTime@0
 	sub	eax, DWORD PTR ?config@@3Usk_config_t@@A+672
 	cmp	DWORD PTR ?last_mouse@@3U<unnamed-type-last_mouse>@@A+4, eax
 	ja	SHORT $LN6@operator
 
-; 4453 :        {
-; 4454 :          if ((! SK_IsSteamOverlayActive ()) && game_window.active)
+; 4461 :        {
+; 4462 :          if ((! SK_IsSteamOverlayActive ()) && game_window.active)
 
 	call	?SK_IsSteamOverlayActive@@YG_NXZ	; SK_IsSteamOverlayActive
 	test	al, al
@@ -12054,37 +12062,37 @@ $LN4@operator:
 	npad	3
 $LL2@operator:
 
-; 4455 :          {
-; 4456 :            while (ShowCursor (FALSE) >= -1) ;
+; 4463 :          {
+; 4464 :            while (ShowCursor (FALSE) >= -1) ;
 
 	push	0
 	call	esi
 	cmp	eax, -1
 	jge	SHORT $LL2@operator
 
-; 4457 :            last_mouse.cursor = false;
+; 4465 :            last_mouse.cursor = false;
 
 	mov	BYTE PTR ?last_mouse@@3U<unnamed-type-last_mouse>@@A+8, 0
 
-; 4458 : 
-; 4459 :            last_mouse.sampled = timeGetTime ();
+; 4466 : 
+; 4467 :            last_mouse.sampled = timeGetTime ();
 
 	call	DWORD PTR __imp__timeGetTime@0
 	mov	DWORD PTR ?last_mouse@@3U<unnamed-type-last_mouse>@@A+4, eax
 	pop	esi
 $LN6@operator:
 
-; 4460 :          }
-; 4461 :        }
-; 4462 : 
-; 4463 :        return (last_mouse.cursor != was_active);
+; 4468 :          }
+; 4469 :        }
+; 4470 : 
+; 4471 :        return (last_mouse.cursor != was_active);
 
 	xor	eax, eax
 	cmp	BYTE PTR ?last_mouse@@3U<unnamed-type-last_mouse>@@A+8, bl
 	pop	ebx
 	setne	al
 
-; 4464 :      };
+; 4472 :      };
 
 	ret	0
 ??R<lambda_ec27c95e716e1dd504f9e8a0bc6e630e>@@QBE_NXZ ENDP ; <lambda_ec27c95e716e1dd504f9e8a0bc6e630e>::operator()
@@ -12097,25 +12105,25 @@ _changed$ = 8						; size = 1
 ??R<lambda_4616a949c9ba345239f7d3c95c1931ce>@@QBE_N_N@Z PROC ; <lambda_4616a949c9ba345239f7d3c95c1931ce>::operator(), COMDAT
 ; _this$ = ecx
 
-; 4427 :      {
+; 4435 :      {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	push	ebx
 
-; 4428 :        bool was_active = last_mouse.cursor;
+; 4436 :        bool was_active = last_mouse.cursor;
 
 	mov	bl, BYTE PTR ?last_mouse@@3U<unnamed-type-last_mouse>@@A+8
 
-; 4429 : 
-; 4430 :        if (! last_mouse.cursor)
+; 4437 : 
+; 4438 :        if (! last_mouse.cursor)
 
 	test	bl, bl
 	jne	SHORT $LN11@operator
 
-; 4431 :        {
-; 4432 :          if ((! SK_IsSteamOverlayActive ()) && game_window.active)
+; 4439 :        {
+; 4440 :          if ((! SK_IsSteamOverlayActive ()) && game_window.active)
 
 	call	?SK_IsSteamOverlayActive@@YG_NXZ	; SK_IsSteamOverlayActive
 	test	al, al
@@ -12126,24 +12134,24 @@ _changed$ = 8						; size = 1
 	mov	esi, DWORD PTR __imp__ShowCursor@4
 $LL2@operator:
 
-; 4433 :          {
-; 4434 :            while (ShowCursor (TRUE) < 0) ;
+; 4441 :          {
+; 4442 :            while (ShowCursor (TRUE) < 0) ;
 
 	push	1
 	call	esi
 	test	eax, eax
 	js	SHORT $LL2@operator
 
-; 4435 :            last_mouse.cursor = true;
+; 4443 :            last_mouse.cursor = true;
 
 	mov	BYTE PTR ?last_mouse@@3U<unnamed-type-last_mouse>@@A+8, 1
 	pop	esi
 $LN11@operator:
 
-; 4436 :          }
-; 4437 :        }
-; 4438 : 
-; 4439 :        if (changed && (! SK_IsSteamOverlayActive ()))
+; 4444 :          }
+; 4445 :        }
+; 4446 : 
+; 4447 :        if (changed && (! SK_IsSteamOverlayActive ()))
 
 	cmp	BYTE PTR _changed$[ebp], 0
 	je	SHORT $LN12@operator
@@ -12151,21 +12159,21 @@ $LN11@operator:
 	test	al, al
 	jne	SHORT $LN12@operator
 
-; 4440 :          last_mouse.sampled = timeGetTime ();
+; 4448 :          last_mouse.sampled = timeGetTime ();
 
 	call	DWORD PTR __imp__timeGetTime@0
 	mov	DWORD PTR ?last_mouse@@3U<unnamed-type-last_mouse>@@A+4, eax
 $LN12@operator:
 
-; 4441 : 
-; 4442 :        return (last_mouse.cursor != was_active);
+; 4449 : 
+; 4450 :        return (last_mouse.cursor != was_active);
 
 	xor	eax, eax
 	cmp	BYTE PTR ?last_mouse@@3U<unnamed-type-last_mouse>@@A+8, bl
 	pop	ebx
 	setne	al
 
-; 4443 :      };
+; 4451 :      };
 
 	pop	ebp
 	ret	4
@@ -12178,39 +12186,39 @@ _TEXT	SEGMENT
 ??R<lambda_b96439b331919f344b20b5d1514ebddc>@@QBE_NXZ PROC ; <lambda_b96439b331919f344b20b5d1514ebddc>::operator(), COMDAT
 ; _this$ = ecx
 
-; 3714 :      []{
+; 3722 :      []{
 
 	npad	2
 	push	ebx
 
-; 3715 :          if (! last_mouse.cursor)
+; 3723 :          if (! last_mouse.cursor)
 
 	mov	bl, BYTE PTR ?last_mouse@@3U<unnamed-type-last_mouse>@@A+8
 	test	bl, bl
 	jne	SHORT $LN4@operator
 
-; 3716 :            return false;
+; 3724 :            return false;
 
 	xor	al, al
 	pop	ebx
 
-; 3732 :        };
+; 3740 :        };
 
 	ret	0
 $LN4@operator:
 
-; 3717 : 
-; 3718 :          bool was_active = last_mouse.cursor;
-; 3719 : 
-; 3720 :          if (last_mouse.sampled <= timeGetTime () - config.input.cursor.timeout)
+; 3725 : 
+; 3726 :          bool was_active = last_mouse.cursor;
+; 3727 : 
+; 3728 :          if (last_mouse.sampled <= timeGetTime () - config.input.cursor.timeout)
 
 	call	DWORD PTR __imp__timeGetTime@0
 	sub	eax, DWORD PTR ?config@@3Usk_config_t@@A+672
 	cmp	DWORD PTR ?last_mouse@@3U<unnamed-type-last_mouse>@@A+4, eax
 	ja	SHORT $LN6@operator
 
-; 3721 :          {
-; 3722 :            if ((! SK_IsSteamOverlayActive ()) && game_window.active)
+; 3729 :          {
+; 3730 :            if ((! SK_IsSteamOverlayActive ()) && game_window.active)
 
 	call	?SK_IsSteamOverlayActive@@YG_NXZ	; SK_IsSteamOverlayActive
 	test	al, al
@@ -12222,37 +12230,37 @@ $LN4@operator:
 	npad	3
 $LL2@operator:
 
-; 3723 :            {
-; 3724 :              while (ShowCursor (FALSE) >= -1) ;
+; 3731 :            {
+; 3732 :              while (ShowCursor (FALSE) >= -1) ;
 
 	push	0
 	call	esi
 	cmp	eax, -1
 	jge	SHORT $LL2@operator
 
-; 3725 :              last_mouse.cursor = false;
+; 3733 :              last_mouse.cursor = false;
 
 	mov	BYTE PTR ?last_mouse@@3U<unnamed-type-last_mouse>@@A+8, 0
 
-; 3726 : 
-; 3727 :              last_mouse.sampled = timeGetTime ();
+; 3734 : 
+; 3735 :              last_mouse.sampled = timeGetTime ();
 
 	call	DWORD PTR __imp__timeGetTime@0
 	mov	DWORD PTR ?last_mouse@@3U<unnamed-type-last_mouse>@@A+4, eax
 	pop	esi
 $LN6@operator:
 
-; 3728 :            }
-; 3729 :          }
-; 3730 : 
-; 3731 :          return (last_mouse.cursor != was_active);
+; 3736 :            }
+; 3737 :          }
+; 3738 : 
+; 3739 :          return (last_mouse.cursor != was_active);
 
 	xor	eax, eax
 	cmp	BYTE PTR ?last_mouse@@3U<unnamed-type-last_mouse>@@A+8, bl
 	pop	ebx
 	setne	al
 
-; 3732 :        };
+; 3740 :        };
 
 	ret	0
 ??R<lambda_b96439b331919f344b20b5d1514ebddc>@@QBE_NXZ ENDP ; <lambda_b96439b331919f344b20b5d1514ebddc>::operator()
@@ -12265,25 +12273,25 @@ _changed$ = 8						; size = 1
 ??R<lambda_813a99a73084f12031f7ff0d640b0dd1>@@QBE_N_N@Z PROC ; <lambda_813a99a73084f12031f7ff0d640b0dd1>::operator(), COMDAT
 ; _this$ = ecx
 
-; 3695 :        {
+; 3703 :        {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	push	ebx
 
-; 3696 :          bool was_active = last_mouse.cursor;
+; 3704 :          bool was_active = last_mouse.cursor;
 
 	mov	bl, BYTE PTR ?last_mouse@@3U<unnamed-type-last_mouse>@@A+8
 
-; 3697 : 
-; 3698 :          if (! last_mouse.cursor)
+; 3705 : 
+; 3706 :          if (! last_mouse.cursor)
 
 	test	bl, bl
 	jne	SHORT $LN11@operator
 
-; 3699 :          {
-; 3700 :            if ((! SK_IsSteamOverlayActive ()) && game_window.active)
+; 3707 :          {
+; 3708 :            if ((! SK_IsSteamOverlayActive ()) && game_window.active)
 
 	call	?SK_IsSteamOverlayActive@@YG_NXZ	; SK_IsSteamOverlayActive
 	test	al, al
@@ -12294,24 +12302,24 @@ _changed$ = 8						; size = 1
 	mov	esi, DWORD PTR __imp__ShowCursor@4
 $LL2@operator:
 
-; 3701 :            {
-; 3702 :              while (ShowCursor (TRUE) < 0) ;
+; 3709 :            {
+; 3710 :              while (ShowCursor (TRUE) < 0) ;
 
 	push	1
 	call	esi
 	test	eax, eax
 	js	SHORT $LL2@operator
 
-; 3703 :              last_mouse.cursor = true;
+; 3711 :              last_mouse.cursor = true;
 
 	mov	BYTE PTR ?last_mouse@@3U<unnamed-type-last_mouse>@@A+8, 1
 	pop	esi
 $LN11@operator:
 
-; 3704 :            }
-; 3705 :          }
-; 3706 : 
-; 3707 :          if (changed && (! SK_IsSteamOverlayActive ()))
+; 3712 :            }
+; 3713 :          }
+; 3714 : 
+; 3715 :          if (changed && (! SK_IsSteamOverlayActive ()))
 
 	cmp	BYTE PTR _changed$[ebp], 0
 	je	SHORT $LN12@operator
@@ -12319,21 +12327,21 @@ $LN11@operator:
 	test	al, al
 	jne	SHORT $LN12@operator
 
-; 3708 :            last_mouse.sampled = timeGetTime ();
+; 3716 :            last_mouse.sampled = timeGetTime ();
 
 	call	DWORD PTR __imp__timeGetTime@0
 	mov	DWORD PTR ?last_mouse@@3U<unnamed-type-last_mouse>@@A+4, eax
 $LN12@operator:
 
-; 3709 : 
-; 3710 :          return (last_mouse.cursor != was_active);
+; 3717 : 
+; 3718 :          return (last_mouse.cursor != was_active);
 
 	xor	eax, eax
 	cmp	BYTE PTR ?last_mouse@@3U<unnamed-type-last_mouse>@@A+8, bl
 	pop	ebx
 	setne	al
 
-; 3711 :        };
+; 3719 :        };
 
 	pop	ebp
 	ret	4
@@ -12352,7 +12360,7 @@ _wParam_HOOK$ = 12					; size = 4
 _lParam_HOOK$ = 16					; size = 4
 ?CallWndProc@@YGJHIJ@Z PROC				; CallWndProc
 
-; 3632 : {
+; 3640 : {
 
 	npad	2
 	push	ebp
@@ -12360,7 +12368,7 @@ _lParam_HOOK$ = 16					; size = 4
 	sub	esp, 40					; 00000028H
 	push	edi
 
-; 3633 :   if (nCode < 0 || __SK_DLL_Ending)
+; 3641 :   if (nCode < 0 || __SK_DLL_Ending)
 
 	mov	edi, DWORD PTR _nCode$[ebp]
 	test	edi, edi
@@ -12368,16 +12376,16 @@ _lParam_HOOK$ = 16					; size = 4
 	cmp	DWORD PTR ?__SK_DLL_Ending@@3JC, 0	; __SK_DLL_Ending
 	jne	$LN5@CallWndPro
 
-; 3635 : 
-; 3636 :   {
-; 3637 :     HWND&   hWnd   = ((CWPSTRUCT *)lParam_HOOK)->hwnd;
-; 3638 :     UINT&   uMsg   = ((CWPSTRUCT *)lParam_HOOK)->message;
-; 3639 :     WPARAM& wParam = ((CWPSTRUCT *)lParam_HOOK)->wParam;
-; 3640 :     LPARAM& lParam = ((CWPSTRUCT *)lParam_HOOK)->lParam;
-; 3641 : 
-; 3642 :     static bool first = true;
 ; 3643 : 
-; 3644 :     if (first && (hWnd == game_window.hWnd))
+; 3644 :   {
+; 3645 :     HWND&   hWnd   = ((CWPSTRUCT *)lParam_HOOK)->hwnd;
+; 3646 :     UINT&   uMsg   = ((CWPSTRUCT *)lParam_HOOK)->message;
+; 3647 :     WPARAM& wParam = ((CWPSTRUCT *)lParam_HOOK)->wParam;
+; 3648 :     LPARAM& lParam = ((CWPSTRUCT *)lParam_HOOK)->lParam;
+; 3649 : 
+; 3650 :     static bool first = true;
+; 3651 : 
+; 3652 :     if (first && (hWnd == game_window.hWnd))
 
 	cmp	BYTE PTR ?first@?4??CallWndProc@@YGJHIJ@Z@4_NA, 0
 	push	esi
@@ -12387,20 +12395,20 @@ _lParam_HOOK$ = 16					; size = 4
 	cmp	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	jne	$LN7@CallWndPro
 
-; 3645 :     {
-; 3646 :       first = false;
-; 3647 : 
-; 3648 :       //if (game_window.hWnd != nullptr)
-; 3649 :       //{
-; 3650 :       //  dll_log.Log ( L"[Window Mgr] New HWND detected in the window proc. used"
-; 3651 :       //                L" for rendering... (Old=%p, New=%p)",
-; 3652 :       //                  game_window.hWnd, hWnd );
-; 3653 :       //}
-; 3654 : 
-; 3655 :       game_window.hWnd = hWnd;
-; 3656 : 
-; 3657 :       game_window.active       = true;
-; 3658 :       game_window.game.style   = game_window.GetWindowLongPtr (game_window.hWnd, GWL_STYLE);
+; 3653 :     {
+; 3654 :       first = false;
+; 3655 : 
+; 3656 :       //if (game_window.hWnd != nullptr)
+; 3657 :       //{
+; 3658 :       //  dll_log.Log ( L"[Window Mgr] New HWND detected in the window proc. used"
+; 3659 :       //                L" for rendering... (Old=%p, New=%p)",
+; 3660 :       //                  game_window.hWnd, hWnd );
+; 3661 :       //}
+; 3662 : 
+; 3663 :       game_window.hWnd = hWnd;
+; 3664 : 
+; 3665 :       game_window.active       = true;
+; 3666 :       game_window.game.style   = game_window.GetWindowLongPtr (game_window.hWnd, GWL_STYLE);
 
 	push	-16					; fffffff0H
 	push	eax
@@ -12409,21 +12417,21 @@ _lParam_HOOK$ = 16					; size = 4
 	mov	BYTE PTR ?game_window@@3Usk_window_s@@A+17, 1
 	call	DWORD PTR ?game_window@@3Usk_window_s@@A+200
 
-; 3659 :       game_window.actual.style = game_window.GetWindowLongPtr (game_window.hWnd, GWL_STYLE);
+; 3667 :       game_window.actual.style = game_window.GetWindowLongPtr (game_window.hWnd, GWL_STYLE);
 
 	push	-16					; fffffff0H
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+68, eax
 	call	DWORD PTR ?game_window@@3Usk_window_s@@A+200
 
-; 3660 :       game_window.unicode      =              IsWindowUnicode (game_window.hWnd)   != FALSE;
+; 3668 :       game_window.unicode      =              IsWindowUnicode (game_window.hWnd)   != FALSE;
 
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+116, eax
 	call	DWORD PTR __imp__IsWindowUnicode@4
 
-; 3661 : 
-; 3662 :       GetWindowRect_Original (game_window.hWnd, &game_window.game.window  );
+; 3669 : 
+; 3670 :       GetWindowRect_Original (game_window.hWnd, &game_window.game.window  );
 
 	push	OFFSET ?game_window@@3Usk_window_s@@A+52
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
@@ -12431,26 +12439,26 @@ _lParam_HOOK$ = 16					; size = 4
 	setne	BYTE PTR ?game_window@@3Usk_window_s@@A
 	call	DWORD PTR ?GetWindowRect_Original@@3P6GHPAUHWND__@@PAUtagRECT@@@ZA ; GetWindowRect_Original
 
-; 3663 :       GetClientRect_Original (game_window.hWnd, &game_window.game.client  );
+; 3671 :       GetClientRect_Original (game_window.hWnd, &game_window.game.client  );
 
 	push	OFFSET ?game_window@@3Usk_window_s@@A+36
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	call	DWORD PTR ?GetClientRect_Original@@3P6GHPAUHWND__@@PAUtagRECT@@@ZA ; GetClientRect_Original
 
-; 3664 :       GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
+; 3672 :       GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
 
 	push	OFFSET ?game_window@@3Usk_window_s@@A+100
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	call	DWORD PTR ?GetWindowRect_Original@@3P6GHPAUHWND__@@PAUtagRECT@@@ZA ; GetWindowRect_Original
 
-; 3665 :       GetClientRect_Original (game_window.hWnd, &game_window.actual.client);
+; 3673 :       GetClientRect_Original (game_window.hWnd, &game_window.actual.client);
 
 	push	OFFSET ?game_window@@3Usk_window_s@@A+84
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	call	DWORD PTR ?GetClientRect_Original@@3P6GHPAUHWND__@@PAUtagRECT@@@ZA ; GetClientRect_Original
 
-; 3666 : 
-; 3667 :       SK_InitWindow (hWnd, false);
+; 3674 : 
+; 3675 :       SK_InitWindow (hWnd, false);
 
 	push	0
 	push	DWORD PTR [esi+12]
@@ -12458,94 +12466,94 @@ _lParam_HOOK$ = 16					; size = 4
 	add	esp, 8
 $LN6@CallWndPro:
 
-; 3668 :     }
-; 3669 : 
-; 3670 :     if (hWnd == game_window.hWnd)
+; 3676 :     }
+; 3677 : 
+; 3678 :     if (hWnd == game_window.hWnd)
 
 	mov	ecx, DWORD PTR [esi+12]
 	cmp	ecx, DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	jne	$LN7@CallWndPro
 
-; 3671 :     {
-; 3672 : #if 0
-; 3673 :   if ((uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST) && game_window.needsCoordTransform ())
-; 3674 :   {
-; 3675 :     POINT pt;
-; 3676 : 
-; 3677 :     pt.x = GET_X_LPARAM (lParam);
-; 3678 :     pt.y = GET_Y_LPARAM (lParam);
-; 3679 : 
-; 3680 :     SK_CalcCursorPos (&pt);
-; 3681 : 
-; 3682 :     lParam = MAKELPARAM ((SHORT)pt.x, (SHORT)pt.y);
-; 3683 :   }
-; 3684 : #endif
-; 3685 : 
-; 3686 : 
+; 3679 :     {
+; 3680 : #if 0
+; 3681 :   if ((uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST) && game_window.needsCoordTransform ())
+; 3682 :   {
+; 3683 :     POINT pt;
+; 3684 : 
+; 3685 :     pt.x = GET_X_LPARAM (lParam);
+; 3686 :     pt.y = GET_Y_LPARAM (lParam);
 ; 3687 : 
-; 3688 : 
-; 3689 :     if (config.input.cursor.manage)
+; 3688 :     SK_CalcCursorPos (&pt);
+; 3689 : 
+; 3690 :     lParam = MAKELPARAM ((SHORT)pt.x, (SHORT)pt.y);
+; 3691 :   }
+; 3692 : #endif
+; 3693 : 
+; 3694 : 
+; 3695 : 
+; 3696 : 
+; 3697 :     if (config.input.cursor.manage)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+676, 0
 	push	ebx
 	je	$LN73@CallWndPro
 
-; 3690 :     {
-; 3691 :       //extern bool IsControllerPluggedIn (INT iJoyID);
-; 3692 : 
-; 3693 :      auto ActivateCursor = [](bool changed = false)->
-; 3694 :       bool
-; 3695 :        {
-; 3696 :          bool was_active = last_mouse.cursor;
-; 3697 : 
-; 3698 :          if (! last_mouse.cursor)
-; 3699 :          {
-; 3700 :            if ((! SK_IsSteamOverlayActive ()) && game_window.active)
-; 3701 :            {
-; 3702 :              while (ShowCursor (TRUE) < 0) ;
-; 3703 :              last_mouse.cursor = true;
-; 3704 :            }
-; 3705 :          }
-; 3706 : 
-; 3707 :          if (changed && (! SK_IsSteamOverlayActive ()))
-; 3708 :            last_mouse.sampled = timeGetTime ();
-; 3709 : 
-; 3710 :          return (last_mouse.cursor != was_active);
-; 3711 :        };
-; 3712 : 
-; 3713 :      auto DeactivateCursor = 
-; 3714 :      []{
-; 3715 :          if (! last_mouse.cursor)
-; 3716 :            return false;
+; 3698 :     {
+; 3699 :       //extern bool IsControllerPluggedIn (INT iJoyID);
+; 3700 : 
+; 3701 :      auto ActivateCursor = [](bool changed = false)->
+; 3702 :       bool
+; 3703 :        {
+; 3704 :          bool was_active = last_mouse.cursor;
+; 3705 : 
+; 3706 :          if (! last_mouse.cursor)
+; 3707 :          {
+; 3708 :            if ((! SK_IsSteamOverlayActive ()) && game_window.active)
+; 3709 :            {
+; 3710 :              while (ShowCursor (TRUE) < 0) ;
+; 3711 :              last_mouse.cursor = true;
+; 3712 :            }
+; 3713 :          }
+; 3714 : 
+; 3715 :          if (changed && (! SK_IsSteamOverlayActive ()))
+; 3716 :            last_mouse.sampled = timeGetTime ();
 ; 3717 : 
-; 3718 :          bool was_active = last_mouse.cursor;
-; 3719 : 
-; 3720 :          if (last_mouse.sampled <= timeGetTime () - config.input.cursor.timeout)
-; 3721 :          {
-; 3722 :            if ((! SK_IsSteamOverlayActive ()) && game_window.active)
-; 3723 :            {
-; 3724 :              while (ShowCursor (FALSE) >= -1) ;
-; 3725 :              last_mouse.cursor = false;
-; 3726 : 
-; 3727 :              last_mouse.sampled = timeGetTime ();
-; 3728 :            }
-; 3729 :          }
-; 3730 : 
-; 3731 :          return (last_mouse.cursor != was_active);
-; 3732 :        };
-; 3733 : 
-; 3734 :       if (! last_mouse.init)
+; 3718 :          return (last_mouse.cursor != was_active);
+; 3719 :        };
+; 3720 : 
+; 3721 :      auto DeactivateCursor = 
+; 3722 :      []{
+; 3723 :          if (! last_mouse.cursor)
+; 3724 :            return false;
+; 3725 : 
+; 3726 :          bool was_active = last_mouse.cursor;
+; 3727 : 
+; 3728 :          if (last_mouse.sampled <= timeGetTime () - config.input.cursor.timeout)
+; 3729 :          {
+; 3730 :            if ((! SK_IsSteamOverlayActive ()) && game_window.active)
+; 3731 :            {
+; 3732 :              while (ShowCursor (FALSE) >= -1) ;
+; 3733 :              last_mouse.cursor = false;
+; 3734 : 
+; 3735 :              last_mouse.sampled = timeGetTime ();
+; 3736 :            }
+; 3737 :          }
+; 3738 : 
+; 3739 :          return (last_mouse.cursor != was_active);
+; 3740 :        };
+; 3741 : 
+; 3742 :       if (! last_mouse.init)
 
 	cmp	DWORD PTR ?last_mouse@@3U<unnamed-type-last_mouse>@@A+12, 0
 	jne	SHORT $LN9@CallWndPro
 
-; 3735 :       {
-; 3736 :         if (config.input.cursor.timeout != 0)
+; 3743 :       {
+; 3744 :         if (config.input.cursor.timeout != 0)
 
 	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+672
 
-; 3737 :         {
-; 3738 :           SetTimer ( hWnd,
+; 3745 :         {
+; 3746 :           SetTimer ( hWnd,
 
 	push	0
 	test	eax, eax
@@ -12553,17 +12561,17 @@ $LN6@CallWndPro:
 	shr	eax, 1
 	push	eax
 
-; 3739 :                        static_cast <UINT_PTR> (        last_mouse.timer_id),
-; 3740 :                        static_cast <UINT>     (config.input.cursor.timeout) / 2,
-; 3741 :                          nullptr );
-; 3742 :         }
-; 3743 :         else
+; 3747 :                        static_cast <UINT_PTR> (        last_mouse.timer_id),
+; 3748 :                        static_cast <UINT>     (config.input.cursor.timeout) / 2,
+; 3749 :                          nullptr );
+; 3750 :         }
+; 3751 :         else
 
 	jmp	SHORT $LN76@CallWndPro
 $LN10@CallWndPro:
 
-; 3744 :         {
-; 3745 :           SetTimer ( hWnd,
+; 3752 :         {
+; 3753 :           SetTimer ( hWnd,
 
 	push	250					; 000000faH
 $LN76@CallWndPro:
@@ -12571,37 +12579,37 @@ $LN76@CallWndPro:
 	push	ecx
 	call	DWORD PTR __imp__SetTimer@16
 
-; 3746 :                        static_cast <UINT_PTR> (last_mouse.timer_id),
-; 3747 :                          250UL/*USER_TIMER_MINIMUM*/,
-; 3748 :                            nullptr );
-; 3749 :         }
-; 3750 : 
-; 3751 :         last_mouse.init = true;
+; 3754 :                        static_cast <UINT_PTR> (last_mouse.timer_id),
+; 3755 :                          250UL/*USER_TIMER_MINIMUM*/,
+; 3756 :                            nullptr );
+; 3757 :         }
+; 3758 : 
+; 3759 :         last_mouse.init = true;
 
 	mov	DWORD PTR ?last_mouse@@3U<unnamed-type-last_mouse>@@A+12, 1
 $LN9@CallWndPro:
 
-; 3752 :       }
-; 3753 : 
-; 3754 :       bool activation_event =
-; 3755 :         (! SK_IsSteamOverlayActive ());
+; 3760 :       }
+; 3761 : 
+; 3762 :       bool activation_event =
+; 3763 :         (! SK_IsSteamOverlayActive ());
 
 	call	?SK_IsSteamOverlayActive@@YG_NXZ	; SK_IsSteamOverlayActive
 	test	al, al
 	sete	bl
 
-; 3756 : 
-; 3757 :       // Don't blindly accept that WM_MOUSEMOVE actually means the mouse moved...
-; 3758 :       if (activation_event)
+; 3764 : 
+; 3765 :       // Don't blindly accept that WM_MOUSEMOVE actually means the mouse moved...
+; 3766 :       if (activation_event)
 
 	test	bl, bl
 	je	SHORT $LN12@CallWndPro
 
-; 3759 :       {
-; 3760 :         const short threshold = 2;
-; 3761 : 
-; 3762 :         // Filter out small movements
-; 3763 :         if ( abs (last_mouse.pos.x - GET_X_LPARAM (lParam)) < threshold &&
+; 3767 :       {
+; 3768 :         const short threshold = 2;
+; 3769 : 
+; 3770 :         // Filter out small movements
+; 3771 :         if ( abs (last_mouse.pos.x - GET_X_LPARAM (lParam)) < threshold &&
 
 	movsx	ecx, WORD PTR [esi]
 	movsx	eax, WORD PTR ?last_mouse@@3U<unnamed-type-last_mouse>@@A
@@ -12623,23 +12631,23 @@ $LN9@CallWndPro:
 	cmovl	ebx, ecx
 $LN13@CallWndPro:
 
-; 3764 :              abs (last_mouse.pos.y - GET_Y_LPARAM (lParam)) < threshold )
-; 3765 :           activation_event = false;
-; 3766 : 
-; 3767 :         last_mouse.pos = MAKEPOINTS (lParam);
+; 3772 :              abs (last_mouse.pos.y - GET_Y_LPARAM (lParam)) < threshold )
+; 3773 :           activation_event = false;
+; 3774 : 
+; 3775 :         last_mouse.pos = MAKEPOINTS (lParam);
 
 	mov	eax, DWORD PTR [esi]
 	mov	DWORD PTR ?last_mouse@@3U<unnamed-type-last_mouse>@@A, eax
 $LN12@CallWndPro:
 
-; 3768 :       }
-; 3769 : 
-; 3770 :       if (config.input.cursor.keys_activate)
+; 3776 :       }
+; 3777 : 
+; 3778 :       if (config.input.cursor.keys_activate)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+677, 0
 	je	SHORT $LN14@CallWndPro
 
-; 3771 :         activation_event |= ( uMsg == WM_CHAR       ||
+; 3779 :         activation_event |= ( uMsg == WM_CHAR       ||
 
 	mov	eax, DWORD PTR [esi+8]
 	cmp	eax, 258				; 00000102H
@@ -12656,31 +12664,31 @@ $LN64@CallWndPro:
 	or	bl, al
 $LN14@CallWndPro:
 
-; 3772 :                               uMsg == WM_SYSKEYDOWN ||
-; 3773 :                               uMsg == WM_SYSKEYUP );
-; 3774 : 
-; 3775 :       // If timeout is 0, just hide the thing indefinitely
-; 3776 :       if (activation_event && config.input.cursor.timeout != 0)
+; 3780 :                               uMsg == WM_SYSKEYDOWN ||
+; 3781 :                               uMsg == WM_SYSKEYUP );
+; 3782 : 
+; 3783 :       // If timeout is 0, just hide the thing indefinitely
+; 3784 :       if (activation_event && config.input.cursor.timeout != 0)
 
 	test	bl, bl
 	je	SHORT $LN15@CallWndPro
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+672, 0
 	je	SHORT $LN15@CallWndPro
 
-; 3777 :         ActivateCursor (true);
+; 3785 :         ActivateCursor (true);
 
 	push	1
 	lea	ecx, DWORD PTR _ActivateCursor$5[ebp]
 	call	??R<lambda_813a99a73084f12031f7ff0d640b0dd1>@@QBE_N_N@Z ; <lambda_813a99a73084f12031f7ff0d640b0dd1>::operator()
 
-; 3778 : 
-; 3779 :       else if ( uMsg   == WM_TIMER            &&
+; 3786 : 
+; 3787 :       else if ( uMsg   == WM_TIMER            &&
 
 	jmp	SHORT $LN73@CallWndPro
 $LN15@CallWndPro:
 
-; 3780 :                 wParam == last_mouse.timer_id &&
-; 3781 :                (! SK_IsSteamOverlayActive ()) &&
+; 3788 :                 wParam == last_mouse.timer_id &&
+; 3789 :                (! SK_IsSteamOverlayActive ()) &&
 
 	cmp	DWORD PTR [esi+8], 275			; 00000113H
 	jne	SHORT $LN73@CallWndPro
@@ -12694,10 +12702,10 @@ $LN15@CallWndPro:
 	test	cl, cl
 	je	SHORT $LN19@CallWndPro
 
-; 3782 :                 game_window.active )
-; 3783 :       {
-; 3784 :         if (true)//IsControllerPluggedIn (config.input.gamepad_slot))
-; 3785 :           DeactivateCursor ();
+; 3790 :                 game_window.active )
+; 3791 :       {
+; 3792 :         if (true)//IsControllerPluggedIn (config.input.gamepad_slot))
+; 3793 :           DeactivateCursor ();
 
 	lea	ecx, DWORD PTR _DeactivateCursor$4[ebp]
 	call	??R<lambda_b96439b331919f344b20b5d1514ebddc>@@QBE_NXZ ; <lambda_b96439b331919f344b20b5d1514ebddc>::operator()
@@ -12705,16 +12713,16 @@ $LN73@CallWndPro:
 	mov	cl, BYTE PTR ?game_window@@3Usk_window_s@@A+17
 $LN19@CallWndPro:
 
-; 3786 : 
-; 3787 :         else
-; 3788 :           ActivateCursor ();
-; 3789 :       }
-; 3790 :     }
-; 3791 : 
-; 3792 : 
-; 3793 : 
 ; 3794 : 
-; 3795 :   switch (uMsg)
+; 3795 :         else
+; 3796 :           ActivateCursor ();
+; 3797 :       }
+; 3798 :     }
+; 3799 : 
+; 3800 : 
+; 3801 : 
+; 3802 : 
+; 3803 :   switch (uMsg)
 
 	mov	eax, DWORD PTR [esi+8]
 	mov	ebx, DWORD PTR _wParam_HOOK$[ebp]
@@ -12725,16 +12733,16 @@ $LN19@CallWndPro:
 	jne	$LN47@CallWndPro
 $LN25@CallWndPro:
 
-; 3805 :       }
-; 3806 :       break;
-; 3807 : 
-; 3808 :     case WM_MOUSEACTIVATE: 
-; 3809 :     case WM_ACTIVATEAPP:
-; 3810 :     case WM_ACTIVATE:
-; 3811 :     case WM_NCACTIVATE:
-; 3812 :     {
-; 3813 :       LRESULT lRet = 0;
-; 3814 :       if (wm_dispatch.ProcessMessage (hWnd, uMsg, wParam, lParam, &lRet))
+; 3813 :       }
+; 3814 :       break;
+; 3815 : 
+; 3816 :     case WM_MOUSEACTIVATE: 
+; 3817 :     case WM_ACTIVATEAPP:
+; 3818 :     case WM_ACTIVATE:
+; 3819 :     case WM_NCACTIVATE:
+; 3820 :     {
+; 3821 :       LRESULT lRet = 0;
+; 3822 :       if (wm_dispatch.ProcessMessage (hWnd, uMsg, wParam, lParam, &lRet))
 
 	lea	eax, DWORD PTR _lRet$3[ebp]
 	mov	DWORD PTR _lRet$3[ebp], 0
@@ -12750,13 +12758,13 @@ $LN25@CallWndPro:
 	test	al, al
 	je	$LN47@CallWndPro
 
-; 3815 :       {
-; 3816 :         if (lRet != 0) return CallNextHookEx (g_hkCallWndProc, nCode, wParam_HOOK, lParam_HOOK);
+; 3823 :       {
+; 3824 :         if (lRet != 0) return CallNextHookEx (g_hkCallWndProc, nCode, wParam_HOOK, lParam_HOOK);
 
 	cmp	DWORD PTR _lRet$3[ebp], 0
 	je	$LN55@CallWndPro
 
-; 3847 :         return CallNextHookEx (g_hkCallWndProc, nCode, wParam_HOOK, lParam_HOOK);
+; 3855 :         return CallNextHookEx (g_hkCallWndProc, nCode, wParam_HOOK, lParam_HOOK);
 
 	push	esi
 	push	ebx
@@ -12767,23 +12775,23 @@ $LN25@CallWndPro:
 	pop	esi
 	pop	edi
 
-; 4008 : }
+; 4016 : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	12					; 0000000cH
 $LN65@CallWndPro:
 
-; 3786 : 
-; 3787 :         else
-; 3788 :           ActivateCursor ();
-; 3789 :       }
-; 3790 :     }
-; 3791 : 
-; 3792 : 
-; 3793 : 
 ; 3794 : 
-; 3795 :   switch (uMsg)
+; 3795 :         else
+; 3796 :           ActivateCursor ();
+; 3797 :       }
+; 3798 :     }
+; 3799 : 
+; 3800 : 
+; 3801 : 
+; 3802 : 
+; 3803 :   switch (uMsg)
 
 	cmp	eax, 255				; 000000ffH
 	ja	$LN66@CallWndPro
@@ -12795,18 +12803,18 @@ $LN65@CallWndPro:
 	jmp	DWORD PTR $LN80@CallWndPro[eax*4]
 $LN30@CallWndPro:
 
-; 3817 :         else           return lRet;
-; 3818 :       }
-; 3819 :     } break;
-; 3820 : 
-; 3821 :     case WM_NCCALCSIZE:
-; 3822 :       break;
-; 3823 : 
-; 3824 :     case WM_WINDOWPOSCHANGING:
-; 3825 :     case WM_WINDOWPOSCHANGED:
-; 3826 :     {
-; 3827 :       LRESULT lRet = 1;
-; 3828 :       if (wm_dispatch.ProcessMessage (hWnd, uMsg, wParam, lParam, &lRet))
+; 3825 :         else           return lRet;
+; 3826 :       }
+; 3827 :     } break;
+; 3828 : 
+; 3829 :     case WM_NCCALCSIZE:
+; 3830 :       break;
+; 3831 : 
+; 3832 :     case WM_WINDOWPOSCHANGING:
+; 3833 :     case WM_WINDOWPOSCHANGED:
+; 3834 :     {
+; 3835 :       LRESULT lRet = 1;
+; 3836 :       if (wm_dispatch.ProcessMessage (hWnd, uMsg, wParam, lParam, &lRet))
 
 	lea	eax, DWORD PTR _lRet$2[ebp]
 	mov	DWORD PTR _lRet$2[ebp], 1
@@ -12822,8 +12830,8 @@ $LN30@CallWndPro:
 	test	al, al
 	je	$LN47@CallWndPro
 
-; 3829 :       {
-; 3830 :         if (lRet != 0) CallNextHookEx (g_hkCallWndProc, nCode, wParam_HOOK, lParam_HOOK);
+; 3837 :       {
+; 3838 :         if (lRet != 0) CallNextHookEx (g_hkCallWndProc, nCode, wParam_HOOK, lParam_HOOK);
 
 	cmp	DWORD PTR _lRet$2[ebp], 0
 	je	$LN55@CallWndPro
@@ -12835,15 +12843,15 @@ $LN30@CallWndPro:
 	jmp	$LN47@CallWndPro
 $LN46@CallWndPro:
 
-; 3880 :       break;
-; 3881 : 
-; 3882 :     case WM_INPUT:
-; 3883 :       if (! game_window.active)
+; 3888 :       break;
+; 3889 : 
+; 3890 :     case WM_INPUT:
+; 3891 :       if (! game_window.active)
 
 	test	cl, cl
 	jne	$LN47@CallWndPro
 
-; 3847 :         return CallNextHookEx (g_hkCallWndProc, nCode, wParam_HOOK, lParam_HOOK);
+; 3855 :         return CallNextHookEx (g_hkCallWndProc, nCode, wParam_HOOK, lParam_HOOK);
 
 	push	esi
 	push	ebx
@@ -12854,23 +12862,23 @@ $LN46@CallWndPro:
 	pop	esi
 	pop	edi
 
-; 4008 : }
+; 4016 : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	12					; 0000000cH
 $LN66@CallWndPro:
 
-; 3786 : 
-; 3787 :         else
-; 3788 :           ActivateCursor ();
-; 3789 :       }
-; 3790 :     }
-; 3791 : 
-; 3792 : 
-; 3793 : 
 ; 3794 : 
-; 3795 :   switch (uMsg)
+; 3795 :         else
+; 3796 :           ActivateCursor ();
+; 3797 :       }
+; 3798 :     }
+; 3799 : 
+; 3800 : 
+; 3801 : 
+; 3802 : 
+; 3803 :   switch (uMsg)
 
 	cmp	eax, 274				; 00000112H
 	ja	$LN67@CallWndPro
@@ -12881,18 +12889,18 @@ $LN66@CallWndPro:
 	jmp	DWORD PTR $LN81@CallWndPro[eax*4]
 $LN37@CallWndPro:
 
-; 3848 :       break;
-; 3849 : 
-; 3850 : 
-; 3851 :     case WM_KEYDOWN:
-; 3852 :     case WM_SYSKEYDOWN:
-; 3853 :       if (game_window.active)
+; 3856 :       break;
+; 3857 : 
+; 3858 : 
+; 3859 :     case WM_KEYDOWN:
+; 3860 :     case WM_SYSKEYDOWN:
+; 3861 :       if (game_window.active)
 
 	test	cl, cl
 	je	$LN77@CallWndPro
 
-; 3854 :       {
-; 3855 :         if (SK_Console::getInstance ()->KeyDown (wParam & 0xFF, lParam) && (uMsg != WM_SYSKEYDOWN))
+; 3862 :       {
+; 3863 :         if (SK_Console::getInstance ()->KeyDown (wParam & 0xFF, lParam) && (uMsg != WM_SYSKEYDOWN))
 
 	push	DWORD PTR [esi]
 	movzx	eax, BYTE PTR [esi+4]
@@ -12904,28 +12912,28 @@ $LN37@CallWndPro:
 	je	$LN47@CallWndPro
 	cmp	DWORD PTR [esi+8], 260			; 00000104H
 
-; 3856 :         {
-; 3857 :           return CallNextHookEx (g_hkCallWndProc, nCode, wParam_HOOK, lParam_HOOK);
+; 3864 :         {
+; 3865 :           return CallNextHookEx (g_hkCallWndProc, nCode, wParam_HOOK, lParam_HOOK);
 
 	jmp	$LN78@CallWndPro
 $LN41@CallWndPro:
 
-; 3858 :           //return SK_COMPAT_SafeCallProc (&game_window, hWnd, uMsg, wParam, lParam);
-; 3859 :         }
-; 3860 :       }
-; 3861 :       else
-; 3862 :         return CallNextHookEx (g_hkCallWndProc, nCode, wParam_HOOK, lParam_HOOK);
-; 3863 :       break;
-; 3864 : 
-; 3865 :     case WM_KEYUP:
-; 3866 :     case WM_SYSKEYUP:
-; 3867 :       if (game_window.active)
+; 3866 :           //return SK_COMPAT_SafeCallProc (&game_window, hWnd, uMsg, wParam, lParam);
+; 3867 :         }
+; 3868 :       }
+; 3869 :       else
+; 3870 :         return CallNextHookEx (g_hkCallWndProc, nCode, wParam_HOOK, lParam_HOOK);
+; 3871 :       break;
+; 3872 : 
+; 3873 :     case WM_KEYUP:
+; 3874 :     case WM_SYSKEYUP:
+; 3875 :       if (game_window.active)
 
 	test	cl, cl
 	je	$LN77@CallWndPro
 
-; 3868 :       {
-; 3869 :         if (SK_Console::getInstance ()->KeyUp (wParam & 0xFF, lParam) && (uMsg != WM_SYSKEYUP))
+; 3876 :       {
+; 3877 :         if (SK_Console::getInstance ()->KeyUp (wParam & 0xFF, lParam) && (uMsg != WM_SYSKEYUP))
 
 	push	DWORD PTR [esi]
 	movzx	eax, BYTE PTR [esi+4]
@@ -12937,15 +12945,15 @@ $LN41@CallWndPro:
 	je	$LN47@CallWndPro
 	cmp	DWORD PTR [esi+8], 261			; 00000105H
 
-; 3870 :         {
-; 3871 :           return CallNextHookEx (g_hkCallWndProc, nCode, wParam_HOOK, lParam_HOOK);
+; 3878 :         {
+; 3879 :           return CallNextHookEx (g_hkCallWndProc, nCode, wParam_HOOK, lParam_HOOK);
 
 	jmp	SHORT $LN78@CallWndPro
 $LN20@CallWndPro:
 
-; 3796 :   {
-; 3797 :     case WM_SYSCOMMAND:
-; 3798 :       if ((wParam & 0xfff0) == SC_KEYMENU && lParam == 0) // Disable ALT application menu
+; 3804 :   {
+; 3805 :     case WM_SYSCOMMAND:
+; 3806 :       if ((wParam & 0xfff0) == SC_KEYMENU && lParam == 0) // Disable ALT application menu
 
 	mov	eax, DWORD PTR [esi+4]
 	and	eax, 65520				; 0000fff0H
@@ -12955,8 +12963,8 @@ $LN20@CallWndPro:
 	je	SHORT $LN77@CallWndPro
 $LN21@CallWndPro:
 
-; 3799 :         return CallNextHookEx (g_hkCallWndProc, nCode, wParam_HOOK, lParam_HOOK);
-; 3800 :       if ( (wParam & 0xfff0) == SC_SCREENSAVE ||
+; 3807 :         return CallNextHookEx (g_hkCallWndProc, nCode, wParam_HOOK, lParam_HOOK);
+; 3808 :       if ( (wParam & 0xfff0) == SC_SCREENSAVE ||
 
 	cmp	eax, 61760				; 0000f140H
 	je	SHORT $LN23@CallWndPro
@@ -12964,15 +12972,15 @@ $LN21@CallWndPro:
 	jne	SHORT $LN47@CallWndPro
 $LN23@CallWndPro:
 
-; 3801 :            (wParam & 0xfff0) == SC_MONITORPOWER )
-; 3802 :       {
-; 3803 :         if (config.window.disable_screensaver)
+; 3809 :            (wParam & 0xfff0) == SC_MONITORPOWER )
+; 3810 :       {
+; 3811 :         if (config.window.disable_screensaver)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+780, 0
 	je	SHORT $LN47@CallWndPro
 $LN55@CallWndPro:
 
-; 3804 :           return 0;
+; 3812 :           return 0;
 
 	xor	eax, eax
 $LN75@CallWndPro:
@@ -12980,23 +12988,23 @@ $LN75@CallWndPro:
 	pop	esi
 	pop	edi
 
-; 4008 : }
+; 4016 : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	12					; 0000000cH
 $LN67@CallWndPro:
 
-; 3786 : 
-; 3787 :         else
-; 3788 :           ActivateCursor ();
-; 3789 :       }
-; 3790 :     }
-; 3791 : 
-; 3792 : 
-; 3793 : 
 ; 3794 : 
-; 3795 :   switch (uMsg)
+; 3795 :         else
+; 3796 :           ActivateCursor ();
+; 3797 :       }
+; 3798 :     }
+; 3799 : 
+; 3800 : 
+; 3801 : 
+; 3802 : 
+; 3803 :   switch (uMsg)
 
 	sub	eax, 512				; 00000200H
 	cmp	eax, 50					; 00000032H
@@ -13005,26 +13013,26 @@ $LN67@CallWndPro:
 	jmp	DWORD PTR $LN82@CallWndPro[eax*4]
 $LN35@CallWndPro:
 
-; 3831 :         else           return          lRet;
-; 3832 :       }
-; 3833 :     } break;
-; 3834 : 
-; 3835 :     case WM_ENTERSIZEMOVE:
-; 3836 :     case WM_EXITSIZEMOVE:
-; 3837 :     {
-; 3838 :       wm_dispatch.ProcessMessage (hWnd, uMsg, wParam, lParam);
-; 3839 :     } break;
-; 3840 : 
-; 3841 :     case WM_SIZING:
-; 3842 :     case WM_MOVING:
-; 3843 :       ClipCursor (nullptr);
+; 3839 :         else           return          lRet;
+; 3840 :       }
+; 3841 :     } break;
+; 3842 : 
+; 3843 :     case WM_ENTERSIZEMOVE:
+; 3844 :     case WM_EXITSIZEMOVE:
+; 3845 :     {
+; 3846 :       wm_dispatch.ProcessMessage (hWnd, uMsg, wParam, lParam);
+; 3847 :     } break;
+; 3848 : 
+; 3849 :     case WM_SIZING:
+; 3850 :     case WM_MOVING:
+; 3851 :       ClipCursor (nullptr);
 
 	push	0
 	call	DWORD PTR __imp__ClipCursor@4
 
-; 3844 : 
-; 3845 :       // Filter this message
-; 3846 :       if (config.window.borderless && config.window.fullscreen)
+; 3852 : 
+; 3853 :       // Filter this message
+; 3854 :       if (config.window.borderless && config.window.fullscreen)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+748, 0
 	je	SHORT $LN47@CallWndPro
@@ -13033,7 +13041,7 @@ $LN78@CallWndPro:
 	je	SHORT $LN47@CallWndPro
 $LN77@CallWndPro:
 
-; 3847 :         return CallNextHookEx (g_hkCallWndProc, nCode, wParam_HOOK, lParam_HOOK);
+; 3855 :         return CallNextHookEx (g_hkCallWndProc, nCode, wParam_HOOK, lParam_HOOK);
 
 	push	esi
 	push	ebx
@@ -13044,21 +13052,21 @@ $LN77@CallWndPro:
 	pop	esi
 	pop	edi
 
-; 4008 : }
+; 4016 : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	12					; 0000000cH
 $LN45@CallWndPro:
 
-; 3872 :         }
-; 3873 :       }
-; 3874 :       else
-; 3875 :         return CallNextHookEx (g_hkCallWndProc, nCode, wParam_HOOK, lParam_HOOK);
-; 3876 :       break;
-; 3877 : 
-; 3878 :     case WM_MOUSEMOVE:
-; 3879 :       wm_dispatch.ProcessMessage (hWnd, uMsg, wParam, lParam);
+; 3880 :         }
+; 3881 :       }
+; 3882 :       else
+; 3883 :         return CallNextHookEx (g_hkCallWndProc, nCode, wParam_HOOK, lParam_HOOK);
+; 3884 :       break;
+; 3885 : 
+; 3886 :     case WM_MOUSEMOVE:
+; 3887 :       wm_dispatch.ProcessMessage (hWnd, uMsg, wParam, lParam);
 
 	push	0
 	push	esi
@@ -13071,13 +13079,13 @@ $LN45@CallWndPro:
 	call	?ProcessMessage@window_message_dispatch_s@@QAE_NPAUHWND__@@IAAIAAJPAJ@Z ; window_message_dispatch_s::ProcessMessage
 $LN47@CallWndPro:
 
-; 3884 :         return CallNextHookEx (g_hkCallWndProc, nCode, wParam_HOOK, lParam_HOOK);
-; 3885 :       break;
-; 3886 :   }
-; 3887 : 
-; 3888 : 
-; 3889 :   bool handled = 
-; 3890 :     ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam);
+; 3892 :         return CallNextHookEx (g_hkCallWndProc, nCode, wParam_HOOK, lParam_HOOK);
+; 3893 :       break;
+; 3894 :   }
+; 3895 : 
+; 3896 : 
+; 3897 :   bool handled = 
+; 3898 :     ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam);
 
 	push	DWORD PTR [esi]
 	push	DWORD PTR [esi+4]
@@ -13086,29 +13094,29 @@ $LN47@CallWndPro:
 	call	?ImGui_WndProcHandler@@YGJPAUHWND__@@IIJ@Z ; ImGui_WndProcHandler
 	test	eax, eax
 
-; 3891 : 
-; 3892 : 
-; 3893 : 
-; 3894 :   // Synaptics Touchpad Compat Hack:
-; 3895 :   // -------------------------------
-; 3896 :   //
-; 3897 :   //  PROBLEM:    Driver only generates window messages for mousewheel, it does
-; 3898 :   //                not activate RawInput, DirectInput or HID like a real mouse
-; 3899 :   //
-; 3900 :   //  WORKAROUND: Generate a full-blown input event using SendInput (...); be
-; 3901 :   //                aware that this event will generate ANOTHER WM_MOUSEWHEEL.
-; 3902 :   //
-; 3903 :   //    ** MUST handle recursive behavior caused by this fix-up **
+; 3899 : 
+; 3900 : 
+; 3901 : 
+; 3902 :   // Synaptics Touchpad Compat Hack:
+; 3903 :   // -------------------------------
 ; 3904 :   //
-; 3905 :   static bool recursive_wheel = false;
-; 3906 : 
-; 3907 :   // Dual purpose: This also catches any WM_MOUSEWHEEL messages that Synaptics
-; 3908 :   //                 issued through CallWindowProc (...) rather than
-; 3909 :   //                   SendMessage (...) / PostMessage (...) -- UGH.
+; 3905 :   //  PROBLEM:    Driver only generates window messages for mousewheel, it does
+; 3906 :   //                not activate RawInput, DirectInput or HID like a real mouse
+; 3907 :   //
+; 3908 :   //  WORKAROUND: Generate a full-blown input event using SendInput (...); be
+; 3909 :   //                aware that this event will generate ANOTHER WM_MOUSEWHEEL.
 ; 3910 :   //
-; 3911 :   //      >> We need to process those for ImGui <<
+; 3911 :   //    ** MUST handle recursive behavior caused by this fix-up **
 ; 3912 :   //
-; 3913 :   if ((! handled) && uMsg == WM_MOUSEWHEEL && (! recursive_wheel))
+; 3913 :   static bool recursive_wheel = false;
+; 3914 : 
+; 3915 :   // Dual purpose: This also catches any WM_MOUSEWHEEL messages that Synaptics
+; 3916 :   //                 issued through CallWindowProc (...) rather than
+; 3917 :   //                   SendMessage (...) / PostMessage (...) -- UGH.
+; 3918 :   //
+; 3919 :   //      >> We need to process those for ImGui <<
+; 3920 :   //
+; 3921 :   if ((! handled) && uMsg == WM_MOUSEWHEEL && (! recursive_wheel))
 
 	jne	SHORT $LN48@CallWndPro
 	cmp	DWORD PTR [esi+8], 522			; 0000020aH
@@ -13117,28 +13125,28 @@ $LN47@CallWndPro:
 	test	al, al
 	jne	SHORT $LN70@CallWndPro
 
-; 3914 :   {
-; 3915 :     if ((! handled) && config.input.mouse.fix_synaptics)
+; 3922 :   {
+; 3923 :     if ((! handled) && config.input.mouse.fix_synaptics)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+732, al
 	je	SHORT $LN51@CallWndPro
 
-; 3916 :     {
-; 3917 :       INPUT input        = { };
-; 3918 : 
-; 3919 :       input.type         = INPUT_MOUSE;
-; 3920 :       input.mi.dwFlags   = MOUSEEVENTF_WHEEL;
-; 3921 :       input.mi.mouseData = GET_WHEEL_DELTA_WPARAM (wParam);
+; 3924 :     {
+; 3925 :       INPUT input        = { };
+; 3926 : 
+; 3927 :       input.type         = INPUT_MOUSE;
+; 3928 :       input.mi.dwFlags   = MOUSEEVENTF_WHEEL;
+; 3929 :       input.mi.mouseData = GET_WHEEL_DELTA_WPARAM (wParam);
 
 	movsx	eax, WORD PTR [esi+6]
 	xorps	xmm0, xmm0
 	movups	XMMWORD PTR _input$1[ebp], xmm0
 	mov	DWORD PTR _input$1[ebp+12], eax
 
-; 3922 : 
-; 3923 :       recursive_wheel    = true;
-; 3924 : 
-; 3925 :       SendInput_Original (1, &input, sizeof INPUT);
+; 3930 : 
+; 3931 :       recursive_wheel    = true;
+; 3932 : 
+; 3933 :       SendInput_Original (1, &input, sizeof INPUT);
 
 	lea	eax, DWORD PTR _input$1[ebp]
 	push	28					; 0000001cH
@@ -13151,19 +13159,19 @@ $LN47@CallWndPro:
 	mov	BYTE PTR ?recursive_wheel@?L@??CallWndProc@@YGJHIJ@Z@4_NA, 1
 	call	DWORD PTR ?SendInput_Original@@3P6GIIPAUtagINPUT@@H@ZA ; SendInput_Original
 
-; 3926 :     }
-; 3927 :   }
+; 3934 :     }
+; 3935 :   }
 
 	jmp	SHORT $LN51@CallWndPro
 $LN48@CallWndPro:
 
-; 3928 : 
-; 3929 :   // In-lieu of a proper fence, this solves the recursion problem.
-; 3930 :   //
-; 3931 :   //   There's no guarantee the message we are ignoring is the one we
-; 3932 :   //     generated, but one misplaced message won't kill anything.
-; 3933 :   //
-; 3934 :   else if (recursive_wheel && uMsg == WM_MOUSEWHEEL)
+; 3936 : 
+; 3937 :   // In-lieu of a proper fence, this solves the recursion problem.
+; 3938 :   //
+; 3939 :   //   There's no guarantee the message we are ignoring is the one we
+; 3940 :   //     generated, but one misplaced message won't kill anything.
+; 3941 :   //
+; 3942 :   else if (recursive_wheel && uMsg == WM_MOUSEWHEEL)
 
 	mov	al, BYTE PTR ?recursive_wheel@?L@??CallWndProc@@YGJHIJ@Z@4_NA
 	test	al, al
@@ -13176,18 +13184,18 @@ $LN70@CallWndPro:
 	mov	BYTE PTR ?recursive_wheel@?L@??CallWndProc@@YGJHIJ@Z@4_NA, al
 $LN51@CallWndPro:
 
-; 3935 :     recursive_wheel = false;
-; 3936 : 
-; 3937 : 
-; 3938 : 
-; 3939 :   //
-; 3940 :   // Squelch input messages that managed to get into the loop without triggering
-; 3941 :   //   filtering logic in the GetMessage (...), PeekMessage (...) and
-; 3942 :   //     DispatchMessage (...) hooks.
-; 3943 :   //
-; 3944 :   //   [ Mostly for EverQuest ]
-; 3945 :   //
-; 3946 :   if (uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST && SK_ImGui_WantMouseCapture    ())
+; 3943 :     recursive_wheel = false;
+; 3944 : 
+; 3945 : 
+; 3946 : 
+; 3947 :   //
+; 3948 :   // Squelch input messages that managed to get into the loop without triggering
+; 3949 :   //   filtering logic in the GetMessage (...), PeekMessage (...) and
+; 3950 :   //     DispatchMessage (...) hooks.
+; 3951 :   //
+; 3952 :   //   [ Mostly for EverQuest ]
+; 3953 :   //
+; 3954 :   if (uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST && SK_ImGui_WantMouseCapture    ())
 
 	mov	eax, DWORD PTR [esi+8]
 	cmp	eax, 512				; 00000200H
@@ -13199,9 +13207,9 @@ $LN51@CallWndPro:
 	jne	$LN77@CallWndPro
 $LN52@CallWndPro:
 
-; 3947 :     return CallNextHookEx (g_hkCallWndProc, nCode, wParam_HOOK, lParam_HOOK);
-; 3948 :   
-; 3949 :   if (uMsg >= WM_KEYFIRST   && uMsg <= WM_KEYLAST   && SK_ImGui_WantKeyboardCapture ())
+; 3955 :     return CallNextHookEx (g_hkCallWndProc, nCode, wParam_HOOK, lParam_HOOK);
+; 3956 :   
+; 3957 :   if (uMsg >= WM_KEYFIRST   && uMsg <= WM_KEYLAST   && SK_ImGui_WantKeyboardCapture ())
 
 	mov	eax, DWORD PTR [esi+8]
 	cmp	eax, 256				; 00000100H
@@ -13213,9 +13221,9 @@ $LN52@CallWndPro:
 	jne	$LN77@CallWndPro
 $LN53@CallWndPro:
 
-; 3950 :     return CallNextHookEx (g_hkCallWndProc, nCode, wParam_HOOK, lParam_HOOK);
-; 3951 :   
-; 3952 :   if (uMsg == WM_INPUT      && SK_ImGui_WantGamepadCapture ())
+; 3958 :     return CallNextHookEx (g_hkCallWndProc, nCode, wParam_HOOK, lParam_HOOK);
+; 3959 :   
+; 3960 :   if (uMsg == WM_INPUT      && SK_ImGui_WantGamepadCapture ())
 
 	cmp	DWORD PTR [esi+8], 255			; 000000ffH
 	jne	SHORT $LN54@CallWndPro
@@ -13224,14 +13232,14 @@ $LN53@CallWndPro:
 	jne	$LN77@CallWndPro
 $LN54@CallWndPro:
 
-; 3953 :     return CallNextHookEx (g_hkCallWndProc, nCode, wParam_HOOK, lParam_HOOK);
-; 3954 : 
-; 3955 : 
-; 3956 : 
-; 3957 :   //
-; 3958 :   // DO NOT HOOK THIS FUNCTION outside of SpecialK plug-ins, the ABI is not guaranteed
-; 3959 :   //
-; 3960 :   if (SK_DetourWindowProc2 (hWnd, uMsg, wParam, lParam))
+; 3961 :     return CallNextHookEx (g_hkCallWndProc, nCode, wParam_HOOK, lParam_HOOK);
+; 3962 : 
+; 3963 : 
+; 3964 : 
+; 3965 :   //
+; 3966 :   // DO NOT HOOK THIS FUNCTION outside of SpecialK plug-ins, the ABI is not guaranteed
+; 3967 :   //
+; 3968 :   if (SK_DetourWindowProc2 (hWnd, uMsg, wParam, lParam))
 
 	push	DWORD PTR [esi]
 	push	DWORD PTR [esi+4]
@@ -13241,21 +13249,21 @@ $LN54@CallWndPro:
 	test	eax, eax
 	je	$LN55@CallWndPro
 
-; 3961 :   {
-; 3962 :     bool console_visible =
-; 3963 :       SK_Console::getInstance ()->isVisible ();
+; 3969 :   {
+; 3970 :     bool console_visible =
+; 3971 :       SK_Console::getInstance ()->isVisible ();
 
 	call	?getInstance@SK_Console@@SAPAV1@XZ	; SK_Console::getInstance
 
-; 3964 : 
-; 3965 :     // Block keyboard input to the game while the console is visible
-; 3966 :     if (console_visible)
+; 3972 : 
+; 3973 :     // Block keyboard input to the game while the console is visible
+; 3974 :     if (console_visible)
 
 	cmp	BYTE PTR [eax+4356], 0
 	je	SHORT $LN60@CallWndPro
 
-; 3967 :     {
-; 3968 :       if (uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST)
+; 3975 :     {
+; 3976 :       if (uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST)
 
 	mov	eax, DWORD PTR [esi+8]
 	cmp	eax, 512				; 00000200H
@@ -13264,9 +13272,9 @@ $LN54@CallWndPro:
 	jbe	$LN77@CallWndPro
 $LN58@CallWndPro:
 
-; 3969 :         return CallNextHookEx (g_hkCallWndProc, nCode, wParam_HOOK, lParam_HOOK);
-; 3970 : 
-; 3971 :       if (uMsg >= WM_KEYFIRST   && uMsg <= WM_KEYLAST)
+; 3977 :         return CallNextHookEx (g_hkCallWndProc, nCode, wParam_HOOK, lParam_HOOK);
+; 3978 : 
+; 3979 :       if (uMsg >= WM_KEYFIRST   && uMsg <= WM_KEYLAST)
 
 	cmp	eax, 256				; 00000100H
 	jb	SHORT $LN59@CallWndPro
@@ -13274,31 +13282,31 @@ $LN58@CallWndPro:
 	jbe	$LN77@CallWndPro
 $LN59@CallWndPro:
 
-; 3972 :         return CallNextHookEx (g_hkCallWndProc, nCode, wParam_HOOK, lParam_HOOK);
-; 3973 : 
-; 3974 :       // Block RAW Input
-; 3975 :       if (uMsg == WM_INPUT)
+; 3980 :         return CallNextHookEx (g_hkCallWndProc, nCode, wParam_HOOK, lParam_HOOK);
+; 3981 : 
+; 3982 :       // Block RAW Input
+; 3983 :       if (uMsg == WM_INPUT)
 
 	cmp	eax, 255				; 000000ffH
 	je	$LN77@CallWndPro
 $LN60@CallWndPro:
 
-; 3976 :         return CallNextHookEx (g_hkCallWndProc, nCode, wParam_HOOK, lParam_HOOK);
-; 3977 :     }
-; 3978 :   }
-; 3979 :   
-; 3980 :   else {
-; 3981 :     return 0;
-; 3982 :   }
-; 3983 : 
-; 3984 : 
-; 3985 :   // Filter this out for fullscreen override safety
-; 3986 :   ////if (uMsg == WM_DISPLAYCHANGE)    return 1;//game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
-; 3987 :   ////if (uMsg == WM_WINDOWPOSCHANGED) return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
-; 3988 : 
-; 3989 : 
-; 3990 :   LRESULT lRet =
-; 3991 :     CallNextHookEx (g_hkCallWndProc, nCode, wParam_HOOK, lParam_HOOK);
+; 3984 :         return CallNextHookEx (g_hkCallWndProc, nCode, wParam_HOOK, lParam_HOOK);
+; 3985 :     }
+; 3986 :   }
+; 3987 :   
+; 3988 :   else {
+; 3989 :     return 0;
+; 3990 :   }
+; 3991 : 
+; 3992 : 
+; 3993 :   // Filter this out for fullscreen override safety
+; 3994 :   ////if (uMsg == WM_DISPLAYCHANGE)    return 1;//game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+; 3995 :   ////if (uMsg == WM_WINDOWPOSCHANGED) return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+; 3996 : 
+; 3997 : 
+; 3998 :   LRESULT lRet =
+; 3999 :     CallNextHookEx (g_hkCallWndProc, nCode, wParam_HOOK, lParam_HOOK);
 
 	push	esi
 	push	ebx
@@ -13306,14 +13314,14 @@ $LN60@CallWndPro:
 	push	DWORD PTR ?g_hkCallWndProc@@3PAUHHOOK__@@A ; g_hkCallWndProc
 	call	DWORD PTR __imp__CallNextHookEx@16
 
-; 3992 : 
-; 3993 : 
-; 3994 :   // Post-Process the game's result to fix any non-compliant behaviors
-; 3995 :   //
-; 3996 : 
-; 3997 : 
-; 3998 :   // Fix for Skyrim SE beeping when Alt is pressed.
-; 3999 :   if (uMsg == WM_MENUCHAR && (! HIWORD (lRet)))
+; 4000 : 
+; 4001 : 
+; 4002 :   // Post-Process the game's result to fix any non-compliant behaviors
+; 4003 :   //
+; 4004 : 
+; 4005 : 
+; 4006 :   // Fix for Skyrim SE beeping when Alt is pressed.
+; 4007 :   if (uMsg == WM_MENUCHAR && (! HIWORD (lRet)))
 
 	cmp	DWORD PTR [esi+8], 288			; 00000120H
 	jne	$LN75@CallWndPro
@@ -13322,27 +13330,27 @@ $LN60@CallWndPro:
 	test	ecx, ecx
 	jne	$LN75@CallWndPro
 
-; 4000 :     return MAKEWPARAM (0, MNC_CLOSE);
+; 4008 :     return MAKEWPARAM (0, MNC_CLOSE);
 
 	pop	ebx
 	pop	esi
 	mov	eax, 65536				; 00010000H
 	pop	edi
 
-; 4008 : }
+; 4016 : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	12					; 0000000cH
 $LN7@CallWndPro:
 
-; 4001 : 
-; 4002 : 
-; 4003 :   return lRet;
-; 4004 :     }
-; 4005 :   }
-; 4006 : 
-; 4007 :   return CallNextHookEx (g_hkCallWndProc, nCode, wParam_HOOK, lParam_HOOK);
+; 4009 : 
+; 4010 : 
+; 4011 :   return lRet;
+; 4012 :     }
+; 4013 :   }
+; 4014 : 
+; 4015 :   return CallNextHookEx (g_hkCallWndProc, nCode, wParam_HOOK, lParam_HOOK);
 
 	push	esi
 	push	DWORD PTR _wParam_HOOK$[ebp]
@@ -13352,14 +13360,14 @@ $LN7@CallWndPro:
 	pop	esi
 	pop	edi
 
-; 4008 : }
+; 4016 : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	12					; 0000000cH
 $LN5@CallWndPro:
 
-; 3634 :     return CallNextHookEx (g_hkCallWndProc, nCode, wParam_HOOK, lParam_HOOK);
+; 3642 :     return CallNextHookEx (g_hkCallWndProc, nCode, wParam_HOOK, lParam_HOOK);
 
 	push	DWORD PTR _lParam_HOOK$[ebp]
 	push	DWORD PTR _wParam_HOOK$[ebp]
@@ -13368,7 +13376,7 @@ $LN5@CallWndPro:
 	call	DWORD PTR __imp__CallNextHookEx@16
 	pop	edi
 
-; 4008 : }
+; 4016 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -13556,16 +13564,16 @@ _wParam$ = 16						; size = 4
 _lParam$ = 20						; size = 4
 ?SK_DetourWindowProc2@@YGJPAUHWND__@@IIJ@Z PROC		; SK_DetourWindowProc2
 
-; 3443 :   UNREFERENCED_PARAMETER (hWnd);
-; 3444 :   UNREFERENCED_PARAMETER (uMsg);
-; 3445 :   UNREFERENCED_PARAMETER (wParam);
-; 3446 :   UNREFERENCED_PARAMETER (lParam);
-; 3447 : 
-; 3448 :   return 1;
+; 3451 :   UNREFERENCED_PARAMETER (hWnd);
+; 3452 :   UNREFERENCED_PARAMETER (uMsg);
+; 3453 :   UNREFERENCED_PARAMETER (wParam);
+; 3454 :   UNREFERENCED_PARAMETER (lParam);
+; 3455 : 
+; 3456 :   return 1;
 
 	mov	eax, 1
 
-; 3449 : }
+; 3457 : }
 
 	ret	16					; 00000010H
 ?SK_DetourWindowProc2@@YGJPAUHWND__@@IIJ@Z ENDP		; SK_DetourWindowProc2
@@ -13577,7 +13585,7 @@ _TEXT	SEGMENT
 ??B<lambda_9f5df0c8a1d89b8b0ae29fd3c4e96afa>@@QBEP6GKPAX@ZXZ PROC ; <lambda_9f5df0c8a1d89b8b0ae29fd3c4e96afa>::operator unsigned long (__stdcall*)(void *), COMDAT
 ; _this$ = ecx
 
-; 3423 :         },
+; 3431 :         },
 
 	mov	eax, OFFSET ?<lambda_invoker_stdcall>@<lambda_9f5df0c8a1d89b8b0ae29fd3c4e96afa>@@CGKPAX@Z ; <lambda_9f5df0c8a1d89b8b0ae29fd3c4e96afa>::<lambda_invoker_stdcall>
 	ret	0
@@ -13590,42 +13598,42 @@ _TEXT	SEGMENT
 _user$ = 8						; size = 4
 ?<lambda_invoker_stdcall>@<lambda_9f5df0c8a1d89b8b0ae29fd3c4e96afa>@@CGKPAX@Z PROC ; <lambda_9f5df0c8a1d89b8b0ae29fd3c4e96afa>::<lambda_invoker_stdcall>, COMDAT
 
-; 3423 :         },
+; 3431 :         },
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	push	esi
 
-; 3415 :           BringWindowToTop    (static_cast <HWND> (user));
+; 3423 :           BringWindowToTop    (static_cast <HWND> (user));
 
 	mov	esi, DWORD PTR _user$[ebp]
 	push	esi
 	call	DWORD PTR __imp__BringWindowToTop@4
 
-; 3416 :           SetForegroundWindow (static_cast <HWND> (user));
+; 3424 :           SetForegroundWindow (static_cast <HWND> (user));
 
 	push	esi
 	call	DWORD PTR __imp__SetForegroundWindow@4
 
-; 3417 :           SetActiveWindow     (static_cast <HWND> (user));
+; 3425 :           SetActiveWindow     (static_cast <HWND> (user));
 
 	push	esi
 	call	DWORD PTR __imp__SetActiveWindow@4
 
-; 3418 :           SetFocus            (static_cast <HWND> (user));
+; 3426 :           SetFocus            (static_cast <HWND> (user));
 
 	push	esi
 	call	DWORD PTR __imp__SetFocus@4
 
-; 3419 : 
-; 3420 :           CloseHandle (GetCurrentThread ());
+; 3427 : 
+; 3428 :           CloseHandle (GetCurrentThread ());
 
 	call	DWORD PTR __imp__GetCurrentThread@0
 	push	eax
 	call	DWORD PTR __imp__CloseHandle@4
 
-; 3423 :         },
+; 3431 :         },
 
 	xor	eax, eax
 	pop	esi
@@ -13641,48 +13649,48 @@ _user$ = 8						; size = 4
 ??R<lambda_9f5df0c8a1d89b8b0ae29fd3c4e96afa>@@QBEKPAX@Z PROC ; <lambda_9f5df0c8a1d89b8b0ae29fd3c4e96afa>::operator(), COMDAT
 ; _this$ = ecx
 
-; 3414 :         {
+; 3422 :         {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	push	esi
 
-; 3415 :           BringWindowToTop    (static_cast <HWND> (user));
+; 3423 :           BringWindowToTop    (static_cast <HWND> (user));
 
 	mov	esi, DWORD PTR _user$[ebp]
 	push	esi
 	call	DWORD PTR __imp__BringWindowToTop@4
 
-; 3416 :           SetForegroundWindow (static_cast <HWND> (user));
+; 3424 :           SetForegroundWindow (static_cast <HWND> (user));
 
 	push	esi
 	call	DWORD PTR __imp__SetForegroundWindow@4
 
-; 3417 :           SetActiveWindow     (static_cast <HWND> (user));
+; 3425 :           SetActiveWindow     (static_cast <HWND> (user));
 
 	push	esi
 	call	DWORD PTR __imp__SetActiveWindow@4
 
-; 3418 :           SetFocus            (static_cast <HWND> (user));
+; 3426 :           SetFocus            (static_cast <HWND> (user));
 
 	push	esi
 	call	DWORD PTR __imp__SetFocus@4
 
-; 3419 : 
-; 3420 :           CloseHandle (GetCurrentThread ());
+; 3427 : 
+; 3428 :           CloseHandle (GetCurrentThread ());
 
 	call	DWORD PTR __imp__GetCurrentThread@0
 	push	eax
 	call	DWORD PTR __imp__CloseHandle@4
 
-; 3421 : 
-; 3422 :           return 0;
+; 3429 : 
+; 3430 :           return 0;
 
 	xor	eax, eax
 	pop	esi
 
-; 3423 :         },
+; 3431 :         },
 
 	pop	ebp
 	ret	4
@@ -13695,33 +13703,33 @@ __$ReturnAddr$ = 4					; size = 4
 _lpMsg$ = 8						; size = 4
 ?DispatchMessageA_Detour@@YGJPBUtagMSG@@@Z PROC		; DispatchMessageA_Detour
 
-; 3360 : {
+; 3368 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 3361 :   if (hModSteamOverlay == nullptr)
+; 3369 :   if (hModSteamOverlay == nullptr)
 
 	cmp	DWORD PTR ?hModSteamOverlay@@3PAUHINSTANCE__@@A, 0
 	jne	SHORT $LN2@DispatchMe
 
-; 3362 :   {
-; 3363 :     hModSteamOverlay = GetModuleHandle
+; 3370 :   {
+; 3371 :     hModSteamOverlay = GetModuleHandle
 
-	push	OFFSET $SG212788
+	push	OFFSET $SG212859
 	call	DWORD PTR __imp__GetModuleHandleW@4
 	mov	DWORD PTR ?hModSteamOverlay@@3PAUHINSTANCE__@@A, eax
 $LN2@DispatchMe:
 
-; 3364 : #ifdef _WIN64
-; 3365 :     (L"GameOverlayRenderer64.dll");
-; 3366 : #else
-; 3367 :     (L"GameOverlayRenderer.dll");
-; 3368 : #endif
-; 3369 :   }
-; 3370 : 
-; 3371 :   if (SK_GetCallingDLL () == hModSteamOverlay)
+; 3372 : #ifdef _WIN64
+; 3373 :     (L"GameOverlayRenderer64.dll");
+; 3374 : #else
+; 3375 :     (L"GameOverlayRenderer.dll");
+; 3376 : #endif
+; 3377 :   }
+; 3378 : 
+; 3379 :   if (SK_GetCallingDLL () == hModSteamOverlay)
 
 	mov	eax, DWORD PTR __$ReturnAddr$[ebp]
 	push	eax
@@ -13730,26 +13738,26 @@ $LN2@DispatchMe:
 	cmp	eax, DWORD PTR ?hModSteamOverlay@@3PAUHINSTANCE__@@A
 	jne	SHORT $LN3@DispatchMe
 
-; 3389 : }
+; 3397 : }
 
 	pop	ebp
 
-; 3372 :   {
-; 3373 :     return DispatchMessageA_Original ( lpMsg );
+; 3380 :   {
+; 3381 :     return DispatchMessageA_Original ( lpMsg );
 
 	jmp	DWORD PTR ?DispatchMessageA_Original@@3P6GJPBUtagMSG@@@ZA ; DispatchMessageA_Original
 $LN3@DispatchMe:
 
-; 3374 :   }
-; 3375 : 
-; 3376 :   SK_LOG_FIRST_CALL
+; 3382 :   }
+; 3383 : 
+; 3384 :   SK_LOG_FIRST_CALL
 
 	cmp	BYTE PTR ?called@?8??DispatchMessageA_Detour@@YGJPBUtagMSG@@@Z@4_NA, 0
 	jne	SHORT $LN4@DispatchMe
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN5@DispatchMe
-	push	OFFSET $SG212792
-	push	OFFSET $SG212793
+	push	OFFSET $SG212863
+	push	OFFSET $SG212864
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -13758,16 +13766,16 @@ $LN5@DispatchMe:
 $LN4@DispatchMe:
 	push	esi
 
-; 3377 : 
-; 3378 :   if (lpMsg->hwnd == game_window.hWnd)
+; 3385 : 
+; 3386 :   if (lpMsg->hwnd == game_window.hWnd)
 
 	mov	esi, DWORD PTR _lpMsg$[ebp]
 	mov	eax, DWORD PTR [esi]
 	cmp	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	jne	SHORT $LN7@DispatchMe
 
-; 3379 :   {
-; 3380 :     if ( SK_EarlyDispatchMessage ( const_cast <MSG *> (lpMsg),
+; 3387 :   {
+; 3388 :     if ( SK_EarlyDispatchMessage ( const_cast <MSG *> (lpMsg),
 
 	push	0
 	push	0
@@ -13777,10 +13785,10 @@ $LN4@DispatchMe:
 	test	al, al
 	je	SHORT $LN7@DispatchMe
 
-; 3381 :                                      false )
-; 3382 :        )
-; 3383 :     {
-; 3384 :       return DefWindowProcA (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
+; 3389 :                                      false )
+; 3390 :        )
+; 3391 :     {
+; 3392 :       return DefWindowProcA (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
 
 	push	DWORD PTR [esi+12]
 	push	DWORD PTR [esi+8]
@@ -13789,22 +13797,22 @@ $LN4@DispatchMe:
 	call	DWORD PTR __imp__DefWindowProcA@16
 	pop	esi
 
-; 3389 : }
+; 3397 : }
 
 	pop	ebp
 	ret	4
 $LN7@DispatchMe:
 
-; 3385 :     }
-; 3386 :   }
-; 3387 : 
-; 3388 :   return DispatchMessageA_Original (lpMsg);
+; 3393 :     }
+; 3394 :   }
+; 3395 : 
+; 3396 :   return DispatchMessageA_Original (lpMsg);
 
 	push	esi
 	call	DWORD PTR ?DispatchMessageA_Original@@3P6GJPBUtagMSG@@@ZA ; DispatchMessageA_Original
 	pop	esi
 
-; 3389 : }
+; 3397 : }
 
 	pop	ebp
 	ret	4
@@ -13817,33 +13825,33 @@ __$ReturnAddr$ = 4					; size = 4
 _lpMsg$ = 8						; size = 4
 ?DispatchMessageW_Detour@@YGJPBUtagMSG@@@Z PROC		; DispatchMessageW_Detour
 
-; 3326 : {
+; 3334 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 3327 :   if (hModSteamOverlay == nullptr)
+; 3335 :   if (hModSteamOverlay == nullptr)
 
 	cmp	DWORD PTR ?hModSteamOverlay@@3PAUHINSTANCE__@@A, 0
 	jne	SHORT $LN2@DispatchMe
 
-; 3328 :   {
-; 3329 :     hModSteamOverlay = GetModuleHandle
+; 3336 :   {
+; 3337 :     hModSteamOverlay = GetModuleHandle
 
-	push	OFFSET $SG212773
+	push	OFFSET $SG212844
 	call	DWORD PTR __imp__GetModuleHandleW@4
 	mov	DWORD PTR ?hModSteamOverlay@@3PAUHINSTANCE__@@A, eax
 $LN2@DispatchMe:
 
-; 3330 : #ifdef _WIN64
-; 3331 :     (L"GameOverlayRenderer64.dll");
-; 3332 : #else
-; 3333 :     (L"GameOverlayRenderer.dll");
-; 3334 : #endif
-; 3335 :   }
-; 3336 : 
-; 3337 :   if (SK_GetCallingDLL () == hModSteamOverlay)
+; 3338 : #ifdef _WIN64
+; 3339 :     (L"GameOverlayRenderer64.dll");
+; 3340 : #else
+; 3341 :     (L"GameOverlayRenderer.dll");
+; 3342 : #endif
+; 3343 :   }
+; 3344 : 
+; 3345 :   if (SK_GetCallingDLL () == hModSteamOverlay)
 
 	mov	eax, DWORD PTR __$ReturnAddr$[ebp]
 	push	eax
@@ -13852,26 +13860,26 @@ $LN2@DispatchMe:
 	cmp	eax, DWORD PTR ?hModSteamOverlay@@3PAUHINSTANCE__@@A
 	jne	SHORT $LN3@DispatchMe
 
-; 3355 : }
+; 3363 : }
 
 	pop	ebp
 
-; 3338 :   {
-; 3339 :     return DispatchMessageW_Original ( lpMsg );
+; 3346 :   {
+; 3347 :     return DispatchMessageW_Original ( lpMsg );
 
 	jmp	DWORD PTR ?DispatchMessageW_Original@@3P6GJPBUtagMSG@@@ZA ; DispatchMessageW_Original
 $LN3@DispatchMe:
 
-; 3340 :   }
-; 3341 : 
-; 3342 :   SK_LOG_FIRST_CALL
+; 3348 :   }
+; 3349 : 
+; 3350 :   SK_LOG_FIRST_CALL
 
 	cmp	BYTE PTR ?called@?8??DispatchMessageW_Detour@@YGJPBUtagMSG@@@Z@4_NA, 0
 	jne	SHORT $LN4@DispatchMe
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN5@DispatchMe
-	push	OFFSET $SG212777
-	push	OFFSET $SG212778
+	push	OFFSET $SG212848
+	push	OFFSET $SG212849
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -13880,16 +13888,16 @@ $LN5@DispatchMe:
 $LN4@DispatchMe:
 	push	esi
 
-; 3343 : 
-; 3344 :   if (lpMsg->hwnd == game_window.hWnd)
+; 3351 : 
+; 3352 :   if (lpMsg->hwnd == game_window.hWnd)
 
 	mov	esi, DWORD PTR _lpMsg$[ebp]
 	mov	eax, DWORD PTR [esi]
 	cmp	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	jne	SHORT $LN7@DispatchMe
 
-; 3345 :   {
-; 3346 :     if ( SK_EarlyDispatchMessage ( const_cast <MSG *> (lpMsg),
+; 3353 :   {
+; 3354 :     if ( SK_EarlyDispatchMessage ( const_cast <MSG *> (lpMsg),
 
 	push	0
 	push	0
@@ -13899,10 +13907,10 @@ $LN4@DispatchMe:
 	test	al, al
 	je	SHORT $LN7@DispatchMe
 
-; 3347 :                                      false )
-; 3348 :        )
-; 3349 :     {
-; 3350 :       return DefWindowProcW (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
+; 3355 :                                      false )
+; 3356 :        )
+; 3357 :     {
+; 3358 :       return DefWindowProcW (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
 
 	push	DWORD PTR [esi+12]
 	push	DWORD PTR [esi+8]
@@ -13911,22 +13919,22 @@ $LN4@DispatchMe:
 	call	DWORD PTR __imp__DefWindowProcW@16
 	pop	esi
 
-; 3355 : }
+; 3363 : }
 
 	pop	ebp
 	ret	4
 $LN7@DispatchMe:
 
-; 3351 :     }
-; 3352 :   }
-; 3353 : 
-; 3354 :   return DispatchMessageW_Original (lpMsg);
+; 3359 :     }
+; 3360 :   }
+; 3361 : 
+; 3362 :   return DispatchMessageW_Original (lpMsg);
 
 	push	esi
 	call	DWORD PTR ?DispatchMessageW_Original@@3P6GJPBUtagMSG@@@ZA ; DispatchMessageW_Original
 	pop	esi
 
-; 3355 : }
+; 3363 : }
 
 	pop	ebp
 	ret	4
@@ -13942,33 +13950,33 @@ _wMsgFilterMin$ = 16					; size = 4
 _wMsgFilterMax$ = 20					; size = 4
 ?GetMessageW_Detour@@YGHPAUtagMSG@@PAUHWND__@@II@Z PROC	; GetMessageW_Detour
 
-; 3296 : {
+; 3304 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 3297 :   if (hModSteamOverlay == nullptr)
+; 3305 :   if (hModSteamOverlay == nullptr)
 
 	cmp	DWORD PTR ?hModSteamOverlay@@3PAUHINSTANCE__@@A, 0
 	jne	SHORT $LN2@GetMessage
 
-; 3298 :   {
-; 3299 :     hModSteamOverlay = GetModuleHandle
+; 3306 :   {
+; 3307 :     hModSteamOverlay = GetModuleHandle
 
-	push	OFFSET $SG212758
+	push	OFFSET $SG212829
 	call	DWORD PTR __imp__GetModuleHandleW@4
 	mov	DWORD PTR ?hModSteamOverlay@@3PAUHINSTANCE__@@A, eax
 $LN2@GetMessage:
 
-; 3300 : #ifdef _WIN64
-; 3301 :     (L"GameOverlayRenderer64.dll");
-; 3302 : #else
-; 3303 :     (L"GameOverlayRenderer.dll");
-; 3304 : #endif
-; 3305 :   }
-; 3306 : 
-; 3307 :   if (SK_GetCallingDLL () == hModSteamOverlay)
+; 3308 : #ifdef _WIN64
+; 3309 :     (L"GameOverlayRenderer64.dll");
+; 3310 : #else
+; 3311 :     (L"GameOverlayRenderer.dll");
+; 3312 : #endif
+; 3313 :   }
+; 3314 : 
+; 3315 :   if (SK_GetCallingDLL () == hModSteamOverlay)
 
 	mov	eax, DWORD PTR __$ReturnAddr$[ebp]
 	push	eax
@@ -13977,26 +13985,26 @@ $LN2@GetMessage:
 	cmp	eax, DWORD PTR ?hModSteamOverlay@@3PAUHINSTANCE__@@A
 	jne	SHORT $LN3@GetMessage
 
-; 3321 : }
+; 3329 : }
 
 	pop	ebp
 
-; 3308 :   {
-; 3309 :     return GetMessageW_Original ( lpMsg, hWnd,                                       wMsgFilterMin,                                   wMsgFilterMax );
+; 3316 :   {
+; 3317 :     return GetMessageW_Original ( lpMsg, hWnd,                                       wMsgFilterMin,                                   wMsgFilterMax );
 
 	jmp	DWORD PTR ?GetMessageW_Original@@3P6GHPAUtagMSG@@PAUHWND__@@II@ZA ; GetMessageW_Original
 $LN3@GetMessage:
 
-; 3310 :   }
-; 3311 : 
-; 3312 :   SK_LOG_FIRST_CALL
+; 3318 :   }
+; 3319 : 
+; 3320 :   SK_LOG_FIRST_CALL
 
 	cmp	BYTE PTR ?called@?8??GetMessageW_Detour@@YGHPAUtagMSG@@PAUHWND__@@II@Z@4_NA, 0
 	jne	SHORT $LN4@GetMessage
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN5@GetMessage
-	push	OFFSET $SG212762
-	push	OFFSET $SG212763
+	push	OFFSET $SG212833
+	push	OFFSET $SG212834
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -14005,8 +14013,8 @@ $LN5@GetMessage:
 $LN4@GetMessage:
 	push	esi
 
-; 3313 : 
-; 3314 :   if (! GetMessageW_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax))
+; 3321 : 
+; 3322 :   if (! GetMessageW_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax))
 
 	push	DWORD PTR _wMsgFilterMax$[ebp]
 	mov	esi, DWORD PTR _lpMsg$[ebp]
@@ -14018,21 +14026,21 @@ $LN4@GetMessage:
 	jne	SHORT $LN6@GetMessage
 	pop	esi
 
-; 3321 : }
+; 3329 : }
 
 	pop	ebp
 	ret	16					; 00000010H
 $LN6@GetMessage:
 
-; 3315 :     return FALSE;
-; 3316 : 
-; 3317 :   if (lpMsg->hwnd == game_window.hWnd)
+; 3323 :     return FALSE;
+; 3324 : 
+; 3325 :   if (lpMsg->hwnd == game_window.hWnd)
 
 	mov	eax, DWORD PTR [esi]
 	cmp	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	jne	SHORT $LN7@GetMessage
 
-; 3318 :     SK_EarlyDispatchMessage (lpMsg, true);
+; 3326 :     SK_EarlyDispatchMessage (lpMsg, true);
 
 	push	0
 	push	1
@@ -14041,13 +14049,13 @@ $LN6@GetMessage:
 	add	esp, 12					; 0000000cH
 $LN7@GetMessage:
 
-; 3319 : 
-; 3320 :   return TRUE;
+; 3327 : 
+; 3328 :   return TRUE;
 
 	mov	eax, 1
 	pop	esi
 
-; 3321 : }
+; 3329 : }
 
 	pop	ebp
 	ret	16					; 00000010H
@@ -14063,33 +14071,33 @@ _wMsgFilterMin$ = 16					; size = 4
 _wMsgFilterMax$ = 20					; size = 4
 ?GetMessageA_Detour@@YGHPAUtagMSG@@PAUHWND__@@II@Z PROC	; GetMessageA_Detour
 
-; 3266 : {
+; 3274 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 3267 :   if (hModSteamOverlay == nullptr)
+; 3275 :   if (hModSteamOverlay == nullptr)
 
 	cmp	DWORD PTR ?hModSteamOverlay@@3PAUHINSTANCE__@@A, 0
 	jne	SHORT $LN2@GetMessage
 
-; 3268 :   {
-; 3269 :     hModSteamOverlay = GetModuleHandle
+; 3276 :   {
+; 3277 :     hModSteamOverlay = GetModuleHandle
 
-	push	OFFSET $SG212741
+	push	OFFSET $SG212812
 	call	DWORD PTR __imp__GetModuleHandleW@4
 	mov	DWORD PTR ?hModSteamOverlay@@3PAUHINSTANCE__@@A, eax
 $LN2@GetMessage:
 
-; 3270 : #ifdef _WIN64
-; 3271 :     (L"GameOverlayRenderer64.dll");
-; 3272 : #else
-; 3273 :     (L"GameOverlayRenderer.dll");
-; 3274 : #endif
-; 3275 :   }
-; 3276 : 
-; 3277 :   if (SK_GetCallingDLL () == hModSteamOverlay)
+; 3278 : #ifdef _WIN64
+; 3279 :     (L"GameOverlayRenderer64.dll");
+; 3280 : #else
+; 3281 :     (L"GameOverlayRenderer.dll");
+; 3282 : #endif
+; 3283 :   }
+; 3284 : 
+; 3285 :   if (SK_GetCallingDLL () == hModSteamOverlay)
 
 	mov	eax, DWORD PTR __$ReturnAddr$[ebp]
 	push	eax
@@ -14098,26 +14106,26 @@ $LN2@GetMessage:
 	cmp	eax, DWORD PTR ?hModSteamOverlay@@3PAUHINSTANCE__@@A
 	jne	SHORT $LN3@GetMessage
 
-; 3291 : }
+; 3299 : }
 
 	pop	ebp
 
-; 3278 :   {
-; 3279 :     return GetMessageA_Original ( lpMsg, hWnd,                                       wMsgFilterMin,                                   wMsgFilterMax );
+; 3286 :   {
+; 3287 :     return GetMessageA_Original ( lpMsg, hWnd,                                       wMsgFilterMin,                                   wMsgFilterMax );
 
 	jmp	DWORD PTR ?GetMessageA_Original@@3P6GHPAUtagMSG@@PAUHWND__@@II@ZA ; GetMessageA_Original
 $LN3@GetMessage:
 
-; 3280 :   }
-; 3281 : 
-; 3282 :   SK_LOG_FIRST_CALL
+; 3288 :   }
+; 3289 : 
+; 3290 :   SK_LOG_FIRST_CALL
 
 	cmp	BYTE PTR ?called@?8??GetMessageA_Detour@@YGHPAUtagMSG@@PAUHWND__@@II@Z@4_NA, 0
 	jne	SHORT $LN4@GetMessage
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN5@GetMessage
-	push	OFFSET $SG212745
-	push	OFFSET $SG212746
+	push	OFFSET $SG212816
+	push	OFFSET $SG212817
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -14126,8 +14134,8 @@ $LN5@GetMessage:
 $LN4@GetMessage:
 	push	esi
 
-; 3283 : 
-; 3284 :   if (! GetMessageA_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax))
+; 3291 : 
+; 3292 :   if (! GetMessageA_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax))
 
 	push	DWORD PTR _wMsgFilterMax$[ebp]
 	mov	esi, DWORD PTR _lpMsg$[ebp]
@@ -14139,21 +14147,21 @@ $LN4@GetMessage:
 	jne	SHORT $LN6@GetMessage
 	pop	esi
 
-; 3291 : }
+; 3299 : }
 
 	pop	ebp
 	ret	16					; 00000010H
 $LN6@GetMessage:
 
-; 3285 :     return FALSE;
-; 3286 : 
-; 3287 :   if (lpMsg->hwnd == game_window.hWnd)
+; 3293 :     return FALSE;
+; 3294 : 
+; 3295 :   if (lpMsg->hwnd == game_window.hWnd)
 
 	mov	eax, DWORD PTR [esi]
 	cmp	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	jne	SHORT $LN7@GetMessage
 
-; 3288 :     SK_EarlyDispatchMessage (lpMsg, true);
+; 3296 :     SK_EarlyDispatchMessage (lpMsg, true);
 
 	push	0
 	push	1
@@ -14162,13 +14170,13 @@ $LN6@GetMessage:
 	add	esp, 12					; 0000000cH
 $LN7@GetMessage:
 
-; 3289 : 
-; 3290 :   return TRUE;
+; 3297 : 
+; 3298 :   return TRUE;
 
 	mov	eax, 1
 	pop	esi
 
-; 3291 : }
+; 3299 : }
 
 	pop	ebp
 	ret	16					; 00000010H
@@ -14186,34 +14194,34 @@ _wMsgFilterMax$ = 20					; size = 4
 _wRemoveMsg$ = 24					; size = 4
 ?PeekMessageA_Detour@@YGHPAUtagMSG@@PAUHWND__@@III@Z PROC ; PeekMessageA_Detour
 
-; 3207 : {
+; 3215 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	sub	esp, 28					; 0000001cH
 
-; 3208 :   if (hModSteamOverlay == nullptr)
+; 3216 :   if (hModSteamOverlay == nullptr)
 
 	cmp	DWORD PTR ?hModSteamOverlay@@3PAUHINSTANCE__@@A, 0
 	jne	SHORT $LN2@PeekMessag
 
-; 3209 :   {
-; 3210 :     hModSteamOverlay = GetModuleHandle
+; 3217 :   {
+; 3218 :     hModSteamOverlay = GetModuleHandle
 
-	push	OFFSET $SG212720
+	push	OFFSET $SG212791
 	call	DWORD PTR __imp__GetModuleHandleW@4
 	mov	DWORD PTR ?hModSteamOverlay@@3PAUHINSTANCE__@@A, eax
 $LN2@PeekMessag:
 
-; 3211 : #ifdef _WIN64
-; 3212 :     (L"GameOverlayRenderer64.dll");
-; 3213 : #else
-; 3214 :     (L"GameOverlayRenderer.dll");
-; 3215 : #endif
-; 3216 :   }
-; 3217 : 
-; 3218 :   if (SK_GetCallingDLL () == hModSteamOverlay)
+; 3219 : #ifdef _WIN64
+; 3220 :     (L"GameOverlayRenderer64.dll");
+; 3221 : #else
+; 3222 :     (L"GameOverlayRenderer.dll");
+; 3223 : #endif
+; 3224 :   }
+; 3225 : 
+; 3226 :   if (SK_GetCallingDLL () == hModSteamOverlay)
 
 	mov	eax, DWORD PTR __$ReturnAddr$[ebp]
 	push	eax
@@ -14222,8 +14230,8 @@ $LN2@PeekMessag:
 	cmp	eax, DWORD PTR ?hModSteamOverlay@@3PAUHINSTANCE__@@A
 	jne	SHORT $LN3@PeekMessag
 
-; 3219 :   {
-; 3220 :     return PeekMessageA_Original ( lpMsg, hWnd,
+; 3227 :   {
+; 3228 :     return PeekMessageA_Original ( lpMsg, hWnd,
 
 	push	DWORD PTR _wRemoveMsg$[ebp]
 	push	DWORD PTR _wMsgFilterMax$[ebp]
@@ -14232,24 +14240,24 @@ $LN2@PeekMessag:
 	push	DWORD PTR _lpMsg$[ebp]
 	call	DWORD PTR ?PeekMessageA_Original@@3P6GHPAUtagMSG@@PAUHWND__@@III@ZA ; PeekMessageA_Original
 
-; 3261 : }
+; 3269 : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	20					; 00000014H
 $LN3@PeekMessag:
 
-; 3221 :                                    wMsgFilterMin,                           wMsgFilterMax,                          wRemoveMsg );
-; 3222 :   }
-; 3223 : 
-; 3224 :   SK_LOG_FIRST_CALL
+; 3229 :                                    wMsgFilterMin,                           wMsgFilterMax,                          wRemoveMsg );
+; 3230 :   }
+; 3231 : 
+; 3232 :   SK_LOG_FIRST_CALL
 
 	cmp	BYTE PTR ?called@?8??PeekMessageA_Detour@@YGHPAUtagMSG@@PAUHWND__@@III@Z@4_NA, 0
 	jne	SHORT $LN4@PeekMessag
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN5@PeekMessag
-	push	OFFSET $SG212724
-	push	OFFSET $SG212725
+	push	OFFSET $SG212795
+	push	OFFSET $SG212796
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -14257,8 +14265,8 @@ $LN5@PeekMessag:
 	mov	BYTE PTR ?called@?8??PeekMessageA_Detour@@YGHPAUtagMSG@@PAUHWND__@@III@Z@4_NA, 1
 $LN4@PeekMessag:
 
-; 3225 : 
-; 3226 :   if (config.render.dxgi.safe_fullscreen && (! IsWindowUnicode (GetActiveWindow ())))
+; 3233 : 
+; 3234 :   if (config.render.dxgi.safe_fullscreen && (! IsWindowUnicode (GetActiveWindow ())))
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+504, 0
 	push	ebx
@@ -14269,7 +14277,7 @@ $LN4@PeekMessag:
 	test	eax, eax
 	jne	SHORT $LN13@PeekMessag
 
-; 3227 :     wRemoveMsg |= PM_REMOVE;
+; 3235 :     wRemoveMsg |= PM_REMOVE;
 
 	mov	ebx, DWORD PTR _wRemoveMsg$[ebp]
 	or	ebx, 1
@@ -14278,10 +14286,10 @@ $LN13@PeekMessag:
 	mov	ebx, DWORD PTR _wRemoveMsg$[ebp]
 $LN6@PeekMessag:
 
-; 3228 : 
-; 3229 :   MSG msg = { };
-; 3230 : 
-; 3231 :   if (PeekMessageA_Original (&msg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg))
+; 3236 : 
+; 3237 :   MSG msg = { };
+; 3238 : 
+; 3239 :   if (PeekMessageA_Original (&msg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg))
 
 	push	ebx
 	push	DWORD PTR _wMsgFilterMax$[ebp]
@@ -14297,8 +14305,8 @@ $LN6@PeekMessag:
 	test	eax, eax
 	je	$LN7@PeekMessag
 
-; 3232 :   {
-; 3233 :     *lpMsg = msg;
+; 3240 :   {
+; 3241 :     *lpMsg = msg;
 
 	movups	xmm0, XMMWORD PTR _msg$[ebp]
 	mov	eax, DWORD PTR _msg$[ebp+24]
@@ -14309,18 +14317,18 @@ $LN6@PeekMessag:
 	movq	QWORD PTR [esi+16], xmm0
 	mov	DWORD PTR [esi+24], eax
 
-; 3234 : 
-; 3235 :     // Avoid processing the message twice if it's marshaled because
-; 3236 :     //   stupid software called the wrong version of this function ;)
-; 3237 :     if (! IsWindowUnicode (lpMsg->hwnd))
+; 3242 : 
+; 3243 :     // Avoid processing the message twice if it's marshaled because
+; 3244 :     //   stupid software called the wrong version of this function ;)
+; 3245 :     if (! IsWindowUnicode (lpMsg->hwnd))
 
 	push	DWORD PTR [esi]
 	call	DWORD PTR __imp__IsWindowUnicode@4
 	test	eax, eax
 	jne	SHORT $LN9@PeekMessag
 
-; 3238 :     {
-; 3239 :       if (SK_EarlyDispatchMessage (&msg, true, true))
+; 3246 :     {
+; 3247 :       if (SK_EarlyDispatchMessage (&msg, true, true))
 
 	push	1
 	lea	eax, DWORD PTR _msg$[ebp]
@@ -14331,14 +14339,14 @@ $LN6@PeekMessag:
 	test	al, al
 	je	SHORT $LN9@PeekMessag
 
-; 3240 :       {
-; 3241 :         if (! (wRemoveMsg & PM_REMOVE))
+; 3248 :       {
+; 3249 :         if (! (wRemoveMsg & PM_REMOVE))
 
 	test	bl, 1
 	jne	SHORT $LN10@PeekMessag
 
-; 3242 :         {
-; 3243 :           PeekMessageA_Original ( &msg, lpMsg->hwnd, lpMsg->message,
+; 3250 :         {
+; 3251 :           PeekMessageA_Original ( &msg, lpMsg->hwnd, lpMsg->message,
 
 	mov	eax, DWORD PTR [esi+4]
 	push	1
@@ -14350,15 +14358,15 @@ $LN6@PeekMessag:
 	call	DWORD PTR ?PeekMessageA_Original@@3P6GHPAUtagMSG@@PAUHWND__@@III@ZA ; PeekMessageA_Original
 $LN10@PeekMessag:
 
-; 3244 :                                                      lpMsg->message, PM_REMOVE );
-; 3245 :         }
-; 3246 : 
-; 3247 :         if (lpMsg->message == WM_INPUT)
+; 3252 :                                                      lpMsg->message, PM_REMOVE );
+; 3253 :         }
+; 3254 : 
+; 3255 :         if (lpMsg->message == WM_INPUT)
 
 	cmp	DWORD PTR [esi+4], 255			; 000000ffH
 	jne	SHORT $LN11@PeekMessag
 
-; 3248 :           DefWindowProcA (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
+; 3256 :           DefWindowProcA (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
 
 	push	DWORD PTR [esi+12]
 	push	DWORD PTR [esi+8]
@@ -14367,14 +14375,14 @@ $LN10@PeekMessag:
 	call	DWORD PTR __imp__DefWindowProcA@16
 $LN11@PeekMessag:
 
-; 3249 : 
-; 3250 :         lpMsg->message = WM_NULL;
+; 3257 : 
+; 3258 :         lpMsg->message = WM_NULL;
 
 	mov	DWORD PTR [esi+4], 0
 
-; 3251 :         lpMsg->pt.x    = 0; lpMsg->pt.y = 0;
-; 3252 : 
-; 3253 :         return FALSE;
+; 3259 :         lpMsg->pt.x    = 0; lpMsg->pt.y = 0;
+; 3260 : 
+; 3261 :         return FALSE;
 
 	xor	eax, eax
 	mov	DWORD PTR [esi+20], 0
@@ -14382,7 +14390,7 @@ $LN11@PeekMessag:
 	pop	esi
 	pop	ebx
 
-; 3261 : }
+; 3269 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -14390,29 +14398,29 @@ $LN11@PeekMessag:
 $LN9@PeekMessag:
 	pop	esi
 
-; 3254 :       }
-; 3255 :     }
-; 3256 : 
-; 3257 :     return TRUE;
+; 3262 :       }
+; 3263 :     }
+; 3264 : 
+; 3265 :     return TRUE;
 
 	mov	eax, 1
 	pop	ebx
 
-; 3261 : }
+; 3269 : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	20					; 00000014H
 $LN7@PeekMessag:
 
-; 3258 :   }
-; 3259 : 
-; 3260 :   return FALSE;
+; 3266 :   }
+; 3267 : 
+; 3268 :   return FALSE;
 
 	xor	eax, eax
 	pop	ebx
 
-; 3261 : }
+; 3269 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -14431,34 +14439,34 @@ _wMsgFilterMax$ = 20					; size = 4
 _wRemoveMsg$ = 24					; size = 4
 ?PeekMessageW_Detour@@YGHPAUtagMSG@@PAUHWND__@@III@Z PROC ; PeekMessageW_Detour
 
-; 3143 : {
+; 3151 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	sub	esp, 28					; 0000001cH
 
-; 3144 :   if (hModSteamOverlay == nullptr)
+; 3152 :   if (hModSteamOverlay == nullptr)
 
 	cmp	DWORD PTR ?hModSteamOverlay@@3PAUHINSTANCE__@@A, 0
 	jne	SHORT $LN2@PeekMessag
 
-; 3145 :   {
-; 3146 :     hModSteamOverlay = GetModuleHandle
+; 3153 :   {
+; 3154 :     hModSteamOverlay = GetModuleHandle
 
-	push	OFFSET $SG212697
+	push	OFFSET $SG212768
 	call	DWORD PTR __imp__GetModuleHandleW@4
 	mov	DWORD PTR ?hModSteamOverlay@@3PAUHINSTANCE__@@A, eax
 $LN2@PeekMessag:
 
-; 3147 : #ifdef _WIN64
-; 3148 :     (L"GameOverlayRenderer64.dll");
-; 3149 : #else
-; 3150 :     (L"GameOverlayRenderer.dll");
-; 3151 : #endif
-; 3152 :   }
-; 3153 : 
-; 3154 :   if (SK_GetCallingDLL () == hModSteamOverlay)
+; 3155 : #ifdef _WIN64
+; 3156 :     (L"GameOverlayRenderer64.dll");
+; 3157 : #else
+; 3158 :     (L"GameOverlayRenderer.dll");
+; 3159 : #endif
+; 3160 :   }
+; 3161 : 
+; 3162 :   if (SK_GetCallingDLL () == hModSteamOverlay)
 
 	mov	eax, DWORD PTR __$ReturnAddr$[ebp]
 	push	eax
@@ -14467,8 +14475,8 @@ $LN2@PeekMessag:
 	cmp	eax, DWORD PTR ?hModSteamOverlay@@3PAUHINSTANCE__@@A
 	jne	SHORT $LN3@PeekMessag
 
-; 3155 :   {
-; 3156 :     return PeekMessageW_Original ( lpMsg, hWnd,
+; 3163 :   {
+; 3164 :     return PeekMessageW_Original ( lpMsg, hWnd,
 
 	push	DWORD PTR _wRemoveMsg$[ebp]
 	push	DWORD PTR _wMsgFilterMax$[ebp]
@@ -14477,24 +14485,24 @@ $LN2@PeekMessag:
 	push	DWORD PTR _lpMsg$[ebp]
 	call	DWORD PTR ?PeekMessageW_Original@@3P6GHPAUtagMSG@@PAUHWND__@@III@ZA ; PeekMessageW_Original
 
-; 3197 : }
+; 3205 : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	20					; 00000014H
 $LN3@PeekMessag:
 
-; 3157 :                                    wMsgFilterMin,                           wMsgFilterMax,                          wRemoveMsg );
-; 3158 :   }
-; 3159 : 
-; 3160 :   SK_LOG_FIRST_CALL
+; 3165 :                                    wMsgFilterMin,                           wMsgFilterMax,                          wRemoveMsg );
+; 3166 :   }
+; 3167 : 
+; 3168 :   SK_LOG_FIRST_CALL
 
 	cmp	BYTE PTR ?called@?8??PeekMessageW_Detour@@YGHPAUtagMSG@@PAUHWND__@@III@Z@4_NA, 0
 	jne	SHORT $LN4@PeekMessag
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN5@PeekMessag
-	push	OFFSET $SG212701
-	push	OFFSET $SG212702
+	push	OFFSET $SG212772
+	push	OFFSET $SG212773
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -14502,8 +14510,8 @@ $LN5@PeekMessag:
 	mov	BYTE PTR ?called@?8??PeekMessageW_Detour@@YGHPAUtagMSG@@PAUHWND__@@III@Z@4_NA, 1
 $LN4@PeekMessag:
 
-; 3161 : 
-; 3162 :   if (config.render.dxgi.safe_fullscreen && (IsWindowUnicode (GetActiveWindow ())))
+; 3169 : 
+; 3170 :   if (config.render.dxgi.safe_fullscreen && (IsWindowUnicode (GetActiveWindow ())))
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+504, 0
 	push	ebx
@@ -14514,7 +14522,7 @@ $LN4@PeekMessag:
 	test	eax, eax
 	je	SHORT $LN13@PeekMessag
 
-; 3163 :     wRemoveMsg |= PM_REMOVE;
+; 3171 :     wRemoveMsg |= PM_REMOVE;
 
 	mov	ebx, DWORD PTR _wRemoveMsg$[ebp]
 	or	ebx, 1
@@ -14523,10 +14531,10 @@ $LN13@PeekMessag:
 	mov	ebx, DWORD PTR _wRemoveMsg$[ebp]
 $LN6@PeekMessag:
 
-; 3164 : 
-; 3165 :   MSG msg = { };
-; 3166 : 
-; 3167 :   if (PeekMessageW_Original (&msg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg))
+; 3172 : 
+; 3173 :   MSG msg = { };
+; 3174 : 
+; 3175 :   if (PeekMessageW_Original (&msg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg))
 
 	push	ebx
 	push	DWORD PTR _wMsgFilterMax$[ebp]
@@ -14542,8 +14550,8 @@ $LN6@PeekMessag:
 	test	eax, eax
 	je	$LN7@PeekMessag
 
-; 3168 :   {
-; 3169 :     *lpMsg = msg;
+; 3176 :   {
+; 3177 :     *lpMsg = msg;
 
 	movups	xmm1, XMMWORD PTR _msg$[ebp]
 	mov	eax, DWORD PTR _msg$[ebp+24]
@@ -14554,10 +14562,10 @@ $LN6@PeekMessag:
 	movq	QWORD PTR [esi+16], xmm0
 	mov	DWORD PTR [esi+24], eax
 
-; 3170 : 
-; 3171 :     // Avoid processing the message twice if it's marshalled because
-; 3172 :     //   stupid software called the wrong version of this function ;)
-; 3173 :     if (IsWindowUnicode (msg.hwnd))
+; 3178 : 
+; 3179 :     // Avoid processing the message twice if it's marshalled because
+; 3180 :     //   stupid software called the wrong version of this function ;)
+; 3181 :     if (IsWindowUnicode (msg.hwnd))
 
 	movd	eax, xmm1
 	push	eax
@@ -14565,8 +14573,8 @@ $LN6@PeekMessag:
 	test	eax, eax
 	je	SHORT $LN9@PeekMessag
 
-; 3174 :     {
-; 3175 :       if (SK_EarlyDispatchMessage (&msg, true, true))
+; 3182 :     {
+; 3183 :       if (SK_EarlyDispatchMessage (&msg, true, true))
 
 	push	1
 	lea	eax, DWORD PTR _msg$[ebp]
@@ -14577,14 +14585,14 @@ $LN6@PeekMessag:
 	test	al, al
 	je	SHORT $LN9@PeekMessag
 
-; 3176 :       {
-; 3177 :         if (! (wRemoveMsg & PM_REMOVE))
+; 3184 :       {
+; 3185 :         if (! (wRemoveMsg & PM_REMOVE))
 
 	test	bl, 1
 	jne	SHORT $LN10@PeekMessag
 
-; 3178 :         {
-; 3179 :           PeekMessageW_Original ( &msg, lpMsg->hwnd, lpMsg->message,
+; 3186 :         {
+; 3187 :           PeekMessageW_Original ( &msg, lpMsg->hwnd, lpMsg->message,
 
 	mov	eax, DWORD PTR [esi+4]
 	push	1
@@ -14596,15 +14604,15 @@ $LN6@PeekMessag:
 	call	DWORD PTR ?PeekMessageW_Original@@3P6GHPAUtagMSG@@PAUHWND__@@III@ZA ; PeekMessageW_Original
 $LN10@PeekMessag:
 
-; 3180 :                                                      lpMsg->message, PM_REMOVE );
-; 3181 :         }
-; 3182 : 
-; 3183 :         if (lpMsg->message == WM_INPUT)
+; 3188 :                                                      lpMsg->message, PM_REMOVE );
+; 3189 :         }
+; 3190 : 
+; 3191 :         if (lpMsg->message == WM_INPUT)
 
 	cmp	DWORD PTR [esi+4], 255			; 000000ffH
 	jne	SHORT $LN11@PeekMessag
 
-; 3184 :           DefWindowProcW (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
+; 3192 :           DefWindowProcW (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
 
 	push	DWORD PTR [esi+12]
 	push	DWORD PTR [esi+8]
@@ -14613,14 +14621,14 @@ $LN10@PeekMessag:
 	call	DWORD PTR __imp__DefWindowProcW@16
 $LN11@PeekMessag:
 
-; 3185 : 
-; 3186 :         lpMsg->message = WM_NULL;
+; 3193 : 
+; 3194 :         lpMsg->message = WM_NULL;
 
 	mov	DWORD PTR [esi+4], 0
 
-; 3187 :         lpMsg->pt.x    = 0; lpMsg->pt.y = 0;
-; 3188 : 
-; 3189 :         return FALSE;
+; 3195 :         lpMsg->pt.x    = 0; lpMsg->pt.y = 0;
+; 3196 : 
+; 3197 :         return FALSE;
 
 	xor	eax, eax
 	mov	DWORD PTR [esi+20], 0
@@ -14628,7 +14636,7 @@ $LN11@PeekMessag:
 	pop	esi
 	pop	ebx
 
-; 3197 : }
+; 3205 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -14636,29 +14644,29 @@ $LN11@PeekMessag:
 $LN9@PeekMessag:
 	pop	esi
 
-; 3190 :       }
-; 3191 :     }
-; 3192 : 
-; 3193 :     return TRUE;
+; 3198 :       }
+; 3199 :     }
+; 3200 : 
+; 3201 :     return TRUE;
 
 	mov	eax, 1
 	pop	ebx
 
-; 3197 : }
+; 3205 : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	20					; 00000014H
 $LN7@PeekMessag:
 
-; 3194 :   }
-; 3195 : 
-; 3196 :   return FALSE;
+; 3202 :   }
+; 3203 : 
+; 3204 :   return FALSE;
 
 	xor	eax, eax
 	pop	ebx
 
-; 3197 : }
+; 3205 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -14673,16 +14681,16 @@ _remove$ = 12						; size = 1
 _peek$ = 16						; size = 1
 ?SK_EarlyDispatchMessage@@YA_NPAUtagMSG@@_N1@Z PROC	; SK_EarlyDispatchMessage
 
-; 3102 : {
+; 3110 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	push	esi
 
-; 3103 :   //LRESULT lRet = 0;
-; 3104 : 
-; 3105 :   if ( SK_ImGui_HandlesMessage (lpMsg, remove, peek) )
+; 3111 :   //LRESULT lRet = 0;
+; 3112 : 
+; 3113 :   if ( SK_ImGui_HandlesMessage (lpMsg, remove, peek) )
 
 	push	DWORD PTR _peek$[ebp]
 	mov	esi, DWORD PTR _lpMsg$[ebp]
@@ -14693,56 +14701,56 @@ _peek$ = 16						; size = 1
 	test	al, al
 	je	SHORT $LN2@SK_EarlyDi
 
-; 3106 :   {
-; 3107 :     if (remove)
+; 3114 :   {
+; 3115 :     if (remove)
 
 	cmp	BYTE PTR _remove$[ebp], 0
 	je	SHORT $LN3@SK_EarlyDi
 
-; 3108 :       lpMsg->message = WM_NULL;
+; 3116 :       lpMsg->message = WM_NULL;
 
 	mov	DWORD PTR [esi+4], 0
 $LN3@SK_EarlyDi:
 
-; 3109 : 
-; 3110 :     return true;
+; 3117 : 
+; 3118 :     return true;
 
 	mov	al, 1
 	pop	esi
 
-; 3133 : }
+; 3141 : }
 
 	pop	ebp
 	ret	0
 $LN2@SK_EarlyDi:
 
-; 3111 :   }
-; 3112 : 
-; 3113 :   //if (lpMsg->message == WM_INPUT)
-; 3114 :   //{
-; 3115 :   //  if (ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam))
-; 3116 :   //  {
-; 3117 :   //    if (remove)
-; 3118 :   //      lpMsg->message = WM_NULL;
-; 3119 :   //
-; 3120 :   //    return true;
-; 3121 :   //  }
-; 3122 :   //}
-; 3123 : 
-; 3124 :   //if (wm_dispatch.ProcessMessage (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam, &lRet))
-; 3125 :   //{
-; 3126 :   //  if (remove)
-; 3127 :   //    lpMsg->message = WM_NULL;
-; 3128 :   //
-; 3129 :   //  return true;
+; 3119 :   }
+; 3120 : 
+; 3121 :   //if (lpMsg->message == WM_INPUT)
+; 3122 :   //{
+; 3123 :   //  if (ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam))
+; 3124 :   //  {
+; 3125 :   //    if (remove)
+; 3126 :   //      lpMsg->message = WM_NULL;
+; 3127 :   //
+; 3128 :   //    return true;
+; 3129 :   //  }
 ; 3130 :   //}
 ; 3131 : 
-; 3132 :   return false;
+; 3132 :   //if (wm_dispatch.ProcessMessage (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam, &lRet))
+; 3133 :   //{
+; 3134 :   //  if (remove)
+; 3135 :   //    lpMsg->message = WM_NULL;
+; 3136 :   //
+; 3137 :   //  return true;
+; 3138 :   //}
+; 3139 : 
+; 3140 :   return false;
 
 	xor	al, al
 	pop	esi
 
-; 3133 : }
+; 3141 : }
 
 	pop	ebp
 	ret	0
@@ -14754,21 +14762,21 @@ _TEXT	SEGMENT
 _lpMsg$ = 8						; size = 4
 ?TranslateMessage_Detour@@YGHPBUtagMSG@@@Z PROC		; TranslateMessage_Detour
 
-; 3068 : {
+; 3076 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 3069 :   if (SK_ImGui_WantTextCapture ())
+; 3077 :   if (SK_ImGui_WantTextCapture ())
 
 	call	?SK_ImGui_WantTextCapture@@YA_NXZ	; SK_ImGui_WantTextCapture
 	mov	ecx, DWORD PTR _lpMsg$[ebp]
 	test	al, al
 	je	SHORT $LN2@TranslateM
 
-; 3070 :   {
-; 3071 :     switch (lpMsg->message)
+; 3078 :   {
+; 3079 :     switch (lpMsg->message)
 
 	mov	eax, DWORD PTR [ecx+4]
 	cmp	eax, 260				; 00000104H
@@ -14780,29 +14788,29 @@ _lpMsg$ = 8						; size = 4
 	je	SHORT $LN5@TranslateM
 $LN2@TranslateM:
 
-; 3083 :       } break;
-; 3084 :     }
-; 3085 :   }
-; 3086 : 
-; 3087 :   return TranslateMessage_Original (lpMsg);
+; 3091 :       } break;
+; 3092 :     }
+; 3093 :   }
+; 3094 : 
+; 3095 :   return TranslateMessage_Original (lpMsg);
 
 	mov	DWORD PTR _lpMsg$[ebp], ecx
 
-; 3088 : }
+; 3096 : }
 
 	pop	ebp
 
-; 3083 :       } break;
-; 3084 :     }
-; 3085 :   }
-; 3086 : 
-; 3087 :   return TranslateMessage_Original (lpMsg);
+; 3091 :       } break;
+; 3092 :     }
+; 3093 :   }
+; 3094 : 
+; 3095 :   return TranslateMessage_Original (lpMsg);
 
 	jmp	DWORD PTR ?TranslateMessage_Original@@3P6GHPBUtagMSG@@@ZA ; TranslateMessage_Original
 $LN7@TranslateM:
 
-; 3070 :   {
-; 3071 :     switch (lpMsg->message)
+; 3078 :   {
+; 3079 :     switch (lpMsg->message)
 
 	cmp	eax, 288				; 00000120H
 	je	SHORT $LN5@TranslateM
@@ -14810,21 +14818,21 @@ $LN7@TranslateM:
 	jne	SHORT $LN2@TranslateM
 $LN5@TranslateM:
 
-; 3072 :     {
-; 3073 :       case WM_KEYDOWN:
-; 3074 :       case WM_SYSKEYDOWN:
-; 3075 :       case WM_IME_KEYDOWN:
-; 3076 : 
-; 3077 :       // This shouldn't happen considering this function is supposed
-; 3078 :       //   to generate this message, but better to be on the safe side.
-; 3079 :       case WM_CHAR:
-; 3080 :       case WM_MENUCHAR:
-; 3081 :       {
-; 3082 :         return TRUE;
+; 3080 :     {
+; 3081 :       case WM_KEYDOWN:
+; 3082 :       case WM_SYSKEYDOWN:
+; 3083 :       case WM_IME_KEYDOWN:
+; 3084 : 
+; 3085 :       // This shouldn't happen considering this function is supposed
+; 3086 :       //   to generate this message, but better to be on the safe side.
+; 3087 :       case WM_CHAR:
+; 3088 :       case WM_MENUCHAR:
+; 3089 :       {
+; 3090 :         return TRUE;
 
 	mov	eax, 1
 
-; 3088 : }
+; 3096 : }
 
 	pop	ebp
 	ret	4
@@ -14848,21 +14856,21 @@ __$ReturnAddr$ = 4					; size = 4
 _nIndex$ = 8						; size = 4
 ?GetSystemMetrics_Detour@@YGHH@Z PROC			; GetSystemMetrics_Detour
 
-; 2955 : {
+; 2963 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	sub	esp, 24					; 00000018H
 
-; 2956 :   SK_LOG_FIRST_CALL
+; 2964 :   SK_LOG_FIRST_CALL
 
 	cmp	BYTE PTR ?called@?2??GetSystemMetrics_Detour@@YGHH@Z@4_NA, 0
 	jne	SHORT $LN2@GetSystemM
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN3@GetSystemM
-	push	OFFSET $SG212600
-	push	OFFSET $SG212601
+	push	OFFSET $SG212671
+	push	OFFSET $SG212672
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -14871,15 +14879,15 @@ $LN3@GetSystemM:
 $LN2@GetSystemM:
 	push	esi
 
-; 2957 : 
-; 2958 :   int nRet = GetSystemMetrics_Original (nIndex);
+; 2965 : 
+; 2966 :   int nRet = GetSystemMetrics_Original (nIndex);
 
 	mov	esi, DWORD PTR _nIndex$[ebp]
 	push	edi
 	push	esi
 	call	DWORD PTR ?GetSystemMetrics_Original@@3P6GHH@ZA ; GetSystemMetrics_Original
 
-; 2960 :   SK_LOG4 ( ( L"GetSystemMetrics (%4li) : %-5li - %s",
+; 2968 :   SK_LOG4 ( ( L"GetSystemMetrics (%4li) : %-5li - %s",
 
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 4
 	mov	edi, eax
@@ -14906,12 +14914,12 @@ $LN2@GetSystemM:
 $LN30@GetSystemM:
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 2960 :   SK_LOG4 ( ( L"GetSystemMetrics (%4li) : %-5li - %s",
+; 2968 :   SK_LOG4 ( ( L"GetSystemMetrics (%4li) : %-5li - %s",
 
 	push	eax
 	push	edi
 	push	esi
-	push	OFFSET $SG212603
+	push	OFFSET $SG212674
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -14921,7 +14929,7 @@ $LN30@GetSystemM:
 	mov	eax, DWORD PTR $T1[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 2960 :   SK_LOG4 ( ( L"GetSystemMetrics (%4li) : %-5li - %s",
+; 2968 :   SK_LOG4 ( ( L"GetSystemMetrics (%4li) : %-5li - %s",
 
 	add	esp, 20					; 00000014H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -14954,14 +14962,14 @@ $LN30@GetSystemM:
 $LN40@GetSystemM:
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 2966 :   if (SK_GetCurrentGameID () == SK_GAME_ID::DotHackGU)
+; 2974 :   if (SK_GetCurrentGameID () == SK_GAME_ID::DotHackGU)
 
 	call	?SK_GetCurrentGameID@@YG?AW4SK_GAME_ID@@XZ ; SK_GetCurrentGameID
 	cmp	eax, 33					; 00000021H
 	jne	SHORT $LN14@GetSystemM
 
-; 2967 :   {
-; 2968 :     if (nIndex == SM_CYCAPTION)      return 0;
+; 2975 :   {
+; 2976 :     if (nIndex == SM_CYCAPTION)      return 0;
 
 	cmp	esi, 4
 	jne	SHORT $LN6@GetSystemM
@@ -14970,90 +14978,90 @@ $LN66@GetSystemM:
 	xor	eax, eax
 	pop	esi
 
-; 3007 : }
+; 3015 : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	4
 $LN6@GetSystemM:
 
-; 2969 :     if (nIndex == SM_CYMENU)         return 0;
+; 2977 :     if (nIndex == SM_CYMENU)         return 0;
 
 	cmp	esi, 15					; 0000000fH
 	je	SHORT $LN66@GetSystemM
 
-; 2970 :     if (nIndex == SM_CXBORDER)       return 0;
+; 2978 :     if (nIndex == SM_CXBORDER)       return 0;
 
 	cmp	esi, 5
 	je	SHORT $LN66@GetSystemM
 
-; 2971 :     if (nIndex == SM_CYBORDER)       return 0;
+; 2979 :     if (nIndex == SM_CYBORDER)       return 0;
 
 	cmp	esi, 6
 	je	SHORT $LN66@GetSystemM
 
-; 2972 :     if (nIndex == SM_CXDLGFRAME)     return 0;
+; 2980 :     if (nIndex == SM_CXDLGFRAME)     return 0;
 
 	cmp	esi, 7
 	je	SHORT $LN66@GetSystemM
 
-; 2973 :     if (nIndex == SM_CYDLGFRAME)     return 0;
+; 2981 :     if (nIndex == SM_CYDLGFRAME)     return 0;
 
 	cmp	esi, 8
 	je	SHORT $LN66@GetSystemM
 
-; 2974 :     if (nIndex == SM_CXFRAME)        return 0;
+; 2982 :     if (nIndex == SM_CXFRAME)        return 0;
 
 	cmp	esi, 32					; 00000020H
 	je	SHORT $LN66@GetSystemM
 
-; 2975 :     if (nIndex == SM_CYFRAME)        return 0;
+; 2983 :     if (nIndex == SM_CYFRAME)        return 0;
 
 	cmp	esi, 33					; 00000021H
 	je	SHORT $LN66@GetSystemM
 
-; 2976 :     if (nIndex == SM_CXPADDEDBORDER) return 0;
+; 2984 :     if (nIndex == SM_CXPADDEDBORDER) return 0;
 
 	cmp	esi, 92					; 0000005cH
 	je	SHORT $LN66@GetSystemM
 $LN14@GetSystemM:
 
-; 2977 :   }
-; 2978 : 
-; 2979 : #if 0
-; 2980 :   if (config.window.borderless)
-; 2981 :   {
-; 2982 :     if (nIndex == SM_CYCAPTION)
-; 2983 :       return 0;
-; 2984 :     if (nIndex == SM_CYMENU)
-; 2985 :       return 0;
-; 2986 :     if (nIndex == SM_CXBORDER)
-; 2987 :       return 0;
-; 2988 :     if (nIndex == SM_CYBORDER)
-; 2989 :       return 0;
-; 2990 :     if (nIndex == SM_CXDLGFRAME)
+; 2985 :   }
+; 2986 : 
+; 2987 : #if 0
+; 2988 :   if (config.window.borderless)
+; 2989 :   {
+; 2990 :     if (nIndex == SM_CYCAPTION)
 ; 2991 :       return 0;
-; 2992 :     if (nIndex == SM_CYDLGFRAME)
+; 2992 :     if (nIndex == SM_CYMENU)
 ; 2993 :       return 0;
-; 2994 :     if (nIndex == SM_CXFRAME)
+; 2994 :     if (nIndex == SM_CXBORDER)
 ; 2995 :       return 0;
-; 2996 :     if (nIndex == SM_CYFRAME)
+; 2996 :     if (nIndex == SM_CYBORDER)
 ; 2997 :       return 0;
-; 2998 :     if (nIndex == SM_CXPADDEDBORDER)
+; 2998 :     if (nIndex == SM_CXDLGFRAME)
 ; 2999 :       return 0;
-; 3000 :   }
-; 3001 : #endif
-; 3002 : 
-; 3003 :   //dll_log.Log ( L"[Resolution] GetSystemMetrics (%lu) : %lu",
-; 3004 :                   //nIndex, nRet );
-; 3005 : 
-; 3006 :   return nRet;
+; 3000 :     if (nIndex == SM_CYDLGFRAME)
+; 3001 :       return 0;
+; 3002 :     if (nIndex == SM_CXFRAME)
+; 3003 :       return 0;
+; 3004 :     if (nIndex == SM_CYFRAME)
+; 3005 :       return 0;
+; 3006 :     if (nIndex == SM_CXPADDEDBORDER)
+; 3007 :       return 0;
+; 3008 :   }
+; 3009 : #endif
+; 3010 : 
+; 3011 :   //dll_log.Log ( L"[Resolution] GetSystemMetrics (%lu) : %lu",
+; 3012 :                   //nIndex, nRet );
+; 3013 : 
+; 3014 :   return nRet;
 
 	mov	eax, edi
 	pop	edi
 	pop	esi
 
-; 3007 : }
+; 3015 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -15068,7 +15076,7 @@ _<DescribeRect>$ = 8					; size = 4
 ??0<lambda_77fcd7573a79bd26205f7e2e096cdf28>@@QAE@AAV<lambda_d6c454cbb29743383e6e3138edb3cf2a>@@@Z PROC ; <lambda_77fcd7573a79bd26205f7e2e096cdf28>::<lambda_77fcd7573a79bd26205f7e2e096cdf28>, COMDAT
 ; _this$ = ecx
 
-; 2910 :     };
+; 2918 :     };
 
 	npad	2
 	push	ebp
@@ -15089,13 +15097,13 @@ _lpRect$ = 12						; size = 4
 ??R<lambda_77fcd7573a79bd26205f7e2e096cdf28>@@QBEXPB_WPAUtagRECT@@@Z PROC ; <lambda_77fcd7573a79bd26205f7e2e096cdf28>::operator(), COMDAT
 ; _this$ = ecx
 
-; 2907 :     {
+; 2915 :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 2908 :       SK_LOG2_EX ( true, ( L"[Cursor Mgr] Clip Rect (%s)", wszName ) );
+; 2916 :       SK_LOG2_EX ( true, ( L"[Cursor Mgr] Clip Rect (%s)", wszName ) );
 
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 2
 	jl	SHORT $LN5@operator
@@ -15106,7 +15114,7 @@ _lpRect$ = 12						; size = 4
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
 	add	esp, 16					; 00000010H
 
-; 2884 :     SK_LOG2_EX ( false, ( L" => {Left: %li, Top: %li} - {WxH: %lix%li)\n",
+; 2892 :     SK_LOG2_EX ( false, ( L" => {Left: %li, Top: %li} - {WxH: %lix%li)\n",
 
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 2
 	jl	SHORT $LN5@operator
@@ -15127,8 +15135,8 @@ _lpRect$ = 12						; size = 4
 	add	esp, 28					; 0000001cH
 $LN5@operator:
 
-; 2909 :       DescribeRect (lpRect);
-; 2910 :     };
+; 2917 :       DescribeRect (lpRect);
+; 2918 :     };
 
 	pop	ebp
 	ret	8
@@ -15142,13 +15150,13 @@ _lpRect$ = 8						; size = 4
 ??R<lambda_d6c454cbb29743383e6e3138edb3cf2a>@@QBEXPAUtagRECT@@@Z PROC ; <lambda_d6c454cbb29743383e6e3138edb3cf2a>::operator(), COMDAT
 ; _this$ = ecx
 
-; 2883 :   {
+; 2891 :   {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 2884 :     SK_LOG2_EX ( false, ( L" => {Left: %li, Top: %li} - {WxH: %lix%li)\n",
+; 2892 :     SK_LOG2_EX ( false, ( L" => {Left: %li, Top: %li} - {WxH: %lix%li)\n",
 
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 2
 	jl	SHORT $LN2@operator
@@ -15169,10 +15177,10 @@ _lpRect$ = 8						; size = 4
 	add	esp, 28					; 0000001cH
 $LN2@operator:
 
-; 2885 :                             lpRect->left, lpRect->top,
-; 2886 :                               lpRect->right - lpRect->left,
-; 2887 :                                 lpRect->bottom - lpRect->top ) );
-; 2888 :   };
+; 2893 :                             lpRect->left, lpRect->top,
+; 2894 :                               lpRect->right - lpRect->left,
+; 2895 :                                 lpRect->bottom - lpRect->top ) );
+; 2896 :   };
 
 	pop	ebp
 	ret	4
@@ -15241,7 +15249,7 @@ _TEXT	SEGMENT
 ??B<lambda_057715e64ffa789e51a07719c162c406>@@QBEP6GKPAX@ZXZ PROC ; <lambda_057715e64ffa789e51a07719c162c406>::operator unsigned long (__stdcall*)(void *), COMDAT
 ; _this$ = ecx
 
-; 2556 :     }, nullptr, 0x00, nullptr);
+; 2564 :     }, nullptr, 0x00, nullptr);
 
 	mov	eax, OFFSET ?<lambda_invoker_stdcall>@<lambda_057715e64ffa789e51a07719c162c406>@@CGKPAX@Z ; <lambda_057715e64ffa789e51a07719c162c406>::<lambda_invoker_stdcall>
 	ret	0
@@ -15254,7 +15262,7 @@ _TEXT	SEGMENT
 _user$ = 8						; size = 4
 ?<lambda_invoker_stdcall>@<lambda_057715e64ffa789e51a07719c162c406>@@CGKPAX@Z PROC ; <lambda_057715e64ffa789e51a07719c162c406>::<lambda_invoker_stdcall>, COMDAT
 
-; 2556 :     }, nullptr, 0x00, nullptr);
+; 2564 :     }, nullptr, 0x00, nullptr);
 
 	npad	2
 	push	ebp
@@ -15273,38 +15281,38 @@ _user$ = 8						; size = 4
 ??R<lambda_057715e64ffa789e51a07719c162c406>@@QBEKPAX@Z PROC ; <lambda_057715e64ffa789e51a07719c162c406>::operator(), COMDAT
 ; _this$ = ecx
 
-; 2524 :     {
+; 2532 :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	sub	esp, 84					; 00000054H
 
-; 2525 :       UNREFERENCED_PARAMETER (user);
-; 2526 : 
-; 2527 :       SleepEx (33, FALSE);
+; 2533 :       UNREFERENCED_PARAMETER (user);
+; 2534 : 
+; 2535 :       SleepEx (33, FALSE);
 
 	push	0
 	push	33					; 00000021H
 	call	DWORD PTR __imp__SleepEx@8
 
-; 2528 : 
-; 2529 :       GetWindowRect (game_window.hWnd, &game_window.actual.window);
+; 2536 : 
+; 2537 :       GetWindowRect (game_window.hWnd, &game_window.actual.window);
 
 	push	OFFSET ?game_window@@3Usk_window_s@@A+100
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	call	DWORD PTR __imp__GetWindowRect@8
 
-; 2530 :       GetClientRect (game_window.hWnd, &game_window.actual.client);
+; 2538 :       GetClientRect (game_window.hWnd, &game_window.actual.client);
 
 	push	OFFSET ?game_window@@3Usk_window_s@@A+84
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	call	DWORD PTR __imp__GetClientRect@8
 
-; 2531 : 
-; 2532 :       ////
-; 2533 :       ////// Force a sane set of window styles initially
-; 2534 :       SK_SetWindowStyle   ( GetWindowLongPtrW (game_window.hWnd, GWL_STYLE)   );
+; 2539 : 
+; 2540 :       ////
+; 2541 :       ////// Force a sane set of window styles initially
+; 2542 :       SK_SetWindowStyle   ( GetWindowLongPtrW (game_window.hWnd, GWL_STYLE)   );
 
 	push	0
 	push	-16					; fffffff0H
@@ -15314,7 +15322,7 @@ _user$ = 8						; size = 4
 	call	?SK_SetWindowStyle@@YAXKP6GJPAUHWND__@@HJ@Z@Z ; SK_SetWindowStyle
 	add	esp, 8
 
-; 2535 :       SK_SetWindowStyleEx ( GetWindowLongPtrW (game_window.hWnd, GWL_EXSTYLE) );
+; 2543 :       SK_SetWindowStyleEx ( GetWindowLongPtrW (game_window.hWnd, GWL_EXSTYLE) );
 
 	push	0
 	push	-20					; ffffffecH
@@ -15324,31 +15332,31 @@ _user$ = 8						; size = 4
 	call	?SK_SetWindowStyleEx@@YAXKP6GJPAUHWND__@@HJ@Z@Z ; SK_SetWindowStyleEx
 	add	esp, 8
 
-; 2536 :       
-; 2537 :       EnterCriticalSection (&cs_reset);
+; 2544 :       
+; 2545 :       EnterCriticalSection (&cs_reset);
 
 	push	OFFSET ?cs_reset@?1??SK_ResetWindow@@YAXXZ@4U_RTL_CRITICAL_SECTION@@A
 	call	DWORD PTR __imp__EnterCriticalSection@4
 
-; 2538 : 
-; 2539 :       if (config.window.borderless)
+; 2546 : 
+; 2547 :       if (config.window.borderless)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+748, 0
 	je	SHORT $LN2@operator
 
-; 2540 :       {
-; 2541 :         SK_AdjustBorder ();
+; 2548 :       {
+; 2549 :         SK_AdjustBorder ();
 
 	call	?SK_AdjustBorder@@YAXXZ			; SK_AdjustBorder
 
-; 2542 : 
-; 2543 :         // XXX: Why can't the call to SK_AdjustWindow (...) suffice?
-; 2544 :         if (config.window.fullscreen)
+; 2550 : 
+; 2551 :         // XXX: Why can't the call to SK_AdjustWindow (...) suffice?
+; 2552 :         if (config.window.fullscreen)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+774, 0
 	je	SHORT $LN5@operator
 
-; 2545 :           SK_GetCommandProcessor ()->ProcessCommandLine ("Window.Fullscreen 1");
+; 2553 :           SK_GetCommandProcessor ()->ProcessCommandLine ("Window.Fullscreen 1");
 
 	call	?SK_GetCommandProcessor@@YGPAUSK_ICommandProcessor@@XZ ; SK_GetCommandProcessor
 	push	OFFSET ??_C@_0BE@FDLGBABH@Window?4Fullscreen?51?$AA@
@@ -15360,41 +15368,41 @@ _user$ = 8						; size = 4
 	lea	ecx, DWORD PTR $T1[ebp]
 	call	??1SK_ICommandResult@@QAE@XZ
 
-; 2546 :       }
+; 2554 :       }
 
 	jmp	SHORT $LN5@operator
 $LN2@operator:
 
-; 2547 : 
-; 2548 :       else if (config.window.center)
+; 2555 : 
+; 2556 :       else if (config.window.center)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+750, 0
 	je	SHORT $LN5@operator
 
-; 2549 :         SK_AdjustWindow ();
+; 2557 :         SK_AdjustWindow ();
 
 	call	?SK_AdjustWindow@@YAXXZ			; SK_AdjustWindow
 $LN5@operator:
 
-; 2550 : 
-; 2551 :       LeaveCriticalSection (&cs_reset);
+; 2558 : 
+; 2559 :       LeaveCriticalSection (&cs_reset);
 
 	push	OFFSET ?cs_reset@?1??SK_ResetWindow@@YAXXZ@4U_RTL_CRITICAL_SECTION@@A
 	call	DWORD PTR __imp__LeaveCriticalSection@4
 
-; 2552 : 
-; 2553 :       CloseHandle (GetCurrentThread ());
+; 2560 : 
+; 2561 :       CloseHandle (GetCurrentThread ());
 
 	call	DWORD PTR __imp__GetCurrentThread@0
 	push	eax
 	call	DWORD PTR __imp__CloseHandle@4
 
-; 2554 : 
-; 2555 :       return 0;
+; 2562 : 
+; 2563 :       return 0;
 
 	xor	eax, eax
 
-; 2556 :     }, nullptr, 0x00, nullptr);
+; 2564 :     }, nullptr, 0x00, nullptr);
 
 	mov	esp, ebp
 	pop	ebp
@@ -15406,12 +15414,12 @@ _TEXT	ENDS
 _TEXT	SEGMENT
 ?SK_ResetWindow@@YAXXZ PROC				; SK_ResetWindow
 
-; 2503 :   SK_RenderBackend& rb = SK_GetCurrentRenderBackend ();
+; 2511 :   SK_RenderBackend& rb = SK_GetCurrentRenderBackend ();
 
 	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
 
-; 2504 : 
-; 2505 :   if (! (config.window.borderless || config.window.center))
+; 2512 : 
+; 2513 :   if (! (config.window.borderless || config.window.center))
 
 	mov	cl, BYTE PTR ?config@@3Usk_config_t@@A+748
 	test	cl, cl
@@ -15419,9 +15427,9 @@ _TEXT	SEGMENT
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+750, cl
 	je	SHORT $LN1@SK_ResetWi
 
-; 2506 :     return;
-; 2507 : 
-; 2508 :   if (config.window.center && (! ( (config.window.fullscreen  &&
+; 2514 :     return;
+; 2515 : 
+; 2516 :   if (config.window.center && (! ( (config.window.fullscreen  &&
 
 	jmp	SHORT $LN10@SK_ResetWi
 $LN2@SK_ResetWi:
@@ -15437,14 +15445,14 @@ $LN4@SK_ResetWi:
 	je	SHORT $LN1@SK_ResetWi
 $LN3@SK_ResetWi:
 
-; 2509 :                                     config.window.borderless) ||
-; 2510 :                                     rb.fullscreen_exclusive) ) )
-; 2511 :     return;
-; 2512 : 
-; 2513 :   static CRITICAL_SECTION cs_reset;
-; 2514 :   static volatile LONG    init = FALSE;
-; 2515 : 
-; 2516 :   if (! InterlockedCompareExchange (&init, 1, 0))
+; 2517 :                                     config.window.borderless) ||
+; 2518 :                                     rb.fullscreen_exclusive) ) )
+; 2519 :     return;
+; 2520 : 
+; 2521 :   static CRITICAL_SECTION cs_reset;
+; 2522 :   static volatile LONG    init = FALSE;
+; 2523 : 
+; 2524 :   if (! InterlockedCompareExchange (&init, 1, 0))
 
 	mov	ecx, 1
 	mov	edx, OFFSET ?init@?1??SK_ResetWindow@@YAXXZ@4JC
@@ -15453,16 +15461,16 @@ $LN3@SK_ResetWi:
 	test	eax, eax
 	jne	SHORT $LN5@SK_ResetWi
 
-; 2517 :   {
-; 2518 :     InitializeCriticalSection (&cs_reset);
+; 2525 :   {
+; 2526 :     InitializeCriticalSection (&cs_reset);
 
 	push	OFFSET ?cs_reset@?1??SK_ResetWindow@@YAXXZ@4U_RTL_CRITICAL_SECTION@@A
 	call	DWORD PTR __imp__InitializeCriticalSection@4
 $LN5@SK_ResetWi:
 
-; 2519 :   }
-; 2520 : 
-; 2521 :   CreateThread (nullptr, 0,
+; 2527 :   }
+; 2528 : 
+; 2529 :   CreateThread (nullptr, 0,
 
 	push	0
 	push	0
@@ -15473,43 +15481,43 @@ $LN5@SK_ResetWi:
 	call	DWORD PTR __imp__CreateThread@24
 $LN1@SK_ResetWi:
 
-; 2522 :     [](LPVOID user) ->
-; 2523 :     DWORD
-; 2524 :     {
-; 2525 :       UNREFERENCED_PARAMETER (user);
-; 2526 : 
-; 2527 :       SleepEx (33, FALSE);
-; 2528 : 
-; 2529 :       GetWindowRect (game_window.hWnd, &game_window.actual.window);
-; 2530 :       GetClientRect (game_window.hWnd, &game_window.actual.client);
-; 2531 : 
-; 2532 :       ////
-; 2533 :       ////// Force a sane set of window styles initially
-; 2534 :       SK_SetWindowStyle   ( GetWindowLongPtrW (game_window.hWnd, GWL_STYLE)   );
-; 2535 :       SK_SetWindowStyleEx ( GetWindowLongPtrW (game_window.hWnd, GWL_EXSTYLE) );
-; 2536 :       
-; 2537 :       EnterCriticalSection (&cs_reset);
-; 2538 : 
-; 2539 :       if (config.window.borderless)
-; 2540 :       {
-; 2541 :         SK_AdjustBorder ();
-; 2542 : 
-; 2543 :         // XXX: Why can't the call to SK_AdjustWindow (...) suffice?
-; 2544 :         if (config.window.fullscreen)
-; 2545 :           SK_GetCommandProcessor ()->ProcessCommandLine ("Window.Fullscreen 1");
-; 2546 :       }
-; 2547 : 
-; 2548 :       else if (config.window.center)
-; 2549 :         SK_AdjustWindow ();
+; 2530 :     [](LPVOID user) ->
+; 2531 :     DWORD
+; 2532 :     {
+; 2533 :       UNREFERENCED_PARAMETER (user);
+; 2534 : 
+; 2535 :       SleepEx (33, FALSE);
+; 2536 : 
+; 2537 :       GetWindowRect (game_window.hWnd, &game_window.actual.window);
+; 2538 :       GetClientRect (game_window.hWnd, &game_window.actual.client);
+; 2539 : 
+; 2540 :       ////
+; 2541 :       ////// Force a sane set of window styles initially
+; 2542 :       SK_SetWindowStyle   ( GetWindowLongPtrW (game_window.hWnd, GWL_STYLE)   );
+; 2543 :       SK_SetWindowStyleEx ( GetWindowLongPtrW (game_window.hWnd, GWL_EXSTYLE) );
+; 2544 :       
+; 2545 :       EnterCriticalSection (&cs_reset);
+; 2546 : 
+; 2547 :       if (config.window.borderless)
+; 2548 :       {
+; 2549 :         SK_AdjustBorder ();
 ; 2550 : 
-; 2551 :       LeaveCriticalSection (&cs_reset);
-; 2552 : 
-; 2553 :       CloseHandle (GetCurrentThread ());
-; 2554 : 
-; 2555 :       return 0;
-; 2556 :     }, nullptr, 0x00, nullptr);
-; 2557 : 
-; 2558 : }
+; 2551 :         // XXX: Why can't the call to SK_AdjustWindow (...) suffice?
+; 2552 :         if (config.window.fullscreen)
+; 2553 :           SK_GetCommandProcessor ()->ProcessCommandLine ("Window.Fullscreen 1");
+; 2554 :       }
+; 2555 : 
+; 2556 :       else if (config.window.center)
+; 2557 :         SK_AdjustWindow ();
+; 2558 : 
+; 2559 :       LeaveCriticalSection (&cs_reset);
+; 2560 : 
+; 2561 :       CloseHandle (GetCurrentThread ());
+; 2562 : 
+; 2563 :       return 0;
+; 2564 :     }, nullptr, 0x00, nullptr);
+; 2565 : 
+; 2566 : }
 
 	ret	0
 ?SK_ResetWindow@@YAXXZ ENDP				; SK_ResetWindow
@@ -15523,7 +15531,7 @@ _mi$ = -40						; size = 40
 _wndRect$ = 8						; size = 16
 ?SK_IsRectTooBigForDesktop@@YA_NUtagRECT@@@Z PROC	; SK_IsRectTooBigForDesktop
 
-; 2392 : {
+; 2400 : {
 
 	npad	2
 	push	ebp
@@ -15532,19 +15540,19 @@ _wndRect$ = 8						; size = 16
 	push	esi
 	push	edi
 
-; 2393 :   HMONITOR hMonitor =
-; 2394 :     MonitorFromWindow ( game_window.hWnd,
+; 2401 :   HMONITOR hMonitor =
+; 2402 :     MonitorFromWindow ( game_window.hWnd,
 
 	push	2
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	call	DWORD PTR __imp__MonitorFromWindow@8
 	xorps	xmm0, xmm0
 
-; 2395 :                           MONITOR_DEFAULTTONEAREST );
-; 2396 : 
-; 2397 :   MONITORINFO mi   = {         };
-; 2398 :   mi.cbSize        = sizeof (mi);
-; 2399 :   GetMonitorInfo (hMonitor, &mi);
+; 2403 :                           MONITOR_DEFAULTTONEAREST );
+; 2404 : 
+; 2405 :   MONITORINFO mi   = {         };
+; 2406 :   mi.cbSize        = sizeof (mi);
+; 2407 :   GetMonitorInfo (hMonitor, &mi);
 
 	lea	ecx, DWORD PTR _mi$[ebp]
 	push	ecx
@@ -15555,12 +15563,12 @@ _wndRect$ = 8						; size = 16
 	movq	QWORD PTR _mi$[ebp+32], xmm0
 	call	DWORD PTR __imp__GetMonitorInfoW@8
 
-; 2400 : 
-; 2401 :   int win_width      = wndRect.right       - wndRect.left;
+; 2408 : 
+; 2409 :   int win_width      = wndRect.right       - wndRect.left;
 
 	mov	edx, DWORD PTR _wndRect$[ebp+8]
 
-; 2402 :   int win_height     = wndRect.bottom      - wndRect.top;
+; 2410 :   int win_height     = wndRect.bottom      - wndRect.top;
 
 	mov	ecx, DWORD PTR _wndRect$[ebp+12]
 	sub	edx, DWORD PTR _wndRect$[ebp]
@@ -15578,21 +15586,21 @@ _wndRect$ = 8						; size = 16
 $LN8@SK_IsRectT:
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 2406 :     win_width  = config.window.res.override.x;
+; 2414 :     win_width  = config.window.res.override.x;
 
 	mov	edx, esi
 
-; 2407 :     win_height = config.window.res.override.y;
+; 2415 :     win_height = config.window.res.override.y;
 
 	mov	ecx, eax
 $LN2@SK_IsRectT:
 
-; 2408 :   }
-; 2409 : 
-; 2410 :   int desktop_width  = mi.rcWork.right     - mi.rcWork.left;
-; 2411 :   int desktop_height = mi.rcWork.bottom    - mi.rcWork.top;
-; 2412 : 
-; 2413 :   int mon_width      = mi.rcMonitor.right  - mi.rcMonitor.left;
+; 2416 :   }
+; 2417 : 
+; 2418 :   int desktop_width  = mi.rcWork.right     - mi.rcWork.left;
+; 2419 :   int desktop_height = mi.rcWork.bottom    - mi.rcWork.top;
+; 2420 : 
+; 2421 :   int mon_width      = mi.rcMonitor.right  - mi.rcMonitor.left;
 
 	mov	eax, DWORD PTR _mi$[ebp+12]
 	mov	edi, DWORD PTR _mi$[ebp+28]
@@ -15601,39 +15609,39 @@ $LN2@SK_IsRectT:
 	sub	edi, DWORD PTR _mi$[ebp+20]
 	sub	esi, DWORD PTR _mi$[ebp+24]
 
-; 2415 : 
-; 2416 :   if (win_width == mon_width && win_height == mon_height)
+; 2423 : 
+; 2424 :   if (win_width == mon_width && win_height == mon_height)
 
 	cmp	edx, eax
 	jne	SHORT $LN3@SK_IsRectT
 
-; 2414 :   int mon_height     = mi.rcMonitor.bottom - mi.rcMonitor.top;
+; 2422 :   int mon_height     = mi.rcMonitor.bottom - mi.rcMonitor.top;
 
 	mov	eax, DWORD PTR _mi$[ebp+16]
 	sub	eax, DWORD PTR _mi$[ebp+8]
 
-; 2415 : 
-; 2416 :   if (win_width == mon_width && win_height == mon_height)
+; 2423 : 
+; 2424 :   if (win_width == mon_width && win_height == mon_height)
 
 	cmp	ecx, eax
 	jne	SHORT $LN3@SK_IsRectT
 $LN11@SK_IsRectT:
 	pop	edi
 
-; 2417 :     return true;
+; 2425 :     return true;
 
 	mov	al, 1
 	pop	esi
 
-; 2423 : }
+; 2431 : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	0
 $LN3@SK_IsRectT:
 
-; 2418 : 
-; 2419 :   if (win_width > desktop_width && win_height > desktop_height)
+; 2426 : 
+; 2427 :   if (win_width > desktop_width && win_height > desktop_height)
 
 	cmp	edx, edi
 	jle	SHORT $LN4@SK_IsRectT
@@ -15642,14 +15650,14 @@ $LN3@SK_IsRectT:
 $LN4@SK_IsRectT:
 	pop	edi
 
-; 2420 :     return true;
-; 2421 : 
-; 2422 :   return false;
+; 2428 :     return true;
+; 2429 : 
+; 2430 :   return false;
 
 	xor	al, al
 	pop	esi
 
-; 2423 : }
+; 2431 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -15663,7 +15671,7 @@ _client$ = -32						; size = 16
 _window$ = -16						; size = 16
 ?SK_ComputeClientOrigin@@YA?AUtagPOINT@@XZ PROC		; SK_ComputeClientOrigin
 
-; 2379 : {
+; 2387 : {
 
 	npad	2
 	push	ebx
@@ -15677,10 +15685,10 @@ _window$ = -16						; size = 16
 	mov	ebp, esp
 	sub	esp, 32					; 00000020H
 
-; 2380 :   RECT window = { },
-; 2381 :        client = { };
-; 2382 : 
-; 2383 :   GetWindowRect_Original ( game_window.hWnd, &window );
+; 2388 :   RECT window = { },
+; 2389 :        client = { };
+; 2390 : 
+; 2391 :   GetWindowRect_Original ( game_window.hWnd, &window );
 
 	lea	eax, DWORD PTR _window$[ebp]
 	xorps	xmm0, xmm0
@@ -15690,23 +15698,23 @@ _window$ = -16						; size = 16
 	movaps	XMMWORD PTR _client$[ebp], xmm0
 	call	DWORD PTR ?GetWindowRect_Original@@3P6GHPAUHWND__@@PAUtagRECT@@@ZA ; GetWindowRect_Original
 
-; 2384 :   GetClientRect_Original ( game_window.hWnd, &client );
+; 2392 :   GetClientRect_Original ( game_window.hWnd, &client );
 
 	lea	eax, DWORD PTR _client$[ebp]
 	push	eax
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	call	DWORD PTR ?GetClientRect_Original@@3P6GHPAUHWND__@@PAUtagRECT@@@ZA ; GetClientRect_Original
 
-; 2385 : 
-; 2386 :   return POINT { window.left  + client.left,
+; 2393 : 
+; 2394 :   return POINT { window.left  + client.left,
 
 	mov	eax, DWORD PTR _client$[ebp]
 	mov	edx, DWORD PTR _window$[ebp+4]
 	add	eax, DWORD PTR _window$[ebp]
 	add	edx, DWORD PTR _client$[ebp+4]
 
-; 2387 :                    window.top + client.top };
-; 2388 : }
+; 2395 :                    window.top + client.top };
+; 2396 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -15728,7 +15736,7 @@ _ret$ = -16						; size = 16
 $T3 = 8							; size = 4
 ?SK_ComputeClientSize@@YA?AUtagRECT@@XZ PROC		; SK_ComputeClientSize
 
-; 2354 : {
+; 2362 : {
 
 	npad	2
 	push	ebx
@@ -15747,7 +15755,7 @@ $T3 = 8							; size = 4
 	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+784
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 2354 : {
+; 2362 : {
 
 	sub	esp, 32					; 00000020H
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
@@ -15761,7 +15769,7 @@ $T3 = 8							; size = 4
 	jne	SHORT $LN6@SK_Compute
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 2368 :   GetClientRect_Original ( game_window.hWnd, &ret );
+; 2376 :   GetClientRect_Original ( game_window.hWnd, &ret );
 
 	movups	xmm0, XMMWORD PTR ?game_window@@3Usk_window_s@@A+84
 	lea	eax, DWORD PTR _ret$[ebp]
@@ -15770,8 +15778,8 @@ $T3 = 8							; size = 4
 	movups	XMMWORD PTR _ret$[ebp], xmm0
 	call	DWORD PTR ?GetClientRect_Original@@3P6GHPAUHWND__@@PAUtagRECT@@@ZA ; GetClientRect_Original
 
-; 2369 : 
-; 2370 :   ret = { 0, 0,
+; 2377 : 
+; 2378 :   ret = { 0, 0,
 
 	mov	eax, DWORD PTR _ret$[ebp+8]
 	sub	eax, DWORD PTR _ret$[ebp]
@@ -15779,19 +15787,19 @@ $T3 = 8							; size = 4
 	mov	eax, DWORD PTR _ret$[ebp+12]
 	sub	eax, DWORD PTR _ret$[ebp+4]
 
-; 2371 :             ret.right    - ret.left,
-; 2372 :               ret.bottom - ret.top };
-; 2373 : 
-; 2374 :   return ret;
+; 2379 :             ret.right    - ret.left,
+; 2380 :               ret.bottom - ret.top };
+; 2381 : 
+; 2382 :   return ret;
 
 	jmp	SHORT $LN9@SK_Compute
 $LN6@SK_Compute:
 
-; 2355 :   bool use_override = (! config.window.res.override.isZero ());
-; 2356 : 
-; 2357 :   if (use_override)
-; 2358 :   {
-; 2359 :     return RECT { 0L, 0L,
+; 2363 :   bool use_override = (! config.window.res.override.isZero ());
+; 2364 : 
+; 2365 :   if (use_override)
+; 2366 :   {
+; 2367 :     return RECT { 0L, 0L,
 
 	mov	DWORD PTR $T2[ebp+8], ecx
 $LN9@SK_Compute:
@@ -15802,7 +15810,7 @@ $LN9@SK_Compute:
 	movups	xmm0, XMMWORD PTR $T2[ebp]
 	movups	XMMWORD PTR [eax], xmm0
 
-; 2375 : }
+; 2383 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -15818,20 +15826,20 @@ _hWnd$ = 8						; size = 4
 _nIndex$ = 12						; size = 4
 ?GetWindowLongPtrW_Detour@@YGJPAUHWND__@@H@Z PROC	; GetWindowLongPtrW_Detour
 
-; 2291 : {
+; 2299 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 2292 :   SK_LOG_FIRST_CALL
+; 2300 :   SK_LOG_FIRST_CALL
 
 	cmp	BYTE PTR ?called@?2??GetWindowLongPtrW_Detour@@YGJPAUHWND__@@H@Z@4_NA, 0
 	jne	SHORT $LN2@GetWindowL
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN3@GetWindowL
-	push	OFFSET $SG212277
-	push	OFFSET $SG212278
+	push	OFFSET $SG212348
+	push	OFFSET $SG212349
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -15839,73 +15847,73 @@ $LN3@GetWindowL:
 	mov	BYTE PTR ?called@?2??GetWindowLongPtrW_Detour@@YGJPAUHWND__@@H@Z@4_NA, 1
 $LN2@GetWindowL:
 
-; 2253 :   if (hWnd == game_window.hWnd)
+; 2261 :   if (hWnd == game_window.hWnd)
 
 	mov	ecx, DWORD PTR _hWnd$[ebp]
 
-; 2293 : 
-; 2294 :   return GetWindowLongPtr_Marshall (
+; 2301 : 
+; 2302 :   return GetWindowLongPtr_Marshall (
 
 	mov	edx, DWORD PTR ?GetWindowLongPtrW_Original@@3P6GJPAUHWND__@@H@ZA ; GetWindowLongPtrW_Original
 
-; 2253 :   if (hWnd == game_window.hWnd)
+; 2261 :   if (hWnd == game_window.hWnd)
 
 	mov	eax, DWORD PTR _nIndex$[ebp]
 	cmp	ecx, DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	jne	SHORT $LN6@GetWindowL
 
-; 2254 :   {
-; 2255 :     switch (nIndex)
+; 2262 :   {
+; 2263 :     switch (nIndex)
 
 	cmp	eax, -20				; ffffffecH
 	je	SHORT $LN10@GetWindowL
 	cmp	eax, -16				; fffffff0H
 	jne	SHORT $LN6@GetWindowL
 
-; 2293 : 
-; 2294 :   return GetWindowLongPtr_Marshall (
+; 2301 : 
+; 2302 :   return GetWindowLongPtr_Marshall (
 
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+68
 
-; 2295 :     GetWindowLongPtrW_Original,
-; 2296 :       hWnd,
-; 2297 :         nIndex
-; 2298 :   );
-; 2299 : }
+; 2303 :     GetWindowLongPtrW_Original,
+; 2304 :       hWnd,
+; 2305 :         nIndex
+; 2306 :   );
+; 2307 : }
 
 	pop	ebp
 	ret	8
 $LN10@GetWindowL:
 
-; 2293 : 
-; 2294 :   return GetWindowLongPtr_Marshall (
+; 2301 : 
+; 2302 :   return GetWindowLongPtr_Marshall (
 
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+72
 
-; 2295 :     GetWindowLongPtrW_Original,
-; 2296 :       hWnd,
-; 2297 :         nIndex
-; 2298 :   );
-; 2299 : }
+; 2303 :     GetWindowLongPtrW_Original,
+; 2304 :       hWnd,
+; 2305 :         nIndex
+; 2306 :   );
+; 2307 : }
 
 	pop	ebp
 	ret	8
 $LN6@GetWindowL:
 
-; 2264 :   return pOrigFunc (hWnd, nIndex);
+; 2272 :   return pOrigFunc (hWnd, nIndex);
 
 	mov	DWORD PTR _nIndex$[ebp], eax
 	mov	DWORD PTR _hWnd$[ebp], ecx
 
-; 2295 :     GetWindowLongPtrW_Original,
-; 2296 :       hWnd,
-; 2297 :         nIndex
-; 2298 :   );
-; 2299 : }
+; 2303 :     GetWindowLongPtrW_Original,
+; 2304 :       hWnd,
+; 2305 :         nIndex
+; 2306 :   );
+; 2307 : }
 
 	pop	ebp
 
-; 2264 :   return pOrigFunc (hWnd, nIndex);
+; 2272 :   return pOrigFunc (hWnd, nIndex);
 
 	jmp	edx
 ?GetWindowLongPtrW_Detour@@YGJPAUHWND__@@H@Z ENDP	; GetWindowLongPtrW_Detour
@@ -15917,20 +15925,20 @@ _hWnd$ = 8						; size = 4
 _nIndex$ = 12						; size = 4
 ?GetWindowLongPtrA_Detour@@YGJPAUHWND__@@H@Z PROC	; GetWindowLongPtrA_Detour
 
-; 2274 : {
+; 2282 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 2275 :   SK_LOG_FIRST_CALL
+; 2283 :   SK_LOG_FIRST_CALL
 
 	cmp	BYTE PTR ?called@?2??GetWindowLongPtrA_Detour@@YGJPAUHWND__@@H@Z@4_NA, 0
 	jne	SHORT $LN2@GetWindowL
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN3@GetWindowL
-	push	OFFSET $SG212267
-	push	OFFSET $SG212268
+	push	OFFSET $SG212338
+	push	OFFSET $SG212339
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -15938,73 +15946,73 @@ $LN3@GetWindowL:
 	mov	BYTE PTR ?called@?2??GetWindowLongPtrA_Detour@@YGJPAUHWND__@@H@Z@4_NA, 1
 $LN2@GetWindowL:
 
-; 2253 :   if (hWnd == game_window.hWnd)
+; 2261 :   if (hWnd == game_window.hWnd)
 
 	mov	ecx, DWORD PTR _hWnd$[ebp]
 
-; 2276 : 
-; 2277 :   return GetWindowLongPtr_Marshall (
+; 2284 : 
+; 2285 :   return GetWindowLongPtr_Marshall (
 
 	mov	edx, DWORD PTR ?GetWindowLongPtrA_Original@@3P6GJPAUHWND__@@H@ZA ; GetWindowLongPtrA_Original
 
-; 2253 :   if (hWnd == game_window.hWnd)
+; 2261 :   if (hWnd == game_window.hWnd)
 
 	mov	eax, DWORD PTR _nIndex$[ebp]
 	cmp	ecx, DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	jne	SHORT $LN6@GetWindowL
 
-; 2254 :   {
-; 2255 :     switch (nIndex)
+; 2262 :   {
+; 2263 :     switch (nIndex)
 
 	cmp	eax, -20				; ffffffecH
 	je	SHORT $LN10@GetWindowL
 	cmp	eax, -16				; fffffff0H
 	jne	SHORT $LN6@GetWindowL
 
-; 2276 : 
-; 2277 :   return GetWindowLongPtr_Marshall (
+; 2284 : 
+; 2285 :   return GetWindowLongPtr_Marshall (
 
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+68
 
-; 2278 :     GetWindowLongPtrA_Original,
-; 2279 :       hWnd,
-; 2280 :         nIndex
-; 2281 :   );
-; 2282 : }
+; 2286 :     GetWindowLongPtrA_Original,
+; 2287 :       hWnd,
+; 2288 :         nIndex
+; 2289 :   );
+; 2290 : }
 
 	pop	ebp
 	ret	8
 $LN10@GetWindowL:
 
-; 2276 : 
-; 2277 :   return GetWindowLongPtr_Marshall (
+; 2284 : 
+; 2285 :   return GetWindowLongPtr_Marshall (
 
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+72
 
-; 2278 :     GetWindowLongPtrA_Original,
-; 2279 :       hWnd,
-; 2280 :         nIndex
-; 2281 :   );
-; 2282 : }
+; 2286 :     GetWindowLongPtrA_Original,
+; 2287 :       hWnd,
+; 2288 :         nIndex
+; 2289 :   );
+; 2290 : }
 
 	pop	ebp
 	ret	8
 $LN6@GetWindowL:
 
-; 2264 :   return pOrigFunc (hWnd, nIndex);
+; 2272 :   return pOrigFunc (hWnd, nIndex);
 
 	mov	DWORD PTR _nIndex$[ebp], eax
 	mov	DWORD PTR _hWnd$[ebp], ecx
 
-; 2278 :     GetWindowLongPtrA_Original,
-; 2279 :       hWnd,
-; 2280 :         nIndex
-; 2281 :   );
-; 2282 : }
+; 2286 :     GetWindowLongPtrA_Original,
+; 2287 :       hWnd,
+; 2288 :         nIndex
+; 2289 :   );
+; 2290 : }
 
 	pop	ebp
 
-; 2264 :   return pOrigFunc (hWnd, nIndex);
+; 2272 :   return pOrigFunc (hWnd, nIndex);
 
 	jmp	edx
 ?GetWindowLongPtrA_Detour@@YGJPAUHWND__@@H@Z ENDP	; GetWindowLongPtrA_Detour
@@ -16018,60 +16026,60 @@ _hWnd$ = 12						; size = 4
 _nIndex$ = 16						; size = 4
 ?GetWindowLongPtr_Marshall@@YGJP6GJPAUHWND__@@H@Z0H@Z PROC ; GetWindowLongPtr_Marshall, COMDAT
 
-; 2252 : {
+; 2260 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 2253 :   if (hWnd == game_window.hWnd)
+; 2261 :   if (hWnd == game_window.hWnd)
 
 	mov	ecx, DWORD PTR _hWnd$[ebp]
 	mov	eax, DWORD PTR _nIndex$[ebp]
 	cmp	ecx, DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	jne	SHORT $LN2@GetWindowL
 
-; 2254 :   {
-; 2255 :     switch (nIndex)
+; 2262 :   {
+; 2263 :     switch (nIndex)
 
 	cmp	eax, -20				; ffffffecH
 	je	SHORT $LN6@GetWindowL
 	cmp	eax, -16				; fffffff0H
 	jne	SHORT $LN2@GetWindowL
 
-; 2256 :     {
-; 2257 :       case GWL_STYLE:
-; 2258 :         return game_window.game.style;
+; 2264 :     {
+; 2265 :       case GWL_STYLE:
+; 2266 :         return game_window.game.style;
 
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+68
 
-; 2265 : }
+; 2273 : }
 
 	pop	ebp
 	ret	12					; 0000000cH
 $LN6@GetWindowL:
 
-; 2259 :       case GWL_EXSTYLE:
-; 2260 :         return game_window.game.style_ex;
+; 2267 :       case GWL_EXSTYLE:
+; 2268 :         return game_window.game.style_ex;
 
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+72
 
-; 2265 : }
+; 2273 : }
 
 	pop	ebp
 	ret	12					; 0000000cH
 $LN2@GetWindowL:
 
-; 2261 :     }
-; 2262 :   }
-; 2263 : 
-; 2264 :   return pOrigFunc (hWnd, nIndex);
+; 2269 :     }
+; 2270 :   }
+; 2271 : 
+; 2272 :   return pOrigFunc (hWnd, nIndex);
 
 	push	eax
 	push	ecx
 	call	DWORD PTR _pOrigFunc$[ebp]
 
-; 2265 : }
+; 2273 : }
 
 	pop	ebp
 	ret	12					; 0000000cH
@@ -16085,20 +16093,20 @@ _nIndex$ = 12						; size = 4
 _dwNewLong$ = 16					; size = 4
 ?SetWindowLongPtrW_Detour@@YGJPAUHWND__@@HJ@Z PROC	; SetWindowLongPtrW_Detour
 
-; 2231 : {
+; 2239 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 2232 :   SK_LOG_FIRST_CALL
+; 2240 :   SK_LOG_FIRST_CALL
 
 	cmp	BYTE PTR ?called@?2??SetWindowLongPtrW_Detour@@YGJPAUHWND__@@HJ@Z@4_NA, 0
 	jne	SHORT $LN2@SetWindowL
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN3@SetWindowL
-	push	OFFSET $SG212247
-	push	OFFSET $SG212248
+	push	OFFSET $SG212318
+	push	OFFSET $SG212319
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -16106,40 +16114,40 @@ $LN3@SetWindowL:
 	mov	BYTE PTR ?called@?2??SetWindowLongPtrW_Detour@@YGJPAUHWND__@@HJ@Z@4_NA, 1
 $LN2@SetWindowL:
 
-; 2124 :   if (hWnd == game_window.hWnd)
+; 2132 :   if (hWnd == game_window.hWnd)
 
 	mov	ecx, DWORD PTR _hWnd$[ebp]
 
-; 2233 : 
-; 2234 :   return SetWindowLongPtr_Marshall (
+; 2241 : 
+; 2242 :   return SetWindowLongPtr_Marshall (
 
 	mov	edx, DWORD PTR ?SetWindowLongPtrW_Original@@3P6GJPAUHWND__@@HJ@ZA ; SetWindowLongPtrW_Original
 
-; 2124 :   if (hWnd == game_window.hWnd)
+; 2132 :   if (hWnd == game_window.hWnd)
 
 	mov	eax, DWORD PTR _nIndex$[ebp]
 	push	esi
 	cmp	ecx, DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	jne	$LN18@SetWindowL
 
-; 2125 :   {
-; 2126 :     switch (nIndex)
+; 2133 :   {
+; 2134 :     switch (nIndex)
 
 	cmp	eax, -20				; ffffffecH
 	je	SHORT $LN13@SetWindowL
 	cmp	eax, -16				; fffffff0H
 	jne	$LN18@SetWindowL
 
-; 2127 :     {
-; 2128 :       case GWL_STYLE:
-; 2129 :       {
-; 2130 :         game_window.game.style =
+; 2135 :     {
+; 2136 :       case GWL_STYLE:
+; 2137 :       {
+; 2138 :         game_window.game.style =
 
 	mov	eax, DWORD PTR _dwNewLong$[ebp]
 
-; 2131 :           dwNewLong;
-; 2132 : 
-; 2133 :         if (config.window.borderless)
+; 2139 :           dwNewLong;
+; 2140 : 
+; 2141 :         if (config.window.borderless)
 
 	mov	esi, -1878392832			; 900a0000H
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+748, 0
@@ -16156,42 +16164,42 @@ $LN2@SetWindowL:
 	je	SHORT $LN12@SetWindowL
 $LN22@SetWindowL:
 
-; 2150 :           game_window.border_style =
+; 2158 :           game_window.border_style =
 
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+124, eax
 $LN12@SetWindowL:
 
-; 2151 :             game_window.game.style;
-; 2152 :         }
-; 2153 : 
-; 2154 :         SK_SetWindowStyle (static_cast <LONG> (game_window.actual.style), pOrigFunc);
+; 2159 :             game_window.game.style;
+; 2160 :         }
+; 2161 : 
+; 2162 :         SK_SetWindowStyle (static_cast <LONG> (game_window.actual.style), pOrigFunc);
 
 	push	edx
 	push	ecx
 	call	?SK_SetWindowStyle@@YAXKP6GJPAUHWND__@@HJ@Z@Z ; SK_SetWindowStyle
 
-; 2233 : 
-; 2234 :   return SetWindowLongPtr_Marshall (
+; 2241 : 
+; 2242 :   return SetWindowLongPtr_Marshall (
 
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+116
 
-; 2154 :         SK_SetWindowStyle (static_cast <LONG> (game_window.actual.style), pOrigFunc);
+; 2162 :         SK_SetWindowStyle (static_cast <LONG> (game_window.actual.style), pOrigFunc);
 
 	add	esp, 8
 	pop	esi
 
-; 2235 :     SetWindowLongPtrW_Original,
-; 2236 :       hWnd,
-; 2237 :         nIndex,
-; 2238 :           dwNewLong
-; 2239 :   );
-; 2240 : }
+; 2243 :     SetWindowLongPtrW_Original,
+; 2244 :       hWnd,
+; 2245 :         nIndex,
+; 2246 :           dwNewLong
+; 2247 :   );
+; 2248 : }
 
 	pop	ebp
 	ret	12					; 0000000cH
 $LN13@SetWindowL:
 
-; 2164 :         if (config.window.borderless)
+; 2172 :         if (config.window.borderless)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+748, 0
 	mov	esi, 262144				; 00040000H
@@ -16203,13 +16211,13 @@ $LN13@SetWindowL:
 
 	mov	esi, DWORD PTR ?game_window@@3Usk_window_s@@A+116
 
-; 2161 :         game_window.game.style_ex =
+; 2169 :         game_window.game.style_ex =
 
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+72, ecx
 
-; 2162 :           dwNewLong;
-; 2163 : 
-; 2164 :         if (config.window.borderless)
+; 2170 :           dwNewLong;
+; 2171 : 
+; 2172 :         if (config.window.borderless)
 
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+120, eax
 
@@ -16221,57 +16229,57 @@ $LN13@SetWindowL:
 	je	SHORT $LN16@SetWindowL
 $LN26@SetWindowL:
 
-; 2181 :           game_window.border_style_ex =
+; 2189 :           game_window.border_style_ex =
 
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+128, ecx
 $LN16@SetWindowL:
 
-; 2182 :             game_window.game.style_ex;
-; 2183 :         }
-; 2184 : 
-; 2185 :         SK_SetWindowStyleEx (static_cast <LONG> (game_window.actual.style_ex), pOrigFunc);
+; 2190 :             game_window.game.style_ex;
+; 2191 :         }
+; 2192 : 
+; 2193 :         SK_SetWindowStyleEx (static_cast <LONG> (game_window.actual.style_ex), pOrigFunc);
 
 	push	edx
 	push	eax
 	call	?SK_SetWindowStyleEx@@YAXKP6GJPAUHWND__@@HJ@Z@Z ; SK_SetWindowStyleEx
 
-; 2233 : 
-; 2234 :   return SetWindowLongPtr_Marshall (
+; 2241 : 
+; 2242 :   return SetWindowLongPtr_Marshall (
 
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+120
 
-; 2185 :         SK_SetWindowStyleEx (static_cast <LONG> (game_window.actual.style_ex), pOrigFunc);
+; 2193 :         SK_SetWindowStyleEx (static_cast <LONG> (game_window.actual.style_ex), pOrigFunc);
 
 	add	esp, 8
 	pop	esi
 
-; 2235 :     SetWindowLongPtrW_Original,
-; 2236 :       hWnd,
-; 2237 :         nIndex,
-; 2238 :           dwNewLong
-; 2239 :   );
-; 2240 : }
+; 2243 :     SetWindowLongPtrW_Original,
+; 2244 :       hWnd,
+; 2245 :         nIndex,
+; 2246 :           dwNewLong
+; 2247 :   );
+; 2248 : }
 
 	pop	ebp
 	ret	12					; 0000000cH
 $LN18@SetWindowL:
 	pop	esi
 
-; 2201 :   return pOrigFunc (hWnd, nIndex, dwNewLong);
+; 2209 :   return pOrigFunc (hWnd, nIndex, dwNewLong);
 
 	mov	DWORD PTR _nIndex$[ebp], eax
 	mov	DWORD PTR _hWnd$[ebp], ecx
 
-; 2235 :     SetWindowLongPtrW_Original,
-; 2236 :       hWnd,
-; 2237 :         nIndex,
-; 2238 :           dwNewLong
-; 2239 :   );
-; 2240 : }
+; 2243 :     SetWindowLongPtrW_Original,
+; 2244 :       hWnd,
+; 2245 :         nIndex,
+; 2246 :           dwNewLong
+; 2247 :   );
+; 2248 : }
 
 	pop	ebp
 
-; 2201 :   return pOrigFunc (hWnd, nIndex, dwNewLong);
+; 2209 :   return pOrigFunc (hWnd, nIndex, dwNewLong);
 
 	jmp	edx
 ?SetWindowLongPtrW_Detour@@YGJPAUHWND__@@HJ@Z ENDP	; SetWindowLongPtrW_Detour
@@ -16284,20 +16292,20 @@ _nIndex$ = 12						; size = 4
 _dwNewLong$ = 16					; size = 4
 ?SetWindowLongPtrA_Detour@@YGJPAUHWND__@@HJ@Z PROC	; SetWindowLongPtrA_Detour
 
-; 2212 : {
+; 2220 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 2213 :   SK_LOG_FIRST_CALL
+; 2221 :   SK_LOG_FIRST_CALL
 
 	cmp	BYTE PTR ?called@?2??SetWindowLongPtrA_Detour@@YGJPAUHWND__@@HJ@Z@4_NA, 0
 	jne	SHORT $LN2@SetWindowL
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN3@SetWindowL
-	push	OFFSET $SG212236
-	push	OFFSET $SG212237
+	push	OFFSET $SG212307
+	push	OFFSET $SG212308
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -16305,40 +16313,40 @@ $LN3@SetWindowL:
 	mov	BYTE PTR ?called@?2??SetWindowLongPtrA_Detour@@YGJPAUHWND__@@HJ@Z@4_NA, 1
 $LN2@SetWindowL:
 
-; 2124 :   if (hWnd == game_window.hWnd)
+; 2132 :   if (hWnd == game_window.hWnd)
 
 	mov	ecx, DWORD PTR _hWnd$[ebp]
 
-; 2214 : 
-; 2215 :   return SetWindowLongPtr_Marshall (
+; 2222 : 
+; 2223 :   return SetWindowLongPtr_Marshall (
 
 	mov	edx, DWORD PTR ?SetWindowLongPtrA_Original@@3P6GJPAUHWND__@@HJ@ZA ; SetWindowLongPtrA_Original
 
-; 2124 :   if (hWnd == game_window.hWnd)
+; 2132 :   if (hWnd == game_window.hWnd)
 
 	mov	eax, DWORD PTR _nIndex$[ebp]
 	push	esi
 	cmp	ecx, DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	jne	$LN18@SetWindowL
 
-; 2125 :   {
-; 2126 :     switch (nIndex)
+; 2133 :   {
+; 2134 :     switch (nIndex)
 
 	cmp	eax, -20				; ffffffecH
 	je	SHORT $LN13@SetWindowL
 	cmp	eax, -16				; fffffff0H
 	jne	$LN18@SetWindowL
 
-; 2127 :     {
-; 2128 :       case GWL_STYLE:
-; 2129 :       {
-; 2130 :         game_window.game.style =
+; 2135 :     {
+; 2136 :       case GWL_STYLE:
+; 2137 :       {
+; 2138 :         game_window.game.style =
 
 	mov	eax, DWORD PTR _dwNewLong$[ebp]
 
-; 2131 :           dwNewLong;
-; 2132 : 
-; 2133 :         if (config.window.borderless)
+; 2139 :           dwNewLong;
+; 2140 : 
+; 2141 :         if (config.window.borderless)
 
 	mov	esi, -1878392832			; 900a0000H
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+748, 0
@@ -16355,42 +16363,42 @@ $LN2@SetWindowL:
 	je	SHORT $LN12@SetWindowL
 $LN22@SetWindowL:
 
-; 2150 :           game_window.border_style =
+; 2158 :           game_window.border_style =
 
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+124, eax
 $LN12@SetWindowL:
 
-; 2151 :             game_window.game.style;
-; 2152 :         }
-; 2153 : 
-; 2154 :         SK_SetWindowStyle (static_cast <LONG> (game_window.actual.style), pOrigFunc);
+; 2159 :             game_window.game.style;
+; 2160 :         }
+; 2161 : 
+; 2162 :         SK_SetWindowStyle (static_cast <LONG> (game_window.actual.style), pOrigFunc);
 
 	push	edx
 	push	ecx
 	call	?SK_SetWindowStyle@@YAXKP6GJPAUHWND__@@HJ@Z@Z ; SK_SetWindowStyle
 
-; 2214 : 
-; 2215 :   return SetWindowLongPtr_Marshall (
+; 2222 : 
+; 2223 :   return SetWindowLongPtr_Marshall (
 
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+116
 
-; 2154 :         SK_SetWindowStyle (static_cast <LONG> (game_window.actual.style), pOrigFunc);
+; 2162 :         SK_SetWindowStyle (static_cast <LONG> (game_window.actual.style), pOrigFunc);
 
 	add	esp, 8
 	pop	esi
 
-; 2216 :     SetWindowLongPtrA_Original,
-; 2217 :       hWnd,
-; 2218 :         nIndex,
-; 2219 :           dwNewLong
-; 2220 :   );
-; 2221 : }
+; 2224 :     SetWindowLongPtrA_Original,
+; 2225 :       hWnd,
+; 2226 :         nIndex,
+; 2227 :           dwNewLong
+; 2228 :   );
+; 2229 : }
 
 	pop	ebp
 	ret	12					; 0000000cH
 $LN13@SetWindowL:
 
-; 2164 :         if (config.window.borderless)
+; 2172 :         if (config.window.borderless)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+748, 0
 	mov	esi, 262144				; 00040000H
@@ -16402,13 +16410,13 @@ $LN13@SetWindowL:
 
 	mov	esi, DWORD PTR ?game_window@@3Usk_window_s@@A+116
 
-; 2161 :         game_window.game.style_ex =
+; 2169 :         game_window.game.style_ex =
 
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+72, ecx
 
-; 2162 :           dwNewLong;
-; 2163 : 
-; 2164 :         if (config.window.borderless)
+; 2170 :           dwNewLong;
+; 2171 : 
+; 2172 :         if (config.window.borderless)
 
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+120, eax
 
@@ -16420,57 +16428,57 @@ $LN13@SetWindowL:
 	je	SHORT $LN16@SetWindowL
 $LN26@SetWindowL:
 
-; 2181 :           game_window.border_style_ex =
+; 2189 :           game_window.border_style_ex =
 
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+128, ecx
 $LN16@SetWindowL:
 
-; 2182 :             game_window.game.style_ex;
-; 2183 :         }
-; 2184 : 
-; 2185 :         SK_SetWindowStyleEx (static_cast <LONG> (game_window.actual.style_ex), pOrigFunc);
+; 2190 :             game_window.game.style_ex;
+; 2191 :         }
+; 2192 : 
+; 2193 :         SK_SetWindowStyleEx (static_cast <LONG> (game_window.actual.style_ex), pOrigFunc);
 
 	push	edx
 	push	eax
 	call	?SK_SetWindowStyleEx@@YAXKP6GJPAUHWND__@@HJ@Z@Z ; SK_SetWindowStyleEx
 
-; 2214 : 
-; 2215 :   return SetWindowLongPtr_Marshall (
+; 2222 : 
+; 2223 :   return SetWindowLongPtr_Marshall (
 
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+120
 
-; 2185 :         SK_SetWindowStyleEx (static_cast <LONG> (game_window.actual.style_ex), pOrigFunc);
+; 2193 :         SK_SetWindowStyleEx (static_cast <LONG> (game_window.actual.style_ex), pOrigFunc);
 
 	add	esp, 8
 	pop	esi
 
-; 2216 :     SetWindowLongPtrA_Original,
-; 2217 :       hWnd,
-; 2218 :         nIndex,
-; 2219 :           dwNewLong
-; 2220 :   );
-; 2221 : }
+; 2224 :     SetWindowLongPtrA_Original,
+; 2225 :       hWnd,
+; 2226 :         nIndex,
+; 2227 :           dwNewLong
+; 2228 :   );
+; 2229 : }
 
 	pop	ebp
 	ret	12					; 0000000cH
 $LN18@SetWindowL:
 	pop	esi
 
-; 2201 :   return pOrigFunc (hWnd, nIndex, dwNewLong);
+; 2209 :   return pOrigFunc (hWnd, nIndex, dwNewLong);
 
 	mov	DWORD PTR _nIndex$[ebp], eax
 	mov	DWORD PTR _hWnd$[ebp], ecx
 
-; 2216 :     SetWindowLongPtrA_Original,
-; 2217 :       hWnd,
-; 2218 :         nIndex,
-; 2219 :           dwNewLong
-; 2220 :   );
-; 2221 : }
+; 2224 :     SetWindowLongPtrA_Original,
+; 2225 :       hWnd,
+; 2226 :         nIndex,
+; 2227 :           dwNewLong
+; 2228 :   );
+; 2229 : }
 
 	pop	ebp
 
-; 2201 :   return pOrigFunc (hWnd, nIndex, dwNewLong);
+; 2209 :   return pOrigFunc (hWnd, nIndex, dwNewLong);
 
 	jmp	edx
 ?SetWindowLongPtrA_Detour@@YGJPAUHWND__@@HJ@Z ENDP	; SetWindowLongPtrA_Detour
@@ -16485,40 +16493,40 @@ _nIndex$ = 16						; size = 4
 _dwNewLong$ = 20					; size = 4
 ?SetWindowLongPtr_Marshall@@YGJP6GJPAUHWND__@@HJ@Z0HJ@Z PROC ; SetWindowLongPtr_Marshall, COMDAT
 
-; 2120 : {
+; 2128 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 2121 :   //dll_log.Log (L"SetWindowLongPtr: Idx=%li, Val=%X -- Caller: %s", nIndex, dwNewLong, SK_GetCallerName ().c_str ());
-; 2122 : 
-; 2123 :   // Override window styles
-; 2124 :   if (hWnd == game_window.hWnd)
+; 2129 :   //dll_log.Log (L"SetWindowLongPtr: Idx=%li, Val=%X -- Caller: %s", nIndex, dwNewLong, SK_GetCallerName ().c_str ());
+; 2130 : 
+; 2131 :   // Override window styles
+; 2132 :   if (hWnd == game_window.hWnd)
 
 	mov	ecx, DWORD PTR _hWnd$[ebp]
 	mov	eax, DWORD PTR _nIndex$[ebp]
 	cmp	ecx, DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	jne	$LN14@SetWindowL
 
-; 2125 :   {
-; 2126 :     switch (nIndex)
+; 2133 :   {
+; 2134 :     switch (nIndex)
 
 	cmp	eax, -20				; ffffffecH
 	je	SHORT $LN9@SetWindowL
 	cmp	eax, -16				; fffffff0H
 	jne	$LN14@SetWindowL
 
-; 2127 :     {
-; 2128 :       case GWL_STYLE:
-; 2129 :       {
-; 2130 :         game_window.game.style =
+; 2135 :     {
+; 2136 :       case GWL_STYLE:
+; 2137 :       {
+; 2138 :         game_window.game.style =
 
 	mov	eax, DWORD PTR _dwNewLong$[ebp]
 
-; 2131 :           dwNewLong;
-; 2132 : 
-; 2133 :         if (config.window.borderless)
+; 2139 :           dwNewLong;
+; 2140 : 
+; 2141 :         if (config.window.borderless)
 
 	mov	edx, -1878392832			; 900a0000H
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+748, 0
@@ -16535,51 +16543,51 @@ _dwNewLong$ = 20					; size = 4
 	je	SHORT $LN8@SetWindowL
 $LN18@SetWindowL:
 
-; 2134 :         {
-; 2135 :           game_window.actual.style =
-; 2136 :             SK_BORDERLESS;
-; 2137 :         }
-; 2138 : 
-; 2139 :         else
-; 2140 :         {
-; 2141 :           game_window.actual.style =
-; 2142 :             game_window.game.style;
-; 2143 :         }
-; 2144 : 
-; 2145 :         if ( SK_WindowManager::StyleHasBorder (
-; 2146 :                game_window.game.style
-; 2147 :              )
-; 2148 :            )
-; 2149 :         {
-; 2150 :           game_window.border_style =
+; 2142 :         {
+; 2143 :           game_window.actual.style =
+; 2144 :             SK_BORDERLESS;
+; 2145 :         }
+; 2146 : 
+; 2147 :         else
+; 2148 :         {
+; 2149 :           game_window.actual.style =
+; 2150 :             game_window.game.style;
+; 2151 :         }
+; 2152 : 
+; 2153 :         if ( SK_WindowManager::StyleHasBorder (
+; 2154 :                game_window.game.style
+; 2155 :              )
+; 2156 :            )
+; 2157 :         {
+; 2158 :           game_window.border_style =
 
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+124, eax
 $LN8@SetWindowL:
 
-; 2151 :             game_window.game.style;
-; 2152 :         }
-; 2153 : 
-; 2154 :         SK_SetWindowStyle (static_cast <LONG> (game_window.actual.style), pOrigFunc);
+; 2159 :             game_window.game.style;
+; 2160 :         }
+; 2161 : 
+; 2162 :         SK_SetWindowStyle (static_cast <LONG> (game_window.actual.style), pOrigFunc);
 
 	push	DWORD PTR _pOrigFunc$[ebp]
 	push	ecx
 	call	?SK_SetWindowStyle@@YAXKP6GJPAUHWND__@@HJ@Z@Z ; SK_SetWindowStyle
 
-; 2155 : 
-; 2156 :         return game_window.actual.style;
+; 2163 : 
+; 2164 :         return game_window.actual.style;
 
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+116
 	add	esp, 8
 
-; 2202 : }
+; 2210 : }
 
 	pop	ebp
 	ret	16					; 00000010H
 $LN9@SetWindowL:
 
-; 2162 :           dwNewLong;
-; 2163 : 
-; 2164 :         if (config.window.borderless)
+; 2170 :           dwNewLong;
+; 2171 : 
+; 2172 :         if (config.window.borderless)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+748, 0
 	mov	edx, 262144				; 00040000H
@@ -16591,17 +16599,17 @@ $LN9@SetWindowL:
 
 	mov	edx, DWORD PTR ?game_window@@3Usk_window_s@@A+116
 
-; 2157 :       }
-; 2158 : 
-; 2159 :       case GWL_EXSTYLE:
-; 2160 :       {
-; 2161 :         game_window.game.style_ex =
+; 2165 :       }
+; 2166 : 
+; 2167 :       case GWL_EXSTYLE:
+; 2168 :       {
+; 2169 :         game_window.game.style_ex =
 
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+72, ecx
 
-; 2162 :           dwNewLong;
-; 2163 : 
-; 2164 :         if (config.window.borderless)
+; 2170 :           dwNewLong;
+; 2171 : 
+; 2172 :         if (config.window.borderless)
 
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+120, eax
 
@@ -16613,69 +16621,69 @@ $LN9@SetWindowL:
 	je	SHORT $LN12@SetWindowL
 $LN22@SetWindowL:
 
-; 2165 :         {
-; 2166 :           game_window.actual.style_ex =
-; 2167 :             SK_BORDERLESS_EX;
-; 2168 :         }
-; 2169 : 
-; 2170 :         else
-; 2171 :         {
-; 2172 :           game_window.actual.style_ex =
-; 2173 :             game_window.game.style;
-; 2174 :         }
-; 2175 : 
-; 2176 :         if ( SK_WindowManager::StyleHasBorder (
-; 2177 :                game_window.actual.style
-; 2178 :              )
-; 2179 :            )
-; 2180 :         {
-; 2181 :           game_window.border_style_ex =
+; 2173 :         {
+; 2174 :           game_window.actual.style_ex =
+; 2175 :             SK_BORDERLESS_EX;
+; 2176 :         }
+; 2177 : 
+; 2178 :         else
+; 2179 :         {
+; 2180 :           game_window.actual.style_ex =
+; 2181 :             game_window.game.style;
+; 2182 :         }
+; 2183 : 
+; 2184 :         if ( SK_WindowManager::StyleHasBorder (
+; 2185 :                game_window.actual.style
+; 2186 :              )
+; 2187 :            )
+; 2188 :         {
+; 2189 :           game_window.border_style_ex =
 
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+128, ecx
 $LN12@SetWindowL:
 
-; 2182 :             game_window.game.style_ex;
-; 2183 :         }
-; 2184 : 
-; 2185 :         SK_SetWindowStyleEx (static_cast <LONG> (game_window.actual.style_ex), pOrigFunc);
+; 2190 :             game_window.game.style_ex;
+; 2191 :         }
+; 2192 : 
+; 2193 :         SK_SetWindowStyleEx (static_cast <LONG> (game_window.actual.style_ex), pOrigFunc);
 
 	push	DWORD PTR _pOrigFunc$[ebp]
 	push	eax
 	call	?SK_SetWindowStyleEx@@YAXKP6GJPAUHWND__@@HJ@Z@Z ; SK_SetWindowStyleEx
 
-; 2186 : 
-; 2187 :         return game_window.actual.style_ex;
+; 2194 : 
+; 2195 :         return game_window.actual.style_ex;
 
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+120
 	add	esp, 8
 
-; 2202 : }
+; 2210 : }
 
 	pop	ebp
 	ret	16					; 00000010H
 $LN14@SetWindowL:
 
-; 2188 :       }
-; 2189 : 
-; 2190 :       case GWLP_WNDPROC:
-; 2191 :       {
-; 2192 :         if (game_window.hooked)
-; 2193 :         {
-; 2194 :           //game_window.WndProc_Original = reinterpret_cast <WNDPROC> (dwNewLong);
-; 2195 :           //return dwNewLong;
-; 2196 :         }
-; 2197 :       } break;
-; 2198 :     }
-; 2199 :   }
-; 2200 : 
-; 2201 :   return pOrigFunc (hWnd, nIndex, dwNewLong);
+; 2196 :       }
+; 2197 : 
+; 2198 :       case GWLP_WNDPROC:
+; 2199 :       {
+; 2200 :         if (game_window.hooked)
+; 2201 :         {
+; 2202 :           //game_window.WndProc_Original = reinterpret_cast <WNDPROC> (dwNewLong);
+; 2203 :           //return dwNewLong;
+; 2204 :         }
+; 2205 :       } break;
+; 2206 :     }
+; 2207 :   }
+; 2208 : 
+; 2209 :   return pOrigFunc (hWnd, nIndex, dwNewLong);
 
 	push	DWORD PTR _dwNewLong$[ebp]
 	push	eax
 	push	ecx
 	call	DWORD PTR _pOrigFunc$[ebp]
 
-; 2202 : }
+; 2210 : }
 
 	pop	ebp
 	ret	16					; 00000010H
@@ -16688,20 +16696,20 @@ _hWnd$ = 8						; size = 4
 _nIndex$ = 12						; size = 4
 ?GetWindowLongW_Detour@@YGJPAUHWND__@@H@Z PROC		; GetWindowLongW_Detour
 
-; 2099 : {
+; 2107 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 2100 :   SK_LOG_FIRST_CALL
+; 2108 :   SK_LOG_FIRST_CALL
 
 	cmp	BYTE PTR ?called@?2??GetWindowLongW_Detour@@YGJPAUHWND__@@H@Z@4_NA, 0
 	jne	SHORT $LN2@GetWindowL
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN3@GetWindowL
-	push	OFFSET $SG212204
-	push	OFFSET $SG212205
+	push	OFFSET $SG212275
+	push	OFFSET $SG212276
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -16709,73 +16717,73 @@ $LN3@GetWindowL:
 	mov	BYTE PTR ?called@?2??GetWindowLongW_Detour@@YGJPAUHWND__@@H@Z@4_NA, 1
 $LN2@GetWindowL:
 
-; 2061 :   if (hWnd == game_window.hWnd)
+; 2069 :   if (hWnd == game_window.hWnd)
 
 	mov	ecx, DWORD PTR _hWnd$[ebp]
 
-; 2101 : 
-; 2102 :   return GetWindowLong_Marshall (
+; 2109 : 
+; 2110 :   return GetWindowLong_Marshall (
 
 	mov	edx, DWORD PTR ?GetWindowLongW_Original@@3P6GJPAUHWND__@@H@ZA ; GetWindowLongW_Original
 
-; 2061 :   if (hWnd == game_window.hWnd)
+; 2069 :   if (hWnd == game_window.hWnd)
 
 	mov	eax, DWORD PTR _nIndex$[ebp]
 	cmp	ecx, DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	jne	SHORT $LN6@GetWindowL
 
-; 2062 :   {
-; 2063 :     switch (nIndex)
+; 2070 :   {
+; 2071 :     switch (nIndex)
 
 	cmp	eax, -20				; ffffffecH
 	je	SHORT $LN10@GetWindowL
 	cmp	eax, -16				; fffffff0H
 	jne	SHORT $LN6@GetWindowL
 
-; 2101 : 
-; 2102 :   return GetWindowLong_Marshall (
+; 2109 : 
+; 2110 :   return GetWindowLong_Marshall (
 
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+68
 
-; 2103 :     GetWindowLongW_Original,
-; 2104 :       hWnd,
-; 2105 :         nIndex
-; 2106 :   );
-; 2107 : }
+; 2111 :     GetWindowLongW_Original,
+; 2112 :       hWnd,
+; 2113 :         nIndex
+; 2114 :   );
+; 2115 : }
 
 	pop	ebp
 	ret	8
 $LN10@GetWindowL:
 
-; 2101 : 
-; 2102 :   return GetWindowLong_Marshall (
+; 2109 : 
+; 2110 :   return GetWindowLong_Marshall (
 
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+72
 
-; 2103 :     GetWindowLongW_Original,
-; 2104 :       hWnd,
-; 2105 :         nIndex
-; 2106 :   );
-; 2107 : }
+; 2111 :     GetWindowLongW_Original,
+; 2112 :       hWnd,
+; 2113 :         nIndex
+; 2114 :   );
+; 2115 : }
 
 	pop	ebp
 	ret	8
 $LN6@GetWindowL:
 
-; 2072 :   return pOrigFunc (hWnd, nIndex);
+; 2080 :   return pOrigFunc (hWnd, nIndex);
 
 	mov	DWORD PTR _nIndex$[ebp], eax
 	mov	DWORD PTR _hWnd$[ebp], ecx
 
-; 2103 :     GetWindowLongW_Original,
-; 2104 :       hWnd,
-; 2105 :         nIndex
-; 2106 :   );
-; 2107 : }
+; 2111 :     GetWindowLongW_Original,
+; 2112 :       hWnd,
+; 2113 :         nIndex
+; 2114 :   );
+; 2115 : }
 
 	pop	ebp
 
-; 2072 :   return pOrigFunc (hWnd, nIndex);
+; 2080 :   return pOrigFunc (hWnd, nIndex);
 
 	jmp	edx
 ?GetWindowLongW_Detour@@YGJPAUHWND__@@H@Z ENDP		; GetWindowLongW_Detour
@@ -16787,20 +16795,20 @@ _hWnd$ = 8						; size = 4
 _nIndex$ = 12						; size = 4
 ?GetWindowLongA_Detour@@YGJPAUHWND__@@H@Z PROC		; GetWindowLongA_Detour
 
-; 2082 : {
+; 2090 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 2083 :   SK_LOG_FIRST_CALL
+; 2091 :   SK_LOG_FIRST_CALL
 
 	cmp	BYTE PTR ?called@?2??GetWindowLongA_Detour@@YGJPAUHWND__@@H@Z@4_NA, 0
 	jne	SHORT $LN2@GetWindowL
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN3@GetWindowL
-	push	OFFSET $SG212194
-	push	OFFSET $SG212195
+	push	OFFSET $SG212265
+	push	OFFSET $SG212266
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -16808,73 +16816,73 @@ $LN3@GetWindowL:
 	mov	BYTE PTR ?called@?2??GetWindowLongA_Detour@@YGJPAUHWND__@@H@Z@4_NA, 1
 $LN2@GetWindowL:
 
-; 2061 :   if (hWnd == game_window.hWnd)
+; 2069 :   if (hWnd == game_window.hWnd)
 
 	mov	ecx, DWORD PTR _hWnd$[ebp]
 
-; 2084 : 
-; 2085 :   return GetWindowLong_Marshall (
+; 2092 : 
+; 2093 :   return GetWindowLong_Marshall (
 
 	mov	edx, DWORD PTR ?GetWindowLongA_Original@@3P6GJPAUHWND__@@H@ZA ; GetWindowLongA_Original
 
-; 2061 :   if (hWnd == game_window.hWnd)
+; 2069 :   if (hWnd == game_window.hWnd)
 
 	mov	eax, DWORD PTR _nIndex$[ebp]
 	cmp	ecx, DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	jne	SHORT $LN6@GetWindowL
 
-; 2062 :   {
-; 2063 :     switch (nIndex)
+; 2070 :   {
+; 2071 :     switch (nIndex)
 
 	cmp	eax, -20				; ffffffecH
 	je	SHORT $LN10@GetWindowL
 	cmp	eax, -16				; fffffff0H
 	jne	SHORT $LN6@GetWindowL
 
-; 2084 : 
-; 2085 :   return GetWindowLong_Marshall (
+; 2092 : 
+; 2093 :   return GetWindowLong_Marshall (
 
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+68
 
-; 2086 :     GetWindowLongA_Original,
-; 2087 :       hWnd,
-; 2088 :         nIndex
-; 2089 :   );
-; 2090 : }
+; 2094 :     GetWindowLongA_Original,
+; 2095 :       hWnd,
+; 2096 :         nIndex
+; 2097 :   );
+; 2098 : }
 
 	pop	ebp
 	ret	8
 $LN10@GetWindowL:
 
-; 2084 : 
-; 2085 :   return GetWindowLong_Marshall (
+; 2092 : 
+; 2093 :   return GetWindowLong_Marshall (
 
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+72
 
-; 2086 :     GetWindowLongA_Original,
-; 2087 :       hWnd,
-; 2088 :         nIndex
-; 2089 :   );
-; 2090 : }
+; 2094 :     GetWindowLongA_Original,
+; 2095 :       hWnd,
+; 2096 :         nIndex
+; 2097 :   );
+; 2098 : }
 
 	pop	ebp
 	ret	8
 $LN6@GetWindowL:
 
-; 2072 :   return pOrigFunc (hWnd, nIndex);
+; 2080 :   return pOrigFunc (hWnd, nIndex);
 
 	mov	DWORD PTR _nIndex$[ebp], eax
 	mov	DWORD PTR _hWnd$[ebp], ecx
 
-; 2086 :     GetWindowLongA_Original,
-; 2087 :       hWnd,
-; 2088 :         nIndex
-; 2089 :   );
-; 2090 : }
+; 2094 :     GetWindowLongA_Original,
+; 2095 :       hWnd,
+; 2096 :         nIndex
+; 2097 :   );
+; 2098 : }
 
 	pop	ebp
 
-; 2072 :   return pOrigFunc (hWnd, nIndex);
+; 2080 :   return pOrigFunc (hWnd, nIndex);
 
 	jmp	edx
 ?GetWindowLongA_Detour@@YGJPAUHWND__@@H@Z ENDP		; GetWindowLongA_Detour
@@ -16888,60 +16896,60 @@ _hWnd$ = 12						; size = 4
 _nIndex$ = 16						; size = 4
 ?GetWindowLong_Marshall@@YGJP6GJPAUHWND__@@H@Z0H@Z PROC	; GetWindowLong_Marshall, COMDAT
 
-; 2060 : {
+; 2068 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 2061 :   if (hWnd == game_window.hWnd)
+; 2069 :   if (hWnd == game_window.hWnd)
 
 	mov	ecx, DWORD PTR _hWnd$[ebp]
 	mov	eax, DWORD PTR _nIndex$[ebp]
 	cmp	ecx, DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	jne	SHORT $LN2@GetWindowL
 
-; 2062 :   {
-; 2063 :     switch (nIndex)
+; 2070 :   {
+; 2071 :     switch (nIndex)
 
 	cmp	eax, -20				; ffffffecH
 	je	SHORT $LN6@GetWindowL
 	cmp	eax, -16				; fffffff0H
 	jne	SHORT $LN2@GetWindowL
 
-; 2064 :     {
-; 2065 :       case GWL_STYLE:
-; 2066 :         return static_cast <LONG> (game_window.game.style);
+; 2072 :     {
+; 2073 :       case GWL_STYLE:
+; 2074 :         return static_cast <LONG> (game_window.game.style);
 
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+68
 
-; 2073 : }
+; 2081 : }
 
 	pop	ebp
 	ret	12					; 0000000cH
 $LN6@GetWindowL:
 
-; 2067 :       case GWL_EXSTYLE:
-; 2068 :         return static_cast <LONG> (game_window.game.style_ex);
+; 2075 :       case GWL_EXSTYLE:
+; 2076 :         return static_cast <LONG> (game_window.game.style_ex);
 
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+72
 
-; 2073 : }
+; 2081 : }
 
 	pop	ebp
 	ret	12					; 0000000cH
 $LN2@GetWindowL:
 
-; 2069 :     }
-; 2070 :   }
-; 2071 : 
-; 2072 :   return pOrigFunc (hWnd, nIndex);
+; 2077 :     }
+; 2078 :   }
+; 2079 : 
+; 2080 :   return pOrigFunc (hWnd, nIndex);
 
 	push	eax
 	push	ecx
 	call	DWORD PTR _pOrigFunc$[ebp]
 
-; 2073 : }
+; 2081 : }
 
 	pop	ebp
 	ret	12					; 0000000cH
@@ -16955,20 +16963,20 @@ _nIndex$ = 12						; size = 4
 _dwNewLong$ = 16					; size = 4
 ?SetWindowLongW_Detour@@YGJPAUHWND__@@HJ@Z PROC		; SetWindowLongW_Detour
 
-; 1966 : {
+; 1974 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 1967 :   SK_LOG_FIRST_CALL
+; 1975 :   SK_LOG_FIRST_CALL
 
 	cmp	BYTE PTR ?called@?2??SetWindowLongW_Detour@@YGJPAUHWND__@@HJ@Z@4_NA, 0
 	jne	SHORT $LN2@SetWindowL
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN3@SetWindowL
-	push	OFFSET $SG212172
-	push	OFFSET $SG212173
+	push	OFFSET $SG212243
+	push	OFFSET $SG212244
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -16976,40 +16984,40 @@ $LN3@SetWindowL:
 	mov	BYTE PTR ?called@?2??SetWindowLongW_Detour@@YGJPAUHWND__@@HJ@Z@4_NA, 1
 $LN2@SetWindowL:
 
-; 1857 :   if (hWnd == game_window.hWnd)
+; 1865 :   if (hWnd == game_window.hWnd)
 
 	mov	ecx, DWORD PTR _hWnd$[ebp]
 
-; 1968 : 
-; 1969 :   return SetWindowLong_Marshall (
+; 1976 : 
+; 1977 :   return SetWindowLong_Marshall (
 
 	mov	edx, DWORD PTR ?SetWindowLongW_Original@@3P6GJPAUHWND__@@HJ@ZA ; SetWindowLongW_Original
 
-; 1857 :   if (hWnd == game_window.hWnd)
+; 1865 :   if (hWnd == game_window.hWnd)
 
 	mov	eax, DWORD PTR _nIndex$[ebp]
 	push	esi
 	cmp	ecx, DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	jne	$LN18@SetWindowL
 
-; 1858 :   {
-; 1859 :     switch (nIndex)
+; 1866 :   {
+; 1867 :     switch (nIndex)
 
 	cmp	eax, -20				; ffffffecH
 	je	SHORT $LN13@SetWindowL
 	cmp	eax, -16				; fffffff0H
 	jne	$LN18@SetWindowL
 
-; 1860 :     {
-; 1861 :       case GWL_STYLE:
-; 1862 :       {
-; 1863 :         game_window.game.style =
+; 1868 :     {
+; 1869 :       case GWL_STYLE:
+; 1870 :       {
+; 1871 :         game_window.game.style =
 
 	mov	eax, DWORD PTR _dwNewLong$[ebp]
 
-; 1864 :           static_cast <LONG_PTR> (dwNewLong);
-; 1865 : 
-; 1866 :         if (config.window.borderless)
+; 1872 :           static_cast <LONG_PTR> (dwNewLong);
+; 1873 : 
+; 1874 :         if (config.window.borderless)
 
 	mov	esi, -1878392832			; 900a0000H
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+748, 0
@@ -17026,42 +17034,42 @@ $LN2@SetWindowL:
 	je	SHORT $LN12@SetWindowL
 $LN22@SetWindowL:
 
-; 1883 :           game_window.border_style =
+; 1891 :           game_window.border_style =
 
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+124, eax
 $LN12@SetWindowL:
 
-; 1884 :             game_window.game.style;
-; 1885 :         }
-; 1886 : 
-; 1887 :         SK_SetWindowStyle ( static_cast      <DWORD_PTR>            (game_window.actual.style),
+; 1892 :             game_window.game.style;
+; 1893 :         }
+; 1894 : 
+; 1895 :         SK_SetWindowStyle ( static_cast      <DWORD_PTR>            (game_window.actual.style),
 
 	push	edx
 	push	ecx
 	call	?SK_SetWindowStyle@@YAXKP6GJPAUHWND__@@HJ@Z@Z ; SK_SetWindowStyle
 
-; 1968 : 
-; 1969 :   return SetWindowLong_Marshall (
+; 1976 : 
+; 1977 :   return SetWindowLong_Marshall (
 
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+116
 
-; 1887 :         SK_SetWindowStyle ( static_cast      <DWORD_PTR>            (game_window.actual.style),
+; 1895 :         SK_SetWindowStyle ( static_cast      <DWORD_PTR>            (game_window.actual.style),
 
 	add	esp, 8
 	pop	esi
 
-; 1970 :     SetWindowLongW_Original,
-; 1971 :       hWnd,
-; 1972 :         nIndex,
-; 1973 :           dwNewLong
-; 1974 :   );
-; 1975 : }
+; 1978 :     SetWindowLongW_Original,
+; 1979 :       hWnd,
+; 1980 :         nIndex,
+; 1981 :           dwNewLong
+; 1982 :   );
+; 1983 : }
 
 	pop	ebp
 	ret	12					; 0000000cH
 $LN13@SetWindowL:
 
-; 1898 :         if (config.window.borderless)
+; 1906 :         if (config.window.borderless)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+748, 0
 	mov	esi, 262144				; 00040000H
@@ -17073,13 +17081,13 @@ $LN13@SetWindowL:
 
 	mov	esi, DWORD PTR ?game_window@@3Usk_window_s@@A+116
 
-; 1895 :         game_window.game.style_ex =
+; 1903 :         game_window.game.style_ex =
 
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+72, ecx
 
-; 1896 :           static_cast <LONG_PTR> (dwNewLong);
-; 1897 : 
-; 1898 :         if (config.window.borderless)
+; 1904 :           static_cast <LONG_PTR> (dwNewLong);
+; 1905 : 
+; 1906 :         if (config.window.borderless)
 
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+120, eax
 
@@ -17091,57 +17099,57 @@ $LN13@SetWindowL:
 	je	SHORT $LN16@SetWindowL
 $LN26@SetWindowL:
 
-; 1915 :           game_window.border_style_ex =
+; 1923 :           game_window.border_style_ex =
 
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+128, ecx
 $LN16@SetWindowL:
 
-; 1916 :             game_window.game.style_ex;
-; 1917 :         }
-; 1918 : 
-; 1919 :         SK_SetWindowStyleEx ( static_cast      <DWORD_PTR>            (game_window.actual.style_ex),
+; 1924 :             game_window.game.style_ex;
+; 1925 :         }
+; 1926 : 
+; 1927 :         SK_SetWindowStyleEx ( static_cast      <DWORD_PTR>            (game_window.actual.style_ex),
 
 	push	edx
 	push	eax
 	call	?SK_SetWindowStyleEx@@YAXKP6GJPAUHWND__@@HJ@Z@Z ; SK_SetWindowStyleEx
 
-; 1968 : 
-; 1969 :   return SetWindowLong_Marshall (
+; 1976 : 
+; 1977 :   return SetWindowLong_Marshall (
 
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+120
 
-; 1919 :         SK_SetWindowStyleEx ( static_cast      <DWORD_PTR>            (game_window.actual.style_ex),
+; 1927 :         SK_SetWindowStyleEx ( static_cast      <DWORD_PTR>            (game_window.actual.style_ex),
 
 	add	esp, 8
 	pop	esi
 
-; 1970 :     SetWindowLongW_Original,
-; 1971 :       hWnd,
-; 1972 :         nIndex,
-; 1973 :           dwNewLong
-; 1974 :   );
-; 1975 : }
+; 1978 :     SetWindowLongW_Original,
+; 1979 :       hWnd,
+; 1980 :         nIndex,
+; 1981 :           dwNewLong
+; 1982 :   );
+; 1983 : }
 
 	pop	ebp
 	ret	12					; 0000000cH
 $LN18@SetWindowL:
 	pop	esi
 
-; 1936 :   return pOrigFunc (hWnd, nIndex, dwNewLong);
+; 1944 :   return pOrigFunc (hWnd, nIndex, dwNewLong);
 
 	mov	DWORD PTR _nIndex$[ebp], eax
 	mov	DWORD PTR _hWnd$[ebp], ecx
 
-; 1970 :     SetWindowLongW_Original,
-; 1971 :       hWnd,
-; 1972 :         nIndex,
-; 1973 :           dwNewLong
-; 1974 :   );
-; 1975 : }
+; 1978 :     SetWindowLongW_Original,
+; 1979 :       hWnd,
+; 1980 :         nIndex,
+; 1981 :           dwNewLong
+; 1982 :   );
+; 1983 : }
 
 	pop	ebp
 
-; 1936 :   return pOrigFunc (hWnd, nIndex, dwNewLong);
+; 1944 :   return pOrigFunc (hWnd, nIndex, dwNewLong);
 
 	jmp	edx
 ?SetWindowLongW_Detour@@YGJPAUHWND__@@HJ@Z ENDP		; SetWindowLongW_Detour
@@ -17154,20 +17162,20 @@ _nIndex$ = 12						; size = 4
 _dwNewLong$ = 16					; size = 4
 ?SetWindowLongA_Detour@@YGJPAUHWND__@@HJ@Z PROC		; SetWindowLongA_Detour
 
-; 1947 : {
+; 1955 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 1948 :   SK_LOG_FIRST_CALL
+; 1956 :   SK_LOG_FIRST_CALL
 
 	cmp	BYTE PTR ?called@?2??SetWindowLongA_Detour@@YGJPAUHWND__@@HJ@Z@4_NA, 0
 	jne	SHORT $LN2@SetWindowL
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN3@SetWindowL
-	push	OFFSET $SG212161
-	push	OFFSET $SG212162
+	push	OFFSET $SG212232
+	push	OFFSET $SG212233
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -17175,40 +17183,40 @@ $LN3@SetWindowL:
 	mov	BYTE PTR ?called@?2??SetWindowLongA_Detour@@YGJPAUHWND__@@HJ@Z@4_NA, 1
 $LN2@SetWindowL:
 
-; 1857 :   if (hWnd == game_window.hWnd)
+; 1865 :   if (hWnd == game_window.hWnd)
 
 	mov	ecx, DWORD PTR _hWnd$[ebp]
 
-; 1949 : 
-; 1950 :   return SetWindowLong_Marshall (
+; 1957 : 
+; 1958 :   return SetWindowLong_Marshall (
 
 	mov	edx, DWORD PTR ?SetWindowLongA_Original@@3P6GJPAUHWND__@@HJ@ZA ; SetWindowLongA_Original
 
-; 1857 :   if (hWnd == game_window.hWnd)
+; 1865 :   if (hWnd == game_window.hWnd)
 
 	mov	eax, DWORD PTR _nIndex$[ebp]
 	push	esi
 	cmp	ecx, DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	jne	$LN18@SetWindowL
 
-; 1858 :   {
-; 1859 :     switch (nIndex)
+; 1866 :   {
+; 1867 :     switch (nIndex)
 
 	cmp	eax, -20				; ffffffecH
 	je	SHORT $LN13@SetWindowL
 	cmp	eax, -16				; fffffff0H
 	jne	$LN18@SetWindowL
 
-; 1860 :     {
-; 1861 :       case GWL_STYLE:
-; 1862 :       {
-; 1863 :         game_window.game.style =
+; 1868 :     {
+; 1869 :       case GWL_STYLE:
+; 1870 :       {
+; 1871 :         game_window.game.style =
 
 	mov	eax, DWORD PTR _dwNewLong$[ebp]
 
-; 1864 :           static_cast <LONG_PTR> (dwNewLong);
-; 1865 : 
-; 1866 :         if (config.window.borderless)
+; 1872 :           static_cast <LONG_PTR> (dwNewLong);
+; 1873 : 
+; 1874 :         if (config.window.borderless)
 
 	mov	esi, -1878392832			; 900a0000H
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+748, 0
@@ -17225,42 +17233,42 @@ $LN2@SetWindowL:
 	je	SHORT $LN12@SetWindowL
 $LN22@SetWindowL:
 
-; 1883 :           game_window.border_style =
+; 1891 :           game_window.border_style =
 
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+124, eax
 $LN12@SetWindowL:
 
-; 1884 :             game_window.game.style;
-; 1885 :         }
-; 1886 : 
-; 1887 :         SK_SetWindowStyle ( static_cast      <DWORD_PTR>            (game_window.actual.style),
+; 1892 :             game_window.game.style;
+; 1893 :         }
+; 1894 : 
+; 1895 :         SK_SetWindowStyle ( static_cast      <DWORD_PTR>            (game_window.actual.style),
 
 	push	edx
 	push	ecx
 	call	?SK_SetWindowStyle@@YAXKP6GJPAUHWND__@@HJ@Z@Z ; SK_SetWindowStyle
 
-; 1949 : 
-; 1950 :   return SetWindowLong_Marshall (
+; 1957 : 
+; 1958 :   return SetWindowLong_Marshall (
 
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+116
 
-; 1887 :         SK_SetWindowStyle ( static_cast      <DWORD_PTR>            (game_window.actual.style),
+; 1895 :         SK_SetWindowStyle ( static_cast      <DWORD_PTR>            (game_window.actual.style),
 
 	add	esp, 8
 	pop	esi
 
-; 1951 :     SetWindowLongA_Original,
-; 1952 :       hWnd,
-; 1953 :         nIndex,
-; 1954 :           dwNewLong
-; 1955 :   );
-; 1956 : }
+; 1959 :     SetWindowLongA_Original,
+; 1960 :       hWnd,
+; 1961 :         nIndex,
+; 1962 :           dwNewLong
+; 1963 :   );
+; 1964 : }
 
 	pop	ebp
 	ret	12					; 0000000cH
 $LN13@SetWindowL:
 
-; 1898 :         if (config.window.borderless)
+; 1906 :         if (config.window.borderless)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+748, 0
 	mov	esi, 262144				; 00040000H
@@ -17272,13 +17280,13 @@ $LN13@SetWindowL:
 
 	mov	esi, DWORD PTR ?game_window@@3Usk_window_s@@A+116
 
-; 1895 :         game_window.game.style_ex =
+; 1903 :         game_window.game.style_ex =
 
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+72, ecx
 
-; 1896 :           static_cast <LONG_PTR> (dwNewLong);
-; 1897 : 
-; 1898 :         if (config.window.borderless)
+; 1904 :           static_cast <LONG_PTR> (dwNewLong);
+; 1905 : 
+; 1906 :         if (config.window.borderless)
 
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+120, eax
 
@@ -17290,57 +17298,57 @@ $LN13@SetWindowL:
 	je	SHORT $LN16@SetWindowL
 $LN26@SetWindowL:
 
-; 1915 :           game_window.border_style_ex =
+; 1923 :           game_window.border_style_ex =
 
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+128, ecx
 $LN16@SetWindowL:
 
-; 1916 :             game_window.game.style_ex;
-; 1917 :         }
-; 1918 : 
-; 1919 :         SK_SetWindowStyleEx ( static_cast      <DWORD_PTR>            (game_window.actual.style_ex),
+; 1924 :             game_window.game.style_ex;
+; 1925 :         }
+; 1926 : 
+; 1927 :         SK_SetWindowStyleEx ( static_cast      <DWORD_PTR>            (game_window.actual.style_ex),
 
 	push	edx
 	push	eax
 	call	?SK_SetWindowStyleEx@@YAXKP6GJPAUHWND__@@HJ@Z@Z ; SK_SetWindowStyleEx
 
-; 1949 : 
-; 1950 :   return SetWindowLong_Marshall (
+; 1957 : 
+; 1958 :   return SetWindowLong_Marshall (
 
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+120
 
-; 1919 :         SK_SetWindowStyleEx ( static_cast      <DWORD_PTR>            (game_window.actual.style_ex),
+; 1927 :         SK_SetWindowStyleEx ( static_cast      <DWORD_PTR>            (game_window.actual.style_ex),
 
 	add	esp, 8
 	pop	esi
 
-; 1951 :     SetWindowLongA_Original,
-; 1952 :       hWnd,
-; 1953 :         nIndex,
-; 1954 :           dwNewLong
-; 1955 :   );
-; 1956 : }
+; 1959 :     SetWindowLongA_Original,
+; 1960 :       hWnd,
+; 1961 :         nIndex,
+; 1962 :           dwNewLong
+; 1963 :   );
+; 1964 : }
 
 	pop	ebp
 	ret	12					; 0000000cH
 $LN18@SetWindowL:
 	pop	esi
 
-; 1936 :   return pOrigFunc (hWnd, nIndex, dwNewLong);
+; 1944 :   return pOrigFunc (hWnd, nIndex, dwNewLong);
 
 	mov	DWORD PTR _nIndex$[ebp], eax
 	mov	DWORD PTR _hWnd$[ebp], ecx
 
-; 1951 :     SetWindowLongA_Original,
-; 1952 :       hWnd,
-; 1953 :         nIndex,
-; 1954 :           dwNewLong
-; 1955 :   );
-; 1956 : }
+; 1959 :     SetWindowLongA_Original,
+; 1960 :       hWnd,
+; 1961 :         nIndex,
+; 1962 :           dwNewLong
+; 1963 :   );
+; 1964 : }
 
 	pop	ebp
 
-; 1936 :   return pOrigFunc (hWnd, nIndex, dwNewLong);
+; 1944 :   return pOrigFunc (hWnd, nIndex, dwNewLong);
 
 	jmp	edx
 ?SetWindowLongA_Detour@@YGJPAUHWND__@@HJ@Z ENDP		; SetWindowLongA_Detour
@@ -17355,38 +17363,38 @@ _nIndex$ = 16						; size = 4
 _dwNewLong$ = 20					; size = 4
 ?SetWindowLong_Marshall@@YGJP6GJPAUHWND__@@HJ@Z0HJ@Z PROC ; SetWindowLong_Marshall, COMDAT
 
-; 1855 : {
+; 1863 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 1856 :   // Override window styles
-; 1857 :   if (hWnd == game_window.hWnd)
+; 1864 :   // Override window styles
+; 1865 :   if (hWnd == game_window.hWnd)
 
 	mov	ecx, DWORD PTR _hWnd$[ebp]
 	mov	eax, DWORD PTR _nIndex$[ebp]
 	cmp	ecx, DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	jne	$LN14@SetWindowL
 
-; 1858 :   {
-; 1859 :     switch (nIndex)
+; 1866 :   {
+; 1867 :     switch (nIndex)
 
 	cmp	eax, -20				; ffffffecH
 	je	SHORT $LN9@SetWindowL
 	cmp	eax, -16				; fffffff0H
 	jne	$LN14@SetWindowL
 
-; 1860 :     {
-; 1861 :       case GWL_STYLE:
-; 1862 :       {
-; 1863 :         game_window.game.style =
+; 1868 :     {
+; 1869 :       case GWL_STYLE:
+; 1870 :       {
+; 1871 :         game_window.game.style =
 
 	mov	eax, DWORD PTR _dwNewLong$[ebp]
 
-; 1864 :           static_cast <LONG_PTR> (dwNewLong);
-; 1865 : 
-; 1866 :         if (config.window.borderless)
+; 1872 :           static_cast <LONG_PTR> (dwNewLong);
+; 1873 : 
+; 1874 :         if (config.window.borderless)
 
 	mov	edx, -1878392832			; 900a0000H
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+748, 0
@@ -17403,52 +17411,52 @@ _dwNewLong$ = 20					; size = 4
 	je	SHORT $LN8@SetWindowL
 $LN18@SetWindowL:
 
-; 1867 :         {
-; 1868 :           game_window.actual.style =
-; 1869 :             SK_BORDERLESS;
-; 1870 :         }
-; 1871 : 
-; 1872 :         else
-; 1873 :         {
-; 1874 :           game_window.actual.style =
-; 1875 :             game_window.game.style;
-; 1876 :         }
-; 1877 : 
-; 1878 :         if ( SK_WindowManager::StyleHasBorder (
-; 1879 :                game_window.game.style
-; 1880 :              )
-; 1881 :            )
-; 1882 :         {
-; 1883 :           game_window.border_style =
+; 1875 :         {
+; 1876 :           game_window.actual.style =
+; 1877 :             SK_BORDERLESS;
+; 1878 :         }
+; 1879 : 
+; 1880 :         else
+; 1881 :         {
+; 1882 :           game_window.actual.style =
+; 1883 :             game_window.game.style;
+; 1884 :         }
+; 1885 : 
+; 1886 :         if ( SK_WindowManager::StyleHasBorder (
+; 1887 :                game_window.game.style
+; 1888 :              )
+; 1889 :            )
+; 1890 :         {
+; 1891 :           game_window.border_style =
 
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+124, eax
 $LN8@SetWindowL:
 
-; 1884 :             game_window.game.style;
-; 1885 :         }
-; 1886 : 
-; 1887 :         SK_SetWindowStyle ( static_cast      <DWORD_PTR>            (game_window.actual.style),
+; 1892 :             game_window.game.style;
+; 1893 :         }
+; 1894 : 
+; 1895 :         SK_SetWindowStyle ( static_cast      <DWORD_PTR>            (game_window.actual.style),
 
 	push	DWORD PTR _pOrigFunc$[ebp]
 	push	ecx
 	call	?SK_SetWindowStyle@@YAXKP6GJPAUHWND__@@HJ@Z@Z ; SK_SetWindowStyle
 
-; 1888 :                             reinterpret_cast <SetWindowLongPtr_pfn> (pOrigFunc) );
-; 1889 : 
-; 1890 :         return static_cast <LONG> (game_window.actual.style);
+; 1896 :                             reinterpret_cast <SetWindowLongPtr_pfn> (pOrigFunc) );
+; 1897 : 
+; 1898 :         return static_cast <LONG> (game_window.actual.style);
 
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+116
 	add	esp, 8
 
-; 1937 : }
+; 1945 : }
 
 	pop	ebp
 	ret	16					; 00000010H
 $LN9@SetWindowL:
 
-; 1896 :           static_cast <LONG_PTR> (dwNewLong);
-; 1897 : 
-; 1898 :         if (config.window.borderless)
+; 1904 :           static_cast <LONG_PTR> (dwNewLong);
+; 1905 : 
+; 1906 :         if (config.window.borderless)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+748, 0
 	mov	edx, 262144				; 00040000H
@@ -17460,17 +17468,17 @@ $LN9@SetWindowL:
 
 	mov	edx, DWORD PTR ?game_window@@3Usk_window_s@@A+116
 
-; 1891 :       }
-; 1892 : 
-; 1893 :       case GWL_EXSTYLE:
-; 1894 :       {
-; 1895 :         game_window.game.style_ex =
+; 1899 :       }
+; 1900 : 
+; 1901 :       case GWL_EXSTYLE:
+; 1902 :       {
+; 1903 :         game_window.game.style_ex =
 
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+72, ecx
 
-; 1896 :           static_cast <LONG_PTR> (dwNewLong);
-; 1897 : 
-; 1898 :         if (config.window.borderless)
+; 1904 :           static_cast <LONG_PTR> (dwNewLong);
+; 1905 : 
+; 1906 :         if (config.window.borderless)
 
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+120, eax
 
@@ -17482,70 +17490,70 @@ $LN9@SetWindowL:
 	je	SHORT $LN12@SetWindowL
 $LN22@SetWindowL:
 
-; 1899 :         {
-; 1900 :           game_window.actual.style_ex =
-; 1901 :             SK_BORDERLESS_EX;
-; 1902 :         }
-; 1903 : 
-; 1904 :         else
-; 1905 :         {
-; 1906 :           game_window.actual.style_ex =
-; 1907 :             game_window.game.style;
-; 1908 :         }
-; 1909 : 
-; 1910 :         if ( SK_WindowManager::StyleHasBorder (
-; 1911 :                game_window.actual.style
-; 1912 :              )
-; 1913 :            )
-; 1914 :         {
-; 1915 :           game_window.border_style_ex =
+; 1907 :         {
+; 1908 :           game_window.actual.style_ex =
+; 1909 :             SK_BORDERLESS_EX;
+; 1910 :         }
+; 1911 : 
+; 1912 :         else
+; 1913 :         {
+; 1914 :           game_window.actual.style_ex =
+; 1915 :             game_window.game.style;
+; 1916 :         }
+; 1917 : 
+; 1918 :         if ( SK_WindowManager::StyleHasBorder (
+; 1919 :                game_window.actual.style
+; 1920 :              )
+; 1921 :            )
+; 1922 :         {
+; 1923 :           game_window.border_style_ex =
 
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+128, ecx
 $LN12@SetWindowL:
 
-; 1916 :             game_window.game.style_ex;
-; 1917 :         }
-; 1918 : 
-; 1919 :         SK_SetWindowStyleEx ( static_cast      <DWORD_PTR>            (game_window.actual.style_ex),
+; 1924 :             game_window.game.style_ex;
+; 1925 :         }
+; 1926 : 
+; 1927 :         SK_SetWindowStyleEx ( static_cast      <DWORD_PTR>            (game_window.actual.style_ex),
 
 	push	DWORD PTR _pOrigFunc$[ebp]
 	push	eax
 	call	?SK_SetWindowStyleEx@@YAXKP6GJPAUHWND__@@HJ@Z@Z ; SK_SetWindowStyleEx
 
-; 1920 :                               reinterpret_cast <SetWindowLongPtr_pfn> (pOrigFunc) );
-; 1921 : 
-; 1922 :         return static_cast <LONG> (game_window.actual.style_ex);
+; 1928 :                               reinterpret_cast <SetWindowLongPtr_pfn> (pOrigFunc) );
+; 1929 : 
+; 1930 :         return static_cast <LONG> (game_window.actual.style_ex);
 
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+120
 	add	esp, 8
 
-; 1937 : }
+; 1945 : }
 
 	pop	ebp
 	ret	16					; 00000010H
 $LN14@SetWindowL:
 
-; 1923 :       }
-; 1924 : 
-; 1925 :       case GWLP_WNDPROC:
-; 1926 :       {
-; 1927 :         if (game_window.hooked)
-; 1928 :         {
-; 1929 :           //game_window.WndProc_Original = reinterpret_cast <WNDPROC> (dwNewLong);
-; 1930 :           //return dwNewLong;
-; 1931 :         }
-; 1932 :       } break;
-; 1933 :     }
-; 1934 :   }
-; 1935 : 
-; 1936 :   return pOrigFunc (hWnd, nIndex, dwNewLong);
+; 1931 :       }
+; 1932 : 
+; 1933 :       case GWLP_WNDPROC:
+; 1934 :       {
+; 1935 :         if (game_window.hooked)
+; 1936 :         {
+; 1937 :           //game_window.WndProc_Original = reinterpret_cast <WNDPROC> (dwNewLong);
+; 1938 :           //return dwNewLong;
+; 1939 :         }
+; 1940 :       } break;
+; 1941 :     }
+; 1942 :   }
+; 1943 : 
+; 1944 :   return pOrigFunc (hWnd, nIndex, dwNewLong);
 
 	push	DWORD PTR _dwNewLong$[ebp]
 	push	eax
 	push	ecx
 	call	DWORD PTR _pOrigFunc$[ebp]
 
-; 1937 : }
+; 1945 : }
 
 	pop	ebp
 	ret	16					; 00000010H
@@ -17573,14 +17581,14 @@ _bMenu$ = 16						; size = 4
 _dwExStyle$ = 20					; size = 4
 ?AdjustWindowRectEx_Detour@@YGHPAUtagRECT@@KHK@Z PROC	; AdjustWindowRectEx_Detour
 
-; 1805 : {
+; 1813 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	sub	esp, 64					; 00000040H
 
-; 1806 :   SK_LOG1 ( ( L"AdjustWindowRectEx ( "
+; 1814 :   SK_LOG1 ( ( L"AdjustWindowRectEx ( "
 
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 1
 	push	esi
@@ -17610,7 +17618,7 @@ _dwExStyle$ = 20					; size = 4
 $LN21@AdjustWind:
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 1806 :   SK_LOG1 ( ( L"AdjustWindowRectEx ( "
+; 1814 :   SK_LOG1 ( ( L"AdjustWindowRectEx ( "
 
 	push	eax
 	push	DWORD PTR _dwExStyle$[ebp]
@@ -17620,7 +17628,7 @@ $LN21@AdjustWind:
 	push	DWORD PTR [esi+8]
 	push	DWORD PTR [esi+4]
 	push	DWORD PTR [esi]
-	push	OFFSET $SG212121
+	push	OFFSET $SG212192
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -17630,7 +17638,7 @@ $LN21@AdjustWind:
 	mov	eax, DWORD PTR $T2[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 1806 :   SK_LOG1 ( ( L"AdjustWindowRectEx ( "
+; 1814 :   SK_LOG1 ( ( L"AdjustWindowRectEx ( "
 
 	add	esp, 40					; 00000028H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -17663,25 +17671,25 @@ $LN21@AdjustWind:
 $LN31@AdjustWind:
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 1815 :   if (SK_GetCurrentGameID () == SK_GAME_ID::ZeroEscape)
+; 1823 :   if (SK_GetCurrentGameID () == SK_GAME_ID::ZeroEscape)
 
 	call	?SK_GetCurrentGameID@@YG?AW4SK_GAME_ID@@XZ ; SK_GetCurrentGameID
 	cmp	eax, 32					; 00000020H
 	je	SHORT $LN57@AdjustWind
 
-; 1816 :     return TRUE;
-; 1817 : 
-; 1818 :   if (SK_GetCurrentGameID () == SK_GAME_ID::DotHackGU)
+; 1824 :     return TRUE;
+; 1825 : 
+; 1826 :   if (SK_GetCurrentGameID () == SK_GAME_ID::DotHackGU)
 
 	call	?SK_GetCurrentGameID@@YG?AW4SK_GAME_ID@@XZ ; SK_GetCurrentGameID
 	cmp	eax, 33					; 00000021H
 	je	SHORT $LN57@AdjustWind
 
-; 1819 :     return TRUE;
-; 1820 : 
-; 1821 :   // Override if forcing Fullscreen Borderless
-; 1822 :   //
-; 1823 :   if (config.window.fullscreen && config.window.borderless && (! bMenu))
+; 1827 :     return TRUE;
+; 1828 : 
+; 1829 :   // Override if forcing Fullscreen Borderless
+; 1830 :   //
+; 1831 :   if (config.window.fullscreen && config.window.borderless && (! bMenu))
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+774, 0
 	je	SHORT $LN5@AdjustWind
@@ -17690,20 +17698,20 @@ $LN31@AdjustWind:
 	test	edi, edi
 	jne	SHORT $LN5@AdjustWind
 
-; 1824 :   {
-; 1825 :     HMONITOR hMonitor =
-; 1826 :       MonitorFromWindow ( game_window.hWnd,
+; 1832 :   {
+; 1833 :     HMONITOR hMonitor =
+; 1834 :       MonitorFromWindow ( game_window.hWnd,
 
 	push	2
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	call	DWORD PTR __imp__MonitorFromWindow@8
 	xorps	xmm0, xmm0
 
-; 1827 :                             MONITOR_DEFAULTTONEAREST );
-; 1828 : 
-; 1829 :     MONITORINFO mi   = {         };
-; 1830 :     mi.cbSize        = sizeof (mi);
-; 1831 :     GetMonitorInfo (hMonitor, &mi);
+; 1835 :                             MONITOR_DEFAULTTONEAREST );
+; 1836 : 
+; 1837 :     MONITORINFO mi   = {         };
+; 1838 :     mi.cbSize        = sizeof (mi);
+; 1839 :     GetMonitorInfo (hMonitor, &mi);
 
 	lea	ecx, DWORD PTR _mi$1[ebp]
 	push	ecx
@@ -17714,46 +17722,46 @@ $LN31@AdjustWind:
 	movq	QWORD PTR _mi$1[ebp+32], xmm0
 	call	DWORD PTR __imp__GetMonitorInfoW@8
 
-; 1832 : 
-; 1833 :     lpRect->left  = mi.rcMonitor.left;
+; 1840 : 
+; 1841 :     lpRect->left  = mi.rcMonitor.left;
 
 	mov	eax, DWORD PTR _mi$1[ebp+4]
 	mov	DWORD PTR [esi], eax
 
-; 1834 :     lpRect->right = mi.rcMonitor.right;
+; 1842 :     lpRect->right = mi.rcMonitor.right;
 
 	mov	eax, DWORD PTR _mi$1[ebp+12]
 	mov	DWORD PTR [esi+8], eax
 
-; 1835 : 
-; 1836 :     lpRect->top    = mi.rcMonitor.top;
+; 1843 : 
+; 1844 :     lpRect->top    = mi.rcMonitor.top;
 
 	mov	eax, DWORD PTR _mi$1[ebp+8]
 	mov	DWORD PTR [esi+4], eax
 
-; 1837 :     lpRect->bottom = mi.rcMonitor.bottom;
+; 1845 :     lpRect->bottom = mi.rcMonitor.bottom;
 
 	mov	eax, DWORD PTR _mi$1[ebp+16]
 	mov	DWORD PTR [esi+12], eax
 $LN57@AdjustWind:
 
-; 1838 : 
-; 1839 :     return TRUE;
+; 1846 : 
+; 1847 :     return TRUE;
 
 	pop	edi
 	mov	eax, 1
 	pop	esi
 
-; 1843 : }
+; 1851 : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	16					; 00000010H
 $LN5@AdjustWind:
 
-; 1840 :   }
-; 1841 : 
-; 1842 :   return AdjustWindowRectEx_Original (lpRect, dwStyle, bMenu, dwExStyle);
+; 1848 :   }
+; 1849 : 
+; 1850 :   return AdjustWindowRectEx_Original (lpRect, dwStyle, bMenu, dwExStyle);
 
 	push	DWORD PTR _dwExStyle$[ebp]
 	push	edi
@@ -17763,7 +17771,7 @@ $LN5@AdjustWind:
 	pop	edi
 	pop	esi
 
-; 1843 : }
+; 1851 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -17777,34 +17785,34 @@ _dwStyleEx_ptr$ = 8					; size = 4
 _pDispatchFunc$ = 12					; size = 4
 ?SK_SetWindowStyleEx@@YAXKP6GJPAUHWND__@@HJ@Z@Z PROC	; SK_SetWindowStyleEx
 
-; 2332 : {
+; 2340 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	mov	ecx, DWORD PTR _dwStyleEx_ptr$[ebp]
 
-; 2333 :   // Clear the high-bits
-; 2334 :   DWORD dwStyleEx = (dwStyleEx_ptr & 0xFFFFFFFF);
-; 2335 : 
-; 2336 :   // Minimal sane set of extended window styles for sane rendering
-; 2337 :   dwStyleEx |=   WS_EX_APPWINDOW;
-; 2338 :   dwStyleEx &= ~(WS_EX_NOACTIVATE | WS_EX_TRANSPARENT | WS_EX_LAYOUTRTL |
-; 2339 :                  WS_EX_RIGHT      | WS_EX_RTLREADING);
-; 2340 : 
-; 2341 :   game_window.actual.style_ex = dwStyleEx;
-; 2342 : 
-; 2343 :   if (pDispatchFunc == nullptr)
+; 2341 :   // Clear the high-bits
+; 2342 :   DWORD dwStyleEx = (dwStyleEx_ptr & 0xFFFFFFFF);
+; 2343 : 
+; 2344 :   // Minimal sane set of extended window styles for sane rendering
+; 2345 :   dwStyleEx |=   WS_EX_APPWINDOW;
+; 2346 :   dwStyleEx &= ~(WS_EX_NOACTIVATE | WS_EX_TRANSPARENT | WS_EX_LAYOUTRTL |
+; 2347 :                  WS_EX_RIGHT      | WS_EX_RTLREADING);
+; 2348 : 
+; 2349 :   game_window.actual.style_ex = dwStyleEx;
+; 2350 : 
+; 2351 :   if (pDispatchFunc == nullptr)
 
 	mov	eax, DWORD PTR _pDispatchFunc$[ebp]
 	and	ecx, -138424353				; f7bfcfdfH
 	or	ecx, 262144				; 00040000H
 	test	eax, eax
 
-; 2344 :     pDispatchFunc = game_window.SetWindowLongPtr;
-; 2345 : 
-; 2346 : 
-; 2347 :   pDispatchFunc ( game_window.hWnd,
+; 2352 :     pDispatchFunc = game_window.SetWindowLongPtr;
+; 2353 : 
+; 2354 : 
+; 2355 :   pDispatchFunc ( game_window.hWnd,
 
 	push	ecx
 	cmove	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+196
@@ -17813,9 +17821,9 @@ _pDispatchFunc$ = 12					; size = 4
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+120, ecx
 	call	eax
 
-; 2348 :                     GWL_EXSTYLE,
-; 2349 :                       game_window.actual.style_ex );
-; 2350 : }
+; 2356 :                     GWL_EXSTYLE,
+; 2357 :                       game_window.actual.style_ex );
+; 2358 : }
 
 	pop	ebp
 	ret	0
@@ -17828,54 +17836,54 @@ _dwStyle_ptr$ = 8					; size = 4
 _pDispatchFunc$ = 12					; size = 4
 ?SK_SetWindowStyle@@YAXKP6GJPAUHWND__@@HJ@Z@Z PROC	; SK_SetWindowStyle
 
-; 2303 : {
+; 2311 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 2304 :   // Ensure that the border style is sane
-; 2305 :   if (dwStyle_ptr == game_window.border_style)
+; 2312 :   // Ensure that the border style is sane
+; 2313 :   if (dwStyle_ptr == game_window.border_style)
 
 	mov	ecx, DWORD PTR _dwStyle_ptr$[ebp]
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+124
 	cmp	ecx, eax
 	jne	SHORT $LN2@SK_SetWind
 
-; 2306 :   {
-; 2307 :     game_window.border_style |= WS_CAPTION     | WS_SYSMENU | WS_POPUP |
+; 2314 :   {
+; 2315 :     game_window.border_style |= WS_CAPTION     | WS_SYSMENU | WS_POPUP |
 
 	or	eax, -1865809920			; 90ca0000H
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+124, eax
 
-; 2308 :                                 WS_MINIMIZEBOX | WS_VISIBLE;
-; 2309 :     dwStyle_ptr               = game_window.border_style;
+; 2316 :                                 WS_MINIMIZEBOX | WS_VISIBLE;
+; 2317 :     dwStyle_ptr               = game_window.border_style;
 
 	mov	ecx, eax
 $LN2@SK_SetWind:
 
-; 2310 :   }
-; 2311 : 
-; 2312 :   // Clear the high-bits
-; 2313 :   DWORD dwStyle = (dwStyle_ptr & 0xFFFFFFFF);
-; 2314 : 
-; 2315 :   // Minimal sane set of extended window styles for sane rendering
-; 2316 :   dwStyle |= (WS_VISIBLE | WS_SYSMENU) | WS_POPUP | WS_MINIMIZEBOX;
-; 2317 :   dwStyle &= (~WS_DISABLED);
-; 2318 : 
-; 2319 :   game_window.actual.style = dwStyle;
-; 2320 : 
-; 2321 :   if (pDispatchFunc == nullptr)
+; 2318 :   }
+; 2319 : 
+; 2320 :   // Clear the high-bits
+; 2321 :   DWORD dwStyle = (dwStyle_ptr & 0xFFFFFFFF);
+; 2322 : 
+; 2323 :   // Minimal sane set of extended window styles for sane rendering
+; 2324 :   dwStyle |= (WS_VISIBLE | WS_SYSMENU) | WS_POPUP | WS_MINIMIZEBOX;
+; 2325 :   dwStyle &= (~WS_DISABLED);
+; 2326 : 
+; 2327 :   game_window.actual.style = dwStyle;
+; 2328 : 
+; 2329 :   if (pDispatchFunc == nullptr)
 
 	mov	eax, DWORD PTR _pDispatchFunc$[ebp]
 	and	ecx, -134217729				; f7ffffffH
 	or	ecx, -1878392832			; 900a0000H
 	test	eax, eax
 
-; 2322 :     pDispatchFunc = game_window.SetWindowLongPtr;
-; 2323 : 
-; 2324 : 
-; 2325 :   pDispatchFunc ( game_window.hWnd,
+; 2330 :     pDispatchFunc = game_window.SetWindowLongPtr;
+; 2331 : 
+; 2332 : 
+; 2333 :   pDispatchFunc ( game_window.hWnd,
 
 	push	ecx
 	cmove	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+196
@@ -17884,9 +17892,9 @@ $LN2@SK_SetWind:
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+116, ecx
 	call	eax
 
-; 2326 :                     GWL_STYLE,
-; 2327 :                       game_window.actual.style );
-; 2328 : }
+; 2334 :                     GWL_STYLE,
+; 2335 :                       game_window.actual.style );
+; 2336 : }
 
 	pop	ebp
 	ret	0
@@ -17913,14 +17921,14 @@ _dwStyle$ = 12						; size = 4
 _bMenu$ = 16						; size = 4
 ?AdjustWindowRect_Detour@@YGHPAUtagRECT@@KH@Z PROC	; AdjustWindowRect_Detour
 
-; 1756 : {
+; 1764 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	sub	esp, 64					; 00000040H
 
-; 1757 :   SK_LOG1 ( ( L"AdjustWindowRect ( "
+; 1765 :   SK_LOG1 ( ( L"AdjustWindowRect ( "
 
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 1
 	push	esi
@@ -17950,7 +17958,7 @@ _bMenu$ = 16						; size = 4
 $LN21@AdjustWind:
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 1757 :   SK_LOG1 ( ( L"AdjustWindowRect ( "
+; 1765 :   SK_LOG1 ( ( L"AdjustWindowRect ( "
 
 	push	eax
 	push	edi
@@ -17959,7 +17967,7 @@ $LN21@AdjustWind:
 	push	DWORD PTR [esi+8]
 	push	DWORD PTR [esi+4]
 	push	DWORD PTR [esi]
-	push	OFFSET $SG212101
+	push	OFFSET $SG212172
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -17969,7 +17977,7 @@ $LN21@AdjustWind:
 	mov	eax, DWORD PTR $T2[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 1757 :   SK_LOG1 ( ( L"AdjustWindowRect ( "
+; 1765 :   SK_LOG1 ( ( L"AdjustWindowRect ( "
 
 	add	esp, 36					; 00000024H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -18002,25 +18010,25 @@ $LN21@AdjustWind:
 $LN31@AdjustWind:
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 1765 :   if (SK_GetCurrentGameID () == SK_GAME_ID::ZeroEscape)
+; 1773 :   if (SK_GetCurrentGameID () == SK_GAME_ID::ZeroEscape)
 
 	call	?SK_GetCurrentGameID@@YG?AW4SK_GAME_ID@@XZ ; SK_GetCurrentGameID
 	cmp	eax, 32					; 00000020H
 	je	SHORT $LN57@AdjustWind
 
-; 1766 :     return TRUE;
-; 1767 : 
-; 1768 :   if (SK_GetCurrentGameID () == SK_GAME_ID::DotHackGU)
+; 1774 :     return TRUE;
+; 1775 : 
+; 1776 :   if (SK_GetCurrentGameID () == SK_GAME_ID::DotHackGU)
 
 	call	?SK_GetCurrentGameID@@YG?AW4SK_GAME_ID@@XZ ; SK_GetCurrentGameID
 	cmp	eax, 33					; 00000021H
 	je	SHORT $LN57@AdjustWind
 
-; 1769 :     return TRUE;
-; 1770 : 
-; 1771 :   // Override if forcing Fullscreen Borderless
-; 1772 :   //
-; 1773 :   if (config.window.fullscreen && config.window.borderless && (! bMenu))
+; 1777 :     return TRUE;
+; 1778 : 
+; 1779 :   // Override if forcing Fullscreen Borderless
+; 1780 :   //
+; 1781 :   if (config.window.fullscreen && config.window.borderless && (! bMenu))
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+774, 0
 	je	SHORT $LN5@AdjustWind
@@ -18029,20 +18037,20 @@ $LN31@AdjustWind:
 	test	edi, edi
 	jne	SHORT $LN5@AdjustWind
 
-; 1774 :   {
-; 1775 :     HMONITOR hMonitor =
-; 1776 :       MonitorFromWindow ( game_window.hWnd,
+; 1782 :   {
+; 1783 :     HMONITOR hMonitor =
+; 1784 :       MonitorFromWindow ( game_window.hWnd,
 
 	push	2
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	call	DWORD PTR __imp__MonitorFromWindow@8
 	xorps	xmm0, xmm0
 
-; 1777 :                             MONITOR_DEFAULTTONEAREST );
-; 1778 : 
-; 1779 :     MONITORINFO mi   = {         };
-; 1780 :     mi.cbSize        = sizeof (mi);
-; 1781 :     GetMonitorInfo (hMonitor, &mi);
+; 1785 :                             MONITOR_DEFAULTTONEAREST );
+; 1786 : 
+; 1787 :     MONITORINFO mi   = {         };
+; 1788 :     mi.cbSize        = sizeof (mi);
+; 1789 :     GetMonitorInfo (hMonitor, &mi);
 
 	lea	ecx, DWORD PTR _mi$1[ebp]
 	push	ecx
@@ -18053,46 +18061,46 @@ $LN31@AdjustWind:
 	movq	QWORD PTR _mi$1[ebp+32], xmm0
 	call	DWORD PTR __imp__GetMonitorInfoW@8
 
-; 1782 : 
-; 1783 :     lpRect->left  = mi.rcMonitor.left;
+; 1790 : 
+; 1791 :     lpRect->left  = mi.rcMonitor.left;
 
 	mov	eax, DWORD PTR _mi$1[ebp+4]
 	mov	DWORD PTR [esi], eax
 
-; 1784 :     lpRect->right = mi.rcMonitor.right;
+; 1792 :     lpRect->right = mi.rcMonitor.right;
 
 	mov	eax, DWORD PTR _mi$1[ebp+12]
 	mov	DWORD PTR [esi+8], eax
 
-; 1785 : 
-; 1786 :     lpRect->top    = mi.rcMonitor.top;
+; 1793 : 
+; 1794 :     lpRect->top    = mi.rcMonitor.top;
 
 	mov	eax, DWORD PTR _mi$1[ebp+8]
 	mov	DWORD PTR [esi+4], eax
 
-; 1787 :     lpRect->bottom = mi.rcMonitor.bottom;
+; 1795 :     lpRect->bottom = mi.rcMonitor.bottom;
 
 	mov	eax, DWORD PTR _mi$1[ebp+16]
 	mov	DWORD PTR [esi+12], eax
 $LN57@AdjustWind:
 
-; 1788 : 
-; 1789 :     return TRUE;
+; 1796 : 
+; 1797 :     return TRUE;
 
 	pop	edi
 	mov	eax, 1
 	pop	esi
 
-; 1793 : }
+; 1801 : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	12					; 0000000cH
 $LN5@AdjustWind:
 
-; 1790 :   }
-; 1791 : 
-; 1792 :   return AdjustWindowRect_Original (lpRect, dwStyle, bMenu);
+; 1798 :   }
+; 1799 : 
+; 1800 :   return AdjustWindowRect_Original (lpRect, dwStyle, bMenu);
 
 	push	edi
 	push	DWORD PTR _dwStyle$[ebp]
@@ -18101,7 +18109,7 @@ $LN5@AdjustWind:
 	pop	edi
 	pop	esi
 
-; 1793 : }
+; 1801 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -18114,14 +18122,14 @@ _TEXT	SEGMENT
 _lpRect$ = 8						; size = 4
 ?SK_IsClipRectFinite@@YGHPAUtagRECT@@@Z PROC		; SK_IsClipRectFinite
 
-; 1744 : {
+; 1752 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	push	esi
 
-; 1745 :   return (! ( SK_IsRectZero       (lpRect) ||
+; 1753 :   return (! ( SK_IsRectZero       (lpRect) ||
 
 	mov	esi, DWORD PTR _lpRect$[ebp]
 	push	esi
@@ -18139,22 +18147,22 @@ _lpRect$ = 8						; size = 4
 	mov	eax, 1
 	pop	esi
 
-; 1746 :               SK_IsRectInfinite   (lpRect) ||
-; 1747 :               SK_IsRectFullscreen (lpRect) ) );
-; 1748 : }
+; 1754 :               SK_IsRectInfinite   (lpRect) ||
+; 1755 :               SK_IsRectFullscreen (lpRect) ) );
+; 1756 : }
 
 	pop	ebp
 	ret	4
 $LN3@SK_IsClipR:
 
-; 1745 :   return (! ( SK_IsRectZero       (lpRect) ||
+; 1753 :   return (! ( SK_IsRectZero       (lpRect) ||
 
 	xor	eax, eax
 	pop	esi
 
-; 1746 :               SK_IsRectInfinite   (lpRect) ||
-; 1747 :               SK_IsRectFullscreen (lpRect) ) );
-; 1748 : }
+; 1754 :               SK_IsRectInfinite   (lpRect) ||
+; 1755 :               SK_IsRectFullscreen (lpRect) ) );
+; 1756 : }
 
 	pop	ebp
 	ret	4
@@ -18166,26 +18174,26 @@ _TEXT	SEGMENT
 _lpRect$ = 8						; size = 4
 ?SK_IsRectFullscreen@@YGHPAUtagRECT@@@Z PROC		; SK_IsRectFullscreen
 
-; 1733 : {
+; 1741 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	push	esi
 
-; 1734 :   int virtual_x = GetSystemMetrics_Original (SM_CXVIRTUALSCREEN);
+; 1742 :   int virtual_x = GetSystemMetrics_Original (SM_CXVIRTUALSCREEN);
 
 	push	78					; 0000004eH
 	call	DWORD PTR ?GetSystemMetrics_Original@@3P6GHH@ZA ; GetSystemMetrics_Original
 
-; 1735 :   int virtual_y = GetSystemMetrics_Original (SM_CYVIRTUALSCREEN);
+; 1743 :   int virtual_y = GetSystemMetrics_Original (SM_CYVIRTUALSCREEN);
 
 	push	79					; 0000004fH
 	mov	esi, eax
 	call	DWORD PTR ?GetSystemMetrics_Original@@3P6GHH@ZA ; GetSystemMetrics_Original
 
-; 1736 : 
-; 1737 :   return ( lpRect->left  == 0         && lpRect->top    == 0 &&
+; 1744 : 
+; 1745 :   return ( lpRect->left  == 0         && lpRect->top    == 0 &&
 
 	mov	ecx, DWORD PTR _lpRect$[ebp]
 	cmp	DWORD PTR [ecx], 0
@@ -18199,21 +18207,21 @@ _lpRect$ = 8						; size = 4
 	mov	eax, 1
 	pop	esi
 
-; 1738 :            lpRect->right == virtual_x && lpRect->bottom == virtual_y );
-; 1739 : }
+; 1746 :            lpRect->right == virtual_x && lpRect->bottom == virtual_y );
+; 1747 : }
 
 	pop	ebp
 	ret	4
 $LN3@SK_IsRectF:
 
-; 1736 : 
-; 1737 :   return ( lpRect->left  == 0         && lpRect->top    == 0 &&
+; 1744 : 
+; 1745 :   return ( lpRect->left  == 0         && lpRect->top    == 0 &&
 
 	xor	eax, eax
 	pop	esi
 
-; 1738 :            lpRect->right == virtual_x && lpRect->bottom == virtual_y );
-; 1739 : }
+; 1746 :            lpRect->right == virtual_x && lpRect->bottom == virtual_y );
+; 1747 : }
 
 	pop	ebp
 	ret	4
@@ -18225,13 +18233,13 @@ _TEXT	SEGMENT
 _lpRect$ = 8						; size = 4
 ?SK_IsRectInfinite@@YGHPAUtagRECT@@@Z PROC		; SK_IsRectInfinite
 
-; 1725 : {
+; 1733 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 1726 :   return ( lpRect->left   == LONG_MIN && lpRect->top   == LONG_MIN &&
+; 1734 :   return ( lpRect->left   == LONG_MIN && lpRect->top   == LONG_MIN &&
 
 	mov	eax, DWORD PTR _lpRect$[ebp]
 	cmp	DWORD PTR [eax], -2147483648		; 80000000H
@@ -18244,19 +18252,19 @@ _lpRect$ = 8						; size = 4
 	jne	SHORT $LN3@SK_IsRectI
 	mov	eax, 1
 
-; 1727 :            lpRect->bottom == LONG_MAX && lpRect->right == LONG_MAX );
-; 1728 : }
+; 1735 :            lpRect->bottom == LONG_MAX && lpRect->right == LONG_MAX );
+; 1736 : }
 
 	pop	ebp
 	ret	4
 $LN3@SK_IsRectI:
 
-; 1726 :   return ( lpRect->left   == LONG_MIN && lpRect->top   == LONG_MIN &&
+; 1734 :   return ( lpRect->left   == LONG_MIN && lpRect->top   == LONG_MIN &&
 
 	xor	eax, eax
 
-; 1727 :            lpRect->bottom == LONG_MAX && lpRect->right == LONG_MAX );
-; 1728 : }
+; 1735 :            lpRect->bottom == LONG_MAX && lpRect->right == LONG_MAX );
+; 1736 : }
 
 	pop	ebp
 	ret	4
@@ -18268,13 +18276,13 @@ _TEXT	SEGMENT
 _lpRect$ = 8						; size = 4
 ?SK_IsRectZero@@YGHPAUtagRECT@@@Z PROC			; SK_IsRectZero
 
-; 1717 : {
+; 1725 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 1718 :   return ( lpRect->left   == lpRect->right &&
+; 1726 :   return ( lpRect->left   == lpRect->right &&
 
 	mov	ecx, DWORD PTR _lpRect$[ebp]
 	mov	eax, DWORD PTR [ecx]
@@ -18285,19 +18293,19 @@ _lpRect$ = 8						; size = 4
 	jne	SHORT $LN3@SK_IsRectZ
 	mov	eax, 1
 
-; 1719 :            lpRect->bottom == lpRect->top );
-; 1720 : }
+; 1727 :            lpRect->bottom == lpRect->top );
+; 1728 : }
 
 	pop	ebp
 	ret	4
 $LN3@SK_IsRectZ:
 
-; 1718 :   return ( lpRect->left   == lpRect->right &&
+; 1726 :   return ( lpRect->left   == lpRect->right &&
 
 	xor	eax, eax
 
-; 1719 :            lpRect->bottom == lpRect->top );
-; 1720 : }
+; 1727 :            lpRect->bottom == lpRect->top );
+; 1728 : }
 
 	pop	ebp
 	ret	4
@@ -18310,33 +18318,33 @@ _hWnd$ = 8						; size = 4
 _rect$ = 12						; size = 4
 ?SK_GetWindowRect@@YGHPAUHWND__@@PAUtagRECT@@@Z PROC	; SK_GetWindowRect
 
-; 1707 : {
+; 1715 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 1708 :   if (GetWindowRect_Original != nullptr)
+; 1716 :   if (GetWindowRect_Original != nullptr)
 
 	mov	eax, DWORD PTR ?GetWindowRect_Original@@3P6GHPAUHWND__@@PAUtagRECT@@@ZA ; GetWindowRect_Original
 	test	eax, eax
 	je	SHORT $LN2@SK_GetWind
 
-; 1712 : }
+; 1720 : }
 
 	pop	ebp
 
-; 1709 :     return GetWindowRect_Original (hWnd, rect);
+; 1717 :     return GetWindowRect_Original (hWnd, rect);
 
 	jmp	eax
 $LN2@SK_GetWind:
 
-; 1712 : }
+; 1720 : }
 
 	pop	ebp
 
-; 1710 : 
-; 1711 :   return GetWindowRect (hWnd, rect);
+; 1718 : 
+; 1719 :   return GetWindowRect (hWnd, rect);
 
 	jmp	DWORD PTR __imp__GetWindowRect@8
 ?SK_GetWindowRect@@YGHPAUHWND__@@PAUtagRECT@@@Z ENDP	; SK_GetWindowRect
@@ -18352,20 +18360,20 @@ _nHeight$ = 24						; size = 4
 _bRedraw$ = 28						; size = 4
 ?MoveWindow_Detour@@YGHPAUHWND__@@HHHHH@Z PROC		; MoveWindow_Detour
 
-; 1570 : {
+; 1578 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 1571 :   SK_LOG_FIRST_CALL
+; 1579 :   SK_LOG_FIRST_CALL
 
 	cmp	BYTE PTR ?called@?2??MoveWindow_Detour@@YGHPAUHWND__@@HHHHH@Z@4_NA, 0
 	jne	SHORT $LN2@MoveWindow
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN3@MoveWindow
-	push	OFFSET $SG212002
-	push	OFFSET $SG212003
+	push	OFFSET $SG212073
+	push	OFFSET $SG212074
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -18373,15 +18381,15 @@ $LN3@MoveWindow:
 	mov	BYTE PTR ?called@?2??MoveWindow_Detour@@YGHPAUHWND__@@HHHHH@Z@4_NA, 1
 $LN2@MoveWindow:
 
-; 1574 :                                  X, Y,
-; 1575 :                                    nWidth, nHeight,
-; 1576 :                                      bRedraw );
-; 1577 : }
+; 1582 :                                  X, Y,
+; 1583 :                                    nWidth, nHeight,
+; 1584 :                                      bRedraw );
+; 1585 : }
 
 	pop	ebp
 
-; 1572 : 
-; 1573 :   return MoveWindow_Original ( hWnd,
+; 1580 : 
+; 1581 :   return MoveWindow_Original ( hWnd,
 
 	jmp	DWORD PTR ?MoveWindow_Original@@3P6GHPAUHWND__@@HHHHH@ZA ; MoveWindow_Original
 ?MoveWindow_Detour@@YGHPAUHWND__@@HHHHH@Z ENDP		; MoveWindow_Detour
@@ -18417,7 +18425,7 @@ _TEXT	SEGMENT
 ??B<lambda_6ddf3f278265021f7f193928a74e47d8>@@QBEP6GKPAX@ZXZ PROC ; <lambda_6ddf3f278265021f7f193928a74e47d8>::operator unsigned long (__stdcall*)(void *), COMDAT
 ; _this$ = ecx
 
-; 1558 :     }, reinterpret_cast <LPVOID> (static_cast <uintptr_t> (remember_pos)), 0x0, nullptr );
+; 1566 :     }, reinterpret_cast <LPVOID> (static_cast <uintptr_t> (remember_pos)), 0x0, nullptr );
 
 	mov	eax, OFFSET ?<lambda_invoker_stdcall>@<lambda_6ddf3f278265021f7f193928a74e47d8>@@CGKPAX@Z ; <lambda_6ddf3f278265021f7f193928a74e47d8>::<lambda_invoker_stdcall>
 	ret	0
@@ -18430,7 +18438,7 @@ _TEXT	SEGMENT
 _user$ = 8						; size = 4
 ?<lambda_invoker_stdcall>@<lambda_6ddf3f278265021f7f193928a74e47d8>@@CGKPAX@Z PROC ; <lambda_6ddf3f278265021f7f193928a74e47d8>::<lambda_invoker_stdcall>, COMDAT
 
-; 1558 :     }, reinterpret_cast <LPVOID> (static_cast <uintptr_t> (remember_pos)), 0x0, nullptr );
+; 1566 :     }, reinterpret_cast <LPVOID> (static_cast <uintptr_t> (remember_pos)), 0x0, nullptr );
 
 	npad	2
 	push	ebp
@@ -18451,7 +18459,7 @@ _user$ = 8						; size = 4
 ??R<lambda_6ddf3f278265021f7f193928a74e47d8>@@QBEKPAX@Z PROC ; <lambda_6ddf3f278265021f7f193928a74e47d8>::operator(), COMDAT
 ; _this$ = ecx
 
-; 1501 :       DWORD {
+; 1509 :       DWORD {
 
 	npad	2
 	push	ebp
@@ -18461,16 +18469,16 @@ _user$ = 8						; size = 4
 	push	esi
 	push	edi
 
-; 1502 :   EnterCriticalSection (&cs_center);
+; 1510 :   EnterCriticalSection (&cs_center);
 
 	push	OFFSET ?cs_center@?1??SK_CenterWindowAtMouse@@YAXH@Z@4U_RTL_CRITICAL_SECTION@@A
 	call	DWORD PTR __imp__EnterCriticalSection@4
 
-; 1503 : 
-; 1504 :   BOOL  remember_pos = (user != nullptr);
-; 1505 :   POINT mouse        = { 0, 0 };
-; 1506 : 
-; 1507 :   if (GetCursorPos_Original != nullptr)
+; 1511 : 
+; 1512 :   BOOL  remember_pos = (user != nullptr);
+; 1513 :   POINT mouse        = { 0, 0 };
+; 1514 : 
+; 1515 :   if (GetCursorPos_Original != nullptr)
 
 	mov	eax, DWORD PTR ?GetCursorPos_Original@@3P6GHPAUtagPOINT@@@ZA ; GetCursorPos_Original
 	xor	ecx, ecx
@@ -18480,7 +18488,7 @@ _user$ = 8						; size = 4
 	test	eax, eax
 	je	SHORT $LN2@operator
 
-; 1508 :     GetCursorPos_Original (&mouse);
+; 1516 :     GetCursorPos_Original (&mouse);
 
 	lea	ecx, DWORD PTR _mouse$[ebp]
 	push	ecx
@@ -18489,15 +18497,15 @@ _user$ = 8						; size = 4
 	mov	ecx, DWORD PTR _mouse$[ebp]
 $LN2@operator:
 
-; 1509 : 
-; 1510 :   struct {
-; 1511 :     struct {
-; 1512 :       float percent  = 0.0f;
-; 1513 :       int   absolute =   0L;
-; 1514 :     } x,y;
-; 1515 :   } offsets;
-; 1516 : 
-; 1517 :   if (! remember_pos)
+; 1517 : 
+; 1518 :   struct {
+; 1519 :     struct {
+; 1520 :       float percent  = 0.0f;
+; 1521 :       int   absolute =   0L;
+; 1522 :     } x,y;
+; 1523 :   } offsets;
+; 1524 : 
+; 1525 :   if (! remember_pos)
 
 	xorps	xmm0, xmm0
 	xor	ebx, ebx
@@ -18507,50 +18515,50 @@ $LN2@operator:
 	cmp	DWORD PTR _user$[ebp], ebx
 	jne	SHORT $LN3@operator
 
-; 1518 :   {
-; 1519 :     offsets.x.absolute = config.window.offset.x.absolute;
-; 1520 :     offsets.y.absolute = config.window.offset.y.absolute;
-; 1521 : 
-; 1522 :     offsets.x.percent = config.window.offset.x.percent;
+; 1526 :   {
+; 1527 :     offsets.x.absolute = config.window.offset.x.absolute;
+; 1528 :     offsets.y.absolute = config.window.offset.y.absolute;
+; 1529 : 
+; 1530 :     offsets.x.percent = config.window.offset.x.percent;
 
 	movss	xmm0, DWORD PTR ?config@@3Usk_config_t@@A+756
 	mov	edi, DWORD PTR ?config@@3Usk_config_t@@A+752
 	mov	ebx, DWORD PTR ?config@@3Usk_config_t@@A+760
 	movss	DWORD PTR _offsets$$sroa$74$1$[ebp], xmm0
 
-; 1523 :     offsets.y.percent = config.window.offset.y.percent;
+; 1531 :     offsets.y.percent = config.window.offset.y.percent;
 
 	movss	xmm0, DWORD PTR ?config@@3Usk_config_t@@A+764
 	movss	DWORD PTR _offsets$$sroa$72$1$[ebp], xmm0
 $LN3@operator:
 
-; 1524 :   }
-; 1525 : 
-; 1526 :   config.window.offset.x.absolute = mouse.x;
-; 1527 :   config.window.offset.y.absolute = mouse.y;
-; 1528 : 
-; 1529 :   config.window.offset.x.absolute -= (game_window.actual.window.right  - game_window.actual.window.left) / 2;
+; 1532 :   }
+; 1533 : 
+; 1534 :   config.window.offset.x.absolute = mouse.x;
+; 1535 :   config.window.offset.y.absolute = mouse.y;
+; 1536 : 
+; 1537 :   config.window.offset.x.absolute -= (game_window.actual.window.right  - game_window.actual.window.left) / 2;
 
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+108
 	sub	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+100
 	cdq
 	sub	eax, edx
 
-; 1530 :   config.window.offset.y.absolute -= (game_window.actual.window.bottom - game_window.actual.window.top)  / 2;
-; 1531 : 
-; 1532 :   if (config.window.offset.x.absolute <= 0)
-; 1533 :     config.window.offset.x.absolute = 1;  // 1 = Flush with Left
-; 1534 : 
-; 1535 :   if (config.window.offset.y.absolute <= 0)
-; 1536 :     config.window.offset.y.absolute = 1;  // 1 = Flush with Top
-; 1537 : 
-; 1538 :   config.window.offset.x.percent = 0.0f;
+; 1538 :   config.window.offset.y.absolute -= (game_window.actual.window.bottom - game_window.actual.window.top)  / 2;
+; 1539 : 
+; 1540 :   if (config.window.offset.x.absolute <= 0)
+; 1541 :     config.window.offset.x.absolute = 1;  // 1 = Flush with Left
+; 1542 : 
+; 1543 :   if (config.window.offset.y.absolute <= 0)
+; 1544 :     config.window.offset.y.absolute = 1;  // 1 = Flush with Top
+; 1545 : 
+; 1546 :   config.window.offset.x.percent = 0.0f;
 
 	mov	DWORD PTR ?config@@3Usk_config_t@@A+756, 0
 	sar	eax, 1
 	sub	ecx, eax
 
-; 1539 :   config.window.offset.y.percent = 0.0f;
+; 1547 :   config.window.offset.y.percent = 0.0f;
 
 	mov	DWORD PTR ?config@@3Usk_config_t@@A+764, 0
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+112
@@ -18567,27 +18575,27 @@ $LN3@operator:
 	cmovle	esi, eax
 	mov	DWORD PTR ?config@@3Usk_config_t@@A+760, esi
 
-; 1540 : 
-; 1541 :   SK_AdjustWindow ();
+; 1548 : 
+; 1549 :   SK_AdjustWindow ();
 
 	call	?SK_AdjustWindow@@YAXXZ			; SK_AdjustWindow
 	cmp	DWORD PTR _user$[ebp], 0
 
-; 1542 : 
-; 1543 :   if (! remember_pos)
+; 1550 : 
+; 1551 :   if (! remember_pos)
 
 	jne	SHORT $LN6@operator
 
-; 1544 :   {
-; 1545 :     config.window.offset.x.absolute = offsets.x.absolute;
-; 1546 :     config.window.offset.y.absolute = offsets.y.absolute;
-; 1547 : 
-; 1548 :     config.window.offset.x.percent  = offsets.x.percent;
+; 1552 :   {
+; 1553 :     config.window.offset.x.absolute = offsets.x.absolute;
+; 1554 :     config.window.offset.y.absolute = offsets.y.absolute;
+; 1555 : 
+; 1556 :     config.window.offset.x.percent  = offsets.x.percent;
 
 	movss	xmm0, DWORD PTR _offsets$$sroa$74$1$[ebp]
 	movss	DWORD PTR ?config@@3Usk_config_t@@A+756, xmm0
 
-; 1549 :     config.window.offset.y.percent  = offsets.y.percent;
+; 1557 :     config.window.offset.y.percent  = offsets.y.percent;
 
 	movss	xmm0, DWORD PTR _offsets$$sroa$72$1$[ebp]
 	mov	DWORD PTR ?config@@3Usk_config_t@@A+752, edi
@@ -18595,15 +18603,15 @@ $LN3@operator:
 	movss	DWORD PTR ?config@@3Usk_config_t@@A+764, xmm0
 $LN6@operator:
 
-; 1550 :   }
-; 1551 : 
-; 1552 :   LeaveCriticalSection (&cs_center);
+; 1558 :   }
+; 1559 : 
+; 1560 :   LeaveCriticalSection (&cs_center);
 
 	push	OFFSET ?cs_center@?1??SK_CenterWindowAtMouse@@YAXH@Z@4U_RTL_CRITICAL_SECTION@@A
 	call	DWORD PTR __imp__LeaveCriticalSection@4
 
-; 1553 : 
-; 1554 :   CloseHandle (GetCurrentThread ());
+; 1561 : 
+; 1562 :   CloseHandle (GetCurrentThread ());
 
 	call	DWORD PTR __imp__GetCurrentThread@0
 	push	eax
@@ -18611,14 +18619,14 @@ $LN6@operator:
 	pop	edi
 	pop	esi
 
-; 1555 : 
-; 1556 :   return 0;
+; 1563 : 
+; 1564 :   return 0;
 
 	xor	eax, eax
 	pop	ebx
 
-; 1557 :        // Don't dereference this, it's actually a boolean
-; 1558 :     }, reinterpret_cast <LPVOID> (static_cast <uintptr_t> (remember_pos)), 0x0, nullptr );
+; 1565 :        // Don't dereference this, it's actually a boolean
+; 1566 :     }, reinterpret_cast <LPVOID> (static_cast <uintptr_t> (remember_pos)), 0x0, nullptr );
 
 	mov	esp, ebp
 	pop	ebp
@@ -18643,21 +18651,21 @@ _top_left$3 = -8					; size = 8
 _lpRect$ = 8						; size = 4
 ?ClipCursor_Detour@@YGHPBUtagRECT@@@Z PROC		; ClipCursor_Detour
 
-; 1427 : {
+; 1435 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	sub	esp, 16					; 00000010H
 
-; 1428 :   SK_LOG_FIRST_CALL
+; 1436 :   SK_LOG_FIRST_CALL
 
 	cmp	BYTE PTR ?called@?2??ClipCursor_Detour@@YGHPBUtagRECT@@@Z@4_NA, 0
 	jne	SHORT $LN2@ClipCursor
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN3@ClipCursor
-	push	OFFSET $SG211846
-	push	OFFSET $SG211847
+	push	OFFSET $SG211917
+	push	OFFSET $SG211918
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -18665,17 +18673,17 @@ $LN3@ClipCursor:
 	mov	BYTE PTR ?called@?2??ClipCursor_Detour@@YGHPBUtagRECT@@@Z@4_NA, 1
 $LN2@ClipCursor:
 
-; 1429 : 
-; 1430 :   if (lpRect != nullptr)
+; 1437 : 
+; 1438 :   if (lpRect != nullptr)
 
 	mov	eax, DWORD PTR _lpRect$[ebp]
 	test	eax, eax
 	je	$LN4@ClipCursor
 
-; 1434 : 
-; 1435 :   // Don't let the game unclip the cursor, but DO remember the
-; 1436 :   //   coordinates that it wants.
-; 1437 :   if (config.window.confine_cursor && lpRect != &game_window.cursor_clip)
+; 1442 : 
+; 1443 :   // Don't let the game unclip the cursor, but DO remember the
+; 1444 :   //   coordinates that it wants.
+; 1445 :   if (config.window.confine_cursor && lpRect != &game_window.cursor_clip)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+770, 0
 	movups	xmm0, XMMWORD PTR [eax]
@@ -18684,108 +18692,108 @@ $LN2@ClipCursor:
 	cmp	eax, OFFSET ?game_window@@3Usk_window_s@@A+168
 	je	SHORT $LN6@ClipCursor
 
-; 1438 :     return TRUE;
+; 1446 :     return TRUE;
 
 	mov	eax, 1
 
-; 1475 :   }
-; 1476 : 
-; 1477 :   else
-; 1478 :   {
-; 1479 :     return ClipCursor_Original (nullptr);
-; 1480 :   }
-; 1481 : }
+; 1483 :   }
+; 1484 : 
+; 1485 :   else
+; 1486 :   {
+; 1487 :     return ClipCursor_Original (nullptr);
+; 1488 :   }
+; 1489 : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	4
 $LN6@ClipCursor:
 
-; 1439 : 
-; 1440 :   //
-; 1441 :   // If the game uses mouse clipping and we are running in borderless,
-; 1442 :   //   we need to re-adjust the window coordinates.
-; 1443 :   //
-; 1444 :   if ( lpRect != nullptr &&
+; 1447 : 
+; 1448 :   //
+; 1449 :   // If the game uses mouse clipping and we are running in borderless,
+; 1450 :   //   we need to re-adjust the window coordinates.
+; 1451 :   //
+; 1452 :   if ( lpRect != nullptr &&
 
 	mov	ecx, OFFSET ?game_window@@3Usk_window_s@@A ; game_window
 	call	?needsCoordTransform@sk_window_s@@QAE_NXZ ; sk_window_s::needsCoordTransform
 	test	al, al
 	je	SHORT $LN7@ClipCursor
 
-; 1445 :        game_window.needsCoordTransform () )
-; 1446 :   {
-; 1447 :     POINT top_left     = { std::numeric_limits <LONG>::max (), std::numeric_limits <LONG>::max () };
-; 1448 :     POINT bottom_right = { std::numeric_limits <LONG>::min (), std::numeric_limits <LONG>::min () };
-; 1449 : 
-; 1450 :     top_left.y = game_window.actual.window.top;
+; 1453 :        game_window.needsCoordTransform () )
+; 1454 :   {
+; 1455 :     POINT top_left     = { std::numeric_limits <LONG>::max (), std::numeric_limits <LONG>::max () };
+; 1456 :     POINT bottom_right = { std::numeric_limits <LONG>::min (), std::numeric_limits <LONG>::min () };
+; 1457 : 
+; 1458 :     top_left.y = game_window.actual.window.top;
 
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+104
 	mov	DWORD PTR _top_left$3[ebp+4], eax
 
-; 1451 :     top_left.x = game_window.actual.window.left;
+; 1459 :     top_left.x = game_window.actual.window.left;
 
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+100
 	mov	DWORD PTR _top_left$3[ebp], eax
 
-; 1452 : 
-; 1453 :     bottom_right.y = game_window.actual.window.bottom;
+; 1460 : 
+; 1461 :     bottom_right.y = game_window.actual.window.bottom;
 
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+112
 	mov	DWORD PTR _bottom_right$2[ebp+4], eax
 
-; 1454 :     bottom_right.x = game_window.actual.window.right;
+; 1462 :     bottom_right.x = game_window.actual.window.right;
 
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+108
 	mov	DWORD PTR _bottom_right$2[ebp], eax
 
-; 1455 : 
-; 1456 :     SK_ReverseCursorPos (&top_left);
+; 1463 : 
+; 1464 :     SK_ReverseCursorPos (&top_left);
 
 	lea	eax, DWORD PTR _top_left$3[ebp]
 	push	eax
 	call	?SK_ReverseCursorPos@@YAXPAUtagPOINT@@@Z ; SK_ReverseCursorPos
 
-; 1457 :     SK_ReverseCursorPos (&bottom_right);
+; 1465 :     SK_ReverseCursorPos (&bottom_right);
 
 	lea	eax, DWORD PTR _bottom_right$2[ebp]
 	push	eax
 	call	?SK_ReverseCursorPos@@YAXPAUtagPOINT@@@Z ; SK_ReverseCursorPos
 
-; 1458 : 
-; 1459 :     game_window.cursor_clip.bottom = bottom_right.y;
+; 1466 : 
+; 1467 :     game_window.cursor_clip.bottom = bottom_right.y;
 
 	mov	eax, DWORD PTR _bottom_right$2[ebp+4]
 	add	esp, 8
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+180, eax
 
-; 1460 :     game_window.cursor_clip.top    = top_left.y;
+; 1468 :     game_window.cursor_clip.top    = top_left.y;
 
 	mov	eax, DWORD PTR _top_left$3[ebp+4]
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+172, eax
 
-; 1461 : 
-; 1462 :     game_window.cursor_clip.left   = top_left.x;
+; 1469 : 
+; 1470 :     game_window.cursor_clip.left   = top_left.x;
 
 	mov	eax, DWORD PTR _top_left$3[ebp]
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+168, eax
 
-; 1463 :     game_window.cursor_clip.right  = bottom_right.x;
+; 1471 :     game_window.cursor_clip.right  = bottom_right.x;
 
 	mov	eax, DWORD PTR _bottom_right$2[ebp]
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+176, eax
 $LN7@ClipCursor:
 
-; 1464 :   }
-; 1465 : 
-; 1466 : 
-; 1467 :   // Prevent the game from clipping the cursor
-; 1468 :   if (config.window.unconfine_cursor)
+; 1472 :   }
+; 1473 : 
+; 1474 : 
+; 1475 :   // Prevent the game from clipping the cursor
+; 1476 :   if (config.window.unconfine_cursor)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+771, 0
 	jne	SHORT $LN4@ClipCursor
 
-; 1472 :   if (game_window.active && (! wm_dispatch.moving_windows.count (game_window.hWnd)) && lpRect != nullptr)
+; 1480 :   if (game_window.active && (! wm_dispatch.moving_windows.count (game_window.hWnd)) && lpRect != nullptr)
 
 	cmp	BYTE PTR ?game_window@@3Usk_window_s@@A+17, 0
 	je	SHORT $LN4@ClipCursor
@@ -18842,50 +18850,50 @@ $LL31@ClipCursor:
 	jne	SHORT $LL31@ClipCursor
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 1472 :   if (game_window.active && (! wm_dispatch.moving_windows.count (game_window.hWnd)) && lpRect != nullptr)
+; 1480 :   if (game_window.active && (! wm_dispatch.moving_windows.count (game_window.hWnd)) && lpRect != nullptr)
 
 	test	edx, edx
 	jne	SHORT $LN4@ClipCursor
 $LN45@ClipCursor:
 
-; 1473 :   {
-; 1474 :     return ClipCursor_Original (&game_window.cursor_clip);
+; 1481 :   {
+; 1482 :     return ClipCursor_Original (&game_window.cursor_clip);
 
 	push	OFFSET ?game_window@@3Usk_window_s@@A+168
 
-; 1431 :     game_window.cursor_clip = *lpRect;
-; 1432 :   else
-; 1433 :     return ClipCursor_Original (nullptr);
+; 1439 :     game_window.cursor_clip = *lpRect;
+; 1440 :   else
+; 1441 :     return ClipCursor_Original (nullptr);
 
 	call	DWORD PTR ?ClipCursor_Original@@3P6GHPBUtagRECT@@@ZA ; ClipCursor_Original
 
-; 1475 :   }
-; 1476 : 
-; 1477 :   else
-; 1478 :   {
-; 1479 :     return ClipCursor_Original (nullptr);
-; 1480 :   }
-; 1481 : }
+; 1483 :   }
+; 1484 : 
+; 1485 :   else
+; 1486 :   {
+; 1487 :     return ClipCursor_Original (nullptr);
+; 1488 :   }
+; 1489 : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	4
 $LN4@ClipCursor:
 
-; 1431 :     game_window.cursor_clip = *lpRect;
-; 1432 :   else
-; 1433 :     return ClipCursor_Original (nullptr);
+; 1439 :     game_window.cursor_clip = *lpRect;
+; 1440 :   else
+; 1441 :     return ClipCursor_Original (nullptr);
 
 	push	0
 	call	DWORD PTR ?ClipCursor_Original@@3P6GHPBUtagRECT@@@ZA ; ClipCursor_Original
 
-; 1475 :   }
-; 1476 : 
-; 1477 :   else
-; 1478 :   {
-; 1479 :     return ClipCursor_Original (nullptr);
-; 1480 :   }
-; 1481 : }
+; 1483 :   }
+; 1484 : 
+; 1485 :   else
+; 1486 :   {
+; 1487 :     return ClipCursor_Original (nullptr);
+; 1488 :   }
+; 1489 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -18909,27 +18917,27 @@ _TEXT	SEGMENT
 _lpPoint$ = 8						; size = 4
 ?SK_ReverseCursorPos@@YAXPAUtagPOINT@@@Z PROC		; SK_ReverseCursorPos
 
-; 1344 : {
+; 1352 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 1345 :   if (! game_window.needsCoordTransform ())
+; 1353 :   if (! game_window.needsCoordTransform ())
 
 	mov	ecx, OFFSET ?game_window@@3Usk_window_s@@A ; game_window
 	call	?needsCoordTransform@sk_window_s@@QAE_NXZ ; sk_window_s::needsCoordTransform
 	test	al, al
 	je	$LN1@SK_Reverse
 
-; 1346 :     return;
-; 1347 : 
-; 1348 :   struct {
-; 1349 :     float width  = 64.0f,
-; 1350 :           height = 64.0f;
-; 1351 :   } in, out;
-; 1352 : 
-; 1353 :   lpPoint->x -= ( static_cast <LONG> ( game_window.coord_remap.offset.x +
+; 1354 :     return;
+; 1355 : 
+; 1356 :   struct {
+; 1357 :     float width  = 64.0f,
+; 1358 :           height = 64.0f;
+; 1359 :   } in, out;
+; 1360 : 
+; 1361 :   lpPoint->x -= ( static_cast <LONG> ( game_window.coord_remap.offset.x +
 
 	movd	xmm1, DWORD PTR ?game_window@@3Usk_window_s@@A+52
 	movd	xmm0, DWORD PTR ?game_window@@3Usk_window_s@@A+36
@@ -18943,9 +18951,9 @@ _lpPoint$ = 8						; size = 4
 	movd	xmm1, DWORD PTR ?game_window@@3Usk_window_s@@A+56
 	movd	xmm0, DWORD PTR ?game_window@@3Usk_window_s@@A+40
 
-; 1354 :                                        game_window.game.window.left     +
-; 1355 :                                        game_window.game.client.left ) );
-; 1356 :   lpPoint->y -= ( static_cast <LONG> ( game_window.coord_remap.offset.y +
+; 1362 :                                        game_window.game.window.left     +
+; 1363 :                                        game_window.game.client.left ) );
+; 1364 :   lpPoint->y -= ( static_cast <LONG> ( game_window.coord_remap.offset.y +
 
 	cvtdq2ps xmm0, xmm0
 	cvtdq2ps xmm1, xmm1
@@ -18953,20 +18961,20 @@ _lpPoint$ = 8						; size = 4
 	addss	xmm1, xmm0
 	movd	xmm0, DWORD PTR [ecx]
 
-; 1357 :                                        game_window.game.window.top      +
-; 1358 :                                        game_window.game.client.top ) );
-; 1359 : 
-; 1360 :   in.width   = static_cast <float> ( game_window.game.client.right  -
-; 1361 :                                      game_window.game.client.left   );
-; 1362 :   in.height  = static_cast <float> ( game_window.game.client.bottom -
-; 1363 :                                      game_window.game.client.top    );
-; 1364 : 
-; 1365 :   out.width  = static_cast <float> ( game_window.actual.client.right -
-; 1366 :                                      game_window.actual.client.left  );
-; 1367 :   out.height = static_cast <float> ( game_window.actual.client.bottom -
-; 1368 :                                      game_window.actual.client.top    );
-; 1369 : 
-; 1370 :   float x    = 2.0f * (static_cast <float> (lpPoint->x) / in.width ) - 1.0f;
+; 1365 :                                        game_window.game.window.top      +
+; 1366 :                                        game_window.game.client.top ) );
+; 1367 : 
+; 1368 :   in.width   = static_cast <float> ( game_window.game.client.right  -
+; 1369 :                                      game_window.game.client.left   );
+; 1370 :   in.height  = static_cast <float> ( game_window.game.client.bottom -
+; 1371 :                                      game_window.game.client.top    );
+; 1372 : 
+; 1373 :   out.width  = static_cast <float> ( game_window.actual.client.right -
+; 1374 :                                      game_window.actual.client.left  );
+; 1375 :   out.height = static_cast <float> ( game_window.actual.client.bottom -
+; 1376 :                                      game_window.actual.client.top    );
+; 1377 : 
+; 1378 :   float x    = 2.0f * (static_cast <float> (lpPoint->x) / in.width ) - 1.0f;
 
 	cvtdq2ps xmm0, xmm0
 	cvttss2si eax, xmm1
@@ -18990,9 +18998,9 @@ _lpPoint$ = 8						; size = 4
 	sub	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+88
 	cvtdq2ps xmm1, xmm1
 
-; 1371 :   float y    = 2.0f * (static_cast <float> (lpPoint->y) / in.height) - 1.0f;
-; 1372 : 
-; 1373 :   lpPoint->x = static_cast <LONG> ( (x * out.width  + out.width) / 2.0f + 
+; 1379 :   float y    = 2.0f * (static_cast <float> (lpPoint->y) / in.height) - 1.0f;
+; 1380 : 
+; 1381 :   lpPoint->x = static_cast <LONG> ( (x * out.width  + out.width) / 2.0f + 
 
 	addss	xmm0, xmm2
 	movd	xmm3, eax
@@ -19008,9 +19016,9 @@ _lpPoint$ = 8						; size = 4
 	addss	xmm0, xmm0
 	subss	xmm0, xmm2
 
-; 1374 :                                      game_window.coord_remap.offset.x );
-; 1375 : 
-; 1376 :   lpPoint->y = static_cast <LONG> ( (y * out.height + out.height) / 2.0f +
+; 1382 :                                      game_window.coord_remap.offset.x );
+; 1383 : 
+; 1384 :   lpPoint->y = static_cast <LONG> ( (y * out.height + out.height) / 2.0f +
 
 	addss	xmm0, xmm2
 	mulss	xmm0, xmm3
@@ -19020,8 +19028,8 @@ _lpPoint$ = 8						; size = 4
 	mov	DWORD PTR [ecx+4], eax
 $LN1@SK_Reverse:
 
-; 1377 :                                      game_window.coord_remap.offset.y );
-; 1378 : }
+; 1385 :                                      game_window.coord_remap.offset.y );
+; 1386 : }
 
 	pop	ebp
 	ret	0
@@ -19044,54 +19052,54 @@ _TEXT	SEGMENT
 _lpPoint$ = 8						; size = 4
 ?SK_CalcCursorPos@@YAXPAUtagPOINT@@@Z PROC		; SK_CalcCursorPos
 
-; 1306 : {
+; 1314 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 1307 :   if (! game_window.needsCoordTransform ())
+; 1315 :   if (! game_window.needsCoordTransform ())
 
 	mov	ecx, OFFSET ?game_window@@3Usk_window_s@@A ; game_window
 	call	?needsCoordTransform@sk_window_s@@QAE_NXZ ; sk_window_s::needsCoordTransform
 	test	al, al
 	je	$LN1@SK_CalcCur
 
-; 1308 :     return;
-; 1309 : 
-; 1310 :   struct {
-; 1311 :     float width  = 64.0f,
-; 1312 :           height = 64.0f;
-; 1313 :   } in, out;
-; 1314 : 
-; 1315 :   lpPoint->x -= ( static_cast <LONG> ( game_window.actual.window.left ) );
+; 1316 :     return;
+; 1317 : 
+; 1318 :   struct {
+; 1319 :     float width  = 64.0f,
+; 1320 :           height = 64.0f;
+; 1321 :   } in, out;
+; 1322 : 
+; 1323 :   lpPoint->x -= ( static_cast <LONG> ( game_window.actual.window.left ) );
 
 	mov	ecx, DWORD PTR _lpPoint$[ebp]
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+100
 	sub	DWORD PTR [ecx], eax
 
-; 1316 :   lpPoint->y -= ( static_cast <LONG> ( game_window.actual.window.top  ) );
+; 1324 :   lpPoint->y -= ( static_cast <LONG> ( game_window.actual.window.top  ) );
 
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+104
 	sub	DWORD PTR [ecx+4], eax
 
-; 1317 : 
-; 1318 :   in.width    = static_cast <float> ( game_window.actual.client.right  -
+; 1325 : 
+; 1326 :   in.width    = static_cast <float> ( game_window.actual.client.right  -
 
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+92
 	sub	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+84
 	movd	xmm0, DWORD PTR [ecx]
 
-; 1319 :                                       game_window.actual.client.left   );
-; 1320 :   in.height   = static_cast <float> ( game_window.actual.client.bottom -
-; 1321 :                                       game_window.actual.client.top    );
-; 1322 : 
-; 1323 :   out.width   = static_cast <float> ( game_window.game.client.right    -
-; 1324 :                                       game_window.game.client.left     );
-; 1325 :   out.height  = static_cast <float> ( game_window.game.client.bottom   -
-; 1326 :                                       game_window.game.client.top      );
-; 1327 : 
-; 1328 :   float x     = 2.0f * (static_cast <float> (lpPoint->x) / in.width ) - 1.0f;
+; 1327 :                                       game_window.actual.client.left   );
+; 1328 :   in.height   = static_cast <float> ( game_window.actual.client.bottom -
+; 1329 :                                       game_window.actual.client.top    );
+; 1330 : 
+; 1331 :   out.width   = static_cast <float> ( game_window.game.client.right    -
+; 1332 :                                       game_window.game.client.left     );
+; 1333 :   out.height  = static_cast <float> ( game_window.game.client.bottom   -
+; 1334 :                                       game_window.game.client.top      );
+; 1335 : 
+; 1336 :   float x     = 2.0f * (static_cast <float> (lpPoint->x) / in.width ) - 1.0f;
 
 	cvtdq2ps xmm0, xmm0
 	movd	xmm2, eax
@@ -19111,9 +19119,9 @@ _lpPoint$ = 8						; size = 4
 	sub	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+40
 	cvtdq2ps xmm1, xmm1
 
-; 1329 :   float y     = 2.0f * (static_cast <float> (lpPoint->y) / in.height) - 1.0f;
-; 1330 : 
-; 1331 :   lpPoint->x  = static_cast <LONG> ( (x * out.width  + out.width) / 2.0f +
+; 1337 :   float y     = 2.0f * (static_cast <float> (lpPoint->y) / in.height) - 1.0f;
+; 1338 : 
+; 1339 :   lpPoint->x  = static_cast <LONG> ( (x * out.width  + out.width) / 2.0f +
 
 	addss	xmm0, xmm2
 	movd	xmm3, eax
@@ -19129,9 +19137,9 @@ _lpPoint$ = 8						; size = 4
 	addss	xmm0, xmm0
 	subss	xmm0, xmm2
 
-; 1332 :                                       game_window.coord_remap.offset.x );
-; 1333 : 
-; 1334 :   lpPoint->y  = static_cast <LONG> ( (y * out.height + out.height) / 2.0f +
+; 1340 :                                       game_window.coord_remap.offset.x );
+; 1341 : 
+; 1342 :   lpPoint->y  = static_cast <LONG> ( (y * out.height + out.height) / 2.0f +
 
 	addss	xmm0, xmm2
 	mulss	xmm0, xmm3
@@ -19141,8 +19149,8 @@ _lpPoint$ = 8						; size = 4
 	mov	DWORD PTR [ecx+4], eax
 $LN1@SK_CalcCur:
 
-; 1335 :                                       game_window.coord_remap.offset.y );
-; 1336 : }
+; 1343 :                                       game_window.coord_remap.offset.y );
+; 1344 : }
 
 	pop	ebp
 	ret	0
@@ -19157,7 +19165,7 @@ _hWnd$ = 8						; size = 4
 _lParam$ = 12						; size = 4
 ?SK_EnumWindows@@YGHPAUHWND__@@J@Z PROC			; SK_EnumWindows
 
-; 1190 : {
+; 1198 : {
 
 	npad	2
 	push	ebp
@@ -19166,12 +19174,12 @@ _lParam$ = 12						; size = 4
 	push	ebx
 	push	esi
 
-; 1191 :   window_t& win =
-; 1192 :     *reinterpret_cast <window_t *> (lParam);
-; 1193 : 
-; 1194 :   DWORD proc_id = 0;
-; 1195 : 
-; 1196 :   GetWindowThreadProcessId (hWnd, &proc_id);
+; 1199 :   window_t& win =
+; 1200 :     *reinterpret_cast <window_t *> (lParam);
+; 1201 : 
+; 1202 :   DWORD proc_id = 0;
+; 1203 : 
+; 1204 :   GetWindowThreadProcessId (hWnd, &proc_id);
 
 	mov	esi, DWORD PTR _hWnd$[ebp]
 	lea	eax, DWORD PTR _proc_id$[ebp]
@@ -19180,30 +19188,30 @@ _lParam$ = 12						; size = 4
 	mov	DWORD PTR _proc_id$[ebp], 0
 	call	DWORD PTR __imp__GetWindowThreadProcessId@8
 
-; 1197 : 
-; 1198 :   if (win.proc_id == proc_id)
+; 1205 : 
+; 1206 :   if (win.proc_id == proc_id)
 
 	mov	eax, DWORD PTR _lParam$[ebp]
 	mov	eax, DWORD PTR [eax]
 	cmp	eax, DWORD PTR _proc_id$[ebp]
 	jne	$LN12@SK_EnumWin
 
-; 1199 :   {
-; 1200 :     //if ( GetWindow (hWnd, GW_OWNER) == (HWND)nullptr )
-; 1201 :     {
-; 1202 :       DWORD dwStyle, dwStyleEx;
-; 1203 : 
-; 1204 :       switch (IsWindowUnicode (hWnd))
+; 1207 :   {
+; 1208 :     //if ( GetWindow (hWnd, GW_OWNER) == (HWND)nullptr )
+; 1209 :     {
+; 1210 :       DWORD dwStyle, dwStyleEx;
+; 1211 : 
+; 1212 :       switch (IsWindowUnicode (hWnd))
 
 	push	edi
 	push	esi
 	call	DWORD PTR __imp__IsWindowUnicode@4
 
-; 1209 :           break;
-; 1210 : 
-; 1211 :         default:
-; 1212 :         case FALSE:
-; 1213 :           dwStyle   = GetWindowLongA_Original (hWnd, GWL_STYLE);
+; 1217 :           break;
+; 1218 : 
+; 1219 :         default:
+; 1220 :         case FALSE:
+; 1221 :           dwStyle   = GetWindowLongA_Original (hWnd, GWL_STYLE);
 
 	push	-16					; fffffff0H
 	push	esi
@@ -19211,7 +19219,7 @@ _lParam$ = 12						; size = 4
 	je	SHORT $LN5@SK_EnumWin
 	call	DWORD PTR ?GetWindowLongA_Original@@3P6GJPAUHWND__@@H@ZA ; GetWindowLongA_Original
 
-; 1214 :           dwStyleEx = GetWindowLongA_Original (hWnd, GWL_EXSTYLE);
+; 1222 :           dwStyleEx = GetWindowLongA_Original (hWnd, GWL_EXSTYLE);
 
 	push	-20					; ffffffecH
 	push	esi
@@ -19220,13 +19228,13 @@ _lParam$ = 12						; size = 4
 	jmp	SHORT $LN2@SK_EnumWin
 $LN5@SK_EnumWin:
 
-; 1205 :       {
-; 1206 :         case TRUE:
-; 1207 :           dwStyle   = GetWindowLongW_Original (hWnd, GWL_STYLE);
+; 1213 :       {
+; 1214 :         case TRUE:
+; 1215 :           dwStyle   = GetWindowLongW_Original (hWnd, GWL_STYLE);
 
 	call	DWORD PTR ?GetWindowLongW_Original@@3P6GJPAUHWND__@@H@ZA ; GetWindowLongW_Original
 
-; 1208 :           dwStyleEx = GetWindowLongW_Original (hWnd, GWL_EXSTYLE);
+; 1216 :           dwStyleEx = GetWindowLongW_Original (hWnd, GWL_EXSTYLE);
 
 	push	-20					; ffffffecH
 	push	esi
@@ -19234,11 +19242,11 @@ $LN5@SK_EnumWin:
 	call	DWORD PTR ?GetWindowLongW_Original@@3P6GJPAUHWND__@@H@ZA ; GetWindowLongW_Original
 $LN2@SK_EnumWin:
 
-; 1215 :           break;
-; 1216 :       }
-; 1217 : 
-; 1218 :       bool    SKIM                   = false;
-; 1219 :       wchar_t wszName [MAX_PATH + 2] = { };
+; 1223 :           break;
+; 1224 :       }
+; 1225 : 
+; 1226 :       bool    SKIM                   = false;
+; 1227 :       wchar_t wszName [MAX_PATH + 2] = { };
 
 	push	524					; 0000020cH
 	lea	eax, DWORD PTR _wszName$1[ebp]
@@ -19248,8 +19256,8 @@ $LN2@SK_EnumWin:
 	call	_memset
 	add	esp, 12					; 0000000cH
 
-; 1220 : 
-; 1221 :       if (RealGetWindowClassW (hWnd, wszName, MAX_PATH))
+; 1228 : 
+; 1229 :       if (RealGetWindowClassW (hWnd, wszName, MAX_PATH))
 
 	lea	eax, DWORD PTR _wszName$1[ebp]
 	push	260					; 00000104H
@@ -19259,10 +19267,10 @@ $LN2@SK_EnumWin:
 	test	eax, eax
 	je	SHORT $LN13@SK_EnumWin
 
-; 1222 :       {
-; 1223 :         if (StrStrIW (wszName, L"SKIM"))
+; 1230 :       {
+; 1231 :         if (StrStrIW (wszName, L"SKIM"))
 
-	push	OFFSET $SG211663
+	push	OFFSET $SG211734
 	lea	eax, DWORD PTR _wszName$1[ebp]
 	push	eax
 	call	DWORD PTR __imp__StrStrIW@8
@@ -19275,10 +19283,10 @@ $LN13@SK_EnumWin:
 	mov	eax, 1
 $LN8@SK_EnumWin:
 
-; 1224 :           SKIM = true;
-; 1225 :       }
-; 1226 : 
-; 1227 :       if ( (dwStyle & (WS_VISIBLE | WS_MINIMIZEBOX)) || SKIM )
+; 1232 :           SKIM = true;
+; 1233 :       }
+; 1234 : 
+; 1235 :       if ( (dwStyle & (WS_VISIBLE | WS_MINIMIZEBOX)) || SKIM )
 
 	test	edi, 268566528				; 10020000H
 	pop	edi
@@ -19287,24 +19295,24 @@ $LN8@SK_EnumWin:
 	je	SHORT $LN1@SK_EnumWin
 $LN10@SK_EnumWin:
 
-; 1228 :       {
-; 1229 :         win.root = hWnd;
+; 1236 :       {
+; 1237 :         win.root = hWnd;
 
 	mov	eax, DWORD PTR _lParam$[ebp]
 	mov	DWORD PTR [eax+4], esi
 
-; 1230 :         return FALSE;
+; 1238 :         return FALSE;
 
 	xor	eax, eax
 	pop	esi
 	pop	ebx
 
-; 1231 :       }
-; 1232 :     }
-; 1233 :   }
-; 1234 : 
-; 1235 :   return TRUE;
-; 1236 : }
+; 1239 :       }
+; 1240 :     }
+; 1241 :   }
+; 1242 : 
+; 1243 :   return TRUE;
+; 1244 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -19325,7 +19333,7 @@ _TEXT	ENDS
 text$di	SEGMENT
 ??__Egame_window@@YAXXZ PROC				; `dynamic initializer for 'game_window'', COMDAT
 
-; 1182 : sk_window_s       game_window;
+; 1190 : sk_window_s       game_window;
 
 	mov	ecx, OFFSET ?game_window@@3Usk_window_s@@A ; game_window
 	jmp	??0sk_window_s@@QAE@XZ
@@ -19342,7 +19350,7 @@ _wParam$ = 20						; size = 4
 _lParam$ = 24						; size = 4
 ?SK_COMPAT_SafeCallProc@@YAJPAUsk_window_s@@PAUHWND__@@IIJ@Z PROC ; SK_COMPAT_SafeCallProc
 
-; 6070 : {
+; 6107 : {
 
 	npad	2
 	push	ebp
@@ -19359,11 +19367,11 @@ _lParam$ = 24						; size = 4
 	push	edi
 	mov	DWORD PTR __$SEHRec$[ebp], esp
 
-; 6071 :   __try {
+; 6108 :   __try {
 
 	mov	DWORD PTR __$SEHRec$[ebp+20], 0
 
-; 6072 :     return pWin->CallProc (hWnd_, Msg, wParam, lParam);
+; 6109 :     return pWin->CallProc (hWnd_, Msg, wParam, lParam);
 
 	push	DWORD PTR _lParam$[ebp]
 	push	DWORD PTR _wParam$[ebp]
@@ -19373,8 +19381,8 @@ _lParam$ = 24						; size = 4
 	call	?CallProc@sk_window_s@@QAEJPAUHWND__@@IIJ@Z ; sk_window_s::CallProc
 	mov	DWORD PTR __$SEHRec$[ebp+20], -1
 
-; 6077 :   }
-; 6078 : }
+; 6114 :   }
+; 6115 : }
 
 	mov	ecx, DWORD PTR __$SEHRec$[ebp+8]
 	mov	DWORD PTR fs:0, ecx
@@ -19387,8 +19395,8 @@ _lParam$ = 24						; size = 4
 $LN5@SK_COMPAT_:
 $LN10@SK_COMPAT_:
 
-; 6073 :   }
-; 6074 :   __except (EXCEPTION_EXECUTE_HANDLER)
+; 6110 :   }
+; 6111 :   __except (EXCEPTION_EXECUTE_HANDLER)
 
 	mov	eax, 1
 $LN9@SK_COMPAT_:
@@ -19397,14 +19405,14 @@ $LN7@SK_COMPAT_:
 $LN6@SK_COMPAT_:
 	mov	esp, DWORD PTR __$SEHRec$[ebp]
 
-; 6075 :   {
-; 6076 :     return 1;
+; 6112 :   {
+; 6113 :     return 1;
 
 	mov	DWORD PTR __$SEHRec$[ebp+20], -1
 	mov	eax, 1
 
-; 6077 :   }
-; 6078 : }
+; 6114 :   }
+; 6115 : }
 
 	mov	ecx, DWORD PTR __$SEHRec$[ebp+8]
 	mov	DWORD PTR fs:0, ecx
@@ -19433,26 +19441,25 @@ _TEXT	ENDS
 _TEXT	SEGMENT
 _input$2 = -64						; size = 28
 _client$3 = -36						; size = 16
-tv1370 = -20						; size = 4
+tv1410 = -20						; size = 4
 _DeactivateCursor$4 = -15				; size = 1
 _ActivateCursor$5 = -14					; size = 1
 _console_visible$1$ = -13				; size = 1
 __$EHRec$ = -12						; size = 12
 _hWnd$ = 8						; size = 4
 ?game_window@@3Usk_window_s@@A$5 = 12			; size = 4
-tv1330 = 12						; size = 4
 _source$1$ = 12						; size = 4
 _uMsg$ = 12						; size = 4
 _offset$1$ = 15						; size = 1
 _wParam$ = 16						; size = 4
 ?game_window@@3Usk_window_s@@A$4 = 20			; size = 4
-tv1313 = 20						; size = 4
-_activate$6 = 20					; size = 1
+tv1355 = 20						; size = 4
 _lParam$ = 20						; size = 4
 _temp_override$1$ = 23					; size = 1
+_activate$1$ = 23					; size = 1
 ?SK_DetourWindowProc@@YGJPAUHWND__@@IIJ@Z PROC		; SK_DetourWindowProc
 
-; 4393 : {
+; 4401 : {
 
 	npad	2
 	push	ebp
@@ -19470,12 +19477,12 @@ _temp_override$1$ = 23					; size = 1
 	mov	eax, DWORD PTR ?__SK_DLL_Ending@@3JC	; __SK_DLL_Ending
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 4396 :   if (ReadAcquire (&__SK_DLL_Ending))
+; 4404 :   if (ReadAcquire (&__SK_DLL_Ending))
 
 	test	eax, eax
 	je	SHORT $LN10@SK_DetourW
 
-; 4397 :     return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+; 4405 :     return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
 
 	push	DWORD PTR _lParam$[ebp]
 	push	DWORD PTR _wParam$[ebp]
@@ -19483,10 +19490,10 @@ _temp_override$1$ = 23					; size = 1
 	push	DWORD PTR _hWnd$[ebp]
 	call	DWORD PTR ?game_window@@3Usk_window_s@@A+212
 
-; 5071 : 
-; 5072 : 
-; 5073 :   return lRet;
-; 5074 : }
+; 5108 : 
+; 5109 : 
+; 5110 :   return lRet;
+; 5111 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -19495,15 +19502,15 @@ _temp_override$1$ = 23					; size = 1
 	ret	16					; 00000010H
 $LN10@SK_DetourW:
 
-; 4398 : 
-; 4399 : 
-; 4400 :   static bool last_active = game_window.active;
+; 4406 : 
+; 4407 : 
+; 4408 :   static bool last_active = game_window.active;
 
 	mov	eax, DWORD PTR fs:__tls_array
 	mov	ecx, DWORD PTR __tls_index
 	mov	ecx, DWORD PTR [eax+ecx*4]
 	mov	eax, DWORD PTR ?$TSS0@?1??SK_DetourWindowProc@@YGJPAUHWND__@@IIJ@Z@4HA
-	mov	DWORD PTR tv1370[ebp], ecx
+	mov	DWORD PTR tv1410[ebp], ecx
 	cmp	eax, DWORD PTR __Init_thread_epoch[ecx]
 	jle	SHORT $LN2@SK_DetourW
 	push	OFFSET ?$TSS0@?1??SK_DetourWindowProc@@YGJPAUHWND__@@IIJ@Z@4HA
@@ -19518,15 +19525,15 @@ $LN10@SK_DetourW:
 	add	esp, 4
 $LN2@SK_DetourW:
 
-; 4401 : 
-; 4402 :   bool console_visible =
-; 4403 :     SK_Console::getInstance ()->isVisible ();
+; 4409 : 
+; 4410 :   bool console_visible =
+; 4411 :     SK_Console::getInstance ()->isVisible ();
 
 	push	esi
 	push	edi
 	call	?getInstance@SK_Console@@SAPAV1@XZ	; SK_Console::getInstance
 
-; 4421 :   if (config.input.cursor.manage)
+; 4429 :   if (config.input.cursor.manage)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+676, 0
 	mov	edi, DWORD PTR _lParam$[ebp]
@@ -19539,66 +19546,66 @@ $LN2@SK_DetourW:
 	mov	BYTE PTR _console_visible$1$[ebp], al
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 4421 :   if (config.input.cursor.manage)
+; 4429 :   if (config.input.cursor.manage)
 
-	je	$LN164@SK_DetourW
+	je	$LN169@SK_DetourW
 
-; 4422 :   {
-; 4423 :     //extern bool IsControllerPluggedIn (INT iJoyID);
-; 4424 : 
-; 4425 :    auto ActivateCursor = [](bool changed = false)->
-; 4426 :     bool
-; 4427 :      {
-; 4428 :        bool was_active = last_mouse.cursor;
-; 4429 : 
-; 4430 :        if (! last_mouse.cursor)
-; 4431 :        {
-; 4432 :          if ((! SK_IsSteamOverlayActive ()) && game_window.active)
-; 4433 :          {
-; 4434 :            while (ShowCursor (TRUE) < 0) ;
-; 4435 :            last_mouse.cursor = true;
-; 4436 :          }
-; 4437 :        }
-; 4438 : 
-; 4439 :        if (changed && (! SK_IsSteamOverlayActive ()))
-; 4440 :          last_mouse.sampled = timeGetTime ();
-; 4441 : 
-; 4442 :        return (last_mouse.cursor != was_active);
-; 4443 :      };
-; 4444 : 
-; 4445 :    auto DeactivateCursor = 
-; 4446 :    []{
-; 4447 :        if (! last_mouse.cursor)
-; 4448 :          return false;
+; 4430 :   {
+; 4431 :     //extern bool IsControllerPluggedIn (INT iJoyID);
+; 4432 : 
+; 4433 :    auto ActivateCursor = [](bool changed = false)->
+; 4434 :     bool
+; 4435 :      {
+; 4436 :        bool was_active = last_mouse.cursor;
+; 4437 : 
+; 4438 :        if (! last_mouse.cursor)
+; 4439 :        {
+; 4440 :          if ((! SK_IsSteamOverlayActive ()) && game_window.active)
+; 4441 :          {
+; 4442 :            while (ShowCursor (TRUE) < 0) ;
+; 4443 :            last_mouse.cursor = true;
+; 4444 :          }
+; 4445 :        }
+; 4446 : 
+; 4447 :        if (changed && (! SK_IsSteamOverlayActive ()))
+; 4448 :          last_mouse.sampled = timeGetTime ();
 ; 4449 : 
-; 4450 :        bool was_active = last_mouse.cursor;
-; 4451 : 
-; 4452 :        if (last_mouse.sampled <= timeGetTime () - config.input.cursor.timeout)
-; 4453 :        {
-; 4454 :          if ((! SK_IsSteamOverlayActive ()) && game_window.active)
-; 4455 :          {
-; 4456 :            while (ShowCursor (FALSE) >= -1) ;
-; 4457 :            last_mouse.cursor = false;
-; 4458 : 
-; 4459 :            last_mouse.sampled = timeGetTime ();
-; 4460 :          }
-; 4461 :        }
-; 4462 : 
-; 4463 :        return (last_mouse.cursor != was_active);
-; 4464 :      };
-; 4465 : 
-; 4466 :     if (! last_mouse.init)
+; 4450 :        return (last_mouse.cursor != was_active);
+; 4451 :      };
+; 4452 : 
+; 4453 :    auto DeactivateCursor = 
+; 4454 :    []{
+; 4455 :        if (! last_mouse.cursor)
+; 4456 :          return false;
+; 4457 : 
+; 4458 :        bool was_active = last_mouse.cursor;
+; 4459 : 
+; 4460 :        if (last_mouse.sampled <= timeGetTime () - config.input.cursor.timeout)
+; 4461 :        {
+; 4462 :          if ((! SK_IsSteamOverlayActive ()) && game_window.active)
+; 4463 :          {
+; 4464 :            while (ShowCursor (FALSE) >= -1) ;
+; 4465 :            last_mouse.cursor = false;
+; 4466 : 
+; 4467 :            last_mouse.sampled = timeGetTime ();
+; 4468 :          }
+; 4469 :        }
+; 4470 : 
+; 4471 :        return (last_mouse.cursor != was_active);
+; 4472 :      };
+; 4473 : 
+; 4474 :     if (! last_mouse.init)
 
 	cmp	DWORD PTR ?last_mouse@@3U<unnamed-type-last_mouse>@@A+12, 0
 	jne	SHORT $LN12@SK_DetourW
 
-; 4467 :     {
-; 4468 :       if (config.input.cursor.timeout != 0)
+; 4475 :     {
+; 4476 :       if (config.input.cursor.timeout != 0)
 
 	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+672
 
-; 4469 :       {
-; 4470 :         SetTimer ( hWnd,
+; 4477 :       {
+; 4478 :         SetTimer ( hWnd,
 
 	push	0
 	test	eax, eax
@@ -19606,76 +19613,76 @@ $LN2@SK_DetourW:
 	shr	eax, 1
 	push	eax
 
-; 4471 :                      static_cast <UINT_PTR> (        last_mouse.timer_id),
-; 4472 :                      static_cast <UINT>     (config.input.cursor.timeout) / 2,
-; 4473 :                        nullptr );
-; 4474 :       }
-; 4475 :       else
+; 4479 :                      static_cast <UINT_PTR> (        last_mouse.timer_id),
+; 4480 :                      static_cast <UINT>     (config.input.cursor.timeout) / 2,
+; 4481 :                        nullptr );
+; 4482 :       }
+; 4483 :       else
 
-	jmp	SHORT $LN172@SK_DetourW
+	jmp	SHORT $LN177@SK_DetourW
 $LN13@SK_DetourW:
 
-; 4476 :       {
-; 4477 :         SetTimer ( hWnd,
+; 4484 :       {
+; 4485 :         SetTimer ( hWnd,
 
 	push	250					; 000000faH
-$LN172@SK_DetourW:
+$LN177@SK_DetourW:
 	push	DWORD PTR ?last_mouse@@3U<unnamed-type-last_mouse>@@A+16
 	push	DWORD PTR _hWnd$[ebp]
 	call	DWORD PTR __imp__SetTimer@16
 
-; 4478 :                      static_cast <UINT_PTR> (last_mouse.timer_id),
-; 4479 :                        250UL/*USER_TIMER_MINIMUM*/,
-; 4480 :                          nullptr );
-; 4481 :       }
-; 4482 : 
-; 4483 :       last_mouse.init = true;
+; 4486 :                      static_cast <UINT_PTR> (last_mouse.timer_id),
+; 4487 :                        250UL/*USER_TIMER_MINIMUM*/,
+; 4488 :                          nullptr );
+; 4489 :       }
+; 4490 : 
+; 4491 :       last_mouse.init = true;
 
 	mov	DWORD PTR ?last_mouse@@3U<unnamed-type-last_mouse>@@A+12, 1
 $LN12@SK_DetourW:
 
-; 4484 :     }
-; 4485 : 
-; 4486 :     bool activation_event =
-; 4487 :       (uMsg == WM_MOUSEMOVE) && (! SK_IsSteamOverlayActive ());
+; 4492 :     }
+; 4493 : 
+; 4494 :     bool activation_event =
+; 4495 :       (uMsg == WM_MOUSEMOVE) && (! SK_IsSteamOverlayActive ());
 
 	cmp	esi, 512				; 00000200H
-	jne	SHORT $LN131@SK_DetourW
+	jne	SHORT $LN136@SK_DetourW
 	call	?SK_IsSteamOverlayActive@@YG_NXZ	; SK_IsSteamOverlayActive
 	test	al, al
-	jne	SHORT $LN131@SK_DetourW
+	jne	SHORT $LN136@SK_DetourW
 
-; 4488 : 
-; 4489 :     // Don't blindly accept that WM_MOUSEMOVE actually means the mouse moved...
-; 4490 :     if (activation_event)
-; 4491 :     {
-; 4492 :       const short threshold = 2;
-; 4493 : 
-; 4494 :       // Filter out small movements
-; 4495 :       if ( abs (last_mouse.pos.x - GET_X_LPARAM (lParam)) < threshold &&
+; 4496 : 
+; 4497 :     // Don't blindly accept that WM_MOUSEMOVE actually means the mouse moved...
+; 4498 :     if (activation_event)
+; 4499 :     {
+; 4500 :       const short threshold = 2;
+; 4501 : 
+; 4502 :       // Filter out small movements
+; 4503 :       if ( abs (last_mouse.pos.x - GET_X_LPARAM (lParam)) < threshold &&
 
 	movsx	eax, WORD PTR ?last_mouse@@3U<unnamed-type-last_mouse>@@A
 	movsx	ecx, di
 	sub	eax, ecx
-	mov	BYTE PTR tv1313[ebp], 1
+	mov	BYTE PTR tv1355[ebp], 1
 	cdq
 	xor	eax, edx
 	sub	eax, edx
 	cmp	eax, 2
-	jge	SHORT $LN167@SK_DetourW
+	jge	SHORT $LN172@SK_DetourW
 	mov	eax, edi
 	shr	eax, 16					; 00000010H
 	movsx	ecx, ax
 	movsx	eax, WORD PTR ?last_mouse@@3U<unnamed-type-last_mouse>@@A+2
 	sub	eax, ecx
 
-; 4496 :            abs (last_mouse.pos.y - GET_Y_LPARAM (lParam)) < threshold )
-; 4497 :         activation_event = false;
-; 4498 : 
-; 4499 :       last_mouse.pos = MAKEPOINTS (lParam);
+; 4504 :            abs (last_mouse.pos.y - GET_Y_LPARAM (lParam)) < threshold )
+; 4505 :         activation_event = false;
+; 4506 : 
+; 4507 :       last_mouse.pos = MAKEPOINTS (lParam);
 
 	mov	DWORD PTR ?last_mouse@@3U<unnamed-type-last_mouse>@@A, edi
-	mov	ecx, DWORD PTR tv1313[ebp]
+	mov	ecx, DWORD PTR tv1355[ebp]
 	cdq
 	xor	eax, edx
 	movzx	ecx, cl
@@ -19684,102 +19691,102 @@ $LN12@SK_DetourW:
 	cmp	eax, 2
 	cmovl	ecx, edx
 	jmp	SHORT $LN15@SK_DetourW
-$LN167@SK_DetourW:
-	mov	ecx, DWORD PTR tv1313[ebp]
+$LN172@SK_DetourW:
+	mov	ecx, DWORD PTR tv1355[ebp]
 	mov	DWORD PTR ?last_mouse@@3U<unnamed-type-last_mouse>@@A, edi
 	jmp	SHORT $LN15@SK_DetourW
-$LN131@SK_DetourW:
+$LN136@SK_DetourW:
 
-; 4484 :     }
-; 4485 : 
-; 4486 :     bool activation_event =
-; 4487 :       (uMsg == WM_MOUSEMOVE) && (! SK_IsSteamOverlayActive ());
+; 4492 :     }
+; 4493 : 
+; 4494 :     bool activation_event =
+; 4495 :       (uMsg == WM_MOUSEMOVE) && (! SK_IsSteamOverlayActive ());
 
 	xor	cl, cl
 $LN15@SK_DetourW:
 
-; 4500 :     }
-; 4501 : 
-; 4502 :     if (config.input.cursor.keys_activate)
+; 4508 :     }
+; 4509 : 
+; 4510 :     if (config.input.cursor.keys_activate)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+677, 0
 	je	SHORT $LN17@SK_DetourW
 
-; 4503 :       activation_event |= ( uMsg == WM_CHAR       ||
+; 4511 :       activation_event |= ( uMsg == WM_CHAR       ||
 
 	cmp	esi, 258				; 00000102H
-	je	SHORT $LN133@SK_DetourW
+	je	SHORT $LN138@SK_DetourW
 	cmp	esi, 260				; 00000104H
-	je	SHORT $LN133@SK_DetourW
+	je	SHORT $LN138@SK_DetourW
 	cmp	esi, 261				; 00000105H
-	je	SHORT $LN133@SK_DetourW
+	je	SHORT $LN138@SK_DetourW
 	xor	eax, eax
-	jmp	SHORT $LN134@SK_DetourW
-$LN133@SK_DetourW:
+	jmp	SHORT $LN139@SK_DetourW
+$LN138@SK_DetourW:
 	mov	eax, 1
-$LN134@SK_DetourW:
+$LN139@SK_DetourW:
 	or	cl, al
 $LN17@SK_DetourW:
 
-; 4504 :                             uMsg == WM_SYSKEYDOWN ||
-; 4505 :                             uMsg == WM_SYSKEYUP );
-; 4506 : 
-; 4507 :     // If timeout is 0, just hide the thing indefinitely
-; 4508 :     if (activation_event && config.input.cursor.timeout != 0)
+; 4512 :                             uMsg == WM_SYSKEYDOWN ||
+; 4513 :                             uMsg == WM_SYSKEYUP );
+; 4514 : 
+; 4515 :     // If timeout is 0, just hide the thing indefinitely
+; 4516 :     if (activation_event && config.input.cursor.timeout != 0)
 
 	test	cl, cl
 	je	SHORT $LN18@SK_DetourW
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+672, 0
 	je	SHORT $LN18@SK_DetourW
 
-; 4509 :       ActivateCursor (true);
+; 4517 :       ActivateCursor (true);
 
 	push	1
 	lea	ecx, DWORD PTR _ActivateCursor$5[ebp]
 	call	??R<lambda_4616a949c9ba345239f7d3c95c1931ce>@@QBE_N_N@Z ; <lambda_4616a949c9ba345239f7d3c95c1931ce>::operator()
 
-; 4510 : 
-; 4511 :     else if ( uMsg   == WM_TIMER            &&
+; 4518 : 
+; 4519 :     else if ( uMsg   == WM_TIMER            &&
 
-	jmp	SHORT $LN164@SK_DetourW
+	jmp	SHORT $LN169@SK_DetourW
 $LN18@SK_DetourW:
 
-; 4512 :               wParam == last_mouse.timer_id &&
-; 4513 :              (! SK_IsSteamOverlayActive ()) &&
+; 4520 :               wParam == last_mouse.timer_id &&
+; 4521 :              (! SK_IsSteamOverlayActive ()) &&
 
 	cmp	esi, 275				; 00000113H
-	jne	SHORT $LN164@SK_DetourW
+	jne	SHORT $LN169@SK_DetourW
 	mov	eax, DWORD PTR _wParam$[ebp]
 	cmp	eax, DWORD PTR ?last_mouse@@3U<unnamed-type-last_mouse>@@A+16
-	jne	SHORT $LN164@SK_DetourW
+	jne	SHORT $LN169@SK_DetourW
 	call	?SK_IsSteamOverlayActive@@YG_NXZ	; SK_IsSteamOverlayActive
 	test	al, al
-	jne	SHORT $LN164@SK_DetourW
+	jne	SHORT $LN169@SK_DetourW
 	mov	al, BYTE PTR ?game_window@@3Usk_window_s@@A+17
 	test	al, al
 	je	SHORT $LN22@SK_DetourW
 
-; 4514 :               game_window.active )
-; 4515 :     {
-; 4516 :       if (true)//IsControllerPluggedIn (config.input.gamepad_slot))
-; 4517 :         DeactivateCursor ();
+; 4522 :               game_window.active )
+; 4523 :     {
+; 4524 :       if (true)//IsControllerPluggedIn (config.input.gamepad_slot))
+; 4525 :         DeactivateCursor ();
 
 	lea	ecx, DWORD PTR _DeactivateCursor$4[ebp]
 	call	??R<lambda_ec27c95e716e1dd504f9e8a0bc6e630e>@@QBE_NXZ ; <lambda_ec27c95e716e1dd504f9e8a0bc6e630e>::operator()
-$LN164@SK_DetourW:
+$LN169@SK_DetourW:
 	mov	al, BYTE PTR ?game_window@@3Usk_window_s@@A+17
 $LN22@SK_DetourW:
 
-; 4518 : 
-; 4519 :       else
-; 4520 :         ActivateCursor ();
-; 4521 :     }
-; 4522 :   }
-; 4523 : 
-; 4524 : 
-; 4525 :   static bool first_run = true;
 ; 4526 : 
-; 4527 :   if (hWnd != game_window.hWnd || first_run)
+; 4527 :       else
+; 4528 :         ActivateCursor ();
+; 4529 :     }
+; 4530 :   }
+; 4531 : 
+; 4532 : 
+; 4533 :   static bool first_run = true;
+; 4534 : 
+; 4535 :   if (hWnd != game_window.hWnd || first_run)
 
 	mov	edx, DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	mov	ecx, DWORD PTR _hWnd$[ebp]
@@ -19788,23 +19795,23 @@ $LN22@SK_DetourW:
 	cmp	BYTE PTR ?first_run@?1??SK_DetourWindowProc@@YGJPAUHWND__@@IIJ@Z@4_NA, 0
 	je	$LN23@SK_DetourW
 
-; 4528 :   {
-; 4529 :     if (first_run)
+; 4536 :   {
+; 4537 :     if (first_run)
 
-	jmp	SHORT $LN154@SK_DetourW
+	jmp	SHORT $LN159@SK_DetourW
 $LN24@SK_DetourW:
 	cmp	BYTE PTR ?first_run@?1??SK_DetourWindowProc@@YGJPAUHWND__@@IIJ@Z@4_NA, 0
 	je	SHORT $LN25@SK_DetourW
-$LN154@SK_DetourW:
+$LN159@SK_DetourW:
 
-; 4530 :     {
-; 4531 :       // Start unmuted (in case the game crashed in the background)
-; 4532 :       if (config.window.background_mute)
+; 4538 :     {
+; 4539 :       // Start unmuted (in case the game crashed in the background)
+; 4540 :       if (config.window.background_mute)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+769, 0
 	je	SHORT $LN26@SK_DetourW
 
-; 4533 :         SK_SetGameMute (FALSE);
+; 4541 :         SK_SetGameMute (FALSE);
 
 	push	0
 	call	?SK_SetGameMute@@YGX_N@Z		; SK_SetGameMute
@@ -19812,16 +19819,16 @@ $LN154@SK_DetourW:
 	mov	ecx, DWORD PTR _hWnd$[ebp]
 $LN26@SK_DetourW:
 
-; 4534 : 
-; 4535 :       first_run = false;
+; 4542 : 
+; 4543 :       first_run = false;
 
 	mov	BYTE PTR ?first_run@?1??SK_DetourWindowProc@@YGJPAUHWND__@@IIJ@Z@4_NA, 0
 $LN25@SK_DetourW:
 
-; 4536 :     }
-; 4537 : 
-; 4538 : 
-; 4539 :     if (game_window.hWnd != nullptr && hWnd != hWndRender)
+; 4544 :     }
+; 4545 : 
+; 4546 : 
+; 4547 :     if (game_window.hWnd != nullptr && hWnd != hWndRender)
 
 	test	edx, edx
 	je	$LN27@SK_DetourW
@@ -19829,59 +19836,59 @@ $LN25@SK_DetourW:
 	cmp	ecx, eax
 	je	$LN27@SK_DetourW
 
-; 4540 :     {
-; 4541 :       if (hWndRender != 0)
+; 4548 :     {
+; 4549 :       if (hWndRender != 0)
 
 	test	eax, eax
 	je	SHORT $LN29@SK_DetourW
 
-; 4542 :       {
-; 4543 :         dll_log.Log ( L"[Window Mgr] New HWND detected in the window proc. used"
+; 4550 :       {
+; 4551 :         dll_log.Log ( L"[Window Mgr] New HWND detected in the window proc. used"
 
 	push	ecx
 	push	edx
-	push	OFFSET $SG281873
+	push	OFFSET $SG281947
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	mov	ecx, DWORD PTR _hWnd$[ebp]
 	add	esp, 16					; 00000010H
 $LN29@SK_DetourW:
 
-; 4551 : 
-; 4552 : 
-; 4553 :     game_window.hWnd = hWnd;
+; 4559 : 
+; 4560 : 
+; 4561 :     game_window.hWnd = hWnd;
 
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+4, ecx
 
-; 4554 : 
-; 4555 :     game_window.active       = GetForegroundWindow () == game_window.hWnd;
+; 4562 : 
+; 4563 :     game_window.active       = GetForegroundWindow () == game_window.hWnd;
 
 	call	DWORD PTR __imp__GetForegroundWindow@0
 	mov	ecx, DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	cmp	eax, ecx
 
-; 4556 :     game_window.game.style   = game_window.GetWindowLongPtr (game_window.hWnd, GWL_STYLE);
+; 4564 :     game_window.game.style   = game_window.GetWindowLongPtr (game_window.hWnd, GWL_STYLE);
 
 	push	-16					; fffffff0H
 	push	ecx
 	sete	BYTE PTR ?game_window@@3Usk_window_s@@A+17
 	call	DWORD PTR ?game_window@@3Usk_window_s@@A+200
 
-; 4557 :     game_window.actual.style = game_window.GetWindowLongPtr (game_window.hWnd, GWL_STYLE);
+; 4565 :     game_window.actual.style = game_window.GetWindowLongPtr (game_window.hWnd, GWL_STYLE);
 
 	push	-16					; fffffff0H
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+68, eax
 	call	DWORD PTR ?game_window@@3Usk_window_s@@A+200
 
-; 4558 :     game_window.unicode      =              IsWindowUnicode (game_window.hWnd)   != FALSE;
+; 4566 :     game_window.unicode      =              IsWindowUnicode (game_window.hWnd)   != FALSE;
 
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+116, eax
 	call	DWORD PTR __imp__IsWindowUnicode@4
 
-; 4559 : 
-; 4560 :     GetWindowRect_Original (game_window.hWnd, &game_window.game.window  );
+; 4567 : 
+; 4568 :     GetWindowRect_Original (game_window.hWnd, &game_window.game.window  );
 
 	push	OFFSET ?game_window@@3Usk_window_s@@A+52
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
@@ -19889,26 +19896,26 @@ $LN29@SK_DetourW:
 	setne	BYTE PTR ?game_window@@3Usk_window_s@@A
 	call	DWORD PTR ?GetWindowRect_Original@@3P6GHPAUHWND__@@PAUtagRECT@@@ZA ; GetWindowRect_Original
 
-; 4561 :     GetClientRect_Original (game_window.hWnd, &game_window.game.client  );
+; 4569 :     GetClientRect_Original (game_window.hWnd, &game_window.game.client  );
 
 	push	OFFSET ?game_window@@3Usk_window_s@@A+36
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	call	DWORD PTR ?GetClientRect_Original@@3P6GHPAUHWND__@@PAUtagRECT@@@ZA ; GetClientRect_Original
 
-; 4562 :     GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
+; 4570 :     GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
 
 	push	OFFSET ?game_window@@3Usk_window_s@@A+100
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	call	DWORD PTR ?GetWindowRect_Original@@3P6GHPAUHWND__@@PAUtagRECT@@@ZA ; GetWindowRect_Original
 
-; 4563 :     GetClientRect_Original (game_window.hWnd, &game_window.actual.client);
+; 4571 :     GetClientRect_Original (game_window.hWnd, &game_window.actual.client);
 
 	push	OFFSET ?game_window@@3Usk_window_s@@A+84
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	call	DWORD PTR ?GetClientRect_Original@@3P6GHPAUHWND__@@PAUtagRECT@@@ZA ; GetClientRect_Original
 
-; 4564 : 
-; 4565 :     SK_InitWindow (hWnd, false);
+; 4572 : 
+; 4573 :     SK_InitWindow (hWnd, false);
 
 	push	0
 	push	DWORD PTR _hWnd$[ebp]
@@ -19919,54 +19926,54 @@ $LN29@SK_DetourW:
 	mov	ecx, DWORD PTR _hWnd$[ebp]
 $LN23@SK_DetourW:
 
-; 4566 :   }
-; 4567 : 
-; 4568 : 
-; 4569 :   switch (uMsg)
+; 4574 :   }
+; 4575 : 
+; 4576 : 
+; 4577 :   switch (uMsg)
 
 	cmp	esi, 255				; 000000ffH
-	ja	$LN137@SK_DetourW
-	je	$LN110@SK_DetourW
+	ja	$LN142@SK_DetourW
+	je	$LN115@SK_DetourW
 	lea	eax, DWORD PTR [esi-3]
 	cmp	eax, 131				; 00000083H
-	ja	$LN109@SK_DetourW
-	movzx	eax, BYTE PTR $LN163@SK_DetourW[eax]
-	jmp	DWORD PTR $LN187@SK_DetourW[eax*4]
+	ja	$LN114@SK_DetourW
+	movzx	eax, BYTE PTR $LN168@SK_DetourW[eax]
+	jmp	DWORD PTR $LN192@SK_DetourW[eax*4]
 $LN30@SK_DetourW:
 
-; 4570 :   {
-; 4571 :     case WM_QUIT:
-; 4572 :     case WM_CLOSE:
-; 4573 :       if (SK_GetCurrentGameID () == SK_GAME_ID::Okami)
+; 4578 :   {
+; 4579 :     case WM_QUIT:
+; 4580 :     case WM_CLOSE:
+; 4581 :       if (SK_GetCurrentGameID () == SK_GAME_ID::Okami)
 
 	call	?SK_GetCurrentGameID@@YG?AW4SK_GAME_ID@@XZ ; SK_GetCurrentGameID
 	cmp	eax, 37					; 00000025H
-	jne	$LN109@SK_DetourW
+	jne	$LN114@SK_DetourW
 
-; 4574 :       {
-; 4575 :         if (config.input.keyboard.catch_alt_f4)
+; 4582 :       {
+; 4583 :         if (config.input.keyboard.catch_alt_f4)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+729, 0
 	je	SHORT $LN32@SK_DetourW
 
-; 4576 :         {
-; 4577 :           extern bool SK_ImGui_WantExit;
-; 4578 :                       SK_ImGui_WantExit = true;
+; 4584 :         {
+; 4585 :           extern bool SK_ImGui_WantExit;
+; 4586 :                       SK_ImGui_WantExit = true;
 
 	pop	edi
 	mov	BYTE PTR ?SK_ImGui_WantExit@@3_NA, 1	; SK_ImGui_WantExit
 
-; 4584 :         }
-; 4585 : 
-; 4586 :         return 0; // Alt+F4 is broken, use Special K's function instead.
+; 4592 :         }
+; 4593 : 
+; 4594 :         return 0; // Alt+F4 is broken, use Special K's function instead.
 
 	xor	eax, eax
 	pop	esi
 
-; 5071 : 
-; 5072 : 
-; 5073 :   return lRet;
-; 5074 : }
+; 5108 : 
+; 5109 : 
+; 5110 :   return lRet;
+; 5111 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -19975,69 +19982,69 @@ $LN30@SK_DetourW:
 	ret	16					; 00000010H
 $LN32@SK_DetourW:
 
-; 4579 :         }
-; 4580 : 
-; 4581 :         else
-; 4582 :         {
-; 4583 :           ExitProcess (0x00);
+; 4587 :         }
+; 4588 : 
+; 4589 :         else
+; 4590 :         {
+; 4591 :           ExitProcess (0x00);
 
 	push	0
 	call	DWORD PTR __imp__ExitProcess@4
-$LN189@SK_DetourW:
+$LN194@SK_DetourW:
 $LN39@SK_DetourW:
 
-; 4600 :       }
-; 4601 : 
-; 4602 :       break;
-; 4603 :     }
-; 4604 : 
-; 4605 :     // Ignore (and physically remove) this event from the message queue if background_render = true
-; 4606 :     case WM_MOUSEACTIVATE:
-; 4607 :     {
-; 4608 :       if ( reinterpret_cast <HWND> (wParam) == game_window.hWnd )
+; 4608 :       }
+; 4609 : 
+; 4610 :       break;
+; 4611 :     }
+; 4612 : 
+; 4613 :     // Ignore (and physically remove) this event from the message queue if background_render = true
+; 4614 :     case WM_MOUSEACTIVATE:
+; 4615 :     {
+; 4616 :       if ( reinterpret_cast <HWND> (wParam) == game_window.hWnd )
 
 	cmp	DWORD PTR _wParam$[ebp], edx
 	jne	SHORT $LN40@SK_DetourW
 
-; 4609 :       {
-; 4610 :         ActivateWindow (hWnd, true);
+; 4617 :       {
+; 4618 :         ActivateWindow (hWnd, true);
 
 	push	1
 	push	ecx
 	mov	ecx, OFFSET ?ActivateWindow@@3V<lambda>@@A ; ActivateWindow
-	call	??R<lambda_bc1c1ac12d37131fdb55160d65b430af>@@QBEXPAUHWND__@@_N@Z ; <lambda_bc1c1ac12d37131fdb55160d65b430af>::operator()
+	call	??R<lambda_d14c9bebe89e1ec31d27f11b18db1002>@@QBEXPAUHWND__@@_N@Z ; <lambda_d14c9bebe89e1ec31d27f11b18db1002>::operator()
 
-; 4611 : 
-; 4612 :         if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) && config.window.background_render)
+; 4619 : 
+; 4620 :         if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) && config.window.background_render)
 
 	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
 	cmp	BYTE PTR [eax+48], 0
-	jne	$LN109@SK_DetourW
+	jne	$LN114@SK_DetourW
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+768, 0
-	je	$LN109@SK_DetourW
+	je	$LN114@SK_DetourW
 
-; 4613 :         {
-; 4614 :           SK_LOG2 ( ( L"WM_MOUSEACTIVATE ==> Activate and Eat" ),
+; 4621 :         {
+; 4622 :           SK_LOG2 ( ( L"WM_MOUSEACTIVATE ==> Activate and Eat" ),
 
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 2
 	jl	SHORT $LN43@SK_DetourW
-	push	OFFSET $SG281888
+	push	OFFSET $SG281962
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
 $LN43@SK_DetourW:
 
-; 4615 :                       L"Window Mgr" );
-; 4616 :           return MA_ACTIVATEANDEAT;
+; 4623 :                       L"Window Mgr" );
+; 4624 :           return MA_ACTIVATEANDEAT;
 
 	pop	edi
 	mov	eax, 2
 	pop	esi
 
-; 5071 : 
-; 5072 : 
-; 5073 :   return lRet;
-; 5074 : }
+; 5108 : 
+; 5109 : 
+; 5110 :   return lRet;
+; 5111 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -20046,22 +20053,22 @@ $LN43@SK_DetourW:
 	ret	16					; 00000010H
 $LN40@SK_DetourW:
 
-; 4617 :         }
-; 4618 :       }
-; 4619 : 
-; 4620 :       else
-; 4621 :       {
-; 4622 :         ActivateWindow (hWnd, false);
+; 4625 :         }
+; 4626 :       }
+; 4627 : 
+; 4628 :       else
+; 4629 :       {
+; 4630 :         ActivateWindow (hWnd, false);
 
 	push	0
 	push	ecx
 	mov	ecx, OFFSET ?ActivateWindow@@3V<lambda>@@A ; ActivateWindow
-	call	??R<lambda_bc1c1ac12d37131fdb55160d65b430af>@@QBEXPAUHWND__@@_N@Z ; <lambda_bc1c1ac12d37131fdb55160d65b430af>::operator()
+	call	??R<lambda_d14c9bebe89e1ec31d27f11b18db1002>@@QBEXPAUHWND__@@_N@Z ; <lambda_d14c9bebe89e1ec31d27f11b18db1002>::operator()
 
-; 4623 : 
-; 4624 :         // Game window was deactivated, but the game doesn't need to know this!
-; 4625 :         //   in fact, it needs to be told the opposite.
-; 4626 :         if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) && config.window.background_render)
+; 4631 : 
+; 4632 :         // Game window was deactivated, but the game doesn't need to know this!
+; 4633 :         //   in fact, it needs to be told the opposite.
+; 4634 :         if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) && config.window.background_render)
 
 	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
 	cmp	BYTE PTR [eax+48], 0
@@ -20069,28 +20076,28 @@ $LN40@SK_DetourW:
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+768, 0
 	je	$LN44@SK_DetourW
 
-; 4627 :         {
-; 4628 :           SK_LOG2 ( ( L"WM_MOUSEACTIVATE (Other Window) ==> Activate" ),
+; 4635 :         {
+; 4636 :           SK_LOG2 ( ( L"WM_MOUSEACTIVATE (Other Window) ==> Activate" ),
 
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 2
 	jl	SHORT $LN45@SK_DetourW
-	push	OFFSET $SG281891
+	push	OFFSET $SG281965
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
 $LN45@SK_DetourW:
 
-; 4629 :                       L"Window Mgr" );
-; 4630 :           return MA_ACTIVATE;
+; 4637 :                       L"Window Mgr" );
+; 4638 :           return MA_ACTIVATE;
 
 	pop	edi
 	mov	eax, 1
 	pop	esi
 
-; 5071 : 
-; 5072 : 
-; 5073 :   return lRet;
-; 5074 : }
+; 5108 : 
+; 5109 : 
+; 5110 :   return lRet;
+; 5111 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -20099,249 +20106,254 @@ $LN45@SK_DetourW:
 	ret	16					; 00000010H
 $LN46@SK_DetourW:
 
-; 4631 :         }
-; 4632 : 
-; 4633 :         SK_GetCurrentRenderBackend ().fullscreen_exclusive = false;
-; 4634 :       }
-; 4635 :     } break;
-; 4636 : 
-; 4637 :     // Allow the game to run in the background
-; 4638 :     case WM_ACTIVATEAPP:
-; 4639 :     case WM_ACTIVATE:
-; 4640 :     case WM_NCACTIVATE:
-; 4641 :     {
-; 4642 :       if (uMsg == WM_NCACTIVATE || uMsg == WM_ACTIVATEAPP)
+; 4639 :         }
+; 4640 : 
+; 4641 :         SK_GetCurrentRenderBackend ().fullscreen_exclusive = false;
+; 4642 :       }
+; 4643 :     } break;
+; 4644 : 
+; 4645 :     // Allow the game to run in the background
+; 4646 :     case WM_ACTIVATEAPP:
+; 4647 :     case WM_ACTIVATE:
+; 4648 :     case WM_NCACTIVATE:
+; 4649 :     {
+; 4650 :       if (uMsg == WM_NCACTIVATE || uMsg == WM_ACTIVATEAPP)
 
 	cmp	esi, 134				; 00000086H
-	je	$LN49@SK_DetourW
+	je	$LN50@SK_DetourW
 	cmp	esi, 28					; 0000001cH
 	je	$LN49@SK_DetourW
 
-; 4675 :           }
-; 4676 : 
-; 4677 :           SK_GetCurrentRenderBackend ().fullscreen_exclusive = false;
-; 4678 :         }
-; 4679 :       }
-; 4680 : 
-; 4681 :       else if (uMsg == WM_ACTIVATE)
+; 4712 :           }
+; 4713 :         
+; 4714 :           SK_GetCurrentRenderBackend ().fullscreen_exclusive = false;
+; 4715 :         }
+; 4716 :       }
+; 4717 : 
+; 4718 :       else if (uMsg == WM_ACTIVATE)
 
 	cmp	esi, 6
-	jne	$LN109@SK_DetourW
+	jne	$LN114@SK_DetourW
 
-; 4682 :       {
-; 4683 :         const wchar_t* source   = L"UNKKNOWN";
-; 4684 :         bool           activate = false;
-; 4685 : 
-; 4686 :         switch (LOWORD (wParam))
+; 4719 :       {
+; 4720 :         const wchar_t* source   = L"UNKKNOWN";
+; 4721 :         bool           activate = false;
+; 4722 : 
+; 4723 :         switch (LOWORD (wParam))
 
 	mov	eax, DWORD PTR _wParam$[ebp]
 	test	ax, ax
-	je	SHORT $LN59@SK_DetourW
+	je	SHORT $LN64@SK_DetourW
 
-; 4687 :         {
-; 4688 :           case WA_ACTIVE:
-; 4689 :           case WA_CLICKACTIVE:
-; 4690 :           default: // Unknown
-; 4691 :           {
-; 4692 :             activate = reinterpret_cast <HWND> (lParam) != game_window.hWnd;
+; 4724 :         {
+; 4725 :           case WA_ACTIVE:
+; 4726 :           case WA_CLICKACTIVE:
+; 4727 :           default: // Unknown
+; 4728 :           {
+; 4729 :             activate = reinterpret_cast <HWND> (lParam) != game_window.hWnd;
 
 	cmp	edi, edx
 
-; 4693 :             source   = LOWORD (wParam) == 1 ? L"(WM_ACTIVATE [ WA_ACTIVE ])" :
+; 4730 :             source   = LOWORD (wParam) == 1 ? L"(WM_ACTIVATE [ WA_ACTIVE ])" :
 
-	mov	DWORD PTR tv1330[ebp], OFFSET $SG281909
-	mov	edx, OFFSET $SG281908
-	setne	BYTE PTR _activate$6[ebp]
+	mov	ecx, OFFSET $SG281988
+	mov	edx, OFFSET $SG281989
+	setne	BYTE PTR _activate$1$[ebp]
 	cmp	ax, 1
-	cmovne	edx, DWORD PTR tv1330[ebp]
-	mov	DWORD PTR _source$1$[ebp], edx
 
-; 4694 :                                               L"(WM_ACTIVATE [ WA_CLICKACTIVE ])";
-; 4695 :             ActivateWindow (hWnd, activate);
-; 4696 :           } break;
+; 4731 :                                               L"(WM_ACTIVATE [ WA_CLICKACTIVE ])";
+; 4732 :             ActivateWindow ((HWND)lParam, true);
 
-	jmp	SHORT $LN173@SK_DetourW
-$LN59@SK_DetourW:
+	push	1
+	cmovne	ecx, edx
+	mov	DWORD PTR _source$1$[ebp], ecx
 
-; 4697 : 
-; 4698 :           case WA_INACTIVE:
-; 4699 :           {
-; 4700 :             activate = ( lParam                           == 0                ) ||
+; 4733 :           } break;
+
+	jmp	SHORT $LN178@SK_DetourW
+$LN64@SK_DetourW:
+
+; 4734 : 
+; 4735 :           case WA_INACTIVE:
+; 4736 :           {
+; 4737 :             activate = ( lParam                           == 0                ) ||
 
 	test	edi, edi
-	je	SHORT $LN135@SK_DetourW
-	mov	BYTE PTR _activate$6[ebp], 0
+	je	SHORT $LN140@SK_DetourW
+	mov	BYTE PTR _activate$1$[ebp], 0
 	cmp	edi, edx
-	jne	SHORT $LN136@SK_DetourW
-$LN135@SK_DetourW:
-	mov	BYTE PTR _activate$6[ebp], 1
-$LN136@SK_DetourW:
+	jne	SHORT $LN141@SK_DetourW
+$LN140@SK_DetourW:
+	mov	BYTE PTR _activate$1$[ebp], 1
+$LN141@SK_DetourW:
 
-; 4701 :                        ( reinterpret_cast <HWND> (lParam) == game_window.hWnd );
-; 4702 :             source   = L"(WM_ACTIVATE [ WA_INACTIVE ])";
+; 4738 :                        ( reinterpret_cast <HWND> (lParam) == game_window.hWnd );
+; 4739 :             source   = L"(WM_ACTIVATE [ WA_INACTIVE ])";
 
-	mov	DWORD PTR _source$1$[ebp], OFFSET $SG281911
-$LN173@SK_DetourW:
+	mov	DWORD PTR _source$1$[ebp], OFFSET $SG281991
 
-; 4703 :             ActivateWindow (hWnd, activate);
+; 4740 :             ActivateWindow ((HWND)lParam, false);
 
-	push	DWORD PTR _activate$6[ebp]
-	push	ecx
+	push	0
+$LN178@SK_DetourW:
+	push	edi
 	mov	ecx, OFFSET ?ActivateWindow@@3V<lambda>@@A ; ActivateWindow
-	call	??R<lambda_bc1c1ac12d37131fdb55160d65b430af>@@QBEXPAUHWND__@@_N@Z ; <lambda_bc1c1ac12d37131fdb55160d65b430af>::operator()
+	call	??R<lambda_d14c9bebe89e1ec31d27f11b18db1002>@@QBEXPAUHWND__@@_N@Z ; <lambda_d14c9bebe89e1ec31d27f11b18db1002>::operator()
 
-; 4704 :           } break;
-; 4705 :         }
-; 4706 : 
-; 4707 :         switch (last_active)
+; 4741 :           } break;
+; 4742 :         }
+; 4743 : 
+; 4744 :         switch (last_active)
 
 	movzx	eax, BYTE PTR ?last_active@?1??SK_DetourWindowProc@@YGJPAUHWND__@@IIJ@Z@4_NA
 	sub	eax, 0
-	je	SHORT $LN63@SK_DetourW
+	je	SHORT $LN68@SK_DetourW
 	sub	eax, 1
-	jne	SHORT $LN65@SK_DetourW
+	jne	SHORT $LN70@SK_DetourW
 
-; 4708 :         {
-; 4709 :           case true:
-; 4710 :             if (! activate)
+; 4745 :         {
+; 4746 :           case true:
+; 4747 :             if (! activate)
 
-	cmp	BYTE PTR _activate$6[ebp], al
-	jne	SHORT $LN65@SK_DetourW
+	cmp	BYTE PTR _activate$1$[ebp], al
+	jne	SHORT $LN70@SK_DetourW
 
-; 4711 :             {
-; 4712 :               SK_LOG2 ( ( L"Application Deactivated %s", source ),
-
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 2
-	jl	SHORT $LN65@SK_DetourW
-	push	DWORD PTR _source$1$[ebp]
-	push	OFFSET $SG281915
-
-; 4713 :                           L"Window Mgr" );
-; 4714 :             }
-; 4715 :             break;
-
-	jmp	SHORT $LN174@SK_DetourW
-$LN63@SK_DetourW:
-
-; 4716 : 
-; 4717 :           case false:
-; 4718 :             if (activate)
-
-	cmp	BYTE PTR _activate$6[ebp], 0
-	je	SHORT $LN65@SK_DetourW
-
-; 4719 :             {
-; 4720 :               SK_LOG2 ( ( L"Application Activated %s", source ),
+; 4748 :             {
+; 4749 :               SK_LOG2 ( ( L"Application Deactivated %s", source ),
 
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 2
-	jl	SHORT $LN65@SK_DetourW
+	jl	SHORT $LN70@SK_DetourW
 	push	DWORD PTR _source$1$[ebp]
-	push	OFFSET $SG281919
-$LN174@SK_DetourW:
+	push	OFFSET $SG281995
+
+; 4750 :                           L"Window Mgr" );
+; 4751 :             }
+; 4752 :             break;
+
+	jmp	SHORT $LN179@SK_DetourW
+$LN68@SK_DetourW:
+
+; 4753 : 
+; 4754 :           case false:
+; 4755 :             if (activate)
+
+	cmp	BYTE PTR _activate$1$[ebp], 0
+	je	SHORT $LN70@SK_DetourW
+
+; 4756 :             {
+; 4757 :               SK_LOG2 ( ( L"Application Activated %s", source ),
+
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 2
+	jl	SHORT $LN70@SK_DetourW
+	push	DWORD PTR _source$1$[ebp]
+	push	OFFSET $SG281999
+$LN179@SK_DetourW:
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
-$LN65@SK_DetourW:
+$LN70@SK_DetourW:
 
-; 4721 :                           L"Window Mgr" );
-; 4722 :             }
-; 4723 :             break;
-; 4724 :         }
-; 4725 : 
-; 4726 :         if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) && config.window.background_render)
+; 4758 :                           L"Window Mgr" );
+; 4759 :             }
+; 4760 :             break;
+; 4761 :         }
+; 4762 : 
+; 4763 :         if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) && config.window.background_render)
 
 	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
 	cmp	BYTE PTR [eax+48], 0
-	jne	SHORT $LN66@SK_DetourW
+	jne	SHORT $LN71@SK_DetourW
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+768, 0
-	jne	$LN185@SK_DetourW
-$LN66@SK_DetourW:
+	jne	$LN190@SK_DetourW
+$LN71@SK_DetourW:
 
-; 4727 :         {
-; 4728 :           return 1;
-; 4729 :         }
-; 4730 : 
-; 4731 :         if (! activate)
+; 4764 :         {
+; 4765 :           return 1;
+; 4766 :         }
+; 4767 : 
+; 4768 :         if (! activate)
 
-	cmp	BYTE PTR _activate$6[ebp], 0
-	jne	$LN109@SK_DetourW
+	cmp	BYTE PTR _activate$1$[ebp], 0
+	jne	$LN114@SK_DetourW
 $LN44@SK_DetourW:
 
-; 4732 :           SK_GetCurrentRenderBackend ().fullscreen_exclusive = false;
+; 4769 :           SK_GetCurrentRenderBackend ().fullscreen_exclusive = false;
 
 	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
 	mov	BYTE PTR [eax+48], 0
-	jmp	$LN109@SK_DetourW
+	jmp	$LN114@SK_DetourW
 $LN49@SK_DetourW:
 
-; 4643 :       {
-; 4644 :         if (wParam != FALSE)
+; 4651 :       {
+; 4652 :         if (uMsg != WM_NCACTIVATE)
+; 4653 :         {
+; 4654 :           if (wParam != FALSE)
 
 	cmp	DWORD PTR _wParam$[ebp], 0
-	je	SHORT $LN50@SK_DetourW
+	je	SHORT $LN52@SK_DetourW
 
-; 4645 :         {
-; 4646 :           if (last_active == false)
+; 4655 :           {
+; 4656 :             if (last_active == false)
 
 	cmp	BYTE PTR ?last_active@?1??SK_DetourWindowProc@@YGJPAUHWND__@@IIJ@Z@4_NA, 0
-	jne	SHORT $LN53@SK_DetourW
-
-; 4647 :             SK_LOG3 ( ( L"Application Activated (Non-Client)" ),
-
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 3
-	jl	SHORT $LN53@SK_DetourW
-	push	OFFSET $SG281900
-	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
-	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
-	add	esp, 8
-$LN53@SK_DetourW:
-
-; 4648 :                         L"Window Mgr" );
-; 4649 : 
-; 4650 :           ActivateWindow (hWnd, true);
-
-	push	1
-	push	DWORD PTR _hWnd$[ebp]
-	mov	ecx, OFFSET ?ActivateWindow@@3V<lambda>@@A ; ActivateWindow
-	call	??R<lambda_bc1c1ac12d37131fdb55160d65b430af>@@QBEXPAUHWND__@@_N@Z ; <lambda_bc1c1ac12d37131fdb55160d65b430af>::operator()
-
-; 4651 :         }
-; 4652 : 
-; 4653 :         else
-
-	jmp	$LN109@SK_DetourW
-$LN50@SK_DetourW:
-
-; 4654 :         {
-; 4655 :           if (last_active == true)
-
-	cmp	BYTE PTR ?last_active@?1??SK_DetourWindowProc@@YGJPAUHWND__@@IIJ@Z@4_NA, 1
 	jne	SHORT $LN55@SK_DetourW
 
-; 4656 :             SK_LOG3 ( ( L"Application Deactivated (Non-Client)" ),
+; 4657 :               SK_LOG3 ( ( L"Application Activated (Non-Client)" ),
 
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 3
 	jl	SHORT $LN55@SK_DetourW
-	push	OFFSET $SG281903
+	push	OFFSET $SG281976
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
 $LN55@SK_DetourW:
 
-; 4657 :                         L"Window Mgr" );
-; 4658 : 
-; 4659 :           ActivateWindow (hWnd, false);
+; 4658 :                           L"Window Mgr" );
+; 4659 : 
+; 4660 :             ActivateWindow (hWnd, true);
+
+	push	1
+	push	DWORD PTR _hWnd$[ebp]
+	mov	ecx, OFFSET ?ActivateWindow@@3V<lambda>@@A ; ActivateWindow
+	call	??R<lambda_d14c9bebe89e1ec31d27f11b18db1002>@@QBEXPAUHWND__@@_N@Z ; <lambda_d14c9bebe89e1ec31d27f11b18db1002>::operator()
+
+; 4661 :           }
+; 4662 : 
+; 4663 :           else
+
+	jmp	$LN114@SK_DetourW
+$LN52@SK_DetourW:
+
+; 4664 :           {
+; 4665 :             if (last_active == true)
+
+	cmp	BYTE PTR ?last_active@?1??SK_DetourWindowProc@@YGJPAUHWND__@@IIJ@Z@4_NA, 1
+	jne	SHORT $LN57@SK_DetourW
+
+; 4666 :               SK_LOG3 ( ( L"Application Deactivated (Non-Client)" ),
+
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 3
+	jl	SHORT $LN57@SK_DetourW
+	push	OFFSET $SG281979
+	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
+	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
+	add	esp, 8
+$LN57@SK_DetourW:
+
+; 4667 :                           L"Window Mgr" );
+; 4668 : 
+; 4669 :             ActivateWindow (hWnd, false);
 
 	push	0
 	push	DWORD PTR _hWnd$[ebp]
 	mov	ecx, OFFSET ?ActivateWindow@@3V<lambda>@@A ; ActivateWindow
-	call	??R<lambda_bc1c1ac12d37131fdb55160d65b430af>@@QBEXPAUHWND__@@_N@Z ; <lambda_bc1c1ac12d37131fdb55160d65b430af>::operator()
+	call	??R<lambda_d14c9bebe89e1ec31d27f11b18db1002>@@QBEXPAUHWND__@@_N@Z ; <lambda_d14c9bebe89e1ec31d27f11b18db1002>::operator()
 
-; 4660 : 
-; 4661 :           // We must fully consume one of these messages or audio will stop playing
-; 4662 :           //   when the game loses focus, so do not simply pass this through to the
-; 4663 :           //     default window procedure.
-; 4664 :           if ( (! SK_GetCurrentRenderBackend ().fullscreen_exclusive) &&
+; 4670 : 
+; 4671 :             // We must fully consume one of these messages or audio will stop playing
+; 4672 :             //   when the game loses focus, so do not simply pass this through to the
+; 4673 :             //     default window procedure.
+; 4674 :             if ( (! SK_GetCurrentRenderBackend ().fullscreen_exclusive) &&
 
 	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
 	cmp	BYTE PTR [eax+48], 0
@@ -20349,70 +20361,150 @@ $LN55@SK_DetourW:
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+768, 0
 	je	$LN44@SK_DetourW
 
-; 4665 :                   config.window.background_render
-; 4666 :              )
-; 4667 :           {
-; 4668 :             game_window.CallProc (
+; 4675 :                     config.window.background_render
+; 4676 :                )
+; 4677 :             {
+; 4678 :               game_window.CallProc (
 
-	mov	eax, DWORD PTR _hWnd$[ebp]
+	mov	esi, DWORD PTR _hWnd$[ebp]
 	mov	ecx, OFFSET ?game_window@@3Usk_window_s@@A ; game_window
-	push	eax
-	push	1
 	push	esi
-	push	eax
+	push	1
+	push	28					; 0000001cH
+	push	esi
 	call	?CallProc@sk_window_s@@QAEJPAUHWND__@@IIJ@Z ; sk_window_s::CallProc
 
-; 4669 :               hWnd,
-; 4670 :                 uMsg,
-; 4671 :                   TRUE,
-; 4672 :                     reinterpret_cast <LPARAM> (hWnd) );
-; 4673 : 
-; 4674 :             return DefWindowProcW (hWnd, uMsg, wParam, lParam);;
+; 4679 :                 hWnd,
+; 4680 :                   uMsg,
+; 4681 :                     TRUE,
+; 4682 :                       reinterpret_cast <LPARAM> (hWnd) );
+; 4683 : 
+; 4684 :               return DefWindowProcW (hWnd, uMsg, wParam, lParam);;
 
 	push	edi
 	push	0
-
-; 4905 :           return DefWindowProcW (hWnd, uMsg, wParam, lParam);;
-
+	push	28					; 0000001cH
 	push	esi
-	push	DWORD PTR _hWnd$[ebp]
+
+; 4942 :           return DefWindowProcW (hWnd, uMsg, wParam, lParam);;
+
 	call	DWORD PTR __imp__DefWindowProcW@16
 	pop	edi
 	pop	esi
 
-; 5071 : 
-; 5072 : 
-; 5073 :   return lRet;
-; 5074 : }
+; 5108 : 
+; 5109 : 
+; 5110 :   return lRet;
+; 5111 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
 	mov	esp, ebp
 	pop	ebp
 	ret	16					; 00000010H
-$LN69@SK_DetourW:
+$LN50@SK_DetourW:
+
+; 4685 :             }
+; 4686 : 
+; 4687 :             SK_GetCurrentRenderBackend ().fullscreen_exclusive = false;
+; 4688 :           }
+; 4689 :         }
+; 4690 :         else// if (wParam == FALSE)
+; 4691 :         {
+; 4692 :           if (last_active == true)
+
+	cmp	BYTE PTR ?last_active@?1??SK_DetourWindowProc@@YGJPAUHWND__@@IIJ@Z@4_NA, 1
+	jne	SHORT $LN60@SK_DetourW
+
+; 4693 :             SK_LOG3 ( ( L"Application Deactivated (Non-Client)" ),
+
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 3
+	jl	SHORT $LN60@SK_DetourW
+	push	OFFSET $SG281983
+	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
+	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
+	add	esp, 8
+$LN60@SK_DetourW:
+
+; 4694 :                         L"Window Mgr" );
+; 4695 :         
+; 4696 :           //ActivateWindow (hWnd, false);
+; 4697 :         
+; 4698 :           // We must fully consume one of these messages or audio will stop playing
+; 4699 :           //   when the game loses focus, so do not simply pass this through to the
+; 4700 :           //     default window procedure.
+; 4701 :           if ( (! SK_GetCurrentRenderBackend ().fullscreen_exclusive) &&
+
+	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
+	cmp	BYTE PTR [eax+48], 0
+	jne	$LN44@SK_DetourW
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+768, 0
+	je	$LN44@SK_DetourW
+
+; 4702 :                   config.window.background_render
+; 4703 :              )
+; 4704 :           {
+; 4705 :             game_window.CallProc (
+
+	mov	esi, DWORD PTR _hWnd$[ebp]
+	mov	ecx, OFFSET ?game_window@@3Usk_window_s@@A ; game_window
+	push	esi
+	push	1
+	push	134					; 00000086H
+	push	esi
+	call	?CallProc@sk_window_s@@QAEJPAUHWND__@@IIJ@Z ; sk_window_s::CallProc
+
+; 4706 :               hWnd,
+; 4707 :                 uMsg,
+; 4708 :                   TRUE,
+; 4709 :                     reinterpret_cast <LPARAM> (hWnd) );
+; 4710 :         
+; 4711 :             return DefWindowProcW (hWnd, uMsg, wParam, lParam);;
+
+	push	edi
+	push	DWORD PTR _wParam$[ebp]
+	push	134					; 00000086H
+	push	esi
+
+; 4942 :           return DefWindowProcW (hWnd, uMsg, wParam, lParam);;
+
+	call	DWORD PTR __imp__DefWindowProcW@16
+	pop	edi
+	pop	esi
+
+; 5108 : 
+; 5109 : 
+; 5110 :   return lRet;
+; 5111 : }
+
+	mov	ecx, DWORD PTR __$EHRec$[ebp]
+	mov	DWORD PTR fs:0, ecx
+	mov	esp, ebp
+	pop	ebp
+	ret	16					; 00000010H
+$LN74@SK_DetourW:
 	cmp	DWORD PTR [edi+24], 2
 
-; 4733 :       }
-; 4734 :     } break;
-; 4735 : 
-; 4736 :     case WM_NCCALCSIZE:
-; 4737 :       break;
-; 4738 : 
-; 4739 :     case WM_WINDOWPOSCHANGING:
-; 4740 :     {
-; 4741 :       auto wnd_pos =
-; 4742 :         reinterpret_cast <LPWINDOWPOS> (lParam);
-; 4743 : 
-; 4744 :       if (wnd_pos->flags ^ SWP_NOMOVE)
+; 4770 :       }
+; 4771 :     } break;
+; 4772 : 
+; 4773 :     case WM_NCCALCSIZE:
+; 4774 :       break;
+; 4775 : 
+; 4776 :     case WM_WINDOWPOSCHANGING:
+; 4777 :     {
+; 4778 :       auto wnd_pos =
+; 4779 :         reinterpret_cast <LPWINDOWPOS> (lParam);
+; 4780 : 
+; 4781 :       if (wnd_pos->flags ^ SWP_NOMOVE)
 
-	je	SHORT $LN165@SK_DetourW
+	je	SHORT $LN170@SK_DetourW
 
-; 4745 :       {
-; 4746 :         int width  = game_window.game.window.right  - game_window.game.window.left;
-; 4747 :         int height = game_window.game.window.bottom - game_window.game.window.top;
-; 4748 : 
-; 4749 :         game_window.game.window.left   = wnd_pos->x;
+; 4782 :       {
+; 4783 :         int width  = game_window.game.window.right  - game_window.game.window.left;
+; 4784 :         int height = game_window.game.window.bottom - game_window.game.window.top;
+; 4785 : 
+; 4786 :         game_window.game.window.left   = wnd_pos->x;
 
 	mov	eax, DWORD PTR [edi+8]
 	mov	ecx, DWORD PTR ?game_window@@3Usk_window_s@@A+60
@@ -20422,19 +20514,19 @@ $LN69@SK_DetourW:
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A$4[ebp], eax
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+52, eax
 
-; 4750 :         game_window.game.window.top    = wnd_pos->y;
+; 4787 :         game_window.game.window.top    = wnd_pos->y;
 
 	mov	eax, DWORD PTR [edi+12]
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A$5[ebp], eax
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+56, eax
 
-; 4751 : 
-; 4752 :         game_window.game.window.right  = wnd_pos->x + width;
+; 4788 : 
+; 4789 :         game_window.game.window.right  = wnd_pos->x + width;
 
 	mov	eax, DWORD PTR [edi+8]
 	add	eax, ecx
 
-; 4753 :         game_window.game.window.bottom = wnd_pos->y + height;
+; 4790 :         game_window.game.window.bottom = wnd_pos->y + height;
 
 	mov	ecx, DWORD PTR ?game_window@@3Usk_window_s@@A$4[ebp]
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+60, eax
@@ -20442,125 +20534,125 @@ $LN69@SK_DetourW:
 	add	eax, edx
 	mov	edx, DWORD PTR ?game_window@@3Usk_window_s@@A$5[ebp]
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+64, eax
-	jmp	SHORT $LN70@SK_DetourW
-$LN165@SK_DetourW:
+	jmp	SHORT $LN75@SK_DetourW
+$LN170@SK_DetourW:
 	mov	edx, DWORD PTR ?game_window@@3Usk_window_s@@A+56
 	mov	ecx, DWORD PTR ?game_window@@3Usk_window_s@@A+52
-$LN70@SK_DetourW:
+$LN75@SK_DetourW:
 	cmp	DWORD PTR [edi+24], 1
 
-; 4754 :       }
-; 4755 : 
-; 4756 :       if (wnd_pos->flags ^ SWP_NOSIZE)
+; 4791 :       }
+; 4792 : 
+; 4793 :       if (wnd_pos->flags ^ SWP_NOSIZE)
 
-	je	SHORT $LN71@SK_DetourW
+	je	SHORT $LN76@SK_DetourW
 
-; 4757 :       {
-; 4758 :         game_window.game.window.right  = game_window.game.window.left + wnd_pos->cx;
+; 4794 :       {
+; 4795 :         game_window.game.window.right  = game_window.game.window.left + wnd_pos->cx;
 
 	mov	eax, DWORD PTR [edi+16]
 	add	eax, ecx
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+60, eax
 
-; 4759 :         game_window.game.window.bottom = game_window.game.window.top  + wnd_pos->cy;
+; 4796 :         game_window.game.window.bottom = game_window.game.window.top  + wnd_pos->cy;
 
 	mov	eax, DWORD PTR [edi+20]
 	add	eax, edx
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+64, eax
-$LN71@SK_DetourW:
+$LN76@SK_DetourW:
 
-; 4760 :       }
-; 4761 : 
-; 4762 :       if (config.window.borderless && (wnd_pos->flags & SWP_FRAMECHANGED))
+; 4797 :       }
+; 4798 : 
+; 4799 :       if (config.window.borderless && (wnd_pos->flags & SWP_FRAMECHANGED))
 
 	mov	al, BYTE PTR ?config@@3Usk_config_t@@A+748
 	test	al, al
-	je	$LN109@SK_DetourW
+	je	$LN114@SK_DetourW
 	test	BYTE PTR [edi+24], 32			; 00000020H
-	je	SHORT $LN72@SK_DetourW
+	je	SHORT $LN77@SK_DetourW
 
-; 4763 :         SK_AdjustBorder ();
+; 4800 :         SK_AdjustBorder ();
 
 	call	?SK_AdjustBorder@@YAXXZ			; SK_AdjustBorder
 	mov	al, BYTE PTR ?config@@3Usk_config_t@@A+748
-$LN72@SK_DetourW:
+$LN77@SK_DetourW:
 
-; 4764 : 
-; 4765 :       //game_window.game.client = game_window.game.window;
-; 4766 : 
-; 4767 :       // Filter this message
-; 4768 :       if (config.window.borderless && config.window.fullscreen)
+; 4801 : 
+; 4802 :       //game_window.game.client = game_window.game.window;
+; 4803 : 
+; 4804 :       // Filter this message
+; 4805 :       if (config.window.borderless && config.window.fullscreen)
 
 	test	al, al
 
-; 4769 :         return DefWindowProcW (hWnd, uMsg, wParam, lParam);;
+; 4806 :         return DefWindowProcW (hWnd, uMsg, wParam, lParam);;
 
-	jmp	$LN182@SK_DetourW
-$LN74@SK_DetourW:
+	jmp	$LN187@SK_DetourW
+$LN79@SK_DetourW:
 
-; 4770 :     } break;
-; 4771 : 
-; 4772 :     
-; 4773 :     case WM_WINDOWPOSCHANGED:
-; 4774 :     {
-; 4775 :       // Unconditionally doing this tends to anger Obduction :)
-; 4776 :       //ImGui_ImplDX11_InvalidateDeviceObjects ();
-; 4777 : 
-; 4778 :       auto wnd_pos =
-; 4779 :         reinterpret_cast <LPWINDOWPOS> (lParam);
-; 4780 : 
-; 4781 :       GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
+; 4807 :     } break;
+; 4808 : 
+; 4809 :     
+; 4810 :     case WM_WINDOWPOSCHANGED:
+; 4811 :     {
+; 4812 :       // Unconditionally doing this tends to anger Obduction :)
+; 4813 :       //ImGui_ImplDX11_InvalidateDeviceObjects ();
+; 4814 : 
+; 4815 :       auto wnd_pos =
+; 4816 :         reinterpret_cast <LPWINDOWPOS> (lParam);
+; 4817 : 
+; 4818 :       GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
 
 	push	OFFSET ?game_window@@3Usk_window_s@@A+100
 	push	edx
 	call	DWORD PTR ?GetWindowRect_Original@@3P6GHPAUHWND__@@PAUtagRECT@@@ZA ; GetWindowRect_Original
 
-; 4782 :       GetClientRect_Original (game_window.hWnd, &game_window.actual.client);
+; 4819 :       GetClientRect_Original (game_window.hWnd, &game_window.actual.client);
 
 	push	OFFSET ?game_window@@3Usk_window_s@@A+84
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	call	DWORD PTR ?GetClientRect_Original@@3P6GHPAUHWND__@@PAUtagRECT@@@ZA ; GetClientRect_Original
 
-; 4783 : 
-; 4784 :       //game_window.game.client = game_window.actual.client;
-; 4785 :       //game_window.game.window = game_window.actual.window;
-; 4786 : 
-; 4787 :       if (((wnd_pos->flags ^ SWP_NOMOVE) || (wnd_pos->flags ^ SWP_NOSIZE)))
-; 4788 :       {
-; 4789 :         bool offset = false;
-; 4790 : 
-; 4791 :         // Test for user-defined position; if it exists, then we must
-; 4792 :         //   respond to all WM_WINDOWPOSCHANGED messages indicating window movement
-; 4793 :         if ( config.window.offset.x.absolute                 || config.window.offset.y.absolute ||
-; 4794 :              ( config.window.offset.x.percent >  0.000001f ||
-; 4795 :                config.window.offset.x.percent < -0.000001f ) ||
+; 4820 : 
+; 4821 :       //game_window.game.client = game_window.actual.client;
+; 4822 :       //game_window.game.window = game_window.actual.window;
+; 4823 : 
+; 4824 :       if (((wnd_pos->flags ^ SWP_NOMOVE) || (wnd_pos->flags ^ SWP_NOSIZE)))
+; 4825 :       {
+; 4826 :         bool offset = false;
+; 4827 : 
+; 4828 :         // Test for user-defined position; if it exists, then we must
+; 4829 :         //   respond to all WM_WINDOWPOSCHANGED messages indicating window movement
+; 4830 :         if ( config.window.offset.x.absolute                 || config.window.offset.y.absolute ||
+; 4831 :              ( config.window.offset.x.percent >  0.000001f ||
+; 4832 :                config.window.offset.x.percent < -0.000001f ) ||
 
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+752, 0
 	mov	BYTE PTR _offset$1$[ebp], 0
-	jne	SHORT $LN79@SK_DetourW
+	jne	SHORT $LN84@SK_DetourW
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+760, 0
-	jne	SHORT $LN79@SK_DetourW
+	jne	SHORT $LN84@SK_DetourW
 	movss	xmm0, DWORD PTR ?config@@3Usk_config_t@@A+756
 	movss	xmm1, DWORD PTR __real@358637bd
 	comiss	xmm0, xmm1
-	ja	SHORT $LN79@SK_DetourW
+	ja	SHORT $LN84@SK_DetourW
 	movss	xmm2, DWORD PTR __real@b58637bd
 	comiss	xmm2, xmm0
-	ja	SHORT $LN79@SK_DetourW
+	ja	SHORT $LN84@SK_DetourW
 	movss	xmm0, DWORD PTR ?config@@3Usk_config_t@@A+764
 	comiss	xmm0, xmm1
-	ja	SHORT $LN79@SK_DetourW
+	ja	SHORT $LN84@SK_DetourW
 	comiss	xmm2, xmm0
-	jbe	SHORT $LN77@SK_DetourW
-$LN79@SK_DetourW:
+	jbe	SHORT $LN82@SK_DetourW
+$LN84@SK_DetourW:
 
-; 4796 :              ( config.window.offset.y.percent >  0.000001f ||
-; 4797 :                config.window.offset.y.percent < -0.000001f )
-; 4798 :            )
-; 4799 :           offset = true;
+; 4833 :              ( config.window.offset.y.percent >  0.000001f ||
+; 4834 :                config.window.offset.y.percent < -0.000001f )
+; 4835 :            )
+; 4836 :           offset = true;
 
 	mov	BYTE PTR _offset$1$[ebp], 1
-$LN77@SK_DetourW:
+$LN82@SK_DetourW:
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
 ; 443  :         bool isZero (void) { return x == 0 && y == 0; };
@@ -20568,7 +20660,7 @@ $LN77@SK_DetourW:
 	mov	ecx, DWORD PTR ?config@@3Usk_config_t@@A+784
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 4801 :         bool temp_override = false;
+; 4838 :         bool temp_override = false;
 
 	xor	dl, dl
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
@@ -20578,7 +20670,7 @@ $LN77@SK_DetourW:
 	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+788
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 4801 :         bool temp_override = false;
+; 4838 :         bool temp_override = false;
 
 	mov	BYTE PTR _temp_override$1$[ebp], dl
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
@@ -20586,19 +20678,19 @@ $LN77@SK_DetourW:
 ; 443  :         bool isZero (void) { return x == 0 && y == 0; };
 
 	test	ecx, ecx
-	jne	SHORT $LN80@SK_DetourW
+	jne	SHORT $LN85@SK_DetourW
 	test	eax, eax
-	jne	SHORT $LN80@SK_DetourW
+	jne	SHORT $LN85@SK_DetourW
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 4806 :                temp_override = true;
+; 4843 :                temp_override = true;
 
 	lea	eax, DWORD PTR _client$3[ebp]
 	mov	BYTE PTR _temp_override$1$[ebp], 1
 
-; 4807 :           RECT client        = {  };
-; 4808 : 
-; 4809 :           GetClientRect_Original (game_window.hWnd, &client);
+; 4844 :           RECT client        = {  };
+; 4845 : 
+; 4846 :           GetClientRect_Original (game_window.hWnd, &client);
 
 	push	eax
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
@@ -20606,232 +20698,232 @@ $LN77@SK_DetourW:
 	movups	XMMWORD PTR _client$3[ebp], xmm0
 	call	DWORD PTR ?GetClientRect_Original@@3P6GHPAUHWND__@@PAUtagRECT@@@ZA ; GetClientRect_Original
 
-; 4810 : 
-; 4811 :           config.window.res.override.x = client.right  - client.left;
+; 4847 : 
+; 4848 :           config.window.res.override.x = client.right  - client.left;
 
 	mov	ecx, DWORD PTR _client$3[ebp+8]
 	sub	ecx, DWORD PTR _client$3[ebp]
 
-; 4812 :           config.window.res.override.y = client.bottom - client.top;
+; 4849 :           config.window.res.override.y = client.bottom - client.top;
 
 	mov	eax, DWORD PTR _client$3[ebp+12]
 	sub	eax, DWORD PTR _client$3[ebp+4]
 	mov	dl, BYTE PTR _temp_override$1$[ebp]
 	mov	DWORD PTR ?config@@3Usk_config_t@@A+784, ecx
 	mov	DWORD PTR ?config@@3Usk_config_t@@A+788, eax
-$LN80@SK_DetourW:
+$LN85@SK_DetourW:
 
-; 4813 :         }
-; 4814 : 
-; 4815 :         if (config.window.center)
+; 4850 :         }
+; 4851 : 
+; 4852 :         if (config.window.center)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+750, 0
-	je	SHORT $LN81@SK_DetourW
+	je	SHORT $LN86@SK_DetourW
 
-; 4816 :           SK_AdjustWindow ();
+; 4853 :           SK_AdjustWindow ();
 
 	call	?SK_AdjustWindow@@YAXXZ			; SK_AdjustWindow
-	jmp	SHORT $LN85@SK_DetourW
-$LN81@SK_DetourW:
+	jmp	SHORT $LN90@SK_DetourW
+$LN86@SK_DetourW:
 
-; 4817 : 
-; 4818 :         else if (offset                                                      && (wnd_pos->flags ^ SWP_NOMOVE))
+; 4854 : 
+; 4855 :         else if (offset                                                      && (wnd_pos->flags ^ SWP_NOMOVE))
 
 	cmp	BYTE PTR _offset$1$[ebp], 0
-	je	SHORT $LN83@SK_DetourW
+	je	SHORT $LN88@SK_DetourW
 	cmp	DWORD PTR [edi+24], 2
-	je	SHORT $LN83@SK_DetourW
+	je	SHORT $LN88@SK_DetourW
 
-; 4819 :           SK_AdjustWindow ();
+; 4856 :           SK_AdjustWindow ();
 
 	call	?SK_AdjustWindow@@YAXXZ			; SK_AdjustWindow
 
-; 4820 : 
-; 4821 :         else if ((! (config.window.res.override.isZero () || temp_override)) && (wnd_pos->flags ^ SWP_NOSIZE))
+; 4857 : 
+; 4858 :         else if ((! (config.window.res.override.isZero () || temp_override)) && (wnd_pos->flags ^ SWP_NOSIZE))
 
-	jmp	SHORT $LN85@SK_DetourW
-$LN83@SK_DetourW:
+	jmp	SHORT $LN90@SK_DetourW
+$LN88@SK_DetourW:
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
 
 ; 443  :         bool isZero (void) { return x == 0 && y == 0; };
 
 	test	ecx, ecx
-	jne	SHORT $LN150@SK_DetourW
+	jne	SHORT $LN155@SK_DetourW
 	test	eax, eax
-	jne	SHORT $LN150@SK_DetourW
-$LN85@SK_DetourW:
+	jne	SHORT $LN155@SK_DetourW
+$LN90@SK_DetourW:
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 4824 :         if (temp_override)
+; 4861 :         if (temp_override)
 
 	mov	al, BYTE PTR _temp_override$1$[ebp]
 	test	al, al
-	je	SHORT $LN86@SK_DetourW
-$LN153@SK_DetourW:
+	je	SHORT $LN91@SK_DetourW
+$LN158@SK_DetourW:
 
-; 4825 :         {
-; 4826 :           config.window.res.override.x = 0;
+; 4862 :         {
+; 4863 :           config.window.res.override.x = 0;
 
 	mov	DWORD PTR ?config@@3Usk_config_t@@A+784, 0
 
-; 4827 :           config.window.res.override.y = 0;
+; 4864 :           config.window.res.override.y = 0;
 
 	mov	DWORD PTR ?config@@3Usk_config_t@@A+788, 0
-$LN86@SK_DetourW:
+$LN91@SK_DetourW:
 
-; 4828 :         }
-; 4829 : 
-; 4830 :         if (config.window.unconfine_cursor)
+; 4865 :         }
+; 4866 : 
+; 4867 :         if (config.window.unconfine_cursor)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+771, 0
-	je	SHORT $LN87@SK_DetourW
+	je	SHORT $LN92@SK_DetourW
 
-; 4831 :           ClipCursor_Original (nullptr);
+; 4868 :           ClipCursor_Original (nullptr);
 
 	push	0
-	jmp	SHORT $LN175@SK_DetourW
-$LN150@SK_DetourW:
+	jmp	SHORT $LN180@SK_DetourW
+$LN155@SK_DetourW:
 
-; 4820 : 
-; 4821 :         else if ((! (config.window.res.override.isZero () || temp_override)) && (wnd_pos->flags ^ SWP_NOSIZE))
+; 4857 : 
+; 4858 :         else if ((! (config.window.res.override.isZero () || temp_override)) && (wnd_pos->flags ^ SWP_NOSIZE))
 
 	test	dl, dl
-	jne	SHORT $LN153@SK_DetourW
+	jne	SHORT $LN158@SK_DetourW
 	cmp	DWORD PTR [edi+24], 1
-	je	SHORT $LN86@SK_DetourW
+	je	SHORT $LN91@SK_DetourW
 
-; 4822 :           SK_AdjustWindow ();
+; 4859 :           SK_AdjustWindow ();
 
 	call	?SK_AdjustWindow@@YAXXZ			; SK_AdjustWindow
 
-; 4824 :         if (temp_override)
+; 4861 :         if (temp_override)
 
-	jmp	SHORT $LN86@SK_DetourW
-$LN87@SK_DetourW:
+	jmp	SHORT $LN91@SK_DetourW
+$LN92@SK_DetourW:
 
-; 4832 : 
-; 4833 :         else if (config.window.confine_cursor)
+; 4869 : 
+; 4870 :         else if (config.window.confine_cursor)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+770, 0
-	je	SHORT $LN89@SK_DetourW
+	je	SHORT $LN94@SK_DetourW
 
-; 4834 :           ClipCursor_Original (&game_window.actual.window);
+; 4871 :           ClipCursor_Original (&game_window.actual.window);
 
 	push	OFFSET ?game_window@@3Usk_window_s@@A+100
-$LN175@SK_DetourW:
+$LN180@SK_DetourW:
 	call	DWORD PTR ?ClipCursor_Original@@3P6GHPBUtagRECT@@@ZA ; ClipCursor_Original
-$LN89@SK_DetourW:
+$LN94@SK_DetourW:
 
-; 4835 :       }
-; 4836 : 
-; 4837 :       // Filter this message
-; 4838 :       if (config.window.borderless && config.window.fullscreen)
+; 4872 :       }
+; 4873 : 
+; 4874 :       // Filter this message
+; 4875 :       if (config.window.borderless && config.window.fullscreen)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+748, 0
-	je	$LN109@SK_DetourW
+	je	$LN114@SK_DetourW
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+774, 0
-	je	$LN109@SK_DetourW
-$LN185@SK_DetourW:
+	je	$LN114@SK_DetourW
+$LN190@SK_DetourW:
 	pop	edi
 
-; 4839 :         return 1;
+; 4876 :         return 1;
 
 	mov	eax, 1
 	pop	esi
 
-; 5071 : 
-; 5072 : 
-; 5073 :   return lRet;
-; 5074 : }
+; 5108 : 
+; 5109 : 
+; 5110 :   return lRet;
+; 5111 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
 	mov	esp, ebp
 	pop	ebp
 	ret	16					; 00000010H
-$LN91@SK_DetourW:
+$LN96@SK_DetourW:
 
-; 4840 :     } break;
-; 4841 : 
-; 4842 : 
-; 4843 :     case WM_SIZE:
-; 4844 :       ImGui_ImplDX11_InvalidateDeviceObjects ();
+; 4877 :     } break;
+; 4878 : 
+; 4879 : 
+; 4880 :     case WM_SIZE:
+; 4881 :       ImGui_ImplDX11_InvalidateDeviceObjects ();
 
 	call	?ImGui_ImplDX11_InvalidateDeviceObjects@@YAXXZ ; ImGui_ImplDX11_InvalidateDeviceObjects
 	mov	edx, DWORD PTR ?game_window@@3Usk_window_s@@A+4
-$LN92@SK_DetourW:
+$LN97@SK_DetourW:
 
-; 4845 :       // Fallthrough to WM_MOVE
-; 4846 : 
-; 4847 :     case WM_MOVE:
-; 4848 :     {
-; 4849 :       GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
+; 4882 :       // Fallthrough to WM_MOVE
+; 4883 : 
+; 4884 :     case WM_MOVE:
+; 4885 :     {
+; 4886 :       GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
 
 	push	OFFSET ?game_window@@3Usk_window_s@@A+100
 	push	edx
 	call	DWORD PTR ?GetWindowRect_Original@@3P6GHPAUHWND__@@PAUtagRECT@@@ZA ; GetWindowRect_Original
 
-; 4850 :       GetClientRect_Original (game_window.hWnd, &game_window.actual.client);
+; 4887 :       GetClientRect_Original (game_window.hWnd, &game_window.actual.client);
 
 	push	OFFSET ?game_window@@3Usk_window_s@@A+84
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	call	DWORD PTR ?GetClientRect_Original@@3P6GHPAUHWND__@@PAUtagRECT@@@ZA ; GetClientRect_Original
 
-; 4851 : 
-; 4852 :       //if (SK_GetCurrentGameID () == SK_GAME_ID::DotHackGU)
-; 4853 :       //{
-; 4854 :       //  if ( game_window.actual.window.right - game_window.actual.window.left ==
-; 4855 :       //       game_window.actual.client.right - game_window.actual.client.left + 6 )
-; 4856 :       //  {
-; 4857 :       //    SetWindowLongW (hWnd, GWL_STYLE,   SK_BORDERLESS);
-; 4858 :       //    SetWindowLongW (hWnd, GWL_EXSTYLE, SK_BORDERLESS_EX);
-; 4859 :       //
-; 4860 :       //    HMONITOR hMonitor =
-; 4861 :       //    MonitorFromWindow ( hWnd,
-; 4862 :       //                          MONITOR_DEFAULTTONEAREST );
-; 4863 :       //
-; 4864 :       //    MONITORINFO mi = { 0 };
-; 4865 :       //    mi.cbSize      = sizeof (mi);
-; 4866 :       //
-; 4867 :       //    GetMonitorInfo (hMonitor, &mi);
-; 4868 :       //
-; 4869 :       //    game_window.actual.window = mi.rcMonitor;
-; 4870 :       //
-; 4871 :       //    game_window.actual.client.left   = 0;
-; 4872 :       //    game_window.actual.client.right  = game_window.actual.window.right - game_window.actual.window.left;
-; 4873 :       //    game_window.actual.client.top    = 0;
-; 4874 :       //    game_window.actual.client.bottom = game_window.actual.window.bottom - game_window.actual.window.top;
-; 4875 :       //
-; 4876 :       //    SetWindowPos_Original ( game_window.hWnd,
-; 4877 :       //          HWND_TOP,
-; 4878 :       //            game_window.actual.client.left, game_window.actual.client.top,
-; 4879 :       //              game_window.actual.window.right  - game_window.actual.window.left,
-; 4880 :       //              game_window.actual.window.bottom - game_window.actual.window.top,
-; 4881 :       //                SWP_NOZORDER     | SWP_NOSENDCHANGING | SWP_ASYNCWINDOWPOS |
-; 4882 :       //                SWP_FRAMECHANGED | SWP_SHOWWINDOW );
-; 4883 :       //  }
-; 4884 :       //}
-; 4885 : 
-; 4886 :       if (config.window.confine_cursor)
+; 4888 : 
+; 4889 :       //if (SK_GetCurrentGameID () == SK_GAME_ID::DotHackGU)
+; 4890 :       //{
+; 4891 :       //  if ( game_window.actual.window.right - game_window.actual.window.left ==
+; 4892 :       //       game_window.actual.client.right - game_window.actual.client.left + 6 )
+; 4893 :       //  {
+; 4894 :       //    SetWindowLongW (hWnd, GWL_STYLE,   SK_BORDERLESS);
+; 4895 :       //    SetWindowLongW (hWnd, GWL_EXSTYLE, SK_BORDERLESS_EX);
+; 4896 :       //
+; 4897 :       //    HMONITOR hMonitor =
+; 4898 :       //    MonitorFromWindow ( hWnd,
+; 4899 :       //                          MONITOR_DEFAULTTONEAREST );
+; 4900 :       //
+; 4901 :       //    MONITORINFO mi = { 0 };
+; 4902 :       //    mi.cbSize      = sizeof (mi);
+; 4903 :       //
+; 4904 :       //    GetMonitorInfo (hMonitor, &mi);
+; 4905 :       //
+; 4906 :       //    game_window.actual.window = mi.rcMonitor;
+; 4907 :       //
+; 4908 :       //    game_window.actual.client.left   = 0;
+; 4909 :       //    game_window.actual.client.right  = game_window.actual.window.right - game_window.actual.window.left;
+; 4910 :       //    game_window.actual.client.top    = 0;
+; 4911 :       //    game_window.actual.client.bottom = game_window.actual.window.bottom - game_window.actual.window.top;
+; 4912 :       //
+; 4913 :       //    SetWindowPos_Original ( game_window.hWnd,
+; 4914 :       //          HWND_TOP,
+; 4915 :       //            game_window.actual.client.left, game_window.actual.client.top,
+; 4916 :       //              game_window.actual.window.right  - game_window.actual.window.left,
+; 4917 :       //              game_window.actual.window.bottom - game_window.actual.window.top,
+; 4918 :       //                SWP_NOZORDER     | SWP_NOSENDCHANGING | SWP_ASYNCWINDOWPOS |
+; 4919 :       //                SWP_FRAMECHANGED | SWP_SHOWWINDOW );
+; 4920 :       //  }
+; 4921 :       //}
+; 4922 : 
+; 4923 :       if (config.window.confine_cursor)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+770, 0
-	je	$LN97@SK_DetourW
+	je	$LN102@SK_DetourW
 
-; 4887 :         ClipCursor_Original (&game_window.actual.window);
+; 4924 :         ClipCursor_Original (&game_window.actual.window);
 
 	push	OFFSET ?game_window@@3Usk_window_s@@A+100
-	jmp	$LN176@SK_DetourW
-$LN110@SK_DetourW:
+	jmp	$LN181@SK_DetourW
+$LN115@SK_DetourW:
 
-; 4938 :       break;
-; 4939 : 
-; 4940 :     case WM_INPUT:
-; 4941 :       if (! game_window.active)
+; 4975 :       break;
+; 4976 : 
+; 4977 :     case WM_INPUT:
+; 4978 :       if (! game_window.active)
 
 	test	al, al
-	jne	$LN109@SK_DetourW
+	jne	$LN114@SK_DetourW
 
-; 4942 :         return DefWindowProcW (hWnd, uMsg, wParam, lParam);
+; 4979 :         return DefWindowProcW (hWnd, uMsg, wParam, lParam);
 
 	push	edi
 	push	DWORD PTR _wParam$[ebp]
@@ -20841,85 +20933,85 @@ $LN110@SK_DetourW:
 	pop	edi
 	pop	esi
 
-; 5071 : 
-; 5072 : 
-; 5073 :   return lRet;
-; 5074 : }
+; 5108 : 
+; 5109 : 
+; 5110 :   return lRet;
+; 5111 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
 	mov	esp, ebp
 	pop	ebp
 	ret	16					; 00000010H
-$LN137@SK_DetourW:
+$LN142@SK_DetourW:
 
-; 4566 :   }
-; 4567 : 
-; 4568 : 
-; 4569 :   switch (uMsg)
+; 4574 :   }
+; 4575 : 
+; 4576 : 
+; 4577 :   switch (uMsg)
 
 	cmp	esi, 274				; 00000112H
-	ja	$LN138@SK_DetourW
+	ja	$LN143@SK_DetourW
 	je	$LN34@SK_DetourW
 	lea	edx, DWORD PTR [esi-256]
 	cmp	edx, 5
-	ja	$LN109@SK_DetourW
-	jmp	DWORD PTR $LN188@SK_DetourW[edx*4]
-$LN100@SK_DetourW:
+	ja	$LN114@SK_DetourW
+	jmp	DWORD PTR $LN193@SK_DetourW[edx*4]
+$LN105@SK_DetourW:
 
-; 4906 :         break;
-; 4907 : 
-; 4908 : 
-; 4909 :     case WM_KEYDOWN:
-; 4910 :     case WM_SYSKEYDOWN:
-; 4911 :       if (game_window.active)
-; 4912 :       {
-; 4913 :         if (SK_Console::getInstance ()->KeyDown (wParam & 0xFF, lParam) && (uMsg != WM_SYSKEYDOWN))
+; 4943 :         break;
+; 4944 : 
+; 4945 : 
+; 4946 :     case WM_KEYDOWN:
+; 4947 :     case WM_SYSKEYDOWN:
+; 4948 :       if (game_window.active)
+; 4949 :       {
+; 4950 :         if (SK_Console::getInstance ()->KeyDown (wParam & 0xFF, lParam) && (uMsg != WM_SYSKEYDOWN))
 
 	push	edi
 	push	DWORD PTR _wParam$[ebp]
 	test	al, al
-	je	SHORT $LN105@SK_DetourW
+	je	SHORT $LN110@SK_DetourW
 	call	?getInstance@SK_Console@@SAPAV1@XZ	; SK_Console::getInstance
 	mov	ecx, eax
 	call	?KeyDown@SK_Console@@QAEHEJ@Z		; SK_Console::KeyDown
 	test	eax, eax
-	je	$LN109@SK_DetourW
+	je	$LN114@SK_DetourW
 	cmp	esi, 260				; 00000104H
 
-; 4914 :         {
-; 4915 :           return SK_COMPAT_SafeCallProc (&game_window, hWnd, uMsg, wParam, lParam);
+; 4951 :         {
+; 4952 :           return SK_COMPAT_SafeCallProc (&game_window, hWnd, uMsg, wParam, lParam);
 
-	jmp	SHORT $LN184@SK_DetourW
-$LN104@SK_DetourW:
+	jmp	SHORT $LN189@SK_DetourW
+$LN109@SK_DetourW:
 
-; 4916 :         }
-; 4917 :       }
-; 4918 :       else
-; 4919 :         return DefWindowProcW (hWnd, uMsg, wParam, lParam);
-; 4920 :       break;
-; 4921 : 
-; 4922 :     case WM_KEYUP:
-; 4923 :     case WM_SYSKEYUP:
-; 4924 :       if (game_window.active)
-; 4925 :       {
-; 4926 :         if (SK_Console::getInstance ()->KeyUp (wParam & 0xFF, lParam) && (uMsg != WM_SYSKEYUP))
+; 4953 :         }
+; 4954 :       }
+; 4955 :       else
+; 4956 :         return DefWindowProcW (hWnd, uMsg, wParam, lParam);
+; 4957 :       break;
+; 4958 : 
+; 4959 :     case WM_KEYUP:
+; 4960 :     case WM_SYSKEYUP:
+; 4961 :       if (game_window.active)
+; 4962 :       {
+; 4963 :         if (SK_Console::getInstance ()->KeyUp (wParam & 0xFF, lParam) && (uMsg != WM_SYSKEYUP))
 
 	push	edi
 	push	DWORD PTR _wParam$[ebp]
 	test	al, al
-	je	SHORT $LN105@SK_DetourW
+	je	SHORT $LN110@SK_DetourW
 	call	?getInstance@SK_Console@@SAPAV1@XZ	; SK_Console::getInstance
 	mov	ecx, eax
 	call	?KeyUp@SK_Console@@QAEHEJ@Z		; SK_Console::KeyUp
 	test	eax, eax
-	je	$LN109@SK_DetourW
+	je	$LN114@SK_DetourW
 	cmp	esi, 261				; 00000105H
-$LN184@SK_DetourW:
-	je	$LN109@SK_DetourW
+$LN189@SK_DetourW:
+	je	$LN114@SK_DetourW
 
-; 4927 :         {
-; 4928 :           return SK_COMPAT_SafeCallProc (&game_window, hWnd, uMsg, wParam, lParam);
+; 4964 :         {
+; 4965 :           return SK_COMPAT_SafeCallProc (&game_window, hWnd, uMsg, wParam, lParam);
 
 	push	edi
 	push	DWORD PTR _wParam$[ebp]
@@ -20931,22 +21023,22 @@ $LN184@SK_DetourW:
 	pop	edi
 	pop	esi
 
-; 5071 : 
-; 5072 : 
-; 5073 :   return lRet;
-; 5074 : }
+; 5108 : 
+; 5109 : 
+; 5110 :   return lRet;
+; 5111 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
 	mov	esp, ebp
 	pop	ebp
 	ret	16					; 00000010H
-$LN105@SK_DetourW:
+$LN110@SK_DetourW:
 
-; 4929 :         }
-; 4930 :       }
-; 4931 :       else
-; 4932 :         return DefWindowProcW (hWnd, uMsg, wParam, lParam);
+; 4966 :         }
+; 4967 :       }
+; 4968 :       else
+; 4969 :         return DefWindowProcW (hWnd, uMsg, wParam, lParam);
 
 	push	esi
 	push	ecx
@@ -20954,10 +21046,10 @@ $LN105@SK_DetourW:
 	pop	edi
 	pop	esi
 
-; 5071 : 
-; 5072 : 
-; 5073 :   return lRet;
-; 5074 : }
+; 5108 : 
+; 5109 : 
+; 5110 :   return lRet;
+; 5111 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -20966,107 +21058,107 @@ $LN105@SK_DetourW:
 	ret	16					; 00000010H
 $LN34@SK_DetourW:
 
-; 4587 :       }
-; 4588 :       break;
-; 4589 : 
-; 4590 :     case WM_SYSCOMMAND:
-; 4591 :     {
-; 4592 :       if ((wParam & 0xfff0) == SC_KEYMENU && lParam == 0) // Disable ALT application menu
+; 4595 :       }
+; 4596 :       break;
+; 4597 : 
+; 4598 :     case WM_SYSCOMMAND:
+; 4599 :     {
+; 4600 :       if ((wParam & 0xfff0) == SC_KEYMENU && lParam == 0) // Disable ALT application menu
 
 	mov	eax, DWORD PTR _wParam$[ebp]
 	and	eax, 65520				; 0000fff0H
 	cmp	eax, 61696				; 0000f100H
 	jne	SHORT $LN35@SK_DetourW
 	test	edi, edi
-	je	SHORT $LN180@SK_DetourW
+	je	SHORT $LN185@SK_DetourW
 $LN35@SK_DetourW:
 
-; 4593 :         return 0;
-; 4594 : 
-; 4595 :       if ( (wParam & 0xfff0) == SC_SCREENSAVE ||
+; 4601 :         return 0;
+; 4602 : 
+; 4603 :       if ( (wParam & 0xfff0) == SC_SCREENSAVE ||
 
 	cmp	eax, 61760				; 0000f140H
 	je	SHORT $LN37@SK_DetourW
 	cmp	eax, 61808				; 0000f170H
-	jne	$LN109@SK_DetourW
+	jne	$LN114@SK_DetourW
 $LN37@SK_DetourW:
 
-; 4596 :            (wParam & 0xfff0) == SC_MONITORPOWER )
-; 4597 :       {
-; 4598 :         if (config.window.disable_screensaver)
+; 4604 :            (wParam & 0xfff0) == SC_MONITORPOWER )
+; 4605 :       {
+; 4606 :         if (config.window.disable_screensaver)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+780, 0
-	je	SHORT $LN109@SK_DetourW
-$LN180@SK_DetourW:
+	je	SHORT $LN114@SK_DetourW
+$LN185@SK_DetourW:
 	pop	edi
 
-; 4599 :           return 0;
+; 4607 :           return 0;
 
 	xor	eax, eax
 	pop	esi
 
-; 5071 : 
-; 5072 : 
-; 5073 :   return lRet;
-; 5074 : }
+; 5108 : 
+; 5109 : 
+; 5110 :   return lRet;
+; 5111 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
 	mov	esp, ebp
 	pop	ebp
 	ret	16					; 00000010H
-$LN138@SK_DetourW:
+$LN143@SK_DetourW:
 
-; 4566 :   }
-; 4567 : 
-; 4568 : 
-; 4569 :   switch (uMsg)
+; 4574 :   }
+; 4575 : 
+; 4576 : 
+; 4577 :   switch (uMsg)
 
 	mov	ecx, esi
 	sub	ecx, 512				; 00000200H
-	je	SHORT $LN108@SK_DetourW
+	je	SHORT $LN113@SK_DetourW
 	sub	ecx, 20					; 00000014H
-	je	SHORT $LN97@SK_DetourW
+	je	SHORT $LN102@SK_DetourW
 	sub	ecx, 2
-	jne	SHORT $LN109@SK_DetourW
-$LN97@SK_DetourW:
+	jne	SHORT $LN114@SK_DetourW
+$LN102@SK_DetourW:
 
-; 4888 :       else if (config.window.unconfine_cursor)
-; 4889 :         ClipCursor_Original (nullptr);
-; 4890 : 
-; 4891 : 
-; 4892 :       // Filter this message
-; 4893 :       if (config.window.borderless && config.window.fullscreen)
-; 4894 :         return DefWindowProcW (hWnd, uMsg, wParam, lParam);;
-; 4895 :     } break;
-; 4896 : 
-; 4897 : 
-; 4898 :       case WM_SIZING:
-; 4899 :       case WM_MOVING:
-; 4900 :         if (config.window.unconfine_cursor)
+; 4925 :       else if (config.window.unconfine_cursor)
+; 4926 :         ClipCursor_Original (nullptr);
+; 4927 : 
+; 4928 : 
+; 4929 :       // Filter this message
+; 4930 :       if (config.window.borderless && config.window.fullscreen)
+; 4931 :         return DefWindowProcW (hWnd, uMsg, wParam, lParam);;
+; 4932 :     } break;
+; 4933 : 
+; 4934 : 
+; 4935 :       case WM_SIZING:
+; 4936 :       case WM_MOVING:
+; 4937 :         if (config.window.unconfine_cursor)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+771, 0
-	je	SHORT $LN98@SK_DetourW
+	je	SHORT $LN103@SK_DetourW
 
-; 4901 :           ClipCursor_Original (nullptr);
+; 4938 :           ClipCursor_Original (nullptr);
 
 	push	0
-$LN176@SK_DetourW:
+$LN181@SK_DetourW:
 	call	DWORD PTR ?ClipCursor_Original@@3P6GHPBUtagRECT@@@ZA ; ClipCursor_Original
-$LN98@SK_DetourW:
+$LN103@SK_DetourW:
 
-; 4902 : 
-; 4903 :         // Filter this message
-; 4904 :         if (config.window.borderless && config.window.fullscreen)
+; 4939 : 
+; 4940 :         // Filter this message
+; 4941 :         if (config.window.borderless && config.window.fullscreen)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+748, 0
-$LN182@SK_DetourW:
-	je	SHORT $LN109@SK_DetourW
+$LN187@SK_DetourW:
+	je	SHORT $LN114@SK_DetourW
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+774, 0
-	je	SHORT $LN109@SK_DetourW
-$LN123@SK_DetourW:
+	je	SHORT $LN114@SK_DetourW
+$LN128@SK_DetourW:
 
-; 4905 :           return DefWindowProcW (hWnd, uMsg, wParam, lParam);;
+; 4942 :           return DefWindowProcW (hWnd, uMsg, wParam, lParam);;
 
 	push	edi
 	push	DWORD PTR _wParam$[ebp]
@@ -21076,39 +21168,39 @@ $LN123@SK_DetourW:
 	pop	edi
 	pop	esi
 
-; 5071 : 
-; 5072 : 
-; 5073 :   return lRet;
-; 5074 : }
+; 5108 : 
+; 5109 : 
+; 5110 :   return lRet;
+; 5111 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
 	mov	esp, ebp
 	pop	ebp
 	ret	16					; 00000010H
-$LN108@SK_DetourW:
+$LN113@SK_DetourW:
 
-; 4933 :       break;
-; 4934 : 
-; 4935 :     case WM_MOUSEMOVE:
-; 4936 :       if (! game_window.active)
+; 4970 :       break;
+; 4971 : 
+; 4972 :     case WM_MOUSEMOVE:
+; 4973 :       if (! game_window.active)
 
 	test	al, al
-	jne	SHORT $LN109@SK_DetourW
+	jne	SHORT $LN114@SK_DetourW
 
-; 4937 :         GetCursorPos_Original (&game_window.cursor_pos);
+; 4974 :         GetCursorPos_Original (&game_window.cursor_pos);
 
 	push	OFFSET ?game_window@@3Usk_window_s@@A+184
 	call	DWORD PTR ?GetCursorPos_Original@@3P6GHPAUtagPOINT@@@ZA ; GetCursorPos_Original
-$LN109@SK_DetourW:
+$LN114@SK_DetourW:
 
-; 4943 :       break;
-; 4944 :   }
-; 4945 : 
-; 4946 :          bool handled = false;
-; 4947 :   static bool eqgame  =
+; 4980 :       break;
+; 4981 :   }
+; 4982 : 
+; 4983 :          bool handled = false;
+; 4984 :   static bool eqgame  =
 
-	mov	ecx, DWORD PTR tv1370[ebp]
+	mov	ecx, DWORD PTR tv1410[ebp]
 	mov	eax, DWORD PTR ?$TSS1@?1??SK_DetourWindowProc@@YGJPAUHWND__@@IIJ@Z@4HA
 	cmp	eax, DWORD PTR __Init_thread_epoch[ecx]
 	jle	SHORT $LN9@SK_DetourW
@@ -21118,9 +21210,9 @@ $LN109@SK_DetourW:
 	cmp	DWORD PTR ?$TSS1@?1??SK_DetourWindowProc@@YGJPAUHWND__@@IIJ@Z@4HA, -1
 	jne	SHORT $LN9@SK_DetourW
 
-; 4948 :     wcsstr (SK_GetHostApp (), L"eqgame.exe");
+; 4985 :     wcsstr (SK_GetHostApp (), L"eqgame.exe");
 
-	push	OFFSET $SG281966
+	push	OFFSET $SG282046
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 	call	?SK_GetHostApp@@YAPB_WXZ		; SK_GetHostApp
 	push	eax
@@ -21133,14 +21225,14 @@ $LN109@SK_DetourW:
 	add	esp, 12					; 0000000cH
 $LN9@SK_DetourW:
 
-; 4949 : 
-; 4950 :   if (uMsg == WM_INPUT)
+; 4986 : 
+; 4987 :   if (uMsg == WM_INPUT)
 
 	cmp	esi, 255				; 000000ffH
-	jne	SHORT $LN113@SK_DetourW
+	jne	SHORT $LN118@SK_DetourW
 
-; 4951 :   {
-; 4952 :     if (ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam))
+; 4988 :   {
+; 4989 :     if (ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam))
 
 	push	edi
 	push	DWORD PTR _wParam$[ebp]
@@ -21148,20 +21240,20 @@ $LN9@SK_DetourW:
 	push	DWORD PTR _hWnd$[ebp]
 	call	?ImGui_WndProcHandler@@YGJPAUHWND__@@IIJ@Z ; ImGui_WndProcHandler
 	test	eax, eax
-	jne	$LN180@SK_DetourW
-$LN113@SK_DetourW:
+	jne	$LN185@SK_DetourW
+$LN118@SK_DetourW:
 
-; 4953 :       return 0;
-; 4954 :   }
-; 4955 : 
-; 4956 :   if (eqgame)
+; 4990 :       return 0;
+; 4991 :   }
+; 4992 : 
+; 4993 :   if (eqgame)
 
 	mov	al, BYTE PTR ?eqgame@?1??SK_DetourWindowProc@@YGJPAUHWND__@@IIJ@Z@4_NA
 	test	al, al
-	je	SHORT $LN158@SK_DetourW
+	je	SHORT $LN163@SK_DetourW
 
-; 4957 :   {
-; 4958 :     handled =
+; 4994 :   {
+; 4995 :     handled =
 
 	push	edi
 	push	DWORD PTR _wParam$[ebp]
@@ -21171,48 +21263,48 @@ $LN113@SK_DetourW:
 	test	eax, eax
 	setne	al
 
-; 4959 :       ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam);
-; 4960 :   }
-; 4961 : 
-; 4962 : 
-; 4963 : 
-; 4964 :   // Synaptics Touchpad Compat Hack:
-; 4965 :   // -------------------------------
-; 4966 :   //
-; 4967 :   //  PROBLEM:    Driver only generates window messages for mousewheel, it does
-; 4968 :   //                not activate RawInput, DirectInput or HID like a real mouse
-; 4969 :   //
-; 4970 :   //  WORKAROUND: Generate a full-blown input event using SendInput (...); be
-; 4971 :   //                aware that this event will generate ANOTHER WM_MOUSEWHEEL.
-; 4972 :   //
-; 4973 :   //    ** MUST handle recursive behavior caused by this fix-up **
-; 4974 :   //
-; 4975 :   static bool recursive_wheel = false;
-; 4976 : 
-; 4977 :   // Dual purpose: This also catches any WM_MOUSEWHEEL messages that Synaptics
-; 4978 :   //                 issued through CallWindowProc (...) rather than
-; 4979 :   //                   SendMessage (...) / PostMessage (...) -- UGH.
-; 4980 :   //
-; 4981 :   //      >> We need to process those for ImGui <<
-; 4982 :   //
-; 4983 :   if ((! handled) && uMsg == WM_MOUSEWHEEL && (! recursive_wheel))
+; 4996 :       ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam);
+; 4997 :   }
+; 4998 : 
+; 4999 : 
+; 5000 : 
+; 5001 :   // Synaptics Touchpad Compat Hack:
+; 5002 :   // -------------------------------
+; 5003 :   //
+; 5004 :   //  PROBLEM:    Driver only generates window messages for mousewheel, it does
+; 5005 :   //                not activate RawInput, DirectInput or HID like a real mouse
+; 5006 :   //
+; 5007 :   //  WORKAROUND: Generate a full-blown input event using SendInput (...); be
+; 5008 :   //                aware that this event will generate ANOTHER WM_MOUSEWHEEL.
+; 5009 :   //
+; 5010 :   //    ** MUST handle recursive behavior caused by this fix-up **
+; 5011 :   //
+; 5012 :   static bool recursive_wheel = false;
+; 5013 : 
+; 5014 :   // Dual purpose: This also catches any WM_MOUSEWHEEL messages that Synaptics
+; 5015 :   //                 issued through CallWindowProc (...) rather than
+; 5016 :   //                   SendMessage (...) / PostMessage (...) -- UGH.
+; 5017 :   //
+; 5018 :   //      >> We need to process those for ImGui <<
+; 5019 :   //
+; 5020 :   if ((! handled) && uMsg == WM_MOUSEWHEEL && (! recursive_wheel))
 
 	test	al, al
-	jne	SHORT $LN115@SK_DetourW
+	jne	SHORT $LN120@SK_DetourW
 	mov	al, BYTE PTR ?eqgame@?1??SK_DetourWindowProc@@YGJPAUHWND__@@IIJ@Z@4_NA
-$LN158@SK_DetourW:
+$LN163@SK_DetourW:
 	cmp	esi, 522				; 0000020aH
-	jne	SHORT $LN115@SK_DetourW
+	jne	SHORT $LN120@SK_DetourW
 	cmp	BYTE PTR ?recursive_wheel@?1??SK_DetourWindowProc@@YGJPAUHWND__@@IIJ@Z@4_NA, 0
-	jne	SHORT $LN159@SK_DetourW
+	jne	SHORT $LN164@SK_DetourW
 
-; 4984 :   {
-; 4985 :     if (! eqgame)
+; 5021 :   {
+; 5022 :     if (! eqgame)
 
 	test	al, al
-	jne	SHORT $LN160@SK_DetourW
+	jne	SHORT $LN165@SK_DetourW
 
-; 4986 :       handled = ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam);
+; 5023 :       handled = ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam);
 
 	push	edi
 	push	DWORD PTR _wParam$[ebp]
@@ -21222,21 +21314,21 @@ $LN158@SK_DetourW:
 	test	eax, eax
 	setne	al
 
-; 4987 : 
-; 4988 :     if ((! handled) && config.input.mouse.fix_synaptics)
+; 5024 : 
+; 5025 :     if ((! handled) && config.input.mouse.fix_synaptics)
 
 	test	al, al
-	jne	SHORT $LN162@SK_DetourW
-$LN160@SK_DetourW:
+	jne	SHORT $LN167@SK_DetourW
+$LN165@SK_DetourW:
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+732, 0
-	je	SHORT $LN162@SK_DetourW
+	je	SHORT $LN167@SK_DetourW
 
-; 4989 :     {
-; 4990 :       INPUT input        = { };
-; 4991 : 
-; 4992 :       input.type         = INPUT_MOUSE;
-; 4993 :       input.mi.dwFlags   = MOUSEEVENTF_WHEEL;
-; 4994 :       input.mi.mouseData = GET_WHEEL_DELTA_WPARAM (wParam);
+; 5026 :     {
+; 5027 :       INPUT input        = { };
+; 5028 : 
+; 5029 :       input.type         = INPUT_MOUSE;
+; 5030 :       input.mi.dwFlags   = MOUSEEVENTF_WHEEL;
+; 5031 :       input.mi.mouseData = GET_WHEEL_DELTA_WPARAM (wParam);
 
 	mov	eax, DWORD PTR _wParam$[ebp]
 	xorps	xmm0, xmm0
@@ -21245,10 +21337,10 @@ $LN160@SK_DetourW:
 	movups	XMMWORD PTR _input$2[ebp], xmm0
 	mov	DWORD PTR _input$2[ebp+12], eax
 
-; 4995 : 
-; 4996 :       recursive_wheel    = true;
-; 4997 : 
-; 4998 :       SendInput_Original (1, &input, sizeof INPUT);
+; 5032 : 
+; 5033 :       recursive_wheel    = true;
+; 5034 : 
+; 5035 :       SendInput_Original (1, &input, sizeof INPUT);
 
 	lea	eax, DWORD PTR _input$2[ebp]
 	push	28					; 0000001cH
@@ -21261,101 +21353,101 @@ $LN160@SK_DetourW:
 	mov	BYTE PTR ?recursive_wheel@?1??SK_DetourWindowProc@@YGJPAUHWND__@@IIJ@Z@4_NA, 1
 	call	DWORD PTR ?SendInput_Original@@3P6GIIPAUtagINPUT@@H@ZA ; SendInput_Original
 
-; 4999 :     }
-; 5000 :   }
+; 5036 :     }
+; 5037 :   }
 
-	jmp	SHORT $LN162@SK_DetourW
-$LN115@SK_DetourW:
+	jmp	SHORT $LN167@SK_DetourW
+$LN120@SK_DetourW:
 
-; 5001 : 
-; 5002 :   // In-lieu of a proper fence, this solves the recursion problem.
-; 5003 :   //
-; 5004 :   //   There's no guarantee the message we are ignoring is the one we
-; 5005 :   //     generated, but one misplaced message won't kill anything.
-; 5006 :   //
-; 5007 :   else if (recursive_wheel && uMsg == WM_MOUSEWHEEL)
+; 5038 : 
+; 5039 :   // In-lieu of a proper fence, this solves the recursion problem.
+; 5040 :   //
+; 5041 :   //   There's no guarantee the message we are ignoring is the one we
+; 5042 :   //     generated, but one misplaced message won't kill anything.
+; 5043 :   //
+; 5044 :   else if (recursive_wheel && uMsg == WM_MOUSEWHEEL)
 
 	cmp	BYTE PTR ?recursive_wheel@?1??SK_DetourWindowProc@@YGJPAUHWND__@@IIJ@Z@4_NA, 0
-	je	SHORT $LN119@SK_DetourW
+	je	SHORT $LN124@SK_DetourW
 	cmp	esi, 522				; 0000020aH
-	jne	SHORT $LN119@SK_DetourW
-$LN159@SK_DetourW:
+	jne	SHORT $LN124@SK_DetourW
+$LN164@SK_DetourW:
 
-; 5008 :     recursive_wheel = false;
+; 5045 :     recursive_wheel = false;
 
 	mov	BYTE PTR ?recursive_wheel@?1??SK_DetourWindowProc@@YGJPAUHWND__@@IIJ@Z@4_NA, 0
 
-; 5009 : 
-; 5010 : 
-; 5011 : 
-; 5012 :   //
-; 5013 :   // Squelch input messages that managed to get into the loop without triggering
-; 5014 :   //   filtering logic in the GetMessage (...), PeekMessage (...) and
-; 5015 :   //     DispatchMessage (...) hooks.
-; 5016 :   //
-; 5017 :   //   [ Mostly for EverQuest ]
-; 5018 :   //
-; 5019 :   if (uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST && SK_ImGui_WantMouseCapture    ())
+; 5046 : 
+; 5047 : 
+; 5048 : 
+; 5049 :   //
+; 5050 :   // Squelch input messages that managed to get into the loop without triggering
+; 5051 :   //   filtering logic in the GetMessage (...), PeekMessage (...) and
+; 5052 :   //     DispatchMessage (...) hooks.
+; 5053 :   //
+; 5054 :   //   [ Mostly for EverQuest ]
+; 5055 :   //
+; 5056 :   if (uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST && SK_ImGui_WantMouseCapture    ())
 
-	jmp	SHORT $LN162@SK_DetourW
-$LN119@SK_DetourW:
+	jmp	SHORT $LN167@SK_DetourW
+$LN124@SK_DetourW:
 	cmp	esi, 512				; 00000200H
-	jb	SHORT $LN120@SK_DetourW
+	jb	SHORT $LN125@SK_DetourW
 	cmp	esi, 526				; 0000020eH
-	ja	SHORT $LN120@SK_DetourW
-$LN162@SK_DetourW:
+	ja	SHORT $LN125@SK_DetourW
+$LN167@SK_DetourW:
 	call	?SK_ImGui_WantMouseCapture@@YA_NXZ	; SK_ImGui_WantMouseCapture
 	test	al, al
-	je	SHORT $LN120@SK_DetourW
-$LN178@SK_DetourW:
+	je	SHORT $LN125@SK_DetourW
+$LN183@SK_DetourW:
 
-; 5020 :     return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+; 5057 :     return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
 
 	push	edi
 	push	DWORD PTR _wParam$[ebp]
 	push	esi
 	push	DWORD PTR _hWnd$[ebp]
-	jmp	$LN177@SK_DetourW
-$LN120@SK_DetourW:
+	jmp	$LN182@SK_DetourW
+$LN125@SK_DetourW:
 
-; 5021 : 
-; 5022 :   if (uMsg >= WM_KEYFIRST   && uMsg <= WM_KEYLAST   && SK_ImGui_WantKeyboardCapture ())
+; 5058 : 
+; 5059 :   if (uMsg >= WM_KEYFIRST   && uMsg <= WM_KEYLAST   && SK_ImGui_WantKeyboardCapture ())
 
 	lea	eax, DWORD PTR [esi-256]
 	cmp	eax, 9
-	ja	SHORT $LN121@SK_DetourW
+	ja	SHORT $LN126@SK_DetourW
 	call	?SK_ImGui_WantKeyboardCapture@@YA_NXZ	; SK_ImGui_WantKeyboardCapture
 	test	al, al
-	jne	SHORT $LN178@SK_DetourW
-$LN121@SK_DetourW:
+	jne	SHORT $LN183@SK_DetourW
+$LN126@SK_DetourW:
 
-; 5023 :     return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
-; 5024 : 
-; 5025 :   if (uMsg == WM_INPUT      && SK_ImGui_WantGamepadCapture ())
+; 5060 :     return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+; 5061 : 
+; 5062 :   if (uMsg == WM_INPUT      && SK_ImGui_WantGamepadCapture ())
 
 	cmp	esi, 255				; 000000ffH
-	jne	SHORT $LN122@SK_DetourW
+	jne	SHORT $LN127@SK_DetourW
 	call	?SK_ImGui_WantGamepadCapture@@YA_NXZ	; SK_ImGui_WantGamepadCapture
 	test	al, al
-	je	SHORT $LN122@SK_DetourW
-$LN179@SK_DetourW:
+	je	SHORT $LN127@SK_DetourW
+$LN184@SK_DetourW:
 
-; 5026 :     return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+; 5063 :     return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
 
 	push	edi
 	push	DWORD PTR _wParam$[ebp]
 	push	255					; 000000ffH
 	push	DWORD PTR _hWnd$[ebp]
-	jmp	SHORT $LN177@SK_DetourW
-$LN122@SK_DetourW:
+	jmp	SHORT $LN182@SK_DetourW
+$LN127@SK_DetourW:
 
-; 5027 : 
-; 5028 : 
-; 5029 : 
-; 5030 :   //
-; 5031 :   // DO NOT HOOK THIS FUNCTION outside of SpecialK plug-ins, the ABI is not guaranteed
-; 5032 :   //
-; 5033 :   if (SK_DetourWindowProc2 (hWnd, uMsg, wParam, lParam))
+; 5064 : 
+; 5065 : 
+; 5066 : 
+; 5067 :   //
+; 5068 :   // DO NOT HOOK THIS FUNCTION outside of SpecialK plug-ins, the ABI is not guaranteed
+; 5069 :   //
+; 5070 :   if (SK_DetourWindowProc2 (hWnd, uMsg, wParam, lParam))
 
 	push	edi
 	push	DWORD PTR _wParam$[ebp]
@@ -21363,55 +21455,55 @@ $LN122@SK_DetourW:
 	push	DWORD PTR _hWnd$[ebp]
 	call	?SK_DetourWindowProc2@@YGJPAUHWND__@@IIJ@Z ; SK_DetourWindowProc2
 	test	eax, eax
-	je	$LN123@SK_DetourW
+	je	$LN128@SK_DetourW
 
-; 5034 :   {
-; 5035 :     // Block keyboard input to the game while the console is visible
-; 5036 :     if (console_visible)
+; 5071 :   {
+; 5072 :     // Block keyboard input to the game while the console is visible
+; 5073 :     if (console_visible)
 
 	cmp	BYTE PTR _console_visible$1$[ebp], 0
-	je	SHORT $LN128@SK_DetourW
+	je	SHORT $LN133@SK_DetourW
 
-; 5037 :     {
-; 5038 :       if (uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST)
+; 5074 :     {
+; 5075 :       if (uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST)
 
 	lea	eax, DWORD PTR [esi-512]
 	cmp	eax, 14					; 0000000eH
-	jbe	SHORT $LN178@SK_DetourW
+	jbe	SHORT $LN183@SK_DetourW
 
-; 5039 :         return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
-; 5040 : 
-; 5041 :       if (uMsg >= WM_KEYFIRST   && uMsg <= WM_KEYLAST)
+; 5076 :         return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+; 5077 : 
+; 5078 :       if (uMsg >= WM_KEYFIRST   && uMsg <= WM_KEYLAST)
 
 	lea	eax, DWORD PTR [esi-256]
 	cmp	eax, 9
-	jbe	SHORT $LN178@SK_DetourW
+	jbe	SHORT $LN183@SK_DetourW
 
-; 5042 :         return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
-; 5043 : 
-; 5044 :       // Block RAW Input
-; 5045 :       if (uMsg == WM_INPUT)
+; 5079 :         return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+; 5080 : 
+; 5081 :       // Block RAW Input
+; 5082 :       if (uMsg == WM_INPUT)
 
 	cmp	esi, 255				; 000000ffH
-	je	SHORT $LN179@SK_DetourW
-$LN128@SK_DetourW:
+	je	SHORT $LN184@SK_DetourW
+$LN133@SK_DetourW:
 
-; 5046 :         return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
-; 5047 :     }
-; 5048 :   }
-; 5049 :   
-; 5050 :   else {
-; 5051 :     return DefWindowProcW (hWnd, uMsg, wParam, lParam);;
-; 5052 :   }
-; 5053 : 
-; 5054 : 
-; 5055 :   // Filter this out for fullscreen override safety
-; 5056 :   ////if (uMsg == WM_DISPLAYCHANGE)    return 1;//game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
-; 5057 :   ////if (uMsg == WM_WINDOWPOSCHANGED) return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
-; 5058 : 
-; 5059 : 
-; 5060 :   LRESULT lRet =
-; 5061 :     SK_COMPAT_SafeCallProc (&game_window, hWnd, uMsg, wParam, lParam);
+; 5083 :         return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+; 5084 :     }
+; 5085 :   }
+; 5086 :   
+; 5087 :   else {
+; 5088 :     return DefWindowProcW (hWnd, uMsg, wParam, lParam);;
+; 5089 :   }
+; 5090 : 
+; 5091 : 
+; 5092 :   // Filter this out for fullscreen override safety
+; 5093 :   ////if (uMsg == WM_DISPLAYCHANGE)    return 1;//game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+; 5094 :   ////if (uMsg == WM_WINDOWPOSCHANGED) return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+; 5095 : 
+; 5096 : 
+; 5097 :   LRESULT lRet =
+; 5098 :     SK_COMPAT_SafeCallProc (&game_window, hWnd, uMsg, wParam, lParam);
 
 	push	edi
 	push	DWORD PTR _wParam$[ebp]
@@ -21421,32 +21513,32 @@ $LN128@SK_DetourW:
 	call	?SK_COMPAT_SafeCallProc@@YAJPAUsk_window_s@@PAUHWND__@@IIJ@Z ; SK_COMPAT_SafeCallProc
 	add	esp, 20					; 00000014H
 
-; 5062 : 
-; 5063 : 
-; 5064 :   // Post-Process the game's result to fix any non-compliant behaviors
-; 5065 :   //
-; 5066 : 
-; 5067 : 
-; 5068 :   // Fix for Skyrim SE beeping when Alt is pressed.
-; 5069 :   if (uMsg == WM_MENUCHAR && (! HIWORD (lRet)))
+; 5099 : 
+; 5100 : 
+; 5101 :   // Post-Process the game's result to fix any non-compliant behaviors
+; 5102 :   //
+; 5103 : 
+; 5104 : 
+; 5105 :   // Fix for Skyrim SE beeping when Alt is pressed.
+; 5106 :   if (uMsg == WM_MENUCHAR && (! HIWORD (lRet)))
 
 	cmp	esi, 288				; 00000120H
-	jne	SHORT $LN169@SK_DetourW
+	jne	SHORT $LN174@SK_DetourW
 	mov	ecx, eax
 	shr	ecx, 16					; 00000010H
 	test	ecx, ecx
-	jne	SHORT $LN169@SK_DetourW
+	jne	SHORT $LN174@SK_DetourW
 
-; 5070 :     return MAKEWPARAM (0, MNC_CLOSE);
+; 5107 :     return MAKEWPARAM (0, MNC_CLOSE);
 
 	pop	edi
 	mov	eax, 65536				; 00010000H
 	pop	esi
 
-; 5071 : 
-; 5072 : 
-; 5073 :   return lRet;
-; 5074 : }
+; 5108 : 
+; 5109 : 
+; 5110 :   return lRet;
+; 5111 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -21455,26 +21547,26 @@ $LN128@SK_DetourW:
 	ret	16					; 00000010H
 $LN27@SK_DetourW:
 
-; 4544 :                       L" for rendering... (Old=%p, New=%p)",
-; 4545 :                         game_window.hWnd, hWnd );
-; 4546 :       }
-; 4547 :     }
-; 4548 : 
-; 4549 :     else
-; 4550 :       return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+; 4552 :                       L" for rendering... (Old=%p, New=%p)",
+; 4553 :                         game_window.hWnd, hWnd );
+; 4554 :       }
+; 4555 :     }
+; 4556 : 
+; 4557 :     else
+; 4558 :       return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
 
 	push	edi
 	push	DWORD PTR _wParam$[ebp]
 	push	esi
 	push	ecx
-$LN177@SK_DetourW:
+$LN182@SK_DetourW:
 	call	DWORD PTR ?game_window@@3Usk_window_s@@A+212
-$LN169@SK_DetourW:
+$LN174@SK_DetourW:
 
-; 5071 : 
-; 5072 : 
-; 5073 :   return lRet;
-; 5074 : }
+; 5108 : 
+; 5109 : 
+; 5110 :   return lRet;
+; 5111 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	pop	edi
@@ -21483,17 +21575,18 @@ $LN169@SK_DetourW:
 	mov	esp, ebp
 	pop	ebp
 	ret	16					; 00000010H
-$LN171@SK_DetourW:
-$LN187@SK_DetourW:
-	DD	$LN92@SK_DetourW
-	DD	$LN91@SK_DetourW
+$LN176@SK_DetourW:
+	npad	2
+$LN192@SK_DetourW:
+	DD	$LN97@SK_DetourW
+	DD	$LN96@SK_DetourW
 	DD	$LN46@SK_DetourW
 	DD	$LN30@SK_DetourW
 	DD	$LN39@SK_DetourW
-	DD	$LN69@SK_DetourW
 	DD	$LN74@SK_DetourW
-	DD	$LN109@SK_DetourW
-$LN163@SK_DetourW:
+	DD	$LN79@SK_DetourW
+	DD	$LN114@SK_DetourW
+$LN168@SK_DetourW:
 	DB	0
 	DB	7
 	DB	1
@@ -21626,13 +21719,13 @@ $LN163@SK_DetourW:
 	DB	7
 	DB	7
 	DB	2
-$LN188@SK_DetourW:
-	DD	$LN100@SK_DetourW
-	DD	$LN104@SK_DetourW
+$LN193@SK_DetourW:
+	DD	$LN105@SK_DetourW
 	DD	$LN109@SK_DetourW
+	DD	$LN114@SK_DetourW
+	DD	$LN114@SK_DetourW
+	DD	$LN105@SK_DetourW
 	DD	$LN109@SK_DetourW
-	DD	$LN100@SK_DetourW
-	DD	$LN104@SK_DetourW
 _TEXT	ENDS
 text$x	SEGMENT
 __unwindfunclet$?SK_DetourWindowProc@@YGJPAUHWND__@@IIJ@Z$0:
@@ -22202,24 +22295,22 @@ _TEXT	ENDS
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\tuple
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\unordered_map
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
-;	COMDAT ??R<lambda_bc1c1ac12d37131fdb55160d65b430af>@@QBEXPAUHWND__@@_N@Z
+;	COMDAT ??R<lambda_d14c9bebe89e1ec31d27f11b18db1002>@@QBEXPAUHWND__@@_N@Z
 _TEXT	SEGMENT
 $T1 = -104						; size = 84
-$T2 = -104						; size = 84
-$T3 = -104						; size = 84
-$T4 = -20						; size = 8
-$T5 = -20						; size = 8
-__Ans$6 = -12						; size = 8
-$T7 = -8						; size = 4
-$T8 = -8						; size = 4
-__Where$9 = -8						; size = 4
-$T10 = -1						; size = 1
+$T2 = -20						; size = 8
+$T3 = -20						; size = 8
+__Ans$4 = -12						; size = 8
+$T5 = -8						; size = 4
+$T6 = -8						; size = 4
+__Where$7 = -8						; size = 4
+$T8 = -1						; size = 1
 _hWnd$ = 8						; size = 4
-__Where$11 = 12						; size = 4
+__Where$9 = 12						; size = 4
 _active$ = 12						; size = 1
 _state_changed$1$ = 15					; size = 1
-$T12 = 15						; size = 1
-??R<lambda_bc1c1ac12d37131fdb55160d65b430af>@@QBEXPAUHWND__@@_N@Z PROC ; <lambda_bc1c1ac12d37131fdb55160d65b430af>::operator(), COMDAT
+$T10 = 15						; size = 1
+??R<lambda_d14c9bebe89e1ec31d27f11b18db1002>@@QBEXPAUHWND__@@_N@Z PROC ; <lambda_d14c9bebe89e1ec31d27f11b18db1002>::operator(), COMDAT
 ; _this$ = ecx
 
 ; 821  : {
@@ -22227,55 +22318,137 @@ $T12 = 15						; size = 1
 	npad	2
 	push	ebp
 	mov	ebp, esp
+	sub	esp, 104				; 00000068H
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
 
-; 822  :   if (config.window.always_on_top == PreventAlwaysOnTop)
+; 625  : 		return (lower_bound(_Keyval));
+
+	lea	eax, DWORD PTR _hWnd$[ebp]
+	mov	ecx, OFFSET ?wm_dispatch@@3Uwindow_message_dispatch_s@@A ; wm_dispatch
+	push	eax
+	lea	eax, DWORD PTR __Where$7[ebp]
+	push	eax
+	call	?lower_bound@?$_Hash@V?$_Umap_traits@PAUHWND__@@_NV?$_Uhash_compare@PAUHWND__@@U?$hash@PAUHWND__@@@std@@U?$equal_to@PAUHWND__@@@3@@std@@V?$allocator@U?$pair@QAUHWND__@@_N@std@@@3@$0A@@std@@@std@@QAE?AV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAUHWND__@@_N@std@@@std@@@std@@@2@ABQAUHWND__@@@Z ; std::_Hash<std::_Umap_traits<HWND__ *,bool,std::_Uhash_compare<HWND__ *,std::hash<HWND__ *>,std::equal_to<HWND__ *> >,std::allocator<std::pair<HWND__ * const,bool> >,0> >::lower_bound
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 297  : 		return (this->_Ptr == _Right._Ptr);
+
+	mov	eax, DWORD PTR __Where$7[ebp]
+	cmp	eax, DWORD PTR ?wm_dispatch@@3Uwindow_message_dispatch_s@@A+4
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\unordered_map
+
+; 308  : 		if (_Where == _Mybase::end())
+
+	jne	SHORT $LN43@operator
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\tuple
+
+; 164  : 		: _Val(_STD forward<_Other>(_Arg))
+
+	lea	eax, DWORD PTR _hWnd$[ebp]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\unordered_map
+
+; 309  : 			return (_Mybase::emplace(
+
+	mov	ecx, OFFSET ?wm_dispatch@@3Uwindow_message_dispatch_s@@A ; wm_dispatch
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\tuple
+
+; 164  : 		: _Val(_STD forward<_Other>(_Arg))
+
+	mov	DWORD PTR $T6[ebp], eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\unordered_map
+
+; 309  : 			return (_Mybase::emplace(
+
+	lea	eax, DWORD PTR $T8[ebp]
+	push	eax
+	lea	eax, DWORD PTR $T6[ebp]
+	push	eax
+	push	OFFSET ?piecewise_construct@std@@3Upiecewise_construct_t@1@B
+	lea	eax, DWORD PTR $T3[ebp]
+	push	eax
+	call	??$emplace@ABUpiecewise_construct_t@std@@V?$tuple@ABQAUHWND__@@@2@V?$tuple@$$V@2@@?$_Hash@V?$_Umap_traits@PAUHWND__@@_NV?$_Uhash_compare@PAUHWND__@@U?$hash@PAUHWND__@@@std@@U?$equal_to@PAUHWND__@@@3@@std@@V?$allocator@U?$pair@QAUHWND__@@_N@std@@@3@$0A@@std@@@std@@QAE?AU?$pair@V?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAUHWND__@@_N@std@@@std@@@std@@@std@@_N@1@ABUpiecewise_construct_t@1@$$QAV?$tuple@ABQAUHWND__@@@1@$$QAV?$tuple@$$V@1@@Z ; std::_Hash<std::_Umap_traits<HWND__ *,bool,std::_Uhash_compare<HWND__ *,std::hash<HWND__ *>,std::equal_to<HWND__ *> >,std::allocator<std::pair<HWND__ * const,bool> >,0> >::emplace<std::piecewise_construct_t const &,std::tuple<HWND__ * const &>,std::tuple<> >
+	mov	eax, DWORD PTR $T3[ebp]
+$LN43@operator:
+; File c:\users\andon\source\repos\specialk\src\window.cpp
+
+; 823  :     (wm_dispatch.active_windows [hWnd] != active && hWnd == game_window.hWnd);//game_window.active != active);
+
+	mov	edx, DWORD PTR _hWnd$[ebp]
+	push	ebx
+	mov	ebx, DWORD PTR _active$[ebp]
+	push	esi
+	mov	esi, DWORD PTR ?game_window@@3Usk_window_s@@A+4
+	cmp	BYTE PTR [eax+12], bl
+	je	SHORT $LN34@operator
+	mov	BYTE PTR _state_changed$1$[ebp], 1
+	cmp	edx, esi
+	je	SHORT $LN35@operator
+$LN34@operator:
+	mov	BYTE PTR _state_changed$1$[ebp], 0
+$LN35@operator:
+
+; 824  : 
+; 825  :   if (hWnd == game_window.hWnd)
+
+	movzx	ecx, BYTE PTR ?game_window@@3Usk_window_s@@A+17
+	cmp	edx, esi
+	movzx	eax, bl
+	cmove	ecx, eax
+	mov	BYTE PTR ?game_window@@3Usk_window_s@@A+17, cl
+
+; 826  :     game_window.active = active;
+; 827  : 
+; 828  : 
+; 829  : 
+; 830  :   // If forcing fullscreen, don't screw with window layering.
+; 831  :   if (! SK_GetCurrentRenderBackend ().fullscreen_exclusive)
+
+	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
+	cmp	BYTE PTR [eax+48], 0
+	jne	SHORT $LN12@operator
+
+; 832  :   {
+; 833  :     if (config.window.always_on_top == PreventAlwaysOnTop)
 
 	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+776
-	sub	esp, 104				; 00000068H
 	test	eax, eax
-	jne	SHORT $LN6@operator
-
-; 823  :   {
-; 824  :     SK_GetCommandProcessor ()->ProcessCommandLine  ("Window.TopMost true");
-
-	call	?SK_GetCommandProcessor@@YGPAUSK_ICommandProcessor@@XZ ; SK_GetCommandProcessor
-	push	OFFSET ??_C@_0BE@JMFEDEEM@Window?4TopMost?5true?$AA@
-	lea	ecx, DWORD PTR $T3[ebp]
-	push	ecx
-	mov	edx, DWORD PTR [eax]
-	mov	ecx, eax
-	call	DWORD PTR [edx+28]
-	lea	ecx, DWORD PTR $T3[ebp]
-	call	??1SK_ICommandResult@@QAE@XZ
-
-; 825  :     SK_GetCommandProcessor ()->ProcessCommandLine  ("Window.TopMost false");
-
-	call	?SK_GetCommandProcessor@@YGPAUSK_ICommandProcessor@@XZ ; SK_GetCommandProcessor
-	push	OFFSET ??_C@_0BF@DLJIEPHI@Window?4TopMost?5false?$AA@
-	jmp	SHORT $LN271@operator
-$LN6@operator:
-
-; 826  :   }
-; 827  : 
-; 828  :   else if (config.window.always_on_top == AlwaysOnTop)
-
-	cmp	eax, 1
 	jne	SHORT $LN8@operator
 
-; 829  :   {
-; 830  :     SK_GetCommandProcessor ()->ProcessCommandLine  ("Window.TopMost false");
+; 834  :     {
+; 835  :       if (GetForegroundWindow () != SK_GetGameWindow ())
+
+	call	DWORD PTR __imp__GetForegroundWindow@0
+	mov	esi, eax
+	call	?SK_GetGameWindow@@YGPAUHWND__@@XZ	; SK_GetGameWindow
+	cmp	esi, eax
+	je	SHORT $LN12@operator
+
+; 836  :         SK_GetCommandProcessor ()->ProcessCommandLine ("Window.TopMost false");
 
 	call	?SK_GetCommandProcessor@@YGPAUSK_ICommandProcessor@@XZ ; SK_GetCommandProcessor
 	push	OFFSET ??_C@_0BF@DLJIEPHI@Window?4TopMost?5false?$AA@
-	lea	ecx, DWORD PTR $T2[ebp]
-	push	ecx
-	mov	edx, DWORD PTR [eax]
-	mov	ecx, eax
-	call	DWORD PTR [edx+28]
-	lea	ecx, DWORD PTR $T2[ebp]
-	call	??1SK_ICommandResult@@QAE@XZ
 
-; 831  :     SK_GetCommandProcessor ()->ProcessCommandLine  ("Window.TopMost true");
+; 837  :     }
+
+	jmp	SHORT $LN271@operator
+$LN8@operator:
+
+; 838  : 
+; 839  :     else if (config.window.always_on_top == AlwaysOnTop)
+
+	cmp	eax, 1
+	jne	SHORT $LN12@operator
+
+; 840  :     {
+; 841  :       if (GetForegroundWindow () != SK_GetGameWindow ())
+
+	call	DWORD PTR __imp__GetForegroundWindow@0
+	mov	esi, eax
+	call	?SK_GetGameWindow@@YGPAUHWND__@@XZ	; SK_GetGameWindow
+	cmp	esi, eax
+	je	SHORT $LN12@operator
+
+; 842  :         SK_GetCommandProcessor ()->ProcessCommandLine ("Window.TopMost true");
 
 	call	?SK_GetCommandProcessor@@YGPAUSK_ICommandProcessor@@XZ ; SK_GetCommandProcessor
 	push	OFFSET ??_C@_0BE@JMFEDEEM@Window?4TopMost?5true?$AA@
@@ -22287,7 +22460,394 @@ $LN271@operator:
 	call	DWORD PTR [edx+28]
 	lea	ecx, DWORD PTR $T1[ebp]
 	call	??1SK_ICommandResult@@QAE@XZ
-$LN8@operator:
+$LN12@operator:
+
+; 843  :     }
+; 844  :   }
+; 845  : 
+; 846  : 
+; 847  : 
+; 848  :   if (state_changed)
+
+	mov	al, BYTE PTR _state_changed$1$[ebp]
+	test	al, al
+	je	SHORT $LN261@operator
+
+; 849  :   {
+; 850  :     SK_Console::getInstance ()->reset ();
+
+	call	?getInstance@SK_Console@@SAPAV1@XZ	; SK_Console::getInstance
+	mov	ecx, eax
+	call	?reset@SK_Console@@QAEXXZ		; SK_Console::reset
+
+; 851  : 
+; 852  :     if (config.window.background_mute)
+
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+769, 0
+	je	SHORT $LN14@operator
+
+; 853  :       SK_WindowManager::getInstance ()->muteGame ((! active));
+
+	call	?getInstance@SK_WindowManager@@SAPAV1@XZ ; SK_WindowManager::getInstance
+	mov	al, bl
+	xor	al, 1
+
+; 743  :     SK_SetGameMute (bMute);
+
+	movzx	eax, al
+	push	eax
+	call	?SK_SetGameMute@@YGX_N@Z		; SK_SetGameMute
+$LN14@operator:
+
+; 854  : 
+; 855  :     // Keep Unity games from crashing at startup when forced into FULLSCREEN
+; 856  :     //
+; 857  :     //  ... also prevents a game from staying topmost when you Alt+Tab
+; 858  :     //
+; 859  : 
+; 860  :     if ( active && config.display.force_fullscreen &&
+
+	test	bl, bl
+	je	$LN268@operator
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+516, 0
+	je	SHORT $LN270@operator
+	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
+	test	BYTE PTR [eax], 8
+	je	SHORT $LN270@operator
+
+; 861  :          ( static_cast <int> (SK_GetCurrentRenderBackend ().api)  &
+; 862  :            static_cast <int> (SK_RenderAPI::D3D9               )
+; 863  :          )
+; 864  :        )
+; 865  :     {
+; 866  :       SetWindowLongPtrW    (game_window.hWnd, GWL_EXSTYLE,
+
+	push	-20					; ffffffecH
+	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
+	call	DWORD PTR __imp__GetWindowLongW@8
+	and	eax, -134217737				; f7fffff7H
+	or	eax, 262144				; 00040000H
+	push	eax
+	push	-20					; ffffffecH
+	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
+	call	DWORD PTR __imp__SetWindowLongW@12
+
+; 867  :        ( GetWindowLongPtrW (game_window.hWnd, GWL_EXSTYLE) & ~(WS_EX_TOPMOST | WS_EX_NOACTIVATE)
+; 868  :        ) | WS_EX_APPWINDOW );
+; 869  :       //SetWindowPos      (game_window.hWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSENDCHANGING | SWP_NOMOVE     | SWP_NOSIZE     |
+; 870  :       //                                                                 SWP_FRAMECHANGED   | SWP_DEFERERASE | SWP_NOCOPYBITS |
+; 871  :       //                                                                 SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW | SWP_NOACTIVATE );
+; 872  :       //SetWindowPos      (game_window.hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOSENDCHANGING | SWP_NOMOVE     | SWP_NOSIZE     |
+; 873  :       //                                                           SWP_FRAMECHANGED   | SWP_DEFERERASE | SWP_NOCOPYBITS |
+; 874  :       //                                                           SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW | SWP_NOACTIVATE | SWP_NOZORDER );
+; 875  : 
+; 876  :       extern void
+; 877  :       SK_D3D9_TriggerReset (bool);
+; 878  :     
+; 879  :       SK_D3D9_TriggerReset (false);
+
+	push	0
+	call	?SK_D3D9_TriggerReset@@YAX_N@Z		; SK_D3D9_TriggerReset
+	add	esp, 4
+$LN270@operator:
+	mov	al, BYTE PTR _state_changed$1$[ebp]
+$LN261@operator:
+
+; 880  :     }
+; 881  :   }
+; 882  : 
+; 883  : 
+; 884  :   if (active && state_changed)
+
+	test	bl, bl
+	je	SHORT $LN259@operator
+	test	al, al
+	je	$LN23@operator
+
+; 885  :   {
+; 886  :     // Engage fullscreen
+; 887  :     if ( config.display.force_fullscreen )
+
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+516, 0
+	je	SHORT $LN18@operator
+
+; 888  :     {
+; 889  :       SK_GetCurrentRenderBackend ().requestFullscreenMode (true);
+
+	push	1
+	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
+	mov	ecx, eax
+	call	?requestFullscreenMode@SK_RenderBackend_V2@@QAEX_N@Z ; SK_RenderBackend_V2::requestFullscreenMode
+$LN18@operator:
+
+; 890  :     }
+; 891  : 
+; 892  : 
+; 893  :     if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) && config.window.background_render)
+
+	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
+	cmp	BYTE PTR [eax+48], 0
+	jne	SHORT $LN267@operator
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+768, 0
+	je	SHORT $LN267@operator
+
+; 894  :     {
+; 895  :       if (! game_window.cursor_visible)
+
+	cmp	BYTE PTR ?game_window@@3Usk_window_s@@A+192, 0
+	jne	SHORT $LN3@operator
+	mov	esi, DWORD PTR __imp__ShowCursor@4
+$LL2@operator:
+
+; 896  :       {
+; 897  :         while (ShowCursor (FALSE) >= 0)
+
+	push	0
+	call	esi
+	test	eax, eax
+	jns	SHORT $LL2@operator
+$LN3@operator:
+
+; 898  :           ;
+; 899  :       }
+; 900  : 
+; 901  :       if (! wm_dispatch.moving_windows.count (game_window.hWnd))
+
+	push	OFFSET ?game_window@@3Usk_window_s@@A+4
+	mov	ecx, OFFSET ?wm_dispatch@@3Uwindow_message_dispatch_s@@A+32
+	call	?count@?$_Hash@V?$_Uset_traits@PAUHWND__@@V?$_Uhash_compare@PAUHWND__@@U?$hash@PAUHWND__@@@std@@U?$equal_to@PAUHWND__@@@3@@std@@V?$allocator@PAUHWND__@@@3@$0A@@std@@@std@@QBEIABQAUHWND__@@@Z ; std::_Hash<std::_Uset_traits<HWND__ *,std::_Uhash_compare<HWND__ *,std::hash<HWND__ *>,std::equal_to<HWND__ *> >,std::allocator<HWND__ *>,0> >::count
+	test	eax, eax
+	jne	SHORT $LN267@operator
+
+; 902  :         ClipCursor_Original (&game_window.cursor_clip);
+
+	push	OFFSET ?game_window@@3Usk_window_s@@A+168
+
+; 903  :     }
+; 904  :   }
+
+	jmp	SHORT $LN273@operator
+$LN268@operator:
+	mov	al, BYTE PTR _state_changed$1$[ebp]
+$LN259@operator:
+
+; 905  : 
+; 906  :   else if ((! active) && state_changed)
+
+	test	al, al
+	je	SHORT $LN23@operator
+
+; 907  :   {
+; 908  :     if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) && config.window.background_render)
+
+	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
+	cmp	BYTE PTR [eax+48], 0
+	jne	SHORT $LN267@operator
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+768, 0
+	je	SHORT $LN267@operator
+
+; 909  :     {
+; 910  :       game_window.cursor_visible =
+
+	mov	esi, DWORD PTR __imp__ShowCursor@4
+	push	1
+	call	esi
+	cmp	eax, 1
+	setge	BYTE PTR ?game_window@@3Usk_window_s@@A+192
+$LL4@operator:
+
+; 911  :         ShowCursor (TRUE) >= 1;
+; 912  : 
+; 913  :       while (ShowCursor (TRUE) < 0)
+
+	push	1
+	call	esi
+	test	eax, eax
+	js	SHORT $LL4@operator
+
+; 914  :         ;
+; 915  : 
+; 916  :       ClipCursor_Original (nullptr);
+
+	push	0
+$LN273@operator:
+	call	DWORD PTR ?ClipCursor_Original@@3P6GHPBUtagRECT@@@ZA ; ClipCursor_Original
+$LN267@operator:
+	mov	al, BYTE PTR _state_changed$1$[ebp]
+$LN23@operator:
+
+; 917  :     }
+; 918  :   }
+; 919  : 
+; 920  : 
+; 921  :   if (config.window.confine_cursor && state_changed)
+
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+770, 0
+	je	$LN262@operator
+	test	al, al
+	je	$LN262@operator
+
+; 922  :   {
+; 923  :     if (active)
+
+	test	bl, bl
+	je	SHORT $LN25@operator
+
+; 924  :     {
+; 925  :       SK_LOG4 ( ( L"Confining Mouse Cursor" ),
+
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 4
+	jl	SHORT $LN27@operator
+	push	OFFSET ??_C@_1EI@CGANLFJM@?$AA?$FL?$AAW?$AAi?$AAn?$AAd?$AAo?$AAw?$AA?5?$AAM?$AAg?$AAr?$AA?$FN?$AA?5?$AAC?$AAo?$AAn?$AAf?$AAi?$AAn?$AAi?$AAn?$AAg?$AA?5?$AAM?$AAo?$AAu?$AAs?$AAe?$AA?5?$AAC?$AAu?$AAr@
+	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
+	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
+	add	esp, 8
+$LN27@operator:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
+
+; 635  : 		_Paircc _Ans = equal_range(_Keyval);
+
+	push	OFFSET ?game_window@@3Usk_window_s@@A+4
+	lea	eax, DWORD PTR __Ans$4[ebp]
+	mov	ecx, OFFSET ?wm_dispatch@@3Uwindow_message_dispatch_s@@A+32
+	push	eax
+	call	?equal_range@?$_Hash@V?$_Uset_traits@PAUHWND__@@V?$_Uhash_compare@PAUHWND__@@U?$hash@PAUHWND__@@@std@@U?$equal_to@PAUHWND__@@@3@@std@@V?$allocator@PAUHWND__@@@3@$0A@@std@@@std@@QBE?AU?$pair@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHWND__@@@std@@@std@@@std@@V12@@2@ABQAUHWND__@@@Z ; std::_Hash<std::_Uset_traits<HWND__ *,std::_Uhash_compare<HWND__ *,std::hash<HWND__ *>,std::equal_to<HWND__ *> >,std::allocator<HWND__ *>,0> >::equal_range
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 1113 : 	return (_Distance1(_First, _Last, _Iter_cat_t<_InIt>()));
+
+	mov	eax, DWORD PTR __Ans$4[ebp]
+
+; 1095 : 	_Iter_diff_t<_InIt> _Off = 0;
+
+	xor	edx, edx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 297  : 		return (this->_Ptr == _Right._Ptr);
+
+	mov	ecx, DWORD PTR __Ans$4[ebp+4]
+	cmp	eax, ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 1096 : 	for (; _First != _Last; ++_First)
+
+	je	SHORT $LN260@operator
+	npad	5
+$LL143@operator:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 242  : 		this->_Ptr = _Mylist::_Nextnode(this->_Ptr);
+
+	mov	eax, DWORD PTR [eax]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 1097 : 		++_Off;
+
+	inc	edx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
+
+; 297  : 		return (this->_Ptr == _Right._Ptr);
+
+	cmp	eax, ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
+
+; 1096 : 	for (; _First != _Last; ++_First)
+
+	jne	SHORT $LL143@operator
+; File c:\users\andon\source\repos\specialk\src\window.cpp
+
+; 928  :       if (! wm_dispatch.moving_windows.count (game_window.hWnd))
+
+	test	edx, edx
+	jne	SHORT $LN262@operator
+$LN260@operator:
+
+; 929  :       {
+; 930  :         ////// XXX: Is this really necessary? State should be consistent unless we missed
+; 931  :         //////        an event --- Write unit test?
+; 932  :         GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
+
+	push	OFFSET ?game_window@@3Usk_window_s@@A+100
+	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
+	call	DWORD PTR ?GetWindowRect_Original@@3P6GHPAUHWND__@@PAUtagRECT@@@ZA ; GetWindowRect_Original
+
+; 933  :         ClipCursor_Original    (&game_window.actual.window);
+
+	push	OFFSET ?game_window@@3Usk_window_s@@A+100
+
+; 934  :       }
+; 935  :     }
+; 936  : 
+; 937  :     else
+
+	jmp	SHORT $LN272@operator
+$LN25@operator:
+
+; 938  :     {
+; 939  :       SK_LOG4 ( ( L"Unconfining Mouse Cursor" ),
+
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 4
+	jl	SHORT $LN29@operator
+	push	OFFSET ??_C@_1EM@LBJEIGPM@?$AA?$FL?$AAW?$AAi?$AAn?$AAd?$AAo?$AAw?$AA?5?$AAM?$AAg?$AAr?$AA?$FN?$AA?5?$AAU?$AAn?$AAc?$AAo?$AAn?$AAf?$AAi?$AAn?$AAi?$AAn?$AAg?$AA?5?$AAM?$AAo?$AAu?$AAs?$AAe?$AA?5?$AAC@
+	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
+	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
+	add	esp, 8
+$LN29@operator:
+
+; 940  :                   L"Window Mgr" );
+; 941  : 
+; 942  :       ClipCursor_Original (nullptr);
+
+	push	0
+$LN272@operator:
+	call	DWORD PTR ?ClipCursor_Original@@3P6GHPBUtagRECT@@@ZA ; ClipCursor_Original
+$LN262@operator:
+
+; 943  :     }
+; 944  :   }
+; 945  : 
+; 946  :   if (config.window.unconfine_cursor && state_changed)
+
+	cmp	BYTE PTR ?config@@3Usk_config_t@@A+771, 0
+	je	SHORT $LN30@operator
+	cmp	BYTE PTR _state_changed$1$[ebp], 0
+	je	SHORT $LN32@operator
+
+; 947  :   {
+; 948  :     SK_LOG4 ( ( L"Unconfining Mouse Cursor" ),
+
+	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 4
+	jl	SHORT $LN31@operator
+	push	OFFSET ??_C@_1EM@LBJEIGPM@?$AA?$FL?$AAW?$AAi?$AAn?$AAd?$AAo?$AAw?$AA?5?$AAM?$AAg?$AAr?$AA?$FN?$AA?5?$AAU?$AAn?$AAc?$AAo?$AAn?$AAf?$AAi?$AAn?$AAi?$AAn?$AAg?$AA?5?$AAM?$AAo?$AAu?$AAs?$AAe?$AA?5?$AAC@
+	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
+	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
+	add	esp, 8
+$LN31@operator:
+
+; 949  :                 L"Window Mgr" );
+; 950  : 
+; 951  :     ClipCursor_Original (nullptr);
+
+	push	0
+	call	DWORD PTR ?ClipCursor_Original@@3P6GHPBUtagRECT@@@ZA ; ClipCursor_Original
+$LN30@operator:
+
+; 952  :   }
+; 953  : 
+; 954  :   if (state_changed && hWnd == game_window.hWnd)
+
+	cmp	BYTE PTR _state_changed$1$[ebp], 0
+	je	SHORT $LN32@operator
+	mov	eax, DWORD PTR _hWnd$[ebp]
+	cmp	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+4
+	jne	SHORT $LN32@operator
+
+; 955  :     SK_ImGui_Cursor.activateWindow (active);
+
+	push	ebx
+	mov	ecx, OFFSET ?SK_ImGui_Cursor@@3Usk_imgui_cursor_s@@A ; SK_ImGui_Cursor
+	call	?activateWindow@sk_imgui_cursor_s@@QAEX_N@Z ; sk_imgui_cursor_s::activateWindow
+$LN32@operator:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
 
 ; 625  : 		return (lower_bound(_Keyval));
@@ -22308,7 +22868,7 @@ $LN8@operator:
 
 ; 308  : 		if (_Where == _Mybase::end())
 
-	jne	SHORT $LN42@operator
+	jne	SHORT $LN158@operator
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\tuple
 
 ; 164  : 		: _Val(_STD forward<_Other>(_Arg))
@@ -22323,491 +22883,35 @@ $LN8@operator:
 
 ; 164  : 		: _Val(_STD forward<_Other>(_Arg))
 
-	mov	DWORD PTR $T8[ebp], eax
+	mov	DWORD PTR $T5[ebp], eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\unordered_map
 
 ; 309  : 			return (_Mybase::emplace(
 
 	lea	eax, DWORD PTR $T10[ebp]
 	push	eax
-	lea	eax, DWORD PTR $T8[ebp]
-	push	eax
-	push	OFFSET ?piecewise_construct@std@@3Upiecewise_construct_t@1@B
 	lea	eax, DWORD PTR $T5[ebp]
 	push	eax
-	call	??$emplace@ABUpiecewise_construct_t@std@@V?$tuple@ABQAUHWND__@@@2@V?$tuple@$$V@2@@?$_Hash@V?$_Umap_traits@PAUHWND__@@_NV?$_Uhash_compare@PAUHWND__@@U?$hash@PAUHWND__@@@std@@U?$equal_to@PAUHWND__@@@3@@std@@V?$allocator@U?$pair@QAUHWND__@@_N@std@@@3@$0A@@std@@@std@@QAE?AU?$pair@V?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAUHWND__@@_N@std@@@std@@@std@@@std@@_N@1@ABUpiecewise_construct_t@1@$$QAV?$tuple@ABQAUHWND__@@@1@$$QAV?$tuple@$$V@1@@Z ; std::_Hash<std::_Umap_traits<HWND__ *,bool,std::_Uhash_compare<HWND__ *,std::hash<HWND__ *>,std::equal_to<HWND__ *> >,std::allocator<std::pair<HWND__ * const,bool> >,0> >::emplace<std::piecewise_construct_t const &,std::tuple<HWND__ * const &>,std::tuple<> >
-	mov	eax, DWORD PTR $T5[ebp]
-$LN42@operator:
-	push	ebx
-; File c:\users\andon\source\repos\specialk\src\window.cpp
-
-; 836  :     (wm_dispatch.active_windows [hWnd] != active && hWnd == game_window.hWnd);//game_window.active != active);
-
-	mov	ebx, DWORD PTR _active$[ebp]
-	push	esi
-	mov	esi, DWORD PTR _hWnd$[ebp]
-	cmp	BYTE PTR [eax+12], bl
-	je	SHORT $LN31@operator
-	cmp	esi, DWORD PTR ?game_window@@3Usk_window_s@@A+4
-	jne	SHORT $LN31@operator
-	mov	dl, 1
-	jmp	SHORT $LN272@operator
-$LN31@operator:
-	xor	dl, dl
-$LN272@operator:
-
-; 837  : 
-; 838  :   if (hWnd == game_window.hWnd)
-
-	cmp	esi, DWORD PTR ?game_window@@3Usk_window_s@@A+4
-	movzx	ecx, BYTE PTR ?game_window@@3Usk_window_s@@A+17
-	movzx	eax, bl
-	cmove	ecx, eax
-	mov	BYTE PTR _state_changed$1$[ebp], dl
-	mov	BYTE PTR ?game_window@@3Usk_window_s@@A+17, cl
-
-; 839  :     game_window.active = active;
-; 840  : 
-; 841  : 
-; 842  :   if (state_changed)
-
-	test	dl, dl
-	je	SHORT $LN262@operator
-
-; 843  :   {
-; 844  :     SK_Console::getInstance ()->reset ();
-
-	call	?getInstance@SK_Console@@SAPAV1@XZ	; SK_Console::getInstance
-	mov	ecx, eax
-	call	?reset@SK_Console@@QAEXXZ		; SK_Console::reset
-
-; 845  : 
-; 846  :     if (config.window.background_mute)
-
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+769, 0
-	je	SHORT $LN11@operator
-
-; 847  :       SK_WindowManager::getInstance ()->muteGame ((! active));
-
-	call	?getInstance@SK_WindowManager@@SAPAV1@XZ ; SK_WindowManager::getInstance
-	mov	al, bl
-	xor	al, 1
-
-; 743  :     SK_SetGameMute (bMute);
-
-	movzx	eax, al
-	push	eax
-	call	?SK_SetGameMute@@YGX_N@Z		; SK_SetGameMute
-$LN11@operator:
-
-; 848  : 
-; 849  :     // Keep Unity games from crashing at startup when forced into FULLSCREEN
-; 850  :     //
-; 851  :     //  ... also prevents a game from staying topmost when you Alt+Tab
-; 852  :     //
-; 853  : 
-; 854  :     if ( active && config.display.force_fullscreen &&
-
-	test	bl, bl
-	je	$LN263@operator
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+516, 0
-	je	SHORT $LN260@operator
-	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
-	test	BYTE PTR [eax], 8
-	je	SHORT $LN260@operator
-
-; 855  :          ( static_cast <int> (SK_GetCurrentRenderBackend ().api)  &
-; 856  :            static_cast <int> (SK_RenderAPI::D3D9               )
-; 857  :          )
-; 858  :        )
-; 859  :     {
-; 860  :       SetWindowLongPtrW    (game_window.hWnd, GWL_EXSTYLE,
-
-	push	-20					; ffffffecH
-	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
-	call	DWORD PTR __imp__GetWindowLongW@8
-	and	eax, -134217737				; f7fffff7H
-	or	eax, 262144				; 00040000H
-	push	eax
-	push	-20					; ffffffecH
-	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
-	call	DWORD PTR __imp__SetWindowLongW@12
-
-; 861  :        ( GetWindowLongPtrW (game_window.hWnd, GWL_EXSTYLE) & ~(WS_EX_TOPMOST | WS_EX_NOACTIVATE)
-; 862  :        ) | WS_EX_APPWINDOW );
-; 863  :       //SetWindowPos      (game_window.hWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSENDCHANGING | SWP_NOMOVE     | SWP_NOSIZE     |
-; 864  :       //                                                                 SWP_FRAMECHANGED   | SWP_DEFERERASE | SWP_NOCOPYBITS |
-; 865  :       //                                                                 SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW | SWP_NOACTIVATE );
-; 866  :       //SetWindowPos      (game_window.hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOSENDCHANGING | SWP_NOMOVE     | SWP_NOSIZE     |
-; 867  :       //                                                           SWP_FRAMECHANGED   | SWP_DEFERERASE | SWP_NOCOPYBITS |
-; 868  :       //                                                           SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW | SWP_NOACTIVATE | SWP_NOZORDER );
-; 869  : 
-; 870  :       extern void
-; 871  :       SK_D3D9_TriggerReset (bool);
-; 872  :     
-; 873  :       SK_D3D9_TriggerReset (false);
-
-	push	0
-	call	?SK_D3D9_TriggerReset@@YAX_N@Z		; SK_D3D9_TriggerReset
-	add	esp, 4
-$LN260@operator:
-	mov	dl, BYTE PTR _state_changed$1$[ebp]
-$LN262@operator:
-
-; 874  :     }
-; 875  :   }
-; 876  : 
-; 877  : 
-; 878  :   if (active && state_changed)
-
-	test	bl, bl
-	je	SHORT $LN258@operator
-	test	dl, dl
-	je	$LN264@operator
-
-; 879  :   {
-; 880  :     // Engage fullscreen
-; 881  :     if (config.display.force_fullscreen)
-
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+516, 0
-	je	SHORT $LN15@operator
-
-; 882  :       SK_GetCurrentRenderBackend ().requestFullscreenMode (true);
-
-	push	1
-	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
-	mov	ecx, eax
-	call	?requestFullscreenMode@SK_RenderBackend_V2@@QAEX_N@Z ; SK_RenderBackend_V2::requestFullscreenMode
-$LN15@operator:
-
-; 883  : 
-; 884  : 
-; 885  :     if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) && config.window.background_render)
-
-	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
-	cmp	BYTE PTR [eax+48], 0
-	jne	$LN270@operator
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+768, 0
-	je	SHORT $LN270@operator
-
-; 886  :     {
-; 887  :       if (! game_window.cursor_visible)
-
-	cmp	BYTE PTR ?game_window@@3Usk_window_s@@A+192, 0
-	jne	SHORT $LN3@operator
-	mov	esi, DWORD PTR __imp__ShowCursor@4
-$LL2@operator:
-
-; 888  :       {
-; 889  :         while (ShowCursor (FALSE) >= 0)
-
-	push	0
-	call	esi
-	test	eax, eax
-	jns	SHORT $LL2@operator
-$LN3@operator:
-
-; 890  :           ;
-; 891  :       }
-; 892  : 
-; 893  :       if (! wm_dispatch.moving_windows.count (game_window.hWnd))
-
-	push	OFFSET ?game_window@@3Usk_window_s@@A+4
-	mov	ecx, OFFSET ?wm_dispatch@@3Uwindow_message_dispatch_s@@A+32
-	call	?count@?$_Hash@V?$_Uset_traits@PAUHWND__@@V?$_Uhash_compare@PAUHWND__@@U?$hash@PAUHWND__@@@std@@U?$equal_to@PAUHWND__@@@3@@std@@V?$allocator@PAUHWND__@@@3@$0A@@std@@@std@@QBEIABQAUHWND__@@@Z ; std::_Hash<std::_Uset_traits<HWND__ *,std::_Uhash_compare<HWND__ *,std::hash<HWND__ *>,std::equal_to<HWND__ *> >,std::allocator<HWND__ *>,0> >::count
-	test	eax, eax
-	jne	SHORT $LN270@operator
-
-; 894  :         ClipCursor_Original (&game_window.cursor_clip);
-
-	push	OFFSET ?game_window@@3Usk_window_s@@A+168
-
-; 895  :     }
-; 896  :   }
-
-	jmp	SHORT $LN274@operator
-$LN263@operator:
-	mov	dl, BYTE PTR _state_changed$1$[ebp]
-$LN258@operator:
-
-; 897  : 
-; 898  :   else if ((! active) && state_changed)
-
-	test	dl, dl
-	je	SHORT $LN264@operator
-
-; 899  :   {
-; 900  :     if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) && config.window.background_render)
-
-	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
-	cmp	BYTE PTR [eax+48], 0
-	jne	SHORT $LN270@operator
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+768, 0
-	je	SHORT $LN270@operator
-
-; 901  :     {
-; 902  :       game_window.cursor_visible =
-
-	mov	esi, DWORD PTR __imp__ShowCursor@4
-	push	1
-	call	esi
-	cmp	eax, 1
-	setge	BYTE PTR ?game_window@@3Usk_window_s@@A+192
-$LL4@operator:
-
-; 903  :         ShowCursor (TRUE) >= 1;
-; 904  : 
-; 905  :       while (ShowCursor (TRUE) < 0)
-
-	push	1
-	call	esi
-	test	eax, eax
-	js	SHORT $LL4@operator
-
-; 906  :         ;
-; 907  : 
-; 908  :       ClipCursor_Original (nullptr);
-
-	push	0
-$LN274@operator:
-	call	DWORD PTR ?ClipCursor_Original@@3P6GHPBUtagRECT@@@ZA ; ClipCursor_Original
-$LN270@operator:
-	mov	dl, BYTE PTR _state_changed$1$[ebp]
-$LN264@operator:
-
-; 909  :     }
-; 910  :   }
-; 911  : 
-; 912  : 
-; 913  :   if (config.window.confine_cursor && state_changed)
-
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+770, 0
-	je	$LN265@operator
-	test	dl, dl
-	je	$LN265@operator
-
-; 914  :   {
-; 915  :     if (active)
-
-	test	bl, bl
-	je	SHORT $LN22@operator
-
-; 916  :     {
-; 917  :       SK_LOG4 ( ( L"Confining Mouse Cursor" ),
-
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 4
-	jl	SHORT $LN24@operator
-	push	OFFSET ??_C@_1EI@CGANLFJM@?$AA?$FL?$AAW?$AAi?$AAn?$AAd?$AAo?$AAw?$AA?5?$AAM?$AAg?$AAr?$AA?$FN?$AA?5?$AAC?$AAo?$AAn?$AAf?$AAi?$AAn?$AAi?$AAn?$AAg?$AA?5?$AAM?$AAo?$AAu?$AAs?$AAe?$AA?5?$AAC?$AAu?$AAr@
-	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
-	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
-	add	esp, 8
-$LN24@operator:
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
-
-; 635  : 		_Paircc _Ans = equal_range(_Keyval);
-
-	push	OFFSET ?game_window@@3Usk_window_s@@A+4
-	lea	eax, DWORD PTR __Ans$6[ebp]
-	mov	ecx, OFFSET ?wm_dispatch@@3Uwindow_message_dispatch_s@@A+32
-	push	eax
-	call	?equal_range@?$_Hash@V?$_Uset_traits@PAUHWND__@@V?$_Uhash_compare@PAUHWND__@@U?$hash@PAUHWND__@@@std@@U?$equal_to@PAUHWND__@@@3@@std@@V?$allocator@PAUHWND__@@@3@$0A@@std@@@std@@QBE?AU?$pair@V?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHWND__@@@std@@@std@@@std@@V12@@2@ABQAUHWND__@@@Z ; std::_Hash<std::_Uset_traits<HWND__ *,std::_Uhash_compare<HWND__ *,std::hash<HWND__ *>,std::equal_to<HWND__ *> >,std::allocator<HWND__ *>,0> >::equal_range
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
-
-; 1113 : 	return (_Distance1(_First, _Last, _Iter_cat_t<_InIt>()));
-
-	mov	eax, DWORD PTR __Ans$6[ebp]
-
-; 1095 : 	_Iter_diff_t<_InIt> _Off = 0;
-
-	xor	edx, edx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-
-; 297  : 		return (this->_Ptr == _Right._Ptr);
-
-	mov	ecx, DWORD PTR __Ans$6[ebp+4]
-	cmp	eax, ecx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
-
-; 1096 : 	for (; _First != _Last; ++_First)
-
-	je	SHORT $LN259@operator
-	npad	4
-$LL142@operator:
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-
-; 242  : 		this->_Ptr = _Mylist::_Nextnode(this->_Ptr);
-
-	mov	eax, DWORD PTR [eax]
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
-
-; 1097 : 		++_Off;
-
-	inc	edx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-
-; 297  : 		return (this->_Ptr == _Right._Ptr);
-
-	cmp	eax, ecx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
-
-; 1096 : 	for (; _First != _Last; ++_First)
-
-	jne	SHORT $LL142@operator
-; File c:\users\andon\source\repos\specialk\src\window.cpp
-
-; 920  :       if (! wm_dispatch.moving_windows.count (game_window.hWnd))
-
-	test	edx, edx
-	jne	SHORT $LN265@operator
-$LN259@operator:
-
-; 921  :       {
-; 922  :         ////// XXX: Is this really necessary? State should be consistent unless we missed
-; 923  :         //////        an event --- Write unit test?
-; 924  :         GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
-
-	push	OFFSET ?game_window@@3Usk_window_s@@A+100
-	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
-	call	DWORD PTR ?GetWindowRect_Original@@3P6GHPAUHWND__@@PAUtagRECT@@@ZA ; GetWindowRect_Original
-
-; 925  :         ClipCursor_Original    (&game_window.actual.window);
-
-	push	OFFSET ?game_window@@3Usk_window_s@@A+100
-
-; 926  :       }
-; 927  :     }
-; 928  : 
-; 929  :     else
-
-	jmp	SHORT $LN273@operator
-$LN22@operator:
-
-; 930  :     {
-; 931  :       SK_LOG4 ( ( L"Unconfining Mouse Cursor" ),
-
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 4
-	jl	SHORT $LN26@operator
-	push	OFFSET ??_C@_1EM@LBJEIGPM@?$AA?$FL?$AAW?$AAi?$AAn?$AAd?$AAo?$AAw?$AA?5?$AAM?$AAg?$AAr?$AA?$FN?$AA?5?$AAU?$AAn?$AAc?$AAo?$AAn?$AAf?$AAi?$AAn?$AAi?$AAn?$AAg?$AA?5?$AAM?$AAo?$AAu?$AAs?$AAe?$AA?5?$AAC@
-	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
-	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
-	add	esp, 8
-$LN26@operator:
-
-; 932  :                   L"Window Mgr" );
-; 933  : 
-; 934  :       ClipCursor_Original (nullptr);
-
-	push	0
-$LN273@operator:
-	call	DWORD PTR ?ClipCursor_Original@@3P6GHPBUtagRECT@@@ZA ; ClipCursor_Original
-$LN265@operator:
-
-; 935  :     }
-; 936  :   }
-; 937  : 
-; 938  :   if (config.window.unconfine_cursor && state_changed)
-
-	cmp	BYTE PTR ?config@@3Usk_config_t@@A+771, 0
-	je	SHORT $LN27@operator
-	cmp	BYTE PTR _state_changed$1$[ebp], 0
-	je	SHORT $LN29@operator
-
-; 939  :   {
-; 940  :     SK_LOG4 ( ( L"Unconfining Mouse Cursor" ),
-
-	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 4
-	jl	SHORT $LN28@operator
-	push	OFFSET ??_C@_1EM@LBJEIGPM@?$AA?$FL?$AAW?$AAi?$AAn?$AAd?$AAo?$AAw?$AA?5?$AAM?$AAg?$AAr?$AA?$FN?$AA?5?$AAU?$AAn?$AAc?$AAo?$AAn?$AAf?$AAi?$AAn?$AAi?$AAn?$AAg?$AA?5?$AAM?$AAo?$AAu?$AAs?$AAe?$AA?5?$AAC@
-	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
-	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
-	add	esp, 8
-$LN28@operator:
-
-; 941  :                 L"Window Mgr" );
-; 942  : 
-; 943  :     ClipCursor_Original (nullptr);
-
-	push	0
-	call	DWORD PTR ?ClipCursor_Original@@3P6GHPBUtagRECT@@@ZA ; ClipCursor_Original
-$LN27@operator:
-
-; 944  :   }
-; 945  : 
-; 946  :   if (state_changed)
-
-	cmp	BYTE PTR _state_changed$1$[ebp], 0
-	je	SHORT $LN29@operator
-
-; 947  :     SK_ImGui_Cursor.activateWindow (active);
-
-	push	ebx
-	mov	ecx, OFFSET ?SK_ImGui_Cursor@@3Usk_imgui_cursor_s@@A ; SK_ImGui_Cursor
-	call	?activateWindow@sk_imgui_cursor_s@@QAEX_N@Z ; sk_imgui_cursor_s::activateWindow
-$LN29@operator:
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
-
-; 625  : 		return (lower_bound(_Keyval));
-
-	lea	eax, DWORD PTR _hWnd$[ebp]
-	mov	ecx, OFFSET ?wm_dispatch@@3Uwindow_message_dispatch_s@@A ; wm_dispatch
-	push	eax
-	lea	eax, DWORD PTR __Where$11[ebp]
-	push	eax
-	call	?lower_bound@?$_Hash@V?$_Umap_traits@PAUHWND__@@_NV?$_Uhash_compare@PAUHWND__@@U?$hash@PAUHWND__@@@std@@U?$equal_to@PAUHWND__@@@3@@std@@V?$allocator@U?$pair@QAUHWND__@@_N@std@@@3@$0A@@std@@@std@@QAE?AV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAUHWND__@@_N@std@@@std@@@std@@@2@ABQAUHWND__@@@Z ; std::_Hash<std::_Umap_traits<HWND__ *,bool,std::_Uhash_compare<HWND__ *,std::hash<HWND__ *>,std::equal_to<HWND__ *> >,std::allocator<std::pair<HWND__ * const,bool> >,0> >::lower_bound
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
-
-; 297  : 		return (this->_Ptr == _Right._Ptr);
-
-	mov	eax, DWORD PTR __Where$11[ebp]
-	cmp	eax, DWORD PTR ?wm_dispatch@@3Uwindow_message_dispatch_s@@A+4
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\unordered_map
-
-; 308  : 		if (_Where == _Mybase::end())
-
-	jne	SHORT $LN157@operator
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\tuple
-
-; 164  : 		: _Val(_STD forward<_Other>(_Arg))
-
-	lea	eax, DWORD PTR _hWnd$[ebp]
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\unordered_map
-
-; 309  : 			return (_Mybase::emplace(
-
-	mov	ecx, OFFSET ?wm_dispatch@@3Uwindow_message_dispatch_s@@A ; wm_dispatch
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\tuple
-
-; 164  : 		: _Val(_STD forward<_Other>(_Arg))
-
-	mov	DWORD PTR $T7[ebp], eax
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\unordered_map
-
-; 309  : 			return (_Mybase::emplace(
-
-	lea	eax, DWORD PTR $T12[ebp]
-	push	eax
-	lea	eax, DWORD PTR $T7[ebp]
-	push	eax
 	push	OFFSET ?piecewise_construct@std@@3Upiecewise_construct_t@1@B
-	lea	eax, DWORD PTR $T4[ebp]
+	lea	eax, DWORD PTR $T2[ebp]
 	push	eax
 	call	??$emplace@ABUpiecewise_construct_t@std@@V?$tuple@ABQAUHWND__@@@2@V?$tuple@$$V@2@@?$_Hash@V?$_Umap_traits@PAUHWND__@@_NV?$_Uhash_compare@PAUHWND__@@U?$hash@PAUHWND__@@@std@@U?$equal_to@PAUHWND__@@@3@@std@@V?$allocator@U?$pair@QAUHWND__@@_N@std@@@3@$0A@@std@@@std@@QAE?AU?$pair@V?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAUHWND__@@_N@std@@@std@@@std@@@std@@_N@1@ABUpiecewise_construct_t@1@$$QAV?$tuple@ABQAUHWND__@@@1@$$QAV?$tuple@$$V@1@@Z ; std::_Hash<std::_Umap_traits<HWND__ *,bool,std::_Uhash_compare<HWND__ *,std::hash<HWND__ *>,std::equal_to<HWND__ *> >,std::allocator<std::pair<HWND__ * const,bool> >,0> >::emplace<std::piecewise_construct_t const &,std::tuple<HWND__ * const &>,std::tuple<> >
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 949  :   wm_dispatch.active_windows [hWnd] = active;
+; 957  :   wm_dispatch.active_windows [hWnd] = active;
 
-	mov	eax, DWORD PTR $T4[ebp]
-$LN157@operator:
+	mov	eax, DWORD PTR $T2[ebp]
+$LN158@operator:
 	pop	esi
 	mov	BYTE PTR [eax+12], bl
 	pop	ebx
 
-; 950  : };
+; 958  : };
 
 	mov	esp, ebp
 	pop	ebp
 	ret	8
-??R<lambda_bc1c1ac12d37131fdb55160d65b430af>@@QBEXPAUHWND__@@_N@Z ENDP ; <lambda_bc1c1ac12d37131fdb55160d65b430af>::operator()
+??R<lambda_d14c9bebe89e1ec31d27f11b18db1002>@@QBEXPAUHWND__@@_N@Z ENDP ; <lambda_d14c9bebe89e1ec31d27f11b18db1002>::operator()
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ;	COMDAT ??0state_s@SK_WindowManager@@QAE@XZ
@@ -24991,7 +25095,7 @@ ___formal$ = 20						; size = 4
 ?On_EXITSIZEMOVE@window_message_dispatch_s@@IAE_NPAUHWND__@@AAIAAJPAJ@Z PROC ; window_message_dispatch_s::On_EXITSIZEMOVE
 ; _this$ = ecx
 
-; 966  : {
+; 974  : {
 
 	npad	2
 	push	ebp
@@ -25006,7 +25110,7 @@ ___formal$ = 20						; size = 4
 	push	eax
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 967  :   if ( moving_windows.count (hWnd) ||
+; 975  :   if ( moving_windows.count (hWnd) ||
 
 	lea	edi, DWORD PTR [ecx+32]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
@@ -25060,7 +25164,7 @@ $LL16@On_EXITSIZ:
 	jne	SHORT $LL16@On_EXITSIZ
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 967  :   if ( moving_windows.count (hWnd) ||
+; 975  :   if ( moving_windows.count (hWnd) ||
 
 	test	edx, edx
 	jne	SHORT $LN3@On_EXITSIZ
@@ -25117,7 +25221,7 @@ $LL33@On_EXITSIZ:
 	jne	SHORT $LL33@On_EXITSIZ
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 967  :   if ( moving_windows.count (hWnd) ||
+; 975  :   if ( moving_windows.count (hWnd) ||
 
 	test	edx, edx
 	je	$LN117@On_EXITSIZ
@@ -25176,7 +25280,7 @@ $LL50@On_EXITSIZ:
 	jne	SHORT $LL50@On_EXITSIZ
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 970  :     if (moving_windows.count (hWnd))
+; 978  :     if (moving_windows.count (hWnd))
 
 	test	edx, edx
 	je	SHORT $LN4@On_EXITSIZ
@@ -25235,7 +25339,7 @@ $LN66@On_EXITSIZ:
 	call	?erase@?$_Hash@V?$_Uset_traits@PAUHWND__@@V?$_Uhash_compare@PAUHWND__@@U?$hash@PAUHWND__@@@std@@U?$equal_to@PAUHWND__@@@3@@std@@V?$allocator@PAUHWND__@@@3@$0A@@std@@@std@@QAE?AV?$_List_const_iterator@V?$_List_val@U?$_List_simple_types@PAUHWND__@@@std@@@std@@@2@V32@0@Z ; std::_Hash<std::_Uset_traits<HWND__ *,std::_Uhash_compare<HWND__ *,std::hash<HWND__ *>,std::equal_to<HWND__ *> >,std::allocator<HWND__ *>,0> >::erase
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 972  :     else
+; 980  :     else
 
 	jmp	SHORT $LN5@On_EXITSIZ
 $LN4@On_EXITSIZ:
@@ -25296,42 +25400,42 @@ $LN83@On_EXITSIZ:
 $LN5@On_EXITSIZ:
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 975  :     SK_AdjustWindow ();
+; 983  :     SK_AdjustWindow ();
 
 	call	?SK_AdjustWindow@@YAXXZ			; SK_AdjustWindow
 
-; 976  : 
-; 977  :     if (config.window.unconfine_cursor)
+; 984  : 
+; 985  :     if (config.window.unconfine_cursor)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+771, 0
 	je	SHORT $LN6@On_EXITSIZ
 
-; 978  :       ClipCursor_Original (nullptr);
+; 986  :       ClipCursor_Original (nullptr);
 
 	push	0
 	call	DWORD PTR ?ClipCursor_Original@@3P6GHPBUtagRECT@@@ZA ; ClipCursor_Original
 $LN6@On_EXITSIZ:
 
-; 979  : 
-; 980  :     if (config.window.confine_cursor)
+; 987  : 
+; 988  :     if (config.window.confine_cursor)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+770, 0
 	je	SHORT $LN117@On_EXITSIZ
 
-; 981  :       ClipCursor_Original (&game_window.actual.window);
+; 989  :       ClipCursor_Original (&game_window.actual.window);
 
 	push	OFFSET ?game_window@@3Usk_window_s@@A+100
 	call	DWORD PTR ?ClipCursor_Original@@3P6GHPBUtagRECT@@@ZA ; ClipCursor_Original
 $LN117@On_EXITSIZ:
 
-; 982  :   }
-; 983  : 
-; 984  :   return false;
+; 990  :   }
+; 991  : 
+; 992  :   return false;
 
 	xor	al, al
 	pop	edi
 
-; 985  : }
+; 993  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -25356,7 +25460,7 @@ ___formal$ = 20						; size = 4
 ?On_ENTERSIZEMOVE@window_message_dispatch_s@@IAE_NPAUHWND__@@AAIAAJPAJ@Z PROC ; window_message_dispatch_s::On_ENTERSIZEMOVE
 ; _this$ = ecx
 
-; 956  : {
+; 964  : {
 
 	npad	2
 	push	ebp
@@ -25366,7 +25470,7 @@ ___formal$ = 20						; size = 4
 	push	esi
 	push	edi
 
-; 957  :   ClipCursor (nullptr);
+; 965  :   ClipCursor (nullptr);
 
 	push	0
 	mov	esi, ecx
@@ -25464,12 +25568,12 @@ $LN55@On_ENTERSI:
 	pop	esi
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 961  :   return false;
+; 969  :   return false;
 
 	xor	al, al
 	pop	ebx
 
-; 962  : }
+; 970  : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -25487,23 +25591,23 @@ ___formal$ = 20						; size = 4
 ?On_MOUSEMOVE@window_message_dispatch_s@@IAE_NPAUHWND__@@AAIAAJPAJ@Z PROC ; window_message_dispatch_s::On_MOUSEMOVE
 ; _this$ = ecx
 
-; 990  :   if (! game_window.active)
+; 998  :   if (! game_window.active)
 
 	cmp	BYTE PTR ?game_window@@3Usk_window_s@@A+17, 0
 	jne	SHORT $LN4@On_MOUSEMO
 
-; 991  :     GetCursorPos_Original (&game_window.cursor_pos);
+; 999  :     GetCursorPos_Original (&game_window.cursor_pos);
 
 	push	OFFSET ?game_window@@3Usk_window_s@@A+184
 	call	DWORD PTR ?GetCursorPos_Original@@3P6GHPAUtagPOINT@@@ZA ; GetCursorPos_Original
 $LN4@On_MOUSEMO:
 
-; 992  : 
-; 993  :   return false;
+; 1000 : 
+; 1001 :   return false;
 
 	xor	al, al
 
-; 994  : }
+; 1002 : }
 
 	ret	16					; 00000010H
 ?On_MOUSEMOVE@window_message_dispatch_s@@IAE_NPAUHWND__@@AAIAAJPAJ@Z ENDP ; window_message_dispatch_s::On_MOUSEMOVE
@@ -25545,7 +25649,7 @@ ___formal$ = 20						; size = 4
 ?On_NCACTIVATE@window_message_dispatch_s@@IAE_NPAUHWND__@@AAIAAJPAJ@Z PROC ; window_message_dispatch_s::On_NCACTIVATE
 ; _this$ = ecx
 
-; 1039 : {
+; 1047 : {
 
 	npad	2
 	push	ebp
@@ -25554,7 +25658,7 @@ ___formal$ = 20						; size = 4
 	push	esi
 	push	edi
 
-; 1040 :   if (wParam != FALSE)
+; 1048 :   if (wParam != FALSE)
 
 	mov	edi, DWORD PTR _wParam$[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
@@ -25566,7 +25670,7 @@ ___formal$ = 20						; size = 4
 	lea	eax, DWORD PTR __Where$4[ebp]
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 1039 : {
+; 1047 : {
 
 	mov	esi, ecx
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
@@ -25577,7 +25681,7 @@ ___formal$ = 20						; size = 4
 	call	?lower_bound@?$_Hash@V?$_Umap_traits@PAUHWND__@@_NV?$_Uhash_compare@PAUHWND__@@U?$hash@PAUHWND__@@@std@@U?$equal_to@PAUHWND__@@@3@@std@@V?$allocator@U?$pair@QAUHWND__@@_N@std@@@3@$0A@@std@@@std@@QAE?AV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAUHWND__@@_N@std@@@std@@@std@@@2@ABQAUHWND__@@@Z ; std::_Hash<std::_Umap_traits<HWND__ *,bool,std::_Uhash_compare<HWND__ *,std::hash<HWND__ *>,std::equal_to<HWND__ *> >,std::allocator<std::pair<HWND__ * const,bool> >,0> >::lower_bound
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 1040 :   if (wParam != FALSE)
+; 1048 :   if (wParam != FALSE)
 
 	cmp	DWORD PTR [edi], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
@@ -25587,7 +25691,7 @@ ___formal$ = 20						; size = 4
 	mov	eax, DWORD PTR __Where$4[ebp]
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 1040 :   if (wParam != FALSE)
+; 1048 :   if (wParam != FALSE)
 
 	je	SHORT $LN2@On_NCACTIV
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
@@ -25631,39 +25735,39 @@ ___formal$ = 20						; size = 4
 $LN15@On_NCACTIV:
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 1042 :     if (active_windows [hWnd] == false)
+; 1050 :     if (active_windows [hWnd] == false)
 
 	cmp	BYTE PTR [eax+12], 0
 	jne	SHORT $LN5@On_NCACTIV
 
-; 1043 :       SK_LOG3 ( ( L"Application Activated (Non-Client)" ),
+; 1051 :       SK_LOG3 ( ( L"Application Activated (Non-Client)" ),
 
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 3
 	jl	SHORT $LN5@On_NCACTIV
-	push	OFFSET $SG211557
+	push	OFFSET $SG211628
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
 $LN5@On_NCACTIV:
 
-; 1044 :                   L"Window Mgr" );
-; 1045 : 
-; 1046 :     ActivateWindow (hWnd, true);
+; 1052 :                   L"Window Mgr" );
+; 1053 : 
+; 1054 :     ActivateWindow (hWnd, true);
 
 	push	1
 	push	DWORD PTR _hWnd$[ebp]
 	mov	ecx, OFFSET ?ActivateWindow@@3V<lambda>@@A ; ActivateWindow
-	call	??R<lambda_bc1c1ac12d37131fdb55160d65b430af>@@QBEXPAUHWND__@@_N@Z ; <lambda_bc1c1ac12d37131fdb55160d65b430af>::operator()
+	call	??R<lambda_d14c9bebe89e1ec31d27f11b18db1002>@@QBEXPAUHWND__@@_N@Z ; <lambda_d14c9bebe89e1ec31d27f11b18db1002>::operator()
 	pop	edi
 
-; 1069 :   }
-; 1070 : 
-; 1071 :   return false;
+; 1077 :   }
+; 1078 : 
+; 1079 :   return false;
 
 	xor	al, al
 	pop	esi
 
-; 1072 : }
+; 1080 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -25710,35 +25814,35 @@ $LN2@On_NCACTIV:
 $LN111@On_NCACTIV:
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 1051 :     if (active_windows [hWnd] == true)
+; 1059 :     if (active_windows [hWnd] == true)
 
 	cmp	BYTE PTR [eax+12], 1
 	jne	SHORT $LN7@On_NCACTIV
 
-; 1052 :       SK_LOG3 ( ( L"Application Deactivated (Non-Client)" ),
+; 1060 :       SK_LOG3 ( ( L"Application Deactivated (Non-Client)" ),
 
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 3
 	jl	SHORT $LN7@On_NCACTIV
-	push	OFFSET $SG211560
+	push	OFFSET $SG211631
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
 $LN7@On_NCACTIV:
 
-; 1053 :                   L"Window Mgr" );
-; 1054 : 
-; 1055 :     ActivateWindow (hWnd, false);
+; 1061 :                   L"Window Mgr" );
+; 1062 : 
+; 1063 :     ActivateWindow (hWnd, false);
 
 	push	0
 	push	DWORD PTR _hWnd$[ebp]
 	mov	ecx, OFFSET ?ActivateWindow@@3V<lambda>@@A ; ActivateWindow
-	call	??R<lambda_bc1c1ac12d37131fdb55160d65b430af>@@QBEXPAUHWND__@@_N@Z ; <lambda_bc1c1ac12d37131fdb55160d65b430af>::operator()
+	call	??R<lambda_d14c9bebe89e1ec31d27f11b18db1002>@@QBEXPAUHWND__@@_N@Z ; <lambda_d14c9bebe89e1ec31d27f11b18db1002>::operator()
 
-; 1056 : 
-; 1057 :     // We must fully consume one of these messages or audio will stop playing
-; 1058 :     //   when the game loses focus, so do not simply pass this through to the
-; 1059 :     //     default window procedure.
-; 1060 :     if ( (! SK_GetCurrentRenderBackend ().fullscreen_exclusive) &&
+; 1064 : 
+; 1065 :     // We must fully consume one of these messages or audio will stop playing
+; 1066 :     //   when the game loses focus, so do not simply pass this through to the
+; 1067 :     //     default window procedure.
+; 1068 :     if ( (! SK_GetCurrentRenderBackend ().fullscreen_exclusive) &&
 
 	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
 	cmp	BYTE PTR [eax+48], 0
@@ -25746,10 +25850,10 @@ $LN7@On_NCACTIV:
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+768, 0
 	je	SHORT $LN8@On_NCACTIV
 
-; 1061 :             config.window.background_render
-; 1062 :        )
-; 1063 :     {
-; 1064 :       wParam = TRUE,
+; 1069 :             config.window.background_render
+; 1070 :        )
+; 1071 :     {
+; 1072 :       wParam = TRUE,
 
 	mov	ecx, DWORD PTR _lParam$[ebp]
 	mov	eax, DWORD PTR _hWnd$[ebp]
@@ -25757,23 +25861,23 @@ $LN7@On_NCACTIV:
 	mov	DWORD PTR [ecx], eax
 $LN8@On_NCACTIV:
 
-; 1065 :       lParam = reinterpret_cast <LPARAM> (hWnd);
-; 1066 :     }
-; 1067 : 
-; 1068 :     SK_GetCurrentRenderBackend ().fullscreen_exclusive = false;
+; 1073 :       lParam = reinterpret_cast <LPARAM> (hWnd);
+; 1074 :     }
+; 1075 : 
+; 1076 :     SK_GetCurrentRenderBackend ().fullscreen_exclusive = false;
 
 	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
 	pop	edi
 	pop	esi
 	mov	BYTE PTR [eax+48], 0
 
-; 1069 :   }
-; 1070 : 
-; 1071 :   return false;
+; 1077 :   }
+; 1078 : 
+; 1079 :   return false;
 
 	xor	al, al
 
-; 1072 : }
+; 1080 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -25805,7 +25909,7 @@ _pRet$ = 20						; size = 4
 ?On_ACTIVATE@window_message_dispatch_s@@IAE_NPAUHWND__@@AAIAAJPAJ@Z PROC ; window_message_dispatch_s::On_ACTIVATE
 ; _this$ = ecx
 
-; 1113 : {
+; 1121 : {
 
 	npad	2
 	push	ebp
@@ -25820,7 +25924,7 @@ _pRet$ = 20						; size = 4
 	lea	eax, DWORD PTR _hWnd$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 1113 : {
+; 1121 : {
 
 	mov	esi, ecx
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
@@ -25873,22 +25977,22 @@ _pRet$ = 20						; size = 4
 $LN25@On_ACTIVAT:
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 1117 :   bool last_active = active_windows [hWnd];
+; 1125 :   bool last_active = active_windows [hWnd];
 
 	mov	bh, BYTE PTR [eax+12]
 
-; 1118 : 
-; 1119 :   switch (LOWORD (wParam))
+; 1126 : 
+; 1127 :   switch (LOWORD (wParam))
 
 	mov	eax, DWORD PTR _wParam$[ebp]
 	movzx	ecx, WORD PTR [eax]
 
-; 1120 :   {
-; 1121 :     case WA_ACTIVE:
-; 1122 :     case WA_CLICKACTIVE:
-; 1123 :     default: // Unknown
-; 1124 :     {
-; 1125 :       activate = reinterpret_cast <HWND> (lParam) != game_window.hWnd;
+; 1128 :   {
+; 1129 :     case WA_ACTIVE:
+; 1130 :     case WA_CLICKACTIVE:
+; 1131 :     default: // Unknown
+; 1132 :     {
+; 1133 :       activate = reinterpret_cast <HWND> (lParam) != game_window.hWnd;
 
 	mov	eax, DWORD PTR _lParam$[ebp]
 	mov	eax, DWORD PTR [eax]
@@ -25896,25 +26000,25 @@ $LN25@On_ACTIVAT:
 	je	SHORT $LN7@On_ACTIVAT
 	cmp	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+4
 
-; 1126 :       source   = LOWORD (wParam) == 1 ? L"(WM_ACTIVATE [ WA_ACTIVE ])" :
+; 1134 :       source   = LOWORD (wParam) == 1 ? L"(WM_ACTIVATE [ WA_ACTIVE ])" :
 
-	mov	esi, OFFSET $SG211601
-	mov	eax, OFFSET $SG211602
+	mov	esi, OFFSET $SG211672
+	mov	eax, OFFSET $SG211673
 	setne	bl
 	cmp	ecx, 1
 	cmovne	esi, eax
 
-; 1127 :                                         L"(WM_ACTIVATE [ WA_CLICKACTIVE ])";
-; 1128 :       ActivateWindow (hWnd, activate);
-; 1129 :     } break;
+; 1135 :                                         L"(WM_ACTIVATE [ WA_CLICKACTIVE ])";
+; 1136 :       ActivateWindow (hWnd, activate);
+; 1137 :     } break;
 
 	jmp	SHORT $LN119@On_ACTIVAT
 $LN7@On_ACTIVAT:
 
-; 1130 : 
-; 1131 :     case WA_INACTIVE:
-; 1132 :     {
-; 1133 :       activate = ( lParam                           == 0                ) ||
+; 1138 : 
+; 1139 :     case WA_INACTIVE:
+; 1140 :     {
+; 1141 :       activate = ( lParam                           == 0                ) ||
 
 	test	eax, eax
 	je	SHORT $LN18@On_ACTIVAT
@@ -25926,30 +26030,30 @@ $LN18@On_ACTIVAT:
 	mov	bl, 1
 $LN117@On_ACTIVAT:
 
-; 1134 :                  ( reinterpret_cast <HWND> (lParam) == game_window.hWnd );
-; 1135 :       source   = L"(WM_ACTIVATE [ WA_INACTIVE ])";
+; 1142 :                  ( reinterpret_cast <HWND> (lParam) == game_window.hWnd );
+; 1143 :       source   = L"(WM_ACTIVATE [ WA_INACTIVE ])";
 
-	mov	esi, OFFSET $SG211604
+	mov	esi, OFFSET $SG211675
 $LN119@On_ACTIVAT:
 
-; 1130 : 
-; 1131 :     case WA_INACTIVE:
-; 1132 :     {
-; 1133 :       activate = ( lParam                           == 0                ) ||
+; 1138 : 
+; 1139 :     case WA_INACTIVE:
+; 1140 :     {
+; 1141 :       activate = ( lParam                           == 0                ) ||
 
 	mov	BYTE PTR _activate$[ebp], bl
 
-; 1136 :       ActivateWindow (hWnd, activate);
+; 1144 :       ActivateWindow (hWnd, activate);
 
 	mov	ecx, OFFSET ?ActivateWindow@@3V<lambda>@@A ; ActivateWindow
 	push	DWORD PTR _activate$[ebp]
 	push	DWORD PTR _hWnd$[ebp]
-	call	??R<lambda_bc1c1ac12d37131fdb55160d65b430af>@@QBEXPAUHWND__@@_N@Z ; <lambda_bc1c1ac12d37131fdb55160d65b430af>::operator()
+	call	??R<lambda_d14c9bebe89e1ec31d27f11b18db1002>@@QBEXPAUHWND__@@_N@Z ; <lambda_d14c9bebe89e1ec31d27f11b18db1002>::operator()
 
-; 1137 :     } break;
-; 1138 :   }
-; 1139 : 
-; 1140 :   switch (last_active)
+; 1145 :     } break;
+; 1146 :   }
+; 1147 : 
+; 1148 :   switch (last_active)
 
 	movzx	eax, bh
 	sub	eax, 0
@@ -25957,54 +26061,54 @@ $LN119@On_ACTIVAT:
 	sub	eax, 1
 	jne	SHORT $LN13@On_ACTIVAT
 
-; 1141 :   {
-; 1142 :     case true:
-; 1143 :       if (! activate)
+; 1149 :   {
+; 1150 :     case true:
+; 1151 :       if (! activate)
 
 	test	bl, bl
 	jne	SHORT $LN13@On_ACTIVAT
 
-; 1144 :       {
-; 1145 :         SK_LOG2 ( ( L"Application Deactivated %s", source ),
+; 1152 :       {
+; 1153 :         SK_LOG2 ( ( L"Application Deactivated %s", source ),
 
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 2
 	jl	SHORT $LN13@On_ACTIVAT
 	push	esi
-	push	OFFSET $SG211608
+	push	OFFSET $SG211679
 
-; 1146 :                     L"Window Mgr" );
-; 1147 :       }
-; 1148 :       break;
+; 1154 :                     L"Window Mgr" );
+; 1155 :       }
+; 1156 :       break;
 
 	jmp	SHORT $LN118@On_ACTIVAT
 $LN11@On_ACTIVAT:
 
-; 1149 : 
-; 1150 :     case false:
-; 1151 :       if (activate)
+; 1157 : 
+; 1158 :     case false:
+; 1159 :       if (activate)
 
 	test	bl, bl
 	je	SHORT $LN13@On_ACTIVAT
 
-; 1152 :       {
-; 1153 :         SK_LOG2 ( ( L"Application Activated %s", source ),
+; 1160 :       {
+; 1161 :         SK_LOG2 ( ( L"Application Activated %s", source ),
 
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 2
 	jl	SHORT $LN13@On_ACTIVAT
 	push	esi
-	push	OFFSET $SG211612
+	push	OFFSET $SG211683
 $LN118@On_ACTIVAT:
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
 $LN13@On_ACTIVAT:
 
-; 1154 :                     L"Window Mgr" );
-; 1155 :       }
-; 1156 :       break;
-; 1157 :   }
-; 1158 : 
-; 1159 :   if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) && config.window.background_render)
+; 1162 :                     L"Window Mgr" );
+; 1163 :       }
+; 1164 :       break;
+; 1165 :   }
+; 1166 : 
+; 1167 :   if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) && config.window.background_render)
 
 	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
 	cmp	BYTE PTR [eax+48], 0
@@ -26012,8 +26116,8 @@ $LN13@On_ACTIVAT:
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+768, 0
 	je	SHORT $LN14@On_ACTIVAT
 
-; 1160 :   {
-; 1161 :     if (pRet) *pRet = 1;
+; 1168 :   {
+; 1169 :     if (pRet) *pRet = 1;
 
 	mov	eax, DWORD PTR _pRet$[ebp]
 	test	eax, eax
@@ -26022,39 +26126,39 @@ $LN13@On_ACTIVAT:
 $LN15@On_ACTIVAT:
 	pop	esi
 
-; 1162 :     return true;
+; 1170 :     return true;
 
 	mov	al, 1
 	pop	ebx
 
-; 1169 : }
+; 1177 : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	16					; 00000010H
 $LN14@On_ACTIVAT:
 
-; 1163 :   }
-; 1164 : 
-; 1165 :   if (! activate)
+; 1171 :   }
+; 1172 : 
+; 1173 :   if (! activate)
 
 	test	bl, bl
 	jne	SHORT $LN16@On_ACTIVAT
 
-; 1166 :     SK_GetCurrentRenderBackend ().fullscreen_exclusive = false;
+; 1174 :     SK_GetCurrentRenderBackend ().fullscreen_exclusive = false;
 
 	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
 	mov	BYTE PTR [eax+48], bl
 $LN16@On_ACTIVAT:
 
-; 1167 : 
-; 1168 :   return false;
+; 1175 : 
+; 1176 :   return false;
 
 	pop	esi
 	xor	al, al
 	pop	ebx
 
-; 1169 : }
+; 1177 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -26098,7 +26202,7 @@ ___formal$ = 20						; size = 4
 ?On_ACTIVATEAPP@window_message_dispatch_s@@IAE_NPAUHWND__@@AAIAAJPAJ@Z PROC ; window_message_dispatch_s::On_ACTIVATEAPP
 ; _this$ = ecx
 
-; 1076 : {
+; 1084 : {
 
 	npad	2
 	push	ebp
@@ -26107,7 +26211,7 @@ ___formal$ = 20						; size = 4
 	push	esi
 	push	edi
 
-; 1077 :   if (wParam != FALSE)
+; 1085 :   if (wParam != FALSE)
 
 	mov	edi, DWORD PTR _wParam$[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
@@ -26119,7 +26223,7 @@ ___formal$ = 20						; size = 4
 	lea	eax, DWORD PTR __Where$4[ebp]
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 1076 : {
+; 1084 : {
 
 	mov	esi, ecx
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
@@ -26130,7 +26234,7 @@ ___formal$ = 20						; size = 4
 	call	?lower_bound@?$_Hash@V?$_Umap_traits@PAUHWND__@@_NV?$_Uhash_compare@PAUHWND__@@U?$hash@PAUHWND__@@@std@@U?$equal_to@PAUHWND__@@@3@@std@@V?$allocator@U?$pair@QAUHWND__@@_N@std@@@3@$0A@@std@@@std@@QAE?AV?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAUHWND__@@_N@std@@@std@@@std@@@2@ABQAUHWND__@@@Z ; std::_Hash<std::_Umap_traits<HWND__ *,bool,std::_Uhash_compare<HWND__ *,std::hash<HWND__ *>,std::equal_to<HWND__ *> >,std::allocator<std::pair<HWND__ * const,bool> >,0> >::lower_bound
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 1077 :   if (wParam != FALSE)
+; 1085 :   if (wParam != FALSE)
 
 	cmp	DWORD PTR [edi], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
@@ -26140,7 +26244,7 @@ ___formal$ = 20						; size = 4
 	mov	eax, DWORD PTR __Where$4[ebp]
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 1077 :   if (wParam != FALSE)
+; 1085 :   if (wParam != FALSE)
 
 	je	SHORT $LN2@On_ACTIVAT
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
@@ -26184,39 +26288,39 @@ ___formal$ = 20						; size = 4
 $LN15@On_ACTIVAT:
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 1079 :     if (active_windows [hWnd] == false)
+; 1087 :     if (active_windows [hWnd] == false)
 
 	cmp	BYTE PTR [eax+12], 0
 	jne	SHORT $LN5@On_ACTIVAT
 
-; 1080 :       SK_LOG3 ( ( L"Application Activated (Non-Client)" ),
+; 1088 :       SK_LOG3 ( ( L"Application Activated (Non-Client)" ),
 
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 3
 	jl	SHORT $LN5@On_ACTIVAT
-	push	OFFSET $SG211574
+	push	OFFSET $SG211645
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
 $LN5@On_ACTIVAT:
 
-; 1081 :                   L"Window Mgr" );
-; 1082 : 
-; 1083 :     ActivateWindow (hWnd, true);
+; 1089 :                   L"Window Mgr" );
+; 1090 : 
+; 1091 :     ActivateWindow (hWnd, true);
 
 	push	1
 	push	DWORD PTR _hWnd$[ebp]
 	mov	ecx, OFFSET ?ActivateWindow@@3V<lambda>@@A ; ActivateWindow
-	call	??R<lambda_bc1c1ac12d37131fdb55160d65b430af>@@QBEXPAUHWND__@@_N@Z ; <lambda_bc1c1ac12d37131fdb55160d65b430af>::operator()
+	call	??R<lambda_d14c9bebe89e1ec31d27f11b18db1002>@@QBEXPAUHWND__@@_N@Z ; <lambda_d14c9bebe89e1ec31d27f11b18db1002>::operator()
 	pop	edi
 
-; 1106 :   }
-; 1107 : 
-; 1108 :   return false;
+; 1114 :   }
+; 1115 : 
+; 1116 :   return false;
 
 	xor	al, al
 	pop	esi
 
-; 1109 : }
+; 1117 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -26263,35 +26367,35 @@ $LN2@On_ACTIVAT:
 $LN111@On_ACTIVAT:
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 1088 :     if (active_windows [hWnd] == true)
+; 1096 :     if (active_windows [hWnd] == true)
 
 	cmp	BYTE PTR [eax+12], 1
 	jne	SHORT $LN7@On_ACTIVAT
 
-; 1089 :       SK_LOG3 ( ( L"Application Deactivated (Non-Client)" ),
+; 1097 :       SK_LOG3 ( ( L"Application Deactivated (Non-Client)" ),
 
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 3
 	jl	SHORT $LN7@On_ACTIVAT
-	push	OFFSET $SG211577
+	push	OFFSET $SG211648
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
 $LN7@On_ACTIVAT:
 
-; 1090 :                   L"Window Mgr" );
-; 1091 : 
-; 1092 :     ActivateWindow (hWnd, false);
+; 1098 :                   L"Window Mgr" );
+; 1099 : 
+; 1100 :     ActivateWindow (hWnd, false);
 
 	push	0
 	push	DWORD PTR _hWnd$[ebp]
 	mov	ecx, OFFSET ?ActivateWindow@@3V<lambda>@@A ; ActivateWindow
-	call	??R<lambda_bc1c1ac12d37131fdb55160d65b430af>@@QBEXPAUHWND__@@_N@Z ; <lambda_bc1c1ac12d37131fdb55160d65b430af>::operator()
+	call	??R<lambda_d14c9bebe89e1ec31d27f11b18db1002>@@QBEXPAUHWND__@@_N@Z ; <lambda_d14c9bebe89e1ec31d27f11b18db1002>::operator()
 
-; 1093 : 
-; 1094 :     // We must fully consume one of these messages or audio will stop playing
-; 1095 :     //   when the game loses focus, so do not simply pass this through to the
-; 1096 :     //     default window procedure.
-; 1097 :     if ( (! SK_GetCurrentRenderBackend ().fullscreen_exclusive) &&
+; 1101 : 
+; 1102 :     // We must fully consume one of these messages or audio will stop playing
+; 1103 :     //   when the game loses focus, so do not simply pass this through to the
+; 1104 :     //     default window procedure.
+; 1105 :     if ( (! SK_GetCurrentRenderBackend ().fullscreen_exclusive) &&
 
 	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
 	cmp	BYTE PTR [eax+48], 0
@@ -26299,10 +26403,10 @@ $LN7@On_ACTIVAT:
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+768, 0
 	je	SHORT $LN8@On_ACTIVAT
 
-; 1098 :             config.window.background_render
-; 1099 :        )
-; 1100 :     {
-; 1101 :       wParam = TRUE,
+; 1106 :             config.window.background_render
+; 1107 :        )
+; 1108 :     {
+; 1109 :       wParam = TRUE,
 
 	mov	ecx, DWORD PTR _lParam$[ebp]
 	mov	eax, DWORD PTR _hWnd$[ebp]
@@ -26310,23 +26414,23 @@ $LN7@On_ACTIVAT:
 	mov	DWORD PTR [ecx], eax
 $LN8@On_ACTIVAT:
 
-; 1102 :       lParam = reinterpret_cast <LPARAM> (hWnd);
-; 1103 :     }
-; 1104 : 
-; 1105 :     SK_GetCurrentRenderBackend ().fullscreen_exclusive = false;
+; 1110 :       lParam = reinterpret_cast <LPARAM> (hWnd);
+; 1111 :     }
+; 1112 : 
+; 1113 :     SK_GetCurrentRenderBackend ().fullscreen_exclusive = false;
 
 	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
 	pop	edi
 	pop	esi
 	mov	BYTE PTR [eax+48], 0
 
-; 1106 :   }
-; 1107 : 
-; 1108 :   return false;
+; 1114 :   }
+; 1115 : 
+; 1116 :   return false;
 
 	xor	al, al
 
-; 1109 : }
+; 1117 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -26343,55 +26447,55 @@ _pRet$ = 20						; size = 4
 ?On_MOUSEACTIVATE@window_message_dispatch_s@@IAE_NPAUHWND__@@AAIAAJPAJ@Z PROC ; window_message_dispatch_s::On_MOUSEACTIVATE
 ; _this$ = ecx
 
-; 998  : {
+; 1006 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	push	esi
 
-; 999  :   SK_RenderBackend& rb = SK_GetCurrentRenderBackend ();
+; 1007 :   SK_RenderBackend& rb = SK_GetCurrentRenderBackend ();
 
 	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
 
-; 1000 : 
-; 1001 :   if ( reinterpret_cast <HWND> (wParam) == game_window.hWnd )
+; 1008 : 
+; 1009 :   if ( reinterpret_cast <HWND> (wParam) == game_window.hWnd )
 
 	mov	ecx, DWORD PTR _wParam$[ebp]
 	mov	esi, eax
 	mov	ecx, DWORD PTR [ecx]
 	cmp	ecx, DWORD PTR ?game_window@@3Usk_window_s@@A+4
 
-; 1002 :   {
-; 1003 :     ActivateWindow (hWnd, true);
+; 1010 :   {
+; 1011 :     ActivateWindow (hWnd, true);
 
 	mov	ecx, OFFSET ?ActivateWindow@@3V<lambda>@@A ; ActivateWindow
 	jne	SHORT $LN2@On_MOUSEAC
 	push	1
 	push	DWORD PTR _hWnd$[ebp]
-	call	??R<lambda_bc1c1ac12d37131fdb55160d65b430af>@@QBEXPAUHWND__@@_N@Z ; <lambda_bc1c1ac12d37131fdb55160d65b430af>::operator()
+	call	??R<lambda_d14c9bebe89e1ec31d27f11b18db1002>@@QBEXPAUHWND__@@_N@Z ; <lambda_d14c9bebe89e1ec31d27f11b18db1002>::operator()
 
-; 1004 : 
-; 1005 :     if ((! rb.fullscreen_exclusive) && config.window.background_render)
+; 1012 : 
+; 1013 :     if ((! rb.fullscreen_exclusive) && config.window.background_render)
 
 	cmp	BYTE PTR [esi+48], 0
 	jne	$LN3@On_MOUSEAC
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+768, 0
 	je	SHORT $LN3@On_MOUSEAC
 
-; 1006 :     {
-; 1007 :       SK_LOG2 ( ( L"WM_MOUSEACTIVATE ==> Activate and Eat" ),
+; 1014 :     {
+; 1015 :       SK_LOG2 ( ( L"WM_MOUSEACTIVATE ==> Activate and Eat" ),
 
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 2
 	jl	SHORT $LN5@On_MOUSEAC
-	push	OFFSET $SG211539
+	push	OFFSET $SG211610
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
 $LN5@On_MOUSEAC:
 
-; 1008 :                   L"Window Mgr" );
-; 1009 :       if (pRet) *pRet = MA_ACTIVATEANDEAT;
+; 1016 :                   L"Window Mgr" );
+; 1017 :       if (pRet) *pRet = MA_ACTIVATEANDEAT;
 
 	mov	eax, DWORD PTR _pRet$[ebp]
 	test	eax, eax
@@ -26399,52 +26503,52 @@ $LN5@On_MOUSEAC:
 	mov	DWORD PTR [eax], 2
 $LN6@On_MOUSEAC:
 
-; 1010 : 
-; 1011 :       return true;
+; 1018 : 
+; 1019 :       return true;
 
 	mov	al, 1
 	pop	esi
 
-; 1034 : }
+; 1042 : }
 
 	pop	ebp
 	ret	16					; 00000010H
 $LN2@On_MOUSEAC:
 
-; 1012 :     }
-; 1013 :   }
-; 1014 : 
-; 1015 :   else
-; 1016 :   {
-; 1017 :     ActivateWindow (hWnd, false);
+; 1020 :     }
+; 1021 :   }
+; 1022 : 
+; 1023 :   else
+; 1024 :   {
+; 1025 :     ActivateWindow (hWnd, false);
 
 	push	0
 	push	DWORD PTR _hWnd$[ebp]
-	call	??R<lambda_bc1c1ac12d37131fdb55160d65b430af>@@QBEXPAUHWND__@@_N@Z ; <lambda_bc1c1ac12d37131fdb55160d65b430af>::operator()
+	call	??R<lambda_d14c9bebe89e1ec31d27f11b18db1002>@@QBEXPAUHWND__@@_N@Z ; <lambda_d14c9bebe89e1ec31d27f11b18db1002>::operator()
 
-; 1018 : 
-; 1019 :     // Game window was deactivated, but the game doesn't need to know this!
-; 1020 :     //   in fact, it needs to be told the opposite.
-; 1021 :     if ((! rb.fullscreen_exclusive) && config.window.background_render)
+; 1026 : 
+; 1027 :     // Game window was deactivated, but the game doesn't need to know this!
+; 1028 :     //   in fact, it needs to be told the opposite.
+; 1029 :     if ((! rb.fullscreen_exclusive) && config.window.background_render)
 
 	cmp	BYTE PTR [esi+48], 0
 	jne	SHORT $LN7@On_MOUSEAC
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+768, 0
 	je	SHORT $LN7@On_MOUSEAC
 
-; 1022 :     {
-; 1023 :       SK_LOG2 ( ( L"WM_MOUSEACTIVATE (Other Window) ==> Activate" ),
+; 1030 :     {
+; 1031 :       SK_LOG2 ( ( L"WM_MOUSEACTIVATE (Other Window) ==> Activate" ),
 
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 2
 	jl	SHORT $LN8@On_MOUSEAC
-	push	OFFSET $SG211543
+	push	OFFSET $SG211614
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
 $LN8@On_MOUSEAC:
 
-; 1024 :                   L"Window Mgr" );
-; 1025 :       if (pRet) *pRet = MA_ACTIVATE;
+; 1032 :                   L"Window Mgr" );
+; 1033 :       if (pRet) *pRet = MA_ACTIVATE;
 
 	mov	eax, DWORD PTR _pRet$[ebp]
 	test	eax, eax
@@ -26452,33 +26556,33 @@ $LN8@On_MOUSEAC:
 	mov	DWORD PTR [eax], 1
 $LN9@On_MOUSEAC:
 
-; 1026 : 
-; 1027 :       return true;
+; 1034 : 
+; 1035 :       return true;
 
 	mov	al, 1
 	pop	esi
 
-; 1034 : }
+; 1042 : }
 
 	pop	ebp
 	ret	16					; 00000010H
 $LN7@On_MOUSEAC:
 
-; 1028 :     }
-; 1029 : 
-; 1030 :     rb.fullscreen_exclusive = false;
+; 1036 :     }
+; 1037 : 
+; 1038 :     rb.fullscreen_exclusive = false;
 
 	mov	BYTE PTR [esi+48], 0
 $LN3@On_MOUSEAC:
 
-; 1031 :   }
-; 1032 : 
-; 1033 :   return false;
+; 1039 :   }
+; 1040 : 
+; 1041 :   return false;
 
 	xor	al, al
 	pop	esi
 
-; 1034 : }
+; 1042 : }
 
 	pop	ebp
 	ret	16					; 00000010H
@@ -26511,13 +26615,13 @@ _pRet$ = 20						; size = 4
 ?On_WINDOWPOSCHANGED@window_message_dispatch_s@@IAE_NPAUHWND__@@AAIAAJPAJ@Z PROC ; window_message_dispatch_s::On_WINDOWPOSCHANGED
 ; _this$ = ecx
 
-; 3550 : {
+; 3558 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 3551 :   if (game_window.hWnd != hWnd)
+; 3559 :   if (game_window.hWnd != hWnd)
 
 	mov	edx, DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	sub	esp, 16					; 00000010H
@@ -26526,25 +26630,25 @@ _pRet$ = 20						; size = 4
 	cmp	edx, DWORD PTR _hWnd$[ebp]
 	jne	$LN18@On_WINDOWP
 
-; 3552 :     return false;
-; 3553 : 
-; 3554 :   auto wnd_pos =
-; 3555 :     reinterpret_cast <LPWINDOWPOS> (lParam);
+; 3560 :     return false;
+; 3561 : 
+; 3562 :   auto wnd_pos =
+; 3563 :     reinterpret_cast <LPWINDOWPOS> (lParam);
 
 	mov	eax, DWORD PTR _lParam$[ebp]
 	push	ebx
 
-; 3556 : 
-; 3557 :   bool offset = false;
+; 3564 : 
+; 3565 :   bool offset = false;
 
 	xor	bh, bh
 
-; 3558 : 
-; 3559 :   // Test for user-defined position; if it exists, then we must
-; 3560 :   //   respond to all WM_WINDOWPOSCHANGED messages indicating window movement
-; 3561 :   if ( config.window.offset.x.absolute                 || config.window.offset.y.absolute ||
-; 3562 :        ( config.window.offset.x.percent >  0.000001f ||
-; 3563 :          config.window.offset.x.percent < -0.000001f ) ||
+; 3566 : 
+; 3567 :   // Test for user-defined position; if it exists, then we must
+; 3568 :   //   respond to all WM_WINDOWPOSCHANGED messages indicating window movement
+; 3569 :   if ( config.window.offset.x.absolute                 || config.window.offset.y.absolute ||
+; 3570 :        ( config.window.offset.x.percent >  0.000001f ||
+; 3571 :          config.window.offset.x.percent < -0.000001f ) ||
 
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+752, 0
 	push	esi
@@ -26566,16 +26670,16 @@ _pRet$ = 20						; size = 4
 	jbe	SHORT $LN3@On_WINDOWP
 $LN5@On_WINDOWP:
 
-; 3564 :        ( config.window.offset.y.percent >  0.000001f ||
-; 3565 :          config.window.offset.y.percent < -0.000001f )
-; 3566 :      )
-; 3567 :     offset = true;
+; 3572 :        ( config.window.offset.y.percent >  0.000001f ||
+; 3573 :          config.window.offset.y.percent < -0.000001f )
+; 3574 :      )
+; 3575 :     offset = true;
 
 	mov	bh, 1
 $LN3@On_WINDOWP:
 
-; 3568 : 
-; 3569 :   bool temp_override = false;
+; 3576 : 
+; 3577 :   bool temp_override = false;
 
 	xor	bl, bl
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
@@ -26588,7 +26692,7 @@ $LN3@On_WINDOWP:
 	jne	SHORT $LN6@On_WINDOWP
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 3577 :     GetClientRect_Original (game_window.hWnd, &client);
+; 3585 :     GetClientRect_Original (game_window.hWnd, &client);
 
 	lea	eax, DWORD PTR _client$1[ebp]
 	xorps	xmm0, xmm0
@@ -26598,27 +26702,27 @@ $LN3@On_WINDOWP:
 	movups	XMMWORD PTR _client$1[ebp], xmm0
 	call	DWORD PTR ?GetClientRect_Original@@3P6GHPAUHWND__@@PAUtagRECT@@@ZA ; GetClientRect_Original
 
-; 3578 : 
-; 3579 :     config.window.res.override.x = client.right  - client.left;
+; 3586 : 
+; 3587 :     config.window.res.override.x = client.right  - client.left;
 
 	mov	eax, DWORD PTR _client$1[ebp+8]
 	sub	eax, DWORD PTR _client$1[ebp]
 	mov	DWORD PTR ?config@@3Usk_config_t@@A+784, eax
 
-; 3580 :     config.window.res.override.y = client.bottom - client.top;
+; 3588 :     config.window.res.override.y = client.bottom - client.top;
 
 	mov	eax, DWORD PTR _client$1[ebp+12]
 	sub	eax, DWORD PTR _client$1[ebp+4]
 	mov	DWORD PTR ?config@@3Usk_config_t@@A+788, eax
 $LN6@On_WINDOWP:
 
-; 3581 :   }
-; 3582 : 
-; 3583 :   SK_RenderBackend& rb = SK_GetCurrentRenderBackend ();
+; 3589 :   }
+; 3590 : 
+; 3591 :   SK_RenderBackend& rb = SK_GetCurrentRenderBackend ();
 
 	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
 
-; 3589 :       || (! ( config.window.res.override.isZero () ||
+; 3597 :       || (! ( config.window.res.override.isZero () ||
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+750, 0
 	je	SHORT $LN10@On_WINDOWP
@@ -26646,7 +26750,7 @@ $LN12@On_WINDOWP:
 $LN26@On_WINDOWP:
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 3589 :       || (! ( config.window.res.override.isZero () ||
+; 3597 :       || (! ( config.window.res.override.isZero () ||
 
 	test	bl, bl
 	jne	SHORT $LN49@On_WINDOWP
@@ -26654,62 +26758,62 @@ $LN26@On_WINDOWP:
 	jne	SHORT $LN13@On_WINDOWP
 $LN8@On_WINDOWP:
 
-; 3590 :          (    temp_override                           ))  &&  (!(wnd_pos->flags & SWP_NOSIZE)) )
-; 3591 :      )
-; 3592 :   {
-; 3593 :     wnd_pos->flags |= ( SWP_NOSENDCHANGING );
+; 3598 :          (    temp_override                           ))  &&  (!(wnd_pos->flags & SWP_NOSIZE)) )
+; 3599 :      )
+; 3600 :   {
+; 3601 :     wnd_pos->flags |= ( SWP_NOSENDCHANGING );
 
 	or	DWORD PTR [esi+24], 1024		; 00000400H
 
-; 3594 :     SK_AdjustWindow ();
+; 3602 :     SK_AdjustWindow ();
 
 	call	?SK_AdjustWindow@@YAXXZ			; SK_AdjustWindow
 $LN7@On_WINDOWP:
 
-; 3595 :   }
-; 3596 : 
-; 3597 :   if (temp_override)
+; 3603 :   }
+; 3604 : 
+; 3605 :   if (temp_override)
 
 	test	bl, bl
 	je	SHORT $LN13@On_WINDOWP
 $LN49@On_WINDOWP:
 
-; 3598 :   {
-; 3599 :     config.window.res.override.x = 0;
+; 3606 :   {
+; 3607 :     config.window.res.override.x = 0;
 
 	mov	DWORD PTR ?config@@3Usk_config_t@@A+784, 0
 
-; 3600 :     config.window.res.override.y = 0;
+; 3608 :     config.window.res.override.y = 0;
 
 	mov	DWORD PTR ?config@@3Usk_config_t@@A+788, 0
 $LN13@On_WINDOWP:
 
-; 3601 :   }
-; 3602 : 
-; 3603 :   wnd_pos->x  = game_window.actual.window.left;
+; 3609 :   }
+; 3610 : 
+; 3611 :   wnd_pos->x  = game_window.actual.window.left;
 
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+100
 	mov	DWORD PTR [esi+8], eax
 
-; 3604 :   wnd_pos->y  = game_window.actual.window.top;
+; 3612 :   wnd_pos->y  = game_window.actual.window.top;
 
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+104
 	mov	DWORD PTR [esi+12], eax
 
-; 3605 : 
-; 3606 :   wnd_pos->cx = game_window.actual.window.right  - game_window.actual.window.left;
+; 3613 : 
+; 3614 :   wnd_pos->cx = game_window.actual.window.right  - game_window.actual.window.left;
 
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+108
 	sub	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+100
 	mov	DWORD PTR [esi+16], eax
 
-; 3607 :   wnd_pos->cy = game_window.actual.window.bottom - game_window.actual.window.top;
+; 3615 :   wnd_pos->cy = game_window.actual.window.bottom - game_window.actual.window.top;
 
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+112
 	sub	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+104
 	mov	DWORD PTR [esi+20], eax
 
-; 3611 :   if (config.window.confine_cursor && (! moving_windows.count (hWnd)))
+; 3619 :   if (config.window.confine_cursor && (! moving_windows.count (hWnd)))
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+770, 0
 	movups	xmm0, XMMWORD PTR ?game_window@@3Usk_window_s@@A+100
@@ -26727,7 +26831,7 @@ $LN13@On_WINDOWP:
 	push	eax
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 3611 :   if (config.window.confine_cursor && (! moving_windows.count (hWnd)))
+; 3619 :   if (config.window.confine_cursor && (! moving_windows.count (hWnd)))
 
 	lea	ecx, DWORD PTR [edi+32]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
@@ -26779,41 +26883,41 @@ $LL35@On_WINDOWP:
 	jne	SHORT $LL35@On_WINDOWP
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 3611 :   if (config.window.confine_cursor && (! moving_windows.count (hWnd)))
+; 3619 :   if (config.window.confine_cursor && (! moving_windows.count (hWnd)))
 
 	test	edx, edx
 	jne	SHORT $LN14@On_WINDOWP
 $LN52@On_WINDOWP:
 
-; 3612 :     ClipCursor_Original (&game_window.actual.window);
+; 3620 :     ClipCursor_Original (&game_window.actual.window);
 
 	push	OFFSET ?game_window@@3Usk_window_s@@A+100
 	jmp	SHORT $LN53@On_WINDOWP
 $LN14@On_WINDOWP:
 
-; 3613 :   else if (config.window.unconfine_cursor)
+; 3621 :   else if (config.window.unconfine_cursor)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+771, 0
 	je	SHORT $LN16@On_WINDOWP
 
-; 3614 :     ClipCursor_Original (nullptr);
+; 3622 :     ClipCursor_Original (nullptr);
 
 	push	0
 $LN53@On_WINDOWP:
 	call	DWORD PTR ?ClipCursor_Original@@3P6GHPBUtagRECT@@@ZA ; ClipCursor_Original
 $LN16@On_WINDOWP:
 
-; 3615 : 
-; 3616 :   // Filter this message
-; 3617 :   if (config.window.borderless && config.window.fullscreen)
+; 3623 : 
+; 3624 :   // Filter this message
+; 3625 :   if (config.window.borderless && config.window.fullscreen)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+748, 0
 	je	SHORT $LN18@On_WINDOWP
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+774, 0
 	je	SHORT $LN18@On_WINDOWP
 
-; 3618 :   {
-; 3619 :     if (pRet) *pRet = 1;
+; 3626 :   {
+; 3627 :     if (pRet) *pRet = 1;
 
 	mov	eax, DWORD PTR _pRet$[ebp]
 	test	eax, eax
@@ -26821,16 +26925,16 @@ $LN16@On_WINDOWP:
 	mov	DWORD PTR [eax], 1
 $LN18@On_WINDOWP:
 
-; 3620 : 
-; 3621 :     //return true;
-; 3622 :   }
-; 3623 : 
-; 3624 :   return false;
+; 3628 : 
+; 3629 :     //return true;
+; 3630 :   }
+; 3631 : 
+; 3632 :   return false;
 
 	xor	al, al
 	pop	edi
 
-; 3625 : }
+; 3633 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -26848,7 +26952,7 @@ _pRet$ = 20						; size = 4
 ?On_WINDOWPOSCHANGING@window_message_dispatch_s@@IAE_NPAUHWND__@@AAIAAJPAJ@Z PROC ; window_message_dispatch_s::On_WINDOWPOSCHANGING
 ; _this$ = ecx
 
-; 3462 : {
+; 3470 : {
 
 	npad	2
 	push	ebp
@@ -26856,115 +26960,115 @@ _pRet$ = 20						; size = 4
 	sub	esp, 40					; 00000028H
 	push	edi
 
-; 3463 :   if (hWnd != game_window.hWnd)
+; 3471 :   if (hWnd != game_window.hWnd)
 
 	mov	edi, DWORD PTR _hWnd$[ebp]
 	cmp	edi, DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	je	SHORT $LN2@On_WINDOWP
 
-; 3464 :     return false;
+; 3472 :     return false;
 
 	xor	al, al
 	pop	edi
 
-; 3546 : }
+; 3554 : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	16					; 00000010H
 $LN2@On_WINDOWP:
 
-; 3465 : 
-; 3466 :   auto wnd_pos =
-; 3467 :     reinterpret_cast <LPWINDOWPOS> (lParam);
+; 3473 : 
+; 3474 :   auto wnd_pos =
+; 3475 :     reinterpret_cast <LPWINDOWPOS> (lParam);
 
 	mov	eax, DWORD PTR _lParam$[ebp]
 	push	esi
 	mov	esi, DWORD PTR [eax]
 
-; 3468 : 
-; 3469 :   if ( (wnd_pos->flags ^ SWP_NOSIZE) ||
-; 3470 :        (wnd_pos->flags ^ SWP_NOMOVE) )
-; 3471 :   {
-; 3472 :     ImGui_ImplDX11_InvalidateDeviceObjects ();
+; 3476 : 
+; 3477 :   if ( (wnd_pos->flags ^ SWP_NOSIZE) ||
+; 3478 :        (wnd_pos->flags ^ SWP_NOMOVE) )
+; 3479 :   {
+; 3480 :     ImGui_ImplDX11_InvalidateDeviceObjects ();
 
 	call	?ImGui_ImplDX11_InvalidateDeviceObjects@@YAXXZ ; ImGui_ImplDX11_InvalidateDeviceObjects
 
-; 3473 : 
-; 3474 :     //GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
-; 3475 :     //GetClientRect_Original (game_window.hWnd, &game_window.actual.client);
-; 3476 : 
-; 3477 :     int width  = wnd_pos->cx;
-; 3478 :     int height = wnd_pos->cy;
-; 3479 : 
-; 3480 :     if (wnd_pos->flags & SWP_NOMOVE)
+; 3481 : 
+; 3482 :     //GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
+; 3483 :     //GetClientRect_Original (game_window.hWnd, &game_window.actual.client);
+; 3484 : 
+; 3485 :     int width  = wnd_pos->cx;
+; 3486 :     int height = wnd_pos->cy;
+; 3487 : 
+; 3488 :     if (wnd_pos->flags & SWP_NOMOVE)
 
 	test	BYTE PTR [esi+24], 2
 	mov	ecx, DWORD PTR [esi+20]
 	je	SHORT $LN5@On_WINDOWP
 
-; 3481 :     {
-; 3482 :       //game_window.game.window.left   = wnd_pos->x;
-; 3483 :       //game_window.game.window.top    = wnd_pos->y;
-; 3484 : 
-; 3485 :       game_window.game.window.right  = game_window.game.window.left   + width;
+; 3489 :     {
+; 3490 :       //game_window.game.window.left   = wnd_pos->x;
+; 3491 :       //game_window.game.window.top    = wnd_pos->y;
+; 3492 : 
+; 3493 :       game_window.game.window.right  = game_window.game.window.left   + width;
 
 	mov	eax, DWORD PTR [esi+16]
 	add	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+52
 
-; 3486 :       game_window.game.window.bottom = game_window.game.window.bottom + height;
+; 3494 :       game_window.game.window.bottom = game_window.game.window.bottom + height;
 
 	add	DWORD PTR ?game_window@@3Usk_window_s@@A+64, ecx
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+60, eax
 $LN5@On_WINDOWP:
 
-; 3487 :     }
-; 3488 : 
-; 3489 :     if (wnd_pos->flags & SWP_NOSIZE)
-; 3490 :     {
-; 3491 :       width  = game_window.game.window.right  - game_window.game.window.left;
-; 3492 :       height = game_window.game.window.bottom - game_window.game.window.top;
-; 3493 : 
-; 3494 :       game_window.game.window.right  = game_window.game.window.left + width;
-; 3495 :       game_window.game.window.bottom = game_window.game.window.top  + height;
-; 3496 :     }
-; 3497 :   }
-; 3498 : 
-; 3499 :   //if (config.window.borderless && (wnd_pos->flags & SWP_FRAMECHANGED))
-; 3500 :   //  SK_AdjustBorder ();
+; 3495 :     }
+; 3496 : 
+; 3497 :     if (wnd_pos->flags & SWP_NOSIZE)
+; 3498 :     {
+; 3499 :       width  = game_window.game.window.right  - game_window.game.window.left;
+; 3500 :       height = game_window.game.window.bottom - game_window.game.window.top;
 ; 3501 : 
-; 3502 :   //game_window.game.client = game_window.game.window;
-; 3503 : 
-; 3504 :   if (((! (wnd_pos->flags & SWP_NOMOVE)) || (! (wnd_pos->flags & SWP_NOSIZE))))
+; 3502 :       game_window.game.window.right  = game_window.game.window.left + width;
+; 3503 :       game_window.game.window.bottom = game_window.game.window.top  + height;
+; 3504 :     }
+; 3505 :   }
+; 3506 : 
+; 3507 :   //if (config.window.borderless && (wnd_pos->flags & SWP_FRAMECHANGED))
+; 3508 :   //  SK_AdjustBorder ();
+; 3509 : 
+; 3510 :   //game_window.game.client = game_window.game.window;
+; 3511 : 
+; 3512 :   if (((! (wnd_pos->flags & SWP_NOMOVE)) || (! (wnd_pos->flags & SWP_NOSIZE))))
 
 	mov	eax, DWORD PTR [esi+24]
 	and	eax, 3
 	cmp	al, 3
 	je	$LN11@On_WINDOWP
 
-; 3505 :   {
-; 3506 :     // Filter this message
-; 3507 :     if (config.window.borderless && config.window.fullscreen)
+; 3513 :   {
+; 3514 :     // Filter this message
+; 3515 :     if (config.window.borderless && config.window.fullscreen)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+748, 0
 	je	$LN11@On_WINDOWP
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+774, 0
 	je	$LN11@On_WINDOWP
 
-; 3508 :     {
-; 3509 :       HMONITOR hMonitor =
-; 3510 :       MonitorFromWindow ( hWnd,
+; 3516 :     {
+; 3517 :       HMONITOR hMonitor =
+; 3518 :       MonitorFromWindow ( hWnd,
 
 	push	2
 	push	edi
 	call	DWORD PTR __imp__MonitorFromWindow@8
 
-; 3511 :                             MONITOR_DEFAULTTONEAREST );
-; 3512 : 
-; 3513 :       MONITORINFO mi = { 0 };
-; 3514 :       mi.cbSize      = sizeof (mi);
-; 3515 : 
-; 3516 :       GetMonitorInfo (hMonitor, &mi);
+; 3519 :                             MONITOR_DEFAULTTONEAREST );
+; 3520 : 
+; 3521 :       MONITORINFO mi = { 0 };
+; 3522 :       mi.cbSize      = sizeof (mi);
+; 3523 : 
+; 3524 :       GetMonitorInfo (hMonitor, &mi);
 
 	lea	ecx, DWORD PTR _mi$1[ebp]
 	mov	DWORD PTR _mi$1[ebp+36], 0
@@ -26976,39 +27080,39 @@ $LN5@On_WINDOWP:
 	movups	XMMWORD PTR _mi$1[ebp+20], xmm0
 	call	DWORD PTR __imp__GetMonitorInfoW@8
 
-; 3517 : 
-; 3518 :       wnd_pos->cx = game_window.game.window.right  - game_window.game.window.left;
+; 3525 : 
+; 3526 :       wnd_pos->cx = game_window.game.window.right  - game_window.game.window.left;
 
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+60
 	sub	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+52
 
-; 3519 :       wnd_pos->cy = game_window.game.window.bottom - game_window.game.window.top;
-; 3520 : 
-; 3521 :       game_window.actual.window = mi.rcMonitor;
+; 3527 :       wnd_pos->cy = game_window.game.window.bottom - game_window.game.window.top;
+; 3528 : 
+; 3529 :       game_window.actual.window = mi.rcMonitor;
 
 	movups	xmm1, XMMWORD PTR _mi$1[ebp+4]
 	mov	DWORD PTR [esi+16], eax
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+64
 	sub	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+56
 
-; 3522 : 
-; 3523 :       (game_window.actual.window.right  -= game_window.actual.window.left);
+; 3530 : 
+; 3531 :       (game_window.actual.window.right  -= game_window.actual.window.left);
 
 	movaps	xmm0, xmm1
 	mov	DWORD PTR [esi+20], eax
 	movups	XMMWORD PTR ?game_window@@3Usk_window_s@@A+100, xmm1
 
-; 3524 :       (game_window.actual.window.bottom -= game_window.actual.window.top);
-; 3525 : 
-; 3526 :       game_window.actual.client.left   = 0;
+; 3532 :       (game_window.actual.window.bottom -= game_window.actual.window.top);
+; 3533 : 
+; 3534 :       game_window.actual.client.left   = 0;
 
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+84, 0
 	psrldq	xmm0, 8
 	movd	eax, xmm1
 	movd	ecx, xmm0
 
-; 3527 :       game_window.actual.client.right  = game_window.actual.window.right;
-; 3528 :       game_window.actual.client.top    = 0;
+; 3535 :       game_window.actual.client.right  = game_window.actual.window.right;
+; 3536 :       game_window.actual.client.top    = 0;
 
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+88, 0
 	sub	ecx, eax
@@ -27016,40 +27120,40 @@ $LN5@On_WINDOWP:
 	sub	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+104
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+112, eax
 
-; 3529 :       game_window.actual.client.bottom = game_window.actual.window.bottom;
+; 3537 :       game_window.actual.client.bottom = game_window.actual.window.bottom;
 
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+96, eax
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+108, ecx
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+92, ecx
 
-; 3530 : 
-; 3531 :       wnd_pos->x  = 0;
+; 3538 : 
+; 3539 :       wnd_pos->x  = 0;
 
 	mov	DWORD PTR [esi+8], 0
 
-; 3532 :       wnd_pos->y  = 0;
+; 3540 :       wnd_pos->y  = 0;
 
 	mov	DWORD PTR [esi+12], 0
 
-; 3533 :       wnd_pos->cx = game_window.actual.window.right  - game_window.actual.window.left;
+; 3541 :       wnd_pos->cx = game_window.actual.window.right  - game_window.actual.window.left;
 
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+108
 	sub	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+100
 	mov	DWORD PTR [esi+16], eax
 
-; 3534 :       wnd_pos->cy = game_window.actual.window.bottom - game_window.actual.window.top;
+; 3542 :       wnd_pos->cy = game_window.actual.window.bottom - game_window.actual.window.top;
 
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+112
 	sub	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+104
 
-; 3535 : 
-; 3536 :       wnd_pos->flags |= (SWP_NOMOVE | SWP_NOSIZE | SWP_NOSENDCHANGING);
+; 3543 : 
+; 3544 :       wnd_pos->flags |= (SWP_NOMOVE | SWP_NOSIZE | SWP_NOSENDCHANGING);
 
 	or	DWORD PTR [esi+24], 1027		; 00000403H
 	mov	DWORD PTR [esi+20], eax
 
-; 3537 : 
-; 3538 :       if (pRet) *pRet = 0;
+; 3545 : 
+; 3546 :       if (pRet) *pRet = 0;
 
 	mov	eax, DWORD PTR _pRet$[ebp]
 	test	eax, eax
@@ -27057,19 +27161,19 @@ $LN5@On_WINDOWP:
 	mov	DWORD PTR [eax], 0
 $LN10@On_WINDOWP:
 
-; 3539 : 
-; 3540 :       if (wnd_pos->flags & SWP_NOACTIVATE)
+; 3547 : 
+; 3548 :       if (wnd_pos->flags & SWP_NOACTIVATE)
 
 	test	BYTE PTR [esi+24], 16			; 00000010H
 	je	SHORT $LN11@On_WINDOWP
 
-; 3541 :         return true;
+; 3549 :         return true;
 
 	pop	esi
 	mov	al, 1
 	pop	edi
 
-; 3546 : }
+; 3554 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -27077,15 +27181,15 @@ $LN10@On_WINDOWP:
 $LN11@On_WINDOWP:
 	pop	esi
 
-; 3542 :     }
-; 3543 :   }
-; 3544 : 
-; 3545 :   return false;
+; 3550 :     }
+; 3551 :   }
+; 3552 : 
+; 3553 :   return false;
 
 	xor	al, al
 	pop	edi
 
-; 3546 : }
+; 3554 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -40057,63 +40161,63 @@ _bTop$ = 8						; size = 1
 _bBringToTop$ = 12					; size = 1
 ?SK_Window_SetTopMost@@YAX_N0@Z PROC			; SK_Window_SetTopMost
 
-; 5092 : {
+; 5129 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	push	esi
 
-; 5093 :   HWND      hWndOrder = 0;
-; 5094 :   DWORD_PTR dwStyleEx =
-; 5095 :     GetWindowLongW (game_window.hWnd, GWL_EXSTYLE);
+; 5130 :   HWND      hWndOrder = 0;
+; 5131 :   DWORD_PTR dwStyleEx =
+; 5132 :     GetWindowLongW (game_window.hWnd, GWL_EXSTYLE);
 
 	push	-20					; ffffffecH
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	call	DWORD PTR __imp__GetWindowLongW@8
 
-; 5096 : 
-; 5097 :   if (bTop)
+; 5133 : 
+; 5134 :   if (bTop)
 
 	cmp	BYTE PTR _bTop$[ebp], 0
 	je	SHORT $LN2@SK_Window_
 
-; 5098 :   {
-; 5099 :     dwStyleEx |= WS_EX_TOPMOST;
+; 5135 :   {
+; 5136 :     dwStyleEx |= WS_EX_TOPMOST;
 
 	or	eax, 8
 
-; 5100 :     hWndOrder  =  HWND_TOPMOST;
+; 5137 :     hWndOrder  =  HWND_TOPMOST;
 
 	or	esi, -1
 
-; 5101 :   }
-; 5102 : 
-; 5103 :   else
+; 5138 :   }
+; 5139 : 
+; 5140 :   else
 
 	jmp	SHORT $LN3@SK_Window_
 $LN2@SK_Window_:
 
-; 5104 :   {
-; 5105 :     dwStyleEx &= (~WS_EX_TOPMOST);
+; 5141 :   {
+; 5142 :     dwStyleEx &= (~WS_EX_TOPMOST);
 
 	and	eax, -9					; fffffff7H
 
-; 5106 :     hWndOrder  =  HWND_NOTOPMOST;
+; 5143 :     hWndOrder  =  HWND_NOTOPMOST;
 
 	mov	esi, -2					; fffffffeH
 $LN3@SK_Window_:
 
-; 5107 :   }
-; 5108 : 
-; 5109 :   SetWindowLongW        ( game_window.hWnd, GWL_EXSTYLE, dwStyleEx );
+; 5144 :   }
+; 5145 : 
+; 5146 :   SetWindowLongW        ( game_window.hWnd, GWL_EXSTYLE, (LONG)dwStyleEx );
 
 	push	eax
 	push	-20					; ffffffecH
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	call	DWORD PTR __imp__SetWindowLongW@12
 
-; 5110 :   SetWindowPos_Original ( game_window.hWnd,
+; 5147 :   SetWindowPos_Original ( game_window.hWnd,
 
 	push	1043					; 00000413H
 	push	0
@@ -40124,24 +40228,24 @@ $LN3@SK_Window_:
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	call	DWORD PTR ?SetWindowPos_Original@@3P6GHPAUHWND__@@0HHHHI@ZA ; SetWindowPos_Original
 
-; 5111 :                             hWndOrder,
-; 5112 :                               0, 0, 0, 0,
-; 5113 :                                 SWP_NOACTIVATE | SWP_NOMOVE |
-; 5114 :                                 SWP_NOSIZE     | SWP_NOSENDCHANGING );
-; 5115 : 
-; 5116 :   if (bBringToTop)
+; 5148 :                             hWndOrder,
+; 5149 :                               0, 0, 0, 0,
+; 5150 :                                 SWP_NOACTIVATE | SWP_NOMOVE |
+; 5151 :                                 SWP_NOSIZE     | SWP_NOSENDCHANGING );
+; 5152 : 
+; 5153 :   if (bBringToTop)
 
 	cmp	BYTE PTR _bBringToTop$[ebp], 0
 	pop	esi
 	je	SHORT $LN4@SK_Window_
 
-; 5117 :     BringWindowToTop (game_window.hWnd);
+; 5154 :     BringWindowToTop (game_window.hWnd);
 
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	call	DWORD PTR __imp__BringWindowToTop@4
 $LN4@SK_Window_:
 
-; 5118 : }
+; 5155 : }
 
 	pop	ebp
 	ret	0
@@ -40153,14 +40257,14 @@ _TEXT	SEGMENT
 _winfo$ = -60						; size = 60
 ?SK_Window_IsTopMost@@YA_NXZ PROC			; SK_Window_IsTopMost
 
-; 5081 : {
+; 5118 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	sub	esp, 60					; 0000003cH
 
-; 5082 :   WINDOWINFO winfo        = { };
+; 5119 :   WINDOWINFO winfo        = { };
 
 	push	60					; 0000003cH
 	lea	eax, DWORD PTR _winfo$[ebp]
@@ -40169,26 +40273,26 @@ _winfo$ = -60						; size = 60
 	call	_memset
 	add	esp, 12					; 0000000cH
 
-; 5083 :              winfo.cbSize = sizeof (WINDOWINFO);
+; 5120 :              winfo.cbSize = sizeof (WINDOWINFO);
 
 	mov	DWORD PTR _winfo$[ebp], 60		; 0000003cH
 
-; 5084 : 
-; 5085 :   GetWindowInfo (game_window.hWnd, &winfo);
+; 5121 : 
+; 5122 :   GetWindowInfo (game_window.hWnd, &winfo);
 
 	lea	eax, DWORD PTR _winfo$[ebp]
 	push	eax
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	call	DWORD PTR __imp__GetWindowInfo@8
 
-; 5086 : 
-; 5087 :   return (winfo.dwExStyle & WS_EX_TOPMOST);
+; 5123 : 
+; 5124 :   return (winfo.dwExStyle & WS_EX_TOPMOST);
 
 	mov	eax, DWORD PTR _winfo$[ebp+40]
 	shr	eax, 3
 	and	al, 1
 
-; 5088 : }
+; 5125 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -40220,21 +40324,21 @@ _cy$ = 28						; size = 4
 _uFlags$ = 32						; size = 4
 ?SetWindowPos_Detour@@YGHPAUHWND__@@0HHHHI@Z PROC	; SetWindowPos_Detour
 
-; 1600 : {
+; 1608 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	sub	esp, 1048				; 00000418H
 
-; 1601 :   SK_LOG_FIRST_CALL
+; 1609 :   SK_LOG_FIRST_CALL
 
 	cmp	BYTE PTR ?called@?2??SetWindowPos_Detour@@YGHPAUHWND__@@0HHHHI@Z@4_NA, 0
 	jne	SHORT $LN60@SetWindowP
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN3@SetWindowP
-	push	OFFSET $SG212035
-	push	OFFSET $SG212036
+	push	OFFSET $SG212106
+	push	OFFSET $SG212107
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -40243,14 +40347,14 @@ $LN3@SetWindowP:
 $LN60@SetWindowP:
 	push	esi
 
-; 1602 : 
-; 1603 :   if (hWnd == game_window.hWnd)
+; 1610 : 
+; 1611 :   if (hWnd == game_window.hWnd)
 
 	mov	esi, DWORD PTR _hWnd$[ebp]
 	cmp	esi, DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	jne	$LN34@SetWindowP
 
-; 1604 :     SK_WINDOW_LOG_CALL1 ();
+; 1612 :     SK_WINDOW_LOG_CALL1 ();
 
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 1
 	jl	$LN34@SetWindowP
@@ -40294,12 +40398,12 @@ $LN60@SetWindowP:
 $LN24@SetWindowP:
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 1604 :     SK_WINDOW_LOG_CALL1 ();
+; 1612 :     SK_WINDOW_LOG_CALL1 ();
 
 	push	eax
-	push	OFFSET $SG212039
-	push	OFFSET $SG212040
-	push	OFFSET $SG212041
+	push	OFFSET $SG212110
+	push	OFFSET $SG212111
+	push	OFFSET $SG212112
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -40309,7 +40413,7 @@ $LN24@SetWindowP:
 	mov	eax, DWORD PTR $T2[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 1604 :     SK_WINDOW_LOG_CALL1 ();
+; 1612 :     SK_WINDOW_LOG_CALL1 ();
 
 	add	esp, 20					; 00000014H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -40342,11 +40446,11 @@ $LN24@SetWindowP:
 $LN34@SetWindowP:
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 1606 :   if (config.display.force_windowed)
+; 1614 :   if (config.display.force_windowed)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+517, 0
 
-; 1607 :     if (hWndInsertAfter == HWND_TOPMOST)
+; 1615 :     if (hWndInsertAfter == HWND_TOPMOST)
 
 	mov	eax, DWORD PTR _hWndInsertAfter$[ebp]
 	je	SHORT $LN7@SetWindowP
@@ -40355,11 +40459,11 @@ $LN34@SetWindowP:
 	cmove	eax, ecx
 $LN7@SetWindowP:
 
-; 1608 :       hWndInsertAfter = HWND_TOP;
-; 1609 : 
-; 1610 : 
-; 1611 : 
-; 1612 :   if (config.render.dxgi.safe_fullscreen) uFlags |= SWP_ASYNCWINDOWPOS;
+; 1616 :       hWndInsertAfter = HWND_TOP;
+; 1617 : 
+; 1618 : 
+; 1619 : 
+; 1620 :   if (config.render.dxgi.safe_fullscreen) uFlags |= SWP_ASYNCWINDOWPOS;
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+504, 0
 	mov	ecx, DWORD PTR _uFlags$[ebp]
@@ -40367,11 +40471,11 @@ $LN7@SetWindowP:
 	or	ecx, 16384				; 00004000H
 $LN8@SetWindowP:
 
-; 1613 : 
-; 1614 : 
-; 1615 : 
-; 1616 :   BOOL bRet = 
-; 1617 :     SetWindowPos_Original ( hWnd, hWndInsertAfter,
+; 1621 : 
+; 1622 : 
+; 1623 : 
+; 1624 :   BOOL bRet = 
+; 1625 :     SetWindowPos_Original ( hWnd, hWndInsertAfter,
 
 	push	ecx
 	push	DWORD PTR _cy$[ebp]
@@ -40383,12 +40487,12 @@ $LN8@SetWindowP:
 	call	DWORD PTR ?SetWindowPos_Original@@3P6GHPAUHWND__@@0HHHHI@ZA ; SetWindowPos_Original
 	pop	esi
 
-; 1618 :                               X, Y,
-; 1619 :                                 cx, cy,
-; 1620 :                                   uFlags );
-; 1621 : 
-; 1622 :   return bRet;
-; 1623 : }
+; 1626 :                               X, Y,
+; 1627 :                                 cx, cy,
+; 1628 :                                   uFlags );
+; 1629 : 
+; 1630 :   return bRet;
+; 1631 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -40415,14 +40519,14 @@ _hWnd$ = 8						; size = 4
 _lpwndpl$ = 12						; size = 4
 ?SetWindowPlacement_Detour@@YGHPAUHWND__@@PBUtagWINDOWPLACEMENT@@@Z PROC ; SetWindowPlacement_Detour
 
-; 1584 : {
+; 1592 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	sub	esp, 1048				; 00000418H
 
-; 1585 :   SK_WINDOW_LOG_CALL_UNTESTED ();
+; 1593 :   SK_WINDOW_LOG_CALL_UNTESTED ();
 
 	lea	eax, DWORD PTR _szSymbol$1[ebp]
 	push	1024					; 00000400H
@@ -40464,12 +40568,12 @@ _lpwndpl$ = 12						; size = 4
 $LN18@SetWindowP:
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 1585 :   SK_WINDOW_LOG_CALL_UNTESTED ();
+; 1593 :   SK_WINDOW_LOG_CALL_UNTESTED ();
 
 	push	eax
-	push	OFFSET $SG212012
-	push	OFFSET $SG212013
-	push	OFFSET $SG212014
+	push	OFFSET $SG212083
+	push	OFFSET $SG212084
+	push	OFFSET $SG212085
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -40479,7 +40583,7 @@ $LN18@SetWindowP:
 	mov	eax, DWORD PTR $T2[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 1585 :   SK_WINDOW_LOG_CALL_UNTESTED ();
+; 1593 :   SK_WINDOW_LOG_CALL_UNTESTED ();
 
 	add	esp, 20					; 00000014H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -40512,13 +40616,13 @@ $LN18@SetWindowP:
 $LN27@SetWindowP:
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 1587 :   return SetWindowPlacement_Original ( hWnd, lpwndpl );
+; 1595 :   return SetWindowPlacement_Original ( hWnd, lpwndpl );
 
 	push	DWORD PTR _lpwndpl$[ebp]
 	push	DWORD PTR _hWnd$[ebp]
 	call	DWORD PTR ?SetWindowPlacement_Original@@3P6GHPAUHWND__@@PBUtagWINDOWPLACEMENT@@@ZA ; SetWindowPlacement_Original
 
-; 1588 : }
+; 1596 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -43843,23 +43947,23 @@ _win$ = -8						; size = 8
 _proc_id$ = 8						; size = 4
 ?SK_FindRootWindow@@YA?AUwindow_t@@K@Z PROC		; SK_FindRootWindow
 
-; 1240 : {
+; 1248 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	sub	esp, 8
 
-; 1241 :   window_t win;
-; 1242 : 
-; 1243 :   win.proc_id  = proc_id;
+; 1249 :   window_t win;
+; 1250 : 
+; 1251 :   win.proc_id  = proc_id;
 
 	mov	eax, DWORD PTR _proc_id$[ebp]
 	mov	DWORD PTR _win$[ebp], eax
 
-; 1244 :   win.root     = nullptr;
-; 1245 : 
-; 1246 :   EnumWindows (SK_EnumWindows, (LPARAM)&win);
+; 1252 :   win.root     = nullptr;
+; 1253 : 
+; 1254 :   EnumWindows (SK_EnumWindows, (LPARAM)&win);
 
 	lea	eax, DWORD PTR _win$[ebp]
 	push	eax
@@ -43867,13 +43971,13 @@ _proc_id$ = 8						; size = 4
 	mov	DWORD PTR _win$[ebp+4], 0
 	call	DWORD PTR __imp__EnumWindows@8
 
-; 1247 : 
-; 1248 :   return win;
+; 1255 : 
+; 1256 :   return win;
 
 	mov	eax, DWORD PTR _win$[ebp]
 	mov	edx, DWORD PTR _win$[ebp+4]
 
-; 1249 : }
+; 1257 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -43955,18 +44059,18 @@ _lParam$ = 20						; size = 4
 ?CallProc@sk_window_s@@QAEJPAUHWND__@@IIJ@Z PROC	; sk_window_s::CallProc
 ; _this$ = ecx
 
-; 6060 : {
+; 6097 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 6061 :   if (hooked)
+; 6098 :   if (hooked)
 
 	cmp	BYTE PTR [ecx+220], 0
 	je	SHORT $LN2@CallProc
 
-; 6062 :     return CallWindowProc (WndProc_Original, hWnd_, Msg, wParam, lParam);
+; 6099 :     return CallWindowProc (WndProc_Original, hWnd_, Msg, wParam, lParam);
 
 	push	DWORD PTR _lParam$[ebp]
 	mov	eax, DWORD PTR [ecx+216]
@@ -43976,23 +44080,23 @@ _lParam$ = 20						; size = 4
 	push	DWORD PTR [ecx+8]
 	call	eax
 
-; 6065 : }
+; 6102 : }
 
 	pop	ebp
 	ret	16					; 00000010H
 $LN2@CallProc:
 
-; 6063 :   else
-; 6064 :     return WndProc_Original (hWnd_, Msg, wParam, lParam);
+; 6100 :   else
+; 6101 :     return WndProc_Original (hWnd_, Msg, wParam, lParam);
 
 	mov	eax, DWORD PTR [ecx+8]
 
-; 6065 : }
+; 6102 : }
 
 	pop	ebp
 
-; 6063 :   else
-; 6064 :     return WndProc_Original (hWnd_, Msg, wParam, lParam);
+; 6100 :   else
+; 6101 :     return WndProc_Original (hWnd_, Msg, wParam, lParam);
 
 	jmp	eax
 ?CallProc@sk_window_s@@QAEJPAUHWND__@@IIJ@Z ENDP	; sk_window_s::CallProc
@@ -44006,13 +44110,13 @@ _lParam$ = 16						; size = 4
 ?DefProc@sk_window_s@@QAEJIIJ@Z PROC			; sk_window_s::DefProc
 ; _this$ = ecx
 
-; 6050 : {
+; 6087 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 6051 :   return DefWindowProc (hWnd, Msg, wParam, lParam);
+; 6088 :   return DefWindowProc (hWnd, Msg, wParam, lParam);
 
 	push	DWORD PTR _lParam$[ebp]
 	mov	eax, DWORD PTR [ecx+212]
@@ -44021,7 +44125,7 @@ _lParam$ = 16						; size = 4
 	push	DWORD PTR [ecx+4]
 	call	eax
 
-; 6052 : }
+; 6089 : }
 
 	pop	ebp
 	ret	12					; 0000000cH
@@ -44035,14 +44139,14 @@ _resized$1$ = -1					; size = 1
 ?updateDims@sk_window_s@@QAEXXZ PROC			; sk_window_s::updateDims
 ; _this$ = ecx
 
-; 5983 : {
+; 6020 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	sub	esp, 44					; 0000002cH
 
-; 5984 :   if (config.window.borderless && config.window.fullscreen)
+; 6021 :   if (config.window.borderless && config.window.fullscreen)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+748, 0
 	push	ebx
@@ -44053,20 +44157,20 @@ _resized$1$ = -1					; size = 1
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+774, 0
 	je	SHORT $LN2@updateDims
 
-; 5985 :   {
-; 5986 :     HMONITOR hMonitor =
-; 5987 :     MonitorFromWindow ( hWnd,
+; 6022 :   {
+; 6023 :     HMONITOR hMonitor =
+; 6024 :     MonitorFromWindow ( hWnd,
 
 	push	2
 	push	DWORD PTR [esi+4]
 	call	DWORD PTR __imp__MonitorFromWindow@8
 
-; 5988 :                           MONITOR_DEFAULTTONEAREST );
-; 5989 : 
-; 5990 :     MONITORINFO mi = { 0 };
-; 5991 :     mi.cbSize      = sizeof (mi);
-; 5992 : 
-; 5993 :     GetMonitorInfo (hMonitor, &mi);
+; 6025 :                           MONITOR_DEFAULTTONEAREST );
+; 6026 : 
+; 6027 :     MONITORINFO mi = { 0 };
+; 6028 :     mi.cbSize      = sizeof (mi);
+; 6029 : 
+; 6030 :     GetMonitorInfo (hMonitor, &mi);
 
 	lea	ecx, DWORD PTR _mi$1[ebp]
 	mov	DWORD PTR _mi$1[ebp+36], 0
@@ -44078,18 +44182,18 @@ _resized$1$ = -1					; size = 1
 	movups	XMMWORD PTR _mi$1[ebp+20], xmm0
 	call	DWORD PTR __imp__GetMonitorInfoW@8
 
-; 5994 : 
-; 5995 :     actual.window = mi.rcMonitor;
+; 6031 : 
+; 6032 :     actual.window = mi.rcMonitor;
 
 	movups	xmm0, XMMWORD PTR _mi$1[ebp+4]
 
-; 5996 : 
-; 5997 :     actual.client.left   = 0;
+; 6033 : 
+; 6034 :     actual.client.left   = 0;
 
 	mov	DWORD PTR [esi+84], 0
 
-; 5998 :     actual.client.right  = actual.window.right - actual.window.left;
-; 5999 :     actual.client.top    = 0;
+; 6035 :     actual.client.right  = actual.window.right - actual.window.left;
+; 6036 :     actual.client.top    = 0;
 
 	mov	DWORD PTR [esi+88], 0
 	movups	XMMWORD PTR [esi+100], xmm0
@@ -44097,29 +44201,29 @@ _resized$1$ = -1					; size = 1
 	sub	eax, DWORD PTR [esi+100]
 	mov	DWORD PTR [esi+92], eax
 
-; 6000 :     actual.client.bottom = actual.window.bottom - actual.window.top;
+; 6037 :     actual.client.bottom = actual.window.bottom - actual.window.top;
 
 	mov	eax, DWORD PTR [esi+112]
 	sub	eax, DWORD PTR [esi+104]
 	mov	DWORD PTR [esi+96], eax
 $LN2@updateDims:
 
-; 6001 :   }
-; 6002 : 
-; 6003 :   long game_width   = (game.client.right   - game.client.left);
+; 6038 :   }
+; 6039 : 
+; 6040 :   long game_width   = (game.client.right   - game.client.left);
 
 	mov	edi, DWORD PTR [esi+44]
 
-; 6004 :   long window_width = (actual.client.right - actual.client.left);
+; 6041 :   long window_width = (actual.client.right - actual.client.left);
 
 	mov	ebx, DWORD PTR [esi+92]
 
-; 6005 : 
-; 6006 :   long game_height   = (game.client.bottom   - game.client.top);
+; 6042 : 
+; 6043 :   long game_height   = (game.client.bottom   - game.client.top);
 
 	mov	ecx, DWORD PTR [esi+48]
 
-; 6007 :   long window_height = (actual.client.bottom - actual.client.top);
+; 6044 :   long window_height = (actual.client.bottom - actual.client.top);
 
 	mov	edx, DWORD PTR [esi+96]
 	sub	edi, DWORD PTR [esi+36]
@@ -44127,9 +44231,9 @@ $LN2@updateDims:
 	sub	ecx, DWORD PTR [esi+40]
 	sub	edx, DWORD PTR [esi+88]
 
-; 6008 : 
-; 6009 :   bool resized =
-; 6010 :     (game_width != window_width || game_height != window_height);
+; 6045 : 
+; 6046 :   bool resized =
+; 6047 :     (game_width != window_width || game_height != window_height);
 
 	cmp	edi, ebx
 	jne	SHORT $LN7@updateDims
@@ -44140,9 +44244,9 @@ $LN7@updateDims:
 	mov	BYTE PTR _resized$1$[ebp], 1
 $LN8@updateDims:
 
-; 6011 : 
-; 6012 :   bool moved =
-; 6013 :     ( game.window.left != actual.window.left ||
+; 6048 : 
+; 6049 :   bool moved =
+; 6050 :     ( game.window.left != actual.window.left ||
 
 	mov	eax, DWORD PTR [esi+52]
 	cmp	eax, DWORD PTR [esi+100]
@@ -44156,47 +44260,47 @@ $LN9@updateDims:
 	mov	al, 1
 $LN10@updateDims:
 
-; 6014 :       game.window.top  != actual.window.top );
-; 6015 : 
-; 6016 :   if (resized || moved) {
+; 6051 :       game.window.top  != actual.window.top );
+; 6052 : 
+; 6053 :   if (resized || moved) {
 
 	cmp	BYTE PTR _resized$1$[ebp], 0
 	jne	SHORT $LN5@updateDims
 	test	al, al
 	jne	SHORT $LN5@updateDims
 
-; 6028 :       (float)(actual.window.top + actual.client.top) -
-; 6029 :       (float)(game.window.top   + game.client.top);
-; 6030 :   }
-; 6031 : 
-; 6032 :   else {
-; 6033 :     coord_remap.identical = true;
+; 6065 :       (float)(actual.window.top + actual.client.top) -
+; 6066 :       (float)(game.window.top   + game.client.top);
+; 6067 :   }
+; 6068 : 
+; 6069 :   else {
+; 6070 :     coord_remap.identical = true;
 
 	pop	edi
 	mov	BYTE PTR [esi+132], 1
 
-; 6034 : 
-; 6035 :     coord_remap.offset.x  = 0.0f;
+; 6071 : 
+; 6072 :     coord_remap.offset.x  = 0.0f;
 
 	mov	DWORD PTR [esi+144], 0
 
-; 6036 :     coord_remap.offset.y  = 0.0f;
+; 6073 :     coord_remap.offset.y  = 0.0f;
 
 	mov	DWORD PTR [esi+148], 0
 
-; 6037 : 
-; 6038 :     coord_remap.scale.x   = 0.0f;
+; 6074 : 
+; 6075 :     coord_remap.scale.x   = 0.0f;
 
 	mov	DWORD PTR [esi+136], 0
 
-; 6039 :     coord_remap.scale.y   = 0.0f;
+; 6076 :     coord_remap.scale.y   = 0.0f;
 
 	mov	DWORD PTR [esi+140], 0
 	pop	esi
 	pop	ebx
 
-; 6040 :   }
-; 6041 : }
+; 6077 :   }
+; 6078 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -44204,17 +44308,17 @@ $LN10@updateDims:
 $LN5@updateDims:
 	movd	xmm1, ebx
 
-; 6017 :     coord_remap.identical = false;
-; 6018 : 
-; 6019 :     coord_remap.scale.x =
+; 6054 :     coord_remap.identical = false;
+; 6055 : 
+; 6056 :     coord_remap.scale.x =
 
 	cvtdq2ps xmm1, xmm1
 
-; 6020 :       (float)window_width  / (float)game_width;
-; 6021 :     coord_remap.scale.y =
-; 6022 :       (float)window_height / (float)game_height;
-; 6023 : 
-; 6024 :     coord_remap.offset.x =
+; 6057 :       (float)window_width  / (float)game_width;
+; 6058 :     coord_remap.scale.y =
+; 6059 :       (float)window_height / (float)game_height;
+; 6060 : 
+; 6061 :     coord_remap.offset.x =
 
 	mov	eax, DWORD PTR [esi+100]
 	add	eax, DWORD PTR [esi+84]
@@ -44236,9 +44340,9 @@ $LN5@updateDims:
 	cvtdq2ps xmm1, xmm1
 	movd	xmm0, eax
 
-; 6025 :       (float)(actual.window.left + actual.client.left) -
-; 6026 :       (float)(game.window.left   + game.client.left);
-; 6027 :     coord_remap.offset.y =
+; 6062 :       (float)(actual.window.left + actual.client.left) -
+; 6063 :       (float)(game.window.left   + game.client.left);
+; 6064 :     coord_remap.offset.y =
 
 	mov	eax, DWORD PTR [esi+104]
 	add	eax, DWORD PTR [esi+88]
@@ -44256,8 +44360,8 @@ $LN5@updateDims:
 	pop	esi
 	pop	ebx
 
-; 6040 :   }
-; 6041 : }
+; 6077 :   }
+; 6078 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -44270,37 +44374,37 @@ _TEXT	SEGMENT
 ?needsCoordTransform@sk_window_s@@QAE_NXZ PROC		; sk_window_s::needsCoordTransform
 ; _this$ = ecx
 
-; 5969 :   if (! config.window.res.override.fix_mouse)
+; 6006 :   if (! config.window.res.override.fix_mouse)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+792, 0
 	jne	SHORT $LN2@needsCoord
 $LN5@needsCoord:
 
-; 5970 :     return false;
+; 6007 :     return false;
 
 	xor	al, al
 
-; 5976 :     return false;
-; 5977 : 
-; 5978 :   return (! coord_remap.identical);
-; 5979 : }
+; 6013 :     return false;
+; 6014 : 
+; 6015 :   return (! coord_remap.identical);
+; 6016 : }
 
 	ret	0
 $LN2@needsCoord:
 
-; 5971 : 
-; 5972 :   bool dynamic_window =
-; 5973 :     (config.window.borderless /*&& config.window.fullscreen*/);
-; 5974 : 
-; 5975 :   if (! dynamic_window)
+; 6008 : 
+; 6009 :   bool dynamic_window =
+; 6010 :     (config.window.borderless /*&& config.window.fullscreen*/);
+; 6011 : 
+; 6012 :   if (! dynamic_window)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+748, 0
 	je	SHORT $LN5@needsCoord
 
-; 5976 :     return false;
-; 5977 : 
-; 5978 :   return (! coord_remap.identical);
-; 5979 : }
+; 6013 :     return false;
+; 6014 : 
+; 6015 :   return (! coord_remap.identical);
+; 6016 : }
 
 	cmp	BYTE PTR [ecx+132], 0
 	sete	al
@@ -44391,13 +44495,13 @@ _TEXT	ENDS
 _TEXT	SEGMENT
 ?SK_GetGameWindow@@YGPAUHWND__@@XZ PROC			; SK_GetGameWindow
 
-; 5447 :   ////SK_WINDOW_LOG_CALL3 ();
-; 5448 : 
-; 5449 :   return game_window.hWnd;
+; 5484 :   ////SK_WINDOW_LOG_CALL3 ();
+; 5485 : 
+; 5486 :   return game_window.hWnd;
 
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+4
 
-; 5450 : }
+; 5487 : }
 
 	ret	0
 ?SK_GetGameWindow@@YGPAUHWND__@@XZ ENDP			; SK_GetGameWindow
@@ -44412,7 +44516,7 @@ _TEXT	SEGMENT
 _hWndForeground$ = 8					; size = 4
 ?SK_RealizeForegroundWindow@@YGKPAUHWND__@@@Z PROC	; SK_RealizeForegroundWindow
 
-; 3400 : {
+; 3408 : {
 
 	npad	2
 	push	ebp
@@ -44424,7 +44528,7 @@ _hWndForeground$ = 8					; size = 4
 	mov	eax, DWORD PTR ?nest_lvl@?1??SK_RealizeForegroundWindow@@YGKPAUHWND__@@@Z@4JC
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 3403 :   while (ReadAcquire (&nest_lvl))
+; 3411 :   while (ReadAcquire (&nest_lvl))
 
 	test	eax, eax
 	je	SHORT $LN3@SK_Realize
@@ -44432,7 +44536,7 @@ _hWndForeground$ = 8					; size = 4
 	mov	esi, DWORD PTR __imp__MsgWaitForMultipleObjectsEx@20
 $LL2@SK_Realize:
 
-; 3404 :     MsgWaitForMultipleObjectsEx (0, nullptr, 125, QS_ALLINPUT, MWMO_ALERTABLE);
+; 3412 :     MsgWaitForMultipleObjectsEx (0, nullptr, 125, QS_ALLINPUT, MWMO_ALERTABLE);
 
 	push	2
 	push	1279					; 000004ffH
@@ -44447,20 +44551,20 @@ $LL2@SK_Realize:
 	mov	eax, DWORD PTR ?nest_lvl@?1??SK_RealizeForegroundWindow@@YGKPAUHWND__@@@Z@4JC
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 3403 :   while (ReadAcquire (&nest_lvl))
+; 3411 :   while (ReadAcquire (&nest_lvl))
 
 	test	eax, eax
 	jne	SHORT $LL2@SK_Realize
 	pop	esi
 $LN3@SK_Realize:
 
-; 3405 : 
-; 3406 :   InterlockedIncrementAcquire (&nest_lvl);
+; 3413 : 
+; 3414 :   InterlockedIncrementAcquire (&nest_lvl);
 
 	lock	 inc	 DWORD PTR ?nest_lvl@?1??SK_RealizeForegroundWindow@@YGKPAUHWND__@@@Z@4JC
 
-; 3407 : 
-; 3408 :   CreateThread (
+; 3415 : 
+; 3416 :   CreateThread (
 
 	push	0
 	push	0
@@ -44470,37 +44574,37 @@ $LN3@SK_Realize:
 	push	0
 	call	DWORD PTR __imp__CreateThread@24
 
-; 3409 :     nullptr,
-; 3410 :       0,
-; 3411 :         [](LPVOID user)->
-; 3412 : 
-; 3413 :         DWORD
-; 3414 :         {
-; 3415 :           BringWindowToTop    (static_cast <HWND> (user));
-; 3416 :           SetForegroundWindow (static_cast <HWND> (user));
-; 3417 :           SetActiveWindow     (static_cast <HWND> (user));
-; 3418 :           SetFocus            (static_cast <HWND> (user));
-; 3419 : 
-; 3420 :           CloseHandle (GetCurrentThread ());
-; 3421 : 
-; 3422 :           return 0;
-; 3423 :         },
-; 3424 : 
-; 3425 :         static_cast <LPVOID> (hWndForeground),
-; 3426 :       0x00,
-; 3427 :     nullptr
-; 3428 :   );
+; 3417 :     nullptr,
+; 3418 :       0,
+; 3419 :         [](LPVOID user)->
+; 3420 : 
+; 3421 :         DWORD
+; 3422 :         {
+; 3423 :           BringWindowToTop    (static_cast <HWND> (user));
+; 3424 :           SetForegroundWindow (static_cast <HWND> (user));
+; 3425 :           SetActiveWindow     (static_cast <HWND> (user));
+; 3426 :           SetFocus            (static_cast <HWND> (user));
+; 3427 : 
+; 3428 :           CloseHandle (GetCurrentThread ());
 ; 3429 : 
-; 3430 :   InterlockedDecrementRelease (&nest_lvl);
+; 3430 :           return 0;
+; 3431 :         },
+; 3432 : 
+; 3433 :         static_cast <LPVOID> (hWndForeground),
+; 3434 :       0x00,
+; 3435 :     nullptr
+; 3436 :   );
+; 3437 : 
+; 3438 :   InterlockedDecrementRelease (&nest_lvl);
 
 	lock	 dec	 DWORD PTR ?nest_lvl@?1??SK_RealizeForegroundWindow@@YGKPAUHWND__@@@Z@4JC
 
-; 3431 : 
-; 3432 :   return 0UL;
+; 3439 : 
+; 3440 :   return 0UL;
 
 	xor	eax, eax
 
-; 3433 : }
+; 3441 : }
 
 	pop	ebp
 	ret	4
@@ -44511,11 +44615,11 @@ _TEXT	ENDS
 _TEXT	SEGMENT
 ?SK_GetGameRect@@YAPAUtagRECT@@XZ PROC			; SK_GetGameRect
 
-; 1297 :   return &game_window.game.client;
+; 1305 :   return &game_window.game.client;
 
 	mov	eax, OFFSET ?game_window@@3Usk_window_s@@A+36
 
-; 1298 : }
+; 1306 : }
 
 	ret	0
 ?SK_GetGameRect@@YAPAUtagRECT@@XZ ENDP			; SK_GetGameRect
@@ -44526,20 +44630,20 @@ _TEXT	SEGMENT
 _nIndex$ = 8						; size = 4
 ?SK_GetSystemMetrics@@YGHH@Z PROC			; SK_GetSystemMetrics
 
-; 3012 : {
+; 3020 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 3013 :   SK_LOG_FIRST_CALL
+; 3021 :   SK_LOG_FIRST_CALL
 
 	cmp	BYTE PTR ?called@?2??SK_GetSystemMetrics@@YGHH@Z@4_NA, 0
 	jne	SHORT $LN2@SK_GetSyst
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN3@SK_GetSyst
-	push	OFFSET $SG212621
-	push	OFFSET $SG212622
+	push	OFFSET $SG212692
+	push	OFFSET $SG212693
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -44547,12 +44651,12 @@ $LN3@SK_GetSyst:
 	mov	BYTE PTR ?called@?2??SK_GetSystemMetrics@@YGHH@Z@4_NA, 1
 $LN2@SK_GetSyst:
 
-; 3016 : }
+; 3024 : }
 
 	pop	ebp
 
-; 3014 : 
-; 3015 :   return GetSystemMetrics_Original (nIndex);
+; 3022 : 
+; 3023 :   return GetSystemMetrics_Original (nIndex);
 
 	jmp	DWORD PTR ?GetSystemMetrics_Original@@3P6GHH@ZA ; GetSystemMetrics_Original
 ?SK_GetSystemMetrics@@YGHH@Z ENDP			; SK_GetSystemMetrics
@@ -44563,19 +44667,19 @@ _TEXT	SEGMENT
 _y$ = 8							; size = 4
 ?SK_SetWindowResY@@YAXJ@Z PROC				; SK_SetWindowResY
 
-; 1289 : {
+; 1297 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 1290 :   //game_window.game.client.bottom = game_window.game.client.top + y;
-; 1291 :   game_window.render_y = y;
+; 1298 :   //game_window.game.client.bottom = game_window.game.client.top + y;
+; 1299 :   game_window.render_y = y;
 
 	mov	eax, DWORD PTR _y$[ebp]
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+156, eax
 
-; 1292 : }
+; 1300 : }
 
 	pop	ebp
 	ret	0
@@ -44587,19 +44691,19 @@ _TEXT	SEGMENT
 _x$ = 8							; size = 4
 ?SK_SetWindowResX@@YAXJ@Z PROC				; SK_SetWindowResX
 
-; 1282 : {
+; 1290 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 1283 :   //game_window.game.client.right = game_window.game.client.left + x;
-; 1284 :   game_window.render_x = x;
+; 1291 :   //game_window.game.client.right = game_window.game.client.left + x;
+; 1292 :   game_window.render_x = x;
 
 	mov	eax, DWORD PTR _x$[ebp]
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+152, eax
 
-; 1285 : }
+; 1293 : }
 
 	pop	ebp
 	ret	0
@@ -44611,14 +44715,14 @@ _TEXT	SEGMENT
 _remember_pos$ = 8					; size = 4
 ?SK_CenterWindowAtMouse@@YAXH@Z PROC			; SK_CenterWindowAtMouse
 
-; 1485 : {
+; 1493 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 1486 :   // This is too much trouble to bother with...
-; 1487 :   if (config.window.center || (config.window.borderless && config.window.fullscreen))
+; 1494 :   // This is too much trouble to bother with...
+; 1495 :   if (config.window.center || (config.window.borderless && config.window.fullscreen))
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+750, 0
 	jne	SHORT $LN3@SK_CenterW
@@ -44628,30 +44732,30 @@ _remember_pos$ = 8					; size = 4
 	jne	SHORT $LN3@SK_CenterW
 $LN2@SK_CenterW:
 
-; 1488 :     return;
-; 1489 : 
-; 1490 :   static CRITICAL_SECTION cs_center;
-; 1491 :   static bool             init = false;
-; 1492 : 
-; 1493 :   if (! init)
+; 1496 :     return;
+; 1497 : 
+; 1498 :   static CRITICAL_SECTION cs_center;
+; 1499 :   static bool             init = false;
+; 1500 : 
+; 1501 :   if (! init)
 
 	cmp	BYTE PTR ?init@?1??SK_CenterWindowAtMouse@@YAXH@Z@4_NA, 0
 	jne	SHORT $LN4@SK_CenterW
 
-; 1494 :   {
-; 1495 :     InitializeCriticalSection (&cs_center);
+; 1502 :   {
+; 1503 :     InitializeCriticalSection (&cs_center);
 
 	push	OFFSET ?cs_center@?1??SK_CenterWindowAtMouse@@YAXH@Z@4U_RTL_CRITICAL_SECTION@@A
 	call	DWORD PTR __imp__InitializeCriticalSection@4
 
-; 1496 :     init = true;
+; 1504 :     init = true;
 
 	mov	BYTE PTR ?init@?1??SK_CenterWindowAtMouse@@YAXH@Z@4_NA, 1
 $LN4@SK_CenterW:
 
-; 1497 :   }
-; 1498 : 
-; 1499 :   CreateThread ( nullptr, 0,
+; 1505 :   }
+; 1506 : 
+; 1507 :   CreateThread ( nullptr, 0,
 
 	push	0
 	push	0
@@ -44662,66 +44766,66 @@ $LN4@SK_CenterW:
 	call	DWORD PTR __imp__CreateThread@24
 $LN3@SK_CenterW:
 
-; 1500 :     [](LPVOID user) ->
-; 1501 :       DWORD {
-; 1502 :   EnterCriticalSection (&cs_center);
-; 1503 : 
-; 1504 :   BOOL  remember_pos = (user != nullptr);
-; 1505 :   POINT mouse        = { 0, 0 };
-; 1506 : 
-; 1507 :   if (GetCursorPos_Original != nullptr)
-; 1508 :     GetCursorPos_Original (&mouse);
-; 1509 : 
-; 1510 :   struct {
-; 1511 :     struct {
-; 1512 :       float percent  = 0.0f;
-; 1513 :       int   absolute =   0L;
-; 1514 :     } x,y;
-; 1515 :   } offsets;
-; 1516 : 
-; 1517 :   if (! remember_pos)
-; 1518 :   {
-; 1519 :     offsets.x.absolute = config.window.offset.x.absolute;
-; 1520 :     offsets.y.absolute = config.window.offset.y.absolute;
-; 1521 : 
-; 1522 :     offsets.x.percent = config.window.offset.x.percent;
-; 1523 :     offsets.y.percent = config.window.offset.y.percent;
-; 1524 :   }
-; 1525 : 
-; 1526 :   config.window.offset.x.absolute = mouse.x;
-; 1527 :   config.window.offset.y.absolute = mouse.y;
-; 1528 : 
-; 1529 :   config.window.offset.x.absolute -= (game_window.actual.window.right  - game_window.actual.window.left) / 2;
-; 1530 :   config.window.offset.y.absolute -= (game_window.actual.window.bottom - game_window.actual.window.top)  / 2;
-; 1531 : 
-; 1532 :   if (config.window.offset.x.absolute <= 0)
-; 1533 :     config.window.offset.x.absolute = 1;  // 1 = Flush with Left
-; 1534 : 
-; 1535 :   if (config.window.offset.y.absolute <= 0)
-; 1536 :     config.window.offset.y.absolute = 1;  // 1 = Flush with Top
-; 1537 : 
-; 1538 :   config.window.offset.x.percent = 0.0f;
-; 1539 :   config.window.offset.y.percent = 0.0f;
-; 1540 : 
-; 1541 :   SK_AdjustWindow ();
+; 1508 :     [](LPVOID user) ->
+; 1509 :       DWORD {
+; 1510 :   EnterCriticalSection (&cs_center);
+; 1511 : 
+; 1512 :   BOOL  remember_pos = (user != nullptr);
+; 1513 :   POINT mouse        = { 0, 0 };
+; 1514 : 
+; 1515 :   if (GetCursorPos_Original != nullptr)
+; 1516 :     GetCursorPos_Original (&mouse);
+; 1517 : 
+; 1518 :   struct {
+; 1519 :     struct {
+; 1520 :       float percent  = 0.0f;
+; 1521 :       int   absolute =   0L;
+; 1522 :     } x,y;
+; 1523 :   } offsets;
+; 1524 : 
+; 1525 :   if (! remember_pos)
+; 1526 :   {
+; 1527 :     offsets.x.absolute = config.window.offset.x.absolute;
+; 1528 :     offsets.y.absolute = config.window.offset.y.absolute;
+; 1529 : 
+; 1530 :     offsets.x.percent = config.window.offset.x.percent;
+; 1531 :     offsets.y.percent = config.window.offset.y.percent;
+; 1532 :   }
+; 1533 : 
+; 1534 :   config.window.offset.x.absolute = mouse.x;
+; 1535 :   config.window.offset.y.absolute = mouse.y;
+; 1536 : 
+; 1537 :   config.window.offset.x.absolute -= (game_window.actual.window.right  - game_window.actual.window.left) / 2;
+; 1538 :   config.window.offset.y.absolute -= (game_window.actual.window.bottom - game_window.actual.window.top)  / 2;
+; 1539 : 
+; 1540 :   if (config.window.offset.x.absolute <= 0)
+; 1541 :     config.window.offset.x.absolute = 1;  // 1 = Flush with Left
 ; 1542 : 
-; 1543 :   if (! remember_pos)
-; 1544 :   {
-; 1545 :     config.window.offset.x.absolute = offsets.x.absolute;
-; 1546 :     config.window.offset.y.absolute = offsets.y.absolute;
-; 1547 : 
-; 1548 :     config.window.offset.x.percent  = offsets.x.percent;
-; 1549 :     config.window.offset.y.percent  = offsets.y.percent;
-; 1550 :   }
-; 1551 : 
-; 1552 :   LeaveCriticalSection (&cs_center);
-; 1553 : 
-; 1554 :   CloseHandle (GetCurrentThread ());
+; 1543 :   if (config.window.offset.y.absolute <= 0)
+; 1544 :     config.window.offset.y.absolute = 1;  // 1 = Flush with Top
+; 1545 : 
+; 1546 :   config.window.offset.x.percent = 0.0f;
+; 1547 :   config.window.offset.y.percent = 0.0f;
+; 1548 : 
+; 1549 :   SK_AdjustWindow ();
+; 1550 : 
+; 1551 :   if (! remember_pos)
+; 1552 :   {
+; 1553 :     config.window.offset.x.absolute = offsets.x.absolute;
+; 1554 :     config.window.offset.y.absolute = offsets.y.absolute;
 ; 1555 : 
-; 1556 :   return 0;
-; 1557 :        // Don't dereference this, it's actually a boolean
-; 1558 :     }, reinterpret_cast <LPVOID> (static_cast <uintptr_t> (remember_pos)), 0x0, nullptr );
-; 1559 : }
+; 1556 :     config.window.offset.x.percent  = offsets.x.percent;
+; 1557 :     config.window.offset.y.percent  = offsets.y.percent;
+; 1558 :   }
+; 1559 : 
+; 1560 :   LeaveCriticalSection (&cs_center);
+; 1561 : 
+; 1562 :   CloseHandle (GetCurrentThread ());
+; 1563 : 
+; 1564 :   return 0;
+; 1565 :        // Don't dereference this, it's actually a boolean
+; 1566 :     }, reinterpret_cast <LPVOID> (static_cast <uintptr_t> (remember_pos)), 0x0, nullptr );
+; 1567 : }
 
 	pop	ebp
 	ret	0
@@ -44750,7 +44854,7 @@ _has_border$1$ = -1					; size = 1
 __$ReturnAddr$ = 4					; size = 4
 ?SK_AdjustBorder@@YAXXZ PROC				; SK_AdjustBorder
 
-; 2427 : {
+; 2435 : {
 
 	npad	2
 	push	ebx
@@ -44764,7 +44868,7 @@ __$ReturnAddr$ = 4					; size = 4
 	mov	ebp, esp
 	sub	esp, 1120				; 00000460H
 
-; 2428 :   SK_WINDOW_LOG_CALL3 ();
+; 2436 :   SK_WINDOW_LOG_CALL3 ();
 
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 3
 	jl	$LN35@SK_AdjustB
@@ -44808,12 +44912,12 @@ __$ReturnAddr$ = 4					; size = 4
 $LN26@SK_AdjustB:
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 2428 :   SK_WINDOW_LOG_CALL3 ();
+; 2436 :   SK_WINDOW_LOG_CALL3 ();
 
 	push	eax
-	push	OFFSET $SG212345
-	push	OFFSET $SG212346
-	push	OFFSET $SG212347
+	push	OFFSET $SG212416
+	push	OFFSET $SG212417
+	push	OFFSET $SG212418
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -44823,7 +44927,7 @@ $LN26@SK_AdjustB:
 	mov	eax, DWORD PTR $T3[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 2428 :   SK_WINDOW_LOG_CALL3 ();
+; 2436 :   SK_WINDOW_LOG_CALL3 ();
 
 	add	esp, 20					; 00000014H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -44856,21 +44960,21 @@ $LN26@SK_AdjustB:
 $LN35@SK_AdjustB:
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 2430 :   if (game_window.GetWindowLongPtr == nullptr)
+; 2438 :   if (game_window.GetWindowLongPtr == nullptr)
 
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+200
 	test	eax, eax
 	je	$LN1@SK_AdjustB
 
-; 2431 :     return;
-; 2432 : 
-; 2433 :   game_window.actual.style    = game_window.GetWindowLongPtr ( game_window.hWnd, GWL_STYLE   );
+; 2439 :     return;
+; 2440 : 
+; 2441 :   game_window.actual.style    = game_window.GetWindowLongPtr ( game_window.hWnd, GWL_STYLE   );
 
 	push	-16					; fffffff0H
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	call	eax
 
-; 2434 :   game_window.actual.style_ex = game_window.GetWindowLongPtr ( game_window.hWnd, GWL_EXSTYLE );
+; 2442 :   game_window.actual.style_ex = game_window.GetWindowLongPtr ( game_window.hWnd, GWL_EXSTYLE );
 
 	push	-20					; ffffffecH
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
@@ -44891,15 +44995,15 @@ $LN63@SK_AdjustB:
 	mov	al, 1
 $LN65@SK_AdjustB:
 
-; 2435 : 
-; 2436 :   bool has_border =
-; 2437 :     SK_WindowManager::StyleHasBorder (
-; 2438 :       game_window.actual.style
-; 2439 :   );
-; 2440 : 
-; 2441 :   // If these are opposite, we can skip a whole bunch of
-; 2442 :   //   pointless work!
-; 2443 :   if (has_border != config.window.borderless)
+; 2443 : 
+; 2444 :   bool has_border =
+; 2445 :     SK_WindowManager::StyleHasBorder (
+; 2446 :       game_window.actual.style
+; 2447 :   );
+; 2448 : 
+; 2449 :   // If these are opposite, we can skip a whole bunch of
+; 2450 :   //   pointless work!
+; 2451 :   if (has_border != config.window.borderless)
 
 	mov	cl, BYTE PTR ?config@@3Usk_config_t@@A+748
 
@@ -44907,22 +45011,22 @@ $LN65@SK_AdjustB:
 
 	mov	BYTE PTR _has_border$1$[ebp], al
 
-; 2435 : 
-; 2436 :   bool has_border =
-; 2437 :     SK_WindowManager::StyleHasBorder (
-; 2438 :       game_window.actual.style
-; 2439 :   );
-; 2440 : 
-; 2441 :   // If these are opposite, we can skip a whole bunch of
-; 2442 :   //   pointless work!
-; 2443 :   if (has_border != config.window.borderless)
+; 2443 : 
+; 2444 :   bool has_border =
+; 2445 :     SK_WindowManager::StyleHasBorder (
+; 2446 :       game_window.actual.style
+; 2447 :   );
+; 2448 : 
+; 2449 :   // If these are opposite, we can skip a whole bunch of
+; 2450 :   //   pointless work!
+; 2451 :   if (has_border != config.window.borderless)
 
 	cmp	al, cl
 	jne	$LN1@SK_AdjustB
 
-; 2444 :     return;
-; 2445 : 
-; 2446 :   game_window.actual.style =
+; 2452 :     return;
+; 2453 : 
+; 2454 :   game_window.actual.style =
 
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+124
 	test	cl, cl
@@ -44930,16 +45034,16 @@ $LN65@SK_AdjustB:
 	xorps	xmm0, xmm0
 	cmovne	eax, edx
 
-; 2447 :     config.window.borderless ?
-; 2448 :       SK_BORDERLESS :
-; 2449 :         game_window.border_style;
-; 2450 : 
-; 2451 :   game_window.actual.style_ex =
-; 2452 :     config.window.borderless ?
-; 2453 :       SK_BORDERLESS_EX :
-; 2454 :         game_window.border_style_ex;
-; 2455 : 
-; 2456 :   RECT orig_client =
+; 2455 :     config.window.borderless ?
+; 2456 :       SK_BORDERLESS :
+; 2457 :         game_window.border_style;
+; 2458 : 
+; 2459 :   game_window.actual.style_ex =
+; 2460 :     config.window.borderless ?
+; 2461 :       SK_BORDERLESS_EX :
+; 2462 :         game_window.border_style_ex;
+; 2463 : 
+; 2464 :   RECT orig_client =
 
 	movaps	XMMWORD PTR _orig_client$[ebp], xmm0
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+116, eax
@@ -44948,18 +45052,18 @@ $LN65@SK_AdjustB:
 	cmovne	eax, edx
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+120, eax
 
-; 2457 :     { };
-; 2458 : 
-; 2459 :   GetClientRect_Original (game_window.hWnd, &orig_client);
+; 2465 :     { };
+; 2466 : 
+; 2467 :   GetClientRect_Original (game_window.hWnd, &orig_client);
 
 	lea	eax, DWORD PTR _orig_client$[ebp]
 	push	eax
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	call	DWORD PTR ?GetClientRect_Original@@3P6GHPAUHWND__@@PAUtagRECT@@@ZA ; GetClientRect_Original
 
-; 2460 : 
-; 2461 :   RECT new_client =
-; 2462 :     SK_ComputeClientSize ();
+; 2468 : 
+; 2469 :   RECT new_client =
+; 2470 :     SK_ComputeClientSize ();
 
 	lea	eax, DWORD PTR $T2[ebp]
 	push	eax
@@ -44967,11 +45071,11 @@ $LN65@SK_AdjustB:
 	add	esp, 4
 	movups	xmm0, XMMWORD PTR [eax]
 
-; 2463 : 
-; 2464 :   RECT  new_window = new_client;
-; 2465 :   POINT origin     { new_client.left, new_client.top };//SK_ComputeClientOrigin ();
-; 2466 : 
-; 2467 :   ClientToScreen (game_window.hWnd, &origin);
+; 2471 : 
+; 2472 :   RECT  new_window = new_client;
+; 2473 :   POINT origin     { new_client.left, new_client.top };//SK_ComputeClientOrigin ();
+; 2474 : 
+; 2475 :   ClientToScreen (game_window.hWnd, &origin);
 
 	lea	eax, DWORD PTR _origin$[ebp]
 	push	eax
@@ -44982,22 +45086,22 @@ $LN65@SK_AdjustB:
 	movd	DWORD PTR _origin$[ebp+4], xmm0
 	call	DWORD PTR __imp__ClientToScreen@8
 
-; 2468 : 
-; 2469 :   SK_SetWindowStyle   ( game_window.actual.style    );
+; 2476 : 
+; 2477 :   SK_SetWindowStyle   ( game_window.actual.style    );
 
 	push	0
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+116
 	call	?SK_SetWindowStyle@@YAXKP6GJPAUHWND__@@HJ@Z@Z ; SK_SetWindowStyle
 
-; 2470 :   SK_SetWindowStyleEx ( game_window.actual.style_ex );
+; 2478 :   SK_SetWindowStyleEx ( game_window.actual.style_ex );
 
 	push	0
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+120
 	call	?SK_SetWindowStyleEx@@YAXKP6GJPAUHWND__@@HJ@Z@Z ; SK_SetWindowStyleEx
 	add	esp, 16					; 00000010H
 
-; 2471 : 
-; 2472 :   if ( AdjustWindowRectEx_Original ( &new_window,
+; 2479 : 
+; 2480 :   if ( AdjustWindowRectEx_Original ( &new_window,
 
 	lea	eax, DWORD PTR _new_window$[ebp]
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+120
@@ -45008,57 +45112,57 @@ $LN65@SK_AdjustB:
 	test	eax, eax
 	je	SHORT $LN5@SK_AdjustB
 
-; 2473 :                                        static_cast <DWORD>     (game_window.actual.style),
-; 2474 :                                          FALSE,
-; 2475 :                                            static_cast <DWORD> (game_window.actual.style_ex)
-; 2476 :                                    )
-; 2477 :      )
-; 2478 :   {
-; 2479 :     bool had_border = has_border;
-; 2480 : 
-; 2481 :     int origin_x = had_border ? origin.x + orig_client.left : origin.x;
+; 2481 :                                        static_cast <DWORD>     (game_window.actual.style),
+; 2482 :                                          FALSE,
+; 2483 :                                            static_cast <DWORD> (game_window.actual.style_ex)
+; 2484 :                                    )
+; 2485 :      )
+; 2486 :   {
+; 2487 :     bool had_border = has_border;
+; 2488 : 
+; 2489 :     int origin_x = had_border ? origin.x + orig_client.left : origin.x;
 
 	cmp	BYTE PTR _has_border$1$[ebp], 0
 
-; 2482 :     int origin_y = had_border ? origin.y + orig_client.top  : origin.y;
+; 2490 :     int origin_y = had_border ? origin.y + orig_client.top  : origin.y;
 
 	mov	ecx, DWORD PTR _origin$[ebp+4]
 	je	SHORT $LN7@SK_AdjustB
 
-; 2473 :                                        static_cast <DWORD>     (game_window.actual.style),
-; 2474 :                                          FALSE,
-; 2475 :                                            static_cast <DWORD> (game_window.actual.style_ex)
-; 2476 :                                    )
-; 2477 :      )
-; 2478 :   {
-; 2479 :     bool had_border = has_border;
-; 2480 : 
-; 2481 :     int origin_x = had_border ? origin.x + orig_client.left : origin.x;
+; 2481 :                                        static_cast <DWORD>     (game_window.actual.style),
+; 2482 :                                          FALSE,
+; 2483 :                                            static_cast <DWORD> (game_window.actual.style_ex)
+; 2484 :                                    )
+; 2485 :      )
+; 2486 :   {
+; 2487 :     bool had_border = has_border;
+; 2488 : 
+; 2489 :     int origin_x = had_border ? origin.x + orig_client.left : origin.x;
 
 	mov	edx, DWORD PTR _orig_client$[ebp]
 	add	edx, DWORD PTR _origin$[ebp]
 
-; 2482 :     int origin_y = had_border ? origin.y + orig_client.top  : origin.y;
+; 2490 :     int origin_y = had_border ? origin.y + orig_client.top  : origin.y;
 
 	add	ecx, DWORD PTR _orig_client$[ebp+4]
 	jmp	SHORT $LN10@SK_AdjustB
 $LN7@SK_AdjustB:
 
-; 2473 :                                        static_cast <DWORD>     (game_window.actual.style),
-; 2474 :                                          FALSE,
-; 2475 :                                            static_cast <DWORD> (game_window.actual.style_ex)
-; 2476 :                                    )
-; 2477 :      )
-; 2478 :   {
-; 2479 :     bool had_border = has_border;
-; 2480 : 
-; 2481 :     int origin_x = had_border ? origin.x + orig_client.left : origin.x;
+; 2481 :                                        static_cast <DWORD>     (game_window.actual.style),
+; 2482 :                                          FALSE,
+; 2483 :                                            static_cast <DWORD> (game_window.actual.style_ex)
+; 2484 :                                    )
+; 2485 :      )
+; 2486 :   {
+; 2487 :     bool had_border = has_border;
+; 2488 : 
+; 2489 :     int origin_x = had_border ? origin.x + orig_client.left : origin.x;
 
 	mov	edx, DWORD PTR _origin$[ebp]
 $LN10@SK_AdjustB:
 
-; 2483 : 
-; 2484 :     SetWindowPos_Original ( game_window.hWnd,
+; 2491 : 
+; 2492 :     SetWindowPos_Original ( game_window.hWnd,
 
 	mov	eax, DWORD PTR _new_window$[ebp+12]
 	sub	eax, DWORD PTR _new_window$[ebp+4]
@@ -45073,40 +45177,40 @@ $LN10@SK_AdjustB:
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	call	DWORD PTR ?SetWindowPos_Original@@3P6GHPAUHWND__@@0HHHHI@ZA ; SetWindowPos_Original
 
-; 2485 :                     HWND_TOP,
-; 2486 :                       origin_x, origin_y,
-; 2487 :                         new_window.right - new_window.left,
-; 2488 :                         new_window.bottom - new_window.top,
-; 2489 :                           SWP_NOZORDER     | SWP_NOREPOSITION   |
-; 2490 :                           SWP_FRAMECHANGED | SWP_NOSENDCHANGING | SWP_SHOWWINDOW  );
-; 2491 : 
-; 2492 :     GetWindowRect (game_window.hWnd, &game_window.actual.window);
+; 2493 :                     HWND_TOP,
+; 2494 :                       origin_x, origin_y,
+; 2495 :                         new_window.right - new_window.left,
+; 2496 :                         new_window.bottom - new_window.top,
+; 2497 :                           SWP_NOZORDER     | SWP_NOREPOSITION   |
+; 2498 :                           SWP_FRAMECHANGED | SWP_NOSENDCHANGING | SWP_SHOWWINDOW  );
+; 2499 : 
+; 2500 :     GetWindowRect (game_window.hWnd, &game_window.actual.window);
 
 	push	OFFSET ?game_window@@3Usk_window_s@@A+100
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	call	DWORD PTR __imp__GetWindowRect@8
 
-; 2493 :     GetClientRect (game_window.hWnd, &game_window.actual.client);
+; 2501 :     GetClientRect (game_window.hWnd, &game_window.actual.client);
 
 	push	OFFSET ?game_window@@3Usk_window_s@@A+84
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	call	DWORD PTR __imp__GetClientRect@8
 $LN5@SK_AdjustB:
 
-; 2494 :   }
-; 2495 : 
-; 2496 :   game_window.game.window = game_window.actual.window;
+; 2502 :   }
+; 2503 : 
+; 2504 :   game_window.game.window = game_window.actual.window;
 
 	movups	xmm0, XMMWORD PTR ?game_window@@3Usk_window_s@@A+100
 	movups	XMMWORD PTR ?game_window@@3Usk_window_s@@A+52, xmm0
 
-; 2497 :   game_window.game.client = game_window.actual.client;
+; 2505 :   game_window.game.client = game_window.actual.client;
 
 	movups	xmm0, XMMWORD PTR ?game_window@@3Usk_window_s@@A+84
 	movups	XMMWORD PTR ?game_window@@3Usk_window_s@@A+36, xmm0
 $LN1@SK_AdjustB:
 
-; 2498 : }
+; 2506 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -45184,7 +45288,7 @@ _nomove$1$ = -1						; size = 1
 __$ReturnAddr$ = 4					; size = 4
 ?SK_AdjustWindow@@YAXXZ PROC				; SK_AdjustWindow
 
-; 2565 : {
+; 2573 : {
 
 	npad	2
 	push	ebx
@@ -45198,7 +45302,7 @@ __$ReturnAddr$ = 4					; size = 4
 	mov	ebp, esp
 	sub	esp, 1448				; 000005a8H
 
-; 2566 :   SK_WINDOW_LOG_CALL3 ();
+; 2574 :   SK_WINDOW_LOG_CALL3 ();
 
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 3
 	push	esi
@@ -45244,12 +45348,12 @@ __$ReturnAddr$ = 4					; size = 4
 $LN75@SK_AdjustW:
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 2566 :   SK_WINDOW_LOG_CALL3 ();
+; 2574 :   SK_WINDOW_LOG_CALL3 ();
 
 	push	eax
-	push	OFFSET $SG212524
-	push	OFFSET $SG212525
-	push	OFFSET $SG212526
+	push	OFFSET $SG212595
+	push	OFFSET $SG212596
+	push	OFFSET $SG212597
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -45259,7 +45363,7 @@ $LN75@SK_AdjustW:
 	mov	eax, DWORD PTR $T3[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 2566 :   SK_WINDOW_LOG_CALL3 ();
+; 2574 :   SK_WINDOW_LOG_CALL3 ();
 
 	add	esp, 20					; 00000014H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -45292,33 +45396,33 @@ $LN75@SK_AdjustW:
 $LN85@SK_AdjustW:
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 2568 :   if (game_window.GetWindowLongPtr == nullptr)
+; 2576 :   if (game_window.GetWindowLongPtr == nullptr)
 
 	cmp	DWORD PTR ?game_window@@3Usk_window_s@@A+200, 0
 	je	$LN48@SK_AdjustW
 
-; 2569 :     return;
-; 2570 : 
-; 2571 :   if (! game_window.active)
+; 2577 :     return;
+; 2578 : 
+; 2579 :   if (! game_window.active)
 
 	cmp	BYTE PTR ?game_window@@3Usk_window_s@@A+17, 0
 	je	$LN48@SK_AdjustW
 
-; 2572 :     return;
-; 2573 : 
-; 2574 :   HMONITOR hMonitor =
-; 2575 :     MonitorFromWindow ( game_window.hWnd,
+; 2580 :     return;
+; 2581 : 
+; 2582 :   HMONITOR hMonitor =
+; 2583 :     MonitorFromWindow ( game_window.hWnd,
 
 	push	2
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	call	DWORD PTR __imp__MonitorFromWindow@8
 	xorps	xmm0, xmm0
 
-; 2576 :                           MONITOR_DEFAULTTONEAREST );
-; 2577 : 
-; 2578 :   MONITORINFO mi   = {         };
-; 2579 :   mi.cbSize        = sizeof (mi);
-; 2580 :   GetMonitorInfo (hMonitor, &mi);
+; 2584 :                           MONITOR_DEFAULTTONEAREST );
+; 2585 : 
+; 2586 :   MONITORINFO mi   = {         };
+; 2587 :   mi.cbSize        = sizeof (mi);
+; 2588 :   GetMonitorInfo (hMonitor, &mi);
 
 	lea	ecx, DWORD PTR _mi$[ebp]
 	push	ecx
@@ -45329,8 +45433,8 @@ $LN85@SK_AdjustW:
 	mov	DWORD PTR _mi$[ebp], 40			; 00000028H
 	call	DWORD PTR __imp__GetMonitorInfoW@8
 
-; 2581 : 
-; 2582 :   if (config.window.borderless && config.window.fullscreen)
+; 2589 : 
+; 2590 :   if (config.window.borderless && config.window.fullscreen)
 
 	mov	al, BYTE PTR ?config@@3Usk_config_t@@A+748
 	test	al, al
@@ -45338,20 +45442,20 @@ $LN85@SK_AdjustW:
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+774, 0
 	je	$LN5@SK_AdjustW
 
-; 2583 :   {
-; 2584 :     SK_LOG4 ( (L" > SK_AdjustWindow (Fullscreen)"),
+; 2591 :   {
+; 2592 :     SK_LOG4 ( (L" > SK_AdjustWindow (Fullscreen)"),
 
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 4
 	jl	SHORT $LN7@SK_AdjustW
-	push	OFFSET $SG212532
+	push	OFFSET $SG212603
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
 $LN7@SK_AdjustW:
 
-; 2585 :               L"Window Mgr" );
-; 2586 : 
-; 2587 :     SetWindowPos_Original ( game_window.hWnd,
+; 2593 :               L"Window Mgr" );
+; 2594 : 
+; 2595 :     SetWindowPos_Original ( game_window.hWnd,
 
 	mov	eax, DWORD PTR _mi$[ebp+16]
 	mov	edx, DWORD PTR _mi$[ebp+8]
@@ -45368,15 +45472,15 @@ $LN7@SK_AdjustW:
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	call	DWORD PTR ?SetWindowPos_Original@@3P6GHPAUHWND__@@0HHHHI@ZA ; SetWindowPos_Original
 
-; 2588 :                               HWND_TOP,
-; 2589 :                                 mi.rcMonitor.left,
-; 2590 :                                 mi.rcMonitor.top,
-; 2591 :                                   mi.rcMonitor.right  - mi.rcMonitor.left,
-; 2592 :                                   mi.rcMonitor.bottom - mi.rcMonitor.top,
-; 2593 :                                     SWP_NOSENDCHANGING | SWP_NOZORDER |
-; 2594 :                                     SWP_NOREPOSITION   | SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW );
-; 2595 : 
-; 2596 :     SK_LOG1 ( ( L"FULLSCREEN => {Left: %li, Top: %li} - (WxH: %lix%li)",
+; 2596 :                               HWND_TOP,
+; 2597 :                                 mi.rcMonitor.left,
+; 2598 :                                 mi.rcMonitor.top,
+; 2599 :                                   mi.rcMonitor.right  - mi.rcMonitor.left,
+; 2600 :                                   mi.rcMonitor.bottom - mi.rcMonitor.top,
+; 2601 :                                     SWP_NOSENDCHANGING | SWP_NOZORDER |
+; 2602 :                                     SWP_NOREPOSITION   | SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW );
+; 2603 : 
+; 2604 :     SK_LOG1 ( ( L"FULLSCREEN => {Left: %li, Top: %li} - (WxH: %lix%li)",
 
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 1
 	jl	SHORT $LN8@SK_AdjustW
@@ -45390,56 +45494,56 @@ $LN7@SK_AdjustW:
 	push	eax
 	push	edx
 	push	ecx
-	push	OFFSET $SG212534
+	push	OFFSET $SG212605
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 24					; 00000018H
 $LN8@SK_AdjustW:
 
-; 2597 :                   mi.rcMonitor.left, mi.rcMonitor.top,
-; 2598 :                     mi.rcMonitor.right - mi.rcMonitor.left,
-; 2599 :                       mi.rcMonitor.bottom - mi.rcMonitor.top ),
-; 2600 :                 L"Border Mgr" );
-; 2601 : 
-; 2602 :     // Must set this or the mouse cursor clip rect will be wrong
-; 2603 :     game_window.actual.window = mi.rcMonitor;
+; 2605 :                   mi.rcMonitor.left, mi.rcMonitor.top,
+; 2606 :                     mi.rcMonitor.right - mi.rcMonitor.left,
+; 2607 :                       mi.rcMonitor.bottom - mi.rcMonitor.top ),
+; 2608 :                 L"Border Mgr" );
+; 2609 : 
+; 2610 :     // Must set this or the mouse cursor clip rect will be wrong
+; 2611 :     game_window.actual.window = mi.rcMonitor;
 
 	movups	xmm0, XMMWORD PTR _mi$[ebp+4]
 	movups	XMMWORD PTR ?game_window@@3Usk_window_s@@A+100, xmm0
 
-; 2604 :     game_window.actual.client = mi.rcMonitor;
+; 2612 :     game_window.actual.client = mi.rcMonitor;
 
 	movups	XMMWORD PTR ?game_window@@3Usk_window_s@@A+84, xmm0
 
-; 2605 :   }
-; 2606 : 
-; 2607 :   else
+; 2613 :   }
+; 2614 : 
+; 2615 :   else
 
 	jmp	$LN46@SK_AdjustW
 $LN5@SK_AdjustW:
 
-; 2608 :   {
-; 2609 :     SK_LOG4 ( (L" > SK_AdjustWindow (Windowed)"),
+; 2616 :   {
+; 2617 :     SK_LOG4 ( (L" > SK_AdjustWindow (Windowed)"),
 
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 4
 	jl	SHORT $LN9@SK_AdjustW
-	push	OFFSET $SG212536
+	push	OFFSET $SG212607
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	mov	al, BYTE PTR ?config@@3Usk_config_t@@A+748
 	add	esp, 8
 $LN9@SK_AdjustW:
 
-; 2610 :                L"Window Mgr" );
-; 2611 : 
-; 2612 :     // Adjust the desktop resolution to make room for window decorations
-; 2613 :     //   if the game window were maximized.
-; 2614 :     if (! config.window.borderless) {
+; 2618 :                L"Window Mgr" );
+; 2619 : 
+; 2620 :     // Adjust the desktop resolution to make room for window decorations
+; 2621 :     //   if the game window were maximized.
+; 2622 :     if (! config.window.borderless) {
 
 	test	al, al
 	jne	SHORT $LN10@SK_AdjustW
 
-; 2615 :       AdjustWindowRect_Original (
+; 2623 :       AdjustWindowRect_Original (
 
 	push	0
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+116
@@ -45448,16 +45552,16 @@ $LN9@SK_AdjustW:
 	call	DWORD PTR ?AdjustWindowRect_Original@@3P6GHPAUtagRECT@@KH@ZA ; AdjustWindowRect_Original
 $LN10@SK_AdjustW:
 
-; 2623 :     LONG mon_width     = mi.rcWork.right     - mi.rcWork.left;
+; 2631 :     LONG mon_width     = mi.rcWork.right     - mi.rcWork.left;
 
 	mov	eax, DWORD PTR _mi$[ebp+28]
 	sub	eax, DWORD PTR _mi$[ebp+20]
 
-; 2627 :     LONG real_width    = mi.rcMonitor.right  - mi.rcMonitor.left;
+; 2635 :     LONG real_width    = mi.rcMonitor.right  - mi.rcMonitor.left;
 
 	mov	esi, DWORD PTR _mi$[ebp+12]
 
-; 2628 :     LONG real_height   = mi.rcMonitor.bottom - mi.rcMonitor.top;
+; 2636 :     LONG real_height   = mi.rcMonitor.bottom - mi.rcMonitor.top;
 
 	mov	edi, DWORD PTR _mi$[ebp+16]
 	sub	esi, DWORD PTR _mi$[ebp+4]
@@ -45469,29 +45573,29 @@ $LN10@SK_AdjustW:
 	mov	edx, DWORD PTR ?config@@3Usk_config_t@@A+788
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 2623 :     LONG mon_width     = mi.rcWork.right     - mi.rcWork.left;
+; 2631 :     LONG mon_width     = mi.rcWork.right     - mi.rcWork.left;
 
 	mov	DWORD PTR _mon_width$1$[ebp], eax
 
-; 2624 :     LONG mon_height    = mi.rcWork.bottom    - mi.rcWork.top;
+; 2632 :     LONG mon_height    = mi.rcWork.bottom    - mi.rcWork.top;
 
 	mov	eax, DWORD PTR _mi$[ebp+32]
 	sub	eax, DWORD PTR _mi$[ebp+24]
 	mov	DWORD PTR _mon_height$1$[ebp], eax
 
-; 2629 : 
-; 2630 :     // The Game's _Requested_ Client Rectangle
-; 2631 :     LONG render_width  = game_window.game.client.right  - game_window.game.client.left;
-; 2632 :     LONG render_height = game_window.game.client.bottom - game_window.game.client.top;
-; 2633 : 
-; 2634 :     // The Game's _Requested_ Window Rectangle (including borders)
-; 2635 :     LONG full_width     = game_window.game.window.right  - game_window.game.window.left;
+; 2637 : 
+; 2638 :     // The Game's _Requested_ Client Rectangle
+; 2639 :     LONG render_width  = game_window.game.client.right  - game_window.game.client.left;
+; 2640 :     LONG render_height = game_window.game.client.bottom - game_window.game.client.top;
+; 2641 : 
+; 2642 :     // The Game's _Requested_ Window Rectangle (including borders)
+; 2643 :     LONG full_width     = game_window.game.window.right  - game_window.game.window.left;
 
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+60
 	sub	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+52
 	mov	DWORD PTR _full_width$1$[ebp], eax
 
-; 2636 :     LONG full_height    = game_window.game.window.bottom - game_window.game.window.top;
+; 2644 :     LONG full_height    = game_window.game.window.bottom - game_window.game.window.top;
 
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+64
 	sub	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+56
@@ -45503,7 +45607,7 @@ $LN10@SK_AdjustW:
 	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+784
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 2627 :     LONG real_width    = mi.rcMonitor.right  - mi.rcMonitor.left;
+; 2635 :     LONG real_width    = mi.rcMonitor.right  - mi.rcMonitor.left;
 
 	mov	DWORD PTR _real_width$1$[ebp], esi
 ; File c:\users\andon\source\repos\specialk\include\specialk\config.h
@@ -45516,66 +45620,66 @@ $LN10@SK_AdjustW:
 	jne	SHORT $LN113@SK_AdjustW
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 2645 :       int  render_width_before  = game_window.game.client.right  - game_window.game.client.left;
+; 2653 :       int  render_width_before  = game_window.game.client.right  - game_window.game.client.left;
 
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+48
 	mov	esi, DWORD PTR ?game_window@@3Usk_window_s@@A+44
 
-; 2646 :       int  render_height_before = game_window.game.client.bottom - game_window.game.client.top;
+; 2654 :       int  render_height_before = game_window.game.client.bottom - game_window.game.client.top;
 
 	sub	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+40
 	sub	esi, DWORD PTR ?game_window@@3Usk_window_s@@A+36
 
-; 2647 : 
-; 2648 :       RECT client_before = 
-; 2649 :         game_window.game.client;
-; 2650 : 
-; 2651 :       GetClientRect_Original (game_window.hWnd, &game_window.game.client);
+; 2655 : 
+; 2656 :       RECT client_before = 
+; 2657 :         game_window.game.client;
+; 2658 : 
+; 2659 :       GetClientRect_Original (game_window.hWnd, &game_window.game.client);
 
 	push	OFFSET ?game_window@@3Usk_window_s@@A+36
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	mov	DWORD PTR _render_height_before$1$[ebp], eax
 	call	DWORD PTR ?GetClientRect_Original@@3P6GHPAUHWND__@@PAUtagRECT@@@ZA ; GetClientRect_Original
 
-; 2652 :       GetWindowRect_Original (game_window.hWnd, &game_window.game.window);
+; 2660 :       GetWindowRect_Original (game_window.hWnd, &game_window.game.window);
 
 	push	OFFSET ?game_window@@3Usk_window_s@@A+52
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	call	DWORD PTR ?GetWindowRect_Original@@3P6GHPAUHWND__@@PAUtagRECT@@@ZA ; GetWindowRect_Original
 
-; 2653 : 
-; 2654 :       render_width  = game_window.game.client.right  - game_window.game.client.left;
+; 2661 : 
+; 2662 :       render_width  = game_window.game.client.right  - game_window.game.client.left;
 
 	mov	ecx, DWORD PTR ?game_window@@3Usk_window_s@@A+44
 
-; 2655 :       render_height = game_window.game.client.bottom - game_window.game.client.top;
+; 2663 :       render_height = game_window.game.client.bottom - game_window.game.client.top;
 
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+48
 	sub	ecx, DWORD PTR ?game_window@@3Usk_window_s@@A+36
 	sub	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+40
 
-; 2656 : 
-; 2657 :       if ( render_width  != render_width_before  ||
+; 2664 : 
+; 2665 :       if ( render_width  != render_width_before  ||
 
 	cmp	ecx, esi
 	jne	SHORT $LN14@SK_AdjustW
 	cmp	eax, DWORD PTR _render_height_before$1$[ebp]
 	jne	SHORT $LN14@SK_AdjustW
 
-; 2641 :       render_height = config.window.res.override.y;
+; 2649 :       render_height = config.window.res.override.y;
 
 	mov	edx, DWORD PTR ?config@@3Usk_config_t@@A+788
 	mov	esi, DWORD PTR _real_width$1$[ebp]
 	jmp	SHORT $LN13@SK_AdjustW
 $LN14@SK_AdjustW:
 
-; 2658 :            render_height != render_height_before )
-; 2659 :       {
-; 2660 :         SK_AdjustWindow ();
+; 2666 :            render_height != render_height_before )
+; 2667 :       {
+; 2668 :         SK_AdjustWindow ();
 
 	call	?SK_AdjustWindow@@YAXXZ			; SK_AdjustWindow
 
-; 2950 : }
+; 2958 : }
 
 	pop	edi
 	pop	esi
@@ -45586,60 +45690,60 @@ $LN14@SK_AdjustW:
 	ret	0
 $LN113@SK_AdjustW:
 
-; 2637 : 
-; 2638 :     if ((! config.window.res.override.isZero ()))
-; 2639 :     {
-; 2640 :       render_width  = config.window.res.override.x;
+; 2645 : 
+; 2646 :     if ((! config.window.res.override.isZero ()))
+; 2647 :     {
+; 2648 :       render_width  = config.window.res.override.x;
 
 	mov	ecx, eax
 
-; 2641 :       render_height = config.window.res.override.y;
+; 2649 :       render_height = config.window.res.override.y;
 
 	mov	eax, edx
 $LN13@SK_AdjustW:
 
-; 2661 :         return;
-; 2662 :       }
-; 2663 :     }
-; 2664 : 
-; 2665 :     // No adjustment if the window is full-width
-; 2666 :     if (render_width == real_width)
+; 2669 :         return;
+; 2670 :       }
+; 2671 :     }
+; 2672 : 
+; 2673 :     // No adjustment if the window is full-width
+; 2674 :     if (render_width == real_width)
 
 	cmp	ecx, esi
 	jne	SHORT $LN15@SK_AdjustW
 
-; 2667 :     {
-; 2668 :       mon_width       = real_width;
+; 2675 :     {
+; 2676 :       mon_width       = real_width;
 
 	mov	DWORD PTR _mon_width$1$[ebp], esi
 
-; 2669 :       mi.rcWork.right = mi.rcMonitor.right;
+; 2677 :       mi.rcWork.right = mi.rcMonitor.right;
 
 	mov	esi, DWORD PTR _mi$[ebp+12]
 	mov	DWORD PTR _mi$[ebp+28], esi
 
-; 2670 :       mi.rcWork.left  = mi.rcMonitor.left;
+; 2678 :       mi.rcWork.left  = mi.rcMonitor.left;
 
 	mov	esi, DWORD PTR _mi$[ebp+4]
 	mov	DWORD PTR _mi$[ebp+20], esi
 $LN15@SK_AdjustW:
 
-; 2671 :     }
-; 2672 : 
-; 2673 :     // No adjustment if the window is full-height
-; 2674 :     if (render_height == real_height)
+; 2679 :     }
+; 2680 : 
+; 2681 :     // No adjustment if the window is full-height
+; 2682 :     if (render_height == real_height)
 
 	cmp	eax, edi
 	jne	SHORT $LN16@SK_AdjustW
 
-; 2675 :     {
-; 2676 :       mon_height       = real_height;
-; 2677 :       mi.rcWork.top    = mi.rcMonitor.top;
+; 2683 :     {
+; 2684 :       mon_height       = real_height;
+; 2685 :       mi.rcWork.top    = mi.rcMonitor.top;
 
 	mov	esi, DWORD PTR _mi$[ebp+8]
 	mov	DWORD PTR _mi$[ebp+24], esi
 
-; 2678 :       mi.rcWork.bottom = mi.rcMonitor.bottom;
+; 2686 :       mi.rcWork.bottom = mi.rcMonitor.bottom;
 
 	mov	esi, DWORD PTR _mi$[ebp+16]
 	mov	DWORD PTR _mon_height$1$[ebp], edi
@@ -45702,14 +45806,14 @@ $LN127@SK_AdjustW:
 $LN128@SK_AdjustW:
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 2689 :     SK_RenderBackend& rb = SK_GetCurrentRenderBackend ();
+; 2697 :     SK_RenderBackend& rb = SK_GetCurrentRenderBackend ();
 
 	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
 
-; 2690 : 
-; 2691 :     // We will offset coordinates later; move the window to the top-left
-; 2692 :     //   origin first.
-; 2693 :     if (config.window.center && (! ( (config.window.fullscreen &&
+; 2698 : 
+; 2699 :     // We will offset coordinates later; move the window to the top-left
+; 2700 :     //   origin first.
+; 2701 :     if (config.window.center && (! ( (config.window.fullscreen &&
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+750, 0
 	mov	DWORD PTR _rb$1$[ebp], eax
@@ -45722,51 +45826,51 @@ $LN19@SK_AdjustW:
 	cmp	BYTE PTR [eax+48], 0
 	jne	SHORT $LN17@SK_AdjustW
 
-; 2694 :                                       config.window.borderless)  ||
-; 2695 :                                       rb.fullscreen_exclusive  ) ) )
-; 2696 :     {
-; 2697 :       game_window.actual.window.left   = 0;
+; 2702 :                                       config.window.borderless)  ||
+; 2703 :                                       rb.fullscreen_exclusive  ) ) )
+; 2704 :     {
+; 2705 :       game_window.actual.window.left   = 0;
 
 	xor	ecx, ecx
 
-; 2698 :       game_window.actual.window.top    = 0;
-; 2699 :       game_window.actual.window.right  = win_width;
+; 2706 :       game_window.actual.window.top    = 0;
+; 2707 :       game_window.actual.window.right  = win_width;
 
 	mov	edx, edi
 
-; 2700 :       game_window.actual.window.bottom = win_height;
+; 2708 :       game_window.actual.window.bottom = win_height;
 
 	mov	edi, DWORD PTR _win_height$1$[ebp]
 	xor	esi, esi
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+108, edx
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+112, edi
 
-; 2701 :       nomove                           = false; // Centering requires moving ;)
+; 2709 :       nomove                           = false; // Centering requires moving ;)
 
 	mov	BYTE PTR _nomove$1$[ebp], cl
 
-; 2702 :     }
-; 2703 : 
-; 2704 :     else
+; 2710 :     }
+; 2711 : 
+; 2712 :     else
 
 	jmp	SHORT $LN171@SK_AdjustW
 $LN17@SK_AdjustW:
 
-; 2705 :     {
-; 2706 :       game_window.actual.window.left   = game_window.game.window.left;
+; 2713 :     {
+; 2714 :       game_window.actual.window.left   = game_window.game.window.left;
 
 	mov	ecx, DWORD PTR ?game_window@@3Usk_window_s@@A+52
 
-; 2707 :       game_window.actual.window.top    = game_window.game.window.top;
+; 2715 :       game_window.actual.window.top    = game_window.game.window.top;
 
 	mov	esi, DWORD PTR ?game_window@@3Usk_window_s@@A+56
 	mov	edi, DWORD PTR ?game_window@@3Usk_window_s@@A+112
 	mov	edx, DWORD PTR ?game_window@@3Usk_window_s@@A+108
 $LN171@SK_AdjustW:
 
-; 2708 :     }
-; 2709 : 
-; 2710 :     int x_offset = ( config.window.offset.x.percent != 0.0f ? 
+; 2716 :     }
+; 2717 : 
+; 2718 :     int x_offset = ( config.window.offset.x.percent != 0.0f ? 
 
 	movss	xmm1, DWORD PTR ?config@@3Usk_config_t@@A+756
 	xorps	xmm2, xmm2
@@ -45789,11 +45893,11 @@ $LN57@SK_AdjustW:
 	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+752
 $LN172@SK_AdjustW:
 
-; 2711 :                  (int)( config.window.offset.x.percent *
-; 2712 :                          (mi.rcWork.right - mi.rcWork.left) ) :
-; 2713 :                        config.window.offset.x.absolute );
-; 2714 : 
-; 2715 :     int y_offset = ( config.window.offset.y.percent != 0.0f ? 
+; 2719 :                  (int)( config.window.offset.x.percent *
+; 2720 :                          (mi.rcWork.right - mi.rcWork.left) ) :
+; 2721 :                        config.window.offset.x.absolute );
+; 2722 : 
+; 2723 :     int y_offset = ( config.window.offset.y.percent != 0.0f ? 
 
 	movss	xmm1, DWORD PTR ?config@@3Usk_config_t@@A+764
 	ucomiss	xmm1, xmm2
@@ -45812,17 +45916,17 @@ $LN59@SK_AdjustW:
 	mov	eax, DWORD PTR ?config@@3Usk_config_t@@A+760
 $LN173@SK_AdjustW:
 
-; 2716 :                  (int)( config.window.offset.y.percent *
-; 2717 :                          (mi.rcWork.bottom - mi.rcWork.top) ) :
-; 2718 :                        config.window.offset.y.absolute );
-; 2719 : 
-; 2720 :     if (x_offset > 0)
+; 2724 :                  (int)( config.window.offset.y.percent *
+; 2725 :                          (mi.rcWork.bottom - mi.rcWork.top) ) :
+; 2726 :                        config.window.offset.y.absolute );
+; 2727 : 
+; 2728 :     if (x_offset > 0)
 
 	cmp	DWORD PTR _x_offset$1$[ebp], 0
 	mov	DWORD PTR _y_offset$1$[ebp], eax
 	jle	SHORT $LN174@SK_AdjustW
 
-; 2721 :       game_window.actual.window.left = mi.rcWork.left  + x_offset - 1;
+; 2729 :       game_window.actual.window.left = mi.rcWork.left  + x_offset - 1;
 
 	mov	edx, DWORD PTR _mi$[ebp+20]
 	mov	ecx, DWORD PTR _x_offset$1$[ebp]
@@ -45834,11 +45938,11 @@ $LN173@SK_AdjustW:
 	jmp	SHORT $LN22@SK_AdjustW
 $LN174@SK_AdjustW:
 
-; 2722 :     else if (x_offset < 0)
+; 2730 :     else if (x_offset < 0)
 
 	jge	SHORT $LN22@SK_AdjustW
 
-; 2723 :       game_window.actual.window.right = mi.rcWork.right + x_offset + 1;
+; 2731 :       game_window.actual.window.right = mi.rcWork.right + x_offset + 1;
 
 	mov	ecx, DWORD PTR _mi$[ebp+28]
 	mov	edx, DWORD PTR _x_offset$1$[ebp]
@@ -45849,14 +45953,14 @@ $LN174@SK_AdjustW:
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+108, edx
 $LN22@SK_AdjustW:
 
-; 2724 : 
-; 2725 : 
-; 2726 :     if (y_offset > 0)
+; 2732 : 
+; 2733 : 
+; 2734 :     if (y_offset > 0)
 
 	test	eax, eax
 	jle	SHORT $LN175@SK_AdjustW
 
-; 2727 :       game_window.actual.window.top    = mi.rcWork.top    + y_offset - 1;
+; 2735 :       game_window.actual.window.top    = mi.rcWork.top    + y_offset - 1;
 
 	mov	esi, DWORD PTR _mi$[ebp+24]
 	dec	esi
@@ -45865,11 +45969,11 @@ $LN22@SK_AdjustW:
 	jmp	SHORT $LN25@SK_AdjustW
 $LN175@SK_AdjustW:
 
-; 2728 :     else if (y_offset < 0)
+; 2736 :     else if (y_offset < 0)
 
 	jns	SHORT $LN25@SK_AdjustW
 
-; 2729 :       game_window.actual.window.bottom = mi.rcWork.bottom + y_offset + 1;
+; 2737 :       game_window.actual.window.bottom = mi.rcWork.bottom + y_offset + 1;
 
 	mov	edi, DWORD PTR _mi$[ebp+32]
 	inc	edi
@@ -45877,8 +45981,8 @@ $LN175@SK_AdjustW:
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+112, edi
 $LN25@SK_AdjustW:
 
-; 2730 : 
-; 2731 :     if (config.window.center && (! ( (config.window.fullscreen &&
+; 2738 : 
+; 2739 :     if (config.window.center && (! ( (config.window.fullscreen &&
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+750, 0
 	je	$LN26@SK_AdjustW
@@ -45892,10 +45996,10 @@ $LN27@SK_AdjustW:
 	mov	ecx, DWORD PTR ?game_window@@3Usk_window_s@@A$2[ebp]
 	jne	$LN26@SK_AdjustW
 
-; 2732 :                                       config.window.borderless)  ||
-; 2733 :                                       rb.fullscreen_exclusive  ) ) )
-; 2734 :     {
-; 2735 :       SK_LOG4 ( ( L"Center --> (%li,%li)",
+; 2740 :                                       config.window.borderless)  ||
+; 2741 :                                       rb.fullscreen_exclusive  ) ) )
+; 2742 :     {
+; 2743 :       SK_LOG4 ( ( L"Center --> (%li,%li)",
 
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 4
 	jl	SHORT $LN28@SK_AdjustW
@@ -45905,7 +46009,7 @@ $LN27@SK_AdjustW:
 	mov	eax, DWORD PTR _mi$[ebp+28]
 	sub	eax, DWORD PTR _mi$[ebp+20]
 	push	eax
-	push	OFFSET $SG212556
+	push	OFFSET $SG212627
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+108
@@ -45917,23 +46021,23 @@ $LN27@SK_AdjustW:
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A$2[ebp], ecx
 $LN28@SK_AdjustW:
 
-; 2736 :                     mi.rcWork.right - mi.rcWork.left,
-; 2737 :                       mi.rcWork.bottom - mi.rcWork.top ),
-; 2738 :                     L"Window Mgr" );
-; 2739 : 
-; 2740 :       if (x_offset < 0)
+; 2744 :                     mi.rcWork.right - mi.rcWork.left,
+; 2745 :                       mi.rcWork.bottom - mi.rcWork.top ),
+; 2746 :                     L"Window Mgr" );
+; 2747 : 
+; 2748 :       if (x_offset < 0)
 
 	cmp	DWORD PTR _x_offset$1$[ebp], 0
 	jge	SHORT $LN29@SK_AdjustW
 
-; 2741 :       {
-; 2742 :         game_window.actual.window.left  -= (win_width / 2);
+; 2749 :       {
+; 2750 :         game_window.actual.window.left  -= (win_width / 2);
 
 	mov	eax, DWORD PTR _win_width$1$[ebp]
 	cdq
 	sub	eax, edx
 
-; 2743 :         game_window.actual.window.right -= (win_width / 2);
+; 2751 :         game_window.actual.window.right -= (win_width / 2);
 
 	mov	edx, DWORD PTR ?game_window@@3Usk_window_s@@A$10[ebp]
 	sar	eax, 1
@@ -45944,15 +46048,15 @@ $LN28@SK_AdjustW:
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+108, edx
 $LN29@SK_AdjustW:
 
-; 2744 :       }
-; 2745 : 
-; 2746 :       if (y_offset < 0)
+; 2752 :       }
+; 2753 : 
+; 2754 :       if (y_offset < 0)
 
 	cmp	DWORD PTR _y_offset$1$[ebp], 0
 	jge	SHORT $LN30@SK_AdjustW
 
-; 2747 :       {
-; 2748 :         game_window.actual.window.top    -= (win_height / 2);
+; 2755 :       {
+; 2756 :         game_window.actual.window.top    -= (win_height / 2);
 
 	mov	eax, DWORD PTR _win_height$1$[ebp]
 	cdq
@@ -45960,13 +46064,13 @@ $LN29@SK_AdjustW:
 	sar	eax, 1
 	sub	esi, eax
 
-; 2749 :         game_window.actual.window.bottom -= (win_height / 2);
+; 2757 :         game_window.actual.window.bottom -= (win_height / 2);
 
 	sub	edi, eax
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+112, edi
 $LN30@SK_AdjustW:
 
-; 2752 :       game_window.actual.window.left += std::max (0L, (mon_width  - win_width)  / 2);
+; 2760 :       game_window.actual.window.left += std::max (0L, (mon_width  - win_width)  / 2);
 
 	mov	eax, DWORD PTR _mon_width$1$[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\algorithm
@@ -45976,7 +46080,7 @@ $LN30@SK_AdjustW:
 	xor	ecx, ecx
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 2752 :       game_window.actual.window.left += std::max (0L, (mon_width  - win_width)  / 2);
+; 2760 :       game_window.actual.window.left += std::max (0L, (mon_width  - win_width)  / 2);
 
 	sub	eax, DWORD PTR _win_width$1$[ebp]
 	cdq
@@ -45990,7 +46094,7 @@ $LN30@SK_AdjustW:
 	cmovg	ecx, eax
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 2752 :       game_window.actual.window.left += std::max (0L, (mon_width  - win_width)  / 2);
+; 2760 :       game_window.actual.window.left += std::max (0L, (mon_width  - win_width)  / 2);
 
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A$2[ebp]
 	add	eax, ecx
@@ -46001,12 +46105,12 @@ $LN30@SK_AdjustW:
 	xor	ecx, ecx
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 2752 :       game_window.actual.window.left += std::max (0L, (mon_width  - win_width)  / 2);
+; 2760 :       game_window.actual.window.left += std::max (0L, (mon_width  - win_width)  / 2);
 
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A$2[ebp], eax
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+100, eax
 
-; 2753 :       game_window.actual.window.top  += std::max (0L, (mon_height - win_height) / 2);
+; 2761 :       game_window.actual.window.top  += std::max (0L, (mon_height - win_height) / 2);
 
 	mov	eax, DWORD PTR _mon_height$1$[ebp]
 	sub	eax, DWORD PTR _win_height$1$[ebp]
@@ -46023,68 +46127,68 @@ $LN30@SK_AdjustW:
 	mov	eax, DWORD PTR _y_offset$1$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 2753 :       game_window.actual.window.top  += std::max (0L, (mon_height - win_height) / 2);
+; 2761 :       game_window.actual.window.top  += std::max (0L, (mon_height - win_height) / 2);
 
 	add	esi, ecx
 	mov	ecx, DWORD PTR ?game_window@@3Usk_window_s@@A$2[ebp]
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+104, esi
 $LN26@SK_AdjustW:
 
-; 2754 :     }
-; 2755 : 
-; 2756 : 
-; 2757 :     if (x_offset >= 0)
+; 2762 :     }
+; 2763 : 
+; 2764 : 
+; 2765 :     if (x_offset >= 0)
 
 	cmp	DWORD PTR _x_offset$1$[ebp], 0
 	jl	SHORT $LN31@SK_AdjustW
 
-; 2758 :       game_window.actual.window.right = game_window.actual.window.left  + win_width;
+; 2766 :       game_window.actual.window.right = game_window.actual.window.left  + win_width;
 
 	mov	edx, DWORD PTR _win_width$1$[ebp]
 	add	edx, ecx
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+108, edx
 
-; 2759 :     else
+; 2767 :     else
 
 	jmp	SHORT $LN32@SK_AdjustW
 $LN31@SK_AdjustW:
 
-; 2760 :       game_window.actual.window.left  = game_window.actual.window.right - win_width;
+; 2768 :       game_window.actual.window.left  = game_window.actual.window.right - win_width;
 
 	mov	ecx, edx
 	sub	ecx, DWORD PTR _win_width$1$[ebp]
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+100, ecx
 $LN32@SK_AdjustW:
 
-; 2761 : 
-; 2762 : 
-; 2763 :     if (y_offset >= 0)
+; 2769 : 
+; 2770 : 
+; 2771 :     if (y_offset >= 0)
 
 	test	eax, eax
 	js	SHORT $LN33@SK_AdjustW
 
-; 2764 :       game_window.actual.window.bottom = game_window.actual.window.top    + win_height;
+; 2772 :       game_window.actual.window.bottom = game_window.actual.window.top    + win_height;
 
 	mov	edi, DWORD PTR _win_height$1$[ebp]
 	add	edi, esi
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+112, edi
 
-; 2765 :     else
+; 2773 :     else
 
 	jmp	SHORT $LN34@SK_AdjustW
 $LN33@SK_AdjustW:
 
-; 2766 :       game_window.actual.window.top    = game_window.actual.window.bottom - win_height;
+; 2774 :       game_window.actual.window.top    = game_window.actual.window.bottom - win_height;
 
 	mov	esi, edi
 	sub	esi, DWORD PTR _win_height$1$[ebp]
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+104, esi
 $LN34@SK_AdjustW:
 
-; 2767 : 
-; 2768 : 
-; 2769 :     // Adjust the window to fit if it's not fullscreen
-; 2770 :     if ( (full_height < mon_height ) ||
+; 2775 : 
+; 2776 : 
+; 2777 :     // Adjust the window to fit if it's not fullscreen
+; 2778 :     if ( (full_height < mon_height ) ||
 
 	mov	eax, DWORD PTR _full_height$1$[ebp]
 	cmp	eax, DWORD PTR _mon_height$1$[ebp]
@@ -46094,26 +46198,26 @@ $LN34@SK_AdjustW:
 	jge	$LN35@SK_AdjustW
 $LN37@SK_AdjustW:
 
-; 2771 :          (full_width  < mon_width  ) )
-; 2772 :     {
-; 2773 :       AdjustWindowRect_Original (
+; 2779 :          (full_width  < mon_width  ) )
+; 2780 :     {
+; 2781 :       AdjustWindowRect_Original (
 
 	push	0
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+116
 	push	OFFSET ?game_window@@3Usk_window_s@@A+100
 	call	DWORD PTR ?AdjustWindowRect_Original@@3P6GHPAUtagRECT@@KH@ZA ; AdjustWindowRect_Original
 
-; 2774 :         &game_window.actual.window,
-; 2775 :           static_cast <LONG> (game_window.actual.style),
-; 2776 :             FALSE
-; 2777 :       );
-; 2778 : 
-; 2779 :       //
-; 2780 :       // Compensate for scenarios where the window is partially offscreen
-; 2781 :       //
-; 2782 :       int push_right = 0;
-; 2783 : 
-; 2784 :       if (game_window.actual.window.left < mi.rcWork.left)
+; 2782 :         &game_window.actual.window,
+; 2783 :           static_cast <LONG> (game_window.actual.style),
+; 2784 :             FALSE
+; 2785 :       );
+; 2786 : 
+; 2787 :       //
+; 2788 :       // Compensate for scenarios where the window is partially offscreen
+; 2789 :       //
+; 2790 :       int push_right = 0;
+; 2791 : 
+; 2792 :       if (game_window.actual.window.left < mi.rcWork.left)
 
 	mov	ecx, DWORD PTR ?game_window@@3Usk_window_s@@A+100
 	xor	eax, eax
@@ -46122,32 +46226,32 @@ $LN37@SK_AdjustW:
 	cmp	ecx, esi
 	jge	SHORT $LN38@SK_AdjustW
 
-; 2785 :         push_right = mi.rcWork.left - game_window.actual.window.left;
+; 2793 :         push_right = mi.rcWork.left - game_window.actual.window.left;
 
 	mov	eax, esi
 	sub	eax, ecx
 	jmp	SHORT $LN40@SK_AdjustW
 $LN38@SK_AdjustW:
 
-; 2786 :       else if (game_window.actual.window.right > mi.rcWork.right)
+; 2794 :       else if (game_window.actual.window.right > mi.rcWork.right)
 
 	mov	esi, DWORD PTR _mi$[ebp+28]
 	cmp	edx, esi
 	jle	SHORT $LN40@SK_AdjustW
 
-; 2787 :         push_right = (mi.rcWork.right - game_window.actual.window.right);
+; 2795 :         push_right = (mi.rcWork.right - game_window.actual.window.right);
 
 	mov	eax, esi
 	sub	eax, edx
 $LN40@SK_AdjustW:
 
-; 2788 : 
-; 2789 :       game_window.actual.window.left  += push_right;
-; 2790 :       game_window.actual.window.right += push_right;
-; 2791 : 
-; 2792 :       int push_down = 0;
-; 2793 : 
-; 2794 :       if ((game_window.actual.window.top - game_window.actual.client.top) < 0)
+; 2796 : 
+; 2797 :       game_window.actual.window.left  += push_right;
+; 2798 :       game_window.actual.window.right += push_right;
+; 2799 : 
+; 2800 :       int push_down = 0;
+; 2801 : 
+; 2802 :       if ((game_window.actual.window.top - game_window.actual.client.top) < 0)
 
 	mov	esi, DWORD PTR ?game_window@@3Usk_window_s@@A+104
 	add	ecx, eax
@@ -46157,7 +46261,7 @@ $LN40@SK_AdjustW:
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+100, ecx
 	sub	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+88
 
-; 2795 :         push_down = 0 - (game_window.actual.window.top - game_window.actual.client.top);
+; 2803 :         push_down = 0 - (game_window.actual.window.top - game_window.actual.client.top);
 
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+88
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+108, edx
@@ -46166,13 +46270,13 @@ $LN40@SK_AdjustW:
 	jmp	SHORT $LN43@SK_AdjustW
 $LN41@SK_AdjustW:
 
-; 2796 :       else if (game_window.actual.window.bottom + game_window.actual.client.top > mi.rcWork.bottom)
+; 2804 :       else if (game_window.actual.window.bottom + game_window.actual.client.top > mi.rcWork.bottom)
 
 	add	eax, edi
 	cmp	eax, DWORD PTR _mi$[ebp+32]
 	jle	SHORT $LN170@SK_AdjustW
 
-; 2797 :         push_down = mi.rcWork.bottom - (game_window.actual.window.bottom + game_window.actual.client.top);
+; 2805 :         push_down = mi.rcWork.bottom - (game_window.actual.window.bottom + game_window.actual.client.top);
 
 	mov	eax, DWORD PTR _mi$[ebp+32]
 	sub	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+88
@@ -46182,40 +46286,40 @@ $LN170@SK_AdjustW:
 	xor	eax, eax
 $LN43@SK_AdjustW:
 
-; 2798 : 
-; 2799 :       game_window.actual.window.top    += push_down;
+; 2806 : 
+; 2807 :       game_window.actual.window.top    += push_down;
 
 	add	esi, eax
 
-; 2800 :       game_window.actual.window.bottom += push_down;
+; 2808 :       game_window.actual.window.bottom += push_down;
 
 	add	edi, eax
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+104, esi
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+112, edi
 $LN35@SK_AdjustW:
 
-; 2801 :     }
-; 2802 : 
-; 2803 :     else
-; 2804 :     {
-; 2805 : #if 0
-; 2806 :       game_window.actual.window.left   = 0;
-; 2807 :       game_window.actual.window.top    = 0;
-; 2808 :       game_window.actual.window.right  = real_width;
-; 2809 :       game_window.actual.window.bottom = real_height;
+; 2809 :     }
 ; 2810 : 
-; 2811 :       game_window.actual.client = game_window.actual.window;
-; 2812 : 
-; 2813 :       game_window.actual.style    = SK_BORDERLESS;
-; 2814 :       game_window.actual.style_ex = SK_BORDERLESS_EX;
-; 2815 : 
-; 2816 :       SK_SetWindowStyle   ( game_window.actual.style    );
-; 2817 :       SK_SetWindowStyleEx ( game_window.actual.style_ex );
-; 2818 : #endif
-; 2819 :     }
+; 2811 :     else
+; 2812 :     {
+; 2813 : #if 0
+; 2814 :       game_window.actual.window.left   = 0;
+; 2815 :       game_window.actual.window.top    = 0;
+; 2816 :       game_window.actual.window.right  = real_width;
+; 2817 :       game_window.actual.window.bottom = real_height;
+; 2818 : 
+; 2819 :       game_window.actual.client = game_window.actual.window;
 ; 2820 : 
-; 2821 : 
-; 2822 :     if (game_window.actual.window.right  - game_window.actual.window.left > 0 &&
+; 2821 :       game_window.actual.style    = SK_BORDERLESS;
+; 2822 :       game_window.actual.style_ex = SK_BORDERLESS_EX;
+; 2823 : 
+; 2824 :       SK_SetWindowStyle   ( game_window.actual.style    );
+; 2825 :       SK_SetWindowStyleEx ( game_window.actual.style_ex );
+; 2826 : #endif
+; 2827 :     }
+; 2828 : 
+; 2829 : 
+; 2830 :     if (game_window.actual.window.right  - game_window.actual.window.left > 0 &&
 
 	sub	edx, ecx
 	test	edx, edx
@@ -46224,9 +46328,9 @@ $LN35@SK_AdjustW:
 	test	edi, edi
 	jle	SHORT $LN44@SK_AdjustW
 
-; 2823 :         game_window.actual.window.bottom - game_window.actual.window.top  > 0 )
-; 2824 :     {
-; 2825 :       SetWindowPos_Original ( game_window.hWnd,
+; 2831 :         game_window.actual.window.bottom - game_window.actual.window.top  > 0 )
+; 2832 :     {
+; 2833 :       SetWindowPos_Original ( game_window.hWnd,
 
 	xor	eax, eax
 	cmp	BYTE PTR _nomove$1$[ebp], al
@@ -46243,46 +46347,46 @@ $LN35@SK_AdjustW:
 	call	DWORD PTR ?SetWindowPos_Original@@3P6GHPAUHWND__@@0HHHHI@ZA ; SetWindowPos_Original
 $LN44@SK_AdjustW:
 
-; 2826 :                                 HWND_TOP,
-; 2827 :                                   game_window.actual.window.left,
-; 2828 :                                   game_window.actual.window.top,
-; 2829 :                                     game_window.actual.window.right  - game_window.actual.window.left,
-; 2830 :                                     game_window.actual.window.bottom - game_window.actual.window.top,
-; 2831 :                                       SWP_NOSENDCHANGING | SWP_NOZORDER   |
-; 2832 :                                       SWP_NOREPOSITION   | SWP_SHOWWINDOW |
-; 2833 :                             (nomove ? SWP_NOMOVE : 0x00) |
-; 2834 :                             (nosize ? SWP_NOSIZE : 0x00) );
-; 2835 :     }
-; 2836 : 
-; 2837 :     GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
+; 2834 :                                 HWND_TOP,
+; 2835 :                                   game_window.actual.window.left,
+; 2836 :                                   game_window.actual.window.top,
+; 2837 :                                     game_window.actual.window.right  - game_window.actual.window.left,
+; 2838 :                                     game_window.actual.window.bottom - game_window.actual.window.top,
+; 2839 :                                       SWP_NOSENDCHANGING | SWP_NOZORDER   |
+; 2840 :                                       SWP_NOREPOSITION   | SWP_SHOWWINDOW |
+; 2841 :                             (nomove ? SWP_NOMOVE : 0x00) |
+; 2842 :                             (nosize ? SWP_NOSIZE : 0x00) );
+; 2843 :     }
+; 2844 : 
+; 2845 :     GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
 
 	push	OFFSET ?game_window@@3Usk_window_s@@A+100
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	call	DWORD PTR ?GetWindowRect_Original@@3P6GHPAUHWND__@@PAUtagRECT@@@ZA ; GetWindowRect_Original
 
-; 2838 :     GetClientRect_Original (game_window.hWnd, &game_window.actual.client);
+; 2846 :     GetClientRect_Original (game_window.hWnd, &game_window.actual.client);
 
 	push	OFFSET ?game_window@@3Usk_window_s@@A+84
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	call	DWORD PTR ?GetClientRect_Original@@3P6GHPAUHWND__@@PAUtagRECT@@@ZA ; GetClientRect_Original
 
-; 2839 : 
-; 2840 :     GetWindowRect_Original (game_window.hWnd, &game_window.game.window);
+; 2847 : 
+; 2848 :     GetWindowRect_Original (game_window.hWnd, &game_window.game.window);
 
 	push	OFFSET ?game_window@@3Usk_window_s@@A+52
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	call	DWORD PTR ?GetWindowRect_Original@@3P6GHPAUHWND__@@PAUtagRECT@@@ZA ; GetWindowRect_Original
 
-; 2841 :     GetClientRect_Original (game_window.hWnd, &game_window.game.client);
+; 2849 :     GetClientRect_Original (game_window.hWnd, &game_window.game.client);
 
 	push	OFFSET ?game_window@@3Usk_window_s@@A+36
 	push	DWORD PTR ?game_window@@3Usk_window_s@@A+4
 	call	DWORD PTR ?GetClientRect_Original@@3P6GHPAUHWND__@@PAUtagRECT@@@ZA ; GetClientRect_Original
 
-; 2842 : 
-; 2843 : 
-; 2844 : 
-; 2845 :     wchar_t wszBorderDesc [128] = { };
+; 2850 : 
+; 2851 : 
+; 2852 : 
+; 2853 :     wchar_t wszBorderDesc [128] = { };
 
 	push	256					; 00000100H
 	lea	eax, DWORD PTR _wszBorderDesc$2[ebp]
@@ -46294,10 +46398,10 @@ $LN44@SK_AdjustW:
 
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+116
 
-; 2842 : 
-; 2843 : 
-; 2844 : 
-; 2845 :     wchar_t wszBorderDesc [128] = { };
+; 2850 : 
+; 2851 : 
+; 2852 : 
+; 2853 :     wchar_t wszBorderDesc [128] = { };
 
 	add	esp, 12					; 0000000cH
 
@@ -46317,13 +46421,13 @@ $LN138@SK_AdjustW:
 	je	SHORT $LN45@SK_AdjustW
 $LN141@SK_AdjustW:
 
-; 2846 : 
-; 2847 :     bool has_border = SK_WindowManager::StyleHasBorder (game_window.actual.style);
-; 2848 : 
-; 2849 :     // Summarize the border
-; 2850 :     if (SK_WindowManager::StyleHasBorder (game_window.actual.style))
-; 2851 :     {
-; 2852 :       _swprintf ( wszBorderDesc,
+; 2854 : 
+; 2855 :     bool has_border = SK_WindowManager::StyleHasBorder (game_window.actual.style);
+; 2856 : 
+; 2857 :     // Summarize the border
+; 2858 :     if (SK_WindowManager::StyleHasBorder (game_window.actual.style))
+; 2859 :     {
+; 2860 :       _swprintf ( wszBorderDesc,
 
 	push	4
 	call	?SK_GetSystemMetrics@@YGHH@Z		; SK_GetSystemMetrics
@@ -46337,26 +46441,26 @@ $LN141@SK_AdjustW:
 	add	eax, eax
 	push	eax
 	lea	eax, DWORD PTR _wszBorderDesc$2[ebp]
-	push	OFFSET $SG212574
+	push	OFFSET $SG212645
 	push	eax
 	call	__swprintf
 	add	esp, 20					; 00000014H
 $LN45@SK_AdjustW:
 
-; 2853 :                    L"(Frame = %lipx x %lipx, Title = %lipx)",
-; 2854 :                      2 * SK_GetSystemMetrics (SM_CXDLGFRAME),
-; 2855 :                      2 * SK_GetSystemMetrics (SM_CYDLGFRAME),
-; 2856 :                          SK_GetSystemMetrics (SM_CYCAPTION) );
-; 2857 :     }
-; 2858 : 
-; 2859 :     SK_LOG1 ( ( L"WINDOW => {Left: %li, Top: %li} - (WxH: %lix%li) - { Border: %s }",
+; 2861 :                    L"(Frame = %lipx x %lipx, Title = %lipx)",
+; 2862 :                      2 * SK_GetSystemMetrics (SM_CXDLGFRAME),
+; 2863 :                      2 * SK_GetSystemMetrics (SM_CYDLGFRAME),
+; 2864 :                          SK_GetSystemMetrics (SM_CYCAPTION) );
+; 2865 :     }
+; 2866 : 
+; 2867 :     SK_LOG1 ( ( L"WINDOW => {Left: %li, Top: %li} - (WxH: %lix%li) - { Border: %s }",
 
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 1
 	jl	SHORT $LN46@SK_AdjustW
 	cmp	BYTE PTR _has_border$1$[ebp], 0
 	lea	ecx, DWORD PTR _wszBorderDesc$2[ebp]
 	mov	edx, DWORD PTR ?game_window@@3Usk_window_s@@A+104
-	mov	eax, OFFSET $SG212576
+	mov	eax, OFFSET $SG212647
 	cmovne	eax, ecx
 	mov	ecx, DWORD PTR ?game_window@@3Usk_window_s@@A+100
 	push	eax
@@ -46368,80 +46472,80 @@ $LN45@SK_AdjustW:
 	push	eax
 	push	edx
 	push	ecx
-	push	OFFSET $SG212577
+	push	OFFSET $SG212648
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 28					; 0000001cH
 $LN46@SK_AdjustW:
 
-; 2860 :                   game_window.actual.window.left, game_window.actual.window.top,
-; 2861 :                     game_window.actual.window.right - game_window.actual.window.left,
-; 2862 :                       game_window.actual.window.bottom - game_window.actual.window.top,
-; 2863 :                         (! has_border) ? L"None" : wszBorderDesc ),
-; 2864 :                 L"Border Mgr" );
-; 2865 :   }
-; 2866 : 
-; 2867 : 
-; 2868 :   // Post-Process Results:
-; 2869 :   //
-; 2870 :   //  If window is moved as a result of this function, we need to:
-; 2871 :   //  ------------------------------------------------------------
-; 2872 :   //   Re-compute certain game-defined metrics (which may differ):
-; 2873 :   //   ===========================================================
-; 2874 :   //    1. Client Rectangle
-; 2875 :   //    2. Clip Rectangle (mouse confinement)
-; 2876 :   //    3. Which monitor the game is on (XXX: that whole thing needs consideration)
+; 2868 :                   game_window.actual.window.left, game_window.actual.window.top,
+; 2869 :                     game_window.actual.window.right - game_window.actual.window.left,
+; 2870 :                       game_window.actual.window.bottom - game_window.actual.window.top,
+; 2871 :                         (! has_border) ? L"None" : wszBorderDesc ),
+; 2872 :                 L"Border Mgr" );
+; 2873 :   }
+; 2874 : 
+; 2875 : 
+; 2876 :   // Post-Process Results:
 ; 2877 :   //
-; 2878 :   //   Decide how to translate mouse events so that if the game does not know the
-; 2879 :   //     window was moved, it still processes mouse input in a sane way.
-; 2880 :   //
-; 2881 : 
-; 2882 :   auto DescribeRect = [&](RECT* lpRect)
-; 2883 :   {
-; 2884 :     SK_LOG2_EX ( false, ( L" => {Left: %li, Top: %li} - {WxH: %lix%li)\n",
-; 2885 :                             lpRect->left, lpRect->top,
-; 2886 :                               lpRect->right - lpRect->left,
-; 2887 :                                 lpRect->bottom - lpRect->top ) );
-; 2888 :   };
+; 2878 :   //  If window is moved as a result of this function, we need to:
+; 2879 :   //  ------------------------------------------------------------
+; 2880 :   //   Re-compute certain game-defined metrics (which may differ):
+; 2881 :   //   ===========================================================
+; 2882 :   //    1. Client Rectangle
+; 2883 :   //    2. Clip Rectangle (mouse confinement)
+; 2884 :   //    3. Which monitor the game is on (XXX: that whole thing needs consideration)
+; 2885 :   //
+; 2886 :   //   Decide how to translate mouse events so that if the game does not know the
+; 2887 :   //     window was moved, it still processes mouse input in a sane way.
+; 2888 :   //
 ; 2889 : 
-; 2890 :   // 1. Client Rectangle
-; 2891 :   ////RECT client;
-; 2892 :   ////GetClientRect_Original (game_window.hWnd, &client);
-; 2893 : 
-; 2894 : 
-; 2895 :   // 2. Re-Compute Clip Rectangle
-; 2896 :   bool unconfine = config.window.unconfine_cursor;
-; 2897 :   bool   confine = config.window.confine_cursor;
-; 2898 : 
-; 2899 :   // This logic is questionable -- we probably need to transform the clip rect,
-; 2900 :   //                                 but not apply it when unconfine is true.
-; 2901 :   if (! unconfine)
+; 2890 :   auto DescribeRect = [&](RECT* lpRect)
+; 2891 :   {
+; 2892 :     SK_LOG2_EX ( false, ( L" => {Left: %li, Top: %li} - {WxH: %lix%li)\n",
+; 2893 :                             lpRect->left, lpRect->top,
+; 2894 :                               lpRect->right - lpRect->left,
+; 2895 :                                 lpRect->bottom - lpRect->top ) );
+; 2896 :   };
+; 2897 : 
+; 2898 :   // 1. Client Rectangle
+; 2899 :   ////RECT client;
+; 2900 :   ////GetClientRect_Original (game_window.hWnd, &client);
+; 2901 : 
+; 2902 : 
+; 2903 :   // 2. Re-Compute Clip Rectangle
+; 2904 :   bool unconfine = config.window.unconfine_cursor;
+; 2905 :   bool   confine = config.window.confine_cursor;
+; 2906 : 
+; 2907 :   // This logic is questionable -- we probably need to transform the clip rect,
+; 2908 :   //                                 but not apply it when unconfine is true.
+; 2909 :   if (! unconfine)
 
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+771, 0
 	mov	al, BYTE PTR ?config@@3Usk_config_t@@A+770
 	mov	BYTE PTR _confine$1$[ebp], al
 	jne	$LN47@SK_AdjustW
 
-; 2902 :   {
-; 2903 :     RECT clip;
-; 2904 :     GetClipCursor (&clip);
+; 2910 :   {
+; 2911 :     RECT clip;
+; 2912 :     GetClipCursor (&clip);
 
 	lea	eax, DWORD PTR _clip$5[ebp]
 	push	eax
 	call	DWORD PTR __imp__GetClipCursor@4
 
-; 2911 : 
-; 2912 :     if (confine || SK_IsClipRectFinite (&game_window.cursor_clip) || SK_IsClipRectFinite (&clip))
+; 2919 : 
+; 2920 :     if (confine || SK_IsClipRectFinite (&game_window.cursor_clip) || SK_IsClipRectFinite (&clip))
 
 	cmp	BYTE PTR _confine$1$[ebp], 0
 
-; 2910 :     };
+; 2918 :     };
 
 	lea	eax, DWORD PTR _DescribeRect$[ebp]
 	mov	DWORD PTR _DescribeClipRect$6[ebp], eax
 
-; 2911 : 
-; 2912 :     if (confine || SK_IsClipRectFinite (&game_window.cursor_clip) || SK_IsClipRectFinite (&clip))
+; 2919 : 
+; 2920 :     if (confine || SK_IsClipRectFinite (&game_window.cursor_clip) || SK_IsClipRectFinite (&clip))
 
 	jne	SHORT $LN50@SK_AdjustW
 	push	OFFSET ?game_window@@3Usk_window_s@@A+168
@@ -46455,61 +46559,61 @@ $LN46@SK_AdjustW:
 	je	$LN48@SK_AdjustW
 $LN50@SK_AdjustW:
 
-; 2913 :     { 
-; 2914 :       DescribeClipRect (L"Game", &game_window.cursor_clip);
+; 2921 :     { 
+; 2922 :       DescribeClipRect (L"Game", &game_window.cursor_clip);
 
 	push	OFFSET ?game_window@@3Usk_window_s@@A+168
-	push	OFFSET $SG212582
+	push	OFFSET $SG212653
 	lea	ecx, DWORD PTR _DescribeClipRect$6[ebp]
 	call	??R<lambda_77fcd7573a79bd26205f7e2e096cdf28>@@QBEXPB_WPAUtagRECT@@@Z ; <lambda_77fcd7573a79bd26205f7e2e096cdf28>::operator()
 
-; 2915 :       DescribeClipRect (L" IN ", &clip);
+; 2923 :       DescribeClipRect (L" IN ", &clip);
 
 	lea	eax, DWORD PTR _clip$5[ebp]
 	push	eax
-	push	OFFSET $SG212583
+	push	OFFSET $SG212654
 	lea	ecx, DWORD PTR _DescribeClipRect$6[ebp]
 	call	??R<lambda_77fcd7573a79bd26205f7e2e096cdf28>@@QBEXPB_WPAUtagRECT@@@Z ; <lambda_77fcd7573a79bd26205f7e2e096cdf28>::operator()
 
-; 2916 : 
-; 2917 :       if (confine)
+; 2924 : 
+; 2925 :       if (confine)
 
 	cmp	BYTE PTR _confine$1$[ebp], 0
 	jne	SHORT $LN53@SK_AdjustW
 
-; 2918 :       {
-; 2919 :         clip.left   = game_window.actual.window.left + game_window.actual.client.left;
-; 2920 :         clip.top    = game_window.actual.window.top  + game_window.actual.client.top;
-; 2921 :         clip.right  = game_window.actual.window.left + game_window.actual.client.right;
-; 2922 :         clip.bottom = game_window.actual.window.top  + game_window.actual.client.bottom;
-; 2923 :       }
-; 2924 : 
-; 2925 :       // TODO: Transform clip rectangle using existing rectangle
-; 2926 :       //
-; 2927 :       else
-; 2928 :       {
-; 2929 :         SK_LOG2 ( ( L"Need to transform original clip rect..." ),
+; 2926 :       {
+; 2927 :         clip.left   = game_window.actual.window.left + game_window.actual.client.left;
+; 2928 :         clip.top    = game_window.actual.window.top  + game_window.actual.client.top;
+; 2929 :         clip.right  = game_window.actual.window.left + game_window.actual.client.right;
+; 2930 :         clip.bottom = game_window.actual.window.top  + game_window.actual.client.bottom;
+; 2931 :       }
+; 2932 : 
+; 2933 :       // TODO: Transform clip rectangle using existing rectangle
+; 2934 :       //
+; 2935 :       else
+; 2936 :       {
+; 2937 :         SK_LOG2 ( ( L"Need to transform original clip rect..." ),
 
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 2
 	jl	SHORT $LN53@SK_AdjustW
-	push	OFFSET $SG212587
+	push	OFFSET $SG212658
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
 $LN53@SK_AdjustW:
 
-; 2930 :                     L"Cursor Mgr" );
-; 2931 : 
-; 2932 :         clip.left   = game_window.actual.window.left + game_window.actual.client.left;
+; 2938 :                     L"Cursor Mgr" );
+; 2939 : 
+; 2940 :         clip.left   = game_window.actual.window.left + game_window.actual.client.left;
 
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+84
 
-; 2933 :         clip.top    = game_window.actual.window.top  + game_window.actual.client.top;
-; 2934 :         clip.right  = game_window.actual.window.left + game_window.actual.client.right;
-; 2935 :         clip.bottom = game_window.actual.window.top  + game_window.actual.client.bottom;
-; 2936 :       }
-; 2937 : 
-; 2938 :       DescribeClipRect (L"OUT ", &clip);
+; 2941 :         clip.top    = game_window.actual.window.top  + game_window.actual.client.top;
+; 2942 :         clip.right  = game_window.actual.window.left + game_window.actual.client.right;
+; 2943 :         clip.bottom = game_window.actual.window.top  + game_window.actual.client.bottom;
+; 2944 :       }
+; 2945 : 
+; 2946 :       DescribeClipRect (L"OUT ", &clip);
 
 	lea	ecx, DWORD PTR _DescribeClipRect$6[ebp]
 	add	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+100
@@ -46525,7 +46629,7 @@ $LN53@SK_AdjustW:
 	mov	DWORD PTR _clip$5[ebp+12], eax
 	lea	eax, DWORD PTR _clip$5[ebp]
 	push	eax
-	push	OFFSET $SG212588
+	push	OFFSET $SG212659
 	call	??R<lambda_77fcd7573a79bd26205f7e2e096cdf28>@@QBEXPB_WPAUtagRECT@@@Z ; <lambda_77fcd7573a79bd26205f7e2e096cdf28>::operator()
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
 
@@ -46579,29 +46683,29 @@ $LL152@SK_AdjustW:
 	jne	SHORT $LL152@SK_AdjustW
 ; File c:\users\andon\source\repos\specialk\src\window.cpp
 
-; 2940 :       if (! wm_dispatch.moving_windows.count (game_window.hWnd))
+; 2948 :       if (! wm_dispatch.moving_windows.count (game_window.hWnd))
 
 	test	edx, edx
 	jne	SHORT $LN47@SK_AdjustW
 $LN168@SK_AdjustW:
 
-; 2941 :         ClipCursor_Original (&clip);
+; 2949 :         ClipCursor_Original (&clip);
 
 	lea	eax, DWORD PTR _clip$5[ebp]
 	push	eax
 
-; 2942 :       else
-; 2943 :         ClipCursor_Original (nullptr);
-; 2944 :     } 
-; 2945 :   }
-; 2946 : 
-; 2947 :   // Unconfine Cursor
-; 2948 :   else
-; 2949 :     ClipCursor_Original (nullptr);
+; 2950 :       else
+; 2951 :         ClipCursor_Original (nullptr);
+; 2952 :     } 
+; 2953 :   }
+; 2954 : 
+; 2955 :   // Unconfine Cursor
+; 2956 :   else
+; 2957 :     ClipCursor_Original (nullptr);
 
 	call	DWORD PTR ?ClipCursor_Original@@3P6GHPBUtagRECT@@@ZA ; ClipCursor_Original
 
-; 2950 : }
+; 2958 : }
 
 	pop	edi
 	pop	esi
@@ -46612,20 +46716,20 @@ $LN168@SK_AdjustW:
 	ret	0
 $LN47@SK_AdjustW:
 
-; 2942 :       else
-; 2943 :         ClipCursor_Original (nullptr);
-; 2944 :     } 
-; 2945 :   }
-; 2946 : 
-; 2947 :   // Unconfine Cursor
-; 2948 :   else
-; 2949 :     ClipCursor_Original (nullptr);
+; 2950 :       else
+; 2951 :         ClipCursor_Original (nullptr);
+; 2952 :     } 
+; 2953 :   }
+; 2954 : 
+; 2955 :   // Unconfine Cursor
+; 2956 :   else
+; 2957 :     ClipCursor_Original (nullptr);
 
 	push	0
 	call	DWORD PTR ?ClipCursor_Original@@3P6GHPBUtagRECT@@@ZA ; ClipCursor_Original
 $LN48@SK_AdjustW:
 
-; 2950 : }
+; 2958 : }
 
 	pop	edi
 	pop	esi
@@ -46643,78 +46747,78 @@ _hWnd$ = 8						; size = 4
 _fullscreen_exclusive$ = 12				; size = 1
 ?SK_InitWindow@@YAXPAUHWND__@@_N@Z PROC			; SK_InitWindow
 
-; 5122 : {
+; 5159 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 5123 :   if (game_window.GetWindowLongPtr == nullptr)
+; 5160 :   if (game_window.GetWindowLongPtr == nullptr)
 
 	cmp	DWORD PTR ?game_window@@3Usk_window_s@@A+200, 0
 	push	esi
 	mov	esi, DWORD PTR _hWnd$[ebp]
 	jne	SHORT $LN2@SK_InitWin
 
-; 5124 :   {
-; 5125 :     SK_InstallWindowHook (hWnd);
+; 5161 :   {
+; 5162 :     SK_InstallWindowHook (hWnd);
 
 	push	esi
 	call	?SK_InstallWindowHook@@YAXPAUHWND__@@@Z	; SK_InstallWindowHook
 	add	esp, 4
 $LN2@SK_InitWin:
 
-; 5126 :   }
-; 5127 : 
-; 5128 :   GetWindowRect_Original (hWnd, &game_window.game.window);
+; 5163 :   }
+; 5164 : 
+; 5165 :   GetWindowRect_Original (hWnd, &game_window.game.window);
 
 	push	OFFSET ?game_window@@3Usk_window_s@@A+52
 	push	esi
 	call	DWORD PTR ?GetWindowRect_Original@@3P6GHPAUHWND__@@PAUtagRECT@@@ZA ; GetWindowRect_Original
 
-; 5129 :   GetClientRect_Original (hWnd, &game_window.game.client);
+; 5166 :   GetClientRect_Original (hWnd, &game_window.game.client);
 
 	push	OFFSET ?game_window@@3Usk_window_s@@A+36
 	push	esi
 	call	DWORD PTR ?GetClientRect_Original@@3P6GHPAUHWND__@@PAUtagRECT@@@ZA ; GetClientRect_Original
 
-; 5130 : 
-; 5131 :   GetWindowRect_Original (hWnd, &game_window.actual.window);
+; 5167 : 
+; 5168 :   GetWindowRect_Original (hWnd, &game_window.actual.window);
 
 	push	OFFSET ?game_window@@3Usk_window_s@@A+100
 	push	esi
 	call	DWORD PTR ?GetWindowRect_Original@@3P6GHPAUHWND__@@PAUtagRECT@@@ZA ; GetWindowRect_Original
 
-; 5132 :   GetClientRect_Original (hWnd, &game_window.actual.client);
+; 5169 :   GetClientRect_Original (hWnd, &game_window.actual.client);
 
 	push	OFFSET ?game_window@@3Usk_window_s@@A+84
 	push	esi
 	call	DWORD PTR ?GetClientRect_Original@@3P6GHPAUHWND__@@PAUtagRECT@@@ZA ; GetClientRect_Original
 
-; 5133 : 
-; 5134 :   GetCursorPos_Original  (      &game_window.cursor_pos);
+; 5170 : 
+; 5171 :   GetCursorPos_Original  (      &game_window.cursor_pos);
 
 	push	OFFSET ?game_window@@3Usk_window_s@@A+184
 	call	DWORD PTR ?GetCursorPos_Original@@3P6GHPAUtagPOINT@@@ZA ; GetCursorPos_Original
 
-; 5135 : 
-; 5136 :   if (game_window.GetWindowLongPtr == nullptr)
+; 5172 : 
+; 5173 :   if (game_window.GetWindowLongPtr == nullptr)
 
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+200
 	test	eax, eax
 	je	SHORT $LN6@SK_InitWin
 
-; 5137 :     return;
-; 5138 : 
-; 5139 :   game_window.actual.style =
+; 5174 :     return;
+; 5175 : 
+; 5176 :   game_window.actual.style =
 
 	push	-16					; fffffff0H
 	push	esi
 	call	eax
 
-; 5140 :     game_window.GetWindowLongPtr ( hWnd, GWL_STYLE );
-; 5141 : 
-; 5142 :   game_window.actual.style_ex =
+; 5177 :     game_window.GetWindowLongPtr ( hWnd, GWL_STYLE );
+; 5178 : 
+; 5179 :   game_window.actual.style_ex =
 
 	push	-20					; ffffffecH
 	push	esi
@@ -46725,9 +46829,9 @@ $LN2@SK_InitWin:
 
 	mov	ecx, DWORD PTR ?game_window@@3Usk_window_s@@A+116
 
-; 5140 :     game_window.GetWindowLongPtr ( hWnd, GWL_STYLE );
-; 5141 : 
-; 5142 :   game_window.actual.style_ex =
+; 5177 :     game_window.GetWindowLongPtr ( hWnd, GWL_STYLE );
+; 5178 : 
+; 5179 :   game_window.actual.style_ex =
 
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+120, eax
 
@@ -46739,32 +46843,32 @@ $LN2@SK_InitWin:
 	je	SHORT $LN4@SK_InitWin
 $LN10@SK_InitWin:
 
-; 5143 :     game_window.GetWindowLongPtr ( hWnd, GWL_EXSTYLE );
-; 5144 : 
-; 5145 :   bool has_border  = SK_WindowManager::StyleHasBorder (
-; 5146 :                        game_window.actual.style
-; 5147 :                      );
-; 5148 : 
-; 5149 :   if (has_border)
-; 5150 :   {
-; 5151 :     game_window.border_style    = game_window.actual.style;
+; 5180 :     game_window.GetWindowLongPtr ( hWnd, GWL_EXSTYLE );
+; 5181 : 
+; 5182 :   bool has_border  = SK_WindowManager::StyleHasBorder (
+; 5183 :                        game_window.actual.style
+; 5184 :                      );
+; 5185 : 
+; 5186 :   if (has_border)
+; 5187 :   {
+; 5188 :     game_window.border_style    = game_window.actual.style;
 
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+124, ecx
 
-; 5152 :     game_window.border_style_ex = game_window.actual.style_ex;
+; 5189 :     game_window.border_style_ex = game_window.actual.style_ex;
 
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+128, eax
 $LN4@SK_InitWin:
 
-; 5153 :   }
-; 5154 : 
-; 5155 :   game_window.game.style    = game_window.actual.style;
-; 5156 :   game_window.game.style_ex = game_window.actual.style_ex;
-; 5157 : 
-; 5158 :   game_window.hWnd = hWnd;
-; 5159 : 
-; 5160 : 
-; 5161 :   if (! fullscreen_exclusive)
+; 5190 :   }
+; 5191 : 
+; 5192 :   game_window.game.style    = game_window.actual.style;
+; 5193 :   game_window.game.style_ex = game_window.actual.style_ex;
+; 5194 : 
+; 5195 :   game_window.hWnd = hWnd;
+; 5196 : 
+; 5197 : 
+; 5198 :   if (! fullscreen_exclusive)
 
 	cmp	BYTE PTR _fullscreen_exclusive$[ebp], 0
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+68, ecx
@@ -46772,28 +46876,28 @@ $LN4@SK_InitWin:
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+4, esi
 	jne	SHORT $LN6@SK_InitWin
 
-; 5162 :   {
-; 5163 :     // Next, adjust the border and/or window location if the user
-; 5164 :     //   wants an override
-; 5165 :     SK_ResetWindow ();
+; 5199 :   {
+; 5200 :     // Next, adjust the border and/or window location if the user
+; 5201 :     //   wants an override
+; 5202 :     SK_ResetWindow ();
 
 	call	?SK_ResetWindow@@YAXXZ			; SK_ResetWindow
 
-; 5166 : 
-; 5167 :     if (game_window.actual.style & WS_VISIBLE)
+; 5203 : 
+; 5204 :     if (game_window.actual.style & WS_VISIBLE)
 
 	test	DWORD PTR ?game_window@@3Usk_window_s@@A+116, 268435456 ; 10000000H
 	je	SHORT $LN6@SK_InitWin
 
-; 5168 :       SK_RealizeForegroundWindow (hWnd);
+; 5205 :       SK_RealizeForegroundWindow (hWnd);
 
 	push	esi
 	call	?SK_RealizeForegroundWindow@@YGKPAUHWND__@@@Z ; SK_RealizeForegroundWindow
 $LN6@SK_InitWin:
 	pop	esi
 
-; 5169 :   }
-; 5170 : }
+; 5206 :   }
+; 5207 : }
 
 	pop	ebp
 	ret	0
@@ -46810,16 +46914,16 @@ _has_raw_mouse$1$ = -1					; size = 1
 _hWnd$ = 8						; size = 4
 ?SK_InstallWindowHook@@YAXPAUHWND__@@@Z PROC		; SK_InstallWindowHook
 
-; 5174 : {
+; 5211 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	sub	esp, 536				; 00000218H
 
-; 5175 :   static volatile LONG installed = FALSE;
-; 5176 : 
-; 5177 :   if (InterlockedCompareExchange (&installed, TRUE, FALSE))
+; 5212 :   static volatile LONG installed = FALSE;
+; 5213 : 
+; 5214 :   if (InterlockedCompareExchange (&installed, TRUE, FALSE))
 
 	mov	ecx, 1
 	mov	edx, OFFSET ?installed@?1??SK_InstallWindowHook@@YAXPAUHWND__@@@Z@4JC
@@ -46828,9 +46932,9 @@ _hWnd$ = 8						; size = 4
 	test	eax, eax
 	jne	$LN1@SK_Install
 
-; 5178 :     return;
-; 5179 : 
-; 5180 :   game_window.unicode = IsWindowUnicode (hWnd) != FALSE;
+; 5215 :     return;
+; 5216 : 
+; 5217 :   game_window.unicode = IsWindowUnicode (hWnd) != FALSE;
 
 	push	ebx
 	mov	ebx, DWORD PTR _hWnd$[ebp]
@@ -46842,95 +46946,95 @@ _hWnd$ = 8						; size = 4
 	setne	al
 	mov	BYTE PTR ?game_window@@3Usk_window_s@@A, al
 
-; 5181 : 
-; 5182 :   if (game_window.unicode && (! caught_register)) 
+; 5218 : 
+; 5219 :   if (game_window.unicode && (! caught_register)) 
 
 	test	al, al
 	je	SHORT $LN6@SK_Install
 	cmp	BYTE PTR ?caught_register@@3_NA, 0	; caught_register
 	jne	$LN8@SK_Install
 
-; 5183 :   {
-; 5184 : #ifdef _WIN64
-; 5185 :     game_window.GetWindowLongPtr = GetWindowLongPtrW_Original;
-; 5186 :   //game_window.GetClassLongPtr  = GetClassLongPtrW_Original;
-; 5187 : #else
-; 5188 :     game_window.GetWindowLongPtr =
+; 5220 :   {
+; 5221 : #ifdef _WIN64
+; 5222 :     game_window.GetWindowLongPtr = GetWindowLongPtrW_Original;
+; 5223 :   //game_window.GetClassLongPtr  = GetClassLongPtrW_Original;
+; 5224 : #else
+; 5225 :     game_window.GetWindowLongPtr =
 
 	mov	eax, DWORD PTR ?GetWindowLongW_Original@@3P6GJPAUHWND__@@H@ZA ; GetWindowLongW_Original
 
-; 5189 :       static_cast <GetWindowLongPtr_pfn> (GetWindowLongW_Original);
-; 5190 :   //game_window.GetClassLongPtr =
-; 5191 :   //  static_cast <GetClassLongPtr_pfn>  (GetClassLongW_Original);
-; 5192 : #endif
-; 5193 :     game_window.SetWindowLongPtr = SetWindowLongPtrW_Original;
-; 5194 :   //game_window.SetClassLongPtr  = SetClassLongPtrW_Original;
-; 5195 :     game_window.DefWindowProc    = (DefWindowProc_pfn)
+; 5226 :       static_cast <GetWindowLongPtr_pfn> (GetWindowLongW_Original);
+; 5227 :   //game_window.GetClassLongPtr =
+; 5228 :   //  static_cast <GetClassLongPtr_pfn>  (GetClassLongW_Original);
+; 5229 : #endif
+; 5230 :     game_window.SetWindowLongPtr = SetWindowLongPtrW_Original;
+; 5231 :   //game_window.SetClassLongPtr  = SetClassLongPtrW_Original;
+; 5232 :     game_window.DefWindowProc    = (DefWindowProc_pfn)
 
 	mov	edi, DWORD PTR __imp__GetModuleHandleW@4
-	push	OFFSET $SG282086
+	push	OFFSET $SG282167
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+200, eax
 	mov	eax, DWORD PTR ?SetWindowLongPtrW_Original@@3P6GJPAUHWND__@@HJ@ZA ; SetWindowLongPtrW_Original
-	push	OFFSET $SG282087
+	push	OFFSET $SG282168
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+196, eax
 	call	edi
 	mov	esi, DWORD PTR __imp__GetProcAddress@8
 	push	eax
 	call	esi
 
-; 5196 :       GetProcAddress ( GetModuleHandle (L"user32.dll"),
-; 5197 :                          "DefWindowProcW" );
-; 5198 :     game_window.CallWindowProc   = (CallWindowProc_pfn)
+; 5233 :       GetProcAddress ( GetModuleHandle (L"user32.dll"),
+; 5234 :                          "DefWindowProcW" );
+; 5235 :     game_window.CallWindowProc   = (CallWindowProc_pfn)
 
-	push	OFFSET $SG282088
-	push	OFFSET $SG282089
+	push	OFFSET $SG282169
+	push	OFFSET $SG282170
 	jmp	SHORT $LN51@SK_Install
 $LN6@SK_Install:
 
-; 5199 :       GetProcAddress ( GetModuleHandle (L"user32.dll"),
-; 5200 :                          "CallWindowProcW" );
-; 5201 :   }
-; 5202 : 
-; 5203 :   else if (! caught_register)
+; 5236 :       GetProcAddress ( GetModuleHandle (L"user32.dll"),
+; 5237 :                          "CallWindowProcW" );
+; 5238 :   }
+; 5239 : 
+; 5240 :   else if (! caught_register)
 
 	cmp	BYTE PTR ?caught_register@@3_NA, 0	; caught_register
 	jne	SHORT $LN24@SK_Install
 
-; 5204 :   {
-; 5205 : #ifdef _WIN64
-; 5206 :     game_window.GetWindowLongPtr = GetWindowLongPtrA_Original;
-; 5207 :   //game_window.GetClassLongPtr  = GetClassLongPtrA_Original;
-; 5208 : #else
-; 5209 :     game_window.GetWindowLongPtr =
+; 5241 :   {
+; 5242 : #ifdef _WIN64
+; 5243 :     game_window.GetWindowLongPtr = GetWindowLongPtrA_Original;
+; 5244 :   //game_window.GetClassLongPtr  = GetClassLongPtrA_Original;
+; 5245 : #else
+; 5246 :     game_window.GetWindowLongPtr =
 
 	mov	eax, DWORD PTR ?GetWindowLongA_Original@@3P6GJPAUHWND__@@H@ZA ; GetWindowLongA_Original
 
-; 5210 :       static_cast <GetWindowLongPtr_pfn> (GetWindowLongA_Original);
-; 5211 :   //game_window.GetClassLongPtr =
-; 5212 :   //  static_cast <GetClassLongPtr_pfn>  (GetClassLongA_Original);
-; 5213 : #endif
-; 5214 :     game_window.SetWindowLongPtr = SetWindowLongPtrA_Original;
-; 5215 :   //game_window.SetClassLongPtr  = SetClassLongPtrA_Original;
-; 5216 :     game_window.DefWindowProc    = reinterpret_cast <DefWindowProc_pfn>
+; 5247 :       static_cast <GetWindowLongPtr_pfn> (GetWindowLongA_Original);
+; 5248 :   //game_window.GetClassLongPtr =
+; 5249 :   //  static_cast <GetClassLongPtr_pfn>  (GetClassLongA_Original);
+; 5250 : #endif
+; 5251 :     game_window.SetWindowLongPtr = SetWindowLongPtrA_Original;
+; 5252 :   //game_window.SetClassLongPtr  = SetClassLongPtrA_Original;
+; 5253 :     game_window.DefWindowProc    = reinterpret_cast <DefWindowProc_pfn>
 
 	mov	edi, DWORD PTR __imp__GetModuleHandleW@4
-	push	OFFSET $SG282091
+	push	OFFSET $SG282172
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+200, eax
 	mov	eax, DWORD PTR ?SetWindowLongPtrA_Original@@3P6GJPAUHWND__@@HJ@ZA ; SetWindowLongPtrA_Original
-	push	OFFSET $SG282092
+	push	OFFSET $SG282173
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+196, eax
 	call	edi
 	mov	esi, DWORD PTR __imp__GetProcAddress@8
 	push	eax
 	call	esi
 
-; 5217 :       ( GetProcAddress ( GetModuleHandle (L"user32.dll"),
-; 5218 :                           "DefWindowProcA" )
-; 5219 :       );
-; 5220 :     game_window.CallWindowProc   = reinterpret_cast <CallWindowProc_pfn>
+; 5254 :       ( GetProcAddress ( GetModuleHandle (L"user32.dll"),
+; 5255 :                           "DefWindowProcA" )
+; 5256 :       );
+; 5257 :     game_window.CallWindowProc   = reinterpret_cast <CallWindowProc_pfn>
 
-	push	OFFSET $SG282093
-	push	OFFSET $SG282094
+	push	OFFSET $SG282174
+	push	OFFSET $SG282175
 $LN51@SK_Install:
 	mov	DWORD PTR ?game_window@@3Usk_window_s@@A+212, eax
 	call	edi
@@ -46940,12 +47044,12 @@ $LN51@SK_Install:
 	mov	al, BYTE PTR ?game_window@@3Usk_window_s@@A
 $LN8@SK_Install:
 
-; 5221 :       ( GetProcAddress ( GetModuleHandle (L"user32.dll"),
-; 5222 :                            "CallWindowProcA" )
-; 5223 :       );
-; 5224 :   }
-; 5225 : 
-; 5226 :   WNDPROC class_proc = game_window.unicode ? (WNDPROC)
+; 5258 :       ( GetProcAddress ( GetModuleHandle (L"user32.dll"),
+; 5259 :                            "CallWindowProcA" )
+; 5260 :       );
+; 5261 :   }
+; 5262 : 
+; 5263 :   WNDPROC class_proc = game_window.unicode ? (WNDPROC)
 
 	test	al, al
 	je	SHORT $LN24@SK_Install
@@ -46959,11 +47063,11 @@ $LN24@SK_Install:
 	call	DWORD PTR __imp__GetClassLongA@8
 $LN52@SK_Install:
 
-; 5227 :     GetClassLongPtrW  ( hWnd, GCLP_WNDPROC ) :
-; 5228 :                                              (WNDPROC)
-; 5229 :     GetClassLongPtrA  ( hWnd, GCLP_WNDPROC );
-; 5230 : 
-; 5231 :   WNDPROC wnd_proc = game_window.unicode    ? (WNDPROC)
+; 5264 :     GetClassLongPtrW  ( hWnd, GCLP_WNDPROC ) :
+; 5265 :                                              (WNDPROC)
+; 5266 :     GetClassLongPtrA  ( hWnd, GCLP_WNDPROC );
+; 5267 : 
+; 5268 :   WNDPROC wnd_proc = game_window.unicode    ? (WNDPROC)
 
 	cmp	BYTE PTR ?game_window@@3Usk_window_s@@A, 0
 	mov	esi, eax
@@ -46976,124 +47080,124 @@ $LN26@SK_Install:
 	call	DWORD PTR __imp__GetWindowLongA@8
 $LN53@SK_Install:
 
-; 5232 :     GetWindowLongPtrW  ( hWnd, GWLP_WNDPROC ) :
-; 5233 :                                               (WNDPROC)
-; 5234 :     GetWindowLongPtrA  ( hWnd, GWLP_WNDPROC );
-; 5235 : 
-; 5236 : 
-; 5237 :   // When ImGui is active, we will do character translation internally
-; 5238 :   //   for any Raw Input or Win32 keydown event -- disable Windows'
-; 5239 :   //     translation from WM_KEYDOWN to WM_CHAR while we are doing this.
-; 5240 :   //
-; 5241 :   SK_CreateDLLHook2 (       L"user32.dll",
+; 5269 :     GetWindowLongPtrW  ( hWnd, GWLP_WNDPROC ) :
+; 5270 :                                               (WNDPROC)
+; 5271 :     GetWindowLongPtrA  ( hWnd, GWLP_WNDPROC );
+; 5272 : 
+; 5273 : 
+; 5274 :   // When ImGui is active, we will do character translation internally
+; 5275 :   //   for any Raw Input or Win32 keydown event -- disable Windows'
+; 5276 :   //     translation from WM_KEYDOWN to WM_CHAR while we are doing this.
+; 5277 :   //
+; 5278 :   SK_CreateDLLHook2 (       L"user32.dll",
 
 	push	0
 	push	OFFSET ?TranslateMessage_Original@@3P6GHPBUtagMSG@@@ZA ; TranslateMessage_Original
 	push	OFFSET ?TranslateMessage_Detour@@YGHPBUtagMSG@@@Z ; TranslateMessage_Detour
-	push	OFFSET $SG282095
-	push	OFFSET $SG282096
+	push	OFFSET $SG282176
+	push	OFFSET $SG282177
 	mov	edi, eax
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
-; 5242 :                              "TranslateMessage",
-; 5243 :                               TranslateMessage_Detour,
-; 5244 :      static_cast_p2p <void> (&TranslateMessage_Original) );
-; 5245 : 
-; 5246 : 
-; 5247 :   SK_CreateDLLHook2 (       L"user32.dll",
+; 5279 :                              "TranslateMessage",
+; 5280 :                               TranslateMessage_Detour,
+; 5281 :      static_cast_p2p <void> (&TranslateMessage_Original) );
+; 5282 : 
+; 5283 : 
+; 5284 :   SK_CreateDLLHook2 (       L"user32.dll",
 
 	push	0
 	push	OFFSET ?PeekMessageW_Original@@3P6GHPAUtagMSG@@PAUHWND__@@III@ZA ; PeekMessageW_Original
 	push	OFFSET ?PeekMessageW_Detour@@YGHPAUtagMSG@@PAUHWND__@@III@Z ; PeekMessageW_Detour
-	push	OFFSET $SG282097
-	push	OFFSET $SG282098
+	push	OFFSET $SG282178
+	push	OFFSET $SG282179
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
-; 5248 :                              "PeekMessageW",
-; 5249 :                               PeekMessageW_Detour,
-; 5250 :      static_cast_p2p <void> (&PeekMessageW_Original) );
-; 5251 : 
-; 5252 :   SK_CreateDLLHook2 (       L"user32.dll",
+; 5285 :                              "PeekMessageW",
+; 5286 :                               PeekMessageW_Detour,
+; 5287 :      static_cast_p2p <void> (&PeekMessageW_Original) );
+; 5288 : 
+; 5289 :   SK_CreateDLLHook2 (       L"user32.dll",
 
 	push	0
 	push	OFFSET ?PeekMessageA_Original@@3P6GHPAUtagMSG@@PAUHWND__@@III@ZA ; PeekMessageA_Original
 	push	OFFSET ?PeekMessageA_Detour@@YGHPAUtagMSG@@PAUHWND__@@III@Z ; PeekMessageA_Detour
-	push	OFFSET $SG282099
-	push	OFFSET $SG282100
+	push	OFFSET $SG282180
+	push	OFFSET $SG282181
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
-; 5253 :                              "PeekMessageA",
-; 5254 :                               PeekMessageA_Detour,
-; 5255 :      static_cast_p2p <void> (&PeekMessageA_Original) );
-; 5256 : 
-; 5257 : 
-; 5258 :   // Hook as few of these as possible, disrupting the message pump
-; 5259 :   //   when we already have the game's main window hooked is redundant.
-; 5260 :   //
-; 5261 :   //   ** PeekMessage is hooked because The Witness pulls mouse click events
-; 5262 :   //        out of the pump without passing them through its window procedure.
-; 5263 :   //
-; 5264 :   SK_CreateDLLHook2 (       L"user32.dll",
+; 5290 :                              "PeekMessageA",
+; 5291 :                               PeekMessageA_Detour,
+; 5292 :      static_cast_p2p <void> (&PeekMessageA_Original) );
+; 5293 : 
+; 5294 : 
+; 5295 :   // Hook as few of these as possible, disrupting the message pump
+; 5296 :   //   when we already have the game's main window hooked is redundant.
+; 5297 :   //
+; 5298 :   //   ** PeekMessage is hooked because The Witness pulls mouse click events
+; 5299 :   //        out of the pump without passing them through its window procedure.
+; 5300 :   //
+; 5301 :   SK_CreateDLLHook2 (       L"user32.dll",
 
 	push	0
 	push	OFFSET ?GetMessageW_Original@@3P6GHPAUtagMSG@@PAUHWND__@@II@ZA ; GetMessageW_Original
 	push	OFFSET ?GetMessageW_Detour@@YGHPAUtagMSG@@PAUHWND__@@II@Z ; GetMessageW_Detour
-	push	OFFSET $SG282101
-	push	OFFSET $SG282102
+	push	OFFSET $SG282182
+	push	OFFSET $SG282183
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
-; 5265 :                              "GetMessageW",
-; 5266 :                               GetMessageW_Detour,
-; 5267 :      static_cast_p2p <void> (&GetMessageW_Original) );
-; 5268 : 
-; 5269 :   SK_CreateDLLHook2 (       L"user32.dll",
+; 5302 :                              "GetMessageW",
+; 5303 :                               GetMessageW_Detour,
+; 5304 :      static_cast_p2p <void> (&GetMessageW_Original) );
+; 5305 : 
+; 5306 :   SK_CreateDLLHook2 (       L"user32.dll",
 
 	push	0
 	push	OFFSET ?DispatchMessageW_Original@@3P6GJPBUtagMSG@@@ZA ; DispatchMessageW_Original
 	push	OFFSET ?DispatchMessageW_Detour@@YGJPBUtagMSG@@@Z ; DispatchMessageW_Detour
-	push	OFFSET $SG282103
-	push	OFFSET $SG282104
+	push	OFFSET $SG282184
+	push	OFFSET $SG282185
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
-; 5270 :                              "DispatchMessageW",
-; 5271 :                               DispatchMessageW_Detour,
-; 5272 :      static_cast_p2p <void> (&DispatchMessageW_Original) );
-; 5273 :   
-; 5274 :   SK_CreateDLLHook2 (       L"user32.dll",
+; 5307 :                              "DispatchMessageW",
+; 5308 :                               DispatchMessageW_Detour,
+; 5309 :      static_cast_p2p <void> (&DispatchMessageW_Original) );
+; 5310 :   
+; 5311 :   SK_CreateDLLHook2 (       L"user32.dll",
 
 	push	0
 	push	OFFSET ?GetMessageA_Original@@3P6GHPAUtagMSG@@PAUHWND__@@II@ZA ; GetMessageA_Original
 	push	OFFSET ?GetMessageA_Detour@@YGHPAUtagMSG@@PAUHWND__@@II@Z ; GetMessageA_Detour
-	push	OFFSET $SG282105
-	push	OFFSET $SG282106
+	push	OFFSET $SG282186
+	push	OFFSET $SG282187
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
-; 5275 :                              "GetMessageA",
-; 5276 :                               GetMessageA_Detour,
-; 5277 :      static_cast_p2p <void> (&GetMessageA_Original) );
-; 5278 : 
-; 5279 :   SK_CreateDLLHook2 (       L"user32.dll",
+; 5312 :                              "GetMessageA",
+; 5313 :                               GetMessageA_Detour,
+; 5314 :      static_cast_p2p <void> (&GetMessageA_Original) );
+; 5315 : 
+; 5316 :   SK_CreateDLLHook2 (       L"user32.dll",
 
 	push	0
 	push	OFFSET ?DispatchMessageA_Original@@3P6GJPBUtagMSG@@@ZA ; DispatchMessageA_Original
 	push	OFFSET ?DispatchMessageA_Detour@@YGJPBUtagMSG@@@Z ; DispatchMessageA_Detour
-	push	OFFSET $SG282107
-	push	OFFSET $SG282108
+	push	OFFSET $SG282188
+	push	OFFSET $SG282189
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
-; 5280 :                              "DispatchMessageA",
-; 5281 :                               DispatchMessageA_Detour,
-; 5282 :      static_cast_p2p <void> (&DispatchMessageA_Original) );
-; 5283 : 
-; 5284 :   if (! caught_register)
+; 5317 :                              "DispatchMessageA",
+; 5318 :                               DispatchMessageA_Detour,
+; 5319 :      static_cast_p2p <void> (&DispatchMessageA_Original) );
+; 5320 : 
+; 5321 :   if (! caught_register)
 
 	mov	eax, DWORD PTR ?game_window@@3Usk_window_s@@A+8
 	xor	ecx, ecx
 	cmp	BYTE PTR ?caught_register@@3_NA, cl	; caught_register
 
-; 5285 :     game_window.WndProc_Original = nullptr;
-; 5286 : 
-; 5287 :   wchar_t wszClassName [256] = { };
+; 5322 :     game_window.WndProc_Original = nullptr;
+; 5323 : 
+; 5324 :   wchar_t wszClassName [256] = { };
 
 	push	512					; 00000200H
 	cmove	eax, ecx
@@ -47104,7 +47208,7 @@ $LN53@SK_Install:
 	call	_memset
 	add	esp, 12					; 0000000cH
 
-; 5288 :   GetClassNameW ( hWnd, wszClassName, 256 );
+; 5325 :   GetClassNameW ( hWnd, wszClassName, 256 );
 
 	lea	eax, DWORD PTR _wszClassName$[ebp]
 	push	256					; 00000100H
@@ -47112,56 +47216,56 @@ $LN53@SK_Install:
 	push	ebx
 	call	DWORD PTR __imp__GetClassNameW@12
 
-; 5289 : 
-; 5290 :   dll_log.Log ( L"[Window Mgr] Hooking the Window Procedure for "
+; 5326 : 
+; 5327 :   dll_log.Log ( L"[Window Mgr] Hooking the Window Procedure for "
 
 	cmp	BYTE PTR ?game_window@@3Usk_window_s@@A, 0
 	lea	eax, DWORD PTR _wszClassName$[ebp]
 	push	edi
 	push	esi
 	push	eax
-	mov	ecx, OFFSET $SG282111
-	mov	eax, OFFSET $SG282110
+	mov	ecx, OFFSET $SG282192
+	mov	eax, OFFSET $SG282191
 	cmove	eax, ecx
 	push	eax
-	push	OFFSET $SG282112
+	push	OFFSET $SG282193
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 24					; 00000018H
 
-; 5291 :                 L"%s Window Class ('%s') :: (ClassProc: %p, WndProc: %p)",
-; 5292 :                   game_window.unicode ? L"Unicode" : L"ANSI",
-; 5293 :                     wszClassName,
-; 5294 :                       class_proc,
-; 5295 :                         wnd_proc );
-; 5296 : 
-; 5297 :   bool hook_classfunc = false;
-; 5298 : 
-; 5299 :   // Compat Hack: EverQuest (hook classfunc)
-; 5300 :   //
-; 5301 :   //   Initial PeekMessage hook will handle input at server select,
-; 5302 :   //     hooked window proc will handle events in-game.
-; 5303 :   //
-; 5304 :   //   This game hooks its own message loop dispatch functions, probably
-; 5305 :   //     as an anti-cheat method. Hooking the class procedure is the only
-; 5306 :   //       workaround.
-; 5307 :   //
-; 5308 :   //if (! _wcsicmp (SK_GetHostApp (), L"eqgame.exe"))
-; 5309 :     hook_classfunc = true;
-; 5310 :   
-; 5311 :   if (hook_classfunc && (! caught_register))
+; 5328 :                 L"%s Window Class ('%s') :: (ClassProc: %p, WndProc: %p)",
+; 5329 :                   game_window.unicode ? L"Unicode" : L"ANSI",
+; 5330 :                     wszClassName,
+; 5331 :                       class_proc,
+; 5332 :                         wnd_proc );
+; 5333 : 
+; 5334 :   bool hook_classfunc = false;
+; 5335 : 
+; 5336 :   // Compat Hack: EverQuest (hook classfunc)
+; 5337 :   //
+; 5338 :   //   Initial PeekMessage hook will handle input at server select,
+; 5339 :   //     hooked window proc will handle events in-game.
+; 5340 :   //
+; 5341 :   //   This game hooks its own message loop dispatch functions, probably
+; 5342 :   //     as an anti-cheat method. Hooking the class procedure is the only
+; 5343 :   //       workaround.
+; 5344 :   //
+; 5345 :   //if (! _wcsicmp (SK_GetHostApp (), L"eqgame.exe"))
+; 5346 :     hook_classfunc = true;
+; 5347 :   
+; 5348 :   if (hook_classfunc && (! caught_register))
 
 	cmp	BYTE PTR ?caught_register@@3_NA, 0	; caught_register
 	jne	SHORT $LN14@SK_Install
 
-; 5312 :   {
-; 5313 :     game_window.hooked = false;
-; 5314 : 
-; 5315 : #if 0
-; 5316 :     game_window.WndProc_Original = (WNDPROC)GetWindowLongPtrW (game_window.hWnd, GWLP_WNDPROC);
-; 5317 :     g_hkCallWndProc = SetWindowsHookEx (WH_CALLWNDPROC, CallWndProc, SK_GetDLL (), GetCurrentThreadId ());
-; 5318 : #else
-; 5319 :     if ( MH_OK ==
+; 5349 :   {
+; 5350 :     game_window.hooked = false;
+; 5351 : 
+; 5352 : #if 0
+; 5353 :     game_window.WndProc_Original = (WNDPROC)GetWindowLongPtrW (game_window.hWnd, GWLP_WNDPROC);
+; 5354 :     g_hkCallWndProc = SetWindowsHookEx (WH_CALLWNDPROC, CallWndProc, SK_GetDLL (), GetCurrentThreadId ());
+; 5355 : #else
+; 5356 :     if ( MH_OK ==
 
 	push	OFFSET ?game_window@@3Usk_window_s@@A+8
 	push	OFFSET ?SK_DetourWindowProc@@YGJPAUHWND__@@IIJ@Z ; SK_DetourWindowProc
@@ -47171,28 +47275,28 @@ $LN53@SK_Install:
 	test	eax, eax
 	jne	SHORT $LN12@SK_Install
 
-; 5320 :            MH_CreateHook (
-; 5321 :                                                    class_proc,
-; 5322 :                                           SK_DetourWindowProc,
-; 5323 :                  static_cast_p2p <void> (&game_window.WndProc_Original)
-; 5324 :            )
-; 5325 :       )
-; 5326 :     {
-; 5327 :       MH_QueueEnableHook (class_proc);
+; 5357 :            MH_CreateHook (
+; 5358 :                                                    class_proc,
+; 5359 :                                           SK_DetourWindowProc,
+; 5360 :                  static_cast_p2p <void> (&game_window.WndProc_Original)
+; 5361 :            )
+; 5362 :       )
+; 5363 :     {
+; 5364 :       MH_QueueEnableHook (class_proc);
 
 	push	esi
 	call	_MH_QueueEnableHook@4
 
-; 5328 :     
-; 5329 :       dll_log.Log (L"[Window Mgr]  >> Hooked ClassProc.");
+; 5365 :     
+; 5366 :       dll_log.Log (L"[Window Mgr]  >> Hooked ClassProc.");
 
-	push	OFFSET $SG282117
+	push	OFFSET $SG282198
 
-; 5330 :     
-; 5331 :       game_window.hooked = false;
-; 5332 :     }
-; 5333 :     
-; 5334 :     else if ( MH_OK ==
+; 5367 :     
+; 5368 :       game_window.hooked = false;
+; 5369 :     }
+; 5370 :     
+; 5371 :     else if ( MH_OK ==
 
 	jmp	SHORT $LN54@SK_Install
 $LN12@SK_Install:
@@ -47203,68 +47307,68 @@ $LN12@SK_Install:
 	test	eax, eax
 	jne	SHORT $LN14@SK_Install
 
-; 5335 :                 MH_CreateHook (
-; 5336 :                                                       wnd_proc,
-; 5337 :                                            SK_DetourWindowProc,
-; 5338 :                   static_cast_p2p <void> (&game_window.WndProc_Original)
-; 5339 :                 )
-; 5340 :             )
-; 5341 :     {
-; 5342 :       MH_QueueEnableHook (wnd_proc);
+; 5372 :                 MH_CreateHook (
+; 5373 :                                                       wnd_proc,
+; 5374 :                                            SK_DetourWindowProc,
+; 5375 :                   static_cast_p2p <void> (&game_window.WndProc_Original)
+; 5376 :                 )
+; 5377 :             )
+; 5378 :     {
+; 5379 :       MH_QueueEnableHook (wnd_proc);
 
 	push	edi
 	call	_MH_QueueEnableHook@4
 
-; 5343 :     
-; 5344 :       dll_log.Log (L"[Window Mgr]  >> Hooked WndProc.");
+; 5380 :     
+; 5381 :       dll_log.Log (L"[Window Mgr]  >> Hooked WndProc.");
 
-	push	OFFSET $SG282119
+	push	OFFSET $SG282200
 $LN54@SK_Install:
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
-; 5345 :     
-; 5346 :       game_window.hooked = false;
+; 5382 :     
+; 5383 :       game_window.hooked = false;
 
 	mov	BYTE PTR ?game_window@@3Usk_window_s@@A+220, 0
 	add	esp, 8
 $LN14@SK_Install:
 
-; 5347 :     }
-; 5348 : #endif
-; 5349 :   }
-; 5350 :   
-; 5351 :   else if (! caught_register)
-; 5352 :   {
-; 5353 :     //dll_log.Log ( L"[Window Mgr]  >> Hooking was impossible; installing new "
-; 5354 :     //              L"window procedure instead (this may be undone "
-; 5355 :     //              L"by other software)." );
-; 5356 :   
-; 5357 :     game_window.WndProc_Original =
-; 5358 :       static_cast <WNDPROC> (wnd_proc);
-; 5359 :   
-; 5360 :     game_window.SetWindowLongPtr ( hWnd,
-; 5361 :                                      GWLP_WNDPROC,
-; 5362 :           reinterpret_cast <LONG_PTR> (SK_DetourWindowProc) );
-; 5363 :   
-; 5364 :     //game_window.SetClassLongPtr ( hWnd,
-; 5365 :     //                                GWLP_WNDPROC,
-; 5366 :     //      reinterpret_cast <LONG_PTR> (SK_DetourWindowProc) );
-; 5367 :   
-; 5368 :     if (game_window.unicode)
-; 5369 :       SetClassLongPtrW ( hWnd, GCLP_WNDPROC, (LONG_PTR)SK_DetourWindowProc );
-; 5370 :     else
-; 5371 :       SetClassLongPtrA ( hWnd, GCLP_WNDPROC, (LONG_PTR)SK_DetourWindowProc );
-; 5372 :   
-; 5373 :     game_window.hooked = true;
-; 5374 :   }
-; 5375 : 
-; 5376 : 
-; 5377 : 
-; 5378 :   bool has_raw_mouse = false;
-; 5379 :   UINT count         = 0;
-; 5380 : 
-; 5381 :                  GetRegisteredRawInputDevices_Original (nullptr, &count, sizeof RAWINPUTDEVICE);
+; 5384 :     }
+; 5385 : #endif
+; 5386 :   }
+; 5387 :   
+; 5388 :   else if (! caught_register)
+; 5389 :   {
+; 5390 :     //dll_log.Log ( L"[Window Mgr]  >> Hooking was impossible; installing new "
+; 5391 :     //              L"window procedure instead (this may be undone "
+; 5392 :     //              L"by other software)." );
+; 5393 :   
+; 5394 :     game_window.WndProc_Original =
+; 5395 :       static_cast <WNDPROC> (wnd_proc);
+; 5396 :   
+; 5397 :     game_window.SetWindowLongPtr ( hWnd,
+; 5398 :                                      GWLP_WNDPROC,
+; 5399 :           reinterpret_cast <LONG_PTR> (SK_DetourWindowProc) );
+; 5400 :   
+; 5401 :     //game_window.SetClassLongPtr ( hWnd,
+; 5402 :     //                                GWLP_WNDPROC,
+; 5403 :     //      reinterpret_cast <LONG_PTR> (SK_DetourWindowProc) );
+; 5404 :   
+; 5405 :     if (game_window.unicode)
+; 5406 :       SetClassLongPtrW ( hWnd, GCLP_WNDPROC, (LONG_PTR)SK_DetourWindowProc );
+; 5407 :     else
+; 5408 :       SetClassLongPtrA ( hWnd, GCLP_WNDPROC, (LONG_PTR)SK_DetourWindowProc );
+; 5409 :   
+; 5410 :     game_window.hooked = true;
+; 5411 :   }
+; 5412 : 
+; 5413 : 
+; 5414 : 
+; 5415 :   bool has_raw_mouse = false;
+; 5416 :   UINT count         = 0;
+; 5417 : 
+; 5418 :                  GetRegisteredRawInputDevices_Original (nullptr, &count, sizeof RAWINPUTDEVICE);
 
 	push	12					; 0000000cH
 	lea	eax, DWORD PTR _count$[ebp]
@@ -47274,21 +47378,21 @@ $LN14@SK_Install:
 	mov	DWORD PTR _count$[ebp], 0
 	call	DWORD PTR ?GetRegisteredRawInputDevices_Original@@3P6GIPAUtagRAWINPUTDEVICE@@PAII@ZA ; GetRegisteredRawInputDevices_Original
 
-; 5382 :   DWORD dwLast = GetLastError                          ();
+; 5419 :   DWORD dwLast = GetLastError                          ();
 
 	call	DWORD PTR __imp__GetLastError@0
 	mov	DWORD PTR _dwLast$1$[ebp], eax
 
-; 5383 : 
-; 5384 :   if (count > 0)
+; 5420 : 
+; 5421 :   if (count > 0)
 
 	mov	eax, DWORD PTR _count$[ebp]
 	test	eax, eax
 	je	SHORT $LN18@SK_Install
 
-; 5385 :   {
-; 5386 :     auto* pDevs =
-; 5387 :       new RAWINPUTDEVICE [count + 1];
+; 5422 :   {
+; 5423 :     auto* pDevs =
+; 5424 :       new RAWINPUTDEVICE [count + 1];
 
 	xor	ecx, ecx
 	inc	eax
@@ -47302,8 +47406,8 @@ $LN14@SK_Install:
 	add	esp, 4
 	mov	edi, eax
 
-; 5388 : 
-; 5389 :     GetRegisteredRawInputDevices_Original ( pDevs,
+; 5425 : 
+; 5426 :     GetRegisteredRawInputDevices_Original ( pDevs,
 
 	lea	eax, DWORD PTR _count$[ebp]
 	push	12					; 0000000cH
@@ -47311,27 +47415,27 @@ $LN14@SK_Install:
 	push	edi
 	call	DWORD PTR ?GetRegisteredRawInputDevices_Original@@3P6GIPAUtagRAWINPUTDEVICE@@PAII@ZA ; GetRegisteredRawInputDevices_Original
 
-; 5390 :                                               &count,
-; 5391 :                                                 sizeof RAWINPUTDEVICE );
-; 5392 : 
-; 5393 :     for (UINT i = 0 ; i < count ; i++)
+; 5427 :                                               &count,
+; 5428 :                                                 sizeof RAWINPUTDEVICE );
+; 5429 : 
+; 5430 :     for (UINT i = 0 ; i < count ; i++)
 
 	mov	esi, DWORD PTR _count$[ebp]
 	xor	ecx, ecx
 	test	esi, esi
 	je	SHORT $LN3@SK_Install
 
-; 5385 :   {
-; 5386 :     auto* pDevs =
-; 5387 :       new RAWINPUTDEVICE [count + 1];
+; 5422 :   {
+; 5423 :     auto* pDevs =
+; 5424 :       new RAWINPUTDEVICE [count + 1];
 
 	mov	eax, edi
 	npad	3
 $LL4@SK_Install:
 
-; 5394 :     {
-; 5395 :       if ( ( pDevs [i].usUsage     == HID_USAGE_GENERIC_MOUSE ||
-; 5396 :              pDevs [i].usUsage     == HID_USAGE_GENERIC_POINTER ) &&
+; 5431 :     {
+; 5432 :       if ( ( pDevs [i].usUsage     == HID_USAGE_GENERIC_MOUSE ||
+; 5433 :              pDevs [i].usUsage     == HID_USAGE_GENERIC_POINTER ) &&
 
 	movzx	edx, WORD PTR [eax+2]
 	cmp	edx, 2
@@ -47346,68 +47450,68 @@ $LN20@SK_Install:
 	je	SHORT $LN47@SK_Install
 $LN2@SK_Install:
 
-; 5390 :                                               &count,
-; 5391 :                                                 sizeof RAWINPUTDEVICE );
-; 5392 : 
-; 5393 :     for (UINT i = 0 ; i < count ; i++)
+; 5427 :                                               &count,
+; 5428 :                                                 sizeof RAWINPUTDEVICE );
+; 5429 : 
+; 5430 :     for (UINT i = 0 ; i < count ; i++)
 
 	inc	ecx
 	add	eax, 12					; 0000000cH
 	cmp	ecx, esi
 	jb	SHORT $LL4@SK_Install
 
-; 5394 :     {
-; 5395 :       if ( ( pDevs [i].usUsage     == HID_USAGE_GENERIC_MOUSE ||
-; 5396 :              pDevs [i].usUsage     == HID_USAGE_GENERIC_POINTER ) &&
+; 5431 :     {
+; 5432 :       if ( ( pDevs [i].usUsage     == HID_USAGE_GENERIC_MOUSE ||
+; 5433 :              pDevs [i].usUsage     == HID_USAGE_GENERIC_POINTER ) &&
 
 	jmp	SHORT $LN3@SK_Install
 $LN47@SK_Install:
 
-; 5397 :            ( pDevs [i].usUsagePage == HID_USAGE_PAGE_GENERIC  ||
-; 5398 :              pDevs [i].usUsagePage == HID_USAGE_PAGE_GAME       ) )
-; 5399 :       {
-; 5400 :         has_raw_mouse = true; // Technically this could be just about any pointing device
+; 5434 :            ( pDevs [i].usUsagePage == HID_USAGE_PAGE_GENERIC  ||
+; 5435 :              pDevs [i].usUsagePage == HID_USAGE_PAGE_GAME       ) )
+; 5436 :       {
+; 5437 :         has_raw_mouse = true; // Technically this could be just about any pointing device
 
 	mov	BYTE PTR _has_raw_mouse$1$[ebp], 1
 $LN3@SK_Install:
 
-; 5401 :                               //   including a touchscreen (on purpose).
-; 5402 :         break;
-; 5403 :       }
-; 5404 :     }
-; 5405 : 
-; 5406 :     delete [] pDevs;
+; 5438 :                               //   including a touchscreen (on purpose).
+; 5439 :         break;
+; 5440 :       }
+; 5441 :     }
+; 5442 : 
+; 5443 :     delete [] pDevs;
 
 	push	edi
 	call	??_V@YAXPAX@Z				; operator delete[]
 	add	esp, 4
 $LN18@SK_Install:
 
-; 5407 :   }
-; 5408 : 
-; 5409 :   SetLastError (dwLast);
+; 5444 :   }
+; 5445 : 
+; 5446 :   SetLastError (dwLast);
 
 	push	DWORD PTR _dwLast$1$[ebp]
 	call	DWORD PTR __imp__SetLastError@4
 
-; 5410 : 
-; 5411 :   // If no pointing device is setup, go ahead and register our own mouse,
-; 5412 :   //   it won't interfere with the game's operation until the ImGui overlay
-; 5413 :   //     requires a mouse... at which point third-party software will flip out :)
-; 5414 :   if (! has_raw_mouse)
+; 5447 : 
+; 5448 :   // If no pointing device is setup, go ahead and register our own mouse,
+; 5449 :   //   it won't interfere with the game's operation until the ImGui overlay
+; 5450 :   //     requires a mouse... at which point third-party software will flip out :)
+; 5451 :   if (! has_raw_mouse)
 
 	cmp	BYTE PTR _has_raw_mouse$1$[ebp], 0
 	jne	SHORT $LN22@SK_Install
 
-; 5415 :   {
-; 5416 :     RAWINPUTDEVICE rid;
-; 5417 :     rid.hwndTarget  = hWnd;
-; 5418 :     rid.usUsage     = HID_USAGE_GENERIC_MOUSE;
-; 5419 :     rid.usUsagePage = HID_USAGE_PAGE_GENERIC;
-; 5420 :     rid.dwFlags     = RIDEV_INPUTSINK |
-; 5421 :                       RIDEV_DEVNOTIFY;
-; 5422 :   
-; 5423 :     RegisterRawInputDevices_Original (&rid, 1, sizeof RAWINPUTDEVICE);
+; 5452 :   {
+; 5453 :     RAWINPUTDEVICE rid;
+; 5454 :     rid.hwndTarget  = hWnd;
+; 5455 :     rid.usUsage     = HID_USAGE_GENERIC_MOUSE;
+; 5456 :     rid.usUsagePage = HID_USAGE_PAGE_GENERIC;
+; 5457 :     rid.dwFlags     = RIDEV_INPUTSINK |
+; 5458 :                       RIDEV_DEVNOTIFY;
+; 5459 :   
+; 5460 :     RegisterRawInputDevices_Original (&rid, 1, sizeof RAWINPUTDEVICE);
 
 	push	12					; 0000000cH
 	push	1
@@ -47419,29 +47523,29 @@ $LN18@SK_Install:
 	call	DWORD PTR ?RegisterRawInputDevices_Original@@3P6GHPBUtagRAWINPUTDEVICE@@II@ZA ; RegisterRawInputDevices_Original
 $LN22@SK_Install:
 
-; 5424 :   }
-; 5425 : 
-; 5426 : 
-; 5427 :   SK_ApplyQueuedHooks ();
+; 5461 :   }
+; 5462 : 
+; 5463 : 
+; 5464 :   SK_ApplyQueuedHooks ();
 
 	call	?SK_ApplyQueuedHooks@@YG?AW4MH_STATUS@@XZ ; SK_ApplyQueuedHooks
 
-; 5428 :   SK_InitWindow (hWnd);
+; 5465 :   SK_InitWindow (hWnd);
 
 	push	0
 	push	ebx
 	call	?SK_InitWindow@@YAXPAUHWND__@@_N@Z	; SK_InitWindow
 	add	esp, 8
 
-; 5429 : 
-; 5430 : 
-; 5431 :   SK_ICommandProcessor* cmd =
-; 5432 :     SK_GetCommandProcessor ();
+; 5466 : 
+; 5467 : 
+; 5468 :   SK_ICommandProcessor* cmd =
+; 5469 :     SK_GetCommandProcessor ();
 
 	call	?SK_GetCommandProcessor@@YGPAUSK_ICommandProcessor@@XZ ; SK_GetCommandProcessor
 
-; 5433 : 
-; 5434 :   cmd->AddVariable ("Cursor.Manage",           SK_CreateVar (SK_IVariable::Boolean, (bool *)&config.input.cursor.manage));
+; 5470 : 
+; 5471 :   cmd->AddVariable ("Cursor.Manage",           SK_CreateVar (SK_IVariable::Boolean, (bool *)&config.input.cursor.manage));
 
 	push	0
 	mov	edi, eax
@@ -47450,11 +47554,11 @@ $LN22@SK_Install:
 	mov	esi, DWORD PTR [edi]
 	call	?SK_CreateVar@@YGPAUSK_IVariable@@W4VariableType@1@PAXPAUSK_IVariableListener@@@Z ; SK_CreateVar
 	push	eax
-	push	OFFSET $SG282128
+	push	OFFSET $SG282209
 	mov	ecx, edi
 	call	DWORD PTR [esi+20]
 
-; 5435 :   cmd->AddVariable ("Cursor.Timeout",          SK_CreateVar (SK_IVariable::Int,     (int  *)&config.input.cursor.timeout));
+; 5472 :   cmd->AddVariable ("Cursor.Timeout",          SK_CreateVar (SK_IVariable::Int,     (int  *)&config.input.cursor.timeout));
 
 	mov	esi, DWORD PTR [edi]
 	push	0
@@ -47462,11 +47566,11 @@ $LN22@SK_Install:
 	push	5
 	call	?SK_CreateVar@@YGPAUSK_IVariable@@W4VariableType@1@PAXPAUSK_IVariableListener@@@Z ; SK_CreateVar
 	push	eax
-	push	OFFSET $SG282129
+	push	OFFSET $SG282210
 	mov	ecx, edi
 	call	DWORD PTR [esi+20]
 
-; 5436 :   cmd->AddVariable ("Cursor.KeysActivate",     SK_CreateVar (SK_IVariable::Boolean, (bool *)&config.input.cursor.keys_activate));
+; 5473 :   cmd->AddVariable ("Cursor.KeysActivate",     SK_CreateVar (SK_IVariable::Boolean, (bool *)&config.input.cursor.keys_activate));
 
 	mov	esi, DWORD PTR [edi]
 	push	0
@@ -47474,12 +47578,12 @@ $LN22@SK_Install:
 	push	2
 	call	?SK_CreateVar@@YGPAUSK_IVariable@@W4VariableType@1@PAXPAUSK_IVariableListener@@@Z ; SK_CreateVar
 	push	eax
-	push	OFFSET $SG282130
+	push	OFFSET $SG282211
 	mov	ecx, edi
 	call	DWORD PTR [esi+20]
 
-; 5437 : 
-; 5438 :   cmd->AddVariable ("Window.BackgroundRender", SK_CreateVar (SK_IVariable::Boolean, (bool *)&config.window.background_render));
+; 5474 : 
+; 5475 :   cmd->AddVariable ("Window.BackgroundRender", SK_CreateVar (SK_IVariable::Boolean, (bool *)&config.window.background_render));
 
 	mov	esi, DWORD PTR [edi]
 	push	0
@@ -47487,12 +47591,12 @@ $LN22@SK_Install:
 	push	2
 	call	?SK_CreateVar@@YGPAUSK_IVariable@@W4VariableType@1@PAXPAUSK_IVariableListener@@@Z ; SK_CreateVar
 	push	eax
-	push	OFFSET $SG282131
+	push	OFFSET $SG282212
 	mov	ecx, edi
 	call	DWORD PTR [esi+20]
 
-; 5439 : 
-; 5440 :   cmd->AddVariable ("ImGui.Visible",           SK_CreateVar (SK_IVariable::Boolean, (bool *)&SK_ImGui_Visible));
+; 5476 : 
+; 5477 :   cmd->AddVariable ("ImGui.Visible",           SK_CreateVar (SK_IVariable::Boolean, (bool *)&SK_ImGui_Visible));
 
 	mov	esi, DWORD PTR [edi]
 	push	0
@@ -47500,7 +47604,7 @@ $LN22@SK_Install:
 	push	2
 	call	?SK_CreateVar@@YGPAUSK_IVariable@@W4VariableType@1@PAXPAUSK_IVariableListener@@@Z ; SK_CreateVar
 	push	eax
-	push	OFFSET $SG282132
+	push	OFFSET $SG282213
 	mov	ecx, edi
 	call	DWORD PTR [esi+20]
 	pop	edi
@@ -47508,7 +47612,7 @@ $LN22@SK_Install:
 	pop	ebx
 $LN1@SK_Install:
 
-; 5441 : }
+; 5478 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -47522,7 +47626,7 @@ $T2 = -16						; size = 4
 __$EHRec$ = -12						; size = 12
 ?SK_HookWinAPI@@YAXXZ PROC				; SK_HookWinAPI
 
-; 5763 : {
+; 5800 : {
 
 	npad	2
 	push	ebp
@@ -47558,332 +47662,332 @@ $LN7@SK_HookWin:
 	mov	DWORD PTR ?pWindowManager@SK_WindowManager@@0PAV1@A, eax ; SK_WindowManager::pWindowManager
 $LN4@SK_HookWin:
 
-; 5764 :   // Initialize the Window Manager
-; 5765 :   SK_WindowManager::getInstance ();
-; 5766 : 
-; 5767 : 
-; 5768 :   //int phys_w         = GetDeviceCaps (GetDC (GetDesktopWindow ()), PHYSICALWIDTH);
-; 5769 :   //int phys_h         = GetDeviceCaps (GetDC (GetDesktopWindow ()), PHYSICALHEIGHT);
-; 5770 :   //int phys_off_x     = GetDeviceCaps (GetDC (GetDesktopWindow ()), PHYSICALOFFSETX);
-; 5771 :   //int phys_off_y     = GetDeviceCaps (GetDC (GetDesktopWindow ()), PHYSICALOFFSETY);
-; 5772 :   //int scale_factor_x = GetDeviceCaps (GetDC (GetDesktopWindow ()), SCALINGFACTORX);
-; 5773 :   //int scale_factor_y = GetDeviceCaps (GetDC (GetDesktopWindow ()), SCALINGFACTORY);
-; 5774 : 
-; 5775 :   //SK_LOG0 ( ( L" Physical Coordinates  ::  { %lux%lu) + <%lu,%lu> * {%lu:%lu}",
-; 5776 :                 //phys_w, phys_h,
-; 5777 :                 //phys_off_x, phys_off_y,
-; 5778 :                 //scale_factor_x, scale_factor_y ),
-; 5779 :               //L"Window Sys" );
-; 5780 : 
-; 5781 : 
-; 5782 : #if 1
-; 5783 :   SK_CreateDLLHook2 (       L"user32.dll",
+; 5801 :   // Initialize the Window Manager
+; 5802 :   SK_WindowManager::getInstance ();
+; 5803 : 
+; 5804 : 
+; 5805 :   //int phys_w         = GetDeviceCaps (GetDC (GetDesktopWindow ()), PHYSICALWIDTH);
+; 5806 :   //int phys_h         = GetDeviceCaps (GetDC (GetDesktopWindow ()), PHYSICALHEIGHT);
+; 5807 :   //int phys_off_x     = GetDeviceCaps (GetDC (GetDesktopWindow ()), PHYSICALOFFSETX);
+; 5808 :   //int phys_off_y     = GetDeviceCaps (GetDC (GetDesktopWindow ()), PHYSICALOFFSETY);
+; 5809 :   //int scale_factor_x = GetDeviceCaps (GetDC (GetDesktopWindow ()), SCALINGFACTORX);
+; 5810 :   //int scale_factor_y = GetDeviceCaps (GetDC (GetDesktopWindow ()), SCALINGFACTORY);
+; 5811 : 
+; 5812 :   //SK_LOG0 ( ( L" Physical Coordinates  ::  { %lux%lu) + <%lu,%lu> * {%lu:%lu}",
+; 5813 :                 //phys_w, phys_h,
+; 5814 :                 //phys_off_x, phys_off_y,
+; 5815 :                 //scale_factor_x, scale_factor_y ),
+; 5816 :               //L"Window Sys" );
+; 5817 : 
+; 5818 : 
+; 5819 : #if 1
+; 5820 :   SK_CreateDLLHook2 (       L"user32.dll",
 
 	push	0
 	push	OFFSET ?SetWindowPos_Original@@3P6GHPAUHWND__@@0HHHHI@ZA ; SetWindowPos_Original
 	push	OFFSET ?SetWindowPos_Detour@@YGHPAUHWND__@@0HHHHI@Z ; SetWindowPos_Detour
-	push	OFFSET $SG282356
-	push	OFFSET $SG282357
+	push	OFFSET $SG282437
+	push	OFFSET $SG282438
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
-; 5784 :                              "SetWindowPos",
-; 5785 :                               SetWindowPos_Detour,
-; 5786 :      static_cast_p2p <void> (&SetWindowPos_Original) );
-; 5787 : 
-; 5788 :   SK_CreateDLLHook2 (       L"user32.dll",
-
-	push	0
-	push	OFFSET ?SetWindowPlacement_Original@@3P6GHPAUHWND__@@PBUtagWINDOWPLACEMENT@@@ZA ; SetWindowPlacement_Original
-	push	OFFSET ?SetWindowPlacement_Detour@@YGHPAUHWND__@@PBUtagWINDOWPLACEMENT@@@Z ; SetWindowPlacement_Detour
-	push	OFFSET $SG282358
-	push	OFFSET $SG282359
-	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
-
-; 5789 :                              "SetWindowPlacement",
-; 5790 :                               SetWindowPlacement_Detour,
-; 5791 :      static_cast_p2p <void> (&SetWindowPlacement_Original) );
-; 5792 : 
-; 5793 :   SK_CreateDLLHook2 (       L"user32.dll",
-
-	push	0
-	push	OFFSET ?MoveWindow_Original@@3P6GHPAUHWND__@@HHHHH@ZA ; MoveWindow_Original
-	push	OFFSET ?MoveWindow_Detour@@YGHPAUHWND__@@HHHHH@Z ; MoveWindow_Detour
-	push	OFFSET $SG282360
-	push	OFFSET $SG282361
-	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
-
-; 5794 :                              "MoveWindow",
-; 5795 :                               MoveWindow_Detour,
-; 5796 :      static_cast_p2p <void> (&MoveWindow_Original) );
-; 5797 : #else
-; 5798 :     SetWindowPos_Original =
-; 5799 :       (SetWindowPos_pfn)
-; 5800 :         GetProcAddress ( GetModuleHandleW (L"user32.dll"), 
-; 5801 :                          "SetWindowPos" );
-; 5802 :     SetWindowPlacement_Original =
-; 5803 :       (SetWindowPlacement_pfn)
-; 5804 :         GetProcAddress ( GetModuleHandleW (L"user32.dll"), 
-; 5805 :                          "SetWindowPlacement" );
-; 5806 : 
-; 5807 :     MoveWindow_Original =
-; 5808 :       (MoveWindow_pfn)
-; 5809 :         GetProcAddress ( GetModuleHandleW (L"user32.dll"), 
-; 5810 :                          "MoveWindow" );
-; 5811 : #endif
-; 5812 : 
-; 5813 : 
-; 5814 :   SK_CreateDLLHook2 (       L"user32.dll",
-
-	push	0
-	push	OFFSET ?ClipCursor_Original@@3P6GHPBUtagRECT@@@ZA ; ClipCursor_Original
-	push	OFFSET ?ClipCursor_Detour@@YGHPBUtagRECT@@@Z ; ClipCursor_Detour
-	push	OFFSET $SG282362
-	push	OFFSET $SG282363
-	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
-
-; 5815 :                              "ClipCursor",
-; 5816 :                               ClipCursor_Detour,
-; 5817 :      static_cast_p2p <void> (&ClipCursor_Original) );
-; 5818 : 
-; 5819 : 
-; 5820 :   SK_CreateDLLHook2 (       L"user32.dll",
-
-	push	0
-	push	OFFSET ?CreateWindowExW_Original@@3P6GPAUHWND__@@KPB_W0KHHHHPAU1@PAUHMENU__@@PAUHINSTANCE__@@PAX@ZA ; CreateWindowExW_Original
-	push	OFFSET ?CreateWindowExW_Detour@@YGPAUHWND__@@KPB_W0KHHHHPAU1@PAUHMENU__@@PAUHINSTANCE__@@PAX@Z ; CreateWindowExW_Detour
-	push	OFFSET $SG282364
-	push	OFFSET $SG282365
-	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
-
-; 5821 :                              "CreateWindowExW",
-; 5822 :                               CreateWindowExW_Detour,
-; 5823 :      static_cast_p2p <void> (&CreateWindowExW_Original) );
+; 5821 :                              "SetWindowPos",
+; 5822 :                               SetWindowPos_Detour,
+; 5823 :      static_cast_p2p <void> (&SetWindowPos_Original) );
 ; 5824 : 
 ; 5825 :   SK_CreateDLLHook2 (       L"user32.dll",
 
 	push	0
-	push	OFFSET ?CreateWindowExA_Original@@3P6GPAUHWND__@@KPBD0KHHHHPAU1@PAUHMENU__@@PAUHINSTANCE__@@PAX@ZA ; CreateWindowExA_Original
-	push	OFFSET ?CreateWindowExA_Detour@@YGPAUHWND__@@KPBD0KHHHHPAU1@PAUHMENU__@@PAUHINSTANCE__@@PAX@Z ; CreateWindowExA_Detour
-	push	OFFSET $SG282366
-	push	OFFSET $SG282367
+	push	OFFSET ?SetWindowPlacement_Original@@3P6GHPAUHWND__@@PBUtagWINDOWPLACEMENT@@@ZA ; SetWindowPlacement_Original
+	push	OFFSET ?SetWindowPlacement_Detour@@YGHPAUHWND__@@PBUtagWINDOWPLACEMENT@@@Z ; SetWindowPlacement_Detour
+	push	OFFSET $SG282439
+	push	OFFSET $SG282440
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
-; 5826 :                              "CreateWindowExA",
-; 5827 :                               CreateWindowExA_Detour,
-; 5828 :      static_cast_p2p <void> (&CreateWindowExA_Original) );
+; 5826 :                              "SetWindowPlacement",
+; 5827 :                               SetWindowPlacement_Detour,
+; 5828 :      static_cast_p2p <void> (&SetWindowPlacement_Original) );
 ; 5829 : 
-; 5830 : 
-; 5831 : // These functions are dispatched through the Ptr version, so
-; 5832 : //   hooking them in the 64-bit version would be a bad idea.
-; 5833 :   SK_CreateDLLHook2 (       L"user32.dll",
+; 5830 :   SK_CreateDLLHook2 (       L"user32.dll",
+
+	push	0
+	push	OFFSET ?MoveWindow_Original@@3P6GHPAUHWND__@@HHHHH@ZA ; MoveWindow_Original
+	push	OFFSET ?MoveWindow_Detour@@YGHPAUHWND__@@HHHHH@Z ; MoveWindow_Detour
+	push	OFFSET $SG282441
+	push	OFFSET $SG282442
+	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
+
+; 5831 :                              "MoveWindow",
+; 5832 :                               MoveWindow_Detour,
+; 5833 :      static_cast_p2p <void> (&MoveWindow_Original) );
+; 5834 : #else
+; 5835 :     SetWindowPos_Original =
+; 5836 :       (SetWindowPos_pfn)
+; 5837 :         GetProcAddress ( GetModuleHandleW (L"user32.dll"), 
+; 5838 :                          "SetWindowPos" );
+; 5839 :     SetWindowPlacement_Original =
+; 5840 :       (SetWindowPlacement_pfn)
+; 5841 :         GetProcAddress ( GetModuleHandleW (L"user32.dll"), 
+; 5842 :                          "SetWindowPlacement" );
+; 5843 : 
+; 5844 :     MoveWindow_Original =
+; 5845 :       (MoveWindow_pfn)
+; 5846 :         GetProcAddress ( GetModuleHandleW (L"user32.dll"), 
+; 5847 :                          "MoveWindow" );
+; 5848 : #endif
+; 5849 : 
+; 5850 : 
+; 5851 :   SK_CreateDLLHook2 (       L"user32.dll",
+
+	push	0
+	push	OFFSET ?ClipCursor_Original@@3P6GHPBUtagRECT@@@ZA ; ClipCursor_Original
+	push	OFFSET ?ClipCursor_Detour@@YGHPBUtagRECT@@@Z ; ClipCursor_Detour
+	push	OFFSET $SG282443
+	push	OFFSET $SG282444
+	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
+
+; 5852 :                              "ClipCursor",
+; 5853 :                               ClipCursor_Detour,
+; 5854 :      static_cast_p2p <void> (&ClipCursor_Original) );
+; 5855 : 
+; 5856 : 
+; 5857 :   SK_CreateDLLHook2 (       L"user32.dll",
+
+	push	0
+	push	OFFSET ?CreateWindowExW_Original@@3P6GPAUHWND__@@KPB_W0KHHHHPAU1@PAUHMENU__@@PAUHINSTANCE__@@PAX@ZA ; CreateWindowExW_Original
+	push	OFFSET ?CreateWindowExW_Detour@@YGPAUHWND__@@KPB_W0KHHHHPAU1@PAUHMENU__@@PAUHINSTANCE__@@PAX@Z ; CreateWindowExW_Detour
+	push	OFFSET $SG282445
+	push	OFFSET $SG282446
+	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
+
+; 5858 :                              "CreateWindowExW",
+; 5859 :                               CreateWindowExW_Detour,
+; 5860 :      static_cast_p2p <void> (&CreateWindowExW_Original) );
+; 5861 : 
+; 5862 :   SK_CreateDLLHook2 (       L"user32.dll",
+
+	push	0
+	push	OFFSET ?CreateWindowExA_Original@@3P6GPAUHWND__@@KPBD0KHHHHPAU1@PAUHMENU__@@PAUHINSTANCE__@@PAX@ZA ; CreateWindowExA_Original
+	push	OFFSET ?CreateWindowExA_Detour@@YGPAUHWND__@@KPBD0KHHHHPAU1@PAUHMENU__@@PAUHINSTANCE__@@PAX@Z ; CreateWindowExA_Detour
+	push	OFFSET $SG282447
+	push	OFFSET $SG282448
+	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
+
+; 5863 :                              "CreateWindowExA",
+; 5864 :                               CreateWindowExA_Detour,
+; 5865 :      static_cast_p2p <void> (&CreateWindowExA_Original) );
+; 5866 : 
+; 5867 : 
+; 5868 : // These functions are dispatched through the Ptr version, so
+; 5869 : //   hooking them in the 64-bit version would be a bad idea.
+; 5870 :   SK_CreateDLLHook2 (       L"user32.dll",
 
 	push	0
 	push	OFFSET ?SetWindowLongA_Original@@3P6GJPAUHWND__@@HJ@ZA ; SetWindowLongA_Original
 	push	OFFSET ?SetWindowLongA_Detour@@YGJPAUHWND__@@HJ@Z ; SetWindowLongA_Detour
-	push	OFFSET $SG282368
-	push	OFFSET $SG282369
+	push	OFFSET $SG282449
+	push	OFFSET $SG282450
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
-; 5834 :                              "SetWindowLongA",
-; 5835 :                               SetWindowLongA_Detour,
-; 5836 :      static_cast_p2p <void> (&SetWindowLongA_Original) );
-; 5837 : 
-; 5838 :   SK_CreateDLLHook2 (       L"user32.dll",
+; 5871 :                              "SetWindowLongA",
+; 5872 :                               SetWindowLongA_Detour,
+; 5873 :      static_cast_p2p <void> (&SetWindowLongA_Original) );
+; 5874 : 
+; 5875 :   SK_CreateDLLHook2 (       L"user32.dll",
 
 	push	0
 	push	OFFSET ?SetWindowLongW_Original@@3P6GJPAUHWND__@@HJ@ZA ; SetWindowLongW_Original
 	push	OFFSET ?SetWindowLongW_Detour@@YGJPAUHWND__@@HJ@Z ; SetWindowLongW_Detour
-	push	OFFSET $SG282370
-	push	OFFSET $SG282371
+	push	OFFSET $SG282451
+	push	OFFSET $SG282452
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
-; 5839 :                              "SetWindowLongW",
-; 5840 :                               SetWindowLongW_Detour,
-; 5841 :      static_cast_p2p <void> (&SetWindowLongW_Original) );
-; 5842 : 
-; 5843 :   SK_CreateDLLHook2 (       L"user32.dll",
+; 5876 :                              "SetWindowLongW",
+; 5877 :                               SetWindowLongW_Detour,
+; 5878 :      static_cast_p2p <void> (&SetWindowLongW_Original) );
+; 5879 : 
+; 5880 :   SK_CreateDLLHook2 (       L"user32.dll",
 
 	push	0
 	push	OFFSET ?GetWindowLongA_Original@@3P6GJPAUHWND__@@H@ZA ; GetWindowLongA_Original
 	push	OFFSET ?GetWindowLongA_Detour@@YGJPAUHWND__@@H@Z ; GetWindowLongA_Detour
-	push	OFFSET $SG282372
-	push	OFFSET $SG282373
+	push	OFFSET $SG282453
+	push	OFFSET $SG282454
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
-; 5844 :                              "GetWindowLongA",
-; 5845 :                               GetWindowLongA_Detour,
-; 5846 :      static_cast_p2p <void> (&GetWindowLongA_Original) );
-; 5847 : 
-; 5848 :   SK_CreateDLLHook2 (       L"user32.dll",
+; 5881 :                              "GetWindowLongA",
+; 5882 :                               GetWindowLongA_Detour,
+; 5883 :      static_cast_p2p <void> (&GetWindowLongA_Original) );
+; 5884 : 
+; 5885 :   SK_CreateDLLHook2 (       L"user32.dll",
 
 	push	0
 	push	OFFSET ?GetWindowLongW_Original@@3P6GJPAUHWND__@@H@ZA ; GetWindowLongW_Original
 	push	OFFSET ?GetWindowLongW_Detour@@YGJPAUHWND__@@H@Z ; GetWindowLongW_Detour
-	push	OFFSET $SG282374
-	push	OFFSET $SG282375
+	push	OFFSET $SG282455
+	push	OFFSET $SG282456
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
-; 5849 :                              "GetWindowLongW",
-; 5850 :                               GetWindowLongW_Detour,
-; 5851 :      static_cast_p2p <void> (&GetWindowLongW_Original) );
-; 5852 : 
-; 5853 :   //SK_CreateDLLHook2 (       L"user32.dll",
-; 5854 :   //                           "SetClassLongA",
-; 5855 :   //                            SetClassLongA_Detour,
-; 5856 :   //   static_cast_p2p <void> (&SetClassLongA_Original) );
-; 5857 :   //
-; 5858 :   //SK_CreateDLLHook2 (       L"user32.dll",
-; 5859 :   //                           "SetClassLongW",
-; 5860 :   //                            SetClassLongW_Detour,
-; 5861 :   //   static_cast_p2p <void> (&SetClassLongW_Original) );
-; 5862 :   //
-; 5863 :   //SK_CreateDLLHook2 (       L"user32.dll",
-; 5864 :   //                           "GetClassLongA",
-; 5865 :   //                            GetClassLongA_Detour,
-; 5866 :   //   static_cast_p2p <void> (&GetClassLongA_Original) );
-; 5867 :   //
-; 5868 :   //SK_CreateDLLHook2 (       L"user32.dll",
-; 5869 :   //                           "GetClassLongW",
-; 5870 :   //                            GetClassLongW_Detour,
-; 5871 :   //   static_cast_p2p <void> (&GetClassLongW_Original) );
-; 5872 : 
-; 5873 : #ifdef _WIN64
-; 5874 :   SK_CreateDLLHook2 (       L"user32.dll",
-; 5875 :                              "SetWindowLongPtrA",
-; 5876 :                               SetWindowLongPtrA_Detour,
-; 5877 :      static_cast_p2p <void> (&SetWindowLongPtrA_Original) );
-; 5878 : 
-; 5879 :   SK_CreateDLLHook2 (       L"user32.dll",
-; 5880 :                              "SetWindowLongPtrW",
-; 5881 :                               SetWindowLongPtrW_Detour,
-; 5882 :      static_cast_p2p <void> (&SetWindowLongPtrW_Original) );
-; 5883 : 
-; 5884 :   SK_CreateDLLHook2 (       L"user32.dll",
-; 5885 :                              "GetWindowLongPtrA",
-; 5886 :                               GetWindowLongPtrA_Detour,
-; 5887 :      static_cast_p2p <void> (&GetWindowLongPtrA_Original) );
-; 5888 : 
-; 5889 :   SK_CreateDLLHook2 (       L"user32.dll",
-; 5890 :                              "GetWindowLongPtrW",
-; 5891 :                               GetWindowLongPtrW_Detour,
-; 5892 :      static_cast_p2p <void> (&GetWindowLongPtrW_Original) );
-; 5893 : 
-; 5894 :   //SK_CreateDLLHook2 (       L"user32.dll",
-; 5895 :   //                           "SetClassLongPtrA",
-; 5896 :   //                            SetClassLongPtrA_Detour,
-; 5897 :   //   static_cast_p2p <void> (&SetClassLongPtrA_Original) );
-; 5898 :   //
-; 5899 :   //SK_CreateDLLHook2 (       L"user32.dll",
-; 5900 :   //                           "SetClassLongPtrW",
-; 5901 :   //                            SetClassLongPtrW_Detour,
-; 5902 :   //   static_cast_p2p <void> (&SetClassLongPtrW_Original) );
-; 5903 :   //
-; 5904 :   //SK_CreateDLLHook2 (       L"user32.dll",
-; 5905 :   //                           "GetClassLongPtrA",
-; 5906 :   //                            GetClassLongPtrA_Detour,
-; 5907 :   //   static_cast_p2p <void> (&GetClassLongPtrA_Original) );
-; 5908 :   //
-; 5909 :   //SK_CreateDLLHook2 (       L"user32.dll",
-; 5910 :   //                           "GetClassLongPtrW",
-; 5911 :   //                            GetClassLongPtrW_Detour,
-; 5912 :   //   static_cast_p2p <void> (&GetClassLongPtrW_Original) );
-; 5913 : #endif
-; 5914 : 
-; 5915 : #if 0
-; 5916 :   SK_CreateDLLHook2 (         L"user32.dll",
-; 5917 :                              "GetWindowRect",
-; 5918 :                               GetWindowRect_Detour,
-; 5919 :      static_cast_p2p <void> (&GetWindowRect_Original) );
-; 5920 : #else
-; 5921 :     GetWindowRect_Original =
+; 5886 :                              "GetWindowLongW",
+; 5887 :                               GetWindowLongW_Detour,
+; 5888 :      static_cast_p2p <void> (&GetWindowLongW_Original) );
+; 5889 : 
+; 5890 :   //SK_CreateDLLHook2 (       L"user32.dll",
+; 5891 :   //                           "SetClassLongA",
+; 5892 :   //                            SetClassLongA_Detour,
+; 5893 :   //   static_cast_p2p <void> (&SetClassLongA_Original) );
+; 5894 :   //
+; 5895 :   //SK_CreateDLLHook2 (       L"user32.dll",
+; 5896 :   //                           "SetClassLongW",
+; 5897 :   //                            SetClassLongW_Detour,
+; 5898 :   //   static_cast_p2p <void> (&SetClassLongW_Original) );
+; 5899 :   //
+; 5900 :   //SK_CreateDLLHook2 (       L"user32.dll",
+; 5901 :   //                           "GetClassLongA",
+; 5902 :   //                            GetClassLongA_Detour,
+; 5903 :   //   static_cast_p2p <void> (&GetClassLongA_Original) );
+; 5904 :   //
+; 5905 :   //SK_CreateDLLHook2 (       L"user32.dll",
+; 5906 :   //                           "GetClassLongW",
+; 5907 :   //                            GetClassLongW_Detour,
+; 5908 :   //   static_cast_p2p <void> (&GetClassLongW_Original) );
+; 5909 : 
+; 5910 : #ifdef _WIN64
+; 5911 :   SK_CreateDLLHook2 (       L"user32.dll",
+; 5912 :                              "SetWindowLongPtrA",
+; 5913 :                               SetWindowLongPtrA_Detour,
+; 5914 :      static_cast_p2p <void> (&SetWindowLongPtrA_Original) );
+; 5915 : 
+; 5916 :   SK_CreateDLLHook2 (       L"user32.dll",
+; 5917 :                              "SetWindowLongPtrW",
+; 5918 :                               SetWindowLongPtrW_Detour,
+; 5919 :      static_cast_p2p <void> (&SetWindowLongPtrW_Original) );
+; 5920 : 
+; 5921 :   SK_CreateDLLHook2 (       L"user32.dll",
+; 5922 :                              "GetWindowLongPtrA",
+; 5923 :                               GetWindowLongPtrA_Detour,
+; 5924 :      static_cast_p2p <void> (&GetWindowLongPtrA_Original) );
+; 5925 : 
+; 5926 :   SK_CreateDLLHook2 (       L"user32.dll",
+; 5927 :                              "GetWindowLongPtrW",
+; 5928 :                               GetWindowLongPtrW_Detour,
+; 5929 :      static_cast_p2p <void> (&GetWindowLongPtrW_Original) );
+; 5930 : 
+; 5931 :   //SK_CreateDLLHook2 (       L"user32.dll",
+; 5932 :   //                           "SetClassLongPtrA",
+; 5933 :   //                            SetClassLongPtrA_Detour,
+; 5934 :   //   static_cast_p2p <void> (&SetClassLongPtrA_Original) );
+; 5935 :   //
+; 5936 :   //SK_CreateDLLHook2 (       L"user32.dll",
+; 5937 :   //                           "SetClassLongPtrW",
+; 5938 :   //                            SetClassLongPtrW_Detour,
+; 5939 :   //   static_cast_p2p <void> (&SetClassLongPtrW_Original) );
+; 5940 :   //
+; 5941 :   //SK_CreateDLLHook2 (       L"user32.dll",
+; 5942 :   //                           "GetClassLongPtrA",
+; 5943 :   //                            GetClassLongPtrA_Detour,
+; 5944 :   //   static_cast_p2p <void> (&GetClassLongPtrA_Original) );
+; 5945 :   //
+; 5946 :   //SK_CreateDLLHook2 (       L"user32.dll",
+; 5947 :   //                           "GetClassLongPtrW",
+; 5948 :   //                            GetClassLongPtrW_Detour,
+; 5949 :   //   static_cast_p2p <void> (&GetClassLongPtrW_Original) );
+; 5950 : #endif
+; 5951 : 
+; 5952 : #if 0
+; 5953 :   SK_CreateDLLHook2 (         L"user32.dll",
+; 5954 :                              "GetWindowRect",
+; 5955 :                               GetWindowRect_Detour,
+; 5956 :      static_cast_p2p <void> (&GetWindowRect_Original) );
+; 5957 : #else
+; 5958 :     GetWindowRect_Original =
 
-	push	OFFSET $SG282376
-	push	OFFSET $SG282377
+	push	OFFSET $SG282457
+	push	OFFSET $SG282458
 	call	DWORD PTR __imp__GetModuleHandleW@4
 	push	eax
 	call	DWORD PTR __imp__GetProcAddress@8
 
-; 5922 :       reinterpret_cast <GetWindowRect_pfn> (
-; 5923 :         GetProcAddress ( GetModuleHandleW (L"user32.dll"), 
-; 5924 :                                             "GetWindowRect" )
-; 5925 :       );
-; 5926 : #endif
-; 5927 : 
-; 5928 : #if 0
-; 5929 :   SK_CreateDLLHook2 (       L"user32.dll",
-; 5930 :                              "GetClientRect",
-; 5931 :                               GetClientRect_Detour,
-; 5932 :      static_cast_p2p <void> (&GetClientRect_Original) );
-; 5933 : #else
-; 5934 :     GetClientRect_Original =
+; 5959 :       reinterpret_cast <GetWindowRect_pfn> (
+; 5960 :         GetProcAddress ( GetModuleHandleW (L"user32.dll"), 
+; 5961 :                                             "GetWindowRect" )
+; 5962 :       );
+; 5963 : #endif
+; 5964 : 
+; 5965 : #if 0
+; 5966 :   SK_CreateDLLHook2 (       L"user32.dll",
+; 5967 :                              "GetClientRect",
+; 5968 :                               GetClientRect_Detour,
+; 5969 :      static_cast_p2p <void> (&GetClientRect_Original) );
+; 5970 : #else
+; 5971 :     GetClientRect_Original =
 
-	push	OFFSET $SG282378
-	push	OFFSET $SG282379
+	push	OFFSET $SG282459
+	push	OFFSET $SG282460
 	mov	DWORD PTR ?GetWindowRect_Original@@3P6GHPAUHWND__@@PAUtagRECT@@@ZA, eax ; GetWindowRect_Original
 	call	DWORD PTR __imp__GetModuleHandleW@4
 	push	eax
 	call	DWORD PTR __imp__GetProcAddress@8
 
-; 5935 :       reinterpret_cast <GetClientRect_pfn> (
-; 5936 :         GetProcAddress ( GetModuleHandleW (L"user32.dll"), 
-; 5937 :                                             "GetClientRect" )
-; 5938 :       );
-; 5939 : #endif
-; 5940 : 
-; 5941 :   SK_CreateDLLHook2 (       L"user32.dll",
+; 5972 :       reinterpret_cast <GetClientRect_pfn> (
+; 5973 :         GetProcAddress ( GetModuleHandleW (L"user32.dll"), 
+; 5974 :                                             "GetClientRect" )
+; 5975 :       );
+; 5976 : #endif
+; 5977 : 
+; 5978 :   SK_CreateDLLHook2 (       L"user32.dll",
 
 	push	0
 	push	OFFSET ?AdjustWindowRect_Original@@3P6GHPAUtagRECT@@KH@ZA ; AdjustWindowRect_Original
 	push	OFFSET ?AdjustWindowRect_Detour@@YGHPAUtagRECT@@KH@Z ; AdjustWindowRect_Detour
-	push	OFFSET $SG282380
-	push	OFFSET $SG282381
+	push	OFFSET $SG282461
+	push	OFFSET $SG282462
 	mov	DWORD PTR ?GetClientRect_Original@@3P6GHPAUHWND__@@PAUtagRECT@@@ZA, eax ; GetClientRect_Original
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
-; 5942 :                              "AdjustWindowRect",
-; 5943 :                               AdjustWindowRect_Detour,
-; 5944 :      static_cast_p2p <void> (&AdjustWindowRect_Original) );
-; 5945 : 
-; 5946 :   SK_CreateDLLHook2 (       L"user32.dll",
+; 5979 :                              "AdjustWindowRect",
+; 5980 :                               AdjustWindowRect_Detour,
+; 5981 :      static_cast_p2p <void> (&AdjustWindowRect_Original) );
+; 5982 : 
+; 5983 :   SK_CreateDLLHook2 (       L"user32.dll",
 
 	push	0
 	push	OFFSET ?AdjustWindowRectEx_Original@@3P6GHPAUtagRECT@@KHK@ZA ; AdjustWindowRectEx_Original
 	push	OFFSET ?AdjustWindowRectEx_Detour@@YGHPAUtagRECT@@KHK@Z ; AdjustWindowRectEx_Detour
-	push	OFFSET $SG282382
-	push	OFFSET $SG282383
+	push	OFFSET $SG282463
+	push	OFFSET $SG282464
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
-; 5947 :                              "AdjustWindowRectEx",
-; 5948 :                               AdjustWindowRectEx_Detour,
-; 5949 :      static_cast_p2p <void> (&AdjustWindowRectEx_Original) );
-; 5950 : 
-; 5951 :   SK_CreateDLLHook2 (       L"user32.dll",
+; 5984 :                              "AdjustWindowRectEx",
+; 5985 :                               AdjustWindowRectEx_Detour,
+; 5986 :      static_cast_p2p <void> (&AdjustWindowRectEx_Original) );
+; 5987 : 
+; 5988 :   SK_CreateDLLHook2 (       L"user32.dll",
 
 	push	0
 	push	OFFSET ?GetSystemMetrics_Original@@3P6GHH@ZA ; GetSystemMetrics_Original
 	push	OFFSET ?GetSystemMetrics_Detour@@YGHH@Z	; GetSystemMetrics_Detour
-	push	OFFSET $SG282384
-	push	OFFSET $SG282385
+	push	OFFSET $SG282465
+	push	OFFSET $SG282466
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
-; 5952 :                              "GetSystemMetrics",
-; 5953 :                               GetSystemMetrics_Detour,
-; 5954 :      static_cast_p2p <void> (&GetSystemMetrics_Original) );
-; 5955 : 
-; 5956 :   SK_ApplyQueuedHooks ();
+; 5989 :                              "GetSystemMetrics",
+; 5990 :                               GetSystemMetrics_Detour,
+; 5991 :      static_cast_p2p <void> (&GetSystemMetrics_Original) );
+; 5992 : 
+; 5993 :   SK_ApplyQueuedHooks ();
 
 	call	?SK_ApplyQueuedHooks@@YG?AW4MH_STATUS@@XZ ; SK_ApplyQueuedHooks
 
-; 5957 : 
-; 5958 : #ifndef _WIN64
-; 5959 :   SetWindowLongPtrA_Original = SetWindowLongA_Original;
+; 5994 : 
+; 5995 : #ifndef _WIN64
+; 5996 :   SetWindowLongPtrA_Original = SetWindowLongA_Original;
 
 	mov	eax, DWORD PTR ?SetWindowLongA_Original@@3P6GJPAUHWND__@@HJ@ZA ; SetWindowLongA_Original
 
-; 5960 :   SetWindowLongPtrW_Original = SetWindowLongW_Original;
-; 5961 : #else
-; 5962 : #endif
-; 5963 : }
+; 5997 :   SetWindowLongPtrW_Original = SetWindowLongW_Original;
+; 5998 : #else
+; 5999 : #endif
+; 6000 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR ?SetWindowLongPtrA_Original@@3P6GJPAUHWND__@@HJ@ZA, eax ; SetWindowLongPtrA_Original
@@ -47965,8 +48069,6 @@ ___formal$ = 8						; size = 4
 ___formal$ = 12						; size = 4
 ?__empty_global_delete@@YAXPAXI@Z PROC			; __empty_global_delete, COMDAT
 
-; 6198 : #endif
-
 	ret	0
 ?__empty_global_delete@@YAXPAXI@Z ENDP			; __empty_global_delete
 _TEXT	ENDS
@@ -47977,7 +48079,7 @@ _TEXT	SEGMENT
 ___formal$ = 8						; size = 4
 ?__empty_global_delete@@YAXPAX@Z PROC			; __empty_global_delete, COMDAT
 
-; 6198 : #endif
+; 6235 : #endif
 
 	ret	0
 ?__empty_global_delete@@YAXPAX@Z ENDP			; __empty_global_delete

@@ -270,6 +270,7 @@ struct {
     sk::ParameterBool*    enhanced_depth;
     sk::ParameterBool*    deferred_isolation;
     sk::ParameterBool*    rehook_present;
+    sk::ParameterInt*     alternate_hook;
   } dxgi;
   struct {
     sk::ParameterBool*    force_d3d9ex;
@@ -762,6 +763,7 @@ struct param_decl_s {
     ConfigEntry (render.dxgi.deferred_isolation,         L"Isolate D3D11 Deferred Context Queues instead of Tracking"
                                                          L" in Immediate Mode.",                                       dll_ini,         L"Render.DXGI",           L"IsolateD3D11DeferredContexts"),
     ConfigEntry (render.dxgi.rehook_present,             L"Attempt to Fix Altered SwapChain Presentation Hooks",       dll_ini,         L"Render.DXGI",           L"RehookPresent"),
+    ConfigEntry (render.dxgi.alternate_hook,             L"Use a Different Hook Setup Procedure (injection compat.)",  dll_ini,         L"Render.DXGI",           L"HookType"),
 
 
     ConfigEntry (texture.d3d11.cache,                    L"Cache Textures",                                            dll_ini,         L"Textures.D3D11",        L"Cache"),
@@ -1418,6 +1420,11 @@ struct param_decl_s {
         config.textures.d3d11.uncompressed_mips = true;
         config.textures.d3d11.cache_gen_mips    = false;
         break;
+
+      case SK_GAME_ID::Okami:
+        config.render.dxgi.deferred_isolation   = false;
+        config.render.dxgi.alternate_hook       = 0;
+        break;
     }
   }
 
@@ -1748,6 +1755,7 @@ struct param_decl_s {
   render.dxgi.enhanced_depth->load     (config.render.dxgi.enhanced_depth);
   render.dxgi.deferred_isolation->load (config.render.dxgi.deferred_isolation);
   render.dxgi.rehook_present->load     (config.render.dxgi.rehook_present);
+  render.dxgi.alternate_hook->load     (config.render.dxgi.alternate_hook);
 
 
   texture.d3d11.cache->load        (config.textures.d3d11.cache);
@@ -2555,6 +2563,7 @@ SK_SaveConfig ( std::wstring name,
       render.dxgi.enhanced_depth->store     (config.render.dxgi.enhanced_depth);
       render.dxgi.deferred_isolation->store (config.render.dxgi.deferred_isolation);
       render.dxgi.rehook_present->store     (config.render.dxgi.rehook_present);
+      render.dxgi.alternate_hook->store     (config.render.dxgi.alternate_hook);
     }
 
     if ( SK_IsInjected () || ( SK_GetDLLRole () & DLL_ROLE::D3D9    ) ||

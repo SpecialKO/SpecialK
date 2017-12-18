@@ -373,7 +373,7 @@ SHA1_File (
                 MAX_CHUNK;
 
   CHeapPtr <uint8_t> buf;
-  buf.Allocate (read_size);
+  buf.Allocate ((size_t)read_size);
 
   DWORD    dwReadChunk = 0UL;
   uint64_t qwReadTotal = 0ULL;

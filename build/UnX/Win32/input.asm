@@ -11,45 +11,45 @@ INCLUDELIB OLDNAMES
 
 PUBLIC	?keybd_event_Original@@3P6GXEEKK@ZA		; keybd_event_Original
 PUBLIC	?SetCursor_Original@@3P6GPAUHICON__@@PAU1@@ZA	; SetCursor_Original
-PUBLIC	?game_cursor@@3PAUHICON__@@A			; game_cursor
 PUBLIC	?GetKeyState_Original@@3P6GFH@ZA		; GetKeyState_Original
 PUBLIC	?GetAsyncKeyState_Original@@3P6GFH@ZA		; GetAsyncKeyState_Original
 PUBLIC	?GetKeyboardState_Original@@3P6GHPAE@ZA		; GetKeyboardState_Original
 PUBLIC	?GetRawInputData_Original@@3P6GIPAUHRAWINPUT__@@IPAXPAII@ZA ; GetRawInputData_Original
 PUBLIC	?GetRawInputBuffer_Original@@3P6GIPAUtagRAWINPUT@@PAII@ZA ; GetRawInputBuffer_Original
 PUBLIC	?RegisterRawInputDevices_Original@@3P6GHPBUtagRAWINPUTDEVICE@@II@ZA ; RegisterRawInputDevices_Original
+PUBLIC	?game_cursor@@3PAUHICON__@@A			; game_cursor
 PUBLIC	?GetMouseMovePointsEx_Original@@3P6GHIPAUtagMOUSEMOVEPOINT@@0HK@ZA ; GetMouseMovePointsEx_Original
 PUBLIC	?SK_SO4_MouseScale@@3MA				; SK_SO4_MouseScale
-PUBLIC	?SK_HID_PreparsedDataP@@3PAPAU_HIDP_PREPARSED_DATA@@A ; SK_HID_PreparsedDataP
-PUBLIC	?SK_HID_PreparsedData@@3PAU_HIDP_PREPARSED_DATA@@A ; SK_HID_PreparsedData
 PUBLIC	?HidP_GetCaps_Original@@3P6GJPAU_HIDP_PREPARSED_DATA@@PAU_HIDP_CAPS@@@ZA ; HidP_GetCaps_Original
 PUBLIC	?HidD_GetPreparsedData_Original@@3P6GEPAXPAPAU_HIDP_PREPARSED_DATA@@@ZA ; HidD_GetPreparsedData_Original
 PUBLIC	?HidD_FreePreparsedData_Original@@3P6GEPAU_HIDP_PREPARSED_DATA@@@ZA ; HidD_FreePreparsedData_Original
 PUBLIC	?HidD_GetFeature_Original@@3P6GEPAX0K@ZA	; HidD_GetFeature_Original
 PUBLIC	?HidP_GetData_Original@@3P6GJW4_HIDP_REPORT_TYPE@@PAU_HIDP_DATA@@PAKPAU_HIDP_PREPARSED_DATA@@PADK@ZA ; HidP_GetData_Original
 PUBLIC	?GetRegisteredRawInputDevices_Original@@3P6GIPAUtagRAWINPUTDEVICE@@PAII@ZA ; GetRegisteredRawInputDevices_Original
+PUBLIC	?SK_HID_PreparsedDataP@@3PAPAU_HIDP_PREPARSED_DATA@@A ; SK_HID_PreparsedDataP
+PUBLIC	?SK_HID_PreparsedData@@3PAU_HIDP_PREPARSED_DATA@@A ; SK_HID_PreparsedData
 PUBLIC	?SK_XInput_Backend@@3Usk_input_api_context_s@@A	; SK_XInput_Backend
 PUBLIC	?SK_HID_Backend@@3Usk_input_api_context_s@@A	; SK_HID_Backend
 PUBLIC	?SK_RawInput_Backend@@3Usk_input_api_context_s@@A ; SK_RawInput_Backend
 _BSS	SEGMENT
 ?keybd_event_Original@@3P6GXEEKK@ZA DD 01H DUP (?)	; keybd_event_Original
 ?SetCursor_Original@@3P6GPAUHICON__@@PAU1@@ZA DD 01H DUP (?) ; SetCursor_Original
-?game_cursor@@3PAUHICON__@@A DD 01H DUP (?)		; game_cursor
 ?GetKeyState_Original@@3P6GFH@ZA DD 01H DUP (?)		; GetKeyState_Original
 ?GetAsyncKeyState_Original@@3P6GFH@ZA DD 01H DUP (?)	; GetAsyncKeyState_Original
 ?GetKeyboardState_Original@@3P6GHPAE@ZA DD 01H DUP (?)	; GetKeyboardState_Original
 ?GetRawInputData_Original@@3P6GIPAUHRAWINPUT__@@IPAXPAII@ZA DD 01H DUP (?) ; GetRawInputData_Original
 ?GetRawInputBuffer_Original@@3P6GIPAUtagRAWINPUT@@PAII@ZA DD 01H DUP (?) ; GetRawInputBuffer_Original
 ?RegisterRawInputDevices_Original@@3P6GHPBUtagRAWINPUTDEVICE@@II@ZA DD 01H DUP (?) ; RegisterRawInputDevices_Original
+?game_cursor@@3PAUHICON__@@A DD 01H DUP (?)		; game_cursor
 ?GetMouseMovePointsEx_Original@@3P6GHIPAUtagMOUSEMOVEPOINT@@0HK@ZA DD 01H DUP (?) ; GetMouseMovePointsEx_Original
-?SK_HID_PreparsedDataP@@3PAPAU_HIDP_PREPARSED_DATA@@A DD 01H DUP (?) ; SK_HID_PreparsedDataP
-?SK_HID_PreparsedData@@3PAU_HIDP_PREPARSED_DATA@@A DD 01H DUP (?) ; SK_HID_PreparsedData
 ?HidP_GetCaps_Original@@3P6GJPAU_HIDP_PREPARSED_DATA@@PAU_HIDP_CAPS@@@ZA DD 01H DUP (?) ; HidP_GetCaps_Original
 ?HidD_GetPreparsedData_Original@@3P6GEPAXPAPAU_HIDP_PREPARSED_DATA@@@ZA DD 01H DUP (?) ; HidD_GetPreparsedData_Original
 ?HidD_FreePreparsedData_Original@@3P6GEPAU_HIDP_PREPARSED_DATA@@@ZA DD 01H DUP (?) ; HidD_FreePreparsedData_Original
 ?HidD_GetFeature_Original@@3P6GEPAX0K@ZA DD 01H DUP (?)	; HidD_GetFeature_Original
 ?HidP_GetData_Original@@3P6GJW4_HIDP_REPORT_TYPE@@PAU_HIDP_DATA@@PAKPAU_HIDP_PREPARSED_DATA@@PADK@ZA DD 01H DUP (?) ; HidP_GetData_Original
 ?GetRegisteredRawInputDevices_Original@@3P6GIPAUtagRAWINPUTDEVICE@@PAII@ZA DD 01H DUP (?) ; GetRegisteredRawInputDevices_Original
+?SK_HID_PreparsedDataP@@3PAPAU_HIDP_PREPARSED_DATA@@A DD 01H DUP (?) ; SK_HID_PreparsedDataP
+?SK_HID_PreparsedData@@3PAU_HIDP_PREPARSED_DATA@@A DD 01H DUP (?) ; SK_HID_PreparsedData
 ?SK_XInput_Backend@@3Usk_input_api_context_s@@A DB 044H DUP (?) ; SK_XInput_Backend
 ?SK_HID_Backend@@3Usk_input_api_context_s@@A DB 044H DUP (?) ; SK_HID_Backend
 ?SK_RawInput_Backend@@3Usk_input_api_context_s@@A DB 044H DUP (?) ; SK_RawInput_Backend
@@ -58,64 +58,64 @@ _DATA	SEGMENT
 ?SK_SO4_MouseScale@@3MA DD 0401de354r		; 2.467	; SK_SO4_MouseScale
 _DATA	ENDS
 CONST	SEGMENT
-$SG162835 DB	'GetRegisteredRawInputDevices_Detour', 00H
-$SG163933 DB	'GetAsyncKeyState', 00H
+$SG162905 DB	'GetRegisteredRawInputDevices_Detour', 00H
+$SG164003 DB	'GetAsyncKeyState', 00H
 	ORG $+3
-$SG162836 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG162906 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG163931 DB	'GetRawInputData', 00H
-$SG163932 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+$SG164001 DB	'GetRawInputData', 00H
+$SG164002 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG163934 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+$SG164004 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG163935 DB	'GetKeyState', 00H
-$SG163936 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+$SG164005 DB	'GetKeyState', 00H
+$SG164006 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG163937 DB	'GetKeyboardState', 00H
+$SG164007 DB	'GetKeyboardState', 00H
 	ORG $+3
-$SG163938 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+$SG164008 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG163939 DB	'GetCursorPos', 00H
+$SG164009 DB	'GetCursorPos', 00H
 	ORG $+3
-$SG163940 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+$SG164010 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG163941 DB	'GetCursorInfo', 00H
+$SG164011 DB	'GetCursorInfo', 00H
 	ORG $+2
-$SG163942 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+$SG164012 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG163943 DB	'GetMouseMovePointsEx', 00H
+$SG164013 DB	'GetMouseMovePointsEx', 00H
 	ORG $+3
-$SG163944 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+$SG164014 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG162920 DB	'RegisterRawInputDevices_Detour', 00H
+$SG162990 DB	'RegisterRawInputDevices_Detour', 00H
 	ORG $+1
-$SG163945 DB	'SetCursor', 00H
+$SG164015 DB	'SetCursor', 00H
 	ORG $+2
-$SG162921 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG162991 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG163946 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+$SG164016 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG163947 DB	'SetCursorPos', 00H
+$SG164017 DB	'SetCursorPos', 00H
 	ORG $+7
-$SG162923 DB	'[', 00H, ' ', 00H, 'R', 00H, 'a', 00H, 'w', 00H, 'I', 00H
+$SG162993 DB	'[', 00H, ' ', 00H, 'R', 00H, 'a', 00H, 'w', 00H, 'I', 00H
 	DB	'n', 00H, 'p', 00H, 'u', 00H, 't', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'R', 00H, 'e', 00H, 'g', 00H, 'i', 00H, 's', 00H, 't', 00H
 	DB	'e', 00H, 'r', 00H, 'R', 00H, 'a', 00H, 'w', 00H, 'I', 00H, 'n'
@@ -130,143 +130,98 @@ $SG162923 DB	'[', 00H, ' ', 00H, 'R', 00H, 'a', 00H, 'w', 00H, 'I', 00H
 	DB	00H, 'e', 00H, 'c', 00H, 't', 00H, 'e', 00H, 'd', 00H, ':', 00H
 	DB	' ', 00H, '%', 00H, 'z', 00H, 'u', 00H, 00H, 00H
 	ORG $+2
-$SG163948 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+$SG164018 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG163949 DB	'SendInput', 00H
+$SG164019 DB	'SendInput', 00H
 	ORG $+2
-$SG163950 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+$SG164020 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG163951 DB	'mouse_event', 00H
-$SG163952 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+$SG164021 DB	'mouse_event', 00H
+$SG164022 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG163953 DB	'keybd_event', 00H
-$SG163954 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+$SG164023 DB	'keybd_event', 00H
+$SG164024 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG163955 DB	'RegisterRawInputDevices', 00H
-$SG163956 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+$SG164025 DB	'RegisterRawInputDevices', 00H
+$SG164026 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG163957 DB	'GetRegisteredRawInputDevices', 00H
+$SG164027 DB	'GetRegisteredRawInputDevices', 00H
 	ORG $+3
-$SG163958 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+$SG164028 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG163959 DB	'GetRawInputBuffer', 00H
+$SG164029 DB	'GetRawInputBuffer', 00H
 	ORG $+2
-$SG163960 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+$SG164030 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
 	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG162962 DB	'GetRawInputBuffer_Detour', 00H
+$SG163032 DB	'GetRawInputBuffer_Detour', 00H
 	ORG $+3
-$SG162963 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG163033 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG162996 DB	'GetRawInputData_Detour', 00H
+$SG163066 DB	'GetRawInputData_Detour', 00H
 	ORG $+5
-$SG162997 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG163067 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG163278 DB	'GetMouseMovePointsEx_Detour', 00H
-$SG163279 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG163348 DB	'GetMouseMovePointsEx_Detour', 00H
+$SG163349 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG163293 DB	'SetCursor_Detour', 00H
+$SG163363 DB	'SetCursor_Detour', 00H
 	ORG $+3
-$SG163294 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG163364 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG163327 DB	'GetCursorInfo_Detour', 00H
+$SG163397 DB	'GetCursorInfo_Detour', 00H
 	ORG $+7
-$SG163328 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG163398 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG163371 DB	'GetCursorPos_Detour', 00H
-$SG163372 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG163441 DB	'GetCursorPos_Detour', 00H
+$SG163442 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG163394 DB	'SetCursorPos_Detour', 00H
-$SG163395 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG163464 DB	'SetCursorPos_Detour', 00H
+$SG163465 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG163412 DB	'SendInput_Detour', 00H
+$SG163482 DB	'SendInput_Detour', 00H
 	ORG $+3
-$SG163413 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
-	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
-	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
-	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
-	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
-	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
-	ORG $+2
-$SG163425 DB	'keybd_event_Detour', 00H
-	ORG $+1
-$SG163426 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
-	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
-	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
-	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
-	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
-	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
-	ORG $+2
-$SG163439 DB	'mouse_event_Detour', 00H
-	ORG $+1
-$SG163440 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
-	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
-	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
-	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
-	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
-	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
-	ORG $+2
-$SG163449 DB	'GetAsyncKeyState_Detour', 00H
-	ORG $+4
-$SG163450 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
-	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
-	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
-	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
-	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
-	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
-	ORG $+2
-$SG163465 DB	'GetKeyState_Detour', 00H
-	ORG $+1
-$SG163466 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
-	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
-	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
-	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
-	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
-	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
-	ORG $+2
-$SG163482 DB	'GetKeyboardState_Detour', 00H
-	ORG $+4
 $SG163483 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
@@ -274,24 +229,69 @@ $SG163483 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG161471 DB	'HidD_GetPreparsedData_Detour', 00H
-	ORG $+7
-$SG161472 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG163495 DB	'keybd_event_Detour', 00H
+	ORG $+1
+$SG163496 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG161506 DB	'HidP_GetData_Detour', 00H
-$SG161507 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG163509 DB	'mouse_event_Detour', 00H
+	ORG $+1
+$SG163510 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
+	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
+	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
+	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
+	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
+	ORG $+2
+$SG163519 DB	'GetAsyncKeyState_Detour', 00H
+	ORG $+4
+$SG163520 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
+	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
+	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
+	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
+	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
+	ORG $+2
+$SG163535 DB	'GetKeyState_Detour', 00H
+	ORG $+1
+$SG163536 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
+	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
+	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
+	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
+	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
+	ORG $+2
+$SG163552 DB	'GetKeyboardState_Detour', 00H
+	ORG $+4
+$SG163553 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
+	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
+	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
+	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
+	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
+	ORG $+2
+$SG161541 DB	'HidD_GetPreparsedData_Detour', 00H
+	ORG $+7
+$SG161542 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
+	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
+	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
+	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
+	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
+	ORG $+2
+$SG161576 DB	'HidP_GetData_Detour', 00H
+$SG161577 DB	'[', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	' ', 00H, 'M', 00H, 'g', 00H, 'r', 00H, '.', 00H, ']', 00H, ' '
 	DB	00H, '[', 00H, '!', 00H, ']', 00H, ' ', 00H, '>', 00H, ' ', 00H
 	DB	'F', 00H, 'i', 00H, 'r', 00H, 's', 00H, 't', 00H, ' ', 00H, 'C'
 	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, ':', 00H, ' ', 00H, '%', 00H
 	DB	'3', 00H, '4', 00H, 'h', 00H, 's', 00H, 00H, 00H
 	ORG $+6
-$SG161541 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H, 'n', 00H
+$SG161611 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H, 'n', 00H
 	DB	'p', 00H, 'u', 00H, 't', 00H, ' ', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, ' ', 00H, 'u', 00H
 	DB	's', 00H, 'e', 00H, 's', 00H, ' ', 00H, 'H', 00H, 'I', 00H, 'D'
@@ -300,26 +300,26 @@ $SG161541 DB	'[', 00H, ' ', 00H, ' ', 00H, ' ', 00H, 'I', 00H, 'n', 00H
 	DB	00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H, ' ', 00H
 	DB	'h', 00H, 'o', 00H, 'o', 00H, 'k', 00H, 's', 00H, '.', 00H, '.'
 	DB	00H, '.', 00H, 00H, 00H
-$SG161542 DB	'HidP_GetData', 00H
+$SG161612 DB	'HidP_GetData', 00H
 	ORG $+3
-$SG161543 DB	'H', 00H, 'I', 00H, 'D', 00H, '.', 00H, 'D', 00H, 'L', 00H
+$SG161613 DB	'H', 00H, 'I', 00H, 'D', 00H, '.', 00H, 'D', 00H, 'L', 00H
 	DB	'L', 00H, 00H, 00H
-$SG161544 DB	'HidD_GetPreparsedData', 00H
+$SG161614 DB	'HidD_GetPreparsedData', 00H
 	ORG $+2
-$SG161545 DB	'H', 00H, 'I', 00H, 'D', 00H, '.', 00H, 'D', 00H, 'L', 00H
+$SG161615 DB	'H', 00H, 'I', 00H, 'D', 00H, '.', 00H, 'D', 00H, 'L', 00H
 	DB	'L', 00H, 00H, 00H
-$SG161546 DB	'HidD_FreePreparsedData', 00H
+$SG161616 DB	'HidD_FreePreparsedData', 00H
 	ORG $+1
-$SG161547 DB	'H', 00H, 'I', 00H, 'D', 00H, '.', 00H, 'D', 00H, 'L', 00H
+$SG161617 DB	'H', 00H, 'I', 00H, 'D', 00H, '.', 00H, 'D', 00H, 'L', 00H
 	DB	'L', 00H, 00H, 00H
-$SG161548 DB	'HidD_GetFeature', 00H
-$SG161549 DB	'H', 00H, 'I', 00H, 'D', 00H, '.', 00H, 'D', 00H, 'L', 00H
+$SG161618 DB	'HidD_GetFeature', 00H
+$SG161619 DB	'H', 00H, 'I', 00H, 'D', 00H, '.', 00H, 'D', 00H, 'L', 00H
 	DB	'L', 00H, 00H, 00H
-$SG161550 DB	'HidP_GetCaps', 00H
+$SG161620 DB	'HidP_GetCaps', 00H
 	ORG $+3
-$SG161551 DB	'H', 00H, 'I', 00H, 'D', 00H, '.', 00H, 'D', 00H, 'L', 00H
+$SG161621 DB	'H', 00H, 'I', 00H, 'D', 00H, '.', 00H, 'D', 00H, 'L', 00H
 	DB	'L', 00H, 00H, 00H
-$SG161558 DB	'hid.dll', 00H
+$SG161628 DB	'hid.dll', 00H
 CONST	ENDS
 PUBLIC	?SK_ImGui_WantGamepadCapture@@YA_NXZ		; SK_ImGui_WantGamepadCapture
 PUBLIC	?SK_ImGui_WantMouseCapture@@YA_NXZ		; SK_ImGui_WantMouseCapture
@@ -741,7 +741,7 @@ CONST	SEGMENT
 CONST	ENDS
 ;	COMDAT ?tests@?1??SK_Input_PreHookHID@@YAXXZ@4PAUsk_import_test_s@@A
 _DATA	SEGMENT
-?tests@?1??SK_Input_PreHookHID@@YAXXZ@4PAUsk_import_test_s@@A DD FLAT:$SG161558 ; `SK_Input_PreHookHID'::`2'::tests
+?tests@?1??SK_Input_PreHookHID@@YAXXZ@4PAUsk_import_test_s@@A DD FLAT:$SG161628 ; `SK_Input_PreHookHID'::`2'::tests
 	DB	00H
 	ORG $+3
 _DATA	ENDS
@@ -2180,19 +2180,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GIPAUtagRAWINPUT@@PAII@Z@@YAPAPAXPAP6GIPAUtagRAWINPUT@@PAII@Z@Z PROC ; static_cast_p2p<void,unsigned int __stdcall(tagRAWINPUT *,unsigned int *,unsigned int)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -2205,19 +2205,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GIPAUtagRAWINPUTDEVICE@@PAII@Z@@YAPAPAXPAP6GIPAUtagRAWINPUTDEVICE@@PAII@Z@Z PROC ; static_cast_p2p<void,unsigned int __stdcall(tagRAWINPUTDEVICE *,unsigned int *,unsigned int)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -2230,19 +2230,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GHPBUtagRAWINPUTDEVICE@@II@Z@@YAPAPAXPAP6GHPBUtagRAWINPUTDEVICE@@II@Z@Z PROC ; static_cast_p2p<void,int __stdcall(tagRAWINPUTDEVICE const *,unsigned int,unsigned int)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -2255,19 +2255,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXEEKK@Z@@YAPAPAXPAP6GXEEKK@Z@Z PROC ; static_cast_p2p<void,void __stdcall(unsigned char,unsigned char,unsigned long,unsigned long)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -2280,19 +2280,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXKKKKK@Z@@YAPAPAXPAP6GXKKKKK@Z@Z PROC ; static_cast_p2p<void,void __stdcall(unsigned long,unsigned long,unsigned long,unsigned long,unsigned long)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -2305,19 +2305,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GIIPAUtagINPUT@@H@Z@@YAPAPAXPAP6GIIPAUtagINPUT@@H@Z@Z PROC ; static_cast_p2p<void,unsigned int __stdcall(unsigned int,tagINPUT *,int)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -2330,19 +2330,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GHHH@Z@@YAPAPAXPAP6GHHH@Z@Z PROC ; static_cast_p2p<void,int __stdcall(int,int)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -2355,19 +2355,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GPAUHICON__@@PAU1@@Z@@YAPAPAXPAP6GPAUHICON__@@PAU0@@Z@Z PROC ; static_cast_p2p<void,HICON__ * __stdcall(HICON__ *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -2380,19 +2380,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GHIPAUtagMOUSEMOVEPOINT@@0HK@Z@@YAPAPAXPAP6GHIPAUtagMOUSEMOVEPOINT@@0HK@Z@Z PROC ; static_cast_p2p<void,int __stdcall(unsigned int,tagMOUSEMOVEPOINT *,tagMOUSEMOVEPOINT *,int,unsigned long)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -2405,19 +2405,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GHPAUtagCURSORINFO@@@Z@@YAPAPAXPAP6GHPAUtagCURSORINFO@@@Z@Z PROC ; static_cast_p2p<void,int __stdcall(tagCURSORINFO *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -2430,19 +2430,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GHPAUtagPOINT@@@Z@@YAPAPAXPAP6GHPAUtagPOINT@@@Z@Z PROC ; static_cast_p2p<void,int __stdcall(tagPOINT *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -2455,19 +2455,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GHPAE@Z@@YAPAPAXPAP6GHPAE@Z@Z PROC ; static_cast_p2p<void,int __stdcall(unsigned char *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -2480,19 +2480,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GFH@Z@@YAPAPAXPAP6GFH@Z@Z PROC	; static_cast_p2p<void,short __stdcall(int)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -2505,19 +2505,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GIPAUHRAWINPUT__@@IPAXPAII@Z@@YAPAPAXPAP6GIPAUHRAWINPUT__@@IPAXPAII@Z@Z PROC ; static_cast_p2p<void,unsigned int __stdcall(HRAWINPUT__ *,unsigned int,void *,unsigned int *,unsigned int)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -2533,8 +2533,8 @@ _TEXT	SEGMENT
 	push	0
 	push	OFFSET ?GetRawInputData_Original@@3P6GIPAUHRAWINPUT__@@IPAXPAII@ZA ; GetRawInputData_Original
 	push	OFFSET ?GetRawInputData_Detour@@YGIPAUHRAWINPUT__@@IPAXPAII@Z ; GetRawInputData_Detour
-	push	OFFSET $SG163931
-	push	OFFSET $SG163932
+	push	OFFSET $SG164001
+	push	OFFSET $SG164002
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
 ; 1786 :                              "GetRawInputData",
@@ -2546,8 +2546,8 @@ _TEXT	SEGMENT
 	push	0
 	push	OFFSET ?GetAsyncKeyState_Original@@3P6GFH@ZA ; GetAsyncKeyState_Original
 	push	OFFSET ?GetAsyncKeyState_Detour@@YGFH@Z	; GetAsyncKeyState_Detour
-	push	OFFSET $SG163933
-	push	OFFSET $SG163934
+	push	OFFSET $SG164003
+	push	OFFSET $SG164004
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
 ; 1791 :                              "GetAsyncKeyState",
@@ -2559,8 +2559,8 @@ _TEXT	SEGMENT
 	push	0
 	push	OFFSET ?GetKeyState_Original@@3P6GFH@ZA	; GetKeyState_Original
 	push	OFFSET ?GetKeyState_Detour@@YGFH@Z	; GetKeyState_Detour
-	push	OFFSET $SG163935
-	push	OFFSET $SG163936
+	push	OFFSET $SG164005
+	push	OFFSET $SG164006
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
 ; 1796 :                              "GetKeyState",
@@ -2572,8 +2572,8 @@ _TEXT	SEGMENT
 	push	0
 	push	OFFSET ?GetKeyboardState_Original@@3P6GHPAE@ZA ; GetKeyboardState_Original
 	push	OFFSET ?GetKeyboardState_Detour@@YGHPAE@Z ; GetKeyboardState_Detour
-	push	OFFSET $SG163937
-	push	OFFSET $SG163938
+	push	OFFSET $SG164007
+	push	OFFSET $SG164008
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
 ; 1801 :                              "GetKeyboardState",
@@ -2585,8 +2585,8 @@ _TEXT	SEGMENT
 	push	0
 	push	OFFSET ?GetCursorPos_Original@@3P6GHPAUtagPOINT@@@ZA ; GetCursorPos_Original
 	push	OFFSET ?GetCursorPos_Detour@@YGHPAUtagPOINT@@@Z ; GetCursorPos_Detour
-	push	OFFSET $SG163939
-	push	OFFSET $SG163940
+	push	OFFSET $SG164009
+	push	OFFSET $SG164010
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
 ; 1806 :                              "GetCursorPos",
@@ -2598,8 +2598,8 @@ _TEXT	SEGMENT
 	push	0
 	push	OFFSET ?GetCursorInfo_Original@@3P6GHPAUtagCURSORINFO@@@ZA ; GetCursorInfo_Original
 	push	OFFSET ?GetCursorInfo_Detour@@YGHPAUtagCURSORINFO@@@Z ; GetCursorInfo_Detour
-	push	OFFSET $SG163941
-	push	OFFSET $SG163942
+	push	OFFSET $SG164011
+	push	OFFSET $SG164012
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
 ; 1811 :                              "GetCursorInfo",
@@ -2611,8 +2611,8 @@ _TEXT	SEGMENT
 	push	0
 	push	OFFSET ?GetMouseMovePointsEx_Original@@3P6GHIPAUtagMOUSEMOVEPOINT@@0HK@ZA ; GetMouseMovePointsEx_Original
 	push	OFFSET ?GetMouseMovePointsEx_Detour@@YGHIPAUtagMOUSEMOVEPOINT@@0HK@Z ; GetMouseMovePointsEx_Detour
-	push	OFFSET $SG163943
-	push	OFFSET $SG163944
+	push	OFFSET $SG164013
+	push	OFFSET $SG164014
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
 ; 1816 :                              "GetMouseMovePointsEx",
@@ -2624,8 +2624,8 @@ _TEXT	SEGMENT
 	push	0
 	push	OFFSET ?SetCursor_Original@@3P6GPAUHICON__@@PAU1@@ZA ; SetCursor_Original
 	push	OFFSET ?SetCursor_Detour@@YGPAUHICON__@@PAU1@@Z ; SetCursor_Detour
-	push	OFFSET $SG163945
-	push	OFFSET $SG163946
+	push	OFFSET $SG164015
+	push	OFFSET $SG164016
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
 ; 1821 :                              "SetCursor",
@@ -2637,8 +2637,8 @@ _TEXT	SEGMENT
 	push	0
 	push	OFFSET ?SetCursorPos_Original@@3P6GHHH@ZA ; SetCursorPos_Original
 	push	OFFSET ?SetCursorPos_Detour@@YGHHH@Z	; SetCursorPos_Detour
-	push	OFFSET $SG163947
-	push	OFFSET $SG163948
+	push	OFFSET $SG164017
+	push	OFFSET $SG164018
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
 ; 1826 :                              "SetCursorPos",
@@ -2650,8 +2650,8 @@ _TEXT	SEGMENT
 	push	0
 	push	OFFSET ?SendInput_Original@@3P6GIIPAUtagINPUT@@H@ZA ; SendInput_Original
 	push	OFFSET ?SendInput_Detour@@YGIIPAUtagINPUT@@H@Z ; SendInput_Detour
-	push	OFFSET $SG163949
-	push	OFFSET $SG163950
+	push	OFFSET $SG164019
+	push	OFFSET $SG164020
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
 ; 1831 :                              "SendInput",
@@ -2663,8 +2663,8 @@ _TEXT	SEGMENT
 	push	0
 	push	OFFSET ?mouse_event_Original@@3P6GXKKKKK@ZA ; mouse_event_Original
 	push	OFFSET ?mouse_event_Detour@@YGXKKKKK@Z	; mouse_event_Detour
-	push	OFFSET $SG163951
-	push	OFFSET $SG163952
+	push	OFFSET $SG164021
+	push	OFFSET $SG164022
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
 ; 1836 :                              "mouse_event",
@@ -2676,8 +2676,8 @@ _TEXT	SEGMENT
 	push	0
 	push	OFFSET ?keybd_event_Original@@3P6GXEEKK@ZA ; keybd_event_Original
 	push	OFFSET ?keybd_event_Detour@@YGXEEKK@Z	; keybd_event_Detour
-	push	OFFSET $SG163953
-	push	OFFSET $SG163954
+	push	OFFSET $SG164023
+	push	OFFSET $SG164024
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
 ; 1841 :                              "keybd_event",
@@ -2689,8 +2689,8 @@ _TEXT	SEGMENT
 	push	0
 	push	OFFSET ?RegisterRawInputDevices_Original@@3P6GHPBUtagRAWINPUTDEVICE@@II@ZA ; RegisterRawInputDevices_Original
 	push	OFFSET ?RegisterRawInputDevices_Detour@@YGHPBUtagRAWINPUTDEVICE@@II@Z ; RegisterRawInputDevices_Detour
-	push	OFFSET $SG163955
-	push	OFFSET $SG163956
+	push	OFFSET $SG164025
+	push	OFFSET $SG164026
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
 ; 1846 :                              "RegisterRawInputDevices",
@@ -2702,8 +2702,8 @@ _TEXT	SEGMENT
 	push	0
 	push	OFFSET ?GetRegisteredRawInputDevices_Original@@3P6GIPAUtagRAWINPUTDEVICE@@PAII@ZA ; GetRegisteredRawInputDevices_Original
 	push	OFFSET ?GetRegisteredRawInputDevices_Detour@@YGIPAUtagRAWINPUTDEVICE@@PAII@Z ; GetRegisteredRawInputDevices_Detour
-	push	OFFSET $SG163957
-	push	OFFSET $SG163958
+	push	OFFSET $SG164027
+	push	OFFSET $SG164028
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
 ; 1851 :                              "GetRegisteredRawInputDevices",
@@ -2715,8 +2715,8 @@ _TEXT	SEGMENT
 	push	0
 	push	OFFSET ?GetRawInputBuffer_Original@@3P6GIPAUtagRAWINPUT@@PAII@ZA ; GetRawInputBuffer_Original
 	push	OFFSET ?GetRawInputBuffer_Detour@@YGIPAUtagRAWINPUT@@PAII@Z ; GetRawInputBuffer_Detour
-	push	OFFSET $SG163959
-	push	OFFSET $SG163960
+	push	OFFSET $SG164029
+	push	OFFSET $SG164030
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
 ; 1856 :                              "GetRawInputBuffer",
@@ -2757,8 +2757,8 @@ _lpKeyState$ = 8					; size = 4
 	jne	SHORT $LN2@GetKeyboar
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN3@GetKeyboar
-	push	OFFSET $SG163482
-	push	OFFSET $SG163483
+	push	OFFSET $SG163552
+	push	OFFSET $SG163553
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -2848,8 +2848,8 @@ _nVirtKey$ = 8						; size = 4
 	jne	SHORT $LN2@GetKeyStat
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN3@GetKeyStat
-	push	OFFSET $SG163465
-	push	OFFSET $SG163466
+	push	OFFSET $SG163535
+	push	OFFSET $SG163536
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -2974,8 +2974,8 @@ _vKey$ = 8						; size = 4
 	jne	SHORT $LN2@GetAsyncKe
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN3@GetAsyncKe
-	push	OFFSET $SG163449
-	push	OFFSET $SG163450
+	push	OFFSET $SG163519
+	push	OFFSET $SG163520
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -3106,8 +3106,8 @@ _dwExtraInfo$ = 24					; size = 4
 	jne	SHORT $LN2@mouse_even
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN3@mouse_even
-	push	OFFSET $SG163439
-	push	OFFSET $SG163440
+	push	OFFSET $SG163509
+	push	OFFSET $SG163510
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -3183,8 +3183,8 @@ _dwExtraInfo$ = 20					; size = 4
 	jne	SHORT $LN2@keybd_even
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN3@keybd_even
-	push	OFFSET $SG163425
-	push	OFFSET $SG163426
+	push	OFFSET $SG163495
+	push	OFFSET $SG163496
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -3246,8 +3246,8 @@ _cbSize$ = 16						; size = 4
 	jne	SHORT $LN2@SendInput_
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN3@SendInput_
-	push	OFFSET $SG163412
-	push	OFFSET $SG163413
+	push	OFFSET $SG163482
+	push	OFFSET $SG163483
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -3311,8 +3311,8 @@ _y$ = 12						; size = 4
 	jne	SHORT $LN2@SetCursorP
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN3@SetCursorP
-	push	OFFSET $SG163394
-	push	OFFSET $SG163395
+	push	OFFSET $SG163464
+	push	OFFSET $SG163465
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -3505,8 +3505,8 @@ _new_frame$1$ = 11					; size = 1
 	jne	SHORT $LN4@GetCursorP
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN5@GetCursorP
-	push	OFFSET $SG163371
-	push	OFFSET $SG163372
+	push	OFFSET $SG163441
+	push	OFFSET $SG163442
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -4141,8 +4141,8 @@ _implicit_capture$1$ = 11				; size = 1
 	jne	SHORT $LN2@GetCursorI
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN3@GetCursorI
-	push	OFFSET $SG163327
-	push	OFFSET $SG163328
+	push	OFFSET $SG163397
+	push	OFFSET $SG163398
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -4388,8 +4388,8 @@ _hCursor$ = 8						; size = 4
 	jne	SHORT $LN2@SetCursor_
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN3@SetCursor_
-	push	OFFSET $SG163293
-	push	OFFSET $SG163294
+	push	OFFSET $SG163363
+	push	OFFSET $SG163364
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -4493,8 +4493,8 @@ _resolution$ = 24					; size = 4
 	jne	SHORT $LN2@GetMouseMo
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN3@GetMouseMo
-	push	OFFSET $SG163278
-	push	OFFSET $SG163279
+	push	OFFSET $SG163348
+	push	OFFSET $SG163349
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -5291,8 +5291,8 @@ _cbSizeHeader$ = 24					; size = 4
 	jne	SHORT $LN2@GetRawInpu
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN3@GetRawInpu
-	push	OFFSET $SG162996
-	push	OFFSET $SG162997
+	push	OFFSET $SG163066
+	push	OFFSET $SG163067
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -5350,8 +5350,8 @@ _cbSizeHeader$ = 16					; size = 4
 	jne	SHORT $LN7@GetRawInpu
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN8@GetRawInpu
-	push	OFFSET $SG162962
-	push	OFFSET $SG162963
+	push	OFFSET $SG163032
+	push	OFFSET $SG163033
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -5701,8 +5701,8 @@ _cbSize$ = 16						; size = 4
 	jne	SHORT $LN14@RegisterRa
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN15@RegisterRa
-	push	OFFSET $SG162920
-	push	OFFSET $SG162921
+	push	OFFSET $SG162990
+	push	OFFSET $SG162991
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -5723,7 +5723,7 @@ $LN14@RegisterRa:
 
 	push	12					; 0000000cH
 	push	esi
-	push	OFFSET $SG162923
+	push	OFFSET $SG162993
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 16					; 00000010H
@@ -6555,8 +6555,8 @@ _cbSize$ = 16						; size = 4
 	jne	SHORT $LN5@GetRegiste
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN6@GetRegiste
-	push	OFFSET $SG162835
-	push	OFFSET $SG162836
+	push	OFFSET $SG162905
+	push	OFFSET $SG162906
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -10213,19 +10213,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GEPAX0K@Z@@YAPAPAXPAP6GEPAX0K@Z@Z PROC ; static_cast_p2p<void,unsigned char __stdcall(void *,void *,unsigned long)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -10238,19 +10238,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GEPAU_HIDP_PREPARSED_DATA@@@Z@@YAPAPAXPAP6GEPAU_HIDP_PREPARSED_DATA@@@Z@Z PROC ; static_cast_p2p<void,unsigned char __stdcall(_HIDP_PREPARSED_DATA *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -10263,19 +10263,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GEPAXPAPAU_HIDP_PREPARSED_DATA@@@Z@@YAPAPAXPAP6GEPAXPAPAU_HIDP_PREPARSED_DATA@@@Z@Z PROC ; static_cast_p2p<void,unsigned char __stdcall(void *,_HIDP_PREPARSED_DATA * *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -10288,19 +10288,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GJW4_HIDP_REPORT_TYPE@@PAU_HIDP_DATA@@PAKPAU_HIDP_PREPARSED_DATA@@PADK@Z@@YAPAPAXPAP6GJW4_HIDP_REPORT_TYPE@@PAU_HIDP_DATA@@PAKPAU_HIDP_PREPARSED_DATA@@PADK@Z@Z PROC ; static_cast_p2p<void,long __stdcall(enum _HIDP_REPORT_TYPE,_HIDP_DATA *,unsigned long *,_HIDP_PREPARSED_DATA *,char *,unsigned long)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -10329,8 +10329,8 @@ _ReportLength$ = 28					; size = 4
 	jne	SHORT $LN2@HidP_GetDa
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN3@HidP_GetDa
-	push	OFFSET $SG161506
-	push	OFFSET $SG161507
+	push	OFFSET $SG161576
+	push	OFFSET $SG161577
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -10574,8 +10574,8 @@ _PreparsedData$ = 12					; size = 4
 	jne	SHORT $LN2@HidD_GetPr
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, 0
 	jl	SHORT $LN3@HidD_GetPr
-	push	OFFSET $SG161471
-	push	OFFSET $SG161472
+	push	OFFSET $SG161541
+	push	OFFSET $SG161542
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -13858,7 +13858,7 @@ _TEXT	SEGMENT
 
 	cmp	DWORD PTR ?config@@3Usk_config_t@@A+836, eax
 	jl	SHORT $LN4@SK_Input_H
-	push	OFFSET $SG161541
+	push	OFFSET $SG161611
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
@@ -13871,8 +13871,8 @@ $LN4@SK_Input_H:
 	push	0
 	push	OFFSET ?HidP_GetData_Original@@3P6GJW4_HIDP_REPORT_TYPE@@PAU_HIDP_DATA@@PAKPAU_HIDP_PREPARSED_DATA@@PADK@ZA ; HidP_GetData_Original
 	push	OFFSET ?HidP_GetData_Detour@@YGJW4_HIDP_REPORT_TYPE@@PAU_HIDP_DATA@@PAKPAU_HIDP_PREPARSED_DATA@@PADK@Z ; HidP_GetData_Detour
-	push	OFFSET $SG161542
-	push	OFFSET $SG161543
+	push	OFFSET $SG161612
+	push	OFFSET $SG161613
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
 ; 256  :                              "HidP_GetData",
@@ -13884,8 +13884,8 @@ $LN4@SK_Input_H:
 	push	0
 	push	OFFSET ?HidD_GetPreparsedData_Original@@3P6GEPAXPAPAU_HIDP_PREPARSED_DATA@@@ZA ; HidD_GetPreparsedData_Original
 	push	OFFSET ?HidD_GetPreparsedData_Detour@@YGEPAXPAPAU_HIDP_PREPARSED_DATA@@@Z ; HidD_GetPreparsedData_Detour
-	push	OFFSET $SG161544
-	push	OFFSET $SG161545
+	push	OFFSET $SG161614
+	push	OFFSET $SG161615
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
 ; 261  :                              "HidD_GetPreparsedData",
@@ -13897,8 +13897,8 @@ $LN4@SK_Input_H:
 	push	0
 	push	OFFSET ?HidD_FreePreparsedData_Original@@3P6GEPAU_HIDP_PREPARSED_DATA@@@ZA ; HidD_FreePreparsedData_Original
 	push	OFFSET ?HidD_FreePreparsedData_Detour@@YGEPAU_HIDP_PREPARSED_DATA@@@Z ; HidD_FreePreparsedData_Detour
-	push	OFFSET $SG161546
-	push	OFFSET $SG161547
+	push	OFFSET $SG161616
+	push	OFFSET $SG161617
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
 ; 266  :                              "HidD_FreePreparsedData",
@@ -13910,8 +13910,8 @@ $LN4@SK_Input_H:
 	push	0
 	push	OFFSET ?HidD_GetFeature_Original@@3P6GEPAX0K@ZA ; HidD_GetFeature_Original
 	push	OFFSET ?HidD_GetFeature_Detour@@YGEPAX0K@Z ; HidD_GetFeature_Detour
-	push	OFFSET $SG161548
-	push	OFFSET $SG161549
+	push	OFFSET $SG161618
+	push	OFFSET $SG161619
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
 ; 271  :                              "HidD_GetFeature",
@@ -13920,8 +13920,8 @@ $LN4@SK_Input_H:
 ; 274  : 
 ; 275  :     HidP_GetCaps_Original =
 
-	push	OFFSET $SG161550
-	push	OFFSET $SG161551
+	push	OFFSET $SG161620
+	push	OFFSET $SG161621
 	call	DWORD PTR __imp__GetModuleHandleW@4
 	push	eax
 	call	DWORD PTR __imp__GetProcAddress@8

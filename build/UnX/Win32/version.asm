@@ -111,35 +111,35 @@ _IID_IAxWinHostWindow DD 0b6ea2050H
 CONST	ENDS
 ;	COMDAT ?szDelete@ATL@@3QB_WB
 CONST	SEGMENT
-?szDelete@ATL@@3QB_WB DD FLAT:$SG153087			; ATL::szDelete
+?szDelete@ATL@@3QB_WB DD FLAT:$SG153159			; ATL::szDelete
 CONST	ENDS
 ;	COMDAT ?szNoRemove@ATL@@3QB_WB
 CONST	SEGMENT
-?szNoRemove@ATL@@3QB_WB DD FLAT:$SG153085		; ATL::szNoRemove
+?szNoRemove@ATL@@3QB_WB DD FLAT:$SG153157		; ATL::szNoRemove
 CONST	ENDS
 ;	COMDAT ?szForceRemove@ATL@@3QB_WB
 CONST	SEGMENT
-?szForceRemove@ATL@@3QB_WB DD FLAT:$SG153083		; ATL::szForceRemove
+?szForceRemove@ATL@@3QB_WB DD FLAT:$SG153155		; ATL::szForceRemove
 CONST	ENDS
 ;	COMDAT ?szValToken@ATL@@3QB_WB
 CONST	SEGMENT
-?szValToken@ATL@@3QB_WB DD FLAT:$SG153081		; ATL::szValToken
+?szValToken@ATL@@3QB_WB DD FLAT:$SG153153		; ATL::szValToken
 CONST	ENDS
 ;	COMDAT ?szBinaryVal@ATL@@3QB_WB
 CONST	SEGMENT
-?szBinaryVal@ATL@@3QB_WB DD FLAT:$SG153079		; ATL::szBinaryVal
+?szBinaryVal@ATL@@3QB_WB DD FLAT:$SG153151		; ATL::szBinaryVal
 CONST	ENDS
 ;	COMDAT ?szDwordVal@ATL@@3QB_WB
 CONST	SEGMENT
-?szDwordVal@ATL@@3QB_WB DD FLAT:$SG153077		; ATL::szDwordVal
+?szDwordVal@ATL@@3QB_WB DD FLAT:$SG153149		; ATL::szDwordVal
 CONST	ENDS
 ;	COMDAT ?multiszStringVal@ATL@@3QB_WB
 CONST	SEGMENT
-?multiszStringVal@ATL@@3QB_WB DD FLAT:$SG153075		; ATL::multiszStringVal
+?multiszStringVal@ATL@@3QB_WB DD FLAT:$SG153147		; ATL::multiszStringVal
 CONST	ENDS
 ;	COMDAT ?szStringVal@ATL@@3QB_WB
 CONST	SEGMENT
-?szStringVal@ATL@@3QB_WB DD FLAT:$SG153073		; ATL::szStringVal
+?szStringVal@ATL@@3QB_WB DD FLAT:$SG153145		; ATL::szStringVal
 CONST	ENDS
 ;	COMDAT ?chEquals@ATL@@3_WB
 CONST	SEGMENT
@@ -254,53 +254,56 @@ _IID_IAxWinAmbientDispatchEx DD 0b2d0778bH
 	DB	0b5H
 CONST	ENDS
 CONST	SEGMENT
-$SG141346 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG142363 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'I', 00H, 'S', 00H, 'A', 00H, 'P', 00H, 'I'
+	DB	00H, 00H, 00H
+$SG141347 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'G', 00H, 'e', 00H, 'n', 00H, 'e', 00H, 'r'
+	DB	00H, 'a', 00H, 'l', 00H, 00H, 00H
+$SG141418 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'C', 00H, 'O', 00H, 'M', 00H, 00H, 00H
-$SG141393 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG141465 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'Q', 00H, 'I', 00H, 00H, 00H
 	ORG $+2
-$SG175202 DB	'w', 00H, 00H, 00H
-$SG175203 DB	'l', 00H, 'o', 00H, 'g', 00H, 's', 00H, '/', 00H, 'i', 00H
+$SG175263 DB	'w', 00H, 00H, 00H
+$SG175264 DB	'l', 00H, 'o', 00H, 'g', 00H, 's', 00H, '/', 00H, 'i', 00H
 	DB	'n', 00H, 's', 00H, 't', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'e'
 	DB	00H, 'r', 00H, '.', 00H, 'l', 00H, 'o', 00H, 'g', 00H, 00H, 00H
 	ORG $+2
-$SG175209 DB	'U', 00H, 'p', 00H, 'd', 00H, 'a', 00H, 't', 00H, 'e', 00H
+$SG175270 DB	'U', 00H, 'p', 00H, 'd', 00H, 'a', 00H, 't', 00H, 'e', 00H
 	DB	'.', 00H, 'U', 00H, 's', 00H, 'e', 00H, 'r', 00H, 00H, 00H
-$SG175210 DB	'F', 00H, 'r', 00H, 'e', 00H, 'q', 00H, 'u', 00H, 'e', 00H
+$SG175271 DB	'F', 00H, 'r', 00H, 'e', 00H, 'q', 00H, 'u', 00H, 'e', 00H
 	DB	'n', 00H, 'c', 00H, 'y', 00H, 00H, 00H
-$SG175211 DB	'F', 00H, 'r', 00H, 'e', 00H, 'q', 00H, 'u', 00H, 'e', 00H
+$SG175272 DB	'F', 00H, 'r', 00H, 'e', 00H, 'q', 00H, 'u', 00H, 'e', 00H
 	DB	'n', 00H, 'c', 00H, 'y', 00H, 00H, 00H
-$SG175212 DB	'0', 00H, 00H, 00H
-$SG175213 DB	'0', 00H, 00H, 00H
-$SG175214 DB	'0', 00H, 00H, 00H
-$SG175215 DB	'%', 00H, '3', 00H, '[', 00H, '^', 00H, 'h', 00H, ']', 00H
+$SG175273 DB	'0', 00H, 00H, 00H
+$SG175274 DB	'0', 00H, 00H, 00H
+$SG175275 DB	'0', 00H, 00H, 00H
+$SG175276 DB	'%', 00H, '3', 00H, '[', 00H, '^', 00H, 'h', 00H, ']', 00H
 	DB	'h', 00H, 00H, 00H
-$SG175217 DB	'6', 00H, 00H, 00H
-$SG175218 DB	'[', 00H, 'U', 00H, 'p', 00H, 'd', 00H, 'a', 00H, 't', 00H
+$SG175278 DB	'6', 00H, 00H, 00H
+$SG175279 DB	'[', 00H, 'U', 00H, 'p', 00H, 'd', 00H, 'a', 00H, 't', 00H
 	DB	'e', 00H, '.', 00H, 'U', 00H, 's', 00H, 'e', 00H, 'r', 00H, ']'
 	DB	00H, 0aH, 00H, 'F', 00H, 'r', 00H, 'e', 00H, 'q', 00H, 'u', 00H
 	DB	'e', 00H, 'n', 00H, 'c', 00H, 'y', 00H, '=', 00H, '6', 00H, 'h'
 	DB	00H, 0aH, 00H, 0aH, 00H, 00H, 00H
 	ORG $+2
-$SG175221 DB	'n', 00H, 'e', 00H, 'v', 00H, 'e', 00H, 'r', 00H, 00H, 00H
-$SG175223 DB	'R', 00H, 'e', 00H, 'm', 00H, 'i', 00H, 'n', 00H, 'd', 00H
+$SG175282 DB	'n', 00H, 'e', 00H, 'v', 00H, 'e', 00H, 'r', 00H, 00H, 00H
+$SG175284 DB	'R', 00H, 'e', 00H, 'm', 00H, 'i', 00H, 'n', 00H, 'd', 00H
 	DB	'e', 00H, 'r', 00H, 00H, 00H
 	ORG $+2
-$SG175224 DB	'R', 00H, 'e', 00H, 'm', 00H, 'i', 00H, 'n', 00H, 'd', 00H
+$SG175285 DB	'R', 00H, 'e', 00H, 'm', 00H, 'i', 00H, 'n', 00H, 'd', 00H
 	DB	'e', 00H, 'r', 00H, 00H, 00H
 	ORG $+2
-$SG175225 DB	'R', 00H, 'e', 00H, 'm', 00H, 'i', 00H, 'n', 00H, 'd', 00H
+$SG175286 DB	'R', 00H, 'e', 00H, 'm', 00H, 'i', 00H, 'n', 00H, 'd', 00H
 	DB	'e', 00H, 'r', 00H, 00H, 00H
 	ORG $+2
-$SG175226 DB	'U', 00H, 'p', 00H, 'd', 00H, 'a', 00H, 't', 00H, 'e', 00H
+$SG175287 DB	'U', 00H, 'p', 00H, 'd', 00H, 'a', 00H, 't', 00H, 'e', 00H
 	DB	'.', 00H, 'U', 00H, 's', 00H, 'e', 00H, 'r', 00H, 00H, 00H
-$SG175228 DB	'R', 00H, 'e', 00H, 'm', 00H, 'i', 00H, 'n', 00H, 'd', 00H
+$SG175289 DB	'R', 00H, 'e', 00H, 'm', 00H, 'i', 00H, 'n', 00H, 'd', 00H
 	DB	'e', 00H, 'r', 00H, 00H, 00H
 	ORG $+2
-$SG141440 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'g', 00H, 'i', 00H, 's'
-	DB	00H, 't', 00H, 'r', 00H, 'a', 00H, 'r', 00H, 00H, 00H
-$SG175229 DB	'[', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H
+$SG175290 DB	'[', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H
 	DB	'o', 00H, 'n', 00H, '.', 00H, 'L', 00H, 'o', 00H, 'c', 00H, 'a'
 	DB	00H, 'l', 00H, ']', 00H, 0aH, 00H, 'I', 00H, 'n', 00H, 's', 00H
 	DB	't', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'P', 00H, 'a', 00H, 'c'
@@ -315,320 +318,316 @@ $SG175229 DB	'[', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H
 	DB	00H, 'n', 00H, 'd', 00H, 'e', 00H, 'r', 00H, '=', 00H, '0', 00H
 	DB	0aH, 00H, 0aH, 00H, 00H, 00H
 	ORG $+2
-$SG175238 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+$SG175299 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
 	DB	'l', 00H, ' ', 00H, 'K', 00H, ' ', 00H, 'A', 00H, 'u', 00H, 't'
 	DB	00H, 'o', 00H, '-', 00H, 'U', 00H, 'p', 00H, 'd', 00H, 'a', 00H
 	DB	't', 00H, 'e', 00H, 00H, 00H
-$SG175240 DB	'r', 00H, 'a', 00H, 'w', 00H, '.', 00H, 'g', 00H, 'i', 00H
+$SG175301 DB	'r', 00H, 'a', 00H, 'w', 00H, '.', 00H, 'g', 00H, 'i', 00H
 	DB	't', 00H, 'h', 00H, 'u', 00H, 'b', 00H, 'u', 00H, 's', 00H, 'e'
 	DB	00H, 'r', 00H, 'c', 00H, 'o', 00H, 'n', 00H, 't', 00H, 'e', 00H
 	DB	'n', 00H, 't', 00H, '.', 00H, 'c', 00H, 'o', 00H, 'm', 00H, 00H
 	DB	00H
-$SG175244 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+$SG141512 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'g', 00H, 'i', 00H, 's'
+	DB	00H, 't', 00H, 'r', 00H, 'a', 00H, 'r', 00H, 00H, 00H
+$SG175305 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
 	DB	'l', 00H, 'K', 00H, 00H, 00H
 	ORG $+2
-$SG175245 DB	'/', 00H, 'K', 00H, 'a', 00H, 'l', 00H, 'd', 00H, 'a', 00H
+$SG175306 DB	'/', 00H, 'K', 00H, 'a', 00H, 'l', 00H, 'd', 00H, 'a', 00H
 	DB	'i', 00H, 'e', 00H, 'n', 00H, '/', 00H, '%', 00H, 's', 00H, '/'
 	DB	00H, '0', 00H, '.', 00H, '8', 00H, '.', 00H, 'x', 00H, '/', 00H
 	DB	'v', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H, 'o', 00H, 'n'
 	DB	00H, '.', 00H, 'i', 00H, 'n', 00H, 'i', 00H, 00H, 00H
 	ORG $+2
-$SG175248 DB	'/', 00H, 00H, 00H
-$SG175249 DB	'/', 00H, 'K', 00H, 'a', 00H, 'l', 00H, 'd', 00H, 'a', 00H
+$SG175309 DB	'/', 00H, 00H, 00H
+$SG175310 DB	'/', 00H, 'K', 00H, 'a', 00H, 'l', 00H, 'd', 00H, 'a', 00H
 	DB	'i', 00H, 'e', 00H, 'n', 00H, '/', 00H, '%', 00H, 's', 00H, '/'
 	DB	00H, 'v', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H, 'o', 00H
 	DB	'n', 00H, '.', 00H, 'i', 00H, 'n', 00H, 'i', 00H, 00H, 00H
 	ORG $+2
-$SG175251 DB	'*', 00H, '/', 00H, '*', 00H, 00H, 00H
-$SG155796 DB	00H, 00H
-	ORG $+2
-$SG175250 DB	'/', 00H, 'K', 00H, 'a', 00H, 'l', 00H, 'd', 00H, 'a', 00H
+$SG175311 DB	'/', 00H, 'K', 00H, 'a', 00H, 'l', 00H, 'd', 00H, 'a', 00H
 	DB	'i', 00H, 'e', 00H, 'n', 00H, '/', 00H, '%', 00H, 's', 00H, '/'
 	DB	00H, 'm', 00H, 'a', 00H, 's', 00H, 't', 00H, 'e', 00H, 'r', 00H
 	DB	'/', 00H, 'v', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H, 'o'
 	DB	00H, 'n', 00H, '.', 00H, 'i', 00H, 'n', 00H, 'i', 00H, 00H, 00H
-$SG175253 DB	'H', 00H, 'T', 00H, 'T', 00H, 'P', 00H, '/', 00H, '1', 00H
+$SG175312 DB	'*', 00H, '/', 00H, '*', 00H, 00H, 00H
+$SG175314 DB	'H', 00H, 'T', 00H, 'T', 00H, 'P', 00H, '/', 00H, '1', 00H
 	DB	'.', 00H, '1', 00H, 00H, 00H
 	ORG $+2
-$SG153763 DB	'A', 00H, 'p', 00H, 'p', 00H, 'I', 00H, 'D', 00H, 00H, 00H
-$SG153764 DB	'C', 00H, 'L', 00H, 'S', 00H, 'I', 00H, 'D', 00H, 00H, 00H
-$SG153765 DB	'C', 00H, 'o', 00H, 'm', 00H, 'p', 00H, 'o', 00H, 'n', 00H
+$SG155868 DB	00H, 00H
+	ORG $+2
+$SG153835 DB	'A', 00H, 'p', 00H, 'p', 00H, 'I', 00H, 'D', 00H, 00H, 00H
+$SG153836 DB	'C', 00H, 'L', 00H, 'S', 00H, 'I', 00H, 'D', 00H, 00H, 00H
+$SG153837 DB	'C', 00H, 'o', 00H, 'm', 00H, 'p', 00H, 'o', 00H, 'n', 00H
 	DB	'e', 00H, 'n', 00H, 't', 00H, ' ', 00H, 'C', 00H, 'a', 00H, 't'
 	DB	00H, 'e', 00H, 'g', 00H, 'o', 00H, 'r', 00H, 'i', 00H, 'e', 00H
 	DB	's', 00H, 00H, 00H
 	ORG $+2
-$SG153766 DB	'F', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'T', 00H, 'y', 00H
+$SG153838 DB	'F', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'T', 00H, 'y', 00H
 	DB	'p', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG153767 DB	'I', 00H, 'n', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'f', 00H
+$SG153839 DB	'I', 00H, 'n', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'f', 00H
 	DB	'a', 00H, 'c', 00H, 'e', 00H, 00H, 00H
-$SG153768 DB	'H', 00H, 'a', 00H, 'r', 00H, 'd', 00H, 'w', 00H, 'a', 00H
+$SG153840 DB	'H', 00H, 'a', 00H, 'r', 00H, 'd', 00H, 'w', 00H, 'a', 00H
 	DB	'r', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG153769 DB	'M', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H, 00H
+$SG153841 DB	'M', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG153770 DB	'S', 00H, 'A', 00H, 'M', 00H, 00H, 00H
-$SG153771 DB	'S', 00H, 'E', 00H, 'C', 00H, 'U', 00H, 'R', 00H, 'I', 00H
+$SG153842 DB	'S', 00H, 'A', 00H, 'M', 00H, 00H, 00H
+$SG153843 DB	'S', 00H, 'E', 00H, 'C', 00H, 'U', 00H, 'R', 00H, 'I', 00H
 	DB	'T', 00H, 'Y', 00H, 00H, 00H
 	ORG $+2
-$SG153772 DB	'S', 00H, 'Y', 00H, 'S', 00H, 'T', 00H, 'E', 00H, 'M', 00H
+$SG153844 DB	'S', 00H, 'Y', 00H, 'S', 00H, 'T', 00H, 'E', 00H, 'M', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG153773 DB	'S', 00H, 'o', 00H, 'f', 00H, 't', 00H, 'w', 00H, 'a', 00H
+$SG153845 DB	'S', 00H, 'o', 00H, 'f', 00H, 't', 00H, 'w', 00H, 'a', 00H
 	DB	'r', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG153774 DB	'T', 00H, 'y', 00H, 'p', 00H, 'e', 00H, 'L', 00H, 'i', 00H
+$SG153846 DB	'T', 00H, 'y', 00H, 'p', 00H, 'e', 00H, 'L', 00H, 'i', 00H
 	DB	'b', 00H, 00H, 00H
-$SG141487 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG141559 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'f', 00H, 'c', 00H, 'o'
 	DB	00H, 'u', 00H, 'n', 00H, 't', 00H, 00H, 00H
 	ORG $+2
-$SG176319 DB	'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H, 'o', 00H
+$SG176380 DB	'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H, 'o', 00H
 	DB	'n', 00H, '.', 00H, 00H, 00H
 	ORG $+2
-$SG176320 DB	'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H, 'o', 00H
+$SG176381 DB	'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H, 'o', 00H
 	DB	'n', 00H, '.', 00H, '%', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG175297 DB	'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H, 'o', 00H
+$SG175358 DB	'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H, 'o', 00H
 	DB	'n', 00H, '.', 00H, 'L', 00H, 'o', 00H, 'c', 00H, 'a', 00H, 'l'
 	DB	00H, 00H, 00H
-$SG175298 DB	'B', 00H, 'r', 00H, 'a', 00H, 'n', 00H, 'c', 00H, 'h', 00H
+$SG175359 DB	'B', 00H, 'r', 00H, 'a', 00H, 'n', 00H, 'c', 00H, 'h', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG175299 DB	'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H, 'o', 00H
+$SG175360 DB	'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H, 'o', 00H
 	DB	'n', 00H, '.', 00H, '%', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG175301 DB	'I', 00H, 'n', 00H, 's', 00H, 't', 00H, 'a', 00H, 'l', 00H
+$SG175362 DB	'I', 00H, 'n', 00H, 's', 00H, 't', 00H, 'a', 00H, 'l', 00H
 	DB	'l', 00H, 'P', 00H, 'a', 00H, 'c', 00H, 'k', 00H, 'a', 00H, 'g'
 	DB	00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG175302 DB	'%', 00H, '1', 00H, '2', 00H, '8', 00H, '[', 00H, '^', 00H
+$SG175363 DB	'%', 00H, '1', 00H, '2', 00H, '8', 00H, '[', 00H, '^', 00H
 	DB	',', 00H, ']', 00H, ',', 00H, '%', 00H, 'l', 00H, 'i', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG175303 DB	'I', 00H, 'n', 00H, 'v', 00H, 'a', 00H, 'l', 00H, 'i', 00H
+$SG175364 DB	'I', 00H, 'n', 00H, 'v', 00H, 'a', 00H, 'l', 00H, 'i', 00H
 	DB	'd', 00H, 00H, 00H
-$SG175304 DB	'I', 00H, 'n', 00H, 'v', 00H, 'a', 00H, 'l', 00H, 'i', 00H
+$SG175365 DB	'I', 00H, 'n', 00H, 'v', 00H, 'a', 00H, 'l', 00H, 'i', 00H
 	DB	'd', 00H, 00H, 00H
-$SG141534 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG175389 DB	'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H, 'o', 00H
+	DB	'n', 00H, '.', 00H, 'L', 00H, 'o', 00H, 'c', 00H, 'a', 00H, 'l'
+	DB	00H, 00H, 00H
+$SG175390 DB	'B', 00H, 'r', 00H, 'a', 00H, 'n', 00H, 'c', 00H, 'h', 00H
+	DB	00H, 00H
+	ORG $+2
+$SG175391 DB	'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H, 'o', 00H
+	DB	'n', 00H, '.', 00H, 'L', 00H, 'o', 00H, 'c', 00H, 'a', 00H, 'l'
+	DB	00H, 00H, 00H
+$SG175392 DB	'I', 00H, 'n', 00H, 's', 00H, 't', 00H, 'a', 00H, 'l', 00H
+	DB	'l', 00H, 'P', 00H, 'a', 00H, 'c', 00H, 'k', 00H, 'a', 00H, 'g'
+	DB	00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG175393 DB	'%', 00H, '1', 00H, '2', 00H, '8', 00H, '[', 00H, '^', 00H
+	DB	',', 00H, ']', 00H, ',', 00H, '%', 00H, 'l', 00H, 'i', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG141606 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o'
 	DB	00H, 'w', 00H, 'i', 00H, 'n', 00H, 'g', 00H, 00H, 00H
-$SG175328 DB	'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H, 'o', 00H
-	DB	'n', 00H, '.', 00H, 'L', 00H, 'o', 00H, 'c', 00H, 'a', 00H, 'l'
-	DB	00H, 00H, 00H
-$SG175329 DB	'B', 00H, 'r', 00H, 'a', 00H, 'n', 00H, 'c', 00H, 'h', 00H
-	DB	00H, 00H
-	ORG $+2
-$SG175330 DB	'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H, 'o', 00H
-	DB	'n', 00H, '.', 00H, 'L', 00H, 'o', 00H, 'c', 00H, 'a', 00H, 'l'
-	DB	00H, 00H, 00H
-$SG175331 DB	'I', 00H, 'n', 00H, 's', 00H, 't', 00H, 'a', 00H, 'l', 00H
-	DB	'l', 00H, 'P', 00H, 'a', 00H, 'c', 00H, 'k', 00H, 'a', 00H, 'g'
-	DB	00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG175332 DB	'%', 00H, '1', 00H, '2', 00H, '8', 00H, '[', 00H, '^', 00H
-	DB	',', 00H, ']', 00H, ',', 00H, '%', 00H, 'l', 00H, 'i', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG176364 DB	'U', 00H, 'p', 00H, 'd', 00H, 'a', 00H, 't', 00H, 'e', 00H
+$SG176425 DB	'U', 00H, 'p', 00H, 'd', 00H, 'a', 00H, 't', 00H, 'e', 00H
 	DB	'.', 00H, 'U', 00H, 's', 00H, 'e', 00H, 'r', 00H, 00H, 00H
-$SG176365 DB	'F', 00H, 'r', 00H, 'e', 00H, 'q', 00H, 'u', 00H, 'e', 00H
+$SG176426 DB	'F', 00H, 'r', 00H, 'e', 00H, 'q', 00H, 'u', 00H, 'e', 00H
 	DB	'n', 00H, 'c', 00H, 'y', 00H, 00H, 00H
-$SG176366 DB	'F', 00H, 'r', 00H, 'e', 00H, 'q', 00H, 'u', 00H, 'e', 00H
+$SG176427 DB	'F', 00H, 'r', 00H, 'e', 00H, 'q', 00H, 'u', 00H, 'e', 00H
 	DB	'n', 00H, 'c', 00H, 'y', 00H, 00H, 00H
-$SG176367 DB	'0', 00H, 00H, 00H
-$SG176368 DB	'0', 00H, 00H, 00H
-$SG176369 DB	'0', 00H, 00H, 00H
-$SG176370 DB	'%', 00H, '3', 00H, '[', 00H, '^', 00H, 'h', 00H, ']', 00H
+$SG176428 DB	'0', 00H, 00H, 00H
+$SG176429 DB	'0', 00H, 00H, 00H
+$SG176430 DB	'0', 00H, 00H, 00H
+$SG176431 DB	'%', 00H, '3', 00H, '[', 00H, '^', 00H, 'h', 00H, ']', 00H
 	DB	'h', 00H, 00H, 00H
-$SG176372 DB	'6', 00H, 00H, 00H
-$SG176373 DB	'[', 00H, 'U', 00H, 'p', 00H, 'd', 00H, 'a', 00H, 't', 00H
+$SG176433 DB	'6', 00H, 00H, 00H
+$SG176434 DB	'[', 00H, 'U', 00H, 'p', 00H, 'd', 00H, 'a', 00H, 't', 00H
 	DB	'e', 00H, '.', 00H, 'U', 00H, 's', 00H, 'e', 00H, 'r', 00H, ']'
 	DB	00H, 0aH, 00H, 'F', 00H, 'r', 00H, 'e', 00H, 'q', 00H, 'u', 00H
 	DB	'e', 00H, 'n', 00H, 'c', 00H, 'y', 00H, '=', 00H, '6', 00H, 'h'
 	DB	00H, 0aH, 00H, 0aH, 00H, 00H, 00H
 	ORG $+2
-$SG176375 DB	'n', 00H, 'e', 00H, 'v', 00H, 'e', 00H, 'r', 00H, 00H, 00H
-$SG175359 DB	' ', 00H, 00H, 00H
-$SG176391 DB	'U', 00H, 'p', 00H, 'd', 00H, 'a', 00H, 't', 00H, 'e', 00H
+$SG176436 DB	'n', 00H, 'e', 00H, 'v', 00H, 'e', 00H, 'r', 00H, 00H, 00H
+$SG175420 DB	' ', 00H, 00H, 00H
+$SG176452 DB	'U', 00H, 'p', 00H, 'd', 00H, 'a', 00H, 't', 00H, 'e', 00H
 	DB	'.', 00H, 'U', 00H, 's', 00H, 'e', 00H, 'r', 00H, 00H, 00H
-$SG176394 DB	'%', 00H, 'l', 00H, 'l', 00H, 'u', 00H, 'h', 00H, 00H, 00H
-$SG176395 DB	'n', 00H, 'e', 00H, 'v', 00H, 'e', 00H, 'r', 00H, 00H, 00H
-$SG141581 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG176455 DB	'%', 00H, 'l', 00H, 'l', 00H, 'u', 00H, 'h', 00H, 00H, 00H
+$SG176456 DB	'n', 00H, 'e', 00H, 'v', 00H, 'e', 00H, 'r', 00H, 00H, 00H
+$SG176459 DB	'F', 00H, 'r', 00H, 'e', 00H, 'q', 00H, 'u', 00H, 'e', 00H
+	DB	'n', 00H, 'c', 00H, 'y', 00H, 00H, 00H
+$SG176460 DB	'F', 00H, 'r', 00H, 'e', 00H, 'q', 00H, 'u', 00H, 'e', 00H
+	DB	'n', 00H, 'c', 00H, 'y', 00H, 00H, 00H
+$SG176461 DB	'F', 00H, 'r', 00H, 'e', 00H, 'q', 00H, 'u', 00H, 'e', 00H
+	DB	'n', 00H, 'c', 00H, 'y', 00H, 00H, 00H
+$SG141653 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'C', 00H, 'o', 00H, 'n', 00H, 't', 00H, 'r'
 	DB	00H, 'o', 00H, 'l', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG176398 DB	'F', 00H, 'r', 00H, 'e', 00H, 'q', 00H, 'u', 00H, 'e', 00H
-	DB	'n', 00H, 'c', 00H, 'y', 00H, 00H, 00H
-$SG176399 DB	'F', 00H, 'r', 00H, 'e', 00H, 'q', 00H, 'u', 00H, 'e', 00H
-	DB	'n', 00H, 'c', 00H, 'y', 00H, 00H, 00H
-$SG176400 DB	'F', 00H, 'r', 00H, 'e', 00H, 'q', 00H, 'u', 00H, 'e', 00H
-	DB	'n', 00H, 'c', 00H, 'y', 00H, 00H, 00H
-$SG176413 DB	'U', 00H, 'p', 00H, 'd', 00H, 'a', 00H, 't', 00H, 'e', 00H
+$SG176474 DB	'U', 00H, 'p', 00H, 'd', 00H, 'a', 00H, 't', 00H, 'e', 00H
 	DB	'.', 00H, 'U', 00H, 's', 00H, 'e', 00H, 'r', 00H, 00H, 00H
-$SG176415 DB	'U', 00H, 'p', 00H, 'd', 00H, 'a', 00H, 't', 00H, 'e', 00H
+$SG176476 DB	'U', 00H, 'p', 00H, 'd', 00H, 'a', 00H, 't', 00H, 'e', 00H
 	DB	'.', 00H, 'U', 00H, 's', 00H, 'e', 00H, 'r', 00H, 00H, 00H
-$SG176416 DB	'R', 00H, 'e', 00H, 'm', 00H, 'i', 00H, 'n', 00H, 'd', 00H
+$SG176477 DB	'R', 00H, 'e', 00H, 'm', 00H, 'i', 00H, 'n', 00H, 'd', 00H
 	DB	'e', 00H, 'r', 00H, 00H, 00H
 	ORG $+2
-$SG176417 DB	'U', 00H, 'p', 00H, 'd', 00H, 'a', 00H, 't', 00H, 'e', 00H
+$SG176478 DB	'U', 00H, 'p', 00H, 'd', 00H, 'a', 00H, 't', 00H, 'e', 00H
 	DB	'.', 00H, 'U', 00H, 's', 00H, 'e', 00H, 'r', 00H, 00H, 00H
-$SG176418 DB	'R', 00H, 'e', 00H, 'm', 00H, 'i', 00H, 'n', 00H, 'd', 00H
+$SG176479 DB	'R', 00H, 'e', 00H, 'm', 00H, 'i', 00H, 'n', 00H, 'd', 00H
 	DB	'e', 00H, 'r', 00H, 00H, 00H
 	ORG $+2
-$SG176419 DB	'U', 00H, 'p', 00H, 'd', 00H, 'a', 00H, 't', 00H, 'e', 00H
+$SG176480 DB	'U', 00H, 'p', 00H, 'd', 00H, 'a', 00H, 't', 00H, 'e', 00H
 	DB	'.', 00H, 'U', 00H, 's', 00H, 'e', 00H, 'r', 00H, 00H, 00H
-$SG176420 DB	'0', 00H, 00H, 00H
-$SG176421 DB	'R', 00H, 'e', 00H, 'm', 00H, 'i', 00H, 'n', 00H, 'd', 00H
+$SG176481 DB	'0', 00H, 00H, 00H
+$SG176482 DB	'R', 00H, 'e', 00H, 'm', 00H, 'i', 00H, 'n', 00H, 'd', 00H
 	DB	'e', 00H, 'r', 00H, 00H, 00H
 	ORG $+2
-$SG176434 DB	'%', 00H, 'h', 00H, 's', 00H, 00H, 00H
-$SG176435 DB	'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H, 'o', 00H
+$SG176495 DB	'%', 00H, 'h', 00H, 's', 00H, 00H, 00H
+$SG176496 DB	'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H, 'o', 00H
 	DB	'n', 00H, '.', 00H, 'L', 00H, 'o', 00H, 'c', 00H, 'a', 00H, 'l'
 	DB	00H, 00H, 00H
-$SG176436 DB	'B', 00H, 'r', 00H, 'a', 00H, 'n', 00H, 'c', 00H, 'h', 00H
+$SG176497 DB	'B', 00H, 'r', 00H, 'a', 00H, 'n', 00H, 'c', 00H, 'h', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG176437 DB	'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H, 'o', 00H
+$SG176498 DB	'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H, 'o', 00H
 	DB	'n', 00H, '.', 00H, 'L', 00H, 'o', 00H, 'c', 00H, 'a', 00H, 'l'
 	DB	00H, 00H, 00H
-$SG176438 DB	'I', 00H, 'n', 00H, 's', 00H, 't', 00H, 'a', 00H, 'l', 00H
+$SG176499 DB	'I', 00H, 'n', 00H, 's', 00H, 't', 00H, 'a', 00H, 'l', 00H
 	DB	'l', 00H, 'P', 00H, 'a', 00H, 'c', 00H, 'k', 00H, 'a', 00H, 'g'
 	DB	00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG176439 DB	'P', 00H, 'e', 00H, 'n', 00H, 'd', 00H, 'i', 00H, 'n', 00H
+$SG176500 DB	'P', 00H, 'e', 00H, 'n', 00H, 'd', 00H, 'i', 00H, 'n', 00H
 	DB	'g', 00H, 'B', 00H, 'r', 00H, 'a', 00H, 'n', 00H, 'c', 00H, 'h'
 	DB	00H, 'M', 00H, 'i', 00H, 'g', 00H, 'r', 00H, 'a', 00H, 't', 00H
 	DB	'i', 00H, 'o', 00H, 'n', 00H, ',', 00H, '0', 00H, 00H, 00H
 	ORG $+2
-$SG141628 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG141700 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'H', 00H, 'o', 00H, 's', 00H, 't', 00H, 'i'
 	DB	00H, 'n', 00H, 'g', 00H, 00H, 00H
-$SG141675 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG141747 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'C', 00H, 'l', 00H, 'i'
 	DB	00H, 'e', 00H, 'n', 00H, 't', 00H, 00H, 00H
 	ORG $+2
-$SG141722 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG176607 DB	'I', 00H, 'n', 00H, 'v', 00H, 'a', 00H, 'l', 00H, 'i', 00H
+	DB	'd', 00H, 00H, 00H
+$SG176608 DB	'I', 00H, 'n', 00H, 'v', 00H, 'a', 00H, 'l', 00H, 'i', 00H
+	DB	'd', 00H, 00H, 00H
+$SG176609 DB	'I', 00H, 'n', 00H, 'v', 00H, 'a', 00H, 'l', 00H, 'i', 00H
+	DB	'd', 00H, 00H, 00H
+$SG176610 DB	'I', 00H, 'n', 00H, 'v', 00H, 'a', 00H, 'l', 00H, 'i', 00H
+	DB	'd', 00H, 00H, 00H
+$SG141794 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'P', 00H, 'r', 00H, 'o'
 	DB	00H, 'v', 00H, 'i', 00H, 'd', 00H, 'e', 00H, 'r', 00H, 00H, 00H
 	ORG $+2
-$SG176546 DB	'I', 00H, 'n', 00H, 'v', 00H, 'a', 00H, 'l', 00H, 'i', 00H
+$SG176611 DB	'I', 00H, 'n', 00H, 'v', 00H, 'a', 00H, 'l', 00H, 'i', 00H
 	DB	'd', 00H, 00H, 00H
-$SG176547 DB	'I', 00H, 'n', 00H, 'v', 00H, 'a', 00H, 'l', 00H, 'i', 00H
+$SG176612 DB	'N', 00H, 'o', 00H, 't', 00H, 'U', 00H, 's', 00H, 'e', 00H
 	DB	'd', 00H, 00H, 00H
-$SG176548 DB	'I', 00H, 'n', 00H, 'v', 00H, 'a', 00H, 'l', 00H, 'i', 00H
+$SG176613 DB	'I', 00H, 'n', 00H, 'v', 00H, 'a', 00H, 'l', 00H, 'i', 00H
 	DB	'd', 00H, 00H, 00H
-$SG176549 DB	'I', 00H, 'n', 00H, 'v', 00H, 'a', 00H, 'l', 00H, 'i', 00H
-	DB	'd', 00H, 00H, 00H
-$SG176550 DB	'I', 00H, 'n', 00H, 'v', 00H, 'a', 00H, 'l', 00H, 'i', 00H
-	DB	'd', 00H, 00H, 00H
-$SG176551 DB	'N', 00H, 'o', 00H, 't', 00H, 'U', 00H, 's', 00H, 'e', 00H
-	DB	'd', 00H, 00H, 00H
-$SG176552 DB	'I', 00H, 'n', 00H, 'v', 00H, 'a', 00H, 'l', 00H, 'i', 00H
-	DB	'd', 00H, 00H, 00H
-$SG176555 DB	'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H, 'o', 00H
+$SG176616 DB	'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H, 'o', 00H
 	DB	'n', 00H, '.', 00H, '%', 00H, 'h', 00H, 's', 00H, 00H, 00H
-$SG176557 DB	'T', 00H, 'i', 00H, 't', 00H, 'l', 00H, 'e', 00H, 00H, 00H
-$SG176558 DB	'R', 00H, 'e', 00H, 'l', 00H, 'e', 00H, 'a', 00H, 's', 00H
+$SG176618 DB	'T', 00H, 'i', 00H, 't', 00H, 'l', 00H, 'e', 00H, 00H, 00H
+$SG176619 DB	'R', 00H, 'e', 00H, 'l', 00H, 'e', 00H, 'a', 00H, 's', 00H
 	DB	'e', 00H, 'N', 00H, 'o', 00H, 't', 00H, 'e', 00H, 's', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG176559 DB	'D', 00H, 'e', 00H, 's', 00H, 'c', 00H, 'r', 00H, 'i', 00H
+$SG176620 DB	'D', 00H, 'e', 00H, 's', 00H, 'c', 00H, 'r', 00H, 'i', 00H
 	DB	'p', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
-$SG176560 DB	'I', 00H, 'n', 00H, 's', 00H, 't', 00H, 'a', 00H, 'l', 00H
+$SG176621 DB	'I', 00H, 'n', 00H, 's', 00H, 't', 00H, 'a', 00H, 'l', 00H
 	DB	'l', 00H, 'P', 00H, 'a', 00H, 'c', 00H, 'k', 00H, 'a', 00H, 'g'
 	DB	00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG176561 DB	'N', 00H, 'o', 00H, 't', 00H, ' ', 00H, 'I', 00H, 'm', 00H
+$SG176622 DB	'N', 00H, 'o', 00H, 't', 00H, ' ', 00H, 'I', 00H, 'm', 00H
 	DB	'p', 00H, 'l', 00H, 'e', 00H, 'm', 00H, 'e', 00H, 'n', 00H, 't'
 	DB	00H, 'e', 00H, 'd', 00H, 00H, 00H
-$SG176562 DB	'B', 00H, 'r', 00H, 'a', 00H, 'n', 00H, 'c', 00H, 'h', 00H
+$SG176623 DB	'B', 00H, 'r', 00H, 'a', 00H, 'n', 00H, 'c', 00H, 'h', 00H
 	DB	'D', 00H, 'e', 00H, 's', 00H, 'c', 00H, 'r', 00H, 'i', 00H, 'p'
 	DB	00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
-$SG141769 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG141841 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 'n', 00H, 'a', 00H, 'p', 00H, 'i'
 	DB	00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG153073 DB	'S', 00H, 00H, 00H
-$SG153075 DB	'M', 00H, 00H, 00H
-$SG153077 DB	'D', 00H, 00H, 00H
-$SG153079 DB	'B', 00H, 00H, 00H
-$SG141816 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG153145 DB	'S', 00H, 00H, 00H
+$SG153147 DB	'M', 00H, 00H, 00H
+$SG153149 DB	'D', 00H, 00H, 00H
+$SG153151 DB	'B', 00H, 00H, 00H
+$SG141888 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'N', 00H, 'o', 00H, 't', 00H, 'I', 00H, 'm'
 	DB	00H, 'p', 00H, 'l', 00H, 00H, 00H
-$SG153081 DB	'V', 00H, 'a', 00H, 'l', 00H, 00H, 00H
-$SG153083 DB	'F', 00H, 'o', 00H, 'r', 00H, 'c', 00H, 'e', 00H, 'R', 00H
+$SG153153 DB	'V', 00H, 'a', 00H, 'l', 00H, 00H, 00H
+$SG153155 DB	'F', 00H, 'o', 00H, 'r', 00H, 'c', 00H, 'e', 00H, 'R', 00H
 	DB	'e', 00H, 'm', 00H, 'o', 00H, 'v', 00H, 'e', 00H, 00H, 00H
-$SG153085 DB	'N', 00H, 'o', 00H, 'R', 00H, 'e', 00H, 'm', 00H, 'o', 00H
+$SG153157 DB	'N', 00H, 'o', 00H, 'R', 00H, 'e', 00H, 'm', 00H, 'o', 00H
 	DB	'v', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG153087 DB	'D', 00H, 'e', 00H, 'l', 00H, 'e', 00H, 't', 00H, 'e', 00H
+$SG153159 DB	'D', 00H, 'e', 00H, 'l', 00H, 'e', 00H, 't', 00H, 'e', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG141863 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG141935 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'A', 00H, 'l', 00H, 'l', 00H, 'o', 00H, 'c'
 	DB	00H, 'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
 	ORG $+2
-$SG141910 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG141982 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'E', 00H, 'x', 00H, 'c', 00H, 'e', 00H, 'p'
 	DB	00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
-$SG141957 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG142029 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'T', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG142004 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG142076 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'C', 00H, 'a', 00H, 'c', 00H, 'h', 00H, 'e'
 	DB	00H, 00H, 00H
-$SG142051 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG142123 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'n', 00H, 'c'
 	DB	00H, 'i', 00H, 'l', 00H, 00H, 00H
-$SG142098 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG142170 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'r', 00H, 'i', 00H, 'n'
 	DB	00H, 'g', 00H, 00H, 00H
 	ORG $+2
-$SG142145 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG142217 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'M', 00H, 'a', 00H, 'p', 00H, 00H, 00H
-$SG142150 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG142222 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'U', 00H, 't', 00H, 'i', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG142197 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG142269 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 'e', 00H, 'c', 00H, 'u', 00H, 'r'
 	DB	00H, 'i', 00H, 't', 00H, 'y', 00H, 00H, 00H
 	ORG $+2
-$SG174986 DB	'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H, 'o', 00H
+$SG175074 DB	'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H, 'o', 00H
 	DB	'n', 00H, '\', 00H, 00H, 00H
 	ORG $+2
-$SG174987 DB	'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H, 'o', 00H
+$SG175075 DB	'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H, 'o', 00H
 	DB	'n', 00H, '\', 00H, 00H, 00H
 	ORG $+2
-$SG174988 DB	'\', 00H, 'M', 00H, 'y', 00H, ' ', 00H, 'M', 00H, 'o', 00H
+$SG175076 DB	'\', 00H, 'M', 00H, 'y', 00H, ' ', 00H, 'M', 00H, 'o', 00H
 	DB	'd', 00H, 's', 00H, '\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c'
 	DB	00H, 'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, '\', 00H, 'V', 00H
 	DB	'e', 00H, 'r', 00H, 's', 00H, 'i', 00H, 'o', 00H, 'n', 00H, '\'
 	DB	00H, 00H, 00H
 	ORG $+2
-$SG174997 DB	'\', 00H, 'M', 00H, 'y', 00H, ' ', 00H, 'M', 00H, 'o', 00H
-	DB	'd', 00H, 's', 00H, '\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c'
-	DB	00H, 'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, '\', 00H, 00H, 00H
-	ORG $+2
-$SG142244 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+$SG142316 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
 	DB	'c', 00H, 'e', 00H, 'S', 00H, 'y', 00H, 'n', 00H, 'c', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG175033 DB	'i', 00H, 'n', 00H, 's', 00H, 't', 00H, 'a', 00H, 'l', 00H
+$SG175086 DB	'\', 00H, 'M', 00H, 'y', 00H, ' ', 00H, 'M', 00H, 'o', 00H
+	DB	'd', 00H, 's', 00H, '\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c'
+	DB	00H, 'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, '\', 00H, 00H, 00H
+	ORG $+2
+$SG175094 DB	'i', 00H, 'n', 00H, 's', 00H, 't', 00H, 'a', 00H, 'l', 00H
 	DB	'l', 00H, 'e', 00H, 'd', 00H, '.', 00H, 'i', 00H, 'n', 00H, 'i'
 	DB	00H, 00H, 00H
-$SG175041 DB	'r', 00H, 'e', 00H, 'p', 00H, 'o', 00H, 's', 00H, 'i', 00H
+$SG175102 DB	'r', 00H, 'e', 00H, 'p', 00H, 'o', 00H, 's', 00H, 'i', 00H
 	DB	't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, '.', 00H, 'i', 00H, 'n'
 	DB	00H, 'i', 00H, 00H, 00H
-	ORG $+2
-$SG142291 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'I', 00H, 'S', 00H, 'A', 00H, 'P', 00H, 'I'
-	DB	00H, 00H, 00H
-$SG141275 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'G', 00H, 'e', 00H, 'n', 00H, 'e', 00H, 'r'
-	DB	00H, 'a', 00H, 'l', 00H, 00H, 00H
 CONST	ENDS
 PUBLIC	?swprintf@@YAHQA_WQB_WZZ			; swprintf
 PUBLIC	??$__vcrt_va_start_verify_argument_type@QB_W@@YAXXZ ; __vcrt_va_start_verify_argument_type<wchar_t const * const>
@@ -1162,7 +1161,6 @@ PUBLIC	?Term@CAtlComModule@ATL@@QAEXXZ			; ATL::CAtlComModule::Term
 PUBLIC	??0CAtlWinModule@ATL@@QAE@XZ			; ATL::CAtlWinModule::CAtlWinModule
 PUBLIC	??1CAtlWinModule@ATL@@QAE@XZ			; ATL::CAtlWinModule::~CAtlWinModule
 PUBLIC	?Term@CAtlWinModule@ATL@@QAEXXZ			; ATL::CAtlWinModule::Term
-PUBLIC	??$?H_WU?$char_traits@_W@std@@V?$allocator@_W@1@@std@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@$$QAV10@QB_W@Z ; std::operator+<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 PUBLIC	??$?H_WU?$char_traits@_W@std@@V?$allocator@_W@1@@std@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@$$QAV10@0@Z ; std::operator+<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 PUBLIC	??$?8_WU?$char_traits@_W@std@@V?$allocator@_W@1@@std@@YA_NABV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@QB_W@Z ; std::operator==<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 PUBLIC	??0?$CHeapPtrBase@EVCCRTAllocator@ATL@@@ATL@@IAE@XZ ; ATL::CHeapPtrBase<unsigned char,ATL::CCRTAllocator>::CHeapPtrBase<unsigned char,ATL::CCRTAllocator>
@@ -2306,8 +2304,6 @@ xdata$x	ENDS
 xdata$x	SEGMENT
 __unwindtable$?SK_Version_GetLastCheckTime_WStr@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ DD 0ffffffffH
 	DD	FLAT:__unwindfunclet$?SK_Version_GetLastCheckTime_WStr@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ$1
-__unwindtable$?SK_SYS_GetInstallPath@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ DD 0ffffffffH
-	DD	FLAT:__unwindfunclet$?SK_SYS_GetInstallPath@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ$1
 __unwindtable$?SK_Version_GetInstallIniPath@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ DD 0ffffffffH
 	DD	FLAT:__unwindfunclet$?SK_Version_GetInstallIniPath@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ$0
 	DD	00H
@@ -2316,6 +2312,10 @@ __unwindtable$?SK_Version_GetRepoIniPath@@YA?AV?$basic_string@_WU?$char_traits@_
 	DD	FLAT:__unwindfunclet$?SK_Version_GetRepoIniPath@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ$0
 	DD	00H
 	DD	FLAT:__unwindfunclet$?SK_Version_GetRepoIniPath@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ$1
+__unwindtable$?SK_SYS_GetInstallPath@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ DD 0ffffffffH
+	DD	FLAT:__unwindfunclet$?SK_SYS_GetInstallPath@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ$1
+	DD	00H
+	DD	FLAT:__unwindfunclet$?SK_SYS_GetInstallPath@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ$2
 __unwindtable$?SK_Version_SwitchBranches@@YA_NPB_WPBD@Z DD 0ffffffffH
 	DD	FLAT:__unwindfunclet$?SK_Version_SwitchBranches@@YA_NPB_WPBD@Z$1
 	DD	00H
@@ -2334,12 +2334,6 @@ __unwindtable$?SK_Version_SetUpdateFrequency@@YAXPB_W_K@Z DD 0ffffffffH
 	DD	FLAT:__unwindfunclet$?SK_Version_SetUpdateFrequency@@YAXPB_W_K@Z$2
 	DD	0ffffffffH
 	DD	FLAT:__unwindfunclet$?SK_Version_SetUpdateFrequency@@YAXPB_W_K@Z$2
-__unwindtable$?SK_SYS_GetVersionPath@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ DD 0ffffffffH
-	DD	FLAT:__unwindfunclet$?SK_SYS_GetVersionPath@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ$0
-	DD	0ffffffffH
-	DD	FLAT:__unwindfunclet$?SK_SYS_GetVersionPath@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ$2
-	DD	0ffffffffH
-	DD	FLAT:__unwindfunclet$?SK_SYS_GetVersionPath@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ$4
 __unwindtable$?SK_Version_GetUpdateFrequency@@YA_KPB_W@Z DD 0ffffffffH
 	DD	FLAT:__unwindfunclet$?SK_Version_GetUpdateFrequency@@YA_KPB_W@Z$1
 	DD	00H
@@ -2441,19 +2435,31 @@ __ehfuncinfo$?SK_Version_GetRepoIniPath@@YA?AV?$basic_string@_WU?$char_traits@_W
 	DD	00H
 	DD	01H
 __ehfuncinfo$?SK_SYS_GetVersionPath@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ DD 019930522H
-	DD	03H
+	DD	06H
 	DD	FLAT:__unwindtable$?SK_SYS_GetVersionPath@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ
 	DD	2 DUP(00H)
 	DD	2 DUP(00H)
 	DD	00H
 	DD	01H
 __ehfuncinfo$?SK_SYS_GetInstallPath@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ DD 019930522H
-	DD	01H
+	DD	02H
 	DD	FLAT:__unwindtable$?SK_SYS_GetInstallPath@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ
 	DD	2 DUP(00H)
 	DD	2 DUP(00H)
 	DD	00H
 	DD	01H
+__unwindtable$?SK_SYS_GetVersionPath@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ DD 0ffffffffH
+	DD	FLAT:__unwindfunclet$?SK_SYS_GetVersionPath@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ$0
+	DD	00H
+	DD	FLAT:__unwindfunclet$?SK_SYS_GetVersionPath@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ$1
+	DD	0ffffffffH
+	DD	FLAT:__unwindfunclet$?SK_SYS_GetVersionPath@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ$3
+	DD	02H
+	DD	FLAT:__unwindfunclet$?SK_SYS_GetVersionPath@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ$4
+	DD	0ffffffffH
+	DD	FLAT:__unwindfunclet$?SK_SYS_GetVersionPath@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ$5
+	DD	04H
+	DD	FLAT:__unwindfunclet$?SK_SYS_GetVersionPath@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ$6
 __unwindtable$?SK_Version_GetAvailableBranches@@YA?AV?$vector@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$allocator@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@@std@@PB_W@Z DD 0ffffffffH
 	DD	FLAT:__unwindfunclet$?SK_Version_GetAvailableBranches@@YA?AV?$vector@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$allocator@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@@std@@PB_W@Z$0
 	DD	00H
@@ -2808,7 +2814,7 @@ _<_Args_0>$ = 12					; size = 4
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@ABV12@II@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 793  : }
+; 789  : }
 
 	lea	ecx, DWORD PTR [edi+24]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -3002,8 +3008,6 @@ _<_Args_0>$ = 12					; size = 4
 
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@ABV12@II@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
-
-; 793  : }
 
 	lea	ecx, DWORD PTR [edi+24]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -10975,7 +10979,7 @@ ___that$ = 8						; size = 4
 ??0?$pair@$$CBV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@V12@@std@@QAE@ABU01@@Z PROC ; std::pair<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > const ,std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > >::pair<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > const ,std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > >, COMDAT
 ; _this$ = ecx
 
-; 793  : }
+; 789  : }
 
 	npad	2
 	push	ebp
@@ -12999,7 +13003,7 @@ ___formal$ = 16						; size = 4
 ??R<lambda_3121a5f3ef13d8ba780f661e8cd77baf>@@QBE?AUSK_VersionInfo_V1@@PBDPB_W@Z PROC ; <lambda_3121a5f3ef13d8ba780f661e8cd77baf>::operator(), COMDAT
 ; _this$ = ecx
 
-; 761  :           {
+; 757  :           {
 
 	npad	2
 	push	ebp
@@ -13018,7 +13022,7 @@ ___formal$ = 16						; size = 4
 	xor	eax, eax
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 761  :           {
+; 757  :           {
 
 	push	esi
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -13028,7 +13032,7 @@ ___formal$ = 16						; size = 4
 	mov	esi, DWORD PTR ___$ReturnUdt$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 761  :           {
+; 757  :           {
 
 	push	edi
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -13065,15 +13069,15 @@ ___formal$ = 16						; size = 4
 	mov	ecx, DWORD PTR _szBranch$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 764  :             vinfo1.branch  = SK_UTF8ToWideChar (szBranch);
+; 760  :             vinfo1.branch  = SK_UTF8ToWideChar (szBranch);
 
 	sub	esp, 24					; 00000018H
 	mov	edx, esp
 
-; 768  : 
-; 769  :             vinfo1.package = wszPackage_;
-; 770  : 
-; 771  :             return vinfo1;
+; 764  : 
+; 765  :             vinfo1.package = wszPackage_;
+; 766  : 
+; 767  :             return vinfo1;
 
 	mov	DWORD PTR __$EHRec$[ebp+8], eax
 	mov	DWORD PTR $T3[ebp], 1
@@ -13112,7 +13116,7 @@ $LL209@operator:
 	call	?assign@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAEAAV12@QBDI@Z ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::assign
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 764  :             vinfo1.branch  = SK_UTF8ToWideChar (szBranch);
+; 760  :             vinfo1.branch  = SK_UTF8ToWideChar (szBranch);
 
 	lea	eax, DWORD PTR $T2[ebp]
 	push	eax
@@ -13227,7 +13231,7 @@ $LN151@operator:
 $LN157@operator:
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 766  :             wchar_t wszPackage_ [128] = { };
+; 762  :             wchar_t wszPackage_ [128] = { };
 
 	push	256					; 00000100H
 	lea	eax, DWORD PTR _wszPackage_$[ebp]
@@ -13260,7 +13264,7 @@ $LN197@operator:
 	lea	eax, DWORD PTR [esi+48]
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 767  :             swscanf (vinfo1.package.c_str (), L"%128[^,],%li", wszPackage_, &vinfo1.build);
+; 763  :             swscanf (vinfo1.package.c_str (), L"%128[^,],%li", wszPackage_, &vinfo1.build);
 
 	push	eax
 	lea	eax, DWORD PTR _wszPackage_$[ebp]
@@ -13275,7 +13279,7 @@ $LN197@operator:
 	lea	edx, DWORD PTR _wszPackage_$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 767  :             swscanf (vinfo1.package.c_str (), L"%128[^,],%li", wszPackage_, &vinfo1.build);
+; 763  :             swscanf (vinfo1.package.c_str (), L"%128[^,],%li", wszPackage_, &vinfo1.build);
 
 	add	esp, 16					; 00000010H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -13309,7 +13313,7 @@ $LL210@operator:
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 772  :           };
+; 768  :           };
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	eax, esi
@@ -13519,7 +13523,7 @@ ___that$ = 8						; size = 4
 ??0?$pair@$$CBV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@UiSK_INISection@@@std@@QAE@ABU01@@Z PROC ; std::pair<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > const ,iSK_INISection>::pair<std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> > const ,iSK_INISection>, COMDAT
 ; _this$ = ecx
 
-; 588  : }
+; 584  : }
 
 	npad	2
 	push	ebp
@@ -13544,7 +13548,7 @@ ___that$ = 8						; size = 4
 	push	edi
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 588  : }
+; 584  : }
 
 	mov	edi, ecx
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -13554,7 +13558,7 @@ ___that$ = 8						; size = 4
 	push	-1
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 588  : }
+; 584  : }
 
 	mov	DWORD PTR _this$[ebp], edi
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -13586,7 +13590,7 @@ ___that$ = 8						; size = 4
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@ABV12@II@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 588  : }
+; 584  : }
 
 	lea	eax, DWORD PTR [esi+24]
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
@@ -15593,114 +15597,6 @@ $LN206@operator:
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-;	COMDAT ??$?H_WU?$char_traits@_W@std@@V?$allocator@_W@1@@std@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@$$QAV10@QB_W@Z
-_TEXT	SEGMENT
-$T1 = -4						; size = 4
-___$ReturnUdt$ = 8					; size = 4
-__Left$ = 12						; size = 4
-__Right$ = 16						; size = 4
-??$?H_WU?$char_traits@_W@std@@V?$allocator@_W@1@@std@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@$$QAV10@QB_W@Z PROC ; std::operator+<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >, COMDAT
-
-; 3802 : 	{	// return string + NTCTS
-
-	npad	2
-	push	ebp
-	mov	ebp, esp
-	push	ecx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-
-; 289  : 		return (_CSTD wcslen(_First));
-
-	mov	edx, DWORD PTR __Right$[ebp]
-	mov	eax, edx
-	push	esi
-	mov	DWORD PTR $T1[ebp], 0
-	lea	esi, DWORD PTR [eax+2]
-$LL71@operator:
-	mov	cx, WORD PTR [eax]
-	add	eax, 2
-	test	cx, cx
-	jne	SHORT $LL71@operator
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
-
-	mov	ecx, DWORD PTR __Left$[ebp]
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-
-; 289  : 		return (_CSTD wcslen(_First));
-
-	sub	eax, esi
-	sar	eax, 1
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
-
-	push	eax
-	push	edx
-	call	?append@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::append
-
-; 1595 : 		_Mysize(0),
-
-	mov	ecx, DWORD PTR ___$ReturnUdt$[ebp]
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-
-; 326  : 		_Left = _Right;
-
-	xor	edx, edx
-	pop	esi
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 1595 : 		_Mysize(0),
-
-	mov	DWORD PTR [ecx+16], 0
-
-; 1596 : 		_Myres(0)
-
-	mov	DWORD PTR [ecx+20], 0
-
-; 2143 : 		_CSTD memcpy(_My_data_mem, _Right_data_mem, _Memcpy_move_size);
-
-	movups	xmm0, XMMWORD PTR [eax]
-	movups	XMMWORD PTR [ecx], xmm0
-	movq	xmm0, QWORD PTR [eax+16]
-	movq	QWORD PTR [ecx+16], xmm0
-
-; 3597 : 		_My_data._Mysize = 0;
-
-	mov	DWORD PTR [eax+16], 0
-
-; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
-
-	mov	DWORD PTR [eax+20], 7
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-
-; 326  : 		_Left = _Right;
-
-	mov	WORD PTR [eax], dx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 3803 : 	return (_STD move(_Left.append(_Right)));
-
-	mov	eax, ecx
-
-; 3804 : 	}
-
-	mov	esp, ebp
-	pop	ebp
-	ret	0
-??$?H_WU?$char_traits@_W@std@@V?$allocator@_W@1@@std@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@$$QAV10@QB_W@Z ENDP ; std::operator+<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
-_TEXT	ENDS
-; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
@@ -15822,7 +15718,7 @@ text$di	SEGMENT
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	eax
-	push	OFFSET $SG155796
+	push	OFFSET $SG155868
 	mov	ecx, OFFSET ?__SK_LastProductTested@@3V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@A ; __SK_LastProductTested
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
@@ -17824,7 +17720,7 @@ __$EHRec$ = -12						; size = 12
 ___$ReturnUdt$ = 8					; size = 4
 ?SK_Version_GetLastCheckTime_WStr@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ PROC ; SK_Version_GetLastCheckTime_WStr
 
-; 528  : {
+; 524  : {
 
 	npad	2
 	push	ebp
@@ -17836,7 +17732,7 @@ ___$ReturnUdt$ = 8					; size = 4
 	mov	DWORD PTR fs:0, esp
 	sub	esp, 1668				; 00000684H
 
-; 531  :   HANDLE hFileBackup = FindFirstFile (std::wstring (SK_Version_GetRepoIniPath ()).c_str (), &FindFileData);
+; 527  :   HANDLE hFileBackup = FindFirstFile (std::wstring (SK_Version_GetRepoIniPath ()).c_str (), &FindFileData);
 
 	lea	eax, DWORD PTR $T2[ebp]
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
@@ -17862,7 +17758,7 @@ $LN19@SK_Version:
 	push	esi
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 531  :   HANDLE hFileBackup = FindFirstFile (std::wstring (SK_Version_GetRepoIniPath ()).c_str (), &FindFileData);
+; 527  :   HANDLE hFileBackup = FindFirstFile (std::wstring (SK_Version_GetRepoIniPath ()).c_str (), &FindFileData);
 
 	lea	ecx, DWORD PTR _FindFileData$[ebp]
 	push	ecx
@@ -17875,7 +17771,7 @@ $LN19@SK_Version:
 	mov	ecx, DWORD PTR $T2[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 531  :   HANDLE hFileBackup = FindFirstFile (std::wstring (SK_Version_GetRepoIniPath ()).c_str (), &FindFileData);
+; 527  :   HANDLE hFileBackup = FindFirstFile (std::wstring (SK_Version_GetRepoIniPath ()).c_str (), &FindFileData);
 
 	mov	esi, eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -17922,7 +17818,7 @@ $LN29@SK_Version:
 	mov	WORD PTR $T2[ebp], ax
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 534  :   FileTimeToLocalFileTime (&FindFileData.ftLastWriteTime, &ftModified);
+; 530  :   FileTimeToLocalFileTime (&FindFileData.ftLastWriteTime, &ftModified);
 
 	lea	eax, DWORD PTR _ftModified$[ebp]
 	push	eax
@@ -17934,14 +17830,14 @@ $LN29@SK_Version:
 	mov	DWORD PTR $T2[ebp+20], 7
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 534  :   FileTimeToLocalFileTime (&FindFileData.ftLastWriteTime, &ftModified);
+; 530  :   FileTimeToLocalFileTime (&FindFileData.ftLastWriteTime, &ftModified);
 
 	push	eax
 	call	DWORD PTR __imp__FileTimeToLocalFileTime@8
 
-; 535  : 
-; 536  :   SYSTEMTIME stModified;
-; 537  :   FileTimeToSystemTime (&ftModified, &stModified);
+; 531  : 
+; 532  :   SYSTEMTIME stModified;
+; 533  :   FileTimeToSystemTime (&ftModified, &stModified);
 
 	lea	eax, DWORD PTR _stModified$[ebp]
 	push	eax
@@ -17949,14 +17845,14 @@ $LN29@SK_Version:
 	push	eax
 	call	DWORD PTR __imp__FileTimeToSystemTime@8
 
-; 538  : 
-; 539  :   FindClose (hFileBackup);
+; 534  : 
+; 535  :   FindClose (hFileBackup);
 
 	push	esi
 	call	DWORD PTR __imp__FindClose@4
 
-; 540  : 
-; 541  :   wchar_t wszFileTime [512] = { };
+; 536  : 
+; 537  :   wchar_t wszFileTime [512] = { };
 
 	push	1024					; 00000400H
 	lea	eax, DWORD PTR _wszFileTime$[ebp]
@@ -17965,8 +17861,8 @@ $LN29@SK_Version:
 	call	_memset
 	add	esp, 12					; 0000000cH
 
-; 542  : 
-; 543  :   GetDateFormat (LOCALE_USER_DEFAULT, DATE_AUTOLAYOUT, &stModified, nullptr, wszFileTime, 512);
+; 538  : 
+; 539  :   GetDateFormat (LOCALE_USER_DEFAULT, DATE_AUTOLAYOUT, &stModified, nullptr, wszFileTime, 512);
 
 	lea	eax, DWORD PTR _wszFileTime$[ebp]
 	push	512					; 00000200H
@@ -18039,7 +17935,7 @@ $LL93@SK_Version:
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 552  :   return date_time;
+; 548  :   return date_time;
 
 	push	512					; 00000200H
 	lea	eax, DWORD PTR _wszFileTime$[ebp]
@@ -18057,7 +17953,7 @@ $LL93@SK_Version:
 ; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
 
 	push	1
-	push	OFFSET $SG175359
+	push	OFFSET $SG175420
 	mov	ecx, esi
 	call	?append@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::append
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -18092,7 +17988,7 @@ $LL94@SK_Version:
 	call	?append@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::append
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 553  : }
+; 549  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	eax, esi
@@ -18173,7 +18069,7 @@ _wszProduct$ = 8					; size = 4
 _szBranch$ = 12						; size = 4
 ?SK_Version_SwitchBranches@@YA_NPB_WPBD@Z PROC		; SK_Version_SwitchBranches
 
-; 705  : {
+; 701  : {
 
 	npad	2
 	push	ebp
@@ -18184,7 +18080,7 @@ _szBranch$ = 12						; size = 4
 	push	eax
 	mov	DWORD PTR fs:0, esp
 
-; 710  :   if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
+; 706  :   if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
 
 	lea	eax, DWORD PTR $T6[ebp]
 	sub	esp, 372				; 00000174H
@@ -18209,7 +18105,7 @@ $LN21@SK_Version:
 	push	ebx
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 710  :   if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
+; 706  :   if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
 
 	push	eax
 	call	DWORD PTR __imp__GetFileAttributesW@4
@@ -18221,7 +18117,7 @@ $LN21@SK_Version:
 	mov	eax, DWORD PTR $T6[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 710  :   if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
+; 706  :   if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
 
 	setne	bl
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -18249,13 +18145,13 @@ $LN21@SK_Version:
 $LN31@SK_Version:
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 710  :   if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
+; 706  :   if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
 
 	test	bl, bl
 	pop	ebx
 	je	$LN170@SK_Version
 
-; 712  :     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
+; 708  :     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
 
 	lea	eax, DWORD PTR $T5[ebp]
 	push	eax
@@ -18268,7 +18164,7 @@ $LN31@SK_Version:
 	cmp	DWORD PTR [eax+20], 8
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 712  :     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
+; 708  :     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -18284,7 +18180,7 @@ $LN31@SK_Version:
 $LN70@SK_Version:
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 712  :     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
+; 708  :     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
 
 	push	eax
 	lea	ecx, DWORD PTR _install_ini$3[ebp]
@@ -18296,7 +18192,7 @@ $LN70@SK_Version:
 	mov	eax, DWORD PTR $T5[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 712  :     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
+; 708  :     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 2
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -18340,7 +18236,7 @@ $LN80@SK_Version:
 	mov	DWORD PTR $T5[ebp+16], 0
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 716  :     wchar_t wszBranch [128] = { };
+; 712  :     wchar_t wszBranch [128] = { };
 
 	push	256					; 00000100H
 	push	eax
@@ -18351,7 +18247,7 @@ $LN80@SK_Version:
 	mov	WORD PTR $T5[ebp], ax
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 716  :     wchar_t wszBranch [128] = { };
+; 712  :     wchar_t wszBranch [128] = { };
 
 	lea	eax, DWORD PTR _wszBranch$2[ebp]
 	push	eax
@@ -18362,26 +18258,26 @@ $LN80@SK_Version:
 	mov	DWORD PTR $T5[ebp+20], 7
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 716  :     wchar_t wszBranch [128] = { };
+; 712  :     wchar_t wszBranch [128] = { };
 
 	call	_memset
 
-; 717  :     swprintf (wszBranch, L"%hs", szBranch);
+; 713  :     swprintf (wszBranch, L"%hs", szBranch);
 
 	push	DWORD PTR _szBranch$[ebp]
 	lea	eax, DWORD PTR _wszBranch$2[ebp]
-	push	OFFSET $SG176434
+	push	OFFSET $SG176495
 	push	eax
 	call	?swprintf@@YAHQA_WQB_WZZ		; swprintf
 	add	esp, 24					; 00000018H
 
-; 719  :     install_ini.get_section (L"Version.Local").get_value (L"Branch")         = wszBranch;
+; 715  :     install_ini.get_section (L"Version.Local").get_value (L"Branch")         = wszBranch;
 
 	lea	eax, DWORD PTR _install_ini$3[ebp]
-	push	OFFSET $SG176435
+	push	OFFSET $SG176496
 	push	eax
 	call	?get_section@iSK_INI@@UAGAAUiSK_INISection@@PB_W@Z ; iSK_INI::get_section
-	push	OFFSET $SG176436
+	push	OFFSET $SG176497
 	push	eax
 	mov	ecx, DWORD PTR [eax]
 	call	DWORD PTR [ecx+12]
@@ -18392,7 +18288,7 @@ $LN80@SK_Version:
 	lea	ecx, DWORD PTR _wszBranch$2[ebp]
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 719  :     install_ini.get_section (L"Version.Local").get_value (L"Branch")         = wszBranch;
+; 715  :     install_ini.get_section (L"Version.Local").get_value (L"Branch")         = wszBranch;
 
 	mov	edx, eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -18426,13 +18322,13 @@ $LL169@SK_Version:
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 720  :     install_ini.get_section (L"Version.Local").get_value (L"InstallPackage") = L"PendingBranchMigration,0";
+; 716  :     install_ini.get_section (L"Version.Local").get_value (L"InstallPackage") = L"PendingBranchMigration,0";
 
-	push	OFFSET $SG176437
+	push	OFFSET $SG176498
 	lea	eax, DWORD PTR _install_ini$3[ebp]
 	push	eax
 	call	?get_section@iSK_INI@@UAGAAUiSK_INISection@@PB_W@Z ; iSK_INI::get_section
-	push	OFFSET $SG176438
+	push	OFFSET $SG176499
 	push	eax
 	mov	ecx, DWORD PTR [eax]
 	call	DWORD PTR [ecx+12]
@@ -18441,12 +18337,12 @@ $LL169@SK_Version:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	24					; 00000018H
-	push	OFFSET $SG176439
+	push	OFFSET $SG176500
 	mov	ecx, eax
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 722  :     install_ini.write (SK_Version_GetInstallIniPath ().c_str ());
+; 718  :     install_ini.write (SK_Version_GetInstallIniPath ().c_str ());
 
 	lea	eax, DWORD PTR $T4[ebp]
 	push	eax
@@ -18470,7 +18366,7 @@ $LL169@SK_Version:
 $LN133@SK_Version:
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 722  :     install_ini.write (SK_Version_GetInstallIniPath ().c_str ());
+; 718  :     install_ini.write (SK_Version_GetInstallIniPath ().c_str ());
 
 	push	eax
 	lea	eax, DWORD PTR _install_ini$3[ebp]
@@ -18507,15 +18403,15 @@ $LN133@SK_Version:
 $LN143@SK_Version:
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 723  :   }
+; 719  :   }
 
 	lea	ecx, DWORD PTR _install_ini$3[ebp]
 	call	??1iSK_INI@@QAE@XZ			; iSK_INI::~iSK_INI
 $LN170@SK_Version:
 
-; 724  : 
-; 725  :   return true;
-; 726  : }
+; 720  : 
+; 721  :   return true;
+; 722  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	al, 1
@@ -18580,7 +18476,7 @@ __$EHRec$ = -12						; size = 12
 _wszProduct$ = 8					; size = 4
 ?SK_Version_ForceUpdateNextLaunch@@YAXPB_W@Z PROC	; SK_Version_ForceUpdateNextLaunch
 
-; 678  : {
+; 674  : {
 
 	npad	2
 	push	ebp
@@ -18591,7 +18487,7 @@ _wszProduct$ = 8					; size = 4
 	push	eax
 	mov	DWORD PTR fs:0, esp
 
-; 683  :   if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
+; 679  :   if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
 
 	lea	eax, DWORD PTR $T5[ebp]
 	sub	esp, 116				; 00000074H
@@ -18616,7 +18512,7 @@ $LN23@SK_Version:
 	push	ebx
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 683  :   if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
+; 679  :   if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
 
 	push	eax
 	call	DWORD PTR __imp__GetFileAttributesW@4
@@ -18628,7 +18524,7 @@ $LN23@SK_Version:
 	mov	eax, DWORD PTR $T5[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 683  :   if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
+; 679  :   if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
 
 	setne	bl
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -18656,13 +18552,13 @@ $LN23@SK_Version:
 $LN33@SK_Version:
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 683  :   if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
+; 679  :   if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
 
 	test	bl, bl
 	pop	ebx
 	je	$LN2@SK_Version
 
-; 685  :     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
+; 681  :     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
 
 	lea	eax, DWORD PTR $T4[ebp]
 	push	eax
@@ -18675,7 +18571,7 @@ $LN33@SK_Version:
 	cmp	DWORD PTR [eax+20], 8
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 685  :     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
+; 681  :     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -18691,7 +18587,7 @@ $LN33@SK_Version:
 $LN72@SK_Version:
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 685  :     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
+; 681  :     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
 
 	push	eax
 	lea	ecx, DWORD PTR _install_ini$2[ebp]
@@ -18703,7 +18599,7 @@ $LN72@SK_Version:
 	mov	eax, DWORD PTR $T4[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 685  :     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
+; 681  :     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 2
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -18751,10 +18647,10 @@ $LN82@SK_Version:
 	mov	WORD PTR $T4[ebp], ax
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 687  :     if (install_ini.contains_section (L"Update.User"))
+; 683  :     if (install_ini.contains_section (L"Update.User"))
 
 	lea	eax, DWORD PTR _install_ini$2[ebp]
-	push	OFFSET $SG176413
+	push	OFFSET $SG176474
 	push	eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
@@ -18763,58 +18659,58 @@ $LN82@SK_Version:
 	mov	DWORD PTR $T4[ebp+20], 7
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 687  :     if (install_ini.contains_section (L"Update.User"))
+; 683  :     if (install_ini.contains_section (L"Update.User"))
 
 	call	?contains_section@iSK_INI@@UAG_NPB_W@Z	; iSK_INI::contains_section
 	test	al, al
 	je	SHORT $LN4@SK_Version
 
-; 688  :     {
-; 689  :       if (install_ini.get_section (L"Update.User").contains_key (L"Reminder"))
+; 684  :     {
+; 685  :       if (install_ini.get_section (L"Update.User").contains_key (L"Reminder"))
 
-	push	OFFSET $SG176415
+	push	OFFSET $SG176476
 	lea	eax, DWORD PTR _install_ini$2[ebp]
 	push	eax
 	call	?get_section@iSK_INI@@UAGAAUiSK_INISection@@PB_W@Z ; iSK_INI::get_section
-	push	OFFSET $SG176416
+	push	OFFSET $SG176477
 	push	eax
 	mov	ecx, DWORD PTR [eax]
 	call	DWORD PTR [ecx+20]
 	test	al, al
 	je	SHORT $LN4@SK_Version
 
-; 690  :           install_ini.get_section (L"Update.User").remove_key   (L"Reminder");
+; 686  :           install_ini.get_section (L"Update.User").remove_key   (L"Reminder");
 
-	push	OFFSET $SG176417
+	push	OFFSET $SG176478
 	lea	eax, DWORD PTR _install_ini$2[ebp]
 	push	eax
 	call	?get_section@iSK_INI@@UAGAAUiSK_INISection@@PB_W@Z ; iSK_INI::get_section
-	push	OFFSET $SG176418
+	push	OFFSET $SG176479
 	push	eax
 	mov	ecx, DWORD PTR [eax]
 	call	DWORD PTR [ecx+28]
 $LN4@SK_Version:
 
-; 691  :     }
-; 692  : 
-; 693  :     iSK_INISection& user_prefs =
+; 687  :     }
+; 688  : 
+; 689  :     iSK_INISection& user_prefs =
 
-	push	OFFSET $SG176419
+	push	OFFSET $SG176480
 	lea	eax, DWORD PTR _install_ini$2[ebp]
 	push	eax
 	call	?get_section@iSK_INI@@UAGAAUiSK_INISection@@PB_W@Z ; iSK_INI::get_section
 
-; 694  :       install_ini.get_section (L"Update.User");
-; 695  : 
-; 696  :     user_prefs.add_key_value (L"Reminder", L"0");
+; 690  :       install_ini.get_section (L"Update.User");
+; 691  : 
+; 692  :     user_prefs.add_key_value (L"Reminder", L"0");
 
-	push	OFFSET $SG176420
-	push	OFFSET $SG176421
+	push	OFFSET $SG176481
+	push	OFFSET $SG176482
 	push	eax
 	mov	ecx, DWORD PTR [eax]
 	call	DWORD PTR [ecx+24]
 
-; 698  :     install_ini.write (SK_Version_GetInstallIniPath ().c_str ());
+; 694  :     install_ini.write (SK_Version_GetInstallIniPath ().c_str ());
 
 	lea	eax, DWORD PTR $T3[ebp]
 	push	eax
@@ -18837,7 +18733,7 @@ $LN4@SK_Version:
 $LN121@SK_Version:
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 698  :     install_ini.write (SK_Version_GetInstallIniPath ().c_str ());
+; 694  :     install_ini.write (SK_Version_GetInstallIniPath ().c_str ());
 
 	push	eax
 	lea	eax, DWORD PTR _install_ini$2[ebp]
@@ -18874,13 +18770,13 @@ $LN121@SK_Version:
 $LN131@SK_Version:
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 699  :   }
+; 695  :   }
 
 	lea	ecx, DWORD PTR _install_ini$2[ebp]
 	call	??1iSK_INI@@QAE@XZ			; iSK_INI::~iSK_INI
 $LN2@SK_Version:
 
-; 700  : }
+; 696  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -18953,7 +18849,7 @@ _wszProduct$ = 8					; size = 4
 _freq$ = 12						; size = 8
 ?SK_Version_SetUpdateFrequency@@YAXPB_W_K@Z PROC	; SK_Version_SetUpdateFrequency
 
-; 647  : {
+; 643  : {
 
 	npad	2
 	push	ebp
@@ -18964,7 +18860,7 @@ _freq$ = 12						; size = 8
 	push	eax
 	mov	DWORD PTR fs:0, esp
 
-; 652  :   if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
+; 648  :   if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
 
 	lea	eax, DWORD PTR $T6[ebp]
 	sub	esp, 372				; 00000174H
@@ -18989,7 +18885,7 @@ $LN25@SK_Version:
 	push	ebx
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 652  :   if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
+; 648  :   if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
 
 	push	eax
 	call	DWORD PTR __imp__GetFileAttributesW@4
@@ -19001,7 +18897,7 @@ $LN25@SK_Version:
 	mov	eax, DWORD PTR $T6[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 652  :   if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
+; 648  :   if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
 
 	setne	bl
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -19029,13 +18925,13 @@ $LN25@SK_Version:
 $LN35@SK_Version:
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 652  :   if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
+; 648  :   if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
 
 	test	bl, bl
 	pop	ebx
 	je	$LN2@SK_Version
 
-; 654  :     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
+; 650  :     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
 
 	lea	eax, DWORD PTR $T5[ebp]
 	push	eax
@@ -19048,7 +18944,7 @@ $LN35@SK_Version:
 	cmp	DWORD PTR [eax+20], 8
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 654  :     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
+; 650  :     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -19064,7 +18960,7 @@ $LN35@SK_Version:
 $LN74@SK_Version:
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 654  :     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
+; 650  :     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
 
 	push	eax
 	lea	ecx, DWORD PTR _install_ini$3[ebp]
@@ -19076,7 +18972,7 @@ $LN74@SK_Version:
 	mov	eax, DWORD PTR $T5[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 654  :     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
+; 650  :     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 2
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -19125,10 +19021,10 @@ $LN84@SK_Version:
 	mov	WORD PTR $T5[ebp], ax
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 656  :     iSK_INISection& user_prefs =
+; 652  :     iSK_INISection& user_prefs =
 
 	lea	eax, DWORD PTR _install_ini$3[ebp]
-	push	OFFSET $SG176391
+	push	OFFSET $SG176452
 	push	eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
@@ -19137,13 +19033,13 @@ $LN84@SK_Version:
 	mov	DWORD PTR $T5[ebp+20], 7
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 656  :     iSK_INISection& user_prefs =
+; 652  :     iSK_INISection& user_prefs =
 
 	call	?get_section@iSK_INI@@UAGAAUiSK_INISection@@PB_W@Z ; iSK_INI::get_section
 
-; 657  :       install_ini.get_section (L"Update.User");
-; 658  : 
-; 659  :     wchar_t wszFormatted [128] = { };
+; 653  :       install_ini.get_section (L"Update.User");
+; 654  : 
+; 655  :     wchar_t wszFormatted [128] = { };
 
 	push	256					; 00000100H
 	mov	esi, eax
@@ -19152,8 +19048,8 @@ $LN84@SK_Version:
 	push	eax
 	call	_memset
 
-; 660  : 
-; 661  :     if (freq > 0 && freq < MAXULONGLONG)
+; 656  : 
+; 657  :     if (freq > 0 && freq < MAXULONGLONG)
 
 	mov	ecx, DWORD PTR _freq$[ebp+4]
 	add	esp, 12					; 0000000cH
@@ -19170,7 +19066,7 @@ $LN166@SK_Version:
 	jae	SHORT $LN3@SK_Version
 $LN167@SK_Version:
 
-; 662  :       _swprintf (wszFormatted, L"%lluh", freq / 36000000000ULL);
+; 658  :       _swprintf (wszFormatted, L"%lluh", freq / 36000000000ULL);
 
 	push	8
 	push	1640261632				; 61c46800H
@@ -19180,52 +19076,52 @@ $LN167@SK_Version:
 	push	edx
 	push	eax
 	lea	eax, DWORD PTR _wszFormatted$2[ebp]
-	push	OFFSET $SG176394
+	push	OFFSET $SG176455
 	push	eax
 	call	__swprintf
 	add	esp, 16					; 00000010H
 
-; 663  :     else
+; 659  :     else
 
 	jmp	SHORT $LN4@SK_Version
 $LN3@SK_Version:
 
-; 664  :       _swprintf (wszFormatted, L"never");
+; 660  :       _swprintf (wszFormatted, L"never");
 
 	lea	eax, DWORD PTR _wszFormatted$2[ebp]
-	push	OFFSET $SG176395
+	push	OFFSET $SG176456
 	push	eax
 	call	__swprintf
 	add	esp, 8
 $LN4@SK_Version:
 
-; 665  : 
-; 666  :     if (! user_prefs.contains_key (L"Frequency"))
+; 661  : 
+; 662  :     if (! user_prefs.contains_key (L"Frequency"))
 
 	mov	eax, DWORD PTR [esi]
-	push	OFFSET $SG176398
+	push	OFFSET $SG176459
 	push	esi
 	call	DWORD PTR [eax+20]
 	test	al, al
 
-; 667  :       user_prefs.add_key_value (L"Frequency", wszFormatted);
+; 663  :       user_prefs.add_key_value (L"Frequency", wszFormatted);
 
 	mov	eax, DWORD PTR [esi]
 	jne	SHORT $LN5@SK_Version
 	lea	ecx, DWORD PTR _wszFormatted$2[ebp]
 	push	ecx
-	push	OFFSET $SG176399
+	push	OFFSET $SG176460
 	push	esi
 	call	DWORD PTR [eax+24]
 
-; 668  :     else
+; 664  :     else
 
 	jmp	SHORT $LN6@SK_Version
 $LN5@SK_Version:
 
-; 669  :       user_prefs.get_value (L"Frequency") = wszFormatted;
+; 665  :       user_prefs.get_value (L"Frequency") = wszFormatted;
 
-	push	OFFSET $SG176400
+	push	OFFSET $SG176461
 	push	esi
 	call	DWORD PTR [eax+12]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -19235,7 +19131,7 @@ $LN5@SK_Version:
 	lea	ecx, DWORD PTR _wszFormatted$2[ebp]
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 669  :       user_prefs.get_value (L"Frequency") = wszFormatted;
+; 665  :       user_prefs.get_value (L"Frequency") = wszFormatted;
 
 	mov	edx, eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -19270,7 +19166,7 @@ $LL168@SK_Version:
 $LN6@SK_Version:
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 671  :     install_ini.write (SK_Version_GetInstallIniPath ().c_str ());
+; 667  :     install_ini.write (SK_Version_GetInstallIniPath ().c_str ());
 
 	lea	eax, DWORD PTR $T4[ebp]
 	push	eax
@@ -19294,7 +19190,7 @@ $LN6@SK_Version:
 $LN130@SK_Version:
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 671  :     install_ini.write (SK_Version_GetInstallIniPath ().c_str ());
+; 667  :     install_ini.write (SK_Version_GetInstallIniPath ().c_str ());
 
 	push	eax
 	lea	eax, DWORD PTR _install_ini$3[ebp]
@@ -19331,13 +19227,13 @@ $LN130@SK_Version:
 $LN140@SK_Version:
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 672  :   }
+; 668  :   }
 
 	lea	ecx, DWORD PTR _install_ini$3[ebp]
 	call	??1iSK_INI@@QAE@XZ			; iSK_INI::~iSK_INI
 $LN2@SK_Version:
 
-; 673  : }
+; 669  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -19429,7 +19325,7 @@ __$EHRec$ = -12						; size = 12
 _wszProduct$ = 8					; size = 4
 ?SK_Version_GetUpdateFrequency@@YA_KPB_W@Z PROC		; SK_Version_GetUpdateFrequency
 
-; 593  : {
+; 589  : {
 
 	npad	2
 	push	ebp
@@ -19440,7 +19336,7 @@ _wszProduct$ = 8					; size = 4
 	push	eax
 	mov	DWORD PTR fs:0, esp
 
-; 600  :   if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
+; 596  :   if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
 
 	lea	eax, DWORD PTR $T5[ebp]
 	sub	esp, 168				; 000000a8H
@@ -19465,7 +19361,7 @@ $LN24@SK_Version:
 	push	ebx
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 600  :   if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
+; 596  :   if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
 
 	push	eax
 	call	DWORD PTR __imp__GetFileAttributesW@4
@@ -19477,7 +19373,7 @@ $LN24@SK_Version:
 	mov	eax, DWORD PTR $T5[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 600  :   if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
+; 596  :   if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
 
 	setne	bl
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -19505,12 +19401,12 @@ $LN24@SK_Version:
 $LN34@SK_Version:
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 600  :   if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
+; 596  :   if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
 
 	test	bl, bl
 	je	$LN249@SK_Version
 
-; 602  :     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
+; 598  :     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
 
 	lea	eax, DWORD PTR $T4[ebp]
 	push	eax
@@ -19523,7 +19419,7 @@ $LN34@SK_Version:
 	cmp	DWORD PTR [eax+20], 8
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 602  :     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
+; 598  :     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -19539,7 +19435,7 @@ $LN34@SK_Version:
 $LN73@SK_Version:
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 602  :     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
+; 598  :     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
 
 	push	eax
 	lea	ecx, DWORD PTR _install_ini$2[ebp]
@@ -19551,7 +19447,7 @@ $LN73@SK_Version:
 	mov	eax, DWORD PTR $T4[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 602  :     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
+; 598  :     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 2
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -19596,10 +19492,10 @@ $LN83@SK_Version:
 	mov	WORD PTR $T4[ebp], ax
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 604  :     iSK_INISection& user_prefs =
+; 600  :     iSK_INISection& user_prefs =
 
 	lea	eax, DWORD PTR _install_ini$2[ebp]
-	push	OFFSET $SG176364
+	push	OFFSET $SG176425
 	push	eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
@@ -19608,28 +19504,28 @@ $LN83@SK_Version:
 	mov	DWORD PTR $T4[ebp+20], 7
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 604  :     iSK_INISection& user_prefs =
+; 600  :     iSK_INISection& user_prefs =
 
 	call	?get_section@iSK_INI@@UAGAAUiSK_INISection@@PB_W@Z ; iSK_INI::get_section
 	mov	esi, eax
 
-; 605  :       install_ini.get_section (L"Update.User");
-; 606  : 
-; 607  :     bool has_freq =
-; 608  :       user_prefs.contains_key (L"Frequency");
+; 601  :       install_ini.get_section (L"Update.User");
+; 602  : 
+; 603  :     bool has_freq =
+; 604  :       user_prefs.contains_key (L"Frequency");
 
-	push	OFFSET $SG176365
+	push	OFFSET $SG176426
 	push	esi
 	mov	eax, DWORD PTR [esi]
 	call	DWORD PTR [eax+20]
 	mov	bl, al
 
-; 609  : 
-; 610  :     std::wstring freq =
-; 611  :       user_prefs.get_value (L"Frequency");
+; 605  : 
+; 606  :     std::wstring freq =
+; 607  :       user_prefs.get_value (L"Frequency");
 
 	mov	eax, DWORD PTR [esi]
-	push	OFFSET $SG176366
+	push	OFFSET $SG176427
 	push	esi
 	call	DWORD PTR [eax+12]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -19668,7 +19564,7 @@ $LN83@SK_Version:
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@ABV12@II@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 613  :     wchar_t h [3] = { L"0" },
+; 609  :     wchar_t h [3] = { L"0" },
 
 	xor	eax, eax
 	mov	BYTE PTR __$EHRec$[ebp+8], 3
@@ -19679,7 +19575,7 @@ $LN83@SK_Version:
 	cmp	DWORD PTR _freq$8[ebp+20], 8
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 617  :     swscanf ( freq.c_str (), L"%3[^h]h", h );
+; 613  :     swscanf ( freq.c_str (), L"%3[^h]h", h );
 
 	lea	ecx, DWORD PTR _h$9[ebp]
 	mov	WORD PTR _h$9[ebp+4], ax
@@ -19693,10 +19589,10 @@ $LN83@SK_Version:
 	cmovae	eax, DWORD PTR _freq$8[ebp]
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 617  :     swscanf ( freq.c_str (), L"%3[^h]h", h );
+; 613  :     swscanf ( freq.c_str (), L"%3[^h]h", h );
 
 	push	ecx
-	push	OFFSET $SG176370
+	push	OFFSET $SG176431
 	push	eax
 	mov	DWORD PTR _h$9[ebp], 48			; 00000030H
 	mov	DWORD PTR _d$7[ebp], 48			; 00000030H
@@ -19704,25 +19600,25 @@ $LN83@SK_Version:
 	call	_swscanf
 	add	esp, 12					; 0000000cH
 
-; 618  : 
-; 619  :     // Default to 6h if unspecified
-; 620  :     if (! has_freq)
+; 614  : 
+; 615  :     // Default to 6h if unspecified
+; 616  :     if (! has_freq)
 
 	test	bl, bl
 	jne	SHORT $LN191@SK_Version
 
-; 621  :     {
-; 622  :       wcscpy (h, L"6");
-; 623  : 
-; 624  :       install_ini.import (L"[Update.User]\nFrequency=6h\n\n");
+; 617  :     {
+; 618  :       wcscpy (h, L"6");
+; 619  : 
+; 620  :       install_ini.import (L"[Update.User]\nFrequency=6h\n\n");
 
-	push	OFFSET $SG176373
+	push	OFFSET $SG176434
 	lea	eax, DWORD PTR _install_ini$2[ebp]
 	mov	DWORD PTR _h$9[ebp], 54			; 00000036H
 	push	eax
 	call	?import@iSK_INI@@UAGXPB_W@Z		; iSK_INI::import
 
-; 625  :       install_ini.write  (SK_Version_GetInstallIniPath ().c_str ());
+; 621  :       install_ini.write  (SK_Version_GetInstallIniPath ().c_str ());
 
 	lea	eax, DWORD PTR $T3[ebp]
 	push	eax
@@ -19745,7 +19641,7 @@ $LN83@SK_Version:
 $LN181@SK_Version:
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 625  :       install_ini.write  (SK_Version_GetInstallIniPath ().c_str ());
+; 621  :       install_ini.write  (SK_Version_GetInstallIniPath ().c_str ());
 
 	push	eax
 	lea	eax, DWORD PTR _install_ini$2[ebp]
@@ -19782,7 +19678,7 @@ $LN181@SK_Version:
 $LN191@SK_Version:
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 630  :     update_freq += (   1ULL * _Hour * _wtoi (h) );
+; 626  :     update_freq += (   1ULL * _Hour * _wtoi (h) );
 
 	mov	ebx, DWORD PTR __imp___wtoi
 	lea	eax, DWORD PTR _h$9[ebp]
@@ -19798,7 +19694,7 @@ $LN191@SK_Version:
 	mov	esi, eax
 	mov	edi, edx
 
-; 631  :     update_freq += (  24ULL * _Hour * _wtoi (d) );
+; 627  :     update_freq += (  24ULL * _Hour * _wtoi (d) );
 
 	lea	eax, DWORD PTR _d$7[ebp]
 	push	eax
@@ -19812,7 +19708,7 @@ $LN191@SK_Version:
 	call	__allmul
 	mov	ebx, eax
 
-; 632  :     update_freq += ( 168ULL * _Hour * _wtoi (w) );
+; 628  :     update_freq += ( 168ULL * _Hour * _wtoi (w) );
 
 	lea	eax, DWORD PTR _w$6[ebp]
 	add	ebx, esi
@@ -19835,7 +19731,7 @@ $LN191@SK_Version:
 	lea	ecx, DWORD PTR _freq$8[ebp]
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 632  :     update_freq += ( 168ULL * _Hour * _wtoi (w) );
+; 628  :     update_freq += ( 168ULL * _Hour * _wtoi (w) );
 
 	add	edi, ebx
 	mov	eax, edx
@@ -19843,10 +19739,10 @@ $LN191@SK_Version:
 
 ; 3844 : 	return (_Left._Equal(_Right));
 
-	push	OFFSET $SG176375
+	push	OFFSET $SG176436
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 632  :     update_freq += ( 168ULL * _Hour * _wtoi (w) );
+; 628  :     update_freq += ( 168ULL * _Hour * _wtoi (w) );
 
 	adc	eax, esi
 	add	edi, -1
@@ -19859,12 +19755,12 @@ $LN191@SK_Version:
 	call	?_Equal@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBE_NQB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Equal
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 637  :     if (freq == L"never")
+; 633  :     if (freq == L"never")
 
 	test	al, al
 	je	SHORT $LN250@SK_Version
 
-; 638  :       update_freq = MAXULONGLONG;
+; 634  :       update_freq = MAXULONGLONG;
 
 	or	edi, -1
 	or	esi, -1
@@ -19913,7 +19809,7 @@ $LN223@SK_Version:
 	mov	DWORD PTR _freq$8[ebp+16], 0
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 639  :   }
+; 635  :   }
 
 	lea	ecx, DWORD PTR _install_ini$2[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -19928,12 +19824,12 @@ $LN223@SK_Version:
 	mov	WORD PTR _freq$8[ebp], ax
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 639  :   }
+; 635  :   }
 
 	call	??1iSK_INI@@QAE@XZ			; iSK_INI::~iSK_INI
 
-; 640  : 
-; 641  :   return update_freq;
+; 636  : 
+; 637  :   return update_freq;
 
 	mov	eax, edi
 	mov	edx, esi
@@ -19941,7 +19837,7 @@ $LN223@SK_Version:
 	pop	esi
 	pop	ebx
 
-; 642  : }
+; 638  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -20052,7 +19948,7 @@ ___$ReturnUdt$ = 8					; size = 4
 _wszProduct$ = 12					; size = 4
 ?SK_Version_GetAvailableBranches@@YA?AV?$vector@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$allocator@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@2@@std@@PB_W@Z PROC ; SK_Version_GetAvailableBranches
 
-; 560  : {
+; 556  : {
 
 	npad	2
 	push	ebp
@@ -20064,7 +19960,7 @@ _wszProduct$ = 12					; size = 4
 	mov	DWORD PTR fs:0, esp
 	sub	esp, 476				; 000001dcH
 
-; 561  :   if (wszProduct == nullptr)
+; 557  :   if (wszProduct == nullptr)
 
 	mov	eax, DWORD PTR _wszProduct$[ebp]
 	mov	DWORD PTR $T8[ebp], 0
@@ -20100,7 +19996,7 @@ $LN18@SK_Version:
 	mov	DWORD PTR [ecx+8], 0
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 587  :   return branches;
+; 583  :   return branches;
 
 	push	eax
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
@@ -20127,7 +20023,7 @@ $LN18@SK_Version:
 $LN59@SK_Version:
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 568  :   if (GetFileAttributes (SK_Version_GetRepoIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
+; 564  :   if (GetFileAttributes (SK_Version_GetRepoIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
 
 	push	eax
 	call	DWORD PTR __imp__GetFileAttributesW@4
@@ -20139,7 +20035,7 @@ $LN59@SK_Version:
 	mov	eax, DWORD PTR $T7[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 568  :   if (GetFileAttributes (SK_Version_GetRepoIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
+; 564  :   if (GetFileAttributes (SK_Version_GetRepoIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
 
 	setne	bl
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -20167,12 +20063,12 @@ $LN59@SK_Version:
 $LN68@SK_Version:
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 568  :   if (GetFileAttributes (SK_Version_GetRepoIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
+; 564  :   if (GetFileAttributes (SK_Version_GetRepoIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
 
 	test	bl, bl
 	je	$LN6@SK_Version
 
-; 570  :     iSK_INI repo_ini (SK_Version_GetRepoIniPath ().c_str ());
+; 566  :     iSK_INI repo_ini (SK_Version_GetRepoIniPath ().c_str ());
 
 	lea	eax, DWORD PTR $T6[ebp]
 	push	eax
@@ -20185,7 +20081,7 @@ $LN68@SK_Version:
 	cmp	DWORD PTR [eax+20], 8
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 570  :     iSK_INI repo_ini (SK_Version_GetRepoIniPath ().c_str ());
+; 566  :     iSK_INI repo_ini (SK_Version_GetRepoIniPath ().c_str ());
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -20201,7 +20097,7 @@ $LN68@SK_Version:
 $LN108@SK_Version:
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 570  :     iSK_INI repo_ini (SK_Version_GetRepoIniPath ().c_str ());
+; 566  :     iSK_INI repo_ini (SK_Version_GetRepoIniPath ().c_str ());
 
 	push	eax
 	lea	ecx, DWORD PTR _repo_ini$3[ebp]
@@ -20213,7 +20109,7 @@ $LN108@SK_Version:
 	mov	eax, DWORD PTR $T6[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 570  :     iSK_INI repo_ini (SK_Version_GetRepoIniPath ().c_str ());
+; 566  :     iSK_INI repo_ini (SK_Version_GetRepoIniPath ().c_str ());
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 3
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -20256,7 +20152,7 @@ $LN117@SK_Version:
 	mov	WORD PTR $T6[ebp], ax
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 572  :     iSK_INI::_TSectionMap& sections =
+; 568  :     iSK_INI::_TSectionMap& sections =
 
 	lea	eax, DWORD PTR _repo_ini$3[ebp]
 	push	eax
@@ -20267,7 +20163,7 @@ $LN117@SK_Version:
 	mov	DWORD PTR $T6[ebp+20], 7
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 572  :     iSK_INI::_TSectionMap& sections =
+; 568  :     iSK_INI::_TSectionMap& sections =
 
 	call	?get_sections@iSK_INI@@UAGABV?$unordered_map@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@UiSK_INISection@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@U?$pair@$$CBV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@UiSK_INISection@@@std@@@2@@std@@XZ ; iSK_INI::get_sections
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\list
@@ -20286,7 +20182,7 @@ $LN117@SK_Version:
 	cmp	esi, edi
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 575  :     for ( auto it : sections )
+; 571  :     for ( auto it : sections )
 
 	je	$LN435@SK_Version
 $LL4@SK_Version:
@@ -20332,7 +20228,7 @@ $LL4@SK_Version:
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@ABV12@II@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 588  : }
+; 584  : }
 
 	lea	eax, DWORD PTR [ebx+24]
 	mov	BYTE PTR __$EHRec$[ebp+8], 4
@@ -20350,9 +20246,9 @@ $LL4@SK_Version:
 	lea	edx, DWORD PTR _it$5[ebp]
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 577  :       if (StrStrIW (it.first.c_str (), L"Version.") == it.first.c_str ())
+; 573  :       if (StrStrIW (it.first.c_str (), L"Version.") == it.first.c_str ())
 
-	push	OFFSET $SG176319
+	push	OFFSET $SG176380
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
@@ -20362,7 +20258,7 @@ $LL4@SK_Version:
 	cmovae	ebx, DWORD PTR _it$5[ebp]
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 577  :       if (StrStrIW (it.first.c_str (), L"Version.") == it.first.c_str ())
+; 573  :       if (StrStrIW (it.first.c_str (), L"Version.") == it.first.c_str ())
 
 	push	edx
 	mov	BYTE PTR __$EHRec$[ebp+8], 5
@@ -20370,8 +20266,8 @@ $LL4@SK_Version:
 	cmp	eax, ebx
 	jne	$LN353@SK_Version
 
-; 578  :       {
-; 579  :         wchar_t wszBranchName [128] = { };
+; 574  :       {
+; 575  :         wchar_t wszBranchName [128] = { };
 
 	push	256					; 00000100H
 	lea	eax, DWORD PTR _wszBranchName$2[ebp]
@@ -20385,7 +20281,7 @@ $LL4@SK_Version:
 	cmp	DWORD PTR _it$5[ebp+20], 8
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 580  :         swscanf (it.first.c_str (), L"Version.%s", wszBranchName);
+; 576  :         swscanf (it.first.c_str (), L"Version.%s", wszBranchName);
 
 	lea	ecx, DWORD PTR _wszBranchName$2[ebp]
 	push	ecx
@@ -20397,13 +20293,13 @@ $LL4@SK_Version:
 	cmovae	eax, DWORD PTR _it$5[ebp]
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 580  :         swscanf (it.first.c_str (), L"Version.%s", wszBranchName);
+; 576  :         swscanf (it.first.c_str (), L"Version.%s", wszBranchName);
 
-	push	OFFSET $SG176320
+	push	OFFSET $SG176381
 	push	eax
 	call	_swscanf
 
-; 582  :         branches.push_back (SK_WideCharToUTF8 (wszBranchName));
+; 578  :         branches.push_back (SK_WideCharToUTF8 (wszBranchName));
 
 	mov	edx, esp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -20456,7 +20352,7 @@ $LL436@SK_Version:
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 582  :         branches.push_back (SK_WideCharToUTF8 (wszBranchName));
+; 578  :         branches.push_back (SK_WideCharToUTF8 (wszBranchName));
 
 	lea	eax, DWORD PTR $T4[ebp]
 	push	eax
@@ -20470,7 +20366,7 @@ $LL436@SK_Version:
 	push	eax
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 582  :         branches.push_back (SK_WideCharToUTF8 (wszBranchName));
+; 578  :         branches.push_back (SK_WideCharToUTF8 (wszBranchName));
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 6
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
@@ -20505,7 +20401,7 @@ $LN353@SK_Version:
 	lea	ecx, DWORD PTR _it$5[ebp+24]
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 584  :     }
+; 580  :     }
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 3
 	call	??1iSK_INISection@@QAE@XZ
@@ -20622,22 +20518,22 @@ $LN416@SK_Version:
 	cmp	esi, edi
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 575  :     for ( auto it : sections )
+; 571  :     for ( auto it : sections )
 
 	jne	$LL4@SK_Version
 $LN435@SK_Version:
 
-; 585  :   }
+; 581  :   }
 
 	lea	ecx, DWORD PTR _repo_ini$3[ebp]
 	call	??1iSK_INI@@QAE@XZ			; iSK_INI::~iSK_INI
 $LN6@SK_Version:
 
-; 587  :   return branches;
+; 583  :   return branches;
 
 	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
 
-; 588  : }
+; 584  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	pop	edi
@@ -20804,7 +20700,7 @@ _wszProduct$ = 12					; size = 4
 _szBranch$ = 16						; size = 4
 ?SK_Version_GetLatestBranchInfo_V1@@YA?AUSK_BranchInfo_V1@@PB_WPBD@Z PROC ; SK_Version_GetLatestBranchInfo_V1
 
-; 732  : {
+; 728  : {
 
 	npad	2
 	push	ebp
@@ -20816,7 +20712,7 @@ _szBranch$ = 16						; size = 4
 	mov	DWORD PTR fs:0, esp
 	sub	esp, 800				; 00000320H
 
-; 737  :   static SK_BranchInfo_V1 __INVAID_BRANCH
+; 733  :   static SK_BranchInfo_V1 __INVAID_BRANCH
 
 	mov	eax, DWORD PTR fs:__tls_array
 	mov	ecx, DWORD PTR __tls_index
@@ -20835,11 +20731,11 @@ _szBranch$ = 16						; size = 4
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	7
-	push	OFFSET $SG176546
+	push	OFFSET $SG176607
 	mov	ecx, OFFSET ?__INVAID_BRANCH@?1??SK_Version_GetLatestBranchInfo_V1@@YA?AUSK_BranchInfo_V1@@PB_WPBD@Z@4U2@A+4
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 737  :   static SK_BranchInfo_V1 __INVAID_BRANCH
+; 733  :   static SK_BranchInfo_V1 __INVAID_BRANCH
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -20855,14 +20751,14 @@ _szBranch$ = 16						; size = 4
 	xor	eax, eax
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 739  :     0x1, L"Invalid", L"Invalid", L"Invalid",
+; 735  :     0x1, L"Invalid", L"Invalid", L"Invalid",
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG176547
+	push	OFFSET $SG176608
 	mov	ecx, OFFSET ?__INVAID_BRANCH@?1??SK_Version_GetLatestBranchInfo_V1@@YA?AUSK_BranchInfo_V1@@PB_WPBD@Z@4U2@A+28
 
 ; 3597 : 		_My_data._Mysize = 0;
@@ -20890,14 +20786,14 @@ _szBranch$ = 16						; size = 4
 	xor	eax, eax
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 739  :     0x1, L"Invalid", L"Invalid", L"Invalid",
+; 735  :     0x1, L"Invalid", L"Invalid", L"Invalid",
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 2
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG176548
+	push	OFFSET $SG176609
 	mov	ecx, OFFSET ?__INVAID_BRANCH@?1??SK_Version_GetLatestBranchInfo_V1@@YA?AUSK_BranchInfo_V1@@PB_WPBD@Z@4U2@A+52
 
 ; 3597 : 		_My_data._Mysize = 0;
@@ -20925,14 +20821,14 @@ _szBranch$ = 16						; size = 4
 	xor	eax, eax
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 739  :     0x1, L"Invalid", L"Invalid", L"Invalid",
+; 735  :     0x1, L"Invalid", L"Invalid", L"Invalid",
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 3
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG176549
+	push	OFFSET $SG176610
 	lea	ecx, DWORD PTR $T5[ebp]
 
 ; 3597 : 		_My_data._Mysize = 0;
@@ -20960,14 +20856,14 @@ _szBranch$ = 16						; size = 4
 	xor	eax, eax
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 741  :         SK_VersionInfo_V1 { L"Invalid", L"Invalid", -1 },
+; 737  :         SK_VersionInfo_V1 { L"Invalid", L"Invalid", -1 },
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 4
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG176550
+	push	OFFSET $SG176611
 	lea	ecx, DWORD PTR $T5[ebp+24]
 
 ; 3597 : 		_My_data._Mysize = 0;
@@ -20989,7 +20885,7 @@ _szBranch$ = 16						; size = 4
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 741  :         SK_VersionInfo_V1 { L"Invalid", L"Invalid", -1 },
+; 737  :         SK_VersionInfo_V1 { L"Invalid", L"Invalid", -1 },
 
 	lea	eax, DWORD PTR $T5[ebp]
 	mov	DWORD PTR $T5[ebp+48], -1
@@ -21010,18 +20906,18 @@ _szBranch$ = 16						; size = 4
 	xor	eax, eax
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 738  :   {
+; 734  :   {
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 5
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG176551
+	push	OFFSET $SG176612
 	mov	ecx, OFFSET ?__INVAID_BRANCH@?1??SK_Version_GetLatestBranchInfo_V1@@YA?AUSK_BranchInfo_V1@@PB_WPBD@Z@4U2@A+132
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 743  :     0x1, L"NotUsed", L"Invalid"
+; 739  :     0x1, L"NotUsed", L"Invalid"
 
 	mov	DWORD PTR ?__INVAID_BRANCH@?1??SK_Version_GetLatestBranchInfo_V1@@YA?AUSK_BranchInfo_V1@@PB_WPBD@Z@4U2@A+128, 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -21051,14 +20947,14 @@ _szBranch$ = 16						; size = 4
 	xor	eax, eax
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 743  :     0x1, L"NotUsed", L"Invalid"
+; 739  :     0x1, L"NotUsed", L"Invalid"
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 6
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG176552
+	push	OFFSET $SG176613
 	mov	ecx, OFFSET ?__INVAID_BRANCH@?1??SK_Version_GetLatestBranchInfo_V1@@YA?AUSK_BranchInfo_V1@@PB_WPBD@Z@4U2@A+156
 
 ; 3597 : 		_My_data._Mysize = 0;
@@ -21085,7 +20981,7 @@ _szBranch$ = 16						; size = 4
 	mov	ecx, OFFSET ?__INVAID_BRANCH@?1??SK_Version_GetLatestBranchInfo_V1@@YA?AUSK_BranchInfo_V1@@PB_WPBD@Z@4U2@A+180
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 738  :   {
+; 734  :   {
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 7
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xtree
@@ -21104,7 +21000,7 @@ _szBranch$ = 16						; size = 4
 	mov	DWORD PTR ?__INVAID_BRANCH@?1??SK_Version_GetLatestBranchInfo_V1@@YA?AUSK_BranchInfo_V1@@PB_WPBD@Z@4U2@A+180, eax
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 738  :   {
+; 734  :   {
 
 	push	OFFSET ??__F__INVAID_BRANCH@?1??SK_Version_GetLatestBranchInfo_V1@@YA?AUSK_BranchInfo_V1@@PB_WPBD@Z@YAXXZ ; `SK_Version_GetLatestBranchInfo_V1'::`2'::`dynamic atexit destructor for '__INVAID_BRANCH''
 	call	_atexit
@@ -21114,7 +21010,7 @@ _szBranch$ = 16						; size = 4
 	add	esp, 8
 $LN2@SK_Version:
 
-; 747  :   if (GetFileAttributes (SK_Version_GetRepoIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
+; 743  :   if (GetFileAttributes (SK_Version_GetRepoIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
 
 	lea	eax, DWORD PTR $T8[ebp]
 	push	eax
@@ -21139,7 +21035,7 @@ $LN269@SK_Version:
 	push	esi
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 747  :   if (GetFileAttributes (SK_Version_GetRepoIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
+; 743  :   if (GetFileAttributes (SK_Version_GetRepoIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
 
 	push	eax
 	call	DWORD PTR __imp__GetFileAttributesW@4
@@ -21151,7 +21047,7 @@ $LN269@SK_Version:
 	mov	eax, DWORD PTR $T8[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 747  :   if (GetFileAttributes (SK_Version_GetRepoIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
+; 743  :   if (GetFileAttributes (SK_Version_GetRepoIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
 
 	setne	bl
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -21183,12 +21079,12 @@ $LN269@SK_Version:
 $LN279@SK_Version:
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 747  :   if (GetFileAttributes (SK_Version_GetRepoIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
+; 743  :   if (GetFileAttributes (SK_Version_GetRepoIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
 
 	test	bl, bl
 	je	$LN4@SK_Version
 
-; 749  :     iSK_INI repo_ini (SK_Version_GetRepoIniPath ().c_str ());
+; 745  :     iSK_INI repo_ini (SK_Version_GetRepoIniPath ().c_str ());
 
 	lea	eax, DWORD PTR $T7[ebp]
 	push	eax
@@ -21201,7 +21097,7 @@ $LN279@SK_Version:
 	cmp	DWORD PTR [eax+20], 8
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 749  :     iSK_INI repo_ini (SK_Version_GetRepoIniPath ().c_str ());
+; 745  :     iSK_INI repo_ini (SK_Version_GetRepoIniPath ().c_str ());
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 8
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -21217,7 +21113,7 @@ $LN279@SK_Version:
 $LN318@SK_Version:
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 749  :     iSK_INI repo_ini (SK_Version_GetRepoIniPath ().c_str ());
+; 745  :     iSK_INI repo_ini (SK_Version_GetRepoIniPath ().c_str ());
 
 	push	eax
 	lea	ecx, DWORD PTR _repo_ini$4[ebp]
@@ -21229,7 +21125,7 @@ $LN318@SK_Version:
 	mov	eax, DWORD PTR $T7[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 749  :     iSK_INI repo_ini (SK_Version_GetRepoIniPath ().c_str ());
+; 745  :     iSK_INI repo_ini (SK_Version_GetRepoIniPath ().c_str ());
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 10		; 0000000aH
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -21271,7 +21167,7 @@ $LN328@SK_Version:
 	mov	DWORD PTR $T7[ebp+16], 0
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 751  :     wchar_t wszFormatted [256] = { };
+; 747  :     wchar_t wszFormatted [256] = { };
 
 	push	512					; 00000200H
 	push	eax
@@ -21282,7 +21178,7 @@ $LN328@SK_Version:
 	mov	WORD PTR $T7[ebp], ax
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 751  :     wchar_t wszFormatted [256] = { };
+; 747  :     wchar_t wszFormatted [256] = { };
 
 	lea	eax, DWORD PTR _wszFormatted$2[ebp]
 	push	eax
@@ -21293,21 +21189,21 @@ $LN328@SK_Version:
 	mov	DWORD PTR $T7[ebp+20], 7
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 751  :     wchar_t wszFormatted [256] = { };
+; 747  :     wchar_t wszFormatted [256] = { };
 
 	call	_memset
 
-; 752  :     _swprintf (wszFormatted, L"Version.%hs", szBranch);
+; 748  :     _swprintf (wszFormatted, L"Version.%hs", szBranch);
 
 	push	DWORD PTR _szBranch$[ebp]
 	lea	eax, DWORD PTR _wszFormatted$2[ebp]
-	push	OFFSET $SG176555
+	push	OFFSET $SG176616
 	push	eax
 	call	__swprintf
 	add	esp, 24					; 00000018H
 
-; 753  : 
-; 754  :     if (repo_ini.contains_section (wszFormatted))
+; 749  : 
+; 750  :     if (repo_ini.contains_section (wszFormatted))
 
 	lea	eax, DWORD PTR _wszFormatted$2[ebp]
 	push	eax
@@ -21317,8 +21213,8 @@ $LN328@SK_Version:
 	test	al, al
 	je	$LN5@SK_Version
 
-; 755  :     {
-; 756  :       iSK_INISection& branch_sec =
+; 751  :     {
+; 752  :       iSK_INISection& branch_sec =
 
 	lea	eax, DWORD PTR _wszFormatted$2[ebp]
 	push	eax
@@ -21327,13 +21223,13 @@ $LN328@SK_Version:
 	call	?get_section@iSK_INI@@UAGAAUiSK_INISection@@PB_W@Z ; iSK_INI::get_section
 	mov	esi, eax
 
-; 775  :         0x1,
+; 771  :         0x1,
 
 	mov	DWORD PTR _branch$3[ebp], 1
 
-; 776  :         branch_sec.get_value (L"Title"),
+; 772  :         branch_sec.get_value (L"Title"),
 
-	push	OFFSET $SG176557
+	push	OFFSET $SG176618
 	push	esi
 	mov	ecx, DWORD PTR [esi]
 	call	DWORD PTR [ecx+12]
@@ -21373,10 +21269,10 @@ $LN328@SK_Version:
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@ABV12@II@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 777  :         branch_sec.get_value (L"ReleaseNotes"),
+; 773  :         branch_sec.get_value (L"ReleaseNotes"),
 
 	mov	eax, DWORD PTR [esi]
-	push	OFFSET $SG176558
+	push	OFFSET $SG176619
 	push	esi
 	mov	BYTE PTR __$EHRec$[ebp+8], 11		; 0000000bH
 	call	DWORD PTR [eax+12]
@@ -21416,10 +21312,10 @@ $LN328@SK_Version:
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@ABV12@II@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 778  :         branch_sec.get_value (L"Description"),
+; 774  :         branch_sec.get_value (L"Description"),
 
 	mov	eax, DWORD PTR [esi]
-	push	OFFSET $SG176559
+	push	OFFSET $SG176620
 	push	esi
 	mov	BYTE PTR __$EHRec$[ebp+8], 12		; 0000000cH
 	call	DWORD PTR [eax+12]
@@ -21459,10 +21355,10 @@ $LN328@SK_Version:
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@ABV12@II@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 780  :         ParseInstallPackage (szBranch, branch_sec.get_value (L"InstallPackage").c_str ()),
+; 776  :         ParseInstallPackage (szBranch, branch_sec.get_value (L"InstallPackage").c_str ()),
 
 	mov	eax, DWORD PTR [esi]
-	push	OFFSET $SG176560
+	push	OFFSET $SG176621
 	push	esi
 	mov	BYTE PTR __$EHRec$[ebp+8], 13		; 0000000dH
 	call	DWORD PTR [eax+12]
@@ -21483,7 +21379,7 @@ $LN328@SK_Version:
 $LN487@SK_Version:
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 780  :         ParseInstallPackage (szBranch, branch_sec.get_value (L"InstallPackage").c_str ()),
+; 776  :         ParseInstallPackage (szBranch, branch_sec.get_value (L"InstallPackage").c_str ()),
 
 	push	eax
 	push	DWORD PTR _szBranch$[ebp]
@@ -21503,18 +21399,18 @@ $LN487@SK_Version:
 	xor	eax, eax
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 774  :       SK_BranchInfo_V1 branch {
+; 770  :       SK_BranchInfo_V1 branch {
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 14		; 0000000eH
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG176561
+	push	OFFSET $SG176622
 	lea	ecx, DWORD PTR _branch$3[ebp+132]
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 782  :         0x1,
+; 778  :         0x1,
 
 	mov	DWORD PTR _branch$3[ebp+128], 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -21538,10 +21434,10 @@ $LN487@SK_Version:
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 784  :         branch_sec.get_value (L"BranchDescription")
+; 780  :         branch_sec.get_value (L"BranchDescription")
 
 	mov	eax, DWORD PTR [esi]
-	push	OFFSET $SG176562
+	push	OFFSET $SG176623
 	push	esi
 	mov	BYTE PTR __$EHRec$[ebp+8], 15		; 0000000fH
 	call	DWORD PTR [eax+12]
@@ -21586,7 +21482,7 @@ $LN487@SK_Version:
 	lea	ecx, DWORD PTR _branch$3[ebp+180]
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 774  :       SK_BranchInfo_V1 branch {
+; 770  :       SK_BranchInfo_V1 branch {
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 16		; 00000010H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xtree
@@ -21605,7 +21501,7 @@ $LN487@SK_Version:
 	mov	DWORD PTR _branch$3[ebp+180], eax
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 787  :       return branch;
+; 783  :       return branch;
 
 	mov	ecx, DWORD PTR ___$ReturnUdt$[ebp]
 	lea	eax, DWORD PTR _branch$3[ebp]
@@ -21617,14 +21513,14 @@ $LN487@SK_Version:
 	lea	ecx, DWORD PTR _repo_ini$4[ebp]
 	call	??1iSK_INI@@QAE@XZ			; iSK_INI::~iSK_INI
 
-; 790  : 
-; 791  :   return __INVAID_BRANCH;
+; 786  : 
+; 787  :   return __INVAID_BRANCH;
 
 	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
 	pop	esi
 	pop	ebx
 
-; 792  : }
+; 788  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -21633,22 +21529,22 @@ $LN487@SK_Version:
 	ret	0
 $LN5@SK_Version:
 
-; 788  :     }
-; 789  :   }
+; 784  :     }
+; 785  :   }
 
 	lea	ecx, DWORD PTR _repo_ini$4[ebp]
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 	call	??1iSK_INI@@QAE@XZ			; iSK_INI::~iSK_INI
 $LN4@SK_Version:
 
-; 790  : 
-; 791  :   return __INVAID_BRANCH;
+; 786  : 
+; 787  :   return __INVAID_BRANCH;
 
 	mov	ecx, DWORD PTR ___$ReturnUdt$[ebp]
 	push	OFFSET ?__INVAID_BRANCH@?1??SK_Version_GetLatestBranchInfo_V1@@YA?AUSK_BranchInfo_V1@@PB_WPBD@Z@4U2@A
 	call	??0SK_BranchInfo_V1@@QAE@ABU0@@Z
 
-; 792  : }
+; 788  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
@@ -26996,7 +26892,7 @@ ___$ReturnUdt$ = 8					; size = 4
 _wszProduct$ = 12					; size = 4
 ?SK_Version_GetLocalInfo_V1@@YA?AUSK_VersionInfo_V1@@PB_W@Z PROC ; SK_Version_GetLocalInfo_V1
 
-; 501  : {
+; 497  : {
 
 	npad	2
 	push	ebp
@@ -27008,7 +26904,7 @@ _wszProduct$ = 12					; size = 4
 	mov	DWORD PTR fs:0, esp
 	sub	esp, 352				; 00000160H
 
-; 502  :   if (wszProduct == nullptr)
+; 498  :   if (wszProduct == nullptr)
 
 	mov	eax, DWORD PTR _wszProduct$[ebp]
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
@@ -27030,7 +26926,7 @@ $LN11@SK_Version:
 	push	edi
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 505  :   SK_FetchVersionInfo (wszProduct);
+; 501  :   SK_FetchVersionInfo (wszProduct);
 
 	push	eax
 	call	?SK_FetchVersionInfo@@YG_NPB_W@Z	; SK_FetchVersionInfo
@@ -27075,7 +26971,7 @@ $LN11@SK_Version:
 	mov	WORD PTR [esi], ax
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 522  :   return ver_info;
+; 518  :   return ver_info;
 
 	mov	DWORD PTR __$EHRec$[ebp+8], eax
 	lea	eax, DWORD PTR $T5[ebp]
@@ -27101,7 +26997,7 @@ $LN85@SK_Version:
 	push	ebx
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 509  :   if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
+; 505  :   if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
 
 	push	eax
 	call	DWORD PTR __imp__GetFileAttributesW@4
@@ -27113,7 +27009,7 @@ $LN85@SK_Version:
 	mov	eax, DWORD PTR $T5[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 509  :   if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
+; 505  :   if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
 
 	setne	bl
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -27141,13 +27037,13 @@ $LN85@SK_Version:
 $LN95@SK_Version:
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 509  :   if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
+; 505  :   if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
 
 	test	bl, bl
 	pop	ebx
 	je	$LN281@SK_Version
 
-; 511  :     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
+; 507  :     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
 
 	lea	eax, DWORD PTR $T4[ebp]
 	push	eax
@@ -27160,7 +27056,7 @@ $LN95@SK_Version:
 	cmp	DWORD PTR [eax+20], 8
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 511  :     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
+; 507  :     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -27176,7 +27072,7 @@ $LN95@SK_Version:
 $LN134@SK_Version:
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 511  :     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
+; 507  :     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
 
 	push	eax
 	lea	ecx, DWORD PTR _install_ini$3[ebp]
@@ -27188,7 +27084,7 @@ $LN134@SK_Version:
 	mov	eax, DWORD PTR $T4[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 511  :     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
+; 507  :     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 3
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -27236,10 +27132,10 @@ $LN144@SK_Version:
 	mov	WORD PTR $T4[ebp], ax
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 513  :     ver_info.branch   = install_ini.get_section (L"Version.Local").get_value (L"Branch");
+; 509  :     ver_info.branch   = install_ini.get_section (L"Version.Local").get_value (L"Branch");
 
 	lea	eax, DWORD PTR _install_ini$3[ebp]
-	push	OFFSET $SG175328
+	push	OFFSET $SG175389
 	push	eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
@@ -27248,10 +27144,10 @@ $LN144@SK_Version:
 	mov	DWORD PTR $T4[ebp+20], 7
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 513  :     ver_info.branch   = install_ini.get_section (L"Version.Local").get_value (L"Branch");
+; 509  :     ver_info.branch   = install_ini.get_section (L"Version.Local").get_value (L"Branch");
 
 	call	?get_section@iSK_INI@@UAGAAUiSK_INISection@@PB_W@Z ; iSK_INI::get_section
-	push	OFFSET $SG175329
+	push	OFFSET $SG175390
 	push	eax
 	mov	ecx, DWORD PTR [eax]
 	call	DWORD PTR [ecx+12]
@@ -27272,13 +27168,13 @@ $LN144@SK_Version:
 $LN171@SK_Version:
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 514  :     ver_info.package  = install_ini.get_section (L"Version.Local").get_value (L"InstallPackage");
+; 510  :     ver_info.package  = install_ini.get_section (L"Version.Local").get_value (L"InstallPackage");
 
-	push	OFFSET $SG175330
+	push	OFFSET $SG175391
 	lea	eax, DWORD PTR _install_ini$3[ebp]
 	push	eax
 	call	?get_section@iSK_INI@@UAGAAUiSK_INISection@@PB_W@Z ; iSK_INI::get_section
-	push	OFFSET $SG175331
+	push	OFFSET $SG175392
 	push	eax
 	mov	ecx, DWORD PTR [eax]
 	call	DWORD PTR [ecx+12]
@@ -27299,7 +27195,7 @@ $LN171@SK_Version:
 $LN213@SK_Version:
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 516  :     wchar_t wszPackage [128] = { };
+; 512  :     wchar_t wszPackage [128] = { };
 
 	push	256					; 00000100H
 	lea	eax, DWORD PTR _wszPackage$2[ebp]
@@ -27332,12 +27228,12 @@ $LN268@SK_Version:
 	lea	eax, DWORD PTR [edi+48]
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 517  :     swscanf (ver_info.package.c_str (), L"%128[^,],%li", wszPackage, &ver_info.build);
+; 513  :     swscanf (ver_info.package.c_str (), L"%128[^,],%li", wszPackage, &ver_info.build);
 
 	push	eax
 	lea	eax, DWORD PTR _wszPackage$2[ebp]
 	push	eax
-	push	OFFSET $SG175332
+	push	OFFSET $SG175393
 	push	ecx
 	call	_swscanf
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -27347,7 +27243,7 @@ $LN268@SK_Version:
 	lea	ecx, DWORD PTR _wszPackage$2[ebp]
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 517  :     swscanf (ver_info.package.c_str (), L"%128[^,],%li", wszPackage, &ver_info.build);
+; 513  :     swscanf (ver_info.package.c_str (), L"%128[^,],%li", wszPackage, &ver_info.build);
 
 	add	esp, 16					; 00000010H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -27382,13 +27278,13 @@ $LL280@SK_Version:
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 520  :   }
+; 516  :   }
 
 	lea	ecx, DWORD PTR _install_ini$3[ebp]
 	call	??1iSK_INI@@QAE@XZ			; iSK_INI::~iSK_INI
 $LN281@SK_Version:
 
-; 523  : }
+; 519  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	eax, edi
@@ -27516,7 +27412,7 @@ $T11 = 12						; size = 4
 _wszProduct$ = 12					; size = 4
 ?SK_Version_GetLatestInfo_V1@@YA?AUSK_VersionInfo_V1@@PB_W@Z PROC ; SK_Version_GetLatestInfo_V1
 
-; 460  : {
+; 456  : {
 
 	npad	2
 	push	ebp
@@ -27529,7 +27425,7 @@ _wszProduct$ = 12					; size = 4
 	sub	esp, 752				; 000002f0H
 	mov	DWORD PTR $T10[ebp], 0
 
-; 461  :   if (wszProduct == nullptr)
+; 457  :   if (wszProduct == nullptr)
 
 	mov	eax, DWORD PTR _wszProduct$[ebp]
 	test	eax, eax
@@ -27547,7 +27443,7 @@ _wszProduct$ = 12					; size = 4
 $LN22@SK_Version:
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 464  :   SK_FetchVersionInfo (wszProduct);
+; 460  :   SK_FetchVersionInfo (wszProduct);
 
 	push	eax
 	call	?SK_FetchVersionInfo@@YG_NPB_W@Z	; SK_FetchVersionInfo
@@ -27586,11 +27482,11 @@ $LN22@SK_Version:
 	mov	WORD PTR _ver_info$[ebp+24], ax
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 466  :   SK_VersionInfo_V1 ver_info;
+; 462  :   SK_VersionInfo_V1 ver_info;
 
 	mov	DWORD PTR __$EHRec$[ebp+8], eax
 
-; 468  :   if ( GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES &&
+; 464  :   if ( GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES &&
 
 	lea	eax, DWORD PTR $T7[ebp]
 	push	eax
@@ -27604,7 +27500,7 @@ $LN22@SK_Version:
 	mov	ecx, 1
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 468  :   if ( GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES &&
+; 464  :   if ( GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES &&
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 1
 	mov	DWORD PTR $T11[ebp], ecx
@@ -27624,7 +27520,7 @@ $LN96@SK_Version:
 	push	esi
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 468  :   if ( GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES &&
+; 464  :   if ( GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES &&
 
 	mov	esi, DWORD PTR __imp__GetFileAttributesW@4
 	push	eax
@@ -27653,7 +27549,7 @@ $LN96@SK_Version:
 $LN115@SK_Version:
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 468  :   if ( GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES &&
+; 464  :   if ( GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES &&
 
 	push	eax
 	call	esi
@@ -27717,7 +27613,7 @@ $LN122@SK_Version:
 	mov	eax, DWORD PTR $T7[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 468  :   if ( GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES &&
+; 464  :   if ( GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES &&
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -27745,12 +27641,12 @@ $LN122@SK_Version:
 $LN155@SK_Version:
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 468  :   if ( GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES &&
+; 464  :   if ( GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES &&
 
 	test	bl, bl
 	je	$LN3@SK_Version
 
-; 471  :     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
+; 467  :     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
 
 	lea	eax, DWORD PTR $T8[ebp]
 	push	eax
@@ -27763,7 +27659,7 @@ $LN155@SK_Version:
 	cmp	DWORD PTR [eax+20], 8
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 471  :     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
+; 467  :     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 2
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -27779,7 +27675,7 @@ $LN155@SK_Version:
 $LN194@SK_Version:
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 471  :     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
+; 467  :     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
 
 	push	eax
 	lea	ecx, DWORD PTR _install_ini$4[ebp]
@@ -27791,7 +27687,7 @@ $LN194@SK_Version:
 	mov	eax, DWORD PTR $T8[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 471  :     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
+; 467  :     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 4
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -27834,7 +27730,7 @@ $LN204@SK_Version:
 	mov	WORD PTR $T8[ebp], ax
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 472  :     iSK_INI repo_ini    (SK_Version_GetRepoIniPath    ().c_str ());
+; 468  :     iSK_INI repo_ini    (SK_Version_GetRepoIniPath    ().c_str ());
 
 	lea	eax, DWORD PTR $T6[ebp]
 	push	eax
@@ -27845,7 +27741,7 @@ $LN204@SK_Version:
 	mov	DWORD PTR $T8[ebp+20], 7
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 472  :     iSK_INI repo_ini    (SK_Version_GetRepoIniPath    ().c_str ());
+; 468  :     iSK_INI repo_ini    (SK_Version_GetRepoIniPath    ().c_str ());
 
 	call	?SK_Version_GetRepoIniPath@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ ; SK_Version_GetRepoIniPath
 	add	esp, 4
@@ -27856,7 +27752,7 @@ $LN204@SK_Version:
 	cmp	DWORD PTR [eax+20], 8
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 472  :     iSK_INI repo_ini    (SK_Version_GetRepoIniPath    ().c_str ());
+; 468  :     iSK_INI repo_ini    (SK_Version_GetRepoIniPath    ().c_str ());
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 5
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -27872,7 +27768,7 @@ $LN204@SK_Version:
 $LN243@SK_Version:
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 472  :     iSK_INI repo_ini    (SK_Version_GetRepoIniPath    ().c_str ());
+; 468  :     iSK_INI repo_ini    (SK_Version_GetRepoIniPath    ().c_str ());
 
 	push	eax
 	lea	ecx, DWORD PTR _repo_ini$5[ebp]
@@ -27884,7 +27780,7 @@ $LN243@SK_Version:
 	mov	eax, DWORD PTR $T6[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 472  :     iSK_INI repo_ini    (SK_Version_GetRepoIniPath    ().c_str ());
+; 468  :     iSK_INI repo_ini    (SK_Version_GetRepoIniPath    ().c_str ());
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 7
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -27932,10 +27828,10 @@ $LN253@SK_Version:
 	mov	WORD PTR $T6[ebp], ax
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 474  :     ver_info.branch   = install_ini.get_section (L"Version.Local").get_value (L"Branch");
+; 470  :     ver_info.branch   = install_ini.get_section (L"Version.Local").get_value (L"Branch");
 
 	lea	eax, DWORD PTR _install_ini$4[ebp]
-	push	OFFSET $SG175297
+	push	OFFSET $SG175358
 	push	eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
@@ -27944,10 +27840,10 @@ $LN253@SK_Version:
 	mov	DWORD PTR $T6[ebp+20], 7
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 474  :     ver_info.branch   = install_ini.get_section (L"Version.Local").get_value (L"Branch");
+; 470  :     ver_info.branch   = install_ini.get_section (L"Version.Local").get_value (L"Branch");
 
 	call	?get_section@iSK_INI@@UAGAAUiSK_INISection@@PB_W@Z ; iSK_INI::get_section
-	push	OFFSET $SG175298
+	push	OFFSET $SG175359
 	push	eax
 	mov	ecx, DWORD PTR [eax]
 	call	DWORD PTR [ecx+12]
@@ -27968,7 +27864,7 @@ $LN253@SK_Version:
 $LN280@SK_Version:
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 476  :     wchar_t wszBranchSection [128] = { };
+; 472  :     wchar_t wszBranchSection [128] = { };
 
 	push	256					; 00000100H
 	lea	eax, DWORD PTR _wszBranchSection$3[ebp]
@@ -27987,17 +27883,17 @@ $LN280@SK_Version:
 	cmovae	eax, DWORD PTR _ver_info$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 477  :     _swprintf (wszBranchSection, L"Version.%s", ver_info.branch.c_str ());
+; 473  :     _swprintf (wszBranchSection, L"Version.%s", ver_info.branch.c_str ());
 
 	push	eax
 	lea	eax, DWORD PTR _wszBranchSection$3[ebp]
-	push	OFFSET $SG175299
+	push	OFFSET $SG175360
 	push	eax
 	call	__swprintf
 	add	esp, 24					; 00000018H
 
-; 478  : 
-; 479  :     if (repo_ini.contains_section (wszBranchSection))
+; 474  : 
+; 475  :     if (repo_ini.contains_section (wszBranchSection))
 
 	lea	eax, DWORD PTR _wszBranchSection$3[ebp]
 	push	eax
@@ -28007,15 +27903,15 @@ $LN280@SK_Version:
 	test	al, al
 	je	$LN4@SK_Version
 
-; 480  :     {
-; 481  :       ver_info.package = repo_ini.get_section (wszBranchSection).get_value (L"InstallPackage");
+; 476  :     {
+; 477  :       ver_info.package = repo_ini.get_section (wszBranchSection).get_value (L"InstallPackage");
 
 	lea	eax, DWORD PTR _wszBranchSection$3[ebp]
 	push	eax
 	lea	eax, DWORD PTR _repo_ini$5[ebp]
 	push	eax
 	call	?get_section@iSK_INI@@UAGAAUiSK_INISection@@PB_W@Z ; iSK_INI::get_section
-	push	OFFSET $SG175301
+	push	OFFSET $SG175362
 	push	eax
 	mov	ecx, DWORD PTR [eax]
 	call	DWORD PTR [ecx+12]
@@ -28036,7 +27932,7 @@ $LN280@SK_Version:
 $LN341@SK_Version:
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 483  :       wchar_t wszPackage [128] = { };
+; 479  :       wchar_t wszPackage [128] = { };
 
 	push	256					; 00000100H
 	lea	eax, DWORD PTR _wszPackage$2[ebp]
@@ -28050,7 +27946,7 @@ $LN341@SK_Version:
 	cmp	DWORD PTR _ver_info$[ebp+44], 8
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 484  :       swscanf (ver_info.package.c_str (), L"%128[^,],%li", wszPackage, &ver_info.build);
+; 480  :       swscanf (ver_info.package.c_str (), L"%128[^,],%li", wszPackage, &ver_info.build);
 
 	lea	ecx, DWORD PTR _ver_info$[ebp+48]
 	push	ecx
@@ -28064,9 +27960,9 @@ $LN341@SK_Version:
 	cmovae	eax, DWORD PTR _ver_info$[ebp+24]
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 484  :       swscanf (ver_info.package.c_str (), L"%128[^,],%li", wszPackage, &ver_info.build);
+; 480  :       swscanf (ver_info.package.c_str (), L"%128[^,],%li", wszPackage, &ver_info.build);
 
-	push	OFFSET $SG175302
+	push	OFFSET $SG175363
 	push	eax
 	call	_swscanf
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -28076,7 +27972,7 @@ $LN341@SK_Version:
 	lea	ecx, DWORD PTR _wszPackage$2[ebp]
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 484  :       swscanf (ver_info.package.c_str (), L"%128[^,],%li", wszPackage, &ver_info.build);
+; 480  :       swscanf (ver_info.package.c_str (), L"%128[^,],%li", wszPackage, &ver_info.build);
 
 	add	esp, 28					; 0000001cH
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -28112,7 +28008,7 @@ $LL422@SK_Version:
 $LN4@SK_Version:
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 489  :     return ver_info;
+; 485  :     return ver_info;
 
 	mov	ecx, DWORD PTR ___$ReturnUdt$[ebp]
 	lea	eax, DWORD PTR _ver_info$[ebp]
@@ -28129,16 +28025,16 @@ $LN3@SK_Version:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	7
-	push	OFFSET $SG175303
+	push	OFFSET $SG175364
 	lea	ecx, DWORD PTR _ver_info$[ebp+24]
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 	push	7
-	push	OFFSET $SG175304
+	push	OFFSET $SG175365
 	lea	ecx, DWORD PTR _ver_info$[ebp]
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 496  :   return ver_info;
+; 492  :   return ver_info;
 
 	mov	ecx, DWORD PTR ___$ReturnUdt$[ebp]
 	lea	eax, DWORD PTR _ver_info$[ebp]
@@ -28149,7 +28045,7 @@ $LN424@SK_Version:
 	lea	ecx, DWORD PTR _ver_info$[ebp]
 	call	??1SK_VersionInfo_V1@@QAE@XZ
 
-; 497  : }
+; 493  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
@@ -28582,13 +28478,13 @@ _TEXT	SEGMENT
 _wszProduct$ = 8					; size = 4
 ?SK_FetchVersionInfo@@YG_NPB_W@Z PROC			; SK_FetchVersionInfo
 
-; 450  : {
+; 446  : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 451  :   if (wszProduct == nullptr)
+; 447  :   if (wszProduct == nullptr)
 
 	mov	eax, DWORD PTR _wszProduct$[ebp]
 	test	eax, eax
@@ -28606,13 +28502,13 @@ _wszProduct$ = 8					; size = 4
 $LN5@SK_FetchVe:
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 454  :   return SK_FetchVersionInfo1 (wszProduct);
+; 450  :   return SK_FetchVersionInfo1 (wszProduct);
 
 	push	0
 	push	eax
 	call	?SK_FetchVersionInfo1@@YG_NPB_W_N@Z	; SK_FetchVersionInfo1
 
-; 455  : }
+; 451  : }
 
 	pop	ebp
 	ret	4
@@ -28783,7 +28679,7 @@ _dwSize$24 = 12						; size = 4
 _force$ = 12						; size = 1
 ?SK_FetchVersionInfo1@@YG_NPB_W_N@Z PROC		; SK_FetchVersionInfo1
 
-; 99   : {
+; 95   : {
 
 	npad	2
 	push	ebp
@@ -28795,10 +28691,10 @@ _force$ = 12						; size = 1
 	mov	DWORD PTR fs:0, esp
 	sub	esp, 1248				; 000004e0H
 
-; 100  :   // If no log is initialized yet, it's because SKIM is doing
-; 101  :   //   something with this DLL. Init. the log so we can trace
-; 102  :   //     install issues.
-; 103  :   if (! dll_log.initialized)
+; 96   :   // If no log is initialized yet, it's because SKIM is doing
+; 97   :   //   something with this DLL. Init. the log so we can trace
+; 98   :   //     install issues.
+; 99   :   if (! dll_log.initialized)
 
 	cmp	BYTE PTR ?dll_log@@3UiSK_Logger@@A+33, 0
 	push	ebx
@@ -28806,19 +28702,19 @@ _force$ = 12						; size = 1
 	push	edi
 	jne	SHORT $LN4@SK_FetchVe
 
-; 104  :   {
-; 105  :     dll_log.init (L"logs/installer.log", L"w");
+; 100  :   {
+; 101  :     dll_log.init (L"logs/installer.log", L"w");
 
-	push	OFFSET $SG175202
-	push	OFFSET $SG175203
+	push	OFFSET $SG175263
+	push	OFFSET $SG175264
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?init@iSK_Logger@@UAG_NQB_W0@Z		; iSK_Logger::init
 $LN4@SK_FetchVe:
 
-; 106  :   }
-; 107  : 
-; 108  : 
-; 109  :   if (wszProduct == nullptr)
+; 102  :   }
+; 103  : 
+; 104  : 
+; 105  :   if (wszProduct == nullptr)
 
 	mov	edi, DWORD PTR _wszProduct$[ebp]
 	test	edi, edi
@@ -28866,7 +28762,7 @@ $LL738@SK_FetchVe:
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 126  :   GetSystemTimeAsFileTime (&ftNow);
+; 122  :   GetSystemTimeAsFileTime (&ftNow);
 
 	lea	eax, DWORD PTR _ftNow$[ebp]
 	push	eax
@@ -28875,14 +28771,14 @@ $LL738@SK_FetchVe:
 	mov	DWORD PTR _uliNow$1$[ebp], eax
 	mov	eax, DWORD PTR _ftNow$[ebp+4]
 
-; 127  : 
-; 128  :   ULARGE_INTEGER uliNow;
+; 123  : 
+; 124  :   ULARGE_INTEGER uliNow;
+; 125  : 
+; 126  :   uliNow.LowPart  = ftNow.dwLowDateTime;
+; 127  :   uliNow.HighPart = ftNow.dwHighDateTime;
+; 128  : 
 ; 129  : 
-; 130  :   uliNow.LowPart  = ftNow.dwLowDateTime;
-; 131  :   uliNow.HighPart = ftNow.dwHighDateTime;
-; 132  : 
-; 133  : 
-; 134  :   wchar_t wszInstallFile [MAX_PATH] = { };
+; 130  :   wchar_t wszInstallFile [MAX_PATH] = { };
 
 	push	520					; 00000208H
 	mov	DWORD PTR _uliNow$2$[ebp], eax
@@ -28891,7 +28787,7 @@ $LL738@SK_FetchVe:
 	push	eax
 	call	_memset
 
-; 166  :   lstrcatW (wszInstallFile, SK_Version_GetInstallIniPath ().c_str ());
+; 162  :   lstrcatW           (wszInstallFile, SK_Version_GetInstallIniPath ().c_str ());
 
 	lea	eax, DWORD PTR $T18[ebp]
 	push	eax
@@ -28914,7 +28810,7 @@ $LL738@SK_FetchVe:
 $LN97@SK_FetchVe:
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 166  :   lstrcatW (wszInstallFile, SK_Version_GetInstallIniPath ().c_str ());
+; 162  :   lstrcatW           (wszInstallFile, SK_Version_GetInstallIniPath ().c_str ());
 
 	push	eax
 	lea	eax, DWORD PTR _wszInstallFile$[ebp]
@@ -28946,20 +28842,20 @@ $LN97@SK_FetchVe:
 $LN106@SK_FetchVe:
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 167  :   PathRemoveFileSpec (wszInstallFile);
+; 163  :   PathRemoveFileSpec (wszInstallFile);
 
 	lea	eax, DWORD PTR _wszInstallFile$[ebp]
 	push	eax
 	call	DWORD PTR __imp__PathRemoveFileSpecW@4
 
-; 168  : 
-; 169  :   SK_CreateDirectories (wszInstallFile);
+; 164  : 
+; 165  :   SK_CreateDirectories (wszInstallFile);
 
 	lea	eax, DWORD PTR _wszInstallFile$[ebp]
 	push	eax
 	call	?SK_CreateDirectories@@YG_NPB_W@Z	; SK_CreateDirectories
 
-; 179  :   if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
+; 175  :   if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
 
 	lea	eax, DWORD PTR $T17[ebp]
 	mov	BYTE PTR _need_remind$1$[ebp], 0
@@ -28987,7 +28883,7 @@ $LN106@SK_FetchVe:
 $LN146@SK_FetchVe:
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 179  :   if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
+; 175  :   if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
 
 	mov	esi, DWORD PTR __imp__GetFileAttributesW@4
 	push	eax
@@ -29000,7 +28896,7 @@ $LN146@SK_FetchVe:
 	mov	eax, DWORD PTR $T17[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 179  :   if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
+; 175  :   if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
 
 	setne	bl
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -29028,12 +28924,12 @@ $LN146@SK_FetchVe:
 $LN155@SK_FetchVe:
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 179  :   if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
+; 175  :   if (GetFileAttributes (SK_Version_GetInstallIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
 
 	test	bl, bl
 	je	$LN743@SK_FetchVe
 
-; 181  :     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
+; 177  :     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
 
 	lea	eax, DWORD PTR $T10[ebp]
 	push	eax
@@ -29046,7 +28942,7 @@ $LN155@SK_FetchVe:
 	cmp	DWORD PTR [eax+20], 8
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 181  :     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
+; 177  :     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -29062,7 +28958,7 @@ $LN155@SK_FetchVe:
 $LN195@SK_FetchVe:
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 181  :     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
+; 177  :     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
 
 	push	eax
 	lea	ecx, DWORD PTR _install_ini$2[ebp]
@@ -29074,7 +28970,7 @@ $LN195@SK_FetchVe:
 	mov	eax, DWORD PTR $T10[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 181  :     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
+; 177  :     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 2
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -29117,7 +29013,7 @@ $LN204@SK_FetchVe:
 	mov	WORD PTR $T10[ebp], ax
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 183  :     if (! install_ini.get_sections ().empty ())
+; 179  :     if (! install_ini.get_sections ().empty ())
 
 	lea	eax, DWORD PTR _install_ini$2[ebp]
 	push	eax
@@ -29128,39 +29024,39 @@ $LN204@SK_FetchVe:
 	mov	DWORD PTR $T10[ebp+20], 7
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 183  :     if (! install_ini.get_sections ().empty ())
+; 179  :     if (! install_ini.get_sections ().empty ())
 
 	call	?get_sections@iSK_INI@@UAGABV?$unordered_map@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@UiSK_INISection@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@U?$pair@$$CBV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@UiSK_INISection@@@std@@@2@@std@@XZ ; iSK_INI::get_sections
 	cmp	DWORD PTR [eax+8], 0
 
-; 184  :     {
-; 185  :       iSK_INISection& user_prefs =
+; 180  :     {
+; 181  :       iSK_INISection& user_prefs =
 
 	lea	eax, DWORD PTR _install_ini$2[ebp]
 	je	$LN7@SK_FetchVe
-	push	OFFSET $SG175209
+	push	OFFSET $SG175270
 	push	eax
 	call	?get_section@iSK_INI@@UAGAAUiSK_INISection@@PB_W@Z ; iSK_INI::get_section
 	mov	esi, eax
 
-; 186  :         install_ini.get_section (L"Update.User");
-; 187  : 
-; 188  :       bool has_freq =
-; 189  :         user_prefs.contains_key (L"Frequency");
+; 182  :         install_ini.get_section (L"Update.User");
+; 183  : 
+; 184  :       bool has_freq =
+; 185  :         user_prefs.contains_key (L"Frequency");
 
-	push	OFFSET $SG175210
+	push	OFFSET $SG175271
 	push	esi
 	mov	DWORD PTR _user_prefs$1$[ebp], esi
 	mov	ecx, DWORD PTR [esi]
 	call	DWORD PTR [ecx+20]
 
-; 190  : 
-; 191  :       std::wstring freq =
-; 192  :         user_prefs.get_value (L"Frequency");
+; 186  : 
+; 187  :       std::wstring freq =
+; 188  :         user_prefs.get_value (L"Frequency");
 
 	mov	ecx, DWORD PTR [esi]
 	mov	bl, al
-	push	OFFSET $SG175211
+	push	OFFSET $SG175272
 	push	esi
 	call	DWORD PTR [ecx+12]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -29199,7 +29095,7 @@ $LN204@SK_FetchVe:
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@ABV12@II@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 194  :       wchar_t h [3] = { L"0" },
+; 190  :       wchar_t h [3] = { L"0" },
 
 	xor	eax, eax
 	mov	BYTE PTR __$EHRec$[ebp+8], 3
@@ -29210,7 +29106,7 @@ $LN204@SK_FetchVe:
 	cmp	DWORD PTR _freq$16[ebp+20], 8
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 198  :       swscanf ( freq.c_str (), L"%3[^h]h", h );
+; 194  :       swscanf ( freq.c_str (), L"%3[^h]h", h );
 
 	lea	ecx, DWORD PTR _h$12[ebp]
 	mov	WORD PTR _h$12[ebp+4], ax
@@ -29224,10 +29120,10 @@ $LN204@SK_FetchVe:
 	cmovae	eax, DWORD PTR _freq$16[ebp]
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 198  :       swscanf ( freq.c_str (), L"%3[^h]h", h );
+; 194  :       swscanf ( freq.c_str (), L"%3[^h]h", h );
 
 	push	ecx
-	push	OFFSET $SG175215
+	push	OFFSET $SG175276
 	push	eax
 	mov	DWORD PTR _h$12[ebp], 48		; 00000030H
 	mov	DWORD PTR _d$6[ebp], 48			; 00000030H
@@ -29235,25 +29131,25 @@ $LN204@SK_FetchVe:
 	call	_swscanf
 	add	esp, 12					; 0000000cH
 
-; 199  : 
-; 200  :       // Default to 6h if unspecified
-; 201  :       if (! has_freq)
+; 195  : 
+; 196  :       // Default to 6h if unspecified
+; 197  :       if (! has_freq)
 
 	test	bl, bl
 	jne	SHORT $LN327@SK_FetchVe
 
-; 202  :       {
-; 203  :         wcscpy (h, L"6");
-; 204  : 
-; 205  :         install_ini.import (L"[Update.User]\nFrequency=6h\n\n");
+; 198  :       {
+; 199  :         wcscpy (h, L"6");
+; 200  : 
+; 201  :         install_ini.import (L"[Update.User]\nFrequency=6h\n\n");
 
-	push	OFFSET $SG175218
+	push	OFFSET $SG175279
 	lea	eax, DWORD PTR _install_ini$2[ebp]
 	mov	DWORD PTR _h$12[ebp], 54		; 00000036H
 	push	eax
 	call	?import@iSK_INI@@UAGXPB_W@Z		; iSK_INI::import
 
-; 206  :         install_ini.write  (SK_Version_GetInstallIniPath ().c_str ());
+; 202  :         install_ini.write  (SK_Version_GetInstallIniPath ().c_str ());
 
 	lea	eax, DWORD PTR $T9[ebp]
 	push	eax
@@ -29276,7 +29172,7 @@ $LN204@SK_FetchVe:
 $LN318@SK_FetchVe:
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 206  :         install_ini.write  (SK_Version_GetInstallIniPath ().c_str ());
+; 202  :         install_ini.write  (SK_Version_GetInstallIniPath ().c_str ());
 
 	push	eax
 	lea	eax, DWORD PTR _install_ini$2[ebp]
@@ -29308,7 +29204,7 @@ $LN318@SK_FetchVe:
 $LN327@SK_FetchVe:
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 211  :       update_freq += (   1ULL * _Hour * _wtoi (h) );
+; 207  :       update_freq += (   1ULL * _Hour * _wtoi (h) );
 
 	mov	esi, DWORD PTR __imp___wtoi
 	lea	eax, DWORD PTR _h$12[ebp]
@@ -29324,7 +29220,7 @@ $LN327@SK_FetchVe:
 	mov	ebx, eax
 	mov	DWORD PTR _update_freq$2$[ebp], edx
 
-; 212  :       update_freq += (  24ULL * _Hour * _wtoi (d) );
+; 208  :       update_freq += (  24ULL * _Hour * _wtoi (d) );
 
 	lea	eax, DWORD PTR _d$6[ebp]
 	push	eax
@@ -29338,7 +29234,7 @@ $LN327@SK_FetchVe:
 	call	__allmul
 	add	ebx, eax
 
-; 213  :       update_freq += ( 168ULL * _Hour * _wtoi (w) );
+; 209  :       update_freq += ( 168ULL * _Hour * _wtoi (w) );
 
 	lea	eax, DWORD PTR _w$22[ebp]
 	push	eax
@@ -29357,10 +29253,10 @@ $LN327@SK_FetchVe:
 ; 3844 : 	return (_Left._Equal(_Right));
 
 	lea	ecx, DWORD PTR _freq$16[ebp]
-	push	OFFSET $SG175221
+	push	OFFSET $SG175282
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 213  :       update_freq += ( 168ULL * _Hour * _wtoi (w) );
+; 209  :       update_freq += ( 168ULL * _Hour * _wtoi (w) );
 
 	adc	DWORD PTR _update_freq$2$[ebp], edx
 	mov	DWORD PTR _update_freq$1$[ebp], ebx
@@ -29371,31 +29267,31 @@ $LN327@SK_FetchVe:
 	call	?_Equal@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QBE_NQB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::_Equal
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 218  :       if (freq == L"never")
+; 214  :       if (freq == L"never")
 
 	test	al, al
 	je	SHORT $LN10@SK_FetchVe
 
-; 219  :         update_freq = MAXLONGLONG;
+; 215  :         update_freq = MAXLONGLONG;
 
 	mov	DWORD PTR _update_freq$1$[ebp], -1
 	mov	DWORD PTR _update_freq$2$[ebp], 2147483647 ; 7fffffffH
 	jmp	$LN12@SK_FetchVe
 $LN10@SK_FetchVe:
 
-; 220  : 
-; 221  :       else if (user_prefs.contains_key (L"Reminder"))
+; 216  : 
+; 217  :       else if (user_prefs.contains_key (L"Reminder"))
 
 	mov	esi, DWORD PTR _user_prefs$1$[ebp]
-	push	OFFSET $SG175223
+	push	OFFSET $SG175284
 	push	esi
 	mov	eax, DWORD PTR [esi]
 	call	DWORD PTR [eax+20]
 	test	al, al
 	je	$LN12@SK_FetchVe
 
-; 222  :       {
-; 223  :         has_remind = true;
+; 218  :       {
+; 219  :         has_remind = true;
 
 	mov	BYTE PTR _has_remind$1$[ebp], 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector
@@ -29413,33 +29309,33 @@ $LN10@SK_FetchVe:
 	mov	DWORD PTR _ParameterFactory$11[ebp+8], 0
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 229  :             ParameterFactory.create_parameter <int64_t> (L"Reminder")
+; 225  :             ParameterFactory.create_parameter <int64_t> (L"Reminder")
 
 	push	0
 	push	OFFSET ??_R0?AVParameterInt64@sk@@@8
 	push	OFFSET ??_R0?AViParameter@sk@@@8
 	push	0
-	push	OFFSET $SG175224
+	push	OFFSET $SG175285
 	lea	ecx, DWORD PTR _ParameterFactory$11[ebp]
 	mov	BYTE PTR __$EHRec$[ebp+8], 4
 	call	??$create_parameter@_J@ParameterFactory@sk@@QAEPAViParameter@1@PB_W@Z ; sk::ParameterFactory::create_parameter<__int64>
 	push	eax
 	call	___RTDynamicCast
 
-; 230  :           );
-; 231  : 
-; 232  :         remind_time->register_to_ini (
+; 226  :           );
+; 227  : 
+; 228  :         remind_time->register_to_ini (
 
 	push	ecx
 	mov	ecx, esp
 	mov	DWORD PTR $T20[ebp], esp
-	push	OFFSET $SG175225
+	push	OFFSET $SG175286
 	mov	ebx, eax
 	call	??0?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@QB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 	sub	esp, 24					; 00000018H
 	mov	BYTE PTR __$EHRec$[ebp+8], 5
 	mov	ecx, esp
-	push	OFFSET $SG175226
+	push	OFFSET $SG175287
 	call	??0?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@QB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 	lea	eax, DWORD PTR _install_ini$2[ebp]
 	mov	BYTE PTR __$EHRec$[ebp+8], 4
@@ -29447,18 +29343,18 @@ $LN10@SK_FetchVe:
 	mov	ecx, ebx
 	call	?register_to_ini@iParameter@sk@@QAEXPAUiSK_INI@@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@1@Z ; sk::iParameter::register_to_ini
 
-; 233  :           &install_ini,
-; 234  :             L"Update.User",
-; 235  :               L"Reminder"
-; 236  :         );
-; 237  : 
-; 238  :         ((sk::iParameter *)remind_time)->load ();
+; 229  :           &install_ini,
+; 230  :             L"Update.User",
+; 231  :               L"Reminder"
+; 232  :         );
+; 233  : 
+; 234  :         ((sk::iParameter *)remind_time)->load ();
 
 	mov	ecx, ebx
 	call	?load@iParameter@sk@@QAE_NXZ		; sk::iParameter::load
 
-; 239  : 
-; 240  :         if (uliNow.QuadPart >= static_cast <uint64_t> (remind_time->get_value ()))
+; 235  : 
+; 236  :         if (uliNow.QuadPart >= static_cast <uint64_t> (remind_time->get_value ()))
 
 	mov	eax, DWORD PTR [ebx]
 	mov	ecx, ebx
@@ -29471,18 +29367,18 @@ $LN10@SK_FetchVe:
 	jb	SHORT $LN13@SK_FetchVe
 $LN739@SK_FetchVe:
 
-; 241  :         {
-; 242  :           need_remind = true;
-; 243  : 
-; 244  :           user_prefs.remove_key (L"Reminder");
+; 237  :         {
+; 238  :           need_remind = true;
+; 239  : 
+; 240  :           user_prefs.remove_key (L"Reminder");
 
 	mov	eax, DWORD PTR [esi]
-	push	OFFSET $SG175228
+	push	OFFSET $SG175289
 	push	esi
 	mov	BYTE PTR _need_remind$1$[ebp], 1
 	call	DWORD PTR [eax+28]
 
-; 245  :           install_ini.write (SK_Version_GetInstallIniPath ().c_str ());
+; 241  :           install_ini.write (SK_Version_GetInstallIniPath ().c_str ());
 
 	lea	eax, DWORD PTR $T5[ebp]
 	push	eax
@@ -29505,7 +29401,7 @@ $LN739@SK_FetchVe:
 $LN381@SK_FetchVe:
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 245  :           install_ini.write (SK_Version_GetInstallIniPath ().c_str ());
+; 241  :           install_ini.write (SK_Version_GetInstallIniPath ().c_str ());
 
 	push	eax
 	lea	eax, DWORD PTR _install_ini$2[ebp]
@@ -29515,10 +29411,10 @@ $LN381@SK_FetchVe:
 	call	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 $LN13@SK_FetchVe:
 
-; 246  :         }
-; 247  : 
-; 248  :         delete remind_time;
-; 249  :       }
+; 242  :         }
+; 243  : 
+; 244  :         delete remind_time;
+; 245  :       }
 
 	mov	ecx, ebx
 	call	??1iParameter@sk@@QAE@XZ
@@ -29554,19 +29450,19 @@ $LN12@SK_FetchVe:
 	add	esp, 12					; 0000000cH
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 252  :     else
+; 248  :     else
 
 	jmp	SHORT $LN449@SK_FetchVe
 $LN7@SK_FetchVe:
 
-; 253  :     {
-; 254  :       install_ini.import ( L"[Version.Local]\nInstallPackage= \nBranch=Latest\n\n"
+; 249  :     {
+; 250  :       install_ini.import ( L"[Version.Local]\nInstallPackage= \nBranch=Latest\n\n"
 
-	push	OFFSET $SG175229
+	push	OFFSET $SG175290
 	push	eax
 	call	?import@iSK_INI@@UAGXPB_W@Z		; iSK_INI::import
 
-; 256  :       install_ini.write  (SK_Version_GetInstallIniPath ().c_str ());
+; 252  :       install_ini.write  (SK_Version_GetInstallIniPath ().c_str ());
 
 	lea	eax, DWORD PTR $T15[ebp]
 	push	eax
@@ -29589,7 +29485,7 @@ $LN7@SK_FetchVe:
 $LN440@SK_FetchVe:
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 256  :       install_ini.write  (SK_Version_GetInstallIniPath ().c_str ());
+; 252  :       install_ini.write  (SK_Version_GetInstallIniPath ().c_str ());
 
 	push	eax
 	lea	eax, DWORD PTR _install_ini$2[ebp]
@@ -29626,7 +29522,7 @@ $LN742@SK_FetchVe:
 $LN449@SK_FetchVe:
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 258  :   }
+; 254  :   }
 
 	lea	ecx, DWORD PTR _install_ini$2[ebp]
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
@@ -29640,7 +29536,7 @@ $LN743@SK_FetchVe:
 	mov	DWORD PTR _update_freq$1$[ebp], eax
 $LN6@SK_FetchVe:
 
-; 261  :   if (GetFileAttributes (SK_Version_GetRepoIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
+; 257  :   if (GetFileAttributes (SK_Version_GetRepoIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
 
 	lea	eax, DWORD PTR $T14[ebp]
 	push	eax
@@ -29663,7 +29559,7 @@ $LN6@SK_FetchVe:
 $LN489@SK_FetchVe:
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 261  :   if (GetFileAttributes (SK_Version_GetRepoIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
+; 257  :   if (GetFileAttributes (SK_Version_GetRepoIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
 
 	push	eax
 	call	esi
@@ -29675,7 +29571,7 @@ $LN489@SK_FetchVe:
 	mov	eax, DWORD PTR $T14[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 261  :   if (GetFileAttributes (SK_Version_GetRepoIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
+; 257  :   if (GetFileAttributes (SK_Version_GetRepoIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
 
 	setne	bl
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -29703,12 +29599,12 @@ $LN489@SK_FetchVe:
 $LN498@SK_FetchVe:
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 261  :   if (GetFileAttributes (SK_Version_GetRepoIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
+; 257  :   if (GetFileAttributes (SK_Version_GetRepoIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
 
 	test	bl, bl
 	je	$LN632@SK_FetchVe
 
-; 263  :     CHandle hVersionConfig (
+; 259  :     CHandle hVersionConfig (
 
 	lea	eax, DWORD PTR $T8[ebp]
 	push	eax
@@ -29752,7 +29648,7 @@ $LN538@SK_FetchVe:
 $LN557@SK_FetchVe:
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 263  :     CHandle hVersionConfig (
+; 259  :     CHandle hVersionConfig (
 
 	push	0
 	push	ebx
@@ -29820,7 +29716,7 @@ $LN568@SK_FetchVe:
 	mov	DWORD PTR $T13[ebp+20], 7
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 263  :     CHandle hVersionConfig (
+; 259  :     CHandle hVersionConfig (
 
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -29872,15 +29768,15 @@ $LN598@SK_FetchVe:
 	mov	WORD PTR $T8[ebp], ax
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 276  :     if (hVersionConfig != INVALID_HANDLE_VALUE)
+; 272  :     if (hVersionConfig != INVALID_HANDLE_VALUE)
 
 	cmp	esi, -1
 	je	SHORT $LN17@SK_FetchVe
 
-; 277  :     {
-; 278  :       FILETIME ftModify;
-; 279  : 
-; 280  :       if (GetFileTime (hVersionConfig, nullptr, nullptr, &ftModify))
+; 273  :     {
+; 274  :       FILETIME ftModify;
+; 275  : 
+; 276  :       if (GetFileTime (hVersionConfig, nullptr, nullptr, &ftModify))
 
 	lea	eax, DWORD PTR _ftModify$21[ebp]
 	push	eax
@@ -29891,14 +29787,14 @@ $LN598@SK_FetchVe:
 	test	eax, eax
 	je	SHORT $LN17@SK_FetchVe
 
-; 281  :       {
-; 282  :         ULARGE_INTEGER uliModify;
-; 283  : 
-; 284  :         uliModify.LowPart  = ftModify.dwLowDateTime;
-; 285  :         uliModify.HighPart = ftModify.dwHighDateTime;
-; 286  : 
-; 287  :         // Check Version:  User Preference (default=6h)
-; 288  :         if ((uliNow.QuadPart - uliModify.QuadPart) < update_freq)
+; 277  :       {
+; 278  :         ULARGE_INTEGER uliModify;
+; 279  : 
+; 280  :         uliModify.LowPart  = ftModify.dwLowDateTime;
+; 281  :         uliModify.HighPart = ftModify.dwHighDateTime;
+; 282  : 
+; 283  :         // Check Version:  User Preference (default=6h)
+; 284  :         if ((uliNow.QuadPart - uliModify.QuadPart) < update_freq)
 
 	mov	eax, DWORD PTR _uliNow$1$[ebp]
 	sub	eax, DWORD PTR _ftModify$21[ebp]
@@ -29911,8 +29807,8 @@ $LN598@SK_FetchVe:
 	jae	SHORT $LN17@SK_FetchVe
 $LN740@SK_FetchVe:
 
-; 289  :         {
-; 290  :           should_fetch = false;
+; 285  :         {
+; 286  :           should_fetch = false;
 
 	mov	BYTE PTR _should_fetch$1$[ebp], 0
 $LN17@SK_FetchVe:
@@ -29930,13 +29826,13 @@ $LN17@SK_FetchVe:
 $LN632@SK_FetchVe:
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 302  :   if (! force)
+; 298  :   if (! force)
 
 	cmp	BYTE PTR _force$[ebp], 0
 	jne	SHORT $LN19@SK_FetchVe
 
-; 303  :   {
-; 304  :     if (! (( should_fetch && (! has_remind)) || need_remind))
+; 299  :   {
+; 300  :     if (! (( should_fetch && (! has_remind)) || need_remind))
 
 	cmp	BYTE PTR _should_fetch$1$[ebp], 0
 	je	SHORT $LN20@SK_FetchVe
@@ -29947,36 +29843,36 @@ $LN20@SK_FetchVe:
 	je	SHORT $LN746@SK_FetchVe
 $LN19@SK_FetchVe:
 
-; 305  :       return false;
-; 306  :   }
-; 307  : 
-; 308  :   HINTERNET hInetRoot =
-; 309  :     InternetOpen (
+; 301  :       return false;
+; 302  :   }
+; 303  : 
+; 304  :   HINTERNET hInetRoot =
+; 305  :     InternetOpen (
 
 	push	0
 	push	0
 	push	0
 	push	1
-	push	OFFSET $SG175238
+	push	OFFSET $SG175299
 	call	DWORD PTR __imp__InternetOpenW@20
 	mov	ebx, eax
 	mov	DWORD PTR _hInetRoot$1$[ebp], ebx
 
-; 310  :       L"Special K Auto-Update",
-; 311  :         INTERNET_OPEN_TYPE_DIRECT,
-; 312  :           nullptr, nullptr,
-; 313  :             0x00
-; 314  :     );
-; 315  : 
-; 316  :   if (! hInetRoot)
+; 306  :       L"Special K Auto-Update",
+; 307  :         INTERNET_OPEN_TYPE_DIRECT,
+; 308  :           nullptr, nullptr,
+; 309  :             0x00
+; 310  :     );
+; 311  : 
+; 312  :   if (! hInetRoot)
 
 	test	ebx, ebx
 	je	SHORT $LN746@SK_FetchVe
 
-; 317  :     return false;
-; 318  : 
-; 319  :   HINTERNET hInetGitHub =
-; 320  :     InternetConnect ( hInetRoot,
+; 313  :     return false;
+; 314  : 
+; 315  :   HINTERNET hInetGitHub =
+; 316  :     InternetConnect ( hInetRoot,
 
 	push	OFFSET ?dwInetCtx@@3KA			; dwInetCtx
 	push	0
@@ -29984,37 +29880,37 @@ $LN19@SK_FetchVe:
 	push	0
 	push	0
 	push	80					; 00000050H
-	push	OFFSET $SG175240
+	push	OFFSET $SG175301
 	push	ebx
 	call	DWORD PTR __imp__InternetConnectW@32
 	mov	DWORD PTR _hInetGitHub$1$[ebp], eax
 
-; 321  :                         L"raw.githubusercontent.com",
-; 322  :                           INTERNET_DEFAULT_HTTP_PORT,
-; 323  :                             nullptr, nullptr,
-; 324  :                               INTERNET_SERVICE_HTTP,
-; 325  :                                 0x00,
-; 326  :                                   reinterpret_cast <DWORD_PTR> (&dwInetCtx) );
-; 327  : 
-; 328  :   if (! hInetGitHub)
+; 317  :                         L"raw.githubusercontent.com",
+; 318  :                           INTERNET_DEFAULT_HTTP_PORT,
+; 319  :                             nullptr, nullptr,
+; 320  :                               INTERNET_SERVICE_HTTP,
+; 321  :                                 0x00,
+; 322  :                                   reinterpret_cast <DWORD_PTR> (&dwInetCtx) );
+; 323  : 
+; 324  :   if (! hInetGitHub)
 
 	test	eax, eax
 	jne	SHORT $LN22@SK_FetchVe
 
-; 329  :   {
-; 330  :     InternetCloseHandle (hInetRoot);
+; 325  :   {
+; 326  :     InternetCloseHandle (hInetRoot);
 
 	push	ebx
 	call	DWORD PTR __imp__InternetCloseHandle@4
 $LN746@SK_FetchVe:
 
-; 331  :     return false;
+; 327  :     return false;
 
 	xor	al, al
 
-; 443  : 
-; 444  :   return true;
-; 445  : }
+; 439  : 
+; 440  :   return true;
+; 441  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -30026,9 +29922,9 @@ $LN746@SK_FetchVe:
 	ret	8
 $LN22@SK_FetchVe:
 
-; 332  :   }
-; 333  : 
-; 334  :   wchar_t wszRemoteRepoURL [MAX_PATH] = { };
+; 328  :   }
+; 329  : 
+; 330  :   wchar_t wszRemoteRepoURL [MAX_PATH] = { };
 
 	push	520					; 00000208H
 	lea	eax, DWORD PTR _wszRemoteRepoURL$[ebp]
@@ -30037,81 +29933,81 @@ $LN22@SK_FetchVe:
 	call	_memset
 	add	esp, 12					; 0000000cH
 
-; 335  : 
-; 336  :   // TEMPORARILY REBASE TO 0.8.X
-; 337  :   if (! lstrcmpW (wszProduct, L"SpecialK"))
+; 331  : 
+; 332  :   // TEMPORARILY REBASE TO 0.8.X
+; 333  :   if (! lstrcmpW (wszProduct, L"SpecialK"))
 
-	push	OFFSET $SG175244
+	push	OFFSET $SG175305
 	push	edi
 	call	DWORD PTR __imp__lstrcmpW@8
 	test	eax, eax
 	jne	SHORT $LN23@SK_FetchVe
 
-; 338  :     swprintf ( wszRemoteRepoURL,
+; 334  :     swprintf ( wszRemoteRepoURL,
 
 	push	edi
-	push	OFFSET $SG175245
+	push	OFFSET $SG175306
 	jmp	SHORT $LN745@SK_FetchVe
 $LN23@SK_FetchVe:
 
-; 339  :                  L"/Kaldaien/%s/0.8.x/version.ini",
-; 340  :                    wszProduct );
-; 341  :   else if (wcsstr (wszProduct, L"/"))
+; 335  :                  L"/Kaldaien/%s/0.8.x/version.ini",
+; 336  :                    wszProduct );
+; 337  :   else if (wcsstr (wszProduct, L"/"))
 
-	push	OFFSET $SG175248
+	push	OFFSET $SG175309
 	push	edi
 	call	DWORD PTR __imp__wcsstr
 	add	esp, 8
 
-; 342  :     swprintf ( wszRemoteRepoURL,
+; 338  :     swprintf ( wszRemoteRepoURL,
 
 	push	edi
 	test	eax, eax
 	je	SHORT $LN25@SK_FetchVe
-	push	OFFSET $SG175249
+	push	OFFSET $SG175310
 
-; 343  :                  L"/Kaldaien/%s/version.ini",
-; 344  :                    wszProduct );
-; 345  :   else
+; 339  :                  L"/Kaldaien/%s/version.ini",
+; 340  :                    wszProduct );
+; 341  :   else
 
 	jmp	SHORT $LN745@SK_FetchVe
 $LN25@SK_FetchVe:
 
-; 346  :     swprintf ( wszRemoteRepoURL,
+; 342  :     swprintf ( wszRemoteRepoURL,
 
-	push	OFFSET $SG175250
+	push	OFFSET $SG175311
 $LN745@SK_FetchVe:
 	lea	eax, DWORD PTR _wszRemoteRepoURL$[ebp]
 	push	eax
 	call	?swprintf@@YAHQA_WQB_WZZ		; swprintf
 	add	esp, 12					; 0000000cH
 
-; 347  :                  L"/Kaldaien/%s/master/version.ini",
-; 348  :                    wszProduct );
-; 349  : 
-; 350  :   PCWSTR  rgpszAcceptTypes []         = { L"*/*", nullptr };
+; 343  :                  L"/Kaldaien/%s/master/version.ini",
+; 344  :                    wszProduct );
+; 345  : 
+; 346  :   PCWSTR  rgpszAcceptTypes []         = { L"*/*", nullptr };
 
-	mov	DWORD PTR _rgpszAcceptTypes$[ebp], OFFSET $SG175251
+	mov	DWORD PTR _rgpszAcceptTypes$[ebp], OFFSET $SG175312
 	mov	DWORD PTR _rgpszAcceptTypes$[ebp+4], 0
 
-; 351  : 
-; 352  :   DWORD dwFlags =   INTERNET_FLAG_IGNORE_CERT_DATE_INVALID | INTERNET_FLAG_IGNORE_CERT_CN_INVALID 
-; 353  :                   | INTERNET_FLAG_NEED_FILE                | INTERNET_FLAG_PRAGMA_NOCACHE
-; 354  :                   | INTERNET_FLAG_RESYNCHRONIZE;
+; 347  : 
+; 348  :   DWORD dwFlags =   INTERNET_FLAG_IGNORE_CERT_DATE_INVALID | INTERNET_FLAG_IGNORE_CERT_CN_INVALID 
+; 349  :                   | INTERNET_FLAG_NEED_FILE                | INTERNET_FLAG_PRAGMA_NOCACHE
+; 350  :                   | INTERNET_FLAG_RESYNCHRONIZE;
 
 	mov	esi, 14608				; 00003910H
 
-; 355  : 
-; 356  :   extern bool SK_IsSuperSpecialK (void);
-; 357  : 
-; 358  :   if (SK_IsSuperSpecialK ())
+; 351  : 
+; 352  :   extern bool SK_IsSuperSpecialK (void);
+; 353  : 
+; 354  :   if (SK_IsSuperSpecialK ())
 
 	call	?SK_IsSuperSpecialK@@YA_NXZ		; SK_IsSuperSpecialK
 
-; 359  :     dwFlags |= INTERNET_FLAG_RELOAD;
-; 360  : 
-; 361  :   HINTERNET hInetGitHubOpen =
-; 362  :     HttpOpenRequest ( hInetGitHub,
+; 355  :     dwFlags |= INTERNET_FLAG_RELOAD;
+; 356  : 
+; 357  :   HINTERNET hInetGitHubOpen =
+; 358  :     HttpOpenRequest ( hInetGitHub,
 
 	push	OFFSET ?dwInetCtx@@3KA			; dwInetCtx
 	test	al, al
@@ -30122,7 +30018,7 @@ $LN745@SK_FetchVe:
 	mov	esi, DWORD PTR _hInetGitHub$1$[ebp]
 	push	eax
 	push	0
-	push	OFFSET $SG175253
+	push	OFFSET $SG175314
 	lea	eax, DWORD PTR _wszRemoteRepoURL$[ebp]
 	push	eax
 	push	0
@@ -30130,38 +30026,38 @@ $LN745@SK_FetchVe:
 	call	DWORD PTR __imp__HttpOpenRequestW@32
 	mov	ebx, eax
 
-; 363  :                         nullptr,
-; 364  :                           wszRemoteRepoURL,
-; 365  :                             L"HTTP/1.1",
-; 366  :                               nullptr,
-; 367  :                                 rgpszAcceptTypes,
-; 368  :                                   dwFlags,
-; 369  :                                     reinterpret_cast <DWORD_PTR> (&dwInetCtx) );
-; 370  : 
-; 371  :   if (! hInetGitHubOpen)
+; 359  :                         nullptr,
+; 360  :                           wszRemoteRepoURL,
+; 361  :                             L"HTTP/1.1",
+; 362  :                               nullptr,
+; 363  :                                 rgpszAcceptTypes,
+; 364  :                                   dwFlags,
+; 365  :                                     reinterpret_cast <DWORD_PTR> (&dwInetCtx) );
+; 366  : 
+; 367  :   if (! hInetGitHubOpen)
 
 	test	ebx, ebx
 	jne	SHORT $LN28@SK_FetchVe
 
-; 372  :   {
-; 373  :     InternetCloseHandle (hInetGitHub);
+; 368  :   {
+; 369  :     InternetCloseHandle (hInetGitHub);
 
 	push	esi
 	mov	esi, DWORD PTR __imp__InternetCloseHandle@4
 	call	esi
 
-; 374  :     InternetCloseHandle (hInetRoot);
+; 370  :     InternetCloseHandle (hInetRoot);
 
 	push	DWORD PTR _hInetRoot$1$[ebp]
 	call	esi
 
-; 375  :     return false;
+; 371  :     return false;
 
 	xor	al, al
 
-; 443  : 
-; 444  :   return true;
-; 445  : }
+; 439  : 
+; 440  :   return true;
+; 441  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -30173,9 +30069,9 @@ $LN745@SK_FetchVe:
 	ret	8
 $LN28@SK_FetchVe:
 
-; 376  :   }
-; 377  : 
-; 378  :   if ( HttpSendRequestW ( hInetGitHubOpen,
+; 372  :   }
+; 373  : 
+; 374  :   if ( HttpSendRequestW ( hInetGitHubOpen,
 
 	push	0
 	push	0
@@ -30186,14 +30082,14 @@ $LN28@SK_FetchVe:
 	test	eax, eax
 	je	$LN30@SK_FetchVe
 
-; 379  :                             nullptr,
-; 380  :                               0,
-; 381  :                                 nullptr,
-; 382  :                                   0 ) )
-; 383  :   {
-; 384  :     DWORD dwSize;
-; 385  : 
-; 386  :     if ( InternetQueryDataAvailable ( hInetGitHubOpen,
+; 375  :                             nullptr,
+; 376  :                               0,
+; 377  :                                 nullptr,
+; 378  :                                   0 ) )
+; 379  :   {
+; 380  :     DWORD dwSize;
+; 381  : 
+; 382  :     if ( InternetQueryDataAvailable ( hInetGitHubOpen,
 
 	push	0
 	push	0
@@ -30204,7 +30100,7 @@ $LN28@SK_FetchVe:
 	test	eax, eax
 	je	$LN30@SK_FetchVe
 
-; 391  :       DWORD dwAttribs = GetFileAttributes (SK_Version_GetRepoIniPath ().c_str ());
+; 387  :       DWORD dwAttribs = GetFileAttributes (SK_Version_GetRepoIniPath ().c_str ());
 
 	lea	eax, DWORD PTR $T4[ebp]
 	push	eax
@@ -30227,7 +30123,7 @@ $LN28@SK_FetchVe:
 $LN648@SK_FetchVe:
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 391  :       DWORD dwAttribs = GetFileAttributes (SK_Version_GetRepoIniPath ().c_str ());
+; 387  :       DWORD dwAttribs = GetFileAttributes (SK_Version_GetRepoIniPath ().c_str ());
 
 	push	eax
 	call	DWORD PTR __imp__GetFileAttributesW@4
@@ -30235,14 +30131,14 @@ $LN648@SK_FetchVe:
 	mov	esi, eax
 	call	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 
-; 392  : 
-; 393  :       if (dwAttribs == INVALID_FILE_ATTRIBUTES)
+; 388  : 
+; 389  :       if (dwAttribs == INVALID_FILE_ATTRIBUTES)
 
 	mov	eax, 128				; 00000080H
 	cmp	esi, -1
 	cmove	esi, eax
 
-; 396  :       CHandle hVersionFile (
+; 392  :       CHandle hVersionFile (
 
 	lea	eax, DWORD PTR $T3[ebp]
 	push	eax
@@ -30265,7 +30161,7 @@ $LN648@SK_FetchVe:
 $LN667@SK_FetchVe:
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 396  :       CHandle hVersionFile (
+; 392  :       CHandle hVersionFile (
 
 	push	0
 	or	esi, 134217728				; 08000000H
@@ -30283,7 +30179,7 @@ $LN667@SK_FetchVe:
 	mov	edi, eax
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 396  :       CHandle hVersionFile (
+; 392  :       CHandle hVersionFile (
 
 	lea	ecx, DWORD PTR $T3[ebp]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlbase.h
@@ -30293,11 +30189,11 @@ $LN667@SK_FetchVe:
 	mov	DWORD PTR _hVersionFile$19[ebp], edi
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 396  :       CHandle hVersionFile (
+; 392  :       CHandle hVersionFile (
 
 	call	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 
-; 407  :       while (hVersionFile != INVALID_HANDLE_VALUE && dwSize > 0)
+; 403  :       while (hVersionFile != INVALID_HANDLE_VALUE && dwSize > 0)
 
 	cmp	edi, -1
 	je	SHORT $LN3@SK_FetchVe
@@ -30313,7 +30209,7 @@ $LL2@SK_FetchVe:
 	xor	ecx, ecx
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 409  :         DWORD              dwRead = 0;
+; 405  :         DWORD              dwRead = 0;
 
 	mov	DWORD PTR _dwRead$23[ebp], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\atlmfc\include\atlalloc.h
@@ -30340,14 +30236,14 @@ $LN741@SK_FetchVe:
 	add	esp, 4
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 413  :         if (! pData)
+; 409  :         if (! pData)
 
 	test	esi, esi
 	je	SHORT $LN737@SK_FetchVe
 
-; 414  :           break;
-; 415  : 
-; 416  :         if ( InternetReadFile ( hInetGitHubOpen,
+; 410  :           break;
+; 411  : 
+; 412  :         if ( InternetReadFile ( hInetGitHubOpen,
 
 	lea	eax, DWORD PTR _dwRead$23[ebp]
 	push	eax
@@ -30358,14 +30254,14 @@ $LN741@SK_FetchVe:
 	test	eax, eax
 	je	SHORT $LN33@SK_FetchVe
 
-; 417  :                                   pData,
-; 418  :                                     dwSize,
-; 419  :                                       &dwRead )
-; 420  :           )
-; 421  :         {
-; 422  :           DWORD dwWritten;
-; 423  : 
-; 424  :           WriteFile ( hVersionFile,
+; 413  :                                   pData,
+; 414  :                                     dwSize,
+; 415  :                                       &dwRead )
+; 416  :           )
+; 417  :         {
+; 418  :           DWORD dwWritten;
+; 419  : 
+; 420  :           WriteFile ( hVersionFile,
 
 	push	0
 	lea	eax, DWORD PTR _dwWritten$7[ebp]
@@ -30376,7 +30272,7 @@ $LN741@SK_FetchVe:
 	call	DWORD PTR __imp__WriteFile@20
 $LN33@SK_FetchVe:
 
-; 431  :         if (! InternetQueryDataAvailable ( hInetGitHubOpen,
+; 427  :         if (! InternetQueryDataAvailable ( hInetGitHubOpen,
 
 	push	0
 	push	0
@@ -30391,7 +30287,7 @@ $LN33@SK_FetchVe:
 	push	esi
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 431  :         if (! InternetQueryDataAvailable ( hInetGitHubOpen,
+; 427  :         if (! InternetQueryDataAvailable ( hInetGitHubOpen,
 
 	test	eax, eax
 	je	SHORT $LN732@SK_FetchVe
@@ -30403,7 +30299,7 @@ $LN33@SK_FetchVe:
 	add	esp, 4
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 407  :       while (hVersionFile != INVALID_HANDLE_VALUE && dwSize > 0)
+; 403  :       while (hVersionFile != INVALID_HANDLE_VALUE && dwSize > 0)
 
 	jmp	SHORT $LL2@SK_FetchVe
 $LN737@SK_FetchVe:
@@ -30418,33 +30314,33 @@ $LN732@SK_FetchVe:
 $LN3@SK_FetchVe:
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 437  :     }
+; 433  :     }
 
 	lea	ecx, DWORD PTR _hVersionFile$19[ebp]
 	call	??1CHandle@ATL@@QAE@XZ			; ATL::CHandle::~CHandle
 $LN30@SK_FetchVe:
 
-; 438  :   }
-; 439  : 
-; 440  :   InternetCloseHandle (hInetGitHubOpen);
+; 434  :   }
+; 435  : 
+; 436  :   InternetCloseHandle (hInetGitHubOpen);
 
 	mov	esi, DWORD PTR __imp__InternetCloseHandle@4
 	push	ebx
 	call	esi
 
-; 441  :   InternetCloseHandle (hInetGitHub);
+; 437  :   InternetCloseHandle (hInetGitHub);
 
 	push	DWORD PTR _hInetGitHub$1$[ebp]
 	call	esi
 
-; 442  :   InternetCloseHandle (hInetRoot);
+; 438  :   InternetCloseHandle (hInetRoot);
 
 	push	DWORD PTR _hInetRoot$1$[ebp]
 	call	esi
 
-; 443  : 
-; 444  :   return true;
-; 445  : }
+; 439  : 
+; 440  :   return true;
+; 441  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	al, 1
@@ -30511,7 +30407,7 @@ __$EHRec$ = -12						; size = 12
 ___$ReturnUdt$ = 8					; size = 4
 ?SK_Version_GetInstallIniPath@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ PROC ; SK_Version_GetInstallIniPath
 
-; 83   : {
+; 79   : {
 
 	npad	2
 	push	ebp
@@ -30538,7 +30434,7 @@ ___$ReturnUdt$ = 8					; size = 4
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG175033
+	push	OFFSET $SG175094
 	lea	ecx, DWORD PTR $T3[ebp]
 
 ; 3597 : 		_My_data._Mysize = 0;
@@ -30560,7 +30456,7 @@ ___$ReturnUdt$ = 8					; size = 4
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 84   :   return SK_SYS_GetVersionPath () + std::wstring (L"installed.ini");
+; 80   :   return SK_SYS_GetVersionPath () + std::wstring (L"installed.ini");
 
 	lea	eax, DWORD PTR $T2[ebp]
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
@@ -30580,7 +30476,7 @@ ___$ReturnUdt$ = 8					; size = 4
 	mov	eax, DWORD PTR $T2[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 84   :   return SK_SYS_GetVersionPath () + std::wstring (L"installed.ini");
+; 80   :   return SK_SYS_GetVersionPath () + std::wstring (L"installed.ini");
 
 	add	esp, 16					; 00000010H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -30665,7 +30561,7 @@ $LN35@SK_Version:
 $LN91@SK_Version:
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 85   : }
+; 81   : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	eax, esi
@@ -30718,7 +30614,7 @@ __$EHRec$ = -12						; size = 12
 ___$ReturnUdt$ = 8					; size = 4
 ?SK_Version_GetRepoIniPath@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ PROC ; SK_Version_GetRepoIniPath
 
-; 89   : {
+; 85   : {
 
 	npad	2
 	push	ebp
@@ -30745,7 +30641,7 @@ ___$ReturnUdt$ = 8					; size = 4
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG175041
+	push	OFFSET $SG175102
 	lea	ecx, DWORD PTR $T3[ebp]
 
 ; 3597 : 		_My_data._Mysize = 0;
@@ -30767,7 +30663,7 @@ ___$ReturnUdt$ = 8					; size = 4
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 90   :   return SK_SYS_GetVersionPath () + std::wstring (L"repository.ini");
+; 86   :   return SK_SYS_GetVersionPath () + std::wstring (L"repository.ini");
 
 	lea	eax, DWORD PTR $T2[ebp]
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
@@ -30787,7 +30683,7 @@ ___$ReturnUdt$ = 8					; size = 4
 	mov	eax, DWORD PTR $T2[ebp+20]
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 90   :   return SK_SYS_GetVersionPath () + std::wstring (L"repository.ini");
+; 86   :   return SK_SYS_GetVersionPath () + std::wstring (L"repository.ini");
 
 	add	esp, 16					; 00000010H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -30872,7 +30768,7 @@ $LN35@SK_Version:
 $LN91@SK_Version:
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 91   : }
+; 87   : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	eax, esi
@@ -30896,10 +30792,10 @@ text$x	ENDS
 ?SK_Version_GetRepoIniPath@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ ENDP ; SK_Version_GetRepoIniPath
 ; Function compile flags: /Ogtp
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -30909,14 +30805,41 @@ text$x	ENDS
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\users\andon\source\repos\specialk\src\update\version.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\users\andon\source\repos\specialk\src\update\version.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\users\andon\source\repos\specialk\src\update\version.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\users\andon\source\repos\specialk\src\update\version.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\users\andon\source\repos\specialk\src\update\version.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -30924,19 +30847,15 @@ text$x	ENDS
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
-; File c:\users\andon\source\repos\specialk\src\update\version.cpp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-; File c:\users\andon\source\repos\specialk\src\update\version.cpp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-; File c:\users\andon\source\repos\specialk\src\update\version.cpp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 _TEXT	SEGMENT
-_path$2 = -88						; size = 24
-$T3 = -64						; size = 24
-$T4 = -40						; size = 24
-$T5 = -40						; size = 24
-$T6 = -16						; size = 4
+$T2 = -112						; size = 24
+$T3 = -88						; size = 24
+$T4 = -64						; size = 24
+$T5 = -64						; size = 24
+$T6 = -40						; size = 24
+$T7 = -40						; size = 24
+$T8 = -16						; size = 4
 __$EHRec$ = -12						; size = 12
 ___$ReturnUdt$ = 8					; size = 4
 ?SK_SYS_GetVersionPath@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ PROC ; SK_SYS_GetVersionPath
@@ -30951,32 +30870,67 @@ ___$ReturnUdt$ = 8					; size = 4
 	mov	eax, DWORD PTR fs:0
 	push	eax
 	mov	DWORD PTR fs:0, esp
-	sub	esp, 76					; 0000004cH
+	sub	esp, 100				; 00000064H
+	push	esi
 
 ; 49   :   if (! SK_IsInjected ())
 
 	push	0
-	mov	DWORD PTR $T6[ebp], 0
+	mov	DWORD PTR $T8[ebp], 0
 	call	?SK_IsInjected@@YG_N_N@Z		; SK_IsInjected
 	test	al, al
 	jne	$LN2@SK_SYS_Get
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
-; 50   :   {
+; 326  : 		_Left = _Right;
+
+	xor	eax, eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3597 : 		_My_data._Mysize = 0;
+
+	mov	DWORD PTR $T5[ebp+16], 0
+
+; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
+
+	lea	ecx, DWORD PTR $T5[ebp]
+
+; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
+
+	mov	DWORD PTR $T5[ebp+20], 7
+
+; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
+
+	push	8
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	mov	WORD PTR $T5[ebp], ax
+; File c:\users\andon\source\repos\specialk\src\update\version.cpp
+
 ; 51   :     if (! config.system.central_repository)
 
-	push	esi
 	cmp	BYTE PTR ?config@@3Usk_config_t@@A+844, al
-	jne	SHORT $LN4@SK_SYS_Get
+	jne	$LN4@SK_SYS_Get
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
-; 52   :       return std::wstring (SK_GetRootPath ()) + L"Version\\";
+; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
+	push	OFFSET $SG175074
+	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
+; File c:\users\andon\source\repos\specialk\src\update\version.cpp
+
+; 52   :       return std::wstring (SK_GetRootPath ())   + std::wstring (L"Version\\");
+
+	mov	DWORD PTR __$EHRec$[ebp+8], 0
 	call	?SK_GetRootPath@@YGPB_WXZ		; SK_GetRootPath
 	mov	edx, eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 3597 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR $T5[ebp+16], 0
+	mov	DWORD PTR $T7[ebp+16], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 289  : 		return (_CSTD wcslen(_First));
@@ -30986,83 +30940,23 @@ ___$ReturnUdt$ = 8					; size = 4
 
 ; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR $T5[ebp+20], 7
+	mov	DWORD PTR $T7[ebp+20], 7
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
 	xor	eax, eax
-	mov	WORD PTR $T5[ebp], ax
-
-; 289  : 		return (_CSTD wcslen(_First));
-
-	lea	esi, DWORD PTR [ecx+2]
-	npad	4
-$LL304@SK_SYS_Get:
-	mov	ax, WORD PTR [ecx]
-	add	ecx, 2
-	test	ax, ax
-	jne	SHORT $LL304@SK_SYS_Get
-	sub	ecx, esi
-	sar	ecx, 1
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
-
-	push	ecx
-	push	edx
-	lea	ecx, DWORD PTR $T5[ebp]
-	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
-; File c:\users\andon\source\repos\specialk\src\update\version.cpp
-
-; 52   :       return std::wstring (SK_GetRootPath ()) + L"Version\\";
-
-	mov	esi, DWORD PTR ___$ReturnUdt$[ebp]
-	lea	eax, DWORD PTR $T5[ebp]
-	push	OFFSET $SG174986
-	push	eax
-	push	esi
-	mov	DWORD PTR __$EHRec$[ebp+8], 0
-	call	??$?H_WU?$char_traits@_W@std@@V?$allocator@_W@1@@std@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@$$QAV10@QB_W@Z ; std::operator+<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
-	add	esp, 12					; 0000000cH
-	jmp	$LN308@SK_SYS_Get
-$LN4@SK_SYS_Get:
-
-; 54   :       return std::wstring (std::wstring (SK_GetConfigPath ()) + L"Version\\");
-
-	call	?SK_GetConfigPath@@YGPB_WXZ		; SK_GetConfigPath
-	mov	edx, eax
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 3597 : 		_My_data._Mysize = 0;
-
-	mov	DWORD PTR $T4[ebp+16], 0
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-
-; 289  : 		return (_CSTD wcslen(_First));
-
-	mov	ecx, edx
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
-
-	mov	DWORD PTR $T4[ebp+20], 7
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-
-; 326  : 		_Left = _Right;
-
-	xor	eax, eax
-	mov	WORD PTR $T4[ebp], ax
+	mov	WORD PTR $T7[ebp], ax
 
 ; 289  : 		return (_CSTD wcslen(_First));
 
 	lea	esi, DWORD PTR [ecx+2]
 	npad	6
-$LL305@SK_SYS_Get:
+$LL315@SK_SYS_Get:
 	mov	ax, WORD PTR [ecx]
 	add	ecx, 2
 	test	ax, ax
-	jne	SHORT $LL305@SK_SYS_Get
+	jne	SHORT $LL315@SK_SYS_Get
 	sub	ecx, esi
 	sar	ecx, 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -31071,73 +30965,40 @@ $LL305@SK_SYS_Get:
 
 	push	ecx
 	push	edx
-	lea	ecx, DWORD PTR $T4[ebp]
+	lea	ecx, DWORD PTR $T7[ebp]
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 54   :       return std::wstring (std::wstring (SK_GetConfigPath ()) + L"Version\\");
+; 52   :       return std::wstring (SK_GetRootPath ())   + std::wstring (L"Version\\");
 
-	push	OFFSET $SG174987
-	lea	eax, DWORD PTR $T4[ebp]
-	mov	DWORD PTR __$EHRec$[ebp+8], 1
-	push	eax
-	lea	eax, DWORD PTR $T3[ebp]
-	push	eax
-	call	??$?H_WU?$char_traits@_W@std@@V?$allocator@_W@1@@std@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@$$QAV10@QB_W@Z ; std::operator+<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 1595 : 		_Mysize(0),
-
+	mov	BYTE PTR __$EHRec$[ebp+8], 1
+$LN321@SK_SYS_Get:
 	mov	esi, DWORD PTR ___$ReturnUdt$[ebp]
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-
-; 326  : 		_Left = _Right;
-
-	xor	ecx, ecx
-; File c:\users\andon\source\repos\specialk\src\update\version.cpp
-
-; 54   :       return std::wstring (std::wstring (SK_GetConfigPath ()) + L"Version\\");
-
-	add	esp, 12					; 0000000cH
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 1595 : 		_Mysize(0),
-
-	mov	DWORD PTR [esi+16], 0
-
-; 1596 : 		_Myres(0)
-
-	mov	DWORD PTR [esi+20], 0
-
-; 2143 : 		_CSTD memcpy(_My_data_mem, _Right_data_mem, _Memcpy_move_size);
-
-	movups	xmm0, XMMWORD PTR [eax]
-	movups	XMMWORD PTR [esi], xmm0
-	movq	xmm0, QWORD PTR [eax+16]
-	movq	QWORD PTR [esi+16], xmm0
-
-; 3597 : 		_My_data._Mysize = 0;
-
-	mov	DWORD PTR [eax+16], 0
-
-; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
-
-	mov	DWORD PTR [eax+20], 7
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-
-; 326  : 		_Left = _Right;
-
-	mov	WORD PTR [eax], cx
+	lea	eax, DWORD PTR $T5[ebp]
+	push	eax
+	lea	eax, DWORD PTR $T7[ebp]
+	push	eax
+	push	esi
+	call	??$?H_WU?$char_traits@_W@std@@V?$allocator@_W@1@@std@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@$$QAV10@0@Z ; std::operator+<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	mov	eax, DWORD PTR $T3[ebp+20]
+	mov	eax, DWORD PTR $T7[ebp+20]
+; File c:\users\andon\source\repos\specialk\src\update\version.cpp
+
+; 52   :       return std::wstring (SK_GetRootPath ())   + std::wstring (L"Version\\");
+
+	add	esp, 12					; 0000000cH
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
 	cmp	eax, 8
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN153@SK_SYS_Get
+	jb	SHORT $LN67@SK_SYS_Get
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
@@ -31153,10 +31014,15 @@ $LL305@SK_SYS_Get:
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
 
 	push	eax
-	push	DWORD PTR $T3[ebp]
+	push	DWORD PTR $T7[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN153@SK_SYS_Get:
+$LN67@SK_SYS_Get:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	mov	ecx, DWORD PTR $T5[ebp+20]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -31166,27 +31032,25 @@ $LN153@SK_SYS_Get:
 
 ; 3616 : 		_My_data._Mysize = 0;
 
-	mov	DWORD PTR $T3[ebp+16], 0
+	mov	DWORD PTR $T7[ebp+16], 0
 
 ; 3617 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	mov	DWORD PTR $T3[ebp+20], 7
+	mov	DWORD PTR $T7[ebp+20], 7
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
 
-	mov	WORD PTR $T3[ebp], ax
-$LN308@SK_SYS_Get:
+	mov	WORD PTR $T7[ebp], ax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	mov	ecx, DWORD PTR $T4[ebp+20]
 	cmp	ecx, 8
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN183@SK_SYS_Get
+	jb	$LN289@SK_SYS_Get
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
@@ -31202,81 +31066,220 @@ $LN308@SK_SYS_Get:
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
 
 	push	ecx
-	push	DWORD PTR $T4[ebp]
-	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
-	add	esp, 12					; 0000000cH
-$LN183@SK_SYS_Get:
+	push	DWORD PTR $T5[ebp]
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 54   :       return std::wstring (std::wstring (SK_GetConfigPath ()) + L"Version\\");
+; 52   :       return std::wstring (SK_GetRootPath ())   + std::wstring (L"Version\\");
 
-	mov	eax, esi
-	pop	esi
-
-; 63   : }
-
-	mov	ecx, DWORD PTR __$EHRec$[ebp]
-	mov	DWORD PTR fs:0, ecx
-	mov	esp, ebp
-	pop	ebp
-	ret	0
-$LN2@SK_SYS_Get:
-
-; 59   :     std::wstring path  = SK_GetDocumentsDir ();
-
-	lea	eax, DWORD PTR _path$2[ebp]
-	push	eax
-	call	?SK_GetDocumentsDir@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ ; SK_GetDocumentsDir
-	add	esp, 4
+	jmp	$LN318@SK_SYS_Get
+$LN4@SK_SYS_Get:
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
-; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
+; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	26					; 0000001aH
-	push	OFFSET $SG174988
-	lea	ecx, DWORD PTR _path$2[ebp]
+	push	OFFSET $SG175075
+	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 59   :     std::wstring path  = SK_GetDocumentsDir ();
+; 54   :       return std::wstring (SK_GetConfigPath ()) + std::wstring (L"Version\\");
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 2
+	call	?SK_GetConfigPath@@YGPB_WXZ		; SK_GetConfigPath
+	mov	edx, eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
-; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
+; 3597 : 		_My_data._Mysize = 0;
 
-	call	?append@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::append
+	mov	DWORD PTR $T6[ebp+16], 0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
-; 1595 : 		_Mysize(0),
+; 289  : 		return (_CSTD wcslen(_First));
 
-	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
+	mov	ecx, edx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
-; 2143 : 		_CSTD memcpy(_My_data_mem, _Right_data_mem, _Memcpy_move_size);
+; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	movups	xmm0, XMMWORD PTR _path$2[ebp]
+	mov	DWORD PTR $T6[ebp+20], 7
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	xor	eax, eax
+	mov	WORD PTR $T6[ebp], ax
+
+; 289  : 		return (_CSTD wcslen(_First));
+
+	lea	esi, DWORD PTR [ecx+2]
+$LL316@SK_SYS_Get:
+	mov	ax, WORD PTR [ecx]
+	add	ecx, 2
+	test	ax, ax
+	jne	SHORT $LL316@SK_SYS_Get
+	sub	ecx, esi
+	sar	ecx, 1
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
+
+	push	ecx
+	push	edx
+	lea	ecx, DWORD PTR $T6[ebp]
+	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 63   : }
+; 54   :       return std::wstring (SK_GetConfigPath ()) + std::wstring (L"Version\\");
+
+	mov	BYTE PTR __$EHRec$[ebp+8], 3
+	jmp	$LN321@SK_SYS_Get
+$LN2@SK_SYS_Get:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
+
+	push	26					; 0000001aH
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	xor	eax, eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3597 : 		_My_data._Mysize = 0;
+
+	mov	DWORD PTR $T3[ebp+16], 0
+
+; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
+
+	push	OFFSET $SG175076
+	lea	ecx, DWORD PTR $T3[ebp]
+
+; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
+
+	mov	DWORD PTR $T3[ebp+20], 7
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	mov	WORD PTR $T3[ebp], ax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
+
+	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
+; File c:\users\andon\source\repos\specialk\src\update\version.cpp
+
+; 59   :     return SK_GetDocumentsDir () + std::wstring (L"\\My Mods\\SpecialK\\Version\\");
+
+	lea	eax, DWORD PTR $T2[ebp]
+	mov	DWORD PTR __$EHRec$[ebp+8], 4
+	push	eax
+	call	?SK_GetDocumentsDir@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ ; SK_GetDocumentsDir
+	mov	esi, DWORD PTR ___$ReturnUdt$[ebp]
+	lea	ecx, DWORD PTR $T3[ebp]
+	push	ecx
+	push	eax
+	push	esi
+	mov	BYTE PTR __$EHRec$[ebp+8], 5
+	call	??$?H_WU?$char_traits@_W@std@@V?$allocator@_W@1@@std@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@$$QAV10@0@Z ; std::operator+<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	mov	eax, DWORD PTR $T2[ebp+20]
+; File c:\users\andon\source\repos\specialk\src\update\version.cpp
+
+; 59   :     return SK_GetDocumentsDir () + std::wstring (L"\\My Mods\\SpecialK\\Version\\");
+
+	add	esp, 16					; 00000010H
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	cmp	eax, 8
+
+; 3608 : 		if (_My_data._Large_string_engaged())
+
+	jb	SHORT $LN259@SK_SYS_Get
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	2
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
+
+	inc	eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	eax
+	push	DWORD PTR $T2[ebp]
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+$LN259@SK_SYS_Get:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	mov	ecx, DWORD PTR $T3[ebp+20]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	xor	eax, eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3616 : 		_My_data._Mysize = 0;
+
+	mov	DWORD PTR $T2[ebp+16], 0
+
+; 3617 : 		_My_data._Myres = this->_BUF_SIZE - 1;
+
+	mov	DWORD PTR $T2[ebp+20], 7
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	mov	WORD PTR $T2[ebp], ax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	cmp	ecx, 8
+
+; 3608 : 		if (_My_data._Large_string_engaged())
+
+	jb	SHORT $LN289@SK_SYS_Get
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	2
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
+
+	inc	ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	ecx
+	push	DWORD PTR $T3[ebp]
+$LN318@SK_SYS_Get:
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+$LN289@SK_SYS_Get:
+; File c:\users\andon\source\repos\specialk\src\update\version.cpp
+
+; 61   : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 1595 : 		_Mysize(0),
-
-	mov	DWORD PTR [eax+16], 0
-
-; 1596 : 		_Myres(0)
-
-	mov	DWORD PTR [eax+20], 0
-
-; 2143 : 		_CSTD memcpy(_My_data_mem, _Right_data_mem, _Memcpy_move_size);
-
-	movups	XMMWORD PTR [eax], xmm0
-	movq	xmm0, QWORD PTR _path$2[ebp+16]
-	movq	QWORD PTR [eax+16], xmm0
-; File c:\users\andon\source\repos\specialk\src\update\version.cpp
-
-; 63   : }
-
+	mov	eax, esi
+	pop	esi
 	mov	DWORD PTR fs:0, ecx
 	mov	esp, ebp
 	pop	ebp
@@ -31286,11 +31289,20 @@ text$x	SEGMENT
 __unwindfunclet$?SK_SYS_GetVersionPath@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ$0:
 	lea	ecx, DWORD PTR $T5[ebp]
 	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
-__unwindfunclet$?SK_SYS_GetVersionPath@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ$2:
+__unwindfunclet$?SK_SYS_GetVersionPath@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ$1:
+	lea	ecx, DWORD PTR $T7[ebp]
+	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
+__unwindfunclet$?SK_SYS_GetVersionPath@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ$3:
 	lea	ecx, DWORD PTR $T4[ebp]
 	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 __unwindfunclet$?SK_SYS_GetVersionPath@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ$4:
-	lea	ecx, DWORD PTR _path$2[ebp]
+	lea	ecx, DWORD PTR $T6[ebp]
+	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
+__unwindfunclet$?SK_SYS_GetVersionPath@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ$5:
+	lea	ecx, DWORD PTR $T3[ebp]
+	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
+__unwindfunclet$?SK_SYS_GetVersionPath@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ$6:
+	lea	ecx, DWORD PTR $T2[ebp]
 	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 __ehhandler$?SK_SYS_GetVersionPath@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ:
 	mov	eax, OFFSET __ehfuncinfo$?SK_SYS_GetVersionPath@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ
@@ -31307,19 +31319,35 @@ text$x	ENDS
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-; File c:\users\andon\source\repos\specialk\src\update\version.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\users\andon\source\repos\specialk\src\update\version.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 _TEXT	SEGMENT
-_path$2 = -40						; size = 24
-$T3 = -16						; size = 4
+$T2 = -64						; size = 24
+$T3 = -40						; size = 24
+$T4 = -16						; size = 4
 __$EHRec$ = -12						; size = 12
 ___$ReturnUdt$ = 8					; size = 4
 ?SK_SYS_GetInstallPath@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ PROC ; SK_SYS_GetInstallPath
 
-; 67   : {
+; 65   : {
 
 	npad	2
 	push	ebp
@@ -31329,19 +31357,19 @@ ___$ReturnUdt$ = 8					; size = 4
 	mov	eax, DWORD PTR fs:0
 	push	eax
 	mov	DWORD PTR fs:0, esp
-	sub	esp, 28					; 0000001cH
+	sub	esp, 52					; 00000034H
+	push	esi
 
-; 68   :   if (! SK_IsInjected ())
+; 66   :   if (! SK_IsInjected ())
 
 	push	0
-	mov	DWORD PTR $T3[ebp], 0
+	mov	DWORD PTR $T4[ebp], 0
 	call	?SK_IsInjected@@YG_N_N@Z		; SK_IsInjected
 	test	al, al
 	jne	SHORT $LN2@SK_SYS_Get
 
-; 70   :     return SK_GetRootPath ();
+; 68   :     return SK_GetRootPath ();
 
-	push	esi
 	push	edi
 	call	?SK_GetRootPath@@YGPB_WXZ		; SK_GetRootPath
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -31351,7 +31379,7 @@ ___$ReturnUdt$ = 8					; size = 4
 	mov	esi, DWORD PTR ___$ReturnUdt$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 70   :     return SK_GetRootPath ();
+; 68   :     return SK_GetRootPath ();
 
 	mov	edx, eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -31381,14 +31409,14 @@ ___$ReturnUdt$ = 8					; size = 4
 ; 326  : 		_Left = _Right;
 
 	mov	WORD PTR [esi], ax
-$LL127@SK_SYS_Get:
+$LL117@SK_SYS_Get:
 
 ; 289  : 		return (_CSTD wcslen(_First));
 
 	mov	ax, WORD PTR [ecx]
 	add	ecx, 2
 	test	ax, ax
-	jne	SHORT $LL127@SK_SYS_Get
+	jne	SHORT $LL117@SK_SYS_Get
 	sub	ecx, edi
 	sar	ecx, 1
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -31402,12 +31430,12 @@ $LL127@SK_SYS_Get:
 	pop	edi
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 70   :     return SK_GetRootPath ();
+; 73   :     return SK_GetDocumentsDir () + std::wstring (L"\\My Mods\\SpecialK\\");
 
 	mov	eax, esi
 	pop	esi
 
-; 79   : }
+; 75   : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -31415,62 +31443,152 @@ $LL127@SK_SYS_Get:
 	pop	ebp
 	ret	0
 $LN2@SK_SYS_Get:
-
-; 75   :     std::wstring path  = SK_GetDocumentsDir ();
-
-	lea	eax, DWORD PTR _path$2[ebp]
-	push	eax
-	call	?SK_GetDocumentsDir@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ ; SK_GetDocumentsDir
-	add	esp, 4
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
-; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
+; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	18					; 00000012H
-	push	OFFSET $SG174997
-	lea	ecx, DWORD PTR _path$2[ebp]
-; File c:\users\andon\source\repos\specialk\src\update\version.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
-; 75   :     std::wstring path  = SK_GetDocumentsDir ();
+; 326  : 		_Left = _Right;
 
-	mov	DWORD PTR __$EHRec$[ebp+8], 0
+	xor	eax, eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
-; 2344 : 		return (append(_Ptr, _Traits::length(_Ptr)));
+; 3597 : 		_My_data._Mysize = 0;
 
-	call	?append@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::append
+	mov	DWORD PTR $T3[ebp+16], 0
 
-; 1595 : 		_Mysize(0),
+; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
+	push	OFFSET $SG175086
+	lea	ecx, DWORD PTR $T3[ebp]
 
-; 2143 : 		_CSTD memcpy(_My_data_mem, _Right_data_mem, _Memcpy_move_size);
+; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
 
-	movups	xmm0, XMMWORD PTR _path$2[ebp]
+	mov	DWORD PTR $T3[ebp+20], 7
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	mov	WORD PTR $T3[ebp], ax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
+
+	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\update\version.cpp
 
-; 79   : }
+; 73   :     return SK_GetDocumentsDir () + std::wstring (L"\\My Mods\\SpecialK\\");
+
+	lea	eax, DWORD PTR $T2[ebp]
+	mov	DWORD PTR __$EHRec$[ebp+8], 0
+	push	eax
+	call	?SK_GetDocumentsDir@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ ; SK_GetDocumentsDir
+	mov	esi, DWORD PTR ___$ReturnUdt$[ebp]
+	lea	ecx, DWORD PTR $T3[ebp]
+	push	ecx
+	push	eax
+	push	esi
+	mov	BYTE PTR __$EHRec$[ebp+8], 1
+	call	??$?H_WU?$char_traits@_W@std@@V?$allocator@_W@1@@std@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@0@$$QAV10@0@Z ; std::operator+<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	mov	eax, DWORD PTR $T2[ebp+20]
+; File c:\users\andon\source\repos\specialk\src\update\version.cpp
+
+; 73   :     return SK_GetDocumentsDir () + std::wstring (L"\\My Mods\\SpecialK\\");
+
+	add	esp, 16					; 00000010H
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	cmp	eax, 8
+
+; 3608 : 		if (_My_data._Large_string_engaged())
+
+	jb	SHORT $LN61@SK_SYS_Get
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	2
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
+
+	inc	eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	eax
+	push	DWORD PTR $T2[ebp]
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+$LN61@SK_SYS_Get:
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	mov	ecx, DWORD PTR $T3[ebp+20]
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	xor	eax, eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3616 : 		_My_data._Mysize = 0;
+
+	mov	DWORD PTR $T2[ebp+16], 0
+
+; 3617 : 		_My_data._Myres = this->_BUF_SIZE - 1;
+
+	mov	DWORD PTR $T2[ebp+20], 7
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
+
+; 326  : 		_Left = _Right;
+
+	mov	WORD PTR $T2[ebp], ax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	cmp	ecx, 8
+
+; 3608 : 		if (_My_data._Large_string_engaged())
+
+	jb	SHORT $LN91@SK_SYS_Get
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	2
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
+
+	inc	ecx
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	ecx
+	push	DWORD PTR $T3[ebp]
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+$LN91@SK_SYS_Get:
+; File c:\users\andon\source\repos\specialk\src\update\version.cpp
+
+; 75   : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 1595 : 		_Mysize(0),
-
-	mov	DWORD PTR [eax+16], 0
-
-; 1596 : 		_Myres(0)
-
-	mov	DWORD PTR [eax+20], 0
-
-; 2143 : 		_CSTD memcpy(_My_data_mem, _Right_data_mem, _Memcpy_move_size);
-
-	movups	XMMWORD PTR [eax], xmm0
-	movq	xmm0, QWORD PTR _path$2[ebp+16]
-	movq	QWORD PTR [eax+16], xmm0
-; File c:\users\andon\source\repos\specialk\src\update\version.cpp
-
-; 79   : }
-
+	mov	eax, esi
+	pop	esi
 	mov	DWORD PTR fs:0, ecx
 	mov	esp, ebp
 	pop	ebp
@@ -31478,7 +31596,10 @@ $LN2@SK_SYS_Get:
 _TEXT	ENDS
 text$x	SEGMENT
 __unwindfunclet$?SK_SYS_GetInstallPath@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ$1:
-	lea	ecx, DWORD PTR _path$2[ebp]
+	lea	ecx, DWORD PTR $T3[ebp]
+	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
+__unwindfunclet$?SK_SYS_GetInstallPath@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ$2:
+	lea	ecx, DWORD PTR $T2[ebp]
 	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 __ehhandler$?SK_SYS_GetInstallPath@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ:
 	mov	eax, OFFSET __ehfuncinfo$?SK_SYS_GetInstallPath@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ

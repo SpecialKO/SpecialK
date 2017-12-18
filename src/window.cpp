@@ -5143,7 +5143,7 @@ SK_Window_SetTopMost (bool bTop, bool bBringToTop)
     hWndOrder  =  HWND_NOTOPMOST;
   }
 
-  SetWindowLongW        ( game_window.hWnd, GWL_EXSTYLE, dwStyleEx );
+  SetWindowLongW        ( game_window.hWnd, GWL_EXSTYLE, (LONG)dwStyleEx );
   SetWindowPos_Original ( game_window.hWnd,
                             hWndOrder,
                               0, 0, 0, 0,

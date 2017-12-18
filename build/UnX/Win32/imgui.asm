@@ -19,8 +19,9 @@ _BSS	SEGMENT
 _BSS	ENDS
 _DATA	SEGMENT
 ?GImGui@@3PAUImGuiContext@@A DD FLAT:?GImDefaultContext@@3UImGuiContext@@A ; GImGui
-?analog_sensitivity@@3MA DD 043a6aa3dr		; 333.33 ; analog_sensitivity
 ?STB_TEXTEDIT_NEWLINE@ImGuiStb@@3GA DW 0aH		; ImGuiStb::STB_TEXTEDIT_NEWLINE
+	ORG $+2
+?analog_sensitivity@@3MA DD 043a6aa3dr		; 333.33 ; analog_sensitivity
 _DATA	ENDS
 CONST	SEGMENT
 $SG118845 DB	'rb', 00H
@@ -133,21 +134,6 @@ $SG122298 DB	'%.0f', 00H
 $SG120259 DB	'#CloseColumns', 00H
 	ORG $+2
 $SG122316 DB	'##v', 00H
-$SG142782 DB	'[', 00H, 'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H
-	DB	't', 00H, '_', 00H, 'H', 00H, 'o', 00H, 't', 00H, ']', 00H, ' '
-	DB	00H, ' ', 00H, '(', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H
-	DB	't', 00H, ' ', 00H, 'D', 00H, 'e', 00H, 'v', 00H, 'i', 00H, 'c'
-	DB	00H, 'e', 00H, ' ', 00H, 'C', 00H, 'o', 00H, 'n', 00H, 'n', 00H
-	DB	'e', 00H, 'c', 00H, 't', 00H, 'e', 00H, 'd', 00H, ')', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG142787 DB	'[', 00H, 'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H
-	DB	't', 00H, '_', 00H, 'H', 00H, 'o', 00H, 't', 00H, ']', 00H, ' '
-	DB	00H, ' ', 00H, '(', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H
-	DB	't', 00H, ' ', 00H, 'D', 00H, 'e', 00H, 'v', 00H, 'i', 00H, 'c'
-	DB	00H, 'e', 00H, ' ', 00H, 'D', 00H, 'i', 00H, 's', 00H, 'c', 00H
-	DB	'o', 00H, 'n', 00H, 'n', 00H, 'e', 00H, 'c', 00H, 't', 00H, 'e'
-	DB	00H, 'd', 00H, ')', 00H, 00H, 00H
 $SG121296 DB	'#image', 00H
 	ORG $+1
 $SG121316 DB	'ab', 00H
@@ -171,8 +157,23 @@ $SG121345 DB	'Log To TTY', 00H
 $SG121346 DB	'Log To File', 00H
 $SG121347 DB	'Log To Clipboard', 00H
 	ORG $+3
+$SG142852 DB	'[', 00H, 'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H
+	DB	't', 00H, '_', 00H, 'H', 00H, 'o', 00H, 't', 00H, ']', 00H, ' '
+	DB	00H, ' ', 00H, '(', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H
+	DB	't', 00H, ' ', 00H, 'D', 00H, 'e', 00H, 'v', 00H, 'i', 00H, 'c'
+	DB	00H, 'e', 00H, ' ', 00H, 'C', 00H, 'o', 00H, 'n', 00H, 'n', 00H
+	DB	'e', 00H, 'c', 00H, 't', 00H, 'e', 00H, 'd', 00H, ')', 00H, 00H
+	DB	00H
+	ORG $+2
 $SG121348 DB	'Depth', 00H
 	ORG $+2
+$SG142857 DB	'[', 00H, 'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H
+	DB	't', 00H, '_', 00H, 'H', 00H, 'o', 00H, 't', 00H, ']', 00H, ' '
+	DB	00H, ' ', 00H, '(', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H
+	DB	't', 00H, ' ', 00H, 'D', 00H, 'e', 00H, 'v', 00H, 'i', 00H, 'c'
+	DB	00H, 'e', 00H, ' ', 00H, 'D', 00H, 'i', 00H, 's', 00H, 'c', 00H
+	DB	'o', 00H, 'n', 00H, 'n', 00H, 'e', 00H, 'c', 00H, 't', 00H, 'e'
+	DB	00H, 'd', 00H, ')', 00H, 00H, 00H
 $SG123441 DB	'#SCROLLY', 00H
 	ORG $+3
 $SG124490 DB	'columns', 00H
@@ -2136,7 +2137,6 @@ _DATA	SEGMENT
 	ORG $+10
 _DATA	ENDS
 _DATA	SEGMENT
-	ORG $+2
 ?haptic_events@@3U<unnamed-type-haptic_events>@@A DD 043af0000r ; 350 ; haptic_events
 	DD	03f800000r			; 1
 	DD	000000000r			; 0
@@ -7393,7 +7393,7 @@ $LN8@ImGui_WndP:
 ; 11505:           {
 ; 11506:             dll_log.Log (L"[XInput_Hot]  (Input Device Connected)");
 
-	push	OFFSET $SG142782
+	push	OFFSET $SG142852
 $LN134@ImGui_WndP:
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
@@ -7446,7 +7446,7 @@ $LN12@ImGui_WndP:
 ; 11522:           {
 ; 11523:             dll_log.Log (L"[XInput_Hot]  (Input Device Disconnected)");
 
-	push	OFFSET $SG142787
+	push	OFFSET $SG142857
 
 ; 11524:             return true;
 
@@ -8761,7 +8761,7 @@ _TEXT	SEGMENT
 ; _this$ = ecx
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 274  :     LeaveCriticalSection (cs_);
+; 285  :     LeaveCriticalSection (cs_);
 
 	mov	eax, DWORD PTR [ecx]
 	push	DWORD PTR [eax]
@@ -8800,7 +8800,7 @@ __Mtx$ = 8						; size = 4
 	mov	DWORD PTR [esi], eax
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 269  :     EnterCriticalSection (cs_);
+; 280  :     EnterCriticalSection (cs_);
 
 	push	DWORD PTR [eax]
 	call	DWORD PTR __imp__EnterCriticalSection@4
@@ -8858,7 +8858,7 @@ _self$ = 28						; size = 4
 	push	edi
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 269  :     EnterCriticalSection (cs_);
+; 280  :     EnterCriticalSection (cs_);
 
 	push	DWORD PTR ?raw_input_lock@@3VSK_Thread_HybridSpinlock@@A ; raw_input_lock
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\mutex
@@ -8868,7 +8868,7 @@ _self$ = 28						; size = 4
 	mov	DWORD PTR _lock$[ebp], OFFSET ?raw_input_lock@@3VSK_Thread_HybridSpinlock@@A ; raw_input_lock
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 269  :     EnterCriticalSection (cs_);
+; 280  :     EnterCriticalSection (cs_);
 
 	call	DWORD PTR __imp__EnterCriticalSection@4
 ; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
@@ -9394,7 +9394,7 @@ $LN45@SK_ImGui_P:
 $LN51@SK_ImGui_P:
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 274  :     LeaveCriticalSection (cs_);
+; 285  :     LeaveCriticalSection (cs_);
 
 	push	DWORD PTR ?raw_input_lock@@3VSK_Thread_HybridSpinlock@@A ; raw_input_lock
 	call	DWORD PTR __imp__LeaveCriticalSection@4
@@ -9621,12 +9621,12 @@ text$x	ENDS
 text$yd	SEGMENT
 ??__Fraw_input_lock@@YAXXZ PROC				; `dynamic atexit destructor for 'raw_input_lock'', COMDAT
 
-; 292  :     DeleteCriticalSection (cs_);
+; 303  :     DeleteCriticalSection (cs_);
 
 	push	DWORD PTR ?raw_input_lock@@3VSK_Thread_HybridSpinlock@@A ; raw_input_lock
 	call	DWORD PTR __imp__DeleteCriticalSection@4
 
-; 293  :     delete cs_;
+; 304  :     delete cs_;
 
 	push	24					; 00000018H
 	push	DWORD PTR ?raw_input_lock@@3VSK_Thread_HybridSpinlock@@A ; raw_input_lock
@@ -9644,17 +9644,17 @@ text$di	SEGMENT
 ??__Eraw_input_lock@@YAXXZ PROC				; `dynamic initializer for 'raw_input_lock'', COMDAT
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 285  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
+; 296  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
 
 	push	24					; 00000018H
 	call	??2@YAPAXI@Z				; operator new
 	add	esp, 4
 
-; 263  :     cs_ = pCS;
+; 274  :     cs_ = pCS;
 
 	mov	DWORD PTR ?raw_input_lock@@3VSK_Thread_HybridSpinlock@@A, eax ; raw_input_lock
 
-; 287  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
+; 298  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
 
 	push	9000					; 00002328H
 	push	eax
@@ -9985,7 +9985,7 @@ _TEXT	SEGMENT
 ; _this$ = ecx
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 274  :     LeaveCriticalSection (cs_);
+; 285  :     LeaveCriticalSection (cs_);
 
 	mov	eax, DWORD PTR [ecx]
 	push	DWORD PTR [eax]
@@ -10024,7 +10024,7 @@ __Mtx$ = 8						; size = 4
 	mov	DWORD PTR [esi], eax
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 269  :     EnterCriticalSection (cs_);
+; 280  :     EnterCriticalSection (cs_);
 
 	push	DWORD PTR [eax]
 	call	DWORD PTR __imp__EnterCriticalSection@4
@@ -10085,7 +10085,7 @@ __$EHRec$ = -12						; size = 12
 	push	esi
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 269  :     EnterCriticalSection (cs_);
+; 280  :     EnterCriticalSection (cs_);
 
 	push	DWORD PTR ?font_lock@@3VSK_Thread_HybridSpinlock@@A ; font_lock
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\mutex
@@ -10095,7 +10095,7 @@ __$EHRec$ = -12						; size = 12
 	mov	DWORD PTR _cs_load_font$[ebp], OFFSET ?font_lock@@3VSK_Thread_HybridSpinlock@@A ; font_lock
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 269  :     EnterCriticalSection (cs_);
+; 280  :     EnterCriticalSection (cs_);
 
 	call	DWORD PTR __imp__EnterCriticalSection@4
 ; File c:\users\andon\source\repos\specialk\src\imgui\imgui.cpp
@@ -10337,7 +10337,7 @@ $LN3@SK_ImGui_L:
 $LN2@SK_ImGui_L:
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 274  :     LeaveCriticalSection (cs_);
+; 285  :     LeaveCriticalSection (cs_);
 
 	push	DWORD PTR ?font_lock@@3VSK_Thread_HybridSpinlock@@A ; font_lock
 	call	DWORD PTR __imp__LeaveCriticalSection@4
@@ -10367,12 +10367,12 @@ text$x	ENDS
 text$yd	SEGMENT
 ??__Ffont_lock@@YAXXZ PROC				; `dynamic atexit destructor for 'font_lock'', COMDAT
 
-; 292  :     DeleteCriticalSection (cs_);
+; 303  :     DeleteCriticalSection (cs_);
 
 	push	DWORD PTR ?font_lock@@3VSK_Thread_HybridSpinlock@@A ; font_lock
 	call	DWORD PTR __imp__DeleteCriticalSection@4
 
-; 293  :     delete cs_;
+; 304  :     delete cs_;
 
 	push	24					; 00000018H
 	push	DWORD PTR ?font_lock@@3VSK_Thread_HybridSpinlock@@A ; font_lock
@@ -10390,17 +10390,17 @@ text$di	SEGMENT
 ??__Efont_lock@@YAXXZ PROC				; `dynamic initializer for 'font_lock'', COMDAT
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 285  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
+; 296  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
 
 	push	24					; 00000018H
 	call	??2@YAPAXI@Z				; operator new
 	add	esp, 4
 
-; 263  :     cs_ = pCS;
+; 274  :     cs_ = pCS;
 
 	mov	DWORD PTR ?font_lock@@3VSK_Thread_HybridSpinlock@@A, eax ; font_lock
 
-; 287  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
+; 298  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
 
 	push	300					; 0000012cH
 	push	eax
@@ -10446,18 +10446,18 @@ _TEXT	SEGMENT
 ??1SK_Thread_HybridSpinlock@@QAE@XZ PROC		; SK_Thread_HybridSpinlock::~SK_Thread_HybridSpinlock, COMDAT
 ; _this$ = ecx
 
-; 291  :   {
+; 302  :   {
 
 	npad	2
 	push	esi
 	mov	esi, ecx
 
-; 292  :     DeleteCriticalSection (cs_);
+; 303  :     DeleteCriticalSection (cs_);
 
 	push	DWORD PTR [esi]
 	call	DWORD PTR __imp__DeleteCriticalSection@4
 
-; 293  :     delete cs_;
+; 304  :     delete cs_;
 
 	push	24					; 00000018H
 	push	DWORD PTR [esi]
@@ -10465,7 +10465,7 @@ _TEXT	SEGMENT
 	add	esp, 8
 	pop	esi
 
-; 294  :   }
+; 305  :   }
 
 	ret	0
 ??1SK_Thread_HybridSpinlock@@QAE@XZ ENDP		; SK_Thread_HybridSpinlock::~SK_Thread_HybridSpinlock
@@ -10478,55 +10478,55 @@ _spin_count$ = 8					; size = 4
 ??0SK_Thread_HybridSpinlock@@QAE@H@Z PROC		; SK_Thread_HybridSpinlock::SK_Thread_HybridSpinlock, COMDAT
 ; _this$ = ecx
 
-; 286  :   {
+; 297  :   {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	push	esi
 
-; 264  :   };
-; 265  : 
-; 266  :   ~SK_Thread_CriticalSection (void) = default;
-; 267  : 
-; 268  :   void lock (void) {
-; 269  :     EnterCriticalSection (cs_);
-; 270  :   }
-; 271  : 
-; 272  :   void unlock (void)
-; 273  :   {
-; 274  :     LeaveCriticalSection (cs_);
-; 275  :   }
+; 275  :   };
 ; 276  : 
-; 277  : protected:
-; 278  :   CRITICAL_SECTION* cs_;
-; 279  : };
-; 280  : 
-; 281  : class SK_Thread_HybridSpinlock : public SK_Thread_CriticalSection
-; 282  : {
-; 283  : public:
-; 284  :   SK_Thread_HybridSpinlock (int spin_count = 3000) :
-; 285  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
+; 277  :   ~SK_Thread_CriticalSection (void) = default;
+; 278  : 
+; 279  :   void lock (void) {
+; 280  :     EnterCriticalSection (cs_);
+; 281  :   }
+; 282  : 
+; 283  :   void unlock (void)
+; 284  :   {
+; 285  :     LeaveCriticalSection (cs_);
+; 286  :   }
+; 287  : 
+; 288  : protected:
+; 289  :   CRITICAL_SECTION* cs_;
+; 290  : };
+; 291  : 
+; 292  : class SK_Thread_HybridSpinlock : public SK_Thread_CriticalSection
+; 293  : {
+; 294  : public:
+; 295  :   SK_Thread_HybridSpinlock (int spin_count = 3000) :
+; 296  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
 
 	push	24					; 00000018H
 
-; 286  :   {
+; 297  :   {
 
 	mov	esi, ecx
 	call	??2@YAPAXI@Z				; operator new
 	add	esp, 4
 
-; 263  :     cs_ = pCS;
+; 274  :     cs_ = pCS;
 
 	mov	DWORD PTR [esi], eax
 
-; 287  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
+; 298  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
 
 	push	DWORD PTR _spin_count$[ebp]
 	push	eax
 	call	DWORD PTR __imp__InitializeCriticalSectionAndSpinCount@8
 
-; 288  :   }
+; 299  :   }
 
 	mov	eax, esi
 	pop	esi
@@ -10541,12 +10541,12 @@ _TEXT	SEGMENT
 ?unlock@SK_Thread_CriticalSection@@QAEXXZ PROC		; SK_Thread_CriticalSection::unlock, COMDAT
 ; _this$ = ecx
 
-; 274  :     LeaveCriticalSection (cs_);
+; 285  :     LeaveCriticalSection (cs_);
 
 	push	DWORD PTR [ecx]
 	call	DWORD PTR __imp__LeaveCriticalSection@4
 
-; 275  :   }
+; 286  :   }
 
 	ret	0
 ?unlock@SK_Thread_CriticalSection@@QAEXXZ ENDP		; SK_Thread_CriticalSection::unlock
@@ -10558,12 +10558,12 @@ _TEXT	SEGMENT
 ?lock@SK_Thread_CriticalSection@@QAEXXZ PROC		; SK_Thread_CriticalSection::lock, COMDAT
 ; _this$ = ecx
 
-; 269  :     EnterCriticalSection (cs_);
+; 280  :     EnterCriticalSection (cs_);
 
 	push	DWORD PTR [ecx]
 	call	DWORD PTR __imp__EnterCriticalSection@4
 
-; 270  :   }
+; 281  :   }
 
 	ret	0
 ?lock@SK_Thread_CriticalSection@@QAEXXZ ENDP		; SK_Thread_CriticalSection::lock
@@ -10576,19 +10576,19 @@ _pCS$ = 8						; size = 4
 ??0SK_Thread_CriticalSection@@QAE@PAU_RTL_CRITICAL_SECTION@@@Z PROC ; SK_Thread_CriticalSection::SK_Thread_CriticalSection, COMDAT
 ; _this$ = ecx
 
-; 261  :   SK_Thread_CriticalSection ( CRITICAL_SECTION* pCS )
+; 272  :   SK_Thread_CriticalSection ( CRITICAL_SECTION* pCS )
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 262  :   {
-; 263  :     cs_ = pCS;
+; 273  :   {
+; 274  :     cs_ = pCS;
 
 	mov	eax, DWORD PTR _pCS$[ebp]
 	mov	DWORD PTR [ecx], eax
 
-; 264  :   };
+; 275  :   };
 
 	mov	eax, ecx
 	pop	ebp

@@ -2023,7 +2023,7 @@ enum sk_hash_algo {
 #include <SpecialK/sha1.h>
 
 SK_SHA1_Hash
-SK_GetFileHash_SHA1 (       sk_hash_algo                 algorithm,
+SK_GetFileHash_SHA1 (       sk_hash_algo               /*algorithm*/,
                       const wchar_t                     *wszFile,
                             SK_HashProgressCallback_pfn  callback = nullptr )
 {

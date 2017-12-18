@@ -40,95 +40,95 @@ _DATA	SEGMENT
 ?__SK_TLS_INDEX@@3KC DD 0ffffffffH			; __SK_TLS_INDEX
 _DATA	ENDS
 CONST	SEGMENT
-$SG260296 DB	's', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, '.', 00H
+$SG260366 DB	's', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, '.', 00H
 	DB	'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
-$SG260297 DB	'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 'O', 00H, 'v', 00H
+$SG260367 DB	'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 'O', 00H, 'v', 00H
 	DB	'e', 00H, 'r', 00H, 'l', 00H, 'a', 00H, 'y', 00H, 'U', 00H, 'I'
 	DB	00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
-$SG260298 DB	's', 00H, 't', 00H, 'r', 00H, 'e', 00H, 'a', 00H, 'm', 00H
+$SG260368 DB	's', 00H, 't', 00H, 'r', 00H, 'e', 00H, 'a', 00H, 'm', 00H
 	DB	'i', 00H, 'n', 00H, 'g', 00H, '_', 00H, 'c', 00H, 'l', 00H, 'i'
 	DB	00H, 'e', 00H, 'n', 00H, 't', 00H, '.', 00H, 'e', 00H, 'x', 00H
 	DB	'e', 00H, 00H, 00H
 ?piecewise_construct@std@@3Upiecewise_construct_t@1@B	ORG $+1 ; std::piecewise_construct
 	ORG $+1
-$SG260299 DB	's', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, 'e', 00H
+$SG260369 DB	's', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, 'e', 00H
 	DB	'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, 'r', 00H, 'e', 00H, 'p'
 	DB	00H, 'o', 00H, 'r', 00H, 't', 00H, 'e', 00H, 'r', 00H, '.', 00H
 	DB	'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG260300 DB	's', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, 'e', 00H
+$SG260370 DB	's', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, 'e', 00H
 	DB	'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, 'r', 00H, 'e', 00H, 'p'
 	DB	00H, 'o', 00H, 'r', 00H, 't', 00H, 'e', 00H, 'r', 00H, '6', 00H
 	DB	'4', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG260301 DB	's', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, 's', 00H
+$SG260371 DB	's', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, 's', 00H
 	DB	'e', 00H, 'r', 00H, 'v', 00H, 'i', 00H, 'c', 00H, 'e', 00H, '.'
 	DB	00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG260302 DB	's', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, '_', 00H
+$SG260372 DB	's', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, '_', 00H
 	DB	'm', 00H, 'o', 00H, 'n', 00H, 'i', 00H, 't', 00H, 'o', 00H, 'r'
 	DB	00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
-$SG260303 DB	's', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, 'w', 00H
+$SG260373 DB	's', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, 'w', 00H
 	DB	'e', 00H, 'b', 00H, 'h', 00H, 'e', 00H, 'l', 00H, 'p', 00H, 'e'
 	DB	00H, 'r', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG260304 DB	'h', 00H, 't', 00H, 'm', 00H, 'l', 00H, '5', 00H, 'a', 00H
+$SG260374 DB	'h', 00H, 't', 00H, 'm', 00H, 'l', 00H, '5', 00H, 'a', 00H
 	DB	'p', 00H, 'p', 00H, '_', 00H, 's', 00H, 't', 00H, 'e', 00H, 'a'
 	DB	00H, 'm', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG260305 DB	'w', 00H, 'o', 00H, 'w', 00H, '_', 00H, 'h', 00H, 'e', 00H
+$SG260375 DB	'w', 00H, 'o', 00H, 'w', 00H, '_', 00H, 'h', 00H, 'e', 00H
 	DB	'l', 00H, 'p', 00H, 'e', 00H, 'r', 00H, '.', 00H, 'e', 00H, 'x'
 	DB	00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG260306 DB	'u', 00H, 'n', 00H, 'i', 00H, 'n', 00H, 's', 00H, 't', 00H
+$SG260376 DB	'u', 00H, 'n', 00H, 'i', 00H, 'n', 00H, 's', 00H, 't', 00H
 	DB	'a', 00H, 'l', 00H, 'l', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e'
 	DB	00H, 00H, 00H
-$SG260307 DB	'W', 00H, 'r', 00H, 'i', 00H, 't', 00H, 'e', 00H, 'M', 00H
+$SG260377 DB	'W', 00H, 'r', 00H, 'i', 00H, 't', 00H, 'e', 00H, 'M', 00H
 	DB	'i', 00H, 'n', 00H, 'i', 00H, 'D', 00H, 'u', 00H, 'm', 00H, 'p'
 	DB	00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
-$SG260308 DB	'C', 00H, 'r', 00H, 'a', 00H, 's', 00H, 'h', 00H, 'R', 00H
+$SG260378 DB	'C', 00H, 'r', 00H, 'a', 00H, 's', 00H, 'h', 00H, 'R', 00H
 	DB	'e', 00H, 'p', 00H, 'o', 00H, 'r', 00H, 't', 00H, 'e', 00H, 'r'
 	DB	00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
-$SG260309 DB	'S', 00H, 'u', 00H, 'p', 00H, 'p', 00H, 'o', 00H, 'r', 00H
+$SG260379 DB	'S', 00H, 'u', 00H, 'p', 00H, 'p', 00H, 'o', 00H, 'r', 00H
 	DB	't', 00H, 'T', 00H, 'o', 00H, 'o', 00H, 'l', 00H, '.', 00H, 'e'
 	DB	00H, 'x', 00H, 'e', 00H, 00H, 00H
-$SG260310 DB	'C', 00H, 'r', 00H, 'a', 00H, 's', 00H, 'h', 00H, 'S', 00H
+$SG260380 DB	'C', 00H, 'r', 00H, 'a', 00H, 's', 00H, 'h', 00H, 'S', 00H
 	DB	'e', 00H, 'n', 00H, 'd', 00H, 'e', 00H, 'r', 00H, '1', 00H, '4'
 	DB	00H, '0', 00H, '0', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H
 	DB	00H, 00H
-$SG260311 DB	'W', 00H, 'e', 00H, 'r', 00H, 'F', 00H, 'a', 00H, 'u', 00H
+$SG260381 DB	'W', 00H, 'e', 00H, 'r', 00H, 'F', 00H, 'a', 00H, 'u', 00H
 	DB	'l', 00H, 't', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG260312 DB	'D', 00H, 'X', 00H, 'S', 00H, 'E', 00H, 'T', 00H, 'U', 00H
+$SG260382 DB	'D', 00H, 'X', 00H, 'S', 00H, 'E', 00H, 'T', 00H, 'U', 00H
 	DB	'P', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
-$SG260313 DB	's', 00H, 'e', 00H, 't', 00H, 'u', 00H, 'p', 00H, '.', 00H
+$SG260383 DB	's', 00H, 'e', 00H, 't', 00H, 'u', 00H, 'p', 00H, '.', 00H
 	DB	'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
-$SG260314 DB	'v', 00H, 'c', 00H, '_', 00H, 'r', 00H, 'e', 00H, 'd', 00H
+$SG260384 DB	'v', 00H, 'c', 00H, '_', 00H, 'r', 00H, 'e', 00H, 'd', 00H
 	DB	'i', 00H, 's', 00H, 't', 00H, '.', 00H, 'x', 00H, '6', 00H, '4'
 	DB	00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
-$SG260315 DB	'v', 00H, 'c', 00H, '_', 00H, 'r', 00H, 'e', 00H, 'd', 00H
+$SG260385 DB	'v', 00H, 'c', 00H, '_', 00H, 'r', 00H, 'e', 00H, 'd', 00H
 	DB	'i', 00H, 's', 00H, 't', 00H, '.', 00H, 'x', 00H, '8', 00H, '6'
 	DB	00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
-$SG260316 DB	'v', 00H, 'c', 00H, '2', 00H, '0', 00H, '1', 00H, '0', 00H
+$SG260386 DB	'v', 00H, 'c', 00H, '2', 00H, '0', 00H, '1', 00H, '0', 00H
 	DB	'r', 00H, 'e', 00H, 'd', 00H, 'i', 00H, 's', 00H, 't', 00H, '_'
 	DB	00H, 'x', 00H, '6', 00H, '4', 00H, '.', 00H, 'e', 00H, 'x', 00H
 	DB	'e', 00H, 00H, 00H
 	ORG $+2
-$SG260317 DB	'v', 00H, 'c', 00H, '2', 00H, '0', 00H, '1', 00H, '0', 00H
+$SG260387 DB	'v', 00H, 'c', 00H, '2', 00H, '0', 00H, '1', 00H, '0', 00H
 	DB	'r', 00H, 'e', 00H, 'd', 00H, 'i', 00H, 's', 00H, 't', 00H, '_'
 	DB	00H, 'x', 00H, '8', 00H, '6', 00H, '.', 00H, 'e', 00H, 'x', 00H
 	DB	'e', 00H, 00H, 00H
 	ORG $+2
-$SG260318 DB	'v', 00H, 'c', 00H, 'r', 00H, 'e', 00H, 'd', 00H, 'i', 00H
+$SG260388 DB	'v', 00H, 'c', 00H, 'r', 00H, 'e', 00H, 'd', 00H, 'i', 00H
 	DB	's', 00H, 't', 00H, '_', 00H, 'x', 00H, '6', 00H, '4', 00H, '.'
 	DB	00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG260319 DB	'v', 00H, 'c', 00H, 'r', 00H, 'e', 00H, 'd', 00H, 'i', 00H
+$SG260389 DB	'v', 00H, 'c', 00H, 'r', 00H, 'e', 00H, 'd', 00H, 'i', 00H
 	DB	's', 00H, 't', 00H, '_', 00H, 'x', 00H, '8', 00H, '6', 00H, '.'
 	DB	00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
 	ORG $+6
-$SG260320 DB	'N', 00H, 'D', 00H, 'P', 00H, '4', 00H, '5', 00H, '1', 00H
+$SG260390 DB	'N', 00H, 'D', 00H, 'P', 00H, '4', 00H, '5', 00H, '1', 00H
 	DB	'-', 00H, 'K', 00H, 'B', 00H, '2', 00H, '8', 00H, '7', 00H, '2'
 	DB	00H, '7', 00H, '7', 00H, '6', 00H, '-', 00H, 'x', 00H, '8', 00H
 	DB	'6', 00H, '-', 00H, 'x', 00H, '6', 00H, '4', 00H, '-', 00H, 'A'
@@ -136,342 +136,342 @@ $SG260320 DB	'N', 00H, 'D', 00H, 'P', 00H, '4', 00H, '5', 00H, '1', 00H
 	DB	'N', 00H, 'U', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG260321 DB	'd', 00H, 'o', 00H, 't', 00H, 'n', 00H, 'e', 00H, 't', 00H
+$SG260391 DB	'd', 00H, 'o', 00H, 't', 00H, 'n', 00H, 'e', 00H, 't', 00H
 	DB	'f', 00H, 'x', 00H, '3', 00H, '5', 00H, '.', 00H, 'e', 00H, 'x'
 	DB	00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG260322 DB	'D', 00H, 'o', 00H, 't', 00H, 'N', 00H, 'e', 00H, 't', 00H
+$SG260392 DB	'D', 00H, 'o', 00H, 't', 00H, 'N', 00H, 'e', 00H, 't', 00H
 	DB	'F', 00H, 'x', 00H, '3', 00H, '5', 00H, 'C', 00H, 'l', 00H, 'i'
 	DB	00H, 'e', 00H, 'n', 00H, 't', 00H, '.', 00H, 'e', 00H, 'x', 00H
 	DB	'e', 00H, 00H, 00H
 	ORG $+2
-$SG260323 DB	'd', 00H, 'o', 00H, 't', 00H, 'N', 00H, 'e', 00H, 't', 00H
+$SG260393 DB	'd', 00H, 'o', 00H, 't', 00H, 'N', 00H, 'e', 00H, 't', 00H
 	DB	'F', 00H, 'x', 00H, '4', 00H, '0', 00H, '_', 00H, 'F', 00H, 'u'
 	DB	00H, 'l', 00H, 'l', 00H, '_', 00H, 'x', 00H, '8', 00H, '6', 00H
 	DB	'_', 00H, 'x', 00H, '6', 00H, '4', 00H, '.', 00H, 'e', 00H, 'x'
 	DB	00H, 'e', 00H, 00H, 00H
-$SG260324 DB	'd', 00H, 'o', 00H, 't', 00H, 'N', 00H, 'e', 00H, 't', 00H
+$SG260394 DB	'd', 00H, 'o', 00H, 't', 00H, 'N', 00H, 'e', 00H, 't', 00H
 	DB	'F', 00H, 'x', 00H, '4', 00H, '0', 00H, '_', 00H, 'C', 00H, 'l'
 	DB	00H, 'i', 00H, 'e', 00H, 'n', 00H, 't', 00H, '_', 00H, 'x', 00H
 	DB	'8', 00H, '6', 00H, '_', 00H, 'x', 00H, '6', 00H, '4', 00H, '.'
 	DB	00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
-$SG260325 DB	'o', 00H, 'a', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 's', 00H
+$SG260395 DB	'o', 00H, 'a', 00H, 'l', 00H, 'i', 00H, 'n', 00H, 's', 00H
 	DB	't', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
-$SG260326 DB	'E', 00H, 'a', 00H, 's', 00H, 'y', 00H, 'A', 00H, 'n', 00H
+$SG260396 DB	'E', 00H, 'a', 00H, 's', 00H, 'y', 00H, 'A', 00H, 'n', 00H
 	DB	't', 00H, 'i', 00H, 'C', 00H, 'h', 00H, 'e', 00H, 'a', 00H, 't'
 	DB	00H, '_', 00H, 'S', 00H, 'e', 00H, 't', 00H, 'u', 00H, 'p', 00H
 	DB	'.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
-$SG260327 DB	'U', 00H, 'p', 00H, 'l', 00H, 'a', 00H, 'y', 00H, 'I', 00H
+$SG260397 DB	'U', 00H, 'p', 00H, 'l', 00H, 'a', 00H, 'y', 00H, 'I', 00H
 	DB	'n', 00H, 's', 00H, 't', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'e'
 	DB	00H, 'r', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG260328 DB	'x', 00H, '6', 00H, '4', 00H, 'l', 00H, 'a', 00H, 'u', 00H
+$SG260398 DB	'x', 00H, '6', 00H, '4', 00H, 'l', 00H, 'a', 00H, 'u', 00H
 	DB	'n', 00H, 'c', 00H, 'h', 00H, 'e', 00H, 'r', 00H, '.', 00H, 'e'
 	DB	00H, 'x', 00H, 'e', 00H, 00H, 00H
-$SG260329 DB	'x', 00H, '8', 00H, '6', 00H, 'l', 00H, 'a', 00H, 'u', 00H
+$SG260399 DB	'x', 00H, '8', 00H, '6', 00H, 'l', 00H, 'a', 00H, 'u', 00H
 	DB	'n', 00H, 'c', 00H, 'h', 00H, 'e', 00H, 'r', 00H, '.', 00H, 'e'
 	DB	00H, 'x', 00H, 'e', 00H, 00H, 00H
-$SG260330 DB	'L', 00H, 'a', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 'h', 00H
+$SG260400 DB	'L', 00H, 'a', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 'h', 00H
 	DB	'e', 00H, 'r', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG260331 DB	'F', 00H, 'F', 00H, 'X', 00H, '&', 00H, 'X', 00H, '-', 00H
+$SG260401 DB	'F', 00H, 'F', 00H, 'X', 00H, '&', 00H, 'X', 00H, '-', 00H
 	DB	'2', 00H, '_', 00H, 'L', 00H, 'A', 00H, 'U', 00H, 'N', 00H, 'C'
 	DB	00H, 'H', 00H, 'E', 00H, 'R', 00H, '.', 00H, 'e', 00H, 'x', 00H
 	DB	'e', 00H, 00H, 00H
 	ORG $+2
-$SG260332 DB	'F', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'o', 00H, 'u', 00H
+$SG260402 DB	'F', 00H, 'a', 00H, 'l', 00H, 'l', 00H, 'o', 00H, 'u', 00H
 	DB	't', 00H, '4', 00H, 'L', 00H, 'a', 00H, 'u', 00H, 'n', 00H, 'c'
 	DB	00H, 'h', 00H, 'e', 00H, 'r', 00H, '.', 00H, 'e', 00H, 'x', 00H
 	DB	'e', 00H, 00H, 00H
 	ORG $+2
-$SG260333 DB	'S', 00H, 'k', 00H, 'y', 00H, 'r', 00H, 'i', 00H, 'm', 00H
+$SG260403 DB	'S', 00H, 'k', 00H, 'y', 00H, 'r', 00H, 'i', 00H, 'm', 00H
 	DB	'S', 00H, 'E', 00H, 'L', 00H, 'a', 00H, 'u', 00H, 'n', 00H, 'c'
 	DB	00H, 'h', 00H, 'e', 00H, 'r', 00H, '.', 00H, 'e', 00H, 'x', 00H
 	DB	'e', 00H, 00H, 00H
 	ORG $+2
-$SG260334 DB	'M', 00H, 'o', 00H, 'd', 00H, 'L', 00H, 'a', 00H, 'u', 00H
+$SG260404 DB	'M', 00H, 'o', 00H, 'd', 00H, 'L', 00H, 'a', 00H, 'u', 00H
 	DB	'n', 00H, 'c', 00H, 'h', 00H, 'e', 00H, 'r', 00H, '.', 00H, 'e'
 	DB	00H, 'x', 00H, 'e', 00H, 00H, 00H
-$SG260335 DB	'A', 00H, 'k', 00H, 'i', 00H, 'b', 00H, 'a', 00H, 'U', 00H
+$SG260405 DB	'A', 00H, 'k', 00H, 'i', 00H, 'b', 00H, 'a', 00H, 'U', 00H
 	DB	'U', 00H, '_', 00H, 'C', 00H, 'o', 00H, 'n', 00H, 'f', 00H, 'i'
 	DB	00H, 'g', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG260336 DB	'O', 00H, 'b', 00H, 'd', 00H, 'u', 00H, 'c', 00H, 't', 00H
+$SG260406 DB	'O', 00H, 'b', 00H, 'd', 00H, 'u', 00H, 'c', 00H, 't', 00H
 	DB	'i', 00H, 'o', 00H, 'n', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e'
 	DB	00H, 00H, 00H
-$SG260337 DB	'G', 00H, 'r', 00H, 'a', 00H, 'n', 00H, 'd', 00H, 'i', 00H
+$SG260407 DB	'G', 00H, 'r', 00H, 'a', 00H, 'n', 00H, 'd', 00H, 'i', 00H
 	DB	'a', 00H, '2', 00H, 'L', 00H, 'a', 00H, 'u', 00H, 'n', 00H, 'c'
 	DB	00H, 'h', 00H, 'e', 00H, 'r', 00H, '.', 00H, 'e', 00H, 'x', 00H
 	DB	'e', 00H, 00H, 00H
 	ORG $+2
-$SG260338 DB	'F', 00H, 'F', 00H, 'X', 00H, 'i', 00H, 'i', 00H, 'i', 00H
+$SG260408 DB	'F', 00H, 'F', 00H, 'X', 00H, 'i', 00H, 'i', 00H, 'i', 00H
 	DB	'2', 00H, 'L', 00H, 'a', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 'h'
 	DB	00H, 'e', 00H, 'r', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H
 	DB	00H, 00H
-$SG260339 DB	'B', 00H, 'e', 00H, 't', 00H, 'h', 00H, 'e', 00H, 's', 00H
+$SG260409 DB	'B', 00H, 'e', 00H, 't', 00H, 'h', 00H, 'e', 00H, 's', 00H
 	DB	'd', 00H, 'a', 00H, '.', 00H, 'n', 00H, 'e', 00H, 't', 00H, '_'
 	DB	00H, 'L', 00H, 'a', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 'h', 00H
 	DB	'e', 00H, 'r', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H
 	DB	00H
-$SG260340 DB	'U', 00H, 'b', 00H, 'i', 00H, 's', 00H, 'o', 00H, 'f', 00H
+$SG260410 DB	'U', 00H, 'b', 00H, 'i', 00H, 's', 00H, 'o', 00H, 'f', 00H
 	DB	't', 00H, 'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 'L', 00H, 'a'
 	DB	00H, 'u', 00H, 'n', 00H, 'c', 00H, 'h', 00H, 'e', 00H, 'r', 00H
 	DB	'.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
-$SG260341 DB	'U', 00H, 'b', 00H, 'i', 00H, 's', 00H, 'o', 00H, 'f', 00H
+$SG260411 DB	'U', 00H, 'b', 00H, 'i', 00H, 's', 00H, 'o', 00H, 'f', 00H
 	DB	't', 00H, 'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 'L', 00H, 'a'
 	DB	00H, 'u', 00H, 'n', 00H, 'c', 00H, 'h', 00H, 'e', 00H, 'r', 00H
 	DB	'6', 00H, '4', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H
 	DB	00H
-$SG260342 DB	'S', 00H, 'p', 00H, 'l', 00H, 'a', 00H, 's', 00H, 'h', 00H
+$SG260412 DB	'S', 00H, 'p', 00H, 'l', 00H, 'a', 00H, 's', 00H, 'h', 00H
 	DB	'S', 00H, 'c', 00H, 'r', 00H, 'e', 00H, 'e', 00H, 'n', 00H, '.'
 	DB	00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
 	ORG $+6
-$SG260343 DB	'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 'L', 00H, 'a', 00H
+$SG260413 DB	'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 'L', 00H, 'a', 00H
 	DB	'u', 00H, 'n', 00H, 'c', 00H, 'h', 00H, 'e', 00H, 'r', 00H, 'C'
 	DB	00H, 'e', 00H, 'f', 00H, 'C', 00H, 'h', 00H, 'i', 00H, 'l', 00H
 	DB	'd', 00H, 'P', 00H, 'r', 00H, 'o', 00H, 'c', 00H, 'e', 00H, 's'
 	DB	00H, 's', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
-$SG260344 DB	'L', 00H, 'a', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 'h', 00H
+$SG260414 DB	'L', 00H, 'a', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 'h', 00H
 	DB	'P', 00H, 'a', 00H, 'd', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e'
 	DB	00H, 00H, 00H
-$SG260345 DB	'C', 00H, 'N', 00H, 'N', 00H, 'L', 00H, 'a', 00H, 'u', 00H
+$SG260415 DB	'C', 00H, 'N', 00H, 'N', 00H, 'L', 00H, 'a', 00H, 'u', 00H
 	DB	'n', 00H, 'c', 00H, 'h', 00H, 'e', 00H, 'r', 00H, '.', 00H, 'e'
 	DB	00H, 'x', 00H, 'e', 00H, 00H, 00H
-$SG260346 DB	'F', 00H, 'F', 00H, '9', 00H, '_', 00H, 'L', 00H, 'a', 00H
+$SG260416 DB	'F', 00H, 'F', 00H, '9', 00H, '_', 00H, 'L', 00H, 'a', 00H
 	DB	'u', 00H, 'n', 00H, 'c', 00H, 'h', 00H, 'e', 00H, 'r', 00H, '.'
 	DB	00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG260347 DB	'A', 00H, '1', 00H, '7', 00H, 'C', 00H, 'o', 00H, 'n', 00H
+$SG260417 DB	'A', 00H, '1', 00H, '7', 00H, 'C', 00H, 'o', 00H, 'n', 00H
 	DB	'f', 00H, 'i', 00H, 'g', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e'
 	DB	00H, 00H, 00H
-$SG260348 DB	'A', 00H, '1', 00H, '8', 00H, 'C', 00H, 'o', 00H, 'n', 00H
+$SG260418 DB	'A', 00H, '1', 00H, '8', 00H, 'C', 00H, 'o', 00H, 'n', 00H
 	DB	'f', 00H, 'i', 00H, 'g', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e'
 	DB	00H, 00H, 00H
-$SG260349 DB	'D', 00H, 'P', 00H, 'L', 00H, 'a', 00H, 'u', 00H, 'n', 00H
+$SG260419 DB	'D', 00H, 'P', 00H, 'L', 00H, 'a', 00H, 'u', 00H, 'n', 00H
 	DB	'c', 00H, 'h', 00H, 'e', 00H, 'r', 00H, '.', 00H, 'e', 00H, 'x'
 	DB	00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG260350 DB	'Z', 00H, 'e', 00H, 'r', 00H, 'o', 00H, 'E', 00H, 's', 00H
+$SG260420 DB	'Z', 00H, 'e', 00H, 'r', 00H, 'o', 00H, 'E', 00H, 's', 00H
 	DB	'c', 00H, 'a', 00H, 'p', 00H, 'e', 00H, '-', 00H, 'L', 00H, 'a'
 	DB	00H, 'u', 00H, 'n', 00H, 'c', 00H, 'h', 00H, 'e', 00H, 'r', 00H
 	DB	'.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
-$SG260351 DB	'A', 00H, 'c', 00H, 't', 00H, 'i', 00H, 'v', 00H, 'a', 00H
+$SG260421 DB	'A', 00H, 'c', 00H, 't', 00H, 'i', 00H, 'v', 00H, 'a', 00H
 	DB	't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 'U', 00H, 'I', 00H, '.'
 	DB	00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG260352 DB	'z', 00H, 'o', 00H, 's', 00H, 'S', 00H, 't', 00H, 'e', 00H
+$SG260422 DB	'z', 00H, 'o', 00H, 's', 00H, 'S', 00H, 't', 00H, 'e', 00H
 	DB	'a', 00H, 'm', 00H, 'S', 00H, 't', 00H, 'a', 00H, 'r', 00H, 't'
 	DB	00H, 'e', 00H, 'r', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H
 	DB	00H, 00H
-$SG260353 DB	'n', 00H, 'o', 00H, 't', 00H, 'e', 00H, 'p', 00H, 'a', 00H
+$SG260423 DB	'n', 00H, 'o', 00H, 't', 00H, 'e', 00H, 'p', 00H, 'a', 00H
 	DB	'd', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
-$SG260354 DB	'm', 00H, 's', 00H, 'p', 00H, 'a', 00H, 'i', 00H, 'n', 00H
+$SG260424 DB	'm', 00H, 's', 00H, 'p', 00H, 'a', 00H, 'i', 00H, 'n', 00H
 	DB	't', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
-$SG260355 DB	'7', 00H, 'z', 00H, 'F', 00H, 'M', 00H, '.', 00H, 'e', 00H
+$SG260425 DB	'7', 00H, 'z', 00H, 'F', 00H, 'M', 00H, '.', 00H, 'e', 00H
 	DB	'x', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG260356 DB	'W', 00H, 'i', 00H, 'n', 00H, 'R', 00H, 'a', 00H, 'r', 00H
+$SG260426 DB	'W', 00H, 'i', 00H, 'n', 00H, 'R', 00H, 'a', 00H, 'r', 00H
 	DB	'.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG260357 DB	'E', 00H, 'A', 00H, 'C', 00H, '.', 00H, 'e', 00H, 'x', 00H
+$SG260427 DB	'E', 00H, 'A', 00H, 'C', 00H, '.', 00H, 'e', 00H, 'x', 00H
 	DB	'e', 00H, 00H, 00H
-$SG260358 DB	'v', 00H, 'c', 00H, 'p', 00H, 'k', 00H, 'g', 00H, 's', 00H
+$SG260428 DB	'v', 00H, 'c', 00H, 'p', 00H, 'k', 00H, 'g', 00H, 's', 00H
 	DB	'r', 00H, 'v', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG260359 DB	'd', 00H, 'l', 00H, 'l', 00H, 'h', 00H, 'o', 00H, 's', 00H
+$SG260429 DB	'd', 00H, 'l', 00H, 'l', 00H, 'h', 00H, 'o', 00H, 's', 00H
 	DB	't', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
-$SG260360 DB	'g', 00H, 'i', 00H, 't', 00H, '.', 00H, 'e', 00H, 'x', 00H
+$SG260430 DB	'g', 00H, 'i', 00H, 't', 00H, '.', 00H, 'e', 00H, 'x', 00H
 	DB	'e', 00H, 00H, 00H
-$SG260361 DB	'l', 00H, 'i', 00H, 'n', 00H, 'k', 00H, '.', 00H, 'e', 00H
+$SG260431 DB	'l', 00H, 'i', 00H, 'n', 00H, 'k', 00H, '.', 00H, 'e', 00H
 	DB	'x', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG260362 DB	'c', 00H, 'l', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H
+$SG260432 DB	'c', 00H, 'l', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG260363 DB	'r', 00H, 'c', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H
+$SG260433 DB	'r', 00H, 'c', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG260364 DB	'c', 00H, 'o', 00H, 'n', 00H, 'h', 00H, 'o', 00H, 's', 00H
+$SG260434 DB	'c', 00H, 'o', 00H, 'n', 00H, 'h', 00H, 'o', 00H, 's', 00H
 	DB	't', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
-$SG260365 DB	'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 'B', 00H, 'a', 00H
+$SG260435 DB	'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 'B', 00H, 'a', 00H
 	DB	'r', 00H, 'P', 00H, 'r', 00H, 'e', 00H, 's', 00H, 'e', 00H, 'n'
 	DB	00H, 'c', 00H, 'e', 00H, 'W', 00H, 'r', 00H, 'i', 00H, 't', 00H
 	DB	'e', 00H, 'r', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H
 	DB	00H
-$SG260366 DB	'O', 00H, 'A', 00H, 'W', 00H, 'r', 00H, 'a', 00H, 'p', 00H
+$SG260436 DB	'O', 00H, 'A', 00H, 'W', 00H, 'r', 00H, 'a', 00H, 'p', 00H
 	DB	'p', 00H, 'e', 00H, 'r', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e'
 	DB	00H, 00H, 00H
-$SG260367 DB	'N', 00H, 'v', 00H, 'O', 00H, 'A', 00H, 'W', 00H, 'r', 00H
+$SG260437 DB	'N', 00H, 'v', 00H, 'O', 00H, 'A', 00H, 'W', 00H, 'r', 00H
 	DB	'a', 00H, 'p', 00H, 'p', 00H, 'e', 00H, 'r', 00H, 'C', 00H, 'a'
 	DB	00H, 'c', 00H, 'h', 00H, 'e', 00H, '.', 00H, 'e', 00H, 'x', 00H
 	DB	'e', 00H, 00H, 00H
 	ORG $+2
-$SG260368 DB	'w', 00H, 'a', 00H, 'i', 00H, 'f', 00H, 'u', 00H, '2', 00H
+$SG260438 DB	'w', 00H, 'a', 00H, 'i', 00H, 'f', 00H, 'u', 00H, '2', 00H
 	DB	'x', 00H, '-', 00H, 'c', 00H, 'a', 00H, 'f', 00H, 'f', 00H, 'e'
 	DB	00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
-$SG260369 DB	'w', 00H, 'a', 00H, 'i', 00H, 'f', 00H, 'u', 00H, '2', 00H
+$SG260439 DB	'w', 00H, 'a', 00H, 'i', 00H, 'f', 00H, 'u', 00H, '2', 00H
 	DB	'x', 00H, '-', 00H, 'c', 00H, 'a', 00H, 'f', 00H, 'f', 00H, 'e'
 	DB	00H, '-', 00H, 'c', 00H, 'u', 00H, 'i', 00H, '.', 00H, 'e', 00H
 	DB	'x', 00H, 'e', 00H, 00H, 00H
-$SG260370 DB	'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 'S', 00H, 'e', 00H
+$SG260440 DB	'G', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 'S', 00H, 'e', 00H
 	DB	'r', 00H, 'v', 00H, 'e', 00H, 'r', 00H, '.', 00H, 'e', 00H, 'x'
 	DB	00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG260371 DB	's', 00H, '2', 00H, 'g', 00H, 's', 00H, '.', 00H, 'e', 00H
+$SG260441 DB	's', 00H, '2', 00H, 'g', 00H, 's', 00H, '.', 00H, 'e', 00H
 	DB	'x', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG260372 DB	's', 00H, 'i', 00H, 'h', 00H, 'o', 00H, 's', 00H, 't', 00H
+$SG260442 DB	's', 00H, 'i', 00H, 'h', 00H, 'o', 00H, 's', 00H, 't', 00H
 	DB	'.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG260373 DB	'C', 00H, 'h', 00H, 'r', 00H, 'o', 00H, 'm', 00H, 'e', 00H
+$SG260443 DB	'C', 00H, 'h', 00H, 'r', 00H, 'o', 00H, 'm', 00H, 'e', 00H
 	DB	'.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG260374 DB	'e', 00H, 'x', 00H, 'p', 00H, 'l', 00H, 'o', 00H, 'r', 00H
+$SG260444 DB	'e', 00H, 'x', 00H, 'p', 00H, 'l', 00H, 'o', 00H, 'r', 00H
 	DB	'e', 00H, 'r', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG260375 DB	'b', 00H, 'r', 00H, 'o', 00H, 'w', 00H, 's', 00H, 'e', 00H
+$SG260445 DB	'b', 00H, 'r', 00H, 'o', 00H, 'w', 00H, 's', 00H, 'e', 00H
 	DB	'r', 00H, '_', 00H, 'b', 00H, 'r', 00H, 'o', 00H, 'k', 00H, 'e'
 	DB	00H, 'r', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG260376 DB	'd', 00H, 'w', 00H, 'm', 00H, '.', 00H, 'e', 00H, 'x', 00H
+$SG260446 DB	'd', 00H, 'w', 00H, 'm', 00H, '.', 00H, 'e', 00H, 'x', 00H
 	DB	'e', 00H, 00H, 00H
-$SG260377 DB	'L', 00H, 'a', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 'h', 00H
+$SG260447 DB	'L', 00H, 'a', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 'h', 00H
 	DB	'T', 00H, 'M', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG260378 DB	'S', 00H, 'l', 00H, 'e', 00H, 'e', 00H, 'p', 00H, 'O', 00H
+$SG260448 DB	'S', 00H, 'l', 00H, 'e', 00H, 'e', 00H, 'p', 00H, 'O', 00H
 	DB	'n', 00H, 'L', 00H, 'a', 00H, 'n', 00H, '.', 00H, 'e', 00H, 'x'
 	DB	00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG260381 DB	'\', 00H, 'M', 00H, 'y', 00H, ' ', 00H, 'M', 00H, 'o', 00H
+$SG260451 DB	'\', 00H, 'M', 00H, 'y', 00H, ' ', 00H, 'M', 00H, 'o', 00H
 	DB	'd', 00H, 's', 00H, '\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c'
 	DB	00H, 'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, 00H, 00H
-$SG260382 DB	'%ws\PlugIns\ThirdParty\dgVoodoo\d3dimm.dll', 00H
+$SG260452 DB	'%ws\PlugIns\ThirdParty\dgVoodoo\d3dimm.dll', 00H
 	ORG $+1
-$SG260386 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
+$SG260456 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
 	DB	'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG260389 DB	'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H, 'd', 00H
+$SG260459 DB	'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H, 'd', 00H
 	DB	'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG260392 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, '.', 00H
-	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG260395 DB	'd', 00H, '3', 00H, 'd', 00H, '9', 00H, '.', 00H, 'd', 00H
-	DB	'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG260398 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
-	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG260401 DB	'd', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
-	DB	'8', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG260403 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
-	DB	'l', 00H, 'K', 00H, 00H, 00H
-	ORG $+2
-$SG260406 DB	'd', 00H, '3', 00H, 'd', 00H, '9', 00H, '.', 00H, 'd', 00H
-	DB	'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG260407 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
-	DB	'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG260408 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
-	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG260409 DB	'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H, 'd', 00H
-	DB	'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG260410 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, '.', 00H
-	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG260411 DB	'd', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
-	DB	'8', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG260412 DB	'\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H
-	DB	'a', 00H, 'l', 00H, 'K', 00H, '.', 00H, 'd', 00H, '3', 00H, 'd'
-	DB	00H, '9', 00H, 00H, 00H
-	ORG $+2
-$SG260413 DB	'\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H
-	DB	'a', 00H, 'l', 00H, 'K', 00H, '.', 00H, 'd', 00H, '3', 00H, 'd'
-	DB	00H, '8', 00H, 00H, 00H
-	ORG $+2
-$SG260414 DB	'\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H
-	DB	'a', 00H, 'l', 00H, 'K', 00H, '.', 00H, 'd', 00H, 'd', 00H, 'r'
-	DB	00H, 'a', 00H, 'w', 00H, 00H, 00H
-$SG260415 DB	'\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H
-	DB	'a', 00H, 'l', 00H, 'K', 00H, '.', 00H, 'd', 00H, 'x', 00H, 'g'
-	DB	00H, 'i', 00H, 00H, 00H
-	ORG $+2
-$SG260416 DB	'\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H
-	DB	'a', 00H, 'l', 00H, 'K', 00H, '.', 00H, 'O', 00H, 'p', 00H, 'e'
-	DB	00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2', 00H, 00H, 00H
-	ORG $+2
-$SG260417 DB	'\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H
-	DB	'a', 00H, 'l', 00H, 'K', 00H, '.', 00H, 'D', 00H, 'I', 00H, 'n'
-	DB	00H, 'p', 00H, 'u', 00H, 't', 00H, '8', 00H, 00H, 00H
-$SG260430 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
-	DB	'l', 00H, 'K', 00H, 00H, 00H
-	ORG $+2
-$SG260431 DB	'steam_api.dll', 00H
-	ORG $+2
-$SG260432 DB	'steamnative.dll', 00H
-$SG260433 DB	's', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, 'a', 00H
-	DB	'p', 00H, 'p', 00H, 's', 00H, 00H, 00H
-$SG260436 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
-	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG260437 DB	'd', 00H, '3', 00H, 'd', 00H, '9', 00H, '.', 00H, 'd', 00H
-	DB	'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG260438 DB	'd', 00H, '3', 00H, 'd', 00H, '1', 00H, '1', 00H, '.', 00H
-	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG260439 DB	'd', 00H, '3', 00H, 'd', 00H, 'x', 00H, '1', 00H, '1', 00H
-	DB	'_', 00H, '4', 00H, '3', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
-	DB	00H, 00H, 00H
-$SG260440 DB	'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H, 'd', 00H
-	DB	'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG260441 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, '.', 00H
-	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG260445 DB	'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H, 'd', 00H
-	DB	'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG260450 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
-	DB	'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG260454 DB	'd', 00H, '3', 00H, 'd', 00H, '9', 00H, '.', 00H, 'd', 00H
-	DB	'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG260458 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
-	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
-	DB	00H
 	ORG $+2
 $SG260462 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, '.', 00H
 	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG260474 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
-	DB	'l', 00H, 'K', 00H, 00H, 00H
-	ORG $+2
-$SG260560 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
+$SG260465 DB	'd', 00H, '3', 00H, 'd', 00H, '9', 00H, '.', 00H, 'd', 00H
 	DB	'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG260563 DB	'd', 00H, '3', 00H, 'd', 00H, '9', 00H, '.', 00H, 'd', 00H
-	DB	'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG260566 DB	'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H, 'd', 00H
-	DB	'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG260569 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, '.', 00H
-	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG260572 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
+$SG260468 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
 	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG260576 DB	'd', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+$SG260471 DB	'd', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+	DB	'8', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG260473 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+	DB	'l', 00H, 'K', 00H, 00H, 00H
+	ORG $+2
+$SG260476 DB	'd', 00H, '3', 00H, 'd', 00H, '9', 00H, '.', 00H, 'd', 00H
+	DB	'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG260477 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
+	DB	'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG260478 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
+	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG260479 DB	'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H, 'd', 00H
+	DB	'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG260480 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, '.', 00H
+	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG260481 DB	'd', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
+	DB	'8', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG260482 DB	'\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H
+	DB	'a', 00H, 'l', 00H, 'K', 00H, '.', 00H, 'd', 00H, '3', 00H, 'd'
+	DB	00H, '9', 00H, 00H, 00H
+	ORG $+2
+$SG260483 DB	'\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H
+	DB	'a', 00H, 'l', 00H, 'K', 00H, '.', 00H, 'd', 00H, '3', 00H, 'd'
+	DB	00H, '8', 00H, 00H, 00H
+	ORG $+2
+$SG260484 DB	'\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H
+	DB	'a', 00H, 'l', 00H, 'K', 00H, '.', 00H, 'd', 00H, 'd', 00H, 'r'
+	DB	00H, 'a', 00H, 'w', 00H, 00H, 00H
+$SG260485 DB	'\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H
+	DB	'a', 00H, 'l', 00H, 'K', 00H, '.', 00H, 'd', 00H, 'x', 00H, 'g'
+	DB	00H, 'i', 00H, 00H, 00H
+	ORG $+2
+$SG260486 DB	'\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H
+	DB	'a', 00H, 'l', 00H, 'K', 00H, '.', 00H, 'O', 00H, 'p', 00H, 'e'
+	DB	00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2', 00H, 00H, 00H
+	ORG $+2
+$SG260487 DB	'\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H
+	DB	'a', 00H, 'l', 00H, 'K', 00H, '.', 00H, 'D', 00H, 'I', 00H, 'n'
+	DB	00H, 'p', 00H, 'u', 00H, 't', 00H, '8', 00H, 00H, 00H
+$SG260500 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+	DB	'l', 00H, 'K', 00H, 00H, 00H
+	ORG $+2
+$SG260501 DB	'steam_api.dll', 00H
+	ORG $+2
+$SG260502 DB	'steamnative.dll', 00H
+$SG260503 DB	's', 00H, 't', 00H, 'e', 00H, 'a', 00H, 'm', 00H, 'a', 00H
+	DB	'p', 00H, 'p', 00H, 's', 00H, 00H, 00H
+$SG260506 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
+	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG260507 DB	'd', 00H, '3', 00H, 'd', 00H, '9', 00H, '.', 00H, 'd', 00H
+	DB	'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG260508 DB	'd', 00H, '3', 00H, 'd', 00H, '1', 00H, '1', 00H, '.', 00H
+	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG260509 DB	'd', 00H, '3', 00H, 'd', 00H, 'x', 00H, '1', 00H, '1', 00H
+	DB	'_', 00H, '4', 00H, '3', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
+	DB	00H, 00H, 00H
+$SG260510 DB	'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H, 'd', 00H
+	DB	'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG260511 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, '.', 00H
+	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG260515 DB	'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H, 'd', 00H
+	DB	'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG260520 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
+	DB	'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG260524 DB	'd', 00H, '3', 00H, 'd', 00H, '9', 00H, '.', 00H, 'd', 00H
+	DB	'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG260528 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
+	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG260532 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, '.', 00H
+	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG260544 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+	DB	'l', 00H, 'K', 00H, 00H, 00H
+	ORG $+2
+$SG260630 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H, 'd', 00H
+	DB	'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG260633 DB	'd', 00H, '3', 00H, 'd', 00H, '9', 00H, '.', 00H, 'd', 00H
+	DB	'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG260636 DB	'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H, 'd', 00H
+	DB	'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG260639 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, '.', 00H
+	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG260642 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
+	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG260646 DB	'd', 00H, 'i', 00H, 'n', 00H, 'p', 00H, 'u', 00H, 't', 00H
 	DB	'8', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+4
-$SG260602 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
+$SG260672 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, ' ', 00H, '*', 00H, '*', 00H, ' ', 00H, 'U', 00H, 'N', 00H
 	DB	'C', 00H, 'L', 00H, 'E', 00H, 'A', 00H, 'N', 00H, ' ', 00H, 'D'
@@ -479,16 +479,16 @@ $SG260602 DB	'[', 00H, ' ', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H
 	DB	'c', 00H, 'e', 00H, 's', 00H, 's', 00H, ' ', 00H, 'D', 00H, 'e'
 	DB	00H, 't', 00H, 'a', 00H, 'c', 00H, 'h', 00H, ' ', 00H, '!', 00H
 	DB	'!', 00H, ' ', 00H, '*', 00H, '*', 00H, 00H, 00H
-$SG260646 DB	'QueryPerformanceCounter', 00H
-$SG260647 DB	'k', 00H, 'e', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'l', 00H
+$SG260720 DB	'QueryPerformanceCounter', 00H
+$SG260721 DB	'k', 00H, 'e', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'l', 00H
 	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG260655 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+$SG260729 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
 	DB	'l', 00H, 'K', 00H, '6', 00H, '4', 00H, '.', 00H, 'p', 00H, 'i'
 	DB	00H, 'd', 00H, 00H, 00H
 	ORG $+2
-$SG260656 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+$SG260730 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
 	DB	'l', 00H, 'K', 00H, '3', 00H, '2', 00H, '.', 00H, 'p', 00H, 'i'
 	DB	00H, 'd', 00H, 00H, 00H
 CONST	ENDS
@@ -1439,6 +1439,8 @@ EXTRN	?SK_Inject_AcquireProcess@@YAXXZ:PROC		; SK_Inject_AcquireProcess
 EXTRN	??0SK_Inject_AddressCacheRegistry@@QAE@XZ:PROC	; SK_Inject_AddressCacheRegistry::SK_Inject_AddressCacheRegistry
 EXTRN	?SK_EstablishRootPath@@YGXXZ:PROC		; SK_EstablishRootPath
 EXTRN	?SK_Inject_TestUserWhitelist@@YA_NPB_W@Z:PROC	; SK_Inject_TestUserWhitelist
+EXTRN	?SK_Steam_InitCommandConsoleVariables@@YAXXZ:PROC ; SK_Steam_InitCommandConsoleVariables
+EXTRN	?SK_TestSteamImports@@YAXPAUHINSTANCE__@@@Z:PROC ; SK_TestSteamImports
 EXTRN	__CxxThrowException@8:PROC
 EXTRN	___CxxFrameHandler3:PROC
 EXTRN	__chkstk:PROC
@@ -3721,7 +3723,7 @@ _<_Args_2>$ = 20					; size = 4
 	je	SHORT $LN3@construct
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 1093 : }
+; 1100 : }
 
 	mov	eax, DWORD PTR _<_Args_1>$[ebp]
 	mov	eax, DWORD PTR [eax]
@@ -3771,7 +3773,7 @@ _<_Args_2>$ = 24					; size = 4
 	je	SHORT $LN14@construct
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 1093 : }
+; 1100 : }
 
 	mov	eax, DWORD PTR _<_Args_1>$[ebp]
 	mov	eax, DWORD PTR [eax]
@@ -3821,7 +3823,7 @@ _<_Args_2>$ = 20					; size = 4
 	je	SHORT $LN25@construct
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 1093 : }
+; 1100 : }
 
 	mov	eax, DWORD PTR _<_Args_1>$[ebp]
 	mov	eax, DWORD PTR [eax]
@@ -6475,7 +6477,7 @@ _<_Val_2>$ = 24						; size = 4
 	je	SHORT $LN54@Buynode
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 1093 : }
+; 1100 : }
 
 	mov	ecx, DWORD PTR _<_Val_1>$[ebp]
 	mov	ecx, DWORD PTR [ecx]
@@ -18242,8 +18244,6 @@ _TEXT	SEGMENT
 ___that$ = 8						; size = 4
 ??0?$tuple@ABQAX@std@@QAE@$$QAV01@@Z PROC		; std::tuple<void * const &>::tuple<void * const &>, COMDAT
 ; _this$ = ecx
-
-; 1093 : }
 
 	npad	2
 	push	ebp
@@ -34684,7 +34684,7 @@ $LN6@DllMain:
 	jne	$LN74@DllMain
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 167  :     return SKIM || (RunDll32 && SK_IsRunDLLInvocation ());
+; 169  :     return SKIM || (RunDll32 && SK_IsRunDLLInvocation ());
 
 	mov	ax, WORD PTR ?SK_HostApp@@3VSK_HostAppUtil@@A ; SK_HostApp
 	test	al, al
@@ -34818,13 +34818,13 @@ $LN74@DllMain:
 	xor	eax, eax
 	pop	esi
 
-; 1043 :         }
-; 1044 :       }
-; 1045 :     } break;
-; 1046 :   }
-; 1047 : 
-; 1048 :   return TRUE;
-; 1049 : }
+; 1050 :         }
+; 1051 :       }
+; 1052 :     } break;
+; 1053 :   }
+; 1054 : 
+; 1055 :   return TRUE;
+; 1056 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -34850,9 +34850,10 @@ $LN11@DllMain:
 ; 922  : 
 ; 923  :       QueryPerformanceCounter_Original =
 
-	push	OFFSET $SG260646
-	push	OFFSET $SG260647
-	call	DWORD PTR __imp__GetModuleHandleW@4
+	mov	esi, DWORD PTR __imp__GetModuleHandleW@4
+	push	OFFSET $SG260720
+	push	OFFSET $SG260721
+	call	esi
 	push	eax
 	call	DWORD PTR __imp__GetProcAddress@8
 	mov	DWORD PTR ?QueryPerformanceCounter_Original@@3P6GHPAT_LARGE_INTEGER@@@ZA, eax ; QueryPerformanceCounter_Original
@@ -34867,26 +34868,43 @@ $LN11@DllMain:
 
 	call	?SK_Init_MinHook@@YG?AW4MH_STATUS@@XZ	; SK_Init_MinHook
 
-; 931  :       SK_InitCompatBlacklist ();
+; 931  : 
+; 932  :       void SK_Steam_InitCommandConsoleVariables (void);
+; 933  :            SK_Steam_InitCommandConsoleVariables ();
+
+	call	?SK_Steam_InitCommandConsoleVariables@@YAXXZ ; SK_Steam_InitCommandConsoleVariables
+
+; 934  : 
+; 935  :       void SK_TestSteamImports (HMODULE hMod);
+; 936  :            SK_TestSteamImports (GetModuleHandle (nullptr));
+
+	push	0
+	call	esi
+	push	eax
+	call	?SK_TestSteamImports@@YAXPAUHINSTANCE__@@@Z ; SK_TestSteamImports
+	add	esp, 4
+
+; 937  : 
+; 938  :       SK_InitCompatBlacklist ();
 
 	call	?SK_InitCompatBlacklist@@YGXXZ		; SK_InitCompatBlacklist
 
-; 932  : 
-; 933  :       BOOL bRet = SK_Attach (SK_GetDLLRole ());
+; 939  : 
+; 940  :       BOOL bRet = SK_Attach (SK_GetDLLRole ());
 
 	call	?SK_GetDLLRole@@YG?AW4DLL_ROLE@@XZ	; SK_GetDLLRole
 	push	eax
 	call	?SK_Attach@@YGHW4DLL_ROLE@@@Z		; SK_Attach
 	mov	esi, eax
 
-; 934  : 
-; 935  :       if (! bRet)
+; 941  : 
+; 942  :       if (! bRet)
 
 	test	esi, esi
 	jne	SHORT $LN14@DllMain
 
-; 936  :       {
-; 937  :         blacklist.emplace (std::wstring (SK_GetHostApp ()));
+; 943  :       {
+; 944  :         blacklist.emplace (std::wstring (SK_GetHostApp ()));
 
 	call	?SK_GetHostApp@@YAPB_WXZ		; SK_GetHostApp
 	push	eax
@@ -34903,50 +34921,50 @@ $LN11@DllMain:
 	call	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 $LN14@DllMain:
 
-; 938  :       }
-; 939  : 
-; 940  :       if (SK_GetDLLRole () == DLL_ROLE::INVALID)
+; 945  :       }
+; 946  : 
+; 947  :       if (SK_GetDLLRole () == DLL_ROLE::INVALID)
 
 	call	?SK_GetDLLRole@@YG?AW4DLL_ROLE@@XZ	; SK_GetDLLRole
 	test	eax, eax
 	je	$LN31@DllMain
 
-; 941  :       {
-; 942  :         return TRUE;
-; 943  :       }
-; 944  : 
-; 945  : 
-; 946  :       // If we got this far, it's because this is an injection target
-; 947  :       //
-; 948  :       //   Must hold a reference to this DLL so that removing the CBT hook does
-; 949  :       //     not crash the game.
-; 950  :       if (SK_IsInjected ())
+; 948  :       {
+; 949  :         return TRUE;
+; 950  :       }
+; 951  : 
+; 952  : 
+; 953  :       // If we got this far, it's because this is an injection target
+; 954  :       //
+; 955  :       //   Must hold a reference to this DLL so that removing the CBT hook does
+; 956  :       //     not crash the game.
+; 957  :       if (SK_IsInjected ())
 
 	push	0
 	call	?SK_IsInjected@@YG_N_N@Z		; SK_IsInjected
 	test	al, al
 	je	SHORT $LN16@DllMain
 
-; 951  :       {
-; 952  :         SK_Inject_AcquireProcess ();
+; 958  :       {
+; 959  :         SK_Inject_AcquireProcess ();
 
 	call	?SK_Inject_AcquireProcess@@YAXXZ	; SK_Inject_AcquireProcess
 $LN16@DllMain:
 
-; 953  :       }
-; 954  : 
-; 955  :       return bRet;
+; 960  :       }
+; 961  : 
+; 962  :       return bRet;
 
 	mov	eax, esi
 	pop	esi
 
-; 1043 :         }
-; 1044 :       }
-; 1045 :     } break;
-; 1046 :   }
-; 1047 : 
-; 1048 :   return TRUE;
-; 1049 : }
+; 1050 :         }
+; 1051 :       }
+; 1052 :     } break;
+; 1053 :   }
+; 1054 : 
+; 1055 :   return TRUE;
+; 1056 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -34966,17 +34984,17 @@ $LN10@DllMain:
 	jmp	$LN31@DllMain
 $LN17@DllMain:
 
-; 956  :     } break;
-; 957  : 
-; 958  : 
-; 959  :     case DLL_PROCESS_DETACH:
-; 960  :     {
-; 961  :       SK_Inject_ReleaseProcess ();
+; 963  :     } break;
+; 964  : 
+; 965  : 
+; 966  :     case DLL_PROCESS_DETACH:
+; 967  :     {
+; 968  :       SK_Inject_ReleaseProcess ();
 
 	call	?SK_Inject_ReleaseProcess@@YAXXZ	; SK_Inject_ReleaseProcess
 
-; 962  : 
-; 963  :       if (! InterlockedCompareExchange (&__SK_DLL_Ending, 1, 0))
+; 969  : 
+; 970  :       if (! InterlockedCompareExchange (&__SK_DLL_Ending, 1, 0))
 
 	mov	ecx, 1
 	mov	esi, OFFSET ?__SK_DLL_Ending@@3JC	; __SK_DLL_Ending
@@ -34991,13 +35009,13 @@ $LN17@DllMain:
 	mov	eax, DWORD PTR ?__SK_HookContextOwner@@3JC ; __SK_HookContextOwner
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 967  :         if (ReadAcquire (&__SK_HookContextOwner))
+; 974  :         if (ReadAcquire (&__SK_HookContextOwner))
 
 	test	eax, eax
 	je	SHORT $LN36@DllMain
 
-; 968  :         {
-; 969  :           SKX_RemoveCBTHook ();
+; 975  :         {
+; 976  :           SKX_RemoveCBTHook ();
 
 	call	?SKX_RemoveCBTHook@@YGXXZ		; SKX_RemoveCBTHook
 ; File c:\program files (x86)\windows kits\8.1\include\um\winnt.h
@@ -35007,16 +35025,16 @@ $LN17@DllMain:
 	mov	eax, DWORD PTR ?__SK_HookContextOwner@@3JC ; __SK_HookContextOwner
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 972  :           if (! ReadAcquire (&__SK_HookContextOwner))
+; 979  :           if (! ReadAcquire (&__SK_HookContextOwner))
 
 	test	eax, eax
 	jne	SHORT $LN36@DllMain
 
-; 973  :           {
-; 974  :             SK_RunIf64Bit (DeleteFileW (L"SpecialK64.pid"));
-; 975  :             SK_RunIf32Bit (DeleteFileW (L"SpecialK32.pid"));
+; 980  :           {
+; 981  :             SK_RunIf64Bit (DeleteFileW (L"SpecialK64.pid"));
+; 982  :             SK_RunIf32Bit (DeleteFileW (L"SpecialK32.pid"));
 
-	push	OFFSET $SG260656
+	push	OFFSET $SG260730
 	call	DWORD PTR __imp__DeleteFileW@4
 $LN36@DllMain:
 ; File c:\program files (x86)\windows kits\8.1\include\um\winnt.h
@@ -35026,13 +35044,13 @@ $LN36@DllMain:
 	mov	eax, DWORD PTR ?__SK_DLL_Attached@@3JC	; __SK_DLL_Attached
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 979  :         if (ReadAcquire (&__SK_DLL_Attached))
+; 986  :         if (ReadAcquire (&__SK_DLL_Attached))
 
 	test	eax, eax
 	je	SHORT $LN21@DllMain
 
-; 980  :         {
-; 981  :           InterlockedExchange (&__SK_DLL_Ending, TRUE);
+; 987  :         {
+; 988  :           InterlockedExchange (&__SK_DLL_Ending, TRUE);
 
 	mov	eax, 1
 	xchg	DWORD PTR [esi], eax
@@ -35044,37 +35062,37 @@ $LN21@DllMain:
 	mov	eax, DWORD PTR ?__SK_DLL_Attached@@3JC	; __SK_DLL_Attached
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 985  :       if (ReadAcquire (&__SK_DLL_Attached))
+; 992  :       if (ReadAcquire (&__SK_DLL_Attached))
 
 	test	eax, eax
 	je	SHORT $LN22@DllMain
 
-; 986  :         SK_Detach (SK_GetDLLRole ());
+; 993  :         SK_Detach (SK_GetDLLRole ());
 
 	call	?SK_GetDLLRole@@YG?AW4DLL_ROLE@@XZ	; SK_GetDLLRole
 	push	eax
 	call	?SK_Detach@@YGHW4DLL_ROLE@@@Z		; SK_Detach
 $LN22@DllMain:
 
-; 987  : 
-; 988  :       if (__SK_TLS_INDEX != MAXDWORD)
+; 994  : 
+; 995  :       if (__SK_TLS_INDEX != MAXDWORD)
 
 	cmp	DWORD PTR ?__SK_TLS_INDEX@@3KC, -1	; __SK_TLS_INDEX
 	je	$LN31@DllMain
 
-; 989  :         TlsFree (__SK_TLS_INDEX);
+; 996  :         TlsFree (__SK_TLS_INDEX);
 
 	mov	ecx, DWORD PTR ?__SK_TLS_INDEX@@3KC	; __SK_TLS_INDEX
 	push	ecx
 	call	DWORD PTR __imp__TlsFree@4
 
-; 990  : 
-; 991  :       //else {
-; 992  :         //Sanity FAILURE: Attempt to detach something that was not properly attached?!
-; 993  :         //dll_log.Log (L"[ SpecialK ]  ** SANITY CHECK FAILED: DLL was never attached !! **");
-; 994  :       //}
-; 995  : 
-; 996  :       return TRUE;
+; 997  : 
+; 998  :       //else {
+; 999  :         //Sanity FAILURE: Attempt to detach something that was not properly attached?!
+; 1000 :         //dll_log.Log (L"[ SpecialK ]  ** SANITY CHECK FAILED: DLL was never attached !! **");
+; 1001 :       //}
+; 1002 : 
+; 1003 :       return TRUE;
 
 	jmp	$LN31@DllMain
 $LN24@DllMain:
@@ -35085,30 +35103,30 @@ $LN24@DllMain:
 	lock	 inc	 DWORD PTR ?__SK_Threads_Attached@@3KC
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 1005 :       if (__SK_TLS_INDEX != MAXDWORD)
+; 1012 :       if (__SK_TLS_INDEX != MAXDWORD)
 
 	cmp	DWORD PTR ?__SK_TLS_INDEX@@3KC, -1	; __SK_TLS_INDEX
 	je	$LN31@DllMain
 
-; 1006 :       {
-; 1007 :         auto lpvData =
-; 1008 :           static_cast <LPVOID> (
-; 1009 :             LocalAlloc ( LPTR, sizeof (SK_TLS) * SK_TLS::stack::max )
+; 1013 :       {
+; 1014 :         auto lpvData =
+; 1015 :           static_cast <LPVOID> (
+; 1016 :             LocalAlloc ( LPTR, sizeof (SK_TLS) * SK_TLS::stack::max )
 
 	push	1720					; 000006b8H
 	push	64					; 00000040H
 	call	DWORD PTR __imp__LocalAlloc@8
 	mov	esi, eax
 
-; 1010 :           );
-; 1011 : 
-; 1012 :         if (lpvData != nullptr)
+; 1017 :           );
+; 1018 : 
+; 1019 :         if (lpvData != nullptr)
 
 	test	esi, esi
 	je	$LN31@DllMain
 
-; 1013 :         {
-; 1014 :           if (! TlsSetValue (__SK_TLS_INDEX, lpvData))
+; 1020 :         {
+; 1021 :           if (! TlsSetValue (__SK_TLS_INDEX, lpvData))
 
 	mov	ecx, DWORD PTR ?__SK_TLS_INDEX@@3KC	; __SK_TLS_INDEX
 	push	esi
@@ -35117,63 +35135,63 @@ $LN24@DllMain:
 	test	eax, eax
 	jne	SHORT $LN27@DllMain
 
-; 1015 :           {
-; 1016 :             LocalFree (lpvData);
+; 1022 :           {
+; 1023 :             LocalFree (lpvData);
 
 	push	esi
 	call	DWORD PTR __imp__LocalFree@4
 
-; 1017 :           }
-; 1018 : 
-; 1019 :           else
+; 1024 :           }
+; 1025 : 
+; 1026 :           else
 
 	jmp	SHORT $LN31@DllMain
 $LN27@DllMain:
 
-; 1020 :             (static_cast <SK_TLS *> (lpvData))->stack.current = 0;
+; 1027 :             (static_cast <SK_TLS *> (lpvData))->stack.current = 0;
 
 	mov	DWORD PTR [esi+856], 0
 
-; 1021 :         }
-; 1022 :       }
-; 1023 :     } break;
+; 1028 :         }
+; 1029 :       }
+; 1030 :     } break;
 
 	jmp	SHORT $LN31@DllMain
 $LN29@DllMain:
 
-; 1024 : 
-; 1025 : 
-; 1026 :     case DLL_THREAD_DETACH:
-; 1027 :     {
-; 1028 :       if (__SK_TLS_INDEX != MAXDWORD)
+; 1031 : 
+; 1032 : 
+; 1033 :     case DLL_THREAD_DETACH:
+; 1034 :     {
+; 1035 :       if (__SK_TLS_INDEX != MAXDWORD)
 
 	cmp	DWORD PTR ?__SK_TLS_INDEX@@3KC, -1	; __SK_TLS_INDEX
 	je	SHORT $LN31@DllMain
 
-; 1029 :       {
-; 1030 :         auto lpvData =
-; 1031 :           static_cast <LPVOID> (TlsGetValue (__SK_TLS_INDEX));
+; 1036 :       {
+; 1037 :         auto lpvData =
+; 1038 :           static_cast <LPVOID> (TlsGetValue (__SK_TLS_INDEX));
 
 	mov	eax, DWORD PTR ?__SK_TLS_INDEX@@3KC	; __SK_TLS_INDEX
 	push	eax
 	call	DWORD PTR __imp__TlsGetValue@4
 	mov	esi, eax
 
-; 1032 : 
-; 1033 :         if (lpvData != nullptr)
+; 1039 : 
+; 1040 :         if (lpvData != nullptr)
 
 	test	esi, esi
 	je	SHORT $LN31@DllMain
 
-; 1034 :         {
-; 1035 :           if (SK_TLS_Bottom ()->known_modules.pResolved != nullptr)
+; 1041 :         {
+; 1042 :           if (SK_TLS_Bottom ()->known_modules.pResolved != nullptr)
 
 	call	?SK_TLS_Bottom@@YGPAUSK_TLS@@XZ		; SK_TLS_Bottom
 	cmp	DWORD PTR [eax], 0
 	je	SHORT $LN32@DllMain
 
-; 1036 :           {
-; 1037 :             delete SK_TLS_Bottom ()->known_modules.pResolved;
+; 1043 :           {
+; 1044 :             delete SK_TLS_Bottom ()->known_modules.pResolved;
 
 	call	?SK_TLS_Bottom@@YGPAUSK_TLS@@XZ		; SK_TLS_Bottom
 	push	0
@@ -35181,20 +35199,20 @@ $LN29@DllMain:
 	call	??3@YAXPAXI@Z				; operator delete
 	add	esp, 8
 
-; 1038 :                    SK_TLS_Bottom ()->known_modules.pResolved = nullptr;
+; 1045 :                    SK_TLS_Bottom ()->known_modules.pResolved = nullptr;
 
 	call	?SK_TLS_Bottom@@YGPAUSK_TLS@@XZ		; SK_TLS_Bottom
 	mov	DWORD PTR [eax], 0
 $LN32@DllMain:
 
-; 1039 :           }
-; 1040 : 
-; 1041 :           LocalFree   (lpvData);
+; 1046 :           }
+; 1047 : 
+; 1048 :           LocalFree   (lpvData);
 
 	push	esi
 	call	DWORD PTR __imp__LocalFree@4
 
-; 1042 :           TlsSetValue (__SK_TLS_INDEX, nullptr);
+; 1049 :           TlsSetValue (__SK_TLS_INDEX, nullptr);
 
 	mov	eax, DWORD PTR ?__SK_TLS_INDEX@@3KC	; __SK_TLS_INDEX
 	push	0
@@ -35202,13 +35220,13 @@ $LN32@DllMain:
 	call	DWORD PTR __imp__TlsSetValue@8
 $LN31@DllMain:
 
-; 1043 :         }
-; 1044 :       }
-; 1045 :     } break;
-; 1046 :   }
-; 1047 : 
-; 1048 :   return TRUE;
-; 1049 : }
+; 1050 :         }
+; 1051 :       }
+; 1052 :     } break;
+; 1053 :   }
+; 1054 : 
+; 1055 :   return TRUE;
+; 1056 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	eax, 1
@@ -35396,12 +35414,12 @@ $LN2@SK_Detach:
 	je	SHORT $LN27@SK_Detach
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 292  :     DeleteCriticalSection (cs_);
+; 303  :     DeleteCriticalSection (cs_);
 
 	push	DWORD PTR [edi]
 	call	ebx
 
-; 293  :     delete cs_;
+; 304  :     delete cs_;
 
 	push	24					; 00000018H
 	push	DWORD PTR [edi]
@@ -35420,12 +35438,12 @@ $LN27@SK_Detach:
 	je	SHORT $LN34@SK_Detach
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 292  :     DeleteCriticalSection (cs_);
+; 303  :     DeleteCriticalSection (cs_);
 
 	push	DWORD PTR [edi]
 	call	ebx
 
-; 293  :     delete cs_;
+; 304  :     delete cs_;
 
 	push	24					; 00000018H
 	push	DWORD PTR [edi]
@@ -35444,12 +35462,12 @@ $LN34@SK_Detach:
 	je	SHORT $LN41@SK_Detach
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 292  :     DeleteCriticalSection (cs_);
+; 303  :     DeleteCriticalSection (cs_);
 
 	push	DWORD PTR [edi]
 	call	ebx
 
-; 293  :     delete cs_;
+; 304  :     delete cs_;
 
 	push	24					; 00000018H
 	push	DWORD PTR [edi]
@@ -35468,12 +35486,12 @@ $LN41@SK_Detach:
 	je	SHORT $LN48@SK_Detach
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 292  :     DeleteCriticalSection (cs_);
+; 303  :     DeleteCriticalSection (cs_);
 
 	push	DWORD PTR [edi]
 	call	ebx
 
-; 293  :     delete cs_;
+; 304  :     delete cs_;
 
 	push	24					; 00000018H
 	push	DWORD PTR [edi]
@@ -35492,12 +35510,12 @@ $LN48@SK_Detach:
 	je	SHORT $LN61@SK_Detach
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 292  :     DeleteCriticalSection (cs_);
+; 303  :     DeleteCriticalSection (cs_);
 
 	push	DWORD PTR [edi]
 	call	ebx
 
-; 293  :     delete cs_;
+; 304  :     delete cs_;
 
 	push	24					; 00000018H
 	push	DWORD PTR [edi]
@@ -35528,7 +35546,7 @@ $LN4@SK_Detach:
 ; 826  :   else {
 ; 827  :     dll_log.Log (L"[ SpecialK ]  ** UNCLEAN DLL Process Detach !! **");
 
-	push	OFFSET $SG260602
+	push	OFFSET $SG260672
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
@@ -35642,17 +35660,17 @@ _role$ = 8						; size = 4
 	je	SHORT $LN21@SK_Attach
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 285  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
+; 296  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
 
 	push	24					; 00000018H
 	call	??2@YAPAXI@Z				; operator new
 	add	esp, 4
 
-; 263  :     cs_ = pCS;
+; 274  :     cs_ = pCS;
 
 	mov	DWORD PTR [esi], eax
 
-; 287  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
+; 298  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
 
 	push	400					; 00000190H
 	push	eax
@@ -35680,17 +35698,17 @@ $LN22@SK_Attach:
 	je	SHORT $LN23@SK_Attach
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 285  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
+; 296  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
 
 	push	24					; 00000018H
 	call	??2@YAPAXI@Z				; operator new
 	add	esp, 4
 
-; 263  :     cs_ = pCS;
+; 274  :     cs_ = pCS;
 
 	mov	DWORD PTR [esi], eax
 
-; 287  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
+; 298  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
 
 	push	5000					; 00001388H
 	push	eax
@@ -35718,17 +35736,17 @@ $LN24@SK_Attach:
 	je	SHORT $LN25@SK_Attach
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 285  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
+; 296  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
 
 	push	24					; 00000018H
 	call	??2@YAPAXI@Z				; operator new
 	add	esp, 4
 
-; 263  :     cs_ = pCS;
+; 274  :     cs_ = pCS;
 
 	mov	DWORD PTR [esi], eax
 
-; 287  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
+; 298  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
 
 	push	6536					; 00001988H
 	push	eax
@@ -35756,17 +35774,17 @@ $LN26@SK_Attach:
 	je	SHORT $LN27@SK_Attach
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 285  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
+; 296  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
 
 	push	24					; 00000018H
 	call	??2@YAPAXI@Z				; operator new
 	add	esp, 4
 
-; 263  :     cs_ = pCS;
+; 274  :     cs_ = pCS;
 
 	mov	DWORD PTR [esi], eax
 
-; 287  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
+; 298  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
 
 	push	128					; 00000080H
 	push	eax
@@ -35794,17 +35812,17 @@ $LN28@SK_Attach:
 	je	SHORT $LN29@SK_Attach
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 285  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
+; 296  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
 
 	push	24					; 00000018H
 	call	??2@YAPAXI@Z				; operator new
 	add	esp, 4
 
-; 263  :     cs_ = pCS;
+; 274  :     cs_ = pCS;
 
 	mov	DWORD PTR [esi], eax
 
-; 287  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
+; 298  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
 
 	push	104857					; 00019999H
 	push	eax
@@ -35877,7 +35895,7 @@ $LN30@SK_Attach:
 	call	?SK_IsInjected@@YG_N_N@Z		; SK_IsInjected
 	test	al, al
 	je	SHORT $LN8@SK_Attach
-	push	OFFSET $SG260560
+	push	OFFSET $SG260630
 	call	?SK_IsDLLSpecialK@@YG_NPB_W@Z		; SK_IsDLLSpecialK
 	test	al, al
 	je	SHORT $LN8@SK_Attach
@@ -35934,7 +35952,7 @@ $LN13@SK_Attach:
 	call	?SK_IsInjected@@YG_N_N@Z		; SK_IsInjected
 	test	al, al
 	je	SHORT $LN14@SK_Attach
-	push	OFFSET $SG260569
+	push	OFFSET $SG260639
 	call	?SK_IsDLLSpecialK@@YG_NPB_W@Z		; SK_IsDLLSpecialK
 	test	al, al
 	jne	SHORT $LN63@SK_Attach
@@ -35969,7 +35987,7 @@ $LN11@SK_Attach:
 	call	?SK_IsInjected@@YG_N_N@Z		; SK_IsInjected
 	test	al, al
 	je	SHORT $LN12@SK_Attach
-	push	OFFSET $SG260566
+	push	OFFSET $SG260636
 	call	?SK_IsDLLSpecialK@@YG_NPB_W@Z		; SK_IsDLLSpecialK
 	test	al, al
 	jne	SHORT $LN63@SK_Attach
@@ -36003,7 +36021,7 @@ $LN9@SK_Attach:
 	call	?SK_IsInjected@@YG_N_N@Z		; SK_IsInjected
 	test	al, al
 	je	SHORT $LN10@SK_Attach
-	push	OFFSET $SG260563
+	push	OFFSET $SG260633
 	call	?SK_IsDLLSpecialK@@YG_NPB_W@Z		; SK_IsDLLSpecialK
 	test	al, al
 	jne	SHORT $LN63@SK_Attach
@@ -36057,7 +36075,7 @@ $LN31@SK_Attach:
 	call	?SK_IsInjected@@YG_N_N@Z		; SK_IsInjected
 	test	al, al
 	je	SHORT $LN19@SK_Attach
-	push	OFFSET $SG260576
+	push	OFFSET $SG260646
 	call	?SK_IsDLLSpecialK@@YG_NPB_W@Z		; SK_IsDLLSpecialK
 	test	al, al
 	jne	$LN63@SK_Attach
@@ -36085,7 +36103,7 @@ $LN15@SK_Attach:
 	call	?SK_IsInjected@@YG_N_N@Z		; SK_IsInjected
 	test	al, al
 	je	SHORT $LN16@SK_Attach
-	push	OFFSET $SG260572
+	push	OFFSET $SG260642
 	call	?SK_IsDLLSpecialK@@YG_NPB_W@Z		; SK_IsDLLSpecialK
 	test	al, al
 	jne	$LN63@SK_Attach
@@ -40062,7 +40080,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 224  :     blacklist.emplace (L"steam.exe");
 
-	push	OFFSET $SG260296
+	push	OFFSET $SG260366
 	lea	eax, DWORD PTR $T105[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40070,7 +40088,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 225  :     blacklist.emplace (L"GameOverlayUI.exe");
 
-	push	OFFSET $SG260297
+	push	OFFSET $SG260367
 	lea	eax, DWORD PTR $T104[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40078,7 +40096,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 226  :     blacklist.emplace (L"streaming_client.exe");
 
-	push	OFFSET $SG260298
+	push	OFFSET $SG260368
 	lea	eax, DWORD PTR $T103[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40086,7 +40104,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 227  :     blacklist.emplace (L"steamerrorreporter.exe");
 
-	push	OFFSET $SG260299
+	push	OFFSET $SG260369
 	lea	eax, DWORD PTR $T102[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40094,7 +40112,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 228  :     blacklist.emplace (L"steamerrorreporter64.exe");
 
-	push	OFFSET $SG260300
+	push	OFFSET $SG260370
 	lea	eax, DWORD PTR $T101[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40102,7 +40120,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 229  :     blacklist.emplace (L"steamservice.exe");
 
-	push	OFFSET $SG260301
+	push	OFFSET $SG260371
 	lea	eax, DWORD PTR $T100[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40110,7 +40128,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 230  :     blacklist.emplace (L"steam_monitor.exe");
 
-	push	OFFSET $SG260302
+	push	OFFSET $SG260372
 	lea	eax, DWORD PTR $T99[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40118,7 +40136,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 231  :     blacklist.emplace (L"steamwebhelper.exe");
 
-	push	OFFSET $SG260303
+	push	OFFSET $SG260373
 	lea	eax, DWORD PTR $T98[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40126,7 +40144,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 232  :     blacklist.emplace (L"html5app_steam.exe");
 
-	push	OFFSET $SG260304
+	push	OFFSET $SG260374
 	lea	eax, DWORD PTR $T97[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40134,7 +40152,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 233  :     blacklist.emplace (L"wow_helper.exe");
 
-	push	OFFSET $SG260305
+	push	OFFSET $SG260375
 	lea	eax, DWORD PTR $T96[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40142,7 +40160,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 234  :     blacklist.emplace (L"uninstall.exe");
 
-	push	OFFSET $SG260306
+	push	OFFSET $SG260376
 	lea	eax, DWORD PTR $T95[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40152,7 +40170,7 @@ _d3d11$106 = 11						; size = 1
 ; 236  :     // Crash Helpers
 ; 237  :     blacklist.emplace (L"WriteMiniDump.exe");
 
-	push	OFFSET $SG260307
+	push	OFFSET $SG260377
 	lea	eax, DWORD PTR $T94[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40160,7 +40178,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 238  :     blacklist.emplace (L"CrashReporter.exe");
 
-	push	OFFSET $SG260308
+	push	OFFSET $SG260378
 	lea	eax, DWORD PTR $T93[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40168,7 +40186,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 239  :     blacklist.emplace (L"SupportTool.exe");
 
-	push	OFFSET $SG260309
+	push	OFFSET $SG260379
 	lea	eax, DWORD PTR $T92[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40176,7 +40194,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 240  :     blacklist.emplace (L"CrashSender1400.exe");
 
-	push	OFFSET $SG260310
+	push	OFFSET $SG260380
 	lea	eax, DWORD PTR $T91[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40184,7 +40202,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 241  :     blacklist.emplace (L"WerFault.exe");
 
-	push	OFFSET $SG260311
+	push	OFFSET $SG260381
 	lea	eax, DWORD PTR $T90[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40194,7 +40212,7 @@ _d3d11$106 = 11						; size = 1
 ; 243  :     // Runtime Installers
 ; 244  :     blacklist.emplace (L"DXSETUP.exe");
 
-	push	OFFSET $SG260312
+	push	OFFSET $SG260382
 	lea	eax, DWORD PTR $T89[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40202,7 +40220,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 245  :     blacklist.emplace (L"setup.exe");
 
-	push	OFFSET $SG260313
+	push	OFFSET $SG260383
 	lea	eax, DWORD PTR $T88[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40210,7 +40228,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 246  :     blacklist.emplace (L"vc_redist.x64.exe");
 
-	push	OFFSET $SG260314
+	push	OFFSET $SG260384
 	lea	eax, DWORD PTR $T87[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40218,7 +40236,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 247  :     blacklist.emplace (L"vc_redist.x86.exe");
 
-	push	OFFSET $SG260315
+	push	OFFSET $SG260385
 	lea	eax, DWORD PTR $T86[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40226,7 +40244,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 248  :     blacklist.emplace (L"vc2010redist_x64.exe");
 
-	push	OFFSET $SG260316
+	push	OFFSET $SG260386
 	lea	eax, DWORD PTR $T85[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40234,7 +40252,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 249  :     blacklist.emplace (L"vc2010redist_x86.exe");
 
-	push	OFFSET $SG260317
+	push	OFFSET $SG260387
 	lea	eax, DWORD PTR $T84[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40242,7 +40260,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 250  :     blacklist.emplace (L"vcredist_x64.exe");
 
-	push	OFFSET $SG260318
+	push	OFFSET $SG260388
 	lea	eax, DWORD PTR $T83[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40250,7 +40268,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 251  :     blacklist.emplace (L"vcredist_x86.exe");
 
-	push	OFFSET $SG260319
+	push	OFFSET $SG260389
 	lea	eax, DWORD PTR $T82[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40258,7 +40276,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 252  :     blacklist.emplace (L"NDP451-KB2872776-x86-x64-AllOS-ENU.exe");
 
-	push	OFFSET $SG260320
+	push	OFFSET $SG260390
 	lea	eax, DWORD PTR $T81[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40266,7 +40284,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 253  :     blacklist.emplace (L"dotnetfx35.exe");
 
-	push	OFFSET $SG260321
+	push	OFFSET $SG260391
 	lea	eax, DWORD PTR $T80[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40274,7 +40292,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 254  :     blacklist.emplace (L"DotNetFx35Client.exe");
 
-	push	OFFSET $SG260322
+	push	OFFSET $SG260392
 	lea	eax, DWORD PTR $T79[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40282,7 +40300,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 255  :     blacklist.emplace (L"dotNetFx40_Full_x86_x64.exe");
 
-	push	OFFSET $SG260323
+	push	OFFSET $SG260393
 	lea	eax, DWORD PTR $T78[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40290,7 +40308,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 256  :     blacklist.emplace (L"dotNetFx40_Client_x86_x64.exe");
 
-	push	OFFSET $SG260324
+	push	OFFSET $SG260394
 	lea	eax, DWORD PTR $T77[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40298,7 +40316,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 257  :     blacklist.emplace (L"oalinst.exe");
 
-	push	OFFSET $SG260325
+	push	OFFSET $SG260395
 	lea	eax, DWORD PTR $T76[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40306,7 +40324,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 258  :     blacklist.emplace (L"EasyAntiCheat_Setup.exe");
 
-	push	OFFSET $SG260326
+	push	OFFSET $SG260396
 	lea	eax, DWORD PTR $T75[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40314,7 +40332,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 259  :     blacklist.emplace (L"UplayInstaller.exe");
 
-	push	OFFSET $SG260327
+	push	OFFSET $SG260397
 	lea	eax, DWORD PTR $T74[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40324,7 +40342,7 @@ _d3d11$106 = 11						; size = 1
 ; 261  :     // Launchers
 ; 262  :     blacklist.emplace (L"x64launcher.exe");
 
-	push	OFFSET $SG260328
+	push	OFFSET $SG260398
 	lea	eax, DWORD PTR $T73[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40332,7 +40350,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 263  :     blacklist.emplace (L"x86launcher.exe");
 
-	push	OFFSET $SG260329
+	push	OFFSET $SG260399
 	lea	eax, DWORD PTR $T72[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40340,7 +40358,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 264  :     blacklist.emplace (L"Launcher.exe");
 
-	push	OFFSET $SG260330
+	push	OFFSET $SG260400
 	lea	eax, DWORD PTR $T71[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40348,7 +40366,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 265  :     blacklist.emplace (L"FFX&X-2_LAUNCHER.exe");
 
-	push	OFFSET $SG260331
+	push	OFFSET $SG260401
 	lea	eax, DWORD PTR $T70[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40356,7 +40374,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 266  :     blacklist.emplace (L"Fallout4Launcher.exe");
 
-	push	OFFSET $SG260332
+	push	OFFSET $SG260402
 	lea	eax, DWORD PTR $T69[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40364,7 +40382,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 267  :     blacklist.emplace (L"SkyrimSELauncher.exe");
 
-	push	OFFSET $SG260333
+	push	OFFSET $SG260403
 	lea	eax, DWORD PTR $T68[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40372,7 +40390,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 268  :     blacklist.emplace (L"ModLauncher.exe");
 
-	push	OFFSET $SG260334
+	push	OFFSET $SG260404
 	lea	eax, DWORD PTR $T67[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40380,7 +40398,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 269  :     blacklist.emplace (L"AkibaUU_Config.exe");
 
-	push	OFFSET $SG260335
+	push	OFFSET $SG260405
 	lea	eax, DWORD PTR $T66[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40388,7 +40406,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 270  :     blacklist.emplace (L"Obduction.exe");
 
-	push	OFFSET $SG260336
+	push	OFFSET $SG260406
 	lea	eax, DWORD PTR $T65[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40396,7 +40414,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 271  :     blacklist.emplace (L"Grandia2Launcher.exe");
 
-	push	OFFSET $SG260337
+	push	OFFSET $SG260407
 	lea	eax, DWORD PTR $T64[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40404,7 +40422,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 272  :     blacklist.emplace (L"FFXiii2Launcher.exe");
 
-	push	OFFSET $SG260338
+	push	OFFSET $SG260408
 	lea	eax, DWORD PTR $T63[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40412,7 +40430,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 273  :     blacklist.emplace (L"Bethesda.net_Launcher.exe");
 
-	push	OFFSET $SG260339
+	push	OFFSET $SG260409
 	lea	eax, DWORD PTR $T62[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40420,7 +40438,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 274  :     blacklist.emplace (L"UbisoftGameLauncher.exe");
 
-	push	OFFSET $SG260340
+	push	OFFSET $SG260410
 	lea	eax, DWORD PTR $T61[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40428,7 +40446,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 275  :     blacklist.emplace (L"UbisoftGameLauncher64.exe");
 
-	push	OFFSET $SG260341
+	push	OFFSET $SG260411
 	lea	eax, DWORD PTR $T60[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40436,7 +40454,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 276  :     blacklist.emplace (L"SplashScreen.exe");
 
-	push	OFFSET $SG260342
+	push	OFFSET $SG260412
 	lea	eax, DWORD PTR $T59[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40444,7 +40462,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 277  :     blacklist.emplace (L"GameLauncherCefChildProcess.exe");
 
-	push	OFFSET $SG260343
+	push	OFFSET $SG260413
 	lea	eax, DWORD PTR $T58[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40452,7 +40470,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 278  :     blacklist.emplace (L"LaunchPad.exe");
 
-	push	OFFSET $SG260344
+	push	OFFSET $SG260414
 	lea	eax, DWORD PTR $T57[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40460,7 +40478,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 279  :     blacklist.emplace (L"CNNLauncher.exe");
 
-	push	OFFSET $SG260345
+	push	OFFSET $SG260415
 	lea	eax, DWORD PTR $T56[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40468,7 +40486,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 280  :     blacklist.emplace (L"FF9_Launcher.exe");
 
-	push	OFFSET $SG260346
+	push	OFFSET $SG260416
 	lea	eax, DWORD PTR $T55[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40476,7 +40494,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 281  :     blacklist.emplace (L"A17Config.exe");
 
-	push	OFFSET $SG260347
+	push	OFFSET $SG260417
 	lea	eax, DWORD PTR $T54[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40484,7 +40502,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 282  :     blacklist.emplace (L"A18Config.exe"); // Atelier Firis
 
-	push	OFFSET $SG260348
+	push	OFFSET $SG260418
 	lea	eax, DWORD PTR $T53[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40492,7 +40510,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 283  :     blacklist.emplace (L"DPLauncher.exe");
 
-	push	OFFSET $SG260349
+	push	OFFSET $SG260419
 	lea	eax, DWORD PTR $T52[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40500,7 +40518,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 284  :     blacklist.emplace (L"ZeroEscape-Launcher.exe");
 
-	push	OFFSET $SG260350
+	push	OFFSET $SG260420
 	lea	eax, DWORD PTR $T51[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40510,7 +40528,7 @@ _d3d11$106 = 11						; size = 1
 ; 286  :     // Other Stuff
 ; 287  :     blacklist.emplace (L"ActivationUI.exe");
 
-	push	OFFSET $SG260351
+	push	OFFSET $SG260421
 	lea	eax, DWORD PTR $T50[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40518,7 +40536,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 288  :     blacklist.emplace (L"zosSteamStarter.exe");
 
-	push	OFFSET $SG260352
+	push	OFFSET $SG260422
 	lea	eax, DWORD PTR $T49[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40526,7 +40544,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 289  :     blacklist.emplace (L"notepad.exe");
 
-	push	OFFSET $SG260353
+	push	OFFSET $SG260423
 	lea	eax, DWORD PTR $T48[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40534,7 +40552,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 290  :     blacklist.emplace (L"mspaint.exe");
 
-	push	OFFSET $SG260354
+	push	OFFSET $SG260424
 	lea	eax, DWORD PTR $T47[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40542,7 +40560,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 291  :     blacklist.emplace (L"7zFM.exe");
 
-	push	OFFSET $SG260355
+	push	OFFSET $SG260425
 	lea	eax, DWORD PTR $T46[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40550,7 +40568,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 292  :     blacklist.emplace (L"WinRar.exe");
 
-	push	OFFSET $SG260356
+	push	OFFSET $SG260426
 	lea	eax, DWORD PTR $T45[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40558,7 +40576,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 293  :     blacklist.emplace (L"EAC.exe");
 
-	push	OFFSET $SG260357
+	push	OFFSET $SG260427
 	lea	eax, DWORD PTR $T44[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40566,7 +40584,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 294  :     blacklist.emplace (L"vcpkgsrv.exe");
 
-	push	OFFSET $SG260358
+	push	OFFSET $SG260428
 	lea	eax, DWORD PTR $T43[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40574,7 +40592,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 295  :     blacklist.emplace (L"dllhost.exe");
 
-	push	OFFSET $SG260359
+	push	OFFSET $SG260429
 	lea	eax, DWORD PTR $T42[ebp]
 	push	eax
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
@@ -40582,7 +40600,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 296  :     blacklist.emplace (L"git.exe");
 
-	push	OFFSET $SG260360
+	push	OFFSET $SG260430
 	lea	eax, DWORD PTR $T41[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40590,7 +40608,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 297  :     blacklist.emplace (L"link.exe");
 
-	push	OFFSET $SG260361
+	push	OFFSET $SG260431
 	lea	eax, DWORD PTR $T40[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40598,7 +40616,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 298  :     blacklist.emplace (L"cl.exe");
 
-	push	OFFSET $SG260362
+	push	OFFSET $SG260432
 	lea	eax, DWORD PTR $T39[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40606,7 +40624,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 299  :     blacklist.emplace (L"rc.exe");
 
-	push	OFFSET $SG260363
+	push	OFFSET $SG260433
 	lea	eax, DWORD PTR $T38[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40614,7 +40632,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 300  :     blacklist.emplace (L"conhost.exe");
 
-	push	OFFSET $SG260364
+	push	OFFSET $SG260434
 	lea	eax, DWORD PTR $T37[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40622,7 +40640,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 301  :     blacklist.emplace (L"GameBarPresenceWriter.exe");
 
-	push	OFFSET $SG260365
+	push	OFFSET $SG260435
 	lea	eax, DWORD PTR $T36[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40630,7 +40648,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 302  :     blacklist.emplace (L"OAWrapper.exe");
 
-	push	OFFSET $SG260366
+	push	OFFSET $SG260436
 	lea	eax, DWORD PTR $T35[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40638,7 +40656,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 303  :     blacklist.emplace (L"NvOAWrapperCache.exe");
 
-	push	OFFSET $SG260367
+	push	OFFSET $SG260437
 	lea	eax, DWORD PTR $T34[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40646,7 +40664,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 304  :     blacklist.emplace (L"waifu2x-caffe.exe");
 
-	push	OFFSET $SG260368
+	push	OFFSET $SG260438
 	lea	eax, DWORD PTR $T33[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40654,7 +40672,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 305  :     blacklist.emplace (L"waifu2x-caffe-cui.exe");
 
-	push	OFFSET $SG260369
+	push	OFFSET $SG260439
 	lea	eax, DWORD PTR $T32[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40663,7 +40681,7 @@ _d3d11$106 = 11						; size = 1
 ; 306  : 
 ; 307  :     blacklist.emplace (L"GameServer.exe");// Sacred   Game Server
 
-	push	OFFSET $SG260370
+	push	OFFSET $SG260440
 	lea	eax, DWORD PTR $T31[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40671,7 +40689,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 308  :     blacklist.emplace (L"s2gs.exe");      // Sacred 2 Game Server
 
-	push	OFFSET $SG260371
+	push	OFFSET $SG260441
 	lea	eax, DWORD PTR $T30[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40680,7 +40698,7 @@ _d3d11$106 = 11						; size = 1
 ; 309  : 
 ; 310  :     blacklist.emplace (L"sihost.exe");
 
-	push	OFFSET $SG260372
+	push	OFFSET $SG260442
 	lea	eax, DWORD PTR $T29[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40688,7 +40706,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 311  :     blacklist.emplace (L"Chrome.exe");
 
-	push	OFFSET $SG260373
+	push	OFFSET $SG260443
 	lea	eax, DWORD PTR $T28[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40696,7 +40714,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 312  :     blacklist.emplace (L"explorer.exe");
 
-	push	OFFSET $SG260374
+	push	OFFSET $SG260444
 	lea	eax, DWORD PTR $T27[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40704,7 +40722,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 313  :     blacklist.emplace (L"browser_broker.exe");
 
-	push	OFFSET $SG260375
+	push	OFFSET $SG260445
 	lea	eax, DWORD PTR $T26[ebp]
 	push	eax
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
@@ -40712,7 +40730,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 314  :     blacklist.emplace (L"dwm.exe");
 
-	push	OFFSET $SG260376
+	push	OFFSET $SG260446
 	lea	eax, DWORD PTR $T25[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40720,7 +40738,7 @@ _d3d11$106 = 11						; size = 1
 
 ; 315  :     blacklist.emplace (L"LaunchTM.exe");
 
-	push	OFFSET $SG260377
+	push	OFFSET $SG260447
 	lea	eax, DWORD PTR $T24[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40730,7 +40748,7 @@ _d3d11$106 = 11						; size = 1
 ; 317  :     // Misc. Tools
 ; 318  :     blacklist.emplace (L"SleepOnLan.exe");
 
-	push	OFFSET $SG260378
+	push	OFFSET $SG260448
 	lea	eax, DWORD PTR $T23[ebp]
 	mov	ecx, OFFSET ?blacklist@@3V?$unordered_set@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@U?$hash@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@U?$equal_to@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@V?$allocator@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@2@@std@@A ; blacklist
 	push	eax
@@ -40926,7 +40944,7 @@ $LN4@SK_Establi:
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 	push	eax
 	call	?SK_GetDocumentsDir@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ ; SK_GetDocumentsDir
-	push	OFFSET $SG260381
+	push	OFFSET $SG260451
 	push	eax
 	lea	eax, DWORD PTR $T13[ebp]
 	mov	BYTE PTR __$EHRec$[ebp+8], 1
@@ -40960,7 +40978,7 @@ $LN189@SK_Establi:
 
 	push	eax
 	lea	eax, DWORD PTR $T11[ebp]
-	push	OFFSET $SG260382
+	push	OFFSET $SG260452
 	push	eax
 	call	?SK_FormatString@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QBDZZ ; SK_FormatString
 	add	esp, 12					; 0000000cH
@@ -41168,7 +41186,7 @@ $LN2@SK_Establi:
 ; 350  : 
 ; 351  :   if (! SK_Path_wcsicmp (wszShort, L"dxgi.dll"))
 
-	push	OFFSET $SG260386
+	push	OFFSET $SG260456
 	cmovne	esi, eax
 	push	esi
 	call	?SK_Path_wcsicmp@@YAHPB_W0@Z		; SK_Path_wcsicmp
@@ -41216,7 +41234,7 @@ $LN6@SK_Establi:
 ; 354  : #ifndef _WIN64
 ; 355  :   else if (! SK_Path_wcsicmp (wszShort, L"d3d8.dll")  && has_dgvoodoo)
 
-	push	OFFSET $SG260389
+	push	OFFSET $SG260459
 	push	esi
 	call	?SK_Path_wcsicmp@@YAHPB_W0@Z		; SK_Path_wcsicmp
 	add	esp, 8
@@ -41235,7 +41253,7 @@ $LN8@SK_Establi:
 ; 357  : 
 ; 358  :   else if (! SK_Path_wcsicmp (wszShort, L"ddraw.dll") && has_dgvoodoo)
 
-	push	OFFSET $SG260392
+	push	OFFSET $SG260462
 	push	esi
 	call	?SK_Path_wcsicmp@@YAHPB_W0@Z		; SK_Path_wcsicmp
 	add	esp, 8
@@ -41255,7 +41273,7 @@ $LN10@SK_Establi:
 ; 361  : 
 ; 362  :   else if (! SK_Path_wcsicmp (wszShort, L"d3d9.dll"))
 
-	push	OFFSET $SG260395
+	push	OFFSET $SG260465
 	push	esi
 	call	?SK_Path_wcsicmp@@YAHPB_W0@Z		; SK_Path_wcsicmp
 	add	esp, 8
@@ -41272,7 +41290,7 @@ $LN12@SK_Establi:
 ; 364  : 
 ; 365  :   else if (! SK_Path_wcsicmp (wszShort, L"OpenGL32.dll"))
 
-	push	OFFSET $SG260398
+	push	OFFSET $SG260468
 	push	esi
 	call	?SK_Path_wcsicmp@@YAHPB_W0@Z		; SK_Path_wcsicmp
 	add	esp, 8
@@ -41289,7 +41307,7 @@ $LN14@SK_Establi:
 ; 367  : 
 ; 368  :   else if (! SK_Path_wcsicmp (wszShort, L"dinput8.dll"))
 
-	push	OFFSET $SG260401
+	push	OFFSET $SG260471
 	push	esi
 	call	?SK_Path_wcsicmp@@YAHPB_W0@Z		; SK_Path_wcsicmp
 	add	esp, 8
@@ -41310,7 +41328,7 @@ $LN16@SK_Establi:
 ; 374  :   //
 ; 375  :   else if ( SK_Path_wcsstr (wszShort, L"SpecialK") )
 
-	push	OFFSET $SG260403
+	push	OFFSET $SG260473
 	push	esi
 	call	?SK_Path_wcsstr@@YAPB_WPB_W0@Z		; SK_Path_wcsstr
 	add	esp, 8
@@ -41325,27 +41343,27 @@ $LN16@SK_Establi:
 ; 381  :          ( SK_IsDLLSpecialK (L"d3d8.dll") )     ||
 ; 382  :          ( SK_IsDLLSpecialK (L"ddraw.dll") )    ||
 
-	push	OFFSET $SG260406
+	push	OFFSET $SG260476
 	call	?SK_IsDLLSpecialK@@YG_NPB_W@Z		; SK_IsDLLSpecialK
 	test	al, al
 	jne	$LN20@SK_Establi
-	push	OFFSET $SG260407
+	push	OFFSET $SG260477
 	call	?SK_IsDLLSpecialK@@YG_NPB_W@Z		; SK_IsDLLSpecialK
 	test	al, al
 	jne	$LN20@SK_Establi
-	push	OFFSET $SG260408
+	push	OFFSET $SG260478
 	call	?SK_IsDLLSpecialK@@YG_NPB_W@Z		; SK_IsDLLSpecialK
 	test	al, al
 	jne	$LN20@SK_Establi
-	push	OFFSET $SG260409
+	push	OFFSET $SG260479
 	call	?SK_IsDLLSpecialK@@YG_NPB_W@Z		; SK_IsDLLSpecialK
 	test	al, al
 	jne	$LN20@SK_Establi
-	push	OFFSET $SG260410
+	push	OFFSET $SG260480
 	call	?SK_IsDLLSpecialK@@YG_NPB_W@Z		; SK_IsDLLSpecialK
 	test	al, al
 	jne	$LN20@SK_Establi
-	push	OFFSET $SG260411
+	push	OFFSET $SG260481
 	call	?SK_IsDLLSpecialK@@YG_NPB_W@Z		; SK_IsDLLSpecialK
 	test	al, al
 	jne	$LN20@SK_Establi
@@ -41426,7 +41444,7 @@ $LN16@SK_Establi:
 
 ; 404  :     lstrcatW (wszD3D9, L"\\SpecialK.d3d9");
 
-	push	OFFSET $SG260412
+	push	OFFSET $SG260482
 	lea	eax, DWORD PTR _wszD3D9$8[ebp]
 	push	eax
 	call	esi
@@ -41443,7 +41461,7 @@ $LN16@SK_Establi:
 
 ; 408  :     lstrcatW (wszD3D8, L"\\SpecialK.d3d8");
 
-	push	OFFSET $SG260413
+	push	OFFSET $SG260483
 	lea	eax, DWORD PTR _wszD3D8$7[ebp]
 	push	eax
 	call	esi
@@ -41459,7 +41477,7 @@ $LN16@SK_Establi:
 
 ; 411  :     lstrcatW (wszDDraw, L"\\SpecialK.ddraw");
 
-	push	OFFSET $SG260414
+	push	OFFSET $SG260484
 	lea	eax, DWORD PTR _wszDDraw$6[ebp]
 	push	eax
 	call	esi
@@ -41476,7 +41494,7 @@ $LN16@SK_Establi:
 
 ; 415  :     lstrcatW (wszDXGI, L"\\SpecialK.dxgi");
 
-	push	OFFSET $SG260415
+	push	OFFSET $SG260485
 	lea	eax, DWORD PTR _wszDXGI$5[ebp]
 	push	eax
 	call	esi
@@ -41492,7 +41510,7 @@ $LN16@SK_Establi:
 
 ; 418  :     lstrcatW (wszGL,   L"\\SpecialK.OpenGL32");
 
-	push	OFFSET $SG260416
+	push	OFFSET $SG260486
 	lea	eax, DWORD PTR _wszGL$4[ebp]
 	push	eax
 	call	esi
@@ -41508,7 +41526,7 @@ $LN16@SK_Establi:
 
 ; 421  :     lstrcatW (wszDI8,  L"\\SpecialK.DInput8");
 
-	push	OFFSET $SG260417
+	push	OFFSET $SG260487
 	lea	eax, DWORD PTR _wszDI8$3[ebp]
 	push	eax
 	call	esi
@@ -41612,7 +41630,7 @@ $LN25@SK_Establi:
 	push	0
 	sub	esp, 24					; 00000018H
 	mov	ecx, esp
-	push	OFFSET $SG260430
+	push	OFFSET $SG260500
 	call	??0?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@QB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 	call	?SK_LoadConfigEx@@YA_NV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@_N@Z ; SK_LoadConfigEx
 
@@ -41632,9 +41650,9 @@ $LN25@SK_Establi:
 	mov	esi, DWORD PTR __imp__GetModuleHandleW@4
 	lea	eax, DWORD PTR _steam_tests$14[ebp]
 	add	esp, 28					; 0000001cH
-	mov	DWORD PTR _steam_tests$14[ebp], OFFSET $SG260431
+	mov	DWORD PTR _steam_tests$14[ebp], OFFSET $SG260501
 	mov	BYTE PTR _steam_tests$14[ebp+4], 0
-	mov	DWORD PTR _steam_tests$14[ebp+8], OFFSET $SG260432
+	mov	DWORD PTR _steam_tests$14[ebp+8], OFFSET $SG260502
 	mov	BYTE PTR _steam_tests$14[ebp+12], 0
 	push	2
 	push	eax
@@ -41681,7 +41699,7 @@ $LN25@SK_Establi:
 	or	al, BYTE PTR _steam_tests$14[ebp+4]
 	jne	SHORT $LN34@SK_Establi
 	lea	eax, DWORD PTR _wszProcessName$2[ebp]
-	push	OFFSET $SG260433
+	push	OFFSET $SG260503
 	push	eax
 	call	?SK_Path_wcsstr@@YAPB_WPB_W0@Z		; SK_Path_wcsstr
 	add	esp, 8
@@ -41750,13 +41768,13 @@ $LN34@SK_Establi:
 ; 508  : 
 ; 509  :         gl     |= (GetModuleHandle (L"OpenGL32.dll") != nullptr);
 
-	push	OFFSET $SG260436
+	push	OFFSET $SG260506
 	call	esi
 	test	eax, eax
 
 ; 510  :         d3d9   |= (GetModuleHandle (L"d3d9.dll")     != nullptr);
 
-	push	OFFSET $SG260437
+	push	OFFSET $SG260507
 	setne	al
 	or	BYTE PTR _gl$19[ebp], al
 	call	esi
@@ -41771,7 +41789,7 @@ $LN34@SK_Establi:
 ; 517  : 
 ; 518  :         d3d11  |= (GetModuleHandle (L"d3d11.dll")     != nullptr);
 
-	push	OFFSET $SG260438
+	push	OFFSET $SG260508
 	setne	al
 	or	BYTE PTR _d3d9$20[ebp], al
 	call	esi
@@ -41779,7 +41797,7 @@ $LN34@SK_Establi:
 
 ; 519  :         d3d11  |= (GetModuleHandle (L"d3dx11_43.dll") != nullptr);
 
-	push	OFFSET $SG260439
+	push	OFFSET $SG260509
 	setne	al
 	or	BYTE PTR _d3d11$106[ebp], al
 	call	esi
@@ -41789,7 +41807,7 @@ $LN34@SK_Establi:
 ; 521  : #ifndef _WIN64
 ; 522  :         d3d8   |= (GetModuleHandle (L"d3d8.dll")     != nullptr);
 
-	push	OFFSET $SG260440
+	push	OFFSET $SG260510
 	setne	al
 	or	BYTE PTR _d3d11$106[ebp], al
 	call	esi
@@ -41797,7 +41815,7 @@ $LN34@SK_Establi:
 
 ; 523  :         ddraw  |= (GetModuleHandle (L"ddraw.dll")    != nullptr);
 
-	push	OFFSET $SG260441
+	push	OFFSET $SG260511
 	setne	al
 	or	BYTE PTR _d3d8$21[ebp], al
 	call	esi
@@ -41829,7 +41847,7 @@ $LN34@SK_Establi:
 ; 528  : 
 ; 529  :           if (SK_IsDLLSpecialK (L"d3d8.dll"))
 
-	push	OFFSET $SG260445
+	push	OFFSET $SG260515
 	call	?SK_IsDLLSpecialK@@YG_NPB_W@Z		; SK_IsDLLSpecialK
 	test	al, al
 	je	$LN60@SK_Establi
@@ -41878,7 +41896,7 @@ $LN40@SK_Establi:
 ; 539  : 
 ; 540  :           if (SK_IsDLLSpecialK (L"dxgi.dll"))
 
-	push	OFFSET $SG260450
+	push	OFFSET $SG260520
 	call	?SK_IsDLLSpecialK@@YG_NPB_W@Z		; SK_IsDLLSpecialK
 	test	al, al
 	je	$LN60@SK_Establi
@@ -41921,7 +41939,7 @@ $LN38@SK_Establi:
 ; 547  : 
 ; 548  :           if (SK_IsDLLSpecialK (L"d3d9.dll"))
 
-	push	OFFSET $SG260454
+	push	OFFSET $SG260524
 	call	?SK_IsDLLSpecialK@@YG_NPB_W@Z		; SK_IsDLLSpecialK
 	test	al, al
 	je	$LN60@SK_Establi
@@ -41964,7 +41982,7 @@ $LN42@SK_Establi:
 ; 555  : 
 ; 556  :           if (SK_IsDLLSpecialK (L"OpenGL32.dll"))
 
-	push	OFFSET $SG260458
+	push	OFFSET $SG260528
 	call	?SK_IsDLLSpecialK@@YG_NPB_W@Z		; SK_IsDLLSpecialK
 	test	al, al
 	je	$LN60@SK_Establi
@@ -42015,7 +42033,7 @@ $LN45@SK_Establi:
 ; 569  :         
 ; 570  :           if (SK_IsDLLSpecialK (L"ddraw.dll"))
 
-	push	OFFSET $SG260462
+	push	OFFSET $SG260532
 	call	?SK_IsDLLSpecialK@@YG_NPB_W@Z		; SK_IsDLLSpecialK
 	test	al, al
 	je	SHORT $LN60@SK_Establi
@@ -42139,7 +42157,7 @@ $LN61@SK_Establi:
 
 	sub	esp, 24					; 00000018H
 	mov	ecx, esp
-	push	OFFSET $SG260474
+	push	OFFSET $SG260544
 	call	??0?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@QB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 	call	?SK_LoadConfig@@YA_NV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@@Z ; SK_LoadConfig
 	add	esp, 24					; 00000018H
@@ -49888,7 +49906,7 @@ _hMod$ = 12						; size = 4
 ?insert@SK_ModuleAddrMap@@QAEXPAXPAUHINSTANCE__@@@Z PROC ; SK_ModuleAddrMap::insert
 ; _this$ = ecx
 
-; 1084 : {
+; 1091 : {
 
 	npad	2
 	push	ebp
@@ -49903,12 +49921,12 @@ _hMod$ = 12						; size = 4
 	push	edi
 	mov	edi, ecx
 
-; 1085 :   if (pResolved == nullptr)
+; 1092 :   if (pResolved == nullptr)
 
 	cmp	DWORD PTR [edi], 0
 	jne	SHORT $LN2@insert
 
-; 1086 :     pResolved = new std::unordered_map <LPVOID, HMODULE> ( );
+; 1093 :     pResolved = new std::unordered_map <LPVOID, HMODULE> ( );
 
 	push	32					; 00000020H
 	call	??2@YAPAXI@Z				; operator new
@@ -49939,7 +49957,7 @@ _hMod$ = 12						; size = 4
 	call	??0?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@QAE@ABV?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@1@ABV?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@1@@Z ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 1086 :     pResolved = new std::unordered_map <LPVOID, HMODULE> ( );
+; 1093 :     pResolved = new std::unordered_map <LPVOID, HMODULE> ( );
 
 	jmp	SHORT $LN5@insert
 $LN4@insert:
@@ -49949,9 +49967,9 @@ $LN5@insert:
 	mov	DWORD PTR [edi], esi
 $LN2@insert:
 
-; 1087 : 
-; 1088 :   std::unordered_map <LPVOID, HMODULE> *pResolved_ = 
-; 1089 :     ((std::unordered_map <LPVOID, HMODULE> *)pResolved);
+; 1094 : 
+; 1095 :   std::unordered_map <LPVOID, HMODULE> *pResolved_ = 
+; 1096 :     ((std::unordered_map <LPVOID, HMODULE> *)pResolved);
 
 	mov	esi, DWORD PTR [edi]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
@@ -50004,14 +50022,14 @@ $LN2@insert:
 	call	??$emplace@ABUpiecewise_construct_t@std@@V?$tuple@ABQAX@2@V?$tuple@$$V@2@@?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@QAE?AU?$pair@V?$_List_iterator@V?$_List_val@U?$_List_simple_types@U?$pair@QAXPAUHINSTANCE__@@@std@@@std@@@std@@@std@@_N@1@ABUpiecewise_construct_t@1@$$QAV?$tuple@ABQAX@1@$$QAV?$tuple@$$V@1@@Z ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::emplace<std::piecewise_construct_t const &,std::tuple<void * const &>,std::tuple<> >
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 1091 :   (*pResolved_) [pAddr] = hMod;
+; 1098 :   (*pResolved_) [pAddr] = hMod;
 
 	mov	eax, DWORD PTR $T2[ebp]
 $LN42@insert:
 	mov	ecx, DWORD PTR _hMod$[ebp]
 	mov	DWORD PTR [eax+12], ecx
 
-; 1092 : }
+; 1099 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	pop	edi
@@ -50066,7 +50084,7 @@ _phMod$ = 12						; size = 4
 ?contains@SK_ModuleAddrMap@@QAE_NPAXPAPAUHINSTANCE__@@@Z PROC ; SK_ModuleAddrMap::contains
 ; _this$ = ecx
 
-; 1063 : {
+; 1070 : {
 
 	npad	2
 	push	ebp
@@ -50081,12 +50099,12 @@ _phMod$ = 12						; size = 4
 	push	edi
 	mov	edi, ecx
 
-; 1064 :   if (pResolved == nullptr)
+; 1071 :   if (pResolved == nullptr)
 
 	cmp	DWORD PTR [edi], 0
 	jne	SHORT $LN2@contains
 
-; 1065 :       pResolved = new std::unordered_map <LPVOID, HMODULE> ();
+; 1072 :       pResolved = new std::unordered_map <LPVOID, HMODULE> ();
 
 	push	32					; 00000020H
 	call	??2@YAPAXI@Z				; operator new
@@ -50117,7 +50135,7 @@ _phMod$ = 12						; size = 4
 	call	??0?$_Hash@V?$_Umap_traits@PAXPAUHINSTANCE__@@V?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@std@@V?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@3@$0A@@std@@@std@@QAE@ABV?$_Uhash_compare@PAXU?$hash@PAX@std@@U?$equal_to@PAX@2@@1@ABV?$allocator@U?$pair@QAXPAUHINSTANCE__@@@std@@@1@@Z ; std::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >::_Hash<std::_Umap_traits<void *,HINSTANCE__ *,std::_Uhash_compare<void *,std::hash<void *>,std::equal_to<void *> >,std::allocator<std::pair<void * const,HINSTANCE__ *> >,0> >
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 1065 :       pResolved = new std::unordered_map <LPVOID, HMODULE> ();
+; 1072 :       pResolved = new std::unordered_map <LPVOID, HMODULE> ();
 
 	jmp	SHORT $LN6@contains
 $LN5@contains:
@@ -50127,9 +50145,9 @@ $LN6@contains:
 	mov	DWORD PTR [edi], esi
 $LN2@contains:
 
-; 1066 : 
-; 1067 :   std::unordered_map <LPVOID, HMODULE> *pResolved_ =
-; 1068 :     ((std::unordered_map <LPVOID, HMODULE> *)pResolved);
+; 1073 : 
+; 1074 :   std::unordered_map <LPVOID, HMODULE> *pResolved_ =
+; 1075 :     ((std::unordered_map <LPVOID, HMODULE> *)pResolved);
 
 	mov	edi, DWORD PTR [edi]
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
@@ -50153,7 +50171,7 @@ $LN2@contains:
 	cmp	DWORD PTR _$S1$[ebp], esi
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 1073 :   if (it != pResolved_->cend ())
+; 1080 :   if (it != pResolved_->cend ())
 
 	je	SHORT $LN3@contains
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xhash
@@ -50208,7 +50226,7 @@ $LN2@contains:
 $LN82@contains:
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 1075 :     *phMod = (*pResolved_) [pAddr];
+; 1082 :     *phMod = (*pResolved_) [pAddr];
 
 	mov	ecx, DWORD PTR [eax+12]
 	mov	eax, DWORD PTR _phMod$[ebp]
@@ -50216,14 +50234,14 @@ $LN82@contains:
 	pop	esi
 	mov	DWORD PTR [eax], ecx
 
-; 1076 :     return true;
+; 1083 :     return true;
 
 	mov	al, 1
 
-; 1077 :   }
-; 1078 : 
-; 1079 :   return false;
-; 1080 : }
+; 1084 :   }
+; 1085 : 
+; 1086 :   return false;
+; 1087 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -50267,7 +50285,7 @@ _TEXT	SEGMENT
 	mov	DWORD PTR [ecx], 0
 ; File c:\users\andon\source\repos\specialk\src\specialk.cpp
 
-; 1059 : SK_ModuleAddrMap::SK_ModuleAddrMap (void) = default;
+; 1066 : SK_ModuleAddrMap::SK_ModuleAddrMap (void) = default;
 
 	mov	eax, ecx
 	ret	0
@@ -50286,12 +50304,12 @@ ___flags$ = 8						; size = 4
 	push	esi
 	mov	esi, ecx
 
-; 292  :     DeleteCriticalSection (cs_);
+; 303  :     DeleteCriticalSection (cs_);
 
 	push	DWORD PTR [esi]
 	call	DWORD PTR __imp__DeleteCriticalSection@4
 
-; 293  :     delete cs_;
+; 304  :     delete cs_;
 
 	push	24					; 00000018H
 	push	DWORD PTR [esi]
@@ -50317,18 +50335,18 @@ _TEXT	SEGMENT
 ??1SK_Thread_HybridSpinlock@@QAE@XZ PROC		; SK_Thread_HybridSpinlock::~SK_Thread_HybridSpinlock, COMDAT
 ; _this$ = ecx
 
-; 291  :   {
+; 302  :   {
 
 	npad	2
 	push	esi
 	mov	esi, ecx
 
-; 292  :     DeleteCriticalSection (cs_);
+; 303  :     DeleteCriticalSection (cs_);
 
 	push	DWORD PTR [esi]
 	call	DWORD PTR __imp__DeleteCriticalSection@4
 
-; 293  :     delete cs_;
+; 304  :     delete cs_;
 
 	push	24					; 00000018H
 	push	DWORD PTR [esi]
@@ -50336,7 +50354,7 @@ _TEXT	SEGMENT
 	add	esp, 8
 	pop	esi
 
-; 294  :   }
+; 305  :   }
 
 	ret	0
 ??1SK_Thread_HybridSpinlock@@QAE@XZ ENDP		; SK_Thread_HybridSpinlock::~SK_Thread_HybridSpinlock
@@ -50349,55 +50367,55 @@ _spin_count$ = 8					; size = 4
 ??0SK_Thread_HybridSpinlock@@QAE@H@Z PROC		; SK_Thread_HybridSpinlock::SK_Thread_HybridSpinlock, COMDAT
 ; _this$ = ecx
 
-; 286  :   {
+; 297  :   {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	push	esi
 
-; 264  :   };
-; 265  : 
-; 266  :   ~SK_Thread_CriticalSection (void) = default;
-; 267  : 
-; 268  :   void lock (void) {
-; 269  :     EnterCriticalSection (cs_);
-; 270  :   }
-; 271  : 
-; 272  :   void unlock (void)
-; 273  :   {
-; 274  :     LeaveCriticalSection (cs_);
-; 275  :   }
+; 275  :   };
 ; 276  : 
-; 277  : protected:
-; 278  :   CRITICAL_SECTION* cs_;
-; 279  : };
-; 280  : 
-; 281  : class SK_Thread_HybridSpinlock : public SK_Thread_CriticalSection
-; 282  : {
-; 283  : public:
-; 284  :   SK_Thread_HybridSpinlock (int spin_count = 3000) :
-; 285  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
+; 277  :   ~SK_Thread_CriticalSection (void) = default;
+; 278  : 
+; 279  :   void lock (void) {
+; 280  :     EnterCriticalSection (cs_);
+; 281  :   }
+; 282  : 
+; 283  :   void unlock (void)
+; 284  :   {
+; 285  :     LeaveCriticalSection (cs_);
+; 286  :   }
+; 287  : 
+; 288  : protected:
+; 289  :   CRITICAL_SECTION* cs_;
+; 290  : };
+; 291  : 
+; 292  : class SK_Thread_HybridSpinlock : public SK_Thread_CriticalSection
+; 293  : {
+; 294  : public:
+; 295  :   SK_Thread_HybridSpinlock (int spin_count = 3000) :
+; 296  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
 
 	push	24					; 00000018H
 
-; 286  :   {
+; 297  :   {
 
 	mov	esi, ecx
 	call	??2@YAPAXI@Z				; operator new
 	add	esp, 4
 
-; 263  :     cs_ = pCS;
+; 274  :     cs_ = pCS;
 
 	mov	DWORD PTR [esi], eax
 
-; 287  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
+; 298  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
 
 	push	DWORD PTR _spin_count$[ebp]
 	push	eax
 	call	DWORD PTR __imp__InitializeCriticalSectionAndSpinCount@8
 
-; 288  :   }
+; 299  :   }
 
 	mov	eax, esi
 	pop	esi
@@ -50413,19 +50431,19 @@ _pCS$ = 8						; size = 4
 ??0SK_Thread_CriticalSection@@QAE@PAU_RTL_CRITICAL_SECTION@@@Z PROC ; SK_Thread_CriticalSection::SK_Thread_CriticalSection, COMDAT
 ; _this$ = ecx
 
-; 261  :   SK_Thread_CriticalSection ( CRITICAL_SECTION* pCS )
+; 272  :   SK_Thread_CriticalSection ( CRITICAL_SECTION* pCS )
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 262  :   {
-; 263  :     cs_ = pCS;
+; 273  :   {
+; 274  :     cs_ = pCS;
 
 	mov	eax, DWORD PTR _pCS$[ebp]
 	mov	DWORD PTR [ecx], eax
 
-; 264  :   };
+; 275  :   };
 
 	mov	eax, ecx
 	pop	ebp
@@ -50439,7 +50457,7 @@ _TEXT	SEGMENT
 ?isInjectionTool@SK_HostAppUtil@@QAE_NXZ PROC		; SK_HostAppUtil::isInjectionTool, COMDAT
 ; _this$ = ecx
 
-; 167  :     return SKIM || (RunDll32 && SK_IsRunDLLInvocation ());
+; 169  :     return SKIM || (RunDll32 && SK_IsRunDLLInvocation ());
 
 	cmp	BYTE PTR [ecx], 0
 	jne	SHORT $LN4@isInjectio
@@ -50451,16 +50469,16 @@ _TEXT	SEGMENT
 $LN3@isInjectio:
 	xor	al, al
 
-; 168  :   }
+; 170  :   }
 
 	ret	0
 $LN4@isInjectio:
 
-; 167  :     return SKIM || (RunDll32 && SK_IsRunDLLInvocation ());
+; 169  :     return SKIM || (RunDll32 && SK_IsRunDLLInvocation ());
 
 	mov	al, 1
 
-; 168  :   }
+; 170  :   }
 
 	ret	0
 ?isInjectionTool@SK_HostAppUtil@@QAE_NXZ ENDP		; SK_HostAppUtil::isInjectionTool
@@ -50471,14 +50489,14 @@ _TEXT	ENDS
 _TEXT	SEGMENT
 ?SK_GetBitness@@YGEXZ PROC				; SK_GetBitness, COMDAT
 
-; 136  : #ifdef _WIN64
-; 137  :   return 64;
-; 138  : #endif
-; 139  :   return 32;
+; 138  : #ifdef _WIN64
+; 139  :   return 64;
+; 140  : #endif
+; 141  :   return 32;
 
 	mov	al, 32					; 00000020H
 
-; 140  : }
+; 142  : }
 
 	ret	0
 ?SK_GetBitness@@YGEXZ ENDP				; SK_GetBitness
@@ -56513,7 +56531,7 @@ ___formal$ = 8						; size = 4
 ___formal$ = 12						; size = 4
 ?__empty_global_delete@@YAXPAXI@Z PROC			; __empty_global_delete, COMDAT
 
-; 1093 : }
+; 1100 : }
 
 	ret	0
 ?__empty_global_delete@@YAXPAXI@Z ENDP			; __empty_global_delete
@@ -56525,7 +56543,7 @@ _TEXT	SEGMENT
 ___formal$ = 8						; size = 4
 ?__empty_global_delete@@YAXPAX@Z PROC			; __empty_global_delete, COMDAT
 
-; 1093 : }
+; 1100 : }
 
 	ret	0
 ?__empty_global_delete@@YAXPAX@Z ENDP			; __empty_global_delete

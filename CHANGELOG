@@ -1,6 +1,6 @@
-0.8.54
+0.8.55
 
- (.3): custom_<SpecialK|dxgi|d3d9|dinput8|OpenGL32>.ini is now supported
+ + custom_<SpecialK|dxgi|d3d9|dinput8|OpenGL32>.ini is now supported
 
   >> If this INI file is present (using the appropriate DLL name), any values in
        it will override the game's config.
@@ -9,8 +9,14 @@
          overwrites your base INI file. Use this feature sparingly, for stuff you
            don't need to re-configure (i.e. mouse behavior, macros, etc.)
 
+ + Added RTSS hook avoidance by checking the window class that owns a Swapchain
+ + Added alt. DXGI hook codepaths (Render.DXGI | HookType=0,1) for Okami compat.
  + Added WaitForVBLANK option to D3D11 Swapchain settings
  + Changing D3D11 Swapchain latency in the control panel takes effect immediately
+ + Improved global injection performance for non-whitelisted applications
+
+
+0.8.54
 
  + Added support for plug-in loads from a game's global injection profile directory
  + Improved texture memory stats in custom ReShade

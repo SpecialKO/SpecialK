@@ -16,22 +16,6 @@ _BSS	SEGMENT
 ?RegisterDeviceNotificationA_Original@@3P6GPAXPAX0K@ZA DD 01H DUP (?) ; RegisterDeviceNotificationA_Original
 _BSS	ENDS
 CONST	SEGMENT
-$SG128051 DB	'{', 00H, '0', 00H, '0', 00H, '0', 00H, '0', 00H, '0', 00H
-	DB	'0', 00H, '0', 00H, '0', 00H, '-', 00H, '0', 00H, '0', 00H, '0'
-	DB	00H, '0', 00H, '-', 00H, '0', 00H, '0', 00H, '0', 00H, '0', 00H
-	DB	'-', 00H, '0', 00H, '0', 00H, '0', 00H, '0', 00H, '-', 00H, '0'
-	DB	00H, '0', 00H, '0', 00H, '0', 00H, '0', 00H, '0', 00H, '0', 00H
-	DB	'0', 00H, '0', 00H, '0', 00H, '0', 00H, '0', 00H, '}', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG128052 DB	'RegisterDeviceNotificationW', 00H
-$SG128053 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
-	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG128054 DB	'RegisterDeviceNotificationA', 00H
-$SG128055 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
-	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
 $SG118842 DB	'RegisterDeviceNotificationW_Detour', 00H
 	ORG $+5
 $SG118843 DB	'[', 00H, 'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H
@@ -76,6 +60,21 @@ $SG118867 DB	'[', 00H, 'X', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u', 00H
 	DB	00H, 'o', 00H, 't', 00H, 'i', 00H, 'f', 00H, 'i', 00H, 'c', 00H
 	DB	'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 'A', 00H, ' '
 	DB	00H, '(', 00H, '.', 00H, '.', 00H, '.', 00H, ')', 00H, 00H, 00H
+$SG128121 DB	'{', 00H, '0', 00H, '0', 00H, '0', 00H, '0', 00H, '0', 00H
+	DB	'0', 00H, '0', 00H, '0', 00H, '-', 00H, '0', 00H, '0', 00H, '0'
+	DB	00H, '0', 00H, '-', 00H, '0', 00H, '0', 00H, '0', 00H, '0', 00H
+	DB	'-', 00H, '0', 00H, '0', 00H, '0', 00H, '0', 00H, '-', 00H, '0'
+	DB	00H, '0', 00H, '0', 00H, '0', 00H, '0', 00H, '0', 00H, '0', 00H
+	DB	'0', 00H, '0', 00H, '0', 00H, '0', 00H, '0', 00H, '}', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG128122 DB	'RegisterDeviceNotificationW', 00H
+$SG128123 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG128124 DB	'RegisterDeviceNotificationA', 00H
+$SG128125 DB	'u', 00H, 's', 00H, 'e', 00H, 'r', 00H, '3', 00H, '2', 00H
+	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 CONST	ENDS
 PUBLIC	??_H@YGXPAXIIP6EPAX0@Z@Z			; `vector constructor iterator'
 PUBLIC	_IsEqualGUID
@@ -123,19 +122,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GPAXPAX0K@Z@@YAPAPAXPAP6GPAXPAX0K@Z@Z PROC ; static_cast_p2p<void,void * __stdcall(void *,void *,unsigned long)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -486,7 +485,7 @@ _TEXT	SEGMENT
 ; 392  :   CLSIDFromString (L"{00000000-0000-0000-0000-000000000000}", &GUID_Zero);
 
 	push	OFFSET ?GUID_Zero@@3U_GUID@@A
-	push	OFFSET $SG128051
+	push	OFFSET $SG128121
 	call	DWORD PTR __imp__CLSIDFromString@8
 
 ; 393  : 
@@ -496,8 +495,8 @@ _TEXT	SEGMENT
 	push	0
 	push	OFFSET ?RegisterDeviceNotificationW_Original@@3P6GPAXPAX0K@ZA ; RegisterDeviceNotificationW_Original
 	push	OFFSET ?RegisterDeviceNotificationW_Detour@@YGPAXPAX0K@Z ; RegisterDeviceNotificationW_Detour
-	push	OFFSET $SG128052
-	push	OFFSET $SG128053
+	push	OFFSET $SG128122
+	push	OFFSET $SG128123
 	call	?SK_CreateDLLHook3@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook3
 
 ; 396  :                              "RegisterDeviceNotificationW",
@@ -509,8 +508,8 @@ _TEXT	SEGMENT
 	push	0
 	push	OFFSET ?RegisterDeviceNotificationA_Original@@3P6GPAXPAX0K@ZA ; RegisterDeviceNotificationA_Original
 	push	OFFSET ?RegisterDeviceNotificationA_Detour@@YGPAXPAX0K@Z ; RegisterDeviceNotificationA_Detour
-	push	OFFSET $SG128054
-	push	OFFSET $SG128055
+	push	OFFSET $SG128124
+	push	OFFSET $SG128125
 	call	?SK_CreateDLLHook3@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook3
 
 ; 401  :                              "RegisterDeviceNotificationA",

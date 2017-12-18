@@ -1476,7 +1476,7 @@ Exit 0</Command>
       <WarningLevel>Level4</WarningLevel>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <FunctionLevelLinking>false</FunctionLevelLinking>
-      <PreprocessorDefinitions>_NO_CRT_STDIO_INLINE;_WIN64;WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;GLEW_STATIC;%(PreprocessorDefinitions);PSAPI_VERSION=1;WINVER=_WIN32_WINNT_WIN7;_WIN32_WINNT=_WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_NO_CRT_STDIO_INLINE;_WIN64;WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;GLEW_STATIC;%(PreprocessorDefinitions);PSAPI_VERSION=1;WINVER=_WIN32_WINNT_WIN7;_WIN32_WINNT=_WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE;__SK_FAR__</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
@@ -2136,6 +2136,7 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Installer|Win32'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="src\plugins\okami.cpp" />
     <ClCompile Include="src\plugins\plugin_mgr.cpp" />
     <ClCompile Include="src\plugins\reshade.cpp" />
     <ClCompile Include="src\render_backend.cpp">

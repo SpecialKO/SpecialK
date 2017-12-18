@@ -277,6 +277,7 @@ struct sk_config_t
       bool    enhanced_depth     = false;
       bool    deferred_isolation = false;
       bool    rehook_present     = false;
+      int     alternate_hook     = 0;
     } dxgi;
 
     // OSD Render Stats (D3D11 Only Right Now)

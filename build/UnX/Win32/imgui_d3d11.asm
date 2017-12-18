@@ -9,6 +9,7 @@
 INCLUDELIB MSVCRT
 INCLUDELIB OLDNAMES
 
+PUBLIC	_IID_IRegistrar
 PUBLIC	?chDirSep@ATL@@3_WB				; ATL::chDirSep
 PUBLIC	?chRightBracket@ATL@@3_WB			; ATL::chRightBracket
 PUBLIC	?chLeftBracket@ATL@@3_WB			; ATL::chLeftBracket
@@ -38,7 +39,6 @@ PUBLIC	?_pPerfUnRegFunc@ATL@@3P6AJXZA			; ATL::_pPerfUnRegFunc
 PUBLIC	?_AtlRegisterPerUser@ATL@@3_NA			; ATL::_AtlRegisterPerUser
 PUBLIC	?_pModule@ATL@@3PAVCComModule@1@A		; ATL::_pModule
 PUBLIC	_CLSID_Registrar
-PUBLIC	_IID_IRegistrar
 ;	COMDAT ?_pAtlAutoThreadModule@ATL@@3PAUIAtlAutoThreadModule@1@A
 _BSS	SEGMENT
 ?_pAtlAutoThreadModule@ATL@@3PAUIAtlAutoThreadModule@1@A DD 01H DUP (?) ; ATL::_pAtlAutoThreadModule
@@ -83,20 +83,6 @@ _BSS	ENDS
 _BSS	SEGMENT
 ?_pModule@ATL@@3PAVCComModule@1@A DD 01H DUP (?)	; ATL::_pModule
 _BSS	ENDS
-;	COMDAT _IID_IRegistrar
-CONST	SEGMENT
-_IID_IRegistrar DD 044ec053bH
-	DW	0400fH
-	DW	011d0H
-	DB	09dH
-	DB	0cdH
-	DB	00H
-	DB	0a0H
-	DB	0c9H
-	DB	03H
-	DB	091H
-	DB	0d3H
-CONST	ENDS
 ;	COMDAT _CLSID_Registrar
 CONST	SEGMENT
 _CLSID_Registrar DD 044ec053aH
@@ -223,187 +209,35 @@ _IID_IDocHostUIHandlerDispatch DD 0425b5af0H
 CONST	ENDS
 ;	COMDAT ?szDelete@ATL@@3QB_WB
 CONST	SEGMENT
-?szDelete@ATL@@3QB_WB DD FLAT:$SG236586			; ATL::szDelete
+?szDelete@ATL@@3QB_WB DD FLAT:$SG236656			; ATL::szDelete
 CONST	ENDS
 ;	COMDAT ?szNoRemove@ATL@@3QB_WB
 CONST	SEGMENT
-?szNoRemove@ATL@@3QB_WB DD FLAT:$SG236584		; ATL::szNoRemove
+?szNoRemove@ATL@@3QB_WB DD FLAT:$SG236654		; ATL::szNoRemove
 CONST	ENDS
 ;	COMDAT ?szForceRemove@ATL@@3QB_WB
 CONST	SEGMENT
-?szForceRemove@ATL@@3QB_WB DD FLAT:$SG236582		; ATL::szForceRemove
+?szForceRemove@ATL@@3QB_WB DD FLAT:$SG236652		; ATL::szForceRemove
 CONST	ENDS
 ;	COMDAT ?szValToken@ATL@@3QB_WB
 CONST	SEGMENT
-?szValToken@ATL@@3QB_WB DD FLAT:$SG236580		; ATL::szValToken
+?szValToken@ATL@@3QB_WB DD FLAT:$SG236650		; ATL::szValToken
 CONST	ENDS
 ;	COMDAT ?szBinaryVal@ATL@@3QB_WB
 CONST	SEGMENT
-?szBinaryVal@ATL@@3QB_WB DD FLAT:$SG236578		; ATL::szBinaryVal
+?szBinaryVal@ATL@@3QB_WB DD FLAT:$SG236648		; ATL::szBinaryVal
 CONST	ENDS
 ;	COMDAT ?szDwordVal@ATL@@3QB_WB
 CONST	SEGMENT
-?szDwordVal@ATL@@3QB_WB DD FLAT:$SG236576		; ATL::szDwordVal
+?szDwordVal@ATL@@3QB_WB DD FLAT:$SG236646		; ATL::szDwordVal
 CONST	ENDS
 ;	COMDAT ?multiszStringVal@ATL@@3QB_WB
 CONST	SEGMENT
-?multiszStringVal@ATL@@3QB_WB DD FLAT:$SG236574		; ATL::multiszStringVal
-CONST	ENDS
-CONST	SEGMENT
-$SG236572 DB	'S', 00H, 00H, 00H
-$SG236574 DB	'M', 00H, 00H, 00H
-$SG236576 DB	'D', 00H, 00H, 00H
-$SG236578 DB	'B', 00H, 00H, 00H
-$SG236580 DB	'V', 00H, 'a', 00H, 'l', 00H, 00H, 00H
-$SG236582 DB	'F', 00H, 'o', 00H, 'r', 00H, 'c', 00H, 'e', 00H, 'R', 00H
-	DB	'e', 00H, 'm', 00H, 'o', 00H, 'v', 00H, 'e', 00H, 00H, 00H
-$SG236584 DB	'N', 00H, 'o', 00H, 'R', 00H, 'e', 00H, 'm', 00H, 'o', 00H
-	DB	'v', 00H, 'e', 00H, 00H, 00H
-?piecewise_construct@std@@3Upiecewise_construct_t@1@B	ORG $+1 ; std::piecewise_construct
-	ORG $+1
-$SG236586 DB	'D', 00H, 'e', 00H, 'l', 00H, 'e', 00H, 't', 00H, 'e', 00H
-	DB	00H, 00H
-	ORG $+2
-$SG225324 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'E', 00H, 'x', 00H, 'c', 00H, 'e', 00H, 'p'
-	DB	00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
-$SG225371 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'T', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG225418 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'C', 00H, 'a', 00H, 'c', 00H, 'h', 00H, 'e'
-	DB	00H, 00H, 00H
-$SG225465 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'n', 00H, 'c'
-	DB	00H, 'i', 00H, 'l', 00H, 00H, 00H
-$SG225512 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'r', 00H, 'i', 00H, 'n'
-	DB	00H, 'g', 00H, 00H, 00H
-	ORG $+2
-$SG225559 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'M', 00H, 'a', 00H, 'p', 00H, 00H, 00H
-$SG225564 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'U', 00H, 't', 00H, 'i', 00H, 'l', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG225611 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'S', 00H, 'e', 00H, 'c', 00H, 'u', 00H, 'r'
-	DB	00H, 'i', 00H, 't', 00H, 'y', 00H, 00H, 00H
-	ORG $+2
-$SG244086 DB	'cbuffer vertexBuffer : register(b0)       {      float4x'
-	DB	'4 ProjectionMatrix;       };      struct VS_INPUT      {     '
-	DB	' float2 pos : POSITION;      float4 col : COLOR0;      float2'
-	DB	' uv  : TEXCOORD0;      };            struct PS_INPUT      {  '
-	DB	'    float4 pos : SV_POSITION;      float4 col : COLOR0;      '
-	DB	'float2 uv  : TEXCOORD0;      };            PS_INPUT main(VS_I'
-	DB	'NPUT input)      {      PS_INPUT output;      output.pos = mu'
-	DB	'l( ProjectionMatrix, float4(input.pos.xy, 0.f, 1.f));      ou'
-	DB	'tput.col = input.col;      output.uv  = input.uv;      return'
-	DB	' output;      }', 00H
-$SG225658 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'S', 00H, 'y', 00H, 'n', 00H, 'c', 00H, 00H
-	DB	00H
-	ORG $+6
-$SG244101 DB	'struct PS_INPUT      {      float4 pos : SV_POSITION;   '
-	DB	'   float4 col : COLOR0;      float2 uv  : TEXCOORD0;      }; '
-	DB	'     sampler sampler0;      Texture2D texture0;            fl'
-	DB	'oat4 main(PS_INPUT input) : SV_Target      {      float4 out_'
-	DB	'col = input.col * texture0.Sample(sampler0, input.uv);       '
-	DB	'return out_col;       }', 00H
-$SG244114 DB	'vs_4_0', 00H
-	ORG $+1
-$SG244115 DB	'main', 00H
-	ORG $+3
-$SG244120 DB	'POSITION', 00H
-	ORG $+3
-$SG244121 DB	'TEXCOORD', 00H
-	ORG $+3
-$SG244122 DB	'COLOR', 00H
-	ORG $+2
-$SG244125 DB	'ps_4_0', 00H
-	ORG $+1
-$SG244126 DB	'main', 00H
-	ORG $+3
-$SG225705 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'I', 00H, 'S', 00H, 'A', 00H, 'P', 00H, 'I'
-	DB	00H, 00H, 00H
-$SG224689 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'G', 00H, 'e', 00H, 'n', 00H, 'e', 00H, 'r'
-	DB	00H, 'a', 00H, 'l', 00H, 00H, 00H
-$SG224760 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'C', 00H, 'O', 00H, 'M', 00H, 00H, 00H
-$SG224807 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'Q', 00H, 'I', 00H, 00H, 00H
-	ORG $+2
-$SG224854 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'g', 00H, 'i', 00H, 's'
-	DB	00H, 't', 00H, 'r', 00H, 'a', 00H, 'r', 00H, 00H, 00H
-$SG224901 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'f', 00H, 'c', 00H, 'o'
-	DB	00H, 'u', 00H, 'n', 00H, 't', 00H, 00H, 00H
-	ORG $+2
-$SG224948 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o'
-	DB	00H, 'w', 00H, 'i', 00H, 'n', 00H, 'g', 00H, 00H, 00H
-$SG237262 DB	'A', 00H, 'p', 00H, 'p', 00H, 'I', 00H, 'D', 00H, 00H, 00H
-$SG237263 DB	'C', 00H, 'L', 00H, 'S', 00H, 'I', 00H, 'D', 00H, 00H, 00H
-$SG237264 DB	'C', 00H, 'o', 00H, 'm', 00H, 'p', 00H, 'o', 00H, 'n', 00H
-	DB	'e', 00H, 'n', 00H, 't', 00H, ' ', 00H, 'C', 00H, 'a', 00H, 't'
-	DB	00H, 'e', 00H, 'g', 00H, 'o', 00H, 'r', 00H, 'i', 00H, 'e', 00H
-	DB	's', 00H, 00H, 00H
-	ORG $+2
-$SG237265 DB	'F', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'T', 00H, 'y', 00H
-	DB	'p', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG237266 DB	'I', 00H, 'n', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'f', 00H
-	DB	'a', 00H, 'c', 00H, 'e', 00H, 00H, 00H
-$SG237267 DB	'H', 00H, 'a', 00H, 'r', 00H, 'd', 00H, 'w', 00H, 'a', 00H
-	DB	'r', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG237268 DB	'M', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG237269 DB	'S', 00H, 'A', 00H, 'M', 00H, 00H, 00H
-$SG237270 DB	'S', 00H, 'E', 00H, 'C', 00H, 'U', 00H, 'R', 00H, 'I', 00H
-	DB	'T', 00H, 'Y', 00H, 00H, 00H
-	ORG $+2
-$SG237271 DB	'S', 00H, 'Y', 00H, 'S', 00H, 'T', 00H, 'E', 00H, 'M', 00H
-	DB	00H, 00H
-	ORG $+2
-$SG237272 DB	'S', 00H, 'o', 00H, 'f', 00H, 't', 00H, 'w', 00H, 'a', 00H
-	DB	'r', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG237273 DB	'T', 00H, 'y', 00H, 'p', 00H, 'e', 00H, 'L', 00H, 'i', 00H
-	DB	'b', 00H, 00H, 00H
-$SG224995 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'C', 00H, 'o', 00H, 'n', 00H, 't', 00H, 'r'
-	DB	00H, 'o', 00H, 'l', 00H, 's', 00H, 00H, 00H
-	ORG $+2
-$SG225042 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'H', 00H, 'o', 00H, 's', 00H, 't', 00H, 'i'
-	DB	00H, 'n', 00H, 'g', 00H, 00H, 00H
-$SG225089 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'C', 00H, 'l', 00H, 'i'
-	DB	00H, 'e', 00H, 'n', 00H, 't', 00H, 00H, 00H
-	ORG $+2
-$SG225136 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'P', 00H, 'r', 00H, 'o'
-	DB	00H, 'v', 00H, 'i', 00H, 'd', 00H, 'e', 00H, 'r', 00H, 00H, 00H
-	ORG $+2
-$SG225183 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'S', 00H, 'n', 00H, 'a', 00H, 'p', 00H, 'i'
-	DB	00H, 'n', 00H, 00H, 00H
-	ORG $+2
-$SG225230 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'N', 00H, 'o', 00H, 't', 00H, 'I', 00H, 'm'
-	DB	00H, 'p', 00H, 'l', 00H, 00H, 00H
-$SG225277 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
-	DB	'c', 00H, 'e', 00H, 'A', 00H, 'l', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
+?multiszStringVal@ATL@@3QB_WB DD FLAT:$SG236644		; ATL::multiszStringVal
 CONST	ENDS
 ;	COMDAT ?szStringVal@ATL@@3QB_WB
 CONST	SEGMENT
-?szStringVal@ATL@@3QB_WB DD FLAT:$SG236572		; ATL::szStringVal
+?szStringVal@ATL@@3QB_WB DD FLAT:$SG236642		; ATL::szStringVal
 CONST	ENDS
 ;	COMDAT ?chEquals@ATL@@3_WB
 CONST	SEGMENT
@@ -424,6 +258,172 @@ CONST	ENDS
 ;	COMDAT ?chDirSep@ATL@@3_WB
 CONST	SEGMENT
 ?chDirSep@ATL@@3_WB DW 05cH				; ATL::chDirSep
+CONST	ENDS
+;	COMDAT _IID_IRegistrar
+CONST	SEGMENT
+_IID_IRegistrar DD 044ec053bH
+	DW	0400fH
+	DW	011d0H
+	DB	09dH
+	DB	0cdH
+	DB	00H
+	DB	0a0H
+	DB	0c9H
+	DB	03H
+	DB	091H
+	DB	0d3H
+CONST	ENDS
+CONST	SEGMENT
+$SG225300 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'N', 00H, 'o', 00H, 't', 00H, 'I', 00H, 'm'
+	DB	00H, 'p', 00H, 'l', 00H, 00H, 00H
+$SG225347 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'A', 00H, 'l', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
+?piecewise_construct@std@@3Upiecewise_construct_t@1@B	ORG $+1 ; std::piecewise_construct
+	ORG $+1
+$SG236642 DB	'S', 00H, 00H, 00H
+$SG236644 DB	'M', 00H, 00H, 00H
+$SG236646 DB	'D', 00H, 00H, 00H
+$SG236648 DB	'B', 00H, 00H, 00H
+$SG236650 DB	'V', 00H, 'a', 00H, 'l', 00H, 00H, 00H
+$SG236652 DB	'F', 00H, 'o', 00H, 'r', 00H, 'c', 00H, 'e', 00H, 'R', 00H
+	DB	'e', 00H, 'm', 00H, 'o', 00H, 'v', 00H, 'e', 00H, 00H, 00H
+$SG236654 DB	'N', 00H, 'o', 00H, 'R', 00H, 'e', 00H, 'm', 00H, 'o', 00H
+	DB	'v', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG236656 DB	'D', 00H, 'e', 00H, 'l', 00H, 'e', 00H, 't', 00H, 'e', 00H
+	DB	00H, 00H
+	ORG $+2
+$SG225394 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'E', 00H, 'x', 00H, 'c', 00H, 'e', 00H, 'p'
+	DB	00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
+$SG225441 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'T', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG225488 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'C', 00H, 'a', 00H, 'c', 00H, 'h', 00H, 'e'
+	DB	00H, 00H, 00H
+$SG225535 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'n', 00H, 'c'
+	DB	00H, 'i', 00H, 'l', 00H, 00H, 00H
+$SG225582 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'S', 00H, 't', 00H, 'r', 00H, 'i', 00H, 'n'
+	DB	00H, 'g', 00H, 00H, 00H
+	ORG $+2
+$SG225629 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'M', 00H, 'a', 00H, 'p', 00H, 00H, 00H
+$SG225634 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'U', 00H, 't', 00H, 'i', 00H, 'l', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG225681 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'S', 00H, 'e', 00H, 'c', 00H, 'u', 00H, 'r'
+	DB	00H, 'i', 00H, 't', 00H, 'y', 00H, 00H, 00H
+	ORG $+2
+$SG244156 DB	'cbuffer vertexBuffer : register(b0)       {      float4x'
+	DB	'4 ProjectionMatrix;       };      struct VS_INPUT      {     '
+	DB	' float2 pos : POSITION;      float4 col : COLOR0;      float2'
+	DB	' uv  : TEXCOORD0;      };            struct PS_INPUT      {  '
+	DB	'    float4 pos : SV_POSITION;      float4 col : COLOR0;      '
+	DB	'float2 uv  : TEXCOORD0;      };            PS_INPUT main(VS_I'
+	DB	'NPUT input)      {      PS_INPUT output;      output.pos = mu'
+	DB	'l( ProjectionMatrix, float4(input.pos.xy, 0.f, 1.f));      ou'
+	DB	'tput.col = input.col;      output.uv  = input.uv;      return'
+	DB	' output;      }', 00H
+$SG225728 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'S', 00H, 'y', 00H, 'n', 00H, 'c', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG244184 DB	'vs_4_0', 00H
+	ORG $+1
+$SG244190 DB	'POSITION', 00H
+	ORG $+3
+$SG244171 DB	'struct PS_INPUT      {      float4 pos : SV_POSITION;   '
+	DB	'   float4 col : COLOR0;      float2 uv  : TEXCOORD0;      }; '
+	DB	'     sampler sampler0;      Texture2D texture0;            fl'
+	DB	'oat4 main(PS_INPUT input) : SV_Target      {      float4 out_'
+	DB	'col = input.col * texture0.Sample(sampler0, input.uv);       '
+	DB	'return out_col;       }', 00H
+$SG244185 DB	'main', 00H
+	ORG $+3
+$SG244191 DB	'TEXCOORD', 00H
+	ORG $+3
+$SG244192 DB	'COLOR', 00H
+	ORG $+2
+$SG244195 DB	'ps_4_0', 00H
+	ORG $+1
+$SG244196 DB	'main', 00H
+	ORG $+3
+$SG225775 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'I', 00H, 'S', 00H, 'A', 00H, 'P', 00H, 'I'
+	DB	00H, 00H, 00H
+$SG224759 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'G', 00H, 'e', 00H, 'n', 00H, 'e', 00H, 'r'
+	DB	00H, 'a', 00H, 'l', 00H, 00H, 00H
+$SG224830 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'C', 00H, 'O', 00H, 'M', 00H, 00H, 00H
+$SG224877 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'Q', 00H, 'I', 00H, 00H, 00H
+	ORG $+2
+$SG224924 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'g', 00H, 'i', 00H, 's'
+	DB	00H, 't', 00H, 'r', 00H, 'a', 00H, 'r', 00H, 00H, 00H
+$SG224971 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'R', 00H, 'e', 00H, 'f', 00H, 'c', 00H, 'o'
+	DB	00H, 'u', 00H, 'n', 00H, 't', 00H, 00H, 00H
+	ORG $+2
+$SG225018 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'W', 00H, 'i', 00H, 'n', 00H, 'd', 00H, 'o'
+	DB	00H, 'w', 00H, 'i', 00H, 'n', 00H, 'g', 00H, 00H, 00H
+$SG237332 DB	'A', 00H, 'p', 00H, 'p', 00H, 'I', 00H, 'D', 00H, 00H, 00H
+$SG237333 DB	'C', 00H, 'L', 00H, 'S', 00H, 'I', 00H, 'D', 00H, 00H, 00H
+$SG237334 DB	'C', 00H, 'o', 00H, 'm', 00H, 'p', 00H, 'o', 00H, 'n', 00H
+	DB	'e', 00H, 'n', 00H, 't', 00H, ' ', 00H, 'C', 00H, 'a', 00H, 't'
+	DB	00H, 'e', 00H, 'g', 00H, 'o', 00H, 'r', 00H, 'i', 00H, 'e', 00H
+	DB	's', 00H, 00H, 00H
+	ORG $+2
+$SG237335 DB	'F', 00H, 'i', 00H, 'l', 00H, 'e', 00H, 'T', 00H, 'y', 00H
+	DB	'p', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG237336 DB	'I', 00H, 'n', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'f', 00H
+	DB	'a', 00H, 'c', 00H, 'e', 00H, 00H, 00H
+$SG237337 DB	'H', 00H, 'a', 00H, 'r', 00H, 'd', 00H, 'w', 00H, 'a', 00H
+	DB	'r', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG237338 DB	'M', 00H, 'i', 00H, 'm', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG237339 DB	'S', 00H, 'A', 00H, 'M', 00H, 00H, 00H
+$SG237340 DB	'S', 00H, 'E', 00H, 'C', 00H, 'U', 00H, 'R', 00H, 'I', 00H
+	DB	'T', 00H, 'Y', 00H, 00H, 00H
+	ORG $+2
+$SG237341 DB	'S', 00H, 'Y', 00H, 'S', 00H, 'T', 00H, 'E', 00H, 'M', 00H
+	DB	00H, 00H
+	ORG $+2
+$SG237342 DB	'S', 00H, 'o', 00H, 'f', 00H, 't', 00H, 'w', 00H, 'a', 00H
+	DB	'r', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG237343 DB	'T', 00H, 'y', 00H, 'p', 00H, 'e', 00H, 'L', 00H, 'i', 00H
+	DB	'b', 00H, 00H, 00H
+$SG225065 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'C', 00H, 'o', 00H, 'n', 00H, 't', 00H, 'r'
+	DB	00H, 'o', 00H, 'l', 00H, 's', 00H, 00H, 00H
+	ORG $+2
+$SG225112 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'H', 00H, 'o', 00H, 's', 00H, 't', 00H, 'i'
+	DB	00H, 'n', 00H, 'g', 00H, 00H, 00H
+$SG225159 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'C', 00H, 'l', 00H, 'i'
+	DB	00H, 'e', 00H, 'n', 00H, 't', 00H, 00H, 00H
+	ORG $+2
+$SG225206 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'D', 00H, 'B', 00H, 'P', 00H, 'r', 00H, 'o'
+	DB	00H, 'v', 00H, 'i', 00H, 'd', 00H, 'e', 00H, 'r', 00H, 00H, 00H
+	ORG $+2
+$SG225253 DB	'a', 00H, 't', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H
+	DB	'c', 00H, 'e', 00H, 'S', 00H, 'n', 00H, 'a', 00H, 'p', 00H, 'i'
+	DB	00H, 'n', 00H, 00H, 00H
 CONST	ENDS
 PUBLIC	??_H@YGXPAXIIP6EPAX0@Z@Z			; `vector constructor iterator'
 PUBLIC	?__empty_global_delete@@YAXPAX@Z		; __empty_global_delete
@@ -1022,11 +1022,11 @@ _DATA	SEGMENT
 _DATA	ENDS
 ;	COMDAT ?pixelShader@?BE@??ImGui_ImplDX11_CreateDeviceObjects@@YA_NXZ@4PBDB
 _DATA	SEGMENT
-?pixelShader@?BE@??ImGui_ImplDX11_CreateDeviceObjects@@YA_NXZ@4PBDB DD FLAT:$SG244101 ; `ImGui_ImplDX11_CreateDeviceObjects'::`20'::pixelShader
+?pixelShader@?BE@??ImGui_ImplDX11_CreateDeviceObjects@@YA_NXZ@4PBDB DD FLAT:$SG244171 ; `ImGui_ImplDX11_CreateDeviceObjects'::`20'::pixelShader
 _DATA	ENDS
 ;	COMDAT ?vertexShader@?L@??ImGui_ImplDX11_CreateDeviceObjects@@YA_NXZ@4PBDB
 _DATA	SEGMENT
-?vertexShader@?L@??ImGui_ImplDX11_CreateDeviceObjects@@YA_NXZ@4PBDB DD FLAT:$SG244086 ; `ImGui_ImplDX11_CreateDeviceObjects'::`11'::vertexShader
+?vertexShader@?L@??ImGui_ImplDX11_CreateDeviceObjects@@YA_NXZ@4PBDB DD FLAT:$SG244156 ; `ImGui_ImplDX11_CreateDeviceObjects'::`11'::vertexShader
 _DATA	ENDS
 ;	COMDAT __GUID_6f15aaf2_d208_4e89_9ab4_489535d34f9c
 CONST	SEGMENT
@@ -15586,8 +15586,8 @@ $LL110@ImGui_Impl:
 	push	OFFSET ?g_pVertexShaderBlob@@3PAUID3D10Blob@@A
 	push	0
 	push	0
-	push	OFFSET $SG244114
-	push	OFFSET $SG244115
+	push	OFFSET $SG244184
+	push	OFFSET $SG244185
 	push	0
 	push	0
 	push	0
@@ -15672,12 +15672,12 @@ $LL110@ImGui_Impl:
 ; 546  :                                          &g_pInputLayout ) != S_OK )
 
 	mov	eax, DWORD PTR ?g_pVertexShaderBlob@@3PAUID3D10Blob@@A
-	mov	DWORD PTR _local_layout$3[ebp], OFFSET $SG244120
+	mov	DWORD PTR _local_layout$3[ebp], OFFSET $SG244190
 	mov	DWORD PTR _local_layout$3[ebp+8], 16	; 00000010H
-	mov	DWORD PTR _local_layout$3[ebp+28], OFFSET $SG244121
+	mov	DWORD PTR _local_layout$3[ebp+28], OFFSET $SG244191
 	mov	DWORD PTR _local_layout$3[ebp+36], 16	; 00000010H
 	mov	DWORD PTR _local_layout$3[ebp+44], 8
-	mov	DWORD PTR _local_layout$3[ebp+56], OFFSET $SG244122
+	mov	DWORD PTR _local_layout$3[ebp+56], OFFSET $SG244192
 	mov	DWORD PTR _local_layout$3[ebp+64], 28	; 0000001cH
 	mov	DWORD PTR _local_layout$3[ebp+72], 16	; 00000010H
 	mov	ecx, DWORD PTR [eax]
@@ -15767,8 +15767,8 @@ $LL111@ImGui_Impl:
 	push	OFFSET ?g_pPixelShaderBlob@@3PAUID3D10Blob@@A
 	push	0
 	push	0
-	push	OFFSET $SG244125
-	push	OFFSET $SG244126
+	push	OFFSET $SG244195
+	push	OFFSET $SG244196
 	push	0
 	push	0
 	push	0

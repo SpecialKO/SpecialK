@@ -30,100 +30,100 @@ _BSS	SEGMENT
 ?DebugBreak_Original@@3P6GXXZA DD 01H DUP (?)		; DebugBreak_Original
 _BSS	ENDS
 CONST	SEGMENT
-$SG147656 DB	' ', 00H, '*', 00H, '*', 00H, '*', 00H, ' ', 00H, 'B', 00H
+$SG147726 DB	' ', 00H, '*', 00H, '*', 00H, '*', 00H, ' ', 00H, 'B', 00H
 	DB	'L', 00H, 'O', 00H, 'C', 00H, 'K', 00H, 'E', 00H, 'D', 00H, ' '
 	DB	00H, 'T', 00H, 'e', 00H, 'r', 00H, 'm', 00H, 'i', 00H, 'n', 00H
 	DB	'a', 00H, 't', 00H, 'e', 00H, 'P', 00H, 'r', 00H, 'o', 00H, 'c'
 	DB	00H, 'e', 00H, 's', 00H, 's', 00H, ' ', 00H, '(', 00H, '.', 00H
 	DB	'.', 00H, '.', 00H, ')', 00H, ' ', 00H, '*', 00H, '*', 00H, '*'
 	DB	00H, 0aH, 00H, 09H, 00H, 00H, 00H
-$SG147667 DB	'%', 00H, '-', 00H, '2', 00H, '4', 00H, 'w', 00H, 's', 00H
+$SG147737 DB	'%', 00H, '-', 00H, '2', 00H, '4', 00H, 'w', 00H, 's', 00H
 	DB	':', 00H, ' ', 00H, ' ', 00H, '%', 00H, 'h', 00H, 's', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG147668 DB	'%s', 00H
+$SG147738 DB	'%s', 00H
 	ORG $+1
-$SG147670 DB	0aH, 00H
+$SG147740 DB	0aH, 00H
 	ORG $+2
-$SG147671 DB	0aH, 00H, 00H, 00H
-$SG147676 DB	'%', 00H, '-', 00H, '2', 00H, '4', 00H, 'w', 00H, 's', 00H
+$SG147741 DB	0aH, 00H, 00H, 00H
+$SG147746 DB	'%', 00H, '-', 00H, '2', 00H, '4', 00H, 'w', 00H, 's', 00H
 	DB	':', 00H, ' ', 00H, ' ', 00H, '%', 00H, 'w', 00H, 's', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG147677 DB	'%ws', 00H
-$SG149727 DB	'd', 00H, 'b', 00H, 'g', 00H, 'h', 00H, 'e', 00H, 'l', 00H
+$SG147747 DB	'%ws', 00H
+$SG149797 DB	'd', 00H, 'b', 00H, 'g', 00H, 'h', 00H, 'e', 00H, 'l', 00H
 	DB	'p', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG147679 DB	0aH, 00H, 00H, 00H
-$SG147680 DB	0aH, 00H, 00H, 00H
-$SG149739 DB	'SymRefreshModuleList', 00H
+$SG147749 DB	0aH, 00H, 00H, 00H
+$SG147750 DB	0aH, 00H, 00H, 00H
+$SG149809 DB	'SymRefreshModuleList', 00H
 	ORG $+3
-$SG149768 DB	'StackWalk64', 00H
-$SG147725 DB	'IsDebuggerPresent', 00H
+$SG149838 DB	'StackWalk64', 00H
+$SG147795 DB	'IsDebuggerPresent', 00H
 	ORG $+2
-$SG147726 DB	'k', 00H, 'e', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'l', 00H
+$SG147796 DB	'k', 00H, 'e', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'l', 00H
 	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG147727 DB	'OutputDebugStringA', 00H
+$SG147797 DB	'OutputDebugStringA', 00H
 	ORG $+1
-$SG147728 DB	'k', 00H, 'e', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'l', 00H
+$SG147798 DB	'k', 00H, 'e', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'l', 00H
 	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG147729 DB	'OutputDebugStringW', 00H
+$SG147799 DB	'OutputDebugStringW', 00H
 	ORG $+1
-$SG147730 DB	'k', 00H, 'e', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'l', 00H
+$SG147800 DB	'k', 00H, 'e', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'l', 00H
 	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG147731 DB	'ExitProcess', 00H
-$SG147732 DB	'k', 00H, 'e', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'l', 00H
+$SG147801 DB	'ExitProcess', 00H
+$SG147802 DB	'k', 00H, 'e', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'l', 00H
 	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG147733 DB	'DebugBreak', 00H
+$SG147803 DB	'DebugBreak', 00H
 	ORG $+1
-$SG147734 DB	'k', 00H, 'e', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'l', 00H
+$SG147804 DB	'k', 00H, 'e', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'l', 00H
 	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG147746 DB	'r', 00H
+$SG147816 DB	'r', 00H
 	ORG $+2
-$SG147747 DB	'CONIN$', 00H
+$SG147817 DB	'CONIN$', 00H
 	ORG $+1
-$SG147748 DB	'w', 00H
+$SG147818 DB	'w', 00H
 	ORG $+2
-$SG149797 DB	'StackWalk', 00H
+$SG149867 DB	'StackWalk', 00H
 	ORG $+2
-$SG147749 DB	'CONOUT$', 00H
-$SG147750 DB	'w', 00H
+$SG147819 DB	'CONOUT$', 00H
+$SG147820 DB	'w', 00H
 	ORG $+2
-$SG147751 DB	'CONOUT$', 00H
-$SG147752 DB	'TerminateProcess', 00H
+$SG147821 DB	'CONOUT$', 00H
+$SG147822 DB	'TerminateProcess', 00H
 	ORG $+3
-$SG147753 DB	'k', 00H, 'e', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'l', 00H
+$SG147823 DB	'k', 00H, 'e', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'l', 00H
 	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG149810 DB	'SymSetOptions', 00H
+$SG149880 DB	'SymSetOptions', 00H
 	ORG $+2
-$SG149825 DB	'SymGetModuleBase64', 00H
+$SG149895 DB	'SymGetModuleBase64', 00H
 	ORG $+1
-$SG149840 DB	'SymGetModuleBase', 00H
+$SG149910 DB	'SymGetModuleBase', 00H
 	ORG $+3
-$SG149859 DB	'SymGetLineFromAddr64', 00H
+$SG149929 DB	'SymGetLineFromAddr64', 00H
 	ORG $+3
-$SG149878 DB	'SymGetLineFromAddr', 00H
+$SG149948 DB	'SymGetLineFromAddr', 00H
 	ORG $+1
-$SG149895 DB	'SymInitialize', 00H
+$SG149965 DB	'SymInitialize', 00H
 	ORG $+2
-$SG149910 DB	'SymUnloadModule', 00H
-$SG149925 DB	'SymUnloadModule64', 00H
+$SG149980 DB	'SymUnloadModule', 00H
+$SG149995 DB	'SymUnloadModule64', 00H
 	ORG $+2
-$SG149944 DB	'SymFromAddr', 00H
-$SG149967 DB	'SymLoadModule', 00H
+$SG150014 DB	'SymFromAddr', 00H
+$SG150037 DB	'SymLoadModule', 00H
 	ORG $+2
-$SG149990 DB	'SymLoadModule64', 00H
+$SG150060 DB	'SymLoadModule64', 00H
 CONST	ENDS
 PUBLIC	??0IUnknown@@QAE@XZ				; IUnknown::IUnknown
 PUBLIC	?Allow@Debugger@Diagnostics@SK@@YA_N_N@Z	; SK::Diagnostics::Debugger::Allow
@@ -867,7 +867,7 @@ _wszSystemDbgHelp$ = -1040				; size = 1040
 
 ; 264  :   PathAppendW (wszSystemDbgHelp, L"dbghelp.dll");
 
-	push	OFFSET $SG149727
+	push	OFFSET $SG149797
 	lea	eax, DWORD PTR _wszSystemDbgHelp$[ebp]
 	push	eax
 	call	DWORD PTR __imp__PathAppendW@8
@@ -895,19 +895,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GHPAXI@Z@@YAPAPAXPAP6GHPAXI@Z@Z PROC ; static_cast_p2p<void,int __stdcall(void *,unsigned int)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -920,19 +920,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXXZ@@YAPAPAXPAP6GXXZ@Z PROC	; static_cast_p2p<void,void __stdcall(void)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -945,19 +945,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXI@Z@@YAPAPAXPAP6GXI@Z@Z PROC	; static_cast_p2p<void,void __stdcall(unsigned int)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -970,19 +970,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXPB_W@Z@@YAPAPAXPAP6GXPB_W@Z@Z PROC ; static_cast_p2p<void,void __stdcall(wchar_t const *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -995,19 +995,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXPBD@Z@@YAPAPAXPAP6GXPBD@Z@Z PROC ; static_cast_p2p<void,void __stdcall(char const *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -1020,19 +1020,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GHXZ@@YAPAPAXPAP6GHXZ@Z PROC	; static_cast_p2p<void,int __stdcall(void)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -1131,7 +1131,7 @@ $LN18@OutputDebu:
 	mov	esi, DWORD PTR _lpOutputString$[ebp]
 	push	esi
 	push	eax
-	push	OFFSET $SG147676
+	push	OFFSET $SG147746
 	push	1
 	push	OFFSET ?game_debug@@3UiSK_Logger@@A	; game_debug
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -1178,7 +1178,7 @@ $LN28@OutputDebu:
 ; 133  :   fprintf          (stdout,  "%ws",          lpOutputString);
 
 	push	esi
-	push	OFFSET $SG147677
+	push	OFFSET $SG147747
 	push	1
 	call	DWORD PTR __imp____acrt_iob_func
 	add	esp, 4
@@ -1188,7 +1188,7 @@ $LN28@OutputDebu:
 ; 134  : 
 ; 135  :   if (! wcsstr (lpOutputString, L"\n"))
 
-	push	OFFSET $SG147679
+	push	OFFSET $SG147749
 	push	esi
 	call	DWORD PTR __imp__wcsstr
 	add	esp, 20					; 00000014H
@@ -1198,7 +1198,7 @@ $LN28@OutputDebu:
 
 ; 136  :     game_debug.LogEx (false, L"\n");
 
-	push	OFFSET $SG147680
+	push	OFFSET $SG147750
 	push	eax
 	push	OFFSET ?game_debug@@3UiSK_Logger@@A	; game_debug
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -1273,7 +1273,7 @@ $LN18@OutputDebu:
 	mov	esi, DWORD PTR _lpOutputString$[ebp]
 	push	esi
 	push	eax
-	push	OFFSET $SG147667
+	push	OFFSET $SG147737
 	push	1
 	push	OFFSET ?game_debug@@3UiSK_Logger@@A	; game_debug
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -1320,7 +1320,7 @@ $LN28@OutputDebu:
 ; 116  :   fprintf          (stdout,  "%s",           lpOutputString);
 
 	push	esi
-	push	OFFSET $SG147668
+	push	OFFSET $SG147738
 	push	1
 	call	DWORD PTR __imp____acrt_iob_func
 	add	esp, 4
@@ -1330,7 +1330,7 @@ $LN28@OutputDebu:
 ; 117  : 
 ; 118  :   if (! strstr (lpOutputString, "\n"))
 
-	push	OFFSET $SG147670
+	push	OFFSET $SG147740
 	push	esi
 	call	DWORD PTR __imp__strstr
 	add	esp, 20					; 00000014H
@@ -1340,7 +1340,7 @@ $LN28@OutputDebu:
 
 ; 119  :     game_debug.LogEx (false, L"\n");
 
-	push	OFFSET $SG147671
+	push	OFFSET $SG147741
 	push	eax
 	push	OFFSET ?game_debug@@3UiSK_Logger@@A	; game_debug
 	call	?LogEx@iSK_Logger@@UAAX_NQB_WZZ		; iSK_Logger::LogEx
@@ -1446,7 +1446,7 @@ _uExitCode$ = 12					; size = 4
 ; 78   :   {
 ; 79   :     OutputDebugString ( L" *** BLOCKED TerminateProcess (...) ***\n\t" );
 
-	push	OFFSET $SG147656
+	push	OFFSET $SG147726
 	call	DWORD PTR __imp__OutputDebugStringW@4
 
 ; 80   :     OutputDebugString ( SK_GetCallerName ().c_str () );
@@ -1865,7 +1865,7 @@ $LN6@SymLoadMod:
 ; 603  :     (SymLoadModule_pfn)
 ; 604  :       GetProcAddress ( SK_Debug_LoadHelper (), "SymLoadModule" );
 
-	push	OFFSET $SG149967
+	push	OFFSET $SG150037
 	call	?SK_Debug_LoadHelper@@YAPAUHINSTANCE__@@XZ ; SK_Debug_LoadHelper
 	push	eax
 	call	DWORD PTR __imp__GetProcAddress@8
@@ -1966,7 +1966,7 @@ $LN5@SymLoadMod:
 ; 633  :     (SymLoadModule64_pfn)
 ; 634  :       GetProcAddress ( SK_Debug_LoadHelper (), "SymLoadModule64" );
 
-	push	OFFSET $SG149990
+	push	OFFSET $SG150060
 	call	?SK_Debug_LoadHelper@@YAPAUHINSTANCE__@@XZ ; SK_Debug_LoadHelper
 	push	eax
 	call	DWORD PTR __imp__GetProcAddress@8
@@ -2041,7 +2041,7 @@ $LN6@SymRefresh:
 ; 278  :     (SymRefreshModuleList_pfn)
 ; 279  :       GetProcAddress ( SK_Debug_LoadHelper (), "SymRefreshModuleList" );
 
-	push	OFFSET $SG149739
+	push	OFFSET $SG149809
 	call	?SK_Debug_LoadHelper@@YAPAUHINSTANCE__@@XZ ; SK_Debug_LoadHelper
 	push	eax
 	call	DWORD PTR __imp__GetProcAddress@8
@@ -2133,7 +2133,7 @@ $LN5@SymFromAdd:
 ; 572  :     (SymFromAddr_pfn)
 ; 573  :       GetProcAddress ( SK_Debug_LoadHelper (), "SymFromAddr" );
 
-	push	OFFSET $SG149944
+	push	OFFSET $SG150014
 	call	?SK_Debug_LoadHelper@@YAPAUHINSTANCE__@@XZ ; SK_Debug_LoadHelper
 	push	eax
 	call	DWORD PTR __imp__GetProcAddress@8
@@ -2215,7 +2215,7 @@ $LN6@SymUnloadM:
 ; 522  :     (SymUnloadModule_pfn)
 ; 523  :       GetProcAddress ( SK_Debug_LoadHelper (), "SymUnloadModule" );
 
-	push	OFFSET $SG149910
+	push	OFFSET $SG149980
 	call	?SK_Debug_LoadHelper@@YAPAUHINSTANCE__@@XZ ; SK_Debug_LoadHelper
 	push	eax
 	call	DWORD PTR __imp__GetProcAddress@8
@@ -2301,7 +2301,7 @@ $LN5@SymUnloadM:
 ; 545  :     (SymUnloadModule64_pfn)
 ; 546  :       GetProcAddress ( SK_Debug_LoadHelper (), "SymUnloadModule64" );
 
-	push	OFFSET $SG149925
+	push	OFFSET $SG149995
 	call	?SK_Debug_LoadHelper@@YAPAUHINSTANCE__@@XZ ; SK_Debug_LoadHelper
 	push	eax
 	call	DWORD PTR __imp__GetProcAddress@8
@@ -2386,7 +2386,7 @@ $LN6@SymInitial:
 ; 498  :     (SymInitialize_pfn)
 ; 499  :       GetProcAddress ( SK_Debug_LoadHelper (), "SymInitialize" );
 
-	push	OFFSET $SG149895
+	push	OFFSET $SG149965
 	call	?SK_Debug_LoadHelper@@YAPAUHINSTANCE__@@XZ ; SK_Debug_LoadHelper
 	push	eax
 	call	DWORD PTR __imp__GetProcAddress@8
@@ -2472,7 +2472,7 @@ $LN6@SymGetLine:
 ; 472  :     (SymGetLineFromAddr_pfn)
 ; 473  :       GetProcAddress ( SK_Debug_LoadHelper (), "SymGetLineFromAddr" );
 
-	push	OFFSET $SG149878
+	push	OFFSET $SG149948
 	call	?SK_Debug_LoadHelper@@YAPAUHINSTANCE__@@XZ ; SK_Debug_LoadHelper
 	push	eax
 	call	DWORD PTR __imp__GetProcAddress@8
@@ -2566,7 +2566,7 @@ $LN5@SymGetLine:
 ; 446  :     (SymGetLineFromAddr64_pfn)
 ; 447  :       GetProcAddress ( SK_Debug_LoadHelper (), "SymGetLineFromAddr64" );
 
-	push	OFFSET $SG149859
+	push	OFFSET $SG149929
 	call	?SK_Debug_LoadHelper@@YAPAUHINSTANCE__@@XZ ; SK_Debug_LoadHelper
 	push	eax
 	call	DWORD PTR __imp__GetProcAddress@8
@@ -2646,7 +2646,7 @@ $LN6@SymGetModu:
 ; 418  :     (SymGetModuleBase_pfn)
 ; 419  :       GetProcAddress ( SK_Debug_LoadHelper (), "SymGetModuleBase" );
 
-	push	OFFSET $SG149840
+	push	OFFSET $SG149910
 	call	?SK_Debug_LoadHelper@@YAPAUHINSTANCE__@@XZ ; SK_Debug_LoadHelper
 	push	eax
 	call	DWORD PTR __imp__GetProcAddress@8
@@ -2731,7 +2731,7 @@ $LN5@SymGetModu:
 ; 396  :     (SymGetModuleBase64_pfn)
 ; 397  :       GetProcAddress ( SK_Debug_LoadHelper (), "SymGetModuleBase64" );
 
-	push	OFFSET $SG149825
+	push	OFFSET $SG149895
 	call	?SK_Debug_LoadHelper@@YAPAUHINSTANCE__@@XZ ; SK_Debug_LoadHelper
 	push	eax
 	call	DWORD PTR __imp__GetProcAddress@8
@@ -2808,7 +2808,7 @@ $LN6@SymSetOpti:
 ; 373  :     (SymSetOptions_pfn)
 ; 374  :       GetProcAddress ( SK_Debug_LoadHelper (), "SymSetOptions" );
 
-	push	OFFSET $SG149810
+	push	OFFSET $SG149880
 	call	?SK_Debug_LoadHelper@@YAPAUHINSTANCE__@@XZ ; SK_Debug_LoadHelper
 	push	eax
 	call	DWORD PTR __imp__GetProcAddress@8
@@ -2911,7 +2911,7 @@ $LN6@StackWalk:
 ; 350  :     (StackWalk_pfn)
 ; 351  :       GetProcAddress ( SK_Debug_LoadHelper (), "StackWalk" );
 
-	push	OFFSET $SG149797
+	push	OFFSET $SG149867
 	call	?SK_Debug_LoadHelper@@YAPAUHINSTANCE__@@XZ ; SK_Debug_LoadHelper
 	push	eax
 	call	DWORD PTR __imp__GetProcAddress@8
@@ -3014,7 +3014,7 @@ $LN6@StackWalk6:
 ; 312  :     (StackWalk64_pfn)
 ; 313  :       GetProcAddress ( SK_Debug_LoadHelper (), "StackWalk64" );
 
-	push	OFFSET $SG149768
+	push	OFFSET $SG149838
 	call	?SK_Debug_LoadHelper@@YAPAUHINSTANCE__@@XZ ; SK_Debug_LoadHelper
 	push	eax
 	call	DWORD PTR __imp__GetProcAddress@8
@@ -6589,8 +6589,8 @@ _TEXT	SEGMENT
 	call	edi
 	mov	esi, DWORD PTR __imp__freopen
 	push	eax
-	push	OFFSET $SG147746
-	push	OFFSET $SG147747
+	push	OFFSET $SG147816
+	push	OFFSET $SG147817
 	call	esi
 
 ; 214  :     freopen ("CONOUT$", "w", stdout);
@@ -6598,8 +6598,8 @@ _TEXT	SEGMENT
 	push	1
 	call	edi
 	push	eax
-	push	OFFSET $SG147748
-	push	OFFSET $SG147749
+	push	OFFSET $SG147818
+	push	OFFSET $SG147819
 	call	esi
 
 ; 215  :     freopen ("CONOUT$", "w", stderr);
@@ -6607,8 +6607,8 @@ _TEXT	SEGMENT
 	push	2
 	call	edi
 	push	eax
-	push	OFFSET $SG147750
-	push	OFFSET $SG147751
+	push	OFFSET $SG147820
+	push	OFFSET $SG147821
 	call	esi
 	add	esp, 48					; 00000030H
 
@@ -6618,8 +6618,8 @@ _TEXT	SEGMENT
 	push	0
 	push	OFFSET ?TerminateProcess_Original@@3P6GHPAXI@ZA ; TerminateProcess_Original
 	push	OFFSET ?TerminateProcess_Detour@@YGHPAXI@Z ; TerminateProcess_Detour
-	push	OFFSET $SG147752
-	push	OFFSET $SG147753
+	push	OFFSET $SG147822
+	push	OFFSET $SG147823
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	pop	edi
 	pop	esi
@@ -6652,8 +6652,8 @@ _bAllow$ = 8						; size = 1
 	push	0
 	push	OFFSET ?IsDebuggerPresent_Original@@3P6GHXZA ; IsDebuggerPresent_Original
 	push	OFFSET ?IsDebuggerPresent_Detour@@YGHXZ	; IsDebuggerPresent_Detour
-	push	OFFSET $SG147725
-	push	OFFSET $SG147726
+	push	OFFSET $SG147795
+	push	OFFSET $SG147796
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
 ; 175  :                             "IsDebuggerPresent",
@@ -6670,8 +6670,8 @@ _bAllow$ = 8						; size = 1
 	push	0
 	push	OFFSET ?OutputDebugStringA_Original@@3P6GXPBD@ZA ; OutputDebugStringA_Original
 	push	OFFSET ?OutputDebugStringA_Detour@@YGXPBD@Z ; OutputDebugStringA_Detour
-	push	OFFSET $SG147727
-	push	OFFSET $SG147728
+	push	OFFSET $SG147797
+	push	OFFSET $SG147798
 	mov	BYTE PTR ?spoof_debugger@@3_NA, bl	; spoof_debugger
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
@@ -6684,8 +6684,8 @@ _bAllow$ = 8						; size = 1
 	push	0
 	push	OFFSET ?OutputDebugStringW_Original@@3P6GXPB_W@ZA ; OutputDebugStringW_Original
 	push	OFFSET ?OutputDebugStringW_Detour@@YGXPB_W@Z ; OutputDebugStringW_Detour
-	push	OFFSET $SG147729
-	push	OFFSET $SG147730
+	push	OFFSET $SG147799
+	push	OFFSET $SG147800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
 ; 187  :                             "OutputDebugStringW",
@@ -6697,8 +6697,8 @@ _bAllow$ = 8						; size = 1
 	push	0
 	push	OFFSET ?ExitProcess_Original@@3P6GXI@ZA	; ExitProcess_Original
 	push	OFFSET ?ExitProcess_Detour@@YGXI@Z	; ExitProcess_Detour
-	push	OFFSET $SG147731
-	push	OFFSET $SG147732
+	push	OFFSET $SG147801
+	push	OFFSET $SG147802
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
 ; 192  :                             "ExitProcess",
@@ -6710,8 +6710,8 @@ _bAllow$ = 8						; size = 1
 	push	0
 	push	OFFSET ?DebugBreak_Original@@3P6GXXZA	; DebugBreak_Original
 	push	OFFSET ?DebugBreak_Detour@@YGXXZ	; DebugBreak_Detour
-	push	OFFSET $SG147733
-	push	OFFSET $SG147734
+	push	OFFSET $SG147803
+	push	OFFSET $SG147804
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 
 ; 197  :                             "DebugBreak",

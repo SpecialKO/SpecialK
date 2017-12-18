@@ -9,14 +9,14 @@
 INCLUDELIB MSVCRT
 INCLUDELIB OLDNAMES
 
+PUBLIC	?count@SK_InjectionRecord_s@@2JC		; SK_InjectionRecord_s::count
+PUBLIC	?rollovers@SK_InjectionRecord_s@@2JC		; SK_InjectionRecord_s::rollovers
 PUBLIC	?g_hHookCBT@@3RAUHHOOK__@@A			; g_hHookCBT
 PUBLIC	?g_hHookShell@@3RAUHHOOK__@@A			; g_hHookShell
 PUBLIC	?g_hShutdown@@3RAXA				; g_hShutdown
 PUBLIC	?g_sHookedPIDs@@3PAJA				; g_sHookedPIDs
 PUBLIC	?__SK_InjectionHistory_name@@3PA_WA		; __SK_InjectionHistory_name
-PUBLIC	?count@SK_InjectionRecord_s@@2JC		; SK_InjectionRecord_s::count
 PUBLIC	?__SK_InjectionHistory_ids@@3PAKA		; __SK_InjectionHistory_ids
-PUBLIC	?rollovers@SK_InjectionRecord_s@@2JC		; SK_InjectionRecord_s::rollovers
 PUBLIC	?__SK_InjectionHistory_inject@@3PA_JA		; __SK_InjectionHistory_inject
 PUBLIC	?__SK_InjectionHistory_eject@@3PA_JA		; __SK_InjectionHistory_eject
 PUBLIC	?__SK_InjectionHistory_api@@3PAW4SK_RenderAPI@@A ; __SK_InjectionHistory_api
@@ -31,19 +31,262 @@ _BSS	SEGMENT
 ?local_record@@3JA DD 01H DUP (?)			; local_record
 ?temp_tls@@3_NA DB 01H DUP (?)				; temp_tls
 _BSS	ENDS
+CONST	SEGMENT
+$SG257109 DB	'Install', 00H
+$SG257111 DB	'w', 00H
+?piecewise_construct@std@@3Upiecewise_construct_t@1@B	ORG $+1 ; std::piecewise_construct
+	ORG $+1
+$SG257112 DB	'SpecialK32.pid', 00H
+	ORG $+1
+$SG257114 DB	'%lu', 0aH, 00H
+	ORG $+3
+$SG257116 DB	'Remove', 00H
+	ORG $+1
+$SG257117 DB	'r', 00H
+	ORG $+2
+$SG257118 DB	'SpecialK32.pid', 00H
+	ORG $+1
+$SG257120 DB	'%lu', 00H
+$SG257123 DB	'SpecialK32.pid', 00H
+	ORG $+1
+$SG257139 DB	'\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H
+	DB	'a', 00H, 'l', 00H, 'K', 00H, '.', 00H, 'c', 00H, 'e', 00H, 'n'
+	DB	00H, 't', 00H, 'r', 00H, 'a', 00H, 'l', 00H, 00H, 00H
+$SG257140 DB	'w', 00H, 00H, 00H
+$SG257141 DB	' ', 00H, 00H, 00H
+$SG257143 DB	'd', 00H, '3', 00H, 'd', 00H, '9', 00H, 00H, 00H
+	ORG $+2
+$SG257145 DB	'd', 00H, '3', 00H, 'd', 00H, '8', 00H, 00H, 00H
+	ORG $+2
+$SG257147 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, 00H, 00H
+$SG257149 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, 00H, 00H
+	ORG $+2
+$SG257151 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
+	DB	'3', 00H, '2', 00H, 00H, 00H
+	ORG $+2
+$SG257168 DB	'\', 00H, 'd', 00H, '3', 00H, 'd', 00H, '9', 00H, '.', 00H
+	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG257170 DB	'\', 00H, 'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H
+	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG257172 DB	'\', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H
+	DB	'L', 00H, '3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
+	DB	00H, 00H, 00H
+$SG257174 DB	'\', 00H, 'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H
+	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG257176 DB	'\', 00H, 'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H
+	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG257178 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+	DB	'l', 00H, 'K', 00H, '3', 00H, '2', 00H, '.', 00H, 'p', 00H, 'd'
+	DB	00H, 'b', 00H, 00H, 00H
+	ORG $+2
+$SG257179 DB	'\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H
+	DB	'a', 00H, 'l', 00H, 'K', 00H, '3', 00H, '2', 00H, '.', 00H, 'p'
+	DB	00H, 'd', 00H, 'b', 00H, 00H, 00H
+$SG257181 DB	'%', 00H, 's', 00H, '\', 00H, 'V', 00H, 'e', 00H, 'r', 00H
+	DB	's', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
+	ORG $+2
+$SG257182 DB	'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H, 'o', 00H
+	DB	'n', 00H, '\', 00H, 'i', 00H, 'n', 00H, 's', 00H, 't', 00H, 'a'
+	DB	00H, 'l', 00H, 'l', 00H, 'e', 00H, 'd', 00H, '.', 00H, 'i', 00H
+	DB	'n', 00H, 'i', 00H, 00H, 00H
+$SG257185 DB	'i', 00H, 'n', 00H, 's', 00H, 't', 00H, 'a', 00H, 'l', 00H
+	DB	'l', 00H, 'e', 00H, 'd', 00H, '.', 00H, 'i', 00H, 'n', 00H, 'i'
+	DB	00H, 00H, 00H
+$SG257186 DB	'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H, 'o', 00H
+	DB	'n', 00H, '\', 00H, 'r', 00H, 'e', 00H, 'p', 00H, 'o', 00H, 's'
+	DB	00H, 'i', 00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, '.', 00H
+	DB	'i', 00H, 'n', 00H, 'i', 00H, 00H, 00H
+	ORG $+2
+$SG257187 DB	'r', 00H, 'e', 00H, 'p', 00H, 'o', 00H, 's', 00H, 'i', 00H
+	DB	't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, '.', 00H, 'i', 00H, 'n'
+	DB	00H, 'i', 00H, 00H, 00H
+	ORG $+2
+$SG257205 DB	'\', 00H, 'd', 00H, '3', 00H, 'd', 00H, '9', 00H, '.', 00H
+	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG257207 DB	'\', 00H, 'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H
+	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG257209 DB	'\', 00H, 'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H
+	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG257211 DB	'\', 00H, 'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H
+	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG257213 DB	'\', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H
+	DB	'L', 00H, '3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
+	DB	00H, 00H, 00H
+$SG257215 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+	DB	'l', 00H, 'K', 00H, '3', 00H, '2', 00H, '.', 00H, 'p', 00H, 'd'
+	DB	00H, 'b', 00H, 00H, 00H
+	ORG $+2
+$SG257216 DB	'\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H
+	DB	'a', 00H, 'l', 00H, 'K', 00H, '3', 00H, '2', 00H, '.', 00H, 'p'
+	DB	00H, 'd', 00H, 'b', 00H, 00H, 00H
+$SG257218 DB	'%', 00H, 's', 00H, '\', 00H, 'V', 00H, 'e', 00H, 'r', 00H
+	DB	's', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 00H, 00H
+	ORG $+2
+$SG257219 DB	'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H, 'o', 00H
+	DB	'n', 00H, '\', 00H, 'i', 00H, 'n', 00H, 's', 00H, 't', 00H, 'a'
+	DB	00H, 'l', 00H, 'l', 00H, 'e', 00H, 'd', 00H, '.', 00H, 'i', 00H
+	DB	'n', 00H, 'i', 00H, 00H, 00H
+$SG257222 DB	'i', 00H, 'n', 00H, 's', 00H, 't', 00H, 'a', 00H, 'l', 00H
+	DB	'l', 00H, 'e', 00H, 'd', 00H, '.', 00H, 'i', 00H, 'n', 00H, 'i'
+	DB	00H, 00H, 00H
+$SG257223 DB	'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H, 'o', 00H
+	DB	'n', 00H, '\', 00H, 'r', 00H, 'e', 00H, 'p', 00H, 'o', 00H, 's'
+	DB	00H, 'i', 00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, '.', 00H
+	DB	'i', 00H, 'n', 00H, 'i', 00H, 00H, 00H
+	ORG $+2
+$SG257224 DB	'r', 00H, 'e', 00H, 'p', 00H, 'o', 00H, 's', 00H, 'i', 00H
+	DB	't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, '.', 00H, 'i', 00H, 'n'
+	DB	00H, 'i', 00H, 00H, 00H
+	ORG $+2
+$SG257235 DB	'\', 00H, 'd', 00H, '3', 00H, 'd', 00H, '9', 00H, '.', 00H
+	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG257237 DB	'\', 00H, 'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H
+	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG257239 DB	'\', 00H, 'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H
+	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG257241 DB	'\', 00H, 'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H
+	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG257243 DB	'\', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H
+	DB	'L', 00H, '3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
+	DB	00H, 00H, 00H
+$SG257244 DB	'S', 00H, 'K', 00H, 'I', 00H, 00H, 00H
+$SG257245 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+	DB	'l', 00H, 'K', 00H, 00H, 00H
+	ORG $+2
+$SG257255 DB	'\', 00H, 'd', 00H, '3', 00H, 'd', 00H, '9', 00H, '.', 00H
+	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG147688 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+	DB	'l', 00H, 'K', 00H, '3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l'
+	DB	00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG257257 DB	'\', 00H, 'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H
+	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG257259 DB	'\', 00H, 'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H
+	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG257261 DB	'\', 00H, 'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H
+	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG257263 DB	'\', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H
+	DB	'L', 00H, '3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
+	DB	00H, 00H, 00H
+$SG257264 DB	'S', 00H, 'K', 00H, 'I', 00H, 00H, 00H
+$SG257265 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+	DB	'l', 00H, 'K', 00H, 00H, 00H
+	ORG $+2
+$SG147757 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+	DB	'l', 00H, 'K', 00H, '3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l'
+	DB	00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG257510 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+	DB	'l', 00H, 'K', 00H, '3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l'
+	DB	00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG257513 DB	'S', 00H, 'K', 00H, 'I', 00H, 'M', 00H, '6', 00H, '4', 00H
+	DB	'.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG257514 DB	'r', 00H, 'u', 00H, 'n', 00H, 'd', 00H, 'l', 00H, 'l', 00H
+	DB	'3', 00H, '2', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG257515 DB	'SpecialK32.dll,RunDLL_InjectionManager Remove', 00H
+	ORG $+2
+$SG257516 DB	'open', 00H
+	ORG $+3
+$SG257517 DB	'r', 00H, 'u', 00H, 'n', 00H, 'd', 00H, 'l', 00H, 'l', 00H
+	DB	'3', 00H, '2', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG257518 DB	'SpecialK64.dll,RunDLL_InjectionManager Remove', 00H
+	ORG $+2
+$SG257519 DB	'open', 00H
+	ORG $+3
+$SG257520 DB	'S', 00H, 'K', 00H, 'I', 00H, 'M', 00H, '_', 00H, 'F', 00H
+	DB	'r', 00H, 'o', 00H, 'n', 00H, 't', 00H, 'e', 00H, 'n', 00H, 'd'
+	DB	00H, 00H, 00H
+$SG257523 DB	'-Inject', 00H
+$SG257524 DB	'SKIM64.exe', 00H
+	ORG $+1
+$SG257525 DB	'open', 00H
+	ORG $+3
+$SG257526 DB	'S', 00H, 'K', 00H, 'I', 00H, 'M', 00H, '6', 00H, '4', 00H
+	DB	'.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG257545 DB	'S', 00H, 'K', 00H, 'I', 00H, 'M', 00H, '6', 00H, '4', 00H
+	DB	'.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG257547 DB	'Remove', 00H
+	ORG $+1
+$SG257548 DB	'r', 00H, 'u', 00H, 'n', 00H, 'd', 00H, 'l', 00H, 'l', 00H
+	DB	'3', 00H, '2', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG257549 DB	'SpecialK64.dll,RunDLL_InjectionManager Install', 00H
+	ORG $+1
+$SG257550 DB	'open', 00H
+	ORG $+3
+$SG257551 DB	'r', 00H, 'u', 00H, 'n', 00H, 'd', 00H, 'l', 00H, 'l', 00H
+	DB	'3', 00H, '2', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG257552 DB	'SpecialK32.dll,RunDLL_InjectionManager Install', 00H
+	ORG $+1
+$SG257553 DB	'open', 00H
+	ORG $+3
+$SG257555 DB	'Remove', 00H
+	ORG $+1
+$SG257556 DB	'S', 00H, 'K', 00H, 'I', 00H, 'M', 00H, '_', 00H, 'F', 00H
+	DB	'r', 00H, 'o', 00H, 'n', 00H, 't', 00H, 'e', 00H, 'n', 00H, 'd'
+	DB	00H, 00H, 00H
+$SG257559 DB	'+Inject', 00H
+$SG257560 DB	'SKIM64.exe', 00H
+	ORG $+1
+$SG257561 DB	'open', 00H
+	ORG $+3
+$SG256973 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+	DB	'l', 00H, 'K', 00H, '3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l'
+	DB	00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG256976 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+	DB	'l', 00H, 'K', 00H, '3', 00H, '2', 00H, '_', 00H, 'R', 00H, 'e'
+	DB	00H, 's', 00H, 'e', 00H, 't', 00H, 00H, 00H
+	ORG $+2
+$SG266135 DB	'\', 00H, 'M', 00H, 'y', 00H, ' ', 00H, 'M', 00H, 'o', 00H
+	DB	'd', 00H, 's', 00H, '\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c'
+	DB	00H, 'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, '\', 00H, 'G', 00H
+	DB	'l', 00H, 'o', 00H, 'b', 00H, 'a', 00H, 'l', 00H, '\', 00H, 'w'
+	DB	00H, 'h', 00H, 'i', 00H, 't', 00H, 'e', 00H, 'l', 00H, 'i', 00H
+	DB	's', 00H, 't', 00H, '.', 00H, 'i', 00H, 'n', 00H, 'i', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG256978 DB	'QueryPerformanceCounter', 00H
+$SG256979 DB	'k', 00H, 'e', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'l', 00H
+	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG257013 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+	DB	'l', 00H, 'K', 00H, '3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l'
+	DB	00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG257016 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
+	DB	'l', 00H, 'K', 00H, '3', 00H, '2', 00H, '_', 00H, 'R', 00H, 'e'
+	DB	00H, 's', 00H, 'e', 00H, 't', 00H, 00H, 00H
+CONST	ENDS
 SK_Hooks	SEGMENT
+?count@SK_InjectionRecord_s@@2JC DD 00H			; SK_InjectionRecord_s::count
+?rollovers@SK_InjectionRecord_s@@2JC DD 00H		; SK_InjectionRecord_s::rollovers
 ?g_hHookCBT@@3RAUHHOOK__@@A DD 00H			; g_hHookCBT
 ?g_hHookShell@@3RAUHHOOK__@@A DD 00H			; g_hHookShell
 ?g_hShutdown@@3RAXA DD 00H				; g_hShutdown
-?count@SK_InjectionRecord_s@@2JC DD 00H			; SK_InjectionRecord_s::count
+?whitelist_count@@3HA DD 00H				; whitelist_count
 ?g_sHookedPIDs@@3PAJA DD 00H				; g_sHookedPIDs
 	ORG $+60
 ?__SK_InjectionHistory_name@@3PA_WA DW 00H		; __SK_InjectionHistory_name
 	ORG $+33278
 ?__SK_InjectionHistory_ids@@3PAKA DD 00H		; __SK_InjectionHistory_ids
 	ORG $+252
-?rollovers@SK_InjectionRecord_s@@2JC DD 00H		; SK_InjectionRecord_s::rollovers
-?whitelist_count@@3HA DD 00H				; whitelist_count
 ?__SK_InjectionHistory_inject@@3PA_JA DQ 0000000000000000H ; __SK_InjectionHistory_inject
 	ORG $+504
 ?__SK_InjectionHistory_eject@@3PA_JA DQ 0000000000000000H ; __SK_InjectionHistory_eject
@@ -55,245 +298,6 @@ SK_Hooks	SEGMENT
 ?whitelist_patterns@@3PA_WA DW 00H			; whitelist_patterns
 	ORG $+8318
 SK_Hooks	ENDS
-CONST	SEGMENT
-$SG257037 DB	'Install', 00H
-$SG257039 DB	'w', 00H
-?piecewise_construct@std@@3Upiecewise_construct_t@1@B	ORG $+1 ; std::piecewise_construct
-	ORG $+1
-$SG257040 DB	'SpecialK32.pid', 00H
-	ORG $+1
-$SG257042 DB	'%lu', 0aH, 00H
-	ORG $+3
-$SG257044 DB	'Remove', 00H
-	ORG $+1
-$SG257045 DB	'r', 00H
-	ORG $+2
-$SG257046 DB	'SpecialK32.pid', 00H
-	ORG $+1
-$SG257048 DB	'%lu', 00H
-$SG257051 DB	'SpecialK32.pid', 00H
-	ORG $+1
-$SG257067 DB	'\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H
-	DB	'a', 00H, 'l', 00H, 'K', 00H, '.', 00H, 'c', 00H, 'e', 00H, 'n'
-	DB	00H, 't', 00H, 'r', 00H, 'a', 00H, 'l', 00H, 00H, 00H
-$SG257068 DB	'w', 00H, 00H, 00H
-$SG257069 DB	' ', 00H, 00H, 00H
-$SG257071 DB	'd', 00H, '3', 00H, 'd', 00H, '9', 00H, 00H, 00H
-	ORG $+2
-$SG257073 DB	'd', 00H, '3', 00H, 'd', 00H, '8', 00H, 00H, 00H
-	ORG $+2
-$SG257075 DB	'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H, 00H, 00H
-$SG257077 DB	'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, 00H, 00H
-	ORG $+2
-$SG257079 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
-	DB	'3', 00H, '2', 00H, 00H, 00H
-	ORG $+2
-$SG257099 DB	'\', 00H, 'd', 00H, '3', 00H, 'd', 00H, '9', 00H, '.', 00H
-	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG257101 DB	'\', 00H, 'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H
-	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG257103 DB	'\', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H
-	DB	'L', 00H, '3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
-	DB	00H, 00H, 00H
-$SG257105 DB	'\', 00H, 'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H
-	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG257107 DB	'\', 00H, 'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H
-	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG257109 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
-	DB	'l', 00H, 'K', 00H, '3', 00H, '2', 00H, '.', 00H, 'p', 00H, 'd'
-	DB	00H, 'b', 00H, 00H, 00H
-	ORG $+2
-$SG257110 DB	'\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H
-	DB	'a', 00H, 'l', 00H, 'K', 00H, '3', 00H, '2', 00H, '.', 00H, 'p'
-	DB	00H, 'd', 00H, 'b', 00H, 00H, 00H
-$SG257112 DB	'%ws\Version', 00H
-$SG257115 DB	'\', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H
-	DB	'o', 00H, 'n', 00H, '\', 00H, 'i', 00H, 'n', 00H, 's', 00H, 't'
-	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, 'e', 00H, 'd', 00H, '.', 00H
-	DB	'i', 00H, 'n', 00H, 'i', 00H, 00H, 00H
-	ORG $+2
-$SG257116 DB	'\', 00H, 'i', 00H, 'n', 00H, 's', 00H, 't', 00H, 'a', 00H
-	DB	'l', 00H, 'l', 00H, 'e', 00H, 'd', 00H, '.', 00H, 'i', 00H, 'n'
-	DB	00H, 'i', 00H, 00H, 00H
-	ORG $+2
-$SG257117 DB	'\', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H
-	DB	'o', 00H, 'n', 00H, '\', 00H, 'r', 00H, 'e', 00H, 'p', 00H, 'o'
-	DB	00H, 's', 00H, 'i', 00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H
-	DB	'.', 00H, 'i', 00H, 'n', 00H, 'i', 00H, 00H, 00H
-$SG257118 DB	'\', 00H, 'r', 00H, 'e', 00H, 'p', 00H, 'o', 00H, 's', 00H
-	DB	'i', 00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, '.', 00H, 'i'
-	DB	00H, 'n', 00H, 'i', 00H, 00H, 00H
-$SG257139 DB	'\', 00H, 'd', 00H, '3', 00H, 'd', 00H, '9', 00H, '.', 00H
-	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG257141 DB	'\', 00H, 'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H
-	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG257143 DB	'\', 00H, 'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H
-	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG257145 DB	'\', 00H, 'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H
-	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG257147 DB	'\', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H
-	DB	'L', 00H, '3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
-	DB	00H, 00H, 00H
-$SG257149 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
-	DB	'l', 00H, 'K', 00H, '3', 00H, '2', 00H, '.', 00H, 'p', 00H, 'd'
-	DB	00H, 'b', 00H, 00H, 00H
-	ORG $+2
-$SG257150 DB	'\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H
-	DB	'a', 00H, 'l', 00H, 'K', 00H, '3', 00H, '2', 00H, '.', 00H, 'p'
-	DB	00H, 'd', 00H, 'b', 00H, 00H, 00H
-$SG257152 DB	'%ws\Version', 00H
-$SG257155 DB	'\', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H
-	DB	'o', 00H, 'n', 00H, '\', 00H, 'i', 00H, 'n', 00H, 's', 00H, 't'
-	DB	00H, 'a', 00H, 'l', 00H, 'l', 00H, 'e', 00H, 'd', 00H, '.', 00H
-	DB	'i', 00H, 'n', 00H, 'i', 00H, 00H, 00H
-	ORG $+2
-$SG257156 DB	'\', 00H, 'i', 00H, 'n', 00H, 's', 00H, 't', 00H, 'a', 00H
-	DB	'l', 00H, 'l', 00H, 'e', 00H, 'd', 00H, '.', 00H, 'i', 00H, 'n'
-	DB	00H, 'i', 00H, 00H, 00H
-	ORG $+2
-$SG257157 DB	'\', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 's', 00H, 'i', 00H
-	DB	'o', 00H, 'n', 00H, '\', 00H, 'r', 00H, 'e', 00H, 'p', 00H, 'o'
-	DB	00H, 's', 00H, 'i', 00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H
-	DB	'.', 00H, 'i', 00H, 'n', 00H, 'i', 00H, 00H, 00H
-$SG257158 DB	'\', 00H, 'r', 00H, 'e', 00H, 'p', 00H, 'o', 00H, 's', 00H
-	DB	'i', 00H, 't', 00H, 'o', 00H, 'r', 00H, 'y', 00H, '.', 00H, 'i'
-	DB	00H, 'n', 00H, 'i', 00H, 00H, 00H
-$SG257169 DB	'\', 00H, 'd', 00H, '3', 00H, 'd', 00H, '9', 00H, '.', 00H
-	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG257171 DB	'\', 00H, 'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H
-	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG257173 DB	'\', 00H, 'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H
-	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG257175 DB	'\', 00H, 'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H
-	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG257177 DB	'\', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H
-	DB	'L', 00H, '3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
-	DB	00H, 00H, 00H
-$SG257178 DB	'S', 00H, 'K', 00H, 'I', 00H, 00H, 00H
-$SG257179 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
-	DB	'l', 00H, 'K', 00H, 00H, 00H
-	ORG $+2
-$SG147618 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
-	DB	'l', 00H, 'K', 00H, '3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l'
-	DB	00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG257189 DB	'\', 00H, 'd', 00H, '3', 00H, 'd', 00H, '9', 00H, '.', 00H
-	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG257191 DB	'\', 00H, 'd', 00H, '3', 00H, 'd', 00H, '8', 00H, '.', 00H
-	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG257193 DB	'\', 00H, 'd', 00H, 'd', 00H, 'r', 00H, 'a', 00H, 'w', 00H
-	DB	'.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG257195 DB	'\', 00H, 'd', 00H, 'x', 00H, 'g', 00H, 'i', 00H, '.', 00H
-	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG257197 DB	'\', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H
-	DB	'L', 00H, '3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l'
-	DB	00H, 00H, 00H
-$SG257198 DB	'S', 00H, 'K', 00H, 'I', 00H, 00H, 00H
-$SG257199 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
-	DB	'l', 00H, 'K', 00H, 00H, 00H
-	ORG $+2
-$SG147687 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
-	DB	'l', 00H, 'K', 00H, '3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l'
-	DB	00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG257444 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
-	DB	'l', 00H, 'K', 00H, '3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l'
-	DB	00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG257447 DB	'S', 00H, 'K', 00H, 'I', 00H, 'M', 00H, '6', 00H, '4', 00H
-	DB	'.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG257448 DB	'r', 00H, 'u', 00H, 'n', 00H, 'd', 00H, 'l', 00H, 'l', 00H
-	DB	'3', 00H, '2', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG257449 DB	'SpecialK32.dll,RunDLL_InjectionManager Remove', 00H
-	ORG $+2
-$SG257450 DB	'open', 00H
-	ORG $+3
-$SG257451 DB	'r', 00H, 'u', 00H, 'n', 00H, 'd', 00H, 'l', 00H, 'l', 00H
-	DB	'3', 00H, '2', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG257452 DB	'SpecialK64.dll,RunDLL_InjectionManager Remove', 00H
-	ORG $+2
-$SG257453 DB	'open', 00H
-	ORG $+3
-$SG257454 DB	'S', 00H, 'K', 00H, 'I', 00H, 'M', 00H, '_', 00H, 'F', 00H
-	DB	'r', 00H, 'o', 00H, 'n', 00H, 't', 00H, 'e', 00H, 'n', 00H, 'd'
-	DB	00H, 00H, 00H
-$SG257457 DB	'-Inject', 00H
-$SG257458 DB	'SKIM64.exe', 00H
-	ORG $+1
-$SG257459 DB	'open', 00H
-	ORG $+3
-$SG257460 DB	'S', 00H, 'K', 00H, 'I', 00H, 'M', 00H, '6', 00H, '4', 00H
-	DB	'.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG257479 DB	'S', 00H, 'K', 00H, 'I', 00H, 'M', 00H, '6', 00H, '4', 00H
-	DB	'.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG257481 DB	'Remove', 00H
-	ORG $+1
-$SG257482 DB	'r', 00H, 'u', 00H, 'n', 00H, 'd', 00H, 'l', 00H, 'l', 00H
-	DB	'3', 00H, '2', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG257483 DB	'SpecialK64.dll,RunDLL_InjectionManager Install', 00H
-	ORG $+1
-$SG257484 DB	'open', 00H
-	ORG $+3
-$SG257485 DB	'r', 00H, 'u', 00H, 'n', 00H, 'd', 00H, 'l', 00H, 'l', 00H
-	DB	'3', 00H, '2', 00H, '.', 00H, 'e', 00H, 'x', 00H, 'e', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG257486 DB	'SpecialK32.dll,RunDLL_InjectionManager Install', 00H
-	ORG $+1
-$SG257487 DB	'open', 00H
-	ORG $+3
-$SG257489 DB	'Remove', 00H
-	ORG $+1
-$SG257490 DB	'S', 00H, 'K', 00H, 'I', 00H, 'M', 00H, '_', 00H, 'F', 00H
-	DB	'r', 00H, 'o', 00H, 'n', 00H, 't', 00H, 'e', 00H, 'n', 00H, 'd'
-	DB	00H, 00H, 00H
-$SG257493 DB	'+Inject', 00H
-$SG257494 DB	'SKIM64.exe', 00H
-	ORG $+1
-$SG257495 DB	'open', 00H
-	ORG $+3
-$SG256901 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
-	DB	'l', 00H, 'K', 00H, '3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l'
-	DB	00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG256904 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
-	DB	'l', 00H, 'K', 00H, '3', 00H, '2', 00H, '_', 00H, 'R', 00H, 'e'
-	DB	00H, 's', 00H, 'e', 00H, 't', 00H, 00H, 00H
-	ORG $+2
-$SG266069 DB	'\', 00H, 'M', 00H, 'y', 00H, ' ', 00H, 'M', 00H, 'o', 00H
-	DB	'd', 00H, 's', 00H, '\', 00H, 'S', 00H, 'p', 00H, 'e', 00H, 'c'
-	DB	00H, 'i', 00H, 'a', 00H, 'l', 00H, 'K', 00H, '\', 00H, 'G', 00H
-	DB	'l', 00H, 'o', 00H, 'b', 00H, 'a', 00H, 'l', 00H, '\', 00H, 'w'
-	DB	00H, 'h', 00H, 'i', 00H, 't', 00H, 'e', 00H, 'l', 00H, 'i', 00H
-	DB	's', 00H, 't', 00H, '.', 00H, 'i', 00H, 'n', 00H, 'i', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG256906 DB	'QueryPerformanceCounter', 00H
-$SG256907 DB	'k', 00H, 'e', 00H, 'r', 00H, 'n', 00H, 'e', 00H, 'l', 00H
-	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG256941 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
-	DB	'l', 00H, 'K', 00H, '3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l'
-	DB	00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG256944 DB	'S', 00H, 'p', 00H, 'e', 00H, 'c', 00H, 'i', 00H, 'a', 00H
-	DB	'l', 00H, 'K', 00H, '3', 00H, '2', 00H, '_', 00H, 'R', 00H, 'e'
-	DB	00H, 's', 00H, 'e', 00H, 't', 00H, 00H, 00H
-CONST	ENDS
 PUBLIC	??_H@YGXPAXIIP6EPAX0@Z@Z			; `vector constructor iterator'
 PUBLIC	?__empty_global_delete@@YAXPAX@Z		; __empty_global_delete
 PUBLIC	?__empty_global_delete@@YAXPAXI@Z		; __empty_global_delete
@@ -356,8 +360,6 @@ PUBLIC	?deallocate@?$allocator@D@std@@QAEXPADI@Z	; std::allocator<char>::dealloc
 PUBLIC	?allocate@?$allocator@D@std@@QAEPADI@Z		; std::allocator<char>::allocate
 PUBLIC	?max_size@?$allocator@D@std@@QBEIXZ		; std::allocator<char>::max_size
 PUBLIC	?max_size@?$allocator_traits@V?$allocator@D@std@@@std@@SAIABV?$allocator@D@2@@Z ; std::allocator_traits<std::allocator<char> >::max_size
-PUBLIC	?select_on_container_copy_construction@?$allocator_traits@V?$allocator@D@std@@@std@@SA?AV?$allocator@D@2@ABV32@@Z ; std::allocator_traits<std::allocator<char> >::select_on_container_copy_construction
-PUBLIC	?select_on_container_copy_construction@?$_Wrap_alloc@V?$allocator@D@std@@@std@@QBE?AU12@U_Nil@2@@Z ; std::_Wrap_alloc<std::allocator<char> >::select_on_container_copy_construction
 PUBLIC	?address@?$_Wrap_alloc@V?$allocator@D@std@@@std@@QBEPADAAD@Z ; std::_Wrap_alloc<std::allocator<char> >::address
 PUBLIC	??0?$_Wrap_alloc@V?$allocator@D@std@@@std@@QAE@XZ ; std::_Wrap_alloc<std::allocator<char> >::_Wrap_alloc<std::allocator<char> >
 PUBLIC	??0?$_Wrap_alloc@V?$allocator@D@std@@@std@@QAE@$$QAU01@@Z ; std::_Wrap_alloc<std::allocator<char> >::_Wrap_alloc<std::allocator<char> >
@@ -388,13 +390,11 @@ PUBLIC	?_Get_second@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@D@std@@@std@@
 PUBLIC	?_Get_second@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@D@std@@@std@@V?$_String_val@U?$_Simple_types@D@std@@@2@$00@std@@QBEABV?$_String_val@U?$_Simple_types@D@std@@@2@XZ ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<char> >,std::_String_val<std::_Simple_types<char> >,1>::_Get_second
 PUBLIC	??1?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@D@std@@@std@@V?$_String_val@U?$_Simple_types@D@std@@@2@$00@std@@QAE@XZ ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<char> >,std::_String_val<std::_Simple_types<char> >,1>::~_Compressed_pair<std::_Wrap_alloc<std::allocator<char> >,std::_String_val<std::_Simple_types<char> >,1>
 PUBLIC	??1?$_String_alloc@U?$_String_base_types@DV?$allocator@D@std@@@std@@@std@@QAE@XZ ; std::_String_alloc<std::_String_base_types<char,std::allocator<char> > >::~_String_alloc<std::_String_base_types<char,std::allocator<char> > >
-PUBLIC	??0?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAE@ABV01@@Z ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::basic_string<char,std::char_traits<char>,std::allocator<char> >
 PUBLIC	??0?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAE@XZ ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::basic_string<char,std::char_traits<char>,std::allocator<char> >
 PUBLIC	??0?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAE@QBD@Z ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::basic_string<char,std::char_traits<char>,std::allocator<char> >
 PUBLIC	??0?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAE@ID@Z ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::basic_string<char,std::char_traits<char>,std::allocator<char> >
 PUBLIC	??0?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAE@$$QAV01@@Z ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::basic_string<char,std::char_traits<char>,std::allocator<char> >
 PUBLIC	?_Assign_rv_contents_with_alloc_always_equal@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAEX$$QAV12@U?$integral_constant@_N$00@2@@Z ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::_Assign_rv_contents_with_alloc_always_equal
-PUBLIC	?_Assign_lv_contents@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAEXABV12@@Z ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::_Assign_lv_contents
 PUBLIC	??1?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAE@XZ ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::~basic_string<char,std::char_traits<char>,std::allocator<char> >
 PUBLIC	?append@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAEAAV12@ID@Z ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::append
 PUBLIC	?assign@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAEAAV12@ABV12@II@Z ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::assign
@@ -778,7 +778,6 @@ PUBLIC	??B?$fpos@U_Mbstatet@@@std@@QBE_JXZ		; std::fpos<_Mbstatet>::operator __i
 PUBLIC	??$_Unfancy@_W@std@@YAPA_WPA_W@Z		; std::_Unfancy<wchar_t>
 PUBLIC	?pointer_to@?$pointer_traits@PA_W@std@@SAPA_WAA_W@Z ; std::pointer_traits<wchar_t *>::pointer_to
 PUBLIC	??$?0$$V@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@V?$_String_val@U?$_Simple_types@_W@std@@@2@$00@std@@QAE@U_Zero_then_variadic_args_t@1@@Z ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<wchar_t> >,std::_String_val<std::_Simple_types<wchar_t> >,1>::_Compressed_pair<std::_Wrap_alloc<std::allocator<wchar_t> >,std::_String_val<std::_Simple_types<wchar_t> >,1><>
-PUBLIC	??$?0V?$allocator@D@std@@@?$_Wrap_alloc@V?$allocator@D@std@@@std@@QAE@$$QAV?$allocator@D@1@@Z ; std::_Wrap_alloc<std::allocator<char> >::_Wrap_alloc<std::allocator<char> ><std::allocator<char> >
 PUBLIC	??$?0$$V@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@D@std@@@std@@V?$_String_val@U?$_Simple_types@D@std@@@2@$00@std@@QAE@U_Zero_then_variadic_args_t@1@@Z ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<char> >,std::_String_val<std::_Simple_types<char> >,1>::_Compressed_pair<std::_Wrap_alloc<std::allocator<char> >,std::_String_val<std::_Simple_types<char> >,1><>
 PUBLIC	??$addressof@PA_W@std@@YAPAPA_WAAPA_W@Z		; std::addressof<wchar_t *>
 PUBLIC	??$destroy@PA_W@?$_Wrap_alloc@V?$allocator@_W@std@@@std@@QAEXPAPA_W@Z ; std::_Wrap_alloc<std::allocator<wchar_t> >::destroy<wchar_t *>
@@ -917,7 +916,6 @@ PUBLIC	?_Get_tmax@?$_Builder@PB_W_WV?$regex_traits@_W@std@@@std@@ABEIXZ ; std::_
 PUBLIC	??1?$_Parser@PB_W_WV?$regex_traits@_W@std@@@std@@QAE@XZ ; std::_Parser<wchar_t const *,wchar_t,std::regex_traits<wchar_t> >::~_Parser<wchar_t const *,wchar_t,std::regex_traits<wchar_t> >
 PUBLIC	??$forward@U?$_Wrap_alloc@V?$allocator@D@std@@@std@@@std@@YA$$QAU?$_Wrap_alloc@V?$allocator@D@std@@@0@AAU10@@Z ; std::forward<std::_Wrap_alloc<std::allocator<char> > >
 PUBLIC	??$?0U?$_Wrap_alloc@V?$allocator@D@std@@@std@@$$V@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@D@std@@@std@@V?$_String_val@U?$_Simple_types@D@std@@@2@$00@std@@QAE@U_One_then_variadic_args_t@1@$$QAU?$_Wrap_alloc@V?$allocator@D@std@@@1@@Z ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<char> >,std::_String_val<std::_Simple_types<char> >,1>::_Compressed_pair<std::_Wrap_alloc<std::allocator<char> >,std::_String_val<std::_Simple_types<char> >,1><std::_Wrap_alloc<std::allocator<char> > >
-PUBLIC	??$forward@V?$allocator@D@std@@@std@@YA$$QAV?$allocator@D@0@AAV10@@Z ; std::forward<std::allocator<char> >
 PUBLIC	??$destroy@PA_W@?$allocator_traits@V?$allocator@_W@std@@@std@@SAXAAV?$allocator@_W@1@PAPA_W@Z ; std::allocator_traits<std::allocator<wchar_t> >::destroy<wchar_t *>
 PUBLIC	??$forward@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@@std@@YA$$QAU?$_Wrap_alloc@V?$allocator@_W@std@@@0@AAU10@@Z ; std::forward<std::_Wrap_alloc<std::allocator<wchar_t> > >
 PUBLIC	??$?0U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@$$V@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@_W@std@@@std@@V?$_String_val@U?$_Simple_types@_W@std@@@2@$00@std@@QAE@U_One_then_variadic_args_t@1@$$QAU?$_Wrap_alloc@V?$allocator@_W@std@@@1@@Z ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<wchar_t> >,std::_String_val<std::_Simple_types<wchar_t> >,1>::_Compressed_pair<std::_Wrap_alloc<std::allocator<wchar_t> >,std::_String_val<std::_Simple_types<wchar_t> >,1><std::_Wrap_alloc<std::allocator<wchar_t> > >
@@ -1506,10 +1504,9 @@ EXTRN	__imp__strchr:PROC
 EXTRN	__imp__wcsncpy:PROC
 EXTRN	__imp__SetCurrentDirectoryW@4:PROC
 EXTRN	__imp__GetCurrentDirectoryW@8:PROC
-EXTRN	__imp__CreateDirectoryA@8:PROC
+EXTRN	__imp__CreateDirectoryW@8:PROC
 EXTRN	__imp__DeleteFileA@4:PROC
 EXTRN	__imp__DeleteFileW@4:PROC
-EXTRN	__imp__GetFileAttributesA@4:PROC
 EXTRN	__imp__GetFileAttributesW@4:PROC
 EXTRN	__imp__GetTempFileNameW@16:PROC
 EXTRN	__imp__CloseHandle@4:PROC
@@ -1623,8 +1620,7 @@ EXTRN	__imp___time64:PROC
 EXTRN	?SK_GetHostPath@@YAPB_WXZ:PROC			; SK_GetHostPath
 EXTRN	?SK_GetDocumentsDir@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ:PROC ; SK_GetDocumentsDir
 EXTRN	?SK_WideCharToUTF8@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@2@@Z:PROC ; SK_WideCharToUTF8
-EXTRN	?SK_UTF8ToWideChar@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@2@@Z:PROC ; SK_UTF8ToWideChar
-EXTRN	?SK_FormatString@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QBDZZ:PROC ; SK_FormatString
+EXTRN	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ:PROC ; SK_FormatStringW
 EXTRN	?SK_SYS_GetInstallPath@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ:PROC ; SK_SYS_GetInstallPath
 EXTRN	?SK_GetModuleFullName@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@PAUHINSTANCE__@@@Z:PROC ; SK_GetModuleFullName
 EXTRN	__imp__StrStrA@8:PROC
@@ -27120,29 +27116,6 @@ __Ptr$ = 12						; size = 4
 ??$destroy@PA_W@?$allocator_traits@V?$allocator@_W@std@@@std@@SAXAAV?$allocator@_W@1@PAPA_W@Z ENDP ; std::allocator_traits<std::allocator<wchar_t> >::destroy<wchar_t *>
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\type_traits
-;	COMDAT ??$forward@V?$allocator@D@std@@@std@@YA$$QAV?$allocator@D@0@AAV10@@Z
-_TEXT	SEGMENT
-__Arg$ = 8						; size = 4
-??$forward@V?$allocator@D@std@@@std@@YA$$QAV?$allocator@D@0@AAV10@@Z PROC ; std::forward<std::allocator<char> >, COMDAT
-
-; 1334 : 	{	// forward an lvalue as either an lvalue or an rvalue
-
-	npad	2
-	push	ebp
-	mov	ebp, esp
-
-; 1335 : 	return (static_cast<_Ty&&>(_Arg));
-
-	mov	eax, DWORD PTR __Arg$[ebp]
-
-; 1336 : 	}
-
-	pop	ebp
-	ret	0
-??$forward@V?$allocator@D@std@@@std@@YA$$QAV?$allocator@D@0@AAV10@@Z ENDP ; std::forward<std::allocator<char> >
-_TEXT	ENDS
-; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
@@ -44295,20 +44268,6 @@ ___formal$ = 8						; size = 1
 ??$?0$$V@?$_Compressed_pair@U?$_Wrap_alloc@V?$allocator@D@std@@@std@@V?$_String_val@U?$_Simple_types@D@std@@@2@$00@std@@QAE@U_Zero_then_variadic_args_t@1@@Z ENDP ; std::_Compressed_pair<std::_Wrap_alloc<std::allocator<char> >,std::_String_val<std::_Simple_types<char> >,1>::_Compressed_pair<std::_Wrap_alloc<std::allocator<char> >,std::_String_val<std::_Simple_types<char> >,1><>
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
-;	COMDAT ??$?0V?$allocator@D@std@@@?$_Wrap_alloc@V?$allocator@D@std@@@std@@QAE@$$QAV?$allocator@D@1@@Z
-_TEXT	SEGMENT
-__Right$ = 8						; size = 4
-??$?0V?$allocator@D@std@@@?$_Wrap_alloc@V?$allocator@D@std@@@std@@QAE@$$QAV?$allocator@D@1@@Z PROC ; std::_Wrap_alloc<std::allocator<char> >::_Wrap_alloc<std::allocator<char> ><std::allocator<char> >, COMDAT
-; _this$ = ecx
-
-; 1054 : 		}
-
-	mov	eax, ecx
-	ret	4
-??$?0V?$allocator@D@std@@@?$_Wrap_alloc@V?$allocator@D@std@@@std@@QAE@$$QAV?$allocator@D@1@@Z ENDP ; std::_Wrap_alloc<std::allocator<char> >::_Wrap_alloc<std::allocator<char> ><std::allocator<char> >
-_TEXT	ENDS
-; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xutility
@@ -49915,7 +49874,7 @@ __$EHRec$ = -12						; size = 12
 _wszExecutable$ = 8					; size = 4
 ?SK_Inject_TestUserWhitelist@@YA_NPB_W@Z PROC		; SK_Inject_TestUserWhitelist
 
-; 1430 : {
+; 1428 : {
 
 	npad	2
 	push	ebp
@@ -49927,7 +49886,7 @@ _wszExecutable$ = 8					; size = 4
 	mov	DWORD PTR fs:0, esp
 	sub	esp, 348				; 0000015cH
 
-; 1431 :   if (whitelist_count == 0)
+; 1429 :   if (whitelist_count == 0)
 
 	mov	eax, DWORD PTR ?whitelist_count@@3HA	; whitelist_count
 	push	ebx
@@ -49937,13 +49896,13 @@ _wszExecutable$ = 8					; size = 4
 	test	eax, eax
 	jne	$LN257@SK_Inject_
 
-; 1432 :   {
-; 1433 :     std::wifstream whitelist_file (std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK\\Global\\whitelist.ini"));
+; 1430 :   {
+; 1431 :     std::wifstream whitelist_file (std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK\\Global\\whitelist.ini"));
 
 	lea	eax, DWORD PTR $T4[ebp]
 	push	eax
 	call	?SK_GetDocumentsDir@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@XZ ; SK_GetDocumentsDir
-	push	OFFSET $SG266069
+	push	OFFSET $SG266135
 	push	eax
 	lea	eax, DWORD PTR $T5[ebp]
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
@@ -50039,7 +49998,7 @@ $LN56@SK_Inject_:
 	cmp	DWORD PTR _whitelist_file$2[ebp+92], 0
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1435 :     if (whitelist_file.is_open ())
+; 1433 :     if (whitelist_file.is_open ())
 
 	je	$LN11@SK_Inject_
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -50070,7 +50029,7 @@ $LN56@SK_Inject_:
 	mov	eax, DWORD PTR _whitelist_file$2[ebp]
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1437 :       std::wstring line;
+; 1435 :       std::wstring line;
 
 	mov	BYTE PTR __$EHRec$[ebp+8], 5
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xiosbase
@@ -50084,7 +50043,7 @@ $LN56@SK_Inject_:
 	cmp	DWORD PTR _whitelist_file$2[ebp+eax+12], 0
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1439 :       while (whitelist_file.good ())
+; 1437 :       while (whitelist_file.good ())
 
 	jne	$LN504@SK_Inject_
 	mov	ebx, DWORD PTR __imp__iswalpha
@@ -50146,13 +50105,13 @@ $LL2@SK_Inject_:
 	cmp	esi, edi
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1444 :         for (const auto& it : line)
+; 1442 :         for (const auto& it : line)
 
 	je	SHORT $LN5@SK_Inject_
 $LL6@SK_Inject_:
 
-; 1445 :         {
-; 1446 :           if (iswalpha (it))
+; 1443 :         {
+; 1444 :           if (iswalpha (it))
 
 	movzx	eax, WORD PTR [esi]
 	push	eax
@@ -50171,16 +50130,16 @@ $LL6@SK_Inject_:
 	cmp	esi, edi
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1444 :         for (const auto& it : line)
+; 1442 :         for (const auto& it : line)
 
 	jne	SHORT $LL6@SK_Inject_
 
-; 1466 :     if (std::regex_search (wszExecutable, regexp))
+; 1464 :     if (std::regex_search (wszExecutable, regexp))
 
 	jmp	SHORT $LN510@SK_Inject_
 $LN480@SK_Inject_:
 
-; 1448 :             wcsncpy ((wchar_t *)&whitelist_patterns [MAX_PATH * whitelist_count++], line.c_str (), MAX_PATH-1);
+; 1446 :             wcsncpy ((wchar_t *)&whitelist_patterns [MAX_PATH * whitelist_count++], line.c_str (), MAX_PATH-1);
 
 	mov	eax, DWORD PTR ?whitelist_count@@3HA	; whitelist_count
 	imul	ecx, eax, 520
@@ -50193,7 +50152,7 @@ $LN480@SK_Inject_:
 	lea	eax, DWORD PTR _line$6[ebp]
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1448 :             wcsncpy ((wchar_t *)&whitelist_patterns [MAX_PATH * whitelist_count++], line.c_str (), MAX_PATH-1);
+; 1446 :             wcsncpy ((wchar_t *)&whitelist_patterns [MAX_PATH * whitelist_count++], line.c_str (), MAX_PATH-1);
 
 	push	259					; 00000103H
 	add	ecx, OFFSET ?whitelist_patterns@@3PA_WA	; whitelist_patterns
@@ -50208,7 +50167,7 @@ $LN480@SK_Inject_:
 	cmovae	eax, DWORD PTR _line$6[ebp]
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1448 :             wcsncpy ((wchar_t *)&whitelist_patterns [MAX_PATH * whitelist_count++], line.c_str (), MAX_PATH-1);
+; 1446 :             wcsncpy ((wchar_t *)&whitelist_patterns [MAX_PATH * whitelist_count++], line.c_str (), MAX_PATH-1);
 
 	push	eax
 	push	ecx
@@ -50229,18 +50188,18 @@ $LN5@SK_Inject_:
 	cmp	DWORD PTR _whitelist_file$2[ebp+eax+12], 0
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1439 :       while (whitelist_file.good ())
+; 1437 :       while (whitelist_file.good ())
 
 	je	$LL2@SK_Inject_
 	or	esi, -1
 $LN504@SK_Inject_:
 
-; 1449 :             break;
-; 1450 :           }
-; 1451 :         }
-; 1452 :       }
-; 1453 : 
-; 1454 :       if (whitelist_count == 0)
+; 1447 :             break;
+; 1448 :           }
+; 1449 :         }
+; 1450 :       }
+; 1451 : 
+; 1452 :       if (whitelist_count == 0)
 
 	mov	eax, DWORD PTR ?whitelist_count@@3HA	; whitelist_count
 	test	eax, eax
@@ -50274,18 +50233,18 @@ $LN504@SK_Inject_:
 	add	esp, 12					; 0000000cH
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1458 :     else
+; 1456 :     else
 
 	jmp	SHORT $LN12@SK_Inject_
 $LN11@SK_Inject_:
 
-; 1459 :       whitelist_count = -1;
+; 1457 :       whitelist_count = -1;
 
 	mov	DWORD PTR ?whitelist_count@@3HA, -1	; whitelist_count
 $LN12@SK_Inject_:
 	lea	ecx, DWORD PTR _whitelist_file$2[ebp+112]
 
-; 1460 :   }
+; 1458 :   }
 
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 	call	??1?$basic_ifstream@_WU?$char_traits@_W@std@@@std@@UAE@XZ ; std::basic_ifstream<wchar_t,std::char_traits<wchar_t> >::~basic_ifstream<wchar_t,std::char_traits<wchar_t> >
@@ -50294,7 +50253,7 @@ $LN12@SK_Inject_:
 	mov	eax, DWORD PTR ?whitelist_count@@3HA	; whitelist_count
 $LN257@SK_Inject_:
 
-; 1462 :   for ( int i = 0; i < whitelist_count; i++ )
+; 1460 :   for ( int i = 0; i < whitelist_count; i++ )
 
 	mov	DWORD PTR _i$1$[ebp], 0
 	test	eax, eax
@@ -50571,7 +50530,7 @@ $LN308@SK_Inject_:
 	mov	ecx, esi
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1464 :     std::wregex regexp ((wchar_t *)&whitelist_patterns [MAX_PATH * i], std::regex_constants::icase);
+; 1462 :     std::wregex regexp ((wchar_t *)&whitelist_patterns [MAX_PATH * i], std::regex_constants::icase);
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 10		; 0000000aH
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -50602,7 +50561,7 @@ $LL503@SK_Inject_:
 	add	esp, 24					; 00000018H
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1466 :     if (std::regex_search (wszExecutable, regexp))
+; 1464 :     if (std::regex_search (wszExecutable, regexp))
 
 	test	al, al
 	jne	$LN486@SK_Inject_
@@ -50677,7 +50636,7 @@ $LN506@SK_Inject_:
 $LN471@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1462 :   for ( int i = 0; i < whitelist_count; i++ )
+; 1460 :   for ( int i = 0; i < whitelist_count; i++ )
 
 	mov	esi, DWORD PTR _i$1$[ebp]
 	add	ebx, 520				; 00000208H
@@ -50689,7 +50648,7 @@ $LN471@SK_Inject_:
 	mov	DWORD PTR __$EHRec$[ebp+8], -1
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1462 :   for ( int i = 0; i < whitelist_count; i++ )
+; 1460 :   for ( int i = 0; i < whitelist_count; i++ )
 
 	mov	DWORD PTR _i$1$[ebp], esi
 	cmp	esi, DWORD PTR ?whitelist_count@@3HA	; whitelist_count
@@ -50777,16 +50736,16 @@ $LN447@SK_Inject_:
 	pop	esi
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1468 :       return true;
+; 1466 :       return true;
 
 	mov	al, 1
 	pop	ebx
 
-; 1469 :     }
-; 1470 :   }
-; 1471 : 
-; 1472 :   return false;
-; 1473 : }
+; 1467 :     }
+; 1468 :   }
+; 1469 : 
+; 1470 :   return false;
+; 1471 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
@@ -60089,14 +60048,14 @@ $T3 = -28						; size = 24
 $T4 = -28						; size = 24
 ?SK_Inject_Start@@YAXXZ PROC				; SK_Inject_Start
 
-; 1331 : {
+; 1329 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	sub	esp, 2116				; 00000844H
 
-; 1332 :   wchar_t wszCurrentDir [MAX_PATH * 2] = { };
+; 1330 :   wchar_t wszCurrentDir [MAX_PATH * 2] = { };
 
 	lea	eax, DWORD PTR _wszCurrentDir$[ebp]
 	push	esi
@@ -60107,14 +60066,14 @@ $T4 = -28						; size = 24
 	call	_memset
 	add	esp, 12					; 0000000cH
 
-; 1333 :   GetCurrentDirectoryW  (MAX_PATH * 2 - 1, wszCurrentDir);
+; 1331 :   GetCurrentDirectoryW  (MAX_PATH * 2 - 1, wszCurrentDir);
 
 	lea	eax, DWORD PTR _wszCurrentDir$[ebp]
 	push	eax
 	push	519					; 00000207H
 	call	DWORD PTR __imp__GetCurrentDirectoryW@8
 
-; 1335 :   SetCurrentDirectory (SK_SYS_GetInstallPath ().c_str ());
+; 1333 :   SetCurrentDirectory (SK_SYS_GetInstallPath ().c_str ());
 
 	lea	eax, DWORD PTR $T4[ebp]
 	push	eax
@@ -60137,7 +60096,7 @@ $T4 = -28						; size = 24
 $LN30@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1335 :   SetCurrentDirectory (SK_SYS_GetInstallPath ().c_str ());
+; 1333 :   SetCurrentDirectory (SK_SYS_GetInstallPath ().c_str ());
 
 	push	eax
 	call	DWORD PTR __imp__SetCurrentDirectoryW@4
@@ -60167,7 +60126,7 @@ $LN30@SK_Inject_:
 $LN39@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1341 :   wchar_t wszWOW64 [MAX_PATH + 2] = { };
+; 1339 :   wchar_t wszWOW64 [MAX_PATH + 2] = { };
 
 	push	524					; 0000020cH
 	lea	eax, DWORD PTR _wszWOW64$[ebp]
@@ -60175,7 +60134,7 @@ $LN39@SK_Inject_:
 	push	eax
 	call	_memset
 
-; 1342 :   GetSystemDirectoryW      (wszWOW64, MAX_PATH);
+; 1340 :   GetSystemDirectoryW      (wszWOW64, MAX_PATH);
 
 	mov	esi, DWORD PTR __imp__GetSystemDirectoryW@8
 	lea	eax, DWORD PTR _wszWOW64$[ebp]
@@ -60184,9 +60143,9 @@ $LN39@SK_Inject_:
 	push	eax
 	call	esi
 
-; 1343 : #endif
-; 1344 : 
-; 1345 :   wchar_t wszSys32 [MAX_PATH + 2] = { };
+; 1341 : #endif
+; 1342 : 
+; 1343 :   wchar_t wszSys32 [MAX_PATH + 2] = { };
 
 	push	524					; 0000020cH
 	lea	eax, DWORD PTR _wszSys32$[ebp]
@@ -60195,54 +60154,54 @@ $LN39@SK_Inject_:
 	call	_memset
 	add	esp, 12					; 0000000cH
 
-; 1346 :   GetSystemDirectoryW      (wszSys32, MAX_PATH);
+; 1344 :   GetSystemDirectoryW      (wszSys32, MAX_PATH);
 
 	lea	eax, DWORD PTR _wszSys32$[ebp]
 	push	260					; 00000104H
 	push	eax
 	call	esi
 
-; 1347 : 
-; 1348 :   if (GetFileAttributes (L"SKIM64.exe") == INVALID_FILE_ATTRIBUTES)
+; 1345 : 
+; 1346 :   if (GetFileAttributes (L"SKIM64.exe") == INVALID_FILE_ATTRIBUTES)
 
-	push	OFFSET $SG257479
+	push	OFFSET $SG257545
 	call	DWORD PTR __imp__GetFileAttributesW@4
 	cmp	eax, -1
 	jne	$LN2@SK_Inject_
 
-; 1349 :   {
-; 1350 :     if (SKX_IsHookingCBT ())
+; 1347 :   {
+; 1348 :     if (SKX_IsHookingCBT ())
 
 	call	?SKX_IsHookingCBT@@YG_NXZ		; SKX_IsHookingCBT
 	test	al, al
 	je	SHORT $LN4@SK_Inject_
 
-; 1351 :     {
-; 1352 :       RunDLL_InjectionManager ( nullptr, nullptr,
+; 1349 :     {
+; 1350 :       RunDLL_InjectionManager ( nullptr, nullptr,
 
 	push	-128					; ffffff80H
-	push	OFFSET $SG257481
+	push	OFFSET $SG257547
 	push	0
 	push	0
 	call	?RunDLL_InjectionManager@@YGXPAUHWND__@@PAUHINSTANCE__@@PADH@Z ; RunDLL_InjectionManager
 $LN4@SK_Inject_:
 
-; 1353 :                                 "Remove", -128 );
-; 1354 :     }
-; 1355 : 
-; 1356 :     PathAppendW   (wszSys32, L"rundll32.exe");
+; 1351 :                                 "Remove", -128 );
+; 1352 :     }
+; 1353 : 
+; 1354 :     PathAppendW   (wszSys32, L"rundll32.exe");
 
 	mov	edi, DWORD PTR __imp__PathAppendW@8
 	lea	eax, DWORD PTR _wszSys32$[ebp]
-	push	OFFSET $SG257482
+	push	OFFSET $SG257548
 	push	eax
 	call	edi
 
-; 1357 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszSys32).c_str (), "SpecialK64.dll,RunDLL_InjectionManager Install", nullptr, SW_HIDE);
+; 1355 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszSys32).c_str (), "SpecialK64.dll,RunDLL_InjectionManager Install", nullptr, SW_HIDE);
 
 	push	0
 	push	0
-	push	OFFSET $SG257483
+	push	OFFSET $SG257549
 	sub	esp, 24					; 00000018H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
@@ -60251,7 +60210,7 @@ $LN4@SK_Inject_:
 	lea	ecx, DWORD PTR _wszSys32$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1357 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszSys32).c_str (), "SpecialK64.dll,RunDLL_InjectionManager Install", nullptr, SW_HIDE);
+; 1355 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszSys32).c_str (), "SpecialK64.dll,RunDLL_InjectionManager Install", nullptr, SW_HIDE);
 
 	mov	edx, esp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -60306,7 +60265,7 @@ $LL260@SK_Inject_:
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1357 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszSys32).c_str (), "SpecialK64.dll,RunDLL_InjectionManager Install", nullptr, SW_HIDE);
+; 1355 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszSys32).c_str (), "SpecialK64.dll,RunDLL_InjectionManager Install", nullptr, SW_HIDE);
 
 	lea	eax, DWORD PTR $T3[ebp]
 	push	eax
@@ -60329,11 +60288,11 @@ $LL260@SK_Inject_:
 $LN103@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1357 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszSys32).c_str (), "SpecialK64.dll,RunDLL_InjectionManager Install", nullptr, SW_HIDE);
+; 1355 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszSys32).c_str (), "SpecialK64.dll,RunDLL_InjectionManager Install", nullptr, SW_HIDE);
 
 	mov	esi, DWORD PTR __imp__ShellExecuteA@24
 	push	eax
-	push	OFFSET $SG257484
+	push	OFFSET $SG257550
 	push	0
 	call	esi
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -60362,18 +60321,18 @@ $LN103@SK_Inject_:
 $LN112@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1359 :     PathAppendW   (wszWOW64, L"rundll32.exe");
+; 1357 :     PathAppendW   (wszWOW64, L"rundll32.exe");
 
-	push	OFFSET $SG257485
+	push	OFFSET $SG257551
 	lea	eax, DWORD PTR _wszWOW64$[ebp]
 	push	eax
 	call	edi
 
-; 1360 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszWOW64).c_str (), "SpecialK32.dll,RunDLL_InjectionManager Install", nullptr, SW_HIDE);
+; 1358 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszWOW64).c_str (), "SpecialK32.dll,RunDLL_InjectionManager Install", nullptr, SW_HIDE);
 
 	push	0
 	push	0
-	push	OFFSET $SG257486
+	push	OFFSET $SG257552
 	sub	esp, 24					; 00000018H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
@@ -60382,7 +60341,7 @@ $LN112@SK_Inject_:
 	lea	ecx, DWORD PTR _wszWOW64$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1360 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszWOW64).c_str (), "SpecialK32.dll,RunDLL_InjectionManager Install", nullptr, SW_HIDE);
+; 1358 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszWOW64).c_str (), "SpecialK32.dll,RunDLL_InjectionManager Install", nullptr, SW_HIDE);
 
 	mov	edx, esp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -60437,7 +60396,7 @@ $LL261@SK_Inject_:
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1360 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszWOW64).c_str (), "SpecialK32.dll,RunDLL_InjectionManager Install", nullptr, SW_HIDE);
+; 1358 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszWOW64).c_str (), "SpecialK32.dll,RunDLL_InjectionManager Install", nullptr, SW_HIDE);
 
 	lea	eax, DWORD PTR $T2[ebp]
 	push	eax
@@ -60460,57 +60419,57 @@ $LL261@SK_Inject_:
 $LN176@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1360 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszWOW64).c_str (), "SpecialK32.dll,RunDLL_InjectionManager Install", nullptr, SW_HIDE);
+; 1358 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszWOW64).c_str (), "SpecialK32.dll,RunDLL_InjectionManager Install", nullptr, SW_HIDE);
 
 	push	eax
-	push	OFFSET $SG257487
+	push	OFFSET $SG257553
 	push	0
 	call	esi
 
-; 1361 :   }
-; 1362 : 
-; 1363 :   else
+; 1359 :   }
+; 1360 : 
+; 1361 :   else
 
 	jmp	$LN263@SK_Inject_
 $LN2@SK_Inject_:
 
-; 1364 :   {
-; 1365 :     if (SKX_IsHookingCBT ())
+; 1362 :   {
+; 1363 :     if (SKX_IsHookingCBT ())
 
 	call	?SKX_IsHookingCBT@@YG_NXZ		; SKX_IsHookingCBT
 	test	al, al
 	je	SHORT $LN5@SK_Inject_
 
-; 1366 :     {
-; 1367 :       RunDLL_InjectionManager ( nullptr, nullptr,
+; 1364 :     {
+; 1365 :       RunDLL_InjectionManager ( nullptr, nullptr,
 
 	push	-128					; ffffff80H
-	push	OFFSET $SG257489
+	push	OFFSET $SG257555
 	push	0
 	push	0
 	call	?RunDLL_InjectionManager@@YGXPAUHWND__@@PAUHINSTANCE__@@PADH@Z ; RunDLL_InjectionManager
 $LN5@SK_Inject_:
 
-; 1368 :                                 "Remove", -128 );
-; 1369 :     }
-; 1370 : 
-; 1371 :     HWND hWndExisting =
-; 1372 :       FindWindow (L"SKIM_Frontend", nullptr);
+; 1366 :                                 "Remove", -128 );
+; 1367 :     }
+; 1368 : 
+; 1369 :     HWND hWndExisting =
+; 1370 :       FindWindow (L"SKIM_Frontend", nullptr);
 
 	push	0
-	push	OFFSET $SG257490
+	push	OFFSET $SG257556
 	call	DWORD PTR __imp__FindWindowW@8
 	mov	edi, eax
 
-; 1373 : 
-; 1374 :     // Best-case, SKIM restarts itself
-; 1375 :     if (hWndExisting)
+; 1371 : 
+; 1372 :     // Best-case, SKIM restarts itself
+; 1373 :     if (hWndExisting)
 
 	test	edi, edi
 	je	SHORT $LN6@SK_Inject_
 
-; 1376 :     {
-; 1377 :       SendMessage (hWndExisting, WM_USER + 0x125, 0, 0);
+; 1374 :     {
+; 1375 :       SendMessage (hWndExisting, WM_USER + 0x125, 0, 0);
 
 	mov	esi, DWORD PTR __imp__SendMessageW@16
 	push	0
@@ -60519,13 +60478,13 @@ $LN5@SK_Inject_:
 	push	edi
 	call	esi
 
-; 1378 :       SleepEx     (100, FALSE);
+; 1376 :       SleepEx     (100, FALSE);
 
 	push	0
 	push	100					; 00000064H
 	call	DWORD PTR __imp__SleepEx@8
 
-; 1379 :       SendMessage (hWndExisting, WM_USER + 0x124, 0, 0);
+; 1377 :       SendMessage (hWndExisting, WM_USER + 0x124, 0, 0);
 
 	push	0
 	push	0
@@ -60533,13 +60492,13 @@ $LN5@SK_Inject_:
 	push	edi
 	call	esi
 
-; 1387 :   SetCurrentDirectoryW (wszCurrentDir);
+; 1385 :   SetCurrentDirectoryW (wszCurrentDir);
 
 	lea	eax, DWORD PTR _wszCurrentDir$[ebp]
 	push	eax
 	call	DWORD PTR __imp__SetCurrentDirectoryW@4
 
-; 1388 : }
+; 1386 : }
 
 	pop	edi
 	pop	esi
@@ -60548,7 +60507,7 @@ $LN5@SK_Inject_:
 	ret	0
 $LN6@SK_Inject_:
 
-; 1384 :       ShellExecuteA (nullptr, "open", "SKIM64.exe", "+Inject", SK_WideCharToUTF8 (SK_SYS_GetInstallPath ()).c_str (), SW_FORCEMINIMIZE);
+; 1382 :       ShellExecuteA (nullptr, "open", "SKIM64.exe", "+Inject", SK_WideCharToUTF8 (SK_SYS_GetInstallPath ()).c_str (), SW_FORCEMINIMIZE);
 
 	push	11					; 0000000bH
 	sub	esp, 24					; 00000018H
@@ -60576,12 +60535,12 @@ $LN6@SK_Inject_:
 $LN225@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1384 :       ShellExecuteA (nullptr, "open", "SKIM64.exe", "+Inject", SK_WideCharToUTF8 (SK_SYS_GetInstallPath ()).c_str (), SW_FORCEMINIMIZE);
+; 1382 :       ShellExecuteA (nullptr, "open", "SKIM64.exe", "+Inject", SK_WideCharToUTF8 (SK_SYS_GetInstallPath ()).c_str (), SW_FORCEMINIMIZE);
 
 	push	eax
-	push	OFFSET $SG257493
-	push	OFFSET $SG257494
-	push	OFFSET $SG257495
+	push	OFFSET $SG257559
+	push	OFFSET $SG257560
+	push	OFFSET $SG257561
 	push	0
 	call	DWORD PTR __imp__ShellExecuteA@24
 $LN263@SK_Inject_:
@@ -60616,13 +60575,13 @@ $LN263@SK_Inject_:
 $LN234@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1387 :   SetCurrentDirectoryW (wszCurrentDir);
+; 1385 :   SetCurrentDirectoryW (wszCurrentDir);
 
 	lea	eax, DWORD PTR _wszCurrentDir$[ebp]
 	push	eax
 	call	DWORD PTR __imp__SetCurrentDirectoryW@4
 
-; 1388 : }
+; 1386 : }
 
 	pop	edi
 	pop	esi
@@ -60689,14 +60648,14 @@ $T3 = -28						; size = 24
 $T4 = -28						; size = 24
 ?SK_Inject_Stop@@YAXXZ PROC				; SK_Inject_Stop
 
-; 1271 : {
+; 1269 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	sub	esp, 2116				; 00000844H
 
-; 1272 :   wchar_t wszCurrentDir [MAX_PATH * 2] = { };
+; 1270 :   wchar_t wszCurrentDir [MAX_PATH * 2] = { };
 
 	lea	eax, DWORD PTR _wszCurrentDir$[ebp]
 	push	ebx
@@ -60707,14 +60666,14 @@ $T4 = -28						; size = 24
 	call	_memset
 	add	esp, 12					; 0000000cH
 
-; 1273 :   GetCurrentDirectoryW  (MAX_PATH * 2 - 1, wszCurrentDir);
+; 1271 :   GetCurrentDirectoryW  (MAX_PATH * 2 - 1, wszCurrentDir);
 
 	lea	eax, DWORD PTR _wszCurrentDir$[ebp]
 	push	eax
 	push	519					; 00000207H
 	call	DWORD PTR __imp__GetCurrentDirectoryW@8
 
-; 1275 :   SetCurrentDirectory (SK_SYS_GetInstallPath ().c_str ());
+; 1273 :   SetCurrentDirectory (SK_SYS_GetInstallPath ().c_str ());
 
 	lea	eax, DWORD PTR $T4[ebp]
 	push	eax
@@ -60737,7 +60696,7 @@ $T4 = -28						; size = 24
 $LN28@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1275 :   SetCurrentDirectory (SK_SYS_GetInstallPath ().c_str ());
+; 1273 :   SetCurrentDirectory (SK_SYS_GetInstallPath ().c_str ());
 
 	push	eax
 	call	DWORD PTR __imp__SetCurrentDirectoryW@4
@@ -60767,20 +60726,20 @@ $LN28@SK_Inject_:
 $LN37@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1278 :   LoadLibrary (L"SpecialK32.dll");
+; 1276 :   LoadLibrary (L"SpecialK32.dll");
 
-	push	OFFSET $SG257444
+	push	OFFSET $SG257510
 	call	DWORD PTR __imp__LoadLibraryW@4
 
-; 1279 : #else
-; 1280 :   LoadLibrary (L"SpecialK64.dll");
-; 1281 : #endif
-; 1282 : 
-; 1283 : #ifdef _WIN64
-; 1284 :   wchar_t wszWOW64 [MAX_PATH + 2] = { };
-; 1285 :   GetSystemWow64DirectoryW (wszWOW64, MAX_PATH);
-; 1286 : #else
-; 1287 :   wchar_t wszWOW64 [MAX_PATH + 2] = { };
+; 1277 : #else
+; 1278 :   LoadLibrary (L"SpecialK64.dll");
+; 1279 : #endif
+; 1280 : 
+; 1281 : #ifdef _WIN64
+; 1282 :   wchar_t wszWOW64 [MAX_PATH + 2] = { };
+; 1283 :   GetSystemWow64DirectoryW (wszWOW64, MAX_PATH);
+; 1284 : #else
+; 1285 :   wchar_t wszWOW64 [MAX_PATH + 2] = { };
 
 	push	524					; 0000020cH
 	lea	eax, DWORD PTR _wszWOW64$[ebp]
@@ -60788,7 +60747,7 @@ $LN37@SK_Inject_:
 	push	eax
 	call	_memset
 
-; 1288 :   GetSystemDirectoryW      (wszWOW64, MAX_PATH);
+; 1286 :   GetSystemDirectoryW      (wszWOW64, MAX_PATH);
 
 	mov	esi, DWORD PTR __imp__GetSystemDirectoryW@8
 	lea	eax, DWORD PTR _wszWOW64$[ebp]
@@ -60797,9 +60756,9 @@ $LN37@SK_Inject_:
 	push	eax
 	call	esi
 
-; 1289 : #endif
-; 1290 : 
-; 1291 :   wchar_t wszSys32 [MAX_PATH + 2] = { };
+; 1287 : #endif
+; 1288 : 
+; 1289 :   wchar_t wszSys32 [MAX_PATH + 2] = { };
 
 	push	524					; 0000020cH
 	lea	eax, DWORD PTR _wszSys32$[ebp]
@@ -60808,37 +60767,37 @@ $LN37@SK_Inject_:
 	call	_memset
 	add	esp, 12					; 0000000cH
 
-; 1292 :   GetSystemDirectoryW      (wszSys32, MAX_PATH);
+; 1290 :   GetSystemDirectoryW      (wszSys32, MAX_PATH);
 
 	lea	eax, DWORD PTR _wszSys32$[ebp]
 	push	260					; 00000104H
 	push	eax
 	call	esi
 
+; 1291 : 
+; 1292 :   //SK_ExitRemoteProcess (L"SKIM64.exe", 0x00);
 ; 1293 : 
-; 1294 :   //SK_ExitRemoteProcess (L"SKIM64.exe", 0x00);
-; 1295 : 
-; 1296 :   if (GetFileAttributes (L"SKIM64.exe") == INVALID_FILE_ATTRIBUTES)
+; 1294 :   if (GetFileAttributes (L"SKIM64.exe") == INVALID_FILE_ATTRIBUTES)
 
-	push	OFFSET $SG257447
+	push	OFFSET $SG257513
 	call	DWORD PTR __imp__GetFileAttributesW@4
 	cmp	eax, -1
 	jne	$LN2@SK_Inject_
 
-; 1297 :   {
-; 1298 :     PathAppendW   (wszWOW64, L"rundll32.exe");
+; 1295 :   {
+; 1296 :     PathAppendW   (wszWOW64, L"rundll32.exe");
 
 	mov	ebx, DWORD PTR __imp__PathAppendW@8
 	lea	eax, DWORD PTR _wszWOW64$[ebp]
-	push	OFFSET $SG257448
+	push	OFFSET $SG257514
 	push	eax
 	call	ebx
 
-; 1299 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszWOW64).c_str (), "SpecialK32.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE);
+; 1297 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszWOW64).c_str (), "SpecialK32.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE);
 
 	push	0
 	push	0
-	push	OFFSET $SG257449
+	push	OFFSET $SG257515
 	sub	esp, 24					; 00000018H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
@@ -60847,7 +60806,7 @@ $LN37@SK_Inject_:
 	lea	ecx, DWORD PTR _wszWOW64$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1299 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszWOW64).c_str (), "SpecialK32.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE);
+; 1297 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszWOW64).c_str (), "SpecialK32.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE);
 
 	mov	edx, esp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -60902,7 +60861,7 @@ $LL258@SK_Inject_:
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1299 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszWOW64).c_str (), "SpecialK32.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE);
+; 1297 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszWOW64).c_str (), "SpecialK32.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE);
 
 	lea	eax, DWORD PTR $T3[ebp]
 	push	eax
@@ -60925,11 +60884,11 @@ $LL258@SK_Inject_:
 $LN101@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1299 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszWOW64).c_str (), "SpecialK32.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE);
+; 1297 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszWOW64).c_str (), "SpecialK32.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE);
 
 	mov	esi, DWORD PTR __imp__ShellExecuteA@24
 	push	eax
-	push	OFFSET $SG257450
+	push	OFFSET $SG257516
 	push	0
 	call	esi
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -60958,18 +60917,18 @@ $LN101@SK_Inject_:
 $LN110@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1301 :     PathAppendW   (wszSys32, L"rundll32.exe");
+; 1299 :     PathAppendW   (wszSys32, L"rundll32.exe");
 
-	push	OFFSET $SG257451
+	push	OFFSET $SG257517
 	lea	eax, DWORD PTR _wszSys32$[ebp]
 	push	eax
 	call	ebx
 
-; 1302 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszSys32).c_str (), "SpecialK64.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE);
+; 1300 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszSys32).c_str (), "SpecialK64.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE);
 
 	push	0
 	push	0
-	push	OFFSET $SG257452
+	push	OFFSET $SG257518
 	sub	esp, 24					; 00000018H
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
@@ -60978,7 +60937,7 @@ $LN110@SK_Inject_:
 	lea	ecx, DWORD PTR _wszSys32$[ebp]
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1302 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszSys32).c_str (), "SpecialK64.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE);
+; 1300 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszSys32).c_str (), "SpecialK64.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE);
 
 	mov	edx, esp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
@@ -61033,7 +60992,7 @@ $LL259@SK_Inject_:
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1302 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszSys32).c_str (), "SpecialK64.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE);
+; 1300 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszSys32).c_str (), "SpecialK64.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE);
 
 	lea	eax, DWORD PTR $T2[ebp]
 	push	eax
@@ -61056,10 +61015,10 @@ $LL259@SK_Inject_:
 $LN174@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1302 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszSys32).c_str (), "SpecialK64.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE);
+; 1300 :     ShellExecuteA (nullptr, "open", SK_WideCharToUTF8 (wszSys32).c_str (), "SpecialK64.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE);
 
 	push	eax
-	push	OFFSET $SG257453
+	push	OFFSET $SG257519
 	push	0
 	call	esi
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -61092,13 +61051,13 @@ $LN174@SK_Inject_:
 	add	esp, 12					; 0000000cH
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1326 :   SetCurrentDirectoryW (wszCurrentDir);
+; 1324 :   SetCurrentDirectoryW (wszCurrentDir);
 
 	lea	eax, DWORD PTR _wszCurrentDir$[ebp]
 	push	eax
 	call	DWORD PTR __imp__SetCurrentDirectoryW@4
 
-; 1327 : }
+; 1325 : }
 
 	pop	esi
 	pop	ebx
@@ -61107,26 +61066,26 @@ $LN174@SK_Inject_:
 	ret	0
 $LN2@SK_Inject_:
 
-; 1303 :   }
-; 1304 : 
-; 1305 :   else
-; 1306 :   {
-; 1307 :     HWND hWndExisting =
-; 1308 :       FindWindow (L"SKIM_Frontend", nullptr);
+; 1301 :   }
+; 1302 : 
+; 1303 :   else
+; 1304 :   {
+; 1305 :     HWND hWndExisting =
+; 1306 :       FindWindow (L"SKIM_Frontend", nullptr);
 
 	push	0
-	push	OFFSET $SG257454
+	push	OFFSET $SG257520
 	call	DWORD PTR __imp__FindWindowW@8
 
-; 1309 : 
-; 1310 :     // Best-case, SKIM restarts itself
-; 1311 :     if (hWndExisting)
+; 1307 : 
+; 1308 :     // Best-case, SKIM restarts itself
+; 1309 :     if (hWndExisting)
 
 	test	eax, eax
 	je	SHORT $LN4@SK_Inject_
 
-; 1312 :     {
-; 1313 :       SendMessage (hWndExisting, WM_USER + 0x122, 0, 0);
+; 1310 :     {
+; 1311 :       SendMessage (hWndExisting, WM_USER + 0x122, 0, 0);
 
 	push	0
 	push	0
@@ -61134,19 +61093,19 @@ $LN2@SK_Inject_:
 	push	eax
 	call	DWORD PTR __imp__SendMessageW@16
 
-; 1314 :       SleepEx     (100UL, FALSE);
+; 1312 :       SleepEx     (100UL, FALSE);
 
 	push	0
 	push	100					; 00000064H
 	call	DWORD PTR __imp__SleepEx@8
 
-; 1326 :   SetCurrentDirectoryW (wszCurrentDir);
+; 1324 :   SetCurrentDirectoryW (wszCurrentDir);
 
 	lea	eax, DWORD PTR _wszCurrentDir$[ebp]
 	push	eax
 	call	DWORD PTR __imp__SetCurrentDirectoryW@4
 
-; 1327 : }
+; 1325 : }
 
 	pop	esi
 	pop	ebx
@@ -61155,7 +61114,7 @@ $LN2@SK_Inject_:
 	ret	0
 $LN4@SK_Inject_:
 
-; 1320 :       ShellExecuteA        (nullptr, "open", "SKIM64.exe", "-Inject", SK_WideCharToUTF8 (SK_SYS_GetInstallPath ()).c_str (), SW_FORCEMINIMIZE);
+; 1318 :       ShellExecuteA        (nullptr, "open", "SKIM64.exe", "-Inject", SK_WideCharToUTF8 (SK_SYS_GetInstallPath ()).c_str (), SW_FORCEMINIMIZE);
 
 	push	11					; 0000000bH
 	sub	esp, 24					; 00000018H
@@ -61183,12 +61142,12 @@ $LN4@SK_Inject_:
 $LN223@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1320 :       ShellExecuteA        (nullptr, "open", "SKIM64.exe", "-Inject", SK_WideCharToUTF8 (SK_SYS_GetInstallPath ()).c_str (), SW_FORCEMINIMIZE);
+; 1318 :       ShellExecuteA        (nullptr, "open", "SKIM64.exe", "-Inject", SK_WideCharToUTF8 (SK_SYS_GetInstallPath ()).c_str (), SW_FORCEMINIMIZE);
 
 	push	eax
-	push	OFFSET $SG257457
-	push	OFFSET $SG257458
-	push	OFFSET $SG257459
+	push	OFFSET $SG257523
+	push	OFFSET $SG257524
+	push	OFFSET $SG257525
 	push	0
 	call	DWORD PTR __imp__ShellExecuteA@24
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -61222,27 +61181,27 @@ $LN223@SK_Inject_:
 $LN232@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1321 :       SleepEx              (100UL, FALSE);
+; 1319 :       SleepEx              (100UL, FALSE);
 
 	push	0
 	push	100					; 00000064H
 	call	DWORD PTR __imp__SleepEx@8
 
-; 1322 :       SK_ExitRemoteProcess (L"SKIM64.exe", 0x00);
+; 1320 :       SK_ExitRemoteProcess (L"SKIM64.exe", 0x00);
 
 	push	0
-	push	OFFSET $SG257460
+	push	OFFSET $SG257526
 	call	?SK_ExitRemoteProcess@@YA_NPB_WI@Z	; SK_ExitRemoteProcess
 	add	esp, 8
 $LN5@SK_Inject_:
 
-; 1326 :   SetCurrentDirectoryW (wszCurrentDir);
+; 1324 :   SetCurrentDirectoryW (wszCurrentDir);
 
 	lea	eax, DWORD PTR _wszCurrentDir$[ebp]
 	push	eax
 	call	DWORD PTR __imp__SetCurrentDirectoryW@4
 
-; 1327 : }
+; 1325 : }
 
 	pop	esi
 	pop	ebx
@@ -61259,17 +61218,17 @@ _wszProcName$ = 8					; size = 4
 _uExitCode$ = 12					; size = 4
 ?SK_ExitRemoteProcess@@YA_NPB_WI@Z PROC			; SK_ExitRemoteProcess
 
-; 1231 : {
+; 1229 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	sub	esp, 564				; 00000234H
 
-; 1232 :   UNREFERENCED_PARAMETER (uExitCode);
-; 1233 : 
-; 1234 : 
-; 1235 :   PROCESSENTRY32 pe32      = { };
+; 1230 :   UNREFERENCED_PARAMETER (uExitCode);
+; 1231 : 
+; 1232 : 
+; 1233 :   PROCESSENTRY32 pe32      = { };
 
 	lea	eax, DWORD PTR _pe32$[ebp]
 	push	esi
@@ -61279,25 +61238,25 @@ _uExitCode$ = 12					; size = 4
 	call	_memset
 	add	esp, 12					; 0000000cH
 
-; 1236 :   HANDLE         hProcSnap =
-; 1237 :     CreateToolhelp32Snapshot (TH32CS_SNAPPROCESS, 0);
+; 1234 :   HANDLE         hProcSnap =
+; 1235 :     CreateToolhelp32Snapshot (TH32CS_SNAPPROCESS, 0);
 
 	push	0
 	push	2
 	call	_CreateToolhelp32Snapshot@8
 	mov	esi, eax
 
-; 1238 : 
-; 1239 :   if (hProcSnap == INVALID_HANDLE_VALUE)
+; 1236 : 
+; 1237 :   if (hProcSnap == INVALID_HANDLE_VALUE)
 
 	cmp	esi, -1
 	je	SHORT $LN21@SK_ExitRem
 
-; 1240 :     return false;
+; 1238 :     return false;
+; 1239 : 
+; 1240 :   pe32.dwSize = sizeof PROCESSENTRY32;
 ; 1241 : 
-; 1242 :   pe32.dwSize = sizeof PROCESSENTRY32;
-; 1243 : 
-; 1244 :   if (! Process32First (hProcSnap, &pe32))
+; 1242 :   if (! Process32First (hProcSnap, &pe32))
 
 	lea	eax, DWORD PTR _pe32$[ebp]
 	mov	DWORD PTR _pe32$[ebp], 556		; 0000022cH
@@ -61307,19 +61266,19 @@ _uExitCode$ = 12					; size = 4
 	test	eax, eax
 	jne	SHORT $LN18@SK_ExitRem
 
-; 1245 :   {
-; 1246 :     CloseHandle (hProcSnap);
+; 1243 :   {
+; 1244 :     CloseHandle (hProcSnap);
 
 	push	esi
 	call	DWORD PTR __imp__CloseHandle@4
 $LN21@SK_ExitRem:
 
-; 1247 :     return false;
+; 1245 :     return false;
 
 	xor	al, al
 	pop	esi
 
-; 1266 : }
+; 1264 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -61327,18 +61286,18 @@ $LN21@SK_ExitRem:
 $LN18@SK_ExitRem:
 	push	ebx
 
-; 1247 :     return false;
+; 1245 :     return false;
 
 	mov	ebx, DWORD PTR __imp__StrStrIW@8
 	push	edi
 	mov	edi, DWORD PTR _wszProcName$[ebp]
 $LL4@SK_ExitRem:
 
-; 1248 :   }
-; 1249 : 
-; 1250 :   do
-; 1251 :   {
-; 1252 :     if (StrStrIW (wszProcName, pe32.szExeFile))
+; 1246 :   }
+; 1247 : 
+; 1248 :   do
+; 1249 :   {
+; 1250 :     if (StrStrIW (wszProcName, pe32.szExeFile))
 
 	lea	eax, DWORD PTR _pe32$[ebp+36]
 	push	eax
@@ -61347,8 +61306,8 @@ $LL4@SK_ExitRem:
 	test	eax, eax
 	jne	SHORT $LN10@SK_ExitRem
 
-; 1260 :     }
-; 1261 :   } while (Process32Next (hProcSnap, &pe32));
+; 1258 :     }
+; 1259 :   } while (Process32Next (hProcSnap, &pe32));
 
 	lea	eax, DWORD PTR _pe32$[ebp]
 	push	eax
@@ -61357,36 +61316,36 @@ $LL4@SK_ExitRem:
 	test	eax, eax
 	jne	SHORT $LL4@SK_ExitRem
 
-; 1262 : 
-; 1263 :   CloseHandle (hProcSnap);
+; 1260 : 
+; 1261 :   CloseHandle (hProcSnap);
 
 	push	esi
 	call	DWORD PTR __imp__CloseHandle@4
 	pop	edi
 	pop	ebx
 
-; 1264 : 
-; 1265 :   return false;
+; 1262 : 
+; 1263 :   return false;
 
 	xor	al, al
 	pop	esi
 
-; 1266 : }
+; 1264 : }
 
 	mov	esp, ebp
 	pop	ebp
 	ret	0
 $LN10@SK_ExitRem:
 
-; 1253 :     {
-; 1254 :       window_t win = SK_FindRootWindow (pe32.th32ProcessID);
+; 1251 :     {
+; 1252 :       window_t win = SK_FindRootWindow (pe32.th32ProcessID);
 
 	push	DWORD PTR _pe32$[ebp+8]
 	call	?SK_FindRootWindow@@YA?AUwindow_t@@K@Z	; SK_FindRootWindow
 	add	esp, 4
 
-; 1255 : 
-; 1256 :       SendMessage (win.root, WM_USER + 0x123, 0x00, 0x00);
+; 1253 : 
+; 1254 :       SendMessage (win.root, WM_USER + 0x123, 0x00, 0x00);
 
 	push	0
 	push	0
@@ -61394,20 +61353,20 @@ $LN10@SK_ExitRem:
 	push	edx
 	call	DWORD PTR __imp__SendMessageW@16
 
-; 1257 : 
-; 1258 :       CloseHandle (hProcSnap);
+; 1255 : 
+; 1256 :       CloseHandle (hProcSnap);
 
 	push	esi
 	call	DWORD PTR __imp__CloseHandle@4
 	pop	edi
 	pop	ebx
 
-; 1259 :       return true;
+; 1257 :       return true;
 
 	mov	al, 1
 	pop	esi
 
-; 1266 : }
+; 1264 : }
 
 	mov	esp, ebp
 	pop	ebp
@@ -61455,7 +61414,7 @@ _wszOut$ = -1044					; size = 1040
 
 ; 773  :   lstrcatW (wszOut, L"\\SpecialK.central");
 
-	push	OFFSET $SG257067
+	push	OFFSET $SG257139
 	lea	eax, DWORD PTR _wszOut$[ebp]
 	push	eax
 	call	esi
@@ -61464,7 +61423,7 @@ _wszOut$ = -1044					; size = 1040
 ; 775  :   FILE* fOut = _wfopen (wszOut, L"w");
 
 	lea	eax, DWORD PTR _wszOut$[ebp]
-	push	OFFSET $SG257068
+	push	OFFSET $SG257140
 	push	eax
 	call	DWORD PTR __imp___wfopen
 	mov	esi, eax
@@ -61472,7 +61431,7 @@ _wszOut$ = -1044					; size = 1040
 ; 776  :                fputws (L" ", fOut);
 
 	push	esi
-	push	OFFSET $SG257069
+	push	OFFSET $SG257141
 	call	DWORD PTR __imp__fputws
 
 ; 777  :                      fclose (fOut);
@@ -61515,7 +61474,7 @@ $LN4@SK_Inject_:
 	push	0
 	sub	esp, 24					; 00000018H
 	mov	ecx, esp
-	push	OFFSET $SG257071
+	push	OFFSET $SG257143
 	call	??0?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@QB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 
 ; 806  :       SK_SaveConfig (L"dxgi");
@@ -61545,7 +61504,7 @@ $LN8@SK_Inject_:
 	push	0
 	sub	esp, 24					; 00000018H
 	mov	ecx, esp
-	push	OFFSET $SG257079
+	push	OFFSET $SG257151
 	call	??0?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@QB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 	call	?SK_SaveConfig@@YAXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@_N@Z ; SK_SaveConfig
 	add	esp, 28					; 0000001cH
@@ -61582,7 +61541,7 @@ $LN10@SK_Inject_:
 	push	0
 	sub	esp, 24					; 00000018H
 	mov	ecx, esp
-	push	OFFSET $SG257075
+	push	OFFSET $SG257147
 	call	??0?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@QB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 
 ; 806  :       SK_SaveConfig (L"dxgi");
@@ -61613,7 +61572,7 @@ $LN5@SK_Inject_:
 	push	0
 	sub	esp, 24					; 00000018H
 	mov	ecx, esp
-	push	OFFSET $SG257073
+	push	OFFSET $SG257145
 	call	??0?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@QB_W@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 
 ; 806  :       SK_SaveConfig (L"dxgi");
@@ -61665,7 +61624,7 @@ $LN7@SK_Inject_:
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG257077
+	push	OFFSET $SG257149
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -61840,7 +61799,7 @@ _nCmdShow$ = 20						; size = 4
 ; 682  :   if (StrStrA (lpszCmdLine, "Install") && (! SKX_IsHookingCBT ()))
 
 	mov	esi, DWORD PTR _lpszCmdLine$[ebp]
-	push	OFFSET $SG257037
+	push	OFFSET $SG257109
 	push	esi
 	call	DWORD PTR __imp__StrStrA@8
 	test	eax, eax
@@ -61865,8 +61824,8 @@ _nCmdShow$ = 20						; size = 4
 ; 688  : #ifndef _WIN64
 ; 689  :       FILE* fPID = fopen ("SpecialK32.pid", "w");
 
-	push	OFFSET $SG257039
-	push	OFFSET $SG257040
+	push	OFFSET $SG257111
+	push	OFFSET $SG257112
 	call	DWORD PTR __imp__fopen
 	mov	esi, eax
 	add	esp, 8
@@ -61885,7 +61844,7 @@ _nCmdShow$ = 20						; size = 4
 
 	call	DWORD PTR __imp__GetCurrentProcessId@0
 	push	eax
-	push	OFFSET $SG257042
+	push	OFFSET $SG257114
 	push	esi
 	call	_fprintf
 
@@ -61943,7 +61902,7 @@ $LN2@RunDLL_Inj:
 ; 725  : 
 ; 726  :   else if (StrStrA (lpszCmdLine, "Remove"))
 
-	push	OFFSET $SG257044
+	push	OFFSET $SG257116
 	push	esi
 	call	DWORD PTR __imp__StrStrA@8
 	test	eax, eax
@@ -61958,8 +61917,8 @@ $LN2@RunDLL_Inj:
 ; 730  : #ifndef _WIN64
 ; 731  :     FILE* fPID = fopen ("SpecialK32.pid", "r");
 
-	push	OFFSET $SG257045
-	push	OFFSET $SG257046
+	push	OFFSET $SG257117
+	push	OFFSET $SG257118
 	call	DWORD PTR __imp__fopen
 	mov	esi, eax
 	add	esp, 8
@@ -61980,7 +61939,7 @@ $LN2@RunDLL_Inj:
 	lea	eax, DWORD PTR _dwPID$1[ebp]
 	mov	DWORD PTR _dwPID$1[ebp], 0
 	push	eax
-	push	OFFSET $SG257048
+	push	OFFSET $SG257120
 	push	esi
 	call	_fscanf
 
@@ -62009,7 +61968,7 @@ $LN9@RunDLL_Inj:
 ; 744  : #ifndef _WIN64
 ; 745  :         DeleteFileA ("SpecialK32.pid");
 
-	push	OFFSET $SG257051
+	push	OFFSET $SG257123
 	call	DWORD PTR __imp__DeleteFileA@4
 $LN8@RunDLL_Inj:
 
@@ -62880,7 +62839,7 @@ _hMod$ = -4						; size = 4
 	lea	eax, DWORD PTR _hMod$[ebp]
 	mov	DWORD PTR _hMod$[ebp], 0
 	push	eax
-	push	OFFSET $SG256941
+	push	OFFSET $SG257013
 	push	2
 	call	DWORD PTR __imp__GetModuleHandleExW@12
 
@@ -62913,7 +62872,7 @@ _hMod$ = -4						; size = 4
 ; 630  : #else
 ; 631  :       g_hShutdown = CreateEvent (nullptr, TRUE, FALSE, L"SpecialK32_Reset");
 
-	push	OFFSET $SG256944
+	push	OFFSET $SG257016
 	push	0
 	push	1
 	push	0
@@ -63169,7 +63128,7 @@ _lParam$ = 16						; size = 4
 ; 273  :     GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
 
 	push	OFFSET ?hModHookInstance@@3PAUHINSTANCE__@@A ; hModHookInstance
-	push	OFFSET $SG147687
+	push	OFFSET $SG147757
 	push	2
 	call	DWORD PTR __imp__GetModuleHandleExW@12
 
@@ -63542,55 +63501,55 @@ _spin_count$ = 8					; size = 4
 ??0SK_Thread_HybridSpinlock@@QAE@H@Z PROC		; SK_Thread_HybridSpinlock::SK_Thread_HybridSpinlock, COMDAT
 ; _this$ = ecx
 
-; 286  :   {
+; 297  :   {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	push	esi
 
-; 264  :   };
-; 265  : 
-; 266  :   ~SK_Thread_CriticalSection (void) = default;
-; 267  : 
-; 268  :   void lock (void) {
-; 269  :     EnterCriticalSection (cs_);
-; 270  :   }
-; 271  : 
-; 272  :   void unlock (void)
-; 273  :   {
-; 274  :     LeaveCriticalSection (cs_);
-; 275  :   }
+; 275  :   };
 ; 276  : 
-; 277  : protected:
-; 278  :   CRITICAL_SECTION* cs_;
-; 279  : };
-; 280  : 
-; 281  : class SK_Thread_HybridSpinlock : public SK_Thread_CriticalSection
-; 282  : {
-; 283  : public:
-; 284  :   SK_Thread_HybridSpinlock (int spin_count = 3000) :
-; 285  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
+; 277  :   ~SK_Thread_CriticalSection (void) = default;
+; 278  : 
+; 279  :   void lock (void) {
+; 280  :     EnterCriticalSection (cs_);
+; 281  :   }
+; 282  : 
+; 283  :   void unlock (void)
+; 284  :   {
+; 285  :     LeaveCriticalSection (cs_);
+; 286  :   }
+; 287  : 
+; 288  : protected:
+; 289  :   CRITICAL_SECTION* cs_;
+; 290  : };
+; 291  : 
+; 292  : class SK_Thread_HybridSpinlock : public SK_Thread_CriticalSection
+; 293  : {
+; 294  : public:
+; 295  :   SK_Thread_HybridSpinlock (int spin_count = 3000) :
+; 296  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
 
 	push	24					; 00000018H
 
-; 286  :   {
+; 297  :   {
 
 	mov	esi, ecx
 	call	??2@YAPAXI@Z				; operator new
 	add	esp, 4
 
-; 263  :     cs_ = pCS;
+; 274  :     cs_ = pCS;
 
 	mov	DWORD PTR [esi], eax
 
-; 287  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
+; 298  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
 
 	push	DWORD PTR _spin_count$[ebp]
 	push	eax
 	call	DWORD PTR __imp__InitializeCriticalSectionAndSpinCount@8
 
-; 288  :   }
+; 299  :   }
 
 	mov	eax, esi
 	pop	esi
@@ -63606,19 +63565,19 @@ _pCS$ = 8						; size = 4
 ??0SK_Thread_CriticalSection@@QAE@PAU_RTL_CRITICAL_SECTION@@@Z PROC ; SK_Thread_CriticalSection::SK_Thread_CriticalSection, COMDAT
 ; _this$ = ecx
 
-; 261  :   SK_Thread_CriticalSection ( CRITICAL_SECTION* pCS )
+; 272  :   SK_Thread_CriticalSection ( CRITICAL_SECTION* pCS )
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 262  :   {
-; 263  :     cs_ = pCS;
+; 273  :   {
+; 274  :     cs_ = pCS;
 
 	mov	eax, DWORD PTR _pCS$[ebp]
 	mov	DWORD PTR [ecx], eax
 
-; 264  :   };
+; 275  :   };
 
 	mov	eax, ecx
 	pop	ebp
@@ -71793,34 +71752,6 @@ $LN4@basic_stri:
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-;	COMDAT ?_Assign_lv_contents@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAEXABV12@@Z
-_TEXT	SEGMENT
-__Right$ = 8						; size = 4
-?_Assign_lv_contents@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAEXABV12@@Z PROC ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::_Assign_lv_contents, COMDAT
-; _this$ = ecx
-
-; 2172 : 		{	// assign by copying the data stored in _Right
-
-	npad	2
-	push	ebp
-	mov	ebp, esp
-
-; 2173 : 			// pre: *this is in a valid but unspecified state
-; 2174 : 		assign(_Right, 0, npos);
-
-	push	-1
-	push	0
-	push	DWORD PTR __Right$[ebp]
-	call	?assign@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAEAAV12@ABV12@II@Z ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::assign
-
-; 2175 : 		}
-
-	pop	ebp
-	ret	4
-?_Assign_lv_contents@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAEXABV12@@Z ENDP ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::_Assign_lv_contents
-_TEXT	ENDS
-; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ;	COMDAT ?_Assign_rv_contents_with_alloc_always_equal@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAEX$$QAV12@U?$integral_constant@_N$00@2@@Z
@@ -72101,58 +72032,6 @@ _TEXT	SEGMENT
 
 	ret	0
 ??0?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAE@XZ ENDP ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::basic_string<char,std::char_traits<char>,std::allocator<char> >
-_TEXT	ENDS
-; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-;	COMDAT ??0?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAE@ABV01@@Z
-_TEXT	SEGMENT
-__Right$ = 8						; size = 4
-??0?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAE@ABV01@@Z PROC ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::basic_string<char,std::char_traits<char>,std::allocator<char> >, COMDAT
-; _this$ = ecx
-
-; 1925 : 		{	// construct by copying _Right
-
-	npad	2
-	push	ebp
-	mov	ebp, esp
-	push	esi
-	mov	esi, ecx
-
-; 2174 : 		assign(_Right, 0, npos);
-
-	push	-1
-	push	0
-	push	DWORD PTR __Right$[ebp]
-
-; 3597 : 		_My_data._Mysize = 0;
-
-	mov	DWORD PTR [esi+16], 0
-
-; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
-
-	mov	DWORD PTR [esi+20], 15			; 0000000fH
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-
-; 517  : 		_Left = _Right;
-
-	mov	BYTE PTR [esi], 0
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 2174 : 		assign(_Right, 0, npos);
-
-	call	?assign@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAEAAV12@ABV12@II@Z ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::assign
-
-; 1926 : 		_Tidy_init();
-; 1927 : 		_Assign_lv_contents(_Right);
-; 1928 : 		}
-
-	mov	eax, esi
-	pop	esi
-	pop	ebp
-	ret	4
-??0?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAE@ABV01@@Z ENDP ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::basic_string<char,std::char_traits<char>,std::allocator<char> >
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ;	COMDAT ??1?$_String_alloc@U?$_String_base_types@DV?$allocator@D@std@@@std@@@std@@QAE@XZ
@@ -72784,55 +72663,6 @@ __Val$ = 8						; size = 4
 	pop	ebp
 	ret	4
 ?address@?$_Wrap_alloc@V?$allocator@D@std@@@std@@QBEPADAAD@Z ENDP ; std::_Wrap_alloc<std::allocator<char> >::address
-_TEXT	ENDS
-; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
-;	COMDAT ?select_on_container_copy_construction@?$_Wrap_alloc@V?$allocator@D@std@@@std@@QBE?AU12@U_Nil@2@@Z
-_TEXT	SEGMENT
-___$ReturnUdt$ = 8					; size = 4
-___formal$ = 12						; size = 1
-?select_on_container_copy_construction@?$_Wrap_alloc@V?$allocator@D@std@@@std@@QBE?AU12@U_Nil@2@@Z PROC ; std::_Wrap_alloc<std::allocator<char> >::select_on_container_copy_construction, COMDAT
-; _this$ = ecx
-
-; 1013 : 		{	// get allocator to use
-
-	npad	2
-	push	ebp
-	mov	ebp, esp
-
-; 1014 : 		return (_Mytraits::select_on_container_copy_construction(*this));
-
-	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
-
-; 1015 : 		}
-
-	pop	ebp
-	ret	8
-?select_on_container_copy_construction@?$_Wrap_alloc@V?$allocator@D@std@@@std@@QBE?AU12@U_Nil@2@@Z ENDP ; std::_Wrap_alloc<std::allocator<char> >::select_on_container_copy_construction
-_TEXT	ENDS
-; Function compile flags: /Ogtp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
-;	COMDAT ?select_on_container_copy_construction@?$allocator_traits@V?$allocator@D@std@@@std@@SA?AV?$allocator@D@2@ABV32@@Z
-_TEXT	SEGMENT
-___$ReturnUdt$ = 8					; size = 4
-__Al$ = 12						; size = 4
-?select_on_container_copy_construction@?$allocator_traits@V?$allocator@D@std@@@std@@SA?AV?$allocator@D@2@ABV32@@Z PROC ; std::allocator_traits<std::allocator<char> >::select_on_container_copy_construction, COMDAT
-
-; 975  : 		{	// get allocator to use
-
-	npad	2
-	push	ebp
-	mov	ebp, esp
-
-; 976  : 		return (_Al);
-
-	mov	eax, DWORD PTR ___$ReturnUdt$[ebp]
-
-; 977  : 		}
-
-	pop	ebp
-	ret	0
-?select_on_container_copy_construction@?$allocator_traits@V?$allocator@D@std@@@std@@SA?AV?$allocator@D@2@ABV32@@Z ENDP ; std::allocator_traits<std::allocator<char> >::select_on_container_copy_construction
 _TEXT	ENDS
 ; Function compile flags: /Ogtp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
@@ -73952,6 +73782,18 @@ _TEXT	ENDS
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
@@ -73964,36 +73806,8 @@ _TEXT	ENDS
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
-; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
-; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
-; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
-; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
-; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
@@ -74004,12 +73818,11 @@ _TEXT	SEGMENT
 _wszIn$ = -2164						; size = 1040
 _wszOut$ = -1124					; size = 1040
 $T2 = -84						; size = 24
-_ver_dir$3 = -60					; size = 24
-$T4 = -36						; size = 24
-$T5 = -36						; size = 24
-$T6 = -36						; size = 24
-$T7 = -36						; size = 24
+$T3 = -60						; size = 24
+$T4 = -60						; size = 24
+_ver_dir$5 = -36					; size = 24
 __$EHRec$ = -12						; size = 12
+_dwAttribs$1$ = 8					; size = 4
 _role$ = 8						; size = 4
 ?SK_Inject_SwitchToRenderWrapperEx@@YA_NW4DLL_ROLE@@@Z PROC ; SK_Inject_SwitchToRenderWrapperEx
 
@@ -74028,8 +73841,6 @@ _role$ = 8						; size = 4
 
 	lea	eax, DWORD PTR _wszIn$[ebp]
 	sub	esp, 2152				; 00000868H
-	push	esi
-	push	edi
 	push	1040					; 00000410H
 	push	0
 	push	eax
@@ -74040,7 +73851,7 @@ _role$ = 8						; size = 4
 
 	call	?SK_GetDLL@@YGPAUHINSTANCE__@@XZ	; SK_GetDLL
 	push	eax
-	lea	eax, DWORD PTR $T7[ebp]
+	lea	eax, DWORD PTR $T4[ebp]
 	push	eax
 	call	?SK_GetModuleFullName@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@PAUHINSTANCE__@@@Z ; SK_GetModuleFullName
 	add	esp, 8
@@ -74052,18 +73863,20 @@ _role$ = 8						; size = 4
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN37@SK_Inject_
+	jb	SHORT $LN32@SK_Inject_
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 
 ; 643  : 	return (_Ptr);
 
 	mov	eax, DWORD PTR [eax]
-$LN37@SK_Inject_:
+$LN32@SK_Inject_:
+	push	esi
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
 ; 824  :   lstrcatW (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
 
 	mov	esi, DWORD PTR __imp__lstrcatW@8
+	push	edi
 	push	eax
 	lea	eax, DWORD PTR _wszIn$[ebp]
 	push	eax
@@ -74072,12 +73885,12 @@ $LN37@SK_Inject_:
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	mov	eax, DWORD PTR $T7[ebp+20]
+	mov	eax, DWORD PTR $T4[ebp+20]
 	cmp	eax, 8
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN46@SK_Inject_
+	jb	SHORT $LN42@SK_Inject_
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
 
@@ -74088,10 +73901,10 @@ $LN37@SK_Inject_:
 
 	push	2
 	push	eax
-	push	DWORD PTR $T7[ebp]
+	push	DWORD PTR $T4[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN46@SK_Inject_:
+$LN42@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
 ; 826  :   wchar_t wszOut [MAX_PATH * 2] = { };
@@ -74128,19 +73941,19 @@ $LN46@SK_Inject_:
 ; 844  :     case DLL_ROLE::DDraw:
 ; 845  :       lstrcatW (wszOut, L"\\ddraw.dll");
 
-	push	OFFSET $SG257105
+	push	OFFSET $SG257174
 
 ; 846  :       break;
 
-	jmp	SHORT $LN417@SK_Inject_
+	jmp	SHORT $LN273@SK_Inject_
 $LN8@SK_Inject_:
 
 ; 847  : 
 ; 848  :     case DLL_ROLE::D3D8:
 ; 849  :       lstrcatW (wszOut, L"\\d3d8.dll");
 
-	push	OFFSET $SG257107
-	jmp	SHORT $LN417@SK_Inject_
+	push	OFFSET $SG257176
+	jmp	SHORT $LN273@SK_Inject_
 $LN5@SK_Inject_:
 
 ; 833  :       break;
@@ -74148,11 +73961,11 @@ $LN5@SK_Inject_:
 ; 835  :     case DLL_ROLE::DXGI:
 ; 836  :       lstrcatW (wszOut, L"\\dxgi.dll");
 
-	push	OFFSET $SG257101
+	push	OFFSET $SG257170
 
 ; 837  :       break;
 
-	jmp	SHORT $LN417@SK_Inject_
+	jmp	SHORT $LN273@SK_Inject_
 $LN14@SK_Inject_:
 
 ; 828  : 
@@ -74167,19 +73980,19 @@ $LN14@SK_Inject_:
 ; 839  :     case DLL_ROLE::OpenGL:
 ; 840  :       lstrcatW (wszOut, L"\\OpenGL32.dll");
 
-	push	OFFSET $SG257103
+	push	OFFSET $SG257172
 
 ; 841  :       break;
 
-	jmp	SHORT $LN417@SK_Inject_
+	jmp	SHORT $LN273@SK_Inject_
 $LN4@SK_Inject_:
 
 ; 830  :   {
 ; 831  :     case DLL_ROLE::D3D9:
 ; 832  :       lstrcatW (wszOut, L"\\d3d9.dll");
 
-	push	OFFSET $SG257099
-$LN417@SK_Inject_:
+	push	OFFSET $SG257168
+$LN273@SK_Inject_:
 	lea	eax, DWORD PTR _wszOut$[ebp]
 	push	eax
 	call	esi
@@ -74274,14 +74087,14 @@ $LN2@SK_Inject_:
 ; 908  : #else
 ; 909  :     lstrcatW (wszIn,  L"SpecialK32.pdb");
 
-	push	OFFSET $SG257109
+	push	OFFSET $SG257178
 	lea	eax, DWORD PTR _wszIn$[ebp]
 	push	eax
 	call	esi
 
 ; 910  :     lstrcatW (wszOut, L"\\SpecialK32.pdb");
 
-	push	OFFSET $SG257110
+	push	OFFSET $SG257179
 	lea	eax, DWORD PTR _wszOut$[ebp]
 	push	eax
 	call	esi
@@ -74318,79 +74131,47 @@ $LN10@SK_Inject_:
 	xor	eax, eax
 	mov	WORD PTR _wszIn$[ebp], ax
 
-; 919  :       SK_FormatString (R"(%ws\Version)", SK_GetConfigPath ());
+; 919  :       SK_FormatStringW (LR"(%s\Version)", SK_GetConfigPath ());
 
 	call	?SK_GetConfigPath@@YGPB_WXZ		; SK_GetConfigPath
 	push	eax
-	lea	eax, DWORD PTR _ver_dir$3[ebp]
-	push	OFFSET $SG257112
+	lea	eax, DWORD PTR _ver_dir$5[ebp]
+	push	OFFSET $SG257181
 	push	eax
-	call	?SK_FormatString@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QBDZZ ; SK_FormatString
+	call	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ ; SK_FormatStringW
 	add	esp, 12					; 0000000cH
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	cmp	DWORD PTR _ver_dir$3[ebp+20], 16	; 00000010H
+	cmp	DWORD PTR _ver_dir$5[ebp+20], 8
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	lea	eax, DWORD PTR _ver_dir$3[ebp]
+	lea	eax, DWORD PTR _ver_dir$5[ebp]
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 919  :       SK_FormatString (R"(%ws\Version)", SK_GetConfigPath ());
+; 919  :       SK_FormatStringW (LR"(%s\Version)", SK_GetConfigPath ());
 
 	mov	DWORD PTR __$EHRec$[ebp+8], 0
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	cmovae	eax, DWORD PTR _ver_dir$3[ebp]
+	cmovae	eax, DWORD PTR _ver_dir$5[ebp]
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 922  :       GetFileAttributesA (ver_dir.c_str ());
+; 922  :       GetFileAttributesW (ver_dir.c_str ());
 
 	push	eax
-	call	DWORD PTR __imp__GetFileAttributesA@4
+	call	DWORD PTR __imp__GetFileAttributesW@4
+	mov	DWORD PTR _dwAttribs$1$[ebp], eax
 
-; 924  :     if ( (dwAttribs != INVALID_FILE_ATTRIBUTES) ||
-
-	cmp	eax, -1
-	jne	SHORT $LN12@SK_Inject_
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 1628 : 		return (this->_BUF_SIZE <= _Myres);
-
-	cmp	DWORD PTR _ver_dir$3[ebp+20], 16	; 00000010H
-
-; 1621 : 		return (_Large_string_engaged()
-
-	lea	eax, DWORD PTR _ver_dir$3[ebp]
-; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
-
-; 924  :     if ( (dwAttribs != INVALID_FILE_ATTRIBUTES) ||
-
-	push	0
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 1621 : 		return (_Large_string_engaged()
-
-	cmovae	eax, DWORD PTR _ver_dir$3[ebp]
-; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
-
-; 924  :     if ( (dwAttribs != INVALID_FILE_ATTRIBUTES) ||
-
-	push	eax
-	call	DWORD PTR __imp__CreateDirectoryA@8
-	test	eax, eax
-	je	$LN11@SK_Inject_
-$LN12@SK_Inject_:
-
-; 927  :       lstrcatW (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
+; 924  :     lstrcatW             (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
 
 	call	?SK_GetDLL@@YGPAUHINSTANCE__@@XZ	; SK_GetDLL
 	push	eax
-	lea	eax, DWORD PTR $T6[ebp]
+	lea	eax, DWORD PTR $T3[ebp]
 	push	eax
 	call	?SK_GetModuleFullName@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@PAUHINSTANCE__@@@Z ; SK_GetModuleFullName
 	add	esp, 8
@@ -74402,16 +74183,16 @@ $LN12@SK_Inject_:
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN124@SK_Inject_
+	jb	SHORT $LN100@SK_Inject_
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 
 ; 643  : 	return (_Ptr);
 
 	mov	eax, DWORD PTR [eax]
-$LN124@SK_Inject_:
+$LN100@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 927  :       lstrcatW (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
+; 924  :     lstrcatW             (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
 
 	push	eax
 	lea	eax, DWORD PTR _wszIn$[ebp]
@@ -74421,12 +74202,12 @@ $LN124@SK_Inject_:
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	mov	eax, DWORD PTR $T6[ebp+20]
+	mov	eax, DWORD PTR $T3[ebp+20]
 	cmp	eax, 8
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN133@SK_Inject_
+	jb	SHORT $LN110@SK_Inject_
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
@@ -74442,129 +74223,99 @@ $LN124@SK_Inject_:
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
 
 	push	eax
-	push	DWORD PTR $T6[ebp]
+	push	DWORD PTR $T3[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN133@SK_Inject_:
+$LN110@SK_Inject_:
+	push	ebx
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 928  :       PathRemoveFileSpecW  (wszIn);
+; 925  :     PathRemoveFileSpecW  (wszIn);
 
 	lea	eax, DWORD PTR _wszIn$[ebp]
 	push	eax
 	call	DWORD PTR __imp__PathRemoveFileSpecW@4
 
-; 929  : 
-; 930  :       lstrcatW (wszIn, L"\\Version\\installed.ini");
+; 926  :     PathAppendW          (wszIn, L"Version\\installed.ini");
 
-	push	OFFSET $SG257115
+	mov	ebx, DWORD PTR __imp__PathAppendW@8
+	lea	eax, DWORD PTR _wszIn$[ebp]
+	push	OFFSET $SG257182
+	push	eax
+	call	ebx
+
+; 928  :     if ( GetFileAttributesW (wszIn) != INVALID_FILE_ATTRIBUTES &&
+
 	lea	eax, DWORD PTR _wszIn$[ebp]
 	push	eax
-	call	esi
-
-; 934  :       lstrcatW (wszOut, SK_UTF8ToWideChar (ver_dir).c_str ());
-
-	sub	esp, 24					; 00000018H
-	xor	eax, eax
-	mov	ecx, esp
-	mov	WORD PTR _wszOut$[ebp], ax
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 2174 : 		assign(_Right, 0, npos);
-
-	push	-1
-
-; 3597 : 		_My_data._Mysize = 0;
-
-	mov	DWORD PTR [ecx+16], eax
-
-; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
-
-	mov	DWORD PTR [ecx+20], 15			; 0000000fH
-
-; 2174 : 		assign(_Right, 0, npos);
-
-	push	eax
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-
-; 517  : 		_Left = _Right;
-
-	mov	BYTE PTR [ecx], al
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 2174 : 		assign(_Right, 0, npos);
-
-	lea	eax, DWORD PTR _ver_dir$3[ebp]
-	push	eax
-	call	?assign@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAEAAV12@ABV12@II@Z ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::assign
-; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
-
-; 934  :       lstrcatW (wszOut, SK_UTF8ToWideChar (ver_dir).c_str ());
-
-	lea	eax, DWORD PTR $T5[ebp]
-	push	eax
-	call	?SK_UTF8ToWideChar@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@2@@Z ; SK_UTF8ToWideChar
-	add	esp, 28					; 0000001cH
+	call	DWORD PTR __imp__GetFileAttributesW@4
+	cmp	eax, -1
+	je	$LN11@SK_Inject_
+	cmp	DWORD PTR _dwAttribs$1$[ebp], -1
+	jne	SHORT $LN12@SK_Inject_
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	cmp	DWORD PTR [eax+20], 8
+	cmp	DWORD PTR _ver_dir$5[ebp+20], 8
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN213@SK_Inject_
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
-
-; 643  : 	return (_Ptr);
-
-	mov	eax, DWORD PTR [eax]
-$LN213@SK_Inject_:
+	lea	eax, DWORD PTR _ver_dir$5[ebp]
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 934  :       lstrcatW (wszOut, SK_UTF8ToWideChar (ver_dir).c_str ());
+; 928  :     if ( GetFileAttributesW (wszIn) != INVALID_FILE_ATTRIBUTES &&
+
+	push	0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1621 : 		return (_Large_string_engaged()
+
+	cmovae	eax, DWORD PTR _ver_dir$5[ebp]
+; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
+
+; 928  :     if ( GetFileAttributesW (wszIn) != INVALID_FILE_ATTRIBUTES &&
 
 	push	eax
-	lea	eax, DWORD PTR _wszOut$[ebp]
-	push	eax
-	call	esi
+	call	DWORD PTR __imp__CreateDirectoryW@8
+	test	eax, eax
+	je	$LN11@SK_Inject_
+$LN12@SK_Inject_:
+
+; 932  :       *wszOut = L'\0';
+
+	xor	eax, eax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	mov	eax, DWORD PTR $T5[ebp+20]
-	cmp	eax, 8
-
-; 3608 : 		if (_My_data._Large_string_engaged())
-
-	jb	SHORT $LN222@SK_Inject_
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
-
-; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
-
-	push	2
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
-
-	inc	eax
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
-
-; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
-
-	push	eax
-	push	DWORD PTR $T5[ebp]
-	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
-	add	esp, 12					; 0000000cH
-$LN222@SK_Inject_:
+	cmp	DWORD PTR _ver_dir$5[ebp+20], 8
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 935  :       lstrcatW (wszOut, L"\\installed.ini");
+; 932  :       *wszOut = L'\0';
 
-	push	OFFSET $SG257116
+	mov	WORD PTR _wszOut$[ebp], ax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1621 : 		return (_Large_string_engaged()
+
+	lea	eax, DWORD PTR _ver_dir$5[ebp]
+	cmovae	eax, DWORD PTR _ver_dir$5[ebp]
+; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
+
+; 934  :       lstrcatW    (wszOut, ver_dir.c_str ());
+
+	push	eax
 	lea	eax, DWORD PTR _wszOut$[ebp]
 	push	eax
 	call	esi
+
+; 935  :       PathAppendW (wszOut, L"installed.ini");
+
+	push	OFFSET $SG257185
+	lea	eax, DWORD PTR _wszOut$[ebp]
+	push	eax
+	call	ebx
 
 ; 936  : 
 ; 937  :       DeleteFileW (       wszOut);
@@ -74588,11 +74339,11 @@ $LN222@SK_Inject_:
 	xor	eax, eax
 	mov	WORD PTR _wszIn$[ebp], ax
 
-; 942  :       lstrcatW (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
+; 942  :       lstrcatW             (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
 
 	call	?SK_GetDLL@@YGPAUHINSTANCE__@@XZ	; SK_GetDLL
 	push	eax
-	lea	eax, DWORD PTR $T4[ebp]
+	lea	eax, DWORD PTR $T2[ebp]
 	push	eax
 	call	?SK_GetModuleFullName@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@PAUHINSTANCE__@@@Z ; SK_GetModuleFullName
 	add	esp, 8
@@ -74604,130 +74355,19 @@ $LN222@SK_Inject_:
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN262@SK_Inject_
+	jb	SHORT $LN187@SK_Inject_
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 
 ; 643  : 	return (_Ptr);
 
 	mov	eax, DWORD PTR [eax]
-$LN262@SK_Inject_:
+$LN187@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 942  :       lstrcatW (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
+; 942  :       lstrcatW             (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
 
 	push	eax
 	lea	eax, DWORD PTR _wszIn$[ebp]
-	push	eax
-	call	esi
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 1628 : 		return (this->_BUF_SIZE <= _Myres);
-
-	mov	eax, DWORD PTR $T4[ebp+20]
-	cmp	eax, 8
-
-; 3608 : 		if (_My_data._Large_string_engaged())
-
-	jb	SHORT $LN271@SK_Inject_
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
-
-; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
-
-	push	2
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
-
-	inc	eax
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
-
-; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
-
-	push	eax
-	push	DWORD PTR $T4[ebp]
-	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
-	add	esp, 12					; 0000000cH
-$LN271@SK_Inject_:
-; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
-
-; 943  :       PathRemoveFileSpecW  (wszIn);
-
-	lea	eax, DWORD PTR _wszIn$[ebp]
-	push	eax
-	call	DWORD PTR __imp__PathRemoveFileSpecW@4
-
-; 944  : 
-; 945  :       lstrcatW (wszIn, L"\\Version\\repository.ini");
-
-	push	OFFSET $SG257117
-	lea	eax, DWORD PTR _wszIn$[ebp]
-	push	eax
-	call	esi
-
-; 949  :       lstrcatW (wszOut, SK_UTF8ToWideChar (ver_dir).c_str ());
-
-	sub	esp, 24					; 00000018H
-	xor	eax, eax
-	mov	ecx, esp
-	mov	WORD PTR _wszOut$[ebp], ax
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 2174 : 		assign(_Right, 0, npos);
-
-	push	-1
-
-; 3597 : 		_My_data._Mysize = 0;
-
-	mov	DWORD PTR [ecx+16], eax
-
-; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
-
-	mov	DWORD PTR [ecx+20], 15			; 0000000fH
-
-; 2174 : 		assign(_Right, 0, npos);
-
-	push	eax
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-
-; 517  : 		_Left = _Right;
-
-	mov	BYTE PTR [ecx], al
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 2174 : 		assign(_Right, 0, npos);
-
-	lea	eax, DWORD PTR _ver_dir$3[ebp]
-	push	eax
-	call	?assign@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAEAAV12@ABV12@II@Z ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::assign
-; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
-
-; 949  :       lstrcatW (wszOut, SK_UTF8ToWideChar (ver_dir).c_str ());
-
-	lea	eax, DWORD PTR $T2[ebp]
-	push	eax
-	call	?SK_UTF8ToWideChar@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@2@@Z ; SK_UTF8ToWideChar
-	add	esp, 28					; 0000001cH
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 1628 : 		return (this->_BUF_SIZE <= _Myres);
-
-	cmp	DWORD PTR [eax+20], 8
-
-; 1621 : 		return (_Large_string_engaged()
-
-	jb	SHORT $LN351@SK_Inject_
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
-
-; 643  : 	return (_Ptr);
-
-	mov	eax, DWORD PTR [eax]
-$LN351@SK_Inject_:
-; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
-
-; 949  :       lstrcatW (wszOut, SK_UTF8ToWideChar (ver_dir).c_str ());
-
-	push	eax
-	lea	eax, DWORD PTR _wszOut$[ebp]
 	push	eax
 	call	esi
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -74739,7 +74379,7 @@ $LN351@SK_Inject_:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN360@SK_Inject_
+	jb	SHORT $LN197@SK_Inject_
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
@@ -74758,24 +74398,65 @@ $LN351@SK_Inject_:
 	push	DWORD PTR $T2[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN360@SK_Inject_:
+$LN197@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 950  :       lstrcatW (wszOut, L"\\repository.ini");
+; 943  :       PathRemoveFileSpecW  (wszIn);
 
-	push	OFFSET $SG257118
+	lea	eax, DWORD PTR _wszIn$[ebp]
+	push	eax
+	call	DWORD PTR __imp__PathRemoveFileSpecW@4
+
+; 944  :       PathAppendW          (wszIn, L"Version\\repository.ini");
+
+	push	OFFSET $SG257186
+	lea	eax, DWORD PTR _wszIn$[ebp]
+	push	eax
+	call	ebx
+
+; 946  :       *wszOut = L'\0';
+
+	xor	eax, eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	cmp	DWORD PTR _ver_dir$5[ebp+20], 8
+; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
+
+; 946  :       *wszOut = L'\0';
+
+	mov	WORD PTR _wszOut$[ebp], ax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1621 : 		return (_Large_string_engaged()
+
+	lea	eax, DWORD PTR _ver_dir$5[ebp]
+	cmovae	eax, DWORD PTR _ver_dir$5[ebp]
+; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
+
+; 948  :       lstrcatW    (wszOut, ver_dir.c_str ());
+
+	push	eax
 	lea	eax, DWORD PTR _wszOut$[ebp]
 	push	eax
 	call	esi
 
-; 951  : 
-; 952  :       DeleteFileW (       wszOut);
+; 949  :       PathAppendW (wszOut, L"repository.ini");
+
+	push	OFFSET $SG257187
+	lea	eax, DWORD PTR _wszOut$[ebp]
+	push	eax
+	call	ebx
+
+; 950  : 
+; 951  :       DeleteFileW (       wszOut);
 
 	lea	eax, DWORD PTR _wszOut$[ebp]
 	push	eax
 	call	DWORD PTR __imp__DeleteFileW@4
 
-; 953  :       CopyFile    (wszIn, wszOut, FALSE);
+; 952  :       CopyFile    (wszIn, wszOut, FALSE);
 
 	push	0
 	lea	eax, DWORD PTR _wszOut$[ebp]
@@ -74788,17 +74469,18 @@ $LN11@SK_Inject_:
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	mov	eax, DWORD PTR _ver_dir$3[ebp+20]
-	cmp	eax, 16					; 00000010H
+	mov	eax, DWORD PTR _ver_dir$5[ebp+20]
+	pop	ebx
+	cmp	eax, 8
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN390@SK_Inject_
+	jb	SHORT $LN246@SK_Inject_
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
 
-	push	1
+	push	2
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
@@ -74809,25 +74491,25 @@ $LN11@SK_Inject_:
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
 
 	push	eax
-	push	DWORD PTR _ver_dir$3[ebp]
+	push	DWORD PTR _ver_dir$5[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN390@SK_Inject_:
+$LN246@SK_Inject_:
+	pop	edi
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 956  :     return true;
+; 955  :     return true;
 
 	mov	al, 1
+	pop	esi
 
-; 957  :   }
-; 958  : 
-; 959  :   return false;
-; 960  : }
+; 956  :   }
+; 957  : 
+; 958  :   return false;
+; 959  : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
-	pop	edi
-	pop	esi
 	mov	esp, ebp
 	pop	ebp
 	ret	0
@@ -74835,16 +74517,16 @@ $LN9@SK_Inject_:
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	xor	al, al
 	pop	edi
-	mov	DWORD PTR fs:0, ecx
 	pop	esi
+	mov	DWORD PTR fs:0, ecx
 	mov	esp, ebp
 	pop	ebp
 	ret	0
 _TEXT	ENDS
 text$x	SEGMENT
 __unwindfunclet$?SK_Inject_SwitchToRenderWrapperEx@@YA_NW4DLL_ROLE@@@Z$1:
-	lea	ecx, DWORD PTR _ver_dir$3[ebp]
-	jmp	??1?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAE@XZ ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::~basic_string<char,std::char_traits<char>,std::allocator<char> >
+	lea	ecx, DWORD PTR _ver_dir$5[ebp]
+	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 __ehhandler$?SK_Inject_SwitchToRenderWrapperEx@@YA_NW4DLL_ROLE@@@Z:
 	mov	eax, OFFSET __ehfuncinfo$?SK_Inject_SwitchToRenderWrapperEx@@YA_NW4DLL_ROLE@@@Z
 	jmp	___CxxFrameHandler3
@@ -74863,6 +74545,18 @@ text$x	ENDS
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
@@ -74875,36 +74569,8 @@ text$x	ENDS
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
-; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
-; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
-; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
-; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
-; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
@@ -74915,15 +74581,14 @@ _TEXT	SEGMENT
 _wszIn$ = -2168						; size = 1040
 _wszOut$ = -1128					; size = 1040
 $T2 = -88						; size = 24
-_ver_dir$3 = -64					; size = 24
-$T4 = -40						; size = 24
-$T5 = -40						; size = 24
-$T6 = -40						; size = 24
-$T7 = -40						; size = 24
+$T3 = -64						; size = 24
+$T4 = -64						; size = 24
+_dwAttribs$1$ = -40					; size = 4
+_ver_dir$5 = -36					; size = 24
 __$EHRec$ = -12						; size = 12
 ?SK_Inject_SwitchToRenderWrapper@@YA_NXZ PROC		; SK_Inject_SwitchToRenderWrapper
 
-; 964  : {
+; 963  : {
 
 	npad	2
 	push	ebp
@@ -74934,583 +74599,17 @@ __$EHRec$ = -12						; size = 12
 	push	eax
 	mov	DWORD PTR fs:0, esp
 
-; 965  :   wchar_t wszIn [MAX_PATH * 2] = { };
+; 964  :   wchar_t   wszIn [MAX_PATH * 2] = { };
 
 	lea	eax, DWORD PTR _wszIn$[ebp]
 	sub	esp, 2156				; 0000086cH
-	push	esi
-	push	edi
 	push	1040					; 00000410H
 	push	0
 	push	eax
 	call	_memset
 	add	esp, 12					; 0000000cH
 
-; 966  :   lstrcatW (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
-
-	call	?SK_GetDLL@@YGPAUHINSTANCE__@@XZ	; SK_GetDLL
-	push	eax
-	lea	eax, DWORD PTR $T7[ebp]
-	push	eax
-	call	?SK_GetModuleFullName@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@PAUHINSTANCE__@@@Z ; SK_GetModuleFullName
-	add	esp, 8
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 1628 : 		return (this->_BUF_SIZE <= _Myres);
-
-	cmp	DWORD PTR [eax+20], 8
-
-; 1621 : 		return (_Large_string_engaged()
-
-	jb	SHORT $LN37@SK_Inject_
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
-
-; 643  : 	return (_Ptr);
-
-	mov	eax, DWORD PTR [eax]
-$LN37@SK_Inject_:
-; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
-
-; 966  :   lstrcatW (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
-
-	mov	esi, DWORD PTR __imp__lstrcatW@8
-	push	eax
-	lea	eax, DWORD PTR _wszIn$[ebp]
-	push	eax
-	call	esi
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 1628 : 		return (this->_BUF_SIZE <= _Myres);
-
-	mov	eax, DWORD PTR $T7[ebp+20]
-	cmp	eax, 8
-
-; 3608 : 		if (_My_data._Large_string_engaged())
-
-	jb	SHORT $LN46@SK_Inject_
-
-; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
-
-	inc	eax
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
-
-; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
-
-	push	2
-	push	eax
-	push	DWORD PTR $T7[ebp]
-	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
-	add	esp, 12					; 0000000cH
-$LN46@SK_Inject_:
-; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
-
-; 968  :   wchar_t wszOut [MAX_PATH * 2] = { };
-
-	push	1040					; 00000410H
-	lea	eax, DWORD PTR _wszOut$[ebp]
-	push	0
-	push	eax
-	call	_memset
-	add	esp, 12					; 0000000cH
-
-; 969  :   lstrcatW (wszOut, SK_GetHostPath ());
-
-	call	?SK_GetHostPath@@YAPB_WXZ		; SK_GetHostPath
-	push	eax
-	lea	eax, DWORD PTR _wszOut$[ebp]
-	push	eax
-	call	esi
-
-; 970  : 
-; 971  :   switch (SK_GetCurrentRenderBackend ().api)
-
-	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
-	mov	eax, DWORD PTR [eax]
-	cmp	eax, 32					; 00000020H
-	jg	SHORT $LN14@SK_Inject_
-	je	SHORT $LN7@SK_Inject_
-	sub	eax, 2
-	je	SHORT $LN8@SK_Inject_
-	sub	eax, 6
-	je	SHORT $LN4@SK_Inject_
-	sub	eax, 16					; 00000010H
-	jne	SHORT $LN2@SK_Inject_
-$LN4@SK_Inject_:
-
-; 972  :   {
-; 973  :     case SK_RenderAPI::D3D9:
-; 974  :     case SK_RenderAPI::D3D9Ex:
-; 975  :       lstrcatW (wszOut, L"\\d3d9.dll");
-
-	push	OFFSET $SG257139
-
-; 976  :       break;
-
-	jmp	SHORT $LN417@SK_Inject_
-$LN8@SK_Inject_:
-
-; 995  :     } break;
-; 996  : 
-; 997  :     case SK_RenderAPI::OpenGL:
-; 998  :       lstrcatW (wszOut, L"\\OpenGL32.dll");
-
-	push	OFFSET $SG257147
-	jmp	SHORT $LN417@SK_Inject_
-$LN14@SK_Inject_:
-
-; 970  : 
-; 971  :   switch (SK_GetCurrentRenderBackend ().api)
-
-	cmp	eax, 64					; 00000040H
-	je	SHORT $LN7@SK_Inject_
-	cmp	eax, 8256				; 00002040H
-	je	SHORT $LN5@SK_Inject_
-	cmp	eax, 16448				; 00004040H
-	jne	SHORT $LN2@SK_Inject_
-
-; 982  : 
-; 983  :     case SK_RenderAPI::DDrawOn11:
-; 984  :       lstrcatW (wszOut, L"\\ddraw.dll");
-
-	push	OFFSET $SG257143
-
-; 985  :       break;
-
-	jmp	SHORT $LN417@SK_Inject_
-$LN5@SK_Inject_:
-
-; 977  : 
-; 978  : #ifndef _WIN64
-; 979  :     case SK_RenderAPI::D3D8On11:
-; 980  :       lstrcatW (wszOut, L"\\d3d8.dll");
-
-	push	OFFSET $SG257141
-
-; 981  :       break;
-
-	jmp	SHORT $LN417@SK_Inject_
-$LN7@SK_Inject_:
-
-; 986  : #endif
-; 987  : 
-; 988  :     case SK_RenderAPI::D3D10:
-; 989  :     case SK_RenderAPI::D3D11:
-; 990  : #ifdef _WIN64
-; 991  :     case SK_RenderAPI::D3D12:
-; 992  : #endif
-; 993  :     {
-; 994  :       lstrcatW (wszOut, L"\\dxgi.dll");
-
-	push	OFFSET $SG257145
-$LN417@SK_Inject_:
-	lea	eax, DWORD PTR _wszOut$[ebp]
-	push	eax
-	call	esi
-$LN2@SK_Inject_:
-
-; 999  :       break;
-; 1000 : 
-; 1001 :     //case SK_RenderAPI::Vulkan:
-; 1002 :       //lstrcatW (wszOut, L"\\vk-1.dll");
-; 1003 :       //break;
-; 1004 :   }
-; 1005 : 
-; 1006 : 
-; 1007 :   //std::queue <DWORD> suspended =
-; 1008 :   //  SK_SuspendAllOtherThreads ();
-; 1009 :   //
-; 1010 :   //extern volatile LONG   SK_bypass_dialog_active;
-; 1011 :   //InterlockedIncrement (&SK_bypass_dialog_active);
-; 1012 :   //
-; 1013 :   //int mb_ret = 
-; 1014 :   //       SK_MessageBox ( L"Link the Installed Wrapper to the Global DLL?\r\n"
-; 1015 :   //                       L"\r\n"
-; 1016 :   //                       L"Linked installs allow you to update wrapped games the same way "
-; 1017 :   //                       L"as global injection, but require administrator privileges to setup.",
-; 1018 :   //                         L"Perform a Linked Wrapper Install?",
-; 1019 :   //                           MB_YESNO | MB_ICONQUESTION
-; 1020 :   //                     );
-; 1021 :   //
-; 1022 :   //InterlockedIncrement (&SK_bypass_dialog_active);
-; 1023 :   //
-; 1024 :   //SK_ResumeThreads (suspended);
-; 1025 :   //
-; 1026 :   //if ( mb_ret == IDYES )
-; 1027 :   //{
-; 1028 :   //  wchar_t   wszCmd [MAX_PATH * 3] = { };
-; 1029 :   //  swprintf (wszCmd, L"/c mklink \"%s\" \"%s\"", wszOut, wszIn);
-; 1030 :   //
-; 1031 :   //  ShellExecuteW ( GetActiveWindow (),
-; 1032 :   //                    L"runas",
-; 1033 :   //                      L"cmd.exe",
-; 1034 :   //                        wszCmd,
-; 1035 :   //                          nullptr,
-; 1036 :   //                            SW_HIDE );
-; 1037 :   //
-; 1038 :   //  SK_Inject_EnableCentralizedConfig ();
-; 1039 :   //
-; 1040 :   //  return true;
-; 1041 :   //}
-; 1042 : 
-; 1043 : 
-; 1044 :   if (CopyFile (wszIn, wszOut, TRUE))
-
-	mov	edi, DWORD PTR __imp__CopyFileW@12
-	lea	eax, DWORD PTR _wszOut$[ebp]
-	push	1
-	push	eax
-	lea	eax, DWORD PTR _wszIn$[ebp]
-	push	eax
-	call	edi
-	test	eax, eax
-	je	$LN9@SK_Inject_
-
-; 1045 :   {
-; 1046 :     SK_Inject_EnableCentralizedConfig ();
-
-	call	?SK_Inject_EnableCentralizedConfig@@YAXXZ ; SK_Inject_EnableCentralizedConfig
-
-; 1047 : 
-; 1048 :     *wszOut = L'\0';
-
-	xor	eax, eax
-	mov	WORD PTR _wszOut$[ebp], ax
-
-; 1049 :     *wszIn  = L'\0';
-
-	mov	WORD PTR _wszIn$[ebp], ax
-
-; 1050 : 
-; 1051 :     lstrcatW (wszOut, SK_GetHostPath ());
-
-	call	?SK_GetHostPath@@YAPB_WXZ		; SK_GetHostPath
-	push	eax
-	lea	eax, DWORD PTR _wszOut$[ebp]
-	push	eax
-	call	esi
-
-; 1052 : 
-; 1053 : #ifdef _WIN64
-; 1054 :     lstrcatW (wszIn,  L"SpecialK64.pdb");
-; 1055 :     lstrcatW (wszOut, L"\\SpecialK64.pdb");
-; 1056 : #else
-; 1057 :     lstrcatW (wszIn,  L"SpecialK32.pdb");
-
-	push	OFFSET $SG257149
-	lea	eax, DWORD PTR _wszIn$[ebp]
-	push	eax
-	call	esi
-
-; 1058 :     lstrcatW (wszOut, L"\\SpecialK32.pdb");
-
-	push	OFFSET $SG257150
-	lea	eax, DWORD PTR _wszOut$[ebp]
-	push	eax
-	call	esi
-
-; 1059 : #endif
-; 1060 : 
-; 1061 :     if (! CopyFileW (wszIn, wszOut, TRUE))
-
-	push	1
-	lea	eax, DWORD PTR _wszOut$[ebp]
-	push	eax
-	lea	eax, DWORD PTR _wszIn$[ebp]
-	push	eax
-	call	edi
-	test	eax, eax
-	jne	SHORT $LN10@SK_Inject_
-
-; 1062 :       ReplaceFileW (wszOut, wszIn, nullptr, 0x00, nullptr, nullptr);
-
-	push	eax
-	push	eax
-	push	eax
-	push	eax
-	lea	eax, DWORD PTR _wszIn$[ebp]
-	push	eax
-	lea	eax, DWORD PTR _wszOut$[ebp]
-	push	eax
-	call	DWORD PTR __imp__ReplaceFileW@24
-$LN10@SK_Inject_:
-
-; 1063 : 
-; 1064 :     *wszIn = L'\0';
-
-	xor	eax, eax
-	mov	WORD PTR _wszIn$[ebp], ax
-
-; 1067 :       SK_FormatString (R"(%ws\Version)", SK_GetConfigPath ());
-
-	call	?SK_GetConfigPath@@YGPB_WXZ		; SK_GetConfigPath
-	push	eax
-	lea	eax, DWORD PTR _ver_dir$3[ebp]
-	push	OFFSET $SG257152
-	push	eax
-	call	?SK_FormatString@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QBDZZ ; SK_FormatString
-	add	esp, 12					; 0000000cH
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 1628 : 		return (this->_BUF_SIZE <= _Myres);
-
-	cmp	DWORD PTR _ver_dir$3[ebp+20], 16	; 00000010H
-
-; 1621 : 		return (_Large_string_engaged()
-
-	lea	eax, DWORD PTR _ver_dir$3[ebp]
-; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
-
-; 1067 :       SK_FormatString (R"(%ws\Version)", SK_GetConfigPath ());
-
-	mov	DWORD PTR __$EHRec$[ebp+8], 0
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 1621 : 		return (_Large_string_engaged()
-
-	cmovae	eax, DWORD PTR _ver_dir$3[ebp]
-; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
-
-; 1070 :       GetFileAttributesA (ver_dir.c_str ());
-
-	push	eax
-	call	DWORD PTR __imp__GetFileAttributesA@4
-
-; 1072 :     if ( (dwAttribs != INVALID_FILE_ATTRIBUTES) ||
-
-	cmp	eax, -1
-	jne	SHORT $LN12@SK_Inject_
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 1628 : 		return (this->_BUF_SIZE <= _Myres);
-
-	cmp	DWORD PTR _ver_dir$3[ebp+20], 16	; 00000010H
-
-; 1621 : 		return (_Large_string_engaged()
-
-	lea	eax, DWORD PTR _ver_dir$3[ebp]
-; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
-
-; 1072 :     if ( (dwAttribs != INVALID_FILE_ATTRIBUTES) ||
-
-	push	0
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 1621 : 		return (_Large_string_engaged()
-
-	cmovae	eax, DWORD PTR _ver_dir$3[ebp]
-; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
-
-; 1072 :     if ( (dwAttribs != INVALID_FILE_ATTRIBUTES) ||
-
-	push	eax
-	call	DWORD PTR __imp__CreateDirectoryA@8
-	test	eax, eax
-	je	$LN11@SK_Inject_
-$LN12@SK_Inject_:
-
-; 1075 :       lstrcatW (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
-
-	call	?SK_GetDLL@@YGPAUHINSTANCE__@@XZ	; SK_GetDLL
-	push	eax
-	lea	eax, DWORD PTR $T6[ebp]
-	push	eax
-	call	?SK_GetModuleFullName@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@PAUHINSTANCE__@@@Z ; SK_GetModuleFullName
-	add	esp, 8
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 1628 : 		return (this->_BUF_SIZE <= _Myres);
-
-	cmp	DWORD PTR [eax+20], 8
-
-; 1621 : 		return (_Large_string_engaged()
-
-	jb	SHORT $LN124@SK_Inject_
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
-
-; 643  : 	return (_Ptr);
-
-	mov	eax, DWORD PTR [eax]
-$LN124@SK_Inject_:
-; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
-
-; 1075 :       lstrcatW (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
-
-	push	eax
-	lea	eax, DWORD PTR _wszIn$[ebp]
-	push	eax
-	call	esi
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 1628 : 		return (this->_BUF_SIZE <= _Myres);
-
-	mov	eax, DWORD PTR $T6[ebp+20]
-	cmp	eax, 8
-
-; 3608 : 		if (_My_data._Large_string_engaged())
-
-	jb	SHORT $LN133@SK_Inject_
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
-
-; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
-
-	push	2
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
-
-	inc	eax
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
-
-; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
-
-	push	eax
-	push	DWORD PTR $T6[ebp]
-	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
-	add	esp, 12					; 0000000cH
-$LN133@SK_Inject_:
-; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
-
-; 1076 :       PathRemoveFileSpecW  (wszIn);
-
-	lea	eax, DWORD PTR _wszIn$[ebp]
-	push	eax
-	call	DWORD PTR __imp__PathRemoveFileSpecW@4
-
-; 1077 : 
-; 1078 :       lstrcatW (wszIn, L"\\Version\\installed.ini");
-
-	push	OFFSET $SG257155
-	lea	eax, DWORD PTR _wszIn$[ebp]
-	push	eax
-	call	esi
-
-; 1082 :       lstrcatW (wszOut, SK_UTF8ToWideChar (ver_dir).c_str ());
-
-	sub	esp, 24					; 00000018H
-	xor	eax, eax
-	mov	ecx, esp
-	mov	WORD PTR _wszOut$[ebp], ax
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 2174 : 		assign(_Right, 0, npos);
-
-	push	-1
-
-; 3597 : 		_My_data._Mysize = 0;
-
-	mov	DWORD PTR [ecx+16], eax
-
-; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
-
-	mov	DWORD PTR [ecx+20], 15			; 0000000fH
-
-; 2174 : 		assign(_Right, 0, npos);
-
-	push	eax
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-
-; 517  : 		_Left = _Right;
-
-	mov	BYTE PTR [ecx], al
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 2174 : 		assign(_Right, 0, npos);
-
-	lea	eax, DWORD PTR _ver_dir$3[ebp]
-	push	eax
-	call	?assign@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAEAAV12@ABV12@II@Z ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::assign
-; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
-
-; 1082 :       lstrcatW (wszOut, SK_UTF8ToWideChar (ver_dir).c_str ());
-
-	lea	eax, DWORD PTR $T5[ebp]
-	push	eax
-	call	?SK_UTF8ToWideChar@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@2@@Z ; SK_UTF8ToWideChar
-	add	esp, 28					; 0000001cH
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 1628 : 		return (this->_BUF_SIZE <= _Myres);
-
-	cmp	DWORD PTR [eax+20], 8
-
-; 1621 : 		return (_Large_string_engaged()
-
-	jb	SHORT $LN213@SK_Inject_
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
-
-; 643  : 	return (_Ptr);
-
-	mov	eax, DWORD PTR [eax]
-$LN213@SK_Inject_:
-; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
-
-; 1082 :       lstrcatW (wszOut, SK_UTF8ToWideChar (ver_dir).c_str ());
-
-	push	eax
-	lea	eax, DWORD PTR _wszOut$[ebp]
-	push	eax
-	call	esi
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 1628 : 		return (this->_BUF_SIZE <= _Myres);
-
-	mov	eax, DWORD PTR $T5[ebp+20]
-	cmp	eax, 8
-
-; 3608 : 		if (_My_data._Large_string_engaged())
-
-	jb	SHORT $LN222@SK_Inject_
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
-
-; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
-
-	push	2
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
-
-	inc	eax
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
-
-; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
-
-	push	eax
-	push	DWORD PTR $T5[ebp]
-	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
-	add	esp, 12					; 0000000cH
-$LN222@SK_Inject_:
-; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
-
-; 1083 :       lstrcatW (wszOut, L"\\installed.ini");
-
-	push	OFFSET $SG257156
-	lea	eax, DWORD PTR _wszOut$[ebp]
-	push	eax
-	call	esi
-
-; 1084 : 
-; 1085 :       DeleteFileW (       wszOut);
-
-	lea	eax, DWORD PTR _wszOut$[ebp]
-	push	eax
-	call	DWORD PTR __imp__DeleteFileW@4
-
-; 1086 :       CopyFile    (wszIn, wszOut, FALSE);
-
-	push	0
-	lea	eax, DWORD PTR _wszOut$[ebp]
-	push	eax
-	lea	eax, DWORD PTR _wszIn$[ebp]
-	push	eax
-	call	edi
-
-; 1087 : 
-; 1088 :       *wszIn = L'\0';
-
-	xor	eax, eax
-	mov	WORD PTR _wszIn$[ebp], ax
-
-; 1090 :       lstrcatW (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
+; 965  :   lstrcatW (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
 
 	call	?SK_GetDLL@@YGPAUHINSTANCE__@@XZ	; SK_GetDLL
 	push	eax
@@ -75526,17 +74625,20 @@ $LN222@SK_Inject_:
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN262@SK_Inject_
+	jb	SHORT $LN32@SK_Inject_
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 
 ; 643  : 	return (_Ptr);
 
 	mov	eax, DWORD PTR [eax]
-$LN262@SK_Inject_:
+$LN32@SK_Inject_:
+	push	esi
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1090 :       lstrcatW (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
+; 965  :   lstrcatW (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
 
+	mov	esi, DWORD PTR __imp__lstrcatW@8
+	push	edi
 	push	eax
 	lea	eax, DWORD PTR _wszIn$[ebp]
 	push	eax
@@ -75550,7 +74652,336 @@ $LN262@SK_Inject_:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN271@SK_Inject_
+	jb	SHORT $LN42@SK_Inject_
+
+; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
+
+	inc	eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
+
+; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
+
+	push	2
+	push	eax
+	push	DWORD PTR $T4[ebp]
+	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
+	add	esp, 12					; 0000000cH
+$LN42@SK_Inject_:
+; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
+
+; 967  :   wchar_t   wszOut [MAX_PATH * 2] = { };
+
+	push	1040					; 00000410H
+	lea	eax, DWORD PTR _wszOut$[ebp]
+	push	0
+	push	eax
+	call	_memset
+	add	esp, 12					; 0000000cH
+
+; 968  :   lstrcatW (wszOut, SK_GetHostPath ());
+
+	call	?SK_GetHostPath@@YAPB_WXZ		; SK_GetHostPath
+	push	eax
+	lea	eax, DWORD PTR _wszOut$[ebp]
+	push	eax
+	call	esi
+
+; 969  : 
+; 970  :   switch (SK_GetCurrentRenderBackend ().api)
+
+	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
+	mov	eax, DWORD PTR [eax]
+	cmp	eax, 32					; 00000020H
+	jg	SHORT $LN14@SK_Inject_
+	je	SHORT $LN7@SK_Inject_
+	sub	eax, 2
+	je	SHORT $LN8@SK_Inject_
+	sub	eax, 6
+	je	SHORT $LN4@SK_Inject_
+	sub	eax, 16					; 00000010H
+	jne	SHORT $LN2@SK_Inject_
+$LN4@SK_Inject_:
+
+; 971  :   {
+; 972  :     case SK_RenderAPI::D3D9:
+; 973  :     case SK_RenderAPI::D3D9Ex:
+; 974  :       lstrcatW (wszOut, L"\\d3d9.dll");
+
+	push	OFFSET $SG257205
+
+; 975  :       break;
+
+	jmp	SHORT $LN273@SK_Inject_
+$LN8@SK_Inject_:
+
+; 994  :     } break;
+; 995  : 
+; 996  :     case SK_RenderAPI::OpenGL:
+; 997  :       lstrcatW (wszOut, L"\\OpenGL32.dll");
+
+	push	OFFSET $SG257213
+	jmp	SHORT $LN273@SK_Inject_
+$LN14@SK_Inject_:
+
+; 969  : 
+; 970  :   switch (SK_GetCurrentRenderBackend ().api)
+
+	cmp	eax, 64					; 00000040H
+	je	SHORT $LN7@SK_Inject_
+	cmp	eax, 8256				; 00002040H
+	je	SHORT $LN5@SK_Inject_
+	cmp	eax, 16448				; 00004040H
+	jne	SHORT $LN2@SK_Inject_
+
+; 981  : 
+; 982  :     case SK_RenderAPI::DDrawOn11:
+; 983  :       lstrcatW (wszOut, L"\\ddraw.dll");
+
+	push	OFFSET $SG257209
+
+; 984  :       break;
+
+	jmp	SHORT $LN273@SK_Inject_
+$LN5@SK_Inject_:
+
+; 976  : 
+; 977  : #ifndef _WIN64
+; 978  :     case SK_RenderAPI::D3D8On11:
+; 979  :       lstrcatW (wszOut, L"\\d3d8.dll");
+
+	push	OFFSET $SG257207
+
+; 980  :       break;
+
+	jmp	SHORT $LN273@SK_Inject_
+$LN7@SK_Inject_:
+
+; 985  : #endif
+; 986  : 
+; 987  :     case SK_RenderAPI::D3D10:
+; 988  :     case SK_RenderAPI::D3D11:
+; 989  : #ifdef _WIN64
+; 990  :     case SK_RenderAPI::D3D12:
+; 991  : #endif
+; 992  :     {
+; 993  :       lstrcatW (wszOut, L"\\dxgi.dll");
+
+	push	OFFSET $SG257211
+$LN273@SK_Inject_:
+	lea	eax, DWORD PTR _wszOut$[ebp]
+	push	eax
+	call	esi
+$LN2@SK_Inject_:
+
+; 998  :       break;
+; 999  : 
+; 1000 :     //case SK_RenderAPI::Vulkan:
+; 1001 :       //lstrcatW (wszOut, L"\\vk-1.dll");
+; 1002 :       //break;
+; 1003 :   }
+; 1004 : 
+; 1005 : 
+; 1006 :   //std::queue <DWORD> suspended =
+; 1007 :   //  SK_SuspendAllOtherThreads ();
+; 1008 :   //
+; 1009 :   //extern volatile LONG   SK_bypass_dialog_active;
+; 1010 :   //InterlockedIncrement (&SK_bypass_dialog_active);
+; 1011 :   //
+; 1012 :   //int mb_ret = 
+; 1013 :   //       SK_MessageBox ( L"Link the Installed Wrapper to the Global DLL?\r\n"
+; 1014 :   //                       L"\r\n"
+; 1015 :   //                       L"Linked installs allow you to update wrapped games the same way "
+; 1016 :   //                       L"as global injection, but require administrator privileges to setup.",
+; 1017 :   //                         L"Perform a Linked Wrapper Install?",
+; 1018 :   //                           MB_YESNO | MB_ICONQUESTION
+; 1019 :   //                     );
+; 1020 :   //
+; 1021 :   //InterlockedIncrement (&SK_bypass_dialog_active);
+; 1022 :   //
+; 1023 :   //SK_ResumeThreads (suspended);
+; 1024 :   //
+; 1025 :   //if ( mb_ret == IDYES )
+; 1026 :   //{
+; 1027 :   //  wchar_t   wszCmd [MAX_PATH * 3] = { };
+; 1028 :   //  swprintf (wszCmd, L"/c mklink \"%s\" \"%s\"", wszOut, wszIn);
+; 1029 :   //
+; 1030 :   //  ShellExecuteW ( GetActiveWindow (),
+; 1031 :   //                    L"runas",
+; 1032 :   //                      L"cmd.exe",
+; 1033 :   //                        wszCmd,
+; 1034 :   //                          nullptr,
+; 1035 :   //                            SW_HIDE );
+; 1036 :   //
+; 1037 :   //  SK_Inject_EnableCentralizedConfig ();
+; 1038 :   //
+; 1039 :   //  return true;
+; 1040 :   //}
+; 1041 : 
+; 1042 : 
+; 1043 :   if (CopyFile (wszIn, wszOut, TRUE))
+
+	mov	edi, DWORD PTR __imp__CopyFileW@12
+	lea	eax, DWORD PTR _wszOut$[ebp]
+	push	1
+	push	eax
+	lea	eax, DWORD PTR _wszIn$[ebp]
+	push	eax
+	call	edi
+	test	eax, eax
+	je	$LN9@SK_Inject_
+
+; 1044 :   {
+; 1045 :     SK_Inject_EnableCentralizedConfig ();
+
+	call	?SK_Inject_EnableCentralizedConfig@@YAXXZ ; SK_Inject_EnableCentralizedConfig
+
+; 1046 : 
+; 1047 :     *wszOut = L'\0';
+
+	xor	eax, eax
+	mov	WORD PTR _wszOut$[ebp], ax
+
+; 1048 :     *wszIn  = L'\0';
+
+	mov	WORD PTR _wszIn$[ebp], ax
+
+; 1049 : 
+; 1050 :     lstrcatW (wszOut, SK_GetHostPath ());
+
+	call	?SK_GetHostPath@@YAPB_WXZ		; SK_GetHostPath
+	push	eax
+	lea	eax, DWORD PTR _wszOut$[ebp]
+	push	eax
+	call	esi
+
+; 1051 : 
+; 1052 : #ifdef _WIN64
+; 1053 :     lstrcatW (wszIn,  L"SpecialK64.pdb");
+; 1054 :     lstrcatW (wszOut, L"\\SpecialK64.pdb");
+; 1055 : #else
+; 1056 :     lstrcatW (wszIn,  L"SpecialK32.pdb");
+
+	push	OFFSET $SG257215
+	lea	eax, DWORD PTR _wszIn$[ebp]
+	push	eax
+	call	esi
+
+; 1057 :     lstrcatW (wszOut, L"\\SpecialK32.pdb");
+
+	push	OFFSET $SG257216
+	lea	eax, DWORD PTR _wszOut$[ebp]
+	push	eax
+	call	esi
+
+; 1058 : #endif
+; 1059 : 
+; 1060 :     if (! CopyFileW (wszIn, wszOut, TRUE))
+
+	push	1
+	lea	eax, DWORD PTR _wszOut$[ebp]
+	push	eax
+	lea	eax, DWORD PTR _wszIn$[ebp]
+	push	eax
+	call	edi
+	test	eax, eax
+	jne	SHORT $LN10@SK_Inject_
+
+; 1061 :       ReplaceFileW (wszOut, wszIn, nullptr, 0x00, nullptr, nullptr);
+
+	push	eax
+	push	eax
+	push	eax
+	push	eax
+	lea	eax, DWORD PTR _wszIn$[ebp]
+	push	eax
+	lea	eax, DWORD PTR _wszOut$[ebp]
+	push	eax
+	call	DWORD PTR __imp__ReplaceFileW@24
+$LN10@SK_Inject_:
+
+; 1062 : 
+; 1063 :     *wszIn = L'\0';
+
+	xor	eax, eax
+	mov	WORD PTR _wszIn$[ebp], ax
+
+; 1066 :       SK_FormatStringW (LR"(%s\Version)", SK_GetConfigPath ());
+
+	call	?SK_GetConfigPath@@YGPB_WXZ		; SK_GetConfigPath
+	push	eax
+	lea	eax, DWORD PTR _ver_dir$5[ebp]
+	push	OFFSET $SG257218
+	push	eax
+	call	?SK_FormatStringW@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QB_WZZ ; SK_FormatStringW
+	add	esp, 12					; 0000000cH
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	cmp	DWORD PTR _ver_dir$5[ebp+20], 8
+
+; 1621 : 		return (_Large_string_engaged()
+
+	lea	eax, DWORD PTR _ver_dir$5[ebp]
+; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
+
+; 1066 :       SK_FormatStringW (LR"(%s\Version)", SK_GetConfigPath ());
+
+	mov	DWORD PTR __$EHRec$[ebp+8], 0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1621 : 		return (_Large_string_engaged()
+
+	cmovae	eax, DWORD PTR _ver_dir$5[ebp]
+; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
+
+; 1069 :       GetFileAttributesW (ver_dir.c_str ());
+
+	push	eax
+	call	DWORD PTR __imp__GetFileAttributesW@4
+	mov	DWORD PTR _dwAttribs$1$[ebp], eax
+
+; 1071 :     lstrcatW             (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
+
+	call	?SK_GetDLL@@YGPAUHINSTANCE__@@XZ	; SK_GetDLL
+	push	eax
+	lea	eax, DWORD PTR $T3[ebp]
+	push	eax
+	call	?SK_GetModuleFullName@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@PAUHINSTANCE__@@@Z ; SK_GetModuleFullName
+	add	esp, 8
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	cmp	DWORD PTR [eax+20], 8
+
+; 1621 : 		return (_Large_string_engaged()
+
+	jb	SHORT $LN100@SK_Inject_
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
+
+; 643  : 	return (_Ptr);
+
+	mov	eax, DWORD PTR [eax]
+$LN100@SK_Inject_:
+; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
+
+; 1071 :     lstrcatW             (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
+
+	push	eax
+	lea	eax, DWORD PTR _wszIn$[ebp]
+	push	eax
+	call	esi
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	mov	eax, DWORD PTR $T3[ebp+20]
+	cmp	eax, 8
+
+; 3608 : 		if (_My_data._Large_string_engaged())
+
+	jb	SHORT $LN110@SK_Inject_
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
@@ -75566,69 +74997,130 @@ $LN262@SK_Inject_:
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
 
 	push	eax
-	push	DWORD PTR $T4[ebp]
+	push	DWORD PTR $T3[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN271@SK_Inject_:
+$LN110@SK_Inject_:
+	push	ebx
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1091 :       PathRemoveFileSpecW  (wszIn);
+; 1072 :     PathRemoveFileSpecW  (wszIn);
 
 	lea	eax, DWORD PTR _wszIn$[ebp]
 	push	eax
 	call	DWORD PTR __imp__PathRemoveFileSpecW@4
 
-; 1092 : 
-; 1093 :       lstrcatW (wszIn, L"\\Version\\repository.ini");
+; 1073 :     PathAppendW          (wszIn, L"Version\\installed.ini");
 
-	push	OFFSET $SG257157
+	mov	ebx, DWORD PTR __imp__PathAppendW@8
+	lea	eax, DWORD PTR _wszIn$[ebp]
+	push	OFFSET $SG257219
+	push	eax
+	call	ebx
+
+; 1075 :     if ( GetFileAttributesW (wszIn) != INVALID_FILE_ATTRIBUTES &&
+
 	lea	eax, DWORD PTR _wszIn$[ebp]
 	push	eax
-	call	esi
+	call	DWORD PTR __imp__GetFileAttributesW@4
+	cmp	eax, -1
+	je	$LN11@SK_Inject_
+	cmp	DWORD PTR _dwAttribs$1$[ebp], -1
+	jne	SHORT $LN12@SK_Inject_
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
-; 1097 :       lstrcatW (wszOut, SK_UTF8ToWideChar (ver_dir).c_str ());
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	sub	esp, 24					; 00000018H
+	cmp	DWORD PTR _ver_dir$5[ebp+20], 8
+
+; 1621 : 		return (_Large_string_engaged()
+
+	lea	eax, DWORD PTR _ver_dir$5[ebp]
+; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
+
+; 1075 :     if ( GetFileAttributesW (wszIn) != INVALID_FILE_ATTRIBUTES &&
+
+	push	0
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1621 : 		return (_Large_string_engaged()
+
+	cmovae	eax, DWORD PTR _ver_dir$5[ebp]
+; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
+
+; 1075 :     if ( GetFileAttributesW (wszIn) != INVALID_FILE_ATTRIBUTES &&
+
+	push	eax
+	call	DWORD PTR __imp__CreateDirectoryW@8
+	test	eax, eax
+	je	$LN11@SK_Inject_
+$LN12@SK_Inject_:
+
+; 1079 :       *wszOut = L'\0';
+
 	xor	eax, eax
-	mov	ecx, esp
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	cmp	DWORD PTR _ver_dir$5[ebp+20], 8
+; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
+
+; 1079 :       *wszOut = L'\0';
+
 	mov	WORD PTR _wszOut$[ebp], ax
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
-; 2174 : 		assign(_Right, 0, npos);
+; 1621 : 		return (_Large_string_engaged()
 
-	push	-1
-
-; 3597 : 		_My_data._Mysize = 0;
-
-	mov	DWORD PTR [ecx+16], eax
-
-; 3598 : 		_My_data._Myres = this->_BUF_SIZE - 1;
-
-	mov	DWORD PTR [ecx+20], 15			; 0000000fH
-
-; 2174 : 		assign(_Right, 0, npos);
-
-	push	eax
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
-
-; 517  : 		_Left = _Right;
-
-	mov	BYTE PTR [ecx], al
-; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
-
-; 2174 : 		assign(_Right, 0, npos);
-
-	lea	eax, DWORD PTR _ver_dir$3[ebp]
-	push	eax
-	call	?assign@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAEAAV12@ABV12@II@Z ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::assign
+	lea	eax, DWORD PTR _ver_dir$5[ebp]
+	cmovae	eax, DWORD PTR _ver_dir$5[ebp]
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1097 :       lstrcatW (wszOut, SK_UTF8ToWideChar (ver_dir).c_str ());
+; 1081 :       lstrcatW    (wszOut, ver_dir.c_str ());
 
+	push	eax
+	lea	eax, DWORD PTR _wszOut$[ebp]
+	push	eax
+	call	esi
+
+; 1082 :       PathAppendW (wszOut, L"installed.ini");
+
+	push	OFFSET $SG257222
+	lea	eax, DWORD PTR _wszOut$[ebp]
+	push	eax
+	call	ebx
+
+; 1083 : 
+; 1084 :       DeleteFileW (       wszOut);
+
+	lea	eax, DWORD PTR _wszOut$[ebp]
+	push	eax
+	call	DWORD PTR __imp__DeleteFileW@4
+
+; 1085 :       CopyFile    (wszIn, wszOut, FALSE);
+
+	push	0
+	lea	eax, DWORD PTR _wszOut$[ebp]
+	push	eax
+	lea	eax, DWORD PTR _wszIn$[ebp]
+	push	eax
+	call	edi
+
+; 1086 : 
+; 1087 :       *wszIn = L'\0';
+
+	xor	eax, eax
+	mov	WORD PTR _wszIn$[ebp], ax
+
+; 1089 :       lstrcatW             (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
+
+	call	?SK_GetDLL@@YGPAUHINSTANCE__@@XZ	; SK_GetDLL
+	push	eax
 	lea	eax, DWORD PTR $T2[ebp]
 	push	eax
-	call	?SK_UTF8ToWideChar@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@2@@Z ; SK_UTF8ToWideChar
-	add	esp, 28					; 0000001cH
+	call	?SK_GetModuleFullName@@YA?AV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@PAUHINSTANCE__@@@Z ; SK_GetModuleFullName
+	add	esp, 8
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
@@ -75637,19 +75129,19 @@ $LN271@SK_Inject_:
 
 ; 1621 : 		return (_Large_string_engaged()
 
-	jb	SHORT $LN351@SK_Inject_
+	jb	SHORT $LN187@SK_Inject_
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstddef
 
 ; 643  : 	return (_Ptr);
 
 	mov	eax, DWORD PTR [eax]
-$LN351@SK_Inject_:
+$LN187@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1097 :       lstrcatW (wszOut, SK_UTF8ToWideChar (ver_dir).c_str ());
+; 1089 :       lstrcatW             (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
 
 	push	eax
-	lea	eax, DWORD PTR _wszOut$[ebp]
+	lea	eax, DWORD PTR _wszIn$[ebp]
 	push	eax
 	call	esi
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -75661,7 +75153,7 @@ $LN351@SK_Inject_:
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN360@SK_Inject_
+	jb	SHORT $LN197@SK_Inject_
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
@@ -75680,24 +75172,65 @@ $LN351@SK_Inject_:
 	push	DWORD PTR $T2[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN360@SK_Inject_:
+$LN197@SK_Inject_:
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1098 :       lstrcatW (wszOut, L"\\repository.ini");
+; 1090 :       PathRemoveFileSpecW  (wszIn);
 
-	push	OFFSET $SG257158
+	lea	eax, DWORD PTR _wszIn$[ebp]
+	push	eax
+	call	DWORD PTR __imp__PathRemoveFileSpecW@4
+
+; 1091 :       PathAppendW          (wszIn, L"Version\\repository.ini");
+
+	push	OFFSET $SG257223
+	lea	eax, DWORD PTR _wszIn$[ebp]
+	push	eax
+	call	ebx
+
+; 1093 :       *wszOut = L'\0';
+
+	xor	eax, eax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1628 : 		return (this->_BUF_SIZE <= _Myres);
+
+	cmp	DWORD PTR _ver_dir$5[ebp+20], 8
+; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
+
+; 1093 :       *wszOut = L'\0';
+
+	mov	WORD PTR _wszOut$[ebp], ax
+; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
+
+; 1621 : 		return (_Large_string_engaged()
+
+	lea	eax, DWORD PTR _ver_dir$5[ebp]
+	cmovae	eax, DWORD PTR _ver_dir$5[ebp]
+; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
+
+; 1095 :       lstrcatW    (wszOut, ver_dir.c_str ());
+
+	push	eax
 	lea	eax, DWORD PTR _wszOut$[ebp]
 	push	eax
 	call	esi
 
-; 1099 : 
-; 1100 :       DeleteFileW (       wszOut);
+; 1096 :       PathAppendW (wszOut, L"repository.ini");
+
+	push	OFFSET $SG257224
+	lea	eax, DWORD PTR _wszOut$[ebp]
+	push	eax
+	call	ebx
+
+; 1097 : 
+; 1098 :       DeleteFileW (       wszOut);
 
 	lea	eax, DWORD PTR _wszOut$[ebp]
 	push	eax
 	call	DWORD PTR __imp__DeleteFileW@4
 
-; 1101 :       CopyFile    (wszIn, wszOut, FALSE);
+; 1099 :       CopyFile    (wszIn, wszOut, FALSE);
 
 	push	0
 	lea	eax, DWORD PTR _wszOut$[ebp]
@@ -75710,17 +75243,18 @@ $LN11@SK_Inject_:
 
 ; 1628 : 		return (this->_BUF_SIZE <= _Myres);
 
-	mov	eax, DWORD PTR _ver_dir$3[ebp+20]
-	cmp	eax, 16					; 00000010H
+	mov	eax, DWORD PTR _ver_dir$5[ebp+20]
+	pop	ebx
+	cmp	eax, 8
 
 ; 3608 : 		if (_My_data._Large_string_engaged())
 
-	jb	SHORT $LN390@SK_Inject_
+	jb	SHORT $LN246@SK_Inject_
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xmemory0
 
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
 
-	push	1
+	push	2
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
 
 ; 3613 : 			_Al.deallocate(_Ptr, _My_data._Myres + 1);
@@ -75731,25 +75265,25 @@ $LN11@SK_Inject_:
 ; 823  : 		_Deallocate(_Ptr, _Count, sizeof (_Ty));
 
 	push	eax
-	push	DWORD PTR _ver_dir$3[ebp]
+	push	DWORD PTR _ver_dir$5[ebp]
 	call	?_Deallocate@std@@YAXPAXII@Z		; std::_Deallocate
 	add	esp, 12					; 0000000cH
-$LN390@SK_Inject_:
+$LN246@SK_Inject_:
+	pop	edi
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1104 :     return true;
+; 1102 :     return true;
 
 	mov	al, 1
+	pop	esi
 
-; 1105 :   }
-; 1106 : 
-; 1107 :   return false;
-; 1108 : }
+; 1103 :   }
+; 1104 : 
+; 1105 :   return false;
+; 1106 : }
 
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	mov	DWORD PTR fs:0, ecx
-	pop	edi
-	pop	esi
 	mov	esp, ebp
 	pop	ebp
 	ret	0
@@ -75757,16 +75291,16 @@ $LN9@SK_Inject_:
 	mov	ecx, DWORD PTR __$EHRec$[ebp]
 	xor	al, al
 	pop	edi
-	mov	DWORD PTR fs:0, ecx
 	pop	esi
+	mov	DWORD PTR fs:0, ecx
 	mov	esp, ebp
 	pop	ebp
 	ret	0
 _TEXT	ENDS
 text$x	SEGMENT
 __unwindfunclet$?SK_Inject_SwitchToRenderWrapper@@YA_NXZ$1:
-	lea	ecx, DWORD PTR _ver_dir$3[ebp]
-	jmp	??1?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAE@XZ ; std::basic_string<char,std::char_traits<char>,std::allocator<char> >::~basic_string<char,std::char_traits<char>,std::allocator<char> >
+	lea	ecx, DWORD PTR _ver_dir$5[ebp]
+	jmp	??1?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAE@XZ ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::~basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >
 __ehhandler$?SK_Inject_SwitchToRenderWrapper@@YA_NXZ:
 	mov	eax, OFFSET __ehfuncinfo$?SK_Inject_SwitchToRenderWrapper@@YA_NXZ
 	jmp	___CxxFrameHandler3
@@ -75786,24 +75320,24 @@ _wszOut$ = -1040					; size = 1040
 _role$ = 8						; size = 4
 ?SK_Inject_SwitchToGlobalInjectorEx@@YA_NW4DLL_ROLE@@@Z PROC ; SK_Inject_SwitchToGlobalInjectorEx
 
-; 1166 : {
+; 1164 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	sub	esp, 1560				; 00000618H
 
-; 1167 :   config.system.central_repository = true;
+; 1165 :   config.system.central_repository = true;
 
 	mov	BYTE PTR ?config@@3Usk_config_t@@A+844, 1
 	push	esi
 
-; 1168 :   SK_EstablishRootPath ();
+; 1166 :   SK_EstablishRootPath ();
 
 	call	?SK_EstablishRootPath@@YGXXZ		; SK_EstablishRootPath
 
-; 1169 : 
-; 1170 :   wchar_t wszOut [MAX_PATH * 2] = { };
+; 1167 : 
+; 1168 :   wchar_t wszOut [MAX_PATH * 2] = { };
 
 	push	1040					; 00000410H
 	lea	eax, DWORD PTR _wszOut$[ebp]
@@ -75812,7 +75346,7 @@ _role$ = 8						; size = 4
 	call	_memset
 	add	esp, 12					; 0000000cH
 
-; 1171 :   lstrcatW (wszOut, SK_GetHostPath ());
+; 1169 :   lstrcatW (wszOut, SK_GetHostPath ());
 
 	call	?SK_GetHostPath@@YAPB_WXZ		; SK_GetHostPath
 	mov	esi, DWORD PTR __imp__lstrcatW@8
@@ -75821,8 +75355,8 @@ _role$ = 8						; size = 4
 	push	eax
 	call	esi
 
-; 1172 : 
-; 1173 :   switch (role)
+; 1170 : 
+; 1171 :   switch (role)
 
 	mov	eax, DWORD PTR _role$[ebp]
 	cmp	eax, 1
@@ -75833,77 +75367,77 @@ _role$ = 8						; size = 4
 	cmp	eax, -1073741792			; c0000020H
 	jne	SHORT $LN2@SK_Inject_
 
-; 1183 :     case DLL_ROLE::DDraw:
-; 1184 :       lstrcatW (wszOut, L"\\ddraw.dll");
+; 1181 :     case DLL_ROLE::DDraw:
+; 1182 :       lstrcatW (wszOut, L"\\ddraw.dll");
 
-	push	OFFSET $SG257193
+	push	OFFSET $SG257259
 
-; 1185 :       break;
+; 1183 :       break;
 
 	jmp	SHORT $LN36@SK_Inject_
 $LN5@SK_Inject_:
 
-; 1177 :       break;
-; 1178 : 
-; 1179 : #ifndef _WIN64
-; 1180 :     case DLL_ROLE::D3D8:
-; 1181 :       lstrcatW (wszOut, L"\\d3d8.dll");
+; 1175 :       break;
+; 1176 : 
+; 1177 : #ifndef _WIN64
+; 1178 :     case DLL_ROLE::D3D8:
+; 1179 :       lstrcatW (wszOut, L"\\d3d8.dll");
 
-	push	OFFSET $SG257191
+	push	OFFSET $SG257257
 
-; 1182 :       break;
+; 1180 :       break;
 
 	jmp	SHORT $LN36@SK_Inject_
 $LN7@SK_Inject_:
 
-; 1186 : #endif
-; 1187 : 
-; 1188 :     case DLL_ROLE::DXGI:
-; 1189 :     {
-; 1190 :       lstrcatW (wszOut, L"\\dxgi.dll");
+; 1184 : #endif
+; 1185 : 
+; 1186 :     case DLL_ROLE::DXGI:
+; 1187 :     {
+; 1188 :       lstrcatW (wszOut, L"\\dxgi.dll");
 
-	push	OFFSET $SG257195
+	push	OFFSET $SG257261
 
-; 1191 :     } break;
+; 1189 :     } break;
 
 	jmp	SHORT $LN36@SK_Inject_
 $LN10@SK_Inject_:
 
-; 1172 : 
-; 1173 :   switch (role)
+; 1170 : 
+; 1171 :   switch (role)
 
 	sub	eax, 2
 	je	SHORT $LN4@SK_Inject_
 	sub	eax, 2
 	jne	SHORT $LN2@SK_Inject_
 
-; 1192 : 
-; 1193 :     case DLL_ROLE::OpenGL:
-; 1194 :       lstrcatW (wszOut, L"\\OpenGL32.dll");
+; 1190 : 
+; 1191 :     case DLL_ROLE::OpenGL:
+; 1192 :       lstrcatW (wszOut, L"\\OpenGL32.dll");
 
-	push	OFFSET $SG257197
+	push	OFFSET $SG257263
 	jmp	SHORT $LN36@SK_Inject_
 $LN4@SK_Inject_:
 
-; 1174 :   {
-; 1175 :     case DLL_ROLE::D3D9:
-; 1176 :       lstrcatW (wszOut, L"\\d3d9.dll");
+; 1172 :   {
+; 1173 :     case DLL_ROLE::D3D9:
+; 1174 :       lstrcatW (wszOut, L"\\d3d9.dll");
 
-	push	OFFSET $SG257189
+	push	OFFSET $SG257255
 $LN36@SK_Inject_:
 	lea	eax, DWORD PTR _wszOut$[ebp]
 	push	eax
 	call	esi
 $LN2@SK_Inject_:
 
-; 1195 :       break;
-; 1196 : 
-; 1197 :     //case SK_RenderAPI::Vulkan:
-; 1198 :       //lstrcatW (wszOut, L"\\vk-1.dll");
-; 1199 :       //break;
-; 1200 :   }
-; 1201 : 
-; 1202 :   wchar_t wszTemp [MAX_PATH] = { };
+; 1193 :       break;
+; 1194 : 
+; 1195 :     //case SK_RenderAPI::Vulkan:
+; 1196 :       //lstrcatW (wszOut, L"\\vk-1.dll");
+; 1197 :       //break;
+; 1198 :   }
+; 1199 : 
+; 1200 :   wchar_t wszTemp [MAX_PATH] = { };
 
 	push	520					; 00000208H
 	lea	eax, DWORD PTR _wszTemp$[ebp]
@@ -75912,19 +75446,19 @@ $LN2@SK_Inject_:
 	call	_memset
 	add	esp, 12					; 0000000cH
 
-; 1203 :   GetTempFileNameW (SK_GetHostPath (), L"SKI", timeGetTime (), wszTemp);
+; 1201 :   GetTempFileNameW (SK_GetHostPath (), L"SKI", timeGetTime (), wszTemp);
 
 	lea	eax, DWORD PTR _wszTemp$[ebp]
 	push	eax
 	call	DWORD PTR __imp__timeGetTime@0
 	push	eax
-	push	OFFSET $SG257198
+	push	OFFSET $SG257264
 	call	?SK_GetHostPath@@YAPB_WXZ		; SK_GetHostPath
 	push	eax
 	call	DWORD PTR __imp__GetTempFileNameW@16
 
-; 1204 : 
-; 1205 :   MoveFileW (wszOut, wszTemp);
+; 1202 : 
+; 1203 :   MoveFileW (wszOut, wszTemp);
 
 	lea	eax, DWORD PTR _wszTemp$[ebp]
 	push	eax
@@ -75932,7 +75466,7 @@ $LN2@SK_Inject_:
 	push	eax
 	call	DWORD PTR __imp__MoveFileW@8
 
-; 1207 :   SK_SaveConfig (L"SpecialK");
+; 1205 :   SK_SaveConfig (L"SpecialK");
 
 	push	0
 	sub	esp, 24					; 00000018H
@@ -75943,7 +75477,7 @@ $LN2@SK_Inject_:
 	xor	eax, eax
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1207 :   SK_SaveConfig (L"SpecialK");
+; 1205 :   SK_SaveConfig (L"SpecialK");
 
 	mov	ecx, esp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -75962,7 +75496,7 @@ $LN2@SK_Inject_:
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG257199
+	push	OFFSET $SG257265
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -75975,17 +75509,17 @@ $LN2@SK_Inject_:
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1207 :   SK_SaveConfig (L"SpecialK");
+; 1205 :   SK_SaveConfig (L"SpecialK");
 
 	call	?SK_SaveConfig@@YAXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@_N@Z ; SK_SaveConfig
 	add	esp, 28					; 0000001cH
 
-; 1208 : 
-; 1209 :   return true;
+; 1206 : 
+; 1207 :   return true;
 
 	mov	al, 1
 
-; 1210 : }
+; 1208 : }
 
 	pop	esi
 	mov	esp, ebp
@@ -76006,24 +75540,24 @@ _wszTemp$ = -1564					; size = 520
 _wszOut$ = -1044					; size = 1040
 ?SK_Inject_SwitchToGlobalInjector@@YA_NXZ PROC		; SK_Inject_SwitchToGlobalInjector
 
-; 1112 : {
+; 1110 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	sub	esp, 1564				; 0000061cH
 
-; 1113 :   config.system.central_repository = true;
+; 1111 :   config.system.central_repository = true;
 
 	mov	BYTE PTR ?config@@3Usk_config_t@@A+844, 1
 	push	esi
 
-; 1114 :   SK_EstablishRootPath ();
+; 1112 :   SK_EstablishRootPath ();
 
 	call	?SK_EstablishRootPath@@YGXXZ		; SK_EstablishRootPath
 
-; 1115 : 
-; 1116 :   wchar_t wszOut [MAX_PATH * 2] = { };
+; 1113 : 
+; 1114 :   wchar_t wszOut [MAX_PATH * 2] = { };
 
 	push	1040					; 00000410H
 	lea	eax, DWORD PTR _wszOut$[ebp]
@@ -76032,7 +75566,7 @@ _wszOut$ = -1044					; size = 1040
 	call	_memset
 	add	esp, 12					; 0000000cH
 
-; 1117 :   lstrcatW (wszOut, SK_GetHostPath ());
+; 1115 :   lstrcatW (wszOut, SK_GetHostPath ());
 
 	call	?SK_GetHostPath@@YAPB_WXZ		; SK_GetHostPath
 	mov	esi, DWORD PTR __imp__lstrcatW@8
@@ -76041,8 +75575,8 @@ _wszOut$ = -1044					; size = 1040
 	push	eax
 	call	esi
 
-; 1118 : 
-; 1119 :   switch (SK_GetCurrentRenderBackend ().api)
+; 1116 : 
+; 1117 :   switch (SK_GetCurrentRenderBackend ().api)
 
 	call	?SK_GetCurrentRenderBackend@@YGAAVSK_RenderBackend_V2@@XZ ; SK_GetCurrentRenderBackend
 	mov	eax, DWORD PTR [eax]
@@ -76057,29 +75591,29 @@ _wszOut$ = -1044					; size = 1040
 	jne	SHORT $LN2@SK_Inject_
 $LN4@SK_Inject_:
 
-; 1120 :   {
-; 1121 :     case SK_RenderAPI::D3D9:
-; 1122 :     case SK_RenderAPI::D3D9Ex:
-; 1123 :       lstrcatW (wszOut, L"\\d3d9.dll");
+; 1118 :   {
+; 1119 :     case SK_RenderAPI::D3D9:
+; 1120 :     case SK_RenderAPI::D3D9Ex:
+; 1121 :       lstrcatW (wszOut, L"\\d3d9.dll");
 
-	push	OFFSET $SG257169
+	push	OFFSET $SG257235
 
-; 1124 :       break;
+; 1122 :       break;
 
 	jmp	SHORT $LN36@SK_Inject_
 $LN8@SK_Inject_:
 
-; 1143 :     } break;
-; 1144 : 
-; 1145 :     case SK_RenderAPI::OpenGL:
-; 1146 :       lstrcatW (wszOut, L"\\OpenGL32.dll");
+; 1141 :     } break;
+; 1142 : 
+; 1143 :     case SK_RenderAPI::OpenGL:
+; 1144 :       lstrcatW (wszOut, L"\\OpenGL32.dll");
 
-	push	OFFSET $SG257177
+	push	OFFSET $SG257243
 	jmp	SHORT $LN36@SK_Inject_
 $LN10@SK_Inject_:
 
-; 1118 : 
-; 1119 :   switch (SK_GetCurrentRenderBackend ().api)
+; 1116 : 
+; 1117 :   switch (SK_GetCurrentRenderBackend ().api)
 
 	cmp	eax, 64					; 00000040H
 	je	SHORT $LN7@SK_Inject_
@@ -76088,54 +75622,54 @@ $LN10@SK_Inject_:
 	cmp	eax, 16448				; 00004040H
 	jne	SHORT $LN2@SK_Inject_
 
-; 1130 : 
-; 1131 :     case SK_RenderAPI::DDrawOn11:
-; 1132 :       lstrcatW (wszOut, L"\\ddraw.dll");
+; 1128 : 
+; 1129 :     case SK_RenderAPI::DDrawOn11:
+; 1130 :       lstrcatW (wszOut, L"\\ddraw.dll");
 
-	push	OFFSET $SG257173
+	push	OFFSET $SG257239
 
-; 1133 :       break;
+; 1131 :       break;
 
 	jmp	SHORT $LN36@SK_Inject_
 $LN5@SK_Inject_:
 
-; 1125 : 
-; 1126 : #ifndef _WIN64
-; 1127 :     case SK_RenderAPI::D3D8On11:
-; 1128 :       lstrcatW (wszOut, L"\\d3d8.dll");
+; 1123 : 
+; 1124 : #ifndef _WIN64
+; 1125 :     case SK_RenderAPI::D3D8On11:
+; 1126 :       lstrcatW (wszOut, L"\\d3d8.dll");
 
-	push	OFFSET $SG257171
+	push	OFFSET $SG257237
 
-; 1129 :       break;
+; 1127 :       break;
 
 	jmp	SHORT $LN36@SK_Inject_
 $LN7@SK_Inject_:
 
-; 1134 : #endif
-; 1135 : 
-; 1136 :     case SK_RenderAPI::D3D10:
-; 1137 :     case SK_RenderAPI::D3D11:
-; 1138 : #ifdef _WIN64
-; 1139 :     case SK_RenderAPI::D3D12:
-; 1140 : #endif
-; 1141 :     {
-; 1142 :       lstrcatW (wszOut, L"\\dxgi.dll");
+; 1132 : #endif
+; 1133 : 
+; 1134 :     case SK_RenderAPI::D3D10:
+; 1135 :     case SK_RenderAPI::D3D11:
+; 1136 : #ifdef _WIN64
+; 1137 :     case SK_RenderAPI::D3D12:
+; 1138 : #endif
+; 1139 :     {
+; 1140 :       lstrcatW (wszOut, L"\\dxgi.dll");
 
-	push	OFFSET $SG257175
+	push	OFFSET $SG257241
 $LN36@SK_Inject_:
 	lea	eax, DWORD PTR _wszOut$[ebp]
 	push	eax
 	call	esi
 $LN2@SK_Inject_:
 
-; 1147 :       break;
-; 1148 : 
-; 1149 :     //case SK_RenderAPI::Vulkan:
-; 1150 :       //lstrcatW (wszOut, L"\\vk-1.dll");
-; 1151 :       //break;
-; 1152 :   }
-; 1153 : 
-; 1154 :   wchar_t wszTemp [MAX_PATH] = {  };
+; 1145 :       break;
+; 1146 : 
+; 1147 :     //case SK_RenderAPI::Vulkan:
+; 1148 :       //lstrcatW (wszOut, L"\\vk-1.dll");
+; 1149 :       //break;
+; 1150 :   }
+; 1151 : 
+; 1152 :   wchar_t wszTemp [MAX_PATH] = {  };
 
 	push	520					; 00000208H
 	lea	eax, DWORD PTR _wszTemp$[ebp]
@@ -76144,19 +75678,19 @@ $LN2@SK_Inject_:
 	call	_memset
 	add	esp, 12					; 0000000cH
 
-; 1155 :   GetTempFileNameW (SK_GetHostPath (), L"SKI", timeGetTime (), wszTemp);
+; 1153 :   GetTempFileNameW (SK_GetHostPath (), L"SKI", timeGetTime (), wszTemp);
 
 	lea	eax, DWORD PTR _wszTemp$[ebp]
 	push	eax
 	call	DWORD PTR __imp__timeGetTime@0
 	push	eax
-	push	OFFSET $SG257178
+	push	OFFSET $SG257244
 	call	?SK_GetHostPath@@YAPB_WXZ		; SK_GetHostPath
 	push	eax
 	call	DWORD PTR __imp__GetTempFileNameW@16
 
-; 1156 : 
-; 1157 :   MoveFileW (wszOut, wszTemp);
+; 1154 : 
+; 1155 :   MoveFileW (wszOut, wszTemp);
 
 	lea	eax, DWORD PTR _wszTemp$[ebp]
 	push	eax
@@ -76164,7 +75698,7 @@ $LN2@SK_Inject_:
 	push	eax
 	call	DWORD PTR __imp__MoveFileW@8
 
-; 1159 :   SK_SaveConfig (L"SpecialK");
+; 1157 :   SK_SaveConfig (L"SpecialK");
 
 	push	0
 	sub	esp, 24					; 00000018H
@@ -76175,7 +75709,7 @@ $LN2@SK_Inject_:
 	xor	eax, eax
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1159 :   SK_SaveConfig (L"SpecialK");
+; 1157 :   SK_SaveConfig (L"SpecialK");
 
 	mov	ecx, esp
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -76194,7 +75728,7 @@ $LN2@SK_Inject_:
 
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
-	push	OFFSET $SG257179
+	push	OFFSET $SG257245
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\iosfwd
 
 ; 326  : 		_Left = _Right;
@@ -76207,17 +75741,17 @@ $LN2@SK_Inject_:
 	call	?assign@?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@QAEAAV12@QB_WI@Z ; std::basic_string<wchar_t,std::char_traits<wchar_t>,std::allocator<wchar_t> >::assign
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1159 :   SK_SaveConfig (L"SpecialK");
+; 1157 :   SK_SaveConfig (L"SpecialK");
 
 	call	?SK_SaveConfig@@YAXV?$basic_string@_WU?$char_traits@_W@std@@V?$allocator@_W@2@@std@@_N@Z ; SK_SaveConfig
 	add	esp, 28					; 0000001cH
 
-; 1160 : 
-; 1161 :   return true;
+; 1158 : 
+; 1159 :   return true;
 
 	mov	al, 1
 
-; 1162 : }
+; 1160 : }
 
 	pop	esi
 	mov	esp, ebp
@@ -76234,29 +75768,29 @@ _pdwList$ = 8						; size = 4
 _capacity$ = 12						; size = 4
 ?SKX_GetInjectedPIDs@@YGIPAKI@Z PROC			; SKX_GetInjectedPIDs
 
-; 1395 : {
+; 1393 : {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 	push	esi
 
-; 1396 :   DWORD*  pdwListIter = pdwList;
+; 1394 :   DWORD*  pdwListIter = pdwList;
 
 	mov	esi, DWORD PTR _pdwList$[ebp]
 	push	edi
 
-; 1397 :   SSIZE_T i           = 0;
+; 1395 :   SSIZE_T i           = 0;
 
 	xor	edi, edi
 
-; 1398 : 
-; 1399 :   SK_Inject_ValidateProcesses ();
+; 1396 : 
+; 1397 :   SK_Inject_ValidateProcesses ();
 
 	call	?SK_Inject_ValidateProcesses@@YAXXZ	; SK_Inject_ValidateProcesses
 
-; 1400 : 
-; 1401 :   for (volatile LONG& g_sHookedPID : g_sHookedPIDs)
+; 1398 : 
+; 1399 :   for (volatile LONG& g_sHookedPID : g_sHookedPIDs)
 
 	mov	edx, DWORD PTR _capacity$[ebp]
 	mov	ecx, OFFSET ?g_sHookedPIDs@@3PAJA
@@ -76269,69 +75803,69 @@ $LL4@SKX_GetInj:
 	mov	eax, DWORD PTR [ecx]
 ; File c:\users\andon\source\repos\specialk\src\injection\injection.cpp
 
-; 1403 :     if (ReadAcquire (&g_sHookedPID) != 0)
+; 1401 :     if (ReadAcquire (&g_sHookedPID) != 0)
 
 	test	eax, eax
 	je	SHORT $LN2@SKX_GetInj
 
-; 1404 :     {
-; 1405 :       if (i < (SSIZE_T)capacity - 1)
+; 1402 :     {
+; 1403 :       if (i < (SSIZE_T)capacity - 1)
 
 	lea	eax, DWORD PTR [edx-1]
 	cmp	edi, eax
 	jge	SHORT $LN7@SKX_GetInj
 
-; 1406 :       {
-; 1407 :         if (pdwListIter != nullptr)
+; 1404 :       {
+; 1405 :         if (pdwListIter != nullptr)
 
 	test	esi, esi
 	je	SHORT $LN7@SKX_GetInj
 
-; 1408 :         {
-; 1409 :           *pdwListIter = ReadAcquire (&g_sHookedPID);
+; 1406 :         {
+; 1407 :           *pdwListIter = ReadAcquire (&g_sHookedPID);
 
 	mov	eax, DWORD PTR [ecx]
 	mov	DWORD PTR [esi], eax
 
-; 1410 :            pdwListIter++;
+; 1408 :            pdwListIter++;
 
 	add	esi, 4
 $LN7@SKX_GetInj:
 
-; 1411 :         }
-; 1412 :       }
-; 1413 : 
-; 1414 :       ++i;
+; 1409 :         }
+; 1410 :       }
+; 1411 : 
+; 1412 :       ++i;
 
 	inc	edi
 $LN2@SKX_GetInj:
 
-; 1400 : 
-; 1401 :   for (volatile LONG& g_sHookedPID : g_sHookedPIDs)
+; 1398 : 
+; 1399 :   for (volatile LONG& g_sHookedPID : g_sHookedPIDs)
 
 	add	ecx, 4
 	cmp	ecx, OFFSET ?g_sHookedPIDs@@3PAJA+64
 	jne	SHORT $LL4@SKX_GetInj
 
-; 1420 : 
-; 1421 :   return i;
+; 1418 : 
+; 1419 :   return i;
 
 	mov	eax, edi
 	test	esi, esi
 	je	SHORT $LN8@SKX_GetInj
 
-; 1415 :     }
-; 1416 :   }
-; 1417 : 
-; 1418 :   if (pdwListIter != nullptr)
-; 1419 :      *pdwListIter  = 0;
+; 1413 :     }
+; 1414 :   }
+; 1415 : 
+; 1416 :   if (pdwListIter != nullptr)
+; 1417 :      *pdwListIter  = 0;
 
 	mov	DWORD PTR [esi], 0
 $LN8@SKX_GetInj:
 	pop	edi
 	pop	esi
 
-; 1422 : }
+; 1420 : }
 
 	pop	ebp
 	ret	8
@@ -76504,7 +76038,7 @@ __$EHRec$ = -12						; size = 12
 	lea	eax, DWORD PTR _hMod$[ebp]
 	mov	DWORD PTR _hMod$[ebp], 0
 	push	eax
-	push	OFFSET $SG256901
+	push	OFFSET $SG256973
 	push	2
 	call	DWORD PTR __imp__GetModuleHandleExW@12
 
@@ -76537,7 +76071,7 @@ __$EHRec$ = -12						; size = 12
 ; 381  : #else
 ; 382  :       g_hShutdown = CreateEvent (nullptr, TRUE, FALSE, L"SpecialK32_Reset");
 
-	push	OFFSET $SG256904
+	push	OFFSET $SG256976
 	push	0
 	push	1
 	push	0
@@ -76732,8 +76266,8 @@ $LN52@SKX_Instal:
 ; 423  : 
 ; 424  :       QueryPerformanceCounter_Original =
 
-	push	OFFSET $SG256906
-	push	OFFSET $SG256907
+	push	OFFSET $SG256978
+	push	OFFSET $SG256979
 	call	DWORD PTR __imp__GetModuleHandleW@4
 	push	eax
 	call	DWORD PTR __imp__GetProcAddress@8
@@ -76787,17 +76321,17 @@ $LN6@SKX_Instal:
 	je	SHORT $LN13@SKX_Instal
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 285  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
+; 296  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
 
 	push	24					; 00000018H
 	call	??2@YAPAXI@Z				; operator new
 	add	esp, 4
 
-; 263  :     cs_ = pCS;
+; 274  :     cs_ = pCS;
 
 	mov	DWORD PTR [esi], eax
 
-; 287  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
+; 298  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
 
 	push	400					; 00000190H
 	push	eax
@@ -76825,17 +76359,17 @@ $LN14@SKX_Instal:
 	je	SHORT $LN15@SKX_Instal
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 285  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
+; 296  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
 
 	push	24					; 00000018H
 	call	??2@YAPAXI@Z				; operator new
 	add	esp, 4
 
-; 263  :     cs_ = pCS;
+; 274  :     cs_ = pCS;
 
 	mov	DWORD PTR [esi], eax
 
-; 287  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
+; 298  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
 
 	push	5000					; 00001388H
 	push	eax
@@ -76863,17 +76397,17 @@ $LN16@SKX_Instal:
 	je	SHORT $LN17@SKX_Instal
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 285  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
+; 296  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
 
 	push	24					; 00000018H
 	call	??2@YAPAXI@Z				; operator new
 	add	esp, 4
 
-; 263  :     cs_ = pCS;
+; 274  :     cs_ = pCS;
 
 	mov	DWORD PTR [esi], eax
 
-; 287  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
+; 298  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
 
 	push	6536					; 00001988H
 	push	eax
@@ -76901,17 +76435,17 @@ $LN18@SKX_Instal:
 	je	SHORT $LN19@SKX_Instal
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 285  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
+; 296  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
 
 	push	24					; 00000018H
 	call	??2@YAPAXI@Z				; operator new
 	add	esp, 4
 
-; 263  :     cs_ = pCS;
+; 274  :     cs_ = pCS;
 
 	mov	DWORD PTR [esi], eax
 
-; 287  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
+; 298  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
 
 	push	128					; 00000080H
 	push	eax
@@ -76939,17 +76473,17 @@ $LN20@SKX_Instal:
 	je	SHORT $LN21@SKX_Instal
 ; File c:\users\andon\source\repos\specialk\include\specialk\utility.h
 
-; 285  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
+; 296  :                                                      SK_Thread_CriticalSection (new CRITICAL_SECTION)
 
 	push	24					; 00000018H
 	call	??2@YAPAXI@Z				; operator new
 	add	esp, 4
 
-; 263  :     cs_ = pCS;
+; 274  :     cs_ = pCS;
 
 	mov	DWORD PTR [esi], eax
 
-; 287  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
+; 298  :     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
 
 	push	104857					; 00019999H
 	push	eax
@@ -77223,7 +76757,7 @@ _lParam$ = 16						; size = 4
 ; 220  :     GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
 
 	push	OFFSET ?hModHookInstance@@3PAUHINSTANCE__@@A ; hModHookInstance
-	push	OFFSET $SG147618
+	push	OFFSET $SG147688
 	push	2
 	call	DWORD PTR __imp__GetModuleHandleExW@12
 
@@ -78327,8 +77861,6 @@ ___formal$ = 8						; size = 4
 ___formal$ = 12						; size = 4
 ?__empty_global_delete@@YAXPAXI@Z PROC			; __empty_global_delete, COMDAT
 
-; 1518 : //}
-
 	ret	0
 ?__empty_global_delete@@YAXPAXI@Z ENDP			; __empty_global_delete
 _TEXT	ENDS
@@ -78339,7 +77871,7 @@ _TEXT	SEGMENT
 ___formal$ = 8						; size = 4
 ?__empty_global_delete@@YAXPAX@Z PROC			; __empty_global_delete, COMDAT
 
-; 1518 : //}
+; 1516 : //}
 
 	ret	0
 ?__empty_global_delete@@YAXPAX@Z ENDP			; __empty_global_delete

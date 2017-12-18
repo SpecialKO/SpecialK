@@ -1,14 +1,14 @@
 //
-// Copyright 2017  Andon  "Kaldaien" Coleman,
-//                 Niklas "DrDaxxy"  Kielblock,
-//                 Peter  "Durante"  Thoman
+// Copyright 2017-2018  Andon  "Kaldaien" Coleman,
+//                      Niklas "DrDaxxy"  Kielblock,
+//                      Peter  "Durante"  Thoman
 //
 //        Francesco149, Idk31, Smithfield, and GitHub contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
 // deal in the Software without restriction, including without limitation the
-// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+// rights to use, copy, modify, merge, publish, distribute, sub license, and/or
 // sell copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
 // 
@@ -49,7 +49,7 @@
 #include <SpecialK/plugin/nier.h>
 
 
-#define FAR_VERSION_NUM L"0.7.0.14"
+#define FAR_VERSION_NUM L"0.7.0.17"
 #define FAR_VERSION_STR L"FAR v " FAR_VERSION_NUM
 
 // Block until update finishes, otherwise the update dialog
@@ -1396,9 +1396,9 @@ SK_FAR_EULA_Insert (LPVOID reserved)
 
   if (ImGui::CollapsingHeader ("FAR (Fix Automata Resolution)", ImGuiTreeNodeFlags_DefaultOpen))
   {
-    ImGui::TextWrapped ( " Copyright 2017  Andon  \"Kaldaien\" Coleman,\n"
-                         "                 Niklas \"DrDaxxy\" Kielblock,\n"
-                         "                 Peter  \"Durante\" Thoman\n"
+    ImGui::TextWrapped ( " Copyright 2017-2018  Andon  \"Kaldaien\" Coleman,\n"
+                         "                      Niklas \"DrDaxxy\" Kielblock,\n"
+                         "                      Peter  \"Durante\" Thoman\n"
                          "\n"
                          "        Francesco149, Idk31, Smithfield, and GitHub contributors.\n"
                          "\n"

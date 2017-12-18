@@ -2692,19 +2692,33 @@ extern HRESULT
 
     if (pSwapChain2 != nullptr)
     {
-      if (pSwapChain2 != nullptr)
-      {
-        HANDLE hWait = pSwapChain2->GetFrameLatencyWaitableObject ();
+      CHandle hWait (
+        pSwapChain2->GetFrameLatencyWaitableObject ()
+      );
 
-        WaitForSingleObjectEx ( hWait,
-                                  config.render.framerate.swapchain_wait,
-                                    TRUE );
-      }
+      WaitForSingleObjectEx ( hWait,
+                                config.render.framerate.swapchain_wait,
+                                  TRUE );
     }
   }
 
   if ( pDev != nullptr )
   {
+    CComPtr <ID3D11RenderTargetView> pRTV    = nullptr;
+    CComPtr <ID3D11DepthStencilView> pDSV    = nullptr;
+    CComPtr <ID3D11DeviceContext>    pDevCtx = nullptr;
+
+    pDev->GetImmediateContext (&pDevCtx);
+
+    CComQIPtr <ID3D11DeviceContext1> pDevCtx1 (pDevCtx);
+    pDevCtx->OMGetRenderTargets (1, &pRTV, &pDSV);
+
+    if (pDevCtx1 != nullptr)
+    {
+      pDevCtx1->DiscardResource (CComQIPtr <ID3D11Resource> (pRTV));
+      pDevCtx1->DiscardResource (CComQIPtr <ID3D11Resource> (pDSV));
+    }
+
     HRESULT ret =
       SK_EndBufferSwap (hr, pDev);
 
@@ -5260,7 +5274,7 @@ SK_DXGI_HookFactory (IDXGIFactory* pFactory)
 
   if (InterlockedCompareExchange (&init, TRUE, FALSE))
   {
-    WaitForInitDXGI ();
+  //WaitForInitDXGI ();
     return;
   }
 
@@ -5377,6 +5391,100 @@ SK_DXGI_HookFactory (IDXGIFactory* pFactory)
 
 #include <mmsystem.h>
 
+void
+SK_DXGI_HookingHarness ( ID3D11Device**        ppDevice,
+                         ID3D11DeviceContext** ppImmediateContext,
+                         IDXGIAdapter*          pAdapter,
+                         IDXGISwapChain*        pSwapChain )
+{
+  static volatile LONG __run_once = FALSE;
+
+  extern volatile LONG  __d3d11_ready;
+  if (InterlockedCompareExchange (&__d3d11_ready, FALSE, FALSE))
+  {
+    WaitForInit ();
+  }
+
+  // Run once means run once...
+  if (InterlockedCompareExchange (&__dxgi_ready, FALSE, FALSE))
+  {
+    return;
+  }
+
+  dll_log.Log (L"[   DXGI   ]   Installing DXGI Hooks");
+
+  d3d11_hook_ctx.ppDevice           = ppDevice;
+  d3d11_hook_ctx.ppImmediateContext = ppImmediateContext;
+
+  CComPtr <IDXGIFactory> pFactory = nullptr;
+  
+  if ( SUCCEEDED (pAdapter->GetParent (IID_PPV_ARGS (&pFactory))) )
+  {
+    CComPtr <ID3D11DeviceContext> pDevCtx = nullptr;
+
+    if (config.render.dxgi.deferred_isolation)
+    {
+      CComPtr <ID3D11Device> pDev = nullptr;
+      (*ppImmediateContext)->GetDevice (&pDev);
+
+      pDev->CreateDeferredContext (0x00,  &pDevCtx);
+      d3d11_hook_ctx.ppImmediateContext = &pDevCtx;
+    }
+
+    void
+    SK_DXGI_HookFactory (IDXGIFactory* pFactory);
+
+    void
+    SK_DXGI_HookSwapChain (IDXGISwapChain* pSwapChain);
+
+    void
+    SK_DXGI_HookPresentBase (IDXGISwapChain* pSwapChain, bool rehook);
+
+    void
+    SK_DXGI_HookPresent1 (IDXGISwapChain1* pSwapChain1, bool rehook);
+
+    HookD3D11             (&d3d11_hook_ctx);
+    SK_DXGI_HookFactory   (pFactory);
+    SK_DXGI_HookSwapChain (pSwapChain);
+
+    // This won't catch Present1 (...), but no games use that
+    //   and we can deal with it later if it happens.
+    SK_DXGI_HookPresentBase ((IDXGISwapChain *)pSwapChain, false);
+
+    CComQIPtr <IDXGISwapChain1> pSwapChain1 (pSwapChain);
+
+    if (pSwapChain1 != nullptr)
+      SK_DXGI_HookPresent1 (pSwapChain1, false);
+
+    MH_ApplyQueued  ();
+
+    if (SK_GetDLLRole () == DLL_ROLE::DXGI)
+    {
+      // Load user-defined DLLs (Plug-In)
+#ifdef _WIN64
+      SK_LoadPlugIns64 ();
+#else
+      SK_LoadPlugIns32 ();
+#endif
+    }
+    if (config.apis.dxgi.d3d11.hook) SK_D3D11_EnableHooks ();
+      
+#ifdef _WIN64
+    if (config.apis.dxgi.d3d12.hook) SK_D3D12_EnableHooks ();
+#endif
+
+    InterlockedExchange (&__dxgi_ready, TRUE);
+  }
+
+  else
+  {
+    //_com_error err (hr);
+    //
+    //dll_log.Log (L"[   DXGI   ] Unable to hook D3D11?! (0x%04x :: '%s')",
+    //                         err.WCode (), err.ErrorMessage () );
+  }
+}
+
 DWORD
 __stdcall
 HookDXGI (LPVOID user)
@@ -5416,8 +5524,6 @@ HookDXGI (LPVOID user)
   bool success =
     SUCCEEDED ( CoInitializeEx (nullptr, COINIT_MULTITHREADED) );
   DBG_UNREFERENCED_LOCAL_VARIABLE (success);
-
-  dll_log.Log (L"[   DXGI   ]   Installing DXGI Hooks");
 
   D3D_FEATURE_LEVEL             levels [] = { D3D_FEATURE_LEVEL_9_1,  D3D_FEATURE_LEVEL_9_2,
                                               D3D_FEATURE_LEVEL_9_3,  D3D_FEATURE_LEVEL_10_0,
@@ -5462,82 +5568,48 @@ HookDXGI (LPVOID user)
 
   extern LPVOID pfnD3D11CreateDeviceAndSwapChain;
 
-  hr =
-    ((D3D11CreateDeviceAndSwapChain_pfn)(pfnD3D11CreateDeviceAndSwapChain)) (
-      nullptr,
-        D3D_DRIVER_TYPE_HARDWARE,
-          nullptr,
-            0x0,
-              nullptr,
-                0,
-                  D3D11_SDK_VERSION,
-                    &desc, &pSwapChain,
-                      &pDevice,
-                        &featureLevel,
-                          &pImmediateContext );
-
-  d3d11_hook_ctx.ppDevice           = &pDevice;
-  d3d11_hook_ctx.ppImmediateContext = &pImmediateContext;
-
-  CComPtr <IDXGIDevice>  pDevDXGI = nullptr;
-  CComPtr <IDXGIAdapter> pAdapter = nullptr;
-  CComPtr <IDXGIFactory> pFactory = nullptr;
-  
-  if ( pDevice != nullptr &&
-       SUCCEEDED (pDevice->QueryInterface <IDXGIDevice> (&pDevDXGI)) &&
-       SUCCEEDED (pDevDXGI->GetAdapter                  (&pAdapter)) &&
-       SUCCEEDED (pAdapter->GetParent     (IID_PPV_ARGS (&pFactory))) )
+  if (config.render.dxgi.alternate_hook == 1)
   {
-    CComPtr <ID3D11DeviceContext> pDevCtx = nullptr;
-
-    if (config.render.dxgi.deferred_isolation)
-    {
-      CComPtr <ID3D11Device> pDev = nullptr;
-      pImmediateContext->GetDevice (&pDev);
-
-      pDev->CreateDeferredContext (0x00,  &pDevCtx);
-      d3d11_hook_ctx.ppImmediateContext = &pDevCtx;
-    }
-
-    HookD3D11             (&d3d11_hook_ctx);
-    SK_DXGI_HookFactory   (pFactory);
-    SK_DXGI_HookSwapChain (pSwapChain);
-
-    // This won't catch Present1 (...), but no games use that
-    //   and we can deal with it later if it happens.
-    SK_DXGI_HookPresentBase ((IDXGISwapChain *)pSwapChain, false);
-
-    CComQIPtr <IDXGISwapChain1> pSwapChain1 (pSwapChain);
-
-    if (pSwapChain1 != nullptr)
-      SK_DXGI_HookPresent1 (pSwapChain1, false);
-
-    MH_ApplyQueued  ();
-
-    if (SK_GetDLLRole () == DLL_ROLE::DXGI)
-    {
-      // Load user-defined DLLs (Plug-In)
-#ifdef _WIN64
-      SK_LoadPlugIns64 ();
-#else
-      SK_LoadPlugIns32 ();
-#endif
-    }
-    if (config.apis.dxgi.d3d11.hook) SK_D3D11_EnableHooks ();
-      
-#ifdef _WIN64
-    if (config.apis.dxgi.d3d12.hook) SK_D3D12_EnableHooks ();
-#endif
-
-    InterlockedExchange (&__dxgi_ready, TRUE);
+    hr =
+      ((D3D11CreateDeviceAndSwapChain_pfn)pfnD3D11CreateDeviceAndSwapChain)(
+        nullptr,
+          D3D_DRIVER_TYPE_HARDWARE,
+            nullptr,
+              0x0,
+                nullptr,
+                  0,
+                    D3D11_SDK_VERSION,
+                      &desc, &pSwapChain,
+                        &pDevice,
+                          &featureLevel,
+                            &pImmediateContext );
   }
 
   else
   {
-    _com_error err (hr);
-  
-    dll_log.Log (L"[   DXGI   ] Unable to hook D3D11?! (0x%04x :: '%s')",
-                             err.WCode (), err.ErrorMessage () );
+    hr =
+      D3D11CreateDeviceAndSwapChain_Import (
+        nullptr,
+          D3D_DRIVER_TYPE_HARDWARE,
+            nullptr,
+              0x0,
+                nullptr,
+                  0,
+                    D3D11_SDK_VERSION,
+                      &desc, &pSwapChain,
+                        &pDevice,
+                          &featureLevel,
+                            &pImmediateContext );
+  }
+
+  CComPtr <IDXGIDevice>  pDevDXGI = nullptr;
+  CComPtr <IDXGIAdapter> pAdapter = nullptr;
+
+  if ( SUCCEEDED (hr)                                                &&
+       SUCCEEDED (pDevice->QueryInterface <IDXGIDevice> (&pDevDXGI)) &&
+       SUCCEEDED (pDevDXGI->GetAdapter                  (&pAdapter))    ) 
+  {
+    SK_DXGI_HookingHarness (&pDevice, &pImmediateContext, pAdapter, pSwapChain);
   }
 
   SK_Win32_CleanupDummyWindow ();

@@ -9,6 +9,32 @@
 INCLUDELIB MSVCRT
 INCLUDELIB OLDNAMES
 
+PUBLIC	_imp_glRasterPos4sv
+PUBLIC	_imp_wglRealizeLayerPalette
+PUBLIC	_imp_glMaterialfv
+PUBLIC	_imp_glGetMaterialiv
+PUBLIC	_imp_glColorPointer
+PUBLIC	_imp_glTexGenfv
+PUBLIC	_imp_glReadBuffer
+PUBLIC	?__gl_ready@@3JC				; __gl_ready
+PUBLIC	_imp_glGetPixelMapfv
+PUBLIC	_imp_wglSetLayerPaletteEntries
+PUBLIC	_imp_glMateriali
+PUBLIC	_imp_glTexGeni
+PUBLIC	_imp_glCopyPixels
+PUBLIC	_imp_glReadPixels
+PUBLIC	?gdi_swap_buffers@@3P6GHPAUHDC__@@@ZA		; gdi_swap_buffers
+PUBLIC	?wgl_swap_buffers@@3P6GHPAUHDC__@@@ZA		; wgl_swap_buffers
+PUBLIC	_imp_glGetPixelMapuiv
+PUBLIC	?GL_HOOKED@@3HA					; GL_HOOKED
+PUBLIC	?GL_HOOKS@@3KA					; GL_HOOKS
+PUBLIC	_imp_glMaterialiv
+PUBLIC	_imp_wglSetPixelFormat
+PUBLIC	_imp_glTexGeniv
+PUBLIC	_imp_glCopyTexImage1D
+PUBLIC	_imp_glGetPixelMapusv
+PUBLIC	_imp_glMatrixMode
+PUBLIC	_imp_glRectd
 PUBLIC	_imp_glTexImage1D
 PUBLIC	_imp_glGetPointerv
 PUBLIC	_imp_glMultMatrixd
@@ -352,33 +378,33 @@ PUBLIC	_imp_glGetMaterialfv
 PUBLIC	_imp_glMaterialf
 PUBLIC	_imp_glColorMaterial
 PUBLIC	_imp_glTexGenf
-PUBLIC	_imp_glRasterPos4sv
-PUBLIC	_imp_wglRealizeLayerPalette
-PUBLIC	_imp_glMaterialfv
-PUBLIC	_imp_glGetMaterialiv
-PUBLIC	_imp_glColorPointer
-PUBLIC	_imp_glTexGenfv
-PUBLIC	_imp_glReadBuffer
-PUBLIC	?__gl_ready@@3JC				; __gl_ready
-PUBLIC	_imp_glGetPixelMapfv
-PUBLIC	_imp_wglSetLayerPaletteEntries
-PUBLIC	_imp_glMateriali
-PUBLIC	_imp_glTexGeni
-PUBLIC	_imp_glCopyPixels
-PUBLIC	_imp_glReadPixels
-PUBLIC	?gdi_swap_buffers@@3P6GHPAUHDC__@@@ZA		; gdi_swap_buffers
-PUBLIC	?wgl_swap_buffers@@3P6GHPAUHDC__@@@ZA		; wgl_swap_buffers
-PUBLIC	_imp_glGetPixelMapuiv
-PUBLIC	?GL_HOOKED@@3HA					; GL_HOOKED
-PUBLIC	?GL_HOOKS@@3KA					; GL_HOOKS
-PUBLIC	_imp_glMaterialiv
-PUBLIC	_imp_wglSetPixelFormat
-PUBLIC	_imp_glTexGeniv
-PUBLIC	_imp_glCopyTexImage1D
-PUBLIC	_imp_glGetPixelMapusv
-PUBLIC	_imp_glMatrixMode
-PUBLIC	_imp_glRectd
 _BSS	SEGMENT
+_imp_glRasterPos4sv DD 01H DUP (?)
+_imp_wglRealizeLayerPalette DD 01H DUP (?)
+_imp_glMaterialfv DD 01H DUP (?)
+_imp_glGetMaterialiv DD 01H DUP (?)
+_imp_glColorPointer DD 01H DUP (?)
+_imp_glTexGenfv DD 01H DUP (?)
+_imp_glReadBuffer DD 01H DUP (?)
+?__gl_ready@@3JC DD 01H DUP (?)				; __gl_ready
+_imp_glGetPixelMapfv DD 01H DUP (?)
+_imp_wglSetLayerPaletteEntries DD 01H DUP (?)
+_imp_glMateriali DD 01H DUP (?)
+_imp_glTexGeni DD 01H DUP (?)
+_imp_glCopyPixels DD 01H DUP (?)
+_imp_glReadPixels DD 01H DUP (?)
+?gdi_swap_buffers@@3P6GHPAUHDC__@@@ZA DD 01H DUP (?)	; gdi_swap_buffers
+?wgl_swap_buffers@@3P6GHPAUHDC__@@@ZA DD 01H DUP (?)	; wgl_swap_buffers
+_imp_glGetPixelMapuiv DD 01H DUP (?)
+?GL_HOOKED@@3HA DD 01H DUP (?)				; GL_HOOKED
+?GL_HOOKS@@3KA DD 01H DUP (?)				; GL_HOOKS
+_imp_glMaterialiv DD 01H DUP (?)
+_imp_wglSetPixelFormat DD 01H DUP (?)
+_imp_glTexGeniv DD 01H DUP (?)
+_imp_glCopyTexImage1D DD 01H DUP (?)
+_imp_glGetPixelMapusv DD 01H DUP (?)
+_imp_glMatrixMode DD 01H DUP (?)
+_imp_glRectd DD	01H DUP (?)
 _imp_glTexImage1D DD 01H DUP (?)
 _imp_glGetPointerv DD 01H DUP (?)
 _imp_glMultMatrixd DD 01H DUP (?)
@@ -725,44 +751,330 @@ _imp_glGetMaterialfv DD 01H DUP (?)
 _imp_glMaterialf DD 01H DUP (?)
 _imp_glColorMaterial DD 01H DUP (?)
 _imp_glTexGenf DD 01H DUP (?)
-_imp_glRasterPos4sv DD 01H DUP (?)
-_imp_wglRealizeLayerPalette DD 01H DUP (?)
-_imp_glMaterialfv DD 01H DUP (?)
-_imp_glGetMaterialiv DD 01H DUP (?)
-_imp_glColorPointer DD 01H DUP (?)
-_imp_glTexGenfv DD 01H DUP (?)
-_imp_glReadBuffer DD 01H DUP (?)
-?__gl_ready@@3JC DD 01H DUP (?)				; __gl_ready
-_imp_glGetPixelMapfv DD 01H DUP (?)
-_imp_wglSetLayerPaletteEntries DD 01H DUP (?)
-_imp_glMateriali DD 01H DUP (?)
-_imp_glTexGeni DD 01H DUP (?)
-_imp_glCopyPixels DD 01H DUP (?)
-_imp_glReadPixels DD 01H DUP (?)
-?gdi_swap_buffers@@3P6GHPAUHDC__@@@ZA DD 01H DUP (?)	; gdi_swap_buffers
-?wgl_swap_buffers@@3P6GHPAUHDC__@@@ZA DD 01H DUP (?)	; wgl_swap_buffers
-_imp_glGetPixelMapuiv DD 01H DUP (?)
-?GL_HOOKED@@3HA DD 01H DUP (?)				; GL_HOOKED
-?GL_HOOKS@@3KA DD 01H DUP (?)				; GL_HOOKS
-_imp_glMaterialiv DD 01H DUP (?)
-_imp_wglSetPixelFormat DD 01H DUP (?)
-_imp_glTexGeniv DD 01H DUP (?)
-_imp_glCopyTexImage1D DD 01H DUP (?)
-_imp_glGetPixelMapusv DD 01H DUP (?)
-_imp_glMatrixMode DD 01H DUP (?)
-_imp_glRectd DD	01H DUP (?)
 _BSS	ENDS
 CONST	SEGMENT
-$SG320512 DB	'glMatrixMode', 00H
+$SG323584 DB	'wglGetPixelFormat', 00H
 ?piecewise_construct@std@@3Upiecewise_construct_t@1@B	ORG $+1 ; std::piecewise_construct
+	ORG $+1
+$SG321536 DB	'glRasterPos4s', 00H
 	ORG $+2
-$SG319490 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'P', 00H
+$SG320514 DB	'glMaterialf', 00H
+$SG319490 DB	'glGetMaterialfv', 00H
+$SG323588 DB	'w', 00H, 'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H
+	DB	'P', 00H, 'i', 00H, 'x', 00H, 'e', 00H, 'l', 00H, 'F', 00H, 'o'
+	DB	00H, 'r', 00H, 'm', 00H, 'a', 00H, 't', 00H, 00H, 00H
+$SG321540 DB	'g', 00H, 'l', 00H, 'R', 00H, 'a', 00H, 's', 00H, 't', 00H
+	DB	'e', 00H, 'r', 00H, 'P', 00H, 'o', 00H, 's', 00H, '4', 00H, 's'
+	DB	00H, 00H, 00H
+$SG318468 DB	'glColorMaterial', 00H
+$SG323589 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG322566 DB	'glTexGenf', 00H
+	ORG $+2
+$SG321541 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG320518 DB	'g', 00H, 'l', 00H, 'M', 00H, 'a', 00H, 't', 00H, 'e', 00H
+	DB	'r', 00H, 'i', 00H, 'a', 00H, 'l', 00H, 'f', 00H, 00H, 00H
+$SG319494 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'M', 00H
+	DB	'a', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'i', 00H, 'a', 00H, 'l'
+	DB	00H, 'f', 00H, 'v', 00H, 00H, 00H
+$SG322570 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'G', 00H
+	DB	'e', 00H, 'n', 00H, 'f', 00H, 00H, 00H
+$SG320519 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG318472 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
+	DB	'r', 00H, 'M', 00H, 'a', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'i'
+	DB	00H, 'a', 00H, 'l', 00H, 00H, 00H
+$SG322584 DB	'glTexGenfv', 00H
+	ORG $+1
+$SG319495 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG321550 DB	'glRasterPos4sv', 00H
+	ORG $+1
+$SG319508 DB	'glGetMaterialiv', 00H
+$SG320536 DB	'g', 00H, 'l', 00H, 'M', 00H, 'a', 00H, 't', 00H, 'e', 00H
+	DB	'r', 00H, 'i', 00H, 'a', 00H, 'l', 00H, 'f', 00H, 'v', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG318473 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG323602 DB	'wglRealizeLayerPalette', 00H
+	ORG $+1
+$SG319512 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'M', 00H
+	DB	'a', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'i', 00H, 'a', 00H, 'l'
+	DB	00H, 'i', 00H, 'v', 00H, 00H, 00H
+$SG321568 DB	'g', 00H, 'l', 00H, 'R', 00H, 'e', 00H, 'a', 00H, 'd', 00H
+	DB	'B', 00H, 'u', 00H, 'f', 00H, 'f', 00H, 'e', 00H, 'r', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG322571 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG321554 DB	'g', 00H, 'l', 00H, 'R', 00H, 'a', 00H, 's', 00H, 't', 00H
+	DB	'e', 00H, 'r', 00H, 'P', 00H, 'o', 00H, 's', 00H, '4', 00H, 's'
+	DB	00H, 'v', 00H, 00H, 00H
+	ORG $+2
+$SG318488 DB	'glColorPointer', 00H
+	ORG $+1
+$SG319524 DB	'glGetPixelMapfv', 00H
+$SG320550 DB	'glMateriali', 00H
+$SG321555 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG320532 DB	'glMaterialfv', 00H
+	ORG $+3
+$SG323606 DB	'w', 00H, 'g', 00H, 'l', 00H, 'R', 00H, 'e', 00H, 'a', 00H
+	DB	'l', 00H, 'i', 00H, 'z', 00H, 'e', 00H, 'L', 00H, 'a', 00H, 'y'
+	DB	00H, 'e', 00H, 'r', 00H, 'P', 00H, 'a', 00H, 'l', 00H, 'e', 00H
+	DB	't', 00H, 't', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG323624 DB	'wglSetLayerPaletteEntries', 00H
+	ORG $+2
+$SG323607 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG319528 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'P', 00H
+	DB	'i', 00H, 'x', 00H, 'e', 00H, 'l', 00H, 'M', 00H, 'a', 00H, 'p'
+	DB	00H, 'f', 00H, 'v', 00H, 00H, 00H
+$SG322602 DB	'glTexGeni', 00H
+	ORG $+2
+$SG320537 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG320554 DB	'g', 00H, 'l', 00H, 'M', 00H, 'a', 00H, 't', 00H, 'e', 00H
+	DB	'r', 00H, 'i', 00H, 'a', 00H, 'l', 00H, 'i', 00H, 00H, 00H
+$SG323628 DB	'w', 00H, 'g', 00H, 'l', 00H, 'S', 00H, 'e', 00H, 't', 00H
+	DB	'L', 00H, 'a', 00H, 'y', 00H, 'e', 00H, 'r', 00H, 'P', 00H, 'a'
+	DB	00H, 'l', 00H, 'e', 00H, 't', 00H, 't', 00H, 'e', 00H, 'E', 00H
+	DB	'n', 00H, 't', 00H, 'r', 00H, 'i', 00H, 'e', 00H, 's', 00H, 00H
+	DB	00H
+$SG319513 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG322588 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'G', 00H
+	DB	'e', 00H, 'n', 00H, 'f', 00H, 'v', 00H, 00H, 00H
+	ORG $+2
+$SG321564 DB	'glReadBuffer', 00H
+	ORG $+3
+$SG318492 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
+	DB	'r', 00H, 'P', 00H, 'o', 00H, 'i', 00H, 'n', 00H, 't', 00H, 'e'
+	DB	00H, 'r', 00H, 00H, 00H
+	ORG $+2
+$SG322606 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'G', 00H
+	DB	'e', 00H, 'n', 00H, 'i', 00H, 00H, 00H
+$SG322589 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG318514 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'p', 00H, 'y', 00H
+	DB	'P', 00H, 'i', 00H, 'x', 00H, 'e', 00H, 'l', 00H, 's', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG318493 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG319540 DB	'glGetPixelMapuiv', 00H
+	ORG $+3
+$SG321569 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG319544 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'P', 00H
+	DB	'i', 00H, 'x', 00H, 'e', 00H, 'l', 00H, 'M', 00H, 'a', 00H, 'p'
+	DB	00H, 'u', 00H, 'i', 00H, 'v', 00H, 00H, 00H
+	ORG $+2
+$SG319529 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG323642 DB	'wglSetPixelFormat', 00H
+	ORG $+2
+$SG320555 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG321594 DB	'g', 00H, 'l', 00H, 'R', 00H, 'e', 00H, 'a', 00H, 'd', 00H
+	DB	'P', 00H, 'i', 00H, 'x', 00H, 'e', 00H, 'l', 00H, 's', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG323629 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG318510 DB	'glCopyPixels', 00H
+	ORG $+3
+$SG322620 DB	'glTexGeniv', 00H
+	ORG $+1
+$SG322607 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG320572 DB	'g', 00H, 'l', 00H, 'M', 00H, 'a', 00H, 't', 00H, 'e', 00H
+	DB	'r', 00H, 'i', 00H, 'a', 00H, 'l', 00H, 'i', 00H, 'v', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG318515 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG321590 DB	'glReadPixels', 00H
+	ORG $+3
+$SG320568 DB	'glMaterialiv', 00H
+	ORG $+3
+$SG323646 DB	'w', 00H, 'g', 00H, 'l', 00H, 'S', 00H, 'e', 00H, 't', 00H
+	DB	'P', 00H, 'i', 00H, 'x', 00H, 'e', 00H, 'l', 00H, 'F', 00H, 'o'
+	DB	00H, 'r', 00H, 'm', 00H, 'a', 00H, 't', 00H, 00H, 00H
+$SG319545 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG319556 DB	'glGetPixelMapusv', 00H
+	ORG $+3
+$SG321595 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG319560 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'P', 00H
 	DB	'i', 00H, 'x', 00H, 'e', 00H, 'l', 00H, 'M', 00H, 'a', 00H, 'p'
 	DB	00H, 'u', 00H, 's', 00H, 'v', 00H, 00H, 00H
 	ORG $+2
-$SG318466 DB	'glCopyTexImage1D', 00H
-	ORG $+3
-$SG319491 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG320573 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -772,12 +1084,27 @@ $SG319491 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG321540 DB	'glRectd', 00H
-$SG320516 DB	'g', 00H, 'l', 00H, 'M', 00H, 'a', 00H, 't', 00H, 'r', 00H
+$SG318536 DB	'glCopyTexImage1D', 00H
+	ORG $+3
+$SG323647 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG322624 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'G', 00H
+	DB	'e', 00H, 'n', 00H, 'i', 00H, 'v', 00H, 00H, 00H
+	ORG $+2
+$SG321610 DB	'glRectd', 00H
+$SG320586 DB	'g', 00H, 'l', 00H, 'M', 00H, 'a', 00H, 't', 00H, 'r', 00H
 	DB	'i', 00H, 'x', 00H, 'M', 00H, 'o', 00H, 'd', 00H, 'e', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG320517 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG322625 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -787,11 +1114,13 @@ $SG320517 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG318470 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'p', 00H, 'y', 00H
+$SG320582 DB	'glMatrixMode', 00H
+	ORG $+3
+$SG318540 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'p', 00H, 'y', 00H
 	DB	'T', 00H, 'e', 00H, 'x', 00H, 'I', 00H, 'm', 00H, 'a', 00H, 'g'
 	DB	00H, 'e', 00H, '1', 00H, 'D', 00H, 00H, 00H
 	ORG $+2
-$SG318471 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG319561 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -801,12 +1130,12 @@ $SG318471 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG321544 DB	'g', 00H, 'l', 00H, 'R', 00H, 'e', 00H, 'c', 00H, 't', 00H
+$SG321614 DB	'g', 00H, 'l', 00H, 'R', 00H, 'e', 00H, 'c', 00H, 't', 00H
 	DB	'd', 00H, 00H, 00H
-$SG320530 DB	'g', 00H, 'l', 00H, 'M', 00H, 'u', 00H, 'l', 00H, 't', 00H
+$SG320600 DB	'g', 00H, 'l', 00H, 'M', 00H, 'u', 00H, 'l', 00H, 't', 00H
 	DB	'M', 00H, 'a', 00H, 't', 00H, 'r', 00H, 'i', 00H, 'x', 00H, 'd'
 	DB	00H, 00H, 00H
-$SG321545 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG320587 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -816,16 +1145,10 @@ $SG321545 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG320526 DB	'glMultMatrixd', 00H
-	ORG $+2
-$SG319502 DB	'glGetPointerv', 00H
-	ORG $+2
-$SG322578 DB	'glTexImage1D', 00H
-	ORG $+3
-$SG319506 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'P', 00H
+$SG319576 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'P', 00H
 	DB	'o', 00H, 'i', 00H, 'n', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'v'
 	DB	00H, 00H, 00H
-$SG320531 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG318541 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -835,9 +1158,9 @@ $SG320531 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG321556 DB	'glRectdv', 00H
+$SG321626 DB	'glRectdv', 00H
 	ORG $+3
-$SG319507 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG321615 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -847,11 +1170,17 @@ $SG319507 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG322582 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'I', 00H
+$SG320596 DB	'glMultMatrixd', 00H
+	ORG $+2
+$SG319572 DB	'glGetPointerv', 00H
+	ORG $+2
+$SG322648 DB	'glTexImage1D', 00H
+	ORG $+3
+$SG322652 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'I', 00H
 	DB	'm', 00H, 'a', 00H, 'g', 00H, 'e', 00H, '1', 00H, 'D', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG322583 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG320601 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -861,10 +1190,10 @@ $SG322583 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG321560 DB	'g', 00H, 'l', 00H, 'R', 00H, 'e', 00H, 'c', 00H, 't', 00H
+$SG321630 DB	'g', 00H, 'l', 00H, 'R', 00H, 'e', 00H, 'c', 00H, 't', 00H
 	DB	'd', 00H, 'v', 00H, 00H, 00H
 	ORG $+2
-$SG321561 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG319577 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -874,19 +1203,39 @@ $SG321561 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG320540 DB	'glMultMatrixf', 00H
+$SG319586 DB	'glGetPolygonStipple', 00H
+$SG322653 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG319516 DB	'glGetPolygonStipple', 00H
-$SG318494 DB	'glCopyTexImage2D', 00H
+$SG318564 DB	'glCopyTexImage2D', 00H
 	ORG $+3
-$SG320544 DB	'g', 00H, 'l', 00H, 'M', 00H, 'u', 00H, 'l', 00H, 't', 00H
+$SG321631 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG320610 DB	'glMultMatrixf', 00H
+	ORG $+2
+$SG320614 DB	'g', 00H, 'l', 00H, 'M', 00H, 'u', 00H, 'l', 00H, 't', 00H
 	DB	'M', 00H, 'a', 00H, 't', 00H, 'r', 00H, 'i', 00H, 'x', 00H, 'f'
 	DB	00H, 00H, 00H
-$SG319520 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'P', 00H
+$SG319590 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'P', 00H
 	DB	'o', 00H, 'l', 00H, 'y', 00H, 'g', 00H, 'o', 00H, 'n', 00H, 'S'
 	DB	00H, 't', 00H, 'i', 00H, 'p', 00H, 'p', 00H, 'l', 00H, 'e', 00H
 	DB	00H, 00H
-$SG320545 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG320615 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -896,11 +1245,11 @@ $SG320545 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG318498 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'p', 00H, 'y', 00H
+$SG318568 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'p', 00H, 'y', 00H
 	DB	'T', 00H, 'e', 00H, 'x', 00H, 'I', 00H, 'm', 00H, 'a', 00H, 'g'
 	DB	00H, 'e', 00H, '2', 00H, 'D', 00H, 00H, 00H
 	ORG $+2
-$SG319521 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG319591 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -910,9 +1259,9 @@ $SG319521 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG321576 DB	'glRectf', 00H
-$SG319530 DB	'glGetString', 00H
-$SG318499 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG321646 DB	'glRectf', 00H
+$SG319600 DB	'glGetString', 00H
+$SG318569 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -922,11 +1271,11 @@ $SG318499 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG321580 DB	'g', 00H, 'l', 00H, 'R', 00H, 'e', 00H, 'c', 00H, 't', 00H
+$SG321650 DB	'g', 00H, 'l', 00H, 'R', 00H, 'e', 00H, 'c', 00H, 't', 00H
 	DB	'f', 00H, 00H, 00H
-$SG320556 DB	'glNewList', 00H
+$SG320626 DB	'glNewList', 00H
 	ORG $+2
-$SG321581 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG321651 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -936,11 +1285,11 @@ $SG321581 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG319534 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'S', 00H
+$SG319604 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'S', 00H
 	DB	't', 00H, 'r', 00H, 'i', 00H, 'n', 00H, 'g', 00H, 00H, 00H
-$SG320560 DB	'g', 00H, 'l', 00H, 'N', 00H, 'e', 00H, 'w', 00H, 'L', 00H
+$SG320630 DB	'g', 00H, 'l', 00H, 'N', 00H, 'e', 00H, 'w', 00H, 'L', 00H
 	DB	'i', 00H, 's', 00H, 't', 00H, 00H, 00H
-$SG319535 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG319605 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -950,13 +1299,13 @@ $SG319535 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG322608 DB	'glTexImage2D', 00H
+$SG322678 DB	'glTexImage2D', 00H
 	ORG $+3
-$SG322612 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'I', 00H
+$SG322682 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'I', 00H
 	DB	'm', 00H, 'a', 00H, 'g', 00H, 'e', 00H, '2', 00H, 'D', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG320561 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG320631 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -966,8 +1315,8 @@ $SG320561 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG318518 DB	'glCopyTexSubImage1D', 00H
-$SG322613 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG318588 DB	'glCopyTexSubImage1D', 00H
+$SG322683 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -977,13 +1326,13 @@ $SG322613 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG321592 DB	'glRectfv', 00H
+$SG321662 DB	'glRectfv', 00H
 	ORG $+3
-$SG318522 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'p', 00H, 'y', 00H
+$SG318592 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'p', 00H, 'y', 00H
 	DB	'T', 00H, 'e', 00H, 'x', 00H, 'S', 00H, 'u', 00H, 'b', 00H, 'I'
 	DB	00H, 'm', 00H, 'a', 00H, 'g', 00H, 'e', 00H, '1', 00H, 'D', 00H
 	DB	00H, 00H
-$SG318523 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG318593 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -993,12 +1342,12 @@ $SG318523 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG321596 DB	'g', 00H, 'l', 00H, 'R', 00H, 'e', 00H, 'c', 00H, 't', 00H
+$SG321666 DB	'g', 00H, 'l', 00H, 'R', 00H, 'e', 00H, 'c', 00H, 't', 00H
 	DB	'f', 00H, 'v', 00H, 00H, 00H
 	ORG $+2
-$SG319548 DB	'glGetTexEnvfv', 00H
+$SG319618 DB	'glGetTexEnvfv', 00H
 	ORG $+2
-$SG321597 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG321667 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -1008,14 +1357,14 @@ $SG321597 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG320574 DB	'glNormal3b', 00H
+$SG320644 DB	'glNormal3b', 00H
 	ORG $+1
-$SG319552 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'T', 00H
+$SG319622 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'T', 00H
 	DB	'e', 00H, 'x', 00H, 'E', 00H, 'n', 00H, 'v', 00H, 'f', 00H, 'v'
 	DB	00H, 00H, 00H
-$SG323650 DB	'g', 00H, 'd', 00H, 'i', 00H, '3', 00H, '2', 00H, '.', 00H
+$SG323720 DB	'g', 00H, 'd', 00H, 'i', 00H, '3', 00H, '2', 00H, '.', 00H
 	DB	'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-$SG319553 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG319623 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -1025,12 +1374,12 @@ $SG319553 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG322626 DB	'glTexParameterf', 00H
-$SG320578 DB	'g', 00H, 'l', 00H, 'N', 00H, 'o', 00H, 'r', 00H, 'm', 00H
+$SG322696 DB	'glTexParameterf', 00H
+$SG320648 DB	'g', 00H, 'l', 00H, 'N', 00H, 'o', 00H, 'r', 00H, 'm', 00H
 	DB	'a', 00H, 'l', 00H, '3', 00H, 'b', 00H, 00H, 00H
 	ORG $+2
-$SG323651 DB	'SwapBuffers', 00H
-$SG320579 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG323721 DB	'SwapBuffers', 00H
+$SG320649 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -1040,11 +1389,11 @@ $SG320579 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG322630 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'P', 00H
+$SG322700 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'P', 00H
 	DB	'a', 00H, 'r', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 't', 00H, 'e'
 	DB	00H, 'r', 00H, 'f', 00H, 00H, 00H
-$SG320588 DB	'glNormal3bv', 00H
-$SG322631 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG320658 DB	'glNormal3bv', 00H
+$SG322701 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -1054,17 +1403,17 @@ $SG322631 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG321612 DB	'glRecti', 00H
-$SG319566 DB	'glGetTexEnviv', 00H
+$SG321682 DB	'glRecti', 00H
+$SG319636 DB	'glGetTexEnviv', 00H
 	ORG $+2
-$SG321616 DB	'g', 00H, 'l', 00H, 'R', 00H, 'e', 00H, 'c', 00H, 't', 00H
+$SG321686 DB	'g', 00H, 'l', 00H, 'R', 00H, 'e', 00H, 'c', 00H, 't', 00H
 	DB	'i', 00H, 00H, 00H
-$SG320592 DB	'g', 00H, 'l', 00H, 'N', 00H, 'o', 00H, 'r', 00H, 'm', 00H
+$SG320662 DB	'g', 00H, 'l', 00H, 'N', 00H, 'o', 00H, 'r', 00H, 'm', 00H
 	DB	'a', 00H, 'l', 00H, '3', 00H, 'b', 00H, 'v', 00H, 00H, 00H
-$SG319570 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'T', 00H
+$SG319640 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'T', 00H
 	DB	'e', 00H, 'x', 00H, 'E', 00H, 'n', 00H, 'v', 00H, 'i', 00H, 'v'
 	DB	00H, 00H, 00H
-$SG321617 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG321687 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -1074,8 +1423,8 @@ $SG321617 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG318546 DB	'glCopyTexSubImage2D', 00H
-$SG320593 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG318616 DB	'glCopyTexSubImage2D', 00H
+$SG320663 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -1085,11 +1434,11 @@ $SG320593 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG323667 DB	'wglSwapBuffers', 00H
+$SG323737 DB	'wglSwapBuffers', 00H
 	ORG $+1
-$SG322644 DB	'glTexParameterfv', 00H
+$SG322714 DB	'glTexParameterfv', 00H
 	ORG $+3
-$SG319571 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG319641 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -1099,15 +1448,15 @@ $SG319571 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG318550 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'p', 00H, 'y', 00H
+$SG318620 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'p', 00H, 'y', 00H
 	DB	'T', 00H, 'e', 00H, 'x', 00H, 'S', 00H, 'u', 00H, 'b', 00H, 'I'
 	DB	00H, 'm', 00H, 'a', 00H, 'g', 00H, 'e', 00H, '2', 00H, 'D', 00H
 	DB	00H, 00H
-$SG322648 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'P', 00H
+$SG322718 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'P', 00H
 	DB	'a', 00H, 'r', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 't', 00H, 'e'
 	DB	00H, 'r', 00H, 'f', 00H, 'v', 00H, 00H, 00H
 	ORG $+2
-$SG318551 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG318621 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -1117,9 +1466,9 @@ $SG318551 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG321628 DB	'glRectiv', 00H
+$SG321698 DB	'glRectiv', 00H
 	ORG $+3
-$SG322649 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG322719 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -1129,481 +1478,15 @@ $SG322649 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG320606 DB	'glNormal3d', 00H
+$SG320676 DB	'glNormal3d', 00H
 	ORG $+1
-$SG321632 DB	'g', 00H, 'l', 00H, 'R', 00H, 'e', 00H, 'c', 00H, 't', 00H
+$SG321702 DB	'g', 00H, 'l', 00H, 'R', 00H, 'e', 00H, 'c', 00H, 't', 00H
 	DB	'i', 00H, 'v', 00H, 00H, 00H
 	ORG $+2
-$SG319584 DB	'glGetTexGendv', 00H
+$SG319654 DB	'glGetTexGendv', 00H
 	ORG $+2
-$SG318560 DB	'glCullFace', 00H
+$SG318630 DB	'glCullFace', 00H
 	ORG $+1
-$SG321633 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG320610 DB	'g', 00H, 'l', 00H, 'N', 00H, 'o', 00H, 'r', 00H, 'm', 00H
-	DB	'a', 00H, 'l', 00H, '3', 00H, 'd', 00H, 00H, 00H
-	ORG $+2
-$SG319588 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'T', 00H
-	DB	'e', 00H, 'x', 00H, 'G', 00H, 'e', 00H, 'n', 00H, 'd', 00H, 'v'
-	DB	00H, 00H, 00H
-$SG320611 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG318564 DB	'g', 00H, 'l', 00H, 'C', 00H, 'u', 00H, 'l', 00H, 'l', 00H
-	DB	'F', 00H, 'a', 00H, 'c', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG322662 DB	'glTexParameteri', 00H
-$SG317545 DB	'\', 00H, 00H, 00H
-$SG319589 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG322666 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'P', 00H
-	DB	'a', 00H, 'r', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 't', 00H, 'e'
-	DB	00H, 'r', 00H, 'i', 00H, 00H, 00H
-$SG317546 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
-	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG318565 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG320620 DB	'glNormal3dv', 00H
-$SG322667 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG321648 DB	'glRects', 00H
-$SG320624 DB	'g', 00H, 'l', 00H, 'N', 00H, 'o', 00H, 'r', 00H, 'm', 00H
-	DB	'a', 00H, 'l', 00H, '3', 00H, 'd', 00H, 'v', 00H, 00H, 00H
-$SG318576 DB	'glDebugEntry', 00H
-	ORG $+3
-$SG319602 DB	'glGetTexGenfv', 00H
-	ORG $+2
-$SG317555 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
-	DB	'3', 00H, '2', 00H, 00H, 00H
-	ORG $+2
-$SG320625 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG321652 DB	'g', 00H, 'l', 00H, 'R', 00H, 'e', 00H, 'c', 00H, 't', 00H
-	DB	's', 00H, 00H, 00H
-$SG318580 DB	'g', 00H, 'l', 00H, 'D', 00H, 'e', 00H, 'b', 00H, 'u', 00H
-	DB	'g', 00H, 'E', 00H, 'n', 00H, 't', 00H, 'r', 00H, 'y', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG324723 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'A', 00H, 'd', 00H, 'd', 00H, 'i', 00H, 't', 00H, 'i', 00H
-	DB	'o', 00H, 'n', 00H, 'a', 00H, 'l', 00H, ' ', 00H, 'O', 00H, 'p'
-	DB	00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, ' ', 00H, 'I', 00H
-	DB	'n', 00H, 'i', 00H, 't', 00H, 'i', 00H, 'a', 00H, 'l', 00H, 'i'
-	DB	00H, 'z', 00H, 'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H
-	DB	00H, 00H
-$SG319606 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'T', 00H
-	DB	'e', 00H, 'x', 00H, 'G', 00H, 'e', 00H, 'n', 00H, 'f', 00H, 'v'
-	DB	00H, 00H, 00H
-$SG324724 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H
-	DB	'=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '='
-	DB	00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H
-	DB	'=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '='
-	DB	00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H
-	DB	00H, 00H
-$SG324727 DB	'O', 00H, 'P', 00H, 'E', 00H, 'N', 00H, 'G', 00H, 'L', 00H
-	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG321653 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG317559 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
-	DB	'3', 00H, '2', 00H, 00H, 00H
-	ORG $+2
-$SG318581 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG324728 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'H', 00H, 'o', 00H, 'o', 00H, 'k', 00H, 'i', 00H, 'n', 00H
-	DB	'g', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G'
-	DB	00H, 'L', 00H, 00H, 00H
-$SG322680 DB	'glTexParameteriv', 00H
-	ORG $+3
-$SG319607 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG324730 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
-	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG324731 DB	'wglSwapBuffers', 00H
-	ORG $+1
-$SG324732 DB	'glAccum', 00H
-$SG323708 DB	'wglSwapLayerBuffers', 00H
-$SG322684 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'P', 00H
-	DB	'a', 00H, 'r', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 't', 00H, 'e'
-	DB	00H, 'r', 00H, 'i', 00H, 'v', 00H, 00H, 00H
-	ORG $+2
-$SG324733 DB	'glAlphaFunc', 00H
-$SG320638 DB	'glNormal3f', 00H
-	ORG $+1
-$SG322685 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG324734 DB	'glAreTexturesResident', 00H
-	ORG $+2
-$SG324735 DB	'glArrayElement', 00H
-	ORG $+1
-$SG324736 DB	'glBegin', 00H
-$SG323712 DB	'w', 00H, 'g', 00H, 'l', 00H, 'S', 00H, 'w', 00H, 'a', 00H
-	DB	'p', 00H, 'L', 00H, 'a', 00H, 'y', 00H, 'e', 00H, 'r', 00H, 'B'
-	DB	00H, 'u', 00H, 'f', 00H, 'f', 00H, 'e', 00H, 'r', 00H, 's', 00H
-	DB	00H, 00H
-$SG321664 DB	'glRectsv', 00H
-	ORG $+3
-$SG318592 DB	'glDeleteLists', 00H
-	ORG $+2
-$SG324737 DB	'glBindTexture', 00H
-	ORG $+2
-$SG323713 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG324738 DB	'glBitmap', 00H
-	ORG $+3
-$SG320642 DB	'g', 00H, 'l', 00H, 'N', 00H, 'o', 00H, 'r', 00H, 'm', 00H
-	DB	'a', 00H, 'l', 00H, '3', 00H, 'f', 00H, 00H, 00H
-	ORG $+2
-$SG317570 DB	'glAccum', 00H
-$SG324739 DB	'glBlendFunc', 00H
-$SG324740 DB	'glCallList', 00H
-	ORG $+1
-$SG320643 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG321668 DB	'g', 00H, 'l', 00H, 'R', 00H, 'e', 00H, 'c', 00H, 't', 00H
-	DB	's', 00H, 'v', 00H, 00H, 00H
-	ORG $+2
-$SG319620 DB	'glGetTexGeniv', 00H
-	ORG $+2
-$SG318596 DB	'g', 00H, 'l', 00H, 'D', 00H, 'e', 00H, 'l', 00H, 'e', 00H
-	DB	't', 00H, 'e', 00H, 'L', 00H, 'i', 00H, 's', 00H, 't', 00H, 's'
-	DB	00H, 00H, 00H
-$SG324741 DB	'glCallLists', 00H
-$SG321669 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG324742 DB	'glClear', 00H
-$SG319624 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'T', 00H
-	DB	'e', 00H, 'x', 00H, 'G', 00H, 'e', 00H, 'n', 00H, 'i', 00H, 'v'
-	DB	00H, 00H, 00H
-$SG318597 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG317574 DB	'g', 00H, 'l', 00H, 'A', 00H, 'c', 00H, 'c', 00H, 'u', 00H
-	DB	'm', 00H, 00H, 00H
-$SG324743 DB	'glClearAccum', 00H
-	ORG $+3
-$SG324747 DB	'glClearStencil', 00H
-	ORG $+1
-$SG324748 DB	'glClipPlane', 00H
-$SG317575 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG324744 DB	'glClearColor', 00H
-	ORG $+3
-$SG324745 DB	'glClearDepth', 00H
-	ORG $+3
-$SG320652 DB	'glNormal3fv', 00H
-$SG319625 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG324746 DB	'glClearIndex', 00H
-	ORG $+3
-$SG324749 DB	'glColor3b', 00H
-	ORG $+2
-$SG324750 DB	'glColor3bv', 00H
-	ORG $+1
-$SG321678 DB	'glRenderMode', 00H
-	ORG $+3
-$SG324751 DB	'glColor3d', 00H
-	ORG $+2
-$SG324752 DB	'glColor3dv', 00H
-	ORG $+1
-$SG320656 DB	'g', 00H, 'l', 00H, 'N', 00H, 'o', 00H, 'r', 00H, 'm', 00H
-	DB	'a', 00H, 'l', 00H, '3', 00H, 'f', 00H, 'v', 00H, 00H, 00H
-$SG318608 DB	'glDeleteTextures', 00H
-	ORG $+3
-$SG324753 DB	'glColor3f', 00H
-	ORG $+2
-$SG324754 DB	'glColor3fv', 00H
-	ORG $+1
-$SG320657 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG322706 DB	'glTexSubImage1D', 00H
-$SG321682 DB	'g', 00H, 'l', 00H, 'R', 00H, 'e', 00H, 'n', 00H, 'd', 00H
-	DB	'e', 00H, 'r', 00H, 'M', 00H, 'o', 00H, 'd', 00H, 'e', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG317586 DB	'glAlphaFunc', 00H
-$SG324755 DB	'glColor3i', 00H
-	ORG $+2
-$SG321683 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG324756 DB	'glColor3iv', 00H
-	ORG $+1
-$SG318612 DB	'g', 00H, 'l', 00H, 'D', 00H, 'e', 00H, 'l', 00H, 'e', 00H
-	DB	't', 00H, 'e', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 't', 00H, 'u'
-	DB	00H, 'r', 00H, 'e', 00H, 's', 00H, 00H, 00H
-	ORG $+2
-$SG324757 DB	'glColor3s', 00H
-	ORG $+2
-$SG318613 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG324758 DB	'glColor3sv', 00H
-	ORG $+1
-$SG322710 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'S', 00H
-	DB	'u', 00H, 'b', 00H, 'I', 00H, 'm', 00H, 'a', 00H, 'g', 00H, 'e'
-	DB	00H, '1', 00H, 'D', 00H, 00H, 00H
-$SG317590 DB	'g', 00H, 'l', 00H, 'A', 00H, 'l', 00H, 'p', 00H, 'h', 00H
-	DB	'a', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 00H, 00H
-$SG324759 DB	'glColor3ub', 00H
-	ORG $+1
-$SG324760 DB	'glColor3ubv', 00H
-$SG322711 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG324761 DB	'glColor3ui', 00H
-	ORG $+1
-$SG317591 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG324762 DB	'glColor3uiv', 00H
-$SG319642 DB	'glGetTexImage', 00H
-	ORG $+2
-$SG324763 DB	'glColor3us', 00H
-	ORG $+1
-$SG324764 DB	'glColor3usv', 00H
-$SG324765 DB	'glColor4b', 00H
-	ORG $+2
-$SG324766 DB	'glColor4bv', 00H
-	ORG $+1
-$SG320670 DB	'glNormal3i', 00H
-	ORG $+1
-$SG319646 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'T', 00H
-	DB	'e', 00H, 'x', 00H, 'I', 00H, 'm', 00H, 'a', 00H, 'g', 00H, 'e'
-	DB	00H, 00H, 00H
-$SG318622 DB	'glDepthFunc', 00H
-$SG324767 DB	'glColor4d', 00H
-	ORG $+2
-$SG319647 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG324768 DB	'glColor4dv', 00H
-	ORG $+1
-$SG324769 DB	'glColor4f', 00H
-	ORG $+2
-$SG324770 DB	'glColor4fv', 00H
-	ORG $+1
-$SG321698 DB	'glRotated', 00H
-	ORG $+2
-$SG320674 DB	'g', 00H, 'l', 00H, 'N', 00H, 'o', 00H, 'r', 00H, 'm', 00H
-	DB	'a', 00H, 'l', 00H, '3', 00H, 'i', 00H, 00H, 00H
-	ORG $+2
-$SG318626 DB	'g', 00H, 'l', 00H, 'D', 00H, 'e', 00H, 'p', 00H, 't', 00H
-	DB	'h', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 00H, 00H
-$SG324771 DB	'glColor4i', 00H
-	ORG $+2
-$SG320675 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG324772 DB	'glColor4iv', 00H
-	ORG $+1
-$SG318627 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG317604 DB	'glAreTexturesResident', 00H
-	ORG $+2
-$SG324773 DB	'glColor4s', 00H
-	ORG $+2
-$SG324774 DB	'glColor4sv', 00H
-	ORG $+1
-$SG321702 DB	'g', 00H, 'l', 00H, 'R', 00H, 'o', 00H, 't', 00H, 'a', 00H
-	DB	't', 00H, 'e', 00H, 'd', 00H, 00H, 00H
-$SG324775 DB	'glColor4ub', 00H
-	ORG $+1
-$SG324776 DB	'glColor4ubv', 00H
 $SG321703 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
@@ -1614,14 +1497,13 @@ $SG321703 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG317608 DB	'g', 00H, 'l', 00H, 'A', 00H, 'r', 00H, 'e', 00H, 'T', 00H
-	DB	'e', 00H, 'x', 00H, 't', 00H, 'u', 00H, 'r', 00H, 'e', 00H, 's'
-	DB	00H, 'R', 00H, 'e', 00H, 's', 00H, 'i', 00H, 'd', 00H, 'e', 00H
-	DB	'n', 00H, 't', 00H, 00H, 00H
-$SG324777 DB	'glColor4ui', 00H
-	ORG $+1
-$SG324778 DB	'glColor4uiv', 00H
-$SG317609 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG320680 DB	'g', 00H, 'l', 00H, 'N', 00H, 'o', 00H, 'r', 00H, 'm', 00H
+	DB	'a', 00H, 'l', 00H, '3', 00H, 'd', 00H, 00H, 00H
+	ORG $+2
+$SG319658 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'T', 00H
+	DB	'e', 00H, 'x', 00H, 'G', 00H, 'e', 00H, 'n', 00H, 'd', 00H, 'v'
+	DB	00H, 00H, 00H
+$SG320681 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -1631,27 +1513,12 @@ $SG317609 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG324779 DB	'glColor4us', 00H
-	ORG $+1
-$SG324780 DB	'glColor4usv', 00H
-$SG320684 DB	'glNormal3iv', 00H
-$SG318636 DB	'glDepthMask', 00H
-$SG324781 DB	'glColorMask', 00H
-$SG324782 DB	'glColorMaterial', 00H
-$SG319662 DB	'glGetTexLevelParameterfv', 00H
-	ORG $+3
-$SG324783 DB	'glColorPointer', 00H
-	ORG $+1
-$SG324784 DB	'glCopyPixels', 00H
-	ORG $+3
-$SG322736 DB	'glTexSubImage2D', 00H
-$SG320688 DB	'g', 00H, 'l', 00H, 'N', 00H, 'o', 00H, 'r', 00H, 'm', 00H
-	DB	'a', 00H, 'l', 00H, '3', 00H, 'i', 00H, 'v', 00H, 00H, 00H
-$SG318640 DB	'g', 00H, 'l', 00H, 'D', 00H, 'e', 00H, 'p', 00H, 't', 00H
-	DB	'h', 00H, 'M', 00H, 'a', 00H, 's', 00H, 'k', 00H, 00H, 00H
-$SG324785 DB	'glCopyTexImage1D', 00H
-	ORG $+3
-$SG320689 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG318634 DB	'g', 00H, 'l', 00H, 'C', 00H, 'u', 00H, 'l', 00H, 'l', 00H
+	DB	'F', 00H, 'a', 00H, 'c', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG322732 DB	'glTexParameteri', 00H
+$SG317615 DB	'\', 00H, 00H, 00H
+$SG319659 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -1661,9 +1528,45 @@ $SG320689 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG324786 DB	'glCopyTexImage2D', 00H
+$SG322736 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'P', 00H
+	DB	'a', 00H, 'r', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 't', 00H, 'e'
+	DB	00H, 'r', 00H, 'i', 00H, 00H, 00H
+$SG317616 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
+	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG318635 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG320690 DB	'glNormal3dv', 00H
+$SG322737 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG321718 DB	'glRects', 00H
+$SG320694 DB	'g', 00H, 'l', 00H, 'N', 00H, 'o', 00H, 'r', 00H, 'm', 00H
+	DB	'a', 00H, 'l', 00H, '3', 00H, 'd', 00H, 'v', 00H, 00H, 00H
+$SG318646 DB	'glDebugEntry', 00H
 	ORG $+3
-$SG318641 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG319672 DB	'glGetTexGenfv', 00H
+	ORG $+2
+$SG317625 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
+	DB	'3', 00H, '2', 00H, 00H, 00H
+	ORG $+2
+$SG320695 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -1673,75 +1576,35 @@ $SG318641 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG319666 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'T', 00H
-	DB	'e', 00H, 'x', 00H, 'L', 00H, 'e', 00H, 'v', 00H, 'e', 00H, 'l'
-	DB	00H, 'P', 00H, 'a', 00H, 'r', 00H, 'a', 00H, 'm', 00H, 'e', 00H
-	DB	't', 00H, 'e', 00H, 'r', 00H, 'f', 00H, 'v', 00H, 00H, 00H
+$SG321722 DB	'g', 00H, 'l', 00H, 'R', 00H, 'e', 00H, 'c', 00H, 't', 00H
+	DB	's', 00H, 00H, 00H
+$SG318650 DB	'g', 00H, 'l', 00H, 'D', 00H, 'e', 00H, 'b', 00H, 'u', 00H
+	DB	'g', 00H, 'E', 00H, 'n', 00H, 't', 00H, 'r', 00H, 'y', 00H, 00H
+	DB	00H
 	ORG $+2
-$SG317618 DB	'glArrayElement', 00H
-	ORG $+1
-$SG324787 DB	'glCopyTexSubImage1D', 00H
-$SG324788 DB	'glCopyTexSubImage2D', 00H
-$SG319667 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG324793 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG322740 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'S', 00H
-	DB	'u', 00H, 'b', 00H, 'I', 00H, 'm', 00H, 'a', 00H, 'g', 00H, 'e'
-	DB	00H, '2', 00H, 'D', 00H, 00H, 00H
-$SG324789 DB	'glCullFace', 00H
-	ORG $+1
-$SG322741 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG324790 DB	'glDeleteLists', 00H
-	ORG $+2
-$SG321718 DB	'glRotatef', 00H
-	ORG $+2
-$SG317622 DB	'g', 00H, 'l', 00H, 'A', 00H, 'r', 00H, 'r', 00H, 'a', 00H
-	DB	'y', 00H, 'E', 00H, 'l', 00H, 'e', 00H, 'm', 00H, 'e', 00H, 'n'
-	DB	00H, 't', 00H, 00H, 00H
-	ORG $+2
-$SG324791 DB	'glDeleteTextures', 00H
-	ORG $+3
-$SG324792 DB	'glDepthFunc', 00H
-$SG317623 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG324793 DB	'glDepthMask', 00H
-$SG324794 DB	'glDepthRange', 00H
-	ORG $+3
-$SG323770 DB	'wglUseFontOutlinesA', 00H
-$SG321722 DB	'g', 00H, 'l', 00H, 'R', 00H, 'o', 00H, 't', 00H, 'a', 00H
-	DB	't', 00H, 'e', 00H, 'f', 00H, 00H, 00H
-$SG324795 DB	'glDisable', 00H
-	ORG $+2
-$SG323774 DB	'w', 00H, 'g', 00H, 'l', 00H, 'U', 00H, 's', 00H, 'e', 00H
-	DB	'F', 00H, 'o', 00H, 'n', 00H, 't', 00H, 'O', 00H, 'u', 00H, 't'
-	DB	00H, 'l', 00H, 'i', 00H, 'n', 00H, 'e', 00H, 's', 00H, 'A', 00H
+	DB	00H, 'A', 00H, 'd', 00H, 'd', 00H, 'i', 00H, 't', 00H, 'i', 00H
+	DB	'o', 00H, 'n', 00H, 'a', 00H, 'l', 00H, ' ', 00H, 'O', 00H, 'p'
+	DB	00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, ' ', 00H, 'I', 00H
+	DB	'n', 00H, 'i', 00H, 't', 00H, 'i', 00H, 'a', 00H, 'l', 00H, 'i'
+	DB	00H, 'z', 00H, 'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H
 	DB	00H, 00H
-$SG320702 DB	'glNormal3s', 00H
-	ORG $+1
+$SG319676 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'T', 00H
+	DB	'e', 00H, 'x', 00H, 'G', 00H, 'e', 00H, 'n', 00H, 'f', 00H, 'v'
+	DB	00H, 00H, 00H
+$SG324794 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H
+	DB	'=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '='
+	DB	00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H
+	DB	'=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '='
+	DB	00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H, '=', 00H
+	DB	00H, 00H
+$SG324797 DB	'O', 00H, 'P', 00H, 'E', 00H, 'N', 00H, 'G', 00H, 'L', 00H
+	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
+	DB	00H
+	ORG $+2
 $SG321723 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
@@ -1752,110 +1615,52 @@ $SG321723 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG324796 DB	'glDisableClientState', 00H
+$SG317629 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
+	DB	'3', 00H, '2', 00H, 00H, 00H
+	ORG $+2
+$SG318651 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG324798 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'H', 00H, 'o', 00H, 'o', 00H, 'k', 00H, 'i', 00H, 'n', 00H
+	DB	'g', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G'
+	DB	00H, 'L', 00H, 00H, 00H
+$SG322750 DB	'glTexParameteriv', 00H
 	ORG $+3
-$SG318652 DB	'glDepthRange', 00H
-	ORG $+3
-$SG324797 DB	'glDrawArrays', 00H
-	ORG $+3
-$SG324798 DB	'glDrawBuffer', 00H
-	ORG $+3
-$SG324799 DB	'glDrawElements', 00H
-	ORG $+1
-$SG318656 DB	'g', 00H, 'l', 00H, 'D', 00H, 'e', 00H, 'p', 00H, 't', 00H
-	DB	'h', 00H, 'R', 00H, 'a', 00H, 'n', 00H, 'g', 00H, 'e', 00H, 00H
+$SG319677 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG324800 DB	'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H
+	DB	'3', 00H, '2', 00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG323775 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG324800 DB	'glDrawPixels', 00H
-	ORG $+3
-$SG317632 DB	'glBegin', 00H
-$SG324801 DB	'glEdgeFlag', 00H
+$SG324801 DB	'wglSwapBuffers', 00H
 	ORG $+1
-$SG318657 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG324802 DB	'glAccum', 00H
+$SG323778 DB	'wglSwapLayerBuffers', 00H
+$SG322754 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'P', 00H
+	DB	'a', 00H, 'r', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 't', 00H, 'e'
+	DB	00H, 'r', 00H, 'i', 00H, 'v', 00H, 00H, 00H
 	ORG $+2
-$SG324802 DB	'glEdgeFlagPointer', 00H
-	ORG $+2
-$SG322754 DB	'glTranslated', 00H
-	ORG $+3
-$SG320706 DB	'g', 00H, 'l', 00H, 'N', 00H, 'o', 00H, 'r', 00H, 'm', 00H
-	DB	'a', 00H, 'l', 00H, '3', 00H, 's', 00H, 00H, 00H
-	ORG $+2
-$SG319682 DB	'glGetTexLevelParameteriv', 00H
-	ORG $+3
-$SG324803 DB	'glEdgeFlagv', 00H
-$SG320707 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG324804 DB	'glEnable', 00H
-	ORG $+3
-$SG317636 DB	'g', 00H, 'l', 00H, 'B', 00H, 'e', 00H, 'g', 00H, 'i', 00H
-	DB	'n', 00H, 00H, 00H
-$SG324805 DB	'glEnableClientState', 00H
-$SG322758 DB	'g', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H, 'n', 00H
-	DB	's', 00H, 'l', 00H, 'a', 00H, 't', 00H, 'e', 00H, 'd', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG317637 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG324806 DB	'glEnd', 00H
-	ORG $+2
-$SG319686 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'T', 00H
-	DB	'e', 00H, 'x', 00H, 'L', 00H, 'e', 00H, 'v', 00H, 'e', 00H, 'l'
-	DB	00H, 'P', 00H, 'a', 00H, 'r', 00H, 'a', 00H, 'm', 00H, 'e', 00H
-	DB	't', 00H, 'e', 00H, 'r', 00H, 'i', 00H, 'v', 00H, 00H, 00H
-	ORG $+2
-$SG324807 DB	'glEndList', 00H
-	ORG $+2
-$SG321736 DB	'glScaled', 00H
-	ORG $+3
-$SG322759 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG324809 DB	'glEvalCoord1dv', 00H
+$SG324803 DB	'glAlphaFunc', 00H
+$SG320708 DB	'glNormal3f', 00H
 	ORG $+1
-$SG318666 DB	'glDisable', 00H
-	ORG $+2
-$SG319687 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG322755 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -1865,23 +1670,41 @@ $SG319687 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG324808 DB	'glEvalCoord1d', 00H
+$SG324804 DB	'glAreTexturesResident', 00H
 	ORG $+2
-$SG324810 DB	'glEvalCoord1f', 00H
-	ORG $+2
-$SG324811 DB	'glEvalCoord1fv', 00H
+$SG324805 DB	'glArrayElement', 00H
 	ORG $+1
-$SG324812 DB	'glEvalCoord2d', 00H
+$SG324806 DB	'glBegin', 00H
+$SG323782 DB	'w', 00H, 'g', 00H, 'l', 00H, 'S', 00H, 'w', 00H, 'a', 00H
+	DB	'p', 00H, 'L', 00H, 'a', 00H, 'y', 00H, 'e', 00H, 'r', 00H, 'B'
+	DB	00H, 'u', 00H, 'f', 00H, 'f', 00H, 'e', 00H, 'r', 00H, 's', 00H
+	DB	00H, 00H
+$SG321734 DB	'glRectsv', 00H
+	ORG $+3
+$SG318662 DB	'glDeleteLists', 00H
 	ORG $+2
-$SG321740 DB	'g', 00H, 'l', 00H, 'S', 00H, 'c', 00H, 'a', 00H, 'l', 00H
-	DB	'e', 00H, 'd', 00H, 00H, 00H
+$SG324807 DB	'glBindTexture', 00H
 	ORG $+2
-$SG320716 DB	'glNormal3sv', 00H
-$SG324813 DB	'glEvalCoord2dv', 00H
+$SG323783 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG324808 DB	'glBitmap', 00H
+	ORG $+3
+$SG320712 DB	'g', 00H, 'l', 00H, 'N', 00H, 'o', 00H, 'r', 00H, 'm', 00H
+	DB	'a', 00H, 'l', 00H, '3', 00H, 'f', 00H, 00H, 00H
+	ORG $+2
+$SG317640 DB	'glAccum', 00H
+$SG324809 DB	'glBlendFunc', 00H
+$SG324810 DB	'glCallList', 00H
 	ORG $+1
-$SG318670 DB	'g', 00H, 'l', 00H, 'D', 00H, 'i', 00H, 's', 00H, 'a', 00H
-	DB	'b', 00H, 'l', 00H, 'e', 00H, 00H, 00H
-$SG321741 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG320713 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -1891,53 +1714,16 @@ $SG321741 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG324814 DB	'glEvalCoord2f', 00H
+$SG321738 DB	'g', 00H, 'l', 00H, 'R', 00H, 'e', 00H, 'c', 00H, 't', 00H
+	DB	's', 00H, 'v', 00H, 00H, 00H
 	ORG $+2
-$SG324815 DB	'glEvalCoord2fv', 00H
-	ORG $+1
-$SG324816 DB	'glEvalMesh1', 00H
-$SG318671 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG319690 DB	'glGetTexGeniv', 00H
 	ORG $+2
-$SG320720 DB	'g', 00H, 'l', 00H, 'N', 00H, 'o', 00H, 'r', 00H, 'm', 00H
-	DB	'a', 00H, 'l', 00H, '3', 00H, 's', 00H, 'v', 00H, 00H, 00H
-$SG317648 DB	'glBindTexture', 00H
-	ORG $+2
-$SG324817 DB	'glEvalMesh2', 00H
-$SG320721 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG324818 DB	'glEvalPoint1', 00H
-	ORG $+3
-$SG324819 DB	'glEvalPoint2', 00H
-	ORG $+3
-$SG324820 DB	'glFeedbackBuffer', 00H
-	ORG $+3
-$SG322772 DB	'glTranslatef', 00H
-	ORG $+3
-$SG319700 DB	'glGetTexParameterfv', 00H
-$SG317652 DB	'g', 00H, 'l', 00H, 'B', 00H, 'i', 00H, 'n', 00H, 'd', 00H
-	DB	'T', 00H, 'e', 00H, 'x', 00H, 't', 00H, 'u', 00H, 'r', 00H, 'e'
+$SG318666 DB	'g', 00H, 'l', 00H, 'D', 00H, 'e', 00H, 'l', 00H, 'e', 00H
+	DB	't', 00H, 'e', 00H, 'L', 00H, 'i', 00H, 's', 00H, 't', 00H, 's'
 	DB	00H, 00H, 00H
-$SG324821 DB	'glFinish', 00H
-	ORG $+3
-$SG324822 DB	'glFlush', 00H
-$SG323798 DB	'wglUseFontOutlinesW', 00H
-$SG317653 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG324811 DB	'glCallLists', 00H
+$SG321739 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -1947,22 +1733,109 @@ $SG317653 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG324823 DB	'glFogf', 00H
+$SG324812 DB	'glClear', 00H
+$SG319694 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'T', 00H
+	DB	'e', 00H, 'x', 00H, 'G', 00H, 'e', 00H, 'n', 00H, 'i', 00H, 'v'
+	DB	00H, 00H, 00H
+$SG318667 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG317644 DB	'g', 00H, 'l', 00H, 'A', 00H, 'c', 00H, 'c', 00H, 'u', 00H
+	DB	'm', 00H, 00H, 00H
+$SG324813 DB	'glClearAccum', 00H
+	ORG $+3
+$SG324817 DB	'glClearStencil', 00H
 	ORG $+1
-$SG324824 DB	'glFogfv', 00H
-$SG322776 DB	'g', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H, 'n', 00H
-	DB	's', 00H, 'l', 00H, 'a', 00H, 't', 00H, 'e', 00H, 'f', 00H, 00H
+$SG324818 DB	'glClipPlane', 00H
+$SG317645 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG324814 DB	'glClearColor', 00H
+	ORG $+3
+$SG324815 DB	'glClearDepth', 00H
+	ORG $+3
+$SG320722 DB	'glNormal3fv', 00H
+$SG319695 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG324816 DB	'glClearIndex', 00H
+	ORG $+3
+$SG324819 DB	'glColor3b', 00H
+	ORG $+2
+$SG324820 DB	'glColor3bv', 00H
+	ORG $+1
+$SG321748 DB	'glRenderMode', 00H
+	ORG $+3
+$SG324821 DB	'glColor3d', 00H
+	ORG $+2
+$SG324822 DB	'glColor3dv', 00H
+	ORG $+1
+$SG320726 DB	'g', 00H, 'l', 00H, 'N', 00H, 'o', 00H, 'r', 00H, 'm', 00H
+	DB	'a', 00H, 'l', 00H, '3', 00H, 'f', 00H, 'v', 00H, 00H, 00H
+$SG318678 DB	'glDeleteTextures', 00H
+	ORG $+3
+$SG324823 DB	'glColor3f', 00H
+	ORG $+2
+$SG324824 DB	'glColor3fv', 00H
+	ORG $+1
+$SG320727 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG322776 DB	'glTexSubImage1D', 00H
+$SG321752 DB	'g', 00H, 'l', 00H, 'R', 00H, 'e', 00H, 'n', 00H, 'd', 00H
+	DB	'e', 00H, 'r', 00H, 'M', 00H, 'o', 00H, 'd', 00H, 'e', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG319704 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'T', 00H
-	DB	'e', 00H, 'x', 00H, 'P', 00H, 'a', 00H, 'r', 00H, 'a', 00H, 'm'
-	DB	00H, 'e', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'f', 00H, 'v', 00H
-	DB	00H, 00H
-$SG318680 DB	'glDisableClientState', 00H
-	ORG $+3
-$SG324825 DB	'glFogi', 00H
+$SG317656 DB	'glAlphaFunc', 00H
+$SG324825 DB	'glColor3i', 00H
+	ORG $+2
+$SG321753 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG324826 DB	'glColor3iv', 00H
 	ORG $+1
-$SG322777 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG318682 DB	'g', 00H, 'l', 00H, 'D', 00H, 'e', 00H, 'l', 00H, 'e', 00H
+	DB	't', 00H, 'e', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 't', 00H, 'u'
+	DB	00H, 'r', 00H, 'e', 00H, 's', 00H, 00H, 00H
+	ORG $+2
+$SG324827 DB	'glColor3s', 00H
+	ORG $+2
+$SG318683 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -1972,44 +1845,17 @@ $SG322777 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG324826 DB	'glFogiv', 00H
-$SG321754 DB	'glScalef', 00H
-	ORG $+3
-$SG319705 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG323802 DB	'w', 00H, 'g', 00H, 'l', 00H, 'U', 00H, 's', 00H, 'e', 00H
-	DB	'F', 00H, 'o', 00H, 'n', 00H, 't', 00H, 'O', 00H, 'u', 00H, 't'
-	DB	00H, 'l', 00H, 'i', 00H, 'n', 00H, 'e', 00H, 's', 00H, 'W', 00H
-	DB	00H, 00H
-$SG324827 DB	'glFrontFace', 00H
-$SG323803 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG324828 DB	'glFrustum', 00H
-	ORG $+2
-$SG318684 DB	'g', 00H, 'l', 00H, 'D', 00H, 'i', 00H, 's', 00H, 'a', 00H
-	DB	'b', 00H, 'l', 00H, 'e', 00H, 'C', 00H, 'l', 00H, 'i', 00H, 'e'
-	DB	00H, 'n', 00H, 't', 00H, 'S', 00H, 't', 00H, 'a', 00H, 't', 00H
-	DB	'e', 00H, 00H, 00H
-	ORG $+2
-$SG324829 DB	'glGenLists', 00H
+$SG324828 DB	'glColor3sv', 00H
 	ORG $+1
-$SG318685 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG322780 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'S', 00H
+	DB	'u', 00H, 'b', 00H, 'I', 00H, 'm', 00H, 'a', 00H, 'g', 00H, 'e'
+	DB	00H, '1', 00H, 'D', 00H, 00H, 00H
+$SG317660 DB	'g', 00H, 'l', 00H, 'A', 00H, 'l', 00H, 'p', 00H, 'h', 00H
+	DB	'a', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 00H, 00H
+$SG324829 DB	'glColor3ub', 00H
+	ORG $+1
+$SG324830 DB	'glColor3ubv', 00H
+$SG322781 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -2019,15 +1865,9 @@ $SG318685 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG324830 DB	'glGenTextures', 00H
-	ORG $+2
-$SG321758 DB	'g', 00H, 'l', 00H, 'S', 00H, 'c', 00H, 'a', 00H, 'l', 00H
-	DB	'e', 00H, 'f', 00H, 00H, 00H
-	ORG $+2
-$SG320734 DB	'glNormalPointer', 00H
-$SG324831 DB	'glGetBooleanv', 00H
-	ORG $+2
-$SG321759 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG324831 DB	'glColor3ui', 00H
+	ORG $+1
+$SG317661 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -2037,19 +1877,25 @@ $SG321759 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG324832 DB	'glGetClipPlane', 00H
+$SG324832 DB	'glColor3uiv', 00H
+$SG319712 DB	'glGetTexImage', 00H
+	ORG $+2
+$SG324833 DB	'glColor3us', 00H
 	ORG $+1
-$SG324833 DB	'glGetDoublev', 00H
-	ORG $+3
-$SG324834 DB	'glGetError', 00H
+$SG324834 DB	'glColor3usv', 00H
+$SG324835 DB	'glColor4b', 00H
+	ORG $+2
+$SG324836 DB	'glColor4bv', 00H
 	ORG $+1
-$SG320738 DB	'g', 00H, 'l', 00H, 'N', 00H, 'o', 00H, 'r', 00H, 'm', 00H
-	DB	'a', 00H, 'l', 00H, 'P', 00H, 'o', 00H, 'i', 00H, 'n', 00H, 't'
-	DB	00H, 'e', 00H, 'r', 00H, 00H, 00H
-$SG324835 DB	'glGetFloatv', 00H
-$SG322788 DB	'glVertex2d', 00H
+$SG320740 DB	'glNormal3i', 00H
 	ORG $+1
-$SG320739 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG319716 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'T', 00H
+	DB	'e', 00H, 'x', 00H, 'I', 00H, 'm', 00H, 'a', 00H, 'g', 00H, 'e'
+	DB	00H, 00H, 00H
+$SG318692 DB	'glDepthFunc', 00H
+$SG324837 DB	'glColor4d', 00H
+	ORG $+2
+$SG319717 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -2059,26 +1905,22 @@ $SG320739 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG324836 DB	'glGetIntegerv', 00H
+$SG324838 DB	'glColor4dv', 00H
+	ORG $+1
+$SG324839 DB	'glColor4f', 00H
 	ORG $+2
-$SG324837 DB	'glGetLightfv', 00H
-	ORG $+3
-$SG324838 DB	'glGetLightiv', 00H
-	ORG $+3
-$SG319718 DB	'glGetTexParameteriv', 00H
-$SG324839 DB	'glGetMapdv', 00H
+$SG324840 DB	'glColor4fv', 00H
 	ORG $+1
-$SG324840 DB	'glGetMapfv', 00H
-	ORG $+1
-$SG322792 DB	'g', 00H, 'l', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 't', 00H
-	DB	'e', 00H, 'x', 00H, '2', 00H, 'd', 00H, 00H, 00H
+$SG321768 DB	'glRotated', 00H
 	ORG $+2
-$SG324841 DB	'glGetMapiv', 00H
-	ORG $+1
-$SG324842 DB	'glGetMaterialfv', 00H
-$SG317674 DB	'glBitmap', 00H
-	ORG $+3
-$SG322793 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG320744 DB	'g', 00H, 'l', 00H, 'N', 00H, 'o', 00H, 'r', 00H, 'm', 00H
+	DB	'a', 00H, 'l', 00H, '3', 00H, 'i', 00H, 00H, 00H
+	ORG $+2
+$SG318696 DB	'g', 00H, 'l', 00H, 'D', 00H, 'e', 00H, 'p', 00H, 't', 00H
+	DB	'h', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 00H, 00H
+$SG324841 DB	'glColor4i', 00H
+	ORG $+2
+$SG320745 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -2088,16 +1930,9 @@ $SG322793 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG319722 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'T', 00H
-	DB	'e', 00H, 'x', 00H, 'P', 00H, 'a', 00H, 'r', 00H, 'a', 00H, 'm'
-	DB	00H, 'e', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'i', 00H, 'v', 00H
-	DB	00H, 00H
-$SG318698 DB	'glDrawArrays', 00H
-	ORG $+3
-$SG324843 DB	'glGetMaterialiv', 00H
-$SG324845 DB	'glGetPixelMapuiv', 00H
-	ORG $+3
-$SG319723 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG324842 DB	'glColor4iv', 00H
+	ORG $+1
+$SG318697 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -2107,22 +1942,18 @@ $SG319723 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG324844 DB	'glGetPixelMapfv', 00H
-$SG324846 DB	'glGetPixelMapusv', 00H
-	ORG $+3
-$SG321774 DB	'glScissor', 00H
+$SG317674 DB	'glAreTexturesResident', 00H
 	ORG $+2
-$SG318702 DB	'g', 00H, 'l', 00H, 'D', 00H, 'r', 00H, 'a', 00H, 'w', 00H
-	DB	'A', 00H, 'r', 00H, 'r', 00H, 'a', 00H, 'y', 00H, 's', 00H, 00H
-	DB	00H
+$SG324843 DB	'glColor4s', 00H
 	ORG $+2
-$SG317678 DB	'g', 00H, 'l', 00H, 'B', 00H, 'i', 00H, 't', 00H, 'm', 00H
-	DB	'a', 00H, 'p', 00H, 00H, 00H
-	ORG $+2
-$SG324847 DB	'glGetPointerv', 00H
-	ORG $+2
-$SG324848 DB	'glGetPolygonStipple', 00H
-$SG318703 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG324844 DB	'glColor4sv', 00H
+	ORG $+1
+$SG321772 DB	'g', 00H, 'l', 00H, 'R', 00H, 'o', 00H, 't', 00H, 'a', 00H
+	DB	't', 00H, 'e', 00H, 'd', 00H, 00H, 00H
+$SG324845 DB	'glColor4ub', 00H
+	ORG $+1
+$SG324846 DB	'glColor4ubv', 00H
+$SG321773 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -2132,7 +1963,13 @@ $SG318703 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG324849 DB	'glGetString', 00H
+$SG317678 DB	'g', 00H, 'l', 00H, 'A', 00H, 'r', 00H, 'e', 00H, 'T', 00H
+	DB	'e', 00H, 'x', 00H, 't', 00H, 'u', 00H, 'r', 00H, 'e', 00H, 's'
+	DB	00H, 'R', 00H, 'e', 00H, 's', 00H, 'i', 00H, 'd', 00H, 'e', 00H
+	DB	'n', 00H, 't', 00H, 00H, 00H
+$SG324847 DB	'glColor4ui', 00H
+	ORG $+1
+$SG324848 DB	'glColor4uiv', 00H
 $SG317679 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
@@ -2143,41 +1980,27 @@ $SG317679 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG324850 DB	'glGetTexEnvfv', 00H
-	ORG $+2
-$SG322802 DB	'glVertex2dv', 00H
-$SG321778 DB	'g', 00H, 'l', 00H, 'S', 00H, 'c', 00H, 'i', 00H, 's', 00H
-	DB	's', 00H, 'o', 00H, 'r', 00H, 00H, 00H
-$SG324851 DB	'glGetTexEnviv', 00H
-	ORG $+2
-$SG322806 DB	'g', 00H, 'l', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 't', 00H
-	DB	'e', 00H, 'x', 00H, '2', 00H, 'd', 00H, 'v', 00H, 00H, 00H
-$SG324856 DB	'glGetTexLevelParameterfv', 00H
-	ORG $+3
-$SG321779 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG324852 DB	'glGetTexGendv', 00H
-	ORG $+2
-$SG324853 DB	'glGetTexGenfv', 00H
-	ORG $+2
-$SG324854 DB	'glGetTexGeniv', 00H
-	ORG $+2
-$SG320758 DB	'glOrtho', 00H
-$SG319734 DB	'glHint', 00H
+$SG324849 DB	'glColor4us', 00H
 	ORG $+1
-$SG324855 DB	'glGetTexImage', 00H
-	ORG $+2
-$SG324857 DB	'glGetTexLevelParameteriv', 00H
+$SG324850 DB	'glColor4usv', 00H
+$SG320754 DB	'glNormal3iv', 00H
+$SG318706 DB	'glDepthMask', 00H
+$SG324851 DB	'glColorMask', 00H
+$SG324852 DB	'glColorMaterial', 00H
+$SG319732 DB	'glGetTexLevelParameterfv', 00H
 	ORG $+3
-$SG322807 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG324853 DB	'glColorPointer', 00H
+	ORG $+1
+$SG324854 DB	'glCopyPixels', 00H
+	ORG $+3
+$SG322806 DB	'glTexSubImage2D', 00H
+$SG320758 DB	'g', 00H, 'l', 00H, 'N', 00H, 'o', 00H, 'r', 00H, 'm', 00H
+	DB	'a', 00H, 'l', 00H, '3', 00H, 'i', 00H, 'v', 00H, 00H, 00H
+$SG318710 DB	'g', 00H, 'l', 00H, 'D', 00H, 'e', 00H, 'p', 00H, 't', 00H
+	DB	'h', 00H, 'M', 00H, 'a', 00H, 's', 00H, 'k', 00H, 00H, 00H
+$SG324855 DB	'glCopyTexImage1D', 00H
+	ORG $+3
+$SG320759 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -2187,17 +2010,88 @@ $SG322807 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG318712 DB	'glDrawBuffer', 00H
+$SG324856 DB	'glCopyTexImage2D', 00H
 	ORG $+3
-$SG324858 DB	'glGetTexParameterfv', 00H
-$SG320762 DB	'g', 00H, 'l', 00H, 'O', 00H, 'r', 00H, 't', 00H, 'h', 00H
-	DB	'o', 00H, 00H, 00H
-$SG319738 DB	'g', 00H, 'l', 00H, 'H', 00H, 'i', 00H, 'n', 00H, 't', 00H
+$SG318711 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG319736 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'T', 00H
+	DB	'e', 00H, 'x', 00H, 'L', 00H, 'e', 00H, 'v', 00H, 'e', 00H, 'l'
+	DB	00H, 'P', 00H, 'a', 00H, 'r', 00H, 'a', 00H, 'm', 00H, 'e', 00H
+	DB	't', 00H, 'e', 00H, 'r', 00H, 'f', 00H, 'v', 00H, 00H, 00H
+	ORG $+2
+$SG317688 DB	'glArrayElement', 00H
+	ORG $+1
+$SG324857 DB	'glCopyTexSubImage1D', 00H
+$SG324858 DB	'glCopyTexSubImage2D', 00H
+$SG319737 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG322810 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'S', 00H
+	DB	'u', 00H, 'b', 00H, 'I', 00H, 'm', 00H, 'a', 00H, 'g', 00H, 'e'
+	DB	00H, '2', 00H, 'D', 00H, 00H, 00H
+$SG324859 DB	'glCullFace', 00H
+	ORG $+1
+$SG322811 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG324860 DB	'glDeleteLists', 00H
+	ORG $+2
+$SG321788 DB	'glRotatef', 00H
+	ORG $+2
+$SG317692 DB	'g', 00H, 'l', 00H, 'A', 00H, 'r', 00H, 'r', 00H, 'a', 00H
+	DB	'y', 00H, 'E', 00H, 'l', 00H, 'e', 00H, 'm', 00H, 'e', 00H, 'n'
+	DB	00H, 't', 00H, 00H, 00H
+	ORG $+2
+$SG324861 DB	'glDeleteTextures', 00H
+	ORG $+3
+$SG324862 DB	'glDepthFunc', 00H
+$SG317693 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG324863 DB	'glDepthMask', 00H
+$SG324864 DB	'glDepthRange', 00H
+	ORG $+3
+$SG323840 DB	'wglUseFontOutlinesA', 00H
+$SG321792 DB	'g', 00H, 'l', 00H, 'R', 00H, 'o', 00H, 't', 00H, 'a', 00H
+	DB	't', 00H, 'e', 00H, 'f', 00H, 00H, 00H
+$SG324865 DB	'glDisable', 00H
+	ORG $+2
+$SG323844 DB	'w', 00H, 'g', 00H, 'l', 00H, 'U', 00H, 's', 00H, 'e', 00H
+	DB	'F', 00H, 'o', 00H, 'n', 00H, 't', 00H, 'O', 00H, 'u', 00H, 't'
+	DB	00H, 'l', 00H, 'i', 00H, 'n', 00H, 'e', 00H, 's', 00H, 'A', 00H
 	DB	00H, 00H
-	ORG $+2
-$SG317690 DB	'glBlendFunc', 00H
-$SG324859 DB	'glGetTexParameteriv', 00H
-$SG320763 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG320772 DB	'glNormal3s', 00H
+	ORG $+1
+$SG321793 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -2207,13 +2101,21 @@ $SG320763 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG324860 DB	'glHint', 00H
+$SG324866 DB	'glDisableClientState', 00H
+	ORG $+3
+$SG318722 DB	'glDepthRange', 00H
+	ORG $+3
+$SG324867 DB	'glDrawArrays', 00H
+	ORG $+3
+$SG324868 DB	'glDrawBuffer', 00H
+	ORG $+3
+$SG324869 DB	'glDrawElements', 00H
 	ORG $+1
-$SG318716 DB	'g', 00H, 'l', 00H, 'D', 00H, 'r', 00H, 'a', 00H, 'w', 00H
-	DB	'B', 00H, 'u', 00H, 'f', 00H, 'f', 00H, 'e', 00H, 'r', 00H, 00H
+$SG318726 DB	'g', 00H, 'l', 00H, 'D', 00H, 'e', 00H, 'p', 00H, 't', 00H
+	DB	'h', 00H, 'R', 00H, 'a', 00H, 'n', 00H, 'g', 00H, 'e', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG319739 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG323845 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -2223,26 +2125,12 @@ $SG319739 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG324861 DB	'glIndexMask', 00H
-$SG318717 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG324862 DB	'glIndexPointer', 00H
-	ORG $+1
-$SG321790 DB	'glSelectBuffer', 00H
-	ORG $+1
-$SG317694 DB	'g', 00H, 'l', 00H, 'B', 00H, 'l', 00H, 'e', 00H, 'n', 00H
-	DB	'd', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 00H, 00H
-$SG324863 DB	'glIndexd', 00H
+$SG324870 DB	'glDrawPixels', 00H
 	ORG $+3
-$SG317695 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG317702 DB	'glBegin', 00H
+$SG324871 DB	'glEdgeFlag', 00H
+	ORG $+1
+$SG318727 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -2252,65 +2140,16 @@ $SG317695 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG324864 DB	'glIndexdv', 00H
+$SG324872 DB	'glEdgeFlagPointer', 00H
 	ORG $+2
-$SG324865 DB	'glIndexf', 00H
+$SG322824 DB	'glTranslated', 00H
 	ORG $+3
-$SG324866 DB	'glIndexfv', 00H
+$SG320776 DB	'g', 00H, 'l', 00H, 'N', 00H, 'o', 00H, 'r', 00H, 'm', 00H
+	DB	'a', 00H, 'l', 00H, '3', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG322818 DB	'glVertex2f', 00H
-	ORG $+1
-$SG321794 DB	'g', 00H, 'l', 00H, 'S', 00H, 'e', 00H, 'l', 00H, 'e', 00H
-	DB	'c', 00H, 't', 00H, 'B', 00H, 'u', 00H, 'f', 00H, 'f', 00H, 'e'
-	DB	00H, 'r', 00H, 00H, 00H
-	ORG $+2
-$SG324867 DB	'glIndexi', 00H
+$SG319752 DB	'glGetTexLevelParameteriv', 00H
 	ORG $+3
-$SG321795 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG324868 DB	'glIndexiv', 00H
-	ORG $+2
-$SG320772 DB	'glPassThrough', 00H
-	ORG $+2
-$SG319748 DB	'glIndexMask', 00H
-$SG324869 DB	'glIndexs', 00H
-	ORG $+3
-$SG324870 DB	'glIndexsv', 00H
-	ORG $+2
-$SG322822 DB	'g', 00H, 'l', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 't', 00H
-	DB	'e', 00H, 'x', 00H, '2', 00H, 'f', 00H, 00H, 00H
-	ORG $+2
-$SG324871 DB	'glIndexub', 00H
-	ORG $+2
-$SG322823 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG324872 DB	'glIndexubv', 00H
-	ORG $+1
-$SG320776 DB	'g', 00H, 'l', 00H, 'P', 00H, 'a', 00H, 's', 00H, 's', 00H
-	DB	'T', 00H, 'h', 00H, 'r', 00H, 'o', 00H, 'u', 00H, 'g', 00H, 'h'
-	DB	00H, 00H, 00H
-$SG319752 DB	'g', 00H, 'l', 00H, 'I', 00H, 'n', 00H, 'd', 00H, 'e', 00H
-	DB	'x', 00H, 'M', 00H, 'a', 00H, 's', 00H, 'k', 00H, 00H, 00H
-$SG317704 DB	'glCallList', 00H
-	ORG $+1
-$SG324873 DB	'glInitNames', 00H
-$SG324874 DB	'glInterleavedArrays', 00H
+$SG324873 DB	'glEdgeFlagv', 00H
 $SG320777 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
@@ -2321,55 +2160,16 @@ $SG320777 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG324875 DB	'glIsEnabled', 00H
-$SG319753 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG324876 DB	'glIsList', 00H
+$SG324874 DB	'glEnable', 00H
 	ORG $+3
-$SG321804 DB	'glShadeModel', 00H
-	ORG $+3
-$SG318732 DB	'glDrawElements', 00H
-	ORG $+1
-$SG317708 DB	'g', 00H, 'l', 00H, 'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H
-	DB	'L', 00H, 'i', 00H, 's', 00H, 't', 00H, 00H, 00H
-	ORG $+2
-$SG324877 DB	'glIsTexture', 00H
-$SG322832 DB	'glVertex2fv', 00H
-$SG317709 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG324878 DB	'glLightModelf', 00H
-	ORG $+2
-$SG324879 DB	'glLightModelfv', 00H
-	ORG $+1
-$SG324880 DB	'glLightModeli', 00H
-	ORG $+2
-$SG321808 DB	'g', 00H, 'l', 00H, 'S', 00H, 'h', 00H, 'a', 00H, 'd', 00H
-	DB	'e', 00H, 'M', 00H, 'o', 00H, 'd', 00H, 'e', 00H, 'l', 00H, 00H
+$SG317706 DB	'g', 00H, 'l', 00H, 'B', 00H, 'e', 00H, 'g', 00H, 'i', 00H
+	DB	'n', 00H, 00H, 00H
+$SG324875 DB	'glEnableClientState', 00H
+$SG322828 DB	'g', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H, 'n', 00H
+	DB	's', 00H, 'l', 00H, 'a', 00H, 't', 00H, 'e', 00H, 'd', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG318736 DB	'g', 00H, 'l', 00H, 'D', 00H, 'r', 00H, 'a', 00H, 'w', 00H
-	DB	'E', 00H, 'l', 00H, 'e', 00H, 'm', 00H, 'e', 00H, 'n', 00H, 't'
-	DB	00H, 's', 00H, 00H, 00H
-	ORG $+2
-$SG324881 DB	'glLightModeliv', 00H
-	ORG $+1
-$SG321809 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG317707 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -2379,9 +2179,18 @@ $SG321809 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG324882 DB	'glLightf', 00H
+$SG324876 DB	'glEnd', 00H
+	ORG $+2
+$SG319756 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'T', 00H
+	DB	'e', 00H, 'x', 00H, 'L', 00H, 'e', 00H, 'v', 00H, 'e', 00H, 'l'
+	DB	00H, 'P', 00H, 'a', 00H, 'r', 00H, 'a', 00H, 'm', 00H, 'e', 00H
+	DB	't', 00H, 'e', 00H, 'r', 00H, 'i', 00H, 'v', 00H, 00H, 00H
+	ORG $+2
+$SG324877 DB	'glEndList', 00H
+	ORG $+2
+$SG321806 DB	'glScaled', 00H
 	ORG $+3
-$SG318737 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG322829 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -2391,15 +2200,11 @@ $SG318737 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG324883 DB	'glLightfv', 00H
+$SG324879 DB	'glEvalCoord1dv', 00H
+	ORG $+1
+$SG318736 DB	'glDisable', 00H
 	ORG $+2
-$SG324884 DB	'glLighti', 00H
-	ORG $+3
-$SG322836 DB	'g', 00H, 'l', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 't', 00H
-	DB	'e', 00H, 'x', 00H, '2', 00H, 'f', 00H, 'v', 00H, 00H, 00H
-$SG324885 DB	'glLightiv', 00H
-	ORG $+2
-$SG322837 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG319757 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -2409,82 +2214,104 @@ $SG322837 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG324886 DB	'glLineStipple', 00H
+$SG324878 DB	'glEvalCoord1d', 00H
 	ORG $+2
-$SG320790 DB	'glPixelMapfv', 00H
+$SG324880 DB	'glEvalCoord1f', 00H
+	ORG $+2
+$SG324881 DB	'glEvalCoord1fv', 00H
+	ORG $+1
+$SG324882 DB	'glEvalCoord2d', 00H
+	ORG $+2
+$SG321810 DB	'g', 00H, 'l', 00H, 'S', 00H, 'c', 00H, 'a', 00H, 'l', 00H
+	DB	'e', 00H, 'd', 00H, 00H, 00H
+	ORG $+2
+$SG320786 DB	'glNormal3sv', 00H
+$SG324883 DB	'glEvalCoord2dv', 00H
+	ORG $+1
+$SG318740 DB	'g', 00H, 'l', 00H, 'D', 00H, 'i', 00H, 's', 00H, 'a', 00H
+	DB	'b', 00H, 'l', 00H, 'e', 00H, 00H, 00H
+$SG321811 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG324884 DB	'glEvalCoord2f', 00H
+	ORG $+2
+$SG324885 DB	'glEvalCoord2fv', 00H
+	ORG $+1
+$SG324886 DB	'glEvalMesh1', 00H
+$SG318741 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG320790 DB	'g', 00H, 'l', 00H, 'N', 00H, 'o', 00H, 'r', 00H, 'm', 00H
+	DB	'a', 00H, 'l', 00H, '3', 00H, 's', 00H, 'v', 00H, 00H, 00H
+$SG317718 DB	'glBindTexture', 00H
+	ORG $+2
+$SG324887 DB	'glEvalMesh2', 00H
+$SG320791 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG324888 DB	'glEvalPoint1', 00H
 	ORG $+3
-$SG319766 DB	'glIndexPointer', 00H
-	ORG $+1
-$SG324887 DB	'glLineWidth', 00H
-$SG324888 DB	'glListBase', 00H
-	ORG $+1
-$SG324889 DB	'glLoadIdentity', 00H
-	ORG $+1
-$SG324890 DB	'glLoadMatrixd', 00H
+$SG324889 DB	'glEvalPoint2', 00H
+	ORG $+3
+$SG324890 DB	'glFeedbackBuffer', 00H
+	ORG $+3
+$SG322842 DB	'glTranslatef', 00H
+	ORG $+3
+$SG319770 DB	'glGetTexParameterfv', 00H
+$SG317722 DB	'g', 00H, 'l', 00H, 'B', 00H, 'i', 00H, 'n', 00H, 'd', 00H
+	DB	'T', 00H, 'e', 00H, 'x', 00H, 't', 00H, 'u', 00H, 'r', 00H, 'e'
+	DB	00H, 00H, 00H
+$SG324891 DB	'glFinish', 00H
+	ORG $+3
+$SG324892 DB	'glFlush', 00H
+$SG323868 DB	'wglUseFontOutlinesW', 00H
+$SG317723 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG320794 DB	'g', 00H, 'l', 00H, 'P', 00H, 'i', 00H, 'x', 00H, 'e', 00H
-	DB	'l', 00H, 'M', 00H, 'a', 00H, 'p', 00H, 'f', 00H, 'v', 00H, 00H
+$SG324893 DB	'glFogf', 00H
+	ORG $+1
+$SG324894 DB	'glFogfv', 00H
+$SG322846 DB	'g', 00H, 'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H, 'n', 00H
+	DB	's', 00H, 'l', 00H, 'a', 00H, 't', 00H, 'e', 00H, 'f', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG319770 DB	'g', 00H, 'l', 00H, 'I', 00H, 'n', 00H, 'd', 00H, 'e', 00H
-	DB	'x', 00H, 'P', 00H, 'o', 00H, 'i', 00H, 'n', 00H, 't', 00H, 'e'
-	DB	00H, 'r', 00H, 00H, 00H
-	ORG $+2
-$SG317722 DB	'glCallLists', 00H
-$SG324891 DB	'glLoadMatrixf', 00H
-	ORG $+2
-$SG324892 DB	'glLoadName', 00H
-	ORG $+1
-$SG320795 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG324893 DB	'glLogicOp', 00H
-	ORG $+2
-$SG319771 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG324894 DB	'glMap1d', 00H
-$SG321822 DB	'glStencilFunc', 00H
-	ORG $+2
-$SG317726 DB	'g', 00H, 'l', 00H, 'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H
-	DB	'L', 00H, 'i', 00H, 's', 00H, 't', 00H, 's', 00H, 00H, 00H
-$SG324895 DB	'glMap1f', 00H
-$SG322848 DB	'glVertex2i', 00H
-	ORG $+1
-$SG317727 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG324896 DB	'glMap2d', 00H
-$SG324897 DB	'glMap2f', 00H
-$SG324898 DB	'glMapGrid1d', 00H
-$SG321826 DB	'g', 00H, 'l', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'n', 00H
-	DB	'c', 00H, 'i', 00H, 'l', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c'
-	DB	00H, 00H, 00H
-$SG318754 DB	'glDrawPixels', 00H
+$SG319774 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'T', 00H
+	DB	'e', 00H, 'x', 00H, 'P', 00H, 'a', 00H, 'r', 00H, 'a', 00H, 'm'
+	DB	00H, 'e', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'f', 00H, 'v', 00H
+	DB	00H, 00H
+$SG318750 DB	'glDisableClientState', 00H
 	ORG $+3
-$SG324899 DB	'glMapGrid1f', 00H
-$SG321827 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG324895 DB	'glFogi', 00H
+	ORG $+1
+$SG322847 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -2494,14 +2321,10 @@ $SG321827 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG324900 DB	'glMapGrid2d', 00H
-$SG322852 DB	'g', 00H, 'l', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 't', 00H
-	DB	'e', 00H, 'x', 00H, '2', 00H, 'i', 00H, 00H, 00H
-	ORG $+2
-$SG319780 DB	'glIndexd', 00H
+$SG324896 DB	'glFogiv', 00H
+$SG321824 DB	'glScalef', 00H
 	ORG $+3
-$SG324901 DB	'glMapGrid2f', 00H
-$SG322853 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG319775 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -2511,124 +2334,143 @@ $SG322853 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG324902 DB	'glMaterialf', 00H
-$SG318758 DB	'g', 00H, 'l', 00H, 'D', 00H, 'r', 00H, 'a', 00H, 'w', 00H
-	DB	'P', 00H, 'i', 00H, 'x', 00H, 'e', 00H, 'l', 00H, 's', 00H, 00H
+$SG323872 DB	'w', 00H, 'g', 00H, 'l', 00H, 'U', 00H, 's', 00H, 'e', 00H
+	DB	'F', 00H, 'o', 00H, 'n', 00H, 't', 00H, 'O', 00H, 'u', 00H, 't'
+	DB	00H, 'l', 00H, 'i', 00H, 'n', 00H, 'e', 00H, 's', 00H, 'W', 00H
+	DB	00H, 00H
+$SG324897 DB	'glFrontFace', 00H
+$SG323873 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG324898 DB	'glFrustum', 00H
+	ORG $+2
+$SG318754 DB	'g', 00H, 'l', 00H, 'D', 00H, 'i', 00H, 's', 00H, 'a', 00H
+	DB	'b', 00H, 'l', 00H, 'e', 00H, 'C', 00H, 'l', 00H, 'i', 00H, 'e'
+	DB	00H, 'n', 00H, 't', 00H, 'S', 00H, 't', 00H, 'a', 00H, 't', 00H
+	DB	'e', 00H, 00H, 00H
+	ORG $+2
+$SG324899 DB	'glGenLists', 00H
+	ORG $+1
+$SG318755 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG324900 DB	'glGenTextures', 00H
+	ORG $+2
+$SG321828 DB	'g', 00H, 'l', 00H, 'S', 00H, 'c', 00H, 'a', 00H, 'l', 00H
+	DB	'e', 00H, 'f', 00H, 00H, 00H
+	ORG $+2
+$SG320804 DB	'glNormalPointer', 00H
+$SG324901 DB	'glGetBooleanv', 00H
+	ORG $+2
+$SG321829 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG324902 DB	'glGetClipPlane', 00H
+	ORG $+1
+$SG324903 DB	'glGetDoublev', 00H
+	ORG $+3
+$SG324904 DB	'glGetError', 00H
+	ORG $+1
+$SG320808 DB	'g', 00H, 'l', 00H, 'N', 00H, 'o', 00H, 'r', 00H, 'm', 00H
+	DB	'a', 00H, 'l', 00H, 'P', 00H, 'o', 00H, 'i', 00H, 'n', 00H, 't'
+	DB	00H, 'e', 00H, 'r', 00H, 00H, 00H
+$SG324905 DB	'glGetFloatv', 00H
+$SG322858 DB	'glVertex2d', 00H
+	ORG $+1
+$SG320809 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG324906 DB	'glGetIntegerv', 00H
+	ORG $+2
+$SG324907 DB	'glGetLightfv', 00H
+	ORG $+3
+$SG324908 DB	'glGetLightiv', 00H
+	ORG $+3
+$SG319788 DB	'glGetTexParameteriv', 00H
+$SG324909 DB	'glGetMapdv', 00H
+	ORG $+1
+$SG324910 DB	'glGetMapfv', 00H
+	ORG $+1
+$SG322862 DB	'g', 00H, 'l', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 't', 00H
+	DB	'e', 00H, 'x', 00H, '2', 00H, 'd', 00H, 00H, 00H
+	ORG $+2
+$SG324911 DB	'glGetMapiv', 00H
+	ORG $+1
+$SG324912 DB	'glGetMaterialfv', 00H
+$SG317744 DB	'glBitmap', 00H
+	ORG $+3
+$SG322863 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG319792 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'T', 00H
+	DB	'e', 00H, 'x', 00H, 'P', 00H, 'a', 00H, 'r', 00H, 'a', 00H, 'm'
+	DB	00H, 'e', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'i', 00H, 'v', 00H
+	DB	00H, 00H
+$SG318768 DB	'glDrawArrays', 00H
+	ORG $+3
+$SG324913 DB	'glGetMaterialiv', 00H
+$SG324915 DB	'glGetPixelMapuiv', 00H
+	ORG $+3
+$SG319793 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG324914 DB	'glGetPixelMapfv', 00H
+$SG324916 DB	'glGetPixelMapusv', 00H
+	ORG $+3
+$SG321844 DB	'glScissor', 00H
+	ORG $+2
+$SG318772 DB	'g', 00H, 'l', 00H, 'D', 00H, 'r', 00H, 'a', 00H, 'w', 00H
+	DB	'A', 00H, 'r', 00H, 'r', 00H, 'a', 00H, 'y', 00H, 's', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG324903 DB	'glMaterialfv', 00H
-	ORG $+3
-$SG324904 DB	'glMateriali', 00H
-$SG318759 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG317748 DB	'g', 00H, 'l', 00H, 'B', 00H, 'i', 00H, 't', 00H, 'm', 00H
+	DB	'a', 00H, 'p', 00H, 00H, 00H
 	ORG $+2
-$SG320808 DB	'glPixelMapuiv', 00H
+$SG324917 DB	'glGetPointerv', 00H
 	ORG $+2
-$SG319784 DB	'g', 00H, 'l', 00H, 'I', 00H, 'n', 00H, 'd', 00H, 'e', 00H
-	DB	'x', 00H, 'd', 00H, 00H, 00H
-	ORG $+2
-$SG317736 DB	'glClear', 00H
-$SG324905 DB	'glMaterialiv', 00H
-	ORG $+3
-$SG319785 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG324906 DB	'glMatrixMode', 00H
-	ORG $+3
-$SG324907 DB	'glMultMatrixd', 00H
-	ORG $+2
-$SG324908 DB	'glMultMatrixf', 00H
-	ORG $+2
-$SG321836 DB	'glStencilMask', 00H
-	ORG $+2
-$SG320812 DB	'g', 00H, 'l', 00H, 'P', 00H, 'i', 00H, 'x', 00H, 'e', 00H
-	DB	'l', 00H, 'M', 00H, 'a', 00H, 'p', 00H, 'u', 00H, 'i', 00H, 'v'
-	DB	00H, 00H, 00H
-$SG317740 DB	'g', 00H, 'l', 00H, 'C', 00H, 'l', 00H, 'e', 00H, 'a', 00H
-	DB	'r', 00H, 00H, 00H
-$SG324909 DB	'glNewList', 00H
-	ORG $+2
-$SG324910 DB	'glNormal3b', 00H
-	ORG $+1
-$SG320813 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG322862 DB	'glVertex2iv', 00H
-$SG317741 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG324911 DB	'glNormal3bv', 00H
-$SG324912 DB	'glNormal3d', 00H
-	ORG $+1
-$SG321840 DB	'g', 00H, 'l', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'n', 00H
-	DB	'c', 00H, 'i', 00H, 'l', 00H, 'M', 00H, 'a', 00H, 's', 00H, 'k'
-	DB	00H, 00H, 00H
-$SG318768 DB	'glEdgeFlag', 00H
-	ORG $+1
-$SG324913 DB	'glNormal3dv', 00H
-$SG321841 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG324914 DB	'glNormal3f', 00H
-	ORG $+1
-$SG322866 DB	'g', 00H, 'l', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 't', 00H
-	DB	'e', 00H, 'x', 00H, '2', 00H, 'i', 00H, 'v', 00H, 00H, 00H
-$SG319794 DB	'glIndexdv', 00H
-	ORG $+2
-$SG324915 DB	'glNormal3fv', 00H
-$SG322867 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG324916 DB	'glNormal3i', 00H
-	ORG $+1
-$SG318772 DB	'g', 00H, 'l', 00H, 'E', 00H, 'd', 00H, 'g', 00H, 'e', 00H
-	DB	'F', 00H, 'l', 00H, 'a', 00H, 'g', 00H, 00H, 00H
-	ORG $+2
-$SG324917 DB	'glNormal3iv', 00H
-$SG324918 DB	'glNormal3s', 00H
-	ORG $+1
+$SG324918 DB	'glGetPolygonStipple', 00H
 $SG318773 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
@@ -2639,12 +2481,52 @@ $SG318773 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG319798 DB	'g', 00H, 'l', 00H, 'I', 00H, 'n', 00H, 'd', 00H, 'e', 00H
-	DB	'x', 00H, 'd', 00H, 'v', 00H, 00H, 00H
-$SG324919 DB	'glNormal3sv', 00H
-$SG322878 DB	'glVertex2s', 00H
+$SG324919 DB	'glGetString', 00H
+$SG317749 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG324920 DB	'glGetTexEnvfv', 00H
+	ORG $+2
+$SG322872 DB	'glVertex2dv', 00H
+$SG321848 DB	'g', 00H, 'l', 00H, 'S', 00H, 'c', 00H, 'i', 00H, 's', 00H
+	DB	's', 00H, 'o', 00H, 'r', 00H, 00H, 00H
+$SG324921 DB	'glGetTexEnviv', 00H
+	ORG $+2
+$SG322876 DB	'g', 00H, 'l', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 't', 00H
+	DB	'e', 00H, 'x', 00H, '2', 00H, 'd', 00H, 'v', 00H, 00H, 00H
+$SG324926 DB	'glGetTexLevelParameterfv', 00H
+	ORG $+3
+$SG321849 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG324922 DB	'glGetTexGendv', 00H
+	ORG $+2
+$SG324923 DB	'glGetTexGenfv', 00H
+	ORG $+2
+$SG324924 DB	'glGetTexGeniv', 00H
+	ORG $+2
+$SG320828 DB	'glOrtho', 00H
+$SG319804 DB	'glHint', 00H
 	ORG $+1
-$SG319799 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG324925 DB	'glGetTexImage', 00H
+	ORG $+2
+$SG324927 DB	'glGetTexLevelParameteriv', 00H
+	ORG $+3
+$SG322877 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -2654,31 +2536,17 @@ $SG319799 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG324920 DB	'glNormalPointer', 00H
-$SG324921 DB	'glOrtho', 00H
-$SG324922 DB	'glPassThrough', 00H
-	ORG $+2
-$SG320826 DB	'glPixelMapusv', 00H
-	ORG $+2
-$SG324923 DB	'glPixelMapfv', 00H
+$SG318782 DB	'glDrawBuffer', 00H
 	ORG $+3
-$SG324924 DB	'glPixelMapuiv', 00H
+$SG324928 DB	'glGetTexParameterfv', 00H
+$SG320832 DB	'g', 00H, 'l', 00H, 'O', 00H, 'r', 00H, 't', 00H, 'h', 00H
+	DB	'o', 00H, 00H, 00H
+$SG319808 DB	'g', 00H, 'l', 00H, 'H', 00H, 'i', 00H, 'n', 00H, 't', 00H
+	DB	00H, 00H
 	ORG $+2
-$SG317756 DB	'glClearAccum', 00H
-	ORG $+3
-$SG324925 DB	'glPixelMapusv', 00H
-	ORG $+2
-$SG324926 DB	'glPixelStoref', 00H
-	ORG $+2
-$SG321854 DB	'glStencilOp', 00H
-$SG320830 DB	'g', 00H, 'l', 00H, 'P', 00H, 'i', 00H, 'x', 00H, 'e', 00H
-	DB	'l', 00H, 'M', 00H, 'a', 00H, 'p', 00H, 'u', 00H, 's', 00H, 'v'
-	DB	00H, 00H, 00H
-$SG324927 DB	'glPixelStorei', 00H
-	ORG $+2
-$SG324928 DB	'glPixelTransferf', 00H
-	ORG $+3
-$SG320831 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG317760 DB	'glBlendFunc', 00H
+$SG324929 DB	'glGetTexParameteriv', 00H
+$SG320833 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -2688,18 +2556,13 @@ $SG320831 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG319808 DB	'glIndexf', 00H
-	ORG $+3
-$SG318784 DB	'glEdgeFlagPointer', 00H
-	ORG $+2
-$SG317760 DB	'g', 00H, 'l', 00H, 'C', 00H, 'l', 00H, 'e', 00H, 'a', 00H
-	DB	'r', 00H, 'A', 00H, 'c', 00H, 'c', 00H, 'u', 00H, 'm', 00H, 00H
+$SG324930 DB	'glHint', 00H
+	ORG $+1
+$SG318786 DB	'g', 00H, 'l', 00H, 'D', 00H, 'r', 00H, 'a', 00H, 'w', 00H
+	DB	'B', 00H, 'u', 00H, 'f', 00H, 'f', 00H, 'e', 00H, 'r', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG324929 DB	'glPixelTransferi', 00H
-	ORG $+3
-$SG324930 DB	'glPixelZoom', 00H
-$SG317761 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG319809 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -2709,13 +2572,8 @@ $SG317761 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG322882 DB	'g', 00H, 'l', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 't', 00H
-	DB	'e', 00H, 'x', 00H, '2', 00H, 's', 00H, 00H, 00H
-	ORG $+2
-$SG321858 DB	'g', 00H, 'l', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'n', 00H
-	DB	'c', 00H, 'i', 00H, 'l', 00H, 'O', 00H, 'p', 00H, 00H, 00H
-$SG324931 DB	'glPointSize', 00H
-$SG322883 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG324931 DB	'glIndexMask', 00H
+$SG318787 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -2725,80 +2583,83 @@ $SG322883 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG319812 DB	'g', 00H, 'l', 00H, 'I', 00H, 'n', 00H, 'd', 00H, 'e', 00H
-	DB	'x', 00H, 'f', 00H, 00H, 00H
-	ORG $+2
-$SG321859 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG324932 DB	'glPolygonMode', 00H
-	ORG $+2
-$SG318788 DB	'g', 00H, 'l', 00H, 'E', 00H, 'd', 00H, 'g', 00H, 'e', 00H
-	DB	'F', 00H, 'l', 00H, 'a', 00H, 'g', 00H, 'P', 00H, 'o', 00H, 'i'
-	DB	00H, 'n', 00H, 't', 00H, 'e', 00H, 'r', 00H, 00H, 00H
-$SG324933 DB	'glPolygonOffset', 00H
-$SG319813 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG324934 DB	'glPolygonStipple', 00H
-	ORG $+3
-$SG318789 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG324935 DB	'glPopAttrib', 00H
-$SG324936 DB	'glPopClientAttrib', 00H
-	ORG $+2
-$SG324937 DB	'glPopMatrix', 00H
-$SG324938 DB	'glPopName', 00H
-	ORG $+2
-$SG320842 DB	'glPixelStoref', 00H
-	ORG $+2
-$SG324939 DB	'glPrioritizeTextures', 00H
-	ORG $+3
-$SG324940 DB	'glPushAttrib', 00H
-	ORG $+3
-$SG322892 DB	'glVertex2sv', 00H
-$SG321868 DB	'glTexCoord1d', 00H
-	ORG $+3
-$SG324941 DB	'glPushClientAttrib', 00H
+$SG324932 DB	'glIndexPointer', 00H
 	ORG $+1
-$SG324942 DB	'glPushMatrix', 00H
+$SG321860 DB	'glSelectBuffer', 00H
+	ORG $+1
+$SG317764 DB	'g', 00H, 'l', 00H, 'B', 00H, 'l', 00H, 'e', 00H, 'n', 00H
+	DB	'd', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 00H, 00H
+$SG324933 DB	'glIndexd', 00H
 	ORG $+3
-$SG320846 DB	'g', 00H, 'l', 00H, 'P', 00H, 'i', 00H, 'x', 00H, 'e', 00H
-	DB	'l', 00H, 'S', 00H, 't', 00H, 'o', 00H, 'r', 00H, 'e', 00H, 'f'
+$SG317765 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG324934 DB	'glIndexdv', 00H
+	ORG $+2
+$SG324935 DB	'glIndexf', 00H
+	ORG $+3
+$SG324936 DB	'glIndexfv', 00H
+	ORG $+2
+$SG322888 DB	'glVertex2f', 00H
+	ORG $+1
+$SG321864 DB	'g', 00H, 'l', 00H, 'S', 00H, 'e', 00H, 'l', 00H, 'e', 00H
+	DB	'c', 00H, 't', 00H, 'B', 00H, 'u', 00H, 'f', 00H, 'f', 00H, 'e'
+	DB	00H, 'r', 00H, 00H, 00H
+	ORG $+2
+$SG324937 DB	'glIndexi', 00H
+	ORG $+3
+$SG321865 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG324938 DB	'glIndexiv', 00H
+	ORG $+2
+$SG320842 DB	'glPassThrough', 00H
+	ORG $+2
+$SG319818 DB	'glIndexMask', 00H
+$SG324939 DB	'glIndexs', 00H
+	ORG $+3
+$SG324940 DB	'glIndexsv', 00H
+	ORG $+2
+$SG322892 DB	'g', 00H, 'l', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 't', 00H
+	DB	'e', 00H, 'x', 00H, '2', 00H, 'f', 00H, 00H, 00H
+	ORG $+2
+$SG324941 DB	'glIndexub', 00H
+	ORG $+2
+$SG322893 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG324942 DB	'glIndexubv', 00H
+	ORG $+1
+$SG320846 DB	'g', 00H, 'l', 00H, 'P', 00H, 'a', 00H, 's', 00H, 's', 00H
+	DB	'T', 00H, 'h', 00H, 'r', 00H, 'o', 00H, 'u', 00H, 'g', 00H, 'h'
 	DB	00H, 00H, 00H
-$SG319822 DB	'glIndexfv', 00H
-	ORG $+2
-$SG318798 DB	'glEdgeFlagv', 00H
-$SG324943 DB	'glPushName', 00H
+$SG319822 DB	'g', 00H, 'l', 00H, 'I', 00H, 'n', 00H, 'd', 00H, 'e', 00H
+	DB	'x', 00H, 'M', 00H, 'a', 00H, 's', 00H, 'k', 00H, 00H, 00H
+$SG317774 DB	'glCallList', 00H
 	ORG $+1
-$SG322896 DB	'g', 00H, 'l', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 't', 00H
-	DB	'e', 00H, 'x', 00H, '2', 00H, 's', 00H, 'v', 00H, 00H, 00H
-$SG321872 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
-	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '1', 00H, 'd', 00H, 00H
-	DB	00H
-	ORG $+2
+$SG324943 DB	'glInitNames', 00H
+$SG324944 DB	'glInterleavedArrays', 00H
 $SG320847 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
@@ -2809,15 +2670,8 @@ $SG320847 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG324944 DB	'glRasterPos2d', 00H
-	ORG $+2
-$SG317776 DB	'glClearColor', 00H
-	ORG $+3
-$SG324945 DB	'glRasterPos2dv', 00H
-	ORG $+1
-$SG319826 DB	'g', 00H, 'l', 00H, 'I', 00H, 'n', 00H, 'd', 00H, 'e', 00H
-	DB	'x', 00H, 'f', 00H, 'v', 00H, 00H, 00H
-$SG322897 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG324945 DB	'glIsEnabled', 00H
+$SG319823 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -2827,13 +2681,44 @@ $SG322897 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG318802 DB	'g', 00H, 'l', 00H, 'E', 00H, 'd', 00H, 'g', 00H, 'e', 00H
-	DB	'F', 00H, 'l', 00H, 'a', 00H, 'g', 00H, 'v', 00H, 00H, 00H
-$SG317780 DB	'g', 00H, 'l', 00H, 'C', 00H, 'l', 00H, 'e', 00H, 'a', 00H
-	DB	'r', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H, 'r', 00H, 00H
+$SG324946 DB	'glIsList', 00H
+	ORG $+3
+$SG321874 DB	'glShadeModel', 00H
+	ORG $+3
+$SG318802 DB	'glDrawElements', 00H
+	ORG $+1
+$SG317778 DB	'g', 00H, 'l', 00H, 'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H
+	DB	'L', 00H, 'i', 00H, 's', 00H, 't', 00H, 00H, 00H
+	ORG $+2
+$SG324947 DB	'glIsTexture', 00H
+$SG322902 DB	'glVertex2fv', 00H
+$SG317779 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG324948 DB	'glLightModelf', 00H
+	ORG $+2
+$SG324949 DB	'glLightModelfv', 00H
+	ORG $+1
+$SG324950 DB	'glLightModeli', 00H
+	ORG $+2
+$SG321878 DB	'g', 00H, 'l', 00H, 'S', 00H, 'h', 00H, 'a', 00H, 'd', 00H
+	DB	'e', 00H, 'M', 00H, 'o', 00H, 'd', 00H, 'e', 00H, 'l', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG321873 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG318806 DB	'g', 00H, 'l', 00H, 'D', 00H, 'r', 00H, 'a', 00H, 'w', 00H
+	DB	'E', 00H, 'l', 00H, 'e', 00H, 'm', 00H, 'e', 00H, 'n', 00H, 't'
+	DB	00H, 's', 00H, 00H, 00H
+	ORG $+2
+$SG324951 DB	'glLightModeliv', 00H
+	ORG $+1
+$SG321879 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -2843,13 +2728,9 @@ $SG321873 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG324946 DB	'glRasterPos2f', 00H
-	ORG $+2
-$SG324947 DB	'glRasterPos2fv', 00H
-	ORG $+1
-$SG319836 DB	'glIndexi', 00H
+$SG324952 DB	'glLightf', 00H
 	ORG $+3
-$SG319827 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG318807 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -2859,11 +2740,15 @@ $SG319827 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG324949 DB	'glRasterPos2iv', 00H
-	ORG $+1
-$SG318812 DB	'glEnable', 00H
+$SG324953 DB	'glLightfv', 00H
+	ORG $+2
+$SG324954 DB	'glLighti', 00H
 	ORG $+3
-$SG318803 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG322906 DB	'g', 00H, 'l', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 't', 00H
+	DB	'e', 00H, 'x', 00H, '2', 00H, 'f', 00H, 'v', 00H, 00H, 00H
+$SG324955 DB	'glLightiv', 00H
+	ORG $+2
+$SG322907 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -2873,85 +2758,43 @@ $SG318803 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG324948 DB	'glRasterPos2i', 00H
+$SG324956 DB	'glLineStipple', 00H
 	ORG $+2
-$SG324951 DB	'glRasterPos2sv', 00H
-	ORG $+1
-$SG322910 DB	'glVertex3d', 00H
-	ORG $+1
-$SG317781 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG324950 DB	'glRasterPos2s', 00H
-	ORG $+2
-$SG324952 DB	'glRasterPos3d', 00H
-	ORG $+2
-$SG324953 DB	'glRasterPos3dv', 00H
-	ORG $+1
-$SG324954 DB	'glRasterPos3f', 00H
-	ORG $+2
-$SG321882 DB	'glTexCoord1dv', 00H
-	ORG $+2
-$SG320858 DB	'glPixelStorei', 00H
-	ORG $+2
-$SG324955 DB	'glRasterPos3fv', 00H
-	ORG $+1
-$SG324956 DB	'glRasterPos3i', 00H
-	ORG $+2
-$SG324957 DB	'glRasterPos3iv', 00H
-	ORG $+1
-$SG324958 DB	'glRasterPos3s', 00H
-	ORG $+2
-$SG321886 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
-	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '1', 00H, 'd', 00H, 'v'
-	DB	00H, 00H, 00H
-$SG320862 DB	'g', 00H, 'l', 00H, 'P', 00H, 'i', 00H, 'x', 00H, 'e', 00H
-	DB	'l', 00H, 'S', 00H, 't', 00H, 'o', 00H, 'r', 00H, 'e', 00H, 'i'
-	DB	00H, 00H, 00H
-$SG317790 DB	'glClearDepth', 00H
+$SG320860 DB	'glPixelMapfv', 00H
 	ORG $+3
-$SG324959 DB	'glRasterPos3sv', 00H
+$SG319836 DB	'glIndexPointer', 00H
 	ORG $+1
+$SG324957 DB	'glLineWidth', 00H
+$SG324958 DB	'glListBase', 00H
+	ORG $+1
+$SG324959 DB	'glLoadIdentity', 00H
+	ORG $+1
+$SG324960 DB	'glLoadMatrixd', 00H
+	ORG $+2
+$SG320864 DB	'g', 00H, 'l', 00H, 'P', 00H, 'i', 00H, 'x', 00H, 'e', 00H
+	DB	'l', 00H, 'M', 00H, 'a', 00H, 'p', 00H, 'f', 00H, 'v', 00H, 00H
+	DB	00H
+	ORG $+2
 $SG319840 DB	'g', 00H, 'l', 00H, 'I', 00H, 'n', 00H, 'd', 00H, 'e', 00H
-	DB	'x', 00H, 'i', 00H, 00H, 00H
+	DB	'x', 00H, 'P', 00H, 'o', 00H, 'i', 00H, 'n', 00H, 't', 00H, 'e'
+	DB	00H, 'r', 00H, 00H, 00H
 	ORG $+2
-$SG321887 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG317792 DB	'glCallLists', 00H
+$SG324961 DB	'glLoadMatrixf', 00H
 	ORG $+2
-$SG318816 DB	'g', 00H, 'l', 00H, 'E', 00H, 'n', 00H, 'a', 00H, 'b', 00H
-	DB	'l', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG320863 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG324960 DB	'glRasterPos4d', 00H
-	ORG $+2
-$SG324961 DB	'glRasterPos4dv', 00H
+$SG324962 DB	'glLoadName', 00H
 	ORG $+1
-$SG317794 DB	'g', 00H, 'l', 00H, 'C', 00H, 'l', 00H, 'e', 00H, 'a', 00H
-	DB	'r', 00H, 'D', 00H, 'e', 00H, 'p', 00H, 't', 00H, 'h', 00H, 00H
-	DB	00H
+$SG320865 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG324963 DB	'glLogicOp', 00H
 	ORG $+2
 $SG319841 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
@@ -2963,12 +2806,15 @@ $SG319841 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG324963 DB	'glRasterPos4fv', 00H
+$SG324964 DB	'glMap1d', 00H
+$SG321892 DB	'glStencilFunc', 00H
+	ORG $+2
+$SG317796 DB	'g', 00H, 'l', 00H, 'C', 00H, 'a', 00H, 'l', 00H, 'l', 00H
+	DB	'L', 00H, 'i', 00H, 's', 00H, 't', 00H, 's', 00H, 00H, 00H
+$SG324965 DB	'glMap1f', 00H
+$SG322918 DB	'glVertex2i', 00H
 	ORG $+1
-$SG324970 DB	'glRectd', 00H
-$SG320874 DB	'glPixelTransferf', 00H
-	ORG $+3
-$SG318817 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG317797 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -2978,16 +2824,16 @@ $SG318817 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG324962 DB	'glRasterPos4f', 00H
-	ORG $+2
-$SG322914 DB	'g', 00H, 'l', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 't', 00H
-	DB	'e', 00H, 'x', 00H, '3', 00H, 'd', 00H, 00H, 00H
-	ORG $+2
-$SG324965 DB	'glRasterPos4iv', 00H
-	ORG $+1
-$SG319850 DB	'glIndexiv', 00H
-	ORG $+2
-$SG322915 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG324966 DB	'glMap2d', 00H
+$SG324967 DB	'glMap2f', 00H
+$SG324968 DB	'glMapGrid1d', 00H
+$SG321896 DB	'g', 00H, 'l', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'n', 00H
+	DB	'c', 00H, 'i', 00H, 'l', 00H, 'F', 00H, 'u', 00H, 'n', 00H, 'c'
+	DB	00H, 00H, 00H
+$SG318824 DB	'glDrawPixels', 00H
+	ORG $+3
+$SG324969 DB	'glMapGrid1f', 00H
+$SG321897 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -2997,10 +2843,14 @@ $SG322915 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG324967 DB	'glRasterPos4sv', 00H
-	ORG $+1
-$SG318826 DB	'glEnableClientState', 00H
-$SG317795 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG324970 DB	'glMapGrid2d', 00H
+$SG322922 DB	'g', 00H, 'l', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 't', 00H
+	DB	'e', 00H, 'x', 00H, '2', 00H, 'i', 00H, 00H, 00H
+	ORG $+2
+$SG319850 DB	'glIndexd', 00H
+	ORG $+3
+$SG324971 DB	'glMapGrid2f', 00H
+$SG322923 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -3010,34 +2860,15 @@ $SG317795 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG324964 DB	'glRasterPos4i', 00H
-	ORG $+2
-$SG324966 DB	'glRasterPos4s', 00H
-	ORG $+2
-$SG324968 DB	'glReadBuffer', 00H
-	ORG $+3
-$SG321896 DB	'glTexCoord1f', 00H
-	ORG $+3
-$SG324969 DB	'glReadPixels', 00H
-	ORG $+3
-$SG324971 DB	'glRectdv', 00H
-	ORG $+3
-$SG324972 DB	'glRectf', 00H
-$SG322924 DB	'glVertex3dv', 00H
-$SG321900 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
-	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '1', 00H, 'f', 00H, 00H
+$SG324972 DB	'glMaterialf', 00H
+$SG318828 DB	'g', 00H, 'l', 00H, 'D', 00H, 'r', 00H, 'a', 00H, 'w', 00H
+	DB	'P', 00H, 'i', 00H, 'x', 00H, 'e', 00H, 'l', 00H, 's', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG317804 DB	'glClearIndex', 00H
+$SG324973 DB	'glMaterialfv', 00H
 	ORG $+3
-$SG324973 DB	'glRectfv', 00H
-	ORG $+3
-$SG324974 DB	'glRecti', 00H
-$SG320878 DB	'g', 00H, 'l', 00H, 'P', 00H, 'i', 00H, 'x', 00H, 'e', 00H
-	DB	'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H, 'n', 00H, 's', 00H, 'f'
-	DB	00H, 'e', 00H, 'r', 00H, 'f', 00H, 00H, 00H
-	ORG $+2
-$SG321901 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG324974 DB	'glMateriali', 00H
+$SG318829 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -3046,33 +2877,14 @@ $SG321901 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG320878 DB	'glPixelMapuiv', 00H
 	ORG $+2
 $SG319854 DB	'g', 00H, 'l', 00H, 'I', 00H, 'n', 00H, 'd', 00H, 'e', 00H
-	DB	'x', 00H, 'i', 00H, 'v', 00H, 00H, 00H
-$SG318830 DB	'g', 00H, 'l', 00H, 'E', 00H, 'n', 00H, 'a', 00H, 'b', 00H
-	DB	'l', 00H, 'e', 00H, 'C', 00H, 'l', 00H, 'i', 00H, 'e', 00H, 'n'
-	DB	00H, 't', 00H, 'S', 00H, 't', 00H, 'a', 00H, 't', 00H, 'e', 00H
-	DB	00H, 00H
-$SG324975 DB	'glRectiv', 00H
-	ORG $+3
-$SG324976 DB	'glRects', 00H
-$SG317808 DB	'g', 00H, 'l', 00H, 'C', 00H, 'l', 00H, 'e', 00H, 'a', 00H
-	DB	'r', 00H, 'I', 00H, 'n', 00H, 'd', 00H, 'e', 00H, 'x', 00H, 00H
-	DB	00H
+	DB	'x', 00H, 'd', 00H, 00H, 00H
 	ORG $+2
-$SG320879 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG322928 DB	'g', 00H, 'l', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 't', 00H
-	DB	'e', 00H, 'x', 00H, '3', 00H, 'd', 00H, 'v', 00H, 00H, 00H
-$SG324977 DB	'glRectsv', 00H
+$SG317806 DB	'glClear', 00H
+$SG324975 DB	'glMaterialiv', 00H
 	ORG $+3
 $SG319855 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
@@ -3084,70 +2896,24 @@ $SG319855 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG324979 DB	'glRotated', 00H
-	ORG $+2
-$SG318831 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG324980 DB	'glRotatef', 00H
-	ORG $+2
-$SG322929 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG324981 DB	'glScaled', 00H
+$SG324976 DB	'glMatrixMode', 00H
 	ORG $+3
-$SG317809 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG324977 DB	'glMultMatrixd', 00H
 	ORG $+2
-$SG324978 DB	'glRenderMode', 00H
-	ORG $+3
-$SG324982 DB	'glScalef', 00H
-	ORG $+3
-$SG321910 DB	'glTexCoord1fv', 00H
+$SG324978 DB	'glMultMatrixf', 00H
 	ORG $+2
-$SG324983 DB	'glScissor', 00H
+$SG321906 DB	'glStencilMask', 00H
 	ORG $+2
-$SG324984 DB	'glSelectBuffer', 00H
-	ORG $+1
-$SG319864 DB	'glIndexs', 00H
-	ORG $+3
-$SG318840 DB	'glEnd', 00H
-	ORG $+2
-$SG324985 DB	'glShadeModel', 00H
-	ORG $+3
-$SG324986 DB	'glStencilFunc', 00H
-	ORG $+2
-$SG321914 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
-	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '1', 00H, 'f', 00H, 'v'
+$SG320882 DB	'g', 00H, 'l', 00H, 'P', 00H, 'i', 00H, 'x', 00H, 'e', 00H
+	DB	'l', 00H, 'M', 00H, 'a', 00H, 'p', 00H, 'u', 00H, 'i', 00H, 'v'
 	DB	00H, 00H, 00H
-$SG320890 DB	'glPixelTransferi', 00H
-	ORG $+3
-$SG317818 DB	'glClearStencil', 00H
-	ORG $+1
-$SG324987 DB	'glStencilMask', 00H
+$SG317810 DB	'g', 00H, 'l', 00H, 'C', 00H, 'l', 00H, 'e', 00H, 'a', 00H
+	DB	'r', 00H, 00H, 00H
+$SG324979 DB	'glNewList', 00H
 	ORG $+2
-$SG321915 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG324980 DB	'glNormal3b', 00H
+	ORG $+1
+$SG320883 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -3157,13 +2923,76 @@ $SG321915 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG324988 DB	'glStencilOp', 00H
-$SG319868 DB	'g', 00H, 'l', 00H, 'I', 00H, 'n', 00H, 'd', 00H, 'e', 00H
-	DB	'x', 00H, 's', 00H, 00H, 00H
+$SG322932 DB	'glVertex2iv', 00H
+$SG317811 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG318844 DB	'g', 00H, 'l', 00H, 'E', 00H, 'n', 00H, 'd', 00H, 00H, 00H
-$SG324989 DB	'glTexCoord1d', 00H
-	ORG $+3
+$SG324981 DB	'glNormal3bv', 00H
+$SG324982 DB	'glNormal3d', 00H
+	ORG $+1
+$SG321910 DB	'g', 00H, 'l', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'n', 00H
+	DB	'c', 00H, 'i', 00H, 'l', 00H, 'M', 00H, 'a', 00H, 's', 00H, 'k'
+	DB	00H, 00H, 00H
+$SG318838 DB	'glEdgeFlag', 00H
+	ORG $+1
+$SG324983 DB	'glNormal3dv', 00H
+$SG321911 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG324984 DB	'glNormal3f', 00H
+	ORG $+1
+$SG322936 DB	'g', 00H, 'l', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 't', 00H
+	DB	'e', 00H, 'x', 00H, '2', 00H, 'i', 00H, 'v', 00H, 00H, 00H
+$SG319864 DB	'glIndexdv', 00H
+	ORG $+2
+$SG324985 DB	'glNormal3fv', 00H
+$SG322937 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG324986 DB	'glNormal3i', 00H
+	ORG $+1
+$SG318842 DB	'g', 00H, 'l', 00H, 'E', 00H, 'd', 00H, 'g', 00H, 'e', 00H
+	DB	'F', 00H, 'l', 00H, 'a', 00H, 'g', 00H, 00H, 00H
+	ORG $+2
+$SG324987 DB	'glNormal3iv', 00H
+$SG324988 DB	'glNormal3s', 00H
+	ORG $+1
+$SG318843 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG319868 DB	'g', 00H, 'l', 00H, 'I', 00H, 'n', 00H, 'd', 00H, 'e', 00H
+	DB	'x', 00H, 'd', 00H, 'v', 00H, 00H, 00H
+$SG324989 DB	'glNormal3sv', 00H
+$SG322948 DB	'glVertex2s', 00H
+	ORG $+1
 $SG319869 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
@@ -3174,9 +3003,31 @@ $SG319869 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG322942 DB	'glVertex3f', 00H
-	ORG $+1
-$SG318845 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG324990 DB	'glNormalPointer', 00H
+$SG324991 DB	'glOrtho', 00H
+$SG324992 DB	'glPassThrough', 00H
+	ORG $+2
+$SG320896 DB	'glPixelMapusv', 00H
+	ORG $+2
+$SG324993 DB	'glPixelMapfv', 00H
+	ORG $+3
+$SG324994 DB	'glPixelMapuiv', 00H
+	ORG $+2
+$SG317826 DB	'glClearAccum', 00H
+	ORG $+3
+$SG324995 DB	'glPixelMapusv', 00H
+	ORG $+2
+$SG324996 DB	'glPixelStoref', 00H
+	ORG $+2
+$SG321924 DB	'glStencilOp', 00H
+$SG320900 DB	'g', 00H, 'l', 00H, 'P', 00H, 'i', 00H, 'x', 00H, 'e', 00H
+	DB	'l', 00H, 'M', 00H, 'a', 00H, 'p', 00H, 'u', 00H, 's', 00H, 'v'
+	DB	00H, 00H, 00H
+$SG324997 DB	'glPixelStorei', 00H
+	ORG $+2
+$SG324998 DB	'glPixelTransferf', 00H
+	ORG $+3
+$SG320901 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -3186,81 +3037,46 @@ $SG318845 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG324990 DB	'glTexCoord1dv', 00H
-	ORG $+2
-$SG320894 DB	'g', 00H, 'l', 00H, 'P', 00H, 'i', 00H, 'x', 00H, 'e', 00H
-	DB	'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H, 'n', 00H, 's', 00H, 'f'
-	DB	00H, 'e', 00H, 'r', 00H, 'i', 00H, 00H, 00H
-	ORG $+2
-$SG317822 DB	'g', 00H, 'l', 00H, 'C', 00H, 'l', 00H, 'e', 00H, 'a', 00H
-	DB	'r', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'n', 00H, 'c', 00H, 'i'
-	DB	00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG324991 DB	'glTexCoord1f', 00H
+$SG319878 DB	'glIndexf', 00H
 	ORG $+3
-$SG320895 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG318854 DB	'glEdgeFlagPointer', 00H
 	ORG $+2
-$SG319878 DB	'glIndexsv', 00H
-	ORG $+2
-$SG317823 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG324992 DB	'glTexCoord1fv', 00H
-	ORG $+2
-$SG324993 DB	'glTexCoord1i', 00H
-	ORG $+3
-$SG324994 DB	'glTexCoord1iv', 00H
-	ORG $+2
-$SG322946 DB	'g', 00H, 'l', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 't', 00H
-	DB	'e', 00H, 'x', 00H, '3', 00H, 'f', 00H, 00H, 00H
-	ORG $+2
-$SG324995 DB	'glTexCoord1s', 00H
-	ORG $+3
-$SG324996 DB	'glTexCoord1sv', 00H
-	ORG $+2
-$SG318854 DB	'glEndList', 00H
-	ORG $+2
-$SG322947 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG321924 DB	'glTexCoord1i', 00H
-	ORG $+3
-$SG324997 DB	'glTexCoord2d', 00H
-	ORG $+3
-$SG324998 DB	'glTexCoord2dv', 00H
-	ORG $+2
-$SG324999 DB	'glTexCoord2f', 00H
-	ORG $+3
-$SG325000 DB	'glTexCoord2fv', 00H
-	ORG $+2
-$SG321928 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
-	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '1', 00H, 'i', 00H, 00H
+$SG317830 DB	'g', 00H, 'l', 00H, 'C', 00H, 'l', 00H, 'e', 00H, 'a', 00H
+	DB	'r', 00H, 'A', 00H, 'c', 00H, 'c', 00H, 'u', 00H, 'm', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG325001 DB	'glTexCoord2i', 00H
+$SG324999 DB	'glPixelTransferi', 00H
 	ORG $+3
+$SG325000 DB	'glPixelZoom', 00H
+$SG317831 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG322952 DB	'g', 00H, 'l', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 't', 00H
+	DB	'e', 00H, 'x', 00H, '2', 00H, 's', 00H, 00H, 00H
+	ORG $+2
+$SG321928 DB	'g', 00H, 'l', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'n', 00H
+	DB	'c', 00H, 'i', 00H, 'l', 00H, 'O', 00H, 'p', 00H, 00H, 00H
+$SG325001 DB	'glPointSize', 00H
+$SG322953 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG319882 DB	'g', 00H, 'l', 00H, 'I', 00H, 'n', 00H, 'd', 00H, 'e', 00H
+	DB	'x', 00H, 'f', 00H, 00H, 00H
+	ORG $+2
 $SG321929 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
@@ -3271,19 +3087,12 @@ $SG321929 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG325002 DB	'glTexCoord2iv', 00H
+$SG325002 DB	'glPolygonMode', 00H
 	ORG $+2
-$SG320906 DB	'glPixelZoom', 00H
-$SG319882 DB	'g', 00H, 'l', 00H, 'I', 00H, 'n', 00H, 'd', 00H, 'e', 00H
-	DB	'x', 00H, 's', 00H, 'v', 00H, 00H, 00H
-$SG318858 DB	'g', 00H, 'l', 00H, 'E', 00H, 'n', 00H, 'd', 00H, 'L', 00H
-	DB	'i', 00H, 's', 00H, 't', 00H, 00H, 00H
-$SG317834 DB	'glClipPlane', 00H
-$SG325003 DB	'glTexCoord2s', 00H
-	ORG $+3
-$SG325004 DB	'glTexCoord2sv', 00H
-	ORG $+2
-$SG322956 DB	'glVertex3fv', 00H
+$SG318858 DB	'g', 00H, 'l', 00H, 'E', 00H, 'd', 00H, 'g', 00H, 'e', 00H
+	DB	'F', 00H, 'l', 00H, 'a', 00H, 'g', 00H, 'P', 00H, 'o', 00H, 'i'
+	DB	00H, 'n', 00H, 't', 00H, 'e', 00H, 'r', 00H, 00H, 00H
+$SG325003 DB	'glPolygonOffset', 00H
 $SG319883 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
@@ -3294,9 +3103,8 @@ $SG319883 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG320910 DB	'g', 00H, 'l', 00H, 'P', 00H, 'i', 00H, 'x', 00H, 'e', 00H
-	DB	'l', 00H, 'Z', 00H, 'o', 00H, 'o', 00H, 'm', 00H, 00H, 00H
-$SG323985 DB	'glBeginQueryIndexed', 00H
+$SG325004 DB	'glPolygonStipple', 00H
+	ORG $+3
 $SG318859 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
@@ -3307,89 +3115,73 @@ $SG318859 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG325005 DB	'glTexCoord3d', 00H
-	ORG $+3
-$SG325006 DB	'glTexCoord3dv', 00H
+$SG325005 DB	'glPopAttrib', 00H
+$SG325006 DB	'glPopClientAttrib', 00H
 	ORG $+2
-$SG323982 DB	'glGenQueries', 00H
+$SG325007 DB	'glPopMatrix', 00H
+$SG325008 DB	'glPopName', 00H
+	ORG $+2
+$SG320912 DB	'glPixelStoref', 00H
+	ORG $+2
+$SG325009 DB	'glPrioritizeTextures', 00H
 	ORG $+3
-$SG317838 DB	'g', 00H, 'l', 00H, 'C', 00H, 'l', 00H, 'i', 00H, 'p', 00H
-	DB	'P', 00H, 'l', 00H, 'a', 00H, 'n', 00H, 'e', 00H, 00H, 00H
-$SG325007 DB	'glTexCoord3f', 00H
+$SG325010 DB	'glPushAttrib', 00H
 	ORG $+3
-$SG323983 DB	'glDeleteQueries', 00H
-$SG323986 DB	'glEndQuery', 00H
+$SG322962 DB	'glVertex2sv', 00H
+$SG321938 DB	'glTexCoord1d', 00H
+	ORG $+3
+$SG325011 DB	'glPushClientAttrib', 00H
 	ORG $+1
-$SG320911 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG322960 DB	'g', 00H, 'l', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 't', 00H
-	DB	'e', 00H, 'x', 00H, '3', 00H, 'f', 00H, 'v', 00H, 00H, 00H
-$SG323987 DB	'glIsQuery', 00H
-	ORG $+2
-$SG317839 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG325008 DB	'glTexCoord3fv', 00H
-	ORG $+2
-$SG323984 DB	'glBeginQuery', 00H
+$SG325012 DB	'glPushMatrix', 00H
 	ORG $+3
-$SG325009 DB	'glTexCoord3i', 00H
-	ORG $+3
-$SG325010 DB	'glTexCoord3iv', 00H
-	ORG $+2
-$SG323988 DB	'glQueryCounter', 00H
-	ORG $+1
-$SG319892 DB	'glIndexub', 00H
-	ORG $+2
-$SG322961 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG321938 DB	'glTexCoord1iv', 00H
-	ORG $+2
-$SG325011 DB	'glTexCoord3s', 00H
-	ORG $+3
-$SG325012 DB	'glTexCoord3sv', 00H
-	ORG $+2
-$SG318868 DB	'glEvalCoord1d', 00H
-	ORG $+2
-$SG325013 DB	'glTexCoord4d', 00H
-	ORG $+3
-$SG323989 DB	'glGetQueryObjectiv', 00H
-	ORG $+1
-$SG325014 DB	'glTexCoord4dv', 00H
-	ORG $+2
-$SG323990 DB	'glGetQueryObjecti64v', 00H
-	ORG $+3
-$SG321942 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
-	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '1', 00H, 'i', 00H, 'v'
+$SG320916 DB	'g', 00H, 'l', 00H, 'P', 00H, 'i', 00H, 'x', 00H, 'e', 00H
+	DB	'l', 00H, 'S', 00H, 't', 00H, 'o', 00H, 'r', 00H, 'e', 00H, 'f'
 	DB	00H, 00H, 00H
-$SG325015 DB	'glTexCoord4f', 00H
-	ORG $+3
-$SG323991 DB	'glGetQueryObjectui64v', 00H
+$SG319892 DB	'glIndexfv', 00H
 	ORG $+2
-$SG320920 DB	'glPointSize', 00H
+$SG318868 DB	'glEdgeFlagv', 00H
+$SG325013 DB	'glPushName', 00H
+	ORG $+1
+$SG322966 DB	'g', 00H, 'l', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 't', 00H
+	DB	'e', 00H, 'x', 00H, '2', 00H, 's', 00H, 'v', 00H, 00H, 00H
+$SG321942 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
+	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '1', 00H, 'd', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG320917 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG325014 DB	'glRasterPos2d', 00H
+	ORG $+2
+$SG317846 DB	'glClearColor', 00H
+	ORG $+3
+$SG325015 DB	'glRasterPos2dv', 00H
+	ORG $+1
+$SG319896 DB	'g', 00H, 'l', 00H, 'I', 00H, 'n', 00H, 'd', 00H, 'e', 00H
+	DB	'x', 00H, 'f', 00H, 'v', 00H, 00H, 00H
+$SG322967 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG318872 DB	'g', 00H, 'l', 00H, 'E', 00H, 'd', 00H, 'g', 00H, 'e', 00H
+	DB	'F', 00H, 'l', 00H, 'a', 00H, 'g', 00H, 'v', 00H, 00H, 00H
+$SG317850 DB	'g', 00H, 'l', 00H, 'C', 00H, 'l', 00H, 'e', 00H, 'a', 00H
+	DB	'r', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H, 'r', 00H, 00H
+	DB	00H
+	ORG $+2
 $SG321943 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
@@ -3400,22 +3192,12 @@ $SG321943 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG325016 DB	'glTexCoord4fv', 00H
+$SG325016 DB	'glRasterPos2f', 00H
 	ORG $+2
-$SG319896 DB	'g', 00H, 'l', 00H, 'I', 00H, 'n', 00H, 'd', 00H, 'e', 00H
-	DB	'x', 00H, 'u', 00H, 'b', 00H, 00H, 00H
-$SG318872 DB	'g', 00H, 'l', 00H, 'E', 00H, 'v', 00H, 'a', 00H, 'l', 00H
-	DB	'C', 00H, 'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '1', 00H, 'd'
-	DB	00H, 00H, 00H
-$SG325017 DB	'glTexCoord4i', 00H
+$SG325017 DB	'glRasterPos2fv', 00H
+	ORG $+1
+$SG319906 DB	'glIndexi', 00H
 	ORG $+3
-$SG325018 DB	'glTexCoord4iv', 00H
-	ORG $+2
-$SG323996 DB	'P', 00H, 'r', 00H, 'i', 00H, 'm', 00H, 'i', 00H, 't', 00H
-	DB	'i', 00H, 'v', 00H, 'e', 00H, 's', 00H, ' ', 00H, 'S', 00H, 'u'
-	DB	00H, 'b', 00H, 'm', 00H, 'i', 00H, 't', 00H, 't', 00H, 'e', 00H
-	DB	'd', 00H, 00H, 00H
-	ORG $+2
 $SG319897 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
@@ -3426,10 +3208,10 @@ $SG319897 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG320924 DB	'g', 00H, 'l', 00H, 'P', 00H, 'o', 00H, 'i', 00H, 'n', 00H
-	DB	't', 00H, 'S', 00H, 'i', 00H, 'z', 00H, 'e', 00H, 00H, 00H
-$SG317852 DB	'glColor3b', 00H
-	ORG $+2
+$SG325019 DB	'glRasterPos2iv', 00H
+	ORG $+1
+$SG318882 DB	'glEnable', 00H
+	ORG $+3
 $SG318873 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
@@ -3440,17 +3222,13 @@ $SG318873 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG323994 DB	'V', 00H, 'e', 00H, 'r', 00H, 't', 00H, 'i', 00H, 'c', 00H
-	DB	'e', 00H, 's', 00H, ' ', 00H, 'S', 00H, 'u', 00H, 'b', 00H, 'm'
-	DB	00H, 'i', 00H, 't', 00H, 't', 00H, 'e', 00H, 'd', 00H, 00H, 00H
+$SG325018 DB	'glRasterPos2i', 00H
 	ORG $+2
-$SG325019 DB	'glTexCoord4s', 00H
-	ORG $+3
-$SG325020 DB	'glTexCoord4sv', 00H
-	ORG $+2
-$SG325021 DB	'glTexCoordPointer', 00H
-	ORG $+2
-$SG320925 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG325021 DB	'glRasterPos2sv', 00H
+	ORG $+1
+$SG322980 DB	'glVertex3d', 00H
+	ORG $+1
+$SG317851 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -3460,83 +3238,39 @@ $SG320925 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG325022 DB	'glTexEnvf', 00H
+$SG325020 DB	'glRasterPos2s', 00H
 	ORG $+2
-$SG323998 DB	'V', 00H, 'e', 00H, 'r', 00H, 't', 00H, 'e', 00H, 'x', 00H
-	DB	' ', 00H, 'S', 00H, 'h', 00H, 'a', 00H, 'd', 00H, 'e', 00H, 'r'
-	DB	00H, ' ', 00H, 'I', 00H, 'n', 00H, 'v', 00H, 'o', 00H, 'c', 00H
-	DB	'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 's', 00H, 00H
-	DB	00H
-$SG322974 DB	'glVertex3i', 00H
+$SG325022 DB	'glRasterPos3d', 00H
+	ORG $+2
+$SG325023 DB	'glRasterPos3dv', 00H
 	ORG $+1
-$SG325023 DB	'glTexEnvfv', 00H
+$SG325024 DB	'glRasterPos3f', 00H
+	ORG $+2
+$SG321952 DB	'glTexCoord1dv', 00H
+	ORG $+2
+$SG320928 DB	'glPixelStorei', 00H
+	ORG $+2
+$SG325025 DB	'glRasterPos3fv', 00H
 	ORG $+1
-$SG325024 DB	'glTexEnvi', 00H
+$SG325026 DB	'glRasterPos3i', 00H
 	ORG $+2
-$SG324000 DB	'T', 00H, 'e', 00H, 's', 00H, 's', 00H, 'e', 00H, 'l', 00H
-	DB	'l', 00H, 'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, ' '
-	DB	00H, 'C', 00H, 'o', 00H, 'n', 00H, 't', 00H, 'r', 00H, 'o', 00H
-	DB	'l', 00H, ' ', 00H, 'S', 00H, 'h', 00H, 'a', 00H, 'd', 00H, 'e'
-	DB	00H, 'r', 00H, ' ', 00H, 'P', 00H, 'a', 00H, 't', 00H, 'c', 00H
-	DB	'h', 00H, 'e', 00H, 's', 00H, 00H, 00H
-$SG321952 DB	'glTexCoord1s', 00H
-	ORG $+3
-$SG317856 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
-	DB	'r', 00H, '3', 00H, 'b', 00H, 00H, 00H
-$SG325025 DB	'glTexEnviv', 00H
+$SG325027 DB	'glRasterPos3iv', 00H
 	ORG $+1
-$SG317857 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG325028 DB	'glRasterPos3s', 00H
 	ORG $+2
-$SG325026 DB	'glTexGend', 00H
-	ORG $+2
-$SG324002 DB	'T', 00H, 'e', 00H, 's', 00H, 's', 00H, 'e', 00H, 'l', 00H
-	DB	'l', 00H, 'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, ' '
-	DB	00H, 'E', 00H, 'v', 00H, 'a', 00H, 'l', 00H, 'u', 00H, 'a', 00H
-	DB	't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, ' ', 00H, 'S', 00H, 'h'
-	DB	00H, 'a', 00H, 'd', 00H, 'e', 00H, 'r', 00H, ' ', 00H, 'I', 00H
-	DB	'n', 00H, 'v', 00H, 'o', 00H, 'c', 00H, 'a', 00H, 't', 00H, 'i'
-	DB	00H, 'o', 00H, 'n', 00H, 's', 00H, 00H, 00H
-	ORG $+2
-$SG322978 DB	'g', 00H, 'l', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 't', 00H
-	DB	'e', 00H, 'x', 00H, '3', 00H, 'i', 00H, 00H, 00H
-	ORG $+2
-$SG319906 DB	'glIndexubv', 00H
-	ORG $+1
-$SG318882 DB	'glEvalCoord1dv', 00H
-	ORG $+1
-$SG325027 DB	'glTexGendv', 00H
-	ORG $+1
-$SG322979 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG325028 DB	'glTexGenf', 00H
-	ORG $+2
-$SG324004 DB	'G', 00H, 'e', 00H, 'o', 00H, 'm', 00H, 'e', 00H, 't', 00H
-	DB	'r', 00H, 'y', 00H, ' ', 00H, 'S', 00H, 'h', 00H, 'a', 00H, 'd'
-	DB	00H, 'e', 00H, 'r', 00H, ' ', 00H, 'I', 00H, 'n', 00H, 'v', 00H
-	DB	'o', 00H, 'c', 00H, 'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n'
-	DB	00H, 's', 00H, 00H, 00H
 $SG321956 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
-	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '1', 00H, 's', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG325029 DB	'glTexGenfv', 00H
+	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '1', 00H, 'd', 00H, 'v'
+	DB	00H, 00H, 00H
+$SG320932 DB	'g', 00H, 'l', 00H, 'P', 00H, 'i', 00H, 'x', 00H, 'e', 00H
+	DB	'l', 00H, 'S', 00H, 't', 00H, 'o', 00H, 'r', 00H, 'e', 00H, 'i'
+	DB	00H, 00H, 00H
+$SG317860 DB	'glClearDepth', 00H
+	ORG $+3
+$SG325029 DB	'glRasterPos3sv', 00H
 	ORG $+1
+$SG319910 DB	'g', 00H, 'l', 00H, 'I', 00H, 'n', 00H, 'd', 00H, 'e', 00H
+	DB	'x', 00H, 'i', 00H, 00H, 00H
+	ORG $+2
 $SG321957 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
@@ -3547,31 +3281,27 @@ $SG321957 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG325030 DB	'glTexGeni', 00H
+$SG318886 DB	'g', 00H, 'l', 00H, 'E', 00H, 'n', 00H, 'a', 00H, 'b', 00H
+	DB	'l', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG324006 DB	'G', 00H, 'e', 00H, 'o', 00H, 'm', 00H, 'e', 00H, 't', 00H
-	DB	'r', 00H, 'y', 00H, ' ', 00H, 'S', 00H, 'h', 00H, 'a', 00H, 'd'
-	DB	00H, 'e', 00H, 'r', 00H, ' ', 00H, 'P', 00H, 'r', 00H, 'i', 00H
-	DB	'm', 00H, 'i', 00H, 't', 00H, 'i', 00H, 'v', 00H, 'e', 00H, 's'
-	DB	00H, ' ', 00H, 'E', 00H, 'm', 00H, 'i', 00H, 't', 00H, 't', 00H
-	DB	'e', 00H, 'd', 00H, 00H, 00H
+$SG320933 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG319910 DB	'g', 00H, 'l', 00H, 'I', 00H, 'n', 00H, 'd', 00H, 'e', 00H
-	DB	'x', 00H, 'u', 00H, 'b', 00H, 'v', 00H, 00H, 00H
+$SG325030 DB	'glRasterPos4d', 00H
 	ORG $+2
-$SG318886 DB	'g', 00H, 'l', 00H, 'E', 00H, 'v', 00H, 'a', 00H, 'l', 00H
-	DB	'C', 00H, 'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '1', 00H, 'd'
-	DB	00H, 'v', 00H, 00H, 00H
-	ORG $+2
-$SG325031 DB	'glTexGeniv', 00H
+$SG325031 DB	'glRasterPos4dv', 00H
 	ORG $+1
-$SG324008 DB	'F', 00H, 'r', 00H, 'a', 00H, 'g', 00H, 'm', 00H, 'e', 00H
-	DB	'n', 00H, 't', 00H, ' ', 00H, 'S', 00H, 'h', 00H, 'a', 00H, 'd'
-	DB	00H, 'e', 00H, 'r', 00H, ' ', 00H, 'I', 00H, 'n', 00H, 'v', 00H
-	DB	'o', 00H, 'c', 00H, 'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n'
-	DB	00H, 's', 00H, 00H, 00H
-$SG317866 DB	'glColor3bv', 00H
-	ORG $+1
+$SG317864 DB	'g', 00H, 'l', 00H, 'C', 00H, 'l', 00H, 'e', 00H, 'a', 00H
+	DB	'r', 00H, 'D', 00H, 'e', 00H, 'p', 00H, 't', 00H, 'h', 00H, 00H
+	DB	00H
+	ORG $+2
 $SG319911 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
@@ -3582,8 +3312,10 @@ $SG319911 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG325034 DB	'glTexParameterf', 00H
-$SG325035 DB	'glTexParameterfv', 00H
+$SG325033 DB	'glRasterPos4fv', 00H
+	ORG $+1
+$SG325040 DB	'glRectd', 00H
+$SG320944 DB	'glPixelTransferf', 00H
 	ORG $+3
 $SG318887 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
@@ -3595,57 +3327,16 @@ $SG318887 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG325032 DB	'glTexImage1D', 00H
-	ORG $+3
-$SG320936 DB	'glPolygonMode', 00H
+$SG325032 DB	'glRasterPos4f', 00H
 	ORG $+2
-$SG325033 DB	'glTexImage2D', 00H
-	ORG $+3
-$SG324010 DB	'C', 00H, 'o', 00H, 'm', 00H, 'p', 00H, 'u', 00H, 't', 00H
-	DB	'e', 00H, ' ', 00H, 'S', 00H, 'h', 00H, 'a', 00H, 'd', 00H, 'e'
-	DB	00H, 'r', 00H, ' ', 00H, 'I', 00H, 'n', 00H, 'v', 00H, 'o', 00H
-	DB	'c', 00H, 'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 's'
-	DB	00H, 00H, 00H
+$SG322984 DB	'g', 00H, 'l', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 't', 00H
+	DB	'e', 00H, 'x', 00H, '3', 00H, 'd', 00H, 00H, 00H
 	ORG $+2
-$SG325036 DB	'glTexParameteri', 00H
-$SG324012 DB	'C', 00H, 'l', 00H, 'i', 00H, 'p', 00H, 'p', 00H, 'i', 00H
-	DB	'n', 00H, 'g', 00H, ' ', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u'
-	DB	00H, 't', 00H, ' ', 00H, 'P', 00H, 'r', 00H, 'i', 00H, 'm', 00H
-	DB	'i', 00H, 't', 00H, 'i', 00H, 'v', 00H, 'e', 00H, 's', 00H, 00H
-	DB	00H
-$SG322988 DB	'glVertex3iv', 00H
-$SG320940 DB	'g', 00H, 'l', 00H, 'P', 00H, 'o', 00H, 'l', 00H, 'y', 00H
-	DB	'g', 00H, 'o', 00H, 'n', 00H, 'M', 00H, 'o', 00H, 'd', 00H, 'e'
-	DB	00H, 00H, 00H
-$SG325037 DB	'glTexParameteriv', 00H
-	ORG $+3
-$SG325038 DB	'glTexSubImage1D', 00H
-$SG319920 DB	'glInitNames', 00H
-$SG320941 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG324014 DB	'C', 00H, 'l', 00H, 'i', 00H, 'p', 00H, 'p', 00H, 'i', 00H
-	DB	'n', 00H, 'g', 00H, ' ', 00H, 'O', 00H, 'u', 00H, 't', 00H, 'p'
-	DB	00H, 'u', 00H, 't', 00H, ' ', 00H, 'P', 00H, 'r', 00H, 'i', 00H
-	DB	'm', 00H, 'i', 00H, 't', 00H, 'i', 00H, 'v', 00H, 'e', 00H, 's'
-	DB	00H, 00H, 00H
-	ORG $+2
-$SG321966 DB	'glTexCoord1sv', 00H
-	ORG $+2
-$SG317870 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
-	DB	'r', 00H, '3', 00H, 'b', 00H, 'v', 00H, 00H, 00H
-	ORG $+2
-$SG325039 DB	'glTexSubImage2D', 00H
-$SG325042 DB	'glVertex2d', 00H
+$SG325035 DB	'glRasterPos4iv', 00H
 	ORG $+1
-$SG317871 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG319920 DB	'glIndexiv', 00H
+	ORG $+2
+$SG322985 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -3655,28 +3346,46 @@ $SG317871 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG325040 DB	'glTranslated', 00H
-	ORG $+3
-$SG322992 DB	'g', 00H, 'l', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 't', 00H
-	DB	'e', 00H, 'x', 00H, '3', 00H, 'i', 00H, 'v', 00H, 00H, 00H
-$SG318896 DB	'glEvalCoord1f', 00H
+$SG325037 DB	'glRasterPos4sv', 00H
+	ORG $+1
+$SG318896 DB	'glEnableClientState', 00H
+$SG317865 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG325041 DB	'glTranslatef', 00H
+$SG325034 DB	'glRasterPos4i', 00H
+	ORG $+2
+$SG325036 DB	'glRasterPos4s', 00H
+	ORG $+2
+$SG325038 DB	'glReadBuffer', 00H
 	ORG $+3
+$SG321966 DB	'glTexCoord1f', 00H
+	ORG $+3
+$SG325039 DB	'glReadPixels', 00H
+	ORG $+3
+$SG325041 DB	'glRectdv', 00H
+	ORG $+3
+$SG325042 DB	'glRectf', 00H
+$SG322994 DB	'glVertex3dv', 00H
 $SG321970 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
-	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '1', 00H, 's', 00H, 'v'
-	DB	00H, 00H, 00H
-$SG322993 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '1', 00H, 'f', 00H, 00H
+	DB	00H
 	ORG $+2
-$SG325043 DB	'glVertex2dv', 00H
+$SG317874 DB	'glClearIndex', 00H
+	ORG $+3
+$SG325043 DB	'glRectfv', 00H
+	ORG $+3
+$SG325044 DB	'glRecti', 00H
+$SG320948 DB	'g', 00H, 'l', 00H, 'P', 00H, 'i', 00H, 'x', 00H, 'e', 00H
+	DB	'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H, 'n', 00H, 's', 00H, 'f'
+	DB	00H, 'e', 00H, 'r', 00H, 'f', 00H, 00H, 00H
+	ORG $+2
 $SG321971 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
@@ -3687,14 +3396,33 @@ $SG321971 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG325044 DB	'glVertex2f', 00H
-	ORG $+1
-$SG319924 DB	'g', 00H, 'l', 00H, 'I', 00H, 'n', 00H, 'i', 00H, 't', 00H
-	DB	'N', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 's', 00H, 00H, 00H
-$SG318900 DB	'g', 00H, 'l', 00H, 'E', 00H, 'v', 00H, 'a', 00H, 'l', 00H
-	DB	'C', 00H, 'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '1', 00H, 'f'
-	DB	00H, 00H, 00H
-$SG325045 DB	'glVertex2fv', 00H
+$SG319924 DB	'g', 00H, 'l', 00H, 'I', 00H, 'n', 00H, 'd', 00H, 'e', 00H
+	DB	'x', 00H, 'i', 00H, 'v', 00H, 00H, 00H
+$SG318900 DB	'g', 00H, 'l', 00H, 'E', 00H, 'n', 00H, 'a', 00H, 'b', 00H
+	DB	'l', 00H, 'e', 00H, 'C', 00H, 'l', 00H, 'i', 00H, 'e', 00H, 'n'
+	DB	00H, 't', 00H, 'S', 00H, 't', 00H, 'a', 00H, 't', 00H, 'e', 00H
+	DB	00H, 00H
+$SG325045 DB	'glRectiv', 00H
+	ORG $+3
+$SG325046 DB	'glRects', 00H
+$SG317878 DB	'g', 00H, 'l', 00H, 'C', 00H, 'l', 00H, 'e', 00H, 'a', 00H
+	DB	'r', 00H, 'I', 00H, 'n', 00H, 'd', 00H, 'e', 00H, 'x', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG320949 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG322998 DB	'g', 00H, 'l', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 't', 00H
+	DB	'e', 00H, 'x', 00H, '3', 00H, 'd', 00H, 'v', 00H, 00H, 00H
+$SG325047 DB	'glRectsv', 00H
+	ORG $+3
 $SG319925 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
@@ -3705,8 +3433,8 @@ $SG319925 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG325046 DB	'glVertex2i', 00H
-	ORG $+1
+$SG325049 DB	'glRotated', 00H
+	ORG $+2
 $SG318901 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
@@ -3717,25 +3445,9 @@ $SG318901 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG325047 DB	'glVertex2iv', 00H
-$SG325048 DB	'glVertex2s', 00H
-	ORG $+1
-$SG320952 DB	'glPolygonOffset', 00H
-$SG325049 DB	'glVertex2sv', 00H
-$SG325050 DB	'glVertex3d', 00H
-	ORG $+1
-$SG325051 DB	'glVertex3dv', 00H
-$SG325052 DB	'glVertex3f', 00H
-	ORG $+1
-$SG320956 DB	'g', 00H, 'l', 00H, 'P', 00H, 'o', 00H, 'l', 00H, 'y', 00H
-	DB	'g', 00H, 'o', 00H, 'n', 00H, 'O', 00H, 'f', 00H, 'f', 00H, 's'
-	DB	00H, 'e', 00H, 't', 00H, 00H, 00H
-$SG317884 DB	'glColor3d', 00H
+$SG325050 DB	'glRotatef', 00H
 	ORG $+2
-$SG325053 DB	'glVertex3fv', 00H
-$SG325054 DB	'glVertex3i', 00H
-	ORG $+1
-$SG320957 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG322999 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -3745,19 +3457,9 @@ $SG320957 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG323006 DB	'glVertex3s', 00H
-	ORG $+1
-$SG321982 DB	'glTexCoord2d', 00H
+$SG325051 DB	'glScaled', 00H
 	ORG $+3
-$SG318910 DB	'glEvalCoord1fv', 00H
-	ORG $+1
-$SG325055 DB	'glVertex3iv', 00H
-$SG325056 DB	'glVertex3s', 00H
-	ORG $+1
-$SG317888 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
-	DB	'r', 00H, '3', 00H, 'd', 00H, 00H, 00H
-$SG325057 DB	'glVertex3sv', 00H
-$SG317889 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG317879 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -3767,24 +3469,34 @@ $SG317889 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG325058 DB	'glVertex4d', 00H
+$SG325048 DB	'glRenderMode', 00H
+	ORG $+3
+$SG325052 DB	'glScalef', 00H
+	ORG $+3
+$SG321980 DB	'glTexCoord1fv', 00H
+	ORG $+2
+$SG325053 DB	'glScissor', 00H
+	ORG $+2
+$SG325054 DB	'glSelectBuffer', 00H
 	ORG $+1
-$SG323010 DB	'g', 00H, 'l', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 't', 00H
-	DB	'e', 00H, 'x', 00H, '3', 00H, 's', 00H, 00H, 00H
+$SG319934 DB	'glIndexs', 00H
+	ORG $+3
+$SG318910 DB	'glEnd', 00H
 	ORG $+2
-$SG321986 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
-	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '2', 00H, 'd', 00H, 00H
-	DB	00H
+$SG325055 DB	'glShadeModel', 00H
+	ORG $+3
+$SG325056 DB	'glStencilFunc', 00H
 	ORG $+2
-$SG319938 DB	'glInterleavedArrays', 00H
-$SG318914 DB	'g', 00H, 'l', 00H, 'E', 00H, 'v', 00H, 'a', 00H, 'l', 00H
-	DB	'C', 00H, 'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '1', 00H, 'f'
-	DB	00H, 'v', 00H, 00H, 00H
-	ORG $+2
-$SG325059 DB	'glVertex4dv', 00H
-$SG325060 DB	'glVertex4f', 00H
+$SG321984 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
+	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '1', 00H, 'f', 00H, 'v'
+	DB	00H, 00H, 00H
+$SG320960 DB	'glPixelTransferi', 00H
+	ORG $+3
+$SG317888 DB	'glClearStencil', 00H
 	ORG $+1
-$SG323011 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG325057 DB	'glStencilMask', 00H
+	ORG $+2
+$SG321985 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -3794,8 +3506,14 @@ $SG323011 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG325061 DB	'glVertex4fv', 00H
-$SG321987 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG325058 DB	'glStencilOp', 00H
+$SG319938 DB	'g', 00H, 'l', 00H, 'I', 00H, 'n', 00H, 'd', 00H, 'e', 00H
+	DB	'x', 00H, 's', 00H, 00H, 00H
+	ORG $+2
+$SG318914 DB	'g', 00H, 'l', 00H, 'E', 00H, 'n', 00H, 'd', 00H, 00H, 00H
+$SG325059 DB	'glTexCoord1d', 00H
+	ORG $+3
+$SG319939 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -3805,7 +3523,7 @@ $SG321987 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG325062 DB	'glVertex4i', 00H
+$SG323012 DB	'glVertex3f', 00H
 	ORG $+1
 $SG318915 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
@@ -3817,16 +3535,19 @@ $SG318915 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG320966 DB	'glPolygonStipple', 00H
+$SG325060 DB	'glTexCoord1dv', 00H
+	ORG $+2
+$SG320964 DB	'g', 00H, 'l', 00H, 'P', 00H, 'i', 00H, 'x', 00H, 'e', 00H
+	DB	'l', 00H, 'T', 00H, 'r', 00H, 'a', 00H, 'n', 00H, 's', 00H, 'f'
+	DB	00H, 'e', 00H, 'r', 00H, 'i', 00H, 00H, 00H
+	ORG $+2
+$SG317892 DB	'g', 00H, 'l', 00H, 'C', 00H, 'l', 00H, 'e', 00H, 'a', 00H
+	DB	'r', 00H, 'S', 00H, 't', 00H, 'e', 00H, 'n', 00H, 'c', 00H, 'i'
+	DB	00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG325061 DB	'glTexCoord1f', 00H
 	ORG $+3
-$SG319942 DB	'g', 00H, 'l', 00H, 'I', 00H, 'n', 00H, 't', 00H, 'e', 00H
-	DB	'r', 00H, 'l', 00H, 'e', 00H, 'a', 00H, 'v', 00H, 'e', 00H, 'd'
-	DB	00H, 'A', 00H, 'r', 00H, 'r', 00H, 'a', 00H, 'y', 00H, 's', 00H
-	DB	00H, 00H
-$SG325063 DB	'glVertex4iv', 00H
-$SG325064 DB	'glVertex4s', 00H
-	ORG $+1
-$SG319943 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG320965 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -3836,18 +3557,9 @@ $SG319943 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG325065 DB	'glVertex4sv', 00H
-$SG325066 DB	'glVertexPointer', 00H
-$SG320970 DB	'g', 00H, 'l', 00H, 'P', 00H, 'o', 00H, 'l', 00H, 'y', 00H
-	DB	'g', 00H, 'o', 00H, 'n', 00H, 'S', 00H, 't', 00H, 'i', 00H, 'p'
-	DB	00H, 'p', 00H, 'l', 00H, 'e', 00H, 00H, 00H
+$SG319948 DB	'glIndexsv', 00H
 	ORG $+2
-$SG317898 DB	'glColor3dv', 00H
-	ORG $+1
-$SG325067 DB	'glViewport', 00H
-	ORG $+1
-$SG323020 DB	'glVertex3sv', 00H
-$SG320971 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG317893 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -3857,22 +3569,22 @@ $SG320971 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG325068 DB	'wglCopyContext', 00H
-	ORG $+1
-$SG321996 DB	'glTexCoord2dv', 00H
+$SG325062 DB	'glTexCoord1fv', 00H
 	ORG $+2
-$SG325069 DB	'wglCreateLayerContext', 00H
-	ORG $+2
-$SG325070 DB	'wglDeleteContext', 00H
+$SG325063 DB	'glTexCoord1i', 00H
 	ORG $+3
-$SG318926 DB	'glEvalCoord2d', 00H
+$SG325064 DB	'glTexCoord1iv', 00H
 	ORG $+2
-$SG317902 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
-	DB	'r', 00H, '3', 00H, 'd', 00H, 'v', 00H, 00H, 00H
+$SG323016 DB	'g', 00H, 'l', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 't', 00H
+	DB	'e', 00H, 'x', 00H, '3', 00H, 'f', 00H, 00H, 00H
 	ORG $+2
-$SG325071 DB	'wglGetCurrentContext', 00H
+$SG325065 DB	'glTexCoord1s', 00H
 	ORG $+3
-$SG317903 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG325066 DB	'glTexCoord1sv', 00H
+	ORG $+2
+$SG318924 DB	'glEndList', 00H
+	ORG $+2
+$SG323017 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -3882,352 +3594,334 @@ $SG317903 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG325072 DB	'wglGetCurrentDC', 00H
-$SG323024 DB	'g', 00H, 'l', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 't', 00H
-	DB	'e', 00H, 'x', 00H, '3', 00H, 's', 00H, 'v', 00H, 00H, 00H
-$SG322000 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
-	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '2', 00H, 'd', 00H, 'v'
-	DB	00H, 00H, 00H
-$SG319952 DB	'glIsEnabled', 00H
-$SG325073 DB	'wglGetProcAddress', 00H
-	ORG $+2
-$SG323025 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG325074 DB	'wglCreateContext', 00H
+$SG321994 DB	'glTexCoord1i', 00H
 	ORG $+3
-$SG322001 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG318930 DB	'g', 00H, 'l', 00H, 'E', 00H, 'v', 00H, 'a', 00H, 'l', 00H
-	DB	'C', 00H, 'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '2', 00H, 'd'
-	DB	00H, 00H, 00H
-$SG325075 DB	'wglChoosePixelFormat', 00H
+$SG325067 DB	'glTexCoord2d', 00H
 	ORG $+3
-$SG318931 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG325068 DB	'glTexCoord2dv', 00H
 	ORG $+2
-$SG325076 DB	'wglMakeCurrent', 00H
-	ORG $+1
-$SG320980 DB	'glPopAttrib', 00H
-$SG319956 DB	'g', 00H, 'l', 00H, 'I', 00H, 's', 00H, 'E', 00H, 'n', 00H
-	DB	'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H, 'd', 00H, 00H, 00H
-$SG325077 DB	'wglShareLists', 00H
-	ORG $+2
-$SG319957 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG325078 DB	'wglUseFontBitmapsA', 00H
-	ORG $+1
-$SG325079 DB	'wglUseFontBitmapsW', 00H
-	ORG $+1
-$SG325080 DB	'wglDescribeLayerPlane', 00H
-	ORG $+2
-$SG320984 DB	'g', 00H, 'l', 00H, 'P', 00H, 'o', 00H, 'p', 00H, 'A', 00H
-	DB	't', 00H, 't', 00H, 'r', 00H, 'i', 00H, 'b', 00H, 00H, 00H
-$SG324057 DB	' ', 00H, ' ', 00H, 'V', 00H, 'E', 00H, 'R', 00H, 'T', 00H
-	DB	'E', 00H, 'X', 00H, ' ', 00H, ':', 00H, ' ', 00H, '<', 00H, 'U'
-	DB	00H, 'n', 00H, 'u', 00H, 's', 00H, 'e', 00H, 'd', 00H, '>', 00H
-	DB	0aH, 00H, 00H, 00H
-	ORG $+2
-$SG324056 DB	' ', 00H, ' ', 00H, 'V', 00H, 'E', 00H, 'R', 00H, 'T', 00H
-	DB	'E', 00H, 'X', 00H, ' ', 00H, ':', 00H, ' ', 00H, '%', 00H, 's'
-	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, '(', 00H, '%', 00H, 's', 00H
-	DB	' ', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 't', 00H, 's', 00H, ' '
-	DB	00H, '=', 00H, '=', 00H, '>', 00H, ' ', 00H, '%', 00H, 's', 00H
-	DB	' ', 00H, 'T', 00H, 'r', 00H, 'i', 00H, 'a', 00H, 'n', 00H, 'g'
-	DB	00H, 'l', 00H, 'e', 00H, 's', 00H, ')', 00H, 0aH, 00H, 00H, 00H
-	ORG $+2
-$SG325081 DB	'wglDescribePixelFormat', 00H
-	ORG $+1
-$SG325082 DB	'wglGetLayerPaletteEntries', 00H
-	ORG $+2
-$SG320985 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG325083 DB	'wglGetPixelFormat', 00H
-	ORG $+2
-$SG325084 DB	'wglRealizeLayerPalette', 00H
-	ORG $+1
-$SG324060 DB	'%', 00H, 's', 00H, ' ', 00H, ' ', 00H, 'G', 00H, 'E', 00H
-	DB	'O', 00H, 'M', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ':', 00H, ' '
-	DB	00H, '%', 00H, 's', 00H, ' ', 00H, ' ', 00H, ' ', 00H, '(', 00H
-	DB	'%', 00H, 's', 00H, ' ', 00H, 'P', 00H, 'r', 00H, 'i', 00H, 'm'
-	DB	00H, 's', 00H, ')', 00H, 0aH, 00H, 00H, 00H
-$SG322012 DB	'glTexCoord2f', 00H
+$SG325069 DB	'glTexCoord2f', 00H
 	ORG $+3
-$SG318940 DB	'glEvalCoord2dv', 00H
-	ORG $+1
-$SG317916 DB	'glColor3f', 00H
+$SG325070 DB	'glTexCoord2fv', 00H
 	ORG $+2
-$SG325085 DB	'wglSetLayerPaletteEntries', 00H
-	ORG $+2
-$SG324061 DB	'%', 00H, 's', 00H, ' ', 00H, ' ', 00H, 'G', 00H, 'E', 00H
-	DB	'O', 00H, 'M', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ':', 00H, ' '
-	DB	00H, '<', 00H, 'U', 00H, 'n', 00H, 'u', 00H, 's', 00H, 'e', 00H
-	DB	'd', 00H, '>', 00H, 0aH, 00H, 00H, 00H
-	ORG $+2
-$SG325086 DB	'wglSetPixelFormat', 00H
-	ORG $+2
-$SG319966 DB	'glIsList', 00H
-	ORG $+3
-$SG325087 DB	'wglSwapMultipleBuffers', 00H
-	ORG $+1
-$SG323040 DB	'glVertex4d', 00H
-	ORG $+1
-$SG325088 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, ' ', 00H, '@', 00H, ' ', 00H, '%', 00H, 'l', 00H, 'u', 00H
-	DB	' ', 00H, 'f', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
-	DB	00H, 'o', 00H, 'n', 00H, 's', 00H, ' ', 00H, 'h', 00H, 'o', 00H
-	DB	'o', 00H, 'k', 00H, 'e', 00H, 'd', 00H, 00H, 00H
-	ORG $+2
-$SG322016 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
-	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '2', 00H, 'f', 00H, 00H
+$SG321998 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
+	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '1', 00H, 'i', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG318944 DB	'g', 00H, 'l', 00H, 'E', 00H, 'v', 00H, 'a', 00H, 'l', 00H
-	DB	'C', 00H, 'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '2', 00H, 'd'
+$SG325071 DB	'glTexCoord2i', 00H
+	ORG $+3
+$SG321999 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG325072 DB	'glTexCoord2iv', 00H
+	ORG $+2
+$SG320976 DB	'glPixelZoom', 00H
+$SG319952 DB	'g', 00H, 'l', 00H, 'I', 00H, 'n', 00H, 'd', 00H, 'e', 00H
+	DB	'x', 00H, 's', 00H, 'v', 00H, 00H, 00H
+$SG318928 DB	'g', 00H, 'l', 00H, 'E', 00H, 'n', 00H, 'd', 00H, 'L', 00H
+	DB	'i', 00H, 's', 00H, 't', 00H, 00H, 00H
+$SG317904 DB	'glClipPlane', 00H
+$SG325073 DB	'glTexCoord2s', 00H
+	ORG $+3
+$SG325074 DB	'glTexCoord2sv', 00H
+	ORG $+2
+$SG323026 DB	'glVertex3fv', 00H
+$SG319953 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG320980 DB	'g', 00H, 'l', 00H, 'P', 00H, 'i', 00H, 'x', 00H, 'e', 00H
+	DB	'l', 00H, 'Z', 00H, 'o', 00H, 'o', 00H, 'm', 00H, 00H, 00H
+$SG324055 DB	'glBeginQueryIndexed', 00H
+$SG318929 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG325075 DB	'glTexCoord3d', 00H
+	ORG $+3
+$SG325076 DB	'glTexCoord3dv', 00H
+	ORG $+2
+$SG324052 DB	'glGenQueries', 00H
+	ORG $+3
+$SG317908 DB	'g', 00H, 'l', 00H, 'C', 00H, 'l', 00H, 'i', 00H, 'p', 00H
+	DB	'P', 00H, 'l', 00H, 'a', 00H, 'n', 00H, 'e', 00H, 00H, 00H
+$SG325077 DB	'glTexCoord3f', 00H
+	ORG $+3
+$SG324053 DB	'glDeleteQueries', 00H
+$SG324056 DB	'glEndQuery', 00H
+	ORG $+1
+$SG320981 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG323030 DB	'g', 00H, 'l', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 't', 00H
+	DB	'e', 00H, 'x', 00H, '3', 00H, 'f', 00H, 'v', 00H, 00H, 00H
+$SG324057 DB	'glIsQuery', 00H
+	ORG $+2
+$SG317909 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG325078 DB	'glTexCoord3fv', 00H
+	ORG $+2
+$SG324054 DB	'glBeginQuery', 00H
+	ORG $+3
+$SG325079 DB	'glTexCoord3i', 00H
+	ORG $+3
+$SG325080 DB	'glTexCoord3iv', 00H
+	ORG $+2
+$SG324058 DB	'glQueryCounter', 00H
+	ORG $+1
+$SG319962 DB	'glIndexub', 00H
+	ORG $+2
+$SG323031 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG322008 DB	'glTexCoord1iv', 00H
+	ORG $+2
+$SG325081 DB	'glTexCoord3s', 00H
+	ORG $+3
+$SG325082 DB	'glTexCoord3sv', 00H
+	ORG $+2
+$SG318938 DB	'glEvalCoord1d', 00H
+	ORG $+2
+$SG325083 DB	'glTexCoord4d', 00H
+	ORG $+3
+$SG324059 DB	'glGetQueryObjectiv', 00H
+	ORG $+1
+$SG325084 DB	'glTexCoord4dv', 00H
+	ORG $+2
+$SG324060 DB	'glGetQueryObjecti64v', 00H
+	ORG $+3
+$SG322012 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
+	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '1', 00H, 'i', 00H, 'v'
+	DB	00H, 00H, 00H
+$SG325085 DB	'glTexCoord4f', 00H
+	ORG $+3
+$SG324061 DB	'glGetQueryObjectui64v', 00H
+	ORG $+2
+$SG320990 DB	'glPointSize', 00H
+$SG322013 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG325086 DB	'glTexCoord4fv', 00H
+	ORG $+2
+$SG319966 DB	'g', 00H, 'l', 00H, 'I', 00H, 'n', 00H, 'd', 00H, 'e', 00H
+	DB	'x', 00H, 'u', 00H, 'b', 00H, 00H, 00H
+$SG318942 DB	'g', 00H, 'l', 00H, 'E', 00H, 'v', 00H, 'a', 00H, 'l', 00H
+	DB	'C', 00H, 'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '1', 00H, 'd'
+	DB	00H, 00H, 00H
+$SG325087 DB	'glTexCoord4i', 00H
+	ORG $+3
+$SG325088 DB	'glTexCoord4iv', 00H
+	ORG $+2
+$SG324066 DB	'P', 00H, 'r', 00H, 'i', 00H, 'm', 00H, 'i', 00H, 't', 00H
+	DB	'i', 00H, 'v', 00H, 'e', 00H, 's', 00H, ' ', 00H, 'S', 00H, 'u'
+	DB	00H, 'b', 00H, 'm', 00H, 'i', 00H, 't', 00H, 't', 00H, 'e', 00H
+	DB	'd', 00H, 00H, 00H
+	ORG $+2
+$SG319967 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG320994 DB	'g', 00H, 'l', 00H, 'P', 00H, 'o', 00H, 'i', 00H, 'n', 00H
+	DB	't', 00H, 'S', 00H, 'i', 00H, 'z', 00H, 'e', 00H, 00H, 00H
+$SG317922 DB	'glColor3b', 00H
+	ORG $+2
+$SG318943 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG324064 DB	'V', 00H, 'e', 00H, 'r', 00H, 't', 00H, 'i', 00H, 'c', 00H
+	DB	'e', 00H, 's', 00H, ' ', 00H, 'S', 00H, 'u', 00H, 'b', 00H, 'm'
+	DB	00H, 'i', 00H, 't', 00H, 't', 00H, 'e', 00H, 'd', 00H, 00H, 00H
+	ORG $+2
+$SG325089 DB	'glTexCoord4s', 00H
+	ORG $+3
+$SG325090 DB	'glTexCoord4sv', 00H
+	ORG $+2
+$SG325091 DB	'glTexCoordPointer', 00H
+	ORG $+2
+$SG320995 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG325092 DB	'glTexEnvf', 00H
+	ORG $+2
+$SG324068 DB	'V', 00H, 'e', 00H, 'r', 00H, 't', 00H, 'e', 00H, 'x', 00H
+	DB	' ', 00H, 'S', 00H, 'h', 00H, 'a', 00H, 'd', 00H, 'e', 00H, 'r'
+	DB	00H, ' ', 00H, 'I', 00H, 'n', 00H, 'v', 00H, 'o', 00H, 'c', 00H
+	DB	'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 's', 00H, 00H
+	DB	00H
+$SG323044 DB	'glVertex3i', 00H
+	ORG $+1
+$SG325093 DB	'glTexEnvfv', 00H
+	ORG $+1
+$SG325094 DB	'glTexEnvi', 00H
+	ORG $+2
+$SG324070 DB	'T', 00H, 'e', 00H, 's', 00H, 's', 00H, 'e', 00H, 'l', 00H
+	DB	'l', 00H, 'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, ' '
+	DB	00H, 'C', 00H, 'o', 00H, 'n', 00H, 't', 00H, 'r', 00H, 'o', 00H
+	DB	'l', 00H, ' ', 00H, 'S', 00H, 'h', 00H, 'a', 00H, 'd', 00H, 'e'
+	DB	00H, 'r', 00H, ' ', 00H, 'P', 00H, 'a', 00H, 't', 00H, 'c', 00H
+	DB	'h', 00H, 'e', 00H, 's', 00H, 00H, 00H
+$SG322022 DB	'glTexCoord1s', 00H
+	ORG $+3
+$SG317926 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
+	DB	'r', 00H, '3', 00H, 'b', 00H, 00H, 00H
+$SG325095 DB	'glTexEnviv', 00H
+	ORG $+1
+$SG317927 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG325096 DB	'glTexGend', 00H
+	ORG $+2
+$SG324072 DB	'T', 00H, 'e', 00H, 's', 00H, 's', 00H, 'e', 00H, 'l', 00H
+	DB	'l', 00H, 'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, ' '
+	DB	00H, 'E', 00H, 'v', 00H, 'a', 00H, 'l', 00H, 'u', 00H, 'a', 00H
+	DB	't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, ' ', 00H, 'S', 00H, 'h'
+	DB	00H, 'a', 00H, 'd', 00H, 'e', 00H, 'r', 00H, ' ', 00H, 'I', 00H
+	DB	'n', 00H, 'v', 00H, 'o', 00H, 'c', 00H, 'a', 00H, 't', 00H, 'i'
+	DB	00H, 'o', 00H, 'n', 00H, 's', 00H, 00H, 00H
+	ORG $+2
+$SG323048 DB	'g', 00H, 'l', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 't', 00H
+	DB	'e', 00H, 'x', 00H, '3', 00H, 'i', 00H, 00H, 00H
+	ORG $+2
+$SG319976 DB	'glIndexubv', 00H
+	ORG $+1
+$SG318952 DB	'glEvalCoord1dv', 00H
+	ORG $+1
+$SG325097 DB	'glTexGendv', 00H
+	ORG $+1
+$SG323049 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG325098 DB	'glTexGenf', 00H
+	ORG $+2
+$SG324074 DB	'G', 00H, 'e', 00H, 'o', 00H, 'm', 00H, 'e', 00H, 't', 00H
+	DB	'r', 00H, 'y', 00H, ' ', 00H, 'S', 00H, 'h', 00H, 'a', 00H, 'd'
+	DB	00H, 'e', 00H, 'r', 00H, ' ', 00H, 'I', 00H, 'n', 00H, 'v', 00H
+	DB	'o', 00H, 'c', 00H, 'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n'
+	DB	00H, 's', 00H, 00H, 00H
+$SG322026 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
+	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '1', 00H, 's', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG325099 DB	'glTexGenfv', 00H
+	ORG $+1
+$SG322027 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG325100 DB	'glTexGeni', 00H
+	ORG $+2
+$SG324076 DB	'G', 00H, 'e', 00H, 'o', 00H, 'm', 00H, 'e', 00H, 't', 00H
+	DB	'r', 00H, 'y', 00H, ' ', 00H, 'S', 00H, 'h', 00H, 'a', 00H, 'd'
+	DB	00H, 'e', 00H, 'r', 00H, ' ', 00H, 'P', 00H, 'r', 00H, 'i', 00H
+	DB	'm', 00H, 'i', 00H, 't', 00H, 'i', 00H, 'v', 00H, 'e', 00H, 's'
+	DB	00H, ' ', 00H, 'E', 00H, 'm', 00H, 'i', 00H, 't', 00H, 't', 00H
+	DB	'e', 00H, 'd', 00H, 00H, 00H
+	ORG $+2
+$SG319980 DB	'g', 00H, 'l', 00H, 'I', 00H, 'n', 00H, 'd', 00H, 'e', 00H
+	DB	'x', 00H, 'u', 00H, 'b', 00H, 'v', 00H, 00H, 00H
+	ORG $+2
+$SG318956 DB	'g', 00H, 'l', 00H, 'E', 00H, 'v', 00H, 'a', 00H, 'l', 00H
+	DB	'C', 00H, 'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '1', 00H, 'd'
 	DB	00H, 'v', 00H, 00H, 00H
 	ORG $+2
-$SG317920 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
-	DB	'r', 00H, '3', 00H, 'f', 00H, 00H, 00H
-$SG320994 DB	'glPopClientAttrib', 00H
-	ORG $+2
-$SG324065 DB	'%', 00H, 's', 00H, ' ', 00H, ' ', 00H, 'T', 00H, 'E', 00H
-	DB	'S', 00H, 'S', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ':', 00H, ' '
-	DB	00H, '%', 00H, 's', 00H, ' ', 00H, 'H', 00H, 'u', 00H, 'l', 00H
-	DB	'l', 00H, ' ', 00H, '=', 00H, '=', 00H, '>', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'D', 00H, 'o', 00H, 'm', 00H, 'a', 00H
-	DB	'i', 00H, 'n', 00H, 0aH, 00H, 00H, 00H
-$SG322017 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG319970 DB	'g', 00H, 'l', 00H, 'I', 00H, 's', 00H, 'L', 00H, 'i', 00H
-	DB	's', 00H, 't', 00H, 00H, 00H
-	ORG $+2
-$SG318945 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG320998 DB	'g', 00H, 'l', 00H, 'P', 00H, 'o', 00H, 'p', 00H, 'C', 00H
-	DB	'l', 00H, 'i', 00H, 'e', 00H, 'n', 00H, 't', 00H, 'A', 00H, 't'
-	DB	00H, 't', 00H, 'r', 00H, 'i', 00H, 'b', 00H, 00H, 00H
-$SG317921 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG324066 DB	'%', 00H, 's', 00H, ' ', 00H, ' ', 00H, 'T', 00H, 'E', 00H
-	DB	'S', 00H, 'S', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ':', 00H, ' '
-	DB	00H, '<', 00H, 'U', 00H, 'n', 00H, 'u', 00H, 's', 00H, 'e', 00H
-	DB	'd', 00H, '>', 00H, 0aH, 00H, 00H, 00H
-	ORG $+2
-$SG317930 DB	'glColor3fv', 00H
+$SG325101 DB	'glTexGeniv', 00H
 	ORG $+1
-$SG319971 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG323044 DB	'g', 00H, 'l', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 't', 00H
-	DB	'e', 00H, 'x', 00H, '4', 00H, 'd', 00H, 00H, 00H
-	ORG $+2
-$SG319980 DB	'glIsTexture', 00H
-$SG324069 DB	'%', 00H, 's', 00H, ' ', 00H, ' ', 00H, 'R', 00H, 'A', 00H
-	DB	'S', 00H, 'T', 00H, 'E', 00H, 'R', 00H, ' ', 00H, ':', 00H, ' '
-	DB	00H, '%', 00H, '5', 00H, '.', 00H, '1', 00H, 'f', 00H, '%', 00H
-	DB	'%', 00H, ' ', 00H, 'F', 00H, 'i', 00H, 'l', 00H, 'l', 00H, 'e'
-	DB	00H, 'd', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
-	DB	'(', 00H, '%', 00H, 's', 00H, ' ', 00H, 'T', 00H, 'r', 00H, 'i'
-	DB	00H, 'a', 00H, 'n', 00H, 'g', 00H, 'l', 00H, 'e', 00H, 's', 00H
-	DB	' ', 00H, 'I', 00H, 'N', 00H, ' ', 00H, ')', 00H, 0aH, 00H, 00H
-	DB	00H
-$SG323045 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG324070 DB	'%', 00H, 's', 00H, ' ', 00H, ' ', 00H, 'R', 00H, 'A', 00H
-	DB	'S', 00H, 'T', 00H, 'E', 00H, 'R', 00H, ' ', 00H, ':', 00H, ' '
-	DB	00H, '<', 00H, 'U', 00H, 'n', 00H, 'u', 00H, 's', 00H, 'e', 00H
-	DB	'd', 00H, '>', 00H, 0aH, 00H, 00H, 00H
-	ORG $+2
-$SG324077 DB	'%', 00H, 's', 00H, ' ', 00H, ' ', 00H, 'C', 00H, 'O', 00H
-	DB	'M', 00H, 'P', 00H, 'U', 00H, 'T', 00H, 'E', 00H, ':', 00H, ' '
-	DB	00H, '%', 00H, 's', 00H, 0aH, 00H, 00H, 00H
-	ORG $+2
-$SG320999 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG323054 DB	'glVertex4dv', 00H
-$SG324073 DB	'%', 00H, 's', 00H, ' ', 00H, ' ', 00H, 'P', 00H, 'I', 00H
-	DB	'X', 00H, 'E', 00H, 'L', 00H, ' ', 00H, ' ', 00H, ':', 00H, ' '
-	DB	00H, '%', 00H, 's', 00H, ' ', 00H, ' ', 00H, ' ', 00H, '(', 00H
-	DB	'%', 00H, 's', 00H, ' ', 00H, 'T', 00H, 'r', 00H, 'i', 00H, 'a'
-	DB	00H, 'n', 00H, 'g', 00H, 'l', 00H, 'e', 00H, 's', 00H, ' ', 00H
-	DB	'O', 00H, 'U', 00H, 'T', 00H, ')', 00H, 0aH, 00H, 00H, 00H
-$SG324074 DB	'%', 00H, 's', 00H, ' ', 00H, ' ', 00H, 'P', 00H, 'I', 00H
-	DB	'X', 00H, 'E', 00H, 'L', 00H, ' ', 00H, ' ', 00H, ':', 00H, ' '
-	DB	00H, '<', 00H, 'U', 00H, 'n', 00H, 'u', 00H, 's', 00H, 'e', 00H
-	DB	'd', 00H, '>', 00H, 0aH, 00H, 00H, 00H
-	ORG $+2
-$SG322026 DB	'glTexCoord2fv', 00H
-	ORG $+2
-$SG318956 DB	'glEvalCoord2f', 00H
-	ORG $+2
-$SG324078 DB	'%', 00H, 's', 00H, ' ', 00H, ' ', 00H, 'C', 00H, 'O', 00H
-	DB	'M', 00H, 'P', 00H, 'U', 00H, 'T', 00H, 'E', 00H, ':', 00H, ' '
-	DB	00H, '<', 00H, 'U', 00H, 'n', 00H, 'u', 00H, 's', 00H, 'e', 00H
-	DB	'd', 00H, '>', 00H, 0aH, 00H, 00H, 00H
-	ORG $+2
-$SG322030 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
-	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '2', 00H, 'f', 00H, 'v'
-	DB	00H, 00H, 00H
-$SG317934 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
-	DB	'r', 00H, '3', 00H, 'f', 00H, 'v', 00H, 00H, 00H
-	ORG $+2
-$SG322031 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG321008 DB	'glPopMatrix', 00H
-$SG317935 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG319984 DB	'g', 00H, 'l', 00H, 'I', 00H, 's', 00H, 'T', 00H, 'e', 00H
-	DB	'x', 00H, 't', 00H, 'u', 00H, 'r', 00H, 'e', 00H, 00H, 00H
-$SG318960 DB	'g', 00H, 'l', 00H, 'E', 00H, 'v', 00H, 'a', 00H, 'l', 00H
-	DB	'C', 00H, 'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '2', 00H, 'f'
-	DB	00H, 00H, 00H
-$SG319985 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG323058 DB	'g', 00H, 'l', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 't', 00H
-	DB	'e', 00H, 'x', 00H, '4', 00H, 'd', 00H, 'v', 00H, 00H, 00H
-$SG317948 DB	'glColor3i', 00H
-	ORG $+2
-$SG318961 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG321012 DB	'g', 00H, 'l', 00H, 'P', 00H, 'o', 00H, 'p', 00H, 'M', 00H
-	DB	'a', 00H, 't', 00H, 'r', 00H, 'i', 00H, 'x', 00H, 00H, 00H
-$SG322046 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
-	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '2', 00H, 'i', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG323059 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG318970 DB	'glEvalCoord2fv', 00H
+$SG324078 DB	'F', 00H, 'r', 00H, 'a', 00H, 'g', 00H, 'm', 00H, 'e', 00H
+	DB	'n', 00H, 't', 00H, ' ', 00H, 'S', 00H, 'h', 00H, 'a', 00H, 'd'
+	DB	00H, 'e', 00H, 'r', 00H, ' ', 00H, 'I', 00H, 'n', 00H, 'v', 00H
+	DB	'o', 00H, 'c', 00H, 'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n'
+	DB	00H, 's', 00H, 00H, 00H
+$SG317936 DB	'glColor3bv', 00H
 	ORG $+1
-$SG321022 DB	'glPopName', 00H
-	ORG $+2
-$SG321013 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG319981 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -4237,18 +3931,46 @@ $SG321013 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG322042 DB	'glTexCoord2i', 00H
+$SG325104 DB	'glTexParameterf', 00H
+$SG325105 DB	'glTexParameterfv', 00H
 	ORG $+3
-$SG319996 DB	'glLightModelf', 00H
+$SG318957 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG318974 DB	'g', 00H, 'l', 00H, 'E', 00H, 'v', 00H, 'a', 00H, 'l', 00H
-	DB	'C', 00H, 'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '2', 00H, 'f'
-	DB	00H, 'v', 00H, 00H, 00H
+$SG325102 DB	'glTexImage1D', 00H
+	ORG $+3
+$SG321006 DB	'glPolygonMode', 00H
 	ORG $+2
-$SG320000 DB	'g', 00H, 'l', 00H, 'L', 00H, 'i', 00H, 'g', 00H, 'h', 00H
-	DB	't', 00H, 'M', 00H, 'o', 00H, 'd', 00H, 'e', 00H, 'l', 00H, 'f'
+$SG325103 DB	'glTexImage2D', 00H
+	ORG $+3
+$SG324080 DB	'C', 00H, 'o', 00H, 'm', 00H, 'p', 00H, 'u', 00H, 't', 00H
+	DB	'e', 00H, ' ', 00H, 'S', 00H, 'h', 00H, 'a', 00H, 'd', 00H, 'e'
+	DB	00H, 'r', 00H, ' ', 00H, 'I', 00H, 'n', 00H, 'v', 00H, 'o', 00H
+	DB	'c', 00H, 'a', 00H, 't', 00H, 'i', 00H, 'o', 00H, 'n', 00H, 's'
 	DB	00H, 00H, 00H
-$SG322047 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	ORG $+2
+$SG325106 DB	'glTexParameteri', 00H
+$SG324082 DB	'C', 00H, 'l', 00H, 'i', 00H, 'p', 00H, 'p', 00H, 'i', 00H
+	DB	'n', 00H, 'g', 00H, ' ', 00H, 'I', 00H, 'n', 00H, 'p', 00H, 'u'
+	DB	00H, 't', 00H, ' ', 00H, 'P', 00H, 'r', 00H, 'i', 00H, 'm', 00H
+	DB	'i', 00H, 't', 00H, 'i', 00H, 'v', 00H, 'e', 00H, 's', 00H, 00H
+	DB	00H
+$SG323058 DB	'glVertex3iv', 00H
+$SG321010 DB	'g', 00H, 'l', 00H, 'P', 00H, 'o', 00H, 'l', 00H, 'y', 00H
+	DB	'g', 00H, 'o', 00H, 'n', 00H, 'M', 00H, 'o', 00H, 'd', 00H, 'e'
+	DB	00H, 00H, 00H
+$SG325107 DB	'glTexParameteriv', 00H
+	ORG $+3
+$SG325108 DB	'glTexSubImage1D', 00H
+$SG319990 DB	'glInitNames', 00H
+$SG321011 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -4258,21 +3980,21 @@ $SG322047 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG317952 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
-	DB	'r', 00H, '3', 00H, 'i', 00H, 00H, 00H
-$SG318975 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG324084 DB	'C', 00H, 'l', 00H, 'i', 00H, 'p', 00H, 'p', 00H, 'i', 00H
+	DB	'n', 00H, 'g', 00H, ' ', 00H, 'O', 00H, 'u', 00H, 't', 00H, 'p'
+	DB	00H, 'u', 00H, 't', 00H, ' ', 00H, 'P', 00H, 'r', 00H, 'i', 00H
+	DB	'm', 00H, 'i', 00H, 't', 00H, 'i', 00H, 'v', 00H, 'e', 00H, 's'
+	DB	00H, 00H, 00H
 	ORG $+2
-$SG323074 DB	'glVertex4f', 00H
+$SG322036 DB	'glTexCoord1sv', 00H
+	ORG $+2
+$SG317940 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
+	DB	'r', 00H, '3', 00H, 'b', 00H, 'v', 00H, 00H, 00H
+	ORG $+2
+$SG325109 DB	'glTexSubImage2D', 00H
+$SG325112 DB	'glVertex2d', 00H
 	ORG $+1
-$SG320001 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG317941 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -4282,9 +4004,18 @@ $SG320001 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG321026 DB	'g', 00H, 'l', 00H, 'P', 00H, 'o', 00H, 'p', 00H, 'N', 00H
-	DB	'a', 00H, 'm', 00H, 'e', 00H, 00H, 00H
-$SG317953 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG325110 DB	'glTranslated', 00H
+	ORG $+3
+$SG323062 DB	'g', 00H, 'l', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 't', 00H
+	DB	'e', 00H, 'x', 00H, '3', 00H, 'i', 00H, 'v', 00H, 00H, 00H
+$SG318966 DB	'glEvalCoord1f', 00H
+	ORG $+2
+$SG325111 DB	'glTranslatef', 00H
+	ORG $+3
+$SG322040 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
+	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '1', 00H, 's', 00H, 'v'
+	DB	00H, 00H, 00H
+$SG323063 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -4294,7 +4025,64 @@ $SG317953 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG317962 DB	'glColor3iv', 00H
+$SG325113 DB	'glVertex2dv', 00H
+$SG322041 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG325114 DB	'glVertex2f', 00H
+	ORG $+1
+$SG319994 DB	'g', 00H, 'l', 00H, 'I', 00H, 'n', 00H, 'i', 00H, 't', 00H
+	DB	'N', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 's', 00H, 00H, 00H
+$SG318970 DB	'g', 00H, 'l', 00H, 'E', 00H, 'v', 00H, 'a', 00H, 'l', 00H
+	DB	'C', 00H, 'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '1', 00H, 'f'
+	DB	00H, 00H, 00H
+$SG325115 DB	'glVertex2fv', 00H
+$SG319995 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG325116 DB	'glVertex2i', 00H
+	ORG $+1
+$SG318971 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG325117 DB	'glVertex2iv', 00H
+$SG325118 DB	'glVertex2s', 00H
+	ORG $+1
+$SG321022 DB	'glPolygonOffset', 00H
+$SG325119 DB	'glVertex2sv', 00H
+$SG325120 DB	'glVertex3d', 00H
+	ORG $+1
+$SG325121 DB	'glVertex3dv', 00H
+$SG325122 DB	'glVertex3f', 00H
+	ORG $+1
+$SG321026 DB	'g', 00H, 'l', 00H, 'P', 00H, 'o', 00H, 'l', 00H, 'y', 00H
+	DB	'g', 00H, 'o', 00H, 'n', 00H, 'O', 00H, 'f', 00H, 'f', 00H, 's'
+	DB	00H, 'e', 00H, 't', 00H, 00H, 00H
+$SG317954 DB	'glColor3d', 00H
+	ORG $+2
+$SG325123 DB	'glVertex3fv', 00H
+$SG325124 DB	'glVertex3i', 00H
 	ORG $+1
 $SG321027 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
@@ -4306,161 +4094,46 @@ $SG321027 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG323078 DB	'g', 00H, 'l', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 't', 00H
-	DB	'e', 00H, 'x', 00H, '4', 00H, 'f', 00H, 00H, 00H
-	ORG $+2
-$SG322060 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
-	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '2', 00H, 'i', 00H, 'v'
-	DB	00H, 00H, 00H
-$SG323079 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG322056 DB	'glTexCoord2iv', 00H
-	ORG $+2
-$SG320012 DB	'glLightModelfv', 00H
+$SG323076 DB	'glVertex3s', 00H
 	ORG $+1
-$SG318988 DB	'glEvalMesh1', 00H
-$SG322061 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG317966 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
-	DB	'r', 00H, '3', 00H, 'i', 00H, 'v', 00H, 00H, 00H
-	ORG $+2
-$SG323088 DB	'glVertex4fv', 00H
-$SG317967 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG321040 DB	'glPrioritizeTextures', 00H
+$SG322052 DB	'glTexCoord2d', 00H
 	ORG $+3
-$SG320016 DB	'g', 00H, 'l', 00H, 'L', 00H, 'i', 00H, 'g', 00H, 'h', 00H
-	DB	't', 00H, 'M', 00H, 'o', 00H, 'd', 00H, 'e', 00H, 'l', 00H, 'f'
+$SG318980 DB	'glEvalCoord1fv', 00H
+	ORG $+1
+$SG325125 DB	'glVertex3iv', 00H
+$SG325126 DB	'glVertex3s', 00H
+	ORG $+1
+$SG317958 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
+	DB	'r', 00H, '3', 00H, 'd', 00H, 00H, 00H
+$SG325127 DB	'glVertex3sv', 00H
+$SG317959 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG325128 DB	'glVertex4d', 00H
+	ORG $+1
+$SG323080 DB	'g', 00H, 'l', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 't', 00H
+	DB	'e', 00H, 'x', 00H, '3', 00H, 's', 00H, 00H, 00H
+	ORG $+2
+$SG322056 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
+	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '2', 00H, 'd', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG320008 DB	'glInterleavedArrays', 00H
+$SG318984 DB	'g', 00H, 'l', 00H, 'E', 00H, 'v', 00H, 'a', 00H, 'l', 00H
+	DB	'C', 00H, 'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '1', 00H, 'f'
 	DB	00H, 'v', 00H, 00H, 00H
 	ORG $+2
-$SG318992 DB	'g', 00H, 'l', 00H, 'E', 00H, 'v', 00H, 'a', 00H, 'l', 00H
-	DB	'M', 00H, 'e', 00H, 's', 00H, 'h', 00H, '1', 00H, 00H, 00H
-$SG321044 DB	'g', 00H, 'l', 00H, 'P', 00H, 'r', 00H, 'i', 00H, 'o', 00H
-	DB	'r', 00H, 'i', 00H, 't', 00H, 'i', 00H, 'z', 00H, 'e', 00H, 'T'
-	DB	00H, 'e', 00H, 'x', 00H, 't', 00H, 'u', 00H, 'r', 00H, 'e', 00H
-	DB	's', 00H, 00H, 00H
-	ORG $+2
-$SG320017 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG323092 DB	'g', 00H, 'l', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 't', 00H
-	DB	'e', 00H, 'x', 00H, '4', 00H, 'f', 00H, 'v', 00H, 00H, 00H
-$SG322076 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
-	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '2', 00H, 's', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG318993 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG317980 DB	'glColor3s', 00H
-	ORG $+2
-$SG323093 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG320032 DB	'g', 00H, 'l', 00H, 'L', 00H, 'i', 00H, 'g', 00H, 'h', 00H
-	DB	't', 00H, 'M', 00H, 'o', 00H, 'd', 00H, 'e', 00H, 'l', 00H, 'i'
-	DB	00H, 00H, 00H
-$SG321045 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG322072 DB	'glTexCoord2s', 00H
-	ORG $+3
-$SG320028 DB	'glLightModeli', 00H
-	ORG $+2
-$SG317984 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
-	DB	'r', 00H, '3', 00H, 's', 00H, 00H, 00H
-$SG322077 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG321054 DB	'glPushAttrib', 00H
-	ORG $+3
-$SG321058 DB	'g', 00H, 'l', 00H, 'P', 00H, 'u', 00H, 's', 00H, 'h', 00H
-	DB	'A', 00H, 't', 00H, 't', 00H, 'r', 00H, 'i', 00H, 'b', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG320033 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG319010 DB	'glEvalMesh2', 00H
-$SG317985 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG323108 DB	'glVertex4i', 00H
+$SG325129 DB	'glVertex4dv', 00H
+$SG325130 DB	'glVertex4f', 00H
 	ORG $+1
-$SG321059 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG323081 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -4470,13 +4143,260 @@ $SG321059 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG322086 DB	'glTexCoord2sv', 00H
+$SG325131 DB	'glVertex4fv', 00H
+$SG322057 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG325132 DB	'glVertex4i', 00H
+	ORG $+1
+$SG318985 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG321036 DB	'glPolygonStipple', 00H
+	ORG $+3
+$SG320012 DB	'g', 00H, 'l', 00H, 'I', 00H, 'n', 00H, 't', 00H, 'e', 00H
+	DB	'r', 00H, 'l', 00H, 'e', 00H, 'a', 00H, 'v', 00H, 'e', 00H, 'd'
+	DB	00H, 'A', 00H, 'r', 00H, 'r', 00H, 'a', 00H, 'y', 00H, 's', 00H
+	DB	00H, 00H
+$SG325133 DB	'glVertex4iv', 00H
+$SG325134 DB	'glVertex4s', 00H
+	ORG $+1
+$SG320013 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG325135 DB	'glVertex4sv', 00H
+$SG325136 DB	'glVertexPointer', 00H
+$SG321040 DB	'g', 00H, 'l', 00H, 'P', 00H, 'o', 00H, 'l', 00H, 'y', 00H
+	DB	'g', 00H, 'o', 00H, 'n', 00H, 'S', 00H, 't', 00H, 'i', 00H, 'p'
+	DB	00H, 'p', 00H, 'l', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG317968 DB	'glColor3dv', 00H
+	ORG $+1
+$SG325137 DB	'glViewport', 00H
+	ORG $+1
+$SG323090 DB	'glVertex3sv', 00H
+$SG321041 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG325138 DB	'wglCopyContext', 00H
+	ORG $+1
+$SG322066 DB	'glTexCoord2dv', 00H
+	ORG $+2
+$SG325139 DB	'wglCreateLayerContext', 00H
+	ORG $+2
+$SG325140 DB	'wglDeleteContext', 00H
+	ORG $+3
+$SG318996 DB	'glEvalCoord2d', 00H
+	ORG $+2
+$SG317972 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
+	DB	'r', 00H, '3', 00H, 'd', 00H, 'v', 00H, 00H, 00H
+	ORG $+2
+$SG325141 DB	'wglGetCurrentContext', 00H
+	ORG $+3
+$SG317973 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG325142 DB	'wglGetCurrentDC', 00H
+$SG323094 DB	'g', 00H, 'l', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 't', 00H
+	DB	'e', 00H, 'x', 00H, '3', 00H, 's', 00H, 'v', 00H, 00H, 00H
+$SG322070 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
+	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '2', 00H, 'd', 00H, 'v'
+	DB	00H, 00H, 00H
+$SG320022 DB	'glIsEnabled', 00H
+$SG325143 DB	'wglGetProcAddress', 00H
+	ORG $+2
+$SG323095 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG325144 DB	'wglCreateContext', 00H
+	ORG $+3
+$SG322071 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG319000 DB	'g', 00H, 'l', 00H, 'E', 00H, 'v', 00H, 'a', 00H, 'l', 00H
+	DB	'C', 00H, 'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '2', 00H, 'd'
+	DB	00H, 00H, 00H
+$SG325145 DB	'wglChoosePixelFormat', 00H
+	ORG $+3
+$SG319001 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG325146 DB	'wglMakeCurrent', 00H
+	ORG $+1
+$SG321050 DB	'glPopAttrib', 00H
+$SG320026 DB	'g', 00H, 'l', 00H, 'I', 00H, 's', 00H, 'E', 00H, 'n', 00H
+	DB	'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H, 'd', 00H, 00H, 00H
+$SG325147 DB	'wglShareLists', 00H
+	ORG $+2
+$SG320027 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG325148 DB	'wglUseFontBitmapsA', 00H
+	ORG $+1
+$SG325149 DB	'wglUseFontBitmapsW', 00H
+	ORG $+1
+$SG325150 DB	'wglDescribeLayerPlane', 00H
+	ORG $+2
+$SG321054 DB	'g', 00H, 'l', 00H, 'P', 00H, 'o', 00H, 'p', 00H, 'A', 00H
+	DB	't', 00H, 't', 00H, 'r', 00H, 'i', 00H, 'b', 00H, 00H, 00H
+$SG324127 DB	' ', 00H, ' ', 00H, 'V', 00H, 'E', 00H, 'R', 00H, 'T', 00H
+	DB	'E', 00H, 'X', 00H, ' ', 00H, ':', 00H, ' ', 00H, '<', 00H, 'U'
+	DB	00H, 'n', 00H, 'u', 00H, 's', 00H, 'e', 00H, 'd', 00H, '>', 00H
+	DB	0aH, 00H, 00H, 00H
+	ORG $+2
+$SG324126 DB	' ', 00H, ' ', 00H, 'V', 00H, 'E', 00H, 'R', 00H, 'T', 00H
+	DB	'E', 00H, 'X', 00H, ' ', 00H, ':', 00H, ' ', 00H, '%', 00H, 's'
+	DB	00H, ' ', 00H, ' ', 00H, ' ', 00H, '(', 00H, '%', 00H, 's', 00H
+	DB	' ', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 't', 00H, 's', 00H, ' '
+	DB	00H, '=', 00H, '=', 00H, '>', 00H, ' ', 00H, '%', 00H, 's', 00H
+	DB	' ', 00H, 'T', 00H, 'r', 00H, 'i', 00H, 'a', 00H, 'n', 00H, 'g'
+	DB	00H, 'l', 00H, 'e', 00H, 's', 00H, ')', 00H, 0aH, 00H, 00H, 00H
+	ORG $+2
+$SG325151 DB	'wglDescribePixelFormat', 00H
+	ORG $+1
+$SG325152 DB	'wglGetLayerPaletteEntries', 00H
+	ORG $+2
+$SG321055 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG325153 DB	'wglGetPixelFormat', 00H
+	ORG $+2
+$SG325154 DB	'wglRealizeLayerPalette', 00H
+	ORG $+1
+$SG324130 DB	'%', 00H, 's', 00H, ' ', 00H, ' ', 00H, 'G', 00H, 'E', 00H
+	DB	'O', 00H, 'M', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ':', 00H, ' '
+	DB	00H, '%', 00H, 's', 00H, ' ', 00H, ' ', 00H, ' ', 00H, '(', 00H
+	DB	'%', 00H, 's', 00H, ' ', 00H, 'P', 00H, 'r', 00H, 'i', 00H, 'm'
+	DB	00H, 's', 00H, ')', 00H, 0aH, 00H, 00H, 00H
+$SG322082 DB	'glTexCoord2f', 00H
+	ORG $+3
+$SG319010 DB	'glEvalCoord2dv', 00H
+	ORG $+1
+$SG317986 DB	'glColor3f', 00H
+	ORG $+2
+$SG325155 DB	'wglSetLayerPaletteEntries', 00H
+	ORG $+2
+$SG324131 DB	'%', 00H, 's', 00H, ' ', 00H, ' ', 00H, 'G', 00H, 'E', 00H
+	DB	'O', 00H, 'M', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ':', 00H, ' '
+	DB	00H, '<', 00H, 'U', 00H, 'n', 00H, 'u', 00H, 's', 00H, 'e', 00H
+	DB	'd', 00H, '>', 00H, 0aH, 00H, 00H, 00H
+	ORG $+2
+$SG325156 DB	'wglSetPixelFormat', 00H
+	ORG $+2
+$SG320036 DB	'glIsList', 00H
+	ORG $+3
+$SG325157 DB	'wglSwapMultipleBuffers', 00H
+	ORG $+1
+$SG323110 DB	'glVertex4d', 00H
+	ORG $+1
+$SG325158 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, ' ', 00H, '@', 00H, ' ', 00H, '%', 00H, 'l', 00H, 'u', 00H
+	DB	' ', 00H, 'f', 00H, 'u', 00H, 'n', 00H, 'c', 00H, 't', 00H, 'i'
+	DB	00H, 'o', 00H, 'n', 00H, 's', 00H, ' ', 00H, 'h', 00H, 'o', 00H
+	DB	'o', 00H, 'k', 00H, 'e', 00H, 'd', 00H, 00H, 00H
+	ORG $+2
+$SG322086 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
+	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '2', 00H, 'f', 00H, 00H
+	DB	00H
 	ORG $+2
 $SG319014 DB	'g', 00H, 'l', 00H, 'E', 00H, 'v', 00H, 'a', 00H, 'l', 00H
-	DB	'M', 00H, 'e', 00H, 's', 00H, 'h', 00H, '2', 00H, 00H, 00H
-$SG322090 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
-	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '2', 00H, 's', 00H, 'v'
-	DB	00H, 00H, 00H
+	DB	'C', 00H, 'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '2', 00H, 'd'
+	DB	00H, 'v', 00H, 00H, 00H
+	ORG $+2
+$SG317990 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
+	DB	'r', 00H, '3', 00H, 'f', 00H, 00H, 00H
+$SG321064 DB	'glPopClientAttrib', 00H
+	ORG $+2
+$SG324135 DB	'%', 00H, 's', 00H, ' ', 00H, ' ', 00H, 'T', 00H, 'E', 00H
+	DB	'S', 00H, 'S', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ':', 00H, ' '
+	DB	00H, '%', 00H, 's', 00H, ' ', 00H, 'H', 00H, 'u', 00H, 'l', 00H
+	DB	'l', 00H, ' ', 00H, '=', 00H, '=', 00H, '>', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'D', 00H, 'o', 00H, 'm', 00H, 'a', 00H
+	DB	'i', 00H, 'n', 00H, 0aH, 00H, 00H, 00H
+$SG322087 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG320040 DB	'g', 00H, 'l', 00H, 'I', 00H, 's', 00H, 'L', 00H, 'i', 00H
+	DB	's', 00H, 't', 00H, 00H, 00H
+	ORG $+2
 $SG319015 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
@@ -4487,12 +4407,10 @@ $SG319015 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG323112 DB	'g', 00H, 'l', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 't', 00H
-	DB	'e', 00H, 'x', 00H, '4', 00H, 'i', 00H, 00H, 00H
-	ORG $+2
-$SG317994 DB	'glColor3sv', 00H
-	ORG $+1
-$SG323113 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG321068 DB	'g', 00H, 'l', 00H, 'P', 00H, 'o', 00H, 'p', 00H, 'C', 00H
+	DB	'l', 00H, 'i', 00H, 'e', 00H, 'n', 00H, 't', 00H, 'A', 00H, 't'
+	DB	00H, 't', 00H, 'r', 00H, 'i', 00H, 'b', 00H, 00H, 00H
+$SG317991 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -4502,9 +4420,14 @@ $SG323113 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG321068 DB	'glPushClientAttrib', 00H
+$SG324136 DB	'%', 00H, 's', 00H, ' ', 00H, ' ', 00H, 'T', 00H, 'E', 00H
+	DB	'S', 00H, 'S', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ':', 00H, ' '
+	DB	00H, '<', 00H, 'U', 00H, 'n', 00H, 'u', 00H, 's', 00H, 'e', 00H
+	DB	'd', 00H, '>', 00H, 0aH, 00H, 00H, 00H
+	ORG $+2
+$SG318000 DB	'glColor3fv', 00H
 	ORG $+1
-$SG322091 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG320041 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -4514,13 +4437,20 @@ $SG322091 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG320044 DB	'glLightModeliv', 00H
-	ORG $+1
-$SG317998 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
-	DB	'r', 00H, '3', 00H, 's', 00H, 'v', 00H, 00H, 00H
+$SG323114 DB	'g', 00H, 'l', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 't', 00H
+	DB	'e', 00H, 'x', 00H, '4', 00H, 'd', 00H, 00H, 00H
 	ORG $+2
-$SG323122 DB	'glVertex4iv', 00H
-$SG317999 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG320050 DB	'glIsTexture', 00H
+$SG324139 DB	'%', 00H, 's', 00H, ' ', 00H, ' ', 00H, 'R', 00H, 'A', 00H
+	DB	'S', 00H, 'T', 00H, 'E', 00H, 'R', 00H, ' ', 00H, ':', 00H, ' '
+	DB	00H, '%', 00H, '5', 00H, '.', 00H, '1', 00H, 'f', 00H, '%', 00H
+	DB	'%', 00H, ' ', 00H, 'F', 00H, 'i', 00H, 'l', 00H, 'l', 00H, 'e'
+	DB	00H, 'd', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H, ' ', 00H
+	DB	'(', 00H, '%', 00H, 's', 00H, ' ', 00H, 'T', 00H, 'r', 00H, 'i'
+	DB	00H, 'a', 00H, 'n', 00H, 'g', 00H, 'l', 00H, 'e', 00H, 's', 00H
+	DB	' ', 00H, 'I', 00H, 'N', 00H, ' ', 00H, ')', 00H, 0aH, 00H, 00H
+	DB	00H
+$SG323115 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -4530,21 +4460,109 @@ $SG317999 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG321072 DB	'g', 00H, 'l', 00H, 'P', 00H, 'u', 00H, 's', 00H, 'h', 00H
-	DB	'C', 00H, 'l', 00H, 'i', 00H, 'e', 00H, 'n', 00H, 't', 00H, 'A'
-	DB	00H, 't', 00H, 't', 00H, 'r', 00H, 'i', 00H, 'b', 00H, 00H, 00H
+$SG324140 DB	'%', 00H, 's', 00H, ' ', 00H, ' ', 00H, 'R', 00H, 'A', 00H
+	DB	'S', 00H, 'T', 00H, 'E', 00H, 'R', 00H, ' ', 00H, ':', 00H, ' '
+	DB	00H, '<', 00H, 'U', 00H, 'n', 00H, 'u', 00H, 's', 00H, 'e', 00H
+	DB	'd', 00H, '>', 00H, 0aH, 00H, 00H, 00H
 	ORG $+2
-$SG320048 DB	'g', 00H, 'l', 00H, 'L', 00H, 'i', 00H, 'g', 00H, 'h', 00H
-	DB	't', 00H, 'M', 00H, 'o', 00H, 'd', 00H, 'e', 00H, 'l', 00H, 'i'
-	DB	00H, 'v', 00H, 00H, 00H
+$SG324147 DB	'%', 00H, 's', 00H, ' ', 00H, ' ', 00H, 'C', 00H, 'O', 00H
+	DB	'M', 00H, 'P', 00H, 'U', 00H, 'T', 00H, 'E', 00H, ':', 00H, ' '
+	DB	00H, '%', 00H, 's', 00H, 0aH, 00H, 00H, 00H
 	ORG $+2
-$SG319024 DB	'glEvalPoint1', 00H
-	ORG $+3
-$SG319028 DB	'g', 00H, 'l', 00H, 'E', 00H, 'v', 00H, 'a', 00H, 'l', 00H
-	DB	'P', 00H, 'o', 00H, 'i', 00H, 'n', 00H, 't', 00H, '1', 00H, 00H
+$SG321069 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG323124 DB	'glVertex4dv', 00H
+$SG324143 DB	'%', 00H, 's', 00H, ' ', 00H, ' ', 00H, 'P', 00H, 'I', 00H
+	DB	'X', 00H, 'E', 00H, 'L', 00H, ' ', 00H, ' ', 00H, ':', 00H, ' '
+	DB	00H, '%', 00H, 's', 00H, ' ', 00H, ' ', 00H, ' ', 00H, '(', 00H
+	DB	'%', 00H, 's', 00H, ' ', 00H, 'T', 00H, 'r', 00H, 'i', 00H, 'a'
+	DB	00H, 'n', 00H, 'g', 00H, 'l', 00H, 'e', 00H, 's', 00H, ' ', 00H
+	DB	'O', 00H, 'U', 00H, 'T', 00H, ')', 00H, 0aH, 00H, 00H, 00H
+$SG324144 DB	'%', 00H, 's', 00H, ' ', 00H, ' ', 00H, 'P', 00H, 'I', 00H
+	DB	'X', 00H, 'E', 00H, 'L', 00H, ' ', 00H, ' ', 00H, ':', 00H, ' '
+	DB	00H, '<', 00H, 'U', 00H, 'n', 00H, 'u', 00H, 's', 00H, 'e', 00H
+	DB	'd', 00H, '>', 00H, 0aH, 00H, 00H, 00H
+	ORG $+2
+$SG322096 DB	'glTexCoord2fv', 00H
+	ORG $+2
+$SG319026 DB	'glEvalCoord2f', 00H
+	ORG $+2
+$SG324148 DB	'%', 00H, 's', 00H, ' ', 00H, ' ', 00H, 'C', 00H, 'O', 00H
+	DB	'M', 00H, 'P', 00H, 'U', 00H, 'T', 00H, 'E', 00H, ':', 00H, ' '
+	DB	00H, '<', 00H, 'U', 00H, 'n', 00H, 'u', 00H, 's', 00H, 'e', 00H
+	DB	'd', 00H, '>', 00H, 0aH, 00H, 00H, 00H
+	ORG $+2
+$SG322100 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
+	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '2', 00H, 'f', 00H, 'v'
+	DB	00H, 00H, 00H
+$SG318004 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
+	DB	'r', 00H, '3', 00H, 'f', 00H, 'v', 00H, 00H, 00H
+	ORG $+2
+$SG322101 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG321078 DB	'glPopMatrix', 00H
+$SG318005 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG320054 DB	'g', 00H, 'l', 00H, 'I', 00H, 's', 00H, 'T', 00H, 'e', 00H
+	DB	'x', 00H, 't', 00H, 'u', 00H, 'r', 00H, 'e', 00H, 00H, 00H
+$SG319030 DB	'g', 00H, 'l', 00H, 'E', 00H, 'v', 00H, 'a', 00H, 'l', 00H
+	DB	'C', 00H, 'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '2', 00H, 'f'
+	DB	00H, 00H, 00H
+$SG320055 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG323128 DB	'g', 00H, 'l', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 't', 00H
+	DB	'e', 00H, 'x', 00H, '4', 00H, 'd', 00H, 'v', 00H, 00H, 00H
+$SG318018 DB	'glColor3i', 00H
+	ORG $+2
+$SG319031 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG321082 DB	'g', 00H, 'l', 00H, 'P', 00H, 'o', 00H, 'p', 00H, 'M', 00H
+	DB	'a', 00H, 't', 00H, 'r', 00H, 'i', 00H, 'x', 00H, 00H, 00H
+$SG322116 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
+	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '2', 00H, 'i', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG321073 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG323129 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -4554,25 +4572,11 @@ $SG321073 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG323126 DB	'g', 00H, 'l', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 't', 00H
-	DB	'e', 00H, 'x', 00H, '4', 00H, 'i', 00H, 'v', 00H, 00H, 00H
-$SG322108 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
-	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '3', 00H, 'd', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG320049 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG318012 DB	'glColor3ub', 00H
+$SG319040 DB	'glEvalCoord2fv', 00H
 	ORG $+1
-$SG319029 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG321092 DB	'glPopName', 00H
+	ORG $+2
+$SG321083 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -4582,59 +4586,18 @@ $SG319029 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG321086 DB	'g', 00H, 'l', 00H, 'P', 00H, 'u', 00H, 's', 00H, 'h', 00H
-	DB	'M', 00H, 'a', 00H, 't', 00H, 'r', 00H, 'i', 00H, 'x', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG323127 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG322104 DB	'glTexCoord3d', 00H
+$SG322112 DB	'glTexCoord2i', 00H
 	ORG $+3
-$SG321082 DB	'glPushMatrix', 00H
-	ORG $+3
-$SG320062 DB	'glLightf', 00H
-	ORG $+3
-$SG322109 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG320066 DB	'g', 00H, 'l', 00H, 'L', 00H, 'i', 00H, 'g', 00H, 'h', 00H
-	DB	't', 00H, 'f', 00H, 00H, 00H
-	ORG $+2
-$SG321087 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG319040 DB	'glEvalPoint2', 00H
-	ORG $+3
-$SG318016 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
-	DB	'r', 00H, '3', 00H, 'u', 00H, 'b', 00H, 00H, 00H
+$SG320066 DB	'glLightModelf', 00H
 	ORG $+2
 $SG319044 DB	'g', 00H, 'l', 00H, 'E', 00H, 'v', 00H, 'a', 00H, 'l', 00H
-	DB	'P', 00H, 'o', 00H, 'i', 00H, 'n', 00H, 't', 00H, '2', 00H, 00H
-	DB	00H
+	DB	'C', 00H, 'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '2', 00H, 'f'
+	DB	00H, 'v', 00H, 00H, 00H
 	ORG $+2
-$SG318017 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG320070 DB	'g', 00H, 'l', 00H, 'L', 00H, 'i', 00H, 'g', 00H, 'h', 00H
+	DB	't', 00H, 'M', 00H, 'o', 00H, 'd', 00H, 'e', 00H, 'l', 00H, 'f'
+	DB	00H, 00H, 00H
+$SG322117 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -4644,20 +4607,8 @@ $SG318017 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG323142 DB	'glVertex4s', 00H
-	ORG $+1
-$SG320067 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG321096 DB	'glPushName', 00H
-	ORG $+1
+$SG318022 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
+	DB	'r', 00H, '3', 00H, 'i', 00H, 00H, 00H
 $SG319045 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
@@ -4668,18 +4619,49 @@ $SG319045 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG322118 DB	'glTexCoord3dv', 00H
+$SG323144 DB	'glVertex4f', 00H
+	ORG $+1
+$SG320071 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG323146 DB	'g', 00H, 'l', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 't', 00H
-	DB	'e', 00H, 'x', 00H, '4', 00H, 's', 00H, 00H, 00H
+$SG321096 DB	'g', 00H, 'l', 00H, 'P', 00H, 'o', 00H, 'p', 00H, 'N', 00H
+	DB	'a', 00H, 'm', 00H, 'e', 00H, 00H, 00H
+$SG318023 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG322122 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
-	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '3', 00H, 'd', 00H, 'v'
+$SG318032 DB	'glColor3iv', 00H
+	ORG $+1
+$SG321097 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG323148 DB	'g', 00H, 'l', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 't', 00H
+	DB	'e', 00H, 'x', 00H, '4', 00H, 'f', 00H, 00H, 00H
+	ORG $+2
+$SG322130 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
+	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '2', 00H, 'i', 00H, 'v'
 	DB	00H, 00H, 00H
-$SG318026 DB	'glColor3ubv', 00H
-$SG320080 DB	'glLightfv', 00H
-	ORG $+2
-$SG323147 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG323149 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -4689,11 +4671,49 @@ $SG323147 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG318030 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
-	DB	'r', 00H, '3', 00H, 'u', 00H, 'b', 00H, 'v', 00H, 00H, 00H
-$SG319058 DB	'glFeedbackBuffer', 00H
+$SG322126 DB	'glTexCoord2iv', 00H
+	ORG $+2
+$SG320082 DB	'glLightModelfv', 00H
+	ORG $+1
+$SG319058 DB	'glEvalMesh1', 00H
+$SG322131 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG318036 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
+	DB	'r', 00H, '3', 00H, 'i', 00H, 'v', 00H, 00H, 00H
+	ORG $+2
+$SG323158 DB	'glVertex4fv', 00H
+$SG318037 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG321110 DB	'glPrioritizeTextures', 00H
 	ORG $+3
-$SG322123 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG320086 DB	'g', 00H, 'l', 00H, 'L', 00H, 'i', 00H, 'g', 00H, 'h', 00H
+	DB	't', 00H, 'M', 00H, 'o', 00H, 'd', 00H, 'e', 00H, 'l', 00H, 'f'
+	DB	00H, 'v', 00H, 00H, 00H
+	ORG $+2
+$SG319062 DB	'g', 00H, 'l', 00H, 'E', 00H, 'v', 00H, 'a', 00H, 'l', 00H
+	DB	'M', 00H, 'e', 00H, 's', 00H, 'h', 00H, '1', 00H, 00H, 00H
+$SG321114 DB	'g', 00H, 'l', 00H, 'P', 00H, 'r', 00H, 'i', 00H, 'o', 00H
+	DB	'r', 00H, 'i', 00H, 't', 00H, 'i', 00H, 'z', 00H, 'e', 00H, 'T'
+	DB	00H, 'e', 00H, 'x', 00H, 't', 00H, 'u', 00H, 'r', 00H, 'e', 00H
+	DB	's', 00H, 00H, 00H
+	ORG $+2
+$SG320087 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -4703,50 +4723,10 @@ $SG322123 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG321100 DB	'g', 00H, 'l', 00H, 'P', 00H, 'u', 00H, 's', 00H, 'h', 00H
-	DB	'N', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG323156 DB	'glVertex4sv', 00H
-$SG321101 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG320084 DB	'g', 00H, 'l', 00H, 'L', 00H, 'i', 00H, 'g', 00H, 'h', 00H
-	DB	't', 00H, 'f', 00H, 'v', 00H, 00H, 00H
-$SG318031 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG319062 DB	'g', 00H, 'l', 00H, 'F', 00H, 'e', 00H, 'e', 00H, 'd', 00H
-	DB	'b', 00H, 'a', 00H, 'c', 00H, 'k', 00H, 'B', 00H, 'u', 00H, 'f'
-	DB	00H, 'f', 00H, 'e', 00H, 'r', 00H, 00H, 00H
-	ORG $+2
-$SG320085 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG323160 DB	'g', 00H, 'l', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 't', 00H
-	DB	'e', 00H, 'x', 00H, '4', 00H, 's', 00H, 'v', 00H, 00H, 00H
-$SG322140 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
-	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '3', 00H, 'f', 00H, 00H
+$SG323162 DB	'g', 00H, 'l', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 't', 00H
+	DB	'e', 00H, 'x', 00H, '4', 00H, 'f', 00H, 'v', 00H, 00H, 00H
+$SG322146 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
+	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '2', 00H, 's', 00H, 00H
 	DB	00H
 	ORG $+2
 $SG319063 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
@@ -4759,14 +4739,9 @@ $SG319063 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG322136 DB	'glTexCoord3f', 00H
-	ORG $+3
-$SG321112 DB	'glRasterPos2d', 00H
+$SG318050 DB	'glColor3s', 00H
 	ORG $+2
-$SG321116 DB	'g', 00H, 'l', 00H, 'R', 00H, 'a', 00H, 's', 00H, 't', 00H
-	DB	'e', 00H, 'r', 00H, 'P', 00H, 'o', 00H, 's', 00H, '2', 00H, 'd'
-	DB	00H, 00H, 00H
-$SG323161 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG323163 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -4776,64 +4751,40 @@ $SG323161 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG318044 DB	'glColor3ui', 00H
-	ORG $+1
-$SG322141 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG319072 DB	'glFinish', 00H
-	ORG $+3
-$SG321117 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG318048 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
-	DB	'r', 00H, '3', 00H, 'u', 00H, 'i', 00H, 00H, 00H
-	ORG $+2
-$SG320098 DB	'glLighti', 00H
-	ORG $+3
-$SG318049 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG319076 DB	'g', 00H, 'l', 00H, 'F', 00H, 'i', 00H, 'n', 00H, 'i', 00H
-	DB	's', 00H, 'h', 00H, 00H, 00H
-	ORG $+2
-$SG319077 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG322150 DB	'glTexCoord3fv', 00H
-	ORG $+2
-$SG321126 DB	'glRasterPos2dv', 00H
-	ORG $+1
 $SG320102 DB	'g', 00H, 'l', 00H, 'L', 00H, 'i', 00H, 'g', 00H, 'h', 00H
-	DB	't', 00H, 'i', 00H, 00H, 00H
+	DB	't', 00H, 'M', 00H, 'o', 00H, 'd', 00H, 'e', 00H, 'l', 00H, 'i'
+	DB	00H, 00H, 00H
+$SG321115 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG322142 DB	'glTexCoord2s', 00H
+	ORG $+3
+$SG320098 DB	'glLightModeli', 00H
+	ORG $+2
+$SG318054 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
+	DB	'r', 00H, '3', 00H, 's', 00H, 00H, 00H
+$SG322147 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG321124 DB	'glPushAttrib', 00H
+	ORG $+3
+$SG321128 DB	'g', 00H, 'l', 00H, 'P', 00H, 'u', 00H, 's', 00H, 'h', 00H
+	DB	'A', 00H, 't', 00H, 't', 00H, 'r', 00H, 'i', 00H, 'b', 00H, 00H
+	DB	00H
 	ORG $+2
 $SG320103 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
@@ -4845,77 +4796,104 @@ $SG320103 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG323176 DB	'glVertexPointer', 00H
-$SG322154 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
-	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '3', 00H, 'f', 00H, 'v'
+$SG319080 DB	'glEvalMesh2', 00H
+$SG318055 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG323178 DB	'glVertex4i', 00H
+	ORG $+1
+$SG321129 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG322156 DB	'glTexCoord2sv', 00H
+	ORG $+2
+$SG319084 DB	'g', 00H, 'l', 00H, 'E', 00H, 'v', 00H, 'a', 00H, 'l', 00H
+	DB	'M', 00H, 'e', 00H, 's', 00H, 'h', 00H, '2', 00H, 00H, 00H
+$SG322160 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
+	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '2', 00H, 's', 00H, 'v'
 	DB	00H, 00H, 00H
-$SG321130 DB	'g', 00H, 'l', 00H, 'R', 00H, 'a', 00H, 's', 00H, 't', 00H
-	DB	'e', 00H, 'r', 00H, 'P', 00H, 'o', 00H, 's', 00H, '2', 00H, 'd'
+$SG319085 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG323182 DB	'g', 00H, 'l', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 't', 00H
+	DB	'e', 00H, 'x', 00H, '4', 00H, 'i', 00H, 00H, 00H
+	ORG $+2
+$SG318064 DB	'glColor3sv', 00H
+	ORG $+1
+$SG323183 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG321138 DB	'glPushClientAttrib', 00H
+	ORG $+1
+$SG322161 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG320114 DB	'glLightModeliv', 00H
+	ORG $+1
+$SG318068 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
+	DB	'r', 00H, '3', 00H, 's', 00H, 'v', 00H, 00H, 00H
+	ORG $+2
+$SG323192 DB	'glVertex4iv', 00H
+$SG318069 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG321142 DB	'g', 00H, 'l', 00H, 'P', 00H, 'u', 00H, 's', 00H, 'h', 00H
+	DB	'C', 00H, 'l', 00H, 'i', 00H, 'e', 00H, 'n', 00H, 't', 00H, 'A'
+	DB	00H, 't', 00H, 't', 00H, 'r', 00H, 'i', 00H, 'b', 00H, 00H, 00H
+	ORG $+2
+$SG320118 DB	'g', 00H, 'l', 00H, 'L', 00H, 'i', 00H, 'g', 00H, 'h', 00H
+	DB	't', 00H, 'M', 00H, 'o', 00H, 'd', 00H, 'e', 00H, 'l', 00H, 'i'
 	DB	00H, 'v', 00H, 00H, 00H
 	ORG $+2
-$SG318058 DB	'glColor3uiv', 00H
-$SG320116 DB	'glLightiv', 00H
-	ORG $+2
-$SG322155 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG323180 DB	'g', 00H, 'l', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 't', 00H
-	DB	'e', 00H, 'x', 00H, 'P', 00H, 'o', 00H, 'i', 00H, 'n', 00H, 't'
-	DB	00H, 'e', 00H, 'r', 00H, 00H, 00H
-$SG320120 DB	'g', 00H, 'l', 00H, 'L', 00H, 'i', 00H, 'g', 00H, 'h', 00H
-	DB	't', 00H, 'i', 00H, 'v', 00H, 00H, 00H
-$SG321131 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG319086 DB	'glFlush', 00H
-$SG321146 DB	'g', 00H, 'l', 00H, 'R', 00H, 'a', 00H, 's', 00H, 't', 00H
-	DB	'e', 00H, 'r', 00H, 'P', 00H, 'o', 00H, 's', 00H, '2', 00H, 'f'
-	DB	00H, 00H, 00H
-$SG323181 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG318062 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
-	DB	'r', 00H, '3', 00H, 'u', 00H, 'i', 00H, 'v', 00H, 00H, 00H
-$SG323196 DB	'glViewport', 00H
-	ORG $+1
-$SG318063 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG319090 DB	'g', 00H, 'l', 00H, 'F', 00H, 'l', 00H, 'u', 00H, 's', 00H
-	DB	'h', 00H, 00H, 00H
-$SG322172 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
-	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '3', 00H, 'i', 00H, 00H
+$SG319094 DB	'glEvalPoint1', 00H
+	ORG $+3
+$SG319098 DB	'g', 00H, 'l', 00H, 'E', 00H, 'v', 00H, 'a', 00H, 'l', 00H
+	DB	'P', 00H, 'o', 00H, 'i', 00H, 'n', 00H, 't', 00H, '1', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG319091 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG321143 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -4925,129 +4903,98 @@ $SG319091 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG321142 DB	'glRasterPos2f', 00H
-	ORG $+2
-$SG322168 DB	'glTexCoord3i', 00H
-	ORG $+3
-$SG318076 DB	'glColor3us', 00H
-	ORG $+1
-$SG320121 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG319102 DB	'glFogf', 00H
-	ORG $+1
-$SG320136 DB	'g', 00H, 'l', 00H, 'L', 00H, 'i', 00H, 'n', 00H, 'e', 00H
-	DB	'S', 00H, 't', 00H, 'i', 00H, 'p', 00H, 'p', 00H, 'l', 00H, 'e'
-	DB	00H, 00H, 00H
-$SG321147 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG321156 DB	'glRasterPos2fv', 00H
-	ORG $+1
-$SG322186 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
-	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '3', 00H, 'i', 00H, 'v'
-	DB	00H, 00H, 00H
-$SG322173 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG323200 DB	'g', 00H, 'l', 00H, 'V', 00H, 'i', 00H, 'e', 00H, 'w', 00H
-	DB	'p', 00H, 'o', 00H, 'r', 00H, 't', 00H, 00H, 00H
-	ORG $+2
-$SG318080 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
-	DB	'r', 00H, '3', 00H, 'u', 00H, 's', 00H, 00H, 00H
-	ORG $+2
-$SG318090 DB	'glColor3usv', 00H
-$SG323201 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG323214 DB	'wglCopyContext', 00H
-	ORG $+1
-$SG319118 DB	'glFogfv', 00H
-$SG320146 DB	'glLineWidth', 00H
-$SG318081 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG319106 DB	'g', 00H, 'l', 00H, 'F', 00H, 'o', 00H, 'g', 00H, 'f', 00H
-	DB	00H, 00H
-	ORG $+2
-$SG318094 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
-	DB	'r', 00H, '3', 00H, 'u', 00H, 's', 00H, 'v', 00H, 00H, 00H
-$SG321176 DB	'g', 00H, 'l', 00H, 'R', 00H, 'a', 00H, 's', 00H, 't', 00H
-	DB	'e', 00H, 'r', 00H, 'P', 00H, 'o', 00H, 's', 00H, '2', 00H, 'i'
-	DB	00H, 00H, 00H
-$SG319107 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG320132 DB	'glLineStipple', 00H
-	ORG $+2
-$SG322182 DB	'glTexCoord3iv', 00H
-	ORG $+2
-$SG321160 DB	'g', 00H, 'l', 00H, 'R', 00H, 'a', 00H, 's', 00H, 't', 00H
-	DB	'e', 00H, 'r', 00H, 'P', 00H, 'o', 00H, 's', 00H, '2', 00H, 'f'
-	DB	00H, 'v', 00H, 00H, 00H
-	ORG $+2
-$SG319122 DB	'g', 00H, 'l', 00H, 'F', 00H, 'o', 00H, 'g', 00H, 'f', 00H
-	DB	'v', 00H, 00H, 00H
-$SG323228 DB	'wglCreateContext', 00H
-	ORG $+3
-$SG321161 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG320150 DB	'g', 00H, 'l', 00H, 'L', 00H, 'i', 00H, 'n', 00H, 'e', 00H
-	DB	'W', 00H, 'i', 00H, 'd', 00H, 't', 00H, 'h', 00H, 00H, 00H
-$SG322204 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
-	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '3', 00H, 's', 00H, 00H
+$SG323196 DB	'g', 00H, 'l', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 't', 00H
+	DB	'e', 00H, 'x', 00H, '4', 00H, 'i', 00H, 'v', 00H, 00H, 00H
+$SG322178 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
+	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '3', 00H, 'd', 00H, 00H
 	DB	00H
 	ORG $+2
+$SG320119 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG318082 DB	'glColor3ub', 00H
+	ORG $+1
+$SG319099 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG321156 DB	'g', 00H, 'l', 00H, 'P', 00H, 'u', 00H, 's', 00H, 'h', 00H
+	DB	'M', 00H, 'a', 00H, 't', 00H, 'r', 00H, 'i', 00H, 'x', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG323197 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG322174 DB	'glTexCoord3d', 00H
+	ORG $+3
+$SG321152 DB	'glPushMatrix', 00H
+	ORG $+3
+$SG320132 DB	'glLightf', 00H
+	ORG $+3
+$SG322179 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG320136 DB	'g', 00H, 'l', 00H, 'L', 00H, 'i', 00H, 'g', 00H, 'h', 00H
+	DB	't', 00H, 'f', 00H, 00H, 00H
+	ORG $+2
+$SG321157 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG319110 DB	'glEvalPoint2', 00H
+	ORG $+3
+$SG318086 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
+	DB	'r', 00H, '3', 00H, 'u', 00H, 'b', 00H, 00H, 00H
+	ORG $+2
+$SG319114 DB	'g', 00H, 'l', 00H, 'E', 00H, 'v', 00H, 'a', 00H, 'l', 00H
+	DB	'P', 00H, 'o', 00H, 'i', 00H, 'n', 00H, 't', 00H, '2', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG318087 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG323212 DB	'glVertex4s', 00H
+	ORG $+1
 $SG320137 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
@@ -5058,11 +5005,9 @@ $SG320137 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG319134 DB	'glFogi', 00H
+$SG321166 DB	'glPushName', 00H
 	ORG $+1
-$SG318110 DB	'glColor4b', 00H
-	ORG $+2
-$SG322187 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG319115 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -5072,56 +5017,18 @@ $SG322187 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG323232 DB	'w', 00H, 'g', 00H, 'l', 00H, 'C', 00H, 'r', 00H, 'e', 00H
-	DB	'a', 00H, 't', 00H, 'e', 00H, 'C', 00H, 'o', 00H, 'n', 00H, 't'
-	DB	00H, 'e', 00H, 'x', 00H, 't', 00H, 00H, 00H
+$SG322188 DB	'glTexCoord3dv', 00H
 	ORG $+2
-$SG318095 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG323216 DB	'g', 00H, 'l', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 't', 00H
+	DB	'e', 00H, 'x', 00H, '4', 00H, 's', 00H, 00H, 00H
 	ORG $+2
-$SG323218 DB	'w', 00H, 'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'p', 00H
-	DB	'y', 00H, 'C', 00H, 'o', 00H, 'n', 00H, 't', 00H, 'e', 00H, 'x'
-	DB	00H, 't', 00H, 00H, 00H
-	ORG $+2
-$SG320160 DB	'glListBase', 00H
-	ORG $+1
-$SG323219 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG321186 DB	'glRasterPos2iv', 00H
-	ORG $+1
-$SG318114 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
-	DB	'r', 00H, '4', 00H, 'b', 00H, 00H, 00H
-$SG319123 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG321172 DB	'glRasterPos2i', 00H
-	ORG $+2
-$SG322218 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
-	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '3', 00H, 's', 00H, 'v'
+$SG322192 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
+	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '3', 00H, 'd', 00H, 'v'
 	DB	00H, 00H, 00H
-$SG320151 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG318096 DB	'glColor3ubv', 00H
+$SG320150 DB	'glLightfv', 00H
+	ORG $+2
+$SG323217 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -5131,215 +5038,350 @@ $SG320151 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG322200 DB	'glTexCoord3s', 00H
+$SG318100 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
+	DB	'r', 00H, '3', 00H, 'u', 00H, 'b', 00H, 'v', 00H, 00H, 00H
+$SG319128 DB	'glFeedbackBuffer', 00H
 	ORG $+3
-$SG319138 DB	'g', 00H, 'l', 00H, 'F', 00H, 'o', 00H, 'g', 00H, 'i', 00H
+$SG322193 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG321170 DB	'g', 00H, 'l', 00H, 'P', 00H, 'u', 00H, 's', 00H, 'h', 00H
+	DB	'N', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG323226 DB	'glVertex4sv', 00H
+$SG321171 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG320154 DB	'g', 00H, 'l', 00H, 'L', 00H, 'i', 00H, 'g', 00H, 'h', 00H
+	DB	't', 00H, 'f', 00H, 'v', 00H, 00H, 00H
+$SG318101 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG319132 DB	'g', 00H, 'l', 00H, 'F', 00H, 'e', 00H, 'e', 00H, 'd', 00H
+	DB	'b', 00H, 'a', 00H, 'c', 00H, 'k', 00H, 'B', 00H, 'u', 00H, 'f'
+	DB	00H, 'f', 00H, 'e', 00H, 'r', 00H, 00H, 00H
+	ORG $+2
+$SG320155 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG323230 DB	'g', 00H, 'l', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 't', 00H
+	DB	'e', 00H, 'x', 00H, '4', 00H, 's', 00H, 'v', 00H, 00H, 00H
+$SG322210 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
+	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '3', 00H, 'f', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG319133 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG322206 DB	'glTexCoord3f', 00H
+	ORG $+3
+$SG321182 DB	'glRasterPos2d', 00H
+	ORG $+2
+$SG321186 DB	'g', 00H, 'l', 00H, 'R', 00H, 'a', 00H, 's', 00H, 't', 00H
+	DB	'e', 00H, 'r', 00H, 'P', 00H, 'o', 00H, 's', 00H, '2', 00H, 'd'
+	DB	00H, 00H, 00H
+$SG323231 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG318114 DB	'glColor3ui', 00H
+	ORG $+1
+$SG322211 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG319142 DB	'glFinish', 00H
+	ORG $+3
+$SG321187 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG318118 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
+	DB	'r', 00H, '3', 00H, 'u', 00H, 'i', 00H, 00H, 00H
+	ORG $+2
+$SG320168 DB	'glLighti', 00H
+	ORG $+3
+$SG318119 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG319146 DB	'g', 00H, 'l', 00H, 'F', 00H, 'i', 00H, 'n', 00H, 'i', 00H
+	DB	's', 00H, 'h', 00H, 00H, 00H
+	ORG $+2
+$SG319147 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG322220 DB	'glTexCoord3fv', 00H
+	ORG $+2
+$SG321196 DB	'glRasterPos2dv', 00H
+	ORG $+1
+$SG320172 DB	'g', 00H, 'l', 00H, 'L', 00H, 'i', 00H, 'g', 00H, 'h', 00H
+	DB	't', 00H, 'i', 00H, 00H, 00H
+	ORG $+2
+$SG320173 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG323246 DB	'glVertexPointer', 00H
+$SG322224 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
+	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '3', 00H, 'f', 00H, 'v'
+	DB	00H, 00H, 00H
+$SG321200 DB	'g', 00H, 'l', 00H, 'R', 00H, 'a', 00H, 's', 00H, 't', 00H
+	DB	'e', 00H, 'r', 00H, 'P', 00H, 'o', 00H, 's', 00H, '2', 00H, 'd'
+	DB	00H, 'v', 00H, 00H, 00H
+	ORG $+2
+$SG318128 DB	'glColor3uiv', 00H
+$SG320186 DB	'glLightiv', 00H
+	ORG $+2
+$SG322225 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG323250 DB	'g', 00H, 'l', 00H, 'V', 00H, 'e', 00H, 'r', 00H, 't', 00H
+	DB	'e', 00H, 'x', 00H, 'P', 00H, 'o', 00H, 'i', 00H, 'n', 00H, 't'
+	DB	00H, 'e', 00H, 'r', 00H, 00H, 00H
+$SG320190 DB	'g', 00H, 'l', 00H, 'L', 00H, 'i', 00H, 'g', 00H, 'h', 00H
+	DB	't', 00H, 'i', 00H, 'v', 00H, 00H, 00H
+$SG321201 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG319156 DB	'glFlush', 00H
+$SG321216 DB	'g', 00H, 'l', 00H, 'R', 00H, 'a', 00H, 's', 00H, 't', 00H
+	DB	'e', 00H, 'r', 00H, 'P', 00H, 'o', 00H, 's', 00H, '2', 00H, 'f'
+	DB	00H, 00H, 00H
+$SG323251 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG318132 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
+	DB	'r', 00H, '3', 00H, 'u', 00H, 'i', 00H, 'v', 00H, 00H, 00H
+$SG323266 DB	'glViewport', 00H
+	ORG $+1
+$SG318133 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG319160 DB	'g', 00H, 'l', 00H, 'F', 00H, 'l', 00H, 'u', 00H, 's', 00H
+	DB	'h', 00H, 00H, 00H
+$SG322242 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
+	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '3', 00H, 'i', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG319161 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG321212 DB	'glRasterPos2f', 00H
+	ORG $+2
+$SG322238 DB	'glTexCoord3i', 00H
+	ORG $+3
+$SG318146 DB	'glColor3us', 00H
+	ORG $+1
+$SG320191 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG319172 DB	'glFogf', 00H
+	ORG $+1
+$SG320206 DB	'g', 00H, 'l', 00H, 'L', 00H, 'i', 00H, 'n', 00H, 'e', 00H
+	DB	'S', 00H, 't', 00H, 'i', 00H, 'p', 00H, 'p', 00H, 'l', 00H, 'e'
+	DB	00H, 00H, 00H
+$SG321217 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG321226 DB	'glRasterPos2fv', 00H
+	ORG $+1
+$SG322256 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
+	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '3', 00H, 'i', 00H, 'v'
+	DB	00H, 00H, 00H
+$SG322243 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG323270 DB	'g', 00H, 'l', 00H, 'V', 00H, 'i', 00H, 'e', 00H, 'w', 00H
+	DB	'p', 00H, 'o', 00H, 'r', 00H, 't', 00H, 00H, 00H
+	ORG $+2
+$SG318150 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
+	DB	'r', 00H, '3', 00H, 'u', 00H, 's', 00H, 00H, 00H
+	ORG $+2
+$SG318160 DB	'glColor3usv', 00H
+$SG323271 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG323284 DB	'wglCopyContext', 00H
+	ORG $+1
+$SG319188 DB	'glFogfv', 00H
+$SG320216 DB	'glLineWidth', 00H
+$SG318151 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG319176 DB	'g', 00H, 'l', 00H, 'F', 00H, 'o', 00H, 'g', 00H, 'f', 00H
 	DB	00H, 00H
 	ORG $+2
-$SG318124 DB	'glColor4bv', 00H
-	ORG $+1
-$SG321177 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG320174 DB	'glLoadIdentity', 00H
-	ORG $+1
-$SG319150 DB	'glFogiv', 00H
-$SG323248 DB	'w', 00H, 'g', 00H, 'l', 00H, 'C', 00H, 'r', 00H, 'e', 00H
-	DB	'a', 00H, 't', 00H, 'e', 00H, 'L', 00H, 'a', 00H, 'y', 00H, 'e'
-	DB	00H, 'r', 00H, 'C', 00H, 'o', 00H, 'n', 00H, 't', 00H, 'e', 00H
-	DB	'x', 00H, 't', 00H, 00H, 00H
-$SG322205 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG319154 DB	'g', 00H, 'l', 00H, 'F', 00H, 'o', 00H, 'g', 00H, 'i', 00H
-	DB	'v', 00H, 00H, 00H
-$SG321206 DB	'g', 00H, 'l', 00H, 'R', 00H, 'a', 00H, 's', 00H, 't', 00H
-	DB	'e', 00H, 'r', 00H, 'P', 00H, 'o', 00H, 's', 00H, '2', 00H, 's'
-	DB	00H, 00H, 00H
-$SG323233 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG323258 DB	'wglDeleteContext', 00H
-	ORG $+3
-$SG319139 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG319164 DB	'glFrontFace', 00H
-$SG318115 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG320164 DB	'g', 00H, 'l', 00H, 'L', 00H, 'i', 00H, 's', 00H, 't', 00H
-	DB	'B', 00H, 'a', 00H, 's', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG323262 DB	'w', 00H, 'g', 00H, 'l', 00H, 'D', 00H, 'e', 00H, 'l', 00H
-	DB	'e', 00H, 't', 00H, 'e', 00H, 'C', 00H, 'o', 00H, 'n', 00H, 't'
-	DB	00H, 'e', 00H, 'x', 00H, 't', 00H, 00H, 00H
-	ORG $+2
-$SG320165 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG322214 DB	'glTexCoord3sv', 00H
-	ORG $+2
-$SG321190 DB	'g', 00H, 'l', 00H, 'R', 00H, 'a', 00H, 's', 00H, 't', 00H
+$SG318164 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
+	DB	'r', 00H, '3', 00H, 'u', 00H, 's', 00H, 'v', 00H, 00H, 00H
+$SG321246 DB	'g', 00H, 'l', 00H, 'R', 00H, 'a', 00H, 's', 00H, 't', 00H
 	DB	'e', 00H, 'r', 00H, 'P', 00H, 'o', 00H, 's', 00H, '2', 00H, 'i'
+	DB	00H, 00H, 00H
+$SG319177 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG320202 DB	'glLineStipple', 00H
+	ORG $+2
+$SG322252 DB	'glTexCoord3iv', 00H
+	ORG $+2
+$SG321230 DB	'g', 00H, 'l', 00H, 'R', 00H, 'a', 00H, 's', 00H, 't', 00H
+	DB	'e', 00H, 'r', 00H, 'P', 00H, 'o', 00H, 's', 00H, '2', 00H, 'f'
 	DB	00H, 'v', 00H, 00H, 00H
 	ORG $+2
-$SG322238 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
-	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '4', 00H, 'd', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG321191 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG321216 DB	'glRasterPos2sv', 00H
-	ORG $+1
-$SG320192 DB	'g', 00H, 'l', 00H, 'L', 00H, 'o', 00H, 'a', 00H, 'd', 00H
-	DB	'M', 00H, 'a', 00H, 't', 00H, 'r', 00H, 'i', 00H, 'x', 00H, 'd'
-	DB	00H, 00H, 00H
-$SG322219 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG323244 DB	'wglCreateLayerContext', 00H
-	ORG $+2
-$SG318128 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
-	DB	'r', 00H, '4', 00H, 'b', 00H, 'v', 00H, 00H, 00H
-	ORG $+2
-$SG319168 DB	'g', 00H, 'l', 00H, 'F', 00H, 'r', 00H, 'o', 00H, 'n', 00H
-	DB	't', 00H, 'F', 00H, 'a', 00H, 'c', 00H, 'e', 00H, 00H, 00H
-$SG318144 DB	'glColor4d', 00H
-	ORG $+2
-$SG323249 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG318148 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
-	DB	'r', 00H, '4', 00H, 'd', 00H, 00H, 00H
-$SG318129 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG321202 DB	'glRasterPos2s', 00H
-	ORG $+2
-$SG320178 DB	'g', 00H, 'l', 00H, 'L', 00H, 'o', 00H, 'a', 00H, 'd', 00H
-	DB	'I', 00H, 'd', 00H, 'e', 00H, 'n', 00H, 't', 00H, 'i', 00H, 't'
-	DB	00H, 'y', 00H, 00H, 00H
-	ORG $+2
-$SG323276 DB	'w', 00H, 'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H
-	DB	'C', 00H, 'u', 00H, 'r', 00H, 'r', 00H, 'e', 00H, 'n', 00H, 't'
-	DB	00H, 'C', 00H, 'o', 00H, 'n', 00H, 't', 00H, 'e', 00H, 'x', 00H
-	DB	't', 00H, 00H, 00H
-	ORG $+2
-$SG320179 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG322252 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
-	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '4', 00H, 'd', 00H, 'v'
-	DB	00H, 00H, 00H
-$SG319155 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG320206 DB	'g', 00H, 'l', 00H, 'L', 00H, 'o', 00H, 'a', 00H, 'd', 00H
-	DB	'M', 00H, 'a', 00H, 't', 00H, 'r', 00H, 'i', 00H, 'x', 00H, 'f'
-	DB	00H, 00H, 00H
-$SG321207 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG322234 DB	'glTexCoord4d', 00H
+$SG319192 DB	'g', 00H, 'l', 00H, 'F', 00H, 'o', 00H, 'g', 00H, 'f', 00H
+	DB	'v', 00H, 00H, 00H
+$SG323298 DB	'wglCreateContext', 00H
 	ORG $+3
-$SG320188 DB	'glLoadMatrixd', 00H
-	ORG $+2
-$SG318158 DB	'glColor4dv', 00H
-	ORG $+1
-$SG323263 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG321231 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -5349,110 +5391,11 @@ $SG323263 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG319188 DB	'glFrustum', 00H
-	ORG $+2
-$SG322239 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG323286 DB	'wglGetCurrentDC', 00H
-$SG321238 DB	'g', 00H, 'l', 00H, 'R', 00H, 'a', 00H, 's', 00H, 't', 00H
-	DB	'e', 00H, 'r', 00H, 'P', 00H, 'o', 00H, 's', 00H, '3', 00H, 'd'
-	DB	00H, 00H, 00H
-$SG320193 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG320216 DB	'glLoadName', 00H
-	ORG $+1
-$SG319169 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG321220 DB	'g', 00H, 'l', 00H, 'R', 00H, 'a', 00H, 's', 00H, 't', 00H
-	DB	'e', 00H, 'r', 00H, 'P', 00H, 'o', 00H, 's', 00H, '2', 00H, 's'
-	DB	00H, 'v', 00H, 00H, 00H
-	ORG $+2
-$SG319192 DB	'g', 00H, 'l', 00H, 'F', 00H, 'r', 00H, 'u', 00H, 's', 00H
-	DB	't', 00H, 'u', 00H, 'm', 00H, 00H, 00H
-$SG321221 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG323290 DB	'w', 00H, 'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H
-	DB	'C', 00H, 'u', 00H, 'r', 00H, 'r', 00H, 'e', 00H, 'n', 00H, 't'
-	DB	00H, 'D', 00H, 'C', 00H, 00H, 00H
-$SG322272 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
-	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '4', 00H, 'f', 00H, 00H
+$SG320220 DB	'g', 00H, 'l', 00H, 'L', 00H, 'i', 00H, 'n', 00H, 'e', 00H
+	DB	'W', 00H, 'i', 00H, 'd', 00H, 't', 00H, 'h', 00H, 00H, 00H
+$SG322274 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
+	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '3', 00H, 's', 00H, 00H
 	DB	00H
-	ORG $+2
-$SG318149 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG323272 DB	'wglGetCurrentContext', 00H
-	ORG $+3
-$SG322248 DB	'glTexCoord4dv', 00H
-	ORG $+2
-$SG320202 DB	'glLoadMatrixf', 00H
-	ORG $+2
-$SG321248 DB	'glRasterPos3dv', 00H
-	ORG $+1
-$SG319202 DB	'glGenLists', 00H
-	ORG $+1
-$SG323277 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG318178 DB	'glColor4f', 00H
-	ORG $+2
-$SG322253 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG323300 DB	'wglGetProcAddress', 00H
 	ORG $+2
 $SG320207 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
@@ -5464,14 +5407,11 @@ $SG320207 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG321234 DB	'glRasterPos3d', 00H
+$SG319204 DB	'glFogi', 00H
+	ORG $+1
+$SG318180 DB	'glColor4b', 00H
 	ORG $+2
-$SG318162 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
-	DB	'r', 00H, '4', 00H, 'd', 00H, 'v', 00H, 00H, 00H
-	ORG $+2
-$SG320230 DB	'glLogicOp', 00H
-	ORG $+2
-$SG318163 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG322257 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -5481,9 +5421,11 @@ $SG318163 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG318182 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
-	DB	'r', 00H, '4', 00H, 'f', 00H, 00H, 00H
-$SG321239 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG323302 DB	'w', 00H, 'g', 00H, 'l', 00H, 'C', 00H, 'r', 00H, 'e', 00H
+	DB	'a', 00H, 't', 00H, 'e', 00H, 'C', 00H, 'o', 00H, 'n', 00H, 't'
+	DB	00H, 'e', 00H, 'x', 00H, 't', 00H, 00H, 00H
+	ORG $+2
+$SG318165 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -5493,9 +5435,26 @@ $SG321239 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG323304 DB	'w', 00H, 'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H
-	DB	'P', 00H, 'r', 00H, 'o', 00H, 'c', 00H, 'A', 00H, 'd', 00H, 'd'
-	DB	00H, 'r', 00H, 'e', 00H, 's', 00H, 's', 00H, 00H, 00H
+$SG323288 DB	'w', 00H, 'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'p', 00H
+	DB	'y', 00H, 'C', 00H, 'o', 00H, 'n', 00H, 't', 00H, 'e', 00H, 'x'
+	DB	00H, 't', 00H, 00H, 00H
+	ORG $+2
+$SG320230 DB	'glListBase', 00H
+	ORG $+1
+$SG323289 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG321256 DB	'glRasterPos2iv', 00H
+	ORG $+1
+$SG318184 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
+	DB	'r', 00H, '4', 00H, 'b', 00H, 00H, 00H
 $SG319193 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
@@ -5506,25 +5465,10 @@ $SG319193 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG320234 DB	'g', 00H, 'l', 00H, 'L', 00H, 'o', 00H, 'g', 00H, 'i', 00H
-	DB	'c', 00H, 'O', 00H, 'p', 00H, 00H, 00H
-$SG323291 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG321242 DB	'glRasterPos2i', 00H
 	ORG $+2
-$SG322268 DB	'glTexCoord4f', 00H
-	ORG $+3
-$SG320220 DB	'g', 00H, 'l', 00H, 'L', 00H, 'o', 00H, 'a', 00H, 'd', 00H
-	DB	'N', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 00H, 00H
-	ORG $+2
-$SG322286 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
-	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '4', 00H, 'f', 00H, 'v'
+$SG322288 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
+	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '3', 00H, 's', 00H, 'v'
 	DB	00H, 00H, 00H
 $SG320221 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
@@ -5536,9 +5480,14 @@ $SG320221 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG318192 DB	'glColor4fv', 00H
+$SG322270 DB	'glTexCoord3s', 00H
+	ORG $+3
+$SG319208 DB	'g', 00H, 'l', 00H, 'F', 00H, 'o', 00H, 'g', 00H, 'i', 00H
+	DB	00H, 00H
+	ORG $+2
+$SG318194 DB	'glColor4bv', 00H
 	ORG $+1
-$SG322273 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG321247 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -5548,16 +5497,29 @@ $SG322273 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG321252 DB	'g', 00H, 'l', 00H, 'R', 00H, 'a', 00H, 's', 00H, 't', 00H
-	DB	'e', 00H, 'r', 00H, 'P', 00H, 'o', 00H, 's', 00H, '3', 00H, 'd'
-	DB	00H, 'v', 00H, 00H, 00H
-	ORG $+2
-$SG323316 DB	'wglMakeCurrent', 00H
+$SG320244 DB	'glLoadIdentity', 00H
 	ORG $+1
-$SG321270 DB	'g', 00H, 'l', 00H, 'R', 00H, 'a', 00H, 's', 00H, 't', 00H
-	DB	'e', 00H, 'r', 00H, 'P', 00H, 'o', 00H, 's', 00H, '3', 00H, 'f'
+$SG319220 DB	'glFogiv', 00H
+$SG323318 DB	'w', 00H, 'g', 00H, 'l', 00H, 'C', 00H, 'r', 00H, 'e', 00H
+	DB	'a', 00H, 't', 00H, 'e', 00H, 'L', 00H, 'a', 00H, 'y', 00H, 'e'
+	DB	00H, 'r', 00H, 'C', 00H, 'o', 00H, 'n', 00H, 't', 00H, 'e', 00H
+	DB	'x', 00H, 't', 00H, 00H, 00H
+$SG322275 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG319224 DB	'g', 00H, 'l', 00H, 'F', 00H, 'o', 00H, 'g', 00H, 'i', 00H
+	DB	'v', 00H, 00H, 00H
+$SG321276 DB	'g', 00H, 'l', 00H, 'R', 00H, 'a', 00H, 's', 00H, 't', 00H
+	DB	'e', 00H, 'r', 00H, 'P', 00H, 'o', 00H, 's', 00H, '2', 00H, 's'
 	DB	00H, 00H, 00H
-$SG321253 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG323303 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -5567,13 +5529,9 @@ $SG321253 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG319206 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 'n', 00H, 'L', 00H
-	DB	'i', 00H, 's', 00H, 't', 00H, 's', 00H, 00H, 00H
-	ORG $+2
-$SG319222 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 'n', 00H, 'T', 00H
-	DB	'e', 00H, 'x', 00H, 't', 00H, 'u', 00H, 'r', 00H, 'e', 00H, 's'
-	DB	00H, 00H, 00H
-$SG319207 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG323328 DB	'wglDeleteContext', 00H
+	ORG $+3
+$SG319209 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -5583,12 +5541,8 @@ $SG319207 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG320254 DB	'glMap1d', 00H
-$SG322306 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
-	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '4', 00H, 'i', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG318183 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG319234 DB	'glFrontFace', 00H
+$SG318185 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -5598,27 +5552,13 @@ $SG318183 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG321280 DB	'glRasterPos3fv', 00H
-	ORG $+1
-$SG320258 DB	'g', 00H, 'l', 00H, 'M', 00H, 'a', 00H, 'p', 00H, '1', 00H
-	DB	'd', 00H, 00H, 00H
-$SG318212 DB	'glColor4i', 00H
+$SG320234 DB	'g', 00H, 'l', 00H, 'L', 00H, 'i', 00H, 's', 00H, 't', 00H
+	DB	'B', 00H, 'a', 00H, 's', 00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG323305 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG323332 DB	'w', 00H, 'g', 00H, 'l', 00H, 'D', 00H, 'e', 00H, 'l', 00H
+	DB	'e', 00H, 't', 00H, 'e', 00H, 'C', 00H, 'o', 00H, 'n', 00H, 't'
+	DB	00H, 'e', 00H, 'x', 00H, 't', 00H, 00H, 00H
 	ORG $+2
-$SG322282 DB	'glTexCoord4fv', 00H
-	ORG $+2
-$SG319238 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'B', 00H
-	DB	'o', 00H, 'o', 00H, 'l', 00H, 'e', 00H, 'a', 00H, 'n', 00H, 'v'
-	DB	00H, 00H, 00H
 $SG320235 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
@@ -5629,128 +5569,17 @@ $SG320235 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG323336 DB	'w', 00H, 'g', 00H, 'l', 00H, 'S', 00H, 'h', 00H, 'a', 00H
-	DB	'r', 00H, 'e', 00H, 'L', 00H, 'i', 00H, 's', 00H, 't', 00H, 's'
-	DB	00H, 00H, 00H
-$SG322287 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG322284 DB	'glTexCoord3sv', 00H
 	ORG $+2
-$SG321266 DB	'glRasterPos3f', 00H
-	ORG $+2
-$SG319218 DB	'glGenTextures', 00H
-	ORG $+2
-$SG318196 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
-	DB	'r', 00H, '4', 00H, 'f', 00H, 'v', 00H, 00H, 00H
-	ORG $+2
-$SG318216 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
-	DB	'r', 00H, '4', 00H, 'i', 00H, 00H, 00H
-$SG318197 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG322320 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
-	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '4', 00H, 'i', 00H, 'v'
-	DB	00H, 00H, 00H
-$SG321271 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG319250 DB	'glGetClipPlane', 00H
-	ORG $+1
-$SG318226 DB	'glColor4iv', 00H
-	ORG $+1
-$SG319223 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG323320 DB	'w', 00H, 'g', 00H, 'l', 00H, 'M', 00H, 'a', 00H, 'k', 00H
-	DB	'e', 00H, 'C', 00H, 'u', 00H, 'r', 00H, 'r', 00H, 'e', 00H, 'n'
-	DB	00H, 't', 00H, 00H, 00H
-	ORG $+2
-$SG321302 DB	'g', 00H, 'l', 00H, 'R', 00H, 'a', 00H, 's', 00H, 't', 00H
-	DB	'e', 00H, 'r', 00H, 'P', 00H, 'o', 00H, 's', 00H, '3', 00H, 'i'
-	DB	00H, 00H, 00H
-$SG323321 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG322302 DB	'glTexCoord4i', 00H
-	ORG $+3
-$SG319234 DB	'glGetBooleanv', 00H
-	ORG $+2
-$SG320278 DB	'glMap1f', 00H
-$SG323352 DB	'wglUseFontBitmapsA', 00H
-	ORG $+1
-$SG322307 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG320282 DB	'g', 00H, 'l', 00H, 'M', 00H, 'a', 00H, 'p', 00H, '1', 00H
-	DB	'f', 00H, 00H, 00H
-$SG322340 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
-	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '4', 00H, 's', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG320259 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG323332 DB	'wglShareLists', 00H
-	ORG $+2
-$SG321284 DB	'g', 00H, 'l', 00H, 'R', 00H, 'a', 00H, 's', 00H, 't', 00H
-	DB	'e', 00H, 'r', 00H, 'P', 00H, 'o', 00H, 's', 00H, '3', 00H, 'f'
+$SG321260 DB	'g', 00H, 'l', 00H, 'R', 00H, 'a', 00H, 's', 00H, 't', 00H
+	DB	'e', 00H, 'r', 00H, 'P', 00H, 'o', 00H, 's', 00H, '2', 00H, 'i'
 	DB	00H, 'v', 00H, 00H, 00H
 	ORG $+2
-$SG321312 DB	'glRasterPos3iv', 00H
-	ORG $+1
-$SG319270 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'D', 00H
-	DB	'o', 00H, 'u', 00H, 'b', 00H, 'l', 00H, 'e', 00H, 'v', 00H, 00H
+$SG322308 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
+	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '4', 00H, 'd', 00H, 00H
 	DB	00H
 	ORG $+2
-$SG321285 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG321261 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -5760,8 +5589,143 @@ $SG321285 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG318246 DB	'glColor4s', 00H
+$SG321286 DB	'glRasterPos2sv', 00H
+	ORG $+1
+$SG320262 DB	'g', 00H, 'l', 00H, 'L', 00H, 'o', 00H, 'a', 00H, 'd', 00H
+	DB	'M', 00H, 'a', 00H, 't', 00H, 'r', 00H, 'i', 00H, 'x', 00H, 'd'
+	DB	00H, 00H, 00H
+$SG322289 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
+$SG323314 DB	'wglCreateLayerContext', 00H
+	ORG $+2
+$SG318198 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
+	DB	'r', 00H, '4', 00H, 'b', 00H, 'v', 00H, 00H, 00H
+	ORG $+2
+$SG319238 DB	'g', 00H, 'l', 00H, 'F', 00H, 'r', 00H, 'o', 00H, 'n', 00H
+	DB	't', 00H, 'F', 00H, 'a', 00H, 'c', 00H, 'e', 00H, 00H, 00H
+$SG318214 DB	'glColor4d', 00H
+	ORG $+2
+$SG323319 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG318218 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
+	DB	'r', 00H, '4', 00H, 'd', 00H, 00H, 00H
+$SG318199 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG321272 DB	'glRasterPos2s', 00H
+	ORG $+2
+$SG320248 DB	'g', 00H, 'l', 00H, 'L', 00H, 'o', 00H, 'a', 00H, 'd', 00H
+	DB	'I', 00H, 'd', 00H, 'e', 00H, 'n', 00H, 't', 00H, 'i', 00H, 't'
+	DB	00H, 'y', 00H, 00H, 00H
+	ORG $+2
+$SG323346 DB	'w', 00H, 'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H
+	DB	'C', 00H, 'u', 00H, 'r', 00H, 'r', 00H, 'e', 00H, 'n', 00H, 't'
+	DB	00H, 'C', 00H, 'o', 00H, 'n', 00H, 't', 00H, 'e', 00H, 'x', 00H
+	DB	't', 00H, 00H, 00H
+	ORG $+2
+$SG320249 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG322322 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
+	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '4', 00H, 'd', 00H, 'v'
+	DB	00H, 00H, 00H
+$SG319225 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG320276 DB	'g', 00H, 'l', 00H, 'L', 00H, 'o', 00H, 'a', 00H, 'd', 00H
+	DB	'M', 00H, 'a', 00H, 't', 00H, 'r', 00H, 'i', 00H, 'x', 00H, 'f'
+	DB	00H, 00H, 00H
+$SG321277 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG322304 DB	'glTexCoord4d', 00H
+	ORG $+3
+$SG320258 DB	'glLoadMatrixd', 00H
+	ORG $+2
+$SG318228 DB	'glColor4dv', 00H
+	ORG $+1
+$SG323333 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG319258 DB	'glFrustum', 00H
+	ORG $+2
+$SG322309 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG323356 DB	'wglGetCurrentDC', 00H
+$SG321308 DB	'g', 00H, 'l', 00H, 'R', 00H, 'a', 00H, 's', 00H, 't', 00H
+	DB	'e', 00H, 'r', 00H, 'P', 00H, 'o', 00H, 's', 00H, '3', 00H, 'd'
+	DB	00H, 00H, 00H
+$SG320263 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG320286 DB	'glLoadName', 00H
+	ORG $+1
 $SG319239 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
@@ -5772,9 +5736,394 @@ $SG319239 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG318250 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
+$SG321290 DB	'g', 00H, 'l', 00H, 'R', 00H, 'a', 00H, 's', 00H, 't', 00H
+	DB	'e', 00H, 'r', 00H, 'P', 00H, 'o', 00H, 's', 00H, '2', 00H, 's'
+	DB	00H, 'v', 00H, 00H, 00H
+	ORG $+2
+$SG319262 DB	'g', 00H, 'l', 00H, 'F', 00H, 'r', 00H, 'u', 00H, 's', 00H
+	DB	't', 00H, 'u', 00H, 'm', 00H, 00H, 00H
+$SG321291 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG323360 DB	'w', 00H, 'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H
+	DB	'C', 00H, 'u', 00H, 'r', 00H, 'r', 00H, 'e', 00H, 'n', 00H, 't'
+	DB	00H, 'D', 00H, 'C', 00H, 00H, 00H
+$SG322342 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
+	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '4', 00H, 'f', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG318219 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG323342 DB	'wglGetCurrentContext', 00H
+	ORG $+3
+$SG322318 DB	'glTexCoord4dv', 00H
+	ORG $+2
+$SG320272 DB	'glLoadMatrixf', 00H
+	ORG $+2
+$SG321318 DB	'glRasterPos3dv', 00H
+	ORG $+1
+$SG319272 DB	'glGenLists', 00H
+	ORG $+1
+$SG323347 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG318248 DB	'glColor4f', 00H
+	ORG $+2
+$SG322323 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG323370 DB	'wglGetProcAddress', 00H
+	ORG $+2
+$SG320277 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG321304 DB	'glRasterPos3d', 00H
+	ORG $+2
+$SG318232 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
+	DB	'r', 00H, '4', 00H, 'd', 00H, 'v', 00H, 00H, 00H
+	ORG $+2
+$SG320300 DB	'glLogicOp', 00H
+	ORG $+2
+$SG318233 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG318252 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
+	DB	'r', 00H, '4', 00H, 'f', 00H, 00H, 00H
+$SG321309 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG323374 DB	'w', 00H, 'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H
+	DB	'P', 00H, 'r', 00H, 'o', 00H, 'c', 00H, 'A', 00H, 'd', 00H, 'd'
+	DB	00H, 'r', 00H, 'e', 00H, 's', 00H, 's', 00H, 00H, 00H
+$SG319263 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG320304 DB	'g', 00H, 'l', 00H, 'L', 00H, 'o', 00H, 'g', 00H, 'i', 00H
+	DB	'c', 00H, 'O', 00H, 'p', 00H, 00H, 00H
+$SG323361 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG322338 DB	'glTexCoord4f', 00H
+	ORG $+3
+$SG320290 DB	'g', 00H, 'l', 00H, 'L', 00H, 'o', 00H, 'a', 00H, 'd', 00H
+	DB	'N', 00H, 'a', 00H, 'm', 00H, 'e', 00H, 00H, 00H
+	ORG $+2
+$SG322356 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
+	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '4', 00H, 'f', 00H, 'v'
+	DB	00H, 00H, 00H
+$SG320291 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG318262 DB	'glColor4fv', 00H
+	ORG $+1
+$SG322343 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG321322 DB	'g', 00H, 'l', 00H, 'R', 00H, 'a', 00H, 's', 00H, 't', 00H
+	DB	'e', 00H, 'r', 00H, 'P', 00H, 'o', 00H, 's', 00H, '3', 00H, 'd'
+	DB	00H, 'v', 00H, 00H, 00H
+	ORG $+2
+$SG323386 DB	'wglMakeCurrent', 00H
+	ORG $+1
+$SG321340 DB	'g', 00H, 'l', 00H, 'R', 00H, 'a', 00H, 's', 00H, 't', 00H
+	DB	'e', 00H, 'r', 00H, 'P', 00H, 'o', 00H, 's', 00H, '3', 00H, 'f'
+	DB	00H, 00H, 00H
+$SG321323 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG319276 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 'n', 00H, 'L', 00H
+	DB	'i', 00H, 's', 00H, 't', 00H, 's', 00H, 00H, 00H
+	ORG $+2
+$SG319292 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 'n', 00H, 'T', 00H
+	DB	'e', 00H, 'x', 00H, 't', 00H, 'u', 00H, 'r', 00H, 'e', 00H, 's'
+	DB	00H, 00H, 00H
+$SG319277 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG320324 DB	'glMap1d', 00H
+$SG322376 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
+	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '4', 00H, 'i', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG318253 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG321350 DB	'glRasterPos3fv', 00H
+	ORG $+1
+$SG320328 DB	'g', 00H, 'l', 00H, 'M', 00H, 'a', 00H, 'p', 00H, '1', 00H
+	DB	'd', 00H, 00H, 00H
+$SG318282 DB	'glColor4i', 00H
+	ORG $+2
+$SG323375 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG322352 DB	'glTexCoord4fv', 00H
+	ORG $+2
+$SG319308 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'B', 00H
+	DB	'o', 00H, 'o', 00H, 'l', 00H, 'e', 00H, 'a', 00H, 'n', 00H, 'v'
+	DB	00H, 00H, 00H
+$SG320305 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG323406 DB	'w', 00H, 'g', 00H, 'l', 00H, 'S', 00H, 'h', 00H, 'a', 00H
+	DB	'r', 00H, 'e', 00H, 'L', 00H, 'i', 00H, 's', 00H, 't', 00H, 's'
+	DB	00H, 00H, 00H
+$SG322357 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG321336 DB	'glRasterPos3f', 00H
+	ORG $+2
+$SG319288 DB	'glGenTextures', 00H
+	ORG $+2
+$SG318266 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
+	DB	'r', 00H, '4', 00H, 'f', 00H, 'v', 00H, 00H, 00H
+	ORG $+2
+$SG318286 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
+	DB	'r', 00H, '4', 00H, 'i', 00H, 00H, 00H
+$SG318267 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG322390 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
+	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '4', 00H, 'i', 00H, 'v'
+	DB	00H, 00H, 00H
+$SG321341 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG319320 DB	'glGetClipPlane', 00H
+	ORG $+1
+$SG318296 DB	'glColor4iv', 00H
+	ORG $+1
+$SG319293 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG323390 DB	'w', 00H, 'g', 00H, 'l', 00H, 'M', 00H, 'a', 00H, 'k', 00H
+	DB	'e', 00H, 'C', 00H, 'u', 00H, 'r', 00H, 'r', 00H, 'e', 00H, 'n'
+	DB	00H, 't', 00H, 00H, 00H
+	ORG $+2
+$SG321372 DB	'g', 00H, 'l', 00H, 'R', 00H, 'a', 00H, 's', 00H, 't', 00H
+	DB	'e', 00H, 'r', 00H, 'P', 00H, 'o', 00H, 's', 00H, '3', 00H, 'i'
+	DB	00H, 00H, 00H
+$SG323391 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG322372 DB	'glTexCoord4i', 00H
+	ORG $+3
+$SG319304 DB	'glGetBooleanv', 00H
+	ORG $+2
+$SG320348 DB	'glMap1f', 00H
+$SG323422 DB	'wglUseFontBitmapsA', 00H
+	ORG $+1
+$SG322377 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG320352 DB	'g', 00H, 'l', 00H, 'M', 00H, 'a', 00H, 'p', 00H, '1', 00H
+	DB	'f', 00H, 00H, 00H
+$SG322410 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
+	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '4', 00H, 's', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG320329 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG323402 DB	'wglShareLists', 00H
+	ORG $+2
+$SG321354 DB	'g', 00H, 'l', 00H, 'R', 00H, 'a', 00H, 's', 00H, 't', 00H
+	DB	'e', 00H, 'r', 00H, 'P', 00H, 'o', 00H, 's', 00H, '3', 00H, 'f'
+	DB	00H, 'v', 00H, 00H, 00H
+	ORG $+2
+$SG321382 DB	'glRasterPos3iv', 00H
+	ORG $+1
+$SG319340 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'D', 00H
+	DB	'o', 00H, 'u', 00H, 'b', 00H, 'l', 00H, 'e', 00H, 'v', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG321355 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG318316 DB	'glColor4s', 00H
+	ORG $+2
+$SG319309 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG318320 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
 	DB	'r', 00H, '4', 00H, 's', 00H, 00H, 00H
-$SG323337 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG323407 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -5784,9 +6133,9 @@ $SG323337 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG323372 DB	'wglUseFontBitmapsW', 00H
+$SG323442 DB	'wglUseFontBitmapsW', 00H
 	ORG $+1
-$SG318217 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG318287 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -5796,11 +6145,11 @@ $SG318217 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG322316 DB	'glTexCoord4iv', 00H
+$SG322386 DB	'glTexCoord4iv', 00H
 	ORG $+2
-$SG319280 DB	'glGetError', 00H
+$SG319350 DB	'glGetError', 00H
 	ORG $+1
-$SG322321 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG322391 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -5810,19 +6159,19 @@ $SG322321 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG321298 DB	'glRasterPos3i', 00H
+$SG321368 DB	'glRasterPos3i', 00H
 	ORG $+2
-$SG319254 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'C', 00H
+$SG319324 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'C', 00H
 	DB	'l', 00H, 'i', 00H, 'p', 00H, 'P', 00H, 'l', 00H, 'a', 00H, 'n'
 	DB	00H, 'e', 00H, 00H, 00H
 	ORG $+2
-$SG318230 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
+$SG318300 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
 	DB	'r', 00H, '4', 00H, 'i', 00H, 'v', 00H, 00H, 00H
 	ORG $+2
-$SG322354 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
+$SG322424 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
 	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, '4', 00H, 's', 00H, 'v'
 	DB	00H, 00H, 00H
-$SG321303 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG321373 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -5832,9 +6181,9 @@ $SG321303 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG318260 DB	'glColor4sv', 00H
+$SG318330 DB	'glColor4sv', 00H
 	ORG $+1
-$SG319255 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG319325 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -5844,10 +6193,10 @@ $SG319255 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG321334 DB	'g', 00H, 'l', 00H, 'R', 00H, 'a', 00H, 's', 00H, 't', 00H
+$SG321404 DB	'g', 00H, 'l', 00H, 'R', 00H, 'a', 00H, 's', 00H, 't', 00H
 	DB	'e', 00H, 'r', 00H, 'P', 00H, 'o', 00H, 's', 00H, '3', 00H, 's'
 	DB	00H, 00H, 00H
-$SG318231 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG318301 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -5857,13 +6206,13 @@ $SG318231 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG320310 DB	'glMap2d', 00H
-$SG323392 DB	'w', 00H, 'g', 00H, 'l', 00H, 'C', 00H, 'h', 00H, 'o', 00H
+$SG320380 DB	'glMap2d', 00H
+$SG323462 DB	'w', 00H, 'g', 00H, 'l', 00H, 'C', 00H, 'h', 00H, 'o', 00H
 	DB	'o', 00H, 's', 00H, 'e', 00H, 'P', 00H, 'i', 00H, 'x', 00H, 'e'
 	DB	00H, 'l', 00H, 'F', 00H, 'o', 00H, 'r', 00H, 'm', 00H, 'a', 00H
 	DB	't', 00H, 00H, 00H
 	ORG $+2
-$SG320283 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG320353 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -5873,14 +6222,14 @@ $SG320283 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG323356 DB	'w', 00H, 'g', 00H, 'l', 00H, 'U', 00H, 's', 00H, 'e', 00H
+$SG323426 DB	'w', 00H, 'g', 00H, 'l', 00H, 'U', 00H, 's', 00H, 'e', 00H
 	DB	'F', 00H, 'o', 00H, 'n', 00H, 't', 00H, 'B', 00H, 'i', 00H, 't'
 	DB	00H, 'm', 00H, 'a', 00H, 'p', 00H, 's', 00H, 'A', 00H, 00H, 00H
 	ORG $+2
-$SG320314 DB	'g', 00H, 'l', 00H, 'M', 00H, 'a', 00H, 'p', 00H, '2', 00H
+$SG320384 DB	'g', 00H, 'l', 00H, 'M', 00H, 'a', 00H, 'p', 00H, '2', 00H
 	DB	'd', 00H, 00H, 00H
-$SG319296 DB	'glGetFloatv', 00H
-$SG323357 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG319366 DB	'glGetFloatv', 00H
+$SG323427 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -5890,342 +6239,18 @@ $SG323357 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG322336 DB	'glTexCoord4s', 00H
+$SG322406 DB	'glTexCoord4s', 00H
 	ORG $+3
-$SG319266 DB	'glGetDoublev', 00H
+$SG319336 DB	'glGetDoublev', 00H
 	ORG $+3
-$SG321316 DB	'g', 00H, 'l', 00H, 'R', 00H, 'a', 00H, 's', 00H, 't', 00H
+$SG321386 DB	'g', 00H, 'l', 00H, 'R', 00H, 'a', 00H, 's', 00H, 't', 00H
 	DB	'e', 00H, 'r', 00H, 'P', 00H, 'o', 00H, 's', 00H, '3', 00H, 'i'
 	DB	00H, 'v', 00H, 00H, 00H
 	ORG $+2
-$SG321344 DB	'glRasterPos3sv', 00H
+$SG321414 DB	'glRasterPos3sv', 00H
 	ORG $+1
-$SG322370 DB	'glTexCoordPointer', 00H
+$SG322440 DB	'glTexCoordPointer', 00H
 	ORG $+2
-$SG322341 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG319300 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'F', 00H
-	DB	'l', 00H, 'o', 00H, 'a', 00H, 't', 00H, 'v', 00H, 00H, 00H
-$SG322374 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
-	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, 'P', 00H, 'o', 00H, 'i'
-	DB	00H, 'n', 00H, 't', 00H, 'e', 00H, 'r', 00H, 00H, 00H
-$SG321317 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG318280 DB	'glColor4ub', 00H
-	ORG $+1
-$SG319271 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG322388 DB	'glTexEnvf', 00H
-	ORG $+2
-$SG318251 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG322350 DB	'glTexCoord4sv', 00H
-	ORG $+2
-$SG323376 DB	'w', 00H, 'g', 00H, 'l', 00H, 'U', 00H, 's', 00H, 'e', 00H
-	DB	'F', 00H, 'o', 00H, 'n', 00H, 't', 00H, 'B', 00H, 'i', 00H, 't'
-	DB	00H, 'm', 00H, 'a', 00H, 'p', 00H, 's', 00H, 'W', 00H, 00H, 00H
-	ORG $+2
-$SG319316 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'I', 00H
-	DB	'n', 00H, 't', 00H, 'e', 00H, 'g', 00H, 'e', 00H, 'r', 00H, 'v'
-	DB	00H, 00H, 00H
-$SG323377 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG321330 DB	'glRasterPos3s', 00H
-	ORG $+2
-$SG320342 DB	'glMap2f', 00H
-$SG318294 DB	'glColor4ubv', 00H
-$SG322355 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG319284 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'E', 00H
-	DB	'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, 00H, 00H
-	ORG $+2
-$SG322392 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'E', 00H
-	DB	'n', 00H, 'v', 00H, 'f', 00H, 00H, 00H
-$SG319285 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG321368 DB	'g', 00H, 'l', 00H, 'R', 00H, 'a', 00H, 's', 00H, 't', 00H
-	DB	'e', 00H, 'r', 00H, 'P', 00H, 'o', 00H, 's', 00H, '4', 00H, 'd'
-	DB	00H, 00H, 00H
-$SG321335 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG318264 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
-	DB	'r', 00H, '4', 00H, 's', 00H, 'v', 00H, 00H, 00H
-	ORG $+2
-$SG320346 DB	'g', 00H, 'l', 00H, 'M', 00H, 'a', 00H, 'p', 00H, '2', 00H
-	DB	'f', 00H, 00H, 00H
-$SG322406 DB	'glTexEnvfv', 00H
-	ORG $+1
-$SG318265 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG318298 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
-	DB	'r', 00H, '4', 00H, 'u', 00H, 'b', 00H, 'v', 00H, 00H, 00H
-$SG319334 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'L', 00H
-	DB	'i', 00H, 'g', 00H, 'h', 00H, 't', 00H, 'f', 00H, 'v', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG320315 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG323388 DB	'wglChoosePixelFormat', 00H
-	ORG $+3
-$SG321348 DB	'g', 00H, 'l', 00H, 'R', 00H, 'a', 00H, 's', 00H, 't', 00H
-	DB	'e', 00H, 'r', 00H, 'P', 00H, 'o', 00H, 's', 00H, '3', 00H, 's'
-	DB	00H, 'v', 00H, 00H, 00H
-	ORG $+2
-$SG321378 DB	'glRasterPos4dv', 00H
-	ORG $+1
-$SG320360 DB	'glMapGrid1d', 00H
-$SG323393 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG318314 DB	'glColor4ui', 00H
-	ORG $+1
-$SG321349 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG320364 DB	'g', 00H, 'l', 00H, 'M', 00H, 'a', 00H, 'p', 00H, 'G', 00H
-	DB	'r', 00H, 'i', 00H, 'd', 00H, '1', 00H, 'd', 00H, 00H, 00H
-$SG322424 DB	'glTexEnvi', 00H
-	ORG $+2
-$SG319301 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG319352 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'L', 00H
-	DB	'i', 00H, 'g', 00H, 'h', 00H, 't', 00H, 'i', 00H, 'v', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG322375 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG318284 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
-	DB	'r', 00H, '4', 00H, 'u', 00H, 'b', 00H, 00H, 00H
-	ORG $+2
-$SG318328 DB	'glColor4uiv', 00H
-$SG318285 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG319312 DB	'glGetIntegerv', 00H
-	ORG $+2
-$SG321364 DB	'glRasterPos4d', 00H
-	ORG $+2
-$SG321402 DB	'g', 00H, 'l', 00H, 'R', 00H, 'a', 00H, 's', 00H, 't', 00H
-	DB	'e', 00H, 'r', 00H, 'P', 00H, 'o', 00H, 's', 00H, '4', 00H, 'f'
-	DB	00H, 00H, 00H
-$SG319317 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG320378 DB	'glMapGrid1f', 00H
-$SG322393 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG323452 DB	'w', 00H, 'g', 00H, 'l', 00H, 'D', 00H, 'e', 00H, 's', 00H
-	DB	'c', 00H, 'r', 00H, 'i', 00H, 'b', 00H, 'e', 00H, 'L', 00H, 'a'
-	DB	00H, 'y', 00H, 'e', 00H, 'r', 00H, 'P', 00H, 'l', 00H, 'a', 00H
-	DB	'n', 00H, 'e', 00H, 00H, 00H
-$SG321369 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG322428 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'E', 00H
-	DB	'n', 00H, 'v', 00H, 'i', 00H, 00H, 00H
-$SG320347 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG318332 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
-	DB	'r', 00H, '4', 00H, 'u', 00H, 'i', 00H, 'v', 00H, 00H, 00H
-$SG319366 DB	'glGetMapdv', 00H
-	ORG $+1
-$SG318299 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG319330 DB	'glGetLightfv', 00H
-	ORG $+3
-$SG321382 DB	'g', 00H, 'l', 00H, 'R', 00H, 'a', 00H, 's', 00H, 't', 00H
-	DB	'e', 00H, 'r', 00H, 'P', 00H, 'o', 00H, 's', 00H, '4', 00H, 'd'
-	DB	00H, 'v', 00H, 00H, 00H
-	ORG $+2
-$SG320382 DB	'g', 00H, 'l', 00H, 'M', 00H, 'a', 00H, 'p', 00H, 'G', 00H
-	DB	'r', 00H, 'i', 00H, 'd', 00H, '1', 00H, 'f', 00H, 00H, 00H
-$SG322442 DB	'glTexEnviv', 00H
-	ORG $+1
-$SG321383 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG321412 DB	'glRasterPos4fv', 00H
-	ORG $+1
-$SG318348 DB	'glColor4us', 00H
-	ORG $+1
-$SG319335 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG322410 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'E', 00H
-	DB	'n', 00H, 'v', 00H, 'f', 00H, 'v', 00H, 00H, 00H
-	ORG $+2
-$SG323468 DB	'wglDescribePixelFormat', 00H
-	ORG $+1
-$SG320402 DB	'glMapGrid2d', 00H
 $SG322411 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
@@ -6236,11 +6261,24 @@ $SG322411 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG320406 DB	'g', 00H, 'l', 00H, 'M', 00H, 'a', 00H, 'p', 00H, 'G', 00H
-	DB	'r', 00H, 'i', 00H, 'd', 00H, '2', 00H, 'd', 00H, 00H, 00H
-$SG319384 DB	'glGetMapfv', 00H
+$SG319370 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'F', 00H
+	DB	'l', 00H, 'o', 00H, 'a', 00H, 't', 00H, 'v', 00H, 00H, 00H
+$SG322444 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'C', 00H
+	DB	'o', 00H, 'o', 00H, 'r', 00H, 'd', 00H, 'P', 00H, 'o', 00H, 'i'
+	DB	00H, 'n', 00H, 't', 00H, 'e', 00H, 'r', 00H, 00H, 00H
+$SG321387 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG318350 DB	'glColor4ub', 00H
 	ORG $+1
-$SG320365 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG319341 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -6250,11 +6288,9 @@ $SG320365 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG318318 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
-	DB	'r', 00H, '4', 00H, 'u', 00H, 'i', 00H, 00H, 00H
+$SG322458 DB	'glTexEnvf', 00H
 	ORG $+2
-$SG318362 DB	'glColor4usv', 00H
-$SG318319 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG318321 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -6264,28 +6300,16 @@ $SG318319 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG319348 DB	'glGetLightiv', 00H
-	ORG $+3
-$SG321398 DB	'glRasterPos4f', 00H
+$SG322420 DB	'glTexCoord4sv', 00H
 	ORG $+2
-$SG323448 DB	'wglDescribeLayerPlane', 00H
+$SG323446 DB	'w', 00H, 'g', 00H, 'l', 00H, 'U', 00H, 's', 00H, 'e', 00H
+	DB	'F', 00H, 'o', 00H, 'n', 00H, 't', 00H, 'B', 00H, 'i', 00H, 't'
+	DB	00H, 'm', 00H, 'a', 00H, 'p', 00H, 's', 00H, 'W', 00H, 00H, 00H
 	ORG $+2
-$SG322460 DB	'glTexGend', 00H
-	ORG $+2
-$SG319353 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG321436 DB	'g', 00H, 'l', 00H, 'R', 00H, 'a', 00H, 's', 00H, 't', 00H
-	DB	'e', 00H, 'r', 00H, 'P', 00H, 'o', 00H, 's', 00H, '4', 00H, 'i'
+$SG319386 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'I', 00H
+	DB	'n', 00H, 't', 00H, 'e', 00H, 'g', 00H, 'e', 00H, 'r', 00H, 'v'
 	DB	00H, 00H, 00H
-$SG321403 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG323447 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -6295,11 +6319,11 @@ $SG321403 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG318366 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
-	DB	'r', 00H, '4', 00H, 'u', 00H, 's', 00H, 'v', 00H, 00H, 00H
-$SG322464 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'G', 00H
-	DB	'e', 00H, 'n', 00H, 'd', 00H, 00H, 00H
-$SG323453 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG321400 DB	'glRasterPos3s', 00H
+	ORG $+2
+$SG320412 DB	'glMap2f', 00H
+$SG318364 DB	'glColor4ubv', 00H
+$SG322425 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -6309,9 +6333,12 @@ $SG323453 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG323490 DB	'wglGetLayerPaletteEntries', 00H
+$SG319354 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'E', 00H
+	DB	'r', 00H, 'r', 00H, 'o', 00H, 'r', 00H, 00H, 00H
 	ORG $+2
-$SG322429 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG322462 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'E', 00H
+	DB	'n', 00H, 'v', 00H, 'f', 00H, 00H, 00H
+$SG319355 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -6321,12 +6348,10 @@ $SG322429 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG323494 DB	'w', 00H, 'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H
-	DB	'L', 00H, 'a', 00H, 'y', 00H, 'e', 00H, 'r', 00H, 'P', 00H, 'a'
-	DB	00H, 'l', 00H, 'e', 00H, 't', 00H, 't', 00H, 'e', 00H, 'E', 00H
-	DB	'n', 00H, 't', 00H, 'r', 00H, 'i', 00H, 'e', 00H, 's', 00H, 00H
-	DB	00H
-$SG318333 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG321438 DB	'g', 00H, 'l', 00H, 'R', 00H, 'a', 00H, 's', 00H, 't', 00H
+	DB	'e', 00H, 'r', 00H, 'P', 00H, 'o', 00H, 's', 00H, '4', 00H, 'd'
+	DB	00H, 00H, 00H
+$SG321405 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -6336,10 +6361,14 @@ $SG318333 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG321446 DB	'glRasterPos4iv', 00H
+$SG318334 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
+	DB	'r', 00H, '4', 00H, 's', 00H, 'v', 00H, 00H, 00H
+	ORG $+2
+$SG320416 DB	'g', 00H, 'l', 00H, 'M', 00H, 'a', 00H, 'p', 00H, '2', 00H
+	DB	'f', 00H, 00H, 00H
+$SG322476 DB	'glTexEnvfv', 00H
 	ORG $+1
-$SG320426 DB	'glMapGrid2f', 00H
-$SG320383 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG318335 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -6349,13 +6378,32 @@ $SG320383 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG321416 DB	'g', 00H, 'l', 00H, 'R', 00H, 'a', 00H, 's', 00H, 't', 00H
-	DB	'e', 00H, 'r', 00H, 'P', 00H, 'o', 00H, 's', 00H, '4', 00H, 'f'
+$SG318368 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
+	DB	'r', 00H, '4', 00H, 'u', 00H, 'b', 00H, 'v', 00H, 00H, 00H
+$SG319404 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'L', 00H
+	DB	'i', 00H, 'g', 00H, 'h', 00H, 't', 00H, 'f', 00H, 'v', 00H, 00H
+	DB	00H
+	ORG $+2
+$SG320385 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG323458 DB	'wglChoosePixelFormat', 00H
+	ORG $+3
+$SG321418 DB	'g', 00H, 'l', 00H, 'R', 00H, 'a', 00H, 's', 00H, 't', 00H
+	DB	'e', 00H, 'r', 00H, 'P', 00H, 'o', 00H, 's', 00H, '3', 00H, 's'
 	DB	00H, 'v', 00H, 00H, 00H
 	ORG $+2
-$SG319402 DB	'glGetMapiv', 00H
+$SG321448 DB	'glRasterPos4dv', 00H
 	ORG $+1
-$SG321417 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG320430 DB	'glMapGrid1d', 00H
+$SG323463 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -6365,11 +6413,22 @@ $SG321417 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG319370 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'M', 00H
-	DB	'a', 00H, 'p', 00H, 'd', 00H, 'v', 00H, 00H, 00H
-	ORG $+2
-$SG322478 DB	'glTexGendv', 00H
+$SG318384 DB	'glColor4ui', 00H
 	ORG $+1
+$SG321419 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG320434 DB	'g', 00H, 'l', 00H, 'M', 00H, 'a', 00H, 'p', 00H, 'G', 00H
+	DB	'r', 00H, 'i', 00H, 'd', 00H, '1', 00H, 'd', 00H, 00H, 00H
+$SG322494 DB	'glTexEnvi', 00H
+	ORG $+2
 $SG319371 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
@@ -6380,13 +6439,11 @@ $SG319371 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG322446 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'E', 00H
-	DB	'n', 00H, 'v', 00H, 'i', 00H, 'v', 00H, 00H, 00H
+$SG319422 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'L', 00H
+	DB	'i', 00H, 'g', 00H, 'h', 00H, 't', 00H, 'i', 00H, 'v', 00H, 00H
+	DB	00H
 	ORG $+2
-$SG320430 DB	'g', 00H, 'l', 00H, 'M', 00H, 'a', 00H, 'p', 00H, 'G', 00H
-	DB	'r', 00H, 'i', 00H, 'd', 00H, '2', 00H, 'f', 00H, 00H, 00H
-$SG318382 DB	'glColorMask', 00H
-$SG322447 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG322445 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -6396,19 +6453,11 @@ $SG322447 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG323472 DB	'w', 00H, 'g', 00H, 'l', 00H, 'D', 00H, 'e', 00H, 's', 00H
-	DB	'c', 00H, 'r', 00H, 'i', 00H, 'b', 00H, 'e', 00H, 'P', 00H, 'i'
-	DB	00H, 'x', 00H, 'e', 00H, 'l', 00H, 'F', 00H, 'o', 00H, 'r', 00H
-	DB	'm', 00H, 'a', 00H, 't', 00H, 00H, 00H
+$SG318354 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
+	DB	'r', 00H, '4', 00H, 'u', 00H, 'b', 00H, 00H, 00H
 	ORG $+2
-$SG318352 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
-	DB	'r', 00H, '4', 00H, 'u', 00H, 's', 00H, 00H, 00H
-	ORG $+2
-$SG318386 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
-	DB	'r', 00H, 'M', 00H, 'a', 00H, 's', 00H, 'k', 00H, 00H, 00H
-$SG323514 DB	'wglGetPixelFormat', 00H
-	ORG $+2
-$SG323473 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG318398 DB	'glColor4uiv', 00H
+$SG318355 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -6418,40 +6467,14 @@ $SG323473 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG320444 DB	'glMaterialf', 00H
-$SG318353 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG319382 DB	'glGetIntegerv', 00H
 	ORG $+2
-$SG319420 DB	'glGetMaterialfv', 00H
-$SG323518 DB	'w', 00H, 'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H
-	DB	'P', 00H, 'i', 00H, 'x', 00H, 'e', 00H, 'l', 00H, 'F', 00H, 'o'
-	DB	00H, 'r', 00H, 'm', 00H, 'a', 00H, 't', 00H, 00H, 00H
-$SG320407 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG321434 DB	'glRasterPos4d', 00H
 	ORG $+2
-$SG321432 DB	'glRasterPos4i', 00H
-	ORG $+2
-$SG319388 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'M', 00H
-	DB	'a', 00H, 'p', 00H, 'f', 00H, 'v', 00H, 00H, 00H
-	ORG $+2
-$SG321470 DB	'g', 00H, 'l', 00H, 'R', 00H, 'a', 00H, 's', 00H, 't', 00H
-	DB	'e', 00H, 'r', 00H, 'P', 00H, 'o', 00H, 's', 00H, '4', 00H, 's'
+$SG321472 DB	'g', 00H, 'l', 00H, 'R', 00H, 'a', 00H, 's', 00H, 't', 00H
+	DB	'e', 00H, 'r', 00H, 'P', 00H, 'o', 00H, 's', 00H, '4', 00H, 'f'
 	DB	00H, 00H, 00H
-$SG321437 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG319387 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -6461,10 +6484,8 @@ $SG321437 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG318398 DB	'glColorMaterial', 00H
-$SG322496 DB	'glTexGenf', 00H
-	ORG $+2
-$SG319389 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG320448 DB	'glMapGrid1f', 00H
+$SG322463 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -6474,11 +6495,11 @@ $SG319389 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG320448 DB	'g', 00H, 'l', 00H, 'M', 00H, 'a', 00H, 't', 00H, 'e', 00H
-	DB	'r', 00H, 'i', 00H, 'a', 00H, 'l', 00H, 'f', 00H, 00H, 00H
-$SG322500 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'G', 00H
-	DB	'e', 00H, 'n', 00H, 'f', 00H, 00H, 00H
-$SG318367 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG323522 DB	'w', 00H, 'g', 00H, 'l', 00H, 'D', 00H, 'e', 00H, 's', 00H
+	DB	'c', 00H, 'r', 00H, 'i', 00H, 'b', 00H, 'e', 00H, 'L', 00H, 'a'
+	DB	00H, 'y', 00H, 'e', 00H, 'r', 00H, 'P', 00H, 'l', 00H, 'a', 00H
+	DB	'n', 00H, 'e', 00H, 00H, 00H
+$SG321439 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -6488,12 +6509,9 @@ $SG318367 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG319424 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'M', 00H
-	DB	'a', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'i', 00H, 'a', 00H, 'l'
-	DB	00H, 'f', 00H, 'v', 00H, 00H, 00H
-$SG322514 DB	'glTexGenfv', 00H
-	ORG $+1
-$SG322465 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG322498 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'E', 00H
+	DB	'n', 00H, 'v', 00H, 'i', 00H, 00H, 00H
+$SG320417 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -6504,13 +6522,10 @@ $SG322465 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
 $SG318402 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
-	DB	'r', 00H, 'M', 00H, 'a', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'i'
-	DB	00H, 'a', 00H, 'l', 00H, 00H, 00H
-$SG320466 DB	'g', 00H, 'l', 00H, 'M', 00H, 'a', 00H, 't', 00H, 'e', 00H
-	DB	'r', 00H, 'i', 00H, 'a', 00H, 'l', 00H, 'f', 00H, 'v', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG323495 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'r', 00H, '4', 00H, 'u', 00H, 'i', 00H, 'v', 00H, 00H, 00H
+$SG319436 DB	'glGetMapdv', 00H
+	ORG $+1
+$SG318369 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -6520,18 +6535,17 @@ $SG323495 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG321450 DB	'g', 00H, 'l', 00H, 'R', 00H, 'a', 00H, 's', 00H, 't', 00H
-	DB	'e', 00H, 'r', 00H, 'P', 00H, 'o', 00H, 's', 00H, '4', 00H, 'i'
+$SG319400 DB	'glGetLightfv', 00H
+	ORG $+3
+$SG321452 DB	'g', 00H, 'l', 00H, 'R', 00H, 'a', 00H, 's', 00H, 't', 00H
+	DB	'e', 00H, 'r', 00H, 'P', 00H, 'o', 00H, 's', 00H, '4', 00H, 'd'
 	DB	00H, 'v', 00H, 00H, 00H
 	ORG $+2
-$SG321480 DB	'glRasterPos4sv', 00H
+$SG320452 DB	'g', 00H, 'l', 00H, 'M', 00H, 'a', 00H, 'p', 00H, 'G', 00H
+	DB	'r', 00H, 'i', 00H, 'd', 00H, '1', 00H, 'f', 00H, 00H, 00H
+$SG322512 DB	'glTexEnviv', 00H
 	ORG $+1
-$SG319438 DB	'glGetMaterialiv', 00H
-$SG321498 DB	'g', 00H, 'l', 00H, 'R', 00H, 'e', 00H, 'a', 00H, 'd', 00H
-	DB	'B', 00H, 'u', 00H, 'f', 00H, 'f', 00H, 'e', 00H, 'r', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG321451 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG321453 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -6541,31 +6555,11 @@ $SG321451 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG319406 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'M', 00H
-	DB	'a', 00H, 'p', 00H, 'i', 00H, 'v', 00H, 00H, 00H
-	ORG $+2
-$SG323532 DB	'wglRealizeLayerPalette', 00H
+$SG321482 DB	'glRasterPos4fv', 00H
 	ORG $+1
-$SG319442 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'M', 00H
-	DB	'a', 00H, 't', 00H, 'e', 00H, 'r', 00H, 'i', 00H, 'a', 00H, 'l'
-	DB	00H, 'i', 00H, 'v', 00H, 00H, 00H
-$SG320480 DB	'glMateriali', 00H
-$SG320431 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG318418 DB	'glColorPointer', 00H
+$SG318418 DB	'glColor4us', 00H
 	ORG $+1
-$SG319454 DB	'glGetPixelMapfv', 00H
-$SG323554 DB	'wglSetLayerPaletteEntries', 00H
-	ORG $+2
-$SG319407 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG319405 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -6575,15 +6569,13 @@ $SG319407 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG322482 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'G', 00H
-	DB	'e', 00H, 'n', 00H, 'd', 00H, 'v', 00H, 00H, 00H
+$SG322480 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'E', 00H
+	DB	'n', 00H, 'v', 00H, 'f', 00H, 'v', 00H, 00H, 00H
 	ORG $+2
-$SG319458 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'P', 00H
-	DB	'i', 00H, 'x', 00H, 'e', 00H, 'l', 00H, 'M', 00H, 'a', 00H, 'p'
-	DB	00H, 'f', 00H, 'v', 00H, 00H, 00H
-$SG322532 DB	'glTexGeni', 00H
-	ORG $+2
-$SG322483 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG323538 DB	'wglDescribePixelFormat', 00H
+	ORG $+1
+$SG320472 DB	'glMapGrid2d', 00H
+$SG322481 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -6593,79 +6585,96 @@ $SG322483 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG320484 DB	'g', 00H, 'l', 00H, 'M', 00H, 'a', 00H, 't', 00H, 'e', 00H
-	DB	'r', 00H, 'i', 00H, 'a', 00H, 'l', 00H, 'i', 00H, 00H, 00H
-$SG323558 DB	'w', 00H, 'g', 00H, 'l', 00H, 'S', 00H, 'e', 00H, 't', 00H
+$SG320476 DB	'g', 00H, 'l', 00H, 'M', 00H, 'a', 00H, 'p', 00H, 'G', 00H
+	DB	'r', 00H, 'i', 00H, 'd', 00H, '2', 00H, 'd', 00H, 00H, 00H
+$SG319454 DB	'glGetMapfv', 00H
+	ORG $+1
+$SG320435 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG318388 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
+	DB	'r', 00H, '4', 00H, 'u', 00H, 'i', 00H, 00H, 00H
+	ORG $+2
+$SG318432 DB	'glColor4usv', 00H
+$SG318389 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG319418 DB	'glGetLightiv', 00H
+	ORG $+3
+$SG321468 DB	'glRasterPos4f', 00H
+	ORG $+2
+$SG323518 DB	'wglDescribeLayerPlane', 00H
+	ORG $+2
+$SG322530 DB	'glTexGend', 00H
+	ORG $+2
+$SG319423 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG321506 DB	'g', 00H, 'l', 00H, 'R', 00H, 'a', 00H, 's', 00H, 't', 00H
+	DB	'e', 00H, 'r', 00H, 'P', 00H, 'o', 00H, 's', 00H, '4', 00H, 'i'
+	DB	00H, 00H, 00H
+$SG321473 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG318436 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
+	DB	'r', 00H, '4', 00H, 'u', 00H, 's', 00H, 'v', 00H, 00H, 00H
+$SG322534 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'G', 00H
+	DB	'e', 00H, 'n', 00H, 'd', 00H, 00H, 00H
+$SG323523 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG323560 DB	'wglGetLayerPaletteEntries', 00H
+	ORG $+2
+$SG322499 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG323564 DB	'w', 00H, 'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H
 	DB	'L', 00H, 'a', 00H, 'y', 00H, 'e', 00H, 'r', 00H, 'P', 00H, 'a'
 	DB	00H, 'l', 00H, 'e', 00H, 't', 00H, 't', 00H, 'e', 00H, 'E', 00H
 	DB	'n', 00H, 't', 00H, 'r', 00H, 'i', 00H, 'e', 00H, 's', 00H, 00H
 	DB	00H
-$SG318387 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG321466 DB	'glRasterPos4s', 00H
-	ORG $+2
-$SG322536 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'G', 00H
-	DB	'e', 00H, 'n', 00H, 'i', 00H, 00H, 00H
-$SG323519 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG318444 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'p', 00H, 'y', 00H
-	DB	'P', 00H, 'i', 00H, 'x', 00H, 'e', 00H, 'l', 00H, 's', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG321471 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG319470 DB	'glGetPixelMapuiv', 00H
-	ORG $+3
-$SG320449 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG319474 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'P', 00H
-	DB	'i', 00H, 'x', 00H, 'e', 00H, 'l', 00H, 'M', 00H, 'a', 00H, 'p'
-	DB	00H, 'u', 00H, 'i', 00H, 'v', 00H, 00H, 00H
-	ORG $+2
-$SG319425 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+2
-$SG323572 DB	'wglSetPixelFormat', 00H
-	ORG $+2
 $SG318403 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
@@ -6676,11 +6685,10 @@ $SG318403 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG321524 DB	'g', 00H, 'l', 00H, 'R', 00H, 'e', 00H, 'a', 00H, 'd', 00H
-	DB	'P', 00H, 'i', 00H, 'x', 00H, 'e', 00H, 'l', 00H, 's', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG322501 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG321516 DB	'glRasterPos4iv', 00H
+	ORG $+1
+$SG320496 DB	'glMapGrid2f', 00H
+$SG320453 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -6690,13 +6698,13 @@ $SG322501 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG321484 DB	'g', 00H, 'l', 00H, 'R', 00H, 'a', 00H, 's', 00H, 't', 00H
-	DB	'e', 00H, 'r', 00H, 'P', 00H, 'o', 00H, 's', 00H, '4', 00H, 's'
+$SG321486 DB	'g', 00H, 'l', 00H, 'R', 00H, 'a', 00H, 's', 00H, 't', 00H
+	DB	'e', 00H, 'r', 00H, 'P', 00H, 'o', 00H, 's', 00H, '4', 00H, 'f'
 	DB	00H, 'v', 00H, 00H, 00H
 	ORG $+2
-$SG322550 DB	'glTexGeniv', 00H
+$SG319472 DB	'glGetMapiv', 00H
 	ORG $+1
-$SG321485 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG321487 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -6706,18 +6714,12 @@ $SG321485 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG320462 DB	'glMaterialfv', 00H
-	ORG $+3
-$SG323536 DB	'w', 00H, 'g', 00H, 'l', 00H, 'R', 00H, 'e', 00H, 'a', 00H
-	DB	'l', 00H, 'i', 00H, 'z', 00H, 'e', 00H, 'L', 00H, 'a', 00H, 'y'
-	DB	00H, 'e', 00H, 'r', 00H, 'P', 00H, 'a', 00H, 'l', 00H, 'e', 00H
-	DB	't', 00H, 't', 00H, 'e', 00H, 00H, 00H
+$SG319440 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'M', 00H
+	DB	'a', 00H, 'p', 00H, 'd', 00H, 'v', 00H, 00H, 00H
 	ORG $+2
-$SG320502 DB	'g', 00H, 'l', 00H, 'M', 00H, 'a', 00H, 't', 00H, 'e', 00H
-	DB	'r', 00H, 'i', 00H, 'a', 00H, 'l', 00H, 'i', 00H, 'v', 00H, 00H
-	DB	00H
-	ORG $+2
-$SG323537 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG322548 DB	'glTexGendv', 00H
+	ORG $+1
+$SG319441 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -6727,10 +6729,13 @@ $SG323537 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG323576 DB	'w', 00H, 'g', 00H, 'l', 00H, 'S', 00H, 'e', 00H, 't', 00H
-	DB	'P', 00H, 'i', 00H, 'x', 00H, 'e', 00H, 'l', 00H, 'F', 00H, 'o'
-	DB	00H, 'r', 00H, 'm', 00H, 'a', 00H, 't', 00H, 00H, 00H
-$SG320467 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG322516 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'E', 00H
+	DB	'n', 00H, 'v', 00H, 'i', 00H, 'v', 00H, 00H, 00H
+	ORG $+2
+$SG320500 DB	'g', 00H, 'l', 00H, 'M', 00H, 'a', 00H, 'p', 00H, 'G', 00H
+	DB	'r', 00H, 'i', 00H, 'd', 00H, '2', 00H, 'f', 00H, 00H, 00H
+$SG318452 DB	'glColorMask', 00H
+$SG322517 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -6740,28 +6745,18 @@ $SG320467 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG319486 DB	'glGetPixelMapusv', 00H
-	ORG $+3
-$SG319443 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG323542 DB	'w', 00H, 'g', 00H, 'l', 00H, 'D', 00H, 'e', 00H, 's', 00H
+	DB	'c', 00H, 'r', 00H, 'i', 00H, 'b', 00H, 'e', 00H, 'P', 00H, 'i'
+	DB	00H, 'x', 00H, 'e', 00H, 'l', 00H, 'F', 00H, 'o', 00H, 'r', 00H
+	DB	'm', 00H, 'a', 00H, 't', 00H, 00H, 00H
 	ORG $+2
-$SG322518 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'G', 00H
-	DB	'e', 00H, 'n', 00H, 'f', 00H, 'v', 00H, 00H, 00H
-	ORG $+2
-$SG321494 DB	'glReadBuffer', 00H
-	ORG $+3
 $SG318422 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
-	DB	'r', 00H, 'P', 00H, 'o', 00H, 'i', 00H, 'n', 00H, 't', 00H, 'e'
-	DB	00H, 'r', 00H, 00H, 00H
-	ORG $+6
-$SG322519 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'r', 00H, '4', 00H, 'u', 00H, 's', 00H, 00H, 00H
+	ORG $+2
+$SG318456 DB	'g', 00H, 'l', 00H, 'C', 00H, 'o', 00H, 'l', 00H, 'o', 00H
+	DB	'r', 00H, 'M', 00H, 'a', 00H, 's', 00H, 'k', 00H, 00H, 00H
+	ORG $+4
+$SG323543 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -6781,7 +6776,22 @@ $SG318423 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+6
-$SG321499 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG320477 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+2
+$SG321502 DB	'glRasterPos4i', 00H
+	ORG $+2
+$SG319458 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'M', 00H
+	DB	'a', 00H, 'p', 00H, 'f', 00H, 'v', 00H, 00H, 00H
+	ORG $+6
+$SG321507 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -6801,7 +6811,7 @@ $SG319459 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+6
-$SG320485 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG318437 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -6811,7 +6821,17 @@ $SG320485 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+6
-$SG323559 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG322535 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+6
+$SG323565 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -6821,19 +6841,11 @@ $SG323559 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG318440 DB	'glCopyPixels', 00H
-	ORG $+7
-$SG322537 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+$SG321520 DB	'g', 00H, 'l', 00H, 'R', 00H, 'a', 00H, 's', 00H, 't', 00H
+	DB	'e', 00H, 'r', 00H, 'P', 00H, 'o', 00H, 's', 00H, '4', 00H, 'i'
+	DB	00H, 'v', 00H, 00H, 00H
 	ORG $+6
-$SG318445 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG321521 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -6843,11 +6855,10 @@ $SG318445 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG321520 DB	'glReadPixels', 00H
-	ORG $+3
-$SG320498 DB	'glMaterialiv', 00H
-	ORG $+7
-$SG319475 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG319476 DB	'g', 00H, 'l', 00H, 'G', 00H, 'e', 00H, 't', 00H, 'M', 00H
+	DB	'a', 00H, 'p', 00H, 'i', 00H, 'v', 00H, 00H, 00H
+	ORG $+6
+$SG320501 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -6857,27 +6868,7 @@ $SG319475 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+6
-$SG321525 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+6
-$SG320503 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
-	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
-	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
-	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
-	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
-	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
-	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
-	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
-	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
-	ORG $+6
-$SG323577 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG319477 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -6887,10 +6878,20 @@ $SG323577 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
 	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
 	ORG $+2
-$SG322554 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'G', 00H
-	DB	'e', 00H, 'n', 00H, 'i', 00H, 'v', 00H, 00H, 00H
+$SG322552 DB	'g', 00H, 'l', 00H, 'T', 00H, 'e', 00H, 'x', 00H, 'G', 00H
+	DB	'e', 00H, 'n', 00H, 'd', 00H, 'v', 00H, 00H, 00H
 	ORG $+6
-$SG322555 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+$SG322553 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
+	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
+	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
+	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
+	DB	00H, 'a', 00H, 't', 00H, 'e', 00H, ' ', 00H, 's', 00H, 'y', 00H
+	DB	'm', 00H, 'b', 00H, 'o', 00H, 'l', 00H, ' ', 00H, ' ', 00H, '%'
+	DB	00H, 's', 00H, ' ', 00H, 'i', 00H, 'n', 00H, ' ', 00H, 'O', 00H
+	DB	'p', 00H, 'e', 00H, 'n', 00H, 'G', 00H, 'L', 00H, '3', 00H, '2'
+	DB	00H, '.', 00H, 'd', 00H, 'l', 00H, 'l', 00H, 00H, 00H
+	ORG $+6
+$SG318457 DB	'[', 00H, ' ', 00H, 'O', 00H, 'p', 00H, 'e', 00H, 'n', 00H
 	DB	'G', 00H, 'L', 00H, '3', 00H, '2', 00H, ' ', 00H, ']', 00H, ' '
 	DB	00H, 'U', 00H, 'n', 00H, 'a', 00H, 'b', 00H, 'l', 00H, 'e', 00H
 	DB	' ', 00H, 't', 00H, 'o', 00H, ' ', 00H, 'l', 00H, 'o', 00H, 'c'
@@ -7706,15 +7707,15 @@ CONST	SEGMENT
 CONST	ENDS
 ;	COMDAT ?szName@?4??wglUseFontOutlinesW@@9@32@4PBDB
 _DATA	SEGMENT
-?szName@?4??wglUseFontOutlinesW@@9@32@4PBDB DD FLAT:$SG323798 ; `wglUseFontOutlinesW'::`5'::szName
+?szName@?4??wglUseFontOutlinesW@@9@32@4PBDB DD FLAT:$SG323868 ; `wglUseFontOutlinesW'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??wglUseFontOutlinesA@@9@32@4PBDB
 _DATA	SEGMENT
-?szName@?4??wglUseFontOutlinesA@@9@32@4PBDB DD FLAT:$SG323770 ; `wglUseFontOutlinesA'::`5'::szName
+?szName@?4??wglUseFontOutlinesA@@9@32@4PBDB DD FLAT:$SG323840 ; `wglUseFontOutlinesA'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??wglSwapLayerBuffers@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??wglSwapLayerBuffers@@9@8@4PBDB DD FLAT:$SG323708 ; `wglSwapLayerBuffers'::`5'::szName
+?szName@?4??wglSwapLayerBuffers@@9@8@4PBDB DD FLAT:$SG323778 ; `wglSwapLayerBuffers'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?first@?9??wglSwapBuffers@@9@4@4_NA
 _DATA	SEGMENT
@@ -7726,1427 +7727,1427 @@ _DATA	SEGMENT
 _DATA	ENDS
 ;	COMDAT ?szName@?4??wglSetPixelFormat@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??wglSetPixelFormat@@9@12@4PBDB DD FLAT:$SG323572 ; `wglSetPixelFormat'::`5'::szName
+?szName@?4??wglSetPixelFormat@@9@12@4PBDB DD FLAT:$SG323642 ; `wglSetPixelFormat'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??wglSetLayerPaletteEntries@@9@20@4PBDB
 _DATA	SEGMENT
-?szName@?4??wglSetLayerPaletteEntries@@9@20@4PBDB DD FLAT:$SG323554 ; `wglSetLayerPaletteEntries'::`5'::szName
+?szName@?4??wglSetLayerPaletteEntries@@9@20@4PBDB DD FLAT:$SG323624 ; `wglSetLayerPaletteEntries'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??wglRealizeLayerPalette@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??wglRealizeLayerPalette@@9@12@4PBDB DD FLAT:$SG323532 ; `wglRealizeLayerPalette'::`5'::szName
+?szName@?4??wglRealizeLayerPalette@@9@12@4PBDB DD FLAT:$SG323602 ; `wglRealizeLayerPalette'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??wglGetPixelFormat@@9@24@4PBDB
 _DATA	SEGMENT
-?szName@?4??wglGetPixelFormat@@9@24@4PBDB DD FLAT:$SG323514 ; `wglGetPixelFormat'::`5'::szName
+?szName@?4??wglGetPixelFormat@@9@24@4PBDB DD FLAT:$SG323584 ; `wglGetPixelFormat'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??wglGetLayerPaletteEntries@@9@20@4PBDB
 _DATA	SEGMENT
-?szName@?4??wglGetLayerPaletteEntries@@9@20@4PBDB DD FLAT:$SG323490 ; `wglGetLayerPaletteEntries'::`5'::szName
+?szName@?4??wglGetLayerPaletteEntries@@9@20@4PBDB DD FLAT:$SG323560 ; `wglGetLayerPaletteEntries'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??wglDescribePixelFormat@@9@16@4PBDB
 _DATA	SEGMENT
-?szName@?4??wglDescribePixelFormat@@9@16@4PBDB DD FLAT:$SG323468 ; `wglDescribePixelFormat'::`5'::szName
+?szName@?4??wglDescribePixelFormat@@9@16@4PBDB DD FLAT:$SG323538 ; `wglDescribePixelFormat'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??wglDescribeLayerPlane@@9@20@4PBDB
 _DATA	SEGMENT
-?szName@?4??wglDescribeLayerPlane@@9@20@4PBDB DD FLAT:$SG323448 ; `wglDescribeLayerPlane'::`5'::szName
+?szName@?4??wglDescribeLayerPlane@@9@20@4PBDB DD FLAT:$SG323518 ; `wglDescribeLayerPlane'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??wglChoosePixelFormat@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??wglChoosePixelFormat@@9@8@4PBDB DD FLAT:$SG323388 ; `wglChoosePixelFormat'::`5'::szName
+?szName@?4??wglChoosePixelFormat@@9@8@4PBDB DD FLAT:$SG323458 ; `wglChoosePixelFormat'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??wglUseFontBitmapsW@@9@16@4PBDB
 _DATA	SEGMENT
-?szName@?4??wglUseFontBitmapsW@@9@16@4PBDB DD FLAT:$SG323372 ; `wglUseFontBitmapsW'::`5'::szName
+?szName@?4??wglUseFontBitmapsW@@9@16@4PBDB DD FLAT:$SG323442 ; `wglUseFontBitmapsW'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??wglUseFontBitmapsA@@9@16@4PBDB
 _DATA	SEGMENT
-?szName@?4??wglUseFontBitmapsA@@9@16@4PBDB DD FLAT:$SG323352 ; `wglUseFontBitmapsA'::`5'::szName
+?szName@?4??wglUseFontBitmapsA@@9@16@4PBDB DD FLAT:$SG323422 ; `wglUseFontBitmapsA'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??wglShareLists@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??wglShareLists@@9@8@4PBDB DD FLAT:$SG323332	; `wglShareLists'::`5'::szName
+?szName@?4??wglShareLists@@9@8@4PBDB DD FLAT:$SG323402	; `wglShareLists'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??wglMakeCurrent@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??wglMakeCurrent@@9@8@4PBDB DD FLAT:$SG323316	; `wglMakeCurrent'::`5'::szName
+?szName@?4??wglMakeCurrent@@9@8@4PBDB DD FLAT:$SG323386	; `wglMakeCurrent'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??wglGetProcAddress@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??wglGetProcAddress@@9@4@4PBDB DD FLAT:$SG323300 ; `wglGetProcAddress'::`5'::szName
+?szName@?4??wglGetProcAddress@@9@4@4PBDB DD FLAT:$SG323370 ; `wglGetProcAddress'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??wglGetCurrentDC@@9@0@4PBDB
 _DATA	SEGMENT
-?szName@?4??wglGetCurrentDC@@9@0@4PBDB DD FLAT:$SG323286 ; `wglGetCurrentDC'::`5'::szName
+?szName@?4??wglGetCurrentDC@@9@0@4PBDB DD FLAT:$SG323356 ; `wglGetCurrentDC'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??wglGetCurrentContext@@9@0@4PBDB
 _DATA	SEGMENT
-?szName@?4??wglGetCurrentContext@@9@0@4PBDB DD FLAT:$SG323272 ; `wglGetCurrentContext'::`5'::szName
+?szName@?4??wglGetCurrentContext@@9@0@4PBDB DD FLAT:$SG323342 ; `wglGetCurrentContext'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??wglDeleteContext@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??wglDeleteContext@@9@4@4PBDB DD FLAT:$SG323258 ; `wglDeleteContext'::`5'::szName
+?szName@?4??wglDeleteContext@@9@4@4PBDB DD FLAT:$SG323328 ; `wglDeleteContext'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??wglCreateLayerContext@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??wglCreateLayerContext@@9@8@4PBDB DD FLAT:$SG323244 ; `wglCreateLayerContext'::`5'::szName
+?szName@?4??wglCreateLayerContext@@9@8@4PBDB DD FLAT:$SG323314 ; `wglCreateLayerContext'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??wglCreateContext@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??wglCreateContext@@9@4@4PBDB DD FLAT:$SG323228 ; `wglCreateContext'::`5'::szName
+?szName@?4??wglCreateContext@@9@4@4PBDB DD FLAT:$SG323298 ; `wglCreateContext'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??wglCopyContext@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??wglCopyContext@@9@12@4PBDB DD FLAT:$SG323214 ; `wglCopyContext'::`5'::szName
+?szName@?4??wglCopyContext@@9@12@4PBDB DD FLAT:$SG323284 ; `wglCopyContext'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glViewport@@9@16@4PBDB
 _DATA	SEGMENT
-?szName@?4??glViewport@@9@16@4PBDB DD FLAT:$SG323196	; `glViewport'::`5'::szName
+?szName@?4??glViewport@@9@16@4PBDB DD FLAT:$SG323266	; `glViewport'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glVertexPointer@@9@16@4PBDB
 _DATA	SEGMENT
-?szName@?4??glVertexPointer@@9@16@4PBDB DD FLAT:$SG323176 ; `glVertexPointer'::`5'::szName
+?szName@?4??glVertexPointer@@9@16@4PBDB DD FLAT:$SG323246 ; `glVertexPointer'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glVertex4sv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glVertex4sv@@9@4@4PBDB DD FLAT:$SG323156	; `glVertex4sv'::`5'::szName
+?szName@?4??glVertex4sv@@9@4@4PBDB DD FLAT:$SG323226	; `glVertex4sv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glVertex4s@@9@16@4PBDB
 _DATA	SEGMENT
-?szName@?4??glVertex4s@@9@16@4PBDB DD FLAT:$SG323142	; `glVertex4s'::`5'::szName
+?szName@?4??glVertex4s@@9@16@4PBDB DD FLAT:$SG323212	; `glVertex4s'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glVertex4iv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glVertex4iv@@9@4@4PBDB DD FLAT:$SG323122	; `glVertex4iv'::`5'::szName
+?szName@?4??glVertex4iv@@9@4@4PBDB DD FLAT:$SG323192	; `glVertex4iv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glVertex4i@@9@16@4PBDB
 _DATA	SEGMENT
-?szName@?4??glVertex4i@@9@16@4PBDB DD FLAT:$SG323108	; `glVertex4i'::`5'::szName
+?szName@?4??glVertex4i@@9@16@4PBDB DD FLAT:$SG323178	; `glVertex4i'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glVertex4fv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glVertex4fv@@9@4@4PBDB DD FLAT:$SG323088	; `glVertex4fv'::`5'::szName
+?szName@?4??glVertex4fv@@9@4@4PBDB DD FLAT:$SG323158	; `glVertex4fv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glVertex4f@@9@16@4PBDB
 _DATA	SEGMENT
-?szName@?4??glVertex4f@@9@16@4PBDB DD FLAT:$SG323074	; `glVertex4f'::`5'::szName
+?szName@?4??glVertex4f@@9@16@4PBDB DD FLAT:$SG323144	; `glVertex4f'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glVertex4dv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glVertex4dv@@9@4@4PBDB DD FLAT:$SG323054	; `glVertex4dv'::`5'::szName
+?szName@?4??glVertex4dv@@9@4@4PBDB DD FLAT:$SG323124	; `glVertex4dv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glVertex4d@@9@32@4PBDB
 _DATA	SEGMENT
-?szName@?4??glVertex4d@@9@32@4PBDB DD FLAT:$SG323040	; `glVertex4d'::`5'::szName
+?szName@?4??glVertex4d@@9@32@4PBDB DD FLAT:$SG323110	; `glVertex4d'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glVertex3sv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glVertex3sv@@9@4@4PBDB DD FLAT:$SG323020	; `glVertex3sv'::`5'::szName
+?szName@?4??glVertex3sv@@9@4@4PBDB DD FLAT:$SG323090	; `glVertex3sv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glVertex3s@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glVertex3s@@9@12@4PBDB DD FLAT:$SG323006	; `glVertex3s'::`5'::szName
+?szName@?4??glVertex3s@@9@12@4PBDB DD FLAT:$SG323076	; `glVertex3s'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glVertex3iv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glVertex3iv@@9@4@4PBDB DD FLAT:$SG322988	; `glVertex3iv'::`5'::szName
+?szName@?4??glVertex3iv@@9@4@4PBDB DD FLAT:$SG323058	; `glVertex3iv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glVertex3i@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glVertex3i@@9@12@4PBDB DD FLAT:$SG322974	; `glVertex3i'::`5'::szName
+?szName@?4??glVertex3i@@9@12@4PBDB DD FLAT:$SG323044	; `glVertex3i'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glVertex3fv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glVertex3fv@@9@4@4PBDB DD FLAT:$SG322956	; `glVertex3fv'::`5'::szName
+?szName@?4??glVertex3fv@@9@4@4PBDB DD FLAT:$SG323026	; `glVertex3fv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glVertex3f@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glVertex3f@@9@12@4PBDB DD FLAT:$SG322942	; `glVertex3f'::`5'::szName
+?szName@?4??glVertex3f@@9@12@4PBDB DD FLAT:$SG323012	; `glVertex3f'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glVertex3dv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glVertex3dv@@9@4@4PBDB DD FLAT:$SG322924	; `glVertex3dv'::`5'::szName
+?szName@?4??glVertex3dv@@9@4@4PBDB DD FLAT:$SG322994	; `glVertex3dv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glVertex3d@@9@24@4PBDB
 _DATA	SEGMENT
-?szName@?4??glVertex3d@@9@24@4PBDB DD FLAT:$SG322910	; `glVertex3d'::`5'::szName
+?szName@?4??glVertex3d@@9@24@4PBDB DD FLAT:$SG322980	; `glVertex3d'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glVertex2sv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glVertex2sv@@9@4@4PBDB DD FLAT:$SG322892	; `glVertex2sv'::`5'::szName
+?szName@?4??glVertex2sv@@9@4@4PBDB DD FLAT:$SG322962	; `glVertex2sv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glVertex2s@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glVertex2s@@9@8@4PBDB DD FLAT:$SG322878	; `glVertex2s'::`5'::szName
+?szName@?4??glVertex2s@@9@8@4PBDB DD FLAT:$SG322948	; `glVertex2s'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glVertex2iv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glVertex2iv@@9@4@4PBDB DD FLAT:$SG322862	; `glVertex2iv'::`5'::szName
+?szName@?4??glVertex2iv@@9@4@4PBDB DD FLAT:$SG322932	; `glVertex2iv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glVertex2i@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glVertex2i@@9@8@4PBDB DD FLAT:$SG322848	; `glVertex2i'::`5'::szName
+?szName@?4??glVertex2i@@9@8@4PBDB DD FLAT:$SG322918	; `glVertex2i'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glVertex2fv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glVertex2fv@@9@4@4PBDB DD FLAT:$SG322832	; `glVertex2fv'::`5'::szName
+?szName@?4??glVertex2fv@@9@4@4PBDB DD FLAT:$SG322902	; `glVertex2fv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glVertex2f@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glVertex2f@@9@8@4PBDB DD FLAT:$SG322818	; `glVertex2f'::`5'::szName
+?szName@?4??glVertex2f@@9@8@4PBDB DD FLAT:$SG322888	; `glVertex2f'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glVertex2dv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glVertex2dv@@9@4@4PBDB DD FLAT:$SG322802	; `glVertex2dv'::`5'::szName
+?szName@?4??glVertex2dv@@9@4@4PBDB DD FLAT:$SG322872	; `glVertex2dv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glVertex2d@@9@16@4PBDB
 _DATA	SEGMENT
-?szName@?4??glVertex2d@@9@16@4PBDB DD FLAT:$SG322788	; `glVertex2d'::`5'::szName
+?szName@?4??glVertex2d@@9@16@4PBDB DD FLAT:$SG322858	; `glVertex2d'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glTranslatef@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glTranslatef@@9@12@4PBDB DD FLAT:$SG322772	; `glTranslatef'::`5'::szName
+?szName@?4??glTranslatef@@9@12@4PBDB DD FLAT:$SG322842	; `glTranslatef'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glTranslated@@9@24@4PBDB
 _DATA	SEGMENT
-?szName@?4??glTranslated@@9@24@4PBDB DD FLAT:$SG322754	; `glTranslated'::`5'::szName
+?szName@?4??glTranslated@@9@24@4PBDB DD FLAT:$SG322824	; `glTranslated'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glTexSubImage2D@@9@36@4PBDB
 _DATA	SEGMENT
-?szName@?4??glTexSubImage2D@@9@36@4PBDB DD FLAT:$SG322736 ; `glTexSubImage2D'::`5'::szName
+?szName@?4??glTexSubImage2D@@9@36@4PBDB DD FLAT:$SG322806 ; `glTexSubImage2D'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glTexSubImage1D@@9@28@4PBDB
 _DATA	SEGMENT
-?szName@?4??glTexSubImage1D@@9@28@4PBDB DD FLAT:$SG322706 ; `glTexSubImage1D'::`5'::szName
+?szName@?4??glTexSubImage1D@@9@28@4PBDB DD FLAT:$SG322776 ; `glTexSubImage1D'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glTexParameteriv@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glTexParameteriv@@9@12@4PBDB DD FLAT:$SG322680 ; `glTexParameteriv'::`5'::szName
+?szName@?4??glTexParameteriv@@9@12@4PBDB DD FLAT:$SG322750 ; `glTexParameteriv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glTexParameteri@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glTexParameteri@@9@12@4PBDB DD FLAT:$SG322662 ; `glTexParameteri'::`5'::szName
+?szName@?4??glTexParameteri@@9@12@4PBDB DD FLAT:$SG322732 ; `glTexParameteri'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glTexParameterfv@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glTexParameterfv@@9@12@4PBDB DD FLAT:$SG322644 ; `glTexParameterfv'::`5'::szName
+?szName@?4??glTexParameterfv@@9@12@4PBDB DD FLAT:$SG322714 ; `glTexParameterfv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glTexParameterf@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glTexParameterf@@9@12@4PBDB DD FLAT:$SG322626 ; `glTexParameterf'::`5'::szName
+?szName@?4??glTexParameterf@@9@12@4PBDB DD FLAT:$SG322696 ; `glTexParameterf'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glTexImage2D@@9@36@4PBDB
 _DATA	SEGMENT
-?szName@?4??glTexImage2D@@9@36@4PBDB DD FLAT:$SG322608	; `glTexImage2D'::`5'::szName
+?szName@?4??glTexImage2D@@9@36@4PBDB DD FLAT:$SG322678	; `glTexImage2D'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glTexImage1D@@9@32@4PBDB
 _DATA	SEGMENT
-?szName@?4??glTexImage1D@@9@32@4PBDB DD FLAT:$SG322578	; `glTexImage1D'::`5'::szName
+?szName@?4??glTexImage1D@@9@32@4PBDB DD FLAT:$SG322648	; `glTexImage1D'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glTexGeniv@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glTexGeniv@@9@12@4PBDB DD FLAT:$SG322550	; `glTexGeniv'::`5'::szName
+?szName@?4??glTexGeniv@@9@12@4PBDB DD FLAT:$SG322620	; `glTexGeniv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glTexGeni@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glTexGeni@@9@12@4PBDB DD FLAT:$SG322532	; `glTexGeni'::`5'::szName
+?szName@?4??glTexGeni@@9@12@4PBDB DD FLAT:$SG322602	; `glTexGeni'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glTexGenfv@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glTexGenfv@@9@12@4PBDB DD FLAT:$SG322514	; `glTexGenfv'::`5'::szName
+?szName@?4??glTexGenfv@@9@12@4PBDB DD FLAT:$SG322584	; `glTexGenfv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glTexGenf@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glTexGenf@@9@12@4PBDB DD FLAT:$SG322496	; `glTexGenf'::`5'::szName
+?szName@?4??glTexGenf@@9@12@4PBDB DD FLAT:$SG322566	; `glTexGenf'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glTexGendv@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glTexGendv@@9@12@4PBDB DD FLAT:$SG322478	; `glTexGendv'::`5'::szName
+?szName@?4??glTexGendv@@9@12@4PBDB DD FLAT:$SG322548	; `glTexGendv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glTexGend@@9@16@4PBDB
 _DATA	SEGMENT
-?szName@?4??glTexGend@@9@16@4PBDB DD FLAT:$SG322460	; `glTexGend'::`5'::szName
+?szName@?4??glTexGend@@9@16@4PBDB DD FLAT:$SG322530	; `glTexGend'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glTexEnviv@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glTexEnviv@@9@12@4PBDB DD FLAT:$SG322442	; `glTexEnviv'::`5'::szName
+?szName@?4??glTexEnviv@@9@12@4PBDB DD FLAT:$SG322512	; `glTexEnviv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glTexEnvi@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glTexEnvi@@9@12@4PBDB DD FLAT:$SG322424	; `glTexEnvi'::`5'::szName
+?szName@?4??glTexEnvi@@9@12@4PBDB DD FLAT:$SG322494	; `glTexEnvi'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glTexEnvfv@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glTexEnvfv@@9@12@4PBDB DD FLAT:$SG322406	; `glTexEnvfv'::`5'::szName
+?szName@?4??glTexEnvfv@@9@12@4PBDB DD FLAT:$SG322476	; `glTexEnvfv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glTexEnvf@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glTexEnvf@@9@12@4PBDB DD FLAT:$SG322388	; `glTexEnvf'::`5'::szName
+?szName@?4??glTexEnvf@@9@12@4PBDB DD FLAT:$SG322458	; `glTexEnvf'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glTexCoordPointer@@9@16@4PBDB
 _DATA	SEGMENT
-?szName@?4??glTexCoordPointer@@9@16@4PBDB DD FLAT:$SG322370 ; `glTexCoordPointer'::`5'::szName
+?szName@?4??glTexCoordPointer@@9@16@4PBDB DD FLAT:$SG322440 ; `glTexCoordPointer'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glTexCoord4sv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glTexCoord4sv@@9@4@4PBDB DD FLAT:$SG322350	; `glTexCoord4sv'::`5'::szName
+?szName@?4??glTexCoord4sv@@9@4@4PBDB DD FLAT:$SG322420	; `glTexCoord4sv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glTexCoord4s@@9@16@4PBDB
 _DATA	SEGMENT
-?szName@?4??glTexCoord4s@@9@16@4PBDB DD FLAT:$SG322336	; `glTexCoord4s'::`5'::szName
+?szName@?4??glTexCoord4s@@9@16@4PBDB DD FLAT:$SG322406	; `glTexCoord4s'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glTexCoord4iv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glTexCoord4iv@@9@4@4PBDB DD FLAT:$SG322316	; `glTexCoord4iv'::`5'::szName
+?szName@?4??glTexCoord4iv@@9@4@4PBDB DD FLAT:$SG322386	; `glTexCoord4iv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glTexCoord4i@@9@16@4PBDB
 _DATA	SEGMENT
-?szName@?4??glTexCoord4i@@9@16@4PBDB DD FLAT:$SG322302	; `glTexCoord4i'::`5'::szName
+?szName@?4??glTexCoord4i@@9@16@4PBDB DD FLAT:$SG322372	; `glTexCoord4i'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glTexCoord4fv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glTexCoord4fv@@9@4@4PBDB DD FLAT:$SG322282	; `glTexCoord4fv'::`5'::szName
+?szName@?4??glTexCoord4fv@@9@4@4PBDB DD FLAT:$SG322352	; `glTexCoord4fv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glTexCoord4f@@9@16@4PBDB
 _DATA	SEGMENT
-?szName@?4??glTexCoord4f@@9@16@4PBDB DD FLAT:$SG322268	; `glTexCoord4f'::`5'::szName
+?szName@?4??glTexCoord4f@@9@16@4PBDB DD FLAT:$SG322338	; `glTexCoord4f'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glTexCoord4dv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glTexCoord4dv@@9@4@4PBDB DD FLAT:$SG322248	; `glTexCoord4dv'::`5'::szName
+?szName@?4??glTexCoord4dv@@9@4@4PBDB DD FLAT:$SG322318	; `glTexCoord4dv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glTexCoord4d@@9@32@4PBDB
 _DATA	SEGMENT
-?szName@?4??glTexCoord4d@@9@32@4PBDB DD FLAT:$SG322234	; `glTexCoord4d'::`5'::szName
+?szName@?4??glTexCoord4d@@9@32@4PBDB DD FLAT:$SG322304	; `glTexCoord4d'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glTexCoord3sv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glTexCoord3sv@@9@4@4PBDB DD FLAT:$SG322214	; `glTexCoord3sv'::`5'::szName
+?szName@?4??glTexCoord3sv@@9@4@4PBDB DD FLAT:$SG322284	; `glTexCoord3sv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glTexCoord3s@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glTexCoord3s@@9@12@4PBDB DD FLAT:$SG322200	; `glTexCoord3s'::`5'::szName
+?szName@?4??glTexCoord3s@@9@12@4PBDB DD FLAT:$SG322270	; `glTexCoord3s'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glTexCoord3iv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glTexCoord3iv@@9@4@4PBDB DD FLAT:$SG322182	; `glTexCoord3iv'::`5'::szName
+?szName@?4??glTexCoord3iv@@9@4@4PBDB DD FLAT:$SG322252	; `glTexCoord3iv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glTexCoord3i@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glTexCoord3i@@9@12@4PBDB DD FLAT:$SG322168	; `glTexCoord3i'::`5'::szName
+?szName@?4??glTexCoord3i@@9@12@4PBDB DD FLAT:$SG322238	; `glTexCoord3i'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glTexCoord3fv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glTexCoord3fv@@9@4@4PBDB DD FLAT:$SG322150	; `glTexCoord3fv'::`5'::szName
+?szName@?4??glTexCoord3fv@@9@4@4PBDB DD FLAT:$SG322220	; `glTexCoord3fv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glTexCoord3f@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glTexCoord3f@@9@12@4PBDB DD FLAT:$SG322136	; `glTexCoord3f'::`5'::szName
+?szName@?4??glTexCoord3f@@9@12@4PBDB DD FLAT:$SG322206	; `glTexCoord3f'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glTexCoord3dv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glTexCoord3dv@@9@4@4PBDB DD FLAT:$SG322118	; `glTexCoord3dv'::`5'::szName
+?szName@?4??glTexCoord3dv@@9@4@4PBDB DD FLAT:$SG322188	; `glTexCoord3dv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glTexCoord3d@@9@24@4PBDB
 _DATA	SEGMENT
-?szName@?4??glTexCoord3d@@9@24@4PBDB DD FLAT:$SG322104	; `glTexCoord3d'::`5'::szName
+?szName@?4??glTexCoord3d@@9@24@4PBDB DD FLAT:$SG322174	; `glTexCoord3d'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glTexCoord2sv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glTexCoord2sv@@9@4@4PBDB DD FLAT:$SG322086	; `glTexCoord2sv'::`5'::szName
+?szName@?4??glTexCoord2sv@@9@4@4PBDB DD FLAT:$SG322156	; `glTexCoord2sv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glTexCoord2s@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glTexCoord2s@@9@8@4PBDB DD FLAT:$SG322072	; `glTexCoord2s'::`5'::szName
+?szName@?4??glTexCoord2s@@9@8@4PBDB DD FLAT:$SG322142	; `glTexCoord2s'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glTexCoord2iv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glTexCoord2iv@@9@4@4PBDB DD FLAT:$SG322056	; `glTexCoord2iv'::`5'::szName
+?szName@?4??glTexCoord2iv@@9@4@4PBDB DD FLAT:$SG322126	; `glTexCoord2iv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glTexCoord2i@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glTexCoord2i@@9@8@4PBDB DD FLAT:$SG322042	; `glTexCoord2i'::`5'::szName
+?szName@?4??glTexCoord2i@@9@8@4PBDB DD FLAT:$SG322112	; `glTexCoord2i'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glTexCoord2fv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glTexCoord2fv@@9@4@4PBDB DD FLAT:$SG322026	; `glTexCoord2fv'::`5'::szName
+?szName@?4??glTexCoord2fv@@9@4@4PBDB DD FLAT:$SG322096	; `glTexCoord2fv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glTexCoord2f@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glTexCoord2f@@9@8@4PBDB DD FLAT:$SG322012	; `glTexCoord2f'::`5'::szName
+?szName@?4??glTexCoord2f@@9@8@4PBDB DD FLAT:$SG322082	; `glTexCoord2f'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glTexCoord2dv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glTexCoord2dv@@9@4@4PBDB DD FLAT:$SG321996	; `glTexCoord2dv'::`5'::szName
+?szName@?4??glTexCoord2dv@@9@4@4PBDB DD FLAT:$SG322066	; `glTexCoord2dv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glTexCoord2d@@9@16@4PBDB
 _DATA	SEGMENT
-?szName@?4??glTexCoord2d@@9@16@4PBDB DD FLAT:$SG321982	; `glTexCoord2d'::`5'::szName
+?szName@?4??glTexCoord2d@@9@16@4PBDB DD FLAT:$SG322052	; `glTexCoord2d'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glTexCoord1sv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glTexCoord1sv@@9@4@4PBDB DD FLAT:$SG321966	; `glTexCoord1sv'::`5'::szName
+?szName@?4??glTexCoord1sv@@9@4@4PBDB DD FLAT:$SG322036	; `glTexCoord1sv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glTexCoord1s@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glTexCoord1s@@9@4@4PBDB DD FLAT:$SG321952	; `glTexCoord1s'::`5'::szName
+?szName@?4??glTexCoord1s@@9@4@4PBDB DD FLAT:$SG322022	; `glTexCoord1s'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glTexCoord1iv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glTexCoord1iv@@9@4@4PBDB DD FLAT:$SG321938	; `glTexCoord1iv'::`5'::szName
+?szName@?4??glTexCoord1iv@@9@4@4PBDB DD FLAT:$SG322008	; `glTexCoord1iv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glTexCoord1i@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glTexCoord1i@@9@4@4PBDB DD FLAT:$SG321924	; `glTexCoord1i'::`5'::szName
+?szName@?4??glTexCoord1i@@9@4@4PBDB DD FLAT:$SG321994	; `glTexCoord1i'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glTexCoord1fv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glTexCoord1fv@@9@4@4PBDB DD FLAT:$SG321910	; `glTexCoord1fv'::`5'::szName
+?szName@?4??glTexCoord1fv@@9@4@4PBDB DD FLAT:$SG321980	; `glTexCoord1fv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glTexCoord1f@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glTexCoord1f@@9@4@4PBDB DD FLAT:$SG321896	; `glTexCoord1f'::`5'::szName
+?szName@?4??glTexCoord1f@@9@4@4PBDB DD FLAT:$SG321966	; `glTexCoord1f'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glTexCoord1dv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glTexCoord1dv@@9@4@4PBDB DD FLAT:$SG321882	; `glTexCoord1dv'::`5'::szName
+?szName@?4??glTexCoord1dv@@9@4@4PBDB DD FLAT:$SG321952	; `glTexCoord1dv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glTexCoord1d@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glTexCoord1d@@9@8@4PBDB DD FLAT:$SG321868	; `glTexCoord1d'::`5'::szName
+?szName@?4??glTexCoord1d@@9@8@4PBDB DD FLAT:$SG321938	; `glTexCoord1d'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glStencilOp@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glStencilOp@@9@12@4PBDB DD FLAT:$SG321854	; `glStencilOp'::`5'::szName
+?szName@?4??glStencilOp@@9@12@4PBDB DD FLAT:$SG321924	; `glStencilOp'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glStencilMask@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glStencilMask@@9@4@4PBDB DD FLAT:$SG321836	; `glStencilMask'::`5'::szName
+?szName@?4??glStencilMask@@9@4@4PBDB DD FLAT:$SG321906	; `glStencilMask'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glStencilFunc@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glStencilFunc@@9@12@4PBDB DD FLAT:$SG321822	; `glStencilFunc'::`5'::szName
+?szName@?4??glStencilFunc@@9@12@4PBDB DD FLAT:$SG321892	; `glStencilFunc'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glShadeModel@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glShadeModel@@9@4@4PBDB DD FLAT:$SG321804	; `glShadeModel'::`5'::szName
+?szName@?4??glShadeModel@@9@4@4PBDB DD FLAT:$SG321874	; `glShadeModel'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glSelectBuffer@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glSelectBuffer@@9@8@4PBDB DD FLAT:$SG321790	; `glSelectBuffer'::`5'::szName
+?szName@?4??glSelectBuffer@@9@8@4PBDB DD FLAT:$SG321860	; `glSelectBuffer'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glScissor@@9@16@4PBDB
 _DATA	SEGMENT
-?szName@?4??glScissor@@9@16@4PBDB DD FLAT:$SG321774	; `glScissor'::`5'::szName
+?szName@?4??glScissor@@9@16@4PBDB DD FLAT:$SG321844	; `glScissor'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glScalef@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glScalef@@9@12@4PBDB DD FLAT:$SG321754	; `glScalef'::`5'::szName
+?szName@?4??glScalef@@9@12@4PBDB DD FLAT:$SG321824	; `glScalef'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glScaled@@9@24@4PBDB
 _DATA	SEGMENT
-?szName@?4??glScaled@@9@24@4PBDB DD FLAT:$SG321736	; `glScaled'::`5'::szName
+?szName@?4??glScaled@@9@24@4PBDB DD FLAT:$SG321806	; `glScaled'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glRotatef@@9@16@4PBDB
 _DATA	SEGMENT
-?szName@?4??glRotatef@@9@16@4PBDB DD FLAT:$SG321718	; `glRotatef'::`5'::szName
+?szName@?4??glRotatef@@9@16@4PBDB DD FLAT:$SG321788	; `glRotatef'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glRotated@@9@32@4PBDB
 _DATA	SEGMENT
-?szName@?4??glRotated@@9@32@4PBDB DD FLAT:$SG321698	; `glRotated'::`5'::szName
+?szName@?4??glRotated@@9@32@4PBDB DD FLAT:$SG321768	; `glRotated'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glRenderMode@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glRenderMode@@9@4@4PBDB DD FLAT:$SG321678	; `glRenderMode'::`5'::szName
+?szName@?4??glRenderMode@@9@4@4PBDB DD FLAT:$SG321748	; `glRenderMode'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glRectsv@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glRectsv@@9@8@4PBDB DD FLAT:$SG321664	; `glRectsv'::`5'::szName
+?szName@?4??glRectsv@@9@8@4PBDB DD FLAT:$SG321734	; `glRectsv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glRects@@9@16@4PBDB
 _DATA	SEGMENT
-?szName@?4??glRects@@9@16@4PBDB DD FLAT:$SG321648	; `glRects'::`5'::szName
+?szName@?4??glRects@@9@16@4PBDB DD FLAT:$SG321718	; `glRects'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glRectiv@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glRectiv@@9@8@4PBDB DD FLAT:$SG321628	; `glRectiv'::`5'::szName
+?szName@?4??glRectiv@@9@8@4PBDB DD FLAT:$SG321698	; `glRectiv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glRecti@@9@16@4PBDB
 _DATA	SEGMENT
-?szName@?4??glRecti@@9@16@4PBDB DD FLAT:$SG321612	; `glRecti'::`5'::szName
+?szName@?4??glRecti@@9@16@4PBDB DD FLAT:$SG321682	; `glRecti'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glRectfv@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glRectfv@@9@8@4PBDB DD FLAT:$SG321592	; `glRectfv'::`5'::szName
+?szName@?4??glRectfv@@9@8@4PBDB DD FLAT:$SG321662	; `glRectfv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glRectf@@9@16@4PBDB
 _DATA	SEGMENT
-?szName@?4??glRectf@@9@16@4PBDB DD FLAT:$SG321576	; `glRectf'::`5'::szName
+?szName@?4??glRectf@@9@16@4PBDB DD FLAT:$SG321646	; `glRectf'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glRectdv@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glRectdv@@9@8@4PBDB DD FLAT:$SG321556	; `glRectdv'::`5'::szName
+?szName@?4??glRectdv@@9@8@4PBDB DD FLAT:$SG321626	; `glRectdv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glRectd@@9@32@4PBDB
 _DATA	SEGMENT
-?szName@?4??glRectd@@9@32@4PBDB DD FLAT:$SG321540	; `glRectd'::`5'::szName
+?szName@?4??glRectd@@9@32@4PBDB DD FLAT:$SG321610	; `glRectd'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glReadPixels@@9@28@4PBDB
 _DATA	SEGMENT
-?szName@?4??glReadPixels@@9@28@4PBDB DD FLAT:$SG321520	; `glReadPixels'::`5'::szName
+?szName@?4??glReadPixels@@9@28@4PBDB DD FLAT:$SG321590	; `glReadPixels'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glReadBuffer@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glReadBuffer@@9@4@4PBDB DD FLAT:$SG321494	; `glReadBuffer'::`5'::szName
+?szName@?4??glReadBuffer@@9@4@4PBDB DD FLAT:$SG321564	; `glReadBuffer'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glRasterPos4sv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glRasterPos4sv@@9@4@4PBDB DD FLAT:$SG321480	; `glRasterPos4sv'::`5'::szName
+?szName@?4??glRasterPos4sv@@9@4@4PBDB DD FLAT:$SG321550	; `glRasterPos4sv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glRasterPos4s@@9@16@4PBDB
 _DATA	SEGMENT
-?szName@?4??glRasterPos4s@@9@16@4PBDB DD FLAT:$SG321466	; `glRasterPos4s'::`5'::szName
+?szName@?4??glRasterPos4s@@9@16@4PBDB DD FLAT:$SG321536	; `glRasterPos4s'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glRasterPos4iv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glRasterPos4iv@@9@4@4PBDB DD FLAT:$SG321446	; `glRasterPos4iv'::`5'::szName
+?szName@?4??glRasterPos4iv@@9@4@4PBDB DD FLAT:$SG321516	; `glRasterPos4iv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glRasterPos4i@@9@16@4PBDB
 _DATA	SEGMENT
-?szName@?4??glRasterPos4i@@9@16@4PBDB DD FLAT:$SG321432	; `glRasterPos4i'::`5'::szName
+?szName@?4??glRasterPos4i@@9@16@4PBDB DD FLAT:$SG321502	; `glRasterPos4i'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glRasterPos4fv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glRasterPos4fv@@9@4@4PBDB DD FLAT:$SG321412	; `glRasterPos4fv'::`5'::szName
+?szName@?4??glRasterPos4fv@@9@4@4PBDB DD FLAT:$SG321482	; `glRasterPos4fv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glRasterPos4f@@9@16@4PBDB
 _DATA	SEGMENT
-?szName@?4??glRasterPos4f@@9@16@4PBDB DD FLAT:$SG321398	; `glRasterPos4f'::`5'::szName
+?szName@?4??glRasterPos4f@@9@16@4PBDB DD FLAT:$SG321468	; `glRasterPos4f'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glRasterPos4dv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glRasterPos4dv@@9@4@4PBDB DD FLAT:$SG321378	; `glRasterPos4dv'::`5'::szName
+?szName@?4??glRasterPos4dv@@9@4@4PBDB DD FLAT:$SG321448	; `glRasterPos4dv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glRasterPos4d@@9@32@4PBDB
 _DATA	SEGMENT
-?szName@?4??glRasterPos4d@@9@32@4PBDB DD FLAT:$SG321364	; `glRasterPos4d'::`5'::szName
+?szName@?4??glRasterPos4d@@9@32@4PBDB DD FLAT:$SG321434	; `glRasterPos4d'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glRasterPos3sv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glRasterPos3sv@@9@4@4PBDB DD FLAT:$SG321344	; `glRasterPos3sv'::`5'::szName
+?szName@?4??glRasterPos3sv@@9@4@4PBDB DD FLAT:$SG321414	; `glRasterPos3sv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glRasterPos3s@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glRasterPos3s@@9@12@4PBDB DD FLAT:$SG321330	; `glRasterPos3s'::`5'::szName
+?szName@?4??glRasterPos3s@@9@12@4PBDB DD FLAT:$SG321400	; `glRasterPos3s'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glRasterPos3iv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glRasterPos3iv@@9@4@4PBDB DD FLAT:$SG321312	; `glRasterPos3iv'::`5'::szName
+?szName@?4??glRasterPos3iv@@9@4@4PBDB DD FLAT:$SG321382	; `glRasterPos3iv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glRasterPos3i@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glRasterPos3i@@9@12@4PBDB DD FLAT:$SG321298	; `glRasterPos3i'::`5'::szName
+?szName@?4??glRasterPos3i@@9@12@4PBDB DD FLAT:$SG321368	; `glRasterPos3i'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glRasterPos3fv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glRasterPos3fv@@9@4@4PBDB DD FLAT:$SG321280	; `glRasterPos3fv'::`5'::szName
+?szName@?4??glRasterPos3fv@@9@4@4PBDB DD FLAT:$SG321350	; `glRasterPos3fv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glRasterPos3f@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glRasterPos3f@@9@12@4PBDB DD FLAT:$SG321266	; `glRasterPos3f'::`5'::szName
+?szName@?4??glRasterPos3f@@9@12@4PBDB DD FLAT:$SG321336	; `glRasterPos3f'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glRasterPos3dv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glRasterPos3dv@@9@4@4PBDB DD FLAT:$SG321248	; `glRasterPos3dv'::`5'::szName
+?szName@?4??glRasterPos3dv@@9@4@4PBDB DD FLAT:$SG321318	; `glRasterPos3dv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glRasterPos3d@@9@24@4PBDB
 _DATA	SEGMENT
-?szName@?4??glRasterPos3d@@9@24@4PBDB DD FLAT:$SG321234	; `glRasterPos3d'::`5'::szName
+?szName@?4??glRasterPos3d@@9@24@4PBDB DD FLAT:$SG321304	; `glRasterPos3d'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glRasterPos2sv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glRasterPos2sv@@9@4@4PBDB DD FLAT:$SG321216	; `glRasterPos2sv'::`5'::szName
+?szName@?4??glRasterPos2sv@@9@4@4PBDB DD FLAT:$SG321286	; `glRasterPos2sv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glRasterPos2s@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glRasterPos2s@@9@8@4PBDB DD FLAT:$SG321202	; `glRasterPos2s'::`5'::szName
+?szName@?4??glRasterPos2s@@9@8@4PBDB DD FLAT:$SG321272	; `glRasterPos2s'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glRasterPos2iv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glRasterPos2iv@@9@4@4PBDB DD FLAT:$SG321186	; `glRasterPos2iv'::`5'::szName
+?szName@?4??glRasterPos2iv@@9@4@4PBDB DD FLAT:$SG321256	; `glRasterPos2iv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glRasterPos2i@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glRasterPos2i@@9@8@4PBDB DD FLAT:$SG321172	; `glRasterPos2i'::`5'::szName
+?szName@?4??glRasterPos2i@@9@8@4PBDB DD FLAT:$SG321242	; `glRasterPos2i'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glRasterPos2fv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glRasterPos2fv@@9@4@4PBDB DD FLAT:$SG321156	; `glRasterPos2fv'::`5'::szName
+?szName@?4??glRasterPos2fv@@9@4@4PBDB DD FLAT:$SG321226	; `glRasterPos2fv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glRasterPos2f@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glRasterPos2f@@9@8@4PBDB DD FLAT:$SG321142	; `glRasterPos2f'::`5'::szName
+?szName@?4??glRasterPos2f@@9@8@4PBDB DD FLAT:$SG321212	; `glRasterPos2f'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glRasterPos2dv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glRasterPos2dv@@9@4@4PBDB DD FLAT:$SG321126	; `glRasterPos2dv'::`5'::szName
+?szName@?4??glRasterPos2dv@@9@4@4PBDB DD FLAT:$SG321196	; `glRasterPos2dv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glRasterPos2d@@9@16@4PBDB
 _DATA	SEGMENT
-?szName@?4??glRasterPos2d@@9@16@4PBDB DD FLAT:$SG321112	; `glRasterPos2d'::`5'::szName
+?szName@?4??glRasterPos2d@@9@16@4PBDB DD FLAT:$SG321182	; `glRasterPos2d'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glPushName@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glPushName@@9@4@4PBDB DD FLAT:$SG321096	; `glPushName'::`5'::szName
+?szName@?4??glPushName@@9@4@4PBDB DD FLAT:$SG321166	; `glPushName'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glPushMatrix@@9@0@4PBDB
 _DATA	SEGMENT
-?szName@?4??glPushMatrix@@9@0@4PBDB DD FLAT:$SG321082	; `glPushMatrix'::`5'::szName
+?szName@?4??glPushMatrix@@9@0@4PBDB DD FLAT:$SG321152	; `glPushMatrix'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glPushClientAttrib@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glPushClientAttrib@@9@4@4PBDB DD FLAT:$SG321068 ; `glPushClientAttrib'::`5'::szName
+?szName@?4??glPushClientAttrib@@9@4@4PBDB DD FLAT:$SG321138 ; `glPushClientAttrib'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glPushAttrib@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glPushAttrib@@9@4@4PBDB DD FLAT:$SG321054	; `glPushAttrib'::`5'::szName
+?szName@?4??glPushAttrib@@9@4@4PBDB DD FLAT:$SG321124	; `glPushAttrib'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glPrioritizeTextures@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glPrioritizeTextures@@9@12@4PBDB DD FLAT:$SG321040 ; `glPrioritizeTextures'::`5'::szName
+?szName@?4??glPrioritizeTextures@@9@12@4PBDB DD FLAT:$SG321110 ; `glPrioritizeTextures'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glPopName@@9@0@4PBDB
 _DATA	SEGMENT
-?szName@?4??glPopName@@9@0@4PBDB DD FLAT:$SG321022	; `glPopName'::`5'::szName
+?szName@?4??glPopName@@9@0@4PBDB DD FLAT:$SG321092	; `glPopName'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glPopMatrix@@9@0@4PBDB
 _DATA	SEGMENT
-?szName@?4??glPopMatrix@@9@0@4PBDB DD FLAT:$SG321008	; `glPopMatrix'::`5'::szName
+?szName@?4??glPopMatrix@@9@0@4PBDB DD FLAT:$SG321078	; `glPopMatrix'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glPopClientAttrib@@9@0@4PBDB
 _DATA	SEGMENT
-?szName@?4??glPopClientAttrib@@9@0@4PBDB DD FLAT:$SG320994 ; `glPopClientAttrib'::`5'::szName
+?szName@?4??glPopClientAttrib@@9@0@4PBDB DD FLAT:$SG321064 ; `glPopClientAttrib'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glPopAttrib@@9@0@4PBDB
 _DATA	SEGMENT
-?szName@?4??glPopAttrib@@9@0@4PBDB DD FLAT:$SG320980	; `glPopAttrib'::`5'::szName
+?szName@?4??glPopAttrib@@9@0@4PBDB DD FLAT:$SG321050	; `glPopAttrib'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glPolygonStipple@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glPolygonStipple@@9@4@4PBDB DD FLAT:$SG320966 ; `glPolygonStipple'::`5'::szName
+?szName@?4??glPolygonStipple@@9@4@4PBDB DD FLAT:$SG321036 ; `glPolygonStipple'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glPolygonOffset@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glPolygonOffset@@9@8@4PBDB DD FLAT:$SG320952 ; `glPolygonOffset'::`5'::szName
+?szName@?4??glPolygonOffset@@9@8@4PBDB DD FLAT:$SG321022 ; `glPolygonOffset'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glPolygonMode@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glPolygonMode@@9@8@4PBDB DD FLAT:$SG320936	; `glPolygonMode'::`5'::szName
+?szName@?4??glPolygonMode@@9@8@4PBDB DD FLAT:$SG321006	; `glPolygonMode'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glPointSize@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glPointSize@@9@4@4PBDB DD FLAT:$SG320920	; `glPointSize'::`5'::szName
+?szName@?4??glPointSize@@9@4@4PBDB DD FLAT:$SG320990	; `glPointSize'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glPixelZoom@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glPixelZoom@@9@8@4PBDB DD FLAT:$SG320906	; `glPixelZoom'::`5'::szName
+?szName@?4??glPixelZoom@@9@8@4PBDB DD FLAT:$SG320976	; `glPixelZoom'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glPixelTransferi@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glPixelTransferi@@9@8@4PBDB DD FLAT:$SG320890 ; `glPixelTransferi'::`5'::szName
+?szName@?4??glPixelTransferi@@9@8@4PBDB DD FLAT:$SG320960 ; `glPixelTransferi'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glPixelTransferf@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glPixelTransferf@@9@8@4PBDB DD FLAT:$SG320874 ; `glPixelTransferf'::`5'::szName
+?szName@?4??glPixelTransferf@@9@8@4PBDB DD FLAT:$SG320944 ; `glPixelTransferf'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glPixelStorei@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glPixelStorei@@9@8@4PBDB DD FLAT:$SG320858	; `glPixelStorei'::`5'::szName
+?szName@?4??glPixelStorei@@9@8@4PBDB DD FLAT:$SG320928	; `glPixelStorei'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glPixelStoref@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glPixelStoref@@9@8@4PBDB DD FLAT:$SG320842	; `glPixelStoref'::`5'::szName
+?szName@?4??glPixelStoref@@9@8@4PBDB DD FLAT:$SG320912	; `glPixelStoref'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glPixelMapusv@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glPixelMapusv@@9@12@4PBDB DD FLAT:$SG320826	; `glPixelMapusv'::`5'::szName
+?szName@?4??glPixelMapusv@@9@12@4PBDB DD FLAT:$SG320896	; `glPixelMapusv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glPixelMapuiv@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glPixelMapuiv@@9@12@4PBDB DD FLAT:$SG320808	; `glPixelMapuiv'::`5'::szName
+?szName@?4??glPixelMapuiv@@9@12@4PBDB DD FLAT:$SG320878	; `glPixelMapuiv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glPixelMapfv@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glPixelMapfv@@9@12@4PBDB DD FLAT:$SG320790	; `glPixelMapfv'::`5'::szName
+?szName@?4??glPixelMapfv@@9@12@4PBDB DD FLAT:$SG320860	; `glPixelMapfv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glPassThrough@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glPassThrough@@9@4@4PBDB DD FLAT:$SG320772	; `glPassThrough'::`5'::szName
+?szName@?4??glPassThrough@@9@4@4PBDB DD FLAT:$SG320842	; `glPassThrough'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glOrtho@@9@48@4PBDB
 _DATA	SEGMENT
-?szName@?4??glOrtho@@9@48@4PBDB DD FLAT:$SG320758	; `glOrtho'::`5'::szName
+?szName@?4??glOrtho@@9@48@4PBDB DD FLAT:$SG320828	; `glOrtho'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glNormalPointer@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glNormalPointer@@9@12@4PBDB DD FLAT:$SG320734 ; `glNormalPointer'::`5'::szName
+?szName@?4??glNormalPointer@@9@12@4PBDB DD FLAT:$SG320804 ; `glNormalPointer'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glNormal3sv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glNormal3sv@@9@4@4PBDB DD FLAT:$SG320716	; `glNormal3sv'::`5'::szName
+?szName@?4??glNormal3sv@@9@4@4PBDB DD FLAT:$SG320786	; `glNormal3sv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glNormal3s@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glNormal3s@@9@12@4PBDB DD FLAT:$SG320702	; `glNormal3s'::`5'::szName
+?szName@?4??glNormal3s@@9@12@4PBDB DD FLAT:$SG320772	; `glNormal3s'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glNormal3iv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glNormal3iv@@9@4@4PBDB DD FLAT:$SG320684	; `glNormal3iv'::`5'::szName
+?szName@?4??glNormal3iv@@9@4@4PBDB DD FLAT:$SG320754	; `glNormal3iv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glNormal3i@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glNormal3i@@9@12@4PBDB DD FLAT:$SG320670	; `glNormal3i'::`5'::szName
+?szName@?4??glNormal3i@@9@12@4PBDB DD FLAT:$SG320740	; `glNormal3i'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glNormal3fv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glNormal3fv@@9@4@4PBDB DD FLAT:$SG320652	; `glNormal3fv'::`5'::szName
+?szName@?4??glNormal3fv@@9@4@4PBDB DD FLAT:$SG320722	; `glNormal3fv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glNormal3f@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glNormal3f@@9@12@4PBDB DD FLAT:$SG320638	; `glNormal3f'::`5'::szName
+?szName@?4??glNormal3f@@9@12@4PBDB DD FLAT:$SG320708	; `glNormal3f'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glNormal3dv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glNormal3dv@@9@4@4PBDB DD FLAT:$SG320620	; `glNormal3dv'::`5'::szName
+?szName@?4??glNormal3dv@@9@4@4PBDB DD FLAT:$SG320690	; `glNormal3dv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glNormal3d@@9@24@4PBDB
 _DATA	SEGMENT
-?szName@?4??glNormal3d@@9@24@4PBDB DD FLAT:$SG320606	; `glNormal3d'::`5'::szName
+?szName@?4??glNormal3d@@9@24@4PBDB DD FLAT:$SG320676	; `glNormal3d'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glNormal3bv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glNormal3bv@@9@4@4PBDB DD FLAT:$SG320588	; `glNormal3bv'::`5'::szName
+?szName@?4??glNormal3bv@@9@4@4PBDB DD FLAT:$SG320658	; `glNormal3bv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glNormal3b@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glNormal3b@@9@12@4PBDB DD FLAT:$SG320574	; `glNormal3b'::`5'::szName
+?szName@?4??glNormal3b@@9@12@4PBDB DD FLAT:$SG320644	; `glNormal3b'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glNewList@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glNewList@@9@8@4PBDB DD FLAT:$SG320556	; `glNewList'::`5'::szName
+?szName@?4??glNewList@@9@8@4PBDB DD FLAT:$SG320626	; `glNewList'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glMultMatrixf@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glMultMatrixf@@9@4@4PBDB DD FLAT:$SG320540	; `glMultMatrixf'::`5'::szName
+?szName@?4??glMultMatrixf@@9@4@4PBDB DD FLAT:$SG320610	; `glMultMatrixf'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glMultMatrixd@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glMultMatrixd@@9@4@4PBDB DD FLAT:$SG320526	; `glMultMatrixd'::`5'::szName
+?szName@?4??glMultMatrixd@@9@4@4PBDB DD FLAT:$SG320596	; `glMultMatrixd'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glMatrixMode@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glMatrixMode@@9@4@4PBDB DD FLAT:$SG320512	; `glMatrixMode'::`5'::szName
+?szName@?4??glMatrixMode@@9@4@4PBDB DD FLAT:$SG320582	; `glMatrixMode'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glMaterialiv@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glMaterialiv@@9@12@4PBDB DD FLAT:$SG320498	; `glMaterialiv'::`5'::szName
+?szName@?4??glMaterialiv@@9@12@4PBDB DD FLAT:$SG320568	; `glMaterialiv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glMateriali@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glMateriali@@9@12@4PBDB DD FLAT:$SG320480	; `glMateriali'::`5'::szName
+?szName@?4??glMateriali@@9@12@4PBDB DD FLAT:$SG320550	; `glMateriali'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glMaterialfv@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glMaterialfv@@9@12@4PBDB DD FLAT:$SG320462	; `glMaterialfv'::`5'::szName
+?szName@?4??glMaterialfv@@9@12@4PBDB DD FLAT:$SG320532	; `glMaterialfv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glMaterialf@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glMaterialf@@9@12@4PBDB DD FLAT:$SG320444	; `glMaterialf'::`5'::szName
+?szName@?4??glMaterialf@@9@12@4PBDB DD FLAT:$SG320514	; `glMaterialf'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glMapGrid2f@@9@24@4PBDB
 _DATA	SEGMENT
-?szName@?4??glMapGrid2f@@9@24@4PBDB DD FLAT:$SG320426	; `glMapGrid2f'::`5'::szName
+?szName@?4??glMapGrid2f@@9@24@4PBDB DD FLAT:$SG320496	; `glMapGrid2f'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glMapGrid2d@@9@40@4PBDB
 _DATA	SEGMENT
-?szName@?4??glMapGrid2d@@9@40@4PBDB DD FLAT:$SG320402	; `glMapGrid2d'::`5'::szName
+?szName@?4??glMapGrid2d@@9@40@4PBDB DD FLAT:$SG320472	; `glMapGrid2d'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glMapGrid1f@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glMapGrid1f@@9@12@4PBDB DD FLAT:$SG320378	; `glMapGrid1f'::`5'::szName
+?szName@?4??glMapGrid1f@@9@12@4PBDB DD FLAT:$SG320448	; `glMapGrid1f'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glMapGrid1d@@9@20@4PBDB
 _DATA	SEGMENT
-?szName@?4??glMapGrid1d@@9@20@4PBDB DD FLAT:$SG320360	; `glMapGrid1d'::`5'::szName
+?szName@?4??glMapGrid1d@@9@20@4PBDB DD FLAT:$SG320430	; `glMapGrid1d'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glMap2f@@9@40@4PBDB
 _DATA	SEGMENT
-?szName@?4??glMap2f@@9@40@4PBDB DD FLAT:$SG320342	; `glMap2f'::`5'::szName
+?szName@?4??glMap2f@@9@40@4PBDB DD FLAT:$SG320412	; `glMap2f'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glMap2d@@9@56@4PBDB
 _DATA	SEGMENT
-?szName@?4??glMap2d@@9@56@4PBDB DD FLAT:$SG320310	; `glMap2d'::`5'::szName
+?szName@?4??glMap2d@@9@56@4PBDB DD FLAT:$SG320380	; `glMap2d'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glMap1f@@9@24@4PBDB
 _DATA	SEGMENT
-?szName@?4??glMap1f@@9@24@4PBDB DD FLAT:$SG320278	; `glMap1f'::`5'::szName
+?szName@?4??glMap1f@@9@24@4PBDB DD FLAT:$SG320348	; `glMap1f'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glMap1d@@9@32@4PBDB
 _DATA	SEGMENT
-?szName@?4??glMap1d@@9@32@4PBDB DD FLAT:$SG320254	; `glMap1d'::`5'::szName
+?szName@?4??glMap1d@@9@32@4PBDB DD FLAT:$SG320324	; `glMap1d'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glLogicOp@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glLogicOp@@9@4@4PBDB DD FLAT:$SG320230	; `glLogicOp'::`5'::szName
+?szName@?4??glLogicOp@@9@4@4PBDB DD FLAT:$SG320300	; `glLogicOp'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glLoadName@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glLoadName@@9@4@4PBDB DD FLAT:$SG320216	; `glLoadName'::`5'::szName
+?szName@?4??glLoadName@@9@4@4PBDB DD FLAT:$SG320286	; `glLoadName'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glLoadMatrixf@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glLoadMatrixf@@9@4@4PBDB DD FLAT:$SG320202	; `glLoadMatrixf'::`5'::szName
+?szName@?4??glLoadMatrixf@@9@4@4PBDB DD FLAT:$SG320272	; `glLoadMatrixf'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glLoadMatrixd@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glLoadMatrixd@@9@4@4PBDB DD FLAT:$SG320188	; `glLoadMatrixd'::`5'::szName
+?szName@?4??glLoadMatrixd@@9@4@4PBDB DD FLAT:$SG320258	; `glLoadMatrixd'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glLoadIdentity@@9@0@4PBDB
 _DATA	SEGMENT
-?szName@?4??glLoadIdentity@@9@0@4PBDB DD FLAT:$SG320174	; `glLoadIdentity'::`5'::szName
+?szName@?4??glLoadIdentity@@9@0@4PBDB DD FLAT:$SG320244	; `glLoadIdentity'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glListBase@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glListBase@@9@4@4PBDB DD FLAT:$SG320160	; `glListBase'::`5'::szName
+?szName@?4??glListBase@@9@4@4PBDB DD FLAT:$SG320230	; `glListBase'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glLineWidth@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glLineWidth@@9@4@4PBDB DD FLAT:$SG320146	; `glLineWidth'::`5'::szName
+?szName@?4??glLineWidth@@9@4@4PBDB DD FLAT:$SG320216	; `glLineWidth'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glLineStipple@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glLineStipple@@9@8@4PBDB DD FLAT:$SG320132	; `glLineStipple'::`5'::szName
+?szName@?4??glLineStipple@@9@8@4PBDB DD FLAT:$SG320202	; `glLineStipple'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glLightiv@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glLightiv@@9@12@4PBDB DD FLAT:$SG320116	; `glLightiv'::`5'::szName
+?szName@?4??glLightiv@@9@12@4PBDB DD FLAT:$SG320186	; `glLightiv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glLighti@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glLighti@@9@12@4PBDB DD FLAT:$SG320098	; `glLighti'::`5'::szName
+?szName@?4??glLighti@@9@12@4PBDB DD FLAT:$SG320168	; `glLighti'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glLightfv@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glLightfv@@9@12@4PBDB DD FLAT:$SG320080	; `glLightfv'::`5'::szName
+?szName@?4??glLightfv@@9@12@4PBDB DD FLAT:$SG320150	; `glLightfv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glLightf@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glLightf@@9@12@4PBDB DD FLAT:$SG320062	; `glLightf'::`5'::szName
+?szName@?4??glLightf@@9@12@4PBDB DD FLAT:$SG320132	; `glLightf'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glLightModeliv@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glLightModeliv@@9@8@4PBDB DD FLAT:$SG320044	; `glLightModeliv'::`5'::szName
+?szName@?4??glLightModeliv@@9@8@4PBDB DD FLAT:$SG320114	; `glLightModeliv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glLightModeli@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glLightModeli@@9@8@4PBDB DD FLAT:$SG320028	; `glLightModeli'::`5'::szName
+?szName@?4??glLightModeli@@9@8@4PBDB DD FLAT:$SG320098	; `glLightModeli'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glLightModelfv@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glLightModelfv@@9@8@4PBDB DD FLAT:$SG320012	; `glLightModelfv'::`5'::szName
+?szName@?4??glLightModelfv@@9@8@4PBDB DD FLAT:$SG320082	; `glLightModelfv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glLightModelf@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glLightModelf@@9@8@4PBDB DD FLAT:$SG319996	; `glLightModelf'::`5'::szName
+?szName@?4??glLightModelf@@9@8@4PBDB DD FLAT:$SG320066	; `glLightModelf'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glIsTexture@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glIsTexture@@9@4@4PBDB DD FLAT:$SG319980	; `glIsTexture'::`5'::szName
+?szName@?4??glIsTexture@@9@4@4PBDB DD FLAT:$SG320050	; `glIsTexture'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glIsList@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glIsList@@9@4@4PBDB DD FLAT:$SG319966	; `glIsList'::`5'::szName
+?szName@?4??glIsList@@9@4@4PBDB DD FLAT:$SG320036	; `glIsList'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glIsEnabled@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glIsEnabled@@9@4@4PBDB DD FLAT:$SG319952	; `glIsEnabled'::`5'::szName
+?szName@?4??glIsEnabled@@9@4@4PBDB DD FLAT:$SG320022	; `glIsEnabled'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glInterleavedArrays@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glInterleavedArrays@@9@12@4PBDB DD FLAT:$SG319938 ; `glInterleavedArrays'::`5'::szName
+?szName@?4??glInterleavedArrays@@9@12@4PBDB DD FLAT:$SG320008 ; `glInterleavedArrays'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glInitNames@@9@0@4PBDB
 _DATA	SEGMENT
-?szName@?4??glInitNames@@9@0@4PBDB DD FLAT:$SG319920	; `glInitNames'::`5'::szName
+?szName@?4??glInitNames@@9@0@4PBDB DD FLAT:$SG319990	; `glInitNames'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glIndexubv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glIndexubv@@9@4@4PBDB DD FLAT:$SG319906	; `glIndexubv'::`5'::szName
+?szName@?4??glIndexubv@@9@4@4PBDB DD FLAT:$SG319976	; `glIndexubv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glIndexub@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glIndexub@@9@4@4PBDB DD FLAT:$SG319892	; `glIndexub'::`5'::szName
+?szName@?4??glIndexub@@9@4@4PBDB DD FLAT:$SG319962	; `glIndexub'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glIndexsv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glIndexsv@@9@4@4PBDB DD FLAT:$SG319878	; `glIndexsv'::`5'::szName
+?szName@?4??glIndexsv@@9@4@4PBDB DD FLAT:$SG319948	; `glIndexsv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glIndexs@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glIndexs@@9@4@4PBDB DD FLAT:$SG319864	; `glIndexs'::`5'::szName
+?szName@?4??glIndexs@@9@4@4PBDB DD FLAT:$SG319934	; `glIndexs'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glIndexiv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glIndexiv@@9@4@4PBDB DD FLAT:$SG319850	; `glIndexiv'::`5'::szName
+?szName@?4??glIndexiv@@9@4@4PBDB DD FLAT:$SG319920	; `glIndexiv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glIndexi@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glIndexi@@9@4@4PBDB DD FLAT:$SG319836	; `glIndexi'::`5'::szName
+?szName@?4??glIndexi@@9@4@4PBDB DD FLAT:$SG319906	; `glIndexi'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glIndexfv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glIndexfv@@9@4@4PBDB DD FLAT:$SG319822	; `glIndexfv'::`5'::szName
+?szName@?4??glIndexfv@@9@4@4PBDB DD FLAT:$SG319892	; `glIndexfv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glIndexf@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glIndexf@@9@4@4PBDB DD FLAT:$SG319808	; `glIndexf'::`5'::szName
+?szName@?4??glIndexf@@9@4@4PBDB DD FLAT:$SG319878	; `glIndexf'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glIndexdv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glIndexdv@@9@4@4PBDB DD FLAT:$SG319794	; `glIndexdv'::`5'::szName
+?szName@?4??glIndexdv@@9@4@4PBDB DD FLAT:$SG319864	; `glIndexdv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glIndexd@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glIndexd@@9@8@4PBDB DD FLAT:$SG319780	; `glIndexd'::`5'::szName
+?szName@?4??glIndexd@@9@8@4PBDB DD FLAT:$SG319850	; `glIndexd'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glIndexPointer@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glIndexPointer@@9@12@4PBDB DD FLAT:$SG319766 ; `glIndexPointer'::`5'::szName
+?szName@?4??glIndexPointer@@9@12@4PBDB DD FLAT:$SG319836 ; `glIndexPointer'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glIndexMask@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glIndexMask@@9@4@4PBDB DD FLAT:$SG319748	; `glIndexMask'::`5'::szName
+?szName@?4??glIndexMask@@9@4@4PBDB DD FLAT:$SG319818	; `glIndexMask'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glHint@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glHint@@9@8@4PBDB DD FLAT:$SG319734		; `glHint'::`5'::szName
+?szName@?4??glHint@@9@8@4PBDB DD FLAT:$SG319804		; `glHint'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glGetTexParameteriv@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glGetTexParameteriv@@9@12@4PBDB DD FLAT:$SG319718 ; `glGetTexParameteriv'::`5'::szName
+?szName@?4??glGetTexParameteriv@@9@12@4PBDB DD FLAT:$SG319788 ; `glGetTexParameteriv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glGetTexParameterfv@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glGetTexParameterfv@@9@12@4PBDB DD FLAT:$SG319700 ; `glGetTexParameterfv'::`5'::szName
+?szName@?4??glGetTexParameterfv@@9@12@4PBDB DD FLAT:$SG319770 ; `glGetTexParameterfv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glGetTexLevelParameteriv@@9@16@4PBDB
 _DATA	SEGMENT
-?szName@?4??glGetTexLevelParameteriv@@9@16@4PBDB DD FLAT:$SG319682 ; `glGetTexLevelParameteriv'::`5'::szName
+?szName@?4??glGetTexLevelParameteriv@@9@16@4PBDB DD FLAT:$SG319752 ; `glGetTexLevelParameteriv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glGetTexLevelParameterfv@@9@16@4PBDB
 _DATA	SEGMENT
-?szName@?4??glGetTexLevelParameterfv@@9@16@4PBDB DD FLAT:$SG319662 ; `glGetTexLevelParameterfv'::`5'::szName
+?szName@?4??glGetTexLevelParameterfv@@9@16@4PBDB DD FLAT:$SG319732 ; `glGetTexLevelParameterfv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glGetTexImage@@9@20@4PBDB
 _DATA	SEGMENT
-?szName@?4??glGetTexImage@@9@20@4PBDB DD FLAT:$SG319642	; `glGetTexImage'::`5'::szName
+?szName@?4??glGetTexImage@@9@20@4PBDB DD FLAT:$SG319712	; `glGetTexImage'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glGetTexGeniv@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glGetTexGeniv@@9@12@4PBDB DD FLAT:$SG319620	; `glGetTexGeniv'::`5'::szName
+?szName@?4??glGetTexGeniv@@9@12@4PBDB DD FLAT:$SG319690	; `glGetTexGeniv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glGetTexGenfv@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glGetTexGenfv@@9@12@4PBDB DD FLAT:$SG319602	; `glGetTexGenfv'::`5'::szName
+?szName@?4??glGetTexGenfv@@9@12@4PBDB DD FLAT:$SG319672	; `glGetTexGenfv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glGetTexGendv@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glGetTexGendv@@9@12@4PBDB DD FLAT:$SG319584	; `glGetTexGendv'::`5'::szName
+?szName@?4??glGetTexGendv@@9@12@4PBDB DD FLAT:$SG319654	; `glGetTexGendv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glGetTexEnviv@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glGetTexEnviv@@9@12@4PBDB DD FLAT:$SG319566	; `glGetTexEnviv'::`5'::szName
+?szName@?4??glGetTexEnviv@@9@12@4PBDB DD FLAT:$SG319636	; `glGetTexEnviv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glGetTexEnvfv@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glGetTexEnvfv@@9@12@4PBDB DD FLAT:$SG319548	; `glGetTexEnvfv'::`5'::szName
+?szName@?4??glGetTexEnvfv@@9@12@4PBDB DD FLAT:$SG319618	; `glGetTexEnvfv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glGetString@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glGetString@@9@4@4PBDB DD FLAT:$SG319530	; `glGetString'::`5'::szName
+?szName@?4??glGetString@@9@4@4PBDB DD FLAT:$SG319600	; `glGetString'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glGetPolygonStipple@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glGetPolygonStipple@@9@4@4PBDB DD FLAT:$SG319516 ; `glGetPolygonStipple'::`5'::szName
+?szName@?4??glGetPolygonStipple@@9@4@4PBDB DD FLAT:$SG319586 ; `glGetPolygonStipple'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glGetPointerv@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glGetPointerv@@9@8@4PBDB DD FLAT:$SG319502	; `glGetPointerv'::`5'::szName
+?szName@?4??glGetPointerv@@9@8@4PBDB DD FLAT:$SG319572	; `glGetPointerv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glGetPixelMapusv@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glGetPixelMapusv@@9@8@4PBDB DD FLAT:$SG319486 ; `glGetPixelMapusv'::`5'::szName
+?szName@?4??glGetPixelMapusv@@9@8@4PBDB DD FLAT:$SG319556 ; `glGetPixelMapusv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glGetPixelMapuiv@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glGetPixelMapuiv@@9@8@4PBDB DD FLAT:$SG319470 ; `glGetPixelMapuiv'::`5'::szName
+?szName@?4??glGetPixelMapuiv@@9@8@4PBDB DD FLAT:$SG319540 ; `glGetPixelMapuiv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glGetPixelMapfv@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glGetPixelMapfv@@9@8@4PBDB DD FLAT:$SG319454 ; `glGetPixelMapfv'::`5'::szName
+?szName@?4??glGetPixelMapfv@@9@8@4PBDB DD FLAT:$SG319524 ; `glGetPixelMapfv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glGetMaterialiv@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glGetMaterialiv@@9@12@4PBDB DD FLAT:$SG319438 ; `glGetMaterialiv'::`5'::szName
+?szName@?4??glGetMaterialiv@@9@12@4PBDB DD FLAT:$SG319508 ; `glGetMaterialiv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glGetMaterialfv@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glGetMaterialfv@@9@12@4PBDB DD FLAT:$SG319420 ; `glGetMaterialfv'::`5'::szName
+?szName@?4??glGetMaterialfv@@9@12@4PBDB DD FLAT:$SG319490 ; `glGetMaterialfv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glGetMapiv@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glGetMapiv@@9@12@4PBDB DD FLAT:$SG319402	; `glGetMapiv'::`5'::szName
+?szName@?4??glGetMapiv@@9@12@4PBDB DD FLAT:$SG319472	; `glGetMapiv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glGetMapfv@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glGetMapfv@@9@12@4PBDB DD FLAT:$SG319384	; `glGetMapfv'::`5'::szName
+?szName@?4??glGetMapfv@@9@12@4PBDB DD FLAT:$SG319454	; `glGetMapfv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glGetMapdv@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glGetMapdv@@9@12@4PBDB DD FLAT:$SG319366	; `glGetMapdv'::`5'::szName
+?szName@?4??glGetMapdv@@9@12@4PBDB DD FLAT:$SG319436	; `glGetMapdv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glGetLightiv@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glGetLightiv@@9@12@4PBDB DD FLAT:$SG319348	; `glGetLightiv'::`5'::szName
+?szName@?4??glGetLightiv@@9@12@4PBDB DD FLAT:$SG319418	; `glGetLightiv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glGetLightfv@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glGetLightfv@@9@12@4PBDB DD FLAT:$SG319330	; `glGetLightfv'::`5'::szName
+?szName@?4??glGetLightfv@@9@12@4PBDB DD FLAT:$SG319400	; `glGetLightfv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glGetIntegerv@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glGetIntegerv@@9@8@4PBDB DD FLAT:$SG319312	; `glGetIntegerv'::`5'::szName
+?szName@?4??glGetIntegerv@@9@8@4PBDB DD FLAT:$SG319382	; `glGetIntegerv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glGetFloatv@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glGetFloatv@@9@8@4PBDB DD FLAT:$SG319296	; `glGetFloatv'::`5'::szName
+?szName@?4??glGetFloatv@@9@8@4PBDB DD FLAT:$SG319366	; `glGetFloatv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glGetError@@9@0@4PBDB
 _DATA	SEGMENT
-?szName@?4??glGetError@@9@0@4PBDB DD FLAT:$SG319280	; `glGetError'::`5'::szName
+?szName@?4??glGetError@@9@0@4PBDB DD FLAT:$SG319350	; `glGetError'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glGetDoublev@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glGetDoublev@@9@8@4PBDB DD FLAT:$SG319266	; `glGetDoublev'::`5'::szName
+?szName@?4??glGetDoublev@@9@8@4PBDB DD FLAT:$SG319336	; `glGetDoublev'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glGetClipPlane@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glGetClipPlane@@9@8@4PBDB DD FLAT:$SG319250	; `glGetClipPlane'::`5'::szName
+?szName@?4??glGetClipPlane@@9@8@4PBDB DD FLAT:$SG319320	; `glGetClipPlane'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glGetBooleanv@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glGetBooleanv@@9@8@4PBDB DD FLAT:$SG319234	; `glGetBooleanv'::`5'::szName
+?szName@?4??glGetBooleanv@@9@8@4PBDB DD FLAT:$SG319304	; `glGetBooleanv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glGenTextures@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glGenTextures@@9@8@4PBDB DD FLAT:$SG319218	; `glGenTextures'::`5'::szName
+?szName@?4??glGenTextures@@9@8@4PBDB DD FLAT:$SG319288	; `glGenTextures'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glGenLists@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glGenLists@@9@4@4PBDB DD FLAT:$SG319202	; `glGenLists'::`5'::szName
+?szName@?4??glGenLists@@9@4@4PBDB DD FLAT:$SG319272	; `glGenLists'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glFrustum@@9@48@4PBDB
 _DATA	SEGMENT
-?szName@?4??glFrustum@@9@48@4PBDB DD FLAT:$SG319188	; `glFrustum'::`5'::szName
+?szName@?4??glFrustum@@9@48@4PBDB DD FLAT:$SG319258	; `glFrustum'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glFrontFace@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glFrontFace@@9@4@4PBDB DD FLAT:$SG319164	; `glFrontFace'::`5'::szName
+?szName@?4??glFrontFace@@9@4@4PBDB DD FLAT:$SG319234	; `glFrontFace'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glFogiv@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glFogiv@@9@8@4PBDB DD FLAT:$SG319150	; `glFogiv'::`5'::szName
+?szName@?4??glFogiv@@9@8@4PBDB DD FLAT:$SG319220	; `glFogiv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glFogi@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glFogi@@9@8@4PBDB DD FLAT:$SG319134		; `glFogi'::`5'::szName
+?szName@?4??glFogi@@9@8@4PBDB DD FLAT:$SG319204		; `glFogi'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glFogfv@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glFogfv@@9@8@4PBDB DD FLAT:$SG319118	; `glFogfv'::`5'::szName
+?szName@?4??glFogfv@@9@8@4PBDB DD FLAT:$SG319188	; `glFogfv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glFogf@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glFogf@@9@8@4PBDB DD FLAT:$SG319102		; `glFogf'::`5'::szName
+?szName@?4??glFogf@@9@8@4PBDB DD FLAT:$SG319172		; `glFogf'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glFlush@@9@0@4PBDB
 _DATA	SEGMENT
-?szName@?4??glFlush@@9@0@4PBDB DD FLAT:$SG319086	; `glFlush'::`5'::szName
+?szName@?4??glFlush@@9@0@4PBDB DD FLAT:$SG319156	; `glFlush'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glFinish@@9@0@4PBDB
 _DATA	SEGMENT
-?szName@?4??glFinish@@9@0@4PBDB DD FLAT:$SG319072	; `glFinish'::`5'::szName
+?szName@?4??glFinish@@9@0@4PBDB DD FLAT:$SG319142	; `glFinish'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glFeedbackBuffer@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glFeedbackBuffer@@9@12@4PBDB DD FLAT:$SG319058 ; `glFeedbackBuffer'::`5'::szName
+?szName@?4??glFeedbackBuffer@@9@12@4PBDB DD FLAT:$SG319128 ; `glFeedbackBuffer'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glEvalPoint2@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glEvalPoint2@@9@8@4PBDB DD FLAT:$SG319040	; `glEvalPoint2'::`5'::szName
+?szName@?4??glEvalPoint2@@9@8@4PBDB DD FLAT:$SG319110	; `glEvalPoint2'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glEvalPoint1@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glEvalPoint1@@9@4@4PBDB DD FLAT:$SG319024	; `glEvalPoint1'::`5'::szName
+?szName@?4??glEvalPoint1@@9@4@4PBDB DD FLAT:$SG319094	; `glEvalPoint1'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glEvalMesh2@@9@20@4PBDB
 _DATA	SEGMENT
-?szName@?4??glEvalMesh2@@9@20@4PBDB DD FLAT:$SG319010	; `glEvalMesh2'::`5'::szName
+?szName@?4??glEvalMesh2@@9@20@4PBDB DD FLAT:$SG319080	; `glEvalMesh2'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glEvalMesh1@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glEvalMesh1@@9@12@4PBDB DD FLAT:$SG318988	; `glEvalMesh1'::`5'::szName
+?szName@?4??glEvalMesh1@@9@12@4PBDB DD FLAT:$SG319058	; `glEvalMesh1'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glEvalCoord2fv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glEvalCoord2fv@@9@4@4PBDB DD FLAT:$SG318970	; `glEvalCoord2fv'::`5'::szName
+?szName@?4??glEvalCoord2fv@@9@4@4PBDB DD FLAT:$SG319040	; `glEvalCoord2fv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glEvalCoord2f@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glEvalCoord2f@@9@8@4PBDB DD FLAT:$SG318956	; `glEvalCoord2f'::`5'::szName
+?szName@?4??glEvalCoord2f@@9@8@4PBDB DD FLAT:$SG319026	; `glEvalCoord2f'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glEvalCoord2dv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glEvalCoord2dv@@9@4@4PBDB DD FLAT:$SG318940	; `glEvalCoord2dv'::`5'::szName
+?szName@?4??glEvalCoord2dv@@9@4@4PBDB DD FLAT:$SG319010	; `glEvalCoord2dv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glEvalCoord2d@@9@16@4PBDB
 _DATA	SEGMENT
-?szName@?4??glEvalCoord2d@@9@16@4PBDB DD FLAT:$SG318926	; `glEvalCoord2d'::`5'::szName
+?szName@?4??glEvalCoord2d@@9@16@4PBDB DD FLAT:$SG318996	; `glEvalCoord2d'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glEvalCoord1fv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glEvalCoord1fv@@9@4@4PBDB DD FLAT:$SG318910	; `glEvalCoord1fv'::`5'::szName
+?szName@?4??glEvalCoord1fv@@9@4@4PBDB DD FLAT:$SG318980	; `glEvalCoord1fv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glEvalCoord1f@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glEvalCoord1f@@9@4@4PBDB DD FLAT:$SG318896	; `glEvalCoord1f'::`5'::szName
+?szName@?4??glEvalCoord1f@@9@4@4PBDB DD FLAT:$SG318966	; `glEvalCoord1f'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glEvalCoord1dv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glEvalCoord1dv@@9@4@4PBDB DD FLAT:$SG318882	; `glEvalCoord1dv'::`5'::szName
+?szName@?4??glEvalCoord1dv@@9@4@4PBDB DD FLAT:$SG318952	; `glEvalCoord1dv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glEvalCoord1d@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glEvalCoord1d@@9@8@4PBDB DD FLAT:$SG318868	; `glEvalCoord1d'::`5'::szName
+?szName@?4??glEvalCoord1d@@9@8@4PBDB DD FLAT:$SG318938	; `glEvalCoord1d'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glEndList@@9@0@4PBDB
 _DATA	SEGMENT
-?szName@?4??glEndList@@9@0@4PBDB DD FLAT:$SG318854	; `glEndList'::`5'::szName
+?szName@?4??glEndList@@9@0@4PBDB DD FLAT:$SG318924	; `glEndList'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glEnd@@9@0@4PBDB
 _DATA	SEGMENT
-?szName@?4??glEnd@@9@0@4PBDB DD FLAT:$SG318840		; `glEnd'::`5'::szName
+?szName@?4??glEnd@@9@0@4PBDB DD FLAT:$SG318910		; `glEnd'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glEnableClientState@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glEnableClientState@@9@4@4PBDB DD FLAT:$SG318826 ; `glEnableClientState'::`5'::szName
+?szName@?4??glEnableClientState@@9@4@4PBDB DD FLAT:$SG318896 ; `glEnableClientState'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glEnable@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glEnable@@9@4@4PBDB DD FLAT:$SG318812	; `glEnable'::`5'::szName
+?szName@?4??glEnable@@9@4@4PBDB DD FLAT:$SG318882	; `glEnable'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glEdgeFlagv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glEdgeFlagv@@9@4@4PBDB DD FLAT:$SG318798	; `glEdgeFlagv'::`5'::szName
+?szName@?4??glEdgeFlagv@@9@4@4PBDB DD FLAT:$SG318868	; `glEdgeFlagv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glEdgeFlagPointer@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glEdgeFlagPointer@@9@8@4PBDB DD FLAT:$SG318784 ; `glEdgeFlagPointer'::`5'::szName
+?szName@?4??glEdgeFlagPointer@@9@8@4PBDB DD FLAT:$SG318854 ; `glEdgeFlagPointer'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glEdgeFlag@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glEdgeFlag@@9@4@4PBDB DD FLAT:$SG318768	; `glEdgeFlag'::`5'::szName
+?szName@?4??glEdgeFlag@@9@4@4PBDB DD FLAT:$SG318838	; `glEdgeFlag'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glDrawPixels@@9@20@4PBDB
 _DATA	SEGMENT
-?szName@?4??glDrawPixels@@9@20@4PBDB DD FLAT:$SG318754	; `glDrawPixels'::`5'::szName
+?szName@?4??glDrawPixels@@9@20@4PBDB DD FLAT:$SG318824	; `glDrawPixels'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glDrawElements@@9@16@4PBDB
 _DATA	SEGMENT
-?szName@?4??glDrawElements@@9@16@4PBDB DD FLAT:$SG318732 ; `glDrawElements'::`5'::szName
+?szName@?4??glDrawElements@@9@16@4PBDB DD FLAT:$SG318802 ; `glDrawElements'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glDrawBuffer@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glDrawBuffer@@9@4@4PBDB DD FLAT:$SG318712	; `glDrawBuffer'::`5'::szName
+?szName@?4??glDrawBuffer@@9@4@4PBDB DD FLAT:$SG318782	; `glDrawBuffer'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glDrawArrays@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glDrawArrays@@9@12@4PBDB DD FLAT:$SG318698	; `glDrawArrays'::`5'::szName
+?szName@?4??glDrawArrays@@9@12@4PBDB DD FLAT:$SG318768	; `glDrawArrays'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glDisableClientState@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glDisableClientState@@9@4@4PBDB DD FLAT:$SG318680 ; `glDisableClientState'::`5'::szName
+?szName@?4??glDisableClientState@@9@4@4PBDB DD FLAT:$SG318750 ; `glDisableClientState'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glDisable@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glDisable@@9@4@4PBDB DD FLAT:$SG318666	; `glDisable'::`5'::szName
+?szName@?4??glDisable@@9@4@4PBDB DD FLAT:$SG318736	; `glDisable'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glDepthRange@@9@16@4PBDB
 _DATA	SEGMENT
-?szName@?4??glDepthRange@@9@16@4PBDB DD FLAT:$SG318652	; `glDepthRange'::`5'::szName
+?szName@?4??glDepthRange@@9@16@4PBDB DD FLAT:$SG318722	; `glDepthRange'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glDepthMask@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glDepthMask@@9@4@4PBDB DD FLAT:$SG318636	; `glDepthMask'::`5'::szName
+?szName@?4??glDepthMask@@9@4@4PBDB DD FLAT:$SG318706	; `glDepthMask'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glDepthFunc@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glDepthFunc@@9@4@4PBDB DD FLAT:$SG318622	; `glDepthFunc'::`5'::szName
+?szName@?4??glDepthFunc@@9@4@4PBDB DD FLAT:$SG318692	; `glDepthFunc'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glDeleteTextures@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glDeleteTextures@@9@8@4PBDB DD FLAT:$SG318608 ; `glDeleteTextures'::`5'::szName
+?szName@?4??glDeleteTextures@@9@8@4PBDB DD FLAT:$SG318678 ; `glDeleteTextures'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glDeleteLists@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glDeleteLists@@9@8@4PBDB DD FLAT:$SG318592	; `glDeleteLists'::`5'::szName
+?szName@?4??glDeleteLists@@9@8@4PBDB DD FLAT:$SG318662	; `glDeleteLists'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glDebugEntry@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glDebugEntry@@9@8@4PBDB DD FLAT:$SG318576	; `glDebugEntry'::`5'::szName
+?szName@?4??glDebugEntry@@9@8@4PBDB DD FLAT:$SG318646	; `glDebugEntry'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glCullFace@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glCullFace@@9@4@4PBDB DD FLAT:$SG318560	; `glCullFace'::`5'::szName
+?szName@?4??glCullFace@@9@4@4PBDB DD FLAT:$SG318630	; `glCullFace'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glCopyTexSubImage2D@@9@32@4PBDB
 _DATA	SEGMENT
-?szName@?4??glCopyTexSubImage2D@@9@32@4PBDB DD FLAT:$SG318546 ; `glCopyTexSubImage2D'::`5'::szName
+?szName@?4??glCopyTexSubImage2D@@9@32@4PBDB DD FLAT:$SG318616 ; `glCopyTexSubImage2D'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glCopyTexSubImage1D@@9@24@4PBDB
 _DATA	SEGMENT
-?szName@?4??glCopyTexSubImage1D@@9@24@4PBDB DD FLAT:$SG318518 ; `glCopyTexSubImage1D'::`5'::szName
+?szName@?4??glCopyTexSubImage1D@@9@24@4PBDB DD FLAT:$SG318588 ; `glCopyTexSubImage1D'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glCopyTexImage2D@@9@32@4PBDB
 _DATA	SEGMENT
-?szName@?4??glCopyTexImage2D@@9@32@4PBDB DD FLAT:$SG318494 ; `glCopyTexImage2D'::`5'::szName
+?szName@?4??glCopyTexImage2D@@9@32@4PBDB DD FLAT:$SG318564 ; `glCopyTexImage2D'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glCopyTexImage1D@@9@28@4PBDB
 _DATA	SEGMENT
-?szName@?4??glCopyTexImage1D@@9@28@4PBDB DD FLAT:$SG318466 ; `glCopyTexImage1D'::`5'::szName
+?szName@?4??glCopyTexImage1D@@9@28@4PBDB DD FLAT:$SG318536 ; `glCopyTexImage1D'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glCopyPixels@@9@20@4PBDB
 _DATA	SEGMENT
-?szName@?4??glCopyPixels@@9@20@4PBDB DD FLAT:$SG318440	; `glCopyPixels'::`5'::szName
+?szName@?4??glCopyPixels@@9@20@4PBDB DD FLAT:$SG318510	; `glCopyPixels'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glColorPointer@@9@16@4PBDB
 _DATA	SEGMENT
-?szName@?4??glColorPointer@@9@16@4PBDB DD FLAT:$SG318418 ; `glColorPointer'::`5'::szName
+?szName@?4??glColorPointer@@9@16@4PBDB DD FLAT:$SG318488 ; `glColorPointer'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glColorMaterial@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glColorMaterial@@9@8@4PBDB DD FLAT:$SG318398 ; `glColorMaterial'::`5'::szName
+?szName@?4??glColorMaterial@@9@8@4PBDB DD FLAT:$SG318468 ; `glColorMaterial'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glColorMask@@9@16@4PBDB
 _DATA	SEGMENT
-?szName@?4??glColorMask@@9@16@4PBDB DD FLAT:$SG318382	; `glColorMask'::`5'::szName
+?szName@?4??glColorMask@@9@16@4PBDB DD FLAT:$SG318452	; `glColorMask'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glColor4usv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glColor4usv@@9@4@4PBDB DD FLAT:$SG318362	; `glColor4usv'::`5'::szName
+?szName@?4??glColor4usv@@9@4@4PBDB DD FLAT:$SG318432	; `glColor4usv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glColor4us@@9@16@4PBDB
 _DATA	SEGMENT
-?szName@?4??glColor4us@@9@16@4PBDB DD FLAT:$SG318348	; `glColor4us'::`5'::szName
+?szName@?4??glColor4us@@9@16@4PBDB DD FLAT:$SG318418	; `glColor4us'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glColor4uiv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glColor4uiv@@9@4@4PBDB DD FLAT:$SG318328	; `glColor4uiv'::`5'::szName
+?szName@?4??glColor4uiv@@9@4@4PBDB DD FLAT:$SG318398	; `glColor4uiv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glColor4ui@@9@16@4PBDB
 _DATA	SEGMENT
-?szName@?4??glColor4ui@@9@16@4PBDB DD FLAT:$SG318314	; `glColor4ui'::`5'::szName
+?szName@?4??glColor4ui@@9@16@4PBDB DD FLAT:$SG318384	; `glColor4ui'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glColor4ubv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glColor4ubv@@9@4@4PBDB DD FLAT:$SG318294	; `glColor4ubv'::`5'::szName
+?szName@?4??glColor4ubv@@9@4@4PBDB DD FLAT:$SG318364	; `glColor4ubv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glColor4ub@@9@16@4PBDB
 _DATA	SEGMENT
-?szName@?4??glColor4ub@@9@16@4PBDB DD FLAT:$SG318280	; `glColor4ub'::`5'::szName
+?szName@?4??glColor4ub@@9@16@4PBDB DD FLAT:$SG318350	; `glColor4ub'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glColor4sv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glColor4sv@@9@4@4PBDB DD FLAT:$SG318260	; `glColor4sv'::`5'::szName
+?szName@?4??glColor4sv@@9@4@4PBDB DD FLAT:$SG318330	; `glColor4sv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glColor4s@@9@16@4PBDB
 _DATA	SEGMENT
-?szName@?4??glColor4s@@9@16@4PBDB DD FLAT:$SG318246	; `glColor4s'::`5'::szName
+?szName@?4??glColor4s@@9@16@4PBDB DD FLAT:$SG318316	; `glColor4s'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glColor4iv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glColor4iv@@9@4@4PBDB DD FLAT:$SG318226	; `glColor4iv'::`5'::szName
+?szName@?4??glColor4iv@@9@4@4PBDB DD FLAT:$SG318296	; `glColor4iv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glColor4i@@9@16@4PBDB
 _DATA	SEGMENT
-?szName@?4??glColor4i@@9@16@4PBDB DD FLAT:$SG318212	; `glColor4i'::`5'::szName
+?szName@?4??glColor4i@@9@16@4PBDB DD FLAT:$SG318282	; `glColor4i'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glColor4fv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glColor4fv@@9@4@4PBDB DD FLAT:$SG318192	; `glColor4fv'::`5'::szName
+?szName@?4??glColor4fv@@9@4@4PBDB DD FLAT:$SG318262	; `glColor4fv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glColor4f@@9@16@4PBDB
 _DATA	SEGMENT
-?szName@?4??glColor4f@@9@16@4PBDB DD FLAT:$SG318178	; `glColor4f'::`5'::szName
+?szName@?4??glColor4f@@9@16@4PBDB DD FLAT:$SG318248	; `glColor4f'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glColor4dv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glColor4dv@@9@4@4PBDB DD FLAT:$SG318158	; `glColor4dv'::`5'::szName
+?szName@?4??glColor4dv@@9@4@4PBDB DD FLAT:$SG318228	; `glColor4dv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glColor4d@@9@32@4PBDB
 _DATA	SEGMENT
-?szName@?4??glColor4d@@9@32@4PBDB DD FLAT:$SG318144	; `glColor4d'::`5'::szName
+?szName@?4??glColor4d@@9@32@4PBDB DD FLAT:$SG318214	; `glColor4d'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glColor4bv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glColor4bv@@9@4@4PBDB DD FLAT:$SG318124	; `glColor4bv'::`5'::szName
+?szName@?4??glColor4bv@@9@4@4PBDB DD FLAT:$SG318194	; `glColor4bv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glColor4b@@9@16@4PBDB
 _DATA	SEGMENT
-?szName@?4??glColor4b@@9@16@4PBDB DD FLAT:$SG318110	; `glColor4b'::`5'::szName
+?szName@?4??glColor4b@@9@16@4PBDB DD FLAT:$SG318180	; `glColor4b'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glColor3usv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glColor3usv@@9@4@4PBDB DD FLAT:$SG318090	; `glColor3usv'::`5'::szName
+?szName@?4??glColor3usv@@9@4@4PBDB DD FLAT:$SG318160	; `glColor3usv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glColor3us@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glColor3us@@9@12@4PBDB DD FLAT:$SG318076	; `glColor3us'::`5'::szName
+?szName@?4??glColor3us@@9@12@4PBDB DD FLAT:$SG318146	; `glColor3us'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glColor3uiv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glColor3uiv@@9@4@4PBDB DD FLAT:$SG318058	; `glColor3uiv'::`5'::szName
+?szName@?4??glColor3uiv@@9@4@4PBDB DD FLAT:$SG318128	; `glColor3uiv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glColor3ui@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glColor3ui@@9@12@4PBDB DD FLAT:$SG318044	; `glColor3ui'::`5'::szName
+?szName@?4??glColor3ui@@9@12@4PBDB DD FLAT:$SG318114	; `glColor3ui'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glColor3ubv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glColor3ubv@@9@4@4PBDB DD FLAT:$SG318026	; `glColor3ubv'::`5'::szName
+?szName@?4??glColor3ubv@@9@4@4PBDB DD FLAT:$SG318096	; `glColor3ubv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glColor3ub@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glColor3ub@@9@12@4PBDB DD FLAT:$SG318012	; `glColor3ub'::`5'::szName
+?szName@?4??glColor3ub@@9@12@4PBDB DD FLAT:$SG318082	; `glColor3ub'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glColor3sv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glColor3sv@@9@4@4PBDB DD FLAT:$SG317994	; `glColor3sv'::`5'::szName
+?szName@?4??glColor3sv@@9@4@4PBDB DD FLAT:$SG318064	; `glColor3sv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glColor3s@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glColor3s@@9@12@4PBDB DD FLAT:$SG317980	; `glColor3s'::`5'::szName
+?szName@?4??glColor3s@@9@12@4PBDB DD FLAT:$SG318050	; `glColor3s'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glColor3iv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glColor3iv@@9@4@4PBDB DD FLAT:$SG317962	; `glColor3iv'::`5'::szName
+?szName@?4??glColor3iv@@9@4@4PBDB DD FLAT:$SG318032	; `glColor3iv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glColor3i@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glColor3i@@9@12@4PBDB DD FLAT:$SG317948	; `glColor3i'::`5'::szName
+?szName@?4??glColor3i@@9@12@4PBDB DD FLAT:$SG318018	; `glColor3i'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glColor3fv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glColor3fv@@9@4@4PBDB DD FLAT:$SG317930	; `glColor3fv'::`5'::szName
+?szName@?4??glColor3fv@@9@4@4PBDB DD FLAT:$SG318000	; `glColor3fv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glColor3f@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glColor3f@@9@12@4PBDB DD FLAT:$SG317916	; `glColor3f'::`5'::szName
+?szName@?4??glColor3f@@9@12@4PBDB DD FLAT:$SG317986	; `glColor3f'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glColor3dv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glColor3dv@@9@4@4PBDB DD FLAT:$SG317898	; `glColor3dv'::`5'::szName
+?szName@?4??glColor3dv@@9@4@4PBDB DD FLAT:$SG317968	; `glColor3dv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glColor3d@@9@24@4PBDB
 _DATA	SEGMENT
-?szName@?4??glColor3d@@9@24@4PBDB DD FLAT:$SG317884	; `glColor3d'::`5'::szName
+?szName@?4??glColor3d@@9@24@4PBDB DD FLAT:$SG317954	; `glColor3d'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glColor3bv@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glColor3bv@@9@4@4PBDB DD FLAT:$SG317866	; `glColor3bv'::`5'::szName
+?szName@?4??glColor3bv@@9@4@4PBDB DD FLAT:$SG317936	; `glColor3bv'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glColor3b@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glColor3b@@9@12@4PBDB DD FLAT:$SG317852	; `glColor3b'::`5'::szName
+?szName@?4??glColor3b@@9@12@4PBDB DD FLAT:$SG317922	; `glColor3b'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glClipPlane@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glClipPlane@@9@8@4PBDB DD FLAT:$SG317834	; `glClipPlane'::`5'::szName
+?szName@?4??glClipPlane@@9@8@4PBDB DD FLAT:$SG317904	; `glClipPlane'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glClearStencil@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glClearStencil@@9@4@4PBDB DD FLAT:$SG317818	; `glClearStencil'::`5'::szName
+?szName@?4??glClearStencil@@9@4@4PBDB DD FLAT:$SG317888	; `glClearStencil'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glClearIndex@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glClearIndex@@9@4@4PBDB DD FLAT:$SG317804	; `glClearIndex'::`5'::szName
+?szName@?4??glClearIndex@@9@4@4PBDB DD FLAT:$SG317874	; `glClearIndex'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glClearDepth@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glClearDepth@@9@8@4PBDB DD FLAT:$SG317790	; `glClearDepth'::`5'::szName
+?szName@?4??glClearDepth@@9@8@4PBDB DD FLAT:$SG317860	; `glClearDepth'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glClearColor@@9@16@4PBDB
 _DATA	SEGMENT
-?szName@?4??glClearColor@@9@16@4PBDB DD FLAT:$SG317776	; `glClearColor'::`5'::szName
+?szName@?4??glClearColor@@9@16@4PBDB DD FLAT:$SG317846	; `glClearColor'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glClearAccum@@9@16@4PBDB
 _DATA	SEGMENT
-?szName@?4??glClearAccum@@9@16@4PBDB DD FLAT:$SG317756	; `glClearAccum'::`5'::szName
+?szName@?4??glClearAccum@@9@16@4PBDB DD FLAT:$SG317826	; `glClearAccum'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glClear@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glClear@@9@4@4PBDB DD FLAT:$SG317736	; `glClear'::`5'::szName
+?szName@?4??glClear@@9@4@4PBDB DD FLAT:$SG317806	; `glClear'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glCallLists@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glCallLists@@9@12@4PBDB DD FLAT:$SG317722	; `glCallLists'::`5'::szName
+?szName@?4??glCallLists@@9@12@4PBDB DD FLAT:$SG317792	; `glCallLists'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glCallList@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glCallList@@9@4@4PBDB DD FLAT:$SG317704	; `glCallList'::`5'::szName
+?szName@?4??glCallList@@9@4@4PBDB DD FLAT:$SG317774	; `glCallList'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glBlendFunc@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glBlendFunc@@9@8@4PBDB DD FLAT:$SG317690	; `glBlendFunc'::`5'::szName
+?szName@?4??glBlendFunc@@9@8@4PBDB DD FLAT:$SG317760	; `glBlendFunc'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glBitmap@@9@28@4PBDB
 _DATA	SEGMENT
-?szName@?4??glBitmap@@9@28@4PBDB DD FLAT:$SG317674	; `glBitmap'::`5'::szName
+?szName@?4??glBitmap@@9@28@4PBDB DD FLAT:$SG317744	; `glBitmap'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glBindTexture@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glBindTexture@@9@8@4PBDB DD FLAT:$SG317648	; `glBindTexture'::`5'::szName
+?szName@?4??glBindTexture@@9@8@4PBDB DD FLAT:$SG317718	; `glBindTexture'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glBegin@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glBegin@@9@4@4PBDB DD FLAT:$SG317632	; `glBegin'::`5'::szName
+?szName@?4??glBegin@@9@4@4PBDB DD FLAT:$SG317702	; `glBegin'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glArrayElement@@9@4@4PBDB
 _DATA	SEGMENT
-?szName@?4??glArrayElement@@9@4@4PBDB DD FLAT:$SG317618	; `glArrayElement'::`5'::szName
+?szName@?4??glArrayElement@@9@4@4PBDB DD FLAT:$SG317688	; `glArrayElement'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glAreTexturesResident@@9@12@4PBDB
 _DATA	SEGMENT
-?szName@?4??glAreTexturesResident@@9@12@4PBDB DD FLAT:$SG317604 ; `glAreTexturesResident'::`5'::szName
+?szName@?4??glAreTexturesResident@@9@12@4PBDB DD FLAT:$SG317674 ; `glAreTexturesResident'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glAlphaFunc@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glAlphaFunc@@9@8@4PBDB DD FLAT:$SG317586	; `glAlphaFunc'::`5'::szName
+?szName@?4??glAlphaFunc@@9@8@4PBDB DD FLAT:$SG317656	; `glAlphaFunc'::`5'::szName
 _DATA	ENDS
 ;	COMDAT ?szName@?4??glAccum@@9@8@4PBDB
 _DATA	SEGMENT
-?szName@?4??glAccum@@9@8@4PBDB DD FLAT:$SG317570	; `glAccum'::`5'::szName
+?szName@?4??glAccum@@9@8@4PBDB DD FLAT:$SG317640	; `glAccum'::`5'::szName
 _DATA	ENDS
 ;	COMDAT xdata$x
 xdata$x	SEGMENT
@@ -10306,19 +10307,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GKIPBU_WGLSWAP@@@Z@@YAPAPAXPAP6GKIPBU_WGLSWAP@@@Z@Z PROC ; static_cast_p2p<void,unsigned long __stdcall(unsigned int,_WGLSWAP const *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -10331,19 +10332,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GHPAUHDC__@@KPBUtagPIXELFORMATDESCRIPTOR@@@Z@@YAPAPAXPAP6GHPAUHDC__@@KPBUtagPIXELFORMATDESCRIPTOR@@@Z@Z PROC ; static_cast_p2p<void,int __stdcall(HDC__ *,unsigned long,tagPIXELFORMATDESCRIPTOR const *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -10356,19 +10357,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GKPAUHDC__@@KKKPBK@Z@@YAPAPAXPAP6GKPAUHDC__@@KKKPBK@Z@Z PROC ; static_cast_p2p<void,unsigned long __stdcall(HDC__ *,unsigned long,unsigned long,unsigned long,unsigned long const *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -10381,19 +10382,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GHPAUHDC__@@KH@Z@@YAPAPAXPAP6GHPAUHDC__@@KH@Z@Z PROC ; static_cast_p2p<void,int __stdcall(HDC__ *,unsigned long,int)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -10406,19 +10407,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GHPAUHDC__@@KKIPAK1@Z@@YAPAPAXPAP6GHPAUHDC__@@KKIPAK1@Z@Z PROC ; static_cast_p2p<void,int __stdcall(HDC__ *,unsigned long,unsigned long,unsigned int,unsigned long *,unsigned long *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -10431,19 +10432,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GKPAUHDC__@@KKKPAK@Z@@YAPAPAXPAP6GKPAUHDC__@@KKKPAK@Z@Z PROC ; static_cast_p2p<void,unsigned long __stdcall(HDC__ *,unsigned long,unsigned long,unsigned long,unsigned long *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -10456,19 +10457,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GKPAUHDC__@@KIPAUtagPIXELFORMATDESCRIPTOR@@@Z@@YAPAPAXPAP6GKPAUHDC__@@KIPAUtagPIXELFORMATDESCRIPTOR@@@Z@Z PROC ; static_cast_p2p<void,unsigned long __stdcall(HDC__ *,unsigned long,unsigned int,tagPIXELFORMATDESCRIPTOR *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -10481,19 +10482,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GHPAUHDC__@@KKIPAUtagLAYERPLANEDESCRIPTOR@@@Z@@YAPAPAXPAP6GHPAUHDC__@@KKIPAUtagLAYERPLANEDESCRIPTOR@@@Z@Z PROC ; static_cast_p2p<void,int __stdcall(HDC__ *,unsigned long,unsigned long,unsigned int,tagLAYERPLANEDESCRIPTOR *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -10506,19 +10507,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GHPAUHDC__@@KKK@Z@@YAPAPAXPAP6GHPAUHDC__@@KKK@Z@Z PROC ; static_cast_p2p<void,int __stdcall(HDC__ *,unsigned long,unsigned long,unsigned long)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -10531,19 +10532,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GHPAUHGLRC__@@0@Z@@YAPAPAXPAP6GHPAUHGLRC__@@0@Z@Z PROC ; static_cast_p2p<void,int __stdcall(HGLRC__ *,HGLRC__ *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -10556,19 +10557,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GHPAUHDC__@@PAUHGLRC__@@@Z@@YAPAPAXPAP6GHPAUHDC__@@PAUHGLRC__@@@Z@Z PROC ; static_cast_p2p<void,int __stdcall(HDC__ *,HGLRC__ *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -10581,19 +10582,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GHPAUHDC__@@PBUtagPIXELFORMATDESCRIPTOR@@@Z@@YAPAPAXPAP6GHPAUHDC__@@PBUtagPIXELFORMATDESCRIPTOR@@@Z@Z PROC ; static_cast_p2p<void,int __stdcall(HDC__ *,tagPIXELFORMATDESCRIPTOR const *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -10606,19 +10607,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GPAUHGLRC__@@PAUHDC__@@@Z@@YAPAPAXPAP6GPAUHGLRC__@@PAUHDC__@@@Z@Z PROC ; static_cast_p2p<void,HGLRC__ * __stdcall(HDC__ *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -10631,19 +10632,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GP6GHXZPBD@Z@@YAPAPAXPAP6GP6GHXZPBD@Z@Z PROC ; static_cast_p2p<void,int (__stdcall*__stdcall(char const *))(void)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -10656,19 +10657,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GPAUHDC__@@XZ@@YAPAPAXPAP6GPAUHDC__@@XZ@Z PROC ; static_cast_p2p<void,HDC__ * __stdcall(void)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -10681,19 +10682,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GPAUHGLRC__@@XZ@@YAPAPAXPAP6GPAUHGLRC__@@XZ@Z PROC ; static_cast_p2p<void,HGLRC__ * __stdcall(void)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -10706,19 +10707,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GHPAUHGLRC__@@@Z@@YAPAPAXPAP6GHPAUHGLRC__@@@Z@Z PROC ; static_cast_p2p<void,int __stdcall(HGLRC__ *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -10731,19 +10732,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GPAUHGLRC__@@PAUHDC__@@H@Z@@YAPAPAXPAP6GPAUHGLRC__@@PAUHDC__@@H@Z@Z PROC ; static_cast_p2p<void,HGLRC__ * __stdcall(HDC__ *,int)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -10756,19 +10757,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GHPAUHGLRC__@@0I@Z@@YAPAPAXPAP6GHPAUHGLRC__@@0I@Z@Z PROC ; static_cast_p2p<void,int __stdcall(HGLRC__ *,HGLRC__ *,unsigned int)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -10781,19 +10782,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXIHHHIIPBX@Z@@YAPAPAXPAP6GXIHHHIIPBX@Z@Z PROC ; static_cast_p2p<void,void __stdcall(unsigned int,int,int,int,unsigned int,unsigned int,void const *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -10806,19 +10807,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXIHHHHHIIPBX@Z@@YAPAPAXPAP6GXIHHHHHIIPBX@Z@Z PROC ; static_cast_p2p<void,void __stdcall(unsigned int,int,int,int,int,int,unsigned int,unsigned int,void const *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -10831,19 +10832,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXIHHHHIIPBX@Z@@YAPAPAXPAP6GXIHHHHIIPBX@Z@Z PROC ; static_cast_p2p<void,void __stdcall(unsigned int,int,int,int,int,unsigned int,unsigned int,void const *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -10856,19 +10857,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXIIPBN@Z@@YAPAPAXPAP6GXIIPBN@Z@Z PROC ; static_cast_p2p<void,void __stdcall(unsigned int,unsigned int,double const *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -10881,19 +10882,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXIIN@Z@@YAPAPAXPAP6GXIIN@Z@Z PROC ; static_cast_p2p<void,void __stdcall(unsigned int,unsigned int,double)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -10906,19 +10907,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXIHI@Z@@YAPAPAXPAP6GXIHI@Z@Z PROC ; static_cast_p2p<void,void __stdcall(unsigned int,int,unsigned int)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -10931,19 +10932,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GHI@Z@@YAPAPAXPAP6GHI@Z@Z PROC	; static_cast_p2p<void,int __stdcall(unsigned int)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -10956,19 +10957,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXPBF0@Z@@YAPAPAXPAP6GXPBF0@Z@Z PROC ; static_cast_p2p<void,void __stdcall(short const *,short const *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -10981,19 +10982,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXPBH0@Z@@YAPAPAXPAP6GXPBH0@Z@Z PROC ; static_cast_p2p<void,void __stdcall(int const *,int const *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -11006,19 +11007,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXPBM0@Z@@YAPAPAXPAP6GXPBM0@Z@Z PROC ; static_cast_p2p<void,void __stdcall(float const *,float const *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -11031,19 +11032,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXPBN0@Z@@YAPAPAXPAP6GXPBN0@Z@Z PROC ; static_cast_p2p<void,void __stdcall(double const *,double const *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -11056,19 +11057,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXHHHHIIPAX@Z@@YAPAPAXPAP6GXHHHHIIPAX@Z@Z PROC ; static_cast_p2p<void,void __stdcall(int,int,int,int,unsigned int,unsigned int,void *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -11081,19 +11082,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXFF@Z@@YAPAPAXPAP6GXFF@Z@Z PROC ; static_cast_p2p<void,void __stdcall(short,short)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -11106,19 +11107,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXHPBIPBM@Z@@YAPAPAXPAP6GXHPBIPBM@Z@Z PROC ; static_cast_p2p<void,void __stdcall(int,unsigned int const *,float const *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -11131,19 +11132,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXIHPBG@Z@@YAPAPAXPAP6GXIHPBG@Z@Z PROC ; static_cast_p2p<void,void __stdcall(unsigned int,int,unsigned short const *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -11156,19 +11157,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXIHPBI@Z@@YAPAPAXPAP6GXIHPBI@Z@Z PROC ; static_cast_p2p<void,void __stdcall(unsigned int,int,unsigned int const *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -11181,19 +11182,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXIHPBM@Z@@YAPAPAXPAP6GXIHPBM@Z@Z PROC ; static_cast_p2p<void,void __stdcall(unsigned int,int,float const *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -11206,19 +11207,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXHMMHMM@Z@@YAPAPAXPAP6GXHMMHMM@Z@Z PROC ; static_cast_p2p<void,void __stdcall(int,float,float,int,float,float)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -11231,19 +11232,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXHNNHNN@Z@@YAPAPAXPAP6GXHNNHNN@Z@Z PROC ; static_cast_p2p<void,void __stdcall(int,double,double,int,double,double)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -11256,19 +11257,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXHMM@Z@@YAPAPAXPAP6GXHMM@Z@Z PROC ; static_cast_p2p<void,void __stdcall(int,float,float)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -11281,19 +11282,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXHNN@Z@@YAPAPAXPAP6GXHNN@Z@Z PROC ; static_cast_p2p<void,void __stdcall(int,double,double)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -11306,19 +11307,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXIMMHHMMHHPBM@Z@@YAPAPAXPAP6GXIMMHHMMHHPBM@Z@Z PROC ; static_cast_p2p<void,void __stdcall(unsigned int,float,float,int,int,float,float,int,int,float const *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -11331,19 +11332,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXINNHHNNHHPBN@Z@@YAPAPAXPAP6GXINNHHNNHHPBN@Z@Z PROC ; static_cast_p2p<void,void __stdcall(unsigned int,double,double,int,int,double,double,int,int,double const *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -11356,19 +11357,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXIMMHHPBM@Z@@YAPAPAXPAP6GXIMMHHPBM@Z@Z PROC ; static_cast_p2p<void,void __stdcall(unsigned int,float,float,int,int,float const *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -11381,19 +11382,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXINNHHPBN@Z@@YAPAPAXPAP6GXINNHHPBN@Z@Z PROC ; static_cast_p2p<void,void __stdcall(unsigned int,double,double,int,int,double const *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -11406,19 +11407,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXHG@Z@@YAPAPAXPAP6GXHG@Z@Z PROC ; static_cast_p2p<void,void __stdcall(int,unsigned short)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -11431,19 +11432,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXIIPBH@Z@@YAPAPAXPAP6GXIIPBH@Z@Z PROC ; static_cast_p2p<void,void __stdcall(unsigned int,unsigned int,int const *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -11456,19 +11457,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXIIH@Z@@YAPAPAXPAP6GXIIH@Z@Z PROC ; static_cast_p2p<void,void __stdcall(unsigned int,unsigned int,int)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -11481,19 +11482,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXIIPBM@Z@@YAPAPAXPAP6GXIIPBM@Z@Z PROC ; static_cast_p2p<void,void __stdcall(unsigned int,unsigned int,float const *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -11506,19 +11507,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXIIM@Z@@YAPAPAXPAP6GXIIM@Z@Z PROC ; static_cast_p2p<void,void __stdcall(unsigned int,unsigned int,float)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -11531,19 +11532,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GEI@Z@@YAPAPAXPAP6GEI@Z@Z PROC	; static_cast_p2p<void,unsigned char __stdcall(unsigned int)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -11556,19 +11557,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXF@Z@@YAPAPAXPAP6GXF@Z@Z PROC	; static_cast_p2p<void,void __stdcall(short)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -11581,19 +11582,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXIHPBX@Z@@YAPAPAXPAP6GXIHPBX@Z@Z PROC ; static_cast_p2p<void,void __stdcall(unsigned int,int,void const *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -11606,19 +11607,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXIHIPAH@Z@@YAPAPAXPAP6GXIHIPAH@Z@Z PROC ; static_cast_p2p<void,void __stdcall(unsigned int,int,unsigned int,int *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -11631,19 +11632,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXIHIPAM@Z@@YAPAPAXPAP6GXIHIPAM@Z@Z PROC ; static_cast_p2p<void,void __stdcall(unsigned int,int,unsigned int,float *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -11656,19 +11657,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXIHIIPAX@Z@@YAPAPAXPAP6GXIHIIPAX@Z@Z PROC ; static_cast_p2p<void,void __stdcall(unsigned int,int,unsigned int,unsigned int,void *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -11681,19 +11682,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GPBEI@Z@@YAPAPAXPAP6GPBEI@Z@Z PROC ; static_cast_p2p<void,unsigned char const * __stdcall(unsigned int)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -11706,19 +11707,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXPAE@Z@@YAPAPAXPAP6GXPAE@Z@Z PROC ; static_cast_p2p<void,void __stdcall(unsigned char *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -11731,19 +11732,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXIPAPAX@Z@@YAPAPAXPAP6GXIPAPAX@Z@Z PROC ; static_cast_p2p<void,void __stdcall(unsigned int,void * *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -11756,19 +11757,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXIPAG@Z@@YAPAPAXPAP6GXIPAG@Z@Z PROC ; static_cast_p2p<void,void __stdcall(unsigned int,unsigned short *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -11781,19 +11782,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXIPAI@Z@@YAPAPAXPAP6GXIPAI@Z@Z PROC ; static_cast_p2p<void,void __stdcall(unsigned int,unsigned int *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -11806,19 +11807,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXIIPAN@Z@@YAPAPAXPAP6GXIIPAN@Z@Z PROC ; static_cast_p2p<void,void __stdcall(unsigned int,unsigned int,double *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -11831,19 +11832,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXIIPAH@Z@@YAPAPAXPAP6GXIIPAH@Z@Z PROC ; static_cast_p2p<void,void __stdcall(unsigned int,unsigned int,int *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -11856,19 +11857,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXIIPAM@Z@@YAPAPAXPAP6GXIIPAM@Z@Z PROC ; static_cast_p2p<void,void __stdcall(unsigned int,unsigned int,float *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -11881,19 +11882,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXIPAH@Z@@YAPAPAXPAP6GXIPAH@Z@Z PROC ; static_cast_p2p<void,void __stdcall(unsigned int,int *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -11906,19 +11907,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXIPAM@Z@@YAPAPAXPAP6GXIPAM@Z@Z PROC ; static_cast_p2p<void,void __stdcall(unsigned int,float *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -11931,19 +11932,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GIXZ@@YAPAPAXPAP6GIXZ@Z PROC	; static_cast_p2p<void,unsigned int __stdcall(void)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -11956,19 +11957,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXIPAN@Z@@YAPAPAXPAP6GXIPAN@Z@Z PROC ; static_cast_p2p<void,void __stdcall(unsigned int,double *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -11981,19 +11982,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXIPAE@Z@@YAPAPAXPAP6GXIPAE@Z@Z PROC ; static_cast_p2p<void,void __stdcall(unsigned int,unsigned char *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -12006,19 +12007,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXHPAI@Z@@YAPAPAXPAP6GXHPAI@Z@Z PROC ; static_cast_p2p<void,void __stdcall(int,unsigned int *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -12031,19 +12032,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GIH@Z@@YAPAPAXPAP6GIH@Z@Z PROC	; static_cast_p2p<void,unsigned int __stdcall(int)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -12056,19 +12057,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXNNNNNN@Z@@YAPAPAXPAP6GXNNNNNN@Z@Z PROC ; static_cast_p2p<void,void __stdcall(double,double,double,double,double,double)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -12081,19 +12082,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXIPBH@Z@@YAPAPAXPAP6GXIPBH@Z@Z PROC ; static_cast_p2p<void,void __stdcall(unsigned int,int const *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -12106,19 +12107,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXIPBM@Z@@YAPAPAXPAP6GXIPBM@Z@Z PROC ; static_cast_p2p<void,void __stdcall(unsigned int,float const *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -12131,19 +12132,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXHIPAM@Z@@YAPAPAXPAP6GXHIPAM@Z@Z PROC ; static_cast_p2p<void,void __stdcall(int,unsigned int,float *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -12156,19 +12157,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXHH@Z@@YAPAPAXPAP6GXHH@Z@Z PROC ; static_cast_p2p<void,void __stdcall(int,int)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -12181,19 +12182,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXIHHHH@Z@@YAPAPAXPAP6GXIHHHH@Z@Z PROC ; static_cast_p2p<void,void __stdcall(unsigned int,int,int,int,int)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -12206,19 +12207,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXMM@Z@@YAPAPAXPAP6GXMM@Z@Z PROC ; static_cast_p2p<void,void __stdcall(float,float)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -12231,19 +12232,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXXZ@@YAPAPAXPAP6GXXZ@Z PROC	; static_cast_p2p<void,void __stdcall(void)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -12256,19 +12257,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXHPBX@Z@@YAPAPAXPAP6GXHPBX@Z@Z PROC ; static_cast_p2p<void,void __stdcall(int,void const *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -12281,19 +12282,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXHHIIPBX@Z@@YAPAPAXPAP6GXHHIIPBX@Z@Z PROC ; static_cast_p2p<void,void __stdcall(int,int,unsigned int,unsigned int,void const *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -12306,19 +12307,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXIHIPBX@Z@@YAPAPAXPAP6GXIHIPBX@Z@Z PROC ; static_cast_p2p<void,void __stdcall(unsigned int,int,unsigned int,void const *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -12331,19 +12332,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXIHH@Z@@YAPAPAXPAP6GXIHH@Z@Z PROC ; static_cast_p2p<void,void __stdcall(unsigned int,int,int)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -12356,19 +12357,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXNN@Z@@YAPAPAXPAP6GXNN@Z@Z PROC ; static_cast_p2p<void,void __stdcall(double,double)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -12381,19 +12382,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXE@Z@@YAPAPAXPAP6GXE@Z@Z PROC	; static_cast_p2p<void,void __stdcall(unsigned char)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -12406,19 +12407,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXHPBI@Z@@YAPAPAXPAP6GXHPBI@Z@Z PROC ; static_cast_p2p<void,void __stdcall(int,unsigned int const *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -12431,19 +12432,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXIH@Z@@YAPAPAXPAP6GXIH@Z@Z PROC ; static_cast_p2p<void,void __stdcall(unsigned int,int)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -12456,19 +12457,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXIHHHHHHH@Z@@YAPAPAXPAP6GXIHHHHHHH@Z@Z PROC ; static_cast_p2p<void,void __stdcall(unsigned int,int,int,int,int,int,int,int)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -12481,19 +12482,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXIHHHHH@Z@@YAPAPAXPAP6GXIHHHHH@Z@Z PROC ; static_cast_p2p<void,void __stdcall(unsigned int,int,int,int,int,int)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -12506,19 +12507,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXIHIHHHHH@Z@@YAPAPAXPAP6GXIHIHHHHH@Z@Z PROC ; static_cast_p2p<void,void __stdcall(unsigned int,int,unsigned int,int,int,int,int,int)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -12531,19 +12532,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXIHIHHHH@Z@@YAPAPAXPAP6GXIHIHHHH@Z@Z PROC ; static_cast_p2p<void,void __stdcall(unsigned int,int,unsigned int,int,int,int,int)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -12556,19 +12557,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXHHHHI@Z@@YAPAPAXPAP6GXHHHHI@Z@Z PROC ; static_cast_p2p<void,void __stdcall(int,int,int,int,unsigned int)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -12581,19 +12582,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXHIHPBX@Z@@YAPAPAXPAP6GXHIHPBX@Z@Z PROC ; static_cast_p2p<void,void __stdcall(int,unsigned int,int,void const *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -12606,19 +12607,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXGGGG@Z@@YAPAPAXPAP6GXGGGG@Z@Z PROC ; static_cast_p2p<void,void __stdcall(unsigned short,unsigned short,unsigned short,unsigned short)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -12631,19 +12632,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXIIII@Z@@YAPAPAXPAP6GXIIII@Z@Z PROC ; static_cast_p2p<void,void __stdcall(unsigned int,unsigned int,unsigned int,unsigned int)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -12656,19 +12657,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXEEEE@Z@@YAPAPAXPAP6GXEEEE@Z@Z PROC ; static_cast_p2p<void,void __stdcall(unsigned char,unsigned char,unsigned char,unsigned char)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -12681,19 +12682,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXFFFF@Z@@YAPAPAXPAP6GXFFFF@Z@Z PROC ; static_cast_p2p<void,void __stdcall(short,short,short,short)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -12706,19 +12707,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXHHHH@Z@@YAPAPAXPAP6GXHHHH@Z@Z PROC ; static_cast_p2p<void,void __stdcall(int,int,int,int)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -12731,19 +12732,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXNNNN@Z@@YAPAPAXPAP6GXNNNN@Z@Z PROC ; static_cast_p2p<void,void __stdcall(double,double,double,double)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -12756,19 +12757,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXCCCC@Z@@YAPAPAXPAP6GXCCCC@Z@Z PROC ; static_cast_p2p<void,void __stdcall(signed char,signed char,signed char,signed char)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -12781,19 +12782,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXPBG@Z@@YAPAPAXPAP6GXPBG@Z@Z PROC ; static_cast_p2p<void,void __stdcall(unsigned short const *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -12806,19 +12807,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXGGG@Z@@YAPAPAXPAP6GXGGG@Z@Z PROC ; static_cast_p2p<void,void __stdcall(unsigned short,unsigned short,unsigned short)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -12831,19 +12832,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXPBI@Z@@YAPAPAXPAP6GXPBI@Z@Z PROC ; static_cast_p2p<void,void __stdcall(unsigned int const *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -12856,19 +12857,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXIII@Z@@YAPAPAXPAP6GXIII@Z@Z PROC ; static_cast_p2p<void,void __stdcall(unsigned int,unsigned int,unsigned int)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -12881,19 +12882,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXPBE@Z@@YAPAPAXPAP6GXPBE@Z@Z PROC ; static_cast_p2p<void,void __stdcall(unsigned char const *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -12906,19 +12907,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXEEE@Z@@YAPAPAXPAP6GXEEE@Z@Z PROC ; static_cast_p2p<void,void __stdcall(unsigned char,unsigned char,unsigned char)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -12931,19 +12932,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXPBF@Z@@YAPAPAXPAP6GXPBF@Z@Z PROC ; static_cast_p2p<void,void __stdcall(short const *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -12956,19 +12957,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXFFF@Z@@YAPAPAXPAP6GXFFF@Z@Z PROC ; static_cast_p2p<void,void __stdcall(short,short,short)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -12981,19 +12982,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXPBH@Z@@YAPAPAXPAP6GXPBH@Z@Z PROC ; static_cast_p2p<void,void __stdcall(int const *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -13006,19 +13007,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXHHH@Z@@YAPAPAXPAP6GXHHH@Z@Z PROC ; static_cast_p2p<void,void __stdcall(int,int,int)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -13031,19 +13032,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXPBM@Z@@YAPAPAXPAP6GXPBM@Z@Z PROC ; static_cast_p2p<void,void __stdcall(float const *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -13056,19 +13057,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXMMM@Z@@YAPAPAXPAP6GXMMM@Z@Z PROC ; static_cast_p2p<void,void __stdcall(float,float,float)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -13081,19 +13082,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXPBN@Z@@YAPAPAXPAP6GXPBN@Z@Z PROC ; static_cast_p2p<void,void __stdcall(double const *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -13106,19 +13107,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXNNN@Z@@YAPAPAXPAP6GXNNN@Z@Z PROC ; static_cast_p2p<void,void __stdcall(double,double,double)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -13131,19 +13132,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXPBC@Z@@YAPAPAXPAP6GXPBC@Z@Z PROC ; static_cast_p2p<void,void __stdcall(signed char const *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -13156,19 +13157,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXCCC@Z@@YAPAPAXPAP6GXCCC@Z@Z PROC ; static_cast_p2p<void,void __stdcall(signed char,signed char,signed char)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -13181,19 +13182,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXIPBN@Z@@YAPAPAXPAP6GXIPBN@Z@Z PROC ; static_cast_p2p<void,void __stdcall(unsigned int,double const *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -13206,19 +13207,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXM@Z@@YAPAPAXPAP6GXM@Z@Z PROC	; static_cast_p2p<void,void __stdcall(float)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -13231,19 +13232,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXN@Z@@YAPAPAXPAP6GXN@Z@Z PROC	; static_cast_p2p<void,void __stdcall(double)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -13256,19 +13257,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXMMMM@Z@@YAPAPAXPAP6GXMMMM@Z@Z PROC ; static_cast_p2p<void,void __stdcall(float,float,float,float)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -13281,19 +13282,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXHIPBX@Z@@YAPAPAXPAP6GXHIPBX@Z@Z PROC ; static_cast_p2p<void,void __stdcall(int,unsigned int,void const *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -13306,19 +13307,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXHHMMMMPBE@Z@@YAPAPAXPAP6GXHHMMMMPBE@Z@Z PROC ; static_cast_p2p<void,void __stdcall(int,int,float,float,float,float,unsigned char const *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -13331,19 +13332,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXII@Z@@YAPAPAXPAP6GXII@Z@Z PROC ; static_cast_p2p<void,void __stdcall(unsigned int,unsigned int)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -13356,19 +13357,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXI@Z@@YAPAPAXPAP6GXI@Z@Z PROC	; static_cast_p2p<void,void __stdcall(unsigned int)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -13381,19 +13382,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXH@Z@@YAPAPAXPAP6GXH@Z@Z PROC	; static_cast_p2p<void,void __stdcall(int)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -13406,19 +13407,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GEHPBIPAE@Z@@YAPAPAXPAP6GEHPBIPAE@Z@Z PROC ; static_cast_p2p<void,unsigned char __stdcall(int,unsigned int const *,unsigned char *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -13431,19 +13432,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GXIM@Z@@YAPAPAXPAP6GXIM@Z@Z PROC ; static_cast_p2p<void,void __stdcall(unsigned int,float)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -13456,19 +13457,19 @@ _TEXT	SEGMENT
 _p2p$ = 8						; size = 4
 ??$static_cast_p2p@X$$A6GHPAUHDC__@@@Z@@YAPAPAXPAP6GHPAUHDC__@@@Z@Z PROC ; static_cast_p2p<void,int __stdcall(HDC__ *)>, COMDAT
 
-; 50   :     {
+; 52   :     {
 
 	npad	2
 	push	ebp
 	mov	ebp, esp
 
-; 51   :       return static_cast <T **> (
+; 53   :       return static_cast <T **> (
 
 	mov	eax, DWORD PTR _p2p$[ebp]
 
-; 52   :                static_cast <T*>   ( p2p )
-; 53   :                                 );
-; 54   :     };
+; 54   :                static_cast <T*>   ( p2p )
+; 55   :                                 );
+; 56   :     };
 
 	pop	ebp
 	ret	0
@@ -14016,14 +14017,14 @@ __$EHRec$ = -12						; size = 12
 
 ; 1647 :   glGenQueries =
 
-	push	OFFSET $SG323982
+	push	OFFSET $SG324052
 	call	_wglGetProcAddress@4
 
 ; 1648 :     (glGenQueries_pfn)wglGetProcAddress ("glGenQueries");
 ; 1649 : 
 ; 1650 :   glDeleteQueries =
 
-	push	OFFSET $SG323983
+	push	OFFSET $SG324053
 	mov	DWORD PTR ___glewGenQueries, eax
 	call	_wglGetProcAddress@4
 
@@ -14031,7 +14032,7 @@ __$EHRec$ = -12						; size = 12
 ; 1652 : 
 ; 1653 :   glBeginQuery =
 
-	push	OFFSET $SG323984
+	push	OFFSET $SG324054
 	mov	DWORD PTR ___glewDeleteQueries, eax
 	call	_wglGetProcAddress@4
 
@@ -14039,7 +14040,7 @@ __$EHRec$ = -12						; size = 12
 ; 1655 : 
 ; 1656 :   glBeginQueryIndexed =
 
-	push	OFFSET $SG323985
+	push	OFFSET $SG324055
 	mov	DWORD PTR ___glewBeginQuery, eax
 	call	_wglGetProcAddress@4
 
@@ -14047,7 +14048,7 @@ __$EHRec$ = -12						; size = 12
 ; 1658 : 
 ; 1659 :   glEndQuery =
 
-	push	OFFSET $SG323986
+	push	OFFSET $SG324056
 	mov	DWORD PTR ___glewBeginQueryIndexed, eax
 	call	_wglGetProcAddress@4
 
@@ -14055,7 +14056,7 @@ __$EHRec$ = -12						; size = 12
 ; 1661 : 
 ; 1662 :   glIsQuery =
 
-	push	OFFSET $SG323987
+	push	OFFSET $SG324057
 	mov	DWORD PTR ___glewEndQuery, eax
 	call	_wglGetProcAddress@4
 
@@ -14063,7 +14064,7 @@ __$EHRec$ = -12						; size = 12
 ; 1664 : 
 ; 1665 :   glQueryCounter =
 
-	push	OFFSET $SG323988
+	push	OFFSET $SG324058
 	mov	DWORD PTR ___glewIsQuery, eax
 	call	_wglGetProcAddress@4
 
@@ -14071,7 +14072,7 @@ __$EHRec$ = -12						; size = 12
 ; 1667 : 
 ; 1668 :   glGetQueryObjectiv =
 
-	push	OFFSET $SG323989
+	push	OFFSET $SG324059
 	mov	DWORD PTR ___glewQueryCounter, eax
 	call	_wglGetProcAddress@4
 
@@ -14079,7 +14080,7 @@ __$EHRec$ = -12						; size = 12
 ; 1670 : 
 ; 1671 :   glGetQueryObjecti64v =
 
-	push	OFFSET $SG323990
+	push	OFFSET $SG324060
 	mov	DWORD PTR ___glewGetQueryObjectiv, eax
 	call	_wglGetProcAddress@4
 
@@ -14087,7 +14088,7 @@ __$EHRec$ = -12						; size = 12
 ; 1673 : 
 ; 1674 :   glGetQueryObjectui64v =
 
-	push	OFFSET $SG323991
+	push	OFFSET $SG324061
 	mov	DWORD PTR ___glewGetQueryObjecti64v, eax
 	call	_wglGetProcAddress@4
 
@@ -14141,7 +14142,7 @@ __$EHRec$ = -12						; size = 12
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	18					; 00000012H
-	push	OFFSET $SG323994
+	push	OFFSET $SG324064
 ; File c:\users\andon\source\repos\specialk\src\opengl.cpp
 
 ; 1511 :     {
@@ -14233,7 +14234,7 @@ $LN5@Init:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	20					; 00000014H
-	push	OFFSET $SG323996
+	push	OFFSET $SG324066
 ; File c:\users\andon\source\repos\specialk\src\opengl.cpp
 
 ; 1511 :     {
@@ -14315,7 +14316,7 @@ $LN7@Init:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	25					; 00000019H
-	push	OFFSET $SG323998
+	push	OFFSET $SG324068
 ; File c:\users\andon\source\repos\specialk\src\opengl.cpp
 
 ; 1511 :     {
@@ -14397,7 +14398,7 @@ $LN9@Init:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	35					; 00000023H
-	push	OFFSET $SG324000
+	push	OFFSET $SG324070
 ; File c:\users\andon\source\repos\specialk\src\opengl.cpp
 
 ; 1511 :     {
@@ -14479,7 +14480,7 @@ $LN11@Init:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	42					; 0000002aH
-	push	OFFSET $SG324002
+	push	OFFSET $SG324072
 ; File c:\users\andon\source\repos\specialk\src\opengl.cpp
 
 ; 1511 :     {
@@ -14561,7 +14562,7 @@ $LN13@Init:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	27					; 0000001bH
-	push	OFFSET $SG324004
+	push	OFFSET $SG324074
 ; File c:\users\andon\source\repos\specialk\src\opengl.cpp
 
 ; 1511 :     {
@@ -14643,7 +14644,7 @@ $LN15@Init:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	34					; 00000022H
-	push	OFFSET $SG324006
+	push	OFFSET $SG324076
 ; File c:\users\andon\source\repos\specialk\src\opengl.cpp
 
 ; 1511 :     {
@@ -14725,7 +14726,7 @@ $LN17@Init:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	27					; 0000001bH
-	push	OFFSET $SG324008
+	push	OFFSET $SG324078
 ; File c:\users\andon\source\repos\specialk\src\opengl.cpp
 
 ; 1511 :     {
@@ -14807,7 +14808,7 @@ $LN19@Init:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	26					; 0000001aH
-	push	OFFSET $SG324010
+	push	OFFSET $SG324080
 ; File c:\users\andon\source\repos\specialk\src\opengl.cpp
 
 ; 1511 :     {
@@ -14889,7 +14890,7 @@ $LN21@Init:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	25					; 00000019H
-	push	OFFSET $SG324012
+	push	OFFSET $SG324082
 ; File c:\users\andon\source\repos\specialk\src\opengl.cpp
 
 ; 1511 :     {
@@ -14971,7 +14972,7 @@ $LN23@Init:
 ; 2429 : 		return (assign(_Ptr, _Traits::length(_Ptr)));
 
 	push	26					; 0000001aH
-	push	OFFSET $SG324014
+	push	OFFSET $SG324084
 ; File c:\users\andon\source\repos\specialk\src\opengl.cpp
 
 ; 1511 :     {
@@ -15191,8 +15192,8 @@ _wglUseFontOutlinesW@32 PROC
 	mov	DWORD PTR _imp_wglUseFontOutlinesW, eax
 	test	eax, eax
 	jne	SHORT $LN3@wglUseFont
-	push	OFFSET $SG323802
-	push	OFFSET $SG323803
+	push	OFFSET $SG323872
+	push	OFFSET $SG323873
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -15246,8 +15247,8 @@ _wglUseFontOutlinesA@32 PROC
 	mov	DWORD PTR _imp_wglUseFontOutlinesA, eax
 	test	eax, eax
 	jne	SHORT $LN3@wglUseFont
-	push	OFFSET $SG323774
-	push	OFFSET $SG323775
+	push	OFFSET $SG323844
+	push	OFFSET $SG323845
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -15295,8 +15296,8 @@ _wglSwapLayerBuffers@8 PROC
 	mov	DWORD PTR _imp_wglSwapLayerBuffers, eax
 	test	eax, eax
 	jne	SHORT $LN3@wglSwapLay
-	push	OFFSET $SG323712
-	push	OFFSET $SG323713
+	push	OFFSET $SG323782
+	push	OFFSET $SG323783
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -15980,8 +15981,8 @@ _wglSetPixelFormat@12 PROC
 	mov	DWORD PTR _imp_wglSetPixelFormat, eax
 	test	eax, eax
 	jne	SHORT $LN3@wglSetPixe
-	push	OFFSET $SG323576
-	push	OFFSET $SG323577
+	push	OFFSET $SG323646
+	push	OFFSET $SG323647
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -16020,8 +16021,8 @@ _wglSetLayerPaletteEntries@20 PROC
 	mov	DWORD PTR _imp_wglSetLayerPaletteEntries, eax
 	test	eax, eax
 	jne	SHORT $LN3@wglSetLaye
-	push	OFFSET $SG323558
-	push	OFFSET $SG323559
+	push	OFFSET $SG323628
+	push	OFFSET $SG323629
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -16058,8 +16059,8 @@ _wglRealizeLayerPalette@12 PROC
 	mov	DWORD PTR _imp_wglRealizeLayerPalette, eax
 	test	eax, eax
 	jne	SHORT $LN3@wglRealize
-	push	OFFSET $SG323536
-	push	OFFSET $SG323537
+	push	OFFSET $SG323606
+	push	OFFSET $SG323607
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -16099,8 +16100,8 @@ _wglGetPixelFormat@24 PROC
 	mov	DWORD PTR _imp_wglGetPixelFormat, eax
 	test	eax, eax
 	jne	SHORT $LN3@wglGetPixe
-	push	OFFSET $SG323518
-	push	OFFSET $SG323519
+	push	OFFSET $SG323588
+	push	OFFSET $SG323589
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -16139,8 +16140,8 @@ _wglGetLayerPaletteEntries@20 PROC
 	mov	DWORD PTR _imp_wglGetLayerPaletteEntries, eax
 	test	eax, eax
 	jne	SHORT $LN3@wglGetLaye
-	push	OFFSET $SG323494
-	push	OFFSET $SG323495
+	push	OFFSET $SG323564
+	push	OFFSET $SG323565
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -16178,8 +16179,8 @@ _wglDescribePixelFormat@16 PROC
 	mov	DWORD PTR _imp_wglDescribePixelFormat, eax
 	test	eax, eax
 	jne	SHORT $LN3@wglDescrib
-	push	OFFSET $SG323472
-	push	OFFSET $SG323473
+	push	OFFSET $SG323542
+	push	OFFSET $SG323543
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -16218,8 +16219,8 @@ _wglDescribeLayerPlane@20 PROC
 	mov	DWORD PTR _imp_wglDescribeLayerPlane, eax
 	test	eax, eax
 	jne	SHORT $LN3@wglDescrib
-	push	OFFSET $SG323452
-	push	OFFSET $SG323453
+	push	OFFSET $SG323522
+	push	OFFSET $SG323523
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -16255,8 +16256,8 @@ _wglChoosePixelFormat@8 PROC
 	mov	DWORD PTR _imp_wglChoosePixelFormat, eax
 	test	eax, eax
 	jne	SHORT $LN3@wglChooseP
-	push	OFFSET $SG323392
-	push	OFFSET $SG323393
+	push	OFFSET $SG323462
+	push	OFFSET $SG323463
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -16294,8 +16295,8 @@ _wglUseFontBitmapsW@16 PROC
 	mov	DWORD PTR _imp_wglUseFontBitmapsW, eax
 	test	eax, eax
 	jne	SHORT $LN3@wglUseFont
-	push	OFFSET $SG323376
-	push	OFFSET $SG323377
+	push	OFFSET $SG323446
+	push	OFFSET $SG323447
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -16333,8 +16334,8 @@ _wglUseFontBitmapsA@16 PROC
 	mov	DWORD PTR _imp_wglUseFontBitmapsA, eax
 	test	eax, eax
 	jne	SHORT $LN3@wglUseFont
-	push	OFFSET $SG323356
-	push	OFFSET $SG323357
+	push	OFFSET $SG323426
+	push	OFFSET $SG323427
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -16370,8 +16371,8 @@ _wglShareLists@8 PROC
 	mov	DWORD PTR _imp_wglShareLists, eax
 	test	eax, eax
 	jne	SHORT $LN3@wglShareLi
-	push	OFFSET $SG323336
-	push	OFFSET $SG323337
+	push	OFFSET $SG323406
+	push	OFFSET $SG323407
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -16407,8 +16408,8 @@ _wglMakeCurrent@8 PROC
 	mov	DWORD PTR _imp_wglMakeCurrent, eax
 	test	eax, eax
 	jne	SHORT $LN3@wglMakeCur
-	push	OFFSET $SG323320
-	push	OFFSET $SG323321
+	push	OFFSET $SG323390
+	push	OFFSET $SG323391
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -16443,8 +16444,8 @@ _wglGetProcAddress@4 PROC
 	mov	DWORD PTR _imp_wglGetProcAddress, eax
 	test	eax, eax
 	jne	SHORT $LN3@wglGetProc
-	push	OFFSET $SG323304
-	push	OFFSET $SG323305
+	push	OFFSET $SG323374
+	push	OFFSET $SG323375
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -16472,8 +16473,8 @@ _wglGetCurrentDC@0 PROC
 	mov	DWORD PTR _imp_wglGetCurrentDC, eax
 	test	eax, eax
 	jne	SHORT $LN3@wglGetCurr
-	push	OFFSET $SG323290
-	push	OFFSET $SG323291
+	push	OFFSET $SG323360
+	push	OFFSET $SG323361
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -16499,8 +16500,8 @@ _wglGetCurrentContext@0 PROC
 	mov	DWORD PTR _imp_wglGetCurrentContext, eax
 	test	eax, eax
 	jne	SHORT $LN3@wglGetCurr
-	push	OFFSET $SG323276
-	push	OFFSET $SG323277
+	push	OFFSET $SG323346
+	push	OFFSET $SG323347
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -16533,8 +16534,8 @@ _wglDeleteContext@4 PROC
 	mov	DWORD PTR _imp_wglDeleteContext, eax
 	test	eax, eax
 	jne	SHORT $LN3@wglDeleteC
-	push	OFFSET $SG323262
-	push	OFFSET $SG323263
+	push	OFFSET $SG323332
+	push	OFFSET $SG323333
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -16570,8 +16571,8 @@ _wglCreateLayerContext@8 PROC
 	mov	DWORD PTR _imp_wglCreateLayerContext, eax
 	test	eax, eax
 	jne	SHORT $LN3@wglCreateL
-	push	OFFSET $SG323248
-	push	OFFSET $SG323249
+	push	OFFSET $SG323318
+	push	OFFSET $SG323319
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -16606,8 +16607,8 @@ _wglCreateContext@4 PROC
 	mov	DWORD PTR _imp_wglCreateContext, eax
 	test	eax, eax
 	jne	SHORT $LN3@wglCreateC
-	push	OFFSET $SG323232
-	push	OFFSET $SG323233
+	push	OFFSET $SG323302
+	push	OFFSET $SG323303
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -16644,8 +16645,8 @@ _wglCopyContext@12 PROC
 	mov	DWORD PTR _imp_wglCopyContext, eax
 	test	eax, eax
 	jne	SHORT $LN3@wglCopyCon
-	push	OFFSET $SG323218
-	push	OFFSET $SG323219
+	push	OFFSET $SG323288
+	push	OFFSET $SG323289
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -16681,8 +16682,8 @@ _glDebugEntry@8 PROC
 	mov	DWORD PTR _imp_glDebugEntry, eax
 	test	eax, eax
 	jne	SHORT $LN3@glDebugEnt
-	push	OFFSET $SG318580
-	push	OFFSET $SG318581
+	push	OFFSET $SG318650
+	push	OFFSET $SG318651
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -16754,7 +16755,7 @@ _hMod$1 = -4						; size = 4
 ; 233  :     lstrcatW (wszBackendDLL, L"\\");
 
 	lea	eax, DWORD PTR _wszBackendDLL$[ebp]
-	push	OFFSET $SG317545
+	push	OFFSET $SG317615
 	push	eax
 	call	DWORD PTR __imp__lstrcatW@8
 $LN2@SK_LoadRea:
@@ -16763,7 +16764,7 @@ $LN2@SK_LoadRea:
 ; 235  : 
 ; 236  :   lstrcatW (wszBackendDLL, L"OpenGL32.dll");
 
-	push	OFFSET $SG317546
+	push	OFFSET $SG317616
 	lea	eax, DWORD PTR _wszBackendDLL$[ebp]
 	push	eax
 	call	DWORD PTR __imp__lstrcatW@8
@@ -18280,7 +18281,7 @@ $LN2@wglSwapBuf:
 ; 1369 :   {
 ; 1370 :     wgl_swap_buffers =
 
-	push	OFFSET $SG323667
+	push	OFFSET $SG323737
 	push	DWORD PTR ?backend_dll@@3PAUHINSTANCE__@@A ; backend_dll
 	call	DWORD PTR __imp__GetProcAddress@8
 	mov	DWORD PTR ?wgl_swap_buffers@@3P6GHPAUHDC__@@@ZA, eax ; wgl_swap_buffers
@@ -18437,13 +18438,13 @@ $LN2@SwapBuffer:
 ; 1312 :   {
 ; 1313 :     HMODULE hModGDI32 = LoadLibraryW_Original (L"gdi32.dll");
 
-	push	OFFSET $SG323650
+	push	OFFSET $SG323720
 	call	DWORD PTR ?LoadLibraryW_Original@@3P6GPAUHINSTANCE__@@PB_W@ZA ; LoadLibraryW_Original
 
 ; 1314 : 
 ; 1315 :     gdi_swap_buffers =
 
-	push	OFFSET $SG323651
+	push	OFFSET $SG323721
 	push	eax
 	call	DWORD PTR __imp__GetProcAddress@8
 	mov	DWORD PTR ?gdi_swap_buffers@@3P6GHPAUHDC__@@@ZA, eax ; gdi_swap_buffers
@@ -18694,8 +18695,8 @@ _glViewport@16 PROC
 	mov	DWORD PTR _imp_glViewport, eax
 	test	eax, eax
 	jne	SHORT $LN3@glViewport
-	push	OFFSET $SG323200
-	push	OFFSET $SG323201
+	push	OFFSET $SG323270
+	push	OFFSET $SG323271
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -18732,8 +18733,8 @@ _glVertexPointer@16 PROC
 	mov	DWORD PTR _imp_glVertexPointer, eax
 	test	eax, eax
 	jne	SHORT $LN3@glVertexPo
-	push	OFFSET $SG323180
-	push	OFFSET $SG323181
+	push	OFFSET $SG323250
+	push	OFFSET $SG323251
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -18767,8 +18768,8 @@ _glVertex4sv@4 PROC
 	mov	DWORD PTR _imp_glVertex4sv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glVertex4s
-	push	OFFSET $SG323160
-	push	OFFSET $SG323161
+	push	OFFSET $SG323230
+	push	OFFSET $SG323231
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -18805,8 +18806,8 @@ _glVertex4s@16 PROC
 	mov	DWORD PTR _imp_glVertex4s, eax
 	test	eax, eax
 	jne	SHORT $LN3@glVertex4s
-	push	OFFSET $SG323146
-	push	OFFSET $SG323147
+	push	OFFSET $SG323216
+	push	OFFSET $SG323217
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -18840,8 +18841,8 @@ _glVertex4iv@4 PROC
 	mov	DWORD PTR _imp_glVertex4iv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glVertex4i
-	push	OFFSET $SG323126
-	push	OFFSET $SG323127
+	push	OFFSET $SG323196
+	push	OFFSET $SG323197
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -18878,8 +18879,8 @@ _glVertex4i@16 PROC
 	mov	DWORD PTR _imp_glVertex4i, eax
 	test	eax, eax
 	jne	SHORT $LN3@glVertex4i
-	push	OFFSET $SG323112
-	push	OFFSET $SG323113
+	push	OFFSET $SG323182
+	push	OFFSET $SG323183
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -18913,8 +18914,8 @@ _glVertex4fv@4 PROC
 	mov	DWORD PTR _imp_glVertex4fv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glVertex4f
-	push	OFFSET $SG323092
-	push	OFFSET $SG323093
+	push	OFFSET $SG323162
+	push	OFFSET $SG323163
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -18951,8 +18952,8 @@ _glVertex4f@16 PROC
 	mov	DWORD PTR _imp_glVertex4f, eax
 	test	eax, eax
 	jne	SHORT $LN3@glVertex4f
-	push	OFFSET $SG323078
-	push	OFFSET $SG323079
+	push	OFFSET $SG323148
+	push	OFFSET $SG323149
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -18996,8 +18997,8 @@ _glVertex4dv@4 PROC
 	mov	DWORD PTR _imp_glVertex4dv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glVertex4d
-	push	OFFSET $SG323058
-	push	OFFSET $SG323059
+	push	OFFSET $SG323128
+	push	OFFSET $SG323129
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -19034,8 +19035,8 @@ _glVertex4d@32 PROC
 	mov	DWORD PTR _imp_glVertex4d, eax
 	test	eax, eax
 	jne	SHORT $LN3@glVertex4d
-	push	OFFSET $SG323044
-	push	OFFSET $SG323045
+	push	OFFSET $SG323114
+	push	OFFSET $SG323115
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -19079,8 +19080,8 @@ _glVertex3sv@4 PROC
 	mov	DWORD PTR _imp_glVertex3sv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glVertex3s
-	push	OFFSET $SG323024
-	push	OFFSET $SG323025
+	push	OFFSET $SG323094
+	push	OFFSET $SG323095
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -19116,8 +19117,8 @@ _glVertex3s@12 PROC
 	mov	DWORD PTR _imp_glVertex3s, eax
 	test	eax, eax
 	jne	SHORT $LN3@glVertex3s
-	push	OFFSET $SG323010
-	push	OFFSET $SG323011
+	push	OFFSET $SG323080
+	push	OFFSET $SG323081
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -19151,8 +19152,8 @@ _glVertex3iv@4 PROC
 	mov	DWORD PTR _imp_glVertex3iv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glVertex3i
-	push	OFFSET $SG322992
-	push	OFFSET $SG322993
+	push	OFFSET $SG323062
+	push	OFFSET $SG323063
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -19188,8 +19189,8 @@ _glVertex3i@12 PROC
 	mov	DWORD PTR _imp_glVertex3i, eax
 	test	eax, eax
 	jne	SHORT $LN3@glVertex3i
-	push	OFFSET $SG322978
-	push	OFFSET $SG322979
+	push	OFFSET $SG323048
+	push	OFFSET $SG323049
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -19223,8 +19224,8 @@ _glVertex3fv@4 PROC
 	mov	DWORD PTR _imp_glVertex3fv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glVertex3f
-	push	OFFSET $SG322960
-	push	OFFSET $SG322961
+	push	OFFSET $SG323030
+	push	OFFSET $SG323031
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -19260,8 +19261,8 @@ _glVertex3f@12 PROC
 	mov	DWORD PTR _imp_glVertex3f, eax
 	test	eax, eax
 	jne	SHORT $LN3@glVertex3f
-	push	OFFSET $SG322946
-	push	OFFSET $SG322947
+	push	OFFSET $SG323016
+	push	OFFSET $SG323017
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -19303,8 +19304,8 @@ _glVertex3dv@4 PROC
 	mov	DWORD PTR _imp_glVertex3dv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glVertex3d
-	push	OFFSET $SG322928
-	push	OFFSET $SG322929
+	push	OFFSET $SG322998
+	push	OFFSET $SG322999
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -19340,8 +19341,8 @@ _glVertex3d@24 PROC
 	mov	DWORD PTR _imp_glVertex3d, eax
 	test	eax, eax
 	jne	SHORT $LN3@glVertex3d
-	push	OFFSET $SG322914
-	push	OFFSET $SG322915
+	push	OFFSET $SG322984
+	push	OFFSET $SG322985
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -19383,8 +19384,8 @@ _glVertex2sv@4 PROC
 	mov	DWORD PTR _imp_glVertex2sv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glVertex2s
-	push	OFFSET $SG322896
-	push	OFFSET $SG322897
+	push	OFFSET $SG322966
+	push	OFFSET $SG322967
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -19419,8 +19420,8 @@ _glVertex2s@8 PROC
 	mov	DWORD PTR _imp_glVertex2s, eax
 	test	eax, eax
 	jne	SHORT $LN3@glVertex2s
-	push	OFFSET $SG322882
-	push	OFFSET $SG322883
+	push	OFFSET $SG322952
+	push	OFFSET $SG322953
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -19454,8 +19455,8 @@ _glVertex2iv@4 PROC
 	mov	DWORD PTR _imp_glVertex2iv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glVertex2i
-	push	OFFSET $SG322866
-	push	OFFSET $SG322867
+	push	OFFSET $SG322936
+	push	OFFSET $SG322937
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -19490,8 +19491,8 @@ _glVertex2i@8 PROC
 	mov	DWORD PTR _imp_glVertex2i, eax
 	test	eax, eax
 	jne	SHORT $LN3@glVertex2i
-	push	OFFSET $SG322852
-	push	OFFSET $SG322853
+	push	OFFSET $SG322922
+	push	OFFSET $SG322923
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -19525,8 +19526,8 @@ _glVertex2fv@4 PROC
 	mov	DWORD PTR _imp_glVertex2fv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glVertex2f
-	push	OFFSET $SG322836
-	push	OFFSET $SG322837
+	push	OFFSET $SG322906
+	push	OFFSET $SG322907
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -19561,8 +19562,8 @@ _glVertex2f@8 PROC
 	mov	DWORD PTR _imp_glVertex2f, eax
 	test	eax, eax
 	jne	SHORT $LN3@glVertex2f
-	push	OFFSET $SG322822
-	push	OFFSET $SG322823
+	push	OFFSET $SG322892
+	push	OFFSET $SG322893
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -19602,8 +19603,8 @@ _glVertex2dv@4 PROC
 	mov	DWORD PTR _imp_glVertex2dv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glVertex2d
-	push	OFFSET $SG322806
-	push	OFFSET $SG322807
+	push	OFFSET $SG322876
+	push	OFFSET $SG322877
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -19638,8 +19639,8 @@ _glVertex2d@16 PROC
 	mov	DWORD PTR _imp_glVertex2d, eax
 	test	eax, eax
 	jne	SHORT $LN3@glVertex2d
-	push	OFFSET $SG322792
-	push	OFFSET $SG322793
+	push	OFFSET $SG322862
+	push	OFFSET $SG322863
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -19681,8 +19682,8 @@ _glTranslatef@12 PROC
 	mov	DWORD PTR _imp_glTranslatef, eax
 	test	eax, eax
 	jne	SHORT $LN3@glTranslat
-	push	OFFSET $SG322776
-	push	OFFSET $SG322777
+	push	OFFSET $SG322846
+	push	OFFSET $SG322847
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -19726,8 +19727,8 @@ _glTranslated@24 PROC
 	mov	DWORD PTR _imp_glTranslated, eax
 	test	eax, eax
 	jne	SHORT $LN3@glTranslat
-	push	OFFSET $SG322758
-	push	OFFSET $SG322759
+	push	OFFSET $SG322828
+	push	OFFSET $SG322829
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -19777,8 +19778,8 @@ _glTexSubImage2D@36 PROC
 	mov	DWORD PTR _imp_glTexSubImage2D, eax
 	test	eax, eax
 	jne	SHORT $LN3@glTexSubIm
-	push	OFFSET $SG322740
-	push	OFFSET $SG322741
+	push	OFFSET $SG322810
+	push	OFFSET $SG322811
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -19818,8 +19819,8 @@ _glTexSubImage1D@28 PROC
 	mov	DWORD PTR _imp_glTexSubImage1D, eax
 	test	eax, eax
 	jne	SHORT $LN3@glTexSubIm
-	push	OFFSET $SG322710
-	push	OFFSET $SG322711
+	push	OFFSET $SG322780
+	push	OFFSET $SG322781
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -19855,8 +19856,8 @@ _glTexParameteriv@12 PROC
 	mov	DWORD PTR _imp_glTexParameteriv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glTexParam
-	push	OFFSET $SG322684
-	push	OFFSET $SG322685
+	push	OFFSET $SG322754
+	push	OFFSET $SG322755
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -19892,8 +19893,8 @@ _glTexParameteri@12 PROC
 	mov	DWORD PTR _imp_glTexParameteri, eax
 	test	eax, eax
 	jne	SHORT $LN3@glTexParam
-	push	OFFSET $SG322666
-	push	OFFSET $SG322667
+	push	OFFSET $SG322736
+	push	OFFSET $SG322737
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -19929,8 +19930,8 @@ _glTexParameterfv@12 PROC
 	mov	DWORD PTR _imp_glTexParameterfv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glTexParam
-	push	OFFSET $SG322648
-	push	OFFSET $SG322649
+	push	OFFSET $SG322718
+	push	OFFSET $SG322719
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -19966,8 +19967,8 @@ _glTexParameterf@12 PROC
 	mov	DWORD PTR _imp_glTexParameterf, eax
 	test	eax, eax
 	jne	SHORT $LN3@glTexParam
-	push	OFFSET $SG322630
-	push	OFFSET $SG322631
+	push	OFFSET $SG322700
+	push	OFFSET $SG322701
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -20015,8 +20016,8 @@ _glTexImage2D@36 PROC
 	mov	DWORD PTR _imp_glTexImage2D, eax
 	test	eax, eax
 	jne	SHORT $LN3@glTexImage
-	push	OFFSET $SG322612
-	push	OFFSET $SG322613
+	push	OFFSET $SG322682
+	push	OFFSET $SG322683
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -20057,8 +20058,8 @@ _glTexImage1D@32 PROC
 	mov	DWORD PTR _imp_glTexImage1D, eax
 	test	eax, eax
 	jne	SHORT $LN3@glTexImage
-	push	OFFSET $SG322582
-	push	OFFSET $SG322583
+	push	OFFSET $SG322652
+	push	OFFSET $SG322653
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -20094,8 +20095,8 @@ _glTexGeniv@12 PROC
 	mov	DWORD PTR _imp_glTexGeniv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glTexGeniv
-	push	OFFSET $SG322554
-	push	OFFSET $SG322555
+	push	OFFSET $SG322624
+	push	OFFSET $SG322625
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -20131,8 +20132,8 @@ _glTexGeni@12 PROC
 	mov	DWORD PTR _imp_glTexGeni, eax
 	test	eax, eax
 	jne	SHORT $LN3@glTexGeni
-	push	OFFSET $SG322536
-	push	OFFSET $SG322537
+	push	OFFSET $SG322606
+	push	OFFSET $SG322607
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -20168,8 +20169,8 @@ _glTexGenfv@12 PROC
 	mov	DWORD PTR _imp_glTexGenfv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glTexGenfv
-	push	OFFSET $SG322518
-	push	OFFSET $SG322519
+	push	OFFSET $SG322588
+	push	OFFSET $SG322589
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -20205,8 +20206,8 @@ _glTexGenf@12 PROC
 	mov	DWORD PTR _imp_glTexGenf, eax
 	test	eax, eax
 	jne	SHORT $LN3@glTexGenf
-	push	OFFSET $SG322500
-	push	OFFSET $SG322501
+	push	OFFSET $SG322570
+	push	OFFSET $SG322571
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -20248,8 +20249,8 @@ _glTexGendv@12 PROC
 	mov	DWORD PTR _imp_glTexGendv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glTexGendv
-	push	OFFSET $SG322482
-	push	OFFSET $SG322483
+	push	OFFSET $SG322552
+	push	OFFSET $SG322553
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -20285,8 +20286,8 @@ _glTexGend@16 PROC
 	mov	DWORD PTR _imp_glTexGend, eax
 	test	eax, eax
 	jne	SHORT $LN3@glTexGend
-	push	OFFSET $SG322464
-	push	OFFSET $SG322465
+	push	OFFSET $SG322534
+	push	OFFSET $SG322535
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -20328,8 +20329,8 @@ _glTexEnviv@12 PROC
 	mov	DWORD PTR _imp_glTexEnviv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glTexEnviv
-	push	OFFSET $SG322446
-	push	OFFSET $SG322447
+	push	OFFSET $SG322516
+	push	OFFSET $SG322517
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -20365,8 +20366,8 @@ _glTexEnvi@12 PROC
 	mov	DWORD PTR _imp_glTexEnvi, eax
 	test	eax, eax
 	jne	SHORT $LN3@glTexEnvi
-	push	OFFSET $SG322428
-	push	OFFSET $SG322429
+	push	OFFSET $SG322498
+	push	OFFSET $SG322499
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -20402,8 +20403,8 @@ _glTexEnvfv@12 PROC
 	mov	DWORD PTR _imp_glTexEnvfv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glTexEnvfv
-	push	OFFSET $SG322410
-	push	OFFSET $SG322411
+	push	OFFSET $SG322480
+	push	OFFSET $SG322481
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -20439,8 +20440,8 @@ _glTexEnvf@12 PROC
 	mov	DWORD PTR _imp_glTexEnvf, eax
 	test	eax, eax
 	jne	SHORT $LN3@glTexEnvf
-	push	OFFSET $SG322392
-	push	OFFSET $SG322393
+	push	OFFSET $SG322462
+	push	OFFSET $SG322463
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -20483,8 +20484,8 @@ _glTexCoordPointer@16 PROC
 	mov	DWORD PTR _imp_glTexCoordPointer, eax
 	test	eax, eax
 	jne	SHORT $LN3@glTexCoord
-	push	OFFSET $SG322374
-	push	OFFSET $SG322375
+	push	OFFSET $SG322444
+	push	OFFSET $SG322445
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -20518,8 +20519,8 @@ _glTexCoord4sv@4 PROC
 	mov	DWORD PTR _imp_glTexCoord4sv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glTexCoord
-	push	OFFSET $SG322354
-	push	OFFSET $SG322355
+	push	OFFSET $SG322424
+	push	OFFSET $SG322425
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -20556,8 +20557,8 @@ _glTexCoord4s@16 PROC
 	mov	DWORD PTR _imp_glTexCoord4s, eax
 	test	eax, eax
 	jne	SHORT $LN3@glTexCoord
-	push	OFFSET $SG322340
-	push	OFFSET $SG322341
+	push	OFFSET $SG322410
+	push	OFFSET $SG322411
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -20591,8 +20592,8 @@ _glTexCoord4iv@4 PROC
 	mov	DWORD PTR _imp_glTexCoord4iv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glTexCoord
-	push	OFFSET $SG322320
-	push	OFFSET $SG322321
+	push	OFFSET $SG322390
+	push	OFFSET $SG322391
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -20629,8 +20630,8 @@ _glTexCoord4i@16 PROC
 	mov	DWORD PTR _imp_glTexCoord4i, eax
 	test	eax, eax
 	jne	SHORT $LN3@glTexCoord
-	push	OFFSET $SG322306
-	push	OFFSET $SG322307
+	push	OFFSET $SG322376
+	push	OFFSET $SG322377
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -20664,8 +20665,8 @@ _glTexCoord4fv@4 PROC
 	mov	DWORD PTR _imp_glTexCoord4fv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glTexCoord
-	push	OFFSET $SG322286
-	push	OFFSET $SG322287
+	push	OFFSET $SG322356
+	push	OFFSET $SG322357
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -20702,8 +20703,8 @@ _glTexCoord4f@16 PROC
 	mov	DWORD PTR _imp_glTexCoord4f, eax
 	test	eax, eax
 	jne	SHORT $LN3@glTexCoord
-	push	OFFSET $SG322272
-	push	OFFSET $SG322273
+	push	OFFSET $SG322342
+	push	OFFSET $SG322343
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -20747,8 +20748,8 @@ _glTexCoord4dv@4 PROC
 	mov	DWORD PTR _imp_glTexCoord4dv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glTexCoord
-	push	OFFSET $SG322252
-	push	OFFSET $SG322253
+	push	OFFSET $SG322322
+	push	OFFSET $SG322323
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -20785,8 +20786,8 @@ _glTexCoord4d@32 PROC
 	mov	DWORD PTR _imp_glTexCoord4d, eax
 	test	eax, eax
 	jne	SHORT $LN3@glTexCoord
-	push	OFFSET $SG322238
-	push	OFFSET $SG322239
+	push	OFFSET $SG322308
+	push	OFFSET $SG322309
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -20830,8 +20831,8 @@ _glTexCoord3sv@4 PROC
 	mov	DWORD PTR _imp_glTexCoord3sv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glTexCoord
-	push	OFFSET $SG322218
-	push	OFFSET $SG322219
+	push	OFFSET $SG322288
+	push	OFFSET $SG322289
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -20867,8 +20868,8 @@ _glTexCoord3s@12 PROC
 	mov	DWORD PTR _imp_glTexCoord3s, eax
 	test	eax, eax
 	jne	SHORT $LN3@glTexCoord
-	push	OFFSET $SG322204
-	push	OFFSET $SG322205
+	push	OFFSET $SG322274
+	push	OFFSET $SG322275
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -20902,8 +20903,8 @@ _glTexCoord3iv@4 PROC
 	mov	DWORD PTR _imp_glTexCoord3iv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glTexCoord
-	push	OFFSET $SG322186
-	push	OFFSET $SG322187
+	push	OFFSET $SG322256
+	push	OFFSET $SG322257
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -20939,8 +20940,8 @@ _glTexCoord3i@12 PROC
 	mov	DWORD PTR _imp_glTexCoord3i, eax
 	test	eax, eax
 	jne	SHORT $LN3@glTexCoord
-	push	OFFSET $SG322172
-	push	OFFSET $SG322173
+	push	OFFSET $SG322242
+	push	OFFSET $SG322243
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -20974,8 +20975,8 @@ _glTexCoord3fv@4 PROC
 	mov	DWORD PTR _imp_glTexCoord3fv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glTexCoord
-	push	OFFSET $SG322154
-	push	OFFSET $SG322155
+	push	OFFSET $SG322224
+	push	OFFSET $SG322225
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -21011,8 +21012,8 @@ _glTexCoord3f@12 PROC
 	mov	DWORD PTR _imp_glTexCoord3f, eax
 	test	eax, eax
 	jne	SHORT $LN3@glTexCoord
-	push	OFFSET $SG322140
-	push	OFFSET $SG322141
+	push	OFFSET $SG322210
+	push	OFFSET $SG322211
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -21054,8 +21055,8 @@ _glTexCoord3dv@4 PROC
 	mov	DWORD PTR _imp_glTexCoord3dv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glTexCoord
-	push	OFFSET $SG322122
-	push	OFFSET $SG322123
+	push	OFFSET $SG322192
+	push	OFFSET $SG322193
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -21091,8 +21092,8 @@ _glTexCoord3d@24 PROC
 	mov	DWORD PTR _imp_glTexCoord3d, eax
 	test	eax, eax
 	jne	SHORT $LN3@glTexCoord
-	push	OFFSET $SG322108
-	push	OFFSET $SG322109
+	push	OFFSET $SG322178
+	push	OFFSET $SG322179
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -21134,8 +21135,8 @@ _glTexCoord2sv@4 PROC
 	mov	DWORD PTR _imp_glTexCoord2sv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glTexCoord
-	push	OFFSET $SG322090
-	push	OFFSET $SG322091
+	push	OFFSET $SG322160
+	push	OFFSET $SG322161
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -21170,8 +21171,8 @@ _glTexCoord2s@8 PROC
 	mov	DWORD PTR _imp_glTexCoord2s, eax
 	test	eax, eax
 	jne	SHORT $LN3@glTexCoord
-	push	OFFSET $SG322076
-	push	OFFSET $SG322077
+	push	OFFSET $SG322146
+	push	OFFSET $SG322147
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -21205,8 +21206,8 @@ _glTexCoord2iv@4 PROC
 	mov	DWORD PTR _imp_glTexCoord2iv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glTexCoord
-	push	OFFSET $SG322060
-	push	OFFSET $SG322061
+	push	OFFSET $SG322130
+	push	OFFSET $SG322131
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -21241,8 +21242,8 @@ _glTexCoord2i@8 PROC
 	mov	DWORD PTR _imp_glTexCoord2i, eax
 	test	eax, eax
 	jne	SHORT $LN3@glTexCoord
-	push	OFFSET $SG322046
-	push	OFFSET $SG322047
+	push	OFFSET $SG322116
+	push	OFFSET $SG322117
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -21276,8 +21277,8 @@ _glTexCoord2fv@4 PROC
 	mov	DWORD PTR _imp_glTexCoord2fv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glTexCoord
-	push	OFFSET $SG322030
-	push	OFFSET $SG322031
+	push	OFFSET $SG322100
+	push	OFFSET $SG322101
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -21312,8 +21313,8 @@ _glTexCoord2f@8 PROC
 	mov	DWORD PTR _imp_glTexCoord2f, eax
 	test	eax, eax
 	jne	SHORT $LN3@glTexCoord
-	push	OFFSET $SG322016
-	push	OFFSET $SG322017
+	push	OFFSET $SG322086
+	push	OFFSET $SG322087
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -21353,8 +21354,8 @@ _glTexCoord2dv@4 PROC
 	mov	DWORD PTR _imp_glTexCoord2dv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glTexCoord
-	push	OFFSET $SG322000
-	push	OFFSET $SG322001
+	push	OFFSET $SG322070
+	push	OFFSET $SG322071
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -21389,8 +21390,8 @@ _glTexCoord2d@16 PROC
 	mov	DWORD PTR _imp_glTexCoord2d, eax
 	test	eax, eax
 	jne	SHORT $LN3@glTexCoord
-	push	OFFSET $SG321986
-	push	OFFSET $SG321987
+	push	OFFSET $SG322056
+	push	OFFSET $SG322057
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -21430,8 +21431,8 @@ _glTexCoord1sv@4 PROC
 	mov	DWORD PTR _imp_glTexCoord1sv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glTexCoord
-	push	OFFSET $SG321970
-	push	OFFSET $SG321971
+	push	OFFSET $SG322040
+	push	OFFSET $SG322041
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -21465,8 +21466,8 @@ _glTexCoord1s@4 PROC
 	mov	DWORD PTR _imp_glTexCoord1s, eax
 	test	eax, eax
 	jne	SHORT $LN3@glTexCoord
-	push	OFFSET $SG321956
-	push	OFFSET $SG321957
+	push	OFFSET $SG322026
+	push	OFFSET $SG322027
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -21500,8 +21501,8 @@ _glTexCoord1iv@4 PROC
 	mov	DWORD PTR _imp_glTexCoord1iv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glTexCoord
-	push	OFFSET $SG321942
-	push	OFFSET $SG321943
+	push	OFFSET $SG322012
+	push	OFFSET $SG322013
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -21535,8 +21536,8 @@ _glTexCoord1i@4 PROC
 	mov	DWORD PTR _imp_glTexCoord1i, eax
 	test	eax, eax
 	jne	SHORT $LN3@glTexCoord
-	push	OFFSET $SG321928
-	push	OFFSET $SG321929
+	push	OFFSET $SG321998
+	push	OFFSET $SG321999
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -21570,8 +21571,8 @@ _glTexCoord1fv@4 PROC
 	mov	DWORD PTR _imp_glTexCoord1fv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glTexCoord
-	push	OFFSET $SG321914
-	push	OFFSET $SG321915
+	push	OFFSET $SG321984
+	push	OFFSET $SG321985
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -21605,8 +21606,8 @@ _glTexCoord1f@4 PROC
 	mov	DWORD PTR _imp_glTexCoord1f, eax
 	test	eax, eax
 	jne	SHORT $LN3@glTexCoord
-	push	OFFSET $SG321900
-	push	OFFSET $SG321901
+	push	OFFSET $SG321970
+	push	OFFSET $SG321971
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -21644,8 +21645,8 @@ _glTexCoord1dv@4 PROC
 	mov	DWORD PTR _imp_glTexCoord1dv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glTexCoord
-	push	OFFSET $SG321886
-	push	OFFSET $SG321887
+	push	OFFSET $SG321956
+	push	OFFSET $SG321957
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -21679,8 +21680,8 @@ _glTexCoord1d@8 PROC
 	mov	DWORD PTR _imp_glTexCoord1d, eax
 	test	eax, eax
 	jne	SHORT $LN3@glTexCoord
-	push	OFFSET $SG321872
-	push	OFFSET $SG321873
+	push	OFFSET $SG321942
+	push	OFFSET $SG321943
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -21720,8 +21721,8 @@ _glStencilOp@12 PROC
 	mov	DWORD PTR _imp_glStencilOp, eax
 	test	eax, eax
 	jne	SHORT $LN3@glStencilO
-	push	OFFSET $SG321858
-	push	OFFSET $SG321859
+	push	OFFSET $SG321928
+	push	OFFSET $SG321929
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -21755,8 +21756,8 @@ _glStencilMask@4 PROC
 	mov	DWORD PTR _imp_glStencilMask, eax
 	test	eax, eax
 	jne	SHORT $LN3@glStencilM
-	push	OFFSET $SG321840
-	push	OFFSET $SG321841
+	push	OFFSET $SG321910
+	push	OFFSET $SG321911
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -21792,8 +21793,8 @@ _glStencilFunc@12 PROC
 	mov	DWORD PTR _imp_glStencilFunc, eax
 	test	eax, eax
 	jne	SHORT $LN3@glStencilF
-	push	OFFSET $SG321826
-	push	OFFSET $SG321827
+	push	OFFSET $SG321896
+	push	OFFSET $SG321897
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -21827,8 +21828,8 @@ _glShadeModel@4 PROC
 	mov	DWORD PTR _imp_glShadeModel, eax
 	test	eax, eax
 	jne	SHORT $LN3@glShadeMod
-	push	OFFSET $SG321808
-	push	OFFSET $SG321809
+	push	OFFSET $SG321878
+	push	OFFSET $SG321879
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -21863,8 +21864,8 @@ _glSelectBuffer@8 PROC
 	mov	DWORD PTR _imp_glSelectBuffer, eax
 	test	eax, eax
 	jne	SHORT $LN3@glSelectBu
-	push	OFFSET $SG321794
-	push	OFFSET $SG321795
+	push	OFFSET $SG321864
+	push	OFFSET $SG321865
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -21901,8 +21902,8 @@ _glScissor@16 PROC
 	mov	DWORD PTR _imp_glScissor, eax
 	test	eax, eax
 	jne	SHORT $LN3@glScissor
-	push	OFFSET $SG321778
-	push	OFFSET $SG321779
+	push	OFFSET $SG321848
+	push	OFFSET $SG321849
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -21938,8 +21939,8 @@ _glScalef@12 PROC
 	mov	DWORD PTR _imp_glScalef, eax
 	test	eax, eax
 	jne	SHORT $LN3@glScalef
-	push	OFFSET $SG321758
-	push	OFFSET $SG321759
+	push	OFFSET $SG321828
+	push	OFFSET $SG321829
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -21983,8 +21984,8 @@ _glScaled@24 PROC
 	mov	DWORD PTR _imp_glScaled, eax
 	test	eax, eax
 	jne	SHORT $LN3@glScaled
-	push	OFFSET $SG321740
-	push	OFFSET $SG321741
+	push	OFFSET $SG321810
+	push	OFFSET $SG321811
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -22029,8 +22030,8 @@ _glRotatef@16 PROC
 	mov	DWORD PTR _imp_glRotatef, eax
 	test	eax, eax
 	jne	SHORT $LN3@glRotatef
-	push	OFFSET $SG321722
-	push	OFFSET $SG321723
+	push	OFFSET $SG321792
+	push	OFFSET $SG321793
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -22077,8 +22078,8 @@ _glRotated@32 PROC
 	mov	DWORD PTR _imp_glRotated, eax
 	test	eax, eax
 	jne	SHORT $LN3@glRotated
-	push	OFFSET $SG321702
-	push	OFFSET $SG321703
+	push	OFFSET $SG321772
+	push	OFFSET $SG321773
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -22122,8 +22123,8 @@ _glRenderMode@4 PROC
 	mov	DWORD PTR _imp_glRenderMode, eax
 	test	eax, eax
 	jne	SHORT $LN3@glRenderMo
-	push	OFFSET $SG321682
-	push	OFFSET $SG321683
+	push	OFFSET $SG321752
+	push	OFFSET $SG321753
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -22159,8 +22160,8 @@ _glRectsv@8 PROC
 	mov	DWORD PTR _imp_glRectsv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glRectsv
-	push	OFFSET $SG321668
-	push	OFFSET $SG321669
+	push	OFFSET $SG321738
+	push	OFFSET $SG321739
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -22197,8 +22198,8 @@ _glRects@16 PROC
 	mov	DWORD PTR _imp_glRects, eax
 	test	eax, eax
 	jne	SHORT $LN3@glRects
-	push	OFFSET $SG321652
-	push	OFFSET $SG321653
+	push	OFFSET $SG321722
+	push	OFFSET $SG321723
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -22233,8 +22234,8 @@ _glRectiv@8 PROC
 	mov	DWORD PTR _imp_glRectiv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glRectiv
-	push	OFFSET $SG321632
-	push	OFFSET $SG321633
+	push	OFFSET $SG321702
+	push	OFFSET $SG321703
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -22271,8 +22272,8 @@ _glRecti@16 PROC
 	mov	DWORD PTR _imp_glRecti, eax
 	test	eax, eax
 	jne	SHORT $LN3@glRecti
-	push	OFFSET $SG321616
-	push	OFFSET $SG321617
+	push	OFFSET $SG321686
+	push	OFFSET $SG321687
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -22307,8 +22308,8 @@ _glRectfv@8 PROC
 	mov	DWORD PTR _imp_glRectfv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glRectfv
-	push	OFFSET $SG321596
-	push	OFFSET $SG321597
+	push	OFFSET $SG321666
+	push	OFFSET $SG321667
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -22345,8 +22346,8 @@ _glRectf@16 PROC
 	mov	DWORD PTR _imp_glRectf, eax
 	test	eax, eax
 	jne	SHORT $LN3@glRectf
-	push	OFFSET $SG321580
-	push	OFFSET $SG321581
+	push	OFFSET $SG321650
+	push	OFFSET $SG321651
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -22391,8 +22392,8 @@ _glRectdv@8 PROC
 	mov	DWORD PTR _imp_glRectdv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glRectdv
-	push	OFFSET $SG321560
-	push	OFFSET $SG321561
+	push	OFFSET $SG321630
+	push	OFFSET $SG321631
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -22429,8 +22430,8 @@ _glRectd@32 PROC
 	mov	DWORD PTR _imp_glRectd, eax
 	test	eax, eax
 	jne	SHORT $LN3@glRectd
-	push	OFFSET $SG321544
-	push	OFFSET $SG321545
+	push	OFFSET $SG321614
+	push	OFFSET $SG321615
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -22480,8 +22481,8 @@ _glReadPixels@28 PROC
 	mov	DWORD PTR _imp_glReadPixels, eax
 	test	eax, eax
 	jne	SHORT $LN3@glReadPixe
-	push	OFFSET $SG321524
-	push	OFFSET $SG321525
+	push	OFFSET $SG321594
+	push	OFFSET $SG321595
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -22515,8 +22516,8 @@ _glReadBuffer@4 PROC
 	mov	DWORD PTR _imp_glReadBuffer, eax
 	test	eax, eax
 	jne	SHORT $LN3@glReadBuff
-	push	OFFSET $SG321498
-	push	OFFSET $SG321499
+	push	OFFSET $SG321568
+	push	OFFSET $SG321569
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -22550,8 +22551,8 @@ _glRasterPos4sv@4 PROC
 	mov	DWORD PTR _imp_glRasterPos4sv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glRasterPo
-	push	OFFSET $SG321484
-	push	OFFSET $SG321485
+	push	OFFSET $SG321554
+	push	OFFSET $SG321555
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -22588,8 +22589,8 @@ _glRasterPos4s@16 PROC
 	mov	DWORD PTR _imp_glRasterPos4s, eax
 	test	eax, eax
 	jne	SHORT $LN3@glRasterPo
-	push	OFFSET $SG321470
-	push	OFFSET $SG321471
+	push	OFFSET $SG321540
+	push	OFFSET $SG321541
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -22623,8 +22624,8 @@ _glRasterPos4iv@4 PROC
 	mov	DWORD PTR _imp_glRasterPos4iv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glRasterPo
-	push	OFFSET $SG321450
-	push	OFFSET $SG321451
+	push	OFFSET $SG321520
+	push	OFFSET $SG321521
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -22661,8 +22662,8 @@ _glRasterPos4i@16 PROC
 	mov	DWORD PTR _imp_glRasterPos4i, eax
 	test	eax, eax
 	jne	SHORT $LN3@glRasterPo
-	push	OFFSET $SG321436
-	push	OFFSET $SG321437
+	push	OFFSET $SG321506
+	push	OFFSET $SG321507
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -22696,8 +22697,8 @@ _glRasterPos4fv@4 PROC
 	mov	DWORD PTR _imp_glRasterPos4fv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glRasterPo
-	push	OFFSET $SG321416
-	push	OFFSET $SG321417
+	push	OFFSET $SG321486
+	push	OFFSET $SG321487
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -22734,8 +22735,8 @@ _glRasterPos4f@16 PROC
 	mov	DWORD PTR _imp_glRasterPos4f, eax
 	test	eax, eax
 	jne	SHORT $LN3@glRasterPo
-	push	OFFSET $SG321402
-	push	OFFSET $SG321403
+	push	OFFSET $SG321472
+	push	OFFSET $SG321473
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -22779,8 +22780,8 @@ _glRasterPos4dv@4 PROC
 	mov	DWORD PTR _imp_glRasterPos4dv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glRasterPo
-	push	OFFSET $SG321382
-	push	OFFSET $SG321383
+	push	OFFSET $SG321452
+	push	OFFSET $SG321453
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -22817,8 +22818,8 @@ _glRasterPos4d@32 PROC
 	mov	DWORD PTR _imp_glRasterPos4d, eax
 	test	eax, eax
 	jne	SHORT $LN3@glRasterPo
-	push	OFFSET $SG321368
-	push	OFFSET $SG321369
+	push	OFFSET $SG321438
+	push	OFFSET $SG321439
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -22862,8 +22863,8 @@ _glRasterPos3sv@4 PROC
 	mov	DWORD PTR _imp_glRasterPos3sv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glRasterPo
-	push	OFFSET $SG321348
-	push	OFFSET $SG321349
+	push	OFFSET $SG321418
+	push	OFFSET $SG321419
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -22899,8 +22900,8 @@ _glRasterPos3s@12 PROC
 	mov	DWORD PTR _imp_glRasterPos3s, eax
 	test	eax, eax
 	jne	SHORT $LN3@glRasterPo
-	push	OFFSET $SG321334
-	push	OFFSET $SG321335
+	push	OFFSET $SG321404
+	push	OFFSET $SG321405
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -22934,8 +22935,8 @@ _glRasterPos3iv@4 PROC
 	mov	DWORD PTR _imp_glRasterPos3iv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glRasterPo
-	push	OFFSET $SG321316
-	push	OFFSET $SG321317
+	push	OFFSET $SG321386
+	push	OFFSET $SG321387
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -22971,8 +22972,8 @@ _glRasterPos3i@12 PROC
 	mov	DWORD PTR _imp_glRasterPos3i, eax
 	test	eax, eax
 	jne	SHORT $LN3@glRasterPo
-	push	OFFSET $SG321302
-	push	OFFSET $SG321303
+	push	OFFSET $SG321372
+	push	OFFSET $SG321373
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -23006,8 +23007,8 @@ _glRasterPos3fv@4 PROC
 	mov	DWORD PTR _imp_glRasterPos3fv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glRasterPo
-	push	OFFSET $SG321284
-	push	OFFSET $SG321285
+	push	OFFSET $SG321354
+	push	OFFSET $SG321355
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -23043,8 +23044,8 @@ _glRasterPos3f@12 PROC
 	mov	DWORD PTR _imp_glRasterPos3f, eax
 	test	eax, eax
 	jne	SHORT $LN3@glRasterPo
-	push	OFFSET $SG321270
-	push	OFFSET $SG321271
+	push	OFFSET $SG321340
+	push	OFFSET $SG321341
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -23086,8 +23087,8 @@ _glRasterPos3dv@4 PROC
 	mov	DWORD PTR _imp_glRasterPos3dv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glRasterPo
-	push	OFFSET $SG321252
-	push	OFFSET $SG321253
+	push	OFFSET $SG321322
+	push	OFFSET $SG321323
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -23123,8 +23124,8 @@ _glRasterPos3d@24 PROC
 	mov	DWORD PTR _imp_glRasterPos3d, eax
 	test	eax, eax
 	jne	SHORT $LN3@glRasterPo
-	push	OFFSET $SG321238
-	push	OFFSET $SG321239
+	push	OFFSET $SG321308
+	push	OFFSET $SG321309
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -23166,8 +23167,8 @@ _glRasterPos2sv@4 PROC
 	mov	DWORD PTR _imp_glRasterPos2sv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glRasterPo
-	push	OFFSET $SG321220
-	push	OFFSET $SG321221
+	push	OFFSET $SG321290
+	push	OFFSET $SG321291
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -23202,8 +23203,8 @@ _glRasterPos2s@8 PROC
 	mov	DWORD PTR _imp_glRasterPos2s, eax
 	test	eax, eax
 	jne	SHORT $LN3@glRasterPo
-	push	OFFSET $SG321206
-	push	OFFSET $SG321207
+	push	OFFSET $SG321276
+	push	OFFSET $SG321277
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -23237,8 +23238,8 @@ _glRasterPos2iv@4 PROC
 	mov	DWORD PTR _imp_glRasterPos2iv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glRasterPo
-	push	OFFSET $SG321190
-	push	OFFSET $SG321191
+	push	OFFSET $SG321260
+	push	OFFSET $SG321261
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -23273,8 +23274,8 @@ _glRasterPos2i@8 PROC
 	mov	DWORD PTR _imp_glRasterPos2i, eax
 	test	eax, eax
 	jne	SHORT $LN3@glRasterPo
-	push	OFFSET $SG321176
-	push	OFFSET $SG321177
+	push	OFFSET $SG321246
+	push	OFFSET $SG321247
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -23308,8 +23309,8 @@ _glRasterPos2fv@4 PROC
 	mov	DWORD PTR _imp_glRasterPos2fv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glRasterPo
-	push	OFFSET $SG321160
-	push	OFFSET $SG321161
+	push	OFFSET $SG321230
+	push	OFFSET $SG321231
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -23344,8 +23345,8 @@ _glRasterPos2f@8 PROC
 	mov	DWORD PTR _imp_glRasterPos2f, eax
 	test	eax, eax
 	jne	SHORT $LN3@glRasterPo
-	push	OFFSET $SG321146
-	push	OFFSET $SG321147
+	push	OFFSET $SG321216
+	push	OFFSET $SG321217
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -23385,8 +23386,8 @@ _glRasterPos2dv@4 PROC
 	mov	DWORD PTR _imp_glRasterPos2dv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glRasterPo
-	push	OFFSET $SG321130
-	push	OFFSET $SG321131
+	push	OFFSET $SG321200
+	push	OFFSET $SG321201
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -23421,8 +23422,8 @@ _glRasterPos2d@16 PROC
 	mov	DWORD PTR _imp_glRasterPos2d, eax
 	test	eax, eax
 	jne	SHORT $LN3@glRasterPo
-	push	OFFSET $SG321116
-	push	OFFSET $SG321117
+	push	OFFSET $SG321186
+	push	OFFSET $SG321187
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -23462,8 +23463,8 @@ _glPushName@4 PROC
 	mov	DWORD PTR _imp_glPushName, eax
 	test	eax, eax
 	jne	SHORT $LN3@glPushName
-	push	OFFSET $SG321100
-	push	OFFSET $SG321101
+	push	OFFSET $SG321170
+	push	OFFSET $SG321171
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -23490,8 +23491,8 @@ _glPushMatrix@0 PROC
 	mov	DWORD PTR _imp_glPushMatrix, eax
 	test	eax, eax
 	jne	SHORT $LN3@glPushMatr
-	push	OFFSET $SG321086
-	push	OFFSET $SG321087
+	push	OFFSET $SG321156
+	push	OFFSET $SG321157
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -23523,8 +23524,8 @@ _glPushClientAttrib@4 PROC
 	mov	DWORD PTR _imp_glPushClientAttrib, eax
 	test	eax, eax
 	jne	SHORT $LN3@glPushClie
-	push	OFFSET $SG321072
-	push	OFFSET $SG321073
+	push	OFFSET $SG321142
+	push	OFFSET $SG321143
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -23558,8 +23559,8 @@ _glPushAttrib@4 PROC
 	mov	DWORD PTR _imp_glPushAttrib, eax
 	test	eax, eax
 	jne	SHORT $LN3@glPushAttr
-	push	OFFSET $SG321058
-	push	OFFSET $SG321059
+	push	OFFSET $SG321128
+	push	OFFSET $SG321129
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -23595,8 +23596,8 @@ _glPrioritizeTextures@12 PROC
 	mov	DWORD PTR _imp_glPrioritizeTextures, eax
 	test	eax, eax
 	jne	SHORT $LN3@glPrioriti
-	push	OFFSET $SG321044
-	push	OFFSET $SG321045
+	push	OFFSET $SG321114
+	push	OFFSET $SG321115
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -23623,8 +23624,8 @@ _glPopName@0 PROC
 	mov	DWORD PTR _imp_glPopName, eax
 	test	eax, eax
 	jne	SHORT $LN3@glPopName
-	push	OFFSET $SG321026
-	push	OFFSET $SG321027
+	push	OFFSET $SG321096
+	push	OFFSET $SG321097
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -23649,8 +23650,8 @@ _glPopMatrix@0 PROC
 	mov	DWORD PTR _imp_glPopMatrix, eax
 	test	eax, eax
 	jne	SHORT $LN3@glPopMatri
-	push	OFFSET $SG321012
-	push	OFFSET $SG321013
+	push	OFFSET $SG321082
+	push	OFFSET $SG321083
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -23675,8 +23676,8 @@ _glPopClientAttrib@0 PROC
 	mov	DWORD PTR _imp_glPopClientAttrib, eax
 	test	eax, eax
 	jne	SHORT $LN3@glPopClien
-	push	OFFSET $SG320998
-	push	OFFSET $SG320999
+	push	OFFSET $SG321068
+	push	OFFSET $SG321069
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -23701,8 +23702,8 @@ _glPopAttrib@0 PROC
 	mov	DWORD PTR _imp_glPopAttrib, eax
 	test	eax, eax
 	jne	SHORT $LN3@glPopAttri
-	push	OFFSET $SG320984
-	push	OFFSET $SG320985
+	push	OFFSET $SG321054
+	push	OFFSET $SG321055
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -23734,8 +23735,8 @@ _glPolygonStipple@4 PROC
 	mov	DWORD PTR _imp_glPolygonStipple, eax
 	test	eax, eax
 	jne	SHORT $LN3@glPolygonS
-	push	OFFSET $SG320970
-	push	OFFSET $SG320971
+	push	OFFSET $SG321040
+	push	OFFSET $SG321041
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -23770,8 +23771,8 @@ _glPolygonOffset@8 PROC
 	mov	DWORD PTR _imp_glPolygonOffset, eax
 	test	eax, eax
 	jne	SHORT $LN3@glPolygonO
-	push	OFFSET $SG320956
-	push	OFFSET $SG320957
+	push	OFFSET $SG321026
+	push	OFFSET $SG321027
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -23812,8 +23813,8 @@ _glPolygonMode@8 PROC
 	mov	DWORD PTR _imp_glPolygonMode, eax
 	test	eax, eax
 	jne	SHORT $LN3@glPolygonM
-	push	OFFSET $SG320940
-	push	OFFSET $SG320941
+	push	OFFSET $SG321010
+	push	OFFSET $SG321011
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -23847,8 +23848,8 @@ _glPointSize@4 PROC
 	mov	DWORD PTR _imp_glPointSize, eax
 	test	eax, eax
 	jne	SHORT $LN3@glPointSiz
-	push	OFFSET $SG320924
-	push	OFFSET $SG320925
+	push	OFFSET $SG320994
+	push	OFFSET $SG320995
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -23887,8 +23888,8 @@ _glPixelZoom@8 PROC
 	mov	DWORD PTR _imp_glPixelZoom, eax
 	test	eax, eax
 	jne	SHORT $LN3@glPixelZoo
-	push	OFFSET $SG320910
-	push	OFFSET $SG320911
+	push	OFFSET $SG320980
+	push	OFFSET $SG320981
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -23929,8 +23930,8 @@ _glPixelTransferi@8 PROC
 	mov	DWORD PTR _imp_glPixelTransferi, eax
 	test	eax, eax
 	jne	SHORT $LN3@glPixelTra
-	push	OFFSET $SG320894
-	push	OFFSET $SG320895
+	push	OFFSET $SG320964
+	push	OFFSET $SG320965
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -23965,8 +23966,8 @@ _glPixelTransferf@8 PROC
 	mov	DWORD PTR _imp_glPixelTransferf, eax
 	test	eax, eax
 	jne	SHORT $LN3@glPixelTra
-	push	OFFSET $SG320878
-	push	OFFSET $SG320879
+	push	OFFSET $SG320948
+	push	OFFSET $SG320949
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -24006,8 +24007,8 @@ _glPixelStorei@8 PROC
 	mov	DWORD PTR _imp_glPixelStorei, eax
 	test	eax, eax
 	jne	SHORT $LN3@glPixelSto
-	push	OFFSET $SG320862
-	push	OFFSET $SG320863
+	push	OFFSET $SG320932
+	push	OFFSET $SG320933
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -24042,8 +24043,8 @@ _glPixelStoref@8 PROC
 	mov	DWORD PTR _imp_glPixelStoref, eax
 	test	eax, eax
 	jne	SHORT $LN3@glPixelSto
-	push	OFFSET $SG320846
-	push	OFFSET $SG320847
+	push	OFFSET $SG320916
+	push	OFFSET $SG320917
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -24084,8 +24085,8 @@ _glPixelMapusv@12 PROC
 	mov	DWORD PTR _imp_glPixelMapusv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glPixelMap
-	push	OFFSET $SG320830
-	push	OFFSET $SG320831
+	push	OFFSET $SG320900
+	push	OFFSET $SG320901
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -24121,8 +24122,8 @@ _glPixelMapuiv@12 PROC
 	mov	DWORD PTR _imp_glPixelMapuiv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glPixelMap
-	push	OFFSET $SG320812
-	push	OFFSET $SG320813
+	push	OFFSET $SG320882
+	push	OFFSET $SG320883
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -24158,8 +24159,8 @@ _glPixelMapfv@12 PROC
 	mov	DWORD PTR _imp_glPixelMapfv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glPixelMap
-	push	OFFSET $SG320794
-	push	OFFSET $SG320795
+	push	OFFSET $SG320864
+	push	OFFSET $SG320865
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -24193,8 +24194,8 @@ _glPassThrough@4 PROC
 	mov	DWORD PTR _imp_glPassThrough, eax
 	test	eax, eax
 	jne	SHORT $LN3@glPassThro
-	push	OFFSET $SG320776
-	push	OFFSET $SG320777
+	push	OFFSET $SG320846
+	push	OFFSET $SG320847
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -24237,8 +24238,8 @@ _glOrtho@48 PROC
 	mov	DWORD PTR _imp_glOrtho, eax
 	test	eax, eax
 	jne	SHORT $LN3@glOrtho
-	push	OFFSET $SG320762
-	push	OFFSET $SG320763
+	push	OFFSET $SG320832
+	push	OFFSET $SG320833
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -24288,8 +24289,8 @@ _glNormalPointer@12 PROC
 	mov	DWORD PTR _imp_glNormalPointer, eax
 	test	eax, eax
 	jne	SHORT $LN3@glNormalPo
-	push	OFFSET $SG320738
-	push	OFFSET $SG320739
+	push	OFFSET $SG320808
+	push	OFFSET $SG320809
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -24323,8 +24324,8 @@ _glNormal3sv@4 PROC
 	mov	DWORD PTR _imp_glNormal3sv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glNormal3s
-	push	OFFSET $SG320720
-	push	OFFSET $SG320721
+	push	OFFSET $SG320790
+	push	OFFSET $SG320791
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -24360,8 +24361,8 @@ _glNormal3s@12 PROC
 	mov	DWORD PTR _imp_glNormal3s, eax
 	test	eax, eax
 	jne	SHORT $LN3@glNormal3s
-	push	OFFSET $SG320706
-	push	OFFSET $SG320707
+	push	OFFSET $SG320776
+	push	OFFSET $SG320777
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -24395,8 +24396,8 @@ _glNormal3iv@4 PROC
 	mov	DWORD PTR _imp_glNormal3iv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glNormal3i
-	push	OFFSET $SG320688
-	push	OFFSET $SG320689
+	push	OFFSET $SG320758
+	push	OFFSET $SG320759
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -24432,8 +24433,8 @@ _glNormal3i@12 PROC
 	mov	DWORD PTR _imp_glNormal3i, eax
 	test	eax, eax
 	jne	SHORT $LN3@glNormal3i
-	push	OFFSET $SG320674
-	push	OFFSET $SG320675
+	push	OFFSET $SG320744
+	push	OFFSET $SG320745
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -24467,8 +24468,8 @@ _glNormal3fv@4 PROC
 	mov	DWORD PTR _imp_glNormal3fv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glNormal3f
-	push	OFFSET $SG320656
-	push	OFFSET $SG320657
+	push	OFFSET $SG320726
+	push	OFFSET $SG320727
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -24504,8 +24505,8 @@ _glNormal3f@12 PROC
 	mov	DWORD PTR _imp_glNormal3f, eax
 	test	eax, eax
 	jne	SHORT $LN3@glNormal3f
-	push	OFFSET $SG320642
-	push	OFFSET $SG320643
+	push	OFFSET $SG320712
+	push	OFFSET $SG320713
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -24547,8 +24548,8 @@ _glNormal3dv@4 PROC
 	mov	DWORD PTR _imp_glNormal3dv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glNormal3d
-	push	OFFSET $SG320624
-	push	OFFSET $SG320625
+	push	OFFSET $SG320694
+	push	OFFSET $SG320695
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -24584,8 +24585,8 @@ _glNormal3d@24 PROC
 	mov	DWORD PTR _imp_glNormal3d, eax
 	test	eax, eax
 	jne	SHORT $LN3@glNormal3d
-	push	OFFSET $SG320610
-	push	OFFSET $SG320611
+	push	OFFSET $SG320680
+	push	OFFSET $SG320681
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -24627,8 +24628,8 @@ _glNormal3bv@4 PROC
 	mov	DWORD PTR _imp_glNormal3bv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glNormal3b
-	push	OFFSET $SG320592
-	push	OFFSET $SG320593
+	push	OFFSET $SG320662
+	push	OFFSET $SG320663
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -24664,8 +24665,8 @@ _glNormal3b@12 PROC
 	mov	DWORD PTR _imp_glNormal3b, eax
 	test	eax, eax
 	jne	SHORT $LN3@glNormal3b
-	push	OFFSET $SG320578
-	push	OFFSET $SG320579
+	push	OFFSET $SG320648
+	push	OFFSET $SG320649
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -24700,8 +24701,8 @@ _glNewList@8 PROC
 	mov	DWORD PTR _imp_glNewList, eax
 	test	eax, eax
 	jne	SHORT $LN3@glNewList
-	push	OFFSET $SG320560
-	push	OFFSET $SG320561
+	push	OFFSET $SG320630
+	push	OFFSET $SG320631
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -24735,8 +24736,8 @@ _glMultMatrixf@4 PROC
 	mov	DWORD PTR _imp_glMultMatrixf, eax
 	test	eax, eax
 	jne	SHORT $LN3@glMultMatr
-	push	OFFSET $SG320544
-	push	OFFSET $SG320545
+	push	OFFSET $SG320614
+	push	OFFSET $SG320615
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -24770,8 +24771,8 @@ _glMultMatrixd@4 PROC
 	mov	DWORD PTR _imp_glMultMatrixd, eax
 	test	eax, eax
 	jne	SHORT $LN3@glMultMatr
-	push	OFFSET $SG320530
-	push	OFFSET $SG320531
+	push	OFFSET $SG320600
+	push	OFFSET $SG320601
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -24805,8 +24806,8 @@ _glMatrixMode@4 PROC
 	mov	DWORD PTR _imp_glMatrixMode, eax
 	test	eax, eax
 	jne	SHORT $LN3@glMatrixMo
-	push	OFFSET $SG320516
-	push	OFFSET $SG320517
+	push	OFFSET $SG320586
+	push	OFFSET $SG320587
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -24842,8 +24843,8 @@ _glMaterialiv@12 PROC
 	mov	DWORD PTR _imp_glMaterialiv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glMaterial
-	push	OFFSET $SG320502
-	push	OFFSET $SG320503
+	push	OFFSET $SG320572
+	push	OFFSET $SG320573
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -24879,8 +24880,8 @@ _glMateriali@12 PROC
 	mov	DWORD PTR _imp_glMateriali, eax
 	test	eax, eax
 	jne	SHORT $LN3@glMaterial
-	push	OFFSET $SG320484
-	push	OFFSET $SG320485
+	push	OFFSET $SG320554
+	push	OFFSET $SG320555
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -24916,8 +24917,8 @@ _glMaterialfv@12 PROC
 	mov	DWORD PTR _imp_glMaterialfv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glMaterial
-	push	OFFSET $SG320466
-	push	OFFSET $SG320467
+	push	OFFSET $SG320536
+	push	OFFSET $SG320537
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -24953,8 +24954,8 @@ _glMaterialf@12 PROC
 	mov	DWORD PTR _imp_glMaterialf, eax
 	test	eax, eax
 	jne	SHORT $LN3@glMaterial
-	push	OFFSET $SG320448
-	push	OFFSET $SG320449
+	push	OFFSET $SG320518
+	push	OFFSET $SG320519
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -24999,8 +25000,8 @@ _glMapGrid2f@24 PROC
 	mov	DWORD PTR _imp_glMapGrid2f, eax
 	test	eax, eax
 	jne	SHORT $LN3@glMapGrid2
-	push	OFFSET $SG320430
-	push	OFFSET $SG320431
+	push	OFFSET $SG320500
+	push	OFFSET $SG320501
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -25052,8 +25053,8 @@ _glMapGrid2d@40 PROC
 	mov	DWORD PTR _imp_glMapGrid2d, eax
 	test	eax, eax
 	jne	SHORT $LN3@glMapGrid2
-	push	OFFSET $SG320406
-	push	OFFSET $SG320407
+	push	OFFSET $SG320476
+	push	OFFSET $SG320477
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -25102,8 +25103,8 @@ _glMapGrid1f@12 PROC
 	mov	DWORD PTR _imp_glMapGrid1f, eax
 	test	eax, eax
 	jne	SHORT $LN3@glMapGrid1
-	push	OFFSET $SG320382
-	push	OFFSET $SG320383
+	push	OFFSET $SG320452
+	push	OFFSET $SG320453
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -25146,8 +25147,8 @@ _glMapGrid1d@20 PROC
 	mov	DWORD PTR _imp_glMapGrid1d, eax
 	test	eax, eax
 	jne	SHORT $LN3@glMapGrid1
-	push	OFFSET $SG320364
-	push	OFFSET $SG320365
+	push	OFFSET $SG320434
+	push	OFFSET $SG320435
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -25197,8 +25198,8 @@ _glMap2f@40 PROC
 	mov	DWORD PTR _imp_glMap2f, eax
 	test	eax, eax
 	jne	SHORT $LN3@glMap2f
-	push	OFFSET $SG320346
-	push	OFFSET $SG320347
+	push	OFFSET $SG320416
+	push	OFFSET $SG320417
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -25258,8 +25259,8 @@ _glMap2d@56 PROC
 	mov	DWORD PTR _imp_glMap2d, eax
 	test	eax, eax
 	jne	SHORT $LN3@glMap2d
-	push	OFFSET $SG320314
-	push	OFFSET $SG320315
+	push	OFFSET $SG320384
+	push	OFFSET $SG320385
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -25315,8 +25316,8 @@ _glMap1f@24 PROC
 	mov	DWORD PTR _imp_glMap1f, eax
 	test	eax, eax
 	jne	SHORT $LN3@glMap1f
-	push	OFFSET $SG320282
-	push	OFFSET $SG320283
+	push	OFFSET $SG320352
+	push	OFFSET $SG320353
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -25365,8 +25366,8 @@ _glMap1d@32 PROC
 	mov	DWORD PTR _imp_glMap1d, eax
 	test	eax, eax
 	jne	SHORT $LN3@glMap1d
-	push	OFFSET $SG320258
-	push	OFFSET $SG320259
+	push	OFFSET $SG320328
+	push	OFFSET $SG320329
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -25410,8 +25411,8 @@ _glLogicOp@4 PROC
 	mov	DWORD PTR _imp_glLogicOp, eax
 	test	eax, eax
 	jne	SHORT $LN3@glLogicOp
-	push	OFFSET $SG320234
-	push	OFFSET $SG320235
+	push	OFFSET $SG320304
+	push	OFFSET $SG320305
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -25445,8 +25446,8 @@ _glLoadName@4 PROC
 	mov	DWORD PTR _imp_glLoadName, eax
 	test	eax, eax
 	jne	SHORT $LN3@glLoadName
-	push	OFFSET $SG320220
-	push	OFFSET $SG320221
+	push	OFFSET $SG320290
+	push	OFFSET $SG320291
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -25480,8 +25481,8 @@ _glLoadMatrixf@4 PROC
 	mov	DWORD PTR _imp_glLoadMatrixf, eax
 	test	eax, eax
 	jne	SHORT $LN3@glLoadMatr
-	push	OFFSET $SG320206
-	push	OFFSET $SG320207
+	push	OFFSET $SG320276
+	push	OFFSET $SG320277
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -25515,8 +25516,8 @@ _glLoadMatrixd@4 PROC
 	mov	DWORD PTR _imp_glLoadMatrixd, eax
 	test	eax, eax
 	jne	SHORT $LN3@glLoadMatr
-	push	OFFSET $SG320192
-	push	OFFSET $SG320193
+	push	OFFSET $SG320262
+	push	OFFSET $SG320263
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -25543,8 +25544,8 @@ _glLoadIdentity@0 PROC
 	mov	DWORD PTR _imp_glLoadIdentity, eax
 	test	eax, eax
 	jne	SHORT $LN3@glLoadIden
-	push	OFFSET $SG320178
-	push	OFFSET $SG320179
+	push	OFFSET $SG320248
+	push	OFFSET $SG320249
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -25576,8 +25577,8 @@ _glListBase@4 PROC
 	mov	DWORD PTR _imp_glListBase, eax
 	test	eax, eax
 	jne	SHORT $LN3@glListBase
-	push	OFFSET $SG320164
-	push	OFFSET $SG320165
+	push	OFFSET $SG320234
+	push	OFFSET $SG320235
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -25611,8 +25612,8 @@ _glLineWidth@4 PROC
 	mov	DWORD PTR _imp_glLineWidth, eax
 	test	eax, eax
 	jne	SHORT $LN3@glLineWidt
-	push	OFFSET $SG320150
-	push	OFFSET $SG320151
+	push	OFFSET $SG320220
+	push	OFFSET $SG320221
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -25651,8 +25652,8 @@ _glLineStipple@8 PROC
 	mov	DWORD PTR _imp_glLineStipple, eax
 	test	eax, eax
 	jne	SHORT $LN3@glLineStip
-	push	OFFSET $SG320136
-	push	OFFSET $SG320137
+	push	OFFSET $SG320206
+	push	OFFSET $SG320207
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -25688,8 +25689,8 @@ _glLightiv@12 PROC
 	mov	DWORD PTR _imp_glLightiv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glLightiv
-	push	OFFSET $SG320120
-	push	OFFSET $SG320121
+	push	OFFSET $SG320190
+	push	OFFSET $SG320191
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -25725,8 +25726,8 @@ _glLighti@12 PROC
 	mov	DWORD PTR _imp_glLighti, eax
 	test	eax, eax
 	jne	SHORT $LN3@glLighti
-	push	OFFSET $SG320102
-	push	OFFSET $SG320103
+	push	OFFSET $SG320172
+	push	OFFSET $SG320173
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -25762,8 +25763,8 @@ _glLightfv@12 PROC
 	mov	DWORD PTR _imp_glLightfv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glLightfv
-	push	OFFSET $SG320084
-	push	OFFSET $SG320085
+	push	OFFSET $SG320154
+	push	OFFSET $SG320155
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -25799,8 +25800,8 @@ _glLightf@12 PROC
 	mov	DWORD PTR _imp_glLightf, eax
 	test	eax, eax
 	jne	SHORT $LN3@glLightf
-	push	OFFSET $SG320066
-	push	OFFSET $SG320067
+	push	OFFSET $SG320136
+	push	OFFSET $SG320137
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -25841,8 +25842,8 @@ _glLightModeliv@8 PROC
 	mov	DWORD PTR _imp_glLightModeliv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glLightMod
-	push	OFFSET $SG320048
-	push	OFFSET $SG320049
+	push	OFFSET $SG320118
+	push	OFFSET $SG320119
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -25877,8 +25878,8 @@ _glLightModeli@8 PROC
 	mov	DWORD PTR _imp_glLightModeli, eax
 	test	eax, eax
 	jne	SHORT $LN3@glLightMod
-	push	OFFSET $SG320032
-	push	OFFSET $SG320033
+	push	OFFSET $SG320102
+	push	OFFSET $SG320103
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -25913,8 +25914,8 @@ _glLightModelfv@8 PROC
 	mov	DWORD PTR _imp_glLightModelfv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glLightMod
-	push	OFFSET $SG320016
-	push	OFFSET $SG320017
+	push	OFFSET $SG320086
+	push	OFFSET $SG320087
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -25949,8 +25950,8 @@ _glLightModelf@8 PROC
 	mov	DWORD PTR _imp_glLightModelf, eax
 	test	eax, eax
 	jne	SHORT $LN3@glLightMod
-	push	OFFSET $SG320000
-	push	OFFSET $SG320001
+	push	OFFSET $SG320070
+	push	OFFSET $SG320071
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -25989,8 +25990,8 @@ _glIsTexture@4 PROC
 	mov	DWORD PTR _imp_glIsTexture, eax
 	test	eax, eax
 	jne	SHORT $LN3@glIsTextur
-	push	OFFSET $SG319984
-	push	OFFSET $SG319985
+	push	OFFSET $SG320054
+	push	OFFSET $SG320055
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -26025,8 +26026,8 @@ _glIsList@4 PROC
 	mov	DWORD PTR _imp_glIsList, eax
 	test	eax, eax
 	jne	SHORT $LN3@glIsList
-	push	OFFSET $SG319970
-	push	OFFSET $SG319971
+	push	OFFSET $SG320040
+	push	OFFSET $SG320041
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -26061,8 +26062,8 @@ _glIsEnabled@4 PROC
 	mov	DWORD PTR _imp_glIsEnabled, eax
 	test	eax, eax
 	jne	SHORT $LN3@glIsEnable
-	push	OFFSET $SG319956
-	push	OFFSET $SG319957
+	push	OFFSET $SG320026
+	push	OFFSET $SG320027
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -26099,8 +26100,8 @@ _glInterleavedArrays@12 PROC
 	mov	DWORD PTR _imp_glInterleavedArrays, eax
 	test	eax, eax
 	jne	SHORT $LN3@glInterlea
-	push	OFFSET $SG319942
-	push	OFFSET $SG319943
+	push	OFFSET $SG320012
+	push	OFFSET $SG320013
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -26127,8 +26128,8 @@ _glInitNames@0 PROC
 	mov	DWORD PTR _imp_glInitNames, eax
 	test	eax, eax
 	jne	SHORT $LN3@glInitName
-	push	OFFSET $SG319924
-	push	OFFSET $SG319925
+	push	OFFSET $SG319994
+	push	OFFSET $SG319995
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -26160,8 +26161,8 @@ _glIndexubv@4 PROC
 	mov	DWORD PTR _imp_glIndexubv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glIndexubv
-	push	OFFSET $SG319910
-	push	OFFSET $SG319911
+	push	OFFSET $SG319980
+	push	OFFSET $SG319981
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -26195,8 +26196,8 @@ _glIndexub@4 PROC
 	mov	DWORD PTR _imp_glIndexub, eax
 	test	eax, eax
 	jne	SHORT $LN3@glIndexub
-	push	OFFSET $SG319896
-	push	OFFSET $SG319897
+	push	OFFSET $SG319966
+	push	OFFSET $SG319967
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -26230,8 +26231,8 @@ _glIndexsv@4 PROC
 	mov	DWORD PTR _imp_glIndexsv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glIndexsv
-	push	OFFSET $SG319882
-	push	OFFSET $SG319883
+	push	OFFSET $SG319952
+	push	OFFSET $SG319953
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -26265,8 +26266,8 @@ _glIndexs@4 PROC
 	mov	DWORD PTR _imp_glIndexs, eax
 	test	eax, eax
 	jne	SHORT $LN3@glIndexs
-	push	OFFSET $SG319868
-	push	OFFSET $SG319869
+	push	OFFSET $SG319938
+	push	OFFSET $SG319939
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -26300,8 +26301,8 @@ _glIndexiv@4 PROC
 	mov	DWORD PTR _imp_glIndexiv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glIndexiv
-	push	OFFSET $SG319854
-	push	OFFSET $SG319855
+	push	OFFSET $SG319924
+	push	OFFSET $SG319925
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -26335,8 +26336,8 @@ _glIndexi@4 PROC
 	mov	DWORD PTR _imp_glIndexi, eax
 	test	eax, eax
 	jne	SHORT $LN3@glIndexi
-	push	OFFSET $SG319840
-	push	OFFSET $SG319841
+	push	OFFSET $SG319910
+	push	OFFSET $SG319911
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -26370,8 +26371,8 @@ _glIndexfv@4 PROC
 	mov	DWORD PTR _imp_glIndexfv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glIndexfv
-	push	OFFSET $SG319826
-	push	OFFSET $SG319827
+	push	OFFSET $SG319896
+	push	OFFSET $SG319897
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -26405,8 +26406,8 @@ _glIndexf@4 PROC
 	mov	DWORD PTR _imp_glIndexf, eax
 	test	eax, eax
 	jne	SHORT $LN3@glIndexf
-	push	OFFSET $SG319812
-	push	OFFSET $SG319813
+	push	OFFSET $SG319882
+	push	OFFSET $SG319883
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -26444,8 +26445,8 @@ _glIndexdv@4 PROC
 	mov	DWORD PTR _imp_glIndexdv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glIndexdv
-	push	OFFSET $SG319798
-	push	OFFSET $SG319799
+	push	OFFSET $SG319868
+	push	OFFSET $SG319869
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -26479,8 +26480,8 @@ _glIndexd@8 PROC
 	mov	DWORD PTR _imp_glIndexd, eax
 	test	eax, eax
 	jne	SHORT $LN3@glIndexd
-	push	OFFSET $SG319784
-	push	OFFSET $SG319785
+	push	OFFSET $SG319854
+	push	OFFSET $SG319855
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -26520,8 +26521,8 @@ _glIndexPointer@12 PROC
 	mov	DWORD PTR _imp_glIndexPointer, eax
 	test	eax, eax
 	jne	SHORT $LN3@glIndexPoi
-	push	OFFSET $SG319770
-	push	OFFSET $SG319771
+	push	OFFSET $SG319840
+	push	OFFSET $SG319841
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -26555,8 +26556,8 @@ _glIndexMask@4 PROC
 	mov	DWORD PTR _imp_glIndexMask, eax
 	test	eax, eax
 	jne	SHORT $LN3@glIndexMas
-	push	OFFSET $SG319752
-	push	OFFSET $SG319753
+	push	OFFSET $SG319822
+	push	OFFSET $SG319823
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -26591,8 +26592,8 @@ _glHint@8 PROC
 	mov	DWORD PTR _imp_glHint, eax
 	test	eax, eax
 	jne	SHORT $LN3@glHint
-	push	OFFSET $SG319738
-	push	OFFSET $SG319739
+	push	OFFSET $SG319808
+	push	OFFSET $SG319809
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -26628,8 +26629,8 @@ _glGetTexParameteriv@12 PROC
 	mov	DWORD PTR _imp_glGetTexParameteriv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glGetTexPa
-	push	OFFSET $SG319722
-	push	OFFSET $SG319723
+	push	OFFSET $SG319792
+	push	OFFSET $SG319793
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -26665,8 +26666,8 @@ _glGetTexParameterfv@12 PROC
 	mov	DWORD PTR _imp_glGetTexParameterfv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glGetTexPa
-	push	OFFSET $SG319704
-	push	OFFSET $SG319705
+	push	OFFSET $SG319774
+	push	OFFSET $SG319775
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -26703,8 +26704,8 @@ _glGetTexLevelParameteriv@16 PROC
 	mov	DWORD PTR _imp_glGetTexLevelParameteriv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glGetTexLe
-	push	OFFSET $SG319686
-	push	OFFSET $SG319687
+	push	OFFSET $SG319756
+	push	OFFSET $SG319757
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -26741,8 +26742,8 @@ _glGetTexLevelParameterfv@16 PROC
 	mov	DWORD PTR _imp_glGetTexLevelParameterfv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glGetTexLe
-	push	OFFSET $SG319666
-	push	OFFSET $SG319667
+	push	OFFSET $SG319736
+	push	OFFSET $SG319737
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -26780,8 +26781,8 @@ _glGetTexImage@20 PROC
 	mov	DWORD PTR _imp_glGetTexImage, eax
 	test	eax, eax
 	jne	SHORT $LN3@glGetTexIm
-	push	OFFSET $SG319646
-	push	OFFSET $SG319647
+	push	OFFSET $SG319716
+	push	OFFSET $SG319717
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -26817,8 +26818,8 @@ _glGetTexGeniv@12 PROC
 	mov	DWORD PTR _imp_glGetTexGeniv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glGetTexGe
-	push	OFFSET $SG319624
-	push	OFFSET $SG319625
+	push	OFFSET $SG319694
+	push	OFFSET $SG319695
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -26854,8 +26855,8 @@ _glGetTexGenfv@12 PROC
 	mov	DWORD PTR _imp_glGetTexGenfv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glGetTexGe
-	push	OFFSET $SG319606
-	push	OFFSET $SG319607
+	push	OFFSET $SG319676
+	push	OFFSET $SG319677
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -26891,8 +26892,8 @@ _glGetTexGendv@12 PROC
 	mov	DWORD PTR _imp_glGetTexGendv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glGetTexGe
-	push	OFFSET $SG319588
-	push	OFFSET $SG319589
+	push	OFFSET $SG319658
+	push	OFFSET $SG319659
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -26928,8 +26929,8 @@ _glGetTexEnviv@12 PROC
 	mov	DWORD PTR _imp_glGetTexEnviv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glGetTexEn
-	push	OFFSET $SG319570
-	push	OFFSET $SG319571
+	push	OFFSET $SG319640
+	push	OFFSET $SG319641
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -26965,8 +26966,8 @@ _glGetTexEnvfv@12 PROC
 	mov	DWORD PTR _imp_glGetTexEnvfv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glGetTexEn
-	push	OFFSET $SG319552
-	push	OFFSET $SG319553
+	push	OFFSET $SG319622
+	push	OFFSET $SG319623
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -27000,8 +27001,8 @@ _glGetString@4 PROC
 	mov	DWORD PTR _imp_glGetString, eax
 	test	eax, eax
 	jne	SHORT $LN3@glGetStrin
-	push	OFFSET $SG319534
-	push	OFFSET $SG319535
+	push	OFFSET $SG319604
+	push	OFFSET $SG319605
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -27036,8 +27037,8 @@ _glGetPolygonStipple@4 PROC
 	mov	DWORD PTR _imp_glGetPolygonStipple, eax
 	test	eax, eax
 	jne	SHORT $LN3@glGetPolyg
-	push	OFFSET $SG319520
-	push	OFFSET $SG319521
+	push	OFFSET $SG319590
+	push	OFFSET $SG319591
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -27072,8 +27073,8 @@ _glGetPointerv@8 PROC
 	mov	DWORD PTR _imp_glGetPointerv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glGetPoint
-	push	OFFSET $SG319506
-	push	OFFSET $SG319507
+	push	OFFSET $SG319576
+	push	OFFSET $SG319577
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -27108,8 +27109,8 @@ _glGetPixelMapusv@8 PROC
 	mov	DWORD PTR _imp_glGetPixelMapusv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glGetPixel
-	push	OFFSET $SG319490
-	push	OFFSET $SG319491
+	push	OFFSET $SG319560
+	push	OFFSET $SG319561
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -27144,8 +27145,8 @@ _glGetPixelMapuiv@8 PROC
 	mov	DWORD PTR _imp_glGetPixelMapuiv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glGetPixel
-	push	OFFSET $SG319474
-	push	OFFSET $SG319475
+	push	OFFSET $SG319544
+	push	OFFSET $SG319545
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -27180,8 +27181,8 @@ _glGetPixelMapfv@8 PROC
 	mov	DWORD PTR _imp_glGetPixelMapfv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glGetPixel
-	push	OFFSET $SG319458
-	push	OFFSET $SG319459
+	push	OFFSET $SG319528
+	push	OFFSET $SG319529
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -27217,8 +27218,8 @@ _glGetMaterialiv@12 PROC
 	mov	DWORD PTR _imp_glGetMaterialiv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glGetMater
-	push	OFFSET $SG319442
-	push	OFFSET $SG319443
+	push	OFFSET $SG319512
+	push	OFFSET $SG319513
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -27254,8 +27255,8 @@ _glGetMaterialfv@12 PROC
 	mov	DWORD PTR _imp_glGetMaterialfv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glGetMater
-	push	OFFSET $SG319424
-	push	OFFSET $SG319425
+	push	OFFSET $SG319494
+	push	OFFSET $SG319495
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -27291,8 +27292,8 @@ _glGetMapiv@12 PROC
 	mov	DWORD PTR _imp_glGetMapiv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glGetMapiv
-	push	OFFSET $SG319406
-	push	OFFSET $SG319407
+	push	OFFSET $SG319476
+	push	OFFSET $SG319477
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -27328,8 +27329,8 @@ _glGetMapfv@12 PROC
 	mov	DWORD PTR _imp_glGetMapfv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glGetMapfv
-	push	OFFSET $SG319388
-	push	OFFSET $SG319389
+	push	OFFSET $SG319458
+	push	OFFSET $SG319459
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -27365,8 +27366,8 @@ _glGetMapdv@12 PROC
 	mov	DWORD PTR _imp_glGetMapdv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glGetMapdv
-	push	OFFSET $SG319370
-	push	OFFSET $SG319371
+	push	OFFSET $SG319440
+	push	OFFSET $SG319441
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -27402,8 +27403,8 @@ _glGetLightiv@12 PROC
 	mov	DWORD PTR _imp_glGetLightiv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glGetLight
-	push	OFFSET $SG319352
-	push	OFFSET $SG319353
+	push	OFFSET $SG319422
+	push	OFFSET $SG319423
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -27439,8 +27440,8 @@ _glGetLightfv@12 PROC
 	mov	DWORD PTR _imp_glGetLightfv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glGetLight
-	push	OFFSET $SG319334
-	push	OFFSET $SG319335
+	push	OFFSET $SG319404
+	push	OFFSET $SG319405
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -27475,8 +27476,8 @@ _glGetIntegerv@8 PROC
 	mov	DWORD PTR _imp_glGetIntegerv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glGetInteg
-	push	OFFSET $SG319316
-	push	OFFSET $SG319317
+	push	OFFSET $SG319386
+	push	OFFSET $SG319387
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -27511,8 +27512,8 @@ _glGetFloatv@8 PROC
 	mov	DWORD PTR _imp_glGetFloatv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glGetFloat
-	push	OFFSET $SG319300
-	push	OFFSET $SG319301
+	push	OFFSET $SG319370
+	push	OFFSET $SG319371
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -27539,8 +27540,8 @@ _glGetError@0 PROC
 	mov	DWORD PTR _imp_glGetError, eax
 	test	eax, eax
 	jne	SHORT $LN3@glGetError
-	push	OFFSET $SG319284
-	push	OFFSET $SG319285
+	push	OFFSET $SG319354
+	push	OFFSET $SG319355
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -27574,8 +27575,8 @@ _glGetDoublev@8 PROC
 	mov	DWORD PTR _imp_glGetDoublev, eax
 	test	eax, eax
 	jne	SHORT $LN3@glGetDoubl
-	push	OFFSET $SG319270
-	push	OFFSET $SG319271
+	push	OFFSET $SG319340
+	push	OFFSET $SG319341
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -27610,8 +27611,8 @@ _glGetClipPlane@8 PROC
 	mov	DWORD PTR _imp_glGetClipPlane, eax
 	test	eax, eax
 	jne	SHORT $LN3@glGetClipP
-	push	OFFSET $SG319254
-	push	OFFSET $SG319255
+	push	OFFSET $SG319324
+	push	OFFSET $SG319325
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -27646,8 +27647,8 @@ _glGetBooleanv@8 PROC
 	mov	DWORD PTR _imp_glGetBooleanv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glGetBoole
-	push	OFFSET $SG319238
-	push	OFFSET $SG319239
+	push	OFFSET $SG319308
+	push	OFFSET $SG319309
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -27682,8 +27683,8 @@ _glGenTextures@8 PROC
 	mov	DWORD PTR _imp_glGenTextures, eax
 	test	eax, eax
 	jne	SHORT $LN3@glGenTextu
-	push	OFFSET $SG319222
-	push	OFFSET $SG319223
+	push	OFFSET $SG319292
+	push	OFFSET $SG319293
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -27717,8 +27718,8 @@ _glGenLists@4 PROC
 	mov	DWORD PTR _imp_glGenLists, eax
 	test	eax, eax
 	jne	SHORT $LN3@glGenLists
-	push	OFFSET $SG319206
-	push	OFFSET $SG319207
+	push	OFFSET $SG319276
+	push	OFFSET $SG319277
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -27758,8 +27759,8 @@ _glFrustum@48 PROC
 	mov	DWORD PTR _imp_glFrustum, eax
 	test	eax, eax
 	jne	SHORT $LN3@glFrustum
-	push	OFFSET $SG319192
-	push	OFFSET $SG319193
+	push	OFFSET $SG319262
+	push	OFFSET $SG319263
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -27807,8 +27808,8 @@ _glFrontFace@4 PROC
 	mov	DWORD PTR _imp_glFrontFace, eax
 	test	eax, eax
 	jne	SHORT $LN3@glFrontFac
-	push	OFFSET $SG319168
-	push	OFFSET $SG319169
+	push	OFFSET $SG319238
+	push	OFFSET $SG319239
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -27843,8 +27844,8 @@ _glFogiv@8 PROC
 	mov	DWORD PTR _imp_glFogiv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glFogiv
-	push	OFFSET $SG319154
-	push	OFFSET $SG319155
+	push	OFFSET $SG319224
+	push	OFFSET $SG319225
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -27879,8 +27880,8 @@ _glFogi@8 PROC
 	mov	DWORD PTR _imp_glFogi, eax
 	test	eax, eax
 	jne	SHORT $LN3@glFogi
-	push	OFFSET $SG319138
-	push	OFFSET $SG319139
+	push	OFFSET $SG319208
+	push	OFFSET $SG319209
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -27915,8 +27916,8 @@ _glFogfv@8 PROC
 	mov	DWORD PTR _imp_glFogfv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glFogfv
-	push	OFFSET $SG319122
-	push	OFFSET $SG319123
+	push	OFFSET $SG319192
+	push	OFFSET $SG319193
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -27951,8 +27952,8 @@ _glFogf@8 PROC
 	mov	DWORD PTR _imp_glFogf, eax
 	test	eax, eax
 	jne	SHORT $LN3@glFogf
-	push	OFFSET $SG319106
-	push	OFFSET $SG319107
+	push	OFFSET $SG319176
+	push	OFFSET $SG319177
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -27984,8 +27985,8 @@ _glFlush@0 PROC
 	mov	DWORD PTR _imp_glFlush, eax
 	test	eax, eax
 	jne	SHORT $LN3@glFlush
-	push	OFFSET $SG319090
-	push	OFFSET $SG319091
+	push	OFFSET $SG319160
+	push	OFFSET $SG319161
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -28010,8 +28011,8 @@ _glFinish@0 PROC
 	mov	DWORD PTR _imp_glFinish, eax
 	test	eax, eax
 	jne	SHORT $LN3@glFinish
-	push	OFFSET $SG319076
-	push	OFFSET $SG319077
+	push	OFFSET $SG319146
+	push	OFFSET $SG319147
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -28045,8 +28046,8 @@ _glFeedbackBuffer@12 PROC
 	mov	DWORD PTR _imp_glFeedbackBuffer, eax
 	test	eax, eax
 	jne	SHORT $LN3@glFeedback
-	push	OFFSET $SG319062
-	push	OFFSET $SG319063
+	push	OFFSET $SG319132
+	push	OFFSET $SG319133
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -28081,8 +28082,8 @@ _glEvalPoint2@8 PROC
 	mov	DWORD PTR _imp_glEvalPoint2, eax
 	test	eax, eax
 	jne	SHORT $LN3@glEvalPoin
-	push	OFFSET $SG319044
-	push	OFFSET $SG319045
+	push	OFFSET $SG319114
+	push	OFFSET $SG319115
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -28116,8 +28117,8 @@ _glEvalPoint1@4 PROC
 	mov	DWORD PTR _imp_glEvalPoint1, eax
 	test	eax, eax
 	jne	SHORT $LN3@glEvalPoin
-	push	OFFSET $SG319028
-	push	OFFSET $SG319029
+	push	OFFSET $SG319098
+	push	OFFSET $SG319099
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -28155,8 +28156,8 @@ _glEvalMesh2@20 PROC
 	mov	DWORD PTR _imp_glEvalMesh2, eax
 	test	eax, eax
 	jne	SHORT $LN3@glEvalMesh
-	push	OFFSET $SG319014
-	push	OFFSET $SG319015
+	push	OFFSET $SG319084
+	push	OFFSET $SG319085
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -28192,8 +28193,8 @@ _glEvalMesh1@12 PROC
 	mov	DWORD PTR _imp_glEvalMesh1, eax
 	test	eax, eax
 	jne	SHORT $LN3@glEvalMesh
-	push	OFFSET $SG318992
-	push	OFFSET $SG318993
+	push	OFFSET $SG319062
+	push	OFFSET $SG319063
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -28227,8 +28228,8 @@ _glEvalCoord2fv@4 PROC
 	mov	DWORD PTR _imp_glEvalCoord2fv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glEvalCoor
-	push	OFFSET $SG318974
-	push	OFFSET $SG318975
+	push	OFFSET $SG319044
+	push	OFFSET $SG319045
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -28263,8 +28264,8 @@ _glEvalCoord2f@8 PROC
 	mov	DWORD PTR _imp_glEvalCoord2f, eax
 	test	eax, eax
 	jne	SHORT $LN3@glEvalCoor
-	push	OFFSET $SG318960
-	push	OFFSET $SG318961
+	push	OFFSET $SG319030
+	push	OFFSET $SG319031
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -28304,8 +28305,8 @@ _glEvalCoord2dv@4 PROC
 	mov	DWORD PTR _imp_glEvalCoord2dv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glEvalCoor
-	push	OFFSET $SG318944
-	push	OFFSET $SG318945
+	push	OFFSET $SG319014
+	push	OFFSET $SG319015
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -28340,8 +28341,8 @@ _glEvalCoord2d@16 PROC
 	mov	DWORD PTR _imp_glEvalCoord2d, eax
 	test	eax, eax
 	jne	SHORT $LN3@glEvalCoor
-	push	OFFSET $SG318930
-	push	OFFSET $SG318931
+	push	OFFSET $SG319000
+	push	OFFSET $SG319001
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -28381,8 +28382,8 @@ _glEvalCoord1fv@4 PROC
 	mov	DWORD PTR _imp_glEvalCoord1fv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glEvalCoor
-	push	OFFSET $SG318914
-	push	OFFSET $SG318915
+	push	OFFSET $SG318984
+	push	OFFSET $SG318985
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -28416,8 +28417,8 @@ _glEvalCoord1f@4 PROC
 	mov	DWORD PTR _imp_glEvalCoord1f, eax
 	test	eax, eax
 	jne	SHORT $LN3@glEvalCoor
-	push	OFFSET $SG318900
-	push	OFFSET $SG318901
+	push	OFFSET $SG318970
+	push	OFFSET $SG318971
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -28455,8 +28456,8 @@ _glEvalCoord1dv@4 PROC
 	mov	DWORD PTR _imp_glEvalCoord1dv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glEvalCoor
-	push	OFFSET $SG318886
-	push	OFFSET $SG318887
+	push	OFFSET $SG318956
+	push	OFFSET $SG318957
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -28490,8 +28491,8 @@ _glEvalCoord1d@8 PROC
 	mov	DWORD PTR _imp_glEvalCoord1d, eax
 	test	eax, eax
 	jne	SHORT $LN3@glEvalCoor
-	push	OFFSET $SG318872
-	push	OFFSET $SG318873
+	push	OFFSET $SG318942
+	push	OFFSET $SG318943
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -28522,8 +28523,8 @@ _glEndList@0 PROC
 	mov	DWORD PTR _imp_glEndList, eax
 	test	eax, eax
 	jne	SHORT $LN3@glEndList
-	push	OFFSET $SG318858
-	push	OFFSET $SG318859
+	push	OFFSET $SG318928
+	push	OFFSET $SG318929
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -28548,8 +28549,8 @@ _glEnd@0 PROC
 	mov	DWORD PTR _imp_glEnd, eax
 	test	eax, eax
 	jne	SHORT $LN3@glEnd
-	push	OFFSET $SG318844
-	push	OFFSET $SG318845
+	push	OFFSET $SG318914
+	push	OFFSET $SG318915
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -28581,8 +28582,8 @@ _glEnableClientState@4 PROC
 	mov	DWORD PTR _imp_glEnableClientState, eax
 	test	eax, eax
 	jne	SHORT $LN3@glEnableCl
-	push	OFFSET $SG318830
-	push	OFFSET $SG318831
+	push	OFFSET $SG318900
+	push	OFFSET $SG318901
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -28616,8 +28617,8 @@ _glEnable@4 PROC
 	mov	DWORD PTR _imp_glEnable, eax
 	test	eax, eax
 	jne	SHORT $LN3@glEnable
-	push	OFFSET $SG318816
-	push	OFFSET $SG318817
+	push	OFFSET $SG318886
+	push	OFFSET $SG318887
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -28651,8 +28652,8 @@ _glEdgeFlagv@4 PROC
 	mov	DWORD PTR _imp_glEdgeFlagv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glEdgeFlag
-	push	OFFSET $SG318802
-	push	OFFSET $SG318803
+	push	OFFSET $SG318872
+	push	OFFSET $SG318873
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -28687,8 +28688,8 @@ _glEdgeFlagPointer@8 PROC
 	mov	DWORD PTR _imp_glEdgeFlagPointer, eax
 	test	eax, eax
 	jne	SHORT $LN3@glEdgeFlag
-	push	OFFSET $SG318788
-	push	OFFSET $SG318789
+	push	OFFSET $SG318858
+	push	OFFSET $SG318859
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -28722,8 +28723,8 @@ _glEdgeFlag@4 PROC
 	mov	DWORD PTR _imp_glEdgeFlag, eax
 	test	eax, eax
 	jne	SHORT $LN3@glEdgeFlag
-	push	OFFSET $SG318772
-	push	OFFSET $SG318773
+	push	OFFSET $SG318842
+	push	OFFSET $SG318843
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -28761,8 +28762,8 @@ _glDrawPixels@20 PROC
 	mov	DWORD PTR _imp_glDrawPixels, eax
 	test	eax, eax
 	jne	SHORT $LN3@glDrawPixe
-	push	OFFSET $SG318758
-	push	OFFSET $SG318759
+	push	OFFSET $SG318828
+	push	OFFSET $SG318829
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -28799,8 +28800,8 @@ _glDrawElements@16 PROC
 	mov	DWORD PTR _imp_glDrawElements, eax
 	test	eax, eax
 	jne	SHORT $LN3@glDrawElem
-	push	OFFSET $SG318736
-	push	OFFSET $SG318737
+	push	OFFSET $SG318806
+	push	OFFSET $SG318807
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -28834,8 +28835,8 @@ _glDrawBuffer@4 PROC
 	mov	DWORD PTR _imp_glDrawBuffer, eax
 	test	eax, eax
 	jne	SHORT $LN3@glDrawBuff
-	push	OFFSET $SG318716
-	push	OFFSET $SG318717
+	push	OFFSET $SG318786
+	push	OFFSET $SG318787
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -28871,8 +28872,8 @@ _glDrawArrays@12 PROC
 	mov	DWORD PTR _imp_glDrawArrays, eax
 	test	eax, eax
 	jne	SHORT $LN3@glDrawArra
-	push	OFFSET $SG318702
-	push	OFFSET $SG318703
+	push	OFFSET $SG318772
+	push	OFFSET $SG318773
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -28906,8 +28907,8 @@ _glDisableClientState@4 PROC
 	mov	DWORD PTR _imp_glDisableClientState, eax
 	test	eax, eax
 	jne	SHORT $LN3@glDisableC
-	push	OFFSET $SG318684
-	push	OFFSET $SG318685
+	push	OFFSET $SG318754
+	push	OFFSET $SG318755
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -28941,8 +28942,8 @@ _glDisable@4 PROC
 	mov	DWORD PTR _imp_glDisable, eax
 	test	eax, eax
 	jne	SHORT $LN3@glDisable
-	push	OFFSET $SG318670
-	push	OFFSET $SG318671
+	push	OFFSET $SG318740
+	push	OFFSET $SG318741
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -28977,8 +28978,8 @@ _glDepthRange@16 PROC
 	mov	DWORD PTR _imp_glDepthRange, eax
 	test	eax, eax
 	jne	SHORT $LN3@glDepthRan
-	push	OFFSET $SG318656
-	push	OFFSET $SG318657
+	push	OFFSET $SG318726
+	push	OFFSET $SG318727
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -29018,8 +29019,8 @@ _glDepthMask@4 PROC
 	mov	DWORD PTR _imp_glDepthMask, eax
 	test	eax, eax
 	jne	SHORT $LN3@glDepthMas
-	push	OFFSET $SG318640
-	push	OFFSET $SG318641
+	push	OFFSET $SG318710
+	push	OFFSET $SG318711
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -29053,8 +29054,8 @@ _glDepthFunc@4 PROC
 	mov	DWORD PTR _imp_glDepthFunc, eax
 	test	eax, eax
 	jne	SHORT $LN3@glDepthFun
-	push	OFFSET $SG318626
-	push	OFFSET $SG318627
+	push	OFFSET $SG318696
+	push	OFFSET $SG318697
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -29089,8 +29090,8 @@ _glDeleteTextures@8 PROC
 	mov	DWORD PTR _imp_glDeleteTextures, eax
 	test	eax, eax
 	jne	SHORT $LN3@glDeleteTe
-	push	OFFSET $SG318612
-	push	OFFSET $SG318613
+	push	OFFSET $SG318682
+	push	OFFSET $SG318683
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -29125,8 +29126,8 @@ _glDeleteLists@8 PROC
 	mov	DWORD PTR _imp_glDeleteLists, eax
 	test	eax, eax
 	jne	SHORT $LN3@glDeleteLi
-	push	OFFSET $SG318596
-	push	OFFSET $SG318597
+	push	OFFSET $SG318666
+	push	OFFSET $SG318667
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -29160,8 +29161,8 @@ _glCullFace@4 PROC
 	mov	DWORD PTR _imp_glCullFace, eax
 	test	eax, eax
 	jne	SHORT $LN3@glCullFace
-	push	OFFSET $SG318564
-	push	OFFSET $SG318565
+	push	OFFSET $SG318634
+	push	OFFSET $SG318635
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -29202,8 +29203,8 @@ _glCopyTexSubImage2D@32 PROC
 	mov	DWORD PTR _imp_glCopyTexSubImage2D, eax
 	test	eax, eax
 	jne	SHORT $LN3@glCopyTexS
-	push	OFFSET $SG318550
-	push	OFFSET $SG318551
+	push	OFFSET $SG318620
+	push	OFFSET $SG318621
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -29242,8 +29243,8 @@ _glCopyTexSubImage1D@24 PROC
 	mov	DWORD PTR _imp_glCopyTexSubImage1D, eax
 	test	eax, eax
 	jne	SHORT $LN3@glCopyTexS
-	push	OFFSET $SG318522
-	push	OFFSET $SG318523
+	push	OFFSET $SG318592
+	push	OFFSET $SG318593
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -29284,8 +29285,8 @@ _glCopyTexImage2D@32 PROC
 	mov	DWORD PTR _imp_glCopyTexImage2D, eax
 	test	eax, eax
 	jne	SHORT $LN3@glCopyTexI
-	push	OFFSET $SG318498
-	push	OFFSET $SG318499
+	push	OFFSET $SG318568
+	push	OFFSET $SG318569
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -29325,8 +29326,8 @@ _glCopyTexImage1D@28 PROC
 	mov	DWORD PTR _imp_glCopyTexImage1D, eax
 	test	eax, eax
 	jne	SHORT $LN3@glCopyTexI
-	push	OFFSET $SG318470
-	push	OFFSET $SG318471
+	push	OFFSET $SG318540
+	push	OFFSET $SG318541
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -29364,8 +29365,8 @@ _glCopyPixels@20 PROC
 	mov	DWORD PTR _imp_glCopyPixels, eax
 	test	eax, eax
 	jne	SHORT $LN3@glCopyPixe
-	push	OFFSET $SG318444
-	push	OFFSET $SG318445
+	push	OFFSET $SG318514
+	push	OFFSET $SG318515
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -29402,8 +29403,8 @@ _glColorPointer@16 PROC
 	mov	DWORD PTR _imp_glColorPointer, eax
 	test	eax, eax
 	jne	SHORT $LN3@glColorPoi
-	push	OFFSET $SG318422
-	push	OFFSET $SG318423
+	push	OFFSET $SG318492
+	push	OFFSET $SG318493
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -29438,8 +29439,8 @@ _glColorMaterial@8 PROC
 	mov	DWORD PTR _imp_glColorMaterial, eax
 	test	eax, eax
 	jne	SHORT $LN3@glColorMat
-	push	OFFSET $SG318402
-	push	OFFSET $SG318403
+	push	OFFSET $SG318472
+	push	OFFSET $SG318473
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -29476,8 +29477,8 @@ _glColorMask@16 PROC
 	mov	DWORD PTR _imp_glColorMask, eax
 	test	eax, eax
 	jne	SHORT $LN3@glColorMas
-	push	OFFSET $SG318386
-	push	OFFSET $SG318387
+	push	OFFSET $SG318456
+	push	OFFSET $SG318457
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -29511,8 +29512,8 @@ _glColor4usv@4 PROC
 	mov	DWORD PTR _imp_glColor4usv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glColor4us
-	push	OFFSET $SG318366
-	push	OFFSET $SG318367
+	push	OFFSET $SG318436
+	push	OFFSET $SG318437
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -29549,8 +29550,8 @@ _glColor4us@16 PROC
 	mov	DWORD PTR _imp_glColor4us, eax
 	test	eax, eax
 	jne	SHORT $LN3@glColor4us
-	push	OFFSET $SG318352
-	push	OFFSET $SG318353
+	push	OFFSET $SG318422
+	push	OFFSET $SG318423
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -29584,8 +29585,8 @@ _glColor4uiv@4 PROC
 	mov	DWORD PTR _imp_glColor4uiv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glColor4ui
-	push	OFFSET $SG318332
-	push	OFFSET $SG318333
+	push	OFFSET $SG318402
+	push	OFFSET $SG318403
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -29622,8 +29623,8 @@ _glColor4ui@16 PROC
 	mov	DWORD PTR _imp_glColor4ui, eax
 	test	eax, eax
 	jne	SHORT $LN3@glColor4ui
-	push	OFFSET $SG318318
-	push	OFFSET $SG318319
+	push	OFFSET $SG318388
+	push	OFFSET $SG318389
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -29657,8 +29658,8 @@ _glColor4ubv@4 PROC
 	mov	DWORD PTR _imp_glColor4ubv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glColor4ub
-	push	OFFSET $SG318298
-	push	OFFSET $SG318299
+	push	OFFSET $SG318368
+	push	OFFSET $SG318369
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -29695,8 +29696,8 @@ _glColor4ub@16 PROC
 	mov	DWORD PTR _imp_glColor4ub, eax
 	test	eax, eax
 	jne	SHORT $LN3@glColor4ub
-	push	OFFSET $SG318284
-	push	OFFSET $SG318285
+	push	OFFSET $SG318354
+	push	OFFSET $SG318355
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -29730,8 +29731,8 @@ _glColor4sv@4 PROC
 	mov	DWORD PTR _imp_glColor4sv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glColor4sv
-	push	OFFSET $SG318264
-	push	OFFSET $SG318265
+	push	OFFSET $SG318334
+	push	OFFSET $SG318335
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -29768,8 +29769,8 @@ _glColor4s@16 PROC
 	mov	DWORD PTR _imp_glColor4s, eax
 	test	eax, eax
 	jne	SHORT $LN3@glColor4s
-	push	OFFSET $SG318250
-	push	OFFSET $SG318251
+	push	OFFSET $SG318320
+	push	OFFSET $SG318321
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -29803,8 +29804,8 @@ _glColor4iv@4 PROC
 	mov	DWORD PTR _imp_glColor4iv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glColor4iv
-	push	OFFSET $SG318230
-	push	OFFSET $SG318231
+	push	OFFSET $SG318300
+	push	OFFSET $SG318301
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -29841,8 +29842,8 @@ _glColor4i@16 PROC
 	mov	DWORD PTR _imp_glColor4i, eax
 	test	eax, eax
 	jne	SHORT $LN3@glColor4i
-	push	OFFSET $SG318216
-	push	OFFSET $SG318217
+	push	OFFSET $SG318286
+	push	OFFSET $SG318287
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -29876,8 +29877,8 @@ _glColor4fv@4 PROC
 	mov	DWORD PTR _imp_glColor4fv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glColor4fv
-	push	OFFSET $SG318196
-	push	OFFSET $SG318197
+	push	OFFSET $SG318266
+	push	OFFSET $SG318267
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -29914,8 +29915,8 @@ _glColor4f@16 PROC
 	mov	DWORD PTR _imp_glColor4f, eax
 	test	eax, eax
 	jne	SHORT $LN3@glColor4f
-	push	OFFSET $SG318182
-	push	OFFSET $SG318183
+	push	OFFSET $SG318252
+	push	OFFSET $SG318253
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -29959,8 +29960,8 @@ _glColor4dv@4 PROC
 	mov	DWORD PTR _imp_glColor4dv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glColor4dv
-	push	OFFSET $SG318162
-	push	OFFSET $SG318163
+	push	OFFSET $SG318232
+	push	OFFSET $SG318233
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -29997,8 +29998,8 @@ _glColor4d@32 PROC
 	mov	DWORD PTR _imp_glColor4d, eax
 	test	eax, eax
 	jne	SHORT $LN3@glColor4d
-	push	OFFSET $SG318148
-	push	OFFSET $SG318149
+	push	OFFSET $SG318218
+	push	OFFSET $SG318219
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -30042,8 +30043,8 @@ _glColor4bv@4 PROC
 	mov	DWORD PTR _imp_glColor4bv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glColor4bv
-	push	OFFSET $SG318128
-	push	OFFSET $SG318129
+	push	OFFSET $SG318198
+	push	OFFSET $SG318199
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -30080,8 +30081,8 @@ _glColor4b@16 PROC
 	mov	DWORD PTR _imp_glColor4b, eax
 	test	eax, eax
 	jne	SHORT $LN3@glColor4b
-	push	OFFSET $SG318114
-	push	OFFSET $SG318115
+	push	OFFSET $SG318184
+	push	OFFSET $SG318185
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -30115,8 +30116,8 @@ _glColor3usv@4 PROC
 	mov	DWORD PTR _imp_glColor3usv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glColor3us
-	push	OFFSET $SG318094
-	push	OFFSET $SG318095
+	push	OFFSET $SG318164
+	push	OFFSET $SG318165
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -30152,8 +30153,8 @@ _glColor3us@12 PROC
 	mov	DWORD PTR _imp_glColor3us, eax
 	test	eax, eax
 	jne	SHORT $LN3@glColor3us
-	push	OFFSET $SG318080
-	push	OFFSET $SG318081
+	push	OFFSET $SG318150
+	push	OFFSET $SG318151
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -30187,8 +30188,8 @@ _glColor3uiv@4 PROC
 	mov	DWORD PTR _imp_glColor3uiv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glColor3ui
-	push	OFFSET $SG318062
-	push	OFFSET $SG318063
+	push	OFFSET $SG318132
+	push	OFFSET $SG318133
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -30224,8 +30225,8 @@ _glColor3ui@12 PROC
 	mov	DWORD PTR _imp_glColor3ui, eax
 	test	eax, eax
 	jne	SHORT $LN3@glColor3ui
-	push	OFFSET $SG318048
-	push	OFFSET $SG318049
+	push	OFFSET $SG318118
+	push	OFFSET $SG318119
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -30259,8 +30260,8 @@ _glColor3ubv@4 PROC
 	mov	DWORD PTR _imp_glColor3ubv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glColor3ub
-	push	OFFSET $SG318030
-	push	OFFSET $SG318031
+	push	OFFSET $SG318100
+	push	OFFSET $SG318101
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -30296,8 +30297,8 @@ _glColor3ub@12 PROC
 	mov	DWORD PTR _imp_glColor3ub, eax
 	test	eax, eax
 	jne	SHORT $LN3@glColor3ub
-	push	OFFSET $SG318016
-	push	OFFSET $SG318017
+	push	OFFSET $SG318086
+	push	OFFSET $SG318087
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -30331,8 +30332,8 @@ _glColor3sv@4 PROC
 	mov	DWORD PTR _imp_glColor3sv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glColor3sv
-	push	OFFSET $SG317998
-	push	OFFSET $SG317999
+	push	OFFSET $SG318068
+	push	OFFSET $SG318069
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -30368,8 +30369,8 @@ _glColor3s@12 PROC
 	mov	DWORD PTR _imp_glColor3s, eax
 	test	eax, eax
 	jne	SHORT $LN3@glColor3s
-	push	OFFSET $SG317984
-	push	OFFSET $SG317985
+	push	OFFSET $SG318054
+	push	OFFSET $SG318055
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -30403,8 +30404,8 @@ _glColor3iv@4 PROC
 	mov	DWORD PTR _imp_glColor3iv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glColor3iv
-	push	OFFSET $SG317966
-	push	OFFSET $SG317967
+	push	OFFSET $SG318036
+	push	OFFSET $SG318037
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -30440,8 +30441,8 @@ _glColor3i@12 PROC
 	mov	DWORD PTR _imp_glColor3i, eax
 	test	eax, eax
 	jne	SHORT $LN3@glColor3i
-	push	OFFSET $SG317952
-	push	OFFSET $SG317953
+	push	OFFSET $SG318022
+	push	OFFSET $SG318023
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -30475,8 +30476,8 @@ _glColor3fv@4 PROC
 	mov	DWORD PTR _imp_glColor3fv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glColor3fv
-	push	OFFSET $SG317934
-	push	OFFSET $SG317935
+	push	OFFSET $SG318004
+	push	OFFSET $SG318005
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -30512,8 +30513,8 @@ _glColor3f@12 PROC
 	mov	DWORD PTR _imp_glColor3f, eax
 	test	eax, eax
 	jne	SHORT $LN3@glColor3f
-	push	OFFSET $SG317920
-	push	OFFSET $SG317921
+	push	OFFSET $SG317990
+	push	OFFSET $SG317991
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -30555,8 +30556,8 @@ _glColor3dv@4 PROC
 	mov	DWORD PTR _imp_glColor3dv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glColor3dv
-	push	OFFSET $SG317902
-	push	OFFSET $SG317903
+	push	OFFSET $SG317972
+	push	OFFSET $SG317973
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -30592,8 +30593,8 @@ _glColor3d@24 PROC
 	mov	DWORD PTR _imp_glColor3d, eax
 	test	eax, eax
 	jne	SHORT $LN3@glColor3d
-	push	OFFSET $SG317888
-	push	OFFSET $SG317889
+	push	OFFSET $SG317958
+	push	OFFSET $SG317959
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -30635,8 +30636,8 @@ _glColor3bv@4 PROC
 	mov	DWORD PTR _imp_glColor3bv, eax
 	test	eax, eax
 	jne	SHORT $LN3@glColor3bv
-	push	OFFSET $SG317870
-	push	OFFSET $SG317871
+	push	OFFSET $SG317940
+	push	OFFSET $SG317941
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -30672,8 +30673,8 @@ _glColor3b@12 PROC
 	mov	DWORD PTR _imp_glColor3b, eax
 	test	eax, eax
 	jne	SHORT $LN3@glColor3b
-	push	OFFSET $SG317856
-	push	OFFSET $SG317857
+	push	OFFSET $SG317926
+	push	OFFSET $SG317927
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -30708,8 +30709,8 @@ _glClipPlane@8 PROC
 	mov	DWORD PTR _imp_glClipPlane, eax
 	test	eax, eax
 	jne	SHORT $LN3@glClipPlan
-	push	OFFSET $SG317838
-	push	OFFSET $SG317839
+	push	OFFSET $SG317908
+	push	OFFSET $SG317909
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -30743,8 +30744,8 @@ _glClearStencil@4 PROC
 	mov	DWORD PTR _imp_glClearStencil, eax
 	test	eax, eax
 	jne	SHORT $LN3@glClearSte
-	push	OFFSET $SG317822
-	push	OFFSET $SG317823
+	push	OFFSET $SG317892
+	push	OFFSET $SG317893
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -30778,8 +30779,8 @@ _glClearIndex@4 PROC
 	mov	DWORD PTR _imp_glClearIndex, eax
 	test	eax, eax
 	jne	SHORT $LN3@glClearInd
-	push	OFFSET $SG317808
-	push	OFFSET $SG317809
+	push	OFFSET $SG317878
+	push	OFFSET $SG317879
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -30817,8 +30818,8 @@ _glClearDepth@8 PROC
 	mov	DWORD PTR _imp_glClearDepth, eax
 	test	eax, eax
 	jne	SHORT $LN3@glClearDep
-	push	OFFSET $SG317794
-	push	OFFSET $SG317795
+	push	OFFSET $SG317864
+	push	OFFSET $SG317865
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -30859,8 +30860,8 @@ _glClearColor@16 PROC
 	mov	DWORD PTR _imp_glClearColor, eax
 	test	eax, eax
 	jne	SHORT $LN3@glClearCol
-	push	OFFSET $SG317780
-	push	OFFSET $SG317781
+	push	OFFSET $SG317850
+	push	OFFSET $SG317851
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -30907,8 +30908,8 @@ _glClearAccum@16 PROC
 	mov	DWORD PTR _imp_glClearAccum, eax
 	test	eax, eax
 	jne	SHORT $LN3@glClearAcc
-	push	OFFSET $SG317760
-	push	OFFSET $SG317761
+	push	OFFSET $SG317830
+	push	OFFSET $SG317831
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -30952,8 +30953,8 @@ _glClear@4 PROC
 	mov	DWORD PTR _imp_glClear, eax
 	test	eax, eax
 	jne	SHORT $LN3@glClear
-	push	OFFSET $SG317740
-	push	OFFSET $SG317741
+	push	OFFSET $SG317810
+	push	OFFSET $SG317811
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -30989,8 +30990,8 @@ _glCallLists@12 PROC
 	mov	DWORD PTR _imp_glCallLists, eax
 	test	eax, eax
 	jne	SHORT $LN3@glCallList
-	push	OFFSET $SG317726
-	push	OFFSET $SG317727
+	push	OFFSET $SG317796
+	push	OFFSET $SG317797
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -31024,8 +31025,8 @@ _glCallList@4 PROC
 	mov	DWORD PTR _imp_glCallList, eax
 	test	eax, eax
 	jne	SHORT $LN3@glCallList
-	push	OFFSET $SG317708
-	push	OFFSET $SG317709
+	push	OFFSET $SG317778
+	push	OFFSET $SG317779
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -31060,8 +31061,8 @@ _glBlendFunc@8 PROC
 	mov	DWORD PTR _imp_glBlendFunc, eax
 	test	eax, eax
 	jne	SHORT $LN3@glBlendFun
-	push	OFFSET $SG317694
-	push	OFFSET $SG317695
+	push	OFFSET $SG317764
+	push	OFFSET $SG317765
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -31101,8 +31102,8 @@ _glBitmap@28 PROC
 	mov	DWORD PTR _imp_glBitmap, eax
 	test	eax, eax
 	jne	SHORT $LN3@glBitmap
-	push	OFFSET $SG317678
-	push	OFFSET $SG317679
+	push	OFFSET $SG317748
+	push	OFFSET $SG317749
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -31150,8 +31151,8 @@ _glBindTexture@8 PROC
 	mov	DWORD PTR _imp_glBindTexture, eax
 	test	eax, eax
 	jne	SHORT $LN3@glBindText
-	push	OFFSET $SG317652
-	push	OFFSET $SG317653
+	push	OFFSET $SG317722
+	push	OFFSET $SG317723
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -31185,8 +31186,8 @@ _glBegin@4 PROC
 	mov	DWORD PTR _imp_glBegin, eax
 	test	eax, eax
 	jne	SHORT $LN3@glBegin
-	push	OFFSET $SG317636
-	push	OFFSET $SG317637
+	push	OFFSET $SG317706
+	push	OFFSET $SG317707
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -31220,8 +31221,8 @@ _glArrayElement@4 PROC
 	mov	DWORD PTR _imp_glArrayElement, eax
 	test	eax, eax
 	jne	SHORT $LN3@glArrayEle
-	push	OFFSET $SG317622
-	push	OFFSET $SG317623
+	push	OFFSET $SG317692
+	push	OFFSET $SG317693
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -31257,8 +31258,8 @@ _glAreTexturesResident@12 PROC
 	mov	DWORD PTR _imp_glAreTexturesResident, eax
 	test	eax, eax
 	jne	SHORT $LN3@glAreTextu
-	push	OFFSET $SG317608
-	push	OFFSET $SG317609
+	push	OFFSET $SG317678
+	push	OFFSET $SG317679
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -31294,8 +31295,8 @@ _glAlphaFunc@8 PROC
 	mov	DWORD PTR _imp_glAlphaFunc, eax
 	test	eax, eax
 	jne	SHORT $LN3@glAlphaFun
-	push	OFFSET $SG317590
-	push	OFFSET $SG317591
+	push	OFFSET $SG317660
+	push	OFFSET $SG317661
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -31335,8 +31336,8 @@ _glAccum@8 PROC
 	mov	DWORD PTR _imp_glAccum, eax
 	test	eax, eax
 	jne	SHORT $LN3@glAccum
-	push	OFFSET $SG317574
-	push	OFFSET $SG317575
+	push	OFFSET $SG317644
+	push	OFFSET $SG317645
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -31484,13 +31485,13 @@ $T1 = -24						; size = 24
 ; 1910 : 
 ; 1911 :   dll_log.Log (L"[ OpenGL32 ] Additional OpenGL Initialization");
 
-	push	OFFSET $SG324723
+	push	OFFSET $SG324793
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 
 ; 1912 :   dll_log.Log (L"[ OpenGL32 ] ================================");
 
-	push	OFFSET $SG324724
+	push	OFFSET $SG324794
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 16					; 00000010H
@@ -31523,7 +31524,7 @@ $LN23@SK_HookGL:
 
 ; 1914 :   if (! StrStrIW ( SK_GetModuleName (SK_GetDLL ()).c_str (), 
 
-	push	OFFSET $SG324727
+	push	OFFSET $SG324797
 	push	eax
 	call	DWORD PTR __imp__StrStrIW@8
 	test	eax, eax
@@ -31577,7 +31578,7 @@ $LN33@SK_HookGL:
 ; 1916 :   {
 ; 1917 :     dll_log.Log (L"[ OpenGL32 ] Hooking OpenGL");
 
-	push	OFFSET $SG324728
+	push	OFFSET $SG324798
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 8
@@ -31593,8 +31594,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET ?wgl_swap_buffers@@3P6GHPAUHDC__@@@ZA ; wgl_swap_buffers
 	push	OFFSET _wglSwapBuffers@4
-	push	OFFSET $SG324731
-	push	OFFSET $SG324730
+	push	OFFSET $SG324801
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook
 
 ; 1925 :                                 "wglSwapBuffers",
@@ -31627,8 +31628,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glAccum
 	push	OFFSET _glAccum@8
-	push	OFFSET $SG324732
-	push	OFFSET $SG324730
+	push	OFFSET $SG324802
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -31637,8 +31638,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glAlphaFunc
 	push	OFFSET _glAlphaFunc@8
-	push	OFFSET $SG324733
-	push	OFFSET $SG324730
+	push	OFFSET $SG324803
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -31647,8 +31648,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glAreTexturesResident
 	push	OFFSET _glAreTexturesResident@12
-	push	OFFSET $SG324734
-	push	OFFSET $SG324730
+	push	OFFSET $SG324804
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -31657,8 +31658,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glArrayElement
 	push	OFFSET _glArrayElement@4
-	push	OFFSET $SG324735
-	push	OFFSET $SG324730
+	push	OFFSET $SG324805
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -31667,8 +31668,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glBegin
 	push	OFFSET _glBegin@4
-	push	OFFSET $SG324736
-	push	OFFSET $SG324730
+	push	OFFSET $SG324806
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -31677,8 +31678,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glBindTexture
 	push	OFFSET _glBindTexture@8
-	push	OFFSET $SG324737
-	push	OFFSET $SG324730
+	push	OFFSET $SG324807
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -31687,8 +31688,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glBitmap
 	push	OFFSET _glBitmap@28
-	push	OFFSET $SG324738
-	push	OFFSET $SG324730
+	push	OFFSET $SG324808
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -31697,8 +31698,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glBlendFunc
 	push	OFFSET _glBlendFunc@8
-	push	OFFSET $SG324739
-	push	OFFSET $SG324730
+	push	OFFSET $SG324809
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -31707,8 +31708,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glCallList
 	push	OFFSET _glCallList@4
-	push	OFFSET $SG324740
-	push	OFFSET $SG324730
+	push	OFFSET $SG324810
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -31717,8 +31718,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glCallLists
 	push	OFFSET _glCallLists@12
-	push	OFFSET $SG324741
-	push	OFFSET $SG324730
+	push	OFFSET $SG324811
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -31727,8 +31728,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glClear
 	push	OFFSET _glClear@4
-	push	OFFSET $SG324742
-	push	OFFSET $SG324730
+	push	OFFSET $SG324812
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -31737,8 +31738,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glClearAccum
 	push	OFFSET _glClearAccum@16
-	push	OFFSET $SG324743
-	push	OFFSET $SG324730
+	push	OFFSET $SG324813
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -31747,8 +31748,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glClearColor
 	push	OFFSET _glClearColor@16
-	push	OFFSET $SG324744
-	push	OFFSET $SG324730
+	push	OFFSET $SG324814
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -31757,8 +31758,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glClearDepth
 	push	OFFSET _glClearDepth@8
-	push	OFFSET $SG324745
-	push	OFFSET $SG324730
+	push	OFFSET $SG324815
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -31767,8 +31768,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glClearIndex
 	push	OFFSET _glClearIndex@4
-	push	OFFSET $SG324746
-	push	OFFSET $SG324730
+	push	OFFSET $SG324816
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -31777,8 +31778,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glClearStencil
 	push	OFFSET _glClearStencil@4
-	push	OFFSET $SG324747
-	push	OFFSET $SG324730
+	push	OFFSET $SG324817
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -31787,8 +31788,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glClipPlane
 	push	OFFSET _glClipPlane@8
-	push	OFFSET $SG324748
-	push	OFFSET $SG324730
+	push	OFFSET $SG324818
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -31797,8 +31798,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glColor3b
 	push	OFFSET _glColor3b@12
-	push	OFFSET $SG324749
-	push	OFFSET $SG324730
+	push	OFFSET $SG324819
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -31807,8 +31808,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glColor3bv
 	push	OFFSET _glColor3bv@4
-	push	OFFSET $SG324750
-	push	OFFSET $SG324730
+	push	OFFSET $SG324820
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -31817,8 +31818,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glColor3d
 	push	OFFSET _glColor3d@24
-	push	OFFSET $SG324751
-	push	OFFSET $SG324730
+	push	OFFSET $SG324821
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -31827,8 +31828,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glColor3dv
 	push	OFFSET _glColor3dv@4
-	push	OFFSET $SG324752
-	push	OFFSET $SG324730
+	push	OFFSET $SG324822
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -31837,8 +31838,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glColor3f
 	push	OFFSET _glColor3f@12
-	push	OFFSET $SG324753
-	push	OFFSET $SG324730
+	push	OFFSET $SG324823
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -31847,8 +31848,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glColor3fv
 	push	OFFSET _glColor3fv@4
-	push	OFFSET $SG324754
-	push	OFFSET $SG324730
+	push	OFFSET $SG324824
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -31857,8 +31858,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glColor3i
 	push	OFFSET _glColor3i@12
-	push	OFFSET $SG324755
-	push	OFFSET $SG324730
+	push	OFFSET $SG324825
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -31867,8 +31868,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glColor3iv
 	push	OFFSET _glColor3iv@4
-	push	OFFSET $SG324756
-	push	OFFSET $SG324730
+	push	OFFSET $SG324826
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -31877,8 +31878,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glColor3s
 	push	OFFSET _glColor3s@12
-	push	OFFSET $SG324757
-	push	OFFSET $SG324730
+	push	OFFSET $SG324827
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -31887,8 +31888,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glColor3sv
 	push	OFFSET _glColor3sv@4
-	push	OFFSET $SG324758
-	push	OFFSET $SG324730
+	push	OFFSET $SG324828
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -31897,8 +31898,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glColor3ub
 	push	OFFSET _glColor3ub@12
-	push	OFFSET $SG324759
-	push	OFFSET $SG324730
+	push	OFFSET $SG324829
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -31907,8 +31908,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glColor3ubv
 	push	OFFSET _glColor3ubv@4
-	push	OFFSET $SG324760
-	push	OFFSET $SG324730
+	push	OFFSET $SG324830
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -31917,8 +31918,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glColor3ui
 	push	OFFSET _glColor3ui@12
-	push	OFFSET $SG324761
-	push	OFFSET $SG324730
+	push	OFFSET $SG324831
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -31927,8 +31928,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glColor3uiv
 	push	OFFSET _glColor3uiv@4
-	push	OFFSET $SG324762
-	push	OFFSET $SG324730
+	push	OFFSET $SG324832
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -31937,8 +31938,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glColor3us
 	push	OFFSET _glColor3us@12
-	push	OFFSET $SG324763
-	push	OFFSET $SG324730
+	push	OFFSET $SG324833
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -31947,8 +31948,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glColor3usv
 	push	OFFSET _glColor3usv@4
-	push	OFFSET $SG324764
-	push	OFFSET $SG324730
+	push	OFFSET $SG324834
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -31957,8 +31958,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glColor4b
 	push	OFFSET _glColor4b@16
-	push	OFFSET $SG324765
-	push	OFFSET $SG324730
+	push	OFFSET $SG324835
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -31967,8 +31968,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glColor4bv
 	push	OFFSET _glColor4bv@4
-	push	OFFSET $SG324766
-	push	OFFSET $SG324730
+	push	OFFSET $SG324836
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -31977,8 +31978,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glColor4d
 	push	OFFSET _glColor4d@32
-	push	OFFSET $SG324767
-	push	OFFSET $SG324730
+	push	OFFSET $SG324837
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -31987,8 +31988,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glColor4dv
 	push	OFFSET _glColor4dv@4
-	push	OFFSET $SG324768
-	push	OFFSET $SG324730
+	push	OFFSET $SG324838
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -31997,8 +31998,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glColor4f
 	push	OFFSET _glColor4f@16
-	push	OFFSET $SG324769
-	push	OFFSET $SG324730
+	push	OFFSET $SG324839
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32007,8 +32008,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glColor4fv
 	push	OFFSET _glColor4fv@4
-	push	OFFSET $SG324770
-	push	OFFSET $SG324730
+	push	OFFSET $SG324840
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32017,8 +32018,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glColor4i
 	push	OFFSET _glColor4i@16
-	push	OFFSET $SG324771
-	push	OFFSET $SG324730
+	push	OFFSET $SG324841
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32027,8 +32028,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glColor4iv
 	push	OFFSET _glColor4iv@4
-	push	OFFSET $SG324772
-	push	OFFSET $SG324730
+	push	OFFSET $SG324842
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32037,8 +32038,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glColor4s
 	push	OFFSET _glColor4s@16
-	push	OFFSET $SG324773
-	push	OFFSET $SG324730
+	push	OFFSET $SG324843
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32047,8 +32048,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glColor4sv
 	push	OFFSET _glColor4sv@4
-	push	OFFSET $SG324774
-	push	OFFSET $SG324730
+	push	OFFSET $SG324844
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32057,8 +32058,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glColor4ub
 	push	OFFSET _glColor4ub@16
-	push	OFFSET $SG324775
-	push	OFFSET $SG324730
+	push	OFFSET $SG324845
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32067,8 +32068,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glColor4ubv
 	push	OFFSET _glColor4ubv@4
-	push	OFFSET $SG324776
-	push	OFFSET $SG324730
+	push	OFFSET $SG324846
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32077,8 +32078,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glColor4ui
 	push	OFFSET _glColor4ui@16
-	push	OFFSET $SG324777
-	push	OFFSET $SG324730
+	push	OFFSET $SG324847
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32087,8 +32088,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glColor4uiv
 	push	OFFSET _glColor4uiv@4
-	push	OFFSET $SG324778
-	push	OFFSET $SG324730
+	push	OFFSET $SG324848
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32097,8 +32098,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glColor4us
 	push	OFFSET _glColor4us@16
-	push	OFFSET $SG324779
-	push	OFFSET $SG324730
+	push	OFFSET $SG324849
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32107,8 +32108,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glColor4usv
 	push	OFFSET _glColor4usv@4
-	push	OFFSET $SG324780
-	push	OFFSET $SG324730
+	push	OFFSET $SG324850
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32117,8 +32118,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glColorMask
 	push	OFFSET _glColorMask@16
-	push	OFFSET $SG324781
-	push	OFFSET $SG324730
+	push	OFFSET $SG324851
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32127,8 +32128,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glColorMaterial
 	push	OFFSET _glColorMaterial@8
-	push	OFFSET $SG324782
-	push	OFFSET $SG324730
+	push	OFFSET $SG324852
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32137,8 +32138,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glColorPointer
 	push	OFFSET _glColorPointer@16
-	push	OFFSET $SG324783
-	push	OFFSET $SG324730
+	push	OFFSET $SG324853
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32147,8 +32148,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glCopyPixels
 	push	OFFSET _glCopyPixels@20
-	push	OFFSET $SG324784
-	push	OFFSET $SG324730
+	push	OFFSET $SG324854
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32157,8 +32158,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glCopyTexImage1D
 	push	OFFSET _glCopyTexImage1D@28
-	push	OFFSET $SG324785
-	push	OFFSET $SG324730
+	push	OFFSET $SG324855
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32167,8 +32168,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glCopyTexImage2D
 	push	OFFSET _glCopyTexImage2D@32
-	push	OFFSET $SG324786
-	push	OFFSET $SG324730
+	push	OFFSET $SG324856
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32177,8 +32178,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glCopyTexSubImage1D
 	push	OFFSET _glCopyTexSubImage1D@24
-	push	OFFSET $SG324787
-	push	OFFSET $SG324730
+	push	OFFSET $SG324857
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32187,8 +32188,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glCopyTexSubImage2D
 	push	OFFSET _glCopyTexSubImage2D@32
-	push	OFFSET $SG324788
-	push	OFFSET $SG324730
+	push	OFFSET $SG324858
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32197,8 +32198,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glCullFace
 	push	OFFSET _glCullFace@4
-	push	OFFSET $SG324789
-	push	OFFSET $SG324730
+	push	OFFSET $SG324859
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32208,8 +32209,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glDeleteLists
 	push	OFFSET _glDeleteLists@8
-	push	OFFSET $SG324790
-	push	OFFSET $SG324730
+	push	OFFSET $SG324860
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32218,8 +32219,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glDeleteTextures
 	push	OFFSET _glDeleteTextures@8
-	push	OFFSET $SG324791
-	push	OFFSET $SG324730
+	push	OFFSET $SG324861
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32228,8 +32229,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glDepthFunc
 	push	OFFSET _glDepthFunc@4
-	push	OFFSET $SG324792
-	push	OFFSET $SG324730
+	push	OFFSET $SG324862
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32238,8 +32239,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glDepthMask
 	push	OFFSET _glDepthMask@4
-	push	OFFSET $SG324793
-	push	OFFSET $SG324730
+	push	OFFSET $SG324863
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32248,8 +32249,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glDepthRange
 	push	OFFSET _glDepthRange@16
-	push	OFFSET $SG324794
-	push	OFFSET $SG324730
+	push	OFFSET $SG324864
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32258,8 +32259,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glDisable
 	push	OFFSET _glDisable@4
-	push	OFFSET $SG324795
-	push	OFFSET $SG324730
+	push	OFFSET $SG324865
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32268,8 +32269,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glDisableClientState
 	push	OFFSET _glDisableClientState@4
-	push	OFFSET $SG324796
-	push	OFFSET $SG324730
+	push	OFFSET $SG324866
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32278,8 +32279,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glDrawArrays
 	push	OFFSET _glDrawArrays@12
-	push	OFFSET $SG324797
-	push	OFFSET $SG324730
+	push	OFFSET $SG324867
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32288,8 +32289,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glDrawBuffer
 	push	OFFSET _glDrawBuffer@4
-	push	OFFSET $SG324798
-	push	OFFSET $SG324730
+	push	OFFSET $SG324868
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32298,8 +32299,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glDrawElements
 	push	OFFSET _glDrawElements@16
-	push	OFFSET $SG324799
-	push	OFFSET $SG324730
+	push	OFFSET $SG324869
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32308,8 +32309,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glDrawPixels
 	push	OFFSET _glDrawPixels@20
+	push	OFFSET $SG324870
 	push	OFFSET $SG324800
-	push	OFFSET $SG324730
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32318,8 +32319,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glEdgeFlag
 	push	OFFSET _glEdgeFlag@4
-	push	OFFSET $SG324801
-	push	OFFSET $SG324730
+	push	OFFSET $SG324871
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32328,8 +32329,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glEdgeFlagPointer
 	push	OFFSET _glEdgeFlagPointer@8
-	push	OFFSET $SG324802
-	push	OFFSET $SG324730
+	push	OFFSET $SG324872
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32338,8 +32339,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glEdgeFlagv
 	push	OFFSET _glEdgeFlagv@4
-	push	OFFSET $SG324803
-	push	OFFSET $SG324730
+	push	OFFSET $SG324873
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32348,8 +32349,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glEnable
 	push	OFFSET _glEnable@4
-	push	OFFSET $SG324804
-	push	OFFSET $SG324730
+	push	OFFSET $SG324874
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32358,8 +32359,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glEnableClientState
 	push	OFFSET _glEnableClientState@4
-	push	OFFSET $SG324805
-	push	OFFSET $SG324730
+	push	OFFSET $SG324875
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32368,8 +32369,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glEnd
 	push	OFFSET _glEnd@0
-	push	OFFSET $SG324806
-	push	OFFSET $SG324730
+	push	OFFSET $SG324876
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32378,8 +32379,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glEndList
 	push	OFFSET _glEndList@0
-	push	OFFSET $SG324807
-	push	OFFSET $SG324730
+	push	OFFSET $SG324877
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32388,8 +32389,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glEvalCoord1d
 	push	OFFSET _glEvalCoord1d@8
-	push	OFFSET $SG324808
-	push	OFFSET $SG324730
+	push	OFFSET $SG324878
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32398,8 +32399,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glEvalCoord1dv
 	push	OFFSET _glEvalCoord1dv@4
-	push	OFFSET $SG324809
-	push	OFFSET $SG324730
+	push	OFFSET $SG324879
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32408,8 +32409,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glEvalCoord1f
 	push	OFFSET _glEvalCoord1f@4
-	push	OFFSET $SG324810
-	push	OFFSET $SG324730
+	push	OFFSET $SG324880
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32418,8 +32419,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glEvalCoord1fv
 	push	OFFSET _glEvalCoord1fv@4
-	push	OFFSET $SG324811
-	push	OFFSET $SG324730
+	push	OFFSET $SG324881
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32428,8 +32429,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glEvalCoord2d
 	push	OFFSET _glEvalCoord2d@16
-	push	OFFSET $SG324812
-	push	OFFSET $SG324730
+	push	OFFSET $SG324882
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32438,8 +32439,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glEvalCoord2dv
 	push	OFFSET _glEvalCoord2dv@4
-	push	OFFSET $SG324813
-	push	OFFSET $SG324730
+	push	OFFSET $SG324883
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32448,8 +32449,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glEvalCoord2f
 	push	OFFSET _glEvalCoord2f@8
-	push	OFFSET $SG324814
-	push	OFFSET $SG324730
+	push	OFFSET $SG324884
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32458,8 +32459,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glEvalCoord2fv
 	push	OFFSET _glEvalCoord2fv@4
-	push	OFFSET $SG324815
-	push	OFFSET $SG324730
+	push	OFFSET $SG324885
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32468,8 +32469,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glEvalMesh1
 	push	OFFSET _glEvalMesh1@12
-	push	OFFSET $SG324816
-	push	OFFSET $SG324730
+	push	OFFSET $SG324886
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32478,8 +32479,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glEvalMesh2
 	push	OFFSET _glEvalMesh2@20
-	push	OFFSET $SG324817
-	push	OFFSET $SG324730
+	push	OFFSET $SG324887
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32488,8 +32489,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glEvalPoint1
 	push	OFFSET _glEvalPoint1@4
-	push	OFFSET $SG324818
-	push	OFFSET $SG324730
+	push	OFFSET $SG324888
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32498,8 +32499,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glEvalPoint2
 	push	OFFSET _glEvalPoint2@8
-	push	OFFSET $SG324819
-	push	OFFSET $SG324730
+	push	OFFSET $SG324889
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32508,8 +32509,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glFeedbackBuffer
 	push	OFFSET _glFeedbackBuffer@12
-	push	OFFSET $SG324820
-	push	OFFSET $SG324730
+	push	OFFSET $SG324890
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32518,8 +32519,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glFinish
 	push	OFFSET _glFinish@0
-	push	OFFSET $SG324821
-	push	OFFSET $SG324730
+	push	OFFSET $SG324891
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32528,8 +32529,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glFlush
 	push	OFFSET _glFlush@0
-	push	OFFSET $SG324822
-	push	OFFSET $SG324730
+	push	OFFSET $SG324892
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32538,8 +32539,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glFogf
 	push	OFFSET _glFogf@8
-	push	OFFSET $SG324823
-	push	OFFSET $SG324730
+	push	OFFSET $SG324893
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32548,8 +32549,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glFogfv
 	push	OFFSET _glFogfv@8
-	push	OFFSET $SG324824
-	push	OFFSET $SG324730
+	push	OFFSET $SG324894
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32558,8 +32559,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glFogi
 	push	OFFSET _glFogi@8
-	push	OFFSET $SG324825
-	push	OFFSET $SG324730
+	push	OFFSET $SG324895
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32568,8 +32569,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glFogiv
 	push	OFFSET _glFogiv@8
-	push	OFFSET $SG324826
-	push	OFFSET $SG324730
+	push	OFFSET $SG324896
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32578,8 +32579,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glFrontFace
 	push	OFFSET _glFrontFace@4
-	push	OFFSET $SG324827
-	push	OFFSET $SG324730
+	push	OFFSET $SG324897
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32588,8 +32589,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glFrustum
 	push	OFFSET _glFrustum@48
-	push	OFFSET $SG324828
-	push	OFFSET $SG324730
+	push	OFFSET $SG324898
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32598,8 +32599,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glGenLists
 	push	OFFSET _glGenLists@4
-	push	OFFSET $SG324829
-	push	OFFSET $SG324730
+	push	OFFSET $SG324899
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32608,8 +32609,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glGenTextures
 	push	OFFSET _glGenTextures@8
-	push	OFFSET $SG324830
-	push	OFFSET $SG324730
+	push	OFFSET $SG324900
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32618,8 +32619,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glGetBooleanv
 	push	OFFSET _glGetBooleanv@8
-	push	OFFSET $SG324831
-	push	OFFSET $SG324730
+	push	OFFSET $SG324901
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32628,8 +32629,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glGetClipPlane
 	push	OFFSET _glGetClipPlane@8
-	push	OFFSET $SG324832
-	push	OFFSET $SG324730
+	push	OFFSET $SG324902
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32638,8 +32639,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glGetDoublev
 	push	OFFSET _glGetDoublev@8
-	push	OFFSET $SG324833
-	push	OFFSET $SG324730
+	push	OFFSET $SG324903
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32648,8 +32649,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glGetError
 	push	OFFSET _glGetError@0
-	push	OFFSET $SG324834
-	push	OFFSET $SG324730
+	push	OFFSET $SG324904
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32658,8 +32659,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glGetFloatv
 	push	OFFSET _glGetFloatv@8
-	push	OFFSET $SG324835
-	push	OFFSET $SG324730
+	push	OFFSET $SG324905
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32668,8 +32669,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glGetIntegerv
 	push	OFFSET _glGetIntegerv@8
-	push	OFFSET $SG324836
-	push	OFFSET $SG324730
+	push	OFFSET $SG324906
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32678,8 +32679,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glGetLightfv
 	push	OFFSET _glGetLightfv@12
-	push	OFFSET $SG324837
-	push	OFFSET $SG324730
+	push	OFFSET $SG324907
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32688,8 +32689,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glGetLightiv
 	push	OFFSET _glGetLightiv@12
-	push	OFFSET $SG324838
-	push	OFFSET $SG324730
+	push	OFFSET $SG324908
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32698,8 +32699,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glGetMapdv
 	push	OFFSET _glGetMapdv@12
-	push	OFFSET $SG324839
-	push	OFFSET $SG324730
+	push	OFFSET $SG324909
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32708,8 +32709,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glGetMapfv
 	push	OFFSET _glGetMapfv@12
-	push	OFFSET $SG324840
-	push	OFFSET $SG324730
+	push	OFFSET $SG324910
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32718,8 +32719,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glGetMapiv
 	push	OFFSET _glGetMapiv@12
-	push	OFFSET $SG324841
-	push	OFFSET $SG324730
+	push	OFFSET $SG324911
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32728,8 +32729,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glGetMaterialfv
 	push	OFFSET _glGetMaterialfv@12
-	push	OFFSET $SG324842
-	push	OFFSET $SG324730
+	push	OFFSET $SG324912
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32738,8 +32739,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glGetMaterialiv
 	push	OFFSET _glGetMaterialiv@12
-	push	OFFSET $SG324843
-	push	OFFSET $SG324730
+	push	OFFSET $SG324913
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32748,8 +32749,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glGetPixelMapfv
 	push	OFFSET _glGetPixelMapfv@8
-	push	OFFSET $SG324844
-	push	OFFSET $SG324730
+	push	OFFSET $SG324914
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32758,8 +32759,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glGetPixelMapuiv
 	push	OFFSET _glGetPixelMapuiv@8
-	push	OFFSET $SG324845
-	push	OFFSET $SG324730
+	push	OFFSET $SG324915
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32768,8 +32769,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glGetPixelMapusv
 	push	OFFSET _glGetPixelMapusv@8
-	push	OFFSET $SG324846
-	push	OFFSET $SG324730
+	push	OFFSET $SG324916
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32778,8 +32779,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glGetPointerv
 	push	OFFSET _glGetPointerv@8
-	push	OFFSET $SG324847
-	push	OFFSET $SG324730
+	push	OFFSET $SG324917
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32788,8 +32789,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glGetPolygonStipple
 	push	OFFSET _glGetPolygonStipple@4
-	push	OFFSET $SG324848
-	push	OFFSET $SG324730
+	push	OFFSET $SG324918
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32798,8 +32799,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glGetString
 	push	OFFSET _glGetString@4
-	push	OFFSET $SG324849
-	push	OFFSET $SG324730
+	push	OFFSET $SG324919
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32808,8 +32809,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glGetTexEnvfv
 	push	OFFSET _glGetTexEnvfv@12
-	push	OFFSET $SG324850
-	push	OFFSET $SG324730
+	push	OFFSET $SG324920
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32818,8 +32819,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glGetTexEnviv
 	push	OFFSET _glGetTexEnviv@12
-	push	OFFSET $SG324851
-	push	OFFSET $SG324730
+	push	OFFSET $SG324921
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32828,8 +32829,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glGetTexGendv
 	push	OFFSET _glGetTexGendv@12
-	push	OFFSET $SG324852
-	push	OFFSET $SG324730
+	push	OFFSET $SG324922
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32838,8 +32839,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glGetTexGenfv
 	push	OFFSET _glGetTexGenfv@12
-	push	OFFSET $SG324853
-	push	OFFSET $SG324730
+	push	OFFSET $SG324923
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32848,8 +32849,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glGetTexGeniv
 	push	OFFSET _glGetTexGeniv@12
-	push	OFFSET $SG324854
-	push	OFFSET $SG324730
+	push	OFFSET $SG324924
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32858,8 +32859,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glGetTexImage
 	push	OFFSET _glGetTexImage@20
-	push	OFFSET $SG324855
-	push	OFFSET $SG324730
+	push	OFFSET $SG324925
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32868,8 +32869,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glGetTexLevelParameterfv
 	push	OFFSET _glGetTexLevelParameterfv@16
-	push	OFFSET $SG324856
-	push	OFFSET $SG324730
+	push	OFFSET $SG324926
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32878,8 +32879,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glGetTexLevelParameteriv
 	push	OFFSET _glGetTexLevelParameteriv@16
-	push	OFFSET $SG324857
-	push	OFFSET $SG324730
+	push	OFFSET $SG324927
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32888,8 +32889,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glGetTexParameterfv
 	push	OFFSET _glGetTexParameterfv@12
-	push	OFFSET $SG324858
-	push	OFFSET $SG324730
+	push	OFFSET $SG324928
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32898,8 +32899,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glGetTexParameteriv
 	push	OFFSET _glGetTexParameteriv@12
-	push	OFFSET $SG324859
-	push	OFFSET $SG324730
+	push	OFFSET $SG324929
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32908,8 +32909,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glHint
 	push	OFFSET _glHint@8
-	push	OFFSET $SG324860
-	push	OFFSET $SG324730
+	push	OFFSET $SG324930
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32918,8 +32919,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glIndexMask
 	push	OFFSET _glIndexMask@4
-	push	OFFSET $SG324861
-	push	OFFSET $SG324730
+	push	OFFSET $SG324931
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32928,8 +32929,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glIndexPointer
 	push	OFFSET _glIndexPointer@12
-	push	OFFSET $SG324862
-	push	OFFSET $SG324730
+	push	OFFSET $SG324932
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32938,8 +32939,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glIndexd
 	push	OFFSET _glIndexd@8
-	push	OFFSET $SG324863
-	push	OFFSET $SG324730
+	push	OFFSET $SG324933
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32948,8 +32949,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glIndexdv
 	push	OFFSET _glIndexdv@4
-	push	OFFSET $SG324864
-	push	OFFSET $SG324730
+	push	OFFSET $SG324934
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32958,8 +32959,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glIndexf
 	push	OFFSET _glIndexf@4
-	push	OFFSET $SG324865
-	push	OFFSET $SG324730
+	push	OFFSET $SG324935
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32968,8 +32969,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glIndexfv
 	push	OFFSET _glIndexfv@4
-	push	OFFSET $SG324866
-	push	OFFSET $SG324730
+	push	OFFSET $SG324936
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32978,8 +32979,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glIndexi
 	push	OFFSET _glIndexi@4
-	push	OFFSET $SG324867
-	push	OFFSET $SG324730
+	push	OFFSET $SG324937
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32988,8 +32989,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glIndexiv
 	push	OFFSET _glIndexiv@4
-	push	OFFSET $SG324868
-	push	OFFSET $SG324730
+	push	OFFSET $SG324938
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -32998,8 +32999,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glIndexs
 	push	OFFSET _glIndexs@4
-	push	OFFSET $SG324869
-	push	OFFSET $SG324730
+	push	OFFSET $SG324939
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33008,8 +33009,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glIndexsv
 	push	OFFSET _glIndexsv@4
-	push	OFFSET $SG324870
-	push	OFFSET $SG324730
+	push	OFFSET $SG324940
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33018,8 +33019,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glIndexub
 	push	OFFSET _glIndexub@4
-	push	OFFSET $SG324871
-	push	OFFSET $SG324730
+	push	OFFSET $SG324941
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33028,8 +33029,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glIndexubv
 	push	OFFSET _glIndexubv@4
-	push	OFFSET $SG324872
-	push	OFFSET $SG324730
+	push	OFFSET $SG324942
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33038,8 +33039,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glInitNames
 	push	OFFSET _glInitNames@0
-	push	OFFSET $SG324873
-	push	OFFSET $SG324730
+	push	OFFSET $SG324943
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33048,8 +33049,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glInterleavedArrays
 	push	OFFSET _glInterleavedArrays@12
-	push	OFFSET $SG324874
-	push	OFFSET $SG324730
+	push	OFFSET $SG324944
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33058,8 +33059,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glIsEnabled
 	push	OFFSET _glIsEnabled@4
-	push	OFFSET $SG324875
-	push	OFFSET $SG324730
+	push	OFFSET $SG324945
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33068,8 +33069,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glIsList
 	push	OFFSET _glIsList@4
-	push	OFFSET $SG324876
-	push	OFFSET $SG324730
+	push	OFFSET $SG324946
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33078,8 +33079,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glIsTexture
 	push	OFFSET _glIsTexture@4
-	push	OFFSET $SG324877
-	push	OFFSET $SG324730
+	push	OFFSET $SG324947
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33088,8 +33089,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glLightModelf
 	push	OFFSET _glLightModelf@8
-	push	OFFSET $SG324878
-	push	OFFSET $SG324730
+	push	OFFSET $SG324948
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33098,8 +33099,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glLightModelfv
 	push	OFFSET _glLightModelfv@8
-	push	OFFSET $SG324879
-	push	OFFSET $SG324730
+	push	OFFSET $SG324949
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33108,8 +33109,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glLightModeli
 	push	OFFSET _glLightModeli@8
-	push	OFFSET $SG324880
-	push	OFFSET $SG324730
+	push	OFFSET $SG324950
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33118,8 +33119,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glLightModeliv
 	push	OFFSET _glLightModeliv@8
-	push	OFFSET $SG324881
-	push	OFFSET $SG324730
+	push	OFFSET $SG324951
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33128,8 +33129,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glLightf
 	push	OFFSET _glLightf@12
-	push	OFFSET $SG324882
-	push	OFFSET $SG324730
+	push	OFFSET $SG324952
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33138,8 +33139,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glLightfv
 	push	OFFSET _glLightfv@12
-	push	OFFSET $SG324883
-	push	OFFSET $SG324730
+	push	OFFSET $SG324953
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33148,8 +33149,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glLighti
 	push	OFFSET _glLighti@12
-	push	OFFSET $SG324884
-	push	OFFSET $SG324730
+	push	OFFSET $SG324954
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33158,8 +33159,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glLightiv
 	push	OFFSET _glLightiv@12
-	push	OFFSET $SG324885
-	push	OFFSET $SG324730
+	push	OFFSET $SG324955
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33168,8 +33169,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glLineStipple
 	push	OFFSET _glLineStipple@8
-	push	OFFSET $SG324886
-	push	OFFSET $SG324730
+	push	OFFSET $SG324956
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33178,8 +33179,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glLineWidth
 	push	OFFSET _glLineWidth@4
-	push	OFFSET $SG324887
-	push	OFFSET $SG324730
+	push	OFFSET $SG324957
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33188,8 +33189,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glListBase
 	push	OFFSET _glListBase@4
-	push	OFFSET $SG324888
-	push	OFFSET $SG324730
+	push	OFFSET $SG324958
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33198,8 +33199,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glLoadIdentity
 	push	OFFSET _glLoadIdentity@0
-	push	OFFSET $SG324889
-	push	OFFSET $SG324730
+	push	OFFSET $SG324959
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33208,8 +33209,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glLoadMatrixd
 	push	OFFSET _glLoadMatrixd@4
-	push	OFFSET $SG324890
-	push	OFFSET $SG324730
+	push	OFFSET $SG324960
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33218,8 +33219,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glLoadMatrixf
 	push	OFFSET _glLoadMatrixf@4
-	push	OFFSET $SG324891
-	push	OFFSET $SG324730
+	push	OFFSET $SG324961
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33228,8 +33229,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glLoadName
 	push	OFFSET _glLoadName@4
-	push	OFFSET $SG324892
-	push	OFFSET $SG324730
+	push	OFFSET $SG324962
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33238,8 +33239,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glLogicOp
 	push	OFFSET _glLogicOp@4
-	push	OFFSET $SG324893
-	push	OFFSET $SG324730
+	push	OFFSET $SG324963
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33248,8 +33249,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glMap1d
 	push	OFFSET _glMap1d@32
-	push	OFFSET $SG324894
-	push	OFFSET $SG324730
+	push	OFFSET $SG324964
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33258,8 +33259,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glMap1f
 	push	OFFSET _glMap1f@24
-	push	OFFSET $SG324895
-	push	OFFSET $SG324730
+	push	OFFSET $SG324965
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33268,8 +33269,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glMap2d
 	push	OFFSET _glMap2d@56
-	push	OFFSET $SG324896
-	push	OFFSET $SG324730
+	push	OFFSET $SG324966
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33278,8 +33279,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glMap2f
 	push	OFFSET _glMap2f@40
-	push	OFFSET $SG324897
-	push	OFFSET $SG324730
+	push	OFFSET $SG324967
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33288,8 +33289,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glMapGrid1d
 	push	OFFSET _glMapGrid1d@20
-	push	OFFSET $SG324898
-	push	OFFSET $SG324730
+	push	OFFSET $SG324968
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33298,8 +33299,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glMapGrid1f
 	push	OFFSET _glMapGrid1f@12
-	push	OFFSET $SG324899
-	push	OFFSET $SG324730
+	push	OFFSET $SG324969
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33308,8 +33309,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glMapGrid2d
 	push	OFFSET _glMapGrid2d@40
-	push	OFFSET $SG324900
-	push	OFFSET $SG324730
+	push	OFFSET $SG324970
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33318,8 +33319,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glMapGrid2f
 	push	OFFSET _glMapGrid2f@24
-	push	OFFSET $SG324901
-	push	OFFSET $SG324730
+	push	OFFSET $SG324971
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33328,8 +33329,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glMaterialf
 	push	OFFSET _glMaterialf@12
-	push	OFFSET $SG324902
-	push	OFFSET $SG324730
+	push	OFFSET $SG324972
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33338,8 +33339,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glMaterialfv
 	push	OFFSET _glMaterialfv@12
-	push	OFFSET $SG324903
-	push	OFFSET $SG324730
+	push	OFFSET $SG324973
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33348,8 +33349,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glMateriali
 	push	OFFSET _glMateriali@12
-	push	OFFSET $SG324904
-	push	OFFSET $SG324730
+	push	OFFSET $SG324974
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33358,8 +33359,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glMaterialiv
 	push	OFFSET _glMaterialiv@12
-	push	OFFSET $SG324905
-	push	OFFSET $SG324730
+	push	OFFSET $SG324975
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33368,8 +33369,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glMatrixMode
 	push	OFFSET _glMatrixMode@4
-	push	OFFSET $SG324906
-	push	OFFSET $SG324730
+	push	OFFSET $SG324976
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33378,8 +33379,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glMultMatrixd
 	push	OFFSET _glMultMatrixd@4
-	push	OFFSET $SG324907
-	push	OFFSET $SG324730
+	push	OFFSET $SG324977
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33388,8 +33389,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glMultMatrixf
 	push	OFFSET _glMultMatrixf@4
-	push	OFFSET $SG324908
-	push	OFFSET $SG324730
+	push	OFFSET $SG324978
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33398,8 +33399,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glNewList
 	push	OFFSET _glNewList@8
-	push	OFFSET $SG324909
-	push	OFFSET $SG324730
+	push	OFFSET $SG324979
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33408,8 +33409,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glNormal3b
 	push	OFFSET _glNormal3b@12
-	push	OFFSET $SG324910
-	push	OFFSET $SG324730
+	push	OFFSET $SG324980
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33418,8 +33419,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glNormal3bv
 	push	OFFSET _glNormal3bv@4
-	push	OFFSET $SG324911
-	push	OFFSET $SG324730
+	push	OFFSET $SG324981
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33428,8 +33429,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glNormal3d
 	push	OFFSET _glNormal3d@24
-	push	OFFSET $SG324912
-	push	OFFSET $SG324730
+	push	OFFSET $SG324982
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33438,8 +33439,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glNormal3dv
 	push	OFFSET _glNormal3dv@4
-	push	OFFSET $SG324913
-	push	OFFSET $SG324730
+	push	OFFSET $SG324983
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33448,8 +33449,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glNormal3f
 	push	OFFSET _glNormal3f@12
-	push	OFFSET $SG324914
-	push	OFFSET $SG324730
+	push	OFFSET $SG324984
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33458,8 +33459,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glNormal3fv
 	push	OFFSET _glNormal3fv@4
-	push	OFFSET $SG324915
-	push	OFFSET $SG324730
+	push	OFFSET $SG324985
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33468,8 +33469,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glNormal3i
 	push	OFFSET _glNormal3i@12
-	push	OFFSET $SG324916
-	push	OFFSET $SG324730
+	push	OFFSET $SG324986
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33478,8 +33479,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glNormal3iv
 	push	OFFSET _glNormal3iv@4
-	push	OFFSET $SG324917
-	push	OFFSET $SG324730
+	push	OFFSET $SG324987
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33488,8 +33489,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glNormal3s
 	push	OFFSET _glNormal3s@12
-	push	OFFSET $SG324918
-	push	OFFSET $SG324730
+	push	OFFSET $SG324988
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33498,8 +33499,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glNormal3sv
 	push	OFFSET _glNormal3sv@4
-	push	OFFSET $SG324919
-	push	OFFSET $SG324730
+	push	OFFSET $SG324989
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33508,8 +33509,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glNormalPointer
 	push	OFFSET _glNormalPointer@12
-	push	OFFSET $SG324920
-	push	OFFSET $SG324730
+	push	OFFSET $SG324990
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33518,8 +33519,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glOrtho
 	push	OFFSET _glOrtho@48
-	push	OFFSET $SG324921
-	push	OFFSET $SG324730
+	push	OFFSET $SG324991
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33528,8 +33529,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glPassThrough
 	push	OFFSET _glPassThrough@4
-	push	OFFSET $SG324922
-	push	OFFSET $SG324730
+	push	OFFSET $SG324992
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33538,8 +33539,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glPixelMapfv
 	push	OFFSET _glPixelMapfv@12
-	push	OFFSET $SG324923
-	push	OFFSET $SG324730
+	push	OFFSET $SG324993
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33548,8 +33549,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glPixelMapuiv
 	push	OFFSET _glPixelMapuiv@12
-	push	OFFSET $SG324924
-	push	OFFSET $SG324730
+	push	OFFSET $SG324994
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33558,8 +33559,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glPixelMapusv
 	push	OFFSET _glPixelMapusv@12
-	push	OFFSET $SG324925
-	push	OFFSET $SG324730
+	push	OFFSET $SG324995
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33568,8 +33569,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glPixelStoref
 	push	OFFSET _glPixelStoref@8
-	push	OFFSET $SG324926
-	push	OFFSET $SG324730
+	push	OFFSET $SG324996
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33578,8 +33579,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glPixelStorei
 	push	OFFSET _glPixelStorei@8
-	push	OFFSET $SG324927
-	push	OFFSET $SG324730
+	push	OFFSET $SG324997
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33588,8 +33589,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glPixelTransferf
 	push	OFFSET _glPixelTransferf@8
-	push	OFFSET $SG324928
-	push	OFFSET $SG324730
+	push	OFFSET $SG324998
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33598,8 +33599,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glPixelTransferi
 	push	OFFSET _glPixelTransferi@8
-	push	OFFSET $SG324929
-	push	OFFSET $SG324730
+	push	OFFSET $SG324999
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33608,8 +33609,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glPixelZoom
 	push	OFFSET _glPixelZoom@8
-	push	OFFSET $SG324930
-	push	OFFSET $SG324730
+	push	OFFSET $SG325000
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33618,8 +33619,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glPointSize
 	push	OFFSET _glPointSize@4
-	push	OFFSET $SG324931
-	push	OFFSET $SG324730
+	push	OFFSET $SG325001
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33628,8 +33629,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glPolygonMode
 	push	OFFSET _glPolygonMode@8
-	push	OFFSET $SG324932
-	push	OFFSET $SG324730
+	push	OFFSET $SG325002
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33638,8 +33639,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glPolygonOffset
 	push	OFFSET _glPolygonOffset@8
-	push	OFFSET $SG324933
-	push	OFFSET $SG324730
+	push	OFFSET $SG325003
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33648,8 +33649,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glPolygonStipple
 	push	OFFSET _glPolygonStipple@4
-	push	OFFSET $SG324934
-	push	OFFSET $SG324730
+	push	OFFSET $SG325004
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33658,8 +33659,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glPopAttrib
 	push	OFFSET _glPopAttrib@0
-	push	OFFSET $SG324935
-	push	OFFSET $SG324730
+	push	OFFSET $SG325005
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33668,8 +33669,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glPopClientAttrib
 	push	OFFSET _glPopClientAttrib@0
-	push	OFFSET $SG324936
-	push	OFFSET $SG324730
+	push	OFFSET $SG325006
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33678,8 +33679,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glPopMatrix
 	push	OFFSET _glPopMatrix@0
-	push	OFFSET $SG324937
-	push	OFFSET $SG324730
+	push	OFFSET $SG325007
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33688,8 +33689,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glPopName
 	push	OFFSET _glPopName@0
-	push	OFFSET $SG324938
-	push	OFFSET $SG324730
+	push	OFFSET $SG325008
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33698,8 +33699,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glPrioritizeTextures
 	push	OFFSET _glPrioritizeTextures@12
-	push	OFFSET $SG324939
-	push	OFFSET $SG324730
+	push	OFFSET $SG325009
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33708,8 +33709,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glPushAttrib
 	push	OFFSET _glPushAttrib@4
-	push	OFFSET $SG324940
-	push	OFFSET $SG324730
+	push	OFFSET $SG325010
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33718,8 +33719,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glPushClientAttrib
 	push	OFFSET _glPushClientAttrib@4
-	push	OFFSET $SG324941
-	push	OFFSET $SG324730
+	push	OFFSET $SG325011
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33728,8 +33729,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glPushMatrix
 	push	OFFSET _glPushMatrix@0
-	push	OFFSET $SG324942
-	push	OFFSET $SG324730
+	push	OFFSET $SG325012
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33738,8 +33739,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glPushName
 	push	OFFSET _glPushName@4
-	push	OFFSET $SG324943
-	push	OFFSET $SG324730
+	push	OFFSET $SG325013
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33748,8 +33749,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glRasterPos2d
 	push	OFFSET _glRasterPos2d@16
-	push	OFFSET $SG324944
-	push	OFFSET $SG324730
+	push	OFFSET $SG325014
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33758,8 +33759,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glRasterPos2dv
 	push	OFFSET _glRasterPos2dv@4
-	push	OFFSET $SG324945
-	push	OFFSET $SG324730
+	push	OFFSET $SG325015
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33768,8 +33769,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glRasterPos2f
 	push	OFFSET _glRasterPos2f@8
-	push	OFFSET $SG324946
-	push	OFFSET $SG324730
+	push	OFFSET $SG325016
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33778,8 +33779,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glRasterPos2fv
 	push	OFFSET _glRasterPos2fv@4
-	push	OFFSET $SG324947
-	push	OFFSET $SG324730
+	push	OFFSET $SG325017
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33788,8 +33789,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glRasterPos2i
 	push	OFFSET _glRasterPos2i@8
-	push	OFFSET $SG324948
-	push	OFFSET $SG324730
+	push	OFFSET $SG325018
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33798,8 +33799,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glRasterPos2iv
 	push	OFFSET _glRasterPos2iv@4
-	push	OFFSET $SG324949
-	push	OFFSET $SG324730
+	push	OFFSET $SG325019
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33808,8 +33809,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glRasterPos2s
 	push	OFFSET _glRasterPos2s@8
-	push	OFFSET $SG324950
-	push	OFFSET $SG324730
+	push	OFFSET $SG325020
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33818,8 +33819,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glRasterPos2sv
 	push	OFFSET _glRasterPos2sv@4
-	push	OFFSET $SG324951
-	push	OFFSET $SG324730
+	push	OFFSET $SG325021
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33828,8 +33829,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glRasterPos3d
 	push	OFFSET _glRasterPos3d@24
-	push	OFFSET $SG324952
-	push	OFFSET $SG324730
+	push	OFFSET $SG325022
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33838,8 +33839,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glRasterPos3dv
 	push	OFFSET _glRasterPos3dv@4
-	push	OFFSET $SG324953
-	push	OFFSET $SG324730
+	push	OFFSET $SG325023
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33848,8 +33849,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glRasterPos3f
 	push	OFFSET _glRasterPos3f@12
-	push	OFFSET $SG324954
-	push	OFFSET $SG324730
+	push	OFFSET $SG325024
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33858,8 +33859,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glRasterPos3fv
 	push	OFFSET _glRasterPos3fv@4
-	push	OFFSET $SG324955
-	push	OFFSET $SG324730
+	push	OFFSET $SG325025
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33868,8 +33869,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glRasterPos3i
 	push	OFFSET _glRasterPos3i@12
-	push	OFFSET $SG324956
-	push	OFFSET $SG324730
+	push	OFFSET $SG325026
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33878,8 +33879,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glRasterPos3iv
 	push	OFFSET _glRasterPos3iv@4
-	push	OFFSET $SG324957
-	push	OFFSET $SG324730
+	push	OFFSET $SG325027
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33888,8 +33889,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glRasterPos3s
 	push	OFFSET _glRasterPos3s@12
-	push	OFFSET $SG324958
-	push	OFFSET $SG324730
+	push	OFFSET $SG325028
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33898,8 +33899,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glRasterPos3sv
 	push	OFFSET _glRasterPos3sv@4
-	push	OFFSET $SG324959
-	push	OFFSET $SG324730
+	push	OFFSET $SG325029
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33908,8 +33909,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glRasterPos4d
 	push	OFFSET _glRasterPos4d@32
-	push	OFFSET $SG324960
-	push	OFFSET $SG324730
+	push	OFFSET $SG325030
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33918,8 +33919,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glRasterPos4dv
 	push	OFFSET _glRasterPos4dv@4
-	push	OFFSET $SG324961
-	push	OFFSET $SG324730
+	push	OFFSET $SG325031
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33928,8 +33929,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glRasterPos4f
 	push	OFFSET _glRasterPos4f@16
-	push	OFFSET $SG324962
-	push	OFFSET $SG324730
+	push	OFFSET $SG325032
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33938,8 +33939,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glRasterPos4fv
 	push	OFFSET _glRasterPos4fv@4
-	push	OFFSET $SG324963
-	push	OFFSET $SG324730
+	push	OFFSET $SG325033
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33948,8 +33949,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glRasterPos4i
 	push	OFFSET _glRasterPos4i@16
-	push	OFFSET $SG324964
-	push	OFFSET $SG324730
+	push	OFFSET $SG325034
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33958,8 +33959,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glRasterPos4iv
 	push	OFFSET _glRasterPos4iv@4
-	push	OFFSET $SG324965
-	push	OFFSET $SG324730
+	push	OFFSET $SG325035
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33968,8 +33969,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glRasterPos4s
 	push	OFFSET _glRasterPos4s@16
-	push	OFFSET $SG324966
-	push	OFFSET $SG324730
+	push	OFFSET $SG325036
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33978,8 +33979,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glRasterPos4sv
 	push	OFFSET _glRasterPos4sv@4
-	push	OFFSET $SG324967
-	push	OFFSET $SG324730
+	push	OFFSET $SG325037
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33988,8 +33989,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glReadBuffer
 	push	OFFSET _glReadBuffer@4
-	push	OFFSET $SG324968
-	push	OFFSET $SG324730
+	push	OFFSET $SG325038
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -33998,8 +33999,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glReadPixels
 	push	OFFSET _glReadPixels@28
-	push	OFFSET $SG324969
-	push	OFFSET $SG324730
+	push	OFFSET $SG325039
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34008,8 +34009,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glRectd
 	push	OFFSET _glRectd@32
-	push	OFFSET $SG324970
-	push	OFFSET $SG324730
+	push	OFFSET $SG325040
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34018,8 +34019,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glRectdv
 	push	OFFSET _glRectdv@8
-	push	OFFSET $SG324971
-	push	OFFSET $SG324730
+	push	OFFSET $SG325041
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34028,8 +34029,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glRectf
 	push	OFFSET _glRectf@16
-	push	OFFSET $SG324972
-	push	OFFSET $SG324730
+	push	OFFSET $SG325042
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34038,8 +34039,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glRectfv
 	push	OFFSET _glRectfv@8
-	push	OFFSET $SG324973
-	push	OFFSET $SG324730
+	push	OFFSET $SG325043
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34048,8 +34049,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glRecti
 	push	OFFSET _glRecti@16
-	push	OFFSET $SG324974
-	push	OFFSET $SG324730
+	push	OFFSET $SG325044
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34058,8 +34059,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glRectiv
 	push	OFFSET _glRectiv@8
-	push	OFFSET $SG324975
-	push	OFFSET $SG324730
+	push	OFFSET $SG325045
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34068,8 +34069,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glRects
 	push	OFFSET _glRects@16
-	push	OFFSET $SG324976
-	push	OFFSET $SG324730
+	push	OFFSET $SG325046
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34078,8 +34079,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glRectsv
 	push	OFFSET _glRectsv@8
-	push	OFFSET $SG324977
-	push	OFFSET $SG324730
+	push	OFFSET $SG325047
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34088,8 +34089,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glRenderMode
 	push	OFFSET _glRenderMode@4
-	push	OFFSET $SG324978
-	push	OFFSET $SG324730
+	push	OFFSET $SG325048
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34098,8 +34099,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glRotated
 	push	OFFSET _glRotated@32
-	push	OFFSET $SG324979
-	push	OFFSET $SG324730
+	push	OFFSET $SG325049
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34108,8 +34109,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glRotatef
 	push	OFFSET _glRotatef@16
-	push	OFFSET $SG324980
-	push	OFFSET $SG324730
+	push	OFFSET $SG325050
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34118,8 +34119,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glScaled
 	push	OFFSET _glScaled@24
-	push	OFFSET $SG324981
-	push	OFFSET $SG324730
+	push	OFFSET $SG325051
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34128,8 +34129,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glScalef
 	push	OFFSET _glScalef@12
-	push	OFFSET $SG324982
-	push	OFFSET $SG324730
+	push	OFFSET $SG325052
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34138,8 +34139,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glScissor
 	push	OFFSET _glScissor@16
-	push	OFFSET $SG324983
-	push	OFFSET $SG324730
+	push	OFFSET $SG325053
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34148,8 +34149,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glSelectBuffer
 	push	OFFSET _glSelectBuffer@8
-	push	OFFSET $SG324984
-	push	OFFSET $SG324730
+	push	OFFSET $SG325054
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34158,8 +34159,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glShadeModel
 	push	OFFSET _glShadeModel@4
-	push	OFFSET $SG324985
-	push	OFFSET $SG324730
+	push	OFFSET $SG325055
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34168,8 +34169,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glStencilFunc
 	push	OFFSET _glStencilFunc@12
-	push	OFFSET $SG324986
-	push	OFFSET $SG324730
+	push	OFFSET $SG325056
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34178,8 +34179,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glStencilMask
 	push	OFFSET _glStencilMask@4
-	push	OFFSET $SG324987
-	push	OFFSET $SG324730
+	push	OFFSET $SG325057
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34188,8 +34189,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glStencilOp
 	push	OFFSET _glStencilOp@12
-	push	OFFSET $SG324988
-	push	OFFSET $SG324730
+	push	OFFSET $SG325058
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34198,8 +34199,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glTexCoord1d
 	push	OFFSET _glTexCoord1d@8
-	push	OFFSET $SG324989
-	push	OFFSET $SG324730
+	push	OFFSET $SG325059
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34208,8 +34209,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glTexCoord1dv
 	push	OFFSET _glTexCoord1dv@4
-	push	OFFSET $SG324990
-	push	OFFSET $SG324730
+	push	OFFSET $SG325060
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34218,8 +34219,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glTexCoord1f
 	push	OFFSET _glTexCoord1f@4
-	push	OFFSET $SG324991
-	push	OFFSET $SG324730
+	push	OFFSET $SG325061
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34228,8 +34229,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glTexCoord1fv
 	push	OFFSET _glTexCoord1fv@4
-	push	OFFSET $SG324992
-	push	OFFSET $SG324730
+	push	OFFSET $SG325062
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34238,8 +34239,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glTexCoord1i
 	push	OFFSET _glTexCoord1i@4
-	push	OFFSET $SG324993
-	push	OFFSET $SG324730
+	push	OFFSET $SG325063
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34248,8 +34249,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glTexCoord1iv
 	push	OFFSET _glTexCoord1iv@4
-	push	OFFSET $SG324994
-	push	OFFSET $SG324730
+	push	OFFSET $SG325064
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34258,8 +34259,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glTexCoord1s
 	push	OFFSET _glTexCoord1s@4
-	push	OFFSET $SG324995
-	push	OFFSET $SG324730
+	push	OFFSET $SG325065
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34268,8 +34269,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glTexCoord1sv
 	push	OFFSET _glTexCoord1sv@4
-	push	OFFSET $SG324996
-	push	OFFSET $SG324730
+	push	OFFSET $SG325066
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34278,8 +34279,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glTexCoord2d
 	push	OFFSET _glTexCoord2d@16
-	push	OFFSET $SG324997
-	push	OFFSET $SG324730
+	push	OFFSET $SG325067
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34288,8 +34289,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glTexCoord2dv
 	push	OFFSET _glTexCoord2dv@4
-	push	OFFSET $SG324998
-	push	OFFSET $SG324730
+	push	OFFSET $SG325068
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34298,8 +34299,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glTexCoord2f
 	push	OFFSET _glTexCoord2f@8
-	push	OFFSET $SG324999
-	push	OFFSET $SG324730
+	push	OFFSET $SG325069
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34308,8 +34309,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glTexCoord2fv
 	push	OFFSET _glTexCoord2fv@4
-	push	OFFSET $SG325000
-	push	OFFSET $SG324730
+	push	OFFSET $SG325070
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34318,8 +34319,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glTexCoord2i
 	push	OFFSET _glTexCoord2i@8
-	push	OFFSET $SG325001
-	push	OFFSET $SG324730
+	push	OFFSET $SG325071
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34328,8 +34329,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glTexCoord2iv
 	push	OFFSET _glTexCoord2iv@4
-	push	OFFSET $SG325002
-	push	OFFSET $SG324730
+	push	OFFSET $SG325072
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34338,8 +34339,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glTexCoord2s
 	push	OFFSET _glTexCoord2s@8
-	push	OFFSET $SG325003
-	push	OFFSET $SG324730
+	push	OFFSET $SG325073
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34348,8 +34349,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glTexCoord2sv
 	push	OFFSET _glTexCoord2sv@4
-	push	OFFSET $SG325004
-	push	OFFSET $SG324730
+	push	OFFSET $SG325074
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34358,8 +34359,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glTexCoord3d
 	push	OFFSET _glTexCoord3d@24
-	push	OFFSET $SG325005
-	push	OFFSET $SG324730
+	push	OFFSET $SG325075
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34368,8 +34369,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glTexCoord3dv
 	push	OFFSET _glTexCoord3dv@4
-	push	OFFSET $SG325006
-	push	OFFSET $SG324730
+	push	OFFSET $SG325076
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34378,8 +34379,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glTexCoord3f
 	push	OFFSET _glTexCoord3f@12
-	push	OFFSET $SG325007
-	push	OFFSET $SG324730
+	push	OFFSET $SG325077
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34388,8 +34389,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glTexCoord3fv
 	push	OFFSET _glTexCoord3fv@4
-	push	OFFSET $SG325008
-	push	OFFSET $SG324730
+	push	OFFSET $SG325078
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34398,8 +34399,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glTexCoord3i
 	push	OFFSET _glTexCoord3i@12
-	push	OFFSET $SG325009
-	push	OFFSET $SG324730
+	push	OFFSET $SG325079
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34408,8 +34409,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glTexCoord3iv
 	push	OFFSET _glTexCoord3iv@4
-	push	OFFSET $SG325010
-	push	OFFSET $SG324730
+	push	OFFSET $SG325080
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34418,8 +34419,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glTexCoord3s
 	push	OFFSET _glTexCoord3s@12
-	push	OFFSET $SG325011
-	push	OFFSET $SG324730
+	push	OFFSET $SG325081
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34428,8 +34429,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glTexCoord3sv
 	push	OFFSET _glTexCoord3sv@4
-	push	OFFSET $SG325012
-	push	OFFSET $SG324730
+	push	OFFSET $SG325082
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34438,8 +34439,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glTexCoord4d
 	push	OFFSET _glTexCoord4d@32
-	push	OFFSET $SG325013
-	push	OFFSET $SG324730
+	push	OFFSET $SG325083
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34448,8 +34449,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glTexCoord4dv
 	push	OFFSET _glTexCoord4dv@4
-	push	OFFSET $SG325014
-	push	OFFSET $SG324730
+	push	OFFSET $SG325084
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34458,8 +34459,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glTexCoord4f
 	push	OFFSET _glTexCoord4f@16
-	push	OFFSET $SG325015
-	push	OFFSET $SG324730
+	push	OFFSET $SG325085
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34468,8 +34469,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glTexCoord4fv
 	push	OFFSET _glTexCoord4fv@4
-	push	OFFSET $SG325016
-	push	OFFSET $SG324730
+	push	OFFSET $SG325086
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34478,8 +34479,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glTexCoord4i
 	push	OFFSET _glTexCoord4i@16
-	push	OFFSET $SG325017
-	push	OFFSET $SG324730
+	push	OFFSET $SG325087
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34488,8 +34489,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glTexCoord4iv
 	push	OFFSET _glTexCoord4iv@4
-	push	OFFSET $SG325018
-	push	OFFSET $SG324730
+	push	OFFSET $SG325088
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34498,8 +34499,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glTexCoord4s
 	push	OFFSET _glTexCoord4s@16
-	push	OFFSET $SG325019
-	push	OFFSET $SG324730
+	push	OFFSET $SG325089
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34508,8 +34509,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glTexCoord4sv
 	push	OFFSET _glTexCoord4sv@4
-	push	OFFSET $SG325020
-	push	OFFSET $SG324730
+	push	OFFSET $SG325090
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34518,8 +34519,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glTexCoordPointer
 	push	OFFSET _glTexCoordPointer@16
-	push	OFFSET $SG325021
-	push	OFFSET $SG324730
+	push	OFFSET $SG325091
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34528,8 +34529,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glTexEnvf
 	push	OFFSET _glTexEnvf@12
-	push	OFFSET $SG325022
-	push	OFFSET $SG324730
+	push	OFFSET $SG325092
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34538,8 +34539,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glTexEnvfv
 	push	OFFSET _glTexEnvfv@12
-	push	OFFSET $SG325023
-	push	OFFSET $SG324730
+	push	OFFSET $SG325093
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34548,8 +34549,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glTexEnvi
 	push	OFFSET _glTexEnvi@12
-	push	OFFSET $SG325024
-	push	OFFSET $SG324730
+	push	OFFSET $SG325094
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34558,8 +34559,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glTexEnviv
 	push	OFFSET _glTexEnviv@12
-	push	OFFSET $SG325025
-	push	OFFSET $SG324730
+	push	OFFSET $SG325095
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34568,8 +34569,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glTexGend
 	push	OFFSET _glTexGend@16
-	push	OFFSET $SG325026
-	push	OFFSET $SG324730
+	push	OFFSET $SG325096
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34578,8 +34579,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glTexGendv
 	push	OFFSET _glTexGendv@12
-	push	OFFSET $SG325027
-	push	OFFSET $SG324730
+	push	OFFSET $SG325097
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34588,8 +34589,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glTexGenf
 	push	OFFSET _glTexGenf@12
-	push	OFFSET $SG325028
-	push	OFFSET $SG324730
+	push	OFFSET $SG325098
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34598,8 +34599,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glTexGenfv
 	push	OFFSET _glTexGenfv@12
-	push	OFFSET $SG325029
-	push	OFFSET $SG324730
+	push	OFFSET $SG325099
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34608,8 +34609,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glTexGeni
 	push	OFFSET _glTexGeni@12
-	push	OFFSET $SG325030
-	push	OFFSET $SG324730
+	push	OFFSET $SG325100
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34618,8 +34619,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glTexGeniv
 	push	OFFSET _glTexGeniv@12
-	push	OFFSET $SG325031
-	push	OFFSET $SG324730
+	push	OFFSET $SG325101
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34628,8 +34629,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glTexImage1D
 	push	OFFSET _glTexImage1D@32
-	push	OFFSET $SG325032
-	push	OFFSET $SG324730
+	push	OFFSET $SG325102
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34638,8 +34639,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glTexImage2D
 	push	OFFSET _glTexImage2D@36
-	push	OFFSET $SG325033
-	push	OFFSET $SG324730
+	push	OFFSET $SG325103
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34648,8 +34649,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glTexParameterf
 	push	OFFSET _glTexParameterf@12
-	push	OFFSET $SG325034
-	push	OFFSET $SG324730
+	push	OFFSET $SG325104
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34658,8 +34659,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glTexParameterfv
 	push	OFFSET _glTexParameterfv@12
-	push	OFFSET $SG325035
-	push	OFFSET $SG324730
+	push	OFFSET $SG325105
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34668,8 +34669,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glTexParameteri
 	push	OFFSET _glTexParameteri@12
-	push	OFFSET $SG325036
-	push	OFFSET $SG324730
+	push	OFFSET $SG325106
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34678,8 +34679,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glTexParameteriv
 	push	OFFSET _glTexParameteriv@12
-	push	OFFSET $SG325037
-	push	OFFSET $SG324730
+	push	OFFSET $SG325107
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34688,8 +34689,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glTexSubImage1D
 	push	OFFSET _glTexSubImage1D@28
-	push	OFFSET $SG325038
-	push	OFFSET $SG324730
+	push	OFFSET $SG325108
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34698,8 +34699,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glTexSubImage2D
 	push	OFFSET _glTexSubImage2D@36
-	push	OFFSET $SG325039
-	push	OFFSET $SG324730
+	push	OFFSET $SG325109
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34708,8 +34709,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glTranslated
 	push	OFFSET _glTranslated@24
-	push	OFFSET $SG325040
-	push	OFFSET $SG324730
+	push	OFFSET $SG325110
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34718,8 +34719,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glTranslatef
 	push	OFFSET _glTranslatef@12
-	push	OFFSET $SG325041
-	push	OFFSET $SG324730
+	push	OFFSET $SG325111
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34728,8 +34729,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glVertex2d
 	push	OFFSET _glVertex2d@16
-	push	OFFSET $SG325042
-	push	OFFSET $SG324730
+	push	OFFSET $SG325112
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34738,8 +34739,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glVertex2dv
 	push	OFFSET _glVertex2dv@4
-	push	OFFSET $SG325043
-	push	OFFSET $SG324730
+	push	OFFSET $SG325113
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34748,8 +34749,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glVertex2f
 	push	OFFSET _glVertex2f@8
-	push	OFFSET $SG325044
-	push	OFFSET $SG324730
+	push	OFFSET $SG325114
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34758,8 +34759,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glVertex2fv
 	push	OFFSET _glVertex2fv@4
-	push	OFFSET $SG325045
-	push	OFFSET $SG324730
+	push	OFFSET $SG325115
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34768,8 +34769,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glVertex2i
 	push	OFFSET _glVertex2i@8
-	push	OFFSET $SG325046
-	push	OFFSET $SG324730
+	push	OFFSET $SG325116
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34778,8 +34779,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glVertex2iv
 	push	OFFSET _glVertex2iv@4
-	push	OFFSET $SG325047
-	push	OFFSET $SG324730
+	push	OFFSET $SG325117
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34788,8 +34789,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glVertex2s
 	push	OFFSET _glVertex2s@8
-	push	OFFSET $SG325048
-	push	OFFSET $SG324730
+	push	OFFSET $SG325118
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34798,8 +34799,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glVertex2sv
 	push	OFFSET _glVertex2sv@4
-	push	OFFSET $SG325049
-	push	OFFSET $SG324730
+	push	OFFSET $SG325119
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34808,8 +34809,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glVertex3d
 	push	OFFSET _glVertex3d@24
-	push	OFFSET $SG325050
-	push	OFFSET $SG324730
+	push	OFFSET $SG325120
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34818,8 +34819,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glVertex3dv
 	push	OFFSET _glVertex3dv@4
-	push	OFFSET $SG325051
-	push	OFFSET $SG324730
+	push	OFFSET $SG325121
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34828,8 +34829,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glVertex3f
 	push	OFFSET _glVertex3f@12
-	push	OFFSET $SG325052
-	push	OFFSET $SG324730
+	push	OFFSET $SG325122
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34838,8 +34839,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glVertex3fv
 	push	OFFSET _glVertex3fv@4
-	push	OFFSET $SG325053
-	push	OFFSET $SG324730
+	push	OFFSET $SG325123
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34848,8 +34849,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glVertex3i
 	push	OFFSET _glVertex3i@12
-	push	OFFSET $SG325054
-	push	OFFSET $SG324730
+	push	OFFSET $SG325124
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34858,8 +34859,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glVertex3iv
 	push	OFFSET _glVertex3iv@4
-	push	OFFSET $SG325055
-	push	OFFSET $SG324730
+	push	OFFSET $SG325125
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34868,8 +34869,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glVertex3s
 	push	OFFSET _glVertex3s@12
-	push	OFFSET $SG325056
-	push	OFFSET $SG324730
+	push	OFFSET $SG325126
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34878,8 +34879,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glVertex3sv
 	push	OFFSET _glVertex3sv@4
-	push	OFFSET $SG325057
-	push	OFFSET $SG324730
+	push	OFFSET $SG325127
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34888,8 +34889,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glVertex4d
 	push	OFFSET _glVertex4d@32
-	push	OFFSET $SG325058
-	push	OFFSET $SG324730
+	push	OFFSET $SG325128
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34898,8 +34899,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glVertex4dv
 	push	OFFSET _glVertex4dv@4
-	push	OFFSET $SG325059
-	push	OFFSET $SG324730
+	push	OFFSET $SG325129
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34908,8 +34909,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glVertex4f
 	push	OFFSET _glVertex4f@16
-	push	OFFSET $SG325060
-	push	OFFSET $SG324730
+	push	OFFSET $SG325130
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34918,8 +34919,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glVertex4fv
 	push	OFFSET _glVertex4fv@4
-	push	OFFSET $SG325061
-	push	OFFSET $SG324730
+	push	OFFSET $SG325131
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34928,8 +34929,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glVertex4i
 	push	OFFSET _glVertex4i@16
-	push	OFFSET $SG325062
-	push	OFFSET $SG324730
+	push	OFFSET $SG325132
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34938,8 +34939,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glVertex4iv
 	push	OFFSET _glVertex4iv@4
-	push	OFFSET $SG325063
-	push	OFFSET $SG324730
+	push	OFFSET $SG325133
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34948,8 +34949,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glVertex4s
 	push	OFFSET _glVertex4s@16
-	push	OFFSET $SG325064
-	push	OFFSET $SG324730
+	push	OFFSET $SG325134
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34958,8 +34959,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glVertex4sv
 	push	OFFSET _glVertex4sv@4
-	push	OFFSET $SG325065
-	push	OFFSET $SG324730
+	push	OFFSET $SG325135
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34968,8 +34969,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glVertexPointer
 	push	OFFSET _glVertexPointer@16
-	push	OFFSET $SG325066
-	push	OFFSET $SG324730
+	push	OFFSET $SG325136
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34978,8 +34979,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_glViewport
 	push	OFFSET _glViewport@16
-	push	OFFSET $SG325067
-	push	OFFSET $SG324730
+	push	OFFSET $SG325137
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34989,8 +34990,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_wglCopyContext
 	push	OFFSET _wglCopyContext@12
-	push	OFFSET $SG325068
-	push	OFFSET $SG324730
+	push	OFFSET $SG325138
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -34999,8 +35000,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_wglCreateLayerContext
 	push	OFFSET _wglCreateLayerContext@8
-	push	OFFSET $SG325069
-	push	OFFSET $SG324730
+	push	OFFSET $SG325139
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -35009,8 +35010,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_wglDeleteContext
 	push	OFFSET _wglDeleteContext@4
-	push	OFFSET $SG325070
-	push	OFFSET $SG324730
+	push	OFFSET $SG325140
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -35019,8 +35020,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_wglGetCurrentContext
 	push	OFFSET _wglGetCurrentContext@0
-	push	OFFSET $SG325071
-	push	OFFSET $SG324730
+	push	OFFSET $SG325141
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -35029,8 +35030,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_wglGetCurrentDC
 	push	OFFSET _wglGetCurrentDC@0
-	push	OFFSET $SG325072
-	push	OFFSET $SG324730
+	push	OFFSET $SG325142
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -35040,8 +35041,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_wglGetProcAddress
 	push	OFFSET _wglGetProcAddress@4
-	push	OFFSET $SG325073
-	push	OFFSET $SG324730
+	push	OFFSET $SG325143
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -35050,8 +35051,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_wglCreateContext
 	push	OFFSET _wglCreateContext@4
-	push	OFFSET $SG325074
-	push	OFFSET $SG324730
+	push	OFFSET $SG325144
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -35061,8 +35062,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_wglChoosePixelFormat
 	push	OFFSET _wglChoosePixelFormat@8
-	push	OFFSET $SG325075
-	push	OFFSET $SG324730
+	push	OFFSET $SG325145
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -35072,8 +35073,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_wglMakeCurrent
 	push	OFFSET _wglMakeCurrent@8
-	push	OFFSET $SG325076
-	push	OFFSET $SG324730
+	push	OFFSET $SG325146
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -35082,8 +35083,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_wglShareLists
 	push	OFFSET _wglShareLists@8
-	push	OFFSET $SG325077
-	push	OFFSET $SG324730
+	push	OFFSET $SG325147
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -35092,8 +35093,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_wglUseFontBitmapsA
 	push	OFFSET _wglUseFontBitmapsA@16
-	push	OFFSET $SG325078
-	push	OFFSET $SG324730
+	push	OFFSET $SG325148
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -35102,8 +35103,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_wglUseFontBitmapsW
 	push	OFFSET _wglUseFontBitmapsW@16
-	push	OFFSET $SG325079
-	push	OFFSET $SG324730
+	push	OFFSET $SG325149
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -35112,8 +35113,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_wglDescribeLayerPlane
 	push	OFFSET _wglDescribeLayerPlane@20
-	push	OFFSET $SG325080
-	push	OFFSET $SG324730
+	push	OFFSET $SG325150
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -35122,8 +35123,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_wglDescribePixelFormat
 	push	OFFSET _wglDescribePixelFormat@16
-	push	OFFSET $SG325081
-	push	OFFSET $SG324730
+	push	OFFSET $SG325151
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -35132,8 +35133,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_wglGetLayerPaletteEntries
 	push	OFFSET _wglGetLayerPaletteEntries@20
-	push	OFFSET $SG325082
-	push	OFFSET $SG324730
+	push	OFFSET $SG325152
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -35142,8 +35143,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_wglGetPixelFormat
 	push	OFFSET _wglGetPixelFormat@24
-	push	OFFSET $SG325083
-	push	OFFSET $SG324730
+	push	OFFSET $SG325153
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -35152,8 +35153,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_wglRealizeLayerPalette
 	push	OFFSET _wglRealizeLayerPalette@12
-	push	OFFSET $SG325084
-	push	OFFSET $SG324730
+	push	OFFSET $SG325154
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -35162,8 +35163,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_wglSetLayerPaletteEntries
 	push	OFFSET _wglSetLayerPaletteEntries@20
-	push	OFFSET $SG325085
-	push	OFFSET $SG324730
+	push	OFFSET $SG325155
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -35172,8 +35173,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_wglSetPixelFormat
 	push	OFFSET _wglSetPixelFormat@12
-	push	OFFSET $SG325086
-	push	OFFSET $SG324730
+	push	OFFSET $SG325156
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -35182,8 +35183,8 @@ $LN33@SK_HookGL:
 	push	0
 	push	OFFSET _imp_wglSwapMultipleBuffers
 	push	OFFSET _wglSwapMultipleBuffers@8
-	push	OFFSET $SG325087
-	push	OFFSET $SG324730
+	push	OFFSET $SG325157
+	push	OFFSET $SG324800
 	call	?SK_CreateDLLHook2@@YG?AW4MH_STATUS@@PB_WPBDPAXPAPAX3@Z ; SK_CreateDLLHook2
 	inc	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
 
@@ -35197,7 +35198,7 @@ $LN33@SK_HookGL:
 ; 2309 :     dll_log.Log ( L"[ OpenGL32 ]  @ %lu functions hooked",
 
 	push	DWORD PTR ?GL_HOOKS@@3KA		; GL_HOOKS
-	push	OFFSET $SG325088
+	push	OFFSET $SG325158
 	push	OFFSET ?dll_log@@3UiSK_Logger@@A	; dll_log
 	call	?Log@iSK_Logger@@UAAXQB_WZZ		; iSK_Logger::Log
 	add	esp, 12					; 0000000cH
@@ -35787,7 +35788,7 @@ $LN2@getPipelin:
 ; 1790 :     _swprintf ( wszDesc,
 
 	lea	eax, DWORD PTR _wszDesc$[ebp]
-	push	OFFSET $SG324057
+	push	OFFSET $SG324127
 	push	eax
 	call	__swprintf
 	add	esp, 8
@@ -35869,7 +35870,7 @@ $LN103@getPipelin:
 	push	esi
 	push	eax
 	lea	eax, DWORD PTR _wszDesc$[ebp]
-	push	OFFSET $SG324056
+	push	OFFSET $SG324126
 	push	eax
 	call	__swprintf
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -36026,7 +36027,7 @@ $LN4@getPipelin:
 
 	lea	eax, DWORD PTR _wszDesc$[ebp]
 	push	eax
-	push	OFFSET $SG324061
+	push	OFFSET $SG324131
 	push	eax
 	call	__swprintf
 	jmp	$LN633@getPipelin
@@ -36085,7 +36086,7 @@ $LN231@getPipelin:
 	push	eax
 	lea	eax, DWORD PTR _wszDesc$[ebp]
 	push	eax
-	push	OFFSET $SG324060
+	push	OFFSET $SG324130
 	push	eax
 	call	__swprintf
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -36207,7 +36208,7 @@ $LN618@getPipelin:
 
 	lea	eax, DWORD PTR _wszDesc$[ebp]
 	push	eax
-	push	OFFSET $SG324066
+	push	OFFSET $SG324136
 	push	eax
 	call	__swprintf
 	jmp	$LN634@getPipelin
@@ -36270,7 +36271,7 @@ $LN329@getPipelin:
 	push	eax
 	lea	eax, DWORD PTR _wszDesc$[ebp]
 	push	eax
-	push	OFFSET $SG324065
+	push	OFFSET $SG324135
 	push	eax
 	call	__swprintf
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -36383,7 +36384,7 @@ $LN369@getPipelin:
 
 	lea	eax, DWORD PTR _wszDesc$[ebp]
 	push	eax
-	push	OFFSET $SG324070
+	push	OFFSET $SG324140
 	push	eax
 	call	__swprintf
 	jmp	$LN635@getPipelin
@@ -36434,7 +36435,7 @@ $LN408@getPipelin:
 	cvtps2pd xmm0, xmm1
 	movsd	QWORD PTR [esp], xmm0
 	push	eax
-	push	OFFSET $SG324069
+	push	OFFSET $SG324139
 	push	eax
 	call	__swprintf
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -36494,7 +36495,7 @@ $LN11@getPipelin:
 
 	lea	eax, DWORD PTR _wszDesc$[ebp]
 	push	eax
-	push	OFFSET $SG324074
+	push	OFFSET $SG324144
 	push	eax
 	call	__swprintf
 	jmp	$LN636@getPipelin
@@ -36553,7 +36554,7 @@ $LN476@getPipelin:
 	push	eax
 	lea	eax, DWORD PTR _wszDesc$[ebp]
 	push	eax
-	push	OFFSET $SG324073
+	push	OFFSET $SG324143
 	push	eax
 	call	__swprintf
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -36668,7 +36669,7 @@ $LN13@getPipelin:
 
 	lea	eax, DWORD PTR _wszDesc$[ebp]
 	push	eax
-	push	OFFSET $SG324078
+	push	OFFSET $SG324148
 	push	eax
 	call	__swprintf
 	add	esp, 12					; 0000000cH
@@ -36705,7 +36706,7 @@ $LN555@getPipelin:
 	push	eax
 	lea	eax, DWORD PTR _wszDesc$[ebp]
 	push	eax
-	push	OFFSET $SG324077
+	push	OFFSET $SG324147
 	push	eax
 	call	__swprintf
 ; File c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\xstring
@@ -36868,7 +36869,7 @@ _TEXT	SEGMENT
 
 ; 264  :   return SK_ShutdownCore (L"OpenGL32");
 
-	push	OFFSET $SG317559
+	push	OFFSET $SG317629
 	call	?SK_ShutdownCore@@YG_NPB_W@Z		; SK_ShutdownCore
 
 ; 265  : }
@@ -36884,7 +36885,7 @@ _TEXT	SEGMENT
 ; 258  :   return SK_StartupCore (L"OpenGL32", opengl_init_callback);
 
 	push	OFFSET _opengl_init_callback@4
-	push	OFFSET $SG317555
+	push	OFFSET $SG317625
 	call	?SK_StartupCore@@YG_NPB_WPAX@Z		; SK_StartupCore
 
 ; 259  : }

@@ -2451,13 +2451,11 @@ SK_ImGui_ControlPanel (void)
         if (ImGui::CollapsingHeader (u8"OKAMI HD / 大神 絶景版", ImGuiTreeNodeFlags_DefaultOpen))
         {
           bool motion_blur, bloom,
-               smoke,       grain,
-               HUD;
+               smoke,       HUD;
 
           motion_blur = (! SK_D3D11_Shaders.pixel.blacklist.count  (0x06ef081f));
           bloom       = (! SK_D3D11_Shaders.pixel.blacklist.count  (0x939da69c));
           smoke       = (! SK_D3D11_Shaders.vertex.blacklist.count (0xbe4b62c2));
-          grain       = (! SK_D3D11_Shaders.pixel.blacklist.count  (0x37bda3e5));
 
           HUD         = (SK_D3D11_Shaders.pixel.blacklist_if_texture [0xec31f12f].empty ());
 
@@ -2494,11 +2492,36 @@ SK_ImGui_ControlPanel (void)
             SK_GetCommandProcessor ()->ProcessCommandLine ("D3D11.ShaderMods.Toggle Pixel c75b0341 Disable");
           }
 
-          if (ImGui::Checkbox ("Grain", &grain))
-          {
-            changed = true;
+          extern bool SK_Okami_use_grain;
 
-            SK_GetCommandProcessor ()->ProcessCommandLine ("D3D11.ShaderMods.Toggle Pixel 37bda3e5 Disable");
+          if (ImGui::Checkbox ("Grain", &SK_Okami_use_grain))
+          {
+            void
+            WINAPI
+            SK_D3D11_AddTexHash ( const wchar_t* name, uint32_t top_crc32, uint32_t hash );
+
+            void
+            WINAPI
+            SK_D3D11_RemoveTexHash (uint32_t top_crc32, uint32_t hash);
+
+            if (SK_Okami_use_grain)
+            {
+              SK_D3D11_RemoveTexHash (              0xced133fb, 0x00);
+              SK_D3D11_AddTexHash    (L"grain.dds", 0xced133fb, 0x00);
+            }
+
+            else
+            {
+              SK_D3D11_RemoveTexHash (                 0xced133fb, 0x00);
+              SK_D3D11_AddTexHash    (L"no_grain.dds", 0xced133fb, 0x00);
+            }
+
+            extern int
+            SK_D3D11_ReloadAllTextures (void);
+            SK_D3D11_ReloadAllTextures ();
+
+            extern void SK_Okami_SaveConfig (void);
+            SK_Okami_SaveConfig ();
           }
 
           ImGui::EndGroup ();
@@ -2510,6 +2533,8 @@ SK_ImGui_ControlPanel (void)
 
             SK_GetCommandProcessor ()->ProcessCommandLine ("D3D11.ShaderMods.ToggleConfig d3d11_shaders-nohud.ini");
           }
+
+          //ImGui::InputInt2 ("Forced Internal Resolution", )
 
           if (changed)
           {
@@ -5751,7 +5776,10 @@ extern float SK_ImGui_PulseNav_Strength;
       ImGui::Columns(1, nullptr, false);
 
       // If fetching stats and online...
-      if ((! SK_SteamAPI_FriendStatsFinished ()) && SK_SteamAPI_GetNumPlayers () > 1)
+      if ( (! SK_SteamAPI_FriendStatsFinished  ())        &&
+              SK_SteamAPI_GetNumPlayers        ()  > 1    && 
+              SK_SteamAPI_FriendStatPercentage () != 0.0f && 
+              config.steam.achievements.pull_friend_stats )
       {
         float ratio   = SK_SteamAPI_FriendStatPercentage ();
         int   friends = SK_SteamAPI_GetNumFriends        ();

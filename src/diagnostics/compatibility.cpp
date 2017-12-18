@@ -86,6 +86,10 @@ void __stdcall SK_UnhookLoadLibrary         (void);
 bool SK_LoadLibrary_SILENCE = false;
 
 
+extern const wchar_t* __stdcall SK_GetBackend (void);
+extern const wchar_t* __stdcall SK_SetBackend (const wchar_t* wszBackend);
+
+
 
 #ifdef _WIN64
 #define SK_STEAM_BIT_WSTRING L"64"
@@ -172,54 +176,6 @@ BlacklistLibrary (const _T* lpFileName)
     (LoadLibrary_pfn)
       constexpr LPCVOID ( std::type_index (typeid (_T)) == std::type_index (typeid (wchar_t)) ? (LoadLibrary_pfn) &LoadLibraryW_Detour : 
                                                                                                 (LoadLibrary_pfn) &LoadLibraryA_Detour );
-
-#if 1
-#ifdef _WIN64
-  if (StrStrI (lpFileName, SK_TEXT("action_x64")))
-  {
-    WaitForInit ();
-  
-    while (SK_GetFramesDrawn () < 2) SleepEx (75, FALSE);
-  }
-#else
-  if (StrStrI (lpFileName, SK_TEXT("action_x86")))
-  {
-    WaitForInit ();
-  
-    while (SK_GetFramesDrawn () < 2) SleepEx (75, FALSE);
-  }
-#endif
-  //else if (StrStrI (lpFileName, SK_TEXT("rxcore")) || StrStrI (lpFileName, SK_TEXT("nvinject")) || StrStrI (lpFileName, SK_TEXT("detoured")) || StrStrI (lpFileName, SK_TEXT("rxinput")))
-  //{
-  //  if (SK_GetFramesDrawn () < 2)
-  //  {
-  //    CreateThread (nullptr, 0, [](LPVOID user) -> DWORD {
-  //      WaitForInit ();
-  //      
-  //      while (SK_GetFramesDrawn () < 2) SleepEx (133, FALSE);
-  //  
-  //      LoadLibrary (user);
-  //  
-  //      free (user);
-  //  
-  //      CloseHandle (GetCurrentThread ());
-  //  
-  //      return 0;
-  //    }, (LPVOID)_wcsdup ((const wchar_t *)lpFileName), 0x00, nullptr);
-  //  
-  //    return FALSE;
-  //  }
-  //}
-
-  else
-#endif
-  if (StrStrI (lpFileName, SK_TEXT ("RTSSHooks")))
-  {
-    WaitForInit ();
-  
-    while (SK_GetFramesDrawn () < 2) SleepEx (75, FALSE);
-  }
-
 
   //
   // TODO: This option is practically obsolete, Raptr is very compatible these days...
@@ -1183,10 +1139,11 @@ static bool loaded_dxgi   = false;
 
 
 struct enum_working_set_s {
-  HMODULE     modules [1024] = {     };
-  int         count          =   0;
-  iSK_Logger* logger         = nullptr;
-  HANDLE      proc           = INVALID_HANDLE_VALUE;
+  HMODULE       modules [1024] = {     };
+  int           count          =   0;
+  iSK_Logger*   logger         = nullptr;
+  HANDLE        proc           = INVALID_HANDLE_VALUE;
+  SK_ModuleEnum when           = SK_ModuleEnum::Checkpoint;
 };
 
 
@@ -1534,66 +1491,102 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
                           FALSE,
                             dwProcID );
 
-  auto CleanupLog = [](iSK_Logger*& pLogger) ->
-  void
-  {
-    if (pLogger != nullptr)
-    {
-      pLogger->close ();
-      delete pLogger;
-      pLogger = nullptr;
-    }
-  };
-
-  if (hProc == nullptr && (when != SK_ModuleEnum::PreLoad))
-  {
-    CleanupLog (pLogger);
-    return;
-  }
-
   if (pLogger != nullptr) pLogger->flush_freq = 0;
-
-  if ( when   == SK_ModuleEnum::PostLoad &&
-      pLogger != nullptr )
-  {
-    pLogger->LogEx (
-      false,
-        L"================================================================== "
-        L"(End Preloads) "
-        L"==================================================================\n\n"
-    );
-  }
 
 
   if (hProc == nullptr)
+  {
     return;
+  }
 
   if ( EnumProcessModules ( hProc,
                               hMods,
                                 sizeof (hMods),
                                   &cbNeeded) )
   {
-    enum_working_set_s working_set;
+    enum_working_set_s *working_set = new enum_working_set_s ();
 
-            working_set.proc   = hProc;
-            working_set.logger = pLogger;
-            working_set.count  = cbNeeded / sizeof HMODULE;
-    memcpy (working_set.modules, hMods, cbNeeded);
+            working_set->proc   = hProc;
+            working_set->logger = pLogger;
+            working_set->count  = cbNeeded / sizeof HMODULE;
+            working_set->when   = when;
+    memcpy (working_set->modules, hMods, cbNeeded);
 
-    // Doing a full enumeration is slow as hell, spawn a worker thread for this
-    //   and learn to deal with the fact that some symbol names will be invalid;
-    //     the crash handler will load them, but certain diagnostic readings under
-    //       normal operation will not.
-    auto* pWorkingSet =
-      static_cast <enum_working_set_s *> (&working_set);
-
-    SK_ThreadWalkModules (pWorkingSet);
-    SK_WalkModules       (cbNeeded, hProc, hMods, when);
-
-    if (when != SK_ModuleEnum::PreLoad)
+    if (when == SK_ModuleEnum::PreLoad)
     {
-      CleanupLog (pLogger);
+      SK_WalkModules (cbNeeded, hProc, hMods, when);
     }
+
+    CreateThread (nullptr, 0, [](LPVOID user) -> DWORD
+      {
+        static volatile LONG walking = 0;
+
+        while (InterlockedCompareExchange (&walking, 1, 0))
+        {
+          SleepEx (1, FALSE);
+        }
+
+        auto CleanupLog = [](iSK_Logger*& pLogger) ->
+        void
+        {
+          if (pLogger != nullptr)
+          {
+            pLogger->close ();
+            delete pLogger;
+            pLogger = nullptr;
+          }
+        };
+
+        // Doing a full enumeration is slow as hell, spawn a worker thread for this
+        //   and learn to deal with the fact that some symbol names will be invalid;
+        //     the crash handler will load them, but certain diagnostic readings under
+        //       normal operation will not.
+        auto* pWorkingSet =
+          static_cast <enum_working_set_s *> (user);
+
+        SK_ModuleEnum when = pWorkingSet->when;
+
+        if (pWorkingSet->proc == nullptr && (when != SK_ModuleEnum::PreLoad))
+        {
+          delete pWorkingSet;
+
+          InterlockedExchange (&walking, 0);
+
+          CleanupLog (pLogger);
+          CloseHandle (GetCurrentThread ());
+
+          return 0;
+        }
+
+        if ( when != SK_ModuleEnum::PreLoad )
+          SK_WalkModules     (pWorkingSet->count * sizeof (HMODULE), pWorkingSet->proc, pWorkingSet->modules, pWorkingSet->when);
+
+        SK_ThreadWalkModules (pWorkingSet);
+
+        if ( when   == SK_ModuleEnum::PreLoad &&
+            pLogger != nullptr )
+        {
+          pLogger->LogEx (
+            false,
+              L"================================================================== "
+              L"(End Preloads) "
+              L"==================================================================\n\n"
+          );
+        }
+
+        if (when != SK_ModuleEnum::PreLoad)
+        {
+          CleanupLog (pLogger);
+        }
+
+        delete pWorkingSet;
+
+        InterlockedExchange (&walking, 0);
+
+        CloseHandle (GetCurrentThread ());
+
+        return 0;
+      }, (LPVOID)working_set, 0x00, nullptr);
   }
 
   if (third_party_dlls.overlays.rtss_hooks != nullptr)
@@ -2173,8 +2166,7 @@ SK_Bypass_CRT (LPVOID user)
       return dgVoodoo_Check ();
     };
 
-         const bool       has_dgvoodoo = dgVoodoo_Check ();
-  extern const wchar_t* __SK_DLL_Backend;
+  const bool has_dgvoodoo = dgVoodoo_Check ();
 
   if (config.apis.last_known != SK_RenderAPI::Reserved)
   {
@@ -2182,31 +2174,31 @@ SK_Bypass_CRT (LPVOID user)
     {
       case SK_RenderAPI::D3D8:
       case SK_RenderAPI::D3D8On11:
-        __SK_DLL_Backend = L"d3d8";
+        SK_SetBackend (L"d3d8");
         SK_SetDLLRole (DLL_ROLE::D3D8);
         break;
       case SK_RenderAPI::DDraw:
       case SK_RenderAPI::DDrawOn11:
-        __SK_DLL_Backend = L"ddraw";
+        SK_SetBackend (L"ddraw");
         SK_SetDLLRole (DLL_ROLE::DDraw);
         break;
       case SK_RenderAPI::D3D10:
       case SK_RenderAPI::D3D11:
       case SK_RenderAPI::D3D12:
-        __SK_DLL_Backend = L"dxgi";
+        SK_SetBackend (L"dxgi");
         SK_SetDLLRole (DLL_ROLE::DXGI);
         break;
       case SK_RenderAPI::D3D9:
       case SK_RenderAPI::D3D9Ex:
-        __SK_DLL_Backend = L"d3d9";
+        SK_SetBackend (L"d3d9");
         SK_SetDLLRole (DLL_ROLE::D3D9);
         break;
       case SK_RenderAPI::OpenGL:
-        __SK_DLL_Backend = L"OpenGL32";
+        SK_SetBackend (L"OpenGL32");
         SK_SetDLLRole (DLL_ROLE::OpenGL);
         break;
       case SK_RenderAPI::Vulkan:
-        __SK_DLL_Backend = L"vulkan-1";
+        SK_SetBackend (L"vulkan-1");
         SK_SetDLLRole (DLL_ROLE::Vulkan);
         break;
     }
@@ -2214,7 +2206,7 @@ SK_Bypass_CRT (LPVOID user)
 
   static wchar_t wszAPIName [128] = { L"Auto-Detect   " };
        lstrcatW (wszAPIName, L"(");
-       lstrcatW (wszAPIName, __SK_DLL_Backend);
+       lstrcatW (wszAPIName, SK_GetBackend ());
        lstrcatW (wszAPIName, L")");
 
   if (no_imports && config.apis.last_known == SK_RenderAPI::Reserved)
@@ -2317,8 +2309,7 @@ SK_Bypass_CRT (LPVOID user)
 
   else
   {
-    extern const wchar_t* __SK_DLL_Backend;
-          wszConfigName = __SK_DLL_Backend;
+    wszConfigName = SK_GetBackend ();
   }
 
 
@@ -2345,7 +2336,7 @@ SK_Bypass_CRT (LPVOID user)
   {
     if (nRadioPressed == 0)
     {
-      if (! _wcsicmp (__SK_DLL_Backend, L"dxgi"))
+      if (! _wcsicmp (SK_GetBackend (), L"dxgi"))
       {
         config.apis.dxgi.d3d11.hook = true;
 #ifdef _WIN64
@@ -2353,25 +2344,25 @@ SK_Bypass_CRT (LPVOID user)
 #endif
       }
 
-      else if (! _wcsicmp (__SK_DLL_Backend, L"d3d9"))
+      else if (! _wcsicmp (SK_GetBackend (), L"d3d9"))
       {
         config.apis.d3d9.hook   = true;
         config.apis.d3d9ex.hook = true;
       }
 
-      else if (! _wcsicmp (__SK_DLL_Backend, L"OpenGL32"))
+      else if (! _wcsicmp (SK_GetBackend (), L"OpenGL32"))
       {
         config.apis.OpenGL.hook = true;
       }
 
 #ifndef _WIN64
-      else if (! _wcsicmp (__SK_DLL_Backend, L"d3d8"))
+      else if (! _wcsicmp (SK_GetBackend (), L"d3d8"))
       {
         config.apis.d3d8.hook       = true;
         config.apis.dxgi.d3d11.hook = true;
       }
 
-      else if (! _wcsicmp (__SK_DLL_Backend, L"ddraw"))
+      else if (! _wcsicmp (SK_GetBackend (), L"ddraw"))
       {
         config.apis.ddraw.hook      = true;
         config.apis.dxgi.d3d11.hook = true;
@@ -2663,7 +2654,7 @@ SK_Bypass_CRT (LPVOID user)
       MessageBoxA   ( HWND_DESKTOP,
                         SK_FormatString ( "API detection may be incorrect, delete '%ws.dll' "
                                           "manually if Special K does not inject "
-                                          "itself.", __SK_DLL_Backend ).c_str (),
+                                          "itself.", SK_GetBackend () ).c_str (),
                           "Possible API Detection Problems",
                             MB_ICONINFORMATION | MB_OK
                     );

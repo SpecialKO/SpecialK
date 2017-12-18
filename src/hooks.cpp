@@ -23,6 +23,7 @@
 
 #include <SpecialK/hooks.h>
 #include <SpecialK/log.h>
+#include <SpecialK/utility.h>
 #include <SpecialK/diagnostics/compatibility.h>
 
 #include <vector>
@@ -161,6 +162,120 @@ SK_CreateFuncHookEx ( const wchar_t *pwszFuncName,
   return status;
 }
 
+typedef struct _MODULEINFO {
+  LPVOID lpBaseOfDll;
+  DWORD  SizeOfImage;
+  LPVOID EntryPoint;
+} MODULEINFO, *LPMODULEINFO;
+
+typedef BOOL (WINAPI *K32GetModuleInformation_pfn)(HANDLE, HMODULE, LPMODULEINFO, DWORD);
+
+static K32GetModuleInformation_pfn K32GetModuleInformation =
+  reinterpret_cast <K32GetModuleInformation_pfn> (
+    GetProcAddress ( GetModuleHandle (L"Kernel32.dll"),
+                                       "K32GetModuleInformation" )
+  );
+
+#include <concurrent_unordered_map.h>
+
+concurrency::concurrent_unordered_map <HMODULE, MODULEINFO> SK_KnownModules;
+
+bool
+__stdcall
+SK_ValidateHookAddress ( const wchar_t *wszModuleName,
+                         const wchar_t *wszHookName,
+                               HMODULE  hModule,
+                               void    *pHookAddr )
+{
+  return true;
+
+
+  MODULEINFO mod_info = { };
+  bool       known    = false;
+
+
+  if (SK_KnownModules.count (hModule))
+  {
+    mod_info = SK_KnownModules [hModule];
+    known    = true;
+  }
+
+  else
+  {
+    known =
+      K32GetModuleInformation ( GetCurrentProcess (), hModule,
+                                         &mod_info, sizeof MODULEINFO );
+
+    if (known)
+      SK_KnownModules [hModule] = mod_info;
+  }
+
+
+  if (known)
+  {
+    uintptr_t hook_addr  =
+      reinterpret_cast <uintptr_t> (
+                           pHookAddr
+    );
+    uintptr_t base_addr =
+      reinterpret_cast <uintptr_t> (
+                           mod_info.lpBaseOfDll
+    );
+    uintptr_t end_addr   =
+              base_addr  + mod_info.SizeOfImage;
+
+
+    if ( hook_addr < base_addr || hook_addr > end_addr )
+    {
+      dll_log.Log ( L"[HookEngine] Function address for '%s' points to module '%s'; expected '%s'",
+                    wszHookName, SK_GetModuleFullName ((HMODULE)hook_addr).c_str (),
+                                 wszModuleName );
+      return false;
+    }
+  }
+
+  else
+    return false;
+
+  return true;
+}
+
+bool
+__stdcall
+SK_ValidateVFTableAddress ( const wchar_t *wszHookName,
+                                  void    *pVFTable,
+                                  void    *pVFAddr )
+{
+  return true;
+
+
+  HMODULE hModVFTable = nullptr;
+  HMODULE hModVFAddr  = nullptr;
+
+  GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+                       GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+                         (LPCWSTR)pVFTable,
+                           &hModVFTable );
+
+  GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+                       GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+                         (LPCWSTR)pVFAddr,
+                           &hModVFAddr );
+
+  if (hModVFTable != hModVFAddr)
+  {
+    dll_log.Log ( L"[HookEngine] VFTable Entry for '%s' found in '%s'; expected '%s'",
+                  wszHookName,
+                    SK_GetModuleFullName   (hModVFAddr).c_str  (),
+                      SK_GetModuleFullName (hModVFTable).c_str ()
+                );
+
+    return false;
+  }
+
+  return true;
+}
+
 MH_STATUS
 __stdcall
 SK_CreateDLLHook ( const wchar_t  *pwszModule, const char  *pszProcName,
@@ -245,10 +360,25 @@ SK_CreateDLLHook ( const wchar_t  *pwszModule, const char  *pszProcName,
     if (ppFuncAddr != nullptr)
       *ppFuncAddr = nullptr;
   }
-  else if (ppFuncAddr != nullptr)
-    *ppFuncAddr = pFuncAddr;
+
   else
-    SK_EnableHook (pFuncAddr);
+  {
+    HMODULE hModTest = nullptr;
+
+    GetModuleHandleExW (GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, pwszModule, &hModTest);
+
+    SK_ValidateHookAddress (
+           pwszModule,
+             SK_UTF8ToWideChar  ((uintptr_t)pszProcName > 65536 ? pszProcName : "Ordinal").c_str (),
+               hModTest,
+                 pFuncAddr
+         );
+
+    if (ppFuncAddr != nullptr)
+      *ppFuncAddr = pFuncAddr;
+    else
+      SK_EnableHook (pFuncAddr);
+  }
 
   return status;
 }
@@ -263,7 +393,7 @@ SK_CreateDLLHook2 ( const wchar_t  *pwszModule, const char  *pszProcName,
 
   if (! GetModuleHandleExW (GET_MODULE_HANDLE_EX_FLAG_PIN, pwszModule, &hMod))
   {
-    // In the future, establish queueing capabilities, for now, just pull the DLL in.
+    // In the future, establish queuing capabilities, for now, just pull the DLL in.
     //
     //  >> Pass the library load through the original (now hooked) function so that
     //       anything else that hooks this DLL on-load does not miss its initial load.
@@ -336,7 +466,19 @@ SK_CreateDLLHook2 ( const wchar_t  *pwszModule, const char  *pszProcName,
       *ppFuncAddr = nullptr;
   }
 
-  else {
+  else
+  {
+    HMODULE hModTest = nullptr;
+
+    GetModuleHandleExW (GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, pwszModule, &hModTest);
+
+    SK_ValidateHookAddress (
+           pwszModule,
+             SK_UTF8ToWideChar  ((uintptr_t)pszProcName > 65536 ? pszProcName : "Ordinal").c_str (),
+               hModTest,
+                 pFuncAddr
+         );
+
     if (ppFuncAddr != nullptr)
       *ppFuncAddr = pFuncAddr;
 
@@ -419,6 +561,13 @@ SK_CreateDLLHook3 ( const wchar_t  *pwszModule, const char  *pszProcName,
 
   else
   {
+    SK_ValidateHookAddress (
+           pwszModule,
+             SK_UTF8ToWideChar  ((uintptr_t)pszProcName > 65536 ? pszProcName : "Ordinal").c_str (),
+               GetModuleHandleW (pwszModule),
+                 pFuncAddr
+         );
+
     if (ppFuncAddr != nullptr)
       *ppFuncAddr = pFuncAddr;
 
@@ -444,14 +593,20 @@ SK_CreateVFTableHook ( const wchar_t  *pwszFuncName,
             ppOriginal );
 
   if (ret == MH_OK)
-    ret = SK_EnableHook (ppVFTable [dwOffset]);
+  {
+    SK_ValidateVFTableAddress (pwszFuncName, *ppVFTable, ppVFTable [dwOffset]);
 
-  else
+    ret = SK_EnableHook (ppVFTable [dwOffset]);
+  }
+
+  if (ret != MH_OK)
+  {
     dll_log.Log ( L"[ Min Hook ] Failed to Install Hook for '%s' "
                   L"[VFTable Index: %lu]!  (Status: \"%hs\")",
                     pwszFuncName,
                       dwOffset,
                         MH_StatusToString (ret) );
+  }
 
   return ret;
 }
@@ -474,7 +629,21 @@ SK_CreateVFTableHookEx ( const wchar_t  *pwszFuncName,
               idx );
 
   if (ret == MH_OK)
-    ret = SK_EnableHookEx (ppVFTable [dwOffset], idx);
+  {
+    SK_ValidateVFTableAddress (pwszFuncName, *ppVFTable, ppVFTable [dwOffset]);
+
+    ret =
+      SK_EnableHookEx (ppVFTable [dwOffset], idx);
+  }
+
+  if (ret != MH_OK)
+  {
+    dll_log.Log ( L"[ Min Hook ] Failed to Install Hook for '%s' "
+                  L"[VFTable Index: %lu]!  (Status: \"%hs\")",
+                    pwszFuncName,
+                      dwOffset,
+                        MH_StatusToString (ret) );
+  }
 
   return ret;
 }
@@ -495,15 +664,21 @@ SK_CreateVFTableHook2 ( const wchar_t  *pwszFuncName,
             ppOriginal );
 
   if (ret == MH_OK)
-    ret = MH_QueueEnableHook (ppVFTable [dwOffset]);
+  {
+    SK_ValidateVFTableAddress (pwszFuncName, *ppVFTable, ppVFTable [dwOffset]);
 
-  else
+    ret =
+      MH_QueueEnableHook (ppVFTable [dwOffset]);
+  }
+
+  if (ret != MH_OK)
+  {
     dll_log.Log ( L"[ Min Hook ] Failed to Install Hook for '%s' "
                   L"[VFTable Index: %lu]!  (Status: \"%hs\")",
                     pwszFuncName,
                       dwOffset,
                         MH_StatusToString (ret) );
-
+  }
 
   return ret;
 }

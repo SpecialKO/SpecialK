@@ -545,9 +545,71 @@ IUnknown_AddRef (IUnknown* This)
   return IUnknown_AddRef_Original (This);
 }
 
+
+const wchar_t*
+SK_D3D11_DescribeUsage (D3D11_USAGE usage)
+{
+  switch (usage)
+  {
+    case D3D11_USAGE_DEFAULT:
+      return L"Default";
+    case D3D11_USAGE_DYNAMIC:
+      return L"Dynamic";
+    case D3D11_USAGE_IMMUTABLE:
+      return L"Immutable";
+    case D3D11_USAGE_STAGING:
+      return L"Staging";
+    default:
+      return L"UNKNOWN";
+  }
+}
+
+std::wstring
+SK_D3D11_DescribeBindFlags (D3D11_BIND_FLAG flags)
+{
+  std::wstring out = L"";
+
+  if (flags & D3D11_BIND_CONSTANT_BUFFER)
+    out += L"Constant Buffer  ";
+
+  if (flags & D3D11_BIND_DECODER)
+    out += L"Video Decoder  ";
+
+  if (flags & D3D11_BIND_DEPTH_STENCIL)
+    out += L"Depth/Stencil  ";
+
+  if (flags & D3D11_BIND_INDEX_BUFFER)
+    out += L"Index Buffer  ";
+
+  if (flags & D3D11_BIND_RENDER_TARGET)
+    out += L"Render Target  ";
+
+  if (flags & D3D11_BIND_SHADER_RESOURCE)
+    out += L"Shader Resource  ";
+
+  if (flags & D3D11_BIND_STREAM_OUTPUT)
+    out += L"Stream Output  ";
+
+  if (flags & D3D11_BIND_UNORDERED_ACCESS)
+    out += L"Unordered Access  ";
+
+  if (flags & D3D11_BIND_VERTEX_BUFFER)
+    out += L"Vertex Buffer  ";
+
+  if (flags & D3D11_BIND_VIDEO_ENCODER)
+    out += L"Video Encoder  ";
+
+  return out;
+}
+
+
 void
 WINAPI
 SK_D3D11_AddInjectable (uint32_t top_crc32, uint32_t checksum);
+
+void
+__stdcall
+SK_D3D11_RemoveInjectable (uint32_t top_crc32, uint32_t checksum);
 
 void
 WINAPI
@@ -635,6 +697,11 @@ SK_D3D11_RemoveUndesirableFlags (UINT& Flags)
 #include <SpecialK/import.h>
 
 volatile LONG __dxgi_plugins_loaded = FALSE;
+
+struct sk_hook_d3d11_t {
+ ID3D11Device**        ppDevice;
+ ID3D11DeviceContext** ppImmediateContext;
+} extern d3d11_hook_ctx;
 
 __declspec (noinline)
 HRESULT
@@ -769,19 +836,29 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
   HRESULT res;
 
 
+  wchar_t wszClass [MAX_PATH * 2] = { };
+
+  if (swap_chain_desc != nullptr)
+    GetClassNameW (swap_chain_desc->OutputWindow, wszClass, MAX_PATH);
+
+  bool dummy_window = 
+    StrStrIW (wszClass, L"Special K Dummy Window Class") ||
+    StrStrIW (wszClass, L"RTSSWndClass");
+
+
+  if (swap_chain_desc != nullptr)
+    dll_log.Log (L"[   DXGI   ]  * Swapchain created for window class: '%ws'", wszClass);
+
+
   extern volatile LONG  __dxgi_ready;
   static volatile LONG  __done_once = FALSE;
-  if ((! ReadAcquire (&__dxgi_ready)) && (! InterlockedCompareExchange (&__done_once, 1, 0)))
+  if ( (! ReadAcquire (&__dxgi_ready))                     &&
+                ppSwapChain != nullptr                     &&
+       (! InterlockedCompareExchange (&__done_once, 1, 0)) &&
+       (! dummy_window) )
   {
-    if (SK_GetDLLRole () == DLL_ROLE::DXGI)
-    {
-      // Load user-defined DLLs (Plug-In)
-#ifdef _WIN64
-      SK_LoadPlugIns64 ();
-#else
-      SK_LoadPlugIns32 ();
-#endif
-    }
+    ID3D11DeviceContext* pImmediateContext;
+    IDXGISwapChain*      pSwapChain;
 
     // Go through the original function now that plug-ins are loaded,
     //   but this branch will be skipped the second time through.
@@ -794,10 +871,10 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
                                                        FeatureLevels,
                                                          SDKVersion,
                                                            swap_chain_desc,
-                                                             ppSwapChain,
+                                                             &pSwapChain,
                                                                &ret_device,
                                                                  &ret_level,
-                                                                   ppImmediateContext )
+                                                                   &pImmediateContext )
               );
 
     if (ppDevice != nullptr)
@@ -805,6 +882,128 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
 
     if (pFeatureLevel != nullptr)
       *pFeatureLevel   = ret_level;
+
+    if (ppImmediateContext != nullptr)
+       *ppImmediateContext  = pImmediateContext;
+
+    if (ppSwapChain != nullptr)
+       *ppSwapChain  = pSwapChain;
+
+    void
+    SK_DXGI_HookingHarness ( ID3D11Device**        ppDevice,
+                             ID3D11DeviceContext** ppImmediateContext,
+                             IDXGIAdapter*          pAdapter,
+                             IDXGISwapChain*        pSwapChain );
+
+    if (SUCCEEDED (res))
+    {
+                                        if (pAdapter != nullptr)
+                                            pAdapter->AddRef ();
+      CComPtr <IDXGIAdapter> pTempAdapter = pAdapter;
+      
+      if (pTempAdapter == nullptr)
+      {
+        CComPtr <IDXGIDevice>  pDevDXGI = nullptr;
+
+        if ( SUCCEEDED (ret_device->QueryInterface <IDXGIDevice> (&pDevDXGI)) )
+          pDevDXGI->GetAdapter (&pTempAdapter);
+      }
+
+      if (pSwapChain != nullptr)
+      {
+        SK_DXGI_HookingHarness (&ret_device, &pImmediateContext, pTempAdapter, pSwapChain);
+      }
+
+      else
+      {
+        dll_log.Log (L"[  D3D 11  ]  No Swap Chain to Hook!");
+      }
+    }
+
+    else
+    {
+      dll_log.Log (L"[  D3D 11  ]  Device Creation Failed, will manually hook!");
+    }
+
+#if 0
+  dll_log.Log (L"[   DXGI   ]   Installing DXGI Hooks");
+
+  d3d11_hook_ctx.ppDevice           = &ret_device;
+  d3d11_hook_ctx.ppImmediateContext = &pImmediateContext;
+
+  CComPtr <IDXGIDevice>  pDevDXGI = nullptr;
+  //CComPtr <IDXGIAdapter> pAdapter = nullptr;
+  CComPtr <IDXGIFactory> pFactory = nullptr;
+  
+  if ( ret_device != nullptr &&
+       SUCCEEDED (ret_device->QueryInterface <IDXGIDevice> (&pDevDXGI)) &&
+     //SUCCEEDED (pDevDXGI->GetAdapter                     (&pAdapter)) &&
+       SUCCEEDED (pAdapter->GetParent        (IID_PPV_ARGS (&pFactory))) )
+  {
+    CComPtr <ID3D11DeviceContext> pDevCtx = nullptr;
+
+    if (config.render.dxgi.deferred_isolation)
+    {
+      CComPtr <ID3D11Device> pDev = nullptr;
+      pImmediateContext->GetDevice (&pDev);
+
+      pDev->CreateDeferredContext (0x00,  &pDevCtx);
+      d3d11_hook_ctx.ppImmediateContext = &pDevCtx;
+    }
+
+void
+SK_DXGI_HookFactory (IDXGIFactory* pFactory);
+
+void
+SK_DXGI_HookSwapChain (IDXGISwapChain* pSwapChain);
+
+void
+SK_DXGI_HookPresentBase (IDXGISwapChain* pSwapChain, bool rehook);
+
+void
+SK_DXGI_HookPresent1 (IDXGISwapChain1* pSwapChain1, bool rehook);
+
+    HookD3D11             (&d3d11_hook_ctx);
+    SK_DXGI_HookFactory   (pFactory);
+    SK_DXGI_HookSwapChain (pSwapChain);
+
+    // This won't catch Present1 (...), but no games use that
+    //   and we can deal with it later if it happens.
+    SK_DXGI_HookPresentBase ((IDXGISwapChain *)pSwapChain, false);
+
+    CComQIPtr <IDXGISwapChain1> pSwapChain1 (pSwapChain);
+
+    if (pSwapChain1 != nullptr)
+      SK_DXGI_HookPresent1 (pSwapChain1, false);
+
+    MH_ApplyQueued  ();
+
+    if (SK_GetDLLRole () == DLL_ROLE::DXGI)
+    {
+      // Load user-defined DLLs (Plug-In)
+#ifdef _WIN64
+      SK_LoadPlugIns64 ();
+#else
+      SK_LoadPlugIns32 ();
+#endif
+    }
+    if (config.apis.dxgi.d3d11.hook) SK_D3D11_EnableHooks ();
+      
+#ifdef _WIN64
+    if (config.apis.dxgi.d3d12.hook) SK_D3D12_EnableHooks ();
+#endif
+
+    InterlockedExchange (&__dxgi_ready, TRUE);
+  }
+
+  else
+  {
+    //_com_error err (hr);
+    //
+    //dll_log.Log (L"[   DXGI   ] Unable to hook D3D11?! (0x%04x :: '%s')",
+    //                         err.WCode (), err.ErrorMessage () );
+  }
+#endif
   }
 
   else
@@ -825,10 +1024,12 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
               );
   }
 
-  if (SUCCEEDED (res))
+  if (SUCCEEDED (res) && (! dummy_window))
   {
     extern volatile LONG  __dxgi_ready;
-    if (swap_chain_desc != nullptr && ReadAcquire (&__dxgi_ready))
+    if ( swap_chain_desc != nullptr   &&
+         ReadAcquire (&__dxgi_ready)  &&
+         ReadAcquire (&__d3d11_ready) )
     {
       hWndRender = swap_chain_desc->OutputWindow;
 
@@ -848,19 +1049,21 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
 
     extern void SK_DXGI_HookSwapChain (IDXGISwapChain* pSwapChain);
 
-    if (ppSwapChain != nullptr)
+    if (ppSwapChain != nullptr && (! dummy_window))
+    {
       SK_DXGI_HookSwapChain (*ppSwapChain);
 
-    // Assume the first thing to create a D3D11 render device is
-    //   the game and that devices never migrate threads; for most games
-    //     this assumption holds.
-    if ( dwRenderThread == 0x00 ||
-         dwRenderThread == GetCurrentThreadId () )
-    {
-      dwRenderThread = GetCurrentThreadId ();
-    }
+      // Assume the first thing to create a D3D11 render device is
+      //   the game and that devices never migrate threads; for most games
+      //     this assumption holds.
+      if ( dwRenderThread == 0x00 ||
+           dwRenderThread == GetCurrentThreadId () )
+      {
+        dwRenderThread = GetCurrentThreadId ();
+      }
 
-    SK_D3D11_SetDevice ( &ret_device, ret_level );
+      SK_D3D11_SetDevice ( &ret_device, ret_level );
+    }
   }
 
   if (ppDevice != nullptr)
@@ -5929,9 +6132,11 @@ SK_D3D11_SetResourceRoot (const wchar_t* root)
   // Non-absolute path (e.g. NOT C:\...\...")
   if (! wcsstr (root, L":"))
   {
-    SK_D3D11_res_root = SK_GetRootPath ();
-    SK_D3D11_res_root += L"\\";
-    SK_D3D11_res_root += root;
+         wchar_t wszPath [MAX_PATH * 2] = { };
+    wcsncpy     (wszPath, SK_GetRootPath (), MAX_PATH);
+    PathAppendW (wszPath, root);
+
+    SK_D3D11_res_root = wszPath;
   }
 
   else
@@ -6124,10 +6329,14 @@ SK_D3D11_RemoveTexHash (uint32_t top_crc32, uint32_t hash)
   if (hash != 0x00 && SK_D3D11_IsTexHashed (top_crc32, hash))
   {
     tex_hashes_ex.erase (crc32c (top_crc32, (const uint8_t *)&hash, 4));
+
+    SK_D3D11_RemoveInjectable (top_crc32, hash);
   }
 
   else if (hash == 0x00 && SK_D3D11_IsTexHashed (top_crc32, 0x00)) {
     tex_hashes.erase (top_crc32);
+
+    SK_D3D11_RemoveInjectable (top_crc32, 0x00);
   }
 }
 
@@ -6853,6 +7062,18 @@ SK_D3D11_AddInjectable (uint32_t top_crc32, uint32_t checksum)
     injected_collisions.insert (crc32c (top_crc32, (uint8_t *)&checksum, 4));
 
   injectable_textures.insert (top_crc32);
+}
+
+void
+__stdcall
+SK_D3D11_RemoveInjectable (uint32_t top_crc32, uint32_t checksum)
+{
+  SK_AutoCriticalSection critical (&inject_cs);
+
+  if (checksum != 0x00)
+    injected_collisions.erase (crc32c (top_crc32, (uint8_t *)&checksum, 4));
+
+  injectable_textures.erase (top_crc32);
 }
 
 HRESULT
@@ -8119,6 +8340,8 @@ SK_D3DX11_SAFE_CreateTextureFromFileW ( ID3D11Device*           pDevice,   LPCWS
 }
 
 
+std::wstring
+SK_D3D11_TexNameFromChecksum (uint32_t top_crc32, uint32_t checksum, uint32_t ffx_crc32 = 0x00);
 
 HRESULT
 SK_D3D11_ReloadTexture (ID3D11Texture2D* pTex)
@@ -8135,7 +8358,13 @@ SK_D3D11_ReloadTexture (ID3D11Texture2D* pTex)
     SK_D3D11_TexMgr::tex2D_descriptor_s texDesc2D =
       SK_D3D11_Textures.Textures_2D [pTex];
 
-    std::wstring fname = texDesc2D.file_name;
+    std::wstring fname = 
+      SK_D3D11_TexNameFromChecksum (texDesc2D.crc32c, 0x00);
+
+    if (fname.empty ()) fname = texDesc2D.file_name;
+
+    else
+      texDesc2D.file_name = fname;
 
     if (GetFileAttributes (fname.c_str ()) != INVALID_FILE_ATTRIBUTES )
     {
@@ -8220,6 +8449,79 @@ SK_D3D11_ReloadAllTextures (void)
   }
 
   return count;
+}
+
+std::wstring
+SK_D3D11_TexNameFromChecksum (uint32_t top_crc32, uint32_t checksum, uint32_t ffx_crc32)
+{
+  wchar_t wszTex [MAX_PATH + 2] = { };
+  
+  wcscpy ( wszTex,
+            SK_EvalEnvironmentVars (SK_D3D11_res_root.c_str ()).c_str () );
+
+  static std::wstring  null_ref;
+         std::wstring& hash_name = null_ref;
+
+  static bool ffx = GetModuleHandle (L"unx.dll") != nullptr;
+
+  if (ffx && (! (hash_name = SK_D3D11_TexHashToName (ffx_crc32, 0x00)).empty ()))
+  {
+    SK_LOG4 ( ( L"Caching texture with crc32: %x", ffx_crc32 ),
+                L" Tex Hash " );
+
+    PathAppendW (wszTex, hash_name.c_str ());
+  }
+
+  else if (! ( (hash_name = SK_D3D11_TexHashToName (top_crc32, checksum)).empty () &&
+               (hash_name = SK_D3D11_TexHashToName (top_crc32, 0x00)    ).empty () ) )
+  {
+    SK_LOG4 ( ( L"Caching texture with crc32c: %x  (%s) [%s]", top_crc32, hash_name.c_str (), wszTex ),
+                L" Tex Hash " );
+
+    PathAppendW (wszTex, hash_name.c_str ());
+  }
+
+  else if ( SK_D3D11_inject_textures )
+  {
+    if ( /*config.textures.d3d11.precise_hash &&*/
+         SK_D3D11_IsInjectable (top_crc32, checksum) )
+    {
+      _swprintf ( wszTex,
+                    L"%s\\inject\\textures\\%08X_%08X.dds",
+                      wszTex,
+                        top_crc32, checksum );
+    }
+
+    else if ( SK_D3D11_IsInjectable (top_crc32, 0x00) )
+    {
+      SK_LOG4 ( ( L"Caching texture with crc32c: %08X", top_crc32 ),
+                  L" Tex Hash " );
+      _swprintf ( wszTex,
+                    L"%s\\inject\\textures\\%08X.dds",
+                      wszTex,
+                        top_crc32 );
+    }
+
+    else if ( ffx &&
+              SK_D3D11_IsInjectable_FFX (ffx_crc32) )
+    {
+      SK_LOG4 ( ( L"Caching texture with crc32: %08X", ffx_crc32 ),
+                  L" Tex Hash " );
+      _swprintf ( wszTex,
+                    L"%s\\inject\\textures\\Unx_Old\\%08X.dds",
+                      wszTex,
+                        ffx_crc32 );
+    }
+
+    else *wszTex = L'\0';
+  }
+
+  // Not a hashed texture, not an injectable texture, skip it...
+  else *wszTex = L'\0';
+
+  SK_FixSlashesW (wszTex);
+
+  return wszTex;
 }
 
 __forceinline
@@ -8433,72 +8735,10 @@ D3D11Dev_CreateTexture2D_Impl (
   {
     if (D3DX11CreateTextureFromFileW != nullptr && SK_D3D11_res_root.length ())
     {
-      wchar_t wszTex [MAX_PATH + 2] = { };
-      
-      wcscpy ( wszTex,
-                SK_EvalEnvironmentVars (SK_D3D11_res_root.c_str ()).c_str () );
-
-      static std::wstring  null_ref;
-             std::wstring& hash_name = null_ref;
-
-      static bool ffx = GetModuleHandle (L"unx.dll") != nullptr;
-
-      if (ffx && (! (hash_name = SK_D3D11_TexHashToName (ffx_crc32, 0x00)).empty ()))
-      {
-        SK_LOG4 ( ( L"Caching texture with crc32: %x", ffx_crc32 ),
-                    L" Tex Hash " );
-
-        PathCombineW (wszTex, wszTex, hash_name.c_str ());
-      }
-
-      else if (! ( (hash_name = SK_D3D11_TexHashToName (top_crc32, checksum)).empty () &&
-                   (hash_name = SK_D3D11_TexHashToName (top_crc32, 0x00)    ).empty () ) )
-      {
-        SK_LOG4 ( ( L"Caching texture with crc32c: %x  (%s)", top_crc32, hash_name.c_str () ),
-                    L" Tex Hash " );
-
-        PathCombineW (wszTex, wszTex, hash_name.c_str ());
-      }
-
-      else if ( SK_D3D11_inject_textures )
-      {
-        if ( /*config.textures.d3d11.precise_hash &&*/
-             SK_D3D11_IsInjectable (top_crc32, checksum) )
-        {
-          _swprintf ( wszTex,
-                        L"%s\\inject\\textures\\%08X_%08X.dds",
-                          wszTex,
-                            top_crc32, checksum );
-        }
-
-        else if ( SK_D3D11_IsInjectable (top_crc32, 0x00) )
-        {
-          SK_LOG4 ( ( L"Caching texture with crc32c: %08X", top_crc32 ),
-                      L" Tex Hash " );
-          _swprintf ( wszTex,
-                        L"%s\\inject\\textures\\%08X.dds",
-                          wszTex,
-                            top_crc32 );
-        }
-
-        else if ( ffx &&
-                  SK_D3D11_IsInjectable_FFX (ffx_crc32) )
-        {
-          SK_LOG4 ( ( L"Caching texture with crc32: %08X", ffx_crc32 ),
-                      L" Tex Hash " );
-          _swprintf ( wszTex,
-                        L"%s\\inject\\textures\\Unx_Old\\%08X.dds",
-                          wszTex,
-                            ffx_crc32 );
-        }
-
-        else *wszTex = L'\0';
-      }
-
-      // Not a hashed texture, not an injectable texture, skip it...
-      else *wszTex = L'\0';
-
-      SK_FixSlashesW (wszTex);
+      wchar_t   wszTex [MAX_PATH * 2] = { };
+      wcsncpy ( wszTex,
+                  SK_D3D11_TexNameFromChecksum (top_crc32, checksum).c_str (),
+                    MAX_PATH );
 
       if (                   *wszTex  != L'\0' &&
            GetFileAttributes (wszTex) != INVALID_FILE_ATTRIBUTES )
@@ -9270,6 +9510,12 @@ SK_D3D11_InitTextures (void)
             GetProcAddress (hModD3DX11_43, "D3DX11FilterTexture");
       }
     }
+
+    if (SK_GetCurrentGameID () == SK_GAME_ID::Okami)
+    {
+      extern void  SK_Okami_LoadConfig (void);
+      SK_Okami_LoadConfig ();
+    }
   }
 }
 
@@ -9357,11 +9603,6 @@ extern
 unsigned int __stdcall HookD3D12                   (LPVOID user);
 
 volatile ULONG __d3d11_hooked = FALSE;
-
-struct sk_hook_d3d11_t {
- ID3D11Device**        ppDevice;
- ID3D11DeviceContext** ppImmediateContext;
-};
 
 unsigned int
 __stdcall
@@ -13694,6 +13935,43 @@ SK_D3D11_ShaderModDlg (void)
                                                  ImVec2  (0,0),             ImVec2  (1,1),
                                                  ImColor (255,255,255,255), ImColor (255,255,255,128)
                                            );
+
+#if 0
+                  if (ImGui::IsItemHovered ())
+                  {
+                    ImGui::BeginTooltip ();
+                    ImGui::BeginGroup   ();
+                    ImGui::TextUnformatted ("Mip Levels:   ");
+                    if (desc.SampleDesc.Count > 1)
+                    {
+                      ImGui::TextUnformatted ("Sample Count: ");
+                      ImGui::TextUnformatted ("MSAA Quality: ");
+                    }
+                    ImGui::TextUnformatted ("Usage:        ");
+                    ImGui::TextUnformatted ("Bind Flags:   ");
+                    ImGui::TextUnformatted ("CPU Access:   ");
+                    ImGui::TextUnformatted ("Misc Flags:   ");
+                    ImGui::EndGroup     ();
+
+                    ImGui::SameLine     ();
+
+                    ImGui::BeginGroup   ();
+                    ImGui::Text ("%u", desc.MipLevels);
+                    if (desc.SampleDesc.Count > 1)
+                    {
+                      ImGui::Text ("%u", desc.SampleDesc.Count);
+                      ImGui::Text ("%u", desc.SampleDesc.Quality);
+                    }
+                    ImGui::Text (      "%ws", SK_D3D11_DescribeUsage (desc.Usage));
+                    ImGui::Text ("%u (  %ws)", desc.BindFlags,
+                                            SK_D3D11_DescribeBindFlags (
+                      (D3D11_BIND_FLAG)desc.BindFlags).c_str ());
+                    ImGui::Text ("%x", desc.CPUAccessFlags);
+                    ImGui::Text ("%x", desc.MiscFlags);
+                    ImGui::EndGroup   ();
+                    ImGui::EndTooltip ();
+                  }
+#endif
 
                   ImGui::EndChildFrame     (    );
                   ImGui::PopStyleColor     (    );

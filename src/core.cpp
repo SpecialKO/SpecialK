@@ -105,7 +105,6 @@ volatile HANDLE  hInitThread   = { INVALID_HANDLE_VALUE };
 NV_GET_CURRENT_SLI_STATE sli_state;
 BOOL                     nvapi_init       = FALSE;
 HMODULE                  backend_dll      = nullptr;
-const wchar_t*           __SK_DLL_Backend = L"INVALID";
 
 // LOL -- This tests for RunDLL32 / SKIM
 bool
@@ -114,8 +113,8 @@ SK_IsSuperSpecialK (void);
 
 
 struct init_params_t {
-  const wchar_t* backend  = L"INVALID";
-  void*          callback =    nullptr;
+  std::wstring backend  = L"INVALID";
+  void*        callback =    nullptr;
 } init_;
 
 
@@ -131,6 +130,14 @@ __stdcall
 SK_GetBackend (void)
 {
   return SK_Backend;
+}
+
+__declspec (noinline)
+const wchar_t*
+__stdcall
+SK_SetBackend (const wchar_t* wszBackend)
+{
+  return wcsncpy (SK_Backend, wszBackend, 127);
 }
 
 __declspec (noinline)
@@ -782,11 +789,11 @@ volatile LONG __SK_Init                 = FALSE;
 
 void
 __stdcall
-SK_InitCore (const wchar_t* backend, void* callback)
+SK_InitCore (std::wstring backend, void* callback)
 {
   init_mutex->lock ();
 
-  wcscpy (SK_Backend, backend);
+  wcscpy (SK_Backend, backend.c_str ());
 
   using finish_pfn   = void (WINAPI *)  (void);
   using callback_pfn = void (WINAPI *)(_Releases_exclusive_lock_ (init_mutex) finish_pfn);
@@ -1036,6 +1043,7 @@ WaitForInit (void)
     if (ReadPointerAcquire ((LPVOID *)&hInitThread) != GetCurrentThread () &&
         ReadPointerAcquire ((LPVOID *)&hInitThread) != INVALID_HANDLE_VALUE)
     {
+      SK_Input_Init       ();
       SK_ApplyQueuedHooks ();
 
       CloseHandle (
@@ -1070,9 +1078,6 @@ SK_InitFinishCallback (void)
     init_mutex->unlock ();
     return;
   }
-
-  SK_Input_Init       ();
-  SK_ApplyQueuedHooks ();
 
   SK_DeleteTemporaryFiles ();
   SK_DeleteTemporaryFiles (L"Version", L"*.old");
@@ -1132,7 +1137,7 @@ SK_InitFinishCallback (void)
   }
 
   const wchar_t* config_name =
-    init_.backend;
+    SK_Backend;
 
   // Use a generic "SpecialK" name instead of the primary wrapped/hooked API name
   //   for this DLL when it is injected at run-time rather than a proxy DLL.
@@ -1167,10 +1172,9 @@ SK_InitFinishCallback (void)
   }
 
   SK_StartPerfMonThreads ();
+  SK_ResumeThreads       (init_tids);
 
   init_mutex->unlock ();
-
-  SK_ResumeThreads    (init_tids);
 }
 
 DWORD
@@ -1260,8 +1264,7 @@ void
 __stdcall
 SK_EstablishRootPath (void)
 {
-  wchar_t wszConfigPath [MAX_PATH + 1] = { };
-          wszConfigPath [  MAX_PATH  ] = { };
+  wchar_t wszConfigPath [MAX_PATH * 2] = { };
 
   // Store config profiles in a centralized location rather than relative to the game's executable
   //
@@ -1271,9 +1274,9 @@ SK_EstablishRootPath (void)
   {
     if (! SK_IsSuperSpecialK ())
     {
-      wcsncpy ( SK_RootPath,
-                  std::wstring ( SK_GetDocumentsDir () + L"\\My Mods\\SpecialK" ).c_str (),
-                    MAX_PATH - 1 );
+      lstrcpynW ( SK_RootPath,
+                    std::wstring ( SK_GetDocumentsDir () + L"\\My Mods\\SpecialK" ).c_str (),
+                      MAX_PATH - 1 );
     }
 
     else
@@ -1281,9 +1284,10 @@ SK_EstablishRootPath (void)
       GetCurrentDirectory (MAX_PATH, SK_RootPath);
     }
 
-    lstrcatW (wszConfigPath, SK_GetRootPath ());
-    lstrcatW (wszConfigPath, L"\\Profiles\\");
-    lstrcatW (wszConfigPath, SK_GetHostApp  ());
+
+    lstrcpynW (wszConfigPath, SK_GetRootPath (), MAX_PATH);
+    lstrcatW  (wszConfigPath, L"\\Profiles\\");
+    lstrcatW  (wszConfigPath, SK_GetHostApp  ());
   }
 
 
@@ -1293,7 +1297,7 @@ SK_EstablishRootPath (void)
   {
     if (! SK_IsSuperSpecialK ())
     {
-      lstrcatW (SK_RootPath, SK_GetHostPath ());
+      lstrcpynW (SK_RootPath, SK_GetHostPath (), MAX_PATH);
     }
 
     else
@@ -1301,7 +1305,7 @@ SK_EstablishRootPath (void)
       GetCurrentDirectory (MAX_PATH, SK_RootPath);
     }
 
-    lstrcatW (wszConfigPath, SK_GetRootPath ());
+    lstrcpynW (wszConfigPath, SK_GetRootPath (), MAX_PATH);
   }
 
 
@@ -1309,8 +1313,7 @@ SK_EstablishRootPath (void)
   lstrcatW (SK_RootPath,   L"\\");
   lstrcatW (wszConfigPath, L"\\");
 
-
-  SK_SetConfigPath     (wszConfigPath);
+  SK_SetConfigPath (wszConfigPath);
 }
 
 void
@@ -1320,14 +1323,14 @@ SK_ReenterCore  (void) // During startup, we have the option of bypassing init a
   auto* params =
     static_cast <init_params_t *> (&reentrant_core);
 
-  SK_StartupCore (params->backend, params->callback);
+  SK_StartupCore (params->backend.c_str (), params->callback);
 }
 
 bool
 __stdcall
 SK_StartupCore (const wchar_t* backend, void* callback)
 {
-  __SK_DLL_Backend = backend;
+  wcscpy (SK_Backend, backend);
 
   // Allow users to centralize all files if they want
   //
@@ -1343,7 +1346,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   SK_EstablishRootPath ();
   SK_CreateDirectories (SK_GetConfigPath ());
 
-
   if (config.system.central_repository)
   {
     // Create Symlink for end-user's convenience
@@ -1353,7 +1355,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
                            ) == INVALID_FILE_ATTRIBUTES )
     {
       std::wstring link (SK_GetHostPath ());
-      link += L"\\SpecialK\\";
+                   link += L"\\SpecialK\\";
 
       CreateSymbolicLink (
         link.c_str         (),
@@ -1367,7 +1369,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
                            ) == INVALID_FILE_ATTRIBUTES )
     {
       std::wstring link (SK_GetConfigPath ());
-      link += L"Game\\";
+                   link += L"Game\\";
 
       CreateSymbolicLink (
         link.c_str         (),
@@ -1387,6 +1389,12 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
   __SK_bypass |= skim;
 
+  init_ = {               };
+  init_.backend  = backend;
+  init_.callback = callback;
+
+  init_mutex->lock ();
+
   // Injection Compatibility Menu
   if ( (! __SK_bypass) && (GetAsyncKeyState (VK_SHIFT  ) & 0x8000) != 0 &&
                           (GetAsyncKeyState (VK_CONTROL) & 0x8000) != 0 )
@@ -1401,6 +1409,13 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
   else
   {
+    wchar_t log_fname [MAX_PATH + 2] = { };
+
+    swprintf (log_fname, L"logs/%s.log", SK_IsInjected () ? L"SpecialK" : backend);
+
+    dll_log.init (log_fname, L"w");
+    dll_log.Log  (L"%s.log created",     SK_IsInjected () ? L"SpecialK" : backend);
+
     bool blacklist =
       SK_IsInjected () &&
       (GetFileAttributesW (SK_GetBlacklistFilename ()) != INVALID_FILE_ATTRIBUTES);
@@ -1415,9 +1430,12 @@ SK_StartupCore (const wchar_t* backend, void* callback)
       return false;
     }
 
+    extern void SK_Input_PreInit          (void);
+
     // Do this from the startup thread
-    SK_HookWinAPI  ();
-    MH_ApplyQueued ();
+    SK_HookWinAPI    ();
+    SK_Input_PreInit (); // Hook only symbols in user32 and kernel32
+    MH_ApplyQueued   ();
 
     // For the global injector, when not started by SKIM, check its version
     if ( (SK_IsInjected () && (! SK_IsSuperSpecialK ())) )
@@ -1436,27 +1454,11 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   game_debug.lockless = true;
   SK::Diagnostics::Debugger::Allow ();
 
-  init_mutex->lock ();
-
-  init_          = {               };
-  init_.backend  = _wcsdup (backend);
-  init_.callback =          callback;
-
-  wchar_t log_fname [MAX_PATH + 2] = { };
-
-  swprintf (log_fname, L"logs/%s.log", SK_IsInjected () ? L"SpecialK" : backend);
-
-  dll_log.init (log_fname, L"w");
-  dll_log.Log  (L"%s.log created",     SK_IsInjected () ? L"SpecialK" : backend);
-
   if (skim)
   {
     init_mutex->unlock ();
     return TRUE;
   }
-
-  extern bool SK_Steam_LoadOverlayEarly (void);
-  extern void SK_Input_PreInit          (void);
 
   budget_log.init ( L"logs\\dxgi_budget.log", L"w" );
 
@@ -1516,90 +1518,35 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   if (config.system.handle_crashes)
     SK::Diagnostics::CrashHandler::Init ();
 
-
   SK::Diagnostics::CrashHandler::InitSyms ();
-
-
-
-  if (config.steam.preload_overlay)
-  {
-    CreateThread (nullptr, 0x00, [](LPVOID) -> DWORD {
-                                   SK_Steam_LoadOverlayEarly ();
-                                   SK_Input_Init             ();
-
-                                   CloseHandle (GetCurrentThread ());
-
-                                   return 0;
-                                 }, nullptr, 0x00, nullptr);
-  }
-
-  SK_Input_PreInit (); // Hook only symbols in user32 and kernel32
-
-
-  BOOL
-  SK_Steam_PreHookCore (void);
-
-  //if (config.steam.spoof_BLoggedOn)
-  //{
-    SK_Steam_PreHookCore ();
-  //}
 
 
   if (__SK_bypass)
     goto BACKEND_INIT;
 
 
-  if (config.compatibility.init_while_suspended)
+
+  if (! config.steam.silent)
   {
-    //
+    void SK_Steam_InitCommandConsoleVariables (void);
+         SK_Steam_InitCommandConsoleVariables ();
+
+    void SK_TestSteamImports (HMODULE hMod);
+         SK_TestSteamImports (GetModuleHandle (nullptr));
+  }
+
+  BOOL
+  SK_Steam_PreHookCore (void);
+
+  if (config.steam.spoof_BLoggedOn)
+  {
+    SK_Steam_PreHookCore ();
   }
 
 
-  // Lazy-load SteamAPI into a process that doesn't use it, this brings
-  //   a number of benefits.
-  if (config.steam.force_load_steamapi)
+  if (config.compatibility.init_while_suspended)
   {
-    static bool tried = false;
-
-    if (! tried)
-    {
-      tried = true;
-
-#ifdef _WIN64
-      static const wchar_t* wszSteamDLL = L"steam_api64.dll";
-#else
-      static const wchar_t* wszSteamDLL = L"steam_api.dll";
-#endif
-
-      if (! GetModuleHandle (wszSteamDLL))
-      {
-        wchar_t wszDLLPath [MAX_PATH * 2 + 4] = { };
-
-        if (SK_IsInjected ())
-          wcsncpy (wszDLLPath, SK_GetModuleFullName (SK_GetDLL ()).c_str (), MAX_PATH * 2);
-        else
-        {
-          _swprintf ( wszDLLPath, L"%s\\My Mods\\SpecialK\\SpecialK.dll",
-                        SK_GetDocumentsDir ().c_str () );
-        }
-
-        if (PathRemoveFileSpec (wszDLLPath))
-        {
-          PathAppendW (wszDLLPath, wszSteamDLL);
-
-          if (SK_GetFileSize (wszDLLPath) > 0)
-          {
-            HMODULE hMod = LoadLibraryW_Original (wszSteamDLL);
-
-            if (hMod)
-            {
-              dll_log.Log ( L"[DLL Loader]   Manually booted SteamAPI: '%s'",
-                              wszSteamDLL );//wszDLLPath );
-            }
-          }
-        }
-      }
-    }
+    //
   }
 
   SK_EnumLoadedModules (SK_ModuleEnum::PreLoad);
@@ -1727,24 +1674,65 @@ BACKEND_INIT:
   else
     dll_log.silent = false;
 
-  bool SK_InitWMI (void);
-    SK_InitWMI    (    );
-
-#if 0
-  auto* params =
-    static_cast <init_params_t *> (&init_);
-
-  reentrant_core = *params;
-
-  init_mutex->unlock ();
-
-  SK_InitCore (params->backend, params->callback);
-#else
-  init_mutex->unlock ();
 
   if (! __SK_bypass)
   {
     init_tids = SK_SuspendAllOtherThreads ();
+
+    // Lazy-load SteamAPI into a process that doesn't use it, this brings
+    //   a number of benefits.
+    if (config.steam.force_load_steamapi)
+    {
+      static bool tried = false;
+
+      if (! tried)
+      {
+        tried = true;
+
+#ifdef _WIN64
+        static const wchar_t* wszSteamDLL = L"steam_api64.dll";
+#else
+        static const wchar_t* wszSteamDLL = L"steam_api.dll";
+#endif
+
+        if (! GetModuleHandle (wszSteamDLL))
+        {
+          wchar_t wszDLLPath [MAX_PATH * 2 + 4] = { };
+
+          if (SK_IsInjected ())
+            wcsncpy (wszDLLPath, SK_GetModuleFullName (SK_GetDLL ()).c_str (), MAX_PATH * 2);
+          else
+          {
+            _swprintf ( wszDLLPath, L"%s\\My Mods\\SpecialK\\SpecialK.dll",
+                          SK_GetDocumentsDir ().c_str () );
+          }
+
+          if (PathRemoveFileSpec (wszDLLPath))
+          {
+            PathAppendW (wszDLLPath, wszSteamDLL);
+
+            if (SK_GetFileSize (wszDLLPath) > 0)
+            {
+              HMODULE hMod = LoadLibraryW_Original (wszSteamDLL);
+
+              if (hMod)
+              {
+                dll_log.Log ( L"[DLL Loader]   Manually booted SteamAPI: '%s'",
+                                wszSteamDLL );//wszDLLPath );
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if (config.steam.preload_overlay)
+    {
+      SK_Steam_LoadOverlayEarly ();
+    }
+
+    bool SK_InitWMI (void);
+      SK_InitWMI    (    );
 
     InterlockedExchangePointer (
       (LPVOID *)&hInitThread,
@@ -1756,7 +1744,8 @@ BACKEND_INIT:
                                  nullptr )
     ); // Avoid the temptation to wait on this thread
   }
-#endif
+
+  init_mutex->unlock ();
 
   return true;
 }

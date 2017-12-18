@@ -60,31 +60,31 @@ struct SK_XInputContext
     XInputGetState_pfn              XInputGetState_Original              = nullptr;
     LPVOID                          XInputGetState_Target                = nullptr;
 
-    uint8_t                         orig_inst      [23]                  =   {   };
+    uint8_t                         orig_inst      [7]                   =   {   };
 
     XInputGetCapabilities_pfn       XInputGetCapabilities_Detour         = nullptr;
     XInputGetCapabilities_pfn       XInputGetCapabilities_Original       = nullptr;
     LPVOID                          XInputGetCapabilities_Target         = nullptr;
 
-    uint8_t                         orig_inst_caps [23]                  =   {   };
+    uint8_t                         orig_inst_caps [7]                   =   {   };
 
     XInputGetBatteryInformation_pfn XInputGetBatteryInformation_Detour   = nullptr;
     XInputGetBatteryInformation_pfn XInputGetBatteryInformation_Original = nullptr;
     LPVOID                          XInputGetBatteryInformation_Target   = nullptr;
 
-    uint8_t                         orig_inst_batt [23]                  =   {   };
+    uint8_t                         orig_inst_batt [7]                   =   {   };
 
     XInputSetState_pfn              XInputSetState_Detour                = nullptr;
     XInputSetState_pfn              XInputSetState_Original              = nullptr;
     LPVOID                          XInputSetState_Target                = nullptr;
 
-    uint8_t                         orig_inst_set  [23]                   =   {   };
+    uint8_t                         orig_inst_set  [7]                   =   {   };
 
     XInputEnable_pfn                XInputEnable_Detour                  = nullptr;
     XInputEnable_pfn                XInputEnable_Original                = nullptr;
     LPVOID                          XInputEnable_Target                  = nullptr;
 
-    uint8_t                         orig_inst_enable [23]                =    {   };
+    uint8_t                         orig_inst_enable [7]                 =    {   };
 
     //
     // Extended stuff (XInput1_3 and XInput1_4 ONLY)
@@ -93,7 +93,7 @@ struct SK_XInputContext
     XInputGetStateEx_pfn            XInputGetStateEx_Original            = nullptr;
     LPVOID                          XInputGetStateEx_Target              = nullptr;
 
-    uint8_t                         orig_inst_ex [23]                    =   {   };
+    uint8_t                         orig_inst_ex [7]                     =   {   };
   } XInput1_3 { }, XInput1_4 { }, XInput9_1_0 { };
 
   SK_Thread_HybridSpinlock          spinlock [XUSER_MAX_COUNT]           = { SK_Thread_HybridSpinlock (9000),
@@ -898,22 +898,22 @@ SK_Input_HookXInputContext (SK_XInputContext::instance_s* pCtx)
   MH_ApplyQueued ();
 
   if (pCtx->XInputGetState_Target != nullptr)
-    memcpy (pCtx->orig_inst, pCtx->XInputGetState_Target,                   22);
+    memcpy (pCtx->orig_inst, pCtx->XInputGetState_Target,                   6);
 
   if (pCtx->XInputSetState_Target != nullptr)
-    memcpy (pCtx->orig_inst_set, pCtx->XInputSetState_Target,               22);
+    memcpy (pCtx->orig_inst_set, pCtx->XInputSetState_Target,               6);
 
   if (pCtx->XInputGetCapabilities_Target != nullptr)
-    memcpy (pCtx->orig_inst_caps, pCtx->XInputGetCapabilities_Target,       22);
+    memcpy (pCtx->orig_inst_caps, pCtx->XInputGetCapabilities_Target,       6);
 
   if (pCtx->XInputGetBatteryInformation_Target != nullptr)
-    memcpy (pCtx->orig_inst_batt, pCtx->XInputGetBatteryInformation_Target, 22);
+    memcpy (pCtx->orig_inst_batt, pCtx->XInputGetBatteryInformation_Target, 6);
 
   if (pCtx->XInputGetStateEx_Target != nullptr)
-    memcpy (pCtx->orig_inst_ex, pCtx->XInputGetStateEx_Target,              22);
+    memcpy (pCtx->orig_inst_ex, pCtx->XInputGetStateEx_Target,              6);
 
   if (pCtx->XInputEnable_Target != nullptr)
-    memcpy (pCtx->orig_inst_enable, pCtx->XInputEnable_Target,              22);
+    memcpy (pCtx->orig_inst_enable, pCtx->XInputEnable_Target,              6);
 }
 
 void
@@ -1051,7 +1051,7 @@ SK_XInput_RehookIfNeeded (void)
   if ( ( ret != MH_OK && ret != MH_ERROR_ENABLED ) ||
                  ( pCtx->XInputGetState_Target != nullptr &&
            memcmp (pCtx->orig_inst,
-                   pCtx->XInputGetState_Target, 22 ) )
+                   pCtx->XInputGetState_Target, 6 ) )
      )
   {
     if ( MH_OK == MH_RemoveHook (pCtx->XInputGetState_Target) )
@@ -1100,7 +1100,7 @@ SK_XInput_RehookIfNeeded (void)
   if ( ( ret != MH_OK && ret != MH_ERROR_ENABLED ) ||
                  ( pCtx->XInputSetState_Target != nullptr &&
            memcmp (pCtx->orig_inst_set,
-                   pCtx->XInputSetState_Target, 22 ) )
+                   pCtx->XInputSetState_Target, 6 ) )
      )
   {
     if ( MH_OK == MH_RemoveHook (pCtx->XInputSetState_Target) )
@@ -1151,7 +1151,7 @@ SK_XInput_RehookIfNeeded (void)
   if ( ( ret != MH_OK && ret != MH_ERROR_ENABLED ) ||
                  ( pCtx->XInputGetCapabilities_Target != nullptr &&
            memcmp (pCtx->orig_inst_caps,
-                   pCtx->XInputGetCapabilities_Target, 22 ) )
+                   pCtx->XInputGetCapabilities_Target, 6 ) )
      )
   {
     if ( MH_OK == MH_RemoveHook (pCtx->XInputGetCapabilities_Target) )
@@ -1203,7 +1203,7 @@ SK_XInput_RehookIfNeeded (void)
     if ( ( ret != MH_OK && ret != MH_ERROR_ENABLED ) ||
                    ( pCtx->XInputGetBatteryInformation_Target != nullptr &&
              memcmp (pCtx->orig_inst_batt,
-                     pCtx->XInputGetBatteryInformation_Target, 22 ) )
+                     pCtx->XInputGetBatteryInformation_Target, 6 ) )
        )
     {
       if ( MH_OK == MH_RemoveHook (pCtx->XInputGetBatteryInformation_Target) )
@@ -1253,7 +1253,7 @@ SK_XInput_RehookIfNeeded (void)
     if ( ( ret != MH_OK && ret != MH_ERROR_ENABLED ) ||
                    ( pCtx->XInputGetStateEx_Target != nullptr &&
              memcmp (pCtx->orig_inst_ex,
-                     pCtx->XInputGetStateEx_Target, 22 ) )
+                     pCtx->XInputGetStateEx_Target, 6 ) )
        )
     {
       if ( MH_OK == MH_RemoveHook (pCtx->XInputGetStateEx_Target) )
@@ -1303,7 +1303,7 @@ SK_XInput_RehookIfNeeded (void)
     if ( ( ret != MH_OK && ret != MH_ERROR_ENABLED ) ||
                    ( pCtx->XInputEnable_Target != nullptr &&
              memcmp (pCtx->orig_inst_enable,
-                     pCtx->XInputEnable_Target, 22 ) )
+                     pCtx->XInputEnable_Target, 6 ) )
        )
     {
       if ( MH_OK == MH_RemoveHook (pCtx->XInputEnable_Target) )
@@ -1348,22 +1348,22 @@ SK_XInput_RehookIfNeeded (void)
 
 
   if (pCtx->XInputGetState_Target != nullptr)
-    memcpy (pCtx->orig_inst, pCtx->XInputGetState_Target,                   22);
+    memcpy (pCtx->orig_inst, pCtx->XInputGetState_Target,                   6);
 
   if (pCtx->XInputSetState_Target != nullptr)
-    memcpy (pCtx->orig_inst_set, pCtx->XInputSetState_Target,               22);
+    memcpy (pCtx->orig_inst_set, pCtx->XInputSetState_Target,               6);
 
   if (pCtx->XInputGetCapabilities_Target != nullptr)
-    memcpy (pCtx->orig_inst_caps, pCtx->XInputGetCapabilities_Target,       22);
+    memcpy (pCtx->orig_inst_caps, pCtx->XInputGetCapabilities_Target,       6);
 
   if (pCtx->XInputGetBatteryInformation_Target != nullptr)
-    memcpy (pCtx->orig_inst_batt, pCtx->XInputGetBatteryInformation_Target, 22);
+    memcpy (pCtx->orig_inst_batt, pCtx->XInputGetBatteryInformation_Target, 6);
 
   if (pCtx->XInputGetStateEx_Target != nullptr)
-    memcpy (pCtx->orig_inst_ex, pCtx->XInputGetStateEx_Target,              22);
+    memcpy (pCtx->orig_inst_ex, pCtx->XInputGetStateEx_Target,              6);
 
   if (pCtx->XInputEnable_Target != nullptr)
-    memcpy (pCtx->orig_inst_enable, pCtx->XInputEnable_Target,              22);
+    memcpy (pCtx->orig_inst_enable, pCtx->XInputEnable_Target,              6);
 }
 
 

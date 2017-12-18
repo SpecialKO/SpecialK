@@ -196,7 +196,104 @@ __stdcall
 SK_EstablishRootPath (void);
 
 #pragma data_seg (".SK_Hooks")
-std::unordered_set <std::wstring> blacklist;
+#pragma data_seg (".SK_Hooks")
+const std::unordered_set <std::wstring> blacklist = {
+L"steam.exe",
+L"GameOverlayUI.exe",
+L"streaming_client.exe",
+L"steamerrorreporter.exe",
+L"steamerrorreporter64.exe",
+L"steamservice.exe",
+L"steam_monitor.exe",
+L"steamwebhelper.exe",
+L"html5app_steam.exe",
+L"wow_helper.exe",
+L"uninstall.exe",
+
+L"WriteMiniDump.exe",
+L"CrashReporter.exe",
+L"SupportTool.exe",
+L"CrashSender1400.exe",
+L"WerFault.exe",
+
+L"DXSETUP.exe",
+L"setup.exe",
+L"vc_redist.x64.exe",
+L"vc_redist.x86.exe",
+L"vc2010redist_x64.exe",
+L"vc2010redist_x86.exe",
+L"vcredist_x64.exe",
+L"vcredist_x86.exe",
+L"NDP451-KB2872776-x86-x64-AllOS-ENU.exe",
+L"dotnetfx35.exe",
+L"DotNetFx35Client.exe",
+L"dotNetFx40_Full_x86_x64.exe",
+L"dotNetFx40_Client_x86_x64.exe",
+L"oalinst.exe",
+L"EasyAntiCheat_Setup.exe",
+L"UplayInstaller.exe",
+
+
+L"x64launcher.exe",
+L"x86launcher.exe",
+L"Launcher.exe",
+L"FFX&X-2_LAUNCHER.exe",
+L"Fallout4Launcher.exe",
+L"SkyrimSELauncher.exe",
+L"ModLauncher.exe",
+L"AkibaUU_Config.exe",
+L"Obduction.exe",
+L"Grandia2Launcher.exe",
+L"FFXiii2Launcher.exe",
+L"Bethesda.net_Launcher.exe",
+L"UbisoftGameLauncher.exe",
+L"UbisoftGameLauncher64.exe",
+L"SplashScreen.exe",
+L"GameLauncherCefChildProcess.exe",
+L"LaunchPad.exe",
+L"CNNLauncher.exe",
+L"FF9_Launcher.exe",
+L"A17Config.exe",
+L"A18Config.exe", // Atelier Firis
+L"DPLauncher.exe",
+L"ZeroEscape-Launcher.exe",
+
+
+L"ActivationUI.exe",
+L"zosSteamStarter.exe",
+L"notepad.exe",
+L"mspaint.exe",
+L"7zFM.exe",
+L"WinRar.exe",
+L"EAC.exe",
+L"vcpkgsrv.exe",
+L"dllhost.exe",
+L"git.exe",
+L"link.exe",
+L"cl.exe",
+L"rc.exe",
+L"conhost.exe",
+L"GameBarPresenceWriter.exe",
+L"OAWrapper.exe",
+L"NvOAWrapperCache.exe",
+L"waifu2x-caffe.exe",
+L"waifu2x-caffe-cui.exe",
+
+L"GameServer.exe",// Sacred   Game Server
+L"s2gs.exe",      // Sacred 2 Game Server
+
+L"sihost.exe",
+L"Chrome.exe",
+L"explorer.exe",
+L"browser_broker.exe",
+L"dwm.exe",
+L"LaunchTM.exe",
+
+
+L"SleepOnLan.exe",
+L"ds3t.exe",
+L"tzt.exe"
+};
 #pragma data_seg ()
 #pragma comment  (linker, "/section:.SK_Hooks,RWS")
 
@@ -205,121 +302,6 @@ __stdcall
 SK_EstablishDllRole (HMODULE hModule)
 {
   SK_SetDLLRole (DLL_ROLE::INVALID);
-
-  // Holy Rusted Metal Batman !!!
-  //---------------------------------------------------------------------------
-  //
-  //  * <Black Lists Matter> *
-  //
-  //___________________________________________________________________________
-
-  //
-  // Init Once ===> C++14 allows constexpr hash tables, use those instead dummy!
-  //
-  if (blacklist.empty ())
-  {
-    blacklist.reserve (512);
-
-    // Steam-Specific Stuff
-    blacklist.emplace (L"steam.exe");
-    blacklist.emplace (L"GameOverlayUI.exe");
-    blacklist.emplace (L"streaming_client.exe");
-    blacklist.emplace (L"steamerrorreporter.exe");
-    blacklist.emplace (L"steamerrorreporter64.exe");
-    blacklist.emplace (L"steamservice.exe");
-    blacklist.emplace (L"steam_monitor.exe");
-    blacklist.emplace (L"steamwebhelper.exe");
-    blacklist.emplace (L"html5app_steam.exe");
-    blacklist.emplace (L"wow_helper.exe");
-    blacklist.emplace (L"uninstall.exe");
-
-    // Crash Helpers
-    blacklist.emplace (L"WriteMiniDump.exe");
-    blacklist.emplace (L"CrashReporter.exe");
-    blacklist.emplace (L"SupportTool.exe");
-    blacklist.emplace (L"CrashSender1400.exe");
-    blacklist.emplace (L"WerFault.exe");
-
-    // Runtime Installers
-    blacklist.emplace (L"DXSETUP.exe");
-    blacklist.emplace (L"setup.exe");
-    blacklist.emplace (L"vc_redist.x64.exe");
-    blacklist.emplace (L"vc_redist.x86.exe");
-    blacklist.emplace (L"vc2010redist_x64.exe");
-    blacklist.emplace (L"vc2010redist_x86.exe");
-    blacklist.emplace (L"vcredist_x64.exe");
-    blacklist.emplace (L"vcredist_x86.exe");
-    blacklist.emplace (L"NDP451-KB2872776-x86-x64-AllOS-ENU.exe");
-    blacklist.emplace (L"dotnetfx35.exe");
-    blacklist.emplace (L"DotNetFx35Client.exe");
-    blacklist.emplace (L"dotNetFx40_Full_x86_x64.exe");
-    blacklist.emplace (L"dotNetFx40_Client_x86_x64.exe");
-    blacklist.emplace (L"oalinst.exe");
-    blacklist.emplace (L"EasyAntiCheat_Setup.exe");
-    blacklist.emplace (L"UplayInstaller.exe");
-
-    // Launchers
-    blacklist.emplace (L"x64launcher.exe");
-    blacklist.emplace (L"x86launcher.exe");
-    blacklist.emplace (L"Launcher.exe");
-    blacklist.emplace (L"FFX&X-2_LAUNCHER.exe");
-    blacklist.emplace (L"Fallout4Launcher.exe");
-    blacklist.emplace (L"SkyrimSELauncher.exe");
-    blacklist.emplace (L"ModLauncher.exe");
-    blacklist.emplace (L"AkibaUU_Config.exe");
-    blacklist.emplace (L"Obduction.exe");
-    blacklist.emplace (L"Grandia2Launcher.exe");
-    blacklist.emplace (L"FFXiii2Launcher.exe");
-    blacklist.emplace (L"Bethesda.net_Launcher.exe");
-    blacklist.emplace (L"UbisoftGameLauncher.exe");
-    blacklist.emplace (L"UbisoftGameLauncher64.exe");
-    blacklist.emplace (L"SplashScreen.exe");
-    blacklist.emplace (L"GameLauncherCefChildProcess.exe");
-    blacklist.emplace (L"LaunchPad.exe");
-    blacklist.emplace (L"CNNLauncher.exe");
-    blacklist.emplace (L"FF9_Launcher.exe");
-    blacklist.emplace (L"A17Config.exe");
-    blacklist.emplace (L"A18Config.exe"); // Atelier Firis
-    blacklist.emplace (L"DPLauncher.exe");
-    blacklist.emplace (L"ZeroEscape-Launcher.exe");
-
-    // Other Stuff
-    blacklist.emplace (L"ActivationUI.exe");
-    blacklist.emplace (L"zosSteamStarter.exe");
-    blacklist.emplace (L"notepad.exe");
-    blacklist.emplace (L"mspaint.exe");
-    blacklist.emplace (L"7zFM.exe");
-    blacklist.emplace (L"WinRar.exe");
-    blacklist.emplace (L"EAC.exe");
-    blacklist.emplace (L"vcpkgsrv.exe");
-    blacklist.emplace (L"dllhost.exe");
-    blacklist.emplace (L"git.exe");
-    blacklist.emplace (L"link.exe");
-    blacklist.emplace (L"cl.exe");
-    blacklist.emplace (L"rc.exe");
-    blacklist.emplace (L"conhost.exe");
-    blacklist.emplace (L"GameBarPresenceWriter.exe");
-    blacklist.emplace (L"OAWrapper.exe");
-    blacklist.emplace (L"NvOAWrapperCache.exe");
-    blacklist.emplace (L"waifu2x-caffe.exe");
-    blacklist.emplace (L"waifu2x-caffe-cui.exe");
-
-    blacklist.emplace (L"GameServer.exe");// Sacred   Game Server
-    blacklist.emplace (L"s2gs.exe");      // Sacred 2 Game Server
-
-    blacklist.emplace (L"sihost.exe");
-    blacklist.emplace (L"Chrome.exe");
-    blacklist.emplace (L"explorer.exe");
-    blacklist.emplace (L"browser_broker.exe");
-    blacklist.emplace (L"dwm.exe");
-    blacklist.emplace (L"LaunchTM.exe");
-
-    // Misc. Tools
-    blacklist.emplace (L"SleepOnLan.exe");
-    //blacklist.emplace (L"ds3t.exe");
-    //blacklist.emplace (L"tzt.exe");
-  }
-
 
   // If Blacklisted, Bail-Out
   if (blacklist.count (std::wstring (SK_GetHostApp ())))
@@ -888,27 +870,10 @@ DllMain ( HMODULE hModule,
 
 
 
-      DWORD   dwProcessSize = MAX_PATH;
-      wchar_t wszProcessName [MAX_PATH + 2] = { };
-
-      HANDLE hProc = GetCurrentProcess ();
-
-      QueryFullProcessImageName (hProc, 0, wszProcessName, &dwProcessSize);
-
-      wchar_t* pwszShortName = wszProcessName + lstrlenW (wszProcessName);
-
-      while (  pwszShortName      >  wszProcessName &&
-             *(pwszShortName - 1) != L'\\')
-             --pwszShortName;
-
-
-
       // We reserve the right to deny attaching the DLL, this will generally
       //   happen if a game does not opt-in to system wide injection.
       if (! SK_EstablishDllRole (hModule))
       {
-        blacklist.emplace (std::wstring (SK_GetHostApp ()));
-
         return FALSE;
       }
 
@@ -916,9 +881,8 @@ DllMain ( HMODULE hModule,
       //   re-inject itself constantly; just return TRUE here.
       else if (SK_GetDLLRole () == DLL_ROLE::INVALID)
       {
-        return TRUE;
+        return FALSE;
       }
-
 
       QueryPerformanceCounter_Original =
         reinterpret_cast <QueryPerformanceCounter_pfn> (
@@ -928,25 +892,19 @@ DllMain ( HMODULE hModule,
         );
 
       SK_Init_MinHook        ();
-
-      void SK_Steam_InitCommandConsoleVariables (void);
-           SK_Steam_InitCommandConsoleVariables ();
-
-      void SK_TestSteamImports (HMODULE hMod);
-           SK_TestSteamImports (GetModuleHandle (nullptr));
-
       SK_InitCompatBlacklist ();
 
       BOOL bRet = SK_Attach (SK_GetDLLRole ());
 
       if (! bRet)
       {
-        blacklist.emplace (std::wstring (SK_GetHostApp ()));
+        //blacklist.emplace (std::wstring (SK_GetHostApp ()));
+        return FALSE;
       }
 
       if (SK_GetDLLRole () == DLL_ROLE::INVALID)
       {
-        return TRUE;
+        return FALSE;
       }
 
 
@@ -993,7 +951,10 @@ DllMain ( HMODULE hModule,
         SK_Detach (SK_GetDLLRole ());
 
       if (__SK_TLS_INDEX != MAXDWORD)
+      {
         TlsFree (__SK_TLS_INDEX);
+        __SK_TLS_INDEX = MAXDWORD;
+      }
 
       //else {
         //Sanity FAILURE: Attempt to detach something that was not properly attached?!
