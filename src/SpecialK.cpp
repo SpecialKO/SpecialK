@@ -907,14 +907,14 @@ DllMain ( HMODULE hModule,
       //   happen if a game does not opt-in to system wide injection.
       if (! SK_EstablishDllRole (hModule))
       {
-        return FALSE;
+        return TRUE;
       }
 
       // We don't want to initialize the DLL, but we also don't want it to
       //   re-inject itself constantly; just return TRUE here.
       else if (SK_GetDLLRole () == DLL_ROLE::INVALID)
       {
-        return FALSE;
+        return TRUE;
       }
 
       QueryPerformanceCounter_Original =
@@ -932,12 +932,12 @@ DllMain ( HMODULE hModule,
       if (! bRet)
       {
         //blacklist.emplace (std::wstring (SK_GetHostApp ()));
-        return FALSE;
+        return TRUE;
       }
 
       if (SK_GetDLLRole () == DLL_ROLE::INVALID)
       {
-        return FALSE;
+        return TRUE;
       }
 
 

@@ -1221,7 +1221,7 @@ SK_GetModuleFullNameFromAddr (LPVOID addr)
 }
 
 std::wstring
-SK_MakePrettyAddress (LPVOID addr, DWORD dwFlags)
+SK_MakePrettyAddress (LPVOID addr, DWORD /*dwFlags*/)
 {
   return
     SK_FormatStringW ( L"( %s ) + %xh",

@@ -1,3 +1,9 @@
+0.8.56
+
+ + Added support for d3d11.dll wrapping (alternative to dxgi.dll)
+ + Addressed memory leak in blacklisted processes
+
+
 0.8.55
 
  + custom_<SpecialK|dxgi|d3d9|dinput8|OpenGL32>.ini is now supported

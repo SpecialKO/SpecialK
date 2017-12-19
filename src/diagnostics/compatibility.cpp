@@ -282,6 +282,12 @@ SK_LoadLibrary_IsPinnable (const _T* pStr)
     SK_TEXT ("AUDIOSES"),  SK_TEXT ("HID"),
     SK_TEXT ("d3dx11_43"), SK_TEXT ("d3dx9_43"),
 
+    // Fix for premature DLL unload issue discussed here:
+    //
+    //   https://blogs.msdn.microsoft.com/chuckw/2015/10/09/known-issues-xaudio-2-7/
+    ///
+    SK_TEXT ("XAudio2_7"),
+
 #ifndef _WIN64
     SK_TEXT ("steam_api"),   SK_TEXT ("nvapi"),
 #else
@@ -292,8 +298,6 @@ SK_LoadLibrary_IsPinnable (const _T* pStr)
     ////   cause TLS-related problems if left unchecked... just leave
     ////     the damn thing loaded permanently!
     SK_TEXT ("d3dcompiler_"),
-
-    //SK_TEXT ("magicFiles\\FFX\\magic_0") // Final Fantasy X / X-2
   };
 
   for (auto it : pinnable_libs)
@@ -2312,7 +2316,6 @@ SK_Bypass_CRT (LPVOID user)
     wszConfigName = SK_GetBackend ();
   }
 
-
   std::wstring temp_dll = L"";
 
 
@@ -2626,8 +2629,10 @@ SK_Bypass_CRT (LPVOID user)
       //              just disable ReShade.
 #ifdef _WIN64
       dll_ini->remove_section (L"Import.ReShade64");
+      dll_ini->remove_section (L"Import.ReShade64_Custom");
 #else
       dll_ini->remove_section (L"Import.ReShade32");
+      dll_ini->remove_section (L"Import.ReShade32_Custom");
 #endif
     }
 
