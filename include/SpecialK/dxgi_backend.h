@@ -1838,6 +1838,11 @@ typedef HRESULT (WINAPI *D3D11Dev_CreateUnorderedAccessView_pfn)(
   _Out_opt_       ID3D11UnorderedAccessView       **ppUAView
 );
 
+typedef HRESULT (WINAPI *D3D11Dev_CheckFeatureSupport_pfn)(
+  _In_            ID3D11Device  *This, 
+  _In_            D3D11_FEATURE  Feature,
+  _Out_           void           *pFeatureSupportData,
+  _In_            UINT            FeatureSupportDataSize );
 
 typedef void (WINAPI *D3D11_DrawIndexed_pfn)(
   _In_ ID3D11DeviceContext *This,

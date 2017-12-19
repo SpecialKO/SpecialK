@@ -1178,6 +1178,58 @@ SK_GetModuleName (HMODULE hDll)
   return wszShort;
 }
 
+HMODULE
+SK_GetModuleFromAddr (LPVOID addr)
+{
+  HMODULE hModOut;
+
+  if ( GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT |
+                           GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
+                             (LPCWSTR)addr,
+                               &hModOut
+                         )
+     )
+  {
+    return hModOut;
+  }
+
+  return static_cast <HMODULE> (INVALID_HANDLE_VALUE);
+}
+
+std::wstring
+SK_GetModuleNameFromAddr (LPVOID addr)
+{
+  HMODULE hModOut =
+    SK_GetModuleFromAddr (addr);
+
+  if (hModOut != INVALID_HANDLE_VALUE)
+    return SK_GetModuleName (hModOut);
+
+  return L"#Invalid.dll#";
+}
+
+std::wstring
+SK_GetModuleFullNameFromAddr (LPVOID addr)
+{
+  HMODULE hModOut =
+    SK_GetModuleFromAddr (addr);
+
+  if (hModOut != INVALID_HANDLE_VALUE)
+    return SK_GetModuleFullName (hModOut);
+
+  return L"#Extremely#Invalid.dll#";
+}
+
+std::wstring
+SK_MakePrettyAddress (LPVOID addr, DWORD dwFlags)
+{
+  return
+    SK_FormatStringW ( L"( %s ) + %xh",
+                         SK_GetModuleFullNameFromAddr (addr).c_str (),
+                                            (uintptr_t)addr -
+                      (uintptr_t)SK_GetModuleFromAddr (addr) );
+}
+
 PROCESSENTRY32
 FindProcessByName (const wchar_t* wszName)
 {

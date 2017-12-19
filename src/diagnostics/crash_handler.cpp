@@ -112,7 +112,7 @@ CrashHandler::Init (void)
     crash_log.lockless   = true;
     crash_log.init       (           L"logs/crash.log",  L"w");
     SK_File_SetHidden    (SK_Log_GetPath (L"crash.log"), true);
-    SK_File_SetTemporary (SK_Log_GetPath (L"crash.log"), true);
+  //SK_File_SetTemporary (SK_Log_GetPath (L"crash.log"), true);
   }
 
   SK_CreateDLLHook  (       L"kernel32.dll",
@@ -801,7 +801,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
           if (! DeleteFileW (wszOrigPath))
           {
             SK_File_SetHidden    (wszOrigPath, true);
-            SK_File_SetTemporary (wszOrigPath, true);
+          //SK_File_SetTemporary (wszOrigPath, true);
           }
         }
       } while (FindNextFileW (hFind, &fd) != 0);

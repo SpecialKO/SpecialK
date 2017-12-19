@@ -330,8 +330,15 @@ SK_EstablishDllRole (HMODULE hModule)
   if (wszShort == static_cast <const wchar_t *>(nullptr) + 1)
     wszShort = wszDllFullName;
 
+
   if (! SK_Path_wcsicmp (wszShort, L"dxgi.dll"))
     SK_SetDLLRole (DLL_ROLE::DXGI);
+
+  else if (! SK_Path_wcsicmp (wszShort, L"d3d11.dll"))
+  {
+    SK_SetDLLRole ( static_cast <DLL_ROLE> ( (int)DLL_ROLE::DXGI |
+                                             (int)DLL_ROLE::D3D11 ) );
+  }
 
 #ifndef _WIN64
   else if (! SK_Path_wcsicmp (wszShort, L"d3d8.dll")  && has_dgvoodoo)
@@ -359,6 +366,7 @@ SK_EstablishDllRole (HMODULE hModule)
     /////// Skip lengthy tests if we already have the wrapper version loaded.
     if ( ( SK_IsDLLSpecialK (L"d3d9.dll") )     || 
          ( SK_IsDLLSpecialK (L"dxgi.dll") )     ||
+         ( SK_IsDLLSpecialK (L"d3d11.dll") )    ||
          ( SK_IsDLLSpecialK (L"OpenGL32.dll") ) ||
          ( SK_IsDLLSpecialK (L"d3d8.dll") )     ||
          ( SK_IsDLLSpecialK (L"ddraw.dll") )    ||
@@ -379,6 +387,7 @@ SK_EstablishDllRole (HMODULE hModule)
     wchar_t wszD3D8  [MAX_PATH + 2] = { };
     wchar_t wszDDraw [MAX_PATH + 2] = { };
     wchar_t wszDXGI  [MAX_PATH + 2] = { };
+    wchar_t wszD3D11 [MAX_PATH + 2] = { };
     wchar_t wszGL    [MAX_PATH + 2] = { };
     wchar_t wszDI8   [MAX_PATH + 2] = { };
 
@@ -395,6 +404,9 @@ SK_EstablishDllRole (HMODULE hModule)
 
     lstrcatW (wszDXGI, SK_GetHostPath ());
     lstrcatW (wszDXGI, L"\\SpecialK.dxgi");
+
+    lstrcatW (wszD3D11, SK_GetHostPath ());
+    lstrcatW (wszD3D11, L"\\SpecialK.d3d11");
 
     lstrcatW (wszGL,   SK_GetHostPath ());
     lstrcatW (wszGL,   L"\\SpecialK.OpenGL32");
@@ -424,6 +436,13 @@ SK_EstablishDllRole (HMODULE hModule)
     else if ( GetFileAttributesW (wszDXGI) != INVALID_FILE_ATTRIBUTES )
     {
       SK_SetDLLRole (DLL_ROLE::DXGI);
+      explicit_inject = true;
+    }
+
+    else if ( GetFileAttributesW (wszD3D11) != INVALID_FILE_ATTRIBUTES )
+    {
+      SK_SetDLLRole ( static_cast <DLL_ROLE> ( (int)DLL_ROLE::DXGI |
+                                               (int)DLL_ROLE::D3D11 ) );
       explicit_inject = true;
     }
 
@@ -517,9 +536,20 @@ SK_EstablishDllRole (HMODULE hModule)
 
         if (config.apis.dxgi.d3d11.hook && (dxgi || d3d11)) 
         {
-          SK_SetDLLRole (DLL_ROLE::DXGI);
+          if (d3d11)
+          {
+            SK_SetDLLRole ( static_cast <DLL_ROLE> ( (int)DLL_ROLE::DXGI |
+                                                     (int)DLL_ROLE::D3D11 ) );
+          }
+
+          else
+            SK_SetDLLRole (DLL_ROLE::DXGI);
+
 
           if (SK_IsDLLSpecialK (L"dxgi.dll"))
+            return FALSE;
+
+          if (SK_IsDLLSpecialK (L"d3d11.dll"))
             return FALSE;
         }
 
@@ -638,10 +668,12 @@ SK_Attach (DLL_ROLE role)
       switch (role)
       {
         case DLL_ROLE::DXGI:
+        case DLL_ROLE::D3D11_CASE:
         {
           // If this is the global injector and there is a wrapper version
           //   of Special K in the DLL search path, then bail-out!
-          if (SK_IsInjected () && SK_IsDLLSpecialK (L"dxgi.dll"))
+          if (SK_IsInjected () && ( SK_IsDLLSpecialK (L"dxgi.dll") ||
+                                    SK_IsDLLSpecialK (L"d3d11.dll") ))
           {
             return DontInject ();
           }
@@ -771,6 +803,7 @@ SK_Detach (DLL_ROLE role)
     switch (role)
     {
       case DLL_ROLE::DXGI:
+      case DLL_ROLE::D3D11_CASE:
         ret = SK::DXGI::Shutdown ();
         break;
 

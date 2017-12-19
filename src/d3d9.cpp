@@ -831,47 +831,65 @@ SK_HookD3D9 (void)
     (SK_GetDLLRole () & DLL_ROLE::D3D9) ? backend_dll :
                                    GetModuleHandle (L"d3d9.dll");
 
-  dll_log.Log (L"[   D3D9   ] Importing Direct3DCreate9{Ex}...");
-  dll_log.Log (L"[   D3D9   ] ================================");
+  SK_LOG0 ( (L"Importing Direct3DCreate9{Ex}..."), L"   D3D9   ");
+  SK_LOG0 ( (L"================================"), L"   D3D9   ");
 
   if (! _wcsicmp (SK_GetModuleName (SK_GetDLL ()).c_str (), L"d3d9.dll"))
   {
-    dll_log.Log (L"[   D3D9   ]   Direct3DCreate9:   %ph",
-      (Direct3DCreate9_Import) =  \
-        (Direct3DCreate9PROC)GetProcAddress (hBackend, "Direct3DCreate9"));
+    Direct3DCreate9_Import =  \
+      (Direct3DCreate9PROC)GetProcAddress (hBackend, "Direct3DCreate9");
+
+    SK_LOG0 ( ( L"  Direct3DCreate9:   %s",
+                  SK_MakePrettyAddress (Direct3DCreate9_Import).c_str () ),
+                L"   D3D9   " );
 
     if (config.apis.d3d9ex.hook)
     {
-      dll_log.Log (L"[   D3D9   ]   Direct3DCreate9Ex: %ph",
-        (Direct3DCreate9Ex_Import) =  \
-          (Direct3DCreate9ExPROC)GetProcAddress (hBackend, "Direct3DCreate9Ex"));
+      Direct3DCreate9Ex_Import =  \
+        (Direct3DCreate9ExPROC)GetProcAddress (hBackend, "Direct3DCreate9Ex");
+
+      SK_LOG0 ( ( L"  Direct3DCreate9Ex: %s",
+                    SK_MakePrettyAddress (Direct3DCreate9Ex_Import).c_str () ),
+                  L"  D3D9Ex  " );
     }
   }
 
   else
   {
+    LPVOID pfnDirect3DCreate9   = nullptr;
+    LPVOID pfnDirect3DCreate9Ex = nullptr;
+
     if ( MH_OK ==
            SK_CreateDLLHook2 ( L"d3d9.dll",
                                 "Direct3DCreate9",
                                  Direct3DCreate9,
-        static_cast_p2p <void> (&Direct3DCreate9_Import) )
+        static_cast_p2p <void> (&Direct3DCreate9_Import),
+                             &pfnDirect3DCreate9 )
        )
     {
-      dll_log.Log (L"[   D3D9   ]   Direct3DCreate9:   %p  { Hooked }",
-        (Direct3DCreate9_Import) );
-
+      SK_LOG0 ( ( L"  Direct3DCreate9: %s  { Hooked  }",
+                    SK_MakePrettyAddress (Direct3DCreate9_Import).c_str () ),
+                  L"   D3D9   " );
 
       if ( config.apis.d3d9ex.hook &&
              MH_OK ==
                SK_CreateDLLHook2 ( L"d3d9.dll",
                                     "Direct3DCreate9Ex",
                                      Direct3DCreate9Ex,
-            static_cast_p2p <void> (&Direct3DCreate9Ex_Import) )
+            static_cast_p2p <void> (&Direct3DCreate9Ex_Import),
+                                 &pfnDirect3DCreate9Ex )
          )
       {
-        dll_log.Log (L"[   D3D9   ]   Direct3DCreate9Ex: %p  { Hooked }",
-          (Direct3DCreate9Ex_Import) );
+        SK_LOG0 ( ( L"  Direct3DCreate9Ex: %s  { Hooked  }",
+                      SK_MakePrettyAddress (Direct3DCreate9Ex_Import).c_str () ),
+                    L"  D3D9Ex  " );
       }
+
+      bool success =
+        ( MH_QueueEnableHook (pfnDirect3DCreate9) == MH_OK );
+
+      if (config.apis.d3d9ex.hook)
+        success &= ( MH_QueueEnableHook (pfnDirect3DCreate9Ex) == MH_OK );
     }
   }
 

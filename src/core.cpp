@@ -793,8 +793,6 @@ SK_InitCore (std::wstring backend, void* callback)
 {
   init_mutex->lock ();
 
-  wcscpy (SK_Backend, backend.c_str ());
-
   using finish_pfn   = void (WINAPI *)  (void);
   using callback_pfn = void (WINAPI *)(_Releases_exclusive_lock_ (init_mutex) finish_pfn);
 
@@ -1330,7 +1328,7 @@ bool
 __stdcall
 SK_StartupCore (const wchar_t* backend, void* callback)
 {
-  wcscpy (SK_Backend, backend);
+  SK_SetBackend (backend);
 
   // Allow users to centralize all files if they want
   //
@@ -1441,7 +1439,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     if ( (SK_IsInjected () && (! SK_IsSuperSpecialK ())) )
       CreateThread (nullptr, 0, CheckVersionThread, nullptr, 0x00, nullptr);
 
-    if (SK_GetDLLRole () == DLL_ROLE::DXGI)
+    if ((! (SK_GetDLLRole () & DLL_ROLE::DXGI)) && GetModuleHandle (L"dxgi.dll"))
     {
       // Do this from the startup thread so that there's no race if an app tries to
       //   use D3D11.dll while our child thread is working.
@@ -1523,7 +1521,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
   if (__SK_bypass)
     goto BACKEND_INIT;
-
 
 
   if (! config.steam.silent)

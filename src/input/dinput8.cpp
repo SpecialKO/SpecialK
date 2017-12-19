@@ -114,6 +114,10 @@ WaitForInit_DI8 (void)
 }
 
 
+void
+WINAPI
+SK_BootDI8 (void);
+
 __declspec (noinline)
 HRESULT
 DirectInput8Create ( HINSTANCE hinst,
@@ -124,6 +128,7 @@ DirectInput8Create ( HINSTANCE hinst,
 {
   if (SK_GetDLLRole () == DLL_ROLE::DInput8)
   {
+    SK_BootDI8      ();
     WaitForInit_DI8 ();
   }
 
@@ -165,13 +170,10 @@ void
 WINAPI
 SK_BootDI8 (void)
 {
-  static volatile ULONG hooked = FALSE;
+  static volatile LONG hooked = FALSE;
 
-  if (InterlockedCompareExchange (&hooked, TRUE, FALSE))
+  if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
   {
-    return;
-  }
-
   HMODULE hBackend = 
     (SK_GetDLLRole () & DLL_ROLE::DInput8) ? backend_dll :
                                     GetModuleHandle (L"dinput8.dll");
@@ -216,9 +218,6 @@ SK_BootDI8 (void)
   }
 
 
-
-
-
   //
   // This whole thing is as smart as a sack of wet mice in DirectInput mode...
   //   let's get to the real work and start booting graphics APIs!
@@ -234,7 +233,7 @@ SK_BootDI8 (void)
   );
 
 
-// Load user-defined DLLs (Plug-In)
+  // Load user-defined DLLs (Plug-In)
 #ifdef _WIN64
     SK_LoadEarlyImports64 ();
 #else
@@ -242,12 +241,8 @@ SK_BootDI8 (void)
 #endif
 
 
-
-  InterlockedExchange (&__di8_ready, TRUE);
-
-
-//CreateThread (nullptr, 0x00, [](LPVOID user) -> DWORD
-//{
+CreateThread (nullptr, 0x00, [](LPVOID user) -> DWORD
+{
   //UNREFERENCED_PARAMETER (user);
 
   // OpenGL
@@ -285,10 +280,17 @@ SK_BootDI8 (void)
   SK_LoadPlugIns32 ();
 #endif
 
-//  CloseHandle (GetCurrentThread ());
-//
-//  return 0;
-//}, nullptr, 0x00, nullptr);
+  CloseHandle (GetCurrentThread ());
+
+  return 0;
+}, nullptr, 0x00, nullptr);
+
+    InterlockedIncrement (&hooked);
+    InterlockedExchange  (&__di8_ready, TRUE);
+  }
+
+  while (ReadAcquire (&hooked) < 2)
+    ;
 }
 
 unsigned int

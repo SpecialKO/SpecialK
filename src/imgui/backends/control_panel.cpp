@@ -1011,7 +1011,7 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
       SK_RenderBackend& rb =
         SK_GetCurrentRenderBackend ();
 
-      auto* pDevCtx =
+      CComPtr <ID3D11DeviceContext> pDevCtx =
         static_cast <ID3D11DeviceContext *> (rb.d3d11.immediate_ctx);
 
       // This limits us to D3D11 for now, but who cares -- D3D10 sucks and D3D12 can't be drawn to yet :)
@@ -1047,8 +1047,6 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
 
       ImGui::SameLine        ();
 
-      
-
       ImGui::BeginGroup      ();
       ImGui::PushStyleColor  (ImGuiCol_Text, ImColor (1.0f, 1.0f, 1.0f));
       ImGui::Text            ("%ws",                SK_DXGI_FormatToStr (swap_desc.BufferDesc.Format).c_str ());
@@ -1082,8 +1080,6 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
       ImGui::PopStyleColor   ();
       ImGui::EndGroup        ();
       ImGui::EndTooltip      ();
-
-      pDevCtx->Release ();
     }
   }
 }
@@ -5271,6 +5267,7 @@ extern float SK_ImGui_PulseNav_Strength;
       ImGui::PopStyleColor ( 3);
 
       if (SK_IsInjected () || StrStrIW (SK_GetModuleName (SK_GetDLL ()).c_str (), L"dxgi.dll")     ||
+                              StrStrIW (SK_GetModuleName (SK_GetDLL ()).c_str (), L"d3d11.dll")    ||
                               StrStrIW (SK_GetModuleName (SK_GetDLL ()).c_str (), L"d3d9.dll")     ||
                               StrStrIW (SK_GetModuleName (SK_GetDLL ()).c_str (), L"OpenGL32.dll") ||
                               StrStrIW (SK_GetModuleName (SK_GetDLL ()).c_str (), L"dinput8.dll"))

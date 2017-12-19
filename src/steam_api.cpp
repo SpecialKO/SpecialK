@@ -87,9 +87,9 @@ extern ISteamClient* S_CALLTYPE SteamClient_Detour (void);
 using SteamInternal_CreateInterface_pfn       = void*       (S_CALLTYPE *)(
         const char *ver
       );
-extern                  SteamInternal_CreateInterface_pfn
-                        SteamInternal_CreateInterface_Original;
-extern void* S_CALLTYPE SteamInternal_CreateInterface_Detour (const char *ver);
+extern                      SteamInternal_CreateInterface_pfn
+                            SteamInternal_CreateInterface_Original;
+extern     void* S_CALLTYPE SteamInternal_CreateInterface_Detour (const char *ver);
 
 using SteamAPI_ISteamClient_GetISteamUser_pfn = ISteamUser* (S_CALLTYPE *)(
               ISteamClient *This,
@@ -170,6 +170,8 @@ extern "C" SteamAPI_Shutdown_pfn              SteamAPI_Shutdown_Original        
 
 extern "C" SteamAPI_GetSteamInstallPath_pfn   SteamAPI_GetSteamInstallPath           = nullptr;
 
+LPVOID pfnSteamInternal_CreateInterface = nullptr;
+
 BOOL
 SK_Steam_PreHookCore (void)
 {
@@ -197,7 +199,7 @@ SK_Steam_PreHookCore (void)
                                   "SteamAPI_ISteamClient_GetISteamUser",
                                    SteamAPI_ISteamClient_GetISteamUser_Detour,
           static_cast_p2p <void> (&SteamAPI_ISteamClient_GetISteamUser_Original) );
-
+    
     SK_CreateDLLHook2 (          wszSteamLib,
                                   "SteamAPI_ISteamClient_GetISteamUtils",
                                    SteamAPI_ISteamClient_GetISteamUtils_Detour,
@@ -218,7 +220,9 @@ SK_Steam_PreHookCore (void)
       SK_CreateDLLHook2 (          wszSteamLib,
                                     "SteamInternal_CreateInterface",
                                      SteamInternal_CreateInterface_Detour,
-            static_cast_p2p <void> (&SteamInternal_CreateInterface_Original) );
+            static_cast_p2p <void> (&SteamInternal_CreateInterface_Original),
+                                    &pfnSteamInternal_CreateInterface );
+      MH_QueueEnableHook (pfnSteamInternal_CreateInterface);
     }
 
     SK_CreateDLLHook2 (          wszSteamLib,

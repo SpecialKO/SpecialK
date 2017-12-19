@@ -41,6 +41,8 @@ enum DLL_ROLE
   D3D9       = 0x002,
   OpenGL     = 0x004, // All versions
   Vulkan     = 0x008,
+  D3D11      = 0x010, // Explicitly d3d11.dll
+  D3D11_CASE = 0x011, // For use in switch statements
 
   DInput8    = 0x100,
 

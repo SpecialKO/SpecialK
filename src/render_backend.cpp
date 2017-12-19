@@ -244,7 +244,7 @@ SK_BootDXGI (void)
 
   dll_log.Log (L"[API Detect]  <!> [    Bootstrapping DXGI (dxgi.dll)    ] <!>");
 
-  if (SK_GetDLLRole () == DLL_ROLE::DXGI)
+  if (SK_GetDLLRole () & DLL_ROLE::DXGI)
   {
     // Load user-defined DLLs (Early)
 #ifdef _WIN64
