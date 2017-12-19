@@ -1,5 +1,8 @@
 0.8.56
 
+ (.1): Fixed various memory problems during init/shutdown
+ (.1): Steam achievement popups are now drawn over top ImGui
+
  + Added support for d3d11.dll wrapping (alternative to dxgi.dll)
  + Addressed memory leak in blacklisted processes
 
@@ -52,7 +55,7 @@
 
 
 0.8.52
-
+z
  (.4): HOTFIX for 5 FPS issue
  (.3): Fix XInput lock behavior in games that use out-of-range controller idx
  (.2): Corrected SKIM64 start/stop behavior and AMD ADL

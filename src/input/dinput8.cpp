@@ -930,6 +930,8 @@ IDirectInputDevice8_SetCooperativeLevel_Detour ( LPDIRECTINPUTDEVICE  This,
   return hr;
 }
 
+concurrency::concurrent_unordered_map <uint32_t, LPDIRECTINPUTDEVICE> devices;
+
 HRESULT
 WINAPI
 IDirectInput8_CreateDevice_Detour ( IDirectInput8       *This,
@@ -937,10 +939,20 @@ IDirectInput8_CreateDevice_Detour ( IDirectInput8       *This,
                                     LPDIRECTINPUTDEVICE *lplpDirectInputDevice,
                                     LPUNKNOWN            pUnkOuter )
 {
+  uint32_t guid_crc32c = crc32c (0, &rguid, sizeof (REFGUID));
+
   const wchar_t* wszDevice = (rguid == GUID_SysKeyboard)   ? L"Default System Keyboard" :
                                 (rguid == GUID_SysMouse)   ? L"Default System Mouse"    :  
                                   (rguid == GUID_Joystick) ? L"Gamepad / Joystick"      :
                                                            L"Other Device";
+
+  if (devices.count (guid_crc32c))
+  {
+    *lplpDirectInputDevice = devices [guid_crc32c];
+                             devices [guid_crc32c]->AddRef ();
+    return S_OK;
+  }
+
 
   dll_log.Log ( L"[   Input  ][!] IDirectInput8::CreateDevice (%ph, %s, %ph, %ph)",
                    This,
@@ -1011,6 +1023,9 @@ IDirectInput8_CreateDevice_Detour ( IDirectInput8       *This,
     }
     else if (rguid == GUID_SysKeyboard)
       _dik.pDev = *lplpDirectInputDevice;
+
+    devices [guid_crc32c] = *lplpDirectInputDevice;
+    devices [guid_crc32c]->AddRef ();
   }
 
 #if 0

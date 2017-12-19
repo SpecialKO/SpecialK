@@ -171,7 +171,7 @@ void           SK_HookCSteamworks                   (void);
 void           SK_HookSteamAPI                      (void);
                                                     
 void           SK_Steam_ClearPopups                 (void);
-void           SK_Steam_DrawOSD                     (void);
+int            SK_Steam_DrawOSD                     (void);
 
 bool           SK_Steam_LoadOverlayEarly            (void);
 

@@ -198,14 +198,11 @@ SK_EstablishRootPath (void);
 #pragma data_seg (".SK_Hooks")
 #pragma data_seg (".SK_Hooks")
 const std::unordered_set <std::wstring> blacklist = {
-L"steam.exe",
 L"GameOverlayUI.exe",
 L"streaming_client.exe",
 L"steamerrorreporter.exe",
 L"steamerrorreporter64.exe",
-L"steamservice.exe",
 L"steam_monitor.exe",
-L"steamwebhelper.exe",
 L"html5app_steam.exe",
 L"wow_helper.exe",
 L"uninstall.exe",
@@ -266,13 +263,7 @@ L"mspaint.exe",
 L"7zFM.exe",
 L"WinRar.exe",
 L"EAC.exe",
-L"vcpkgsrv.exe",
-L"dllhost.exe",
 L"git.exe",
-L"link.exe",
-L"cl.exe",
-L"rc.exe",
-L"conhost.exe",
 L"GameBarPresenceWriter.exe",
 L"OAWrapper.exe",
 L"NvOAWrapperCache.exe",
@@ -282,15 +273,8 @@ L"waifu2x-caffe-cui.exe",
 L"GameServer.exe",// Sacred   Game Server
 L"s2gs.exe",      // Sacred 2 Game Server
 
-L"sihost.exe",
-L"Chrome.exe",
-L"explorer.exe",
-L"browser_broker.exe",
-L"dwm.exe",
 L"LaunchTM.exe",
 
-
-L"SleepOnLan.exe",
 L"ds3t.exe",
 L"tzt.exe"
 };

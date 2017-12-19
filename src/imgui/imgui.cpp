@@ -12093,6 +12093,8 @@ SK_ImGui_PollGamepad_EndFrame (void)
 {
   ImGuiIO& io (ImGui::GetIO ());
 
+  extern bool __stdcall SK_IsGameWindowActive (void);
+
   // Reset Mouse / Keyboard State so that we can process all state transitions
   //   that occur during the next frame without losing any input events.
   if (GetForegroundWindow () == game_window.hWnd)
@@ -12108,10 +12110,10 @@ SK_ImGui_PollGamepad_EndFrame (void)
     for (int i = 8; i < 256; i++)
       io.KeysDown [i] = (GetAsyncKeyState_Original (i) & 0x8000) != 0;
 
-    if (config.input.keyboard.catch_alt_f4)
+    if (config.input.keyboard.catch_alt_f4 && SK_IsGameWindowActive ())
     {
-      if ( io.KeyAlt && io.KeysDown [VK_F4] && ( io.KeysDownDuration [VK_MENU] == 0 ||
-                                                 io.KeysDownDuration [VK_F4]   == 0 ) )
+      if ( io.KeyAlt && io.KeysDown [VK_F4] && ( ( io.KeysDownDuration [VK_MENU] > 0 ) ^
+                                                 ( io.KeysDownDuration [VK_F4]   > 0 ) ) )
       {
         extern bool SK_ImGui_WantExit;
                     SK_ImGui_WantExit = true;

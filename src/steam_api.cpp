@@ -221,8 +221,8 @@ SK_Steam_PreHookCore (void)
                                     "SteamInternal_CreateInterface",
                                      SteamInternal_CreateInterface_Detour,
             static_cast_p2p <void> (&SteamInternal_CreateInterface_Original),
-                                    &pfnSteamInternal_CreateInterface );
-      MH_QueueEnableHook (pfnSteamInternal_CreateInterface);
+                                 &pfnSteamInternal_CreateInterface );
+              MH_QueueEnableHook (pfnSteamInternal_CreateInterface);
     }
 
     SK_CreateDLLHook2 (          wszSteamLib,
@@ -1624,14 +1624,16 @@ public:
     LeaveCriticalSection (&popup_cs);
   }
 
-  void drawPopups (void)
+  int drawPopups (void)
   {
+    int drawn = 0;
+
     EnterCriticalSection (&popup_cs);
 
     if (popups.empty ())
     {
       LeaveCriticalSection (&popup_cs);
-      return;
+      return drawn;
     }
 
     //
@@ -1855,12 +1857,16 @@ public:
             CEGUI::System::getDllSingleton   ().renderAllGUIContexts ();
           }
         }
+
+        ++drawn;
       }
 
       catch (...) {}
     }
     //SK_PopupManager::getInstance ()->unlockPopups ();
     LeaveCriticalSection (&popup_cs);
+
+    return drawn;
   }
 
   float getPercentOfAchievementsUnlocked (void)
@@ -2546,14 +2552,16 @@ private:
 } static *user_manager = nullptr;
 
 
-void
+int
 SK_Steam_DrawOSD (void)
 {
   if (steam_achievements != nullptr)
   {
     //SteamAPI_RunCallbacks_Original ();
-    steam_achievements->drawPopups ();
+    return steam_achievements->drawPopups ();
   }
+
+  return 0;
 }
 
 volatile LONGLONG SK_SteamAPI_CallbackRunCount    = 0LL;

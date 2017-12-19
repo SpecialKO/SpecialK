@@ -1650,6 +1650,97 @@ SK_ImGui_VolumeManager (void)
   }
 }
 
+void
+SK_ImGui_PlugInDisclaimer (void)
+{
+  ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.15f, 0.95f, 0.98f));
+  ImGui::TextWrapped    ("If you run into problems with a Plug-In, pressing and holding Ctrl + Shift at game startup can disable them.");
+  ImGui::PopStyleColor  ();
+}
+
+bool
+SK_ImGui_PlugInSelector (iSK_INI* ini, std::string name, const wchar_t* path, const wchar_t* import_name, bool& enable, int& order, int default_order = 1)
+{
+  std::string hash_name  = name + "##PlugIn";
+  std::string hash_load  = "Load Order##";
+              hash_load += name;
+
+  bool changed =
+    ImGui::Checkbox (hash_name.c_str (), &enable);
+
+  if (ImGui::IsItemHovered ())
+  {
+    if (GetFileAttributesW (path) == INVALID_FILE_ATTRIBUTES)
+      ImGui::SetTooltip ("Please install %s to %ws", name.c_str (), path);
+  }
+
+  if (ini->contains_section (import_name))
+  {
+    if (ini->get_section (import_name).get_value (L"When") == L"Early")
+      order = 0;
+    else
+      order = 1;
+  }
+  else
+    order = default_order;
+
+  ImGui::SameLine ();
+
+  changed |=
+    ImGui::Combo (hash_load.c_str (), &order, "Early\0Plug-In\0\0");
+
+  if (ImGui::IsItemHovered ())
+  {
+    ImGui::BeginTooltip ();
+    ImGui::Text         ("Plug-In Load Order is Suggested by Default.");
+    ImGui::Separator    ();
+    ImGui::BulletText   ("If a plug-in does not show up or the game crashes, try loading it early.");
+    ImGui::BulletText   ("Early plug-ins handle rendering before Special K; ReShade will apply its effects to Special K's UI if loaded early.");
+    ImGui::EndTooltip   ();
+  }
+
+  return changed;
+}
+
+bool
+SK_ImGui_SavePlugInPreference (iSK_INI* ini, bool enable, const wchar_t* import_name, const wchar_t* role, int order, const wchar_t* path)
+{
+  if (! enable)
+  {
+    ini->remove_section (import_name);
+    ini->write          (ini->get_filename ());
+
+    return true;
+  }
+
+  else if (GetFileAttributesW (path) != INVALID_FILE_ATTRIBUTES)
+  {
+    wchar_t wszImportRecord [4096];
+
+    _swprintf ( wszImportRecord, L"[%s]\n"
+#ifdef _WIN64
+                                 L"Architecture=x64\n"
+#else
+                                 L"Architecture=Win32\n"
+#endif
+                                 L"Role=%s\n"
+                                 L"When=%s\n"
+                                 L"Filename=%s\n\n",
+                                   import_name,
+                                     role,
+                                       order == 0 ? L"Early" :
+                                                    L"PlugIn",
+                                         path );
+
+    ini->import (wszImportRecord);
+    ini->write  (ini->get_filename ());
+
+    return true;
+  }
+
+  return false;
+}
+
 __declspec (dllexport)
 bool
 SK_ImGui_ControlPanel (void)
@@ -5175,82 +5266,6 @@ extern float SK_ImGui_PulseNav_Strength;
       static int order    = 0;
       static int order_ex = 1;
 
-      auto PlugInSelector = [&](iSK_INI* ini, std::string name, auto path, auto import_name, bool& enable, int& order, auto default_order = 1) ->
-      bool
-      {
-        std::string hash_name  = name + "##PlugIn";
-        std::string hash_load  = "Load Order##";
-                    hash_load += name;
-
-        bool changed =
-          ImGui::Checkbox (hash_name.c_str (), &enable);
-
-        if (ImGui::IsItemHovered ())
-        {
-          if (GetFileAttributesW (path) == INVALID_FILE_ATTRIBUTES)
-            ImGui::SetTooltip ("Please install %s to %ws", name.c_str (), path);
-        }
-
-        if (ini->contains_section (import_name))
-        {
-          if (ini->get_section (import_name).get_value (L"When") == L"Early")
-            order = 0;
-          else
-            order = 1;
-        }
-        else
-          order = default_order;
-
-        ImGui::SameLine ();
-
-        changed |=
-          ImGui::Combo (hash_load.c_str (), &order, "Early\0Plug-In\0\0");
-
-        if (ImGui::IsItemHovered ())
-        {
-          ImGui::BeginTooltip ();
-          ImGui::Text         ("Plug-In Load Order is Suggested by Default.");
-          ImGui::Separator    ();
-          ImGui::BulletText   ("If a plug-in does not show up or the game crashes, try loading it early.");
-          ImGui::BulletText   ("Early plug-ins handle rendering before Special K; ReShade will apply its effects to Special K's UI if loaded early.");
-          ImGui::EndTooltip   ();
-        }
-
-        return changed;
-      };
-
-      auto SavePlugInPreference = [](iSK_INI* ini, bool enable, auto import_name, auto role, auto order, auto path)
-      {
-        if (! enable)
-        {
-          ini->remove_section (import_name);
-          ini->write          (ini->get_filename ());
-        }
-
-        else if (GetFileAttributesW (path) != INVALID_FILE_ATTRIBUTES)
-        {
-          wchar_t wszImportRecord [4096];
-
-          _swprintf ( wszImportRecord, L"[%s]\n"
-#ifdef _WIN64
-                                       L"Architecture=x64\n"
-#else
-                                       L"Architecture=Win32\n"
-#endif
-                                       L"Role=%s\n"
-                                       L"When=%s\n"
-                                       L"Filename=%s\n\n",
-                                         import_name,
-                                           role,
-                                             order == 0 ? L"Early" :
-                                                          L"PlugIn",
-                                               path );
-
-          ini->import (wszImportRecord);
-          ini->write  (ini->get_filename ());
-        }
-      };
-
       bool changed = false;
 
       ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.68f, 0.02f, 0.45f));
@@ -5261,7 +5276,7 @@ extern float SK_ImGui_PulseNav_Strength;
       {
         ImGui::TreePush    ("");
         changed |= 
-            PlugInSelector (dll_ini, "ReShade (Official)", imp_path_reshade, imp_name_reshade, reshade_official, order, 1);
+            SK_ImGui_PlugInSelector (dll_ini, "ReShade (Official)", imp_path_reshade, imp_name_reshade, reshade_official, order, 1);
         ImGui::TreePop     (  );
       }
       ImGui::PopStyleColor ( 3);
@@ -5287,16 +5302,13 @@ extern float SK_ImGui_PulseNav_Strength;
         {
           ImGui::TreePush    ("");
           changed |=
-              PlugInSelector (dll_ini, "ReShade (Custom)", imp_path_reshade_ex, imp_name_reshade_ex, reshade_unofficial, order_ex, 1);
+              SK_ImGui_PlugInSelector (dll_ini, "ReShade (Custom)", imp_path_reshade_ex, imp_name_reshade_ex, reshade_unofficial, order_ex, 1);
           ImGui::TreePop     (  );
         }
         ImGui::PopStyleColor ( 3);
       }
 
-      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.15f, 0.95f, 0.98f));
-      ImGui::TextWrapped    ("If you run into problems with a Plug-In, pressing and holding Ctrl + Shift at game startup can disable them.");
-      ImGui::PopStyleColor  ();
-
+      SK_ImGui_PlugInDisclaimer ();
 
       if (changed)
       {
@@ -5306,8 +5318,8 @@ extern float SK_ImGui_PulseNav_Strength;
         if (reshade_official)
           reshade_unofficial = false;
 
-        SavePlugInPreference (dll_ini, reshade_official,   imp_name_reshade,    L"ThirdParty", order,    imp_path_reshade   );
-        SavePlugInPreference (dll_ini, reshade_unofficial, imp_name_reshade_ex, L"Unofficial", order_ex, imp_path_reshade_ex);
+        SK_ImGui_SavePlugInPreference (dll_ini, reshade_official,   imp_name_reshade,    L"ThirdParty", order,    imp_path_reshade   );
+        SK_ImGui_SavePlugInPreference (dll_ini, reshade_unofficial, imp_name_reshade_ex, L"Unofficial", order_ex, imp_path_reshade_ex);
       }
 
       ImGui::TreePop ();

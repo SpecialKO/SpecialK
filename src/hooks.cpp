@@ -828,12 +828,22 @@ SK_UnInit_MinHook (void)
 {
   MH_STATUS status;
 
+  std::queue <DWORD> suspended_tids =
+    SK_SuspendAllOtherThreads ();
+
   if ((status = MH_Uninitialize ()) != MH_OK)
   {
     dll_log.Log ( L"[ Min Hook ] Failed to Uninitialize MinHook Library! "
                   L"(Status: \"%hs\")",
                     MH_StatusToString (status) );
   }
+
+  else
+  {
+    //GetKeyState_Original = GetProcAddress (GetModuleHandle (L""))
+  }
+
+  SK_ResumeThreads (suspended_tids);
 
   return status;
 }

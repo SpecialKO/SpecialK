@@ -49,7 +49,7 @@
 #include <SpecialK/plugin/nier.h>
 
 
-#define FAR_VERSION_NUM L"0.7.0.18"
+#define FAR_VERSION_NUM L"0.7.0.19"
 #define FAR_VERSION_STR L"FAR v " FAR_VERSION_NUM
 
 // Block until update finishes, otherwise the update dialog
@@ -2062,7 +2062,7 @@ SK_FAR_ControlPanel (void)
       ImGui::TreePop ();
     }
 
-    if (ImGui::CollapsingHeader ("Framerate", ImGuiTreeNodeFlags_DefaultOpen))
+    if (ImGui::CollapsingHeader ("Framerate"))
     {
       ImGui::TreePush ("");
 
@@ -2182,6 +2182,61 @@ SK_FAR_ControlPanel (void)
                         ((float *)far_cam.pLook)[0],   ((float *)far_cam.pLook)[1],   ((float *)far_cam.pLook)[2] );
 
       ImGui::TreePop        ();
+    }
+
+    bool reshade =
+      ImGui::CollapsingHeader ("ReShade", ImGuiTreeNodeFlags_DefaultOpen);
+
+    if (ImGui::IsItemHovered ())
+      ImGui::SetTooltip ("Use File | Browse ReShade Assets to manage shaders and textures.");
+
+    if (reshade)
+    {
+      extern bool
+      SK_ImGui_SavePlugInPreference ( iSK_INI* ini, bool enable, const wchar_t* import_name,
+                                      const wchar_t* role, int order, const wchar_t* path );
+
+      extern void
+      SK_ImGui_PlugInDisclaimer     ( void );
+
+      extern bool
+      SK_ImGui_PlugInSelector       ( iSK_INI* ini, std::string name, const wchar_t* path,
+                                      const wchar_t* import_name, bool& enable, int& order,
+                                      int default_order = 1 );
+
+      static wchar_t wszReShadePath [MAX_PATH * 2] = { 0 };
+
+      if (*wszReShadePath == 0)
+        PathCombineW (wszReShadePath, SK_GetHostPath (), L"ReShade64.dll");
+
+      ImGui::TreePush      ("");
+      static int  load_order     = 0;
+             bool enabled        =
+        SK_GetDLLConfig ()->contains_section (L"Import.ReShade64_Custom");
+             bool plugin_changed =
+        SK_ImGui_PlugInSelector ( SK_GetDLLConfig (),
+                                    "ReShade (Custom)",
+                                      wszReShadePath,
+                                        L"Import.ReShade64_Custom",
+                                          enabled,
+                                            load_order,
+                                              1 );
+
+      if (enabled)
+        SK_ImGui_PlugInDisclaimer ();
+
+      if (plugin_changed)
+      {
+        SK_ImGui_SavePlugInPreference (
+          SK_GetDLLConfig (),
+            enabled,
+              L"Import.ReShade64_Custom",
+                L"Unofficial",
+                  load_order,
+                    wszReShadePath
+        );
+      }
+      ImGui::TreePop       (  );
     }
 
     ImGui::TreePop       ( );

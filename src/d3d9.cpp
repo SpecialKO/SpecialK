@@ -696,8 +696,6 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
     {
       SK_TextOverlayManager::getInstance ()->drawAllOverlays (0.0f, 0.0f);
 
-      SK_Steam_DrawOSD ();
-
       pDev->SetRenderState (D3DRS_SRGBWRITEENABLE,          FALSE);
       pDev->SetRenderState (D3DRS_ALPHABLENDENABLE,         TRUE);
       pDev->SetRenderState (D3DRS_SEPARATEALPHABLENDENABLE, FALSE);
@@ -708,11 +706,26 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
 
       CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
 
+
       if ( static_cast <int> (SK_GetCurrentRenderBackend ().api) &
            static_cast <int> (SK_RenderAPI::D3D9)                  )
       {
         extern DWORD SK_ImGui_DrawFrame (DWORD dwFlags, void* user);
                      SK_ImGui_DrawFrame (       0x00,     nullptr );
+      }
+
+
+      if (SK_Steam_DrawOSD () != 0)
+      {
+        pDev->SetRenderState (D3DRS_SRGBWRITEENABLE,          FALSE);
+        pDev->SetRenderState (D3DRS_ALPHABLENDENABLE,         TRUE);
+        pDev->SetRenderState (D3DRS_SEPARATEALPHABLENDENABLE, FALSE);
+        pDev->SetRenderState (D3DRS_SRCBLEND,                 D3DBLEND_INVSRCALPHA);
+        pDev->SetRenderState (D3DRS_DESTBLEND,                D3DBLEND_SRCALPHA);
+
+        pDev->SetRenderState (D3DRS_ALPHATESTENABLE,          FALSE);
+
+        CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
       }
     }
     cegD3D9->endRendering ();
@@ -867,8 +880,8 @@ SK_HookD3D9 (void)
                              &pfnDirect3DCreate9 )
        )
     {
-      SK_LOG0 ( ( L"  Direct3DCreate9: %s  { Hooked  }",
-                    SK_MakePrettyAddress (Direct3DCreate9_Import).c_str () ),
+      SK_LOG0 ( ( L"  Direct3DCreate9:   %s  { Hooked  }",
+                    SK_MakePrettyAddress (pfnDirect3DCreate9).c_str () ),
                   L"   D3D9   " );
 
       if ( config.apis.d3d9ex.hook &&
@@ -881,7 +894,7 @@ SK_HookD3D9 (void)
          )
       {
         SK_LOG0 ( ( L"  Direct3DCreate9Ex: %s  { Hooked  }",
-                      SK_MakePrettyAddress (Direct3DCreate9Ex_Import).c_str () ),
+                      SK_MakePrettyAddress (pfnDirect3DCreate9Ex).c_str () ),
                     L"  D3D9Ex  " );
       }
 
@@ -1283,39 +1296,42 @@ D3D9PresentCallbackEx ( IDirect3DDevice9Ex *This,
       hr = D3DERR_DEVICELOST;
   }
 
-  if ( SK_GetCurrentRenderBackend ().device != nullptr             &&
-       D3D9PresentEx_Target                 != nullptr             &&
-       memcmp (D3D9PresentEx_GuardBytes, D3D9PresentEx_Target, 12) &&
-       D3D9PresentEx_GuardBytes [0]         != 0x00 )
+  if (config.render.dxgi.rehook_present)
   {
-    SK_LOG0 ( ( L"IDirect3DDevice9Ex::PresentEx (...) function prolog altered (expected: "
-                L"'%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x', but got "
-                L"'%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x'); "
-                L"falling back to vftable override.",
-                D3D9PresentEx_GuardBytes [0], D3D9PresentEx_GuardBytes [ 1], D3D9PresentEx_GuardBytes [ 2],
-                D3D9PresentEx_GuardBytes [3], D3D9PresentEx_GuardBytes [ 4], D3D9PresentEx_GuardBytes [ 5],
-                D3D9PresentEx_GuardBytes [6], D3D9PresentEx_GuardBytes [ 7], D3D9PresentEx_GuardBytes [ 8],
-                D3D9PresentEx_GuardBytes [9], D3D9PresentEx_GuardBytes [10], D3D9PresentEx_GuardBytes [11],
-               ((uint8_t *)D3D9PresentEx_Target) [0], ((uint8_t *)D3D9PresentEx_Target) [ 1], ((uint8_t *)D3D9PresentEx_Target) [ 2],
-               ((uint8_t *)D3D9PresentEx_Target) [3], ((uint8_t *)D3D9PresentEx_Target) [ 4], ((uint8_t *)D3D9PresentEx_Target) [ 5],
-               ((uint8_t *)D3D9PresentEx_Target) [6], ((uint8_t *)D3D9PresentEx_Target) [ 7], ((uint8_t *)D3D9PresentEx_Target) [ 8],
-               ((uint8_t *)D3D9PresentEx_Target) [9], ((uint8_t *)D3D9PresentEx_Target) [10], ((uint8_t *)D3D9PresentEx_Target) [11] ),
-               L"D3D9 Hooks" );
-
-    //memcpy (D3D9PresentEx_GuardBytes, D3D9PresentEx_Target, 12);
-    //        D3D9PresentEx_GuardBytes [0] = 0x00; // Indicate that we've given up trying to install a hook and
-    //                                       //   are instead altering COM vftables
-
-                   IDirect3DDevice9Ex* pDevEx = (IDirect3DDevice9Ex *)SK_GetCurrentRenderBackend ().device;
-      void** vftable = *(void***)*&pDevEx;
-
-    if (MH_RemoveHook (vftable [121]) == MH_OK || MH_RemoveHook (D3D9PresentEx_Target) == MH_OK)
+    if ( SK_GetCurrentRenderBackend ().device != nullptr             &&
+         D3D9PresentEx_Target                 != nullptr             &&
+         memcmp (D3D9PresentEx_GuardBytes, D3D9PresentEx_Target, 12) &&
+         D3D9PresentEx_GuardBytes [0]         != 0x00 )
     {
-      if (MH_OK == MH_CreateHook (D3D9PresentEx_Target, D3D9PresentCallbackEx, (LPVOID *)&D3D9PresentEx_Original))
+      SK_LOG0 ( ( L"IDirect3DDevice9Ex::PresentEx (...) function prolog altered (expected: "
+                  L"'%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x', but got "
+                  L"'%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x'); "
+                  L"falling back to vftable override.",
+                  D3D9PresentEx_GuardBytes [0], D3D9PresentEx_GuardBytes [ 1], D3D9PresentEx_GuardBytes [ 2],
+                  D3D9PresentEx_GuardBytes [3], D3D9PresentEx_GuardBytes [ 4], D3D9PresentEx_GuardBytes [ 5],
+                  D3D9PresentEx_GuardBytes [6], D3D9PresentEx_GuardBytes [ 7], D3D9PresentEx_GuardBytes [ 8],
+                  D3D9PresentEx_GuardBytes [9], D3D9PresentEx_GuardBytes [10], D3D9PresentEx_GuardBytes [11],
+                 ((uint8_t *)D3D9PresentEx_Target) [0], ((uint8_t *)D3D9PresentEx_Target) [ 1], ((uint8_t *)D3D9PresentEx_Target) [ 2],
+                 ((uint8_t *)D3D9PresentEx_Target) [3], ((uint8_t *)D3D9PresentEx_Target) [ 4], ((uint8_t *)D3D9PresentEx_Target) [ 5],
+                 ((uint8_t *)D3D9PresentEx_Target) [6], ((uint8_t *)D3D9PresentEx_Target) [ 7], ((uint8_t *)D3D9PresentEx_Target) [ 8],
+                 ((uint8_t *)D3D9PresentEx_Target) [9], ((uint8_t *)D3D9PresentEx_Target) [10], ((uint8_t *)D3D9PresentEx_Target) [11] ),
+                 L"D3D9 Hooks" );
+
+      //memcpy (D3D9PresentEx_GuardBytes, D3D9PresentEx_Target, 12);
+      //        D3D9PresentEx_GuardBytes [0] = 0x00; // Indicate that we've given up trying to install a hook and
+      //                                       //   are instead altering COM vftables
+
+                     IDirect3DDevice9Ex* pDevEx = (IDirect3DDevice9Ex *)SK_GetCurrentRenderBackend ().device;
+        void** vftable = *(void***)*&pDevEx;
+
+      if (MH_RemoveHook (vftable [121]) == MH_OK || MH_RemoveHook (D3D9PresentEx_Target) == MH_OK)
       {
-                   MH_EnableHook (D3D9PresentEx_Target);
-        memcpy ( D3D9PresentEx_GuardBytes,
-                                  D3D9PresentEx_Target, 16 );
+        if (MH_OK == MH_CreateHook (D3D9PresentEx_Target, D3D9PresentCallbackEx, (LPVOID *)&D3D9PresentEx_Original))
+        {
+                     MH_EnableHook (D3D9PresentEx_Target);
+          memcpy ( D3D9PresentEx_GuardBytes,
+                                    D3D9PresentEx_Target, 16 );
+        }
       }
     }
   }

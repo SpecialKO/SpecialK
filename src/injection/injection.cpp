@@ -836,6 +836,15 @@ SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE role)
       lstrcatW (wszOut, L"\\dxgi.dll");
       break;
 
+    case DLL_ROLE::DInput8:
+      lstrcatW (wszOut, L"\\dinput8.dll");
+      break;
+
+    case DLL_ROLE::D3D11:
+    case DLL_ROLE::D3D11_CASE:
+      lstrcatW (wszOut, L"\\d3d11.dll");
+      break;
+
     case DLL_ROLE::OpenGL:
       lstrcatW (wszOut, L"\\OpenGL32.dll");
       break;

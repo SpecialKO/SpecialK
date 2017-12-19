@@ -39,7 +39,7 @@ SteamAPI_ISteamClient_GetISteamController_Detour ( ISteamClient *This,
   {
     if (! lstrcmpA (pchVersion, STEAMCONTROLLER_INTERFACE_VERSION))
     {
-      if (SK_SteamWrapper_remap_controller.count (pController))
+      if (SK_SteamWrapper_remap_controller.count (pController) && SK_SteamWrapper_remap_controller [pController] != nullptr)
          return SK_SteamWrapper_remap_controller [pController];
 
       else
@@ -100,7 +100,7 @@ SK_SteamWrapper_WrappedClient_GetISteamController ( ISteamClient *pRealClient,
   
     if (pController != nullptr)
     {
-      if (SK_SteamWrapper_remap_controller.count (pController))
+      if (SK_SteamWrapper_remap_controller.count (pController) && SK_SteamWrapper_remap_controller [pController] != nullptr)
         return dynamic_cast <ISteamController *> ( SK_SteamWrapper_remap_controller [pController] );
   
       else

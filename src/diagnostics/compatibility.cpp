@@ -2172,37 +2172,39 @@ SK_Bypass_CRT (LPVOID user)
 
   const bool has_dgvoodoo = dgVoodoo_Check ();
 
+  const wchar_t* wszAPI = SK_GetBackend ();
+
   if (config.apis.last_known != SK_RenderAPI::Reserved)
   {
     switch (static_cast <SK_RenderAPI> (config.apis.last_known))
     {
       case SK_RenderAPI::D3D8:
       case SK_RenderAPI::D3D8On11:
-        SK_SetBackend (L"d3d8");
+        wszAPI = L"d3d8";
         SK_SetDLLRole (DLL_ROLE::D3D8);
         break;
       case SK_RenderAPI::DDraw:
       case SK_RenderAPI::DDrawOn11:
-        SK_SetBackend (L"ddraw");
+        wszAPI = L"ddraw";
         SK_SetDLLRole (DLL_ROLE::DDraw);
         break;
       case SK_RenderAPI::D3D10:
       case SK_RenderAPI::D3D11:
       case SK_RenderAPI::D3D12:
-        SK_SetBackend (L"dxgi");
+        wszAPI = L"dxgi";
         SK_SetDLLRole (DLL_ROLE::DXGI);
         break;
       case SK_RenderAPI::D3D9:
       case SK_RenderAPI::D3D9Ex:
-        SK_SetBackend (L"d3d9");
+        wszAPI = L"d3d9";
         SK_SetDLLRole (DLL_ROLE::D3D9);
         break;
       case SK_RenderAPI::OpenGL:
-        SK_SetBackend (L"OpenGL32");
+        wszAPI = L"OpenGL32";
         SK_SetDLLRole (DLL_ROLE::OpenGL);
         break;
       case SK_RenderAPI::Vulkan:
-        SK_SetBackend (L"vulkan-1");
+        wszAPI = L"vulkan-1";
         SK_SetDLLRole (DLL_ROLE::Vulkan);
         break;
     }
@@ -2210,7 +2212,7 @@ SK_Bypass_CRT (LPVOID user)
 
   static wchar_t wszAPIName [128] = { L"Auto-Detect   " };
        lstrcatW (wszAPIName, L"(");
-       lstrcatW (wszAPIName, SK_GetBackend ());
+       lstrcatW (wszAPIName, wszAPI);
        lstrcatW (wszAPIName, L")");
 
   if (no_imports && config.apis.last_known == SK_RenderAPI::Reserved)
@@ -2339,7 +2341,7 @@ SK_Bypass_CRT (LPVOID user)
   {
     if (nRadioPressed == 0)
     {
-      if (! _wcsicmp (SK_GetBackend (), L"dxgi"))
+      if (SK_GetDLLRole () & DLL_ROLE::DXGI)
       {
         config.apis.dxgi.d3d11.hook = true;
 #ifdef _WIN64
@@ -2347,25 +2349,25 @@ SK_Bypass_CRT (LPVOID user)
 #endif
       }
 
-      else if (! _wcsicmp (SK_GetBackend (), L"d3d9"))
+      if (SK_GetDLLRole () & DLL_ROLE::D3D9)
       {
         config.apis.d3d9.hook   = true;
         config.apis.d3d9ex.hook = true;
       }
 
-      else if (! _wcsicmp (SK_GetBackend (), L"OpenGL32"))
+      if (SK_GetDLLRole () & DLL_ROLE::OpenGL)
       {
         config.apis.OpenGL.hook = true;
       }
 
 #ifndef _WIN64
-      else if (! _wcsicmp (SK_GetBackend (), L"d3d8"))
+      if (SK_GetDLLRole () & DLL_ROLE::D3D8)
       {
         config.apis.d3d8.hook       = true;
         config.apis.dxgi.d3d11.hook = true;
       }
 
-      else if (! _wcsicmp (SK_GetBackend (), L"ddraw"))
+      if (SK_GetDLLRole () & DLL_ROLE::DDraw)
       {
         config.apis.ddraw.hook      = true;
         config.apis.dxgi.d3d11.hook = true;
@@ -2379,7 +2381,7 @@ SK_Bypass_CRT (LPVOID user)
       case 0:
         if (nButtonPressed == BUTTON_INSTALL)
         {
-          if (SK_IsInjected ()) SK_Inject_SwitchToRenderWrapperEx  (SK_GetDLLRole ());
+          if (SK_IsInjected ()) SK_Inject_SwitchToRenderWrapperEx (SK_GetDLLRole ());
           else
           {
             SK_Inject_SwitchToGlobalInjectorEx (SK_GetDLLRole ());
@@ -2634,6 +2636,7 @@ SK_Bypass_CRT (LPVOID user)
       dll_ini->remove_section (L"Import.ReShade32");
       dll_ini->remove_section (L"Import.ReShade32_Custom");
 #endif
+      dll_ini->write (dll_ini->get_filename ());
     }
 
     if (nButtonPressed == BUTTON_RESET_CONFIG)
@@ -2648,7 +2651,7 @@ SK_Bypass_CRT (LPVOID user)
 
     else if (nButtonPressed != BUTTON_OK)
     {
-      SK_SaveConfig (wszConfigName);
+      SK_SaveConfig  (wszConfigName);
     }
 
     if ( nButtonPressed         == BUTTON_INSTALL &&
@@ -2700,7 +2703,8 @@ SK_Bypass_CRT (LPVOID user)
 
   else
   {
-    SK_SaveConfig        ();
+    dll_ini->write (dll_ini->get_filename ());
+    SK_SaveConfig  ();
 
     SK_EnumLoadedModules (SK_ModuleEnum::PostLoad);
 

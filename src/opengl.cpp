@@ -70,7 +70,7 @@ extern HWND hWndRender;
 void __stdcall
 SK_GL_UpdateRenderStats (void);
 
-extern "C++" void SK_Steam_DrawOSD (void);
+extern "C++" int SK_Steam_DrawOSD (void);
 
 typedef BOOL (WINAPI *SwapBuffers_pfn)(HDC);
 typedef BOOL (WINAPI *wglSwapBuffers_pfn)(HDC);
@@ -1253,12 +1253,14 @@ SK_CEGUI_DrawGL (void)
     cegGL->beginRendering   ();
     {
       SK_TextOverlayManager::getInstance ()->drawAllOverlays (0.0f, 0.0f);
-    
-      SK_Steam_DrawOSD ();
-    
       CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
 
       SK_ImGui_DrawFrame (0x00, nullptr);
+
+      if (SK_Steam_DrawOSD ())
+      {
+        CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
+      }
     }
     cegGL->endRendering     ();
 

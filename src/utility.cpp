@@ -1328,6 +1328,11 @@ SK_SelfDestruct (void)
     else if (! _wcsicmp (wszBackend, L"OpenGL32"))
       SK::OpenGL::Shutdown ();
 #endif
+
+    using TerminateProcess_pfn = BOOL (WINAPI *)(HANDLE hProcess, UINT uExitCode);
+    extern TerminateProcess_pfn TerminateProcess_Original;
+
+    TerminateProcess_Original (GetCurrentProcess (), 0x00);
   }
 }
 

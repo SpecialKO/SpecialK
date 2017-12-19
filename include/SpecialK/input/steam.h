@@ -6,6 +6,8 @@
 #include <SpecialK/input/xinput.h>
 #include <imgui/imgui.h>
 
+#include <concurrent_unordered_map.h>
+
 extern sk_input_api_context_s SK_Steam_Backend;
 
 #define SK_Steam_READ(type)  SK_Steam_Backend.markRead  (type);
@@ -147,6 +149,22 @@ class IWrapSteamController : public ISteamController
 public:
   IWrapSteamController (ISteamController* pController) :
                                                          pRealController (pController) {
+  };
+
+  ~IWrapSteamController (void)
+  {
+    extern concurrency::concurrent_unordered_map <ISteamController*,    IWrapSteamController*>    SK_SteamWrapper_remap_controller;
+
+    if (SK_SteamWrapper_remap_controller.count (pRealController))
+    {
+      SK_SteamWrapper_remap_controller [pRealController] = nullptr;
+    }
+
+    if (pRealController != nullptr)
+    {
+      delete pRealController;
+             pRealController = nullptr;
+    }
   };
 
   virtual bool Init (void) override

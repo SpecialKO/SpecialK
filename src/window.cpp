@@ -5486,6 +5486,13 @@ SK_GetGameWindow (void)
   return game_window.hWnd;
 }
 
+bool
+__stdcall
+SK_IsGameWindowActive (void)
+{
+  return game_window.active;
+}
+
 using RegisterClassA_pfn = ATOM (WINAPI *)(const WNDCLASSA* lpWndClass);
 using RegisterClassW_pfn = ATOM (WINAPI *)(const WNDCLASSW* lpWndClass);
 using RegisterClassExA_pfn = ATOM (WINAPI *)(const WNDCLASSEXA* lpWndClassEx);

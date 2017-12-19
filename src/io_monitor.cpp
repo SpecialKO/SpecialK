@@ -252,8 +252,6 @@ SK_WMI_ServerThread (LPVOID lpUser)
 
   SleepEx (1500UL, TRUE);
 
-  COM::base.wmi.Unlock (                      );
-
   InterlockedExchange   (&COM::base.wmi.init, 1);
 
   // Keep the thread alive indefinitely so that the WMI stuff continues running
@@ -381,6 +379,8 @@ SK_InitWMI (void)
     while (! ReadAcquire (&COM::base.wmi.init))
       SleepEx (333, FALSE);
   }
+
+  COM::base.wmi.Unlock ();
 
   return true;
 }

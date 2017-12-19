@@ -7155,7 +7155,7 @@ SK_D3D11_MipmapCacheTexture2DEx ( DirectX::ScratchImage&   img,
   bool compressed =
     SK_D3D11_IsFormatCompressed (img.GetMetadata ().format);
 
-  DirectX::ScratchImage* mipmaps =
+  auto* mipmaps =
     new DirectX::ScratchImage;
 
   HRESULT ret  = E_FAIL;
@@ -7187,7 +7187,7 @@ SK_D3D11_MipmapCacheTexture2DEx ( DirectX::ScratchImage&   img,
       {
         if ((! config.textures.d3d11.uncompressed_mips) && (! SK_D3D11_IsFormatBC6Or7 (meta.format)))
         {
-          DirectX::ScratchImage* compressed_mips =
+          auto* compressed_mips =
             new DirectX::ScratchImage;
 
           DirectX::TexMetadata mipmap_meta =
@@ -8746,7 +8746,7 @@ reinterpret_cast <ID3D11Resource **> (ppTexture2D)
     mdata.format     = pDesc->Format;
     mdata.dimension  = DirectX::TEX_DIMENSION_TEXTURE2D;
 
-    DirectX::ScratchImage* image = new DirectX::ScratchImage;
+    auto* image = new DirectX::ScratchImage;
     image->Initialize (mdata);
 
     bool error = false;
@@ -8810,7 +8810,7 @@ reinterpret_cast <ID3D11Resource **> (ppTexture2D)
 
     if (config.textures.d3d11.uncompressed_mips && compressed)
     {
-      DirectX::ScratchImage* decompressed =
+      auto* decompressed =
         new DirectX::ScratchImage;
 
       ret =

@@ -2143,9 +2143,6 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
         cegD3D11->beginRendering ();
         {
           SK_TextOverlayManager::getInstance ()->drawAllOverlays (0.0f, 0.0f);
-
-          SK_Steam_DrawOSD ();
-
           CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
 
           // XXX: TODO (Full startup isn't necessary, just update framebuffer dimensions).
@@ -2153,6 +2150,11 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
           {
             extern DWORD SK_ImGui_DrawFrame ( DWORD dwFlags, void* user    );
                          SK_ImGui_DrawFrame (       0x00,          nullptr );
+          }
+
+          if (SK_Steam_DrawOSD ())
+          {
+            CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
           }
         }
         cegD3D11->endRendering ();
@@ -2415,7 +2417,7 @@ HRESULT SK_DXGI_Present ( IDXGISwapChain *This,
         {
           MH_ApplyQueued ();
 
-                       IDXGISwapChain* pSwap = (IDXGISwapChain *)SK_GetCurrentRenderBackend ().swapchain;
+                       auto* pSwap = (IDXGISwapChain *)SK_GetCurrentRenderBackend ().swapchain;
           void** vftable = *(void***)*&pSwap;
 
           DWORD dwProtect;

@@ -1809,12 +1809,17 @@ SK_Win32_CreateDummyWindow (void)
 void
 SK_Win32_CleanupDummyWindow (void)
 {
-  for (auto& it : dummy_windows)
+  
+  for (auto it = dummy_windows.begin (); it != dummy_windows.end (); ++it)
   {
-    if (DestroyWindow (it))
+    if (DestroyWindow (*it))
     {
-      dummy_windows.erase (it);
+      it =
+        dummy_windows.erase (it);
     }
+
+    else
+      ++it;
   }
 
   UnregisterClassW ( L"Special K Dummy Window Class", SK_GetDLL () );
@@ -1829,7 +1834,6 @@ SK_ShutdownCore (const wchar_t* backend)
 {
   // Fast path for DLLs that were never really attached.
   extern __time64_t __SK_DLL_AttachTime;
-
   if (! __SK_DLL_AttachTime)
   {
     SK_UnInit_MinHook ();
@@ -1877,6 +1881,10 @@ SK_ShutdownCore (const wchar_t* backend)
 
     dll_log.LogEx   (false, L"done!\n");
   }
+
+  extern void
+  SK_Steam_KillPump (void);
+  SK_Steam_KillPump ();
 
   auto ShutdownWMIThread =
   []( volatile HANDLE&  hSignal,
@@ -2249,7 +2257,7 @@ SK_BeginBufferSwap (void)
   }
 
   extern void SK_ImGui_PollGamepad_EndFrame (void);
-  SK_ImGui_PollGamepad_EndFrame ();
+              SK_ImGui_PollGamepad_EndFrame ();
 }
 
 

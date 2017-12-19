@@ -1635,7 +1635,7 @@ GetKeyState_Detour (_In_ int nVirtKey)
 {
   SK_LOG_FIRST_CALL
 
-#define SK_ConsumeVirtKey(nVirtKey) { GetKeyState_Original(nVirtKey); return 0; }
+#define SK_ConsumeVirtKey(nVirtKey) { GetKeyState_Original (nVirtKey); return 0; }
 
   // Block keyboard input to the game while the console is active
   if (SK_Console::getInstance ()->isVisible ())
