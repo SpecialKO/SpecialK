@@ -583,11 +583,8 @@ FreeLibrary_Detour (HMODULE hLibModule)
 }
 
 HMODULE
-WINAPI
-LoadLibraryA_Detour (LPCSTR lpFileName)
+LoadLibrary_Marshal (LPVOID lpRet, LPCWSTR lpFileName, const wchar_t* wszSourceFunc)
 {
-  LPVOID lpRet = _ReturnAddress ();
-
   if (lpFileName == nullptr)
     return nullptr;
 
@@ -595,13 +592,13 @@ LoadLibraryA_Detour (LPCSTR lpFileName)
 
   HMODULE hModEarly = nullptr;
 
-  char*           compliant_path = _strdup (lpFileName);
-  SK_FixSlashesA (compliant_path);
+  wchar_t*        compliant_path = _wcsdup (lpFileName);
+  SK_FixSlashesW (compliant_path);
      lpFileName = compliant_path;
 
   __try {
-    GetModuleHandleExA ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-                           static_cast <LPCSTR> (lpFileName),
+    GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+                           static_cast <LPCWSTR> (lpFileName),
                              &hModEarly );
   } 
 
@@ -623,12 +620,12 @@ LoadLibraryA_Detour (LPCSTR lpFileName)
 
   HMODULE hMod = hModEarly;
 
-  __try                                  { hMod = LoadLibraryA_Original (lpFileName); }
+  __try                                  { hMod = LoadLibraryW_Original (lpFileName); }
   __except (EXCEPTION_EXECUTE_HANDLER)
   {
     dll_log.Log ( L"[DLL Loader]  ** Crash Prevented **  DLL raised an exception during"
-                  L" LoadLibraryA ('%hs')!",
-                    lpFileName );
+                  L" %s ('%hs')!",
+                    wszSourceFunc, lpFileName );
   }
 
 
@@ -636,7 +633,7 @@ LoadLibraryA_Detour (LPCSTR lpFileName)
   {
     SK_TraceLoadLibrary ( SK_GetCallingDLL (lpRet),
                             lpFileName,
-                              " LoadLibraryA ", lpRet );
+                              wszSourceFunc, lpRet );
   }
 
   free ( static_cast <void *> (compliant_path) );
@@ -647,63 +644,26 @@ LoadLibraryA_Detour (LPCSTR lpFileName)
 
 HMODULE
 WINAPI
+LoadLibraryA_Detour (LPCSTR lpFileName)
+{
+  return
+    LoadLibrary_Marshal (
+       _ReturnAddress (),
+         SK_UTF8ToWideChar (lpFileName).c_str (),
+           L"LoadLibraryA"
+    );
+}
+
+HMODULE
+WINAPI
 LoadLibraryW_Detour (LPCWSTR lpFileName)
 {
-  LPVOID lpRet = _ReturnAddress ();
-
-  if (lpFileName == nullptr)
-    return nullptr;
-
- SK_LockDllLoader ();
-
-  HMODULE hModEarly = nullptr;
-
-  wchar_t*        compliant_path = _wcsdup (lpFileName);
-  SK_FixSlashesW (compliant_path);
-     lpFileName = compliant_path;
-
-  __try {
-    GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, lpFileName, &hModEarly );
-  }
-  __except ( (GetExceptionCode () == EXCEPTION_INVALID_HANDLE) ?
-                           EXCEPTION_EXECUTE_HANDLER :
-                           EXCEPTION_CONTINUE_SEARCH )
-  {
-    SetLastError (0);
-  }
-
-
-  if (hModEarly == nullptr && BlacklistLibrary (lpFileName))
-  {
-    free (static_cast <void *> (compliant_path));
-
-    SK_UnlockDllLoader ();
-    return nullptr;
-  }
-
-
-  HMODULE hMod = hModEarly;
-
-  __try                                  { hMod = LoadLibraryW_Original (lpFileName); }
-  __except (EXCEPTION_EXECUTE_HANDLER)
-  {
-    dll_log.Log ( L"[DLL Loader]  ** Crash Prevented **  DLL raised an exception during"
-                  L" LoadLibraryW ('%ws')!",
-                    lpFileName );
-  }
-
-
-  if (hModEarly != hMod)
-  {
-    SK_TraceLoadLibrary ( SK_GetCallingDLL (lpRet),
-                            lpFileName,
-                              L" LoadLibraryW ", lpRet );
-  }
-
-  free (static_cast <void *> (compliant_path));
-
-  SK_UnlockDllLoader ();
-  return hMod;
+  return
+    LoadLibrary_Marshal (
+       _ReturnAddress (),
+         lpFileName,
+           L"LoadLibraryW"
+    );
 }
 
 HMODULE
@@ -760,92 +720,8 @@ LoadPackagedLibrary_Detour (LPCWSTR lpLibFileName, DWORD Reserved)
 }
 
 HMODULE
-WINAPI
-LoadLibraryExA_Detour (
-  _In_       LPCSTR lpFileName,
-  _Reserved_ HANDLE hFile,
-  _In_       DWORD  dwFlags )
+LoadLibraryEx_Marshal (LPVOID lpRet, LPCWSTR lpFileName, HANDLE hFile, DWORD dwFlags, const wchar_t* wszSourceFunc)
 {
-  LPVOID lpRet = _ReturnAddress ();
-
-  if (lpFileName == nullptr)
-    return nullptr;
-
-  char*           compliant_path = _strdup (lpFileName);
-  SK_FixSlashesA (compliant_path);
-  lpFileName    = compliant_path;
-
-  SK_LockDllLoader ();
-
-  if ((dwFlags & LOAD_LIBRARY_AS_DATAFILE) && (! BlacklistLibrary (lpFileName)))
-  {
-    HMODULE hModRet =
-      LoadLibraryExA_Original (lpFileName, hFile, dwFlags);
-
-    free (static_cast <void *> (compliant_path));
-
-    SK_UnlockDllLoader ();
-    return hModRet;
-  }
-
-  HMODULE hModEarly = nullptr;
-
-  __try
-  {
-    GetModuleHandleExA ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, lpFileName, &hModEarly );
-  }
-
-  __except ( (GetExceptionCode () == EXCEPTION_INVALID_HANDLE) ?
-                           EXCEPTION_EXECUTE_HANDLER :
-                           EXCEPTION_CONTINUE_SEARCH )
-  {
-    SetLastError (0);
-  }
-
-  if (hModEarly == nullptr && BlacklistLibrary (lpFileName))
-  {
-    free (static_cast <void *> (compliant_path));
-
-    SK_UnlockDllLoader ();
-    return nullptr;
-  }
-
-
-  HMODULE hMod = hModEarly;
-
-  __try                                  { hMod = LoadLibraryExA_Original (lpFileName, hFile, dwFlags); }
-  __except (EXCEPTION_EXECUTE_HANDLER)
-  {
-    dll_log.Log ( L"[DLL Loader]  ** Crash Prevented **  DLL raised an exception during"
-                  L" LoadLibraryExA ('%hs')!",
-                    lpFileName );
-  }
-
-
-
-  if ( hModEarly != hMod && (! ((dwFlags & LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE) ||
-                                (dwFlags & LOAD_LIBRARY_AS_IMAGE_RESOURCE))) )
-{
-    SK_TraceLoadLibrary ( SK_GetCallingDLL (lpRet),
-                            lpFileName,
-                              "LoadLibraryExA", lpRet );
-  }
-
-  free (static_cast <void *> (compliant_path));
-
-  SK_UnlockDllLoader ();
-  return hMod;
-}
-
-HMODULE
-WINAPI
-LoadLibraryExW_Detour (
-  _In_       LPCWSTR lpFileName,
-  _Reserved_ HANDLE  hFile,
-  _In_       DWORD   dwFlags )
-{
-  LPVOID lpRet = _ReturnAddress ();
-
   if (lpFileName == nullptr)
     return nullptr;
 
@@ -895,8 +771,8 @@ LoadLibraryExW_Detour (
   __except (EXCEPTION_EXECUTE_HANDLER)
   {
     dll_log.Log ( L"[DLL Loader]  ** Crash Prevented **  DLL raised an exception during"
-                  L" LoadLibraryExW ('%ws')!",
-                    lpFileName );
+                  L" %s ('%ws')!",
+                    wszSourceFunc, lpFileName );
   }
 
 
@@ -905,13 +781,47 @@ LoadLibraryExW_Detour (
   {
     SK_TraceLoadLibrary ( SK_GetCallingDLL (lpRet),
                             lpFileName,
-                              L"LoadLibraryExW", lpRet );
+                              wszSourceFunc, lpRet );
   }
 
   free (static_cast <void *> (compliant_path));
 
   SK_UnlockDllLoader ();
   return hMod;
+}
+
+HMODULE
+WINAPI
+LoadLibraryExA_Detour (
+  _In_       LPCSTR lpFileName,
+  _Reserved_ HANDLE hFile,
+  _In_       DWORD  dwFlags )
+{
+  return
+    LoadLibraryEx_Marshal (
+      _ReturnAddress (),
+        SK_UTF8ToWideChar (lpFileName).c_str (),
+          hFile,
+            dwFlags,
+              L"LoadLibraryExA"
+    );
+}
+
+HMODULE
+WINAPI
+LoadLibraryExW_Detour (
+  _In_       LPCWSTR lpFileName,
+  _Reserved_ HANDLE  hFile,
+  _In_       DWORD   dwFlags )
+{
+  return
+    LoadLibraryEx_Marshal (
+      _ReturnAddress (),
+        lpFileName,
+          hFile,
+            dwFlags,
+              L"LoadLibraryExW"
+    );
 }
 
 struct SK_ThirdPartyDLLs {
@@ -1511,7 +1421,7 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
     enum_working_set_s *working_set = new enum_working_set_s ();
 
             working_set->proc   = hProc;
-            working_set->logger = pLogger;
+            working_set->logger = nullptr;//pLogger;
             working_set->count  = cbNeeded / sizeof HMODULE;
             working_set->when   = when;
     memcpy (working_set->modules, hMods, cbNeeded);

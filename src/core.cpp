@@ -1328,6 +1328,17 @@ bool
 __stdcall
 SK_StartupCore (const wchar_t* backend, void* callback)
 {
+  QueryPerformanceCounter_Original =
+    reinterpret_cast <QueryPerformanceCounter_pfn> (
+      GetProcAddress (
+        GetModuleHandle ( L"kernel32.dll"),
+                            "QueryPerformanceCounter" )
+    );
+
+  SK_Init_MinHook        ();
+  SK_InitCompatBlacklist ();
+
+
   SK_SetBackend (backend);
 
   // Allow users to centralize all files if they want
@@ -1522,7 +1533,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   if (__SK_bypass)
     goto BACKEND_INIT;
 
-
   if (! config.steam.silent)
   {
     void SK_Steam_InitCommandConsoleVariables (void);
@@ -1531,6 +1541,8 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     void SK_TestSteamImports (HMODULE hMod);
          SK_TestSteamImports (GetModuleHandle (nullptr));
   }
+
+  SK_EnumLoadedModules (SK_ModuleEnum::PreLoad);
 
   BOOL
   SK_Steam_PreHookCore (void);
@@ -1545,8 +1557,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   {
     //
   }
-
-  SK_EnumLoadedModules (SK_ModuleEnum::PreLoad);
 
 
 BACKEND_INIT:

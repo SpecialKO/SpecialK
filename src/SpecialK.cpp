@@ -198,11 +198,14 @@ SK_EstablishRootPath (void);
 #pragma data_seg (".SK_Hooks")
 #pragma data_seg (".SK_Hooks")
 const std::unordered_set <std::wstring> blacklist = {
+L"steam.exe",
 L"GameOverlayUI.exe",
 L"streaming_client.exe",
 L"steamerrorreporter.exe",
 L"steamerrorreporter64.exe",
+L"steamservice.exe",
 L"steam_monitor.exe",
+L"steamwebhelper.exe",
 L"html5app_steam.exe",
 L"wow_helper.exe",
 L"uninstall.exe",
@@ -263,7 +266,13 @@ L"mspaint.exe",
 L"7zFM.exe",
 L"WinRar.exe",
 L"EAC.exe",
+L"vcpkgsrv.exe",
+L"dllhost.exe",
 L"git.exe",
+L"link.exe",
+L"cl.exe",
+L"rc.exe",
+L"conhost.exe",
 L"GameBarPresenceWriter.exe",
 L"OAWrapper.exe",
 L"NvOAWrapperCache.exe",
@@ -273,7 +282,14 @@ L"waifu2x-caffe-cui.exe",
 L"GameServer.exe",// Sacred   Game Server
 L"s2gs.exe",      // Sacred 2 Game Server
 
+L"sihost.exe",
+L"Chrome.exe",
+L"explorer.exe",
+L"browser_broker.exe",
+L"dwm.exe",
 L"LaunchTM.exe",
+
+L"SleepOnLan.exe",
 
 L"ds3t.exe",
 L"tzt.exe"
@@ -891,37 +907,27 @@ DllMain ( HMODULE hModule,
       //   happen if a game does not opt-in to system wide injection.
       if (! SK_EstablishDllRole (hModule))
       {
-        return TRUE;
+        return FALSE;
       }
 
       // We don't want to initialize the DLL, but we also don't want it to
       //   re-inject itself constantly; just return TRUE here.
       else if (SK_GetDLLRole () == DLL_ROLE::INVALID)
       {
-        return TRUE;
+        return FALSE;
       }
-
-      QueryPerformanceCounter_Original =
-        reinterpret_cast <QueryPerformanceCounter_pfn> (
-          GetProcAddress (
-            GetModuleHandle ( L"kernel32.dll"),
-                                "QueryPerformanceCounter" )
-        );
-
-      SK_Init_MinHook        ();
-      SK_InitCompatBlacklist ();
 
       BOOL bRet = SK_Attach (SK_GetDLLRole ());
 
       if (! bRet)
       {
         //blacklist.emplace (std::wstring (SK_GetHostApp ()));
-        return TRUE;
+        return FALSE;
       }
 
       if (SK_GetDLLRole () == DLL_ROLE::INVALID)
       {
-        return TRUE;
+        return FALSE;
       }
 
 

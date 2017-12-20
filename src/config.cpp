@@ -1112,6 +1112,7 @@ struct param_decl_s {
   games.emplace ( L"StarOceanTheLastHope.exe",               SK_GAME_ID::StarOcean4                   );
   games.emplace ( L"LEGOMARVEL2_DX11.exe",                   SK_GAME_ID::LEGOMarvelSuperheroes2       );
   games.emplace ( L"okami.exe",                              SK_GAME_ID::Okami                        );
+  games.emplace ( L"DuckTales.exe",                          SK_GAME_ID::DuckTalesRemastered          );
 
   //
   // Application Compatibility Overrides
@@ -2037,6 +2038,7 @@ struct param_decl_s {
       switch (games [std::wstring (SK_GetHostApp ())])
       {
         case SK_GAME_ID::GalGun_Double_Peace:
+        case SK_GAME_ID::DuckTalesRemastered:
         {
           CreateThread (nullptr, 0, [](LPVOID) ->
           DWORD

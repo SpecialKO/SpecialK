@@ -12156,6 +12156,11 @@ SK_ImGui_PollGamepad_EndFrame (void)
   state = di8_to_xi;
 #endif
 
+  if (steam_to_xi != nullptr)
+  {
+    state = *steam_to_xi;
+  }
+
   if ( api_bridge ||
        SK_XInput_PollController (config.input.gamepad.xinput.ui_slot, &state) )
   {
@@ -12295,6 +12300,11 @@ SK_ImGui_PollGamepad (void)
 #else
   state = di8_to_xi;
 #endif
+
+  if (steam_to_xi != nullptr)
+  {
+    state = *steam_to_xi;
+  }
 
   if ( ( api_bridge ||
          SK_XInput_PollController ( config.input.gamepad.xinput.ui_slot,

@@ -215,7 +215,7 @@ struct sk_config_t
 
     int     appid                = 0;
     bool    preload_client       = false;
-    bool    preload_overlay      = true;  // For input processing, this is important
+    bool    preload_overlay      = false; // For input processing, this is important
     bool    show_playtime        = true;  // In the control panel title
     bool    force_load_steamapi  = false; // Load steam_api{64}.dll even in games
                                           //   that do not use it
@@ -641,6 +641,7 @@ enum class SK_GAME_ID
   StarOcean4,                   // StarOceanTheLastHope.exe
   LEGOMarvelSuperheroes2,       // LEGOMARVEL2_DX11.exe
   Okami,                        // okami.exe
+  DuckTalesRemastered,          // DuckTales.exe
   UNKNOWN_GAME               = 0xffff
 };
 

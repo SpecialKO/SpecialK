@@ -432,7 +432,7 @@ SK_JOY_TranslateToXInput (JOYINFOEX* pJoy, const JOYCAPSW* pCaps)
     [ ] (UINT min, UINT max, DWORD pos) ->
     SHORT
   {
-    float range = ( static_cast <float> ( max ) - static_cast <float> ( min ) );
+    float range  = ( static_cast <float> ( max ) - static_cast <float> ( min ) );
     float center = ( static_cast <float> ( max ) + static_cast <float> ( min ) ) / 2.0f;
     float rpos = 0.5f;
 
@@ -441,9 +441,7 @@ SK_JOY_TranslateToXInput (JOYINFOEX* pJoy, const JOYCAPSW* pCaps)
     else
       rpos = static_cast <float> ( pos ) - static_cast <float> ( min );
 
-    std::numeric_limits <unsigned short>::max ( );
-
-    float max_xi = static_cast <float> ( std::numeric_limits <unsigned short>::max ( ) );
+    float max_xi    = static_cast <float> ( std::numeric_limits <unsigned short>::max ( ) );
     float center_xi = static_cast <float> ( std::numeric_limits <unsigned short>::max ( ) / 2 );
 
     return

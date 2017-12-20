@@ -3095,10 +3095,6 @@ TranslateMessage_Detour (_In_ const MSG *lpMsg)
   return TranslateMessage_Original (lpMsg);
 }
 
-LPMSG last_message = nullptr;
-
-static HMODULE hModSteamOverlay = nullptr;
-
 LRESULT
 WINAPI
 ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
@@ -3149,22 +3145,6 @@ PeekMessageW_Detour (
   _In_     UINT  wMsgFilterMax,
   _In_     UINT  wRemoveMsg )
 {
-  if (hModSteamOverlay == nullptr)
-  {
-    hModSteamOverlay = GetModuleHandle
-#ifdef _WIN64
-    (L"GameOverlayRenderer64.dll");
-#else
-    (L"GameOverlayRenderer.dll");
-#endif
-  }
-
-  if (SK_GetCallingDLL () == hModSteamOverlay)
-  {
-    return PeekMessageW_Original ( lpMsg, hWnd,
-                                   wMsgFilterMin,                           wMsgFilterMax,                          wRemoveMsg );
-  }
-
   SK_LOG_FIRST_CALL
 
   if (config.render.dxgi.safe_fullscreen && (IsWindowUnicode (GetActiveWindow ())))
@@ -3213,22 +3193,6 @@ PeekMessageA_Detour (
   _In_     UINT  wMsgFilterMax,
   _In_     UINT  wRemoveMsg )
 {
-  if (hModSteamOverlay == nullptr)
-  {
-    hModSteamOverlay = GetModuleHandle
-#ifdef _WIN64
-    (L"GameOverlayRenderer64.dll");
-#else
-    (L"GameOverlayRenderer.dll");
-#endif
-  }
-
-  if (SK_GetCallingDLL () == hModSteamOverlay)
-  {
-    return PeekMessageA_Original ( lpMsg, hWnd,
-                                   wMsgFilterMin,                           wMsgFilterMax,                          wRemoveMsg );
-  }
-
   SK_LOG_FIRST_CALL
 
   if (config.render.dxgi.safe_fullscreen && (! IsWindowUnicode (GetActiveWindow ())))
@@ -3272,21 +3236,6 @@ BOOL
 WINAPI
 GetMessageA_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax)
 {
-  if (hModSteamOverlay == nullptr)
-  {
-    hModSteamOverlay = GetModuleHandle
-#ifdef _WIN64
-    (L"GameOverlayRenderer64.dll");
-#else
-    (L"GameOverlayRenderer.dll");
-#endif
-  }
-
-  if (SK_GetCallingDLL () == hModSteamOverlay)
-  {
-    return GetMessageA_Original ( lpMsg, hWnd,                                       wMsgFilterMin,                                   wMsgFilterMax );
-  }
-
   SK_LOG_FIRST_CALL
 
   if (! GetMessageA_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax))
@@ -3302,21 +3251,6 @@ BOOL
 WINAPI
 GetMessageW_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax)
 {
-  if (hModSteamOverlay == nullptr)
-  {
-    hModSteamOverlay = GetModuleHandle
-#ifdef _WIN64
-    (L"GameOverlayRenderer64.dll");
-#else
-    (L"GameOverlayRenderer.dll");
-#endif
-  }
-
-  if (SK_GetCallingDLL () == hModSteamOverlay)
-  {
-    return GetMessageW_Original ( lpMsg, hWnd,                                       wMsgFilterMin,                                   wMsgFilterMax );
-  }
-
   SK_LOG_FIRST_CALL
 
   if (! GetMessageW_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax))
@@ -3332,21 +3266,6 @@ LRESULT
 WINAPI
 DispatchMessageW_Detour (_In_ const MSG *lpMsg)
 {
-  if (hModSteamOverlay == nullptr)
-  {
-    hModSteamOverlay = GetModuleHandle
-#ifdef _WIN64
-    (L"GameOverlayRenderer64.dll");
-#else
-    (L"GameOverlayRenderer.dll");
-#endif
-  }
-
-  if (SK_GetCallingDLL () == hModSteamOverlay)
-  {
-    return DispatchMessageW_Original ( lpMsg );
-  }
-
   SK_LOG_FIRST_CALL
 
   if (lpMsg->hwnd == game_window.hWnd)
@@ -3366,21 +3285,6 @@ LRESULT
 WINAPI
 DispatchMessageA_Detour (_In_ const MSG *lpMsg)
 {
-  if (hModSteamOverlay == nullptr)
-  {
-    hModSteamOverlay = GetModuleHandle
-#ifdef _WIN64
-    (L"GameOverlayRenderer64.dll");
-#else
-    (L"GameOverlayRenderer.dll");
-#endif
-  }
-
-  if (SK_GetCallingDLL () == hModSteamOverlay)
-  {
-    return DispatchMessageA_Original ( lpMsg );
-  }
-
   SK_LOG_FIRST_CALL
 
   if (lpMsg->hwnd == game_window.hWnd)

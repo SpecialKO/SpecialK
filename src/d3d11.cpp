@@ -4194,21 +4194,21 @@ public:
 
       if (SK_ReShade_PresentCallback.fn && (! SK_D3D11_Shaders.reshade_triggered))
       {
-        CComPtr <ID3D11DepthStencilView>  pDSV = nullptr;
-        CComPtr <ID3D11DepthStencilState> pDSS = nullptr;
-        CComPtr <ID3D11RenderTargetView>  pRTV = nullptr;
+        //CComPtr <ID3D11DepthStencilView>  pDSV = nullptr;
+        //CComPtr <ID3D11DepthStencilState> pDSS = nullptr;
+        //CComPtr <ID3D11RenderTargetView>  pRTV = nullptr;
+        //
+        //                                    UINT ref;
+        //   _ctx->OMGetDepthStencilState (&pDSS, &ref);
+        //   _ctx->OMGetRenderTargets     (1, &pRTV, &pDSV);
 
-                                            UINT ref;
-           _ctx->OMGetDepthStencilState (&pDSS, &ref);
-           _ctx->OMGetRenderTargets     (1, &pRTV, &pDSV);
-
-        if (pDSS)
-        {
-          D3D11_DEPTH_STENCIL_DESC ds_desc;
-                   pDSS->GetDesc (&ds_desc);
-
-          if ((! pDSV) || (! ds_desc.StencilEnable))
-          {
+        //if (pDSS)
+        //{
+        //  D3D11_DEPTH_STENCIL_DESC ds_desc;
+        //           pDSS->GetDesc (&ds_desc);
+        //
+        //  if ((! pDSV) || (! ds_desc.StencilEnable))
+        //  {
             for (int i = 0 ; i < 5; i++)
             {
               SK_D3D11_KnownShaders::ShaderRegistry <IUnknown *>* pShaderReg;
@@ -4244,9 +4244,9 @@ public:
                 break;
               }
             }
-          }
+          //}
         }
-      }
+      //}
     };
 
     TriggerReShade_After ();
@@ -4284,21 +4284,21 @@ SK_D3D11_DrawHandler (ID3D11DeviceContext* pDevCtx)
 
     if (SK_ReShade_PresentCallback.fn && (! SK_D3D11_Shaders.reshade_triggered))
     {
-      CComPtr <ID3D11DepthStencilState> pDSS = nullptr;
-      CComPtr <ID3D11DepthStencilView>  pDSV = nullptr;
-      CComPtr <ID3D11RenderTargetView>  pRTV = nullptr;
-                                          UINT ref;
+      //CComPtr <ID3D11DepthStencilState> pDSS = nullptr;
+      //CComPtr <ID3D11DepthStencilView>  pDSV = nullptr;
+      //CComPtr <ID3D11RenderTargetView>  pRTV = nullptr;
+      //                                    UINT ref;
+      //
+      //pDevCtx->OMGetDepthStencilState (&pDSS, &ref);
+      //pDevCtx->OMGetRenderTargets     (1, &pRTV, &pDSV);
 
-      pDevCtx->OMGetDepthStencilState (&pDSS, &ref);
-      pDevCtx->OMGetRenderTargets     (1, &pRTV, &pDSV);
-
-      if (pDSS)
-      {
-        D3D11_DEPTH_STENCIL_DESC ds_desc;
-                 pDSS->GetDesc (&ds_desc);
-
-        if ((! pDSV) || (! ds_desc.StencilEnable))
-        {
+      //if (pDSS)
+      //{
+      //  D3D11_DEPTH_STENCIL_DESC ds_desc;
+      //           pDSS->GetDesc (&ds_desc);
+      //
+      //  if ((! pDSV) || (! ds_desc.StencilEnable))
+      //  {
           for (int i = 0 ; i < 5; i++)
           {
             SK_D3D11_KnownShaders::ShaderRegistry <IUnknown *>* pShaderReg;
@@ -4343,8 +4343,8 @@ SK_D3D11_DrawHandler (ID3D11DeviceContext* pDevCtx)
             }
           }
         }
-      }
-    }
+    //  }
+    //}
   };
 
 

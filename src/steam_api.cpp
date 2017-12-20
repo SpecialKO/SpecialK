@@ -191,10 +191,6 @@ SK_Steam_PreHookCore (void)
          LoadLibraryW_Original (wszSteamLib),
            "SteamInternal_CreateInterface" ) )
   {
-    bool
-    SK_Steam_HookController (void);
-    SK_Steam_HookController ();
-
     SK_CreateDLLHook2 (          wszSteamLib,
                                   "SteamAPI_ISteamClient_GetISteamUser",
                                    SteamAPI_ISteamClient_GetISteamUser_Detour,
@@ -215,7 +211,7 @@ SK_Steam_PreHookCore (void)
                                    SteamAPI_ISteamClient_GetISteamRemoteStorage_Detour,
           static_cast_p2p <void> (&SteamAPI_ISteamClient_GetISteamRemoteStorage_Original) );
 
-    if (SK_GetCurrentGameID () != SK_GAME_ID::Okami)
+    //if (SK_GetCurrentGameID () != SK_GAME_ID::Okami)
     {
       SK_CreateDLLHook2 (          wszSteamLib,
                                     "SteamInternal_CreateInterface",
@@ -231,9 +227,6 @@ SK_Steam_PreHookCore (void)
           static_cast_p2p <void> (&SteamClient_Original) );
 
     SK_ApplyQueuedHooks ();
-
-    if (SteamInternal_CreateInterface_Original != nullptr)
-      SteamInternal_CreateInterface_Original (STEAMCLIENT_INTERFACE_VERSION);
 
     return TRUE;
   }
@@ -398,8 +391,8 @@ SK_Steam_ClassifyCallback (int iCallback)
     case k_iSteamMusicCallbacks:                 return "k_iSteamMusicCallbacks";
     case k_iSteamMusicRemoteCallbacks:           return "k_iSteamMusicRemoteCallbacks";
     case k_iClientVRCallbacks:                   return "k_iClientVRCallbacks";
-    case k_iClientReservedCallbacks:             return "k_iClientReservedCallbacks";
-    case k_iSteamReservedCallbacks:              return "k_iSteamReservedCallbacks";
+    //case k_iClientReservedCallbacks:             return "k_iClientReservedCallbacks";
+    //case k_iSteamReservedCallbacks:              return "k_iSteamReservedCallbacks";
     case k_iSteamHTMLSurfaceCallbacks:           return "k_iSteamHTMLSurfaceCallbacks";
     case k_iClientVideoCallbacks:                return "k_iClientVideoCallbacks";
     case k_iClientInventoryCallbacks:            return "k_iClientInventoryCallbacks";
@@ -3271,8 +3264,7 @@ SteamAPI_InitSafe_Detour (void)
 
     HMODULE hSteamAPI = LoadLibraryW_Original (steam_dll_str);
 
-    if (! steam_ctx.UserStats ())
-      steam_ctx.InitSteamAPI (hSteamAPI);
+    SK_SteamAPI_ContextInit (hSteamAPI);
 
     steam_log.Log ( L"--- Initialization Finished (%d tries [AppId: %lu]) ---\n\n",
                       init_tries + 1,
@@ -3362,7 +3354,7 @@ SteamAPI_Init_Detour (void)
 
     HMODULE hSteamAPI = GetModuleHandleW (steam_dll_str);
 
-    steam_ctx.InitSteamAPI (hSteamAPI);
+    SK_SteamAPI_ContextInit (hSteamAPI);
 
     steam_log.Log ( L"--- Initialization Finished (%d tries [AppId: %lu]) ---\n\n",
                       init_tries + 1,
@@ -3591,7 +3583,13 @@ SK_SteamAPI_ContextInit (HMODULE hSteamAPI)
   }
 
   if (! steam_ctx.UserStats ())
+  {
     steam_ctx.InitSteamAPI (hSteamAPI);
+
+    bool
+    SK_Steam_HookController (void);
+    SK_Steam_HookController ();
+  }
 }
 
 void

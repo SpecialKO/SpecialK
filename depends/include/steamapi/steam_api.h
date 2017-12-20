@@ -30,6 +30,7 @@
 #include "isteamhtmlsurface.h"
 #include "isteaminventory.h"
 #include "isteamvideo.h"
+#include "isteamparentalsettings.h"
 
 #if defined( _PS3 )
 #include "steamps3params.h"

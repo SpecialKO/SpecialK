@@ -522,11 +522,11 @@ public:
 
     SK::SteamAPI::player = user_->GetSteamID ();
 
-    //controller_ =
-    //  client_->GetISteamController (
-    //    hSteamUser,
-    //      hSteamPipe,
-    //        "SteamController" );
+    controller_ =
+      client_->GetISteamController (
+        hSteamUser,
+          hSteamPipe,
+            "SteamController005" );
 
 #if 0
     void** vftable = *(void***)*(&controller_);
