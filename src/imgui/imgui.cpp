@@ -11990,8 +11990,12 @@ SK_ImGui_FilterXInput (
   _In_  DWORD         dwUserIndex,
   _Out_ XINPUT_STATE *pState )
 {
-  if ( SK_ImGui_WantGamepadCapture () &&
-       dwUserIndex == (DWORD)config.input.gamepad.xinput.ui_slot )
+  bool disable =
+    config.input.gamepad.disabled_to_game ||
+      ( SK_ImGui_WantGamepadCapture ()    &&
+        dwUserIndex == (DWORD)config.input.gamepad.xinput.ui_slot );
+
+  if (disable)
   {
     ZeroMemory (&pState->Gamepad, sizeof XINPUT_GAMEPAD);
 
@@ -12074,19 +12078,22 @@ SK_ImGui_ToggleEx (bool& toggle_ui, bool& toggle_nav)
 
   // Zero-out any residual haptic data
   if (! SK_ImGui_Active ())
-      SK_XInput_ZeroHaptics (config.input.gamepad.xinput.ui_slot);
+  {
+    SK_XInput_ZeroHaptics (config.input.gamepad.steam.ui_slot);
+    SK_XInput_ZeroHaptics (config.input.gamepad.xinput.ui_slot);
+  }
 
   return SK_ImGui_Active ();
 }
 
 #include <SpecialK/input/dinput8_backend.h>
+#include <SpecialK/input/steam.h>
 
 extern IDirectInputDevice8_GetDeviceState_pfn
         IDirectInputDevice8_GetDeviceState_GAMEPAD_Original;
 
 extern XINPUT_STATE  di8_to_xi;
 extern XINPUT_STATE  joy_to_xi;
-extern XINPUT_STATE* steam_to_xi;
 
 void
 SK_ImGui_PollGamepad_EndFrame (void)
@@ -12131,7 +12138,7 @@ SK_ImGui_PollGamepad_EndFrame (void)
   static XINPUT_STATE last_state = { 1, 0 };
 
   bool api_bridge =
-    config.input.gamepad.native_ps4 || ( steam_to_xi != nullptr );
+    config.input.gamepad.native_ps4 || ( ControllerPresent (config.input.gamepad.steam.ui_slot) );
 
   if (api_bridge)
   {
@@ -12156,9 +12163,9 @@ SK_ImGui_PollGamepad_EndFrame (void)
   state = di8_to_xi;
 #endif
 
-  if (steam_to_xi != nullptr)
+  if (ControllerPresent (config.input.gamepad.steam.ui_slot))
   {
-    state = *steam_to_xi;
+    state = *steam_input [config.input.gamepad.steam.ui_slot].to_xi;
   }
 
   if ( api_bridge ||
@@ -12245,13 +12252,27 @@ SK_ImGui_PollGamepad_EndFrame (void)
                                           haptic_events.PulseButton.duration;
     }
 
-    SK_XInput_PulseController ( config.input.gamepad.xinput.ui_slot,
-                                  haptic_events.PulseTitle.run  () +
-                                  haptic_events.PulseButton.run () +
-                  std::min (0.4f, haptic_events.PulseNav.run ()),
+    if (! ControllerPresent (config.input.gamepad.steam.ui_slot))
+    {
+      SK_XInput_PulseController ( config.input.gamepad.xinput.ui_slot,
                                     haptic_events.PulseTitle.run  () +
                                     haptic_events.PulseButton.run () +
-                    std::min (0.4f, haptic_events.PulseNav.run    ()) );
+                    std::min (0.4f, haptic_events.PulseNav.run ()),
+                                      haptic_events.PulseTitle.run  () +
+                                      haptic_events.PulseButton.run () +
+                      std::min (0.4f, haptic_events.PulseNav.run    ()) );
+    }
+
+    else
+    {
+      SK_XInput_PulseController ( config.input.gamepad.steam.ui_slot,
+                                    haptic_events.PulseTitle.run  () +
+                                    haptic_events.PulseButton.run () +
+                    std::min (0.4f, haptic_events.PulseNav.run ()),
+                                      haptic_events.PulseTitle.run  () +
+                                      haptic_events.PulseButton.run () +
+                      std::min (0.4f, haptic_events.PulseNav.run    ()) );
+    }
 
     nav_id = g.NavId;
   }
@@ -12293,7 +12314,7 @@ SK_ImGui_PollGamepad (void)
     NavInput = 0.0f;
 
   bool api_bridge =
-    config.input.gamepad.native_ps4 || ( steam_to_xi != nullptr );
+    config.input.gamepad.native_ps4 || ControllerPresent (config.input.gamepad.steam.ui_slot);
 
 #if 1
   state = joy_to_xi;
@@ -12301,17 +12322,17 @@ SK_ImGui_PollGamepad (void)
   state = di8_to_xi;
 #endif
 
-  if (steam_to_xi != nullptr)
+  if (ControllerPresent (config.input.gamepad.steam.ui_slot))
   {
-    state = *steam_to_xi;
+    state = *steam_input [config.input.gamepad.steam.ui_slot].to_xi;
   }
 
   if ( ( api_bridge ||
          SK_XInput_PollController ( config.input.gamepad.xinput.ui_slot,
                                       &state
                                   )
-        )                                &&
-        last_state.dwPacketNumber <= state.dwPacketNumber
+       )                                &&
+       last_state.dwPacketNumber <= state.dwPacketNumber
      )
   {
     last_state = state;

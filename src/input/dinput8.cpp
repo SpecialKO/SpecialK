@@ -706,7 +706,11 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE        This,
 
       SK_DI8_TranslateToXInput (reinterpret_cast <DIJOYSTATE *> (out));
 
-      if (nav_usable)
+      bool disabled_to_game =
+        ( config.input.gamepad.disabled_to_game ||
+          SK_ImGui_WantGamepadCapture ()           );
+
+      if (disabled_to_game)
       {
         memcpy (out, &last_state, cbData);
 
@@ -731,7 +735,11 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE        This,
 
       SK_DI8_TranslateToXInput (out);
 
-      if (nav_usable)
+      bool disabled_to_game =
+        ( config.input.gamepad.disabled_to_game ||
+          SK_ImGui_WantGamepadCapture ()           );
+
+      if (disabled_to_game)
       {
         memcpy (out, &last_state, cbData);
 

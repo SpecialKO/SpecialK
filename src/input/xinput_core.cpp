@@ -417,7 +417,7 @@ XInputSetState1_3_Detour (
   bool nop = ( SK_ImGui_WantGamepadCapture ()                       &&
                  dwUserIndex == config.input.gamepad.xinput.ui_slot &&
                    config.input.gamepad.haptic_ui ) ||
-               config.input.gamepad.xinput.disable_rumble;
+               config.input.gamepad.disable_rumble;
 
   DWORD dwRet =
     SK_XInput_Holding (dwUserIndex) ?
@@ -663,7 +663,7 @@ XInputSetState1_4_Detour (
   bool nop = ( SK_ImGui_WantGamepadCapture ()                       &&
                  dwUserIndex == config.input.gamepad.xinput.ui_slot &&
                    config.input.gamepad.haptic_ui ) ||
-               config.input.gamepad.xinput.disable_rumble;
+               config.input.gamepad.disable_rumble;
 
   DWORD dwRet =
     SK_XInput_Holding (dwUserIndex) ?
@@ -804,7 +804,7 @@ XInputSetState9_1_0_Detour (
   bool nop = ( SK_ImGui_WantGamepadCapture ()                       &&
                  dwUserIndex == config.input.gamepad.xinput.ui_slot &&
                    config.input.gamepad.haptic_ui ) ||
-               config.input.gamepad.xinput.disable_rumble;
+               config.input.gamepad.disable_rumble;
 
   DWORD dwRet =
     SK_XInput_Holding (dwUserIndex) ?
@@ -1367,11 +1367,24 @@ SK_XInput_RehookIfNeeded (void)
 }
 
 
+#include <SpecialK/input/steam.h>
+
 bool
 SK_XInput_PulseController ( INT   iJoyID,
                             float fStrengthLeft,
                             float fStrengthRight )
 {
+  ControllerIndex_t steam_idx =
+    static_cast <ControllerIndex_t> (iJoyID);
+
+  if ( steam_input.count && ControllerPresent (steam_idx) &&
+      (! config.input.gamepad.disable_rumble)                )
+  {
+    steam_input.pipe->TriggerVibration (
+      steam_input [steam_idx].handle, (WORD)(std::min (0.99999f, fStrengthLeft)  * 65535.0f),
+                                      (WORD)(std::min (0.99999f, fStrengthRight) * 65535.0f)  );
+  }
+
   if (! xinput_enabled)
     return false;
 
@@ -1388,7 +1401,7 @@ SK_XInput_PulseController ( INT   iJoyID,
        pCtx->XInputEnable_Original != nullptr )
     pCtx->XInputEnable_Original (true);
 
-  if (config.input.gamepad.xinput.disable_rumble)
+  if (config.input.gamepad.disable_rumble)
     return false;
 
   if (iJoyID < 0 || iJoyID >= XUSER_MAX_COUNT)
@@ -1429,12 +1442,10 @@ SK_XInput_PollController ( INT           iJoyID,
 
   if (pCtx == nullptr || pCtx->XInputGetState_Original == nullptr)
   {
-    static bool tried_to_hook = false;
+    static volatile LONG tried_to_hook = FALSE;
 
-    if (tried_to_hook)
+    if (InterlockedCompareExchange (&tried_to_hook, 1, 0))
       return false;
-
-    tried_to_hook = true;
 
     // First try 1.3, that's generally available.
     SK_Input_HookXInput1_3 ();
@@ -1612,6 +1623,16 @@ SK_Input_PreHookXInput (void)
 void
 SK_XInput_ZeroHaptics (INT iJoyID)
 {
+  ControllerIndex_t steam_idx =
+    static_cast <ControllerIndex_t> (iJoyID);
+
+  if (steam_input.count && ControllerPresent (steam_idx))
+  {
+    steam_input.pipe->TriggerVibration (
+      steam_input [steam_idx].handle, 0U, 0U
+    );
+  }
+
   iJoyID =
     config.input.gamepad.xinput.assignment [std::max (0, std::min (iJoyID, 3))];
 

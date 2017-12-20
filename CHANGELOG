@@ -1,3 +1,11 @@
+0.8.57
+
+  + Added option to disable gamepad input to a game, similar to the m&kb options
+  + Significantly improved support for native Steam controller games
+
+    >> Local DLL wrapper is needed in order to intercept Steam controller input
+
+
 0.8.56
 
  (.1): Fixed various memory problems during init/shutdown

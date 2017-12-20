@@ -6,6 +6,7 @@
 #include <SpecialK/input/input.h>
 #include <SpecialK/input/xinput.h>
 #include <imgui/imgui.h>
+#include <SpecialK/utility.h>
 
 #include <concurrent_unordered_map.h>
 
@@ -14,31 +15,36 @@ extern sk_input_api_context_s SK_Steam_Backend;
 #define SK_Steam_READ(type)  SK_Steam_Backend.markRead  (type);
 #define SK_Steam_WRITE(type) SK_Steam_Backend.markWrite (type);
 
-extern XINPUT_STATE* steam_to_xi;
+typedef uint32_t ControllerIndex_t;
+
+#define INVALID_CONTROLLER_INDEX  std::numeric_limits <ControllerIndex_t>::max () - 1
+#define INVALID_CONTROLLER_HANDLE STEAM_CONTROLLER_HANDLE_ALL_CONTROLLERS         - 1
+
+struct STEAMINPUT_STATE
+{
+         XINPUT_STATE*      to_xi          = nullptr;
+         ControllerIndex_t  controller_idx = INVALID_CONTROLLER_INDEX;
+         ControllerHandle_t handle         = INVALID_CONTROLLER_HANDLE;
+         bool               connected      = false;
+
+  static ISteamController*  pipe;
+  static int                count;
+
+         STEAMINPUT_STATE&  operator [] (ControllerIndex_t  idx);
+       //STEAMINPUT_STATE&  operator [] (ControllerHandle_t handle);
+
+  static ControllerIndex_t  getFirstActive (void);
+         ControllerIndex_t  getNextActive  (void);
+} extern steam_input;
+
+ControllerIndex_t
+ControllerIndex (ControllerHandle_t handle);
+
+bool
+ControllerPresent (ControllerIndex_t index);
 
 void
-SKX_Steam_PollGamepad (void)
-{
-  static DWORD dwPacket = 0;
-  static ULONG last_frame =
-    SK_GetFramesDrawn ();
-         ULONG num_frames =
-    SK_GetFramesDrawn ();
-
-  if (last_frame != num_frames)
-  {
-    last_frame = num_frames;
-    ++dwPacket;
-
-    // Don't create the remapping proxy until the game does this multiple times
-    if (steam_to_xi == nullptr)
-      steam_to_xi = new XINPUT_STATE { };
-  }
-
-  if (steam_to_xi != nullptr)
-    steam_to_xi->dwPacketNumber = dwPacket;
-}
-
+SKX_Steam_PollGamepad (void);
 
 using ISteamController_Init_pfn     =
   bool (S_CALLTYPE *)(ISteamController *This);
@@ -56,10 +62,10 @@ using ISteamController_GetDigitalActionData_pfn =
                                                 ControllerHandle_t               controllerHandle,
                                                 ControllerDigitalActionHandle_t  digitalActionHandle );
 
-ISteamController_Init_pfn                 ISteamController_Init_Original                 = nullptr;
-ISteamController_RunFrame_pfn             ISteamController_RunFrame_Original             = nullptr;
-ISteamController_GetAnalogActionData_pfn  ISteamController_GetAnalogActionData_Original  = nullptr;
-ISteamController_GetDigitalActionData_pfn ISteamController_GetDigitalActionData_Original = nullptr;
+extern ISteamController_Init_pfn                 ISteamController_Init_Original;
+extern ISteamController_RunFrame_pfn             ISteamController_RunFrame_Original;
+extern ISteamController_GetAnalogActionData_pfn  ISteamController_GetAnalogActionData_Original;
+extern ISteamController_GetDigitalActionData_pfn ISteamController_GetDigitalActionData_Original;
 
 
 
@@ -80,397 +86,23 @@ extern SteamAPI_ISteamClient_GetISteamController_pfn SteamAPI_ISteamClient_GetIS
 
 bool
 S_CALLTYPE
-ISteamController_Init_Detour (ISteamController *This)
-{
-  bool bRet =
-    ISteamController_Init_Original (This);
-
-  if (bRet != false)
-  {
-    SKX_Steam_PollGamepad ();
-  }
-
-  return bRet;
-}
+ISteamController_Init_Detour (ISteamController *This);
 
 void
 S_CALLTYPE
-ISteamController_RunFrame_Detour (ISteamController *This)
-{
-  SKX_Steam_PollGamepad ();
-
-  return ISteamController_RunFrame_Original (This);
-}
+ISteamController_RunFrame_Detour (ISteamController *This);
 
 ControllerAnalogActionData_t
 S_CALLTYPE
 ISteamController_GetAnalogActionData_Detour ( ISteamController               *This,
                                               ControllerHandle_t              controllerHandle,
-                                              ControllerAnalogActionHandle_t  analogActionHandle )
-{
-  SK_Steam_READ (sk_input_dev_type::Gamepad);
-
-  static std::unordered_map < ControllerHandle_t,
-                                std::unordered_map < ControllerAnalogActionHandle_t,
-                                                       ControllerAnalogActionData_t >
-                            > last_data;
-
-
-  SKX_Steam_PollGamepad ();
-
-
-  ControllerAnalogActionData_t data =
-    ISteamController_GetAnalogActionData_Original ( This,
-                                                      controllerHandle,
-                                                        analogActionHandle );
-
-  unsigned int slot = (unsigned int)
-    This->GetGamepadIndexForController (controllerHandle);
-
-  if ( slot != config.input.gamepad.xinput.ui_slot ||
-           (! SK_ImGui_WantGamepadCapture ())         )
-  {
-    last_data [controllerHandle][analogActionHandle] = data;
-  }
-
-  if ( steam_to_xi != nullptr &&
-        slot       == config.input.gamepad.xinput.ui_slot )
-  {
-    EControllerActionOrigin origins [ STEAM_CONTROLLER_MAX_ORIGINS ] = { };
-    int                     count =
-      This->GetAnalogActionOrigins (  controllerHandle,
-           This->GetCurrentActionSet (controllerHandle),
-                                    analogActionHandle, origins);
-
-    auto ComputeAxialPos_XInput =
-      [ ] (UINT min, UINT max, DWORD pos) ->
-      SHORT
-    {
-      float range  = ( static_cast <float> ( max ) - static_cast <float> ( min ) );
-      float center = ( static_cast <float> ( max ) + static_cast <float> ( min ) ) / 2.0f;
-      float rpos = 0.5f;
-
-      if (static_cast <float> ( pos ) < center)
-        rpos = center - ( center - static_cast <float> ( pos ) );
-      else
-        rpos = static_cast <float> ( pos ) - static_cast <float> ( min );
-
-      float max_xi    = static_cast <float> ( std::numeric_limits <unsigned short>::max ( ) );
-      float center_xi = static_cast <float> ( std::numeric_limits <unsigned short>::max ( ) / 2 );
-
-      return
-        static_cast <SHORT> ( max_xi * ( rpos / range ) - center_xi );
-    };
-
-    for (int i = 0; i < count; i++)
-    {
-      switch (origins [i])
-      {
-        case k_EControllerActionOrigin_LeftStick_Move:
-        case k_EControllerActionOrigin_PS4_LeftStick_Move:
-        case k_EControllerActionOrigin_XBoxOne_LeftStick_Move:
-        case k_EControllerActionOrigin_XBox360_LeftStick_Move:
-        case k_EControllerActionOrigin_SteamV2_LeftStick_Move:
-        {
-          steam_to_xi->Gamepad.sThumbLX =
-            ComputeAxialPos_XInput (0, UINT_MAX, static_cast <DWORD> (UINT_MAX * data.x * 0.5f + 0.5f) );
-          steam_to_xi->Gamepad.sThumbLY =
-            ComputeAxialPos_XInput (0, UINT_MAX, static_cast <DWORD> (UINT_MAX * data.y * 0.5f + 0.5f) );
-        }
-        break;
-
-        case k_EControllerActionOrigin_RightPad_Swipe:
-        case k_EControllerActionOrigin_PS4_RightStick_Move:
-        case k_EControllerActionOrigin_XBoxOne_RightStick_Move:
-        case k_EControllerActionOrigin_XBox360_RightStick_Move:
-        case k_EControllerActionOrigin_SteamV2_RightPad_Swipe:
-        {
-          steam_to_xi->Gamepad.sThumbRX =
-            ComputeAxialPos_XInput (0, UINT_MAX, static_cast <DWORD> (UINT_MAX * data.x * 0.5f + 0.5f) );
-          steam_to_xi->Gamepad.sThumbRY =
-            ComputeAxialPos_XInput (0, UINT_MAX, static_cast <DWORD> (UINT_MAX * data.y * 0.5f + 0.5f) );
-        }
-        break;
-
-        //case k_EControllerActionOrigin_LeftTrigger_Pull:
-        //case k_EControllerActionOrigin_PS4_LeftTrigger_Pull:
-        //case k_EControllerActionOrigin_XBoxOne_LeftTrigger_Pull:
-        //case k_EControllerActionOrigin_XBox360_LeftTrigger_Pull:
-        //case k_EControllerActionOrigin_SteamV2_LeftTrigger_Pull:
-        //{
-        //}
-        //
-        //case k_EControllerActionOrigin_RightTrigger_Pull:
-        //case k_EControllerActionOrigin_PS4_RightTrigger_Pull:
-        //case k_EControllerActionOrigin_XBoxOne_RightTrigger_Pull:
-        //case k_EControllerActionOrigin_XBox360_RightTrigger_Pull:
-        //case k_EControllerActionOrigin_SteamV2_RightTrigger_Pull:
-        //{
-        //}
-        //break;
-      }
-    }
-  }
-
-
-  return slot == config.input.gamepad.xinput.ui_slot ?
-           last_data [controllerHandle][analogActionHandle] :
-                data;
-}
+                                              ControllerAnalogActionHandle_t  analogActionHandle );
 
 ControllerDigitalActionData_t
 S_CALLTYPE
 ISteamController_GetDigitalActionData_Detour ( ISteamController                *This,
                                                ControllerHandle_t               controllerHandle,
-                                               ControllerDigitalActionHandle_t  digitalActionHandle )
-{
-  SK_Steam_READ (sk_input_dev_type::Gamepad);
-
-  static std::unordered_map < ControllerHandle_t,
-                                std::unordered_map < ControllerDigitalActionHandle_t,
-                                                       ControllerDigitalActionData_t >
-                            > last_data;
-
-
-  SKX_Steam_PollGamepad ();
-
-
-  ControllerDigitalActionData_t data =
-    ISteamController_GetDigitalActionData_Original ( This,
-                                                       controllerHandle,
-                                                         digitalActionHandle );
-
-
-  unsigned int slot = (unsigned int)
-    This->GetGamepadIndexForController (controllerHandle);
-
-  if ( slot != config.input.gamepad.xinput.ui_slot ||
-           (! SK_ImGui_WantGamepadCapture ())         )
-  {
-    last_data [controllerHandle][digitalActionHandle] = data;
-  }
-
-  if ( steam_to_xi != nullptr &&
-        slot       == config.input.gamepad.xinput.ui_slot )
-  {
-    EControllerActionOrigin origins [ STEAM_CONTROLLER_MAX_ORIGINS ] = { };
-    int                     count =
-      This->GetDigitalActionOrigins ( controllerHandle,
-           This->GetCurrentActionSet (controllerHandle),
-                                   digitalActionHandle, origins);
-
-    for (int i = 0; i < count; i++)
-    {
-      switch (origins [i])
-      {
-        case k_EControllerActionOrigin_Start:
-        case k_EControllerActionOrigin_PS4_Options:
-        case k_EControllerActionOrigin_XBoxOne_Menu:
-        case k_EControllerActionOrigin_XBox360_Start:
-        case k_EControllerActionOrigin_SteamV2_Start:
-        {
-          if (data.bState) steam_to_xi->Gamepad.wButtons |=  XINPUT_GAMEPAD_START;
-          else             steam_to_xi->Gamepad.wButtons &= ~XINPUT_GAMEPAD_START;
-        }
-        break;
-
-        case k_EControllerActionOrigin_Back:
-        case k_EControllerActionOrigin_PS4_Share:
-        case k_EControllerActionOrigin_XBoxOne_View:
-        case k_EControllerActionOrigin_XBox360_Back:
-        case k_EControllerActionOrigin_SteamV2_Back:
-        {
-          if (data.bState) steam_to_xi->Gamepad.wButtons |=  XINPUT_GAMEPAD_BACK;
-          else             steam_to_xi->Gamepad.wButtons &= ~XINPUT_GAMEPAD_BACK;
-        }
-        break;
-
-        case k_EControllerActionOrigin_A:
-        case k_EControllerActionOrigin_PS4_X:
-        case k_EControllerActionOrigin_XBoxOne_A:
-        case k_EControllerActionOrigin_XBox360_A:
-        case k_EControllerActionOrigin_SteamV2_A:
-        {
-          if (data.bState) steam_to_xi->Gamepad.wButtons |=  XINPUT_GAMEPAD_A;
-          else             steam_to_xi->Gamepad.wButtons &= ~XINPUT_GAMEPAD_A;
-        }
-        break;
-
-        case k_EControllerActionOrigin_B:
-        case k_EControllerActionOrigin_PS4_Circle:
-        case k_EControllerActionOrigin_XBoxOne_B:
-        case k_EControllerActionOrigin_XBox360_B:
-        case k_EControllerActionOrigin_SteamV2_B:
-        {
-          if (data.bState) steam_to_xi->Gamepad.wButtons |=  XINPUT_GAMEPAD_B;
-          else             steam_to_xi->Gamepad.wButtons &= ~XINPUT_GAMEPAD_B;
-        }
-        break;
-
-        case k_EControllerActionOrigin_X:
-        case k_EControllerActionOrigin_PS4_Square:
-        case k_EControllerActionOrigin_XBoxOne_X:
-        case k_EControllerActionOrigin_XBox360_X:
-        case k_EControllerActionOrigin_SteamV2_X:
-        {
-          if (data.bState) steam_to_xi->Gamepad.wButtons |=  XINPUT_GAMEPAD_X;
-          else             steam_to_xi->Gamepad.wButtons &= ~XINPUT_GAMEPAD_X;
-        }
-        break;
-
-        case k_EControllerActionOrigin_Y:
-        case k_EControllerActionOrigin_PS4_Triangle:
-        case k_EControllerActionOrigin_XBoxOne_Y:
-        case k_EControllerActionOrigin_XBox360_Y:
-        case k_EControllerActionOrigin_SteamV2_Y:
-        {
-          if (data.bState) steam_to_xi->Gamepad.wButtons |=  XINPUT_GAMEPAD_Y;
-          else             steam_to_xi->Gamepad.wButtons &= ~XINPUT_GAMEPAD_Y;
-        }
-        break;
-
-        case k_EControllerActionOrigin_LeftTrigger_Click:
-        case k_EControllerActionOrigin_PS4_LeftTrigger_Click:
-        case k_EControllerActionOrigin_XBoxOne_LeftTrigger_Click:
-        case k_EControllerActionOrigin_XBox360_LeftTrigger_Click:
-        case k_EControllerActionOrigin_SteamV2_LeftTrigger_Click:
-        {
-          if (data.bState) steam_to_xi->Gamepad.wButtons |=  XINPUT_GAMEPAD_LEFT_TRIGGER;
-          else             steam_to_xi->Gamepad.wButtons &= ~XINPUT_GAMEPAD_LEFT_TRIGGER;
-        }
-        break;
-
-        case k_EControllerActionOrigin_RightTrigger_Click:
-        case k_EControllerActionOrigin_PS4_RightTrigger_Click:
-        case k_EControllerActionOrigin_XBoxOne_RightTrigger_Click:
-        case k_EControllerActionOrigin_XBox360_RightTrigger_Click:
-        case k_EControllerActionOrigin_SteamV2_RightTrigger_Click:
-        {
-          if (data.bState) steam_to_xi->Gamepad.wButtons |=  XINPUT_GAMEPAD_RIGHT_TRIGGER;
-          else             steam_to_xi->Gamepad.wButtons &= ~XINPUT_GAMEPAD_RIGHT_TRIGGER;
-        }
-        break;
-
-        case k_EControllerActionOrigin_LeftBumper:
-        case k_EControllerActionOrigin_PS4_LeftBumper:
-        case k_EControllerActionOrigin_XBoxOne_LeftBumper:
-        case k_EControllerActionOrigin_XBox360_LeftBumper:
-        case k_EControllerActionOrigin_SteamV2_LeftBumper:
-        {
-          if (data.bState) steam_to_xi->Gamepad.wButtons |=  XINPUT_GAMEPAD_LEFT_SHOULDER;
-          else             steam_to_xi->Gamepad.wButtons &= ~XINPUT_GAMEPAD_LEFT_SHOULDER;
-        }
-        break;
-
-        case k_EControllerActionOrigin_RightBumper:
-        case k_EControllerActionOrigin_PS4_RightBumper:
-        case k_EControllerActionOrigin_XBoxOne_RightBumper:
-        case k_EControllerActionOrigin_XBox360_RightBumper:
-        case k_EControllerActionOrigin_SteamV2_RightBumper:
-        {
-          if (data.bState) steam_to_xi->Gamepad.wButtons |=  XINPUT_GAMEPAD_RIGHT_SHOULDER;
-          else             steam_to_xi->Gamepad.wButtons &= ~XINPUT_GAMEPAD_RIGHT_SHOULDER;
-        }
-        break;
-
-        case k_EControllerActionOrigin_LeftStick_Click:
-        case k_EControllerActionOrigin_PS4_LeftStick_Click:
-        case k_EControllerActionOrigin_XBoxOne_LeftStick_Click:
-        case k_EControllerActionOrigin_XBox360_LeftStick_Click:
-        case k_EControllerActionOrigin_SteamV2_LeftStick_Click:
-        {
-          if (data.bState) steam_to_xi->Gamepad.wButtons |=  XINPUT_GAMEPAD_LEFT_THUMB;
-          else             steam_to_xi->Gamepad.wButtons &= ~XINPUT_GAMEPAD_LEFT_THUMB;
-        }
-        break;
-
-        case k_EControllerActionOrigin_RightPad_Click:
-        case k_EControllerActionOrigin_PS4_RightStick_Click:
-        case k_EControllerActionOrigin_XBoxOne_RightStick_Click:
-        case k_EControllerActionOrigin_XBox360_RightStick_Click:
-        case k_EControllerActionOrigin_SteamV2_RightPad_Click:
-        {
-          if (data.bState) steam_to_xi->Gamepad.wButtons |=  XINPUT_GAMEPAD_RIGHT_THUMB;
-          else             steam_to_xi->Gamepad.wButtons &= ~XINPUT_GAMEPAD_RIGHT_THUMB;
-        }
-        break;
-
-        case k_EControllerActionOrigin_LeftPad_DPadNorth:
-        case k_EControllerActionOrigin_PS4_DPad_North:
-        case k_EControllerActionOrigin_XBoxOne_DPad_North:
-        case k_EControllerActionOrigin_XBox360_DPad_North:
-        case k_EControllerActionOrigin_SteamV2_LeftPad_DPadNorth:
-
-        case k_EControllerActionOrigin_LeftStick_DPadNorth:
-        case k_EControllerActionOrigin_PS4_LeftStick_DPadNorth:
-        case k_EControllerActionOrigin_XBoxOne_LeftStick_DPadNorth:
-        case k_EControllerActionOrigin_XBox360_LeftStick_DPadNorth:
-        case k_EControllerActionOrigin_SteamV2_LeftStick_DPadNorth:
-        {
-          if (data.bState) steam_to_xi->Gamepad.wButtons |=  XINPUT_GAMEPAD_DPAD_UP;
-          else             steam_to_xi->Gamepad.wButtons &= ~XINPUT_GAMEPAD_DPAD_UP;
-        }
-        break;
-
-        case k_EControllerActionOrigin_LeftPad_DPadSouth:
-        case k_EControllerActionOrigin_PS4_DPad_South:
-        case k_EControllerActionOrigin_XBoxOne_DPad_South:
-        case k_EControllerActionOrigin_XBox360_DPad_South:
-        case k_EControllerActionOrigin_SteamV2_LeftPad_DPadSouth:
-
-        case k_EControllerActionOrigin_LeftStick_DPadSouth:
-        case k_EControllerActionOrigin_PS4_LeftStick_DPadSouth:
-        case k_EControllerActionOrigin_XBoxOne_LeftStick_DPadSouth:
-        case k_EControllerActionOrigin_XBox360_LeftStick_DPadSouth:
-        case k_EControllerActionOrigin_SteamV2_LeftStick_DPadSouth:
-        {
-          if (data.bState) steam_to_xi->Gamepad.wButtons |=  XINPUT_GAMEPAD_DPAD_DOWN;
-          else             steam_to_xi->Gamepad.wButtons &= ~XINPUT_GAMEPAD_DPAD_DOWN;
-        }
-        break;
-
-        case k_EControllerActionOrigin_LeftPad_DPadEast:
-        case k_EControllerActionOrigin_PS4_DPad_East:
-        case k_EControllerActionOrigin_XBoxOne_DPad_East:
-        case k_EControllerActionOrigin_XBox360_DPad_East:
-        case k_EControllerActionOrigin_SteamV2_LeftPad_DPadEast:
-
-        case k_EControllerActionOrigin_LeftStick_DPadEast:
-        case k_EControllerActionOrigin_PS4_LeftStick_DPadEast:
-        case k_EControllerActionOrigin_XBoxOne_LeftStick_DPadEast:
-        case k_EControllerActionOrigin_XBox360_LeftStick_DPadEast:
-        case k_EControllerActionOrigin_SteamV2_LeftStick_DPadEast:
-        {
-          if (data.bState) steam_to_xi->Gamepad.wButtons |=  XINPUT_GAMEPAD_DPAD_RIGHT;
-          else             steam_to_xi->Gamepad.wButtons &= ~XINPUT_GAMEPAD_DPAD_RIGHT;
-        }
-        break;
-
-        case k_EControllerActionOrigin_LeftPad_DPadWest:
-        case k_EControllerActionOrigin_PS4_DPad_West:
-        case k_EControllerActionOrigin_XBoxOne_DPad_West:
-        case k_EControllerActionOrigin_XBox360_DPad_West:
-        case k_EControllerActionOrigin_SteamV2_LeftPad_DPadWest:
-
-        case k_EControllerActionOrigin_LeftStick_DPadWest:
-        case k_EControllerActionOrigin_PS4_LeftStick_DPadWest:
-        case k_EControllerActionOrigin_XBoxOne_LeftStick_DPadWest:
-        case k_EControllerActionOrigin_XBox360_LeftStick_DPadWest:
-        case k_EControllerActionOrigin_SteamV2_LeftStick_DPadWest:
-        {
-          if (data.bState) steam_to_xi->Gamepad.wButtons |=  XINPUT_GAMEPAD_DPAD_LEFT;
-          else             steam_to_xi->Gamepad.wButtons &= ~XINPUT_GAMEPAD_DPAD_LEFT;
-        }
-        break;
-      }
-    }
-  }
-
-
-  return slot == config.input.gamepad.xinput.ui_slot ?
-           last_data [controllerHandle][digitalActionHandle] :
-                data;
-}
+                                               ControllerDigitalActionHandle_t  digitalActionHandle );
 
 
 
@@ -579,13 +211,16 @@ public:
   // Trigger a haptic pulse on a controller
   virtual void TriggerHapticPulse (ControllerHandle_t controllerHandle, ESteamControllerPad eTargetPad, unsigned short usDurationMicroSec) override
   {
-    unsigned int slot = (unsigned int)
-      GetGamepadIndexForController (controllerHandle);
+    ControllerIndex_t slot =
+      std::max (0ui32, ControllerIndex (controllerHandle));
 
-    if ( slot != config.input.gamepad.xinput.ui_slot ||
+    if ( slot != config.input.gamepad.steam.ui_slot ||
              (! SK_ImGui_WantGamepadCapture ())         )
     {
-      pRealController->TriggerHapticPulse (controllerHandle, eTargetPad, usDurationMicroSec);
+      if (! config.input.gamepad.disable_rumble)
+      {
+        pRealController->TriggerHapticPulse (controllerHandle, eTargetPad, usDurationMicroSec);
+      }
     }
   } // 15
 
@@ -593,26 +228,32 @@ public:
   // nFlags is currently unused and reserved for future use.
   virtual void TriggerRepeatedHapticPulse (ControllerHandle_t controllerHandle, ESteamControllerPad eTargetPad, unsigned short usDurationMicroSec, unsigned short usOffMicroSec, unsigned short unRepeat, unsigned int nFlags) override
   {
-    unsigned int slot = (unsigned int)
-      GetGamepadIndexForController (controllerHandle);
+    ControllerIndex_t slot =
+      std::max (0ui32, ControllerIndex (controllerHandle));
 
-    if ( slot != config.input.gamepad.xinput.ui_slot ||
+    if ( slot != config.input.gamepad.steam.ui_slot ||
              (! SK_ImGui_WantGamepadCapture ())         )
     {
-      pRealController->TriggerRepeatedHapticPulse (controllerHandle, eTargetPad, usDurationMicroSec, usOffMicroSec, unRepeat, nFlags);
+      if (! config.input.gamepad.disable_rumble)
+      {
+        pRealController->TriggerRepeatedHapticPulse (controllerHandle, eTargetPad, usDurationMicroSec, usOffMicroSec, unRepeat, nFlags);
+      }
     }
   } // 16
 
-  // Tigger a vibration event on supported controllers.  
+  // Trigger a vibration event on supported controllers.  
   virtual void TriggerVibration (ControllerHandle_t controllerHandle, unsigned short usLeftSpeed, unsigned short usRightSpeed) override
   {
-    unsigned int slot = (unsigned int)
-      GetGamepadIndexForController (controllerHandle);
+    ControllerIndex_t slot =
+      std::max (0ui32, ControllerIndex (controllerHandle));
 
-    if ( slot != config.input.gamepad.xinput.ui_slot ||
+    if ( slot != config.input.gamepad.steam.ui_slot ||
              (! SK_ImGui_WantGamepadCapture ())         )
     {
-      pRealController->TriggerVibration (controllerHandle, usLeftSpeed, usRightSpeed);
+      if (! config.input.gamepad.disable_rumble)
+      {
+        pRealController->TriggerVibration (controllerHandle, usLeftSpeed, usRightSpeed);
+      }
     }
   } // 17
 
@@ -667,39 +308,5 @@ private:
   ISteamController* pRealController;
 };
 
-#include <SpecialK/utility.h>
-
 bool
-SK_Steam_HookController (void)
-{
-  const wchar_t* wszSteamLib =
-#ifdef _WIN64
-    L"steam_api64.dll";
-#else
-    L"steam_api.dll";
-#endif
-
-  SK_CreateDLLHook2 (       wszSteamLib,
-                   "SteamAPI_ISteamController_Init",
-                             ISteamController_Init_Detour,
-    static_cast_p2p <void> (&ISteamController_Init_Original) );
-
-  SK_CreateDLLHook2 (       wszSteamLib,
-                   "SteamAPI_ISteamController_RunFrame",
-                             ISteamController_RunFrame_Detour,
-    static_cast_p2p <void> (&ISteamController_RunFrame_Original) );
-
-  SK_CreateDLLHook2 (       wszSteamLib,
-                   "SteamAPI_ISteamController_GetAnalogActionData",
-                             ISteamController_GetAnalogActionData_Detour,
-    static_cast_p2p <void> (&ISteamController_GetAnalogActionData_Original) );
-
-  SK_CreateDLLHook2 (       wszSteamLib,
-                   "SteamAPI_ISteamController_GetDigitalActionData",
-                             ISteamController_GetDigitalActionData_Detour,
-    static_cast_p2p <void> (&ISteamController_GetDigitalActionData_Original) );
-
-  SK_ApplyQueuedHooks ();
-
-  return true;
-}
+SK_Steam_HookController (void);

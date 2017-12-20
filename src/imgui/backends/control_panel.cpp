@@ -52,6 +52,7 @@
 
 #include <SpecialK/diagnostics/debug_utils.h>
 #include <SpecialK/input/xinput_hotplug.h>
+#include <SpecialK/input/steam.h>
 
 #include <SpecialK/nvapi.h>
 #include <SpecialK/ini.h>
@@ -4040,7 +4041,7 @@ SK_ImGui_ControlPanel (void)
 
         ImGui::SameLine       ();
 
-        ImGui::Checkbox       ("Disable ALL Rumble", &config.input.gamepad.xinput.disable_rumble);
+        ImGui::Checkbox       ("Disable ALL Rumble", &config.input.gamepad.disable_rumble);
 
         ImGui::NextColumn     ();
 
@@ -4077,8 +4078,11 @@ SK_ImGui_ControlPanel (void)
         connected [2] = SK_XInput_PollController (2);
         connected [3] = SK_XInput_PollController (3);
 
-        if ( connected [0] || connected [1] ||
-             connected [2] || connected [3] )
+        int num_steam_controllers =
+          steam_input.count;
+
+        if ( num_steam_controllers == 0 && ( connected [0] || connected [1] ||
+                                             connected [2] || connected [3] ) )
         {
           ImGui::Text("UI Controlled By:  "); ImGui::SameLine();
 
@@ -4101,7 +4105,41 @@ SK_ImGui_ControlPanel (void)
             ImGui::RadioButton ("XInput Controller 3##XInputSlot", (int *)&config.input.gamepad.xinput.ui_slot, 3);
 
           ImGui::SameLine    ();
-          ImGui::RadioButton ("Nothing", (int *)&config.input.gamepad.xinput.ui_slot, 4);
+          ImGui::RadioButton ("Nothing##XInputSlot", (int *)&config.input.gamepad.xinput.ui_slot, 4);
+
+          if (ImGui::IsItemHovered ())
+            ImGui::SetTooltip ("Config menu will only respond to keyboard/mouse input.");
+        }
+
+        if (num_steam_controllers > 0)
+        {
+          ImGui::Text ("UI Controlled By:  "); ImGui::SameLine ();
+
+          ControllerIndex_t idx =
+            steam_input.getFirstActive ();
+
+          if (idx != INVALID_CONTROLLER_INDEX)
+          {
+            for (int i = 0; i < num_steam_controllers; i++)
+            {
+              ImGui::RadioButton ( SK_FormatString ("Steam Controller %lu##SteamSlot", idx).c_str (),
+                                     (int *)&config.input.gamepad.steam.ui_slot,
+                                         idx );
+
+              idx =
+                steam_input [idx].getNextActive ();
+
+              if (idx == INVALID_CONTROLLER_INDEX)
+                break;
+
+              if (i != num_steam_controllers - 1)
+                ImGui::SameLine ();
+            }
+
+            ImGui::SameLine     ();
+          }
+
+          ImGui::RadioButton ("Nothing##SteamSlot", (int *)&config.input.gamepad.steam.ui_slot, INVALID_CONTROLLER_INDEX);
 
           if (ImGui::IsItemHovered ())
             ImGui::SetTooltip ("Config menu will only respond to keyboard/mouse input.");
@@ -4176,6 +4214,8 @@ extern float SK_ImGui_PulseNav_Strength;
         auto GamepadDebug = [](UINT idx) ->
         void
         {
+          ImGui::PushID (idx);
+
           JOYINFOEX joy_ex   { };
           JOYCAPSA  joy_caps { };
 
@@ -4285,14 +4325,15 @@ extern float SK_ImGui_PulseNav_Strength;
             ImGui::TreePop     ( );
           }
           ImGui::PopStyleColor (3);
+          ImGui::PopID         ( );
         };
 
-        ImGui::Separator ();
+        ImGui::Separator       ( );
 
         GamepadDebug (JOYSTICKID1);
         GamepadDebug (JOYSTICKID2);
 
-        ImGui::TreePop       ( );
+        ImGui::TreePop         ( );
       }
 
       if (ImGui::CollapsingHeader ("Low-Level Mouse Settings", ImGuiTreeNodeFlags_DefaultOpen))
@@ -4505,14 +4546,14 @@ extern float SK_ImGui_PulseNav_Strength;
 
       bool devices = ImGui::CollapsingHeader ("Enable / Disable Devices");
 
-      if (ImGui::IsItemHovered ()) ImGui::SetTooltip ("The primary use-case for these options is preventing a game from changing input icons.");
-
       if (devices)
       {
         ImGui::TreePush ("");
         ImGui::Checkbox ("Disable Mouse Input to Game",    &config.input.mouse.disabled_to_game);
         ImGui::SameLine ();
         ImGui::Checkbox ("Disable Keyboard Input to Game", &config.input.keyboard.disabled_to_game);
+        ImGui::SameLine ();
+        ImGui::Checkbox ("Disable Gamepad Input to Game",  &config.input.gamepad.disabled_to_game);
         ImGui::TreePop  ();
       }
 
@@ -5839,7 +5880,10 @@ static_cast <uint32_t> (
   ImGui::End   ();
 
   if (! open)
+  {
+    SK_XInput_ZeroHaptics (config.input.gamepad.steam.ui_slot); // XXX: MAKE SEPARATE
     SK_XInput_ZeroHaptics (config.input.gamepad.xinput.ui_slot);
+  }
 
   return open;
 }

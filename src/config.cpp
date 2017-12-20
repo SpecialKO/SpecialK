@@ -339,6 +339,7 @@ struct {
     sk::ParameterBool*    disable_ps4_hid;
     sk::ParameterBool*    rehook_xinput;
     sk::ParameterBool*    haptic_ui;
+    sk::ParameterBool*    disable_rumble;
     sk::ParameterBool*    hook_dinput8;
     sk::ParameterBool*    hook_hid;
     sk::ParameterBool*    hook_xinput;
@@ -346,11 +347,15 @@ struct {
     struct {
       sk::ParameterInt*     ui_slot;
       sk::ParameterInt*     placeholders;
-      sk::ParameterBool*    disable_rumble;
       sk::ParameterStringW* assignment;
     } xinput;
 
+    struct {
+      sk::ParameterInt*     ui_slot;
+    } steam;
+
     sk::ParameterBool*   native_ps4;
+    sk::ParameterBool*   disabled_to_game;
   } gamepad;
 } input;
 
@@ -617,18 +622,22 @@ struct param_decl_s {
     ConfigEntry (input.cursor.no_warp_ui,                L"Prevent Games from Warping Cursor while Config UI is Open", dll_ini,         L"Input.Cursor",          L"NoWarpUI"),
     ConfigEntry (input.cursor.no_warp_visible,           L"Prevent Games from Warping Cursor while Cursor is Visible", dll_ini,         L"Input.Cursor",          L"NoWarpVisibleGameCursor"),
 
+    ConfigEntry (input.gamepad.disabled_to_game,         L"Disable ALL Gamepad Input (acrossall APIs)",                dll_ini,         L"Input.Gamepad",         L"DisabledToGame"),
     ConfigEntry (input.gamepad.disable_ps4_hid,          L"Disable PS4 HID Interface (prevent double-input)",          dll_ini,         L"Input.Gamepad",         L"DisablePS4HID"),
     ConfigEntry (input.gamepad.haptic_ui,                L"Give tactile feedback on gamepads when navigating the UI",  dll_ini,         L"Input.Gamepad",         L"AllowHapticUI"),
     ConfigEntry (input.gamepad.hook_dinput8,             L"Install hooks for DirectInput 8",                           dll_ini,         L"Input.Gamepad",         L"EnableDirectInput8"),
     ConfigEntry (input.gamepad.hook_hid,                 L"Install hooks for HID",                                     dll_ini,         L"Input.Gamepad",         L"EnableHID"),
     ConfigEntry (input.gamepad.native_ps4,               L"Native PS4 Mode (temporary)",                               dll_ini,         L"Input.Gamepad",         L"EnableNativePS4"),
+    ConfigEntry (input.gamepad.disable_rumble,           L"Disable Rumble from ALL SOURCES (across all APIs)",         dll_ini,         L"Input.Gamepad",         L"DisableRumble"),
 
     ConfigEntry (input.gamepad.hook_xinput,              L"Install hooks for XInput",                                  dll_ini,         L"Input.XInput",          L"Enable"),
     ConfigEntry (input.gamepad.rehook_xinput,            L"Re-install XInput hooks if hookchain is modified",          dll_ini,         L"Input.XInput",          L"Rehook"),
     ConfigEntry (input.gamepad.xinput.ui_slot,           L"XInput Controller that owns the config UI",                 dll_ini,         L"Input.XInput",          L"UISlot"),
     ConfigEntry (input.gamepad.xinput.placeholders,      L"XInput Controller Slots to Fake Connectivity On",           dll_ini,         L"Input.XInput",          L"PlaceholderMask"),
-    ConfigEntry (input.gamepad.xinput.disable_rumble,    L"Disable Rumble from ALL SOURCES",                           dll_ini,         L"Input.XInput",          L"DisableRumble"),
     ConfigEntry (input.gamepad.xinput.assignment,        L"Re-Assign XInput Slots",                                    dll_ini,         L"Input.XInput",          L"SlotReassignment"),
+  //DEPRECATED  (                                                                                                                       L"Input.XInput",          L"DisableRumble"),
+
+    ConfigEntry (input.gamepad.steam.ui_slot,            L"Steam Controller that owns the config UI",                  dll_ini,         L"Input.Steam",           L"UISlot"),
 
 
     // Window Management
@@ -1806,6 +1815,7 @@ struct param_decl_s {
   input.cursor.antiwarp_deadzone->load  (config.input.mouse.antiwarp_deadzone);
   input.cursor.use_relative_input->load (config.input.mouse.add_relative_motion);
 
+  input.gamepad.disabled_to_game->load  (config.input.gamepad.disabled_to_game);
   input.gamepad.disable_ps4_hid->load   (config.input.gamepad.disable_ps4_hid);
   input.gamepad.rehook_xinput->load     (config.input.gamepad.rehook_xinput);
   input.gamepad.hook_xinput->load       (config.input.gamepad.hook_xinput);
@@ -1827,7 +1837,7 @@ struct param_decl_s {
     config.input.gamepad.xinput.placehold [3] = ( placeholder_mask & 0x8 );
   }
 
-  input.gamepad.xinput.disable_rumble->load (config.input.gamepad.xinput.disable_rumble);
+  input.gamepad.disable_rumble->load (config.input.gamepad.disable_rumble);
 
 
   if (((sk::iParameter *)input.gamepad.xinput.assignment)->load ())
@@ -1860,6 +1870,7 @@ struct param_decl_s {
   }
 
   input.gamepad.xinput.ui_slot->load ((int &)config.input.gamepad.xinput.ui_slot);
+  input.gamepad.steam.ui_slot->load  ((int &)config.input.gamepad.steam.ui_slot);
 
   window.borderless->load        (config.window.borderless);
 
@@ -2348,6 +2359,7 @@ SK_SaveConfig ( std::wstring name,
   input.cursor.antiwarp_deadzone->store       (config.input.mouse.antiwarp_deadzone);
   input.cursor.use_relative_input->store      (config.input.mouse.add_relative_motion);
 
+  input.gamepad.disabled_to_game->store       (config.input.gamepad.disabled_to_game);
   input.gamepad.disable_ps4_hid->store        (config.input.gamepad.disable_ps4_hid);
   input.gamepad.rehook_xinput->store          (config.input.gamepad.rehook_xinput);
   input.gamepad.haptic_ui->store              (config.input.gamepad.haptic_ui);
@@ -2361,6 +2373,7 @@ SK_SaveConfig ( std::wstring name,
 
   input.gamepad.xinput.placeholders->store    (placeholder_mask);
   input.gamepad.xinput.ui_slot->store         (config.input.gamepad.xinput.ui_slot);
+  input.gamepad.steam.ui_slot->store          (config.input.gamepad.steam.ui_slot);
 
   std::wstring xinput_assign = L"";
 
@@ -2375,7 +2388,7 @@ SK_SaveConfig ( std::wstring name,
   }
 
   input.gamepad.xinput.assignment->store     (xinput_assign);
-  input.gamepad.xinput.disable_rumble->store (config.input.gamepad.xinput.disable_rumble);
+  input.gamepad.disable_rumble->store        (config.input.gamepad.disable_rumble);
 
   window.borderless->store                   (config.window.borderless);
   window.center->store                       (config.window.center);

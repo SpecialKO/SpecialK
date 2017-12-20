@@ -361,9 +361,11 @@ struct sk_config_t
     } ui;
 
     struct {
+      bool    disabled_to_game  = false;
       bool    disable_ps4_hid   = false;
       bool    rehook_xinput     = false;
       bool    haptic_ui         = true;
+      bool    disable_rumble    = false;
       bool    hook_dinput8      = true;
       bool    hook_hid          = true;
       bool    hook_xinput       = true; // Kind of important ;)
@@ -375,8 +377,13 @@ struct sk_config_t
         int   ui_slot           =    0;
         bool  placehold  [4]    = { false };
         int   assignment [4]    = { 0, 1, 2, 3 };
-        bool  disable_rumble    = false;
       } xinput;
+
+      struct
+      {
+        unsigned
+        int   ui_slot           =    1;
+      } steam;
     } gamepad;
 
     struct {
