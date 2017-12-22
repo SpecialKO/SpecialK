@@ -5576,17 +5576,8 @@ CreateWindowExA_Detour (
   {
     if (ReadAcquire (&SK_bypass_dialog_active) && (GetCurrentThreadId () != static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid))))
     {
-      if (IsGUIThread (FALSE))
-      {
-        while (ReadAcquire ((&SK_bypass_dialog_active)) && (GetCurrentThreadId () != static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid))))
-          MsgWaitForMultipleObjectsEx (0, nullptr, 1, QS_ALLINPUT, MWMO_ALERTABLE);
-      }
-
-      else
-      {
-        while (ReadAcquire ((&SK_bypass_dialog_active)) && (GetCurrentThreadId () != static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid))))
-          WaitForMultipleObjectsEx (0, nullptr, 1, QS_ALLINPUT, MWMO_ALERTABLE);
-      }
+      while (ReadAcquire ((&SK_bypass_dialog_active)) && (GetCurrentThreadId () != static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid))))
+        MsgWaitForMultipleObjectsEx (0, nullptr, 1, QS_ALLINPUT, MWMO_ALERTABLE);
     }
   }
 
@@ -5655,17 +5646,8 @@ CreateWindowExW_Detour(
   {
     if (ReadAcquire (&SK_bypass_dialog_active) && (GetCurrentThreadId () != static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid))))
     {
-      if (IsGUIThread (FALSE))
-      {
-        while (ReadAcquire ((&SK_bypass_dialog_active)) && (GetCurrentThreadId () != static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid))))
-          MsgWaitForMultipleObjectsEx (0, nullptr, 1, QS_ALLINPUT, MWMO_ALERTABLE);
-      }
-
-      else
-      {
-        while (ReadAcquire ((&SK_bypass_dialog_active)) && (GetCurrentThreadId () != static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid))))
-          WaitForMultipleObjectsEx (0, nullptr, 1, QS_ALLINPUT, MWMO_ALERTABLE);
-      }
+      while (ReadAcquire ((&SK_bypass_dialog_active)) && (GetCurrentThreadId () != static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid))))
+        MsgWaitForMultipleObjectsEx (0, nullptr, 1, QS_ALLINPUT, MWMO_ALERTABLE);
     }
   }
 
@@ -5705,6 +5687,169 @@ CreateWindowExW_Detour(
 
   return hWndRet;
 }
+
+
+
+
+
+
+/* size of a form name string */
+#define CCHFORMNAME 32
+
+typedef BOOL (WINAPI *EnumDisplaySettingsA_pfn) (
+                        _In_opt_ LPCSTR    lpszDeviceName,
+                        _In_     DWORD      iModeNum,
+                        _Inout_  DEVMODEA *lpDevMode
+);
+EnumDisplaySettingsA_pfn EnumDisplaySettingsA_Original = nullptr;
+
+typedef BOOL (WINAPI *EnumDisplaySettingsW_pfn) (
+                        _In_opt_ LPWSTR    lpszDeviceName,
+                        _In_     DWORD      iModeNum,
+                        _Inout_  DEVMODEW *lpDevMode
+);
+EnumDisplaySettingsW_pfn EnumDisplaySettingsW_Original = nullptr;
+
+
+// SAL notation in Win32 API docs is wrong
+using ChangeDisplaySettingsA_pfn = LONG (WINAPI *)(
+  _In_opt_ DEVMODEA *lpDevMode,
+  _In_     DWORD     dwFlags
+);
+ChangeDisplaySettingsA_pfn ChangeDisplaySettingsA_Original = nullptr;
+
+// SAL notation in Win32 API docs is wrong
+using ChangeDisplaySettingsW_pfn = LONG (WINAPI *)(
+  _In_opt_ DEVMODEW *lpDevMode,
+  _In_     DWORD     dwFlags
+);
+ChangeDisplaySettingsW_pfn ChangeDisplaySettingsW_Original = nullptr;
+
+using ChangeDisplaySettingsExA_pfn = LONG (WINAPI *)(
+  _In_ LPCSTR    lpszDeviceName,
+  _In_ DEVMODEA *lpDevMode,
+       HWND      hwnd,
+  _In_ DWORD     dwflags,
+  _In_ LPVOID    lParam
+);
+ChangeDisplaySettingsExA_pfn ChangeDisplaySettingsExA_Original = nullptr;
+
+using ChangeDisplaySettingsExW_pfn = LONG (WINAPI *)(
+  _In_ LPCWSTR   lpszDeviceName,
+  _In_ DEVMODEW *lpDevMode,
+       HWND      hwnd,
+  _In_ DWORD     dwflags,
+  _In_ LPVOID    lParam
+);
+ChangeDisplaySettingsExW_pfn ChangeDisplaySettingsExW_Original = nullptr;
+
+LONG
+WINAPI
+ChangeDisplaySettingsExA_Detour (
+  _In_ LPCSTR    lpszDeviceName,
+  _In_ DEVMODEA *lpDevMode,
+       HWND      hWnd,
+  _In_ DWORD     dwFlags,
+  _In_ LPVOID    lParam )
+{
+  SK_LOG_FIRST_CALL
+
+  static bool called = false;
+
+  DEVMODEA dev_mode        = { };
+           dev_mode.dmSize = sizeof (DEVMODEA);
+
+  if (! config.window.res.override.isZero ())
+  {
+    if (lpDevMode != nullptr)
+    {
+      lpDevMode->dmPelsWidth  = config.window.res.override.x;
+      lpDevMode->dmPelsHeight = config.window.res.override.y;
+    }
+  }
+
+  EnumDisplaySettingsA_Original (lpszDeviceName, 0, &dev_mode);
+
+  if (dwFlags != CDS_TEST)
+  {
+    if (called)
+      ChangeDisplaySettingsExA_Original (lpszDeviceName, lpDevMode, hWnd, CDS_RESET, lParam);
+
+    called = true;
+
+    return ChangeDisplaySettingsExA_Original (lpszDeviceName, lpDevMode, hWnd, CDS_FULLSCREEN, lParam);
+  }
+
+  else
+    return ChangeDisplaySettingsExA_Original (lpszDeviceName, lpDevMode, hWnd, dwFlags, lParam);
+}
+
+
+LONG
+WINAPI
+ChangeDisplaySettingsA_Detour (
+  _In_opt_ DEVMODEA *lpDevMode,
+  _In_     DWORD     dwFlags )
+{
+  SK_LOG_FIRST_CALL
+
+  return ChangeDisplaySettingsExA_Detour (NULL, lpDevMode, NULL, dwFlags, NULL);
+}
+
+LONG
+WINAPI
+ChangeDisplaySettingsExW_Detour (
+  _In_ LPWSTR    lpszDeviceName,
+  _In_ DEVMODEW *lpDevMode,
+       HWND      hWnd,
+  _In_ DWORD     dwFlags,
+  _In_ LPVOID    lParam )
+{
+  SK_LOG_FIRST_CALL
+
+  static bool called = false;
+
+  DEVMODEW dev_mode        = { };
+           dev_mode.dmSize = sizeof (DEVMODEW);
+
+  if (! config.window.res.override.isZero ())
+  {
+    if (lpDevMode != nullptr)
+    {
+      lpDevMode->dmPelsWidth  = config.window.res.override.x;
+      lpDevMode->dmPelsHeight = config.window.res.override.y;
+    }
+  }
+
+  EnumDisplaySettingsW_Original (lpszDeviceName, 0, &dev_mode);
+
+  if (dwFlags != CDS_TEST)
+  {
+    if (called)
+      ChangeDisplaySettingsExW_Original (lpszDeviceName, lpDevMode, hWnd, CDS_RESET, lParam);
+
+    called = true;
+
+    return ChangeDisplaySettingsExW_Original (lpszDeviceName, lpDevMode, hWnd, CDS_FULLSCREEN, lParam);
+  }
+
+  else
+    return ChangeDisplaySettingsExW_Original (lpszDeviceName, lpDevMode, hWnd, dwFlags, lParam);
+}
+
+LONG
+WINAPI
+ChangeDisplaySettingsW_Detour (
+  _In_opt_ DEVMODEW *lpDevMode,
+  _In_     DWORD     dwFlags )
+{
+  SK_LOG_FIRST_CALL
+
+    return ChangeDisplaySettingsExW_Detour (NULL, lpDevMode, NULL, dwFlags, NULL);
+}
+
+
+
 
 void
 SK_HookWinAPI (void)
@@ -5900,6 +6045,36 @@ SK_HookWinAPI (void)
                              "GetSystemMetrics",
                               GetSystemMetrics_Detour,
      static_cast_p2p <void> (&GetSystemMetrics_Original) );
+
+  SK_CreateDLLHook2 (       L"user32.dll",
+                            "ChangeDisplaySettingsA",
+                             ChangeDisplaySettingsA_Detour,
+    static_cast_p2p <void> (&ChangeDisplaySettingsA_Original) );
+
+  SK_CreateDLLHook2 (       L"user32.dll",
+                            "ChangeDisplaySettingsW",
+                             ChangeDisplaySettingsW_Detour,
+    static_cast_p2p <void> (&ChangeDisplaySettingsW_Original) );
+
+  SK_CreateDLLHook2 (       L"user32.dll",
+                            "ChangeDisplaySettingsExA",
+                             ChangeDisplaySettingsExA_Detour,
+    static_cast_p2p <void> (&ChangeDisplaySettingsExA_Original) );
+
+  SK_CreateDLLHook2 (       L"user32.dll",
+                            "ChangeDisplaySettingsExW",
+                             ChangeDisplaySettingsExW_Detour,
+    static_cast_p2p <void> (&ChangeDisplaySettingsExW_Original) );
+
+
+  EnumDisplaySettingsA_Original =
+    (EnumDisplaySettingsA_pfn) GetProcAddress (
+                        GetModuleHandle (L"user32.dll"),
+                                            "EnumDisplaySettingsA" );
+  EnumDisplaySettingsW_Original =
+    (EnumDisplaySettingsW_pfn) GetProcAddress (
+                        GetModuleHandle (L"user32.dll"),
+                                           "EnumDisplaySettingsW" );
 
   SK_ApplyQueuedHooks ();
 

@@ -182,10 +182,13 @@ struct {
     sk::ParameterBool*    silent;
   } log;
 
-  struct
-  {
+  struct {
     sk::ParameterBool*    spoof_BLoggedOn;
   } drm;
+
+  struct {
+    sk::ParameterStringW* blacklist;
+  } cloud;
 } steam;
 
 struct
@@ -832,6 +835,7 @@ struct param_decl_s {
     ConfigEntry (steam.system.early_overlay,             L"Load the Steam Overlay Early",                              dll_ini,         L"Steam.System",          L"PreLoadSteamOverlay"),
     ConfigEntry (steam.system.force_load,                L"Forcefully load steam_api{64}.dll",                         dll_ini,         L"Steam.System",          L"ForceLoadSteamAPI"),
     ConfigEntry (steam.log.silent,                       L"Makes steam_api.log go away",                               dll_ini,         L"Steam.Log",             L"Silent"),
+    ConfigEntry (steam.cloud.blacklist,                  L"CSV list of files to block from cloud sync.",               dll_ini,         L"Steam.Cloud",           L"FilesNotToSync"),
     ConfigEntry (steam.drm.spoof_BLoggedOn,              L"Fix For Stupid Games That Don't Know How DRM Works",        dll_ini,         L"Steam.DRMWorks",        L"SpoofBLoggedOn"),
   };
 
@@ -1957,6 +1961,27 @@ struct param_decl_s {
     config.steam.achievements.pull_friend_stats = false;
     config.steam.achievements.pull_global_stats = false;
   }
+
+
+  if (((sk::iParameter *)steam.cloud.blacklist)->load ())
+  {
+    std::unique_ptr <wchar_t> wszCSV (
+        _wcsdup (steam.cloud.blacklist->get_value ().c_str ())
+    );
+
+    wchar_t* wszBuf = nullptr;
+    wchar_t* wszTok =
+      std::wcstok (wszCSV.get (), L",", &wszBuf);
+
+    while (wszTok != nullptr)
+    {
+      config.steam.cloud.blacklist.emplace (SK_WideCharToUTF8 (wszTok));
+
+      wszTok =
+        std::wcstok (nullptr, L",", &wszBuf);
+    }
+  }
+
 
   steam.log.silent->load          (config.steam.silent);
   steam.drm.spoof_BLoggedOn->load (config.steam.spoof_BLoggedOn);

@@ -79,6 +79,8 @@ ImGui_ImplDX11_Resize ( IDXGISwapChain *This,
 extern void SK_D3D11_EndFrame       (void);
 extern void SK_DXGI_UpdateSwapChain (IDXGISwapChain*);
 
+extern const wchar_t* __stdcall SK_GetBackend (void);
+
 #include <CEGUI/CEGUI.h>
 #include <CEGUI/System.h>
 #include <CEGUI/DefaultResourceProvider.h>
@@ -2694,11 +2696,12 @@ extern HRESULT
     {
       if (pSwapChain2 != nullptr)
       {
-        HANDLE hWait = pSwapChain2->GetFrameLatencyWaitableObject ();
+        CHandle hWait (pSwapChain2->GetFrameLatencyWaitableObject ());
 
-        WaitForSingleObjectEx ( hWait,
-                                  config.render.framerate.swapchain_wait,
-                                    TRUE );
+        MsgWaitForMultipleObjectsEx ( 1,
+                                        &hWait.m_h,
+                                          config.render.framerate.swapchain_wait,
+                                            QS_ALLEVENTS, MWMO_ALERTABLE );
       }
     }
   }
@@ -3927,12 +3930,12 @@ SK_DXGI_CreateSwapChain_PostInit ( _In_  IUnknown              *pDevice,
   {
     if (bFlipMode && bWait)
     {
-      HANDLE hWait =
-        pSwapChain2->GetFrameLatencyWaitableObject ();
+      CHandle hWait (pSwapChain2->GetFrameLatencyWaitableObject ());
 
-      WaitForSingleObjectEx ( hWait,
-                                config.render.framerate.swapchain_wait,
-                                  TRUE );
+      MsgWaitForMultipleObjectsEx ( 1,
+                                      &hWait.m_h,
+                                        config.render.framerate.swapchain_wait,
+                                          QS_ALLEVENTS, MWMO_ALERTABLE );
     }
   }
 
@@ -4815,43 +4818,6 @@ DXGI_STUB (HRESULT, DXGIReportAdapterConfiguration,
              (DWORD dwUnknown),
                    (dwUnknown) );
 
-
-LPVOID pfnChangeDisplaySettingsA        = nullptr;
-
-// SAL notation in Win32 API docs is wrong
-using ChangeDisplaySettingsA_pfn = LONG (WINAPI *)(
-  _In_opt_ DEVMODEA *lpDevMode,
-  _In_     DWORD     dwFlags
-);
-ChangeDisplaySettingsA_pfn ChangeDisplaySettingsA_Original = nullptr;
-
-LONG
-WINAPI
-ChangeDisplaySettingsA_Detour (
-  _In_opt_ DEVMODEA *lpDevMode,
-  _In_     DWORD     dwFlags )
-{
-  static bool called = false;
-
-  DEVMODEW dev_mode;
-  dev_mode.dmSize = sizeof (DEVMODEW);
-
-  EnumDisplaySettings (nullptr, 0, &dev_mode);
-
-  if (dwFlags != CDS_TEST)
-  {
-    if (called)
-      ChangeDisplaySettingsA_Original (nullptr, CDS_RESET);
-
-    called = true;
-
-    return ChangeDisplaySettingsA_Original (lpDevMode, CDS_FULLSCREEN);
-  }
-
-  else
-    return ChangeDisplaySettingsA_Original (lpDevMode, dwFlags);
-}
-
 using finish_pfn = void (WINAPI *)(void);
 
 void
@@ -5300,12 +5266,8 @@ SK_DXGI_HookFactory (IDXGIFactory* pFactory)
 {
   static volatile ULONG init = FALSE;
 
-  if (InterlockedCompareExchange (&init, TRUE, FALSE))
+  if (! InterlockedCompareExchange (&init, TRUE, FALSE))
   {
-    WaitForInitDXGI ();
-    return;
-  }
-
   //int iver = SK_GetDXGIFactoryInterfaceVer (pFactory);
 
   //  0 QueryInterface
@@ -5372,7 +5334,7 @@ SK_DXGI_HookFactory (IDXGIFactory* pFactory)
   CComQIPtr <IDXGIFactory2> pFactory2 (pFactory);
 
   if ( pFactory2 != nullptr ||
-       CreateDXGIFactory2_Import != nullptr )
+       CreateDXGIFactory1_Import != nullptr )
   {
     if ( pFactory2 != nullptr ||
          SUCCEEDED (CreateDXGIFactory1_Import (IID_IDXGIFactory2, (void **)&pFactory2)) )
@@ -5415,6 +5377,10 @@ SK_DXGI_HookFactory (IDXGIFactory* pFactory)
   CComPtr <IDXGIFactory5> pFactory5 = nullptr;
 
   // 28 CheckFeatureSupport
+  }
+
+  else
+    WaitForInitDXGI ();
 }
 
 #include <mmsystem.h>
@@ -5622,7 +5588,7 @@ SK::DXGI::Shutdown (void)
   if (config.apis.dxgi.d3d12.hook) SK_D3D12_Shutdown ();
 #endif
 
-  if (SK_GetDLLRole () & DLL_ROLE::D3D11_CASE)
+  if (StrStrIW (SK_GetBackend (), L"d3d11"))
     return SK_ShutdownCore (L"d3d11");
 
   return SK_ShutdownCore (L"dxgi");
@@ -5931,10 +5897,10 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
     HANDLE phEvents [] = { params->event, params->shutdown };
 
     DWORD dwWaitStatus =
-      WaitForMultipleObjects ( 2,
-                                 phEvents,
-                                   FALSE,
-                                     BUDGET_POLL_INTERVAL * 3 );
+      MsgWaitForMultipleObjects ( 2,
+                                    phEvents,
+                                      FALSE,
+                                        BUDGET_POLL_INTERVAL * 3, QS_ALLINPUT );
 
     if (! ReadAcquire ( &params->ready ) )
     {

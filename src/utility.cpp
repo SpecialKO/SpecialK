@@ -279,7 +279,8 @@ SK_MoveFileNoFail ( const wchar_t* wszOld, const wchar_t* wszNew )
   {
     CHandle hNewFile ( CreateFile ( wszNew,
                                       GENERIC_READ      | GENERIC_WRITE,
-                                        FILE_SHARE_READ | FILE_SHARE_WRITE,
+                                        FILE_SHARE_READ | FILE_SHARE_WRITE |
+                                                          FILE_SHARE_DELETE,
                                           nullptr,
                                             OPEN_EXISTING,
                                               GetFileAttributes (wszNew),
@@ -311,7 +312,8 @@ SK_FullCopy (std::wstring from, std::wstring to)
   CHandle hTo (
     CreateFile ( to.c_str (),
                    GENERIC_READ      | GENERIC_WRITE,
-                     FILE_SHARE_READ | FILE_SHARE_WRITE,
+                     FILE_SHARE_READ | FILE_SHARE_WRITE |
+                                       FILE_SHARE_DELETE,
                        nullptr,
                          OPEN_EXISTING,
                            GetFileAttributes (to.c_str ()),
@@ -1329,10 +1331,11 @@ SK_SelfDestruct (void)
       SK::OpenGL::Shutdown ();
 #endif
 
-    using TerminateProcess_pfn = BOOL (WINAPI *)(HANDLE hProcess, UINT uExitCode);
-    extern TerminateProcess_pfn TerminateProcess_Original;
+    using  TerminateProcess_pfn = BOOL (WINAPI *)(HANDLE hProcess, UINT uExitCode);
 
-    TerminateProcess_Original (GetCurrentProcess (), 0x00);
+    ( (TerminateProcess_pfn)GetProcAddress ( GetModuleHandle ( L"kernel32.dll" ),
+                                               "TerminateProcess" )
+    )(GetCurrentProcess (), 0x00);
   }
 }
 

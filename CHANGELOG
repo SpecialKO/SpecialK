@@ -1,9 +1,24 @@
 0.8.57
 
-  + Added option to disable gamepad input to a game, similar to the m&kb options
-  + Significantly improved support for native Steam controller games
+  + Improved SteamAPI offline DRM bypass to work in all games tested;
+   + Improved support for native Steam controller games
 
-    >> Local DLL wrapper is needed in order to intercept Steam controller input
+    >> Local DLL wrapper is needed for both of these things.
+
+  + In D3D11 games that use multi-threaded rendering, ReShade triggering works
+      as intended.
+  + Added option to disable gamepad input to a game, similar to the m&kb options
+
+  * New Command Console Variables:
+  ================================
+    Input.Keyboard.DisableToGame  (Boolean): Blocks Keyboard Input
+    Input.Mouse.DisableToGame     (Boolean): Blocks Mouse Input
+    Input.Gamepad.DisableToGame   (Boolean): Blocks Gamepad Input
+    Input.Gamepad.DisableRumble   (Boolean): Blocks Rumble*
+                                     (*) All APIs except DirectInput
+
+    Input.Gamepad.XInput.UIController (Integer): 0-3,   4=Disable
+    Input.Gamepad.Steam.UIController  (Integer): 0-15, 16=Disable
 
 
 0.8.56

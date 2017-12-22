@@ -49,7 +49,7 @@
 #include <SpecialK/plugin/nier.h>
 
 
-#define FAR_VERSION_NUM L"0.7.0.19"
+#define FAR_VERSION_NUM L"0.7.0.20"
 #define FAR_VERSION_STR L"FAR v " FAR_VERSION_NUM
 
 // Block until update finishes, otherwise the update dialog
@@ -222,13 +222,15 @@ SK_FAR_CheckVersion (LPVOID user)
 {
   UNREFERENCED_PARAMETER (user);
 
-  extern volatile LONG   SK_bypass_dialog_active;
-  InterlockedIncrement (&SK_bypass_dialog_active);
-
   if (SK_FetchVersionInfo (L"FAR/dinput8"))
+  {
+    extern volatile LONG   SK_bypass_dialog_active;
+    InterlockedIncrement (&SK_bypass_dialog_active);
+
     SK_UpdateSoftware (L"FAR/dinput8");
 
-  InterlockedDecrement (&SK_bypass_dialog_active);
+    InterlockedDecrement (&SK_bypass_dialog_active);
+  }
 
   return 0;
 }
@@ -1428,6 +1430,9 @@ SK_FAR_InitPlugin (void)
 {
   SK_SetPluginName (FAR_VERSION_STR);
 
+  if (! SK_IsInjected ())
+    SK_FAR_CheckVersion (nullptr);
+
   SK_CreateFuncHook (       L"ID3D11Device::CreateBuffer",
                                D3D11Dev_CreateBuffer_Override,
                                  SK_FAR_CreateBuffer,
@@ -1821,9 +1826,6 @@ SK_FAR_InitPlugin (void)
   }
 
   InterlockedExchange (&__FAR_init, 1);
-
-  if (! SK_IsInjected ())
-    SK_FAR_CheckVersion (nullptr);
 }
 
 // Not currently used

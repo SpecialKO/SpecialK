@@ -1864,9 +1864,39 @@ void SK_Input_PreInit (void)
 }
 
 
+#include <SpecialK/command.h>
+
 void
 SK_Input_Init (void)
 {
+  auto CreateInputVar_Bool = [](auto name, auto config_var)
+  {
+    SK_GetCommandProcessor ()->AddVariable (
+      name,
+        SK_CreateVar ( SK_IVariable::Boolean,
+                         config_var
+                     )
+    );
+  };
+
+  auto CreateInputVar_Int = [](auto name, auto config_var)
+  {
+    SK_GetCommandProcessor ()->AddVariable (
+      name,
+        SK_CreateVar ( SK_IVariable::Int,
+                         config_var
+                     )
+    );
+  };
+
+  CreateInputVar_Bool ("Input.Keyboard.DisableToGame", &config.input.keyboard.disabled_to_game);
+  CreateInputVar_Bool ("Input.Mouse.DisableToGame",    &config.input.mouse.disabled_to_game);
+  CreateInputVar_Bool ("Input.Gamepad.DisableToGame",  &config.input.gamepad.disabled_to_game);
+  CreateInputVar_Bool ("Input.Gamepad.DisableRumble",  &config.input.gamepad.disable_rumble);
+
+  CreateInputVar_Int  ("Input.Steam.UIController",     &config.input.gamepad.steam.ui_slot);
+  CreateInputVar_Int  ("Input.XInput.UIController",    &config.input.gamepad.xinput.ui_slot);
+
   SK_Input_PreHookHID    ();
   SK_Input_PreHookDI8    ();
   SK_Input_PreHookXInput ();

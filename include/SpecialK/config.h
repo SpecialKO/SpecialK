@@ -23,6 +23,7 @@
 
 #include <Windows.h>
 #include <string>
+#include <set>
 
 #include <SpecialK/render_backend.h>
 
@@ -199,6 +200,10 @@ struct sk_config_t
       bool    take_screenshot     = false;
       bool    play_sound          = true;
     } achievements;
+
+    struct {
+      std::set <std::string> blacklist;
+    } cloud;
 
     int     notify_corner        = 0; // 0=Top-Left,
                                       // 1=Top-Right,

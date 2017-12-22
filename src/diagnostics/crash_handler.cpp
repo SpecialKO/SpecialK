@@ -111,8 +111,7 @@ CrashHandler::Init (void)
     crash_log.flush_freq = 0;
     crash_log.lockless   = true;
     crash_log.init       (           L"logs/crash.log",  L"w");
-    SK_File_SetHidden    (SK_Log_GetPath (L"crash.log"), true);
-  //SK_File_SetTemporary (SK_Log_GetPath (L"crash.log"), true);
+  //SK_File_SetHidden    (SK_Log_GetPath (L"crash.log"), true);
   }
 
   SK_CreateDLLHook  (       L"kernel32.dll",
@@ -644,6 +643,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
   } while (ret == TRUE);
 
   crash_log.Log (L"-----------------------------------------------------------");
+  fflush (crash_log.fLog);
 
 
   // On second chance it's pretty clear that no exception handler exists,
@@ -656,8 +656,6 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
   {
     if (! config.system.handle_crashes)
       TerminateProcess (GetCurrentProcess (), 0xdeadbeef);
-
-    SK_AutoClose_Log (crash_log);
 
     last_chance = true;
 
@@ -786,10 +784,10 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
                 fclose (log_file->fLog);
               }
 
-              SK_SetNormalFileAttribs  (wszOrigPath);
               SK_FullCopy              (wszOrigPath, wszDestPath);
+              SK_SetNormalFileAttribs  (wszDestPath);
 
-              if (log_file != nullptr && log_file->fLog)
+              if (log_file != nullptr && log_file->fLog && log_file != &crash_log)
               {
                 log_file->name = wszDestPath;
                 log_file->fLog = _wfopen (log_file->name.c_str (), L"a");
@@ -800,8 +798,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 
           if (! DeleteFileW (wszOrigPath))
           {
-            SK_File_SetHidden    (wszOrigPath, true);
-          //SK_File_SetTemporary (wszOrigPath, true);
+            //SK_File_SetHidden (wszOrigPath, true);
           }
         }
       } while (FindNextFileW (hFind, &fd) != 0);
@@ -809,14 +806,16 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
       FindClose (hFind);
     }
 
+    crash_log.silent = true;
+    crash_log.lines++;
+
     if (! (crash_log.initialized && crash_log.silent))
+    {
       PlaySound ( reinterpret_cast <LPCWSTR> (crash_sound.buf),
                     nullptr,
                       SND_SYNC |
                       SND_MEMORY );
-
-    crash_log.silent = true;
-    crash_log.lines++;
+    }
 
     // Shutdown the module gracefully
     SK_SelfDestruct ();

@@ -490,6 +490,9 @@ SK_StartPerfMonThreads (void)
     if ( InterlockedCompareExchangePointer (&process_stats.hThread, nullptr, INVALID_HANDLE_VALUE) ==
            INVALID_HANDLE_VALUE )
     {
+      bool SK_InitWMI (void);
+        SK_InitWMI    (    );
+
       dll_log.LogEx (true, L"[ WMI Perf ] Spawning Process Monitor...  ");
 
       InterlockedExchangePointer ( (void **)&process_stats.hThread,
@@ -516,6 +519,9 @@ SK_StartPerfMonThreads (void)
     if ( InterlockedCompareExchangePointer (&cpu_stats.hThread, nullptr, INVALID_HANDLE_VALUE) ==
            INVALID_HANDLE_VALUE )
     {
+      bool SK_InitWMI (void);
+        SK_InitWMI    (    );
+
       dll_log.LogEx (true, L"[ WMI Perf ] Spawning CPU Monitor...      ");
 
       InterlockedExchangePointer ( (void **)&cpu_stats.hThread,
@@ -539,6 +545,9 @@ SK_StartPerfMonThreads (void)
     if ( InterlockedCompareExchangePointer (&disk_stats.hThread, nullptr, INVALID_HANDLE_VALUE) ==
            INVALID_HANDLE_VALUE )
     {
+      bool SK_InitWMI (void);
+        SK_InitWMI    (    );
+
       dll_log.LogEx (true, L"[ WMI Perf ] Spawning Disk Monitor...     ");
 
       InterlockedExchangePointer ( (void **)&disk_stats.hThread,
@@ -562,6 +571,9 @@ SK_StartPerfMonThreads (void)
     if ( InterlockedCompareExchangePointer (&pagefile_stats.hThread, nullptr, INVALID_HANDLE_VALUE) ==
            INVALID_HANDLE_VALUE )
     {
+      bool SK_InitWMI (void);
+        SK_InitWMI    (    );
+
       dll_log.LogEx (true, L"[ WMI Perf ] Spawning Pagefile Monitor... ");
 
       InterlockedExchangePointer ( (void **)&pagefile_stats.hThread,
@@ -1003,22 +1015,17 @@ WaitForInit (void)
   if (ReadNoFence (&__SK_Init))
     return;
 
-  while (ReadPointerAcquire ((LPVOID *)&hInitThread) == nullptr)
-    SleepEx (150, TRUE);
-
   while (ReadPointerAcquire ((LPVOID *)&hInitThread) != INVALID_HANDLE_VALUE)
   {
     if (ReadPointerAcquire ((LPVOID *)&hInitThread) == GetCurrentThread ())
       break;
 
-    if ( WAIT_OBJECT_0 == WaitForSingleObject (
-      ReadPointerAcquire ((LPVOID *)&hInitThread),
-        150 ) )
+    if ( WAIT_OBJECT_0 == MsgWaitForMultipleObjects (1, const_cast <HANDLE *>(&hInitThread), FALSE, 150, QS_ALLINPUT) )
       break;
   }
 
-  if ( (! ReadAcquire (&SK_bypass_dialog_active)) &&
-          ReadAcquire (&SK_bypass_dialog_tid) != static_cast <LONG> (GetCurrentThreadId ()) )
+  while ( (ReadAcquire (&SK_bypass_dialog_active)) &&
+           ReadAcquire (&SK_bypass_dialog_tid) != static_cast <LONG> (GetCurrentThreadId ()) )
   {
     dll_log.Log ( L"[ MultiThr ] Injection Bypass Dialog Active (tid=%x)",
                       GetCurrentThreadId () );
@@ -1216,6 +1223,15 @@ DllThread (LPVOID user)
   reentrant_core = *params;
 
   SK_InitCore (params->backend, params->callback);
+
+  CreateThread (nullptr, 0x00, [](LPVOID) -> DWORD
+  {
+    WaitForInit ();
+
+    CloseHandle (GetCurrentThread ());
+
+    return 0;
+  }, nullptr, 0x00, nullptr);
 
   return 0;
 }
@@ -1418,6 +1434,11 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
   else
   {
+    if (config.compatibility.init_while_suspended)
+    {
+      init_tids = SK_SuspendAllOtherThreads ();
+    }
+
     wchar_t log_fname [MAX_PATH + 2] = { };
 
     swprintf (log_fname, L"logs/%s.log", SK_IsInjected () ? L"SpecialK" : backend);
@@ -1449,13 +1470,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     // For the global injector, when not started by SKIM, check its version
     if ( (SK_IsInjected () && (! SK_IsSuperSpecialK ())) )
       CreateThread (nullptr, 0, CheckVersionThread, nullptr, 0x00, nullptr);
-
-    if ((! (SK_GetDLLRole () & DLL_ROLE::DXGI)) && GetModuleHandle (L"dxgi.dll"))
-    {
-      // Do this from the startup thread so that there's no race if an app tries to
-      //   use D3D11.dll while our child thread is working.
-      SK_D3D11_Init ();
-    }
   }
 
   // Don't let Steam prevent me from attaching a debugger at startup
@@ -1550,12 +1564,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   if (config.steam.spoof_BLoggedOn)
   {
     SK_Steam_PreHookCore ();
-  }
-
-
-  if (config.compatibility.init_while_suspended)
-  {
-    //
   }
 
 
@@ -1684,8 +1692,6 @@ BACKEND_INIT:
 
   if (! __SK_bypass)
   {
-    init_tids = SK_SuspendAllOtherThreads ();
-
     // Lazy-load SteamAPI into a process that doesn't use it, this brings
     //   a number of benefits.
     if (config.steam.force_load_steamapi)
@@ -1732,14 +1738,6 @@ BACKEND_INIT:
         }
       }
     }
-
-    if (config.steam.preload_overlay)
-    {
-      SK_Steam_LoadOverlayEarly ();
-    }
-
-    bool SK_InitWMI (void);
-      SK_InitWMI    (    );
 
     InterlockedExchangePointer (
       (LPVOID *)&hInitThread,
@@ -1838,6 +1836,12 @@ SK_Win32_CleanupDummyWindow (void)
 
 #include <SpecialK/gpu_monitor.h>
 
+using ChangeDisplaySettingsA_pfn = LONG (WINAPI *)(
+  _In_opt_ DEVMODEA *lpDevMode,
+  _In_     DWORD     dwFlags
+);
+extern ChangeDisplaySettingsA_pfn ChangeDisplaySettingsA_Original;
+
 bool
 __stdcall
 SK_ShutdownCore (const wchar_t* backend)
@@ -1865,7 +1869,7 @@ SK_ShutdownCore (const wchar_t* backend)
        (! lstrcmpW (SK_GetHostApp (), L"FFX.exe"))          ||
        (! lstrcmpW (SK_GetHostApp (), L"FFX-2.exe"))        ||
        (! lstrcmpW (SK_GetHostApp (), L"dis1_st.exe")) )
-    ChangeDisplaySettingsA (nullptr, CDS_RESET);
+    ChangeDisplaySettingsA_Original (nullptr, CDS_RESET);
 
   SK_AutoClose_Log (game_debug);
   SK_AutoClose_Log (   dll_log);

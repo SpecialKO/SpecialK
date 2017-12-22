@@ -1054,6 +1054,19 @@ SK_DS3_GetFullscreenState (
   //return DXGISwap_GetFullscreenState_Original (This, nullptr, nullptr);
 }
 
+typedef BOOL (WINAPI *EnumDisplaySettingsW_pfn) (
+                        _In_opt_ LPWSTR    lpszDeviceName,
+                        _In_     DWORD      iModeNum,
+                        _Inout_  DEVMODEW *lpDevMode
+);
+extern EnumDisplaySettingsW_pfn EnumDisplaySettingsW_Original;
+
+using ChangeDisplaySettingsW_pfn = LONG (WINAPI *)(
+  _In_opt_ DEVMODEW *lpDevMode,
+  _In_     DWORD     dwFlags
+);
+extern ChangeDisplaySettingsW_pfn ChangeDisplaySettingsW_Original;
+
 HRESULT
 STDMETHODCALLTYPE
 SK_DS3_SetFullscreenState (
@@ -1074,7 +1087,7 @@ SK_DS3_SetFullscreenState (
 
     // Reset the temporary monitor mode change we may have made earlier
     if ((! ds3_state.Fullscreen) && ds3_cfg.window.borderless && sus_state.MaxWindow)
-      ChangeDisplaySettings (0, CDS_RESET);
+      ChangeDisplaySettingsW_Original (0, CDS_RESET);
 
     int num_monitors = GetSystemMetrics (SM_CMONITORS);
     int virtual_x    = GetSystemMetrics (SM_CXVIRTUALSCREEN);
@@ -1086,10 +1099,10 @@ SK_DS3_SetFullscreenState (
 
     if (ds3_cfg.window.borderless && sus_state.MaxWindow)
     {
-      DEVMODE devmode = { };
-      devmode.dmSize  = sizeof DEVMODE;
+      DEVMODEW devmode = { };
+               devmode.dmSize  = sizeof DEVMODEW;
 
-      EnumDisplaySettings (nullptr, ENUM_CURRENT_SETTINGS, &devmode);
+      EnumDisplaySettingsW_Original (nullptr, ENUM_CURRENT_SETTINGS, &devmode);
 
       // We may need to do a full-on temporary device mode change, since I don't want to
       //   bother with viewport hacks at the moment.
@@ -1110,7 +1123,7 @@ SK_DS3_SetFullscreenState (
           devmode.dmPelsWidth  = swap_desc.BufferDesc.Width;
           devmode.dmPelsHeight = swap_desc.BufferDesc.Height;
 
-          ChangeDisplaySettings (&devmode, CDS_FULLSCREEN);
+          ChangeDisplaySettingsW_Original (&devmode, CDS_FULLSCREEN);
 
           ds3_state.monitor.Width  = swap_desc.BufferDesc.Width;
           ds3_state.monitor.Height = swap_desc.BufferDesc.Height;

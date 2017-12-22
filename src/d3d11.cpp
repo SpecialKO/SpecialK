@@ -4118,10 +4118,11 @@ struct
 
   struct explict_draw_s
   {
-    void*                   ptr   = nullptr;
-    ID3D11RenderTargetView* pRTV  = nullptr;
-    bool                    pass  = false;
-    int                     calls = 0;
+    void*                   ptr     = nullptr;
+    ID3D11RenderTargetView* pRTV    = nullptr;
+    bool                    pass    = false;
+    int                     calls   = 0;
+    ID3D11DeviceContext*    src_ctx = nullptr;
   } explicit_draw;
 } SK_ReShade_PresentCallback;
 
@@ -4192,7 +4193,7 @@ public:
       SK_ScopedBool auto_bool (&SK_TLS_Bottom ()->imgui.drawing);
       SK_TLS_Bottom ()->imgui.drawing = true;
 
-      if (SK_ReShade_PresentCallback.fn && (! SK_D3D11_Shaders.reshade_triggered))
+      if (SK_ReShade_PresentCallback.fn && (! SK_D3D11_Shaders.reshade_triggered [_ctx]))
       {
         //CComPtr <ID3D11DepthStencilView>  pDSV = nullptr;
         //CComPtr <ID3D11DepthStencilState> pDSS = nullptr;
@@ -4237,9 +4238,10 @@ public:
                 (! pShaderReg->trigger_reshade.after.empty ()) &&
                    pShaderReg->trigger_reshade.after.count (pShaderReg->current.shader [_ctx]) )
               {
-                SK_D3D11_Shaders.reshade_triggered = true;
+                SK_D3D11_Shaders.reshade_triggered [_ctx] = true;
 
                 SK_ReShade_PresentCallback.explicit_draw.calls++;
+                SK_ReShade_PresentCallback.explicit_draw.src_ctx = _ctx;
                 SK_ReShade_PresentCallback.fn (&SK_ReShade_PresentCallback.explicit_draw);
                 break;
               }
@@ -4282,7 +4284,7 @@ SK_D3D11_DrawHandler (ID3D11DeviceContext* pDevCtx)
     SK_ScopedBool auto_bool (&SK_TLS_Bottom ()->imgui.drawing);
     SK_TLS_Bottom ()->imgui.drawing = true;
 
-    if (SK_ReShade_PresentCallback.fn && (! SK_D3D11_Shaders.reshade_triggered))
+    if (SK_ReShade_PresentCallback.fn && (! SK_D3D11_Shaders.reshade_triggered [pDevCtx]))
     {
       //CComPtr <ID3D11DepthStencilState> pDSS = nullptr;
       //CComPtr <ID3D11DepthStencilView>  pDSV = nullptr;
@@ -4334,9 +4336,10 @@ SK_D3D11_DrawHandler (ID3D11DeviceContext* pDevCtx)
                (! pShaderReg->trigger_reshade.before.empty ()) &&
                   pShaderReg->trigger_reshade.before.count (*current_shader) )
             {
-              SK_D3D11_Shaders.reshade_triggered = true;
+              SK_D3D11_Shaders.reshade_triggered [pDevCtx] = true;
 
               SK_ReShade_PresentCallback.explicit_draw.calls++;
+              SK_ReShade_PresentCallback.explicit_draw.src_ctx = pDevCtx;
               SK_ReShade_PresentCallback.fn (&SK_ReShade_PresentCallback.explicit_draw);
 
               break;
@@ -12848,7 +12851,8 @@ SK_D3D11_EndFrame (void)
   SK_D3D11_DispatchThreads.clear_active ();
 
 
-  SK_D3D11_Shaders.reshade_triggered = false;
+  for ( auto& it : SK_D3D11_Shaders.reshade_triggered )
+    it.second = false;
 
 
   SK_D3D11_Shaders.vertex.tracked.deactivate   ();
@@ -14285,7 +14289,7 @@ SKX_ImGui_RegisterDiscardableResource (IUnknown* pRes)
   temp_resources.push_back (pRes);
 }
 
-bool SK_D3D11_KnownShaders::reshade_triggered = false;
+std::unordered_map <ID3D11DeviceContext *, bool> SK_D3D11_KnownShaders::reshade_triggered;
 
 
 

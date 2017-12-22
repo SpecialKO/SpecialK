@@ -386,6 +386,14 @@ class ISteamRemoteStorage014
 		virtual SteamAPICall_t UGCDownloadToLocation( UGCHandle_t hContent, const char *pchLocation, uint32 unPriority ) = 0;
 };
 
+#define SK_STEAM_INVALID_UGC_FILE MAXUINT64-1
+
+bool
+SK_Steam_IsCloudFileBlacklisted (const char *pchFile)
+{
+  return config.steam.cloud.blacklist.count (pchFile) != 0;
+}
+
 class IWrapSteamRemoteStorage014 : public ISteamRemoteStorage014
 {
 public:
@@ -404,7 +412,12 @@ public:
   virtual bool                        FileWrite                 ( const char                   *pchFile,
                                                                   const void                   *pvData,
                                                                         int32                   cubData                ) override
-   { return pRealStorage->FileWrite (pchFile, pvData, cubData);                                                                  }
+   {
+     if (SK_Steam_IsCloudFileBlacklisted (pchFile))
+       return true;
+
+     return pRealStorage->FileWrite (pchFile, pvData, cubData);
+   }
   virtual int32                       FileRead                  ( const char                   *pchFile,
                                                                         void                   *pvData,
                                                                         int32                   cubDataToRead          ) override
@@ -424,32 +437,82 @@ public:
    { return pRealStorage->FileReadAsyncComplete (hReadCall, pvBuffer, cubToRead);                                                }
 
   virtual bool                        FileForget                ( const char                   *pchFile                ) override
-   { return pRealStorage->FileForget (pchFile);                                                                                  }
+   {
+     if (SK_Steam_IsCloudFileBlacklisted (pchFile))
+       return true;
+
+     return pRealStorage->FileForget (pchFile);
+   }
   virtual bool                        FileDelete                ( const char                   *pchFile                ) override
-   { return pRealStorage->FileDelete (pchFile);                                                                                  }
+   {
+     if (SK_Steam_IsCloudFileBlacklisted (pchFile))
+        return true;
+
+     return pRealStorage->FileDelete (pchFile);
+   }
   virtual SteamAPICall_t              FileShare                 ( const char                   *pchFile                ) override
-   { return pRealStorage->FileShare  (pchFile);                                                                                  }
+   {
+     if (SK_Steam_IsCloudFileBlacklisted (pchFile))
+        return 0;
+   
+     return pRealStorage->FileShare (pchFile);
+   }
   virtual bool                        SetSyncPlatforms          ( const char                   *pchFile,
                                                                         ERemoteStoragePlatform  eRemoteStoragePlatform ) override
-   { return pRealStorage->SetSyncPlatforms (pchFile, eRemoteStoragePlatform);                                                    }
+   {
+     if (SK_Steam_IsCloudFileBlacklisted (pchFile))
+       return true;
+
+     return pRealStorage->SetSyncPlatforms (pchFile, eRemoteStoragePlatform);
+   }
 
   // file operations that cause network IO
   virtual UGCFileWriteStreamHandle_t  FileWriteStreamOpen       ( const char                       *pchFile      ) override
-   { return pRealStorage->FileWriteStreamOpen (pchFile);                                                                   }
+   {
+      if (SK_Steam_IsCloudFileBlacklisted (pchFile))
+        return SK_STEAM_INVALID_UGC_FILE;
+   
+     return pRealStorage->FileWriteStreamOpen (pchFile);
+   }
   virtual bool                        FileWriteStreamWriteChunk (       UGCFileWriteStreamHandle_t  writeHandle,
                                                                   const void                       *pvData,
                                                                         int32                       cubData      ) override
-   { return pRealStorage->FileWriteStreamWriteChunk (writeHandle, pvData, cubData);                                        }
+   {
+     if (writeHandle == SK_STEAM_INVALID_UGC_FILE)
+       return true;
+   
+     return pRealStorage->FileWriteStreamWriteChunk (writeHandle, pvData, cubData);
+   }
   virtual bool                        FileWriteStreamClose      (       UGCFileWriteStreamHandle_t  writeHandle  ) override
-   { return pRealStorage->FileWriteStreamClose (writeHandle);                                                              }
+   {
+     if (writeHandle == SK_STEAM_INVALID_UGC_FILE)
+       return true;
+   
+     return pRealStorage->FileWriteStreamClose (writeHandle);
+   }
   virtual bool                        FileWriteStreamCancel     (       UGCFileWriteStreamHandle_t  writeHandle  ) override
-   { return pRealStorage->FileWriteStreamCancel (writeHandle);                                                             }
+   {
+     if (writeHandle == SK_STEAM_INVALID_UGC_FILE)
+       return true;
+   
+     return pRealStorage->FileWriteStreamCancel (writeHandle);
+   }
 
   // file information
   virtual bool                        FileExists                ( const char *pchFile ) override
-   { return pRealStorage->FileExists (pchFile);                                                 }
+   {
+     if (SK_Steam_IsCloudFileBlacklisted (pchFile))
+       return false;
+     
+     return pRealStorage->FileExists (pchFile);
+   }
   virtual bool                        FilePersisted             ( const char *pchFile ) override
-   { return pRealStorage->FilePersisted (pchFile);                                              }
+   {
+     if (SK_Steam_IsCloudFileBlacklisted (pchFile))
+       return false;
+
+     return pRealStorage->FilePersisted (pchFile);
+   }
   virtual int32                       GetFileSize               ( const char *pchFile ) override
    { return pRealStorage->GetFileSize (pchFile);                                                }
   virtual int64                       GetFileTimestamp          ( const char *pchFile ) override
@@ -468,6 +531,9 @@ public:
 
      steam_log.Log ( L"ISteamRemoteStorage014 ** File: (%hs:%lu) - %lu Bytes",
                        pszRet, iFile, pnFileSizeInBytes != nullptr ? *pnFileSizeInBytes : 0 );
+
+     if (SK_Steam_IsCloudFileBlacklisted (pszRet))
+       return "BlackListed.IAm"; // Sam
 
      return pszRet;
    }
@@ -774,4 +840,61 @@ SK_SteamWrapper_WrappedClient_GetISteamRemoteStorage ( ISteamClient *This,
   }
 
   return nullptr;
+}
+
+using SteamRemoteStorage_pfn = ISteamRemoteStorage* (S_CALLTYPE *)(
+        void
+      );
+SteamRemoteStorage_pfn SteamRemoteStorage_Original = nullptr;
+
+ISteamRemoteStorage*
+S_CALLTYPE
+SteamRemoteStorage_Detour (void)
+{
+  SK_RunOnce (
+    steam_log.Log ( L"[!] %hs ()",
+                      __FUNCTION__ )
+  );
+
+  if (steam_ctx.RemoteStorageVersion () == 12)
+  {
+    ISteamRemoteStorage* pRemoteStorage =
+      static_cast <ISteamRemoteStorage *> ( SteamRemoteStorage_Original () );
+    
+    if (SK_SteamWrapper_remap_remotestorage.count (pRemoteStorage))
+       return reinterpret_cast <ISteamRemoteStorage *> (SK_SteamWrapper_remap_remotestorage [pRemoteStorage]);
+
+    else
+    {
+      SK_SteamWrapper_remap_remotestorage [pRemoteStorage] =
+        reinterpret_cast <IWrapSteamRemoteStorage *> (
+              new IWrapSteamRemoteStorage012 (pRemoteStorage)
+        );
+
+      return reinterpret_cast <ISteamRemoteStorage *> (SK_SteamWrapper_remap_remotestorage [pRemoteStorage]);
+    }
+  }
+
+  else if (steam_ctx.RemoteStorageVersion () == 14)
+  {
+    ISteamRemoteStorage* pRemoteStorage =
+      static_cast <ISteamRemoteStorage *> ( SteamRemoteStorage_Original () );
+
+    if (SK_SteamWrapper_remap_remotestorage.count (pRemoteStorage))
+       return reinterpret_cast <ISteamRemoteStorage *> (SK_SteamWrapper_remap_remotestorage [pRemoteStorage]);
+
+    else
+    {
+      SK_SteamWrapper_remap_remotestorage [pRemoteStorage] =
+        reinterpret_cast <IWrapSteamRemoteStorage *> (
+              new IWrapSteamRemoteStorage014 (
+                reinterpret_cast <ISteamRemoteStorage014 *> (pRemoteStorage)
+              )
+        );
+
+      return reinterpret_cast <ISteamRemoteStorage *> (SK_SteamWrapper_remap_remotestorage [pRemoteStorage]);
+    }
+  }
+
+  return SteamRemoteStorage_Original ();
 }

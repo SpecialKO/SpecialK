@@ -241,7 +241,7 @@ SK_BootDI8 (void)
 #endif
 
 
-CreateThread (nullptr, 0x00, [](LPVOID user) -> DWORD
+CreateThread (nullptr, 0x00, [](LPVOID/*user*/) -> DWORD
 {
   //UNREFERENCED_PARAMETER (user);
 

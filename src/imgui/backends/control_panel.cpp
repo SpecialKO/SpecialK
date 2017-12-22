@@ -5587,6 +5587,130 @@ extern float SK_ImGui_PulseNav_Strength;
           ImGui::TreePop ();
         }
 
+
+
+
+        bool app_has_cloud_storage =
+          ( SK_SteamAPI_RemoteStorage () != nullptr ?
+            ReadAcquire64 (&SK_SteamAPI_CallbackRunCount)             &&
+            SK_SteamAPI_RemoteStorage ()->IsCloudEnabledForAccount () &&
+            SK_SteamAPI_RemoteStorage ()->IsCloudEnabledForApp     () :
+              false );
+
+        struct sk_steam_cloud_entry_s {
+          std::string filename;
+          std::string detail;   // Temporary, formatted string.
+          int32_t     size;     // Apparently 2 GiB is a hard limit, but we can
+                                //   always use negative storage if we run out ;)
+          int64_t     timestamp;
+          bool        blacklisted;
+        };
+
+        static std::vector <sk_steam_cloud_entry_s> files;
+
+        // Empty
+        if ( files.size () == 1 && files [0].size == 0 )
+          app_has_cloud_storage = false;
+
+        else if (app_has_cloud_storage && files.empty ( ))
+        {
+          ISteamRemoteStorage* pRemote =
+            SK_SteamAPI_RemoteStorage ();
+
+          int32_t num_files =
+            pRemote->GetFileCount ();
+
+          for (int i = 0; i < num_files; i++)
+          {
+            sk_steam_cloud_entry_s file = { };
+
+            file.filename  =
+              pRemote->GetFileNameAndSize (i, &file.size);
+            file.timestamp =
+              pRemote->GetFileTimestamp     (file.filename.c_str ());
+
+            file.blacklisted =
+              (config.steam.cloud.blacklist.count (file.filename) != 0);
+
+            files.emplace_back (file);
+          }
+
+          if (files.empty ())
+            files.emplace_back (sk_steam_cloud_entry_s { "No Files", "", 0L, 0LL, false });
+        }
+
+        if (app_has_cloud_storage && ImGui::CollapsingHeader ("Cloud Storage"))
+        {
+          bool dirty = false;
+
+          const  DWORD cycle_freq = 2250UL;
+          static DWORD last_cycle = timeGetTime ();
+          static int   detail_idx = 0;
+
+          if (last_cycle < timeGetTime () - cycle_freq)
+          {
+            detail_idx = ~detail_idx;
+            last_cycle =  timeGetTime ();
+            dirty      =  true;
+          }
+
+          ImGui::BeginChild ( "CloudStorageList",
+                                ImVec2 ( -1.0f, font_size_multiline * files.size () + 0.1f * font_size_multiline ),
+                                  true,
+                                    ImGuiWindowFlags_AlwaysAutoResize );
+          for ( auto& it : files )
+          {
+            ImGui::PushID   (it.filename.c_str ());
+
+            bool allow_sync = false;
+
+            if (it.size != 0)
+            {
+              allow_sync =
+                (! it.blacklisted);
+            }
+
+            if (dirty)
+            {
+              switch (detail_idx)
+              {
+                case 0:
+                  it.detail = SK_FormatString ("%i Bytes", it.size);
+                  break;
+                default:
+                {
+                  struct tm *t = _localtime64 (&it.timestamp);
+                  it.detail    =      asctime (  t);
+                } break;
+              }
+            }
+
+            if ( ImGui::MenuItem ( it.filename.c_str (),
+                                   it.detail.c_str   (), &allow_sync ) )
+            {
+              if (        allow_sync  && config.steam.cloud.blacklist.count (it.filename) != 0)
+              {
+                config.steam.cloud.blacklist.erase (it.filename);
+                it.blacklisted = false;
+              }
+
+              else if ((! allow_sync) && config.steam.cloud.blacklist.count (it.filename) == 0)
+              {
+                config.steam.cloud.blacklist.emplace (it.filename);
+                it.blacklisted = true;
+              }
+
+              SK_SaveConfig ();
+            }
+
+            ImGui::PopID    ();
+          }
+          ImGui::EndChild   ();
+        }
+
+
+
+
         if (SK_Denuvo_UsedByGame ())
         {
           ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.00f, 0.00f, 0.00f, 1.00f));
@@ -5822,7 +5946,7 @@ extern float SK_ImGui_PulseNav_Strength;
       }
 
       ImGui::SameLine ();
-      ImGui::Text     ( ": %10llu  ", InterlockedAdd64 (&SK_SteamAPI_CallbackRunCount, 0) );
+      ImGui::Text     ( ": %10llu  ", ReadAcquire64 (&SK_SteamAPI_CallbackRunCount) );
       ImGui::Columns(1, nullptr, false);
 
       // If fetching stats and online...
@@ -6233,7 +6357,7 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
   }
 
 
-  const  float font_size           =             ImGui::GetFont  ()->FontSize                        * io.FontGlobalScale;
+  const  float font_size           =             ImGui::GetFont  () ? ImGui::GetFont  ()->FontSize * io.FontGlobalScale : 0;
   const  float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y + ImGui::GetStyle ().ItemInnerSpacing.y;
 
   if (d3d11)
@@ -6339,15 +6463,16 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
 
   if (d3d9)
   {
-    extern LPDIRECT3DDEVICE9 g_pd3dDevice;
+    CComPtr <IDirect3DDevice9> pDev =
+      (IDirect3DDevice9 *)SK_GetCurrentRenderBackend ().device;
 
     if ( SUCCEEDED (
-           g_pd3dDevice->BeginScene ()
+           pDev->BeginScene ()
          )
        )
     {
-      ImGui::Render          ();
-      g_pd3dDevice->EndScene ();
+      ImGui::Render  ();
+      pDev->EndScene ();
     }
   }
 

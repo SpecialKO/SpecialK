@@ -152,35 +152,36 @@ size_t SK_SteamAPI_GetSharedAchievementsForFriend   (uint32_t friend_idx, BOOL* 
 const char* __stdcall SK_SteamAPI_GetFriendName        (uint32_t friend_idx, size_t* pLen = nullptr);
 
 
-bool __stdcall SK_SteamAPI_TakeScreenshot           (void);
-bool __stdcall SK_IsSteamOverlayActive              (void);
-bool __stdcall SK_SteamOverlay_GoToURL              (const char* szURL, bool bUseWindowsShellIfOverlayFails = false);
+bool __stdcall        SK_SteamAPI_TakeScreenshot                (void);
+bool __stdcall        SK_IsSteamOverlayActive                   (void);
+bool __stdcall        SK_SteamOverlay_GoToURL                   (const char* szURL, bool bUseWindowsShellIfOverlayFails = false);
 
-void    __stdcall SK_SteamAPI_UpdateNumPlayers      (void);
-int32_t __stdcall SK_SteamAPI_GetNumPlayers         (void);
+void    __stdcall     SK_SteamAPI_UpdateNumPlayers              (void);
+int32_t __stdcall     SK_SteamAPI_GetNumPlayers                 (void);
 
-float __stdcall SK_SteamAPI_PercentOfAchievementsUnlocked (void);
-                                                    
-void           SK_SteamAPI_LogAllAchievements       (void);
-void           SK_UnlockSteamAchievement            (uint32_t idx);
-                                                    
-bool           SK_SteamImported                     (void);
-void           SK_TestSteamImports                  (HMODULE hMod);
-                                                    
-void           SK_HookCSteamworks                   (void);
-void           SK_HookSteamAPI                      (void);
-                                                    
-void           SK_Steam_ClearPopups                 (void);
-int            SK_Steam_DrawOSD                     (void);
+float __stdcall       SK_SteamAPI_PercentOfAchievementsUnlocked (void);
 
-bool           SK_Steam_LoadOverlayEarly            (void);
+void                  SK_SteamAPI_LogAllAchievements            (void);
+void                  SK_UnlockSteamAchievement                 (uint32_t idx);
 
-void           SK_Steam_InitCommandConsoleVariables (void);
+bool                  SK_SteamImported                          (void);
+void                  SK_TestSteamImports                       (HMODULE hMod);
 
-ISteamUtils*   SK_SteamAPI_Utils                    (void);
-ISteamMusic*   SK_SteamAPI_Music                    (void);
+void                  SK_HookCSteamworks                        (void);
+void                  SK_HookSteamAPI                           (void);
 
-uint32_t __stdcall SK_Steam_PiratesAhoy             (void);
+void                  SK_Steam_ClearPopups                      (void);
+int                   SK_Steam_DrawOSD                          (void);
+
+bool                  SK_Steam_LoadOverlayEarly                 (void);
+
+void                  SK_Steam_InitCommandConsoleVariables      (void);
+
+ISteamUtils*          SK_SteamAPI_Utils                         (void);
+ISteamMusic*          SK_SteamAPI_Music                         (void);
+ISteamRemoteStorage*  SK_SteamAPI_RemoteStorage                 (void);
+
+uint32_t __stdcall    SK_Steam_PiratesAhoy                      (void);
 
 
 
@@ -288,259 +289,7 @@ public:
   virtual bool OnVarChange (SK_IVariable* var, void* val = nullptr) override;
 
   bool InitCSteamworks (HMODULE hSteamDLL);
-
-  bool InitSteamAPI (HMODULE hSteamDLL)
-  {
-    if (SteamAPI_InitSafe == nullptr)
-    {
-      SteamAPI_InitSafe =
-        (SteamAPI_InitSafe_pfn)GetProcAddress (
-          hSteamDLL,
-            "SteamAPI_InitSafe"
-        );
-    }
-
-    if (SteamAPI_GetHSteamUser == nullptr)
-    {
-      SteamAPI_GetHSteamUser =
-        (SteamAPI_GetHSteamUser_pfn)GetProcAddress (
-           hSteamDLL,
-             "SteamAPI_GetHSteamUser"
-        );
-    }
-
-    if (SteamAPI_GetHSteamPipe == nullptr)
-    {
-      SteamAPI_GetHSteamPipe =
-        (SteamAPI_GetHSteamPipe_pfn)GetProcAddress (
-           hSteamDLL,
-             "SteamAPI_GetHSteamPipe"
-        );
-    }
-
-    SteamAPI_IsSteamRunning =
-      (SteamAPI_IsSteamRunning_pfn)GetProcAddress (
-         hSteamDLL,
-           "SteamAPI_IsSteamRunning"
-      );
-
-    if (SteamClient_Original == nullptr)
-    {
-      SteamClient_Original =
-        (SteamClient_pfn)GetProcAddress (
-           hSteamDLL,
-             "SteamClient"
-        );
-    }
-
-    if (SteamAPI_RegisterCallResult == nullptr)
-    {
-      SteamAPI_RegisterCallResult =
-        (SteamAPI_RegisterCallResult_pfn)GetProcAddress (
-          hSteamDLL,
-            "SteamAPI_RegisterCallResult"
-        );
-    }
-
-    if (SteamAPI_UnregisterCallResult == nullptr)
-    {
-      SteamAPI_UnregisterCallResult =
-        (SteamAPI_UnregisterCallResult_pfn)GetProcAddress (
-          hSteamDLL,
-            "SteamAPI_UnregisterCallResult"
-        );
-    }
-
-
-    bool success = true;
-
-    if (SteamAPI_GetHSteamUser == nullptr)
-    {
-      steam_log.Log (L"Could not load SteamAPI_GetHSteamUser (...)");
-      success = false;
-    }
-
-    if (SteamAPI_GetHSteamPipe == nullptr)
-    {
-      steam_log.Log (L"Could not load SteamAPI_GetHSteamPipe (...)");
-      success = false;
-    }
-
-    if (SteamClient_Original == nullptr)
-    {
-      steam_log.Log (L"Could not load SteamClient (...)");
-      success = false;
-    }
-
-
-    if (SteamAPI_RunCallbacks == nullptr)
-    {
-      steam_log.Log (L"Could not load SteamAPI_RunCallbacks (...)");
-      success = false;
-    }
-
-    if (SteamAPI_Shutdown == nullptr)
-    {
-      steam_log.Log (L"Could not load SteamAPI_Shutdown (...)");
-      success = false;
-    }
-
-    if (! success)
-      return false;
-
-    if (! SteamAPI_InitSafe ())
-    {
-      steam_log.Log (L" SteamAPI_InitSafe (...) Failed?!");
-      return false;
-    }
-
-    client_ = SteamClient_Original ();
-
-    if (! client_)
-    {
-      steam_log.Log (L" SteamClient (...) Failed?!");
-      return false;
-    }
-
-    hSteamPipe = SteamAPI_GetHSteamPipe ();
-    hSteamUser = SteamAPI_GetHSteamUser ();
-
-    user_ =
-      client_->GetISteamUser (
-        hSteamUser,
-          hSteamPipe,
-            STEAMUSER_INTERFACE_VERSION
-      );
-
-    if (user_ == nullptr)
-    {
-      steam_log.Log ( L" >> ISteamUser NOT FOUND for version %hs <<",
-                        STEAMUSER_INTERFACE_VERSION );
-      return false;
-    }
-
-    // Blacklist of people not allowed to use my software (for being disruptive to other users)
-    //uint32_t aid = user_->GetSteamID ().GetAccountID    ();
-    //uint64_t s64 = user_->GetSteamID ().ConvertToUint64 ();
-
-    //
-    // Obsolete now, but will remain here for historical purposes.
-    // 
-    //   I've nothing to hide, these users were not people I held personal grudges against, but rather
-    //     that hijacked my support thread before I was able to moderate them.
-    //   
-    // 
-    //if ( aid ==  64655118 || aid == 183437803 )
-    //{
-    //  SK_MessageBox ( L"You are not authorized to use this software",
-    //                    L"Unauthorized User", MB_ICONWARNING | MB_OK );
-    //  ExitProcess (0x00);
-    //}
-
-    friends_ =
-      client_->GetISteamFriends (
-        hSteamUser,
-          hSteamPipe,
-            STEAMFRIENDS_INTERFACE_VERSION
-      );
-
-    if (friends_ == nullptr)
-    {
-      steam_log.Log ( L" >> ISteamFriends NOT FOUND for version %hs <<",
-                        STEAMFRIENDS_INTERFACE_VERSION );
-      return false;
-    }
-
-    user_stats_ =
-      client_->GetISteamUserStats (
-        hSteamUser,
-          hSteamPipe,
-            STEAMUSERSTATS_INTERFACE_VERSION
-      );
-
-    if (user_stats_ == nullptr)
-    {
-      steam_log.Log ( L" >> ISteamUserStats NOT FOUND for version %hs <<",
-                        STEAMUSERSTATS_INTERFACE_VERSION );
-      return false;
-    }
-
-    apps_ =
-      client_->GetISteamApps (
-        hSteamUser,
-          hSteamPipe,
-            STEAMAPPS_INTERFACE_VERSION
-      );
-
-    if (apps_ == nullptr)
-    {
-      steam_log.Log ( L" >> ISteamApps NOT FOUND for version %hs <<",
-                        STEAMAPPS_INTERFACE_VERSION );
-      return false;
-    }
-
-    utils_ =
-      client_->GetISteamUtils ( hSteamPipe,
-                                  STEAMUTILS_INTERFACE_VERSION );
-
-    if (utils_ == nullptr)
-    {
-      steam_log.Log ( L" >> ISteamUtils NOT FOUND for version %hs <<",
-                        STEAMUTILS_INTERFACE_VERSION );
-      return false;
-    }
-
-    screenshots_ =
-      client_->GetISteamScreenshots ( hSteamUser,
-                                        hSteamPipe,
-                                          STEAMSCREENSHOTS_INTERFACE_VERSION );
-
-    // We can live without this...
-    if (screenshots_ == nullptr)
-    {
-      steam_log.Log ( L" >> ISteamScreenshots NOT FOUND for version %hs <<",
-                        STEAMSCREENSHOTS_INTERFACE_VERSION );
-
-      screenshots_ =
-        client_->GetISteamScreenshots ( hSteamUser,
-                                          hSteamPipe,
-                                            "STEAMSCREENSHOTS_INTERFACE_VERSION001" );
-
-      steam_log.Log ( L" >> ISteamScreenshots NOT FOUND for version %hs <<",
-                        "STEAMSCREENSHOTS_INTERFACE_VERSION001" );
-
-
-      //return false;
-    }
-
-    // This crashes Dark Souls 3, so... do this
-    music_ =
-      SAFE_GetISteamMusic ( client_,
-                              hSteamUser,
-                                hSteamPipe,
-                                  STEAMMUSIC_INTERFACE_VERSION );
-
-    SK::SteamAPI::player = user_->GetSteamID ();
-
-    controller_ =
-      client_->GetISteamController (
-        hSteamUser,
-          hSteamPipe,
-            "SteamController005" );
-
-#if 0
-    void** vftable = *(void***)*(&controller_);
-    SK_CreateVFTableHook ( L"ISteamController::GetControllerState",
-                             vftable, 3,
-              ISteamController_GetControllerState_Detour,
-                    (LPVOID *)&GetControllerState_Original );
-#endif
-
-    MH_QueueEnableHook (SteamAPI_Shutdown);
-    MH_QueueEnableHook (SteamAPI_RunCallbacks);
-
-    return true;
-  }
+  bool InitSteamAPI    (HMODULE hSteamDLL);
 
   STEAM_CALLRESULT ( SK_SteamAPIContext,
                      OnFileDetailsDone,
@@ -560,22 +309,27 @@ public:
         if (hSteamPipe != 0)
           client_->BReleaseSteamPipe (hSteamPipe);
 #endif
-      
+
         SK_SteamAPI_DestroyManagers  ();
       }
-      
-      hSteamPipe   = 0;
-      hSteamUser   = 0;
-      
-      client_      = nullptr;
-      user_        = nullptr;
-      user_stats_  = nullptr;
-      apps_        = nullptr;
-      friends_     = nullptr;
-      utils_       = nullptr;
-      screenshots_ = nullptr;
-      controller_  = nullptr;
-      music_       = nullptr;
+
+      hSteamPipe      = 0;
+      hSteamUser      = 0;
+
+      client_         = nullptr;
+      user_           = nullptr;
+      user_stats_     = nullptr;
+      apps_           = nullptr;
+      friends_        = nullptr;
+      utils_          = nullptr;
+      screenshots_    = nullptr;
+      controller_     = nullptr;
+      music_          = nullptr;
+      remote_storage_ = nullptr;
+
+      user_ver_           = 0;
+      utils_ver_          = 0;
+      remote_storage_ver_ = 0;
       
       if (SteamAPI_Shutdown_Original != nullptr)
       {
@@ -589,14 +343,18 @@ public:
     }
   }
 
-  ISteamUser*        User        (void) { return user_;        }
-  ISteamUserStats*   UserStats   (void) { return user_stats_;  }
-  ISteamApps*        Apps        (void) { return apps_;        }
-  ISteamFriends*     Friends     (void) { return friends_;     }
-  ISteamUtils*       Utils       (void) { return utils_;       }
-  ISteamScreenshots* Screenshots (void) { return screenshots_; }
-  ISteamController*  Controller  (void) { return controller_;  }
-  ISteamMusic*       Music       (void) { return music_;       }
+  ISteamUser*          User                 (void) { return user_;               }
+  int                  UserVersion          (void) { return user_ver_;           }
+  ISteamUserStats*     UserStats            (void) { return user_stats_;         }
+  ISteamApps*          Apps                 (void) { return apps_;               }
+  ISteamFriends*       Friends              (void) { return friends_;            }
+  ISteamUtils*         Utils                (void) { return utils_;              }
+  int                  UtilsVersion         (void) { return utils_ver_;          }
+  ISteamScreenshots*   Screenshots          (void) { return screenshots_;        }
+  ISteamController*    Controller           (void) { return controller_;         }
+  ISteamMusic*         Music                (void) { return music_;              }
+  ISteamRemoteStorage* RemoteStorage        (void) { return remote_storage_;     }
+  int                  RemoteStorageVersion (void) { return remote_storage_ver_; }
 
   SK_IVariable*      popup_origin   = nullptr;
   SK_IVariable*      notify_corner  = nullptr;
@@ -616,18 +374,23 @@ public:
 
 protected:
 private:
-  HSteamPipe         hSteamPipe     = 0;
-  HSteamUser         hSteamUser     = 0;
+  HSteamPipe           hSteamPipe      = 0;
+  HSteamUser           hSteamUser      = 0;
 
-  ISteamClient*      client_        = nullptr;
-  ISteamUser*        user_          = nullptr;
-  ISteamUserStats*   user_stats_    = nullptr;
-  ISteamApps*        apps_          = nullptr;
-  ISteamFriends*     friends_       = nullptr;
-  ISteamUtils*       utils_         = nullptr;
-  ISteamScreenshots* screenshots_   = nullptr;
-  ISteamController*  controller_    = nullptr;
-  ISteamMusic*       music_         = nullptr;
+  ISteamClient*        client_         = nullptr;
+  ISteamUser*          user_           = nullptr;
+  ISteamUserStats*     user_stats_     = nullptr;
+  ISteamApps*          apps_           = nullptr;
+  ISteamFriends*       friends_        = nullptr;
+  ISteamUtils*         utils_          = nullptr;
+  ISteamScreenshots*   screenshots_    = nullptr;
+  ISteamController*    controller_     = nullptr;
+  ISteamMusic*         music_          = nullptr;
+  ISteamRemoteStorage* remote_storage_ = nullptr;
+
+  int                  user_ver_           = 0;
+  int                  utils_ver_          = 0;
+  int                  remote_storage_ver_ = 0;
 } extern steam_ctx;
 
 

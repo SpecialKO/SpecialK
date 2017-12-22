@@ -132,9 +132,9 @@ SKX_Steam_PollGamepad (void)
     steam_input.count =
       steam_input.pipe->GetConnectedControllers (handles);
 
-    for (int i = 0; i < steam_controllers.size (); i++)
+    for (ControllerIndex_t i = 0; i < steam_controllers.size (); i++)
     {
-      steam_input [(ControllerIndex_t)i].connected = false;
+      steam_input [i].connected = false;
     }
 
 
@@ -589,27 +589,36 @@ SK_Steam_HookController (void)
     L"steam_api.dll";
 #endif
 
-  SK_CreateDLLHook2 (       wszSteamLib,
-                   "SteamAPI_ISteamController_Init",
-                             ISteamController_Init_Detour,
-    static_cast_p2p <void> (&ISteamController_Init_Original) );
+  if ( GetProcAddress (
+         GetModuleHandleW (wszSteamLib),
+         "SteamAPI_ISteamController_GetAnalogActionData"
+       )
+     )
+  {
+    SK_CreateDLLHook2 (       wszSteamLib,
+                     "SteamAPI_ISteamController_Init",
+                               ISteamController_Init_Detour,
+      static_cast_p2p <void> (&ISteamController_Init_Original) );
 
-  SK_CreateDLLHook2 (       wszSteamLib,
-                   "SteamAPI_ISteamController_RunFrame",
-                             ISteamController_RunFrame_Detour,
-    static_cast_p2p <void> (&ISteamController_RunFrame_Original) );
+    SK_CreateDLLHook2 (       wszSteamLib,
+                     "SteamAPI_ISteamController_RunFrame",
+                               ISteamController_RunFrame_Detour,
+      static_cast_p2p <void> (&ISteamController_RunFrame_Original) );
 
-  SK_CreateDLLHook2 (       wszSteamLib,
-                   "SteamAPI_ISteamController_GetAnalogActionData",
-                             ISteamController_GetAnalogActionData_Detour,
-    static_cast_p2p <void> (&ISteamController_GetAnalogActionData_Original) );
+    SK_CreateDLLHook2 (       wszSteamLib,
+                     "SteamAPI_ISteamController_GetAnalogActionData",
+                               ISteamController_GetAnalogActionData_Detour,
+      static_cast_p2p <void> (&ISteamController_GetAnalogActionData_Original) );
 
-  SK_CreateDLLHook2 (       wszSteamLib,
-                   "SteamAPI_ISteamController_GetDigitalActionData",
-                             ISteamController_GetDigitalActionData_Detour,
-    static_cast_p2p <void> (&ISteamController_GetDigitalActionData_Original) );
+    SK_CreateDLLHook2 (       wszSteamLib,
+                     "SteamAPI_ISteamController_GetDigitalActionData",
+                               ISteamController_GetDigitalActionData_Detour,
+      static_cast_p2p <void> (&ISteamController_GetDigitalActionData_Original) );
 
-  SK_ApplyQueuedHooks ();
+    SK_ApplyQueuedHooks ();
 
-  return true;
+    return true;
+  }
+
+  return false;
 }

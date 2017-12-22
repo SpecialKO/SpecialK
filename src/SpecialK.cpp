@@ -195,11 +195,9 @@ extern void
 __stdcall
 SK_EstablishRootPath (void);
 
-#pragma data_seg (".SK_Hooks")
-#pragma data_seg (".SK_Hooks")
 const std::unordered_set <std::wstring> blacklist = {
 L"steam.exe",
-L"GameOverlayUI.exe",
+L"gameoverlayui.exe",
 L"streaming_client.exe",
 L"steamerrorreporter.exe",
 L"steamerrorreporter64.exe",
@@ -210,13 +208,13 @@ L"html5app_steam.exe",
 L"wow_helper.exe",
 L"uninstall.exe",
 
-L"WriteMiniDump.exe",
-L"CrashReporter.exe",
-L"SupportTool.exe",
-L"CrashSender1400.exe",
-L"WerFault.exe",
+L"writeminidump.exe",
+L"crashreporter.exe",
+L"supporttool.exe",
+L"crashsender1400.exe",
+L"werfault.exe",
 
-L"DXSETUP.exe",
+L"dxsetup.exe",
 L"setup.exe",
 L"vc_redist.x64.exe",
 L"vc_redist.x86.exe",
@@ -224,48 +222,48 @@ L"vc2010redist_x64.exe",
 L"vc2010redist_x86.exe",
 L"vcredist_x64.exe",
 L"vcredist_x86.exe",
-L"NDP451-KB2872776-x86-x64-AllOS-ENU.exe",
+L"ndp451-kb2872776-x86-x64-allos-enu.exe",
 L"dotnetfx35.exe",
-L"DotNetFx35Client.exe",
-L"dotNetFx40_Full_x86_x64.exe",
-L"dotNetFx40_Client_x86_x64.exe",
+L"dotnetfx35client.exe",
+L"dotnetfx40_full_x86_x64.exe",
+L"dotnetfx40_client_x86_x64.exe",
 L"oalinst.exe",
-L"EasyAntiCheat_Setup.exe",
-L"UplayInstaller.exe",
+L"easyanticheat_setup.exe",
+L"uplayinstaller.exe",
 
 
 L"x64launcher.exe",
 L"x86launcher.exe",
-L"Launcher.exe",
-L"FFX&X-2_LAUNCHER.exe",
-L"Fallout4Launcher.exe",
-L"SkyrimSELauncher.exe",
-L"ModLauncher.exe",
-L"AkibaUU_Config.exe",
-L"Obduction.exe",
-L"Grandia2Launcher.exe",
-L"FFXiii2Launcher.exe",
-L"Bethesda.net_Launcher.exe",
-L"UbisoftGameLauncher.exe",
-L"UbisoftGameLauncher64.exe",
-L"SplashScreen.exe",
-L"GameLauncherCefChildProcess.exe",
-L"LaunchPad.exe",
-L"CNNLauncher.exe",
-L"FF9_Launcher.exe",
-L"A17Config.exe",
-L"A18Config.exe", // Atelier Firis
-L"DPLauncher.exe",
-L"ZeroEscape-Launcher.exe",
+L"launcher.exe",
+L"ffx&x-2_launcher.exe",
+L"fallout4launcher.exe",
+L"skyrimselauncher.exe",
+L"modlauncher.exe",
+L"akibauu_config.exe",
+L"obduction.exe",
+L"grandia2launcher.exe",
+L"ffxiii2launcher.exe",
+L"bethesda.net_launcher.exe",
+L"ubisoftgamelauncher.exe",
+L"ubisoftgamelauncher64.exe",
+L"splashscreen.exe",
+L"gamelaunchercefchildprocess.exe",
+L"launchpad.exe",
+L"cnnlauncher.exe",
+L"ff9_launcher.exe",
+L"a17config.exe",
+L"a18config.exe", // Atelier Firis
+L"dplauncher.exe",
+L"zeroescape-launcher.exe",
 
 
-L"ActivationUI.exe",
-L"zosSteamStarter.exe",
+L"activationui.exe",
+L"zossteamstarter.exe",
 L"notepad.exe",
 L"mspaint.exe",
-L"7zFM.exe",
-L"WinRar.exe",
-L"EAC.exe",
+L"7zfm.exe",
+L"winrar.exe",
+L"eac.exe",
 L"vcpkgsrv.exe",
 L"dllhost.exe",
 L"git.exe",
@@ -273,29 +271,27 @@ L"link.exe",
 L"cl.exe",
 L"rc.exe",
 L"conhost.exe",
-L"GameBarPresenceWriter.exe",
-L"OAWrapper.exe",
-L"NvOAWrapperCache.exe",
+L"gamebarpresencewriter.exe",
+L"oawrapper.exe",
+L"nvoawrappercache.exe",
 L"waifu2x-caffe.exe",
 L"waifu2x-caffe-cui.exe",
 
-L"GameServer.exe",// Sacred   Game Server
-L"s2gs.exe",      // Sacred 2 Game Server
+L"gameserver.exe",// Sacred   game server
+L"s2gs.exe",      // Sacred 2 game server
 
 L"sihost.exe",
-L"Chrome.exe",
+L"chrome.exe",
 L"explorer.exe",
 L"browser_broker.exe",
 L"dwm.exe",
-L"LaunchTM.exe",
+L"launchtm.exe",
 
-L"SleepOnLan.exe",
+L"sleeponlan.exe",
 
 L"ds3t.exe",
 L"tzt.exe"
 };
-#pragma data_seg ()
-#pragma comment  (linker, "/section:.SK_Hooks,RWS")
 
 bool
 __stdcall
@@ -304,7 +300,11 @@ SK_EstablishDllRole (HMODULE hModule)
   SK_SetDLLRole (DLL_ROLE::INVALID);
 
   // If Blacklisted, Bail-Out
-  if (blacklist.count (std::wstring (SK_GetHostApp ())))
+  wchar_t         wszAppNameLower                   [MAX_PATH + 2] = { };
+  wcsncpy        (wszAppNameLower, SK_GetHostApp (), MAX_PATH);
+  CharLowerBuffW (wszAppNameLower,                   MAX_PATH);
+
+  if (blacklist.count (wszAppNameLower))
   {
     SK_SetDLLRole (DLL_ROLE::INVALID);
 
@@ -356,6 +356,7 @@ SK_EstablishDllRole (HMODULE hModule)
 
   else if (! SK_Path_wcsicmp (wszShort, L"dinput8.dll"))
     SK_SetDLLRole (DLL_ROLE::DInput8);
+
 
 
   //
@@ -642,10 +643,10 @@ SK_Attach (DLL_ROLE role)
 
   if (! InterlockedCompareExchange (&__SK_DLL_Attached, 1, 0))
   {
-    budget_mutex = new SK_Thread_HybridSpinlock ( 400);
-    init_mutex   = new SK_Thread_HybridSpinlock (5000);
-    loader_lock  = new SK_Thread_HybridSpinlock (6536);
-    wmi_cs       = new SK_Thread_HybridSpinlock ( 128);
+    budget_mutex = new SK_Thread_HybridSpinlock (   400);
+    init_mutex   = new SK_Thread_HybridSpinlock (  5000);
+    loader_lock  = new SK_Thread_HybridSpinlock (  6536);
+    wmi_cs       = new SK_Thread_HybridSpinlock (   128);
     cs_dbghelp   = new SK_Thread_HybridSpinlock (104857);
 
     __SK_TLS_INDEX = TlsAlloc ();
@@ -856,26 +857,14 @@ DllMain ( HMODULE hModule,
 {
   UNREFERENCED_PARAMETER (lpReserved);
 
+  auto EarlyOut = [&](BOOL bRet) { DisableThreadLibraryCalls (hModule); return bRet; };
+
+
   switch (ul_reason_for_call)
   {
     case DLL_PROCESS_ATTACH:
     {
-      // Sanity Check:
-      // -------------
-      //
-      //  Bail-out if by some fluke this DLL is attached twice
-      //    (usually caused by a stack overflow in a third-party injector).
-      //
-      //    It is impossible to report this error, because that would bring
-      //      in dependencies on DLLs not yet loaded. Fortunately if the DLL
-      //        is of the wrapper variety, Windows will complain with error:
-      //
-      //          0xc0000142
-      //
-      if (InterlockedCompareExchangePointer ((LPVOID *)&hModSelf, hModule, nullptr))
-      {
-        return FALSE;
-      }
+      InterlockedExchangePointer ((volatile LPVOID*)&hModSelf, hModule);
 
       // We use SKIM for injection and rundll32 for various tricks involving restarting
       //   the currently running game; neither needs or even wants this DLL fully
@@ -883,53 +872,34 @@ DllMain ( HMODULE hModule,
       if (SK_HostApp.isInjectionTool ())
       {
         SK_EstablishRootPath ();
-        return TRUE;
+
+        return EarlyOut (TRUE);
       }
-
-      if ( ReadAcquire (&__SK_DLL_Attached) ||
-           ReadAcquire (&__SK_DLL_Ending)      )
-      {
-        SK_EstablishRootPath ();
-        return TRUE;
-      }
-
-
-      //++__SK_DLL_Refs;
-      InterlockedIncrement (&__SK_DLL_Refs);
-
-
-      // Setup unhooked function pointers
-      SK_PreInitLoadLibrary ();
-
-
 
       // We reserve the right to deny attaching the DLL, this will generally
       //   happen if a game does not opt-in to system wide injection.
       if (! SK_EstablishDllRole (hModule))
       {
-        return FALSE;
+        return EarlyOut (FALSE);
       }
 
       // We don't want to initialize the DLL, but we also don't want it to
       //   re-inject itself constantly; just return TRUE here.
       else if (SK_GetDLLRole () == DLL_ROLE::INVALID)
       {
-        return FALSE;
+        return EarlyOut (FALSE);
       }
 
-      BOOL bRet = SK_Attach (SK_GetDLLRole ());
+      //++__SK_DLL_Refs;
+      InterlockedIncrement (&__SK_DLL_Refs);
 
-      if (! bRet)
+      // Setup unhooked function pointers
+      SK_PreInitLoadLibrary ();
+
+      if (! SK_Attach (SK_GetDLLRole ()))
       {
-        //blacklist.emplace (std::wstring (SK_GetHostApp ()));
-        return FALSE;
+        return EarlyOut (FALSE);
       }
-
-      if (SK_GetDLLRole () == DLL_ROLE::INVALID)
-      {
-        return FALSE;
-      }
-
 
       // If we got this far, it's because this is an injection target
       //
@@ -940,7 +910,7 @@ DllMain ( HMODULE hModule,
         SK_Inject_AcquireProcess ();
       }
 
-      return bRet;
+      return TRUE;
     } break;
 
 

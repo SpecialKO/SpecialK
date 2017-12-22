@@ -1898,6 +1898,8 @@ SK::OpenGL::getPipelineStatsDesc (void)
 
 #define SK_GL_HOOK(Func) SK_DLL_HOOK(wszBackendDLL,Func)
 
+
+
 void
 WINAPI
 SK_HookGL (void)
@@ -1933,6 +1935,7 @@ SK_HookGL (void)
                                  SwapBuffers,
         static_cast_p2p <void> (&gdi_swap_buffers) );
 #endif
+
 
 // Load user-defined DLLs (Plug-In)
 #ifdef _WIN64

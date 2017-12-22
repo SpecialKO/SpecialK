@@ -83,6 +83,27 @@ extern                          SteamClient_pfn
                                 SteamClient_Original;
 extern ISteamClient* S_CALLTYPE SteamClient_Detour (void);
 
+using SteamUser_pfn = ISteamUser* (S_CALLTYPE *)(
+        void
+      );
+extern                        SteamUser_pfn
+                              SteamUser_Original;
+extern ISteamUser* S_CALLTYPE SteamUser_Detour (void);
+
+using SteamRemoteStorage_pfn = ISteamRemoteStorage* (S_CALLTYPE *)(
+        void
+      );
+extern                                 SteamRemoteStorage_pfn
+                                       SteamRemoteStorage_Original;
+extern ISteamRemoteStorage* S_CALLTYPE SteamRemoteStorage_Detour (void);
+
+using SteamUtils_pfn = ISteamUtils* (S_CALLTYPE *)(
+        void
+      );
+extern                         SteamUtils_pfn
+                               SteamUtils_Original;
+extern ISteamUtils* S_CALLTYPE SteamUtils_Detour (void);
+
 
 using SteamInternal_CreateInterface_pfn       = void*       (S_CALLTYPE *)(
         const char *ver
@@ -187,6 +208,35 @@ SK_Steam_PreHookCore (void)
     L"steam_api.dll";
 #endif
 
+  SK_CreateDLLHook2 (          wszSteamLib,
+                                "SteamClient",
+                                 SteamClient_Detour,
+        static_cast_p2p <void> (&SteamClient_Original) );
+
+  if (GetProcAddress (GetModuleHandle (wszSteamLib), "SteamUser"))
+  {
+    SK_CreateDLLHook2 (          wszSteamLib,
+                                  "SteamUser",
+                                   SteamUser_Detour,
+          static_cast_p2p <void> (&SteamUser_Original) );
+  }
+
+  if (GetProcAddress (GetModuleHandle (wszSteamLib), "SteamRemoteStorage"))
+  {
+    SK_CreateDLLHook2 (          wszSteamLib,
+                                  "SteamRemoteStorage",
+                                   SteamRemoteStorage_Detour,
+          static_cast_p2p <void> (&SteamRemoteStorage_Original) );
+  }
+
+  if (GetProcAddress (GetModuleHandle (wszSteamLib), "SteamUtils"))
+  {
+    SK_CreateDLLHook2 (          wszSteamLib,
+                                  "SteamUtils",
+                                   SteamUtils_Detour,
+          static_cast_p2p <void> (&SteamUtils_Original) );
+  }
+
   if ( GetProcAddress (
          LoadLibraryW_Original (wszSteamLib),
            "SteamInternal_CreateInterface" ) )
@@ -211,25 +261,19 @@ SK_Steam_PreHookCore (void)
                                    SteamAPI_ISteamClient_GetISteamRemoteStorage_Detour,
           static_cast_p2p <void> (&SteamAPI_ISteamClient_GetISteamRemoteStorage_Original) );
 
-    //if (SK_GetCurrentGameID () != SK_GAME_ID::Okami)
-    {
-      SK_CreateDLLHook2 (          wszSteamLib,
-                                    "SteamInternal_CreateInterface",
-                                     SteamInternal_CreateInterface_Detour,
-            static_cast_p2p <void> (&SteamInternal_CreateInterface_Original),
-                                 &pfnSteamInternal_CreateInterface );
-              MH_QueueEnableHook (pfnSteamInternal_CreateInterface);
-    }
-
     SK_CreateDLLHook2 (          wszSteamLib,
-                                  "SteamClient",
-                                   SteamClient_Detour,
-          static_cast_p2p <void> (&SteamClient_Original) );
+                                  "SteamInternal_CreateInterface",
+                                   SteamInternal_CreateInterface_Detour,
+          static_cast_p2p <void> (&SteamInternal_CreateInterface_Original),
+                               &pfnSteamInternal_CreateInterface );
+            MH_QueueEnableHook (pfnSteamInternal_CreateInterface);
 
     SK_ApplyQueuedHooks ();
 
     return TRUE;
   }
+
+  SK_ApplyQueuedHooks ();
 
   return FALSE;
 }
@@ -3495,7 +3539,15 @@ SK_HookSteamAPI (void)
     return;
   }
 
+  std::queue <DWORD> suspended_tids = SK_SuspendAllOtherThreads ();
+
   steam_log.Log (L"%s was loaded, hooking...", wszSteamAPI);
+
+  BOOL
+  SK_Steam_PreHookCore (void);
+
+  if (config.steam.spoof_BLoggedOn)
+    SK_Steam_PreHookCore ();
 
     SK_CreateDLLHook2 ( wszSteamAPI,
                         "SteamAPI_InitSafe",
@@ -3564,6 +3616,8 @@ static_cast_p2p <void> (&SteamAPI_Shutdown) );
   }
 
   LeaveCriticalSection (&init_cs);
+
+  SK_ResumeThreads (suspended_tids);
 }
 
 ISteamUserStats*
@@ -3954,7 +4008,7 @@ SK_Steam_LoadOverlayEarly (void)
 #endif
 
   hModOverlay =
-    LoadLibraryW (wszOverlayDLL);
+    LoadLibraryW_Original (wszOverlayDLL);
 
   return hModOverlay != nullptr;
 }
@@ -4030,6 +4084,12 @@ ISteamMusic*
 SK_SteamAPI_Music (void)
 {
   return steam_ctx.Music ();
+}
+
+ISteamRemoteStorage*
+SK_SteamAPI_RemoteStorage (void)
+{
+  return steam_ctx.RemoteStorage ();
 }
 
 // Returns the REAL value of this
@@ -4517,6 +4577,337 @@ SAFE_GetISteamMusic (ISteamClient* pClient, HSteamUser hSteamuser, HSteamPipe hS
   __except (EXCEPTION_EXECUTE_HANDLER) {
     return nullptr;
   }
+}
+
+
+bool
+SK_SteamAPIContext::InitSteamAPI (HMODULE hSteamDLL)
+{
+  if (SteamAPI_InitSafe == nullptr)
+  {
+    SteamAPI_InitSafe =
+      (SteamAPI_InitSafe_pfn)GetProcAddress (
+        hSteamDLL,
+          "SteamAPI_InitSafe"
+      );
+  }
+
+  if (SteamAPI_GetHSteamUser == nullptr)
+  {
+    SteamAPI_GetHSteamUser =
+      (SteamAPI_GetHSteamUser_pfn)GetProcAddress (
+         hSteamDLL,
+           "SteamAPI_GetHSteamUser"
+      );
+  }
+
+  if (SteamAPI_GetHSteamPipe == nullptr)
+  {
+    SteamAPI_GetHSteamPipe =
+      (SteamAPI_GetHSteamPipe_pfn)GetProcAddress (
+         hSteamDLL,
+           "SteamAPI_GetHSteamPipe"
+      );
+  }
+
+  SteamAPI_IsSteamRunning =
+    (SteamAPI_IsSteamRunning_pfn)GetProcAddress (
+       hSteamDLL,
+         "SteamAPI_IsSteamRunning"
+    );
+
+  if (SteamClient_Original == nullptr)
+  {
+    SteamClient_Original =
+      (SteamClient_pfn)GetProcAddress (
+         hSteamDLL,
+           "SteamClient"
+      );
+  }
+
+  if (SteamAPI_RegisterCallResult == nullptr)
+  {
+    SteamAPI_RegisterCallResult =
+      (SteamAPI_RegisterCallResult_pfn)GetProcAddress (
+        hSteamDLL,
+          "SteamAPI_RegisterCallResult"
+      );
+  }
+
+  if (SteamAPI_UnregisterCallResult == nullptr)
+  {
+    SteamAPI_UnregisterCallResult =
+      (SteamAPI_UnregisterCallResult_pfn)GetProcAddress (
+        hSteamDLL,
+          "SteamAPI_UnregisterCallResult"
+      );
+  }
+
+
+  bool success = true;
+
+  if (SteamAPI_GetHSteamUser == nullptr)
+  {
+    steam_log.Log (L"Could not load SteamAPI_GetHSteamUser (...)");
+    success = false;
+  }
+
+  if (SteamAPI_GetHSteamPipe == nullptr)
+  {
+    steam_log.Log (L"Could not load SteamAPI_GetHSteamPipe (...)");
+    success = false;
+  }
+
+  if (SteamClient_Original == nullptr)
+  {
+    steam_log.Log (L"Could not load SteamClient (...)");
+    success = false;
+  }
+
+
+  if (SteamAPI_RunCallbacks == nullptr)
+  {
+    steam_log.Log (L"Could not load SteamAPI_RunCallbacks (...)");
+    success = false;
+  }
+
+  if (SteamAPI_Shutdown == nullptr)
+  {
+    steam_log.Log (L"Could not load SteamAPI_Shutdown (...)");
+    success = false;
+  }
+
+  if (! success)
+    return false;
+
+  if (! SteamAPI_InitSafe ())
+  {
+    steam_log.Log (L" SteamAPI_InitSafe (...) Failed?!");
+    return false;
+  }
+
+  client_ = SteamClient_Original ();
+
+  if (! client_)
+  {
+    steam_log.Log (L" SteamClient (...) Failed?!");
+    return false;
+  }
+
+  hSteamPipe = SteamAPI_GetHSteamPipe ();
+  hSteamUser = SteamAPI_GetHSteamUser ();
+
+
+#define INTERNAL_STEAMUSER_INTERFACE_VERSION          18
+#define INTERNAL_STEAMFRIENDS_INTERFACE_VERSION       15
+#define INTERNAL_STEAMUSERSTATS_INTERFACE_VERSION     11
+#define INTERNAL_STEAMAPPS_INTERFACE_VERSION           8
+#define INTERNAL_STEAMUTILS_INTERFACE_VERSION          7
+#define NEWEST_STEAMUTILS_INTERFACE_VERSION            9
+#define INTERNAL_STEAMSCREENSHOTS_INTERFACE_VERSION    2
+#define INTERNAL_STEAMMUSIC_INTERFACE_VERSION          1
+#define INTERNAL_STEAMREMOTESTORAGE_INTERFACE_VERSION 12
+
+  int i = 0;
+
+  for (i = INTERNAL_STEAMUSER_INTERFACE_VERSION+5; i > 0; --i)
+  {
+    user_ =
+      client_->GetISteamUser (
+        hSteamUser,
+          hSteamPipe,
+            SK_FormatString ("SteamUser%03lu", i).c_str ()
+      );
+
+    if (user_ != nullptr)
+    {
+      if (user_ver_ == 0)
+      {
+        user_ver_ = i;
+        steam_log.Log (L"SteamAPI DLL Implements Steam User v%03lu", i);
+
+        if (user_ver_ > INTERNAL_STEAMUSER_INTERFACE_VERSION+1)
+          steam_log.Log (L" >> Newer than Special K knows about.");
+      }
+
+      if (i == INTERNAL_STEAMUSER_INTERFACE_VERSION)
+        break;
+    }
+  }
+
+  if (i != INTERNAL_STEAMUSER_INTERFACE_VERSION)
+  {
+    steam_log.Log ( L" >> ISteamUser NOT FOUND for version %hs <<",
+                      STEAMUSER_INTERFACE_VERSION );
+    user_ = nullptr;
+    return false;
+  }
+
+  // Blacklist of people not allowed to use my software (for being disruptive to other users)
+  //uint32_t aid = user_->GetSteamID ().GetAccountID    ();
+  //uint64_t s64 = user_->GetSteamID ().ConvertToUint64 ();
+
+  //
+  // Obsolete now, but will remain here for historical purposes.
+  // 
+  //   I've nothing to hide, these users were not people I held personal grudges against, but rather
+  //     that hijacked my support thread before I was able to moderate them.
+  //   
+  // 
+  //if ( aid ==  64655118 || aid == 183437803 )
+  //{
+  //  SK_MessageBox ( L"You are not authorized to use this software",
+  //                    L"Unauthorized User", MB_ICONWARNING | MB_OK );
+  //  ExitProcess (0x00);
+  //}
+
+  friends_ =
+    client_->GetISteamFriends (
+      hSteamUser,
+        hSteamPipe,
+          STEAMFRIENDS_INTERFACE_VERSION
+    );
+
+  if (friends_ == nullptr)
+  {
+    steam_log.Log ( L" >> ISteamFriends NOT FOUND for version %hs <<",
+                      STEAMFRIENDS_INTERFACE_VERSION );
+    return false;
+  }
+
+  user_stats_ =
+    client_->GetISteamUserStats (
+      hSteamUser,
+        hSteamPipe,
+          STEAMUSERSTATS_INTERFACE_VERSION
+    );
+
+  if (user_stats_ == nullptr)
+  {
+    steam_log.Log ( L" >> ISteamUserStats NOT FOUND for version %hs <<",
+                      STEAMUSERSTATS_INTERFACE_VERSION );
+    return false;
+  }
+
+  apps_ =
+    client_->GetISteamApps (
+      hSteamUser,
+        hSteamPipe,
+          STEAMAPPS_INTERFACE_VERSION
+    );
+
+  if (apps_ == nullptr)
+  {
+    steam_log.Log ( L" >> ISteamApps NOT FOUND for version %hs <<",
+                      STEAMAPPS_INTERFACE_VERSION );
+    return false;
+  }
+
+  for (i = INTERNAL_STEAMUTILS_INTERFACE_VERSION+5; i > 0; --i)
+  {
+    utils_ =
+      client_->GetISteamUtils (
+        hSteamUser,
+          SK_FormatString ("SteamUtils%03lu", i).c_str ()
+      );
+
+    if (utils_ != nullptr)
+    {
+      if (utils_ver_ == 0)
+      {
+        utils_ver_ = i;
+        steam_log.Log (L"SteamAPI DLL Implements Utils v%03lu", i);
+
+        if (utils_ver_ > NEWEST_STEAMUTILS_INTERFACE_VERSION)
+          steam_log.Log (L" >> Newer than Special K knows about.");
+      }
+
+      if (i == INTERNAL_STEAMUTILS_INTERFACE_VERSION)
+        break;
+    }
+  }
+
+  if (i != INTERNAL_STEAMUTILS_INTERFACE_VERSION)
+  {
+    steam_log.Log ( L" >> ISteamUtils NOT FOUND for version %hs <<",
+                      STEAMUTILS_INTERFACE_VERSION );
+    utils_ = nullptr;
+    return false;
+  }
+
+  screenshots_ =
+    client_->GetISteamScreenshots ( hSteamUser,
+                                      hSteamPipe,
+                                        STEAMSCREENSHOTS_INTERFACE_VERSION );
+
+  // We can live without this...
+  if (screenshots_ == nullptr)
+  {
+    steam_log.Log ( L" >> ISteamScreenshots NOT FOUND for version %hs <<",
+                      STEAMSCREENSHOTS_INTERFACE_VERSION );
+
+    screenshots_ =
+      client_->GetISteamScreenshots ( hSteamUser,
+                                        hSteamPipe,
+                                          "STEAMSCREENSHOTS_INTERFACE_VERSION001" );
+
+    steam_log.Log ( L" >> ISteamScreenshots NOT FOUND for version %hs <<",
+                      "STEAMSCREENSHOTS_INTERFACE_VERSION001" );
+  }
+
+  // This crashes Dark Souls 3, so... do this
+  music_ =
+    SAFE_GetISteamMusic ( client_,
+                            hSteamUser,
+                              hSteamPipe,
+                                STEAMMUSIC_INTERFACE_VERSION );
+
+  SK::SteamAPI::player = user_->GetSteamID ();
+
+  controller_ =
+    client_->GetISteamController (
+      hSteamUser,
+        hSteamPipe,
+          "SteamController005" );
+
+  for (i = INTERNAL_STEAMREMOTESTORAGE_INTERFACE_VERSION+1; i > 0; --i)
+  {
+    remote_storage_ =
+      client_->GetISteamRemoteStorage (
+        hSteamUser,
+          hSteamPipe,
+            SK_FormatString ("STEAMREMOTESTORAGE_INTERFACE_VERSION%03u", i).c_str () );
+
+    if (remote_storage_ != nullptr)
+    {
+      if (remote_storage_ver_ == 0)
+      {
+        remote_storage_ver_ = i;
+        steam_log.Log (L"SteamAPI DLL Implements Remote Storage v%03lu", i);
+
+        if (remote_storage_ver_ > 14)
+          steam_log.Log (L" >> Newer than Special K knows about.");
+      }
+
+      if (i == INTERNAL_STEAMREMOTESTORAGE_INTERFACE_VERSION)
+        break;
+    }
+  }
+
+  if (i != INTERNAL_STEAMREMOTESTORAGE_INTERFACE_VERSION) remote_storage_ = nullptr;
+
+#if 0
+  void** vftable = *(void***)*(&controller_);
+  SK_CreateVFTableHook ( L"ISteamController::GetControllerState",
+                           vftable, 3,
+            ISteamController_GetControllerState_Detour,
+                  (LPVOID *)&GetControllerState_Original );
+#endif
+
+  MH_QueueEnableHook (SteamAPI_Shutdown);
+  MH_QueueEnableHook (SteamAPI_RunCallbacks);
+
+  return true;
 }
 
 uint64_t    SK::SteamAPI::steam_size                                    = 0ULL;

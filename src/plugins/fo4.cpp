@@ -216,6 +216,19 @@ SK_FO4_IsBorderlessWindow (void)
 
 RECT window;
 
+typedef BOOL (WINAPI *EnumDisplaySettingsW_pfn) (
+                        _In_opt_ LPWSTR    lpszDeviceName,
+                        _In_     DWORD      iModeNum,
+                        _Inout_  DEVMODEW *lpDevMode
+);
+using ChangeDisplaySettingsW_pfn = LONG (WINAPI *)(
+  _In_opt_ DEVMODEW *lpDevMode,
+  _In_     DWORD     dwFlags
+);
+
+extern EnumDisplaySettingsW_pfn   EnumDisplaySettingsW_Original;
+extern ChangeDisplaySettingsW_pfn ChangeDisplaySettingsW_Original;
+
 unsigned int
 __stdcall
 SK_FO4_RealizeFullscreenBorderless (LPVOID user)
@@ -223,7 +236,7 @@ SK_FO4_RealizeFullscreenBorderless (LPVOID user)
   DEVMODE devmode = { 0 };
   devmode.dmSize  = sizeof DEVMODE;
 
-  EnumDisplaySettings (nullptr, ENUM_CURRENT_SETTINGS, &devmode);
+  EnumDisplaySettingsW_Original (nullptr, ENUM_CURRENT_SETTINGS, &devmode);
 
   DXGI_SWAP_CHAIN_DESC desc;
   ((IDXGISwapChain *)user)->GetDesc (&desc);
@@ -235,7 +248,7 @@ SK_FO4_RealizeFullscreenBorderless (LPVOID user)
       devmode.dmPelsWidth  < desc.BufferDesc.Width) {
     devmode.dmPelsWidth  = desc.BufferDesc.Width;
     devmode.dmPelsHeight = desc.BufferDesc.Height;
-    ChangeDisplaySettings (&devmode, CDS_FULLSCREEN);
+    ChangeDisplaySettingsW_Original (&devmode, CDS_FULLSCREEN);
   }
 
   MONITORINFO minfo;

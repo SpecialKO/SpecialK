@@ -282,3 +282,42 @@ SK_SteamWrapper_WrappedClient_GetISteamUtils ( ISteamClient *This,
 
   return nullptr;
 }
+
+using SteamUtils_pfn = ISteamUtils* (S_CALLTYPE *)(
+        void
+      );
+SteamUtils_pfn SteamUtils_Original = nullptr;
+
+ISteamUtils*
+S_CALLTYPE
+SteamUtils_Detour (void)
+{
+  SK_RunOnce (
+    steam_log.Log ( L"[!] %hs ()",
+                      __FUNCTION__ )
+  );
+
+  if (steam_ctx.UtilsVersion () >= 5 && steam_ctx.UtilsVersion () <= 9)
+  {
+    ISteamUtils* pUtils =
+      static_cast <ISteamUtils *> ( SteamUtils_Original () );
+
+    if (pUtils != nullptr)
+    {
+      if (SK_SteamWrapper_remap_utils.count (pUtils))
+         return SK_SteamWrapper_remap_utils [pUtils];
+
+      else
+      {
+        SK_SteamWrapper_remap_utils [pUtils] =
+                new IWrapSteamUtils (pUtils);
+
+        return SK_SteamWrapper_remap_utils [pUtils];
+      }
+    }
+
+    return nullptr;
+  }
+
+  return SteamUtils_Original ();
+}

@@ -173,12 +173,6 @@ SK_WMI_ServerThread (LPVOID lpUser)
 {
   SK_AutoCOMInit auto_com;
 
-  if (config.steam.preload_overlay)
-  {
-    extern bool SK_Steam_LoadOverlayEarly (void);
-                SK_Steam_LoadOverlayEarly (    );
-  }
-
   UNREFERENCED_PARAMETER (lpUser);
 
   HRESULT hr;
@@ -250,33 +244,16 @@ SK_WMI_ServerThread (LPVOID lpUser)
 
   pUnk->Release ();
 
-  SleepEx (1500UL, TRUE);
-
-  InterlockedExchange   (&COM::base.wmi.init, 1);
+  InterlockedExchange (&COM::base.wmi.init, 1);
 
   // Keep the thread alive indefinitely so that the WMI stuff continues running
-  while (WaitForSingleObject (COM::base.wmi.hShutdownServer, INFINITE) != WAIT_OBJECT_0)
+  while (MsgWaitForMultipleObjects (1, &COM::base.wmi.hShutdownServer, FALSE, INFINITE, QS_ALLEVENTS) != WAIT_OBJECT_0)
     ;
-
-
-  extern HMODULE hModOverlay;
-  if (hModOverlay != nullptr)
-  {
-    dll_log.LogEx (true, L"[ SpecialK ] Unloading Steam Overlay... ");
-  
-    FreeLibrary (hModOverlay);
-    hModOverlay = nullptr;
-  
-    dll_log.LogEx (false, L"done!\n");
-  }
 
   goto WMI_CLEANUP_WITHOUT_LOCK;
 
 
 WMI_CLEANUP:
-  COM::base.wmi.Unlock ();
-
-
 WMI_CLEANUP_WITHOUT_LOCK:
   if (COM::base.wmi.bstrNameSpace != nullptr)
   {
@@ -305,11 +282,6 @@ bool
 SK_InitCOM (void)
 {
   HRESULT hr;
-
-  //
-  // HACK to address problems with Steam Overlay
-  //
-  SleepEx (50, TRUE);
 
   if (FAILED (hr = CoInitializeSecurity (
                      nullptr,
@@ -1743,6 +1715,8 @@ SK_MonitorProcess (LPVOID user)
     COM::base.wmi.Unlock ();
   }
 
+  COM::base.wmi.Lock ();
+
 PROC_CLEANUP:
   // dll_log.Log (L" >> PROC_CLEANUP");
 
@@ -1770,7 +1744,7 @@ PROC_CLEANUP:
     proc.hShutdownSignal = INVALID_HANDLE_VALUE;
   }
 
-  COM::base.wmi.Unlock   ();
+  COM::base.wmi.Unlock ();
 
   return 0;
 }

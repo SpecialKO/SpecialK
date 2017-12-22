@@ -331,3 +331,37 @@ SK_SteamWrapper_WrappedClient_GetISteamUser ( ISteamClient *This,
 
   return nullptr;
 }
+
+using SteamUser_pfn = ISteamUser* (S_CALLTYPE *)(
+        void
+      );
+SteamUser_pfn SteamUser_Original = nullptr;
+
+ISteamUser*
+S_CALLTYPE
+SteamUser_Detour (void)
+{
+  SK_RunOnce (
+    steam_log.Log ( L"[!] %hs ()",
+                      __FUNCTION__ )
+  );
+
+  ISteamUser* pUser =
+    static_cast <ISteamUser *> ( SteamUser_Original () );
+
+  if (pUser != nullptr)
+  {
+    if (SK_SteamWrapper_remap_user.count (pUser))
+       return SK_SteamWrapper_remap_user [pUser];
+
+    else
+    {
+      SK_SteamWrapper_remap_user [pUser] =
+              new IWrapSteamUser (pUser);
+
+      return SK_SteamWrapper_remap_user [pUser];
+    }
+  }
+
+  return nullptr;
+}

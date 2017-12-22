@@ -1115,13 +1115,19 @@ CreateThread (nullptr, 0, [](LPVOID user) -> DWORD
   auto user =
     static_cast <LPVOID> (pWorkingSet);
 #endif
-  static bool             init           = false;
+  static volatile LONG    init           = FALSE;
   static CRITICAL_SECTION cs_thread_walk = { };
 
-  if (! init)
+  if (! InterlockedCompareExchange (&init, 1, 0))
   {
-    InitializeCriticalSection (&cs_thread_walk);
-    init = true;
+    InitializeCriticalSectionAndSpinCount (&cs_thread_walk, 32);
+  }
+
+  else
+  {
+    // Spinlock until ... the spinlock is setup :)
+    while (cs_thread_walk.SpinCount != 32)
+      ;
   }
 
 
@@ -1395,9 +1401,8 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
                pLogger  = SK_CreateLog (L"logs/modules.log");
   DWORD        dwProcID = GetCurrentProcessId ();
 
-  HMODULE      hMods [1024] = { };
-  HANDLE       hProc        = nullptr;
-  DWORD        cbNeeded     =   0;
+  HANDLE       hProc    = nullptr;
+  DWORD        cbNeeded =   0;
 
   // Get a handle to the process.
   hProc = OpenProcess ( PROCESS_QUERY_INFORMATION |
@@ -1413,22 +1418,24 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
     return;
   }
 
+  enum_working_set_s *working_set =
+    new enum_working_set_s ();
+
   if ( EnumProcessModules ( hProc,
-                              hMods,
-                                sizeof (hMods),
+                              working_set->modules,
+                      sizeof (working_set->modules),
                                   &cbNeeded) )
   {
-    enum_working_set_s *working_set = new enum_working_set_s ();
+  //assert (cbNeeded <= sizeof (working_set->modules));
 
-            working_set->proc   = hProc;
-            working_set->logger = nullptr;//pLogger;
-            working_set->count  = cbNeeded / sizeof HMODULE;
-            working_set->when   = when;
-    memcpy (working_set->modules, hMods, cbNeeded);
+    working_set->proc   = hProc;
+    working_set->logger = pLogger;
+    working_set->count  = cbNeeded / sizeof HMODULE;
+    working_set->when   = when;
 
     if (when == SK_ModuleEnum::PreLoad)
     {
-      SK_WalkModules (cbNeeded, hProc, hMods, when);
+      SK_WalkModules (cbNeeded, hProc, working_set->modules, when);
     }
 
     CreateThread (nullptr, 0, [](LPVOID user) -> DWORD
@@ -1586,6 +1593,9 @@ TaskDialogCallback (
 
   if (uNotification == TDN_CREATED)
   {
+    SK_RealizeForegroundWindow (hWnd);
+    SetFocus                   (hWnd);
+    BringWindowToTop           (hWnd);
     SK_bypass_dialog_hwnd = hWnd;
   }
 

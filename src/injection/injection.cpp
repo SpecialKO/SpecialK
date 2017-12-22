@@ -35,7 +35,6 @@ SK_InjectionRecord_s __SK_InjectionHistory [MAX_INJECTED_PROC_HISTORY] = { };
 #pragma data_seg (".SK_Hooks")
 volatile HHOOK          g_hHookCBT    = nullptr;
 volatile HHOOK          g_hHookShell  = nullptr;
-volatile HANDLE         g_hShutdown   = nullptr;
 
                  LONG g_sHookedPIDs [MAX_INJECTED_PROCS]        = { 0 };
 
@@ -80,6 +79,25 @@ SK_Inject_GetRecord (int idx)
 
 LONG local_record = 0;
 
+HANDLE g_hShutdown = nullptr;
+
+void
+SK_Inject_InitShutdownEvent (void)
+{
+  if (g_hShutdown == nullptr)
+  {
+    SECURITY_ATTRIBUTES sattr;
+    sattr.nLength              = sizeof SECURITY_ATTRIBUTES;
+    sattr.bInheritHandle       = TRUE;
+    sattr.lpSecurityDescriptor = nullptr;
+
+#ifdef _WIN64
+    g_hShutdown = CreateEventW (&sattr, TRUE, FALSE, L"Global\\SpecialK64_Reset");
+#else
+    g_hShutdown = CreateEventW (&sattr, TRUE, FALSE, L"Global\\SpecialK32_Reset");
+#endif
+  }
+}
 
 void
 SK_Inject_ValidateProcesses (void)
@@ -232,6 +250,8 @@ CBTProc ( _In_ int    nCode,
              {
                UNREFERENCED_PARAMETER (user);
 
+               SK_Inject_InitShutdownEvent ();
+
                if (g_hShutdown != nullptr)
                  WaitForSingleObject (g_hShutdown, INFINITE);
 
@@ -284,6 +304,8 @@ ShellProc ( _In_ int    nCode,
            DWORD
              {
                UNREFERENCED_PARAMETER (user);
+
+               SK_Inject_InitShutdownEvent ();
 
                if (g_hShutdown != nullptr)
                  WaitForSingleObject (g_hShutdown, INFINITE);
@@ -374,14 +396,7 @@ SKX_InstallCBTHook (void)
 
   if (hMod == SK_GetDLL ())
   {
-    if (g_hShutdown == nullptr)
-    {
-#ifdef _WIN64
-      g_hShutdown = CreateEvent (nullptr, TRUE, FALSE, L"SpecialK64_Reset");
-#else
-      g_hShutdown = CreateEvent (nullptr, TRUE, FALSE, L"SpecialK32_Reset");
-#endif
-    }
+    SK_Inject_InitShutdownEvent ();
 
     wchar_t wszCurrentDir [MAX_PATH * 2] = { };
     GetCurrentDirectoryW  (MAX_PATH * 2 - 1, wszCurrentDir);
@@ -623,15 +638,6 @@ SKX_InstallShellHook (void)
 
   if (hMod == SK_GetDLL ())
   {
-    if (g_hShutdown == nullptr)
-    {
-#ifdef _WIN64
-      g_hShutdown = CreateEvent (nullptr, TRUE, FALSE, L"SpecialK64_Reset");
-#else
-      g_hShutdown = CreateEvent (nullptr, TRUE, FALSE, L"SpecialK32_Reset");
-#endif
-    }
-
     g_hHookShell =
       SetWindowsHookEx (WH_SHELL, ShellProc, hMod, 0);
 
@@ -700,12 +706,13 @@ RunDLL_InjectionManager ( HWND  hwnd,        HINSTANCE hInst,
          [](LPVOID user) ->
            DWORD
              {
+               SK_Inject_InitShutdownEvent ();
+
                if (g_hShutdown != nullptr)
                  WaitForSingleObject (g_hShutdown, INFINITE);
 
                while ( ReadAcquire (&__SK_DLL_Attached) || (! SK_IsHostAppSKIM ()))
                  SleepEx (250UL, FALSE);
-
 
                if (PtrToInt (user) != -128)
                  ExitProcess (0x00);

@@ -2127,7 +2127,7 @@ struct SK_D3D11_KnownShaders
     SK_D3D11_ShaderType type_;
   };
 
-  static bool reshade_triggered;
+  static std::unordered_map <ID3D11DeviceContext *, bool> reshade_triggered;
 
   ShaderRegistry <ID3D11PixelShader>    pixel; 
   ShaderRegistry <ID3D11VertexShader>   vertex;
