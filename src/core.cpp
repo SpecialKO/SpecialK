@@ -490,9 +490,6 @@ SK_StartPerfMonThreads (void)
     if ( InterlockedCompareExchangePointer (&process_stats.hThread, nullptr, INVALID_HANDLE_VALUE) ==
            INVALID_HANDLE_VALUE )
     {
-      bool SK_InitWMI (void);
-        SK_InitWMI    (    );
-
       dll_log.LogEx (true, L"[ WMI Perf ] Spawning Process Monitor...  ");
 
       InterlockedExchangePointer ( (void **)&process_stats.hThread,
@@ -519,9 +516,6 @@ SK_StartPerfMonThreads (void)
     if ( InterlockedCompareExchangePointer (&cpu_stats.hThread, nullptr, INVALID_HANDLE_VALUE) ==
            INVALID_HANDLE_VALUE )
     {
-      bool SK_InitWMI (void);
-        SK_InitWMI    (    );
-
       dll_log.LogEx (true, L"[ WMI Perf ] Spawning CPU Monitor...      ");
 
       InterlockedExchangePointer ( (void **)&cpu_stats.hThread,
@@ -545,9 +539,6 @@ SK_StartPerfMonThreads (void)
     if ( InterlockedCompareExchangePointer (&disk_stats.hThread, nullptr, INVALID_HANDLE_VALUE) ==
            INVALID_HANDLE_VALUE )
     {
-      bool SK_InitWMI (void);
-        SK_InitWMI    (    );
-
       dll_log.LogEx (true, L"[ WMI Perf ] Spawning Disk Monitor...     ");
 
       InterlockedExchangePointer ( (void **)&disk_stats.hThread,
@@ -571,9 +562,6 @@ SK_StartPerfMonThreads (void)
     if ( InterlockedCompareExchangePointer (&pagefile_stats.hThread, nullptr, INVALID_HANDLE_VALUE) ==
            INVALID_HANDLE_VALUE )
     {
-      bool SK_InitWMI (void);
-        SK_InitWMI    (    );
-
       dll_log.LogEx (true, L"[ WMI Perf ] Spawning Pagefile Monitor... ");
 
       InterlockedExchangePointer ( (void **)&pagefile_stats.hThread,
@@ -1351,7 +1339,10 @@ SK_StartupCore (const wchar_t* backend, void* callback)
                             "QueryPerformanceCounter" )
     );
 
+  bool SK_InitWMI (void);
+
   SK_Init_MinHook        ();
+       SK_InitWMI        ();
   SK_InitCompatBlacklist ();
 
 
@@ -1533,7 +1524,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     SK_SaveConfig (config_name);
     dll_log.LogEx (false, L"done!\n");
   }
-
 
   if (config.system.display_debug_out)
     SK::Diagnostics::Debugger::SpawnConsole ();
@@ -1738,6 +1728,9 @@ BACKEND_INIT:
         }
       }
     }
+
+    if (GetModuleHandle (L"dinput8.dll") || GetModuleHandle (L"dinput.dll"))
+      SK_Input_HookDI8 ();
 
     InterlockedExchangePointer (
       (LPVOID *)&hInitThread,

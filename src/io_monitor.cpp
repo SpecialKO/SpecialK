@@ -33,6 +33,18 @@
 #include <process.h>
 
 #include <algorithm>
+#include <comdef.h>
+
+
+typedef HRESULT (WINAPI *CoCreateInstance_pfn)(
+  _In_  REFCLSID  rclsid,
+  _In_  LPUNKNOWN pUnkOuter,
+  _In_  DWORD     dwClsContext,
+  _In_  REFIID    riid,
+  _Out_ LPVOID   *ppv );
+
+CoCreateInstance_pfn CoCreateInstance_Original = nullptr;
+
 
 HANDLE        hShutdownWMI = nullptr;
 thread_events perfmon;
@@ -177,7 +189,7 @@ SK_WMI_ServerThread (LPVOID lpUser)
 
   HRESULT hr;
 
-  if (FAILED (hr = CoCreateInstance (
+  if (FAILED (hr = CoCreateInstance_Original (
                      CLSID_WbemLocator, 
                      nullptr,
                      CLSCTX_INPROC_SERVER,
@@ -250,11 +262,7 @@ SK_WMI_ServerThread (LPVOID lpUser)
   while (MsgWaitForMultipleObjects (1, &COM::base.wmi.hShutdownServer, FALSE, INFINITE, QS_ALLEVENTS) != WAIT_OBJECT_0)
     ;
 
-  goto WMI_CLEANUP_WITHOUT_LOCK;
-
-
 WMI_CLEANUP:
-WMI_CLEANUP_WITHOUT_LOCK:
   if (COM::base.wmi.bstrNameSpace != nullptr)
   {
     SysFreeString (COM::base.wmi.bstrNameSpace);
@@ -308,9 +316,73 @@ SK_InitCOM (void)
   return true;
 }
 
+#include <dinput.h>
+DEFINE_GUID(CLSID_DirectInput,        0x25E609E0,0xB259,0x11CF,0xBF,0xC7,0x44,0x45,0x53,0x54,0x00,0x00);
+DEFINE_GUID(CLSID_DirectInputDevice,  0x25E609E1,0xB259,0x11CF,0xBF,0xC7,0x44,0x45,0x53,0x54,0x00,0x00);
+
+DEFINE_GUID(CLSID_DirectInput8,       0x25E609E4,0xB259,0x11CF,0xBF,0xC7,0x44,0x45,0x53,0x54,0x00,0x00);
+DEFINE_GUID(CLSID_DirectInputDevice8,	0x25E609E5,0xB259,0x11CF,0xBF,0xC7,0x44,0x45,0x53,0x54,0x00,0x00);
+
+extern
+HRESULT
+WINAPI
+CoCreateInstance_DI8 (
+  _In_  LPUNKNOWN pUnkOuter,
+  _In_  DWORD     dwClsContext,
+  _In_  REFIID    riid,
+  _Out_ LPVOID   *ppv,
+  _In_  LPVOID    pCallerAddr );
+
+extern
+HRESULT
+WINAPI
+CoCreateInstance_DI7 (
+  _In_  LPUNKNOWN pUnkOuter,
+  _In_  DWORD     dwClsContext,
+  _In_  REFIID    riid,
+  _Out_ LPVOID   *ppv,
+  _In_  LPVOID    pCallerAddr );
+
+HRESULT
+WINAPI
+CoCreateInstance_Detour (
+  _In_  REFCLSID  rclsid,
+  _In_  LPUNKNOWN pUnkOuter,
+  _In_  DWORD     dwClsContext,
+  _In_  REFIID    riid,
+  _Out_ LPVOID   *ppv )
+{
+  if (rclsid == CLSID_DirectInput8)
+  {
+    if (riid == IID_IDirectInput8A)
+      return CoCreateInstance_DI8 (pUnkOuter, dwClsContext, riid, ppv, _ReturnAddress ());
+    if (riid == IID_IDirectInput8W)
+      return CoCreateInstance_DI8 (pUnkOuter, dwClsContext, riid, ppv, _ReturnAddress ());
+  }
+
+  if (rclsid == CLSID_DirectInput)
+  {
+    if (riid == IID_IDirectInputA)
+      return CoCreateInstance_DI7 (pUnkOuter, dwClsContext, riid, ppv, _ReturnAddress ());
+    if (riid == IID_IDirectInputW)
+      return CoCreateInstance_DI7 (pUnkOuter, dwClsContext, riid, ppv, _ReturnAddress ());
+  }
+
+  return CoCreateInstance_Original (rclsid, pUnkOuter, dwClsContext, riid, ppv);
+}
+
+
+#include <SpecialK/hooks.h>
+
 bool
 SK_InitWMI (void)
 {
+  SK_CreateDLLHook2 (      L"ole32.dll",
+                            "CoCreateInstance",
+                             CoCreateInstance_Detour,
+    static_cast_p2p <void> (&CoCreateInstance_Original) );
+  SK_ApplyQueuedHooks ();
+  
   SK_AutoCOMInit auto_com;
 
   if (! SK_InitCOM ())
@@ -399,7 +471,7 @@ SK_MonitorCPU (LPVOID user_param)
 
   HRESULT hr;
 
-  if (FAILED (hr = CoCreateInstance (
+  if (FAILED (hr = CoCreateInstance_Original (
                      CLSID_WbemRefresher,
                      nullptr,
                      CLSCTX_INPROC_SERVER,
@@ -408,8 +480,8 @@ SK_MonitorCPU (LPVOID user_param)
              )
      )
   {
-    dll_log.Log (L"[ WMI Wbem ] Failed to create Refresher Instance (%s:%d)",
-      __FILEW__, __LINE__);
+    dll_log.Log (L"[ WMI Wbem ] Failed to create Refresher Instance (%s:%d) [%s]",
+      __FILEW__, __LINE__, _com_error (hr).ErrorMessage ());
     goto CPU_CLEANUP;
   }
 
@@ -419,8 +491,8 @@ SK_MonitorCPU (LPVOID user_param)
              )
      )
   {
-    dll_log.Log (L"[ WMI Wbem ] Failed to Query Refresher Interface (%s:%d)",
-      __FILEW__, __LINE__);
+    dll_log.Log (L"[ WMI Wbem ] Failed to Query Refresher Interface (%s:%d) [%s]",
+      __FILEW__, __LINE__, _com_error (hr).ErrorMessage ());
     goto CPU_CLEANUP;
   }
 
@@ -435,8 +507,8 @@ SK_MonitorCPU (LPVOID user_param)
              )
      )
   {
-    dll_log.Log (L"[ WMI Wbem ] Failed to Add Enumerator (%s:%d) - %04X",
-      __FILEW__, __LINE__, hr);
+    dll_log.Log (L"[ WMI Wbem ] Failed to Add Enumerator (%s:%d) - %s",
+      __FILEW__, __LINE__, _com_error (hr).ErrorMessage ());
     goto CPU_CLEANUP;
   }
 
@@ -454,7 +526,7 @@ SK_MonitorCPU (LPVOID user_param)
 
   while (cpu.lID != 0)
   {
-    if (WaitForSingleObject (cpu.hShutdownSignal, DWORD (update * 1000.0)) == WAIT_OBJECT_0)
+    if (MsgWaitForMultipleObjects (1, const_cast <const HANDLE *> (&cpu.hShutdownSignal), FALSE, ( DWORD (update * 1000.0) ), QS_ALLEVENTS) == WAIT_OBJECT_0)
       break;
 
     // Only poll WMI while the data view is visible
@@ -467,8 +539,8 @@ SK_MonitorCPU (LPVOID user_param)
 
     if (FAILED (hr = cpu.pRefresher->Refresh (0L)))
     {
-      dll_log.Log (L"[ WMI Wbem ] Failed to Refresh CPU (%s:%d)",
-        __FILEW__, __LINE__);
+      dll_log.Log (L"[ WMI Wbem ] Failed to Refresh CPU (%s:%d) [%s]",
+        __FILEW__, __LINE__, _com_error (hr).ErrorMessage ());
       goto CPU_CLEANUP;
     }
 
@@ -504,8 +576,8 @@ SK_MonitorCPU (LPVOID user_param)
                  )
          )
       {
-        dll_log.Log (L"[ WMI Wbem ] Failed to get CPU Objects (%s:%d)",
-          __FILEW__, __LINE__);
+        dll_log.Log (L"[ WMI Wbem ] Failed to get CPU Objects (%s:%d) [%s]",
+          __FILEW__, __LINE__, _com_error (hr).ErrorMessage ());
 
         goto CPU_CLEANUP;
       }
@@ -516,8 +588,8 @@ SK_MonitorCPU (LPVOID user_param)
     {
       if (hr != WBEM_S_NO_ERROR)
       {
-        dll_log.Log (L"[ WMI Wbem ] UNKNOWN ERROR (%s:%d)",
-          __FILEW__, __LINE__);
+        dll_log.Log (L"[ WMI Wbem ] UNKNOWN ERROR (%s:%d) [%s]",
+          __FILEW__, __LINE__, _com_error (hr).ErrorMessage ());
         hr = WBEM_E_NOT_FOUND;
         goto CPU_CLEANUP;
       }
@@ -539,8 +611,8 @@ SK_MonitorCPU (LPVOID user_param)
                  )
          )
       {
-        dll_log.Log (L"[ WMI Wbem ] Failed to acquire property handle (%s:%d)",
-          __FILEW__, __LINE__);
+        dll_log.Log (L"[ WMI Wbem ] Failed to acquire property handle (%s:%d) [%s]",
+          __FILEW__, __LINE__, _com_error (hr).ErrorMessage ());
         goto CPU_CLEANUP;
       }
 
@@ -551,8 +623,8 @@ SK_MonitorCPU (LPVOID user_param)
                  )
          )
       {
-        dll_log.Log (L"[ WMI Wbem ] Failed to acquire property handle (%s:%d)",
-          __FILEW__, __LINE__);
+        dll_log.Log (L"[ WMI Wbem ] Failed to acquire property handle (%s:%d) [%s]",
+          __FILEW__, __LINE__, _com_error (hr).ErrorMessage ());
         goto CPU_CLEANUP;
       }
 
@@ -563,8 +635,8 @@ SK_MonitorCPU (LPVOID user_param)
                  )
          )
       {
-        dll_log.Log (L"[ WMI Wbem ] Failed to acquire property handle (%s:%d)",
-          __FILEW__, __LINE__);
+        dll_log.Log (L"[ WMI Wbem ] Failed to acquire property handle (%s:%d) [%s]",
+          __FILEW__, __LINE__, _com_error (hr).ErrorMessage ());
         goto CPU_CLEANUP;
       }
 
@@ -575,8 +647,8 @@ SK_MonitorCPU (LPVOID user_param)
                  )
          )
       {
-        dll_log.Log (L"[ WMI Wbem ] Failed to acquire property handle (%s:%d)",
-          __FILEW__, __LINE__);
+        dll_log.Log (L"[ WMI Wbem ] Failed to acquire property handle (%s:%d) [%s]",
+          __FILEW__, __LINE__, _com_error (hr).ErrorMessage ());
         goto CPU_CLEANUP;
       }
 
@@ -587,8 +659,8 @@ SK_MonitorCPU (LPVOID user_param)
                  )
          )
       {
-        dll_log.Log (L"[ WMI Wbem ] Failed to acquire property handle (%s:%d)",
-          __FILEW__, __LINE__);
+        dll_log.Log (L"[ WMI Wbem ] Failed to acquire property handle (%s:%d) [%s]",
+          __FILEW__, __LINE__, _com_error (hr).ErrorMessage ());
         goto CPU_CLEANUP;
       }
     }
@@ -613,8 +685,8 @@ SK_MonitorCPU (LPVOID user_param)
                  )
          )
       {
-        dll_log.Log (L"[ WMI Wbem ] Failed to read Quad-Word Property (%s:%d)",
-          __FILEW__, __LINE__);
+        dll_log.Log (L"[ WMI Wbem ] Failed to read Quad-Word Property (%s:%d) [%s]",
+          __FILEW__, __LINE__, _com_error (hr).ErrorMessage ());
         goto CPU_CLEANUP;
       }
 
@@ -624,8 +696,8 @@ SK_MonitorCPU (LPVOID user_param)
                  )
          )
       {
-        dll_log.Log (L"[ WMI Wbem ] Failed to read Quad-Word Property (%s:%d)",
-          __FILEW__, __LINE__);
+        dll_log.Log (L"[ WMI Wbem ] Failed to read Quad-Word Property (%s:%d) [%s]",
+          __FILEW__, __LINE__, _com_error (hr).ErrorMessage ());
         goto CPU_CLEANUP;
       }
 
@@ -754,7 +826,7 @@ SK_MonitorDisk (LPVOID user)
 
   HRESULT hr;
 
-  if (FAILED (hr = CoCreateInstance (
+  if (FAILED (hr = CoCreateInstance_Original (
                      CLSID_WbemRefresher,
                      nullptr,
                      CLSCTX_INPROC_SERVER,
@@ -805,7 +877,7 @@ SK_MonitorDisk (LPVOID user)
 
   while (disk_stats.lID != 0)
   {
-    if (WaitForSingleObject (disk_stats.hShutdownSignal, DWORD (update * 1000.0)) == WAIT_OBJECT_0)
+    if (MsgWaitForMultipleObjects (1, const_cast <const HANDLE *> (&disk_stats.hShutdownSignal), FALSE, ( DWORD (update * 1000.0) ), QS_ALLEVENTS) == WAIT_OBJECT_0)
       break;
 
     // Only poll WMI while the data view is visible
@@ -1173,7 +1245,7 @@ SK_MonitorPagefile (LPVOID user)
 
   HRESULT hr;
 
-  if (FAILED (hr = CoCreateInstance (
+  if (FAILED (hr = CoCreateInstance_Original (
                      CLSID_WbemRefresher,
                      nullptr,
                      CLSCTX_INPROC_SERVER,
@@ -1222,7 +1294,7 @@ SK_MonitorPagefile (LPVOID user)
 
   while (pagefile.lID != 0)
   {
-    if (WaitForSingleObject (pagefile.hShutdownSignal, DWORD (update * 1000.0)) == WAIT_OBJECT_0)
+    if (MsgWaitForMultipleObjects (1, const_cast <const HANDLE *> (&pagefile.hShutdownSignal), FALSE, ( DWORD (update * 1000.0) ), QS_ALLEVENTS) == WAIT_OBJECT_0)
       break;
 
     // Only poll WMI while the pagefile stats are shown
@@ -1509,7 +1581,7 @@ SK_MonitorProcess (LPVOID user)
 
   HRESULT hr;
 
-  if (FAILED (hr = CoCreateInstance (
+  if (FAILED (hr = CoCreateInstance_Original (
                      CLSID_WbemRefresher,
                      nullptr,
                      CLSCTX_INPROC_SERVER,
@@ -1666,14 +1738,15 @@ SK_MonitorProcess (LPVOID user)
 
   proc.lID = 1;
 
-  proc.hShutdownSignal = CreateEvent (nullptr, FALSE, FALSE, L"ProcMon Shutdown Signal");
+  proc.hShutdownSignal =
+    CreateEvent (nullptr, FALSE, FALSE, L"ProcMon Shutdown Signal");
 
   COM::base.wmi.Unlock ();
 
   while (proc.lID != 0)
   {
     // Sleep until ready
-    if (WaitForSingleObject (proc.hShutdownSignal, (DWORD (update * 1000.0))) == WAIT_OBJECT_0)
+    if (MsgWaitForMultipleObjects (1, const_cast <const HANDLE *> (&proc.hShutdownSignal), FALSE, (DWORD (update * 1000.0)), QS_ALLEVENTS) == WAIT_OBJECT_0)
       break;
 
     // Only poll WMI while the data view is visible

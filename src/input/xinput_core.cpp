@@ -1370,6 +1370,7 @@ SK_XInput_RehookIfNeeded (void)
 #include <SpecialK/input/steam.h>
 
 bool
+WINAPI
 SK_XInput_PulseController ( INT   iJoyID,
                             float fStrengthLeft,
                             float fStrengthRight )
@@ -1423,6 +1424,7 @@ SK_XInput_PulseController ( INT   iJoyID,
 }
 
 bool
+WINAPI
 SK_XInput_PollController ( INT           iJoyID,
                            XINPUT_STATE* pState )
 {
@@ -1621,6 +1623,7 @@ SK_Input_PreHookXInput (void)
 
 
 void
+WINAPI
 SK_XInput_ZeroHaptics (INT iJoyID)
 {
   ControllerIndex_t steam_idx =

@@ -60,6 +60,12 @@ EXPORTS
   Direct3DCreate8          = Direct3DCreate8           PRIVATE
 
 
+;LIBRARY "dinput"
+
+;EXPORTS
+;  DirectInputCreateEx      = DirectInputCreateEx       PRIVATE
+
+
 ;LIBRARY "dinput8"
 
 EXPORTS

@@ -577,7 +577,7 @@ SK_DrawOSD (void)
     {
       GetModuleFileName (hModGame, wszGameName, MAX_PATH);
 
-      if (StrStrIW (wszGameName, L"BatmanAK.exe"))
+      if (StrStrIW (wszGameName,      L"BatmanAK.exe"))
         isArkhamKnight = true;
       else if (StrStrIW (wszGameName, L"Tales of Zestiria.exe"))
         isTalesOfZestiria = true;
@@ -662,29 +662,49 @@ SK_DrawOSD (void)
     }
 
 
-    bool gsync = false;
-
-    if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status)
-    {
-      if (SK_GetCurrentRenderBackend   ().gsync_state.capable)
-      {
-        if (SK_GetCurrentRenderBackend ().gsync_state.active)
-        {
-          gsync = true;
-        }
-      }
-    }
+    bool gsync = 
+     ( sk::NVAPI::nv_hardware     && config.apis.NvAPI.gsync_status &&
+       SK_GetCurrentRenderBackend ().gsync_state.capable            &&
+       SK_GetCurrentRenderBackend ().gsync_state.active                );
 
 
     if (mean != INFINITY)
     {
-      if (SK::Framerate::GetLimiter ()->get_limit () > 0.0 && (! isTalesOfZestiria) && frame_history2.calcNumSamples () > 0)
+      const char* format = "";
+
+      bool has_cpu_frametime = 
+        SK::Framerate::GetLimiter ()->get_limit () > 0.0 &&
+                                   (! isTalesOfZestiria) &&
+                  frame_history2.calcNumSamples () >   0;
+
+      if (! gsync)
       {
-        const char* format = "  %-7ws:  %#4.01f FPS, %#13.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)   <%4.01f FPS / %3.2f ms>";
+        format =
+          ( config.fps.frametime  ?
+              config.fps.advanced ? 
+                has_cpu_frametime ?
+                  "  %-7ws:  %#4.01f FPS, %#13.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)   <%4.01f FPS / %3.2f ms>" :
+                  "  %-7ws:  %#4.01f FPS, %#13.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)"                           :
+                  "  %-7ws:  %#4.01f FPS, %#13.01f ms"                                                                    :
+                  "  %-7ws:  %#4.01f FPS"
+          );
+      }
 
-        if (gsync)
-          format = "  %-7ws:  %#4.01f FPS (G-Sync),%#5.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)   <%4.01f FPS / %3.2f ms>";
+      else
+      {
+        format =
+          ( config.fps.frametime ?
+            config.fps.advanced  ?
+              has_cpu_frametime  ?
+                "  %-7ws:  %#4.01f FPS (G-Sync),%#5.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)   <%4.01f FPS / %3.2f ms>" :
+                "  %-7ws:  %#4.01f FPS (G-Sync),%#5.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)"                           :
+                "  %-7ws:  %#4.01f FPS (G-Sync),%#5.01f ms"                                                                    :
+                "  %-7ws:  %#4.01f FPS (G-Sync)"
+          );
+      }
 
+      if (has_cpu_frametime)
+      {
         OSD_PRINTF format,
           SK_GetCurrentRenderBackend ().name,
             // Cast to FP to avoid integer division by zero.
@@ -699,14 +719,8 @@ SK_DrawOSD (void)
         OSD_END
       }
 
-      // No Effective Frametime History
       else
       {
-        const char* format = "  %-7ws:  %#4.01f FPS, %#13.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)";
-
-        if (gsync)
-          format = "  %-7ws:  %#4.01f FPS (G-Sync),%#5.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)";
-
         OSD_PRINTF format,
           SK_GetCurrentRenderBackend ().name,
             // Cast to FP to avoid integer division by zero.
@@ -723,10 +737,23 @@ SK_DrawOSD (void)
     // No Frametime History
     else
     {
-      const char* format = "  %-7ws:  %#4.01f FPS, %#13.01f ms";
+      const char* format = "";
 
-      if (gsync)
-        format = "  %-7ws:  %#4.01f FPS (G-Sync),%5.01f ms";
+      if (! gsync)
+      {
+        format =
+          ( config.fps.frametime                   ?
+              "  %-7ws:  %#4.01f FPS, %#13.01f ms" :
+              "  %-7ws:  %#4.01f FPS"                );
+      }
+
+      else
+      {
+        format =
+          ( config.fps.frametime                         ?
+              "  %-7ws:  %#4.01f FPS (G-Sync),%5.01f ms" :
+              "  %-7ws:  %#4.01f FPS (G-Sync)"             );
+      }
 
       OSD_PRINTF format,
         SK_GetCurrentRenderBackend ().name,
@@ -793,9 +820,9 @@ SK_DrawOSD (void)
 
     else
     {
-      // Padding because no voltage reading is available
-      OSD_G_PRINTF ",         "
-      OSD_END
+      //// Padding because no voltage reading is available
+      ///////OSD_G_PRINTF ",         "
+      ///////OSD_END
     }
 
     if (gpu_stats.gpus [i].fans_rpm.supported && gpu_stats.gpus [i].fans_rpm.gpu > 0)
@@ -807,9 +834,9 @@ SK_DrawOSD (void)
 
     else
     {
-      // Padding because no RPM reading is available
-      OSD_G_PRINTF ",         "
-      OSD_END
+      //// Padding because no RPM reading is available
+      ///////OSD_G_PRINTF ",         "
+      ///////OSD_END
     }
 
     std::wstring temp =
@@ -884,9 +911,12 @@ static_cast <double> (                         gpu_stats.gpus [i].loads_percent.
         OSD_END
       }
 
-      OSD_G_PRINTF ", %#4lu MHz",
-        gpu_stats.gpus [i].clocks_kHz.ram / 1000UL
-      OSD_END
+      if (gpu_stats.gpus [i].clocks_kHz.ram >= 1000)
+      {
+        OSD_G_PRINTF ", %#4lu MHz",
+          gpu_stats.gpus [i].clocks_kHz.ram / 1000UL
+        OSD_END
+      }
 
       // Add memory temperature if it exists
       if (i <= gpu_stats.num_gpus && gpu_stats.gpus [i].temps_c.ram != 0)
@@ -924,13 +954,21 @@ static_cast <double> (                         gpu_stats.gpus [i].loads_percent.
         OSD_END
       }
 
-      else
+      else if (pcie_gen > 0 && gpu_stats.gpus [i].hwinfo.pcie_lanes > 0)
       {
         OSD_G_PRINTF "  SHARE%i : %#5llu MiB, PCIe %i.0x%lu\n",
           i,
           mem_info [buffer].nonlocal [i].CurrentUsage >> 20ULL,
           pcie_gen,
           gpu_stats.gpus [i].hwinfo.pcie_lanes
+        OSD_END
+      }
+
+      else
+      {
+        OSD_G_PRINTF "  SHARE%i : %#5llu MiB      \n",
+          i,
+          mem_info [buffer].nonlocal [i].CurrentUsage >> 20ULL
         OSD_END
       }
     }
@@ -966,9 +1004,12 @@ static_cast <double> (                         gpu_stats.gpus [i].loads_percent.
         OSD_END
       }
 
-      OSD_G_PRINTF ", %#4lu MHz",
-        gpu_stats.gpus [i].clocks_kHz.ram / 1000UL
-      OSD_END
+      if (gpu_stats.gpus [i].clocks_kHz.ram >= 1000)
+      {
+        OSD_G_PRINTF ", %#4lu MHz",
+          gpu_stats.gpus [i].clocks_kHz.ram / 1000UL
+        OSD_END
+      }
 
       OSD_G_PRINTF "\n" OSD_END
     }
@@ -992,13 +1033,21 @@ static_cast <double> (                         gpu_stats.gpus [i].loads_percent.
         OSD_END
       }
 
-      else
+      else if (gpu_stats.gpus [i].hwinfo.pcie_lanes > 0 && pcie_gen > 0)
       {
         OSD_G_PRINTF "  SHARE%i : %#5llu MiB, PCIe %i.0x%lu\n",
           i,
           gpu_stats.gpus [i].memory_B.nonlocal    >> 20ULL,
           pcie_gen,
           gpu_stats.gpus [i].hwinfo.pcie_lanes
+        OSD_END
+      }
+
+      else
+      {
+        OSD_G_PRINTF "  SHARE%i : %#5llu MiB       \n",
+          i,
+          gpu_stats.gpus [i].memory_B.nonlocal    >> 20ULL
         OSD_END
       }
 

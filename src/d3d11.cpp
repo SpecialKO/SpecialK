@@ -9444,7 +9444,7 @@ SK_D3D11_Init (void)
                                     &pfnD3D11CreateDeviceAndSwapChain )
            )
         {
-          if (SK_GetDLLRole () & DLL_ROLE::D3D11)
+          if ((SK_GetDLLRole () & DLL_ROLE::D3D11) || (SK_GetDLLRole () & DLL_ROLE::DInput8))
           {
 #ifdef _WIN64
             SK_LoadPlugIns64 ();

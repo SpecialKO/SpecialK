@@ -1186,6 +1186,29 @@ SK_ImGui_DrawGraph_FramePacing (void)
                                    ImVec2 (
                                      std::max (500.0f, ImGui::GetContentRegionAvailWidth ()), font_size * 7.0f) );
 
+  //SK_RenderBackend& rb =
+  //  SK_GetCurrentRenderBackend ();
+  //
+  //if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status)
+  //{
+  //  if (rb.gsync_state.capable)
+  //  {
+  //    ImGui::SameLine ();
+  //    ImGui::TextColored (ImColor::HSV (0.226537f, 1.0f, 0.36f), "G-Sync: ");
+  //    ImGui::SameLine ();
+  //
+  //    if (rb.gsync_state.active)
+  //    {
+  //      ImGui::TextColored (ImColor::HSV (0.226537f, 1.0f, 0.45f), "Active");
+  //    }
+  //
+  //    else
+  //    {
+  //      ImGui::TextColored (ImColor::HSV (0.226537f, 0.75f, 0.27f), "Inactive");
+  //    }
+  //  }
+  //}
+
   ImGui::PopStyleColor ();
 }
 
@@ -4995,16 +5018,21 @@ extern float SK_ImGui_PulseNav_Strength;
       ImGui::TreePush       ("");
 
       ImGui::Checkbox ("Display OSD", &config.osd.show);
+      ImGui::SameLine ();
+      ImGui::SliderFloat ("Show Startup Banner", &config.version_banner.duration, 0.0f, 30.0f, "%3.1f Seconds");
 
       if (config.osd.show && ImGui::CollapsingHeader ("Basic Monitoring", ImGuiTreeNodeFlags_DefaultOpen))
       {
         ImGui::TreePush ("");
 
-        ImGui::Checkbox ("Title/Clock ",   &config.time.show); ImGui::SameLine ();
-        ImGui::Checkbox ("Framerate",      &config.fps.show);
+        ImGui::BeginGroup ();
+        ImGui::Checkbox   ("Title/Clock ", &config.time.show); 
+        ImGui::SameLine   ();
+        ImGui::Checkbox   ("GPU Stats",    &config.gpu.show);
+        ImGui::EndGroup   ();
 
-        ImGui::Checkbox ("GPU Stats",      &config.gpu.show);
-
+        ImGui::SameLine   ();
+        ImGui::BeginGroup ();
         if (config.gpu.show)
         {
           ImGui::TreePush ("");
@@ -5023,7 +5051,21 @@ extern float SK_ImGui_PulseNav_Strength;
           ImGui::TreePop  ();
         }
 
-        ImGui::TreePop ();
+        ImGui::Checkbox   ("Framerate",      &config.fps.show);
+
+        if (config.fps.show)
+        {
+          int idx =  config.fps.show + config.fps.frametime + config.fps.advanced - 1;
+
+          ImGui::SameLine ();
+          ImGui::Combo    ("Details", &idx, "Simple FPS\0FPS + Frame Time (ms)\0Advanced Frame Pacing Analysis\0\0", 3);
+
+               if (idx == 2) { config.fps.show = config.fps.frametime = config.fps.advanced       = true;  }
+          else if (idx == 1) { config.fps.show = config.fps.frametime = true; config.fps.advanced = false; }
+          else if (idx == 0) { config.fps.show = true; config.fps.frametime = config.fps.advanced = false; }
+        }
+        ImGui::EndGroup   ();
+        ImGui::TreePop    ();
       }
 
       if (config.osd.show && ImGui::CollapsingHeader ("Extended Monitoring"))
@@ -6331,6 +6373,131 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
     if (widget->isVisible ())
       widget->draw_base ();
   }
+
+
+
+  static DWORD dwStartTime = timeGetTime ();
+  if ((timeGetTime () < dwStartTime + 1000 * config.version_banner.duration) || eula.show)
+  {
+		ImGui::PushStyleColor    (ImGuiCol_Text,     ImVec4 (1.f,   1.f,   1.f,   1.f));
+		ImGui::PushStyleColor    (ImGuiCol_WindowBg, ImVec4 (.333f, .333f, .333f, 0.828282f));
+		ImGui::SetNextWindowPos  (ImVec2 (10, 10));
+		ImGui::SetNextWindowSize (ImVec2 ( ImGui::GetIO ().DisplayFramebufferScale.x - 20.0f,
+                                       ImGui::GetItemsLineHeightWithSpacing ()   * 4.5f  ), ImGuiSetCond_Always );
+		ImGui::Begin             ( "Splash Screen##SpecialK",
+		                             nullptr, ImVec2 (), -1,
+		                               ImGuiWindowFlags_NoTitleBar      |
+		                               ImGuiWindowFlags_NoScrollbar     |
+		                               ImGuiWindowFlags_NoMove          |
+		                               ImGuiWindowFlags_NoResize        |
+		                               ImGuiWindowFlags_NoSavedSettings |
+		                               ImGuiWindowFlags_NoInputs        |
+		                               ImGuiWindowFlags_NoFocusOnAppearing );
+
+    extern std::wstring
+    __stdcall
+    SK_GetPluginName (void);
+
+		ImGui::TextColored     (ImColor::HSV (.11f, 1.f, 1.f),  "%ws   ", SK_GetPluginName ().c_str ()); ImGui::SameLine ();
+		ImGui::TextUnformatted ("   Please see the Release Notes, under");                               ImGui::SameLine ();
+		ImGui::TextColored     (ImColor::HSV (.52f, 1.f, 1.f),  "Help | Release Notes");                 ImGui::SameLine ();
+		ImGui::TextUnformatted ("for what passes as documentation for this project.");
+
+    ImGui::Spacing ();
+    ImGui::Spacing ();
+
+    auto PopulateBranches = [](auto branches) ->
+      std::map <std::string, SK_BranchInfo>
+      {
+        std::map <std::string, SK_BranchInfo> details;
+
+        for ( auto& it : branches )
+          details.emplace (it, SK_Version_GetLatestBranchInfo (nullptr, it.c_str ()));
+
+        return details;
+      };
+
+    static std::vector <std::string>                branches       = SK_Version_GetAvailableBranches (nullptr);
+    static std::map    <std::string, SK_BranchInfo> branch_details = PopulateBranches (branches);
+
+    static SK_VersionInfo vinfo =
+      SK_Version_GetLocalInfo (nullptr);
+
+    char current_ver        [128] = { };
+    char current_branch_str [ 64] = { };
+
+    snprintf (current_ver,        127, "%ws (%li)", vinfo.package.c_str (), vinfo.build);
+    snprintf (current_branch_str,  63, "%ws",       vinfo.branch.c_str  ());
+
+    static SK_VersionInfo vinfo_latest =
+      SK_Version_GetLatestInfo (nullptr);
+
+    static SK_BranchInfo_V1 current_branch =
+      SK_Version_GetLatestBranchInfo (nullptr, SK_WideCharToUTF8 (vinfo.branch).c_str ());
+
+    if (! current_branch.release.description.empty ())
+    {
+      ImGui::BeginChildFrame ( ImGui::GetID ("###SpecialK_SplashScreenFrame"),
+                               ImVec2 (-1,ImGui::GetItemsLineHeightWithSpacing () * 2.1f),
+                               ImGuiWindowFlags_ShowBorders | ImGuiWindowFlags_AlwaysAutoResize );
+
+      std::chrono::time_point <std::chrono::system_clock> now =
+        std::chrono::system_clock::now ();
+
+			ImColor version_color =
+				ImColor::HSV ( static_cast <float> (
+			                   std::chrono::duration_cast <std::chrono::milliseconds> (
+			                     now.time_since_epoch ()
+			                   ).count () % 3333
+			                 ) / 3333.3f,
+			                 0.25f, 1.f
+				             );
+
+      ImGui::Text        (" You are currently running");                      ImGui::SameLine ();
+      ImGui::TextColored (ImColor::HSV (.15, 0.9, 1.), "%ws",
+                    current_branch.release.title.c_str () );                  ImGui::SameLine ();
+      ImGui::Text        ("from the");                                        ImGui::SameLine ();
+      ImGui::TextColored (ImColor::HSV (.4, 0.9, 1.), "%ws",
+                    current_branch.release.vinfo.branch.c_str () );           ImGui::SameLine ();
+      ImGui::Text        ("development branch.");
+      ImGui::Spacing     ();
+      ImGui::Spacing     ();
+      ImGui::TreePush    ("");
+			ImGui::TextColored (ImColor::HSV (.08, .75, 0.6), "%ws",
+                          SK_Version_GetLastCheckTime_WStr ().c_str ()); ImGui::SameLine ();
+			ImGui::TextColored (version_color,               "%ws",
+			                     current_branch.release.description.c_str ()
+			                   );
+      ImGui::TreePop     ();
+      
+      ImGui::EndChildFrame ();
+		}
+
+    else
+    {
+      ImGui::Text          ("");
+      ImGui::Text          ("");
+    }
+
+    ImGui::Spacing ();
+
+		ImGui::TextUnformatted (                                  "Press");                            ImGui::SameLine ();
+		ImGui::TextColored     ( ImColor::HSV (.16f, 1.f, 1.f),   "\'%s%s%s\'",
+		                                        "Ctrl + ",
+		                                        "Shift + ",
+		                                        "Backspace" );                                         ImGui::SameLine ();
+		ImGui::TextUnformatted (                                  ", ");                               ImGui::SameLine ();
+		ImGui::TextColored     ( ImColor::HSV (.16f, 1.f, 1.f),   "\'Select + Start\' (PlayStation)"); ImGui::SameLine ();
+		ImGui::TextUnformatted (                                  "or ");                              ImGui::SameLine ();
+		ImGui::TextColored     ( ImColor::HSV (.16f, 1.f, 1.f),   "\'Back + Start\' (Xbox)");          ImGui::SameLine ();
+
+		ImGui::TextUnformatted (                                  "to open Special K's "
+		                                                          "configuration menu. ");
+
+		ImGui::End             ( );
+		ImGui::PopStyleColor   (2);
+	}
+
 
 
   if (SK_ImGui_DrawCallback.fn != nullptr)

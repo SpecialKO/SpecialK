@@ -1,9 +1,13 @@
 0.8.57
 
+ (.1): Added a startup banner with version info, and new options to control the
+         complexity of the FPS readout in the OSD.
+
   + Improved SteamAPI offline DRM bypass to work in all games tested;
    + Improved support for native Steam controller games
 
-    >> Local DLL wrapper is needed for both of these things.
+    >> Local DLL wrapper is needed for both of these things and so is the
+         INI option referred to as "SpoofBLoggedOn."
 
   + In D3D11 games that use multi-threaded rendering, ReShade triggering works
       as intended.

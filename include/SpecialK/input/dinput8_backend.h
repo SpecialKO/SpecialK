@@ -4480,6 +4480,14 @@ using LPFNSHOWJOYCPL = void (WINAPI*)( HWND hWnd );
 
 
 
+using DirectInputCreateEx_pfn = HRESULT (WINAPI *)(
+  HINSTANCE hinst,
+  DWORD     dwVersion,
+  REFIID    riidltf, 
+  LPVOID   *ppvOut, 
+  LPUNKNOWN punkOuter
+);
+
 using DirectInput8Create_pfn = HRESULT (WINAPI *)(
   HINSTANCE hinst,
   DWORD     dwVersion,
@@ -4488,39 +4496,58 @@ using DirectInput8Create_pfn = HRESULT (WINAPI *)(
   LPUNKNOWN punkOuter
 );
 
-using IDirectInput8_CreateDevice_pfn = HRESULT (WINAPI *)(
-  IDirectInput8       *This,
-  REFGUID              rguid,
-  LPDIRECTINPUTDEVICE *lplpDirectInputDevice,
-  LPUNKNOWN            pUnkOuter
+using IDirectInput8W_CreateDevice_pfn = HRESULT (WINAPI *)(
+  IDirectInput8W        *This,
+  REFGUID                rguid,
+  LPDIRECTINPUTDEVICE8W *lplpDirectInputDevice,
+  LPUNKNOWN              pUnkOuter
 );
 
-using IDirectInputDevice8_GetDeviceState_pfn = HRESULT (WINAPI *)(
-  LPDIRECTINPUTDEVICE  This,
-  DWORD                cbData,
-  LPVOID               lpvData
+using IDirectInputDevice8W_GetDeviceState_pfn = HRESULT (WINAPI *)(
+  LPDIRECTINPUTDEVICE8W This,
+  DWORD                 cbData,
+  LPVOID                lpvData
 );
 
-using IDirectInputDevice8_SetCooperativeLevel_pfn = HRESULT (WINAPI *)(
-  LPDIRECTINPUTDEVICE  This,
-  HWND                 hwnd,
-  DWORD                dwFlags
+using IDirectInputDevice8W_SetCooperativeLevel_pfn = HRESULT (WINAPI *)(
+  LPDIRECTINPUTDEVICE8W This,
+  HWND                  hwnd,
+  DWORD                 dwFlags
+);
+
+using IDirectInput8A_CreateDevice_pfn = HRESULT (WINAPI *)(
+  IDirectInput8A        *This,
+  REFGUID                rguid,
+  LPDIRECTINPUTDEVICE8A *lplpDirectInputDevice,
+  LPUNKNOWN              pUnkOuter
+);
+
+using IDirectInputDevice8A_GetDeviceState_pfn = HRESULT (WINAPI *)(
+  LPDIRECTINPUTDEVICE8A This,
+  DWORD                 cbData,
+  LPVOID                lpvData
+);
+
+using IDirectInputDevice8A_SetCooperativeLevel_pfn = HRESULT (WINAPI *)(
+  LPDIRECTINPUTDEVICE8A This,
+  HWND                  hwnd,
+  DWORD                 dwFlags
 );
 
 #include <cstdint>
 
 struct SK_DI8_Keyboard {
-  LPDIRECTINPUTDEVICE pDev = nullptr;
-  uint8_t             state [512];
-  DWORD               coop_level;     // The level the game requested, not necessarily
-                                      //   its current state (changes based on UI).
+  LPDIRECTINPUTDEVICE8W pDev = nullptr;
+  uint8_t               state [512];
+  DWORD                 coop_level;     // The level the game requested, not necessarily
+                                        //   its current state (changes based on UI).
 };
 
 struct SK_DI8_Mouse {
-  LPDIRECTINPUTDEVICE pDev = nullptr;
-  DIMOUSESTATE2       state;
-  DWORD               coop_level;     // The level the game requested, not necessarily
-                                      //   its current state (changes based on UI).
+  LPDIRECTINPUTDEVICE8W pDev = nullptr;
+  DIMOUSESTATE2         state;
+  DWORD                 coop_level;     // The level the game requested, not necessarily
+                                        //   its current state (changes based on UI).
 
   // Weird hack for some touchpads that don't send out mousewheel events in any API
   //   other than Win32.

@@ -5538,7 +5538,7 @@ HookDXGI (LPVOID user)
 
     MH_ApplyQueued  ();
 
-    if (SK_GetDLLRole () == DLL_ROLE::DXGI)
+    if ((SK_GetDLLRole () & DLL_ROLE::DXGI) || (SK_GetDLLRole () & DLL_ROLE::DInput8))
     {
       // Load user-defined DLLs (Plug-In)
 #ifdef _WIN64

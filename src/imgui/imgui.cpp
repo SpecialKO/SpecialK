@@ -12029,10 +12029,12 @@ struct {
 
 
 bool
+WINAPI
 SK_XInput_PulseController ( INT   iJoyID,
                             float fStrengthLeft,
                             float fStrengthRight );
 extern void
+WINAPI
 SK_XInput_ZeroHaptics ( INT iJoyID );
 
 
@@ -12089,8 +12091,8 @@ SK_ImGui_ToggleEx (bool& toggle_ui, bool& toggle_nav)
 #include <SpecialK/input/dinput8_backend.h>
 #include <SpecialK/input/steam.h>
 
-extern IDirectInputDevice8_GetDeviceState_pfn
-        IDirectInputDevice8_GetDeviceState_GAMEPAD_Original;
+extern IDirectInputDevice8W_GetDeviceState_pfn
+        IDirectInputDevice8W_GetDeviceState_Original;
 
 extern XINPUT_STATE  di8_to_xi;
 extern XINPUT_STATE  joy_to_xi;

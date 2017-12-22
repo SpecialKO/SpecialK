@@ -74,33 +74,83 @@ using finish_pfn = void (WINAPI *)(void);
 
 ///////////////////////////////////////////////////////////////////////////////
 //
+// DirectInput 7
+//
+///////////////////////////////////////////////////////////////////////////////
+DirectInputCreateEx_pfn
+         DirectInputCreateEx_Import                       = nullptr;
+
+//IDirectInput7W_CreateDevice_pfn
+//        IDirectInput7W_CreateDevice_Original              = nullptr;
+//
+//IDirectInputDevice7W_GetDeviceState_pfn
+//        IDirectInputDevice7W_GetDeviceState_Original      = nullptr;
+//
+//IDirectInputDevice7W_SetCooperativeLevel_pfn
+//        IDirectInputDevice7W_SetCooperativeLevel_Original = nullptr;
+//
+//IDirectInput7A_CreateDevice_pfn
+//        IDirectInput7A_CreateDevice_Original              = nullptr;
+//
+//IDirectInputDevice7A_GetDeviceState_pfn
+//        IDirectInputDevice7A_GetDeviceState_Original      = nullptr;
+//
+//IDirectInputDevice7A_SetCooperativeLevel_pfn
+//        IDirectInputDevice7A_SetCooperativeLevel_Original = nullptr;
+//
+//HRESULT
+//WINAPI
+//IDirectInput7A_CreateDevice_Detour ( IDirectInput7A        *This,
+//                                     REFGUID                rguid,
+//                                     LPDIRECTINPUTDEVICE7A *lplpDirectInputDevice,
+//                                     LPUNKNOWN              pUnkOuter );
+//
+//HRESULT
+//WINAPI
+//IDirectInput7W_CreateDevice_Detour ( IDirectInput7W        *This,
+//                                     REFGUID                rguid,
+//                                     LPDIRECTINPUTDEVICE7W *lplpDirectInputDevice,
+//                                     LPUNKNOWN              pUnkOuter );
+
+///////////////////////////////////////////////////////////////////////////////
+//
 // DirectInput 8
 //
 ///////////////////////////////////////////////////////////////////////////////
 DirectInput8Create_pfn
-         DirectInput8Create_Import                           = nullptr;
+         DirectInput8Create_Import                         = nullptr;
 
-IDirectInput8_CreateDevice_pfn
-        IDirectInput8_CreateDevice_Original                  = nullptr;
+IDirectInput8W_CreateDevice_pfn
+        IDirectInput8W_CreateDevice_Original               = nullptr;
 
-IDirectInputDevice8_GetDeviceState_pfn
-        IDirectInputDevice8_GetDeviceState_MOUSE_Original    = nullptr;
+IDirectInputDevice8W_GetDeviceState_pfn
+        IDirectInputDevice8W_GetDeviceState_Original       = nullptr;
 
-IDirectInputDevice8_GetDeviceState_pfn
-        IDirectInputDevice8_GetDeviceState_KEYBOARD_Original = nullptr;
+IDirectInputDevice8W_SetCooperativeLevel_pfn
+        IDirectInputDevice8W_SetCooperativeLevel_Original  = nullptr;
 
-IDirectInputDevice8_GetDeviceState_pfn
-        IDirectInputDevice8_GetDeviceState_GAMEPAD_Original  = nullptr;
+IDirectInput8A_CreateDevice_pfn
+        IDirectInput8A_CreateDevice_Original               = nullptr;
 
-IDirectInputDevice8_SetCooperativeLevel_pfn
-        IDirectInputDevice8_SetCooperativeLevel_Original     = nullptr;
+IDirectInputDevice8A_GetDeviceState_pfn
+        IDirectInputDevice8A_GetDeviceState_Original       = nullptr;
+
+IDirectInputDevice8A_SetCooperativeLevel_pfn
+        IDirectInputDevice8A_SetCooperativeLevel_Original  = nullptr;
 
 HRESULT
 WINAPI
-IDirectInput8_CreateDevice_Detour ( IDirectInput8       *This,
-                                    REFGUID              rguid,
-                                    LPDIRECTINPUTDEVICE *lplpDirectInputDevice,
-                                    LPUNKNOWN            pUnkOuter );
+IDirectInput8A_CreateDevice_Detour ( IDirectInput8A        *This,
+                                     REFGUID                rguid,
+                                     LPDIRECTINPUTDEVICE8A *lplpDirectInputDevice,
+                                     LPUNKNOWN              pUnkOuter );
+
+HRESULT
+WINAPI
+IDirectInput8W_CreateDevice_Detour ( IDirectInput8W        *This,
+                                     REFGUID                rguid,
+                                     LPDIRECTINPUTDEVICE8W *lplpDirectInputDevice,
+                                     LPUNKNOWN              pUnkOuter );
 
 
 volatile LONG __di8_ready = FALSE;
@@ -120,6 +170,78 @@ SK_BootDI8 (void);
 
 __declspec (noinline)
 HRESULT
+DirectInputCreateEx ( HINSTANCE hinst,
+                      DWORD     dwVersion, 
+                      REFIID    riidltf, 
+                      LPVOID   *ppvOut, 
+                      LPUNKNOWN punkOuter )
+{
+  if (SK_GetDLLRole () == DLL_ROLE::DInput8)
+  {
+    SK_BootDI8      ();
+    WaitForInit_DI8 ();
+  }
+
+  dll_log.Log ( L"[ DInput 7 ] [!] %s (%ph, %lu, {...}, ppvOut=%p, %p) - "
+                L"%s",
+                  L"DirectInputCreate",
+                    hinst,  dwVersion, /*,*/
+                    ppvOut, punkOuter,
+                      SK_SummarizeCaller ().c_str () );
+
+  HRESULT hr = E_NOINTERFACE;
+
+  if (DirectInputCreateEx_Import != nullptr)
+  {
+    if (riidltf == IID_IDirectInput7A)
+    {
+      if ( SUCCEEDED (
+             (hr = DirectInputCreateEx_Import (hinst, dwVersion, riidltf, ppvOut, punkOuter))
+           )
+         )
+      {
+        //if (! IDirectInput7A_CreateDevice_Original)
+        //{
+        //  void** vftable = *(void***)*ppvOut;
+        //  
+        //  SK_CreateFuncHook (       L"IDirectInput7A::CreateDevice",
+        //                             vftable [3],
+        //                             IDirectInput7A_CreateDevice_Detour,
+        //    static_cast_p2p <void> (&IDirectInput7A_CreateDevice_Original) );
+        //  
+        //  SK_EnableHook (vftable [3]);
+        //}
+      }
+    }
+
+    else if (riidltf == IID_IDirectInput7W)
+    {
+      if ( SUCCEEDED (
+             (hr = DirectInputCreateEx_Import (hinst, dwVersion, riidltf, ppvOut, punkOuter))
+           )
+         )
+      {
+        //if (! IDirectInput7W_CreateDevice_Original)
+        //{
+        //  void** vftable = *(void***)*ppvOut;
+        //  
+        //  SK_CreateFuncHook (       L"IDirectInput7W::CreateDevice",
+        //                             vftable [3],
+        //                             IDirectInput7W_CreateDevice_Detour,
+        //    static_cast_p2p <void> (&IDirectInput7W_CreateDevice_Original) );
+        //  
+        //  SK_EnableHook (vftable [3]);
+        //}
+      }
+    }
+  }
+
+  return hr;
+}
+
+__declspec (noinline)
+HRESULT
+WINAPI
 DirectInput8Create ( HINSTANCE hinst,
                      DWORD     dwVersion, 
                      REFIID    riidltf, 
@@ -143,21 +265,45 @@ DirectInput8Create ( HINSTANCE hinst,
 
   if (DirectInput8Create_Import != nullptr)
   {
-    if ( SUCCEEDED (
-           (hr = DirectInput8Create_Import (hinst, dwVersion, riidltf, ppvOut, punkOuter))
-         )
-       )
+    if (riidltf == IID_IDirectInput8W)
     {
-      if (! IDirectInput8_CreateDevice_Original)
+      if ( SUCCEEDED (
+             (hr = DirectInput8Create_Import (hinst, dwVersion, riidltf, ppvOut, punkOuter))
+           )
+         )
       {
-        void** vftable = *(void***)*ppvOut;
-        
-        SK_CreateFuncHook (       L"IDirectInput8::CreateDevice",
-                                   vftable [3],
-                                   IDirectInput8_CreateDevice_Detour,
-          static_cast_p2p <void> (&IDirectInput8_CreateDevice_Original) );
-        
-        SK_EnableHook (vftable [3]);
+        if (! IDirectInput8W_CreateDevice_Original)
+        {
+          void** vftable = *(void***)*ppvOut;
+          
+          SK_CreateFuncHook (       L"IDirectInput8W::CreateDevice",
+                                     vftable [3],
+                                     IDirectInput8W_CreateDevice_Detour,
+            static_cast_p2p <void> (&IDirectInput8W_CreateDevice_Original) );
+          
+          SK_EnableHook (vftable [3]);
+        }
+      }
+    }
+
+    else if (riidltf == IID_IDirectInput8A)
+    {
+      if ( SUCCEEDED (
+             (hr = DirectInput8Create_Import (hinst, dwVersion, riidltf, ppvOut, punkOuter))
+           )
+         )
+      {
+        if (! IDirectInput8A_CreateDevice_Original)
+        {
+          void** vftable = *(void***)*ppvOut;
+          
+          SK_CreateFuncHook (       L"IDirectInput8A::CreateDevice",
+                                     vftable [3],
+                                     IDirectInput8A_CreateDevice_Detour,
+            static_cast_p2p <void> (&IDirectInput8A_CreateDevice_Original) );
+          
+          SK_EnableHook (vftable [3]);
+        }
       }
     }
   }
@@ -176,7 +322,7 @@ SK_BootDI8 (void)
   {
   HMODULE hBackend = 
     (SK_GetDLLRole () & DLL_ROLE::DInput8) ? backend_dll :
-                                    GetModuleHandle (L"dinput8.dll");
+                                    LoadLibraryW (L"dinput8.dll");
 
   dll_log.Log (L"[ DInput 8 ] Importing DirectInput8Create....");
   dll_log.Log (L"[ DInput 8 ] ================================");
@@ -241,8 +387,8 @@ SK_BootDI8 (void)
 #endif
 
 
-CreateThread (nullptr, 0x00, [](LPVOID/*user*/) -> DWORD
-{
+//CreateThread (nullptr, 0x00, [](LPVOID/*user*/) -> DWORD
+//{
   //UNREFERENCED_PARAMETER (user);
 
   // OpenGL
@@ -282,8 +428,8 @@ CreateThread (nullptr, 0x00, [](LPVOID/*user*/) -> DWORD
 
   CloseHandle (GetCurrentThread ());
 
-  return 0;
-}, nullptr, 0x00, nullptr);
+//  return 0;
+//}, nullptr, 0x00, nullptr);
 
     InterlockedIncrement (&hooked);
     InterlockedExchange  (&__di8_ready, TRUE);
@@ -291,6 +437,164 @@ CreateThread (nullptr, 0x00, [](LPVOID/*user*/) -> DWORD
 
   while (ReadAcquire (&hooked) < 2)
     ;
+}
+
+typedef HRESULT (WINAPI *CoCreateInstance_pfn)(
+  _In_  REFCLSID  rclsid,
+  _In_  LPUNKNOWN pUnkOuter,
+  _In_  DWORD     dwClsContext,
+  _In_  REFIID    riid,
+  _Out_ LPVOID   *ppv );
+
+extern CoCreateInstance_pfn CoCreateInstance_Original;
+
+DEFINE_GUID(CLSID_DirectInput,        0x25E609E0,0xB259,0x11CF,0xBF,0xC7,0x44,0x45,0x53,0x54,0x00,0x00);
+DEFINE_GUID(CLSID_DirectInputDevice,  0x25E609E1,0xB259,0x11CF,0xBF,0xC7,0x44,0x45,0x53,0x54,0x00,0x00);
+
+DEFINE_GUID(CLSID_DirectInput8,       0x25E609E4,0xB259,0x11CF,0xBF,0xC7,0x44,0x45,0x53,0x54,0x00,0x00);
+DEFINE_GUID(CLSID_DirectInputDevice8,	0x25E609E5,0xB259,0x11CF,0xBF,0xC7,0x44,0x45,0x53,0x54,0x00,0x00);
+
+HRESULT
+WINAPI
+CoCreateInstance_DI8 (
+  _In_  LPUNKNOWN pUnkOuter,
+  _In_  DWORD     dwClsContext,
+  _In_  REFIID    riid,
+  _Out_ LPVOID   *ppv,
+  _In_  LPVOID    pCallerAddr )
+{
+  SK_BootDI8      ();
+
+  if (SK_GetDLLRole () == DLL_ROLE::DInput8)
+  {
+    WaitForInit_DI8 ();
+  }
+
+  dll_log.Log ( L"[ DInput 8 ] [!] %s (%ph, %lu, {...}, ppvOut=%p, %p) - "
+                L"%s",
+                  L"DirectInput8Create <CoCreateInstance> ",
+                    0, 0x800,
+                    ppv, pUnkOuter,
+                      SK_SummarizeCaller (pCallerAddr).c_str () );
+
+  HRESULT hr =
+    E_NOINTERFACE;
+
+
+  if (riid == IID_IDirectInput8A)
+  {
+    if ( SUCCEEDED (
+           (hr = CoCreateInstance_Original (CLSID_DirectInput8, pUnkOuter, dwClsContext, riid, ppv))
+         )
+       )
+    {
+      if (! IDirectInput8A_CreateDevice_Original)
+      {
+        void** vftable = *(void***)*ppv;
+        
+        SK_CreateFuncHook (       L"IDirectInput8A::CreateDevice",
+                                   vftable [3],
+                                   IDirectInput8A_CreateDevice_Detour,
+          static_cast_p2p <void> (&IDirectInput8A_CreateDevice_Original) );
+        
+        SK_EnableHook (vftable [3]);
+      }
+    }
+  }
+
+  else if (riid == IID_IDirectInput8W)
+  {
+    if ( SUCCEEDED (
+           (hr = CoCreateInstance_Original (CLSID_DirectInput8, pUnkOuter, dwClsContext, riid, ppv))
+         )
+       )
+    {
+      if (! IDirectInput8W_CreateDevice_Original)
+      {
+        void** vftable = *(void***)*ppv;
+        
+        SK_CreateFuncHook (       L"IDirectInput8W::CreateDevice",
+                                   vftable [3],
+                                   IDirectInput8W_CreateDevice_Detour,
+          static_cast_p2p <void> (&IDirectInput8W_CreateDevice_Original) );
+        
+        SK_EnableHook (vftable [3]);
+      }
+    }
+  }
+
+  return hr;
+}
+
+HRESULT
+WINAPI
+CoCreateInstance_DI7 (
+  _In_  LPUNKNOWN pUnkOuter,
+  _In_  DWORD     dwClsContext,
+  _In_  REFIID    riid,
+  _Out_ LPVOID   *ppv,
+  _In_  LPVOID    pCallerAddr )
+{
+  SK_BootDI8      ();
+
+  if (SK_GetDLLRole () == DLL_ROLE::DInput8)
+  {
+    WaitForInit_DI8 ();
+  }
+
+  dll_log.Log ( L"[ DInput 7 ] [!] %s (%ph, %lu, {...}, ppvOut=%p, %p) - "
+                L"%s",
+                  L"DirectInputCreate <CoCreateInstance> ",
+                    0, 0x700,
+                    ppv, pUnkOuter,
+                      SK_SummarizeCaller (pCallerAddr).c_str () );
+
+  HRESULT hr =
+    E_NOINTERFACE;
+
+  if (riid == IID_IDirectInput7A)
+  {
+    if ( SUCCEEDED (
+           (hr = CoCreateInstance_Original (CLSID_DirectInput, pUnkOuter, dwClsContext, riid, ppv))
+         )
+       )
+    {
+      //if (! IDirectInput7A_CreateDevice_Original)
+      //{
+      //  void** vftable = *(void***)*ppv;
+      //  
+      //  SK_CreateFuncHook (       L"IDirectInput7A::CreateDevice",
+      //                             vftable [3],
+      //                             IDirectInput7A_CreateDevice_Detour,
+      //    static_cast_p2p <void> (&IDirectInput7A_CreateDevice_Original) );
+      //  
+      //  SK_EnableHook (vftable [3]);
+      //}
+    }
+  }
+
+  else if (riid == IID_IDirectInput7W)
+  {
+    if ( SUCCEEDED (
+           (hr = CoCreateInstance_Original (CLSID_DirectInput, pUnkOuter, dwClsContext, riid, ppv))
+         )
+       )
+    {
+      //if (! IDirectInput7W_CreateDevice_Original)
+      //{
+      //  void** vftable = *(void***)*ppv;
+      //  
+      //  SK_CreateFuncHook (       L"IDirectInput7W::CreateDevice",
+      //                             vftable [3],
+      //                             IDirectInput7W_CreateDevice_Detour,
+      //    static_cast_p2p <void> (&IDirectInput7W_CreateDevice_Original) );
+      //  
+      //  SK_EnableHook (vftable [3]);
+      //}
+    }
+  }
+
+  return hr;
 }
 
 unsigned int
@@ -379,11 +683,23 @@ SK_Input_DI8Mouse_Acquire (SK_DI8_Mouse* pMouse)
 
   if (pMouse != nullptr)
   {
-    IDirectInputDevice8_SetCooperativeLevel_Original (
-      pMouse->pDev,
-        game_window.hWnd,
-          pMouse->coop_level
-    );
+    if (IDirectInputDevice8W_SetCooperativeLevel_Original)
+    {
+      IDirectInputDevice8W_SetCooperativeLevel_Original (
+        pMouse->pDev,
+          game_window.hWnd,
+            pMouse->coop_level
+      );
+    }
+
+    else
+    {
+      IDirectInputDevice8A_SetCooperativeLevel_Original (
+        (IDirectInputDevice8A *)pMouse->pDev,
+          game_window.hWnd,
+            pMouse->coop_level
+      );
+    }
 
     return true;
   }
@@ -401,11 +717,23 @@ SK_Input_DI8Mouse_Release (SK_DI8_Mouse* pMouse)
 
   if (pMouse != nullptr)
   {
-    IDirectInputDevice8_SetCooperativeLevel_Original (
-      pMouse->pDev,
-        game_window.hWnd,
-          (pMouse->coop_level & (~DISCL_EXCLUSIVE)) | DISCL_NONEXCLUSIVE
-    );
+    if (IDirectInputDevice8W_SetCooperativeLevel_Original)
+    {
+      IDirectInputDevice8W_SetCooperativeLevel_Original (
+        pMouse->pDev,
+          game_window.hWnd,
+            (pMouse->coop_level & (~DISCL_EXCLUSIVE)) | DISCL_NONEXCLUSIVE
+      );
+    }
+
+    else
+    {
+      IDirectInputDevice8A_SetCooperativeLevel_Original (
+        (IDirectInputDevice8A *)pMouse->pDev,
+          game_window.hWnd,
+            (pMouse->coop_level & (~DISCL_EXCLUSIVE)) | DISCL_NONEXCLUSIVE
+      );
+    }
 
     return true;
   }
@@ -419,6 +747,7 @@ XINPUT_STATE di8_to_xi { };
 XINPUT_STATE joy_to_xi { };
 
 XINPUT_STATE
+WINAPI
 SK_JOY_TranslateToXInput (JOYINFOEX* pJoy, const JOYCAPSW* pCaps)
 {
   UNREFERENCED_PARAMETER (pCaps);
@@ -608,6 +937,7 @@ SK_JOY_TranslateToXInput (JOYINFOEX* pJoy, const JOYCAPSW* pCaps)
 }
 
 XINPUT_STATE
+WINAPI
 SK_DI8_TranslateToXInput (DIJOYSTATE* pJoy)
 {
   static DWORD dwPacket = 0;
@@ -682,7 +1012,7 @@ SK_DI8_TranslateToXInput (DIJOYSTATE* pJoy)
 
 HRESULT
 WINAPI
-IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE        This,
+IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8       This,
                                             DWORD                      cbData,
                                             LPVOID                     lpvData )
 {
@@ -824,8 +1154,10 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE        This,
 bool
 SK_DInput8_HasKeyboard (void)
 {
-  return (_dik.pDev && IDirectInputDevice8_SetCooperativeLevel_Original);
+  return (_dik.pDev && ( IDirectInputDevice8A_SetCooperativeLevel_Original ||
+                         IDirectInputDevice8W_SetCooperativeLevel_Original ) );
 }
+
 bool
 SK_DInput8_BlockWindowsKey (bool block)
 {
@@ -839,7 +1171,12 @@ SK_DInput8_BlockWindowsKey (bool block)
   dwFlags |= DISCL_FOREGROUND;
 
   if (SK_DInput8_HasKeyboard ())
-    IDirectInputDevice8_SetCooperativeLevel_Original (_dik.pDev, game_window.hWnd, dwFlags);
+  {
+    if (IDirectInputDevice8W_SetCooperativeLevel_Original)
+      IDirectInputDevice8W_SetCooperativeLevel_Original (                        _dik.pDev, game_window.hWnd, dwFlags);
+    else
+      IDirectInputDevice8A_SetCooperativeLevel_Original ((IDirectInputDevice8A *)_dik.pDev, game_window.hWnd, dwFlags);
+  }
   else
     return false;
 
@@ -849,49 +1186,33 @@ SK_DInput8_BlockWindowsKey (bool block)
 bool
 SK_DInput8_HasMouse (void)
 {
-  return (_dim.pDev && IDirectInputDevice8_SetCooperativeLevel_Original);
+  return (_dim.pDev && ( IDirectInputDevice8A_SetCooperativeLevel_Original ||
+                         IDirectInputDevice8W_SetCooperativeLevel_Original ) );
 }
-
-//
-// TODO: Create a wrapper instead of flat hooks like this, this won't work when
-//         multiple hardware vendor devices are present.
-//
 
 HRESULT
 WINAPI
-IDirectInputDevice8_GetDeviceState_MOUSE_Detour ( LPDIRECTINPUTDEVICE        This,
-                                                  DWORD                      cbData,
-                                                  LPVOID                     lpvData )
+IDirectInputDevice8A_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8A      This,
+                                             DWORD                      cbData,
+                                             LPVOID                     lpvData )
 {
-  HRESULT hr = IDirectInputDevice8_GetDeviceState_MOUSE_Original ( This, cbData, lpvData );
+  HRESULT hr =
+    IDirectInputDevice8A_GetDeviceState_Original ( This, cbData, lpvData );
 
   if (SUCCEEDED (hr))
-    IDirectInputDevice8_GetDeviceState_Detour ( This, cbData, lpvData );
+    IDirectInputDevice8_GetDeviceState_Detour ( (LPDIRECTINPUTDEVICE8)This, cbData, lpvData );
 
   return hr;
 }
 
 HRESULT
 WINAPI
-IDirectInputDevice8_GetDeviceState_KEYBOARD_Detour ( LPDIRECTINPUTDEVICE        This,
-                                                     DWORD                      cbData,
-                                                     LPVOID                     lpvData )
+IDirectInputDevice8W_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8W      This,
+                                             DWORD                      cbData,
+                                             LPVOID                     lpvData )
 {
-  HRESULT hr = IDirectInputDevice8_GetDeviceState_KEYBOARD_Original ( This, cbData, lpvData );
-
-  if (SUCCEEDED (hr))
-    IDirectInputDevice8_GetDeviceState_Detour ( This, cbData, lpvData );
-
-  return hr;
-}
-
-HRESULT
-WINAPI
-IDirectInputDevice8_GetDeviceState_GAMEPAD_Detour ( LPDIRECTINPUTDEVICE        This,
-                                                    DWORD                      cbData,
-                                                    LPVOID                     lpvData )
-{
-  HRESULT hr = IDirectInputDevice8_GetDeviceState_GAMEPAD_Original ( This, cbData, lpvData );
+  HRESULT hr =
+    IDirectInputDevice8W_GetDeviceState_Original ( This, cbData, lpvData );
 
   if (SUCCEEDED (hr))
     IDirectInputDevice8_GetDeviceState_Detour ( This, cbData, lpvData );
@@ -903,15 +1224,15 @@ IDirectInputDevice8_GetDeviceState_GAMEPAD_Detour ( LPDIRECTINPUTDEVICE        T
 
 HRESULT
 WINAPI
-IDirectInputDevice8_SetCooperativeLevel_Detour ( LPDIRECTINPUTDEVICE  This,
-                                                 HWND                 hwnd,
-                                                 DWORD                dwFlags )
+IDirectInputDevice8W_SetCooperativeLevel_Detour ( LPDIRECTINPUTDEVICE8W This,
+                                                  HWND                  hwnd,
+                                                  DWORD                 dwFlags )
 {
   if (config.input.keyboard.block_windows_key)
     dwFlags |= DISCL_NOWINKEY;
 
   HRESULT hr =
-    IDirectInputDevice8_SetCooperativeLevel_Original (This, hwnd, dwFlags);
+    IDirectInputDevice8W_SetCooperativeLevel_Original (This, hwnd, dwFlags);
 
   if (SUCCEEDED (hr))
   {
@@ -930,20 +1251,58 @@ IDirectInputDevice8_SetCooperativeLevel_Detour ( LPDIRECTINPUTDEVICE  This,
   {
     dwFlags &= ~DISCL_EXCLUSIVE;
 
-    IDirectInputDevice8_SetCooperativeLevel_Original (This, hwnd, dwFlags);
+    IDirectInputDevice8W_SetCooperativeLevel_Original (This, hwnd, dwFlags);
   }
 
   return hr;
 }
 
-concurrency::concurrent_unordered_map <uint32_t, LPDIRECTINPUTDEVICE> devices;
+HRESULT
+WINAPI
+IDirectInputDevice8A_SetCooperativeLevel_Detour ( LPDIRECTINPUTDEVICE8A This,
+                                                  HWND                  hwnd,
+                                                  DWORD                 dwFlags )
+{
+  if (config.input.keyboard.block_windows_key)
+    dwFlags |= DISCL_NOWINKEY;
+
+  HRESULT hr =
+    IDirectInputDevice8A_SetCooperativeLevel_Original (This, hwnd, dwFlags);
+
+  if (SUCCEEDED (hr))
+  {
+    // Mouse
+    if (This == (IDirectInputDevice8A *)_dim.pDev)
+      _dim.coop_level = dwFlags;
+
+    // Keyboard   (why do people use DirectInput for keyboards? :-\)
+    else if (This == (IDirectInputDevice8A *)_dik.pDev)
+      _dik.coop_level = dwFlags;
+
+    // Anything else is probably not important
+  }
+
+  if (SK_ImGui_WantMouseCapture ())
+  {
+    dwFlags &= ~DISCL_EXCLUSIVE;
+
+    IDirectInputDevice8A_SetCooperativeLevel_Original (This, hwnd, dwFlags);
+  }
+
+  return hr;
+}
+
+
+
+concurrency::concurrent_unordered_map <uint32_t, LPDIRECTINPUTDEVICE8W> devices_w;
+concurrency::concurrent_unordered_map <uint32_t, LPDIRECTINPUTDEVICE8A> devices_a;
 
 HRESULT
 WINAPI
-IDirectInput8_CreateDevice_Detour ( IDirectInput8       *This,
-                                    REFGUID              rguid,
-                                    LPDIRECTINPUTDEVICE *lplpDirectInputDevice,
-                                    LPUNKNOWN            pUnkOuter )
+IDirectInput8W_CreateDevice_Detour ( IDirectInput8W        *This,
+                                     REFGUID                rguid,
+                                     LPDIRECTINPUTDEVICE8W *lplpDirectInputDevice,
+                                     LPUNKNOWN              pUnkOuter )
 {
   uint32_t guid_crc32c = crc32c (0, &rguid, sizeof (REFGUID));
 
@@ -952,15 +1311,15 @@ IDirectInput8_CreateDevice_Detour ( IDirectInput8       *This,
                                   (rguid == GUID_Joystick) ? L"Gamepad / Joystick"      :
                                                            L"Other Device";
 
-  if (devices.count (guid_crc32c))
+  if (devices_w.count (guid_crc32c))
   {
-    *lplpDirectInputDevice = devices [guid_crc32c];
-                             devices [guid_crc32c]->AddRef ();
+    *lplpDirectInputDevice = devices_w [guid_crc32c];
+                             devices_w [guid_crc32c]->AddRef ();
     return S_OK;
   }
 
 
-  dll_log.Log ( L"[   Input  ][!] IDirectInput8::CreateDevice (%ph, %s, %ph, %ph)",
+  dll_log.Log ( L"[   Input  ][!] IDirectInput8W::CreateDevice (%ph, %s, %ph, %ph)",
                    This,
                      wszDevice,
                        lplpDirectInputDevice,
@@ -968,58 +1327,31 @@ IDirectInput8_CreateDevice_Detour ( IDirectInput8       *This,
 
   HRESULT hr;
   DINPUT8_CALL ( hr,
-                  IDirectInput8_CreateDevice_Original ( This,
-                                                         rguid,
-                                                          lplpDirectInputDevice,
-                                                           pUnkOuter ) );
+                  IDirectInput8W_CreateDevice_Original ( This,
+                                                          rguid,
+                                                           lplpDirectInputDevice,
+                                                            pUnkOuter ) );
 
   if (SUCCEEDED (hr))
   {
     void** vftable =
       *reinterpret_cast <void ***> (*lplpDirectInputDevice);
 
-    //
-    // This weird hack is necessary for EverQuest; crazy game hooks itself to try and thwart
-    //   macro programs.
-    //
-    /*
-    if (rguid == GUID_SysMouse && _dim.pDev == nullptr)
+    if (IDirectInputDevice8W_GetDeviceState_Original == nullptr)
     {
-      SK_CreateFuncHook ( L"IDirectInputDevice8::GetDeviceState",
-                           vftable [9],
-                           IDirectInputDevice8_GetDeviceState_MOUSE_Detour,
-                (LPVOID *)&IDirectInputDevice8_GetDeviceState_MOUSE_Original );
-      MH_QueueEnableHook (vftable [9]);
-    }
-
-    else if (rguid == GUID_SysKeyboard && _dik.pDev == nullptr)
-    {
-      SK_CreateFuncHook ( L"IDirectInputDevice8::GetDeviceState",
-                           vftable [9],
-                           IDirectInputDevice8_GetDeviceState_KEYBOARD_Detour,
-                (LPVOID *)&IDirectInputDevice8_GetDeviceState_KEYBOARD_Original );
-      MH_QueueEnableHook (vftable [9]);
-    }
-
-    else if (rguid != GUID_SysMouse && rguid != GUID_SysKeyboard)
-    {
-    */
-    if (IDirectInputDevice8_GetDeviceState_GAMEPAD_Original == nullptr)
-    {
-      SK_CreateFuncHook (      L"IDirectInputDevice8::GetDeviceState",
+      SK_CreateFuncHook (      L"IDirectInputDevice8W::GetDeviceState",
                                  vftable [9],
-                                 IDirectInputDevice8_GetDeviceState_GAMEPAD_Detour,
-        static_cast_p2p <void> (&IDirectInputDevice8_GetDeviceState_GAMEPAD_Original) );
+                                 IDirectInputDevice8W_GetDeviceState_Detour,
+        static_cast_p2p <void> (&IDirectInputDevice8W_GetDeviceState_Original) );
       MH_QueueEnableHook (vftable [9]);
     }
-    //}
 
-    if (! IDirectInputDevice8_SetCooperativeLevel_Original)
+    if (! IDirectInputDevice8W_SetCooperativeLevel_Original)
     {
-      SK_CreateFuncHook (      L"IDirectInputDevice8::SetCooperativeLevel",
+      SK_CreateFuncHook (      L"IDirectInputDevice8W::SetCooperativeLevel",
                                  vftable [13],
-                                 IDirectInputDevice8_SetCooperativeLevel_Detour,
-        static_cast_p2p <void> (&IDirectInputDevice8_SetCooperativeLevel_Original) );
+                                 IDirectInputDevice8W_SetCooperativeLevel_Detour,
+        static_cast_p2p <void> (&IDirectInputDevice8W_SetCooperativeLevel_Original) );
       MH_QueueEnableHook (vftable [13]);
     }
 
@@ -1030,8 +1362,8 @@ IDirectInput8_CreateDevice_Detour ( IDirectInput8       *This,
     else if (rguid == GUID_SysKeyboard)
       _dik.pDev = *lplpDirectInputDevice;
 
-    devices [guid_crc32c] = *lplpDirectInputDevice;
-    devices [guid_crc32c]->AddRef ();
+    devices_w [guid_crc32c] = *lplpDirectInputDevice;
+    devices_w [guid_crc32c]->AddRef ();
   }
 
 #if 0
@@ -1046,6 +1378,94 @@ IDirectInput8_CreateDevice_Detour ( IDirectInput8       *This,
   }
 #endif
 
+  SK_ApplyQueuedHooks ();
+
+  return hr;
+}
+
+HRESULT
+WINAPI
+IDirectInput8A_CreateDevice_Detour ( IDirectInput8A        *This,
+                                     REFGUID                rguid,
+                                     LPDIRECTINPUTDEVICE8A *lplpDirectInputDevice,
+                                     LPUNKNOWN              pUnkOuter )
+{
+  uint32_t guid_crc32c = crc32c (0, &rguid, sizeof (REFGUID));
+
+  const wchar_t* wszDevice = (rguid == GUID_SysKeyboard)   ? L"Default System Keyboard" :
+                                (rguid == GUID_SysMouse)   ? L"Default System Mouse"    :  
+                                  (rguid == GUID_Joystick) ? L"Gamepad / Joystick"      :
+                                                           L"Other Device";
+
+  if (devices_a.count (guid_crc32c))
+  {
+    *lplpDirectInputDevice = devices_a [guid_crc32c];
+                             devices_a [guid_crc32c]->AddRef ();
+    return S_OK;
+  }
+
+
+  dll_log.Log ( L"[   Input  ][!] IDirectInput8A::CreateDevice (%ph, %s, %ph, %ph)",
+                   This,
+                     wszDevice,
+                       lplpDirectInputDevice,
+                         pUnkOuter );
+
+  HRESULT hr;
+  DINPUT8_CALL ( hr,
+                  IDirectInput8A_CreateDevice_Original ( This,
+                                                          rguid,
+                                                           lplpDirectInputDevice,
+                                                            pUnkOuter ) );
+
+  if (SUCCEEDED (hr))
+  {
+    void** vftable =
+      *reinterpret_cast <void ***> (*lplpDirectInputDevice);
+
+    if (IDirectInputDevice8A_GetDeviceState_Original == nullptr)
+    {
+      SK_CreateFuncHook (      L"IDirectInputDevice8A::GetDeviceState",
+                                 vftable [9],
+                                 IDirectInputDevice8A_GetDeviceState_Detour,
+        static_cast_p2p <void> (&IDirectInputDevice8A_GetDeviceState_Original) );
+      MH_QueueEnableHook (vftable [9]);
+    }
+
+    if (! IDirectInputDevice8A_SetCooperativeLevel_Original)
+    {
+      SK_CreateFuncHook (      L"IDirectInputDevice8A::SetCooperativeLevel",
+                                 vftable [13],
+                                 IDirectInputDevice8A_SetCooperativeLevel_Detour,
+        static_cast_p2p <void> (&IDirectInputDevice8A_SetCooperativeLevel_Original) );
+      MH_QueueEnableHook (vftable [13]);
+    }
+
+    if (rguid == GUID_SysMouse)
+    {
+      _dim.pDev = *(LPDIRECTINPUTDEVICE8W *)lplpDirectInputDevice;
+    }
+    else if (rguid == GUID_SysKeyboard)
+      _dik.pDev = *(LPDIRECTINPUTDEVICE8W *)lplpDirectInputDevice;
+
+    devices_a [guid_crc32c] = *lplpDirectInputDevice;
+    devices_a [guid_crc32c]->AddRef ();
+  }
+
+#if 0
+  if (SUCCEEDED (hr) && lplpDirectInputDevice != nullptr)
+  {
+    DWORD dwFlag = DISCL_FOREGROUND | DISCL_NONEXCLUSIVE;
+
+    if (config.input.block_windows)
+      dwFlag |= DISCL_NOWINKEY;
+
+    (*lplpDirectInputDevice)->SetCooperativeLevel (SK_GetGameWindow (), dwFlag);
+  }
+#endif
+
+  SK_ApplyQueuedHooks ();
+
   return hr;
 }
 
@@ -1059,6 +1479,9 @@ SK_Input_HookDI8 (void)
 
   if (! InterlockedExchangeAdd (&hooked, 1))
   {
+    if (SK_GetDLLRole () & DLL_ROLE::DInput8)
+      return;
+
     SK_LOG0 ( ( L"Game uses DirectInput, installing input hooks..." ),
                   L"   Input  " );
 
@@ -1066,11 +1489,23 @@ SK_Input_HookDI8 (void)
       (SK_GetDLLRole () & DLL_ROLE::DInput8) ? backend_dll :
                                       GetModuleHandle (L"dinput8.dll");
 
-    SK_CreateFuncHook (      L"DirectInput8Create",
-             GetProcAddress ( hBackend,
-                              "DirectInput8Create" ),
-                               DirectInput8Create,
-      static_cast_p2p <void> (&DirectInput8Create_Import) );
+    if (GetProcAddress (GetModuleHandle (L"dinput8.dll"), "DirectInput8Create"))
+    {
+      SK_CreateDLLHook2 (      L"dinput8.dll",
+                                "DirectInput8Create",
+                                 DirectInput8Create,
+        static_cast_p2p <void> (&DirectInput8Create_Import) );
+    }
+
+    if (GetProcAddress (GetModuleHandle (L"dinput.dll"), "DirectInputCreateEx"))
+    {
+      SK_CreateDLLHook2 (      L"dinput.dll",
+                                "DirectInputCreateEx",
+                                 DirectInputCreateEx,
+        static_cast_p2p <void> (&DirectInputCreateEx_Import) );
+    }
+
+    SK_ApplyQueuedHooks ();
   }
 }
 

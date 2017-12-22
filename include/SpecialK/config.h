@@ -36,6 +36,10 @@ SK_GetVersionStr (void);
 struct sk_config_t
 {
   struct {
+    float  duration       = 20.0f;
+  } version_banner;
+
+  struct {
     bool   show           = true;
     LONG   format         = LOCALE_USER_DEFAULT;
 
@@ -110,6 +114,8 @@ struct sk_config_t
 
   struct {
     bool   show           = true;
+    bool   advanced       = false;
+    bool   frametime      = true;
 
     struct {
       BYTE toggle [4]     = { VK_CONTROL, VK_SHIFT, 'F', 0 };

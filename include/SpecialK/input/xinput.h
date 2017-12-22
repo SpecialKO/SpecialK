@@ -162,17 +162,24 @@ using XInputEnable_pfn = void (WINAPI *)(
 
 
 
-bool SK_XInput_PollController  ( INT           iJoyID, 
-                                 XINPUT_STATE* pState = nullptr );
+bool
+WINAPI
+SK_XInput_PollController  ( INT           iJoyID, 
+                            XINPUT_STATE* pState = nullptr );
 
-bool SK_XInput_PulseController ( INT           iJoyID,
-                                 float         fStrengthLeft,
-                                 float         fStrengthRight   );
+bool
+WINAPI
+SK_XInput_PulseController ( INT           iJoyID,
+                            float         fStrengthLeft,
+                            float         fStrengthRight   );
 
-void SK_XInput_ZeroHaptics     ( INT           iJoyID           );
+void
+WINAPI
+SK_XInput_ZeroHaptics     ( INT           iJoyID           );
 
 
 XINPUT_STATE
+WINAPI
 SK_JOY_TranslateToXInput (JOYINFOEX* pJoy, const JOYCAPSW* pCaps);
 
 

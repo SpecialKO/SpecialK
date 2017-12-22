@@ -78,6 +78,8 @@ struct {
 
   struct {
     sk::ParameterBool*    show;
+    sk::ParameterBool*    frametime;
+    sk::ParameterBool*    advanced;
   } fps;
 
   struct {
@@ -113,6 +115,11 @@ struct {
 } monitoring;
 
 struct {
+  struct {
+    sk::ParameterFloat*   duration;
+  } version_banner;
+
+
   sk::ParameterBool*      show;
 
   struct {
@@ -553,6 +560,7 @@ struct param_decl_s {
   const wchar_t*   key_;
 } params_to_build [] =
   {
+    ConfigEntry (osd.version_banner.duration,            L"How long to display version info at startup, 0=disable)",   osd_ini,         L"SpecialK.VersionBanner",L"Duration"),
     ConfigEntry (osd.show,                               L"OSD Visibility",                                            osd_ini,         L"SpecialK.OSD",          L"Show"),
 
     ConfigEntry (osd.update_method.pump,                 L"Refresh the OSD irrespective of frame completion",          osd_ini,         L"SpecialK.OSD",          L"AutoPump"),
@@ -593,6 +601,8 @@ struct param_decl_s {
 
     ConfigEntry (monitoring.memory.show,                 L"Show Memory Monitoring",                                    osd_ini,         L"Monitor.Memory",        L"Show"),
     ConfigEntry (monitoring.fps.show,                    L"Show Framerate Monitoring",                                 osd_ini,         L"Monitor.FPS",           L"Show"),
+    ConfigEntry (monitoring.fps.frametime,               L"Show Frametime in Framerate Counter",                       osd_ini,         L"Monitor.FPS",           L"DisplayFrametime"),
+    ConfigEntry (monitoring.fps.advanced,                L"Show Advanced Statistics in Framerate Counter",             osd_ini,         L"Monitor.FPS",           L"AdvancedStatistics"),
     ConfigEntry (monitoring.time.show,                   L"Show System Clock",                                         osd_ini,         L"Monitor.Time",          L"Show"),
 
     ConfigEntry (prefer_fahrenheit,                      L"Prefer Fahrenheit Units",                                   osd_ini,         L"SpecialK.OSD",          L"PreferFahrenheit"),
@@ -1453,6 +1463,7 @@ struct param_decl_s {
   compatibility.disable_nv_bloat->load   (config.compatibility.disable_nv_bloat);
   compatibility.rehook_loadlibrary->load (config.compatibility.rehook_loadlibrary);
 
+  osd.version_banner.duration->load      (config.version_banner.duration);
   osd.state.remember->load               (config.osd.remember_state);
 
   imgui.scale->load                      (config.imgui.scale);
@@ -1471,7 +1482,9 @@ struct param_decl_s {
     config.io.show =     monitoring.io.show->get_value ();
                          monitoring.io.interval->load  (config.io.interval);
 
-  monitoring.fps.show->load (config.fps.show);
+  monitoring.fps.show->load      (config.fps.show);
+  monitoring.fps.frametime->load (config.fps.frametime);
+  monitoring.fps.advanced->load  (config.fps.advanced);
 
   if (((sk::iParameter *)monitoring.memory.show)->load     () && config.osd.remember_state)
        config.mem.show = monitoring.memory.show->get_value ();
@@ -2306,6 +2319,8 @@ SK_SaveConfig ( std::wstring name,
   mem_reserve->store                          (config.mem.reserve);
 
   monitoring.fps.show->store                  (config.fps.show);
+  monitoring.fps.advanced->store              (config.fps.advanced);
+  monitoring.fps.frametime->store             (config.fps.frametime);
 
   monitoring.io.show->set_value               (config.io.show);
   monitoring.io.interval->store               (config.io.interval);
@@ -2331,6 +2346,7 @@ SK_SaveConfig ( std::wstring name,
   monitoring.SLI.show->store                  (config.sli.show);
   monitoring.time.show->store                 (config.time.show);
 
+  osd.version_banner.duration->store          (config.version_banner.duration);
   osd.show->store                             (config.osd.show);
   osd.update_method.pump->store               (config.osd.pump);
   osd.update_method.pump_interval->store      (config.osd.pump_interval);
