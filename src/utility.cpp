@@ -189,11 +189,11 @@ SK_CreateDirectories ( const wchar_t* wszPath )
 
       *iter = L'\\';
     }
-
-    // The final subdirectory (FULL PATH)
-    if (GetFileAttributes (wszPath) == INVALID_FILE_ATTRIBUTES)
-      CreateDirectoryW (wszSubDir, nullptr);
   }
+
+  // The final subdirectory (FULL PATH)
+  if (GetFileAttributes (wszPath) == INVALID_FILE_ATTRIBUTES)
+    CreateDirectoryW (wszSubDir, nullptr);
 
   return true;
 }
