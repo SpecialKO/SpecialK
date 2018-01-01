@@ -127,16 +127,6 @@ SK_Console::Draw (void)
 void
 SK_Console::Start (void)
 {
-  static HMODULE hModPPrinny =
-    GetModuleHandle (L"PrettyPrinny.dll");
-
-  // STUPID HACK UNTIL WE PROPERLY UNIFY SK AND TSFIX'S CONSOLE.
-  if (hModPPrinny)
-  {
-    bNoConsole = true;
-    return;
-  }
-
   ZeroMemory (text, 4096);
 
   text [0] = '>';
@@ -145,14 +135,6 @@ SK_Console::Start (void)
 void
 SK_Console::End (void)
 {
-  static HMODULE hModPPrinny =
-    GetModuleHandle (L"PrettyPrinny.dll");
-
-  // STUPID HACK UNTIL WE PROPERLY UNIFY SK AND TZFIX'S CONSOLE.
-  if (hModPPrinny)
-  {
-    bNoConsole = true;
-  }
 }
 
 void
@@ -178,7 +160,7 @@ SK_PluginKeyPress (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode)
   SK_ImGui_Widgets.DispatchKeybinds (Control, Shift, Alt, vkCode);
 
 
-  uint32_t masked =
+  auto masked =
     SK_MakeKeyMask (vkCode, Control, Shift, Alt);
 
   if (SK_KeyboardMacros.count (masked))
