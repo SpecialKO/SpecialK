@@ -246,14 +246,11 @@ SK::Framerate::Init (void)
     static_cast_p2p <void> (&pfnQueryPerformanceCounter) );
 #endif
 
-  if (! GetModuleHandle (L"PrettyPrinny.dll"))
-  {
-    SK_CreateDLLHook2 (      L"kernel32.dll",
-                              "Sleep",
-                               Sleep_Detour,
-      static_cast_p2p <void> (&Sleep_Original),
-      static_cast_p2p <void> (&pfnSleep) );
-  }
+  SK_CreateDLLHook2 (      L"kernel32.dll",
+                            "Sleep",
+                             Sleep_Detour,
+    static_cast_p2p <void> (&Sleep_Original),
+    static_cast_p2p <void> (&pfnSleep) );
 
 #ifdef NO_HOOK_QPC
     QueryPerformanceCounter_Original =
