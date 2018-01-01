@@ -40,9 +40,8 @@
 #include <time.h>
 
 SK_InjectionRecord_s __SK_InjectionHistory [MAX_INJECTED_PROC_HISTORY] = { };
-volatile HHOOK          g_hHookCBT    = nullptr;
-
 #pragma data_seg (".SK_Hooks")
+volatile HHOOK          g_hHookCBT    = nullptr;
                  LONG g_sHookedPIDs [MAX_INJECTED_PROCS]        = { 0 };
 
     wchar_t    __SK_InjectionHistory_name     [MAX_INJECTED_PROC_HISTORY * MAX_PATH] =  { 0 };
@@ -232,51 +231,7 @@ CBTProc ( _In_ int    nCode,
           _In_ WPARAM wParam,
           _In_ LPARAM lParam )
 {
-  if (nCode < 0)
-    return CallNextHookEx (SKX_GetCBTHook (), nCode, wParam, lParam);
-
-
-  if (InterlockedCompareExchangePointer ((PVOID *)&hModHookInstance, (LPVOID)1, nullptr) == nullptr && SKX_GetCBTHook () != nullptr)
-  {
-    static volatile LONG lHookIters = 0L;
-
-    // Don't create that thread more than once, but don't bother with a complete
-    //   critical section.
-    if (InterlockedIncrement (&lHookIters) > 1L)
-      return CallNextHookEx (SKX_GetCBTHook (), nCode, wParam, lParam);
-
-    GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-      SK_RunLHIfBitness ( 32, L"SpecialK32.dll",
-                              L"SpecialK64.dll" ),
-                            (HMODULE *) &hModHookInstance );
-
-    // Get and keep a reference to this DLL if this is the first time we are injecting.
-    CreateThread ( nullptr, 0,
-         [](LPVOID user) ->
-           DWORD
-             {
-               UNREFERENCED_PARAMETER (user);
-
-               SK_Inject_InitShutdownEvent ();
-
-               if (g_hShutdown != nullptr)
-                 WaitForMultipleObjectsEx (1, &g_hShutdown, FALSE, INFINITE, FALSE);
-
-               if (SK_GetDLL () != 0)
-                 FreeLibraryAndExitThread (SK_GetDLL (), 0x00);
-
-               hModHookInstance = nullptr;
-
-               return 0;
-             },
-           nullptr,
-         0x00,
-       nullptr
-    );
-  }
-
-
-  return CallNextHookEx (SKX_GetCBTHook (), nCode, wParam, lParam);
+  return CallNextHookEx (0, nCode, wParam, lParam);
 }
 
 BOOL
@@ -324,7 +279,7 @@ SKX_InstallCBTHook (void)
   __stdcall
   SK_GetDLL (void);
 
-  if (hMod == SK_GetDLL ())
+  if (hMod == SK_GetDLL () && hMod != 0)
   {
     SK_Inject_InitShutdownEvent ();
 

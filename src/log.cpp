@@ -315,7 +315,7 @@ SK_CreateLog (const wchar_t* const wszName)
   auto* pLog =
     new iSK_Logger ();
 
-  pLog->init   (wszName, L"w+");
+  pLog->init   (wszName, L"w+, ccs=UTF-8");
   pLog->silent = false;
 
   return pLog;

@@ -498,6 +498,68 @@ SK_RenderBackend_V2::requestWindowedMode (bool override)
 }
 
 
+float
+SK_RenderBackend_V2::getActiveRefreshRate (void)
+{
+  if (static_cast <int> (api) & static_cast <int> (SK_RenderAPI::D3D9))
+  {
+    CComQIPtr <IDirect3DDevice9> pDev9 (device);
+
+    if (pDev9 != nullptr)
+    {
+      CComQIPtr <IDirect3DSwapChain9> pSwap9 (swapchain);
+
+      if (pSwap9 != nullptr)
+      {
+        D3DPRESENT_PARAMETERS pparams = { };
+
+        if (SUCCEEDED (pSwap9->GetPresentParameters (&pparams)))
+        {
+          if (pparams.FullScreen_RefreshRateInHz != 0)
+          {
+            return
+              static_cast <float> (pparams.FullScreen_RefreshRateInHz);
+          }
+        }
+      }
+    }
+  }
+
+  else if (static_cast <int> (api) & static_cast <int> (SK_RenderAPI::D3D11))
+  {
+    CComQIPtr <IDXGISwapChain> pSwapDXGI (swapchain);
+
+    if (pSwapDXGI != nullptr)
+    {
+      DXGI_SWAP_CHAIN_DESC swap_desc = { };
+      pSwapDXGI->GetDesc (&swap_desc);
+
+      if (swap_desc.BufferDesc.RefreshRate.Denominator != 0)
+      {
+        return static_cast <float> (swap_desc.BufferDesc.RefreshRate.Numerator) /
+               static_cast <float> (swap_desc.BufferDesc.RefreshRate.Denominator);
+      }
+    }
+  }
+
+  class SK_AutoDC
+  {
+  public:
+    SK_AutoDC (HWND hWnd, HDC hDC) : hWnd_ (hWnd),
+                                     hDC_  (hDC) { };
+    ~SK_AutoDC (void) { ReleaseDC (hWnd_, hDC_); }
+
+    HWND hWnd_;
+    HDC  hDC_;
+  };
+
+  SK_AutoDC auto_dc (NULL, GetDC (NULL));
+
+  return
+    static_cast <float> (GetDeviceCaps (auto_dc.hDC_, VREFRESH));
+}
+
+
 _Return_type_success_ (nullptr)
 IUnknown*
 SK_COM_ValidateRelease (IUnknown** ppObj)

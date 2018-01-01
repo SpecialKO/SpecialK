@@ -408,6 +408,9 @@ SK_InitWMI (void)
                     [](LPVOID) ->
                     DWORD
                     {
+                      while (SK_GetFramesDrawn () < 10)
+                        SleepEx (15, TRUE);
+
                       SK_AutoCOMInit auto_com;
 
                       SK_InitCOM ();

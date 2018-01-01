@@ -1137,6 +1137,7 @@ struct param_decl_s {
   games.emplace ( L"okami.exe",                              SK_GAME_ID::Okami                        );
   games.emplace ( L"DuckTales.exe",                          SK_GAME_ID::DuckTalesRemastered          );
   games.emplace ( L"mafia3.exe",                             SK_GAME_ID::Mafia3                       );
+  games.emplace ( L"Owlboy.exe",                             SK_GAME_ID::Owlboy                       );
 
   //
   // Application Compatibility Overrides
@@ -1453,6 +1454,14 @@ struct param_decl_s {
 
       case SK_GAME_ID::Mafia3:
         config.steam.force_load_steamapi        = true;
+        break;
+
+      // (0.8.58 - 1/1/18) -> API autodetect doesn't like XNA games
+      case SK_GAME_ID::Owlboy:
+        config.apis.d3d9.hook       = true;
+        config.apis.d3d9ex.hook     = true;
+        config.apis.OpenGL.hook     = false;
+        config.apis.dxgi.d3d11.hook = false;
         break;
     }
   }
@@ -3391,16 +3400,6 @@ SK_AppCache_Manager::getConfigPathForAppID (uint32_t uiAppID) const
 
                      name.end ()
                );
-
-    // Strip any trailing spaces
-    for (auto it = name.rbegin (); it != name.rend (); it++)
-    {
-      if (isspace (*it) || (! isprint (*it)))
-        name.erase (*it);
-
-      else
-        break;
-    }
 
     // Truncating a std::wstring by inserting L'\0' actually does nothing,
     //   so construct path by treating name as a C-String.

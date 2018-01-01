@@ -2418,6 +2418,15 @@ SK_ImGui_ControlPanel (void)
 
     else
     {
+      float refresh_rate =
+        rb.getActiveRefreshRate ();
+
+      if (refresh_rate != 0.0f)
+      {
+        snprintf ( szResolution, 63, "%s@%4.1f",
+                                       szResolution, refresh_rate );
+      }
+
       if (ImGui::MenuItem (" Fullscreen Resolution", szResolution))
       {
         config.window.res.override.x = client.right  - client.left;

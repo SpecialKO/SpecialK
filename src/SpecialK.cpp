@@ -585,6 +585,12 @@ SK_EstablishDllRole (HMODULE hModule)
         else
 #endif
 
+        if (SK_IsDLLSpecialK (L"dinput8.dll") && SK_LoadLocalModule (L"dinput8.dll"))
+        {
+          SK_SetDLLRole (DLL_ROLE::INVALID);
+          return TRUE;
+        }
+
         if (config.apis.dxgi.d3d11.hook && (dxgi || d3d11)) 
         {
           if (d3d11)
@@ -942,8 +948,11 @@ DllMain ( HMODULE hModule,
       {
         SK_EstablishRootPath ();
 
-        return EarlyOut ();
+        return EarlyOut (TRUE);
       }
+
+      //++__SK_DLL_Refs;
+      InterlockedIncrement (&__SK_DLL_Refs);
 
       // We reserve the right to deny attaching the DLL, this will generally
       //   happen if a game does not opt-in to system wide injection.
@@ -966,9 +975,6 @@ DllMain ( HMODULE hModule,
       {
         return EarlyOut ();
       }
-
-      //++__SK_DLL_Refs;
-      InterlockedIncrement (&__SK_DLL_Refs);
 
       // If we got this far, it's because this is an injection target
       //

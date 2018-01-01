@@ -131,6 +131,8 @@ public:
   void requestFullscreenMode (bool override = false);
   void requestWindowedMode   (bool override = false);
 
+  float getActiveRefreshRate (void);
+
 
   void releaseOwnedResources (void);
 };

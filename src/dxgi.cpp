@@ -1975,6 +1975,9 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 
   InterlockedIncrement (&__cegui_frames_drawn);
 
+  SK_ScopedBool auto_bool (&SK_TLS_Bottom ()->imgui.drawing);
+  SK_TLS_Bottom ()->imgui.drawing = true;
+
   if (InterlockedCompareExchange (&__gui_reset, FALSE, TRUE))
   {
     SK_TextOverlayManager::getInstance ()->destroyAllOverlays ();
@@ -2104,9 +2107,6 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 
     if (SUCCEEDED (hr))
     {
-      SK_ScopedBool auto_bool (&SK_TLS_Bottom ()->imgui.drawing);
-      SK_TLS_Bottom ()->imgui.drawing = true;
-
       std::unique_ptr <SK_D3D11_Stateblock_Lite> sb (
         new SK_D3D11_Stateblock_Lite { }
       );

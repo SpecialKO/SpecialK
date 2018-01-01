@@ -661,6 +661,7 @@ enum class SK_GAME_ID
   Okami,                        // okami.exe
   DuckTalesRemastered,          // DuckTales.exe
   Mafia3,                       // mafia3.exe
+  Owlboy,                       // Owlboy.exe
   UNKNOWN_GAME               = 0xffff
 };
 

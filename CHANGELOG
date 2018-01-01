@@ -1,7 +1,15 @@
+0.8.58  (2018)
+
+ (.2): Adds refresh rate to Fullscreen Resolution reading in control panel
+
+ + CEGUI is packed into Special K DLLs now and it is possible to redistribute
+     Special K without any dependencies.
+ + DLL stays inside of blacklisted apps to prevent leaks in third-party modules
+     that incorrectly use DisableThreadLibraryCalls (...)
+
+
 0.8.57
 
- (.3): DLL stays inside of blacklisted apps to prevent leaks in third-party modules
-         that incorrectly use DisableThreadLibraryCalls (...)
  (.1): Added a startup banner with version info, and new options to control the
          complexity of the FPS readout in the OSD.
 

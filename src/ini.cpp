@@ -61,7 +61,7 @@ dll_log.Log (L"[ SpecialK ] %ws", ErrorMessage (GetLastError (), #x, (y), __LINE
 
 iSK_INI::iSK_INI (const wchar_t* filename)
 {
-  encoding_ = INI_UTF16LE;
+  encoding_ = INI_UTF8;
 
   if (wcsstr (filename, L"Version"))
     SK_CreateDirectories (filename);
