@@ -20,6 +20,9 @@ typedef bool (WINAPI *ShutdownPlugin_pfn)(const wchar_t *);
 
 extern bool WINAPI SK_DS3_ShutdownPlugin (const wchar_t *);
 
+typedef void (CALLBACK *SK_PluginKeyPress_pfn)(BOOL, BOOL, BOOL, BYTE);
+static SK_PluginKeyPress_pfn SK_PluginKeyPress_Original = nullptr;
+
 ///////////////////////////////////////////
 // WinAPI Hooks
 ///////////////////////////////////////////
@@ -995,12 +998,10 @@ SK_DS3_InitPlugin (void)
   MH_QueueEnableHook (         DXGISwap_SetFullscreenState_Override);
 
 
-  LPVOID lpvPluginKeyPress = nullptr;
-
   SK_CreateFuncHook (      L"SK_PluginKeyPress",
                              SK_PluginKeyPress,
                          SK_DS3_PluginKeyPress,
-    static_cast_p2p <void> (&lpvPluginKeyPress) );
+    static_cast_p2p <void> (&SK_PluginKeyPress_Original) );
   MH_QueueEnableHook (       SK_PluginKeyPress);
 
 
@@ -1329,6 +1330,8 @@ SK_DS3_PluginKeyPress ( BOOL Control,
   if (Control && Shift && Alt && vkCode == VK_OEM_PERIOD) {
     ds3_cfg.hud.stretch = (! ds3_cfg.hud.stretch);
   }
+
+  SK_PluginKeyPress_Original (Control, Shift, Alt,vkCode);
 }
 
 unsigned int
