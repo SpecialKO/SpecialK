@@ -181,7 +181,7 @@ SK_Inject_AddressCacheRegistry::getNamedAddress    (const wchar_t* wszModuleName
   iSK_INISection& ini_sec =
     address_ini_->get_section (SecName (wszModuleName, arch).c_str ());
 
-  void* addr = 0;
+  void* addr = nullptr;
 
   std::swscanf ( ini_sec.get_value (SK_UTF8ToWideChar (szSymbolName).c_str ()).c_str (),
                    L"%p",
@@ -226,7 +226,7 @@ SK_Inject_AddressCacheRegistry::getAddress         (const wchar_t* wszModuleName
   iSK_INISection& ini_sec =
     address_ini_->get_section (SecName (wszModuleName, arch).c_str ());
 
-  void* addr = 0;
+  void* addr = nullptr;
 
   std::swscanf ( ini_sec.get_value (SK_UTF8ToWideChar (szSymbolName).c_str ()).c_str (),
                    L"%p",

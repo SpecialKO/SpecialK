@@ -29,7 +29,7 @@ extern iSK_INI* osd_ini;
 
 
 extern bool
-SK_ImGui_IsWindowRightClicked (ImGuiIO& io = ImGui::GetIO ());
+SK_ImGui_IsWindowRightClicked (const ImGuiIO& io = ImGui::GetIO ());
 
 
 void
@@ -196,7 +196,7 @@ SK_Widget_ProcessDocking (SK_Widget* pWidget, bool n, bool s, bool e, bool w)
 {
   ImGuiIO& io (ImGui::GetIO ());
 
-  // Docking alignment visualiztion
+  // Docking alignment visualization
   bool draw_horz_ruler = false;
   bool draw_vert_ruler = false;
 
@@ -560,7 +560,7 @@ SK_Widget::config_base (void)
        if (w) dock = 1;
   else if (e) dock = 2;
 
-  if (ImGui::Combo ("Horizonal Docking Anchor", &dock, anchors, 3))
+  if (ImGui::Combo ("Horizontal Docking Anchor", &dock, anchors, 3))
   {
     int mask = (dock == 1 ? static_cast <int> (DockAnchor::West) : 0x0) |
                (dock == 2 ? static_cast <int> (DockAnchor::East) : 0x0);

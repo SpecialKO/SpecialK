@@ -94,9 +94,9 @@ ExitProcess_Detour (UINT uExitCode)
 
   if (ExitProcess_Original != nullptr)
   {
-    ExitProcess_pfn callthrough = ExitProcess_Original;
-    ExitProcess_Original        = nullptr;
-    callthrough (uExitCode);
+    const ExitProcess_pfn callthrough = ExitProcess_Original;
+          ExitProcess_Original        = nullptr;
+          callthrough (uExitCode);
   }
 
   else
@@ -272,9 +272,9 @@ SymRefreshModuleList (
   _In_ HANDLE hProcess
 )
 {
-  typedef BOOL (IMAGEAPI *SymRefreshModuleList_pfn)(HANDLE hProcess);
+  using SymRefreshModuleList_pfn = BOOL (IMAGEAPI *)(HANDLE hProcess);
 
-  static SymRefreshModuleList_pfn SymRefreshModuleList_Imp =
+  static auto SymRefreshModuleList_Imp =
     (SymRefreshModuleList_pfn)
       GetProcAddress ( SK_Debug_LoadHelper (), "SymRefreshModuleList" );
 
@@ -298,17 +298,17 @@ StackWalk64(
     _In_opt_ PTRANSLATE_ADDRESS_ROUTINE64 TranslateAddress
     )
 {
-  typedef BOOL (IMAGEAPI *StackWalk64_pfn)(_In_ DWORD MachineType,
-                                           _In_ HANDLE hProcess,
-                                           _In_ HANDLE hThread,
-                                           _Inout_ LPSTACKFRAME64 StackFrame,
-                                           _Inout_ PVOID ContextRecord,
-                                           _In_opt_ PREAD_PROCESS_MEMORY_ROUTINE64 ReadMemoryRoutine,
-                                           _In_opt_ PFUNCTION_TABLE_ACCESS_ROUTINE64 FunctionTableAccessRoutine,
-                                           _In_opt_ PGET_MODULE_BASE_ROUTINE64 GetModuleBaseRoutine,
-                                           _In_opt_ PTRANSLATE_ADDRESS_ROUTINE64 TranslateAddress);
+  using StackWalk64_pfn = BOOL (IMAGEAPI *)(_In_ DWORD MachineType,
+                                            _In_ HANDLE hProcess,
+                                            _In_ HANDLE hThread,
+                                            _Inout_ LPSTACKFRAME64 StackFrame,
+                                            _Inout_ PVOID ContextRecord,
+                                            _In_opt_ PREAD_PROCESS_MEMORY_ROUTINE64 ReadMemoryRoutine,
+                                            _In_opt_ PFUNCTION_TABLE_ACCESS_ROUTINE64 FunctionTableAccessRoutine,
+                                            _In_opt_ PGET_MODULE_BASE_ROUTINE64 GetModuleBaseRoutine,
+                                            _In_opt_ PTRANSLATE_ADDRESS_ROUTINE64 TranslateAddress);
 
-  static StackWalk64_pfn StackWalk64_Imp =
+  static auto StackWalk64_Imp =
     (StackWalk64_pfn)
       GetProcAddress ( SK_Debug_LoadHelper (), "StackWalk64" );
 
@@ -336,7 +336,7 @@ StackWalk (
     _In_opt_ PTRANSLATE_ADDRESS_ROUTINE     TranslateAddress
     )
 {
-  typedef BOOL (IMAGEAPI *StackWalk_pfn)(_In_     DWORD                          MachineType,
+  using StackWalk_pfn = BOOL (IMAGEAPI *)(_In_     DWORD                          MachineType,
                                          _In_     HANDLE                         hProcess,
                                          _In_     HANDLE                         hThread,
                                          _Inout_  LPSTACKFRAME                   StackFrame,
@@ -346,7 +346,7 @@ StackWalk (
                                          _In_opt_ PGET_MODULE_BASE_ROUTINE       GetModuleBaseRoutine,
                                          _In_opt_ PTRANSLATE_ADDRESS_ROUTINE     TranslateAddress);
 
-  static StackWalk_pfn StackWalk_Imp =
+  static auto StackWalk_Imp =
     (StackWalk_pfn)
       GetProcAddress ( SK_Debug_LoadHelper (), "StackWalk" );
 
@@ -367,9 +367,9 @@ SymSetOptions (
   _In_ DWORD SymOptions
 )
 {
-  typedef DWORD (IMAGEAPI *SymSetOptions_pfn)(_In_ DWORD SymOptions);
+  using SymSetOptions_pfn = DWORD (IMAGEAPI *)(_In_ DWORD SymOptions);
 
-  static SymSetOptions_pfn SymSetOptions_Imp =
+  static auto SymSetOptions_Imp =
     (SymSetOptions_pfn)
       GetProcAddress ( SK_Debug_LoadHelper (), "SymSetOptions" );
 
@@ -389,10 +389,10 @@ SymGetModuleBase64 (
   _In_ DWORD64 qwAddr
 )
 {
-  typedef DWORD64 (IMAGEAPI *SymGetModuleBase64_pfn)(_In_ HANDLE  hProcess,
+  using SymGetModuleBase64_pfn = DWORD64 (IMAGEAPI *)(_In_ HANDLE  hProcess,
                                                      _In_ DWORD64 qwAddr);
 
-  static SymGetModuleBase64_pfn SymGetModuleBase64_Imp =
+  static auto SymGetModuleBase64_Imp =
     (SymGetModuleBase64_pfn)
       GetProcAddress ( SK_Debug_LoadHelper (), "SymGetModuleBase64" );
 
@@ -411,10 +411,10 @@ SymGetModuleBase (
   _In_ DWORD  dwAddr
 )
 {
-  typedef DWORD (IMAGEAPI *SymGetModuleBase_pfn)(_In_ HANDLE  hProcess,
+  using SymGetModuleBase_pfn = DWORD (IMAGEAPI *)(_In_ HANDLE  hProcess,
                                                  _In_ DWORD   dwAddr);
 
-  static SymGetModuleBase_pfn SymGetModuleBase_Imp =
+  static auto SymGetModuleBase_Imp =
     (SymGetModuleBase_pfn)
       GetProcAddress ( SK_Debug_LoadHelper (), "SymGetModuleBase" );
 
@@ -436,13 +436,13 @@ SymGetLineFromAddr64 (
   _Out_ PIMAGEHLP_LINE64 Line64
 )
 {
-  typedef BOOL (IMAGEAPI *SymGetLineFromAddr64_pfn)(_In_  HANDLE           hProcess,
-                                                    _In_  DWORD64          qwAddr,
-                                                    _Out_ PDWORD           pdwDisplacement,
-                                                    _Out_ PIMAGEHLP_LINE64 Line64);
+  using SymGetLineFromAddr64_pfn = BOOL (IMAGEAPI *)(_In_  HANDLE           hProcess,
+                                                     _In_  DWORD64          qwAddr,
+                                                     _Out_ PDWORD           pdwDisplacement,
+                                                     _Out_ PIMAGEHLP_LINE64 Line64);
 
 
-  static SymGetLineFromAddr64_pfn SymGetLineFromAddr64_Imp =
+  static auto SymGetLineFromAddr64_Imp =
     (SymGetLineFromAddr64_pfn)
       GetProcAddress ( SK_Debug_LoadHelper (), "SymGetLineFromAddr64" );
 
@@ -463,12 +463,12 @@ SymGetLineFromAddr (
   _Out_ PIMAGEHLP_LINE   Line
 )
 {
-  typedef BOOL (IMAGEAPI *SymGetLineFromAddr_pfn)(_In_  HANDLE         hProcess,
-                                                  _In_  DWORD          dwAddr,
-                                                  _Out_ PDWORD         pdwDisplacement,
-                                                  _Out_ PIMAGEHLP_LINE Line);
+  using SymGetLineFromAddr_pfn = BOOL (IMAGEAPI *)(_In_  HANDLE         hProcess,
+                                                   _In_  DWORD          dwAddr,
+                                                   _Out_ PDWORD         pdwDisplacement,
+                                                   _Out_ PIMAGEHLP_LINE Line);
 
-  static SymGetLineFromAddr_pfn SymGetLineFromAddr_Imp =
+  static auto SymGetLineFromAddr_Imp =
     (SymGetLineFromAddr_pfn)
       GetProcAddress ( SK_Debug_LoadHelper (), "SymGetLineFromAddr" );
 
@@ -489,12 +489,12 @@ SymInitialize (
   _In_     BOOL   fInvadeProcess
 )
 {
-  typedef BOOL (IMAGEAPI *SymInitialize_pfn)( _In_     HANDLE hProcess,
+  using SymInitialize_pfn = BOOL (IMAGEAPI *)( _In_     HANDLE hProcess,
                                               _In_opt_ PCSTR  UserSearchPath,
                                               _In_     BOOL   fInvadeProcess );
 
 
-  static SymInitialize_pfn SymInitialize_Imp =
+  static auto SymInitialize_Imp =
     (SymInitialize_pfn)
       GetProcAddress ( SK_Debug_LoadHelper (), "SymInitialize" );
 
@@ -514,11 +514,11 @@ SymUnloadModule (
   _In_ DWORD  BaseOfDll
 )
 {
-  typedef BOOL (IMAGEAPI *SymUnloadModule_pfn)( _In_ HANDLE hProcess,
-                                                _In_ DWORD  BaseOfDll );
+  using SymUnloadModule_pfn = BOOL (IMAGEAPI *)( _In_ HANDLE hProcess,
+                                                 _In_ DWORD  BaseOfDll );
 
 
-  static SymUnloadModule_pfn SymUnloadModule_Imp =
+  static auto SymUnloadModule_Imp =
     (SymUnloadModule_pfn)
       GetProcAddress ( SK_Debug_LoadHelper (), "SymUnloadModule" );
 
@@ -537,11 +537,11 @@ SymUnloadModule64 (
   _In_ DWORD64 BaseOfDll
 )
 {
-  typedef BOOL (IMAGEAPI *SymUnloadModule64_pfn)( _In_ HANDLE  hProcess,
-                                                  _In_ DWORD64 BaseOfDll );
+  using SymUnloadModule64_pfn = BOOL (IMAGEAPI *)( _In_ HANDLE  hProcess,
+                                                   _In_ DWORD64 BaseOfDll );
 
 
-  static SymUnloadModule64_pfn SymUnloadModule64_Imp =
+  static auto SymUnloadModule64_Imp =
     (SymUnloadModule64_pfn)
       GetProcAddress ( SK_Debug_LoadHelper (), "SymUnloadModule64" );
 
@@ -563,12 +563,12 @@ SymFromAddr (
   _Inout_   PSYMBOL_INFO Symbol
 )
 {
-  typedef BOOL (IMAGEAPI *SymFromAddr_pfn)( _In_      HANDLE       hProcess,
-                                            _In_      DWORD64      Address,
-                                            _Out_opt_ PDWORD64     Displacement,
-                                            _Inout_   PSYMBOL_INFO Symbol );
+  using SymFromAddr_pfn = BOOL (IMAGEAPI *)( _In_      HANDLE       hProcess,
+                                             _In_      DWORD64      Address,
+                                             _Out_opt_ PDWORD64     Displacement,
+                                             _Inout_   PSYMBOL_INFO Symbol );
 
-  static SymFromAddr_pfn SymFromAddr_Imp =
+  static auto SymFromAddr_Imp =
     (SymFromAddr_pfn)
       GetProcAddress ( SK_Debug_LoadHelper (), "SymFromAddr" );
 
@@ -592,14 +592,14 @@ SymLoadModule (
   _In_     DWORD  SizeOfDll
 )
 {
-  typedef DWORD (IMAGEAPI *SymLoadModule_pfn)( _In_     HANDLE hProcess,
-                                               _In_opt_ HANDLE hFile,
-                                               _In_opt_ PCSTR  ImageName,
-                                               _In_opt_ PCSTR  ModuleName,
-                                               _In_     DWORD  BaseOfDll,
-                                               _In_     DWORD  SizeOfDll );
+  using SymLoadModule_pfn = DWORD (IMAGEAPI *)( _In_     HANDLE hProcess,
+                                                _In_opt_ HANDLE hFile,
+                                                _In_opt_ PCSTR  ImageName,
+                                                _In_opt_ PCSTR  ModuleName,
+                                                _In_     DWORD  BaseOfDll,
+                                                _In_     DWORD  SizeOfDll );
 
-  static SymLoadModule_pfn SymLoadModule_Imp =
+  static auto SymLoadModule_Imp =
     (SymLoadModule_pfn)
       GetProcAddress ( SK_Debug_LoadHelper (), "SymLoadModule" );
 
@@ -622,14 +622,14 @@ SymLoadModule64 (
   _In_     DWORD   SizeOfDll
 )
 {
-  typedef DWORD64 (IMAGEAPI *SymLoadModule64_pfn)( _In_     HANDLE  hProcess,
-                                                   _In_opt_ HANDLE  hFile,
-                                                   _In_opt_ PCSTR   ImageName,
-                                                   _In_opt_ PCSTR   ModuleName,
-                                                   _In_     DWORD64 BaseOfDll,
-                                                   _In_     DWORD   SizeOfDll );
+  using SymLoadModule64_pfn = DWORD64 (IMAGEAPI *)( _In_     HANDLE  hProcess,
+                                                    _In_opt_ HANDLE  hFile,
+                                                    _In_opt_ PCSTR   ImageName,
+                                                    _In_opt_ PCSTR   ModuleName,
+                                                    _In_     DWORD64 BaseOfDll,
+                                                    _In_     DWORD   SizeOfDll );
 
-  static SymLoadModule64_pfn SymLoadModule64_Imp =
+  static auto SymLoadModule64_Imp =
     (SymLoadModule64_pfn)
       GetProcAddress ( SK_Debug_LoadHelper (), "SymLoadModule64" );
 

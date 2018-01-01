@@ -81,6 +81,8 @@
 #include <comdef.h>
 #include <delayimp.h>
 
+#include <SpecialK/resource.h>
+
 #include <CEGUI/CEGUI.h>
 #include <CEGUI/System.h>
 #include <CEGUI/Logger.h>
@@ -99,8 +101,8 @@ static const GUID IID_ID3D11Device3 = { 0xa05c8c37, 0xd2c6, 0x4732, { 0xb3, 0xa0
 static const GUID IID_ID3D11Device4 = { 0x8992ab71, 0x02e6, 0x4b8d, { 0xba, 0x48, 0xb0, 0x56, 0xdc, 0xda, 0x42, 0xc4 } };
 static const GUID IID_ID3D11Device5 = { 0x8ffde202, 0xa0e7, 0x45df, { 0x9e, 0x01, 0xe8, 0x37, 0x80, 0x1b, 0x5e, 0xa0 } };
 
-volatile HANDLE  hInitThread   = { INVALID_HANDLE_VALUE };
-         HANDLE  hPumpThread   = { INVALID_HANDLE_VALUE };
+HANDLE  hInitThread   = { INVALID_HANDLE_VALUE };
+HANDLE  hPumpThread   = { INVALID_HANDLE_VALUE };
 
 NV_GET_CURRENT_SLI_STATE sli_state;
 BOOL                     nvapi_init       = FALSE;
@@ -492,7 +494,7 @@ SK_StartPerfMonThreads (void)
     {
       dll_log.LogEx (true, L"[ WMI Perf ] Spawning Process Monitor...  ");
 
-      InterlockedExchangePointer ( (void **)&process_stats.hThread,
+      InterlockedExchangePointer ( &process_stats.hThread,
         CreateThread ( nullptr,
                          0,
                            SK_MonitorProcess,
@@ -518,7 +520,7 @@ SK_StartPerfMonThreads (void)
     {
       dll_log.LogEx (true, L"[ WMI Perf ] Spawning CPU Monitor...      ");
 
-      InterlockedExchangePointer ( (void **)&cpu_stats.hThread,
+      InterlockedExchangePointer ( &cpu_stats.hThread,
         CreateThread ( nullptr,
                          0,
                            SK_MonitorCPU,
@@ -541,7 +543,7 @@ SK_StartPerfMonThreads (void)
     {
       dll_log.LogEx (true, L"[ WMI Perf ] Spawning Disk Monitor...     ");
 
-      InterlockedExchangePointer ( (void **)&disk_stats.hThread,
+      InterlockedExchangePointer ( &disk_stats.hThread,
         CreateThread ( nullptr,
                          0,
                            SK_MonitorDisk,
@@ -564,7 +566,7 @@ SK_StartPerfMonThreads (void)
     {
       dll_log.LogEx (true, L"[ WMI Perf ] Spawning Pagefile Monitor... ");
 
-      InterlockedExchangePointer ( (void **)&pagefile_stats.hThread,
+      InterlockedExchangePointer ( &pagefile_stats.hThread,
         CreateThread ( nullptr,
                          0,
                            SK_MonitorPagefile,
@@ -1003,9 +1005,9 @@ WaitForInit (void)
   if (ReadNoFence (&__SK_Init))
     return;
 
-  while (ReadPointerAcquire ((LPVOID *)&hInitThread) != INVALID_HANDLE_VALUE)
+  while (ReadPointerAcquire (&hInitThread) != INVALID_HANDLE_VALUE)
   {
-    if (ReadPointerAcquire ((LPVOID *)&hInitThread) == GetCurrentThread ())
+    if ( ReadPointerAcquire (&hInitThread) == GetCurrentThread () )
       break;
 
     if ( WAIT_OBJECT_0 == MsgWaitForMultipleObjects (1, const_cast <HANDLE *>(&hInitThread), FALSE, 150, QS_ALLINPUT) )
@@ -1033,15 +1035,16 @@ WaitForInit (void)
   //
   if (! InterlockedCompareExchange (&__SK_Init, TRUE, FALSE))
   {
-    if (ReadPointerAcquire ((LPVOID *)&hInitThread) != GetCurrentThread () &&
-        ReadPointerAcquire ((LPVOID *)&hInitThread) != INVALID_HANDLE_VALUE)
+    if ( ReadPointerAcquire (&hInitThread) != GetCurrentThread () &&
+         ReadPointerAcquire (&hInitThread) != INVALID_HANDLE_VALUE )
     {
       SK_Input_Init       ();
       SK_ApplyQueuedHooks ();
 
       CloseHandle (
-        InterlockedExchangePointer ( const_cast <LPVOID *> (&hInitThread),
-                                       INVALID_HANDLE_VALUE )
+        reinterpret_cast <HANDLE> (
+          InterlockedExchangePointer ( &hInitThread, INVALID_HANDLE_VALUE )
+        )
       );
     }
 
@@ -1418,9 +1421,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     __SK_bypass = true;
 
     SK_BypassInject ();
-
-    //bypass = false;
-    //return true;
   }
 
   else
@@ -1634,19 +1634,6 @@ BACKEND_INIT:
   else
     backend_dll = LoadLibraryW_Original (dll_name);
 
-  //// Pre-Load the original DLL into memory
-  //if (dll_name != wszBackendDLL)
-  //{
-  //                LoadLibraryExW_Original ( wszBackendDLL, nullptr, use_system_dll ?
-  //                                            LOAD_LIBRARY_SEARCH_SYSTEM32 : 0x00 );
-  //  backend_dll = LoadLibraryExW_Original (dll_name,      nullptr, 0x0);
-  //                GetModuleHandleExW      (GET_MODULE_HANDLE_EX_FLAG_PIN, wszBackendDLL, &backend_dll);
-  //}
-  //
-  //else
-  //  backend_dll = LoadLibraryExW_Original ( dll_name, nullptr, use_system_dll ?
-  //                                           LOAD_LIBRARY_SEARCH_SYSTEM32 : 0x00);
-
   if (backend_dll != nullptr)
     dll_log.LogEx (false, L" (%s)\n", dll_name);
   else
@@ -1716,9 +1703,7 @@ BACKEND_INIT:
 
             if (SK_GetFileSize (wszDLLPath) > 0)
             {
-              HMODULE hMod = LoadLibraryW_Original (wszSteamDLL);
-
-              if (hMod)
+              if (LoadLibraryW_Original (wszSteamDLL))
               {
                 dll_log.Log ( L"[DLL Loader]   Manually booted SteamAPI: '%s'",
                                 wszSteamDLL );//wszDLLPath );
@@ -1733,7 +1718,7 @@ BACKEND_INIT:
       SK_Input_HookDI8 ();
 
     InterlockedExchangePointer (
-      (LPVOID *)&hInitThread,
+      &hInitThread,
         CreateThread ( nullptr,
                          0,
                            DllThread,
@@ -1968,7 +1953,6 @@ SK_ShutdownCore (const wchar_t* backend)
 
   //SymCleanup (GetCurrentProcess ());
 
-
   // Breakpad Disable Disclaimer; pretend the log was empty :)
   if (crash_log.lines == 1)
     crash_log.lines = 0;
@@ -1981,6 +1965,72 @@ SK_ShutdownCore (const wchar_t* backend)
 
   return true;
 }
+
+
+
+
+auto SK_UnpackCEGUI =
+[](void) -> void
+{
+  HRSRC res;
+
+  // NOTE: providing g_hInstance is important, NULL might not work
+  res =
+    FindResource ( SK_GetDLL (), MAKEINTRESOURCE (IDR_CEGUI_PACKAGE), L"WAVE" );
+
+  if (res)
+  {
+    DWORD res_size =
+      SizeofResource ( SK_GetDLL (), res );
+
+    HGLOBAL packed_cegui =
+      LoadResource ( SK_GetDLL (), res );
+
+    if (! packed_cegui) return;
+
+    auto* res_data =
+      static_cast <char *> (malloc (res_size + 1));
+
+    if (res_data != nullptr)
+    {
+      ZeroMemory (res_data, res_size + 1);
+
+      const void* const locked =
+        (void *)LockResource (packed_cegui);
+
+      if (locked != nullptr)
+      {
+        memcpy (res_data, locked, res_size + 1);
+
+        wchar_t      wszArchive     [MAX_PATH] = { };
+        wchar_t      wszDestination [MAX_PATH] = { };
+        _swprintf   (wszDestination, L"%s\\My Mods\\SpecialK\\", SK_GetDocumentsDir ().c_str ());
+
+        wcscpy      (wszArchive, wszDestination);
+        PathAppendW (wszArchive, L"CEGUI.7z");
+        FILE* fPackedCEGUI =
+          _wfopen   (wszArchive, L"wb");
+        fwrite      (res_data, 1, res_size, fPackedCEGUI);
+        fclose      (fPackedCEGUI);
+
+        using SK_7Z_DECOMP_PROGRESS_PFN = int (__stdcall *)(int current, int total);
+
+        extern
+        HRESULT
+        SK_Decompress7zEx ( const wchar_t*            wszArchive,
+                            const wchar_t*            wszDestination,
+                            SK_7Z_DECOMP_PROGRESS_PFN callback );
+
+        SK_Decompress7zEx (wszArchive, wszDestination, nullptr);
+        DeleteFileW       (wszArchive);
+      }
+
+      UnlockResource (packed_cegui);
+
+      free (res_data);
+    }
+  }
+};
 
 
 
@@ -2082,34 +2132,28 @@ SK_BeginBufferSwap (void)
       wchar_t wszEnvPath      [ MAX_PATH + 32 ] = { };
 
 
-  #ifdef _WIN64
-      _swprintf (wszCEGUIModPath, L"%sCEGUI\\bin\\x64",   SK_GetRootPath ());
+#ifdef _WIN64
+      const wchar_t* wszArch = L"x64";
+#else
+      const wchar_t* wszArch = L"Win32";
+#endif
+
+      _swprintf (wszCEGUIModPath, L"%sCEGUI\\bin\\%s", SK_GetRootPath (), wszArch);
 
       if (GetFileAttributes (wszCEGUIModPath) == INVALID_FILE_ATTRIBUTES)
       {
-        _swprintf ( wszCEGUIModPath, L"%s\\My Mods\\SpecialK\\CEGUI\\bin\\x64",
-                      SK_GetDocumentsDir ().c_str () );
-
-        _swprintf (wszEnvPath, L"CEGUI_PARENT_DIR=%s\\My Mods\\SpecialK\\", SK_GetDocumentsDir ().c_str ());
-      }
-
-      else
-      {
-        _swprintf (wszEnvPath, L"CEGUI_PARENT_DIR=%s", SK_GetRootPath ());
-      }
-  #else
-      _swprintf (wszCEGUIModPath, L"%sCEGUI\\bin\\Win32",  SK_GetRootPath ());
-
-      if (GetFileAttributes (wszCEGUIModPath) == INVALID_FILE_ATTRIBUTES)
-      {
-        _swprintf ( wszCEGUIModPath, L"%s\\My Mods\\SpecialK\\CEGUI\\bin\\Win32",
-                      SK_GetDocumentsDir ().c_str () );
+        _swprintf ( wszCEGUIModPath, L"%s\\My Mods\\SpecialK\\CEGUI\\bin\\%s",
+                      SK_GetDocumentsDir ().c_str (), wszArch );
 
         _swprintf (wszEnvPath, L"CEGUI_PARENT_DIR=%s\\My Mods\\SpecialK\\", SK_GetDocumentsDir ().c_str ());
       }
       else
         _swprintf (wszEnvPath, L"CEGUI_PARENT_DIR=%s", SK_GetRootPath ());
-  #endif
+
+      if (GetFileAttributes (wszCEGUIModPath) == INVALID_FILE_ATTRIBUTES)
+      {
+        SK_UnpackCEGUI ();
+      }
 
       _wputenv  (wszEnvPath);
 

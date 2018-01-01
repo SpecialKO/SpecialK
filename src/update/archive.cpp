@@ -474,3 +474,131 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
 
   return S_OK;
 }
+
+
+HRESULT
+SK_Decompress7zEx ( const wchar_t*            wszArchive,
+                    const wchar_t*            wszDestination,
+                    SK_7Z_DECOMP_PROGRESS_PFN callback )
+{
+  if (! crc_init)
+  {
+    CrcGenerateTable ();
+    crc_init = true;
+  }
+
+  std::vector <sk_file_entry_s> files =
+    SK_Get7ZFileContents (wszArchive);
+
+  CFileInStream arc_stream       = { };
+  CLookToRead   look_stream      = { };
+  ISzAlloc      thread_alloc     = { };
+  ISzAlloc      thread_tmp_alloc = { };
+
+  FileInStream_CreateVTable (&arc_stream);
+  LookToRead_CreateVTable   (&look_stream, True);
+
+  look_stream.realStream = &arc_stream.s;
+  LookToRead_Init         (&look_stream);
+
+  thread_alloc.Alloc     = SzAlloc;
+  thread_alloc.Free      = SzFree;
+
+  thread_tmp_alloc.Alloc = SzAllocTemp;
+  thread_tmp_alloc.Free  = SzFreeTemp;
+
+  CSzArEx       arc = { };
+  SzArEx_Init (&arc);
+
+  uint32_t block_idx     = 0xFFFFFFFF;
+
+  if ( InFile_OpenW (&arc_stream.file, wszArchive) ||
+       SzArEx_Open ( &arc,
+                       &look_stream.s,
+                         &thread_alloc,
+                           &thread_tmp_alloc ) != SZ_OK )
+  {
+    //dll_log.Log ( L"[AutoUpdate]  ** Cannot open archive file: %s",
+    //                wszArchive );
+
+    SzArEx_Free (&arc, &thread_alloc);
+
+    return E_FAIL;
+  }
+
+  for (unsigned int i = 0; i < files.size (); i++)
+  {
+    Byte*    out           = nullptr;
+    size_t   out_len       = 0;
+    size_t   offset        = 0;
+    size_t   decomp_size   = 0;
+
+    //dll_log.Log ( L"[AutoUpdate] Extracting file ('%s')",
+    //                files [i].name.c_str () );
+
+    if ( SZ_OK !=
+           SzArEx_Extract ( &arc,          &look_stream.s, files [i].fileno,
+                            &block_idx,    &out,           &out_len,
+                            &offset,       &decomp_size,
+                            &thread_alloc, &thread_tmp_alloc ) )
+    {
+      dll_log.Log ( L"[AutoUpdate] Failed to extract 7-zip file ('%s')",
+                      files [i].name.c_str () );
+
+      File_Close  (&arc_stream.file);
+      SzArEx_Free (&arc, &thread_alloc);
+
+      return E_FAIL;
+    }
+
+    wchar_t wszDestPath [MAX_PATH] = { };
+
+    wcscpy   (wszDestPath, wszDestination);
+    lstrcatW (wszDestPath, files [i].name.c_str ());
+
+    SK_CreateDirectories (wszDestPath);
+
+    HANDLE hOutFile =
+      CreateFileW ( wszDestPath,
+                      GENERIC_WRITE,
+                        FILE_SHARE_READ | FILE_SHARE_WRITE,
+                          nullptr,
+                            CREATE_ALWAYS,
+                              FILE_ATTRIBUTE_NORMAL |
+                              FILE_FLAG_SEQUENTIAL_SCAN,
+                                nullptr );
+
+    if (hOutFile != INVALID_HANDLE_VALUE)
+    {
+      DWORD dwWritten;
+
+      WriteFile ( hOutFile,
+                    out,
+                      PtrToUint ((void *)out_len),
+                        &dwWritten,
+                            nullptr );
+
+      CloseHandle (hOutFile);
+    }
+
+    else
+    {
+      //dll_log.Log ( L"[AutoUpdate] Failed to open file: '%s'",
+                      //wszDestPath );
+
+      File_Close  (&arc_stream.file);
+      SzArEx_Free (&arc, &thread_alloc);
+
+      return E_FAIL;
+    }
+
+    if (callback != nullptr)
+    {
+      callback (i + 1, PtrToUint ((void *)files.size ()));
+    }
+  }
+
+  File_Close  (&arc_stream.file);
+
+  return S_OK;
+}

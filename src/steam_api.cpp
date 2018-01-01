@@ -2636,74 +2636,71 @@ SteamAPI_RunCallbacks_Detour (void)
     void SK_SteamAPI_InitManagers (void);
          SK_SteamAPI_InitManagers (    );
 
-    static volatile HANDLE hThread = nullptr;
+    static volatile HANDLE hThread = 0x00;
 
-    if (ReadPointerAcquire (&hThread) == nullptr)
-    {
-      InterlockedExchangePointer ((void **)&hThread,
-        CreateThread ( nullptr, 0,
-        [](LPVOID user) ->
-          DWORD
+    InterlockedCompareExchangePointer (&hThread,
+      CreateThread ( nullptr, 0,
+      [](LPVOID user) ->
+        DWORD
+          {
+            strcpy ( steam_ctx.var_strings.popup_origin,
+                       SK_Steam_PopupOriginToStr (
+                         config.steam.achievements.popup.origin
+                       )
+                   );
+
+            strcpy ( steam_ctx.var_strings.notify_corner,
+                       SK_Steam_PopupOriginToStr (
+                         config.steam.notify_corner
+                       )
+                   );
+
+            if (! steam_ctx.UserStats ())
             {
-              strcpy ( steam_ctx.var_strings.popup_origin,
-                         SK_Steam_PopupOriginToStr (
-                           config.steam.achievements.popup.origin
-                         )
-                     );
-
-              strcpy ( steam_ctx.var_strings.notify_corner,
-                         SK_Steam_PopupOriginToStr (
-                           config.steam.notify_corner
-                         )
-                     );
+              if (SteamAPI_InitSafe_Original != nullptr)
+                SteamAPI_InitSafe_Detour ();
 
               if (! steam_ctx.UserStats ())
               {
-                if (SteamAPI_InitSafe_Original != nullptr)
-                  SteamAPI_InitSafe_Detour ();
+                InterlockedExchangePointer ((PVOID *)&user, nullptr);
 
-                if (! steam_ctx.UserStats ())
-                {
-                  InterlockedExchangePointer (static_cast <void **> (user), nullptr);
+                CloseHandle (GetCurrentThread ());
 
-                  CloseHandle (GetCurrentThread ());
-
-                  return (DWORD)-1;
-                }
+                return (DWORD)-1;
               }
+            }
 
-              __try
-              {
-                SK_Steam_SetNotifyCorner ();
+            __try
+            {
+              SK_Steam_SetNotifyCorner ();
 
-                SteamAPI_RunCallbacks_Original ();
+              SteamAPI_RunCallbacks_Original ();
 
-                ISteamUserStats* pStats =
-                  steam_ctx.UserStats ();
+              ISteamUserStats* pStats =
+                steam_ctx.UserStats ();
 
-                if (pStats)
-                  pStats->RequestGlobalAchievementPercentages ();
+              if (pStats)
+                pStats->RequestGlobalAchievementPercentages ();
 
-                SteamAPI_RunCallbacks_Original ();
-              }
+              SteamAPI_RunCallbacks_Original ();
+            }
 
-              __except (EXCEPTION_EXECUTE_HANDLER)
-              {
-                failure = true;
-                steam_log.Log (L" Caught a Structured Exception while running Steam Callbacks!");
-                InterlockedIncrement64 (&SK_SteamAPI_CallbackRunCount);
-              }
+            __except (EXCEPTION_EXECUTE_HANDLER)
+            {
+              failure = true;
+              steam_log.Log (L" Caught a Structured Exception while running Steam Callbacks!");
+              InterlockedIncrement64 (&SK_SteamAPI_CallbackRunCount);
+            }
 
-              InterlockedExchangePointer (static_cast <void **> (user), nullptr);
+            InterlockedExchangePointer ((PVOID *)&user, nullptr);
 
-              CloseHandle (GetCurrentThread ());
+            CloseHandle (GetCurrentThread ());
 
-              return 0;
-            }, (LPVOID)&hThread,
-          0x00,
-        nullptr)
-      );
-    }
+            return 0;
+          }, (LPVOID)&hThread,
+        0x00,
+      nullptr), nullptr
+    );
   }
 
   __try
@@ -2777,7 +2774,7 @@ void SK::SteamAPI::Pump (void)
   }
 }
 
-volatile HANDLE hSteamPump = nullptr;
+HANDLE hSteamPump = nullptr;
 
 DWORD
 WINAPI
@@ -2830,7 +2827,7 @@ SteamAPI_PumpThread (_Unreferenced_parameter_ LPVOID user)
     }
   }
 
-  CloseHandle (InterlockedExchangePointer ((void **)&hSteamPump, nullptr));
+  CloseHandle ((HANDLE)InterlockedExchangePointer (&hSteamPump, nullptr));
 
   return 0;
 }
@@ -2843,14 +2840,14 @@ SK_Steam_StartPump (bool force)
 
   if (config.steam.auto_pump_callbacks || force)
   {
-    InterlockedExchangePointer ( (void **)&hSteamPump,
-                                   CreateThread ( nullptr,
-                                                    0,
-                                                      SteamAPI_PumpThread,
-                                                        nullptr,
-                                                          0x00,
-                                                            nullptr )
-                               );
+    InterlockedExchangePointer ( &hSteamPump,
+                            CreateThread ( nullptr,
+                                             0,
+                                               SteamAPI_PumpThread,
+                                                 nullptr,
+                                                   0x00,
+                                                     nullptr )
+                        );
   }
 }
 
@@ -2858,7 +2855,8 @@ void
 SK_Steam_KillPump (void)
 {
   CHandle hOriginal (
-    InterlockedExchangePointer ((void **)&hSteamPump, nullptr)
+    reinterpret_cast <HANDLE>
+      (InterlockedExchangePointer (&hSteamPump, nullptr))
   );
 
   if (hOriginal != nullptr)
@@ -4229,7 +4227,7 @@ SK_Steam_PiratesAhoy (void)
           snprintf ( szRelSteamAPI, MAX_PATH * 2 - 1, "%ws\\steam_api64.dll",
                        SK_GetHostPath () );
 #else
-          snprintf ( szRelSteamAPI, MAX_PATH * 2 - 1, "%ws\\steam_api.dll",
+          snprintf ( szRelSteamAPI, MAX_PATH * 2 - 1, R"(%ws\steam_api.dll)",
                        SK_GetHostPath () );
 #endif
 
@@ -4304,7 +4302,7 @@ SK_SteamAPIContext::OnFileDetailsDone ( FileDetailsResult_t* pParam,
     bFailed ? k_EResultFileNotFound :
               pParam->m_eResult;
 
-  FileDetailsResult_t *pCopy =
+  auto *pCopy =
     new FileDetailsResult_t (*pParam);
 
   //
@@ -4579,6 +4577,17 @@ SAFE_GetISteamMusic (ISteamClient* pClient, HSteamUser hSteamuser, HSteamPipe hS
   }
 }
 
+ISteamController*
+SAFE_GetISteamController (ISteamClient* pClient, HSteamUser hSteamuser, HSteamPipe hSteamPipe, const char *pchVersion)
+{
+  __try {
+    return pClient->GetISteamController (hSteamuser, hSteamPipe, pchVersion);
+  }
+  __except (EXCEPTION_EXECUTE_HANDLER) {
+    return nullptr;
+  }
+}
+
 
 bool
 SK_SteamAPIContext::InitSteamAPI (HMODULE hSteamDLL)
@@ -4693,6 +4702,7 @@ SK_SteamAPIContext::InitSteamAPI (HMODULE hSteamDLL)
     steam_log.Log (L" SteamClient (...) Failed?!");
     return false;
   }
+
 
   hSteamPipe = SteamAPI_GetHSteamPipe ();
   hSteamUser = SteamAPI_GetHSteamUser ();
@@ -4865,10 +4875,10 @@ SK_SteamAPIContext::InitSteamAPI (HMODULE hSteamDLL)
   SK::SteamAPI::player = user_->GetSteamID ();
 
   controller_ =
-    client_->GetISteamController (
-      hSteamUser,
-        hSteamPipe,
-          "SteamController005" );
+    SAFE_GetISteamController ( client_,
+                                 hSteamUser,
+                                   hSteamPipe,
+                                     "SteamController005" );
 
   for (i = INTERNAL_STEAMREMOTESTORAGE_INTERFACE_VERSION+1; i > 0; --i)
   {

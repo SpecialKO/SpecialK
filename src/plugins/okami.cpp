@@ -23,6 +23,8 @@
 #include <SpecialK/ini.h>
 #include <SpecialK/config.h>
 #include <SpecialK/parameter.h>
+#include <SpecialK/hooks.h>
+#include <SpecialK/log.h>
 
 sk::ParameterFactory okami_factory;
 sk::ParameterBool*   sk_okami_grain;
@@ -34,6 +36,45 @@ extern iSK_INI* dll_ini;
 void
 WINAPI
 SK_D3D11_AddTexHash ( const wchar_t* name, uint32_t top_crc32, uint32_t hash );
+
+
+typedef bool (__cdecl *m2_WindowControl_resizeBackBuffers_pfn)(LPVOID This, unsigned int, unsigned int, bool);
+typedef bool (__cdecl *m2_WindowControl_resizeRenderBuffers_pfn)(LPVOID This, unsigned int, unsigned int, bool);
+
+m2_WindowControl_resizeBackBuffers_pfn   m2_WindowControl_resizeBackBuffers_Original   = nullptr;
+m2_WindowControl_resizeRenderBuffers_pfn m2_WindowControl_resizeRenderBuffers_Original = nullptr;
+
+bool
+SK_Okami_m2_WindowControl_resizeBackBuffers_Detour (LPVOID This, unsigned short width, unsigned short height, bool unknown)
+{
+  dll_log.Log (L"m2::WindowControl::resizeBackBuffers (%ph, %ux%u, %lu)", This, width, height, unknown);
+
+  if ((! config.window.res.override.isZero ()) && width > 853)
+  {
+    width  = (unsigned short)config.window.res.override.x;
+    height = (unsigned short)config.window.res.override.y;
+    //unknown = false;
+  }
+
+  return m2_WindowControl_resizeBackBuffers_Original (This, width, height, unknown);
+}
+
+bool
+SK_Okami_m2_WindowControl_resizeRenderBuffers_Detour (LPVOID This, unsigned int width, unsigned int height, bool unknown)
+{
+  dll_log.Log (L"m2::WindowControl::resizeRenderBuffers (%ph, %lux%lu, %lu)", This, width, height, unknown);
+
+  if ((! config.window.res.override.isZero ()) && width > 853)
+  {
+    width  = config.window.res.override.x;
+    height = config.window.res.override.y;
+    //unknown = false;
+  }
+
+  return m2_WindowControl_resizeRenderBuffers_Original (This, width, height, unknown);
+}
+
+#include <SpecialK/utility.h>
 
 void
 SK_Okami_LoadConfig (void)
@@ -61,6 +102,17 @@ SK_Okami_LoadConfig (void)
   {
     SK_D3D11_AddTexHash (L"no_grain.dds", 0xced133fb, 0x00);
   }
+
+  SK_CreateDLLHook2 (                      L"main.dll",
+                                            "?resizeBackBuffers@WindowControl@m2@@QEAA_NII_N@Z",
+                    SK_Okami_m2_WindowControl_resizeBackBuffers_Detour,
+    static_cast_p2p <void> (&m2_WindowControl_resizeBackBuffers_Original) );
+  SK_CreateDLLHook2 (                      L"main.dll",
+                                            "?resizeRenderBuffers@WindowControl@m2@@QEAA_NGG_N@Z",
+                    SK_Okami_m2_WindowControl_resizeRenderBuffers_Detour,
+    static_cast_p2p <void> (&m2_WindowControl_resizeRenderBuffers_Original) );
+
+  SK_ApplyQueuedHooks ();
 }
 
 void

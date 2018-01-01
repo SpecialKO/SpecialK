@@ -1418,7 +1418,7 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
     return;
   }
 
-  enum_working_set_s *working_set =
+  auto *working_set =
     new enum_working_set_s ();
 
   if ( EnumProcessModules ( hProc,
@@ -2235,7 +2235,8 @@ SK_Bypass_CRT (LPVOID user)
 
   else
   {
-    wszConfigName = SK_GetBackend ();
+    wszConfigName = dll_ini->get_filename ();
+    //wszConfigName = SK_GetBackend ();
   }
 
   std::wstring temp_dll = L"";

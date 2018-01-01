@@ -103,25 +103,25 @@ D3D9CreateDeviceEx_pfn        D3D9CreateDeviceEx_Original            = nullptr;
 D3D9PresentDevice_pfn         D3D9Present_Original_Pre               = nullptr;
 D3D9PresentDevice_pfn         D3D9Present_Original                   = nullptr;
 D3D9PresentDevice_pfn         D3D9Present_Target                     = nullptr;
-uint8_t                       D3D9Present_GuardBytes     [16]        = { };
+uint8_t                       D3D9Present_GuardBytes     [64]         = { };
 
 D3D9PresentDeviceEx_pfn       D3D9PresentEx_Original_Pre             = nullptr;
 D3D9PresentDeviceEx_pfn       D3D9PresentEx_Original                 = nullptr;
 D3D9PresentDeviceEx_pfn       D3D9PresentEx_Target                   = nullptr;
-uint8_t                       D3D9PresentEx_GuardBytes   [16]        = { };
+uint8_t                       D3D9PresentEx_GuardBytes   [64]         = { };
 
 D3D9PresentSwapChain_pfn      D3D9PresentSwap_Original_Pre           = nullptr;
 D3D9PresentSwapChain_pfn      D3D9PresentSwap_Original               = nullptr;
 D3D9PresentSwapChain_pfn      D3D9PresentSwap_Target                 = nullptr;
-uint8_t                       D3D9PresentSwap_GuardBytes [16]        = { };
+uint8_t                       D3D9PresentSwap_GuardBytes [64]         = { };
 
 D3D9Reset_pfn                 D3D9Reset_Original                     = nullptr;
 D3D9Reset_pfn                 D3D9Reset_Target                       = nullptr;
-uint8_t                       D3D9Reset_GuardBytes       [16]        = { };
+uint8_t                       D3D9Reset_GuardBytes       [64]         = { };
 
 D3D9ResetEx_pfn               D3D9ResetEx_Original                   = nullptr;
 D3D9ResetEx_pfn               D3D9ResetEx_Target                     = nullptr;
-uint8_t                       D3D9ResetEx_GuardBytes     [16]        = { };
+uint8_t                       D3D9ResetEx_GuardBytes     [64]         = { };
 
 
 SetGammaRamp_pfn              D3D9SetGammaRamp_Original              = nullptr;
@@ -974,48 +974,48 @@ SK_D3D9_PreHook (void)
     {
                  MH_EnableHook (D3D9Present_Target);
       memcpy ( D3D9Present_GuardBytes,
-                                D3D9Present_Target, 16 );
+                                D3D9Present_Target, 8 );
     }
     else {         D3D9Present_Target   = nullptr;
-       ZeroMemory (D3D9Present_GuardBytes, 16);
+       ZeroMemory (D3D9Present_GuardBytes, 8);
                    D3D9Present_Original = nullptr; }
 
     if (MH_OK == MH_CreateHook (D3D9PresentEx_Target, D3D9PresentCallbackEx, (LPVOID *)&D3D9PresentEx_Original))
     {
                  MH_EnableHook (D3D9PresentEx_Target);
       memcpy ( D3D9PresentEx_GuardBytes,
-                                D3D9PresentEx_Target, 16 );
+                                D3D9PresentEx_Target, 8 );
     }
     else {             D3D9PresentEx_Target   = nullptr;
-           ZeroMemory (D3D9PresentEx_GuardBytes, 16);
+           ZeroMemory (D3D9PresentEx_GuardBytes, 8);
                        D3D9PresentEx_Original = nullptr; }
 
     if (MH_OK == MH_CreateHook (D3D9PresentSwap_Target, D3D9PresentSwapCallback, (LPVOID *)&D3D9PresentSwap_Original))
     {
                  MH_EnableHook (D3D9PresentSwap_Target);
       memcpy ( D3D9PresentSwap_GuardBytes,
-                                D3D9PresentSwap_Target, 16 );
+                                D3D9PresentSwap_Target, 8 );
     }
     else {             D3D9PresentSwap_Target   = nullptr;
-           ZeroMemory (D3D9PresentSwap_GuardBytes, 16);
+           ZeroMemory (D3D9PresentSwap_GuardBytes, 8);
                        D3D9PresentSwap_Original = nullptr; }
     if (MH_OK == MH_CreateHook (D3D9Reset_Target, D3D9Reset_Override, (LPVOID *)&D3D9Reset_Original))
     {
                  MH_EnableHook (D3D9Reset_Target);
       memcpy ( D3D9Reset_GuardBytes,
-                                D3D9Reset_Target, 16 );
+                                D3D9Reset_Target, 8 );
     }
     else {             D3D9Reset_Target   = nullptr;
-           ZeroMemory (D3D9Reset_GuardBytes, 16);
+           ZeroMemory (D3D9Reset_GuardBytes, 8);
                        D3D9Reset_Original = nullptr; }
     if (MH_OK == MH_CreateHook (D3D9ResetEx_Target, D3D9ResetEx, (LPVOID *)&D3D9ResetEx_Original))
     {
                  MH_EnableHook (D3D9ResetEx_Target);
       memcpy ( D3D9ResetEx_GuardBytes,
-                                D3D9ResetEx_Target, 16 );
+                                D3D9ResetEx_Target, 8 );
     }
     else {             D3D9ResetEx_Target   = nullptr;
-           ZeroMemory (D3D9ResetEx_GuardBytes, 16);
+           ZeroMemory (D3D9ResetEx_GuardBytes, 8);
                        D3D9ResetEx_Original = nullptr; }
   }
 }
@@ -1298,23 +1298,21 @@ D3D9PresentCallbackEx ( IDirect3DDevice9Ex *This,
 
   if (config.render.dxgi.rehook_present)
   {
-    if ( SK_GetCurrentRenderBackend ().device != nullptr             &&
-         D3D9PresentEx_Target                 != nullptr             &&
-         memcmp (D3D9PresentEx_GuardBytes, D3D9PresentEx_Target, 12) &&
+    if ( SK_GetCurrentRenderBackend ().device != nullptr            &&
+         D3D9PresentEx_Target                 != nullptr            &&
+         memcmp (D3D9PresentEx_GuardBytes, D3D9PresentEx_Target, 8) &&
          D3D9PresentEx_GuardBytes [0]         != 0x00 )
     {
       SK_LOG0 ( ( L"IDirect3DDevice9Ex::PresentEx (...) function prolog altered (expected: "
-                  L"'%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x', but got "
-                  L"'%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x'); "
+                  L"'%02x%02x%02x%02x%02x%02x%02x%02x', but got "
+                  L"'%02x%02x%02x%02x%02x%02x%02x%02x'); "
                   L"falling back to vftable override.",
                   D3D9PresentEx_GuardBytes [0], D3D9PresentEx_GuardBytes [ 1], D3D9PresentEx_GuardBytes [ 2],
                   D3D9PresentEx_GuardBytes [3], D3D9PresentEx_GuardBytes [ 4], D3D9PresentEx_GuardBytes [ 5],
-                  D3D9PresentEx_GuardBytes [6], D3D9PresentEx_GuardBytes [ 7], D3D9PresentEx_GuardBytes [ 8],
-                  D3D9PresentEx_GuardBytes [9], D3D9PresentEx_GuardBytes [10], D3D9PresentEx_GuardBytes [11],
+                  D3D9PresentEx_GuardBytes [6], D3D9PresentEx_GuardBytes [ 7],
                  ((uint8_t *)D3D9PresentEx_Target) [0], ((uint8_t *)D3D9PresentEx_Target) [ 1], ((uint8_t *)D3D9PresentEx_Target) [ 2],
                  ((uint8_t *)D3D9PresentEx_Target) [3], ((uint8_t *)D3D9PresentEx_Target) [ 4], ((uint8_t *)D3D9PresentEx_Target) [ 5],
-                 ((uint8_t *)D3D9PresentEx_Target) [6], ((uint8_t *)D3D9PresentEx_Target) [ 7], ((uint8_t *)D3D9PresentEx_Target) [ 8],
-                 ((uint8_t *)D3D9PresentEx_Target) [9], ((uint8_t *)D3D9PresentEx_Target) [10], ((uint8_t *)D3D9PresentEx_Target) [11] ),
+                 ((uint8_t *)D3D9PresentEx_Target) [6], ((uint8_t *)D3D9PresentEx_Target) [ 7] ),
                  L"D3D9 Hooks" );
 
       //memcpy (D3D9PresentEx_GuardBytes, D3D9PresentEx_Target, 12);
@@ -1330,7 +1328,7 @@ D3D9PresentCallbackEx ( IDirect3DDevice9Ex *This,
         {
                      MH_EnableHook (D3D9PresentEx_Target);
           memcpy ( D3D9PresentEx_GuardBytes,
-                                    D3D9PresentEx_Target, 16 );
+                                    D3D9PresentEx_Target, 8 );
         }
       }
     }
@@ -1386,20 +1384,18 @@ SK_D3D9_Present (IDirect3DDevice9 *This,
 
   if (config.render.dxgi.rehook_present)
   {
-    if (SK_GetCurrentRenderBackend ().device != nullptr && D3D9Present_Target != nullptr && memcmp (D3D9Present_GuardBytes, D3D9Present_Target, 16) && D3D9Present_GuardBytes [0] != 0x00)
+    if (SK_GetCurrentRenderBackend ().device != nullptr && D3D9Present_Target != nullptr && memcmp (D3D9Present_GuardBytes, D3D9Present_Target, 8) && D3D9Present_GuardBytes [0] != 0x00)
     {
       SK_LOG0 ( ( L"IDirect3DDevice9::Present (...) function prolog altered (expected: "
-                  L"'%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x', but got "
-                  L"'%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x'); "
+                  L"'%02x%02x%02x%02x%02x%02x%02x%02x', but got "
+                  L"'%02x%02x%02x%02x%02x%02x%02x%02x'); "
                   L"falling back to vftable override.",
                   D3D9Present_GuardBytes [0], D3D9Present_GuardBytes [ 1], D3D9Present_GuardBytes [ 2],
                   D3D9Present_GuardBytes [3], D3D9Present_GuardBytes [ 4], D3D9Present_GuardBytes [ 5],
-                  D3D9Present_GuardBytes [6], D3D9Present_GuardBytes [ 7], D3D9Present_GuardBytes [ 8],
-                  D3D9Present_GuardBytes [9], D3D9Present_GuardBytes [10], D3D9Present_GuardBytes [11],
+                  D3D9Present_GuardBytes [6], D3D9Present_GuardBytes [ 7],
                  ((uint8_t *)D3D9Present_Target) [0], ((uint8_t *)D3D9Present_Target) [ 1], ((uint8_t *)D3D9Present_Target) [ 2],
                  ((uint8_t *)D3D9Present_Target) [3], ((uint8_t *)D3D9Present_Target) [ 4], ((uint8_t *)D3D9Present_Target) [ 5],
-                 ((uint8_t *)D3D9Present_Target) [6], ((uint8_t *)D3D9Present_Target) [ 7], ((uint8_t *)D3D9Present_Target) [ 8],
-                 ((uint8_t *)D3D9Present_Target) [9], ((uint8_t *)D3D9Present_Target) [10], ((uint8_t *)D3D9Present_Target) [11] ),
+                 ((uint8_t *)D3D9Present_Target) [6], ((uint8_t *)D3D9Present_Target) [ 7] ),
                  L"D3D9 Hooks" );
 
       static volatile LONG nest = 0;
@@ -1423,8 +1419,8 @@ SK_D3D9_Present (IDirect3DDevice9 *This,
           D3D9Present_Target   = (D3D9PresentDevice_pfn)vftable [17];
           VirtualProtect (&vftable [17], sizeof (uintptr_t), dwProtect, &dwProtect);
 
-          memcpy (&D3D9Present_GuardBytes [1], &((uint8_t *)D3D9Present_Target) [1], 15);
-          memcpy ( D3D9Present_GuardBytes,                  D3D9Present_Target,       1);
+          memcpy (&D3D9Present_GuardBytes [1], &((uint8_t *)D3D9Present_Target) [1], 7);
+          memcpy ( D3D9Present_GuardBytes,                  D3D9Present_Target,      1);
 
           InterlockedExchange (&nest, 0);
 
@@ -1800,23 +1796,21 @@ D3D9_STUB_VOID    (void,  D3DPERF_SetRegion, (D3DCOLOR color, LPCWSTR name),
 
     auto ReHookPresent = [&](void)
     {
-      if ( SK_GetCurrentRenderBackend ().swapchain != nullptr              &&
-           D3D9PresentSwap_Target                  != nullptr              &&
-           memcmp (D3D9PresentSwap_GuardBytes, D3D9PresentSwap_Target, 12) &&
+      if ( SK_GetCurrentRenderBackend ().swapchain != nullptr             &&
+           D3D9PresentSwap_Target                  != nullptr             &&
+           memcmp (D3D9PresentSwap_GuardBytes, D3D9PresentSwap_Target, 8) &&
            D3D9PresentSwap_GuardBytes       [0] != 0x00 )
       {
         SK_LOG0 ( ( L"IDirect3DSwapChain9::Present (...) function prolog altered (expected: "
-                    L"'%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x', but got "
-                    L"'%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x'); "
+                    L"'%02x%02x%02x%02x%02x%02x%02x%02x', but got "
+                    L"'%02x%02x%02x%02x%02x%02x%02x%02x'); "
                     L"falling back to vftable override.",
                     D3D9PresentSwap_GuardBytes [0], D3D9PresentSwap_GuardBytes [ 1], D3D9PresentSwap_GuardBytes [ 2],
                     D3D9PresentSwap_GuardBytes [3], D3D9PresentSwap_GuardBytes [ 4], D3D9PresentSwap_GuardBytes [ 5],
-                    D3D9PresentSwap_GuardBytes [6], D3D9PresentSwap_GuardBytes [ 7], D3D9PresentSwap_GuardBytes [ 8],
-                    D3D9PresentSwap_GuardBytes [9], D3D9PresentSwap_GuardBytes [10], D3D9PresentSwap_GuardBytes [11],
+                    D3D9PresentSwap_GuardBytes [6], D3D9PresentSwap_GuardBytes [ 7],
                    ((uint8_t *)D3D9PresentSwap_Target) [0], ((uint8_t *)D3D9PresentSwap_Target) [ 1], ((uint8_t *)D3D9PresentSwap_Target) [ 2],
                    ((uint8_t *)D3D9PresentSwap_Target) [3], ((uint8_t *)D3D9PresentSwap_Target) [ 4], ((uint8_t *)D3D9PresentSwap_Target) [ 5],
-                   ((uint8_t *)D3D9PresentSwap_Target) [6], ((uint8_t *)D3D9PresentSwap_Target) [ 7], ((uint8_t *)D3D9PresentSwap_Target) [ 8],
-                   ((uint8_t *)D3D9PresentSwap_Target) [9], ((uint8_t *)D3D9PresentSwap_Target) [10], ((uint8_t *)D3D9PresentSwap_Target) [11] ),
+                   ((uint8_t *)D3D9PresentSwap_Target) [6], ((uint8_t *)D3D9PresentSwap_Target) [ 7] ),
                    L"D3D9 Hooks" );
 
         if (This == SK_GetCurrentRenderBackend ().swapchain)
@@ -1830,7 +1824,7 @@ D3D9_STUB_VOID    (void,  D3DPERF_SetRegion, (D3DCOLOR color, LPCWSTR name),
             {
                          MH_EnableHook (D3D9PresentSwap_Target);
               memcpy ( D3D9PresentSwap_GuardBytes,
-                                        D3D9PresentSwap_Target, 16 );
+                                        D3D9PresentSwap_Target, 8 );
             }
           }
         }
@@ -1960,7 +1954,7 @@ D3D9CreateAdditionalSwapChain_Override ( IDirect3DDevice9       *This,
                       D3D9PresentSwap_Original,
                       D3D9PresentSwapChain_pfn );
 
-    memcpy (D3D9PresentSwap_GuardBytes, D3D9PresentSwap_Target, 16);
+    memcpy (D3D9PresentSwap_GuardBytes, D3D9PresentSwap_Target, 8);
   }
 
   return hr;
@@ -2079,7 +2073,7 @@ SK_D3D9_HookReset (IDirect3DDevice9 *pDev)
                       D3D9Reset_Original,
                       D3D9Reset_pfn );
 
-    memcpy (D3D9Reset_GuardBytes, D3D9Reset_Target, 16);
+    memcpy (D3D9Reset_GuardBytes, D3D9Reset_Target, 8);
 
     vftable_16 = vftable [16];
   }
@@ -2138,7 +2132,7 @@ SK_D3D9_HookReset (IDirect3DDevice9 *pDev)
                         D3D9ResetEx_Original,
                         D3D9ResetEx_pfn );
 
-      memcpy (D3D9ResetEx_GuardBytes, D3D9ResetEx_Target, 16);
+      memcpy (D3D9ResetEx_GuardBytes, D3D9ResetEx_Target, 8);
 
       vftable_132 = vftable [132];
     }
@@ -2197,7 +2191,7 @@ SK_D3D9_HookPresent (IDirect3DDevice9 *pDev)
                       D3D9Present_Original,
                       D3D9PresentDevice_pfn );
 
-    memcpy (D3D9Present_GuardBytes, D3D9Present_Target, 16);
+    memcpy (D3D9Present_GuardBytes, D3D9Present_Target, 8);
 
     vftable_17 = vftable [17];
   }
@@ -2254,7 +2248,7 @@ SK_D3D9_HookPresent (IDirect3DDevice9 *pDev)
                           D3D9PresentEx_Original,
                           D3D9PresentDeviceEx_pfn );
 
-      memcpy (D3D9PresentEx_GuardBytes, D3D9PresentEx_Target, 16);
+      memcpy (D3D9PresentEx_GuardBytes, D3D9PresentEx_Target, 8);
 
       vftable_121 = vftable [121];
     }
@@ -2277,7 +2271,7 @@ SK_D3D9_HookPresent (IDirect3DDevice9 *pDev)
                      D3D9PresentSwapCallback, D3D9PresentSwap_Original,
                      D3D9PresentSwapChain_pfn );
 
-    memcpy (D3D9PresentSwap_GuardBytes, D3D9PresentSwap_Target, 16);
+    memcpy (D3D9PresentSwap_GuardBytes, D3D9PresentSwap_Target, 8);
   }
 }
 
@@ -3489,7 +3483,7 @@ SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* ppara
 
     if (! config.render.d3d9.force_d3d9ex)
     {
-      if (SK_GetCurrentGameID () == SK_GAME_ID::YS_Seven)
+      if (SK_GetCurrentGameID () == SK_GAME_ID::YS_Seven && pparams != nullptr)
       {
         dll_log.Log (L"[CompatHack] D3D9 Backbuffer using format %s changed to %s.",
           SK_D3D9_FormatToStr (pparams->BackBufferFormat).c_str (),
@@ -3810,7 +3804,7 @@ D3D9CreateDeviceEx_Override ( IDirect3D9Ex           *This,
                      D3D9PresentSwapCallback, D3D9PresentSwap_Original,
                      D3D9PresentSwapChain_pfn );
     
-    memcpy (D3D9PresentSwap_GuardBytes, D3D9PresentSwap_Target, 16);
+    memcpy (D3D9PresentSwap_GuardBytes, D3D9PresentSwap_Target, 8);
   }
 
   D3D9_INTERCEPT ( ppReturnedDeviceInterface, 3,
@@ -4154,7 +4148,7 @@ SK_D3D9_SwapEffectToStr (pPresentationParameters->SwapEffect).c_str (),
                      D3D9PresentSwapCallback, D3D9PresentSwap_Original,
                      D3D9PresentSwapChain_pfn );
     
-    memcpy (D3D9PresentSwap_GuardBytes, D3D9PresentSwap_Target, 16);
+    memcpy (D3D9PresentSwap_GuardBytes, D3D9PresentSwap_Target, 8);
   }
 
   D3D9_INTERCEPT ( ppReturnedDeviceInterface, 3,
@@ -4498,7 +4492,7 @@ D3D9ExCreateDevice_Override ( IDirect3D9*            This,
                      D3D9PresentSwapCallback, D3D9PresentSwap_Original,
                      D3D9PresentSwapChain_pfn );
     
-    memcpy (D3D9PresentSwap_GuardBytes, D3D9PresentSwap_Target, 16);
+    memcpy (D3D9PresentSwap_GuardBytes, D3D9PresentSwap_Target, 8);
   }
 
   D3D9_INTERCEPT ( ppReturnedDeviceInterface, 3,
@@ -4951,6 +4945,10 @@ HookD3D9 (LPVOID user)
     return 0;
   }
 
+  static volatile LONG __hooked = 0;
+
+  if (! InterlockedCompareExchange (&__hooked, 1, 0))
+  {
   const bool success = SUCCEEDED (
     CoInitializeEx (nullptr, COINIT_MULTITHREADED)
   );
@@ -5208,15 +5206,20 @@ HookD3D9 (LPVOID user)
         SK_D3D9RenderBackend::getInstance ();
       }
 
-      SK_ApplyQueuedHooks (                   );
-      InterlockedExchange (&__d3d9_ready, TRUE);
+      SK_ApplyQueuedHooks  (                   );
+      InterlockedExchange  (&__d3d9_ready, TRUE);
+      InterlockedIncrement (&__hooked);
 
       if (! (SK_GetDLLRole () & DLL_ROLE::DXGI))
         SK::DXGI::StartBudgetThread_NoAdapter ();
     }
   }
-  if (success)
-    CoUninitialize ();
+  //if (success)
+  //  CoUninitialize ();
+  }
+
+  while (ReadAcquire (&__hooked) < 2)
+    ;
 
   return 0;
 }

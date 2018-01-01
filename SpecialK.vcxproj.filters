@@ -766,6 +766,8 @@
     <None Include="CHANGELOG" />
     <None Include="README.md" />
     <None Include="TODO" />
+    <None Include="resource\packages\CEGUI32.7z" />
+    <None Include="resource\packages\CEGUI64.7z" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource\Resource.rc">

@@ -660,6 +660,7 @@ enum class SK_GAME_ID
   LEGOMarvelSuperheroes2,       // LEGOMARVEL2_DX11.exe
   Okami,                        // okami.exe
   DuckTalesRemastered,          // DuckTales.exe
+  Mafia3,                       // mafia3.exe
   UNKNOWN_GAME               = 0xffff
 };
 

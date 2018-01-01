@@ -2277,7 +2277,7 @@ SK::D3D9::TextureManager::Init (void)
       FindClose (hFind);
     }
 
-    tex_log.LogEx ( false, L" %lu files (%3.1f MiB)\n",
+    tex_log.LogEx ( false, L" %li files (%3.1f MiB)\n",
                       files, (double)liSize.QuadPart / (1024.0 * 1024.0) );
   }
 
@@ -2528,8 +2528,8 @@ SK::D3D9::TextureManager::purge (void)
 
   std::sort ( unreferenced_textures.begin (),
               unreferenced_textures.end   (),
-      []( Texture *a,
-          Texture *b )
+      []( const Texture* const a,
+          const Texture* const b )
     {
       return a->d3d9_tex->last_used.QuadPart <
              b->d3d9_tex->last_used.QuadPart;
@@ -2905,7 +2905,7 @@ SK::D3D9::TextureManager::updateOSD (void)
 
   osd_stats += szFormatted;
 
-  sprintf ( szFormatted, "%6lu   New Textures : %8.2f MiB    %s\n",
+  sprintf ( szFormatted, "%6li   New Textures : %8.2f MiB    %s\n",
               numInjectedTextures (),
                 cache_injected,
                   __remap_textures ? "<----" : "" );
@@ -3588,7 +3588,7 @@ SK::D3D9::TextureManager::refreshDataSources (void)
       FindClose (hFind);
     }
 
-    tex_log.LogEx ( false, L" %lu files (%3.1f MiB)\n",
+    tex_log.LogEx ( false, L" %li files (%3.1f MiB)\n",
                       files, (double)liSize.QuadPart / (1024.0 * 1024.0) );
   }
 

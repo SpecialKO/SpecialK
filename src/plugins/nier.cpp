@@ -49,7 +49,7 @@
 #include <SpecialK/plugin/nier.h>
 
 
-#define FAR_VERSION_NUM L"0.7.0.21"
+#define FAR_VERSION_NUM L"0.7.0.22"
 #define FAR_VERSION_STR L"FAR v " FAR_VERSION_NUM
 
 // Block until update finishes, otherwise the update dialog
@@ -213,27 +213,6 @@ struct {
 void __stdcall SK_FAR_ControlPanel (void);
 
 static SK_PlugIn_ControlPanelWidget_pfn SK_PlugIn_ControlPanelWidget_Original = nullptr;
-
-// Was threaded originally, but it is important to block until
-//   the update check completes.
-unsigned int
-__stdcall
-SK_FAR_CheckVersion (LPVOID user)
-{
-  UNREFERENCED_PARAMETER (user);
-
-  if (SK_FetchVersionInfo (L"FAR/dinput8"))
-  {
-    extern volatile LONG   SK_bypass_dialog_active;
-    InterlockedIncrement (&SK_bypass_dialog_active);
-
-    SK_UpdateSoftware (L"FAR/dinput8");
-
-    InterlockedDecrement (&SK_bypass_dialog_active);
-  }
-
-  return 0;
-}
 
 #include <../depends/include/glm/glm.hpp>
 
@@ -1429,9 +1408,6 @@ void
 SK_FAR_InitPlugin (void)
 {
   SK_SetPluginName (FAR_VERSION_STR);
-
-  if (! SK_IsInjected ())
-    SK_FAR_CheckVersion (nullptr);
 
   SK_CreateFuncHook (       L"ID3D11Device::CreateBuffer",
                                D3D11Dev_CreateBuffer_Override,

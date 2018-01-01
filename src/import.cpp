@@ -71,9 +71,9 @@ using SKPlugIn_Shutdown_pfn = BOOL (WINAPI *)(LPVOID  user);
 bool
 SK_Import_GetShimmedLibrary (HMODULE hModShim, HMODULE& hModReal)
 {
-  typedef HMODULE (__stdcall *SK_SHIM_GetReShade_pfn)(void);
+  using SK_SHIM_GetReShade_pfn = HMODULE (__stdcall *)(void);
 
-  SK_SHIM_GetReShade_pfn SK_SHIM_GetReShade =
+  auto SK_SHIM_GetReShade =
     (SK_SHIM_GetReShade_pfn)GetProcAddress (hModShim, "SK_SHIM_GetReShade");
 
   if (SK_SHIM_GetReShade != nullptr)
@@ -81,7 +81,7 @@ SK_Import_GetShimmedLibrary (HMODULE hModShim, HMODULE& hModReal)
     hModReal =
       SK_SHIM_GetReShade ();
 
-    if (hModReal != 0)
+    if (hModReal != nullptr)
     {
       return true;
     }

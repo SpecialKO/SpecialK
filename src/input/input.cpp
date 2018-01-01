@@ -867,7 +867,6 @@ sk_imgui_cursor_s SK_ImGui_Cursor;
 
 HCURSOR GetGameCursor (void);
 
-__inline
 bool
 SK_ImGui_IsMouseRelevant (void)
 {
@@ -903,7 +902,6 @@ sk_imgui_cursor_s::showImGuiCursor (void)
   showSystemCursor (false);
 }
 
-__inline
 void
 sk_imgui_cursor_s::LocalToScreen (LPPOINT lpPoint)
 {

@@ -186,10 +186,10 @@ struct resample_dispatch_s
 
               HRESULT
               __stdcall
-              SK_D3D11_MipmapCacheTexture2DEx ( DirectX::ScratchImage&   img,
-                                                uint32_t                 crc32c, 
-                                                ID3D11Texture2D*         pOutTex,
-                                                DirectX::ScratchImage** ppOutImg );
+              SK_D3D11_MipmapCacheTexture2DEx ( const DirectX::ScratchImage&   img,
+                                                      uint32_t                 crc32c, 
+                                                      ID3D11Texture2D*         pOutTex,
+                                                      DirectX::ScratchImage** ppOutImg );
 
               //HRESULT hr =
                 SK_D3D11_MipmapCacheTexture2DEx ( *job.data,
@@ -702,6 +702,129 @@ struct sk_hook_d3d11_t {
  ID3D11Device**        ppDevice;
  ID3D11DeviceContext** ppImmediateContext;
 } extern d3d11_hook_ctx;
+
+
+
+//   0 QueryInterface
+//   1 AddRef
+//   2 Release
+
+//   3 GetDevice
+//   4 GetPrivateData
+//   5 SetPrivateData
+//   6 SetPrivateDataInterface
+
+//   7 VSSetConstantBuffers 
+//   8 PSSetShaderResources 
+//   9 PSSetShader 
+//  10 PSSetSamplers 
+//  11 VSSetShader 
+//  12 DrawIndexed 
+//  13 Draw 
+//  14 Map 
+//  15 Unmap 
+//  16 PSSetConstantBuffers 
+//  17 IASetInputLayout 
+//  18 IASetVertexBuffers 
+//  19 IASetIndexBuffer 
+//  20 DrawIndexedInstanced 
+//  21 DrawInstanced 
+//  22 GSSetConstantBuffers 
+//  23 GSSetShader 
+//  24 IASetPrimitiveTopology 
+//  25 VSSetShaderResources 
+//  26 VSSetSamplers 
+//  27 Begin
+//  28 End
+//  29 GetData 
+//  30 SetPredication 
+//  31 GSSetShaderResources 
+//  32 GSSetSamplers 
+//  33 OMSetRenderTargets 
+//  34 OMSetRenderTargetsAndUnorderedAccessViews 
+//  35 OMSetBlendState 
+//  36 OMSetDepthStencilState 
+//  37 SOSetTargets 
+//  38 DrawAuto
+//  39 DrawIndexedInstancedIndirect 
+//  40 DrawInstancedIndirect 
+//  41 Dispatch 
+//  42 DispatchIndirect 
+//  43 RSSetState 
+//  44 RSSetViewports 
+//  45 RSSetScissorRects 
+//  46 CopySubresourceRegion 
+//  47 CopyResource 
+//  48 UpdateSubresource 
+//  49 CopyStructureCount 
+//  50 ClearRenderTargetView 
+//  51 ClearUnorderedAccessViewUint 
+//  52 ClearUnorderedAccessViewFloat 
+//  53 ClearDepthStencilView 
+//  54 GenerateMips 
+//  55 SetResourceMinLOD 
+//  56 GetResourceMinLOD 
+//  57 ResolveSubresource 
+//  58 ExecuteCommandList 
+//  59 HSSetShaderResources 
+//  60 HSSetShader 
+//  61 HSSetSamplers 
+//  62 HSSetConstantBuffers 
+//  63 DSSetShaderResources 
+//  64 DSSetShader 
+//  65 DSSetSamplers 
+//  66 DSSetConstantBuffers 
+//  67 CSSetShaderResources 
+//  68 CSSetUnorderedAccessViews 
+//  69 CSSetShader 
+//  70 CSSetSamplers 
+//  71 CSSetConstantBuffers 
+//  72 VSGetConstantBuffers 
+//  73 PSGetShaderResources 
+//  74 PSGetShader 
+//  75 PSGetSamplers 
+//  76 VSGetShader 
+//  77 PSGetConstantBuffers 
+//  78 IAGetInputLayout 
+//  79 IAGetVertexBuffers 
+//  80 IAGetIndexBuffer 
+//  81 GSGetConstantBuffers 
+//  82 GSGetShader 
+//  83 IAGetPrimitiveTopology 
+//  84 VSGetShaderResources
+//  85 VSGetSamplers 
+//  86 GetPredication
+//  87 GSGetShaderResources
+//  88 GSGetSamplers
+//  89 OMGetRenderTargets 
+//  90 OMGetRenderTargetsAndUnorderedAccessViews 
+//  91 OMGetBlendState 
+//  92 OMGetDepthStencilState 
+//  93 SOGetTargets 
+//  94 RSGetState 
+//  95 RSGetViewports 
+//  96 RSGetScissorRects 
+//  97 HSGetShaderResources 
+//  98 HSGetShader 
+//  99 HSGetSamplers 
+// 100 HSGetConstantBuffers 
+// 101 DSGetShaderResources 
+// 102 DSGetShader 
+// 103 DSGetSamplers 
+// 104 DSGetConstantBuffers 
+// 105 CSGetShaderResources 
+// 106 CSGetUnorderedAccessViews 
+// 107 CSGetShader 
+// 108 CSGetSamplers 
+// 109 CSGetConstantBuffers        
+// 110 ClearState
+// 111 Flush
+// 112 GetType
+// 113 GetContextFlags
+// 114 FinishCommandList
+
+
+
 
 __declspec (noinline)
 HRESULT
@@ -5212,7 +5335,7 @@ bool         SK_D3D11_inject_textures_ffx = false;
 bool         SK_D3D11_inject_textures     = false;
 bool         SK_D3D11_cache_textures      = false;
 bool         SK_D3D11_mark_textures       = false;
-std::wstring SK_D3D11_res_root            = L"";
+std::wstring SK_D3D11_res_root            = L"SK_Res";
 
 bool
 SK_D3D11_TexMgr::isTexture2D (uint32_t crc32, const D3D11_TEXTURE2D_DESC *pDesc)
@@ -5373,8 +5496,8 @@ SK_D3D11_TexMgr::reset (void)
 
     std::sort ( textures.begin (),
                   textures.end (),
-        []( SK_D3D11_TexMgr::tex2D_descriptor_s* a,
-            SK_D3D11_TexMgr::tex2D_descriptor_s* b )
+        []( const SK_D3D11_TexMgr::tex2D_descriptor_s* const a,
+            const SK_D3D11_TexMgr::tex2D_descriptor_s* const b )
       {
         return b->last_used < a->last_used;
       }
@@ -6148,6 +6271,9 @@ void
 WINAPI
 SK_D3D11_AddTexHash ( const wchar_t* name, uint32_t top_crc32, uint32_t hash )
 {
+  // For early loading UnX
+  SK_D3D11_InitTextures ();
+
   if (hash != 0x00)
   {
     if (! SK_D3D11_IsTexHashed (top_crc32, hash))
@@ -6654,8 +6780,8 @@ crc32_tex (  _In_      const D3D11_TEXTURE2D_DESC   *pDesc,
     return 0;
   }
 
-  uint32_t checksum   = 0;
-  bool     compressed =
+        uint32_t checksum   = 0;
+  const bool     compressed =
     SK_D3D11_IsFormatCompressed (pDesc->Format);
 
   const int bpp = ( (pDesc->Format >= DXGI_FORMAT_BC1_TYPELESS &&
@@ -7126,10 +7252,10 @@ SK_D3D11_MakeTypelessFormat (DXGI_FORMAT typeless)
 
 HRESULT
 __stdcall
-SK_D3D11_MipmapCacheTexture2DEx ( DirectX::ScratchImage&   img,
-                                  uint32_t                 crc32c, 
-                                  ID3D11Texture2D*       /*pOutTex*/,
-                                  DirectX::ScratchImage** ppOutImg )
+SK_D3D11_MipmapCacheTexture2DEx ( const DirectX::ScratchImage&   img,
+                                        uint32_t                 crc32c, 
+                                        ID3D11Texture2D*       /*pOutTex*/,
+                                        DirectX::ScratchImage** ppOutImg )
 {
   SK_ScopedBool auto_bool  (&SK_TLS_Bottom ()->texture_management.injection_thread);
   SK_ScopedBool auto_bool2 (&SK_TLS_Bottom ()->imgui.drawing);
@@ -8327,7 +8453,7 @@ SK_D3D11_TexNameFromChecksum (uint32_t top_crc32, uint32_t checksum, uint32_t ff
 
   static bool ffx = GetModuleHandle (L"unx.dll") != nullptr;
 
-  if (ffx && (! (hash_name = SK_D3D11_TexHashToName (ffx_crc32, 0x00)).empty ()))
+  if (SK_D3D11_inject_textures_ffx && (! (hash_name = SK_D3D11_TexHashToName (ffx_crc32, 0x00)).empty ()))
   {
     SK_LOG4 ( ( L"Caching texture with crc32: %x", ffx_crc32 ),
                 L" Tex Hash " );
@@ -8469,6 +8595,18 @@ D3D11Dev_CreateTexture2D_Impl (
                                                    //   They will be handled through a
                                                    //     different codepath.
 
+  //
+  // Filter out any noise coming from overlays / video capture software
+  //
+  if (SK_GetFramesDrawn () > 0)
+    cacheable &= ( This == (ID3D11Device *)SK_GetCurrentRenderBackend ().device );
+
+
+  if (cacheable)
+  {
+    //dll_log.Log (L"Misc Flags: %x, Bind: %x", pDesc->MiscFlags, pDesc->BindFlags);
+  }
+
   bool gen_mips = false;
 
   auto CalcMipmapLODs = [](UINT width, UINT height)
@@ -8491,7 +8629,9 @@ D3D11Dev_CreateTexture2D_Impl (
     gen_mips = true;
   }
 
+
   // Video planes; don't cache them.
+  //
   if ( ( pDesc->Format    == DXGI_FORMAT_R8_UNORM || pDesc->Format == DXGI_FORMAT_R8_TYPELESS )
     &&   pDesc->MipLevels == 1
     && ( pDesc->Width     == 1920 || pDesc->Width == 960 ) )
@@ -8499,6 +8639,7 @@ D3D11Dev_CreateTexture2D_Impl (
     cacheable = false;
     gen_mips  = false;
   }
+
 
   bool dynamic = false;
 
@@ -8600,7 +8741,7 @@ D3D11Dev_CreateTexture2D_Impl (
     {
       wchar_t   wszTex [MAX_PATH * 2] = { };
       wcsncpy ( wszTex,
-                  SK_D3D11_TexNameFromChecksum (top_crc32, checksum).c_str (),
+                  SK_D3D11_TexNameFromChecksum (top_crc32, checksum, ffx_crc32).c_str (),
                     MAX_PATH );
 
       if (                   *wszTex  != L'\0' &&
@@ -9305,7 +9446,7 @@ SK_D3D11_InitTextures (void)
     // Legacy Hack for Untitled Project X (FFX/FFX-2)
     //
     extern bool SK_D3D11_inject_textures_ffx;
-    if (! SK_D3D11_inject_textures_ffx)
+    if       (! SK_D3D11_inject_textures_ffx)
     {
       SK_D3D11_EnableTexCache  (config.textures.d3d11.cache);
       SK_D3D11_EnableTexDump   (config.textures.d3d11.dump);
@@ -9478,6 +9619,7 @@ SK_D3D11_Init (void)
         dll_log.Log (L"[  D3D 11  ] Something went wrong hooking D3D11 -- need better errors.");
       }
 
+      SK_ApplyQueuedHooks ();
       InterlockedIncrement (&SK_D3D11_initialized);
     }
   }
@@ -9531,12 +9673,15 @@ SK_D3D11_EnableHooks (void)
 extern
 unsigned int __stdcall HookD3D12                   (LPVOID user);
 
-volatile ULONG __d3d11_hooked = FALSE;
+volatile LONG __d3d11_hooked = FALSE;
 
 unsigned int
 __stdcall
 HookD3D11 (LPVOID user)
 {
+  if (! config.apis.dxgi.d3d11.hook)
+    return 0;
+
   // Wait for DXGI to boot
   if (CreateDXGIFactory_Import == nullptr)
   {
@@ -9557,12 +9702,8 @@ HookD3D11 (LPVOID user)
   }
 
   // This only needs to be done once
-  if (InterlockedCompareExchange (&__d3d11_hooked, TRUE, FALSE))
-    return 0;
-
-  if (! config.apis.dxgi.d3d11.hook)
-    return 0;
-
+  if (! InterlockedCompareExchange (&__d3d11_hooked, TRUE, FALSE))
+  {
   dll_log.Log (L"[  D3D 11  ]   Hooking D3D11");
 
   auto* pHooks = 
@@ -9959,7 +10100,15 @@ HookD3D11 (LPVOID user)
                                              D3D11_UpdateSubresource1_Original,
                                              D3D11_UpdateSubresource1_pfn );
     }
+
+    SK_ApplyQueuedHooks ();
   }
+
+  InterlockedIncrement (&__d3d11_hooked);
+  }
+
+  while (ReadAcquire (&__d3d11_hooked) < 2)
+    ;
 
 #ifdef _WIN64
   if (config.apis.dxgi.d3d12.hook)
@@ -10190,7 +10339,7 @@ auto ShaderMenu =
 [&] ( std::unordered_set <uint32_t>&                          blacklist,
       SK_D3D11_KnownShaders::conditional_blacklist_t&    cond_blacklist,
       std::vector       <ID3D11ShaderResourceView *>&   used_resources,
-      std::set          <ID3D11ShaderResourceView *>& set_of_resources,
+const std::set          <ID3D11ShaderResourceView *>& set_of_resources,
       uint32_t                                                   shader )
 {
   if (blacklist.count (shader))
@@ -11617,7 +11766,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
   } static list_base;
 
   auto GetShaderList =
-    [](sk_shader_class& type) ->
+    [](const sk_shader_class& type) ->
       shader_class_imp_s*
       {
         switch (type)
@@ -11639,7 +11788,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
     list = GetShaderList (shader_type);
 
   auto GetShaderTracker =
-    [](sk_shader_class& type) ->
+    [](const sk_shader_class& type) ->
       d3d11_shader_tracking_s*
       {
         switch (type)
@@ -11661,7 +11810,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
     tracker = GetShaderTracker (shader_type);
 
   auto GetShaderSet =
-    [](sk_shader_class& type) ->
+    [](const sk_shader_class& type) ->
       std::set <uint32_t>&
       {
         static std::set <uint32_t> set  [6];
@@ -11774,7 +11923,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
     shaders ( set.begin (), set.end () );
 
   auto GetShaderDisasm =
-    [](sk_shader_class& type) ->
+    [](const sk_shader_class& type) ->
       std::unordered_map <uint32_t, shader_disasm_s>*
       {
         switch (type)
@@ -11793,7 +11942,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
     disassembly = GetShaderDisasm (shader_type);
 
   auto GetShaderWord =
-    [](sk_shader_class& type) ->
+    [](const sk_shader_class& type) ->
       const char*
       {
         switch (type)
@@ -11814,7 +11963,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
   uint32_t invalid;
 
   auto GetShaderChange =
-    [&](sk_shader_class& type) ->
+    [&](const sk_shader_class& type) ->
       uint32_t&
       {
         switch (type)
@@ -11830,7 +11979,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
       };
 
   auto GetShaderBlacklist =
-    [&](sk_shader_class& type)->
+    [&](const sk_shader_class& type)->
       std::unordered_set <uint32_t>&
       {
         static std::unordered_set <uint32_t> invalid;
@@ -11848,7 +11997,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
       };
 
   auto GetShaderBlacklistEx =
-    [&](sk_shader_class& type)->
+    [&](const sk_shader_class& type)->
       SK_D3D11_KnownShaders::conditional_blacklist_t&
       {
         static SK_D3D11_KnownShaders::conditional_blacklist_t invalid;
@@ -11866,7 +12015,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
       };
 
   auto GetShaderUsedResourceViews =
-    [&](sk_shader_class& type)->
+    [&](const sk_shader_class& type)->
       std::vector <ID3D11ShaderResourceView *>&
       {
         static std::vector <ID3D11ShaderResourceView *> invalid;
@@ -11884,7 +12033,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
       };
 
   auto GetShaderResourceSet =
-    [&](sk_shader_class& type)->
+    [&](const sk_shader_class& type)->
       std::set <ID3D11ShaderResourceView *>&
       {
         static std::set <ID3D11ShaderResourceView *> invalid;
@@ -13008,8 +13157,9 @@ SK_D3D11_EndFrame (void)
       }
     };
 
-    auto AccumulateRuntimeTicks = [&](ID3D11DeviceContext* dev_ctx, d3d11_shader_tracking_s* tracker, std::unordered_set <uint32_t>& blacklist) ->
-      void
+    auto AccumulateRuntimeTicks = [&]( ID3D11DeviceContext*           dev_ctx,
+                                       d3d11_shader_tracking_s*       tracker,
+                                 const std::unordered_set <uint32_t>& blacklist)
       {
         std::vector <d3d11_shader_tracking_s::duration_s> rejects;
 

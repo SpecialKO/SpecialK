@@ -29,26 +29,30 @@ namespace ImGuiAl
   class MsgBox
   {
   public:
-    inline MsgBox() {}
-    virtual ~MsgBox();
+      inline  MsgBox (void) { }
+    virtual  ~MsgBox (void);
     
-    bool Init( const char* title, const char* icon, const char* text, const char** captions, bool show_checkbox = false );
-    int  Draw();
-    void Open();
+    bool Init ( const char  *title,
+                const char  *icon,
+                const char  *text,
+                const char **captions,
+                bool         show_checkbox = false );
+    int  Draw (void);
+    void Open (void);
     
-    inline void AskAgain()
+    inline void AskAgain (void)
     {
       m_DontAskAgain = false;
-      m_Selected = 0;
+      m_Selected     = 0;
     }
     
   protected:
-    const char* m_Title;
-    const char* m_Icon;
-    const char* m_Text;
+    const char*  m_Title;
+    const char*  m_Icon;
+    const char*  m_Text;
     const char** m_Captions;
-    bool m_ShowCheckbox;
-    bool m_DontAskAgain;
-    int m_Selected;
+    bool         m_ShowCheckbox;
+    bool         m_DontAskAgain;
+    int          m_Selected;
   };
 }

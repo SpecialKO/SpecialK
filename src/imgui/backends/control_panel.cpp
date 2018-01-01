@@ -449,7 +449,7 @@ SK_ImGui_IsItemRightClicked (ImGuiIO& io = ImGui::GetIO ())
 };
 
 bool
-SK_ImGui_IsWindowRightClicked (ImGuiIO& io)
+SK_ImGui_IsWindowRightClicked (const ImGuiIO& io)
 {
   if (ImGui::IsWindowFocused () || ImGui::IsWindowHovered ())
   {
@@ -1115,7 +1115,7 @@ extern float target_fps;
 void
 SK_ImGui_DrawGraph_FramePacing (void)
 {
-  ImGuiIO& io (ImGui::GetIO ());
+  const ImGuiIO& io (ImGui::GetIO ());
 
   const  float font_size           =             ImGui::GetFont  ()->FontSize                        * io.FontGlobalScale;
   const  float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y + ImGui::GetStyle ().ItemInnerSpacing.y;
@@ -1125,7 +1125,7 @@ SK_ImGui_DrawGraph_FramePacing (void)
   float min = FLT_MAX;
   float max = 0.0f;
 
-  for ( auto val : SK_ImGui_Frames.getValues () )
+  for ( const auto& val : SK_ImGui_Frames.getValues () )
   {
     sum += val;
 
@@ -1872,11 +1872,11 @@ SK_ImGui_ControlPanel (void)
 
         else
         {
-          if (ImGui::MenuItem ("Uninstall Wrapper DLL for this game"))
-          {
-            wrappable = 
-              SK_Inject_SwitchToGlobalInjector ();
-          }
+          ///////////if (ImGui::MenuItem ("Uninstall Wrapper DLL for this game"))
+          ///////////{
+          ///////////  wrappable = 
+          ///////////    SK_Inject_SwitchToGlobalInjector ();
+          ///////////}
         }
 
         ImGui::Separator ();
@@ -2561,6 +2561,139 @@ SK_ImGui_ControlPanel (void)
       {
         if (ImGui::CollapsingHeader (u8"OKAMI HD / 大神 絶景版", ImGuiTreeNodeFlags_DefaultOpen))
         {
+          struct patch_addr_s {
+            void*       addr        = 0x0;
+            const char* orig_bytes  = nullptr;
+            const char* patch_bytes = nullptr;
+            size_t      size        = 0;
+            bool        enabled     = false;
+          };
+
+          void*
+          __stdcall
+          SK_ScanAlignedEx2 (const void* pattern, size_t len, const void* mask, void* after, int align, uint8_t* base_addr);
+
+          static patch_addr_s addrs [] = {
+            { 0x00, "\xC6\x05\x48\x0A\xA2\x00\x02", "\x90\x90\x90\x90\x90\x90\x90", 7, false },
+            { 0x00, "\xC6\x05\xED\x0B\xA2\x00\x02", "\x90\x90\x90\x90\x90\x90\x90", 7, false },
+            { 0x00, "\xC6\x05\xDD\x64\x6D\x00\x02", "\x90\x90\x90\x90\x90\x90\x90", 7, false },
+            { 0x00, "\xC6\x05\x99\x65\x75\x00\x02", "\x90\x90\x90\x90\x90\x90\x90", 7, false },
+
+            { 0x00, "\xC7\x05\x42\x49\x6B\x00\x00\x00\x80\x3F", "\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90", 10, false },
+            { 0x00, "\xC7\x05\x16\x49\x6B\x00\x00\x00\x00\x3F", "\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90", 10, false }
+          };
+
+          if (addrs [0].addr == (uintptr_t)0x00)
+          {
+            for (int i = 0; i < 6; i++)
+            {
+              addrs [i].addr =
+                SK_ScanAlignedEx2 (addrs [i].orig_bytes, addrs [i].size, nullptr, nullptr, 1, reinterpret_cast <uint8_t *> (GetModuleHandle (L"main.dll")));
+              dll_log.Log (L"[Okami60FPS] Patch Address #%lu: %ph", i, addrs [i].addr);
+            }
+
+            if (addrs [0].addr == 0x0)
+            {
+              addrs [0].addr = (void *)0x1;
+            }
+          }
+
+
+          if (addrs [0].addr != 0x0 && addrs [0].addr != (void *)0x1)
+          {
+            bool enabled =
+              addrs [0].enabled;
+
+            if (ImGui::Checkbox ("60 FPS", &enabled))
+            {
+              std::queue <DWORD> tids =
+                SK_SuspendAllOtherThreads ();
+
+              for (int i = 0; i < 6; i++)
+              {
+                if (addrs [i].addr != nullptr)
+                {
+                  DWORD dwOrig = 0x0;
+                  VirtualProtect ( addrs [i].addr, addrs [i].size, PAGE_EXECUTE_READWRITE, &dwOrig );
+                  memcpy         ( addrs [i].addr, enabled ? addrs [i].patch_bytes :
+                                                             addrs [i].orig_bytes, addrs [i].size );
+                  VirtualProtect ( addrs [i].addr, addrs [i].size, dwOrig,                 &dwOrig );
+
+                  addrs [i].enabled = enabled;
+                }
+
+                else
+                {
+                  dll_log.Log (L" Missing Pattern #%lu", i);
+                }
+              }
+
+              static DWORD*   dwTick0     = (DWORD *)(((uint8_t *)GetModuleHandle (L"main.dll"))   + 0xB6AC3C);
+              static float*   fTickScale  = (float *)(((uint8_t *)GetModuleHandle (L"main.dll"))   + 0xB6AC38);
+              static float*   fTickScale0 = (float *)(((uint8_t *)GetModuleHandle (L"main.dll"))   + 0xB6ACC0);
+              static uint8_t* bTick1      = (uint8_t *)(((uint8_t *)GetModuleHandle (L"main.dll")) + 0xB6AC45);
+
+              DWORD dwOrig = 0x0;
+              //VirtualProtect ( dwTick0, 4, PAGE_EXECUTE_READWRITE, &dwOrig );
+              //*dwTick0 = enabled ? 2 : 4;
+              //VirtualProtect ( dwTick0, 4, dwOrig, &dwOrig);
+
+              VirtualProtect ( fTickScale, 4, PAGE_EXECUTE_READWRITE, &dwOrig );
+              *fTickScale = enabled ? 0.5f : 1.0f;
+              VirtualProtect ( fTickScale, 4, dwOrig, &dwOrig);
+
+              VirtualProtect ( fTickScale0, 4, PAGE_EXECUTE_READWRITE, &dwOrig );
+              *fTickScale0 = enabled ? 0.5f : 1.0f;
+              VirtualProtect ( fTickScale0, 4, dwOrig, &dwOrig);
+
+              VirtualProtect ( bTick1, 1, PAGE_EXECUTE_READWRITE, &dwOrig );
+              *bTick1 = enabled ? 1 : 2;
+              VirtualProtect ( bTick1, 1, dwOrig, &dwOrig);
+
+              if (enabled) { SK_GetCommandProcessor ()->ProcessCommandLine ("TargetFPS 60.0"); SK_GetCommandProcessor ()->ProcessCommandLine ("PresentationInterval 1"); }
+              else         { SK_GetCommandProcessor ()->ProcessCommandLine ("TargetFPS 30.0"); SK_GetCommandProcessor ()->ProcessCommandLine ("PresentationInterval 2"); }
+
+              SK_ResumeThreads (tids);
+            }
+
+            if (enabled)
+            {
+              DWORD dwOrig = 0x0;
+
+              static float*   fTickScale  = (float *)(((uint8_t *)GetModuleHandle (L"main.dll"))   + 0xB6AC38);
+              static float*   fTickScale0 = (float *)(((uint8_t *)GetModuleHandle (L"main.dll"))   + 0xB6ACC0);
+
+              ImGui::BeginGroup ();
+              VirtualProtect ( fTickScale, 4, PAGE_EXECUTE_READWRITE, &dwOrig );
+              ImGui::SliderFloat ("Physics", fTickScale, 0.25f, 2.5f);
+              VirtualProtect ( fTickScale, 4, dwOrig, &dwOrig);
+
+              VirtualProtect ( fTickScale0, 4, PAGE_EXECUTE_READWRITE, &dwOrig );
+              ImGui::SliderFloat ("Clockrate", fTickScale0, 0.15f, 5.0f);
+              VirtualProtect ( fTickScale0, 4, dwOrig, &dwOrig);
+              ImGui::EndGroup ();
+
+              ImGui::SameLine ();
+
+              ImGui::BeginGroup ();
+              ImGui::BeginGroup ();
+              if (ImGui::Button ("Bullet Time"))        *fTickScale  = 0.25f;
+              if (ImGui::Button ("Paint dries faster")) *fTickScale0 = 0.15f;
+              ImGui::EndGroup   ();
+              ImGui::SameLine   ();
+              ImGui::BeginGroup ();
+              if (ImGui::Button ("Bouncy Castle"))                   *fTickScale  = 2.5f;
+              if (ImGui::Button ("Ain't nobody got time for that!")) *fTickScale0 = 5.0f;
+              ImGui::EndGroup   ();
+              ImGui::EndGroup   ();
+              VirtualProtect ( fTickScale , 4, dwOrig, &dwOrig);
+              VirtualProtect ( fTickScale0, 4, dwOrig, &dwOrig);
+            }
+
+            ImGui::Separator ();
+          }
+
+
           bool motion_blur, bloom,
                smoke,       HUD;
 
@@ -3607,7 +3740,7 @@ SK_ImGui_ControlPanel (void)
 
         static bool has_dgvoodoo2 =
           GetFileAttributesA (
-            SK_FormatString ( "%ws\\PlugIns\\ThirdParty\\dgVoodoo\\d3dimm.dll",
+            SK_FormatString ( R"(%ws\PlugIns\ThirdParty\dgVoodoo\d3dimm.dll)",
                                 std::wstring ( SK_GetDocumentsDir () + L"\\My Mods\\SpecialK" ).c_str ()
                             ).c_str ()
           ) != INVALID_FILE_ATTRIBUTES;
@@ -3615,7 +3748,7 @@ SK_ImGui_ControlPanel (void)
         // Leaks memory, but who cares? :P
         static const char* dgvoodoo2_install_path =
           _strdup (
-            SK_FormatString ( "%ws\\PlugIns\\ThirdParty\\dgVoodoo",
+            SK_FormatString ( R"(%ws\PlugIns\ThirdParty\dgVoodoo)",
                     std::wstring ( SK_GetDocumentsDir () + L"\\My Mods\\SpecialK" ).c_str ()
                 ).c_str ()
           );
@@ -6482,14 +6615,14 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
     ImGui::Spacing ();
 
 		ImGui::TextUnformatted (                                  "Press");                            ImGui::SameLine ();
-		ImGui::TextColored     ( ImColor::HSV (.16f, 1.f, 1.f),   "\'%s%s%s\'",
+		ImGui::TextColored     ( ImColor::HSV (.16f, 1.f, 1.f),  R"('%s%s%s')",
 		                                        "Ctrl + ",
 		                                        "Shift + ",
 		                                        "Backspace" );                                         ImGui::SameLine ();
 		ImGui::TextUnformatted (                                  ", ");                               ImGui::SameLine ();
-		ImGui::TextColored     ( ImColor::HSV (.16f, 1.f, 1.f),   "\'Select + Start\' (PlayStation)"); ImGui::SameLine ();
+		ImGui::TextColored     ( ImColor::HSV (.16f, 1.f, 1.f),  R"('Select + Start' (PlayStation))"); ImGui::SameLine ();
 		ImGui::TextUnformatted (                                  "or ");                              ImGui::SameLine ();
-		ImGui::TextColored     ( ImColor::HSV (.16f, 1.f, 1.f),   "\'Back + Start\' (Xbox)");          ImGui::SameLine ();
+		ImGui::TextColored     ( ImColor::HSV (.16f, 1.f, 1.f),  R"('Back + Start' (Xbox))");          ImGui::SameLine ();
 
 		ImGui::TextUnformatted (                                  "to open Special K's "
 		                                                          "configuration menu. ");

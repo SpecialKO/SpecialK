@@ -5385,6 +5385,8 @@ SK_DXGI_HookFactory (IDXGIFactory* pFactory)
 
 #include <mmsystem.h>
 
+#include <d3d11_2.h>
+
 DWORD
 __stdcall
 HookDXGI (LPVOID user)
@@ -5429,10 +5431,7 @@ HookDXGI (LPVOID user)
 
   dll_log.Log (L"[   DXGI   ]   Installing DXGI Hooks");
 
-  D3D_FEATURE_LEVEL             levels [] = { D3D_FEATURE_LEVEL_9_1,  D3D_FEATURE_LEVEL_9_2,
-                                              D3D_FEATURE_LEVEL_9_3,  D3D_FEATURE_LEVEL_10_0,
-                                              D3D_FEATURE_LEVEL_10_1, D3D_FEATURE_LEVEL_11_0,
-                                              D3D_FEATURE_LEVEL_11_1 };
+  D3D_FEATURE_LEVEL             levels [] = { D3D_FEATURE_LEVEL_11_0 };
 
   D3D_FEATURE_LEVEL             featureLevel;
   CComPtr <ID3D11Device>        pDevice           = nullptr;
@@ -5477,8 +5476,8 @@ HookDXGI (LPVOID user)
         D3D_DRIVER_TYPE_HARDWARE,
           nullptr,
             0x0,
-              nullptr,
-                0,
+              levels,
+                1,
                   D3D11_SDK_VERSION,
                     &desc, &pSwapChain,
                       &pDevice,
@@ -5512,15 +5511,37 @@ HookDXGI (LPVOID user)
        SUCCEEDED (pDevDXGI->GetAdapter                  (&pAdapter)) &&
        SUCCEEDED (pAdapter->GetParent     (IID_PPV_ARGS (&pFactory))) )
   {
-    CComPtr <ID3D11DeviceContext> pDevCtx = nullptr;
+    CComPtr   <ID3D11DeviceContext>  pDevCtx  = nullptr;
+    CComPtr   <ID3D11DeviceContext1> pDevCtx1 = nullptr;
+    CComPtr   <ID3D11DeviceContext2> pDevCtx2 = nullptr;
+    CComPtr   <ID3D11Device>           pDev   = nullptr;
+    CComQIPtr <ID3D11Device1>          pDev1  = nullptr;
+    CComQIPtr <ID3D11Device2>          pDev2  = nullptr;
 
     if (config.render.dxgi.deferred_isolation)
     {
-      CComPtr <ID3D11Device> pDev = nullptr;
       pImmediateContext->GetDevice (&pDev);
 
-      pDev->CreateDeferredContext (0x00,  &pDevCtx);
-      d3d11_hook_ctx.ppImmediateContext = &pDevCtx;
+      pDev1 = pDev;
+      if (pDev1)
+      {
+        pDev2 = pDev1;
+        if (pDev2)
+        {
+          pDev2->CreateDeferredContext2 (0x00, &pDevCtx2);
+          d3d11_hook_ctx.ppImmediateContext = (ID3D11DeviceContext **)&pDevCtx2;
+        } 
+        else
+        {
+          pDev1->CreateDeferredContext1 (0x00, &pDevCtx1);
+          d3d11_hook_ctx.ppImmediateContext = (ID3D11DeviceContext **)&pDevCtx;
+        }
+      }
+      else
+      {
+        pDev->CreateDeferredContext (0x00,  &pDevCtx);
+        d3d11_hook_ctx.ppImmediateContext = &pDevCtx;
+      }
     }
 
     HookD3D11             (&d3d11_hook_ctx);

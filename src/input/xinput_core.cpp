@@ -1030,7 +1030,7 @@ SK_XInput_RehookIfNeeded (void)
   if (! config.input.gamepad.rehook_xinput)
     return;
 
-  SK_XInputContext::instance_s* pCtx =
+  auto* pCtx =
     static_cast <SK_XInputContext::instance_s *>
       (ReadPointerAcquire ((volatile LPVOID *)&xinput_ctx.primary_hook));
 
@@ -1375,7 +1375,7 @@ SK_XInput_PulseController ( INT   iJoyID,
                             float fStrengthLeft,
                             float fStrengthRight )
 {
-  ControllerIndex_t steam_idx =
+  auto steam_idx =
     static_cast <ControllerIndex_t> (iJoyID);
 
   if ( steam_input.count && ControllerPresent (steam_idx) &&
@@ -1394,7 +1394,7 @@ SK_XInput_PulseController ( INT   iJoyID,
 
   std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (xinput_ctx.spinlock [iJoyID]);
 
-  SK_XInputContext::instance_s* pCtx =
+  auto* pCtx =
     static_cast <SK_XInputContext::instance_s *>
       (ReadPointerAcquire ((volatile LPVOID *)&xinput_ctx.primary_hook));
 
@@ -1436,7 +1436,7 @@ SK_XInput_PollController ( INT           iJoyID,
 
   std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (xinput_ctx.spinlock [iJoyID]);
 
-  SK_XInputContext::instance_s* pCtx =
+  auto* pCtx =
     static_cast <SK_XInputContext::instance_s *>
       (ReadPointerAcquire ((volatile LPVOID *)&xinput_ctx.primary_hook));
 
@@ -1588,7 +1588,7 @@ SK_Input_PreHookXInput (void)
 
   std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (xinput_ctx.spinlock [0]);
 
-  SK_XInputContext::instance_s* pCtx =
+  auto* pCtx =
     static_cast <SK_XInputContext::instance_s *>
       (ReadPointerAcquire ((volatile LPVOID *)&xinput_ctx.primary_hook));
 
@@ -1626,7 +1626,7 @@ void
 WINAPI
 SK_XInput_ZeroHaptics (INT iJoyID)
 {
-  ControllerIndex_t steam_idx =
+  auto steam_idx =
     static_cast <ControllerIndex_t> (iJoyID);
 
   if (steam_input.count && ControllerPresent (steam_idx))
@@ -1641,7 +1641,7 @@ SK_XInput_ZeroHaptics (INT iJoyID)
 
   std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (xinput_ctx.spinlock [iJoyID]);
 
-  SK_XInputContext::instance_s* pCtx =
+  auto* pCtx =
     static_cast <SK_XInputContext::instance_s *>
       (ReadPointerAcquire ((volatile LPVOID *)&xinput_ctx.primary_hook));
 

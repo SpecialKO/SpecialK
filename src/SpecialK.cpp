@@ -61,7 +61,7 @@
 
 // We need this to load embedded resources correctly...
 //std::atomic <HMODULE> hModSelf            = nullptr;
-volatile HMODULE hModSelf                       = nullptr;
+HMODULE hModSelf                       = nullptr;
 
 SK_Thread_HybridSpinlock* init_mutex   = nullptr;
 SK_Thread_HybridSpinlock* budget_mutex = nullptr;
@@ -185,7 +185,10 @@ HMODULE
 __stdcall
 SK_GetDLL (void)
 {
-  return reinterpret_cast <HMODULE> (ReadPointerAcquire ((const volatile LPVOID*)&hModSelf));
+  return reinterpret_cast <HMODULE>       (
+    ReadPointerAcquire                    (
+      reinterpret_cast <volatile PVOID *> (
+            const_cast <HMODULE        *> (&hModSelf))));
 }
 
 #include <unordered_set>
@@ -293,6 +296,32 @@ L"ds3t.exe",
 L"tzt.exe"
 };
 
+
+
+
+auto SK_GetLocalModuleHandle = [](const wchar_t* wszModule) ->
+HMODULE
+{
+  wchar_t   wszLocalModulePath [MAX_PATH * 2] = { };
+  wcsncpy  (wszLocalModulePath, SK_GetHostPath (), MAX_PATH);
+  lstrcatW (wszLocalModulePath, L"\\");
+  lstrcatW (wszLocalModulePath, wszModule);
+
+  return GetModuleHandleW (wszLocalModulePath);
+};
+
+auto SK_LoadLocalModule = [](const wchar_t* wszModule) ->
+HMODULE
+{
+  wchar_t   wszLocalModulePath [MAX_PATH * 2] = { };
+  wcsncpy  (wszLocalModulePath, SK_GetHostPath (), MAX_PATH);
+  lstrcatW (wszLocalModulePath, L"\\");
+  lstrcatW (wszLocalModulePath, wszModule);
+
+  return LoadLibraryW (wszLocalModulePath);
+};
+
+
 bool
 __stdcall
 SK_EstablishDllRole (HMODULE hModule)
@@ -331,7 +360,28 @@ SK_EstablishDllRole (HMODULE hModule)
     wszShort = wszDllFullName;
 
 
-  if (! SK_Path_wcsicmp (wszShort, L"dxgi.dll"))
+  if (! SK_Path_wcsicmp (wszShort, L"dinput8.dll"))
+  {
+    SK_SetDLLRole (DLL_ROLE::DInput8);
+
+    if ( SK_IsDLLSpecialK (L"dxgi.dll")     ||
+         SK_IsDLLSpecialK (L"d3d9.dll")     ||
+         SK_IsDLLSpecialK (L"d3d11.dll")    ||
+         SK_IsDLLSpecialK (L"OpenGL32.dll") ||
+         SK_IsDLLSpecialK (L"ddraw.dll")    ||
+         SK_IsDLLSpecialK (L"d3d8.dll")        )
+    {
+      SK_MessageBox ( L"Please limit Special K to one (1) "
+                       "of the following: d3d8.dll, d3d9.dll,"
+                                         " d3d11.dll, ddraw.dll, dinput8.dll,"
+                                         " dxgi.dll or OpenGL32.dll",
+                      L"Conflicting Special K Injection DLLs Detected",
+                        MB_SYSTEMMODAL | MB_SETFOREGROUND |
+                        MB_ICONERROR   | MB_OK );
+    }
+  }
+
+  else if (! SK_Path_wcsicmp (wszShort, L"dxgi.dll"))
     SK_SetDLLRole (DLL_ROLE::DXGI);
 
   else if (! SK_Path_wcsicmp (wszShort, L"d3d11.dll"))
@@ -354,9 +404,6 @@ SK_EstablishDllRole (HMODULE hModule)
   else if (! SK_Path_wcsicmp (wszShort, L"OpenGL32.dll"))
     SK_SetDLLRole (DLL_ROLE::OpenGL);
 
-  else if (! SK_Path_wcsicmp (wszShort, L"dinput8.dll"))
-    SK_SetDLLRole (DLL_ROLE::DInput8);
-
 
 
   //
@@ -365,17 +412,17 @@ SK_EstablishDllRole (HMODULE hModule)
   else if ( SK_Path_wcsstr (wszShort, L"SpecialK") )
   {
     /////// Skip lengthy tests if we already have the wrapper version loaded.
-    if ( ( SK_IsDLLSpecialK (L"d3d9.dll") )     || 
-         ( SK_IsDLLSpecialK (L"dxgi.dll") )     ||
-         ( SK_IsDLLSpecialK (L"d3d11.dll") )    ||
-         ( SK_IsDLLSpecialK (L"OpenGL32.dll") ) ||
-         ( SK_IsDLLSpecialK (L"d3d8.dll") )     ||
-         ( SK_IsDLLSpecialK (L"ddraw.dll") )    ||
-         ( SK_IsDLLSpecialK (L"dinput8.dll") ) )
-    {
-      SK_SetDLLRole (DLL_ROLE::INVALID);
-      return true;
-    }
+    //if ( ( SK_IsDLLSpecialK (L"d3d9.dll") )     || 
+    //     ( SK_IsDLLSpecialK (L"dxgi.dll") )     ||
+    //     ( SK_IsDLLSpecialK (L"d3d11.dll") )    ||
+    //     ( SK_IsDLLSpecialK (L"OpenGL32.dll") ) ||
+    //     ( SK_IsDLLSpecialK (L"d3d8.dll") )     ||
+    //     ( SK_IsDLLSpecialK (L"ddraw.dll") )    ||
+    //     ( SK_IsDLLSpecialK (L"dinput8.dll") ) )
+    //{
+    //  SK_SetDLLRole (DLL_ROLE::INVALID);
+    //  return true;
+    //}
 
     SK_IsInjected (true); // SET the injected state
 
@@ -528,8 +575,11 @@ SK_EstablishDllRole (HMODULE hModule)
         {
           SK_SetDLLRole (DLL_ROLE::D3D8);
 
-          if (SK_IsDLLSpecialK (L"d3d8.dll"))
-            return FALSE;
+          if (SK_IsDLLSpecialK (L"d3d8.dll") && SK_LoadLocalModule (L"d3d8.dll"))
+          {
+            SK_SetDLLRole (DLL_ROLE::INVALID);
+            return TRUE;
+          }
         }
 
         else
@@ -546,28 +596,39 @@ SK_EstablishDllRole (HMODULE hModule)
           else
             SK_SetDLLRole (DLL_ROLE::DXGI);
 
+          if (SK_IsDLLSpecialK (L"dxgi.dll") && SK_LoadLocalModule (L"dxgi.dll"))
+          {
+            SK_SetDLLRole (DLL_ROLE::INVALID);
+            return TRUE;
+          }
 
-          if (SK_IsDLLSpecialK (L"dxgi.dll"))
-            return FALSE;
-
-          if (SK_IsDLLSpecialK (L"d3d11.dll"))
-            return FALSE;
+          if (SK_IsDLLSpecialK (L"d3d11.dll") && SK_LoadLocalModule (L"d3d11.dll"))
+          {
+            SK_SetDLLRole (DLL_ROLE::INVALID);
+            return TRUE;
+          }
         }
 
         else if (config.apis.d3d9.hook && d3d9)
         {
           SK_SetDLLRole (DLL_ROLE::D3D9);
 
-          if (SK_IsDLLSpecialK (L"d3d9.dll"))
-            return FALSE;
+          if (SK_IsDLLSpecialK (L"d3d9.dll") && SK_LoadLocalModule (L"d3d9.dll"))
+          {
+            SK_SetDLLRole (DLL_ROLE::INVALID);
+            return TRUE;
+          }
         }
 
         else if (config.apis.OpenGL.hook && gl)
         {
           SK_SetDLLRole (DLL_ROLE::OpenGL);
 
-          if (SK_IsDLLSpecialK (L"OpenGL32.dll"))
-            return FALSE;
+          if (SK_IsDLLSpecialK (L"OpenGL32.dll") && SK_LoadLocalModule (L"OpenGL32.dll"))
+          {
+            SK_SetDLLRole (DLL_ROLE::INVALID);
+            return TRUE;
+          }
         }
 
 #ifdef _WIN64
@@ -580,8 +641,11 @@ SK_EstablishDllRole (HMODULE hModule)
         {
           SK_SetDLLRole (DLL_ROLE::DDraw);
         
-          if (SK_IsDLLSpecialK (L"ddraw.dll"))
-            return FALSE;
+          if (SK_IsDLLSpecialK (L"ddraw.dll") && SK_LoadLocalModule (L"ddraw.dll"))
+          {
+            SK_SetDLLRole (DLL_ROLE::INVALID);
+            return TRUE;
+          }
         }
 #endif
 
@@ -673,8 +737,8 @@ SK_Attach (DLL_ROLE role)
         {
           // If this is the global injector and there is a wrapper version
           //   of Special K in the DLL search path, then bail-out!
-          if (SK_IsInjected () && ( SK_IsDLLSpecialK (L"dxgi.dll") ||
-                                    SK_IsDLLSpecialK (L"d3d11.dll") ))
+          if (SK_IsInjected () && ( (SK_IsDLLSpecialK (L"dxgi.dll")  && SK_LoadLocalModule (L"dxgi.dll")) ||
+                                    (SK_IsDLLSpecialK (L"d3d11.dll") && SK_LoadLocalModule (L"d3d11.dll")))  )
           {
             return DontInject ();
           }
@@ -690,7 +754,7 @@ SK_Attach (DLL_ROLE role)
         {
           // If this is the global injector and there is a wrapper version
           //   of Special K in the DLL search path, then bail-out!
-          if (SK_IsInjected () && SK_IsDLLSpecialK (L"d3d9.dll"))
+          if (SK_IsInjected () && SK_IsDLLSpecialK (L"d3d9.dll") && SK_LoadLocalModule (L"d3d9.dll"))
           {
             return DontInject ();
           }
@@ -707,7 +771,7 @@ SK_Attach (DLL_ROLE role)
         {
           // If this is the global injector and there is a wrapper version
           //   of Special K in the DLL search path, then bail-out!
-          if (SK_IsInjected () && SK_IsDLLSpecialK (L"d3d8.dll"))
+          if (SK_IsInjected () && SK_IsDLLSpecialK (L"d3d8.dll") && SK_GetLocalModuleHandle (L"d3d8.dll"))
           {
             return DontInject ();
           }
@@ -723,7 +787,7 @@ SK_Attach (DLL_ROLE role)
         {
           // If this is the global injector and there is a wrapper version
           //   of Special K in the DLL search path, then bail-out!
-          if (SK_IsInjected () && SK_IsDLLSpecialK (L"ddraw.dll"))
+          if (SK_IsInjected () && SK_IsDLLSpecialK (L"ddraw.dll") && SK_LoadLocalModule (L"ddraw.dll"))
           {
             return DontInject ();
           }
@@ -740,7 +804,7 @@ SK_Attach (DLL_ROLE role)
         {
           // If this is the global injector and there is a wrapper version
           //   of Special K in the DLL search path, then bail-out!
-          if (SK_IsInjected () && SK_IsDLLSpecialK (L"OpenGL32.dll"))
+          if (SK_IsInjected () && SK_IsDLLSpecialK (L"OpenGL32.dll") && SK_LoadLocalModule (L"OpenGL32.dll"))
           {
             return DontInject ();
           }
@@ -761,7 +825,7 @@ SK_Attach (DLL_ROLE role)
         {
           // If this is the global injector and there is a wrapper version
           //   of Special K in the DLL search path, then bail-out!
-          if (SK_IsInjected () && SK_IsDLLSpecialK (L"dinput8.dll"))
+          if (SK_IsInjected () && SK_IsDLLSpecialK (L"dinput8.dll") && SK_LoadLocalModule (L"dinput8.dll"))
           {
             return DontInject ();
           }
@@ -857,14 +921,19 @@ DllMain ( HMODULE hModule,
 {
   UNREFERENCED_PARAMETER (lpReserved);
 
-  auto EarlyOut = [&](BOOL bRet) { DisableThreadLibraryCalls (hModule); return bRet; };
+  auto EarlyOut = [&](BOOL bRet = TRUE) { DisableThreadLibraryCalls (hModule); return bRet; };
 
 
   switch (ul_reason_for_call)
   {
     case DLL_PROCESS_ATTACH:
     {
-      InterlockedExchangePointer ((volatile LPVOID*)&hModSelf, hModule);
+      InterlockedExchangePointer (
+        reinterpret_cast <volatile PVOID *> (
+              const_cast <HMODULE        *> (&hModSelf)
+                                            ),
+        hModule
+      );
 
       // We use SKIM for injection and rundll32 for various tricks involving restarting
       //   the currently running game; neither needs or even wants this DLL fully
@@ -873,33 +942,33 @@ DllMain ( HMODULE hModule,
       {
         SK_EstablishRootPath ();
 
-        return EarlyOut (TRUE);
+        return EarlyOut ();
       }
 
       // We reserve the right to deny attaching the DLL, this will generally
       //   happen if a game does not opt-in to system wide injection.
       if (! SK_EstablishDllRole (hModule))
       {
-        return EarlyOut (FALSE);
+        return EarlyOut ();
       }
 
       // We don't want to initialize the DLL, but we also don't want it to
       //   re-inject itself constantly; just return TRUE here.
       else if (SK_GetDLLRole () == DLL_ROLE::INVALID)
       {
-        return EarlyOut (FALSE);
+        return EarlyOut ();
       }
-
-      //++__SK_DLL_Refs;
-      InterlockedIncrement (&__SK_DLL_Refs);
 
       // Setup unhooked function pointers
       SK_PreInitLoadLibrary ();
 
       if (! SK_Attach (SK_GetDLLRole ()))
       {
-        return EarlyOut (FALSE);
+        return EarlyOut ();
       }
+
+      //++__SK_DLL_Refs;
+      InterlockedIncrement (&__SK_DLL_Refs);
 
       // If we got this far, it's because this is an injection target
       //

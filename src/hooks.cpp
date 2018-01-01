@@ -168,7 +168,7 @@ typedef struct _MODULEINFO {
   LPVOID EntryPoint;
 } MODULEINFO, *LPMODULEINFO;
 
-typedef BOOL (WINAPI *K32GetModuleInformation_pfn)(HANDLE, HMODULE, LPMODULEINFO, DWORD);
+using K32GetModuleInformation_pfn = BOOL (WINAPI *)(HANDLE, HMODULE, LPMODULEINFO, DWORD);
 
 static K32GetModuleInformation_pfn K32GetModuleInformation =
   reinterpret_cast <K32GetModuleInformation_pfn> (
@@ -213,11 +213,11 @@ SK_ValidateHookAddress ( const wchar_t *wszModuleName,
 
   if (known)
   {
-    uintptr_t hook_addr  =
+    auto hook_addr  =
       reinterpret_cast <uintptr_t> (
                            pHookAddr
     );
-    uintptr_t base_addr =
+    auto base_addr =
       reinterpret_cast <uintptr_t> (
                            mod_info.lpBaseOfDll
     );
