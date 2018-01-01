@@ -1818,11 +1818,8 @@ SK_Scan (const void* pattern, size_t len, const void* mask)
 
 void*
 __stdcall
-SK_ScanAlignedEx (const void* pattern, size_t len, const void* mask, void* after, int align)
+SK_ScanAlignedEx2 (const void* pattern, size_t len, const void* mask, void* after, int align, uint8_t* base_addr)
 {
-  uint8_t* base_addr =
-    reinterpret_cast <uint8_t *> (GetModuleHandle (nullptr));
-
   MEMORY_BASIC_INFORMATION minfo;
   VirtualQuery (base_addr, &minfo, sizeof minfo);
 
@@ -1991,6 +1988,16 @@ uint8_t* const PAGE_WALK_LIMIT = (base_addr + static_cast <uintptr_t>(1ULL << 36
   }
 
   return nullptr;
+}
+
+void*
+__stdcall
+SK_ScanAlignedEx (const void* pattern, size_t len, const void* mask, void* after, int align)
+{
+  uint8_t* base_addr =
+    reinterpret_cast <uint8_t *> (GetModuleHandle (nullptr));
+
+  return SK_ScanAlignedEx2 (pattern, len, mask, after, align, base_addr);
 }
 
 void*
