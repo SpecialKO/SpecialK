@@ -411,7 +411,7 @@ SK_SHA1_Hash::toCString (char* szSHA1) const
 {
   char* pszSHA1 = szSHA1;
 
-  for (int i = 20; i >= 0; i--)
+  for (int i = 19; i >= 0; i--)
     sprintf (pszSHA1++, "%x", (uint8_t)hash [i]);
 
   szSHA1 [20] = '\0';
