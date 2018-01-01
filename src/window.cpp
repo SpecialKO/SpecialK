@@ -4450,7 +4450,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
     if (game_window.hWnd != nullptr && hWnd != hWndRender)
     {
-      if (hWndRender != 0)
+      if (hWndRender != nullptr)
       {
         dll_log.Log ( L"[Window Mgr] New HWND detected in the window proc. used"
                       L" for rendering... (Old=%p, New=%p)",
@@ -5031,7 +5031,7 @@ SK_Window_IsTopMost (void)
 void
 SK_Window_SetTopMost (bool bTop, bool bBringToTop)
 {
-  HWND      hWndOrder = 0;
+  HWND      hWndOrder = nullptr;
   DWORD_PTR dwStyleEx =
     GetWindowLongW (game_window.hWnd, GWL_EXSTYLE);
 
@@ -5696,14 +5696,14 @@ CreateWindowExW_Detour(
 /* size of a form name string */
 #define CCHFORMNAME 32
 
-typedef BOOL (WINAPI *EnumDisplaySettingsA_pfn) (
+using EnumDisplaySettingsA_pfn = BOOL (WINAPI *) (
                         _In_opt_ LPCSTR    lpszDeviceName,
                         _In_     DWORD      iModeNum,
                         _Inout_  DEVMODEA *lpDevMode
 );
 EnumDisplaySettingsA_pfn EnumDisplaySettingsA_Original = nullptr;
 
-typedef BOOL (WINAPI *EnumDisplaySettingsW_pfn) (
+using EnumDisplaySettingsW_pfn = BOOL (WINAPI *) (
                         _In_opt_ LPWSTR    lpszDeviceName,
                         _In_     DWORD      iModeNum,
                         _Inout_  DEVMODEW *lpDevMode
@@ -5793,7 +5793,7 @@ ChangeDisplaySettingsA_Detour (
 {
   SK_LOG_FIRST_CALL
 
-  return ChangeDisplaySettingsExA_Detour (NULL, lpDevMode, NULL, dwFlags, NULL);
+  return ChangeDisplaySettingsExA_Detour (nullptr, lpDevMode, nullptr, dwFlags, nullptr);
 }
 
 LONG
@@ -5845,7 +5845,7 @@ ChangeDisplaySettingsW_Detour (
 {
   SK_LOG_FIRST_CALL
 
-    return ChangeDisplaySettingsExW_Detour (NULL, lpDevMode, NULL, dwFlags, NULL);
+    return ChangeDisplaySettingsExW_Detour (nullptr, lpDevMode, nullptr, dwFlags, nullptr);
 }
 
 

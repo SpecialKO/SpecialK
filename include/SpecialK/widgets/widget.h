@@ -46,16 +46,21 @@ struct SK_ImGui_WidgetRegistry
   SK_Widget* cpu_monitor;
   SK_Widget* d3d11_pipeline;
 
+  SK_Widget* cmd_console;
+  SK_Widget* txt_editor;
+  SK_Widget* file_browser;
+
   //SK_Widget* texcache;
 
   SK_Widget* memory_monitor = nullptr;
   SK_Widget* disk_monitor   = nullptr;
 
-  BOOL DispatchKeybinds (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode);
+  BOOL DispatchKeybinds ( BOOL Control, BOOL Shift, 
+                          BOOL Alt,     BYTE vkCode );
   BOOL SaveConfig (void);
 
-  bool  hide_all = false;
-  float scale    = 1.0f;
+  bool   hide_all = false;
+  float  scale    = 1.0f;
 } extern SK_ImGui_Widgets;
 
 
@@ -227,11 +232,15 @@ private:
 static
 __inline
 sk::ParameterStringW*
-LoadWidgetKeybind (SK_Keybind* binding, iSK_INI* ini_file, const wchar_t* wszDesc, const wchar_t* sec_name, const wchar_t* key_name)
+LoadWidgetKeybind ( SK_Keybind *binding,
+                    iSK_INI    *ini_file,
+              const wchar_t    *wszDesc,
+              const wchar_t    *sec_name,
+              const wchar_t    *key_name )
 {
   sk::ParameterStringW* ret =
-   dynamic_cast <sk::ParameterStringW *>
-    (SK_Widget_ParameterFactory.create_parameter <std::wstring> (wszDesc));
+    dynamic_cast <sk::ParameterStringW *>
+      (SK_Widget_ParameterFactory.create_parameter <std::wstring> (wszDesc));
 
   ret->register_to_ini ( ini_file, sec_name, key_name );
 
@@ -250,13 +259,19 @@ LoadWidgetKeybind (SK_Keybind* binding, iSK_INI* ini_file, const wchar_t* wszDes
 static
 __inline
 sk::ParameterBool*
-LoadWidgetBool (bool* pbVal, iSK_INI* ini_file, const wchar_t* wszDesc, const wchar_t* sec_name, const wchar_t* key_name)
+LoadWidgetBool ( bool    *pbVal,
+                 iSK_INI *ini_file,
+           const wchar_t *wszDesc,
+           const wchar_t *sec_name,
+           const wchar_t *key_name )
 {
   sk::ParameterBool* ret =
-   dynamic_cast <sk::ParameterBool *>
-    (SK_Widget_ParameterFactory.create_parameter <bool> (wszDesc));
+    dynamic_cast <sk::ParameterBool *>
+      (SK_Widget_ParameterFactory.create_parameter <bool> (wszDesc));
 
-  ret->register_to_ini ( ini_file, sec_name, key_name );
+  ret->register_to_ini ( ini_file,
+                           sec_name,
+                             key_name );
 
   if (! ret->load (*pbVal))
   {
@@ -271,7 +286,11 @@ LoadWidgetBool (bool* pbVal, iSK_INI* ini_file, const wchar_t* wszDesc, const wc
 static
 __inline
 sk::ParameterInt*
-LoadWidgetDocking (SK_Widget::DockAnchor* pdaVal, iSK_INI* ini_file, const wchar_t* wszDesc, const wchar_t* sec_name, const wchar_t* key_name)
+LoadWidgetDocking ( SK_Widget::DockAnchor *pdaVal,
+                                  iSK_INI *ini_file,
+                            const wchar_t *wszDesc,
+                            const wchar_t *sec_name,
+                            const wchar_t *key_name )
 {
   sk::ParameterInt* ret =
    dynamic_cast <sk::ParameterInt *>
@@ -292,7 +311,11 @@ LoadWidgetDocking (SK_Widget::DockAnchor* pdaVal, iSK_INI* ini_file, const wchar
 static
 __inline
 sk::ParameterVec2f*
-LoadWidgetVec2 (ImVec2* piv2Val, iSK_INI* ini_file, const wchar_t* wszDesc, const wchar_t* sec_name, const wchar_t* key_name)
+LoadWidgetVec2 ( ImVec2  *piv2Val,
+                 iSK_INI *ini_file,
+           const wchar_t *wszDesc,
+           const wchar_t *sec_name,
+           const wchar_t *key_name )
 {
   sk::ParameterVec2f* ret =
    dynamic_cast <sk::ParameterVec2f *>

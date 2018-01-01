@@ -474,7 +474,8 @@ SK_PollGPU (void)
   update_ul.HighPart = update_ftime.dwHighDateTime;
   update_ul.LowPart  = update_ftime.dwLowDateTime;
 
-  double dt = (update_ul.QuadPart - gpu_stats_buffers [0].last_update.QuadPart) * 1.0e-7;
+  const double dt =
+    (update_ul.QuadPart - gpu_stats_buffers [0].last_update.QuadPart) * 1.0e-7;
 
   if (dt > config.gpu.interval)
   {

@@ -30,7 +30,7 @@
 
 struct WMI_refresh_instance_thread_t
 {
-  volatile HANDLE          hThread                      = INVALID_HANDLE_VALUE;
+           HANDLE          hThread                      = INVALID_HANDLE_VALUE;
   volatile HANDLE          hShutdownSignal              = INVALID_HANDLE_VALUE;
 
   IWbemRefresher          *pRefresher                   = nullptr;

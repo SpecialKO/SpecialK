@@ -36,7 +36,7 @@
 #include <comdef.h>
 
 
-typedef HRESULT (WINAPI *CoCreateInstance_pfn)(
+using CoCreateInstance_pfn = HRESULT (WINAPI *)(
   _In_  REFCLSID  rclsid,
   _In_  LPUNKNOWN pUnkOuter,
   _In_  DWORD     dwClsContext,
@@ -156,7 +156,7 @@ namespace COM {
       IWbemLocator*    pWbemLocator    = nullptr;
       BSTR             bstrNameSpace   = nullptr;
 
-      volatile HANDLE  hServerThread   = INVALID_HANDLE_VALUE;
+      HANDLE           hServerThread   = INVALID_HANDLE_VALUE;
       HANDLE           hShutdownServer = nullptr;
 
       void Lock         (void);
@@ -396,26 +396,27 @@ SK_InitWMI (void)
     return true;
   }
 
-  if (InterlockedCompareExchangePointer (&COM::base.wmi.hServerThread, nullptr, INVALID_HANDLE_VALUE) == INVALID_HANDLE_VALUE)
+
+  if ( InterlockedCompareExchangePointer (&COM::base.wmi.hServerThread, nullptr, INVALID_HANDLE_VALUE)
+                                                                              == INVALID_HANDLE_VALUE )
   {
     COM::base.wmi.hShutdownServer =
       CreateEvent (nullptr, TRUE, FALSE, L"WMI Shutdown");
 
-    CreateThread (nullptr, 0,
-                  [](LPVOID) ->
-                  DWORD
-                  {
-                    InterlockedExchangePointer ( &COM::base.wmi.hServerThread,
-                                                   GetCurrentThread () );
+    InterlockedExchangePointer (&COM::base.wmi.hServerThread,
+      CreateThread (nullptr, 0,
+                    [](LPVOID) ->
+                    DWORD
+                    {
+                      SK_AutoCOMInit auto_com;
 
-                    SK_AutoCOMInit auto_com;
+                      SK_InitCOM ();
 
-                    SK_InitCOM ();
-
-                    return SK_WMI_ServerThread (nullptr);
-                  },
-                  nullptr, 0x00, nullptr
-                  );
+                      return SK_WMI_ServerThread (nullptr);
+                    },
+                    nullptr, 0x00, nullptr
+                    )
+    );
   }
 
   else
@@ -434,8 +435,8 @@ SK_ShutdownWMI (void)
 {
   if (InterlockedCompareExchange (&COM::base.wmi.init, 0, 1))
   {
-    HANDLE hServerThread = 
-     ReadPointerAcquire (&COM::base.wmi.hServerThread);
+    HANDLE hServerThread =
+      ReadPointerAcquire (&COM::base.wmi.hServerThread);
 
     SetEvent (COM::base.wmi.hShutdownServer);
 
@@ -1611,12 +1612,12 @@ SK_MonitorProcess (LPVOID user)
   HANDLE hProc = GetCurrentProcess ();
 
   DWORD   dwProcessSize = MAX_PATH;
-  wchar_t wszProcessName [MAX_PATH];
+  wchar_t wszProcessName [MAX_PATH] = { };
 
   QueryFullProcessImageName (hProc, 0, wszProcessName, &dwProcessSize);
 
   wchar_t* pwszShortName = wcsrchr (wszProcessName, L'\\') + 1;
-  wchar_t* pwszTruncName = wcsrchr (pwszShortName, L'.');
+  wchar_t* pwszTruncName = wcsrchr (pwszShortName,  L'.');
 
   if (pwszTruncName != nullptr)
     *pwszTruncName = L'\0';
@@ -1814,7 +1815,7 @@ PROC_CLEANUP:
   if (proc.hShutdownSignal != INVALID_HANDLE_VALUE)
   {
     CloseHandle (proc.hShutdownSignal);
-    proc.hShutdownSignal = INVALID_HANDLE_VALUE;
+                 proc.hShutdownSignal = INVALID_HANDLE_VALUE;
   }
 
   COM::base.wmi.Unlock ();
