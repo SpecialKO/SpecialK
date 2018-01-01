@@ -1136,6 +1136,7 @@ struct param_decl_s {
   games.emplace ( L"LEGOMARVEL2_DX11.exe",                   SK_GAME_ID::LEGOMarvelSuperheroes2       );
   games.emplace ( L"okami.exe",                              SK_GAME_ID::Okami                        );
   games.emplace ( L"DuckTales.exe",                          SK_GAME_ID::DuckTalesRemastered          );
+  games.emplace ( L"mafia3.exe",                             SK_GAME_ID::Mafia3                       );
 
   //
   // Application Compatibility Overrides
@@ -1446,8 +1447,12 @@ struct param_decl_s {
         break;
 
       case SK_GAME_ID::Okami:
-        config.render.dxgi.deferred_isolation   = false;
+        config.render.dxgi.deferred_isolation   = true;
         config.render.dxgi.alternate_hook       = 0;
+        break;
+
+      case SK_GAME_ID::Mafia3:
+        config.steam.force_load_steamapi        = true;
         break;
     }
   }
@@ -1559,7 +1564,7 @@ struct param_decl_s {
     iSK_INI* pInjectINI =
       SK_CreateINI (inject_config.c_str ());
 
-    sk::ParameterBool* default_usage =
+    auto* default_usage =
       dynamic_cast <sk::ParameterBool *> (
         g_ParameterFactory.create_parameter <bool> (L"Default Usage")
       );
