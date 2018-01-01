@@ -320,48 +320,51 @@ SK_BootDI8 (void)
 
   if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
   {
-  HMODULE hBackend = 
-    (SK_GetDLLRole () & DLL_ROLE::DInput8) ? backend_dll :
-                                    LoadLibraryW (L"dinput8.dll");
-
-  dll_log.Log (L"[ DInput 8 ] Importing DirectInput8Create....");
-  dll_log.Log (L"[ DInput 8 ] ================================");
-  
-  if (! _wcsicmp (SK_GetModuleName (SK_GetDLL ()).c_str (), L"dinput8.dll"))
-  {
-    dll_log.Log (L"[ DInput 8 ]   DirectInput8Create:   %ph",
-      (DirectInput8Create_Import) =  \
-        reinterpret_cast <DirectInput8Create_pfn> (
-          GetProcAddress (hBackend, "DirectInput8Create")
-        )
-    );
-  }
-
-  else if (hBackend != nullptr)
-  {
-    const bool bProxy =
-      ( GetModuleHandle (L"dinput8.dll") != hBackend );
-
-
-    if ( MH_OK ==
-            SK_CreateDLLHook2 (      L"dinput8.dll",
-                                      "DirectInput8Create",
-                                       DirectInput8Create,
-              static_cast_p2p <void> (&DirectInput8Create_Import) )
-        )
+    if (DirectInput8Create_Import == nullptr)
     {
-      if (bProxy)
+      HMODULE hBackend = 
+        (SK_GetDLLRole () & DLL_ROLE::DInput8) ? backend_dll :
+                                        LoadLibraryW (L"dinput8.dll");
+
+      dll_log.Log (L"[ DInput 8 ] Importing DirectInput8Create....");
+      dll_log.Log (L"[ DInput 8 ] ================================");
+      
+      if (! _wcsicmp (SK_GetModuleName (SK_GetDLL ()).c_str (), L"dinput8.dll"))
       {
-        (DirectInput8Create_Import) =  \
-          reinterpret_cast <DirectInput8Create_pfn> (
-            GetProcAddress (hBackend, "DirectInput8Create")
-          );
+        dll_log.Log (L"[ DInput 8 ]   DirectInput8Create:   %ph",
+          (DirectInput8Create_Import) =  \
+            reinterpret_cast <DirectInput8Create_pfn> (
+              GetProcAddress (hBackend, "DirectInput8Create")
+            )
+        );
       }
 
-      dll_log.Log (L"[ DInput 8 ]   DirectInput8Create:   %p  { Hooked }",
-        (DirectInput8Create_Import) );
+      else if (hBackend != nullptr)
+      {
+        const bool bProxy =
+          ( GetModuleHandle (L"dinput8.dll") != hBackend );
+
+
+        if ( MH_OK ==
+                SK_CreateDLLHook2 (      L"dinput8.dll",
+                                          "DirectInput8Create",
+                                           DirectInput8Create,
+                  static_cast_p2p <void> (&DirectInput8Create_Import) )
+            )
+        {
+          if (bProxy)
+          {
+            (DirectInput8Create_Import) =  \
+              reinterpret_cast <DirectInput8Create_pfn> (
+                GetProcAddress (hBackend, "DirectInput8Create")
+              );
+          }
+
+          dll_log.Log (L"[ DInput 8 ]   DirectInput8Create:   %p  { Hooked }",
+            (DirectInput8Create_Import) );
+        }
+      }
     }
-  }
 
 
   //
@@ -393,7 +396,7 @@ SK_BootDI8 (void)
 
   // OpenGL
   //
-  if (gl && GetModuleHandle (L"OpenGL32.dll"))
+  if (gl || GetModuleHandle (L"OpenGL32.dll"))
     SK_BootOpenGL ();
 
 
@@ -405,7 +408,7 @@ SK_BootDI8 (void)
 
   // D3D9
   //
-  if (d3d9 && GetModuleHandle (L"d3d9.dll"))
+  if (d3d9 || GetModuleHandle (L"d3d9.dll"))
     SK_BootD3D9 ();
 
 
@@ -1485,9 +1488,9 @@ SK_Input_HookDI8 (void)
     SK_LOG0 ( ( L"Game uses DirectInput, installing input hooks..." ),
                   L"   Input  " );
 
-    HMODULE hBackend = 
-      (SK_GetDLLRole () & DLL_ROLE::DInput8) ? backend_dll :
-                                      GetModuleHandle (L"dinput8.dll");
+    //HMODULE hBackend = 
+    //  (SK_GetDLLRole () & DLL_ROLE::DInput8) ? backend_dll :
+    //                                  GetModuleHandle (L"dinput8.dll");
 
     if (GetProcAddress (GetModuleHandle (L"dinput8.dll"), "DirectInput8Create"))
     {
@@ -1506,7 +1509,13 @@ SK_Input_HookDI8 (void)
     }
 
     SK_ApplyQueuedHooks ();
+
+    InterlockedIncrement (&hooked);
   }
+
+  // Spinlock
+  while ( ReadAcquire (&hooked) < 2 )
+    ;
 }
 
 void
