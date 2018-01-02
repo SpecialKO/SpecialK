@@ -2906,12 +2906,12 @@ SK::SteamAPI::AppID (void)
     {
       id = utils->GetAppID ();
 
-      if (config.system.central_repository)
+      if (id != 0)
       {
-        if (id != 0)
-        {
-          first = false;
+        first = false;
 
+        if (config.system.central_repository)
+        {
           app_cache_mgr.addAppToCache      (SK_GetFullyQualifiedApp (), SK_GetHostApp (), SK_UTF8ToWideChar (SK_UseManifestToGetAppName (id)).c_str (), id);
           app_cache_mgr.saveAppCache       (true);
 

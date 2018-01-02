@@ -40,8 +40,8 @@ class SK_ModuleAddrMap
 public:
   SK_ModuleAddrMap (void);
 
-  bool contains (LPVOID pAddr, HMODULE* phMod);
-  void insert   (LPVOID pAddr, HMODULE   hMod);
+  bool contains (LPCVOID pAddr, HMODULE* phMod);
+  void insert   (LPCVOID pAddr, HMODULE   hMod);
 
   void* pResolved = nullptr;
 };

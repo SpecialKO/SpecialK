@@ -1826,9 +1826,11 @@ SK_FAR_ControlPanel (void)
   }
 
 
+  ImGui::PushID (u8"NieR:Automata™_CPL");
+
   bool changed = false;
 
-  if (ImGui::CollapsingHeader("NieR: Automata", ImGuiTreeNodeFlags_DefaultOpen))
+  if (ImGui::CollapsingHeader (u8"NieR:Automata™", ImGuiTreeNodeFlags_DefaultOpen))
   {
     ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.40f, 0.40f, 0.45f));
     ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.45f, 0.45f, 0.80f));
@@ -2223,6 +2225,8 @@ SK_FAR_ControlPanel (void)
 
   if (changed)
     far_prefs->write (far_prefs_file);
+
+  ImGui::PopID ();
 }
 
 bool

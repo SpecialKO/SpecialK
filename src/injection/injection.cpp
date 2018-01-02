@@ -231,7 +231,7 @@ CBTProc ( _In_ int    nCode,
           _In_ WPARAM wParam,
           _In_ LPARAM lParam )
 {
-  return CallNextHookEx (0, nCode, wParam, lParam);
+  return CallNextHookEx (nullptr, nCode, wParam, lParam);
 }
 
 BOOL
@@ -279,7 +279,7 @@ SKX_InstallCBTHook (void)
   __stdcall
   SK_GetDLL (void);
 
-  if (hMod == SK_GetDLL () && hMod != 0)
+  if (hMod == SK_GetDLL () && hMod != nullptr)
   {
     SK_Inject_InitShutdownEvent ();
 

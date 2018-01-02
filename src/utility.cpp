@@ -1181,9 +1181,9 @@ SK_GetModuleName (HMODULE hDll)
 }
 
 HMODULE
-SK_GetModuleFromAddr (LPVOID addr)
+SK_GetModuleFromAddr (LPCVOID addr)
 {
-  HMODULE hModOut;
+  HMODULE hModOut = nullptr;
 
   if ( GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT |
                            GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
@@ -1199,7 +1199,7 @@ SK_GetModuleFromAddr (LPVOID addr)
 }
 
 std::wstring
-SK_GetModuleNameFromAddr (LPVOID addr)
+SK_GetModuleNameFromAddr (LPCVOID addr)
 {
   HMODULE hModOut =
     SK_GetModuleFromAddr (addr);
@@ -1211,7 +1211,7 @@ SK_GetModuleNameFromAddr (LPVOID addr)
 }
 
 std::wstring
-SK_GetModuleFullNameFromAddr (LPVOID addr)
+SK_GetModuleFullNameFromAddr (LPCVOID addr)
 {
   HMODULE hModOut =
     SK_GetModuleFromAddr (addr);
@@ -1223,7 +1223,7 @@ SK_GetModuleFullNameFromAddr (LPVOID addr)
 }
 
 std::wstring
-SK_MakePrettyAddress (LPVOID addr, DWORD /*dwFlags*/)
+SK_MakePrettyAddress (LPCVOID addr, DWORD /*dwFlags*/)
 {
   return
     SK_FormatStringW ( L"( %s ) + %xh",
@@ -1231,6 +1231,27 @@ SK_MakePrettyAddress (LPVOID addr, DWORD /*dwFlags*/)
                                             (uintptr_t)addr -
                       (uintptr_t)SK_GetModuleFromAddr (addr) );
 }
+
+#include <SpecialK/config.h>
+
+bool
+SK_ValidatePointer (LPCVOID addr)
+{
+  MEMORY_BASIC_INFORMATION minfo = { };
+
+  if (VirtualQuery (addr, &minfo, sizeof minfo))
+  {
+    if (! (minfo.Protect & PAGE_NOACCESS))
+      return true;
+  }
+
+  SK_LOG0 ( ( L"Address Validation for addr. %s FAILED!",
+                SK_MakePrettyAddress (addr).c_str () ),
+              L" SK Debug " );
+
+  return false;
+}
+
 
 PROCESSENTRY32
 FindProcessByName (const wchar_t* wszName)
@@ -1345,7 +1366,7 @@ SK_SelfDestruct (void)
 #include <SpecialK/tls.h>
 
 HMODULE
-SK_GetCallingDLL (LPVOID pReturn)
+SK_GetCallingDLL (LPCVOID pReturn)
 {
   HMODULE hCallingMod = nullptr;
 
@@ -1365,7 +1386,7 @@ SK_GetCallingDLL (LPVOID pReturn)
 }
 
 std::wstring
-SK_GetCallerName (LPVOID pReturn)
+SK_GetCallerName (LPCVOID pReturn)
 {
   return SK_GetModuleName (SK_GetCallingDLL (pReturn));
 }
@@ -1460,7 +1481,7 @@ SK_TestImports (          HMODULE  hMod,
 
   __try
   {
-    uintptr_t                pImgBase =
+    auto                pImgBase =
       (uintptr_t)GetModuleHandle (nullptr);
 
              MEMORY_BASIC_INFORMATION minfo;
@@ -1469,13 +1490,13 @@ SK_TestImports (          HMODULE  hMod,
     pImgBase =
       (uintptr_t)minfo.BaseAddress;
 
-    PIMAGE_NT_HEADERS        pNtHdr   =
+    auto        pNtHdr   =
       PIMAGE_NT_HEADERS ( pImgBase + PIMAGE_DOS_HEADER (pImgBase)->e_lfanew );
 
     PIMAGE_DATA_DIRECTORY    pImgDir  =
         &pNtHdr->OptionalHeader.DataDirectory [IMAGE_DIRECTORY_ENTRY_IMPORT];
 
-    PIMAGE_IMPORT_DESCRIPTOR pImpDesc =
+    auto pImpDesc =
       PIMAGE_IMPORT_DESCRIPTOR (
         pImgBase + pImgDir->VirtualAddress
       );
@@ -1497,7 +1518,7 @@ SK_TestImports (          HMODULE  hMod,
             continue;
           }
 
-          const char* szImport =
+          const auto* szImport =
             reinterpret_cast <const char *> (
               pImgBase + (pImpDesc++)->Name
             );
@@ -1994,7 +2015,7 @@ void*
 __stdcall
 SK_ScanAlignedEx (const void* pattern, size_t len, const void* mask, void* after, int align)
 {
-  uint8_t* base_addr =
+  auto* base_addr =
     reinterpret_cast <uint8_t *> (GetModuleHandle (nullptr));
 
   return SK_ScanAlignedEx2 (pattern, len, mask, after, align, base_addr);

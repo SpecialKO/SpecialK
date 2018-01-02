@@ -60,13 +60,10 @@ SK_CountIO (io_perf_t& ioc, const double update)
     ioc.init = true;
   }
 
-  SYSTEMTIME     update_time;
-  FILETIME       update_ftime;
-  ULARGE_INTEGER update_ul;
+  SYSTEMTIME     update_time  = { };
+  FILETIME       update_ftime = { };
+  ULARGE_INTEGER update_ul    = { };
 
-  IO_COUNTERS current_io;
-
-  GetProcessIoCounters (hProc, &current_io);
   GetSystemTime        (&update_time);
   SystemTimeToFileTime (&update_time, &update_ftime);
 
@@ -75,38 +72,42 @@ SK_CountIO (io_perf_t& ioc, const double update)
 
   ioc.dt += update_ul.QuadPart - ioc.last_update.QuadPart;
 
-  ioc.accum.ReadTransferCount +=
-    current_io.ReadTransferCount - ioc.last_counter.ReadTransferCount;
-  ioc.accum.WriteTransferCount +=
-    current_io.WriteTransferCount - ioc.last_counter.WriteTransferCount;
-  ioc.accum.OtherTransferCount +=
-    current_io.OtherTransferCount - ioc.last_counter.OtherTransferCount;
-
-  ioc.accum.ReadOperationCount +=
-    current_io.ReadOperationCount - ioc.last_counter.ReadOperationCount;
-  ioc.accum.WriteOperationCount +=
-    current_io.WriteOperationCount - ioc.last_counter.WriteOperationCount;
-  ioc.accum.OtherOperationCount +=
-    current_io.OtherOperationCount - ioc.last_counter.OtherOperationCount;
-
-  auto dRB = static_cast <double> (ioc.accum.ReadTransferCount);
-  auto dWB = static_cast <double> (ioc.accum.WriteTransferCount);
-  auto dOB = static_cast <double> (ioc.accum.OtherTransferCount);
-
-  auto dRC = static_cast <double> (ioc.accum.ReadOperationCount);
-  auto dWC = static_cast <double> (ioc.accum.WriteOperationCount);
-  auto dOC = static_cast <double> (ioc.accum.OtherOperationCount);
-
-  double& read_mb_sec   = ioc.read_mb_sec;
-  double& write_mb_sec  = ioc.write_mb_sec;
-  double& other_mb_sec  = ioc.other_mb_sec;
-
-  double& read_iop_sec  = ioc.read_iop_sec;
-  double& write_iop_sec = ioc.write_iop_sec;
-  double& other_iop_sec = ioc.other_iop_sec;
-
   if (ioc.dt >= update)
   {
+    IO_COUNTERS current_io = { };
+
+    GetProcessIoCounters (hProc, &current_io);
+
+    ioc.accum.ReadTransferCount +=
+      current_io.ReadTransferCount - ioc.last_counter.ReadTransferCount;
+    ioc.accum.WriteTransferCount +=
+      current_io.WriteTransferCount - ioc.last_counter.WriteTransferCount;
+    ioc.accum.OtherTransferCount +=
+      current_io.OtherTransferCount - ioc.last_counter.OtherTransferCount;
+
+    ioc.accum.ReadOperationCount +=
+      current_io.ReadOperationCount - ioc.last_counter.ReadOperationCount;
+    ioc.accum.WriteOperationCount +=
+      current_io.WriteOperationCount - ioc.last_counter.WriteOperationCount;
+    ioc.accum.OtherOperationCount +=
+      current_io.OtherOperationCount - ioc.last_counter.OtherOperationCount;
+
+    auto dRB = static_cast <double> (ioc.accum.ReadTransferCount);
+    auto dWB = static_cast <double> (ioc.accum.WriteTransferCount);
+    auto dOB = static_cast <double> (ioc.accum.OtherTransferCount);
+
+    auto dRC = static_cast <double> (ioc.accum.ReadOperationCount);
+    auto dWC = static_cast <double> (ioc.accum.WriteOperationCount);
+    auto dOC = static_cast <double> (ioc.accum.OtherOperationCount);
+
+    double& read_mb_sec   = ioc.read_mb_sec;
+    double& write_mb_sec  = ioc.write_mb_sec;
+    double& other_mb_sec  = ioc.other_mb_sec;
+
+    double& read_iop_sec  = ioc.read_iop_sec;
+    double& write_iop_sec = ioc.write_iop_sec;
+    double& other_iop_sec = ioc.other_iop_sec;
+
     read_mb_sec  = (
       read_mb_sec + ((dRB / 1048576.0) / (1.0e-7 * static_cast <double> (ioc.dt)))
                    ) / 2.0;
@@ -130,10 +131,10 @@ SK_CountIO (io_perf_t& ioc, const double update)
     ioc.accum.OtherOperationCount = 0;
 
     ioc.dt = 0;
-  }
 
-  ioc.last_update.QuadPart = update_ul.QuadPart;
-  memcpy (&ioc.last_counter, &current_io, sizeof (IO_COUNTERS));
+    ioc.last_update.QuadPart = update_ul.QuadPart;
+    memcpy (&ioc.last_counter, &current_io, sizeof (IO_COUNTERS));
+  }
 }
 
 

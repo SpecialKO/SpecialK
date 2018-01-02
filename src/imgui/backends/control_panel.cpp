@@ -2354,8 +2354,8 @@ SK_ImGui_ControlPanel (void)
       lstrcatA (szAPIName, u8"→11" );
     }
 
-    lstrcatA ( szAPIName, SK_GetBitness () == 32 ? "    [ 32-bit ]" :
-                                                   "    [ 64-bit ]" );
+    lstrcatA ( szAPIName, SK_GetBitness () == 32 ? "           [ 32-bit ]" :
+                                                   "           [ 64-bit ]" );
 
     ImGui::MenuItem ("Active Render API        ", szAPIName);
 
@@ -2423,7 +2423,7 @@ SK_ImGui_ControlPanel (void)
 
       if (refresh_rate != 0.0f)
       {
-        snprintf ( szResolution, 63, "%s@%4.1f",
+        snprintf ( szResolution, 63, "%s @ %4.1f Hz",
                                        szResolution, refresh_rate );
       }
 
@@ -2510,14 +2510,14 @@ SK_ImGui_ControlPanel (void)
 
       if (rb.gsync_state.capable)
       {
-        strcat (szGSyncStatus, "Supported + ");
+        strcat (szGSyncStatus, "    Supported + ");
         if (rb.gsync_state.active)
           strcat (szGSyncStatus, "Active");
         else
           strcat (szGSyncStatus, "Inactive");
       }
       else
-        strcat (szGSyncStatus, "Unsupported");
+        strcat (szGSyncStatus, "   Unsupported");
 
       ImGui::MenuItem (" G-Sync Status   ", szGSyncStatus);
     }

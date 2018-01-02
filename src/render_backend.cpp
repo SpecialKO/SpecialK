@@ -614,6 +614,7 @@ mode_change_request_e request_mode_change (mode_change_request_e::None);
 
 
 
+// Does NOT implicitly AddRef, do NOT hold a reference to this!
 __declspec (dllexport)
 IUnknown*
 __stdcall
@@ -622,6 +623,7 @@ SK_Render_GetDevice (void)
   return SK_GetCurrentRenderBackend ().device;
 }
 
+// Does NOT implicitly AddRef, do NOT hold a reference to this!
 __declspec (dllexport)
 IUnknown*
 __stdcall

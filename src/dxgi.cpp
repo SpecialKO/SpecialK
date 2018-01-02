@@ -680,7 +680,7 @@ SK_DXGI_BringRenderWindowToTop (void)
 
 extern int                      gpu_prio;
 
-bool             bAlwaysAllowFullscreen = true;
+bool             bAlwaysAllowFullscreen = false;
 HWND             hWndRender             = nullptr;
 
 bool bFlipMode = false;
@@ -3585,9 +3585,8 @@ SK_DXGI_CreateSwapChain_PreInit ( _Inout_opt_ DXGI_SWAP_CHAIN_DESC            *p
     if (bAlwaysAllowFullscreen && pDesc->Windowed)
     {
       pDesc->Flags                             |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-      pDesc->Windowed                           = true;
-      pDesc->BufferDesc.RefreshRate.Denominator = 0;
-      pDesc->BufferDesc.RefreshRate.Numerator   = 0;
+      //pDesc->BufferDesc.RefreshRate.Denominator = 0;
+      //pDesc->BufferDesc.RefreshRate.Numerator   = 0;
     }
 
     if (pDesc->Windowed && config.window.borderless && (! config.window.fullscreen))
@@ -4965,7 +4964,9 @@ SK_HookDXGI (void)
 
   SK_D3D11_InitTextures ();
   SK_D3D11_Init         ();
-  SK_D3D12_Init         ();
+
+  if (GetModuleHandle (L"d3d12.dll"))
+    SK_D3D12_Init       ();
 
   SK_ICommandProcessor* pCommandProc =
     SK_GetCommandProcessor ();
@@ -5514,34 +5515,22 @@ HookDXGI (LPVOID user)
     CComPtr   <ID3D11DeviceContext>  pDevCtx  = nullptr;
     CComPtr   <ID3D11DeviceContext1> pDevCtx1 = nullptr;
     CComPtr   <ID3D11DeviceContext2> pDevCtx2 = nullptr;
-    CComPtr   <ID3D11Device>           pDev   = nullptr;
-    CComQIPtr <ID3D11Device1>          pDev1  = nullptr;
-    CComQIPtr <ID3D11Device2>          pDev2  = nullptr;
+    CComPtr   <ID3D11Device>           pDev   = pDevice;
+    CComQIPtr <ID3D11Device1>          pDev1  (pDev);
+    CComQIPtr <ID3D11Device2>          pDev2  (pDev1);
 
     if (config.render.dxgi.deferred_isolation)
     {
       pImmediateContext->GetDevice (&pDev);
 
-      pDev1 = pDev;
-      if (pDev1)
-      {
-        pDev2 = pDev1;
-        if (pDev2)
-        {
-          pDev2->CreateDeferredContext2 (0x00, &pDevCtx2);
-          d3d11_hook_ctx.ppImmediateContext = (ID3D11DeviceContext **)&pDevCtx2;
-        } 
-        else
-        {
-          pDev1->CreateDeferredContext1 (0x00, &pDevCtx1);
-          d3d11_hook_ctx.ppImmediateContext = (ID3D11DeviceContext **)&pDevCtx;
-        }
-      }
-      else
-      {
-        pDev->CreateDeferredContext (0x00,  &pDevCtx);
-        d3d11_hook_ctx.ppImmediateContext = &pDevCtx;
-      }
+      pDev->CreateDeferredContext (0x00,  &pDevCtx);
+      d3d11_hook_ctx.ppImmediateContext = &pDevCtx;
+    }
+
+    else
+    {
+      pDev->GetImmediateContext (&pDevCtx);
+      d3d11_hook_ctx.ppImmediateContext = (ID3D11DeviceContext **)&pDevCtx;
     }
 
     HookD3D11             (&d3d11_hook_ctx);

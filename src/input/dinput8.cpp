@@ -442,7 +442,7 @@ SK_BootDI8 (void)
     ;
 }
 
-typedef HRESULT (WINAPI *CoCreateInstance_pfn)(
+using CoCreateInstance_pfn = HRESULT (WINAPI *)(
   _In_  REFCLSID  rclsid,
   _In_  LPUNKNOWN pUnkOuter,
   _In_  DWORD     dwClsContext,
@@ -773,8 +773,8 @@ SK_JOY_TranslateToXInput (JOYINFOEX* pJoy, const JOYCAPSW* pCaps)
     else
       rpos = static_cast <float> ( pos ) - static_cast <float> ( min );
 
-    float max_xi    = static_cast <float> ( std::numeric_limits <unsigned short>::max ( ) );
-    float center_xi = static_cast <float> ( std::numeric_limits <unsigned short>::max ( ) / 2 );
+    auto max_xi    = static_cast <float> ( std::numeric_limits <unsigned short>::max ( ) );
+    auto center_xi = static_cast <float> ( std::numeric_limits <unsigned short>::max ( ) / 2 );
 
     return
       static_cast <SHORT> ( max_xi * ( rpos / range ) - center_xi );

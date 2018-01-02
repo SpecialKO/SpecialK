@@ -702,7 +702,7 @@ BOOL
 __stdcall
 SK_Attach (DLL_ROLE role)
 {
-  auto DontInject = [] (void) ->
+  auto DontInject = []()->
     BOOL
       {
         SK_SetDLLRole (DLL_ROLE::INVALID);
@@ -958,14 +958,14 @@ DllMain ( HMODULE hModule,
       //   happen if a game does not opt-in to system wide injection.
       if (! SK_EstablishDllRole (hModule))
       {
-        return EarlyOut ();
+        return EarlyOut (TRUE);
       }
 
       // We don't want to initialize the DLL, but we also don't want it to
       //   re-inject itself constantly; just return TRUE here.
       else if (SK_GetDLLRole () == DLL_ROLE::INVALID)
       {
-        return EarlyOut ();
+        return EarlyOut (TRUE);
       }
 
       // Setup unhooked function pointers
@@ -973,7 +973,7 @@ DllMain ( HMODULE hModule,
 
       if (! SK_Attach (SK_GetDLLRole ()))
       {
-        return EarlyOut ();
+        return EarlyOut (TRUE);
       }
 
       // If we got this far, it's because this is an injection target
@@ -1095,13 +1095,13 @@ DllMain ( HMODULE hModule,
 SK_ModuleAddrMap::SK_ModuleAddrMap (void) = default;
 
 bool
-SK_ModuleAddrMap::contains (LPVOID pAddr, HMODULE* phMod)
+SK_ModuleAddrMap::contains (LPCVOID pAddr, HMODULE* phMod)
 {
   if (pResolved == nullptr)
-      pResolved = new std::unordered_map <LPVOID, HMODULE> ();
+      pResolved = new std::unordered_map <LPCVOID, HMODULE> ();
 
-  std::unordered_map <LPVOID, HMODULE> *pResolved_ =
-    ((std::unordered_map <LPVOID, HMODULE> *)pResolved);
+  std::unordered_map <LPCVOID, HMODULE> *pResolved_ =
+    ((std::unordered_map <LPCVOID, HMODULE> *)pResolved);
 
   const auto&& it =
     pResolved_->find (pAddr);
@@ -1116,13 +1116,13 @@ SK_ModuleAddrMap::contains (LPVOID pAddr, HMODULE* phMod)
 }
 
 void 
-SK_ModuleAddrMap::insert (LPVOID pAddr, HMODULE hMod)
+SK_ModuleAddrMap::insert (LPCVOID pAddr, HMODULE hMod)
 {
   if (pResolved == nullptr)
-    pResolved = new std::unordered_map <LPVOID, HMODULE> ( );
+    pResolved = new std::unordered_map <LPCVOID, HMODULE> ( );
 
-  std::unordered_map <LPVOID, HMODULE> *pResolved_ = 
-    ((std::unordered_map <LPVOID, HMODULE> *)pResolved);
+  std::unordered_map <LPCVOID, HMODULE> *pResolved_ = 
+    ((std::unordered_map <LPCVOID, HMODULE> *)pResolved);
 
   (*pResolved_) [pAddr] = hMod;
 }

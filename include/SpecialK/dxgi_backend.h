@@ -1663,8 +1663,15 @@ public:
   LARGE_INTEGER                               PerfFreq;
 } extern SK_D3D11_Textures;
 
-
-
+typedef HRESULT (STDMETHODCALLTYPE *D3D11Dev_CreateDeferredContext_pfn)( 
+  _In_            ID3D11Device         *This,
+  _In_            UINT                  ContextFlags,
+  _Out_opt_       ID3D11DeviceContext **ppDeferredContext
+);
+typedef void (STDMETHODCALLTYPE *D3D11Dev_GetImmediateContext_pfn)( 
+  _In_            ID3D11Device         *This,
+  _Out_           ID3D11DeviceContext **ppImmediateContext
+);
 typedef HRESULT (WINAPI *D3D11Dev_CreateSamplerState_pfn)(
   _In_            ID3D11Device        *This,
   _In_      const D3D11_SAMPLER_DESC  *pSamplerDesc,
@@ -1894,6 +1901,9 @@ extern D3D11Dev_CreateGeometryShaderWithStreamOutput_pfn  D3D11Dev_CreateGeometr
 extern D3D11Dev_CreateHullShader_pfn                      D3D11Dev_CreateHullShader_Original;
 extern D3D11Dev_CreateDomainShader_pfn                    D3D11Dev_CreateDomainShader_Original;
 extern D3D11Dev_CreateComputeShader_pfn                   D3D11Dev_CreateComputeShader_Original;
+
+extern D3D11Dev_CreateDeferredContext_pfn                 D3D11Dev_CreateDeferredContext_Original;
+extern D3D11Dev_GetImmediateContext_pfn                   D3D11Dev_GetImmediateContext_Original;
 
 extern D3D11_RSSetScissorRects_pfn                        D3D11_RSSetScissorRects_Original;
 extern D3D11_RSSetViewports_pfn                           D3D11_RSSetViewports_Original;

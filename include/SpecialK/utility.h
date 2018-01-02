@@ -109,14 +109,15 @@ iSK_INI*       SK_GetDLLConfig              (void);
 
 #pragma intrinsic (_ReturnAddress)
 
-HMODULE        SK_GetCallingDLL             (LPVOID  pReturn = _ReturnAddress ());
-std::wstring   SK_GetCallerName             (LPVOID  pReturn = _ReturnAddress ());
-HMODULE        SK_GetModuleFromAddr         (LPVOID  addr);
+HMODULE        SK_GetCallingDLL             (LPCVOID pReturn = _ReturnAddress ());
+std::wstring   SK_GetCallerName             (LPCVOID pReturn = _ReturnAddress ());
+HMODULE        SK_GetModuleFromAddr         (LPCVOID addr);
 std::wstring   SK_GetModuleName             (HMODULE hDll);
 std::wstring   SK_GetModuleFullName         (HMODULE hDll);
-std::wstring   SK_GetModuleNameFromAddr     (LPVOID  addr);
-std::wstring   SK_GetModuleFullNameFromAddr (LPVOID  addr);
-std::wstring   SK_MakePrettyAddress         (LPVOID  addr, DWORD dwFlags = 0x0);
+std::wstring   SK_GetModuleNameFromAddr     (LPCVOID addr);
+std::wstring   SK_GetModuleFullNameFromAddr (LPCVOID addr);
+std::wstring   SK_MakePrettyAddress         (LPCVOID addr, DWORD dwFlags = 0x0);
+bool           SK_ValidatePointer           (LPCVOID addr);
 
 bool           SK_StripUserNameFromPathA    (   char*  szInOut);
 bool           SK_StripUserNameFromPathW    (wchar_t* wszInOut);

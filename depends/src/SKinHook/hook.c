@@ -101,6 +101,40 @@ struct
 } g_hooks [4];
 
 //-------------------------------------------------------------------------
+static
+VOID
+EnterSpinLock (VOID)
+{
+  SIZE_T spinCount = 0;
+
+  // Wait until the flag is FALSE.
+  while (InterlockedCompareExchange (&g_isLocked, TRUE, FALSE) != FALSE)
+  {
+    // No need to generate a memory barrier here, since InterlockedCompareExchange()
+    // generates a full memory barrier itself.
+
+    // Prevent the loop from being too busy.
+    if (spinCount < 64)
+        MsgWaitForMultipleObjectsEx (0, NULL, 0, QS_ALLEVENTS, MWMO_ALERTABLE | MWMO_INPUTAVAILABLE);
+    else
+        MsgWaitForMultipleObjectsEx (0, NULL, 1, QS_ALLEVENTS, MWMO_ALERTABLE | MWMO_INPUTAVAILABLE);
+
+    spinCount++;
+  }
+}
+
+//-------------------------------------------------------------------------
+static
+VOID
+LeaveSpinLock (VOID)
+{
+  // No need to generate a memory barrier here, since InterlockedExchange()
+  // generates a full memory barrier itself.
+
+  InterlockedExchange (&g_isLocked, FALSE);
+}
+
+//-------------------------------------------------------------------------
 // Returns INVALID_HOOK_POS if not found.
 static
 UINT
@@ -573,40 +607,6 @@ EnableAllHooksLL (BOOL enable)
 }
 
 //-------------------------------------------------------------------------
-static
-VOID
-EnterSpinLock (VOID)
-{
-    SIZE_T spinCount = 0;
-
-    // Wait until the flag is FALSE.
-    while (InterlockedCompareExchange (&g_isLocked, TRUE, FALSE) != FALSE)
-    {
-        // No need to generate a memory barrier here, since InterlockedCompareExchange()
-        // generates a full memory barrier itself.
-
-        // Prevent the loop from being too busy.
-        if (spinCount < 16)
-            SleepEx (0, TRUE);
-        else
-            SleepEx (1, TRUE);
-
-        spinCount++;
-    }
-}
-
-//-------------------------------------------------------------------------
-static
-VOID
-LeaveSpinLock (VOID)
-{
-    // No need to generate a memory barrier here, since InterlockedExchange()
-    // generates a full memory barrier itself.
-
-    InterlockedExchange (&g_isLocked, FALSE);
-}
-
-//-------------------------------------------------------------------------
 MH_STATUS
 WINAPI
 MH_Initialize (VOID)
@@ -650,8 +650,6 @@ MH_Uninitialize (VOID)
 {
   MH_STATUS status = MH_OK;
 
-  EnterSpinLock ();
-
   if (g_hHeap != NULL)
   {
     for (int i = 0; i < 4; i++)
@@ -680,8 +678,6 @@ MH_Uninitialize (VOID)
   {
     status = MH_ERROR_NOT_INITIALIZED;
   }
-
-  LeaveSpinLock ();
 
   return status;
 }

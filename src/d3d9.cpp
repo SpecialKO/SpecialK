@@ -381,7 +381,7 @@ std::unordered_map <uint32_t, ShaderDisassembly> vs_disassembly;
 
 
 void SK_D3D9_InitShaderModTools   (void);
-bool SK_D3D9_ShouldSkipRenderPass (D3DPRIMITIVETYPE PrimitiveType, UINT PrimitiveCount, UINT StartVertex);
+bool SK_D3D9_ShouldSkipRenderPass (D3DPRIMITIVETYPE PrimitiveType, UINT PrimitiveCount, UINT StartVertex, bool& wireframe);
 void SK_D3D9_EndFrame             (void);
 void SK_D3D9_EndScene             (void);
 void SK_D3D9_SetPixelShader       ( IDirect3DDevice9       *pDev,
@@ -1103,8 +1103,6 @@ SK_D3D9_FixUpBehaviorFlags (DWORD& BehaviorFlags)
 {
   BehaviorFlags &= ~D3DCREATE_FPU_PRESERVE;
   BehaviorFlags &= ~D3DCREATE_NOWINDOWCHANGES;
-  //BehaviorFlags &= ~D3DCREATE_SOFTWARE_VERTEXPROCESSING;
-  //BehaviorFlags |=  D3DCREATE_HARDWARE_VERTEXPROCESSING;
 
   if (BehaviorFlags & D3DCREATE_SOFTWARE_VERTEXPROCESSING)
   {
@@ -1123,14 +1121,6 @@ SK_D3D9_FixUpBehaviorFlags (DWORD& BehaviorFlags)
   {
     BehaviorFlags |= D3DCREATE_MULTITHREADED;
   }
-
-  ///if (config.textures.d3d9_mod)
-  ///{
-  ///  BehaviorFlags |=  D3DCREATE_MULTITHREADED;
-  ///  BehaviorFlags &= (~D3DCREATE_DISABLE_DRIVER_MANAGEMENT);
-  ///}
-
-  //BehaviorFlags = 0x144;
 }
 
 void
@@ -1159,7 +1149,8 @@ SK_D3D9_SetFPSTarget ( D3DPRESENT_PARAMETERS* pPresentationParameters,
   if (config.render.framerate.refresh_rate != -1)
   {
     if ( pPresentationParameters           != nullptr &&
-         pPresentationParameters->Windowed == FALSE) {
+         pPresentationParameters->Windowed == FALSE)
+    {
       dll_log.Log ( L"[  D3D9  ]  >> Refresh Rate Override: %li",
                       config.render.framerate.refresh_rate );
 
@@ -2519,7 +2510,9 @@ D3D9DrawPrimitive_Override ( IDirect3DDevice9 *This,
   ++draw_state.draws;
   ++draw_state.draw_count;
 
-  if (SK_D3D9_ShouldSkipRenderPass (PrimitiveType, PrimitiveCount, StartVertex))
+  bool wireframe = false;
+
+  if (SK_D3D9_ShouldSkipRenderPass (PrimitiveType, PrimitiveCount, StartVertex, wireframe))
     return S_OK;
 
   HRESULT hr =
@@ -2528,7 +2521,8 @@ D3D9DrawPrimitive_Override ( IDirect3DDevice9 *This,
                                      StartVertex,
                                        PrimitiveCount );
 
-  This->SetRenderState (D3DRS_FILLMODE, D3DFILL_SOLID);
+  if (wireframe)
+    This->SetRenderState (D3DRS_FILLMODE, D3DFILL_SOLID);
 
   return hr;
 }
@@ -2547,7 +2541,9 @@ D3D9DrawIndexedPrimitive_Override ( IDirect3DDevice9 *This,
   ++draw_state.draws;
   ++draw_state.draw_count;
 
-  if (SK_D3D9_ShouldSkipRenderPass (Type, primCount, startIndex))
+  bool wireframe = false;
+
+  if (SK_D3D9_ShouldSkipRenderPass (Type, primCount, startIndex, wireframe))
     return S_OK;
 
   HRESULT hr =
@@ -2559,7 +2555,8 @@ D3D9DrawIndexedPrimitive_Override ( IDirect3DDevice9 *This,
                                                   startIndex,
                                                     primCount );
 
-  This->SetRenderState (D3DRS_FILLMODE, D3DFILL_SOLID);
+  if (wireframe)
+    This->SetRenderState (D3DRS_FILLMODE, D3DFILL_SOLID);
 
   return hr;
 }
@@ -2576,7 +2573,9 @@ D3D9DrawPrimitiveUP_Override (       IDirect3DDevice9 *This,
   ++draw_state.draws;
   ++draw_state.draw_count;
 
-  if (SK_D3D9_ShouldSkipRenderPass (PrimitiveType, PrimitiveCount, 0))
+  bool wireframe = false;
+
+  if (SK_D3D9_ShouldSkipRenderPass (PrimitiveType, PrimitiveCount, 0, wireframe))
     return S_OK;
 
   HRESULT hr =
@@ -2586,7 +2585,8 @@ D3D9DrawPrimitiveUP_Override (       IDirect3DDevice9 *This,
                                          pVertexStreamZeroData,
                                            VertexStreamZeroStride );
 
-  This->SetRenderState (D3DRS_FILLMODE, D3DFILL_SOLID);
+  if (wireframe)
+    This->SetRenderState (D3DRS_FILLMODE, D3DFILL_SOLID);
 
   return hr;
 }
@@ -2607,7 +2607,9 @@ D3D9DrawIndexedPrimitiveUP_Override (       IDirect3DDevice9 *This,
   ++draw_state.draws;
   ++draw_state.draw_count;
 
-  if (SK_D3D9_ShouldSkipRenderPass (PrimitiveType, PrimitiveCount, MinVertexIndex))
+  bool wireframe = false;
+
+  if (SK_D3D9_ShouldSkipRenderPass (PrimitiveType, PrimitiveCount, MinVertexIndex, wireframe))
     return S_OK;
 
   HRESULT hr =
@@ -2622,7 +2624,8 @@ D3D9DrawIndexedPrimitiveUP_Override (       IDirect3DDevice9 *This,
                     pVertexStreamZeroData,
                       VertexStreamZeroStride );
 
-  This->SetRenderState (D3DRS_FILLMODE, D3DFILL_SOLID);
+  if (wireframe)
+    This->SetRenderState (D3DRS_FILLMODE, D3DFILL_SOLID);
 
   return hr;
 }
@@ -8078,7 +8081,7 @@ SK_D3D9_EndFrame (void)
 
 __declspec (noinline)
 bool
-SK_D3D9_ShouldSkipRenderPass (D3DPRIMITIVETYPE /*PrimitiveType*/, UINT/* PrimitiveCount*/, UINT /*StartVertex*/)
+SK_D3D9_ShouldSkipRenderPass (D3DPRIMITIVETYPE /*PrimitiveType*/, UINT/* PrimitiveCount*/, UINT /*StartVertex*/, bool& wireframe)
 {
   if (SK_GetCurrentRenderBackend ().device == nullptr)
     return false;
@@ -8096,8 +8099,7 @@ SK_D3D9_ShouldSkipRenderPass (D3DPRIMITIVETYPE /*PrimitiveType*/, UINT/* Primiti
   const bool tracking_vb = { vb_stream0  == tracked_vb.vertex_buffer };
 
 
-  bool skip      = false;
-  bool wireframe = false;
+  bool skip = false;
 
   {
     SK_AutoCriticalSection auto_cs (&cs_vs);
