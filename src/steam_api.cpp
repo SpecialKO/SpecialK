@@ -2964,12 +2964,12 @@ SK_GetSteamDir (void)
     return nullptr;
 }
 
-std::string
-SK_UseManifestToGetAppName (uint32_t appid)
-{
-  using steam_library_t =
-    char* [MAX_PATH * 2];
+using steam_library_t =
+  char* [MAX_PATH * 2];
 
+int
+SK_Steam_GetLibraries (steam_library_t** ppLibraries = nullptr)
+{
 #define MAX_STEAM_LIBRARIES 16
   static bool            scanned_libs = false;
   static int             steam_libs   = 0;
@@ -3012,7 +3012,7 @@ SK_UseManifestToGetAppName (uint32_t appid)
           new uint8_t [dwSize + 1] { };
 
         if (data == nullptr)
-          return nullptr;
+          return steam_libs;
 
         std::unique_ptr <uint8_t> _data ((uint8_t *)data);
 
@@ -3053,11 +3053,25 @@ SK_UseManifestToGetAppName (uint32_t appid)
       }
     }
 
+    // Finally, add the default Steam library
+    lstrcpyA ( (char *)steam_lib_paths [steam_libs++],
+                 SK_WideCharToUTF8 (wszSteamPath).c_str () );
+
     scanned_libs = true;
   }
 
+  if (ppLibraries != nullptr)
+    *ppLibraries = steam_lib_paths;
 
-  // Search custom library paths first
+  return steam_libs;
+}
+
+std::string
+SK_UseManifestToGetAppName (uint32_t appid)
+{
+  steam_library_t* steam_lib_paths = nullptr;
+  int              steam_libs      = SK_Steam_GetLibraries (&steam_lib_paths);
+
   if (steam_libs != 0)
   {
     for (int i = 0; i < steam_libs; i++)
@@ -3128,76 +3142,115 @@ SK_UseManifestToGetAppName (uint32_t appid)
     }
   }
 
+  return "";
+}
 
-  char szManifest [MAX_PATH * 2 + 1] = { };
+void
+SK_Steam_RecursiveFileScrub ( std::wstring   directory, unsigned int& files,
+                              LARGE_INTEGER& liSize,    wchar_t*      wszPattern,
+                              bool           erase = false )
+{
+  WIN32_FIND_DATA fd            = {   };
+  HANDLE          hFind         = INVALID_HANDLE_VALUE;
+  wchar_t         wszPath        [MAX_PATH * 2] = { };
+  wchar_t         wszFullPattern [MAX_PATH * 2] = { };
 
-  sprintf ( szManifest,
-              R"(%ls\steamapps\appmanifest_%lu.acf)",
-                wszSteamPath,
-                  appid );
+  PathCombineW (wszFullPattern, directory.c_str (), wszPattern);
 
-  CHandle hManifest (
-    CreateFileA ( szManifest,
-                  GENERIC_READ,
-                    FILE_SHARE_READ | FILE_SHARE_WRITE,
-                      nullptr,
-                        OPEN_EXISTING,
-                          GetFileAttributesA (szManifest),
-                            nullptr )
-  );
+  hFind =
+    FindFirstFileW (wszFullPattern, &fd);
 
-  if (hManifest != INVALID_HANDLE_VALUE)
+  if (hFind != INVALID_HANDLE_VALUE)
   {
-    DWORD dwSize     = 0,
-          dwSizeHigh = 0,
-          dwRead     = 0;
-
-    dwSize =
-      GetFileSize (hManifest, &dwSizeHigh);
-
-    auto* szManifestData =
-      new char [dwSize + 1] { };
-
-    if (szManifestData == nullptr)
+    do
     {
-      return "";
-    }
+      if (          (fd.dwFileAttributes  & FILE_ATTRIBUTE_DIRECTORY) &&
+          (_wcsicmp (fd.cFileName, L"." ) != 0)                       &&
+          (_wcsicmp (fd.cFileName, L"..") != 0) )
+      {
+                                    *wszPath = L'\0';
+        PathCombineW                (wszPath, directory.c_str (), fd.cFileName);
+        SK_Steam_RecursiveFileScrub (wszPath, files, liSize,        wszPattern, erase);
+      }
 
-    std::unique_ptr <char> manifest_data (szManifestData);
+      else if ( (fd.dwFileAttributes ^ FILE_ATTRIBUTE_DIRECTORY) & 
+                                       FILE_ATTRIBUTE_DIRECTORY    )
+      {
+        if (! erase)
+        {
+          ++files;
+          liSize.QuadPart +=
+            LARGE_INTEGER {                     fd.nFileSizeLow,
+                            static_cast <LONG> (fd.nFileSizeHigh) }.QuadPart;
+        }
 
-    bool bRead =
-      ReadFile ( hManifest,
-                   szManifestData,
-                     dwSize,
-                       &dwRead,
-                         nullptr );
+        else
+        {
+          wchar_t       wszFileToDelete [MAX_PATH * 2] = { };
+          PathCombineW (wszFileToDelete, directory.c_str (), fd.cFileName);
+          DeleteFileW  (wszFileToDelete);
+        }
+      }
+    } while (FindNextFile (hFind, &fd));
 
-    if (! (bRead && dwRead))
+    FindClose (hFind);
+  }
+}
+
+uint64_t
+SK_Steam_ScrubRedistributables (int& total_files, bool erase = false)
+{
+  unsigned int   files =  0 ;
+  LARGE_INTEGER liSize = { };
+
+  steam_library_t* steam_lib_paths = nullptr;
+              int  steam_libs      = SK_Steam_GetLibraries (&steam_lib_paths);
+
+  // Search custom library paths first
+  if (steam_libs != 0)
+  {
+    for (int i = 0; i < steam_libs; i++)
     {
-      return "";
-    }
+      WIN32_FIND_DATA fd            = {   };
+      HANDLE          hFind         = INVALID_HANDLE_VALUE;
+      wchar_t         wszPath        [MAX_PATH * 2] = { };
+      wchar_t         wszFullPattern [MAX_PATH * 2] = { };
 
-    char* szAppName =
-      StrStrIA (szManifestData, R"("name")");
+      std::wstring directory =
+        SK_FormatStringW (LR"(%hs\steamapps\common)", (const char *)steam_lib_paths [i]);
 
-    char szGameName [513] = { };
+      PathCombineW (wszFullPattern, directory.c_str (), L"*");
 
-    if (szAppName != nullptr)
-    {
-      *szAppName = '\0';
+      hFind =
+        FindFirstFileW (wszFullPattern, &fd);
 
-      // Make sure everything is lowercase
-      memcpy (szAppName, R"("name")", 6);
+      if (hFind != INVALID_HANDLE_VALUE)
+      {
+        do
+        {
+          if (          (fd.dwFileAttributes  & FILE_ATTRIBUTE_DIRECTORY) &&
+              (_wcsicmp (fd.cFileName, L"." ) != 0)                       &&
+              (_wcsicmp (fd.cFileName, L"..") != 0) )
+          {
+                                        *wszPath = L'\0';
+            PathCombineW                (wszPath, directory.c_str (), fd.cFileName);
+            PathCombineW                (wszPath, wszPath,        L"_CommonRedist");
+            SK_Steam_RecursiveFileScrub (wszPath, files, liSize,  L"*", erase);
+          }
+        } while (FindNextFile (hFind, &fd));
 
-      sscanf ( szAppName,
-                 R"("name" "%512[^"]")",
-                   szGameName );
-
-      return szGameName;
+        FindClose (hFind);
+      }
     }
   }
 
-  return "";
+  SK_LOG0 ( ( L"Common Redistributables: %lu files (%7.2f MiB)",
+                files, (float)(liSize.QuadPart / 1024ULL) / 1024.0f ),
+              L"SteamBloat" );
+
+  total_files = files;
+
+  return liSize.QuadPart;
 }
 
 std::string

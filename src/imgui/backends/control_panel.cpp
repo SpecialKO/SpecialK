@@ -5823,6 +5823,53 @@ extern float SK_ImGui_PulseNav_Strength;
             files.emplace_back (sk_steam_cloud_entry_s { "No Files", "", 0L, 0LL, false });
         }
 
+
+        static uint64_t redist_size  = 0ULL;
+        static int      redist_count = -1;
+
+        extern uint64_t
+        SK_Steam_ScrubRedistributables (int& total_files, bool erase = false);
+
+        if (redist_count == -1)
+        {
+          redist_size =
+            SK_Steam_ScrubRedistributables (redist_count, false);
+        }
+
+        if (redist_count > 0)
+        {
+          ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.68f, 0.02f, 0.45f));
+          ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.72f, 0.07f, 0.80f));
+          ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.78f, 0.14f, 0.80f));
+
+          bool summarize = ImGui::CollapsingHeader ("Wasted Disk Space", ImGuiTreeNodeFlags_DefaultOpen);
+
+          ImGui::PopStyleColor (3);
+
+          if (summarize)
+          {
+            ImGui::TreePush ("");
+
+            if (
+              ImGui::MenuItem ( SK_FormatString (
+                                  "Steam is currently wasting %ws on %i redistributable files!",
+                                    SK_File_SizeToStringF (redist_size, 5, 2).c_str (),
+                                      redist_count
+                                ).c_str (), "" )
+               )
+            {
+              redist_size =
+                SK_Steam_ScrubRedistributables (redist_count, true);
+            }
+
+            if (ImGui::IsItemHovered ())
+              ImGui::SetTooltip ("Click here to free the wasted space.");
+
+            ImGui::TreePop  ();
+          }
+        }
+
+
         if (app_has_cloud_storage && ImGui::CollapsingHeader ("Cloud Storage"))
         {
           bool dirty = false;

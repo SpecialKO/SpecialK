@@ -347,18 +347,8 @@ SK_IsOpenGL (void)
   return (SK_GetCurrentRenderBackend ().api == SK_RenderAPI::OpenGL);
 }
 
-enum SK_UNITS {
-  Celsius    = 0,
-  Fahrenheit = 1,
-  B          = 2,
-  KiB        = 3,
-  MiB        = 4,
-  GiB        = 5,
-  Auto       = 32
-};
-
 std::wstring
-SK_SizeToString (uint64_t size, SK_UNITS unit = Auto)
+SK_File_SizeToString (uint64_t size, SK_UNITS unit)
 {
   wchar_t str [64] = { };
 
@@ -391,7 +381,7 @@ SK_SizeToString (uint64_t size, SK_UNITS unit = Auto)
 }
 
 std::wstring
-SK_SizeToStringF (uint64_t size, int width, int precision, SK_UNITS unit = Auto)
+SK_File_SizeToStringF (uint64_t size, int width, int precision, SK_UNITS unit)
 {
   wchar_t str [64] = { };
 
@@ -1236,11 +1226,11 @@ static_cast <double> (                         gpu_stats.gpus [i].loads_percent.
   else
   {
     std::wstring working_set =
-      SK_SizeToString (process_stats.memory.working_set,   MiB);
+      SK_File_SizeToString (process_stats.memory.working_set,   MiB);
     std::wstring commit =
-      SK_SizeToString (process_stats.memory.private_bytes, MiB);
+      SK_File_SizeToString (process_stats.memory.private_bytes, MiB);
     std::wstring virtual_size =
-      SK_SizeToString (process_stats.memory.virtual_bytes, MiB);
+      SK_File_SizeToString (process_stats.memory.virtual_bytes, MiB);
 
     OSD_M_PRINTF "  Working Set: %ws,  Committed: %ws,  Address Space: %ws\n",
       working_set.c_str  (),
@@ -1249,11 +1239,11 @@ static_cast <double> (                         gpu_stats.gpus [i].loads_percent.
     OSD_END
 
     std::wstring working_set_peak =
-      SK_SizeToString (process_stats.memory.working_set_peak,     MiB);
+      SK_File_SizeToString (process_stats.memory.working_set_peak,     MiB);
     std::wstring commit_peak =
-      SK_SizeToString (process_stats.memory.page_file_bytes_peak, MiB);
+      SK_File_SizeToString (process_stats.memory.page_file_bytes_peak, MiB);
     std::wstring virtual_peak =
-      SK_SizeToString (process_stats.memory.virtual_bytes_peak,   MiB);
+      SK_File_SizeToString (process_stats.memory.virtual_bytes_peak,   MiB);
 
     OSD_M_PRINTF "        *Peak: %ws,      *Peak: %ws,          *Peak: %ws\n",
       working_set_peak.c_str (),
@@ -1293,10 +1283,10 @@ static_cast <double> (                         gpu_stats.gpus [i].loads_percent.
     for (DWORD i = 0; i < disk_stats.num_disks; i++)
     {
       std::wstring read_bytes_sec =
-        SK_SizeToStringF (disk_stats.disks [i].read_bytes_sec, 6, 1);
+        SK_File_SizeToStringF (disk_stats.disks [i].read_bytes_sec, 6, 1);
 
       std::wstring write_bytes_sec =
-        SK_SizeToStringF (disk_stats.disks [i].write_bytes_sec, 6, 1);
+        SK_File_SizeToStringF (disk_stats.disks [i].write_bytes_sec, 6, 1);
 
       if (i == 0)
       {
@@ -1356,11 +1346,11 @@ static_cast <double> (                         gpu_stats.gpus [i].loads_percent.
     for (DWORD i = 0; i < pagefile_stats.num_pagefiles; i++)
     {
       std::wstring usage =
-        SK_SizeToStringF (pagefile_stats.pagefiles [i].usage, 5,2);
+        SK_File_SizeToStringF (pagefile_stats.pagefiles [i].usage, 5,2);
       std::wstring size =
-        SK_SizeToStringF (pagefile_stats.pagefiles [i].size, 5,2);
+        SK_File_SizeToStringF (pagefile_stats.pagefiles [i].size, 5,2);
       std::wstring peak =
-        SK_SizeToStringF (pagefile_stats.pagefiles [i].usage_peak, 5,2);
+        SK_File_SizeToStringF (pagefile_stats.pagefiles [i].usage_peak, 5,2);
 
       OSD_P_PRINTF "\n  Pagefile %20s  %ws / %ws  (Peak: %ws)",
         pagefile_stats.pagefiles [i].name,

@@ -56,6 +56,17 @@ template <typename T, typename Q>
     };
 
 
+enum SK_UNITS {
+  Celsius    = 0,
+  Fahrenheit = 1,
+  B          = 2,
+  KiB        = 3,
+  MiB        = 4,
+  GiB        = 5,
+  Auto       = MAXDWORD
+};
+
+
 const wchar_t* __stdcall
                SK_GetRootPath               (void);
 const wchar_t* SK_GetHostApp                (void);
@@ -94,13 +105,16 @@ void           SK_StripTrailingSlashesA     (char*     szInOut);
 void           SK_FixSlashesA               (char*     szInOut);
 
 void           SK_SetNormalFileAttribs      (std::wstring   file);
-void           SK_MoveFileNoFail            (const wchar_t* wszOld, const wchar_t* wszNew);
-void           SK_FullCopy                  (std::wstring   from,   std::wstring   to);
-BOOL           SK_File_SetAttribs           (std::wstring   file,   DWORD          dwAttribs);
-BOOL           SK_File_ApplyAttribMask      (std::wstring   file,   DWORD          dwAttribMask,
+void           SK_MoveFileNoFail            (const wchar_t* wszOld,    const wchar_t* wszNew);
+void           SK_FullCopy                  (std::wstring   from,      std::wstring   to);
+BOOL           SK_File_SetAttribs           (std::wstring   file,      DWORD          dwAttribs);
+BOOL           SK_File_ApplyAttribMask      (std::wstring   file,      DWORD          dwAttribMask,
                                              bool           clear = false);
-BOOL           SK_File_SetHidden            (std::wstring   file,   bool           hidden);
-BOOL           SK_File_SetTemporary         (std::wstring   file,   bool           temp);
+BOOL           SK_File_SetHidden            (std::wstring   file,      bool           hidden);
+BOOL           SK_File_SetTemporary         (std::wstring   file,      bool           temp);
+std::wstring   SK_File_SizeToString         (uint64_t       size,      SK_UNITS       unit = Auto);
+std::wstring   SK_File_SizeToStringF        (uint64_t       size,      int            width,
+                                             int            precision, SK_UNITS       unit = Auto);
 std::wstring   SK_SYS_GetInstallPath        (void);
 
 const wchar_t* SK_GetHostApp                (void);

@@ -1539,7 +1539,7 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
 
 extern volatile LONG SK_bypass_dialog_active;
 extern volatile LONG SK_bypass_dialog_tid;
-                HWND SK_bypass_dialog_hwnd;
+                HWND SK_bypass_dialog_hwnd = nullptr;
 
 HRESULT
 CALLBACK

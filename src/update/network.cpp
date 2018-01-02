@@ -1012,8 +1012,6 @@ UpdateDlg_Thread (LPVOID user)
   return 0;
 }
 
-extern volatile LONG SK_bypass_dialog_active;
-
 HRESULT
 __stdcall
 SK_UpdateSoftware1 (const wchar_t*, bool force)
@@ -1092,10 +1090,10 @@ SK_UpdateSoftware1 (const wchar_t*, bool force)
     wchar_t      branch  [128];
 
     struct {
-      signed int in_branch; // TODOv
+      signed int in_branch; // TODO
       wchar_t    package [128];
-    } latest;
-  } build;
+    } latest = { 0, { } };
+  } build    = { 0, { }, { 0, { } } };
 
   bool empty = false;
 
@@ -1112,7 +1110,7 @@ SK_UpdateSoftware1 (const wchar_t*, bool force)
   if (empty)
   {
     installed_ver.set_name      (L"Version.Local");
-    installed_ver.add_key_value (L"InstallPackage", L" ");
+    installed_ver.add_key_value (L"InstallPackage", L"Invalid,-1");
     installed_ver.add_key_value (L"Branch",         L"Latest");
     // ^^^^ Add a key/value pair so that the section isn't purged on write
   }
@@ -1227,10 +1225,6 @@ SK_UpdateSoftware1 (const wchar_t*, bool force)
         }
       }
 
-      extern volatile LONG SK_bypass_dialog_tid;
-      InterlockedExchange  (&SK_bypass_dialog_tid, GetCurrentThreadId ());
-      InterlockedDecrement (&SK_bypass_dialog_active);
-
       if (SUCCEEDED (TaskDialogIndirect (&task_config, &nButton, nullptr, nullptr)))
       {
         if (get->status == STATUS_UPDATED)
@@ -1296,7 +1290,7 @@ SK_UpdateSoftware1 (const wchar_t*, bool force)
             {
               install_ini.import ( L"[Version.Local]\n"
                                    L"Branch=Latest\n"
-                                   L"InstallPackage= \n\n"
+                                   L"InstallPackage=Invalid,-1\n\n"
 
                                    L"[Update.User]\n"
                                    L"Frequency=6h\n"
@@ -1355,10 +1349,7 @@ HRESULT
 __stdcall
 SK_UpdateSoftware (const wchar_t* wszProduct)
 {
-  HRESULT hr =SK_UpdateSoftware1 (wszProduct);
-
-  extern volatile LONG  SK_bypass_dialog_tid;
-  InterlockedExchange (&SK_bypass_dialog_tid, 0);
+  HRESULT hr = SK_UpdateSoftware1 (wszProduct);
 
   return hr;
 }

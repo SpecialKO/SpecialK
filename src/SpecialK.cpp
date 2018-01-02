@@ -258,6 +258,8 @@ L"a17config.exe",
 L"a18config.exe", // Atelier Firis
 L"dplauncher.exe",
 L"zeroescape-launcher.exe",
+L"gtavlauncher.exe",
+L"gtavlanguageselect.exe",
 
 
 L"activationui.exe",
