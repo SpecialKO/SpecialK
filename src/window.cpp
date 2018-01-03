@@ -557,8 +557,9 @@ public:
 
          char szTemp    [31] = { };
 
-      if (val != nullptr) {
-        strncat (szTemp, *static_cast <char **> (val), 31);
+      if (val != nullptr)
+      {
+        strcat  (szTemp, *static_cast <char **> (val));
         sscanf  (szTemp, "%ux%u", &x, &y);
       }
 
@@ -3824,7 +3825,7 @@ LRESULT CALLBACK CallWndProc(
   //
   if ((! handled) && uMsg == WM_MOUSEWHEEL && (! recursive_wheel))
   {
-    if ((! handled) && config.input.mouse.fix_synaptics)
+    if (config.input.mouse.fix_synaptics)
     {
       INPUT input        = { };
 

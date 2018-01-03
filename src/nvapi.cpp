@@ -311,14 +311,14 @@ NVAPI::FindGPUByDXGIName (const wchar_t* wszName)
 
     if (wcsstr (adapters->Description, wszFixedName) != nullptr)
     {
-      delete [] wszFixedName;
+      free (wszFixedName);
       return adapters;
     }
 
     ++adapters;
   }
 
-  delete [] wszFixedName;
+  free (wszFixedName);
 
   return nullptr;
 }

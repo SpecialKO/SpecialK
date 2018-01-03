@@ -260,6 +260,7 @@ L"dplauncher.exe",
 L"zeroescape-launcher.exe",
 L"gtavlauncher.exe",
 L"gtavlanguageselect.exe",
+L"nioh_launcher.exe",
 
 
 L"activationui.exe",

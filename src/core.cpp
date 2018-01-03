@@ -649,9 +649,9 @@ skMemCmd::execute (const char* szArgs)
   char      val [256] = { };
 
 #ifdef _WIN64
-  sscanf (szArgs, "%c %llx %s", &type, &addr, val);
+  sscanf (szArgs, "%c %llx %255s", &type, &addr, val);
 #else
-  sscanf (szArgs, "%c %lx %s", &type, &addr, val);
+  sscanf (szArgs, "%c %lx %255s", &type, &addr, val);
 #endif
 
   static uint8_t* base_addr = nullptr;
@@ -1803,9 +1803,6 @@ SK_Win32_CleanupDummyWindow (void)
       it =
         dummy_windows.erase (it);
     }
-
-    else
-      ++it;
   }
 
   UnregisterClassW ( L"Special K Dummy Window Class", SK_GetDLL () );

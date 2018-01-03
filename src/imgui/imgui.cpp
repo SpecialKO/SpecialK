@@ -10170,7 +10170,7 @@ bool ImGui::ColorEdit4(const char* label, float col[4], bool alpha)
             PushItemWidth(w_slider_all - style.ItemInnerSpacing.x);
             if (InputText("##Text", buf, IM_ARRAYSIZE(buf), ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_CharsUppercase))
             {
-                value_changed |= true;
+                value_changed = true;
                 char* p = buf;
                 while (*p == '#' || ImCharIsSpace(*p))
                     p++;

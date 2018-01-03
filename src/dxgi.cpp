@@ -1456,6 +1456,12 @@ void CreateStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
 
   ZeroMemory (sb, sizeof D3DX11_STATE_BLOCK);
 
+  sb->OMBlendFactor [0] = 0.0f;
+  sb->OMBlendFactor [1] = 0.0f;
+  sb->OMBlendFactor [2] = 0.0f;
+  sb->OMBlendFactor [3] = 0.0f;
+
+
   dc->VSGetShader          (&sb->VS, sb->VSInterfaces, &sb->VSInterfaceCount);
   
   dc->VSGetSamplers        (0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT,             sb->VSSamplers);

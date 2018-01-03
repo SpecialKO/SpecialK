@@ -23,6 +23,8 @@
 #include <string>
 #include <sys/stat.h>
 
+#include <atlbase.h>
+
 #include <SpecialK/ini.h>
 #include <SpecialK/log.h>
 #include <SpecialK/utility.h>
@@ -620,7 +622,7 @@ iSK_INI::import (const wchar_t* import_data)
     }
   }
 
-  delete [] wszImport;
+  free (wszImport);
 }
 
 std::wstring invalid = L"Invalid";
@@ -938,10 +940,11 @@ iSK_INI::import_file (const wchar_t* fname)
 {
   // We skip a few bytes (Unicode BOM) in certain circumstances, so this is the
   //   actual pointer we need to free...
-  wchar_t *alloc         = nullptr;
-  wchar_t *wszImportName =
-    new wchar_t [wcslen (fname) + 2] { };
+  CHeapPtr <wchar_t> wszImportName (
+    new wchar_t [wcslen (fname) + 2] { }
+  );
 
+  wchar_t *alloc         = nullptr;
   FILE    *fImportINI    = nullptr;
 
   wcscpy (wszImportName, fname);
@@ -973,7 +976,7 @@ iSK_INI::import_file (const wchar_t* fname)
     {
       dll_log.Log ( L"[INI Parser] Encountered Byte-Swapped Unicode INI "
                     L"file ('%s'), attempting to recover...",
-                      wszImportName );
+                      wszImportName.m_pData );
 
       wchar_t* wszSwapMe = wszImportData;
 
@@ -1018,7 +1021,7 @@ iSK_INI::import_file (const wchar_t* fname)
       {
         dll_log.Log ( L"[INI Parser] Could not convert UTF-8 / ANSI Encoded "
                       L".ini file ('%s') to UTF-16, aborting!",
-                        wszImportName );
+                        wszImportName.m_pData );
         wszImportData = nullptr;
 
         delete [] string;

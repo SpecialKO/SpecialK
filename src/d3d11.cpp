@@ -69,12 +69,66 @@ SK_Thread_HybridSpinlock cs_render_view (0xdddd);
 
 LPVOID pfnD3D11CreateDevice             = nullptr;
 LPVOID pfnD3D11CreateDeviceAndSwapChain = nullptr;
+LPVOID pfnD3D11CoreCreateDevice         = nullptr;
 
 HMODULE SK::DXGI::hModD3D11 = nullptr;
 
 SK::DXGI::PipelineStatsD3D11 SK::DXGI::pipeline_stats_d3d11 = { };
 
 volatile HANDLE hResampleThread = nullptr;
+
+
+
+extern "C" __declspec (dllexport) FARPROC D3D11CreateDeviceForD3D12              = nullptr;
+extern "C" __declspec (dllexport) FARPROC CreateDirect3D11DeviceFromDXGIDevice   = nullptr;
+extern "C" __declspec (dllexport) FARPROC CreateDirect3D11SurfaceFromDXGISurface = nullptr;
+extern "C" __declspec (dllexport) FARPROC D3D11On12CreateDevice                  = nullptr;
+extern "C" __declspec (dllexport) FARPROC D3DKMTCloseAdapter                     = nullptr;
+extern "C" __declspec (dllexport) FARPROC D3DKMTDestroyAllocation                = nullptr;
+extern "C" __declspec (dllexport) FARPROC D3DKMTDestroyContext                   = nullptr;
+extern "C" __declspec (dllexport) FARPROC D3DKMTDestroyDevice                    = nullptr;
+extern "C" __declspec (dllexport) FARPROC D3DKMTDestroySynchronizationObject     = nullptr;
+extern "C" __declspec (dllexport) FARPROC D3DKMTQueryAdapterInfo                 = nullptr;
+extern "C" __declspec (dllexport) FARPROC D3DKMTSetDisplayPrivateDriverFormat    = nullptr;
+extern "C" __declspec (dllexport) FARPROC D3DKMTSignalSynchronizationObject      = nullptr;
+extern "C" __declspec (dllexport) FARPROC D3DKMTUnlock                           = nullptr;
+extern "C" __declspec (dllexport) FARPROC D3DKMTWaitForSynchronizationObject     = nullptr;
+extern "C" __declspec (dllexport) FARPROC EnableFeatureLevelUpgrade              = nullptr;
+extern "C" __declspec (dllexport) FARPROC OpenAdapter10                          = nullptr;
+extern "C" __declspec (dllexport) FARPROC OpenAdapter10_2                        = nullptr;
+extern "C" __declspec (dllexport) FARPROC D3D11CoreCreateLayeredDevice           = nullptr;
+extern "C" __declspec (dllexport) FARPROC D3D11CoreGetLayeredDeviceSize          = nullptr;
+extern "C" __declspec (dllexport) FARPROC D3D11CoreRegisterLayers                = nullptr;
+extern "C" __declspec (dllexport) FARPROC D3DKMTCreateAllocation                 = nullptr;
+extern "C" __declspec (dllexport) FARPROC D3DKMTCreateContext                    = nullptr;
+extern "C" __declspec (dllexport) FARPROC D3DKMTCreateDevice                     = nullptr;
+extern "C" __declspec (dllexport) FARPROC D3DKMTCreateSynchronizationObject      = nullptr;
+extern "C" __declspec (dllexport) FARPROC D3DKMTEscape                           = nullptr;
+extern "C" __declspec (dllexport) FARPROC D3DKMTGetContextSchedulingPriority     = nullptr;
+extern "C" __declspec (dllexport) FARPROC D3DKMTGetDeviceState                   = nullptr;
+extern "C" __declspec (dllexport) FARPROC D3DKMTGetDisplayModeList               = nullptr;
+extern "C" __declspec (dllexport) FARPROC D3DKMTGetMultisampleMethodList         = nullptr;
+extern "C" __declspec (dllexport) FARPROC D3DKMTGetRuntimeData                   = nullptr;
+extern "C" __declspec (dllexport) FARPROC D3DKMTGetSharedPrimaryHandle           = nullptr;
+extern "C" __declspec (dllexport) FARPROC D3DKMTLock                             = nullptr;
+extern "C" __declspec (dllexport) FARPROC D3DKMTOpenAdapterFromHdc               = nullptr;
+extern "C" __declspec (dllexport) FARPROC D3DKMTOpenResource                     = nullptr;
+extern "C" __declspec (dllexport) FARPROC D3DKMTPresent                          = nullptr;
+extern "C" __declspec (dllexport) FARPROC D3DKMTQueryAllocationResidency         = nullptr;
+extern "C" __declspec (dllexport) FARPROC D3DKMTQueryResourceInfo                = nullptr;
+extern "C" __declspec (dllexport) FARPROC D3DKMTRender                           = nullptr;
+extern "C" __declspec (dllexport) FARPROC D3DKMTSetAllocationPriority            = nullptr;
+extern "C" __declspec (dllexport) FARPROC D3DKMTSetContextSchedulingPriority     = nullptr;
+extern "C" __declspec (dllexport) FARPROC D3DKMTSetDisplayMode                   = nullptr;
+extern "C" __declspec (dllexport) FARPROC D3DKMTSetGammaRamp                     = nullptr;
+extern "C" __declspec (dllexport) FARPROC D3DKMTSetVidPnSourceOwner              = nullptr;
+extern "C" __declspec (dllexport) FARPROC D3DKMTWaitForVerticalBlankEvent        = nullptr;
+extern "C" __declspec (dllexport) FARPROC D3DPerformance_BeginEvent              = nullptr;
+extern "C" __declspec (dllexport) FARPROC D3DPerformance_EndEvent                = nullptr;
+extern "C" __declspec (dllexport) FARPROC D3DPerformance_GetStatus               = nullptr;
+extern "C" __declspec (dllexport) FARPROC D3DPerformance_SetMarker               = nullptr;
+
+
 
 
 INT
@@ -3344,106 +3398,103 @@ D3D11_UpdateSubresource1_Override (
       D3D11_TEXTURE2D_DESC desc = { };
            pTex->GetDesc (&desc);
 
-      if (DstSubresource == 0)
+      D3D11_SUBRESOURCE_DATA srd = { };
+
+      srd.pSysMem           = pSrcData;
+      srd.SysMemPitch       = SrcRowPitch;
+      srd.SysMemSlicePitch  = 0;
+
+      size_t   size         = 0;
+      uint32_t top_crc32c   = 0x0;
+
+      uint32_t checksum     =
+        crc32_tex   (&desc, &srd, &size, &top_crc32c);
+
+      uint32_t cache_tag    =
+        safe_crc32c (top_crc32c, (uint8_t *)&desc, sizeof D3D11_TEXTURE2D_DESC);
+
+      auto start            = SK_QueryPerf ().QuadPart;
+
+      CComPtr <ID3D11Texture2D> pCachedTex =
+        SK_D3D11_Textures.getTexture2D (cache_tag, &desc);
+
+      if (pCachedTex != nullptr)
       {
-        D3D11_SUBRESOURCE_DATA srd = { };
+        CComQIPtr <ID3D11Resource> pCachedResource = pCachedTex;
 
-        srd.pSysMem           = pSrcData;
-        srd.SysMemPitch       = SrcRowPitch;
-        srd.SysMemSlicePitch  = 0;
+        D3D11_CopyResource_Original (This, pDstResource, pCachedResource);
 
-        size_t   size         = 0;
-        uint32_t top_crc32c   = 0x0;
+        SK_LOG1 ( ( L"Texture Cache Hit (Slow Path): (%lux%lu) -- %x",
+                      desc.Width, desc.Height, top_crc32c ),
+                    L"DX11TexMgr" );
 
-        uint32_t checksum     =
-          crc32_tex   (&desc, &srd, &size, &top_crc32c);
+        return;
+      }
 
-        uint32_t cache_tag    =
-          safe_crc32c (top_crc32c, (uint8_t *)&desc, sizeof D3D11_TEXTURE2D_DESC);
-
-        auto start            = SK_QueryPerf ().QuadPart;
-
-        CComPtr <ID3D11Texture2D> pCachedTex =
-          SK_D3D11_Textures.getTexture2D (cache_tag, &desc);
-
-        if (pCachedTex != nullptr)
+      else
+      {
+        if (SK_D3D11_TextureIsCached (pTex))
         {
-          CComQIPtr <ID3D11Resource> pCachedResource = pCachedTex;
+          dll_log.Log (L"[DX11TexMgr] Cached texture was updated (UpdateSubresource)... removing from cache! - <%s>",
+                         SK_GetCallerName ().c_str ());
+          SK_D3D11_RemoveTexFromCache (pTex, true);
+        }
 
-          D3D11_CopyResource_Original (This, pDstResource, pCachedResource);
+        D3D11_UpdateSubresource_Original ( This, pDstResource, DstSubresource,
+                                             pDstBox, pSrcData, SrcRowPitch,
+                                               SrcDepthPitch );
+        auto end     = SK_QueryPerf ().QuadPart;
+        auto elapsed = end - start;
 
-          SK_LOG1 ( ( L"Texture Cache Hit (Slow Path): (%lux%lu) -- %x",
+        if (desc.Usage == D3D11_USAGE_STAGING)
+        {
+          auto&& map_ctx = mapped_resources [This];
+
+          map_ctx.dynamic_textures  [pDstResource] = checksum;
+          map_ctx.dynamic_texturesx [pDstResource] = top_crc32c;
+
+          SK_LOG1 ( ( L"New Staged Texture: (%lux%lu) -- %x",
                         desc.Width, desc.Height, top_crc32c ),
                       L"DX11TexMgr" );
+
+          map_ctx.dynamic_times2    [checksum]  = elapsed;
+          map_ctx.dynamic_sizes2    [checksum]  = size;
 
           return;
         }
 
         else
         {
-          if (SK_D3D11_TextureIsCached (pTex))
+          bool cacheable = ( //desc.CPUAccessFlags == 0          &&
+                             //desc.Usage != D3D11_USAGE_DYNAMIC &&
+                             desc.MiscFlags <= 4               &&
+                             desc.Width      > 0               && 
+                             desc.Height     > 0               &&
+                             desc.ArraySize == 1 );
+
+          bool compressed = false;
+
+          if ( (desc.Format >= DXGI_FORMAT_BC1_TYPELESS  &&
+                desc.Format <= DXGI_FORMAT_BC5_SNORM)    ||
+               (desc.Format >= DXGI_FORMAT_BC6H_TYPELESS &&
+                desc.Format <= DXGI_FORMAT_BC7_UNORM_SRGB) )
+            compressed = true;
+
+          // If this isn't an injectable texture, then filter out non-mipmapped
+          //   textures.
+          if (/*(! injectable) && */cache_opts.ignore_non_mipped)
+            cacheable &= (desc.MipLevels > 1 || compressed);
+
+          if (cacheable)
           {
-            dll_log.Log (L"[DX11TexMgr] Cached texture was updated (UpdateSubresource)... removing from cache! - <%s>",
-                           SK_GetCallerName ().c_str ());
-            SK_D3D11_RemoveTexFromCache (pTex, true);
-          }
-
-          D3D11_UpdateSubresource_Original ( This, pDstResource, DstSubresource,
-                                               pDstBox, pSrcData, SrcRowPitch,
-                                                 SrcDepthPitch );
-          auto end     = SK_QueryPerf ().QuadPart;
-          auto elapsed = end - start;
-
-          if (desc.Usage == D3D11_USAGE_STAGING)
-          {
-            auto&& map_ctx = mapped_resources [This];
-
-            map_ctx.dynamic_textures  [pDstResource] = checksum;
-            map_ctx.dynamic_texturesx [pDstResource] = top_crc32c;
-
-            SK_LOG1 ( ( L"New Staged Texture: (%lux%lu) -- %x",
+            SK_LOG1 ( ( L"New Cacheable Texture: (%lux%lu) -- %x",
                           desc.Width, desc.Height, top_crc32c ),
                         L"DX11TexMgr" );
 
-            map_ctx.dynamic_times2    [checksum]  = elapsed;
-            map_ctx.dynamic_sizes2    [checksum]  = size;
+            SK_D3D11_Textures.CacheMisses_2D++;
+            SK_D3D11_Textures.refTexture2D (pTex, &desc, cache_tag, size, elapsed, top_crc32c);
 
             return;
-          }
-
-          else
-          {
-            bool cacheable = ( //desc.CPUAccessFlags == 0          &&
-                               //desc.Usage != D3D11_USAGE_DYNAMIC &&
-                               desc.MiscFlags <= 4               &&
-                               desc.Width      > 0               && 
-                               desc.Height     > 0               &&
-                               desc.ArraySize == 1 );
-
-            bool compressed = false;
-
-            if ( (desc.Format >= DXGI_FORMAT_BC1_TYPELESS  &&
-                  desc.Format <= DXGI_FORMAT_BC5_SNORM)    ||
-                 (desc.Format >= DXGI_FORMAT_BC6H_TYPELESS &&
-                  desc.Format <= DXGI_FORMAT_BC7_UNORM_SRGB) )
-              compressed = true;
-
-            // If this isn't an injectable texture, then filter out non-mipmapped
-            //   textures.
-            if (/*(! injectable) && */cache_opts.ignore_non_mipped)
-              cacheable &= (desc.MipLevels > 1 || compressed);
-
-            if (cacheable)
-            {
-              SK_LOG1 ( ( L"New Cacheable Texture: (%lux%lu) -- %x",
-                            desc.Width, desc.Height, top_crc32c ),
-                          L"DX11TexMgr" );
-
-              SK_D3D11_Textures.CacheMisses_2D++;
-              SK_D3D11_Textures.refTexture2D (pTex, &desc, cache_tag, size, elapsed, top_crc32c);
-
-              return;
-            }
           }
         }
       }
@@ -9593,6 +9644,98 @@ SK_D3D11_InitTextures (void)
 
 volatile LONG SK_D3D11_initialized = FALSE;
 
+#define D3D11_STUB(_Return, _Name, _Proto, _Args)                           \
+  extern "C"                                                                \
+  __declspec (dllexport)                                                    \
+  _Return STDMETHODCALLTYPE                                                 \
+  _Name _Proto {                                                            \
+    WaitForInit ();                                                         \
+                                                                            \
+    typedef _Return (STDMETHODCALLTYPE *passthrough_pfn) _Proto;            \
+    static passthrough_pfn _default_impl = nullptr;                         \
+                                                                            \
+    if (_default_impl == nullptr) {                                         \
+      static const char* szName = #_Name;                                   \
+      _default_impl = (passthrough_pfn)GetProcAddress (backend_dll, szName);\
+                                                                            \
+      if (_default_impl == nullptr) {                                       \
+        dll_log.Log (                                                       \
+          L"Unable to locate symbol  %s in d3d11.dll",                      \
+          L#_Name);                                                         \
+        return (_Return)E_NOTIMPL;                                          \
+      }                                                                     \
+    }                                                                       \
+                                                                            \
+    dll_log.Log (L"[  D3D 11  ] [!] %s %s - "                               \
+             L"[Calling Thread: 0x%04x]",                                   \
+      L#_Name, L#_Proto, GetCurrentThreadId ());                            \
+                                                                            \
+    return _default_impl _Args;                                             \
+}
+
+#define D3D11_STUB_(_Name, _Proto, _Args)                                   \
+  extern "C"                                                                \
+  __declspec (dllexport)                                                    \
+  void STDMETHODCALLTYPE                                                    \
+  _Name _Proto {                                                            \
+    WaitForInit ();                                                         \
+                                                                            \
+    typedef void (STDMETHODCALLTYPE *passthrough_pfn) _Proto;               \
+    static passthrough_pfn _default_impl = nullptr;                         \
+                                                                            \
+    if (_default_impl == nullptr) {                                         \
+      static const char* szName = #_Name;                                   \
+      _default_impl = (passthrough_pfn)GetProcAddress (backend_dll, szName);\
+                                                                            \
+      if (_default_impl == nullptr) {                                       \
+        dll_log.Log (                                                       \
+          L"Unable to locate symbol  %s in d3d11.dll",                      \
+          L#_Name );                                                        \
+        return;                                                             \
+      }                                                                     \
+    }                                                                       \
+                                                                            \
+    dll_log.Log (L"[  D3D 11  ] [!] %s %s - "                               \
+             L"[Calling Thread: 0x%04x]",                                   \
+      L#_Name, L#_Proto, GetCurrentThreadId ());                            \
+                                                                            \
+    _default_impl _Args;                                                    \
+}
+
+
+D3D11_STUB (HRESULT, D3D11CoreCreateDevice,
+  (__int32 x, int y, int z, LPCSTR lpModuleName, int w, int xx, int yy, int zz, int ww, int rr),
+  (x, y, z, lpModuleName, w, xx, yy, zz, ww, rr));
+
+typedef HRESULT (STDMETHODCALLTYPE *D3D11CoreCreateDevice_pfn)(
+        IDXGIFactory         *pFactory,
+        IDXGIAdapter         *pAdapter,
+        UINT                  Flags,
+  const D3D_FEATURE_LEVEL    *pFeatureLevels,
+        UINT                  FeatureLevels,
+        ID3D11Device        **ppDevice
+);
+
+D3D11CoreCreateDevice_pfn D3D11CoreCreateDevice_Import = nullptr;
+
+HRESULT
+STDMETHODCALLTYPE
+D3D11CoreCreateDevice_Detour
+(       IDXGIFactory         *pFactory,
+        IDXGIAdapter         *pAdapter,
+        UINT                  Flags,
+  const D3D_FEATURE_LEVEL    *pFeatureLevels,
+        UINT                  FeatureLevels,
+        ID3D11Device        **ppDevice )
+{
+  DXGI_LOG_CALL_1 (L"D3D11CoreCreateDevice", L"Flags=%x", Flags );
+
+  SK_D3D11_Init ();
+
+  return D3D11CoreCreateDevice_Import (pFactory, pAdapter, Flags, pFeatureLevels, FeatureLevels, ppDevice);
+}
+
+
 bool
 SK_D3D11_Init (void)
 {
@@ -9619,9 +9762,17 @@ SK_D3D11_Init (void)
        (D3D11CreateDeviceAndSwapChain_pfn)               \
          GetProcAddress (hBackend, "D3D11CreateDeviceAndSwapChain");
 
+      D3D11CoreCreateDevice_Import       =  \
+       (D3D11CoreCreateDevice_pfn)          \
+         GetProcAddress (hBackend, "D3D11CoreCreateDevice");
+
       SK_LOG0 ( ( L"  D3D11CreateDevice:             %s",
                     SK_MakePrettyAddress (D3D11CreateDevice_Import).c_str () ),
 
+                  L"  D3D 11  " );
+
+      SK_LOG0 ( ( L"  D3D11CoreCreateDevice:         %s",
+                    SK_MakePrettyAddress (D3D11CoreCreateDevice_Import).c_str () ),
                   L"  D3D 11  " );
 
       SK_LOG0 ( ( L"  D3D11CreateDeviceAndSwapChain: %s",
@@ -9630,6 +9781,7 @@ SK_D3D11_Init (void)
 
       pfnD3D11CreateDeviceAndSwapChain = D3D11CreateDeviceAndSwapChain_Import;
       pfnD3D11CreateDevice             = D3D11CreateDevice_Import;
+      pfnD3D11CoreCreateDevice         = D3D11CoreCreateDevice_Import;
 
       InterlockedIncrement (&SK_D3D11_initialized);
     }
@@ -9652,6 +9804,12 @@ SK_D3D11_Init (void)
                                     &pfnD3D11CreateDeviceAndSwapChain )
            )
         {
+          SK_CreateDLLHook2 (       L"d3d11.dll",
+                                     "D3D11CoreCreateDevice",
+                                      D3D11CoreCreateDevice_Detour,
+             static_cast_p2p <void> (&D3D11CoreCreateDevice_Import),
+                                  &pfnD3D11CoreCreateDevice );
+
           if ((SK_GetDLLRole () & DLL_ROLE::D3D11) || (SK_GetDLLRole () & DLL_ROLE::DInput8))
           {
 #ifdef _WIN64
@@ -9661,8 +9819,9 @@ SK_D3D11_Init (void)
 #endif
           }
 
-          if ( MH_OK == MH_QueueEnableHook (pfnD3D11CreateDevice) &&
-               MH_OK == MH_QueueEnableHook (pfnD3D11CreateDeviceAndSwapChain) )
+          if ( MH_OK == MH_QueueEnableHook (pfnD3D11CreateDevice)             &&
+               MH_OK == MH_QueueEnableHook (pfnD3D11CreateDeviceAndSwapChain) &&
+               MH_OK == MH_QueueEnableHook (pfnD3D11CoreCreateDevice) )
           {
             success = (MH_OK == SK_ApplyQueuedHooks ());
 
@@ -9676,6 +9835,12 @@ SK_D3D11_Init (void)
       SK_MakePrettyAddress (pfnD3D11CreateDeviceAndSwapChain).c_str (),
                             pfnD3D11CreateDeviceAndSwapChain ? L"{ Hooked }" :
                                                                L"{ Error! }" ),
+                      L"  D3D 11  " );
+
+            SK_LOG0 ( ( L"  D3D11CoreCreateDevice:          %s  %s",
+      SK_MakePrettyAddress (pfnD3D11CoreCreateDevice).c_str (),
+                            pfnD3D11CoreCreateDevice ? L"{ Hooked }" :
+                                                       L"{ Error! }" ),
                       L"  D3D 11  " );
           }
         }
@@ -10280,7 +10445,7 @@ HookD3D11 (LPVOID user)
     SK_D3D11_HookDevCtx (pHooks);
 
     CComQIPtr <ID3D11DeviceContext1> pDevCtx1 (*pHooks->ppImmediateContext);
-
+    
     if (pDevCtx1 != nullptr)
     {
       DXGI_VIRTUAL_HOOK ( &pDevCtx1,  116,
@@ -11540,8 +11705,9 @@ SK_D3D11_LoadShaderStateEx (std::wstring name, bool clear)
         int                                 shader = 0;
         swscanf (it.first.c_str (), L"%x", &shader);
 
-        wchar_t* wszState =
-          _wcsdup (it.second.c_str ());
+        CHeapPtr <wchar_t> wszState (
+          _wcsdup (it.second.c_str ())
+        );
 
         wchar_t* wszBuf = nullptr;
         wchar_t* wszTok =
@@ -11703,8 +11869,9 @@ SK_D3D11_UnloadShaderState (std::wstring name)
         int                                 shader = 0;
         swscanf (it.first.c_str (), L"%x", &shader);
 
-        wchar_t* wszState =
-          _wcsdup (it.second.c_str ());
+        CHeapPtr <wchar_t> wszState (
+          _wcsdup (it.second.c_str ())
+        );
 
         wchar_t* wszBuf = nullptr;
         wchar_t* wszTok =
