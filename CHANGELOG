@@ -1,3 +1,10 @@
+0.8.59
+
+ + Fixed GTA V Launcher injection compatibility
+ + Added an option to delete Steam Common Redistributables across all
+     registered Steam Libraries (libraryfolders.vdf) to the control panel.
+
+
 0.8.58  (2018)
 
  (.2): Adds refresh rate to Fullscreen Resolution reading in control panel

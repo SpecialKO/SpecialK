@@ -41,6 +41,7 @@
 #include <SpecialK/osd/text.h>
 #include <SpecialK/render_backend.h>
 
+#include <array>
 #include <memory>
 #include <atlbase.h>
 
@@ -2163,7 +2164,7 @@ protected:
     extern CEGUI::Window* SK_achv_popup;
 
     char szPopupName [16];
-    sprintf (szPopupName, "Achievement_%li", lifetime_popups++);
+    sprintf (szPopupName, "Achievement_%i", lifetime_popups++);
 
     popup->window              = SK_achv_popup->clone (true);
     Achievement*   achievement = popup->achievement;
@@ -3079,7 +3080,7 @@ SK_UseManifestToGetAppName (uint32_t appid)
       char szManifest [MAX_PATH * 2 + 1] = { };
 
       sprintf ( szManifest,
-                  R"(%s\steamapps\appmanifest_%lu.acf)",
+                  R"(%s\steamapps\appmanifest_%u.acf)",
                     (char *)steam_lib_paths [i],
                       appid );
 
@@ -3145,32 +3146,60 @@ SK_UseManifestToGetAppName (uint32_t appid)
   return "";
 }
 
-void
+auto _ConstructPath =
+[&](auto&& path_base, const wchar_t* path_end)
+ {
+   std::array <wchar_t, MAX_PATH * 2 + 1>
+                 path { };
+   PathCombineW (path.data (), path_base.data (), path_end);
+   return        path;
+ };
+
+
+// Returns the value of files as it was when called
+unsigned int
 SK_Steam_RecursiveFileScrub ( std::wstring   directory, unsigned int& files,
                               LARGE_INTEGER& liSize,    wchar_t*      wszPattern,
+                                                        wchar_t*      wszAntiPattern, // Exact match only
                               bool           erase = false )
 {
-  WIN32_FIND_DATA fd            = {   };
-  HANDLE          hFind         = INVALID_HANDLE_VALUE;
-  wchar_t         wszPath        [MAX_PATH * 2] = { };
-  wchar_t         wszFullPattern [MAX_PATH * 2] = { };
-
-  PathCombineW (wszFullPattern, directory.c_str (), wszPattern);
-
-  hFind =
-    FindFirstFileW (wszFullPattern, &fd);
+  unsigned int    files_start = files;
+  WIN32_FIND_DATA fd          = {   };
+  HANDLE          hFind       =
+    FindFirstFileW (_ConstructPath (directory, wszPattern).data (), &fd);
 
   if (hFind != INVALID_HANDLE_VALUE)
   {
     do
     {
+      // Leave installscript.vdf behind
+      //
+      if (              wszAntiPattern != nullptr &&
+           (! _wcsicmp (wszAntiPattern, fd.cFileName)) )
+      {
+        continue;
+      }
+
       if (          (fd.dwFileAttributes  & FILE_ATTRIBUTE_DIRECTORY) &&
           (_wcsicmp (fd.cFileName, L"." ) != 0)                       &&
           (_wcsicmp (fd.cFileName, L"..") != 0) )
       {
-                                    *wszPath = L'\0';
-        PathCombineW                (wszPath, directory.c_str (), fd.cFileName);
-        SK_Steam_RecursiveFileScrub (wszPath, files, liSize,        wszPattern, erase);
+        // Detect empty directories
+        //
+        unsigned int before =
+          SK_Steam_RecursiveFileScrub ( _ConstructPath (directory, fd.cFileName).data (),
+                                          files,
+                                            liSize,
+                                              wszPattern,
+                                                wszAntiPattern,
+                                                  erase );
+
+        // Directory is empty; remove it if the user wants
+        //
+        if (files == before && erase)
+        {
+          RemoveDirectoryW (_ConstructPath (directory, fd.cFileName).data ());
+        }
       }
 
       else if ( (fd.dwFileAttributes ^ FILE_ATTRIBUTE_DIRECTORY) & 
@@ -3186,15 +3215,15 @@ SK_Steam_RecursiveFileScrub ( std::wstring   directory, unsigned int& files,
 
         else
         {
-          wchar_t       wszFileToDelete [MAX_PATH * 2] = { };
-          PathCombineW (wszFileToDelete, directory.c_str (), fd.cFileName);
-          DeleteFileW  (wszFileToDelete);
+          DeleteFileW (_ConstructPath (directory, fd.cFileName).data ());
         }
       }
     } while (FindNextFile (hFind, &fd));
 
     FindClose (hFind);
   }
+
+  return files_start;
 }
 
 uint64_t
@@ -3211,18 +3240,11 @@ SK_Steam_ScrubRedistributables (int& total_files, bool erase = false)
   {
     for (int i = 0; i < steam_libs; i++)
     {
-      WIN32_FIND_DATA fd            = {   };
-      HANDLE          hFind         = INVALID_HANDLE_VALUE;
-      wchar_t         wszPath        [MAX_PATH * 2] = { };
-      wchar_t         wszFullPattern [MAX_PATH * 2] = { };
-
-      std::wstring directory =
+      WIN32_FIND_DATA fd        = {   };
+      std::wstring    directory =
         SK_FormatStringW (LR"(%hs\steamapps\common)", (const char *)steam_lib_paths [i]);
-
-      PathCombineW (wszFullPattern, directory.c_str (), L"*");
-
-      hFind =
-        FindFirstFileW (wszFullPattern, &fd);
+      HANDLE          hFind     =
+        FindFirstFileW   (_ConstructPath (directory, L"*").data (), &fd);
 
       if (hFind != INVALID_HANDLE_VALUE)
       {
@@ -3232,10 +3254,13 @@ SK_Steam_ScrubRedistributables (int& total_files, bool erase = false)
               (_wcsicmp (fd.cFileName, L"." ) != 0)                       &&
               (_wcsicmp (fd.cFileName, L"..") != 0) )
           {
-                                        *wszPath = L'\0';
-            PathCombineW                (wszPath, directory.c_str (), fd.cFileName);
-            PathCombineW                (wszPath, wszPath,        L"_CommonRedist");
-            SK_Steam_RecursiveFileScrub (wszPath, files, liSize,  L"*", erase);
+            SK_Steam_RecursiveFileScrub ( _ConstructPath   (
+                                            _ConstructPath ( directory, fd.cFileName ),
+                                                               L"_CommonRedist"
+                                                           ).data (),
+                                            files, liSize, 
+                                              L"*", L"installscript.vdf",
+                                                erase );
           }
         } while (FindNextFile (hFind, &fd));
 
@@ -3244,9 +3269,12 @@ SK_Steam_ScrubRedistributables (int& total_files, bool erase = false)
     }
   }
 
-  SK_LOG0 ( ( L"Common Redistributables: %lu files (%7.2f MiB)",
-                files, (float)(liSize.QuadPart / 1024ULL) / 1024.0f ),
-              L"SteamBloat" );
+  if (files > 0)
+  {
+    SK_LOG0 ( ( L"Common Redistributables: %lu files (%7.2f MiB)",
+                  files, (float)(liSize.QuadPart / 1024ULL) / 1024.0f ),
+                L"SteamBloat" );
+  }
 
   total_files = files;
 
