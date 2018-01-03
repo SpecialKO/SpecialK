@@ -515,13 +515,13 @@ SK_LoadConfigEx (std::wstring name, bool create)
   }
 
   osd_config =
-    SK_GetDocumentsDir () + L"\\My Mods\\SpecialK\\Global\\osd.ini";
+    SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\Global\osd.ini)";
 
   achievement_config =
-    SK_GetDocumentsDir () + L"\\My Mods\\SpecialK\\Global\\achievements.ini";
+    SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\Global\achievements.ini)";
 
   macro_config =
-    SK_GetDocumentsDir () + L"\\My Mods\\SpecialK\\Global\\macros.ini";
+    SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\Global\macros.ini)";
 
   while (init < 0)
     SleepEx (15, FALSE);
@@ -1568,7 +1568,7 @@ struct param_decl_s {
   else
   {
     auto inject_config =
-      SK_GetDocumentsDir () + L"\\My Mods\\SpecialK\\Global\\injection.ini";
+      SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\Global\injection.ini)";
 
     iSK_INI* pInjectINI =
       SK_CreateINI (inject_config.c_str ());
@@ -2957,14 +2957,14 @@ SK_SaveConfig ( std::wstring name,
 
   dll_ini->write ( wszFullName );
   osd_ini->write ( std::wstring ( SK_GetDocumentsDir () +
-                     L"\\My Mods\\SpecialK\\Global\\osd.ini"
+                     LR"(\My Mods\SpecialK\Global\osd.ini)"
                    ).c_str () );
   achievement_ini->write ( std::wstring ( SK_GetDocumentsDir () +
-                     L"\\My Mods\\SpecialK\\Global\\achievements.ini"
+                     LR"(\My Mods\SpecialK\Global\achievements.ini)"
                    ).c_str () );
 
   macro_ini->write ( std::wstring ( SK_GetDocumentsDir () +
-                     L"\\My Mods\\SpecialK\\Global\\macros.ini"
+                     LR"(\My Mods\SpecialK\Global\macros.ini)"
                    ).c_str () );
 
   if (close_config)
@@ -3208,7 +3208,7 @@ SK_AppCache_Manager::loadAppCacheForExe (const wchar_t* wszExe)
     SK_GetNaiveConfigPath ();
 
   wchar_t* wszPath =
-    StrStrIW (wszExe, L"SteamApps\\common\\");
+    StrStrIW (wszExe, LR"(SteamApps\common\)");
 
   if (wszPath != nullptr)
   {
@@ -3218,7 +3218,7 @@ SK_AppCache_Manager::loadAppCacheForExe (const wchar_t* wszExe)
     PathRemoveFileSpecW (wszRelPath);
 
     std::wstring wstr_appcache =
-     SK_FormatStringW ( L"%s\\..\\AppCache\\%s\\SpecialK.AppCache",
+     SK_FormatStringW ( LR"(%s\..\AppCache\%s\SpecialK.AppCache)",
                           naive_name.c_str (),
                             wszRelPath );
 
@@ -3249,7 +3249,7 @@ SK_AppCache_Manager::getAppIDFromPath (const wchar_t* wszPath) const
       app_cache_db->get_section (L"AppID_Cache.FwdMap");
 
   wchar_t* wszSteamApps =
-    StrStrIW (wszPath, L"SteamApps\\common\\");
+    StrStrIW (wszPath, LR"(SteamApps\common\)");
 
   if (wszSteamApps != nullptr)
   {
@@ -3305,7 +3305,7 @@ SK_AppCache_Manager::addAppToCache ( const wchar_t* wszFullPath,
   if (! app_cache_db)
     return false;
 
-  if (! StrStrIW (wszFullPath, L"SteamApps\\common\\"))
+  if (! StrStrIW (wszFullPath, LR"(SteamApps\common\)"))
       return false;
 
   iSK_INISection& rev_map =
@@ -3319,7 +3319,7 @@ SK_AppCache_Manager::addAppToCache ( const wchar_t* wszFullPath,
   wchar_t* wszRelativePath = _wcsdup (wszFullPath);
 
   wchar_t* wszRelPath =
-    CharNextW (StrStrIW (CharNextW (StrStrIW (StrStrIW (wszRelativePath, L"SteamApps\\common\\"), L"\\")), L"\\"));
+    CharNextW (StrStrIW (CharNextW (StrStrIW (StrStrIW (wszRelativePath, LR"(SteamApps\common\)"), L"\\")), L"\\"));
 
   if (fwd_map.contains_key (wszRelPath))
     fwd_map.get_value (wszRelPath) = SK_FormatStringW   (L"%u", uiAppID).c_str ();

@@ -99,8 +99,8 @@ SK_Inject_InitShutdownEvent (void)
 
     g_hShutdown = 
       CreateEventW ( &sattr, TRUE, FALSE,
-        SK_RunLHIfBitness ( 32, L"Global\\SpecialK32_Reset",
-                                L"Global\\SpecialK64_Reset" ) );
+        SK_RunLHIfBitness ( 32, LR"(Global\SpecialK32_Reset)",
+                                LR"(Global\SpecialK64_Reset)" ) );
   }
 }
 
@@ -609,7 +609,7 @@ SK_Inject_EnableCentralizedConfig (void)
   wchar_t wszOut [MAX_PATH * 2] = { };
 
   lstrcatW (wszOut, SK_GetHostPath ());
-  lstrcatW (wszOut, L"\\SpecialK.central");
+  lstrcatW (wszOut, LR"(\SpecialK.central)");
 
   FILE* fOut = _wfopen (wszOut, L"w");
                fputws (L" ", fOut);
@@ -771,7 +771,7 @@ SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE role)
 
     lstrcatW             (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
     PathRemoveFileSpecW  (wszIn);
-    PathAppendW          (wszIn, L"Version\\installed.ini");
+    PathAppendW          (wszIn, LR"(Version\installed.ini)");
 
     if ( GetFileAttributesW (wszIn) != INVALID_FILE_ATTRIBUTES &&
          ( (dwAttribs != INVALID_FILE_ATTRIBUTES) ||
@@ -789,7 +789,7 @@ SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE role)
 
       lstrcatW             (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
       PathRemoveFileSpecW  (wszIn);
-      PathAppendW          (wszIn, L"Version\\repository.ini");
+      PathAppendW          (wszIn, LR"(Version\repository.ini)");
 
       *wszOut = L'\0';
 
@@ -918,7 +918,7 @@ SK_Inject_SwitchToRenderWrapper (void)
 
     lstrcatW             (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
     PathRemoveFileSpecW  (wszIn);
-    PathAppendW          (wszIn, L"Version\\installed.ini");
+    PathAppendW          (wszIn, LR"(Version\installed.ini)");
 
     if ( GetFileAttributesW (wszIn) != INVALID_FILE_ATTRIBUTES &&
          ( (dwAttribs != INVALID_FILE_ATTRIBUTES) ||
@@ -936,7 +936,7 @@ SK_Inject_SwitchToRenderWrapper (void)
 
       lstrcatW             (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
       PathRemoveFileSpecW  (wszIn);
-      PathAppendW          (wszIn, L"Version\\repository.ini");
+      PathAppendW          (wszIn, LR"(Version\repository.ini)");
 
       *wszOut = L'\0';
 
@@ -1277,7 +1277,7 @@ SK_Inject_TestUserWhitelist (const wchar_t* wszExecutable)
   if (whitelist_count == 0)
   {
     std::wifstream whitelist_file (
-      std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK\\Global\\whitelist.ini")
+      std::wstring (SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\Global\whitelist.ini)")
     );
 
     if (whitelist_file.is_open ())

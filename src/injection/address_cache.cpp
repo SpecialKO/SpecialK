@@ -43,10 +43,10 @@ SK_Inject_AddressCacheRegistry::SK_Inject_AddressCacheRegistry (void)
   address_ini_ = nullptr;
 
   auto injection_config =
-    SK_GetDocumentsDir () + L"\\My Mods\\SpecialK\\Global\\injection.ini";
+    SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\Global\injection.ini)";
 
   auto injection_lock =
-    SK_GetDocumentsDir () + L"\\My Mods\\SpecialK\\Global\\injection.ini.lock";
+    SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\Global\injection.ini.lock)";
 
 
   // We're building the cache table
@@ -150,7 +150,7 @@ SK_Inject_AddressCacheRegistry::~SK_Inject_AddressCacheRegistry (void)
   if (__SK_RunDLL_Bypass)
   {
     auto injection_lock =
-      SK_GetDocumentsDir () + L"\\My Mods\\SpecialK\\Global\\injection.ini.lock";
+      SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\Global\injection.ini.lock)";
 
     DeleteFileW (injection_lock.c_str ());
   }

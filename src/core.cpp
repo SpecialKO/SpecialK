@@ -1180,7 +1180,7 @@ CheckVersionThread (LPVOID user)
   UNREFERENCED_PARAMETER (user);
 
   // If a local repository is present, use that.
-  if (GetFileAttributes (L"Version\\installed.ini") == INVALID_FILE_ATTRIBUTES)
+  if (GetFileAttributes (LR"(Version\installed.ini)") == INVALID_FILE_ATTRIBUTES)
   {
     if (SK_FetchVersionInfo (L"SpecialK"))
     {
@@ -1215,6 +1215,7 @@ DllThread (LPVOID user)
 
   SK_InitCore (params->backend, params->callback);
 
+
   CreateThread (nullptr, 0x00, [](LPVOID) -> DWORD
   {
     WaitForInit ();
@@ -1223,6 +1224,7 @@ DllThread (LPVOID user)
 
     return 0;
   }, nullptr, 0x00, nullptr);
+
 
   return 0;
 }
@@ -1239,7 +1241,7 @@ SK_HasGlobalInjector (void)
     wchar_t wszBasePath [MAX_PATH * 2 - 1] = { };
 
     wcsncpy ( wszBasePath,
-                std::wstring ( SK_GetDocumentsDir () + L"\\My Mods\\SpecialK\\" ).c_str (),
+                std::wstring ( SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\)" ).c_str (),
                   MAX_PATH - 1 );
 
 #ifdef _WIN64
@@ -1280,7 +1282,7 @@ SK_EstablishRootPath (void)
     if (! SK_IsSuperSpecialK ())
     {
       lstrcpynW ( SK_RootPath,
-                    std::wstring ( SK_GetDocumentsDir () + L"\\My Mods\\SpecialK" ).c_str (),
+                    std::wstring ( SK_GetDocumentsDir () + LR"(\My Mods\SpecialK)" ).c_str (),
                       MAX_PATH - 1 );
     }
 
@@ -1291,7 +1293,7 @@ SK_EstablishRootPath (void)
 
 
     lstrcpynW (wszConfigPath, SK_GetRootPath (), MAX_PATH);
-    lstrcatW  (wszConfigPath, L"\\Profiles\\");
+    lstrcatW  (wszConfigPath, LR"(\Profiles\)");
     lstrcatW  (wszConfigPath, SK_GetHostApp  ());
   }
 
@@ -1369,12 +1371,12 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   {
     // Create Symlink for end-user's convenience
     if ( GetFileAttributes ( ( std::wstring (SK_GetHostPath ()) +
-                               std::wstring (L"\\SpecialK\\")
+                               std::wstring (LR"(\SpecialK\)")
                              ).c_str ()
                            ) == INVALID_FILE_ATTRIBUTES )
     {
       std::wstring link (SK_GetHostPath ());
-                   link += L"\\SpecialK\\";
+                   link += LR"(\SpecialK\)";
 
       CreateSymbolicLink (
         link.c_str         (),
@@ -1474,7 +1476,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     return TRUE;
   }
 
-  budget_log.init ( L"logs\\dxgi_budget.log", L"w" );
+  budget_log.init ( LR"(logs\dxgi_budget.log)", L"w" );
 
   //dll_log.Log (L"LoadLibraryA Addres: %ph", GetProcAddress (GetModuleHandle (L"kernel32.dll"), "LoadLibraryA"));
 
@@ -1693,7 +1695,7 @@ BACKEND_INIT:
             wcsncpy (wszDLLPath, SK_GetModuleFullName (SK_GetDLL ()).c_str (), MAX_PATH * 2);
           else
           {
-            _swprintf ( wszDLLPath, L"%s\\My Mods\\SpecialK\\SpecialK.dll",
+            _swprintf ( wszDLLPath, LR"(%s\My Mods\SpecialK\SpecialK.dll)",
                           SK_GetDocumentsDir ().c_str () );
           }
 
@@ -2001,7 +2003,7 @@ auto SK_UnpackCEGUI =
 
         wchar_t      wszArchive     [MAX_PATH] = { };
         wchar_t      wszDestination [MAX_PATH] = { };
-        _swprintf   (wszDestination, L"%s\\My Mods\\SpecialK\\", SK_GetDocumentsDir ().c_str ());
+        _swprintf   (wszDestination, LR"(%s\My Mods\SpecialK\)", SK_GetDocumentsDir ().c_str ());
 
         wcscpy      (wszArchive, wszDestination);
         PathAppendW (wszArchive, L"CEGUI.7z");
@@ -2135,14 +2137,14 @@ SK_BeginBufferSwap (void)
       const wchar_t* wszArch = L"Win32";
 #endif
 
-      _swprintf (wszCEGUIModPath, L"%sCEGUI\\bin\\%s", SK_GetRootPath (), wszArch);
+      _swprintf (wszCEGUIModPath, LR"(%sCEGUI\bin\%s)", SK_GetRootPath (), wszArch);
 
       if (GetFileAttributes (wszCEGUIModPath) == INVALID_FILE_ATTRIBUTES)
       {
-        _swprintf ( wszCEGUIModPath, L"%s\\My Mods\\SpecialK\\CEGUI\\bin\\%s",
+        _swprintf ( wszCEGUIModPath, LR"(%s\My Mods\SpecialK\CEGUI\bin\%s)",
                       SK_GetDocumentsDir ().c_str (), wszArch );
 
-        _swprintf (wszEnvPath, L"CEGUI_PARENT_DIR=%s\\My Mods\\SpecialK\\", SK_GetDocumentsDir ().c_str ());
+        _swprintf (wszEnvPath, LR"(CEGUI_PARENT_DIR=%s\My Mods\SpecialK\)", SK_GetDocumentsDir ().c_str ());
       }
       else
         _swprintf (wszEnvPath, L"CEGUI_PARENT_DIR=%s", SK_GetRootPath ());

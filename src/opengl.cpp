@@ -59,11 +59,10 @@ WaitForInit_GL (void)
 {
   while (! ReadAcquire (&__gl_ready))
     MsgWaitForMultipleObjectsEx (0, nullptr, 100, QS_ALLINPUT, MWMO_ALERTABLE);
+
+  WaitForInit ();
 }
 
-#define WaitForInit() ;
-
-//extern void WaitForInit (void);
 extern bool SK_InitCOM (void);
 extern HWND hWndRender;
 
@@ -1186,14 +1185,15 @@ SK_CEGUI_DrawGL (void)
       CEGUI::WindowManager::getDllSingleton ().cleanDeadPool ();
       cegGL->destroySystem ();
       cegGL = nullptr;
-
-      last_hwnd = game_window.hWnd;
     }
+
+    last_hwnd = game_window.hWnd;
   }
 
   // TODO: Create a secondary context that shares "display lists" so that
   //         we have a pure state machine all to ourselves.
-  if (cegGL == nullptr) {
+  if (cegGL == nullptr)
+  {
     extern void
     SK_InstallWindowHook (HWND hWnd);
     SK_InstallWindowHook (WindowFromDC (wglGetCurrentDC ()));
@@ -1203,10 +1203,10 @@ SK_CEGUI_DrawGL (void)
 
   else
   {
-    static RECT rect;
-           RECT rect_now;
+    static RECT rect     = { -1, -1, -1, -1 };
+           RECT rect_now = {  0,  0,  0,  0 };
 
-    GetClientRect (hWndRender, &rect_now);
+    GetClientRect (WindowFromDC (wglGetCurrentDC ()), &rect_now);
 
     if (memcmp (&rect, &rect_now, sizeof RECT))
     {
@@ -1924,7 +1924,7 @@ SK_HookGL (void)
     {
       wchar_t* wszBackendDLL = L"OpenGL32.dll";
 
-#if 1
+#if 0
       SK_CreateDLLHook (         wszBackendDLL,
                                 "wglSwapBuffers",
                                  wglSwapBuffers,

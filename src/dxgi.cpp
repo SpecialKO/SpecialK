@@ -181,8 +181,8 @@ SK_CEGUI_RelocateLog (void)
     wcscpy   (wszNewLogPath, SK_GetConfigPath ());
     strcpy   ( szNewLogPath, SK_WideCharToUTF8 (wszNewLogPath).c_str ());
 
-    lstrcatA ( szNewLogPath, R"(logs\CEGUI.log)");
-    lstrcatW (wszNewLogPath, L"logs\\CEGUI.log" );
+    lstrcatA ( szNewLogPath,  R"(logs\CEGUI.log)");
+    lstrcatW (wszNewLogPath, LR"(logs\CEGUI.log)");
 
     CopyFileExW ( L"CEGUI.log", wszNewLogPath,
                     nullptr, nullptr, nullptr,
@@ -4681,7 +4681,7 @@ SK_D3D11_GetSystemDLL (void)
   {
     wchar_t   wszPath [MAX_PATH * 2] = { };
     wcsncpy  (wszPath, SK_GetSystemDirectory (), MAX_PATH);
-    lstrcatW (wszPath, L"\\d3d11.dll");
+    lstrcatW (wszPath, LR"(\d3d11.dll)");
 
     hModSystemD3D11 =
       LoadLibraryW_Original (wszPath);
@@ -5518,12 +5518,8 @@ HookDXGI (LPVOID user)
        SUCCEEDED (pDevDXGI->GetAdapter                  (&pAdapter)) &&
        SUCCEEDED (pAdapter->GetParent     (IID_PPV_ARGS (&pFactory))) )
   {
-    CComPtr   <ID3D11DeviceContext>  pDevCtx  = nullptr;
-    CComPtr   <ID3D11DeviceContext1> pDevCtx1 = nullptr;
-    CComPtr   <ID3D11DeviceContext2> pDevCtx2 = nullptr;
-    CComPtr   <ID3D11Device>           pDev   = pDevice;
-    CComQIPtr <ID3D11Device1>          pDev1  (pDev);
-    CComQIPtr <ID3D11Device2>          pDev2  (pDev1);
+    CComPtr <ID3D11DeviceContext> pDevCtx = nullptr;
+    CComPtr <ID3D11Device>        pDev    = pDevice;
 
     if (config.render.dxgi.deferred_isolation)
     {

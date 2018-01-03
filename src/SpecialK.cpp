@@ -347,7 +347,7 @@ SK_EstablishDllRole (HMODULE hModule)
   static bool has_dgvoodoo =
     GetFileAttributesA (
       SK_FormatString ( R"(%ws\PlugIns\ThirdParty\dgVoodoo\d3dimm.dll)",
-                          std::wstring ( SK_GetDocumentsDir () + L"\\My Mods\\SpecialK" ).c_str ()
+                          std::wstring ( SK_GetDocumentsDir () + LR"(\My Mods\SpecialK)" ).c_str ()
                       ).c_str ()
     ) != INVALID_FILE_ATTRIBUTES;
 

@@ -1824,7 +1824,7 @@ SK_ImGui_ControlPanel (void)
         if (ImGui::MenuItem ( "Browse Logs", "", &selected ))
         {
           std::wstring log_dir =
-            std::wstring (SK_GetConfigPath ()) + std::wstring (L"\\logs");
+            std::wstring (SK_GetConfigPath ()) + std::wstring (LR"(\logs)");
 
           ShellExecuteW (GetActiveWindow (), L"explore", log_dir.c_str (), nullptr, nullptr, SW_NORMAL);
         }
@@ -1832,23 +1832,23 @@ SK_ImGui_ControlPanel (void)
         if (bIsReShadeCustom && ImGui::MenuItem ( "Browse ReShade Assets", "", nullptr ))
         {
           std::wstring reshade_dir =
-            std::wstring (SK_GetConfigPath ()) + std::wstring (L"\\ReShade");
+            std::wstring (SK_GetConfigPath ()) + std::wstring (LR"(\ReShade)");
 
           static bool dir_exists =
             PathIsDirectory ( std::wstring (
                                 std::wstring ( SK_GetConfigPath () ) +
-                                  L"\\ReShade\\Shaders\\"
+                                  LR"(\ReShade\Shaders\)"
                               ).c_str () );
 
           if (! dir_exists)
           {
             SK_CreateDirectories ( std::wstring (
                                      std::wstring ( SK_GetConfigPath () ) +
-                                       L"\\ReShade\\Shaders\\"
+                                       LR"(\ReShade\Shaders\)"
                                    ).c_str () );
             SK_CreateDirectories ( std::wstring (
                                      std::wstring ( SK_GetConfigPath () ) +
-                                       L"\\ReShade\\Textures\\"
+                                       LR"(\ReShade\Textures\)"
                                    ).c_str () );
 
             dir_exists = true;
@@ -5446,25 +5446,25 @@ extern float SK_ImGui_PulseNav_Strength;
       wchar_t imp_name_reshade_ex [64]           = { };
 
       wchar_t* wszShimFormat =
-        L"%s\\PlugIns\\Unofficial\\ReShade\\ReShade%u.dll";
+        LR"(%s\PlugIns\Unofficial\ReShade\ReShade%u.dll)";
 
 #ifdef _WIN64
       wcscat   (imp_name_reshade, L"Import.ReShade64");
-      wsprintf (imp_path_reshade, L"%s\\PlugIns\\ThirdParty\\ReShade\\ReShade64.dll", std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK").c_str ());
+      wsprintf (imp_path_reshade, LR"(%s\PlugIns\ThirdParty\ReShade\ReShade64.dll)", std::wstring (SK_GetDocumentsDir () + LR"(\My Mods\SpecialK)").c_str ());
 
       wcscat   (imp_name_reshade_ex, L"Import.ReShade64_Custom");
 
       if (SK_IsInjected ())
       {
-        wsprintf (imp_path_reshade_ex, L"%s\\PlugIns\\Unofficial\\ReShade\\ReShade64.dll", std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK").c_str ());
+        wsprintf (imp_path_reshade_ex, LR"(%s\PlugIns\Unofficial\ReShade\ReShade64.dll)", std::wstring (SK_GetDocumentsDir () + LR"(\My Mods\SpecialK)").c_str ());
       }
 
       else
       {
         wsprintf ( imp_path_reshade_ex, wszShimFormat,
-                     std::wstring (SK_GetDocumentsDir        (                ) +
-                                               L"\\My Mods\\SpecialK").c_str (  ),
-                                   SK_GetBitness             (                ) );
+                     std::wstring (SK_GetDocumentsDir        (                 ) +
+                                               LR"(\My Mods\SpecialK)").c_str (  ),
+                                   SK_GetBitness             (                 ) );
       }
 #else
       wcscat   (imp_name_reshade, L"Import.ReShade32");

@@ -1734,7 +1734,7 @@ SK_IsDLLSpecialK (const wchar_t* wszName)
     wchar_t wszPropName [64] = { };
 
     wsprintfW ( wszPropName,
-                  L"\\StringFileInfo\\%04x%04x\\ProductName",
+                  LR"(\StringFileInfo\%04x%04x\ProductName)",
                     lpTranslate   [0].wLanguage,
                       lpTranslate [0].wCodePage );
 
@@ -1785,7 +1785,7 @@ SK_GetDLLVersionStr (const wchar_t* wszName)
     wchar_t wszPropName [64] = { };
 
     wsprintfW ( wszPropName,
-                  L"\\StringFileInfo\\%04x%04x\\FileDescription",
+                  LR"(\StringFileInfo\%04x%04x\FileDescription)",
                     lpTranslate   [0].wLanguage,
                       lpTranslate [0].wCodePage );
 
@@ -1795,7 +1795,7 @@ SK_GetDLLVersionStr (const wchar_t* wszName)
                                   &cbProductBytes );
 
     wsprintfW ( wszPropName,
-                  L"\\StringFileInfo\\%04x%04x\\FileVersion",
+                  LR"(\StringFileInfo\%04x%04x\FileVersion)",
                     lpTranslate   [0].wLanguage,
                       lpTranslate [0].wCodePage );
 
@@ -2926,7 +2926,7 @@ SK_RestartGame (const wchar_t* wszDLL)
     else if (SK_HasGlobalInjector ())
     {
       std::wstring global_dll =
-        SK_GetDocumentsDir () + L"\\My Mods\\SpecialK\\SpecialK";
+        SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\SpecialK)";
 
 #ifdef _WIN64
       global_dll += L"64.dll";

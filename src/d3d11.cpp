@@ -6023,7 +6023,7 @@ SK_D3D11_PopulateResourceList (void)
   wchar_t wszTexDumpDir     [ MAX_PATH + 2 ] = { };
 
   lstrcatW (wszTexDumpDir_RAW, SK_D3D11_res_root.c_str ());
-  lstrcatW (wszTexDumpDir_RAW, L"\\dump\\textures\\");
+  lstrcatW (wszTexDumpDir_RAW, LR"(\dump\textures\)");
   lstrcatW (wszTexDumpDir_RAW, SK_GetHostApp ());
 
   wcscpy ( wszTexDumpDir,
@@ -6046,7 +6046,7 @@ SK_D3D11_PopulateResourceList (void)
 
     dll_log.LogEx ( true, L"[DX11TexMgr] Enumerating dumped...    " );
 
-    lstrcatW (wszTexDumpDir, L"\\*");
+    lstrcatW (wszTexDumpDir, LR"(\*)");
 
     hFind = FindFirstFileW (wszTexDumpDir, &fd);
 
@@ -6146,7 +6146,7 @@ SK_D3D11_PopulateResourceList (void)
   wchar_t wszTexInjectDir     [ MAX_PATH + 2 ] = { };
 
   lstrcatW (wszTexInjectDir_RAW, SK_D3D11_res_root.c_str ());
-  lstrcatW (wszTexInjectDir_RAW, L"\\inject\\textures");
+  lstrcatW (wszTexInjectDir_RAW, LR"(\inject\textures)");
 
   wcscpy ( wszTexInjectDir,
              SK_EvalEnvironmentVars (wszTexInjectDir_RAW).c_str () );
@@ -6169,7 +6169,7 @@ SK_D3D11_PopulateResourceList (void)
   wchar_t wszTexInjectDir_FFX     [ MAX_PATH + 2 ] = { };
 
   lstrcatW (wszTexInjectDir_FFX_RAW, SK_D3D11_res_root.c_str ());
-  lstrcatW (wszTexInjectDir_FFX_RAW, L"\\inject\\textures\\UnX_Old");
+  lstrcatW (wszTexInjectDir_FFX_RAW, LR"(\inject\textures\UnX_Old)");
 
   wcscpy ( wszTexInjectDir_FFX,
              SK_EvalEnvironmentVars (wszTexInjectDir_FFX_RAW).c_str () );
@@ -6184,7 +6184,7 @@ SK_D3D11_PopulateResourceList (void)
 
     dll_log.LogEx ( true, L"[DX11TexMgr] Enumerating FFX inject..." );
 
-    lstrcatW (wszTexInjectDir_FFX, L"\\*");
+    lstrcatW (wszTexInjectDir_FFX, LR"(\*)");
 
     hFind = FindFirstFileW (wszTexInjectDir_FFX, &fd);
 
@@ -6506,7 +6506,7 @@ SK_D3D11_RecursiveEnumAndAddTex ( std::wstring   directory, unsigned int& files,
     FindFirstFileW (wszFullPattern, &fd);
 
   bool preload =
-    StrStrIW (directory.c_str (), L"\\Preload\\") != nullptr;
+    StrStrIW (directory.c_str (), LR"(\Preload\)") != nullptr;
 
   if (hFind != INVALID_HANDLE_VALUE)
   {
@@ -7218,13 +7218,13 @@ SK_D3D11_DumpTexture2D ( _In_ ID3D11Texture2D* pTex, uint32_t crc32c )
 
       if (compressed)
       {
-        _swprintf ( wszOutName, L"%s\\Compressed_%08X.dds",
+        _swprintf ( wszOutName, LR"(%s\Compressed_%08X.dds)",
                       wszPath, crc32c );
       }
 
       else
       {
-        _swprintf ( wszOutName, L"%s\\Uncompressed_%08X.dds",
+        _swprintf ( wszOutName, LR"(%s\Uncompressed_%08X.dds)",
                       wszPath, crc32c );
       }
 
@@ -7393,7 +7393,7 @@ SK_D3D11_MipmapCacheTexture2DEx ( const DirectX::ScratchImage&   img,
 
   wchar_t wszOutName [MAX_PATH + 2] = { };
 
-  _swprintf ( wszOutName, L"%s\\%08X.dds",
+  _swprintf ( wszOutName, LR"(%s\%08X.dds)",
                 wszPath, crc32c );
 
 
@@ -7561,7 +7561,7 @@ SK_D3D11_DeleteDumpedTexture (uint32_t crc32c)
   lstrcatW (wszPath, L"/");
 
   wchar_t wszOutName [MAX_PATH + 2] = { };
-  _swprintf ( wszOutName, L"%s\\Compressed_%08X.dds",
+  _swprintf ( wszOutName, LR"(%s\Compressed_%08X.dds)",
                 wszPath, crc32c );
 
   if (DeleteFileW (wszOutName))
@@ -7573,7 +7573,7 @@ SK_D3D11_DeleteDumpedTexture (uint32_t crc32c)
 
   *wszOutName = L'\0';
 
-  _swprintf ( wszOutName, L"%s\\Uncompressed_%08X.dds",
+  _swprintf ( wszOutName, LR"(%s\Uncompressed_%08X.dds)",
                 wszPath, crc32c );
 
   if (DeleteFileW (wszOutName))
@@ -7697,20 +7697,20 @@ SK_D3D11_DumpTexture2D (  _In_ const D3D11_TEXTURE2D_DESC   *pDesc,
   wcscpy ( wszOutPath,
              SK_EvalEnvironmentVars (SK_D3D11_res_root.c_str ()).c_str () );
 
-  lstrcatW (wszOutPath, L"\\dump\\textures\\");
+  lstrcatW (wszOutPath, LR"(\dump\textures\)");
   lstrcatW (wszOutPath, SK_GetHostApp ());
 
   if (compressed && config.textures.d3d11.precise_hash) {
-    _swprintf ( wszOutName, L"%s\\Compressed_%08X_%08X.dds",
+    _swprintf ( wszOutName, LR"(%s\Compressed_%08X_%08X.dds)",
                   wszOutPath, top_crc32, checksum );
   } else if (compressed) {
-    _swprintf ( wszOutName, L"%s\\Compressed_%08X.dds",
+    _swprintf ( wszOutName, LR"(%s\Compressed_%08X.dds)",
                   wszOutPath, top_crc32 );
   } else if (config.textures.d3d11.precise_hash) {
-    _swprintf ( wszOutName, L"%s\\Uncompressed_%08X_%08X.dds",
+    _swprintf ( wszOutName, LR"(%s\Uncompressed_%08X_%08X.dds)",
                   wszOutPath, top_crc32, checksum );
   } else {
-    _swprintf ( wszOutName, L"%s\\Uncompressed_%08X.dds",
+    _swprintf ( wszOutName, LR"(%s\Uncompressed_%08X.dds)",
                   wszOutPath, top_crc32 );
   }
 
@@ -8594,7 +8594,7 @@ SK_D3D11_TexNameFromChecksum (uint32_t top_crc32, uint32_t checksum, uint32_t ff
          SK_D3D11_IsInjectable (top_crc32, checksum) )
     {
       _swprintf ( wszTex,
-                    L"%s\\inject\\textures\\%08X_%08X.dds",
+                    LR"(%s\inject\textures\%08X_%08X.dds)",
                       wszTex,
                         top_crc32, checksum );
     }
@@ -8604,7 +8604,7 @@ SK_D3D11_TexNameFromChecksum (uint32_t top_crc32, uint32_t checksum, uint32_t ff
       SK_LOG4 ( ( L"Caching texture with crc32c: %08X", top_crc32 ),
                   L" Tex Hash " );
       _swprintf ( wszTex,
-                    L"%s\\inject\\textures\\%08X.dds",
+                    LR"(%s\inject\textures\%08X.dds)",
                       wszTex,
                         top_crc32 );
     }
@@ -8615,7 +8615,7 @@ SK_D3D11_TexNameFromChecksum (uint32_t top_crc32, uint32_t checksum, uint32_t ff
       SK_LOG4 ( ( L"Caching texture with crc32: %08X", ffx_crc32 ),
                   L" Tex Hash " );
       _swprintf ( wszTex,
-                    L"%s\\inject\\textures\\Unx_Old\\%08X.dds",
+                    LR"(%s\inject\textures\Unx_Old\%08X.dds)",
                       wszTex,
                         ffx_crc32 );
     }
@@ -9703,37 +9703,37 @@ volatile LONG SK_D3D11_initialized = FALSE;
 }
 
 
-D3D11_STUB (HRESULT, D3D11CoreCreateDevice,
-  (__int32 x, int y, int z, LPCSTR lpModuleName, int w, int xx, int yy, int zz, int ww, int rr),
-  (x, y, z, lpModuleName, w, xx, yy, zz, ww, rr));
-
-typedef HRESULT (STDMETHODCALLTYPE *D3D11CoreCreateDevice_pfn)(
-        IDXGIFactory         *pFactory,
-        IDXGIAdapter         *pAdapter,
-        UINT                  Flags,
-  const D3D_FEATURE_LEVEL    *pFeatureLevels,
-        UINT                  FeatureLevels,
-        ID3D11Device        **ppDevice
-);
-
-D3D11CoreCreateDevice_pfn D3D11CoreCreateDevice_Import = nullptr;
-
-HRESULT
-STDMETHODCALLTYPE
-D3D11CoreCreateDevice_Detour
-(       IDXGIFactory         *pFactory,
-        IDXGIAdapter         *pAdapter,
-        UINT                  Flags,
-  const D3D_FEATURE_LEVEL    *pFeatureLevels,
-        UINT                  FeatureLevels,
-        ID3D11Device        **ppDevice )
-{
-  DXGI_LOG_CALL_1 (L"D3D11CoreCreateDevice", L"Flags=%x", Flags );
-
-  SK_D3D11_Init ();
-
-  return D3D11CoreCreateDevice_Import (pFactory, pAdapter, Flags, pFeatureLevels, FeatureLevels, ppDevice);
-}
+//D3D11_STUB (HRESULT, D3D11CoreCreateDevice,
+//  (__int32 x, int y, int z, LPCSTR lpModuleName, int w, int xx, int yy, int zz, int ww, int rr),
+//  (x, y, z, lpModuleName, w, xx, yy, zz, ww, rr));
+//
+//typedef HRESULT (STDMETHODCALLTYPE *D3D11CoreCreateDevice_pfn)(
+//        IDXGIFactory         *pFactory,
+//        IDXGIAdapter         *pAdapter,
+//        UINT                  Flags,
+//  const D3D_FEATURE_LEVEL    *pFeatureLevels,
+//        UINT                  FeatureLevels,
+//        ID3D11Device        **ppDevice
+//);
+//
+//D3D11CoreCreateDevice_pfn D3D11CoreCreateDevice_Import = nullptr;
+//
+//HRESULT
+//STDMETHODCALLTYPE
+//D3D11CoreCreateDevice_Detour
+//(       IDXGIFactory         *pFactory,
+//        IDXGIAdapter         *pAdapter,
+//        UINT                  Flags,
+//  const D3D_FEATURE_LEVEL    *pFeatureLevels,
+//        UINT                  FeatureLevels,
+//        ID3D11Device        **ppDevice )
+//{
+//  DXGI_LOG_CALL_1 (L"D3D11CoreCreateDevice", L"Flags=%x", Flags );
+//
+//  SK_D3D11_Init ();
+//
+//  return D3D11CoreCreateDevice_Import (pFactory, pAdapter, Flags, pFeatureLevels, FeatureLevels, ppDevice);
+//}
 
 
 bool
@@ -9749,6 +9749,56 @@ SK_D3D11_Init (void)
 
     SK::DXGI::hModD3D11 = hBackend;
 
+    D3D11CreateDeviceForD3D12              = GetProcAddress (SK::DXGI::hModD3D11, "D3D11CreateDeviceForD3D12");
+    CreateDirect3D11DeviceFromDXGIDevice   = GetProcAddress (SK::DXGI::hModD3D11, "CreateDirect3D11DeviceFromDXGIDevice");
+    CreateDirect3D11SurfaceFromDXGISurface = GetProcAddress (SK::DXGI::hModD3D11, "CreateDirect3D11SurfaceFromDXGISurface");
+    D3D11On12CreateDevice                  = GetProcAddress (SK::DXGI::hModD3D11, "D3D11On12CreateDevice");
+    D3DKMTCloseAdapter                     = GetProcAddress (SK::DXGI::hModD3D11, "D3DKMTCloseAdapter");
+    D3DKMTDestroyAllocation                = GetProcAddress (SK::DXGI::hModD3D11, "D3DKMTDestroyAllocation");
+    D3DKMTDestroyContext                   = GetProcAddress (SK::DXGI::hModD3D11, "D3DKMTDestroyContext");
+    D3DKMTDestroyDevice                    = GetProcAddress (SK::DXGI::hModD3D11, "D3DKMTDestroyDevice ");
+    D3DKMTDestroySynchronizationObject     = GetProcAddress (SK::DXGI::hModD3D11, "D3DKMTDestroySynchronizationObject");
+    D3DKMTQueryAdapterInfo                 = GetProcAddress (SK::DXGI::hModD3D11, "D3DKMTQueryAdapterInfo");
+    D3DKMTSetDisplayPrivateDriverFormat    = GetProcAddress (SK::DXGI::hModD3D11, "D3DKMTSetDisplayPrivateDriverFormat");
+    D3DKMTSignalSynchronizationObject      = GetProcAddress (SK::DXGI::hModD3D11, "D3DKMTSignalSynchronizationObject");
+    D3DKMTUnlock                           = GetProcAddress (SK::DXGI::hModD3D11, "D3DKMTUnlock");
+    D3DKMTWaitForSynchronizationObject     = GetProcAddress (SK::DXGI::hModD3D11, "D3DKMTWaitForSynchronizationObject");
+    EnableFeatureLevelUpgrade              = GetProcAddress (SK::DXGI::hModD3D11, "EnableFeatureLevelUpgrade");
+    OpenAdapter10                          = GetProcAddress (SK::DXGI::hModD3D11, "OpenAdapter10");
+    OpenAdapter10_2                        = GetProcAddress (SK::DXGI::hModD3D11, "OpenAdapter10_2");
+    D3D11CoreCreateLayeredDevice           = GetProcAddress (SK::DXGI::hModD3D11, "D3D11CoreCreateLayeredDevice");
+    D3D11CoreGetLayeredDeviceSize          = GetProcAddress (SK::DXGI::hModD3D11, "D3D11CoreGetLayeredDeviceSize");
+    D3D11CoreRegisterLayers                = GetProcAddress (SK::DXGI::hModD3D11, "D3D11CoreRegisterLayers");
+    D3DKMTCreateAllocation                 = GetProcAddress (SK::DXGI::hModD3D11, "D3DKMTCreateAllocation");
+    D3DKMTCreateContext                    = GetProcAddress (SK::DXGI::hModD3D11, "D3DKMTCreateContext");
+    D3DKMTCreateDevice                     = GetProcAddress (SK::DXGI::hModD3D11, "D3DKMTCreateDevice");
+    D3DKMTCreateSynchronizationObject      = GetProcAddress (SK::DXGI::hModD3D11, "D3DKMTCreateSynchronizationObject");
+    D3DKMTEscape                           = GetProcAddress (SK::DXGI::hModD3D11, "D3DKMTEscape");
+    D3DKMTGetContextSchedulingPriority     = GetProcAddress (SK::DXGI::hModD3D11, "D3DKMTGetContextSchedulingPriority");
+    D3DKMTGetDeviceState                   = GetProcAddress (SK::DXGI::hModD3D11, "D3DKMTGetDeviceState");
+    D3DKMTGetDisplayModeList               = GetProcAddress (SK::DXGI::hModD3D11, "D3DKMTGetDisplayModeList");
+    D3DKMTGetMultisampleMethodList         = GetProcAddress (SK::DXGI::hModD3D11, "D3DKMTGetMultisampleMethodList");
+    D3DKMTGetRuntimeData                   = GetProcAddress (SK::DXGI::hModD3D11, "D3DKMTGetRuntimeData");
+    D3DKMTGetSharedPrimaryHandle           = GetProcAddress (SK::DXGI::hModD3D11, "D3DKMTGetSharedPrimaryHandle");
+    D3DKMTLock                             = GetProcAddress (SK::DXGI::hModD3D11, "D3DKMTLock");
+    D3DKMTOpenAdapterFromHdc               = GetProcAddress (SK::DXGI::hModD3D11, "D3DKMTOpenAdapterFromHdc");
+    D3DKMTOpenResource                     = GetProcAddress (SK::DXGI::hModD3D11, "D3DKMTOpenResource");
+    D3DKMTPresent                          = GetProcAddress (SK::DXGI::hModD3D11, "D3DKMTPresent");
+    D3DKMTQueryAllocationResidency         = GetProcAddress (SK::DXGI::hModD3D11, "D3DKMTQueryAllocationResidency");
+    D3DKMTQueryResourceInfo                = GetProcAddress (SK::DXGI::hModD3D11, "D3DKMTQueryResourceInfo");
+    D3DKMTRender                           = GetProcAddress (SK::DXGI::hModD3D11, "D3DKMTRender");
+    D3DKMTSetAllocationPriority            = GetProcAddress (SK::DXGI::hModD3D11, "D3DKMTSetAllocationPriority");
+    D3DKMTSetContextSchedulingPriority     = GetProcAddress (SK::DXGI::hModD3D11, "D3DKMTSetContextSchedulingPriority");
+    D3DKMTSetDisplayMode                   = GetProcAddress (SK::DXGI::hModD3D11, "D3DKMTSetDisplayMode");
+    D3DKMTSetGammaRamp                     = GetProcAddress (SK::DXGI::hModD3D11, "D3DKMTSetGammaRamp");
+    D3DKMTSetVidPnSourceOwner              = GetProcAddress (SK::DXGI::hModD3D11, "D3DKMTSetVidPnSourceOwner");
+    D3DKMTWaitForVerticalBlankEvent        = GetProcAddress (SK::DXGI::hModD3D11, "D3DKMTWaitForVerticalBlankEvent");
+    D3DPerformance_BeginEvent              = GetProcAddress (SK::DXGI::hModD3D11, "D3DPerformance_BeginEvent");
+    D3DPerformance_EndEvent                = GetProcAddress (SK::DXGI::hModD3D11, "D3DPerformance_EndEvent");
+    D3DPerformance_GetStatus               = GetProcAddress (SK::DXGI::hModD3D11, "D3DPerformance_GetStatus");
+    D3DPerformance_SetMarker               = GetProcAddress (SK::DXGI::hModD3D11, "D3DPerformance_SetMarker");
+
+
     SK_LOG0 ( (L"Importing D3D11CreateDevice[AndSwapChain]"), L"  D3D 11  " );
     SK_LOG0 ( (L"========================================="), L"  D3D 11  " );
 
@@ -9762,18 +9812,18 @@ SK_D3D11_Init (void)
        (D3D11CreateDeviceAndSwapChain_pfn)               \
          GetProcAddress (hBackend, "D3D11CreateDeviceAndSwapChain");
 
-      D3D11CoreCreateDevice_Import       =  \
-       (D3D11CoreCreateDevice_pfn)          \
-         GetProcAddress (hBackend, "D3D11CoreCreateDevice");
+      //D3D11CoreCreateDevice_Import       =  \
+      // (D3D11CoreCreateDevice_pfn)          \
+      //   GetProcAddress (hBackend, "D3D11CoreCreateDevice");
 
       SK_LOG0 ( ( L"  D3D11CreateDevice:             %s",
                     SK_MakePrettyAddress (D3D11CreateDevice_Import).c_str () ),
 
                   L"  D3D 11  " );
 
-      SK_LOG0 ( ( L"  D3D11CoreCreateDevice:         %s",
-                    SK_MakePrettyAddress (D3D11CoreCreateDevice_Import).c_str () ),
-                  L"  D3D 11  " );
+      //SK_LOG0 ( ( L"  D3D11CoreCreateDevice:         %s",
+      //              SK_MakePrettyAddress (D3D11CoreCreateDevice_Import).c_str () ),
+      //            L"  D3D 11  " );
 
       SK_LOG0 ( ( L"  D3D11CreateDeviceAndSwapChain: %s",
                     SK_MakePrettyAddress (D3D11CreateDeviceAndSwapChain_Import).c_str () ),
@@ -9781,7 +9831,7 @@ SK_D3D11_Init (void)
 
       pfnD3D11CreateDeviceAndSwapChain = D3D11CreateDeviceAndSwapChain_Import;
       pfnD3D11CreateDevice             = D3D11CreateDevice_Import;
-      pfnD3D11CoreCreateDevice         = D3D11CoreCreateDevice_Import;
+      //pfnD3D11CoreCreateDevice         = D3D11CoreCreateDevice_Import;
 
       InterlockedIncrement (&SK_D3D11_initialized);
     }
@@ -9804,11 +9854,11 @@ SK_D3D11_Init (void)
                                     &pfnD3D11CreateDeviceAndSwapChain )
            )
         {
-          SK_CreateDLLHook2 (       L"d3d11.dll",
-                                     "D3D11CoreCreateDevice",
-                                      D3D11CoreCreateDevice_Detour,
-             static_cast_p2p <void> (&D3D11CoreCreateDevice_Import),
-                                  &pfnD3D11CoreCreateDevice );
+          //SK_CreateDLLHook2 (       L"d3d11.dll",
+          //                           "D3D11CoreCreateDevice",
+          //                            D3D11CoreCreateDevice_Detour,
+          //   static_cast_p2p <void> (&D3D11CoreCreateDevice_Import),
+          //                        &pfnD3D11CoreCreateDevice );
 
           if ((SK_GetDLLRole () & DLL_ROLE::D3D11) || (SK_GetDLLRole () & DLL_ROLE::DInput8))
           {
@@ -9820,8 +9870,8 @@ SK_D3D11_Init (void)
           }
 
           if ( MH_OK == MH_QueueEnableHook (pfnD3D11CreateDevice)             &&
-               MH_OK == MH_QueueEnableHook (pfnD3D11CreateDeviceAndSwapChain) &&
-               MH_OK == MH_QueueEnableHook (pfnD3D11CoreCreateDevice) )
+               MH_OK == MH_QueueEnableHook (pfnD3D11CreateDeviceAndSwapChain) )//&&
+               //MH_OK == MH_QueueEnableHook (pfnD3D11CoreCreateDevice) )
           {
             success = (MH_OK == SK_ApplyQueuedHooks ());
 
@@ -9837,11 +9887,11 @@ SK_D3D11_Init (void)
                                                                L"{ Error! }" ),
                       L"  D3D 11  " );
 
-            SK_LOG0 ( ( L"  D3D11CoreCreateDevice:          %s  %s",
-      SK_MakePrettyAddress (pfnD3D11CoreCreateDevice).c_str (),
-                            pfnD3D11CoreCreateDevice ? L"{ Hooked }" :
-                                                       L"{ Error! }" ),
-                      L"  D3D 11  " );
+     //       SK_LOG0 ( ( L"  D3D11CoreCreateDevice:          %s  %s",
+     // SK_MakePrettyAddress (pfnD3D11CoreCreateDevice).c_str (),
+     //                       pfnD3D11CoreCreateDevice ? L"{ Hooked }" :
+     //                                                  L"{ Error! }" ),
+     //                 L"  D3D 11  " );
           }
         }
       }
@@ -10444,16 +10494,16 @@ HookD3D11 (LPVOID user)
 #if 1
     SK_D3D11_HookDevCtx (pHooks);
 
-    CComQIPtr <ID3D11DeviceContext1> pDevCtx1 (*pHooks->ppImmediateContext);
-    
-    if (pDevCtx1 != nullptr)
-    {
-      DXGI_VIRTUAL_HOOK ( &pDevCtx1,  116,
-                            "ID3D11DeviceContext1::UpdateSubresource1",
-                                             D3D11_UpdateSubresource1_Override,
-                                             D3D11_UpdateSubresource1_Original,
-                                             D3D11_UpdateSubresource1_pfn );
-    }
+    //CComQIPtr <ID3D11DeviceContext1> pDevCtx1 (*pHooks->ppImmediateContext);
+    //
+    //if (pDevCtx1 != nullptr)
+    //{
+    //  DXGI_VIRTUAL_HOOK ( &pDevCtx1,  116,
+    //                        "ID3D11DeviceContext1::UpdateSubresource1",
+    //                                         D3D11_UpdateSubresource1_Override,
+    //                                         D3D11_UpdateSubresource1_Original,
+    //                                         D3D11_UpdateSubresource1_pfn );
+    //}
 #endif
 
     SK_ApplyQueuedHooks ();

@@ -52,7 +52,7 @@ SK_Denuvo_UsedByGame (bool retest)
   wchar_t wszInstallPath [MAX_PATH] = { };
   wchar_t wszSearchPath  [MAX_PATH] = { };
 
-  wsprintf ( wszInstallPath, L"%ws\\userdata\\%u\\%u\\",
+  wsprintf ( wszInstallPath, LR"(%ws\userdata\%u\%u\)",
                                path.c_str (),
                                  usr_id.GetAccountID (),
                                    app_id );

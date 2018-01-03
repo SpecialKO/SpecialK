@@ -1638,7 +1638,7 @@ SK_ValidateGlobalRTSSProfile (void)
     wcscpy (wszRTSSHooks, SK_GetRTSSInstallDir ().c_str ());
   }
 
-  lstrcatW (wszRTSSHooks, L"\\Profiles\\Global");
+  lstrcatW (wszRTSSHooks, LR"(\Profiles\Global)");
 
 
   iSK_INI rtss_global (wszRTSSHooks);
@@ -2072,7 +2072,7 @@ SK_Bypass_CRT (LPVOID user)
       return
         GetFileAttributesA (
           SK_FormatString ( R"(%ws\PlugIns\ThirdParty\dgVoodoo\d3dimm.dll)",
-                              std::wstring ( SK_GetDocumentsDir () + L"\\My Mods\\SpecialK" ).c_str ()
+                              std::wstring ( SK_GetDocumentsDir () + LR"(\My Mods\SpecialK)" ).c_str ()
                           ).c_str ()
         ) != INVALID_FILE_ATTRIBUTES;
     };
@@ -2746,13 +2746,13 @@ std::pair <std::queue <DWORD>, BOOL>
 __stdcall
 SK_BypassInject (void)
 {
+  InterlockedExchange  (&SK_bypass_dialog_tid, 0);
+  InterlockedIncrement (&SK_bypass_dialog_active);
+
   lstrcpyW (__bypass.wszBlacklist, SK_GetBlacklistFilename ());
 
   __bypass.disable = 
     (GetFileAttributesW (__bypass.wszBlacklist) != INVALID_FILE_ATTRIBUTES);
-
-  InterlockedExchange  (&SK_bypass_dialog_tid, GetCurrentThreadId ());
-  InterlockedIncrement (&SK_bypass_dialog_active);
 
   CreateThread ( nullptr,
                    0,

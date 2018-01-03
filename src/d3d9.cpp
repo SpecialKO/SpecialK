@@ -3284,7 +3284,7 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
             {
               if (record.method == TexLoadMethod::Streaming)
               {
-                _swprintf ( wszInjectFileName, L"%s\\inject\\textures\\streaming\\%08x%s",
+                _swprintf ( wszInjectFileName, LR"(%s\inject\textures\streaming\%08x%s)",
                               SK_D3D11_res_root.c_str (),
                                 pDst->tex_crc32c,
                                   L".dds" );
@@ -3292,7 +3292,7 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
 
               else if (record.method == TexLoadMethod::Blocking)
               {
-                _swprintf ( wszInjectFileName, L"%s\\inject\\textures\\blocking\\%08x%s",
+                _swprintf ( wszInjectFileName, LR"(%s\inject\textures\blocking\%08x%s)",
                               SK_D3D11_res_root.c_str (),
                                 pDst->tex_crc32c,
                                   L".dds");

@@ -2042,7 +2042,7 @@ public:
     {
       iSK_INI achievement_ini (
         std::wstring (
-          SK_GetDocumentsDir () + L"\\My Mods\\SpecialK\\Global\\achievements.ini"
+          SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\Global\achievements.ini)"
         ).c_str () );
 
       // If the config file is empty, establish defaults and then write it.
@@ -2056,7 +2056,7 @@ public:
                                  L"NotifyCorner=0\n" );
         achievement_ini.write (
           std::wstring (
-            SK_GetDocumentsDir () + L"\\My Mods\\SpecialK\\Global\\achievements.ini"
+            SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\Global\achievements.ini)"
           ).c_str () );
       }
 
@@ -2952,7 +2952,7 @@ SK_GetSteamDir (void)
 
   LSTATUS status =
     RegGetValueW ( HKEY_CURRENT_USER,
-                     L"SOFTWARE\\Valve\\Steam\\",
+                     LR"(SOFTWARE\Valve\Steam\)",
                        L"SteamPath",
                          RRF_RT_REG_SZ,
                            nullptr,
@@ -2988,7 +2988,7 @@ SK_Steam_GetLibraries (steam_library_t** ppLibraries = nullptr)
       wchar_t wszLibraryFolders [MAX_PATH * 2 + 1] = { };
 
       lstrcpyW (wszLibraryFolders, wszSteamPath);
-      lstrcatW (wszLibraryFolders, L"\\steamapps\\libraryfolders.vdf");
+      lstrcatW (wszLibraryFolders, LR"(\steamapps\libraryfolders.vdf)");
 
       CHandle hLibFolders (
         CreateFileW ( wszLibraryFolders,
@@ -4081,9 +4081,9 @@ SK_Steam_LoadOverlayEarly (void)
   lstrcatW (wszOverlayDLL, wszSteamPath);
 
 #ifdef _WIN64
-  lstrcatW (wszOverlayDLL, L"\\GameOverlayRenderer64.dll");
+  lstrcatW (wszOverlayDLL, LR"(\GameOverlayRenderer64.dll)");
 #else
-  lstrcatW (wszOverlayDLL, L"\\GameOverlayRenderer.dll");
+  lstrcatW (wszOverlayDLL, LR"(\GameOverlayRenderer.dll)");
 #endif
 
   hModOverlay =
@@ -4305,7 +4305,7 @@ SK_Steam_PiratesAhoy (void)
           //   The actual DLL used is pulled from the IAT during init, but I am too lazy to bother doing
           //     this the right way ;)
 #ifdef _WIN64
-          snprintf ( szRelSteamAPI, MAX_PATH * 2 - 1, "%ws\\steam_api64.dll",
+          snprintf ( szRelSteamAPI, MAX_PATH * 2 - 1, R"(%ws\steam_api64.dll)",
                        SK_GetHostPath () );
 #else
           snprintf ( szRelSteamAPI, MAX_PATH * 2 - 1, R"(%ws\steam_api.dll)",
