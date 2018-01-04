@@ -751,7 +751,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
             //   trying to grab a static reference to the Logger Singleton would blow stuff up.
             //
             //   Avoid this by counting the number of frames actually drawn.
-            if (StrStrW (fd.cFileName, L"CEGUI.log") && SK_GetFramesDrawn () > 120)
+            if (config.cegui.enable && StrStrW (fd.cFileName, L"CEGUI.log") && SK_GetFramesDrawn () > 120)
             {
               const wchar_t* wszLogFile = L"CEGUI.log";
 

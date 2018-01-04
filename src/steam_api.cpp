@@ -1664,6 +1664,9 @@ public:
 
   int drawPopups (void)
   {
+    if (! config.cegui.enable) return 0;
+
+
     int drawn = 0;
 
     EnterCriticalSection (&popup_cs);
@@ -2156,6 +2159,9 @@ public:
 protected:
   CEGUI::Window* createPopupWindow (SK_AchievementPopup* popup)
   {
+    if (!config.cegui.enable) return nullptr;
+
+
     if (popup->achievement == nullptr)
       return nullptr;
 
@@ -4669,6 +4675,17 @@ SAFE_GetISteamController (ISteamClient* pClient, HSteamUser hSteamuser, HSteamPi
   }
 }
 
+ISteamRemoteStorage*
+SAFE_GetISteamRemoteStorage (ISteamClient* pClient, HSteamUser hSteamuser, HSteamPipe hSteamPipe, const char *pchVersion)
+{
+  __try {
+    return pClient->GetISteamRemoteStorage (hSteamuser, hSteamPipe, pchVersion);
+  }
+  __except (EXCEPTION_EXECUTE_HANDLER) {
+    return nullptr;
+  }
+}
+
 
 bool
 SK_SteamAPIContext::InitSteamAPI (HMODULE hSteamDLL)
@@ -4964,10 +4981,11 @@ SK_SteamAPIContext::InitSteamAPI (HMODULE hSteamDLL)
   for (i = INTERNAL_STEAMREMOTESTORAGE_INTERFACE_VERSION+1; i > 0; --i)
   {
     remote_storage_ =
-      client_->GetISteamRemoteStorage (
-        hSteamUser,
-          hSteamPipe,
-            SK_FormatString ("STEAMREMOTESTORAGE_INTERFACE_VERSION%03u", i).c_str () );
+      SAFE_GetISteamRemoteStorage (
+        client_,
+          hSteamUser,
+            hSteamPipe,
+              SK_FormatString ("STEAMREMOTESTORAGE_INTERFACE_VERSION%03u", i).c_str () );
 
     if (remote_storage_ != nullptr)
     {

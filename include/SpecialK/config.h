@@ -393,7 +393,7 @@ struct sk_config_t
       struct
       {
         unsigned
-        int   ui_slot           =    1;
+        int   ui_slot           =    0;
       } steam;
     } gamepad;
 

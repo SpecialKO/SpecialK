@@ -6457,6 +6457,7 @@ DWORD
 SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags, 
                                               LPVOID lpUser )
 {
+
 //  static bool skip;
 //
 //  if (dwFlags == 0)
@@ -6911,46 +6912,35 @@ SK_ImGui_Toggle (void)
     static HMODULE hModTBFix = GetModuleHandle (L"tbfix.dll");
     static HMODULE hModTZFix = GetModuleHandle (L"tzfix.dll");
 
-    //if (hModTZFix == nullptr)
+    // Turns the hardware cursor on/off as needed
+    ImGui_ToggleCursor ();
+
+    // Most games
+    if (! hModTBFix)
     {
-      // Turns the hardware cursor on/off as needed
-      ImGui_ToggleCursor ();
-
-      // Most games
-      if (! hModTBFix)
+      // Transition: (Visible -> Invisible)
+      if (! SK_ImGui_Visible)
       {
-        // Transition: (Visible -> Invisible)
-        if (! SK_ImGui_Visible)
-        {
-          //SK_ImGui_Cursor.showSystemCursor ();
-        }
-
-        else
-        {
-          //SK_ImGui_Cursor.showImGuiCursor ();
-
-          if (EnableEULAIfPirate ())
-            config.imgui.show_eula = true;
-
-          static bool first = true;
-
-          if (first)
-          {
-            eula.never_show_again = true;
-            eula.show             = config.imgui.show_eula;
-            first                 = false;
-          }
-        }
+        //SK_ImGui_Cursor.showSystemCursor ();
       }
 
-      // TBFix
       else
-        EnableEULAIfPirate ();
-    }
+      {
+        //SK_ImGui_Cursor.showImGuiCursor ();
 
-    // TZFix
-    if (hModTZFix)
-      EnableEULAIfPirate ();
+        if (EnableEULAIfPirate ())
+          config.imgui.show_eula = true;
+
+        static bool first = true;
+
+        if (first)
+        {
+          eula.never_show_again = true;
+          eula.show             = config.imgui.show_eula;
+          first                 = false;
+        }
+      }
+    }
 
     if (SK_ImGui_Visible)
       SK_Console::getInstance ()->visible = false;

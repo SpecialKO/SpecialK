@@ -276,7 +276,7 @@ SK_LoadLibrary_IsPinnable (const _T* pStr)
                                                             (StrStrI_pfn) &StrStrIA );
   static std::vector <const _T*> pinnable_libs =
   {
-    SK_TEXT ("OpenCL"),    SK_TEXT ("CEGUI"),
+    SK_TEXT ("OpenCL"),    //SK_TEXT ("CEGUI"),
     SK_TEXT ("perfos"),    SK_TEXT ("avrt"),
 
     SK_TEXT ("AUDIOSES"),  SK_TEXT ("HID"),

@@ -1337,22 +1337,6 @@ bool
 __stdcall
 SK_StartupCore (const wchar_t* backend, void* callback)
 {
-  QueryPerformanceCounter_Original =
-    reinterpret_cast <QueryPerformanceCounter_pfn> (
-      GetProcAddress (
-        GetModuleHandle ( L"kernel32.dll"),
-                            "QueryPerformanceCounter" )
-    );
-
-  bool SK_InitWMI (void);
-
-  SK_Init_MinHook        ();
-       SK_InitWMI        ();
-  SK_InitCompatBlacklist ();
-
-
-  SK_SetBackend (backend);
-
   // Allow users to centralize all files if they want
   //
   //   Stupid hack, if the application is running with a different working-directory than
@@ -1416,6 +1400,8 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
   init_mutex->lock ();
 
+  SK_SetBackend (backend);
+
   // Injection Compatibility Menu
   if ( (! __SK_bypass) && (GetAsyncKeyState (VK_SHIFT  ) & 0x8000) != 0 &&
                           (GetAsyncKeyState (VK_CONTROL) & 0x8000) != 0 )
@@ -1427,11 +1413,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
   else
   {
-    if (config.compatibility.init_while_suspended)
-    {
-      init_tids = SK_SuspendAllOtherThreads ();
-    }
-
     wchar_t log_fname [MAX_PATH + 2] = { };
 
     swprintf (log_fname, L"logs/%s.log", SK_IsInjected () ? L"SpecialK" : backend);
@@ -1449,9 +1430,28 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     //
     if ( blacklist )
     {
-      //FreeLibrary_Original (SK_GetDLL ());
+      init_mutex->unlock ();
+      //FreeLibrary_Original (SK_GetDLL ());  
       return false;
     }
+
+    if (config.compatibility.init_while_suspended)
+    {
+      init_tids = SK_SuspendAllOtherThreads ();
+    }
+
+  QueryPerformanceCounter_Original =
+    reinterpret_cast <QueryPerformanceCounter_pfn> (
+      GetProcAddress (
+        GetModuleHandle ( L"kernel32.dll"),
+                            "QueryPerformanceCounter" )
+    );
+
+    bool SK_InitWMI (void);
+
+    SK_Init_MinHook        ();
+         SK_InitWMI        ();
+    SK_InitCompatBlacklist ();
 
     extern void SK_Input_PreInit          (void);
 
@@ -1463,12 +1463,12 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     // For the global injector, when not started by SKIM, check its version
     if ( (SK_IsInjected () && (! SK_IsSuperSpecialK ())) )
       CreateThread (nullptr, 0, CheckVersionThread, nullptr, 0x00, nullptr);
-  }
 
-  // Don't let Steam prevent me from attaching a debugger at startup
-  game_debug.init                  (L"logs/game_output.log", L"w");
-  game_debug.lockless = true;
-  SK::Diagnostics::Debugger::Allow ();
+    // Don't let Steam prevent me from attaching a debugger at startup
+    game_debug.init                  (L"logs/game_output.log", L"w");
+    game_debug.lockless = true;
+    SK::Diagnostics::Debugger::Allow ();
+  }
 
   if (skim)
   {
@@ -2281,8 +2281,11 @@ SK_BeginBufferSwap (void)
   last_api = SK_GetCurrentRenderBackend ().api;
 
 
-  SK_DrawOSD         ();
-  SK_DrawConsole     ();
+  if (config.cegui.enable)
+  {
+    SK_DrawOSD         ();
+    SK_DrawConsole     ();
+  }
 
   static HMODULE hModTBFix = GetModuleHandle (L"tbfix.dll");
 
@@ -2315,8 +2318,9 @@ extern void SK_ImGui_Toggle (void);
 
 ULONGLONG poll_interval = 0;
 
+// Todo, move out of here
 void
-DoKeyboard (void)
+SK_Input_PollKeyboard (void)
 {
   //
   // Do not poll the keyboard while the game window is inactive
@@ -2534,7 +2538,7 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
 
   else
   {
-    if (config.apis.OpenGL.hook && SK_GetCurrentGLContext () != nullptr)
+    if (config.apis.OpenGL.hook && SK_GL_GetCurrentContext () != nullptr)
     {
                __SK_RBkEnd.api  = SK_RenderAPI::OpenGL;
       wcsncpy (__SK_RBkEnd.name, L"OpenGL", 8);
@@ -2553,7 +2557,7 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
   }
 
 
-  DoKeyboard ();
+  SK_Input_PollKeyboard ();
 
   InterlockedIncrement (&frames_drawn);
 

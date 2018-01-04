@@ -95,6 +95,10 @@ void
 __stdcall
 SK_ImGui_DrawEULA (LPVOID reserved)
 {
+  if (! ImGui::GetFont ())
+    return;
+
+
   extern uint32_t __stdcall SK_Steam_PiratesAhoy (void);
   extern uint32_t __stdcall SK_SteamAPI_AppID    (void);
 
@@ -131,12 +135,11 @@ SK_ImGui_DrawEULA (LPVOID reserved)
   const  float font_size           =             ImGui::GetFont  ()->FontSize                        * io.FontGlobalScale;
   const  float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y + ImGui::GetStyle ().ItemInnerSpacing.y;
 
-
-  ImGui::SetNextWindowPosCenter (ImGuiSetCond_Appearing);
-  ImGui::SetNextWindowFocus     ();
-
   if (ImGui::BeginPopupModal (szTitle, nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders))
   {
+    ImGui::SetNextWindowPosCenter (ImGuiSetCond_Appearing);
+    ImGui::SetNextWindowFocus     ();
+
     //if (io.DisplaySize.x < 1024.0f || io.DisplaySize.y < 720.0f)
     //{
     //  ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (1.0f, 0.6f, 0.2f, 1.0f));

@@ -25,6 +25,7 @@
 #undef max
 
 #include <CEGUI/CEGUI.h>
+#include <SpecialK/config.h>
 
 class SK_PopupWindow {
 friend class SK_PopupManager;
@@ -36,6 +37,9 @@ public:
 protected:
   SK_PopupWindow (const char* szLayout)
   {
+    if (!config.cegui.enable) return;
+
+
     try
     {
       CEGUI::WindowManager& window_mgr =
@@ -52,6 +56,9 @@ protected:
 
   ~SK_PopupWindow (void)
   {
+    if (!config.cegui.enable) return;
+
+
     if (window_ != nullptr)
     {
       try
@@ -160,6 +167,9 @@ SK_PopupManager::isPopup (SK_PopupWindow* popup)
 SK_PopupWindow*
 SK_PopupManager::createPopup (const char* szLayout)
 {
+  if (! config.cegui.enable) return nullptr;
+
+
   if (gui_ctx_ == nullptr)
   {
     gui_ctx_ =
@@ -197,6 +207,9 @@ SK_PopupManager::createPopup (const char* szLayout)
 void
 SK_PopupManager::destroyPopup (SK_PopupWindow* popup)
 {
+  if (! config.cegui.enable) return;
+
+
   if (isPopup (popup))
   {
     CEGUI::WindowManager& window_mgr =

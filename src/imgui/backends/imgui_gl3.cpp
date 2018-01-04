@@ -10,6 +10,7 @@
 
 #include <Windows.h>
 #include <../depends/include/GL/glew.h>
+#include <SpecialK/render_backend.h>
 #include <SpecialK/framerate.h>
 
 #include <SpecialK/window.h>
@@ -418,8 +419,10 @@ ImGui_ImplGL3_NewFrame (void)
 
   ImGuiIO& io (ImGui::GetIO ());
 
+  game_window.hWnd = WindowFromDC (SK_GL_GetCurrentDC ());
+
   RECT client;
-  GetClientRect (game_window.hWnd, &client);
+  GetClientRect (WindowFromDC (SK_GL_GetCurrentDC ()), &client);
 
   // Setup display size (every frame to accommodate for window resizing)
   int w = client.right  - client.left,

@@ -1484,17 +1484,17 @@ SK_SetOSDScale ( float  fScale,
       overlay->resize (fScale);
     else
       overlay->setScale (fScale);
-  }
 
-  // TEMP HACK
-  // ---------
-  //
-  // If the primary overlay is rescaled, rescale everything else with it...
-  if (overlay == overlay_mgr->getTextOverlay ("Special K"))
-    SK_GetCommandProcessor ()->ProcessCommandFormatted (
-      "OSD.Scale %f",
-        overlay->getScale ()
-    );
+    // TEMP HACK
+    // ---------
+    //
+    // If the primary overlay is rescaled, rescale everything else with it...
+    if (overlay == overlay_mgr->getTextOverlay ("Special K"))
+      SK_GetCommandProcessor ()->ProcessCommandFormatted (
+        "OSD.Scale %f",
+          overlay->getScale ()
+      );
+  }
 }
 
 void

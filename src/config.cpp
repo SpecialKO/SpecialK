@@ -2319,7 +2319,7 @@ SK_SaveConfig ( std::wstring name,
                 bool         close_config )
 {
   //
-  // Shutting down before initializaiton would be damn near fatal if we didn't catch this! :)
+  // Shutting down before initialization would be damn near fatal if we didn't catch this! :)
   //
   if (dll_ini == nullptr)
     return;

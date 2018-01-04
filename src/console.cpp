@@ -70,16 +70,9 @@ SK_Console::getInstance (void)
   return pConsole;
 }
 
-//#include <SpecialK/framerate.h>
-bool bNoConsole = false;
-
 void
 SK_Console::Draw (void)
 {
-  // Some plugins have their own...
-  if (bNoConsole)
-    return;
-
   static bool          carret    = false;
   static LARGE_INTEGER last_time = { 0ULL };
 
@@ -445,9 +438,6 @@ SK_Console::KeyDown (BYTE vkCode, LPARAM lParam)
 void
 SK_DrawConsole (void)
 {
-  if (bNoConsole)
-    return;
-
   SK_Console::getInstance ()->Draw ();
 }
 

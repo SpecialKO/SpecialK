@@ -60,7 +60,7 @@ WaitForInit_GL (void)
   while (! ReadAcquire (&__gl_ready))
     MsgWaitForMultipleObjectsEx (0, nullptr, 100, QS_ALLINPUT, MWMO_ALERTABLE);
 
-  WaitForInit ();
+  //WaitForInit ();
 }
 
 extern bool SK_InitCOM (void);
@@ -109,6 +109,29 @@ DXGI_Thread (LPVOID user)
 #ifndef SK_BUILD__INSTALLER
 #include <CEGUI/RendererModules/OpenGL/GL3Renderer.h>
 
+
+#ifdef _WIN64
+
+#pragma comment (lib, "CEGUI/x64/CEGUIOpenGLRenderer-0.lib")
+
+#pragma comment (lib, "CEGUI/x64/CEGUIBase-0.lib")
+#pragma comment (lib, "CEGUI/x64/CEGUICoreWindowRendererSet.lib")
+#pragma comment (lib, "CEGUI/x64/CEGUIRapidXMLParser.lib")
+#pragma comment (lib, "CEGUI/x64/CEGUICommonDialogs-0.lib")
+#pragma comment (lib, "CEGUI/x64/CEGUISTBImageCodec.lib")
+
+#else
+
+#pragma comment (lib, "CEGUI/Win32/CEGUIOpenGLRenderer-0.lib")
+
+#pragma comment (lib, "CEGUI/Win32/CEGUIBase-0.lib")
+#pragma comment (lib, "CEGUI/Win32/CEGUICoreWindowRendererSet.lib")
+#pragma comment (lib, "CEGUI/Win32/CEGUIRapidXMLParser.lib")
+#pragma comment (lib, "CEGUI/Win32/CEGUICommonDialogs-0.lib")
+#pragma comment (lib, "CEGUI/Win32/CEGUISTBImageCodec.lib")
+
+#endif
+
 CEGUI::OpenGL3Renderer* cegGL = nullptr;
 #endif
 
@@ -123,8 +146,8 @@ static volatile LONG __cegui_frames_drawn = 0L;
 void ResetCEGUI_GL (void)
 {
 #ifndef SK_BUILD__INSTALLER
-  if (! config.cegui.enable)
-    return;
+  //if (! config.cegui.enable)
+  //  return;
 
   // TOOD: Eliminate the stupid magic number, make this an option if it's something
   //         that is really going to stay here long-term.
@@ -152,7 +175,7 @@ void ResetCEGUI_GL (void)
     SK_TextOverlayManager::getInstance ()->resetAllOverlays (cegGL);
 
     extern void SK_Steam_ClearPopups (void);
-    SK_Steam_ClearPopups ();
+                SK_Steam_ClearPopups ();
   }
 #endif
 }
@@ -254,7 +277,9 @@ SK_FreeRealGL (void)
 bool
 SK::OpenGL::Startup (void)
 {
-  return SK_StartupCore (L"OpenGL32", opengl_init_callback);
+  bool ret = SK_StartupCore (L"OpenGL32", opengl_init_callback);
+
+  return ret;
 }
 
 bool
@@ -1169,46 +1194,51 @@ OPENGL_STUB(BOOL, wglSetPixelFormat, (HDC hDC, DWORD PixelFormat, CONST PIXELFOR
 
 
 void
-SK_CEGUI_DrawGL (void)
+SK_Overlay_DrawGL (void)
 {
-  if (! config.cegui.enable)
-    return;
-
   InterlockedIncrement (&__cegui_frames_drawn);
 
-  static HWND last_hwnd = game_window.hWnd;
+  static HWND last_hwnd = 0;
 
-  if (last_hwnd != game_window.hWnd)
+  if (last_hwnd != hWndRender)
   {
-    if (cegGL != nullptr)
+    if (config.cegui.enable && cegGL != nullptr)
     {
       CEGUI::WindowManager::getDllSingleton ().cleanDeadPool ();
       cegGL->destroySystem ();
       cegGL = nullptr;
     }
 
-    last_hwnd = game_window.hWnd;
+    last_hwnd = hWndRender;
   }
+
+
+  if (GetForegroundWindow () == GetFocus () && game_window.hWnd != GetFocus ())
+  {
+    game_window.hWnd = GetFocus ();
+
+    extern void
+    SK_InstallWindowHook (HWND hWnd);
+    SK_InstallWindowHook (GetFocus ());
+  }
+
+
 
   // TODO: Create a secondary context that shares "display lists" so that
   //         we have a pure state machine all to ourselves.
-  if (cegGL == nullptr)
+  if (cegGL == nullptr && config.cegui.enable)
   {
-    extern void
-    SK_InstallWindowHook (HWND hWnd);
-    SK_InstallWindowHook (WindowFromDC (wglGetCurrentDC ()));
-
     ResetCEGUI_GL ();
   }
 
-  else
+  if (cegGL != nullptr || (! config.cegui.enable))
   {
     static RECT rect     = { -1, -1, -1, -1 };
            RECT rect_now = {  0,  0,  0,  0 };
 
-    GetClientRect (WindowFromDC (wglGetCurrentDC ()), &rect_now);
+    GetClientRect (WindowFromDC (SK_GL_GetCurrentDC ()), &rect_now);
 
-    if (memcmp (&rect, &rect_now, sizeof RECT))
+    if (config.cegui.enable && memcmp (&rect, &rect_now, sizeof RECT))
     {
       CEGUI::System::getDllSingleton ().getRenderer ()->setDisplaySize (
           CEGUI::Sizef (
@@ -1250,19 +1280,27 @@ SK_CEGUI_DrawGL (void)
     glBindVertexArray (ceGL_VAO);
     glBindFramebuffer (GL_FRAMEBUFFER, 0);
 
-    cegGL->beginRendering   ();
+    if (config.cegui.enable)
     {
+      cegGL->beginRendering   ();
+
       SK_TextOverlayManager::getInstance ()->drawAllOverlays (0.0f, 0.0f);
-      CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
+          CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
+    }
 
-      SK_ImGui_DrawFrame (0x00, nullptr);
 
+    SK_ImGui_DrawFrame (0x00, nullptr);
+
+
+    if (config.cegui.enable)
+    {
       if (SK_Steam_DrawOSD ())
       {
         CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
       }
+
+      cegGL->endRendering     ();
     }
-    cegGL->endRendering     ();
 
     glActiveTexture         (last_active_texture);
     glBindTexture           (GL_TEXTURE_2D,           last_texture);
@@ -1287,13 +1325,16 @@ SK_CEGUI_DrawGL (void)
     if (last_enable_depth_test)   glEnable (GL_DEPTH_TEST);   else glDisable (GL_DEPTH_TEST);
     if (last_enable_scissor_test) glEnable (GL_SCISSOR_TEST); else glDisable (GL_SCISSOR_TEST);
 
+    glBindVertexArray (                         last_vertex_array);
+    glBindBuffer      (GL_ARRAY_BUFFER,         last_array_buffer);
+    glBindBuffer      (GL_ELEMENT_ARRAY_BUFFER, last_element_array_buffer);
+
     glViewport ( last_viewport    [0], last_viewport    [1], (GLsizei)last_viewport    [2], (GLsizei)last_viewport    [3]);
     glScissor  ( last_scissor_box [0], last_scissor_box [1], (GLsizei)last_scissor_box [2], (GLsizei)last_scissor_box [3]);
   }
 }
 
 #if 1
-// THIS IS THE ONLY THING WE CARE ABOUT, GOOD GRIEF!!!
 __declspec (noinline)
 BOOL
 WINAPI
@@ -1321,23 +1362,15 @@ SwapBuffers (HDC hDC)
   }
 
 
-  if (SK_GetCurrentGLContext ())
+  if (SK_GL_GetCurrentContext ())
   {
-    if (SK_GetFramesDrawn () < 1)
-    {
-      glewExperimental = GL_TRUE;
-      glewInit ();
-    }
+    glewExperimental = GL_TRUE;
+    SK_RunOnce (glewInit ());
 
     SK_GL_UpdateRenderStats ();
-    SK_CEGUI_DrawGL         ();
+    SK_Overlay_DrawGL       ();
 
-    static bool first = true;
-    if (first)
-    {
-      ImGui_ImplGL3_Init ();
-      first = false;
-    }
+    SK_RunOnce (ImGui_ImplGL3_Init ());
   }
 
 
@@ -1346,7 +1379,8 @@ SwapBuffers (HDC hDC)
   if (gdi_swap_buffers != nullptr)
     status = gdi_swap_buffers (hDC);
 
-  SK_EndBufferSwap (S_OK);
+  if  (status)
+    SK_EndBufferSwap (S_OK);
 
 
   return status;
@@ -1374,23 +1408,15 @@ wglSwapBuffers (HDC hDC)
   }
 
 
-  if (SK_GetCurrentGLContext ())
+  if (SK_GL_GetCurrentContext ())
   {
-    if (SK_GetFramesDrawn () < 1)
-    {
-      glewExperimental = GL_TRUE;
-      glewInit ();
-    }
+    glewExperimental = GL_TRUE;
+    SK_RunOnce (glewInit ());
 
     SK_GL_UpdateRenderStats ();
-    SK_CEGUI_DrawGL         ();
+    SK_Overlay_DrawGL       ();
 
-    static bool first = true;
-    if (first)
-    {
-      ImGui_ImplGL3_Init ();
-      first = false;
-    }
+    SK_RunOnce (ImGui_ImplGL3_Init ());
   }
 
 
@@ -1399,7 +1425,10 @@ wglSwapBuffers (HDC hDC)
   if (wgl_swap_buffers != nullptr)
     status = wgl_swap_buffers (hDC);
 
-  SK_EndBufferSwap (S_OK);
+
+  if (status)
+    SK_EndBufferSwap (S_OK);
+
 
   return status;
 }
@@ -1904,25 +1933,22 @@ void
 WINAPI
 SK_HookGL (void)
 {
-  static volatile ULONG hooked = FALSE;
-
-  if (InterlockedCompareExchange (&hooked, TRUE, FALSE))
-    return;
-
   if (! config.apis.OpenGL.hook)
     return;
 
-  dll_log.Log (L"[ OpenGL32 ] Additional OpenGL Initialization");
-  dll_log.Log (L"[ OpenGL32 ] ================================");
+  static volatile LONG SK_GL_initialized = FALSE;
 
-  if (! StrStrIW ( SK_GetModuleName (SK_GetDLL ()).c_str (), 
-                   L"OPENGL32.dll" ) )
+  if (! InterlockedCompareExchange (&SK_GL_initialized, TRUE, FALSE))
   {
-    dll_log.Log (L"[ OpenGL32 ] Hooking OpenGL");
+    dll_log.Log (L"[ OpenGL32 ] Additional OpenGL Initialization");
+    dll_log.Log (L"[ OpenGL32 ] ================================");
 
-    if (true)
+    wchar_t* wszBackendDLL = L"OpenGL32.dll";
+
+    if (! StrStrIW ( SK_GetModuleName (SK_GetDLL ()).c_str (), 
+                     L"OPENGL32.dll" ) )
     {
-      wchar_t* wszBackendDLL = L"OpenGL32.dll";
+      dll_log.Log (L"[ OpenGL32 ] Hooking OpenGL");
 
 #if 0
       SK_CreateDLLHook (         wszBackendDLL,
@@ -1935,7 +1961,6 @@ SK_HookGL (void)
                                  SwapBuffers,
         static_cast_p2p <void> (&gdi_swap_buffers) );
 #endif
-
 
 // Load user-defined DLLs (Plug-In)
 #ifdef _WIN64
@@ -2308,12 +2333,18 @@ SK_HookGL (void)
       SK_GL_HOOK(wglSetPixelFormat);
       SK_GL_HOOK(wglSwapMultipleBuffers);
 
-      MH_ApplyQueued ();
+      SK_ApplyQueuedHooks ();
+
+      dll_log.Log ( L"[ OpenGL32 ]  @ %lu functions hooked",
+                      GL_HOOKS );
     }
 
-    dll_log.Log ( L"[ OpenGL32 ]  @ %lu functions hooked",
-                    GL_HOOKS );
+    InterlockedIncrement (&SK_GL_initialized);
   }
+
+  // Spinlock
+  while ( ReadAcquire (&SK_GL_initialized) < 2 )
+    ;
 
   InterlockedExchange (&__gl_ready, TRUE);
 
@@ -2332,11 +2363,21 @@ SK_HookGL (void)
 
 HGLRC
 WINAPI
-SK_GetCurrentGLContext (void)
+SK_GL_GetCurrentContext (void)
 {
   if (imp_wglGetCurrentContext != nullptr)
     return imp_wglGetCurrentContext ();
 
   // Fallback, better hope this never happens ;)
-  return wglGetCurrentContext ();
+  return 0;//wglGetCurrentContext ();
+}
+
+HDC
+WINAPI
+SK_GL_GetCurrentDC (void)
+{
+  if (imp_wglGetCurrentDC != nullptr)
+    return imp_wglGetCurrentDC ();
+
+  return 0;//
 }

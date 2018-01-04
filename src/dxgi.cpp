@@ -172,6 +172,9 @@ static volatile ULONG __cegui_frames_drawn = 0;
 void
 SK_CEGUI_RelocateLog (void)
 {
+  if (! config.cegui.enable) return;
+
+
   // Move the log file that this darn thing just created...
   if (GetFileAttributesW (L"CEGUI.log") != INVALID_FILE_ATTRIBUTES)
   {
@@ -202,12 +205,18 @@ CEGUI::Window* SK_achv_popup = nullptr;
 CEGUI::System*
 SK_CEGUI_GetSystem (void)
 {
+  if (! config.cegui.enable) return nullptr;
+
+
   return CEGUI::System::getDllSingletonPtr ();
 }
 
 void
 SK_CEGUI_InitBase ()
 {
+  if (! config.cegui.enable) return;
+
+
   try
   {
     // initialise the required dirs for the DefaultResourceProvider

@@ -1,3 +1,11 @@
+0.8.60
+
+ + Completely separated ImGui from CEGUI (OSD / achievements) in OpenGL
+ + Fixed 32-bit OpenGL delay-load ABI issues
+ + Fixed OpenGL Vertex Array Object state leaks in legacy (GL 2.x) games
+ + Corrected injection bypass dialog crashing OpenGL games
+
+
 0.8.59
 
  + Fixed GTA V Launcher injection compatibility
