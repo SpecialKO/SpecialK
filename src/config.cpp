@@ -389,8 +389,6 @@ struct {
 } window;
 
 struct {
-  sk::ParameterBool*      ignore_raptr;
-  sk::ParameterBool*      disable_raptr;
   sk::ParameterBool*      rehook_loadlibrary;
   sk::ParameterBool*      disable_nv_bloat;
 
@@ -674,8 +672,6 @@ struct param_decl_s {
     // Compatibility
     //////////////////////////////////////////////////////////////////////////
 
-    ConfigEntry (compatibility.ignore_raptr,             L"Ignore Raptr Warning",                                      dll_ini,         L"Compatibility.General", L"IgnoreRaptr"),
-    ConfigEntry (compatibility.disable_raptr,            L"Forcefully Disable Raptr",                                  dll_ini,         L"Compatibility.General", L"DisableRaptr"),
     ConfigEntry (compatibility.disable_nv_bloat,         L"Disable All NVIDIA BloatWare (GeForce Experience)",         dll_ini,         L"Compatibility.General", L"DisableBloatWare_NVIDIA"),
     ConfigEntry (compatibility.rehook_loadlibrary,       L"Rehook LoadLibrary When RTSS/Steam/ReShade hook it",        dll_ini,         L"Compatibility.General", L"RehookLoadLibrary"),
 
@@ -1472,8 +1468,6 @@ struct param_decl_s {
   //
   // Load Parameters
   //
-  compatibility.ignore_raptr->load       (config.compatibility.ignore_raptr);
-  compatibility.disable_raptr->load      (config.compatibility.disable_raptr);
   compatibility.disable_nv_bloat->load   (config.compatibility.disable_nv_bloat);
   compatibility.rehook_loadlibrary->load (config.compatibility.rehook_loadlibrary);
 
@@ -2324,8 +2318,6 @@ SK_SaveConfig ( std::wstring name,
   if (dll_ini == nullptr)
     return;
 
-  compatibility.ignore_raptr->store           (config.compatibility.ignore_raptr);
-  compatibility.disable_raptr->store          (config.compatibility.disable_raptr);
   compatibility.disable_nv_bloat->store       (config.compatibility.disable_nv_bloat);
   compatibility.rehook_loadlibrary->store     (config.compatibility.rehook_loadlibrary);
 
@@ -2710,8 +2702,6 @@ SK_SaveConfig ( std::wstring name,
   apis.Vulkan.hook->store                 ();
 #endif
 
-  compatibility.ignore_raptr->store       ();
-  compatibility.disable_raptr->store      ();
   compatibility.disable_nv_bloat->store   ();
   compatibility.rehook_loadlibrary->store ();
 

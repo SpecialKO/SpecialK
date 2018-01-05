@@ -76,8 +76,6 @@ using lstrcat_pfn            = LPVOID  (__stdcall *)(LPVOID  lpString1, LPCVOID 
 using GetModuleHandleEx_pfn  = BOOL    (__stdcall *)(DWORD   dwFlags,   LPCVOID lpModuleName, HMODULE* phModule);
 
 
-extern DWORD __stdcall SK_RaptrWarn (LPVOID user);
-
 BOOL __stdcall SK_TerminateParentProcess    (UINT uExitCode);
 BOOL __stdcall SK_ValidateGlobalRTSSProfile (void);
 void __stdcall SK_ReHookLoadLibrary         (void);
@@ -176,19 +174,6 @@ BlacklistLibrary (const _T* lpFileName)
     (LoadLibrary_pfn)
       constexpr LPCVOID ( std::type_index (typeid (_T)) == std::type_index (typeid (wchar_t)) ? (LoadLibrary_pfn) &LoadLibraryW_Detour : 
                                                                                                 (LoadLibrary_pfn) &LoadLibraryA_Detour );
-
-  //
-  // TODO: This option is practically obsolete, Raptr is very compatible these days...
-  //         (either that, or I've conquered Raptr ;))
-  //
-  if (config.compatibility.disable_raptr)
-  {
-    if ( StrStrI (lpFileName, SK_TEXT("ltc_game")) )
-    {
-      dll_log.Log (L"[Black List] Preventing Raptr's overlay (ltc_game), it likes to crash games!");
-      return TRUE;
-    }
-  }
 
   if (config.compatibility.disable_nv_bloat)
   {
@@ -1307,35 +1292,6 @@ SK_WalkModules (int cbNeeded, HANDLE hProc, HMODULE* hMods, SK_ModuleEnum when)
           }
         }
 
-        else if ( (! third_party_dlls.misc.gedosato) &&
-                   StrStrIW (wszModName, L"GeDoSaTo") )
-        {
-          // Hold a reference to this DLL so it is not unloaded prematurely
-          GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-                                wszModName,
-                                  &third_party_dlls.misc.gedosato );
-
-          if (config.compatibility.rehook_loadlibrary)
-          {
-            SK_ReHookLoadLibrary ();
-            SleepEx (16, FALSE);
-          }
-        }
-
-        else if ( StrStrIW (wszModName, L"ltc_help") && (! (config.compatibility.ignore_raptr || config.compatibility.disable_raptr)) )
-        {
-          static bool warned = false;
-
-          // When Raptr's in full effect, it has its own overlay plus PlaysTV ...
-          //   only warn about ONE of these things!
-          if (! warned)
-          {
-            warned = true;
-
-            CreateThread ( nullptr, 0, SK_RaptrWarn, nullptr, 0x00, nullptr );
-          }
-        }
-
         if (when == SK_ModuleEnum::PostLoad)
         {
           SK_BootModule (wszModName);
@@ -1883,9 +1839,6 @@ SK_TaskBoxWithConfirmEx ( wchar_t* wszMainInstruction,
                             nullptr,
                               verify );
 
-  if (nButtonPressed == 0xdead01ae)
-    config.compatibility.disable_raptr = true;
-
   return hr;
 }
 
@@ -1896,49 +1849,6 @@ enum {
 };
 
 volatile LONG SK_BypassResult = SK_BYPASS_UNKNOWN;
-
-DWORD
-WINAPI
-SK_RaptrWarn (LPVOID user)
-{
-  UNREFERENCED_PARAMETER (user);
-
-  // Don't check for Raptr while installing something...
-  if (SK_IsHostAppSKIM ())
-  {
-    CloseHandle (GetCurrentThread ());
-    return 0;
-  }
-
-  HRESULT
-  __stdcall
-  SK_TaskBoxWithConfirmEx ( wchar_t* wszMainInstruction,
-                            PCWSTR   wszMainIcon,
-                            wchar_t* wszContent,
-                            wchar_t* wszConfirmation,
-                            wchar_t* wszFooter,
-                            PCWSTR   wszFooterIcon,
-                            wchar_t* wszVerifyText,
-                            BOOL*    verify,
-                            wchar_t* wszCommand );
-
-  SK_TaskBoxWithConfirmEx ( L"AMD Gaming Evolved or Raptr is running",
-                            TD_WARNING_ICON,
-                            L"In some software you can expect weird things to happen, including"
-                            L" the game mysteriously disappearing.\n\n"
-                            L"If the game behaves strangely, you may need to disable it.",
-                            nullptr,
-                            nullptr,
-                            nullptr,
-                            L"Check here to ignore this warning in the future.",
-                            (BOOL *)&config.compatibility.ignore_raptr,
-                            L"Disable Raptr / Plays.TV\n\n"
-                            L"Special K will disable it (for this game)." );
-
-  CloseHandle (GetCurrentThread ());
-
-  return 0;
-}
 
 struct sk_bypass_s {
   BOOL    disable;
@@ -2246,7 +2156,7 @@ SK_Bypass_CRT (LPVOID user)
           if (SK_IsInjected ()) SK_Inject_SwitchToRenderWrapperEx (SK_GetDLLRole ());
           else
           {
-            SK_Inject_SwitchToGlobalInjectorEx (SK_GetDLLRole ());
+            SK_Inject_SwitchToGlobalInjector ();
 
             temp_dll = SK_UTF8ToWideChar (
                          SK_FormatString ( R"(%ws\My Mods\SpecialK\SpecialK%lu.dll)",
@@ -2283,7 +2193,7 @@ SK_Bypass_CRT (LPVOID user)
           if (SK_IsInjected ()) SK_Inject_SwitchToRenderWrapperEx  (SK_GetDLLRole ());
           else
           {
-            SK_Inject_SwitchToGlobalInjectorEx (SK_GetDLLRole ());
+            SK_Inject_SwitchToGlobalInjector ();
 
             temp_dll = SK_UTF8ToWideChar (
                          SK_FormatString ( R"(%ws\My Mods\SpecialK\SpecialK%lu.dll)",
@@ -2323,7 +2233,7 @@ SK_Bypass_CRT (LPVOID user)
 #endif
                          )
                       );
-            SK_Inject_SwitchToGlobalInjectorEx (DLL_ROLE::D3D9);
+            SK_Inject_SwitchToGlobalInjector ();
           }
         }
         break;
@@ -2341,7 +2251,7 @@ SK_Bypass_CRT (LPVOID user)
 
           else
           {
-            SK_Inject_SwitchToGlobalInjectorEx (DLL_ROLE::DXGI);
+            SK_Inject_SwitchToGlobalInjector ();
             temp_dll = SK_UTF8ToWideChar (
                          SK_FormatString ( R"(%ws\My Mods\SpecialK\SpecialK%lu.dll)",
                            SK_GetDocumentsDir ().c_str (),
@@ -2370,7 +2280,7 @@ SK_Bypass_CRT (LPVOID user)
           }
           else
           {
-            SK_Inject_SwitchToGlobalInjectorEx (DLL_ROLE::DXGI);
+            SK_Inject_SwitchToGlobalInjector ();
             temp_dll = SK_UTF8ToWideChar (
                          SK_FormatString ( R"(%ws\My Mods\SpecialK\SpecialK%lu.dll)",
                            SK_GetDocumentsDir ().c_str (),
@@ -2399,7 +2309,7 @@ SK_Bypass_CRT (LPVOID user)
 
           else
           {
-            SK_Inject_SwitchToGlobalInjectorEx (DLL_ROLE::OpenGL);
+            SK_Inject_SwitchToGlobalInjector ();
             temp_dll = SK_UTF8ToWideChar (
                          SK_FormatString ( R"(%ws\My Mods\SpecialK\SpecialK%lu.dll)",
                            SK_GetDocumentsDir ().c_str (),
@@ -2436,7 +2346,7 @@ SK_Bypass_CRT (LPVOID user)
 
             else
             {
-              SK_Inject_SwitchToGlobalInjectorEx (DLL_ROLE::D3D8);
+              SK_Inject_SwitchToGlobalInjector ();
               temp_dll = SK_UTF8ToWideChar (
                            SK_FormatString ( R"(%ws\My Mods\SpecialK\SpecialK%lu.dll)",
                              SK_GetDocumentsDir ().c_str (),
@@ -2464,7 +2374,7 @@ SK_Bypass_CRT (LPVOID user)
               SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE::DDraw);
             else
             {
-              SK_Inject_SwitchToGlobalInjectorEx (DLL_ROLE::DDraw);
+              SK_Inject_SwitchToGlobalInjector ();
 
               temp_dll = SK_UTF8ToWideChar (
                            SK_FormatString ( R"(%ws\My Mods\SpecialK\SpecialK%lu.dll)",
@@ -2513,7 +2423,7 @@ SK_Bypass_CRT (LPVOID user)
 
     else if (nButtonPressed != BUTTON_OK)
     {
-      SK_SaveConfig  (wszConfigName);
+      SK_SaveConfig (wszConfigName);
     }
 
     if ( nButtonPressed         == BUTTON_INSTALL &&

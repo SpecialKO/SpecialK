@@ -465,14 +465,9 @@ struct sk_config_t
   } window;
 
   struct {
-    bool    ignore_raptr         = false;
-    bool    disable_raptr        = false;
     bool    rehook_loadlibrary   = false;
     bool    disable_nv_bloat     = false;
     bool    disable_msi_deadlock = true;
-    bool    disable_FRAPS_evil   = true;
-    bool    disable_razer_crash  = true;
-    bool    disable_discord      = true;
 
     struct {
       bool  rehook_reset         = false;

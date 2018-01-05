@@ -1016,25 +1016,6 @@ SK_Inject_SwitchToGlobalInjector (void)
   return true;
 }
 
-bool
-SK_Inject_SwitchToGlobalInjectorEx (DLL_ROLE role)
-{
-  config.system.central_repository = true;
-  SK_EstablishRootPath ();
-
-  wchar_t wszOut [MAX_PATH * 2] = { };
-  lstrcatW (wszOut, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
-
-  wchar_t wszTemp [MAX_PATH] = { };
-  GetTempFileNameW (SK_GetHostPath (), L"SKI", timeGetTime (), wszTemp);
-
-  MoveFileW (wszOut, wszTemp);
-
-  SK_SaveConfig (L"SpecialK");
-
-  return true;
-}
-
 extern std::wstring
 SK_SYS_GetInstallPath (void);
 
