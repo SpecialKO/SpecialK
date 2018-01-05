@@ -784,10 +784,8 @@ DWORD
 WINAPI
 CheckVersionThread (LPVOID user);
 
-volatile LONG   SK_bypass_dialog_tid    =     0;
-volatile LONG   SK_bypass_dialog_active = FALSE;
-volatile LONG __SK_Init                 = FALSE;
-         bool __SK_bypass               = false;
+volatile LONG __SK_Init   = FALSE;
+         bool __SK_bypass = false;
 
 void
 __stdcall
@@ -989,13 +987,9 @@ SK_InitCore (std::wstring backend, void* callback)
          callback_fn (SK_InitFinishCallback);
 
 
-  if ( (! ReadAcquire (&SK_bypass_dialog_active)) &&
-          ReadAcquire (&SK_bypass_dialog_tid) != static_cast <LONG> (GetCurrentThreadId ()) )
-  {
-    // Setup the compatibility backend, which monitors loaded libraries,
-    //   blacklists bad DLLs and detects render APIs...
-    SK_EnumLoadedModules (SK_ModuleEnum::PostLoad);
-  }
+  // Setup the compatibility backend, which monitors loaded libraries,
+  //   blacklists bad DLLs and detects render APIs...
+  SK_EnumLoadedModules (SK_ModuleEnum::PostLoad);
 }
 
 
@@ -1012,14 +1006,6 @@ WaitForInit (void)
 
     if ( WAIT_OBJECT_0 == MsgWaitForMultipleObjects (1, const_cast <HANDLE *>(&hInitThread), FALSE, 150, QS_ALLINPUT) )
       break;
-  }
-
-  while ( (ReadAcquire (&SK_bypass_dialog_active)) &&
-           ReadAcquire (&SK_bypass_dialog_tid) != static_cast <LONG> (GetCurrentThreadId ()) )
-  {
-    dll_log.Log ( L"[ MultiThr ] Injection Bypass Dialog Active (tid=%x)",
-                      GetCurrentThreadId () );
-    MsgWaitForMultipleObjectsEx (0, nullptr, 150, QS_ALLINPUT, MWMO_ALERTABLE);
   }
 
   // First thread to reach this point wins ... a shiny new car and
@@ -1187,12 +1173,7 @@ CheckVersionThread (LPVOID user)
       // ↑ Check, but ↓ don't update unless running the global injector version
       if ( (SK_IsInjected () && (! SK_IsSuperSpecialK ())) )
       {
-        InterlockedIncrement (&SK_bypass_dialog_active);
-        InterlockedExchange  (&SK_bypass_dialog_tid, GetCurrentThreadId ());
-
         SK_UpdateSoftware (L"SpecialK");
-
-        InterlockedDecrement (&SK_bypass_dialog_active);
       }
     }
   }
@@ -1440,20 +1421,19 @@ SK_StartupCore (const wchar_t* backend, void* callback)
       init_tids = SK_SuspendAllOtherThreads ();
     }
 
-  QueryPerformanceCounter_Original =
-    reinterpret_cast <QueryPerformanceCounter_pfn> (
-      GetProcAddress (
-        GetModuleHandle ( L"kernel32.dll"),
-                            "QueryPerformanceCounter" )
-    );
+    QueryPerformanceCounter_Original =
+      reinterpret_cast <QueryPerformanceCounter_pfn> (
+        GetProcAddress (
+          GetModuleHandle ( L"kernel32.dll"),
+                              "QueryPerformanceCounter" )
+      );
 
-    bool SK_InitWMI (void);
+    bool SK_InitWMI        (void);
+    void SK_Input_PreInit  (void);
 
     SK_Init_MinHook        ();
          SK_InitWMI        ();
     SK_InitCompatBlacklist ();
-
-    extern void SK_Input_PreInit          (void);
 
     // Do this from the startup thread
     SK_HookWinAPI    ();
@@ -2038,16 +2018,6 @@ void
 STDMETHODCALLTYPE
 SK_BeginBufferSwap (void)
 {
-  // Throttle, but do not deadlock the render loop
-  if ( ReadAcquire (&SK_bypass_dialog_active) &&
-       ReadAcquire (&SK_bypass_dialog_tid) == static_cast <LONG> (GetCurrentThreadId ()) )
-  {
-    MsgWaitForMultipleObjectsEx (0, nullptr, 166, QS_ALLINPUT, MWMO_ALERTABLE);
-  }
-
-  // ^^^ Use condition variable instead
-
-
   // Maybe make this into an option, but for now just get this the hell out of there
   //   almost no software should be shipping with FP exceptions, it causes compatibility problems.
   _controlfp (MCW_EM, MCW_EM);

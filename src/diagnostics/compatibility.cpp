@@ -436,24 +436,11 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
            StrStrIW (wszModName, L"gameoverlayrenderer") ||
            StrStrIW (wszModName, L"RTSSHooks")           ||
            StrStrIW (wszModName, L"Nahimic2DevProps")    ||
-           StrStrIW (wszModName, L"ReShade")             ||
-           StrStrIW (wszModName, L"Activation") )
+           StrStrIW (wszModName, L"ReShade") )
       {   
         SK_ReHookLoadLibrary ();
       }
     }
-
-    //if ( StrStrIW (wszModName, L"Nahimic2DevProps")    ||
-    //     StrStrIW (wszModName, L"ReShade") )
-    //{
-    //  static int tries = 0;
-    //
-    //  // If these things ever repeatedly try to rehook what we
-    //  //   just rehooked, then give up eventuall to prevent
-    //  //     infinite recursion.
-    //  if (tries++ < 2)
-    //    SK_ReHookLoadLibrary ();
-    //}
   }
 
   if (hCallingMod != SK_GetDLL ()/* && SK_IsInjected ()*/)
@@ -865,12 +852,6 @@ SK_ReHookLoadLibrary (void)
   if (_loader_hooks.unhooked)
     return;
 
-  // Do from a separate thread so that we don't do this while the very hook
-  //   that we are fudging with is in-flight
-  //CreateThread (nullptr, 0x00,
-  //  [](LPVOID user) -> DWORD
-  //  {
-
   SK_LockDllLoader ();
 
   if (_loader_hooks.LoadLibraryA_target != nullptr)
@@ -973,13 +954,6 @@ SK_ReHookLoadLibrary (void)
 
   MH_ApplyQueued     ();
   SK_UnlockDllLoader ( );
-
-  //CloseHandle (GetCurrentThread ());
-
-  //UNREFERENCED_PARAMETER (user);
-
-  //return 0;
-  //}, nullptr, 0x00, nullptr );
 }
 
 void
@@ -1536,11 +1510,6 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
   }
 }
 
-
-extern volatile LONG SK_bypass_dialog_active;
-extern volatile LONG SK_bypass_dialog_tid;
-                HWND SK_bypass_dialog_hwnd = nullptr;
-
 HRESULT
 CALLBACK
 TaskDialogCallback (
@@ -1556,7 +1525,7 @@ TaskDialogCallback (
 
   if (uNotification == TDN_TIMER)
   {
-    SK_RealizeForegroundWindow (SK_bypass_dialog_hwnd);
+    SK_RealizeForegroundWindow (hWnd);
   }
 
   if (uNotification == TDN_HYPERLINK_CLICKED)
@@ -1569,41 +1538,16 @@ TaskDialogCallback (
   //   the "Always On Top" window style can give us.
   if (uNotification == TDN_DIALOG_CONSTRUCTED)
   {
-    LONG_PTR style    = GetWindowLongPtrW (hWnd, GWL_STYLE);
-    LONG_PTR style_ex = GetWindowLongPtrW (hWnd, GWL_EXSTYLE);
-
-    SetWindowLongPtrW (hWnd, GWL_STYLE,   style    | WS_POPUP);    
-    SetWindowLongPtrW (hWnd, GWL_EXSTYLE, style_ex | WS_EX_TOPMOST | WS_EX_APPWINDOW);
-
-    SetWindowPos      ( hWnd, HWND_TOPMOST,
-                          0, 0,
-                          0, 0,
-                            SWP_NOSENDCHANGING | SWP_ASYNCWINDOWPOS | SWP_FRAMECHANGED |
-                            SWP_NOMOVE         | SWP_NOSIZE );
-
-    while ( ReadAcquire (&SK_bypass_dialog_active) > 1 &&
-            ReadAcquire (&SK_bypass_dialog_tid) != static_cast <LONG> (GetCurrentThreadId ()) )
-      SleepEx (10, FALSE);
-
-    SK_bypass_dialog_hwnd = hWnd;
-
-    InterlockedIncrementAcquire (&SK_bypass_dialog_active);
-    InterlockedExchange         (&SK_bypass_dialog_tid, GetCurrentThreadId ());
+    SK_RealizeForegroundWindow (hWnd);
   }
 
   if (uNotification == TDN_CREATED)
   {
     SK_RealizeForegroundWindow (hWnd);
-    SetFocus                   (hWnd);
-    BringWindowToTop           (hWnd);
-    SK_bypass_dialog_hwnd = hWnd;
   }
 
   if (uNotification == TDN_DESTROYED)
   {
-    SK_bypass_dialog_hwnd = nullptr;
-    InterlockedDecrementRelease (&SK_bypass_dialog_active);
-    InterlockedExchange         (&SK_bypass_dialog_tid, 0);
   }
 
   return S_OK;
@@ -1713,8 +1657,8 @@ SK_ValidateGlobalRTSSProfile (void)
   TASKDIALOGCONFIG task_config    = { };
 
   task_config.cbSize              = sizeof (task_config);
-  task_config.hInstance           = SK_GetDLL       ();
-  task_config.hwndParent          = GetActiveWindow ();
+  task_config.hInstance           = GetModuleHandleW (nullptr);
+  task_config.hwndParent          =                          0;
   task_config.pszWindowTitle      = L"Special K Compatibility Layer (v " SK_VERSION_STR_W L")";
   task_config.dwCommonButtons     = TDCBF_OK_BUTTON;
   task_config.pButtons            = nullptr;
@@ -1843,8 +1787,8 @@ SK_TaskBoxWithConfirm ( wchar_t* wszMainInstruction,
   TASKDIALOGCONFIG task_config    = {0};
 
   task_config.cbSize              = sizeof (task_config);
-  task_config.hInstance           = SK_GetDLL ();
-  task_config.hwndParent          = GetActiveWindow ();
+  task_config.hInstance           = GetModuleHandleW (nullptr);
+  task_config.hwndParent          =                          0;
   task_config.pszWindowTitle      = L"Special K Compatibility Layer (v " SK_VERSION_STR_W L")";
   task_config.dwCommonButtons     = TDCBF_OK_BUTTON;
   task_config.pButtons            = nullptr;
@@ -1898,7 +1842,8 @@ SK_TaskBoxWithConfirmEx ( wchar_t* wszMainInstruction,
   TASKDIALOGCONFIG task_config    = {   };
 
   task_config.cbSize              = sizeof    (task_config);
-  task_config.hInstance           = SK_GetDLL ();
+  task_config.hInstance           = GetModuleHandleW (nullptr);
+  task_config.hwndParent          =                          0;
   task_config.pszWindowTitle      = L"Special K Compatibility Layer (v " SK_VERSION_STR_W L")";
   task_config.dwCommonButtons     = TDCBF_OK_BUTTON;
 
@@ -1917,8 +1862,6 @@ SK_TaskBoxWithConfirmEx ( wchar_t* wszMainInstruction,
   task_config.lpCallbackData     = 0;
 
   task_config.pszMainInstruction = wszMainInstruction;
-
-  task_config.hwndParent         = GetActiveWindow ();
 
   task_config.pszMainIcon        = wszMainIcon;
   task_config.pszContent         = wszContent;
@@ -2015,8 +1958,6 @@ DWORD
 WINAPI
 SK_Bypass_CRT (LPVOID user)
 {
-  InterlockedExchange (&SK_bypass_dialog_tid, GetCurrentThreadId ());
-
   UNREFERENCED_PARAMETER (user);
 
   static BOOL     disable      = __bypass.disable;
@@ -2156,8 +2097,8 @@ SK_Bypass_CRT (LPVOID user)
                                        };
 
   task_config.cbSize              = sizeof (task_config);
-  task_config.hInstance           = SK_GetDLL ();
-  task_config.hwndParent          = GetActiveWindow ();
+  task_config.hInstance           = GetModuleHandleW (nullptr);
+  task_config.hwndParent          =                          0;
   task_config.pszWindowTitle      = L"Special K Compatibility Layer (v " SK_VERSION_STR_W L")";
   task_config.dwCommonButtons     = TDCBF_OK_BUTTON;
   task_config.pRadioButtons       = rbuttons;
@@ -2628,11 +2569,7 @@ SK_Bypass_CRT (LPVOID user)
     SK_SaveConfig  ();
 
     SK_EnumLoadedModules (SK_ModuleEnum::PostLoad);
-
-    InterlockedDecrement (&SK_bypass_dialog_active);
-    InterlockedExchange  (&SK_bypass_dialog_tid, 0);
-
-    SK_ResumeThreads (suspended_tids);
+    SK_ResumeThreads     (suspended_tids);
   }
 
 
@@ -2643,115 +2580,13 @@ SK_Bypass_CRT (LPVOID user)
 
 
 
-using GetClientRect_pfn    = BOOL (WINAPI *)(
-  _In_  HWND   hWnd,
-  _Out_ LPRECT lpRect
-);
-using GetWindowRect_pfn    = BOOL (WINAPI *)(
-  _In_  HWND   hWnd,
-  _Out_ LPRECT lpRect
-);
-using GetSystemMetrics_pfn = int (WINAPI *)(
-  _In_ int nIndex
-);
-
-static GetClientRect_pfn    GetClientRect_DeadEnd    = nullptr;
-static GetWindowRect_pfn    GetWindowRect_DeadEnd    = nullptr;
-static GetSystemMetrics_pfn GetSystemMetrics_DeadEnd = nullptr;
-
-
-//
-// Common functions that will be issued when a game finishes creating
-//   its render window and before it can begin doing stuff.
-//
-//   Block these functions if the call comes from the game, so that
-//     the compatibility options dialog can operate in peace.
-//
-
-auto
-BlockingCallOfDeath = [](void) ->
-int
-{
-  const int never = 0;
-        MSG msg;
-
-  while (GetMessage (&msg, nullptr, 0, 0))
-  {
-    MsgWaitForMultipleObjects (0, nullptr, FALSE, 0, QS_ALLINPUT);
-  }
-
-  SleepEx (INFINITE, FALSE);
-
-  return never;
-};
-
-
-BOOL
-WINAPI
-GetClientRect_BlockingCallOfDeath (
-  _In_  HWND   hWnd,
-  _Out_ LPRECT lpRect
-)
-{
-  // We are exempt from our own "deathtrap", lol.
-  //
-  //   In case a Common Control Dialog calls through this function,
-  //     let it do so.
-  //
-  BOOL bRet = GetClientRect_DeadEnd (hWnd, lpRect);
-
-  if (SK_GetCallingDLL () != GetModuleHandle (SK_GetHostApp ()))
-    return bRet;
-
-  return BlockingCallOfDeath ();
-}
-
-BOOL
-WINAPI
-GetWindowRect_BlockingCallOfDeath (
-  _In_  HWND   hWnd,
-  _Out_ LPRECT lpRect
-)
-{
-  // We are exempt from our own "deathtrap", lol.
-  //
-  //   In case a Common Control Dialog calls through this function,
-  //     let it do so.
-  //
-  BOOL bRet = GetWindowRect_DeadEnd (hWnd, lpRect);
-
-  if (SK_GetCallingDLL () != GetModuleHandle (SK_GetHostApp ()))
-    return bRet;
-
-  return BlockingCallOfDeath ();
-}
-
-int
-WINAPI
-GetSystemMetrics_BlockingCallOfDeath (_In_ int nIndex)
-{
-  // We are exempt from our own "deathtrap", lol.
-  //
-  //   In case a Common Control Dialog calls through this function,
-  //     let it do so.
-  //
-  if (SK_GetCallingDLL () != GetModuleHandle (SK_GetHostApp ()))
-    return GetSystemMetrics_DeadEnd (nIndex);
-
-  return BlockingCallOfDeath ();
-}
-
-
 std::pair <std::queue <DWORD>, BOOL>
 __stdcall
 SK_BypassInject (void)
 {
-  InterlockedExchange  (&SK_bypass_dialog_tid, 0);
-  InterlockedIncrement (&SK_bypass_dialog_active);
-
   lstrcpyW (__bypass.wszBlacklist, SK_GetBlacklistFilename ());
 
-  __bypass.disable = 
+  __bypass.disable =
     (GetFileAttributesW (__bypass.wszBlacklist) != INVALID_FILE_ATTRIBUTES);
 
   CreateThread ( nullptr,
@@ -2760,7 +2595,8 @@ SK_BypassInject (void)
                        0x00,
                          nullptr );
 
-  return std::make_pair (suspended_tids, __bypass.disable);
+  return
+    std::make_pair (suspended_tids, __bypass.disable);
 }
 
 

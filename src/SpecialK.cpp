@@ -930,19 +930,23 @@ DllMain ( HMODULE hModule,
 {
   UNREFERENCED_PARAMETER (lpReserved);
 
-  auto EarlyOut = [&](BOOL bRet = TRUE) { DisableThreadLibraryCalls (hModule); return bRet; };
+  auto EarlyOut = [&](BOOL bRet = TRUE) { return bRet; };
 
 
   switch (ul_reason_for_call)
   {
     case DLL_PROCESS_ATTACH:
     {
-      InterlockedExchangePointer (
-        reinterpret_cast <volatile PVOID *> (
-              const_cast <HMODULE        *> (&hModSelf)
-                                            ),
-        hModule
-      );
+      if (InterlockedExchangePointer (
+            reinterpret_cast <volatile PVOID *> (
+                  const_cast <HMODULE        *> (&hModSelf)
+                                                ),
+            hModule
+           )
+         )
+      {
+        return EarlyOut (FALSE);
+      }
 
       // We use SKIM for injection and rundll32 for various tricks involving restarting
       //   the currently running game; neither needs or even wants this DLL fully

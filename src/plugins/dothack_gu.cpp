@@ -269,15 +269,7 @@ SK_DGPU_CheckVersion (LPVOID user)
 
   if (SK_FetchVersionInfo (L"dGPU"))
   {
-    extern volatile LONG   SK_bypass_dialog_active;
-    extern volatile LONG   SK_bypass_dialog_tid;
-
-    InterlockedIncrement (&SK_bypass_dialog_active);
-    InterlockedExchange  (&SK_bypass_dialog_tid, GetCurrentThreadId ());
-
     SK_UpdateSoftware (L"dGPU");
-
-    InterlockedDecrement (&SK_bypass_dialog_active);
   }
 
   return 0;

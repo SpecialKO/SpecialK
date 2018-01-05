@@ -49,7 +49,7 @@
 #include <SpecialK/plugin/nier.h>
 
 
-#define FAR_VERSION_NUM L"0.7.0.22"
+#define FAR_VERSION_NUM L"0.7.0.23"
 #define FAR_VERSION_STR L"FAR v " FAR_VERSION_NUM
 
 // Block until update finishes, otherwise the update dialog
@@ -2739,13 +2739,8 @@ SK_FAR_CheckVersion (LPVOID user)
 {
   UNREFERENCED_PARAMETER (user);
 
-  extern volatile LONG   SK_bypass_dialog_active;
-  InterlockedIncrement (&SK_bypass_dialog_active);
-
   if (SK_FetchVersionInfo (L"FAR/dinput8"))
     SK_UpdateSoftware (L"FAR/dinput8");
-
-  InterlockedDecrement (&SK_bypass_dialog_active);
 
   return 0;
 }

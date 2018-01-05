@@ -505,7 +505,7 @@ DownloadDialogCallback (
 
   if (uNotification == TDN_TIMER)
   {
-    //SK_RealizeForegroundWindow (hWnd);
+    SK_RealizeForegroundWindow (hWnd);
 
     if ( get->status == STATUS_UPDATED   ||
          get->status == STATUS_CANCELLED ||
@@ -525,26 +525,9 @@ DownloadDialogCallback (
 
   if (uNotification == TDN_DIALOG_CONSTRUCTED)
   {
-    BringWindowToTop    (hWnd);
-    SetForegroundWindow (hWnd);
-    SetActiveWindow     (hWnd);
-    SetFocus            (hWnd);
-
     SendMessage (hWnd, TDM_SET_PROGRESS_BAR_RANGE, 0L,          MAKEWPARAM (0, 1));
     SendMessage (hWnd, TDM_SET_PROGRESS_BAR_POS,   1,           0L);
     SendMessage (hWnd, TDM_SET_PROGRESS_BAR_STATE, PBST_PAUSED, 0L);
-
-    LONG_PTR style    = GetWindowLongPtrW (hWnd, GWL_STYLE);
-    LONG_PTR style_ex = GetWindowLongPtrW (hWnd, GWL_EXSTYLE);
-
-    SetWindowLongPtrW (hWnd, GWL_STYLE,   style    | WS_POPUP);    
-    SetWindowLongPtrW (hWnd, GWL_EXSTYLE, style_ex | WS_EX_TOPMOST | WS_EX_APPWINDOW);
-
-    SetWindowPos      ( hWnd, HWND_TOPMOST,
-                          0, 0,
-                          0, 0,
-                            SWP_NOSENDCHANGING | SWP_ASYNCWINDOWPOS | SWP_FRAMECHANGED |
-                            SWP_NOMOVE         | SWP_NOSIZE );
 
     SK_RealizeForegroundWindow (hWnd);
 
@@ -740,6 +723,8 @@ Update_DlgProc (
       Static_SetText (GetDlgItem (hWndDlg, IDC_DOWNLOAD_SIZE), wszDownloadSize);
       Static_SetText (GetDlgItem (hWndDlg, IDC_BACKUP_SIZE),   wszBackupSize);
 
+      SK_RealizeForegroundWindow (hWndDlg);
+
       return TRUE;
     }
 
@@ -762,6 +747,12 @@ Update_DlgProc (
       {
         InterlockedExchangeAcquire ( &__SK_UpdateStatus, 0 );
 
+        // Stop injecting, we need to move a few files around...
+        if (SK_IsInjected ())
+        {
+          SK_Inject_Stop ();
+        }
+
         update_dlg_backup =
           Button_GetCheck (GetDlgItem (hWndUpdateDlg, IDC_BACKUP_FILES)) != 0;
 
@@ -780,7 +771,7 @@ Update_DlgProc (
           task_cfg.cbSize = sizeof TASKDIALOGCONFIG;
 
           task_cfg.hwndParent         = hWndUpdateDlg;
-          task_cfg.hInstance          = SK_GetDLL ();
+          task_cfg.hInstance          = GetModuleHandleW (nullptr);
 
           task_cfg.pszMainIcon        = TD_INFORMATION_ICON;
           task_cfg.dwFlags            = TDF_ENABLE_HYPERLINKS | TDF_USE_COMMAND_LINKS;
@@ -835,23 +826,6 @@ Update_DlgProc (
               {
                 case TDN_CREATED:
                 {
-                  BringWindowToTop    (hWnd);
-                  SetForegroundWindow (hWnd);
-                  SetActiveWindow     (hWnd);
-                  SetFocus            (hWnd);
-
-                  LONG_PTR style    = GetWindowLongPtrW (hWnd, GWL_STYLE);
-                  LONG_PTR style_ex = GetWindowLongPtrW (hWnd, GWL_EXSTYLE);
-
-                  SetWindowLongPtrW (hWnd, GWL_STYLE,   style    | WS_POPUP);
-                  SetWindowLongPtrW (hWnd, GWL_EXSTYLE, style_ex | WS_EX_TOPMOST | WS_EX_APPWINDOW);
-
-                  SetWindowPos ( hWnd, HWND_TOPMOST,
-                                   0, 0,
-                                   0, 0,
-                                     SWP_NOSENDCHANGING | SWP_ASYNCWINDOWPOS | SWP_FRAMECHANGED |
-                                     SWP_NOMOVE         | SWP_NOSIZE );
-
                   SK_RealizeForegroundWindow (hWnd);
 
                 } break;
@@ -953,7 +927,8 @@ Update_DlgProc (
 
     case WM_CREATE:
     {
-      InterlockedExchange ( &__SK_UpdateStatus, 0 );
+      SK_RealizeForegroundWindow (hWndDlg);
+      InterlockedExchange        ( &__SK_UpdateStatus, 0 );
     } break;
   }
 
@@ -966,20 +941,14 @@ UpdateDlg_Thread (LPVOID user)
 {
   bool started = false;
 
-  UNREFERENCED_PARAMETER (user);
-
   HWND hWndDlg =
     CreateDialog ( SK_GetDLL (),
                      MAKEINTRESOURCE (IDD_UPDATE),
-                      GetDesktopWindow (),
-                        Update_DlgProc );
+                       0,
+                         Update_DlgProc );
 
-  IsGUIThread (TRUE);
-
-  BringWindowToTop    (hWndDlg);
-  SetForegroundWindow (hWndDlg);
-  SetActiveWindow     (hWndDlg);
-  SetFocus            (hWndDlg);
+  IsGUIThread                (TRUE);
+  SK_RealizeForegroundWindow (static_cast <HWND> (user));
 
   MSG  msg;
   BOOL bRet;
@@ -1029,9 +998,10 @@ SK_UpdateSoftware1 (const wchar_t*, bool force)
 
   TASKDIALOGCONFIG  task_config  = { };
 
-  task_config.cbSize             = sizeof          ( task_config );
-  task_config.hInstance          = GetModuleHandle (  nullptr    );
-  task_config.hwndParent         = GetActiveWindow (             );
+  task_config.cbSize             = sizeof ( task_config );
+  task_config.hInstance          = GetModuleHandleW (nullptr);
+  task_config.hwndParent         =                          0;
+
 
   if (! SK_IsHostAppSKIM ())
     task_config.pszWindowTitle   = L"Special K Auto-Update";
@@ -1209,22 +1179,6 @@ SK_UpdateSoftware1 (const wchar_t*, bool force)
 
       int nButton = 0;
 
-      extern HWND SK_bypass_dialog_hwnd;
-      while (SK_bypass_dialog_hwnd != nullptr && IsWindow (SK_bypass_dialog_hwnd))
-      {
-        MSG  msg;
-        BOOL bRet;
-
-        if ((bRet = GetMessage (&msg, nullptr, 0, 0)) != 0)
-        {
-          if (bRet == -1)
-            break;
-
-          TranslateMessage (&msg);
-          DispatchMessage  (&msg);
-        }
-      }
-
       if (SUCCEEDED (TaskDialogIndirect (&task_config, &nButton, nullptr, nullptr)))
       {
         if (get->status == STATUS_UPDATED)
@@ -1262,15 +1216,10 @@ SK_UpdateSoftware1 (const wchar_t*, bool force)
 
           InterlockedExchangeAcquire ( &__SK_UpdateStatus, 0 );
 
-          if (SK_IsInjected ())
-          {
-            SK_Inject_Stop ();
-          }
-
           CreateThread ( nullptr,
                            0,
                              UpdateDlg_Thread,
-                               nullptr,
+                               GetActiveWindow (),
                                  0x00,
                                    nullptr );
 

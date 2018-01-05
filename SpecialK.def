@@ -652,6 +652,7 @@ whitelist_patterns           = whitelist_patterns             DATA
 whitelist_count              = whitelist_count                DATA
 g_sHookedPIDs                = g_sHookedPIDs                  DATA
 __SK_InjectionHistory        = __SK_InjectionHistory          DATA
+g_hShutdown                  = g_hShutdown                    DATA
 
 SECTIONS
 

@@ -42,6 +42,8 @@
 SK_InjectionRecord_s __SK_InjectionHistory [MAX_INJECTED_PROC_HISTORY] = { };
 #pragma data_seg (".SK_Hooks")
 volatile HHOOK          g_hHookCBT    = nullptr;
+         HANDLE         g_hShutdown   = nullptr;
+
                  LONG g_sHookedPIDs [MAX_INJECTED_PROCS]        = { 0 };
 
     wchar_t    __SK_InjectionHistory_name     [MAX_INJECTED_PROC_HISTORY * MAX_PATH] =  { 0 };
@@ -84,8 +86,6 @@ SK_Inject_GetRecord (int idx)
 }
 
 LONG local_record = 0;
-
-HANDLE g_hShutdown = nullptr;
 
 void
 SK_Inject_InitShutdownEvent (void)
@@ -231,7 +231,51 @@ CBTProc ( _In_ int    nCode,
           _In_ WPARAM wParam,
           _In_ LPARAM lParam )
 {
-  return CallNextHookEx (nullptr, nCode, wParam, lParam);
+  if (nCode < 0)
+    return CallNextHookEx (g_hHookCBT, nCode, wParam, lParam);
+
+
+  if (hModHookInstance == nullptr && g_hHookCBT)
+  {
+    static volatile LONG lHookIters = 0L;
+
+    // Don't create that thread more than once, but don't bother with a complete
+    //   critical section.
+    if (InterlockedIncrement (&lHookIters) > 1L)
+      return CallNextHookEx (g_hHookCBT, nCode, wParam, lParam);
+
+    GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
+                           (LPCWSTR)SK_GetDLL (),
+                             &hModHookInstance );
+
+    // Get and keep a reference to this DLL if this is the first time we are injecting.
+    CreateThread ( nullptr, 0,
+         [](LPVOID user) ->
+           DWORD
+             {
+               UNREFERENCED_PARAMETER (user);
+
+               SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_IDLE);
+
+               while (SKX_IsHookingCBT ())
+                 SleepEx (250UL, FALSE);
+                 //WaitForMultipleObjectsEx (1, &g_hShutdown, FALSE, 1500UL, FALSE);
+                 //^^^^ Signaling seems not to work in explorer.exe
+
+               hModHookInstance = nullptr;
+
+               FreeLibraryAndExitThread (hModHookInstance, 0x0);
+
+               return 0;
+             },
+           nullptr,
+         0x00,
+       nullptr
+    );
+  }
+
+
+  return CallNextHookEx (g_hHookCBT, nCode, wParam, lParam);
 }
 
 BOOL
@@ -960,42 +1004,7 @@ SK_Inject_SwitchToGlobalInjector (void)
   SK_EstablishRootPath ();
 
   wchar_t wszOut [MAX_PATH * 2] = { };
-  lstrcatW (wszOut, SK_GetHostPath ());
-
-  switch (SK_GetCurrentRenderBackend ().api)
-  {
-    case SK_RenderAPI::D3D9:
-    case SK_RenderAPI::D3D9Ex:
-      lstrcatW (wszOut, L"\\d3d9.dll");
-      break;
-
-#ifndef _WIN64
-    case SK_RenderAPI::D3D8On11:
-      lstrcatW (wszOut, L"\\d3d8.dll");
-      break;
-
-    case SK_RenderAPI::DDrawOn11:
-      lstrcatW (wszOut, L"\\ddraw.dll");
-      break;
-#endif
-
-    case SK_RenderAPI::D3D10:
-    case SK_RenderAPI::D3D11:
-#ifdef _WIN64
-    case SK_RenderAPI::D3D12:
-#endif
-    {
-      lstrcatW (wszOut, L"\\dxgi.dll");
-    } break;
-
-    case SK_RenderAPI::OpenGL:
-      lstrcatW (wszOut, L"\\OpenGL32.dll");
-      break;
-
-    //case SK_RenderAPI::Vulkan:
-      //lstrcatW (wszOut, L"\\vk-1.dll");
-      //break;
-  }
+  lstrcatW (wszOut, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
 
   wchar_t wszTemp [MAX_PATH] = {  };
   GetTempFileNameW (SK_GetHostPath (), L"SKI", timeGetTime (), wszTemp);
@@ -1014,36 +1023,7 @@ SK_Inject_SwitchToGlobalInjectorEx (DLL_ROLE role)
   SK_EstablishRootPath ();
 
   wchar_t wszOut [MAX_PATH * 2] = { };
-  lstrcatW (wszOut, SK_GetHostPath ());
-
-  switch (role)
-  {
-    case DLL_ROLE::D3D9:
-      lstrcatW (wszOut, L"\\d3d9.dll");
-      break;
-
-#ifndef _WIN64
-    case DLL_ROLE::D3D8:
-      lstrcatW (wszOut, L"\\d3d8.dll");
-      break;
-    case DLL_ROLE::DDraw:
-      lstrcatW (wszOut, L"\\ddraw.dll");
-      break;
-#endif
-
-    case DLL_ROLE::DXGI:
-    {
-      lstrcatW (wszOut, L"\\dxgi.dll");
-    } break;
-
-    case DLL_ROLE::OpenGL:
-      lstrcatW (wszOut, L"\\OpenGL32.dll");
-      break;
-
-    //case SK_RenderAPI::Vulkan:
-      //lstrcatW (wszOut, L"\\vk-1.dll");
-      //break;
-  }
+  lstrcatW (wszOut, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
 
   wchar_t wszTemp [MAX_PATH] = { };
   GetTempFileNameW (SK_GetHostPath (), L"SKI", timeGetTime (), wszTemp);

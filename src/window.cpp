@@ -958,8 +958,6 @@ auto ActivateWindow =[&](HWND hWnd, bool active = false)
   wm_dispatch.active_windows [hWnd] = active;
 };
 
-extern volatile LONG SK_bypass_dialog_active;
-
 bool
 window_message_dispatch_s::On_ENTERSIZEMOVE (HWND hWnd, WPARAM&, LPARAM&, LRESULT*)
 {
@@ -3314,7 +3312,7 @@ SK_RealizeForegroundWindow (HWND hWndForeground)
   static volatile LONG nest_lvl = 0L;
 
   while (ReadAcquire (&nest_lvl))
-    MsgWaitForMultipleObjectsEx (0, nullptr, 125, QS_ALLINPUT, MWMO_ALERTABLE);
+    MsgWaitForMultipleObjectsEx (0, nullptr, 15, QS_ALLINPUT, MWMO_ALERTABLE);
 
   InterlockedIncrementAcquire (&nest_lvl);
 
@@ -3325,10 +3323,16 @@ SK_RealizeForegroundWindow (HWND hWndForeground)
 
         DWORD
         {
-          BringWindowToTop    (static_cast <HWND> (user));
-          SetForegroundWindow (static_cast <HWND> (user));
+          SetWindowPos      ( static_cast <HWND> (user), HWND_TOPMOST,
+                                0, 0,
+                                0, 0,
+                                  SWP_NOSENDCHANGING | SWP_FRAMECHANGED | SWP_DEFERERASE   |
+                                  SWP_NOMOVE         | SWP_NOSIZE       | SWP_NOREPOSITION );
+
           SetActiveWindow     (static_cast <HWND> (user));
+          SetForegroundWindow (static_cast <HWND> (user));
           SetFocus            (static_cast <HWND> (user));
+          BringWindowToTop    (static_cast <HWND> (user));
 
           CloseHandle (GetCurrentThread ());
 
@@ -5106,8 +5110,8 @@ SK_InitWindow (HWND hWnd, bool fullscreen_exclusive)
     //   wants an override
     SK_ResetWindow ();
 
-    if (game_window.actual.style & WS_VISIBLE)
-      SK_RealizeForegroundWindow (hWnd);
+    ///if (game_window.actual.style & WS_VISIBLE)
+    ///  SK_RealizeForegroundWindow (hWnd);
   }
 }
 
@@ -5548,8 +5552,6 @@ SK_MakeWindowHook (LPVOID class_proc, LPVOID wnd_proc)
   SK_ApplyQueuedHooks ();
 }
 
-extern volatile LONG SK_bypass_dialog_tid;
-
 HWND
 WINAPI
 CreateWindowExA_Detour (
@@ -5566,26 +5568,9 @@ CreateWindowExA_Detour (
     _In_opt_ HINSTANCE hInstance,
     _In_opt_ LPVOID lpParam )
 {
-  if (SK_GetCallingDLL () == SK_GetDLL ())
-  {
-    return
-      CreateWindowExA_Original (dwExStyle, lpClassName, lpWindowName, dwStyle,
-                                X, Y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
-  }
-
-  if ((dwStyle & WS_POPUP) && static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid)))
-  {
-    if (ReadAcquire (&SK_bypass_dialog_active) && (GetCurrentThreadId () != static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid))))
-    {
-      while (ReadAcquire ((&SK_bypass_dialog_active)) && (GetCurrentThreadId () != static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid))))
-        MsgWaitForMultipleObjectsEx (0, nullptr, 1, QS_ALLINPUT, MWMO_ALERTABLE);
-    }
-  }
-
-  HWND hWndRet =
+  return
     CreateWindowExA_Original (dwExStyle, lpClassName, lpWindowName, dwStyle,
                               X, Y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
-
 
   //// Early render window detection. Every little bit helps when the possibility of installing this hook first exists.
   //if (hWndRet != 0 && (hInstance == nullptr || hInstance == GetModuleHandle (nullptr)) && (! caught_register))
@@ -5617,7 +5602,7 @@ CreateWindowExA_Detour (
   //  }
   //}
 
-  return hWndRet;
+  ////return hWndRet;
 }
 
 HWND
@@ -5636,23 +5621,7 @@ CreateWindowExW_Detour(
     _In_opt_ HINSTANCE hInstance,
     _In_opt_ LPVOID lpParam)
 {
-  if (SK_GetCallingDLL () == SK_GetDLL ())
-  {
-    return
-      CreateWindowExW_Original (dwExStyle, lpClassName, lpWindowName, dwStyle,
-                                X, Y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
-  }
-
-  if ((dwStyle & WS_POPUP) && static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid)))
-  {
-    if (ReadAcquire (&SK_bypass_dialog_active) && (GetCurrentThreadId () != static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid))))
-    {
-      while (ReadAcquire ((&SK_bypass_dialog_active)) && (GetCurrentThreadId () != static_cast <DWORD> (ReadAcquire (&SK_bypass_dialog_tid))))
-        MsgWaitForMultipleObjectsEx (0, nullptr, 1, QS_ALLINPUT, MWMO_ALERTABLE);
-    }
-  }
-
-  HWND hWndRet =
+  return
     CreateWindowExW_Original (dwExStyle, lpClassName, lpWindowName, dwStyle,
                               X, Y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
 
@@ -5686,7 +5655,7 @@ CreateWindowExW_Detour(
   //  }
   //}
 
-  return hWndRet;
+  ////return hWndRet;
 }
 
 
