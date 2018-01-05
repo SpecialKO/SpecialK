@@ -64,10 +64,17 @@ int     whitelist_count                    =   0;
 #pragma comment  (linker, "/SECTION:.SK_Hooks,RWS")
 
 
-extern volatile LONG    __SK_DLL_Attached;
-//extern std::atomic_bool __SK_HookContextOwner;
-extern volatile LONG __SK_HookContextOwner;
-                HMODULE hModHookInstance = nullptr;
+extern void
+__stdcall
+SK_EstablishRootPath (void);
+
+
+extern volatile LONG  __SK_DLL_Attached;
+extern volatile ULONG __SK_DLL_Refs;
+extern volatile LONG  __SK_HookContextOwner;
+extern volatile DWORD __SK_TLS_INDEX;
+
+               HMODULE hModHookInstance = nullptr;
 
 
 
@@ -231,49 +238,39 @@ CBTProc ( _In_ int    nCode,
           _In_ WPARAM wParam,
           _In_ LPARAM lParam )
 {
-  if (nCode < 0)
-    return CallNextHookEx (g_hHookCBT, nCode, wParam, lParam);
+  static volatile LONG lHookIters = 0L;
 
-
-  if (hModHookInstance == nullptr && g_hHookCBT)
+  // Don't create that thread more than once, but don't bother with a complete
+  //   critical section.
+  if (InterlockedIncrement (&lHookIters) == 1L)
   {
-    static volatile LONG lHookIters = 0L;
+    if ( GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
+                                (LPCWSTR)SK_GetDLL (),
+                                  &hModHookInstance ) )
+    {
+      // Get and keep a reference to this DLL if this is the first time we are injecting.
+      CreateThread ( nullptr, 0,
+           [](LPVOID user) ->
+             DWORD
+               {
+                 SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_IDLE);
 
-    // Don't create that thread more than once, but don't bother with a complete
-    //   critical section.
-    if (InterlockedIncrement (&lHookIters) > 1L)
-      return CallNextHookEx (g_hHookCBT, nCode, wParam, lParam);
+                 while (SKX_IsHookingCBT ())
+                   SleepEx (666UL, FALSE);
 
-    GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
-                           (LPCWSTR)SK_GetDLL (),
-                             &hModHookInstance );
+                   //WaitForMultipleObjectsEx (1, &g_hShutdown, FALSE, INFINITE, FALSE);
+                   //^^^^ Signaling seems not to work in explorer.exe
 
-    // Get and keep a reference to this DLL if this is the first time we are injecting.
-    CreateThread ( nullptr, 0,
-         [](LPVOID user) ->
-           DWORD
-             {
-               UNREFERENCED_PARAMETER (user);
+                 FreeLibraryAndExitThread (static_cast <HMODULE> (user), 0x0);
 
-               SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_IDLE);
-
-               while (SKX_IsHookingCBT ())
-                 SleepEx (250UL, FALSE);
-                 //WaitForMultipleObjectsEx (1, &g_hShutdown, FALSE, 1500UL, FALSE);
-                 //^^^^ Signaling seems not to work in explorer.exe
-
-               hModHookInstance = nullptr;
-
-               FreeLibraryAndExitThread (hModHookInstance, 0x0);
-
-               return 0;
-             },
-           nullptr,
-         0x00,
-       nullptr
-    );
+                 return 0;
+               },
+             (hModHookInstance),
+           0x00,
+         nullptr
+      );
+    }
   }
-
 
   return CallNextHookEx (g_hHookCBT, nCode, wParam, lParam);
 }
@@ -335,8 +332,8 @@ SKX_InstallCBTHook (void)
     if (SKX_GetCBTHook () != nullptr)
     {
       wchar_t wszCurrentDir [MAX_PATH * 2] = { };
-      wchar_t wszWOW64      [MAX_PATH + 2] = { };
-      wchar_t wszSys32      [MAX_PATH + 2] = { };
+      wchar_t wszWOW64      [MAX_PATH * 2] = { };
+      wchar_t wszSys32      [MAX_PATH * 2] = { };
 
       GetCurrentDirectoryW  (MAX_PATH * 2 - 1, wszCurrentDir);
       SetCurrentDirectoryW  (SK_SYS_GetInstallPath ().c_str ());
@@ -345,14 +342,8 @@ SKX_InstallCBTHook (void)
       SK_RunLHIfBitness ( 32, GetSystemDirectoryW      (wszWOW64, MAX_PATH),
                               GetSystemWow64DirectoryW (wszWOW64, MAX_PATH) );
 
-      __SK_HookContextOwner = true;
-
-      extern volatile ULONG  __SK_DLL_Refs;
+      InterlockedExchange  (&__SK_HookContextOwner, TRUE);
       InterlockedIncrement (&__SK_DLL_Refs);
-
-      extern void
-      __stdcall
-      SK_EstablishRootPath (void);
 
       config.system.central_repository = true;
       SK_EstablishRootPath ();
@@ -382,26 +373,13 @@ SKX_InstallCBTHook (void)
       wmi_cs       = new SK_Thread_HybridSpinlock ( 128);
       cs_dbghelp   = new SK_Thread_HybridSpinlock (104857);
 
-      extern volatile DWORD __SK_TLS_INDEX;
-
       if (__SK_TLS_INDEX == 0)
       {
         __SK_TLS_INDEX = TlsAlloc ();
         temp_tls       = true;
       }
 
-      if (__SK_TLS_INDEX == TLS_OUT_OF_INDEXES)
-      {
-#if 0
-        MessageBox ( NULL,
-                       L"Out of TLS Indexes",
-                         L"Cannot Init. Special K",
-                           MB_ICONERROR | MB_OK |
-                           MB_APPLMODAL | MB_SETFOREGROUND );
-#endif
-      }
-
-      else
+      if (__SK_TLS_INDEX != TLS_OUT_OF_INDEXES)
       {
         SK_SetDLLRole (DLL_ROLE::DXGI);
 
@@ -505,10 +483,6 @@ SKX_InstallCBTHook (void)
 
 void
 __stdcall
-SKX_RemoveShellHook (void);
-
-void
-__stdcall
 SKX_RemoveCBTHook (void)
 {
   if (g_hShutdown != nullptr)
@@ -528,7 +502,7 @@ SKX_RemoveCBTHook (void)
       ZeroMemory (whitelist_patterns, sizeof (whitelist_patterns));
       whitelist_count = 0;
 
-      __SK_HookContextOwner = false;
+      InterlockedExchange (&__SK_HookContextOwner, FALSE);
     }
 
     else
