@@ -5109,9 +5109,6 @@ SK_InitWindow (HWND hWnd, bool fullscreen_exclusive)
     // Next, adjust the border and/or window location if the user
     //   wants an override
     SK_ResetWindow ();
-
-    ///if (game_window.actual.style & WS_VISIBLE)
-    ///  SK_RealizeForegroundWindow (hWnd);
   }
 }
 

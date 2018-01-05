@@ -549,19 +549,22 @@ SK_LoadConfigEx (std::wstring name, bool create)
   //
   // Create Parameters
   //
-struct param_decl_s {
-  sk::iParameter** parameter_;
-  std::type_index  type_;
-  const wchar_t*   description_;
-  iSK_INI*         ini_;
-  const wchar_t*   section_;
-  const wchar_t*   key_;
-} params_to_build [] =
+  struct param_decl_s {
+    sk::iParameter** parameter_;
+    std::type_index  type_;
+    const wchar_t*   description_;
+    iSK_INI*         ini_;
+    const wchar_t*   section_;
+    const wchar_t*   key_;
+  } params_to_build [] =
+
+  //// nb: If you want any hope of reading this table, turn line wrapping off.
+    //
   {
     ConfigEntry (osd.version_banner.duration,            L"How long to display version info at startup, 0=disable)",   osd_ini,         L"SpecialK.VersionBanner",L"Duration"),
     ConfigEntry (osd.show,                               L"OSD Visibility",                                            osd_ini,         L"SpecialK.OSD",          L"Show"),
 
-    ConfigEntry (osd.update_method.pump,                 L"Refresh the OSD irrespective of frame completion",          osd_ini,         L"SpecialK.OSD",          L"AutoPump"),
+    ConfigEntry (osd.update_method.pump,                 L"Refresh the OSD text irrespective of frame completion",     osd_ini,         L"SpecialK.OSD",          L"AutoPump"),
     ConfigEntry (osd.update_method.pump_interval,        L"Time in seconds between OSD updates",                       osd_ini,         L"SpecialK.OSD",          L"PumpInterval"),
     ConfigEntry (osd.text.red,                           L"OSD Color (Red)",                                           osd_ini,         L"SpecialK.OSD",          L"TextColorRed"),
     ConfigEntry (osd.text.green,                         L"OSD Color (Green)",                                         osd_ini,         L"SpecialK.OSD",          L"TextColorGreen"),
@@ -576,7 +579,7 @@ struct param_decl_s {
 
     ConfigEntry (monitoring.SLI.show,                    L"Show SLI Monitoring",                                       osd_ini,         L"Monitor.SLI",           L"Show"),
 
-    // Performance Monitoring
+    // Performance Monitoring  (Global Settings)
     //////////////////////////////////////////////////////////////////////////
 
     ConfigEntry (monitoring.io.show,                     L"Show IO Monitoring",                                        osd_ini,         L"Monitor.IO",            L"Show"),
@@ -722,6 +725,8 @@ struct param_decl_s {
     ConfigEntry (display.force_windowed,                 L"Force Windowed Mode",                                       dll_ini,         L"Display.Output",        L"ForceWindowed"),
 
 
+    // Framerate Limiter
+    //////////////////////////////////////////////////////////////////////////
 
     ConfigEntry (render.framerate.target_fps,            L"Framerate Target (negative signed values are non-limiting)",dll_ini,         L"Render.FrameRate",      L"TargetFPS"),
     ConfigEntry (render.framerate.limiter_tolerance,     L"Limiter Tolerance",                                         dll_ini,         L"Render.FrameRate",      L"LimiterTolerance"),
@@ -758,6 +763,10 @@ struct param_decl_s {
     ConfigEntry (render.d3d9.impure,                     L"Force PURE device off",                                     dll_ini,         L"Render.D3D9",           L"ForceImpure"),
     ConfigEntry (render.d3d9.enable_texture_mods,        L"Enable Texture Modding Support",                            dll_ini,         L"Render.D3D9",           L"EnableTextureMods"),
     ConfigEntry (render.d3d9.hook_type,                  L"Hook Technique",                                            dll_ini,         L"Render.D3D9",           L"HookType"),
+
+
+    // D3D10/11/12
+    //////////////////////////////////////////////////////////////////////////
 
     ConfigEntry (render.framerate.max_delta_time,        L"Maximum Frame Delta Time",                                  dll_ini,         L"Render.DXGI",           L"MaxDeltaTime"),
     ConfigEntry (render.framerate.flip_discard,          L"Use Flip Discard - Windows 10+",                            dll_ini,         L"Render.DXGI",           L"UseFlipDiscard"),
@@ -804,6 +813,8 @@ struct param_decl_s {
 
     ConfigEntry (texture.cache.ignore_non_mipped,        L"Ignore textures without mipmaps?",                          dll_ini,         L"Textures.Cache",        L"IgnoreNonMipmapped"),
     ConfigEntry (texture.cache.allow_staging,            L"Enable texture caching/dumping/injecting staged textures",  dll_ini,         L"Textures.Cache",        L"AllowStaging"),
+
+
     ConfigEntry (injection.global.use_static_addresses,  L"Use Cached Memory Addresses in Global\\injection.ini",      dll_ini,         L"Injection.Global",      L"UseStaticAddresses"),
 
 
@@ -820,7 +831,12 @@ struct param_decl_s {
     ConfigEntry (imgui.antialias_lines,                  L"Reduce Aliasing on (but dim) Line Edges",                   dll_ini,         L"ImGui.Render",          L"AntialiasLines"),
     ConfigEntry (imgui.antialias_contours,               L"Reduce Aliasing on (but widen) Window Borders",             dll_ini,         L"ImGui.Render",          L"AntialiasContours"),
 
+
+    // The one odd-ball Steam achievement setting that can be specified per-game
     ConfigEntry (steam.achievements.sound_file,          L"Achievement Sound File",                                    dll_ini,         L"Steam.Achievements",    L"SoundFile"),
+
+    // Steam Achievement Enhancements  (Global Settings)
+    //////////////////////////////////////////////////////////////////////////
 
     ConfigEntry (steam.achievements.play_sound,          L"Silence is Bliss?",                                         achievement_ini, L"Steam.Achievements",    L"PlaySound"),
     ConfigEntry (steam.achievements.take_screenshot,     L"Precious Memories",                                         achievement_ini, L"Steam.Achievements",    L"TakeScreenshot"),
@@ -831,7 +847,7 @@ struct param_decl_s {
     ConfigEntry (steam.achievements.popup.inset,         L"Achievement Notification Inset X",                          achievement_ini, L"Steam.Achievements",    L"PopupInset"),
     ConfigEntry (steam.achievements.popup.duration,      L"Achievement Popup Duration (in ms)",                        achievement_ini, L"Steam.Achievements",    L"PopupDuration"),
 
-    ConfigEntry (steam.system.notify_corner,             L"Overlay Notification Position",                             dll_ini,         L"Steam.System",          L"NotifyCorner"),
+    ConfigEntry (steam.system.notify_corner,             L"Overlay Notification Position  (non-Big Picture Mode)",     dll_ini,         L"Steam.System",          L"NotifyCorner"),
     ConfigEntry (steam.system.appid,                     L"Steam AppID",                                               dll_ini,         L"Steam.System",          L"AppID"),
     ConfigEntry (steam.system.init_delay,                L"Delay SteamAPI initialization if the game doesn't do it",   dll_ini,         L"Steam.System",          L"AutoInitDelay"),
     ConfigEntry (steam.system.auto_pump,                 L"Should we force the game to run Steam callbacks?",          dll_ini,         L"Steam.System",          L"AutoPumpCallbacks"),
@@ -840,13 +856,17 @@ struct param_decl_s {
     ConfigEntry (steam.system.load_early,                L"Load the Steam Client DLL Early?",                          dll_ini,         L"Steam.System",          L"PreLoadSteamClient"),
     ConfigEntry (steam.system.early_overlay,             L"Load the Steam Overlay Early",                              dll_ini,         L"Steam.System",          L"PreLoadSteamOverlay"),
     ConfigEntry (steam.system.force_load,                L"Forcefully load steam_api{64}.dll",                         dll_ini,         L"Steam.System",          L"ForceLoadSteamAPI"),
-    ConfigEntry (steam.log.silent,                       L"Makes steam_api.log go away",                               dll_ini,         L"Steam.Log",             L"Silent"),
+
+    // Swashbucklers pay attention
+    //////////////////////////////////////////////////////////////////////////
+
+    ConfigEntry (steam.log.silent,                       L"Makes steam_api.log go away [DISABLES STEAMAPI FEATURES]",  dll_ini,         L"Steam.Log",             L"Silent"),
     ConfigEntry (steam.cloud.blacklist,                  L"CSV list of files to block from cloud sync.",               dll_ini,         L"Steam.Cloud",           L"FilesNotToSync"),
     ConfigEntry (steam.drm.spoof_BLoggedOn,              L"Fix For Stupid Games That Don't Know How DRM Works",        dll_ini,         L"Steam.DRMWorks",        L"SpoofBLoggedOn"),
   };
 
 
-  for ( auto decl : params_to_build )
+  for ( auto&& decl : params_to_build )
   {
     if ( decl.type_ == std::type_index ( typeid ( sk::ParameterBool* ) ) )
     {
@@ -2685,92 +2705,6 @@ SK_SaveConfig ( std::wstring name,
   log_level->store                          (config.system.log_level);
   prefer_fahrenheit->store                  (config.system.prefer_fahrenheit);
 
-#if 0
-  apis.last_known->store                  ();
-#ifndef _WIN64
-  apis.ddraw.hook->store                  ();
-  apis.d3d8.hook->store                   ();
-#endif
-  apis.d3d9.hook->store                   ();
-  apis.d3d9ex.hook->store                 ();
-  apis.d3d11.hook->store                  ();
-#ifdef _WIN64
-  apis.d3d12.hook->store                  ();
-#endif
-  apis.OpenGL.hook->store                 ();
-#ifdef _WIN64
-  apis.Vulkan.hook->store                 ();
-#endif
-
-  compatibility.disable_nv_bloat->store   ();
-  compatibility.rehook_loadlibrary->store ();
-
-  osd.state.remember->store               ();
-
-  monitoring.memory.show->store           ();
-  mem_reserve->store                      ();
-
-  monitoring.SLI.show->store              ();
-  monitoring.time.show->store             ();
-
-  monitoring.fps.show->store              ();
-
-  monitoring.io.show->store               ();
-  monitoring.io.interval->store           ();
-
-  monitoring.cpu.show->store               ();
-  monitoring.cpu.interval->store           ();
-  monitoring.cpu.simple->store             ();
-
-  monitoring.gpu.show->store               ();
-  monitoring.gpu.print_slowdown->store     ();
-  monitoring.gpu.interval->store           ();
-
-  monitoring.disk.show->store              ();
-  monitoring.disk.interval->store          ();
-  monitoring.disk.type->store              ();
-
-  monitoring.pagefile.show->store          ();
-  monitoring.pagefile.interval->store      ();
-
-  input.keyboard.catch_alt_f4->store       ();
-  input.keyboard.disabled_to_game->store   ();
-
-  input.mouse.disabled_to_game->store      ();
-
-  input.cursor.manage->store               ();
-  input.cursor.keys_activate->store        ();
-  input.cursor.timeout->store              ();
-  input.cursor.ui_capture->store           ();
-  input.cursor.hw_cursor->store            ();
-  input.cursor.block_invisible->store      ();
-  input.cursor.no_warp_ui->store           ();
-  input.cursor.no_warp_visible->store      ();
-  input.cursor.fix_synaptics->store        ();
-  input.cursor.antiwarp_deadzone->store    ();
-  input.cursor.use_relative_input->store   ();
-
-  input.gamepad.disable_ps4_hid->store       ();
-  input.gamepad.rehook_xinput->store         ();
-  input.gamepad.xinput.ui_slot->store        ();
-  input.gamepad.xinput.placeholders->store   ();
-  input.gamepad.xinput.disable_rumble->store ();
-  input.gamepad.haptic_ui->store             ();
-  input.gamepad.xinput.assignment->store   ();
-
-  window.borderless->store                 ();
-  window.center->store                     ();
-  window.background_render->store          ();
-  window.background_mute->store            ();
-  window.offset.x->store                   ();
-  window.offset.y->store                   ();
-  window.confine_cursor->store             ();
-  window.unconfine_cursor->store           ();
-  window.persistent_drag->store            ();
-  window.fullscreen->store                 ();
-  window.fix_mouse_coords->store           ();
-  window.override->store                   ();
-#endif
 
   if (SK_IsInjected () && injection.global.has_local_preference)
   {
@@ -2780,141 +2714,10 @@ SK_SaveConfig ( std::wstring name,
   nvidia.api.disable->store                 (! config.apis.NvAPI.enable);
   amd.adl.disable->store                    (! config.apis.ADL.enable);
 
-#if 0
-  nvidia.api.disable->store                ();
-
-  display.force_fullscreen->store          ();
-  display.force_windowed->store            ();
-
-  render.framerate.target_fps->store        ();
-  render.framerate.limiter_tolerance->store ();
-  render.framerate.sleepless_render->store  ();
-  render.framerate.sleepless_window->store  ();
-
-  if (  SK_IsInjected ()                     ||
-      ( SK_GetDLLRole () & DLL_ROLE::DInput8 ||
-        SK_GetDLLRole () & DLL_ROLE::DXGI    ||
-        SK_GetDLLRole () & DLL_ROLE::D3D9 ) )
-  {
-    render.framerate.wait_for_vblank->store   ();
-    render.framerate.buffer_count->store      ();
-    render.framerate.prerender_limit->store   ();
-    render.framerate.present_interval->store  ();
-
-    if (sk::NVAPI::nv_hardware)
-    {
-      nvidia.sli.compatibility->store        ();
-      nvidia.sli.mode->store                 ();
-      nvidia.sli.num_gpus->store             ();
-      nvidia.sli.override->store             ();
-    }
-
-    if (  SK_IsInjected ()                     ||
-        ( SK_GetDLLRole () & DLL_ROLE::DInput8 ||
-          SK_GetDLLRole () & DLL_ROLE::DXGI ) )
-    {
-      render.framerate.max_delta_time->store    ();
-      render.framerate.flip_discard->store      ();
-      render.framerate.allow_dwm_tearing->store ();
-
-      texture.d3d11.cache->store                  ();
-      texture.d3d11.precise_hash->store           ();
-      texture.d3d11.dump->store                   ();
-      texture.d3d11.inject->store                 ();
-      texture.d3d11.injection_keeps_format->store ();
-      texture.d3d11.res_root->store               ();
-
-      texture.cache.max_entries->store ();
-      texture.cache.min_entries->store ();
-      texture.cache.max_evict->store   ();
-      texture.cache.min_evict->store   ();
-      texture.cache.max_size->store    ();
-      texture.cache.min_size->store    ();
-
-      texture.cache.ignore_non_mipped->store ();
-      texture.cache.allow_staging->store     ();
-
-      render.dxgi.max_res->store            ();
-      render.dxgi.min_res->store            ();
-      render.dxgi.scaling_mode->store       ();
-      render.dxgi.scanline_order->store     ();
-      render.dxgi.exception_mode->store     ();
-      render.dxgi.debug_layer->store        ();
-      render.dxgi.safe_fullscreen->store    ();
-      render.dxgi.enhanced_depth->store     ();
-      render.dxgi.deferred_isolation->store ();
-      render.dxgi.rehook_present->store     ();
-
-      render.dxgi.swapchain_wait->store     ();
-    }
-
-    if (  SK_IsInjected ()                       ||
-        ( SK_GetDLLRole () & DLL_ROLE::DInput8 ) ||
-        ( SK_GetDLLRole () & DLL_ROLE::D3D9    ) )
-    {
-      render.d3d9.force_d3d9ex->store        ();
-      render.d3d9.hook_type->store           ();
-      render.d3d9.enable_texture_mods->store ();
-    }
-  }
-
-  if (render.framerate.refresh_rate != nullptr)
-    render.framerate.refresh_rate->store ();
-
-  texture.res_root->store                ();
-  texture.dump_on_load->store            ();
-
-  osd.show->store                        ();
-  osd.update_method.pump->store          ();
-  osd.update_method.pump_interval->store ();
-  osd.text.red->store                    ();
-  osd.text.green->store                  ();
-  osd.text.blue->store                   ();
-  osd.viewport.pos_x->store              ();
-  osd.viewport.pos_y->store              ();
-  osd.viewport.scale->store              ();
-
-  imgui.scale->store                     ();
-  imgui.show_playtime->store             ();
-  imgui.show_eula->store                 ();
-  imgui.show_gsync_status->store         ();
-  imgui.mac_style_menu->store            ();
-  imgui.show_input_apis->store           ();
-  imgui.disable_alpha->store             ();
-  imgui.antialias_lines->store           ();
-  imgui.antialias_contours->store        ();
-
-  steam.achievements.sound_file->store         ();
-  steam.achievements.play_sound->store         ();
-  steam.achievements.take_screenshot->store    ();
-  steam.achievements.fetch_friend_stats->store ();
-  steam.achievements.popup.show_title->store   ();
-  steam.achievements.popup.animate->store      ();
-  steam.achievements.popup.duration->store     ();
-  steam.achievements.popup.inset->store        ();
-  steam.achievements.popup.origin->store       ();
-  steam.system.notify_corner->store            ();
-  steam.system.appid->store                    ();
-  steam.system.init_delay->store               ();
-  steam.system.auto_pump->store                ();
-  steam.system.block_stat_callback->store      ();
-  steam.system.filter_stat_callbacks->store    ();
-  steam.system.load_early->store               ();
-  steam.system.early_overlay->store            ();
-  steam.system.force_load->store               ();
-  steam.log.silent->store                      ();
-  steam.drm.spoof_BLoggedOn->store             ();
-
-  init_delay->store                      ();
-  silent->store                          ();
-  log_level->store                       ();
-  prefer_fahrenheit->store               ();
-#endif
-
-  ignore_rtss_delay->store               (config.system.ignore_rtss_delay);
+  ignore_rtss_delay->store                  (config.system.ignore_rtss_delay);
 
 
-  // Don't store this setting at shutdown
+  // Don't store this setting at shutdown  (it may have been turned off automatically)
   if (__SK_DLL_Ending == false)
   {
     handle_crashes->store                (config.system.handle_crashes);
@@ -2937,6 +2740,8 @@ SK_SaveConfig ( std::wstring name,
   if (! (nvapi_init && sk::NVAPI::nv_hardware))
     dll_ini->remove_section (L"NVIDIA.SLI");
 
+
+
   wchar_t wszFullName [ MAX_PATH + 2 ] = { };
 
   lstrcatW (wszFullName, SK_GetConfigPath ());
@@ -2944,6 +2749,7 @@ SK_SaveConfig ( std::wstring name,
   lstrcatW (wszFullName,             L".ini");
 
   SK_ImGui_Widgets.SaveConfig ();
+
 
   dll_ini->write ( wszFullName );
   osd_ini->write ( std::wstring ( SK_GetDocumentsDir () +
@@ -2957,30 +2763,31 @@ SK_SaveConfig ( std::wstring name,
                      LR"(\My Mods\SpecialK\Global\macros.ini)"
                    ).c_str () );
 
+
   if (close_config)
   {
     if (dll_ini != nullptr)
     {
       delete dll_ini;
-      dll_ini = nullptr;
+             dll_ini = nullptr;
     }
 
     if (osd_ini != nullptr)
     {
       delete osd_ini;
-      osd_ini = nullptr;
+             osd_ini = nullptr;
     }
 
     if (achievement_ini != nullptr)
     {
       delete achievement_ini;
-      achievement_ini = nullptr;
+             achievement_ini = nullptr;
     }
 
     if (macro_ini != nullptr)
     {
       delete macro_ini;
-      macro_ini = nullptr;
+             macro_ini = nullptr;
     }
   }
 }

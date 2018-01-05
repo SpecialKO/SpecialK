@@ -1102,14 +1102,11 @@ SK_ImGui_WantKeyboardCapture (void)
 {
   bool imgui_capture = false;
 
-  //if (SK_ImGui_Visible)
-  //{
-    ImGuiIO& io =
-      ImGui::GetIO ();
+  ImGuiIO& io =
+    ImGui::GetIO ();
 
-    if (nav_usable || io.WantCaptureKeyboard || io.WantTextInput)
-      imgui_capture = true;
-  //}
+  if (nav_usable || io.WantCaptureKeyboard || io.WantTextInput)
+    imgui_capture = true;
 
   if (config.input.keyboard.disabled_to_game)
     imgui_capture = true;
@@ -1122,14 +1119,11 @@ SK_ImGui_WantTextCapture (void)
 {
   bool imgui_capture = false;
 
-  //if (SK_ImGui_Visible)
-  //{
-    ImGuiIO& io =
-      ImGui::GetIO ();
+  ImGuiIO& io =
+    ImGui::GetIO ();
 
-    if (io.WantTextInput)
-      imgui_capture = true;
-  //}
+  if (io.WantTextInput)
+    imgui_capture = true;
 
   return imgui_capture;
 }

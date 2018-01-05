@@ -1154,9 +1154,6 @@ unsigned int
 __stdcall
 HookD3D11 (LPVOID user);
 
-extern volatile LONG SK_D3D11_init_tid;
-extern volatile LONG SK_D3D11_ansel_tid;
-
 
 #endif /* __SK__DXGI_BACKEND_H__ */
 #else
@@ -2352,10 +2349,6 @@ void  __stdcall SK_D3D11_UpdateRenderStats  (IDXGISwapChain*      pSwapChain);
 unsigned int
 __stdcall
 HookD3D11 (LPVOID user);
-
-extern volatile LONG SK_D3D11_init_tid;
-extern volatile LONG SK_D3D11_ansel_tid;
-
 
 #endif /* __SK__DXGI_BACKEND_H__ */
 #endif
