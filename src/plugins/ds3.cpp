@@ -326,17 +326,6 @@ SK_DS3_Scan (uint8_t* pattern, size_t len, uint8_t* mask)
   MEMORY_BASIC_INFORMATION mem_info;
   VirtualQuery (base_addr, &mem_info, sizeof mem_info);
 
-  //
-  // VMProtect kills this, so let's do something else...
-  //
-#ifdef VMPROTECT_IS_NOT_A_FACTOR
-  IMAGE_DOS_HEADER* pDOS =
-    (IMAGE_DOS_HEADER *)mem_info.AllocationBase;
-  IMAGE_NT_HEADERS* pNT  =
-    (IMAGE_NT_HEADERS *)((uintptr_t)(pDOS + pDOS->e_lfanew));
-
-  uint8_t* end_addr = base_addr + pNT->OptionalHeader.SizeOfImage;
-#else
            base_addr = (uint8_t *)mem_info.BaseAddress;//AllocationBase;
   uint8_t* end_addr  = (uint8_t *)mem_info.BaseAddress + mem_info.RegionSize;
 
@@ -348,7 +337,7 @@ SK_DS3_Scan (uint8_t* pattern, size_t len, uint8_t* mask)
   size_t pages = 0;
 
 // Scan up to 256 MiB worth of data
-#ifndef __WIN64
+#ifndef _WIN64
 uint8_t* const PAGE_WALK_LIMIT = (base_addr + (uintptr_t)(1ULL << 26));
 #else
   // Dark Souls 3 needs this, its address space is completely random to the point
@@ -361,7 +350,8 @@ uint8_t* const PAGE_WALK_LIMIT = (base_addr + (uintptr_t)(1ULL << 36));
   // For practical purposes, let's just assume that all valid games have less than 256 MiB of
   //   committed executable image data.
   //
-  while (VirtualQuery (end_addr, &mem_info, sizeof mem_info) && end_addr < PAGE_WALK_LIMIT) {
+  while (VirtualQuery (end_addr, &mem_info, sizeof mem_info) && end_addr < PAGE_WALK_LIMIT)
+  {
     //if (mem_info.Protect & PAGE_NOACCESS || (! (mem_info.Type & MEM_IMAGE)))
       //break;
 
@@ -382,7 +372,6 @@ uint8_t* const PAGE_WALK_LIMIT = (base_addr + (uintptr_t)(1ULL << 36));
                   pages,
                     base_addr,
                       end_addr );
-#endif
 
   __SK_DS3_base_img_addr = base_addr;
   __SK_DS3_end_img_addr  = end_addr;
@@ -1337,9 +1326,10 @@ SK_DS3_FullscreenToggle_Thread (LPVOID user)
 {
   UNREFERENCED_PARAMETER (user);
 
-  // Don't do any of this stuff if we cannot bring the window into foucs
+  // Don't do any of this stuff if we cannot bring the window into focus
   if ( ! (BringWindowToTop    (ds3_state.Window) &&
-          SetForegroundWindow (ds3_state.Window)) )
+          SetForegroundWindow (ds3_state.Window) &&
+          SetActiveWindow     (ds3_state.Window) ) )
     return std::numeric_limits <unsigned int>::max ();
 
   Sleep (66);
