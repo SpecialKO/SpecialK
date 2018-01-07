@@ -494,7 +494,7 @@ SK_StartPerfMonThreads (void)
     {
       dll_log.LogEx (true, L"[ WMI Perf ] Spawning Process Monitor...  ");
 
-      InterlockedExchangePointer ( &process_stats.hThread,
+      InterlockedExchangePointer ( (void **)&process_stats.hThread,
         CreateThread ( nullptr,
                          0,
                            SK_MonitorProcess,
@@ -520,7 +520,7 @@ SK_StartPerfMonThreads (void)
     {
       dll_log.LogEx (true, L"[ WMI Perf ] Spawning CPU Monitor...      ");
 
-      InterlockedExchangePointer ( &cpu_stats.hThread,
+      InterlockedExchangePointer ( (void **)&cpu_stats.hThread,
         CreateThread ( nullptr,
                          0,
                            SK_MonitorCPU,
@@ -543,7 +543,7 @@ SK_StartPerfMonThreads (void)
     {
       dll_log.LogEx (true, L"[ WMI Perf ] Spawning Disk Monitor...     ");
 
-      InterlockedExchangePointer ( &disk_stats.hThread,
+      InterlockedExchangePointer ( (void **)&disk_stats.hThread,
         CreateThread ( nullptr,
                          0,
                            SK_MonitorDisk,
@@ -566,7 +566,7 @@ SK_StartPerfMonThreads (void)
     {
       dll_log.LogEx (true, L"[ WMI Perf ] Spawning Pagefile Monitor... ");
 
-      InterlockedExchangePointer ( &pagefile_stats.hThread,
+      InterlockedExchangePointer ( (void **)&pagefile_stats.hThread,
         CreateThread ( nullptr,
                          0,
                            SK_MonitorPagefile,
@@ -1153,8 +1153,8 @@ SK_InitFinishCallback (void)
       dll_log.LogEx (false, L"failed!\n");
   }
 
-  SK_StartPerfMonThreads ();
   SK_ResumeThreads       (init_tids);
+  SK_StartPerfMonThreads ();
 
   init_mutex->unlock ();
 }

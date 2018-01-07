@@ -384,11 +384,6 @@ SK_InitWMI (void)
     static_cast_p2p <void> (&CoCreateInstance_Original) );
   SK_ApplyQueuedHooks ();
   
-  SK_AutoCOMInit auto_com;
-
-  if (! SK_InitCOM ())
-    return false;
-
   COM::base.wmi.Lock ();
 
   if (ReadAcquire (&COM::base.wmi.init) > 0)

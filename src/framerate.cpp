@@ -94,6 +94,7 @@ Sleep_Detour (DWORD dwMilliseconds)
   if (SK_GetFramesDrawn () < 30)
     return Sleep_Original (dwMilliseconds);
 
+#if 0
   if (SK::SteamAPI::AppID () > 0)
   {
     if (hModSteamAPI == nullptr)
@@ -109,6 +110,7 @@ Sleep_Detour (DWORD dwMilliseconds)
     if (SK_GetCallingDLL () == hModSteamAPI)
       return Sleep_Original (dwMilliseconds);
   }
+#endif
 
 
   BOOL bGUIThread    = IsGUIThread (FALSE);
