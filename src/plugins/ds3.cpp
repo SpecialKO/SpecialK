@@ -285,7 +285,7 @@ extern void
 __stdcall
 SK_SetPluginName (std::wstring name);
 
-#define SUS_VERSION_NUM L"0.5.0.1"
+#define SUS_VERSION_NUM L"0.6.0"
 #define SUS_VERSION_STR L"Souls Unsqueezed v " SUS_VERSION_NUM
 
 // Block until update finishes, otherwise the update dialog
@@ -689,9 +689,6 @@ SK_DisableDPIScaling (void)
 void
 SK_DS3_InitPlugin (void)
 {
-  if (! SK_IsInjected ())
-    SK_DS3_CheckVersion (nullptr);
-
   SK_DisableDPIScaling ();
 
   __DS3_WIDTH  = &ds3_state.Width;
@@ -1020,7 +1017,7 @@ SK_DS3_InitPlugin (void)
     static_cast_p2p <void> (&SK_EndFrame_Original) );
   MH_QueueEnableHook (       SK_BeginBufferSwap);
 
-  InterlockedExchange (&__SUS_init, 1);
+  SK_ApplyQueuedHooks ();
 }
 
 HRESULT
@@ -1423,26 +1420,19 @@ SK_DS3_PresentFirstFrame ( IDXGISwapChain *This,
   UNREFERENCED_PARAMETER (Flags);
   UNREFERENCED_PARAMETER (SyncInterval);
 
-  // Wait for the mod to init, it may be held up during version check
-  while (! InterlockedAdd (&__SUS_init, 0)) Sleep (16);
-
-  static bool first = true;
-
-  DXGI_SWAP_CHAIN_DESC desc;
-  This->GetDesc (&desc);
-
-  ds3_state.SwapChain = This;
-  ds3_state.Window    = desc.OutputWindow;
-
-  if (ds3_cfg.window.borderless || (! ds3_state.Fullscreen))
+  if (! InterlockedCompareExchange (&__SUS_init, 1, 0))
   {
-    SK_DS3_FinishResize ();
-    SK_DS3_CenterWindow ();
-  }
+    DXGI_SWAP_CHAIN_DESC desc;
+    This->GetDesc (&desc);
 
-  if (first)
-  {
-    first = false;
+    ds3_state.SwapChain = This;
+    ds3_state.Window    = desc.OutputWindow;
+
+    if (ds3_cfg.window.borderless || (! ds3_state.Fullscreen))
+    {
+      SK_DS3_FinishResize ();
+      SK_DS3_CenterWindow ();
+    }
 
     //
     // Engage Fullscreen Mode At Startup (ARC Hack)
@@ -1464,9 +1454,12 @@ SK_DS3_PresentFirstFrame ( IDXGISwapChain *This,
                        SK_DS3_OSD_Disclaimer, nullptr,
                          0x00,                nullptr );
     }
-  }
 
-  //DXGISwap_ResizeBuffers_Original (This, 0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);
+    //DXGISwap_ResizeBuffers_Original (This, 0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);
+
+    if (! SK_IsInjected ())
+      SK_DS3_CheckVersion (nullptr);
+  }
 
   return S_OK;
 }
