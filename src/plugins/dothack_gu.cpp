@@ -508,29 +508,32 @@ SK_DGPU_PresentFirstFrame (IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT F
   UNREFERENCED_PARAMETER (SyncInterval);
   UNREFERENCED_PARAMETER (Flags);
 
-  while (! InterlockedAdd (&__DGPU_init, 0))
-    SleepEx (16, FALSE);
-
-  if (SK_ReShade_SetResolutionScale == nullptr)
+  if (! InterlockedCompareExchange (&__DGPU_init, 1, 0))
   {
-    SK_ReShade_SetResolutionScale =
-      (SK_ReShade_SetResolutionScale_pfn)GetProcAddress (
-        GetModuleHandle (L"dxgi.dll"),
-          "SK_ReShade_SetResolutionScale"
-      );
-  }
+    if (SK_ReShade_SetResolutionScale == nullptr)
+    {
+      SK_ReShade_SetResolutionScale =
+        (SK_ReShade_SetResolutionScale_pfn)GetProcAddress (
+          GetModuleHandle (L"dxgi.dll"),
+            "SK_ReShade_SetResolutionScale"
+        );
+    }
 
-  if (SK_ReShade_SetResolutionScale == nullptr)
-  {
-    SK_ReShade_SetResolutionScale =
-      (SK_ReShade_SetResolutionScale_pfn)GetProcAddress (
-        GetModuleHandle (L"d3d11.dll"),
-          "SK_ReShade_SetResolutionScale"
-      );
-  }
+    if (SK_ReShade_SetResolutionScale == nullptr)
+    {
+      SK_ReShade_SetResolutionScale =
+        (SK_ReShade_SetResolutionScale_pfn)GetProcAddress (
+          GetModuleHandle (L"d3d11.dll"),
+            "SK_ReShade_SetResolutionScale"
+        );
+    }
 
-  if (SK_ReShade_SetResolutionScale != nullptr)
-    SK_ReShade_SetResolutionScale (aa_prefs.scale);
+    if (SK_ReShade_SetResolutionScale != nullptr)
+      SK_ReShade_SetResolutionScale (aa_prefs.scale);
+
+    if (! SK_IsInjected ())
+      SK_DGPU_CheckVersion (nullptr);
+  }
 
   return S_OK;
 }
@@ -628,8 +631,5 @@ SK_DGPU_InitPlugin (void)
 
   MH_ApplyQueued ();
 
-  InterlockedExchange (&__DGPU_init, 1);
-
-  if (! SK_IsInjected ())
-    SK_DGPU_CheckVersion (nullptr);
+  //InterlockedExchange (&__DGPU_init, 1);
 };
