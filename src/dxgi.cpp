@@ -224,6 +224,14 @@ SK_CEGUI_InitBase ()
         dynamic_cast <CEGUI::DefaultResourceProvider *>
             (CEGUI::System::getDllSingleton ().getResourceProvider ());
 
+
+    CEGUI::SchemeManager* pSchemeMgr =
+      CEGUI::SchemeManager::getDllSingletonPtr ();
+
+    CEGUI::FontManager* pFontMgr =
+      CEGUI::FontManager::getDllSingletonPtr ();
+
+
          char szRootPath [MAX_PATH + 2] = { };
     snprintf (szRootPath, MAX_PATH, "%ws", _wgetenv (L"CEGUI_PARENT_DIR"));
               szRootPath [MAX_PATH] = '\0';
@@ -261,16 +269,11 @@ SK_CEGUI_InitBase ()
     CEGUI::WindowManager::setDefaultResourceGroup        ("layouts");
     CEGUI::ScriptModule::setDefaultResourceGroup         ("lua_scripts");
     CEGUI::AnimationManager::setDefaultResourceGroup     ("animations");
-
-    CEGUI::SchemeManager* pSchemeMgr =
-      CEGUI::SchemeManager::getDllSingletonPtr ();
-
+    
     pSchemeMgr->createFromFile ("VanillaSkin.scheme");
     pSchemeMgr->createFromFile ("TaharezLook.scheme");
-
-    CEGUI::FontManager* pFontMgr =
-      CEGUI::FontManager::getDllSingletonPtr ();
-
+    
+    pFontMgr->createFromFile ("Consolas-12.font");
     pFontMgr->createFromFile ("DejaVuSans-10-NoScale.font");
     pFontMgr->createFromFile ("DejaVuSans-12-NoScale.font");
     pFontMgr->createFromFile ("Jura-18-NoScale.font");
@@ -279,11 +282,11 @@ SK_CEGUI_InitBase ()
 
     const CEGUI::System* pSys =
       CEGUI::System::getDllSingletonPtr ();
-
+    
     // setup default group for validation schemas
     CEGUI::XMLParser* parser =
       pSys->getXMLParser ();
-
+    
     if (parser->isPropertyPresent ("SchemaDefaultResourceGroup"))
       parser->setProperty ("SchemaDefaultResourceGroup", "schemas");
 
@@ -315,15 +318,15 @@ SK_CEGUI_InitBase ()
 
     CEGUI::WindowManager& window_mgr =
       CEGUI::WindowManager::getDllSingleton ();
-
+    
     CEGUI::Window* root =
       window_mgr.createWindow ("DefaultWindow", "root");
-
+    
     CEGUI::System::getDllSingleton ().getDefaultGUIContext ().setRootWindow (root);
 
-    // This window is never used, it is the prototype from which all
-    //   achievement popup dialogs will be cloned. This makes the whole
-    //     process of instantiating pop ups quicker.
+   //This window is never used, it is the prototype from which all
+   //  achievement popup dialogs will be cloned. This makes the whole
+   //    process of instantiating pop ups quicker.
     SK_achv_popup =
       window_mgr.loadLayoutFromFile ("Achievements.layout");
  }

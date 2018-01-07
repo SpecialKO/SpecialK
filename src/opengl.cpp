@@ -71,10 +71,8 @@ SK_GL_UpdateRenderStats (void);
 
 extern "C++" int SK_Steam_DrawOSD (void);
 
-typedef BOOL (WINAPI *SwapBuffers_pfn)(HDC);
 typedef BOOL (WINAPI *wglSwapBuffers_pfn)(HDC);
 
-SwapBuffers_pfn    gdi_swap_buffers = nullptr;
 wglSwapBuffers_pfn wgl_swap_buffers = nullptr;
 
 // True if this is an injected DLL rather than OpenGL32.dll
@@ -149,33 +147,49 @@ void ResetCEGUI_GL (void)
   //if (! config.cegui.enable)
   //  return;
 
-  // TOOD: Eliminate the stupid magic number, make this an option if it's something
-  //         that is really going to stay here long-term.
-  if (static_cast <ULONG> (ReadAcquire (&__cegui_frames_drawn)) < 5)
-    return;
-
   if (cegGL == nullptr)
   {
     try {
+      glPushAttrib       (GL_ALL_ATTRIB_BITS);
+      glPushClientAttrib (GL_CLIENT_ALL_ATTRIB_BITS);
+
+      // Backup GL state
+      GLint     last_array_buffer;         glGetIntegerv (GL_ARRAY_BUFFER_BINDING,         &last_array_buffer);
+      GLint     last_element_array_buffer; glGetIntegerv (GL_ELEMENT_ARRAY_BUFFER_BINDING, &last_element_array_buffer);
+      GLint     last_vertex_array;         glGetIntegerv (GL_VERTEX_ARRAY_BINDING,         &last_vertex_array);
+
+      // Do not touch the default VAO state (assuming the context even has one)
+      static GLuint ceGL_VAO = 0;
+                if (ceGL_VAO == 0 || (! glIsVertexArray (ceGL_VAO))) glGenVertexArrays (0, &ceGL_VAO);
+
+      glBindVertexArray (ceGL_VAO);
+
       cegGL = reinterpret_cast <CEGUI::OpenGL3Renderer *> (
         &CEGUI::OpenGL3Renderer::bootstrapSystem ()
       );
 
-      cegGL->enableExtraStateSettings (true);
+      SK_CEGUI_InitBase ();
 
+      SK_PopupManager::getInstance ()->destroyAllPopups       ();
+
+      // Unstable in 32-bit ABI for some reason
+      if (SK_GetBitness () == 64)
+        SK_TextOverlayManager::getInstance ()->resetAllOverlays (cegGL);
+
+      extern void SK_Steam_ClearPopups (void);
+                  SK_Steam_ClearPopups ();
+
+      glBindVertexArray (                         last_vertex_array);
+      glBindBuffer      (GL_ARRAY_BUFFER,         last_array_buffer);
+      glBindBuffer      (GL_ELEMENT_ARRAY_BUFFER, last_element_array_buffer);
       SK_CEGUI_RelocateLog ();
+
+      glPopClientAttrib ();
+      glPopAttrib       ();
     } catch (...) {
       cegGL = nullptr;
       return;
     }
-
-    SK_CEGUI_InitBase ();
-
-    SK_PopupManager::getInstance ()->destroyAllPopups       ();
-    SK_TextOverlayManager::getInstance ()->resetAllOverlays (cegGL);
-
-    extern void SK_Steam_ClearPopups (void);
-                SK_Steam_ClearPopups ();
   }
 #endif
 }
@@ -1223,12 +1237,14 @@ SK_Overlay_DrawGL (void)
   }
 
 
+  static bool reset_overlays = false;
 
   // TODO: Create a secondary context that shares "display lists" so that
   //         we have a pure state machine all to ourselves.
   if (cegGL == nullptr && config.cegui.enable)
   {
     ResetCEGUI_GL ();
+    reset_overlays = true;
   }
 
   if (cegGL != nullptr || (! config.cegui.enable))
@@ -1238,7 +1254,7 @@ SK_Overlay_DrawGL (void)
 
     GetClientRect (WindowFromDC (SK_GL_GetCurrentDC ()), &rect_now);
 
-    if (config.cegui.enable && memcmp (&rect, &rect_now, sizeof RECT))
+    if (config.cegui.enable && memcmp (&rect, &rect_now, sizeof RECT) && cegGL != nullptr)
     {
       CEGUI::System::getDllSingleton ().getRenderer ()->setDisplaySize (
           CEGUI::Sizef (
@@ -1246,10 +1262,9 @@ SK_Overlay_DrawGL (void)
               static_cast <float> (rect_now.bottom - rect_now.top)
           )
       );
-
-      SK_TextOverlayManager::getInstance ()->resetAllOverlays (cegGL);
-
-      rect = rect_now;
+    
+    reset_overlays = true;
+      rect           = rect_now;
     }
 
     // Backup GL state
@@ -1272,16 +1287,35 @@ SK_Overlay_DrawGL (void)
     GLboolean last_enable_cull_face    = glIsEnabled   (GL_CULL_FACE);
     GLboolean last_enable_depth_test   = glIsEnabled   (GL_DEPTH_TEST);
     GLboolean last_enable_scissor_test = glIsEnabled   (GL_SCISSOR_TEST);
-
+    GLboolean last_srgb_framebuffer    = glIsEnabled   (GL_FRAMEBUFFER_SRGB);
+    
     // Do not touch the default VAO state (assuming the context even has one)
     static GLuint ceGL_VAO = 0;
               if (ceGL_VAO == 0 || (! glIsVertexArray (ceGL_VAO))) glGenVertexArrays (0, &ceGL_VAO);
 
+    SK_RenderBackend& rb =
+      SK_GetCurrentRenderBackend ();
+
+    if (last_srgb_framebuffer)
+      rb.framebuffer_flags |= SK_FRAMEBUFFER_FLAG_SRGB;
+    else
+      rb.framebuffer_flags &= SK_FRAMEBUFFER_FLAG_SRGB;
+
+    glDisable         (GL_FRAMEBUFFER_SRGB);
     glBindVertexArray (ceGL_VAO);
     glBindFramebuffer (GL_FRAMEBUFFER, 0);
 
-    if (config.cegui.enable)
+    if (config.cegui.enable && cegGL != nullptr)
     {
+      if (reset_overlays)
+      {
+        reset_overlays = false;
+
+        // Unstable in 32-bit ABI for some reason
+        if (SK_GetBitness () == 64)
+          SK_TextOverlayManager::getInstance ()->resetAllOverlays (cegGL);
+      }
+
       cegGL->beginRendering   ();
 
       SK_TextOverlayManager::getInstance ()->drawAllOverlays (0.0f, 0.0f);
@@ -1290,45 +1324,45 @@ SK_Overlay_DrawGL (void)
 
 
     SK_ImGui_DrawFrame (0x00, nullptr);
-
-
-    if (config.cegui.enable)
+    
+    
+    if (config.cegui.enable && cegGL != nullptr)
     {
       if (SK_Steam_DrawOSD ())
       {
         CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
       }
-
+    
       cegGL->endRendering     ();
     }
-
+    
     glActiveTexture         (last_active_texture);
     glBindTexture           (GL_TEXTURE_2D,           last_texture);
-
+    
     // Bind stat encapsulation objects
     glUseProgram            (                         last_program);
-    glBindVertexArray       (                         last_vertex_array);
     glBindFramebuffer       (GL_FRAMEBUFFER,          last_framebuffer);
-
+    
     if (last_readbuffer != last_framebuffer)
       glBindFramebuffer     (GL_READ_BUFFER,          last_readbuffer);
     if (last_drawbuffer != last_framebuffer)
       glBindFramebuffer     (GL_DRAW_BUFFER,          last_drawbuffer);
-
+    
     // TODO: Shader Pipeline Objects (the above objects fully capture all cocos2d state encapsulation)
-
+    
     glBlendEquationSeparate (last_blend_equation_rgb, last_blend_equation_alpha);
     glBlendFunc             (last_blend_src,          last_blend_dst);
-
-    if (last_enable_blend)        glEnable (GL_BLEND);        else glDisable (GL_BLEND);
-    if (last_enable_cull_face)    glEnable (GL_CULL_FACE);    else glDisable (GL_CULL_FACE);
-    if (last_enable_depth_test)   glEnable (GL_DEPTH_TEST);   else glDisable (GL_DEPTH_TEST);
-    if (last_enable_scissor_test) glEnable (GL_SCISSOR_TEST); else glDisable (GL_SCISSOR_TEST);
-
+    
+    if (last_srgb_framebuffer)    glEnable (GL_FRAMEBUFFER_SRGB); else glDisable (GL_FRAMEBUFFER_SRGB);
+    if (last_enable_blend)        glEnable (GL_BLEND);            else glDisable (GL_BLEND);
+    if (last_enable_cull_face)    glEnable (GL_CULL_FACE);        else glDisable (GL_CULL_FACE);
+    if (last_enable_depth_test)   glEnable (GL_DEPTH_TEST);       else glDisable (GL_DEPTH_TEST);
+    if (last_enable_scissor_test) glEnable (GL_SCISSOR_TEST);     else glDisable (GL_SCISSOR_TEST);
+    
     glBindVertexArray (                         last_vertex_array);
     glBindBuffer      (GL_ARRAY_BUFFER,         last_array_buffer);
     glBindBuffer      (GL_ELEMENT_ARRAY_BUFFER, last_element_array_buffer);
-
+    
     glViewport ( last_viewport    [0], last_viewport    [1], (GLsizei)last_viewport    [2], (GLsizei)last_viewport    [3]);
     glScissor  ( last_scissor_box [0], last_scissor_box [1], (GLsizei)last_scissor_box [2], (GLsizei)last_scissor_box [3]);
   }
@@ -1338,68 +1372,9 @@ SK_Overlay_DrawGL (void)
 __declspec (noinline)
 BOOL
 WINAPI
-SwapBuffers (HDC hDC)
-{
-  WaitForInit_GL ();
-
-
-  // Setup our window message hook for the command console
-  if (hWndRender == 0 || (! IsWindow (hWndRender)))
-    hWndRender = WindowFromDC (hDC);
-
-
-  SK_GetCurrentRenderBackend ().api = SK_RenderAPI::OpenGL;
-  SK_BeginBufferSwap ();
-
-  if (gdi_swap_buffers == nullptr)
-  {
-    HMODULE hModGDI32 = LoadLibraryW_Original (L"gdi32.dll");
-
-    gdi_swap_buffers =
-      reinterpret_cast <SwapBuffers_pfn> (
-        GetProcAddress (hModGDI32, "SwapBuffers")
-      );
-  }
-
-
-  if (SK_GL_GetCurrentContext ())
-  {
-    glewExperimental = GL_TRUE;
-    SK_RunOnce (glewInit ());
-
-    SK_GL_UpdateRenderStats ();
-    SK_Overlay_DrawGL       ();
-
-    SK_RunOnce (ImGui_ImplGL3_Init ());
-  }
-
-
-  BOOL status = FALSE;
-
-  if (gdi_swap_buffers != nullptr)
-    status = gdi_swap_buffers (hDC);
-
-  if  (status)
-    SK_EndBufferSwap (S_OK);
-
-
-  return status;
-}
-
-__declspec (noinline)
-BOOL
-WINAPI
 wglSwapBuffers (HDC hDC)
 {
   WaitForInit_GL ();
-
-
-  // Setup our window message hook for the command console
-  if (hWndRender == 0 || (! IsWindow (hWndRender)))
-    hWndRender = WindowFromDC (hDC);
-
-  SK_GetCurrentRenderBackend ().api = SK_RenderAPI::OpenGL;
-  SK_BeginBufferSwap ();
 
   if (wgl_swap_buffers == nullptr)
   {
@@ -1408,29 +1383,40 @@ wglSwapBuffers (HDC hDC)
   }
 
 
-  if (SK_GL_GetCurrentContext ())
+  HWND  hWnd = WindowFromDC            (hDC);
+  HGLRC hRC  = SK_GL_GetCurrentContext (   );
+
+
+  // Setup our window message hook for the command console
+  if (hWndRender == 0 || (! IsWindow (hWndRender)))
+    hWndRender = hWnd;
+
+  if (hWnd == hWndRender && IsWindow (hWndRender) && hRC != 0)
   {
-    glewExperimental = GL_TRUE;
-    SK_RunOnce (glewInit ());
+    SK_GetCurrentRenderBackend ().api = SK_RenderAPI::OpenGL;
+    SK_BeginBufferSwap ();
 
-    SK_GL_UpdateRenderStats ();
-    SK_Overlay_DrawGL       ();
+    if (SK_GL_GetCurrentContext ())
+    {
+      glewExperimental = GL_TRUE;
+      SK_RunOnce (glewInit ());
 
-    SK_RunOnce (ImGui_ImplGL3_Init ());
+      SK_GL_UpdateRenderStats ();
+      SK_Overlay_DrawGL       ();
+
+      SK_RunOnce (ImGui_ImplGL3_Init ());
+    }
+
+    BOOL status = wgl_swap_buffers (hDC);
+
+    if (status)
+      SK_EndBufferSwap (S_OK);
+
+    return status;
   }
 
-
-  BOOL status = FALSE;
-
-  if (wgl_swap_buffers != nullptr)
-    status = wgl_swap_buffers (hDC);
-
-
-  if (status)
-    SK_EndBufferSwap (S_OK);
-
-
-  return status;
+  else
+    return wgl_swap_buffers (hDC);
 }
 
 typedef struct _WGLSWAP
@@ -1451,7 +1437,7 @@ wglSwapMultipleBuffers (UINT n, const WGLSWAP* ps)
   WaitForInit_GL ();
 
   for (UINT i = 0; i < n; i++)
-    SwapBuffers (ps->hDC);
+    wglSwapBuffers (ps->hDC);
 
   return 0;
 }
@@ -1950,17 +1936,10 @@ SK_HookGL (void)
     {
       dll_log.Log (L"[ OpenGL32 ] Hooking OpenGL");
 
-#if 0
       SK_CreateDLLHook (         wszBackendDLL,
                                 "wglSwapBuffers",
                                  wglSwapBuffers,
         static_cast_p2p <void> (&wgl_swap_buffers) );
-#else
-      SK_CreateDLLHook (       L"gdi32.dll",
-                                "SwapBuffers",
-                                 SwapBuffers,
-        static_cast_p2p <void> (&gdi_swap_buffers) );
-#endif
 
 // Load user-defined DLLs (Plug-In)
 #ifdef _WIN64
@@ -2368,8 +2347,7 @@ SK_GL_GetCurrentContext (void)
   if (imp_wglGetCurrentContext != nullptr)
     return imp_wglGetCurrentContext ();
 
-  // Fallback, better hope this never happens ;)
-  return 0;//wglGetCurrentContext ();
+  return 0;
 }
 
 HDC
@@ -2379,5 +2357,68 @@ SK_GL_GetCurrentDC (void)
   if (imp_wglGetCurrentDC != nullptr)
     return imp_wglGetCurrentDC ();
 
-  return 0;//
+  return 0;
+}
+
+
+struct sk_cegui_vtx_state_s
+{
+  static GLuint ceGL_VAO;
+
+  GLint  array_buffer;         // Original binding
+  GLint  element_array_buffer; // Original binding
+  GLint  vertex_array;         // Original binding
+};
+
+#include <stack>
+std::stack <sk_cegui_vtx_state_s> SK_CEGUI_VertexStack;
+
+GLuint sk_cegui_vtx_state_s::ceGL_VAO = 0UL;
+
+void
+SK_CEGUI_GL_PushVertexState (void)
+{
+  if (cegGL == nullptr)
+    return;
+
+  glPushAttrib       (GL_ALL_ATTRIB_BITS);
+  glPushClientAttrib (GL_CLIENT_ALL_ATTRIB_BITS);
+
+  if (glIsVertexArray != nullptr && glGenVertexArrays != nullptr && glBindVertexArray != nullptr)
+  {
+    if ( sk_cegui_vtx_state_s::ceGL_VAO == 0 ||
+         (! glIsVertexArray (sk_cegui_vtx_state_s::ceGL_VAO)) )
+    {
+      glGenVertexArrays (0, &sk_cegui_vtx_state_s::ceGL_VAO);
+    }
+
+    glBindVertexArray (sk_cegui_vtx_state_s::ceGL_VAO);
+  }
+
+  sk_cegui_vtx_state_s state;
+
+  glGetIntegerv (GL_ARRAY_BUFFER_BINDING,         &state.array_buffer);
+  glGetIntegerv (GL_ELEMENT_ARRAY_BUFFER_BINDING, &state.element_array_buffer);
+  glGetIntegerv (GL_VERTEX_ARRAY_BINDING,         &state.vertex_array);
+
+  SK_CEGUI_VertexStack.push (state);
+}
+
+void
+SK_CEGUI_GL_PopVertexState (void)
+{
+  if (cegGL == nullptr)
+    return;
+
+  sk_cegui_vtx_state_s state (SK_CEGUI_VertexStack.top ());
+                              SK_CEGUI_VertexStack.pop ();
+
+  if (glBindVertexArray != nullptr)
+    glBindVertexArray (                         state.vertex_array);
+
+  glBindBuffer        (GL_ARRAY_BUFFER,         state.array_buffer);
+  glBindBuffer        (GL_ELEMENT_ARRAY_BUFFER, state.element_array_buffer);
+
+  glPopClientAttrib ();
+  glPopAttrib       ();
 }

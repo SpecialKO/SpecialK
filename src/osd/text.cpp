@@ -1507,6 +1507,16 @@ SK_ResizeOSD (float scale_incr, LPCSTR lpAppName)
   SK_SetOSDScale (scale_incr, true, lpAppName);
 }
 
+
+// CEGUI leaks vertex array state, and this solution is simpler than
+//   recompiling that mess of DLLs until I can eliminate CEGUI.
+//
+void
+SK_CEGUI_GL_PushVertexState (void);
+
+void
+SK_CEGUI_GL_PopVertexState (void);
+
 void
 SK_TextOverlay::reset (CEGUI::Renderer* pRenderer)
 {
@@ -1531,10 +1541,14 @@ SK_TextOverlay::reset (CEGUI::Renderer* pRenderer)
 
       //dll_log.Log (L"%fx%f", pRenderer->getDisplaySize ().d_width, pRenderer->getDisplaySize ().d_height);
 
+      SK_CEGUI_GL_PushVertexState ();
+
       geometry_ = &pRenderer->createGeometryBuffer (    );
 
       if (geometry_)
         geometry_->setClippingRegion               (scrn);
+
+      SK_CEGUI_GL_PopVertexState  ();
     }
 
     catch (...)

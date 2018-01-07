@@ -2517,9 +2517,17 @@ SK_ImGui_ControlPanel (void)
           strcat (szGSyncStatus, "Inactive");
       }
       else
-        strcat (szGSyncStatus, "   Unsupported");
+      {
+        strcat ( szGSyncStatus, rb.api == SK_RenderAPI::OpenGL ? " Unknown in GL" :
+                                                                 "   Unsupported" );
+      }
 
       ImGui::MenuItem (" G-Sync Status   ", szGSyncStatus);
+
+      if (rb.api == SK_RenderAPI::OpenGL && ImGui::IsItemHovered ())
+      {
+        ImGui::SetTooltip ("The NVIDIA driver API does not report this status in OpenGL.");
+      }
     }
 
 
