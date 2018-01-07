@@ -1,5 +1,14 @@
 0.8.60
 
+ (.2): Temporarily disabled OSD text rendering in 32-bit OpenGL games
+ (.2): Added sRGB framebuffer support in OpenGL games
+ (.2): Fixed GL geometry buffer state leaks in CEGUI
+ (.2): Fixed INI parser off-by-one issue in Chinese INI files
+ (.2): Fixed OpenGL wglSwapMultipleBuffers calling wrong hook
+
+ (.1): Improved global injection and auto-update performance
+ (.1): Removed several legacy settings (i.e. Raptr injection warnings)
+
  + Completely separated ImGui from CEGUI (OSD / achievements) in OpenGL
  + Fixed 32-bit OpenGL delay-load ABI issues
  + Fixed OpenGL Vertex Array Object state leaks in legacy (GL 2.x) games

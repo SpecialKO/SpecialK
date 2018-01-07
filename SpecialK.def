@@ -647,12 +647,11 @@ SKX_RemoveCBTHook            = SKX_RemoveCBTHook
 SKX_IsHookingCBT             = SKX_IsHookingCBT
 SKX_GetInjectedPIDs          = SKX_GetInjectedPIDs
 
-g_hHookCBT                   = g_hHookCBT                     DATA
 whitelist_patterns           = whitelist_patterns             DATA
 whitelist_count              = whitelist_count                DATA
 g_sHookedPIDs                = g_sHookedPIDs                  DATA
+g_CBTHook                    = g_CBTHook                      DATA
 __SK_InjectionHistory        = __SK_InjectionHistory          DATA
-g_hShutdown                  = g_hShutdown                    DATA
 
 SECTIONS
 
