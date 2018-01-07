@@ -214,6 +214,20 @@ void __stdcall SK_FAR_ControlPanel (void);
 
 static SK_PlugIn_ControlPanelWidget_pfn SK_PlugIn_ControlPanelWidget_Original = nullptr;
 
+// Was threaded originally, but it is important to block until
+//   the update check completes.
+unsigned int
+__stdcall
+SK_FAR_CheckVersion (LPVOID user)
+{
+  UNREFERENCED_PARAMETER (user);
+
+  if (SK_FetchVersionInfo (L"FAR/dinput8"))
+    SK_UpdateSoftware (L"FAR/dinput8");
+
+  return 0;
+}
+
 #include <../depends/include/glm/glm.hpp>
 
 
@@ -792,10 +806,12 @@ SK_FAR_PresentFirstFrame (IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Fl
   UNREFERENCED_PARAMETER (SyncInterval);
   UNREFERENCED_PARAMETER (Flags);
 
-  // Wait for the mod to init, it may be held up during version check
-  while (! InterlockedAdd (&__FAR_init, 0)) SleepEx (16, FALSE);
-
+  if (! InterlockedCompareExchange (&__FAR_init, 1, 0))
   {
+    // Global injector is a separate product (that includes this plug-in)
+    if (! SK_IsInjected ())
+      SK_FAR_CheckVersion (nullptr);
+
     game_state.enforce_cap = (! far_uncap_fps->get_value ());
 
     bool busy_wait = far_limiter_busy->get_value ();
@@ -813,31 +829,31 @@ SK_FAR_PresentFirstFrame (IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Fl
                                SK_FAR_PluginKeyPress,
       static_cast_p2p <void> (&SK_PluginKeyPress_Original) );
     SK_EnableHook        (     SK_PluginKeyPress           );
-  }
 
-  if (GetModuleHandle (L"RTSSHooks64.dll"))
-  {
-    bool warned = far_rtss_warned->get_value ();
-
-    if (! warned)
+    if (GetModuleHandle (L"RTSSHooks64.dll"))
     {
-      warned = true;
-      
-      SK_MessageBox ( L"RivaTuner Statistics Server Detected\r\n\r\n\t"
-                      L"If FAR does not work correctly, this is probably why.",
-                        L"Incompatible Third-Party Software", MB_OK | MB_ICONWARNING );
+      bool warned = far_rtss_warned->get_value ();
 
-      far_rtss_warned->store     (true);
-      far_prefs->write           (far_prefs_file);
+      if (! warned)
+      {
+        warned = true;
+        
+        SK_MessageBox ( L"RivaTuner Statistics Server Detected\r\n\r\n\t"
+                        L"If FAR does not work correctly, this is probably why.",
+                          L"Incompatible Third-Party Software", MB_OK | MB_ICONWARNING );
+
+        far_rtss_warned->store     (true);
+        far_prefs->write           (far_prefs_file);
+      }
     }
-  }
 
-  // Since people don't read guides, nag them to death...
-  if (far_osd_disclaimer->get_value ())
-  {
-    CreateThread ( nullptr,                 0,
-                     SK_FAR_OSD_Disclaimer, nullptr,
-                       0x00,                nullptr );
+    // Since people don't read guides, nag them to death...
+    if (far_osd_disclaimer->get_value ())
+    {
+      CreateThread ( nullptr,                 0,
+                       SK_FAR_OSD_Disclaimer, nullptr,
+                         0x00,                nullptr );
+    }
   }
 
   return S_OK;
@@ -1800,8 +1816,6 @@ SK_FAR_InitPlugin (void)
     SK_GetCommandProcessor ()->AddVariable ("FAR.GIWorkgroups", SK_CreateVar (SK_IVariable::Int,     &__FAR_GlobalIllumWorkGroupSize));
     //SK_GetCommandProcessor ()->AddVariable ("FAR.BusyWait",     SK_CreateVar (SK_IVariable::Boolean, &__FAR_BusyWait));
   }
-
-  InterlockedExchange (&__FAR_init, 1);
 }
 
 // Not currently used

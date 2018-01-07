@@ -39,10 +39,16 @@
 #include <Shlwapi.h>
 #include <time.h>
 
+struct SK_InjectionBase_s
+{
+           HANDLE hShutdownEvent = INVALID_HANDLE_VALUE; // Event to signal unloading injected DLL instances
+           DWORD  dwHookPID      =                  0UL; // Process that owns the CBT hook
+  volatile HHOOK  hHookCBT       =              nullptr; // CBT hook
+};
+
 SK_InjectionRecord_s __SK_InjectionHistory [MAX_INJECTED_PROC_HISTORY] = { };
 #pragma data_seg (".SK_Hooks")
-volatile HHOOK          g_hHookCBT    = nullptr;
-         HANDLE         g_hShutdown   = nullptr;
+SK_InjectionBase_s   g_CBTHook;
 
                  LONG g_sHookedPIDs [MAX_INJECTED_PROCS]        = { 0 };
 
@@ -97,14 +103,15 @@ LONG local_record = 0;
 void
 SK_Inject_InitShutdownEvent (void)
 {
-  if (g_hShutdown == nullptr)
+  if (g_CBTHook.hShutdownEvent == nullptr)
   {
     SECURITY_ATTRIBUTES sattr;
     sattr.nLength              = sizeof SECURITY_ATTRIBUTES;
     sattr.bInheritHandle       = TRUE;
     sattr.lpSecurityDescriptor = nullptr;
 
-    g_hShutdown = 
+    g_CBTHook.dwHookPID      = GetCurrentProcessId ();
+    g_CBTHook.hShutdownEvent = 
       CreateEventW ( &sattr, TRUE, FALSE,
         SK_RunLHIfBitness ( 32, LR"(Global\SpecialK32_Reset)",
                                 LR"(Global\SpecialK64_Reset)" ) );
@@ -229,7 +236,40 @@ SK_Inject_InvadingProcess (DWORD dwThreadId)
 const HHOOK
 SKX_GetCBTHook (void)
 {
-  return (HHOOK)ReadPointerAcquire ((volatile PVOID*)&g_hHookCBT);
+  return
+    static_cast <HHOOK> (
+      ReadPointerAcquire ( reinterpret_cast <volatile PVOID *> (
+                                 const_cast <         HHOOK *> (&g_CBTHook.hHookCBT)
+                           )
+                         )
+    );
+}
+
+void
+SKX_WaitForCBTHookShutdown (void)
+{
+  HANDLE hShutdown  = INVALID_HANDLE_VALUE;
+  HANDLE hHookOwner = 
+    OpenProcess ( PROCESS_DUP_HANDLE, FALSE, g_CBTHook.dwHookPID );
+
+  if (hHookOwner != 0)
+  {
+    DuplicateHandle ( hHookOwner,  g_CBTHook.hShutdownEvent,
+                      GetCurrentProcess (), &hShutdown,
+                      0x00, TRUE, DUPLICATE_SAME_ACCESS );
+
+    CloseHandle (hHookOwner);
+
+    if (hShutdown != INVALID_HANDLE_VALUE)
+    {
+      SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_IDLE);
+
+      if (SKX_IsHookingCBT ())
+        WaitForSingleObject (hShutdown, INFINITE);
+
+      CloseHandle (hShutdown);
+    }
+  }
 }
 
 LRESULT
@@ -253,13 +293,9 @@ CBTProc ( _In_ int    nCode,
            [](LPVOID user) ->
              DWORD
                {
-                 SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_IDLE);
+                 SKX_WaitForCBTHookShutdown ();
 
-                 while (SKX_IsHookingCBT ())
-                   SleepEx (666UL, FALSE);
-
-                   //WaitForMultipleObjectsEx (1, &g_hShutdown, FALSE, INFINITE, FALSE);
-                   //^^^^ Signaling seems not to work in explorer.exe
+                 CloseHandle (GetCurrentThread ());
 
                  FreeLibraryAndExitThread (static_cast <HMODULE> (user), 0x0);
 
@@ -272,7 +308,7 @@ CBTProc ( _In_ int    nCode,
     }
   }
 
-  return CallNextHookEx (g_hHookCBT, nCode, wParam, lParam);
+  return CallNextHookEx (SKX_GetCBTHook (), nCode, wParam, lParam);
 }
 
 BOOL
@@ -326,8 +362,8 @@ SKX_InstallCBTHook (void)
 
     // Shell hooks don't work very well, they run into problems with
     //   hooking XInput -- CBT is more reliable, but slower.
-    InterlockedExchangePointer (reinterpret_cast <volatile PVOID*> (const_cast <HHOOK *> (&g_hHookCBT)),
-      SetWindowsHookEx (WH_CBT, CBTProc, hMod, 0));
+    g_CBTHook.hHookCBT  =
+      SetWindowsHookEx (WH_CBT, CBTProc, hMod, 0);
 
     if (SKX_GetCBTHook () != nullptr)
     {
@@ -485,13 +521,13 @@ void
 __stdcall
 SKX_RemoveCBTHook (void)
 {
-  if (g_hShutdown != nullptr)
-    SetEvent (g_hShutdown);
+  if (g_CBTHook.hShutdownEvent != nullptr)
+    SetEvent (g_CBTHook.hShutdownEvent);
 
   HHOOK hHookOrig = SKX_GetCBTHook ();
 
   if ( InterlockedCompareExchangePointer ( reinterpret_cast <volatile PVOID *> (
-                                                 const_cast <         HHOOK *> (&g_hHookCBT)
+                                                 const_cast <         HHOOK *> (&g_CBTHook.hHookCBT)
                                            ),
                                              nullptr,
                                                hHookOrig )
@@ -503,12 +539,16 @@ SKX_RemoveCBTHook (void)
       whitelist_count = 0;
 
       InterlockedExchange (&__SK_HookContextOwner, FALSE);
+
+                   g_CBTHook.dwHookPID = 0x0;
+      CloseHandle (g_CBTHook.hShutdownEvent);
     }
 
     else
     {
+      // Couldn't remove the hook, so atomically set it back to non-NULL
       InterlockedExchangePointer ( reinterpret_cast <volatile PVOID *> (
-                                         const_cast <         HHOOK *> (&g_hHookCBT)
+                                         const_cast <         HHOOK *> (&g_CBTHook.hHookCBT)
                                    ), hHookOrig );
     }
   }
@@ -519,7 +559,7 @@ __stdcall
 SKX_IsHookingCBT (void)
 {
   return ReadPointerAcquire ( reinterpret_cast <volatile PVOID *> (
-                                    const_cast <         HHOOK *> (&g_hHookCBT)
+                                    const_cast <         HHOOK *> (&g_CBTHook.hHookCBT)
                               )
                             ) != nullptr;
 }
@@ -557,10 +597,7 @@ RunDLL_InjectionManager ( HWND  hwnd,        HINSTANCE hInst,
          [](LPVOID user) ->
            DWORD
              {
-               SK_Inject_InitShutdownEvent ();
-
-               if (g_hShutdown != nullptr)
-                 WaitForMultipleObjectsEx (1, &g_hShutdown, FALSE, INFINITE, FALSE);
+               SKX_WaitForCBTHookShutdown ();
 
                while ( ReadAcquire (&__SK_DLL_Attached) || (! SK_IsHostAppSKIM ()))
                  SleepEx (250UL, FALSE);

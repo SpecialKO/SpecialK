@@ -93,6 +93,12 @@ bool
 __stdcall
 SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
 {
+  static volatile LONG spinlock = 0;
+
+  while (InterlockedCompareExchange (&spinlock, 1, 0) != 0)
+    MsgWaitForMultipleObjectsEx (0, nullptr, 1, QS_ALLEVENTS, MWMO_ALERTABLE);
+
+
   // If no log is initialized yet, it's because SKIM is doing
   //   something with this DLL. Init. the log so we can trace
   //     install issues.
@@ -112,6 +118,7 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
     if (! lstrcmpW (wszProduct, L"SpecialK"))
     {
       return false;
+      InterlockedExchange (&spinlock, 0);
     }
   }
 #endif
@@ -167,7 +174,8 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
   bool need_remind  = false,
        has_remind   = false;
 
-  bool should_fetch = true;
+  bool should_fetch       = true;
+  bool create_version_ini = false;
 
   // Update frequency (measured in 100ns)
   ULONGLONG update_freq = 0ULL;
@@ -246,12 +254,22 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
     }
 
     else
-    {
-      install_ini.import ( L"[Version.Local]\nInstallPackage= \nBranch=Latest\n\n"
-                           L"[Upate.User]\nFrequency=6h\nReminder=0\n\n"          );
-      install_ini.write  (SK_Version_GetInstallIniPath ().c_str ());
-    }
+      create_version_ini = true;
   }
+
+  else
+    create_version_ini = true;
+
+  // Create version.ini if it's missing
+  if (create_version_ini)
+  {
+    iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
+
+    install_ini.import ( L"[Version.Local]\nInstallPackage= \nBranch=Latest\n\n"
+                         L"[Update.User]\nFrequency=6h\nReminder=0\n\n"          );
+    install_ini.write  (SK_Version_GetInstallIniPath ().c_str ());
+  }
+
 
   
   if (GetFileAttributes (SK_Version_GetRepoIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
@@ -298,7 +316,10 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
   if (! force)
   {
     if (! (( should_fetch && (! has_remind)) || need_remind))
+    {
+      InterlockedExchange (&spinlock, 0);
       return false;
+    }
   }
 
   HINTERNET hInetRoot =
@@ -310,7 +331,10 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
     );
 
   if (! hInetRoot)
+  {
+    InterlockedExchange (&spinlock, 0);
     return false;
+  }
 
   HINTERNET hInetGitHub =
     InternetConnect ( hInetRoot,
@@ -324,6 +348,7 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
   if (! hInetGitHub)
   {
     InternetCloseHandle (hInetRoot);
+    InterlockedExchange (&spinlock, 0);
     return false;
   }
 
@@ -342,6 +367,14 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
     swprintf ( wszRemoteRepoURL,
                  L"/Kaldaien/%s/master/version.ini",
                    wszProduct );
+
+  ULONG ulTimeout = 5000UL;
+  bool  bRet      = FALSE;
+
+  InternetSetOptionW ( hInetGitHub, INTERNET_OPTION_RECEIVE_TIMEOUT, &ulTimeout, sizeof ULONG );
+
+  SK_LOG0 ( (L"Fetching GitHub repository INI file from %s... ", wszRemoteRepoURL ),
+             L"AutoUpdate" );
 
   PCWSTR  rgpszAcceptTypes []         = { L"*/*", nullptr };
 
@@ -368,16 +401,27 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
   {
     InternetCloseHandle (hInetGitHub);
     InternetCloseHandle (hInetRoot);
+    InterlockedExchange (&spinlock, 0);
     return false;
   }
 
+  InternetSetOptionW ( hInetGitHubOpen, INTERNET_OPTION_RECEIVE_TIMEOUT, &ulTimeout, sizeof ULONG );
+
+  //////////////////////////////////////////////////////////////////////////
+  //
+  // Like all other aspects of the WinINet API, this function cannot be
+  //   safely called from within DllMain or the constructors and destructors
+  //     of global objects.
+  //
+  //////////////////////////////////////////////////////////////////////////
   if ( HttpSendRequestW ( hInetGitHubOpen,
                             nullptr,
                               0,
                                 nullptr,
                                   0 ) )
   {
-    DWORD dwSize;
+    DWORD dwSize  = 0;
+    DWORD dwTotal = 0;
 
     if ( InternetQueryDataAvailable ( hInetGitHubOpen,
                                         &dwSize,
@@ -387,7 +431,7 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
       DWORD dwAttribs = GetFileAttributes (SK_Version_GetRepoIniPath ().c_str ());
 
       if (dwAttribs == INVALID_FILE_ATTRIBUTES)
-        dwAttribs = FILE_ATTRIBUTE_NORMAL;
+          dwAttribs = FILE_ATTRIBUTE_NORMAL;
 
       CHandle hVersionFile (
         CreateFileW ( SK_Version_GetRepoIniPath ().c_str (),
@@ -422,6 +466,8 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
                           dwRead,
                             &dwWritten,
                               nullptr );
+
+          dwTotal += dwWritten;
         }
 
         if (! InternetQueryDataAvailable ( hInetGitHubOpen,
@@ -431,13 +477,35 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
            ) break;
       }
     }
+
+    bRet = ( dwTotal > 15 );
+
+    if (! bRet)
+    {
+      // GitHub may return 404: Not Found  (15 bytes)
+      DeleteFileW (SK_Version_GetRepoIniPath ().c_str ());
+    }
+
+    else
+    {
+      SK_LOG0 ( (L"Fetched %lu bytes from %s", dwTotal, wszRemoteRepoURL ),
+                 L"AutoUpdate" );
+    }
+  }
+
+  if (! bRet)
+  {
+    SK_LOG0 ( (L"Failed to retrieve version info from %s", wszRemoteRepoURL ),
+               L"AutoUpdate" );
   }
 
   InternetCloseHandle (hInetGitHubOpen);
   InternetCloseHandle (hInetGitHub);
   InternetCloseHandle (hInetRoot);
 
-  return true;
+  InterlockedExchange (&spinlock, 0);
+
+  return bRet;
 }
 
 bool

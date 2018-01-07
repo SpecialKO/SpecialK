@@ -86,7 +86,7 @@ iSK_INI::iSK_INI (const wchar_t* filename)
     auto size =
       static_cast <long> (SK_GetFileSize (filename));
 
-    wszData = new wchar_t [size + 2] { };
+    wszData = new wchar_t [size + 3] { };
     alloc   = wszData;
 
     fread  (wszData, size, 1, fINI);
@@ -141,7 +141,7 @@ iSK_INI::iSK_INI (const wchar_t* filename)
       (reinterpret_cast <char *> (wszData)) + offset;
 
       auto*           string =
-        new char [real_size];
+        new char [real_size + 3] { };
 
       memcpy (string, start_addr, real_size);
 
@@ -163,7 +163,7 @@ iSK_INI::iSK_INI (const wchar_t* filename)
       }
 
       wszData =
-        new wchar_t [converted_size + 1] { };
+        new wchar_t [converted_size + 3] { };
 
       MultiByteToWideChar ( CP_UTF8, 0, string, real_size, wszData, converted_size );
 
@@ -245,7 +245,7 @@ Process_Section (wchar_t* name, wchar_t* start, wchar_t* end)
       wchar_t* value =
         CharNextW (k);
 
-      for (wchar_t* l = value; l <= end; l = CharNextW (l))
+      for (wchar_t* l = value; l <= end; l < end ? l = CharNextW (l) : 0)
       {
         if (l > penultimate || *l == L'\n')
         {
@@ -294,7 +294,7 @@ Import_Section (iSK_INISection& section, wchar_t* start, wchar_t* end)
       wchar_t* value =
         CharNextW (k);
 
-      for (wchar_t* l = value; l <= end; l = CharNextW (l))
+      for (wchar_t* l = value; l <= end; l < end ? l = CharNextW (l) : 0)
       {
         if (l > penultimate || *l == L'\n')
         {
@@ -956,7 +956,7 @@ iSK_INI::import_file (const wchar_t* fname)
     auto size =
       static_cast <long> (SK_GetFileSize (fname));
 
-    wchar_t *wszImportData = new wchar_t [size + 2] { };
+    wchar_t *wszImportData = new wchar_t [size + 3] { };
                    alloc   = wszImportData;
 
     fread (wszImportData, size, 1, fImportINI);
@@ -1008,7 +1008,7 @@ iSK_INI::import_file (const wchar_t* fname)
       (reinterpret_cast <char *> (wszImportData)) + offset;
 
       auto*           string =
-        new char [real_size];
+        new char [real_size + 2] { };
 
       memcpy (string, start_addr, real_size);
 
@@ -1030,7 +1030,7 @@ iSK_INI::import_file (const wchar_t* fname)
       }
 
       wszImportData =
-        new wchar_t [converted_size + 1] { };
+        new wchar_t [converted_size + 2] { };
 
       MultiByteToWideChar ( CP_UTF8, 0, string, real_size, wszImportData, converted_size );
 

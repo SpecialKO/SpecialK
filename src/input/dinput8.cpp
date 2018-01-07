@@ -390,9 +390,13 @@ SK_BootDI8 (void)
 #endif
 
 
-//CreateThread (nullptr, 0x00, [](LPVOID/*user*/) -> DWORD
-//{
-  //UNREFERENCED_PARAMETER (user);
+//#define SPAWN_THREAD
+#ifdef SPAWN_THREAD
+CreateThread (nullptr, 0x00, [](LPVOID/*user*/) -> DWORD
+{
+  
+UNREFERENCED_PARAMETER (user);
+#endif
 
   // OpenGL
   //
@@ -429,10 +433,12 @@ SK_BootDI8 (void)
   SK_LoadPlugIns32 ();
 #endif
 
+#ifdef SPAWN_THREAD
   CloseHandle (GetCurrentThread ());
 
-//  return 0;
-//}, nullptr, 0x00, nullptr);
+  return 0;
+}, nullptr, 0x00, nullptr);
+#endif
 
     InterlockedIncrement (&hooked);
     InterlockedExchange  (&__di8_ready, TRUE);
