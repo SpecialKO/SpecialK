@@ -73,6 +73,9 @@ public:
   void  setPos    (float  x,     float  y);
   void  getPos    (float& x,     float& y);
 
+  char* getName   (void) { return data_.name; }
+  char* getText   (void) { return data_.text; }
+
 protected:
    SK_TextOverlay (const char* szAppName);
 
@@ -98,6 +101,7 @@ private:
     DWORD  shadow_color;
   } font_;
 
+public:
   CEGUI::GeometryBuffer*
            geometry_    = nullptr;
   CEGUI::Renderer*

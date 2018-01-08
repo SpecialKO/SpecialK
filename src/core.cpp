@@ -983,8 +983,9 @@ SK_InitCore (std::wstring backend, void* callback)
   __stdcall
   SK_InitFinishCallback (void);
 
-  SK_ResumeThreads (__SK_Init_Suspended_tids);
          callback_fn (SK_InitFinishCallback);
+  SK_ResumeThreads (__SK_Init_Suspended_tids);
+  SK_ResumeThreads       (init_tids);
 
 
   // Setup the compatibility backend, which monitors loaded libraries,
@@ -1129,13 +1130,13 @@ SK_InitFinishCallback (void)
   SK_SaveConfig (config_name);
 
   SK_Console::getInstance ()->Start ();
-
+  
     // Create a thread that pumps the OSD
   if (config.osd.pump || SK_UsingVulkan ())
   {
     osd_shutdown =
       CreateEvent (nullptr, FALSE, FALSE, L"OSD Pump Shutdown");
-
+  
     dll_log.LogEx (true, L"[ Stat OSD ] Spawning Pump Thread...      ");
     hPumpThread =
         CreateThread ( nullptr,
@@ -1144,7 +1145,7 @@ SK_InitFinishCallback (void)
                              nullptr,
                                0,
                                  nullptr );
-
+  
     if (hPumpThread != INVALID_HANDLE_VALUE)
       dll_log.LogEx ( false, L"tid=0x%04x, interval=%04.01f ms\n",
                         GetThreadId (hPumpThread),
@@ -1153,9 +1154,7 @@ SK_InitFinishCallback (void)
       dll_log.LogEx (false, L"failed!\n");
   }
 
-  SK_ResumeThreads       (init_tids);
   SK_StartPerfMonThreads ();
-
   init_mutex->unlock ();
 }
 
@@ -1195,17 +1194,6 @@ DllThread (LPVOID user)
   reentrant_core = *params;
 
   SK_InitCore (params->backend, params->callback);
-
-
-  CreateThread (nullptr, 0x00, [](LPVOID) -> DWORD
-  {
-    WaitForInit ();
-
-    CloseHandle (GetCurrentThread ());
-
-    return 0;
-  }, nullptr, 0x00, nullptr);
-
 
   return 0;
 }
@@ -1698,6 +1686,15 @@ BACKEND_INIT:
 
     if (GetModuleHandle (L"dinput8.dll") || GetModuleHandle (L"dinput.dll"))
       SK_Input_HookDI8 ();
+
+    CreateThread (nullptr, 0x00, [](LPVOID) -> DWORD
+    {
+      WaitForInit ();
+
+      CloseHandle (GetCurrentThread ());
+
+      return 0;
+    }, nullptr, 0x00, nullptr);
 
     InterlockedExchangePointer (
       &hInitThread,
@@ -2288,6 +2285,8 @@ extern void SK_ImGui_Toggle (void);
 
 ULONGLONG poll_interval = 0;
 
+extern HWND SK_GetParentWindow (HWND);
+
 // Todo, move out of here
 void
 SK_Input_PollKeyboard (void)
@@ -2297,7 +2296,8 @@ SK_Input_PollKeyboard (void)
   //
   bool skip = true;
 
-  if ( SK_GetGameWindow () == GetForegroundWindow () )
+  if ( SK_GetGameWindow () == GetForegroundWindow () ||
+       SK_GetGameWindow () == GetFocus () )
     skip = false;
 
   if (skip)

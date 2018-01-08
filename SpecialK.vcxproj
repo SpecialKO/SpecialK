@@ -570,13 +570,13 @@
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
-      <ExceptionHandling>Sync</ExceptionHandling>
+      <ExceptionHandling>Async</ExceptionHandling>
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <DiagnosticsFormat>Classic</DiagnosticsFormat>
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <StringPooling>true</StringPooling>
+      <StringPooling>false</StringPooling>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -599,7 +599,7 @@
       <SectionAlignment>
       </SectionAlignment>
       <FixedBaseAddress>false</FixedBaseAddress>
-      <CreateHotPatchableImage>ItaniumImage</CreateHotPatchableImage>
+      <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
       <OptimizeReferences>false</OptimizeReferences>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <SetChecksum>false</SetChecksum>
@@ -617,6 +617,9 @@
       <Command>start /D "$(OutDir)" "SK.Uninject" SKIM64.exe -Inject 2&gt;nul 1&gt;nul Exit 0</Command>
     </PreBuildEvent>
     <ProjectReference />
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Installer|Win32'">
     <ClCompile>
@@ -1153,13 +1156,14 @@ Exit 0</Command>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <FunctionLevelLinking>false</FunctionLevelLinking>
-      <StringPooling>true</StringPooling>
+      <StringPooling>false</StringPooling>
       <UseFullPaths>true</UseFullPaths>
       <DiagnosticsFormat>Classic</DiagnosticsFormat>
       <BrowseInformation>false</BrowseInformation>
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <AssemblerOutput>All</AssemblerOutput>
       <OmitFramePointers>false</OmitFramePointers>
+      <ExceptionHandling>Async</ExceptionHandling>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

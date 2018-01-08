@@ -1872,11 +1872,11 @@ SK_ImGui_ControlPanel (void)
 
         else
         {
-          ///////////if (ImGui::MenuItem ("Uninstall Wrapper DLL for this game"))
-          ///////////{
-          ///////////  wrappable = 
-          ///////////    SK_Inject_SwitchToGlobalInjector ();
-          ///////////}
+          if (ImGui::MenuItem ("Uninstall Wrapper DLL for this game"))
+          {
+            wrappable = 
+              SK_Inject_SwitchToGlobalInjector ();
+          }
         }
 
         ImGui::Separator ();

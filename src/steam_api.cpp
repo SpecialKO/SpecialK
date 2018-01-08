@@ -3453,53 +3453,71 @@ SteamAPI_Shutdown_Detour (void)
 }
 
 bool
+SK_SAFE_SteamAPI_Init (void)
+{
+  bool bRet = false;
+  __try {
+    bRet =
+     SteamAPI_Init_Original ();
+  }
+
+  __except (EXCEPTION_EXECUTE_HANDLER) {
+  }
+
+  return bRet;
+}
+
+bool
 S_CALLTYPE
 SteamAPI_Init_Detour (void)
 {
-  // In case we already initialized stuff...
-  if (ReadAcquire (&__SK_Steam_init))
-    return true;
+  bool bRet = false;
 
   EnterCriticalSection (&init_cs);
 
-  static int init_tries = -1;
+  // In case we already initialized stuff...
+  if (ReadAcquire (&__SK_Steam_init))
+  {
+    bRet = SK_SAFE_SteamAPI_Init ();
+    LeaveCriticalSection  (&init_cs);
+    return bRet;
+  }
 
-  if (++init_tries == 0)
+  static volatile LONG init_tries = -1;
+
+  if (InterlockedIncrement (&init_tries) == 0)
   {
     steam_log.Log ( L"Initializing SteamWorks Backend  << %s >>",
                       SK_GetCallerName ().c_str () );
     steam_log.Log (L"-------------------------------\n");
   }
 
-  if (SteamAPI_Init_Original ())
+  bRet = SK_SAFE_SteamAPI_Init ();
+
+  if (bRet)
   {
     InterlockedIncrement (&__SK_Steam_init);
 
-#ifdef _WIN64
-  const wchar_t* steam_dll_str    = L"steam_api64.dll";
-#else
-  const wchar_t* steam_dll_str = L"steam_api.dll";
-#endif
+    static const wchar_t* steam_dll_str = 
+      SK_RunLHIfBitness ( 64, L"steam_api64.dll",
+                              L"steam_api.dll" );
 
-    HMODULE hSteamAPI = GetModuleHandleW (steam_dll_str);
+    HMODULE hSteamAPI =
+      GetModuleHandleW (steam_dll_str);
 
     SK_SteamAPI_ContextInit (hSteamAPI);
 
     steam_log.Log ( L"--- Initialization Finished (%d tries [AppId: %lu]) ---\n\n",
-                      init_tries + 1,
+                      ReadAcquire (&init_tries) + 1,
                         SK::SteamAPI::AppID () );
 
     SK_Steam_StartPump ();
-
-    LeaveCriticalSection (&init_cs);
-
-    MH_ApplyQueued ();
-
-    return true;
+    MH_ApplyQueued     ();
   }
 
   LeaveCriticalSection (&init_cs);
-  return false;
+
+  return bRet;
 }
 
 

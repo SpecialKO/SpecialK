@@ -1385,29 +1385,22 @@ SK_UpdateOSD (LPCSTR lpText, LPVOID pMapAddr, LPCSTR lpAppName)
   if (lpAppName == nullptr)
     lpAppName = "Special K";
 
-  try
-  {
-    SK_TextOverlay* pOverlay =
-      SK_TextOverlayManager::getInstance ()->getTextOverlay (lpAppName);
+  SK_TextOverlay* pOverlay =
+    SK_TextOverlayManager::getInstance ()->getTextOverlay (lpAppName);
 
 #define IMPLICIT_CREATION
 #ifdef IMPLICIT_CREATION
-    if (pOverlay == nullptr)
-    {
-      pOverlay =
-        SK_TextOverlayManager::getInstance ()->createTextOverlay (lpAppName);
-    }
+  if (pOverlay == nullptr)
+  {
+    pOverlay =
+      SK_TextOverlayManager::getInstance ()->createTextOverlay (lpAppName);
+  }
 #endif
 
-    if (pOverlay != nullptr)
-    {
-      pOverlay->update (lpText);
-      return TRUE;
-    }
-  }
-
-  catch (...)
+  if (pOverlay != nullptr)
   {
+    pOverlay->update (lpText);
+    return TRUE;
   }
 
   return FALSE;
@@ -1517,6 +1510,34 @@ SK_CEGUI_GL_PushVertexState (void);
 void
 SK_CEGUI_GL_PopVertexState (void);
 
+
+
+#include <stdio.h>
+#include <windows.h>
+#include <eh.h>
+
+void trans_func (unsigned int, EXCEPTION_POINTERS*);
+void
+SE_Func         (CEGUI::Renderer*& pRenderer, SK_TextOverlay& overlay, const CEGUI::Rectf& scrn);
+
+class SE_Exception
+{
+public:
+   SE_Exception (void) = default;
+  ~SE_Exception (void) = default;
+
+   SE_Exception (unsigned int n) : nSE (n) {
+   }
+  
+  unsigned int getSeNumber (void) {
+    return nSE;
+  }
+
+private:
+  unsigned int nSE;
+};
+
+#include <GL/glew.h>
 void
 SK_TextOverlay::reset (CEGUI::Renderer* pRenderer)
 {
@@ -1526,36 +1547,56 @@ SK_TextOverlay::reset (CEGUI::Renderer* pRenderer)
 
   if (pRenderer != nullptr)
   {
-    try
-    {
-      font_.cegui =
-        &CEGUI::FontManager::getDllSingleton ().createFromFile (font_.name);
+    font_.cegui =
+      &CEGUI::FontManager::getDllSingleton ().createFromFile (font_.name);
 
-      if (font_.cegui != nullptr && pRenderer->getDisplaySize () != CEGUI::Sizef (0.0f, 0.0f))
+    if (font_.cegui != nullptr         && pRenderer->getDisplaySize () != CEGUI::Sizef (0.0f, 0.0f))
         font_.cegui->setNativeResolution (pRenderer->getDisplaySize ());
 
-      const CEGUI::Rectf scrn (
-        CEGUI::Vector2f (0.0f, 0.0f),
-          pRenderer->getDisplaySize ()
-      );
+    const CEGUI::Rectf scrn (
+      CEGUI::Vector2f (0.0f, 0.0f),
+        pRenderer->getDisplaySize ()
+    );
 
-      //dll_log.Log (L"%fx%f", pRenderer->getDisplaySize ().d_width, pRenderer->getDisplaySize ().d_height);
+    //dll_log.Log (L"%fx%f", pRenderer->getDisplaySize ().d_width, pRenderer->getDisplaySize ().d_height);
 
-      SK_CEGUI_GL_PushVertexState ();
-
-      geometry_ = &pRenderer->createGeometryBuffer (    );
-
-      if (geometry_)
-        geometry_->setClippingRegion               (scrn);
-
-      SK_CEGUI_GL_PopVertexState  ();
+    try
+    {
+      _set_se_translator (trans_func);
+      SE_Func (pRenderer, *this, scrn);
     }
 
-    catch (...)
+    catch (SE_Exception/* e*/)
     {
+      if (geometry_ == nullptr)
+        SK_TextOverlayManager::getInstance ()->removeTextOverlay (getName ());
+      // CEGUI has known issues that I don't want to fix by recompiling
     }
   }
 }
+
+void
+SE_Func (CEGUI::Renderer*& pRenderer, SK_TextOverlay& overlay, const CEGUI::Rectf& scrn)
+{
+  __try {
+    overlay.geometry_ = 
+      &pRenderer->createGeometryBuffer     ();
+    
+    if (overlay.geometry_)
+      overlay.geometry_->setClippingRegion (scrn);
+  }
+
+  __finally {
+  }
+}
+
+void
+trans_func (unsigned int/* u*/, EXCEPTION_POINTERS* /* pExp*/)
+{
+  throw SE_Exception ();
+}
+
+
 
 // Not re-entrant, but that should not matter.
 //

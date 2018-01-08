@@ -494,9 +494,9 @@ wglRealizeLayerPalette     = wglRealizeLayerPalette
 wglSetLayerPaletteEntries  = wglSetLayerPaletteEntries
 wglSetPixelFormat          = wglSetPixelFormat
 wglShareLists              = wglShareLists
-wglSwapBuffers             = wglSwapBuffers
+;wglSwapBuffers             = wglSwapBuffers
 wglSwapLayerBuffers        = wglSwapLayerBuffers
-wglSwapMultipleBuffers     = wglSwapMultipleBuffers
+;wglSwapMultipleBuffers     = wglSwapMultipleBuffers
 wglUseFontBitmapsA         = wglUseFontBitmapsA          PRIVATE
 wglUseFontBitmapsW         = wglUseFontBitmapsW          PRIVATE
 wglUseFontOutlinesA        = wglUseFontOutlinesA         PRIVATE
@@ -647,10 +647,10 @@ SKX_RemoveCBTHook            = SKX_RemoveCBTHook
 SKX_IsHookingCBT             = SKX_IsHookingCBT
 SKX_GetInjectedPIDs          = SKX_GetInjectedPIDs
 
+g_CBTHook                    = g_CBTHook                      DATA
 whitelist_patterns           = whitelist_patterns             DATA
 whitelist_count              = whitelist_count                DATA
 g_sHookedPIDs                = g_sHookedPIDs                  DATA
-g_CBTHook                    = g_CBTHook                      DATA
 __SK_InjectionHistory        = __SK_InjectionHistory          DATA
 
 SECTIONS

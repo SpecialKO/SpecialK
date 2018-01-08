@@ -695,7 +695,7 @@ BOOL WINAPI RegisterRawInputDevices_Detour (
   RAWINPUTDEVICE* pDevices = nullptr;
 
   if (pRawInputDevices && uiNumDevices > 0)
-    pDevices = new RAWINPUTDEVICE [uiNumDevices];
+    pDevices = new RAWINPUTDEVICE [uiNumDevices] { };
 
   // The devices that we will pass to Windows after any overrides are applied
   std::vector <RAWINPUTDEVICE> actual_device_list;
@@ -707,6 +707,28 @@ BOOL WINAPI RegisterRawInputDevices_Detour (
     {
       pDevices [i] = pRawInputDevices [i];
       raw_devices.push_back (pDevices [i]);
+
+      if (pDevices [i].hwndTarget != 0)
+      {
+        //SK_LOG1 ( 
+        SK_LOG0 (
+                  ( L"RawInput is being tracked on hWnd=%x",
+                      pDevices [i].hwndTarget ),
+                        L"Input Mgr." );
+
+        if (GetFocus () == pDevices [i].hwndTarget)
+        {
+          if ( InterlockedCompareExchangePointer ( (volatile LPVOID *)&game_window.hWnd,
+                                                     pDevices [i].hwndTarget,
+                                                       nullptr ) == nullptr )
+          {
+            SK_InstallWindowHook (game_window.hWnd);
+
+            SK_LOG0 ( (L" # Installed window hook early due to RawInput registration."),
+                       L"Input Mgr." );
+          }
+        }
+      }
     }
 
     SK_RawInput_ClassifyDevices ();
@@ -1440,7 +1462,7 @@ GetCursorPos_Detour (LPPOINT lpPoint)
 
 
 
-  if (SK_GetCurrentGameID () == SK_GAME_ID::StarOcean4 && GetForegroundWindow () == SK_GetGameWindow () && SK_GetCallingDLL () == GetModuleHandle (nullptr))
+  if (SK_GetCurrentGameID () == SK_GAME_ID::StarOcean4 && GetActiveWindow () == SK_GetGameWindow () && SK_GetCallingDLL () == GetModuleHandle (nullptr))
   {
     static ULONG last_frame = SK_GetFramesDrawn ();
     static POINT last_pos   = *lpPoint;

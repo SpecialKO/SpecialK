@@ -378,6 +378,8 @@ CoCreateInstance_Detour (
 bool
 SK_InitWMI (void)
 {
+  //CoCreateInstance_Original =
+  //  (CoCreateInstance_pfn)GetProcAddress (GetModuleHandleW (L"ole32.dll"), "CoCreateInstance");
   SK_CreateDLLHook2 (      L"ole32.dll",
                             "CoCreateInstance",
                              CoCreateInstance_Detour,

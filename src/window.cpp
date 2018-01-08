@@ -833,13 +833,13 @@ auto ActivateWindow =[&](HWND hWnd, bool active = false)
   {
     if (config.window.always_on_top == PreventAlwaysOnTop)
     {
-      if (GetForegroundWindow () != SK_GetGameWindow ())
+      if (GetActiveWindow () != SK_GetGameWindow ())
         SK_GetCommandProcessor ()->ProcessCommandLine ("Window.TopMost false");
     }
 
     else if (config.window.always_on_top == AlwaysOnTop)
     {
-      if (GetForegroundWindow () != SK_GetGameWindow ())
+      if (GetActiveWindow () != SK_GetGameWindow ())
         SK_GetCommandProcessor ()->ProcessCommandLine ("Window.TopMost true");
     }
   }
@@ -4445,31 +4445,42 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   {
     if (first_run)
     {
+      first_run = false;
+
       // Start unmuted (in case the game crashed in the background)
       if (config.window.background_mute)
         SK_SetGameMute (FALSE);
-
-      first_run = false;
     }
 
 
-    if (game_window.hWnd != nullptr && hWnd != hWndRender)
-    {
-      if (hWndRender != nullptr)
-      {
-        dll_log.Log ( L"[Window Mgr] New HWND detected in the window proc. used"
-                      L" for rendering... (Old=%p, New=%p)",
-                        game_window.hWnd, hWnd );
-      }
-    }
+    //if (game_window.hWnd != nullptr && game_window.hWnd != hWndRender && hWnd != game_window.hWnd)
+    //{
+    //  if (hWndRender != nullptr)
+    //  {
+    //    dll_log.Log ( L"[Window Mgr] New HWND detected in the window proc. used"
+    //                  L" for rendering... (Old=%p, New=%p)",
+    //                    game_window.hWnd, hWnd );
+    //  }
+    //}
 
-    else
-      return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+    else if (! first_run)
+      return
+        SK_COMPAT_SafeCallProc (&game_window, hWnd, uMsg, wParam, lParam);
 
 
     game_window.hWnd = hWnd;
 
-    game_window.active       = GetForegroundWindow () == game_window.hWnd;
+    DWORD dwFocus, dwForeground, dwActive;
+
+    GetWindowThreadProcessId (GetFocus            (), &dwFocus);
+    GetWindowThreadProcessId (GetForegroundWindow (), &dwForeground);
+    GetWindowThreadProcessId (GetActiveWindow     (), &dwActive);
+
+    // In compliant software, it would only be necessary to check Active Window, but Chrome and
+    //   some games get this whole thing wrong.
+    game_window.active       = ( dwFocus      == GetCurrentProcessId () ||
+                                 dwForeground == GetCurrentProcessId () ||
+                                 dwActive     == GetCurrentProcessId () );
     game_window.game.style   = game_window.GetWindowLongPtr (game_window.hWnd, GWL_STYLE);
     game_window.actual.style = game_window.GetWindowLongPtr (game_window.hWnd, GWL_STYLE);
     game_window.unicode      =              IsWindowUnicode (game_window.hWnd)   != FALSE;
@@ -5115,9 +5126,21 @@ SK_InitWindow (HWND hWnd, bool fullscreen_exclusive)
 void
 SK_InstallWindowHook (HWND hWnd)
 {
-  static volatile LONG installed = FALSE;
+  DWORD                            dwWindowPid = 0;
+  GetWindowThreadProcessId (hWnd, &dwWindowPid);
 
-  if (InterlockedCompareExchange (&installed, TRUE, FALSE))
+  //
+  // If our attempted target belongs to a different process,
+  //   it's a trap!
+  //
+  //     >> Or at least, do not trap said processes input.
+  //
+  if (dwWindowPid != GetCurrentProcessId ())
+    return;
+
+
+  static volatile LONG             __installed =      FALSE;
+  if (InterlockedCompareExchange (&__installed, TRUE, FALSE))
     return;
 
   game_window.unicode = IsWindowUnicode (hWnd) != FALSE;

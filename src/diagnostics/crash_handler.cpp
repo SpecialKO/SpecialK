@@ -960,7 +960,6 @@ SteamAPI_UseBreakpadCrashHandler_Detour ( char const *pchVersion,
 void
 SK_BypassSteamCrashHandler (void)
 {
-#if 0
   if (! config.steam.silent)
   {
 #ifdef _WIN64
@@ -991,7 +990,6 @@ SK_BypassSteamCrashHandler (void)
       }
     }
   }
-#endif
 }
 
 

@@ -1,5 +1,7 @@
 0.8.60
 
+ (.2): Fixed ReShade post-processing order in OpenGL so that it does
+         not post-process the config UI :)
  (.2): Temporarily disabled OSD text rendering in 32-bit OpenGL games
  (.2): Added sRGB framebuffer support in OpenGL games
  (.2): Fixed GL geometry buffer state leaks in CEGUI

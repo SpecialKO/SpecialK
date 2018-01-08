@@ -2808,6 +2808,8 @@ static void NavUpdate()
 extern IMGUI_API bool SK_ImGui_Visible;
 extern bool           SK_ImGui_IsMouseRelevant (void);
 
+extern HWND SK_GetParentWindow (HWND);
+
 extern void __stdcall SK_ImGui_DrawEULA (LPVOID reserved);
 struct show_eula_s {
   bool show             = false;
@@ -2844,8 +2846,11 @@ void ImGui::NewFrame()
 
     //
     // STUPID HACK: This should be in response to window messages, but there has been
-    //                 a bit of trouble reliably receciving those messages in some games.
-    if (GetForegroundWindow () != game_window.hWnd) {
+    //                 a bit of trouble reliably receiving those messages in some games.
+    if ( GetActiveWindow     () != game_window.hWnd &&
+         GetForegroundWindow () != game_window.hWnd &&
+         GetFocus            () != game_window.hWnd && (! game_window.active) )
+    {
         g.IO.WantTextInput                 = false;
         g.IO.WantCaptureKeyboard           = false;
         g.IO.WantCaptureMouse              = false;
@@ -11528,11 +11533,12 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
     }
   }
 
-
-  HWND hWndActive = GetActiveWindow ();
-
-  if (hWndActive != game_window.hWnd && hWndActive != nullptr)
-    return 0;
+  
+  //if ( GetForegroundWindow () != game_window.hWnd &&
+  //     GetFocus            () != game_window.hWnd &&
+  //     GetActiveWindow     () != game_window.hWnd &&
+  //     (! game_window.active) ) // && hWndActive != nullptr)
+  //  return 0;
 
 
   static POINTS last_pos;
@@ -12106,7 +12112,7 @@ SK_ImGui_PollGamepad_EndFrame (void)
 
   // Reset Mouse / Keyboard State so that we can process all state transitions
   //   that occur during the next frame without losing any input events.
-  if (GetForegroundWindow () == game_window.hWnd)
+  if (game_window.active)
   {
     io.MouseDown [0] = (GetAsyncKeyState_Original (VK_LBUTTON)  & 0x8000) != 0;
     io.MouseDown [1] = (GetAsyncKeyState_Original (VK_RBUTTON)  & 0x8000) != 0;
@@ -12119,7 +12125,7 @@ SK_ImGui_PollGamepad_EndFrame (void)
     for (int i = 8; i < 256; i++)
       io.KeysDown [i] = (GetAsyncKeyState_Original (i) & 0x8000) != 0;
 
-    if (config.input.keyboard.catch_alt_f4 && SK_IsGameWindowActive ())
+    if (config.input.keyboard.catch_alt_f4)
     {
       if ( io.KeyAlt && io.KeysDown [VK_F4] && ( ( io.KeysDownDuration [VK_MENU] > 0 ) ^
                                                  ( io.KeysDownDuration [VK_F4]   > 0 ) ) )
