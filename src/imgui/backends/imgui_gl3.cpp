@@ -33,6 +33,8 @@ static unsigned int g_VboHandle              = 0,
                     g_VaoHandle              = 0,
                     g_ElementsHandle         = 0;
 
+#include <config.h>
+
 // This is the main rendering function that you have to implement and provide to ImGui (via setting up 'RenderDrawListsFn' in the ImGuiIO structure)
 // If text or lines are blurry when integrating ImGui in your engine:
 // - in your Render function, try translating your projection matrix by (0.5f,0.5f) or (0.375f,0.375f)
@@ -106,6 +108,31 @@ ImGui_ImplGL3_RenderDrawLists (ImDrawData* draw_data)
   {
     const ImDrawList* cmd_list          = draw_data->CmdLists [n];
     const ImDrawIdx*  idx_buffer_offset = 0;
+
+    if (config.imgui.render.disable_alpha)
+    {
+      for (INT i = 0; i < cmd_list->VtxBuffer.Size; i++)
+      {
+        ImU32& color =
+          cmd_list->VtxBuffer.Data [i].col;
+
+        uint8_t alpha = (((color & 0xFF000000U) >> 24U) & 0xFFU);
+
+        // Boost alpha for visibility
+        if (alpha < 93 && alpha != 0)
+          alpha += (93  - alpha) / 2;
+
+        float a = ((float)                       alpha / 255.0f);
+        float r = ((float)((color & 0xFF0000U) >> 16U) / 255.0f);
+        float g = ((float)((color & 0x00FF00U) >>  8U) / 255.0f);
+        float b = ((float)((color & 0x0000FFU)       ) / 255.0f);
+
+        color =                    0xFF000000U  |
+                ((UINT)((r * a) * 255U) << 16U) |
+                ((UINT)((g * a) * 255U) <<  8U) |
+                ((UINT)((b * a) * 255U)       );
+      }
+    }
 
     glBindBuffer (GL_ARRAY_BUFFER,         g_VboHandle);
     glBufferData (GL_ARRAY_BUFFER,         (GLsizeiptr)cmd_list->VtxBuffer.Size * sizeof (ImDrawVert),

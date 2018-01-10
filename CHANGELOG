@@ -1,4 +1,25 @@
-0.8.60
+0.8.61:
+
+ + Fixed the EULA screen to support agreeing with gampead / keyboard :)
+ + Fixed OpenGL transparency option for ImGui rendering.
+ + Fixes OpenGL OSD text rendering memory issues in 32-bit games
+
+  >> The fix is sub-optimal and it is not recommended that you use the
+       text-based OSD in OpenGL games until I can re-write it.
+
+    * Performance widgets are actually higher performance in OpenGL
+        than the OSD, please use widgets to monitor performance instead.
+
+
+  + A handful of 32-bit OpenGL games continue to have issues and you
+      may need to use EnableCEGUI=false to resolve compatibility issues.
+
+    >> CEGUI is only used for achievement popups and OSD text; other
+         overlay / UI aspects will continue to work.
+
+
+
+0.8.60:
 
  (.2): Fixed ReShade post-processing order in OpenGL so that it does
          not post-process the config UI :)
@@ -17,14 +38,14 @@
  + Corrected injection bypass dialog crashing OpenGL games
 
 
-0.8.59
+0.8.59:
 
  + Fixed GTA V Launcher injection compatibility
  + Added an option to delete Steam Common Redistributables across all
      registered Steam Libraries (libraryfolders.vdf) to the control panel.
 
 
-0.8.58  (2018)
+0.8.58  (2018):
 
  (.2): Adds refresh rate to Fullscreen Resolution reading in control panel
 
@@ -34,7 +55,7 @@
      that incorrectly use DisableThreadLibraryCalls (...)
 
 
-0.8.57
+0.8.57:
 
  (.1): Added a startup banner with version info, and new options to control the
          complexity of the FPS readout in the OSD.
@@ -61,7 +82,7 @@
     Input.Gamepad.Steam.UIController  (Integer): 0-15, 16=Disable
 
 
-0.8.56
+0.8.56:
 
  (.1): Fixed various memory problems during init/shutdown
  (.1): Steam achievement popups are now drawn over top ImGui
@@ -70,7 +91,7 @@
  + Addressed memory leak in blacklisted processes
 
 
-0.8.55
+0.8.55:
 
  + custom_<SpecialK|dxgi|d3d9|dinput8|OpenGL32>.ini is now supported
 
@@ -88,7 +109,7 @@
  + Improved global injection performance for non-whitelisted applications
 
 
-0.8.54
+0.8.54:
 
  + Added support for plug-in loads from a game's global injection profile directory
  + Improved texture memory stats in custom ReShade
@@ -100,7 +121,7 @@
  + Added fullscreen mode restoration on Alt+Tab if force fullscreen is enabled
 
 
-0.8.53
+0.8.53:
 
  (.6): Fixed CEGUI to support Unicode file paths for log files
 
@@ -117,8 +138,8 @@
      a stability problem... pirates just opt-out of SteamAPI enhancements please.
 
 
-0.8.52
-z
+0.8.52:
+
  (.4): HOTFIX for 5 FPS issue
  (.3): Fix XInput lock behavior in games that use out-of-range controller idx
  (.2): Corrected SKIM64 start/stop behavior and AMD ADL
@@ -146,7 +167,7 @@ z
      loaded first
 
 
-0.8.51
+0.8.51:
 
  (.1): Corrects mouse cursor activity detection in World of Final Fantasy
 
@@ -160,7 +181,7 @@ z
  + Corrected cached VRAM total calculation when injecting textures in D3D11
 
 
-0.8.50
+0.8.50:
 
  (.1): Enabled persistent storage of sleep-wait framerate limiter preferences
 
@@ -181,7 +202,7 @@ z
  + Added D3D11 Texture Mod Reload Support
 
 
-0.8.49
+0.8.49:
 
  (.2): Fixes startup issues in Elex
 
@@ -207,7 +228,7 @@ z
    >> That used to be a good way to crash the game ;)
 
 
-0.8.48
+0.8.48:
 
  + Fixed incorrect alt+tab operation in fullscreen exclusive w/ window centering on
  + Eliminated D3D11 reference counting issues at startup
@@ -218,20 +239,22 @@ z
    >> Fixes problems in Blue Reflection, though probably hurts performance.
 
 
-0.8.47.2/3
+0.8.47.2/3:
 
  + Added rescale-to-fit behavior to Live Render Target and Texture View (D3D11)
  + Added support for DisableIfTexture predicate to d3d11_shaders.ini
 
   >> Right click a shader to access this menu (generally pixel shaders only)
 
-0.8.47.1
+
+0.8.47.1:
 
  + Added per-tracked shader wireframe/on-top state and cleaned up D3D11 shader UI
 
   >> Default is now to draw the tracked shader on-top
 
-0.8.47
+
+0.8.47:
 
  + Added support for D3D11 Shader state load/store (d3d11_shaders.ini)
 
@@ -249,7 +272,7 @@ z
  + Added FlipEx mode to D3D9Ex override, allowing G-Sync in windowed mode in D3D9
 
 
-0.8.46
+0.8.46:
 
  + Local Wrapper DLLs no longer use AppCache for config
  + Fix for Steam games with Trademark symbols in their name when using the
@@ -261,7 +284,7 @@ z
  + Disabled Sleepless Render Thread by default for improved compatibility
 
 
-0.8.45
+0.8.45:
 
  + Improved vertex memory alignment in ImGui D3D9 renderer
  + Fixed memory alignment issues for non-standard packed DXTn textures (D3D9)
@@ -270,7 +293,7 @@ z
  + Thread optimizations for D3D9/11 texture injection
 
 
-0.8.44
+0.8.44:
 
  + Added Denuvo activation management to all Denuvo-based (STEAM games)
 
@@ -286,7 +309,7 @@ z
  + Minor correction for some D3D9 games having issues with texture modding
 
 
-0.8.43
+0.8.43:
 
  + Enabled triple-buffering override in D3D11 fullscreen (non-flip-model) mode
  + Disabled non-mipmapped texture cache in Divinity: Original Sin 2
@@ -299,27 +322,27 @@ z
  + Add SteamAPI offline check bypass option
 
 
-0.8.42
+0.8.42:
 
  + Last update prior to hurricane Irma
  + Improved D3D9 texture injection performance
 
 
-0.8.41
+0.8.41:
 
  + Improved support for D3D9 texture modding, and made it an opt-in thing since it's still
      experimental.
  + Added File | Exit to the control panel
 
 
-0.8.40
+0.8.40:
 
  + Added somewhat functional texture modding support to D3D9
   >> Will finish at a later date
  + Added XInput Controller Slot Reassignment (refer to INI file -- default is 0,1,2,3)
 
 
-0.8.39
+0.8.39:
 
  + Fixed D3D9Ex D3DPRESENT_DONOTWAIT support in Lightning Returns: FFXIII
  + Integrated UI memory management fixes for FFXIII
@@ -328,13 +351,13 @@ z
  + Added clothing preferences to Gal*Gun: Double Peace
 
 
-0.8.38
+0.8.38:
 
  + Integrates about 33 - 50% of Tales of Berseria Fix's shader modding functionality
  + Fixes SteamAPI problems in older games
 
 
-0.8.37
+0.8.37:
 
  + Preliminary support for a native Steam Controller input backend
   >> Does not utilize any of the special features, merely blocks native SteamAPI input
@@ -343,7 +366,7 @@ z
        installed as a local wrapper because it needs to catch SteamAPI initialization early.
 
 
-0.8.36
+0.8.36:
 
  + Performance-tuned memory pattern scanner to offer alignment and address above/below
      search heuristics.
@@ -364,7 +387,7 @@ z
  + Turned off all widgets by default for new installs
 
 
-0.8.35
+0.8.35:
 
  + Added option to flip textures in D3D11 Live Texture View
  + Added indicator for injected textures to D3D11 Live Texture View
@@ -373,7 +396,7 @@ z
  + Fixed ReShade draw order in OpenGL games
 
 
-0.8.34.1
+0.8.34.1:
 
  + Fixed SteamAPI problem in Dark Souls III
  + Added Browse ReShade Assets to File Menu
@@ -381,7 +404,7 @@ z
  + Improved controller support in ReShade's UI
  + ReShade game presets are now stored in Profiles\<appname>\ReShade\<executable.ini>
 
-0.8.34
+0.8.34:
 
  + Framerate limiter defaults to busy-wait again
   * The customization you do to the non-busy-wait method (under Advanced) are not saved
@@ -403,7 +426,7 @@ z
     * Always loads a game's preset on start, instead of the last used preset
 
 
-0.8.33
+0.8.33:
 
  + Fixed low-resolution issues with the EULA window
  + Most analytical graphs are now multi-colored instead of trying to determine
@@ -415,7 +438,7 @@ z
   >> You must turn Busy-Wait limiting off in order to use this
 
 
-0.8.32
+0.8.32:
 
   * Profile Name Collision Avoidance
  ====================================
@@ -434,7 +457,7 @@ z
  + Later versions of Special K will allow blacklisting launchers and other components that share Steam AppIDs
 
 
-0.8.31
+0.8.31:
 
  + Fixed Steam DRM issues in DOOMx64 and a couplf of other OpenGL games
  + Added a battery meter to the framepacing widget
@@ -450,7 +473,7 @@ z
  + Removed Alt+F4 input hack for Trails of Cold Steel; it is obsolete
 
 
-0.8.30
+0.8.30:
 
  [.3]
   + Added D3D11 Graphics Pipeline Widget, it displays most of the important stats from the
@@ -480,7 +503,7 @@ z
  + Corrected scaling on menus
 
 
-0.8.29
+0.8.29:
 
  + The peak volume meter is now a histogram, assigned color based on channel
  + Peak volume moves left / right depending on channel
@@ -492,7 +515,7 @@ z
   >> Will investigate further in the future
 
 
-0.8.28
+0.8.28:
 
  + Removed tooltips from graph data views
  + Fixed G-Sync status query in D3D9 games
@@ -502,7 +525,7 @@ z
  + Restored multi-threaded DLL analysis at startup (performance)
 
 
-0.8.27
+0.8.27:
 
  + Added OSD Widgets (framepacing and CPU load)
   >> Will polish these off later, they're just toys for now.
@@ -511,7 +534,7 @@ z
  + Fixed various Windows 7 issues
 
 
-0.8.26
+0.8.26:
 
  + Added G-Sync status to framerate readout on OSD
  + Cleaned up log formatting, turn wordwrap off to appreciate the changes ;)

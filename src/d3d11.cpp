@@ -37,7 +37,7 @@
 #include <DirectXTex/DirectXTex.h>
 
 extern LARGE_INTEGER SK_QueryPerf (void);
-static DWORD         dwFrameTime = timeGetTime (); // For effects that blink, updated once per-frame
+static DWORD         dwFrameTime = timeGetTime (); // For effects that blink; updated once per-frame.
 
 #include <SpecialK/framerate.h>
 #include <SpecialK/tls.h>
@@ -229,8 +229,8 @@ struct resample_dispatch_s
 
           while (! SK_D3D11_TextureResampler.waiting_textures.empty ())
           {
-            InterlockedIncrement (&SK_D3D11_TextureResampler.stats.textures_resampling);
             InterlockedDecrement (&SK_D3D11_TextureResampler.stats.textures_waiting);
+            InterlockedIncrement (&SK_D3D11_TextureResampler.stats.textures_resampling);
 
             resample_job_s job;
 
@@ -549,11 +549,94 @@ using IUnknown_AddRef_pfn  =
 IUnknown_Release_pfn IUnknown_Release_Original = nullptr;
 IUnknown_AddRef_pfn  IUnknown_AddRef_Original  = nullptr;
 
+BOOL
+SK_D3D11_TestRefCountHooks (ID3D11Texture2D* pInputTex)
+{
+  SK_TLS_Bottom ()->texture_management.refcount_obj = pInputTex;
+
+  LONG initial =
+    SK_TLS_Bottom ()->texture_management.refcount_test;
+
+  pInputTex->AddRef ();
+
+  LONG initial_plus_one =
+    SK_TLS_Bottom ()->texture_management.refcount_test;
+
+  pInputTex->Release ();
+
+  LONG initial_again =
+    SK_TLS_Bottom ()->texture_management.refcount_test;
+
+  SK_TLS_Bottom ()->texture_management.refcount_obj = nullptr;
+
+  if ( initial != initial_plus_one - 1 ||
+       initial != initial_again )
+  {
+    SK_LOG1 ( (L"Expected %lu after AddRef (); got %lu.",
+                 initial + 1, initial_plus_one ),
+               L"DX11TexMgr" );
+    SK_LOG1 ( (L"Expected %lu after Release (); got %lu.",
+                 initial, initial_again ),
+               L"DX11TexMgr" );
+    return FALSE;
+  }
+
+
+  // Important note: The D3D11 runtime implements QueryInterface on an
+  //                   ID3D11Texture2D by returning a SEPARATE object with
+  //                     an initial reference count of 1.
+  //
+  //     Effectively, QueryInterface creates a view with its own lifetime,
+  //       never expect to get the original object by making this call!
+  //
+
+            SK_TLS_Bottom ()->texture_management.refcount_test = 0;
+
+  // Also validate that the wrapper's QueryInterface method is
+  //   invoking our hooks
+  //
+  ID3D11Texture2D* pReferenced = nullptr;
+  pInputTex->QueryInterface <ID3D11Texture2D> (&pReferenced);
+
+  if (! pReferenced)
+    return FALSE;
+
+  SK_TLS_Bottom ()->texture_management.refcount_obj = pReferenced;
+
+  initial =
+    SK_TLS_Bottom ()->texture_management.refcount_test;
+
+  pReferenced->Release ();
+
+  LONG initial_after_release =
+    SK_TLS_Bottom ()->texture_management.refcount_test;
+
+  SK_TLS_Bottom ()->texture_management.refcount_obj = nullptr;
+
+  if ( initial != initial_after_release + 1 )
+  {
+    SK_LOG1 ( (L"Expected %lu after QueryInterface (...); got %lu.",
+                 initial + 1, initial_plus_one ),
+               L"DX11TexMgr" );
+    SK_LOG1 ( (L"Expected %lu after Release (); got %lu.",
+                 initial, initial_again ),
+               L"DX11TexMgr" );
+    return FALSE;
+  }
+
+
+  return TRUE;
+}
+
+
 __declspec (noinline)
 ULONG
 WINAPI
 IUnknown_Release (IUnknown* This)
 {
+  if (This == SK_TLS_Bottom ()->texture_management.refcount_obj)
+    SK_TLS_Bottom ()->texture_management.refcount_test--;
+
   if (! SK_D3D11_IsTexInjectThread ())
   {
     ID3D11Texture2D* pTex = nullptr;
@@ -577,6 +660,9 @@ ULONG
 WINAPI
 IUnknown_AddRef (IUnknown* This)
 {
+  if (This == SK_TLS_Bottom ()->texture_management.refcount_obj)
+    SK_TLS_Bottom ()->texture_management.refcount_test++;
+
   if (! SK_D3D11_IsTexInjectThread ())
   {
     // Flag this thread so we don't infinitely recurse when querying the interface
@@ -5887,6 +5973,22 @@ SK_D3D11_TexMgr::refTexture2D ( ID3D11Texture2D*      pTex,
                               IUnknown_AddRef_Original,
                               IUnknown_AddRef_pfn );
     }
+  }
+
+
+  if (SK_D3D11_TestRefCountHooks (pTex))
+  {
+    SK_LOG2 ( (L"Cached texture (%x)",
+                  crc32c ),
+               L"DX11TexMgr" );
+  }
+
+  else
+  {
+    SK_LOG0 ( (L"Potentially cacheable texture (%x) is not correctly referenced counted; opting out!",
+                  crc32c ),
+               L"DX11TexMgr" );
+    return;
   }
 
 

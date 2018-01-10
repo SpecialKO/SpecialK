@@ -75,6 +75,9 @@ struct SK_TLS
     } streaming_memory;
 
     BOOL injection_thread = FALSE;
+
+    IUnknown* refcount_obj  = nullptr; // Object to expect a reference count change on
+    LONG      refcount_test = 0;       // Used to validate 3rd party D3D texture wrappers
   } texture_management;
 
   struct {

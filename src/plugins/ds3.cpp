@@ -1070,7 +1070,8 @@ SK_DS3_SetFullscreenState (
   DXGI_SWAP_CHAIN_DESC swap_desc;
   if (SUCCEEDED (This->GetDesc (&swap_desc)))
   {
-    //ds3_state.Window = swap_desc.OutputWindow;
+    if (swap_desc.OutputWindow != 0)
+      ds3_state.Window = swap_desc.OutputWindow;
 
     // Reset the temporary monitor mode change we may have made earlier
     if ((! ds3_state.Fullscreen) && ds3_cfg.window.borderless && sus_state.MaxWindow)
@@ -1320,6 +1321,23 @@ SK_DS3_PluginKeyPress ( BOOL Control,
   SK_PluginKeyPress_Original (Control, Shift, Alt,vkCode);
 }
 
+#define DS3_SendScancodeMake(vk,x)   { keybd_event ((vk), (x), KEYEVENTF_SCANCODE,                   0); }
+#define DS3_SendScancodeBreak(vk, y) { keybd_event ((vk), (y), KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0); }
+
+//
+// Make and break
+//
+//  Due to input quirks in DS3, we have to issue the key release (break) event from a separate thread.
+//
+//    A simple FIFO queue amortized across multiple frames is insufficient and this kludge must stay.
+//
+#define DS3_SendScancode(vk,x,y) {                         DS3_SendScancodeMake  ((vk), (x));                          \
+          CreateThread (nullptr, 0, [](LPVOID) -> DWORD {             SleepEx (66, TRUE);                              \
+                                                           DS3_SendScancodeBreak ((vk), (x));                          \
+                                                           CloseHandle (GetCurrentThread ());                          \
+                                                                                  return 0; }, nullptr, 0x0, nullptr); \
+};
+
 unsigned int
 __stdcall
 SK_DS3_FullscreenToggle_Thread (LPVOID user)
@@ -1327,8 +1345,8 @@ SK_DS3_FullscreenToggle_Thread (LPVOID user)
   UNREFERENCED_PARAMETER (user);
 
   // Don't do any of this stuff if we cannot bring the window into focus
-  if ( ! (BringWindowToTop    (ds3_state.Window) &&
-          SetForegroundWindow (ds3_state.Window) &&
+  if ( ! (BringWindowToTop    (ds3_state.Window) ||
+          SetForegroundWindow (ds3_state.Window) ||
           SetActiveWindow     (ds3_state.Window) ) )
     return std::numeric_limits <unsigned int>::max ();
 
@@ -1336,33 +1354,8 @@ SK_DS3_FullscreenToggle_Thread (LPVOID user)
 
   SetFocus (ds3_state.Window);
 
-  INPUT keys [2];
-
-  keys [0].type           = INPUT_KEYBOARD;
-  keys [0].ki.wVk         = 0;
-  keys [0].ki.dwFlags     = KEYEVENTF_SCANCODE;
-  keys [0].ki.time        = 0;
-  keys [0].ki.dwExtraInfo = 0;
-
-  keys [1].type           = INPUT_KEYBOARD;
-  keys [1].ki.wVk         = 0;
-  keys [1].ki.dwFlags     = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP;
-  keys [1].ki.time        = 0;
-  keys [1].ki.dwExtraInfo = 0;
-
-  keys [0].ki.wScan = 0x38;
-  SendInput (1, &keys [0], sizeof INPUT);
-
-  keys [0].ki.wScan = 0x1c;
-  SendInput (1, &keys [0], sizeof INPUT);
-
-  Sleep (133);
-
-  keys [1].ki.wScan = 0x1c;
-  SendInput (1, &keys [1], sizeof INPUT);
-
-  keys [1].ki.wScan = 0x38;
-  SendInput (1, &keys [1], sizeof INPUT);
+  DS3_SendScancode (VK_MENU,   0x38, 0xb8);
+  DS3_SendScancode (VK_RETURN, 0x1c, 0x9c);
 
   return 0;
 }

@@ -56,13 +56,6 @@ static __declspec (thread) HGLRC __gl_current_hglrc = 0;
 static __declspec (thread) HDC   __gl_current_hdc   = 0;
 static __declspec (thread) HWND  __gl_current_hwnd  = 0;
 
-void
-SK_CEGUI_GL_PushVertexState (void);
-
-void
-SK_CEGUI_GL_PopVertexState (void);
-
-
 volatile LONG __gl_ready = FALSE;
 
 void
@@ -196,7 +189,6 @@ void ResetCEGUI_GL (void)
 
 extern "C"
 {
-
 typedef void (WINAPI *finish_pfn)(void);
 
 /* Pixel format descriptor */
@@ -309,7 +301,6 @@ SK::OpenGL::Shutdown (void)
   return SK_ShutdownCore (L"OpenGL32");
 }
 
-//#include <GL/gl.h>
 
 extern "C"
 {
@@ -1252,24 +1243,6 @@ SK_Overlay_DrawGL (void)
 {
   InterlockedIncrement (&__cegui_frames_drawn);
 
-  static HWND last_hwnd = 0;
-
-  if (last_hwnd != __gl_current_hwnd && SK_GetFramesDrawn () > 1)
-  {
-    //if (config.cegui.enable && cegGL != nullptr)
-    //{
-    //  //CEGUI::WindowManager::getDllSingleton ().cleanDeadPool ();
-    //  //cegGL->destroyAllGeometryBuffers ();
-    //  //cegGL->destroyAllTextureTargets  ();
-    //  //cegGL->destroyAllTextures        ();
-    //  //cegGL->destroySystem             ();
-    //  //cegGL = nullptr;
-    //}
-
-    last_hwnd = __gl_current_hwnd;
-  }
-
-
   if ( __gl_current_hwnd != game_window.hWnd &&
                        0 == game_window.hWnd )
   {
@@ -1598,9 +1571,6 @@ OPENGL_STUB(BOOL,wglUseFontOutlinesW,(HDC hDC, DWORD dw0, DWORD dw1, DWORD dw2, 
 
 
 
-//#define GL_TRUE  TRUE
-//#define GL_FALSE FALSE
-
 #define GL_QUERY_RESULT           0x8866
 #define GL_QUERY_RESULT_AVAILABLE 0x8867
 #define GL_QUERY_RESULT_NO_WAIT   0x9194
@@ -1843,8 +1813,7 @@ GLPerf::Init (void)
 }
 
 #include <SpecialK/config.h>
-
-#include <d3d11.h>
+#include <d3d11.h> // Yeah, the GL extension is a 1:1 mirror with D3D11 :)
 
 void
 __stdcall
@@ -2030,6 +1999,7 @@ SK::OpenGL::getPipelineStatsDesc (void)
   return wszDesc;
 }
 
+
 #define SK_DLL_HOOK(Backend,Func)                          \
   SK_CreateDLLHook2 ( Backend,                             \
                      #Func,                                \
@@ -2037,7 +2007,6 @@ SK::OpenGL::getPipelineStatsDesc (void)
     static_cast_p2p <void> (&imp_ ## Func) ); ++GL_HOOKS;
 
 #define SK_GL_HOOK(Func) SK_DLL_HOOK(wszBackendDLL,Func)
-
 
 
 void
@@ -2467,15 +2436,6 @@ SK_HookGL (void)
 
   InterlockedExchange (&__gl_ready, TRUE);
 
-#if 0
-  _beginthreadex ( nullptr,
-                     0,
-                       DXGI_Thread,
-                         nullptr,
-                           0x00,
-                             nullptr );
-#endif
-
   GL_HOOKED = TRUE;
 }
 
@@ -2490,27 +2450,29 @@ wglMakeCurrent (HDC hDC, HGLRC hglrc)
 
   if (wgl_make_current == nullptr)
   {
-    wgl_make_current =
-      (wglMakeCurrent_pfn)
-        GetProcAddress (backend_dll, "wglMakeCurrent");
+      wgl_make_current =
+     (wglMakeCurrent_pfn)
+        GetProcAddress ( backend_dll,
+                           "wglMakeCurrent" );
   }
 
-
   if (config.system.log_level > 1)
-    dll_log.Log (L"[%x (tid=%x)]  wglMakeCurrent (hDC=%x, hglrc=%x)", WindowFromDC (hDC), GetCurrentThreadId (), hDC, hglrc);
-
-
+  {
+    dll_log.Log ( L"[%x (tid=%x)]  wglMakeCurrent "
+                  L"(hDC=%x, hglrc=%x)",
+                    WindowFromDC         (hDC),
+                      GetCurrentThreadId (   ),
+                                          hDC, hglrc );
+  }
 
   BOOL ret =
     wgl_make_current (hDC, hglrc);
 
-  //if (ret)
-  //{
-    __gl_current_hglrc = hglrc;
-    __gl_current_hdc   = hDC;
-    __gl_current_hwnd  = __gl_current_hdc != 0 ?
-          WindowFromDC  (__gl_current_hdc)     : 0;
-  //}
+
+  __gl_current_hglrc = hglrc;
+  __gl_current_hdc   = hDC;
+  __gl_current_hwnd  = __gl_current_hdc != 0 ?
+        WindowFromDC  (__gl_current_hdc)     : 0;
 
   return ret;
 }
@@ -2522,14 +2484,11 @@ SK_GL_GetCurrentContext (void)
 {
   HGLRC hglrc = 0;
 
-  if (imp_wglGetCurrentContext != nullptr)
-  {
+  if (      imp_wglGetCurrentContext != nullptr)
     hglrc = imp_wglGetCurrentContext ();
-  }
 
   assert (hglrc == __gl_current_hglrc);
-
-  return __gl_current_hglrc;
+            return __gl_current_hglrc;
 }
 
 HDC
@@ -2539,70 +2498,90 @@ SK_GL_GetCurrentDC (void)
   HDC  hdc  = 0;
   HWND hwnd = 0;
 
-  if (imp_wglGetCurrentDC != nullptr)
+  if (    imp_wglGetCurrentDC != nullptr)
     hdc = imp_wglGetCurrentDC ();
 
   hwnd = WindowFromDC (hdc);
 
   assert (hwnd == __gl_current_hwnd);
   assert (hdc  == __gl_current_hdc);
-
-  return __gl_current_hdc;
+           return __gl_current_hdc;
 }
 
 
-struct sk_cegui_vtx_state_s
+
+
+#if 0
+#include <d3d9.h>
+#include <atlbase.h>
+
+//
+// Primarily used to expose GL resources to D3D9 so that
+//   the can be used by certain parts of NvAPI that are not
+//     implemented in GL.
+//
+IDirect3DDevice9Ex*
+SK_GL_GetD3D9ExInteropDevice (void)
 {
-  static __declspec (thread) GLuint ceGL_VAO;
+  if (! config.render.framerate.wait_for_vblank)
+    return nullptr;
 
-  GLint  array_buffer;         // Original binding
-  GLint  element_array_buffer; // Original binding
-  GLint  vertex_array;         // Original binding
-};
+  static auto* pInteropDevice =
+    reinterpret_cast <IDirect3DDevice9Ex *> (-1);
 
-#include <stack>
-std::stack <sk_cegui_vtx_state_s> SK_CEGUI_VertexStack;
-
-GLuint sk_cegui_vtx_state_s::ceGL_VAO = 0UL;
-
-void
-SK_CEGUI_GL_PushVertexState (void)
-{
-  if (cegGL == nullptr)
-    return;
-
-  sk_cegui_vtx_state_s state;
-
-  glGetIntegerv (GL_ARRAY_BUFFER_BINDING,         &state.array_buffer);
-  glGetIntegerv (GL_ELEMENT_ARRAY_BUFFER_BINDING, &state.element_array_buffer);
-  glGetIntegerv (GL_VERTEX_ARRAY_BINDING,         &state.vertex_array);
-
-  if (glIsVertexArray != nullptr && glGenVertexArrays != nullptr && glBindVertexArray != nullptr)
+  if (pInteropDevice == reinterpret_cast <IDirect3DDevice9Ex *> (-1))
   {
-    if ( sk_cegui_vtx_state_s::ceGL_VAO == 0 ||
-         (! glIsVertexArray (sk_cegui_vtx_state_s::ceGL_VAO)) )
-    {
-      glGenVertexArrays (1, &sk_cegui_vtx_state_s::ceGL_VAO);
-    }
+    CComPtr <IDirect3D9Ex> pD3D9Ex = nullptr;
 
-    glBindVertexArray (sk_cegui_vtx_state_s::ceGL_VAO);
+    using Direct3DCreate9ExPROC = HRESULT (STDMETHODCALLTYPE *)(UINT           SDKVersion,
+                                                                IDirect3D9Ex** d3d9ex);
+
+    extern Direct3DCreate9ExPROC Direct3DCreate9Ex_Import;
+
+    HRESULT hr = (config.apis.d3d9ex.hook) ?
+      Direct3DCreate9Ex_Import (D3D_SDK_VERSION, &pD3D9Ex)
+                                    :
+                               E_NOINTERFACE;
+
+    HWND hwnd = nullptr;
+
+    IDirect3DDevice9Ex* pDev9Ex = nullptr;
+
+    if (SUCCEEDED (hr))
+    {
+      hwnd = 
+        SK_Win32_CreateDummyWindow ();
+
+      D3DPRESENT_PARAMETERS pparams = { };
+      
+      pparams.SwapEffect       = D3DSWAPEFFECT_FLIPEX;
+      pparams.BackBufferFormat = D3DFMT_UNKNOWN;
+      pparams.hDeviceWindow    = hwnd;
+      pparams.Windowed         = TRUE;
+      pparams.BackBufferCount  = 2;
+      
+      if ( FAILED ( pD3D9Ex->CreateDeviceEx (
+                      D3DADAPTER_DEFAULT,
+                        D3DDEVTYPE_HAL,
+                          hwnd,
+                            D3DCREATE_HARDWARE_VERTEXPROCESSING,
+                              &pparams,
+                                nullptr,
+                                  &pDev9Ex )
+                  )
+          )
+      {
+        pInteropDevice = nullptr;
+      } else {
+        pDev9Ex->AddRef ();
+        pInteropDevice = pDev9Ex;
+      }
+    }
+    else {
+      pInteropDevice = nullptr;
+    }
   }
 
-  SK_CEGUI_VertexStack.push (state);
+  return pInteropDevice;
 }
-
-void
-SK_CEGUI_GL_PopVertexState (void)
-{
-  if (cegGL == nullptr)
-    return;
-
-  sk_cegui_vtx_state_s state (SK_CEGUI_VertexStack.top ());
-                              SK_CEGUI_VertexStack.pop ();
-
-  if (glBindVertexArray != nullptr)
-    glBindVertexArray (                         state.vertex_array);
-
-  glBindBuffer        (GL_ARRAY_BUFFER,         state.array_buffer);
-  glBindBuffer        (GL_ELEMENT_ARRAY_BUFFER, state.element_array_buffer);
-}
+#endif

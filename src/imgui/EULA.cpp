@@ -135,7 +135,7 @@ SK_ImGui_DrawEULA (LPVOID reserved)
   const  float font_size           =             ImGui::GetFont  ()->FontSize                        * io.FontGlobalScale;
   const  float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y + ImGui::GetStyle ().ItemInnerSpacing.y;
 
-  if (ImGui::BeginPopupModal (szTitle, nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders))
+  if (ImGui::BeginPopupModal (szTitle, nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders | ImGuiWindowFlags_NavFlattened))
   {
     ImGui::SetNextWindowPosCenter (ImGuiSetCond_Appearing);
     ImGui::SetNextWindowFocus     ();
@@ -172,9 +172,9 @@ SK_ImGui_DrawEULA (LPVOID reserved)
     ImGui::EndGroup  ();
 
 
-    ImGui::BeginChild ("EULA_Body",  ImVec2 (0.0f, font_size_multiline * 14), false);
-    ImGui::BeginChild ("EULA_Inset", ImVec2 (0.0f, 0.0f),                     false, ImGuiWindowFlags_NavFlattened);
+    ImGui::BeginChild ("EULA_Body",   ImVec2 (0.0f, ImGui::GetItemsLineHeightWithSpacing () * 14),     false);
     ImGui::BeginGroup ();
+    ImGui::BeginChild ("EULA_Body2",  ImVec2 (0.0f, ImGui::GetItemsLineHeightWithSpacing () * 12.666), false,ImGuiWindowFlags_NavFlattened);
 
     if (ImGui::CollapsingHeader (pirate ? "Overview of Products Unlicensed" : 
                                           "Overview of Products Licensed"))
@@ -279,12 +279,9 @@ SK_ImGui_DrawEULA (LPVOID reserved)
       ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_ZLIB).c_str ());
     }
 
-    ImGui::EndGroup ();
-    ImGui::EndChild (); // EULA_Body
-    ImGui::EndChild (); // EULA_Body
-
+    ImGui::EndChild (); // EULA_Inset
+    ImGui::BeginChild ("EULA_Inset", ImVec2 (0.0f, ImGui::GetItemsLineHeightWithSpacing () * 1.1616f), false, ImGuiWindowFlags_NavFlattened);
     ImGui::Separator  ();
-    ImGui::BeginGroup ();
 
     ImGui::Columns  (2, "", false);
     ImGui::TreePush (   "");
@@ -346,7 +343,9 @@ SK_ImGui_DrawEULA (LPVOID reserved)
       ImGui::EndTooltip  ();
     }
 
+    ImGui::EndChild (); // EULA_Inset
     ImGui::EndGroup ();
+    ImGui::EndChild (); // EULA_Body2
     ImGui::EndPopup ();
   }
 }
