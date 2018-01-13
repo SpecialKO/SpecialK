@@ -64,6 +64,9 @@
 #include <SpecialK/framerate.h>
 #include <SpecialK/DLL_VERSION.H>
 
+extern void
+SK_Input_HookDI7 (void);
+
 
 #define SK_CHAR(x) (_T)        (constexpr _T      (std::type_index (typeid (_T)) == std::type_index (typeid (wchar_t))) ? (      _T  )(_L(x)) : (      _T  )(x))
 #define SK_TEXT(x) (const _T*) (constexpr LPCVOID (std::type_index (typeid (_T)) == std::type_index (typeid (wchar_t))) ? (const _T *)(_L(x)) : (const _T *)(x))
@@ -266,6 +269,7 @@ SK_LoadLibrary_IsPinnable (const _T* pStr)
 
     SK_TEXT ("AUDIOSES"),  SK_TEXT ("HID"),
     SK_TEXT ("d3dx11_43"), SK_TEXT ("d3dx9_43"),
+    SK_TEXT ("CEGUIOpenGLRenderer"),
 
     // Fix for premature DLL unload issue discussed here:
     //
@@ -386,7 +390,7 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
 
       SK_StripUserNameFromPathA (file_name);
 
-      dll_log.Log ( "[DLL Loader]   ( %-28ws ) loaded '%#116hs' <%hs> { '%21hs' }",
+      dll_log.Log ( "[DLL Loader]   ( %-28ws ) loaded '%#116hs' <%14hs> { '%21hs' }",
                       wszModName,
                         file_name.m_pData,
                           lpFunction,
@@ -401,7 +405,7 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
 
       SK_StripUserNameFromPathW (file_name);
 
-      dll_log.Log ( L"[DLL Loader]   ( %-28ws ) loaded '%#116ws' <%ws> { '%21hs' }",
+      dll_log.Log ( L"[DLL Loader]   ( %-28ws ) loaded '%#116ws' <%14ws> { '%21hs' }",
                       wszModName,
                         file_name.m_pData,
                           lpFunction,
@@ -479,6 +483,8 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
       SK_Input_HookXInput9_1_0 ();
     else if (   StrStrI (lpFileName, SK_TEXT("dinput8.dll")) )
       SK_Input_HookDI8 ();
+    else if (   StrStrI (lpFileName, SK_TEXT("dinput.dll")) )
+      SK_Input_HookDI7 ();
     else if (   StrStrI (lpFileName, SK_TEXT("hid.dll")) )
       SK_Input_HookHID ();
 
@@ -593,7 +599,9 @@ LoadLibrary_Marshal (LPVOID lpRet, LPCWSTR lpFileName, const wchar_t* wszSourceF
   HMODULE hMod = hModEarly;
 
   __try                                  { hMod = LoadLibraryW_Original (lpFileName); }
-  __except (EXCEPTION_EXECUTE_HANDLER)
+  __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION )  ?
+                       EXCEPTION_EXECUTE_HANDLER :
+                       EXCEPTION_CONTINUE_SEARCH )
   {
     dll_log.Log ( L"[DLL Loader]  ** Crash Prevented **  DLL raised an exception during"
                   L" %s ('%hs')!",
@@ -740,7 +748,9 @@ LoadLibraryEx_Marshal (LPVOID lpRet, LPCWSTR lpFileName, HANDLE hFile, DWORD dwF
   HMODULE hMod = hModEarly;
 
   __try                                  { hMod = LoadLibraryExW_Original (lpFileName, hFile, dwFlags); }
-  __except (EXCEPTION_EXECUTE_HANDLER)
+  __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION )  ?
+                       EXCEPTION_EXECUTE_HANDLER :
+                       EXCEPTION_CONTINUE_SEARCH )
   {
     dll_log.Log ( L"[DLL Loader]  ** Crash Prevented **  DLL raised an exception during"
                   L" %s ('%ws')!",
@@ -1144,7 +1154,10 @@ CreateThread (nullptr, 0, [](LPVOID user) -> DWORD
       }
     }
 
-    __except ( EXCEPTION_EXECUTE_HANDLER )
+    __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ||
+                 GetExceptionCode () == EXCEPTION_INVALID_HANDLE )  ?
+                         EXCEPTION_EXECUTE_HANDLER :
+                         EXCEPTION_CONTINUE_SEARCH )
     {
       // Sometimes a DLL will be unloaded in the middle of doing this... just ignore that.
     }

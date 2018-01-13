@@ -1913,6 +1913,12 @@ SK_TextOverlayManager::resetAllOverlays (CEGUI::Renderer* renderer)
   auto it =
     overlays_.begin ();
 
+  if (glGenVertexArrays != nullptr)
+  {
+    if (! wglGetCurrentDC ())
+      return;
+  }
+
   while (it != overlays_.end ())
   {
     if (renderer == nullptr)

@@ -43,7 +43,16 @@ using CoCreateInstance_pfn = HRESULT (WINAPI *)(
   _In_  REFIID    riid,
   _Out_ LPVOID   *ppv );
 
-CoCreateInstance_pfn CoCreateInstance_Original = nullptr;
+using CoCreateInstanceEx_pfn = HRESULT (STDAPICALLTYPE *)(
+  _In_    REFCLSID     rclsid,
+  _In_    IUnknown     *punkOuter,
+  _In_    DWORD        dwClsCtx,
+  _In_    COSERVERINFO *pServerInfo,
+  _In_    DWORD        dwCount,
+  _Inout_ MULTI_QI     *pResults );
+
+CoCreateInstance_pfn   CoCreateInstance_Original   = nullptr;
+CoCreateInstanceEx_pfn CoCreateInstanceEx_Original = nullptr;
 
 
 HANDLE        hShutdownWMI = nullptr;
@@ -372,19 +381,85 @@ CoCreateInstance_Detour (
   return CoCreateInstance_Original (rclsid, pUnkOuter, dwClsContext, riid, ppv);
 }
 
+extern
+HRESULT
+STDAPICALLTYPE
+CoCreateInstanceEx_DI8 (
+  _In_    REFCLSID     rclsid,
+  _In_    IUnknown     *punkOuter,
+  _In_    DWORD        dwClsCtx,
+  _In_    COSERVERINFO *pServerInfo,
+  _In_    DWORD        dwCount,
+  _Inout_ MULTI_QI     *pResults,
+  _In_    LPVOID        pCallerAddr );
+
+extern
+HRESULT
+STDAPICALLTYPE
+CoCreateInstanceEx_DI7 (
+  _In_    REFCLSID     rclsid,
+  _In_    IUnknown     *punkOuter,
+  _In_    DWORD        dwClsCtx,
+  _In_    COSERVERINFO *pServerInfo,
+  _In_    DWORD        dwCount,
+  _Inout_ MULTI_QI     *pResults,
+  _In_    LPVOID        pCallerAddr );
+
+HRESULT
+STDAPICALLTYPE
+CoCreateInstanceEx_Detour (
+  _In_    REFCLSID     rclsid,
+  _In_    IUnknown     *pUnkOuter,
+  _In_    DWORD        dwClsCtx,
+  _In_    COSERVERINFO *pServerInfo,
+  _In_    DWORD        dwCount,
+  _Inout_ MULTI_QI     *pResults )
+{
+  bool device =   (rclsid == CLSID_DirectInputDevice8 || rclsid == CLSID_DirectInputDevice);
+  bool base   = device    ?                     false :
+                  (rclsid == CLSID_DirectInput8       || rclsid == CLSID_DirectInput);
+
+  int version = device ? (rclsid == CLSID_DirectInputDevice8 ? 8 : 7 )
+                       : (rclsid == CLSID_DirectInput8       ? 8 : 7 );
+
+  if (device || base)
+  {
+    switch (version)
+    {
+      case 7:
+        return CoCreateInstanceEx_DI7 (rclsid, pUnkOuter, dwClsCtx, pServerInfo, dwCount, pResults, _ReturnAddress ());
+      case 8:
+        return CoCreateInstanceEx_DI8 (rclsid, pUnkOuter, dwClsCtx, pServerInfo, dwCount, pResults, _ReturnAddress ());
+    }
+  }
+
+  return CoCreateInstanceEx_Original (rclsid, pUnkOuter, dwClsCtx, pServerInfo, dwCount, pResults);
+}
+
 
 #include <SpecialK/hooks.h>
 
 bool
 SK_InitWMI (void)
 {
-  //CoCreateInstance_Original =
-  //  (CoCreateInstance_pfn)GetProcAddress (GetModuleHandleW (L"ole32.dll"), "CoCreateInstance");
+#if 0
+  CoCreateInstance_Original =
+    (CoCreateInstance_pfn)GetProcAddress   (GetModuleHandleW (L"ole32.dll"), "CoCreateInstance");
+  CoCreateInstanceEx_Original =
+    (CoCreateInstanceEx_pfn)GetProcAddress (GetModuleHandleW (L"ole32.dll"), "CoCreateInstanceEx");
+#else
   SK_CreateDLLHook2 (      L"ole32.dll",
                             "CoCreateInstance",
                              CoCreateInstance_Detour,
     static_cast_p2p <void> (&CoCreateInstance_Original) );
+
+  SK_CreateDLLHook2 (      L"ole32.dll",
+                            "CoCreateInstanceEx",
+                             CoCreateInstanceEx_Detour,
+    static_cast_p2p <void> (&CoCreateInstanceEx_Original) );
+
   SK_ApplyQueuedHooks ();
+#endif
   
   COM::base.wmi.Lock ();
 

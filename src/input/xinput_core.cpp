@@ -140,6 +140,21 @@ struct SK_XInputContext
   }
 } xinput_ctx;
 
+const char*
+SK_XInput_GetPrimaryHookName (void)
+{
+  if (xinput_ctx.primary_hook == &xinput_ctx.XInput1_3)
+    return "XInput 1.3";
+
+  else if (xinput_ctx.primary_hook == &xinput_ctx.XInput1_4)
+    return "XInput 1.4";
+
+  else if (xinput_ctx.primary_hook == &xinput_ctx.XInput9_1_0)
+    return "XInput 9_1_0";
+
+  return "Unknown";
+}
+
 #define SK_XINPUT_READ(type)  SK_XInput_Backend.markRead  (type);
 #define SK_XINPUT_WRITE(type) SK_XInput_Backend.markWrite (type);
 

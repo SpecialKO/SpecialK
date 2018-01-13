@@ -607,7 +607,9 @@ SK_SteamAPI_EraseActivationCallback (class CCallbackBase *pCallback)
     overlay_activation_callbacks.erase (pCallback);
   }
 
-  __except (EXCEPTION_EXECUTE_HANDLER)
+  __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION )  ?
+                       EXCEPTION_EXECUTE_HANDLER :
+                       EXCEPTION_CONTINUE_SEARCH )
   {
   }
 }
@@ -2631,7 +2633,10 @@ SteamAPI_RunCallbacks_Detour (void)
       InterlockedIncrement64 (&SK_SteamAPI_CallbackRunCount);
       // Skip the callbacks, one call every 1 ms is enough!!
 
-      SleepEx (0, TRUE);
+      if (GetThreadPriority (GetCurrentThread ()) == THREAD_PRIORITY_NORMAL)
+        SleepEx (1, TRUE);
+      else
+        SwitchToThread ();
       return;
     }
   }
@@ -2692,7 +2697,9 @@ SteamAPI_RunCallbacks_Detour (void)
               SteamAPI_RunCallbacks_Original ();
             }
 
-            __except (EXCEPTION_EXECUTE_HANDLER)
+            __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION )  ?
+                                 EXCEPTION_EXECUTE_HANDLER :
+                                 EXCEPTION_CONTINUE_SEARCH )
             {
               failure = true;
               steam_log.Log (L" Caught a Structured Exception while running Steam Callbacks!");
@@ -2727,7 +2734,9 @@ SteamAPI_RunCallbacks_Detour (void)
     }
   }
 
-  __except (EXCEPTION_EXECUTE_HANDLER)
+  __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION )  ?
+                       EXCEPTION_EXECUTE_HANDLER :
+                       EXCEPTION_CONTINUE_SEARCH )
   {
     if (! failure)
     {
@@ -3326,9 +3335,9 @@ SK::SteamAPI::SetOverlayState (bool active)
     }
   }
 
-  __except (EXCEPTION_EXECUTE_HANDLER)
-  {
-  }
+  __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION )  ?
+                       EXCEPTION_EXECUTE_HANDLER :
+                       EXCEPTION_CONTINUE_SEARCH ) { }
 
   LeaveCriticalSection (&callback_cs);
 }
@@ -3461,7 +3470,9 @@ SK_SAFE_SteamAPI_Init (void)
      SteamAPI_Init_Original ();
   }
 
-  __except (EXCEPTION_EXECUTE_HANDLER) {
+  __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION )  ?
+                     EXCEPTION_EXECUTE_HANDLER :
+                     EXCEPTION_CONTINUE_SEARCH ) {
   }
 
   return bRet;
@@ -4677,7 +4688,9 @@ SAFE_GetISteamMusic (ISteamClient* pClient, HSteamUser hSteamuser, HSteamPipe hS
   __try {
     return pClient->GetISteamMusic (hSteamuser, hSteamPipe, pchVersion);
   }
-  __except (EXCEPTION_EXECUTE_HANDLER) {
+  __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION )  ?
+                       EXCEPTION_EXECUTE_HANDLER :
+                       EXCEPTION_CONTINUE_SEARCH ) {
     return nullptr;
   }
 }
@@ -4688,7 +4701,9 @@ SAFE_GetISteamController (ISteamClient* pClient, HSteamUser hSteamuser, HSteamPi
   __try {
     return pClient->GetISteamController (hSteamuser, hSteamPipe, pchVersion);
   }
-  __except (EXCEPTION_EXECUTE_HANDLER) {
+  __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION )  ?
+                       EXCEPTION_EXECUTE_HANDLER :
+                       EXCEPTION_CONTINUE_SEARCH ) {
     return nullptr;
   }
 }
@@ -4699,7 +4714,9 @@ SAFE_GetISteamRemoteStorage (ISteamClient* pClient, HSteamUser hSteamuser, HStea
   __try {
     return pClient->GetISteamRemoteStorage (hSteamuser, hSteamPipe, pchVersion);
   }
-  __except (EXCEPTION_EXECUTE_HANDLER) {
+  __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION )  ?
+                       EXCEPTION_EXECUTE_HANDLER :
+                       EXCEPTION_CONTINUE_SEARCH ) {
     return nullptr;
   }
 }

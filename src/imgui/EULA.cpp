@@ -172,9 +172,9 @@ SK_ImGui_DrawEULA (LPVOID reserved)
     ImGui::EndGroup  ();
 
 
-    ImGui::BeginChild ("EULA_Body",   ImVec2 (0.0f, ImGui::GetItemsLineHeightWithSpacing () * 14),     false);
+    ImGui::BeginChild ("EULA_Body",   ImVec2 (0.0f, ImGui::GetItemsLineHeightWithSpacing () * 15.0f),     false);
     ImGui::BeginGroup ();
-    ImGui::BeginChild ("EULA_Body2",  ImVec2 (0.0f, ImGui::GetItemsLineHeightWithSpacing () * 12.666), false,ImGuiWindowFlags_NavFlattened);
+    ImGui::BeginChild ("EULA_Body2",  ImVec2 (0.0f, ImGui::GetItemsLineHeightWithSpacing () * 13.666f), false,ImGuiWindowFlags_NavFlattened);
 
     if (ImGui::CollapsingHeader (pirate ? "Overview of Products Unlicensed" : 
                                           "Overview of Products Licensed"))

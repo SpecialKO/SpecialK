@@ -88,7 +88,7 @@ SK_HID_FilterPreparsedData (PHIDP_PREPARSED_DATA pData)
       {
         SK_HID_READ (sk_input_dev_type::Gamepad)
 
-        if (SK_ImGui_WantGamepadCapture () && (! config.input.gamepad.native_ps4))
+        if (config.input.gamepad.disabled_to_game || (SK_ImGui_WantGamepadCapture () && (! config.input.gamepad.native_ps4)))
           filter = true;
       } break;
 
@@ -97,7 +97,7 @@ SK_HID_FilterPreparsedData (PHIDP_PREPARSED_DATA pData)
       {
         SK_HID_READ (sk_input_dev_type::Mouse)
 
-        if (SK_ImGui_WantMouseCapture ())
+        if (config.input.mouse.disabled_to_game || SK_ImGui_WantMouseCapture ())
           filter = true;
       } break;
 
@@ -106,7 +106,7 @@ SK_HID_FilterPreparsedData (PHIDP_PREPARSED_DATA pData)
       {
         SK_HID_READ (sk_input_dev_type::Keyboard)
 
-        if (SK_ImGui_WantKeyboardCapture ())
+        if (config.input.keyboard.disabled_to_game || SK_ImGui_WantKeyboardCapture ())
           filter = true;
       } break;
     }

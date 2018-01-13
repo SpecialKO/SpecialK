@@ -841,7 +841,7 @@ ImGui_ImplDX11_NewFrame (void)
 
   io.KeySuper  = false;
 
-  // For games that hijack the mouse cursor using Direct Input 8.
+  // For games that hijack the mouse cursor using DirectInput 8.
   //
   //  -- Acquire actually means release their exclusive ownership : )
   //

@@ -11081,17 +11081,29 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
 {
   std::lock_guard <SK_Thread_HybridSpinlock> lock (raw_input_lock);
 
-  HWND hWndActive =
-    GetActiveWindow ();
+  HWND hWndActive     =
+    GetActiveWindow     ();
+  HWND hWndFocus      =
+    GetFocus            ();
+  HWND hWndForeground =
+    GetForegroundWindow ();
 
-  if ( (! self) && ( hWndActive != nullptr && hWndActive != game_window.hWnd ) )
-    return GetRawInputData_Original (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader);
+  bool focus          =
+          ( game_window.hWnd == hWndFocus      ||
+            game_window.hWnd == hWndForeground ||
+            game_window.hWnd == hWndActive     ||
+            game_window.active );
+
+  game_window.active = focus;
+
+  ///if ( (! self) && (! focus) )//( hWndActive != nullptr && hWndActive != game_window.hWnd ) )
+  ///  return GetRawInputData_Original (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader);
 
 
   static HRAWINPUT last_input = nullptr;
 
-  bool already_processed = (last_input == hRawInput);
-       last_input        =  (! self) ? hRawInput : nullptr;
+  bool already_processed = (last_input == hRawInput && uiCommand == RID_INPUT);
+       last_input        =  ((! self) && uiCommand == RID_INPUT) ? hRawInput : nullptr;
 
 
   if (self && (! already_processed))
@@ -11139,7 +11151,6 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
   //     usually to ignore the event.
   bool foreground = GET_RAWINPUT_CODE_WPARAM (((RAWINPUT *)pData)->header.wParam) == RIM_INPUT;
 
-
   auto FilterRawInput = [&](UINT uiCommand, RAWINPUT* pData, bool& mouse, bool& keyboard) ->
     bool
       {
@@ -11149,7 +11160,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
         {
           case RIM_TYPEMOUSE:
           {
-            if ((! self) && uiCommand == RID_INPUT && (! already_processed))
+            if (((! self) && (! already_processed)) && uiCommand == RID_INPUT )
               SK_RAWINPUT_READ (sk_input_dev_type::Mouse)
 
             if (SK_ImGui_IsMouseRelevant ())
@@ -11168,7 +11179,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
 
           case RIM_TYPEKEYBOARD:
           {
-            if ((! self) && uiCommand == RID_INPUT && (! already_processed))
+            if (((! self) && (! already_processed)) && uiCommand == RID_INPUT )
               SK_RAWINPUT_READ (sk_input_dev_type::Keyboard)
 
             USHORT VKey =
@@ -11205,7 +11216,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
 
 
             // Block keyboard input to the game while it's in the background
-            if (config.window.background_render && (! game_window.active))
+            if (config.window.background_render && (! focus/*game_window.active*/))
               filter = true;
 
 
@@ -11216,7 +11227,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
 
           default:
           {
-            if ((! self) && uiCommand == RID_INPUT && (! already_processed))
+            if (((! self) && (! already_processed)) && uiCommand == RID_INPUT )
               SK_RAWINPUT_READ (sk_input_dev_type::Gamepad)
 
             // TODO: Determine which controller the input is from
@@ -11236,7 +11247,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
     {
       case RIM_TYPEMOUSE:
       {
-        if (! already_processed)
+        if ((! already_processed) || self)
         {
           if (SK_ImGui_IsMouseRelevant () && config.input.mouse.add_relative_motion)
           {
@@ -12112,7 +12123,18 @@ SK_ImGui_PollGamepad_EndFrame (void)
 
   // Reset Mouse / Keyboard State so that we can process all state transitions
   //   that occur during the next frame without losing any input events.
-  if (game_window.active)
+  extern HWND hWndRender;
+
+  HWND hWndFocus      = GetFocus            ();
+  HWND hWndForeground = GetForegroundWindow ();
+  HWND hWndActive     = GetActiveWindow     ();
+
+  // Reset Mouse / Keyboard State so that we can process all state transitions
+  //   that occur during the next frame without losing any input events.
+  if ( game_window.hWnd == hWndFocus      ||
+       game_window.hWnd == hWndForeground ||
+       game_window.hWnd == hWndActive     ||
+       game_window.active )
   {
     io.MouseDown [0] = (GetAsyncKeyState_Original (VK_LBUTTON)  & 0x8000) != 0;
     io.MouseDown [1] = (GetAsyncKeyState_Original (VK_RBUTTON)  & 0x8000) != 0;

@@ -264,8 +264,11 @@ SKX_WaitForCBTHookShutdown (void)
     {
       SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_IDLE);
 
-      if (SKX_IsHookingCBT ())
-        WaitForSingleObject (hShutdown, INFINITE);
+      while (SKX_IsHookingCBT ())
+      {
+        if (WaitForSingleObjectEx (hShutdown, 15000UL, TRUE) == WAIT_OBJECT_0)
+          break;
+      }
 
       CloseHandle (hShutdown);
     }
@@ -306,6 +309,9 @@ CBTProc ( _In_ int    nCode,
          nullptr
       );
     }
+
+    else
+      InterlockedExchange (&lHookIters, 0);
   }
 
   return CallNextHookEx (SKX_GetCBTHook (), nCode, wParam, lParam);

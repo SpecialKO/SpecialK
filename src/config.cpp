@@ -288,6 +288,10 @@ struct {
     sk::ParameterBool*    impure;
     sk::ParameterBool*    enable_texture_mods;
   } d3d9;
+  struct
+  {
+    sk::ParameterBool*    draw_osd_in_vidcap;
+  } gl;
 } render;
 
 struct {
@@ -750,6 +754,9 @@ SK_LoadConfigEx (std::wstring name, bool create)
     ConfigEntry (render.framerate.refresh_rate,          L"Fullscreen Refresh Rate",                                   dll_ini,         L"Render.FrameRate",      L"RefreshRate"),
     ConfigEntry (render.framerate.allow_dwm_tearing,     L"Enable DWM Tearing (Windows 10+)",                          dll_ini,         L"Render.DXGI",           L"AllowTearingInDWM"),
 
+    // OpenGL
+    //////////////////////////////////////////////////////////////////////////
+    ConfigEntry (render.gl.draw_osd_in_vidcap,           L"Changes hook order in order to allow recording the OSD.",   dll_ini,         L"Render.OpenGL",         L"AllowOSDVideoCapture"),
 
     // D3D9
     //////////////////////////////////////////////////////////////////////////
@@ -1631,6 +1638,11 @@ SK_LoadConfigEx (std::wstring name, bool create)
                           sleep_scale->load (config.render.framerate.max_sleep_percent);
   render.framerate.control.
                   deadline_transition->load (config.render.framerate.sleep_deadline);
+
+  // GL
+  //
+
+  render.gl.draw_osd_in_vidcap->load        (config.render.gl.osd_in_vidcap);
 
   // D3D9/11
   //
@@ -2655,6 +2667,15 @@ SK_SaveConfig ( std::wstring name,
       render.d3d9.hook_type->store           (config.render.d3d9.hook_type);
       render.d3d9.enable_texture_mods->store (config.textures.d3d9_mod);
     }
+  }
+
+  // GL
+  //
+
+  if ( SK_IsInjected () || ( SK_GetDLLRole () & DLL_ROLE::OpenGL    ) ||
+                           ( SK_GetDLLRole () & DLL_ROLE::DInput8 ) )
+  {
+    render.gl.draw_osd_in_vidcap->store        (config.render.gl.osd_in_vidcap);
   }
 
   texture.res_root->store                      (config.textures.d3d11.res_root);

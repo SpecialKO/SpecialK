@@ -1509,6 +1509,50 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
   if (! config.steam.silent)
   {
+    // Lazy-load SteamAPI into a process that doesn't use it, this brings
+    //   a number of benefits.
+    if (config.steam.force_load_steamapi)
+    {
+      static volatile LONG tried = FALSE;
+
+      if (! InterlockedCompareExchange (&tried, TRUE, FALSE))
+      {
+#ifdef _WIN64
+        static const wchar_t* wszSteamDLL = L"steam_api64.dll";
+#else
+        static const wchar_t* wszSteamDLL = L"steam_api.dll";
+#endif
+
+        if (! GetModuleHandle (wszSteamDLL))
+        {
+          wchar_t wszDLLPath [MAX_PATH * 2 + 4] = { };
+
+          if (SK_IsInjected ())
+            wcsncpy (wszDLLPath, SK_GetModuleFullName (SK_GetDLL ()).c_str (), MAX_PATH * 2);
+          else
+          {
+            _swprintf ( wszDLLPath, LR"(%s\My Mods\SpecialK\SpecialK.dll)",
+                          SK_GetDocumentsDir ().c_str () );
+          }
+
+          if (PathRemoveFileSpec (wszDLLPath))
+          {
+            PathAppendW (wszDLLPath, wszSteamDLL);
+
+            if (SK_GetFileSize (wszDLLPath) > 0)
+            {
+              if (LoadLibraryW (wszSteamDLL))
+              {
+                dll_log.Log ( L"[DLL Loader]   Manually booted SteamAPI: '%s'",
+                                wszSteamDLL );//wszDLLPath );
+              }
+            }
+          }
+        }
+      }
+    }
+
+
     void SK_Steam_InitCommandConsoleVariables (void);
          SK_Steam_InitCommandConsoleVariables ();
 
@@ -1639,53 +1683,12 @@ BACKEND_INIT:
 
   if (! __SK_bypass)
   {
-    // Lazy-load SteamAPI into a process that doesn't use it, this brings
-    //   a number of benefits.
-    if (config.steam.force_load_steamapi)
-    {
-      static bool tried = false;
-
-      if (! tried)
-      {
-        tried = true;
-
-#ifdef _WIN64
-        static const wchar_t* wszSteamDLL = L"steam_api64.dll";
-#else
-        static const wchar_t* wszSteamDLL = L"steam_api.dll";
-#endif
-
-        if (! GetModuleHandle (wszSteamDLL))
-        {
-          wchar_t wszDLLPath [MAX_PATH * 2 + 4] = { };
-
-          if (SK_IsInjected ())
-            wcsncpy (wszDLLPath, SK_GetModuleFullName (SK_GetDLL ()).c_str (), MAX_PATH * 2);
-          else
-          {
-            _swprintf ( wszDLLPath, LR"(%s\My Mods\SpecialK\SpecialK.dll)",
-                          SK_GetDocumentsDir ().c_str () );
-          }
-
-          if (PathRemoveFileSpec (wszDLLPath))
-          {
-            PathAppendW (wszDLLPath, wszSteamDLL);
-
-            if (SK_GetFileSize (wszDLLPath) > 0)
-            {
-              if (LoadLibraryW_Original (wszSteamDLL))
-              {
-                dll_log.Log ( L"[DLL Loader]   Manually booted SteamAPI: '%s'",
-                                wszSteamDLL );//wszDLLPath );
-              }
-            }
-          }
-        }
-      }
-    }
-
-    if (GetModuleHandle (L"dinput8.dll") || GetModuleHandle (L"dinput.dll"))
+    if (GetModuleHandle (L"dinput8.dll"))
       SK_Input_HookDI8 ();
+
+    extern void SK_Input_HookDI7 (void);
+    if (GetModuleHandle (L"dinput.dll"))
+      SK_Input_HookDI7 ();
 
     CreateThread (nullptr, 0x00, [](LPVOID) -> DWORD
     {
@@ -2071,11 +2074,11 @@ SK_BeginBufferSwap (void)
   static volatile LONG cegui_init = FALSE;
   static SK_RenderAPI  last_api   = SK_RenderAPI::Reserved;
 
-  if ( (SK_GetCurrentRenderBackend ().api != SK_RenderAPI::Reserved) &&
-       ( (! InterlockedCompareExchange (&cegui_init, 1, 0)) ||
-          last_api != SK_GetCurrentRenderBackend ().api ) )
+  if (config.cegui.enable)
   {
-    if (config.cegui.enable)
+    if ( (SK_GetCurrentRenderBackend ().api != SK_RenderAPI::Reserved) &&
+         ( (! InterlockedCompareExchange (&cegui_init, 1, 0)) ||
+            last_api != SK_GetCurrentRenderBackend ().api ) )
     {
       // Brutally stupid hack for brutally stupid OS (Windows 7)
       //

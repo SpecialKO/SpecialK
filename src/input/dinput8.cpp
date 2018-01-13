@@ -74,46 +74,6 @@ using finish_pfn = void (WINAPI *)(void);
 
 ///////////////////////////////////////////////////////////////////////////////
 //
-// DirectInput 7
-//
-///////////////////////////////////////////////////////////////////////////////
-DirectInputCreateEx_pfn
-         DirectInputCreateEx_Import                       = nullptr;
-
-//IDirectInput7W_CreateDevice_pfn
-//        IDirectInput7W_CreateDevice_Original              = nullptr;
-//
-//IDirectInputDevice7W_GetDeviceState_pfn
-//        IDirectInputDevice7W_GetDeviceState_Original      = nullptr;
-//
-//IDirectInputDevice7W_SetCooperativeLevel_pfn
-//        IDirectInputDevice7W_SetCooperativeLevel_Original = nullptr;
-//
-//IDirectInput7A_CreateDevice_pfn
-//        IDirectInput7A_CreateDevice_Original              = nullptr;
-//
-//IDirectInputDevice7A_GetDeviceState_pfn
-//        IDirectInputDevice7A_GetDeviceState_Original      = nullptr;
-//
-//IDirectInputDevice7A_SetCooperativeLevel_pfn
-//        IDirectInputDevice7A_SetCooperativeLevel_Original = nullptr;
-//
-//HRESULT
-//WINAPI
-//IDirectInput7A_CreateDevice_Detour ( IDirectInput7A        *This,
-//                                     REFGUID                rguid,
-//                                     LPDIRECTINPUTDEVICE7A *lplpDirectInputDevice,
-//                                     LPUNKNOWN              pUnkOuter );
-//
-//HRESULT
-//WINAPI
-//IDirectInput7W_CreateDevice_Detour ( IDirectInput7W        *This,
-//                                     REFGUID                rguid,
-//                                     LPDIRECTINPUTDEVICE7W *lplpDirectInputDevice,
-//                                     LPUNKNOWN              pUnkOuter );
-
-///////////////////////////////////////////////////////////////////////////////
-//
 // DirectInput 8
 //
 ///////////////////////////////////////////////////////////////////////////////
@@ -167,77 +127,6 @@ WaitForInit_DI8 (void)
 void
 WINAPI
 SK_BootDI8 (void);
-
-__declspec (noinline)
-HRESULT
-DirectInputCreateEx ( HINSTANCE hinst,
-                      DWORD     dwVersion, 
-                      REFIID    riidltf, 
-                      LPVOID   *ppvOut, 
-                      LPUNKNOWN punkOuter )
-{
-  if (SK_GetDLLRole () == DLL_ROLE::DInput8)
-  {
-    SK_BootDI8      ();
-    WaitForInit_DI8 ();
-  }
-
-  dll_log.Log ( L"[ DInput 7 ] [!] %s (%ph, %lu, {...}, ppvOut=%p, %p) - "
-                L"%s",
-                  L"DirectInputCreate",
-                    hinst,  dwVersion, /*,*/
-                    ppvOut, punkOuter,
-                      SK_SummarizeCaller ().c_str () );
-
-  HRESULT hr = E_NOINTERFACE;
-
-  if (DirectInputCreateEx_Import != nullptr)
-  {
-    if (riidltf == IID_IDirectInput7A)
-    {
-      if ( SUCCEEDED (
-             (hr = DirectInputCreateEx_Import (hinst, dwVersion, riidltf, ppvOut, punkOuter))
-           )
-         )
-      {
-        //if (! IDirectInput7A_CreateDevice_Original)
-        //{
-        //  void** vftable = *(void***)*ppvOut;
-        //  
-        //  SK_CreateFuncHook (       L"IDirectInput7A::CreateDevice",
-        //                             vftable [3],
-        //                             IDirectInput7A_CreateDevice_Detour,
-        //    static_cast_p2p <void> (&IDirectInput7A_CreateDevice_Original) );
-        //  
-        //  SK_EnableHook (vftable [3]);
-        //}
-      }
-    }
-
-    else if (riidltf == IID_IDirectInput7W)
-    {
-      if ( SUCCEEDED (
-             (hr = DirectInputCreateEx_Import (hinst, dwVersion, riidltf, ppvOut, punkOuter))
-           )
-         )
-      {
-        //if (! IDirectInput7W_CreateDevice_Original)
-        //{
-        //  void** vftable = *(void***)*ppvOut;
-        //  
-        //  SK_CreateFuncHook (       L"IDirectInput7W::CreateDevice",
-        //                             vftable [3],
-        //                             IDirectInput7W_CreateDevice_Detour,
-        //    static_cast_p2p <void> (&IDirectInput7W_CreateDevice_Original) );
-        //  
-        //  SK_EnableHook (vftable [3]);
-        //}
-      }
-    }
-  }
-
-  return hr;
-}
 
 __declspec (noinline)
 HRESULT
@@ -324,7 +213,7 @@ SK_BootDI8 (void)
     {
       HMODULE hBackend = 
         (SK_GetDLLRole () & DLL_ROLE::DInput8) ? backend_dll :
-                                        LoadLibraryW (L"dinput8.dll");
+                                        LoadLibraryW_Original (L"dinput8.dll");
 
       dll_log.Log (L"[ DInput 8 ] Importing DirectInput8Create....");
       dll_log.Log (L"[ DInput 8 ] ================================");
@@ -367,26 +256,26 @@ SK_BootDI8 (void)
     }
 
 
-  //
-  // This whole thing is as smart as a sack of wet mice in DirectInput mode...
-  //   let's get to the real work and start booting graphics APIs!
-  //
-  static bool gl   = false, vulkan = false, d3d9  = false, d3d11 = false,
-              dxgi = false, d3d8   = false, ddraw = false, glide = false;
+    //
+    // This whole thing is as smart as a sack of wet mice in DirectInput mode...
+    //   let's get to the real work and start booting graphics APIs!
+    //
+    static bool gl   = false, vulkan = false, d3d9  = false, d3d11 = false,
+                dxgi = false, d3d8   = false, ddraw = false, glide = false;
 
-  SK_TestRenderImports (
-    GetModuleHandle (nullptr),
-      &gl, &vulkan,
-        &d3d9, &dxgi, &d3d11,
-          &d3d8, &ddraw, &glide
-  );
+    SK_TestRenderImports (
+      GetModuleHandle (nullptr),
+        &gl, &vulkan,
+          &d3d9, &dxgi, &d3d11,
+            &d3d8, &ddraw, &glide
+    );
 
 
-  // Load user-defined DLLs (Plug-In)
+    // Load user-defined DLLs (Plug-In)
 #ifdef _WIN64
-    SK_LoadEarlyImports64 ();
+      SK_LoadEarlyImports64 ();
 #else
-    SK_LoadEarlyImports32 ();
+      SK_LoadEarlyImports32 ();
 #endif
 
 
@@ -398,40 +287,36 @@ CreateThread (nullptr, 0x00, [](LPVOID/*user*/) -> DWORD
 UNREFERENCED_PARAMETER (user);
 #endif
 
-  // OpenGL
-  //
-  if (gl || GetModuleHandle (L"OpenGL32.dll"))
-    SK_BootOpenGL ();
+    // OpenGL
+    //
+    if (gl || GetModuleHandle (L"OpenGL32.dll"))
+      SK_BootOpenGL ();
 
 
-  // Vulkan
-  //
-  //if (vulkan && GetModuleHandle (L"Vulkan-1.dll"))
-  //  SK_BootVulkan ();
+    // Vulkan
+    //
+    //if (vulkan && GetModuleHandle (L"Vulkan-1.dll"))
+    //  SK_BootVulkan ();
 
 
-  // D3D9
-  //
-  if (d3d9 || GetModuleHandle (L"d3d9.dll"))
-    SK_BootD3D9 ();
+    // D3D9
+    //
+    if (d3d9 || GetModuleHandle (L"d3d9.dll"))
+      SK_BootD3D9 ();
 
 
-  // D3D11
-  //
-  if (d3d11 || GetModuleHandle (L"d3d11.dll"))
-    SK_BootDXGI ();
+    // D3D11
+    //
+    if (d3d11 || GetModuleHandle (L"d3d11.dll"))
+      SK_BootDXGI ();
 
-  // Alternate form (or D3D12, but we don't care about that right now)
-  else if (dxgi || GetModuleHandle (L"dxgi.dll"))
-    SK_BootDXGI ();
+    // Alternate form (or D3D12, but we don't care about that right now)
+    else if (dxgi || GetModuleHandle (L"dxgi.dll"))
+      SK_BootDXGI ();
 
 
-// Load user-defined DLLs (Plug-In)
-#ifdef _WIN64
-  SK_LoadPlugIns64 ();
-#else
-  SK_LoadPlugIns32 ();
-#endif
+    // Load user-defined DLLs (Plug-In)
+    SK_RunLHIfBitness (64, SK_LoadPlugIns64 (), SK_LoadPlugIns32 ());
 
 #ifdef SPAWN_THREAD
   CloseHandle (GetCurrentThread ());
@@ -454,8 +339,16 @@ using CoCreateInstance_pfn = HRESULT (WINAPI *)(
   _In_  DWORD     dwClsContext,
   _In_  REFIID    riid,
   _Out_ LPVOID   *ppv );
+using CoCreateInstanceEx_pfn = HRESULT (STDAPICALLTYPE *)(
+  _In_    REFCLSID     rclsid,
+  _In_    IUnknown     *punkOuter,
+  _In_    DWORD        dwClsCtx,
+  _In_    COSERVERINFO *pServerInfo,
+  _In_    DWORD        dwCount,
+  _Inout_ MULTI_QI     *pResults );
 
-extern CoCreateInstance_pfn CoCreateInstance_Original;
+extern CoCreateInstance_pfn   CoCreateInstance_Original;
+extern CoCreateInstanceEx_pfn CoCreateInstanceEx_Original;
 
 DEFINE_GUID(CLSID_DirectInput,        0x25E609E0,0xB259,0x11CF,0xBF,0xC7,0x44,0x45,0x53,0x54,0x00,0x00);
 DEFINE_GUID(CLSID_DirectInputDevice,  0x25E609E1,0xB259,0x11CF,0xBF,0xC7,0x44,0x45,0x53,0x54,0x00,0x00);
@@ -536,13 +429,15 @@ CoCreateInstance_DI8 (
 }
 
 HRESULT
-WINAPI
-CoCreateInstance_DI7 (
-  _In_  LPUNKNOWN pUnkOuter,
-  _In_  DWORD     dwClsContext,
-  _In_  REFIID    riid,
-  _Out_ LPVOID   *ppv,
-  _In_  LPVOID    pCallerAddr )
+STDAPICALLTYPE
+CoCreateInstanceEx_DI8 (
+  _In_    REFCLSID     rclsid,
+  _In_    IUnknown     *pUnkOuter,
+  _In_    DWORD        dwClsCtx,
+  _In_    COSERVERINFO *pServerInfo,
+  _In_    DWORD        dwCount,
+  _Inout_ MULTI_QI     *pResults,
+  _In_    LPVOID        pCallerAddr )
 {
   SK_BootDI8      ();
 
@@ -551,55 +446,64 @@ CoCreateInstance_DI7 (
     WaitForInit_DI8 ();
   }
 
-  dll_log.Log ( L"[ DInput 7 ] [!] %s (%ph, %lu, {...}, ppvOut=%p, %p) - "
+  dll_log.Log ( L"[ DInput 8 ] [!] %s (%ph, %lu, {...}, ppvOut=%p) - "
                 L"%s",
-                  L"DirectInputCreate <CoCreateInstance> ",
-                    0, 0x700,
-                    ppv, pUnkOuter,
+                  L"DirectInputCreate <CoCreateInstanceEx> ",
+                    0, 0x800,
+                    pResults->pItf,
                       SK_SummarizeCaller (pCallerAddr).c_str () );
 
   HRESULT hr =
     E_NOINTERFACE;
 
-  if (riid == IID_IDirectInput7A)
+  if (rclsid == CLSID_DirectInput8)
   {
     if ( SUCCEEDED (
-           (hr = CoCreateInstance_Original (CLSID_DirectInput, pUnkOuter, dwClsContext, riid, ppv))
+           (hr = CoCreateInstanceEx_Original (CLSID_DirectInput8, pUnkOuter, dwClsCtx, pServerInfo, dwCount, pResults))
          )
        )
     {
-      //if (! IDirectInput7A_CreateDevice_Original)
-      //{
-      //  void** vftable = *(void***)*ppv;
-      //  
-      //  SK_CreateFuncHook (       L"IDirectInput7A::CreateDevice",
-      //                             vftable [3],
-      //                             IDirectInput7A_CreateDevice_Detour,
-      //    static_cast_p2p <void> (&IDirectInput7A_CreateDevice_Original) );
-      //  
-      //  SK_EnableHook (vftable [3]);
-      //}
+      if (SUCCEEDED (pResults->hr))
+      {
+        if (*pResults->pIID == IID_IDirectInput8A)
+        {
+          if (! IDirectInput8A_CreateDevice_Original)
+          {
+            void** vftable = *(void***)*&pResults->pItf;
+            
+            SK_CreateFuncHook (       L"IDirectInput8A::CreateDevice",
+                                       vftable [3],
+                                       IDirectInput8A_CreateDevice_Detour,
+              static_cast_p2p <void> (&IDirectInput8A_CreateDevice_Original) );
+            
+            SK_EnableHook (vftable [3]);
+          }
+        }
+      }
     }
   }
 
-  else if (riid == IID_IDirectInput7W)
+  else if (rclsid == CLSID_DirectInput8)
   {
     if ( SUCCEEDED (
-           (hr = CoCreateInstance_Original (CLSID_DirectInput, pUnkOuter, dwClsContext, riid, ppv))
+           (hr = CoCreateInstanceEx_Original (CLSID_DirectInput8, pUnkOuter, dwClsCtx, pServerInfo, dwCount, pResults))
          )
        )
     {
-      //if (! IDirectInput7W_CreateDevice_Original)
-      //{
-      //  void** vftable = *(void***)*ppv;
-      //  
-      //  SK_CreateFuncHook (       L"IDirectInput7W::CreateDevice",
-      //                             vftable [3],
-      //                             IDirectInput7W_CreateDevice_Detour,
-      //    static_cast_p2p <void> (&IDirectInput7W_CreateDevice_Original) );
-      //  
-      //  SK_EnableHook (vftable [3]);
-      //}
+        if (*pResults->pIID == IID_IDirectInput8A)
+        {
+          if (! IDirectInput8W_CreateDevice_Original)
+          {
+            void** vftable = *(void***)*&pResults->pItf;
+            
+            SK_CreateFuncHook (       L"IDirectInput8W::CreateDevice",
+                                       vftable [3],
+                                       IDirectInput8W_CreateDevice_Detour,
+              static_cast_p2p <void> (&IDirectInput8W_CreateDevice_Original) );
+            
+            SK_EnableHook (vftable [3]);
+          }
+        }
     }
   }
 
@@ -662,8 +566,8 @@ SK::DI8::Shutdown (void)
 }
 
 
-struct SK_DI8_Keyboard _dik;
-struct SK_DI8_Mouse    _dim;
+SK_DI8_Keyboard _dik;
+SK_DI8_Mouse    _dim;
 
 
 __declspec (noinline)
@@ -1486,12 +1390,12 @@ SK_Input_HookDI8 (void)
 
   static volatile LONG hooked = FALSE;
 
-  if (! InterlockedExchangeAdd (&hooked, 1))
+  if (GetModuleHandle (L"dinput8.dll") && (! InterlockedCompareExchange (&hooked, 1, 0)))
   {
     if (SK_GetDLLRole () & DLL_ROLE::DInput8)
       return;
 
-    SK_LOG0 ( ( L"Game uses DirectInput, installing input hooks..." ),
+    SK_LOG0 ( ( L"Game uses DirectInput 8, installing input hooks..." ),
                   L"   Input  " );
 
     //HMODULE hBackend = 
@@ -1506,12 +1410,11 @@ SK_Input_HookDI8 (void)
         static_cast_p2p <void> (&DirectInput8Create_Import) );
     }
 
-    if (GetProcAddress (GetModuleHandle (L"dinput.dll"), "DirectInputCreateEx"))
+    if (GetModuleHandle (L"dinput.dll"))
     {
-      SK_CreateDLLHook2 (      L"dinput.dll",
-                                "DirectInputCreateEx",
-                                 DirectInputCreateEx,
-        static_cast_p2p <void> (&DirectInputCreateEx_Import) );
+      extern void
+      SK_Input_HookDI7 (void);
+      SK_Input_HookDI7 ();
     }
 
     SK_ApplyQueuedHooks ();
@@ -1520,9 +1423,11 @@ SK_Input_HookDI8 (void)
   }
 
   // Spinlock
-  while ( ReadAcquire (&hooked) < 2 )
+  while ( GetModuleHandle (L"dinput8.dll") && ReadAcquire (&hooked) < 2 )
     ;
 }
+
+#include <SpecialK/input/dinput7_backend.h>
 
 void
 SK_Input_PreHookDI8 (void)
@@ -1530,17 +1435,28 @@ SK_Input_PreHookDI8 (void)
   if (! config.input.gamepad.hook_dinput8)
     return;
 
-  if (DirectInput8Create_Import == nullptr)
+  if (! InterlockedCompareExchangePointer ((void **)&DirectInput8Create_Import, (PVOID)1, nullptr))
   {
     static sk_import_test_s tests [] = { { "dinput.dll",  false },
                                          { "dinput8.dll", false } };
 
     SK_TestImports (GetModuleHandle (nullptr), tests, 2);
 
-    if (tests [0].used || tests [1].used || GetModuleHandle (L"dinput8.dll"))
+    if (tests [1].used || GetModuleHandle (L"dinput8.dll"))
     {
       if (SK_GetDLLRole () != DLL_ROLE::DInput8)
         SK_Input_HookDI8 ();
+    }
+
+    else
+    {
+      InterlockedExchangePointer ((void **)&DirectInput8Create_Import, nullptr);
+    }
+
+    if (tests [0].used || GetModuleHandle (L"dinput.dll"))
+    {
+      LoadLibraryW_Original (L"dinput.dll");
+      SK_Input_PreHookDI7 ();
     }
   }
 }

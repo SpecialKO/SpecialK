@@ -3285,6 +3285,34 @@ SK_ImGui_ControlPanel (void)
       ImGui::TreePop ();
     }
 
+    if ( static_cast <int> (api) & static_cast <int> (SK_RenderAPI::OpenGL) &&
+         ImGui::CollapsingHeader ("OpenGL Settings", ImGuiTreeNodeFlags_DefaultOpen) )
+    {
+      ImGui::TreePush ("");
+      ImGui::Checkbox ("Show OSD in Video Capture", &config.render.gl.osd_in_vidcap);
+
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::BeginTooltip    ();
+        ImGui::TextUnformatted ("Alters visibility in most video capture software");
+        ImGui::Separator       ();
+        ImGui::BulletText      ("Enabled by default for maximum compatibility");
+        ImGui::BulletText      ("Enabling this has a high likelihood of interfering with ReShade");
+        ImGui::EndTooltip      ();
+      }
+
+      ImGui::Checkbox ("Enable CEGUI",              &config.cegui.enable);
+
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::BeginTooltip    ();
+        ImGui::TextUnformatted ("Disabling may resolve graphics issues, but will disable achievement pop-ups and OSD text.");
+        ImGui::EndTooltip      ();
+      }
+
+      ImGui::TreePop  ();
+    }
+
     if ( static_cast <int> (api) & static_cast <int> (SK_RenderAPI::D3D11) &&
          ImGui::CollapsingHeader ("Direct3D 11 Settings", ImGuiTreeNodeFlags_DefaultOpen) )
     {
@@ -3292,6 +3320,18 @@ SK_ImGui_ControlPanel (void)
       ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.72f, 0.07f, 0.80f));
       ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.78f, 0.14f, 0.80f));
       ImGui::TreePush       ("");
+
+      ImGui::Checkbox ("Show OSD in Video Capture", &config.render.gl.osd_in_vidcap);
+
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::BeginTooltip    ();
+        ImGui::TextUnformatted ("Alters visibility in most video capture software");
+        ImGui::Separator       ();
+        ImGui::BulletText      ("Enabled by default for maximum compatibility");
+        ImGui::BulletText      ("Enabling this has a high likelihood of interfering with ReShade");
+        ImGui::EndTooltip      ();
+      }
 
       ////ImGui::Checkbox ("Overlay Compatibility Mode", &SK_DXGI_SlowStateCache);
 
@@ -3992,6 +4032,7 @@ SK_ImGui_ControlPanel (void)
     {
       static DWORD last_xinput   = 0;
       static DWORD last_hid      = 0;
+      static DWORD last_di7      = 0;
       static DWORD last_di8      = 0;
       static DWORD last_steam    = 0;
       static DWORD last_rawinput = 0;
@@ -3999,11 +4040,16 @@ SK_ImGui_ControlPanel (void)
       struct { ULONG reads; } xinput { };
       struct { ULONG reads; } steam  { };
 
+      struct { ULONG kbd_reads, mouse_reads, gamepad_reads; } di7       { };
       struct { ULONG kbd_reads, mouse_reads, gamepad_reads; } di8       { };
       struct { ULONG kbd_reads, mouse_reads, gamepad_reads; } hid       { };
       struct { ULONG kbd_reads, mouse_reads, gamepad_reads; } raw_input { };
 
       xinput.reads            = SK_XInput_Backend.reads   [2];
+
+      di7.kbd_reads           = SK_DI7_Backend.reads      [1];
+      di7.mouse_reads         = SK_DI7_Backend.reads      [0];
+      di7.gamepad_reads       = SK_DI7_Backend.reads      [2];
 
       di8.kbd_reads           = SK_DI8_Backend.reads      [1];
       di8.mouse_reads         = SK_DI8_Backend.reads      [0];
@@ -4029,6 +4075,9 @@ SK_ImGui_ControlPanel (void)
       if (SK_HID_Backend.nextFrame ())
         last_hid = timeGetTime ();
 
+      if (SK_DI7_Backend.nextFrame ())
+        last_di7 = timeGetTime ();
+
       if (SK_DI8_Backend.nextFrame ())
         last_di8 = timeGetTime ();
 
@@ -4053,9 +4102,12 @@ SK_ImGui_ControlPanel (void)
 
       if (last_xinput > timeGetTime () - 500UL)
       {
+        extern const char*
+        SK_XInput_GetPrimaryHookName (void);
+
         ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * (timeGetTime () - last_xinput) / 500.0f), 1.0f, 0.8f));
         ImGui::SameLine       ();
-        ImGui::Text           ("       XInput");
+        ImGui::Text           ("       %s", SK_XInput_GetPrimaryHookName ());
         ImGui::PopStyleColor  ();
 
         if (ImGui::IsItemHovered ())
@@ -4088,11 +4140,36 @@ SK_ImGui_ControlPanel (void)
         }
       }
 
+      if (last_di7 > timeGetTime () - 500UL)
+      {
+        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * (timeGetTime () - last_di7) / 500.0f), 1.0f, 0.8f));
+        ImGui::SameLine       ();
+        ImGui::Text           ("       DirectInput 7");
+        ImGui::PopStyleColor  ();
+
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::BeginTooltip ();
+
+          if (di7.kbd_reads > 0) {
+            ImGui::Text       ("Keyboard  %lu", di7.kbd_reads);
+          }
+          if (di7.mouse_reads > 0) {
+            ImGui::Text       ("Mouse     %lu", di7.mouse_reads);
+          }
+          if (di7.gamepad_reads > 0) {
+            ImGui::Text       ("Gamepad   %lu", di7.gamepad_reads);
+          };
+
+          ImGui::EndTooltip   ();
+        }
+      }
+
       if (last_di8 > timeGetTime () - 500UL)
       {
         ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * (timeGetTime () - last_di8) / 500.0f), 1.0f, 0.8f));
         ImGui::SameLine       ();
-        ImGui::Text           ("       Direct Input");
+        ImGui::Text           ("       DirectInput 8");
         ImGui::PopStyleColor  ();
 
         if (ImGui::IsItemHovered ())
