@@ -154,6 +154,7 @@ struct sk_input_api_context_s
 
 extern sk_input_api_context_s SK_XInput_Backend;
 extern sk_input_api_context_s SK_DI8_Backend;
+extern sk_input_api_context_s SK_DI7_Backend;
 extern sk_input_api_context_s SK_HID_Backend;
 extern sk_input_api_context_s SK_Win32_Backend;
 extern sk_input_api_context_s SK_RawInput_Backend;

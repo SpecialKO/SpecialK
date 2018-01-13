@@ -48,8 +48,6 @@ void SK_Input_PreHookDI8 (void);
 #include <objbase.h>
 #endif
 
-#endif /* DIJ_RINGZERO */
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -4466,27 +4464,10 @@ using LPFNSHOWJOYCPL = void (WINAPI*)( HWND hWnd );
 
 #endif  /* not MMNOJOYDEV */
 #endif  /* _INC_MMDDK */
+#endif
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-using DirectInputCreateEx_pfn = HRESULT (WINAPI *)(
-  HINSTANCE hinst,
-  DWORD     dwVersion,
-  REFIID    riidltf, 
-  LPVOID   *ppvOut, 
-  LPUNKNOWN punkOuter
-);
 
 using DirectInput8Create_pfn = HRESULT (WINAPI *)(
   HINSTANCE hinst,

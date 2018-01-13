@@ -1,6 +1,21 @@
+0.8.62:
+
+ + Added DirectInput / XInput version number to Input Management
+ + Added full support for DirectInput 7 (needed for FF7/8)
+ + HID Gamepad input is properly blocked by the option to disable it
+
+ + Games that use RawInput for mouse processing will no longer be blocked
+     when the UI is in input-exclusive mode.
+
+   >> That mode was always intended to block only gamepad and keyboard input;
+        mouse input is blocked only if the cursor is over Special K's UI.
+
+
 0.8.61:
 
- + Fixed the EULA screen to support agreeing with gampead / keyboard :)
+ (.1): Fixed missing DLL export for wglSwapBuffers; needed for use as OpenGL32.dll
+
+ + Fixed the EULA screen to support agreeing with gamepad / keyboard :)
  + Fixed OpenGL transparency option for ImGui rendering.
  + Fixes OpenGL OSD text rendering memory issues in 32-bit games
 

@@ -291,6 +291,11 @@ struct sk_config_t
       int     alternate_hook     = 0;
     } dxgi;
 
+    struct {
+      // Required by default for compatibility with Mirillis Action!
+      bool    osd_in_vidcap      = true;
+    } gl;
+
     // OSD Render Stats (D3D11 Only Right Now)
     bool      show              = false;
     struct {
@@ -378,6 +383,7 @@ struct sk_config_t
       bool    haptic_ui         = true;
       bool    disable_rumble    = false;
       bool    hook_dinput8      = true;
+      bool    hook_dinput7      = true;
       bool    hook_hid          = true;
       bool    hook_xinput       = true; // Kind of important ;)
       bool    native_ps4        = false;

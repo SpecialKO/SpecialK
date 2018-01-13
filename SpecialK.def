@@ -489,19 +489,21 @@ wglGetCurrentDC            = wglGetCurrentDC
 wglGetLayerPaletteEntries  = wglGetLayerPaletteEntries
 wglGetPixelFormat          = wglGetPixelFormat
 wglGetProcAddress          = wglGetProcAddress
-wglMakeCurrent             = wglMakeCurrent
 wglRealizeLayerPalette     = wglRealizeLayerPalette
 wglSetLayerPaletteEntries  = wglSetLayerPaletteEntries
 wglSetPixelFormat          = wglSetPixelFormat
-wglShareLists              = wglShareLists
-;wglSwapBuffers             = wglSwapBuffers
 wglSwapLayerBuffers        = wglSwapLayerBuffers
 ;wglSwapMultipleBuffers     = wglSwapMultipleBuffers
 wglUseFontBitmapsA         = wglUseFontBitmapsA          PRIVATE
 wglUseFontBitmapsW         = wglUseFontBitmapsW          PRIVATE
 wglUseFontOutlinesA        = wglUseFontOutlinesA         PRIVATE
 wglUseFontOutlinesW        = wglUseFontOutlinesW         PRIVATE
-SwapBuffers                = SwapBuffers
+
+wglMakeCurrent            = wglMakeCurrent
+wglShareLists             = wglShareLists
+wglSwapBuffers            = wglSwapBuffers
+
+;SwapBuffers               = SwapBuffers
 
 DI8_GetDeviceState_Override      = IDirectInputDevice8_GetDeviceState_Detour PRIVATE
 XInputGetState9_1_0_Override     = XInputGetState9_1_0_Detour                PRIVATE
