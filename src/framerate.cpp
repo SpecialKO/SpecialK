@@ -94,6 +94,44 @@ Sleep_Detour (DWORD dwMilliseconds)
   if (SK_GetFramesDrawn () < 30)
     return Sleep_Original (dwMilliseconds);
 
+  //
+  // 0 is a special case that only yields if there are waiting threads at the
+  //   EXACT SAME thread priority level.
+  //
+  //  Many developers do not know this and may attempt this from a thread with
+  //    altered priority, causing major problems for everyone.
+  //
+  DWORD dwThreadPrio = 0;
+  if (dwMilliseconds == 0 && (dwThreadPrio = GetThreadPriority (GetCurrentThread ())) != THREAD_PRIORITY_NORMAL)
+  {
+    if (dwThreadPrio < THREAD_PRIORITY_NORMAL)
+    {
+      static bool reported = false;
+      if (! reported)
+      {
+        dll_log.Log ( L"[Compliance] Sleep (0) called from thread with "
+                      L"altered priority (tid=%x, prio=%lu)!",
+                        GetCurrentThreadId (),
+                          dwThreadPrio );
+        reported = true;
+      }
+      SwitchToThread ();
+    }
+    else
+    {
+      static bool reported = false;
+      if (! reported)
+      {
+        dll_log.Log ( L"[Compliance] Sleep (0) called from thread with "
+                      L"altered priority (tid=%x, prio=%lu)!",
+                        GetCurrentThreadId (),
+                          dwThreadPrio );
+        reported = true;
+      }
+      dwMilliseconds = 1;
+    }
+  }
+
 #if 0
   if (SK::SteamAPI::AppID () > 0)
   {

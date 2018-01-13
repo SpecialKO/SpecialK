@@ -92,6 +92,13 @@ struct SK_TLS
     UINT                     StencilRefNew          = 0;
   } d3d11;
 
+  struct
+  {
+    HGLRC current_hglrc = 0;
+    HDC   current_hdc   = 0;
+    HWND  current_hwnd  = 0;
+  } gl;
+
   struct {
     BOOL drawing             = FALSE;
   } imgui;

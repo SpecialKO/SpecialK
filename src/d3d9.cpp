@@ -3785,6 +3785,10 @@ D3D9CreateDeviceEx_Override ( IDirect3D9Ex           *This,
                                                              pFullscreenDisplayMode,
                                                                ppReturnedDeviceInterface ) );
 
+  // Ignore video swapchains
+  if (pPresentationParameters->Flags & D3DPRESENTFLAG_VIDEO)
+    return ret;
+
   if (! SUCCEEDED (ret))
     return ret;
 
@@ -4094,6 +4098,10 @@ D3D9CreateDevice_Override ( IDirect3D9*            This,
                                                        BehaviorFlags,
                                                          pPresentationParameters,
                                                            ppReturnedDeviceInterface ) );
+
+  // Ignore video swapchains
+  if (pPresentationParameters->Flags & D3DPRESENTFLAG_VIDEO)
+    return ret;
 
   // Do not attempt to do vtable override stuff if this failed,
   //   that will cause an immediate crash! Instead log some information that

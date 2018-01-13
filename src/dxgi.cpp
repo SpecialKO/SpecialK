@@ -1980,6 +1980,9 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
 void
 SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 {
+  if ((! This) || This != SK_GetCurrentRenderBackend ().swapchain)
+    return;
+
   if (! config.cegui.enable)
     return;
 
@@ -2271,6 +2274,20 @@ HRESULT
                    pPresentParameters );
   }
 
+  DXGI_SWAP_CHAIN_DESC desc = { };
+       This->GetDesc (&desc);
+
+  if ( (desc.Flags & DXGI_SWAP_CHAIN_FLAG_FULLSCREEN_VIDEO) ||
+       (desc.Flags & DXGI_SWAP_CHAIN_FLAG_YUV_VIDEO)        ||
+       (desc.Flags & DXGI_SWAP_CHAIN_FLAG_RESTRICTED_CONTENT) )
+  {
+    return Present1_Original (
+             This,
+               SyncInterval,
+                 PresentFlags,
+                   pPresentParameters );
+  }
+
   SK_GetCurrentRenderBackend ().present_interval = SyncInterval;
 
   // Start / End / Read back Pipeline Stats
@@ -2346,9 +2363,6 @@ HRESULT
            SUCCEEDED (pDevDXGI->GetAdapter               (&pAdapter)) &&
            SUCCEEDED (pAdapter->GetParent  (IID_PPV_ARGS (&pFactory))) )
       {
-        DXGI_SWAP_CHAIN_DESC desc;
-        This->GetDesc (&desc);
-
         if (config.render.dxgi.safe_fullscreen) pFactory->MakeWindowAssociation ( nullptr, 0 );
 
 
@@ -2360,7 +2374,7 @@ HRESULT
           );
         }
 
-        if (hWndRender == nullptr || (! IsWindow (hWndRender)))
+        if (hWndRender == nullptr || (! IsWindowVisible (hWndRender)))
         {
           hWndRender       = desc.OutputWindow;
 
@@ -2431,7 +2445,9 @@ HRESULT SK_DXGI_Present ( IDXGISwapChain *This,
         MH_QueueDisableHook (Present_Target);
 
         __try                                { hr = Present_Original (This, SyncInterval, Flags); }
-        __except (EXCEPTION_EXECUTE_HANDLER) {                                                    }
+        __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION )  ?
+                             EXCEPTION_EXECUTE_HANDLER :
+                             EXCEPTION_CONTINUE_SEARCH ) { }
 
         CreateThread (nullptr, 0x0, [](LPVOID) -> DWORD
         {
@@ -2462,10 +2478,357 @@ HRESULT SK_DXGI_Present ( IDXGISwapChain *This,
     }
   }
 
-  __try                                { hr = Present_Original (This, SyncInterval, Flags);                          }
-  __except (EXCEPTION_EXECUTE_HANDLER) { ResetCEGUI_D3D11 (This); hr = Present_Original (This, SyncInterval, Flags); }
+  __try                                {
+    hr = Present_Original (This, SyncInterval, Flags);
+  }
+  __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION )  ?
+                     EXCEPTION_EXECUTE_HANDLER :
+                     EXCEPTION_CONTINUE_SEARCH ) {
+         ResetCEGUI_D3D11 (This);
+    hr = Present_Original (This, SyncInterval, Flags);
+  }
 
   return hr;
+}
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Purpose: Video present source unique identification number descriptor type
+//
+typedef UINT  D3DDDI_VIDEO_PRESENT_SOURCE_ID;
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Purpose: Video present source unique identification number descriptor type.
+//
+typedef UINT  D3DDDI_VIDEO_PRESENT_TARGET_ID;
+
+//
+// DDI level handle that represents a kernel mode object (allocation, device, etc)
+//
+typedef UINT D3DKMT_HANDLE;
+
+
+#define D3DKMT_MAX_PRESENT_HISTORY_RECTS 16
+
+typedef struct _D3DKMT_DIRTYREGIONS {
+  UINT NumRects;
+  RECT Rects[D3DKMT_MAX_PRESENT_HISTORY_RECTS];
+} D3DKMT_DIRTYREGIONS;
+
+typedef enum D3DDDI_FLIPINTERVAL_TYPE { 
+  D3DDDI_FLIPINTERVAL_IMMEDIATE  = 0,
+  D3DDDI_FLIPINTERVAL_ONE        = 1,
+  D3DDDI_FLIPINTERVAL_TWO        = 2,
+  D3DDDI_FLIPINTERVAL_THREE      = 3,
+  D3DDDI_FLIPINTERVAL_FOUR       = 4
+} D3DDDI_FLIPINTERVAL_TYPE;
+
+typedef struct _D3DKMT_FLIPMODEL_PRESENTHISTORYTOKENFLAGS {
+  union {
+    struct {
+      UINT Video                        :1;
+      UINT RestrictedContent            :1;
+      UINT ClipToView                   :1;
+#if (DXGKDDI_INTERFACE_VERSION >= DXGKDDI_INTERFACE_VERSION_WIN8)
+      UINT StereoPreferRight            :1;
+      UINT TemporaryMono                :1;
+      UINT FlipRestart                  :1;
+      UINT ScatterBlt                   :1;
+      UINT AlphaMode                    :2;
+      UINT SignalLimitOnTokenCompletion :1;
+      UINT Reserved                     :22;
+#else
+      UINT Reserved                     :29;
+#endif 
+    };
+    UINT   Value;
+  };
+} D3DKMT_FLIPMODEL_PRESENTHISTORYTOKENFLAGS;
+
+
+typedef enum _D3DDDI_ROTATION { 
+  D3DDDI_ROTATION_IDENTITY  = 1,
+  D3DDDI_ROTATION_90        = 2,
+  D3DDDI_ROTATION_180       = 3,
+  D3DDDI_ROTATION_270       = 4
+} D3DDDI_ROTATION;
+
+typedef struct _D3DKMT_SCATTERBLT
+
+{   ULONG64 hLogicalSurfaceDestination;
+    LONG64  hDestinationCompSurfDWM;
+    UINT64  DestinationCompositionBindingId;
+    RECT    SourceRect;
+    POINT   DestinationOffset;
+} D3DKMT_SCATTERBLT;
+
+
+#define D3DKMT_MAX_PRESENT_HISTORY_SCATTERBLTS 12
+typedef struct _D3DKMT_SCATTERBLTS {
+  UINT              NumBlts;
+  D3DKMT_SCATTERBLT Blts[D3DKMT_MAX_PRESENT_HISTORY_SCATTERBLTS];
+} D3DKMT_SCATTERBLTS;
+
+typedef ULONGLONG  D3DKMT_VISTABLTMODEL_PRESENTHISTORYTOKEN;
+
+typedef struct _D3DKMT_FLIPMODEL_PRESENTHISTORYTOKEN {
+  UINT64                                    FenceValue;
+  ULONG64                                   hLogicalSurface;
+  UINT                                      SwapChainIndex;
+  UINT64                                    PresentLimitSemaphoreId;
+  D3DDDI_FLIPINTERVAL_TYPE                  FlipInterval;
+  D3DKMT_FLIPMODEL_PRESENTHISTORYTOKENFLAGS Flags;
+#if (DXGKDDI_INTERFACE_VERSION >= DXGKDDI_INTERFACE_VERSION_WIN8)
+  LONG64                                    hCompSurf;
+  UINT64                                    CompositionSyncKey;
+  UINT                                      RemainingTokens;
+  RECT                                      ScrollRect;
+  POINT                                     ScrollOffset;
+  UINT                                      PresentCount;
+  FLOAT                                     RevealColor[4];
+  D3DDDI_ROTATION                           Rotation;
+  D3DKMT_SCATTERBLTS                        ScatterBlts;
+  D3DKMT_HANDLE                             hSyncObject;
+#endif 
+  D3DKMT_DIRTYREGIONS                       DirtyRegions;
+} D3DKMT_FLIPMODEL_PRESENTHISTORYTOKEN;
+
+
+typedef struct _D3DKMT_BLTMODEL_PRESENTHISTORYTOKEN
+{   ULONG64                             hLogicalSurface;
+    ULONG64                             hPhysicalSurface;
+    ULONG64                             EventId;
+    D3DKMT_DIRTYREGIONS                 DirtyRegions;
+} D3DKMT_BLTMODEL_PRESENTHISTORYTOKEN;
+
+
+typedef struct _D3DKMT_FENCE_PRESENTHISTORYTOKEN
+{
+    UINT64 Key;
+} D3DKMT_FENCE_PRESENTHISTORYTOKEN;
+
+typedef struct _D3DKMT_GDIMODEL_SYSMEM_PRESENTHISTORYTOKEN
+
+{   ULONG64 hlsurf;
+    DWORD   dwDirtyFlags;
+    UINT64  uiCookie;
+} D3DKMT_GDIMODEL_SYSMEM_PRESENTHISTORYTOKEN;
+
+
+
+typedef enum _D3DKMT_PRESENT_MODEL
+
+{   D3DKMT_PM_UNINITIALIZED          = 0,
+    D3DKMT_PM_REDIRECTED_GDI         = 1,
+    D3DKMT_PM_REDIRECTED_FLIP        = 2,
+    D3DKMT_PM_REDIRECTED_BLT         = 3,
+    D3DKMT_PM_REDIRECTED_VISTABLT    = 4,
+    D3DKMT_PM_SCREENCAPTUREFENCE     = 5,
+    D3DKMT_PM_REDIRECTED_GDI_SYSMEM  = 6,
+    D3DKMT_PM_REDIRECTED_COMPOSITION = 7,
+} D3DKMT_PRESENT_MODEL;
+
+
+typedef struct            _D3DKMT_COMPOSITION_PRESENTHISTORYTOKEN
+{ ULONG64 hPrivateData; }  D3DKMT_COMPOSITION_PRESENTHISTORYTOKEN;
+
+
+typedef struct _D3DKMT_GDIMODEL_PRESENTHISTORYTOKEN {
+  ULONG64             hLogicalSurface;
+  ULONG64             hPhysicalSurface;
+#if (DXGKDDI_INTERFACE_VERSION >= DXGKDDI_INTERFACE_VERSION_WIN8)
+  RECT                ScrollRect;
+  POINT               ScrollOffset;
+#endif 
+  D3DKMT_DIRTYREGIONS DirtyRegions;
+} D3DKMT_GDIMODEL_PRESENTHISTORYTOKEN;
+
+typedef struct _D3DKMT_PRESENTHISTORYTOKEN {
+  D3DKMT_PRESENT_MODEL Model;
+  UINT                 TokenSize;
+#if (DXGKDDI_INTERFACE_VERSION >= DXGKDDI_INTERFACE_VERSION_WIN8)
+  UINT64               CompositionBindingId;
+#endif 
+  union {
+    D3DKMT_FLIPMODEL_PRESENTHISTORYTOKEN       Flip;
+    D3DKMT_BLTMODEL_PRESENTHISTORYTOKEN        Blt;
+    D3DKMT_VISTABLTMODEL_PRESENTHISTORYTOKEN   VistaBlt;
+    D3DKMT_GDIMODEL_PRESENTHISTORYTOKEN        Gdi;
+    D3DKMT_FENCE_PRESENTHISTORYTOKEN           Fence;
+    D3DKMT_GDIMODEL_SYSMEM_PRESENTHISTORYTOKEN GdiSysMem;
+    D3DKMT_COMPOSITION_PRESENTHISTORYTOKEN     Composition;
+  } Token;
+} D3DKMT_PRESENTHISTORYTOKEN;
+
+typedef struct _D3DKMT_PRESENTFLAGS {
+  union {
+    struct {
+      UINT Blt                 :1;
+      UINT ColorFill           :1;
+      UINT Flip                :1;
+      UINT FlipDoNotFlip       :1;
+      UINT FlipDoNotWait       :1;
+      UINT FlipRestart         :1;
+      UINT DstRectValid        :1;
+      UINT SrcRectValid        :1;
+      UINT RestrictVidPnSource :1;
+      UINT SrcColorKey         :1;
+      UINT DstColorKey         :1;
+      UINT LinearToSrgb        :1;
+      UINT PresentCountValid   :1;
+      UINT Rotate              :1;
+      UINT PresentToBitmap     :1;
+      UINT RedirectedFlip      :1;
+      UINT RedirectedBlt       :1;
+
+#if (DXGKDDI_INTERFACE_VERSION >= DXGKDDI_INTERFACE_VERSION_WIN8)
+      UINT FlipStereo                 :1;
+      UINT FlipStereoTemporaryMono    :1;
+      UINT FlipStereoPreferRight      :1;
+      UINT BltStereoUseRight          :1;
+      UINT PresentHistoryTokenOnly    :1;
+      UINT PresentRegionsValid        :1;
+      UINT PresentDDA                 :1;
+      UINT ProtectedContentBlankedOut :1;
+      UINT RemoteSession              :1;
+      UINT Reserved                   :6;
+#else 
+      UINT Reserved  :15;
+#endif 
+    };
+    UINT   Value;
+  };
+} D3DKMT_PRESENTFLAGS;
+
+typedef struct _D3DKMT_MOVE_RECT {
+  POINT SourcePoint;
+  RECT  DestRect;
+} D3DKMT_MOVE_RECT;
+
+typedef struct _D3DKMT_PRESENT_RGNS {
+        UINT               DirtyRectCount;
+  const RECT             *pDirtyRects;
+        UINT               MoveRectCount;
+  const D3DKMT_MOVE_RECT *pMoveRects;
+} D3DKMT_PRESENT_RGNS;
+
+// Used as a value for D3DDDI_VIDEO_PRESENT_SOURCE_ID and D3DDDI_VIDEO_PRESENT_TARGET_ID types to specify
+// that the respective video present source/target ID hasn't been initialized.
+#define D3DDDI_ID_UNINITIALIZED (UINT)(~0)
+
+// TODO:[mmilirud] Define this as (UINT)(~1) to avoid collision with valid source ID equal to 0.
+//
+// Used as a value for D3DDDI_VIDEO_PRESENT_SOURCE_ID and D3DDDI_VIDEO_PRESENT_TARGET_ID types to specify
+// that the respective video present source/target ID isn't applicable for the given execution context.
+#define D3DDDI_ID_NOTAPPLICABLE (UINT)(0)
+
+// Used as a value for D3DDDI_VIDEO_PRESENT_SOURCE_ID and D3DDDI_VIDEO_PRESENT_TARGET_ID types to specify
+// that the respective video present source/target ID describes every VidPN source/target in question.
+#define D3DDDI_ID_ALL (UINT)(~2)
+
+
+//
+// Hardcoded VidPnSource count
+//
+#define D3DKMDT_MAX_VIDPN_SOURCES_BITCOUNT      4
+#define D3DKMDT_MAX_VIDPN_SOURCES               (1 << D3DKMDT_MAX_VIDPN_SOURCES_BITCOUNT)
+
+#define D3DDDI_MAX_BROADCAST_CONTEXT        64
+
+typedef struct _D3DKMDT_VIDEO_PRESENT_SOURCE {
+  D3DDDI_VIDEO_PRESENT_SOURCE_ID Id;
+  DWORD                          dwReserved;
+} D3DKMDT_VIDEO_PRESENT_SOURCE;
+
+typedef struct _D3DKMT_PRESENT {
+  union {
+    D3DKMT_HANDLE hDevice;
+    D3DKMT_HANDLE hContext;
+  };
+
+  HWND                             hWindow;
+  D3DDDI_VIDEO_PRESENT_SOURCE_ID   VidPnSourceId;
+  D3DKMT_HANDLE                    hSource;
+  D3DKMT_HANDLE                    hDestination;
+  UINT                             Color;
+  RECT                             DstRect;
+  RECT                             SrcRect;
+  UINT                             SubRectCnt;
+  const RECT                     *pSrcSubRects;
+  UINT                             PresentCount;
+  D3DDDI_FLIPINTERVAL_TYPE         FlipInterval;
+  D3DKMT_PRESENTFLAGS              Flags;
+  ULONG                            BroadcastContextCount;
+  D3DKMT_HANDLE                    BroadcastContext [D3DDDI_MAX_BROADCAST_CONTEXT];
+  HANDLE                           PresentLimitSemaphore;
+  D3DKMT_PRESENTHISTORYTOKEN       PresentHistoryToken;
+
+#if (DXGKDDI_INTERFACE_VERSION >= DXGKDDI_INTERFACE_VERSION_WIN8)
+  D3DKMT_PRESENT_RGNS            *pPresentRegions;
+#endif 
+} D3DKMT_PRESENT;
+
+#include <SpecialK/render_backend.h>
+
+typedef
+NTSTATUS (APIENTRY * D3DKMTPresent_pfn)(const D3DKMT_PRESENT *pData);
+              static D3DKMTPresent_pfn
+                     D3DKMTPresent_Original = nullptr;
+
+#define NT_SUCCESS(Status) (((NTSTATUS)(Status)) >= 0)
+
+NTSTATUS
+APIENTRY
+D3DKMTPresent_Override (const D3DKMT_PRESENT *pData)
+{
+  // Start / End / Readback Pipeline Stats
+  if (SK_GetCurrentRenderBackend ().swapchain != nullptr && SK_GetFramesDrawn () > 240)
+  {
+    SK_D3D11_UpdateRenderStats ((IDXGISwapChain *)SK_GetCurrentRenderBackend ().swapchain);
+  }
+
+  // Establish the API used this frame (and handle possible translation layers)
+  //
+  switch (SK_GetDLLRole ())
+  {
+    case DLL_ROLE::D3D8:
+      SK_GetCurrentRenderBackend ().api = SK_RenderAPI::D3D8On11;
+      break;
+    case DLL_ROLE::DDraw:
+      SK_GetCurrentRenderBackend ().api = SK_RenderAPI::DDrawOn11;
+      break;
+    default:
+      SK_GetCurrentRenderBackend ().api = SK_RenderAPI::D3D11;
+      break;
+  }
+
+  SK_BeginBufferSwap ();
+
+  if (config.render.gl.osd_in_vidcap && SK_GetFramesDrawn () > 240)
+  {
+    if ( SK_GetCurrentRenderBackend ().swapchain != nullptr &&
+         SK_GetCurrentRenderBackend ().device    != nullptr )
+    {
+      SK_CEGUI_DrawD3D11 ((IDXGISwapChain *)SK_GetCurrentRenderBackend ().swapchain);
+    }
+  }
+
+  NTSTATUS ntStat =
+    D3DKMTPresent_Original (pData);
+
+  if (NT_SUCCESS (ntStat) && config.render.gl.osd_in_vidcap && SK_GetFramesDrawn () > 240)
+  {
+    if ( SK_GetCurrentRenderBackend ().swapchain != nullptr &&
+         SK_GetCurrentRenderBackend ().device    != nullptr )
+    {
+      SK_EndBufferSwap (S_OK, (ID3D11Device *)SK_GetCurrentRenderBackend ().device);
+
+      SK_D3D11_TexCacheCheckpoint ();
+    }
+  }
+
+  return ntStat;
 }
 
 HRESULT
@@ -2473,15 +2836,26 @@ HRESULT
                                      UINT            SyncInterval,
                                      UINT            Flags)
 {
-extern HRESULT
-  STDMETHODCALLTYPE PresentCallback (IDXGISwapChain *This,
-                                     UINT            SyncInterval,
-                                     UINT            Flags);
+  //if ( SK_GetCurrentRenderBackend ().swapchain != nullptr &&
+  //     SK_GetCurrentRenderBackend ().device    != nullptr &&
+  //    ( config.render.gl.osd_in_vidcap && SK_GetFramesDrawn () > 240 ))
+  //  return SK_DXGI_Present (This, SyncInterval, Flags);
+
   //
   // Early-out for games that use testing to minimize blocking
   //
   if (Flags & DXGI_PRESENT_TEST)
     return SK_DXGI_Present (This, SyncInterval, Flags);
+
+  DXGI_SWAP_CHAIN_DESC desc = { };
+       This->GetDesc (&desc);
+
+  if ( (desc.Flags & DXGI_SWAP_CHAIN_FLAG_FULLSCREEN_VIDEO) ||
+       (desc.Flags & DXGI_SWAP_CHAIN_FLAG_YUV_VIDEO)        ||
+       (desc.Flags & DXGI_SWAP_CHAIN_FLAG_RESTRICTED_CONTENT) )
+  {
+    return SK_DXGI_Present (This, SyncInterval, Flags);
+  }
 
 
 #ifdef DARK_SOULS
@@ -2564,9 +2938,6 @@ extern HRESULT
            SUCCEEDED (pDevDXGI->GetAdapter               (&pAdapter)) &&
            SUCCEEDED (pAdapter->GetParent  (IID_PPV_ARGS (&pFactory))) )
       {
-        DXGI_SWAP_CHAIN_DESC desc;
-        This->GetDesc      (&desc);
-
         SK_GetCurrentRenderBackend ().device    = pDev;
         SK_GetCurrentRenderBackend ().swapchain = This;
 
@@ -2580,12 +2951,15 @@ extern HRESULT
         if (bAlwaysAllowFullscreen)
           pFactory->MakeWindowAssociation (desc.OutputWindow, DXGI_MWA_NO_WINDOW_CHANGES);
 
-        hWndRender       = desc.OutputWindow;
+        if (hWndRender == 0 || (! IsWindowVisible (hWndRender)))
+        {
+          hWndRender       = desc.OutputWindow;
 
-        SK_InstallWindowHook (hWndRender);
-        game_window.hWnd =    hWndRender;
+          SK_InstallWindowHook (hWndRender);
+          game_window.hWnd =    hWndRender;
 
-        SK_DXGI_BringRenderWindowToTop ();
+          SK_DXGI_BringRenderWindowToTop ();
+        }
       }
     }
   }
@@ -2596,15 +2970,11 @@ extern HRESULT
 
   if ( config.render.framerate.flip_discard && config.render.dxgi.allow_tearing )
   {
-    DXGI_SWAP_CHAIN_DESC desc;
-    if (SUCCEEDED (This->GetDesc (&desc)))
+    if (desc.Windowed)
     {
-      if (desc.Windowed)
-      {
-        Flags       |= DXGI_PRESENT_ALLOW_TEARING;
-        SyncInterval = 0;
-        interval     = 0;
-      }
+      Flags       |= DXGI_PRESENT_ALLOW_TEARING;
+      SyncInterval = 0;
+      interval     = 0;
     }
   }
 
@@ -4891,11 +5261,33 @@ SK_HookDXGI (void)
                   SK_MakePrettyAddress (CreateDXGIFactory2_Import).c_str () ),
                 L" DXGI 1.3 " );
 
+    //LPVOID pfnD3DKMTPresent_Target = nullptr;
+    //if ( MH_OK ==
+    //       SK_CreateDLLHook2 (      L"d3d11.dll",
+    //                                 "D3DKMTPresent",
+    //                                  D3DKMTPresent_Override,
+    //          static_cast_p2p <void>(&D3DKMTPresent_Original),
+    //                             &pfnD3DKMTPresent_Target ) )
+    //{
+    //  MH_QueueEnableHook (pfnD3DKMTPresent_Target);
+    //}
+
     InterlockedIncrement (&hooked);
   }
 
   else
   {
+    //LPVOID pfnD3DKMTPresent_Target = nullptr;
+    //if ( MH_OK ==
+    //       SK_CreateDLLHook2 (      L"d3d11.dll",
+    //                                 "D3DKMTPresent",
+    //                                  D3DKMTPresent_Override,
+    //          static_cast_p2p <void>(&D3DKMTPresent_Original),
+    //                             &pfnD3DKMTPresent_Target ) )
+    //{
+    //  MH_QueueEnableHook (pfnD3DKMTPresent_Target);
+    //}
+
     LPVOID pfnCreateDXGIFactory  = nullptr;
     LPVOID pfnCreateDXGIFactory1 = nullptr;
     LPVOID pfnCreateDXGIFactory2 = nullptr;
@@ -5335,7 +5727,7 @@ SK_DXGI_HookFactory (IDXGIFactory* pFactory)
                          EnumAdapters_Original,
                          EnumAdapters_pfn );
   }
-  
+
 
   // DXGI 1.2+
 

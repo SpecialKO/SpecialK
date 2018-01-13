@@ -2329,9 +2329,15 @@ SK_SetWindowStyle (DWORD_PTR dwStyle_ptr, SetWindowLongPtr_pfn pDispatchFunc)
     pDispatchFunc = game_window.SetWindowLongPtr;
 
 
-  pDispatchFunc ( game_window.hWnd,
-                    GWL_STYLE,
-                      game_window.actual.style );
+  if (pDispatchFunc)
+  {
+    pDispatchFunc ( game_window.hWnd,
+                      GWL_STYLE,
+                        game_window.actual.style );
+  }
+
+  else SK_LOG0 ( ( L" Incorrect user32 API initialization order (race for SetWindowLongPtr...)" ),
+                   L"Window Sys" );
 }
 
 void
@@ -2351,9 +2357,16 @@ SK_SetWindowStyleEx (DWORD_PTR dwStyleEx_ptr, SetWindowLongPtr_pfn pDispatchFunc
     pDispatchFunc = game_window.SetWindowLongPtr;
 
 
-  pDispatchFunc ( game_window.hWnd,
-                    GWL_EXSTYLE,
-                      game_window.actual.style_ex );
+  if (pDispatchFunc)
+  {
+    pDispatchFunc ( game_window.hWnd,
+                      GWL_EXSTYLE,
+                        game_window.actual.style_ex );
+  }
+
+  else SK_LOG0 ( ( L" Incorrect user32 API initialization order (race for SetWindowLongPtr...)" ),
+                   L"Window Sys" );
+                  
 }
 
 RECT
@@ -2531,7 +2544,8 @@ SK_AdjustBorder (void)
     {
       UNREFERENCED_PARAMETER (user);
 
-      SleepEx (33, FALSE);
+      while (ReadPointerAcquire ((void **)&GetWindowLongPtrW_Original))
+        SleepEx (33, FALSE);
 
       GetWindowRect (game_window.hWnd, &game_window.actual.window);
       GetClientRect (game_window.hWnd, &game_window.actual.client);
@@ -4300,6 +4314,38 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   return lRet;
 }
 #else
+
+void
+SK_Input_ClassifyRawInput (HRAWINPUT lParam, bool& mouse, bool& keyboard, bool& gamepad)
+{
+  RAWINPUT data = { };
+  UINT     size = sizeof RAWINPUT;
+  
+  int      ret  =
+    GetRawInputData_Original ((HRAWINPUT)lParam, RID_HEADER, &data, &size, sizeof (RAWINPUTHEADER) );
+  
+  if (ret)
+  {
+    switch (data.header.dwType)
+    {
+      case RIM_TYPEMOUSE:
+        mouse = true;
+        break;
+  
+      case RIM_TYPEKEYBOARD:
+        // TODO: Post-process this; the RawInput API also duplicates the legacy mouse buttons as keys.
+        //
+        //         We need to treat events reflecting those keys as MOUSE events.
+        keyboard = true;
+        break;
+  
+      default:
+        gamepad = true;
+        break;
+    }
+  }
+}
+
 __declspec (noinline)
 LRESULT
 CALLBACK
@@ -4979,8 +5025,23 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   if (uMsg >= WM_KEYFIRST   && uMsg <= WM_KEYLAST   && SK_ImGui_WantKeyboardCapture ())
     return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
 
-  if (uMsg == WM_INPUT      && SK_ImGui_WantGamepadCapture ())
-    return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+  if (uMsg == WM_INPUT)
+  {
+    bool mouse    = false,
+         keyboard = false,
+         gamepad  = false;
+
+    SK_Input_ClassifyRawInput ((HRAWINPUT)lParam, mouse, keyboard, gamepad);
+
+    if (mouse && SK_ImGui_WantMouseCapture ())
+      return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+
+    if (keyboard && SK_ImGui_WantKeyboardCapture ())
+      return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+
+    if (gamepad && SK_ImGui_WantGamepadCapture ())
+      return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+  }
 
 
 
@@ -5265,7 +5326,7 @@ SK_InstallWindowHook (HWND hWnd)
   // Compat Hack: EverQuest (hook classfunc)
   //
   //   Initial PeekMessage hook will handle input at server select,
-  //     hooked window proc will handle events in-game.
+  //     hooked window proc will handle events in -game.
   //
   //   This game hooks its own message loop dispatch functions, probably
   //     as an anti-cheat method. Hooking the class procedure is the only
@@ -5274,7 +5335,7 @@ SK_InstallWindowHook (HWND hWnd)
   //if (! _wcsicmp (SK_GetHostApp (), L"eqgame.exe"))
     hook_classfunc = true;
   
-  if (hook_classfunc && (! caught_register))
+  if (hook_classfunc && (! caught_register) /*&& (! GetModuleHandleW (L"action_x64.dll")) && (! GetModuleHandleW (L"action_x86.dll"))*/ )
   {
     game_window.hooked = false;
 
@@ -5297,6 +5358,28 @@ SK_InstallWindowHook (HWND hWnd)
       game_window.hooked = false;
     }
     
+#if 0
+    else
+    {
+      game_window.WndProc_Original =
+        static_cast <WNDPROC> (wnd_proc);
+
+      game_window.SetWindowLongPtr ( hWnd,
+                                       GWLP_WNDPROC,
+            reinterpret_cast <LONG_PTR> (SK_DetourWindowProc) );
+  
+      //game_window.SetClassLongPtr ( hWnd,
+      //                                GWLP_WNDPROC,
+      //      reinterpret_cast <LONG_PTR> (SK_DetourWindowProc) );
+  
+      if (game_window.unicode)
+        SetClassLongPtrW ( hWnd, GCLP_WNDPROC, (LONG_PTR)SK_DetourWindowProc );
+      else
+        SetClassLongPtrA ( hWnd, GCLP_WNDPROC, (LONG_PTR)SK_DetourWindowProc );
+
+      dll_log.Log (L"[Window Mgr]  >> Hooked WndProc.");
+    }
+#endif
     else if ( MH_OK ==
                 MH_CreateHook (
                                                       wnd_proc,
@@ -5312,6 +5395,7 @@ SK_InstallWindowHook (HWND hWnd)
       game_window.hooked = false;
     }
 #endif
+    SK_ApplyQueuedHooks ();
   }
   
   else if (! caught_register)
@@ -6036,6 +6120,7 @@ SK_HookWinAPI (void)
                               GetSystemMetrics_Detour,
      static_cast_p2p <void> (&GetSystemMetrics_Original) );
 
+#if 0
   SK_CreateDLLHook2 (       L"user32.dll",
                             "ChangeDisplaySettingsA",
                              ChangeDisplaySettingsA_Detour,
@@ -6055,6 +6140,7 @@ SK_HookWinAPI (void)
                             "ChangeDisplaySettingsExW",
                              ChangeDisplaySettingsExW_Detour,
     static_cast_p2p <void> (&ChangeDisplaySettingsExW_Original) );
+#endif
 
 
   EnumDisplaySettingsA_Original =

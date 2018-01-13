@@ -50,6 +50,12 @@ enum
   VertexBuffer,
 };
 
+void
+SK_GL_PushMostStates (void);
+
+void
+SK_GL_PopMostStates (void);
+
 #if 0
 struct SK_GL_KnownShaders
 {
