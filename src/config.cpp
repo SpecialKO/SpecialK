@@ -526,7 +526,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
     SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\Global\macros.ini)";
 
   while (init < 0)
-    SleepEx (15, FALSE);
+    MsgWaitForMultipleObjectsEx (0, nullptr, 2UL, QS_ALLINPUT, MWMO_ALERTABLE);
 
   if (init == FALSE)
   {

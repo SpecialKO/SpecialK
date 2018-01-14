@@ -120,7 +120,7 @@ WINAPI
 WaitForInit_DI8 (void)
 {
   while (! ReadAcquire (&__di8_ready))
-    SleepEx (config.system.init_delay, TRUE);
+    MsgWaitForMultipleObjectsEx (0, nullptr, 2UL, QS_ALLINPUT, MWMO_ALERTABLE);
 }
 
 

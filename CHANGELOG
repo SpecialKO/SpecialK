@@ -1,7 +1,14 @@
+0.8.64:
+
+ + Added option to disable CEGUI in D3D9
+ + Fixed D3D11 startup issues in some games
+ + Fixed crash handler not re-installing itself in Steam Brakepad games
+
+
 0.8.63:
 
  + Fixed window focus issues in multi-render context OpenGL games
- + Added option to disabe CEGUI in D3D11
+ + Added option to disable CEGUI in D3D11
  + Fixed ImGui reset on resolution change in DXGI graphics APIs
 
    >> Overlay doesn't disappear when resizing anymore :)

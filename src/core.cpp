@@ -858,7 +858,7 @@ SK_InitCore (std::wstring backend, void* callback)
                     config.nvidia.sli.num_gpus.c_str (),
                       config.nvidia.sli.compatibility.c_str ()
               )
-          )
+         )
       {
         restart = true;
       }
@@ -997,19 +997,17 @@ SK_InitCore (std::wstring backend, void* callback)
 void
 WaitForInit (void)
 {
-  if (ReadNoFence (&__SK_Init))
+  if (ReadAcquire (&__SK_Init))
     return;
 
-  if (SK_GetDLLRole () == DLL_ROLE::OpenGL)
+  while (ReadPointerAcquire (&hInitThread) != INVALID_HANDLE_VALUE)
   {
-    while (ReadPointerAcquire (&hInitThread) != INVALID_HANDLE_VALUE)
-    {
-      if ( ReadPointerAcquire (&hInitThread) == GetCurrentThread () )
-        break;
+    if ( ReadPointerAcquire (&hInitThread) == GetCurrentThread () )
+      break;
 
-      if ( WAIT_OBJECT_0 == MsgWaitForMultipleObjects (1, const_cast <HANDLE *>(&hInitThread), FALSE, 150, QS_ALLINPUT) )
-        break;
-    }
+    if ( WAIT_OBJECT_0 ==
+           MsgWaitForMultipleObjectsEx (1, const_cast <HANDLE *>(&hInitThread), 2UL, QS_ALLINPUT, MWMO_ALERTABLE) )
+      break;
   }
 
   // First thread to reach this point wins ... a shiny new car and
@@ -1025,26 +1023,17 @@ WaitForInit (void)
   //
   if (! InterlockedCompareExchange (&__SK_Init, TRUE, FALSE))
   {
-    if (SK_GetDLLRole () == DLL_ROLE::OpenGL)
-    {
-      if ( ReadPointerAcquire (&hInitThread) != GetCurrentThread () &&
-           ReadPointerAcquire (&hInitThread) != INVALID_HANDLE_VALUE )
-      {
-        SK_Input_Init       ();
-        SK_ApplyQueuedHooks ();
-
-        CloseHandle (
-          reinterpret_cast <HANDLE> (
-            InterlockedExchangePointer ( &hInitThread, INVALID_HANDLE_VALUE )
-          )
-        );
-      }
-    }
-
-    else
+    if ( ReadPointerAcquire (&hInitThread) != GetCurrentThread () &&
+         ReadPointerAcquire (&hInitThread) != INVALID_HANDLE_VALUE )
     {
       SK_Input_Init       ();
       SK_ApplyQueuedHooks ();
+
+      CloseHandle (
+        reinterpret_cast <HANDLE> (
+          InterlockedExchangePointer ( &hInitThread, INVALID_HANDLE_VALUE )
+        )
+      );
     }
 
     // Load user-defined DLLs (Lazy)
@@ -1711,23 +1700,15 @@ BACKEND_INIT:
       return 0;
     }, nullptr, 0x00, nullptr);
 
-    if (SK_GetDLLRole () == DLL_ROLE::OpenGL)
-    {
-      InterlockedExchangePointer (
-        &hInitThread,
-          CreateThread ( nullptr,
-                           0,
-                             DllThread,
-                               &init_,
-                                 0x00,
-                                   nullptr )
-      ); // Avoid the temptation to wait on this thread
-    }
-
-    else
-    {
-      DllThread (&init_);
-    }
+    InterlockedExchangePointer (
+      &hInitThread,
+        CreateThread ( nullptr,
+                         0,
+                           DllThread,
+                             &init_,
+                               0x00,
+                                 nullptr )
+    ); // Avoid the temptation to wait on this thread
   }
 
   init_mutex->unlock ();
@@ -1757,8 +1738,10 @@ std::set <HWND> dummy_windows;
 HWND
 SK_Win32_CreateDummyWindow (void)
 {
-  WNDCLASSW wc          = { };
-  WNDCLASS  wc_existing = { };
+  //SleepEx (5000UL, FALSE);
+
+  static WNDCLASSW wc          = { };
+  static WNDCLASS  wc_existing = { };
 
   wc.style         = CS_GLOBALCLASS;
   wc.lpfnWndProc   = DefWindowProcW;

@@ -139,13 +139,13 @@ SK_BootD3D9 (void)
   SK_D3D9_PreHook (void);
   SK_D3D9_PreHook ();
 
-  CreateThread (nullptr, 0, [](LPVOID) -> DWORD {
+  //CreateThread (nullptr, 0, [](LPVOID) -> DWORD {
     SK_HookD3D9 ();
 
-    CloseHandle (GetCurrentThread ());
-
-    return 0;
-  }, nullptr, 0x00, nullptr);
+    //CloseHandle (GetCurrentThread ());
+    //
+    //return 0;
+  //}, nullptr, 0x00, nullptr);
 
   if (config.textures.d3d9_mod)
   {
@@ -222,6 +222,9 @@ SK_BootDDraw (void)
 void
 SK_BootDXGI (void)
 {
+  if (! config.apis.dxgi.d3d11.hook)
+    return;
+
   while (backend_dll == nullptr)
   {
     dll_log.Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (dxgi.dll) -- tid=%x ***", GetCurrentThreadId ());

@@ -171,7 +171,12 @@ Sleep_Detour (DWORD dwMilliseconds)
         SK::Framerate::events.getMessagePumpStats ().wake (dwMilliseconds);
 
       if (dwMilliseconds <= 1)
-        SleepEx (0, TRUE);
+      {
+        if (GetThreadPriority (GetCurrentThread ()) == THREAD_PRIORITY_NORMAL)
+          SleepEx (0, TRUE);
+        else
+          YieldProcessor ();
+      }
 
       return;
     }

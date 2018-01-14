@@ -542,13 +542,6 @@ ImGui_ImplDX9_NewFrame (void)
   RECT rect;
   GetClientRect (g_hWnd, &rect);
 
-  static RECT last_client;
-
-  if (rect.right - rect.left > 0 && rect.bottom - rect.top > 0)
-    last_client = rect;
-
-  rect = last_client;
-
   io.DisplayFramebufferScale =
     ImVec2 ( static_cast <float> (rect.right  - rect.left),
              static_cast <float> (rect.bottom - rect.top ) );

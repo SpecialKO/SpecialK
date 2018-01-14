@@ -60,7 +60,7 @@ WINAPI
 WaitForInit_D3D8 (void)
 {
   while (! InterlockedCompareExchange (&__d3d8_ready, FALSE, FALSE))
-    SleepEx (config.system.init_delay, TRUE);
+    MsgWaitForMultipleObjectsEx (0, nullptr, 2UL, QS_ALLINPUT, MWMO_ALERTABLE);
 }
 
 typedef IUnknown*

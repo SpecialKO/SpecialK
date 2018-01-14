@@ -373,7 +373,7 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
   if ((! SK_LoadLibrary_SILENCE) && GetModuleHandle (wszDbgHelp))
   {    
     char  szSymbol [1024] = { };
-    ULONG ulLen  =  1024;
+    ULONG ulLen  =  1023;
 
     ulLen =
       SK_GetSymbolNameFromModuleAddr (
@@ -421,7 +421,6 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
       //   not good. Hash the string and compare it in the future.
       if ( StrStrIW (wszModName, L"Activation")          ||
            StrStrIW (wszModName, L"rxcore")              ||
-           StrStrIW (wszModName, L"GeDoSaTo")            ||
            StrStrIW (wszModName, L"gameoverlayrenderer") ||
            StrStrIW (wszModName, L"RTSSHooks")           ||
            StrStrIW (wszModName, L"Nahimic2DevProps")    ||
@@ -1262,10 +1261,11 @@ SK_WalkModules (int cbNeeded, HANDLE hProc, HMODULE* hMods, SK_ModuleEnum when)
 {
   SK_LockDllLoader ();
 
+  bool rehook = false;
+
   for ( int i = 0; i < static_cast <int> (cbNeeded / sizeof (HMODULE)); i++ )
   {
     wchar_t wszModName [MAX_PATH + 2] = { };
-            ZeroMemory (wszModName, sizeof (wchar_t) * (MAX_PATH + 2));
 
     __try
     {
@@ -1275,33 +1275,28 @@ SK_WalkModules (int cbNeeded, HANDLE hProc, HMODULE* hMods, SK_ModuleEnum when)
                                       wszModName,
                                         MAX_PATH ) )
       {
-        if ( (! third_party_dlls.overlays.rtss_hooks) &&
-              StrStrIW (wszModName, L"RTSSHooks") )
+        if (! rehook)
         {
-          // Hold a reference to this DLL so it is not unloaded prematurely
-          GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-                                wszModName,
-                                  &third_party_dlls.overlays.rtss_hooks );
-
-          if (config.compatibility.rehook_loadlibrary)
+          if ( (! third_party_dlls.overlays.rtss_hooks) &&
+                StrStrIW (wszModName, L"RTSSHooks") )
           {
-            SK_ReHookLoadLibrary ();
-            SleepEx (16, FALSE);
+            // Hold a reference to this DLL so it is not unloaded prematurely
+            GetModuleHandleEx ( 0x0,
+                                  wszModName,
+                                    &third_party_dlls.overlays.rtss_hooks );
+
+            rehook = config.compatibility.rehook_loadlibrary;
           }
-        }
 
-        else if ( (! third_party_dlls.overlays.steam_overlay) &&
-                   StrStrIW (wszModName, L"gameoverlayrenderer") )
-        {
-          // Hold a reference to this DLL so it is not unloaded prematurely
-          GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-                                wszModName,
-                                  &third_party_dlls.overlays.steam_overlay );
-
-          if (config.compatibility.rehook_loadlibrary)
+          else if ( (! third_party_dlls.overlays.steam_overlay) &&
+                     StrStrIW (wszModName, L"gameoverlayrenderer") )
           {
-            SK_ReHookLoadLibrary ();
-            SleepEx (16, FALSE);
+            // Hold a reference to this DLL so it is not unloaded prematurely
+            GetModuleHandleEx ( 0x0,
+                                  wszModName,
+                                    &third_party_dlls.overlays.steam_overlay );
+
+            rehook = config.compatibility.rehook_loadlibrary;
           }
         }
 
@@ -1315,7 +1310,8 @@ SK_WalkModules (int cbNeeded, HANDLE hProc, HMODULE* hMods, SK_ModuleEnum when)
           if ( StrStrIW (wszModName, wszSteamAPIDLL)    ||
                StrStrIW (wszModName, wszSteamAPIAltDLL) ||
                StrStrIW (wszModName, wszSteamNativeDLL) ||
-               StrStrIW (wszModName, wszSteamClientDLL) ) {
+               StrStrIW (wszModName, wszSteamClientDLL) )
+          {
             SK_HookSteamAPI ();
           }
         }
@@ -1327,6 +1323,11 @@ SK_WalkModules (int cbNeeded, HANDLE hProc, HMODULE* hMods, SK_ModuleEnum when)
                            EXCEPTION_CONTINUE_SEARCH  )
     {
       // Sometimes a DLL will be unloaded in the middle of doing this... just ignore that.
+    }
+
+    if (rehook)
+    {
+      SK_ReHookLoadLibrary ();
     }
   }
 
@@ -1354,8 +1355,6 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
                             dwProcID );
 
   if (pLogger != nullptr) pLogger->flush_freq = 0;
-
-
   if (hProc == nullptr)
   {
     return;
@@ -1383,11 +1382,12 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
 
     CreateThread (nullptr, 0, [](LPVOID user) -> DWORD
       {
-        static volatile LONG walking = 0;
+        SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_BELOW_NORMAL);
 
+        static volatile LONG                walking = 0;
         while (InterlockedCompareExchange (&walking, 1, 0))
         {
-          SleepEx (1, FALSE);
+          SleepEx (200UL, FALSE);
         }
 
         auto CleanupLog = [](iSK_Logger*& pLogger) ->
@@ -1464,11 +1464,8 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
     SK_ValidateGlobalRTSSProfile ();
   }
 
-#ifdef _WIN64
-  else if ( GetModuleHandle (L"RTSSHooks64.dll") )
-#else
-  else if ( GetModuleHandle (L"RTSSHooks.dll") )
-#endif
+  else if ( SK_RunLHIfBitness (64, GetModuleHandle (L"RTSSHooks64.dll"),
+                                   GetModuleHandle (L"RTSSHooks.dll")) )
   {
     SK_ValidateGlobalRTSSProfile ();
     // RTSS is in High App Detection or Stealth Mode

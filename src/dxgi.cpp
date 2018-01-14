@@ -366,7 +366,7 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
 
   if (cegD3D11 != nullptr)
   {
-    if (config.cegui.enable && (uintptr_t)cegD3D11 > 1)
+    if ((uintptr_t)cegD3D11 > 1)
     {
       SK_TextOverlayManager::getInstance ()->destroyAllOverlays ();
       SK_PopupManager::getInstance ()->destroyAllPopups         ();
@@ -374,7 +374,7 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
 
     rb.releaseOwnedResources ();
 
-    if (config.cegui.enable && (uintptr_t)cegD3D11 > 1)
+    if ((uintptr_t)cegD3D11 > 1)
     {
       CEGUI::WindowManager::getDllSingleton ().cleanDeadPool ();
 
@@ -509,7 +509,7 @@ void WaitForInitDXGI (void)
     if (__SK_bypass && backend_dll != nullptr)
       return;
 
-    MsgWaitForMultipleObjectsEx (0, nullptr, config.system.init_delay, QS_ALLINPUT, MWMO_ALERTABLE);
+    MsgWaitForMultipleObjectsEx (0, nullptr, 2UL, QS_ALLINPUT, MWMO_ALERTABLE);
   }
 }
 
@@ -1991,9 +1991,6 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
 void
 SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 {
-  if ((! This) || ( (This != SK_GetCurrentRenderBackend ().swapchain) && SK_GetCurrentRenderBackend ().swapchain != nullptr))
-    return;
-
   if (__SK_DLL_Ending)
     return;
 
@@ -3490,7 +3487,7 @@ SK_DXGI_ValidateSwapChainResize (IDXGISwapChain* pSwapChain, UINT BufferCount, U
   }
 
   while (ReadAcquire (&init) != -1)
-    SleepEx (16, TRUE);
+    MsgWaitForMultipleObjectsEx (0, nullptr, 2UL, QS_ALLINPUT, MWMO_ALERTABLE);
 
   EnterCriticalSection (&cs_resize);
 
@@ -5415,7 +5412,7 @@ SK_HookDXGI (void)
 
   SK_DXGI_BeginHooking ();
 
-  WaitForInitDXGI ();
+  //WaitForInitDXGI ();
 }
 
 static std::queue <DWORD> old_threads;
@@ -5426,7 +5423,7 @@ dxgi_init_callback (finish_pfn finish)
 {
   if (! SK_IsHostAppSKIM ())
   {
-    //WaitForInitDXGI ();
+    WaitForInitDXGI ();
   }
 
   finish ();
@@ -5812,9 +5809,6 @@ SK_DXGI_HookFactory (IDXGIFactory* pFactory)
 
   // 28 CheckFeatureSupport
   }
-
-  else
-    WaitForInitDXGI ();
 }
 
 #include <mmsystem.h>
@@ -5853,7 +5847,7 @@ HookDXGI (LPVOID user)
 
   if (ReadAcquire (&__dxgi_ready))
   {
-    WaitForInitDXGI ();
+    //WaitForInitDXGI ();
     return 0;
   }
 

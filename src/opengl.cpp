@@ -68,10 +68,8 @@ volatile LONG __gl_ready = FALSE;
 void
 WaitForInit_GL (void)
 {
-  //while (! ReadAcquire (&__gl_ready))
-  //  MsgWaitForMultipleObjectsEx (0, nullptr, 100, QS_ALLINPUT, MWMO_ALERTABLE);
-  //
-  ////WaitForInit ();
+  while (! ReadAcquire (&__gl_ready))
+    MsgWaitForMultipleObjectsEx (0, nullptr, 100, QS_ALLINPUT, MWMO_ALERTABLE);
 }
 
 extern bool SK_InitCOM (void);
@@ -164,10 +162,12 @@ void ResetCEGUI_GL (void)
     return;
 
 
-  if (cegGL == nullptr && SK_GetFramesDrawn () > 4)
+  if (cegGL == nullptr && SK_GetFramesDrawn () > 10)
   {
     if (GetModuleHandle (L"CEGUIOpenGLRenderer-0.dll"))
     {
+      glPushAttrib (GL_ALL_ATTRIB_BITS);
+
   GLint     last_program;              glGetIntegerv   (GL_CURRENT_PROGRAM,              &last_program);
   GLint     last_texture;              glGetIntegerv   (GL_TEXTURE_BINDING_2D,           &last_texture);
   GLint     last_active_texture;       glGetIntegerv   (GL_ACTIVE_TEXTURE,               &last_active_texture);
@@ -257,6 +257,8 @@ void ResetCEGUI_GL (void)
       glBindBuffer      (GL_ELEMENT_ARRAY_BUFFER, last_element_array_buffer);
       
       SK_CEGUI_RelocateLog ();
+      
+      glPopAttrib ();
     }
   }
 }
@@ -332,6 +334,8 @@ WINAPI
 opengl_init_callback (finish_pfn finish)
 {
   SK_BootOpenGL ();
+
+  WaitForInit_GL ();
 
   finish ();
 }

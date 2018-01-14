@@ -599,7 +599,7 @@
       <SectionAlignment>
       </SectionAlignment>
       <FixedBaseAddress>false</FixedBaseAddress>
-      <CreateHotPatchableImage>X86Image</CreateHotPatchableImage>
+      <CreateHotPatchableImage>X64Image</CreateHotPatchableImage>
       <OptimizeReferences>false</OptimizeReferences>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <SetChecksum>false</SetChecksum>

@@ -10437,7 +10437,7 @@ HookD3D11 (LPVOID user)
     }
 
     while (CreateDXGIFactory_Import == nullptr)
-      SleepEx (33, TRUE);
+      MsgWaitForMultipleObjectsEx (0, nullptr, 2UL, QS_ALLINPUT, MWMO_ALERTABLE);
 
     // TODO: Handle situation where CreateDXGIFactory is unloadable
   }

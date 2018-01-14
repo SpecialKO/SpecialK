@@ -3138,6 +3138,19 @@ SK_ImGui_ControlPanel (void)
         ImGui::SetTooltip ("Requires a game restart.");
       }
 
+      if (ImGui::Checkbox ("Enable CEGUI", &config.cegui.enable))
+      {
+        extern void SK_CEGUI_QueueResetD3D9 (void);
+                    SK_CEGUI_QueueResetD3D9 ();
+      }
+
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::BeginTooltip    ();
+        ImGui::TextUnformatted ("Disabling may resolve graphics issues, but will disable achievement pop-ups and OSD text.");
+        ImGui::EndTooltip      ();
+      }
+
       if (config.textures.d3d9_mod)
       {
       ImGui::TreePush ("");

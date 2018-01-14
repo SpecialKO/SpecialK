@@ -74,7 +74,7 @@ WINAPI
 WaitForInit_D3D9 (void)
 {
   while (! ReadAcquire (&__d3d9_ready))
-    SleepEx (config.system.init_delay, TRUE);
+    MsgWaitForMultipleObjectsEx (0, nullptr, 2UL, QS_ALLINPUT, MWMO_ALERTABLE);
 }
 
 extern "C++" void
@@ -527,14 +527,11 @@ void ResetCEGUI_D3D9 (IDirect3DDevice9* pDev);
 void
 SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
 {
-  if (! config.cegui.enable)
-    return;
-
   InterlockedIncrement (&__cegui_frames_drawn);
 
   if (InterlockedCompareExchange (&__gui_reset, FALSE, TRUE))
   {
-    if (cegD3D9 != nullptr)
+    if ((uintptr_t)cegD3D9 > 1)
     {
       SK_TextOverlayManager::getInstance ()->destroyAllOverlays ();
       SK_PopupManager::getInstance       ()->destroyAllPopups   ();
@@ -545,8 +542,8 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
     if (cegD3D9_SB != nullptr) cegD3D9_SB->Release ();
         cegD3D9_SB  = nullptr;
 
-    if (cegD3D9 != nullptr) cegD3D9->destroySystem ();
-        cegD3D9  = nullptr;
+    if ((uintptr_t)cegD3D9 > 1) cegD3D9->destroySystem ();
+                   cegD3D9  = nullptr;
   }
 
   else if (cegD3D9 == nullptr)
@@ -684,17 +681,22 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
     surf_desc.Width  = vp_orig.Width;
     surf_desc.Height = vp_orig.Height;
 
-    CEGUI::System::getDllSingleton ().getRenderer ()->setDisplaySize (
-        CEGUI::Sizef (
-          static_cast <float> (surf_desc.Width),
-          static_cast <float> (surf_desc.Height)
-        )
-    );
+    if (config.cegui.enable && GetModuleHandle (L"CEGUIDirect3D9Renderer-0.dll"))
+    {
+      CEGUI::System::getDllSingleton ().getRenderer ()->setDisplaySize (
+          CEGUI::Sizef (
+            static_cast <float> (surf_desc.Width),
+            static_cast <float> (surf_desc.Height)
+          )
+      );
+    }
 #endif
 
-    cegD3D9->beginRendering ();
+    if ((uintptr_t)cegD3D9 > 1)
+      cegD3D9->beginRendering ();
     {
-      SK_TextOverlayManager::getInstance ()->drawAllOverlays (0.0f, 0.0f);
+      if ((uintptr_t)cegD3D9 > 1)
+        SK_TextOverlayManager::getInstance ()->drawAllOverlays (0.0f, 0.0f);
 
       pDev->SetRenderState (D3DRS_SRGBWRITEENABLE,          FALSE);
       pDev->SetRenderState (D3DRS_ALPHABLENDENABLE,         TRUE);
@@ -704,7 +706,8 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
 
       pDev->SetRenderState (D3DRS_ALPHATESTENABLE,          FALSE);
 
-      CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
+      if ((uintptr_t)cegD3D9 > 1)
+        CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
 
 
       if ( static_cast <int> (SK_GetCurrentRenderBackend ().api) &
@@ -725,10 +728,12 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
 
         pDev->SetRenderState (D3DRS_ALPHATESTENABLE,          FALSE);
 
-        CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
+        if ((uintptr_t)cegD3D9 > 1)
+          CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
       }
     }
-    cegD3D9->endRendering ();
+    if ((uintptr_t)cegD3D9 > 1)
+      cegD3D9->endRendering ();
 
     pDev->SetViewport (&vp_orig);
 
@@ -749,9 +754,6 @@ SK_CEGUI_QueueResetD3D9 (void)
 void
 ResetCEGUI_D3D9 (IDirect3DDevice9* pDev)
 {
-  if (! config.cegui.enable)
-    return;
-
   if (static_cast <ULONG> (ReadAcquire (&__cegui_frames_drawn)) < 5)
   {
     if (! ReadAcquire (&ImGui_Init))
@@ -773,11 +775,12 @@ ResetCEGUI_D3D9 (IDirect3DDevice9* pDev)
     return;
   }
 
+
   if (cegD3D9 != nullptr || (pDev == nullptr))
   {
     SK_Steam_ClearPopups ();
 
-    if (cegD3D9 != nullptr)
+    if ((uintptr_t)cegD3D9 > 1)
     {
       SK_TextOverlayManager::getInstance ()->destroyAllOverlays ();
       SK_PopupManager::getInstance ()->destroyAllPopups         ();
@@ -788,16 +791,16 @@ ResetCEGUI_D3D9 (IDirect3DDevice9* pDev)
     if (cegD3D9_SB != nullptr) cegD3D9_SB->Release ();
         cegD3D9_SB  = nullptr;
 
-    if (cegD3D9 != nullptr) cegD3D9->destroySystem ();
-        cegD3D9  = nullptr;
+    if ((uintptr_t)cegD3D9 > 1) cegD3D9->destroySystem ();
+                   cegD3D9  = nullptr;
   }
 
-  else if (cegD3D9 == nullptr && GetModuleHandle (L"CEGUIDirect3D9Renderer-0.dll"))
+  else if (cegD3D9 == nullptr)
   {
     if (cegD3D9_SB != nullptr) cegD3D9_SB->Release ();
         cegD3D9_SB  = nullptr;
 
-    try
+    if (config.cegui.enable && GetModuleHandle (L"CEGUIDirect3D9Renderer-0.dll"))
     {
       cegD3D9 = dynamic_cast <CEGUI::Direct3D9Renderer *> (
         &CEGUI::Direct3D9Renderer::bootstrapSystem (pDev)
@@ -807,18 +810,19 @@ ResetCEGUI_D3D9 (IDirect3DDevice9* pDev)
       SK_CEGUI_RelocateLog (void);
 
       SK_CEGUI_RelocateLog ();
-    } catch (...) {
-      cegD3D9       = nullptr;
-      return;
+
+      extern void
+      SK_CEGUI_InitBase (void);
+
+      SK_CEGUI_InitBase ();
+
+      SK_PopupManager::getInstance ()->destroyAllPopups       ();
+      SK_TextOverlayManager::getInstance ()->resetAllOverlays (cegD3D9);
     }
 
-    extern void
-    SK_CEGUI_InitBase (void);
+    else
+      cegD3D9 = (CEGUI::Direct3D9Renderer *)1;
 
-    SK_CEGUI_InitBase ();
-
-    SK_PopupManager::getInstance ()->destroyAllPopups       ();
-    SK_TextOverlayManager::getInstance ()->resetAllOverlays (cegD3D9);
 
     SK_Steam_ClearPopups ();
   }
@@ -921,7 +925,7 @@ SK_HookD3D9 (void)
 #endif
 
   while (! ReadAcquire (&__d3d9_ready))
-    SleepEx (100UL, TRUE);
+    MsgWaitForMultipleObjectsEx (0, nullptr, 2UL, QS_ALLINPUT, MWMO_ALERTABLE);
 }
 
 void
@@ -932,8 +936,8 @@ d3d9_init_callback (finish_pfn finish)
   {
     SK_BootD3D9 ();
 
-    //while (! ReadAcquire (&__d3d9_ready))
-    //  SleepEx (100UL, TRUE);
+    while (! ReadAcquire (&__d3d9_ready))
+      MsgWaitForMultipleObjectsEx (0, nullptr, 2UL, QS_ALLINPUT, MWMO_ALERTABLE);
   }
 
   finish ();

@@ -49,7 +49,7 @@
 #include <SpecialK/plugin/nier.h>
 
 
-#define FAR_VERSION_NUM L"0.7.0.23"
+#define FAR_VERSION_NUM L"0.7.0.24"
 #define FAR_VERSION_STR L"FAR v " FAR_VERSION_NUM
 
 // Block until update finishes, otherwise the update dialog
