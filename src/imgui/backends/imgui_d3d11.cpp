@@ -823,6 +823,22 @@ ImGui_ImplDX11_NewFrame (void)
     //ImVec2 ( g_frameBufferWidth,
                //g_frameBufferHeight );
 
+  // Setup display size (every frame to accommodate for window resizing)
+  RECT rect;
+  GetClientRect (g_hWnd, &rect);
+
+  static RECT last_client;
+
+  if (rect.right - rect.left > 0 && rect.bottom - rect.top > 0)
+    last_client = rect;
+
+  rect = last_client;
+
+  io.DisplayFramebufferScale =
+    ImVec2 ( static_cast <float> (rect.right  - rect.left),
+             static_cast <float> (rect.bottom - rect.top ) );
+
+
   // Setup time step
   INT64 current_time;
 

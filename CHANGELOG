@@ -1,4 +1,16 @@
+0.8.63:
+
+ + Fixed window focus issues in multi-render context OpenGL games
+ + Added option to disabe CEGUI in D3D11
+ + Fixed ImGui reset on resolution change in DXGI graphics APIs
+
+   >> Overlay doesn't disappear when resizing anymore :)
+
+
 0.8.62:
+
+ + Added option to show OpenGL OSD in video capture
+ + Added option to disable CEGUI in OpenGL
 
  + Added DirectInput / XInput version number to Input Management
  + Added full support for DirectInput 7 (needed for FF7/8)

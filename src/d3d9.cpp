@@ -919,6 +919,9 @@ SK_HookD3D9 (void)
 #else
   SK_LoadPlugIns32 ();
 #endif
+
+  while (! ReadAcquire (&__d3d9_ready))
+    SleepEx (100UL, TRUE);
 }
 
 void
@@ -929,8 +932,8 @@ d3d9_init_callback (finish_pfn finish)
   {
     SK_BootD3D9 ();
 
-    while (! ReadAcquire (&__d3d9_ready))
-      SleepEx (100UL, TRUE);
+    //while (! ReadAcquire (&__d3d9_ready))
+    //  SleepEx (100UL, TRUE);
   }
 
   finish ();
@@ -1104,13 +1107,13 @@ SK_D3D9_FixUpBehaviorFlags (DWORD& BehaviorFlags)
   BehaviorFlags &= ~D3DCREATE_FPU_PRESERVE;
   BehaviorFlags &= ~D3DCREATE_NOWINDOWCHANGES;
 
-  if (BehaviorFlags & D3DCREATE_SOFTWARE_VERTEXPROCESSING)
-  {
-    dll_log.Log (L"[CompatHack] D3D9 Fixup: "
-                 L"Software Vertex Processing Replaced with Mixed-Mode.");
-    BehaviorFlags &= ~D3DCREATE_SOFTWARE_VERTEXPROCESSING;
-    BehaviorFlags |=  D3DCREATE_MIXED_VERTEXPROCESSING;
-  }
+  //if (BehaviorFlags & D3DCREATE_SOFTWARE_VERTEXPROCESSING)
+  //{
+  //  dll_log.Log (L"[CompatHack] D3D9 Fixup: "
+  //               L"Software Vertex Processing Replaced with Mixed-Mode.");
+  //  BehaviorFlags &= ~D3DCREATE_SOFTWARE_VERTEXPROCESSING;
+  //  BehaviorFlags |=  D3DCREATE_MIXED_VERTEXPROCESSING;
+  //}
 
   if (config.render.d3d9.force_impure)
     BehaviorFlags &= ~D3DCREATE_PUREDEVICE;
@@ -4983,18 +4986,22 @@ HookD3D9 (LPVOID user)
       pparams.Windowed              = TRUE;
       pparams.BackBufferCount       = 2;
       pparams.hDeviceWindow         = hwnd;
+      pparams.BackBufferHeight      = 2;
+      pparams.BackBufferWidth       = 2;
 
       CComPtr <IDirect3DDevice9> pD3D9Dev = nullptr;
 
       dll_log.Log (L"[   D3D9   ]  Hooking D3D9...");
 
-      HRESULT hr = pD3D9->CreateDevice (
-                     D3DADAPTER_DEFAULT,
-                       D3DDEVTYPE_HAL,
-                         nullptr,
-                           D3DCREATE_HARDWARE_VERTEXPROCESSING,
-                             &pparams,
-                               &pD3D9Dev );
+      HRESULT hr =
+        pD3D9->CreateDevice (
+                D3DADAPTER_DEFAULT,
+                  D3DDEVTYPE_HAL,
+                    nullptr,
+                      D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED |
+                      D3DCREATE_NOWINDOWCHANGES           | D3DCREATE_DISABLE_DRIVER_MANAGEMENT,
+                        &pparams,
+                          &pD3D9Dev );
 
       if (SUCCEEDED (hr))
       {
@@ -5134,6 +5141,15 @@ HookD3D9 (LPVOID user)
         _com_error err (hr);
         dll_log.Log ( L"[   D3D9   ]   * Failure  (%s)",
                       err.ErrorMessage () );
+
+        if (! config.render.d3d9.force_d3d9ex)
+        {
+          D3D9_INTERCEPT ( &pD3D9, 16,
+                          "IDirect3D9::CreateDevice",
+                            D3D9CreateDevice_Override,
+                            D3D9CreateDevice_Original,
+                            D3D9CreateDevice_pfn );
+        }
       }
 
       SK_Win32_CleanupDummyWindow ();
@@ -5160,6 +5176,8 @@ HookD3D9 (LPVOID user)
         pparams.Windowed              = TRUE;
         pparams.BackBufferCount       = 2;
         pparams.hDeviceWindow         = hwnd;
+        pparams.BackBufferHeight      = 2;
+        pparams.BackBufferWidth       = 2;
 
         CComPtr <IDirect3DDevice9Ex> pD3D9DevEx = nullptr;
 
@@ -5203,6 +5221,21 @@ HookD3D9 (LPVOID user)
         else
         {
           dll_log.Log (L"[   D3D9   ]   * Failure");
+
+          if (config.render.d3d9.force_d3d9ex)
+          {
+            D3D9_INTERCEPT ( &pD3D9Ex, 16,
+                             "IDirect3D9Ex::CreateDevice",
+                              D3D9ExCreateDevice_Override,
+                              D3D9ExCreateDevice_Original,
+                              D3D9CreateDevice_pfn );
+          }
+
+          D3D9_INTERCEPT ( &pD3D9Ex, 20,
+                           "IDirect3D9Ex::CreateDeviceEx",
+                            D3D9CreateDeviceEx_Override,
+                            D3D9CreateDeviceEx_Original,
+                            D3D9CreateDeviceEx_pfn );
         }
 
         SK_Win32_CleanupDummyWindow ();
@@ -5210,8 +5243,11 @@ HookD3D9 (LPVOID user)
 
       else
       {
-        SK_D3D9_HookReset   (pD3D9Dev);
-        SK_D3D9_HookPresent (pD3D9Dev);
+        if (pD3D9Dev != nullptr)
+        {
+          SK_D3D9_HookReset   (pD3D9Dev);
+          SK_D3D9_HookPresent (pD3D9Dev);
+        }
 
         // Initialize stuff...
         SK_D3D9RenderBackend::getInstance ();

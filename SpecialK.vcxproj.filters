@@ -423,6 +423,9 @@
     <ClInclude Include="include\SpecialK\sha1.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\SpecialK\input\dinput7_backend.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stdafx.cpp">
@@ -681,6 +684,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\d3d11_dev_ctx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\input\dinput7.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

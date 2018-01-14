@@ -346,15 +346,6 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
 
   SK_D3D11_ResetTexCache (    );
 
-
-  if (! config.cegui.enable)
-  {
-    // XXX: TODO (Full shutdown isn't necessary, just invalidate)
-    ImGui_DX11Shutdown (    );
-    ImGui_DX11Startup  (This);
-  }
-
-
   SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
@@ -375,14 +366,21 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
 
   if (cegD3D11 != nullptr)
   {
-    SK_TextOverlayManager::getInstance ()->destroyAllOverlays ();
-    SK_PopupManager::getInstance ()->destroyAllPopups         ();
+    if (config.cegui.enable && (uintptr_t)cegD3D11 > 1)
+    {
+      SK_TextOverlayManager::getInstance ()->destroyAllOverlays ();
+      SK_PopupManager::getInstance ()->destroyAllPopups         ();
+    }
 
     rb.releaseOwnedResources ();
 
-    CEGUI::WindowManager::getDllSingleton ().cleanDeadPool ();
+    if (config.cegui.enable && (uintptr_t)cegD3D11 > 1)
+    {
+      CEGUI::WindowManager::getDllSingleton ().cleanDeadPool ();
 
-    cegD3D11->destroySystem  ();
+      cegD3D11->destroySystem  ();
+    }
+
     cegD3D11 = nullptr;
 
     // XXX: TODO (Full shutdown isn't necessary, just invalidate)
@@ -425,15 +423,22 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
 
       try
       {
-        cegD3D11 = dynamic_cast <CEGUI::Direct3D11Renderer *>
-          (&CEGUI::Direct3D11Renderer::bootstrapSystem (
-            static_cast <ID3D11Device *>       (rb.device),
-            static_cast <ID3D11DeviceContext *>(rb.d3d11.immediate_ctx)
-           )
-          );
+        if (config.cegui.enable)
+        {
+          cegD3D11 = dynamic_cast <CEGUI::Direct3D11Renderer *>
+            (&CEGUI::Direct3D11Renderer::bootstrapSystem (
+              static_cast <ID3D11Device *>       (rb.device),
+              static_cast <ID3D11DeviceContext *>(rb.d3d11.immediate_ctx)
+             )
+            );
+        }
+        else
+          cegD3D11 = reinterpret_cast <CEGUI::Direct3D11Renderer *> (1);
 
         ImGui_DX11Startup    (This);
-        SK_CEGUI_RelocateLog (    );
+
+        if (config.cegui.enable && (uintptr_t)cegD3D11 > 1)
+          SK_CEGUI_RelocateLog (    );
 
         pDevCtx->RSSetViewports (1, &vp_orig);
       }
@@ -446,10 +451,13 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
         return;
       }
 
-      SK_CEGUI_InitBase    ();
+      if (config.cegui.enable && (uintptr_t)cegD3D11 > 1)
+      {
+        SK_CEGUI_InitBase    ();
 
-      SK_PopupManager::getInstance       ()->destroyAllPopups (        );
-      SK_TextOverlayManager::getInstance ()->resetAllOverlays (cegD3D11);
+        SK_PopupManager::getInstance       ()->destroyAllPopups (        );
+        SK_TextOverlayManager::getInstance ()->resetAllOverlays (cegD3D11);
+      }
 
       SK_Steam_ClearPopups ();
     }
@@ -898,7 +906,7 @@ SK_DXGI_BeginHooking (void)
 
   if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
   {
-#if 0
+#if 1
     HANDLE hHookInitDXGI =
       CreateThread ( nullptr,
                        0,
@@ -1223,6 +1231,9 @@ SK_GetDXGIAdapterInterface (IUnknown *pAdapter)
 void
 SK_CEGUI_QueueResetD3D11 (void)
 {
+  if (cegD3D11 == (CEGUI::Direct3D11Renderer *)1)
+    cegD3D11 = nullptr;
+
   InterlockedExchange (&__gui_reset, TRUE);
 }
 
@@ -1980,10 +1991,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
 void
 SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 {
-  if ((! This) || This != SK_GetCurrentRenderBackend ().swapchain)
-    return;
-
-  if (! config.cegui.enable)
+  if ((! This) || ( (This != SK_GetCurrentRenderBackend ().swapchain) && SK_GetCurrentRenderBackend ().swapchain != nullptr))
     return;
 
   if (__SK_DLL_Ending)
@@ -2001,14 +2009,19 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 
   if (InterlockedCompareExchange (&__gui_reset, FALSE, TRUE))
   {
-    SK_TextOverlayManager::getInstance ()->destroyAllOverlays ();
+    if ((uintptr_t)cegD3D11 > 1)
+      SK_TextOverlayManager::getInstance ()->destroyAllOverlays ();
 
     rb.releaseOwnedResources ();
 
     if (cegD3D11 != nullptr)
     {
-      CEGUI::WindowManager::getDllSingleton ().cleanDeadPool ();
-      cegD3D11->destroySystem ();
+      if ((uintptr_t)cegD3D11 > 1)
+      {
+        CEGUI::WindowManager::getDllSingleton ().cleanDeadPool ();
+        cegD3D11->destroySystem ();
+      }
+
       cegD3D11 = nullptr;
     }
   }
@@ -2036,7 +2049,7 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
       ResetCEGUI_D3D11        (This);
       SK_DXGI_UpdateSwapChain (This);
 
-      //return;
+      return;
     }
 
     HRESULT hr;
@@ -2163,10 +2176,14 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 
       pImmediateContext->RSSetViewports (1, &vp);
       {
-        cegD3D11->beginRendering ();
+        if (config.cegui.enable && (uintptr_t)cegD3D11 > 1)
+          cegD3D11->beginRendering ();
         {
-          SK_TextOverlayManager::getInstance ()->drawAllOverlays (0.0f, 0.0f);
-          CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
+          if (config.cegui.enable && (uintptr_t)cegD3D11 > 1)
+          {
+            SK_TextOverlayManager::getInstance ()->drawAllOverlays (0.0f, 0.0f);
+            CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
+          }
 
           // XXX: TODO (Full startup isn't necessary, just update framebuffer dimensions).
           if (ImGui_DX11Startup             ( This                         ))
@@ -2177,10 +2194,12 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 
           if (SK_Steam_DrawOSD ())
           {
-            CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
+            if (config.cegui.enable && (uintptr_t)cegD3D11 > 1)
+              CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
           }
         }
-        cegD3D11->endRendering ();
+        if (config.cegui.enable && (uintptr_t)cegD3D11 > 1)
+          cegD3D11->endRendering ();
       }
 
       sb->apply (pImmediateContext);
@@ -3596,8 +3615,8 @@ DXGISwap_ResizeBuffers_Override ( IDXGISwapChain *This,
                          BufferCount, Width, Height,
                    (UINT)NewFormat, SwapChainFlags );
 
-  if (SUCCEEDED (SK_DXGI_ValidateSwapChainResize (This, BufferCount, Width, Height, NewFormat)))
-    return S_OK;
+  //if (SUCCEEDED (SK_DXGI_ValidateSwapChainResize (This, BufferCount, Width, Height, NewFormat)))
+  //  return S_OK;
 
 
   // Can't do this if waitable
@@ -4235,7 +4254,11 @@ SK_DXGI_CreateSwapChain_PreInit ( _Inout_opt_ DXGI_SWAP_CHAIN_DESC            *p
       pDesc->Windowed = TRUE;
   }
 
-  //game_window.hWnd = pDesc->OutputWindow;
+  if (! IsWindowVisible (game_window.hWnd))
+  {
+    hWndRender       = pDesc->OutputWindow;
+    game_window.hWnd = pDesc->OutputWindow;
+  }
 }
 
 void SK_DXGI_HookSwapChain (IDXGISwapChain* pSwapChain);
@@ -4284,7 +4307,7 @@ SK_DXGI_CreateSwapChain_PostInit ( _In_  IUnknown              *pDevice,
                                    _In_  DXGI_SWAP_CHAIN_DESC  *pDesc,
                                    _In_  IDXGISwapChain       **ppSwapChain )
 {
-  SK_RunOnce (SK_CEGUI_QueueResetD3D11 ());
+  SK_CEGUI_QueueResetD3D11 ();
 
   if (pDesc->BufferDesc.Width != 0)
   {
@@ -5403,7 +5426,7 @@ dxgi_init_callback (finish_pfn finish)
 {
   if (! SK_IsHostAppSKIM ())
   {
-    WaitForInitDXGI ();
+    //WaitForInitDXGI ();
   }
 
   finish ();

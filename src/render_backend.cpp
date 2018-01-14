@@ -139,7 +139,13 @@ SK_BootD3D9 (void)
   SK_D3D9_PreHook (void);
   SK_D3D9_PreHook ();
 
-  SK_HookD3D9 ();
+  CreateThread (nullptr, 0, [](LPVOID) -> DWORD {
+    SK_HookD3D9 ();
+
+    CloseHandle (GetCurrentThread ());
+
+    return 0;
+  }, nullptr, 0x00, nullptr);
 
   if (config.textures.d3d9_mod)
   {

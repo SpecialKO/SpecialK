@@ -858,7 +858,7 @@ SK_InitCore (std::wstring backend, void* callback)
                     config.nvidia.sli.num_gpus.c_str (),
                       config.nvidia.sli.compatibility.c_str ()
               )
-         )
+          )
       {
         restart = true;
       }
@@ -1000,13 +1000,16 @@ WaitForInit (void)
   if (ReadNoFence (&__SK_Init))
     return;
 
-  while (ReadPointerAcquire (&hInitThread) != INVALID_HANDLE_VALUE)
+  if (SK_GetDLLRole () == DLL_ROLE::OpenGL)
   {
-    if ( ReadPointerAcquire (&hInitThread) == GetCurrentThread () )
-      break;
+    while (ReadPointerAcquire (&hInitThread) != INVALID_HANDLE_VALUE)
+    {
+      if ( ReadPointerAcquire (&hInitThread) == GetCurrentThread () )
+        break;
 
-    if ( WAIT_OBJECT_0 == MsgWaitForMultipleObjects (1, const_cast <HANDLE *>(&hInitThread), FALSE, 150, QS_ALLINPUT) )
-      break;
+      if ( WAIT_OBJECT_0 == MsgWaitForMultipleObjects (1, const_cast <HANDLE *>(&hInitThread), FALSE, 150, QS_ALLINPUT) )
+        break;
+    }
   }
 
   // First thread to reach this point wins ... a shiny new car and
@@ -1022,17 +1025,26 @@ WaitForInit (void)
   //
   if (! InterlockedCompareExchange (&__SK_Init, TRUE, FALSE))
   {
-    if ( ReadPointerAcquire (&hInitThread) != GetCurrentThread () &&
-         ReadPointerAcquire (&hInitThread) != INVALID_HANDLE_VALUE )
+    if (SK_GetDLLRole () == DLL_ROLE::OpenGL)
+    {
+      if ( ReadPointerAcquire (&hInitThread) != GetCurrentThread () &&
+           ReadPointerAcquire (&hInitThread) != INVALID_HANDLE_VALUE )
+      {
+        SK_Input_Init       ();
+        SK_ApplyQueuedHooks ();
+
+        CloseHandle (
+          reinterpret_cast <HANDLE> (
+            InterlockedExchangePointer ( &hInitThread, INVALID_HANDLE_VALUE )
+          )
+        );
+      }
+    }
+
+    else
     {
       SK_Input_Init       ();
       SK_ApplyQueuedHooks ();
-
-      CloseHandle (
-        reinterpret_cast <HANDLE> (
-          InterlockedExchangePointer ( &hInitThread, INVALID_HANDLE_VALUE )
-        )
-      );
     }
 
     // Load user-defined DLLs (Lazy)
@@ -1699,15 +1711,23 @@ BACKEND_INIT:
       return 0;
     }, nullptr, 0x00, nullptr);
 
-    InterlockedExchangePointer (
-      &hInitThread,
-        CreateThread ( nullptr,
-                         0,
-                           DllThread,
-                             &init_,
-                               0x00,
-                                 nullptr )
-    ); // Avoid the temptation to wait on this thread
+    if (SK_GetDLLRole () == DLL_ROLE::OpenGL)
+    {
+      InterlockedExchangePointer (
+        &hInitThread,
+          CreateThread ( nullptr,
+                           0,
+                             DllThread,
+                               &init_,
+                                 0x00,
+                                   nullptr )
+      ); // Avoid the temptation to wait on this thread
+    }
+
+    else
+    {
+      DllThread (&init_);
+    }
   }
 
   init_mutex->unlock ();
@@ -1737,26 +1757,26 @@ std::set <HWND> dummy_windows;
 HWND
 SK_Win32_CreateDummyWindow (void)
 {
-  WNDCLASSW wc         = { };
-  WNDCLASS wc_existing = { };
+  WNDCLASSW wc          = { };
+  WNDCLASS  wc_existing = { };
 
-  wc.style         = CS_CLASSDC | CS_GLOBALCLASS;
+  wc.style         = CS_GLOBALCLASS;
   wc.lpfnWndProc   = DefWindowProcW;
   wc.hInstance     = SK_GetDLL ();
-  wc.lpszClassName = L"Special K Dummy Window Class";
+  wc.lpszClassName = L"Special K Dummy Window Class (Ex)";
 
-  if (RegisterClassW (&wc) || GetClassInfo (SK_GetDLL (), L"Special K Dummy Window Class", &wc_existing))
+  if (RegisterClassW (&wc) || GetClassInfo (SK_GetDLL (), L"Special K Dummy Window Class (Ex)", &wc_existing))
   {
     if (! CreateWindowExW_Original)
       SK_HookWinAPI ();
 
     HWND hWnd =
-      CreateWindowExW_Original ( 0L, L"Special K Dummy Window Class",
+      CreateWindowExW_Original ( 0L, L"Special K Dummy Window Class (Ex)",
                                      L"Special K Dummy Window",
                                        WS_POPUP | WS_CLIPCHILDREN |
                                        WS_CLIPSIBLINGS,
                                          0, 0,
-                                         1, 1,
+                                         2, 2,
                                            HWND_DESKTOP,   nullptr,
                                              SK_GetDLL (), nullptr );
 
@@ -1787,7 +1807,7 @@ SK_Win32_CleanupDummyWindow (void)
     }
   }
 
-  UnregisterClassW ( L"Special K Dummy Window Class", SK_GetDLL () );
+  UnregisterClassW ( L"Special K Dummy Window Class (Ex)", SK_GetDLL () );
 }
 
 

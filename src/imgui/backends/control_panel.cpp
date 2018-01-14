@@ -3321,18 +3321,6 @@ SK_ImGui_ControlPanel (void)
       ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.78f, 0.14f, 0.80f));
       ImGui::TreePush       ("");
 
-      ImGui::Checkbox ("Show OSD in Video Capture", &config.render.gl.osd_in_vidcap);
-
-      if (ImGui::IsItemHovered ())
-      {
-        ImGui::BeginTooltip    ();
-        ImGui::TextUnformatted ("Alters visibility in most video capture software");
-        ImGui::Separator       ();
-        ImGui::BulletText      ("Enabled by default for maximum compatibility");
-        ImGui::BulletText      ("Enabling this has a high likelihood of interfering with ReShade");
-        ImGui::EndTooltip      ();
-      }
-
       ////ImGui::Checkbox ("Overlay Compatibility Mode", &SK_DXGI_SlowStateCache);
 
       ////if (ImGui::IsItemHovered ())
@@ -3653,6 +3641,21 @@ SK_ImGui_ControlPanel (void)
 
       ImGui::SameLine ();
 #endif
+
+      if (ImGui::Checkbox ("Enable CEGUI", &config.cegui.enable))
+      {
+        extern void SK_CEGUI_QueueResetD3D11 (void);
+                    SK_CEGUI_QueueResetD3D11 ();
+      }
+
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::BeginTooltip    ();
+        ImGui::TextUnformatted ("Disabling may resolve graphics issues, but will disable achievement pop-ups and OSD text.");
+        ImGui::EndTooltip      ();
+      }
+
+      ImGui::SameLine ();
 
       bool advanced =
         ImGui::TreeNode ("Advanced (Debug)###Advanced_NVD3D11");

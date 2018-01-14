@@ -599,7 +599,7 @@
       <SectionAlignment>
       </SectionAlignment>
       <FixedBaseAddress>false</FixedBaseAddress>
-      <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
+      <CreateHotPatchableImage>X86Image</CreateHotPatchableImage>
       <OptimizeReferences>false</OptimizeReferences>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <SetChecksum>false</SetChecksum>
@@ -1143,7 +1143,6 @@ Exit 0</Command>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalOptions>/EHsc %(AdditionalOptions)</AdditionalOptions>
       <Optimization>Full</Optimization>
       <ControlFlowGuard>false</ControlFlowGuard>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
@@ -1734,6 +1733,7 @@ Exit 0</Command>
     <ClInclude Include="depends\DirectXTex\Filters.h" />
     <ClInclude Include="depends\DirectXTex\scoped.h" />
     <ClInclude Include="include\SpecialK\injection\address_cache.h" />
+    <ClInclude Include="include\SpecialK\input\dinput7_backend.h" />
     <ClInclude Include="include\SpecialK\input\steam.h" />
     <ClInclude Include="include\SpecialK\plugin\nier.h" />
     <ClInclude Include="include\imgui\backends\imgui_d3d11.h" />
@@ -2121,6 +2121,7 @@ Exit 0</Command>
     </ClCompile>
     <ClCompile Include="src\injection\address_cache.cpp" />
     <ClCompile Include="src\injection\injection.cpp" />
+    <ClCompile Include="src\input\dinput7.cpp" />
     <ClCompile Include="src\input\dinput8.cpp" />
     <ClCompile Include="src\input\input.cpp" />
     <ClCompile Include="src\input\steam.cpp" />

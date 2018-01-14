@@ -68,10 +68,10 @@ volatile LONG __gl_ready = FALSE;
 void
 WaitForInit_GL (void)
 {
-  while (! ReadAcquire (&__gl_ready))
-    MsgWaitForMultipleObjectsEx (0, nullptr, 100, QS_ALLINPUT, MWMO_ALERTABLE);
-
-  WaitForInit ();
+  //while (! ReadAcquire (&__gl_ready))
+  //  MsgWaitForMultipleObjectsEx (0, nullptr, 100, QS_ALLINPUT, MWMO_ALERTABLE);
+  //
+  ////WaitForInit ();
 }
 
 extern bool SK_InitCOM (void);
@@ -164,12 +164,10 @@ void ResetCEGUI_GL (void)
     return;
 
 
-  if (cegGL == nullptr)
+  if (cegGL == nullptr && SK_GetFramesDrawn () > 4)
   {
     if (GetModuleHandle (L"CEGUIOpenGLRenderer-0.dll"))
     {
-      glPushAttrib (GL_ALL_ATTRIB_BITS);
-
   GLint     last_program;              glGetIntegerv   (GL_CURRENT_PROGRAM,              &last_program);
   GLint     last_texture;              glGetIntegerv   (GL_TEXTURE_BINDING_2D,           &last_texture);
   GLint     last_active_texture;       glGetIntegerv   (GL_ACTIVE_TEXTURE,               &last_active_texture);
@@ -259,8 +257,6 @@ void ResetCEGUI_GL (void)
       glBindBuffer      (GL_ELEMENT_ARRAY_BUFFER, last_element_array_buffer);
       
       SK_CEGUI_RelocateLog ();
-      
-      glPopAttrib ();
     }
   }
 }
@@ -1819,19 +1815,19 @@ BOOL
 SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
 {
   bool need_init = false;
-
+  
   if (init_.empty () && SK_TLS_Bottom ()->gl.current_hglrc == 0)
   {
     wglMakeCurrent ( (SK_TLS_Bottom ()->gl.current_hdc   = wglGetCurrentDC      ()),
                      (SK_TLS_Bottom ()->gl.current_hglrc = wglGetCurrentContext ()) );
-
+  
     SK_TLS_Bottom ()->gl.current_hwnd =
       WindowFromDC (SK_TLS_Bottom ()->gl.current_hdc);
-
+  
     need_init = true;
   }
-
-
+  
+  
   if (                 SK_TLS_Bottom ()->gl.current_hglrc &&
        (! init_.count (SK_TLS_Bottom ()->gl.current_hglrc) || need_init) ||
        (! __gl_primary_context) )
@@ -1851,15 +1847,6 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
       ImGui_ImplGL3_Init ();
     }
   }
-
-
-  if (glGenVertexArrays == nullptr)
-  {
-    glewExperimental = GL_TRUE;
-    glewInit ();
-  }
-
-
 
 
 //HWND  hWnd = SK_TLS_Bottom ()->gl.current_hwnd;
@@ -1882,33 +1869,23 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
   {
     // TODO: Create a secondary context that shares "display lists" so that
     //         we have a pure state machine all to ourselves.
-    if (IsWindowVisible (hWndRender) && cegGL == nullptr && config.cegui.enable)
+    if (cegGL == nullptr && config.cegui.enable)
     {
       ResetCEGUI_GL ();
     }
 
+    SK_GetCurrentRenderBackend ().api = SK_RenderAPI::OpenGL;
+    SK_BeginBufferSwap ();
 
-    if (IsWindowVisible (hWndRender) && hRC != 0)
-    {
-      if (SK_TLS_Bottom ()->gl.current_hglrc)
-      {
-        SK_GetCurrentRenderBackend ().api = SK_RenderAPI::OpenGL;
-        SK_BeginBufferSwap ();
-
-        SK_GL_UpdateRenderStats ();
-        SK_Overlay_DrawGL       ();
-      }
-    }
+    SK_GL_UpdateRenderStats ();
+    SK_Overlay_DrawGL       ();
 
     status =
       static_cast <wglSwapBuffers_pfn> (pfnSwapFunc)(hDC);
 
-    if (IsWindowVisible (hWndRender) && hRC != 0)
-    {
-      SK_EndBufferSwap (S_OK);
-    }
+    SK_EndBufferSwap (S_OK);
   }
-
+  
   // Swap happening on a context we don't care about
   else
   {
@@ -1931,14 +1908,14 @@ GetWindowLongW(
 void
 SK_GL_TrackHDC (HDC hDC)
 {
-  if (IsWindow (WindowFromDC (hDC)))
+  if (IsWindowVisible (WindowFromDC (hDC)))
   {
     // Setup our window message hook for the command console
-    if (hWndRender == 0 || (! IsWindow (hWndRender)))
+    if (hWndRender == 0 || (! IsWindowVisible (hWndRender)))
       hWndRender = WindowFromDC (hDC);
 
-    if ( SK_TLS_Bottom ()->gl.current_hwnd != game_window.hWnd &&
-                                         0 == game_window.hWnd )
+    if ( SK_TLS_Bottom ()->gl.current_hwnd != game_window.hWnd ||
+                          (! IsWindowVisible (game_window.hWnd) ) )
     {
                                       wchar_t wszWindowClass [64] = { };
       RealGetWindowClassW (SK_TLS_Bottom ()->gl.current_hwnd, wszWindowClass, 63);
@@ -1958,7 +1935,8 @@ SK_GL_TrackHDC (HDC hDC)
 
       if ( dwFocusPid == GetCurrentProcessId () )
       {
-        game_window.hWnd = GetForegroundWindow ();
+        game_window.hWnd = ( GetFocus () == hWndFocus ? hWndFocus :
+                                                        GetForegroundWindow () );
 
         extern void
         SK_InstallWindowHook (HWND hWnd);
@@ -2561,10 +2539,10 @@ SK_HookGL (void)
         (wglSwapBuffers_pfn)GetProcAddress   (local_gl, "wglSwapBuffers");
       wgl_make_current =
         (wglMakeCurrent_pfn)GetProcAddress   (local_gl, "wglMakeCurrent");
-      wgl_share_lists =
-        (wglShareLists_pfn)GetProcAddress    (local_gl, "wglShareLists");
-      wgl_delete_context =
-        (wglDeleteContext_pfn)GetProcAddress (local_gl, "wglDeleteContext");
+      //wgl_share_lists =
+      //  (wglShareLists_pfn)GetProcAddress    (local_gl, "wglShareLists");
+      //wgl_delete_context =
+      //  (wglDeleteContext_pfn)GetProcAddress (local_gl, "wglDeleteContext");
 
       // Load user-defined DLLs (Plug-In)
       SK_RunLHIfBitness (64, SK_LoadPlugIns64 (), SK_LoadPlugIns32 ());
@@ -2583,21 +2561,21 @@ SK_HookGL (void)
                                  "wglMakeCurrent",
                                   wglMakeCurrent,
          static_cast_p2p <void> (&wgl_make_current) );
-
-      SK_CreateDLLHook2 (         SK_GetModuleFullName (local_gl).c_str (),
-                                 "wglShareLists",
-                                  wglShareLists,
-         static_cast_p2p <void> (&wgl_share_lists) );
-
-      SK_CreateDLLHook2 (         SK_GetModuleFullName (local_gl).c_str (),
-                                 "wglSwapMultipleBuffers",
-                                  wglSwapMultipleBuffers,
-         static_cast_p2p <void> (&wgl_swap_multiple_buffers) );
-
-      SK_CreateDLLHook2 (         SK_GetModuleFullName (local_gl).c_str (),
-                                 "wglDeleteContext",
-                                  wglDeleteContext,
-         static_cast_p2p <void> (&wgl_delete_context) );
+      
+      //SK_CreateDLLHook2 (         SK_GetModuleFullName (local_gl).c_str (),
+      //                           "wglShareLists",
+      //                            wglShareLists,
+      //   static_cast_p2p <void> (&wgl_share_lists) );
+      //
+      //SK_CreateDLLHook2 (         SK_GetModuleFullName (local_gl).c_str (),
+      //                           "wglSwapMultipleBuffers",
+      //                            wglSwapMultipleBuffers,
+      //   static_cast_p2p <void> (&wgl_swap_multiple_buffers) );
+      //
+      //SK_CreateDLLHook2 (         SK_GetModuleFullName (local_gl).c_str (),
+      //                           "wglDeleteContext",
+      //                            wglDeleteContext,
+      //   static_cast_p2p <void> (&wgl_delete_context) );
 
       SK_ApplyQueuedHooks ();
 
@@ -2954,7 +2932,7 @@ SK_HookGL (void)
       SK_GL_HOOK(wglGetCurrentContext);
       SK_GL_HOOK(wglGetCurrentDC);
 
-      SK_GL_HOOK(wglSwapMultipleBuffers);
+    //SK_GL_HOOK(wglSwapMultipleBuffers);
 
       SK_GL_HOOK(wglGetProcAddress);
       SK_GL_HOOK(wglCreateContext);

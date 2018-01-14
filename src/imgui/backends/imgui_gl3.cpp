@@ -456,8 +456,14 @@ ImGui_ImplGL3_NewFrame (void)
 
   ////game_window.hWnd = WindowFromDC (SK_GL_GetCurrentDC ());
 
-  RECT client;
+  static RECT last_client;
+         RECT client;
   GetClientRect (WindowFromDC (SK_GL_GetCurrentDC ()), &client);
+
+  if (client.right - client.left > 0 && client.bottom - client.top > 0)
+    last_client = client;
+
+  client = last_client;
 
   // Setup display size (every frame to accommodate for window resizing)
   int w = client.right  - client.left,
