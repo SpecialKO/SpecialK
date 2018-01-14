@@ -2562,7 +2562,8 @@ SK_AdjustBorder (void)
     {
       UNREFERENCED_PARAMETER (user);
 
-      SleepEx (33, FALSE);
+      while (ReadPointerAcquire ((void **)&GetWindowLongPtrW_Original))
+        SleepEx (2UL, FALSE);
 
       GetWindowRect (game_window.hWnd, &game_window.actual.window);
       GetClientRect (game_window.hWnd, &game_window.actual.client);

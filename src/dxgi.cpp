@@ -414,44 +414,33 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
 
       vp.Width    = static_cast <float> (backbuffer_desc.Width);
       vp.Height   = static_cast <float> (backbuffer_desc.Height);
-      vp.MinDepth = 0;
-      vp.MaxDepth = 1;
-      vp.TopLeftX = 0;
-      vp.TopLeftY = 0;
+      vp.MinDepth = 0.0f;
+      vp.MaxDepth = 1.0f;
+      vp.TopLeftX = 0.0f;
+      vp.TopLeftY = 0.0f;
 
       pDevCtx->RSSetViewports (1, &vp);
 
-      try
+      if (config.cegui.enable)
       {
-        if (config.cegui.enable)
-        {
-          cegD3D11 = dynamic_cast <CEGUI::Direct3D11Renderer *>
-            (&CEGUI::Direct3D11Renderer::bootstrapSystem (
-              static_cast <ID3D11Device *>       (rb.device),
-              static_cast <ID3D11DeviceContext *>(rb.d3d11.immediate_ctx)
-             )
-            );
-        }
-        else
-          cegD3D11 = reinterpret_cast <CEGUI::Direct3D11Renderer *> (1);
-
-        ImGui_DX11Startup    (This);
-
-        if (config.cegui.enable && (uintptr_t)cegD3D11 > 1)
-          SK_CEGUI_RelocateLog (    );
-
-        pDevCtx->RSSetViewports (1, &vp_orig);
+        cegD3D11 = dynamic_cast <CEGUI::Direct3D11Renderer *>
+          (&CEGUI::Direct3D11Renderer::bootstrapSystem (
+            static_cast <ID3D11Device *>       (rb.device),
+            static_cast <ID3D11DeviceContext *>(rb.d3d11.immediate_ctx)
+           )
+          );
       }
+      else
+        cegD3D11 = reinterpret_cast <CEGUI::Direct3D11Renderer *> (1);
 
-      catch (...)
-      {
-        pDevCtx->RSSetViewports (1, &vp_orig);
+      ImGui_DX11Startup    (This);
 
-        cegD3D11 = nullptr;
-        return;
-      }
+      if ((uintptr_t)cegD3D11 > 1)
+        SK_CEGUI_RelocateLog (    );
 
-      if (config.cegui.enable && (uintptr_t)cegD3D11 > 1)
+      pDevCtx->RSSetViewports (1, &vp_orig);
+
+      if ((uintptr_t)cegD3D11 > 1)
       {
         SK_CEGUI_InitBase    ();
 
@@ -1352,12 +1341,12 @@ struct SK_D3D11_Stateblock_Lite : StateBlockDataStore
     pCtx->RSSetState             (RS);
     pCtx->PSSetShader            (PS, PSInstances,   PSInstancesCount);
     pCtx->VSSetShader            (VS, VSInstances,   VSInstancesCount);
-    pCtx->IASetPrimitiveTopology (PrimitiveTopology);
     pCtx->OMSetBlendState        (BlendState,        BlendFactor,
                                                      SampleMask);
     pCtx->IASetIndexBuffer       (IndexBuffer,       IndexBufferFormat,
                                                      IndexBufferOffset);
     pCtx->IASetInputLayout       (InputLayout);
+    pCtx->IASetPrimitiveTopology (PrimitiveTopology);
     pCtx->PSSetShaderResources   (0, 1, &PSShaderResource);
     pCtx->VSSetConstantBuffers   (0, 1, &VSConstantBuffer);
     pCtx->PSSetSamplers          (0, 1, &PSSampler);
@@ -2166,37 +2155,37 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 
       vp.Width    = static_cast <float> (backbuffer_desc.Width);
       vp.Height   = static_cast <float> (backbuffer_desc.Height);
-      vp.MinDepth = 0;
-      vp.MaxDepth = 1;
-      vp.TopLeftX = 0;
-      vp.TopLeftY = 0;
+      vp.MinDepth = 0.0f;
+      vp.MaxDepth = 1.0f;
+      vp.TopLeftX = 0.0f;
+      vp.TopLeftY = 0.0f;
 
       pImmediateContext->RSSetViewports (1, &vp);
       {
-        if (config.cegui.enable && (uintptr_t)cegD3D11 > 1)
-          cegD3D11->beginRendering ();
+        if ((uintptr_t)cegD3D11 > 1)
         {
-          if (config.cegui.enable && (uintptr_t)cegD3D11 > 1)
-          {
-            SK_TextOverlayManager::getInstance ()->drawAllOverlays (0.0f, 0.0f);
-            CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
-          }
-
-          // XXX: TODO (Full startup isn't necessary, just update framebuffer dimensions).
-          if (ImGui_DX11Startup             ( This                         ))
-          {
-            extern DWORD SK_ImGui_DrawFrame ( DWORD dwFlags, void* user    );
-                         SK_ImGui_DrawFrame (       0x00,          nullptr );
-          }
-
-          if (SK_Steam_DrawOSD ())
-          {
-            if (config.cegui.enable && (uintptr_t)cegD3D11 > 1)
+                    cegD3D11->beginRendering ();
+          SK_TextOverlayManager::getInstance ()->drawAllOverlays (0.0f, 0.0f);
               CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
+                      cegD3D11->endRendering ();
+        }
+
+        // XXX: TODO (Full startup isn't necessary, just update framebuffer dimensions).
+        if (ImGui_DX11Startup             ( This                         ))
+        {
+          extern DWORD SK_ImGui_DrawFrame ( DWORD dwFlags, void* user    );
+                       SK_ImGui_DrawFrame (       0x00,          nullptr );
+        }
+
+        if (SK_Steam_DrawOSD ())
+        {
+          if ((uintptr_t)cegD3D11 > 1)
+          {
+                  cegD3D11->beginRendering ();
+            CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
+                  cegD3D11->endRendering   ();
           }
         }
-        if (config.cegui.enable && (uintptr_t)cegD3D11 > 1)
-          cegD3D11->endRendering ();
       }
 
       sb->apply (pImmediateContext);
@@ -3474,7 +3463,7 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
 
 
 HRESULT
-SK_DXGI_ValidateSwapChainResize (IDXGISwapChain* pSwapChain, UINT BufferCount, UINT Width, UINT Height, DXGI_FORMAT Format)
+SK_DXGI_ValidateSwapChainResize (IDXGISwapChain* pSwapChain, UINT BufferCount, UINT Width, UINT Height, DXGI_FORMAT Format, INT Fullscreen = -1)
 {
   static CRITICAL_SECTION cs_resize = { };
   static volatile LONG    init      = FALSE;
@@ -3489,12 +3478,14 @@ SK_DXGI_ValidateSwapChainResize (IDXGISwapChain* pSwapChain, UINT BufferCount, U
   while (ReadAcquire (&init) != -1)
     MsgWaitForMultipleObjectsEx (0, nullptr, 2UL, QS_ALLINPUT, MWMO_ALERTABLE);
 
+
   EnterCriticalSection (&cs_resize);
 
   static std::unordered_map <IDXGISwapChain *, UINT>        last_width;
   static std::unordered_map <IDXGISwapChain *, UINT>        last_height;
   static std::unordered_map <IDXGISwapChain *, UINT>        last_buffers;
   static std::unordered_map <IDXGISwapChain *, DXGI_FORMAT> last_format;
+  static std::unordered_map <IDXGISwapChain *, BOOL>        last_fullscreen;
 
 
   DXGI_SWAP_CHAIN_DESC desc     = { };
@@ -3514,6 +3505,12 @@ SK_DXGI_ValidateSwapChainResize (IDXGISwapChain* pSwapChain, UINT BufferCount, U
 
   if (last_buffers.count (pSwapChain) && BufferCount == 0)
     BufferCount = last_buffers [pSwapChain];
+
+
+  //
+  // Get the current Fullscreen state if it wasn't provided
+  //
+  if (Fullscreen == -1) Fullscreen = desc.Windowed ? FALSE : TRUE;
 
 
   bool skip = true;
@@ -3582,11 +3579,27 @@ SK_DXGI_ValidateSwapChainResize (IDXGISwapChain* pSwapChain, UINT BufferCount, U
     }
   }
 
+  else if ((! last_fullscreen.count (pSwapChain)) || last_fullscreen [pSwapChain] != Fullscreen)
+  {
+    if (last_fullscreen.count (pSwapChain))
+    {
+      if (Fullscreen != last_fullscreen [pSwapChain])
+        skip = false;
+    }
 
-  last_width   [pSwapChain] = Width;
-  last_height  [pSwapChain] = Height;
-  last_buffers [pSwapChain] = BufferCount;
-  last_format  [pSwapChain] = Format;
+    else
+    {
+      if (desc.Windowed == Fullscreen)
+        skip = false;
+    }
+  }
+
+
+  last_width      [pSwapChain] = Width;
+  last_height     [pSwapChain] = Height;
+  last_buffers    [pSwapChain] = BufferCount;
+  last_format     [pSwapChain] = Format;
+  last_fullscreen [pSwapChain] = Fullscreen;
 
   LeaveCriticalSection (&cs_resize);
 
@@ -3612,8 +3625,11 @@ DXGISwap_ResizeBuffers_Override ( IDXGISwapChain *This,
                          BufferCount, Width, Height,
                    (UINT)NewFormat, SwapChainFlags );
 
-  //if (SUCCEEDED (SK_DXGI_ValidateSwapChainResize (This, BufferCount, Width, Height, NewFormat)))
-  //  return S_OK;
+
+  // Skip buffer resizes if we didn't actually resize anything
+  //
+  if (SUCCEEDED (SK_DXGI_ValidateSwapChainResize (This, BufferCount, Width, Height, NewFormat)))
+    return S_OK;
 
 
   // Can't do this if waitable
@@ -5411,8 +5427,6 @@ SK_HookDXGI (void)
           new SK_IVarStub <bool> (&config.render.framerate.flip_discard));
 
   SK_DXGI_BeginHooking ();
-
-  //WaitForInitDXGI ();
 }
 
 static std::queue <DWORD> old_threads;

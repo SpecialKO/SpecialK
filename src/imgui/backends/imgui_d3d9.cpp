@@ -86,7 +86,7 @@ ImGui_ImplDX9_RenderDrawLists (ImDrawData* draw_data)
 
     g_IndexBufferSize = draw_data->TotalIdxCount + 10000;
 
-    if ( g_pd3dDevice->CreateIndexBuffer ( g_IndexBufferSize * sizeof ImDrawIdx,
+    if ( g_pd3dDevice->CreateIndexBuffer ( g_IndexBufferSize * sizeof (ImDrawIdx),
                                              D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY,
                                                sizeof (ImDrawIdx) == 2 ?
                                                   D3DFMT_INDEX16 :
@@ -115,7 +115,7 @@ ImGui_ImplDX9_RenderDrawLists (ImDrawData* draw_data)
     return;
 
   if ( g_pIB->Lock ( 0,
-    static_cast <UINT> (draw_data->TotalIdxCount * sizeof ImDrawIdx),
+    static_cast <UINT> (draw_data->TotalIdxCount * sizeof (ImDrawIdx)),
                          (void **)&idx_dst,
                            D3DLOCK_DISCARD ) < 0 )
     return;
@@ -163,7 +163,7 @@ ImGui_ImplDX9_RenderDrawLists (ImDrawData* draw_data)
 
     memcpy ( idx_dst,
                cmd_list->IdxBuffer.Data,
-                 cmd_list->IdxBuffer.Size * sizeof ImDrawIdx);
+                 cmd_list->IdxBuffer.Size * sizeof (ImDrawIdx));
 
     idx_dst += cmd_list->IdxBuffer.Size;
   }

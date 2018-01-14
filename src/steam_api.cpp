@@ -3620,18 +3620,12 @@ SteamAPI_Delay_Init (LPVOID user)
 void
 SK_HookSteamAPI (void)
 {
-#ifdef _WIN64
-    const wchar_t* wszSteamAPI = L"steam_api64.dll";
-#else
-    const wchar_t* wszSteamAPI = L"steam_api.dll";
-#endif
-  static bool runonce = false;
+  const wchar_t* wszSteamAPI = 
+    SK_RunLHIfBitness (64, L"steam_api64.dll",
+                           L"steam_api.dll");
 
-  if (! runonce)
-  {
-    SK::SteamAPI::steam_size = SK_GetFileSize (wszSteamAPI);
-                  runonce    = true;
-  }
+  SK_RunOnce ( SK::SteamAPI::steam_size =
+                 SK_GetFileSize (wszSteamAPI) );
 
   if (config.steam.silent)
     return;
@@ -3652,8 +3646,6 @@ SK_HookSteamAPI (void)
   {
     return;
   }
-
-  std::queue <DWORD> suspended_tids = SK_SuspendAllOtherThreads ();
 
   steam_log.Log (L"%s was loaded, hooking...", wszSteamAPI);
 
@@ -3730,8 +3722,6 @@ static_cast_p2p <void> (&SteamAPI_Shutdown) );
   }
 
   LeaveCriticalSection (&init_cs);
-
-  SK_ResumeThreads (suspended_tids);
 }
 
 ISteamUserStats*

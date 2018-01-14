@@ -3138,6 +3138,8 @@ SK_ImGui_ControlPanel (void)
         ImGui::SetTooltip ("Requires a game restart.");
       }
 
+      ImGui::SameLine ();
+
       if (ImGui::Checkbox ("Enable CEGUI", &config.cegui.enable))
       {
         extern void SK_CEGUI_QueueResetD3D9 (void);

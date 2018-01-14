@@ -2571,10 +2571,10 @@ SK_HookGL (void)
       //                            wglShareLists,
       //   static_cast_p2p <void> (&wgl_share_lists) );
       //
-      //SK_CreateDLLHook2 (         SK_GetModuleFullName (local_gl).c_str (),
-      //                           "wglSwapMultipleBuffers",
-      //                            wglSwapMultipleBuffers,
-      //   static_cast_p2p <void> (&wgl_swap_multiple_buffers) );
+      SK_CreateDLLHook2 (         SK_GetModuleFullName (local_gl).c_str (),
+                                 "wglSwapMultipleBuffers",
+                                  wglSwapMultipleBuffers,
+         static_cast_p2p <void> (&wgl_swap_multiple_buffers) );
       //
       //SK_CreateDLLHook2 (         SK_GetModuleFullName (local_gl).c_str (),
       //                           "wglDeleteContext",

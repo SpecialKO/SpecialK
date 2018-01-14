@@ -12125,6 +12125,16 @@ SK_ImGui_PollGamepad_EndFrame (void)
   //   that occur during the next frame without losing any input events.
   extern HWND hWndRender;
 
+
+  if (SK_ImGui_WantMouseCapture ())
+    SK_RawInput_EnableLegacyMouse  (true);
+  else
+    SK_RawInput_RestoreLegacyMouse ();
+
+  if (SK_ImGui_WantKeyboardCapture ())
+    SK_RawInput_EnableLegacyKeyboard (true);
+
+
   HWND hWndFocus      = GetFocus            ();
   HWND hWndForeground = GetForegroundWindow ();
   HWND hWndActive     = GetActiveWindow     ();

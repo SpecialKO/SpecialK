@@ -104,10 +104,11 @@ CrashHandler::Reinstall (void)
     InterlockedCompareExchangePointer (&pOldHook, nullptr, (PVOID)1);
   }
 
-  LPVOID pHook = nullptr;
 
   if (! InterlockedCompareExchangePointer (&pOldHook, (PVOID)1, nullptr))
   {
+    LPVOID pHook = nullptr;
+
     if ( MH_OK ==
            SK_CreateDLLHook2  (       L"kernel32.dll",
                                        "SetUnhandledExceptionFilter",
@@ -119,24 +120,21 @@ CrashHandler::Reinstall (void)
            MH_OK == SK_ApplyQueuedHooks (       ) )
       {
         InterlockedExchangePointer (&pOldHook, pHook);
-
-        SetErrorMode                         (SEM_NOGPFAULTERRORBOX | SEM_FAILCRITICALERRORS);
-        SetUnhandledExceptionFilter_Original (SK_TopLevelExceptionFilter);
       }
     }
   }
 
-  else if (SetUnhandledExceptionFilter_Original != nullptr)
-  {
-    SetErrorMode                         (SEM_NOGPFAULTERRORBOX | SEM_FAILCRITICALERRORS);
-    SetUnhandledExceptionFilter_Original (SK_TopLevelExceptionFilter);
-  }
+
+  SetErrorMode (SEM_NOGPFAULTERRORBOX | SEM_FAILCRITICALERRORS);
+
+
+  // Bypass the hook if we have a trampoline
+  //
+  if (SetUnhandledExceptionFilter_Original != nullptr)
+      SetUnhandledExceptionFilter_Original (SK_TopLevelExceptionFilter);
 
   else
-  {
-    SetErrorMode                (SEM_NOGPFAULTERRORBOX | SEM_FAILCRITICALERRORS);
     SetUnhandledExceptionFilter (SK_TopLevelExceptionFilter);
-  }
 }
 
 
@@ -423,7 +421,8 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
   DWORD    ip = ExceptionInfo->ContextRecord->Eip;
 #endif
 
-  if (GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
+  if (GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+                          GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
                             (LPCWSTR)ip,
                               &hModSource )) {
     GetModuleFileNameA (hModSource, szModName, MAX_PATH);
@@ -538,7 +537,8 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 
     ip = stackframe.AddrPC.Offset;
 
-    if ( GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
+    if ( GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+                             GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
               reinterpret_cast <LPCWSTR> (ip),
                                  &hModSource ) )
     {
@@ -613,7 +613,8 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
     SK_SymUnloadModule (hProc, BaseAddr);
 
     ret =
-      SK_StackWalk ( IMAGE_FILE_MACHINE_I386,
+      SK_StackWalk ( SK_RunLHIfBitness ( 32, IMAGE_FILE_MACHINE_I386,
+                                             IMAGE_FILE_MACHINE_AMD64 ),
                        hProc,
                          GetCurrentThread (),
                            &stackframe,

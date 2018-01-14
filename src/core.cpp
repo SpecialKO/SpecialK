@@ -1286,7 +1286,8 @@ SK_EstablishRootPath (void)
   }
 
 
-  // Not using the ShellW API because at this stage we can only reliably use Kernel32 functions
+  // Not using the ShellW API because at this (init) stage,
+  //   we can only reliably use Kernel32 functions.
   lstrcatW (SK_RootPath,   L"\\");
   lstrcatW (wszConfigPath, L"\\");
 
@@ -1407,7 +1408,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
     if (config.compatibility.init_while_suspended)
     {
-      init_tids = SK_SuspendAllOtherThreads ();
+      ////init_tids = SK_SuspendAllOtherThreads ();
     }
 
     QueryPerformanceCounter_Original =
@@ -1446,8 +1447,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   }
 
   budget_log.init ( LR"(logs\dxgi_budget.log)", L"w" );
-
-  //dll_log.Log (L"LoadLibraryA Addres: %ph", GetProcAddress (GetModuleHandle (L"kernel32.dll"), "LoadLibraryA"));
 
   dll_log.LogEx (false,
     L"------------------------------------------------------------------------"
