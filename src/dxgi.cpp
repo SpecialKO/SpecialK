@@ -5324,38 +5324,38 @@ SK_HookDXGI (void)
                   SK_MakePrettyAddress (CreateDXGIFactory2_Import).c_str () ),
                 L" DXGI 1.3 " );
 
-    LPVOID pfnD3DKMTPresent_Target = nullptr;
-    if ( MH_OK ==
-           SK_CreateDLLHook2 (      L"d3d11.dll",
-                                     "D3DKMTPresent",
-                                      D3DKMTPresent_Override,
-              static_cast_p2p <void>(&D3DKMTPresent_Original),
-                                 &pfnD3DKMTPresent_Target ) )
-    {
-      MH_QueueEnableHook (pfnD3DKMTPresent_Target);
-    
-      SK_LOG0 ( ( L"       D3DKMTPresent: %s",
-                    SK_MakePrettyAddress (pfnD3DKMTPresent_Target).c_str () ),
-                  L" D3D11KMT " );
-
-      MH_ApplyQueued ();
-    }
+    //LPVOID pfnD3DKMTPresent_Target = nullptr;
+    //if ( MH_OK ==
+    //       SK_CreateDLLHook2 (      L"d3d11.dll",
+    //                                 "D3DKMTPresent",
+    //                                  D3DKMTPresent_Override,
+    //          static_cast_p2p <void>(&D3DKMTPresent_Original),
+    //                             &pfnD3DKMTPresent_Target ) )
+    //{
+    //  MH_QueueEnableHook (pfnD3DKMTPresent_Target);
+    //
+    //  SK_LOG0 ( ( L"       D3DKMTPresent: %s",
+    //                SK_MakePrettyAddress (pfnD3DKMTPresent_Target).c_str () ),
+    //              L" D3D11KMT " );
+    //
+    //  MH_ApplyQueued ();
+    //}
 
     InterlockedIncrement (&hooked);
   }
 
   else
   {
-    LPVOID pfnD3DKMTPresent_Target = nullptr;
-    if ( MH_OK ==
-           SK_CreateDLLHook2 (      L"d3d11.dll",
-                                     "D3DKMTPresent",
-                                      D3DKMTPresent_Override,
-              static_cast_p2p <void>(&D3DKMTPresent_Original),
-                                 &pfnD3DKMTPresent_Target ) )
-    {
-      MH_QueueEnableHook (pfnD3DKMTPresent_Target);
-    }
+    //LPVOID pfnD3DKMTPresent_Target = nullptr;
+    //if ( MH_OK ==
+    //       SK_CreateDLLHook2 (      L"d3d11.dll",
+    //                                 "D3DKMTPresent",
+    //                                  D3DKMTPresent_Override,
+    //          static_cast_p2p <void>(&D3DKMTPresent_Original),
+    //                             &pfnD3DKMTPresent_Target ) )
+    //{
+    //  MH_QueueEnableHook (pfnD3DKMTPresent_Target);
+    //}
 
     LPVOID pfnCreateDXGIFactory  = nullptr;
     LPVOID pfnCreateDXGIFactory1 = nullptr;
@@ -5419,9 +5419,9 @@ SK_HookDXGI (void)
                                              L"" ),
                 L" DXGI 1.3 " );
 
-    SK_LOG0 ( ( L"       D3DKMTPresent: %s",
-                  SK_MakePrettyAddress (pfnD3DKMTPresent_Target).c_str () ),
-                L" D3D11KMT " );
+    //SK_LOG0 ( ( L"       D3DKMTPresent: %s",
+    //              SK_MakePrettyAddress (pfnD3DKMTPresent_Target).c_str () ),
+    //            L" D3D11KMT " );
 
     MH_ApplyQueued ();
 
