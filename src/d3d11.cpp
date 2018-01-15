@@ -9642,9 +9642,7 @@ SK_D3D11_InitTextures (void)
 {
   if (! InterlockedCompareExchange (&SK_D3D11_tex_init, TRUE, FALSE))
   {
-    if ( StrStrIW (SK_GetHostApp (), L"FFX.exe")   ||
-         StrStrIW (SK_GetHostApp (), L"FFX-2.exe") ||
-         StrStrIW (SK_GetHostApp (), L"FFX&X-2_Will.exe") )
+    if (SK_GetCurrentGameID () == SK_GAME_ID::FinalFantasyX_X2)
       SK_D3D11_inject_textures_ffx = true;
 
     InitializeCriticalSectionAndSpinCount (&preload_cs,   0x0100);

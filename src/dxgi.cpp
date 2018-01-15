@@ -57,8 +57,6 @@
 
 #include <SpecialK/tls.h>
 
-#pragma comment (lib, "delayimp.lib")
-
 #include <imgui/backends/imgui_d3d11.h>
 
 #define SK_LOG_ONCE(x) { static bool logged = false; if (! logged) \
@@ -97,31 +95,37 @@ extern const wchar_t* __stdcall SK_GetBackend (void);
 #include <CEGUI/RenderTarget.h>
 #include <CEGUI/AnimationManager.h>
 #include <CEGUI/FontManager.h>
-#include <CEGUI/RendererModules/Direct3D11/Renderer.h>
 
 #include <SpecialK/osd/text.h>
 #include <SpecialK/osd/popup.h>
 
+
+#ifndef SK_BUILD__INSTALLER
 #ifdef _WIN64
-
-#pragma comment (lib, "CEGUI/x64/CEGUIDirect3D11Renderer-0.lib")
-
-#pragma comment (lib, "CEGUI/x64/CEGUIBase-0.lib")
-#pragma comment (lib, "CEGUI/x64/CEGUICoreWindowRendererSet.lib")
-#pragma comment (lib, "CEGUI/x64/CEGUIRapidXMLParser.lib")
-#pragma comment (lib, "CEGUI/x64/CEGUICommonDialogs-0.lib")
-#pragma comment (lib, "CEGUI/x64/CEGUISTBImageCodec.lib")
-
+# define SK_CEGUI_LIB_BASE "CEGUI/x64/"
 #else
+# define SK_CEGUI_LIB_BASE "CEGUI/Win32/"
+#endif
 
-#pragma comment (lib, "CEGUI/Win32/CEGUIDirect3D11Renderer-0.lib")
+#define _SKC_MakeCEGUILib(library) \
+  __pragma (comment (lib, SK_CEGUI_LIB_BASE #library ##".lib"))
 
-#pragma comment (lib, "CEGUI/Win32/CEGUIBase-0.lib")
-#pragma comment (lib, "CEGUI/Win32/CEGUICoreWindowRendererSet.lib")
-#pragma comment (lib, "CEGUI/Win32/CEGUIRapidXMLParser.lib")
-#pragma comment (lib, "CEGUI/Win32/CEGUICommonDialogs-0.lib")
-#pragma comment (lib, "CEGUI/Win32/CEGUISTBImageCodec.lib")
+_SKC_MakeCEGUILib ("CEGUIDirect3D11Renderer-0")
+_SKC_MakeCEGUILib ("CEGUIBase-0")
+_SKC_MakeCEGUILib ("CEGUICoreWindowRendererSet")
+_SKC_MakeCEGUILib ("CEGUIRapidXMLParser")
+_SKC_MakeCEGUILib ("CEGUICommonDialogs-0")
+_SKC_MakeCEGUILib ("CEGUISTBImageCodec")
 
+#include <delayimp.h>
+#pragma comment (lib, "delayimp.lib")
+
+#include <CEGUI/CEGUI.h>
+#include <CEGUI/Rect.h>
+#include <CEGUI/RendererModules/Direct3D11/Renderer.h>
+
+static
+CEGUI::Direct3D11Renderer* cegD3D11 = nullptr;
 #endif
 
 struct sk_hook_d3d11_t {
@@ -163,8 +167,6 @@ ImGui_DX11Startup ( IDXGISwapChain* pSwapChain )
 
   return false;
 }
-
-CEGUI::Direct3D11Renderer* cegD3D11 = nullptr;
 
 static volatile ULONG __gui_reset          = TRUE;
 static volatile ULONG __cegui_frames_drawn = 0;
@@ -484,7 +486,7 @@ extern void  __stdcall SK_D3D12_UpdateRenderStats  (IDXGISwapChain* pSwapChain);
 extern BOOL __stdcall SK_NvAPI_SetFramerateLimit   (uint32_t        limit);
 extern void __stdcall SK_NvAPI_SetAppFriendlyName  (const wchar_t*  wszFriendlyName);
 
-volatile LONG  __dxgi_ready  = FALSE;
+static volatile LONG  __dxgi_ready  = FALSE;
 
 void WaitForInitDXGI (void)
 {
@@ -493,12 +495,23 @@ void WaitForInitDXGI (void)
     SK_RunOnce (SK_BootDXGI ());
   }
 
+
+  const auto _SpinMax = 250;
+
   while (! ReadAcquire (&__dxgi_ready))
   {
+    // Can't remember what this is for, lol....
     if (__SK_bypass && backend_dll != nullptr)
       return;
 
-    MsgWaitForMultipleObjectsEx (0, nullptr, 2UL, QS_ALLINPUT, MWMO_ALERTABLE);
+
+    for (int i = 0; i < _SpinMax && (! ReadAcquire (&__dxgi_ready)); i++)
+      ;
+
+    if (ReadAcquire (&__dxgi_ready))
+      break;
+
+    MsgWaitForMultipleObjectsEx (0, nullptr, 16UL, QS_ALLINPUT, MWMO_ALERTABLE);
   }
 }
 
@@ -896,7 +909,7 @@ SK_DXGI_BeginHooking (void)
   if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
   {
 #if 1
-    HANDLE hHookInitDXGI =
+    //HANDLE hHookInitDXGI =
       CreateThread ( nullptr,
                        0,
                          HookDXGI,
@@ -2341,19 +2354,23 @@ HRESULT
   if (first_frame)
   {
 #ifdef _WIN64
-    if (! lstrcmpW (SK_GetHostApp (), L"Fallout4.exe"))
-      SK_FO4_PresentFirstFrame (This, SyncInterval, flags);
-
-    else if (! lstrcmpW (SK_GetHostApp (), L"DarkSoulsIII.exe"))
-      SK_DS3_PresentFirstFrame (This, SyncInterval, flags);
-
-    else if (SK_GetCurrentGameID () == SK_GAME_ID::WorldOfFinalFantasy)
+    switch (SK_GetCurrentGameID ())
     {
-      extern void
-      SK_DeferCommand (const char* szCommand);
+      case SK_GAME_ID::Fallout4:
+        SK_FO4_PresentFirstFrame (This, SyncInterval, flags);
+        break;
 
-      SK_DeferCommand ("Window.Borderless toggle");
-      SK_DeferCommand ("Window.Borderless toggle");
+      case SK_GAME_ID::DarkSouls3:
+        SK_DS3_PresentFirstFrame (This, SyncInterval, flags);
+        break;
+
+      case SK_GAME_ID::WorldOfFinalFantasy:
+        extern void
+        SK_DeferCommand (const char* szCommand);
+
+        SK_DeferCommand ("Window.Borderless toggle");
+        SK_DeferCommand ("Window.Borderless toggle");
+        break;
     }
 #endif
 
@@ -2787,51 +2804,53 @@ NTSTATUS
 APIENTRY
 D3DKMTPresent_Override (const D3DKMT_PRESENT *pData)
 {
+  SK_InstallWindowHook (pData->hWindow ? pData->hWindow : GetFocus ());
+
   // Start / End / Readback Pipeline Stats
-  if (SK_GetCurrentRenderBackend ().swapchain != nullptr && SK_GetFramesDrawn () > 240)
-  {
-    SK_D3D11_UpdateRenderStats ((IDXGISwapChain *)SK_GetCurrentRenderBackend ().swapchain);
-  }
-
-  // Establish the API used this frame (and handle possible translation layers)
+  //if (SK_GetCurrentRenderBackend ().swapchain != nullptr && SK_GetFramesDrawn () > 240)
+  //{
+  //  SK_D3D11_UpdateRenderStats ((IDXGISwapChain *)SK_GetCurrentRenderBackend ().swapchain);
+  //}
   //
-  switch (SK_GetDLLRole ())
-  {
-    case DLL_ROLE::D3D8:
-      SK_GetCurrentRenderBackend ().api = SK_RenderAPI::D3D8On11;
-      break;
-    case DLL_ROLE::DDraw:
-      SK_GetCurrentRenderBackend ().api = SK_RenderAPI::DDrawOn11;
-      break;
-    default:
-      SK_GetCurrentRenderBackend ().api = SK_RenderAPI::D3D11;
-      break;
-  }
+  //// Establish the API used this frame (and handle possible translation layers)
+  ////
+  //switch (SK_GetDLLRole ())
+  //{
+  //  case DLL_ROLE::D3D8:
+  //    SK_GetCurrentRenderBackend ().api = SK_RenderAPI::D3D8On11;
+  //    break;
+  //  case DLL_ROLE::DDraw:
+  //    SK_GetCurrentRenderBackend ().api = SK_RenderAPI::DDrawOn11;
+  //    break;
+  //  default:
+  //    SK_GetCurrentRenderBackend ().api = SK_RenderAPI::D3D11;
+  //    break;
+  //}
 
-  SK_BeginBufferSwap ();
+  //SK_BeginBufferSwap ();
 
-  if (config.render.gl.osd_in_vidcap && SK_GetFramesDrawn () > 240)
-  {
-    if ( SK_GetCurrentRenderBackend ().swapchain != nullptr &&
-         SK_GetCurrentRenderBackend ().device    != nullptr )
-    {
-      SK_CEGUI_DrawD3D11 ((IDXGISwapChain *)SK_GetCurrentRenderBackend ().swapchain);
-    }
-  }
+  //if (config.render.gl.osd_in_vidcap && SK_GetFramesDrawn () > 240)
+  //{
+  //  if ( SK_GetCurrentRenderBackend ().swapchain != nullptr &&
+  //       SK_GetCurrentRenderBackend ().device    != nullptr )
+  //  {
+  //    SK_CEGUI_DrawD3D11 ((IDXGISwapChain *)SK_GetCurrentRenderBackend ().swapchain);
+  //  }
+  //}
 
   NTSTATUS ntStat =
     D3DKMTPresent_Original (pData);
 
-  if (NT_SUCCESS (ntStat) && config.render.gl.osd_in_vidcap && SK_GetFramesDrawn () > 240)
-  {
-    if ( SK_GetCurrentRenderBackend ().swapchain != nullptr &&
-         SK_GetCurrentRenderBackend ().device    != nullptr )
-    {
-      SK_EndBufferSwap (S_OK, (ID3D11Device *)SK_GetCurrentRenderBackend ().device);
-
-      SK_D3D11_TexCacheCheckpoint ();
-    }
-  }
+  //if (NT_SUCCESS (ntStat) && config.render.gl.osd_in_vidcap && SK_GetFramesDrawn () > 240)
+  //{
+  //  if ( SK_GetCurrentRenderBackend ().swapchain != nullptr &&
+  //       SK_GetCurrentRenderBackend ().device    != nullptr )
+  //  {
+  //    SK_EndBufferSwap (S_OK, (ID3D11Device *)SK_GetCurrentRenderBackend ().device);
+  //
+  //    SK_D3D11_TexCacheCheckpoint ();
+  //  }
+  //}
 
   return ntStat;
 }
@@ -2906,29 +2925,37 @@ HRESULT
   if (first_frame)
   {
 #ifdef _WIN64
-    if (! lstrcmpW (SK_GetHostApp (), L"Fallout4.exe"))
-      SK_FO4_PresentFirstFrame (This, SyncInterval, Flags);
-
-    else if (! lstrcmpW (SK_GetHostApp (), L"DarkSoulsIII.exe"))
-      SK_DS3_PresentFirstFrame (This, SyncInterval, Flags);
-
-    else if (! lstrcmpW (SK_GetHostApp (), L"NieRAutomata.exe"))
-      SK_FAR_PresentFirstFrame (This, SyncInterval, Flags);
-
-    else if (! lstrcmpW (SK_GetHostApp (), L"BLUE_REFLECTION.exe"))
-      SK_IT_PresentFirstFrame (This, SyncInterval, Flags);
-
-    else if (SK_GetCurrentGameID () == SK_GAME_ID::DotHackGU)
-      SK_DGPU_PresentFirstFrame (This, SyncInterval, Flags);
-
-    else if (SK_GetCurrentGameID () == SK_GAME_ID::WorldOfFinalFantasy)
+    switch (SK_GetCurrentGameID ())
     {
-      extern void
-      SK_DeferCommand (const char* szCommand);
+      case SK_GAME_ID::Fallout4:
+        SK_FO4_PresentFirstFrame (This, SyncInterval, Flags);
+        break;
 
-      SK_DeferCommand ("Window.Borderless toggle");
-      SleepEx (33, FALSE);
-      SK_DeferCommand ("Window.Borderless toggle");
+      case SK_GAME_ID::DarkSouls3:
+        SK_DS3_PresentFirstFrame (This, SyncInterval, Flags);
+        break;
+
+      case SK_GAME_ID::NieRAutomata:
+        SK_FAR_PresentFirstFrame (This, SyncInterval, Flags);
+        break;
+
+      case SK_GAME_ID::BlueReflection:
+        SK_IT_PresentFirstFrame (This, SyncInterval, Flags);
+        break;
+
+      case SK_GAME_ID::DotHackGU:
+        SK_DGPU_PresentFirstFrame (This, SyncInterval, Flags);
+        break;
+
+      case SK_GAME_ID::WorldOfFinalFantasy:
+      {
+        extern void
+        SK_DeferCommand (const char* szCommand);
+
+        SK_DeferCommand ("Window.Borderless toggle");
+        SleepEx (33, FALSE);
+        SK_DeferCommand ("Window.Borderless toggle");
+      } break;
     }
 #endif
 
@@ -4062,11 +4089,11 @@ SK_DXGI_CreateSwapChain_PreInit ( _Inout_opt_ DXGI_SWAP_CHAIN_DESC            *p
 #ifdef _WIN64
     if (! bFlipMode)
       bFlipMode =
-        ( dxgi_caps.present.flip_sequential && (
-          ( ! lstrcmpW (SK_GetHostApp (), L"Fallout4.exe")) ||
-            SK_DS3_UseFlipMode ()        ) );
+        ( dxgi_caps.present.flip_sequential &&
+          ( SK_GetCurrentGameID () == SK_GAME_ID::Fallout4 ||
+            SK_DS3_UseFlipMode  ()        ) );
 
-    if (! lstrcmpW (SK_GetHostApp (), L"Fallout4.exe"))
+    if (SK_GetCurrentGameID () == SK_GAME_ID::Fallout4)
     {
       if (bFlipMode)
           bFlipMode = (! SK_FO4_IsFullscreen ()) && SK_FO4_UseFlipMode ();
@@ -4179,7 +4206,7 @@ SK_DXGI_CreateSwapChain_PreInit ( _Inout_opt_ DXGI_SWAP_CHAIN_DESC            *p
     bWait = bWait && config.render.framerate.swapchain_wait > 0;
 
 #ifdef _WIN64
-    if (! lstrcmpW (SK_GetHostApp (), L"DarkSoulsIII.exe"))
+    if (SK_GetCurrentGameID () == SK_GAME_ID::DarkSouls3)
     {
       if (SK_DS3_IsBorderless ())
         pDesc->Flags &= ~DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
@@ -4882,8 +4909,8 @@ STDMETHODCALLTYPE GetDesc_Override (IDXGIAdapter      *This,
                         pDesc->SharedSystemMemory  >> 20UL );
   }
 
-  if ( (! lstrcmpW (SK_GetHostApp (),   L"Fallout4.exe") ) &&
-                 SK_GetCallerName () == L"Fallout4.exe"  )
+  if ( SK_GetCurrentGameID () == SK_GAME_ID::Fallout4 &&
+          SK_GetCallerName () == L"Fallout4.exe"  )
   {
     pDesc->DedicatedVideoMemory = pDesc->SharedSystemMemory;
   }
@@ -5297,32 +5324,38 @@ SK_HookDXGI (void)
                   SK_MakePrettyAddress (CreateDXGIFactory2_Import).c_str () ),
                 L" DXGI 1.3 " );
 
-    //LPVOID pfnD3DKMTPresent_Target = nullptr;
-    //if ( MH_OK ==
-    //       SK_CreateDLLHook2 (      L"d3d11.dll",
-    //                                 "D3DKMTPresent",
-    //                                  D3DKMTPresent_Override,
-    //          static_cast_p2p <void>(&D3DKMTPresent_Original),
-    //                             &pfnD3DKMTPresent_Target ) )
-    //{
-    //  MH_QueueEnableHook (pfnD3DKMTPresent_Target);
-    //}
+    LPVOID pfnD3DKMTPresent_Target = nullptr;
+    if ( MH_OK ==
+           SK_CreateDLLHook2 (      L"d3d11.dll",
+                                     "D3DKMTPresent",
+                                      D3DKMTPresent_Override,
+              static_cast_p2p <void>(&D3DKMTPresent_Original),
+                                 &pfnD3DKMTPresent_Target ) )
+    {
+      MH_QueueEnableHook (pfnD3DKMTPresent_Target);
+    
+      SK_LOG0 ( ( L"       D3DKMTPresent: %s",
+                    SK_MakePrettyAddress (pfnD3DKMTPresent_Target).c_str () ),
+                  L" D3D11KMT " );
+
+      MH_ApplyQueued ();
+    }
 
     InterlockedIncrement (&hooked);
   }
 
   else
   {
-    //LPVOID pfnD3DKMTPresent_Target = nullptr;
-    //if ( MH_OK ==
-    //       SK_CreateDLLHook2 (      L"d3d11.dll",
-    //                                 "D3DKMTPresent",
-    //                                  D3DKMTPresent_Override,
-    //          static_cast_p2p <void>(&D3DKMTPresent_Original),
-    //                             &pfnD3DKMTPresent_Target ) )
-    //{
-    //  MH_QueueEnableHook (pfnD3DKMTPresent_Target);
-    //}
+    LPVOID pfnD3DKMTPresent_Target = nullptr;
+    if ( MH_OK ==
+           SK_CreateDLLHook2 (      L"d3d11.dll",
+                                     "D3DKMTPresent",
+                                      D3DKMTPresent_Override,
+              static_cast_p2p <void>(&D3DKMTPresent_Original),
+                                 &pfnD3DKMTPresent_Target ) )
+    {
+      MH_QueueEnableHook (pfnD3DKMTPresent_Target);
+    }
 
     LPVOID pfnCreateDXGIFactory  = nullptr;
     LPVOID pfnCreateDXGIFactory1 = nullptr;
@@ -5385,6 +5418,10 @@ SK_HookDXGI (void)
                                              L"{ Hooked }" :
                                              L"" ),
                 L" DXGI 1.3 " );
+
+    SK_LOG0 ( ( L"       D3DKMTPresent: %s",
+                  SK_MakePrettyAddress (pfnD3DKMTPresent_Target).c_str () ),
+                L" D3D11KMT " );
 
     MH_ApplyQueued ();
 
@@ -6023,7 +6060,7 @@ bool
 SK::DXGI::Shutdown (void)
 {
 #ifdef _WIN64
-  if (! lstrcmpW (SK_GetHostApp (), L"DarkSoulsIII.exe"))
+  if (SK_GetCurrentGameID () == SK_GAME_ID::DarkSouls3)
   {
     SK_DS3_ShutdownPlugin (L"dxgi");
   }

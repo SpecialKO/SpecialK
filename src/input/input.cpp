@@ -716,12 +716,14 @@ BOOL WINAPI RegisterRawInputDevices_Detour (
                       pDevices [i].hwndTarget ),
                         L"Input Mgr." );
 
-        if (GetFocus () == pDevices [i].hwndTarget)
+    if (GetFocus () == pDevices [i].hwndTarget)
         {
           if ( InterlockedCompareExchangePointer ( (volatile LPVOID *)&game_window.hWnd,
                                                      pDevices [i].hwndTarget,
                                                        nullptr ) == nullptr )
           {
+            extern HWND hWndRender;
+            hWndRender = game_window.hWnd;
             SK_InstallWindowHook (game_window.hWnd);
 
             SK_LOG0 ( (L" # Installed window hook early due to RawInput registration."),

@@ -81,9 +81,6 @@ struct sk_config_t
   struct {
     bool   show           = false;
 
-    bool   pump           = false;
-    float  pump_interval  = 0.0166666666f;
-
     int    red            = MAXDWORD32;
     int    green          = MAXDWORD32;
     int    blue           = MAXDWORD32;
@@ -643,13 +640,14 @@ enum class SK_GAME_ID
   Sacred2,                      // sacred2.exe
   FinalFantasy9,                // FF9.exe   
   EdithFinch,                   // FinchGame.exe
-  FinalFantasyX_X2,             // FFX.exe / FFX-2.exe
+  FinalFantasyX_X2,             // FFX.exe / FFX-2.exe / FFX&X-2_Will.exe
   DeadlyPremonition,            // DP.exe DPLauncher.exe
   GalGun_Double_Peace,          // GG2Game.exe
   AKIBAs_Trip,                  // AkibaUU.exe
   YS_Seven,                     // Ys7.exe
   LifeIsStrange_BeforeTheStorm, // Life is Strange - Before the Storm.exe
   Tales_of_Symphonia,           // TOS.exe
+  Tales_of_Zestiria,            // Tales of Zestiria.exe
   DivinityOriginalSin,          // EoCApp.exe
   Hob,                          // Hob.exe and HobLauncher.exe
   DukeNukemForever,             // DukeForever.exe
@@ -663,6 +661,9 @@ enum class SK_GAME_ID
   DuckTalesRemastered,          // DuckTales.exe
   Mafia3,                       // mafia3.exe
   Owlboy,                       // Owlboy.exe
+  DarkSouls3,                   // DarkSoulsIII.exe
+  Fallout4,                     // Fallout4.exe
+  DisgaeaPC,                    // dis1_st.exe
   UNKNOWN_GAME               = 0xffff
 };
 

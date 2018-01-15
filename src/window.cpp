@@ -4948,8 +4948,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   }
 
          bool handled = false;
-  static bool eqgame  =
-    wcsstr (SK_GetHostApp (), L"eqgame.exe");
+  static bool eqgame  = (SK_GetCurrentGameID () == SK_GAME_ID::EverQuest);
 
   if (uMsg == WM_INPUT)
   {
@@ -5333,7 +5332,7 @@ SK_InstallWindowHook (HWND hWnd)
   //     as an anti-cheat method. Hooking the class procedure is the only
   //       workaround.
   //
-  //if (! _wcsicmp (SK_GetHostApp (), L"eqgame.exe"))
+  //if (SK_GetCurrentGameID () == SK_GAME_ID::EverQuest)
     hook_classfunc = true;
   
   if (hook_classfunc && (! caught_register))

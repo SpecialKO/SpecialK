@@ -69,12 +69,29 @@ HookD3D9Ex (LPVOID user);
 
 volatile LONG ImGui_Init = FALSE;
 
+extern bool __SK_bypass;
+
 void
 WINAPI
 WaitForInit_D3D9 (void)
 {
+  const auto _SpinMax = 250;
+
   while (! ReadAcquire (&__d3d9_ready))
-    MsgWaitForMultipleObjectsEx (0, nullptr, 2UL, QS_ALLINPUT, MWMO_ALERTABLE);
+  {
+    // Can't remember what this is for, lol....
+    if (__SK_bypass && backend_dll != nullptr)
+      return;
+
+
+    for (int i = 0; i < _SpinMax && (! ReadAcquire (&__d3d9_ready)); i++)
+      ;
+
+    if (ReadAcquire (&__d3d9_ready))
+      break;
+
+    MsgWaitForMultipleObjectsEx (0, nullptr, 16UL, QS_ALLINPUT, MWMO_ALERTABLE);
+  }
 }
 
 extern "C++" void
@@ -497,32 +514,48 @@ SK_D3D9RenderBackend* SK_D3D9RenderBackend::pBackend = nullptr;
 #include <CEGUI/RenderTarget.h>
 #include <CEGUI/AnimationManager.h>
 #include <CEGUI/FontManager.h>
-#include <CEGUI/RendererModules/Direct3D9/Renderer.h>
 
 #include <SpecialK/osd/text.h>
 #include <SpecialK/osd/popup.h>
+
 
 #ifndef SK_BUILD__INSTALLER
 #pragma comment (lib, "d3dx9.lib")
 
 #ifdef _WIN64
-#pragma comment (lib, "CEGUI/x64/CEGUIDirect3D9Renderer-0.lib")
+# define SK_CEGUI_LIB_BASE "CEGUI/x64/"
 #else
-#pragma comment (lib, "CEGUI/Win32/CEGUIDirect3D9Renderer-0.lib")
-#endif
+# define SK_CEGUI_LIB_BASE "CEGUI/Win32/"
 #endif
 
-CEGUI::Direct3D9Renderer* cegD3D9    = nullptr;
+#define _SKC_MakeCEGUILib(library) \
+  __pragma (comment (lib, SK_CEGUI_LIB_BASE #library ##".lib"))
+
+_SKC_MakeCEGUILib ("CEGUIDirect3D9Renderer-0")
+_SKC_MakeCEGUILib ("CEGUIBase-0")
+_SKC_MakeCEGUILib ("CEGUICoreWindowRendererSet")
+_SKC_MakeCEGUILib ("CEGUIRapidXMLParser")
+_SKC_MakeCEGUILib ("CEGUICommonDialogs-0")
+_SKC_MakeCEGUILib ("CEGUISTBImageCodec")
+
+#include <delayimp.h>
+#include <CEGUI/CEGUI.h>
+#include <CEGUI/Rect.h>
+#include <CEGUI/RendererModules/Direct3D9/Renderer.h>
+
+#pragma comment (lib, "delayimp.lib")
+
+static
+CEGUI::Direct3D9Renderer* cegD3D9 = nullptr;
+#endif
+
+
 IDirect3DStateBlock9*     cegD3D9_SB = nullptr;
 
 static volatile LONG __gui_reset          = TRUE;
 static volatile LONG __cegui_frames_drawn = 0L;
 
 void ResetCEGUI_D3D9 (IDirect3DDevice9* pDev);
-
-#include <CEGUI/CEGUI.h>
-#include <CEGUI/Rect.h>
-#include <CEGUI/RendererModules/Direct3D9/Renderer.h>
 
 void
 SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
@@ -1285,14 +1318,13 @@ D3D9PresentCallbackEx ( IDirect3DDevice9Ex *This,
                                          pDirtyRegion,
                                           dwFlags );
 
-  if (! config.osd.pump)
-  {
-    if (trigger_reset == reset_stage_e::Clear)
-      hr = SK_EndBufferSwap (hr, This);
 
-    else
-      hr = D3DERR_DEVICELOST;
-  }
+  if (trigger_reset == reset_stage_e::Clear)
+    hr = SK_EndBufferSwap (hr, This);
+
+  else
+    hr = D3DERR_DEVICELOST;
+
 
   if (config.render.dxgi.rehook_present)
   {
@@ -1538,56 +1570,25 @@ D3D9PresentCallback ( IDirect3DDevice9 *This,
     rb.api = SK_RenderAPI::D3D9;
   }
 
-  pBackBuffer     = nullptr;
-  pBackBufferCopy = nullptr;
-
-  static bool zwei2 = (! _wcsicmp (SK_GetHostApp (), L"ZWEI2PDX9.exe"));
-
-  // TEMP HACK
-  if (zwei2)
-  {
-    if (SUCCEEDED (This->GetBackBuffer (0, 0, D3DBACKBUFFER_TYPE_MONO, &pBackBuffer)))
-    {
-      if ( SUCCEEDED (
-           D3D9CreateRenderTarget_Original ( This,
-                                               static_cast <UINT> (ImGui::GetIO ().DisplaySize.x),
-                                               static_cast <UINT> (ImGui::GetIO ().DisplaySize.y),
-                                                 D3DFMT_A8R8G8B8, D3DMULTISAMPLE_NONE,
-                                                   0, FALSE,
-                                                     &pBackBufferCopy, nullptr ) ) )
-      {
-        D3D9StretchRect_Original (This, pBackBuffer, nullptr, pBackBufferCopy, nullptr, D3DTEXF_NONE);
-      }
-    }
-  }
-
   SK_BeginBufferSwap ();
 
-  HRESULT hr =
-    SK_D3D9_Present (This, pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);
 
-  if (! config.osd.pump)
+  HRESULT hr =
+    SK_D3D9_Present ( This,
+                        pSourceRect, pDestRect,
+                          hDestWindowOverride,
+                            pDirtyRegion );
+
+
+  if (trigger_reset == reset_stage_e::Clear)
   {
-    if (trigger_reset == reset_stage_e::Clear)
-    {
-      hr = SK_EndBufferSwap (hr, This);
-    }
-    else
-      hr = D3DERR_DEVICELOST;
+    hr = SK_EndBufferSwap (hr, This);
   }
+  else
+    hr = D3DERR_DEVICELOST;
+
 
   SK_D3D9_EndFrame ();
-
-  if (zwei2)
-  {
-    if (pBackBufferCopy != nullptr && pBackBuffer != nullptr)
-    {
-      D3D9StretchRect_Original (This, pBackBufferCopy, nullptr, pBackBuffer, nullptr, D3DTEXF_NONE);
-    }
-    
-    if (pBackBuffer)     pBackBuffer->Release      ();
-    if (pBackBufferCopy) pBackBufferCopy->Release  ();
-  }
 
   return hr;
 }
@@ -1882,11 +1883,6 @@ D3D9_STUB_VOID    (void,  D3DPERF_SetRegion, (D3DCOLOR color, LPCWSTR name),
                                          pDirtyRegion,
                                            dwFlags );
 
-    // We are manually pumping OSD updates, do not do them on buffer swaps.
-    if (config.osd.pump)
-    {
-      return hr;
-    }
 
     hr =
       D3DERR_DEVICELOST;
@@ -3511,23 +3507,6 @@ SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* ppara
 
     if (pparams != nullptr)
     {
-      static bool zwei2 = (! _wcsicmp (SK_GetHostApp (), L"ZWEI2PDX9.exe"));
-
-      // TEMP HACK
-      if (zwei2)
-      {
-        if (pparams->SwapEffect == D3DSWAPEFFECT_COPY)
-        {
-          pparams->BackBufferFormat       = D3DFMT_X8R8G8B8;
-          pparams->BackBufferCount        = 1;
-          pparams->SwapEffect             = D3DSWAPEFFECT_DISCARD;
-          pparams->MultiSampleType        = D3DMULTISAMPLE_NONE;
-          pparams->MultiSampleQuality     = 0;
-          pparams->EnableAutoDepthStencil = true;
-          pparams->AutoDepthStencilFormat = D3DFMT_D24X8;
-        }
-      }
-
       extern HWND hWndRender;
 
       if (! ReadAcquire (&ImGui_Init))
@@ -4081,23 +4060,6 @@ D3D9CreateDevice_Override ( IDirect3D9*            This,
   if (config.display.force_windowed)
     hFocusWindow = pPresentationParameters->hDeviceWindow;
 
-  static bool zwei2 = (! _wcsicmp (SK_GetHostApp (), L"ZWEI2PDX9.exe"));
-
-  // TEMP HACK
-  if (zwei2)
-  {
-    if (pPresentationParameters->SwapEffect == D3DSWAPEFFECT_COPY)
-    {
-      pPresentationParameters->BackBufferFormat       = D3DFMT_X8R8G8B8;
-      pPresentationParameters->BackBufferCount        = 1;
-      pPresentationParameters->SwapEffect             = D3DSWAPEFFECT_DISCARD;
-      pPresentationParameters->MultiSampleType        = D3DMULTISAMPLE_NONE;
-      pPresentationParameters->MultiSampleQuality     = 0;
-      pPresentationParameters->EnableAutoDepthStencil = true;
-      pPresentationParameters->AutoDepthStencilFormat = D3DFMT_D24X8;
-    }
-  }
-
   if (ret == E_FAIL)
     D3D9_CALL ( ret, D3D9CreateDevice_Original ( This, Adapter,
                                                    DeviceType,
@@ -4110,7 +4072,7 @@ D3D9CreateDevice_Override ( IDirect3D9*            This,
   if (pPresentationParameters->Flags & D3DPRESENTFLAG_VIDEO)
     return ret;
 
-  // Do not attempt to do vtable override stuff if this failed,
+  // Do not attempt to do vftable override stuff if this failed,
   //   that will cause an immediate crash! Instead log some information that
   //     might help diagnose the problem.
   if (! SUCCEEDED (ret))

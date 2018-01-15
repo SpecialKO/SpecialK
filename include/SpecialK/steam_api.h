@@ -425,6 +425,17 @@ SK_Steam_PopupOriginToWStr (int origin);
 int
 SK_Steam_PopupOriginWStrToEnum (const wchar_t* str);
 
+BOOL
+SK_Steam_PreHookCore (void);
+
+BOOL
+SK_Steam_KickStart   (const wchar_t* szLibPath = nullptr);
+
+void
+SK_Steam_InitCommandConsoleVariables (void);
+void
+SK_TestSteamImports (HMODULE hMod);
+
 
 
 #endif /* __SK__STEAM_API_H__ */

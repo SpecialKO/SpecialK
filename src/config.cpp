@@ -123,11 +123,6 @@ struct {
   sk::ParameterBool*      show;
 
   struct {
-    sk::ParameterBool*    pump;
-    sk::ParameterFloat*   pump_interval;
-  } update_method;
-
-  struct {
     sk::ParameterInt*     red;
     sk::ParameterInt*     green;
     sk::ParameterInt*     blue;
@@ -568,8 +563,6 @@ SK_LoadConfigEx (std::wstring name, bool create)
     ConfigEntry (osd.version_banner.duration,            L"How long to display version info at startup, 0=disable)",   osd_ini,         L"SpecialK.VersionBanner",L"Duration"),
     ConfigEntry (osd.show,                               L"OSD Visibility",                                            osd_ini,         L"SpecialK.OSD",          L"Show"),
 
-    ConfigEntry (osd.update_method.pump,                 L"Refresh the OSD text irrespective of frame completion",     osd_ini,         L"SpecialK.OSD",          L"AutoPump"),
-    ConfigEntry (osd.update_method.pump_interval,        L"Time in seconds between OSD updates",                       osd_ini,         L"SpecialK.OSD",          L"PumpInterval"),
     ConfigEntry (osd.text.red,                           L"OSD Color (Red)",                                           osd_ini,         L"SpecialK.OSD",          L"TextColorRed"),
     ConfigEntry (osd.text.green,                         L"OSD Color (Green)",                                         osd_ini,         L"SpecialK.OSD",          L"TextColorGreen"),
     ConfigEntry (osd.text.blue,                          L"OSD Color (Blue)",                                          osd_ini,         L"SpecialK.OSD",          L"TextColorBlue"),
@@ -1142,11 +1135,13 @@ SK_LoadConfigEx (std::wstring name, bool create)
   games.emplace ( L"FinchGame.exe",                          SK_GAME_ID::EdithFinch                   );
   games.emplace ( L"FFX.exe",                                SK_GAME_ID::FinalFantasyX_X2             );
   games.emplace ( L"FFX-2.exe",                              SK_GAME_ID::FinalFantasyX_X2             );
+  games.emplace ( L"FFX&X-2_Will.exe",                       SK_GAME_ID::FinalFantasyX_X2             );
   games.emplace ( L"DP.exe",                                 SK_GAME_ID::DeadlyPremonition            );
   games.emplace ( L"GG2Game.exe",                            SK_GAME_ID::GalGun_Double_Peace          );
   games.emplace ( L"AkibaUU.exe",                            SK_GAME_ID::AKIBAs_Trip                  );
   games.emplace ( L"Ys7.exe",                                SK_GAME_ID::YS_Seven                     );
   games.emplace ( L"TOS.exe",                                SK_GAME_ID::Tales_of_Symphonia           );
+  games.emplace ( L"Tales of Zestiria.exe",                  SK_GAME_ID::Tales_of_Zestiria            );
   games.emplace ( L"Life is Strange - Before the Storm.exe", SK_GAME_ID::LifeIsStrange_BeforeTheStorm );
   games.emplace ( L"EoCApp.exe",                             SK_GAME_ID::DivinityOriginalSin          );
   games.emplace ( L"Hob.exe",                                SK_GAME_ID::Hob                          );
@@ -1161,6 +1156,9 @@ SK_LoadConfigEx (std::wstring name, bool create)
   games.emplace ( L"DuckTales.exe",                          SK_GAME_ID::DuckTalesRemastered          );
   games.emplace ( L"mafia3.exe",                             SK_GAME_ID::Mafia3                       );
   games.emplace ( L"Owlboy.exe",                             SK_GAME_ID::Owlboy                       );
+  games.emplace ( L"DarkSoulsIII.exe",                       SK_GAME_ID::DarkSouls3                   );
+  games.emplace ( L"Fallout4.exe",                           SK_GAME_ID::Fallout4                     );
+  games.emplace ( L"dis1_st.exe",                            SK_GAME_ID::DisgaeaPC                    );
 
   //
   // Application Compatibility Overrides
@@ -2056,9 +2054,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
     );
   }
 
-  osd.show->load                        (config.osd.show);
-  osd.update_method.pump->load          (config.osd.pump);
-  osd.update_method.pump_interval->load (config.osd.pump_interval);
+  osd.show->load           (config.osd.show);
 
   osd.text.red->load       (config.osd.red);
   osd.text.green->load     (config.osd.green);
@@ -2386,8 +2382,6 @@ SK_SaveConfig ( std::wstring name,
 
   osd.version_banner.duration->store          (config.version_banner.duration);
   osd.show->store                             (config.osd.show);
-  osd.update_method.pump->store               (config.osd.pump);
-  osd.update_method.pump_interval->store      (config.osd.pump_interval);
   osd.text.red->store                         (config.osd.red);
   osd.text.green->store                       (config.osd.green);
   osd.text.blue->store                        (config.osd.blue);

@@ -3440,8 +3440,7 @@ SteamAPI_Shutdown_Detour (void)
       {
         SleepEx (100UL, TRUE);
 
-        //if (ReadAcquire (&__SK_DLL_Ending))
-        if (__SK_DLL_Ending)
+        if (ReadAcquire (&__SK_DLL_Ending))
         {
           CloseHandle (GetCurrentThread ());
 
@@ -5043,6 +5042,52 @@ SK_SteamAPIContext::InitSteamAPI (HMODULE hSteamDLL)
 
   return true;
 }
+
+BOOL
+SK_Steam_KickStart (const wchar_t* wszLibPath)
+{
+  UNREFERENCED_PARAMETER (wszLibPath);
+
+  static volatile LONG tried = FALSE;
+
+  if (! InterlockedCompareExchange (&tried, TRUE, FALSE))
+  {
+    static const wchar_t* wszSteamDLL =
+      SK_RunLHIfBitness ( 64, L"steam_api64.dll",
+                              L"steam_api.dll" );
+
+    if (! GetModuleHandle (wszSteamDLL))
+    {
+      wchar_t wszDLLPath [MAX_PATH * 2 + 4] = { };
+
+      if (SK_IsInjected ())
+        wcsncpy (wszDLLPath, SK_GetModuleFullName (SK_GetDLL ()).c_str (), MAX_PATH * 2);
+      else
+      {
+        _swprintf ( wszDLLPath, LR"(%s\My Mods\SpecialK\SpecialK.dll)",
+                      SK_GetDocumentsDir ().c_str () );
+      }
+
+      if (PathRemoveFileSpec (wszDLLPath))
+      {
+        PathAppendW (wszDLLPath, wszSteamDLL);
+
+        if (SK_GetFileSize (wszDLLPath) > 0)
+        {
+          if (LoadLibraryW (wszSteamDLL))
+          {
+            dll_log.Log ( L"[DLL Loader]   Manually booted SteamAPI: '%s'",
+                            wszSteamDLL );//wszDLLPath );
+            return true;
+          }
+        }
+      }
+    }
+  }
+
+  return false;
+}
+
 
 uint64_t    SK::SteamAPI::steam_size                                    = 0ULL;
 
