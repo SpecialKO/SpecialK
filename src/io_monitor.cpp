@@ -439,6 +439,23 @@ CoCreateInstanceEx_Detour (
 
 #include <SpecialK/hooks.h>
 
+auto SK_WaitForInit_WMI = [&](void) ->
+void
+{
+  const auto _SpinMax = 250;
+
+  while (! ReadAcquire (&COM::base.wmi.init))
+  {
+    for (int i = 0; i < _SpinMax && (! ReadAcquire (&COM::base.wmi.init)); i++)
+      ;
+
+    if (ReadAcquire (&COM::base.wmi.init))
+      break;
+
+    MsgWaitForMultipleObjectsEx (0, nullptr, 16, QS_ALLEVENTS, MWMO_ALERTABLE);
+  }
+};
+
 bool
 SK_InitWMI (void)
 {
@@ -481,8 +498,7 @@ SK_InitWMI (void)
                     [](LPVOID) ->
                     DWORD
                     {
-                      while (SK_GetFramesDrawn () < 10)
-                        SleepEx (15, TRUE);
+                      SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_LOWEST);
 
                       SK_AutoCOMInit auto_com;
 
@@ -497,8 +513,7 @@ SK_InitWMI (void)
 
   else
   {
-    while (! ReadAcquire (&COM::base.wmi.init))
-      SleepEx (333, FALSE);
+    SK_WaitForInit_WMI ();
   }
 
   COM::base.wmi.Unlock ();
@@ -521,8 +536,18 @@ SK_ShutdownWMI (void)
       InterlockedExchangePointer (&COM::base.wmi.hServerThread, nullptr);
     }
 
+    const auto _SpinMax = 250;
+
     while (ReadAcquire (&COM::base.wmi.init))
-      SleepEx (333, TRUE);
+    {
+      for (int i = 0; i < _SpinMax && (ReadAcquire (&COM::base.wmi.init)); i++)
+        ;
+
+      if (! ReadAcquire (&COM::base.wmi.init))
+        break;
+
+      MsgWaitForMultipleObjectsEx (0, nullptr, 16, QS_ALLEVENTS, MWMO_ALERTABLE);
+    }
   }
 }
 
@@ -534,8 +559,9 @@ DWORD
 WINAPI
 SK_MonitorCPU (LPVOID user_param)
 {
-  while (! ReadAcquire (&COM::base.wmi.init))
-    SleepEx (150, FALSE);
+  SetThreadPriority (GetCurrentThread ( ), THREAD_PRIORITY_LOWEST);
+
+  SK_WaitForInit_WMI ();
 
   SK_AutoCOMInit auto_com;
 
@@ -887,8 +913,9 @@ DWORD
 WINAPI
 SK_MonitorDisk (LPVOID user)
 {
-  while (! ReadAcquire (&COM::base.wmi.init))
-    SleepEx (150, FALSE);
+  SetThreadPriority (GetCurrentThread ( ), THREAD_PRIORITY_LOWEST);
+
+  SK_WaitForInit_WMI ();
 
   SK_AutoCOMInit auto_com;
 
@@ -1304,8 +1331,9 @@ DWORD
 WINAPI
 SK_MonitorPagefile (LPVOID user)
 {
-  while (! ReadAcquire (&COM::base.wmi.init))
-    SleepEx (150, FALSE);
+  SetThreadPriority (GetCurrentThread ( ), THREAD_PRIORITY_LOWEST);
+
+  SK_WaitForInit_WMI ();
 
   SK_AutoCOMInit auto_com;
 
@@ -1644,8 +1672,9 @@ DWORD
 WINAPI
 SK_MonitorProcess (LPVOID user)
 {
-  while (! ReadAcquire (&COM::base.wmi.init))
-    SleepEx (150, FALSE);
+  SetThreadPriority (GetCurrentThread ( ), THREAD_PRIORITY_LOWEST);
+
+  SK_WaitForInit_WMI ();
 
   SK_AutoCOMInit auto_com;
 

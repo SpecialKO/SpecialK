@@ -57,7 +57,7 @@ extern void SK_Steam_ClearPopups (void);
 //SK_OpenGL_KnownBuffers  SK_GL_Buffers;
 
 static SK_Thread_HybridSpinlock *cs_gl_ctx = nullptr;
-static HGLRC                             __gl_primary_context = 0;
+static HGLRC                             __gl_primary_context = nullptr;
 static std::unordered_map <HGLRC, HGLRC> __gl_shared_contexts;
 static std::unordered_map <HGLRC, BOOL>  init_;
 
@@ -96,13 +96,13 @@ SK_GL_UpdateRenderStats (void);
 
 extern "C++" int SK_Steam_DrawOSD (void);
 
-typedef BOOL (WINAPI *wglSwapBuffers_pfn)(HDC);
-                      wglSwapBuffers_pfn
-                      wgl_swap_buffers = nullptr;
+using wglSwapBuffers_pfn = BOOL (WINAPI *)(HDC);
+      wglSwapBuffers_pfn
+      wgl_swap_buffers   = nullptr;
 
-typedef BOOL (WINAPI *SwapBuffers_pfn)(HDC);
-                      SwapBuffers_pfn
-                      gdi_swap_buffers = nullptr;
+using SwapBuffers_pfn  = BOOL (WINAPI *)(HDC);
+      SwapBuffers_pfn
+      gdi_swap_buffers = nullptr;
 
 static ULONG GL_HOOKS  = 0UL;
 
@@ -144,9 +144,9 @@ SK_CEGUI_InitBase (void);
 
 
 static
-HMODULE local_gl = 0;
+HMODULE local_gl = nullptr;
 
-typedef void (WINAPI *finish_pfn)(void);
+using finish_pfn = void (WINAPI *)(void);
 
 HMODULE
 SK_LoadRealGL (void)
@@ -161,7 +161,7 @@ SK_LoadRealGL (void)
 
   lstrcatW (wszBackendDLL, L"OpenGL32.dll");
 
-  if (local_gl == 0)
+  if (local_gl == nullptr)
     local_gl = LoadLibraryW (wszBackendDLL);
   else {
     HMODULE hMod;
@@ -300,21 +300,21 @@ typedef double    GLdouble;
 typedef double    GLclampd;
 typedef void      GLvoid;
 #else
-typedef unsigned int   GLenum;
-typedef unsigned char  GLboolean;
-typedef unsigned int   GLbitfield;
-typedef signed   char  GLbyte;
-typedef short          GLshort;
-typedef int            GLint;
-typedef int            GLsizei;
-typedef unsigned char  GLubyte;
-typedef unsigned short GLushort;
-typedef unsigned int   GLuint;
-typedef float          GLfloat;
-typedef float          GLclampf;
-typedef double         GLdouble;
-typedef double         GLclampd;
-typedef void           GLvoid;
+using GLenum     = unsigned int;
+using GLboolean  = unsigned char;
+using GLbitfield = unsigned int;
+using GLbyte     = signed   char;
+using GLshort    = short;
+using GLint      = int;
+using GLsizei    = int;
+using GLubyte    = unsigned char;
+using GLushort   = unsigned short;
+using GLuint     = unsigned int;
+using GLfloat    = float;
+using GLclampf   = float;
+using GLdouble   = double;
+using GLclampd   = double;
+using GLvoid     = void;
 #endif
 
 
@@ -2245,22 +2245,22 @@ SK_GL_UpdateRenderStats (void)
   //SK::DXGI::PipelineStatsD3D11& pipeline_stats =
     //SK::DXGI::pipeline_stats_d3d11;
 
-  for (int i = 0; i < 11; i++)
+  for (auto & pipeline_state : GLPerf::pipeline_states)
   {
-    if (GLPerf::pipeline_states [i] != nullptr)
+    if (pipeline_state != nullptr)
     {
-      if (GLPerf::pipeline_states [i]->isReady ())
+      if (pipeline_state->isReady ())
       {
         GLuint64 result;
-        if (GLPerf::pipeline_states [i]->getResulIfFinished (&result))
+        if (pipeline_state->getResulIfFinished (&result))
         {
-          GLPerf::pipeline_states [i]->beginQuery ();
+          pipeline_state->beginQuery ();
         }
       }
 
-      else if (GLPerf::pipeline_states [i]->isActive ())
+      else if (pipeline_state->isActive ())
       {
-        GLPerf::pipeline_states [i]->endQuery ();
+        pipeline_state->endQuery ();
       }
 
       //if (! GLPerf::pipeline_states [i]->isActive ())
@@ -2500,7 +2500,6 @@ SK_HookGL (void)
       ++GL_HOOKS;
       ++GL_HOOKS;
 
-#if 1
       SK_GL_HOOK(glAccum);
       SK_GL_HOOK(glAlphaFunc);
       SK_GL_HOOK(glAreTexturesResident);
@@ -2862,7 +2861,6 @@ SK_HookGL (void)
       SK_GL_HOOK(wglGetLayerPaletteEntries);
       SK_GL_HOOK(wglRealizeLayerPalette);
       SK_GL_HOOK(wglSetLayerPaletteEntries);
-#endif
 
       dll_log.Log ( L"[ OpenGL32 ]  @ %lu functions hooked",
                       GL_HOOKS );

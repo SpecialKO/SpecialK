@@ -59,6 +59,8 @@ SK_GPUPollingThread (LPVOID user)
     hShutdownEvent
   };
 
+  SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_LOWEST);
+
   while (true)
   {
     DWORD dwWait =

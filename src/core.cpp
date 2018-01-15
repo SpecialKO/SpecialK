@@ -1653,8 +1653,6 @@ std::set <HWND> dummy_windows;
 HWND
 SK_Win32_CreateDummyWindow (void)
 {
-  //SleepEx (5000UL, FALSE);
-
   static WNDCLASSW wc          = { };
   static WNDCLASS  wc_existing = { };
 
