@@ -84,7 +84,7 @@ iSK_INI::iSK_INI (const wchar_t* filename)
   if (fINI != nullptr)
   {
     auto size =
-      static_cast <long> (SK_GetFileSize (filename));
+      static_cast <long> (SK_File_GetSize (filename));
 
     wszData = new wchar_t [size + 3] { };
     alloc   = wszData;
@@ -954,7 +954,7 @@ iSK_INI::import_file (const wchar_t* fname)
   if (fImportINI != nullptr)
   {
     auto size =
-      static_cast <long> (SK_GetFileSize (fname));
+      static_cast <long> (SK_File_GetSize (fname));
 
     wchar_t *wszImportData = new wchar_t [size + 3] { };
                    alloc   = wszImportData;

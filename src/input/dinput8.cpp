@@ -33,6 +33,7 @@
 
 #include <SpecialK/config.h>
 
+#include <SpecialK/crc32.h>
 #include <SpecialK/utility.h>
 #include <SpecialK/command.h>
 #include <SpecialK/hooks.h>

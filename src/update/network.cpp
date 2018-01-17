@@ -658,7 +658,7 @@ Update_DlgProc (
       SendMessage (hWndProgress, PBM_SETPOS,   1,           0UL);
       SendMessage (hWndProgress, PBM_SETSTATE, PBST_PAUSED, 0UL);
 
-      uint64_t fsize = SK_GetFileSize (update_dlg_file);
+      uint64_t fsize = SK_File_GetSize (update_dlg_file);
 
       std::vector <sk_file_entry_s> files =
         SK_Get7ZFileContents (update_dlg_file);
@@ -681,7 +681,7 @@ Update_DlgProc (
 
         // This function returns 0 if no file exists
         uint64_t bsize =
-          SK_GetFileSize (wszFinalPath);
+          SK_File_GetSize (wszFinalPath);
 
         if (bsize != 0)
         {

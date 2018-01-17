@@ -71,7 +71,7 @@ extern volatile LONG __SteamAPI_hook;
 //     DLL phase, SteamAPI in one of its many forms will be
 //       hooked.
 void
-SK_TestSteamImports (HMODULE hMod);
+SK_Steam_TestImports (HMODULE hMod);
 
 void
 SK_Steam_InitCommandConsoleVariables (void);
@@ -164,8 +164,7 @@ float __stdcall       SK_SteamAPI_PercentOfAchievementsUnlocked (void);
 void                  SK_SteamAPI_LogAllAchievements            (void);
 void                  SK_UnlockSteamAchievement                 (uint32_t idx);
 
-bool                  SK_SteamImported                          (void);
-void                  SK_TestSteamImports                       (HMODULE hMod);
+bool                  SK_Steam_Imported                         (void);
 
 void                  SK_HookCSteamworks                        (void);
 void                  SK_HookSteamAPI                           (void);
@@ -432,9 +431,7 @@ BOOL
 SK_Steam_KickStart   (const wchar_t* szLibPath = nullptr);
 
 void
-SK_Steam_InitCommandConsoleVariables (void);
-void
-SK_TestSteamImports (HMODULE hMod);
+SK_Steam_KillPump (void);
 
 
 

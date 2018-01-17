@@ -26,6 +26,7 @@
 #include <SpecialK/config.h>
 #include <SpecialK/hooks.h>
 #include <SpecialK/log.h>
+#include <SpecialK/crc32.h>
 #include <SpecialK/utility.h>
 #include <SpecialK/framerate.h>
 #include <SpecialK/core.h>

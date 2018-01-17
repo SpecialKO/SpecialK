@@ -26,9 +26,11 @@
 #include <Windows.h>
 
 #include <cstdint>
+#include <queue>
 #include <string>
 #include <mutex>
 
+#include <SpecialK/SpecialK.h>
 #include <SpecialK/sha1.h>
 
 interface iSK_INI;
@@ -104,14 +106,15 @@ void           SK_FixSlashesW               (wchar_t* wszInOut);
 void           SK_StripTrailingSlashesA     (char*     szInOut);
 void           SK_FixSlashesA               (char*     szInOut);
 
-void           SK_SetNormalFileAttribs      (std::wstring   file);
-void           SK_MoveFileNoFail            (const wchar_t* wszOld,    const wchar_t* wszNew);
-void           SK_FullCopy                  (std::wstring   from,      std::wstring   to);
+void           SK_File_SetNormalAttribs     (std::wstring   file);
+void           SK_File_MoveNoFail           (const wchar_t* wszOld,    const wchar_t* wszNew);
+void           SK_File_FullCopy                 (std::wstring   from,      std::wstring   to);
 BOOL           SK_File_SetAttribs           (std::wstring   file,      DWORD          dwAttribs);
 BOOL           SK_File_ApplyAttribMask      (std::wstring   file,      DWORD          dwAttribMask,
                                              bool           clear = false);
 BOOL           SK_File_SetHidden            (std::wstring   file,      bool           hidden);
 BOOL           SK_File_SetTemporary         (std::wstring   file,      bool           temp);
+uint64_t       SK_File_GetSize              (const wchar_t* wszFile);
 std::wstring   SK_File_SizeToString         (uint64_t       size,      SK_UNITS       unit = Auto);
 std::wstring   SK_File_SizeToStringF        (uint64_t       size,      int            width,
                                              int            precision, SK_UNITS       unit = Auto);
@@ -139,8 +142,6 @@ bool           SK_StripUserNameFromPathW    (wchar_t* wszInOut);
 LPVOID         SK_GetProcAddress            (const wchar_t* wszModule, const char* szFunc);
 
 
-HMODULE __stdcall
-               SK_GetDLL                    (void);
 std::wstring
         __stdcall
                SK_GetDLLVersionStr          (const wchar_t* wszName);
@@ -148,6 +149,10 @@ std::wstring
 const wchar_t*
         __stdcall
                SK_GetCanonicalDLLForRole    (enum DLL_ROLE role);
+
+const wchar_t*
+SK_DescribeHRESULT (HRESULT hr);
+
 
 
 constexpr uint8_t
@@ -166,7 +171,8 @@ SK_GetBitness (void)
 #define SK_RunIf64Bit(x)         { SK_GetBitness () == 64  ? (x) :  0; }
 #define SK_RunLHIfBitness(b,l,r)   SK_GetBitness () == (b) ? (l) : (r)
 
-#include <queue>
+
+
 
 std::queue <DWORD>
                SK_SuspendAllOtherThreads (void);
@@ -176,6 +182,7 @@ void
 
 bool __cdecl   SK_IsRunDLLInvocation     (void);
 bool __cdecl   SK_IsSuperSpecialK        (void);
+
 
 // TODO: Push the SK_GetHostApp (...) stuff into this class
 class SK_HostAppUtil
@@ -228,23 +235,6 @@ SK_wcsrep ( const wchar_t*   wszIn,
             const wchar_t*   wszOld,
             const wchar_t*   wszNew );
 
-using SK_HashProgressCallback_pfn = void (__stdcall *)(uint64_t current, uint64_t total);
-
-uint64_t     __stdcall SK_GetFileSize     ( const wchar_t* wszFile );
-uint32_t     __stdcall SK_GetFileCRC32    ( const wchar_t* wszFile,
-                             SK_HashProgressCallback_pfn callback = nullptr );
-uint32_t     __stdcall SK_GetFileCRC32C   ( const wchar_t* wszFile,
-                             SK_HashProgressCallback_pfn callback = nullptr );
-
-SK_SHA1_Hash __stdcall SK_File_GetSHA1     ( const wchar_t* wszFile,
-                             SK_HashProgressCallback_pfn callback = nullptr );
-bool         __stdcall SK_File_GetSHA1StrA ( const char* szFile,
-                                                   char*  szOut,
-                             SK_HashProgressCallback_pfn callback = nullptr );
-bool         __stdcall SK_File_GetSHA1StrW ( const wchar_t* wszFile,
-                                                   wchar_t* wszOut,
-                             SK_HashProgressCallback_pfn callback = nullptr );
-
 
 const wchar_t*
 SK_Path_wcsrchr (const wchar_t* wszStr, wchar_t wchr);
@@ -284,52 +274,5 @@ SK_InjectMemory ( LPVOID  base_addr,
 
 bool
 SK_IsProcessRunning (const wchar_t* wszProcName);
-
-extern "C" uint32_t __cdecl crc32       (uint32_t crc, const void *buf, size_t size);
-
-// Returns the value of crc if attempting to checksum this memory throws an access violation exception
-           uint32_t __cdecl safe_crc32c (uint32_t crc, const void *buf, size_t size);
-
-/*
-    Computes CRC-32C (Castagnoli) checksum. Uses Intel's CRC32 instruction if it is available.
-    Otherwise it uses a very fast software fallback.
-*/
-extern "C"
-uint32_t
-__cdecl
-crc32c (
-    uint32_t    crc,            // Initial CRC value. Typically it's 0.
-                                // You can supply non-trivial initial value here.
-                                // Initial value can be used to chain CRC from multiple buffers.
-    const void *input,          // Data to be put through the CRC algorithm.
-    size_t      length);        // Length of the data in the input buffer.
-
-
-extern "C" void __cdecl __crc32_init (void);
-
-/*
-	Software fallback version of CRC-32C (Castagnoli) checksum.
-*/
-extern "C"
-uint32_t
-__cdecl
-crc32c_append_sw (uint32_t crc, const void *input, size_t length);
-
-/*
-	Hardware version of CRC-32C (Castagnoli) checksum. Will fail, if CPU does not support related instructions. Use a crc32c_append version instead of.
-*/
-extern "C"
-uint32_t
-__cdecl
-crc32c_append_hw (uint32_t crc, const void *input, size_t length);
-
-/*
-	Checks is hardware version of CRC-32C is available.
-*/
-extern "C"
-int
-__cdecl
-crc32c_hw_available (void);
-
 
 #endif /* __SK__UTILITY_H__ */

@@ -30,6 +30,7 @@
 #include <SpecialK/dxgi_backend.h>
 #include <SpecialK/render_backend.h>
 #include <SpecialK/log.h>
+#include <SpecialK/crc32.h>
 #include <SpecialK/utility.h>
 #include <SpecialK/thread.h>
 

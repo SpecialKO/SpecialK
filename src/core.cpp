@@ -19,6 +19,7 @@
  *
 **/
 
+#include <SpecialK/SpecialK.h>
 #include <SpecialK/core.h>
 #include <SpecialK/stdafx.h>
 #include <SpecialK/hooks.h>
@@ -55,20 +56,18 @@
 #include <SpecialK/render_backend.h>
 #include <SpecialK/dxgi_backend.h>
 #include <SpecialK/vulkan_backend.h>
-#include <SpecialK/nvapi.h>
-#include <d3d9.h>
-#include <d3d11.h>
-#include <wingdi.h>
-#include <gl/gl.h>
+#include <SpecialK/resource.h>
+
 #ifdef _WIN64
 #define D3D12_IGNORE_SDK_LAYERS
 #include <SpecialK/d3d12_interfaces.h>
 #endif
 
+#include <SpecialK/nvapi.h>
 #include <SpecialK/adl.h>
-#include <SpecialK/steam_api.h>
+#include <SpecialK/gpu_monitor.h>
 
-#include <imgui/imgui.h>
+#include <SpecialK/steam_api.h>
 
 #include <SpecialK/update/version.h>
 #include <SpecialK/update/network.h>
@@ -84,7 +83,12 @@
 #include <comdef.h>
 #include <delayimp.h>
 
-#include <SpecialK/resource.h>
+#include <d3d9.h>
+#include <d3d11.h>
+#include <wingdi.h>
+#include <gl/gl.h>
+
+#include <imgui/imgui.h>
 
 #include <CEGUI/CEGUI.h>
 #include <CEGUI/System.h>
@@ -110,19 +114,39 @@ HANDLE  hInitThread   = { INVALID_HANDLE_VALUE };
 HANDLE  hPumpThread   = { INVALID_HANDLE_VALUE };
 
 NV_GET_CURRENT_SLI_STATE sli_state;
-BOOL                     nvapi_init       = FALSE;
-HMODULE                  backend_dll      = nullptr;
+BOOL                     nvapi_init  = FALSE;
+HMODULE                  backend_dll = nullptr;
 
-// LOL -- This tests for RunDLL32 / SKIM
-bool
-__cdecl
-SK_IsSuperSpecialK (void);
+volatile LONG            __SK_Init   = FALSE;
+         bool            __SK_bypass = false;
 
 
-struct init_params_t {
+using ChangeDisplaySettingsA_pfn = LONG (WINAPI *)(
+  _In_opt_ DEVMODEA *lpDevMode,
+  _In_     DWORD     dwFlags
+);
+using CreateWindowExW_pfn = HWND (WINAPI *)(
+    _In_     DWORD     dwExStyle,
+    _In_opt_ LPCWSTR   lpClassName,
+    _In_opt_ LPCWSTR   lpWindowName,
+    _In_     DWORD     dwStyle,
+    _In_     int       X,
+    _In_     int       Y,
+    _In_     int       nWidth,
+    _In_     int       nHeight,
+    _In_opt_ HWND      hWndParent,
+    _In_opt_ HMENU     hMenu,
+    _In_opt_ HINSTANCE hInstance,
+    _In_opt_ LPVOID    lpParam );
+
+extern ChangeDisplaySettingsA_pfn ChangeDisplaySettingsA_Original;
+extern CreateWindowExW_pfn        CreateWindowExW_Original;
+
+
+struct init_params_s {
   std::wstring backend  = L"INVALID";
   void*        callback =    nullptr;
-} init_;
+} static init_, reentrant_core;
 
 
 wchar_t SK_RootPath   [MAX_PATH + 2] = { };
@@ -177,285 +201,15 @@ SK_GetNaiveConfigPath (void)
 }
 
 
-static volatile
-LONG frames_drawn = 0L;
-
 __declspec (noinline)
 ULONG
 __stdcall
 SK_GetFramesDrawn (void)
 {
   return
-    static_cast <ULONG> (ReadNoFence (&frames_drawn));
+    static_cast <ULONG> (ReadNoFence (&SK_GetCurrentRenderBackend ().frames_drawn));
 }
 
-
-const wchar_t*
-__stdcall
-SK_DescribeHRESULT (HRESULT result)
-{
-  switch (result)
-  {
-    /* Generic (SUCCEEDED) */
-
-  case S_OK:
-    return L"S_OK";
-
-  case S_FALSE:
-    return L"S_FALSE";
-
-
-#ifndef SK_BUILD__INSTALLER
-    /* DXGI */
-
-  case DXGI_ERROR_DEVICE_HUNG:
-    return L"DXGI_ERROR_DEVICE_HUNG";
-
-  case DXGI_ERROR_DEVICE_REMOVED:
-    return L"DXGI_ERROR_DEVICE_REMOVED";
-
-  case DXGI_ERROR_DEVICE_RESET:
-    return L"DXGI_ERROR_DEVICE_RESET";
-
-  case DXGI_ERROR_DRIVER_INTERNAL_ERROR:
-    return L"DXGI_ERROR_DRIVER_INTERNAL_ERROR";
-
-  case DXGI_ERROR_FRAME_STATISTICS_DISJOINT:
-    return L"DXGI_ERROR_FRAME_STATISTICS_DISJOINT";
-
-  case DXGI_ERROR_GRAPHICS_VIDPN_SOURCE_IN_USE:
-    return L"DXGI_ERROR_GRAPHICS_VIDPN_SOURCE_IN_USE";
-
-  case DXGI_ERROR_INVALID_CALL:
-    return L"DXGI_ERROR_INVALID_CALL";
-
-  case DXGI_ERROR_MORE_DATA:
-    return L"DXGI_ERROR_MORE_DATA";
-
-  case DXGI_ERROR_NONEXCLUSIVE:
-    return L"DXGI_ERROR_NONEXCLUSIVE";
-
-  case DXGI_ERROR_NOT_CURRENTLY_AVAILABLE:
-    return L"DXGI_ERROR_NOT_CURRENTLY_AVAILABLE";
-
-  case DXGI_ERROR_NOT_FOUND:
-    return L"DXGI_ERROR_NOT_FOUND";
-
-  case DXGI_ERROR_REMOTE_CLIENT_DISCONNECTED:
-    return L"DXGI_ERROR_REMOTE_CLIENT_DISCONNECTED";
-
-  case DXGI_ERROR_REMOTE_OUTOFMEMORY:
-    return L"DXGI_ERROR_REMOTE_OUTOFMEMORY";
-
-  case DXGI_ERROR_WAS_STILL_DRAWING:
-    return L"DXGI_ERROR_WAS_STILL_DRAWING";
-
-  case DXGI_ERROR_UNSUPPORTED:
-    return L"DXGI_ERROR_UNSUPPORTED";
-
-  case DXGI_ERROR_ACCESS_LOST:
-    return L"DXGI_ERROR_ACCESS_LOST";
-
-  case DXGI_ERROR_WAIT_TIMEOUT:
-    return L"DXGI_ERROR_WAIT_TIMEOUT";
-
-  case DXGI_ERROR_SESSION_DISCONNECTED:
-    return L"DXGI_ERROR_SESSION_DISCONNECTED";
-
-  case DXGI_ERROR_RESTRICT_TO_OUTPUT_STALE:
-    return L"DXGI_ERROR_RESTRICT_TO_OUTPUT_STALE";
-
-  case DXGI_ERROR_CANNOT_PROTECT_CONTENT:
-    return L"DXGI_ERROR_CANNOT_PROTECT_CONTENT";
-
-  case DXGI_ERROR_ACCESS_DENIED:
-    return L"DXGI_ERROR_ACCESS_DENIED";
-
-  case DXGI_ERROR_NAME_ALREADY_EXISTS:
-    return L"DXGI_ERROR_NAME_ALREADY_EXISTS";
-
-  case DXGI_ERROR_SDK_COMPONENT_MISSING:
-    return L"DXGI_ERROR_SDK_COMPONENT_MISSING";
-
-  case DXGI_DDI_ERR_WASSTILLDRAWING:
-    return L"DXGI_DDI_ERR_WASSTILLDRAWING";
-
-  case DXGI_DDI_ERR_UNSUPPORTED:
-    return L"DXGI_DDI_ERR_UNSUPPORTED";
-
-  case DXGI_DDI_ERR_NONEXCLUSIVE:
-    return L"DXGI_DDI_ERR_NONEXCLUSIVE";
-
-
-    /* DXGI (Status) */
-  case DXGI_STATUS_OCCLUDED:
-    return L"DXGI_STATUS_OCCLUDED";
-
-  case DXGI_STATUS_UNOCCLUDED:
-    return L"DXGI_STATUS_UNOCCLUDED";
-
-  case DXGI_STATUS_CLIPPED:
-    return L"DXGI_STATUS_CLIPPED";
-
-  case DXGI_STATUS_NO_REDIRECTION:
-    return L"DXGI_STATUS_NO_REDIRECTION";
-
-  case DXGI_STATUS_NO_DESKTOP_ACCESS:
-    return L"DXGI_STATUS_NO_DESKTOP_ACCESS";
-
-  case DXGI_STATUS_GRAPHICS_VIDPN_SOURCE_IN_USE:
-    return L"DXGI_STATUS_GRAPHICS_VIDPN_SOURCE_IN_USE";
-
-  case DXGI_STATUS_DDA_WAS_STILL_DRAWING:
-    return L"DXGI_STATUS_DDA_WAS_STILL_DRAWING";
-
-  case DXGI_STATUS_MODE_CHANGED:
-    return L"DXGI_STATUS_MODE_CHANGED";
-
-  case DXGI_STATUS_MODE_CHANGE_IN_PROGRESS:
-    return L"DXGI_STATUS_MODE_CHANGE_IN_PROGRESS";
-
-
-    /* D3D11 */
-
-  case D3D11_ERROR_FILE_NOT_FOUND:
-    return L"D3D11_ERROR_FILE_NOT_FOUND";
-
-  case D3D11_ERROR_TOO_MANY_UNIQUE_STATE_OBJECTS:
-    return L"D3D11_ERROR_TOO_MANY_UNIQUE_STATE_OBJECTS";
-
-  case D3D11_ERROR_TOO_MANY_UNIQUE_VIEW_OBJECTS:
-    return L"D3D11_ERROR_TOO_MANY_UNIQUE_VIEW_OBJECTS";
-
-  case D3D11_ERROR_DEFERRED_CONTEXT_MAP_WITHOUT_INITIAL_DISCARD:
-    return L"D3D11_ERROR_DEFERRED_CONTEXT_MAP_WITHOUT_INITIAL_DISCARD";
-
-
-    /* D3D9 */
-
-  case D3DERR_WRONGTEXTUREFORMAT:
-    return L"D3DERR_WRONGTEXTUREFORMAT";
-
-  case D3DERR_UNSUPPORTEDCOLOROPERATION:
-    return L"D3DERR_UNSUPPORTEDCOLOROPERATION";
-
-  case D3DERR_UNSUPPORTEDCOLORARG:
-    return L"D3DERR_UNSUPPORTEDCOLORARG";
-
-  case D3DERR_UNSUPPORTEDALPHAOPERATION:
-    return L"D3DERR_UNSUPPORTEDALPHAOPERATION";
-
-  case D3DERR_UNSUPPORTEDALPHAARG:
-    return L"D3DERR_UNSUPPORTEDALPHAARG";
-
-  case D3DERR_TOOMANYOPERATIONS:
-    return L"D3DERR_TOOMANYOPERATIONS";
-
-  case D3DERR_CONFLICTINGTEXTUREFILTER:
-    return L"D3DERR_CONFLICTINGTEXTUREFILTER";
-
-  case D3DERR_UNSUPPORTEDFACTORVALUE:
-    return L"D3DERR_UNSUPPORTEDFACTORVALUE";
-
-  case D3DERR_CONFLICTINGRENDERSTATE:
-    return L"D3DERR_CONFLICTINGRENDERSTATE";
-
-  case D3DERR_UNSUPPORTEDTEXTUREFILTER:
-    return L"D3DERR_UNSUPPORTEDTEXTUREFILTER";
-
-  case D3DERR_CONFLICTINGTEXTUREPALETTE:
-    return L"D3DERR_CONFLICTINGTEXTUREPALETTE";
-
-  case D3DERR_DRIVERINTERNALERROR:
-    return L"D3DERR_DRIVERINTERNALERROR";
-
-
-  case D3DERR_NOTFOUND:
-    return L"D3DERR_NOTFOUND";
-
-  case D3DERR_MOREDATA:
-    return L"D3DERR_MOREDATA";
-
-  case D3DERR_DEVICELOST:
-    return L"D3DERR_DEVICELOST";
-
-  case D3DERR_DEVICENOTRESET:
-    return L"D3DERR_DEVICENOTRESET";
-
-  case D3DERR_NOTAVAILABLE:
-    return L"D3DERR_NOTAVAILABLE";
-
-  case D3DERR_OUTOFVIDEOMEMORY:
-    return L"D3DERR_OUTOFVIDEOMEMORY";
-
-  case D3DERR_INVALIDDEVICE:
-    return L"D3DERR_INVALIDDEVICE";
-
-  case D3DERR_INVALIDCALL:
-    return L"D3DERR_INVALIDCALL";
-
-  case D3DERR_DRIVERINVALIDCALL:
-    return L"D3DERR_DRIVERINVALIDCALL";
-
-  case D3DERR_WASSTILLDRAWING:
-    return L"D3DERR_WASSTILLDRAWING";
-
-
-  case D3DOK_NOAUTOGEN:
-    return L"D3DOK_NOAUTOGEN";
-
-
-    /* D3D12 */
-
-    //case D3D12_ERROR_FILE_NOT_FOUND:
-    //return L"D3D12_ERROR_FILE_NOT_FOUND";
-
-    //case D3D12_ERROR_TOO_MANY_UNIQUE_STATE_OBJECTS:
-    //return L"D3D12_ERROR_TOO_MANY_UNIQUE_STATE_OBJECTS";
-
-    //case D3D12_ERROR_TOO_MANY_UNIQUE_VIEW_OBJECTS:
-    //return L"D3D12_ERROR_TOO_MANY_UNIQUE_VIEW_OBJECTS";
-#endif
-
-
-    /* Generic (FAILED) */
-
-  case E_FAIL:
-    return L"E_FAIL";
-
-  case E_INVALIDARG:
-    return L"E_INVALIDARG";
-
-  case E_OUTOFMEMORY:
-    return L"E_OUTOFMEMORY";
-
-  case E_POINTER:
-    return L"E_POINTER";
-
-  case E_ACCESSDENIED:
-    return L"E_ACCESSDENIED";
-
-  case E_HANDLE:
-    return L"E_HANDLE";
-
-  case E_NOTIMPL:
-    return L"E_NOTIMPL";
-
-  case E_NOINTERFACE:
-    return L"E_NOINTERFACE";
-
-  case E_ABORT:
-    return L"E_ABORT";
-
-  case E_UNEXPECTED:
-    return L"E_UNEXPECTED";
-
-  default:
-    dll_log.Log (L" *** Encountered unknown HRESULT: (0x%08X)",
-      (unsigned long)result);
-    return L"UNKNOWN";
-  }
-}
 
 void
 __stdcall
@@ -560,213 +314,6 @@ SK_StartPerfMonThreads (void)
     }
   }
 }
-
-//
-// TODO : Move me somewhere more sensible...
-//
-class skMemCmd : public SK_ICommand {
-public:
-  virtual SK_ICommandResult execute (const char* szArgs) override;
-
-  virtual int getNumArgs         (void) override { return 2; }
-  virtual int getNumOptionalArgs (void) override { return 1; }
-  virtual int getNumRequiredArgs (void) override {
-    return getNumArgs () - getNumOptionalArgs ();
-  }
-
-protected:
-private:
-};
-
-class skUpdateCmd : public SK_ICommand {
-public:
-  virtual SK_ICommandResult execute (const char* szArgs) override;
-
-  virtual int getNumArgs         (void) override { return 1; }
-  virtual int getNumOptionalArgs (void) override { return 1; }
-  virtual int getNumRequiredArgs (void) override {
-    return getNumArgs () - getNumOptionalArgs ();
-  }
-
-protected:
-private:
-};
-
-
-SK_ICommandResult
-skUpdateCmd::execute (const char* szArgs)
-{
-  if (! strlen (szArgs))
-  {
-    SK_FetchVersionInfo1 (L"SpecialK", true);
-    SK_UpdateSoftware1   (L"SpecialK", true);
-  }
-
-  else
-  {
-    wchar_t wszProduct [128] = { };
-
-    mbtowc (wszProduct, szArgs, strlen (szArgs));
-
-    SK_FetchVersionInfo1 (wszProduct, true);
-    SK_UpdateSoftware1   (wszProduct, true);
-  }
-
-  return SK_ICommandResult ("Manual update initiated...", szArgs);
-}
-
-SK_ICommandResult
-skMemCmd::execute (const char* szArgs)
-{
-  if (szArgs == nullptr)
-    return SK_ICommandResult ("mem", szArgs);
-
-  uintptr_t addr      =  0;
-  char      type      =  0;
-  char      val [256] = { };
-
-#ifdef _WIN64
-  sscanf (szArgs, "%c %llx %255s", &type, &addr, val);
-#else
-  sscanf (szArgs, "%c %lx %255s", &type, &addr, val);
-#endif
-
-  static uint8_t* base_addr = nullptr;
-
-  if (base_addr == nullptr)
-  {
-    base_addr = reinterpret_cast <uint8_t *> (GetModuleHandle (nullptr));
-
-    MEMORY_BASIC_INFORMATION basic_mem_info;
-    VirtualQuery (base_addr, &basic_mem_info, sizeof basic_mem_info);
-
-    base_addr = reinterpret_cast <uint8_t *> (basic_mem_info.BaseAddress);
-  }
-
-  addr += reinterpret_cast <uintptr_t> (base_addr);
-
-  char result [512] = { };
-
-  switch (type)
-  {
-    case 'b':
-      if (strlen (val))
-      {
-        DWORD dwOld;
-
-        VirtualProtect (reinterpret_cast <LPVOID> (addr), 1, PAGE_EXECUTE_READWRITE, &dwOld);
-          uint8_t out;
-          sscanf (val, "%cx", &out);
-          *reinterpret_cast <uint8_t *> (addr) = out;
-        VirtualProtect (reinterpret_cast <LPVOID> (addr), 1, dwOld, &dwOld);
-      }
-
-      sprintf (result, "%u", *reinterpret_cast <uint8_t *> (addr));
-
-      return SK_ICommandResult ("mem", szArgs, result, 1);
-      break;
-    case 's':
-      if (strlen (val))
-      {
-        DWORD dwOld;
-
-        VirtualProtect (reinterpret_cast <LPVOID> (addr), 2, PAGE_EXECUTE_READWRITE, &dwOld);
-          uint16_t out;
-          sscanf (val, "%hx", &out);
-          *reinterpret_cast <uint16_t *> (addr) = out;
-        VirtualProtect (reinterpret_cast <LPVOID> (addr), 2, dwOld, &dwOld);
-      }
-
-      sprintf (result, "%u", *reinterpret_cast <uint16_t *> (addr));
-      return SK_ICommandResult ("mem", szArgs, result, 1);
-      break;
-    case 'i':
-      if (strlen (val))
-      {
-        DWORD dwOld;
-
-        VirtualProtect (reinterpret_cast <LPVOID> (addr), 4, PAGE_EXECUTE_READWRITE, &dwOld);
-          uint32_t out;
-          sscanf (val, "%x", &out);
-          *reinterpret_cast <uint32_t *> (addr) = out;
-        VirtualProtect (reinterpret_cast <LPVOID> (addr), 4, dwOld, &dwOld);
-      }
-
-      sprintf (result, "%u", *reinterpret_cast <uint32_t *> (addr));
-      return SK_ICommandResult ("mem", szArgs, result, 1);
-      break;
-    case 'l':
-      if (strlen (val))
-      {
-        DWORD dwOld;
-
-        VirtualProtect (reinterpret_cast <LPVOID> (addr), 8, PAGE_EXECUTE_READWRITE, &dwOld);
-          uint64_t out;
-          sscanf (val, "%llx", &out);
-          *reinterpret_cast <uint64_t *> (addr) = out;
-        VirtualProtect (reinterpret_cast <LPVOID> (addr), 8, dwOld, &dwOld);
-      }
-
-      sprintf (result, "%llu", *reinterpret_cast <uint64_t *> (addr));
-      return SK_ICommandResult ("mem", szArgs, result, 1);
-      break;
-    case 'd':
-      if (strlen (val))
-      {
-        DWORD dwOld;
-
-        VirtualProtect (reinterpret_cast <LPVOID> (addr), 8, PAGE_EXECUTE_READWRITE, &dwOld);
-          double out;
-          sscanf (val, "%lf", &out);
-          *reinterpret_cast <double *> (addr) = out;
-        VirtualProtect (reinterpret_cast <LPVOID> (addr), 8, dwOld, &dwOld);
-      }
-
-      sprintf (result, "%f", *reinterpret_cast <double *> (addr));
-      return SK_ICommandResult ("mem", szArgs, result, 1);
-      break;
-    case 'f':
-      if (strlen (val))
-      {
-        DWORD dwOld;
-
-        VirtualProtect (reinterpret_cast <LPVOID> (addr), 4, PAGE_EXECUTE_READWRITE, &dwOld);
-          float out;
-          sscanf (val, "%f", &out);
-          *reinterpret_cast <float *> (addr) = out;
-        VirtualProtect (reinterpret_cast <LPVOID> (addr), 4, dwOld, &dwOld);
-      }
-
-      sprintf (result, "%f", *reinterpret_cast <float *> (addr));
-      return SK_ICommandResult ("mem", szArgs, result, 1);
-      break;
-    case 't':
-      if (strlen (val))
-      {
-        DWORD dwOld;
-
-        VirtualProtect (reinterpret_cast <LPVOID> (addr), 256, PAGE_EXECUTE_READWRITE, &dwOld);
-          strcpy (reinterpret_cast <char *> (addr), val);
-        VirtualProtect (reinterpret_cast <LPVOID> (addr), 256, dwOld, &dwOld);
-      }
-      sprintf (result, "%s", reinterpret_cast <char *> (addr));
-      return SK_ICommandResult ("mem", szArgs, result, 1);
-      break;
-  }
-
-  return SK_ICommandResult ("mem", szArgs);
-}
-
-DWORD
-WINAPI
-CheckVersionThread (LPVOID user);
-
-void
-__stdcall
-SK_InitFinishCallback (void);
-
-volatile LONG __SK_Init   = FALSE;
-         bool __SK_bypass = false;
 
 
 void
@@ -915,6 +462,11 @@ SK_LoadGPUVendorAPIs (void)
   }
 }
 
+
+void
+__stdcall
+SK_InitFinishCallback (void);
+
 void
 __stdcall
 SK_InitCore (std::wstring backend, void* callback)
@@ -927,6 +479,7 @@ SK_InitCore (std::wstring backend, void* callback)
 
 
   init_mutex->lock ();
+
 #ifdef _WIN64
   switch (SK_GetCurrentGameID ())
   {
@@ -1020,6 +573,9 @@ WaitForInit (void)
 
 
 
+#include <SpecialK/commands/mem.inl>
+#include <SpecialK/commands/update.inl>
+
 void
 __stdcall
 SK_InitFinishCallback (void)
@@ -1110,8 +666,9 @@ SK_InitFinishCallback (void)
   SK_Console::getInstance ()->Start ();
 
   SK_StartPerfMonThreads ();
-  init_mutex->unlock ();
+  init_mutex->unlock     ();
 }
+
 
 DWORD
 WINAPI
@@ -1137,14 +694,12 @@ CheckVersionThread (LPVOID user)
   return 0;
 }
 
-init_params_t reentrant_core;
-
 DWORD
 WINAPI
 DllThread (LPVOID user)
 {
   auto* params =
-    static_cast <init_params_t *> (user);
+    static_cast <init_params_s *> (user);
   
   reentrant_core = *params;
 
@@ -1253,7 +808,7 @@ __stdcall
 SK_ReenterCore  (void) // During startup, we have the option of bypassing init and resuming later
 {
   auto* params =
-    static_cast <init_params_t *> (&reentrant_core);
+    static_cast <init_params_s *> (&reentrant_core);
 
   SK_StartupCore (params->backend.c_str (), params->callback);
 }
@@ -1470,7 +1025,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     }
 
     SK_Steam_InitCommandConsoleVariables (                         );
-    SK_TestSteamImports                  (GetModuleHandle (nullptr));
+    SK_Steam_TestImports                 (GetModuleHandle (nullptr));
   }
 
 
@@ -1632,22 +1187,6 @@ BACKEND_INIT:
   return true;
 }
 
-using CreateWindowExW_pfn = HWND (WINAPI *)(
-    _In_     DWORD     dwExStyle,
-    _In_opt_ LPCWSTR   lpClassName,
-    _In_opt_ LPCWSTR   lpWindowName,
-    _In_     DWORD     dwStyle,
-    _In_     int       X,
-    _In_     int       Y,
-    _In_     int       nWidth,
-    _In_     int       nHeight,
-    _In_opt_ HWND      hWndParent,
-    _In_opt_ HMENU     hMenu,
-    _In_opt_ HINSTANCE hInstance,
-    _In_opt_ LPVOID    lpParam );
-
-extern CreateWindowExW_pfn CreateWindowExW_Original;
-
 
 std::set <HWND> dummy_windows;
 
@@ -1707,15 +1246,6 @@ SK_Win32_CleanupDummyWindow (void)
   UnregisterClassW ( L"Special K Dummy Window Class (Ex)", SK_GetDLL () );
 }
 
-
-#include <SpecialK/gpu_monitor.h>
-
-using ChangeDisplaySettingsA_pfn = LONG (WINAPI *)(
-  _In_opt_ DEVMODEA *lpDevMode,
-  _In_     DWORD     dwFlags
-);
-extern ChangeDisplaySettingsA_pfn ChangeDisplaySettingsA_Original;
-
 bool
 __stdcall
 SK_ShutdownCore (const wchar_t* backend)
@@ -1773,8 +1303,6 @@ SK_ShutdownCore (const wchar_t* backend)
     dll_log.LogEx   (false, L"done!\n");
   }
 
-  extern void
-  SK_Steam_KillPump (void);
   SK_Steam_KillPump ();
 
   auto ShutdownWMIThread =
@@ -1932,6 +1460,54 @@ auto SK_UnpackCEGUI =
 };
 
 
+extern void            SK_ImGui_Toggle               (void);
+extern void            SK_ImGui_LoadFonts            (void);
+extern void            SK_ImGui_PollGamepad_EndFrame (void);
+
+extern void            SK_ResetWindow                (void);
+
+void
+SKX_Window_EstablishRoot (void)
+{
+  HWND hWndActive     = GetActiveWindow     ();
+  HWND hWndFocus      = GetFocus            ();
+  HWND hWndForeground = GetForegroundWindow ();
+
+  HWND  hWndTarget  = hWndRender;
+  DWORD dwWindowPid = 0;
+
+  if (IsGUIThread (FALSE))
+  {
+    GetWindowThreadProcessId (hWndActive, &dwWindowPid);
+    if (dwWindowPid == GetCurrentProcessId ())
+    {
+      hWndTarget = hWndActive;
+    }
+  }
+
+  if (hWndTarget == 0)
+  { 
+     GetWindowThreadProcessId (hWndFocus, &dwWindowPid);
+
+     if (dwWindowPid == GetCurrentProcessId ())
+     {
+       hWndTarget = hWndFocus;
+     }
+
+     else
+     {
+       GetWindowThreadProcessId (hWndForeground, &dwWindowPid);
+
+       if (dwWindowPid == GetCurrentProcessId ())
+       {
+         hWndTarget = hWndForeground;
+       }
+     }
+  }
+
+  SK_InstallWindowHook (hWndTarget);
+}
+
 
 __declspec (noinline)
 void
@@ -1947,9 +1523,6 @@ SK_BeginBufferSwap (void)
 
   if (io.Fonts == nullptr)
   {
-    extern void
-    SK_ImGui_LoadFonts (void);
-
     SK_ImGui_LoadFonts ();
   }
 
@@ -1966,7 +1539,7 @@ SK_BeginBufferSwap (void)
     {
       // Steam Init: Better late than never
 
-      SK_TestSteamImports (GetModuleHandle (nullptr));
+      SK_Steam_TestImports (GetModuleHandle (nullptr));
     }
 
     if (config.system.handle_crashes)
@@ -1975,64 +1548,26 @@ SK_BeginBufferSwap (void)
 
 
 
-  if (SK_GetGameWindow () != nullptr && SK_GetFramesDrawn () > 4)
+  if (game_window.WndProc_Original != nullptr && SK_GetFramesDrawn () > 4)
   {
-    extern void SK_ResetWindow ();
-
     SK_RunOnce (SK_ResetWindow ());
   }
 
 
   if (game_window.WndProc_Original == nullptr && SK_GetFramesDrawn () > 2)
   {
-    HWND hWndActive     = GetActiveWindow     ();
-    HWND hWndFocus      = GetFocus            ();
-    HWND hWndForeground = GetForegroundWindow ();
-
-    HWND  hWndTarget  = hWndRender;
-    DWORD dwWindowPid = 0;
-
-    if (IsGUIThread (FALSE))
-    {
-      GetWindowThreadProcessId (hWndActive, &dwWindowPid);
-      if (dwWindowPid == GetCurrentProcessId ())
-      {
-        hWndTarget = hWndActive;
-      }
-    }
-
-    if (hWndTarget == 0)
-    {
-      
-       GetWindowThreadProcessId (hWndFocus, &dwWindowPid);
-
-       if (dwWindowPid == GetCurrentProcessId ())
-       {
-         hWndTarget = hWndFocus;
-       }
-
-       else
-       {
-         GetWindowThreadProcessId (hWndForeground, &dwWindowPid);
-
-         if (dwWindowPid == GetCurrentProcessId ())
-         {
-           hWndTarget = hWndForeground;
-         }
-       }
-    }
-
-    SK_InstallWindowHook (hWndTarget);
+    SKX_Window_EstablishRoot ();
   }
 
-  static volatile LONG cegui_init = FALSE;
-  static SK_RenderAPI  last_api   = SK_RenderAPI::Reserved;
+
+  static volatile LONG         __SK_CEGUI_Init          = FALSE;
+  static          SK_RenderAPI __SK_Render_LastKnownAPI = SK_RenderAPI::Reserved;
 
   if (config.cegui.enable)
   {
     if ( (SK_GetCurrentRenderBackend ().api != SK_RenderAPI::Reserved) &&
-         ( (! InterlockedCompareExchange (&cegui_init, 1, 0)) ||
-            last_api != SK_GetCurrentRenderBackend ().api ) )
+         ( (! InterlockedCompareExchange (&__SK_CEGUI_Init, TRUE, FALSE)) ||
+            __SK_Render_LastKnownAPI != SK_GetCurrentRenderBackend ().api ) )
     {
       // Brutally stupid hack for brutally stupid OS (Windows 7)
       //
@@ -2198,7 +1733,7 @@ SK_BeginBufferSwap (void)
     }
   }
 
-  last_api = SK_GetCurrentRenderBackend ().api;
+  __SK_Render_LastKnownAPI = SK_GetCurrentRenderBackend ().api;
 
 
   if (config.cegui.enable)
@@ -2216,29 +1751,25 @@ SK_BeginBufferSwap (void)
     if (SK_Steam_PiratesAhoy () != 0x00)
     {
       extern float target_fps;
-      target_fps = static_cast <float> (*reinterpret_cast <const uint8_t *>(szFirst+5));
+                   target_fps =
+        static_cast <float> (
+          *reinterpret_cast <const uint8_t *> (szFirst + 5)
+        );
     }
 
     SK::Framerate::GetLimiter ()->wait ();
   }
 
-  extern uint32_t WINAPI SK_Steam_PiratesAhoy (void);
   if (SK_Steam_PiratesAhoy () && (! SK_ImGui_Active ()))
   {
-    extern void SK_ImGui_Toggle (void);
-                SK_ImGui_Toggle ();
+    SK_ImGui_Toggle ();
   }
 
-  extern void SK_ImGui_PollGamepad_EndFrame (void);
-              SK_ImGui_PollGamepad_EndFrame ();
+  SK_ImGui_PollGamepad_EndFrame ();
 }
 
 
-extern void SK_ImGui_Toggle (void);
-
-ULONGLONG poll_interval = 0;
-
-extern HWND SK_GetParentWindow (HWND);
+const ULONGLONG poll_interval = 1ULL;
 
 // Todo, move out of here
 void
@@ -2250,7 +1781,8 @@ SK_Input_PollKeyboard (void)
   bool skip = true;
 
   if ( SK_GetGameWindow () == GetForegroundWindow () ||
-       SK_GetGameWindow () == GetFocus () )
+       SK_GetGameWindow () == GetFocus            () ||
+       game_window.active )
     skip = false;
 
   if (skip)
@@ -2333,12 +1865,9 @@ SK_Input_PollKeyboard (void)
   }
 }
 
-IUnknown* g_iRenderDevice = nullptr;
-IUnknown* g_iSwapChain    = nullptr;
 
 
-
-__declspec (noinline)
+__declspec (noinline) // lol
 HRESULT
 STDMETHODCALLTYPE
 SK_EndBufferSwap (HRESULT hr, IUnknown* device)
@@ -2482,7 +2011,7 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
 
   SK_Input_PollKeyboard ();
 
-  InterlockedIncrement (&frames_drawn);
+  InterlockedIncrement (&SK_GetCurrentRenderBackend ().frames_drawn);
 
   if (config.sli.show && device != nullptr)
   {
@@ -2508,10 +2037,11 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
   return hr;
 }
 
-DLL_ROLE dll_role = DLL_ROLE::INVALID;
+static DLL_ROLE dll_role (DLL_ROLE::INVALID);
 
+extern "C"
 DLL_ROLE
-__stdcall
+SK_PUBLIC_API
 SK_GetDLLRole (void)
 {
   return dll_role;

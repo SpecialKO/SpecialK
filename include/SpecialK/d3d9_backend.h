@@ -1204,5 +1204,11 @@ void
 WINAPI
 SK_HookD3D9 (void);
 
+void
+SK_D3D9_PreHook (void);
+
+void
+SK_D3D9_InitShaderModTools (void);
+
 
 #endif /* __SK__D3D9_BACKEND_H__ */

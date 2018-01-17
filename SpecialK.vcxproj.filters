@@ -429,6 +429,15 @@
     <ClInclude Include="include\SpecialK\thread.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\SpecialK\crc32.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\hash.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\SpecialK.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stdafx.cpp">
@@ -692,6 +701,12 @@
     <ClCompile Include="src\input\dinput7.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\hash.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\crc32.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="SpecialK.def">
@@ -780,6 +795,12 @@
     <None Include="TODO" />
     <None Include="resource\packages\CEGUI32.7z" />
     <None Include="resource\packages\CEGUI64.7z" />
+    <None Include="include\SpecialK\commands\mem.inl">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="include\SpecialK\commands\update.inl">
+      <Filter>Header Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource\Resource.rc">

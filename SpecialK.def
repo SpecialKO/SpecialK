@@ -521,9 +521,6 @@ SK_XInput_PollController         = SK_XInput_PollController
 SK_ImGui_ToggleEx                = SK_ImGui_ToggleEx
 
 
-SK_BeginBufferSwap               = SK_BeginBufferSwap                PRIVATE
-SK_EndBufferSwap                 = SK_EndBufferSwap                  PRIVATE
-
 ; Not in import lib because of C++ object in params
 SK_DrawExternalOSD               = SK_DrawExternalOSD                PRIVATE
 SK_SetPresentParamsD3D9          = SK_SetPresentParamsD3D9           PRIVATE
@@ -565,10 +562,11 @@ SK_FetchVersionInfo              = SK_FetchVersionInfo               PRIVATE
 SK_UpdateSoftware                = SK_UpdateSoftware                 PRIVATE
 SK_FetchVersionInfo1             = SK_FetchVersionInfo1              PRIVATE
 SK_UpdateSoftware1               = SK_UpdateSoftware1                PRIVATE
-                                 
-SK_GetFileCRC32                  = SK_GetFileCRC32
-SK_GetFileCRC32C                 = SK_GetFileCRC32C
-SK_GetFileHash_32                = SK_GetFileHash_32
+
+; Old names (deprecated, but maintaind for legacy compat.)
+SK_GetFileCRC32                  = SK_File_GetCRC32
+SK_GetFileCRC32C                 = SK_File_GetCRC32C
+SK_GetFileHash_32                = SK_File_GetHash_32
                                  
 QueryPerformanceCounter_Detour   = QueryPerformanceCounter_Detour    PRIVATE
 Sleep_Detour                     = Sleep_Detour                      PRIVATE

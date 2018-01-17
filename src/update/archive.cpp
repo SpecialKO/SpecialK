@@ -24,6 +24,7 @@
 #include <SpecialK/log.h>
 #include <SpecialK/utility.h>
 #include <SpecialK/core.h>
+#include <SpecialK/crc32.h>
 
 #include <cstdlib>
 #include <cstdint>
@@ -269,7 +270,7 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
         lstrcatW (wszMovePath, L".old");
       }
 
-      SK_MoveFileNoFail ( wszDestPath,
+      SK_File_MoveNoFail ( wszDestPath,
                             wszMovePath );
     }
 
@@ -429,16 +430,16 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
 
       if ( GetFileAttributes (wszUserConfig)     == INVALID_FILE_ATTRIBUTES ||
            GetFileAttributes (wszDefaultConfig)  == INVALID_FILE_ATTRIBUTES ||
-             SK_GetFileCRC32C (wszDefaultConfig, nullptr) !=
-             SK_GetFileCRC32C (wszNewConfig,     nullptr) )
+             SK_File_GetCRC32C (wszDefaultConfig, nullptr) !=
+             SK_File_GetCRC32C (wszNewConfig,     nullptr) )
       {
         if (GetFileAttributes (wszUserConfig) != INVALID_FILE_ATTRIBUTES)
           config_files_changed = true;
 
-        SK_MoveFileNoFail ( wszNewConfig,
+        SK_File_MoveNoFail ( wszNewConfig,
                               wszDefaultConfig );
 
-        SK_MoveFileNoFail ( wszUserConfig,
+        SK_File_MoveNoFail ( wszUserConfig,
                               wszOldConfig );
 
         CopyFileW   ( wszDefaultConfig,

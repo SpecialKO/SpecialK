@@ -33,6 +33,7 @@
 #include <SpecialK/config.h>
 #include <SpecialK/ini.h>
 #include <SpecialK/log.h>
+#include <SpecialK/crc32.h>
 #include <SpecialK/utility.h>
 #include <SpecialK/framerate.h>
 #include <SpecialK/diagnostics/compatibility.h>
@@ -203,11 +204,8 @@ SK_Steam_PreHookCore (void)
     return TRUE;
 
   const wchar_t* wszSteamLib =
-#ifdef _WIN64
-    L"steam_api64.dll";
-#else
-    L"steam_api.dll";
-#endif
+    SK_RunLHIfBitness ( 64, L"steam_api64.dll",
+                            L"steam_api.dll"    );
 
   SK_CreateDLLHook2 (          wszSteamLib,
                                 "SteamClient",
@@ -3394,11 +3392,9 @@ SteamAPI_InitSafe_Detour (void)
   {
     InterlockedIncrement (&__SK_Steam_init);
 
-#ifdef _WIN64
-  const wchar_t* steam_dll_str    = L"steam_api64.dll";
-#else
-  const wchar_t* steam_dll_str = L"steam_api.dll";
-#endif
+  const wchar_t* steam_dll_str =
+    SK_RunLHIfBitness ( 64, L"steam_api64.dll",
+                            L"steam_api.dll"    );
 
     HMODULE hSteamAPI = LoadLibraryW_Original (steam_dll_str);
 
@@ -3624,7 +3620,7 @@ SK_HookSteamAPI (void)
                            L"steam_api.dll");
 
   SK_RunOnce ( SK::SteamAPI::steam_size =
-                 SK_GetFileSize (wszSteamAPI) );
+                 SK_File_GetSize (wszSteamAPI) );
 
   if (config.steam.silent)
     return;
@@ -4012,13 +4008,11 @@ SK_SteamAPI_GetNumFriends (void)
 bool steam_imported = false;
 
 bool
-SK_SteamImported (void)
+SK_Steam_Imported (void)
 {
-#ifdef _WIN64
-  const wchar_t* steam_dll_str = L"steam_api64.dll";
-#else
-  const wchar_t* steam_dll_str = L"steam_api.dll";
-#endif
+  static const wchar_t* steam_dll_str =
+    SK_RunLHIfBitness ( 64, L"steam_api64.dll",
+                            L"steam_api.dll" );
 
   return steam_imported || GetModuleHandle (steam_dll_str)      ||
                            GetModuleHandle (L"CSteamworks.dll") ||
@@ -4026,20 +4020,14 @@ SK_SteamImported (void)
 }
 
 void
-SK_TestSteamImports (HMODULE hMod)
+SK_Steam_TestImports (HMODULE hMod)
 {
-#ifdef _WIN64
-  static const wchar_t* steam_dll_str = L"steam_api64.dll";
-#else
-  static const wchar_t* steam_dll_str = L"steam_api.dll";
-#endif
+  static const wchar_t* steam_dll_str =
+    SK_RunLHIfBitness ( 64, L"steam_api64.dll",
+                            L"steam_api.dll" );
 
-  sk_import_test_s steam_api [] = {
-#ifdef _WIN64
-                                    { "steam_api64.dll", false } };
-#else
-                                    { "steam_api.dll",   false } };
-#endif
+  sk_import_test_s steam_api [] = { { SK_RunLHIfBitness ( 64, "steam_api64.dll",
+                                                              "steam_api.dll" ), false } };
 
   SK_TestImports (hMod, steam_api, sizeof (steam_api) / sizeof sk_import_test_s);
 
@@ -4100,15 +4088,10 @@ SK_Steam_LoadOverlayEarly (void)
   const wchar_t* wszSteamPath =
       SK_GetSteamDir ();
 
-  wchar_t wszOverlayDLL [MAX_PATH + 2] = { };
-
-  lstrcatW (wszOverlayDLL, wszSteamPath);
-
-#ifdef _WIN64
-  lstrcatW (wszOverlayDLL, LR"(\GameOverlayRenderer64.dll)");
-#else
-  lstrcatW (wszOverlayDLL, LR"(\GameOverlayRenderer.dll)");
-#endif
+  wchar_t    wszOverlayDLL [MAX_PATH + 2] = { };
+  lstrcatW ( wszOverlayDLL, wszSteamPath );
+  lstrcatW ( wszOverlayDLL, SK_RunLHIfBitness ( 64, LR"(\GameOverlayRenderer64.dll)",
+                                                    LR"(\GameOverlayRenderer.dll)"    ) );
 
   hModOverlay =
     LoadLibraryW_Original (wszOverlayDLL);
@@ -4328,13 +4311,9 @@ SK_Steam_PiratesAhoy (void)
           //
           //   The actual DLL used is pulled from the IAT during init, but I am too lazy to bother doing
           //     this the right way ;)
-#ifdef _WIN64
-          snprintf ( szRelSteamAPI, MAX_PATH * 2 - 1, R"(%ws\steam_api64.dll)",
+          snprintf ( szRelSteamAPI, MAX_PATH * 2 - 1, SK_RunLHIfBitness ( 64, R"(%ws\steam_api64.dll)",
+                                                                              R"(%ws\steam_api.dll)"    ),
                        SK_GetHostPath () );
-#else
-          snprintf ( szRelSteamAPI, MAX_PATH * 2 - 1, R"(%ws\steam_api.dll)",
-                       SK_GetHostPath () );
-#endif
 
           check_file =
             szRelSteamAPI;
@@ -4356,13 +4335,9 @@ SK_Steam_PiratesAhoy (void)
     return verdict;
   }
 
-#ifdef _WIN64
   static uint32_t crc32_steamapi =
-    SK_GetFileCRC32C (L"steam_api64.dll");
-#else
-  static uint32_t crc32_steamapi =
-    SK_GetFileCRC32C (L"steam_api.dll");
-#endif
+    SK_RunLHIfBitness ( 64, SK_File_GetCRC32C (L"steam_api64.dll"),
+                            SK_File_GetCRC32C (L"steam_api.dll")    );
 
   if (SK::SteamAPI::steam_size > 0 && SK::SteamAPI::steam_size < (1024 * 92))
   {
@@ -4430,14 +4405,7 @@ SK_SteamAPIContext::OnFileDetailsDone ( FileDetailsResult_t* pParam,
           switch (pParam->m_eResult)
           {
             case k_EResultOK:
-            {
-// TODO: Begin renaming File utility API;
-//
-//         Some legacy names must remain since these functions are
-//           DLL exported.
-//
-#define SK_File_GetSize SK_GetFileSize
-    
+            {    
               uint64_t size =
                 SK_File_GetSize (wszFileName);
     
@@ -5072,7 +5040,7 @@ SK_Steam_KickStart (const wchar_t* wszLibPath)
       {
         PathAppendW (wszDLLPath, wszSteamDLL);
 
-        if (SK_GetFileSize (wszDLLPath) > 0)
+        if (SK_File_GetSize (wszDLLPath) > 0)
         {
           if (LoadLibraryW (wszSteamDLL))
           {

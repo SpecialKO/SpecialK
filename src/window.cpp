@@ -5091,8 +5091,6 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 }
 #endif
 
-#include <SpecialK/core.h>
-
 bool
 SK_Window_IsTopMost (void)
 {
@@ -5495,8 +5493,8 @@ SK_IsGameWindowActive (void)
   return game_window.active;
 }
 
-using RegisterClassA_pfn = ATOM (WINAPI *)(const WNDCLASSA* lpWndClass);
-using RegisterClassW_pfn = ATOM (WINAPI *)(const WNDCLASSW* lpWndClass);
+using RegisterClassA_pfn   = ATOM (WINAPI *)(const WNDCLASSA*   lpWndClass);
+using RegisterClassW_pfn   = ATOM (WINAPI *)(const WNDCLASSW*   lpWndClass);
 using RegisterClassExA_pfn = ATOM (WINAPI *)(const WNDCLASSEXA* lpWndClassEx);
 using RegisterClassExW_pfn = ATOM (WINAPI *)(const WNDCLASSEXW* lpWndClassEx);
 
@@ -6113,6 +6111,7 @@ SK_HookWinAPI (void)
                                 GetSystemMetrics_Detour,
        static_cast_p2p <void> (&GetSystemMetrics_Original) );
 
+
 #if 0
     SK_CreateDLLHook2 (       L"user32.dll",
                               "ChangeDisplaySettingsA",
@@ -6133,6 +6132,19 @@ SK_HookWinAPI (void)
                               "ChangeDisplaySettingsExW",
                                ChangeDisplaySettingsExW_Detour,
       static_cast_p2p <void> (&ChangeDisplaySettingsExW_Original) );
+#else
+    ChangeDisplaySettingsA_Original =
+      (ChangeDisplaySettingsA_pfn)SK_GetProcAddress
+        ( L"user32.dll", "ChangeDisplaySettingsA" );
+    ChangeDisplaySettingsExA_Original =
+      (ChangeDisplaySettingsExA_pfn)SK_GetProcAddress
+        ( L"user32.dll", "ChangeDisplaySettingsExA" );
+    ChangeDisplaySettingsW_Original =
+      (ChangeDisplaySettingsW_pfn)SK_GetProcAddress
+        ( L"user32.dll", "ChangeDisplaySettingsW" );
+    ChangeDisplaySettingsExW_Original =
+      (ChangeDisplaySettingsExW_pfn)SK_GetProcAddress
+        ( L"user32.dll", "ChangeDisplaySettingsExW" );
 #endif
 
 

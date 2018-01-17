@@ -740,7 +740,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
                 wszLogFile = wszOrigPath;
               }
 
-              SK_FullCopy (wszLogFile, wszDestPath);
+              SK_File_FullCopy (wszLogFile, wszDestPath);
 
               CEGUI::Logger::getDllSingleton ().
                 setLogFilename (
@@ -763,8 +763,8 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
                 fclose (log_file->fLog);
               }
 
-              SK_FullCopy              (wszOrigPath, wszDestPath);
-              SK_SetNormalFileAttribs  (wszDestPath);
+              SK_File_FullCopy         (wszOrigPath, wszDestPath);
+              SK_File_SetNormalAttribs (wszDestPath);
 
               if (log_file != nullptr && log_file->fLog && log_file != &crash_log)
               {
@@ -942,11 +942,9 @@ SK_BypassSteamCrashHandler (void)
       SK_RunLHIfBitness (64, L"steam_api64.dll",
                              L"steam_api.dll");
 
-    if (SK_GetFileSize (wszSteamDLL) > 0)
+    if (SK_File_GetSize (wszSteamDLL) > 0)
     {
-      HMODULE hMod = LoadLibraryW_Original (wszSteamDLL);
-
-      if (hMod)
+      if (LoadLibraryW_Original (wszSteamDLL))
       {
         crash_log.Log (L"Disabling Steam Breakpad...");
 

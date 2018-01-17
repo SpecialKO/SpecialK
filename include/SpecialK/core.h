@@ -22,14 +22,11 @@
 #ifndef __SK__CORE_H__
 #define __SK__CORE_H__
 
+#include <SpecialK/SpecialK.h>
+
 #undef COM_NO_WINDOWS_H
 #include <Windows.h>
 #include <atomic>
-
-
-class SK_Thread_HybridSpinlock;
-
-
 
 enum DLL_ROLE
 {
@@ -67,21 +64,17 @@ enum DLL_ROLE
 };
 
 
-#if 1
+#ifdef SK_BUILD_DLL
+ class SK_Thread_HybridSpinlock;
+
 extern SK_Thread_HybridSpinlock* init_mutex;
 extern SK_Thread_HybridSpinlock* budget_mutex;
 extern SK_Thread_HybridSpinlock* loader_lock;
 extern SK_Thread_HybridSpinlock* wmi_cs;
 extern SK_Thread_HybridSpinlock* cs_dbghelp;
 extern SK_Thread_HybridSpinlock* init_mutex;
-#else
-extern CRITICAL_SECTION init_mutex;
-extern CRITICAL_SECTION budget_mutex;
-extern CRITICAL_SECTION loader_lock;
-extern CRITICAL_SECTION wmi_cs;
-extern CRITICAL_SECTION cs_dbghelp;
-extern CRITICAL_SECTION init_mutex;
 #endif
+
 
 extern HMODULE                  backend_dll;
 
@@ -106,10 +99,19 @@ bool __stdcall SK_ShutdownCore (const wchar_t* backend);
 
 struct IUnknown;
 
-void    STDMETHODCALLTYPE SK_BeginBufferSwap (void);
-HRESULT STDMETHODCALLTYPE SK_EndBufferSwap   (HRESULT hr, IUnknown* device = nullptr);
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-const wchar_t* __stdcall SK_DescribeHRESULT  (HRESULT result);
+      void     SK_PUBLIC_API SK_BeginBufferSwap (void);
+      HRESULT  SK_PUBLIC_API SK_EndBufferSwap   (HRESULT hr, IUnknown* device = nullptr);
+
+      HMODULE  SK_PUBLIC_API SK_GetDLL          (void);
+      DLL_ROLE SK_PUBLIC_API SK_GetDLLRole      (void);
+
+#ifdef __cplusplus
+};
+#endif
 
 void
 __stdcall
@@ -118,15 +120,6 @@ SK_SetConfigPath (const wchar_t* path);
 const wchar_t*
 __stdcall
 SK_GetConfigPath (void);
-
-
-HMODULE
-__stdcall
-SK_GetDLL (void);
-
-DLL_ROLE
-__stdcall
-SK_GetDLLRole (void);
 
 void
 __cdecl
@@ -162,5 +155,6 @@ SK_Win32_CleanupDummyWindow (void);
 void
 __stdcall
 SK_EstablishRootPath (void);
+
 
 #endif /* __SK__CORE_H__ */

@@ -361,7 +361,7 @@ SHA1_File (
     return FALSE;
 
   uint64_t size =
-    SK_GetFileSize (wszFile);
+    SK_File_GetSize (wszFile);
 
   // Read up to 16 MiB at a time.
   const uint64_t MAX_CHUNK =
@@ -437,4 +437,71 @@ SK_SHA1_MakeHashString ( const SK_SHA1_Hash* sha1_hash )
   sha1_hash->toCString (szSHA1);
 
   return szSHA1;
+}
+
+
+
+
+SK_SHA1_Hash
+SK_GetFileHash_SHA (       sk_hash_algo               /*algorithm*/,
+                     const wchar_t                     *wszFile,
+                           SK_HashProgressCallback_pfn  callback = nullptr )
+{
+  SK_SHA1_Hash out;
+
+  SHA1_File (wszFile, (char *)out.hash, callback);
+
+  return out;
+}
+
+
+extern "C"
+SK_SHA1_Hash
+SK_PUBLIC_API
+SK_File_GetSHA1 ( const wchar_t                     *wszFile,
+                        SK_HashProgressCallback_pfn  callback )
+{
+  return SK_GetFileHash_SHA (SK_SHA1, wszFile, callback);
+}
+
+
+extern "C"
+bool
+SK_PUBLIC_API
+SK_File_GetSHA1StrA ( const char                        *szFile,
+                            char                        *szOut,
+                            SK_HashProgressCallback_pfn  callback )
+{
+  SK_SHA1_Hash sha1_hash;
+
+  bool bRet =
+    SHA1_File ( SK_UTF8ToWideChar (szFile).c_str (), (char *)sha1_hash.hash, callback );
+
+  if (bRet)
+    sha1_hash.toCString (szOut);
+
+  return bRet;
+}
+
+extern "C"
+bool
+SK_PUBLIC_API
+SK_File_GetSHA1StrW ( const wchar_t                     *wszFile,
+                            wchar_t                     *wszOut,
+                            SK_HashProgressCallback_pfn  callback )
+{
+  SK_SHA1_Hash sha1_hash;
+
+  bool bRet =
+    SHA1_File ( wszFile, (char *)sha1_hash.hash, callback );
+
+  if (bRet)
+  {
+    char szOut [21] = { };
+    sha1_hash.toCString (szOut);
+
+    wcsncpy (wszOut, SK_UTF8ToWideChar (szOut).c_str (), 20);
+  }
+
+  return bRet;
 }

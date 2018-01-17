@@ -43,6 +43,7 @@ MIDL_INTERFACE("B18B10CE-2649-405a-870F-95F777D4313A") IDirect3DDevice9Ex;
 #include <comdef.h>
 
 #include <SpecialK/log.h>
+#include <SpecialK/crc32.h>
 #include <SpecialK/utility.h>
 #include <SpecialK/thread.h>
 #include <SpecialK/command.h>

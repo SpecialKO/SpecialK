@@ -22,6 +22,11 @@
 #ifndef __SK__SHA1_H__
 #define __SK__SHA1_H__
 
+#include <cstdint>
+
+#include <SpecialK/SpecialK.h>
+#include <SpecialK/hash.h>
+
 /*
    Original Code:
 
@@ -30,15 +35,11 @@
    100% Public Domain
  */
 
-#include <cstdint>
-
-using SK_HashProgressCallback_pfn = void (__stdcall *)(uint64_t current, uint64_t total);
-
 typedef struct
 {
-         uint32_t state  [5];
-         uint32_t count  [2];
-    unsigned char buffer [64];
+       uint32_t state  [5];
+       uint32_t count  [2];
+  unsigned char buffer [64];
 } SHA1_CTX;
 
 void
@@ -68,6 +69,10 @@ SHA1_File     ( const wchar_t                     *wszFile,
                       char                        *hash_out,
                       SK_HashProgressCallback_pfn  callback = nullptr );
 
+
+//
+// Public Interface: These functions will be DLL Exported in the future
+//
 typedef uint8_t SK_SHA1_HashElement;
 
 struct SK_SHA1_Hash
@@ -78,5 +83,28 @@ struct SK_SHA1_Hash
   bool operator == (const SK_SHA1_Hash &b     ) const;
   bool operator != (const SK_SHA1_Hash &b     ) const;
 };
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+SK_SHA1_Hash                                               SK_PUBLIC_API
+SK_File_GetSHA1     ( const wchar_t* wszFile,
+         SK_HashProgressCallback_pfn callback = nullptr );
+
+bool                                                       SK_PUBLIC_API
+SK_File_GetSHA1StrA ( const char* szFile,
+                           char*  szOut,
+      SK_HashProgressCallback_pfn callback    = nullptr );
+
+bool                                                       SK_PUBLIC_API
+SK_File_GetSHA1StrW ( const wchar_t* wszFile,
+                            wchar_t* wszOut,
+         SK_HashProgressCallback_pfn callback = nullptr );
+
+#ifdef __cplusplus
+};
+#endif
 
 #endif /* __SK__SHA1_H__ */

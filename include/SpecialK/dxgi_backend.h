@@ -1196,4 +1196,7 @@ void
 WINAPI
 SK_HookDXGI (void);
 
+void
+SK_DXGI_PreHook (void);
+
 #endif /* __SK__DXGI_BACKEND_H__ */

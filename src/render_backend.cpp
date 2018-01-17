@@ -97,8 +97,7 @@ SK_BootD3D9 (void)
   if (InterlockedCompareExchange (&__booted, TRUE, FALSE))
     return;
 
-  void SK_D3D9_InitShaderModTools (void);
-       SK_D3D9_InitShaderModTools ( );
+  SK_D3D9_InitShaderModTools ();
 
   if (config.textures.d3d9_mod)
   {
@@ -123,15 +122,10 @@ SK_BootD3D9 (void)
   if (SK_GetDLLRole () == DLL_ROLE::D3D9)
   {
     // Load user-defined DLLs (Early)
-#ifdef _WIN64
-    SK_LoadEarlyImports64 ();
-#else
-    SK_LoadEarlyImports32 ();
-#endif
+    SK_RunLHIfBitness ( 64, SK_LoadEarlyImports64 (),
+                            SK_LoadEarlyImports32 () );
   }
 
-  void
-  SK_D3D9_PreHook (void);
   SK_D3D9_PreHook ();
 
   //CreateThread (nullptr, 0, [](LPVOID) -> DWORD {
@@ -251,18 +245,12 @@ SK_BootDXGI (void)
   if (SK_GetDLLRole () & DLL_ROLE::DXGI)
   {
     // Load user-defined DLLs (Early)
-#ifdef _WIN64
-    SK_LoadEarlyImports64 ();
-#else
-    SK_LoadEarlyImports32 ();
-#endif
+    SK_RunLHIfBitness ( 64, SK_LoadEarlyImports64 (),
+                            SK_LoadEarlyImports32 () );
   }
 
-  void
-  SK_DXGI_PreHook (void);
   SK_DXGI_PreHook ();
-
-  SK_HookDXGI ();
+  SK_HookDXGI     ();
 }
 
 
