@@ -2477,11 +2477,16 @@ HRESULT SK_DXGI_Present ( IDXGISwapChain *This,
   __try                                {
     hr = Present_Original (This, SyncInterval, Flags);
   }
+
+  // Release all resources, claim the presentation was successful and
+  //   hope the game recovers. AWFUL hack, but needed for some overlays.
+  //
   __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION )  ?
                      EXCEPTION_EXECUTE_HANDLER :
-                     EXCEPTION_CONTINUE_SEARCH ) {
-         ResetCEGUI_D3D11 (This);
-    hr = Present_Original (This, SyncInterval, Flags);
+                     EXCEPTION_CONTINUE_SEARCH )
+  {
+    SK_CEGUI_QueueResetD3D11 ();
+    hr = S_OK;
   }
 
   return hr;

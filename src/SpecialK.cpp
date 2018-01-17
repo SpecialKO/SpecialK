@@ -612,13 +612,13 @@ SK_EstablishDllRole (HMODULE hModule)
         {
           if (SK_TryLocalWrapperFirst ({ L"dxgi.dll", L"d3d11.dll" }))  return SK_DontInject ();
 
-          if (d3d11)
-          {
-            SK_SetDLLRole ( static_cast <DLL_ROLE> ( (int)DLL_ROLE::DXGI |
-                                                     (int)DLL_ROLE::D3D11 ) );
-          }
-
-          else
+          //if (d3d11)
+          //{
+          //  SK_SetDLLRole ( static_cast <DLL_ROLE> ( (int)DLL_ROLE::DXGI |
+          //                                           (int)DLL_ROLE::D3D11 ) );
+          //}
+          //
+          //else
             SK_SetDLLRole (DLL_ROLE::DXGI);
         }
 

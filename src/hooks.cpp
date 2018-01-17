@@ -685,6 +685,41 @@ SK_CreateVFTableHook2 ( const wchar_t  *pwszFuncName,
 
 MH_STATUS
 __stdcall
+SK_CreateVFTableHook3 ( const wchar_t  *pwszFuncName,
+                              void    **ppVFTable,
+                              DWORD     dwOffset,
+                              void     *pDetour,
+                              void    **ppOriginal )
+{
+  MH_STATUS ret =
+    SK_CreateFuncHook (
+      pwszFuncName,
+        ppVFTable [dwOffset],
+          pDetour,
+            ppOriginal );
+
+  if (ret == MH_OK)
+  {
+    SK_ValidateVFTableAddress (pwszFuncName, *ppVFTable, ppVFTable [dwOffset]);
+
+    //ret =
+    //  MH_QueueEnableHook (ppVFTable [dwOffset]);
+  }
+
+  if (ret != MH_OK)
+  {
+    dll_log.Log ( L"[ Min Hook ] Failed to Install Hook for '%s' "
+                  L"[VFTable Index: %lu]!  (Status: \"%hs\")",
+                    pwszFuncName,
+                      dwOffset,
+                        MH_StatusToString (ret) );
+  }
+
+  return ret;
+}
+
+MH_STATUS
+__stdcall
 SK_ApplyQueuedHooks (void)
 {
   MH_STATUS status =

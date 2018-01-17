@@ -1547,16 +1547,14 @@ SK_BeginBufferSwap (void)
   }
 
 
-
-  if (game_window.WndProc_Original != nullptr && SK_GetFramesDrawn () > 4)
-  {
-    SK_RunOnce (SK_ResetWindow ());
-  }
-
-
-  if (game_window.WndProc_Original == nullptr && SK_GetFramesDrawn () > 2)
+  if (game_window.WndProc_Original == nullptr)
   {
     SKX_Window_EstablishRoot ();
+  }
+
+  if (game_window.WndProc_Original != nullptr)
+  {
+    SK_RunOnce (SK_ResetWindow ());
   }
 
 

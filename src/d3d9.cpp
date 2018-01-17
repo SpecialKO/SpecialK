@@ -725,11 +725,33 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
 #endif
 
     if ((uintptr_t)cegD3D9 > 1)
-      cegD3D9->beginRendering ();
     {
-      if ((uintptr_t)cegD3D9 > 1)
-        SK_TextOverlayManager::getInstance ()->drawAllOverlays (0.0f, 0.0f);
+      cegD3D9->beginRendering ();
+      SK_TextOverlayManager::getInstance ()->drawAllOverlays (0.0f, 0.0f);
+    }
 
+    pDev->SetRenderState (D3DRS_SRGBWRITEENABLE,          FALSE);
+    pDev->SetRenderState (D3DRS_ALPHABLENDENABLE,         TRUE);
+    pDev->SetRenderState (D3DRS_SEPARATEALPHABLENDENABLE, FALSE);
+    pDev->SetRenderState (D3DRS_SRCBLEND,                 D3DBLEND_INVSRCALPHA);
+    pDev->SetRenderState (D3DRS_DESTBLEND,                D3DBLEND_SRCALPHA);
+
+    pDev->SetRenderState (D3DRS_ALPHATESTENABLE,          FALSE);
+
+    if ((uintptr_t)cegD3D9 > 1)
+      CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
+
+
+    if ( static_cast <int> (SK_GetCurrentRenderBackend ().api) &
+         static_cast <int> (SK_RenderAPI::D3D9)                  )
+    {
+      extern DWORD SK_ImGui_DrawFrame (DWORD dwFlags, void* user);
+                   SK_ImGui_DrawFrame (       0x00,     nullptr );
+    }
+
+
+    if (SK_Steam_DrawOSD () != 0)
+    {
       pDev->SetRenderState (D3DRS_SRGBWRITEENABLE,          FALSE);
       pDev->SetRenderState (D3DRS_ALPHABLENDENABLE,         TRUE);
       pDev->SetRenderState (D3DRS_SEPARATEALPHABLENDENABLE, FALSE);
@@ -740,30 +762,8 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
 
       if ((uintptr_t)cegD3D9 > 1)
         CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
-
-
-      if ( static_cast <int> (SK_GetCurrentRenderBackend ().api) &
-           static_cast <int> (SK_RenderAPI::D3D9)                  )
-      {
-        extern DWORD SK_ImGui_DrawFrame (DWORD dwFlags, void* user);
-                     SK_ImGui_DrawFrame (       0x00,     nullptr );
-      }
-
-
-      if (SK_Steam_DrawOSD () != 0)
-      {
-        pDev->SetRenderState (D3DRS_SRGBWRITEENABLE,          FALSE);
-        pDev->SetRenderState (D3DRS_ALPHABLENDENABLE,         TRUE);
-        pDev->SetRenderState (D3DRS_SEPARATEALPHABLENDENABLE, FALSE);
-        pDev->SetRenderState (D3DRS_SRCBLEND,                 D3DBLEND_INVSRCALPHA);
-        pDev->SetRenderState (D3DRS_DESTBLEND,                D3DBLEND_SRCALPHA);
-
-        pDev->SetRenderState (D3DRS_ALPHATESTENABLE,          FALSE);
-
-        if ((uintptr_t)cegD3D9 > 1)
-          CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
-      }
     }
+    
     if ((uintptr_t)cegD3D9 > 1)
       cegD3D9->endRendering ();
 
@@ -1108,6 +1108,14 @@ extern "C" const wchar_t* SK_DescribeVirtualProtectFlags (DWORD dwProtect);
                   /*SK_DescribeVirtualProtectFlags (dwProtect));            */\
   }                                                                           \
 }
+
+MH_STATUS
+__stdcall
+SK_CreateVFTableHook3 ( const wchar_t  *pwszFuncName,
+                              void    **ppVFTable,
+                              DWORD     dwOffset,
+                              void     *pDetour,
+                              void    **ppOriginal );
 
 #define D3D9_INTERCEPT(_Base,_Index,_Name,_Override,_Original,_Type) { \
   if (config.render.d3d9.hook_type == 0) {                             \
@@ -1858,7 +1866,7 @@ D3D9_STUB_VOID    (void,  D3DPERF_SetRegion, (D3DCOLOR color, LPCWSTR name),
           SK_EndBufferSwap (hr, pDev);
       }
 
-      if (config.render.dxgi.rehook_present)
+      //if (config.render.dxgi.rehook_present)
         ReHookPresent ();
 
       return hr;
@@ -1890,7 +1898,7 @@ D3D9_STUB_VOID    (void,  D3DPERF_SetRegion, (D3DCOLOR color, LPCWSTR name),
 
       SK_D3D9_EndFrame ();
 
-      if (config.render.dxgi.rehook_present)
+      //if (config.render.dxgi.rehook_present)
         ReHookPresent ();
 
       return hr;
@@ -1905,7 +1913,7 @@ D3D9_STUB_VOID    (void,  D3DPERF_SetRegion, (D3DCOLOR color, LPCWSTR name),
 
     SK_D3D9_EndFrame ();
 
-    if (config.render.dxgi.rehook_present)
+    //if (config.render.dxgi.rehook_present)
       ReHookPresent ();
 
     return hr;
@@ -2174,11 +2182,51 @@ SK_D3D9_HookPresent (IDirect3DDevice9 *pDev)
   {
     D3D9Present_Target = (D3D9PresentDevice_pfn)vftable [17];
 
+#if 0
+    struct delay_hook_s {
+      LPVOID  Base;
+      LONG    Index;
+      DWORD   Delay;
+      LPVOID  Override;
+      LPVOID* Original;
+    };
+
+    IDirect3DDevice9* pDevCopy;
+    pDev->QueryInterface (__uuidof (IDirect3DDevice9), (void **)&pDevCopy);
+
+    delay_hook_s *delay = new delay_hook_s { pDevCopy, 17, 1500UL, D3D9PresentCallback, (LPVOID *)&D3D9Present_Original };
+
+    CreateThread (nullptr, 0x0, [](LPVOID pTarget) -> DWORD
+    {
+      SleepEx (250UL, FALSE);
+    
+      delay_hook_s* pDelay = (delay_hook_s *)pTarget;
+
+      __try {
+        void** _vftable = *(void***)*(&pDelay->Base);
+        SK_CreateVFTableHook ( L"Foobar",
+                                 _vftable,
+                                   pDelay->Index,
+                                     pDelay->Override,
+                                       (LPVOID *)(pDelay->Original));
+        ((IDirect3DDevice9 *)pDelay->Base)->Release ();
+      } __except (EXCEPTION_EXECUTE_HANDLER) {
+      }
+
+      delete pDelay;
+
+      CloseHandle (GetCurrentThread ());
+
+      return 0;
+    }, delay, 0x0, nullptr);
+#else
     D3D9_INTERCEPT ( &pDev, 17,
                      "IDirect3DDevice9::Present",
                       D3D9PresentCallback,
                       D3D9Present_Original,
                       D3D9PresentDevice_pfn );
+    MH_ApplyQueued ();
+#endif
 
     memcpy (D3D9Present_GuardBytes, D3D9Present_Target, 8);
 
@@ -2285,7 +2333,7 @@ D3D9Reset_Pre ( IDirect3DDevice9      *This,
     if (tex_mgr.injector.hasPendingLoads ())
       tex_mgr.loadQueuedTextures ();
 
-    tex_mgr.reset ( );
+    tex_mgr.reset ();
 
   //need_reset.textures = false;
 
@@ -2346,8 +2394,11 @@ STDMETHODCALLTYPE
 D3D9Reset_Override ( IDirect3DDevice9      *This,
                      D3DPRESENT_PARAMETERS *pPresentationParameters )
 {
-  if (This == nullptr || pPresentationParameters == nullptr)
+  if (This == nullptr)
     return E_NOINTERFACE;
+
+ if (pPresentationParameters == nullptr)
+   return D3DERR_INVALIDCALL;
 
   dll_log.Log ( L"[   D3D9   ] [!] %s (%ph, %ph) - "
                 L"%s",

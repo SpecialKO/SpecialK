@@ -708,7 +708,7 @@ BOOL WINAPI RegisterRawInputDevices_Detour (
       pDevices [i] = pRawInputDevices [i];
       raw_devices.push_back (pDevices [i]);
 
-      if (pDevices [i].hwndTarget != 0)
+      if (pDevices [i].hwndTarget != 0 && pDevices [i].hwndTarget != game_window.hWnd)
       {
         //SK_LOG1 ( 
         SK_LOG0 (
@@ -718,17 +718,17 @@ BOOL WINAPI RegisterRawInputDevices_Detour (
 
         if (GetFocus ( ) == pDevices [i].hwndTarget)
         {
-          if ( InterlockedCompareExchangePointer ( (volatile LPVOID *)&game_window.hWnd,
-                                                     pDevices [i].hwndTarget,
-                                                       nullptr ) == nullptr )
-          {
-            extern HWND hWndRender;
-            hWndRender = game_window.hWnd;
-            SK_InstallWindowHook (game_window.hWnd);
-
-            SK_LOG0 ( (L" # Installed window hook early due to RawInput registration."),
-                       L"Input Mgr." );
-          }
+          //if ( InterlockedCompareExchangePointer ( (volatile LPVOID *)&game_window.hWnd,
+          //                                           pDevices [i].hwndTarget,
+          //                                             nullptr ) == nullptr )
+          //{
+          //  //extern HWND hWndRender;
+          //  //hWndRender = game_window.hWnd;
+          //  //SK_InstallWindowHook (game_window.hWnd);
+          //  //
+          //  //SK_LOG0 ( (L" # Installed window hook early due to RawInput registration."),
+          //  //           L"Input Mgr." );
+          //}
         }
       }
     }

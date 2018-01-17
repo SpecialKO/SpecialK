@@ -6602,7 +6602,10 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
   }
 
   else
+  {
+    SK_LOG0 ( (L"No Render API"), L"Overlay" );
     return 0x00;
+  }
 
   ImGuiIO& io (ImGui::GetIO ());
 

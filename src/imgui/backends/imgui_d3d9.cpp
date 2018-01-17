@@ -523,6 +523,8 @@ ImGui_ImplDX9_InvalidateDeviceObjects (D3DPRESENT_PARAMETERS* pparams)
 #include <windowsx.h>
 #include <SpecialK/input/input.h>
 
+#include <SpecialK/log.h>
+
 void
 SK_ImGui_PollGamepad (void);
 
@@ -539,12 +541,14 @@ ImGui_ImplDX9_NewFrame (void)
 
 
   // Setup display size (every frame to accommodate for window resizing)
-  RECT rect;
-  GetClientRect (g_hWnd, &rect);
+  RECT rect = { };
+  GetClientRect (game_window.hWnd, &rect);//g_hWnd, &rect);
 
   io.DisplayFramebufferScale =
     ImVec2 ( static_cast <float> (rect.right  - rect.left),
              static_cast <float> (rect.bottom - rect.top ) );
+
+//dll_log.Log (L"Window Width: %lu, Height: %lu", rect.right  - rect.left, rect.bottom - rect.top);
 
 
   if (! g_pd3dDevice)

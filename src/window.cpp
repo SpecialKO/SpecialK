@@ -2537,17 +2537,13 @@ SK_AdjustBorder (void)
   game_window.game.client = game_window.actual.client;
 }
 
-  void
-  SK_ResetWindow (void)
+
+void
+SK_ResetWindow (void)
 {
   SK_RenderBackend& rb = SK_GetCurrentRenderBackend ();
 
   if (! (config.window.borderless || config.window.center))
-    return;
-
-  if (config.window.center && (! ( (config.window.fullscreen  &&
-                                    config.window.borderless) ||
-                                    rb.fullscreen_exclusive) ) )
     return;
 
   static CRITICAL_SECTION cs_reset;
@@ -2564,18 +2560,18 @@ SK_AdjustBorder (void)
     {
       UNREFERENCED_PARAMETER (user);
 
-      while (ReadPointerAcquire ((void **)&GetWindowLongPtrW_Original))
-        SleepEx (2UL, FALSE);
+      while (! ReadPointerAcquire ((void **)&GetWindowLongPtrW_Original))
+        SleepEx (16UL, FALSE);
+      
+      EnterCriticalSection (&cs_reset);
 
       GetWindowRect (game_window.hWnd, &game_window.actual.window);
       GetClientRect (game_window.hWnd, &game_window.actual.client);
 
       ////
       ////// Force a sane set of window styles initially
-      SK_SetWindowStyle   ( GetWindowLongPtrW (game_window.hWnd, GWL_STYLE)   );
-      SK_SetWindowStyleEx ( GetWindowLongPtrW (game_window.hWnd, GWL_EXSTYLE) );
-      
-      EnterCriticalSection (&cs_reset);
+      SK_RunOnce (SK_SetWindowStyle   ( GetWindowLongPtrW_Original (game_window.hWnd, GWL_STYLE)   ));
+      SK_RunOnce (SK_SetWindowStyleEx ( GetWindowLongPtrW_Original (game_window.hWnd, GWL_EXSTYLE) ));
 
       if (config.window.borderless)
       {
@@ -5261,17 +5257,14 @@ SK_InstallWindowHook (HWND hWnd)
 
   if (game_window.unicode && (! caught_register)) 
   {
-#ifdef _WIN64
-    game_window.GetWindowLongPtr = GetWindowLongPtrW_Original;
-  //game_window.GetClassLongPtr  = GetClassLongPtrW_Original;
-#else
-    game_window.GetWindowLongPtr =
-      static_cast <GetWindowLongPtr_pfn> (GetWindowLongW_Original);
-  //game_window.GetClassLongPtr =
-  //  static_cast <GetClassLongPtr_pfn>  (GetClassLongW_Original);
-#endif
+    game_window.GetWindowLongPtr = SK_RunLHIfBitness ( 64, GetWindowLongPtrW_Original,
+                  reinterpret_cast <GetWindowLongPtr_pfn> (GetWindowLongW_Original)    );
+  //game_window.GetClassLongPtr  = SK_RunLHIfBitness ( 64, GetClassLongPtrW_Original,
+  //                   static_cast <GetClassLongPtr_pfn>  (GetClassLongW_Original)     );
+
     game_window.SetWindowLongPtr = SetWindowLongPtrW_Original;
   //game_window.SetClassLongPtr  = SetClassLongPtrW_Original;
+
     game_window.DefWindowProc    = (DefWindowProc_pfn)
       GetProcAddress ( GetModuleHandle (L"user32.dll"),
                          "DefWindowProcW" );
@@ -5282,15 +5275,11 @@ SK_InstallWindowHook (HWND hWnd)
 
   else if (! caught_register)
   {
-#ifdef _WIN64
-    game_window.GetWindowLongPtr = GetWindowLongPtrA_Original;
-  //game_window.GetClassLongPtr  = GetClassLongPtrA_Original;
-#else
-    game_window.GetWindowLongPtr =
-      static_cast <GetWindowLongPtr_pfn> (GetWindowLongA_Original);
-  //game_window.GetClassLongPtr =
-  //  static_cast <GetClassLongPtr_pfn>  (GetClassLongA_Original);
-#endif
+    game_window.GetWindowLongPtr = SK_RunLHIfBitness ( 64, GetWindowLongPtrA_Original,
+                  reinterpret_cast <GetWindowLongPtr_pfn> (GetWindowLongA_Original)    );
+  //game_window.GetClassLongPtr  = SK_RunLHIfBitness ( 64, GetClassLongPtrA_Original,
+  //                   static_cast <GetClassLongPtr_pfn>  (GetClassLongA_Original)     );
+
     game_window.SetWindowLongPtr = SetWindowLongPtrA_Original;
   //game_window.SetClassLongPtr  = SetClassLongPtrA_Original;
     game_window.DefWindowProc    = reinterpret_cast <DefWindowProc_pfn>
@@ -5313,39 +5302,27 @@ SK_InstallWindowHook (HWND hWnd)
                                              (WNDPROC)
     GetClassLongPtrA  ( hWnd, GCLP_WNDPROC );
 
-  WNDPROC wnd_proc = game_window.unicode    ? (WNDPROC)
-    GetWindowLongPtrW  ( hWnd, GWLP_WNDPROC ) :
-                                              (WNDPROC)
-    GetWindowLongPtrA  ( hWnd, GWLP_WNDPROC );
+  WNDPROC wnd_proc =
+    reinterpret_cast <WNDPROC> (
+      game_window.GetWindowLongPtr (hWnd, GWLP_WNDPROC)
+    );
 
   dll_log.Log ( L"[Window Mgr] Hooking the Window Procedure for "
-                L"%s Window Class ('%s') :: (ClassProc: %p, WndProc: %p)",
+                L"%s Window Class ('%s') :: (ClassProc: %s, WndProc: %s)",
                   game_window.unicode ? L"Unicode" : L"ANSI",
                     wszClassName,
-                      class_proc,
-                        wnd_proc );
+                      SK_MakePrettyAddress (class_proc).c_str (),
+                       ( class_proc != wnd_proc ?
+                          SK_MakePrettyAddress (wnd_proc).c_str () :
+                          L"Same" ) );
 
-  bool hook_classfunc = false;
-
-  // Compat Hack: EverQuest (hook classfunc)
-  //
-  //   Initial PeekMessage hook will handle input at server select,
-  //     hooked window proc will handle events in-game.
-  //
-  //   This game hooks its own message loop dispatch functions, probably
-  //     as an anti-cheat method. Hooking the class procedure is the only
-  //       workaround.
-  //
-  //if (SK_GetCurrentGameID () == SK_GAME_ID::EverQuest)
-    hook_classfunc = true;
+  bool hook_func = false;
   
-  if (hook_classfunc && (! caught_register))
+  if (hook_func && (! caught_register))
   {
-    game_window.hooked = false;
-
 #if 0
     game_window.WndProc_Original = (WNDPROC)GetWindowLongPtrW (game_window.hWnd, GWLP_WNDPROC);
-    g_hkCallWndProc = SetWindowsHookEx (WH_CALLWNDPROC, CallWndProc, SK_GetDLL (), GetCurrentThreadId ());
+    g_hkCallWndProc              = SetWindowsHookEx (WH_CALLWNDPROC, CallWndProc, SK_GetDLL (), GetCurrentThreadId ());
 #else
     if ( MH_OK ==
            MH_CreateHook (
@@ -5359,7 +5336,7 @@ SK_InstallWindowHook (HWND hWnd)
     
       dll_log.Log (L"[Window Mgr]  >> Hooked ClassProc.");
     
-      game_window.hooked = false;
+      game_window.hooked = true;
     }
     
     else if ( MH_OK ==
@@ -5374,7 +5351,12 @@ SK_InstallWindowHook (HWND hWnd)
     
       dll_log.Log (L"[Window Mgr]  >> Hooked WndProc.");
     
-      game_window.hooked = false;
+      game_window.hooked = true;
+    }
+
+    else
+    {
+      game_window.WndProc_Original = nullptr;
     }
 #endif
     SK_ApplyQueuedHooks ();
@@ -5389,20 +5371,25 @@ SK_InstallWindowHook (HWND hWnd)
     game_window.WndProc_Original =
       static_cast <WNDPROC> (wnd_proc);
   
-    game_window.SetWindowLongPtr ( hWnd,
-                                     GWLP_WNDPROC,
-          reinterpret_cast <LONG_PTR> (SK_DetourWindowProc) );
+    if (game_window.unicode)
+      SetClassLongPtrW ( hWnd, GCLP_WNDPROC, (LONG_PTR)SK_DetourWindowProc );
+    else
+      SetClassLongPtrA ( hWnd, GCLP_WNDPROC, (LONG_PTR)SK_DetourWindowProc );
+
+    //game_window.SetWindowLongPtr ( hWnd,
+    game_window.unicode ?
+      SetWindowLongPtrW_Original ( hWnd,
+                                       GWLP_WNDPROC,
+            reinterpret_cast <LONG_PTR> (SK_DetourWindowProc) ) :
+      SetWindowLongPtrA_Original ( hWnd,
+                                       GWLP_WNDPROC,
+            reinterpret_cast <LONG_PTR> (SK_DetourWindowProc) );
   
     //game_window.SetClassLongPtr ( hWnd,
     //                                GWLP_WNDPROC,
     //      reinterpret_cast <LONG_PTR> (SK_DetourWindowProc) );
   
-    if (game_window.unicode)
-      SetClassLongPtrW ( hWnd, GCLP_WNDPROC, (LONG_PTR)SK_DetourWindowProc );
-    else
-      SetClassLongPtrA ( hWnd, GCLP_WNDPROC, (LONG_PTR)SK_DetourWindowProc );
-  
-    game_window.hooked = true;
+    game_window.hooked = false;
   }
 
 
@@ -5511,7 +5498,12 @@ RegisterClassA_Detour (const WNDCLASSA* lpWndClass)
 
   auto wnd_class = *lpWndClass;
 
-  if (lpWndClass->hInstance == GetModuleHandle (nullptr))
+  bool primary_wnd =
+       wnd_class.hInstance == GetModuleHandle (nullptr) &&
+    (  wnd_class.hIcon     != nullptr   &&
+      (wnd_class.style     &  CS_OWNDC)    );
+
+  if (primary_wnd)
   {
     game_window.WndProc_Original = wnd_class.lpfnWndProc;
     wnd_class.lpfnWndProc        = (WNDPROC)SK_DetourWindowProc;
@@ -5529,7 +5521,12 @@ RegisterClassW_Detour (const WNDCLASSW* lpWndClass)
 
   auto wnd_class = *lpWndClass;
 
-  if (lpWndClass->hInstance == GetModuleHandle (nullptr))
+  bool primary_wnd =
+       wnd_class.hInstance == GetModuleHandle (nullptr) &&
+    (  wnd_class.hIcon     != nullptr   &&
+      (wnd_class.style     &  CS_OWNDC)    );
+
+  if (primary_wnd)
   {
     game_window.WndProc_Original = wnd_class.lpfnWndProc;
     wnd_class.lpfnWndProc        = (WNDPROC)SK_DetourWindowProc;
@@ -5547,7 +5544,12 @@ RegisterClassExA_Detour (const WNDCLASSEXA* lpWndClassEx)
 
   auto wnd_class_ex = *lpWndClassEx;
 
-  if (lpWndClassEx->hInstance == GetModuleHandle (nullptr))
+  bool primary_wnd =
+       wnd_class_ex.hInstance == GetModuleHandle (nullptr) &&
+    (  wnd_class_ex.hIcon     != nullptr   &&
+      (wnd_class_ex.style     &  CS_OWNDC)    );
+
+  if (primary_wnd)
   {
     game_window.WndProc_Original = wnd_class_ex.lpfnWndProc;
     wnd_class_ex.lpfnWndProc     = (WNDPROC)SK_DetourWindowProc;
@@ -5565,7 +5567,12 @@ RegisterClassExW_Detour (const WNDCLASSEXW* lpWndClassEx)
 
   auto wnd_class_ex = *lpWndClassEx;
 
-  if (lpWndClassEx->hInstance == GetModuleHandle (nullptr))
+  bool primary_wnd =
+       wnd_class_ex.hInstance == GetModuleHandle (nullptr) &&
+    (  wnd_class_ex.hIcon     != nullptr   &&
+      (wnd_class_ex.style     &  CS_OWNDC)    );
+
+  if (primary_wnd)
   {
     game_window.WndProc_Original = wnd_class_ex.lpfnWndProc;
     wnd_class_ex.lpfnWndProc     = (WNDPROC)SK_DetourWindowProc;
@@ -5621,7 +5628,7 @@ SK_MakeWindowHook (LPVOID class_proc, LPVOID wnd_proc)
   
     dll_log.Log (L"[Window Mgr]  >> Hooked ClassProc.");
   
-    game_window.hooked = false;
+    game_window.hooked = true;
   }
 
   else
@@ -5637,7 +5644,7 @@ SK_MakeWindowHook (LPVOID class_proc, LPVOID wnd_proc)
   
     dll_log.Log (L"[Window Mgr]  >> Hooked WndProc.");
   
-    game_window.hooked = false;
+    game_window.hooked = true;
   }
 
   SK_ApplyQueuedHooks ();
@@ -6068,7 +6075,17 @@ SK_HookWinAPI (void)
     //                           "GetClassLongPtrW",
     //                            GetClassLongPtrW_Detour,
     //   static_cast_p2p <void> (&GetClassLongPtrW_Original) );
+#else
+
+    // 32-bit Windows does not have these functions; just route them
+    //   through the normal function since pointers and DWORDS have
+    //     compatible size.
+    SetWindowLongPtrA_Original = SetWindowLongA_Original;
+    SetWindowLongPtrW_Original = SetWindowLongW_Original;
+    GetWindowLongPtrW_Original = GetWindowLongW_Original;
+    GetWindowLongPtrA_Original = GetWindowLongA_Original;
 #endif
+
 
 #if 0
     SK_CreateDLLHook2 (         L"user32.dll",
@@ -6158,12 +6175,6 @@ SK_HookWinAPI (void)
                                              "EnumDisplaySettingsW" );
 
     SK_ApplyQueuedHooks ();
-
-#ifndef _WIN64
-    SetWindowLongPtrA_Original = SetWindowLongA_Original;
-    SetWindowLongPtrW_Original = SetWindowLongW_Original;
-#else
-#endif
 
     InterlockedIncrement (&hooked);
   }
@@ -6267,7 +6278,8 @@ sk_window_s::CallProc (
     _In_ WPARAM  wParam,
     _In_ LPARAM  lParam )
 {
-  if (hooked)
+  // We subclassed the window instead of hooking the game's window proc
+  if (! hooked)
     return CallWindowProc (WndProc_Original, hWnd_, Msg, wParam, lParam);
   else
     return WndProc_Original (hWnd_, Msg, wParam, lParam);
