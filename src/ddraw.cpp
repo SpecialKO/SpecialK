@@ -60,12 +60,46 @@ unsigned int
 __stdcall
 HookDDraw (LPVOID user);
 
+__declspec (noinline)
+HRESULT
+__stdcall
+DllCanUnloadNow_Override (void);
+
+void
+SK_Thread_SpinUntilFlagged (volatile LONG* pFlag, LONG _SpinMax = 250L)
+{
+  while (! ReadAcquire (pFlag))
+  {
+    for (int i = 0; i < _SpinMax && (! ReadAcquire (pFlag)); i++)
+      ;
+
+    if (ReadAcquire (pFlag))
+      break;
+
+    MsgWaitForMultipleObjectsEx (0, nullptr, 16UL, QS_ALLINPUT, MWMO_ALERTABLE);
+  }
+}
+
+void
+SK_Thread_SpinUntilAtomicMin (volatile LONG* pVar, LONG count, LONG _SpinMax = 250L)
+{
+  while (ReadAcquire (pVar) < count)
+  {
+    for (int i = 0; i < _SpinMax && (ReadAcquire (pVar) < count); i++)
+      ;
+
+    if (ReadAcquire (pVar) < count)
+      break;
+
+    MsgWaitForMultipleObjectsEx (0, nullptr, 16UL, QS_ALLINPUT, MWMO_ALERTABLE);
+  }
+}
+
 void
 WINAPI
 WaitForInit_DDraw (void)
 {
-  while (! InterlockedCompareExchange (&__ddraw_ready, FALSE, FALSE))
-    MsgWaitForMultipleObjectsEx (0, nullptr, config.system.init_delay, QS_ALLINPUT, MWMO_ALERTABLE);
+  SK_Thread_SpinUntilFlagged (&__ddraw_ready);
 }
 
 typedef void (WINAPI *finish_pfn)(void);
@@ -94,6 +128,8 @@ typedef HRESULT (WINAPI *DirectDrawEnumerateEx_pfn)(
   _In_ DWORD              dwFlags
 );
 
+typedef HRESULT (__stdcall *DllCanUnloadNow_pfn)(void);
+
 DirectDrawCreate_pfn      DirectDrawCreate_Import       = nullptr;
 DirectDrawCreateEx_pfn    DirectDrawCreateEx_Import     = nullptr;
 
@@ -102,6 +138,8 @@ DirectDrawEnumerate_pfn   DirectDrawEnumerateW_Import   = nullptr;
 
 DirectDrawEnumerateEx_pfn DirectDrawEnumerateExA_Import = nullptr;
 DirectDrawEnumerateEx_pfn DirectDrawEnumerateExW_Import = nullptr;
+
+DllCanUnloadNow_pfn       DllCanUnloadNow_Import        = nullptr;
 
 __declspec (noinline)
 HRESULT
@@ -241,130 +279,144 @@ void
 WINAPI
 SK_HookDDraw (void)
 {
-  static volatile ULONG hooked = FALSE;
+  static volatile LONG hooked = FALSE;
 
-  if (InterlockedCompareExchange (&hooked, TRUE, FALSE))
+  if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
   {
-    return;
-  }
+    HMODULE hBackend = 
+      (SK_GetDLLRole () & DLL_ROLE::DDraw) ? backend_dll :
+                                     GetModuleHandle (L"ddraw.dll");
 
-  HMODULE hBackend = 
-    (SK_GetDLLRole () & DLL_ROLE::DDraw) ? backend_dll :
-                                   GetModuleHandle (L"ddraw.dll");
-
-  auto LoadSupplementalImports =
-  [&]
-  {
-    (DirectDrawEnumerateA_Import) =  \
-      reinterpret_cast <DirectDrawEnumerate_pfn> (
-        GetProcAddress (hBackend, "DirectDrawEnumerateA")
-      );
-    (DirectDrawEnumerateW_Import) =  \
-      reinterpret_cast <DirectDrawEnumerate_pfn> (
-        GetProcAddress (hBackend, "DirectDrawEnumerateW") 
-      );
-
-    (DirectDrawEnumerateExA_Import) =  \
-      reinterpret_cast <DirectDrawEnumerateEx_pfn> (
-        GetProcAddress (hBackend, "DirectDrawEnumerateExA")
-      );
-    (DirectDrawEnumerateExW_Import) =  \
-      reinterpret_cast <DirectDrawEnumerateEx_pfn> (
-        GetProcAddress (hBackend, "DirectDrawEnumerateExW")
-      );
-  };
-
-  dll_log.Log (L"[   DDraw  ] Importing DirectDrawCreate{Ex}..");
-  dll_log.Log (L"[   DDraw  ] ================================");
-
-  if (! _wcsicmp (SK_GetModuleName (SK_GetDLL ()).c_str (), L"ddraw.dll"))
-  {
-    dll_log.Log (L"[   DDraw  ]   DirectDrawCreate:   %ph",
-      (DirectDrawCreate_Import) =  \
-        reinterpret_cast <DirectDrawCreate_pfn> (
-          GetProcAddress (hBackend, "DirectDrawCreate")
-        )
-    );
-    dll_log.Log (L"[   DDraw  ]   DirectDrawCreateEx: %ph",
-      (DirectDrawCreateEx_Import) =  \
-        reinterpret_cast <DirectDrawCreateEx_pfn> (
-          GetProcAddress (hBackend, "DirectDrawCreateEx")
-        )
-    );
-
-    LoadSupplementalImports ();
-  }
-
-  else
-  {
-    bool bProxy = GetModuleHandle (L"ddraw.dll") != hBackend;
-
-    if ( MH_OK ==
-           SK_CreateDLLHook2 (      L"ddraw.dll",
-                                     "DirectDrawCreate",
-                                      DirectDrawCreate,
-             static_cast_p2p <void> (&DirectDrawCreate_Import) ) &&
-         MH_OK ==
-           SK_CreateDLLHook2 (      L"ddraw.dll",
-                                     "DirectDrawCreateEx",
-                                      DirectDrawCreateEx,
-             static_cast_p2p <void> (&DirectDrawCreateEx_Import) ) &&
-         MH_OK ==
-           SK_CreateDLLHook2 (      L"ddraw.dll",
-                                     "DirectDrawEnumerateA",
-                                      DirectDrawEnumerateA,
-             static_cast_p2p <void> (&DirectDrawEnumerateA_Import) ) &&
-         MH_OK ==
-           SK_CreateDLLHook2 (      L"ddraw.dll",
-                                     "DirectDrawEnumerateW",
-                                      DirectDrawEnumerateW,
-             static_cast_p2p <void> (&DirectDrawEnumerateW_Import) ) &&
-         MH_OK ==
-           SK_CreateDLLHook2 (      L"ddraw.dll",
-                                     "DirectDrawEnumerateExA",
-                                      DirectDrawEnumerateExA,
-             static_cast_p2p <void> (&DirectDrawEnumerateExA_Import) ) &&
-         MH_OK ==
-           SK_CreateDLLHook2 (      L"ddraw.dll",
-                                     "DirectDrawEnumerateExW",
-                                      DirectDrawEnumerateExW,
-             static_cast_p2p <void> (&DirectDrawEnumerateExW_Import) )
-       )
+    auto LoadSupplementalImports =
+    [&]
     {
-      if (bProxy)
-      {
-        (DirectDrawCreate_Import)   =  \
+      (DirectDrawEnumerateA_Import) =  \
+        reinterpret_cast <DirectDrawEnumerate_pfn> (
+          GetProcAddress (hBackend, "DirectDrawEnumerateA")
+        );
+      (DirectDrawEnumerateW_Import) =  \
+        reinterpret_cast <DirectDrawEnumerate_pfn> (
+          GetProcAddress (hBackend, "DirectDrawEnumerateW") 
+        );
+
+      (DirectDrawEnumerateExA_Import) =  \
+        reinterpret_cast <DirectDrawEnumerateEx_pfn> (
+          GetProcAddress (hBackend, "DirectDrawEnumerateExA")
+        );
+      (DirectDrawEnumerateExW_Import) =  \
+        reinterpret_cast <DirectDrawEnumerateEx_pfn> (
+          GetProcAddress (hBackend, "DirectDrawEnumerateExW")
+        );
+    };
+
+    dll_log.Log (L"[   DDraw  ] Importing DirectDrawCreate{Ex}..");
+    dll_log.Log (L"[   DDraw  ] ================================");
+
+    if (! _wcsicmp (SK_GetModuleName (SK_GetDLL ()).c_str (), L"ddraw.dll"))
+    {
+      dll_log.Log (L"[   DDraw  ]   DirectDrawCreate:   %ph",
+        (DirectDrawCreate_Import) =  \
           reinterpret_cast <DirectDrawCreate_pfn> (
             GetProcAddress (hBackend, "DirectDrawCreate")
-          );
+          )
+      );
+      dll_log.Log (L"[   DDraw  ]   DirectDrawCreateEx: %ph",
         (DirectDrawCreateEx_Import) =  \
           reinterpret_cast <DirectDrawCreateEx_pfn> (
             GetProcAddress (hBackend, "DirectDrawCreateEx")
-          );
+          )
+      );
 
-        LoadSupplementalImports ();
+      if ( MH_OK ==
+             SK_CreateDLLHook2 (      SK_GetModuleFullName (hBackend).c_str (),
+                                       "DllCanUnloadNow",
+                                        DllCanUnloadNow_Override,
+               static_cast_p2p <void> (&DllCanUnloadNow_Import) ) )
+      {
+        dll_log.Log ( L"[   DDraw  ]   DllCanUnloadNow:    %ph",
+                       DllCanUnloadNow_Import );
+        SK_ApplyQueuedHooks ();
       }
 
-      dll_log.Log (L"[   DDraw  ]   DirectDrawCreate:   %p  { Hooked }",
-        (DirectDrawCreate_Import) );
-      dll_log.Log (L"[   DDraw  ]   DirectDrawCreateEx: %p  { Hooked }",
-        (DirectDrawCreateEx_Import) );
+      LoadSupplementalImports ();
     }
+
+    else
+    {
+      bool bProxy = GetModuleHandle (L"ddraw.dll") != hBackend;
+
+      if ( MH_OK ==
+             SK_CreateDLLHook2 (      L"ddraw.dll",
+                                       "DirectDrawCreate",
+                                        DirectDrawCreate,
+               static_cast_p2p <void> (&DirectDrawCreate_Import) ) &&
+           MH_OK ==
+             SK_CreateDLLHook2 (      L"ddraw.dll",
+                                       "DirectDrawCreateEx",
+                                        DirectDrawCreateEx,
+               static_cast_p2p <void> (&DirectDrawCreateEx_Import) ) &&
+           MH_OK ==
+             SK_CreateDLLHook2 (      L"ddraw.dll",
+                                       "DirectDrawEnumerateA",
+                                        DirectDrawEnumerateA,
+               static_cast_p2p <void> (&DirectDrawEnumerateA_Import) ) &&
+           MH_OK ==
+             SK_CreateDLLHook2 (      L"ddraw.dll",
+                                       "DirectDrawEnumerateW",
+                                        DirectDrawEnumerateW,
+               static_cast_p2p <void> (&DirectDrawEnumerateW_Import) ) &&
+           MH_OK ==
+             SK_CreateDLLHook2 (      L"ddraw.dll",
+                                       "DirectDrawEnumerateExA",
+                                        DirectDrawEnumerateExA,
+               static_cast_p2p <void> (&DirectDrawEnumerateExA_Import) ) &&
+           MH_OK ==
+             SK_CreateDLLHook2 (      L"ddraw.dll",
+                                       "DirectDrawEnumerateExW",
+                                        DirectDrawEnumerateExW,
+               static_cast_p2p <void> (&DirectDrawEnumerateExW_Import) ) &&
+           MH_OK ==
+             SK_CreateDLLHook2 (      SK_GetModuleFullName (hBackend).c_str (),
+                                       "DllCanUnloadNow",
+                                        DllCanUnloadNow_Override,
+               static_cast_p2p <void> (&DllCanUnloadNow_Import) )
+         )
+      {
+        if (bProxy)
+        {
+          (DirectDrawCreate_Import)   =  \
+            reinterpret_cast <DirectDrawCreate_pfn> (
+              GetProcAddress (hBackend, "DirectDrawCreate")
+            );
+          (DirectDrawCreateEx_Import) =  \
+            reinterpret_cast <DirectDrawCreateEx_pfn> (
+              GetProcAddress (hBackend, "DirectDrawCreateEx")
+            );
+
+          LoadSupplementalImports ();
+        }
+
+        dll_log.Log (L"[   DDraw  ]   DirectDrawCreate:   %p  { Hooked }",
+          (DirectDrawCreate_Import) );
+        dll_log.Log (L"[   DDraw  ]   DirectDrawCreateEx: %p  { Hooked }",
+          (DirectDrawCreateEx_Import) );
+      }
+    }
+
+    dgvoodoo_ddraw = new import_s ();
+    dgvoodoo_ddraw->hLibrary     = hBackend;
+    dgvoodoo_ddraw->name         = L"API Support Plug-In";
+    dgvoodoo_ddraw->product_desc = SK_GetDLLVersionStr (SK_GetModuleFullName (hBackend).c_str ());
+
+    // Load user-defined DLLs (Plug-In)
+    SK_RunLHIfBitness (64, SK_LoadPlugIns64 (), SK_LoadPlugIns32 ());
+
+    HookDDraw (nullptr);
+
+    InterlockedIncrement (&hooked);
   }
 
-  dgvoodoo_ddraw = new import_s ();
-  dgvoodoo_ddraw->hLibrary     = hBackend;
-  dgvoodoo_ddraw->name         = L"API Support Plug-In";
-  dgvoodoo_ddraw->product_desc = SK_GetDLLVersionStr (SK_GetModuleFullName (hBackend).c_str ());
-
-// Load user-defined DLLs (Plug-In)
-#ifdef _WIN64
-  SK_LoadPlugIns64 ();
-#else
-  SK_LoadPlugIns32 ();
-#endif
-
-  HookDDraw (nullptr);
+  SK_Thread_SpinUntilAtomicMin (&hooked, 2);
 }
 
 void
@@ -458,8 +510,10 @@ HookDDraw (LPVOID user)
       SK::DXGI::StartBudgetThread_NoAdapter ();
   }
 
-  if (success)
-    CoUninitialize ();
+  //if (success)
+  //  CoUninitialize ();
+
+  SK_ApplyQueuedHooks ();
 
   return 0;
 }
@@ -548,3 +602,11 @@ DirectDrawEnumerateExW (_In_ LPDDENUMCALLBACKEX lpCallback,
   return E_NOTIMPL;
 }
 #endif
+
+__declspec (noinline)
+HRESULT
+__stdcall
+DllCanUnloadNow_Override (void)
+{
+  return S_FALSE;
+}

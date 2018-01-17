@@ -1179,7 +1179,7 @@ SK_ImGui_WantGamepadCapture (void)
 }
 
 
-const DWORD REASON_DISABLED = 0x4;
+static const DWORD REASON_DISABLED = 0x4;
 
 bool
 SK_ImGui_WantMouseCaptureEx (DWORD dwReasonMask)

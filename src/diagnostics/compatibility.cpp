@@ -61,12 +61,11 @@
 
 #include <SpecialK/injection/injection.h>
 
+#include <SpecialK/input/dinput7_backend.h>
+#include <SpecialK/input/dinput8_backend.h>
+
 #include <SpecialK/framerate.h>
 #include <SpecialK/DLL_VERSION.H>
-
-extern void
-SK_Input_HookDI7 (void);
-
 
 #define SK_CHAR(x) (_T)        (constexpr _T      (std::type_index (typeid (_T)) == std::type_index (typeid (wchar_t))) ? (      _T  )(_L(x)) : (      _T  )(x))
 #define SK_TEXT(x) (const _T*) (constexpr LPCVOID (std::type_index (typeid (_T)) == std::type_index (typeid (wchar_t))) ? (const _T *)(_L(x)) : (const _T *)(x))
@@ -85,11 +84,6 @@ void __stdcall SK_ReHookLoadLibrary         (void);
 void __stdcall SK_UnhookLoadLibrary         (void);
 
 bool SK_LoadLibrary_SILENCE = false;
-
-
-extern const wchar_t* __stdcall SK_GetBackend (void);
-extern const wchar_t* __stdcall SK_SetBackend (const wchar_t* wszBackend);
-
 
 
 #ifdef _WIN64
@@ -1253,6 +1247,30 @@ SK_BootModule (const wchar_t* wszModName)
     loaded_ddraw = true;
   }
 #endif
+  }
+
+  if (std::wstring (wszModName).find (SK_GetHostPath ()) != std::wstring::npos)
+  {
+    bool gl    = false, vulkan = false,
+         d3d9  = false,
+         dxgi  = false, d3d11  = false,
+         d3d8  = false, ddraw  = false,
+         glide = false;
+
+    SK_TestRenderImports (GetModuleHandleW (wszModName), &gl, &vulkan, &d3d9, &dxgi, &d3d11, &d3d8, &ddraw, &glide);
+
+#ifndef _WIN64
+    if (ddraw)
+      SK_BootDDraw ();
+    if (d3d8)
+      SK_BootD3D8  ();
+#endif
+    if (dxgi)
+      SK_BootDXGI ();
+    if (d3d9)
+      SK_BootD3D9 ();
+    if (gl)
+      SK_BootOpenGL ();
   }
 }
 

@@ -333,6 +333,9 @@ DEFINE_GUID(CLSID_DirectInputDevice,  0x25E609E1,0xB259,0x11CF,0xBF,0xC7,0x44,0x
 DEFINE_GUID(CLSID_DirectInput8,       0x25E609E4,0xB259,0x11CF,0xBF,0xC7,0x44,0x45,0x53,0x54,0x00,0x00);
 DEFINE_GUID(CLSID_DirectInputDevice8,	0x25E609E5,0xB259,0x11CF,0xBF,0xC7,0x44,0x45,0x53,0x54,0x00,0x00);
 
+DEFINE_GUID(CLSID_DirectDraw,         0xD7B70EE0,0x4340,0x11CF,0xB0,0x63,0x00,0x20,0xAF,0xC2,0xCD,0x35);
+
+
 extern
 HRESULT
 WINAPI
@@ -376,6 +379,12 @@ CoCreateInstance_Detour (
       return CoCreateInstance_DI7 (pUnkOuter, dwClsContext, riid, ppv, _ReturnAddress ());
     if (riid == IID_IDirectInputW)
       return CoCreateInstance_DI7 (pUnkOuter, dwClsContext, riid, ppv, _ReturnAddress ());
+  }
+
+  if (rclsid == CLSID_DirectDraw)
+  {
+    //extern void SK_BootDDraw (void);
+    //SK_BootDDraw ();
   }
 
   return CoCreateInstance_Original (rclsid, pUnkOuter, dwClsContext, riid, ppv);

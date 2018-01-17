@@ -2350,5 +2350,9 @@ unsigned int
 __stdcall
 HookD3D11 (LPVOID user);
 
+void
+WINAPI
+SK_HookDXGI (void);
+
 #endif /* __SK__DXGI_BACKEND_H__ */
 #endif

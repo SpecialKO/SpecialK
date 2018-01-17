@@ -132,6 +132,10 @@ void
 __cdecl
 SK_SetDLLRole (DLL_ROLE role);
 
+const wchar_t*
+__stdcall
+SK_GetBackend (void);
+
 bool
 __cdecl
 SK_IsHostAppSKIM (void);
@@ -154,5 +158,9 @@ SK_Win32_CreateDummyWindow (void);
 
 void
 SK_Win32_CleanupDummyWindow (void);
+
+void
+__stdcall
+SK_EstablishRootPath (void);
 
 #endif /* __SK__CORE_H__ */

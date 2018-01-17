@@ -69,9 +69,6 @@ LONG
 WINAPI
 SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo );
 
-
-extern HMODULE __stdcall SK_GetDLL (void);
-
 using namespace SK::Diagnostics;
 
 using SetUnhandledExceptionFilter_pfn = LPTOP_LEVEL_EXCEPTION_FILTER (WINAPI *)(

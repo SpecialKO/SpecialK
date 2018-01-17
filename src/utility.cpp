@@ -34,15 +34,6 @@
 #include <Shlwapi.h>
 #include <atlbase.h>
 
-extern const wchar_t*
-SK_GetFullyQualifiedApp (void);
-
-extern const wchar_t*
-SK_GetHostPath (void);
-
-extern std::wstring
-SK_GetModuleFullName (HMODULE hDll);
-
 int
 SK_MessageBox (std::wstring caption, std::wstring title, uint32_t flags)
 {
@@ -1327,11 +1318,6 @@ extern BOOL APIENTRY DllMain (HMODULE hModule,
 #include <SpecialK/opengl_backend.h>
 #include <SpecialK/input/dinput8_backend.h>
 
-extern
-const wchar_t*
-__stdcall
-SK_GetBackend (void);
-
 void
 __stdcall
 SK_SelfDestruct (void)
@@ -1390,11 +1376,6 @@ SK_GetCallerName (LPCVOID pReturn)
 {
   return SK_GetModuleName (SK_GetCallingDLL (pReturn));
 }
-
-extern
-std::wstring
-__stdcall
-SK_GetPluginName (void);
 
 #include <queue>
 
@@ -2970,15 +2951,6 @@ SK_RestartGame (const wchar_t* wszDLL)
 void
 SK_ElevateToAdmin (void)
 {
-  extern const wchar_t*
-  SK_GetFullyQualifiedApp (void);
-
-  extern const wchar_t*
-  SK_GetHostPath (void);
-
-  extern std::wstring
-  SK_GetModuleFullName (HMODULE hDll);
-
   wchar_t wszRunDLLCmd [MAX_PATH * 4] = { };
   wchar_t wszShortPath [MAX_PATH + 2] = { };
   wchar_t wszFullname  [MAX_PATH + 2] = { };

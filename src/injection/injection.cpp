@@ -34,6 +34,8 @@
 #include <SpecialK/config.h>
 #include <SpecialK/log.h>
 #include <SpecialK/utility.h>
+#include <SpecialK/render_backend.h>
+
 
 #include <set>
 #include <Shlwapi.h>
@@ -70,15 +72,10 @@ int     whitelist_count                    =   0;
 #pragma comment  (linker, "/SECTION:.SK_Hooks,RWS")
 
 
-extern void
-__stdcall
-SK_EstablishRootPath (void);
-
-
 extern volatile LONG  __SK_DLL_Attached;
 extern volatile ULONG __SK_DLL_Refs;
 extern volatile LONG  __SK_HookContextOwner;
-extern volatile DWORD __SK_TLS_INDEX;
+extern volatile LONG  __SK_TLS_INDEX;
 
                HMODULE hModHookInstance = nullptr;
 
@@ -98,7 +95,7 @@ SK_Inject_GetRecord (int idx)
   return &__SK_InjectionHistory [idx];
 }
 
-LONG local_record = 0;
+static LONG local_record = 0;
 
 void
 SK_Inject_InitShutdownEvent (void)
@@ -264,11 +261,7 @@ SKX_WaitForCBTHookShutdown (void)
     {
       SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_IDLE);
 
-      while (SKX_IsHookingCBT ())
-      {
-        if (WaitForSingleObjectEx (hShutdown, 15000UL, TRUE) == WAIT_OBJECT_0)
-          break;
-      }
+      WaitForSingleObjectEx (hShutdown, INFINITE, FALSE);
 
       CloseHandle (hShutdown);
     }
@@ -320,8 +313,8 @@ CBTProc ( _In_ int    nCode,
 BOOL
 SK_TerminatePID ( DWORD dwProcessId, UINT uExitCode )
 {
-  DWORD dwDesiredAccess = PROCESS_TERMINATE;
-  BOOL  bInheritHandle  = FALSE;
+  const DWORD dwDesiredAccess = PROCESS_TERMINATE;
+  const BOOL  bInheritHandle  = FALSE;
 
   HANDLE hProcess =
     OpenProcess ( dwDesiredAccess, bInheritHandle, dwProcessId );
@@ -338,8 +331,6 @@ SK_TerminatePID ( DWORD dwProcessId, UINT uExitCode )
 }
 
 
-bool temp_tls = false;
-
 void
 __stdcall
 SKX_InstallCBTHook (void)
@@ -349,7 +340,7 @@ SKX_InstallCBTHook (void)
     return;
 
   ZeroMemory (whitelist_patterns, sizeof (whitelist_patterns));
-  whitelist_count = 0;
+              whitelist_count = 0;
 
   HMODULE hMod = nullptr;
 
@@ -357,10 +348,6 @@ SKX_InstallCBTHook (void)
       SK_RunLHIfBitness ( 32, L"SpecialK32.dll",
                               L"SpecialK64.dll" ),
                           (HMODULE *) &hMod );
-
-  extern HMODULE
-  __stdcall
-  SK_GetDLL (void);
 
   if (hMod == SK_GetDLL () && hMod != nullptr)
   {
@@ -370,6 +357,9 @@ SKX_InstallCBTHook (void)
     //   hooking XInput -- CBT is more reliable, but slower.
     g_CBTHook.hHookCBT  =
       SetWindowsHookEx (WH_CBT, CBTProc, hMod, 0);
+
+#if 0
+    bool temp_tls = false;
 
     if (SKX_GetCBTHook () != nullptr)
     {
@@ -415,18 +405,18 @@ SKX_InstallCBTHook (void)
       wmi_cs       = new SK_Thread_HybridSpinlock ( 128);
       cs_dbghelp   = new SK_Thread_HybridSpinlock (104857);
 
-      if (__SK_TLS_INDEX == 0)
+      if ( TLS_OUT_OF_INDEXES ==
+             InterlockedCompareExchange (&__SK_TLS_INDEX, TlsAlloc (), TLS_OUT_OF_INDEXES) )
       {
-        __SK_TLS_INDEX = TlsAlloc ();
-        temp_tls       = true;
+        temp_tls = true;
       }
 
-      if (__SK_TLS_INDEX != TLS_OUT_OF_INDEXES)
+      if (ReadAcquire (&__SK_TLS_INDEX) != TLS_OUT_OF_INDEXES)
       {
         SK_SetDLLRole (DLL_ROLE::DXGI);
 
         extern __time64_t __SK_DLL_AttachTime;
-        _time64 (&__SK_DLL_AttachTime);
+               _time64 (&__SK_DLL_AttachTime);
 
         extern bool __SK_RunDLL_Bypass;
                     __SK_RunDLL_Bypass = true;
@@ -508,8 +498,11 @@ SKX_InstallCBTHook (void)
 
           if (temp_tls)
           {
-            TlsFree (__SK_TLS_INDEX);
-                     __SK_TLS_INDEX = 0;
+            if (ReadAcquire (&__SK_TLS_INDEX) != TLS_OUT_OF_INDEXES)
+            {
+              TlsFree (InterlockedCompareExchange (&__SK_TLS_INDEX, TLS_OUT_OF_INDEXES, __SK_TLS_INDEX));
+            }
+
             temp_tls = false;
           }
 
@@ -519,6 +512,7 @@ SKX_InstallCBTHook (void)
         }, nullptr, 0, nullptr);
       }
     }
+#endif
   }
 }
 
@@ -542,7 +536,7 @@ SKX_RemoveCBTHook (void)
     if (UnhookWindowsHookEx (hHookOrig))
     {
       ZeroMemory (whitelist_patterns, sizeof (whitelist_patterns));
-      whitelist_count = 0;
+                  whitelist_count = 0;
 
       InterlockedExchange (&__SK_HookContextOwner, FALSE);
 
@@ -606,7 +600,7 @@ RunDLL_InjectionManager ( HWND  hwnd,        HINSTANCE hInst,
                SKX_WaitForCBTHookShutdown ();
 
                while ( ReadAcquire (&__SK_DLL_Attached) || (! SK_IsHostAppSKIM ()))
-                 SleepEx (250UL, FALSE);
+                 SleepEx (5UL, TRUE);
 
                if (PtrToInt (user) != -128)
                  ExitProcess (0x00);
@@ -654,15 +648,6 @@ RunDLL_InjectionManager ( HWND  hwnd,        HINSTANCE hInst,
    ExitProcess (0x00);
 }
 
-
-
-
-#include <SpecialK/utility.h>
-#include <SpecialK/render_backend.h>
-
-extern void
-__stdcall
-SK_EstablishRootPath (void);
 
 void
 SK_Inject_EnableCentralizedConfig (void)
@@ -870,11 +855,11 @@ SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE role)
 bool
 SK_Inject_SwitchToRenderWrapper (void)
 {
-  wchar_t   wszIn [MAX_PATH * 2] = { };
-  lstrcatW (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
-
+  wchar_t   wszIn  [MAX_PATH * 2] = { };
   wchar_t   wszOut [MAX_PATH * 2] = { };
-  lstrcatW (wszOut, SK_GetHostPath ());
+
+  lstrcatW (wszIn,  SK_GetModuleFullName (SK_GetDLL ()).c_str ());
+  lstrcatW (wszOut, SK_GetHostPath       (                     ));
 
   switch (SK_GetCurrentRenderBackend ().api)
   {
@@ -958,13 +943,12 @@ SK_Inject_SwitchToRenderWrapper (void)
 
     lstrcatW (wszOut, SK_GetHostPath ());
 
-#ifdef _WIN64
-    lstrcatW (wszIn,  L"SpecialK64.pdb");
-    lstrcatW (wszOut, L"\\SpecialK64.pdb");
-#else
-    lstrcatW (wszIn,  L"SpecialK32.pdb");
-    lstrcatW (wszOut, L"\\SpecialK32.pdb");
-#endif
+    const wchar_t* wszPDBFile =
+      SK_RunLHIfBitness (64, L"SpecialK64.pdb",
+                             L"SpecialK32.pdb");
+    lstrcatW (wszIn,  wszPDBFile);
+    lstrcatW (wszOut, L"\\");
+    lstrcatW (wszOut, wszPDBFile);
 
     if (! CopyFileW (wszIn, wszOut, TRUE))
       ReplaceFileW (wszOut, wszIn, nullptr, 0x00, nullptr, nullptr);
@@ -1020,10 +1004,10 @@ SK_Inject_SwitchToGlobalInjector (void)
   config.system.central_repository = true;
   SK_EstablishRootPath ();
 
-  wchar_t wszOut [MAX_PATH * 2] = { };
-  lstrcatW (wszOut, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
+  wchar_t wszOut  [MAX_PATH * 2] = { };
+  wchar_t wszTemp [MAX_PATH * 2] = { };
 
-  wchar_t wszTemp [MAX_PATH] = {  };
+  lstrcatW (wszOut, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
   GetTempFileNameW (SK_GetHostPath (), L"SKI", timeGetTime (), wszTemp);
 
   MoveFileW (wszOut, wszTemp);
@@ -1032,10 +1016,6 @@ SK_Inject_SwitchToGlobalInjector (void)
 
   return true;
 }
-
-extern std::wstring
-SK_SYS_GetInstallPath (void);
-
 
 
 #if 0

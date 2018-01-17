@@ -29,8 +29,6 @@
 
 #include <imgui/imgui.h>
 
-extern const wchar_t* __stdcall SK_GetBackend (void);
-
 std::string
 SK_GetLicenseText (SHORT id)
 {

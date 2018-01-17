@@ -66,18 +66,8 @@
 
 extern SK_Thread_HybridSpinlock cs_mmio;
 
-extern void
-ImGui_ImplDX11_Resize ( IDXGISwapChain *This,
-                        UINT            BufferCount,
-                        UINT            Width,
-                        UINT            Height,
-                        DXGI_FORMAT     NewFormat,
-                        UINT            SwapChainFlags );
-
 extern void SK_D3D11_EndFrame       (void);
 extern void SK_DXGI_UpdateSwapChain (IDXGISwapChain*);
-
-extern const wchar_t* __stdcall SK_GetBackend (void);
 
 #include <CEGUI/CEGUI.h>
 #include <CEGUI/System.h>
@@ -500,11 +490,6 @@ void WaitForInitDXGI (void)
 
   while (! ReadAcquire (&__dxgi_ready))
   {
-    // Can't remember what this is for, lol....
-    if (__SK_bypass && backend_dll != nullptr)
-      return;
-
-
     for (int i = 0; i < _SpinMax && (! ReadAcquire (&__dxgi_ready)); i++)
       ;
 

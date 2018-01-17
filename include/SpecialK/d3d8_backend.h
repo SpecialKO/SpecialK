@@ -33,4 +33,8 @@ namespace SK
   }
 }
 
+void
+WINAPI
+SK_HookD3D8 (void);
+
 #endif /* __SK__D3D8_BACKEND_H__ */

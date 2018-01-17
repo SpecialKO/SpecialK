@@ -79,11 +79,6 @@ WaitForInit_D3D9 (void)
 
   while (! ReadAcquire (&__d3d9_ready))
   {
-    // Can't remember what this is for, lol....
-    if (__SK_bypass && backend_dll != nullptr)
-      return;
-
-
     for (int i = 0; i < _SpinMax && (! ReadAcquire (&__d3d9_ready)); i++)
       ;
 
@@ -1866,7 +1861,8 @@ D3D9_STUB_VOID    (void,  D3DPERF_SetRegion, (D3DCOLOR color, LPCWSTR name),
           SK_EndBufferSwap (hr, pDev);
       }
 
-      ReHookPresent ();
+      if (config.render.dxgi.rehook_present)
+        ReHookPresent ();
 
       return hr;
     }
@@ -1897,7 +1893,8 @@ D3D9_STUB_VOID    (void,  D3DPERF_SetRegion, (D3DCOLOR color, LPCWSTR name),
 
       SK_D3D9_EndFrame ();
 
-      ReHookPresent ();
+      if (config.render.dxgi.rehook_present)
+        ReHookPresent ();
 
       return hr;
     }
@@ -1911,7 +1908,8 @@ D3D9_STUB_VOID    (void,  D3DPERF_SetRegion, (D3DCOLOR color, LPCWSTR name),
 
     SK_D3D9_EndFrame ();
 
-    ReHookPresent ();
+    if (config.render.dxgi.rehook_present)
+      ReHookPresent ();
 
     return hr;
   }

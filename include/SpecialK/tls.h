@@ -128,7 +128,7 @@ struct SK_TLS
   } stack;
 };
 
-extern volatile DWORD __SK_TLS_INDEX;
+extern volatile LONG __SK_TLS_INDEX;
 
 SK_TLS* __stdcall SK_TLS_Get    (void); // Alias: SK_TLS_Top
 SK_TLS* __stdcall SK_TLS_Top    (void);

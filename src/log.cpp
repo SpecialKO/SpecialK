@@ -30,10 +30,6 @@
 #include <SpecialK/config.h>
 #include <SpecialK/utility.h>
 
-extern
-ULONG
-SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr, char* pszOut, ULONG ulLen);
-
 WORD
 SK_Timestamp (wchar_t* const out)
 {

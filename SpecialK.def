@@ -84,6 +84,8 @@ EXPORTS
   DirectDrawEnumerateExA   = DirectDrawEnumerateExA    PRIVATE
   DirectDrawEnumerateExW   = DirectDrawEnumerateExW    PRIVATE
 
+  DllCanUnloadNow          = DllCanUnloadNow_Override  PRIVATE
+
 
 ;LIBRARY "d3d11"
 

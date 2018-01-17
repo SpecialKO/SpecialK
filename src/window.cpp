@@ -43,6 +43,11 @@
 #include <SpecialK/utility.h>
 #include <SpecialK/osd/text.h>
 
+
+#include <imgui/backends/imgui_d3d11.h>
+#include <SpecialK/d3d9_backend.h>
+
+
 #undef  SK_LOG_FIRST_CALL
 #define SK_LOG_FIRST_CALL { static bool called = false; if (! called) { SK_LOG0 ( (L"[!] > First Call: %34hs", __FUNCTION__), L"Window Mgr" ); called = true; } }
 
@@ -873,9 +878,6 @@ auto ActivateWindow =[&](HWND hWnd, bool active = false)
       //SetWindowPos      (game_window.hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOSENDCHANGING | SWP_NOMOVE     | SWP_NOSIZE     |
       //                                                           SWP_FRAMECHANGED   | SWP_DEFERERASE | SWP_NOCOPYBITS |
       //                                                           SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW | SWP_NOACTIVATE | SWP_NOZORDER );
-
-      extern void
-      SK_D3D9_TriggerReset (bool);
     
       SK_D3D9_TriggerReset (false);
     }
@@ -3400,9 +3402,6 @@ SK_DetourWindowProc2 ( _In_  HWND   hWnd,
 LRESULT
 WINAPI
 ImGui_WndProcHandler (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
-
-extern void    ImGui_ImplDX11_InvalidateDeviceObjects (void);
-extern bool    ImGui_ImplDX11_CreateDeviceObjects     (void);
 
 HHOOK g_hkCallWndProc;
 
@@ -6261,12 +6260,6 @@ SK_COMPAT_SafeCallProc (sk_window_s* pWin, HWND hWnd_, UINT Msg, WPARAM wParam, 
   //   with FFX / X-2 HD
   //
   CComPtr <IDXGISwapChain> pSwapChain = nullptr;
-
-  extern HWND
-  SK_Win32_CreateDummyWindow (void);
-  
-  extern void
-  SK_Win32_CleanupDummyWindow (void);
   
   HWND                   hWnd = SK_Win32_CreateDummyWindow ();
 

@@ -23,6 +23,10 @@
 
 #include <SpecialK/render_backend.h>
 #include <SpecialK/dxgi_backend.h>
+#include <SpecialK/d3d9_backend.h>
+#include <SpecialK/d3d8_backend.h>
+#include <SpecialK/ddraw_backend.h>
+#include <SpecialK/opengl_backend.h>
 #include <SpecialK/nvapi.h>
 #include <SpecialK/utility.h>
 #include <SpecialK/config.h>
@@ -45,16 +49,6 @@ SK_GetCurrentRenderBackend (void)
 {
   return __SK_RBkEnd;
 }
-
-extern void WINAPI SK_HookGL     (void);
-extern void WINAPI SK_HookVulkan (void);
-extern void WINAPI SK_HookD3D9   (void);
-extern void WINAPI SK_HookD3D8   (void);
-extern void WINAPI SK_HookDDraw  (void);
-extern void WINAPI SK_HookDXGI   (void);
-
-extern void
-SK_D3D9_TriggerReset (bool);
 
 void
 __stdcall
@@ -298,11 +292,8 @@ SK_BootOpenGL (void)
   if (SK_GetDLLRole ( ) == DLL_ROLE::OpenGL)
   {
     // Load user-defined DLLs (Early)
-#ifdef _WIN64
-    SK_LoadEarlyImports64 ();
-#else
-    SK_LoadEarlyImports32 ();
-#endif
+    SK_RunLHIfBitness ( 64, SK_LoadEarlyImports64 (),
+                            SK_LoadEarlyImports32 () );
   }
 #endif
 
@@ -313,23 +304,23 @@ SK_BootOpenGL (void)
 void
 SK_BootVulkan (void)
 {
-#ifdef _WIN64
-  static volatile ULONG __booted = FALSE;
-
-  if (InterlockedCompareExchange (&__booted, TRUE, FALSE))
-    return;
-
-  // Establish the minimal set of APIs necessary to work as vulkan-1.dll
-  if (SK_GetDLLRole () == DLL_ROLE::Vulkan)
-    config.apis.Vulkan.hook = true;
-
-  if (! config.apis.Vulkan.hook)
-    return;
-
-  dll_log.Log (L"[API Detect]  <!> [ Bootstrapping Vulkan 1.x (vulkan-1.dll) ] <!>");
-
-  SK_HookVulkan ();
-#endif
+//#ifdef _WIN64
+//  static volatile ULONG __booted = FALSE;
+//
+//  if (InterlockedCompareExchange (&__booted, TRUE, FALSE))
+//    return;
+//
+//  // Establish the minimal set of APIs necessary to work as vulkan-1.dll
+//  if (SK_GetDLLRole () == DLL_ROLE::Vulkan)
+//    config.apis.Vulkan.hook = true;
+//
+//  if (! config.apis.Vulkan.hook)
+//    return;
+//
+//  dll_log.Log (L"[API Detect]  <!> [ Bootstrapping Vulkan 1.x (vulkan-1.dll) ] <!>");
+//
+//  SK_HookVulkan ();
+//#endif
 }
 
 

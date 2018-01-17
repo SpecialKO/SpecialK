@@ -1197,5 +1197,12 @@ SK_D3D9_SwapEffectToStr (D3DSWAPEFFECT Effect);
 std::wstring
 SK_D3D9_PresentParameterFlagsToStr (DWORD dwFlags);
 
+void
+SK_D3D9_TriggerReset (bool);
+
+void
+WINAPI
+SK_HookD3D9 (void);
+
 
 #endif /* __SK__D3D9_BACKEND_H__ */

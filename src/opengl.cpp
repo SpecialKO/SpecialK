@@ -40,7 +40,6 @@
 #include <SpecialK/framerate.h>
 #include <SpecialK/diagnostics/compatibility.h>
 
-extern HMODULE WINAPI SK_GetDLL (void);
 extern bool __SK_bypass;
 
 #include <SpecialK/hooks.h>
@@ -74,11 +73,6 @@ WaitForInit_GL (void)
 
   while (! ReadAcquire (&__gl_ready))
   {
-    // Can't remember what this is for, lol....
-    if (__SK_bypass && backend_dll != nullptr)
-      return;
-
-
     for (int i = 0; i < _SpinMax && (! ReadAcquire (&__gl_ready)); i++)
       ;
 

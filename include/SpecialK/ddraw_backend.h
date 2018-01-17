@@ -33,4 +33,8 @@ namespace SK
   }
 }
 
+void
+WINAPI
+SK_HookDDraw (void);
+
 #endif /* __SK__DDRAW_BACKEND_H__ */

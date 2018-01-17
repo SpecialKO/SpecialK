@@ -110,8 +110,6 @@ extern SetCursorPos_pfn  SetCursorPos_Original;
 extern uint32_t __stdcall SK_Steam_PiratesAhoy (void);
 extern uint32_t __stdcall SK_SteamAPI_AppID    (void);
 
-extern const wchar_t* __stdcall SK_GetBackend (void);
-
 extern bool     __stdcall SK_FAR_IsPlugIn      (void);
 extern void     __stdcall SK_FAR_ControlPanel  (void);
 

@@ -156,4 +156,8 @@ struct SK_GL_KnownArrayObjects
 { } extern SK_GL_Arrays;
 #endif
 
+void
+WINAPI
+SK_HookGL (void);
+
 #endif /* __SK__OPENGL_BACKEND_H__ */

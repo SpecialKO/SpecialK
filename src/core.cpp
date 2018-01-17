@@ -129,7 +129,6 @@ wchar_t SK_RootPath   [MAX_PATH + 2] = { };
 wchar_t SK_ConfigPath [MAX_PATH + 2] = { };
 wchar_t SK_Backend    [     128    ] = { };
 
-__declspec (noinline)
 const wchar_t*
 __stdcall
 SK_GetBackend (void)
@@ -137,7 +136,6 @@ SK_GetBackend (void)
   return SK_Backend;
 }
 
-__declspec (noinline)
 const wchar_t*
 __stdcall
 SK_SetBackend (const wchar_t* wszBackend)
@@ -145,7 +143,6 @@ SK_SetBackend (const wchar_t* wszBackend)
   return wcsncpy (SK_Backend, wszBackend, 127);
 }
 
-__declspec (noinline)
 const wchar_t*
 __stdcall
 SK_GetRootPath (void)
@@ -971,6 +968,8 @@ SK_InitCore (std::wstring backend, void* callback)
 void
 WaitForInit (void)
 {
+  const auto _SpinMax = 32;
+
   if (ReadAcquire (&__SK_Init))
     return;
 
@@ -979,8 +978,14 @@ WaitForInit (void)
     if ( ReadPointerAcquire (&hInitThread) == GetCurrentThread () )
       break;
 
+    for (int i = 0; i < _SpinMax && (ReadPointerAcquire (&hInitThread) != INVALID_HANDLE_VALUE); i++)
+      ;
+
+    if ( ReadPointerAcquire (&hInitThread) == INVALID_HANDLE_VALUE )
+      break;
+
     if ( WAIT_OBJECT_0 ==
-           MsgWaitForMultipleObjectsEx (1, const_cast <HANDLE *>(&hInitThread), 2UL, QS_ALLINPUT, MWMO_ALERTABLE) )
+           MsgWaitForMultipleObjectsEx (1, const_cast <HANDLE *>(&hInitThread), 16UL, QS_ALLINPUT, MWMO_ALERTABLE) )
       break;
   }
 

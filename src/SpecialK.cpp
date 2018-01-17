@@ -74,7 +74,7 @@ volatile LONG  __SK_DLL_Attached     = FALSE;
     __time64_t __SK_DLL_AttachTime   = 0ULL;
 volatile ULONG __SK_Threads_Attached = 0UL;
 volatile ULONG __SK_DLL_Refs         = 0UL;
-volatile DWORD __SK_TLS_INDEX        = MAXDWORD;
+volatile LONG  __SK_TLS_INDEX        = TLS_OUT_OF_INDEXES;
 volatile LONG  __SK_HookContextOwner = false;
 
 
@@ -82,11 +82,11 @@ SK_TLS*
 __stdcall
 SK_TLS_Bottom (void)
 {
-  if (__SK_TLS_INDEX == MAXDWORD)
+  if (ReadAcquire (&__SK_TLS_INDEX) == TLS_OUT_OF_INDEXES)
     return nullptr;
 
   LPVOID lpvData =
-    TlsGetValue (__SK_TLS_INDEX);
+    TlsGetValue (ReadAcquire (&__SK_TLS_INDEX));
 
   if (lpvData == nullptr)
   {
@@ -98,7 +98,7 @@ SK_TLS_Bottom (void)
 
     if (lpvData != nullptr)
     {
-      if (! TlsSetValue (__SK_TLS_INDEX, lpvData))
+      if (! TlsSetValue (ReadAcquire (&__SK_TLS_INDEX), lpvData))
       {
         LocalFree (lpvData);
         return nullptr;
@@ -115,7 +115,7 @@ SK_TLS*
 __stdcall
 SK_TLS_Top (void)
 {
-  if (__SK_TLS_INDEX == MAXDWORD)
+  if (ReadAcquire (&__SK_TLS_INDEX) == TLS_OUT_OF_INDEXES)
     return nullptr;
 
   return &(SK_TLS_Bottom ()[SK_TLS_Bottom ()->stack.current]);
@@ -125,7 +125,7 @@ bool
 __stdcall
 SK_TLS_Push (void)
 {
-  if (__SK_TLS_INDEX == MAXDWORD)
+  if (ReadAcquire (&__SK_TLS_INDEX) == TLS_OUT_OF_INDEXES)
     return false;
 
   if (SK_TLS_Bottom ()->stack.current < SK_TLS::stack::max)
@@ -144,7 +144,7 @@ bool
 __stdcall
 SK_TLS_Pop  (void)
 {
-  if (__SK_TLS_INDEX == MAXDWORD)
+  if (ReadAcquire (&__SK_TLS_INDEX) == TLS_OUT_OF_INDEXES)
     return false;
 
   if (SK_TLS_Bottom ()->stack.current > 0)
@@ -192,11 +192,6 @@ SK_GetDLL (void)
 }
 
 #include <unordered_set>
-
-
-extern void
-__stdcall
-SK_EstablishRootPath (void);
 
 const std::unordered_set <std::wstring> blacklist = {
 L"steam.exe",
@@ -302,8 +297,8 @@ L"tzt.exe"
 
 
 
-auto SK_GetLocalModuleHandle = [](const wchar_t* wszModule) ->
 HMODULE
+SK_GetLocalModuleHandle (const wchar_t* wszModule)
 {
   wchar_t   wszLocalModulePath [MAX_PATH * 2] = { };
   wcsncpy  (wszLocalModulePath, SK_GetHostPath (), MAX_PATH);
@@ -313,8 +308,8 @@ HMODULE
   return GetModuleHandleW (wszLocalModulePath);
 };
 
-auto SK_LoadLocalModule = [](const wchar_t* wszModule) ->
 HMODULE
+SK_LoadLocalModule (const wchar_t* wszModule)
 {
   wchar_t   wszLocalModulePath [MAX_PATH * 2] = { };
   wcsncpy  (wszLocalModulePath, SK_GetHostPath (), MAX_PATH);
@@ -322,6 +317,37 @@ HMODULE
   lstrcatW (wszLocalModulePath, wszModule);
 
   return LoadLibraryW (wszLocalModulePath);
+};
+
+BOOL
+SK_DontInject (void)
+{
+  if (ReadAcquire (&__SK_TLS_INDEX) != TLS_OUT_OF_INDEXES)
+  {
+    TlsFree (InterlockedCompareExchange (&__SK_TLS_INDEX, TLS_OUT_OF_INDEXES, __SK_TLS_INDEX));
+  }
+
+  SK_SetDLLRole       (DLL_ROLE::INVALID);
+  InterlockedExchange (&__SK_DLL_Attached, FALSE);
+
+  return FALSE;
+}
+
+// If this is the global injector and there is a wrapper version
+//   of Special K in the DLL search path, then bail-out!
+BOOL
+SK_TryLocalWrapperFirst (std::set <std::wstring> dlls)
+{
+  for ( auto& dll : dlls )
+  {
+    if ( SK_IsDLLSpecialK   (dll.c_str ()) &&
+         SK_LoadLocalModule (dll.c_str ()) )
+    {
+      return TRUE;
+    }
+  }
+
+  return FALSE;
 };
 
 
@@ -336,12 +362,7 @@ SK_EstablishDllRole (HMODULE hModule)
   wcsncpy        (wszAppNameLower, SK_GetHostApp (), MAX_PATH);
   CharLowerBuffW (wszAppNameLower,                   MAX_PATH);
 
-  if (blacklist.count (wszAppNameLower))
-  {
-    SK_SetDLLRole (DLL_ROLE::INVALID);
-
-    return false;
-  }
+  if (blacklist.count (wszAppNameLower)) return false;
 
 
   static bool has_dgvoodoo =
@@ -414,19 +435,6 @@ SK_EstablishDllRole (HMODULE hModule)
   //
   else if ( SK_Path_wcsstr (wszShort, L"SpecialK") )
   {
-    /////// Skip lengthy tests if we already have the wrapper version loaded.
-    //if ( ( SK_IsDLLSpecialK (L"d3d9.dll") )     || 
-    //     ( SK_IsDLLSpecialK (L"dxgi.dll") )     ||
-    //     ( SK_IsDLLSpecialK (L"d3d11.dll") )    ||
-    //     ( SK_IsDLLSpecialK (L"OpenGL32.dll") ) ||
-    //     ( SK_IsDLLSpecialK (L"d3d8.dll") )     ||
-    //     ( SK_IsDLLSpecialK (L"ddraw.dll") )    ||
-    //     ( SK_IsDLLSpecialK (L"dinput8.dll") ) )
-    //{
-    //  SK_SetDLLRole (DLL_ROLE::INVALID);
-    //  return true;
-    //}
-
     SK_IsInjected (true); // SET the injected state
 
     config.system.central_repository = true;
@@ -576,26 +584,33 @@ SK_EstablishDllRole (HMODULE hModule)
 
         if (config.apis.d3d8.hook && d3d8 && has_dgvoodoo)
         {
-          SK_SetDLLRole (DLL_ROLE::D3D8);
+          if (SK_TryLocalWrapperFirst ({ L"d3d8.dll" }))                return SK_DontInject ();
 
-          if (SK_IsDLLSpecialK (L"d3d8.dll") && SK_LoadLocalModule (L"d3d8.dll"))
-          {
-            SK_SetDLLRole (DLL_ROLE::INVALID);
-            return TRUE;
-          }
+          config.apis.dxgi.d3d11.hook = true;
+
+          SK_SetDLLRole (DLL_ROLE::D3D8);
+        }
+
+        else if (config.apis.ddraw.hook && ddraw && has_dgvoodoo)
+        {
+          if (SK_TryLocalWrapperFirst ({ L"ddraw.dll" }))               return SK_DontInject ();
+
+          config.apis.dxgi.d3d11.hook = true;
+
+          SK_SetDLLRole (DLL_ROLE::DDraw);
         }
 
         else
 #endif
-
-        if (SK_IsDLLSpecialK (L"dinput8.dll") && SK_LoadLocalModule (L"dinput8.dll"))
+        if (SK_TryLocalWrapperFirst ({ L"dinput8.dll" }))
         {
-          SK_SetDLLRole (DLL_ROLE::INVALID);
-          return TRUE;
+          return SK_DontInject ();
         }
 
-        if (config.apis.dxgi.d3d11.hook && (dxgi || d3d11)) 
+        else if (config.apis.dxgi.d3d11.hook && (dxgi || d3d11))
         {
+          if (SK_TryLocalWrapperFirst ({ L"dxgi.dll", L"d3d11.dll" }))  return SK_DontInject ();
+
           if (d3d11)
           {
             SK_SetDLLRole ( static_cast <DLL_ROLE> ( (int)DLL_ROLE::DXGI |
@@ -604,58 +619,25 @@ SK_EstablishDllRole (HMODULE hModule)
 
           else
             SK_SetDLLRole (DLL_ROLE::DXGI);
-
-          if (SK_IsDLLSpecialK (L"dxgi.dll") && SK_LoadLocalModule (L"dxgi.dll"))
-          {
-            SK_SetDLLRole (DLL_ROLE::INVALID);
-            return TRUE;
-          }
-
-          if (SK_IsDLLSpecialK (L"d3d11.dll") && SK_LoadLocalModule (L"d3d11.dll"))
-          {
-            SK_SetDLLRole (DLL_ROLE::INVALID);
-            return TRUE;
-          }
         }
 
         else if (config.apis.d3d9.hook && d3d9)
         {
-          SK_SetDLLRole (DLL_ROLE::D3D9);
+          if (SK_TryLocalWrapperFirst ({ L"d3d9.dll" }))                return SK_DontInject ();
 
-          if (SK_IsDLLSpecialK (L"d3d9.dll") && SK_LoadLocalModule (L"d3d9.dll"))
-          {
-            SK_SetDLLRole (DLL_ROLE::INVALID);
-            return TRUE;
-          }
+          SK_SetDLLRole (DLL_ROLE::D3D9);
         }
 
         else if (config.apis.OpenGL.hook && gl)
         {
-          SK_SetDLLRole (DLL_ROLE::OpenGL);
+          if (SK_TryLocalWrapperFirst ({ L"OpenGL32.dll" }))            return SK_DontInject ();
 
-          if (SK_IsDLLSpecialK (L"OpenGL32.dll") && SK_LoadLocalModule (L"OpenGL32.dll"))
-          {
-            SK_SetDLLRole (DLL_ROLE::INVALID);
-            return TRUE;
-          }
+          SK_SetDLLRole (DLL_ROLE::OpenGL);
         }
 
 #ifdef _WIN64
         else if (config.apis.Vulkan.hook && vulkan)
           SK_SetDLLRole (DLL_ROLE::Vulkan);
-
-#else
-
-        else if (config.apis.ddraw.hook && ddraw && has_dgvoodoo)
-        {
-          SK_SetDLLRole (DLL_ROLE::DDraw);
-        
-          if (SK_IsDLLSpecialK (L"ddraw.dll") && SK_LoadLocalModule (L"ddraw.dll"))
-          {
-            SK_SetDLLRole (DLL_ROLE::INVALID);
-            return TRUE;
-          }
-        }
 #endif
 
 
@@ -701,222 +683,132 @@ SK_EstablishDllRole (HMODULE hModule)
   return false;
 }
 
+
+
+
+void
+SK_CleanupMutex (SK_Thread_HybridSpinlock** ppMutex)
+{
+  if (*ppMutex != nullptr)
+  {
+    delete
+      static_cast <SK_Thread_HybridSpinlock *> (
+        InterlockedCompareExchangePointer ((void **)ppMutex, nullptr, *ppMutex)
+      );
+  }
+};
+
+class SK_DLL_Bootstrapper
+{
+typedef bool (*BootstrapEntryPoint_pfn)(void);
+typedef bool (*BootstrapTerminate_pfn)(void);
+
+public:
+  std::set <std::wstring> wrapper_dlls;
+
+  BootstrapEntryPoint_pfn start;
+  BootstrapTerminate_pfn  shutdown;
+};
+
+const
+std::unordered_map <DLL_ROLE, SK_DLL_Bootstrapper>
+  __SK_DLL_Bootstraps = {
+    { DLL_ROLE::DXGI,       { { L"dxgi.dll", L"d3d11.dll" }, SK::DXGI::Startup,   SK::DXGI::Shutdown   } },
+    { DLL_ROLE::D3D11_CASE, { { L"dxgi.dll", L"d3d11.dll" }, SK::DXGI::Startup,   SK::DXGI::Shutdown   } },
+    { DLL_ROLE::D3D9,       { { L"d3d9.dll"               }, SK::D3D9::Startup,   SK::D3D9::Shutdown   } },
+    { DLL_ROLE::OpenGL,     { { L"OpenGL32.dll"           }, SK::OpenGL::Startup, SK::OpenGL::Shutdown } },
+    { DLL_ROLE::DInput8,    { { L"dinput8.dll"            }, SK::DI8::Startup,    SK::DI8::Shutdown    } },
+#ifndef _WIN64
+    { DLL_ROLE::D3D8,       { { L"d3d8.dll"               }, SK::D3D8::Startup,   SK::D3D8::Shutdown   } },
+    { DLL_ROLE::DDraw,      { { L"ddraw.dll"              }, SK::DDraw::Startup,  SK::DDraw::Shutdown  } },
+#endif
+  };
+
+
 BOOL
 __stdcall
 SK_Attach (DLL_ROLE role)
 {
-  auto DontInject = []()->
-    BOOL
-      {
-        SK_SetDLLRole (DLL_ROLE::INVALID);
-        InterlockedExchange (&__SK_DLL_Attached, 0);
-        return FALSE;
-      };
-
-
-  if (! InterlockedCompareExchange (&__SK_DLL_Attached, 1, 0))
-  {
-    budget_mutex = new SK_Thread_HybridSpinlock (   400);
-    init_mutex   = new SK_Thread_HybridSpinlock (  5000);
-    loader_lock  = new SK_Thread_HybridSpinlock (  6536);
-    wmi_cs       = new SK_Thread_HybridSpinlock (   128);
-    cs_dbghelp   = new SK_Thread_HybridSpinlock (104857);
-
-    __SK_TLS_INDEX = TlsAlloc ();
-
-    if (__SK_TLS_INDEX == TLS_OUT_OF_INDEXES)
+  if (! InterlockedCompareExchange (&__SK_DLL_Attached, TRUE,        FALSE))
+  {     InterlockedCompareExchange (&__SK_TLS_INDEX,    TlsAlloc (), TLS_OUT_OF_INDEXES);
+    if ( TLS_OUT_OF_INDEXES !=
+           ReadAcquire (&__SK_TLS_INDEX) )
     {
-#if 0
-      MessageBox ( NULL,
-                     L"Out of TLS Indexes",
-                       L"Cannot Init. Special K",
-                         MB_ICONERROR | MB_OK |
-                         MB_APPLMODAL | MB_SETFOREGROUND );
-#endif
-    }
-
-    else
-    {
-      _time64 (&__SK_DLL_AttachTime);
-
-      switch (role)
+      if (__SK_DLL_Bootstraps.count (role))
       {
-        case DLL_ROLE::DXGI:
-        case DLL_ROLE::D3D11_CASE:
+        const auto& bootstrap =
+          __SK_DLL_Bootstraps.at (role);
+
+        if (SK_IsInjected () && SK_TryLocalWrapperFirst (bootstrap.wrapper_dlls))
         {
-          // If this is the global injector and there is a wrapper version
-          //   of Special K in the DLL search path, then bail-out!
-          if (SK_IsInjected () && ( (SK_IsDLLSpecialK (L"dxgi.dll")  && SK_LoadLocalModule (L"dxgi.dll")) ||
-                                    (SK_IsDLLSpecialK (L"d3d11.dll") && SK_LoadLocalModule (L"d3d11.dll")))  )
-          {
-            return DontInject ();
-          }
+          return SK_DontInject ();
+        }
 
-          InterlockedCompareExchange (
-            &__SK_DLL_Attached,
-              SK::DXGI::Startup (),
-                1
-          );
-        } break;
 
-        case DLL_ROLE::D3D9:
+        budget_mutex = new SK_Thread_HybridSpinlock (   400);
+        init_mutex   = new SK_Thread_HybridSpinlock (  5000);
+        loader_lock  = new SK_Thread_HybridSpinlock (  6536);
+        wmi_cs       = new SK_Thread_HybridSpinlock (   128);
+        cs_dbghelp   = new SK_Thread_HybridSpinlock (104857);
+
+
+        _time64 (&__SK_DLL_AttachTime);
+
+        InterlockedCompareExchange (
+          &__SK_DLL_Attached,
+            bootstrap.start (),
+              TRUE );
+
+        if (ReadAcquire (&__SK_DLL_Attached))
         {
-          // If this is the global injector and there is a wrapper version
-          //   of Special K in the DLL search path, then bail-out!
-          if (SK_IsInjected () && SK_IsDLLSpecialK (L"d3d9.dll") && SK_LoadLocalModule (L"d3d9.dll"))
-          {
-            return DontInject ();
-          }
+          return TRUE;
+        }
 
-          InterlockedCompareExchange (
-            &__SK_DLL_Attached,
-              SK::D3D9::Startup (),
-                1
-          );
-        } break;
 
-#ifndef _WIN64
-        case DLL_ROLE::D3D8:
-        {
-          // If this is the global injector and there is a wrapper version
-          //   of Special K in the DLL search path, then bail-out!
-          if (SK_IsInjected () && SK_IsDLLSpecialK (L"d3d8.dll") && SK_GetLocalModuleHandle (L"d3d8.dll"))
-          {
-            return DontInject ();
-          }
-
-          InterlockedCompareExchange (
-            &__SK_DLL_Attached,
-              SK::D3D8::Startup (),
-                1
-          );
-        } break;
-
-        case DLL_ROLE::DDraw:
-        {
-          // If this is the global injector and there is a wrapper version
-          //   of Special K in the DLL search path, then bail-out!
-          if (SK_IsInjected () && SK_IsDLLSpecialK (L"ddraw.dll") && SK_LoadLocalModule (L"ddraw.dll"))
-          {
-            return DontInject ();
-          }
-
-          InterlockedCompareExchange (
-            &__SK_DLL_Attached,
-              SK::DDraw::Startup (),
-                1
-          );
-        } break;
-#endif
-
-        case DLL_ROLE::OpenGL:
-        {
-          // If this is the global injector and there is a wrapper version
-          //   of Special K in the DLL search path, then bail-out!
-          if (SK_IsInjected () && SK_IsDLLSpecialK (L"OpenGL32.dll") && SK_LoadLocalModule (L"OpenGL32.dll"))
-          {
-            return DontInject ();
-          }
-
-          InterlockedCompareExchange (
-            &__SK_DLL_Attached,
-              SK::OpenGL::Startup (),
-                1
-          );
-        } break;
-
-        case DLL_ROLE::Vulkan:
-        {
-          return DontInject ();
-        } break;
-
-        case DLL_ROLE::DInput8:
-        {
-          // If this is the global injector and there is a wrapper version
-          //   of Special K in the DLL search path, then bail-out!
-          if (SK_IsInjected () && SK_IsDLLSpecialK (L"dinput8.dll") && SK_LoadLocalModule (L"dinput8.dll"))
-          {
-            return DontInject ();
-          }
-
-          InterlockedCompareExchange (
-            &__SK_DLL_Attached,
-              SK::DI8::Startup (),
-                1
-          );
-        } break;
+        SK_CleanupMutex (&budget_mutex); SK_CleanupMutex (&init_mutex);
+        SK_CleanupMutex (&loader_lock);  SK_CleanupMutex (&cs_dbghelp);
+        SK_CleanupMutex (&wmi_cs);
       }
-
-      return true;
-      //return
-      //  InterlockedExchangeAddRelease (
-      //    &__SK_DLL_Attached,
-      //      1
-      //  );
     }
   }
 
-  return DontInject ();
+
+  return SK_DontInject ();
 }
+
+
 
 BOOL
 __stdcall
 SK_Detach (DLL_ROLE role)
 {
-  BOOL  ret        = FALSE;
-  ULONG local_refs = InterlockedDecrement (&__SK_DLL_Refs);
+  ULONG local_refs =
+    InterlockedDecrement (&__SK_DLL_Refs);
 
   if ( local_refs == 0 &&
-         InterlockedCompareExchangeRelease (
+         InterlockedCompareExchange (
                     &__SK_DLL_Attached,
                       FALSE,
                         TRUE
          )
      )
   {
-    switch (role)
+    if ( __SK_DLL_Bootstraps.count (role) &&
+         __SK_DLL_Bootstraps.at    (role).shutdown () )
     {
-      case DLL_ROLE::DXGI:
-      case DLL_ROLE::D3D11_CASE:
-        ret = SK::DXGI::Shutdown ();
-        break;
+      SK_CleanupMutex (&budget_mutex); SK_CleanupMutex (&init_mutex);
+      SK_CleanupMutex (&loader_lock);  SK_CleanupMutex (&cs_dbghelp);
+      SK_CleanupMutex (&wmi_cs);
 
-      case DLL_ROLE::D3D9:
-        ret = SK::D3D9::Shutdown ();
-        break;
-
-#ifndef _WIN64
-      case DLL_ROLE::D3D8:
-        ret = SK::D3D8::Shutdown ();
-        break;
-
-      case DLL_ROLE::DDraw:
-        ret = SK::DDraw::Shutdown ();
-        break;
-#else
-#endif
-
-      case DLL_ROLE::OpenGL:
-        ret = SK::OpenGL::Shutdown ();
-        break;
-
-      case DLL_ROLE::DInput8:
-        ret = SK::DI8::Shutdown ();
-        break;
+      return TRUE;
     }
-
-    delete budget_mutex;
-    delete loader_lock;
-    delete init_mutex;
-    delete cs_dbghelp;
-    delete wmi_cs;
   }
 
   else {
     dll_log.Log (L"[ SpecialK ]  ** UNCLEAN DLL Process Detach !! **");
   }
 
-  return ret;
+  return FALSE;
 }
 
 
@@ -958,30 +850,21 @@ DllMain ( HMODULE hModule,
         return EarlyOut (TRUE);
       }
 
-      //++__SK_DLL_Refs;
+
       InterlockedIncrement (&__SK_DLL_Refs);
 
       // We reserve the right to deny attaching the DLL, this will generally
       //   happen if a game does not opt-in to system wide injection.
-      if (! SK_EstablishDllRole (hModule))
-      {
-        return EarlyOut (TRUE);
-      }
+      if (! SK_EstablishDllRole (hModule))              return EarlyOut (TRUE);
 
       // We don't want to initialize the DLL, but we also don't want it to
       //   re-inject itself constantly; just return TRUE here.
-      else if (SK_GetDLLRole () == DLL_ROLE::INVALID)
-      {
-        return EarlyOut (TRUE);
-      }
+      else if (SK_GetDLLRole () == DLL_ROLE::INVALID)   return EarlyOut (TRUE);
 
       // Setup unhooked function pointers
       SK_PreInitLoadLibrary ();
 
-      if (! SK_Attach (SK_GetDLLRole ()))
-      {
-        return EarlyOut (TRUE);
-      }
+      if (! SK_Attach (SK_GetDLLRole ()))               return EarlyOut (TRUE);
 
       // If we got this far, it's because this is an injection target
       //
@@ -1000,7 +883,7 @@ DllMain ( HMODULE hModule,
     {
       SK_Inject_ReleaseProcess ();
 
-      if (! InterlockedCompareExchange (&__SK_DLL_Ending, 1, 0))
+      if (! InterlockedCompareExchange (&__SK_DLL_Ending, TRUE, FALSE))
       {
         // If the DLL being unloaded is the source of a CBT hook, then
         //   shut that down before detaching the DLL.
@@ -1011,24 +894,19 @@ DllMain ( HMODULE hModule,
           // If SKX_RemoveCBTHook (...) is successful: (__SK_HookContextOwner = 0)
           if (! ReadAcquire (&__SK_HookContextOwner))
           {
-            SK_RunIf64Bit (DeleteFileW (L"SpecialK64.pid"));
-            SK_RunIf32Bit (DeleteFileW (L"SpecialK32.pid"));
+            SK_RunLHIfBitness ( 64, DeleteFileW (L"SpecialK64.pid"),
+                                    DeleteFileW (L"SpecialK32.pid") );
           }
         }
-
-        if (ReadAcquire (&__SK_DLL_Attached))
-        {
-          InterlockedExchange (&__SK_DLL_Ending, TRUE);
-        }
       }
+
 
       if (ReadAcquire (&__SK_DLL_Attached))
         SK_Detach (SK_GetDLLRole ());
 
-      if (__SK_TLS_INDEX != MAXDWORD)
+      if (ReadAcquire (&__SK_TLS_INDEX) != TLS_OUT_OF_INDEXES)
       {
-        TlsFree (__SK_TLS_INDEX);
-        __SK_TLS_INDEX = MAXDWORD;
+        TlsFree (InterlockedCompareExchange (&__SK_TLS_INDEX, TLS_OUT_OF_INDEXES, __SK_TLS_INDEX));
       }
 
       //else {
@@ -1042,10 +920,10 @@ DllMain ( HMODULE hModule,
 
 
     case DLL_THREAD_ATTACH:
-    { 
+    {
       InterlockedIncrement (&__SK_Threads_Attached);
 
-      if (__SK_TLS_INDEX != MAXDWORD)
+      if (ReadAcquire (&__SK_TLS_INDEX) != TLS_OUT_OF_INDEXES)
       {
         auto lpvData =
           static_cast <LPVOID> (
@@ -1054,7 +932,7 @@ DllMain ( HMODULE hModule,
 
         if (lpvData != nullptr)
         {
-          if (! TlsSetValue (__SK_TLS_INDEX, lpvData))
+          if (! TlsSetValue (ReadAcquire (&__SK_TLS_INDEX), lpvData))
           {
             LocalFree (lpvData);
           }
@@ -1068,7 +946,7 @@ DllMain ( HMODULE hModule,
 
     case DLL_THREAD_DETACH:
     {
-      if (__SK_TLS_INDEX != MAXDWORD)
+      if (ReadAcquire (&__SK_TLS_INDEX) != TLS_OUT_OF_INDEXES)
       {
         auto lpvData =
           static_cast <LPVOID> (TlsGetValue (__SK_TLS_INDEX));
@@ -1082,7 +960,7 @@ DllMain ( HMODULE hModule,
           }
 
           LocalFree   (lpvData);
-          TlsSetValue (__SK_TLS_INDEX, nullptr);
+          TlsSetValue (ReadAcquire (&__SK_TLS_INDEX), nullptr);
         }
       }
     } break;
