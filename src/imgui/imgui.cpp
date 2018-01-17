@@ -10970,6 +10970,7 @@ bool SK_ImGui_Visible = false;
 
 #include <SpecialK/utility.h>
 #include <SpecialK/config.h>
+#include <SpecialK/thread.h>
 
 const ImWchar*
 SK_ImGui_GetGlyphRangesDefaultEx (void)

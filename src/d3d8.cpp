@@ -39,11 +39,13 @@
 #include <comdef.h>
 
 #include <SpecialK/log.h>
+#include <SpecialK/thread.h>
 #include <SpecialK/utility.h>
 #include <SpecialK/command.h>
 #include <SpecialK/hooks.h>
 #include <SpecialK/window.h>
 #include <SpecialK/steam_api.h>
+#include <SpecialK/tls.h>
 
 #include <SpecialK/framerate.h>
 #include <SpecialK/diagnostics/compatibility.h>
@@ -55,20 +57,28 @@ unsigned int
 __stdcall
 HookD3D8 (LPVOID user);
 
-void
-WINAPI
-WaitForInit_D3D8 (void)
-{
-  while (! InterlockedCompareExchange (&__d3d8_ready, FALSE, FALSE))
-    MsgWaitForMultipleObjectsEx (0, nullptr, 2UL, QS_ALLINPUT, MWMO_ALERTABLE);
-}
-
 typedef IUnknown*
 (STDMETHODCALLTYPE *Direct3DCreate8PROC)(  UINT           SDKVersion);
 
 Direct3DCreate8PROC      Direct3DCreate8_Import       = nullptr;
 
 typedef void (WINAPI *finish_pfn)(void);
+
+void
+WINAPI
+WaitForInit_D3D8 (void)
+{
+  if (Direct3DCreate8_Import == nullptr)
+  {
+    SK_RunOnce (SK_BootD3D8 ());
+  }
+
+  if (SK_TLS_Bottom ()->d3d8.ctx_init_thread)
+    return;
+
+  // This is a hybrid spin; it will spin for up to 250 iterations before sleeping
+  SK_Thread_SpinUntilFlagged (&__d3d8_ready);
+}
 
 __declspec (noinline)
 IUnknown*
@@ -94,69 +104,76 @@ void
 WINAPI
 SK_HookD3D8 (void)
 {
-  static volatile ULONG hooked = FALSE;
+  static volatile LONG hooked = FALSE;
 
-  if (InterlockedCompareExchange (&hooked, TRUE, FALSE))
+  if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
   {
-    return;
-  }
+    HMODULE hBackend = 
+      (SK_GetDLLRole () & DLL_ROLE::D3D8) ? backend_dll :
+                                      GetModuleHandle (L"d3d8.dll");
 
-  HMODULE hBackend = 
-    (SK_GetDLLRole () & DLL_ROLE::D3D8) ? backend_dll :
-                                    GetModuleHandle (L"d3d8.dll");
-
-  dll_log.Log (L"[   D3D8   ] Importing Direct3DCreate8.......");
-  dll_log.Log (L"[   D3D8   ] ================================");
-  
-  if (! _wcsicmp (SK_GetModuleName (SK_GetDLL ()).c_str (), L"d3d8.dll"))
-  {
-    dll_log.Log (L"[   D3D8   ]   Direct3DCreate8:   %ph",
-      (Direct3DCreate8_Import) =  \
-        reinterpret_cast <Direct3DCreate8PROC> (
-          GetProcAddress (hBackend, "Direct3DCreate8")
-        )
-    );
-  }
-
-  else if (hBackend != nullptr)
-  {
-    const bool bProxy =
-      ( GetModuleHandle (L"d3d8.dll") != hBackend );
-
-
-    if ( MH_OK ==
-            SK_CreateDLLHook2 (      L"d3d8.dll",
-                                      "Direct3DCreate8",
-                                       Direct3DCreate8,
-              static_cast_p2p <void> (&Direct3DCreate8_Import) )
-        )
+    dll_log.Log (L"[   D3D8   ] Importing Direct3DCreate8.......");
+    dll_log.Log (L"[   D3D8   ] ================================");
+    
+    if (! _wcsicmp (SK_GetModuleName (SK_GetDLL ()).c_str (), L"d3d8.dll"))
     {
-      if (bProxy)
-      {
-        (Direct3DCreate8_Import) =  \
-          reinterpret_cast <Direct3DCreate8PROC> (
-            GetProcAddress (hBackend, "Direct3DCreate8")
-          );
-      }
+      Direct3DCreate8_Import =  \
+        (Direct3DCreate8PROC)GetProcAddress  (hBackend, "Direct3DCreate8");
 
-      dll_log.Log (L"[   D3D8   ]   Direct3DCreate8:   %p  { Hooked }",
-        (Direct3DCreate8_Import) );
+      SK_LOG0 ( ( L"  Direct3DCreate8:   %s",
+                    SK_MakePrettyAddress (Direct3DCreate8_Import).c_str ()  ),
+                  L"   D3D8   " );
     }
+
+    else if (hBackend != nullptr)
+    {
+      LPVOID pfnDirect3DCreate8 = nullptr;
+
+      const bool bProxy =
+        ( GetModuleHandle (L"d3d8.dll") != hBackend );
+
+
+      if ( MH_OK ==
+              SK_CreateDLLHook2 (      L"d3d8.dll",
+                                        "Direct3DCreate8",
+                                         Direct3DCreate8,
+                static_cast_p2p <void> (&Direct3DCreate8_Import),
+                                     &pfnDirect3DCreate8 )
+          )
+      {
+        MH_QueueEnableHook (pfnDirect3DCreate8);
+
+        if (bProxy)
+        {
+          (Direct3DCreate8_Import) =  \
+            reinterpret_cast <Direct3DCreate8PROC> (
+              GetProcAddress (hBackend, "Direct3DCreate8")
+            );
+        }
+
+        SK_LOG0 ( ( L"  Direct3DCreate8:   %s  { Hooked }",
+                      SK_MakePrettyAddress (pfnDirect3DCreate8).c_str ()  ),
+                    L"   D3D8   " );
+      }
+    }
+
+    dgvoodoo_d3d8 = new import_s ();
+    dgvoodoo_d3d8->hLibrary     = hBackend;
+    dgvoodoo_d3d8->name         = L"API Support Plug-In";
+    dgvoodoo_d3d8->product_desc = SK_GetDLLVersionStr (SK_GetModuleFullName (hBackend).c_str ());
+
+    HookD3D8            (nullptr);
+    SK_BootDXGI         (       );
+    SK_ApplyQueuedHooks (       );
+
+    // Load user-defined DLLs (Plug-In)
+    SK_RunLHIfBitness ( 64, SK_LoadPlugIns64 (),
+                            SK_LoadPlugIns32 () );
+
+    InterlockedIncrement (&hooked);
   }
 
-  dgvoodoo_d3d8 = new import_s ();
-  dgvoodoo_d3d8->hLibrary     = hBackend;
-  dgvoodoo_d3d8->name         = L"API Support Plug-In";
-  dgvoodoo_d3d8->product_desc = SK_GetDLLVersionStr (SK_GetModuleFullName (hBackend).c_str ());
-
-// Load user-defined DLLs (Plug-In)
-#ifdef _WIN64
-  SK_LoadPlugIns64 ();
-#else
-  SK_LoadPlugIns32 ();
-#endif
-
-  HookD3D8 (nullptr);
+  SK_Thread_SpinUntilAtomicMin (&hooked, 2);
 }
 
 void
@@ -167,8 +184,7 @@ d3d8_init_callback (finish_pfn finish)
   {
     SK_BootD3D8 ();
 
-    while (! InterlockedCompareExchange (&__d3d8_ready, FALSE, FALSE))
-      SleepEx (100UL, TRUE);
+    SK_Thread_SpinUntilFlagged (&__d3d8_ready);
   }
 
   finish ();
@@ -178,7 +194,8 @@ d3d8_init_callback (finish_pfn finish)
 bool
 SK::D3D8::Startup (void)
 {
-  const bool ret = SK_StartupCore (L"d3d8", d3d8_init_callback);
+  const bool ret =
+    SK_StartupCore (L"d3d8", d3d8_init_callback);
 
   return ret;
 }
@@ -197,6 +214,12 @@ HookD3D8 (LPVOID user)
   UNREFERENCED_PARAMETER (user);
 
   if (! config.apis.d3d8.hook)
+  {
+    return 0;
+  }
+
+  extern bool __SK_bypass;
+  if (__SK_bypass || ReadAcquire (&__d3d8_ready))
   {
     return 0;
   }

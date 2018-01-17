@@ -69,12 +69,12 @@ struct SK_TLS
   {
     struct stream_pool_s
     {
-      void*    data     = nullptr;
-      size_t   data_len = 0;
-      uint32_t data_age = 0;
+      void*    data         = nullptr;
+      size_t   data_len     = 0;
+      uint32_t data_age     = 0;
     } streaming_memory;
 
-    BOOL injection_thread = FALSE;
+    BOOL injection_thread   = FALSE;
 
     IUnknown* refcount_obj  = nullptr; // Object to expect a reference count change on
     LONG      refcount_test = 0;       // Used to validate 3rd party D3D texture wrappers
@@ -90,14 +90,22 @@ struct SK_TLS
 
     UINT                     StencilRefOrig         = 0;
     UINT                     StencilRefNew          = 0;
+    BOOL                     ctx_init_thread        = FALSE;
   } d3d11;
 
   struct
   {
-    HGLRC current_hglrc = 0;
-    HDC   current_hdc   = 0;
-    HWND  current_hwnd  = 0;
+    HGLRC current_hglrc       = 0;
+    HDC   current_hdc         = 0;
+    HWND  current_hwnd        = 0;
+   BOOL   ctx_init_thread     = FALSE;
   } gl;
+
+  struct 
+  {
+    BOOL ctx_init_thread     = FALSE;
+  } ddraw,d3d8,d3d9,
+    dinput8,dinput7;
 
   struct {
     BOOL drawing             = FALSE;

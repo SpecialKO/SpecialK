@@ -768,59 +768,10 @@ SK_InitFinishCallback (void);
 volatile LONG __SK_Init   = FALSE;
          bool __SK_bypass = false;
 
+
 void
-__stdcall
-SK_InitCore (std::wstring backend, void* callback)
+SK_LoadGPUVendorAPIs (void)
 {
-  init_mutex->lock ();
-
-  using finish_pfn   = void (WINAPI *)  (void);
-  using callback_pfn = void (WINAPI *)(_Releases_exclusive_lock_ (init_mutex) finish_pfn);
-
-  auto callback_fn =
-    (callback_pfn)callback;
-
-#ifdef _WIN64
-  switch (SK_GetCurrentGameID ())
-  {
-    case SK_GAME_ID::NieRAutomata:
-      SK_FAR_InitPlugin ();
-      break;
-
-    case SK_GAME_ID::BlueReflection:
-      extern void
-      SK_IT_InitPlugin (void);
-
-      SK_IT_InitPlugin ();
-      break;
-
-    case SK_GAME_ID::DotHackGU:
-      extern void
-      SK_DGPU_InitPlugin (void);
-
-      SK_DGPU_InitPlugin ();
-      break;
-  }
-#endif
-
-
-  //
-  // NOT-SO-TEMP HACK: dgVoodoo2
-  //
-  if ( SK_GetDLLRole () == DLL_ROLE::D3D8 ||
-       SK_GetDLLRole () == DLL_ROLE::DDraw  )
-    SK_BootDXGI ();
-
-
-         callback_fn (SK_InitFinishCallback);
-  SK_ResumeThreads   (init_tids);
-
-
-  // Setup the compatibility backend, which monitors loaded libraries,
-  //   blacklists bad DLLs and detects render APIs...
-  SK_EnumLoadedModules (SK_ModuleEnum::PostLoad);
-
-
   dll_log.Log (L"[  NvAPI   ] Initializing NVIDIA API          (NvAPI)...");
 
   nvapi_init =
@@ -964,6 +915,49 @@ SK_InitCore (std::wstring backend, void* callback)
   }
 }
 
+void
+__stdcall
+SK_InitCore (std::wstring backend, void* callback)
+{
+  using finish_pfn   = void (WINAPI *)  (void);
+  using callback_pfn = void (WINAPI *)(_Releases_exclusive_lock_ (init_mutex) finish_pfn);
+
+  auto callback_fn =
+    (callback_pfn)callback;
+
+
+  init_mutex->lock ();
+#ifdef _WIN64
+  switch (SK_GetCurrentGameID ())
+  {
+    case SK_GAME_ID::NieRAutomata:
+      SK_FAR_InitPlugin ();
+      break;
+
+    case SK_GAME_ID::BlueReflection:
+      extern void
+      SK_IT_InitPlugin (void);
+
+      SK_IT_InitPlugin ();
+      break;
+
+    case SK_GAME_ID::DotHackGU:
+      extern void
+      SK_DGPU_InitPlugin (void);
+
+      SK_DGPU_InitPlugin ();
+      break;
+  }
+#endif
+
+         callback_fn (SK_InitFinishCallback);
+  SK_ResumeThreads   (init_tids);
+
+  // Setup the compatibility backend, which monitors loaded libraries,
+  //   blacklists bad DLLs and detects render APIs...
+  SK_EnumLoadedModules (SK_ModuleEnum::PostLoad);
+}
+
 
 void
 WaitForInit (void)
@@ -1030,6 +1024,8 @@ void
 __stdcall
 SK_InitFinishCallback (void)
 {
+  SK_LoadGPUVendorAPIs ();
+
   bool rundll_invoked =
     (StrStrIW (SK_GetHostApp (), L"Rundll32") != nullptr);
 
@@ -1979,13 +1975,55 @@ SK_BeginBufferSwap (void)
 
 
 
-  if (SK_GetGameWindow () != nullptr)
+  if (SK_GetGameWindow () != nullptr && SK_GetFramesDrawn () > 4)
   {
     extern void SK_ResetWindow ();
 
     SK_RunOnce (SK_ResetWindow ());
   }
 
+
+  if (game_window.WndProc_Original == nullptr && SK_GetFramesDrawn () > 2)
+  {
+    HWND hWndActive     = GetActiveWindow     ();
+    HWND hWndFocus      = GetFocus            ();
+    HWND hWndForeground = GetForegroundWindow ();
+
+    HWND  hWndTarget  = hWndRender;
+    DWORD dwWindowPid = 0;
+
+    if (IsGUIThread (FALSE))
+    {
+      GetWindowThreadProcessId (hWndActive, &dwWindowPid);
+      if (dwWindowPid == GetCurrentProcessId ())
+      {
+        hWndTarget = hWndActive;
+      }
+    }
+
+    if (hWndTarget == 0)
+    {
+      
+       GetWindowThreadProcessId (hWndFocus, &dwWindowPid);
+
+       if (dwWindowPid == GetCurrentProcessId ())
+       {
+         hWndTarget = hWndFocus;
+       }
+
+       else
+       {
+         GetWindowThreadProcessId (hWndForeground, &dwWindowPid);
+
+         if (dwWindowPid == GetCurrentProcessId ())
+         {
+           hWndTarget = hWndForeground;
+         }
+       }
+    }
+
+    SK_InstallWindowHook (hWndTarget);
+  }
 
   static volatile LONG cegui_init = FALSE;
   static SK_RenderAPI  last_api   = SK_RenderAPI::Reserved;

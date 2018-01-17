@@ -443,8 +443,8 @@ SK::Framerate::Limiter::init (double target)
       {
         if (SUCCEEDED (dxgi_swap->GetContainingOutput (&dxgi_output)))
         {
-          WaitForVBlank_Original (dxgi_output);
-          //dxgi_output->WaitForVBlank ();
+          //WaitForVBlank_Original (dxgi_output);
+          dxgi_output->WaitForVBlank ();
         }
       }
     }
@@ -687,7 +687,7 @@ SK::Framerate::Limiter::wait (void)
             d3d9ex->WaitForVBlank (0);
 
           else if (dxgi_output != nullptr)
-            WaitForVBlank_Original (dxgi_output);
+            dxgi_output->WaitForVBlank ();//WaitForVBlank_Original (dxgi_output);
         }
 
         else if (! config.render.framerate.busy_wait_limiter)

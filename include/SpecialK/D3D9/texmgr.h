@@ -7,6 +7,7 @@
 #include <SpecialK/framerate.h>
 #include <SpecialK/tls.h>
 #include <SpecialK/utility.h>
+#include <SpecialK/thread.h>
 
 extern iSK_Logger tex_log;
 

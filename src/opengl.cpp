@@ -37,6 +37,7 @@
 #include <SpecialK/log.h>
 #include <SpecialK/import.h>
 #include <SpecialK/utility.h>
+#include <SpecialK/thread.h>
 #include <SpecialK/framerate.h>
 #include <SpecialK/diagnostics/compatibility.h>
 
@@ -69,18 +70,15 @@ static volatile LONG __gl_ready = FALSE;
 void
 WaitForInit_GL (void)
 {
-  const auto _SpinMax = 250;
+  //if (wglCreateContext == nullptr)
+  //{
+  //  SK_RunOnce (SK_BootOpenGL ());
+  //}
 
-  while (! ReadAcquire (&__gl_ready))
-  {
-    for (int i = 0; i < _SpinMax && (! ReadAcquire (&__gl_ready)); i++)
-      ;
+  if (SK_TLS_Bottom ()->gl.ctx_init_thread)
+    return;
 
-    if (ReadAcquire (&__gl_ready))
-      break;
-
-    MsgWaitForMultipleObjectsEx (0, nullptr, 16UL, QS_ALLINPUT, MWMO_ALERTABLE);
-  }
+  SK_Thread_SpinUntilFlagged (&__gl_ready);
 }
 
 extern HWND hWndRender;
@@ -2426,17 +2424,14 @@ SK_HookGL (void)
 
   if (! InterlockedCompareExchange (&SK_GL_initialized, TRUE, FALSE))
   {
+    SK_TLS_Bottom ()->gl.ctx_init_thread = true;
+
+    wchar_t* wszBackendDLL = L"OpenGL32.dll";
+
     cs_gl_ctx = new SK_Thread_HybridSpinlock (64);
 
     LoadLibraryW_Original (L"gdi32.dll");
     SK_LoadRealGL ();
-
-    dll_log.Log (L"[ OpenGL32 ] Additional OpenGL Initialization");
-    dll_log.Log (L"[ OpenGL32 ] ================================");
-
-    wchar_t* wszBackendDLL = L"OpenGL32.dll";
-
-    SK_GetCommandProcessor ()->AddVariable ("GL.SwapHook", SK_CreateVar (SK_IVariable::Int, &SK_GL_SwapHook));
 
     if (StrStrIW ( SK_GetModuleName (SK_GetDLL ()).c_str (), 
                      wszBackendDLL ) )
@@ -2449,7 +2444,24 @@ SK_HookGL (void)
         (wglShareLists_pfn)GetProcAddress    (local_gl, "wglShareLists");
       wgl_delete_context =
         (wglDeleteContext_pfn)GetProcAddress (local_gl, "wglDeleteContext");
+    }
 
+
+    if (__SK_bypass || ReadAcquire (&__gl_ready))
+    {
+      return;
+    }
+
+
+    dll_log.Log (L"[ OpenGL32 ] Additional OpenGL Initialization");
+    dll_log.Log (L"[ OpenGL32 ] ================================");
+
+    SK_GetCommandProcessor ()->AddVariable ("GL.SwapHook", SK_CreateVar (SK_IVariable::Int, &SK_GL_SwapHook));
+
+
+    if (StrStrIW ( SK_GetModuleName (SK_GetDLL ()).c_str (), 
+                     wszBackendDLL ) )
+    {
       // Load user-defined DLLs (Plug-In)
       SK_RunLHIfBitness (64, SK_LoadPlugIns64 (), SK_LoadPlugIns32 ());
     }
@@ -2875,9 +2887,8 @@ SK_HookGL (void)
     InterlockedIncrement (&SK_GL_initialized);
   }
 
-  // Spinlock
-  while ( ReadAcquire (&SK_GL_initialized) < 2 )
-    ;
+  if (! (__SK_bypass || ReadAcquire (&__gl_ready)))
+    SK_Thread_SpinUntilAtomicMin (&SK_GL_initialized, 2);
 
   InterlockedExchange (&__gl_ready, TRUE);
 }

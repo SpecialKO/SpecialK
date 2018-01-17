@@ -27,6 +27,7 @@
 #include <SpecialK/log.h>
 #include <SpecialK/resource.h>
 #include <SpecialK/utility.h>
+#include <SpecialK/thread.h>
 #include <SpecialK/tls.h>
 
 #include <Windows.h>

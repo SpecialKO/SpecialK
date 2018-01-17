@@ -44,10 +44,12 @@ typedef void* LPDDENUMCALLBACKEX;
 
 #include <SpecialK/log.h>
 #include <SpecialK/utility.h>
+#include <SpecialK/thread.h>
 #include <SpecialK/command.h>
 #include <SpecialK/hooks.h>
 #include <SpecialK/window.h>
 #include <SpecialK/steam_api.h>
+#include <SpecialK/tls.h>
 
 #include <SpecialK/framerate.h>
 #include <SpecialK/diagnostics/compatibility.h>
@@ -64,43 +66,6 @@ __declspec (noinline)
 HRESULT
 __stdcall
 DllCanUnloadNow_Override (void);
-
-void
-SK_Thread_SpinUntilFlagged (volatile LONG* pFlag, LONG _SpinMax = 250L)
-{
-  while (! ReadAcquire (pFlag))
-  {
-    for (int i = 0; i < _SpinMax && (! ReadAcquire (pFlag)); i++)
-      ;
-
-    if (ReadAcquire (pFlag))
-      break;
-
-    MsgWaitForMultipleObjectsEx (0, nullptr, 16UL, QS_ALLINPUT, MWMO_ALERTABLE);
-  }
-}
-
-void
-SK_Thread_SpinUntilAtomicMin (volatile LONG* pVar, LONG count, LONG _SpinMax = 250L)
-{
-  while (ReadAcquire (pVar) < count)
-  {
-    for (int i = 0; i < _SpinMax && (ReadAcquire (pVar) < count); i++)
-      ;
-
-    if (ReadAcquire (pVar) < count)
-      break;
-
-    MsgWaitForMultipleObjectsEx (0, nullptr, 16UL, QS_ALLINPUT, MWMO_ALERTABLE);
-  }
-}
-
-void
-WINAPI
-WaitForInit_DDraw (void)
-{
-  SK_Thread_SpinUntilFlagged (&__ddraw_ready);
-}
 
 typedef void (WINAPI *finish_pfn)(void);
 
@@ -140,6 +105,21 @@ DirectDrawEnumerateEx_pfn DirectDrawEnumerateExA_Import = nullptr;
 DirectDrawEnumerateEx_pfn DirectDrawEnumerateExW_Import = nullptr;
 
 DllCanUnloadNow_pfn       DllCanUnloadNow_Import        = nullptr;
+
+void
+WINAPI
+WaitForInit_DDraw (void)
+{
+  if (DirectDrawCreate_Import == nullptr)
+  {
+    SK_RunOnce (SK_BootDDraw ());
+  }
+
+  if (SK_TLS_Bottom ()->ddraw.ctx_init_thread)
+    return;
+
+  SK_Thread_SpinUntilFlagged (&__ddraw_ready);
+}
 
 __declspec (noinline)
 HRESULT
@@ -283,6 +263,8 @@ SK_HookDDraw (void)
 
   if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
   {
+    SK_TLS_Bottom ()->ddraw.ctx_init_thread = true;
+
     HMODULE hBackend = 
       (SK_GetDLLRole () & DLL_ROLE::DDraw) ? backend_dll :
                                      GetModuleHandle (L"ddraw.dll");
@@ -412,6 +394,9 @@ SK_HookDDraw (void)
     SK_RunLHIfBitness (64, SK_LoadPlugIns64 (), SK_LoadPlugIns32 ());
 
     HookDDraw (nullptr);
+
+    SK_BootDXGI         ();
+    SK_ApplyQueuedHooks ();
 
     InterlockedIncrement (&hooked);
   }

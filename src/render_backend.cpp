@@ -29,6 +29,7 @@
 #include <SpecialK/opengl_backend.h>
 #include <SpecialK/nvapi.h>
 #include <SpecialK/utility.h>
+#include <SpecialK/thread.h>
 #include <SpecialK/config.h>
 #include <SpecialK/core.h>
 #include <SpecialK/command.h>

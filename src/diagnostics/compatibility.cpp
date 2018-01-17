@@ -55,6 +55,7 @@
 #include <SpecialK/log.h>
 #include <SpecialK/ini.h>
 #include <SpecialK/utility.h>
+#include <SpecialK/thread.h>
 #include <SpecialK/steam_api.h>
 #include <SpecialK/window.h>
 #include <SpecialK/render_backend.h>

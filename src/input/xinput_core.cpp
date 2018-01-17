@@ -26,6 +26,7 @@
 #include <SpecialK/config.h>
 #include <SpecialK/hooks.h>
 #include <SpecialK/utility.h>
+#include <SpecialK/thread.h>
 
 #include <SpecialK/diagnostics/compatibility.h>
 

@@ -1785,6 +1785,7 @@ Exit 0</Command>
     <ClInclude Include="include\SpecialK\stdafx.h" />
     <ClInclude Include="include\SpecialK\steam_api.h" />
     <ClInclude Include="include\SpecialK\targetver.h" />
+    <ClInclude Include="include\SpecialK\thread.h" />
     <ClInclude Include="include\SpecialK\tls.h" />
     <ClInclude Include="include\SpecialK\update\archive.h" />
     <ClInclude Include="include\SpecialK\update\network.h" />

@@ -5186,6 +5186,66 @@ SK_InitWindow (HWND hWnd, bool fullscreen_exclusive)
 void
 SK_InstallWindowHook (HWND hWnd)
 {
+  if (game_window.WndProc_Original != nullptr)
+    return;
+
+  static volatile LONG             __installed =      FALSE;
+  if (! InterlockedCompareExchange (&__installed, TRUE, FALSE))
+  {
+    // When ImGui is active, we will do character translation internally
+    //   for any Raw Input or Win32 keydown event -- disable Windows'
+    //     translation from WM_KEYDOWN to WM_CHAR while we are doing this.
+    //
+    SK_CreateDLLHook2 (       L"user32.dll",
+                               "TranslateMessage",
+                                TranslateMessage_Detour,
+       static_cast_p2p <void> (&TranslateMessage_Original) );
+
+
+    SK_CreateDLLHook2 (       L"user32.dll",
+                               "PeekMessageW",
+                                PeekMessageW_Detour,
+       static_cast_p2p <void> (&PeekMessageW_Original) );
+
+    SK_CreateDLLHook2 (       L"user32.dll",
+                               "PeekMessageA",
+                                PeekMessageA_Detour,
+       static_cast_p2p <void> (&PeekMessageA_Original) );
+
+
+    // Hook as few of these as possible, disrupting the message pump
+    //   when we already have the game's main window hooked is redundant.
+    //
+    //   ** PeekMessage is hooked because The Witness pulls mouse click events
+    //        out of the pump without passing them through its window procedure.
+    //
+    SK_CreateDLLHook2 (       L"user32.dll",
+                               "GetMessageW",
+                                GetMessageW_Detour,
+       static_cast_p2p <void> (&GetMessageW_Original) );
+
+    SK_CreateDLLHook2 (       L"user32.dll",
+                               "DispatchMessageW",
+                                DispatchMessageW_Detour,
+       static_cast_p2p <void> (&DispatchMessageW_Original) );
+    
+    SK_CreateDLLHook2 (       L"user32.dll",
+                               "GetMessageA",
+                                GetMessageA_Detour,
+       static_cast_p2p <void> (&GetMessageA_Original) );
+
+    SK_CreateDLLHook2 (       L"user32.dll",
+                               "DispatchMessageA",
+                                DispatchMessageA_Detour,
+       static_cast_p2p <void> (&DispatchMessageA_Original) );
+
+    if (! caught_register)
+      game_window.WndProc_Original = nullptr;
+
+    SK_ApplyQueuedHooks ();
+  }
+
+
   DWORD                            dwWindowPid = 0;
   GetWindowThreadProcessId (hWnd, &dwWindowPid);
 
@@ -5198,10 +5258,6 @@ SK_InstallWindowHook (HWND hWnd)
   if (dwWindowPid != GetCurrentProcessId ())
     return;
 
-
-  static volatile LONG             __installed =      FALSE;
-  if (InterlockedCompareExchange (&__installed, TRUE, FALSE))
-    return;
 
   game_window.unicode = IsWindowUnicode (hWnd) != FALSE;
 
@@ -5249,6 +5305,11 @@ SK_InstallWindowHook (HWND hWnd)
       );
   }
 
+
+  wchar_t wszClassName [257] = { };
+  RealGetWindowClassW ( hWnd, wszClassName, 256 );
+
+
   WNDPROC class_proc = game_window.unicode ? (WNDPROC)
     GetClassLongPtrW  ( hWnd, GCLP_WNDPROC ) :
                                              (WNDPROC)
@@ -5258,60 +5319,6 @@ SK_InstallWindowHook (HWND hWnd)
     GetWindowLongPtrW  ( hWnd, GWLP_WNDPROC ) :
                                               (WNDPROC)
     GetWindowLongPtrA  ( hWnd, GWLP_WNDPROC );
-
-
-  // When ImGui is active, we will do character translation internally
-  //   for any Raw Input or Win32 keydown event -- disable Windows'
-  //     translation from WM_KEYDOWN to WM_CHAR while we are doing this.
-  //
-  SK_CreateDLLHook2 (       L"user32.dll",
-                             "TranslateMessage",
-                              TranslateMessage_Detour,
-     static_cast_p2p <void> (&TranslateMessage_Original) );
-
-
-  SK_CreateDLLHook2 (       L"user32.dll",
-                             "PeekMessageW",
-                              PeekMessageW_Detour,
-     static_cast_p2p <void> (&PeekMessageW_Original) );
-
-  SK_CreateDLLHook2 (       L"user32.dll",
-                             "PeekMessageA",
-                              PeekMessageA_Detour,
-     static_cast_p2p <void> (&PeekMessageA_Original) );
-
-
-  // Hook as few of these as possible, disrupting the message pump
-  //   when we already have the game's main window hooked is redundant.
-  //
-  //   ** PeekMessage is hooked because The Witness pulls mouse click events
-  //        out of the pump without passing them through its window procedure.
-  //
-  SK_CreateDLLHook2 (       L"user32.dll",
-                             "GetMessageW",
-                              GetMessageW_Detour,
-     static_cast_p2p <void> (&GetMessageW_Original) );
-
-  SK_CreateDLLHook2 (       L"user32.dll",
-                             "DispatchMessageW",
-                              DispatchMessageW_Detour,
-     static_cast_p2p <void> (&DispatchMessageW_Original) );
-  
-  SK_CreateDLLHook2 (       L"user32.dll",
-                             "GetMessageA",
-                              GetMessageA_Detour,
-     static_cast_p2p <void> (&GetMessageA_Original) );
-
-  SK_CreateDLLHook2 (       L"user32.dll",
-                             "DispatchMessageA",
-                              DispatchMessageA_Detour,
-     static_cast_p2p <void> (&DispatchMessageA_Original) );
-
-  if (! caught_register)
-    game_window.WndProc_Original = nullptr;
-
-  wchar_t wszClassName [256] = { };
-  GetClassNameW ( hWnd, wszClassName, 256 );
 
   dll_log.Log ( L"[Window Mgr] Hooking the Window Procedure for "
                 L"%s Window Class ('%s') :: (ClassProc: %p, WndProc: %p)",
@@ -5402,69 +5409,74 @@ SK_InstallWindowHook (HWND hWnd)
 
 
 
-  bool has_raw_mouse = false;
-  UINT count         = 0;
-
-                 GetRegisteredRawInputDevices_Original (nullptr, &count, sizeof RAWINPUTDEVICE);
-  DWORD dwLast = GetLastError                          ();
-
-  if (count > 0)
+  if (game_window.WndProc_Original != nullptr)
   {
-    auto* pDevs =
-      new RAWINPUTDEVICE [count + 1];
+    bool has_raw_mouse = false;
+    UINT count         = 0;
 
-    GetRegisteredRawInputDevices_Original ( pDevs,
-                                              &count,
-                                                sizeof RAWINPUTDEVICE );
+                   GetRegisteredRawInputDevices_Original (nullptr, &count, sizeof RAWINPUTDEVICE);
+    DWORD dwLast = GetLastError                          ();
 
-    for (UINT i = 0 ; i < count ; i++)
+    if (count > 0)
     {
-      if ( ( pDevs [i].usUsage     == HID_USAGE_GENERIC_MOUSE ||
-             pDevs [i].usUsage     == HID_USAGE_GENERIC_POINTER ) &&
-           ( pDevs [i].usUsagePage == HID_USAGE_PAGE_GENERIC  ||
-             pDevs [i].usUsagePage == HID_USAGE_PAGE_GAME       ) )
+      auto* pDevs =
+        new RAWINPUTDEVICE [count + 1];
+
+      GetRegisteredRawInputDevices_Original ( pDevs,
+                                                &count,
+                                                  sizeof RAWINPUTDEVICE );
+
+      for (UINT i = 0 ; i < count ; i++)
       {
-        has_raw_mouse = true; // Technically this could be just about any pointing device
-                              //   including a touchscreen (on purpose).
-        break;
+        if ( ( pDevs [i].usUsage     == HID_USAGE_GENERIC_MOUSE ||
+               pDevs [i].usUsage     == HID_USAGE_GENERIC_POINTER ) &&
+             ( pDevs [i].usUsagePage == HID_USAGE_PAGE_GENERIC  ||
+               pDevs [i].usUsagePage == HID_USAGE_PAGE_GAME       ) )
+        {
+          has_raw_mouse = true; // Technically this could be just about any pointing device
+                                //   including a touchscreen (on purpose).
+          break;
+        }
       }
+
+      delete [] pDevs;
     }
 
-    delete [] pDevs;
+    SetLastError (dwLast);
+
+    // If no pointing device is setup, go ahead and register our own mouse,
+    //   it won't interfere with the game's operation until the ImGui overlay
+    //     requires a mouse... at which point third-party software will flip out :)
+    if (! has_raw_mouse)
+    {
+      RAWINPUTDEVICE rid;
+      rid.hwndTarget  = hWnd;
+      rid.usUsage     = HID_USAGE_GENERIC_MOUSE;
+      rid.usUsagePage = HID_USAGE_PAGE_GENERIC;
+      rid.dwFlags     = RIDEV_INPUTSINK |
+                        RIDEV_DEVNOTIFY;
+    
+      RegisterRawInputDevices_Original (&rid, 1, sizeof RAWINPUTDEVICE);
+    }
+
+    game_window.hWnd = hWnd;
+    hWndRender       = hWndRender ? hWndRender : hWnd;
+
+    SK_ApplyQueuedHooks ();
+    SK_InitWindow (hWnd);
+
+
+    SK_ICommandProcessor* cmd =
+      SK_GetCommandProcessor ();
+
+    cmd->AddVariable ("Cursor.Manage",           SK_CreateVar (SK_IVariable::Boolean, (bool *)&config.input.cursor.manage));
+    cmd->AddVariable ("Cursor.Timeout",          SK_CreateVar (SK_IVariable::Int,     (int  *)&config.input.cursor.timeout));
+    cmd->AddVariable ("Cursor.KeysActivate",     SK_CreateVar (SK_IVariable::Boolean, (bool *)&config.input.cursor.keys_activate));
+
+    cmd->AddVariable ("Window.BackgroundRender", SK_CreateVar (SK_IVariable::Boolean, (bool *)&config.window.background_render));
+
+    cmd->AddVariable ("ImGui.Visible",           SK_CreateVar (SK_IVariable::Boolean, (bool *)&SK_ImGui_Visible));
   }
-
-  SetLastError (dwLast);
-
-  // If no pointing device is setup, go ahead and register our own mouse,
-  //   it won't interfere with the game's operation until the ImGui overlay
-  //     requires a mouse... at which point third-party software will flip out :)
-  if (! has_raw_mouse)
-  {
-    RAWINPUTDEVICE rid;
-    rid.hwndTarget  = hWnd;
-    rid.usUsage     = HID_USAGE_GENERIC_MOUSE;
-    rid.usUsagePage = HID_USAGE_PAGE_GENERIC;
-    rid.dwFlags     = RIDEV_INPUTSINK |
-                      RIDEV_DEVNOTIFY;
-  
-    RegisterRawInputDevices_Original (&rid, 1, sizeof RAWINPUTDEVICE);
-  }
-
-
-  SK_ApplyQueuedHooks ();
-  SK_InitWindow (hWnd);
-
-
-  SK_ICommandProcessor* cmd =
-    SK_GetCommandProcessor ();
-
-  cmd->AddVariable ("Cursor.Manage",           SK_CreateVar (SK_IVariable::Boolean, (bool *)&config.input.cursor.manage));
-  cmd->AddVariable ("Cursor.Timeout",          SK_CreateVar (SK_IVariable::Int,     (int  *)&config.input.cursor.timeout));
-  cmd->AddVariable ("Cursor.KeysActivate",     SK_CreateVar (SK_IVariable::Boolean, (bool *)&config.input.cursor.keys_activate));
-
-  cmd->AddVariable ("Window.BackgroundRender", SK_CreateVar (SK_IVariable::Boolean, (bool *)&config.window.background_render));
-
-  cmd->AddVariable ("ImGui.Visible",           SK_CreateVar (SK_IVariable::Boolean, (bool *)&SK_ImGui_Visible));
 }
 
 HWND
@@ -5905,162 +5917,166 @@ ChangeDisplaySettingsW_Detour (
 void
 SK_HookWinAPI (void)
 {
-  // Initialize the Window Manager
-  SK_WindowManager::getInstance ();
+  static volatile LONG hooked = FALSE;
+
+  if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
+  {
+    // Initialize the Window Manager
+    SK_WindowManager::getInstance ();
 
 
-  //int phys_w         = GetDeviceCaps (GetDC (GetDesktopWindow ()), PHYSICALWIDTH);
-  //int phys_h         = GetDeviceCaps (GetDC (GetDesktopWindow ()), PHYSICALHEIGHT);
-  //int phys_off_x     = GetDeviceCaps (GetDC (GetDesktopWindow ()), PHYSICALOFFSETX);
-  //int phys_off_y     = GetDeviceCaps (GetDC (GetDesktopWindow ()), PHYSICALOFFSETY);
-  //int scale_factor_x = GetDeviceCaps (GetDC (GetDesktopWindow ()), SCALINGFACTORX);
-  //int scale_factor_y = GetDeviceCaps (GetDC (GetDesktopWindow ()), SCALINGFACTORY);
+    //int phys_w         = GetDeviceCaps (GetDC (GetDesktopWindow ()), PHYSICALWIDTH);
+    //int phys_h         = GetDeviceCaps (GetDC (GetDesktopWindow ()), PHYSICALHEIGHT);
+    //int phys_off_x     = GetDeviceCaps (GetDC (GetDesktopWindow ()), PHYSICALOFFSETX);
+    //int phys_off_y     = GetDeviceCaps (GetDC (GetDesktopWindow ()), PHYSICALOFFSETY);
+    //int scale_factor_x = GetDeviceCaps (GetDC (GetDesktopWindow ()), SCALINGFACTORX);
+    //int scale_factor_y = GetDeviceCaps (GetDC (GetDesktopWindow ()), SCALINGFACTORY);
 
-  //SK_LOG0 ( ( L" Physical Coordinates  ::  { %lux%lu) + <%lu,%lu> * {%lu:%lu}",
-                //phys_w, phys_h,
-                //phys_off_x, phys_off_y,
-                //scale_factor_x, scale_factor_y ),
-              //L"Window Sys" );
+    //SK_LOG0 ( ( L" Physical Coordinates  ::  { %lux%lu) + <%lu,%lu> * {%lu:%lu}",
+                  //phys_w, phys_h,
+                  //phys_off_x, phys_off_y,
+                  //scale_factor_x, scale_factor_y ),
+                //L"Window Sys" );
 
 
 #if 1
-  SK_CreateDLLHook2 (       L"user32.dll",
-                             "SetWindowPos",
-                              SetWindowPos_Detour,
-     static_cast_p2p <void> (&SetWindowPos_Original) );
+    SK_CreateDLLHook2 (       L"user32.dll",
+                               "SetWindowPos",
+                                SetWindowPos_Detour,
+       static_cast_p2p <void> (&SetWindowPos_Original) );
 
-  SK_CreateDLLHook2 (       L"user32.dll",
-                             "SetWindowPlacement",
-                              SetWindowPlacement_Detour,
-     static_cast_p2p <void> (&SetWindowPlacement_Original) );
+    SK_CreateDLLHook2 (       L"user32.dll",
+                               "SetWindowPlacement",
+                                SetWindowPlacement_Detour,
+       static_cast_p2p <void> (&SetWindowPlacement_Original) );
 
-  SK_CreateDLLHook2 (       L"user32.dll",
-                             "MoveWindow",
-                              MoveWindow_Detour,
-     static_cast_p2p <void> (&MoveWindow_Original) );
+    SK_CreateDLLHook2 (       L"user32.dll",
+                               "MoveWindow",
+                                MoveWindow_Detour,
+       static_cast_p2p <void> (&MoveWindow_Original) );
 #else
-    SetWindowPos_Original =
-      (SetWindowPos_pfn)
-        GetProcAddress ( GetModuleHandleW (L"user32.dll"), 
-                         "SetWindowPos" );
-    SetWindowPlacement_Original =
-      (SetWindowPlacement_pfn)
-        GetProcAddress ( GetModuleHandleW (L"user32.dll"), 
-                         "SetWindowPlacement" );
+      SetWindowPos_Original =
+        (SetWindowPos_pfn)
+          GetProcAddress ( GetModuleHandleW (L"user32.dll"), 
+                           "SetWindowPos" );
+      SetWindowPlacement_Original =
+        (SetWindowPlacement_pfn)
+          GetProcAddress ( GetModuleHandleW (L"user32.dll"), 
+                           "SetWindowPlacement" );
 
-    MoveWindow_Original =
-      (MoveWindow_pfn)
-        GetProcAddress ( GetModuleHandleW (L"user32.dll"), 
-                         "MoveWindow" );
+      MoveWindow_Original =
+        (MoveWindow_pfn)
+          GetProcAddress ( GetModuleHandleW (L"user32.dll"), 
+                           "MoveWindow" );
 #endif
 
 
-  SK_CreateDLLHook2 (       L"user32.dll",
-                             "ClipCursor",
-                              ClipCursor_Detour,
-     static_cast_p2p <void> (&ClipCursor_Original) );
+    SK_CreateDLLHook2 (       L"user32.dll",
+                               "ClipCursor",
+                                ClipCursor_Detour,
+       static_cast_p2p <void> (&ClipCursor_Original) );
 
 
-  SK_CreateDLLHook2 (       L"user32.dll",
-                             "CreateWindowExW",
-                              CreateWindowExW_Detour,
-     static_cast_p2p <void> (&CreateWindowExW_Original) );
+    SK_CreateDLLHook2 (       L"user32.dll",
+                               "CreateWindowExW",
+                                CreateWindowExW_Detour,
+       static_cast_p2p <void> (&CreateWindowExW_Original) );
 
-  SK_CreateDLLHook2 (       L"user32.dll",
-                             "CreateWindowExA",
-                              CreateWindowExA_Detour,
-     static_cast_p2p <void> (&CreateWindowExA_Original) );
+    SK_CreateDLLHook2 (       L"user32.dll",
+                               "CreateWindowExA",
+                                CreateWindowExA_Detour,
+       static_cast_p2p <void> (&CreateWindowExA_Original) );
 
 
 // These functions are dispatched through the Ptr version, so
 //   hooking them in the 64-bit version would be a bad idea.
-  SK_CreateDLLHook2 (       L"user32.dll",
-                             "SetWindowLongA",
-                              SetWindowLongA_Detour,
-     static_cast_p2p <void> (&SetWindowLongA_Original) );
+    SK_CreateDLLHook2 (       L"user32.dll",
+                               "SetWindowLongA",
+                                SetWindowLongA_Detour,
+       static_cast_p2p <void> (&SetWindowLongA_Original) );
 
-  SK_CreateDLLHook2 (       L"user32.dll",
-                             "SetWindowLongW",
-                              SetWindowLongW_Detour,
-     static_cast_p2p <void> (&SetWindowLongW_Original) );
+    SK_CreateDLLHook2 (       L"user32.dll",
+                               "SetWindowLongW",
+                                SetWindowLongW_Detour,
+       static_cast_p2p <void> (&SetWindowLongW_Original) );
 
-  SK_CreateDLLHook2 (       L"user32.dll",
-                             "GetWindowLongA",
-                              GetWindowLongA_Detour,
-     static_cast_p2p <void> (&GetWindowLongA_Original) );
+    SK_CreateDLLHook2 (       L"user32.dll",
+                               "GetWindowLongA",
+                                GetWindowLongA_Detour,
+       static_cast_p2p <void> (&GetWindowLongA_Original) );
 
-  SK_CreateDLLHook2 (       L"user32.dll",
-                             "GetWindowLongW",
-                              GetWindowLongW_Detour,
-     static_cast_p2p <void> (&GetWindowLongW_Original) );
+    SK_CreateDLLHook2 (       L"user32.dll",
+                               "GetWindowLongW",
+                                GetWindowLongW_Detour,
+       static_cast_p2p <void> (&GetWindowLongW_Original) );
 
-  //SK_CreateDLLHook2 (       L"user32.dll",
-  //                           "SetClassLongA",
-  //                            SetClassLongA_Detour,
-  //   static_cast_p2p <void> (&SetClassLongA_Original) );
-  //
-  //SK_CreateDLLHook2 (       L"user32.dll",
-  //                           "SetClassLongW",
-  //                            SetClassLongW_Detour,
-  //   static_cast_p2p <void> (&SetClassLongW_Original) );
-  //
-  //SK_CreateDLLHook2 (       L"user32.dll",
-  //                           "GetClassLongA",
-  //                            GetClassLongA_Detour,
-  //   static_cast_p2p <void> (&GetClassLongA_Original) );
-  //
-  //SK_CreateDLLHook2 (       L"user32.dll",
-  //                           "GetClassLongW",
-  //                            GetClassLongW_Detour,
-  //   static_cast_p2p <void> (&GetClassLongW_Original) );
+    //SK_CreateDLLHook2 (       L"user32.dll",
+    //                           "SetClassLongA",
+    //                            SetClassLongA_Detour,
+    //   static_cast_p2p <void> (&SetClassLongA_Original) );
+    //
+    //SK_CreateDLLHook2 (       L"user32.dll",
+    //                           "SetClassLongW",
+    //                            SetClassLongW_Detour,
+    //   static_cast_p2p <void> (&SetClassLongW_Original) );
+    //
+    //SK_CreateDLLHook2 (       L"user32.dll",
+    //                           "GetClassLongA",
+    //                            GetClassLongA_Detour,
+    //   static_cast_p2p <void> (&GetClassLongA_Original) );
+    //
+    //SK_CreateDLLHook2 (       L"user32.dll",
+    //                           "GetClassLongW",
+    //                            GetClassLongW_Detour,
+    //   static_cast_p2p <void> (&GetClassLongW_Original) );
 
 #ifdef _WIN64
-  SK_CreateDLLHook2 (       L"user32.dll",
-                             "SetWindowLongPtrA",
-                              SetWindowLongPtrA_Detour,
-     static_cast_p2p <void> (&SetWindowLongPtrA_Original) );
+    SK_CreateDLLHook2 (       L"user32.dll",
+                               "SetWindowLongPtrA",
+                                SetWindowLongPtrA_Detour,
+       static_cast_p2p <void> (&SetWindowLongPtrA_Original) );
 
-  SK_CreateDLLHook2 (       L"user32.dll",
-                             "SetWindowLongPtrW",
-                              SetWindowLongPtrW_Detour,
-     static_cast_p2p <void> (&SetWindowLongPtrW_Original) );
+    SK_CreateDLLHook2 (       L"user32.dll",
+                               "SetWindowLongPtrW",
+                                SetWindowLongPtrW_Detour,
+       static_cast_p2p <void> (&SetWindowLongPtrW_Original) );
 
-  SK_CreateDLLHook2 (       L"user32.dll",
-                             "GetWindowLongPtrA",
-                              GetWindowLongPtrA_Detour,
-     static_cast_p2p <void> (&GetWindowLongPtrA_Original) );
+    SK_CreateDLLHook2 (       L"user32.dll",
+                               "GetWindowLongPtrA",
+                                GetWindowLongPtrA_Detour,
+       static_cast_p2p <void> (&GetWindowLongPtrA_Original) );
 
-  SK_CreateDLLHook2 (       L"user32.dll",
-                             "GetWindowLongPtrW",
-                              GetWindowLongPtrW_Detour,
-     static_cast_p2p <void> (&GetWindowLongPtrW_Original) );
+    SK_CreateDLLHook2 (       L"user32.dll",
+                               "GetWindowLongPtrW",
+                                GetWindowLongPtrW_Detour,
+       static_cast_p2p <void> (&GetWindowLongPtrW_Original) );
 
-  //SK_CreateDLLHook2 (       L"user32.dll",
-  //                           "SetClassLongPtrA",
-  //                            SetClassLongPtrA_Detour,
-  //   static_cast_p2p <void> (&SetClassLongPtrA_Original) );
-  //
-  //SK_CreateDLLHook2 (       L"user32.dll",
-  //                           "SetClassLongPtrW",
-  //                            SetClassLongPtrW_Detour,
-  //   static_cast_p2p <void> (&SetClassLongPtrW_Original) );
-  //
-  //SK_CreateDLLHook2 (       L"user32.dll",
-  //                           "GetClassLongPtrA",
-  //                            GetClassLongPtrA_Detour,
-  //   static_cast_p2p <void> (&GetClassLongPtrA_Original) );
-  //
-  //SK_CreateDLLHook2 (       L"user32.dll",
-  //                           "GetClassLongPtrW",
-  //                            GetClassLongPtrW_Detour,
-  //   static_cast_p2p <void> (&GetClassLongPtrW_Original) );
+    //SK_CreateDLLHook2 (       L"user32.dll",
+    //                           "SetClassLongPtrA",
+    //                            SetClassLongPtrA_Detour,
+    //   static_cast_p2p <void> (&SetClassLongPtrA_Original) );
+    //
+    //SK_CreateDLLHook2 (       L"user32.dll",
+    //                           "SetClassLongPtrW",
+    //                            SetClassLongPtrW_Detour,
+    //   static_cast_p2p <void> (&SetClassLongPtrW_Original) );
+    //
+    //SK_CreateDLLHook2 (       L"user32.dll",
+    //                           "GetClassLongPtrA",
+    //                            GetClassLongPtrA_Detour,
+    //   static_cast_p2p <void> (&GetClassLongPtrA_Original) );
+    //
+    //SK_CreateDLLHook2 (       L"user32.dll",
+    //                           "GetClassLongPtrW",
+    //                            GetClassLongPtrW_Detour,
+    //   static_cast_p2p <void> (&GetClassLongPtrW_Original) );
 #endif
 
 #if 0
-  SK_CreateDLLHook2 (         L"user32.dll",
-                             "GetWindowRect",
-                              GetWindowRect_Detour,
-     static_cast_p2p <void> (&GetWindowRect_Original) );
+    SK_CreateDLLHook2 (         L"user32.dll",
+                               "GetWindowRect",
+                                GetWindowRect_Detour,
+       static_cast_p2p <void> (&GetWindowRect_Original) );
 #else
     GetWindowRect_Original =
       reinterpret_cast <GetWindowRect_pfn> (
@@ -6070,10 +6086,10 @@ SK_HookWinAPI (void)
 #endif
 
 #if 0
-  SK_CreateDLLHook2 (       L"user32.dll",
-                             "GetClientRect",
-                              GetClientRect_Detour,
-     static_cast_p2p <void> (&GetClientRect_Original) );
+    SK_CreateDLLHook2 (       L"user32.dll",
+                               "GetClientRect",
+                                GetClientRect_Detour,
+       static_cast_p2p <void> (&GetClientRect_Original) );
 #else
     GetClientRect_Original =
       reinterpret_cast <GetClientRect_pfn> (
@@ -6082,60 +6098,65 @@ SK_HookWinAPI (void)
       );
 #endif
 
-  SK_CreateDLLHook2 (       L"user32.dll",
-                             "AdjustWindowRect",
-                              AdjustWindowRect_Detour,
-     static_cast_p2p <void> (&AdjustWindowRect_Original) );
+    SK_CreateDLLHook2 (       L"user32.dll",
+                               "AdjustWindowRect",
+                                AdjustWindowRect_Detour,
+       static_cast_p2p <void> (&AdjustWindowRect_Original) );
 
-  SK_CreateDLLHook2 (       L"user32.dll",
-                             "AdjustWindowRectEx",
-                              AdjustWindowRectEx_Detour,
-     static_cast_p2p <void> (&AdjustWindowRectEx_Original) );
+    SK_CreateDLLHook2 (       L"user32.dll",
+                               "AdjustWindowRectEx",
+                                AdjustWindowRectEx_Detour,
+       static_cast_p2p <void> (&AdjustWindowRectEx_Original) );
 
-  SK_CreateDLLHook2 (       L"user32.dll",
-                             "GetSystemMetrics",
-                              GetSystemMetrics_Detour,
-     static_cast_p2p <void> (&GetSystemMetrics_Original) );
+    SK_CreateDLLHook2 (       L"user32.dll",
+                               "GetSystemMetrics",
+                                GetSystemMetrics_Detour,
+       static_cast_p2p <void> (&GetSystemMetrics_Original) );
 
 #if 0
-  SK_CreateDLLHook2 (       L"user32.dll",
-                            "ChangeDisplaySettingsA",
-                             ChangeDisplaySettingsA_Detour,
-    static_cast_p2p <void> (&ChangeDisplaySettingsA_Original) );
+    SK_CreateDLLHook2 (       L"user32.dll",
+                              "ChangeDisplaySettingsA",
+                               ChangeDisplaySettingsA_Detour,
+      static_cast_p2p <void> (&ChangeDisplaySettingsA_Original) );
 
-  SK_CreateDLLHook2 (       L"user32.dll",
-                            "ChangeDisplaySettingsW",
-                             ChangeDisplaySettingsW_Detour,
-    static_cast_p2p <void> (&ChangeDisplaySettingsW_Original) );
+    SK_CreateDLLHook2 (       L"user32.dll",
+                              "ChangeDisplaySettingsW",
+                               ChangeDisplaySettingsW_Detour,
+      static_cast_p2p <void> (&ChangeDisplaySettingsW_Original) );
 
-  SK_CreateDLLHook2 (       L"user32.dll",
-                            "ChangeDisplaySettingsExA",
-                             ChangeDisplaySettingsExA_Detour,
-    static_cast_p2p <void> (&ChangeDisplaySettingsExA_Original) );
+    SK_CreateDLLHook2 (       L"user32.dll",
+                              "ChangeDisplaySettingsExA",
+                               ChangeDisplaySettingsExA_Detour,
+      static_cast_p2p <void> (&ChangeDisplaySettingsExA_Original) );
 
-  SK_CreateDLLHook2 (       L"user32.dll",
-                            "ChangeDisplaySettingsExW",
-                             ChangeDisplaySettingsExW_Detour,
-    static_cast_p2p <void> (&ChangeDisplaySettingsExW_Original) );
+    SK_CreateDLLHook2 (       L"user32.dll",
+                              "ChangeDisplaySettingsExW",
+                               ChangeDisplaySettingsExW_Detour,
+      static_cast_p2p <void> (&ChangeDisplaySettingsExW_Original) );
 #endif
 
 
-  EnumDisplaySettingsA_Original =
-    (EnumDisplaySettingsA_pfn) GetProcAddress (
-                        GetModuleHandle (L"user32.dll"),
-                                            "EnumDisplaySettingsA" );
-  EnumDisplaySettingsW_Original =
-    (EnumDisplaySettingsW_pfn) GetProcAddress (
-                        GetModuleHandle (L"user32.dll"),
-                                           "EnumDisplaySettingsW" );
+    EnumDisplaySettingsA_Original =
+      (EnumDisplaySettingsA_pfn) GetProcAddress (
+                          GetModuleHandle (L"user32.dll"),
+                                              "EnumDisplaySettingsA" );
+    EnumDisplaySettingsW_Original =
+      (EnumDisplaySettingsW_pfn) GetProcAddress (
+                          GetModuleHandle (L"user32.dll"),
+                                             "EnumDisplaySettingsW" );
 
-  SK_ApplyQueuedHooks ();
+    SK_ApplyQueuedHooks ();
 
 #ifndef _WIN64
-  SetWindowLongPtrA_Original = SetWindowLongA_Original;
-  SetWindowLongPtrW_Original = SetWindowLongW_Original;
+    SetWindowLongPtrA_Original = SetWindowLongA_Original;
+    SetWindowLongPtrW_Original = SetWindowLongW_Original;
 #else
 #endif
+
+    InterlockedIncrement (&hooked);
+  }
+
+  SK_Thread_SpinUntilAtomicMin (&hooked, 2);
 }
 
 

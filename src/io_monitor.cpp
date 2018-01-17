@@ -27,6 +27,7 @@
 #include <SpecialK/framerate.h>
 #include <SpecialK/config.h>
 #include <SpecialK/utility.h>
+#include <SpecialK/thread.h>
 
 #include <SpecialK/widgets/widget.h>
 

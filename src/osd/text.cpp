@@ -26,6 +26,7 @@
 #include <SpecialK/command.h>
 #include <SpecialK/config.h>
 #include <SpecialK/utility.h>
+#include <SpecialK/thread.h>
 
 #include <CEGUI/CEGUI.h>
 #include <CEGUI/Rect.h>

@@ -31,6 +31,7 @@
 #include <SpecialK/render_backend.h>
 #include <SpecialK/log.h>
 #include <SpecialK/utility.h>
+#include <SpecialK/thread.h>
 
 #include <SpecialK/widgets/widget.h>
 
@@ -10412,8 +10413,6 @@ D3D11Dev_GetImmediateContext_Override (
 extern
 unsigned int __stdcall HookD3D12                   (LPVOID user);
 
-volatile LONG __d3d11_hooked = FALSE;
-
 unsigned int
 __stdcall
 HookD3D11 (LPVOID user)
@@ -10435,10 +10434,12 @@ HookD3D11 (LPVOID user)
     }
 
     while (CreateDXGIFactory_Import == nullptr)
-      MsgWaitForMultipleObjectsEx (0, nullptr, 2UL, QS_ALLINPUT, MWMO_ALERTABLE);
+      MsgWaitForMultipleObjectsEx (0, nullptr, 16UL, QS_ALLINPUT, MWMO_ALERTABLE);
 
     // TODO: Handle situation where CreateDXGIFactory is unloadable
   }
+
+  static volatile LONG __d3d11_hooked = FALSE;
 
   // This only needs to be done once
   if (! InterlockedCompareExchange (&__d3d11_hooked, TRUE, FALSE))
@@ -10612,8 +10613,7 @@ HookD3D11 (LPVOID user)
   InterlockedIncrement (&__d3d11_hooked);
   }
 
-  while (ReadAcquire (&__d3d11_hooked) < 2)
-    ;
+  SK_Thread_SpinUntilAtomicMin (&__d3d11_hooked, 2);
 
 #ifdef _WIN64
   if (config.apis.dxgi.d3d12.hook)

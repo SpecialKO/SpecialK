@@ -45,6 +45,7 @@
 
 #include <SpecialK/hooks.h>
 #include <SpecialK/core.h>
+#include <SpecialK/thread.h>
 #include <SpecialK/command.h>
 #include <SpecialK/console.h>
 #include <SpecialK/framerate.h>
@@ -480,24 +481,11 @@ static volatile LONG  __dxgi_ready  = FALSE;
 
 void WaitForInitDXGI (void)
 {
-  if (CreateDXGIFactory_Import == nullptr)
-  {
-    SK_RunOnce (SK_BootDXGI ());
-  }
+  if (SK_TLS_Bottom ()->d3d11.ctx_init_thread)
+    return;
 
-
-  const auto _SpinMax = 250;
-
-  while (! ReadAcquire (&__dxgi_ready))
-  {
-    for (int i = 0; i < _SpinMax && (! ReadAcquire (&__dxgi_ready)); i++)
-      ;
-
-    if (ReadAcquire (&__dxgi_ready))
-      break;
-
-    MsgWaitForMultipleObjectsEx (0, nullptr, 16UL, QS_ALLINPUT, MWMO_ALERTABLE);
-  }
+  // This is a hybrid spin; it will spin for up to 250 iterations before sleeping
+  SK_Thread_SpinUntilFlagged (&__dxgi_ready);
 }
 
 DWORD __stdcall HookDXGI (LPVOID user);
@@ -909,7 +897,6 @@ SK_DXGI_BeginHooking (void)
 
 #define WaitForInit() {      \
     WaitForInitDXGI      (); \
-    ::WaitForInit        (); \
 }
 
 #define DXGI_STUB(_Return, _Name, _Proto, _Args)                            \
@@ -2381,13 +2368,15 @@ HRESULT
           );
         }
 
-        if (hWndRender == nullptr || (! IsWindowVisible (hWndRender)))
-        {
-          hWndRender       = desc.OutputWindow;
-
-          SK_InstallWindowHook (hWndRender);
-          game_window.hWnd =    hWndRender;
-        }
+        //if (hWndRender == nullptr || (! IsWindowVisible (hWndRender)))
+        //{
+        //  hWndRender       = desc.OutputWindow;
+        //
+        //  SK_InstallWindowHook (hWndRender);
+        //
+        //  if (game_window.WndProc_Original && (! game_window.hWnd))
+        //    game_window.hWnd =    hWndRender;
+        //}
       }
     }
   }
@@ -2789,8 +2778,6 @@ NTSTATUS
 APIENTRY
 D3DKMTPresent_Override (const D3DKMT_PRESENT *pData)
 {
-  SK_InstallWindowHook (pData->hWindow ? pData->hWindow : GetFocus ());
-
   // Start / End / Readback Pipeline Stats
   //if (SK_GetCurrentRenderBackend ().swapchain != nullptr && SK_GetFramesDrawn () > 240)
   //{
@@ -2823,9 +2810,13 @@ D3DKMTPresent_Override (const D3DKMT_PRESENT *pData)
   //  }
   //}
 
+
   NTSTATUS ntStat =
     D3DKMTPresent_Original (pData);
 
+  if (NT_SUCCESS (ntStat))
+  {
+  }
   //if (NT_SUCCESS (ntStat) && config.render.gl.osd_in_vidcap && SK_GetFramesDrawn () > 240)
   //{
   //  if ( SK_GetCurrentRenderBackend ().swapchain != nullptr &&
@@ -2968,15 +2959,17 @@ HRESULT
         if (bAlwaysAllowFullscreen)
           pFactory->MakeWindowAssociation (desc.OutputWindow, DXGI_MWA_NO_WINDOW_CHANGES);
 
-        if (hWndRender == 0 || (! IsWindowVisible (hWndRender)))
-        {
-          hWndRender       = desc.OutputWindow;
-
-          SK_InstallWindowHook (hWndRender);
-          game_window.hWnd =    hWndRender;
-
-          SK_DXGI_BringRenderWindowToTop ();
-        }
+        //if (hWndRender == 0 || (! IsWindowVisible (hWndRender)))
+        //{
+        //  hWndRender       = desc.OutputWindow;
+        //
+        //  SK_InstallWindowHook (hWndRender);
+        //
+        //  if (game_window.WndProc_Original && (! game_window.hWnd))
+        //    game_window.hWnd =    hWndRender;
+        //
+        //  SK_DXGI_BringRenderWindowToTop ();
+        //}
       }
     }
   }
@@ -3640,8 +3633,8 @@ DXGISwap_ResizeBuffers_Override ( IDXGISwapChain *This,
 
   // Skip buffer resizes if we didn't actually resize anything
   //
-  if (SUCCEEDED (SK_DXGI_ValidateSwapChainResize (This, BufferCount, Width, Height, NewFormat)))
-    return S_OK;
+  //if (SUCCEEDED (SK_DXGI_ValidateSwapChainResize (This, BufferCount, Width, Height, NewFormat)))
+  //  return S_OK;
 
 
   // Can't do this if waitable
@@ -4278,12 +4271,6 @@ SK_DXGI_CreateSwapChain_PreInit ( _Inout_opt_ DXGI_SWAP_CHAIN_DESC            *p
     else
       pDesc->Windowed = TRUE;
   }
-
-  if (! IsWindowVisible (game_window.hWnd))
-  {
-    hWndRender       = pDesc->OutputWindow;
-    game_window.hWnd = pDesc->OutputWindow;
-  }
 }
 
 void SK_DXGI_HookSwapChain (IDXGISwapChain* pSwapChain);
@@ -4674,7 +4661,6 @@ SK_DXGI_BringRenderWindowToTop_THREAD (LPVOID user)
 
   if (hWndRender != nullptr)
   {
-    SetActiveWindow     (hWndRender);
     SetForegroundWindow (hWndRender);
     BringWindowToTop    (hWndRender);
   }
@@ -5150,7 +5136,11 @@ STDMETHODCALLTYPE CreateDXGIFactory (REFIID   riid,
   DXGI_LOG_CALL_2 ( L"                    CreateDXGIFactory        ", L"%s, %ph",
                       iname.c_str (), ppFactory );
 
-  SK_BootDXGI ();
+  if (CreateDXGIFactory_Import == nullptr)
+  {
+    SK_RunOnce (SK_BootDXGI ());
+                WaitForInitDXGI ();
+  }
 
   SK_DXGI_factory_init = true;
 
@@ -5178,7 +5168,11 @@ STDMETHODCALLTYPE CreateDXGIFactory1 (REFIID   riid,
   DXGI_LOG_CALL_2 ( L"                    CreateDXGIFactory1       ", L"%s, %ph",
                       iname.c_str (), ppFactory );
 
-  SK_BootDXGI ();
+  if (CreateDXGIFactory_Import == nullptr)
+  {
+    SK_RunOnce (SK_BootDXGI ());
+                WaitForInitDXGI ();
+  }
 
   SK_DXGI_factory_init = true;
 
@@ -5209,7 +5203,11 @@ STDMETHODCALLTYPE CreateDXGIFactory2 (UINT     Flags,
   DXGI_LOG_CALL_3 ( L"                    CreateDXGIFactory2       ", L"0x%04X, %s, %ph",
                       Flags, iname.c_str (), ppFactory );
 
-  SK_BootDXGI ();
+  if (CreateDXGIFactory_Import == nullptr)
+  {
+    SK_RunOnce (SK_BootDXGI ());
+                WaitForInitDXGI ();
+  }
 
   SK_DXGI_factory_init = true;
 
@@ -5253,202 +5251,207 @@ DXGI_STUB (HRESULT, DXGIReportAdapterConfiguration,
              (DWORD dwUnknown),
                    (dwUnknown) );
 
+bool hook_d3dkmt_present = false;
+
 using finish_pfn = void (WINAPI *)(void);
 
 void
 WINAPI
 SK_HookDXGI (void)
 {
+  SK_TLS_Bottom ()->d3d11.ctx_init_thread = true;
+
+  // Shouldn't be calling this if hooking is turned off!
+  assert (config.apis.dxgi.d3d11.hook);
+
+  if (! config.apis.dxgi.d3d11.hook)
+  {
+    return;
+  }
+
   static volatile LONG hooked = FALSE;
 
   if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
   {
 #ifdef _WIN64
-  if (! config.apis.dxgi.d3d11.hook)
-    config.apis.dxgi.d3d12.hook = false;
+    if (! config.apis.dxgi.d3d11.hook)
+      config.apis.dxgi.d3d12.hook = false;
 #endif
 
-    if (! config.apis.dxgi.d3d11.hook)
+    // Serves as both D3D11 and DXGI
+    bool d3d11 =
+      ( SK_GetDLLRole () & DLL_ROLE::D3D11 );
+
+
+    HMODULE hBackend = 
+      ( (SK_GetDLLRole () & DLL_ROLE::DXGI) && (! d3d11) ) ? backend_dll :
+                                                               LoadLibraryW_Original (L"dxgi.dll");
+
+
+    dll_log.Log (L"[   DXGI   ] Importing CreateDXGIFactory{1|2}");
+    dll_log.Log (L"[   DXGI   ] ================================");
+
+
+    if (! _wcsicmp (SK_GetModuleName (SK_GetDLL ()).c_str (), L"dxgi.dll"))
     {
-      InterlockedIncrement (&hooked);
-      return;
-    }
+      CreateDXGIFactory_Import =  \
+        (CreateDXGIFactory_pfn)GetProcAddress  (hBackend, "CreateDXGIFactory");
+      CreateDXGIFactory1_Import = \
+        (CreateDXGIFactory1_pfn)GetProcAddress (hBackend, "CreateDXGIFactory1");
+      CreateDXGIFactory2_Import = \
+        (CreateDXGIFactory2_pfn)GetProcAddress (hBackend, "CreateDXGIFactory2");
 
+      SK_LOG0 ( ( L"  CreateDXGIFactory:  %s",
+                    SK_MakePrettyAddress (CreateDXGIFactory_Import).c_str ()  ),
+                  L" DXGI 1.0 " );
+      SK_LOG0 ( ( L"  CreateDXGIFactory1: %s",
+                    SK_MakePrettyAddress (CreateDXGIFactory1_Import).c_str () ),
+                  L" DXGI 1.1 " );
+      SK_LOG0 ( ( L"  CreateDXGIFactory2: %s",
+                    SK_MakePrettyAddress (CreateDXGIFactory2_Import).c_str () ),
+                  L" DXGI 1.3 " );
 
-  // Serves as both D3D11 and DXGI
-  bool d3d11 =
-    ( SK_GetDLLRole () & DLL_ROLE::D3D11 );
-
-
-
-  HMODULE hBackend = 
-    ( (SK_GetDLLRole () & DLL_ROLE::DXGI) && (! d3d11) ) ? backend_dll :
-                                                             LoadLibraryW_Original (L"dxgi.dll");
-
-
-  dll_log.Log (L"[   DXGI   ] Importing CreateDXGIFactory{1|2}");
-  dll_log.Log (L"[   DXGI   ] ================================");
-
-
-  if (! _wcsicmp (SK_GetModuleName (SK_GetDLL ()).c_str (), L"dxgi.dll"))
-  {
-    CreateDXGIFactory_Import =  \
-      (CreateDXGIFactory_pfn)GetProcAddress  (hBackend, "CreateDXGIFactory");
-    CreateDXGIFactory1_Import = \
-      (CreateDXGIFactory1_pfn)GetProcAddress (hBackend, "CreateDXGIFactory1");
-    CreateDXGIFactory2_Import = \
-      (CreateDXGIFactory2_pfn)GetProcAddress (hBackend, "CreateDXGIFactory2");
-
-    SK_LOG0 ( ( L"  CreateDXGIFactory:  %s",
-                  SK_MakePrettyAddress (CreateDXGIFactory_Import).c_str ()  ),
-                L" DXGI 1.0 " );
-    SK_LOG0 ( ( L"  CreateDXGIFactory1: %s",
-                  SK_MakePrettyAddress (CreateDXGIFactory1_Import).c_str () ),
-                L" DXGI 1.1 " );
-    SK_LOG0 ( ( L"  CreateDXGIFactory2: %s",
-                  SK_MakePrettyAddress (CreateDXGIFactory2_Import).c_str () ),
-                L" DXGI 1.3 " );
-
-    //LPVOID pfnD3DKMTPresent_Target = nullptr;
-    //if ( MH_OK ==
-    //       SK_CreateDLLHook2 (      L"d3d11.dll",
-    //                                 "D3DKMTPresent",
-    //                                  D3DKMTPresent_Override,
-    //          static_cast_p2p <void>(&D3DKMTPresent_Original),
-    //                             &pfnD3DKMTPresent_Target ) )
-    //{
-    //  MH_QueueEnableHook (pfnD3DKMTPresent_Target);
-    //
-    //  SK_LOG0 ( ( L"       D3DKMTPresent: %s",
-    //                SK_MakePrettyAddress (pfnD3DKMTPresent_Target).c_str () ),
-    //              L" D3D11KMT " );
-    //
-    //  MH_ApplyQueued ();
-    //}
-
-    InterlockedIncrement (&hooked);
-  }
-
-  else
-  {
-    //LPVOID pfnD3DKMTPresent_Target = nullptr;
-    //if ( MH_OK ==
-    //       SK_CreateDLLHook2 (      L"d3d11.dll",
-    //                                 "D3DKMTPresent",
-    //                                  D3DKMTPresent_Override,
-    //          static_cast_p2p <void>(&D3DKMTPresent_Original),
-    //                             &pfnD3DKMTPresent_Target ) )
-    //{
-    //  MH_QueueEnableHook (pfnD3DKMTPresent_Target);
-    //}
-
-    LPVOID pfnCreateDXGIFactory  = nullptr;
-    LPVOID pfnCreateDXGIFactory1 = nullptr;
-    LPVOID pfnCreateDXGIFactory2 = nullptr;
-
-    if (GetProcAddress (hBackend, "CreateDXGIFactory"))
-    {
-      if ( MH_OK ==
-             SK_CreateDLLHook2 (      L"dxgi.dll",
-                                       "CreateDXGIFactory",
-                                        CreateDXGIFactory,
-               static_cast_p2p <void> (&CreateDXGIFactory_Import),
-                                    &pfnCreateDXGIFactory ) )
+      if (hook_d3dkmt_present)
       {
-        MH_QueueEnableHook (pfnCreateDXGIFactory);
+        LoadLibraryW (L"d3d11.dll");
+
+        LPVOID pfnD3DKMTPresent_Target = nullptr;
+        if ( MH_OK ==
+               SK_CreateDLLHook2 (      L"d3d11.dll",
+                                         "D3DKMTPresent",
+                                          D3DKMTPresent_Override,
+                  static_cast_p2p <void>(&D3DKMTPresent_Original),
+                                     &pfnD3DKMTPresent_Target ) )
+        {
+          MH_QueueEnableHook (pfnD3DKMTPresent_Target);
+        
+          SK_LOG0 ( ( L"       D3DKMTPresent: %s",
+                        SK_MakePrettyAddress (pfnD3DKMTPresent_Target).c_str () ),
+                      L" D3D11KMT " );
+        }
       }
     }
 
-    if (GetProcAddress (hBackend, "CreateDXGIFactory1"))
+    else
     {
-      if ( MH_OK ==
-             SK_CreateDLLHook2 (      L"dxgi.dll",
-                                       "CreateDXGIFactory1",
-                                        CreateDXGIFactory1,
-               static_cast_p2p <void> (&CreateDXGIFactory1_Import),
-                                    &pfnCreateDXGIFactory1 ) )
+      LPVOID pfnD3DKMTPresent_Target = nullptr;
+      LPVOID pfnCreateDXGIFactory    = nullptr;
+      LPVOID pfnCreateDXGIFactory1   = nullptr;
+      LPVOID pfnCreateDXGIFactory2   = nullptr;
+
+      if (hook_d3dkmt_present)
       {
-        MH_QueueEnableHook (pfnCreateDXGIFactory1);
+        LoadLibraryW (L"d3d11.dll");
+
+        if ( MH_OK ==
+               SK_CreateDLLHook2 (      L"d3d11.dll",
+                                         "D3DKMTPresent",
+                                          D3DKMTPresent_Override,
+                  static_cast_p2p <void>(&D3DKMTPresent_Original),
+                                     &pfnD3DKMTPresent_Target ) )
+        {
+          MH_QueueEnableHook (pfnD3DKMTPresent_Target);
+        }
+      }
+
+      if (GetProcAddress (hBackend, "CreateDXGIFactory"))
+      {
+        if ( MH_OK ==
+               SK_CreateDLLHook2 (      L"dxgi.dll",
+                                         "CreateDXGIFactory",
+                                          CreateDXGIFactory,
+                 static_cast_p2p <void> (&CreateDXGIFactory_Import),
+                                      &pfnCreateDXGIFactory ) )
+        {
+          MH_QueueEnableHook (pfnCreateDXGIFactory);
+        }
+      }
+
+      if (GetProcAddress (hBackend, "CreateDXGIFactory1"))
+      {
+        if ( MH_OK ==
+               SK_CreateDLLHook2 (      L"dxgi.dll",
+                                         "CreateDXGIFactory1",
+                                          CreateDXGIFactory1,
+                 static_cast_p2p <void> (&CreateDXGIFactory1_Import),
+                                      &pfnCreateDXGIFactory1 ) )
+        {
+          MH_QueueEnableHook (pfnCreateDXGIFactory1);
+        }
+      }
+
+      if (GetProcAddress (hBackend, "CreateDXGIFactory2"))
+      {
+        if ( MH_OK ==
+               SK_CreateDLLHook2 (      L"dxgi.dll",
+                                         "CreateDXGIFactory2",
+                                          CreateDXGIFactory2,
+                 static_cast_p2p <void> (&CreateDXGIFactory2_Import),
+                                      &pfnCreateDXGIFactory2 ) )
+        {
+          MH_QueueEnableHook (pfnCreateDXGIFactory2);
+        }
+      }
+
+      SK_LOG0 ( ( L"  CreateDXGIFactory:  %s  %s",
+                    SK_MakePrettyAddress (pfnCreateDXGIFactory).c_str  (),
+                                             CreateDXGIFactory_Import ?
+                                               L"{ Hooked }" :
+                                               L"" ),
+                  L" DXGI 1.0 " );
+      SK_LOG0 ( ( L"  CreateDXGIFactory1: %s  %s",
+                    SK_MakePrettyAddress (pfnCreateDXGIFactory1).c_str  (),
+                                             CreateDXGIFactory1_Import ?
+                                               L"{ Hooked }" :
+                                               L"" ),
+                  L" DXGI 1.1 " );
+      SK_LOG0 ( ( L"  CreateDXGIFactory2: %s  %s",
+                    SK_MakePrettyAddress (pfnCreateDXGIFactory2).c_str  (),
+                                             CreateDXGIFactory2_Import ?
+                                               L"{ Hooked }" :
+                                               L"" ),
+                  L" DXGI 1.3 " );
+
+      if (hook_d3dkmt_present)
+      {
+        SK_LOG0 ( ( L"       D3DKMTPresent: %s",
+                      SK_MakePrettyAddress (pfnD3DKMTPresent_Target).c_str () ),
+                    L" D3D11KMT " );
       }
     }
-
-    if (GetProcAddress (hBackend, "CreateDXGIFactory2"))
-    {
-      if ( MH_OK ==
-             SK_CreateDLLHook2 (      L"dxgi.dll",
-                                       "CreateDXGIFactory2",
-                                        CreateDXGIFactory2,
-               static_cast_p2p <void> (&CreateDXGIFactory2_Import),
-                                    &pfnCreateDXGIFactory2 ) )
-      {
-        MH_QueueEnableHook (pfnCreateDXGIFactory2);
-      }
-    }
-
-    SK_LOG0 ( ( L"  CreateDXGIFactory:  %s  %s",
-                  SK_MakePrettyAddress (pfnCreateDXGIFactory).c_str  (),
-                                           CreateDXGIFactory_Import ?
-                                             L"{ Hooked }" :
-                                             L"" ),
-                L" DXGI 1.0 " );
-    SK_LOG0 ( ( L"  CreateDXGIFactory1: %s  %s",
-                  SK_MakePrettyAddress (pfnCreateDXGIFactory1).c_str  (),
-                                           CreateDXGIFactory1_Import ?
-                                             L"{ Hooked }" :
-                                             L"" ),
-                L" DXGI 1.1 " );
-    SK_LOG0 ( ( L"  CreateDXGIFactory2: %s  %s",
-                  SK_MakePrettyAddress (pfnCreateDXGIFactory2).c_str  (),
-                                           CreateDXGIFactory2_Import ?
-                                             L"{ Hooked }" :
-                                             L"" ),
-                L" DXGI 1.3 " );
-
-    //SK_LOG0 ( ( L"       D3DKMTPresent: %s",
-    //              SK_MakePrettyAddress (pfnD3DKMTPresent_Target).c_str () ),
-    //            L" D3D11KMT " );
 
     MH_ApplyQueued ();
 
+    if (CreateDXGIFactory1_Import != nullptr)
+    {
+      SK_DXGI_use_factory1 = true;
+      SK_DXGI_factory_init = true;
+    }
+
+    SK_D3D11_InitTextures ();
+    SK_D3D11_Init         ();
+
+    if (GetModuleHandle (L"d3d12.dll"))
+      SK_D3D12_Init       ();
+
+    SK_ICommandProcessor* pCommandProc =
+      SK_GetCommandProcessor ();
+
+    pCommandProc->AddVariable ( "PresentationInterval",
+            new SK_IVarStub <int> (&config.render.framerate.present_interval));
+    pCommandProc->AddVariable ( "PreRenderLimit",
+            new SK_IVarStub <int> (&config.render.framerate.pre_render_limit));
+    pCommandProc->AddVariable ( "BufferCount",
+            new SK_IVarStub <int> (&config.render.framerate.buffer_count));
+    pCommandProc->AddVariable ( "UseFlipDiscard",
+            new SK_IVarStub <bool> (&config.render.framerate.flip_discard));
+
+    SK_DXGI_BeginHooking ();
+
     InterlockedIncrement (&hooked);
   }
-  }
 
-  // Spinlock
-  while ( ReadAcquire (&hooked) < 2 )
-    ;
-
-  if (CreateDXGIFactory1_Import != nullptr)
-  {
-    SK_DXGI_use_factory1 = true;
-    SK_DXGI_factory_init = true;
-  }
-
-  if (__SK_bypass)
-  {
-    InterlockedExchange (&__dxgi_ready, TRUE);
-    return;
-  }
-
-  SK_D3D11_InitTextures ();
-  SK_D3D11_Init         ();
-
-  if (GetModuleHandle (L"d3d12.dll"))
-    SK_D3D12_Init       ();
-
-  SK_ICommandProcessor* pCommandProc =
-    SK_GetCommandProcessor ();
-
-  pCommandProc->AddVariable ( "PresentationInterval",
-          new SK_IVarStub <int> (&config.render.framerate.present_interval));
-  pCommandProc->AddVariable ( "PreRenderLimit",
-          new SK_IVarStub <int> (&config.render.framerate.pre_render_limit));
-  pCommandProc->AddVariable ( "BufferCount",
-          new SK_IVarStub <int> (&config.render.framerate.buffer_count));
-  pCommandProc->AddVariable ( "UseFlipDiscard",
-          new SK_IVarStub <bool> (&config.render.framerate.flip_discard));
-
-  SK_DXGI_BeginHooking ();
+  SK_Thread_SpinUntilAtomicMin (&hooked, 2);
 }
 
 static std::queue <DWORD> old_threads;
@@ -5459,6 +5462,7 @@ dxgi_init_callback (finish_pfn finish)
 {
   if (! SK_IsHostAppSKIM ())
   {
+    SK_BootDXGI     ();
     WaitForInitDXGI ();
   }
 
@@ -5719,10 +5723,12 @@ SK_DXGI_HookSwapChain (IDXGISwapChain* pSwapChain)
                                            FindClosestMatchingMode_Original,
                                            FindClosestMatchingMode_pfn );
 
-      DXGI_VIRTUAL_HOOK ( &pOutput, 10, "IDXGIOutput::WaitForVBlank",
-                               DXGIOutput_WaitForVBlank_Override,
-                                          WaitForVBlank_Original,
-                                          WaitForVBlank_pfn );
+      // Don't hook this unless you want nvspcap to crash the game.
+      //
+      //DXGI_VIRTUAL_HOOK ( &pOutput, 10, "IDXGIOutput::WaitForVBlank",
+      //                         DXGIOutput_WaitForVBlank_Override,
+      //                                    WaitForVBlank_Original,
+      //                                    WaitForVBlank_pfn );
     }
   }
 }
@@ -5881,161 +5887,145 @@ HookDXGI (LPVOID user)
     // TODO: Handle situation where CreateDXGIFactory is unloadable
   }
 
-  if (ReadAcquire (&__dxgi_ready))
+  if (__SK_bypass || ReadAcquire (&__dxgi_ready) || SK_TLS_Bottom ()->d3d11.ctx_init_thread)
   {
-    //WaitForInitDXGI ();
     return 0;
   }
 
-  bool success =
-    SUCCEEDED ( CoInitializeEx (nullptr, COINIT_MULTITHREADED) );
-  DBG_UNREFERENCED_LOCAL_VARIABLE (success);
 
-  SK_D3D11_Init ();
+  static volatile LONG init = FALSE;
 
-  dll_log.Log (L"[   DXGI   ]   Installing DXGI Hooks");
-
-  D3D_FEATURE_LEVEL             levels [] = { D3D_FEATURE_LEVEL_11_0 };
-
-  D3D_FEATURE_LEVEL             featureLevel;
-  CComPtr <ID3D11Device>        pDevice           = nullptr;
-  CComPtr <ID3D11DeviceContext> pImmediateContext = nullptr;
-
-  // DXGI stuff is ready at this point, we'll hook the swapchain stuff
-  //   after this call.
-
-  HRESULT hr = E_NOTIMPL;
-
-  CComPtr <IDXGISwapChain> pSwapChain = nullptr;
-
-  extern HWND
-  SK_Win32_CreateDummyWindow (void);
-  
-  extern void
-  SK_Win32_CleanupDummyWindow (void);
-  
-  HWND                   hWnd = SK_Win32_CreateDummyWindow ();
-
-  DXGI_SWAP_CHAIN_DESC desc = { };
-  
-  desc.BufferDesc.Format           = DXGI_FORMAT_R8G8B8A8_UNORM;
-  desc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
-  desc.BufferDesc.Scaling          = DXGI_MODE_SCALING_UNSPECIFIED;
-  desc.SampleDesc.Count            = 1;
-  desc.SampleDesc.Quality          = 0;
-  desc.BufferDesc.Width            = 2;
-  desc.BufferDesc.Height           = 2;
-  desc.BufferUsage                 = DXGI_USAGE_RENDER_TARGET_OUTPUT | DXGI_USAGE_BACK_BUFFER;
-  desc.BufferCount                 = 1;
-  desc.OutputWindow                = hWnd;
-  desc.Windowed                    = TRUE;
-  desc.SwapEffect                  = DXGI_SWAP_EFFECT_DISCARD;
-
-  extern LPVOID pfnD3D11CreateDeviceAndSwapChain;
-
-#if 1
-  hr =
-    D3D11CreateDeviceAndSwapChain_Import (
-      nullptr,
-        D3D_DRIVER_TYPE_HARDWARE,
-          nullptr,
-            0x0,
-              levels,
-                1,
-                  D3D11_SDK_VERSION,
-                    &desc, &pSwapChain,
-                      &pDevice,
-                        &featureLevel,
-                          &pImmediateContext );
-#else
-  hr =
-    ((D3D11CreateDeviceAndSwapChain_pfn)(pfnD3D11CreateDeviceAndSwapChain)) (
-      nullptr,
-        D3D_DRIVER_TYPE_HARDWARE,
-          nullptr,
-            0x0,
-              nullptr,
-                0,
-                  D3D11_SDK_VERSION,
-                    &desc, &pSwapChain,
-                      &pDevice,
-                        &featureLevel,
-                          &pImmediateContext );
-#endif
-
-  d3d11_hook_ctx.ppDevice           = &pDevice;
-  d3d11_hook_ctx.ppImmediateContext = &pImmediateContext;
-
-  CComPtr <IDXGIDevice>  pDevDXGI = nullptr;
-  CComPtr <IDXGIAdapter> pAdapter = nullptr;
-  CComPtr <IDXGIFactory> pFactory = nullptr;
-  
-  if ( pDevice != nullptr &&
-       SUCCEEDED (pDevice->QueryInterface <IDXGIDevice> (&pDevDXGI)) &&
-       SUCCEEDED (pDevDXGI->GetAdapter                  (&pAdapter)) &&
-       SUCCEEDED (pAdapter->GetParent     (IID_PPV_ARGS (&pFactory))) )
+  if (! InterlockedCompareExchange (&init, TRUE, FALSE))
   {
-    CComPtr <ID3D11DeviceContext> pDevCtx = nullptr;
-    CComPtr <ID3D11Device>        pDev    = pDevice;
+    SK_TLS_Bottom ()->d3d11.ctx_init_thread = true;
 
-    if (config.render.dxgi.deferred_isolation)
-    {
-      pImmediateContext->GetDevice (&pDev);
+    bool success =
+      SUCCEEDED ( CoInitializeEx (nullptr, COINIT_MULTITHREADED) );
+    DBG_UNREFERENCED_LOCAL_VARIABLE (success);
 
-      pDev->CreateDeferredContext (0x00,  &pDevCtx);
-      d3d11_hook_ctx.ppImmediateContext = &pDevCtx;
-    }
+    SK_D3D11_Init ();
 
-    else
-    {
-      pDev->GetImmediateContext (&pDevCtx);
-      d3d11_hook_ctx.ppImmediateContext = (ID3D11DeviceContext **)&pDevCtx;
-    }
+    dll_log.Log (L"[   DXGI   ]   Installing DXGI Hooks");
 
-    HookD3D11             (&d3d11_hook_ctx);
-    SK_DXGI_HookFactory   (pFactory);
-    SK_DXGI_HookSwapChain (pSwapChain);
+    D3D_FEATURE_LEVEL             levels [] = { D3D_FEATURE_LEVEL_11_0 };
 
-    // This won't catch Present1 (...), but no games use that
-    //   and we can deal with it later if it happens.
-    SK_DXGI_HookPresentBase ((IDXGISwapChain *)pSwapChain, false);
+    D3D_FEATURE_LEVEL             featureLevel;
+    CComPtr <ID3D11Device>        pDevice           = nullptr;
+    CComPtr <ID3D11DeviceContext> pImmediateContext = nullptr;
 
-    CComQIPtr <IDXGISwapChain1> pSwapChain1 (pSwapChain);
+    // DXGI stuff is ready at this point, we'll hook the swapchain stuff
+    //   after this call.
 
-    if (pSwapChain1 != nullptr)
-      SK_DXGI_HookPresent1 (pSwapChain1, false);
+    HRESULT hr = E_NOTIMPL;
 
-    MH_ApplyQueued  ();
+    CComPtr <IDXGISwapChain> pSwapChain = nullptr;
+    DXGI_SWAP_CHAIN_DESC     desc       = { };
+    
+    desc.BufferDesc.Format           = DXGI_FORMAT_R8G8B8A8_UNORM;
+    desc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+    desc.BufferDesc.Scaling          = DXGI_MODE_SCALING_UNSPECIFIED;
+    desc.SampleDesc.Count            = 1;
+    desc.SampleDesc.Quality          = 0;
+    desc.BufferDesc.Width            = 2;
+    desc.BufferDesc.Height           = 2;
+    desc.BufferUsage                 = DXGI_USAGE_RENDER_TARGET_OUTPUT | DXGI_USAGE_BACK_BUFFER;
+    desc.BufferCount                 = 1;
+    desc.OutputWindow                = SK_Win32_CreateDummyWindow ();
+    desc.Windowed                    = TRUE;
+    desc.SwapEffect                  = DXGI_SWAP_EFFECT_DISCARD;
+
+    extern LPVOID pfnD3D11CreateDeviceAndSwapChain;
+
 
     if ((SK_GetDLLRole () & DLL_ROLE::DXGI) || (SK_GetDLLRole () & DLL_ROLE::DInput8))
     {
       // Load user-defined DLLs (Plug-In)
-#ifdef _WIN64
-      SK_LoadPlugIns64 ();
-#else
-      SK_LoadPlugIns32 ();
-#endif
+      SK_RunLHIfBitness ( 64, SK_LoadPlugIns64 (),
+                              SK_LoadPlugIns32 () );
     }
-    if (config.apis.dxgi.d3d11.hook) SK_D3D11_EnableHooks ();
-      
+
+    hr =
+      D3D11CreateDeviceAndSwapChain_Import (
+        nullptr,
+          D3D_DRIVER_TYPE_HARDWARE,
+            nullptr,
+              0x0,
+                levels,
+                  1,
+                    D3D11_SDK_VERSION,
+                      &desc, &pSwapChain,
+                        &pDevice,
+                          &featureLevel,
+                            &pImmediateContext );
+
+    d3d11_hook_ctx.ppDevice           = &pDevice;
+    d3d11_hook_ctx.ppImmediateContext = &pImmediateContext;
+
+    CComPtr <IDXGIDevice>  pDevDXGI = nullptr;
+    CComPtr <IDXGIAdapter> pAdapter = nullptr;
+    CComPtr <IDXGIFactory> pFactory = nullptr;
+    
+    if ( pDevice != nullptr &&
+         SUCCEEDED (pDevice->QueryInterface <IDXGIDevice> (&pDevDXGI)) &&
+         SUCCEEDED (pDevDXGI->GetAdapter                  (&pAdapter)) &&
+         SUCCEEDED (pAdapter->GetParent     (IID_PPV_ARGS (&pFactory))) )
+    {
+      CComPtr <ID3D11DeviceContext> pDevCtx = nullptr;
+      CComPtr <ID3D11Device>        pDev    = pDevice;
+
+      if (config.render.dxgi.deferred_isolation)
+      {
+        pImmediateContext->GetDevice (&pDev);
+
+        pDev->CreateDeferredContext (0x00,  &pDevCtx);
+        d3d11_hook_ctx.ppImmediateContext = &pDevCtx;
+      }
+
+      else
+      {
+        pDev->GetImmediateContext (&pDevCtx);
+        d3d11_hook_ctx.ppImmediateContext = (ID3D11DeviceContext **)&pDevCtx;
+      }
+
+      HookD3D11             (&d3d11_hook_ctx);
+      SK_DXGI_HookFactory   (pFactory);
+      SK_DXGI_HookSwapChain (pSwapChain);
+
+      // This won't catch Present1 (...), but no games use that
+      //   and we can deal with it later if it happens.
+      SK_DXGI_HookPresentBase ((IDXGISwapChain *)pSwapChain, false);
+
+      CComQIPtr <IDXGISwapChain1> pSwapChain1 (pSwapChain);
+
+      if (pSwapChain1 != nullptr)
+        SK_DXGI_HookPresent1 (pSwapChain1, false);
+
+      MH_ApplyQueued  ();
+
+      if (config.apis.dxgi.d3d11.hook) SK_D3D11_EnableHooks ();
+        
 #ifdef _WIN64
-    if (config.apis.dxgi.d3d12.hook) SK_D3D12_EnableHooks ();
+      if (config.apis.dxgi.d3d12.hook) SK_D3D12_EnableHooks ( );
 #endif
 
-    InterlockedExchange (&__dxgi_ready, TRUE);
+      InterlockedExchange (&__dxgi_ready, TRUE);
+    }
+
+    else
+    {
+      _com_error err (hr);
+    
+      dll_log.Log (L"[   DXGI   ] Unable to hook D3D11?! (0x%04x :: '%s')",
+                               err.WCode (), err.ErrorMessage () );
+    }
+
+    SK_Win32_CleanupDummyWindow ();
+
+    //if (success) CoUninitialize ();
+    InterlockedIncrement (&init);
   }
 
-  else
-  {
-    _com_error err (hr);
-  
-    dll_log.Log (L"[   DXGI   ] Unable to hook D3D11?! (0x%04x :: '%s')",
-                             err.WCode (), err.ErrorMessage () );
-  }
-
-  SK_Win32_CleanupDummyWindow ();
-
-  //if (success) CoUninitialize ();
+  SK_Thread_SpinUntilAtomicMin (&init, 2);
 
   return 0;
 }

@@ -23,6 +23,7 @@
 
 #include <SpecialK/command.h>
 #include <SpecialK/utility.h>
+#include <SpecialK/thread.h>
 
 
 static CRITICAL_SECTION cs_process_cmd = { };

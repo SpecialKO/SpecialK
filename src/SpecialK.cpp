@@ -43,6 +43,7 @@
 #include <SpecialK/opengl_backend.h>
 #include <SpecialK/log.h>
 #include <SpecialK/utility.h>
+#include <SpecialK/thread.h>
 
 #include <SpecialK/hooks.h>
 #include <SpecialK/injection/injection.h>

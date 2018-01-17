@@ -44,6 +44,7 @@ MIDL_INTERFACE("B18B10CE-2649-405a-870F-95F777D4313A") IDirect3DDevice9Ex;
 
 #include <SpecialK/log.h>
 #include <SpecialK/utility.h>
+#include <SpecialK/thread.h>
 #include <SpecialK/command.h>
 #include <SpecialK/hooks.h>
 #include <SpecialK/window.h>
@@ -70,24 +71,6 @@ HookD3D9Ex (LPVOID user);
 volatile LONG ImGui_Init = FALSE;
 
 extern bool __SK_bypass;
-
-void
-WINAPI
-WaitForInit_D3D9 (void)
-{
-  const auto _SpinMax = 250;
-
-  while (! ReadAcquire (&__d3d9_ready))
-  {
-    for (int i = 0; i < _SpinMax && (! ReadAcquire (&__d3d9_ready)); i++)
-      ;
-
-    if (ReadAcquire (&__d3d9_ready))
-      break;
-
-    MsgWaitForMultipleObjectsEx (0, nullptr, 16UL, QS_ALLINPUT, MWMO_ALERTABLE);
-  }
-}
 
 extern "C++" void
 __stdcall
@@ -174,6 +157,26 @@ SetDepthStencilSurface_pfn    D3D9SetDepthStencilSurface_Original    = nullptr;
 UpdateTexture_pfn             D3D9UpdateTexture_Original             = nullptr;
 StretchRect_pfn               D3D9StretchRect_Original               = nullptr;
 SetCursorPosition_pfn         D3D9SetCursorPosition_Original         = nullptr;
+
+
+
+void
+WINAPI
+WaitForInit_D3D9 (void)
+{
+  if (Direct3DCreate9_Import == nullptr)
+  {
+    SK_RunOnce (SK_BootD3D9 ());
+  }
+
+  if (SK_TLS_Bottom ()->d3d9.ctx_init_thread)
+    return;
+
+  if (! ReadAcquire (&__d3d9_ready))
+    SK_Thread_SpinUntilFlagged (&__d3d9_ready);
+}
+
+
 
 __declspec (noinline)
 HRESULT
@@ -782,26 +785,23 @@ SK_CEGUI_QueueResetD3D9 (void)
 void
 ResetCEGUI_D3D9 (IDirect3DDevice9* pDev)
 {
-  if (static_cast <ULONG> (ReadAcquire (&__cegui_frames_drawn)) < 5)
+  if (! ReadAcquire (&ImGui_Init))
   {
-    if (! ReadAcquire (&ImGui_Init))
-    {
-      //
-      // Initialize ImGui for D3D9 games
-      //
-      D3DDEVICE_CREATION_PARAMETERS params;
-      pDev->GetCreationParameters (&params);
+    //
+    // Initialize ImGui for D3D9 games
+    //
+    D3DDEVICE_CREATION_PARAMETERS params;
+    pDev->GetCreationParameters (&params);
 
-      if ( ImGui_ImplDX9_Init ( (void *)params.hFocusWindow,
-                                      pDev,
-                                       nullptr )
-         )
-      {
-        InterlockedExchange ( &ImGui_Init, TRUE );
-      }
+    if ( ImGui_ImplDX9_Init ( (void *)params.hFocusWindow,
+                                    pDev,
+                                     nullptr )
+       )
+    {
+      InterlockedExchange ( &ImGui_Init, TRUE );
     }
-    return;
   }
+  
 
 
   if (cegD3D9 != nullptr || (pDev == nullptr))
@@ -865,95 +865,92 @@ void
 WINAPI
 SK_HookD3D9 (void)
 {
-  static volatile ULONG hooked = FALSE;
-
-  if (InterlockedCompareExchange (&hooked, TRUE, FALSE))
-  {
-    return;
-  }
-
-  HMODULE hBackend =
-    (SK_GetDLLRole () & DLL_ROLE::D3D9) ? backend_dll :
-                                   GetModuleHandle (L"d3d9.dll");
-
-  SK_LOG0 ( (L"Importing Direct3DCreate9{Ex}..."), L"   D3D9   ");
-  SK_LOG0 ( (L"================================"), L"   D3D9   ");
-
-  if (! _wcsicmp (SK_GetModuleName (SK_GetDLL ()).c_str (), L"d3d9.dll"))
-  {
-    Direct3DCreate9_Import =  \
-      (Direct3DCreate9PROC)GetProcAddress (hBackend, "Direct3DCreate9");
-
-    SK_LOG0 ( ( L"  Direct3DCreate9:   %s",
-                  SK_MakePrettyAddress (Direct3DCreate9_Import).c_str () ),
-                L"   D3D9   " );
-
-    if (config.apis.d3d9ex.hook)
-    {
-      Direct3DCreate9Ex_Import =  \
-        (Direct3DCreate9ExPROC)GetProcAddress (hBackend, "Direct3DCreate9Ex");
-
-      SK_LOG0 ( ( L"  Direct3DCreate9Ex: %s",
-                    SK_MakePrettyAddress (Direct3DCreate9Ex_Import).c_str () ),
-                  L"  D3D9Ex  " );
-    }
-  }
-
-  else
-  {
-    LPVOID pfnDirect3DCreate9   = nullptr;
-    LPVOID pfnDirect3DCreate9Ex = nullptr;
-
-    if ( MH_OK ==
-           SK_CreateDLLHook2 ( L"d3d9.dll",
-                                "Direct3DCreate9",
-                                 Direct3DCreate9,
-        static_cast_p2p <void> (&Direct3DCreate9_Import),
-                             &pfnDirect3DCreate9 )
-       )
-    {
-      SK_LOG0 ( ( L"  Direct3DCreate9:   %s  { Hooked  }",
-                    SK_MakePrettyAddress (pfnDirect3DCreate9).c_str () ),
-                  L"   D3D9   " );
-
-      if ( config.apis.d3d9ex.hook &&
-             MH_OK ==
-               SK_CreateDLLHook2 ( L"d3d9.dll",
-                                    "Direct3DCreate9Ex",
-                                     Direct3DCreate9Ex,
-            static_cast_p2p <void> (&Direct3DCreate9Ex_Import),
-                                 &pfnDirect3DCreate9Ex )
-         )
-      {
-        SK_LOG0 ( ( L"  Direct3DCreate9Ex: %s  { Hooked  }",
-                      SK_MakePrettyAddress (pfnDirect3DCreate9Ex).c_str () ),
-                    L"  D3D9Ex  " );
-      }
-
-      bool success =
-        ( MH_QueueEnableHook (pfnDirect3DCreate9) == MH_OK );
-
-      if (config.apis.d3d9ex.hook)
-        success &= ( MH_QueueEnableHook (pfnDirect3DCreate9Ex) == MH_OK );
-    }
-  }
-
   extern bool __SK_bypass;
   if (__SK_bypass)
     return;
 
-  HookD3D9            (nullptr);
-  SK_ApplyQueuedHooks (       );
+  static volatile LONG hooked = FALSE;
 
-// Load user-defined DLLs (Plug-In)
-#ifdef _WIN64
-  SK_LoadPlugIns64 ();
-#else
-  SK_LoadPlugIns32 ();
-#endif
+  if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
+  {
+    HMODULE hBackend =
+      (SK_GetDLLRole () & DLL_ROLE::D3D9) ? backend_dll :
+                                     GetModuleHandle (L"d3d9.dll");
 
-  while (! ReadAcquire (&__d3d9_ready))
-    MsgWaitForMultipleObjectsEx (0, nullptr, 2UL, QS_ALLINPUT, MWMO_ALERTABLE);
+    SK_LOG0 ( (L"Importing Direct3DCreate9{Ex}..."), L"   D3D9   ");
+    SK_LOG0 ( (L"================================"), L"   D3D9   ");
+
+    if (! _wcsicmp (SK_GetModuleName (SK_GetDLL ()).c_str (), L"d3d9.dll"))
+    {
+      Direct3DCreate9_Import =  \
+        (Direct3DCreate9PROC)GetProcAddress (hBackend, "Direct3DCreate9");
+
+      SK_LOG0 ( ( L"  Direct3DCreate9:   %s",
+                    SK_MakePrettyAddress (Direct3DCreate9_Import).c_str () ),
+                  L"   D3D9   " );
+
+      if (config.apis.d3d9ex.hook)
+      {
+        Direct3DCreate9Ex_Import =  \
+          (Direct3DCreate9ExPROC)GetProcAddress (hBackend, "Direct3DCreate9Ex");
+
+        SK_LOG0 ( ( L"  Direct3DCreate9Ex: %s",
+                      SK_MakePrettyAddress (Direct3DCreate9Ex_Import).c_str () ),
+                    L"  D3D9Ex  " );
+      }
+    }
+
+    else
+    {
+      LPVOID pfnDirect3DCreate9   = nullptr;
+      LPVOID pfnDirect3DCreate9Ex = nullptr;
+
+      if ( MH_OK ==
+             SK_CreateDLLHook2 ( L"d3d9.dll",
+                                  "Direct3DCreate9",
+                                   Direct3DCreate9,
+          static_cast_p2p <void> (&Direct3DCreate9_Import),
+                               &pfnDirect3DCreate9 )
+         )
+      {
+        SK_LOG0 ( ( L"  Direct3DCreate9:   %s  { Hooked  }",
+                      SK_MakePrettyAddress (pfnDirect3DCreate9).c_str () ),
+                    L"   D3D9   " );
+
+        if ( config.apis.d3d9ex.hook &&
+               MH_OK ==
+                 SK_CreateDLLHook2 ( L"d3d9.dll",
+                                      "Direct3DCreate9Ex",
+                                       Direct3DCreate9Ex,
+              static_cast_p2p <void> (&Direct3DCreate9Ex_Import),
+                                   &pfnDirect3DCreate9Ex )
+           )
+        {
+          SK_LOG0 ( ( L"  Direct3DCreate9Ex: %s  { Hooked  }",
+                        SK_MakePrettyAddress (pfnDirect3DCreate9Ex).c_str () ),
+                      L"  D3D9Ex  " );
+        }
+
+        bool success =
+          ( MH_QueueEnableHook (pfnDirect3DCreate9) == MH_OK );
+
+        if (config.apis.d3d9ex.hook)
+          success &= ( MH_QueueEnableHook (pfnDirect3DCreate9Ex) == MH_OK );
+      }
+    }
+
+    HookD3D9            (nullptr);
+    SK_ApplyQueuedHooks (       );
+
+    // Load user-defined DLLs (Plug-In)
+    SK_RunLHIfBitness ( 64, SK_LoadPlugIns64 (),
+                            SK_LoadPlugIns32 () );
+
+    InterlockedIncrement (&hooked);
+  }
+
+  SK_Thread_SpinUntilAtomicMin (&hooked, 2);
+  SK_Thread_SpinUntilFlagged   (&__d3d9_ready);
 }
 
 void
@@ -964,8 +961,7 @@ d3d9_init_callback (finish_pfn finish)
   {
     SK_BootD3D9 ();
 
-    while (! ReadAcquire (&__d3d9_ready))
-      MsgWaitForMultipleObjectsEx (0, nullptr, 2UL, QS_ALLINPUT, MWMO_ALERTABLE);
+    SK_Thread_SpinUntilFlagged (&__d3d9_ready);
   }
 
   finish ();
@@ -4923,219 +4919,36 @@ HookD3D9 (LPVOID user)
     return 0;
   }
 
-  static volatile LONG __hooked = 0;
-
-  if (! InterlockedCompareExchange (&__hooked, 1, 0))
+  if (__SK_bypass || ReadAcquire (&__d3d9_ready))
   {
-  const bool success = SUCCEEDED (
-    CoInitializeEx (nullptr, COINIT_MULTITHREADED)
-  );
+    return 0;
+  }
+
+  static volatile LONG __hooked = FALSE;
+
+  if (! InterlockedCompareExchange (&__hooked, TRUE, FALSE))
   {
-    CComPtr <IDirect3D9> pD3D9 = nullptr;
+    SK_TLS_Bottom ()->d3d9.ctx_init_thread = true;
 
-    pD3D9 =
-      Direct3DCreate9_Import (D3D_SDK_VERSION);
-
-    HWND hwnd = nullptr;
-
-    if (pD3D9 != nullptr)
+    const bool success = SUCCEEDED (
+      CoInitializeEx (nullptr, COINIT_MULTITHREADED)
+    );
     {
-      hwnd =
-        SK_Win32_CreateDummyWindow ();
+      CComPtr <IDirect3D9> pD3D9 = nullptr;
 
-      D3DPRESENT_PARAMETERS pparams = { };
+      pD3D9 =
+        Direct3DCreate9_Import (D3D_SDK_VERSION);
 
-      pparams.SwapEffect            = D3DSWAPEFFECT_FLIP;
-      pparams.BackBufferFormat      = D3DFMT_UNKNOWN;
-      pparams.Windowed              = TRUE;
-      pparams.BackBufferCount       = 2;
-      pparams.hDeviceWindow         = hwnd;
-      pparams.BackBufferHeight      = 2;
-      pparams.BackBufferWidth       = 2;
+      HWND hwnd = nullptr;
 
-      CComPtr <IDirect3DDevice9> pD3D9Dev = nullptr;
-
-      dll_log.Log (L"[   D3D9   ]  Hooking D3D9...");
-
-      HRESULT hr =
-        pD3D9->CreateDevice (
-                D3DADAPTER_DEFAULT,
-                  D3DDEVTYPE_HAL,
-                    nullptr,
-                      D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED |
-                      D3DCREATE_NOWINDOWCHANGES           | D3DCREATE_DISABLE_DRIVER_MANAGEMENT,
-                        &pparams,
-                          &pD3D9Dev );
-
-      if (SUCCEEDED (hr))
+      if (pD3D9 != nullptr)
       {
-        if (! config.render.d3d9.force_d3d9ex)
-        {
-          D3D9_INTERCEPT ( &pD3D9, 16,
-                          "IDirect3D9::CreateDevice",
-                            D3D9CreateDevice_Override,
-                            D3D9CreateDevice_Original,
-                            D3D9CreateDevice_pfn );
-        }
-
-        //vtbl (This)
-        //-----------
-        // 3   TestCooperativeLevel
-        // 4   GetAvailableTextureMem
-        // 5   EvictManagedResources
-        // 6   GetDirect3D
-        // 7   GetDeviceCaps
-        // 8   GetDisplayMode
-        // 9   GetCreationParameters
-        // 10  SetCursorProperties
-        // 11  SetCursorPosition
-        // 12  ShowCursor
-        // 13  CreateAdditionalSwapChain
-        // 14  GetSwapChain
-        // 15  GetNumberOfSwapChains
-        // 16  Reset
-        // 17  Present
-        // 18  GetBackBuffer
-        // 19  GetRasterStatus
-        // 20  SetDialogBoxMode
-        // 21  SetGammaRamp
-        // 22  GetGammaRamp
-        // 23  CreateTexture
-        // 24  CreateVolumeTexture
-        // 25  CreateCubeTexture
-        // 26  CreateVertexBuffer
-        // 27  CreateIndexBuffer
-        // 28  CreateRenderTarget
-        // 29  CreateDepthStencilSurface
-        // 30  UpdateSurface
-        // 31  UpdateTexture
-        // 32  GetRenderTargetData
-        // 33  GetFrontBufferData
-        // 34  StretchRect
-        // 35  ColorFill
-        // 36  CreateOffscreenPlainSurface
-        // 37  SetRenderTarget
-        // 38  GetRenderTarget
-        // 39  SetDepthStencilSurface
-        // 40  GetDepthStencilSurface
-        // 41  BeginScene
-        // 42  EndScene
-        // 43  Clear
-        // 44  SetTransform
-        // 45  GetTransform
-        // 46  MultiplyTransform
-        // 47  SetViewport
-        // 48  GetViewport
-        // 49  SetMaterial
-        // 50  GetMaterial
-        // 51  SetLight
-        // 52  GetLight
-        // 53  LightEnable
-        // 54  GetLightEnable
-        // 55  SetClipPlane
-        // 56  GetClipPlane
-        // 57  SetRenderState
-        // 58  GetRenderState
-        // 59  CreateStateBlock
-        // 60  BeginStateBlock
-        // 61  EndStateBlock
-        // 62  SetClipStatus
-        // 63  GetClipStatus
-        // 64  GetTexture
-        // 65  SetTexture
-        // 66  GetTextureStageState
-        // 67  SetTextureStageState
-        // 68  GetSamplerState
-        // 69  SetSamplerState
-        // 70  ValidateDevice
-        // 71  SetPaletteEntries
-        // 72  GetPaletteEntries
-        // 73  SetCurrentTexturePalette
-        // 74  GetCurrentTexturePalette
-        // 75  SetScissorRect
-        // 76  GetScissorRect
-        // 77  SetSoftwareVertexProcessing
-        // 78  GetSoftwareVertexProcessing
-        // 79  SetNPatchMode
-        // 80  GetNPatchMode
-        // 81  DrawPrimitive
-        // 82  DrawIndexedPrimitive
-        // 83  DrawPrimitiveUP
-        // 84  DrawIndexedPrimitiveUP
-        // 85  ProcessVertices
-        // 86  CreateVertexDeclaration
-        // 87  SetVertexDeclaration
-        // 88  GetVertexDeclaration
-        // 89  SetFVF
-        // 90  GetFVF
-        // 91  CreateVertexShader
-        // 92  SetVertexShader
-        // 93  GetVertexShader
-        // 94  SetVertexShaderConstantF
-        // 95  GetVertexShaderConstantF
-        // 96  SetVertexShaderConstantI
-        // 97  GetVertexShaderConstantI
-        // 98  SetVertexShaderConstantB
-        // 99  GetVertexShaderConstantB
-        // 100 SetStreamSource
-        // 101 GetStreamSource
-        // 102 SetStreamSourceFreq
-        // 103 GetStreamSourceFreq
-        // 104 SetIndices
-        // 105 GetIndices
-        // 106 CreatePixelShader
-        // 107 SetPixelShader
-        // 108 GetPixelShader
-        // 109 SetPixelShaderConstantF
-        // 110 GetPixelShaderConstantF
-        // 111 SetPixelShaderConstantI
-        // 112 GetPixelShaderConstantI
-        // 113 SetPixelShaderConstantB
-        // 114 GetPixelShaderConstantB
-        // 115 DrawRectPatch
-        // 116 DrawTriPatch
-        // 117 DeletePatch
-        // 118 CreateQuery
-
-        dll_log.Log (L"[   D3D9   ]   * Success");
-      }
-
-      else
-      {
-        _com_error err (hr);
-        dll_log.Log ( L"[   D3D9   ]   * Failure  (%s)",
-                      err.ErrorMessage () );
-
-        if (! config.render.d3d9.force_d3d9ex)
-        {
-          D3D9_INTERCEPT ( &pD3D9, 16,
-                          "IDirect3D9::CreateDevice",
-                            D3D9CreateDevice_Override,
-                            D3D9CreateDevice_Original,
-                            D3D9CreateDevice_pfn );
-        }
-      }
-
-      SK_Win32_CleanupDummyWindow ();
-
-      CComPtr <IDirect3D9Ex> pD3D9Ex = nullptr;
-
-      hr = (config.apis.d3d9ex.hook) ?
-        Direct3DCreate9Ex_Import (D3D_SDK_VERSION, &pD3D9Ex)
-                         :
-                    E_NOINTERFACE;
-
-      hwnd = nullptr;
-
-      if (SUCCEEDED (hr))
-      {
-        dll_log.Log (L"[   D3D9   ]  Hooking D3D9Ex...");
-
-        hwnd    =
+        hwnd =
           SK_Win32_CreateDummyWindow ();
-        pparams = { };
 
-        pparams.SwapEffect            = D3DSWAPEFFECT_FLIPEX;
+        D3DPRESENT_PARAMETERS pparams = { };
+
+        pparams.SwapEffect            = D3DSWAPEFFECT_FLIP;
         pparams.BackBufferFormat      = D3DFMT_UNKNOWN;
         pparams.Windowed              = TRUE;
         pparams.BackBufferCount       = 2;
@@ -5143,94 +4956,283 @@ HookD3D9 (LPVOID user)
         pparams.BackBufferHeight      = 2;
         pparams.BackBufferWidth       = 2;
 
-        CComPtr <IDirect3DDevice9Ex> pD3D9DevEx = nullptr;
+        CComPtr <IDirect3DDevice9> pD3D9Dev = nullptr;
 
-        if ( SUCCEEDED ( pD3D9Ex->CreateDeviceEx (
-                          D3DADAPTER_DEFAULT,
-                            D3DDEVTYPE_HAL,
-                               hwnd,
-                                D3DCREATE_HARDWARE_VERTEXPROCESSING,
-                                  &pparams,
-                                    nullptr,
-                                      &pD3D9DevEx )
-                      )
-          )
+        dll_log.Log (L"[   D3D9   ]  Hooking D3D9...");
+
+        HRESULT hr =
+          pD3D9->CreateDevice (
+                  D3DADAPTER_DEFAULT,
+                    D3DDEVTYPE_HAL,
+                      nullptr,
+                        D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED |
+                        D3DCREATE_NOWINDOWCHANGES           | D3DCREATE_DISABLE_DRIVER_MANAGEMENT,
+                          &pparams,
+                            &pD3D9Dev );
+
+        if (SUCCEEDED (hr))
         {
-          if (config.render.d3d9.force_d3d9ex)
+          if (! config.render.d3d9.force_d3d9ex)
           {
-            D3D9_INTERCEPT ( &pD3D9Ex, 16,
-                             "IDirect3D9Ex::CreateDevice",
-                              D3D9ExCreateDevice_Override,
-                              D3D9ExCreateDevice_Original,
+            D3D9_INTERCEPT ( &pD3D9, 16,
+                            "IDirect3D9::CreateDevice",
+                              D3D9CreateDevice_Override,
+                              D3D9CreateDevice_Original,
                               D3D9CreateDevice_pfn );
           }
 
-          D3D9_INTERCEPT ( &pD3D9Ex, 20,
-                           "IDirect3D9Ex::CreateDeviceEx",
-                            D3D9CreateDeviceEx_Override,
-                            D3D9CreateDeviceEx_Original,
-                            D3D9CreateDeviceEx_pfn );
-
-          //IDirect3DDevice9Ex **ppReturnedDeviceInterface = &pD3D9DevEx;
-
-          SK_D3D9_HookReset   (pD3D9DevEx);
-          SK_D3D9_HookPresent (pD3D9DevEx);
-
-          // Initialize stuff...
-          SK_D3D9RenderBackend::getInstance ();
+          //vtbl (This)
+          //-----------
+          // 3   TestCooperativeLevel
+          // 4   GetAvailableTextureMem
+          // 5   EvictManagedResources
+          // 6   GetDirect3D
+          // 7   GetDeviceCaps
+          // 8   GetDisplayMode
+          // 9   GetCreationParameters
+          // 10  SetCursorProperties
+          // 11  SetCursorPosition
+          // 12  ShowCursor
+          // 13  CreateAdditionalSwapChain
+          // 14  GetSwapChain
+          // 15  GetNumberOfSwapChains
+          // 16  Reset
+          // 17  Present
+          // 18  GetBackBuffer
+          // 19  GetRasterStatus
+          // 20  SetDialogBoxMode
+          // 21  SetGammaRamp
+          // 22  GetGammaRamp
+          // 23  CreateTexture
+          // 24  CreateVolumeTexture
+          // 25  CreateCubeTexture
+          // 26  CreateVertexBuffer
+          // 27  CreateIndexBuffer
+          // 28  CreateRenderTarget
+          // 29  CreateDepthStencilSurface
+          // 30  UpdateSurface
+          // 31  UpdateTexture
+          // 32  GetRenderTargetData
+          // 33  GetFrontBufferData
+          // 34  StretchRect
+          // 35  ColorFill
+          // 36  CreateOffscreenPlainSurface
+          // 37  SetRenderTarget
+          // 38  GetRenderTarget
+          // 39  SetDepthStencilSurface
+          // 40  GetDepthStencilSurface
+          // 41  BeginScene
+          // 42  EndScene
+          // 43  Clear
+          // 44  SetTransform
+          // 45  GetTransform
+          // 46  MultiplyTransform
+          // 47  SetViewport
+          // 48  GetViewport
+          // 49  SetMaterial
+          // 50  GetMaterial
+          // 51  SetLight
+          // 52  GetLight
+          // 53  LightEnable
+          // 54  GetLightEnable
+          // 55  SetClipPlane
+          // 56  GetClipPlane
+          // 57  SetRenderState
+          // 58  GetRenderState
+          // 59  CreateStateBlock
+          // 60  BeginStateBlock
+          // 61  EndStateBlock
+          // 62  SetClipStatus
+          // 63  GetClipStatus
+          // 64  GetTexture
+          // 65  SetTexture
+          // 66  GetTextureStageState
+          // 67  SetTextureStageState
+          // 68  GetSamplerState
+          // 69  SetSamplerState
+          // 70  ValidateDevice
+          // 71  SetPaletteEntries
+          // 72  GetPaletteEntries
+          // 73  SetCurrentTexturePalette
+          // 74  GetCurrentTexturePalette
+          // 75  SetScissorRect
+          // 76  GetScissorRect
+          // 77  SetSoftwareVertexProcessing
+          // 78  GetSoftwareVertexProcessing
+          // 79  SetNPatchMode
+          // 80  GetNPatchMode
+          // 81  DrawPrimitive
+          // 82  DrawIndexedPrimitive
+          // 83  DrawPrimitiveUP
+          // 84  DrawIndexedPrimitiveUP
+          // 85  ProcessVertices
+          // 86  CreateVertexDeclaration
+          // 87  SetVertexDeclaration
+          // 88  GetVertexDeclaration
+          // 89  SetFVF
+          // 90  GetFVF
+          // 91  CreateVertexShader
+          // 92  SetVertexShader
+          // 93  GetVertexShader
+          // 94  SetVertexShaderConstantF
+          // 95  GetVertexShaderConstantF
+          // 96  SetVertexShaderConstantI
+          // 97  GetVertexShaderConstantI
+          // 98  SetVertexShaderConstantB
+          // 99  GetVertexShaderConstantB
+          // 100 SetStreamSource
+          // 101 GetStreamSource
+          // 102 SetStreamSourceFreq
+          // 103 GetStreamSourceFreq
+          // 104 SetIndices
+          // 105 GetIndices
+          // 106 CreatePixelShader
+          // 107 SetPixelShader
+          // 108 GetPixelShader
+          // 109 SetPixelShaderConstantF
+          // 110 GetPixelShaderConstantF
+          // 111 SetPixelShaderConstantI
+          // 112 GetPixelShaderConstantI
+          // 113 SetPixelShaderConstantB
+          // 114 GetPixelShaderConstantB
+          // 115 DrawRectPatch
+          // 116 DrawTriPatch
+          // 117 DeletePatch
+          // 118 CreateQuery
 
           dll_log.Log (L"[   D3D9   ]   * Success");
         }
 
         else
         {
-          dll_log.Log (L"[   D3D9   ]   * Failure");
+          _com_error err (hr);
+          dll_log.Log ( L"[   D3D9   ]   * Failure  (%s)",
+                        err.ErrorMessage () );
 
-          if (config.render.d3d9.force_d3d9ex)
+          if (! config.render.d3d9.force_d3d9ex)
           {
-            D3D9_INTERCEPT ( &pD3D9Ex, 16,
-                             "IDirect3D9Ex::CreateDevice",
-                              D3D9ExCreateDevice_Override,
-                              D3D9ExCreateDevice_Original,
+            D3D9_INTERCEPT ( &pD3D9, 16,
+                            "IDirect3D9::CreateDevice",
+                              D3D9CreateDevice_Override,
+                              D3D9CreateDevice_Original,
                               D3D9CreateDevice_pfn );
           }
-
-          D3D9_INTERCEPT ( &pD3D9Ex, 20,
-                           "IDirect3D9Ex::CreateDeviceEx",
-                            D3D9CreateDeviceEx_Override,
-                            D3D9CreateDeviceEx_Original,
-                            D3D9CreateDeviceEx_pfn );
         }
 
         SK_Win32_CleanupDummyWindow ();
-      }
 
-      else
-      {
-        if (pD3D9Dev != nullptr)
+        CComPtr <IDirect3D9Ex> pD3D9Ex = nullptr;
+
+        hr = (config.apis.d3d9ex.hook) ?
+          Direct3DCreate9Ex_Import (D3D_SDK_VERSION, &pD3D9Ex)
+                           :
+                      E_NOINTERFACE;
+
+        hwnd = nullptr;
+
+        if (SUCCEEDED (hr))
         {
-          SK_D3D9_HookReset   (pD3D9Dev);
-          SK_D3D9_HookPresent (pD3D9Dev);
+          dll_log.Log (L"[   D3D9   ]  Hooking D3D9Ex...");
+
+          hwnd    =
+            SK_Win32_CreateDummyWindow ();
+          pparams = { };
+
+          pparams.SwapEffect            = D3DSWAPEFFECT_FLIPEX;
+          pparams.BackBufferFormat      = D3DFMT_UNKNOWN;
+          pparams.Windowed              = TRUE;
+          pparams.BackBufferCount       = 2;
+          pparams.hDeviceWindow         = hwnd;
+          pparams.BackBufferHeight      = 2;
+          pparams.BackBufferWidth       = 2;
+
+          CComPtr <IDirect3DDevice9Ex> pD3D9DevEx = nullptr;
+
+          if ( SUCCEEDED ( pD3D9Ex->CreateDeviceEx (
+                            D3DADAPTER_DEFAULT,
+                              D3DDEVTYPE_HAL,
+                                 hwnd,
+                                  D3DCREATE_HARDWARE_VERTEXPROCESSING,
+                                    &pparams,
+                                      nullptr,
+                                        &pD3D9DevEx )
+                        )
+            )
+          {
+            if (config.render.d3d9.force_d3d9ex)
+            {
+              D3D9_INTERCEPT ( &pD3D9Ex, 16,
+                               "IDirect3D9Ex::CreateDevice",
+                                D3D9ExCreateDevice_Override,
+                                D3D9ExCreateDevice_Original,
+                                D3D9CreateDevice_pfn );
+            }
+
+            D3D9_INTERCEPT ( &pD3D9Ex, 20,
+                             "IDirect3D9Ex::CreateDeviceEx",
+                              D3D9CreateDeviceEx_Override,
+                              D3D9CreateDeviceEx_Original,
+                              D3D9CreateDeviceEx_pfn );
+
+            //IDirect3DDevice9Ex **ppReturnedDeviceInterface = &pD3D9DevEx;
+
+            SK_D3D9_HookReset   (pD3D9DevEx);
+            SK_D3D9_HookPresent (pD3D9DevEx);
+
+            // Initialize stuff...
+            SK_D3D9RenderBackend::getInstance ();
+
+            dll_log.Log (L"[   D3D9   ]   * Success");
+          }
+
+          else
+          {
+            dll_log.Log (L"[   D3D9   ]   * Failure");
+
+            if (config.render.d3d9.force_d3d9ex)
+            {
+              D3D9_INTERCEPT ( &pD3D9Ex, 16,
+                               "IDirect3D9Ex::CreateDevice",
+                                D3D9ExCreateDevice_Override,
+                                D3D9ExCreateDevice_Original,
+                                D3D9CreateDevice_pfn );
+            }
+
+            D3D9_INTERCEPT ( &pD3D9Ex, 20,
+                             "IDirect3D9Ex::CreateDeviceEx",
+                              D3D9CreateDeviceEx_Override,
+                              D3D9CreateDeviceEx_Original,
+                              D3D9CreateDeviceEx_pfn );
+          }
+
+          SK_Win32_CleanupDummyWindow ();
         }
 
-        // Initialize stuff...
-        SK_D3D9RenderBackend::getInstance ();
+        else
+        {
+          if (pD3D9Dev != nullptr)
+          {
+            SK_D3D9_HookReset   (pD3D9Dev);
+            SK_D3D9_HookPresent (pD3D9Dev);
+          }
+
+          // Initialize stuff...
+          SK_D3D9RenderBackend::getInstance ();
+        }
+
+        SK_ApplyQueuedHooks  (                   );
+        InterlockedExchange  (&__d3d9_ready, TRUE);
+        InterlockedIncrement (&__hooked);
+
+        if (! (SK_GetDLLRole () & DLL_ROLE::DXGI))
+          SK::DXGI::StartBudgetThread_NoAdapter ();
       }
-
-      SK_ApplyQueuedHooks  (                   );
-      InterlockedExchange  (&__d3d9_ready, TRUE);
-      InterlockedIncrement (&__hooked);
-
-      if (! (SK_GetDLLRole () & DLL_ROLE::DXGI))
-        SK::DXGI::StartBudgetThread_NoAdapter ();
     }
-  }
-  //if (success)
-  //  CoUninitialize ();
+    //if (success)
+    //  CoUninitialize ();
   }
 
-  while (ReadAcquire (&__hooked) < 2)
-    ;
+  SK_Thread_SpinUntilAtomicMin (&__hooked, 2);
 
   return 0;
 }

@@ -716,7 +716,7 @@ BOOL WINAPI RegisterRawInputDevices_Detour (
                       pDevices [i].hwndTarget ),
                         L"Input Mgr." );
 
-    if (GetFocus () == pDevices [i].hwndTarget)
+        if (GetFocus ( ) == pDevices [i].hwndTarget)
         {
           if ( InterlockedCompareExchangePointer ( (volatile LPVOID *)&game_window.hWnd,
                                                      pDevices [i].hwndTarget,
