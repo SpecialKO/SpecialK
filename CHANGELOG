@@ -1,3 +1,20 @@
+0.8.67:
+
+ + Corrected usernames not properly stripped from log files
+ + Added range validation to D3D11 resolution limiting settings
+ + Fixed OpenGL HWND determination logic for Chromium games
+
+
+ + Tweaked input latency reducing features in framerate limiter
+
+  >> If you want to test these, it is suggested you set the mouse cursor
+       to NOT use hardware and then move it rapidly.
+
+      Games severely impacted by input latency (usually denoted by a rising
+        counter in the sleepless window thread tooltip) will become more
+          responsive.
+
+
 0.8.66:
 
  + Fixed ReShade deferred context shader triggers in Okami HD

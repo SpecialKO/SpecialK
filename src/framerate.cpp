@@ -84,6 +84,65 @@ HANDLE hModSteamAPI = nullptr;
 #include <SpecialK/steam_api.h>
 
 void
+SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds)
+{
+  if (IsGUIThread (FALSE))
+  {
+    HWND hWndThis = GetActiveWindow ();
+    bool bUnicode =
+      IsWindowUnicode (hWndThis);
+
+    auto PeekAndDispatch =
+    [&]
+    {
+      MSG msg     = {      };
+      msg.hwnd    = hWndThis;
+      msg.message = WM_NULL ;
+
+      // Avoid having Windows marshal Unicode messages like a dumb ass
+      if (bUnicode)
+      {
+        if ( PeekMessageW ( &msg, hWndThis, 0, 0,
+                                              PM_REMOVE | PM_QS_INPUT)
+                 &&          msg.message != WM_NULL
+           )
+        {
+          DispatchMessageW (&msg);
+        }
+      }
+
+      else
+      {
+        if ( PeekMessageA ( &msg, hWndThis, 0, 0,
+                                              PM_REMOVE | PM_QS_INPUT)
+                 &&          msg.message != WM_NULL
+           )
+        {
+          DispatchMessageA (&msg);
+        }
+      }
+    };
+
+    DWORD dwStartTime = timeGetTime ();
+    DWORD dwEndTime   = dwStartTime + dwMilliseconds;
+
+    while (timeGetTime () <= dwEndTime)
+    {
+      DWORD dwMaxWait =
+        dwEndTime - timeGetTime ();
+
+      if (dwMaxWait < INT_MAX)
+      {
+        if (MsgWaitForMultipleObjectsEx (0, nullptr, dwMaxWait, QS_ALLEVENTS, MWMO_ALERTABLE | MWMO_INPUTAVAILABLE) == WAIT_OBJECT_0)
+        {
+          PeekAndDispatch ();
+        }
+      }
+    }
+  }
+}
+
+void
 WINAPI
 Sleep_Detour (DWORD dwMilliseconds)
 {
@@ -200,7 +259,7 @@ Sleep_Detour (DWORD dwMilliseconds)
       if (bRenderThread)
         SK::Framerate::events.getMessagePumpStats ().wake (dwMilliseconds);
 
-      MsgWaitForMultipleObjects (0, nullptr, FALSE, dwMilliseconds, QS_ALLEVENTS);
+      SK_Thread_WaitWhilePumpingMessages (dwMilliseconds);
 
       return;
     }
@@ -635,40 +694,6 @@ SK::Framerate::Limiter::wait (void)
       bGUI ? IsWindowUnicode (hWndThis) :
              false;
 
-    auto PeekAndDispatch =
-    [&]
-    {
-      if (! config.render.framerate.min_input_latency)
-        return;
-
-      MSG msg     = {      };
-      msg.hwnd    = hWndThis;
-      msg.message = WM_NULL ;
-
-      // Avoid having Windows marshal Unicode messages like a dumb ass
-      if (bUnicode)
-      {
-        if ( PeekMessageW ( &msg, hWndThis, 0, 0,
-                                              PM_REMOVE | PM_QS_INPUT )
-                 &&          msg.message != WM_NULL
-           )
-        {
-          DispatchMessageW (&msg);
-        }
-      }
-
-      else
-      {
-        if ( PeekMessageA ( &msg, hWndThis, 0, 0,
-                                              PM_REMOVE | PM_QS_INPUT )
-                 &&          msg.message != WM_NULL
-           )
-        {
-          DispatchMessageA (&msg);
-        }
-      }
-    };
-
     bool bYielded = false;
 
     while (time.QuadPart < next.QuadPart)
@@ -687,7 +712,7 @@ SK::Framerate::Limiter::wait (void)
             d3d9ex->WaitForVBlank (0);
 
           else if (dxgi_output != nullptr)
-            dxgi_output->WaitForVBlank ();//WaitForVBlank_Original (dxgi_output);
+            dxgi_output->WaitForVBlank ();
         }
 
         else if (! config.render.framerate.busy_wait_limiter)
@@ -702,24 +727,16 @@ SK::Framerate::Limiter::wait (void)
           {
             if (bGUI && config.render.framerate.min_input_latency)
             {
-              PeekAndDispatch           (                                     );
-              MsgWaitForMultipleObjects (0, nullptr, FALSE, dwWaitMS, QS_INPUT);
-              PeekAndDispatch           (                                     );
+              SK_Thread_WaitWhilePumpingMessages (dwWaitMS);
             }
 
             else
-              SleepEx                   (dwWaitMS,   FALSE);
+              SleepEx                            (dwWaitMS,   FALSE);
 
             bYielded = true;
           }
         }
-
-        QueryPerformanceCounter_Original (&time);
-        continue;
       }
-
-      if (bGUI)
-        PeekAndDispatch ();
 
       QueryPerformanceCounter_Original (&time);
     }

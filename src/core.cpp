@@ -1064,8 +1064,8 @@ BACKEND_INIT:
 #endif
 
 
-  wchar_t  wszBackendDLL [MAX_PATH + 2] = { };
-  wchar_t wszWorkDir     [MAX_PATH + 2] = { };
+  wchar_t wszBackendDLL [MAX_PATH + 2] = { };
+  wchar_t wszWorkDir    [MAX_PATH + 2] = { };
 
   wcsncpy (wszBackendDLL, SK_GetSystemDirectory (), MAX_PATH);
 
@@ -1609,8 +1609,8 @@ SK_BeginBufferSwap (void)
 
       _wputenv  (wszEnvPath);
 
-      lstrcatW      (wszCEGUITestDLL, wszCEGUIModPath);
-      lstrcatW      (wszCEGUITestDLL, L"\\CEGUIBase-0.dll");
+      lstrcatW  (wszCEGUITestDLL, wszCEGUIModPath);
+      lstrcatW  (wszCEGUITestDLL, L"\\CEGUIBase-0.dll");
 
       wchar_t wszWorkingDir [MAX_PATH + 2] = { };
 

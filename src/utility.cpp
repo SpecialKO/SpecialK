@@ -531,7 +531,8 @@ SK_MakePrettyAddress (LPCVOID addr, DWORD /*dwFlags*/)
 {
   return
     SK_FormatStringW ( L"( %s ) + %xh",
-                         SK_GetModuleFullNameFromAddr (addr).c_str (),
+      SK_StripUserNameFromPathW (
+                         SK_GetModuleFullNameFromAddr (addr).data () ),
                                             (uintptr_t)addr -
                       (uintptr_t)SK_GetModuleFromAddr (addr) );
 }
@@ -2256,66 +2257,199 @@ SK_FixSlashesA (char* szInOut)
 }
 
 
-bool
+#define SECURITY_WIN32
+#include <Security.h>
+#pragma comment (lib, "secur32.lib")
+
+// Doesn't need to be this complicated; it's a string function, might as well optimize it.
+
+char*
 SK_StripUserNameFromPathA (char* szInOut)
 {
-  static char szUserName [MAX_PATH + 2] = { };
+  static char szUserName        [MAX_PATH + 2] = { };
+  static char szUserNameDisplay [MAX_PATH + 2] = { };
+  static char szUserProfile     [MAX_PATH + 2] = { }; // Most likely to match
+
+  if (*szUserProfile == '\0')
+  {
+    wchar_t wszUserProfile [MAX_PATH + 2] = { };
+
+                                        uint32_t len = MAX_PATH;
+    if (! SK_GetUserProfileDir (wszUserProfile, &len))
+      *wszUserProfile = L'?'; // Invalid filesystem char
+    else
+      PathStripPathW (wszUserProfile);
+
+    strcpy (szUserProfile, SK_WideCharToUTF8 (wszUserProfile).c_str ());
+  }
 
   if (*szUserName == '\0')
   {
-                         DWORD dwLen = MAX_PATH;
-    GetUserNameA (szUserName, &dwLen);
+                                        DWORD dwLen = MAX_PATH;
+    GetUserNameExA (NameUnknown, szUserName, &dwLen);
+
+    if (dwLen == 0)
+      *szUserName = '?'; // Invalid filesystem char
+    else
+      PathStripPathA (szUserName);
   }
 
+  if (*szUserNameDisplay == '\0')
+  {
+                                               DWORD dwLen = MAX_PATH;
+    GetUserNameExA (NameDisplay, szUserNameDisplay, &dwLen);
+
+    if (dwLen == 0)
+      *szUserNameDisplay = '?'; // Invalid filesystem char
+  }
+
+
   char* pszUserNameSubstr =
-    strstr (szInOut, szUserName);
+    StrStrIA (szInOut, szUserProfile);
 
   if (pszUserNameSubstr != nullptr)
   {
-    const size_t user_name_len =
-      strlen (szUserName);
+    static const size_t len =
+      strlen (szUserProfile);
 
-    for (size_t i = 0; i < user_name_len; i++)
+    for (size_t i = 0; i < len; i++)
     {
       *pszUserNameSubstr = '*';
        pszUserNameSubstr = CharNextA (pszUserNameSubstr);
     }
 
-    return true;
+    return szInOut;
   }
 
-  return false;
+  pszUserNameSubstr =
+    StrStrIA (szInOut, szUserNameDisplay);
+
+  if (pszUserNameSubstr != nullptr)
+  {
+    static const size_t len =
+      strlen (szUserNameDisplay);
+
+    for (size_t i = 0; i < len; i++)
+    {
+      *pszUserNameSubstr = '*';
+       pszUserNameSubstr = CharNextA (pszUserNameSubstr);
+    }
+
+    return szInOut;
+  }
+
+  pszUserNameSubstr =
+    StrStrIA (szInOut, szUserName);
+
+  if (pszUserNameSubstr != nullptr)
+  {
+    static const size_t len =
+      strlen (szUserName);
+
+    for (size_t i = 0; i < len; i++)
+    {
+      *pszUserNameSubstr = '*';
+       pszUserNameSubstr = CharNextA (pszUserNameSubstr);
+    }
+
+    return szInOut;
+  }
+
+  return szInOut;
 }
 
-bool
+wchar_t*
 SK_StripUserNameFromPathW (wchar_t* wszInOut)
 {
-  static wchar_t wszUserName [MAX_PATH + 2] = { };
+  static wchar_t wszUserName        [MAX_PATH + 2] = { };
+  static wchar_t wszUserNameDisplay [MAX_PATH + 2] = { };
+  static wchar_t wszUserProfile     [MAX_PATH + 2] = { }; // Most likely to match
+
+  if (*wszUserProfile == L'\0')
+  {
+                                        uint32_t len = MAX_PATH;
+    if (! SK_GetUserProfileDir (wszUserProfile, &len))
+      *wszUserProfile = L'?'; // Invalid filesystem char
+    else
+      PathStripPathW (wszUserProfile);
+  }
 
   if (*wszUserName == L'\0')
   {
-                          DWORD dwLen = MAX_PATH;
-    GetUserNameW (wszUserName, &dwLen);
+                                               DWORD dwLen = MAX_PATH;
+    GetUserNameExW (NameSamCompatible, wszUserName, &dwLen);
+
+    if (dwLen == 0)
+      *wszUserName = L'?'; // Invalid filesystem char
+    else
+      PathStripPathW (wszUserName);
   }
 
+  if (*wszUserNameDisplay == L'\0')
+  {
+                                                DWORD dwLen = MAX_PATH;
+    GetUserNameExW (NameDisplay, wszUserNameDisplay, &dwLen);
+
+    if (dwLen == 0)
+      *wszUserNameDisplay = L'?'; // Invalid filesystem char
+  }
+
+
+  //dll_log.Log (L"Profile: %ws, User: %ws, Display: %ws", wszUserProfile, wszUserName, wszUserNameDisplay);
+
+
   wchar_t* pwszUserNameSubstr =
-    wcsstr (wszInOut, wszUserName);
+    StrStrIW (wszInOut, wszUserProfile);
 
   if (pwszUserNameSubstr != nullptr)
   {
-    const size_t user_name_len =
-      wcslen (wszUserName);
+    static const size_t len =
+      wcslen (wszUserProfile);
 
-    for (size_t i = 0; i < user_name_len; i++)
+    for (size_t i = 0; i < len; i++)
     {
       *pwszUserNameSubstr = L'*';
        pwszUserNameSubstr = CharNextW (pwszUserNameSubstr);
     }
 
-    return true;
+    return wszInOut;
   }
 
-  return false;
+  pwszUserNameSubstr =
+    StrStrIW (wszInOut, wszUserNameDisplay);
+
+  if (pwszUserNameSubstr != nullptr)
+  {
+    static const size_t len =
+      wcslen (wszUserNameDisplay);
+
+    for (size_t i = 0; i < len; i++)
+    {
+      *pwszUserNameSubstr = L'*';
+       pwszUserNameSubstr = CharNextW (pwszUserNameSubstr);
+    }
+
+    return wszInOut;
+  }
+
+  pwszUserNameSubstr =
+    StrStrIW (wszInOut, wszUserName);
+
+  if (pwszUserNameSubstr != nullptr)
+  {
+    static const size_t len =
+      wcslen (wszUserName);
+
+    for (size_t i = 0; i < len; i++)
+    {
+      *pwszUserNameSubstr = L'*';
+       pwszUserNameSubstr = CharNextW (pwszUserNameSubstr);
+    }
+
+    return wszInOut;
+  }
+
+  return wszInOut;
 }
 
 

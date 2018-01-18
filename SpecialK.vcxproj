@@ -477,9 +477,10 @@
       <ImageHasSafeExceptionHandlers>true</ImageHasSafeExceptionHandlers>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;psapi.lib;legacy_stdio_definitions.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SetChecksum>true</SetChecksum>
-      <BaseAddress>0x6A100000</BaseAddress>
+      <BaseAddress>
+      </BaseAddress>
       <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
     </Link>
     <ProjectReference />
   </ItemDefinitionGroup>
@@ -534,9 +535,10 @@
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;psapi.lib;legacy_stdio_definitions.lib;lzma\x64\libzma.lib;DirectXTex\x64\DirectXTex.lib;MinHook\x64\libMinHook64.lib;;nvapi\x64\nvapi64.lib;glew\x64\glew.lib;glfw\x64\glfw.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <CreateHotPatchableImage>ItaniumImage</CreateHotPatchableImage>
       <SetChecksum>true</SetChecksum>
-      <BaseAddress>0x6A100000</BaseAddress>
+      <BaseAddress>
+      </BaseAddress>
       <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
     </Link>
     <ProjectReference />
     <ResourceCompile>
@@ -603,9 +605,10 @@
       <OptimizeReferences>false</OptimizeReferences>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <SetChecksum>true</SetChecksum>
-      <BaseAddress>0x6A100000</BaseAddress>
+      <BaseAddress>
+      </BaseAddress>
       <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -683,9 +686,10 @@
       <AssemblyDebug>true</AssemblyDebug>
       <CreateHotPatchableImage>ItaniumImage</CreateHotPatchableImage>
       <SetChecksum>true</SetChecksum>
-      <BaseAddress>0x6A100000</BaseAddress>
+      <BaseAddress>
+      </BaseAddress>
       <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -756,9 +760,10 @@ Exit 0</Command>
       <CreateHotPatchableImage>ItaniumImage</CreateHotPatchableImage>
       <RegisterOutput>false</RegisterOutput>
       <SetChecksum>true</SetChecksum>
-      <BaseAddress>0x6A100000</BaseAddress>
+      <BaseAddress>
+      </BaseAddress>
       <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -830,9 +835,10 @@ Exit 0</Command>
       <CreateHotPatchableImage>ItaniumImage</CreateHotPatchableImage>
       <RegisterOutput>false</RegisterOutput>
       <SetChecksum>true</SetChecksum>
-      <BaseAddress>0x6A100000</BaseAddress>
+      <BaseAddress>
+      </BaseAddress>
       <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -905,9 +911,10 @@ Exit 0</Command>
       </ImportLibrary>
       <AssemblyDebug>true</AssemblyDebug>
       <SetChecksum>true</SetChecksum>
-      <BaseAddress>0x6A100000</BaseAddress>
+      <BaseAddress>
+      </BaseAddress>
       <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -979,9 +986,10 @@ Exit 0</Command>
       </ImportLibrary>
       <AssemblyDebug>true</AssemblyDebug>
       <SetChecksum>true</SetChecksum>
-      <BaseAddress>0x6A100000</BaseAddress>
+      <BaseAddress>
+      </BaseAddress>
       <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1053,9 +1061,10 @@ Exit 0</Command>
       </ImportLibrary>
       <AssemblyDebug>true</AssemblyDebug>
       <SetChecksum>true</SetChecksum>
-      <BaseAddress>0x6A100000</BaseAddress>
+      <BaseAddress>
+      </BaseAddress>
       <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1126,9 +1135,10 @@ Exit 0</Command>
       </ImportLibrary>
       <AssemblyDebug>true</AssemblyDebug>
       <SetChecksum>true</SetChecksum>
-      <BaseAddress>0x6A100000</BaseAddress>
+      <BaseAddress>
+      </BaseAddress>
       <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1199,9 +1209,10 @@ Exit 0</Command>
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <CreateHotPatchableImage>ItaniumImage</CreateHotPatchableImage>
-      <BaseAddress>0x6A100000</BaseAddress>
+      <BaseAddress>
+      </BaseAddress>
       <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1275,9 +1286,10 @@ Exit 0</Command>
       <ImportLibrary>
       </ImportLibrary>
       <SetChecksum>true</SetChecksum>
-      <BaseAddress>0x6A100000</BaseAddress>
+      <BaseAddress>
+      </BaseAddress>
       <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1344,9 +1356,10 @@ Exit 0</Command>
       <ImportLibrary>
       </ImportLibrary>
       <SetChecksum>true</SetChecksum>
-      <BaseAddress>0x6A100000</BaseAddress>
+      <BaseAddress>
+      </BaseAddress>
       <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1413,9 +1426,10 @@ Exit 0</Command>
       <ImportLibrary>
       </ImportLibrary>
       <SetChecksum>true</SetChecksum>
-      <BaseAddress>0x6A100000</BaseAddress>
+      <BaseAddress>
+      </BaseAddress>
       <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1482,9 +1496,10 @@ Exit 0</Command>
       <ImportLibrary>
       </ImportLibrary>
       <SetChecksum>true</SetChecksum>
-      <BaseAddress>0x6A100000</BaseAddress>
+      <BaseAddress>
+      </BaseAddress>
       <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1552,9 +1567,10 @@ Exit 0</Command>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <AssemblyDebug>true</AssemblyDebug>
       <Profile>true</Profile>
-      <BaseAddress>0x6A100000</BaseAddress>
+      <BaseAddress>
+      </BaseAddress>
       <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1624,9 +1640,10 @@ Exit 0</Command>
       <OptimizeReferences>false</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <AssemblyDebug>true</AssemblyDebug>
-      <BaseAddress>0x6A100000</BaseAddress>
+      <BaseAddress>
+      </BaseAddress>
       <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1698,9 +1715,10 @@ Exit 0</Command>
       <ImportLibrary>
       </ImportLibrary>
       <SetChecksum>true</SetChecksum>
-      <BaseAddress>0x6A100000</BaseAddress>
+      <BaseAddress>
+      </BaseAddress>
       <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
     </Link>
     <ProjectReference />
     <PostBuildEvent>

@@ -276,8 +276,7 @@ L"conhost.exe",
 L"gamebarpresencewriter.exe",
 L"oawrapper.exe",
 L"nvoawrappercache.exe",
-L"waifu2x-caffe.exe",
-L"waifu2x-caffe-cui.exe",
+L"perfwatson2.exe",
 
 L"gameserver.exe",// Sacred   game server
 L"s2gs.exe",      // Sacred 2 game server
