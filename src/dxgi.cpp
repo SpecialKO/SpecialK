@@ -2367,16 +2367,6 @@ HRESULT
               DXGI_MWA_NO_WINDOW_CHANGES
           );
         }
-
-        //if (hWndRender == nullptr || (! IsWindowVisible (hWndRender)))
-        //{
-        //  hWndRender       = desc.OutputWindow;
-        //
-        //  SK_InstallWindowHook (hWndRender);
-        //
-        //  if (game_window.WndProc_Original && (! game_window.hWnd))
-        //    game_window.hWnd =    hWndRender;
-        //}
       }
     }
   }
@@ -2963,18 +2953,6 @@ HRESULT
 
         if (bAlwaysAllowFullscreen)
           pFactory->MakeWindowAssociation (desc.OutputWindow, DXGI_MWA_NO_WINDOW_CHANGES);
-
-        //if (hWndRender == 0 || (! IsWindowVisible (hWndRender)))
-        //{
-        //  hWndRender       = desc.OutputWindow;
-        //
-        //  SK_InstallWindowHook (hWndRender);
-        //
-        //  if (game_window.WndProc_Original && (! game_window.hWnd))
-        //    game_window.hWnd =    hWndRender;
-        //
-        //  SK_DXGI_BringRenderWindowToTop ();
-        //}
       }
     }
   }
@@ -4324,6 +4302,37 @@ SK_DXGI_CreateSwapChain_PostInit ( _In_  IUnknown              *pDevice,
                                    _In_  DXGI_SWAP_CHAIN_DESC  *pDesc,
                                    _In_  IDXGISwapChain       **ppSwapChain )
 {
+  if (pDesc != nullptr && ( dwRenderThread == 0 || dwRenderThread == GetCurrentThreadId () ))
+  {
+    if ( dwRenderThread == 0x00 ||
+         dwRenderThread == GetCurrentThreadId () )
+    {
+      if ( hWndRender          != nullptr &&
+           pDesc->OutputWindow != nullptr &&
+           pDesc->OutputWindow != hWndRender )
+      {
+        dll_log.Log (L"[   DXGI   ] Game created a new window?!");
+      }
+
+      SK_InstallWindowHook (pDesc->OutputWindow);
+
+      hWndRender = pDesc->OutputWindow;
+    }
+
+    if (ppSwapChain != nullptr)
+      SK_DXGI_HookSwapChain (*ppSwapChain);
+
+    // Assume the first thing to create a D3D11 render device is
+    //   the game and that devices never migrate threads; for most games
+    //     this assumption holds.
+    if ( dwRenderThread == 0x00 )
+    {
+      dwRenderThread = GetCurrentThreadId ();
+    }
+  }
+
+
+
   SK_CEGUI_QueueResetD3D11 ();
 
   if (pDesc->BufferDesc.Width != 0)
@@ -4341,7 +4350,6 @@ SK_DXGI_CreateSwapChain_PostInit ( _In_  IUnknown              *pDevice,
     SK_SetWindowResY (client.bottom - client.top);
   }
 
-  SK_RunOnce (SK_DXGI_HookSwapChain (*ppSwapChain));
 
   //if (bFlipMode || bWait)
     //DXGISwap_ResizeBuffers_Override (*ppSwapChain, config.render.framerate.buffer_count,

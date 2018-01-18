@@ -1038,12 +1038,15 @@ _SK_SummarizeModule ( LPVOID   base_addr,  size_t      mod_size,
   ulLen =
     SK_GetSymbolNameFromModuleAddr (hMod, addr, szSymbol, ulLen);
 
+  std::wstring ver_str =
+    SK_GetDLLVersionStr (wszModName);
+
   if (ulLen != 0)
   {
     pLogger->Log ( L"[ Module ]  ( %ph + %08u )   -:< %-64hs >:-   %s",
                    static_cast   <void *>   (base_addr),
                      static_cast <uint32_t> (mod_size),
-                      szSymbol, wszModName );
+                      szSymbol, SK_StripUserNameFromPathW (wszModName) );
   }
 
   else
@@ -1051,11 +1054,8 @@ _SK_SummarizeModule ( LPVOID   base_addr,  size_t      mod_size,
     pLogger->Log ( L"[ Module ]  ( %ph + %08i )       %-64hs       %s",
                     static_cast   <void *>  (base_addr),
                       static_cast <int32_t> (mod_size),
-                        "", wszModName );
+                        "", SK_StripUserNameFromPathW (wszModName) );
   }
-
-  std::wstring ver_str =
-    SK_GetDLLVersionStr (wszModName);
 
   if (ver_str != L"  ")
   {

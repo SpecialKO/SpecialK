@@ -12127,24 +12127,13 @@ SK_ImGui_PollGamepad_EndFrame (void)
   extern HWND hWndRender;
 
 
-  if (SK_ImGui_WantMouseCapture ())
-    SK_RawInput_EnableLegacyMouse  (true);
-  else
-    SK_RawInput_RestoreLegacyMouse ();
-
-  if (SK_ImGui_WantKeyboardCapture ())
-    SK_RawInput_EnableLegacyKeyboard (true);
-
-
   HWND hWndFocus      = GetFocus            ();
   HWND hWndForeground = GetForegroundWindow ();
-  HWND hWndActive     = GetActiveWindow     ();
 
   // Reset Mouse / Keyboard State so that we can process all state transitions
   //   that occur during the next frame without losing any input events.
   if ( game_window.hWnd == hWndFocus      ||
        game_window.hWnd == hWndForeground ||
-       game_window.hWnd == hWndActive     ||
        game_window.active )
   {
     io.MouseDown [0] = (GetAsyncKeyState_Original (VK_LBUTTON)  & 0x8000) != 0;
@@ -12167,6 +12156,15 @@ SK_ImGui_PollGamepad_EndFrame (void)
                     SK_ImGui_WantExit = true;
       }
     }
+
+    if (SK_ImGui_WantMouseCapture ())
+      SK_RawInput_EnableLegacyMouse  (true);
+    else
+      SK_RawInput_RestoreLegacyMouse ();
+  
+  
+    if (SK_ImGui_WantKeyboardCapture ())
+      SK_RawInput_EnableLegacyKeyboard (true);
   }
 
   else
