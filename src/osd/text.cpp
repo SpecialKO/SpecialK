@@ -1916,7 +1916,7 @@ SK_TextOverlayManager::resetAllOverlays (CEGUI::Renderer* renderer)
 
   if (glGenVertexArrays != nullptr)
   {
-    if (! wglGetCurrentDC ())
+    if (! SK_GL_GetCurrentContext ())
       return;
   }
 

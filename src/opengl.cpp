@@ -1841,40 +1841,17 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
 void
 SK_GL_TrackHDC (HDC hDC)
 {
-  if (IsWindowVisible (WindowFromDC (hDC)))
+  HWND hWnd_DC =
+    WindowFromDC (hDC);
+
+  if (hWndRender != hWnd_DC && IsGUIThread (FALSE))
   {
-    // Setup our window message hook for the command console
-    if (hWndRender == 0 || (! IsWindowVisible (hWndRender)))
-      hWndRender = WindowFromDC (hDC);
-
-    if ( SK_TLS_Bottom ()->gl.current_hwnd != game_window.hWnd ||
-                          (! IsWindowVisible (game_window.hWnd) ) )
+    if (IsWindowVisible (hWnd_DC) && GetFocus () == hWnd_DC)
     {
-                                      wchar_t wszWindowClass [64] = { };
-      RealGetWindowClassW (SK_TLS_Bottom ()->gl.current_hwnd, wszWindowClass, 63);
+      SK_InstallWindowHook (GetActiveWindow ());
 
-      HWND  hWndFocus  = 0;
-      DWORD dwFocusPid = 0;
-
-      //
-      // Crazy hack around Chrome stupidity
-      //   ( processes input ... in a separate process )
-      //
-      hWndFocus = ( wcscmp (wszWindowClass, L"Intermediate GL Window") ?
-                      SK_TLS_Bottom ()->gl.current_hwnd :
-                        GetFocus () );
-
-      GetWindowThreadProcessId (hWndFocus, &dwFocusPid);
-
-      if ( dwFocusPid == GetCurrentProcessId () )
-      {
-        game_window.hWnd = ( GetFocus () == hWndFocus ? hWndFocus :
-                                                        GetForegroundWindow () );
-
-        extern void
-        SK_InstallWindowHook (HWND hWnd);
-        SK_InstallWindowHook (game_window.hWnd);
-      }
+      if (game_window.WndProc_Original != nullptr)
+        hWndRender = hWnd_DC;
     }
   }
 }
@@ -2942,7 +2919,8 @@ SK_GL_GetCurrentContext (void)
     hglrc = imp_wglGetCurrentContext ();
 
   assert (hglrc == SK_TLS_Bottom ()->gl.current_hglrc);
-            return SK_TLS_Bottom ()->gl.current_hglrc;
+          //return SK_TLS_Bottom ()->gl.current_hglrc;
+   return hglrc;
 }
 
 HDC
@@ -2959,7 +2937,9 @@ SK_GL_GetCurrentDC (void)
 
   assert (hwnd == SK_TLS_Bottom ()->gl.current_hwnd);
   assert (hdc  == SK_TLS_Bottom ()->gl.current_hdc);
-           return SK_TLS_Bottom ()->gl.current_hdc;
+         //return SK_TLS_Bottom ()->gl.current_hdc;
+
+   return hdc;
 }
 
 

@@ -2541,8 +2541,6 @@ SK_AdjustBorder (void)
 void
 SK_ResetWindow (void)
 {
-  SK_RenderBackend& rb = SK_GetCurrentRenderBackend ();
-
   if (! (config.window.borderless || config.window.center))
     return;
 
@@ -4506,8 +4504,16 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     //}
 
     else if (! first_run)
+    {
+      if (hWnd != game_window.hWnd)
+      {
+        game_window.hWnd = hWnd;
+        hWndRender       = hWnd;
+      }
+
       return
         SK_COMPAT_SafeCallProc (&game_window, hWnd, uMsg, wParam, lParam);
+    }
 
 
     game_window.hWnd = hWnd;
@@ -5316,40 +5322,55 @@ SK_InstallWindowHook (HWND hWnd)
                           SK_MakePrettyAddress (wnd_proc).c_str () :
                           L"Same" ) );
 
+  WNDPROC target_proc, alt_proc;
+
+  // OpenGL games almost always have a window proc. located in OpenGL32.dll; we don't want that.
+  if      (SK_GetModuleFromAddr (class_proc) == GetModuleHandle (nullptr)) target_proc = class_proc;
+  else if (SK_GetModuleFromAddr (wnd_proc)   == GetModuleHandle (nullptr)) target_proc = wnd_proc;
+  else if (SK_GetModuleFromAddr (class_proc) != INVALID_HANDLE_VALUE)      target_proc = class_proc;
+  else                                                                     target_proc = wnd_proc;
+
+  // In case we cannot hook the target, try the other...
+  alt_proc = ( target_proc == class_proc ? wnd_proc :
+                                           class_proc );
+
   bool hook_func = false;
   
   if (hook_func && (! caught_register))
   {
 #if 0
-    game_window.WndProc_Original = (WNDPROC)GetWindowLongPtrW (game_window.hWnd, GWLP_WNDPROC);
+    game_window.WndProc_Original = target_proc;//(WNDPROC)GetWindowLongPtrW (game_window.hWnd, GWLP_WNDPROC);
     g_hkCallWndProc              = SetWindowsHookEx (WH_CALLWNDPROC, CallWndProc, SK_GetDLL (), GetCurrentThreadId ());
 #else
     if ( MH_OK ==
            MH_CreateHook (
-                                                   class_proc,
+                                                  target_proc,
                                           SK_DetourWindowProc,
                  static_cast_p2p <void> (&game_window.WndProc_Original)
            )
       )
     {
-      MH_QueueEnableHook (class_proc);
+      MH_QueueEnableHook (target_proc);
     
-      dll_log.Log (L"[Window Mgr]  >> Hooked ClassProc.");
+      dll_log.Log (L"[Window Mgr]  >> Hooked %s.", ( target_proc == class_proc ? L"ClassProc" :
+                                                                                 L"WndProc" ) );
     
       game_window.hooked = true;
     }
     
+    // Target didn't work, go with the other one...
     else if ( MH_OK ==
                 MH_CreateHook (
-                                                      wnd_proc,
+                                                      alt_proc,
                                            SK_DetourWindowProc,
                   static_cast_p2p <void> (&game_window.WndProc_Original)
                 )
             )
     {
-      MH_QueueEnableHook (wnd_proc);
+      MH_QueueEnableHook (alt_proc);
     
-      dll_log.Log (L"[Window Mgr]  >> Hooked WndProc.");
+      dll_log.Log (L"[Window Mgr]  >> Hooked %s.", ( alt_proc == class_proc ? L"ClassProc" :
+                                                                              L"WndProc" ) );
     
       game_window.hooked = true;
     }
@@ -5362,29 +5383,35 @@ SK_InstallWindowHook (HWND hWnd)
     SK_ApplyQueuedHooks ();
   }
   
-  else if (! caught_register)
+  if ((! caught_register) && ((! hook_func) || game_window.WndProc_Original == nullptr))
   {
     //dll_log.Log ( L"[Window Mgr]  >> Hooking was impossible; installing new "
     //              L"window procedure instead (this may be undone "
     //              L"by other software)." );
-  
-    game_window.WndProc_Original =
-      static_cast <WNDPROC> (wnd_proc);
-  
-    if (game_window.unicode)
-      SetClassLongPtrW ( hWnd, GCLP_WNDPROC, (LONG_PTR)SK_DetourWindowProc );
-    else
-      SetClassLongPtrA ( hWnd, GCLP_WNDPROC, (LONG_PTR)SK_DetourWindowProc );
 
-    //game_window.SetWindowLongPtr ( hWnd,
-    game_window.unicode ?
-      SetWindowLongPtrW_Original ( hWnd,
-                                       GWLP_WNDPROC,
-            reinterpret_cast <LONG_PTR> (SK_DetourWindowProc) ) :
-      SetWindowLongPtrA_Original ( hWnd,
-                                       GWLP_WNDPROC,
-            reinterpret_cast <LONG_PTR> (SK_DetourWindowProc) );
+    game_window.WndProc_Original =
+      static_cast <WNDPROC> (target_proc);
   
+    if (target_proc == class_proc)
+    {
+      if (game_window.unicode)
+        SetClassLongPtrW ( hWnd, GCLP_WNDPROC, (LONG_PTR)SK_DetourWindowProc );
+      else
+        SetClassLongPtrA ( hWnd, GCLP_WNDPROC, (LONG_PTR)SK_DetourWindowProc );
+    }
+
+    else
+    {
+      //game_window.SetWindowLongPtr ( hWnd,
+      game_window.unicode ?
+        SetWindowLongPtrW_Original ( hWnd,
+                                         GWLP_WNDPROC,
+              reinterpret_cast <LONG_PTR> (SK_DetourWindowProc) ) :
+        SetWindowLongPtrA_Original ( hWnd,
+                                         GWLP_WNDPROC,
+              reinterpret_cast <LONG_PTR> (SK_DetourWindowProc) );
+    }
+
     //game_window.SetClassLongPtr ( hWnd,
     //                                GWLP_WNDPROC,
     //      reinterpret_cast <LONG_PTR> (SK_DetourWindowProc) );
