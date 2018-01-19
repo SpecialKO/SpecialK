@@ -704,7 +704,7 @@ SK_GetCallerName (LPCVOID pReturn)
 
 #include <queue>
 
-std::queue <DWORD>
+std::queue <DWORD>\
 SK_SuspendAllOtherThreads (void)
 {
   std::queue <DWORD> threads;
@@ -1457,9 +1457,11 @@ SK_RemoveTrailingDecimalZeros (wchar_t* wszNum, size_t bufLen)
                   wcslen (wszNum) :
         std::min (wcslen (wszNum), bufLen);
 
-  for (size_t i = (len - 1); i > 1; i--) {
+  for (size_t i = (len - 1); i > 1; i--)
+  {
     if (wszNum [i] == L'0' && wszNum [i - 1] != L'.')
       len--;
+
     if (wszNum [i] != L'0' && wszNum [i] != L'\0')
       break;
   }
@@ -2495,8 +2497,8 @@ SK_GetCanonicalDLLForRole (enum DLL_ROLE role)
     case DLL_ROLE::DInput8:
       return L"dinput8.dll";
     default:
-      return SK_GetBitness () == 32 ?
-               L"SpecialK32.dll" : L"SpecialK64.dll";
+      return SK_RunLHIfBitness ( 64, L"SpecialK64.dll",
+                                     L"SpecialK32.dll" );
   }
 }
 

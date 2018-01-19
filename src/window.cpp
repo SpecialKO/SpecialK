@@ -5192,6 +5192,18 @@ SK_InitWindow (HWND hWnd, bool fullscreen_exclusive)
 void
 SK_InstallWindowHook (HWND hWnd)
 {
+  wchar_t wszClass [MAX_PATH * 2] = { };
+
+  RealGetWindowClassW (hWnd, wszClass, MAX_PATH);
+
+  bool dummy_window = 
+    StrStrIW (wszClass, L"Special K Dummy Window Class") ||
+    StrStrIW (wszClass, L"RTSSWndClass");
+
+  if (dummy_window)
+    return;
+
+
   if (game_window.WndProc_Original != nullptr)
     return;
 

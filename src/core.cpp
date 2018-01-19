@@ -1154,11 +1154,17 @@ BACKEND_INIT:
 
   if (! __SK_bypass)
   {
-    //if (SK_GetDLLRole () & DLL_ROLE::DXGI)
-    //{
+    if (config.apis.d3d9.hook || config.apis.d3d9ex.hook)
+    {
+      extern void SK_D3D9_QuickHook (void);
+                  SK_D3D9_QuickHook ();
+    }
+
+    if (config.apis.dxgi.d3d11.hook /*|| config.apis.dxgi.d3d12.hook*/)
+    {
       extern void SK_DXGI_QuickHook (void);
                   SK_DXGI_QuickHook ();
-    //}
+    }
 
     if (GetModuleHandle (L"dinput8.dll"))
       SK_Input_HookDI8 ();

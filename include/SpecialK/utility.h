@@ -69,6 +69,11 @@ enum SK_UNITS {
 };
 
 
+//
+// NOTE: Most of these functions are not intended to be DLL exported, so returning and
+//         passing std::wstring is permissible for convenience.
+//
+
 const wchar_t* __stdcall
                SK_GetRootPath               (void);
 const wchar_t* SK_GetHostApp                (void);

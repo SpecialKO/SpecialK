@@ -22,6 +22,8 @@
 #undef  _NO_CRT_STDIO_INLINE
 #define _NO_CRT_STDIO_INLINE
 
+#pragma warning (disable: 4996)
+
 #include <Windows.h>
 #include <stdio.h>
 #include <Shlwapi.h>
@@ -30,30 +32,51 @@
 #include <SpecialK/config.h>
 #include <SpecialK/utility.h>
 
+
+typedef void (WINAPI *GetSystemTimePreciseAsFileTime_pfn)(
+             _Out_ LPFILETIME lpSystemTimeAsFileTime
+);                    GetSystemTimePreciseAsFileTime_pfn
+                  _k32GetSystemTimePreciseAsFileTime = nullptr;
+
 WORD
 SK_Timestamp (wchar_t* const out)
 {
   SYSTEMTIME stLogTime;
 
-#if 0
   // Check for Windows 8 / Server 2012
   static bool __hasSystemTimePrecise =
-    (LOBYTE (LOWORD (GetVersion ())) == 6  &&
-     HIBYTE (LOWORD (GetVersion ())) >= 2) ||
-     LOBYTE (LOWORD (GetVersion () > 6));
+    (LOBYTE (LOWORD (GetVersion ( ))) == 6  &&
+     HIBYTE (LOWORD (GetVersion ( ))) >= 2) ||
+     LOBYTE (LOWORD (GetVersion ( )   > 6));
 
   // More accurate timestamp is available on Windows 6.2+
   if (__hasSystemTimePrecise)
   {
-    FILETIME   ftLogTime;
-    GetSystemTimePreciseAsFileTime (&ftLogTime);
-    FileTimeToSystemTime           (&ftLogTime, &stLogTime);
-  } else {
-#endif
-    GetLocalTime (&stLogTime);
-#if 0
+    if (_k32GetSystemTimePreciseAsFileTime == nullptr)
+    {
+        _k32GetSystemTimePreciseAsFileTime =
+           (GetSystemTimePreciseAsFileTime_pfn)
+          GetProcAddress ( GetModuleHandle (L"Kernel32.dll"),
+                           "GetSystemTimePreciseAsFileTime" );
+    }
+
+    if (_k32GetSystemTimePreciseAsFileTime == nullptr)
+    {     __hasSystemTimePrecise = false;
+             GetLocalTime (&stLogTime);
+    }
+    else
+    {
+      FILETIME                              ftLogTime  ;
+      _k32GetSystemTimePreciseAsFileTime ( &ftLogTime );
+      FileTimeToSystemTime               ( &ftLogTime ,
+                                           &stLogTime );
+    }
   }
-#endif
+
+  else
+  {
+    GetLocalTime (&stLogTime);
+  }
 
   wchar_t date [64] = { };
   wchar_t time [64] = { };

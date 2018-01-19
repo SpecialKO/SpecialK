@@ -289,9 +289,6 @@ struct sk_config_t
       bool    deferred_isolation = false;
       bool    rehook_present     = false;
       int     alternate_hook     = 0;
-
-      struct sk_dxgi_hook_cache_s*
-              hook_cache        = &SK_DXGI_HookCache;
     } dxgi;
 
     struct {

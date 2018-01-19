@@ -38,8 +38,6 @@
 #include <SpecialK/import.h>
 
 #include <atlbase.h>
-
-//#undef NDEBUG
 #include <cassert>
 
 SK_RenderBackend __SK_RBkEnd;
@@ -125,7 +123,7 @@ SK_BootD3D9 (void)
                               SK_LoadEarlyImports32 () );
     }
 
-    SK_D3D9_PreHook ();
+  //SK_D3D9_PreHook ();
     SK_HookD3D9     ();
 
     if (config.textures.d3d9_mod)
@@ -260,7 +258,6 @@ SK_BootDXGI (void)
 
   SK_Thread_SpinUntilAtomicMin (&__booted, 2);
 }
-
 
 void
 SK_BootOpenGL (void)
