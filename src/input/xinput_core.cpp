@@ -938,11 +938,11 @@ SK_Input_HookXInput1_4 (void)
   if (! config.input.gamepad.hook_xinput)
     return;
 
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (xinput_ctx.spinlock [0]);
+  //std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (xinput_ctx.spinlock [0]);
 
   static volatile LONG hooked = FALSE;
 
-  if (! InterlockedCompareExchange (&hooked, 1, 0))
+  if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
   {
     SK_XInputContext::instance_s* pCtx =
       &xinput_ctx.XInput1_4;
@@ -964,7 +964,10 @@ SK_Input_HookXInput1_4 (void)
     if (ReadPointerAcquire ((volatile LPVOID *)&xinput_ctx.primary_hook) == nullptr)
       InterlockedExchangePointer ((volatile LPVOID*)&xinput_ctx.primary_hook, &xinput_ctx.XInput1_4);
 
+    InterlockedIncrement (&hooked);
   }
+
+  SK_Thread_SpinUntilAtomicMin (&hooked, 2);
 }
 
 void
@@ -973,11 +976,11 @@ SK_Input_HookXInput1_3 (void)
   if (! config.input.gamepad.hook_xinput)
     return;
 
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (xinput_ctx.spinlock [0]);
+  //std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (xinput_ctx.spinlock [0]);
 
   static volatile LONG hooked = FALSE;
 
-  if (! InterlockedCompareExchange (&hooked, 1, 0))
+  if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
   {
     SK_XInputContext::instance_s* pCtx =
       &xinput_ctx.XInput1_3;
@@ -998,7 +1001,11 @@ SK_Input_HookXInput1_3 (void)
 
     if (ReadPointerAcquire ((volatile LPVOID *)&xinput_ctx.primary_hook) == nullptr)
       InterlockedExchangePointer ((volatile LPVOID*)&xinput_ctx.primary_hook, &xinput_ctx.XInput1_3);
+
+    InterlockedIncrement (&hooked);
   }
+
+  SK_Thread_SpinUntilAtomicMin (&hooked, 2);
 }
 
 void
@@ -1007,11 +1014,11 @@ SK_Input_HookXInput9_1_0 (void)
   if (! config.input.gamepad.hook_xinput)
     return;
 
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (xinput_ctx.spinlock [0]);
+  //std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (xinput_ctx.spinlock [0]);
 
   static volatile LONG hooked = FALSE;
 
-  if (! InterlockedCompareExchange (&hooked, 1, 0))
+  if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
   {
     SK_XInputContext::instance_s* pCtx =
       &xinput_ctx.XInput9_1_0;
@@ -1031,7 +1038,11 @@ SK_Input_HookXInput9_1_0 (void)
 
     if (ReadPointerAcquire ((volatile LPVOID *)&xinput_ctx.primary_hook) == nullptr)
       InterlockedExchangePointer ((volatile LPVOID*)&xinput_ctx.primary_hook, &xinput_ctx.XInput9_1_0);
+
+    InterlockedIncrement (&hooked);
   }
+
+  SK_Thread_SpinUntilAtomicMin (&hooked, 2);
 }
 
 

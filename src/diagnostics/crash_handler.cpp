@@ -796,6 +796,11 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
                       SND_MEMORY );
     }
 
+    // CEGUI is potentially the reason we crashed, so ...
+    //   set it back to its original state.
+    if (! config.cegui.orig_enable)
+      config.cegui.enable = false;
+
     // Shutdown the module gracefully
     SK_SelfDestruct ();
 

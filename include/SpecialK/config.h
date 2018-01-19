@@ -33,6 +33,8 @@ const wchar_t*
 __stdcall
 SK_GetVersionStr (void);
 
+extern struct sk_dxgi_hook_cache_s SK_DXGI_HookCache;
+
 struct sk_config_t
 {
   struct {
@@ -157,6 +159,7 @@ struct sk_config_t
 
   struct {
     bool    enable             = true;
+    bool    orig_enable        = false; // Since CEGUI is a frequent source of crashes.
     bool    safe_init          = true;
   } cegui;
 
@@ -286,6 +289,9 @@ struct sk_config_t
       bool    deferred_isolation = false;
       bool    rehook_present     = false;
       int     alternate_hook     = 0;
+
+      struct sk_dxgi_hook_cache_s*
+              hook_cache        = &SK_DXGI_HookCache;
     } dxgi;
 
     struct {

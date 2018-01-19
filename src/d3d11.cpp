@@ -1099,10 +1099,10 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
   wchar_t wszClass [MAX_PATH * 2] = { };
 
   if (swap_chain_desc != nullptr)
-    GetClassNameW (swap_chain_desc->OutputWindow, wszClass, MAX_PATH);
+    RealGetWindowClassW (swap_chain_desc->OutputWindow, wszClass, MAX_PATH);
 
   bool dummy_window = 
-    StrStrIW (wszClass, L"Special K Dummy Window Class") ||
+    StrStrIW (wszClass, L"Special K Dummy Window Class (Ex)") ||
     StrStrIW (wszClass, L"RTSSWndClass");
 
 
@@ -9735,10 +9735,11 @@ SK_D3D11_InitTextures (void)
       }
     }
 
+
     if (SK_GetCurrentGameID () == SK_GAME_ID::Okami)
     {
-      extern void  SK_Okami_LoadConfig (void);
-      SK_Okami_LoadConfig ();
+      extern void SK_Okami_LoadConfig (void);
+                  SK_Okami_LoadConfig ();
     }
   }
 }
@@ -9920,8 +9921,8 @@ SK_D3D11_Init (void)
 
       SK_LOG0 ( ( L"  D3D11CreateDevice:             %s",
                     SK_MakePrettyAddress (D3D11CreateDevice_Import).c_str () ),
-
                   L"  D3D 11  " );
+      SK_LogSymbolName                    (D3D11CreateDevice_Import);
 
       //SK_LOG0 ( ( L"  D3D11CoreCreateDevice:         %s",
       //              SK_MakePrettyAddress (D3D11CoreCreateDevice_Import).c_str () ),
@@ -9930,6 +9931,7 @@ SK_D3D11_Init (void)
       SK_LOG0 ( ( L"  D3D11CreateDeviceAndSwapChain: %s",
                     SK_MakePrettyAddress (D3D11CreateDeviceAndSwapChain_Import).c_str () ),
                   L"  D3D 11  " );
+      SK_LogSymbolName                   (D3D11CreateDeviceAndSwapChain_Import);
 
       pfnD3D11CreateDeviceAndSwapChain = D3D11CreateDeviceAndSwapChain_Import;
       pfnD3D11CreateDevice             = D3D11CreateDevice_Import;
@@ -9964,11 +9966,8 @@ SK_D3D11_Init (void)
 
           if ((SK_GetDLLRole () & DLL_ROLE::D3D11) || (SK_GetDLLRole () & DLL_ROLE::DInput8))
           {
-#ifdef _WIN64
-            SK_LoadPlugIns64 ();
-#else
-            SK_LoadPlugIns32 ();
-#endif
+            SK_RunLHIfBitness ( 64, SK_LoadPlugIns64 (),
+                                    SK_LoadPlugIns32 () );
           }
 
           if ( MH_OK == MH_QueueEnableHook (pfnD3D11CreateDevice)             &&
@@ -9982,12 +9981,14 @@ SK_D3D11_Init (void)
                             pfnD3D11CreateDevice ? L"{ Hooked }" :
                                                    L"{ Error! }" ),
                       L"  D3D 11  " );
+      SK_LogSymbolName     (pfnD3D11CreateDevice);
 
             SK_LOG0 ( ( L"  D3D11CreateDeviceAndSwapChain:  %s  %s",
       SK_MakePrettyAddress (pfnD3D11CreateDeviceAndSwapChain).c_str (),
                             pfnD3D11CreateDeviceAndSwapChain ? L"{ Hooked }" :
                                                                L"{ Error! }" ),
                       L"  D3D 11  " );
+      SK_LogSymbolName     (pfnD3D11CreateDeviceAndSwapChain);
 
      //       SK_LOG0 ( ( L"  D3D11CoreCreateDevice:          %s  %s",
      // SK_MakePrettyAddress (pfnD3D11CoreCreateDevice).c_str (),
@@ -10004,13 +10005,12 @@ SK_D3D11_Init (void)
       }
 
       SK_ApplyQueuedHooks ();
+
       InterlockedIncrement (&SK_D3D11_initialized);
     }
   }
 
-  // Spinlock
-  while ( ReadAcquire (&SK_D3D11_initialized) < 2 )
-    ;
+  SK_Thread_SpinUntilAtomicMin (&SK_D3D11_initialized, 2);
 
   return success;
 }

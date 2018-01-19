@@ -21,12 +21,23 @@
 
 #include <Windows.h>
 
-#include <SpecialK/hooks.h>
+#include <string>
+#include <SpecialK/ini.h>
 #include <SpecialK/log.h>
+#include <SpecialK/hooks.h>
 #include <SpecialK/utility.h>
 #include <SpecialK/diagnostics/compatibility.h>
 
 #include <vector>
+#include <concurrent_unordered_map.h>
+
+typedef struct _MODULEINFO {
+  LPVOID lpBaseOfDll;
+  DWORD  SizeOfImage;
+  LPVOID EntryPoint;
+} MODULEINFO, *LPMODULEINFO;
+
+concurrency::concurrent_unordered_map <HMODULE, MODULEINFO> SK_KnownModules;
 
 class SK_HookedFunction
 {
@@ -74,6 +85,155 @@ public:
 
 std::vector <SK_HookedFunction> hooks;
 };
+
+
+
+std::wstring
+sk_hook_target_s::serialize_ini (void)
+{
+  return
+    SK_FormatStringW ( L"%s?%x", module_path, offset );
+}
+
+bool
+sk_hook_target_s::deserialize_ini (const std::wstring& serial_data)
+{
+  wchar_t wszPath [MAX_PATH + 2] = { };
+
+  std::swscanf ( serial_data.c_str (),
+                   L"%260[^?]?%tx",
+                     wszPath,
+                    &offset );
+
+  HMODULE hModLib =
+    GetModuleHandle (wszPath);
+
+  if (hModLib == 0)
+  {
+    hModLib =
+      LoadLibraryW_Original (wszPath);
+  }
+
+  if (SK_LoadLibrary_PinModule <wchar_t> (wszPath))
+  {
+    target_addr =
+      (LPVOID)((uintptr_t)hModLib + offset);
+
+    return true;
+  }
+
+  return false;
+}
+
+bool
+SK_Hook_PredictTarget (       sk_hook_cache_record_s *cache,
+                        const wchar_t                *wszSectionName,
+                              iSK_INI                *ini )
+{
+  iSK_INISection& hook_cfg =
+    ini->get_section (wszSectionName);
+
+  std::wstring wide_symbol (
+    SK_UTF8ToWideChar (cache->target.symbol_name)
+  );
+
+  if (hook_cfg.contains_key (wide_symbol.c_str ()))
+  {
+    return
+      cache->target.deserialize_ini (
+        hook_cfg.get_value (wide_symbol.c_str ())
+      );
+  }
+
+  return false;
+};
+
+void
+SK_Hook_RemoveTarget (       sk_hook_cache_record_s *cache,
+                       const wchar_t                *wszSectionName,
+                             iSK_INI                *ini )
+{
+  if (ini->contains_section (wszSectionName))
+  {
+    iSK_INISection& hook_cfg =
+      ini->get_section (wszSectionName);
+
+    hook_cfg.remove_key (SK_UTF8ToWideChar (cache->target.symbol_name).c_str ());
+
+    ini->write ( ini->get_filename () );
+  }
+}
+
+void
+SK_Hook_CacheTarget (       sk_hook_cache_record_s *cache,
+                      const wchar_t                *wszSectionName,
+                            iSK_INI                *ini )
+{
+  HMODULE hModBase =
+    SK_GetModuleFromAddr (cache->target.target_addr);
+
+  if (hModBase != INVALID_HANDLE_VALUE)
+  {
+    cache->target.offset =
+      (uint64_t)cache->target.target_addr -
+      (uint64_t)hModBase;
+
+    wcsncpy ( cache->target.module_path, 
+                SK_GetModuleFullNameFromAddr (cache->target.target_addr).c_str (),
+                  MAX_PATH );
+
+    cache->hits++;
+
+    const char* szSymbol =
+      cache->target.symbol_name;
+
+    //SK_LOG0 ( ( L" DXGI_HOOK <%64hs> [ %s # %li ]",
+    //                        szSymbol,
+    //  SK_MakePrettyAddress (cache.target.target_addr).c_str (),
+    //                        cache.hits ),
+    //           L"Hook Cache" );
+
+    iSK_INISection& hook_cfg =
+      ini->get_section (wszSectionName);
+
+    std::wstring wide_symbol (SK_UTF8ToWideChar (szSymbol));
+    std::wstring serialized  (cache->target.serialize_ini ());
+
+    if (hook_cfg.contains_key (wide_symbol.c_str ()))
+    {
+      hook_cfg.get_value (wide_symbol.c_str ()) = 
+        serialized;
+    }
+
+    else
+    {
+      hook_cfg.add_key_value ( wide_symbol.c_str  (),
+                                 serialized.c_str () );
+    }
+
+    ini->write ( ini->get_filename () );
+  }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 MH_STATUS
 __stdcall
@@ -162,11 +322,6 @@ SK_CreateFuncHookEx ( const wchar_t *pwszFuncName,
   return status;
 }
 
-typedef struct _MODULEINFO {
-  LPVOID lpBaseOfDll;
-  DWORD  SizeOfImage;
-  LPVOID EntryPoint;
-} MODULEINFO, *LPMODULEINFO;
 
 using K32GetModuleInformation_pfn = BOOL (WINAPI *)(HANDLE, HMODULE, LPMODULEINFO, DWORD);
 
@@ -175,10 +330,6 @@ static K32GetModuleInformation_pfn K32GetModuleInformation =
     GetProcAddress ( GetModuleHandle (L"Kernel32.dll"),
                                        "K32GetModuleInformation" )
   );
-
-#include <concurrent_unordered_map.h>
-
-concurrency::concurrent_unordered_map <HMODULE, MODULEINFO> SK_KnownModules;
 
 bool
 __stdcall
@@ -228,8 +379,9 @@ SK_ValidateHookAddress ( const wchar_t *wszModuleName,
     if ( hook_addr < base_addr || hook_addr > end_addr )
     {
       dll_log.Log ( L"[HookEngine] Function address for '%s' points to module '%s'; expected '%s'",
-                    wszHookName, SK_GetModuleFullName ((HMODULE)hook_addr).c_str (),
-                                 wszModuleName );
+                    wszHookName,
+                      SK_StripUserNameFromPathW (SK_GetModuleFullName ((HMODULE)hook_addr).data ()),
+                        wszModuleName );
       return false;
     }
   }
@@ -266,8 +418,8 @@ SK_ValidateVFTableAddress ( const wchar_t *wszHookName,
   {
     dll_log.Log ( L"[HookEngine] VFTable Entry for '%s' found in '%s'; expected '%s'",
                   wszHookName,
-                    SK_GetModuleFullName   (hModVFAddr).c_str  (),
-                      SK_GetModuleFullName (hModVFTable).c_str ()
+                    SK_StripUserNameFromPathW (  SK_GetModuleFullName (hModVFAddr).data ()),
+                      SK_StripUserNameFromPathW (SK_GetModuleFullName (hModVFTable).data () )
                 );
 
     return false;
@@ -327,7 +479,7 @@ SK_CreateDLLHook ( const wchar_t  *pwszModule, const char  *pszProcName,
         dll_log.Log ( L"[ Min Hook ] WARNING: Hook Already Exists for: '%hs' in '%s'! "
                       L"(Status: \"%hs\")",
                         reinterpret_cast <uintptr_t> (pszProcName) > 65536 ? pszProcName : "Ordinal",
-                          pwszModule,
+                          SK_StripUserNameFromPathW (std::wstring (pwszModule).data ()),
                             MH_StatusToString (status) );
 
         return status;
@@ -354,7 +506,7 @@ SK_CreateDLLHook ( const wchar_t  *pwszModule, const char  *pszProcName,
     dll_log.Log ( L"[ Min Hook ] Failed to Install Hook for: '%hs' in '%s'! "
                   L"(Status: \"%hs\")",
                     reinterpret_cast <uintptr_t> (pszProcName) > 65536 ? pszProcName : "Ordinal",
-                      pwszModule,
+                      SK_StripUserNameFromPathW (std::wstring (pwszModule).data ()),
                         MH_StatusToString (status) );
 
     if (ppFuncAddr != nullptr)
@@ -459,7 +611,7 @@ SK_CreateDLLHook2 ( const wchar_t  *pwszModule, const char  *pszProcName,
     dll_log.Log ( L"[ Min Hook ] Failed to Install Hook for: '%hs' in '%s'! "
                   L"(Status: \"%hs\")",
                     (uintptr_t)pszProcName > 65536 ? pszProcName : "Ordinal",
-                      pwszModule,
+                      SK_StripUserNameFromPathW (std::wstring (pwszModule).data ()),
                         MH_StatusToString (status) );
 
     if (ppFuncAddr != nullptr)
@@ -545,7 +697,7 @@ SK_CreateDLLHook3 ( const wchar_t  *pwszModule, const char  *pszProcName,
         dll_log.Log ( L"[ Min Hook ] WARNING: Hook Already Exists for: '%hs' in '%s'! "
                       L"(Status: \"%hs\")",
                         (uintptr_t)pszProcName > 65536 ? pszProcName : "Ordinal",
-                          pwszModule,
+                          SK_StripUserNameFromPathW (std::wstring (pwszModule).data ()),
                             MH_StatusToString (status) );
 
         return status;
@@ -555,7 +707,7 @@ SK_CreateDLLHook3 ( const wchar_t  *pwszModule, const char  *pszProcName,
     dll_log.Log ( L"[ Min Hook ] Failed to Install Hook for: '%hs' in '%s'! "
                   L"(Status: \"%hs\")",
                     (uintptr_t)pszProcName > 65536 ? pszProcName : "Ordinal",
-                      pwszModule,
+                      SK_StripUserNameFromPathW (std::wstring (pwszModule).data ()),
                         MH_StatusToString (status) );
   }
 

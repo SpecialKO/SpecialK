@@ -466,7 +466,7 @@
       <OutputFile>\\zilcho\Tales of Symphonia\d3d9.dll</OutputFile>
       <CreateHotPatchableImage>ItaniumImage</CreateHotPatchableImage>
       <OptimizeReferences>false</OptimizeReferences>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
       <LargeAddressAware>true</LargeAddressAware>
       <DataExecutionPrevention>false</DataExecutionPrevention>
@@ -480,7 +480,7 @@
       <BaseAddress>
       </BaseAddress>
       <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
     </Link>
     <ProjectReference />
   </ItemDefinitionGroup>
@@ -525,7 +525,7 @@
       <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIOpenGLRenderer-0.dll</DelayLoadDLLs>
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
       <OptimizeReferences>false</OptimizeReferences>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <EntryPointSymbol>
       </EntryPointSymbol>
       <DataExecutionPrevention>false</DataExecutionPrevention>
@@ -538,7 +538,7 @@
       <BaseAddress>
       </BaseAddress>
       <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
     </Link>
     <ProjectReference />
     <ResourceCompile>
@@ -608,7 +608,7 @@
       <BaseAddress>
       </BaseAddress>
       <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -663,7 +663,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <OptimizeReferences>false</OptimizeReferences>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>Installer.def</ModuleDefinitionFile>
@@ -689,7 +689,7 @@
       <BaseAddress>
       </BaseAddress>
       <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -737,7 +737,7 @@ Exit 0</Command>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <OptimizeReferences>false</OptimizeReferences>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
@@ -763,7 +763,7 @@ Exit 0</Command>
       <BaseAddress>
       </BaseAddress>
       <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -812,7 +812,7 @@ Exit 0</Command>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <OptimizeReferences>false</OptimizeReferences>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
@@ -838,7 +838,7 @@ Exit 0</Command>
       <BaseAddress>
       </BaseAddress>
       <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -889,7 +889,7 @@ Exit 0</Command>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <OptimizeReferences>false</OptimizeReferences>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
@@ -914,7 +914,7 @@ Exit 0</Command>
       <BaseAddress>
       </BaseAddress>
       <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -964,7 +964,7 @@ Exit 0</Command>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <OptimizeReferences>false</OptimizeReferences>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
@@ -989,7 +989,7 @@ Exit 0</Command>
       <BaseAddress>
       </BaseAddress>
       <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1039,7 +1039,7 @@ Exit 0</Command>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <OptimizeReferences>false</OptimizeReferences>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
@@ -1064,7 +1064,7 @@ Exit 0</Command>
       <BaseAddress>
       </BaseAddress>
       <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1114,7 +1114,7 @@ Exit 0</Command>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <OptimizeReferences>false</OptimizeReferences>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
@@ -1138,7 +1138,7 @@ Exit 0</Command>
       <BaseAddress>
       </BaseAddress>
       <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1212,7 +1212,7 @@ Exit 0</Command>
       <BaseAddress>
       </BaseAddress>
       <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1263,7 +1263,7 @@ Exit 0</Command>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <OptimizeReferences>false</OptimizeReferences>
       <OutputFile>Installer64.dll</OutputFile>
       <AssemblyDebug>true</AssemblyDebug>
@@ -1289,7 +1289,7 @@ Exit 0</Command>
       <BaseAddress>
       </BaseAddress>
       <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1334,7 +1334,7 @@ Exit 0</Command>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <OptimizeReferences>false</OptimizeReferences>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <AssemblyDebug>true</AssemblyDebug>
@@ -1359,7 +1359,7 @@ Exit 0</Command>
       <BaseAddress>
       </BaseAddress>
       <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1404,7 +1404,7 @@ Exit 0</Command>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <OptimizeReferences>false</OptimizeReferences>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <AssemblyDebug>true</AssemblyDebug>
@@ -1429,7 +1429,7 @@ Exit 0</Command>
       <BaseAddress>
       </BaseAddress>
       <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1474,7 +1474,7 @@ Exit 0</Command>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <OptimizeReferences>false</OptimizeReferences>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <AssemblyDebug>true</AssemblyDebug>
@@ -1499,7 +1499,7 @@ Exit 0</Command>
       <BaseAddress>
       </BaseAddress>
       <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1564,13 +1564,13 @@ Exit 0</Command>
       </ImportLibrary>
       <SetChecksum>true</SetChecksum>
       <OptimizeReferences>false</OptimizeReferences>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <AssemblyDebug>true</AssemblyDebug>
       <Profile>true</Profile>
       <BaseAddress>
       </BaseAddress>
       <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1638,12 +1638,12 @@ Exit 0</Command>
       </ImportLibrary>
       <SetChecksum>true</SetChecksum>
       <OptimizeReferences>false</OptimizeReferences>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <AssemblyDebug>true</AssemblyDebug>
       <BaseAddress>
       </BaseAddress>
       <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1693,7 +1693,7 @@ Exit 0</Command>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <OptimizeReferences>false</OptimizeReferences>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <AssemblyDebug>true</AssemblyDebug>
@@ -1718,7 +1718,7 @@ Exit 0</Command>
       <BaseAddress>
       </BaseAddress>
       <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1764,6 +1764,7 @@ Exit 0</Command>
     <ClInclude Include="depends\DirectXTex\DirectXTexP.h" />
     <ClInclude Include="depends\DirectXTex\Filters.h" />
     <ClInclude Include="depends\DirectXTex\scoped.h" />
+    <ClInclude Include="include\SpecialK\com_util.h" />
     <ClInclude Include="include\SpecialK\crc32.h" />
     <ClInclude Include="include\SpecialK\hash.h" />
     <ClInclude Include="include\SpecialK\injection\address_cache.h" />
@@ -1855,6 +1856,7 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
     </ClCompile>
+    <ClCompile Include="src\com_util.cpp" />
     <ClCompile Include="src\crc32.cpp" />
     <ClCompile Include="src\CSteamWorks.cpp" />
     <ClCompile Include="src\d3d11.cpp" />
@@ -2494,25 +2496,6 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
     </ClCompile>
     <ClCompile Include="src\log.cpp">
-      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
-      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
-      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">false</WholeProgramOptimization>
-      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='IT|Win32'">false</WholeProgramOptimization>
-      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">false</WholeProgramOptimization>
-      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">false</WholeProgramOptimization>
-      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TSFix|Win32'">false</WholeProgramOptimization>
-      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
-      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|Win32'">false</WholeProgramOptimization>
-      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">false</WholeProgramOptimization>
-      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">false</WholeProgramOptimization>
-      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='IT|x64'">false</WholeProgramOptimization>
-      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">false</WholeProgramOptimization>
-      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">false</WholeProgramOptimization>
-      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TSFix|x64'">false</WholeProgramOptimization>
-      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</WholeProgramOptimization>
-      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
-    </ClCompile>
-    <ClCompile Include="src\memory_monitor.cpp">
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">false</WholeProgramOptimization>

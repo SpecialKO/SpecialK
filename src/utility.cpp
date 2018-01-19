@@ -530,7 +530,7 @@ std::wstring
 SK_MakePrettyAddress (LPCVOID addr, DWORD /*dwFlags*/)
 {
   return
-    SK_FormatStringW ( L"( %s ) + %xh",
+    SK_FormatStringW ( L"( %s ) + %6xh",
       SK_StripUserNameFromPathW (
                          SK_GetModuleFullNameFromAddr (addr).data () ),
                                             (uintptr_t)addr -
@@ -554,6 +554,18 @@ SK_ValidatePointer (LPCVOID addr)
               L" SK Debug " );
 
   return false;
+}
+
+void
+SK_LogSymbolName (LPCVOID addr)
+{
+  //char szSymbol [256] = { };
+  //
+  //SK_GetSymbolNameFromModuleAddr ( SK_GetModuleFromAddr (addr),
+  //                                            (uintptr_t)addr,
+  //                                                       szSymbol, 255 );
+  //
+  //SK_LOG0 ( ( L"=> %hs", szSymbol ), L"SymbolName" );
 }
 
 

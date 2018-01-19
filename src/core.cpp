@@ -1072,8 +1072,8 @@ BACKEND_INIT:
   GetCurrentDirectoryW (MAX_PATH, wszWorkDir);
        SK_StripUserNameFromPathW (wszWorkDir);
 
-  dll_log.Log (L" Working Directory:          %s", wszWorkDir);
-  dll_log.Log (L" System Directory:           %s", wszBackendDLL);
+  dll_log.Log (L" Working Directory:          %s", SK_StripUserNameFromPathW (std::wstring (wszWorkDir).data    ()));
+  dll_log.Log (L" System Directory:           %s", SK_StripUserNameFromPathW (std::wstring (wszBackendDLL).data ()));
 
   lstrcatW (wszBackendDLL, L"\\");
   lstrcatW (wszBackendDLL, backend);
@@ -1119,9 +1119,9 @@ BACKEND_INIT:
     backend_dll = LoadLibraryW_Original (dll_name);
 
   if (backend_dll != nullptr)
-    dll_log.LogEx (false, L" (%s)\n", dll_name);
+    dll_log.LogEx (false, L" (%s)\n",         SK_StripUserNameFromPathW (std::wstring (dll_name).data ()));
   else
-    dll_log.LogEx (false, L" FAILED (%s)!\n", dll_name);
+    dll_log.LogEx (false, L" FAILED (%s)!\n", SK_StripUserNameFromPathW (std::wstring (dll_name).data ()));
 
   // Free the temporary string storage
   if (load_proxy)
@@ -1154,6 +1154,12 @@ BACKEND_INIT:
 
   if (! __SK_bypass)
   {
+    //if (SK_GetDLLRole () & DLL_ROLE::DXGI)
+    //{
+      extern void SK_DXGI_QuickHook (void);
+                  SK_DXGI_QuickHook ();
+    //}
+
     if (GetModuleHandle (L"dinput8.dll"))
       SK_Input_HookDI8 ();
 
@@ -1196,12 +1202,16 @@ SK_Win32_CreateDummyWindow (void)
   static WNDCLASSW wc          = { };
   static WNDCLASS  wc_existing = { };
 
-  wc.style         = CS_GLOBALCLASS;
+  wc.style         = CS_GLOBALCLASS | CS_OWNDC;
   wc.lpfnWndProc   = DefWindowProcW;
-  wc.hInstance     = SK_GetDLL ();
+  wc.hInstance     = SK_GetDLL        (                );
+  wc.hbrBackground = GetSysColorBrush (COLOR_BACKGROUND);
   wc.lpszClassName = L"Special K Dummy Window Class (Ex)";
 
-  if (RegisterClassW (&wc) || GetClassInfo (SK_GetDLL (), L"Special K Dummy Window Class (Ex)", &wc_existing))
+  if ( RegisterClassW (&wc) ||
+       GetClassInfo   ( SK_GetDLL (),
+                          L"Special K Dummy Window Class (Ex)",
+                            &wc_existing ) )
   {
     if (! CreateWindowExW_Original)
       SK_HookWinAPI ();
@@ -1233,7 +1243,6 @@ SK_Win32_CreateDummyWindow (void)
 void
 SK_Win32_CleanupDummyWindow (void)
 {
-  
   for (auto it = dummy_windows.begin (); it != dummy_windows.end (); ++it)
   {
     if (DestroyWindow (*it))
@@ -1476,7 +1485,7 @@ SKX_Window_EstablishRoot (void)
   HWND  hWndTarget  = hWndRender;
   DWORD dwWindowPid = 0;
 
-  if (IsGUIThread (FALSE))
+  if (IsGUIThread (FALSE) && hWndTarget == 0)
   {
     GetWindowThreadProcessId (hWndActive, &dwWindowPid);
     if (dwWindowPid == GetCurrentProcessId ())

@@ -640,7 +640,7 @@ SK::Framerate::Limiter::wait (void)
   if (next.QuadPart > 0ULL)
   {
     // If available (Windows 7+), wait on the swapchain
-    CComPtr <IDirect3DDevice9Ex> d3d9ex = nullptr;
+    CComPtr <IDirect3DDevice9Ex>  d3d9ex = nullptr;
 
     // D3D10/11/12
     CComPtr <IDXGISwapChain> dxgi_swap   = nullptr;
@@ -685,14 +685,6 @@ SK::Framerate::Limiter::wait (void)
 
     bool bGUI =
       IsGUIThread (FALSE) && GetActiveWindow () == game_window.hWnd;
-
-    HWND hWndThis =
-      bGUI ? game_window.hWnd :
-             HWND_DESKTOP;
-
-    bool bUnicode =
-      bGUI ? IsWindowUnicode (hWndThis) :
-             false;
 
     bool bYielded = false;
 

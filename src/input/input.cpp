@@ -26,8 +26,9 @@
 #include <SpecialK/console.h>
 
 #include <SpecialK/utility.h>
-#include <SpecialK/log.h>
 #include <SpecialK/config.h>
+#include <SpecialK/thread.h>
+#include <SpecialK/log.h>
 #include <SpecialK/core.h>
 #include <SpecialK/hooks.h>
 #include <dinput.h>
@@ -247,7 +248,7 @@ SK_Input_HookHID (void)
 
   static volatile LONG hooked = FALSE;
 
-  if (! InterlockedCompareExchange (&hooked, 1, 0))
+  if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
   {
     SK_LOG0 ( ( L"Game uses HID, installing input hooks..." ),
                 L"   Input  " );
@@ -278,9 +279,10 @@ SK_Input_HookHID (void)
 
     SK_ApplyQueuedHooks ();
 
-    if (HidP_GetData_Original == nullptr)
-      InterlockedDecrement (&hooked);
+    InterlockedIncrement (&hooked);
   }
+
+  SK_Thread_SpinUntilAtomicMin (&hooked, 2);
 }
 
 void
@@ -897,7 +899,9 @@ SK_ImGui_IsMouseRelevant (void)
   // SK_ImGui_Visible is the full-blown config UI;
   //   but we also have floating widgets that may capture mouse
   //     input.
-  return config.input.mouse.disabled_to_game | SK_ImGui_Active () || ImGui::IsAnyWindowHovered ();
+  return config.input.mouse.disabled_to_game || SK_ImGui_Active () ||
+         ImGui::IsAnyWindowHovered ();
+      // ^^^ These are our floating widgets
 }
 
 __inline
@@ -1017,7 +1021,6 @@ ImGui_DesiredCursor (void)
         return ((last_cursor = LoadCursor (nullptr, IDC_IBEAM)));
         break;                          
       case ImGuiMouseCursor_ResizeEW:
-        //SetCursor_Original ((last_cursor = LoadCursor (nullptr, IDC_SIZEWE)));
         return ((last_cursor = LoadCursor (SK_GetDLL (), (LPCWSTR)IDC_CURSOR_HORZ)));
         break;                          
       case ImGuiMouseCursor_ResizeNWSE: 

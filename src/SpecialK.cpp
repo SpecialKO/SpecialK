@@ -573,7 +573,7 @@ SK_EstablishDllRole (HMODULE hModule)
         // Not specific enough; some engines will pull in DXGI even if they
         //   do not use D3D10/11/12/D2D/DWrite
         //
-        //dxgi   |= (GetModuleHandle (L"dxgi.dll")     != nullptr); 
+        dxgi   |= (GetModuleHandle (L"dxgi.dll")     != nullptr); 
 
         d3d11  |= (GetModuleHandle (L"d3d11.dll")     != nullptr);
         d3d11  |= (GetModuleHandle (L"d3dx11_43.dll") != nullptr);

@@ -42,6 +42,7 @@
 #include <SpecialK/window.h>
 #include <SpecialK/steam_api.h>
 
+#include <SpecialK/com_util.h>
 #include <SpecialK/framerate.h>
 #include <SpecialK/diagnostics/compatibility.h>
 
@@ -450,23 +451,6 @@ UNREFERENCED_PARAMETER (user);
   while (ReadAcquire (&hooked) < 2)
     ;
 }
-
-using CoCreateInstance_pfn = HRESULT (WINAPI *)(
-  _In_  REFCLSID  rclsid,
-  _In_  LPUNKNOWN pUnkOuter,
-  _In_  DWORD     dwClsContext,
-  _In_  REFIID    riid,
-  _Out_ LPVOID   *ppv );
-using CoCreateInstanceEx_pfn = HRESULT (STDAPICALLTYPE *)(
-  _In_    REFCLSID     rclsid,
-  _In_    IUnknown     *punkOuter,
-  _In_    DWORD        dwClsCtx,
-  _In_    COSERVERINFO *pServerInfo,
-  _In_    DWORD        dwCount,
-  _Inout_ MULTI_QI     *pResults );
-
-extern CoCreateInstance_pfn   CoCreateInstance_Original;
-extern CoCreateInstanceEx_pfn CoCreateInstanceEx_Original;
 
 DEFINE_GUID(CLSID_DirectInput,        0x25E609E0,0xB259,0x11CF,0xBF,0xC7,0x44,0x45,0x53,0x54,0x00,0x00);
 DEFINE_GUID(CLSID_DirectInputDevice,  0x25E609E1,0xB259,0x11CF,0xBF,0xC7,0x44,0x45,0x53,0x54,0x00,0x00);
@@ -1226,49 +1210,50 @@ SK_Input_HookDI7 (void)
 
   static volatile LONG hooked = FALSE;
 
-  if (GetModuleHandle (L"dinput.dll") && (! InterlockedCompareExchange (&hooked, 1, 0)))
+  if (ReadAcquire (&hooked) < 2 && GetModuleHandle (L"dinput.dll"))
   {
-    ///if (SK_GetDLLRole () & DLL_ROLE::DInput7)
-    ///  return;
-
-    SK_LOG0 ( ( L"Game uses DirectInput 7, installing input hooks..." ),
-                  L"   Input  " );
-
-    //HMODULE hBackend = 
-    //  (SK_GetDLLRole () & DLL_ROLE::DInput8) ? backend_dll :
-    //                                  GetModuleHandle (L"dinput8.dll");
-
-    if (GetProcAddress (GetModuleHandle (L"dinput.dll"), "DirectInputCreateEx"))
+    if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
     {
-      SK_CreateDLLHook2 (      L"dinput.dll",
-                                "DirectInputCreateEx",
-                                 DirectInputCreateEx,
-        static_cast_p2p <void> (&DirectInputCreateEx_Import) );
+      ///if (SK_GetDLLRole () & DLL_ROLE::DInput7)
+      ///  return;
 
-      SK_CreateDLLHook2 (      L"dinput.dll",
-                                "DirectInputCreateA",
-                                 DirectInputCreateA,
-        static_cast_p2p <void> (&DirectInputCreateA_Import) );
+      SK_LOG0 ( ( L"Game uses DirectInput 7, installing input hooks..." ),
+                    L"   Input  " );
 
-      SK_CreateDLLHook2 (      L"dinput.dll",
-                                "DirectInputCreateW",
-                                 DirectInputCreateW,
-        static_cast_p2p <void> (&DirectInputCreateW_Import) );
+      //HMODULE hBackend = 
+      //  (SK_GetDLLRole () & DLL_ROLE::DInput8) ? backend_dll :
+      //                                  GetModuleHandle (L"dinput8.dll");
+
+      if (GetProcAddress (GetModuleHandle (L"dinput.dll"), "DirectInputCreateEx"))
+      {
+        SK_CreateDLLHook2 (      L"dinput.dll",
+                                  "DirectInputCreateEx",
+                                   DirectInputCreateEx,
+          static_cast_p2p <void> (&DirectInputCreateEx_Import) );
+
+        SK_CreateDLLHook2 (      L"dinput.dll",
+                                  "DirectInputCreateA",
+                                   DirectInputCreateA,
+          static_cast_p2p <void> (&DirectInputCreateA_Import) );
+
+        SK_CreateDLLHook2 (      L"dinput.dll",
+                                  "DirectInputCreateW",
+                                   DirectInputCreateW,
+          static_cast_p2p <void> (&DirectInputCreateW_Import) );
+      }
+
+      if (GetModuleHandle (L"dinput8.dll"))
+      {
+        SK_Input_HookDI8 ();
+      }
+
+      SK_ApplyQueuedHooks ();
+
+      InterlockedIncrement (&hooked);
     }
 
-    if (GetModuleHandle (L"dinput8.dll"))
-    {
-      SK_Input_HookDI8 ();
-    }
-
-    SK_ApplyQueuedHooks ();
-
-    InterlockedIncrement (&hooked);
+    SK_Thread_SpinUntilAtomicMin (&hooked, 2);
   }
-
-  // Spinlock
-  while ( GetModuleHandle (L"dinput.dll") && ReadAcquire (&hooked) < 2 )
-    ;
 }
 
 void

@@ -2847,9 +2847,8 @@ void ImGui::NewFrame()
     //
     // STUPID HACK: This should be in response to window messages, but there has been
     //                 a bit of trouble reliably receiving those messages in some games.
-    if ( GetActiveWindow     () != game_window.hWnd &&
-         GetForegroundWindow () != game_window.hWnd &&
-         GetFocus            () != game_window.hWnd && (! game_window.active) )
+    if ( ( GetForegroundWindow () != game_window.hWnd &&
+           GetFocus            () != game_window.hWnd    ) || (! game_window.active) )
     {
         g.IO.WantTextInput                 = false;
         g.IO.WantCaptureKeyboard           = false;
@@ -11082,24 +11081,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
 {
   std::lock_guard <SK_Thread_HybridSpinlock> lock (raw_input_lock);
 
-  HWND hWndActive     =
-    GetActiveWindow     ();
-  HWND hWndFocus      =
-    GetFocus            ();
-  HWND hWndForeground =
-    GetForegroundWindow ();
-
-  bool focus          =
-          ( game_window.hWnd == hWndFocus      ||
-            game_window.hWnd == hWndForeground ||
-            game_window.hWnd == hWndActive     ||
-            game_window.active );
-
-  game_window.active = focus;
-
-  ///if ( (! self) && (! focus) )//( hWndActive != nullptr && hWndActive != game_window.hWnd ) )
-  ///  return GetRawInputData_Original (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader);
-
+  bool focus = game_window.active;
 
   static HRAWINPUT last_input = nullptr;
 
@@ -11147,7 +11129,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
   bool mouse    = false;
   bool keyboard = false;
 
-  // Input event happened while the window had focus if true, otherwise aanother
+  // Input event happened while the window had focus if true, otherwise another
   //   window is currently capturing input and the most appropriate response is
   //     usually to ignore the event.
   bool foreground = GET_RAWINPUT_CODE_WPARAM (((RAWINPUT *)pData)->header.wParam) == RIM_INPUT;
@@ -11240,7 +11222,9 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
         return filter;
       };
 
+
   filter = FilterRawInput (uiCommand, (RAWINPUT *)pData, mouse, keyboard);
+
 
   if (uiCommand == RID_INPUT /*&& SK_ImGui_Visible*/)
   {
@@ -11321,6 +11305,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
         break;
     }
   }
+
 
   if (filter || keyboard)
   {
@@ -11544,14 +11529,6 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
       } break;
     }
   }
-
-  
-  //if ( GetForegroundWindow () != game_window.hWnd &&
-  //     GetFocus            () != game_window.hWnd &&
-  //     GetActiveWindow     () != game_window.hWnd &&
-  //     (! game_window.active) ) // && hWndActive != nullptr)
-  //  return 0;
-
 
   static POINTS last_pos;
 
@@ -12132,9 +12109,8 @@ SK_ImGui_PollGamepad_EndFrame (void)
 
   // Reset Mouse / Keyboard State so that we can process all state transitions
   //   that occur during the next frame without losing any input events.
-  if ( game_window.hWnd == hWndFocus      ||
-       game_window.hWnd == hWndForeground ||
-       game_window.active )
+  if ( game_window.active && (game_window.hWnd == hWndFocus      ||
+                              game_window.hWnd == hWndForeground) )
   {
     io.MouseDown [0] = (GetAsyncKeyState_Original (VK_LBUTTON)  & 0x8000) != 0;
     io.MouseDown [1] = (GetAsyncKeyState_Original (VK_RBUTTON)  & 0x8000) != 0;
@@ -12156,15 +12132,6 @@ SK_ImGui_PollGamepad_EndFrame (void)
                     SK_ImGui_WantExit = true;
       }
     }
-
-    if (SK_ImGui_WantMouseCapture ())
-      SK_RawInput_EnableLegacyMouse  (true);
-    else
-      SK_RawInput_RestoreLegacyMouse ();
-  
-  
-    if (SK_ImGui_WantKeyboardCapture ())
-      SK_RawInput_EnableLegacyKeyboard (true);
   }
 
   else

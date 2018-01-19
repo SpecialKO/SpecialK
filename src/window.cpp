@@ -838,13 +838,13 @@ auto ActivateWindow =[&](HWND hWnd, bool active = false)
   {
     if (config.window.always_on_top == PreventAlwaysOnTop)
     {
-      if (GetActiveWindow () != SK_GetGameWindow ())
+      if (GetForegroundWindow () != SK_GetGameWindow ())
         SK_GetCommandProcessor ()->ProcessCommandLine ("Window.TopMost false");
     }
 
     else if (config.window.always_on_top == AlwaysOnTop)
     {
-      if (GetActiveWindow () != SK_GetGameWindow ())
+      if (GetForegroundWindow () != SK_GetGameWindow ())
         SK_GetCommandProcessor ()->ProcessCommandLine ("Window.TopMost true");
     }
   }
@@ -4487,6 +4487,9 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     {
       first_run = false;
 
+      if (GetFocus () == game_window.hWnd || GetForegroundWindow () == game_window.hWnd)
+        ActivateWindow  (game_window.hWnd, true);
+
       // Start unmuted (in case the game crashed in the background)
       if (config.window.background_mute)
         SK_SetGameMute (FALSE);
@@ -4522,13 +4525,11 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
     GetWindowThreadProcessId (GetFocus            (), &dwFocus);
     GetWindowThreadProcessId (GetForegroundWindow (), &dwForeground);
-    GetWindowThreadProcessId (GetActiveWindow     (), &dwActive);
 
     // In compliant software, it would only be necessary to check Active Window, but Chrome and
     //   some games get this whole thing wrong.
     game_window.active       = ( dwFocus      == GetCurrentProcessId () ||
-                                 dwForeground == GetCurrentProcessId () ||
-                                 dwActive     == GetCurrentProcessId () );
+                                 dwForeground == GetCurrentProcessId () );
     game_window.game.style   = game_window.GetWindowLongPtr (game_window.hWnd, GWL_STYLE);
     game_window.actual.style = game_window.GetWindowLongPtr (game_window.hWnd, GWL_STYLE);
     game_window.unicode      =              IsWindowUnicode (game_window.hWnd)   != FALSE;
@@ -5142,6 +5143,7 @@ SK_InitWindow (HWND hWnd, bool fullscreen_exclusive)
     SK_InstallWindowHook (hWnd);
   }
 
+
   GetWindowRect_Original (hWnd, &game_window.game.window);
   GetClientRect_Original (hWnd, &game_window.game.client);
 
@@ -5150,8 +5152,10 @@ SK_InitWindow (HWND hWnd, bool fullscreen_exclusive)
 
   GetCursorPos_Original  (      &game_window.cursor_pos);
 
+
   if (game_window.GetWindowLongPtr == nullptr)
     return;
+
 
   game_window.actual.style =
     game_window.GetWindowLongPtr ( hWnd, GWL_STYLE );
@@ -5172,7 +5176,9 @@ SK_InitWindow (HWND hWnd, bool fullscreen_exclusive)
   game_window.game.style    = game_window.actual.style;
   game_window.game.style_ex = game_window.actual.style_ex;
 
+
   game_window.hWnd = hWnd;
+  hWndRender       = hWndRender ? hWndRender : hWnd;
 
 
   if (! fullscreen_exclusive)
@@ -5300,7 +5306,10 @@ SK_InstallWindowHook (HWND hWnd)
 
 
   wchar_t wszClassName [257] = { };
-  RealGetWindowClassW ( hWnd, wszClassName, 256 );
+  wchar_t wszTitle     [257] = { };
+
+  InternalGetWindowText ( hWnd, wszTitle,     256 );
+  RealGetWindowClassW   ( hWnd, wszClassName, 256 );
 
 
   WNDPROC class_proc = game_window.unicode ? (WNDPROC)
@@ -5314,15 +5323,19 @@ SK_InstallWindowHook (HWND hWnd)
     );
 
   dll_log.Log ( L"[Window Mgr] Hooking the Window Procedure for "
-                L"%s Window Class ('%s') :: (ClassProc: %s, WndProc: %s)",
+                L"%s Window Class ('%s' - \"%s\")",
                   game_window.unicode ? L"Unicode" : L"ANSI",
-                    wszClassName,
-                      SK_MakePrettyAddress (class_proc).c_str (),
+                    wszClassName, wszTitle );
+
+  dll_log.Log ( L"[Window Mgr]  $ ClassProc:  %s",
+                          SK_MakePrettyAddress (class_proc).c_str () );
+  dll_log.Log ( L"[Window Mgr]  $ WndProc:    %s",
                        ( class_proc != wnd_proc ?
-                          SK_MakePrettyAddress (wnd_proc).c_str () :
+                          SK_MakePrettyAddress (wnd_proc).c_str   () :
                           L"Same" ) );
 
-  WNDPROC target_proc, alt_proc;
+  WNDPROC target_proc = nullptr,
+          alt_proc    = nullptr;
 
   // OpenGL games almost always have a window proc. located in OpenGL32.dll; we don't want that.
   if      (SK_GetModuleFromAddr (class_proc) == GetModuleHandle (nullptr)) target_proc = class_proc;
@@ -5334,7 +5347,7 @@ SK_InstallWindowHook (HWND hWnd)
   alt_proc = ( target_proc == class_proc ? wnd_proc :
                                            class_proc );
 
-  bool hook_func = false;
+  bool hook_func = true;
   
   if (hook_func && (! caught_register))
   {
@@ -5358,6 +5371,7 @@ SK_InstallWindowHook (HWND hWnd)
       game_window.hooked = true;
     }
     
+
     // Target didn't work, go with the other one...
     else if ( MH_OK ==
                 MH_CreateHook (
@@ -5375,14 +5389,17 @@ SK_InstallWindowHook (HWND hWnd)
       game_window.hooked = true;
     }
 
+    // Now we're boned!  (Actually, fallback to SetClass/WindowLongPtr :P)
     else
     {
       game_window.WndProc_Original = nullptr;
     }
 #endif
+
     SK_ApplyQueuedHooks ();
   }
   
+
   if ((! caught_register) && ((! hook_func) || game_window.WndProc_Original == nullptr))
   {
     //dll_log.Log ( L"[Window Mgr]  >> Hooking was impossible; installing new "
@@ -5412,10 +5429,6 @@ SK_InstallWindowHook (HWND hWnd)
               reinterpret_cast <LONG_PTR> (SK_DetourWindowProc) );
     }
 
-    //game_window.SetClassLongPtr ( hWnd,
-    //                                GWLP_WNDPROC,
-    //      reinterpret_cast <LONG_PTR> (SK_DetourWindowProc) );
-  
     game_window.hooked = false;
   }
 
@@ -5456,7 +5469,7 @@ SK_InstallWindowHook (HWND hWnd)
 
     SetLastError (dwLast);
 
-    // If no pointing device is setup, go ahead and register our own mouse,
+    // If no pointing device is setup, go ahead and register our own mouse;
     //   it won't interfere with the game's operation until the ImGui overlay
     //     requires a mouse... at which point third-party software will flip out :)
     if (! has_raw_mouse)
@@ -5506,6 +5519,7 @@ SK_IsGameWindowActive (void)
 {
   return game_window.active;
 }
+
 
 using RegisterClassA_pfn   = ATOM (WINAPI *)(const WNDCLASSA*   lpWndClass);
 using RegisterClassW_pfn   = ATOM (WINAPI *)(const WNDCLASSW*   lpWndClass);

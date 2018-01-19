@@ -1816,8 +1816,8 @@ SK_ImGui_ControlPanel (void)
         static bool    bIsReShadeCustom =
                           ( hModReShade != nullptr &&
 
-        SK_RunLHIfBitness ( 64, GetProcAddress (hModReShade, "?SK_ImGui_DrawCallback@@YAIPEAX@Z"),
-                                GetProcAddress (hModReShade, "?SK_ImGui_DrawCallback@@YGIPAX@Z" ) ) );
+          SK_RunLHIfBitness ( 64, GetProcAddress (hModReShade, "?SK_ImGui_DrawCallback@@YAIPEAX@Z"),
+                                  GetProcAddress (hModReShade, "?SK_ImGui_DrawCallback@@YGIPAX@Z" ) ) );
 
         if (ImGui::MenuItem ( "Browse Logs", "", &selected ))
         {

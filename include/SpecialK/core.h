@@ -26,7 +26,6 @@
 
 #undef COM_NO_WINDOWS_H
 #include <Windows.h>
-#include <atomic>
 
 enum DLL_ROLE
 {
@@ -67,12 +66,12 @@ enum DLL_ROLE
 #ifdef SK_BUILD_DLL
  class SK_Thread_HybridSpinlock;
 
-extern SK_Thread_HybridSpinlock* init_mutex;
-extern SK_Thread_HybridSpinlock* budget_mutex;
-extern SK_Thread_HybridSpinlock* loader_lock;
-extern SK_Thread_HybridSpinlock* wmi_cs;
-extern SK_Thread_HybridSpinlock* cs_dbghelp;
-extern SK_Thread_HybridSpinlock* init_mutex;
+extern "C++" SK_Thread_HybridSpinlock* init_mutex;
+extern "C++" SK_Thread_HybridSpinlock* budget_mutex;
+extern "C++" SK_Thread_HybridSpinlock* loader_lock;
+extern "C++" SK_Thread_HybridSpinlock* wmi_cs;
+extern "C++" SK_Thread_HybridSpinlock* cs_dbghelp;
+extern "C++" SK_Thread_HybridSpinlock* init_mutex;
 #endif
 
 

@@ -889,6 +889,7 @@ SK_HookD3D9 (void)
       SK_LOG0 ( ( L"  Direct3DCreate9:   %s",
                     SK_MakePrettyAddress (Direct3DCreate9_Import).c_str () ),
                   L"   D3D9   " );
+      SK_LogSymbolName                   (Direct3DCreate9_Import);
 
       if (config.apis.d3d9ex.hook)
       {
@@ -898,6 +899,7 @@ SK_HookD3D9 (void)
         SK_LOG0 ( ( L"  Direct3DCreate9Ex: %s",
                       SK_MakePrettyAddress (Direct3DCreate9Ex_Import).c_str () ),
                     L"  D3D9Ex  " );
+        SK_LogSymbolName                   (Direct3DCreate9Ex_Import);
       }
     }
 
@@ -917,6 +919,7 @@ SK_HookD3D9 (void)
         SK_LOG0 ( ( L"  Direct3DCreate9:   %s  { Hooked  }",
                       SK_MakePrettyAddress (pfnDirect3DCreate9).c_str () ),
                     L"   D3D9   " );
+        SK_LogSymbolName                   (pfnDirect3DCreate9);
 
         if ( config.apis.d3d9ex.hook &&
                MH_OK ==
@@ -930,6 +933,7 @@ SK_HookD3D9 (void)
           SK_LOG0 ( ( L"  Direct3DCreate9Ex: %s  { Hooked  }",
                         SK_MakePrettyAddress (pfnDirect3DCreate9Ex).c_str () ),
                       L"  D3D9Ex  " );
+          SK_LogSymbolName                   (pfnDirect3DCreate9Ex);
         }
 
         bool success =

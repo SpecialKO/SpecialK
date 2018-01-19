@@ -2079,6 +2079,8 @@ SK_LoadConfigEx (std::wstring name, bool create)
   safe_cegui->load        (config.cegui.safe_init);
   version->load           (config.system.version);
 
+  SK_RunOnce (config.cegui.orig_enable = config.cegui.enable);
+
 
 
 
@@ -3011,7 +3013,7 @@ SK_Keybind::parse (void)
 
 
 #include <SpecialK/utility.h>
-
+#include <SpecialK/diagnostics/compatibility.h>
 
 bool
 SK_AppCache_Manager::loadAppCacheForExe (const wchar_t* wszExe)

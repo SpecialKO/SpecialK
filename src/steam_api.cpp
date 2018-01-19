@@ -4393,6 +4393,10 @@ SK_SteamAPIContext::OnFileDetailsDone ( FileDetailsResult_t* pParam,
   CreateThread (nullptr, 0, [](LPVOID user) ->
     DWORD
     {
+      // We don't need these results anytime soon, get them when we get them...
+      SetThreadPriority ( GetCurrentThread (), THREAD_MODE_BACKGROUND_BEGIN |
+                                               THREAD_PRIORITY_IDLE );
+
       FileDetailsResult_t *pParam =
         (FileDetailsResult_t *)user;
 
@@ -4421,7 +4425,8 @@ SK_SteamAPIContext::OnFileDetailsDone ( FileDetailsResult_t* pParam,
                                 L" Match  ( File: %ws,\n"
     L"                                                                              SHA1: %20hs,\n"
     L"                                                                              Size: %lu bytes )",
-                                  wszFileName, szSHA1, pParam->m_ulFileSize );
+                                  SK_StripUserNameFromPathW (std::wstring (wszFileName).data ()),
+                                    szSHA1, pParam->m_ulFileSize );
               }
     
               else if (size != 0)
@@ -4433,7 +4438,7 @@ SK_SteamAPIContext::OnFileDetailsDone ( FileDetailsResult_t* pParam,
     L"                                                                              Expected SHA1: %20hs,\n"
     L"                                                                              Expected Size: %lu bytes,\n"
     L"                                                                                Actual Size: %lu bytes )",
-                                    wszFileName,
+                                    SK_StripUserNameFromPathW (std::wstring (wszFileName).data ()),
                                       szSHA1,
                                        pParam->m_ulFileSize, size );
     
@@ -4442,7 +4447,7 @@ SK_SteamAPIContext::OnFileDetailsDone ( FileDetailsResult_t* pParam,
     L"                                                                              Expected SHA1: %20hs,\n"
     L"                                                                              Expected Size: %lu bytes,\n"
     L"                                                                                Actual Size: %lu bytes )",
-                                    wszFileName,
+                                    SK_StripUserNameFromPathW (std::wstring (wszFileName).data ()),
                                       szSHA1,
                                        pParam->m_ulFileSize, size );
                 }
@@ -4457,7 +4462,7 @@ SK_SteamAPIContext::OnFileDetailsDone ( FileDetailsResult_t* pParam,
     L"                                                                              Expected SHA1: %20hs,\n"
     L"                                                                                Actual SHA1: %20hs,\n"
     L"                                                                                       Size: %lu bytes )",
-                                    wszFileName,
+                                    SK_StripUserNameFromPathW (std::wstring (wszFileName).data ()),
                                       szSHA1, szFileSHA1,
                                        pParam->m_ulFileSize );
     
@@ -4466,7 +4471,7 @@ SK_SteamAPIContext::OnFileDetailsDone ( FileDetailsResult_t* pParam,
     L"                                                                              Expected SHA1: %20hs,\n"
     L"                                                                                Actual SHA1: %20hs,\n"
     L"                                                                                       Size: %lu bytes )",
-                                    wszFileName,
+                                    SK_StripUserNameFromPathW (std::wstring (wszFileName).data ()),
                                       szSHA1, szFileSHA1,
                                        pParam->m_ulFileSize );
                 }
@@ -4483,7 +4488,8 @@ SK_SteamAPIContext::OnFileDetailsDone ( FileDetailsResult_t* pParam,
             {
               steam_log.Log ( L"> SteamAPI File Verification:                "
                               L" UNKNOWN STATUS (%lu) :: '%ws'",
-                                pParam->m_eResult, wszFileName );
+                                pParam->m_eResult,
+                                  SK_StripUserNameFromPathW (std::wstring (wszFileName).data ()) );
             } break;
           }
         };
@@ -5045,7 +5051,7 @@ SK_Steam_KickStart (const wchar_t* wszLibPath)
           if (LoadLibraryW (wszSteamDLL))
           {
             dll_log.Log ( L"[DLL Loader]   Manually booted SteamAPI: '%s'",
-                            wszSteamDLL );//wszDLLPath );
+                            SK_StripUserNameFromPathW (std::wstring (wszSteamDLL).data ()) );
             return true;
           }
         }

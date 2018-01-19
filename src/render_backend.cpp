@@ -89,27 +89,12 @@ SK_BootD3D9 (void)
   while (backend_dll == nullptr)
   {
     dll_log.Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (d3d9.dll) -- tid=%x ***", GetCurrentThreadId ());
-    SleepEx (500UL, TRUE);
-  }
-
-  static volatile ULONG __booted = FALSE;
-
-  if (InterlockedCompareExchange (&__booted, TRUE, FALSE))
-    return;
-
-  SK_D3D9_InitShaderModTools ();
-
-  if (config.textures.d3d9_mod)
-  {
-    SK::D3D9::tex_mgr.Init ();
+    SleepEx (100UL, TRUE);
   }
 
   // Establish the minimal set of APIs necessary to work as d3d9.dll
   if (SK_GetDLLRole () == DLL_ROLE::D3D9)
     config.apis.d3d9.hook = true;
-
-  if (! (config.apis.d3d9.hook || config.apis.d3d9ex.hook))
-    return;
 
   //
   // SANITY CHECK: D3D9 must be enabled to hook D3D9Ex...
@@ -117,29 +102,41 @@ SK_BootD3D9 (void)
   if (config.apis.d3d9ex.hook && (! config.apis.d3d9.hook))
     config.apis.d3d9.hook = true;
 
-  dll_log.Log (L"[API Detect]  <!> [ Bootstrapping Direct3D 9 (d3d9.dll) ] <!>");
+  if (! (config.apis.d3d9.hook || config.apis.d3d9ex.hook))
+    return;
 
-  if (SK_GetDLLRole () == DLL_ROLE::D3D9)
+  static volatile LONG __booted = FALSE;
+
+  if (! InterlockedCompareExchange (&__booted, TRUE, FALSE))
   {
-    // Load user-defined DLLs (Early)
-    SK_RunLHIfBitness ( 64, SK_LoadEarlyImports64 (),
-                            SK_LoadEarlyImports32 () );
+    SK_D3D9_InitShaderModTools ();
+
+    if (config.textures.d3d9_mod)
+    {
+      SK::D3D9::tex_mgr.Init ();
+    }
+
+    dll_log.Log (L"[API Detect]  <!> [ Bootstrapping Direct3D 9 (d3d9.dll) ] <!>");
+
+    if (SK_GetDLLRole () == DLL_ROLE::D3D9)
+    {
+      // Load user-defined DLLs (Early)
+      SK_RunLHIfBitness ( 64, SK_LoadEarlyImports64 (),
+                              SK_LoadEarlyImports32 () );
+    }
+
+    SK_D3D9_PreHook ();
+    SK_HookD3D9     ();
+
+    if (config.textures.d3d9_mod)
+    {
+      SK::D3D9::tex_mgr.Hook ();
+    }
+
+    InterlockedIncrement (&__booted);
   }
 
-  SK_D3D9_PreHook ();
-
-  //CreateThread (nullptr, 0, [](LPVOID) -> DWORD {
-    SK_HookD3D9 ();
-
-    //CloseHandle (GetCurrentThread ());
-    //
-    //return 0;
-  //}, nullptr, 0x00, nullptr);
-
-  if (config.textures.d3d9_mod)
-  {
-    SK::D3D9::tex_mgr.Hook ();
-  }
+  SK_Thread_SpinUntilAtomicMin (&__booted, 2);
 }
 
 #ifndef _WIN64
@@ -149,13 +146,8 @@ SK_BootD3D8 (void)
   while (backend_dll == nullptr)
   {
     dll_log.Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (d3d8.dll) -- tid=%x ***", GetCurrentThreadId ());
-    SleepEx (500UL, TRUE);
+    SleepEx (100UL, TRUE);
   }
-
-  static volatile ULONG __booted = FALSE;
-
-  if (InterlockedCompareExchange (&__booted, TRUE, FALSE))
-    return;
 
   // Establish the minimal set of APIs necessary to work as d3d8.dll
   if (SK_GetDLLRole () == DLL_ROLE::D3D8)
@@ -164,15 +156,24 @@ SK_BootD3D8 (void)
   if (! config.apis.d3d8.hook)
     return;
 
-  dll_log.Log (L"[API Detect]  <!> [ Bootstrapping Direct3D 8 (d3d8.dll) ] <!>");
+  static volatile LONG __booted = FALSE;
 
-  if (SK_GetDLLRole () == DLL_ROLE::D3D8)
+  if (! InterlockedCompareExchange (&__booted, TRUE, FALSE))
   {
-    // Load user-defined DLLs (Early)
-    SK_LoadEarlyImports32 ();
+    dll_log.Log (L"[API Detect]  <!> [ Bootstrapping Direct3D 8 (d3d8.dll) ] <!>");
+
+    if (SK_GetDLLRole () == DLL_ROLE::D3D8)
+    {
+      // Load user-defined DLLs (Early)
+      SK_LoadEarlyImports32 ();
+    }
+
+    SK_HookD3D8 ();
+
+    InterlockedIncrement (&__booted);
   }
 
-  SK_HookD3D8 ();
+  SK_Thread_SpinUntilAtomicMin (&__booted, 2);
 }
 
 void
@@ -181,13 +182,8 @@ SK_BootDDraw (void)
   while (backend_dll == nullptr)
   {
     dll_log.Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (ddraw.dll) -- tid=%x ***", GetCurrentThreadId ());
-    SleepEx (500UL, TRUE);
+    SleepEx (100UL, TRUE);
   }
-
-  static volatile ULONG __booted = FALSE;
-
-  if (InterlockedCompareExchange (&__booted, TRUE, FALSE))
-    return;
 
   // Establish the minimal set of APIs necessary to work as ddraw.dll
   if (SK_GetDLLRole () == DLL_ROLE::DDraw)
@@ -196,43 +192,41 @@ SK_BootDDraw (void)
   if (! config.apis.ddraw.hook)
     return;
 
-  dll_log.Log (L"[API Detect]  <!> [ Bootstrapping DirectDraw (ddraw.dll) ] <!>");
+  static volatile LONG __booted = FALSE;
 
-  if (SK_GetDLLRole () == DLL_ROLE::DDraw)
+  if (! InterlockedCompareExchange (&__booted, TRUE, FALSE))
   {
-    // Load user-defined DLLs (Early)
-    SK_LoadEarlyImports32 ();
+    dll_log.Log (L"[API Detect]  <!> [ Bootstrapping DirectDraw (ddraw.dll) ] <!>");
+
+    if (SK_GetDLLRole () == DLL_ROLE::DDraw)
+    {
+      // Load user-defined DLLs (Early)
+      SK_LoadEarlyImports32 ();
+    }
+
+    SK_HookDDraw ();
+
+    InterlockedIncrement (&__booted);
   }
 
-  SK_HookDDraw ();
+  SK_Thread_SpinUntilAtomicMin (&__booted, 2);
 }
 #endif
 
 void
 SK_BootDXGI (void)
 {
-  if (! config.apis.dxgi.d3d11.hook)
-    return;
-
   while (backend_dll == nullptr)
   {
     dll_log.Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (dxgi.dll) -- tid=%x ***", GetCurrentThreadId ());
-    SleepEx (500UL, TRUE);
+    SleepEx (100UL, TRUE);
   }
-
-  static volatile ULONG __booted = FALSE;
-
-  if (InterlockedCompareExchange (&__booted, TRUE, FALSE))
-    return;
 
   // Establish the minimal set of APIs necessary to work as dxgi.dll
   if (SK_GetDLLRole () == DLL_ROLE::DXGI)
     config.apis.dxgi.d3d11.hook = true;
 
 #ifdef _WIN64
-  if (! (config.apis.dxgi.d3d11.hook || config.apis.dxgi.d3d12.hook))
-    return;
-
   //
   // TEMP HACK: D3D11 must be enabled to hook D3D12...
   //
@@ -240,17 +234,31 @@ SK_BootDXGI (void)
     config.apis.dxgi.d3d11.hook = true;
 #endif
 
-  dll_log.Log (L"[API Detect]  <!> [    Bootstrapping DXGI (dxgi.dll)    ] <!>");
+  if (! config.apis.dxgi.d3d11.hook)
+    return;
 
-  if (SK_GetDLLRole () & DLL_ROLE::DXGI)
+  static volatile LONG __booted = FALSE;
+
+  if (! InterlockedCompareExchange (&__booted, TRUE, FALSE))
   {
-    // Load user-defined DLLs (Early)
-    SK_RunLHIfBitness ( 64, SK_LoadEarlyImports64 (),
-                            SK_LoadEarlyImports32 () );
+    dll_log.Log (L"[API Detect]  <!> [    Bootstrapping DXGI (dxgi.dll)    ] <!>");
+
+    if (SK_GetDLLRole () & DLL_ROLE::DXGI)
+    {
+      // Load user-defined DLLs (Early)
+      SK_RunLHIfBitness ( 64, SK_LoadEarlyImports64 (),
+                              SK_LoadEarlyImports32 () );
+    }
+
+    //extern void SK_DXGI_QuickHook (void);
+    //
+    //SK_DXGI_QuickHook ();
+    SK_HookDXGI       ();
+
+    InterlockedIncrement (&__booted);
   }
 
-  SK_DXGI_PreHook ();
-  SK_HookDXGI     ();
+  SK_Thread_SpinUntilAtomicMin (&__booted, 2);
 }
 
 
@@ -260,14 +268,8 @@ SK_BootOpenGL (void)
   while (backend_dll == nullptr)
   {
     dll_log.Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (OpenGL32.dll) -- tid=%x ***", GetCurrentThreadId ());
-    SleepEx (500UL, TRUE);
+    SleepEx (100UL, TRUE);
   }
-
-#ifndef SK_BUILD__INSTALLER
-  static volatile ULONG __booted = FALSE;
-
-  if (InterlockedCompareExchange (&__booted, TRUE, FALSE))
-    return;
 
   // Establish the minimal set of APIs necessary to work as OpenGL32.dll
   if (SK_GetDLLRole () == DLL_ROLE::OpenGL)
@@ -276,17 +278,27 @@ SK_BootOpenGL (void)
   if (! config.apis.OpenGL.hook)
     return;
 
-  dll_log.Log (L"[API Detect]  <!> [ Bootstrapping OpenGL (OpenGL32.dll) ] <!>");
+#ifndef SK_BUILD__INSTALLER
+  static volatile LONG __booted = FALSE;
 
-  if (SK_GetDLLRole ( ) == DLL_ROLE::OpenGL)
+  if (! InterlockedCompareExchange (&__booted, TRUE, FALSE))
   {
-    // Load user-defined DLLs (Early)
-    SK_RunLHIfBitness ( 64, SK_LoadEarlyImports64 (),
-                            SK_LoadEarlyImports32 () );
-  }
+    dll_log.Log (L"[API Detect]  <!> [ Bootstrapping OpenGL (OpenGL32.dll) ] <!>");
+
+    if (SK_GetDLLRole () == DLL_ROLE::OpenGL)
+    {
+      // Load user-defined DLLs (Early)
+      SK_RunLHIfBitness ( 64, SK_LoadEarlyImports64 (),
+                              SK_LoadEarlyImports32 () );
+    }
 #endif
 
-  SK_HookGL ();
+    SK_HookGL ();
+
+    InterlockedIncrement (&__booted);
+  }
+
+  SK_Thread_SpinUntilAtomicMin (&__booted, 2);
 }
 
 
@@ -383,28 +395,31 @@ SK_RenderBackendUtil_IsFullscreen (void)
 
   if (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D11))
   {
-    CComPtr <IDXGISwapChain> pSwapChain = nullptr;
-    BOOL                     fullscreen = rb.fullscreen_exclusive;
+    CComQIPtr <IDXGISwapChain> pSwapChain (rb.swapchain);
+    BOOL                       fullscreen = rb.fullscreen_exclusive;
 
-    rb.swapchain->QueryInterface <IDXGISwapChain> (&pSwapChain);
+    if (pSwapChain != nullptr)
+    {
+      if (SUCCEEDED (pSwapChain->GetFullscreenState (&fullscreen, nullptr)))
+        return fullscreen;
 
-    if (SUCCEEDED (pSwapChain->GetFullscreenState (&fullscreen, nullptr)))
-      return fullscreen;
-
-    return true;//rb.fullscreen_exclusive;
+      return true;//rb.fullscreen_exclusive;
+    }
   }
 
   if (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D9))
   {
-    CComPtr <IDirect3DSwapChain9> pSwapChain = nullptr;
+    CComQIPtr <IDirect3DSwapChain9> pSwapChain (rb.swapchain);
 
-    rb.swapchain->QueryInterface <IDirect3DSwapChain9> (&pSwapChain);
+    if (pSwapChain != nullptr)
+    {
+      D3DPRESENT_PARAMETERS pparams = { };
 
-    D3DPRESENT_PARAMETERS pparams;
-    if (SUCCEEDED (pSwapChain->GetPresentParameters (&pparams)))
-      return (! pparams.Windowed);
+      if (SUCCEEDED (pSwapChain->GetPresentParameters (&pparams)))
+        return (! pparams.Windowed);
 
-    return rb.fullscreen_exclusive;
+      return rb.fullscreen_exclusive;
+    }
   }
 
   return false;
@@ -429,29 +444,33 @@ SK_RenderBackend_V2::requestFullscreenMode (bool override)
       SK_D3D9_TriggerReset (true);
     }
 
-    else if (static_cast <int> (api) & static_cast <int> (SK_RenderAPI::D3D11))
+    else if ((static_cast <int> (api) & static_cast <int> (SK_RenderAPI::D3D11)) && swapchain != nullptr)
     {
-      CComPtr <IDXGISwapChain> pSwapChain = nullptr;
-      swapchain->QueryInterface <IDXGISwapChain> (&pSwapChain);
+      CComQIPtr <IDXGISwapChain> pSwapChain (swapchain);
 
-      pSwapChain->SetFullscreenState (TRUE, nullptr);
+      if (pSwapChain != nullptr)
+      {
+        pSwapChain->SetFullscreenState (TRUE, nullptr);
+      }
     }
   }
 
-  if (static_cast <int> (api) & static_cast <int> (SK_RenderAPI::D3D11))
+  if ((static_cast <int> (api) & static_cast <int> (SK_RenderAPI::D3D11)))
   {
-    DXGI_SWAP_CHAIN_DESC swap_desc;
+    DXGI_SWAP_CHAIN_DESC swap_desc = { };
 
-    CComPtr <IDXGISwapChain> pSwapChain = nullptr;
-    swapchain->QueryInterface <IDXGISwapChain> (&pSwapChain);
+    CComQIPtr <IDXGISwapChain> pSwapChain (swapchain);
 
-    if (SUCCEEDED (pSwapChain->GetDesc (&swap_desc)))
+    if (pSwapChain != nullptr)
     {
-      if (SUCCEEDED (pSwapChain->ResizeTarget (&swap_desc.BufferDesc)))
+      if (SUCCEEDED (pSwapChain->GetDesc (&swap_desc)))
       {
-        SendMessage ( swap_desc.OutputWindow, WM_SIZE, SIZE_RESTORED,
-                        MAKELPARAM ( swap_desc.BufferDesc.Width,
-                                     swap_desc.BufferDesc.Height ) );
+        if (SUCCEEDED (pSwapChain->ResizeTarget (&swap_desc.BufferDesc)))
+        {
+          SendMessage ( swap_desc.OutputWindow, WM_SIZE, SIZE_RESTORED,
+                          MAKELPARAM ( swap_desc.BufferDesc.Width,
+                                       swap_desc.BufferDesc.Height ) );
+        }
       }
     }
   }
@@ -476,12 +495,14 @@ SK_RenderBackend_V2::requestWindowedMode (bool override)
       SK_D3D9_TriggerReset (true);
     }
 
-    else if (static_cast <int> (api) & static_cast <int> (SK_RenderAPI::D3D11))
+    else if ((static_cast <int> (api) & static_cast <int> (SK_RenderAPI::D3D11)) && swapchain != nullptr)
     {
-      CComPtr <IDXGISwapChain> pSwapChain = nullptr;
-      swapchain->QueryInterface <IDXGISwapChain> (&pSwapChain);
+      CComQIPtr <IDXGISwapChain> pSwapChain (swapchain);
 
-      pSwapChain->SetFullscreenState (FALSE, nullptr);
+      if (pSwapChain != nullptr)
+      {
+        pSwapChain->SetFullscreenState (FALSE, nullptr);
+      }
     }
   }
 }

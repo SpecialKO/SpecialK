@@ -23,9 +23,70 @@
 #define __SK__HOOKS_H__
 
 #undef COM_NO_WINDOWS_H
-#include <WInDef.h>
-
+#include <WinDef.h>
 #include <MinHook/MinHook.h>
+
+
+#ifndef __SK__INI_H__
+struct iSK_INI;
+#endif
+
+extern iSK_INI* SK_GetDLLConfig (void);
+
+
+struct sk_hook_target_s
+{
+  char      symbol_name [128];          // Expected symbol name (*)
+  wchar_t   module_path [MAX_PATH + 2]; // <*> VFTbl hooks do not often resolve
+  LPVOID    target_addr;
+  ptrdiff_t offset;
+
+  bool      hooked;
+
+#ifdef _XSTRING_
+  std::wstring serialize_ini   (void);
+  bool         deserialize_ini (const std::wstring& serial_data);
+#endif
+};
+
+struct sk_hook_cache_record_s
+{
+  sk_hook_target_s target;
+  LONG             hits;
+};
+
+#define SK_HookCacheEntry(entry) sk_hook_cache_record_s entry ## = \
+  { {#entry, L"", nullptr, 0ULL, false}, 0 };
+
+// Load the address and module from an INI file into the cache record
+bool
+SK_Hook_PredictTarget (       sk_hook_cache_record_s *cache,
+                        const wchar_t                *wszSectionName,
+                              iSK_INI                *ini = SK_GetDLLConfig () );
+
+// Push the address and module in the cache record to an INI file
+void
+SK_Hook_CacheTarget   ( sk_hook_cache_record_s *cache,
+                  const wchar_t                *wszSectionName,
+                        iSK_INI                *ini = SK_GetDLLConfig () );
+
+// Erase a cached address
+void
+SK_Hook_RemoveTarget (       sk_hook_cache_record_s *cache,
+                       const wchar_t                *wszSectionName,
+                             iSK_INI                *ini = SK_GetDLLConfig () );
+
+static __forceinline
+void
+SK_Hook_TargetFromVFTable ( sk_hook_cache_record_s  *cache,
+                            void                   **base,
+                            int                      idx   )
+{
+  cache->target.target_addr =
+    (*(void***)*(base))[idx];
+};
+
+
 
 MH_STATUS
 __stdcall

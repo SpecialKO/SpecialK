@@ -438,6 +438,9 @@
     <ClInclude Include="include\SpecialK\SpecialK.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\SpecialK\com_util.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stdafx.cpp">
@@ -456,9 +459,6 @@
       <Filter>Source Files\OSD\Stats</Filter>
     </ClCompile>
     <ClCompile Include="src\io_monitor.cpp">
-      <Filter>Source Files\OSD\Stats</Filter>
-    </ClCompile>
-    <ClCompile Include="src\memory_monitor.cpp">
       <Filter>Source Files\OSD\Stats</Filter>
     </ClCompile>
     <ClCompile Include="src\nvapi.cpp">
@@ -705,6 +705,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\crc32.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\com_util.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

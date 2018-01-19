@@ -135,6 +135,7 @@ std::wstring   SK_GetModuleNameFromAddr     (LPCVOID addr);
 std::wstring   SK_GetModuleFullNameFromAddr (LPCVOID addr);
 std::wstring   SK_MakePrettyAddress         (LPCVOID addr, DWORD dwFlags = 0x0);
 bool           SK_ValidatePointer           (LPCVOID addr);
+void           SK_LogSymbolName             (LPCVOID addr);
 
 char*          SK_StripUserNameFromPathA    (   char*  szInOut);
 wchar_t*       SK_StripUserNameFromPathW    (wchar_t* wszInOut);
