@@ -116,7 +116,7 @@ sk_hook_target_s::deserialize_ini (const std::wstring& serial_data)
 
   if (SK_LoadLibrary_PinModule <wchar_t> (wszPath))
   {
-    target_addr =
+    addr =
       (LPVOID)((uintptr_t)hModLib + offset);
 
     return true;
@@ -126,7 +126,7 @@ sk_hook_target_s::deserialize_ini (const std::wstring& serial_data)
 }
 
 bool
-SK_Hook_PredictTarget (       sk_hook_cache_record_s *cache,
+SK_Hook_PredictTarget (       sk_hook_cache_record_s &cache,
                         const wchar_t                *wszSectionName,
                               iSK_INI                *ini )
 {
@@ -134,13 +134,13 @@ SK_Hook_PredictTarget (       sk_hook_cache_record_s *cache,
     ini->get_section (wszSectionName);
 
   std::wstring wide_symbol (
-    SK_UTF8ToWideChar (cache->target.symbol_name)
+    SK_UTF8ToWideChar (cache.target.symbol_name)
   );
 
   if (hook_cfg.contains_key (wide_symbol.c_str ()))
   {
     return
-      cache->target.deserialize_ini (
+      cache.target.deserialize_ini (
         hook_cfg.get_value (wide_symbol.c_str ())
       );
   }
@@ -149,7 +149,7 @@ SK_Hook_PredictTarget (       sk_hook_cache_record_s *cache,
 };
 
 void
-SK_Hook_RemoveTarget (       sk_hook_cache_record_s *cache,
+SK_Hook_RemoveTarget (       sk_hook_cache_record_s &cache,
                        const wchar_t                *wszSectionName,
                              iSK_INI                *ini )
 {
@@ -158,34 +158,34 @@ SK_Hook_RemoveTarget (       sk_hook_cache_record_s *cache,
     iSK_INISection& hook_cfg =
       ini->get_section (wszSectionName);
 
-    hook_cfg.remove_key (SK_UTF8ToWideChar (cache->target.symbol_name).c_str ());
+    hook_cfg.remove_key (SK_UTF8ToWideChar (cache.target.symbol_name).c_str ());
 
     ini->write ( ini->get_filename () );
   }
 }
 
 void
-SK_Hook_CacheTarget (       sk_hook_cache_record_s *cache,
+SK_Hook_CacheTarget (       sk_hook_cache_record_s &cache,
                       const wchar_t                *wszSectionName,
                             iSK_INI                *ini )
 {
   HMODULE hModBase =
-    SK_GetModuleFromAddr (cache->target.target_addr);
+    SK_GetModuleFromAddr (cache.target.addr);
 
   if (hModBase != INVALID_HANDLE_VALUE)
   {
-    cache->target.offset =
-      (uint64_t)cache->target.target_addr -
+    cache.target.offset =
+      (uint64_t)cache.target.addr -
       (uint64_t)hModBase;
 
-    wcsncpy ( cache->target.module_path, 
-                SK_GetModuleFullNameFromAddr (cache->target.target_addr).c_str (),
+    wcsncpy ( cache.target.module_path, 
+                SK_GetModuleFullNameFromAddr (cache.target.addr).c_str (),
                   MAX_PATH );
 
-    cache->hits++;
+    cache.hits++;
 
     const char* szSymbol =
-      cache->target.symbol_name;
+      cache.target.symbol_name;
 
     //SK_LOG0 ( ( L" DXGI_HOOK <%64hs> [ %s # %li ]",
     //                        szSymbol,
@@ -197,7 +197,7 @@ SK_Hook_CacheTarget (       sk_hook_cache_record_s *cache,
       ini->get_section (wszSectionName);
 
     std::wstring wide_symbol (SK_UTF8ToWideChar (szSymbol));
-    std::wstring serialized  (cache->target.serialize_ini ());
+    std::wstring serialized  (cache.target.serialize_ini ());
 
     if (hook_cfg.contains_key (wide_symbol.c_str ()))
     {

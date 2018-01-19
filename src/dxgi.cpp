@@ -61,25 +61,87 @@
 #include <imgui/backends/imgui_d3d11.h>
 
 
-struct sk_dxgi_hook_cache_s
-{
-  SK_HookCacheEntry (IDXGIFactory_CreateSwapChain)
-  SK_HookCacheEntry (IDXGISwapChain_ResizeTarget)
-  SK_HookCacheEntry (IDXGISwapChain_ResizeBuffers)
-  SK_HookCacheEntry (IDXGISwapChain_Present)
+CreateSwapChain_pfn               CreateSwapChain_Original               = nullptr;
 
-  // These actually aren't that important, ignore em' for now.
-  //
-  SK_HookCacheEntry (CreateDXGIFactory)
-  SK_HookCacheEntry (CreateDXGIFactory1)
-  SK_HookCacheEntry (CreateDXGIFactory2)
-  SK_HookCacheEntry (IDXGIFactory2_CreateSwapChainForHwnd)
-  SK_HookCacheEntry (IDXGIFactory2_CreateSwapChainForCoreWindow)
-  SK_HookCacheEntry (IDXGIFactory2_CreateSwapChainForComposition)
-  SK_HookCacheEntry (IDXGISwapChain_GetFullscreenState)
-  SK_HookCacheEntry (IDXGISwapChain_SetFullscreenState)
-  SK_HookCacheEntry (IDXGISwapChain1_Present1)
-} SK_DXGI_HookCache;
+PresentSwapChain_pfn              Present_Target                         = nullptr;
+PresentSwapChain_pfn              Present_Original                       = nullptr;
+
+Present1SwapChain1_pfn            Present1_Original                      = nullptr;
+SetFullscreenState_pfn            SetFullscreenState_Original            = nullptr;
+GetFullscreenState_pfn            GetFullscreenState_Original            = nullptr;
+ResizeBuffers_pfn                 ResizeBuffers_Original                 = nullptr;
+ResizeTarget_pfn                  ResizeTarget_Original                  = nullptr;
+
+GetDisplayModeList_pfn            GetDisplayModeList_Original            = nullptr;
+FindClosestMatchingMode_pfn       FindClosestMatchingMode_Original       = nullptr;
+WaitForVBlank_pfn                 WaitForVBlank_Original                 = nullptr;
+CreateSwapChainForHwnd_pfn        CreateSwapChainForHwnd_Original        = nullptr;
+CreateSwapChainForCoreWindow_pfn  CreateSwapChainForCoreWindow_Original  = nullptr;
+CreateSwapChainForComposition_pfn CreateSwapChainForComposition_Original = nullptr;
+
+GetDesc_pfn                       GetDesc_Original                       = nullptr;
+GetDesc1_pfn                      GetDesc1_Original                      = nullptr;
+GetDesc2_pfn                      GetDesc2_Original                      = nullptr;
+
+EnumAdapters_pfn                  EnumAdapters_Original                  = nullptr;
+EnumAdapters1_pfn                 EnumAdapters1_Original                 = nullptr;
+
+CreateDXGIFactory_pfn             CreateDXGIFactory_Import               = nullptr;
+CreateDXGIFactory1_pfn            CreateDXGIFactory1_Import              = nullptr;
+CreateDXGIFactory2_pfn            CreateDXGIFactory2_Import              = nullptr;
+
+
+#pragma data_seg (".SK_DXGI_Hooks")
+extern "C"
+{
+  // Global DLL's cache
+  __declspec (dllexport) SK_HookCacheEntryGlobal (IDXGIFactory_CreateSwapChain)
+  __declspec (dllexport) SK_HookCacheEntryGlobal (IDXGISwapChain_Present)
+  __declspec (dllexport) SK_HookCacheEntryGlobal (IDXGISwapChain_ResizeTarget)
+  __declspec (dllexport) SK_HookCacheEntryGlobal (IDXGISwapChain_ResizeBuffers)
+  __declspec (dllexport) SK_HookCacheEntryGlobal (IDXGISwapChain_GetFullscreenState)
+  __declspec (dllexport) SK_HookCacheEntryGlobal (IDXGISwapChain_SetFullscreenState)
+  __declspec (dllexport) SK_HookCacheEntryGlobal (CreateDXGIFactory)
+  __declspec (dllexport) SK_HookCacheEntryGlobal (CreateDXGIFactory1)
+  __declspec (dllexport) SK_HookCacheEntryGlobal (CreateDXGIFactory2)
+};
+#pragma data_seg ()
+#pragma comment  (linker, "/SECTION:.SK_DXGI_Hooks,RWS")
+
+
+// Local DLL's cached addresses
+SK_HookCacheEntryLocal (IDXGIFactory_CreateSwapChain,      L"dxgi.dll", DXGIFactory_CreateSwapChain_Override, &CreateSwapChain_Original)
+SK_HookCacheEntryLocal (IDXGISwapChain_Present,            L"dxgi.dll", PresentCallback,                      &Present_Original);
+SK_HookCacheEntryLocal (IDXGISwapChain_ResizeTarget,       L"dxgi.dll", DXGISwap_ResizeTarget_Override,       &ResizeTarget_Original)
+SK_HookCacheEntryLocal (IDXGISwapChain_ResizeBuffers,      L"dxgi.dll", DXGISwap_ResizeBuffers_Override,      &ResizeBuffers_Original)
+SK_HookCacheEntryLocal (IDXGISwapChain_GetFullscreenState, L"dxgi.dll", DXGISwap_GetFullscreenState_Override, &GetFullscreenState_Original)
+SK_HookCacheEntryLocal (IDXGISwapChain_SetFullscreenState, L"dxgi.dll", DXGISwap_SetFullscreenState_Override, &SetFullscreenState_Original)
+SK_HookCacheEntryLocal (CreateDXGIFactory,                 L"dxgi.dll", CreateDXGIFactory,                    &CreateDXGIFactory_Import)
+SK_HookCacheEntryLocal (CreateDXGIFactory1,                L"dxgi.dll", CreateDXGIFactory1,                   &CreateDXGIFactory1_Import)
+SK_HookCacheEntryLocal (CreateDXGIFactory2,                L"dxgi.dll", CreateDXGIFactory2,                   &CreateDXGIFactory2_Import)
+
+static
+sk_hook_cache_record_s* global_dxgi_records [] =
+  { &GlobalHook_IDXGIFactory_CreateSwapChain,      &GlobalHook_IDXGISwapChain_Present,
+    &GlobalHook_IDXGISwapChain_ResizeTarget,       &GlobalHook_IDXGISwapChain_ResizeBuffers,
+    &GlobalHook_IDXGISwapChain_GetFullscreenState, &GlobalHook_IDXGISwapChain_SetFullscreenState,
+    &GlobalHook_CreateDXGIFactory,                 &GlobalHook_CreateDXGIFactory1,
+    &GlobalHook_CreateDXGIFactory2 };
+
+static
+sk_hook_cache_record_s* local_dxgi_records [] =
+  { &LocalHook_IDXGIFactory_CreateSwapChain,      &LocalHook_IDXGISwapChain_Present,
+    &LocalHook_IDXGISwapChain_ResizeTarget,       &LocalHook_IDXGISwapChain_ResizeBuffers,
+    &LocalHook_IDXGISwapChain_GetFullscreenState, &LocalHook_IDXGISwapChain_SetFullscreenState,
+    &LocalHook_CreateDXGIFactory,                 &LocalHook_CreateDXGIFactory1,
+    &LocalHook_CreateDXGIFactory2 };
+
+// These actually aren't that important, ignore em' for now.
+//
+SK_HookCacheEntry (LocalHook_IDXGIFactory2_CreateSwapChainForHwnd)
+SK_HookCacheEntry (LocalHook_IDXGIFactory2_CreateSwapChainForCoreWindow)
+SK_HookCacheEntry (LocalHook_IDXGIFactory2_CreateSwapChainForComposition)
+SK_HookCacheEntry (LocalHook_IDXGISwapChain1_Present1)
 
 
 
@@ -840,35 +902,6 @@ SK_DXGI_SupportsTearing (void)
 {
   return dxgi_caps.swapchain.allow_tearing;
 }
-
-CreateSwapChain_pfn               CreateSwapChain_Original               = nullptr;
-
-PresentSwapChain_pfn              Present_Target                         = nullptr;
-PresentSwapChain_pfn              Present_Original                       = nullptr;
-
-Present1SwapChain1_pfn            Present1_Original                      = nullptr;
-SetFullscreenState_pfn            SetFullscreenState_Original            = nullptr;
-GetFullscreenState_pfn            GetFullscreenState_Original            = nullptr;
-ResizeBuffers_pfn                 ResizeBuffers_Original                 = nullptr;
-ResizeTarget_pfn                  ResizeTarget_Original                  = nullptr;
-
-GetDisplayModeList_pfn            GetDisplayModeList_Original            = nullptr;
-FindClosestMatchingMode_pfn       FindClosestMatchingMode_Original       = nullptr;
-WaitForVBlank_pfn                 WaitForVBlank_Original                 = nullptr;
-CreateSwapChainForHwnd_pfn        CreateSwapChainForHwnd_Original        = nullptr;
-CreateSwapChainForCoreWindow_pfn  CreateSwapChainForCoreWindow_Original  = nullptr;
-CreateSwapChainForComposition_pfn CreateSwapChainForComposition_Original = nullptr;
-
-GetDesc_pfn                       GetDesc_Original                       = nullptr;
-GetDesc1_pfn                      GetDesc1_Original                      = nullptr;
-GetDesc2_pfn                      GetDesc2_Original                      = nullptr;
-
-EnumAdapters_pfn                  EnumAdapters_Original                  = nullptr;
-EnumAdapters1_pfn                 EnumAdapters1_Original                 = nullptr;
-
-CreateDXGIFactory_pfn             CreateDXGIFactory_Import               = nullptr;
-CreateDXGIFactory1_pfn            CreateDXGIFactory1_Import              = nullptr;
-CreateDXGIFactory2_pfn            CreateDXGIFactory2_Import              = nullptr;
 
 const wchar_t*
 SK_DescribeVirtualProtectFlags (DWORD dwProtect)
@@ -2422,11 +2455,6 @@ HRESULT SK_DXGI_Present ( IDXGISwapChain *This,
 {
   HRESULT hr = S_OK;
 
-  extern HRESULT
-    STDMETHODCALLTYPE PresentCallback (IDXGISwapChain *This,
-                                       UINT            SyncInterval,
-                                       UINT            Flags);
-
   __try                                {
     hr = Present_Original (This, SyncInterval, Flags);
   }
@@ -2790,10 +2818,11 @@ D3DKMTPresent_Override (const D3DKMT_PRESENT *pData)
   return ntStat;
 }
 
+__declspec (noinline)
 HRESULT
-  STDMETHODCALLTYPE PresentCallback (IDXGISwapChain *This,
-                                     UINT            SyncInterval,
-                                     UINT            Flags)
+STDMETHODCALLTYPE PresentCallback ( IDXGISwapChain *This,
+                                    UINT            SyncInterval,
+                                    UINT            Flags )
 {
   //if ( SK_GetCurrentRenderBackend ().swapchain != nullptr &&
   //     SK_GetCurrentRenderBackend ().device    != nullptr &&
@@ -2859,27 +2888,19 @@ HRESULT
 
   if (pDev && first_frame)
   {
-    SK_Hook_CacheTarget (
-      &SK_DXGI_HookCache.IDXGIFactory_CreateSwapChain,
-        L"DXGI.Hooks"   );
-    SK_Hook_CacheTarget (
-      &SK_DXGI_HookCache.IDXGISwapChain_ResizeTarget,
-        L"DXGI.Hooks"   );
-    SK_Hook_CacheTarget (
-      &SK_DXGI_HookCache.IDXGISwapChain_ResizeBuffers,
-        L"DXGI.Hooks"   );
-    SK_Hook_CacheTarget (
-      &SK_DXGI_HookCache.IDXGISwapChain_Present,
-        L"DXGI.Hooks"   );
-    //SK_Hook_CacheTarget (
-    //  &SK_DXGI_HookCache.IDXGISwapChain_GetFullscreenState,
-    //    L"DXGI.Hooks"   );
-    //SK_Hook_CacheTarget (
-    //  &SK_DXGI_HookCache.IDXGISwapChain_SetFullscreenState,
-    //    L"DXGI.Hooks"   );
-    //SK_Hook_CacheTarget (
-    //  &SK_DXGI_HookCache.IDXGISwapChain1_Present1,
-    //    L"DXGI.Hooks"   );
+    for ( auto it : local_dxgi_records )
+    {
+      SK_Hook_CacheTarget ( *it, L"DXGI.Hooks" );
+    }
+
+    auto it_local  = std::begin (local_dxgi_records);
+    auto it_global = std::begin (global_dxgi_records);
+
+    while ( it_local != std::end (local_dxgi_records) )
+    {
+      SK_Hook_PushLocalCacheOntoGlobal ( **it_local++,
+                                           **it_global++ );
+    }
 
 #ifdef _WIN64
     switch (SK_GetCurrentGameID ())
@@ -4413,6 +4434,7 @@ SK_DXGI_CreateSwapChain1_PostInit ( _In_     IUnknown                         *p
   return SK_DXGI_CreateSwapChain_PostInit ( pDevice, &desc, &pSwapChain );
 }
 
+__declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
 DXGIFactory_CreateSwapChain_Override (             IDXGIFactory          *This,
@@ -5323,9 +5345,9 @@ SK_HookDXGI (void)
                   L" DXGI 1.3 " );
       SK_LogSymbolName                   (CreateDXGIFactory2_Import);
 
-      SK_DXGI_HookCache.CreateDXGIFactory.target.target_addr  = CreateDXGIFactory_Import;
-      SK_DXGI_HookCache.CreateDXGIFactory1.target.target_addr = CreateDXGIFactory1_Import;
-      SK_DXGI_HookCache.CreateDXGIFactory2.target.target_addr = CreateDXGIFactory2_Import;
+      LocalHook_CreateDXGIFactory.target.addr  = CreateDXGIFactory_Import;
+      LocalHook_CreateDXGIFactory1.target.addr = CreateDXGIFactory1_Import;
+      LocalHook_CreateDXGIFactory2.target.addr = CreateDXGIFactory2_Import;
 
       if (hook_d3dkmt_present)
       {
@@ -5371,7 +5393,7 @@ SK_HookDXGI (void)
         }
       }
 
-      if (GetProcAddress (hBackend, "CreateDXGIFactory"))
+      if ((! LocalHook_CreateDXGIFactory.active) && GetProcAddress (hBackend, "CreateDXGIFactory"))
       {
         if ( MH_OK ==
                SK_CreateDLLHook2 (      L"dxgi.dll",
@@ -5383,8 +5405,11 @@ SK_HookDXGI (void)
           MH_QueueEnableHook (pfnCreateDXGIFactory);
         }
       }
+      else if (LocalHook_CreateDXGIFactory.active) {
+        pfnCreateDXGIFactory = LocalHook_CreateDXGIFactory.target.addr;
+      }
 
-      if (GetProcAddress (hBackend, "CreateDXGIFactory1"))
+      if ((! LocalHook_CreateDXGIFactory1.active) && GetProcAddress (hBackend, "CreateDXGIFactory1"))
       {
         if ( MH_OK ==
                SK_CreateDLLHook2 (      L"dxgi.dll",
@@ -5396,8 +5421,11 @@ SK_HookDXGI (void)
           MH_QueueEnableHook (pfnCreateDXGIFactory1);
         }
       }
+      else if (LocalHook_CreateDXGIFactory1.active) {
+        pfnCreateDXGIFactory1 = LocalHook_CreateDXGIFactory1.target.addr;
+      }
 
-      if (GetProcAddress (hBackend, "CreateDXGIFactory2"))
+      if ((! LocalHook_CreateDXGIFactory2.active) && GetProcAddress (hBackend, "CreateDXGIFactory2"))
       {
         if ( MH_OK ==
                SK_CreateDLLHook2 (      L"dxgi.dll",
@@ -5408,6 +5436,9 @@ SK_HookDXGI (void)
         {
           MH_QueueEnableHook (pfnCreateDXGIFactory2);
         }
+      }
+      else if (LocalHook_CreateDXGIFactory2.active) {
+        pfnCreateDXGIFactory2 = LocalHook_CreateDXGIFactory2.target.addr;
       }
 
       SK_LOG0 ( ( L"  CreateDXGIFactory:  %s  %s",
@@ -5442,9 +5473,9 @@ SK_HookDXGI (void)
         SK_LogSymbolName                   (pfnD3DKMTPresent_Target);
       }
 
-      SK_DXGI_HookCache.CreateDXGIFactory.target.target_addr  = pfnCreateDXGIFactory;
-      SK_DXGI_HookCache.CreateDXGIFactory1.target.target_addr = pfnCreateDXGIFactory1;
-      SK_DXGI_HookCache.CreateDXGIFactory2.target.target_addr = pfnCreateDXGIFactory2;
+      LocalHook_CreateDXGIFactory.target.addr  = pfnCreateDXGIFactory;
+      LocalHook_CreateDXGIFactory1.target.addr = pfnCreateDXGIFactory1;
+      LocalHook_CreateDXGIFactory2.target.addr = pfnCreateDXGIFactory2;
     }
 
     MH_ApplyQueued ();
@@ -5512,11 +5543,6 @@ dxgi_init_callback (finish_pfn finish)
 //
 //  if (! config.injection.global.use_static_addresses)
 //    return;
-//
-//  extern HRESULT
-//  STDMETHODCALLTYPE PresentCallback (IDXGISwapChain *This,
-//                                     UINT            SyncInterval,
-//                                     UINT            Flags);
 //
 //  if (LoadLibraryW (L"dxgi.dll") && Present_Target == nullptr)
 //  {
@@ -5590,14 +5616,14 @@ STDMETHODCALLTYPE PresentCallback_Pre (IDXGISwapChain *This,
 void
 SK_DXGI_HookPresentBase (IDXGISwapChain* pSwapChain, bool rehook)
 {
-  if (SK_DXGI_HookCache.IDXGISwapChain_Present.target.hooked)
+  if (LocalHook_IDXGISwapChain_Present.active)
     return;
 
   rehook = false;
 
   SK_RunOnce (
     SK_Hook_TargetFromVFTable   (
-      &SK_DXGI_HookCache.IDXGISwapChain_Present,
+      LocalHook_IDXGISwapChain_Present,
         (void **)&pSwapChain, 8 )
   );
 
@@ -5660,7 +5686,7 @@ SK_DXGI_HookPresent1 (IDXGISwapChain1* pSwapChain1, bool rehook)
 
   SK_RunOnce (
     SK_Hook_TargetFromVFTable     (
-      &SK_DXGI_HookCache.IDXGISwapChain1_Present1,
+      LocalHook_IDXGISwapChain1_Present1,
         (void **)&pSwapChain1, 22 )
   );
 
@@ -5724,6 +5750,7 @@ SK_DXGI_FormatToString (DXGI_FORMAT fmt)
   return L"<NOT IMPLEMENTED>";
 }
 
+
 void
 SK_DXGI_HookSwapChain (IDXGISwapChain* pSwapChain)
 {
@@ -5731,7 +5758,7 @@ SK_DXGI_HookSwapChain (IDXGISwapChain* pSwapChain)
 
   if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
   {
-    if (! SK_DXGI_HookCache.IDXGISwapChain_SetFullscreenState.target.hooked)
+    if (! LocalHook_IDXGISwapChain_SetFullscreenState.active)
     {
       DXGI_VIRTUAL_HOOK ( &pSwapChain, 10, "IDXGISwapChain::SetFullscreenState",
                                 DXGISwap_SetFullscreenState_Override,
@@ -5739,40 +5766,40 @@ SK_DXGI_HookSwapChain (IDXGISwapChain* pSwapChain)
                                            SetFullscreenState_pfn );
 
       SK_Hook_TargetFromVFTable (
-        &SK_DXGI_HookCache.IDXGISwapChain_SetFullscreenState,
+        LocalHook_IDXGISwapChain_SetFullscreenState,
           (void **)&pSwapChain, 10 );
     }
 
-    if (! SK_DXGI_HookCache.IDXGISwapChain_GetFullscreenState.target.hooked)
+    if (! LocalHook_IDXGISwapChain_GetFullscreenState.active)
     {
       DXGI_VIRTUAL_HOOK ( &pSwapChain, 11, "IDXGISwapChain::GetFullscreenState",
                                 DXGISwap_GetFullscreenState_Override,
                                          GetFullscreenState_Original,
                                            GetFullscreenState_pfn );
       SK_Hook_TargetFromVFTable (
-        &SK_DXGI_HookCache.IDXGISwapChain_GetFullscreenState,
+        LocalHook_IDXGISwapChain_GetFullscreenState,
           (void **)&pSwapChain, 11 );
     }
 
-    if (! SK_DXGI_HookCache.IDXGISwapChain_ResizeBuffers.target.hooked)
+    if (! LocalHook_IDXGISwapChain_ResizeBuffers.active)
     {
       DXGI_VIRTUAL_HOOK ( &pSwapChain, 13, "IDXGISwapChain::ResizeBuffers",
                                DXGISwap_ResizeBuffers_Override,
                                         ResizeBuffers_Original,
                                           ResizeBuffers_pfn );
       SK_Hook_TargetFromVFTable (
-        &SK_DXGI_HookCache.IDXGISwapChain_ResizeBuffers,
+        LocalHook_IDXGISwapChain_ResizeBuffers,
           (void **)&pSwapChain, 13 );
     }
 
-    if (! SK_DXGI_HookCache.IDXGISwapChain_ResizeTarget.target.hooked)
+    if (! LocalHook_IDXGISwapChain_ResizeTarget.active)
     {
       DXGI_VIRTUAL_HOOK ( &pSwapChain, 14, "IDXGISwapChain::ResizeTarget",
                                DXGISwap_ResizeTarget_Override,
                                         ResizeTarget_Original,
                                           ResizeTarget_pfn );
       SK_Hook_TargetFromVFTable (
-        &SK_DXGI_HookCache.IDXGISwapChain_ResizeTarget,
+        LocalHook_IDXGISwapChain_ResizeTarget,
           (void **)&pSwapChain, 14 );
     }
 
@@ -5830,7 +5857,7 @@ SK_DXGI_HookFactory (IDXGIFactory* pFactory)
     //  9 GetWindowAssociation
     // 10 CreateSwapChain
     // 11 CreateSoftwareAdapter
-    if (! SK_DXGI_HookCache.IDXGIFactory_CreateSwapChain.target.hooked)
+    if (! LocalHook_IDXGIFactory_CreateSwapChain.active)
     {
       DXGI_VIRTUAL_HOOK ( &pFactory,     10,
                           "IDXGIFactory::CreateSwapChain",
@@ -5890,7 +5917,7 @@ SK_DXGI_HookFactory (IDXGIFactory* pFactory)
       if ( pFactory2 != nullptr ||
            SUCCEEDED (CreateDXGIFactory1_Import (IID_IDXGIFactory2, (void **)&pFactory2)) )
       {
-        if (! SK_DXGI_HookCache.IDXGIFactory2_CreateSwapChainForHwnd.target.hooked)
+        if (! LocalHook_IDXGIFactory2_CreateSwapChainForHwnd.active)
         {
           DXGI_VIRTUAL_HOOK ( &pFactory2,   15,
                               "IDXGIFactory2::CreateSwapChainForHwnd",
@@ -5899,7 +5926,7 @@ SK_DXGI_HookFactory (IDXGIFactory* pFactory)
                                             CreateSwapChainForHwnd_pfn );
         }
 
-        if (! SK_DXGI_HookCache.IDXGIFactory2_CreateSwapChainForCoreWindow.target.hooked)
+        if (! LocalHook_IDXGIFactory2_CreateSwapChainForCoreWindow.active)
         {
           DXGI_VIRTUAL_HOOK ( &pFactory2,   16,
                               "IDXGIFactory2::CreateSwapChainForCoreWindow",
@@ -5908,7 +5935,7 @@ SK_DXGI_HookFactory (IDXGIFactory* pFactory)
                                             CreateSwapChainForCoreWindow_pfn );
         }
 
-        if (! SK_DXGI_HookCache.IDXGIFactory2_CreateSwapChainForComposition.target.hooked)
+        if (! LocalHook_IDXGIFactory2_CreateSwapChainForComposition.active)
         {
           DXGI_VIRTUAL_HOOK ( &pFactory2,   24,
                               "IDXGIFactory2::CreateSwapChainForComposition",
@@ -5939,29 +5966,29 @@ SK_DXGI_HookFactory (IDXGIFactory* pFactory)
     // 28 CheckFeatureSupport
 
 
-    if (! SK_DXGI_HookCache.IDXGIFactory_CreateSwapChain.target.hooked)
+    if (! LocalHook_IDXGIFactory_CreateSwapChain.active)
     {
       SK_Hook_TargetFromVFTable (
-        &SK_DXGI_HookCache.IDXGIFactory_CreateSwapChain,
+        LocalHook_IDXGIFactory_CreateSwapChain,
           (void **)&pFactory, 10 );
     }
 
-    if (! SK_DXGI_HookCache.IDXGIFactory2_CreateSwapChainForHwnd.target.hooked)
+    if (! LocalHook_IDXGIFactory2_CreateSwapChainForHwnd.active)
     {
       SK_Hook_TargetFromVFTable (
-        &SK_DXGI_HookCache.IDXGIFactory2_CreateSwapChainForHwnd,
+        LocalHook_IDXGIFactory2_CreateSwapChainForHwnd,
           (void **)&pFactory2, 15 );
     }
-    if (! SK_DXGI_HookCache.IDXGIFactory2_CreateSwapChainForCoreWindow.target.hooked)
+    if (! LocalHook_IDXGIFactory2_CreateSwapChainForCoreWindow.active)
     {
       SK_Hook_TargetFromVFTable (
-        &SK_DXGI_HookCache.IDXGIFactory2_CreateSwapChainForCoreWindow,
+        LocalHook_IDXGIFactory2_CreateSwapChainForCoreWindow,
           (void **)&pFactory2, 16 );
     }
-    if (! SK_DXGI_HookCache.IDXGIFactory2_CreateSwapChainForComposition.target.hooked)
+    if (! LocalHook_IDXGIFactory2_CreateSwapChainForComposition.active)
     {
       SK_Hook_TargetFromVFTable (
-        &SK_DXGI_HookCache.IDXGIFactory2_CreateSwapChainForComposition,
+        LocalHook_IDXGIFactory2_CreateSwapChainForComposition,
           (void **)&pFactory2, 24 );
     }
 
@@ -6171,16 +6198,16 @@ SK::DXGI::Shutdown (void)
                 L"Hook Cache" );
 
     SK_Hook_RemoveTarget (
-      &SK_DXGI_HookCache.IDXGIFactory_CreateSwapChain,
+      LocalHook_IDXGIFactory_CreateSwapChain,
         L"DXGI.Hooks"    );
     SK_Hook_RemoveTarget (
-      &SK_DXGI_HookCache.IDXGISwapChain_ResizeTarget,
+      LocalHook_IDXGISwapChain_ResizeTarget,
         L"DXGI.Hooks"    );
     SK_Hook_RemoveTarget (
-      &SK_DXGI_HookCache.IDXGISwapChain_ResizeBuffers,
+      LocalHook_IDXGISwapChain_ResizeBuffers,
         L"DXGI.Hooks"    );
     SK_Hook_RemoveTarget (
-      &SK_DXGI_HookCache.IDXGISwapChain_Present,
+      LocalHook_IDXGISwapChain_Present,
         L"DXGI.Hooks"    );
   }
 
@@ -6859,86 +6886,90 @@ SK::DXGI::ShutdownBudgetThread ( void )
 void
 SK_DXGI_QuickHook (void)
 {
+  struct
+  { int from_shared_dll = 0;
+    int from_game_ini   = 0;
+  } num_quick_hooked;
+
+
+  // This first pass will iterate over any records in the DLL's shared
+  //   data segment (for global injection).
+  //
+  for ( auto& it : local_dxgi_records )
+  {
+    if (it->target.addr != nullptr)
+    {
+      if (LoadLibraryW_Original (it->target.module_path))
+      {
+        SK_LOG0 ( ( L"Using global DLL's shared cache address for '%33hs' :: %s",
+                                it->target.symbol_name,
+          SK_MakePrettyAddress (it->target.addr).c_str () ),
+                    L"Hook Cache" );
+
+        if ( SK_CreateFuncHook (
+             SK_UTF8ToWideChar ( it->target.symbol_name ).c_str (),
+                                 it->target.addr,
+                                 it->detour,
+                                 it->trampoline
+                               ) == MH_OK )
+        {
+          if (MH_QueueEnableHook (it->target.addr) == MH_OK)
+          {
+            it->active = true;
+            ++num_quick_hooked.from_shared_dll;
+          }
+        }
+      }
+    }
+  }
+
+  if (num_quick_hooked.from_shared_dll > 0)
+    SK_ApplyQueuedHooks ();
+
+
+  // After trying the shared data segment, examine the current game's
+  //   INI for any cached addresses and try to load those if needed.
+  //
   if (SK_GetDLLConfig ()->contains_section (L"DXGI.Hooks"))
   {
-    if ( SK_Hook_PredictTarget ( &SK_DXGI_HookCache.IDXGIFactory_CreateSwapChain,
-                                   L"DXGI.Hooks" ) )
+    for ( auto& it : local_dxgi_records )
     {
-      if ( SK_CreateFuncHook (
-           SK_UTF8ToWideChar ( SK_DXGI_HookCache.IDXGIFactory_CreateSwapChain.target.symbol_name ).c_str (),
-                               SK_DXGI_HookCache.IDXGIFactory_CreateSwapChain.target.target_addr,
-                                                  DXGIFactory_CreateSwapChain_Override,
-                                     static_cast_p2p <void> (&CreateSwapChain_Original) ) == MH_OK )
+      if (! it->active)
       {
-        if (MH_QueueEnableHook (SK_DXGI_HookCache.IDXGIFactory_CreateSwapChain.target.target_addr) == MH_OK)
+        if ( SK_Hook_PredictTarget ( *it, L"DXGI.Hooks" ) )
         {
-          SK_DXGI_HookCache.IDXGIFactory_CreateSwapChain.target.hooked = true;
+          if ( SK_CreateFuncHook (
+               SK_UTF8ToWideChar ( it->target.symbol_name ).c_str (),
+                                   it->target.addr,
+                                   it->detour,
+                                   it->trampoline
+                                 ) == MH_OK )
+          {
+            if (MH_QueueEnableHook (it->target.addr) == MH_OK)
+            {
+              it->active = true;
+              ++num_quick_hooked.from_game_ini;
+            }
+          }
         }
       }
     }
+  }
 
-    if ( SK_Hook_PredictTarget ( &SK_DXGI_HookCache.IDXGISwapChain_ResizeTarget,
-                                   L"DXGI.Hooks" ) )
-    {
-      if ( SK_CreateFuncHook (
-           SK_UTF8ToWideChar ( SK_DXGI_HookCache.IDXGISwapChain_ResizeTarget.target.symbol_name ).c_str (),
-                               SK_DXGI_HookCache.IDXGISwapChain_ResizeTarget.target.target_addr,
-                                                  DXGISwap_ResizeTarget_Override,
-                                  static_cast_p2p <void> (&ResizeTarget_Original) ) == MH_OK )
-      {
-        if (MH_QueueEnableHook (SK_DXGI_HookCache.IDXGISwapChain_ResizeTarget.target.target_addr) == MH_OK)
-        {
-          SK_DXGI_HookCache.IDXGISwapChain_ResizeTarget.target.hooked = true;
-        }
-      }
-    }
-    
-    if ( SK_Hook_PredictTarget ( &SK_DXGI_HookCache.IDXGISwapChain_ResizeBuffers,
-                                   L"DXGI.Hooks" ) )
-    {
-      if ( SK_CreateFuncHook (
-           SK_UTF8ToWideChar ( SK_DXGI_HookCache.IDXGISwapChain_ResizeBuffers.target.symbol_name ).c_str (),
-                               SK_DXGI_HookCache.IDXGISwapChain_ResizeBuffers.target.target_addr,
-                                                  DXGISwap_ResizeBuffers_Override,
-                                  static_cast_p2p <void> (&ResizeBuffers_Original) ) == MH_OK )
-      {
-        if (MH_QueueEnableHook (SK_DXGI_HookCache.IDXGISwapChain_ResizeBuffers.target.target_addr) == MH_OK)
-        {
-          SK_DXGI_HookCache.IDXGISwapChain_ResizeBuffers.target.hooked = true;
-        }
-      }
-    }
+  if (num_quick_hooked.from_game_ini > 0)
+    SK_ApplyQueuedHooks ();
 
-    if ( SK_Hook_PredictTarget ( &SK_DXGI_HookCache.IDXGISwapChain_Present,
-                                   L"DXGI.Hooks" ) )
-    {
-      if ( SK_CreateFuncHook (
-           SK_UTF8ToWideChar ( SK_DXGI_HookCache.IDXGISwapChain_Present.target.symbol_name ).c_str (),
-                               SK_DXGI_HookCache.IDXGISwapChain_Present.target.target_addr,
-                                                                PresentCallback,
-                                       static_cast_p2p <void> (&Present_Original) ) == MH_OK )
-      {
-        if (MH_QueueEnableHook (SK_DXGI_HookCache.IDXGISwapChain_Present.target.target_addr) == MH_OK)
-        {
-          Present_Target = 
-            static_cast <PresentSwapChain_pfn> (
-              SK_DXGI_HookCache.IDXGISwapChain_Present.target.target_addr
-            );
-          SK_DXGI_HookCache.IDXGISwapChain_Present.target.hooked = true;
-        }
-      }
-    }
 
-    if (SK_ApplyQueuedHooks () == MH_OK)
-    {
-    }
-
-    else
-    {
-      SK_DXGI_HookCache.IDXGIFactory_CreateSwapChain.target.hooked = false;
-      SK_DXGI_HookCache.IDXGISwapChain_Present.target.hooked       = false;
-      SK_DXGI_HookCache.IDXGISwapChain_ResizeTarget.target.hooked  = false;
-      SK_DXGI_HookCache.IDXGISwapChain_ResizeBuffers.target.hooked = false;
-    }
+  if ( num_quick_hooked.from_game_ini + num_quick_hooked.from_shared_dll == 0 )
+  {
+    LocalHook_IDXGIFactory_CreateSwapChain.active      = false;
+    LocalHook_IDXGISwapChain_Present.active            = false;
+    LocalHook_IDXGISwapChain_ResizeTarget.active       = false;
+    LocalHook_IDXGISwapChain_ResizeBuffers.active      = false;
+    LocalHook_IDXGISwapChain_SetFullscreenState.active = false;
+    LocalHook_IDXGISwapChain_GetFullscreenState.active = false;
+    LocalHook_CreateDXGIFactory.active                 = false;
+    LocalHook_CreateDXGIFactory1.active                = false;
+    LocalHook_CreateDXGIFactory2.active                = false;
   }
 }

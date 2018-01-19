@@ -34,15 +34,14 @@
 #include <SpecialK/utility.h>
 #include <SpecialK/thread.h>
 
-#include <SpecialK/widgets/widget.h>
-
 #include <DirectXTex/DirectXTex.h>
+
+#include <SpecialK/widgets/widget.h>
+#include <SpecialK/framerate.h>
+#include <SpecialK/tls.h>
 
 extern LARGE_INTEGER SK_QueryPerf (void);
 static DWORD         dwFrameTime = timeGetTime (); // For effects that blink; updated once per-frame.
-
-#include <SpecialK/framerate.h>
-#include <SpecialK/tls.h>
 
 #include <algorithm>
 #include <memory>
@@ -55,7 +54,9 @@ static DWORD         dwFrameTime = timeGetTime (); // For effects that blink; up
 #include <d3d11.h>
 #include <d3d11_1.h>
 #include <d3dcompiler.h>
+
 #include <../depends/include/nvapi/nvapi.h>
+
 
 std::vector <IUnknown *> temp_resources;
 
@@ -79,6 +80,23 @@ SK::DXGI::PipelineStatsD3D11 SK::DXGI::pipeline_stats_d3d11 = { };
 
 volatile HANDLE hResampleThread = nullptr;
 
+
+#pragma data_seg (".SK_D3D11_Hooks")
+extern "C"
+{
+  // Global DLL's cache
+  __declspec (dllexport) SK_HookCacheEntry (HookCache_D3D11CreateDevice)
+  __declspec (dllexport) SK_HookCacheEntry (HookCache_D3D11CreateDeviceAndSwapChain)
+};
+#pragma data_seg ()
+#pragma comment  (linker, "/SECTION:.SK_D3D11_Hooks,RWS")
+
+// Local DLL's cached addresses
+struct sk_d3d11_hook_cache_s
+{
+  sk_hook_cache_record_s D3D11CreateDevice             = HookCache_D3D11CreateDevice;
+  sk_hook_cache_record_s D3D11CreateDeviceAndSwapChain = HookCache_D3D11CreateDeviceAndSwapChain;
+} SK_D3D11_HookCache;
 
 
 extern "C" __declspec (dllexport) FARPROC D3D11CreateDeviceForD3D12              = nullptr;
@@ -135,12 +153,13 @@ extern "C" __declspec (dllexport) FARPROC D3DPerformance_SetMarker              
 
 INT
 __stdcall
-SK_D3D11_BytesPerPixel (DXGI_FORMAT fmt);
+SK_D3D11_BytesPerPixel  (DXGI_FORMAT fmt);
 
 BOOL
 SK_D3D11_IsFormatBC6Or7 (DXGI_FORMAT fmt)
 {
-  return (fmt >= DXGI_FORMAT_BC6H_TYPELESS && fmt <= DXGI_FORMAT_BC7_UNORM_SRGB);
+  return ( fmt >= DXGI_FORMAT_BC6H_TYPELESS &&
+           fmt <= DXGI_FORMAT_BC7_UNORM_SRGB   );
 }
 
 BOOL
@@ -151,7 +170,9 @@ SK_D3D11_IsFormatCompressed (DXGI_FORMAT fmt)
         fmt <= DXGI_FORMAT_BC5_SNORM)    ||
        (fmt >= DXGI_FORMAT_BC6H_TYPELESS &&
         fmt <= DXGI_FORMAT_BC7_UNORM_SRGB) )
+  {
     return true;
+  }
 
   return false;
 }
@@ -220,60 +241,62 @@ struct resample_dispatch_s
       InterlockedIncrement (&active_workers);
 
       CreateThread ( nullptr, 0, [](LPVOID) ->
-        DWORD
+      DWORD
+      {
+        SetThreadPriority ( GetCurrentThread (),
+                            THREAD_PRIORITY_BELOW_NORMAL |
+                            THREAD_MODE_BACKGROUND_BEGIN );
+
+        SK_TLS_Bottom ()->texture_management.injection_thread = true;
+        SK_TLS_Bottom ()->imgui.drawing                       = true;
+
+        while (! SK_D3D11_TextureResampler.waiting_textures.empty ())
         {
-          SetThreadPriority ( GetCurrentThread (),
-                              THREAD_PRIORITY_BELOW_NORMAL |
-                              THREAD_MODE_BACKGROUND_BEGIN );
+          InterlockedDecrement (&SK_D3D11_TextureResampler.stats.textures_waiting);
+          InterlockedIncrement (&SK_D3D11_TextureResampler.stats.textures_resampling);
 
-          SK_TLS_Bottom ()->texture_management.injection_thread = true;
-          SK_TLS_Bottom ()->imgui.drawing                       = true;
+          resample_job_s job;
 
-          while (! SK_D3D11_TextureResampler.waiting_textures.empty ())
+          if (SK_D3D11_TextureResampler.waiting_textures.try_pop (job))
           {
-            InterlockedDecrement (&SK_D3D11_TextureResampler.stats.textures_waiting);
-            InterlockedIncrement (&SK_D3D11_TextureResampler.stats.textures_resampling);
+            DirectX::ScratchImage* pNewImg = nullptr;
 
-            resample_job_s job;
+            HRESULT
+            __stdcall
+            SK_D3D11_MipmapCacheTexture2DEx ( const DirectX::ScratchImage&   img,
+                                                    uint32_t                 crc32c, 
+                                                    ID3D11Texture2D*         pOutTex,
+                                                    DirectX::ScratchImage** ppOutImg );
 
-            if (SK_D3D11_TextureResampler.waiting_textures.try_pop (job))
-            {
-              DirectX::ScratchImage* pNewImg = nullptr;
+            //HRESULT hr =
+              SK_D3D11_MipmapCacheTexture2DEx ( *job.data,
+                                                 job.crc32c,
+                                                 job.texture,
+                                                &pNewImg );
 
-              HRESULT
-              __stdcall
-              SK_D3D11_MipmapCacheTexture2DEx ( const DirectX::ScratchImage&   img,
-                                                      uint32_t                 crc32c, 
-                                                      ID3D11Texture2D*         pOutTex,
-                                                      DirectX::ScratchImage** ppOutImg );
+            delete job.data;
+                   job.data = pNewImg;
 
-              //HRESULT hr =
-                SK_D3D11_MipmapCacheTexture2DEx ( *job.data,
-                                                   job.crc32c,
-                                                   job.texture,
-                                                  &pNewImg );
+            SK_D3D11_TextureResampler.finished_textures.push (job);
 
-              delete job.data;
-                     job.data = pNewImg;
-
-              SK_D3D11_TextureResampler.finished_textures.push (job);
-
-              InterlockedDecrement (&SK_D3D11_TextureResampler.stats.textures_resampling);
-            }
-
-            else
-            {
-              InterlockedDecrement (&SK_D3D11_TextureResampler.stats.textures_resampling);
-              break;
-            }
+            InterlockedDecrement (&SK_D3D11_TextureResampler.stats.textures_resampling);
           }
 
-          CloseHandle (GetCurrentThread ());
+          else
+          {
+            InterlockedDecrement (&SK_D3D11_TextureResampler.stats.textures_resampling);
+            break;
+          }
+        }
 
-          InterlockedDecrement (&SK_D3D11_TextureResampler.active_workers);
+        CloseHandle (GetCurrentThread ());
 
-          return 0;
-        }, nullptr, 0x00, nullptr );
+        InterlockedDecrement (&SK_D3D11_TextureResampler.active_workers);
+
+        return 0;
+      }, nullptr,
+           0x00,
+             nullptr );
 
       return true;
     }
@@ -449,6 +472,7 @@ crc32_tex (  _In_      const D3D11_TEXTURE2D_DESC   *pDesc,
              _Out_opt_       uint32_t               *pLOD0_CRC32 );
 
 
+
 using SK_ReShade_PresentCallback_pfn              = bool (__stdcall *)(void *user);
 using SK_ReShade_OnCopyResourceD3D11_pfn          = void (__stdcall *)(void *user, ID3D11Resource         *&dest,    ID3D11Resource *&source);
 using SK_ReShade_OnClearDepthStencilViewD3D11_pfn = void (__stdcall *)(void *user, ID3D11DepthStencilView *&depthstencil);
@@ -504,6 +528,7 @@ struct
 } SK_ReShade_CopyResourceCallback;
 
 
+
 D3DX11CreateTextureFromMemory_pfn D3DX11CreateTextureFromMemory = nullptr;
 D3DX11CreateTextureFromFileW_pfn  D3DX11CreateTextureFromFileW  = nullptr;
 D3DX11GetImageInfoFromFileW_pfn   D3DX11GetImageInfoFromFileW   = nullptr;
@@ -551,6 +576,11 @@ using IUnknown_AddRef_pfn  =
 IUnknown_Release_pfn IUnknown_Release_Original = nullptr;
 IUnknown_AddRef_pfn  IUnknown_AddRef_Original  = nullptr;
 
+//
+// If reference counting is broken by some weird COM wrapper
+//   misbehaving, then for the love of ... don't cache textures
+//     using SK *==> it hooks rather than wraps.
+//
 BOOL
 SK_D3D11_TestRefCountHooks (ID3D11Texture2D* pInputTex)
 {
@@ -612,8 +642,7 @@ SK_D3D11_TestRefCountHooks (ID3D11Texture2D* pInputTex)
 
   LONG initial_after_release =
     SK_TLS_Bottom ()->texture_management.refcount_test;
-
-  SK_TLS_Bottom ()->texture_management.refcount_obj = nullptr;
+  SK_TLS_Bottom   ()->texture_management.refcount_obj = nullptr;
 
   if ( initial != initial_after_release + 1 )
   {
@@ -1093,78 +1122,38 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
     }
   }
 
-  HRESULT res;
 
+  HRESULT res = E_UNEXPECTED;
 
-  wchar_t wszClass [MAX_PATH * 2] = { };
-
-  if (swap_chain_desc != nullptr)
-    RealGetWindowClassW (swap_chain_desc->OutputWindow, wszClass, MAX_PATH);
-
-  bool dummy_window = 
-    StrStrIW (wszClass, L"Special K Dummy Window Class (Ex)") ||
-    StrStrIW (wszClass, L"RTSSWndClass");
-
-
-  //if (swap_chain_desc != nullptr)
-  //  dll_log.Log (L"[   DXGI   ]  * Swapchain created for window class: '%ws'", wszClass);
-
-
-  //extern volatile LONG  __dxgi_ready;
-  //static volatile LONG  __done_once = FALSE;
-  //if ( ppSwapChain != nullptr                     &&
-  //     (! dummy_window)                           &&
-  //     (! InterlockedCompareExchange (&__done_once, 1, 0))  )
-  //{
-  //  ID3D11DeviceContext* pImmediateContext;
-  //  IDXGISwapChain*      pSwapChain;
-  //
-  //  // Go through the original function now that plug-ins are loaded,
-  //  //   but this branch will be skipped the second time through.
-  //  DXGI_CALL (res, 
-  //    ((D3D11CreateDeviceAndSwapChain_pfn)pfnD3D11CreateDeviceAndSwapChain) ( pAdapter,
-  //                                             DriverType,
-  //                                               Software,
-  //                                                 Flags,
-  //                                                   pFeatureLevels,
-  //                                                     FeatureLevels,
-  //                                                       SDKVersion,
-  //                                                         swap_chain_desc,
-  //                                                           ppSwapChain,
-  //                                                             &ret_device,
-  //                                                               &ret_level,
-  //                                                                 ppImmediateContext )
-  //            );
-  //
-  //  if (ppDevice != nullptr)
-  //    *ppDevice   = ret_device;
-  //
-  //  if (pFeatureLevel != nullptr)
-  //    *pFeatureLevel   = ret_level;
-  //}
-
-  //else
-  {
-    DXGI_CALL (res, 
-      D3D11CreateDeviceAndSwapChain_Import ( pAdapter,
-                                               DriverType,
-                                                 Software,
-                                                   Flags,
-                                                     pFeatureLevels,
-                                                       FeatureLevels,
-                                                         SDKVersion,
-                                                           swap_chain_desc,
-                                                             ppSwapChain,
-                                                               &ret_device,
-                                                                 &ret_level,
-                                                                   ppImmediateContext )
-              );
-  }
+  DXGI_CALL (res, 
+    D3D11CreateDeviceAndSwapChain_Import ( pAdapter,
+                                             DriverType,
+                                               Software,
+                                                 Flags,
+                                                   pFeatureLevels,
+                                                     FeatureLevels,
+                                                       SDKVersion,
+                                                         swap_chain_desc,
+                                                           ppSwapChain,
+                                                             &ret_device,
+                                                               &ret_level,
+                                                                 ppImmediateContext )
+            );
+  
 
   if (SUCCEEDED (res))
   {
     if (swap_chain_desc != nullptr)
     {
+      wchar_t wszClass [MAX_PATH * 2] = { };
+
+      if (swap_chain_desc != nullptr)
+        RealGetWindowClassW (swap_chain_desc->OutputWindow, wszClass, MAX_PATH);
+
+      bool dummy_window = 
+        StrStrIW (wszClass, L"Special K Dummy Window Class (Ex)") ||
+        StrStrIW (wszClass, L"RTSSWndClass");
+
       if (! dummy_window)
       {
         hWndRender = swap_chain_desc->OutputWindow;
@@ -9805,40 +9794,6 @@ volatile LONG SK_D3D11_initialized = FALSE;
     _default_impl _Args;                                                    \
 }
 
-
-//D3D11_STUB (HRESULT, D3D11CoreCreateDevice,
-//  (__int32 x, int y, int z, LPCSTR lpModuleName, int w, int xx, int yy, int zz, int ww, int rr),
-//  (x, y, z, lpModuleName, w, xx, yy, zz, ww, rr));
-//
-//typedef HRESULT (STDMETHODCALLTYPE *D3D11CoreCreateDevice_pfn)(
-//        IDXGIFactory         *pFactory,
-//        IDXGIAdapter         *pAdapter,
-//        UINT                  Flags,
-//  const D3D_FEATURE_LEVEL    *pFeatureLevels,
-//        UINT                  FeatureLevels,
-//        ID3D11Device        **ppDevice
-//);
-//
-//D3D11CoreCreateDevice_pfn D3D11CoreCreateDevice_Import = nullptr;
-//
-//HRESULT
-//STDMETHODCALLTYPE
-//D3D11CoreCreateDevice_Detour
-//(       IDXGIFactory         *pFactory,
-//        IDXGIAdapter         *pAdapter,
-//        UINT                  Flags,
-//  const D3D_FEATURE_LEVEL    *pFeatureLevels,
-//        UINT                  FeatureLevels,
-//        ID3D11Device        **ppDevice )
-//{
-//  DXGI_LOG_CALL_1 (L"D3D11CoreCreateDevice", L"Flags=%x", Flags );
-//
-//  SK_D3D11_Init ();
-//
-//  return D3D11CoreCreateDevice_Import (pFactory, pAdapter, Flags, pFeatureLevels, FeatureLevels, ppDevice);
-//}
-
-
 bool
 SK_D3D11_Init (void)
 {
@@ -9915,18 +9870,10 @@ SK_D3D11_Init (void)
        (D3D11CreateDeviceAndSwapChain_pfn)               \
          GetProcAddress (hBackend, "D3D11CreateDeviceAndSwapChain");
 
-      //D3D11CoreCreateDevice_Import       =  \
-      // (D3D11CoreCreateDevice_pfn)          \
-      //   GetProcAddress (hBackend, "D3D11CoreCreateDevice");
-
       SK_LOG0 ( ( L"  D3D11CreateDevice:             %s",
                     SK_MakePrettyAddress (D3D11CreateDevice_Import).c_str () ),
                   L"  D3D 11  " );
       SK_LogSymbolName                    (D3D11CreateDevice_Import);
-
-      //SK_LOG0 ( ( L"  D3D11CoreCreateDevice:         %s",
-      //              SK_MakePrettyAddress (D3D11CoreCreateDevice_Import).c_str () ),
-      //            L"  D3D 11  " );
 
       SK_LOG0 ( ( L"  D3D11CreateDeviceAndSwapChain: %s",
                     SK_MakePrettyAddress (D3D11CreateDeviceAndSwapChain_Import).c_str () ),
@@ -9935,7 +9882,6 @@ SK_D3D11_Init (void)
 
       pfnD3D11CreateDeviceAndSwapChain = D3D11CreateDeviceAndSwapChain_Import;
       pfnD3D11CreateDevice             = D3D11CreateDevice_Import;
-      //pfnD3D11CoreCreateDevice         = D3D11CoreCreateDevice_Import;
 
       InterlockedIncrement (&SK_D3D11_initialized);
     }
@@ -9958,12 +9904,6 @@ SK_D3D11_Init (void)
                                     &pfnD3D11CreateDeviceAndSwapChain )
            )
         {
-          //SK_CreateDLLHook2 (       L"d3d11.dll",
-          //                           "D3D11CoreCreateDevice",
-          //                            D3D11CoreCreateDevice_Detour,
-          //   static_cast_p2p <void> (&D3D11CoreCreateDevice_Import),
-          //                        &pfnD3D11CoreCreateDevice );
-
           if ((SK_GetDLLRole () & DLL_ROLE::D3D11) || (SK_GetDLLRole () & DLL_ROLE::DInput8))
           {
             SK_RunLHIfBitness ( 64, SK_LoadPlugIns64 (),
@@ -9971,8 +9911,7 @@ SK_D3D11_Init (void)
           }
 
           if ( MH_OK == MH_QueueEnableHook (pfnD3D11CreateDevice)             &&
-               MH_OK == MH_QueueEnableHook (pfnD3D11CreateDeviceAndSwapChain) )//&&
-               //MH_OK == MH_QueueEnableHook (pfnD3D11CoreCreateDevice) )
+               MH_OK == MH_QueueEnableHook (pfnD3D11CreateDeviceAndSwapChain) )
           {
             success = (MH_OK == SK_ApplyQueuedHooks ());
 
@@ -9989,12 +9928,6 @@ SK_D3D11_Init (void)
                                                                L"{ Error! }" ),
                       L"  D3D 11  " );
       SK_LogSymbolName     (pfnD3D11CreateDeviceAndSwapChain);
-
-     //       SK_LOG0 ( ( L"  D3D11CoreCreateDevice:          %s  %s",
-     // SK_MakePrettyAddress (pfnD3D11CoreCreateDevice).c_str (),
-     //                       pfnD3D11CoreCreateDevice ? L"{ Hooked }" :
-     //                                                  L"{ Error! }" ),
-     //                 L"  D3D 11  " );
           }
         }
       }

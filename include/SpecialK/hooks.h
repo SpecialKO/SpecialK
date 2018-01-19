@@ -38,10 +38,9 @@ struct sk_hook_target_s
 {
   char      symbol_name [128];          // Expected symbol name (*)
   wchar_t   module_path [MAX_PATH + 2]; // <*> VFTbl hooks do not often resolve
-  LPVOID    target_addr;
-  ptrdiff_t offset;
 
-  bool      hooked;
+  LPVOID    addr;                       // [ Absolute Addr. ]
+  ptrdiff_t offset;                     // Relative to parent module's base addr.
 
 #ifdef _XSTRING_
   std::wstring serialize_ini   (void);
@@ -52,38 +51,86 @@ struct sk_hook_target_s
 struct sk_hook_cache_record_s
 {
   sk_hook_target_s target;
+
+  LPVOID           detour;
+  LPVOID*          trampoline;
+
+  bool             active;
+
+  // Number of times this record was used (for global -> local caching)
   LONG             hits;
 };
 
 #define SK_HookCacheEntry(entry) sk_hook_cache_record_s entry ## = \
-  { {#entry, L"", nullptr, 0ULL, false}, 0 };
+  { {#entry, L"", nullptr, 0ULL},                                  \
+     nullptr,                                                      \
+     nullptr,                                                      \
+     false,                                                        \
+     0                                                             \
+  };
+
+#define SK_HookCacheEntryGlobal(entry) \
+        SK_HookCacheEntry(GlobalHook_##entry)
+
+#define SK_HookCacheEntryLocal(entry,dll,new_target,bounce_pad)\
+  sk_hook_cache_record_s LocalHook_##entry ## =                \
+  { {#entry, (dll), GlobalHook_##entry##.target.addr,          \
+                    GlobalHook_##entry##.target.offset},       \
+     (LPVOID)  (new_target),                                   \
+     (LPVOID *)(bounce_pad),                                   \
+     false,                                                    \
+     0                                                         \
+  };
 
 // Load the address and module from an INI file into the cache record
 bool
-SK_Hook_PredictTarget (       sk_hook_cache_record_s *cache,
+SK_Hook_PredictTarget (       sk_hook_cache_record_s &cache,
                         const wchar_t                *wszSectionName,
                               iSK_INI                *ini = SK_GetDLLConfig () );
 
 // Push the address and module in the cache record to an INI file
 void
-SK_Hook_CacheTarget   ( sk_hook_cache_record_s *cache,
+SK_Hook_CacheTarget   ( sk_hook_cache_record_s &cache,
                   const wchar_t                *wszSectionName,
                         iSK_INI                *ini = SK_GetDLLConfig () );
 
 // Erase a cached address
 void
-SK_Hook_RemoveTarget (       sk_hook_cache_record_s *cache,
+SK_Hook_RemoveTarget (       sk_hook_cache_record_s &cache,
                        const wchar_t                *wszSectionName,
                              iSK_INI                *ini = SK_GetDLLConfig () );
 
 static __forceinline
 void
-SK_Hook_TargetFromVFTable ( sk_hook_cache_record_s  *cache,
+SK_Hook_TargetFromVFTable ( sk_hook_cache_record_s  &cache,
                             void                   **base,
                             int                      idx   )
 {
-  cache->target.target_addr =
+  cache.target.addr =
     (*(void***)*(base))[idx];
+};
+
+
+static
+auto SK_Hook_PushLocalCacheOntoGlobal =
+[]( sk_hook_cache_record_s& local,
+    sk_hook_cache_record_s& global )
+{
+  if (global.hits == 0 && global.target.addr !=
+                           local.target.addr)
+  {
+    global.hits++;
+    global.target = local.target;
+  }
+};
+
+static
+auto SK_Hook_PullGlobalCacheDownToLocal =
+[]( sk_hook_cache_record_s& global,
+    sk_hook_cache_record_s& local   )
+{
+  // LOL, right?
+  local = global;
 };
 
 

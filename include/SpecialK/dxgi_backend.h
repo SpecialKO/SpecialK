@@ -188,6 +188,65 @@
   DXGI_LOG_CALL_END                                            \
 }
 
+
+HRESULT
+STDMETHODCALLTYPE
+CreateDXGIFactory  (       REFIID   riid,
+                     _Out_ void   **ppFactory );
+HRESULT
+STDMETHODCALLTYPE
+CreateDXGIFactory1 (       REFIID   riid,
+                     _Out_ void   **ppFactory );
+HRESULT
+STDMETHODCALLTYPE
+CreateDXGIFactory2 (       UINT     Flags,
+                           REFIID   riid,
+                     _Out_ void   **ppFactory );
+
+__declspec (noinline)
+HRESULT
+STDMETHODCALLTYPE
+DXGIFactory_CreateSwapChain_Override (             IDXGIFactory          *This,
+                                       _In_        IUnknown              *pDevice,
+                                       _In_  const DXGI_SWAP_CHAIN_DESC  *pDesc,
+                                       _Out_       IDXGISwapChain       **ppSwapChain );
+
+__declspec (noinline)
+HRESULT
+STDMETHODCALLTYPE
+DXGISwap_GetFullscreenState_Override ( IDXGISwapChain  *This,
+                            _Out_opt_  BOOL            *pFullscreen,
+                            _Out_opt_  IDXGIOutput    **ppTarget );
+__declspec (noinline)
+HRESULT
+STDMETHODCALLTYPE
+DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
+                                       BOOL            Fullscreen,
+                                       IDXGIOutput    *pTarget );
+
+__declspec (noinline)
+HRESULT
+STDMETHODCALLTYPE
+DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
+                      _In_ const DXGI_MODE_DESC *pNewTargetParameters );
+
+__declspec (noinline)
+HRESULT
+STDMETHODCALLTYPE
+DXGISwap_ResizeBuffers_Override ( IDXGISwapChain *This,
+                             _In_ UINT            BufferCount,
+                             _In_ UINT            Width,
+                             _In_ UINT            Height,
+                             _In_ DXGI_FORMAT     NewFormat,
+                             _In_ UINT            SwapChainFlags );
+
+__declspec (noinline)
+HRESULT
+STDMETHODCALLTYPE PresentCallback ( IDXGISwapChain *This,
+                                    UINT            SyncInterval,
+                                    UINT            Flags );
+
+
 #if 1
 extern SK_Thread_HybridSpinlock* budget_mutex;
 #else
