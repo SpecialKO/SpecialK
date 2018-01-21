@@ -8624,6 +8624,9 @@ RunDLL_HookManager_D3D9 ( HWND  hwnd,        HINSTANCE hInst,
 void
 SK_D3D9_QuickHook (void)
 {
+//  if (GetAsyncKeyState (VK_MENU))
+//    return;
+
   struct
   { int from_shared_dll = 0;
     int from_game_ini   = 0;
@@ -8646,7 +8649,8 @@ SK_D3D9_QuickHook (void)
 
         if (LoadLibraryW_Original (it->target.module_path))
         {
-          SK_LOG0 ( ( L"Trying global address for '%50hs' :: '%72s' { Last seen in '%s' }",
+          SK_LOG0 ( ( L"Trying global address for '%50hs' :: '%72s'"
+                      L" { Last seen in '%s' }",
                                   it->target.symbol_name,
             SK_MakePrettyAddress (    target_addr).c_str (),
        SK_StripUserNameFromPathW (
@@ -8677,42 +8681,56 @@ SK_D3D9_QuickHook (void)
   //
   if (SK_GetDLLConfig ()->contains_section (L"D3D9.Hooks"))
   {
-    for ( auto& it : local_d3d9_records )
+    if ( SK_IsTrue (SK_GetDLLConfig ()->get_section 
+         (L"D3D9.Hooks").get_value (L"EnableLocalCache").c_str ()) )
     {
-      if (! it->active)
+      for ( auto& it : local_d3d9_records )
       {
-        it->target.addr = nullptr;
-
-        if ( SK_Hook_PredictTarget ( *it, L"D3D9.Hooks" ) )
+        if (! it->active)
         {
-          SK_LOG0 ( ( L"Trying  local address for '%50hs' :: '%72s' { Last seen in '%s' }",
-                                  it->target.symbol_name,
-            SK_MakePrettyAddress (it->target.addr).c_str (),
-       SK_StripUserNameFromPathW (
-                    std::wstring (it->target.module_path).data ()) ),
-                      L"Hook Cache");
+          it->target.addr = nullptr;
 
-          if ( MH_CreateHook ( it->target.addr,
-                               it->detour,
-                               it->trampoline
-                             ) == MH_OK )
+          if ( SK_Hook_PredictTarget ( *it, L"D3D9.Hooks" ) )
           {
-            if (MH_QueueEnableHook (it->target.addr) == MH_OK)
+            SK_LOG0 ( ( L"Trying  local address for '%50hs' :: '%72s' "
+                        L"{ Last seen in '%s' }",
+                                    it->target.symbol_name,
+              SK_MakePrettyAddress (it->target.addr).c_str (),
+         SK_StripUserNameFromPathW (
+                      std::wstring (it->target.module_path).data ()) ),
+                        L"Hook Cache");
+
+            if ( MH_CreateHook ( it->target.addr,
+                                 it->detour,
+                                 it->trampoline
+                               ) == MH_OK )
             {
-              it->active = true;
-              ++num_quick_hooked.from_game_ini;
+              if (MH_QueueEnableHook (it->target.addr) == MH_OK)
+              {
+                it->active = true;
+                ++num_quick_hooked.from_game_ini;
+              }
             }
           }
         }
       }
     }
+
+    else if (! ( SK_GetDLLConfig ()->get_section (L"D3D9.Hooks").
+                 contains_key (L"EnableLocalCache")) )
+    {
+      SK_GetDLLConfig ()->get_section (L"D3D9.Hooks").
+         add_key_value (L"EnableLocalCache", L"true");
+    }
   }
 
-  if (num_quick_hooked.from_shared_dll > 0 || num_quick_hooked.from_game_ini > 0)
+  if ( num_quick_hooked.from_shared_dll > 0 ||
+       num_quick_hooked.from_game_ini   > 0)
+  {
     SK_ApplyQueuedHooks ();
+  }
 
-
-  if ( num_quick_hooked.from_game_ini + num_quick_hooked.from_shared_dll == 0 )
+  else
   {
     for ( auto& it : local_d3d9_records )
     {

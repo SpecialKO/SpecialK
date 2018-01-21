@@ -198,6 +198,22 @@ BlacklistLibrary (const _T* lpFileName)
       init = true;
     }
 
+
+//#ifdef _WIN64
+//  if (StrStrI (lpFileName, SK_TEXT("action_x64")))
+//  {
+//    WaitForInit      ();
+//    WaitForInputIdle (GetCurrentProcess (), 16);
+//  }
+//#else
+//  if (StrStrI (lpFileName, SK_TEXT("action_x86")))
+//  {
+//    WaitForInit      ();
+//    WaitForInputIdle (GetCurrentProcess (), 16);
+//  }
+//#endif
+
+
     for ( auto&& it : nv_blacklist )
     {
       if (StrStrI (lpFileName, it))
