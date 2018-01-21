@@ -116,11 +116,15 @@ sk_hook_target_s::deserialize_ini (const std::wstring& serial_data)
 
   if (SK_LoadLibrary_PinModule <wchar_t> (wszPath))
   {
+    wcscpy (module_path, wszPath);
+
     addr =
       (LPVOID)((uintptr_t)hModLib + offset);
 
     return true;
   }
+
+  addr = 0;
 
   return false;
 }
@@ -165,9 +169,7 @@ SK_Hook_RemoveTarget (       sk_hook_cache_record_s &cache,
 }
 
 void
-SK_Hook_CacheTarget (       sk_hook_cache_record_s &cache,
-                      const wchar_t                *wszSectionName,
-                            iSK_INI                *ini )
+SK_Hook_ResolveTarget ( sk_hook_cache_record_s &cache )
 {
   HMODULE hModBase =
     SK_GetModuleFromAddr (cache.target.addr);
@@ -181,7 +183,23 @@ SK_Hook_CacheTarget (       sk_hook_cache_record_s &cache,
     wcsncpy ( cache.target.module_path, 
                 SK_GetModuleFullNameFromAddr (cache.target.addr).c_str (),
                   MAX_PATH );
+  }
 
+  else
+  {
+    cache.target.offset = 0;
+  }
+}
+
+void
+SK_Hook_CacheTarget (       sk_hook_cache_record_s &cache,
+                      const wchar_t                *wszSectionName,
+                            iSK_INI                *ini )
+{
+  SK_Hook_ResolveTarget (cache);
+
+  if (cache.target.offset != 0)
+  {
     cache.hits++;
 
     const char* szSymbol =
@@ -192,26 +210,34 @@ SK_Hook_CacheTarget (       sk_hook_cache_record_s &cache,
     //  SK_MakePrettyAddress (cache.target.target_addr).c_str (),
     //                        cache.hits ),
     //           L"Hook Cache" );
-
-    iSK_INISection& hook_cfg =
-      ini->get_section (wszSectionName);
-
     std::wstring wide_symbol (SK_UTF8ToWideChar (szSymbol));
     std::wstring serialized  (cache.target.serialize_ini ());
 
-    if (hook_cfg.contains_key (wide_symbol.c_str ()))
+    if (cache.active && wszSectionName)
     {
-      hook_cfg.get_value (wide_symbol.c_str ()) = 
-        serialized;
+      iSK_INISection& hook_cfg =
+        ini->get_section (wszSectionName);
+
+      if (hook_cfg.contains_key (wide_symbol.c_str ()))
+      {
+        hook_cfg.get_value (wide_symbol.c_str ()) = 
+          serialized;
+      }
+
+      else
+      {
+        hook_cfg.add_key_value ( wide_symbol.c_str  (),
+                                   serialized.c_str () );
+      }
     }
 
-    else
+    else if (wszSectionName)
     {
-      hook_cfg.add_key_value ( wide_symbol.c_str  (),
-                                 serialized.c_str () );
+      SK_Hook_RemoveTarget (cache, wszSectionName, ini);
     }
 
-    ini->write ( ini->get_filename () );
+    if (wszSectionName)
+      ini->write ( ini->get_filename () );
   }
 };
 

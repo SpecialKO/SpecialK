@@ -657,5 +657,7 @@ __SK_InjectionHistory        = __SK_InjectionHistory          DATA
 
 SECTIONS
 
-  .SK_Hooks      READ WRITE SHARED
-  .SK_DXGI_Hooks READ WRITE SHARED
+  .SK_Hooks       READ WRITE SHARED
+  .SK_DXGI_Hooks  READ WRITE SHARED
+  .SK_D3D11_Hooks READ WRITE SHARED
+  .SK_D3D9_Hooks  READ WRITE SHARED

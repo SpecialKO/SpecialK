@@ -277,24 +277,24 @@ SK_HookCacheEntryLocal (D3D9ResetEx,                   L"d3d9.dll", D3D9ResetEx,
 
 static
 sk_hook_cache_record_s* global_d3d9_records [] =
-  { &GlobalHook_Direct3DCreate9,          &GlobalHook_D3D9CreateDevice,
+  { //&GlobalHook_Direct3DCreate9,          &GlobalHook_D3D9CreateDevice,
     &GlobalHook_D3D9PresentSwap,          &GlobalHook_D3D9Present,
     &GlobalHook_D3D9Reset,                &GlobalHook_D3D9CreateAdditionalSwapChain,
     &GlobalHook_D3D9TestCooperativeLevel, &GlobalHook_D3D9BeginScene,
     &GlobalHook_D3D9EndScene,
 
-    &GlobalHook_Direct3DCreate9Ex,        &GlobalHook_D3D9CreateDeviceEx,
+    //&GlobalHook_Direct3DCreate9Ex,        &GlobalHook_D3D9CreateDeviceEx,
     &GlobalHook_D3D9PresentEx,            &GlobalHook_D3D9ResetEx };
 
 static
 sk_hook_cache_record_s* local_d3d9_records [] =
-  { &LocalHook_Direct3DCreate9,          &LocalHook_D3D9CreateDevice,
+  { //&LocalHook_Direct3DCreate9,          &LocalHook_D3D9CreateDevice,
     &LocalHook_D3D9PresentSwap,          &LocalHook_D3D9Present,
     &LocalHook_D3D9Reset,                &LocalHook_D3D9CreateAdditionalSwapChain,
     &LocalHook_D3D9TestCooperativeLevel, &LocalHook_D3D9BeginScene,
     &LocalHook_D3D9EndScene,
 
-    &LocalHook_Direct3DCreate9Ex,        &LocalHook_D3D9CreateDeviceEx,
+    //&LocalHook_Direct3DCreate9Ex,        &LocalHook_D3D9CreateDeviceEx,
     &LocalHook_D3D9PresentEx,            &LocalHook_D3D9ResetEx };
 
 
@@ -657,16 +657,49 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
   {
     for ( auto it : local_d3d9_records )
     {
-      SK_Hook_CacheTarget ( *it, L"D3D9.Hooks" );
+      SK_Hook_ResolveTarget (*it);
+
+      // Don't cache addresses that were screwed with by other injectors
+      const wchar_t* wszSection = 
+        StrStrIW (it->target.module_path, LR"(\d3d9.dll)") ?
+                                          L"D3D9.Hooks" : nullptr;
+
+      SK_Hook_CacheTarget ( *it, wszSection );
+
+      if (! wszSection)
+      {
+        SK_LOG0 ( ( L"Hook for '%hs' resides in '%s', will not cache!",
+                      it->target.symbol_name,
+          SK_StripUserNameFromPathW (
+            std::wstring (
+                      it->target.module_path
+                         ).data ()
+          )                                                             ),
+                    L"Hook Cache" );
+      }
     }
 
-    auto it_local  = std::begin (local_d3d9_records);
-    auto it_global = std::begin (global_d3d9_records);
-
-    while ( it_local != std::end (local_d3d9_records) )
+    if (SK_IsInjected ())
     {
-      SK_Hook_PushLocalCacheOntoGlobal ( **it_local++,
-                                           **it_global++ );
+      auto it_local  = std::begin (local_d3d9_records);
+      auto it_global = std::begin (global_d3d9_records);
+
+      while ( it_local != std::end (local_d3d9_records) )
+      {
+        if (( *it_local )->hits &&
+  StrStrIW (( *it_local )->target.module_path, LR"(\d3d9.dll)") &&
+            ( *it_local )->active)
+          SK_Hook_PushLocalCacheOntoGlobal ( **it_local,
+                                               **it_global );
+        else
+        {
+          ( *it_global )->target.addr = nullptr;
+          ( *it_global )->hits        = 0;
+          ( *it_global )->active      = false;
+        }
+
+        it_global++, it_local++;
+      }
     }
   }
 
@@ -999,6 +1032,9 @@ SK_HookD3D9 (void)
       Direct3DCreate9_Import =  \
         (Direct3DCreate9PROC)GetProcAddress (hBackend, "Direct3DCreate9");
 
+      LocalHook_Direct3DCreate9.target.addr = Direct3DCreate9_Import;
+      LocalHook_Direct3DCreate9.active      = true;
+
       SK_LOG0 ( ( L"  Direct3DCreate9:   %s",
                     SK_MakePrettyAddress (Direct3DCreate9_Import).c_str () ),
                   L"   D3D9   " );
@@ -1013,6 +1049,9 @@ SK_HookD3D9 (void)
                       SK_MakePrettyAddress (Direct3DCreate9Ex_Import).c_str () ),
                     L"  D3D9Ex  " );
         SK_LogSymbolName                   (Direct3DCreate9Ex_Import);
+
+        LocalHook_Direct3DCreate9Ex.target.addr = Direct3DCreate9Ex_Import;
+        LocalHook_Direct3DCreate9Ex.active      = true;
       }
     }
 
@@ -1021,7 +1060,8 @@ SK_HookD3D9 (void)
       LPVOID pfnDirect3DCreate9   = nullptr;
       LPVOID pfnDirect3DCreate9Ex = nullptr;
 
-      if ( MH_OK ==
+      if ( (! LocalHook_Direct3DCreate9.active) && GetProcAddress (hBackend, "Direct3DCreate9") &&
+             MH_OK ==
              SK_CreateDLLHook2 ( L"d3d9.dll",
                                   "Direct3DCreate9",
                                    Direct3DCreate9,
@@ -1029,32 +1069,46 @@ SK_HookD3D9 (void)
                                &pfnDirect3DCreate9 )
          )
       {
-        SK_LOG0 ( ( L"  Direct3DCreate9:   %s  { Hooked  }",
-                      SK_MakePrettyAddress (pfnDirect3DCreate9).c_str () ),
-                    L"   D3D9   " );
-        SK_LogSymbolName                   (pfnDirect3DCreate9);
-
-        if ( config.apis.d3d9ex.hook &&
-               MH_OK ==
-                 SK_CreateDLLHook2 ( L"d3d9.dll",
-                                      "Direct3DCreate9Ex",
-                                       Direct3DCreate9Ex,
-              static_cast_p2p <void> (&Direct3DCreate9Ex_Import),
-                                   &pfnDirect3DCreate9Ex )
-           )
-        {
-          SK_LOG0 ( ( L"  Direct3DCreate9Ex: %s  { Hooked  }",
-                        SK_MakePrettyAddress (pfnDirect3DCreate9Ex).c_str () ),
-                      L"  D3D9Ex  " );
-          SK_LogSymbolName                   (pfnDirect3DCreate9Ex);
-        }
-
-        bool success =
-          ( MH_QueueEnableHook (pfnDirect3DCreate9) == MH_OK );
-
-        if (config.apis.d3d9ex.hook)
-          success &= ( MH_QueueEnableHook (pfnDirect3DCreate9Ex) == MH_OK );
+        LocalHook_Direct3DCreate9.target.addr = pfnDirect3DCreate9;
+        LocalHook_Direct3DCreate9.active      = true;
       }
+      else if (LocalHook_Direct3DCreate9.active) {
+        pfnDirect3DCreate9 = LocalHook_Direct3DCreate9.target.addr;
+      }
+
+      if ( (! LocalHook_Direct3DCreate9Ex.active) && GetProcAddress (hBackend, "Direct3DCreate9Ex") &&
+             config.apis.d3d9ex.hook &&
+             MH_OK ==
+               SK_CreateDLLHook2 ( L"d3d9.dll",
+                                    "Direct3DCreate9Ex",
+                                     Direct3DCreate9Ex,
+            static_cast_p2p <void> (&Direct3DCreate9Ex_Import),
+                                 &pfnDirect3DCreate9Ex )
+         )
+      {
+        LocalHook_Direct3DCreate9Ex.target.addr = pfnDirect3DCreate9Ex;
+        LocalHook_Direct3DCreate9Ex.active      = true;
+      }
+      else if (LocalHook_Direct3DCreate9Ex.active) {
+        pfnDirect3DCreate9Ex = LocalHook_Direct3DCreate9Ex.target.addr;
+      }
+
+      bool success = LocalHook_Direct3DCreate9.active ||
+        ( MH_QueueEnableHook (pfnDirect3DCreate9) == MH_OK );
+
+      if (config.apis.d3d9ex.hook)
+        success &= ( LocalHook_Direct3DCreate9Ex.active ||
+                    (MH_QueueEnableHook (pfnDirect3DCreate9Ex) == MH_OK) );
+
+      SK_LOG0 ( ( L"  Direct3DCreate9:   %s  { Hooked  }",
+                    SK_MakePrettyAddress (pfnDirect3DCreate9).c_str () ),
+                  L"   D3D9   " );
+      SK_LogSymbolName                   (pfnDirect3DCreate9);
+
+      SK_LOG0 ( ( L"  Direct3DCreate9Ex: %s  { Hooked  }",
+                    SK_MakePrettyAddress (pfnDirect3DCreate9Ex).c_str () ),
+                  L"  D3D9Ex  " );
+      SK_LogSymbolName                   (pfnDirect3DCreate9Ex);
     }
 
     HookD3D9            (nullptr);
@@ -8487,78 +8541,82 @@ RunDLL_HookManager_D3D9 ( HWND  hwnd,        HINSTANCE hInst,
   UNREFERENCED_PARAMETER (hInst);
   UNREFERENCED_PARAMETER (hwnd);
 
-  //if (StrStrA (lpszCmdLine, "dump"))
-  //{
-  //  extern void
-  //  __stdcall
-  //  SK_EstablishRootPath (void);
-  //
-  //  config.system.central_repository = true;
-  //  SK_EstablishRootPath ();
-  //
-  //  // Setup unhooked function pointers
-  //  SK_PreInitLoadLibrary ();
-  //
-  //  QueryPerformanceCounter_Original =
-  //    reinterpret_cast <QueryPerformanceCounter_pfn> (
-  //      GetProcAddress (
-  //        GetModuleHandle ( L"kernel32.dll"),
-  //                            "QueryPerformanceCounter" )
-  //    );
-  //
-  //  config.apis.d3d9.hook    = true;  config.apis.d3d9ex.hook     = true;
-  //  config.apis.OpenGL.hook  = false; config.apis.dxgi.d3d11.hook = false;
-  //  config.apis.NvAPI.enable = false;
-  //  config.steam.preload_overlay                 = false;
-  //  config.steam.silent                          = true;
-  //  config.system.trace_load_library             = false;
-  //  config.system.handle_crashes                 = false;
-  //  config.system.central_repository             = true;
-  //  config.system.game_output                    = false;
-  //  config.render.dxgi.rehook_present            = false;
-  //  config.injection.global.use_static_addresses = false;
-  //  config.input.gamepad.hook_dinput8            = false;
-  //  config.input.gamepad.hook_hid                = false;
-  //  config.input.gamepad.hook_xinput             = false;
-  //
-  //  SK_Init_MinHook        ();
-  //  SK_ApplyQueuedHooks    ();
-  //
-  //  SK_SetDLLRole (DLL_ROLE::D3D9);
-  //
-  //  BOOL
-  //  __stdcall
-  //  SK_Attach (DLL_ROLE role);
-  //
-  //  extern bool __SK_RunDLL_Bypass;
-  //              __SK_RunDLL_Bypass = true;
-  //
-  //  BOOL bRet =
-  //    SK_Attach (DLL_ROLE::D3D9);
-  //
-  //  if (bRet)
-  //  {
-  //    WaitForInit ();
-  //
-  //    SK_Inject_AddressManager = new SK_Inject_AddressCacheRegistry ();
-  //
-  //    SK_Inject_AddressManager->storeNamedAddress (L"d3d9", "IDirect3DDevice9::Present",     reinterpret_cast <uintptr_t> (D3D9Present_Target));
-  //    SK_Inject_AddressManager->storeNamedAddress (L"d3d9", "IDirect3DDevice9Ex::PresentEx", reinterpret_cast <uintptr_t> (D3D9PresentEx_Target));
-  //    SK_Inject_AddressManager->storeNamedAddress (L"d3d9", "IDirect3DSwapChain9::Present",  reinterpret_cast <uintptr_t> (D3D9PresentSwap_Target));
-  //
-  //    SK_Inject_AddressManager->storeNamedAddress (L"d3d9", "IDirect3DDevice9::Reset",       reinterpret_cast <uintptr_t> (D3D9Reset_Target));
-  //    SK_Inject_AddressManager->storeNamedAddress (L"d3d9", "IDirect3DDevice9Ex::ResetEx",   reinterpret_cast <uintptr_t> (D3D9ResetEx_Target));
-  //
-  //    delete SK_Inject_AddressManager;
-  //
-  //    SK::D3D9::Shutdown ();
-  //
-  //    extern iSK_INI* dll_ini;
-  //    DeleteFileW (dll_ini->get_filename ());
-  //  }
-  //
-  //  ExitProcess (0x00);
-  //}
+#if 1
+  UNREFERENCED_PARAMETER (lpszCmdLine);
+#else
+  if (StrStrA (lpszCmdLine, "dump"))
+  {
+    extern void
+    __stdcall
+    SK_EstablishRootPath (void);
+  
+    config.system.central_repository = true;
+    SK_EstablishRootPath ();
+  
+    // Setup unhooked function pointers
+    SK_PreInitLoadLibrary ();
+  
+    QueryPerformanceCounter_Original =
+      reinterpret_cast <QueryPerformanceCounter_pfn> (
+        GetProcAddress (
+          GetModuleHandle ( L"kernel32.dll"),
+                              "QueryPerformanceCounter" )
+      );
+  
+    config.apis.d3d9.hook    = true;  config.apis.d3d9ex.hook     = true;
+    config.apis.OpenGL.hook  = false; config.apis.dxgi.d3d11.hook = false;
+    config.apis.NvAPI.enable = false;
+    config.steam.preload_overlay                 = false;
+    config.steam.silent                          = true;
+    config.system.trace_load_library             = false;
+    config.system.handle_crashes                 = false;
+    config.system.central_repository             = true;
+    config.system.game_output                    = false;
+    config.render.dxgi.rehook_present            = false;
+    config.injection.global.use_static_addresses = false;
+    config.input.gamepad.hook_dinput8            = false;
+    config.input.gamepad.hook_hid                = false;
+    config.input.gamepad.hook_xinput             = false;
+  
+    SK_Init_MinHook        ();
+    SK_ApplyQueuedHooks    ();
+  
+    SK_SetDLLRole (DLL_ROLE::D3D9);
+  
+    BOOL
+    __stdcall
+    SK_Attach (DLL_ROLE role);
+  
+    extern bool __SK_RunDLL_Bypass;
+                __SK_RunDLL_Bypass = true;
+  
+    BOOL bRet =
+      SK_Attach (DLL_ROLE::D3D9);
+  
+    if (bRet)
+    {
+      WaitForInit ();
+  
+      SK_Inject_AddressManager = new SK_Inject_AddressCacheRegistry ();
+  
+      SK_Inject_AddressManager->storeNamedAddress (L"d3d9", "IDirect3DDevice9::Present",     reinterpret_cast <uintptr_t> (D3D9Present_Target));
+      SK_Inject_AddressManager->storeNamedAddress (L"d3d9", "IDirect3DDevice9Ex::PresentEx", reinterpret_cast <uintptr_t> (D3D9PresentEx_Target));
+      SK_Inject_AddressManager->storeNamedAddress (L"d3d9", "IDirect3DSwapChain9::Present",  reinterpret_cast <uintptr_t> (D3D9PresentSwap_Target));
+  
+      SK_Inject_AddressManager->storeNamedAddress (L"d3d9", "IDirect3DDevice9::Reset",       reinterpret_cast <uintptr_t> (D3D9Reset_Target));
+      SK_Inject_AddressManager->storeNamedAddress (L"d3d9", "IDirect3DDevice9Ex::ResetEx",   reinterpret_cast <uintptr_t> (D3D9ResetEx_Target));
+  
+      delete SK_Inject_AddressManager;
+  
+      SK::D3D9::Shutdown ();
+  
+      extern iSK_INI* dll_ini;
+      DeleteFileW (dll_ini->get_filename ());
+    }
+  
+    ExitProcess (0x00);
+  }
+#endif
 }
 
 
@@ -8572,40 +8630,47 @@ SK_D3D9_QuickHook (void)
   } num_quick_hooked;
 
 
-  // This first pass will iterate over any records in the DLL's shared
-  //   data segment (for global injection).
-  //
-  for ( auto& it : local_d3d9_records )
+  if (SK_IsInjected ())
   {
-    if (it->target.addr != nullptr)
+    // This first pass will iterate over any records in the DLL's shared
+    //   data segment (for global injection).
+    //
+    for ( auto& it : local_d3d9_records )
     {
-      if (LoadLibraryW_Original (it->target.module_path))
-      {
-        SK_LOG0 ( ( L"Using global DLL's shared cache address for '%33hs' :: %s",
-                                it->target.symbol_name,
-          SK_MakePrettyAddress (it->target.addr).c_str () ),
-                    L"Hook Cache" );
+      it->active = false;
 
-        if ( SK_CreateFuncHook (
-             SK_UTF8ToWideChar ( it->target.symbol_name ).c_str (),
-                                 it->target.addr,
-                                 it->detour,
-                                 it->trampoline
-                               ) == MH_OK )
+      if (it->target.addr != nullptr)
+      {
+        LPVOID target_addr = it->target.addr;
+           it->target.addr = nullptr;
+
+        if (LoadLibraryW_Original (it->target.module_path))
         {
-          if (MH_QueueEnableHook (it->target.addr) == MH_OK)
+          SK_LOG0 ( ( L"Trying global address for '%50hs' :: '%72s' { Last seen in '%s' }",
+                                  it->target.symbol_name,
+            SK_MakePrettyAddress (    target_addr).c_str (),
+       SK_StripUserNameFromPathW (
+                    std::wstring (it->target.module_path).data ()) ),
+                      L"Hook Cache" );
+
+          if ( MH_CreateHook ( target_addr,
+                               it->detour,
+                               it->trampoline
+                             ) == MH_OK )
           {
-            it->active = true;
-            ++num_quick_hooked.from_shared_dll;
+            if (MH_QueueEnableHook (target_addr) == MH_OK)
+            {
+              it->hits        = 1;
+              it->active      = true;
+              it->target.addr = target_addr;
+
+              ++num_quick_hooked.from_shared_dll;
+            }
           }
         }
       }
     }
   }
-
-  if (num_quick_hooked.from_shared_dll > 0)
-    SK_ApplyQueuedHooks ();
-
 
   // After trying the shared data segment, examine the current game's
   //   INI for any cached addresses and try to load those if needed.
@@ -8616,14 +8681,21 @@ SK_D3D9_QuickHook (void)
     {
       if (! it->active)
       {
+        it->target.addr = nullptr;
+
         if ( SK_Hook_PredictTarget ( *it, L"D3D9.Hooks" ) )
         {
-          if ( SK_CreateFuncHook (
-               SK_UTF8ToWideChar ( it->target.symbol_name ).c_str (),
-                                   it->target.addr,
-                                   it->detour,
-                                   it->trampoline
-                                 ) == MH_OK )
+          SK_LOG0 ( ( L"Trying  local address for '%50hs' :: '%72s' { Last seen in '%s' }",
+                                  it->target.symbol_name,
+            SK_MakePrettyAddress (it->target.addr).c_str (),
+       SK_StripUserNameFromPathW (
+                    std::wstring (it->target.module_path).data ()) ),
+                      L"Hook Cache");
+
+          if ( MH_CreateHook ( it->target.addr,
+                               it->detour,
+                               it->trampoline
+                             ) == MH_OK )
           {
             if (MH_QueueEnableHook (it->target.addr) == MH_OK)
             {
@@ -8636,7 +8708,7 @@ SK_D3D9_QuickHook (void)
     }
   }
 
-  if (num_quick_hooked.from_game_ini > 0)
+  if (num_quick_hooked.from_shared_dll > 0 || num_quick_hooked.from_game_ini > 0)
     SK_ApplyQueuedHooks ();
 
 
@@ -8646,14 +8718,5 @@ SK_D3D9_QuickHook (void)
     {
       it->active = false;
     }
-    //LocalHook_IDXGIFactory_CreateSwapChain.active      = false;
-    //LocalHook_IDXGISwapChain_Present.active            = false;
-    //LocalHook_IDXGISwapChain_ResizeTarget.active       = false;
-    //LocalHook_IDXGISwapChain_ResizeBuffers.active      = false;
-    //LocalHook_IDXGISwapChain_SetFullscreenState.active = false;
-    //LocalHook_IDXGISwapChain_GetFullscreenState.active = false;
-    //LocalHook_CreateDXGIFactory.active                 = false;
-    //LocalHook_CreateDXGIFactory1.active                = false;
-    //LocalHook_CreateDXGIFactory2.active                = false;
   }
 }

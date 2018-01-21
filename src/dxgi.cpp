@@ -90,13 +90,51 @@ CreateDXGIFactory_pfn             CreateDXGIFactory_Import               = nullp
 CreateDXGIFactory1_pfn            CreateDXGIFactory1_Import              = nullptr;
 CreateDXGIFactory2_pfn            CreateDXGIFactory2_Import              = nullptr;
 
+HRESULT
+STDMETHODCALLTYPE
+Present1Callback (IDXGISwapChain1         *This,
+                  UINT                     SyncInterval,
+                  UINT                     PresentFlags,
+            const DXGI_PRESENT_PARAMETERS *pPresentParameters);
+
+HRESULT
+STDMETHODCALLTYPE
+DXGIFactory2_CreateSwapChainForHwnd_Override ( IDXGIFactory2                   *This,
+                                    _In_       IUnknown                        *pDevice,
+                                    _In_       HWND                             hWnd,
+                                    _In_ const DXGI_SWAP_CHAIN_DESC1           *pDesc,
+                                _In_opt_       DXGI_SWAP_CHAIN_FULLSCREEN_DESC *pFullscreenDesc,
+                                _In_opt_       IDXGIOutput                     *pRestrictToOutput,
+                                   _Out_       IDXGISwapChain1                 **ppSwapChain );
+HRESULT
+STDMETHODCALLTYPE
+DXGIFactory2_CreateSwapChainForCoreWindow_Override ( IDXGIFactory2             *This,
+                                          _In_       IUnknown                  *pDevice,
+                                          _In_       IUnknown                  *pWindow,
+                                          _In_ const DXGI_SWAP_CHAIN_DESC1     *pDesc,
+                                      _In_opt_       IDXGIOutput               *pRestrictToOutput,
+                                         _Out_       IDXGISwapChain1          **ppSwapChain );
+
+HRESULT
+STDMETHODCALLTYPE
+DXGIFactory2_CreateSwapChainForComposition_Override ( IDXGIFactory2          *This,                           
+                                       _In_           IUnknown               *pDevice,
+                                       _In_     const DXGI_SWAP_CHAIN_DESC1  *pDesc,
+                                       _In_opt_       IDXGIOutput            *pRestrictToOutput,
+                                       _Outptr_       IDXGISwapChain1       **ppSwapChain );
+
+
 
 #pragma data_seg (".SK_DXGI_Hooks")
 extern "C"
 {
   // Global DLL's cache
   __declspec (dllexport) SK_HookCacheEntryGlobal (IDXGIFactory_CreateSwapChain)
+  __declspec (dllexport) SK_HookCacheEntryGlobal (IDXGIFactory2_CreateSwapChainForHwnd)
+  __declspec (dllexport) SK_HookCacheEntryGlobal (IDXGIFactory2_CreateSwapChainForCoreWindow)
+  __declspec (dllexport) SK_HookCacheEntryGlobal (IDXGIFactory2_CreateSwapChainForComposition)
   __declspec (dllexport) SK_HookCacheEntryGlobal (IDXGISwapChain_Present)
+  __declspec (dllexport) SK_HookCacheEntryGlobal (IDXGISwapChain1_Present1)
   __declspec (dllexport) SK_HookCacheEntryGlobal (IDXGISwapChain_ResizeTarget)
   __declspec (dllexport) SK_HookCacheEntryGlobal (IDXGISwapChain_ResizeBuffers)
   __declspec (dllexport) SK_HookCacheEntryGlobal (IDXGISwapChain_GetFullscreenState)
@@ -110,38 +148,41 @@ extern "C"
 
 
 // Local DLL's cached addresses
-SK_HookCacheEntryLocal (IDXGIFactory_CreateSwapChain,      L"dxgi.dll", DXGIFactory_CreateSwapChain_Override, &CreateSwapChain_Original)
-SK_HookCacheEntryLocal (IDXGISwapChain_Present,            L"dxgi.dll", PresentCallback,                      &Present_Original);
-SK_HookCacheEntryLocal (IDXGISwapChain_ResizeTarget,       L"dxgi.dll", DXGISwap_ResizeTarget_Override,       &ResizeTarget_Original)
-SK_HookCacheEntryLocal (IDXGISwapChain_ResizeBuffers,      L"dxgi.dll", DXGISwap_ResizeBuffers_Override,      &ResizeBuffers_Original)
-SK_HookCacheEntryLocal (IDXGISwapChain_GetFullscreenState, L"dxgi.dll", DXGISwap_GetFullscreenState_Override, &GetFullscreenState_Original)
-SK_HookCacheEntryLocal (IDXGISwapChain_SetFullscreenState, L"dxgi.dll", DXGISwap_SetFullscreenState_Override, &SetFullscreenState_Original)
-SK_HookCacheEntryLocal (CreateDXGIFactory,                 L"dxgi.dll", CreateDXGIFactory,                    &CreateDXGIFactory_Import)
-SK_HookCacheEntryLocal (CreateDXGIFactory1,                L"dxgi.dll", CreateDXGIFactory1,                   &CreateDXGIFactory1_Import)
-SK_HookCacheEntryLocal (CreateDXGIFactory2,                L"dxgi.dll", CreateDXGIFactory2,                   &CreateDXGIFactory2_Import)
+SK_HookCacheEntryLocal (IDXGIFactory_CreateSwapChain,                L"dxgi.dll", DXGIFactory_CreateSwapChain_Override,                &CreateSwapChain_Original)
+SK_HookCacheEntryLocal (IDXGIFactory2_CreateSwapChainForHwnd,        L"dxgi.dll", DXGIFactory2_CreateSwapChainForHwnd_Override,        &CreateSwapChainForHwnd_Original)
+SK_HookCacheEntryLocal (IDXGIFactory2_CreateSwapChainForCoreWindow,  L"dxgi.dll", DXGIFactory2_CreateSwapChainForCoreWindow_Override,  &CreateSwapChainForCoreWindow_Original)
+SK_HookCacheEntryLocal (IDXGIFactory2_CreateSwapChainForComposition, L"dxgi.dll", DXGIFactory2_CreateSwapChainForComposition_Override, &CreateSwapChainForComposition_Original)
+SK_HookCacheEntryLocal (IDXGISwapChain_Present,                      L"dxgi.dll", PresentCallback,                                     &Present_Original);
+SK_HookCacheEntryLocal (IDXGISwapChain1_Present1,                    L"dxgi.dll", Present1Callback,                                    &Present1_Original);
+SK_HookCacheEntryLocal (IDXGISwapChain_ResizeTarget,                 L"dxgi.dll", DXGISwap_ResizeTarget_Override,                      &ResizeTarget_Original)
+SK_HookCacheEntryLocal (IDXGISwapChain_ResizeBuffers,                L"dxgi.dll", DXGISwap_ResizeBuffers_Override,                     &ResizeBuffers_Original)
+SK_HookCacheEntryLocal (IDXGISwapChain_GetFullscreenState,           L"dxgi.dll", DXGISwap_GetFullscreenState_Override,                &GetFullscreenState_Original)
+SK_HookCacheEntryLocal (IDXGISwapChain_SetFullscreenState,           L"dxgi.dll", DXGISwap_SetFullscreenState_Override,                &SetFullscreenState_Original)
+SK_HookCacheEntryLocal (CreateDXGIFactory,                           L"dxgi.dll", CreateDXGIFactory,                                   &CreateDXGIFactory_Import)
+SK_HookCacheEntryLocal (CreateDXGIFactory1,                          L"dxgi.dll", CreateDXGIFactory1,                                  &CreateDXGIFactory1_Import)
+SK_HookCacheEntryLocal (CreateDXGIFactory2,                          L"dxgi.dll", CreateDXGIFactory2,                                  &CreateDXGIFactory2_Import)
 
 static
 sk_hook_cache_record_s* global_dxgi_records [] =
-  { &GlobalHook_IDXGIFactory_CreateSwapChain,      &GlobalHook_IDXGISwapChain_Present,
-    &GlobalHook_IDXGISwapChain_ResizeTarget,       &GlobalHook_IDXGISwapChain_ResizeBuffers,
-    &GlobalHook_IDXGISwapChain_GetFullscreenState, &GlobalHook_IDXGISwapChain_SetFullscreenState,
-    &GlobalHook_CreateDXGIFactory,                 &GlobalHook_CreateDXGIFactory1,
-    &GlobalHook_CreateDXGIFactory2 };
+  { &GlobalHook_IDXGIFactory_CreateSwapChain,               &GlobalHook_IDXGIFactory2_CreateSwapChainForHwnd,
+    &GlobalHook_IDXGIFactory2_CreateSwapChainForCoreWindow, &GlobalHook_IDXGIFactory2_CreateSwapChainForComposition,
+    &GlobalHook_IDXGISwapChain_ResizeTarget,                &GlobalHook_IDXGISwapChain_ResizeBuffers,
+    &GlobalHook_IDXGISwapChain_GetFullscreenState,          &GlobalHook_IDXGISwapChain_SetFullscreenState,
+    &GlobalHook_IDXGISwapChain_Present,                     &GlobalHook_IDXGISwapChain1_Present1,
+    &GlobalHook_CreateDXGIFactory,                 //&GlobalHook_CreateDXGIFactory1,
+    //&GlobalHook_CreateDXGIFactory2
+  };
 
 static
 sk_hook_cache_record_s* local_dxgi_records [] =
-  { &LocalHook_IDXGIFactory_CreateSwapChain,      &LocalHook_IDXGISwapChain_Present,
-    &LocalHook_IDXGISwapChain_ResizeTarget,       &LocalHook_IDXGISwapChain_ResizeBuffers,
-    &LocalHook_IDXGISwapChain_GetFullscreenState, &LocalHook_IDXGISwapChain_SetFullscreenState,
-    &LocalHook_CreateDXGIFactory,                 &LocalHook_CreateDXGIFactory1,
-    &LocalHook_CreateDXGIFactory2 };
-
-// These actually aren't that important, ignore em' for now.
-//
-SK_HookCacheEntry (LocalHook_IDXGIFactory2_CreateSwapChainForHwnd)
-SK_HookCacheEntry (LocalHook_IDXGIFactory2_CreateSwapChainForCoreWindow)
-SK_HookCacheEntry (LocalHook_IDXGIFactory2_CreateSwapChainForComposition)
-SK_HookCacheEntry (LocalHook_IDXGISwapChain1_Present1)
+  { &LocalHook_IDXGIFactory_CreateSwapChain,               &LocalHook_IDXGIFactory2_CreateSwapChainForHwnd,
+    &LocalHook_IDXGIFactory2_CreateSwapChainForCoreWindow, &LocalHook_IDXGIFactory2_CreateSwapChainForComposition,
+    &LocalHook_IDXGISwapChain_ResizeTarget,                &LocalHook_IDXGISwapChain_ResizeBuffers,
+    &LocalHook_IDXGISwapChain_GetFullscreenState,          &LocalHook_IDXGISwapChain_SetFullscreenState,
+    &LocalHook_IDXGISwapChain_Present,                     &LocalHook_IDXGISwapChain1_Present1,
+    &LocalHook_CreateDXGIFactory,                 //&LocalHook_CreateDXGIFactory1,
+    //&LocalHook_CreateDXGIFactory2 };
+  };
 
 
 
@@ -1560,9 +1601,9 @@ void CreateStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
     dc->CSGetUnorderedAccessViews (0, D3D11_PS_CS_UAV_REGISTER_COUNT,                    sb->CSUnorderedAccessViews);
   }
   
-  dc->IAGetVertexBuffers     (0, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT, sb->IAVertexBuffers,
-                                                                            sb->IAVertexBuffersStrides,
-                                                                            sb->IAVertexBuffersOffsets);
+  dc->IAGetVertexBuffers     (0, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT,  sb->IAVertexBuffers,
+                                                                             sb->IAVertexBuffersStrides,
+                                                                             sb->IAVertexBuffersOffsets);
   dc->IAGetIndexBuffer       (&sb->IAIndexBuffer, &sb->IAIndexBufferFormat, &sb->IAIndexBufferOffset);
   dc->IAGetInputLayout       (&sb->IAInputLayout);
   dc->IAGetPrimitiveTopology (&sb->IAPrimitiveTopology);
@@ -2379,6 +2420,7 @@ HRESULT
 
   static bool first_frame = true;
 
+
   if (first_frame)
   {
 #ifdef _WIN64
@@ -2402,10 +2444,15 @@ HRESULT
     }
 #endif
 
+
     // TODO: Clean this code up
-    if ( pDev  != nullptr )
+    if (pDev && first_frame)
     {
-      dll_log.Log (L"We're good (Present1)");
+      extern void
+      SK_D3D11_FirstFrame (IDXGISwapChain* pSwapChain);
+
+      SK_D3D11_FirstFrame (This);
+
       CComPtr <IDXGIDevice>  pDevDXGI = nullptr;
       CComPtr <IDXGIAdapter> pAdapter = nullptr;
       CComPtr <IDXGIFactory> pFactory = nullptr;
@@ -2474,349 +2521,6 @@ HRESULT SK_DXGI_Present ( IDXGISwapChain *This,
   return hr;
 }
 
-
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Purpose: Video present source unique identification number descriptor type
-//
-typedef UINT  D3DDDI_VIDEO_PRESENT_SOURCE_ID;
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Purpose: Video present source unique identification number descriptor type.
-//
-typedef UINT  D3DDDI_VIDEO_PRESENT_TARGET_ID;
-
-//
-// DDI level handle that represents a kernel mode object (allocation, device, etc)
-//
-typedef UINT D3DKMT_HANDLE;
-
-
-#define D3DKMT_MAX_PRESENT_HISTORY_RECTS 16
-
-typedef struct _D3DKMT_DIRTYREGIONS {
-  UINT NumRects;
-  RECT Rects[D3DKMT_MAX_PRESENT_HISTORY_RECTS];
-} D3DKMT_DIRTYREGIONS;
-
-typedef enum D3DDDI_FLIPINTERVAL_TYPE { 
-  D3DDDI_FLIPINTERVAL_IMMEDIATE  = 0,
-  D3DDDI_FLIPINTERVAL_ONE        = 1,
-  D3DDDI_FLIPINTERVAL_TWO        = 2,
-  D3DDDI_FLIPINTERVAL_THREE      = 3,
-  D3DDDI_FLIPINTERVAL_FOUR       = 4
-} D3DDDI_FLIPINTERVAL_TYPE;
-
-typedef struct _D3DKMT_FLIPMODEL_PRESENTHISTORYTOKENFLAGS {
-  union {
-    struct {
-      UINT Video                        :1;
-      UINT RestrictedContent            :1;
-      UINT ClipToView                   :1;
-#if (DXGKDDI_INTERFACE_VERSION >= DXGKDDI_INTERFACE_VERSION_WIN8)
-      UINT StereoPreferRight            :1;
-      UINT TemporaryMono                :1;
-      UINT FlipRestart                  :1;
-      UINT ScatterBlt                   :1;
-      UINT AlphaMode                    :2;
-      UINT SignalLimitOnTokenCompletion :1;
-      UINT Reserved                     :22;
-#else
-      UINT Reserved                     :29;
-#endif 
-    };
-    UINT   Value;
-  };
-} D3DKMT_FLIPMODEL_PRESENTHISTORYTOKENFLAGS;
-
-
-typedef enum _D3DDDI_ROTATION { 
-  D3DDDI_ROTATION_IDENTITY  = 1,
-  D3DDDI_ROTATION_90        = 2,
-  D3DDDI_ROTATION_180       = 3,
-  D3DDDI_ROTATION_270       = 4
-} D3DDDI_ROTATION;
-
-typedef struct _D3DKMT_SCATTERBLT
-
-{   ULONG64 hLogicalSurfaceDestination;
-    LONG64  hDestinationCompSurfDWM;
-    UINT64  DestinationCompositionBindingId;
-    RECT    SourceRect;
-    POINT   DestinationOffset;
-} D3DKMT_SCATTERBLT;
-
-
-#define D3DKMT_MAX_PRESENT_HISTORY_SCATTERBLTS 12
-typedef struct _D3DKMT_SCATTERBLTS {
-  UINT              NumBlts;
-  D3DKMT_SCATTERBLT Blts[D3DKMT_MAX_PRESENT_HISTORY_SCATTERBLTS];
-} D3DKMT_SCATTERBLTS;
-
-typedef ULONGLONG  D3DKMT_VISTABLTMODEL_PRESENTHISTORYTOKEN;
-
-typedef struct _D3DKMT_FLIPMODEL_PRESENTHISTORYTOKEN {
-  UINT64                                    FenceValue;
-  ULONG64                                   hLogicalSurface;
-  UINT                                      SwapChainIndex;
-  UINT64                                    PresentLimitSemaphoreId;
-  D3DDDI_FLIPINTERVAL_TYPE                  FlipInterval;
-  D3DKMT_FLIPMODEL_PRESENTHISTORYTOKENFLAGS Flags;
-#if (DXGKDDI_INTERFACE_VERSION >= DXGKDDI_INTERFACE_VERSION_WIN8)
-  LONG64                                    hCompSurf;
-  UINT64                                    CompositionSyncKey;
-  UINT                                      RemainingTokens;
-  RECT                                      ScrollRect;
-  POINT                                     ScrollOffset;
-  UINT                                      PresentCount;
-  FLOAT                                     RevealColor[4];
-  D3DDDI_ROTATION                           Rotation;
-  D3DKMT_SCATTERBLTS                        ScatterBlts;
-  D3DKMT_HANDLE                             hSyncObject;
-#endif 
-  D3DKMT_DIRTYREGIONS                       DirtyRegions;
-} D3DKMT_FLIPMODEL_PRESENTHISTORYTOKEN;
-
-
-typedef struct _D3DKMT_BLTMODEL_PRESENTHISTORYTOKEN
-{   ULONG64                             hLogicalSurface;
-    ULONG64                             hPhysicalSurface;
-    ULONG64                             EventId;
-    D3DKMT_DIRTYREGIONS                 DirtyRegions;
-} D3DKMT_BLTMODEL_PRESENTHISTORYTOKEN;
-
-
-typedef struct _D3DKMT_FENCE_PRESENTHISTORYTOKEN
-{
-    UINT64 Key;
-} D3DKMT_FENCE_PRESENTHISTORYTOKEN;
-
-typedef struct _D3DKMT_GDIMODEL_SYSMEM_PRESENTHISTORYTOKEN
-
-{   ULONG64 hlsurf;
-    DWORD   dwDirtyFlags;
-    UINT64  uiCookie;
-} D3DKMT_GDIMODEL_SYSMEM_PRESENTHISTORYTOKEN;
-
-
-
-typedef enum _D3DKMT_PRESENT_MODEL
-
-{   D3DKMT_PM_UNINITIALIZED          = 0,
-    D3DKMT_PM_REDIRECTED_GDI         = 1,
-    D3DKMT_PM_REDIRECTED_FLIP        = 2,
-    D3DKMT_PM_REDIRECTED_BLT         = 3,
-    D3DKMT_PM_REDIRECTED_VISTABLT    = 4,
-    D3DKMT_PM_SCREENCAPTUREFENCE     = 5,
-    D3DKMT_PM_REDIRECTED_GDI_SYSMEM  = 6,
-    D3DKMT_PM_REDIRECTED_COMPOSITION = 7,
-} D3DKMT_PRESENT_MODEL;
-
-
-typedef struct            _D3DKMT_COMPOSITION_PRESENTHISTORYTOKEN
-{ ULONG64 hPrivateData; }  D3DKMT_COMPOSITION_PRESENTHISTORYTOKEN;
-
-
-typedef struct _D3DKMT_GDIMODEL_PRESENTHISTORYTOKEN {
-  ULONG64             hLogicalSurface;
-  ULONG64             hPhysicalSurface;
-#if (DXGKDDI_INTERFACE_VERSION >= DXGKDDI_INTERFACE_VERSION_WIN8)
-  RECT                ScrollRect;
-  POINT               ScrollOffset;
-#endif 
-  D3DKMT_DIRTYREGIONS DirtyRegions;
-} D3DKMT_GDIMODEL_PRESENTHISTORYTOKEN;
-
-typedef struct _D3DKMT_PRESENTHISTORYTOKEN {
-  D3DKMT_PRESENT_MODEL Model;
-  UINT                 TokenSize;
-#if (DXGKDDI_INTERFACE_VERSION >= DXGKDDI_INTERFACE_VERSION_WIN8)
-  UINT64               CompositionBindingId;
-#endif 
-  union {
-    D3DKMT_FLIPMODEL_PRESENTHISTORYTOKEN       Flip;
-    D3DKMT_BLTMODEL_PRESENTHISTORYTOKEN        Blt;
-    D3DKMT_VISTABLTMODEL_PRESENTHISTORYTOKEN   VistaBlt;
-    D3DKMT_GDIMODEL_PRESENTHISTORYTOKEN        Gdi;
-    D3DKMT_FENCE_PRESENTHISTORYTOKEN           Fence;
-    D3DKMT_GDIMODEL_SYSMEM_PRESENTHISTORYTOKEN GdiSysMem;
-    D3DKMT_COMPOSITION_PRESENTHISTORYTOKEN     Composition;
-  } Token;
-} D3DKMT_PRESENTHISTORYTOKEN;
-
-typedef struct _D3DKMT_PRESENTFLAGS {
-  union {
-    struct {
-      UINT Blt                 :1;
-      UINT ColorFill           :1;
-      UINT Flip                :1;
-      UINT FlipDoNotFlip       :1;
-      UINT FlipDoNotWait       :1;
-      UINT FlipRestart         :1;
-      UINT DstRectValid        :1;
-      UINT SrcRectValid        :1;
-      UINT RestrictVidPnSource :1;
-      UINT SrcColorKey         :1;
-      UINT DstColorKey         :1;
-      UINT LinearToSrgb        :1;
-      UINT PresentCountValid   :1;
-      UINT Rotate              :1;
-      UINT PresentToBitmap     :1;
-      UINT RedirectedFlip      :1;
-      UINT RedirectedBlt       :1;
-
-#if (DXGKDDI_INTERFACE_VERSION >= DXGKDDI_INTERFACE_VERSION_WIN8)
-      UINT FlipStereo                 :1;
-      UINT FlipStereoTemporaryMono    :1;
-      UINT FlipStereoPreferRight      :1;
-      UINT BltStereoUseRight          :1;
-      UINT PresentHistoryTokenOnly    :1;
-      UINT PresentRegionsValid        :1;
-      UINT PresentDDA                 :1;
-      UINT ProtectedContentBlankedOut :1;
-      UINT RemoteSession              :1;
-      UINT Reserved                   :6;
-#else 
-      UINT Reserved  :15;
-#endif 
-    };
-    UINT   Value;
-  };
-} D3DKMT_PRESENTFLAGS;
-
-typedef struct _D3DKMT_MOVE_RECT {
-  POINT SourcePoint;
-  RECT  DestRect;
-} D3DKMT_MOVE_RECT;
-
-typedef struct _D3DKMT_PRESENT_RGNS {
-        UINT               DirtyRectCount;
-  const RECT             *pDirtyRects;
-        UINT               MoveRectCount;
-  const D3DKMT_MOVE_RECT *pMoveRects;
-} D3DKMT_PRESENT_RGNS;
-
-// Used as a value for D3DDDI_VIDEO_PRESENT_SOURCE_ID and D3DDDI_VIDEO_PRESENT_TARGET_ID types to specify
-// that the respective video present source/target ID hasn't been initialized.
-#define D3DDDI_ID_UNINITIALIZED (UINT)(~0)
-
-// TODO:[mmilirud] Define this as (UINT)(~1) to avoid collision with valid source ID equal to 0.
-//
-// Used as a value for D3DDDI_VIDEO_PRESENT_SOURCE_ID and D3DDDI_VIDEO_PRESENT_TARGET_ID types to specify
-// that the respective video present source/target ID isn't applicable for the given execution context.
-#define D3DDDI_ID_NOTAPPLICABLE (UINT)(0)
-
-// Used as a value for D3DDDI_VIDEO_PRESENT_SOURCE_ID and D3DDDI_VIDEO_PRESENT_TARGET_ID types to specify
-// that the respective video present source/target ID describes every VidPN source/target in question.
-#define D3DDDI_ID_ALL (UINT)(~2)
-
-
-//
-// Hardcoded VidPnSource count
-//
-#define D3DKMDT_MAX_VIDPN_SOURCES_BITCOUNT      4
-#define D3DKMDT_MAX_VIDPN_SOURCES               (1 << D3DKMDT_MAX_VIDPN_SOURCES_BITCOUNT)
-
-#define D3DDDI_MAX_BROADCAST_CONTEXT        64
-
-typedef struct _D3DKMDT_VIDEO_PRESENT_SOURCE {
-  D3DDDI_VIDEO_PRESENT_SOURCE_ID Id;
-  DWORD                          dwReserved;
-} D3DKMDT_VIDEO_PRESENT_SOURCE;
-
-typedef struct _D3DKMT_PRESENT {
-  union {
-    D3DKMT_HANDLE hDevice;
-    D3DKMT_HANDLE hContext;
-  };
-
-  HWND                             hWindow;
-  D3DDDI_VIDEO_PRESENT_SOURCE_ID   VidPnSourceId;
-  D3DKMT_HANDLE                    hSource;
-  D3DKMT_HANDLE                    hDestination;
-  UINT                             Color;
-  RECT                             DstRect;
-  RECT                             SrcRect;
-  UINT                             SubRectCnt;
-  const RECT                     *pSrcSubRects;
-  UINT                             PresentCount;
-  D3DDDI_FLIPINTERVAL_TYPE         FlipInterval;
-  D3DKMT_PRESENTFLAGS              Flags;
-  ULONG                            BroadcastContextCount;
-  D3DKMT_HANDLE                    BroadcastContext [D3DDDI_MAX_BROADCAST_CONTEXT];
-  HANDLE                           PresentLimitSemaphore;
-  D3DKMT_PRESENTHISTORYTOKEN       PresentHistoryToken;
-
-#if (DXGKDDI_INTERFACE_VERSION >= DXGKDDI_INTERFACE_VERSION_WIN8)
-  D3DKMT_PRESENT_RGNS            *pPresentRegions;
-#endif 
-} D3DKMT_PRESENT;
-
-#include <SpecialK/render_backend.h>
-
-typedef
-NTSTATUS (APIENTRY * D3DKMTPresent_pfn)(const D3DKMT_PRESENT *pData);
-              static D3DKMTPresent_pfn
-                     D3DKMTPresent_Original = nullptr;
-
-#define NT_SUCCESS(Status) (((NTSTATUS)(Status)) >= 0)
-
-NTSTATUS
-APIENTRY
-D3DKMTPresent_Override (const D3DKMT_PRESENT *pData)
-{
-  // Start / End / Readback Pipeline Stats
-  //if (SK_GetCurrentRenderBackend ().swapchain != nullptr && SK_GetFramesDrawn () > 240)
-  //{
-  //  SK_D3D11_UpdateRenderStats ((IDXGISwapChain *)SK_GetCurrentRenderBackend ().swapchain);
-  //}
-  //
-  //// Establish the API used this frame (and handle possible translation layers)
-  ////
-  //switch (SK_GetDLLRole ())
-  //{
-  //  case DLL_ROLE::D3D8:
-  //    SK_GetCurrentRenderBackend ().api = SK_RenderAPI::D3D8On11;
-  //    break;
-  //  case DLL_ROLE::DDraw:
-  //    SK_GetCurrentRenderBackend ().api = SK_RenderAPI::DDrawOn11;
-  //    break;
-  //  default:
-  //    SK_GetCurrentRenderBackend ().api = SK_RenderAPI::D3D11;
-  //    break;
-  //}
-
-  //SK_BeginBufferSwap ();
-
-  //if (config.render.gl.osd_in_vidcap && SK_GetFramesDrawn () > 240)
-  //{
-  //  if ( SK_GetCurrentRenderBackend ().swapchain != nullptr &&
-  //       SK_GetCurrentRenderBackend ().device    != nullptr )
-  //  {
-  //    SK_CEGUI_DrawD3D11 ((IDXGISwapChain *)SK_GetCurrentRenderBackend ().swapchain);
-  //  }
-  //}
-
-
-  NTSTATUS ntStat =
-    D3DKMTPresent_Original (pData);
-
-  if (NT_SUCCESS (ntStat))
-  {
-  }
-  //if (NT_SUCCESS (ntStat) && config.render.gl.osd_in_vidcap && SK_GetFramesDrawn () > 240)
-  //{
-  //  if ( SK_GetCurrentRenderBackend ().swapchain != nullptr &&
-  //       SK_GetCurrentRenderBackend ().device    != nullptr )
-  //  {
-  //    SK_EndBufferSwap (S_OK, (ID3D11Device *)SK_GetCurrentRenderBackend ().device);
-  //
-  //    SK_D3D11_TexCacheCheckpoint ();
-  //  }
-  //}
-
-  return ntStat;
-}
 
 __declspec (noinline)
 HRESULT
@@ -2888,18 +2592,58 @@ STDMETHODCALLTYPE PresentCallback ( IDXGISwapChain *This,
 
   if (pDev && first_frame)
   {
-    for ( auto it : local_dxgi_records )
+    extern void
+    SK_D3D11_FirstFrame (IDXGISwapChain* pSwapChain);
+
+    SK_D3D11_FirstFrame (This);
+
+    for ( auto& it : local_dxgi_records )
     {
-      SK_Hook_CacheTarget ( *it, L"DXGI.Hooks" );
+      if (it->active)
+      {
+        SK_Hook_ResolveTarget (*it);
+
+        // Don't cache addresses that were screwed with by other injectors
+        const wchar_t* wszSection = 
+          StrStrIW (it->target.module_path, LR"(\dxgi.dll)") ?
+                                            L"DXGI.Hooks" : nullptr;
+
+        if (! wszSection)
+        {
+          SK_LOG0 ( ( L"Hook for '%hs' resides in '%s', will not cache!",
+                        it->target.symbol_name,
+            SK_StripUserNameFromPathW (
+              std::wstring (
+                        it->target.module_path
+                           ).data ()
+            )                                                             ),
+                      L"Hook Cache" );
+        }
+        SK_Hook_CacheTarget ( *it, wszSection );
+      }
     }
 
-    auto it_local  = std::begin (local_dxgi_records);
-    auto it_global = std::begin (global_dxgi_records);
-
-    while ( it_local != std::end (local_dxgi_records) )
+    if (SK_IsInjected ())
     {
-      SK_Hook_PushLocalCacheOntoGlobal ( **it_local++,
-                                           **it_global++ );
+      auto it_local  = std::begin (local_dxgi_records);
+      auto it_global = std::begin (global_dxgi_records);
+
+      while ( it_local != std::end (local_dxgi_records) )
+      {
+        if (( *it_local )->hits &&
+  StrStrIW (( *it_local )->target.module_path, LR"(\dxgi.dll)") &&
+            ( *it_local )->active)
+          SK_Hook_PushLocalCacheOntoGlobal ( **it_local,
+                                               **it_global );
+        else
+        {
+          ( *it_global )->target.addr = nullptr;
+          ( *it_global )->hits        = 0;
+          ( *it_global )->active      = false;
+        }
+
+        it_global++, it_local++;
+      }
     }
 
 #ifdef _WIN64
@@ -5281,8 +5025,6 @@ DXGI_STUB (HRESULT, DXGIReportAdapterConfiguration,
              (DWORD dwUnknown),
                    (dwUnknown) );
 
-bool hook_d3dkmt_present = false;
-
 using finish_pfn = void (WINAPI *)(void);
 
 void
@@ -5348,50 +5090,13 @@ SK_HookDXGI (void)
       LocalHook_CreateDXGIFactory.target.addr  = CreateDXGIFactory_Import;
       LocalHook_CreateDXGIFactory1.target.addr = CreateDXGIFactory1_Import;
       LocalHook_CreateDXGIFactory2.target.addr = CreateDXGIFactory2_Import;
-
-      if (hook_d3dkmt_present)
-      {
-        LoadLibraryW (L"d3d11.dll");
-
-        LPVOID pfnD3DKMTPresent_Target = nullptr;
-        if ( MH_OK ==
-               SK_CreateDLLHook2 (      L"d3d11.dll",
-                                         "D3DKMTPresent",
-                                          D3DKMTPresent_Override,
-                  static_cast_p2p <void>(&D3DKMTPresent_Original),
-                                     &pfnD3DKMTPresent_Target ) )
-        {
-          MH_QueueEnableHook (pfnD3DKMTPresent_Target);
-
-          SK_LOG0 ( ( L"       D3DKMTPresent: %s",
-                        SK_MakePrettyAddress (pfnD3DKMTPresent_Target).c_str () ),
-                      L" D3D11KMT " );
-          SK_LogSymbolName                   (pfnD3DKMTPresent_Target);
-        }
-      }
     }
 
     else
     {
-      LPVOID pfnD3DKMTPresent_Target = nullptr;
       LPVOID pfnCreateDXGIFactory    = nullptr;
       LPVOID pfnCreateDXGIFactory1   = nullptr;
       LPVOID pfnCreateDXGIFactory2   = nullptr;
-
-      if (hook_d3dkmt_present)
-      {
-        LoadLibraryW (L"d3d11.dll");
-
-        if ( MH_OK ==
-               SK_CreateDLLHook2 (      L"d3d11.dll",
-                                         "D3DKMTPresent",
-                                          D3DKMTPresent_Override,
-                  static_cast_p2p <void>(&D3DKMTPresent_Original),
-                                     &pfnD3DKMTPresent_Target ) )
-        {
-          MH_QueueEnableHook (pfnD3DKMTPresent_Target);
-        }
-      }
 
       if ((! LocalHook_CreateDXGIFactory.active) && GetProcAddress (hBackend, "CreateDXGIFactory"))
       {
@@ -5464,14 +5169,6 @@ SK_HookDXGI (void)
                                                L"" ),
                   L" DXGI 1.3 " );
       SK_LogSymbolName                   (pfnCreateDXGIFactory2);
-
-      if (hook_d3dkmt_present)
-      {
-        SK_LOG0 ( ( L"       D3DKMTPresent: %s",
-                      SK_MakePrettyAddress (pfnD3DKMTPresent_Target).c_str () ),
-                    L" D3D11KMT " );
-        SK_LogSymbolName                   (pfnD3DKMTPresent_Target);
-      }
 
       LocalHook_CreateDXGIFactory.target.addr  = pfnCreateDXGIFactory;
       LocalHook_CreateDXGIFactory1.target.addr = pfnCreateDXGIFactory1;
@@ -6186,30 +5883,28 @@ SK::DXGI::Shutdown (void)
   }
 #endif
 
+
+  // Video capture software usually lets one frame through before @#$%'ing
+  //   up the Present (...) hook.
+  if (SK_GetFramesDrawn () < 2)
+  {
+    SK_LOG0 ( ( L" !!! No frames drawn using DXGI backend; purging "
+                L"injection address cache..."
+              ),
+                L"Hook Cache" );
+
+    for ( auto& it : local_dxgi_records )
+    {
+      SK_Hook_RemoveTarget ( *it, L"DXGI.Hooks" );
+    }
+  }
+
+
   if (config.apis.dxgi.d3d11.hook) SK_D3D11_Shutdown ();
 
 #ifdef _WIN64
   if (config.apis.dxgi.d3d12.hook) SK_D3D12_Shutdown ();
 #endif
-
-  if (SK_GetFramesDrawn () < 2)
-  {
-    SK_LOG0 ( ( L" !!! No frames drawn using DXGI backend; purging injection address cache..." ),
-                L"Hook Cache" );
-
-    SK_Hook_RemoveTarget (
-      LocalHook_IDXGIFactory_CreateSwapChain,
-        L"DXGI.Hooks"    );
-    SK_Hook_RemoveTarget (
-      LocalHook_IDXGISwapChain_ResizeTarget,
-        L"DXGI.Hooks"    );
-    SK_Hook_RemoveTarget (
-      LocalHook_IDXGISwapChain_ResizeBuffers,
-        L"DXGI.Hooks"    );
-    SK_Hook_RemoveTarget (
-      LocalHook_IDXGISwapChain_Present,
-        L"DXGI.Hooks"    );
-  }
 
   if (StrStrIW (SK_GetBackend (), L"d3d11"))
     return SK_ShutdownCore (L"d3d11");
@@ -6886,46 +6581,58 @@ SK::DXGI::ShutdownBudgetThread ( void )
 void
 SK_DXGI_QuickHook (void)
 {
+  extern void SK_D3D11_QuickHook (void);
+              SK_D3D11_QuickHook ();
+
   struct
   { int from_shared_dll = 0;
     int from_game_ini   = 0;
   } num_quick_hooked;
 
 
-  // This first pass will iterate over any records in the DLL's shared
-  //   data segment (for global injection).
-  //
-  for ( auto& it : local_dxgi_records )
+  if (SK_IsInjected ())
   {
-    if (it->target.addr != nullptr)
+    // This first pass will iterate over any records in the DLL's shared
+    //   data segment (for global injection).
+    //
+    for ( auto& it : local_dxgi_records )
     {
-      if (LoadLibraryW_Original (it->target.module_path))
-      {
-        SK_LOG0 ( ( L"Using global DLL's shared cache address for '%33hs' :: %s",
-                                it->target.symbol_name,
-          SK_MakePrettyAddress (it->target.addr).c_str () ),
-                    L"Hook Cache" );
+      it->active = false;
 
-        if ( SK_CreateFuncHook (
-             SK_UTF8ToWideChar ( it->target.symbol_name ).c_str (),
-                                 it->target.addr,
-                                 it->detour,
-                                 it->trampoline
-                               ) == MH_OK )
+      if (it->target.addr != nullptr)
+      {
+        LPVOID target_addr = it->target.addr;
+
+        it->active      = false;
+        it->target.addr = nullptr;
+
+        if (LoadLibraryW_Original (it->target.module_path))
         {
-          if (MH_QueueEnableHook (it->target.addr) == MH_OK)
+          SK_LOG0 ( ( L"Trying global address for '%50hs' :: '%72s' { Last seen in '%s' }",
+                                  it->target.symbol_name,
+            SK_MakePrettyAddress (    target_addr).c_str (),
+       SK_StripUserNameFromPathW (
+                    std::wstring (it->target.module_path).data ()) ),
+                      L"Hook Cache" );
+
+          if ( MH_CreateHook ( target_addr,
+                               it->detour,
+                               it->trampoline
+                             ) == MH_OK )
           {
-            it->active = true;
-            ++num_quick_hooked.from_shared_dll;
+            if (MH_QueueEnableHook (target_addr) == MH_OK)
+            {
+              it->hits        = 1;
+              it->active      = true;
+              it->target.addr = target_addr;
+
+              ++num_quick_hooked.from_shared_dll;
+            }
           }
         }
       }
     }
   }
-
-  if (num_quick_hooked.from_shared_dll > 0)
-    SK_ApplyQueuedHooks ();
-
 
   // After trying the shared data segment, examine the current game's
   //   INI for any cached addresses and try to load those if needed.
@@ -6936,14 +6643,21 @@ SK_DXGI_QuickHook (void)
     {
       if (! it->active)
       {
+        it->target.addr = nullptr;
+
         if ( SK_Hook_PredictTarget ( *it, L"DXGI.Hooks" ) )
         {
-          if ( SK_CreateFuncHook (
-               SK_UTF8ToWideChar ( it->target.symbol_name ).c_str (),
-                                   it->target.addr,
-                                   it->detour,
-                                   it->trampoline
-                                 ) == MH_OK )
+          SK_LOG0 ( ( L"Trying  local address for '%50hs' :: '%72s' { Last seen in '%s' }",
+                                  it->target.symbol_name,
+            SK_MakePrettyAddress (it->target.addr).c_str (),
+       SK_StripUserNameFromPathW (
+                    std::wstring (it->target.module_path).data ()) ),
+                      L"Hook Cache");
+
+          if ( MH_CreateHook ( it->target.addr,
+                               it->detour,
+                               it->trampoline
+                             ) == MH_OK )
           {
             if (MH_QueueEnableHook (it->target.addr) == MH_OK)
             {
@@ -6956,20 +6670,15 @@ SK_DXGI_QuickHook (void)
     }
   }
 
-  if (num_quick_hooked.from_game_ini > 0)
+  if (num_quick_hooked.from_shared_dll > 0 || num_quick_hooked.from_game_ini > 0)
     SK_ApplyQueuedHooks ();
 
 
   if ( num_quick_hooked.from_game_ini + num_quick_hooked.from_shared_dll == 0 )
   {
-    LocalHook_IDXGIFactory_CreateSwapChain.active      = false;
-    LocalHook_IDXGISwapChain_Present.active            = false;
-    LocalHook_IDXGISwapChain_ResizeTarget.active       = false;
-    LocalHook_IDXGISwapChain_ResizeBuffers.active      = false;
-    LocalHook_IDXGISwapChain_SetFullscreenState.active = false;
-    LocalHook_IDXGISwapChain_GetFullscreenState.active = false;
-    LocalHook_CreateDXGIFactory.active                 = false;
-    LocalHook_CreateDXGIFactory1.active                = false;
-    LocalHook_CreateDXGIFactory2.active                = false;
+    for ( auto& it : local_dxgi_records )
+    {
+      it->active = false;
+    }
   }
 }

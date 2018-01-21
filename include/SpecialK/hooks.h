@@ -88,6 +88,10 @@ SK_Hook_PredictTarget (       sk_hook_cache_record_s &cache,
                         const wchar_t                *wszSectionName,
                               iSK_INI                *ini = SK_GetDLLConfig () );
 
+// Compute the offset address and module filename (fully qualified path)
+void
+SK_Hook_ResolveTarget ( sk_hook_cache_record_s &cache );
+
 // Push the address and module in the cache record to an INI file
 void
 SK_Hook_CacheTarget   ( sk_hook_cache_record_s &cache,
@@ -106,6 +110,7 @@ SK_Hook_TargetFromVFTable ( sk_hook_cache_record_s  &cache,
                             void                   **base,
                             int                      idx   )
 {
+  cache.active      = true;
   cache.target.addr =
     (*(void***)*(base))[idx];
 };

@@ -559,13 +559,17 @@ SK_ValidatePointer (LPCVOID addr)
 void
 SK_LogSymbolName (LPCVOID addr)
 {
-  //char szSymbol [256] = { };
-  //
-  //SK_GetSymbolNameFromModuleAddr ( SK_GetModuleFromAddr (addr),
-  //                                            (uintptr_t)addr,
-  //                                                       szSymbol, 255 );
-  //
-  //SK_LOG0 ( ( L"=> %hs", szSymbol ), L"SymbolName" );
+  UNREFERENCED_PARAMETER (addr);
+
+#ifdef _DEBUG
+  char szSymbol [256] = { };
+  
+  SK_GetSymbolNameFromModuleAddr ( SK_GetModuleFromAddr (addr),
+                                              (uintptr_t)addr,
+                                                         szSymbol, 255 );
+  
+  SK_LOG0 ( ( L"=> %hs", szSymbol ), L"SymbolName" );
+#endif
 }
 
 

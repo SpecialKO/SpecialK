@@ -28,6 +28,7 @@
 #include <SpecialK/utility.h>
 #include <SpecialK/thread.h>
 #include <concurrent_unordered_map.h>
+#include <concurrent_unordered_set.h>
 
 #include <string>
 #include <typeindex>
@@ -504,7 +505,12 @@ public:
     std::wstring          file_name  = L"";  // If injected, this is the source file
   };
 
+  // Thread safety is strong; we don't need this
+#if 0
+  concurrency::concurrent_unordered_set <ID3D11Texture2D *> TexRefs_2D;
+#else
   std::unordered_set <ID3D11Texture2D *>      TexRefs_2D;
+#endif
 
   struct lod_hash_table_s
   {
@@ -1035,7 +1041,10 @@ struct SK_D3D11_KnownShaders
     SK_D3D11_ShaderType type_;
   };
 
-  static std::unordered_map <ID3D11DeviceContext *, bool> reshade_triggered;
+  static concurrency::concurrent_unordered_map <
+    ID3D11DeviceContext *,
+    bool
+  > reshade_triggered;
 
   ShaderRegistry <ID3D11PixelShader>    pixel; 
   ShaderRegistry <ID3D11VertexShader>   vertex;
@@ -1254,8 +1263,5 @@ HookD3D11 (LPVOID user);
 void
 WINAPI
 SK_HookDXGI (void);
-
-void
-SK_DXGI_PreHook (void);
 
 #endif /* __SK__DXGI_BACKEND_H__ */
