@@ -2854,13 +2854,13 @@ SK_Steam_StartPump (bool force)
 
   if (config.steam.auto_pump_callbacks || force)
   {
-    InterlockedExchangePointer ( &hSteamPump,
+    InterlockedCompareExchangePointer ( &hSteamPump,
                             CreateThread ( nullptr,
                                              0,
                                                SteamAPI_PumpThread,
                                                  nullptr,
                                                    0x00,
-                                                     nullptr )
+                                                     nullptr ), nullptr
                         );
   }
 }

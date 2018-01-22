@@ -66,19 +66,19 @@ extern std::wstring SK_D3D11_res_root;
 
 static D3DXCreateTextureFromFileInMemoryEx_pfn D3DXCreateTextureFromFileInMemoryEx_Original = nullptr;
 
-static BeginScene_pfn                          D3D9BeginScene_Original                      = nullptr;
-static EndScene_pfn                            D3D9EndScene_Original                        = nullptr;
-static SetRenderState_pfn                      D3D9SetRenderState_Original                  = nullptr;
+static D3D9Device_BeginScene_pfn                 D3D9BeginScene_Original                    = nullptr;
+static D3D9Device_EndScene_pfn                   D3D9EndScene_Original                      = nullptr;
+static D3D9Device_SetRenderState_pfn             D3D9SetRenderState_Original                = nullptr;
 
-static StretchRect_pfn                         D3D9StretchRect_Original                     = nullptr;
-static CreateTexture_pfn                       D3D9CreateTexture_Original                   = nullptr;
-static CreateRenderTarget_pfn                  D3D9CreateRenderTarget_Original              = nullptr;
-static CreateDepthStencilSurface_pfn           D3D9CreateDepthStencilSurface_Original       = nullptr;
+static D3D9Device_StretchRect_pfn                D3D9StretchRect_Original                   = nullptr;
+static D3D9Device_CreateTexture_pfn              D3D9CreateTexture_Original                 = nullptr;
+static D3D9Device_CreateRenderTarget_pfn         D3D9CreateRenderTarget_Original            = nullptr;
+static D3D9Device_CreateDepthStencilSurface_pfn  D3D9CreateDepthStencilSurface_Original     = nullptr;
 
-static SetTexture_pfn                          D3D9SetTexture_Original                      = nullptr;
-static SetRenderTarget_pfn                     D3D9SetRenderTarget_Original                 = nullptr;
-static SetDepthStencilSurface_pfn              D3D9SetDepthStencilSurface_Original          = nullptr;
-extern SetSamplerState_pfn                     D3D9SetSamplerState_Original;
+static D3D9Device_SetTexture_pfn                 D3D9SetTexture_Original                    = nullptr;
+static D3D9Device_SetRenderTarget_pfn            D3D9SetRenderTarget_Original               = nullptr;
+static D3D9Device_SetDepthStencilSurface_pfn     D3D9SetDepthStencilSurface_Original        = nullptr;
+extern D3D9Device_SetSamplerState_pfn            D3D9Device_SetSamplerState_Original;
 
 using  QueryPerformanceCounter_pfn = BOOL (WINAPI *)( _Out_ LARGE_INTEGER *lpPerformanceCount );
 extern QueryPerformanceCounter_pfn QueryPerformanceCounter_Original;
@@ -496,10 +496,10 @@ D3D9SetTexture_Detour (
   {
     float fMin = -3.0f;
 
-    D3D9SetSamplerState_Original (This, Sampler, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP );
-    D3D9SetSamplerState_Original (This, Sampler, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP );
-    D3D9SetSamplerState_Original (This, Sampler, D3DSAMP_ADDRESSW, D3DTADDRESS_CLAMP );
-    D3D9SetSamplerState_Original (This, Sampler, D3DSAMP_MIPMAPLODBIAS, *reinterpret_cast <DWORD *>(&fMin) );
+    D3D9Device_SetSamplerState_Original (This, Sampler, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP );
+    D3D9Device_SetSamplerState_Original (This, Sampler, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP );
+    D3D9Device_SetSamplerState_Original (This, Sampler, D3DSAMP_ADDRESSW, D3DTADDRESS_CLAMP );
+    D3D9Device_SetSamplerState_Original (This, Sampler, D3DSAMP_MIPMAPLODBIAS, *reinterpret_cast <DWORD *>(&fMin) );
   }
 
   return D3D9SetTexture_Original (This, Sampler, pTexture);

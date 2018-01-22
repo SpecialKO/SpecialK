@@ -90,21 +90,35 @@ ULONG
 STDMETHODCALLTYPE
 IWrapDirect3DSwapChain9::Release (void)
 {
-  if (InterlockedDecrement (&refs_) == 0)
+  // What this thread thinks the reference count is
+  ULONG local_refs = InterlockedDecrement (&refs_);
+
+  if (local_refs == 0)
   {
+    concurrency::concurrent_vector <IWrapDirect3DSwapChain9 *> remaining;
+
     const auto it = std::find ( pDev->additional_swapchains_.begin (),
                                 pDev->additional_swapchains_.end   (), this );
 
-    if (it != pDev->additional_swapchains_.end ())
+      auto it2  = pDev->additional_swapchains_.begin ();
+    while (it2 != pDev->additional_swapchains_.end   ())
     {
-    	pDev->additional_swapchains_.erase (it);
-      pDev->Release ();
+      if (it2 != it)
+        remaining.push_back (*it2);
+      else
+        pDev->Release       (    );
+
+      ++it2;
     }
+
+    pDev->additional_swapchains_.swap (remaining);
+                                       remaining.clear ();
   }
 
-	ULONG refs = pReal->Release ();
+	ULONG refs =
+    pReal->Release ();
 
-  if (ReadAcquire (&refs_) == 0 && refs != 0)
+  if (local_refs == 0 && refs != 0)
   {
     SK_LOG0 ( (L"Reference count for 'ID3D9SwapChain' object is inconsistent: %li, but expected 0.", refs), L"   D3D9   ");
 
@@ -120,19 +134,19 @@ IWrapDirect3DSwapChain9::Release (void)
     delete this;
   }
 
-  return refs;
+  return local_refs;
 }
 
 HRESULT
 STDMETHODCALLTYPE
-SK_D3D9_DispatchPresent_Chain (IDirect3DSwapChain9      *This,
-                         const RECT                     *pSourceRect,
-                         const RECT                     *pDestRect,
-                               HWND                      hDestWindowOverride,
-                         const RGNDATA                  *pDirtyRegion,
-                               DWORD                     dwFlags,
-                               D3D9PresentSwapChain_pfn  D3D9PresentSwapChain,
-                               SK_D3D9_PresentSource     Source);
+SK_D3D9_DispatchPresent_Chain (IDirect3DSwapChain9   *This,
+                         const RECT                  *pSourceRect,
+                         const RECT                  *pDestRect,
+                               HWND                   hDestWindowOverride,
+                         const RGNDATA               *pDirtyRegion,
+                               DWORD                  dwFlags,
+                               D3D9Swap_Present_pfn   D3D9PresentSwapChain,
+                               SK_D3D9_PresentSource  Source);
 
 HRESULT
 STDMETHODCALLTYPE

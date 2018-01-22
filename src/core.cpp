@@ -1564,6 +1564,10 @@ SK_BeginBufferSwap (void)
 
     if (config.system.handle_crashes)
       SK::Diagnostics::CrashHandler::Reinstall ();
+
+              extern float target_fps;
+                           target_fps = config.render.framerate.target_fps;
+    SK::Framerate::GetLimiter ()->init (config.render.framerate.target_fps);
   }
 
 

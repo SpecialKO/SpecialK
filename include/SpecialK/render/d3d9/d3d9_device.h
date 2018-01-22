@@ -24,8 +24,12 @@
 
 #pragma once
 
+#include <atlbase.h>
+
 #include <SpecialK/d3d9_backend.h>
 #include <SpecialK/render/d3d9/d3d9_swapchain.h>
+
+#include <concurrent_vector.h>
 
 extern volatile LONG SK_D3D9_LiveWrappedDevices;
 extern volatile LONG SK_D3D9_LiveWrappedExDevices;
@@ -49,6 +53,9 @@ struct IWrapDirect3DDevice9 : IDirect3DDevice9Ex
 
                                   orig->AddRef  (),
     InterlockedExchange  (&refs_, orig->Release ());
+
+    //// Immediately try to upgrade
+    //CComQIPtr <IDirect3DDevice9Ex> pEx (this);
   }
 
   explicit IWrapDirect3DDevice9 (IDirect3DDevice9Ex *orig) :
@@ -214,8 +221,10 @@ struct IWrapDirect3DDevice9 : IDirect3DDevice9Ex
   IDirect3DDevice9 *pReal;
   bool              d3d9ex_ = false;
 
-               IWrapDirect3DSwapChain9   *implicit_swapchain_   = nullptr;
-  std::vector <IWrapDirect3DSwapChain9 *> additional_swapchains_;
+  IWrapDirect3DSwapChain9 
+                  *implicit_swapchain_   = nullptr;
+  concurrency::concurrent_vector <IWrapDirect3DSwapChain9 *>
+                   additional_swapchains_;
 };
 
 #endif /* __SK__D3D9_DEVICE_H__ */

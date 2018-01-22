@@ -138,6 +138,7 @@ std::vector <sk_hook_cache_record_s *> local_d3d11_records =
     &LocalHook_D3D11CreateDeviceAndSwapChain };
 
 
+
 extern "C" __declspec (dllexport) FARPROC D3D11CreateDeviceForD3D12              = nullptr;
 extern "C" __declspec (dllexport) FARPROC CreateDirect3D11DeviceFromDXGIDevice   = nullptr;
 extern "C" __declspec (dllexport) FARPROC CreateDirect3D11SurfaceFromDXGISurface = nullptr;
@@ -186,7 +187,6 @@ extern "C" __declspec (dllexport) FARPROC D3DPerformance_BeginEvent             
 extern "C" __declspec (dllexport) FARPROC D3DPerformance_EndEvent                = nullptr;
 extern "C" __declspec (dllexport) FARPROC D3DPerformance_GetStatus               = nullptr;
 extern "C" __declspec (dllexport) FARPROC D3DPerformance_SetMarker               = nullptr;
-
 
 
 
