@@ -1154,19 +1154,29 @@ BACKEND_INIT:
 
   if (! __SK_bypass)
   {
-    //if (SK_IsInjected ())
-    {
-      if (config.apis.dxgi.d3d11.hook /*|| config.apis.dxgi.d3d12.hook*/)
-      {
-        extern void SK_DXGI_QuickHook (void);
-                    SK_DXGI_QuickHook ();
-      }
+    bool gl   = false, vulkan = false, d3d9  = false, d3d11 = false,
+         dxgi = false, d3d8   = false, ddraw = false, glide = false;
 
-      if (config.apis.d3d9.hook || config.apis.d3d9ex.hook)
-      {
-        extern void SK_D3D9_QuickHook (void);
-                    SK_D3D9_QuickHook ();
-      }
+    dxgi  |= GetModuleHandle (L"dxgi.dll")  != 0;
+    d3d11 |= GetModuleHandle (L"d3d11.dll") != 0;
+    d3d9  |= GetModuleHandle (L"d3d9.dll")  != 0;
+
+    SK_TestRenderImports (
+      GetModuleHandle (nullptr),
+        &gl, &vulkan,
+          &d3d9, &dxgi, &d3d11,
+            &d3d8, &ddraw, &glide );
+
+    if ((dxgi || d3d11 || d3d8 || ddraw) && config.apis.dxgi.d3d11.hook /*|| config.apis.dxgi.d3d12.hook*/)
+    {
+      extern void SK_DXGI_QuickHook (void);
+                  SK_DXGI_QuickHook ();
+    }
+
+    if (d3d9 && (config.apis.d3d9.hook || config.apis.d3d9ex.hook))
+    {
+      extern void SK_D3D9_QuickHook (void);
+                  SK_D3D9_QuickHook ();
     }
 
     if (GetModuleHandle (L"dinput8.dll"))

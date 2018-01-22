@@ -12050,12 +12050,6 @@ SK_ImGui_ToggleEx (bool& toggle_ui, bool& toggle_nav)
   //if (nav_usable)
     ImGui::SetNextWindowFocus ();
 
-  ////void
-  ////__stdcall
-  ////SK::SteamAPI::SetOverlayState (bool active);
-  ////
-  ////SK::SteamAPI::SetOverlayState (nav_usable);
-
   toggle_ui  = SK_ImGui_Active ();
   toggle_nav = nav_usable;
 
@@ -12297,21 +12291,6 @@ SK_ImGui_PollGamepad (void)
 {
   ImGuiIO& io =
     ImGui::GetIO ();
-
-
-  //extern INT SK_ImGui_ActivationKeys [256];
-  //
-  //for (int i = 8; i < 256; i++)
-  //{
-  //  if (SK_ImGui_ActivationKeys [i] > 0)
-  //  {
-  //    game_window.CallProc (game_window.hWnd, WM_KEYUP,    i, 0);
-  //    game_window.CallProc (game_window.hWnd, WM_SYSKEYUP, i, 0);
-  //
-  //    SK_ImGui_ActivationKeys [i] = 0;
-  //  }
-  //}
-
 
          XINPUT_STATE state    = {      };
   static XINPUT_STATE last_state { 1, 0 };

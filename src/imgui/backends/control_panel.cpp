@@ -3679,6 +3679,20 @@ SK_ImGui_ControlPanel (void)
 
       ImGui::SameLine ();
 
+      ImGui::Checkbox ("Show OSD in Video Capture", &config.render.gl.osd_in_vidcap);
+
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::BeginTooltip    ();
+        ImGui::TextUnformatted ("Alters visibility in most video capture software");
+        ImGui::Separator       ();
+        ImGui::BulletText      ("Enabled by default for maximum compatibility");
+        ImGui::BulletText      ("Enabling this has a high likelihood of interfering with ReShade");
+        ImGui::EndTooltip      ();
+      }
+
+      ImGui::SameLine ();
+
       bool advanced =
         ImGui::TreeNode ("Advanced (Debug)###Advanced_NVD3D11");
 

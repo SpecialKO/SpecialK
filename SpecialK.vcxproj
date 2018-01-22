@@ -1813,6 +1813,7 @@ Exit 0</Command>
     <ClInclude Include="include\SpecialK\parameter.h" />
     <ClInclude Include="include\SpecialK\plugin\plugin_mgr.h" />
     <ClInclude Include="include\SpecialK\plugin\reshade.h" />
+    <ClInclude Include="include\SpecialK\render\dxgi\swapchain.h" />
     <ClInclude Include="include\SpecialK\render_backend.h" />
     <ClInclude Include="include\SpecialK\resource.h" />
     <ClInclude Include="include\SpecialK\sha1.h" />
@@ -2203,6 +2204,7 @@ Exit 0</Command>
     <ClCompile Include="src\plugins\okami.cpp" />
     <ClCompile Include="src\plugins\plugin_mgr.cpp" />
     <ClCompile Include="src\plugins\reshade.cpp" />
+    <ClCompile Include="src\render\dxgi\swapchain.cpp" />
     <ClCompile Include="src\render_backend.cpp">
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">false</WholeProgramOptimization>

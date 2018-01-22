@@ -441,6 +441,9 @@
     <ClInclude Include="include\SpecialK\com_util.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\SpecialK\render\dxgi\swapchain.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stdafx.cpp">
@@ -708,6 +711,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\com_util.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\dxgi\swapchain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

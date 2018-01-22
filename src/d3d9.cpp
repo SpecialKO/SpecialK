@@ -260,8 +260,7 @@ extern "C"
 #pragma comment  (linker, "/SECTION:.SK_D3D9_Hooks,RWS")
 
 // Local DLL's cached addresses
-SK_HookCacheEntryLocal (Direct3DCreate9,               L"d3d9.dll", Direct3DCreate9,                        &Direct3DCreate9_Import)
-SK_HookCacheEntryLocal (D3D9CreateDevice,              L"d3d9.dll", D3D9CreateDevice_Override,              &D3D9CreateDevice_Original)
+SK_HookCacheEntryLocal (Direct3DCreate9,               L"d3d9.dll", Direct3DCreate9,                        &Direct3DCreate9_Import)SK_HookCacheEntryLocal (D3D9CreateDevice,              L"d3d9.dll", D3D9CreateDevice_Override,              &D3D9CreateDevice_Original)
 SK_HookCacheEntryLocal (D3D9PresentSwap,               L"d3d9.dll", D3D9PresentSwapCallback,                &D3D9PresentSwap_Original)
 SK_HookCacheEntryLocal (D3D9Present,                   L"d3d9.dll", D3D9PresentCallback,                    &D3D9Present_Original)
 SK_HookCacheEntryLocal (D3D9Reset,                     L"d3d9.dll", D3D9Reset_Override,                     &D3D9Reset_Original)
@@ -276,26 +275,27 @@ SK_HookCacheEntryLocal (D3D9PresentEx,                 L"d3d9.dll", D3D9PresentC
 SK_HookCacheEntryLocal (D3D9ResetEx,                   L"d3d9.dll", D3D9ResetEx,                            &D3D9ResetEx_Original)
 
 static
-sk_hook_cache_record_s* global_d3d9_records [] =
-  { //&GlobalHook_Direct3DCreate9,          &GlobalHook_D3D9CreateDevice,
+std::vector <sk_hook_cache_record_s *> global_d3d9_records =
+  { 
     &GlobalHook_D3D9PresentSwap,          &GlobalHook_D3D9Present,
     &GlobalHook_D3D9Reset,                &GlobalHook_D3D9CreateAdditionalSwapChain,
     &GlobalHook_D3D9TestCooperativeLevel, &GlobalHook_D3D9BeginScene,
     &GlobalHook_D3D9EndScene,
-
-    //&GlobalHook_Direct3DCreate9Ex,        &GlobalHook_D3D9CreateDeviceEx,
     &GlobalHook_D3D9PresentEx,            &GlobalHook_D3D9ResetEx };
 
+  //&GlobalHook_Direct3DCreate9,        //&GlobalHook_D3D9CreateDevice,
+  //&GlobalHook_Direct3DCreate9Ex,      //&GlobalHook_D3D9CreateDeviceEx,
+
 static
-sk_hook_cache_record_s* local_d3d9_records [] =
-  { //&LocalHook_Direct3DCreate9,          &LocalHook_D3D9CreateDevice,
-    &LocalHook_D3D9PresentSwap,          &LocalHook_D3D9Present,
+std::vector <sk_hook_cache_record_s *> local_d3d9_records =
+  { &LocalHook_D3D9PresentSwap,          &LocalHook_D3D9Present,
     &LocalHook_D3D9Reset,                &LocalHook_D3D9CreateAdditionalSwapChain,
     &LocalHook_D3D9TestCooperativeLevel, &LocalHook_D3D9BeginScene,
     &LocalHook_D3D9EndScene,
-
-    //&LocalHook_Direct3DCreate9Ex,        &LocalHook_D3D9CreateDeviceEx,
     &LocalHook_D3D9PresentEx,            &LocalHook_D3D9ResetEx };
+
+  //&LocalHook_Direct3DCreate9,        //&LocalHook_D3D9CreateDevice,
+  //&LocalHook_Direct3DCreate9Ex,      //&LocalHook_D3D9CreateDeviceEx,
 
 
 void
@@ -661,8 +661,8 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
 
       // Don't cache addresses that were screwed with by other injectors
       const wchar_t* wszSection = 
-        StrStrIW (it->target.module_path, LR"(\d3d9.dll)") ?
-                                          L"D3D9.Hooks" : nullptr;
+//        StrStrIW (it->target.module_path, LR"(\d3d9.dll)") ?
+                                          L"D3D9.Hooks";// : nullptr;
 
       SK_Hook_CacheTarget ( *it, wszSection );
 
@@ -687,7 +687,7 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
       while ( it_local != std::end (local_d3d9_records) )
       {
         if (( *it_local )->hits &&
-  StrStrIW (( *it_local )->target.module_path, LR"(\d3d9.dll)") &&
+//  StrStrIW (( *it_local )->target.module_path, LR"(\d3d9.dll)") &&
             ( *it_local )->active)
           SK_Hook_PushLocalCacheOntoGlobal ( **it_local,
                                                **it_global );
@@ -8624,117 +8624,34 @@ RunDLL_HookManager_D3D9 ( HWND  hwnd,        HINSTANCE hInst,
 void
 SK_D3D9_QuickHook (void)
 {
+  static volatile LONG quick_hooked = FALSE;
+
+  if (! InterlockedCompareExchange (&quick_hooked, TRUE, FALSE))
+  {
 //  if (GetAsyncKeyState (VK_MENU))
 //    return;
 
-  struct
-  { int from_shared_dll = 0;
-    int from_game_ini   = 0;
-  } num_quick_hooked;
+    sk_hook_cache_enablement_s state =
+      SK_Hook_PreCacheModule ( L"D3D9",
+                                 local_d3d9_records,
+                                   global_d3d9_records );
 
-
-  if (SK_IsInjected ())
-  {
-    // This first pass will iterate over any records in the DLL's shared
-    //   data segment (for global injection).
-    //
-    for ( auto& it : local_d3d9_records )
+    if ( state.hooks_loaded.from_shared_dll > 0 ||
+         state.hooks_loaded.from_game_ini   > 0 )
     {
-      it->active = false;
-
-      if (it->target.addr != nullptr)
-      {
-        LPVOID target_addr = it->target.addr;
-           it->target.addr = nullptr;
-
-        if (LoadLibraryW_Original (it->target.module_path))
-        {
-          SK_LOG0 ( ( L"Trying global address for '%50hs' :: '%72s'"
-                      L" { Last seen in '%s' }",
-                                  it->target.symbol_name,
-            SK_MakePrettyAddress (    target_addr).c_str (),
-       SK_StripUserNameFromPathW (
-                    std::wstring (it->target.module_path).data ()) ),
-                      L"Hook Cache" );
-
-          if ( MH_CreateHook ( target_addr,
-                               it->detour,
-                               it->trampoline
-                             ) == MH_OK )
-          {
-            if (MH_QueueEnableHook (target_addr) == MH_OK)
-            {
-              it->hits        = 1;
-              it->active      = true;
-              it->target.addr = target_addr;
-
-              ++num_quick_hooked.from_shared_dll;
-            }
-          }
-        }
-      }
+      SK_ApplyQueuedHooks ();
     }
-  }
 
-  // After trying the shared data segment, examine the current game's
-  //   INI for any cached addresses and try to load those if needed.
-  //
-  if (SK_GetDLLConfig ()->contains_section (L"D3D9.Hooks"))
-  {
-    if ( SK_IsTrue (SK_GetDLLConfig ()->get_section 
-         (L"D3D9.Hooks").get_value (L"EnableLocalCache").c_str ()) )
+    else
     {
       for ( auto& it : local_d3d9_records )
       {
-        if (! it->active)
-        {
-          it->target.addr = nullptr;
-
-          if ( SK_Hook_PredictTarget ( *it, L"D3D9.Hooks" ) )
-          {
-            SK_LOG0 ( ( L"Trying  local address for '%50hs' :: '%72s' "
-                        L"{ Last seen in '%s' }",
-                                    it->target.symbol_name,
-              SK_MakePrettyAddress (it->target.addr).c_str (),
-         SK_StripUserNameFromPathW (
-                      std::wstring (it->target.module_path).data ()) ),
-                        L"Hook Cache");
-
-            if ( MH_CreateHook ( it->target.addr,
-                                 it->detour,
-                                 it->trampoline
-                               ) == MH_OK )
-            {
-              if (MH_QueueEnableHook (it->target.addr) == MH_OK)
-              {
-                it->active = true;
-                ++num_quick_hooked.from_game_ini;
-              }
-            }
-          }
-        }
+        it->active = false;
       }
     }
 
-    else if (! ( SK_GetDLLConfig ()->get_section (L"D3D9.Hooks").
-                 contains_key (L"EnableLocalCache")) )
-    {
-      SK_GetDLLConfig ()->get_section (L"D3D9.Hooks").
-         add_key_value (L"EnableLocalCache", L"true");
-    }
+    InterlockedIncrement (&quick_hooked);
   }
 
-  if ( num_quick_hooked.from_shared_dll > 0 ||
-       num_quick_hooked.from_game_ini   > 0)
-  {
-    SK_ApplyQueuedHooks ();
-  }
-
-  else
-  {
-    for ( auto& it : local_d3d9_records )
-    {
-      it->active = false;
-    }
-  }
+  SK_Thread_SpinUntilAtomicMin (&quick_hooked, 2);
 }

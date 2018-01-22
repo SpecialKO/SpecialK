@@ -1,3 +1,11 @@
+0.9.0 (alpha0/1):
+ 
+ + Added option to toggle OSD visibility in D3D11 games
+ + 100% support for video capture software in D3D11
+ + Nearly complete support for vidcap software in D3D9
+
+
+
 0.8.67:
 
  + Corrected usernames not properly stripped from log files

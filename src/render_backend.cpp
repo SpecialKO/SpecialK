@@ -84,6 +84,11 @@ SK_InitRenderBackends (void)
 void
 SK_BootD3D9 (void)
 {
+  extern void
+  SK_D3D9_QuickHook (void);
+
+  SK_D3D9_QuickHook ();
+
   while (backend_dll == nullptr)
   {
     dll_log.Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (d3d9.dll) -- tid=%x ***", GetCurrentThreadId ());
@@ -214,6 +219,11 @@ SK_BootDDraw (void)
 void
 SK_BootDXGI (void)
 {
+  extern void
+  SK_DXGI_QuickHook (void);
+
+  SK_DXGI_QuickHook ();
+
   while (backend_dll == nullptr)
   {
     dll_log.Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (dxgi.dll) -- tid=%x ***", GetCurrentThreadId ());

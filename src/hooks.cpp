@@ -23,8 +23,10 @@
 
 #include <string>
 #include <SpecialK/ini.h>
+#include <SpecialK/core.h>
 #include <SpecialK/log.h>
 #include <SpecialK/hooks.h>
+#include <SpecialK/config.h>
 #include <SpecialK/utility.h>
 #include <SpecialK/diagnostics/compatibility.h>
 
@@ -239,6 +241,158 @@ SK_Hook_CacheTarget (       sk_hook_cache_record_s &cache,
     if (wszSectionName)
       ini->write ( ini->get_filename () );
   }
+};
+
+
+sk_hook_cache_enablement_s
+SK_Hook_PreCacheModule ( const wchar_t                                *wszModuleName,
+                               std::vector <sk_hook_cache_record_s *> &local_cache,
+                               std::vector <sk_hook_cache_record_s *> &global_cache,
+                               iSK_INI                                *ini )
+{
+  UNREFERENCED_PARAMETER (global_cache);
+
+  std::wstring               ini_name     = std::wstring (wszModuleName) +
+                                            L".Hooks";
+  sk_hook_cache_enablement_s cache_state =
+    SK_Hook_IsCacheEnabled (ini_name.c_str (), ini);
+
+
+  // This first pass will iterate over any records in the DLL's shared
+  //   data segment (for global injection).
+  //
+  if ( SK_IsInjected () && cache_state.use_cached_addresses.global )
+  {
+    for ( auto& it : local_cache )
+    {
+      it->active = false;
+
+      if (it->target.addr != nullptr)
+      {
+        LPVOID target_addr = it->target.addr;
+
+        it->target.addr = nullptr;
+
+        if (LoadLibraryW_Original (it->target.module_path))
+        {
+          SK_LOG0 ( ( L"Trying global address for '%50hs' :: '%72s'"
+                      L" { Last seen in '%s' }",
+                                  it->target.symbol_name,
+            SK_MakePrettyAddress (    target_addr).c_str (),
+       SK_StripUserNameFromPathW (
+                    std::wstring (it->target.module_path).data ()) ),
+                      L"Hook Cache" );
+
+          if ( MH_CreateHook ( target_addr,
+                               it->detour,
+                               it->trampoline
+                             ) == MH_OK )
+          {
+            if (MH_QueueEnableHook (target_addr) == MH_OK)
+            {
+              it->hits        = 1;
+              it->active      = true;
+              it->target.addr = target_addr;
+
+              ++cache_state.hooks_loaded.from_shared_dll;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // After trying the shared data segment, examine the current game's
+  //   INI for any cached addresses and try to load those if needed.
+  //
+  if ( SK_IsInjected () || cache_state.use_cached_addresses.local )
+  {
+    for ( auto& it : local_cache )
+    {
+      if (! it->active)
+      {
+        it->target.addr = nullptr;
+
+        if ( SK_Hook_PredictTarget ( *it, ini_name.c_str () ) )
+        {
+          SK_LOG0 ( ( L"Trying  local address for '%50hs' :: '%72s'"
+                      L" { Last seen in '%s' }",
+                                  it->target.symbol_name,
+            SK_MakePrettyAddress (it->target.addr).c_str (),
+       SK_StripUserNameFromPathW (
+                    std::wstring (it->target.module_path).data ()) ),
+                      L"Hook Cache");
+
+          if ( MH_CreateHook ( it->target.addr,
+                               it->detour,
+                               it->trampoline
+                             ) == MH_OK )
+          {
+            if (MH_QueueEnableHook (it->target.addr) == MH_OK)
+            {
+              it->active = true;
+              ++cache_state.hooks_loaded.from_game_ini;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  if ( cache_state.hooks_loaded.from_game_ini + 
+       cache_state.hooks_loaded.from_shared_dll > 0 )
+  {
+    SK_ApplyQueuedHooks ();
+  }
+
+  return cache_state;
+};
+
+
+sk_hook_cache_enablement_s
+SK_Hook_IsCacheEnabled ( const wchar_t *wszSecName,
+                               iSK_INI *ini         )
+{
+  sk_hook_cache_enablement_s ret;
+
+  struct cache_pool_s {
+    const wchar_t  *wszName;
+          bool     *pEnable;
+  } pools [] = { { L"Global", &ret.use_cached_addresses.global },
+                 { L"Local",  &ret.use_cached_addresses.local  } };
+
+
+  iSK_INISection& cfg_sec = 
+    ini->get_section (wszSecName);
+
+  if (ini->contains_section (wszSecName))
+  {
+    for ( auto& it : pools )
+    {
+      std::wstring key_name = 
+        SK_FormatStringW (L"Enable%sCache", it.wszName);
+
+      if (cfg_sec.contains_key (key_name.c_str ()))
+      {
+        (*it.pEnable) =
+          SK_IsTrue (cfg_sec.get_value (key_name.c_str ()).c_str ());
+      }
+
+      else
+      {
+        (*it.pEnable) =
+          (! wcsicmp (it.wszName, L"Global"));
+
+        cfg_sec.add_key_value ( key_name.c_str (),
+                                  *(it.pEnable) ? L"true" :
+                                                  L"false" );
+        ini->write (ini->get_filename ());
+      }
+    }
+  }
+
+
+  return ret;
 };
 
 

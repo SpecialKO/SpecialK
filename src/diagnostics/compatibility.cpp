@@ -534,9 +534,6 @@ FreeLibrary_Detour (HMODULE hLibModule)
 
   std::wstring name = SK_GetModuleName (hLibModule);
 
-  if (name == L"NvCamera64.dll")
-    return FALSE;
-
   BOOL bRet = FreeLibrary_Original (hLibModule);
 
   if ( (! (SK_LoadLibrary_SILENCE)) ||

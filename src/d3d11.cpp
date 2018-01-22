@@ -117,8 +117,8 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
 extern "C"
 {
   // Global DLL's cache
-  __declspec (dllexport) SK_HookCacheEntryGlobal (D3D11CreateDevice)
-  __declspec (dllexport) SK_HookCacheEntryGlobal (D3D11CreateDeviceAndSwapChain)
+__declspec (dllexport) SK_HookCacheEntryGlobal (D3D11CreateDevice)
+__declspec (dllexport) SK_HookCacheEntryGlobal (D3D11CreateDeviceAndSwapChain)
 };
 #pragma data_seg ()
 #pragma comment  (linker, "/SECTION:.SK_D3D11_Hooks,RWS")
@@ -128,12 +128,14 @@ SK_HookCacheEntryLocal (D3D11CreateDevice,             L"d3d11.dll", D3D11Create
 SK_HookCacheEntryLocal (D3D11CreateDeviceAndSwapChain, L"d3d11.dll", D3D11CreateDeviceAndSwapChain_Detour, &D3D11CreateDeviceAndSwapChain_Import)
 
 static
-sk_hook_cache_record_s* global_d3d11_records [] =
-  { &GlobalHook_D3D11CreateDevice, &GlobalHook_D3D11CreateDeviceAndSwapChain };
+std::vector <sk_hook_cache_record_s *> global_d3d11_records =
+  { &GlobalHook_D3D11CreateDevice,
+      &GlobalHook_D3D11CreateDeviceAndSwapChain };
 
 static
-sk_hook_cache_record_s* local_d3d11_records [] =
-  { &LocalHook_D3D11CreateDevice, &LocalHook_D3D11CreateDeviceAndSwapChain };
+std::vector <sk_hook_cache_record_s *> local_d3d11_records =
+  {  &LocalHook_D3D11CreateDevice,
+     &LocalHook_D3D11CreateDeviceAndSwapChain };
 
 
 extern "C" __declspec (dllexport) FARPROC D3D11CreateDeviceForD3D12              = nullptr;
@@ -1050,17 +1052,6 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
  _Out_opt_                            D3D_FEATURE_LEVEL     *pFeatureLevel,
  _Out_opt_                            ID3D11DeviceContext  **ppImmediateContext)
 {
-  // Don't let our hook call ... our hook
-  if (SK_TLS_Bottom ()->d3d11.ctx_init_thread)
-  {
-    return
-      D3D11CreateDeviceAndSwapChain_Import ( pAdapter, DriverType, Software, Flags,
-                                               pFeatureLevels, FeatureLevels, SDKVersion,
-                                                 pSwapChainDesc, ppSwapChain, ppDevice, pFeatureLevel,
-                                                 ppImmediateContext );
-  }
-
-
   // Even if the game doesn't care about the feature level, we do.
   D3D_FEATURE_LEVEL ret_level  = D3D_FEATURE_LEVEL_11_1;
   ID3D11Device*     ret_device = nullptr;
@@ -15598,8 +15589,8 @@ SK_D3D11_FirstFrame (IDXGISwapChain* pSwapChain)
 
       // Don't cache addresses that were screwed with by other injectors
       const wchar_t* wszSection = 
-        //StrStrIW (it->target.module_path, LR"(\d3d11.dll)") ?
-                                          L"D3D11.Hooks";// : nullptr;
+        StrStrIW (it->target.module_path, LR"(\d3d11.dll)") ?
+                                        L"D3D11.Hooks" : nullptr;
 
       if (! wszSection)
       {
@@ -15624,7 +15615,7 @@ SK_D3D11_FirstFrame (IDXGISwapChain* pSwapChain)
     while ( it_local != std::end (local_d3d11_records) )
     {
       if (( *it_local )->hits &&
-//StrStrIW (( *it_local )->target.module_path, LR"(\d3d11.dll)") &&
+StrStrIW (( *it_local )->target.module_path, LR"(\d3d11.dll)") &&
           ( *it_local )->active)
         SK_Hook_PushLocalCacheOntoGlobal ( **it_local,
                                              **it_global );
@@ -15645,114 +15636,19 @@ static bool quick_hooked = false;
 void
 SK_D3D11_QuickHook (void)
 {
+  return;
+
   //if (GetAsyncKeyState (VK_MENU))
   //  return;
 
-  struct
-  { int from_shared_dll = 0;
-    int from_game_ini   = 0;
-  } num_quick_hooked;
+  sk_hook_cache_enablement_s state =
+    SK_Hook_PreCacheModule ( L"D3D11",
+                               local_d3d11_records,
+                                 global_d3d11_records );
 
-
-  if (SK_IsInjected ())
+  if ( state.hooks_loaded.from_shared_dll > 0 ||
+       state.hooks_loaded.from_game_ini   > 0 )
   {
-    // This first pass will iterate over any records in the DLL's shared
-    //   data segment (for global injection).
-    //
-    for ( auto& it : local_d3d11_records )
-    {
-      it->active = false;
-
-      if (it->target.addr != nullptr)
-      {
-        LPVOID target_addr = it->target.addr;
-
-        it->active      = false;
-        it->target.addr = nullptr;
-
-        if (LoadLibraryW_Original (it->target.module_path))
-        {
-          SK_LOG0 ( ( L"Trying global address for '%50hs' :: '%72s'"
-                      L" { Last seen in '%s' }",
-                                  it->target.symbol_name,
-            SK_MakePrettyAddress (    target_addr).c_str (),
-       SK_StripUserNameFromPathW (
-                    std::wstring (it->target.module_path).data ()) ),
-                      L"Hook Cache" );
-
-          if ( MH_CreateHook ( target_addr,
-                               it->detour,
-                               it->trampoline
-                             ) == MH_OK )
-          {
-            if (MH_QueueEnableHook (target_addr) == MH_OK)
-            {
-              it->hits        = 1;
-              it->active      = true;
-              it->target.addr = target_addr;
-
-              ++num_quick_hooked.from_shared_dll;
-            }
-          }
-        }
-      }
-    }
-  }
-
-  // After trying the shared data segment, examine the current game's
-  //   INI for any cached addresses and try to load those if needed.
-  //
-  if (SK_GetDLLConfig ()->contains_section (L"D3D11.Hooks"))
-  {
-    if ( SK_IsTrue (SK_GetDLLConfig ()->get_section 
-         (L"D3D11.Hooks").get_value (L"EnableLocalCache").c_str ()) )
-    {
-      for ( auto& it : local_d3d11_records )
-      {
-        if (! it->active)
-        {
-          it->target.addr = nullptr;
-
-          if ( SK_Hook_PredictTarget ( *it, L"D3D11.Hooks" ) )
-          {
-            SK_LOG0 ( ( L"Trying  local address for '%50hs' :: '%72s'"
-                        L" { Last seen in '%s' }",
-                                    it->target.symbol_name,
-              SK_MakePrettyAddress (it->target.addr).c_str (),
-         SK_StripUserNameFromPathW (
-                      std::wstring (it->target.module_path).data ()) ),
-                        L"Hook Cache");
-
-            if ( MH_CreateHook ( it->target.addr,
-                                 it->detour,
-                                 it->trampoline
-                               ) == MH_OK )
-            {
-              if (MH_QueueEnableHook (it->target.addr) == MH_OK)
-              {
-                it->active = true;
-                ++num_quick_hooked.from_game_ini;
-              }
-            }
-          }
-        }
-      }
-    }
-
-    else if (! ( SK_GetDLLConfig ()->get_section (L"D3D11.Hooks").
-                 contains_key (L"EnableLocalCache")) )
-    {
-      SK_GetDLLConfig ()->get_section (L"D3D11.Hooks").
-         add_key_value (L"EnableLocalCache", L"true");
-    }
-  }
-
-
-  if ( num_quick_hooked.from_shared_dll > 0 ||
-       num_quick_hooked.from_game_ini   > 0 )
-  {
-    SK_ApplyQueuedHooks ();
-
     // For early loading UnX
     SK_D3D11_InitTextures ();
 

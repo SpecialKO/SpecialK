@@ -26,6 +26,8 @@
 #include <WinDef.h>
 #include <MinHook/MinHook.h>
 
+#include <vector>
+
 
 #ifndef __SK__INI_H__
 struct iSK_INI;
@@ -137,6 +139,33 @@ auto SK_Hook_PullGlobalCacheDownToLocal =
   // LOL, right?
   local = global;
 };
+
+
+
+struct sk_hook_cache_enablement_s
+{
+  struct
+  {
+    bool global = true,
+         local  = false;
+  } use_cached_addresses;
+
+  struct {
+    int  from_game_ini   = 0;
+    int  from_shared_dll = 0;
+  } hooks_loaded;
+};
+
+sk_hook_cache_enablement_s
+SK_Hook_IsCacheEnabled ( const wchar_t *wszSecName,
+                               iSK_INI *ini = SK_GetDLLConfig () );
+
+sk_hook_cache_enablement_s
+SK_Hook_PreCacheModule (
+  const wchar_t                                *wszModuleName,
+        std::vector <sk_hook_cache_record_s *> &local_cache,
+        std::vector <sk_hook_cache_record_s *> &global_cache,
+        iSK_INI                                *ini = SK_GetDLLConfig () );
 
 
 
