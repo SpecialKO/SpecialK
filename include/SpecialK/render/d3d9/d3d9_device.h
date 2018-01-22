@@ -45,7 +45,10 @@ struct IWrapDirect3DDevice9 : IDirect3DDevice9Ex
     IDirect3DSwapChain9* pTemp = nullptr;
     pReal->GetSwapChain (0, &pTemp);
 
-    implicit_swapchain_ = new IWrapDirect3DSwapChain9 (pReal, pTemp);
+    implicit_swapchain_ = new IWrapDirect3DSwapChain9 (this, pTemp);
+
+                                  orig->AddRef  (),
+    InterlockedExchange  (&refs_, orig->Release ());
   }
 
   explicit IWrapDirect3DDevice9 (IDirect3DDevice9Ex *orig) :
@@ -55,7 +58,10 @@ struct IWrapDirect3DDevice9 : IDirect3DDevice9Ex
     IDirect3DSwapChain9*     pTemp = nullptr;
     pReal->GetSwapChain (0, &pTemp);
 
-    implicit_swapchain_ = new IWrapDirect3DSwapChain9 (pReal, pTemp);
+    implicit_swapchain_ = new IWrapDirect3DSwapChain9 (this, pTemp);
+
+                                  orig->AddRef  (),
+    InterlockedExchange  (&refs_, orig->Release ());
   }
 
   IWrapDirect3DDevice9            (const IWrapDirect3DDevice9 &) = delete;

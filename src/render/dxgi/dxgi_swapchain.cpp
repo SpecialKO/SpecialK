@@ -187,12 +187,15 @@ IWrapDXGISwapChain::Release (void)
     {
       assert (ReadAcquire (&refs_) <= 0);
 
-      if (ver_ > 0)
-        InterlockedDecrement (&SK_DXGI_LiveWrappedSwapChain1s);
-      else
-        InterlockedDecrement (&SK_DXGI_LiveWrappedSwapChains);
+      if (ReadAcquire (&refs_) == 0)
+      {
+        if (ver_ > 0)
+          InterlockedDecrement (&SK_DXGI_LiveWrappedSwapChain1s);
+        else
+          InterlockedDecrement (&SK_DXGI_LiveWrappedSwapChains);
 
-      delete this;
+        delete this;
+      }
     }
 
     return refs;

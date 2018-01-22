@@ -57,7 +57,7 @@ struct sk_hook_cache_record_s
   LPVOID           detour;
   LPVOID*          trampoline;
 
-  bool             active;
+  volatile LONG    active;
 
   // Number of times this record was used (for global -> local caching)
   LONG             hits;

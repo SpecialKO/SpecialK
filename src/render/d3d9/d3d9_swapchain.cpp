@@ -92,22 +92,27 @@ IWrapDirect3DSwapChain9::Release (void)
 {
   if (InterlockedDecrement (&refs_) == 0)
   {
-    //assert(_runtime != nullptr);
+    const auto it = std::find ( pDev->additional_swapchains_.begin (),
+                                pDev->additional_swapchains_.end   (), this );
+
+    if (it != pDev->additional_swapchains_.end ())
+    {
+    	pDev->additional_swapchains_.erase (it);
+      pDev->Release ();
+    }
   }
 
 	ULONG refs = pReal->Release ();
 
   if (ReadAcquire (&refs_) == 0 && refs != 0)
   {
-    //SK_LOG0 ( (L"Reference count for 'IDXGISwapChain" << (ver_ > 0 ? std::to_string(ver_) : "") << "' object " << this << " is inconsistent: " << ref << ", but expected 0.";
+    SK_LOG0 ( (L"Reference count for 'ID3D9SwapChain' object is inconsistent: %li, but expected 0.", refs), L"   D3D9   ");
 
     refs = 0;
   }
 
   if (refs == 0)
   {
-    assert (ReadAcquire (&refs_) <= 0);
-
     if (d3d9ex_)
       InterlockedDecrement (&SK_D3D9_LiveWrappedSwapChainsEx);
       InterlockedDecrement (&SK_D3D9_LiveWrappedSwapChains);

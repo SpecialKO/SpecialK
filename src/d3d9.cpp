@@ -262,7 +262,8 @@ extern "C"
 #pragma comment  (linker, "/SECTION:.SK_D3D9_Hooks,RWS")
 
 // Local DLL's cached addresses
-SK_HookCacheEntryLocal (Direct3DCreate9,               L"d3d9.dll", Direct3DCreate9,                        &Direct3DCreate9_Import)SK_HookCacheEntryLocal (D3D9CreateDevice,              L"d3d9.dll", D3D9CreateDevice_Override,              &D3D9CreateDevice_Original)
+SK_HookCacheEntryLocal (Direct3DCreate9,               L"d3d9.dll", Direct3DCreate9,                        &Direct3DCreate9_Import)
+SK_HookCacheEntryLocal (D3D9CreateDevice,              L"d3d9.dll", D3D9CreateDevice_Override,              &D3D9CreateDevice_Original)
 SK_HookCacheEntryLocal (D3D9PresentSwap,               L"d3d9.dll", D3D9PresentSwapCallback,                &D3D9PresentSwap_Original)
 SK_HookCacheEntryLocal (D3D9Present,                   L"d3d9.dll", D3D9PresentCallback,                    &D3D9Present_Original)
 SK_HookCacheEntryLocal (D3D9Reset,                     L"d3d9.dll", D3D9Reset_Override,                     &D3D9Reset_Original)
@@ -285,8 +286,8 @@ std::vector <sk_hook_cache_record_s *> global_d3d9_records =
     &GlobalHook_D3D9EndScene,
     &GlobalHook_D3D9PresentEx,            &GlobalHook_D3D9ResetEx,
 
-    &GlobalHook_Direct3DCreate9,            //&GlobalHook_D3D9CreateDevice,
-    &GlobalHook_Direct3DCreate9Ex,        };//&GlobalHook_D3D9CreateDeviceEx };
+    &GlobalHook_Direct3DCreate9,          &GlobalHook_D3D9CreateDeviceEx };//&GlobalHook_D3D9CreateDevice,
+    //&GlobalHook_Direct3DCreate9Ex,       };
 
 static
 std::vector <sk_hook_cache_record_s *> local_d3d9_records =
@@ -295,9 +296,8 @@ std::vector <sk_hook_cache_record_s *> local_d3d9_records =
     &LocalHook_D3D9TestCooperativeLevel, &LocalHook_D3D9BeginScene,
     &LocalHook_D3D9EndScene,
     &LocalHook_D3D9PresentEx,            &LocalHook_D3D9ResetEx,
-
-    &LocalHook_Direct3DCreate9,            //&LocalHook_D3D9CreateDevice,
-    &LocalHook_Direct3DCreate9Ex,        };//&LocalHook_D3D9CreateDeviceEx };
+    &LocalHook_Direct3DCreate9,          &LocalHook_D3D9CreateDeviceEx };//&LocalHook_D3D9CreateDevice,
+    //&LocalHook_Direct3DCreate9Ex,        };
 
 
 void
@@ -590,8 +590,8 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
 
       // Don't cache addresses that were screwed with by other injectors
       const wchar_t* wszSection = 
-//        StrStrIW (it->target.module_path, LR"(\d3d9.dll)") ?
-                                          L"D3D9.Hooks";// : nullptr;
+        StrStrIW (it->target.module_path, LR"(\d3d9.dll)") ?
+                                          L"D3D9.Hooks" : nullptr;
 
       SK_Hook_CacheTarget ( *it, wszSection );
 
@@ -616,7 +616,7 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
       while ( it_local != std::end (local_d3d9_records) )
       {
         if (( *it_local )->hits &&
-//  StrStrIW (( *it_local )->target.module_path, LR"(\d3d9.dll)") &&
+  StrStrIW (( *it_local )->target.module_path, LR"(\d3d9.dll)") &&
             ( *it_local )->active)
           SK_Hook_PushLocalCacheOntoGlobal ( **it_local,
                                                **it_global );
@@ -958,11 +958,14 @@ SK_HookD3D9 (void)
 
     if (! _wcsicmp (SK_GetModuleName (SK_GetDLL ()).c_str (), L"d3d9.dll"))
     {
-      Direct3DCreate9_Import =  \
-        (Direct3DCreate9PROC)GetProcAddress (hBackend, "Direct3DCreate9");
+      if (! LocalHook_Direct3DCreate9.active)
+      {
+        Direct3DCreate9_Import =  \
+          (Direct3DCreate9PROC)GetProcAddress (hBackend, "Direct3DCreate9");
 
-      LocalHook_Direct3DCreate9.target.addr = Direct3DCreate9_Import;
-      LocalHook_Direct3DCreate9.active      = true;
+        LocalHook_Direct3DCreate9.target.addr = Direct3DCreate9_Import;
+        LocalHook_Direct3DCreate9.active      = true;
+      }
 
       SK_LOG0 ( ( L"  Direct3DCreate9:   %s",
                     SK_MakePrettyAddress (Direct3DCreate9_Import).c_str () ),
@@ -971,16 +974,19 @@ SK_HookD3D9 (void)
 
       if (config.apis.d3d9ex.hook)
       {
-        Direct3DCreate9Ex_Import =  \
-          (Direct3DCreate9ExPROC)GetProcAddress (hBackend, "Direct3DCreate9Ex");
+        if (!LocalHook_Direct3DCreate9Ex.active)
+        {
+          Direct3DCreate9Ex_Import =  \
+            (Direct3DCreate9ExPROC)GetProcAddress (hBackend, "Direct3DCreate9Ex");
 
-        SK_LOG0 ( ( L"  Direct3DCreate9Ex: %s",
-                      SK_MakePrettyAddress (Direct3DCreate9Ex_Import).c_str () ),
-                    L"  D3D9Ex  " );
-        SK_LogSymbolName                   (Direct3DCreate9Ex_Import);
+          SK_LOG0 ( ( L"  Direct3DCreate9Ex: %s",
+                        SK_MakePrettyAddress (Direct3DCreate9Ex_Import).c_str () ),
+                      L"  D3D9Ex  " );
+          SK_LogSymbolName                   (Direct3DCreate9Ex_Import);
 
-        LocalHook_Direct3DCreate9Ex.target.addr = Direct3DCreate9Ex_Import;
-        LocalHook_Direct3DCreate9Ex.active      = true;
+          LocalHook_Direct3DCreate9Ex.target.addr = Direct3DCreate9Ex_Import;
+          LocalHook_Direct3DCreate9Ex.active      = true;
+        }
       }
     }
 
@@ -1949,15 +1955,18 @@ D3D9CreateAdditionalSwapChain_Override ( IDirect3DDevice9       *This,
         (void **)&(*(IWrapDirect3DSwapChain9 **)pSwapChain)->pReal :
         (void **)pSwapChain;
 
-      D3D9_INTERCEPT ( vftable, 3,
-                       "IDirect3DSwapChain9::Present",
-                        D3D9PresentSwapCallback,
-                        D3D9PresentSwap_Original,
-                        D3D9PresentSwapChain_pfn );
+      if (vftable != nullptr && vftable [3] != nullptr)
+      {
+        D3D9_INTERCEPT ( vftable, 3,
+                         "IDirect3DSwapChain9::Present",
+                          D3D9PresentSwapCallback,
+                          D3D9PresentSwap_Original,
+                          D3D9PresentSwapChain_pfn );
 
-      SK_Hook_TargetFromVFTable (
-        LocalHook_D3D9PresentSwap,
-          vftable, 3 );
+        SK_Hook_TargetFromVFTable (
+          LocalHook_D3D9PresentSwap,
+            vftable, 3 );
+      }
     }
   }
 
@@ -2284,15 +2293,18 @@ SK_D3D9_HookPresent (IDirect3DDevice9 *pDev)
         (void **)&((IWrapDirect3DSwapChain9 *)pSwapChain.p)->pReal :
         (void **)&pSwapChain;
 
-      D3D9_INTERCEPT ( vftable_, 3,
-                       "IDirect3DSwapChain9::Present",
-                        D3D9PresentSwapCallback,
-                        D3D9PresentSwap_Original,
-                        D3D9PresentSwapChain_pfn );
+      if (vftable_ != nullptr)
+      {
+        D3D9_INTERCEPT ( vftable_, 3,
+                         "IDirect3DSwapChain9::Present",
+                          D3D9PresentSwapCallback,
+                          D3D9PresentSwap_Original,
+                          D3D9PresentSwapChain_pfn );
 
-      SK_Hook_TargetFromVFTable (
-        LocalHook_D3D9PresentSwap,
-          vftable_, 3 );
+        SK_Hook_TargetFromVFTable (
+          LocalHook_D3D9PresentSwap,
+            vftable_, 3 );
+      }
     }
   }
 }
@@ -3833,15 +3845,18 @@ D3D9CreateDeviceEx_Override ( IDirect3D9Ex           *This,
         (void **)&(*(IWrapDirect3DSwapChain9 **)&pSwapChain)->pReal :
         (void **)&pSwapChain;
 
-      D3D9_INTERCEPT ( vftable, 3,
-                       "IDirect3DSwapChain9::Present",
-                        D3D9PresentSwapCallback,
-                        D3D9PresentSwap_Original,
-                        D3D9PresentSwapChain_pfn );
+      if (vftable != nullptr)
+      {
+        D3D9_INTERCEPT ( vftable, 3,
+                         "IDirect3DSwapChain9::Present",
+                          D3D9PresentSwapCallback,
+                          D3D9PresentSwap_Original,
+                          D3D9PresentSwapChain_pfn );
 
-      SK_Hook_TargetFromVFTable (
-        LocalHook_D3D9PresentSwap,
-          vftable, 3 );
+        SK_Hook_TargetFromVFTable (
+          LocalHook_D3D9PresentSwap,
+            vftable, 3 );
+      }
     }
   }
 
@@ -4209,15 +4224,18 @@ SK_D3D9_SwapEffectToStr (pPresentationParameters->SwapEffect).c_str (),
         (void **)&(*(IWrapDirect3DSwapChain9 **)&pSwapChain)->pReal :
         (void **)&pSwapChain;
 
-      D3D9_INTERCEPT ( vftable, 3,
-                       "IDirect3DSwapChain9::Present",
-                        D3D9PresentSwapCallback,
-                        D3D9PresentSwap_Original,
-                        D3D9PresentSwapChain_pfn );
+      if (vftable != nullptr)
+      {
+        D3D9_INTERCEPT ( vftable, 3,
+                         "IDirect3DSwapChain9::Present",
+                          D3D9PresentSwapCallback,
+                          D3D9PresentSwap_Original,
+                          D3D9PresentSwapChain_pfn );
 
-      SK_Hook_TargetFromVFTable (
-        LocalHook_D3D9PresentSwap,
-          vftable, 3 );
+        SK_Hook_TargetFromVFTable (
+          LocalHook_D3D9PresentSwap,
+            vftable, 3 );
+      }
     }
   }
 
@@ -4581,15 +4599,18 @@ D3D9ExCreateDevice_Override ( IDirect3D9*            This,
       (void **)&(*(IWrapDirect3DSwapChain9 **)&pSwapChain)->pReal :
       (void **)&pSwapChain;
 
-    D3D9_INTERCEPT ( vftable, 3,
-                     "IDirect3DSwapChain9::Present",
-                      D3D9PresentSwapCallback,
-                      D3D9PresentSwap_Original,
-                      D3D9PresentSwapChain_pfn );
+    if (vftable != nullptr && vftable [3] != nullptr)
+    {
+      D3D9_INTERCEPT ( vftable, 3,
+                       "IDirect3DSwapChain9::Present",
+                        D3D9PresentSwapCallback,
+                        D3D9PresentSwap_Original,
+                        D3D9PresentSwapChain_pfn );
 
-    SK_Hook_TargetFromVFTable (
-      LocalHook_D3D9PresentSwap,
-        vftable, 3 );
+      SK_Hook_TargetFromVFTable (
+        LocalHook_D3D9PresentSwap,
+          vftable, 3 );
+    }
   }
 
   D3D9_INTERCEPT ( ppReturnedDeviceInterface, 3,
@@ -8626,9 +8647,6 @@ RunDLL_HookManager_D3D9 ( HWND  hwnd,        HINSTANCE hInst,
 void
 SK_D3D9_QuickHook (void)
 {
-  if (! SK_IsInjected ())
-    return;
-
   static volatile LONG quick_hooked = FALSE;
 
   if (! InterlockedCompareExchange (&quick_hooked, TRUE, FALSE))

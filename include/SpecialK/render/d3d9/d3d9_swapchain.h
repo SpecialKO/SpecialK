@@ -26,16 +26,18 @@
 
 #include <SpecialK/d3d9_backend.h>
 
+interface IWrapDirect3DDevice9;
+
 extern volatile LONG SK_D3D9_LiveWrappedSwapChains;
 extern volatile LONG SK_D3D9_LiveWrappedSwapChainsEx;
 
 struct IWrapDirect3DSwapChain9 : IDirect3DSwapChain9Ex
 {
-  IWrapDirect3DSwapChain9 ( IDirect3DDevice9    *dev,
-                            IDirect3DSwapChain9 *orig ) :
-                                                          pReal   (orig),
-                                                          d3d9ex_ (false),
-                                                          pDev    (dev)
+  IWrapDirect3DSwapChain9 ( IWrapDirect3DDevice9 *dev,
+                            IDirect3DSwapChain9  *orig ) :
+                                                           pReal   (orig),
+                                                           d3d9ex_ (false),
+                                                           pDev    (dev)
   {
                                   orig->AddRef  (),
     InterlockedExchange  (&refs_, orig->Release ());
@@ -43,11 +45,11 @@ struct IWrapDirect3DSwapChain9 : IDirect3DSwapChain9Ex
     InterlockedIncrement (&SK_D3D9_LiveWrappedSwapChains);
   }
 
-  IWrapDirect3DSwapChain9 ( IDirect3DDevice9Ex    *dev,
+  IWrapDirect3DSwapChain9 ( IWrapDirect3DDevice9  *dev,
                             IDirect3DSwapChain9Ex *orig ) :
-                                                          pReal   (orig),
-                                                          d3d9ex_ (true),
-                                                          pDev    (dev)
+                                                            pReal   (orig),
+                                                            d3d9ex_ (true),
+                                                            pDev    (dev)
   {
                                   orig->AddRef  (),
     InterlockedExchange  (&refs_, orig->Release ());
@@ -89,10 +91,10 @@ struct IWrapDirect3DSwapChain9 : IDirect3DSwapChain9Ex
                                                          D3DDISPLAYROTATION *pRotation)               override;
 	#pragma endregion
 
-  volatile LONG                        refs_    = 1;
-           IDirect3DSwapChain9        *pReal;
-           bool                        d3d9ex_  = false;
-           IDirect3DDevice9    *const  pDev;
+  volatile LONG                         refs_    = 1;
+           IDirect3DSwapChain9         *pReal;
+           bool                         d3d9ex_  = false;
+           IWrapDirect3DDevice9 *const  pDev;
 };
 
 

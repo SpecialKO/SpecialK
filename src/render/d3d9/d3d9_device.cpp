@@ -67,7 +67,7 @@ IWrapDirect3DDevice9::QueryInterface (REFIID riid, void **ppvObj)
                                  pReal->AddRef  ();
     InterlockedExchange (&refs_, pReal->Release ());
     AddRef ();
-    
+
     *ppvObj = this;
     
     return S_OK;
@@ -89,8 +89,6 @@ IWrapDirect3DDevice9::Release (void)
 {
   if (InterlockedDecrement (&refs_) == 0)
   {
-    //assert(_runtime != nullptr);
-
     assert (implicit_swapchain_ != nullptr);
 
     implicit_swapchain_->Release ();
@@ -177,7 +175,7 @@ HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::CreateAdditionalSwapChain(D3DPRE
 
   if (SUCCEEDED (hr))
   {
-    *ppSwapChain = (IDirect3DSwapChain9 *)new IWrapDirect3DSwapChain9 (pReal, pTemp);
+    *ppSwapChain = (IDirect3DSwapChain9 *)new IWrapDirect3DSwapChain9 (this, pTemp);
 
     additional_swapchains_.push_back ((IWrapDirect3DSwapChain9 *)*ppSwapChain);
   }
@@ -190,13 +188,14 @@ HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::GetSwapChain(UINT iSwapChain, ID
   {
     if (iSwapChain < GetNumberOfSwapChains ())
     {
+                                                          additional_swapchains_ [iSwapChain - 1]->AddRef ();
       *ppSwapChain = static_cast <IDirect3DSwapChain9 *> (additional_swapchains_ [iSwapChain - 1]);
       return D3D_OK;
     }
     else
       return D3DERR_INVALIDCALL;
   }
-
+                                                      implicit_swapchain_->AddRef ();
   *ppSwapChain = static_cast <IDirect3DSwapChain9 *> (implicit_swapchain_);
   return D3D_OK;
 }
