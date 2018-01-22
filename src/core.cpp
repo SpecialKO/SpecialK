@@ -30,21 +30,11 @@
 #include <SpecialK/diagnostics/debug_utils.h>
 
 #include <SpecialK/log.h>
+#include <SpecialK/config.h>
 #include <SpecialK/utility.h>
 #include <SpecialK/sound.h>
-
 #include <SpecialK/tls.h>
 
-#include <ShlObj.h>
-#include <LibLoaderAPI.h>
-
-#pragma warning   (push)
-#pragma warning   (disable: 4091)
-#define _IMAGEHLP_SOURCE_
-#  include <DbgHelp.h>
-#pragma warning   (pop)
-
-#include <SpecialK/config.h>
 #include <SpecialK/osd/text.h>
 #include <SpecialK/memory_monitor.h>
 #include <SpecialK/io_monitor.h>
@@ -55,6 +45,7 @@
 #include <SpecialK/framerate.h>
 #include <SpecialK/render_backend.h>
 #include <SpecialK/dxgi_backend.h>
+#include <SpecialK/d3d9_backend.h>
 #include <SpecialK/vulkan_backend.h>
 #include <SpecialK/resource.h>
 
@@ -82,6 +73,14 @@
 #include <atlbase.h>
 #include <comdef.h>
 #include <delayimp.h>
+#include <ShlObj.h>
+#include <LibLoaderAPI.h>
+
+#pragma warning   (push)
+#pragma warning   (disable: 4091)
+#define _IMAGEHLP_SOURCE_
+#  include <DbgHelp.h>
+#pragma warning   (pop)
 
 #include <d3d9.h>
 #include <d3d11.h>
@@ -103,12 +102,6 @@ extern void SK_Input_PreInit (void);
 
 
 std::queue <DWORD> init_tids;
-
-
-static const GUID IID_ID3D11Device2 = { 0x9d06dffa, 0xd1e5, 0x4d07, { 0x83, 0xa8, 0x1b, 0xb1, 0x23, 0xf2, 0xf8, 0x41 } };
-static const GUID IID_ID3D11Device3 = { 0xa05c8c37, 0xd2c6, 0x4732, { 0xb3, 0xa0, 0x9c, 0xe0, 0xb0, 0xdc, 0x9a, 0xe6 } };
-static const GUID IID_ID3D11Device4 = { 0x8992ab71, 0x02e6, 0x4b8d, { 0xba, 0x48, 0xb0, 0x56, 0xdc, 0xda, 0x42, 0xc4 } };
-static const GUID IID_ID3D11Device5 = { 0x8ffde202, 0xa0e7, 0x45df, { 0x9e, 0x01, 0xe8, 0x37, 0x80, 0x1b, 0x5e, 0xa0 } };
 
 HANDLE  hInitThread   = { INVALID_HANDLE_VALUE };
 HANDLE  hPumpThread   = { INVALID_HANDLE_VALUE };
@@ -1169,15 +1162,14 @@ BACKEND_INIT:
 
     if ((dxgi || d3d11 || d3d8 || ddraw) && config.apis.dxgi.d3d11.hook /*|| config.apis.dxgi.d3d12.hook*/)
     {
-      extern void SK_DXGI_QuickHook (void);
-                  SK_DXGI_QuickHook ();
+      SK_DXGI_QuickHook ();
     }
 
     if (d3d9 && (config.apis.d3d9.hook || config.apis.d3d9ex.hook))
     {
-      extern void SK_D3D9_QuickHook (void);
-                  SK_D3D9_QuickHook ();
+      SK_D3D9_QuickHook ();
     }
+
 
     if (GetModuleHandle (L"dinput8.dll"))
       SK_Input_HookDI8 ();

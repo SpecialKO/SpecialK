@@ -89,6 +89,8 @@ extern std::wstring
 __stdcall
 SK_GetPluginName (void);
 
+#include <imgui/imgui_internal.h>
+
 void
 __stdcall
 SK_ImGui_DrawEULA (LPVOID reserved)
@@ -137,6 +139,7 @@ SK_ImGui_DrawEULA (LPVOID reserved)
   {
     ImGui::SetNextWindowPosCenter (ImGuiSetCond_Appearing);
     ImGui::SetNextWindowFocus     ();
+    ImGui::FocusWindow            (ImGui::GetCurrentWindow ());
 
     //if (io.DisplaySize.x < 1024.0f || io.DisplaySize.y < 720.0f)
     //{
@@ -304,9 +307,8 @@ SK_ImGui_DrawEULA (LPVOID reserved)
     if (! pirate)
     {
       ImGui::Checkbox ("I agree ... never show me this again!", &((show_eula_s *)reserved)->never_show_again);
+      ImGui::SameLine ();
     }
-
-    ImGui::SameLine ();
 
     if (ImGui::Button (" Accept ") && (! pirate))
     {
@@ -324,6 +326,8 @@ SK_ImGui_DrawEULA (LPVOID reserved)
 
       SK_SaveConfig (config_name);
     }
+
+    ImGui::SetItemDefaultFocus ();
 
     if (pirate && ImGui::IsItemHovered ())
     {

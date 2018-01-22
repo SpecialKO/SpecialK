@@ -32,6 +32,8 @@
 #include <unordered_set>
 #include <cstdint>
 
+void SK_D3D9_QuickHook (void);
+
 namespace SK   {
 namespace D3D9 {
   struct KnownShaders

@@ -27,7 +27,7 @@
 #include <SpecialK/dxgi_interfaces.h>
 #include <SpecialK/dxgi_backend.h>
 #include <SpecialK/render_backend.h>
-#include <SpecialK/render/dxgi/swapchain.h> 
+#include <SpecialK/render/dxgi/dxgi_swapchain.h> 
 #include <SpecialK/window.h>
 
 #include <comdef.h>
@@ -169,7 +169,7 @@ std::vector <sk_hook_cache_record_s *> global_dxgi_records =
   { &GlobalHook_IDXGIFactory_CreateSwapChain,               &GlobalHook_IDXGIFactory2_CreateSwapChainForHwnd,
     &GlobalHook_IDXGISwapChain_Present,                     &GlobalHook_IDXGISwapChain1_Present1,
     &GlobalHook_IDXGIFactory2_CreateSwapChainForCoreWindow,//&GlobalHook_IDXGIFactory2_CreateSwapChainForComposition,
-    &GlobalHook_IDXGISwapChain_ResizeTarget,                &GlobalHook_IDXGISwapChain_ResizeBuffers,
+  //&GlobalHook_IDXGISwapChain_ResizeTarget,                &GlobalHook_IDXGISwapChain_ResizeBuffers,
   //&GlobalHook_IDXGISwapChain_GetFullscreenState,          &GlobalHook_IDXGISwapChain_SetFullscreenState,
   //&GlobalHook_CreateDXGIFactory,                          &GlobalHook_CreateDXGIFactory1,
   //&GlobalHook_CreateDXGIFactory2
@@ -180,7 +180,7 @@ std::vector <sk_hook_cache_record_s *> local_dxgi_records =
   { &LocalHook_IDXGIFactory_CreateSwapChain,               &LocalHook_IDXGIFactory2_CreateSwapChainForHwnd,
     &LocalHook_IDXGISwapChain_Present,                     &LocalHook_IDXGISwapChain1_Present1,
     &LocalHook_IDXGIFactory2_CreateSwapChainForCoreWindow,//&LocalHook_IDXGIFactory2_CreateSwapChainForComposition,
-    &LocalHook_IDXGISwapChain_ResizeTarget,                &LocalHook_IDXGISwapChain_ResizeBuffers,
+  //&LocalHook_IDXGISwapChain_ResizeTarget,                &LocalHook_IDXGISwapChain_ResizeBuffers,
   //&LocalHook_IDXGISwapChain_GetFullscreenState,          &LocalHook_IDXGISwapChain_SetFullscreenState,
   //&LocalHook_CreateDXGIFactory,                          &LocalHook_CreateDXGIFactory1,
   //&LocalHook_CreateDXGIFactory2
@@ -2335,6 +2335,7 @@ SK_DXGI_BorderCompensation (UINT& x, UINT& y)
 #endif
 }
 
+
 HRESULT
 STDMETHODCALLTYPE
 SK_DXGI_Present ( IDXGISwapChain *This,
@@ -2453,8 +2454,16 @@ SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
                      pPresentParameters );
   }
 
-  bool process =
-    (Source == SK_DXGI_PresentSource::Hook);
+
+  bool process = false;
+
+  if (config.render.gl.osd_in_vidcap && ReadAcquire (&SK_DXGI_LiveWrappedSwapChain1s))
+    process = (Source == SK_DXGI_PresentSource::Wrapper);
+
+  else
+    process = (Source == SK_DXGI_PresentSource::Hook);
+
+
 
   if (process)
   {
@@ -2486,10 +2495,7 @@ SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
 
     if (pDev && first_frame)
     {
-      extern void
-      SK_D3D11_FirstFrame (IDXGISwapChain* pSwapChain);
-
-      SK_D3D11_FirstFrame (This);
+      SK_D3D11_PresentFirstFrame (This);
 
       for ( auto& it : local_dxgi_records )
       {
@@ -2525,7 +2531,7 @@ SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
         while ( it_local != std::end (local_dxgi_records) )
         {
           if (( *it_local )->hits &&
-StrStrIW (( *it_local )->target.module_path, LR"(\dxgi.dll)") &&
+    StrStrIW (( *it_local )->target.module_path, LR"(\dxgi.dll)") &&
               ( *it_local )->active)
             SK_Hook_PushLocalCacheOntoGlobal ( **it_local,
                                                  **it_global );
@@ -2763,8 +2769,12 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
 
   bool process = false;
 
-  if (config.render.gl.osd_in_vidcap)
+  if (config.render.gl.osd_in_vidcap && (ReadAcquire (&SK_DXGI_LiveWrappedSwapChains) ||
+                                         ReadAcquire (&SK_DXGI_LiveWrappedSwapChain1s)))
+  {
+    // ^^^ It's not required that IDXGISwapChain1 or higher invokes Present1!
     process = (Source == SK_DXGI_PresentSource::Wrapper);
+  }
 
   else
     process = (Source == SK_DXGI_PresentSource::Hook);
@@ -2812,10 +2822,8 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
 
     if (pDev && first_frame)
     {
-      extern void
-      SK_D3D11_FirstFrame (IDXGISwapChain* pSwapChain);
 
-      SK_D3D11_FirstFrame (This);
+      SK_D3D11_PresentFirstFrame (This);
 
       for ( auto& it : local_dxgi_records )
       {
@@ -4397,7 +4405,9 @@ SK_DXGI_CreateSwapChain1_PostInit ( _In_     IUnknown                         *p
 }
 
 IWrapDXGISwapChain*
-SK_DXGI_WrapSwapChain (IUnknown* pDevice, IDXGISwapChain* pSwapChain, IDXGISwapChain** ppDest)
+SK_DXGI_WrapSwapChain ( IUnknown        *pDevice,
+                        IDXGISwapChain  *pSwapChain,
+                        IDXGISwapChain **ppDest )
 {
   CComPtr <ID3D11Device> pDev11 = nullptr;
   if (SUCCEEDED (pDevice->QueryInterface <ID3D11Device> (&pDev11)))
@@ -4421,7 +4431,9 @@ SK_DXGI_WrapSwapChain (IUnknown* pDevice, IDXGISwapChain* pSwapChain, IDXGISwapC
 }
 
 IWrapDXGISwapChain*
-SK_DXGI_WrapSwapChain1 (IUnknown* pDevice, IDXGISwapChain1* pSwapChain, IDXGISwapChain1** ppDest)
+SK_DXGI_WrapSwapChain1 ( IUnknown         *pDevice,
+                         IDXGISwapChain1  *pSwapChain,
+                         IDXGISwapChain1 **ppDest )
 {
   CComPtr <ID3D11Device> pDev11 = nullptr;
   if (SUCCEEDED (pDevice->QueryInterface <ID3D11Device> (&pDev11)))
@@ -4507,8 +4519,7 @@ DXGIFactory_CreateSwapChain_Override (             IDXGIFactory          *This,
              pTemp != nullptr )
         {
           SK_DXGI_CreateSwapChain_PostInit (pDevice, &new_desc, &pTemp);
-
-          SK_DXGI_WrapSwapChain (pDevice, pTemp, ppSwapChain);
+          SK_DXGI_WrapSwapChain            (pDevice,             pTemp, ppSwapChain);
 
           return TRUE;
         }
@@ -4580,9 +4591,8 @@ DXGIFactory2_CreateSwapChainForCoreWindow_Override ( IDXGIFactory2             *
         if ( SUCCEEDED (ret)         &&
              pTemp != nullptr )
         {
-          SK_DXGI_CreateSwapChain1_PostInit (pDevice, &new_desc1, nullptr, ppSwapChain);
-
-          SK_DXGI_WrapSwapChain1 (pDevice, pTemp, ppSwapChain);
+          SK_DXGI_CreateSwapChain1_PostInit (pDevice, &new_desc1, nullptr, &pTemp);
+          SK_DXGI_WrapSwapChain1            (pDevice,                       pTemp,   ppSwapChain);
 
           return TRUE;
         }
@@ -4600,17 +4610,6 @@ DXGIFactory2_CreateSwapChainForCoreWindow_Override ( IDXGIFactory2             *
   }
 
   return ret;
-}
-
-void
-SK_InitSwapChainDesc1 (DXGI_SWAP_CHAIN_DESC1& new_desc1, _In_ const DXGI_SWAP_CHAIN_DESC1 *pDesc)
-{
-  __try {
-    if (pDesc != nullptr)
-      new_desc1 = *pDesc;
-  } __except (EXCEPTION_EXECUTE_HANDLER)
-  {
-  }
 }
 
 HRESULT
@@ -4662,10 +4661,8 @@ DXGIFactory2_CreateSwapChainForHwnd_Override ( IDXGIFactory2                   *
 
         if ( SUCCEEDED (ret) )
         {
-          if (ppSwapChain != nullptr)
-            SK_DXGI_CreateSwapChain1_PostInit (pDevice, &new_desc1, &new_fullscreen_desc, &pTemp);
-
-          SK_DXGI_WrapSwapChain1 (pDevice, pTemp, ppSwapChain);
+          SK_DXGI_CreateSwapChain1_PostInit (pDevice, &new_desc1, &new_fullscreen_desc, &pTemp);
+          SK_DXGI_WrapSwapChain1            (pDevice,                                    pTemp, ppSwapChain);
 
           return TRUE;
         }
@@ -5348,8 +5345,6 @@ void
 WINAPI
 SK_HookDXGI (void)
 {
-  SK_TLS_Bottom ()->d3d11.ctx_init_thread = true;
-
   // Shouldn't be calling this if hooking is turned off!
   assert (config.apis.dxgi.d3d11.hook);
 
@@ -5554,41 +5549,10 @@ SK::DXGI::Startup (void)
   return SK_StartupCore (L"dxgi", dxgi_init_callback);
 }
 
+
 #ifdef _WIN64
 extern bool WINAPI SK_DS3_ShutdownPlugin (const wchar_t* backend);
 #endif
-
-
-#define DXGI_VIRTUAL_HOOK_EX(_Base,_Index,_Name,_Override,_Original,_Type) {  \
-  void** _vftable = *(void***)*(_Base);                                       \
-                                                                              \
-  if ((_Original) == nullptr) {                                               \
-    SK_CreateVFTableHookEx( L##_Name,                                         \
-                              _vftable,                                       \
-                                (_Index),                                     \
-                                  (_Override),                                \
-                                    (LPVOID *)&(_Original));                  \
-  }                                                                           \
-}
-
-#define DXGI_INTERCEPT_EX(_Base,_Index,_Name,_Override,_Original,_Type)\
-    DXGI_VIRTUAL_HOOK_EX (   _Base,   _Index, _Name, _Override,        \
-                        _Original, _Type );                            \
-
-PresentSwapChain_pfn PresentSwapChain_Original_Pre = nullptr;
-
-__declspec (noinline)
-HRESULT
-STDMETHODCALLTYPE PresentCallback_Pre (IDXGISwapChain *This,
-                                       UINT            SyncInterval,
-                                       UINT            Flags)
-{
-  SK_GetCurrentRenderBackend ().present_interval = SyncInterval;
-
-  SK_CEGUI_DrawD3D11 (This);
-
-  return PresentSwapChain_Original_Pre (This, SyncInterval, Flags);
-}
 
 #pragma warning (disable:4091)
 #include <DbgHelp.h>
@@ -5600,23 +5564,6 @@ SK_DXGI_HookPresentBase (IDXGISwapChain* pSwapChain, bool rehook)
 
   if (! LocalHook_IDXGISwapChain_Present.active)
   {
-    if (rehook)
-    {
-      static volatile ULONG __installed_second_hook = FALSE;
-
-      if (! InterlockedCompareExchange (&__installed_second_hook, TRUE, FALSE))
-      {
-        DXGI_INTERCEPT_EX ( &pSwapChain, 8,
-                              "IDXGISwapChain::Present",
-                              PresentCallback_Pre,
-                              PresentSwapChain_Original_Pre,
-                              PresentSwapChain_pfn );
-        MH_ApplyQueuedEx (1);
-      }
-
-      return;
-    }
-
     static LPVOID vftable_8  = nullptr;
 
     void** vftable = *(void***)*&pSwapChain;
@@ -5846,6 +5793,10 @@ SK_DXGI_HookFactory (IDXGIFactory* pFactory)
                            DXGIFactory_CreateSwapChain_Override,
                                        CreateSwapChain_Original,
                                        CreateSwapChain_pfn );
+
+      SK_Hook_TargetFromVFTable (
+        LocalHook_IDXGIFactory_CreateSwapChain,
+          (void **)&pFactory, 10 );
     }
 
     CComQIPtr <IDXGIFactory1> pFactory1 (pFactory);
@@ -5904,6 +5855,10 @@ SK_DXGI_HookFactory (IDXGIFactory* pFactory)
                                DXGIFactory2_CreateSwapChainForHwnd_Override,
                                             CreateSwapChainForHwnd_Original,
                                             CreateSwapChainForHwnd_pfn );
+
+          SK_Hook_TargetFromVFTable (
+            LocalHook_IDXGIFactory2_CreateSwapChainForHwnd,
+              (void **)&pFactory2, 15 );
         }
 
         if (! LocalHook_IDXGIFactory2_CreateSwapChainForCoreWindow.active)
@@ -5913,6 +5868,9 @@ SK_DXGI_HookFactory (IDXGIFactory* pFactory)
                                DXGIFactory2_CreateSwapChainForCoreWindow_Override,
                                             CreateSwapChainForCoreWindow_Original,
                                             CreateSwapChainForCoreWindow_pfn );
+          SK_Hook_TargetFromVFTable (
+            LocalHook_IDXGIFactory2_CreateSwapChainForCoreWindow,
+              (void **)&pFactory2, 16 );
         }
 
         if (! LocalHook_IDXGIFactory2_CreateSwapChainForComposition.active)
@@ -5922,6 +5880,10 @@ SK_DXGI_HookFactory (IDXGIFactory* pFactory)
                                DXGIFactory2_CreateSwapChainForComposition_Override,
                                             CreateSwapChainForComposition_Original,
                                             CreateSwapChainForComposition_pfn );
+
+          SK_Hook_TargetFromVFTable (
+            LocalHook_IDXGIFactory2_CreateSwapChainForComposition,
+              (void **)&pFactory2, 24 );
         }
       }
     }
@@ -5945,39 +5907,12 @@ SK_DXGI_HookFactory (IDXGIFactory* pFactory)
 
     // 28 CheckFeatureSupport
 
-
-    if (! LocalHook_IDXGIFactory_CreateSwapChain.active)
-    {
-      SK_Hook_TargetFromVFTable (
-        LocalHook_IDXGIFactory_CreateSwapChain,
-          (void **)&pFactory, 10 );
-    }
-
-    if (! LocalHook_IDXGIFactory2_CreateSwapChainForHwnd.active)
-    {
-      SK_Hook_TargetFromVFTable (
-        LocalHook_IDXGIFactory2_CreateSwapChainForHwnd,
-          (void **)&pFactory2, 15 );
-    }
-    if (! LocalHook_IDXGIFactory2_CreateSwapChainForCoreWindow.active)
-    {
-      SK_Hook_TargetFromVFTable (
-        LocalHook_IDXGIFactory2_CreateSwapChainForCoreWindow,
-          (void **)&pFactory2, 16 );
-    }
-    if (! LocalHook_IDXGIFactory2_CreateSwapChainForComposition.active)
-    {
-      SK_Hook_TargetFromVFTable (
-        LocalHook_IDXGIFactory2_CreateSwapChainForComposition,
-          (void **)&pFactory2, 24 );
-    }
-
-
     InterlockedIncrement (&hooked);
   }
 
   SK_Thread_SpinUntilAtomicMin (&hooked, 2);
 }
+
 
 #include <mmsystem.h>
 #include <d3d11_2.h>
@@ -5986,6 +5921,12 @@ DWORD
 __stdcall
 HookDXGI (LPVOID user)
 {
+  // "Normal" games don't change render APIs mid-game; Talos does, but it's
+  //   not normal :)
+  if (SK_GetFramesDrawn ())
+    return 0;
+
+
   UNREFERENCED_PARAMETER (user);
 
   if (! config.apis.dxgi.d3d11.hook)
@@ -6870,7 +6811,8 @@ SK_DXGI_QuickHook (void)
   {
   //  if (GetAsyncKeyState (VK_MENU))
   //    return;
-  
+    SK_D3D11_InitTextures ();
+
     extern void SK_D3D11_QuickHook (void);
                 SK_D3D11_QuickHook ();
   
@@ -6882,12 +6824,7 @@ SK_DXGI_QuickHook (void)
     if ( state.hooks_loaded.from_shared_dll > 0 ||
          state.hooks_loaded.from_game_ini   > 0 )
     {
-      SK_DXGI_use_factory1 = false;
-      SK_DXGI_factory_init = false;  
-  
-      SK_D3D11_InitTextures ();
-      SK_D3D11_Init         ();
-
+      SK_D3D11_Init       ();
       SK_ApplyQueuedHooks ();
     }
   

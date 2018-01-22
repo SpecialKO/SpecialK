@@ -84,8 +84,10 @@ SK_InitRenderBackends (void)
 void
 SK_BootD3D9 (void)
 {
-  extern void
-  SK_D3D9_QuickHook (void);
+  // "Normal" games don't change render APIs mid-game; Talos does, but it's
+  //   not normal :)
+  if (SK_GetFramesDrawn ())
+    return;
 
   SK_D3D9_QuickHook ();
 
@@ -219,8 +221,10 @@ SK_BootDDraw (void)
 void
 SK_BootDXGI (void)
 {
-  extern void
-  SK_DXGI_QuickHook (void);
+  // "Normal" games don't change render APIs mid-game; Talos does, but it's
+  //   not normal :)
+  if (SK_GetFramesDrawn ())
+    return;
 
   SK_DXGI_QuickHook ();
 
@@ -258,10 +262,7 @@ SK_BootDXGI (void)
                               SK_LoadEarlyImports32 () );
     }
 
-    //extern void SK_DXGI_QuickHook (void);
-    //
-    //SK_DXGI_QuickHook ();
-    SK_HookDXGI       ();
+    SK_HookDXGI ();
 
     InterlockedIncrement (&__booted);
   }
@@ -272,6 +273,11 @@ SK_BootDXGI (void)
 void
 SK_BootOpenGL (void)
 {
+  // "Normal" games don't change render APIs mid-game; Talos does, but it's
+  //   not normal :)
+  if (SK_GetFramesDrawn ())
+    return;
+
   while (backend_dll == nullptr)
   {
     dll_log.Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (OpenGL32.dll) -- tid=%x ***", GetCurrentThreadId ());

@@ -305,7 +305,8 @@ SK_Hook_PreCacheModule ( const wchar_t                                *wszModule
   // After trying the shared data segment, examine the current game's
   //   INI for any cached addresses and try to load those if needed.
   //
-  if ( SK_IsInjected () || cache_state.use_cached_addresses.local )
+  if ( (SK_IsInjected () && cache_state.use_cached_addresses.global) ||
+                            cache_state.use_cached_addresses.local )
   {
     for ( auto& it : local_cache )
     {
@@ -380,8 +381,13 @@ SK_Hook_IsCacheEnabled ( const wchar_t *wszSecName,
 
       else
       {
-        (*it.pEnable) =
-          (! wcsicmp (it.wszName, L"Global"));
+        if ((! _wcsicmp (wszSecName, L"D3D11.Hooks")) && (! SK_IsInjected ()) )
+        {
+          (*it.pEnable) = true;
+        }
+
+        else
+          *it.pEnable = (! _wcsicmp (it.wszName, L"Global"));
 
         cfg_sec.add_key_value ( key_name.c_str (),
                                   *(it.pEnable) ? L"true" :

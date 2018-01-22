@@ -4521,13 +4521,11 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
     game_window.hWnd = hWnd;
 
-    DWORD dwFocus, dwForeground, dwActive;
+    DWORD dwFocus, dwForeground;
 
     GetWindowThreadProcessId (GetFocus            (), &dwFocus);
     GetWindowThreadProcessId (GetForegroundWindow (), &dwForeground);
 
-    // In compliant software, it would only be necessary to check Active Window, but Chrome and
-    //   some games get this whole thing wrong.
     game_window.active       = ( dwFocus      == GetCurrentProcessId () ||
                                  dwForeground == GetCurrentProcessId () );
     game_window.game.style   = game_window.GetWindowLongPtr (game_window.hWnd, GWL_STYLE);
@@ -5262,6 +5260,9 @@ SK_InstallWindowHook (HWND hWnd)
 
     SK_ApplyQueuedHooks ();
   }
+
+  if (! SK_GetFramesDrawn ())
+    return;
 
 
   DWORD                            dwWindowPid = 0;

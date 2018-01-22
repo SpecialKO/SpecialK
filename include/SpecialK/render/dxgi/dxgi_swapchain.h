@@ -22,9 +22,12 @@
 #ifndef __SK__DXGI_SWAPCHAIN_H__
 #define __SK__DXGI_SWAPCHAIN_H__
 
+#pragma once
+
 #include <SpecialK/dxgi_interfaces.h>
 
-#pragma once
+extern volatile LONG SK_DXGI_LiveWrappedSwapChains;
+extern volatile LONG SK_DXGI_LiveWrappedSwapChain1s;
 
 typedef enum DXGI_COLOR_SPACE_TYPE
 {
@@ -6672,8 +6675,9 @@ struct IWrapDXGISwapChain : IDXGISwapChain4
     pDev  (pDevice),
     ver_  (0)
   {
-                                 pSwapChain->AddRef  (),
-    InterlockedExchange (&refs_, pSwapChain->Release ());
+                                  pSwapChain->AddRef  (),
+    InterlockedExchange  (&refs_, pSwapChain->Release ());
+    InterlockedIncrement (&SK_DXGI_LiveWrappedSwapChains);
   }
 
   IWrapDXGISwapChain ( ID3D11Device    *pDevice,
@@ -6682,8 +6686,9 @@ struct IWrapDXGISwapChain : IDXGISwapChain4
     pDev  (pDevice),
     ver_  (1)
   {
-                                 pSwapChain->AddRef  (),
-    InterlockedExchange (&refs_, pSwapChain->Release ());
+                                  pSwapChain->AddRef  (),
+    InterlockedExchange  (&refs_, pSwapChain->Release ());
+    InterlockedIncrement (&SK_DXGI_LiveWrappedSwapChain1s);
   }
 
   IWrapDXGISwapChain            (const IWrapDXGISwapChain &) = delete;

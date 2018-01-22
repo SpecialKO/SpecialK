@@ -441,7 +441,13 @@
     <ClInclude Include="include\SpecialK\com_util.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\SpecialK\render\dxgi\swapchain.h">
+    <ClInclude Include="include\SpecialK\render\dxgi\dxgi_swapchain.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\render\d3d9\d3d9_swapchain.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\render\d3d9\d3d9_device.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -713,7 +719,13 @@
     <ClCompile Include="src\com_util.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\render\dxgi\swapchain.cpp">
+    <ClCompile Include="src\render\dxgi\dxgi_swapchain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\d3d9\d3d9_swapchain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\d3d9\d3d9_device.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

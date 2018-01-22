@@ -35,6 +35,11 @@
 #include <d3d11.h>
 #include <d3d11_1.h>
 
+static const GUID IID_ID3D11Device2 = { 0x9d06dffa, 0xd1e5, 0x4d07, { 0x83, 0xa8, 0x1b, 0xb1, 0x23, 0xf2, 0xf8, 0x41 } };
+static const GUID IID_ID3D11Device3 = { 0xa05c8c37, 0xd2c6, 0x4732, { 0xb3, 0xa0, 0x9c, 0xe0, 0xb0, 0xdc, 0x9a, 0xe6 } };
+static const GUID IID_ID3D11Device4 = { 0x8992ab71, 0x02e6, 0x4b8d, { 0xba, 0x48, 0xb0, 0x56, 0xdc, 0xda, 0x42, 0xc4 } };
+static const GUID IID_ID3D11Device5 = { 0x8ffde202, 0xa0e7, 0x45df, { 0x9e, 0x01, 0xe8, 0x37, 0x80, 0x1b, 0x5e, 0xa0 } };
+
 #define __PTR_SIZE   sizeof LPCVOID
 #define __PAGE_PRIVS PAGE_EXECUTE_READWRITE
 
@@ -415,16 +420,19 @@ extern D3D12CreateDevice_pfn             D3D12CreateDevice_Import;
   extern          ID3D11Device*         g_pD3D11Dev;
   extern          IUnknown*             g_pD3D12Dev;
 
+extern void SK_DXGI_QuickHook     (void);
 extern bool SK_D3D11_Init         (void);
 extern void SK_D3D11_InitTextures (void);
 extern void SK_D3D11_Shutdown     (void);
 extern void SK_D3D11_EnableHooks  (void);
+extern void SK_D3D11_QuickHook    (void);
 
 extern bool SK_D3D12_Init         (void);
 extern void SK_D3D12_Shutdown     (void);
 extern void SK_D3D12_EnableHooks  (void);
 
 void SK_DXGI_BorderCompensation (UINT& x, UINT& y);
+
 
 
 #include <unordered_set>
@@ -1253,6 +1261,8 @@ void  __stdcall SK_D3D11_TexCacheCheckpoint (void);
 bool  __stdcall SK_D3D11_TextureIsCached    (ID3D11Texture2D*     pTex);
 void  __stdcall SK_D3D11_UseTexture         (ID3D11Texture2D*     pTex);
 void  __stdcall SK_D3D11_RemoveTexFromCache (ID3D11Texture2D*     pTex, bool blacklist = false);
+void  __stdcall SK_D3D11_PresentFirstFrame  (IDXGISwapChain*      pSwapChain);
+
 
 void  __stdcall SK_D3D11_UpdateRenderStats  (IDXGISwapChain*      pSwapChain);
 

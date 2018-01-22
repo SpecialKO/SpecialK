@@ -25,6 +25,8 @@
 #include <imgui/backends/imgui_d3d11.h>
 #include <imgui/widgets/msgbox.h>
 #include <SpecialK/render_backend.h>
+#include <SpecialK/render/dxgi/dxgi_swapchain.h>
+#include <SpecialK/render/d3d9/d3d9_swapchain.h>
 
 #include <SpecialK/widgets/widget.h>
 #include <d3d9.h>
@@ -331,6 +333,51 @@ namespace SK_ImGui
   }
 } // namespace SK_ImGui
 
+
+struct sk_imgui_nav_state_s {
+  bool nav_usable   = false;
+  bool io_NavUsable = false;
+  bool io_NavActive = false;
+};
+
+#include <stack>
+std::stack <sk_imgui_nav_state_s> SK_ImGui_NavStack;
+
+void
+SK_ImGui_PushNav (bool enable)
+{
+  ImGuiIO& io =
+    ImGui::GetIO ();
+
+  SK_ImGui_NavStack.push ( { nav_usable, io.NavUsable, io.NavActive } );
+
+  if (enable)
+  {
+    nav_usable = true; io.NavUsable = true; io.NavActive = true;
+  }
+}
+
+void
+SK_ImGui_PopNav (void)
+{
+  ImGuiIO& io =
+    ImGui::GetIO ();
+
+  // Underflow?
+  if (SK_ImGui_NavStack.empty ()) {
+    dll_log.Log (L"ImGui Nav State Underflow");
+    return;
+  }
+
+  nav_usable   = SK_ImGui_NavStack.top ().nav_usable;
+  io.NavActive = SK_ImGui_NavStack.top ().io_NavActive;
+  io.NavUsable = SK_ImGui_NavStack.top ().io_NavUsable;
+  
+  SK_ImGui_NavStack.pop ();
+}
+
+
+
 concurrency::concurrent_queue <std::wstring> SK_ImGui_Warnings;
 
 void
@@ -361,7 +408,6 @@ SK_ImGui_ProcessWarnings (void)
   ImGui::SetNextWindowPosCenter       (ImGuiSetCond_Always);
   ImGui::SetNextWindowSizeConstraints ( ImVec2 (360.0f, 40.0f), ImVec2 ( 0.925f * io.DisplaySize.x,
                                                                          0.925f * io.DisplaySize.y ) );
-  ImGui::SetNextWindowFocus           (                                                               );
 
   ImGui::OpenPopup ("Special K Warning");
 
@@ -372,6 +418,8 @@ SK_ImGui_ProcessWarnings (void)
                                     ImGuiWindowFlags_NoScrollbar      | ImGuiWindowFlags_NoScrollWithMouse )
      )
   {
+    ImGui::FocusWindow (ImGui::GetCurrentWindow ());
+
     ImGui::TextColored ( ImColor::HSV (0.075f, 1.0f, 1.0f), "\n         %ws         \n\n", warning_msg.c_str ());
 
     ImGui::Separator ();
@@ -389,6 +437,8 @@ SK_ImGui_ProcessWarnings (void)
 
       ImGui::CloseCurrentPopup ();
     }
+    else
+      ImGui::SetItemDefaultFocus ();
 
     ImGui::EndPopup ();
   }
@@ -406,7 +456,6 @@ SK_ImGui_ConfirmExit (void)
   ImGui::SetNextWindowPosCenter       (ImGuiSetCond_Always);
   ImGui::SetNextWindowSizeConstraints ( ImVec2 (360.0f, 40.0f), ImVec2 ( 0.925f * io.DisplaySize.x,
                                                                          0.925f * io.DisplaySize.y ) );
-  ImGui::SetNextWindowFocus           (                                                               );
 
   ImGui::OpenPopup ("Confirm Forced Software Termination");
 }
@@ -553,6 +602,67 @@ SK_ImGui_ControlPanelTitle (void)
 
   return szTitle;
 }
+
+
+
+void
+SK_ImGui_CPL_OSDInVidCap (void)
+{
+  if (ImGui::Checkbox ("Show OSD in Video Capture", &config.render.gl.osd_in_vidcap))
+  {
+    struct toggle_state_s {
+               ULONG    frames_drawn;
+               DWORD    initial_time;
+               DWORD    time_to_wait;
+               bool     original, new_val;
+               bool    *dest;
+      volatile LONG     testing = FALSE;
+    } static osd_toggle;
+
+    if (! InterlockedCompareExchange (&osd_toggle.testing, TRUE, FALSE))
+    {
+      osd_toggle.frames_drawn = SK_GetFramesDrawn ();
+      osd_toggle.initial_time = timeGetTime       ();
+      osd_toggle.time_to_wait = 125UL;
+      osd_toggle.original     = (! config.render.gl.osd_in_vidcap);
+      osd_toggle.new_val      =    config.render.gl.osd_in_vidcap;
+      osd_toggle.dest         =   &config.render.gl.osd_in_vidcap;
+
+      // Automated recovery in case changing this setting blows stuff up.
+      //
+      CreateThread (nullptr, 0, [](LPVOID toggle) -> DWORD
+      {
+        toggle_state_s* pToggle = (toggle_state_s *)toggle;
+
+        SleepEx (pToggle->time_to_wait, FALSE);
+
+        if (SK_GetFramesDrawn () <= pToggle->frames_drawn + 1)
+        {
+          *pToggle->dest = pToggle->original;
+
+          SK_ImGui_Warning (L"Disabling OSD in video capture is not supported in this game.");
+        }
+
+        InterlockedExchange (&pToggle->testing, FALSE);
+
+        CloseHandle (GetCurrentThread ());
+
+        return 0;
+      }, (LPVOID)&osd_toggle, 0x00, nullptr);
+    }
+  }
+
+  if (ImGui::IsItemHovered ())
+  {
+    ImGui::BeginTooltip    ();
+    ImGui::TextUnformatted ("Alters visibility in most video capture software");
+    ImGui::Separator       ();
+    ImGui::BulletText      ("Enabled by default for maximum compatibility");
+    ImGui::BulletText      ("Enabling this has a high likelihood of interfering with ReShade");
+    ImGui::EndTooltip      ();
+  }
+}
+
 
 #include <TlHelp32.h>
 
@@ -3151,6 +3261,14 @@ SK_ImGui_ControlPanel (void)
         ImGui::EndTooltip      ();
       }
 
+      // This only works when we have wrapped SwapChains
+      if ( ReadAcquire (&SK_D3D9_LiveWrappedSwapChains) ||
+           ReadAcquire (&SK_D3D9_LiveWrappedSwapChainsEx) )
+      {
+        ImGui::SameLine          ();
+        SK_ImGui_CPL_OSDInVidCap ();
+      }
+
       if (config.textures.d3d9_mod)
       {
       ImGui::TreePush ("");
@@ -3302,17 +3420,10 @@ SK_ImGui_ControlPanel (void)
          ImGui::CollapsingHeader ("OpenGL Settings", ImGuiTreeNodeFlags_DefaultOpen) )
     {
       ImGui::TreePush ("");
-      ImGui::Checkbox ("Show OSD in Video Capture", &config.render.gl.osd_in_vidcap);
 
-      if (ImGui::IsItemHovered ())
-      {
-        ImGui::BeginTooltip    ();
-        ImGui::TextUnformatted ("Alters visibility in most video capture software");
-        ImGui::Separator       ();
-        ImGui::BulletText      ("Enabled by default for maximum compatibility");
-        ImGui::BulletText      ("Enabling this has a high likelihood of interfering with ReShade");
-        ImGui::EndTooltip      ();
-      }
+      SK_ImGui_CPL_OSDInVidCap ();
+
+      ImGui::SameLine ();
 
       ImGui::Checkbox ("Enable CEGUI",              &config.cegui.enable);
 
@@ -3677,18 +3788,12 @@ SK_ImGui_ControlPanel (void)
         ImGui::EndTooltip      ();
       }
 
-      ImGui::SameLine ();
-
-      ImGui::Checkbox ("Show OSD in Video Capture", &config.render.gl.osd_in_vidcap);
-
-      if (ImGui::IsItemHovered ())
+      // This only works when we have wrapped SwapChains
+      if ( ReadAcquire (&SK_DXGI_LiveWrappedSwapChains) ||
+           ReadAcquire (&SK_DXGI_LiveWrappedSwapChain1s) )
       {
-        ImGui::BeginTooltip    ();
-        ImGui::TextUnformatted ("Alters visibility in most video capture software");
-        ImGui::Separator       ();
-        ImGui::BulletText      ("Enabled by default for maximum compatibility");
-        ImGui::BulletText      ("Enabling this has a high likelihood of interfering with ReShade");
-        ImGui::EndTooltip      ();
+        ImGui::SameLine          ();
+        SK_ImGui_CPL_OSDInVidCap ();
       }
 
       ImGui::SameLine ();
@@ -6887,6 +6992,8 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
                                       ImGuiWindowFlags_NoScrollbar      | ImGuiWindowFlags_NoScrollWithMouse )
        )
     {
+      ImGui::FocusWindow (ImGui::GetCurrentWindow ());
+
       ImGui::TextColored ( ImColor::HSV (0.075f, 1.0f, 1.0f), "\n         You will lose any unsaved game progress.         \n\n");
 
       ImGui::Separator ();
@@ -6896,6 +7003,7 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
       ImGui::SameLine ();
 
       ImGui::Spacing (); ImGui::SameLine ();
+
 
       if (ImGui::Button ("Okay"))
         ExitProcess (0x00);
@@ -7036,6 +7144,10 @@ SK_ImGui_Toggle (void)
 
     SK_ImGui_Visible = (! SK_ImGui_Visible);
 
+    if (SK_ImGui_Visible)
+      ImGui::SetNextWindowFocus ();
+
+
     static HMODULE hModTBFix = GetModuleHandle (L"tbfix.dll");
     static HMODULE hModTZFix = GetModuleHandle (L"tzfix.dll");
 
@@ -7102,8 +7214,6 @@ SK_ImGui_Toggle (void)
       extern bool nav_usable;
       nav_usable = false;
     }
-
-    ImGui::SetNextWindowFocus ();
 
     reset_frame_history = true;
   }

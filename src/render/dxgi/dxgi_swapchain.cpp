@@ -22,11 +22,15 @@
 #include <SpecialK/log.h>
 #include <SpecialK/config.h>
 
-#include <SpecialK/render/dxgi/swapchain.h>
+#include <SpecialK/render/dxgi/dxgi_swapchain.h>
 #include <algorithm>
 
 #include <assert.h>
 #include <d3d11.h>
+
+
+volatile LONG SK_DXGI_LiveWrappedSwapChains  = 0;
+volatile LONG SK_DXGI_LiveWrappedSwapChain1s = 0;
 
 enum class SK_DXGI_PresentSource
 {
@@ -165,41 +169,33 @@ ULONG
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::Release (void)
 {
-	if (InterlockedDecrement (&refs_) == 0)
-	{
-		//assert(_runtime != nullptr);
-    //
-		//auto &runtimes = static_cast<D3D11Device *>(_direct3d_device)->_runtimes;
-		//const auto runtime = std::static_pointer_cast<reshade::d3d11::d3d11_runtime>(_runtime);
-		//runtime->on_reset();
-    //
-		//runtimes.erase(std::remove(runtimes.begin(), runtimes.end(), runtime), runtimes.end());
-		//
-    //
-		//_runtime.reset();
-    //
-		//_direct3d_device->Release();
-	}
+    if (InterlockedDecrement (&refs_) == 0)
+    {
+      //assert(_runtime != nullptr);
+    }
 
-	ULONG refs = pReal->Release ();
+	  ULONG refs = pReal->Release ();
 
-  if (ReadAcquire (&refs_) == 0 && refs != 0)
-  {
-    //SK_LOG0 ( (L"Reference count for 'IDXGISwapChain" << (ver_ > 0 ? std::to_string(ver_) : "") << "' object " << this << " is inconsistent: " << ref << ", but expected 0.";
+    if (ReadAcquire (&refs_) == 0 && refs != 0)
+    {
+      //SK_LOG0 ( (L"Reference count for 'IDXGISwapChain" << (ver_ > 0 ? std::to_string(ver_) : "") << "' object " << this << " is inconsistent: " << ref << ", but expected 0.";
 
-    refs = 0;
-  }
+      refs = 0;
+    }
 
-  if (refs == 0)
-  {
-    assert (ReadAcquire (&refs_) <= 0);
+    if (refs == 0)
+    {
+      assert (ReadAcquire (&refs_) <= 0);
 
-    //LOG (INFO) << "Destroyed 'IDXGISwapChain" << ( ver_ > 0 ? std::to_string (ver_) : "" ) << "' object " << this << ".";
+      if (ver_ > 0)
+        InterlockedDecrement (&SK_DXGI_LiveWrappedSwapChain1s);
+      else
+        InterlockedDecrement (&SK_DXGI_LiveWrappedSwapChains);
 
-    delete this;
-  }
+      delete this;
+    }
 
-  return refs;
+    return refs;
 }
 
 HRESULT STDMETHODCALLTYPE IWrapDXGISwapChain::SetPrivateData(REFGUID Name, UINT DataSize, const void *pData)

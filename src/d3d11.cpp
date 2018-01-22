@@ -130,12 +130,12 @@ SK_HookCacheEntryLocal (D3D11CreateDeviceAndSwapChain, L"d3d11.dll", D3D11Create
 static
 std::vector <sk_hook_cache_record_s *> global_d3d11_records =
   { &GlobalHook_D3D11CreateDevice,
-      &GlobalHook_D3D11CreateDeviceAndSwapChain };
+    &GlobalHook_D3D11CreateDeviceAndSwapChain };
 
 static
 std::vector <sk_hook_cache_record_s *> local_d3d11_records =
-  {  &LocalHook_D3D11CreateDevice,
-     &LocalHook_D3D11CreateDeviceAndSwapChain };
+  { &LocalHook_D3D11CreateDevice,
+    &LocalHook_D3D11CreateDeviceAndSwapChain };
 
 
 extern "C" __declspec (dllexport) FARPROC D3D11CreateDeviceForD3D12              = nullptr;
@@ -15574,7 +15574,8 @@ struct SK_D3D11_CommandBase
 #include <SpecialK/ini.h>
 
 void
-SK_D3D11_FirstFrame (IDXGISwapChain* pSwapChain)
+__stdcall
+SK_D3D11_PresentFirstFrame (IDXGISwapChain* pSwapChain)
 {
   UNREFERENCED_PARAMETER (pSwapChain);
 
@@ -15636,8 +15637,6 @@ static bool quick_hooked = false;
 void
 SK_D3D11_QuickHook (void)
 {
-  return;
-
   //if (GetAsyncKeyState (VK_MENU))
   //  return;
 
