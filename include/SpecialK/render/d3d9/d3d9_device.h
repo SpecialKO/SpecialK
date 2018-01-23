@@ -37,8 +37,40 @@ extern volatile LONG SK_D3D9_LiveWrappedExDevices;
 enum class SK_D3D9_PresentSource
 {
   Wrapper = 0,
-  Hook    = 1
+  Hook    = 1,
+
+  Invalid = 2
 };
+
+enum class SK_D3D9_PresentType
+{
+  Device9_Present     = 0,
+  Device9Ex_PresentEx = 1,
+  SwapChain9_Present  = 2,
+
+  Invalid             = 3
+};
+
+struct sk_d3d9_swap_dispatch_s 
+{
+        IUnknown              *pDevice              = nullptr;
+        IUnknown              *pSwapChain           = nullptr;
+  const RECT                  *pSourceRect          = nullptr;
+  const RECT                  *pDestRect            = nullptr;
+        HWND                   hDestWindowOverride  = NULL;
+  const RGNDATA               *pDirtyRegion         = nullptr;
+        DWORD                  dwFlags              = 0x0;
+        LPVOID                 pfnCallback          = nullptr;
+
+        SK_D3D9_PresentSource  Source = SK_D3D9_PresentSource::Invalid;
+        SK_D3D9_PresentType    Type   = SK_D3D9_PresentType::Invalid;
+};
+
+HRESULT
+STDMETHODCALLTYPE
+SK_D3D9_Present_GrandCentral ( sk_d3d9_swap_dispatch_s* dispatch );
+
+
 
 struct IWrapDirect3DDevice9 : IDirect3DDevice9Ex
 {

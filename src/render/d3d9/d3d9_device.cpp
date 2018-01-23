@@ -210,46 +210,27 @@ UINT STDMETHODCALLTYPE IWrapDirect3DDevice9::GetNumberOfSwapChains (void)
 }
 HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::Reset(D3DPRESENT_PARAMETERS *pPresentationParameters)
 {
-  //if (implicit_swapchain_ != nullptr)
-  //{
-  //  while (implicit_swapchain_->Release () > 0)
-  //    ;
-  //
-  //  {
-  //    implicit_swapchain_ = nullptr;
-  //  }
-  //}
-
   HRESULT hr = 
     static_cast <IDirect3DDevice9 *>(pReal)->Reset(pPresentationParameters);
-
-  //if (hr == D3D_OK && implicit_swapchain_ == nullptr)
-  //{
-  //  IDirect3DSwapChain9* pTemp = nullptr;
-  //  pReal->GetSwapChain (0, &pTemp);
-  //
-  //  implicit_swapchain_ = new IWrapDirect3DSwapChain9 (this, pTemp);
-  //}
 
   return hr;
 }
 
-HRESULT
-STDMETHODCALLTYPE                                      
-SK_D3D9_DispatchPresent_Device (IDirect3DDevice9       *This,
-                          const RECT                   *pSourceRect,
-                          const RECT                   *pDestRect,
-                                HWND                    hDestWindowOverride,
-                          const RGNDATA                *pDirtyRegion,
-                                D3D9Device_Present_pfn  D3D9PresentDevice,
-                                SK_D3D9_PresentSource   Source);
-
 HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::Present(const RECT *pSourceRect, const RECT *pDestRect, HWND hDestWindowOverride, const RGNDATA *pDirtyRegion)
 {
-  return SK_D3D9_DispatchPresent_Device ( pReal, pSourceRect, pDestRect,
-                                          hDestWindowOverride, pDirtyRegion,
-                                          nullptr,
-                                          SK_D3D9_PresentSource::Wrapper );
+  sk_d3d9_swap_dispatch_s dispatch =
+  {
+    pReal,               implicit_swapchain_,
+    pSourceRect,         pDestRect,
+    hDestWindowOverride, pDirtyRegion,
+    0x00, 
+    nullptr,
+    SK_D3D9_PresentSource::Wrapper,
+    SK_D3D9_PresentType::Device9_Present
+  };
+
+  return
+    SK_D3D9_Present_GrandCentral (&dispatch);
 }
 HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::GetBackBuffer(UINT iSwapChain, UINT iBackBuffer, D3DBACKBUFFER_TYPE Type, IDirect3DSurface9 **ppBackBuffer)
 {
@@ -702,29 +683,23 @@ HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::ComposeRects(IDirect3DSurface9 *
   return static_cast<IDirect3DDevice9Ex *>(pReal)->ComposeRects(pSrc, pDst, pSrcRectDescs, NumRects, pDstRectDescs, Operation, Xoffset, Yoffset);
 }
 
-HRESULT
-STDMETHODCALLTYPE
-SK_D3D9_DispatchPresentEx_DeviceEx (IDirect3DDevice9Ex     *This,
-                              const RECT                   *pSourceRect,
-                              const RECT                   *pDestRect,
-                                    HWND                    hDestWindowOverride,
-                              const RGNDATA                *pDirtyRegion,
-                                    DWORD                   dwFlags,
-                                D3D9ExDevice_PresentEx_pfn  D3D9ExPresentExDevice,
-                                    SK_D3D9_PresentSource   Source);
-
 HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::PresentEx(const RECT *pSourceRect, const RECT *pDestRect, HWND hDestWindowOverride, const RGNDATA *pDirtyRegion, DWORD dwFlags)
 {
   assert (d3d9ex_);
 
-  //_implicit_swapchain->_runtime->on_present();
+  sk_d3d9_swap_dispatch_s dispatch =
+  {
+    pReal,               implicit_swapchain_,
+    pSourceRect,         pDestRect,
+    hDestWindowOverride, pDirtyRegion,
+    dwFlags, 
+    nullptr,
+    SK_D3D9_PresentSource::Wrapper,
+    SK_D3D9_PresentType::Device9Ex_PresentEx
+  };
 
-  return SK_D3D9_DispatchPresentEx_DeviceEx ( static_cast <IDirect3DDevice9Ex *> (pReal),
-                                              pSourceRect, pDestRect,
-                                              hDestWindowOverride, pDirtyRegion,
-                                              dwFlags,
-                                              nullptr,
-                                              SK_D3D9_PresentSource::Wrapper );
+  return
+    SK_D3D9_Present_GrandCentral (&dispatch);
 }
 
 HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::GetGPUThreadPriority(INT *pPriority)
@@ -799,26 +774,8 @@ HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::ResetEx(D3DPRESENT_PARAMETERS *p
 {
   assert (d3d9ex_);
 
-  //if (implicit_swapchain_ != nullptr)
-  //{
-  //  while (implicit_swapchain_->Release () > 0)
-  //    ;
-  //
-  //  {
-  //    implicit_swapchain_ = nullptr;
-  //  }
-  //}
-
   HRESULT hr = 
     static_cast <IDirect3DDevice9Ex *>(pReal)->ResetEx (pPresentationParameters, pFullscreenDisplayMode);
-
-  //if (hr == D3D_OK && implicit_swapchain_ == nullptr)
-  //{
-  //  IDirect3DSwapChain9* pTemp = nullptr;
-  //  pReal->GetSwapChain (0, &pTemp);
-  //
-  //  implicit_swapchain_ = new IWrapDirect3DSwapChain9 (this, pTemp);
-  //}
 
   return hr;
 }

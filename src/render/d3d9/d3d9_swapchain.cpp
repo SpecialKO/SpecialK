@@ -139,23 +139,21 @@ IWrapDirect3DSwapChain9::Release (void)
 
 HRESULT
 STDMETHODCALLTYPE
-SK_D3D9_DispatchPresent_Chain (IDirect3DSwapChain9   *This,
-                         const RECT                  *pSourceRect,
-                         const RECT                  *pDestRect,
-                               HWND                   hDestWindowOverride,
-                         const RGNDATA               *pDirtyRegion,
-                               DWORD                  dwFlags,
-                               D3D9Swap_Present_pfn   D3D9PresentSwapChain,
-                               SK_D3D9_PresentSource  Source);
-
-HRESULT
-STDMETHODCALLTYPE
 IWrapDirect3DSwapChain9::Present (const RECT *pSourceRect, const RECT *pDestRect, HWND hDestWindowOverride, const RGNDATA *pDirtyRegion, DWORD dwFlags)
 { 
-  return SK_D3D9_DispatchPresent_Chain ( pReal, pSourceRect,
-                                           pDestRect, hDestWindowOverride,
-                                             pDirtyRegion, dwFlags, nullptr,
-                                               SK_D3D9_PresentSource::Wrapper );
+  sk_d3d9_swap_dispatch_s dispatch =
+  {
+    pDev,                pReal,
+    pSourceRect,         pDestRect,
+    hDestWindowOverride, pDirtyRegion,
+    dwFlags, 
+    nullptr,
+    SK_D3D9_PresentSource::Wrapper,
+    SK_D3D9_PresentType::SwapChain9_Present
+  };
+
+  return
+    SK_D3D9_Present_GrandCentral (&dispatch);
 }
 HRESULT
 STDMETHODCALLTYPE

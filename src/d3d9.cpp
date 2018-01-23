@@ -1168,138 +1168,6 @@ SK_D3D9_SetFPSTarget ( D3DPRESENT_PARAMETERS* pPresentationParameters,
 
 extern bool WINAPI SK_CheckForGeDoSaTo (void);
 
-
-HRESULT
-STDMETHODCALLTYPE
-SK_D3D9_DispatchPresentEx_DeviceEx (IDirect3DDevice9Ex     *This,
-                              const RECT                   *pSourceRect,
-                              const RECT                   *pDestRect,
-                                    HWND                    hDestWindowOverride,
-                              const RGNDATA                *pDirtyRegion,
-                                    DWORD                   dwFlags,
-                                D3D9ExDevice_PresentEx_pfn  D3D9ExPresentExDevice,
-                                    SK_D3D9_PresentSource   Source)
-{
-  bool process = false;
-
-  if (config.render.gl.osd_in_vidcap && (ReadAcquire (&SK_D3D9_LiveWrappedSwapChainsEx)))
-  {
-    process = (Source == SK_D3D9_PresentSource::Wrapper);
-  }
-
-  else
-    process = (Source == SK_D3D9_PresentSource::Hook);
-
-
-  auto CallFunc = [&](void) ->
-  HRESULT
-  {
-    if (Source == SK_D3D9_PresentSource::Hook)
-    {
-      return
-        D3D9ExPresentExDevice ( This, pSourceRect, pDestRect,
-                                  hDestWindowOverride, pDirtyRegion,
-                                    dwFlags );
-    }
-
-    return
-      This->PresentEx ( pSourceRect, pDestRect, hDestWindowOverride,
-                          pDirtyRegion, dwFlags );
-  };
-
-
-  if (process)
-  {
-#if 0
-    SetThreadIdealProcessor (GetCurrentThread (),       6);
-    SetThreadAffinityMask   (GetCurrentThread (), (1 << 7) | (1 << 6));//config.render.framerate.pin_render_thread);
-#endif
-
-    SK_RenderBackend& rb =
-      SK_GetCurrentRenderBackend ();
-
-    //SK_D3D9_UpdateRenderStats (This);
-
-    CComPtr <IDirect3DDevice9>    pDev       = nullptr;
-    CComPtr <IDirect3DSurface9>   pSurf      = nullptr;
-    CComPtr <IDirect3DSwapChain9> pSwapChain = nullptr;
-
-    pDev = This;
-    pDev->GetSwapChain (0, &pSwapChain);
-
-    if (SUCCEEDED (This->GetBackBuffer (0, 0, D3DBACKBUFFER_TYPE_MONO, &pSurf)))
-    {
-      D3DPRESENT_PARAMETERS pparams = { };
-
-      pSwapChain->GetPresentParameters (&pparams);
-
-      rb.device    = pDev;
-      rb.swapchain = pSwapChain;
-
-      SK_CEGUI_DrawD3D9 (This, pSwapChain);
-
-      //
-      // Update G-Sync; doing this here prevents trying to do this on frames where
-      //   the swapchain was resized, which would deadlock the software.
-      //
-      if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status)
-      {
-        NvAPI_D3D9_GetSurfaceHandle (pSurf, &rb.surface);
-        rb.gsync_state.update ();
-      }
-    }
-
-    reinterpret_cast <int &> (rb.api)  = ( static_cast <int> (SK_RenderAPI::D3D9  ) |
-                                           static_cast <int> (SK_RenderAPI::D3D9Ex)   );
-
-    SK_BeginBufferSwap ();
-
-    HRESULT hr =
-      CallFunc ();
-
-
-    if (trigger_reset == reset_stage_e::Clear)
-    {
-      hr =
-        SK_EndBufferSwap (hr, pDev);
-    }
-
-    else
-      hr = D3DERR_DEVICELOST;
-
-    SK_D3D9_EndFrame ();
-
-    return hr;
-  }
-
-  else
-  {
-    return CallFunc ();
-  }
-}
-
-__declspec (noinline)
-HRESULT
-WINAPI
-D3D9ExDevice_PresentEx ( IDirect3DDevice9Ex *This,
-              _In_ const RECT               *pSourceRect,
-              _In_ const RECT               *pDestRect,
-              _In_       HWND                hDestWindowOverride,
-              _In_ const RGNDATA            *pDirtyRegion,
-              _In_       DWORD               dwFlags )
-{
-  if (This == nullptr)
-    return E_NOINTERFACE;
-
-  return
-    SK_D3D9_DispatchPresentEx_DeviceEx ( This,
-                                           pSourceRect, pDestRect,
-                                             hDestWindowOverride, pDirtyRegion,
-                                               dwFlags, D3D9ExDevice_PresentEx_Original,
-                                                 SK_D3D9_PresentSource::Hook );
-}
-
-
 __declspec (noinline)
 HRESULT
 WINAPI
@@ -1328,6 +1196,239 @@ IDirect3DSurface9* pBackBuffer      = nullptr;
 IDirect3DSurface9* pBackBufferCopy  = nullptr;
 
 
+
+bool
+SK_D3D9_ShouldProcessPresentCall (SK_D3D9_PresentSource Source)
+{
+  if (config.render.gl.osd_in_vidcap && (ReadAcquire (&SK_D3D9_LiveWrappedSwapChains) ||
+                                         ReadAcquire (&SK_D3D9_LiveWrappedSwapChainsEx)))
+  {
+    return (Source == SK_D3D9_PresentSource::Wrapper);
+  }
+
+  else
+    return (Source == SK_D3D9_PresentSource::Hook);
+}
+
+HRESULT
+STDMETHODCALLTYPE
+SK_D3D9_Present_GrandCentral ( sk_d3d9_swap_dispatch_s* dispatch )
+{
+  IDirect3DDevice9*    pDev       =
+    static_cast <IDirect3DDevice9    *> (dispatch->pDevice);
+  IDirect3DDevice9Ex*  pDevEx     =
+    static_cast <IDirect3DDevice9Ex  *> (dispatch->pDevice);
+  IDirect3DSwapChain9* pSwapChain = 
+    static_cast <IDirect3DSwapChain9 *> (dispatch->pSwapChain);
+
+  if (dispatch->Type != SK_D3D9_PresentType::Device9Ex_PresentEx)
+    pDevEx = nullptr;
+
+
+  auto CallFunc = [&](void) ->
+  HRESULT
+  {
+    switch (dispatch->Type)
+    {
+      case SK_D3D9_PresentType::Device9_Present:
+      {
+        switch (dispatch->Source)
+        {
+          case SK_D3D9_PresentSource::Hook:
+          {
+            return SK_D3D9_Present
+                   ( pDev,
+                     dispatch->pSourceRect,
+                     dispatch->pDestRect,
+                     dispatch->hDestWindowOverride,
+                     dispatch->pDirtyRegion );
+          }
+
+          case SK_D3D9_PresentSource::Wrapper:
+          {
+            return pDev->Present
+                   ( dispatch->pSourceRect,
+                     dispatch->pDestRect,
+                     dispatch->hDestWindowOverride,
+                     dispatch->pDirtyRegion );
+          }
+        }
+      } break;
+
+
+      case SK_D3D9_PresentType::Device9Ex_PresentEx:
+      {
+        switch (dispatch->Source)
+        {
+          case SK_D3D9_PresentSource::Hook:
+          {
+            return D3D9ExDevice_PresentEx_Original
+                   ( pDevEx,
+                     dispatch->pSourceRect,
+                     dispatch->pDestRect,
+                     dispatch->hDestWindowOverride,
+                     dispatch->pDirtyRegion,
+                     dispatch->dwFlags );
+          }
+
+          case SK_D3D9_PresentSource::Wrapper:
+          {
+            return pDevEx->PresentEx
+                   ( dispatch->pSourceRect,
+                     dispatch->pDestRect,
+                     dispatch->hDestWindowOverride,
+                     dispatch->pDirtyRegion,
+                     dispatch->dwFlags );
+          }
+        }
+      } break;
+
+
+      case SK_D3D9_PresentType::SwapChain9_Present:
+      {
+        switch (dispatch->Source)
+        {
+          case SK_D3D9_PresentSource::Hook:
+          {
+            return D3D9Swap_Present_Original
+                   ( pSwapChain,
+                     dispatch->pSourceRect,
+                     dispatch->pDestRect,
+                     dispatch->hDestWindowOverride,
+                     dispatch->pDirtyRegion,
+                     dispatch->dwFlags );
+          }
+
+          case SK_D3D9_PresentSource::Wrapper:
+          {
+            return pSwapChain->Present
+                   ( dispatch->pSourceRect,
+                     dispatch->pDestRect,
+                     dispatch->hDestWindowOverride,
+                     dispatch->pDirtyRegion,
+                     dispatch->dwFlags );
+          }
+        }
+      } break;
+    };
+
+    return E_NOTIMPL;
+  };
+
+
+  bool process =
+    SK_D3D9_ShouldProcessPresentCall (dispatch->Source);
+
+
+  if (process)
+  {
+#if 0
+    SetThreadIdealProcessor (GetCurrentThread (),       6);
+    SetThreadAffinityMask   (GetCurrentThread (), (1 << 7) | (1 << 6));//config.render.framerate.pin_render_thread);
+#endif
+
+    SK_RenderBackend& rb =
+      SK_GetCurrentRenderBackend ();
+
+
+#if 0
+    if (g_D3D9PresentParams.SwapEffect == D3DSWAPEFFECT_FLIPEX)
+    {
+      HRESULT hr =
+        D3D9ExDevice_PresentEx ( static_cast <IDirect3DDevice9Ex *> (pDeviceEx),
+                                  nullptr,
+                                    nullptr,
+                                      nullptr,
+                                        nullptr,
+                                            D3DPRESENT_FORCEIMMEDIATE |
+                                            D3DPRESENT_DONOTWAIT );
+
+      SK_D3D9_EndFrame ();
+
+      return hr;
+    }
+#endif
+
+
+    CComPtr <IDirect3DSurface9> pSurf = nullptr;
+
+    if (SUCCEEDED (pSwapChain->GetBackBuffer (0, D3DBACKBUFFER_TYPE_MONO, &pSurf)))
+    {
+      D3DPRESENT_PARAMETERS              pparams = { };
+      pSwapChain->GetPresentParameters (&pparams);
+
+      rb.device    = pDev;
+      rb.swapchain = pSwapChain;
+
+      SK_CEGUI_DrawD3D9 ( static_cast <IDirect3DDevice9    *> (rb.device),
+                          static_cast <IDirect3DSwapChain9 *> (rb.swapchain) );
+
+      //
+      // Update G-Sync; doing this here prevents trying to do this on frames where
+      //   the swapchain was resized, which would deadlock the software.
+      //
+      if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status)
+      {
+        NvAPI_D3D9_GetSurfaceHandle (pSurf, &rb.surface);
+        rb.gsync_state.update ();
+      }
+    }
+
+
+    CComQIPtr <IDirect3DDevice9Ex> pUpgradedDev (pDev);
+
+    if (pDevEx != nullptr || pUpgradedDev != nullptr)
+    {
+      reinterpret_cast <int &> (rb.api)  = ( static_cast <int> (SK_RenderAPI::D3D9  ) |
+                                             static_cast <int> (SK_RenderAPI::D3D9Ex)   );
+    }
+
+    else
+    {
+      rb.api = SK_RenderAPI::D3D9;
+    }
+
+
+
+    SK_BeginBufferSwap ();
+
+
+    HRESULT hr =
+      D3DERR_DEVICELOST;
+
+    if (trigger_reset == reset_stage_e::Clear)
+    {
+      hr =
+        SK_EndBufferSwap ( CallFunc (), pDev );
+    }
+
+    else
+      CallFunc ();
+
+
+    SK_D3D9_EndFrame ();
+
+
+    return hr;
+  }
+
+
+  else
+  {
+    if (trigger_reset == reset_stage_e::Clear)
+    {
+      return CallFunc ();
+    }
+
+    else
+      return D3DERR_DEVICELOST;
+  }
+}
+
+
+
+
+
 __declspec (noinline)
 HRESULT
 WINAPI
@@ -1337,23 +1438,68 @@ D3D9Device_Present ( IDirect3DDevice9 *This,
           _In_       HWND              hDestWindowOverride,
           _In_ const RGNDATA          *pDirtyRegion )
 {
-  HRESULT
-  STDMETHODCALLTYPE
-  SK_D3D9_DispatchPresent_Device (IDirect3DDevice9       *This,
-                            const RECT                   *pSourceRect,
-                            const RECT                   *pDestRect,
-                                  HWND                    hDestWindowOverride,
-                            const RGNDATA                *pDirtyRegion,
-                                  D3D9Device_Present_pfn  D3D9PresentDevice,
-                                  SK_D3D9_PresentSource   Source);
+  // Uh, what?
+  if (This == nullptr)
+    return E_NOINTERFACE;
 
-    if (This == nullptr)
-      return E_NOINTERFACE;
+  CComPtr <IDirect3DSwapChain9> pSwapChain = nullptr;
+  
 
-    return SK_D3D9_DispatchPresent_Device (This, pSourceRect, pDestRect,
-                                           hDestWindowOverride, pDirtyRegion,
-                                    SK_D3D9_Trampoline (D3D9Device, Present),
-                                           SK_D3D9_PresentSource::Hook);
+  if ( SUCCEEDED (This->GetSwapChain (0, &pSwapChain)) &&
+                                          pSwapChain != nullptr )
+  {
+    sk_d3d9_swap_dispatch_s dispatch =
+    {
+      This,                pSwapChain,
+      pSourceRect,         pDestRect,
+      hDestWindowOverride, pDirtyRegion,
+      0x00, 
+      SK_D3D9_Trampoline (D3D9Device, Present),
+      SK_D3D9_PresentSource::Hook,
+      SK_D3D9_PresentType::Device9_Present
+    };
+
+    return
+      SK_D3D9_Present_GrandCentral (&dispatch);
+  }
+
+  return D3DERR_DEVICELOST;
+}
+
+__declspec (noinline)
+HRESULT
+WINAPI
+D3D9ExDevice_PresentEx ( IDirect3DDevice9Ex *This,
+              _In_ const RECT               *pSourceRect,
+              _In_ const RECT               *pDestRect,
+              _In_       HWND                hDestWindowOverride,
+              _In_ const RGNDATA            *pDirtyRegion,
+              _In_       DWORD               dwFlags )
+{
+  if (This == nullptr)
+    return E_NOINTERFACE;
+
+  CComPtr <IDirect3DSwapChain9> pSwapChain = nullptr;
+
+  if ( SUCCEEDED (This->GetSwapChain (0, &pSwapChain)) &&
+                                          pSwapChain != nullptr )
+  {
+    sk_d3d9_swap_dispatch_s dispatch =
+    {
+      This,                pSwapChain,
+      pSourceRect,         pDestRect,
+      hDestWindowOverride, pDirtyRegion,
+      dwFlags, 
+      SK_D3D9_Trampoline (D3D9ExDevice, PresentEx),
+      SK_D3D9_PresentSource::Hook,
+      SK_D3D9_PresentType::Device9Ex_PresentEx
+    };
+
+    return
+      SK_D3D9_Present_GrandCentral (&dispatch);
+  }
+
+  return D3DERR_DEVICELOST;
 }
 
 
@@ -1485,306 +1631,43 @@ D3D9_STUB_VOID    (void,  D3DPERF_SetMarker, (D3DCOLOR color, LPCWSTR name),
 D3D9_STUB_VOID    (void,  D3DPERF_SetRegion, (D3DCOLOR color, LPCWSTR name),
                                                       (color,         name))
 
+
+__declspec (noinline)
 HRESULT
-STDMETHODCALLTYPE
-SK_D3D9_DispatchPresent_Device (IDirect3DDevice9       *This,
-                          const RECT                   *pSourceRect,
-                          const RECT                   *pDestRect,
-                                HWND                    hDestWindowOverride,
-                          const RGNDATA                *pDirtyRegion,
-                                D3D9Device_Present_pfn  D3D9PresentDevice,
-                                SK_D3D9_PresentSource   Source)
+WINAPI
+D3D9Swap_Present ( IDirect3DSwapChain9 *This,
+        _In_ const RECT                *pSourceRect,
+        _In_ const RECT                *pDestRect,
+        _In_       HWND                 hDestWindowOverride,
+        _In_ const RGNDATA             *pDirtyRegion,
+        _In_       DWORD                dwFlags )
 {
-  bool process = false;
+ if (This == nullptr)
+    return E_NOINTERFACE;
 
-  if (config.render.gl.osd_in_vidcap && (ReadAcquire (&SK_D3D9_LiveWrappedSwapChains) ||
-                                         ReadAcquire (&SK_D3D9_LiveWrappedSwapChainsEx)))
+  CComPtr <IDirect3DDevice9> pDevice = nullptr;
+
+  if (SUCCEEDED (This->GetDevice (&pDevice)) && pDevice != nullptr)
   {
-    process = (Source == SK_D3D9_PresentSource::Wrapper);
+    sk_d3d9_swap_dispatch_s dispatch =
+    {
+      pDevice,             This,
+      pSourceRect,         pDestRect,
+      hDestWindowOverride, pDirtyRegion,
+      dwFlags, 
+      SK_D3D9_Trampoline (D3D9Swap, Present),
+      SK_D3D9_PresentSource::Hook,
+      SK_D3D9_PresentType::SwapChain9_Present
+    };
+
+    return
+      SK_D3D9_Present_GrandCentral (&dispatch);
   }
 
-  else
-    process = (Source == SK_D3D9_PresentSource::Hook);
-
-
-  auto CallFunc = [&](void) ->
-  HRESULT
-  {
-    if (Source == SK_D3D9_PresentSource::Hook)
-    {
-      return
-        SK_D3D9_Present ( This,
-                            pSourceRect, pDestRect,
-                              hDestWindowOverride,
-                                pDirtyRegion );
-    }
-
-    return This->Present (pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);
-  };
-
-
-  if (process)
-  {
-#if 0
-    SetThreadIdealProcessor (GetCurrentThread (),       6);
-    SetThreadAffinityMask   (GetCurrentThread (), (1 << 7) | (1 << 6));//config.render.framerate.pin_render_thread);
-#endif
-
-    SK_RenderBackend& rb =
-      SK_GetCurrentRenderBackend ();
-
-
-    if (g_D3D9PresentParams.SwapEffect == D3DSWAPEFFECT_FLIPEX)
-    {
-      HRESULT hr =
-        D3D9ExDevice_PresentEx ( static_cast <IDirect3DDevice9Ex *> (This),
-                                  nullptr,
-                                    nullptr,
-                                      nullptr,
-                                        nullptr,
-                                            D3DPRESENT_FORCEIMMEDIATE |
-                                            D3DPRESENT_DONOTWAIT );
-
-      SK_D3D9_EndFrame ();
-
-      return hr;
-    }
-
-    //SK_D3D9_UpdateRenderStats (This);
-
-    CComPtr <IDirect3DDevice9>    pDev       = nullptr;
-    CComPtr <IDirect3DDevice9Ex>  pDev9Ex    = nullptr;
-    CComPtr <IDirect3DSurface9>   pSurf      = nullptr;
-    CComPtr <IDirect3DSwapChain9> pSwapChain = nullptr;
-
-    pDev = This;
-    pDev->GetSwapChain (0, &pSwapChain);
-
-    if (SUCCEEDED (This->GetBackBuffer (0, 0, D3DBACKBUFFER_TYPE_MONO, &pSurf)))
-    {
-      D3DPRESENT_PARAMETERS pparams = { };
-
-      pSwapChain->GetPresentParameters (&pparams);
-
-      rb.device    = This;
-      rb.swapchain = pSwapChain;
-
-      SK_CEGUI_DrawD3D9 (This, pSwapChain);
-
-      //
-      // Update G-Sync; doing this here prevents trying to do this on frames where
-      //   the swapchain was resized, which would deadlock the software.
-      //
-      if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status)
-      {
-        NvAPI_D3D9_GetSurfaceHandle (pSurf, &rb.surface);
-        rb.gsync_state.update ();
-      }
-    }
-
-    if (SUCCEEDED (rb.device->QueryInterface <IDirect3DDevice9Ex> (&pDev9Ex)))
-    {
-      reinterpret_cast <int &> (rb.api)  = ( static_cast <int> (SK_RenderAPI::D3D9  ) |
-                                             static_cast <int> (SK_RenderAPI::D3D9Ex)   );
-    }
-
-    else
-    {
-      rb.api = SK_RenderAPI::D3D9;
-    }
-
-    SK_BeginBufferSwap ();
-
-    HRESULT hr =
-      CallFunc ();
-
-    if (trigger_reset == reset_stage_e::Clear)
-    {
-      hr =
-        SK_EndBufferSwap (hr, pDev);
-    }
-
-    else
-      hr = D3DERR_DEVICELOST;
-
-    SK_D3D9_EndFrame ();
-
-    return hr;
-  }
-
-  else
-  {
-    return CallFunc ();
-  }
+  return D3DERR_DEVICELOST;
 }
 
-HRESULT
-STDMETHODCALLTYPE
-SK_D3D9_DispatchPresent_Chain (IDirect3DSwapChain9  *This,
-                         const RECT                 *pSourceRect,
-                         const RECT                 *pDestRect,
-                               HWND                  hDestWindowOverride,
-                         const RGNDATA              *pDirtyRegion,
-                               DWORD                 dwFlags,
-                               D3D9Swap_Present_pfn  D3D9PresentSwapChain,
-                               SK_D3D9_PresentSource Source)
-{
-  SK_RenderBackend& rb =
-    SK_GetCurrentRenderBackend ();
 
-  bool process = false;
-
-  if (config.render.gl.osd_in_vidcap && (ReadAcquire (&SK_D3D9_LiveWrappedSwapChains) ||
-                                         ReadAcquire (&SK_D3D9_LiveWrappedSwapChainsEx)))
-  {
-    process = (Source == SK_D3D9_PresentSource::Wrapper);
-  }
-
-  else
-    process = (Source == SK_D3D9_PresentSource::Hook);
-
-
-  auto CallFunc = [&](void) ->
-  HRESULT
-  {
-    if (Source == SK_D3D9_PresentSource::Hook)
-      return D3D9PresentSwapChain ( This, pSourceRect,
-                                      pDestRect, hDestWindowOverride,
-                                        pDirtyRegion, dwFlags );
-
-    else
-      return This->Present ( pSourceRect, pDestRect, hDestWindowOverride,
-                               pDirtyRegion, dwFlags );
-  };
-
-
-  if (process)
-  {
-    //SK_D3D9_UpdateRenderStats (This);
-
-    CComPtr <IDirect3DDevice9>   pDev    = nullptr;
-    CComPtr <IDirect3DDevice9Ex> pDev9Ex = nullptr;
-
-    if (SUCCEEDED (This->GetDevice (&pDev)))
-    {
-      CComPtr <IDirect3DSurface9> pSurf = nullptr;
-
-      D3DPRESENT_PARAMETERS pparams = { };
-
-      This->GetPresentParameters (&pparams);
-
-      if (SUCCEEDED (This->GetBackBuffer (0, D3DBACKBUFFER_TYPE_MONO, &pSurf)))
-      {
-        rb.device    = pDev;
-        rb.swapchain = This;
-
-        SK_CEGUI_DrawD3D9 (pDev, This);
-
-        //
-        // Update G-Sync; doing this here prevents trying to do this on frames where
-        //   the swapchain was resized, which would deadlock the software.
-        //
-        if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status)
-        {
-          NvAPI_D3D9_GetSurfaceHandle (pSurf, &rb.surface);
-          rb.gsync_state.update ();
-        }
-      }
-    }
-
-    if (SUCCEEDED (rb.device->QueryInterface <IDirect3DDevice9Ex> (&pDev9Ex)))
-    {
-      reinterpret_cast <int &> (rb.api)  = ( static_cast <int> (SK_RenderAPI::D3D9  ) |
-                                             static_cast <int> (SK_RenderAPI::D3D9Ex)   );
-    }
-
-    else
-    {
-      rb.api = SK_RenderAPI::D3D9;
-    }
-
-
-    if ( (dwFlags & D3DPRESENT_DONOTWAIT) && SK_GetFramesDrawn () )
-    {
-      HRESULT hr =
-        CallFunc ();
-
-      SK_D3D9_EndFrame ();
-
-      // On a failure (i.e. Must wait), skip the frame
-      //
-      //  Only do input processing and UI drawing on real frames
-      if (SUCCEEDED (hr))
-      {
-        SK_BeginBufferSwap ();
-
-        hr =
-          SK_EndBufferSwap (hr, pDev);
-      }
-
-      return hr;
-    }
-
-
-
-    SK_BeginBufferSwap ();
-
-    HRESULT hr =
-      CallFunc ();
-
-    if (pDev != nullptr)
-    {
-      if (trigger_reset == reset_stage_e::Clear)
-      {
-        hr =
-          SK_EndBufferSwap (hr, pDev);
-      }
-
-      SK_D3D9_EndFrame ();
-
-      return hr;
-    }
-
-    // pDev should be nullptr ... I'm not exactly sure what I was trying to accomplish? :P
-    if (trigger_reset == reset_stage_e::Clear)
-    {
-      hr =
-        SK_EndBufferSwap (hr, pDev);
-    }
-
-    else
-      hr = D3DERR_DEVICELOST;
-
-    SK_D3D9_EndFrame ();
-
-    return hr;
-  }
-
-  else
-  {
-    return CallFunc ();
-  }
-}
-
-  __declspec (noinline)
-  HRESULT
-  WINAPI
-  D3D9Swap_Present ( IDirect3DSwapChain9 *This,
-          _In_ const RECT                *pSourceRect,
-          _In_ const RECT                *pDestRect,
-          _In_       HWND                 hDestWindowOverride,
-          _In_ const RGNDATA             *pDirtyRegion,
-          _In_       DWORD                dwFlags )
-  {
-    if (This == nullptr)
-      return E_NOINTERFACE;
-
-    return SK_D3D9_DispatchPresent_Chain (This, pSourceRect, pDestRect,
-                                          hDestWindowOverride, pDirtyRegion,
-                                          dwFlags,
-                      SK_D3D9_Trampoline (D3D9Swap, Present),
-                                          SK_D3D9_PresentSource::Hook);
-  }
 
 __declspec (noinline)
 HRESULT
