@@ -1205,30 +1205,41 @@ BACKEND_INIT:
 }
 
 
-std::set <HWND> dummy_windows;
+struct {
+  std::set <HWND> list;
+  std::mutex      lock;
+} dummy_windows;
 
 HWND
 SK_Win32_CreateDummyWindow (void)
 {
-  static WNDCLASSW wc          = { };
-  static WNDCLASS  wc_existing = { };
+  std::lock_guard <std::mutex> auto_lock (dummy_windows.lock);
 
-  wc.style         = CS_GLOBALCLASS | CS_OWNDC;
-  wc.lpfnWndProc   = DefWindowProcW;
-  wc.hInstance     = SK_GetDLL        (                );
-  wc.hbrBackground = GetSysColorBrush (COLOR_BACKGROUND);
-  wc.lpszClassName = L"Special K Dummy Window Class (Ex)";
+  static WNDCLASSW wc          = {
+    CS_OWNDC,
+    DefWindowProcW,
+    0x00, 0x00,
+    SK_GetDLL        (                     ),
+    LoadIcon         (NULL, IDI_APPLICATION),
+    LoadCursor       (NULL, IDC_WAIT       ),
+    static_cast <HBRUSH> (
+      GetStockObject (BLACK_BRUSH          )
+    ),
+    nullptr,
+    L"Special K Dummy Window Class"
+  };
+  static WNDCLASSW wc_existing = { };
 
   if ( RegisterClassW (&wc) ||
        GetClassInfo   ( SK_GetDLL (),
-                          L"Special K Dummy Window Class (Ex)",
+                          L"Special K Dummy Window Class",
                             &wc_existing ) )
   {
     if (! CreateWindowExW_Original)
       SK_HookWinAPI ();
 
     HWND hWnd =
-      CreateWindowExW_Original ( 0L, L"Special K Dummy Window Class (Ex)",
+      CreateWindowExW_Original ( 0L, L"Special K Dummy Window Class",
                                      L"Special K Dummy Window",
                                        WS_POPUP | WS_CLIPCHILDREN |
                                        WS_CLIPSIBLINGS,
@@ -1238,7 +1249,9 @@ SK_Win32_CreateDummyWindow (void)
                                              SK_GetDLL (), nullptr );
 
     if (hWnd != HWND_DESKTOP)
-      dummy_windows.emplace (hWnd);
+    {
+      dummy_windows.list.emplace (hWnd);
+    }
 
     return hWnd;
   }
@@ -1252,18 +1265,24 @@ SK_Win32_CreateDummyWindow (void)
 }
 
 void
-SK_Win32_CleanupDummyWindow (void)
+SK_Win32_CleanupDummyWindow (HWND hwnd)
 {
-  for (auto it = dummy_windows.begin (); it != dummy_windows.end (); ++it)
+  std::lock_guard <std::mutex> auto_lock (dummy_windows.lock);
+
+  for (auto it = dummy_windows.list.begin (); it != dummy_windows.list.end (); ++it)
   {
-    if (DestroyWindow (*it))
+    if (*it == hwnd || hwnd == nullptr)
     {
-      it =
-        dummy_windows.erase (it);
+      if (DestroyWindow (*it))
+      {
+        it =
+          dummy_windows.list.erase (it);
+      }
     }
   }
 
-  UnregisterClassW ( L"Special K Dummy Window Class (Ex)", SK_GetDLL () );
+  if (dummy_windows.list.empty ())
+    UnregisterClassW ( L"Special K Dummy Window Class", SK_GetDLL () );
 }
 
 bool
@@ -1591,6 +1610,8 @@ SK_BeginBufferSwap (void)
          ( (! InterlockedCompareExchange (&__SK_CEGUI_Init, TRUE, FALSE)) ||
             __SK_Render_LastKnownAPI != SK_GetCurrentRenderBackend ().api ) )
     {
+      InterlockedIncrement (&SK_GetCurrentRenderBackend ().frames_drawn);
+
       // Brutally stupid hack for brutally stupid OS (Windows 7)
       //
       //   1. Lock the DLL loader + Suspend all Threads

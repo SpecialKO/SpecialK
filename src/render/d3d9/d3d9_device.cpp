@@ -112,10 +112,10 @@ IWrapDirect3DDevice9::Release (void)
   {
     assert (ReadAcquire (&refs_) == 0);
 
-    if (d3d9ex_)
-      InterlockedDecrement (&SK_D3D9_LiveWrappedDevicesEx);
-    else
-      InterlockedDecrement (&SK_D3D9_LiveWrappedDevices);
+    //if (d3d9ex_)
+    //  InterlockedDecrement (&SK_D3D9_LiveWrappedDevicesEx);
+    //else
+    //  InterlockedDecrement (&SK_D3D9_LiveWrappedDevices);
 
     delete this;
   }

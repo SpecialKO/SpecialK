@@ -258,7 +258,6 @@ struct sk_config_t
     struct {
       bool    force_d3d9ex      = false;
       bool    force_impure      = false;
-      int     hook_type         = 0;
       bool    osd_in_vidcap     = false;
     } d3d9;
     struct {
@@ -288,7 +287,6 @@ struct sk_config_t
       bool    enhanced_depth     = false;
       bool    deferred_isolation = false;
       bool    rehook_present     = false;
-      int     alternate_hook     = 0;
     } dxgi;
 
     struct {
@@ -473,15 +471,6 @@ struct sk_config_t
   struct {
     bool    rehook_loadlibrary   = false;
     bool    disable_nv_bloat     = false;
-    bool    disable_msi_deadlock = true;
-
-    struct {
-      bool  rehook_reset         = false;
-      bool  rehook_present       = false;
-      bool  hook_reset_vftbl     = false;
-      bool  hook_present_vftbl   = false;
-    } d3d9;
-
     bool   init_while_suspended  = true;
   } compatibility;
 
@@ -623,7 +612,6 @@ protected:
 enum class SK_GAME_ID
 {
   Tyranny,                      // Tyranny.exe
-  Shadowrun_HongKong,           // SRHK.exe
   TidesOfNumenera,              // TidesOfNumenera.exe
   MassEffect_Andromeda,         // MassEffectAndromeda.exe
   MadMax,                       // MadMax.exe

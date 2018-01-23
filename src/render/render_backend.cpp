@@ -84,18 +84,20 @@ SK_InitRenderBackends (void)
 void
 SK_BootD3D9 (void)
 {
+  SK_TLS_Bottom ()->d3d9.ctx_init_thread = true;
+
   // "Normal" games don't change render APIs mid-game; Talos does, but it's
   //   not normal :)
   if (SK_GetFramesDrawn ())
     return;
-
-  SK_D3D9_QuickHook ();
 
   while (backend_dll == nullptr)
   {
     dll_log.Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (d3d9.dll) -- tid=%x ***", GetCurrentThreadId ());
     SleepEx (100UL, TRUE);
   }
+
+  SK_D3D9_QuickHook ();
 
   // Establish the minimal set of APIs necessary to work as d3d9.dll
   if (SK_GetDLLRole () == DLL_ROLE::D3D9)

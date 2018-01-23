@@ -464,17 +464,8 @@
     <ClCompile Include="src\adl.cpp">
       <Filter>Source Files\OSD\Stats</Filter>
     </ClCompile>
-    <ClCompile Include="src\gpu_monitor.cpp">
-      <Filter>Source Files\OSD\Stats</Filter>
-    </ClCompile>
-    <ClCompile Include="src\io_monitor.cpp">
-      <Filter>Source Files\OSD\Stats</Filter>
-    </ClCompile>
     <ClCompile Include="src\nvapi.cpp">
       <Filter>Source Files\OSD\Stats</Filter>
-    </ClCompile>
-    <ClCompile Include="src\steam_api.cpp">
-      <Filter>Source Files\Steam</Filter>
     </ClCompile>
     <ClCompile Include="src\SpecialK.cpp">
       <Filter>Source Files\Core</Filter>
@@ -500,29 +491,8 @@
     <ClCompile Include="src\osd\popup.cpp">
       <Filter>Source Files\OSD</Filter>
     </ClCompile>
-    <ClCompile Include="src\dxgi.cpp">
-      <Filter>Source Files\Backends\Render\DXGI</Filter>
-    </ClCompile>
-    <ClCompile Include="src\d3d11.cpp">
-      <Filter>Source Files\Backends\Render\DXGI</Filter>
-    </ClCompile>
-    <ClCompile Include="src\d3d12.cpp">
-      <Filter>Source Files\Backends\Render\DXGI</Filter>
-    </ClCompile>
-    <ClCompile Include="src\vulkan.cpp">
-      <Filter>Source Files\Backends\Render\Vulkan</Filter>
-    </ClCompile>
-    <ClCompile Include="src\opengl.cpp">
-      <Filter>Source Files\Backends\Render\OpenGL</Filter>
-    </ClCompile>
     <ClCompile Include="src\plugins\fo4.cpp">
       <Filter>Source Files\Plugins</Filter>
-    </ClCompile>
-    <ClCompile Include="src\d3d9.cpp">
-      <Filter>Source Files\Backends\Render\D3D9</Filter>
-    </ClCompile>
-    <ClCompile Include="src\d3d9\texmgr.cpp">
-      <Filter>Source Files\Backends\Render\D3D9</Filter>
     </ClCompile>
     <ClCompile Include="src\update\version.cpp">
       <Filter>Source Files\Update</Filter>
@@ -590,9 +560,6 @@
     <ClCompile Include="src\imgui\backends\imgui_vk.cpp">
       <Filter>Source Files\ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="src\render_backend.cpp">
-      <Filter>Source Files\Backends\Render</Filter>
-    </ClCompile>
     <ClCompile Include="src\input\xinput_hotplug.cpp">
       <Filter>Source Files\Backends\Input\XInput</Filter>
     </ClCompile>
@@ -605,20 +572,11 @@
     <ClCompile Include="src\plugins\plugin_mgr.cpp">
       <Filter>Source Files\Plugins</Filter>
     </ClCompile>
-    <ClCompile Include="src\CSteamWorks.cpp">
-      <Filter>Source Files\Steam</Filter>
-    </ClCompile>
     <ClCompile Include="src\input\input.cpp">
       <Filter>Source Files\Backends\Input</Filter>
     </ClCompile>
-    <ClCompile Include="src\d3d8.cpp">
-      <Filter>Source Files\Backends\Render\D3D8</Filter>
-    </ClCompile>
     <ClCompile Include="src\import.cpp">
       <Filter>Source Files\Core</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ddraw.cpp">
-      <Filter>Source Files\Backends\Render\DDraw</Filter>
     </ClCompile>
     <ClCompile Include="src\input\dinput8.cpp">
       <Filter>Source Files\Backends\Input\DirectInput</Filter>
@@ -704,9 +662,6 @@
     <ClCompile Include="src\plugins\okami.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\d3d11_dev_ctx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\input\dinput7.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -727,6 +682,51 @@
     </ClCompile>
     <ClCompile Include="src\render\d3d9\d3d9_device.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\d3d9\d3d9.cpp">
+      <Filter>Source Files\Backends\Render\D3D9</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\dxgi\dxgi.cpp">
+      <Filter>Source Files\Backends\Render\DXGI</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\gl\opengl.cpp">
+      <Filter>Source Files\Backends\Render\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\d3d9\texmgr.cpp">
+      <Filter>Source Files\Backends\Render\D3D9</Filter>
+    </ClCompile>
+    <ClCompile Include="src\steam\steam_api.cpp">
+      <Filter>Source Files\Steam</Filter>
+    </ClCompile>
+    <ClCompile Include="src\steam\CSteamWorks.cpp">
+      <Filter>Source Files\Steam</Filter>
+    </ClCompile>
+    <ClCompile Include="src\performance\io_monitor.cpp">
+      <Filter>Source Files\OSD\Stats</Filter>
+    </ClCompile>
+    <ClCompile Include="src\performance\gpu_monitor.cpp">
+      <Filter>Source Files\OSD\Stats</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\render_backend.cpp">
+      <Filter>Source Files\Backends\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\vulkan\vulkan.cpp">
+      <Filter>Source Files\Backends\Render\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\d3d8\d3d8.cpp">
+      <Filter>Source Files\Backends\Render\D3D8</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\d3d11\d3d11_dev_ctx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\d3d11\d3d11.cpp">
+      <Filter>Source Files\Backends\Render\DXGI</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\ddraw\ddraw.cpp">
+      <Filter>Source Files\Backends\Render\DDraw</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\d3d12\d3d12.cpp">
+      <Filter>Source Files\Backends\Render\DXGI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

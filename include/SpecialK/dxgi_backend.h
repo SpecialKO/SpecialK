@@ -40,58 +40,28 @@ static const GUID IID_ID3D11Device3 = { 0xa05c8c37, 0xd2c6, 0x4732, { 0xb3, 0xa0
 static const GUID IID_ID3D11Device4 = { 0x8992ab71, 0x02e6, 0x4b8d, { 0xba, 0x48, 0xb0, 0x56, 0xdc, 0xda, 0x42, 0xc4 } };
 static const GUID IID_ID3D11Device5 = { 0x8ffde202, 0xa0e7, 0x45df, { 0x9e, 0x01, 0xe8, 0x37, 0x80, 0x1b, 0x5e, 0xa0 } };
 
-#define __PTR_SIZE   sizeof LPCVOID
-#define __PAGE_PRIVS PAGE_EXECUTE_READWRITE
-
-#define DXGI_VIRTUAL_OVERRIDE(_Base,_Index,_Name,_Override,_Original,_Type) { \
-  void** vftable = *(void***)*_Base;                                          \
-                                                                              \
-  if (vftable [_Index] != _Override) {                                        \
-    DWORD dwProtect;                                                          \
-                                                                              \
-    VirtualProtect (&vftable [_Index], __PTR_SIZE, __PAGE_PRIVS, &dwProtect); \
-                                                                              \
-    /*dll_log.Log (L" Old VFTable entry for %s: %08Xh  (Memory Policy: %s)",*/\
-                 /*L##_Name, vftable [_Index],                              */\
-                 /*SK_DescribeVirtualProtectFlags (dwProtect));             */\
-                                                                              \
-    if (_Original == NULL)                                                    \
-      _Original = (##_Type)vftable [_Index];                                  \
-                                                                              \
-    /*dll_log.Log (L"  + %s: %08Xh", L#_Original, _Original);*/               \
-                                                                              \
-    vftable [_Index] = _Override;                                             \
-                                                                              \
-    VirtualProtect (&vftable [_Index], __PTR_SIZE, dwProtect, &dwProtect);    \
-                                                                              \
-    /*dll_log.Log (L" New VFTable entry for %s: %08Xh  (Memory Policy: %s)\n",*/\
-                  /*L##_Name, vftable [_Index],                               */\
-                  /*SK_DescribeVirtualProtectFlags (dwProtect));              */\
-  }                                                                           \
-}
-
 #define DXGI_VIRTUAL_HOOK_IMM(_Base,_Index,_Name,_Override,_Original,_Type) { \
   void** _vftable = *(void***)*(_Base);                                       \
                                                                               \
-  /*if ((_Original) == nullptr) {                                               */\
-    SK_CreateVFTableHook ( L##_Name,                                         \
-                             _vftable,                                       \
-                               (_Index),                                     \
-                                 (_Override),                                \
-                                   (LPVOID *)&(_Original));                  \
-  /*}*/                                                                      \
+  if ((_Original) == nullptr) {                                               \
+    SK_CreateVFTableHook ( L##_Name,                                          \
+                             _vftable,                                        \
+                               (_Index),                                      \
+                                 (_Override),                                 \
+                                   (LPVOID *)&(_Original));                   \
+  }                                                                           \
 }
 
 #define DXGI_VIRTUAL_HOOK(_Base,_Index,_Name,_Override,_Original,_Type) {     \
   void** _vftable = *(void***)*(_Base);                                       \
                                                                               \
-  /*if ((_Original) == nullptr) {                                               */\
+  if ((_Original) == nullptr) {                                               \
     SK_CreateVFTableHook2 ( L##_Name,                                         \
                               _vftable,                                       \
                                 (_Index),                                     \
                                   (_Override),                                \
                                     (LPVOID *)&(_Original));                  \
-  /*}*/                                                                           \
+  }                                                                           \
 }
 
 
@@ -1232,6 +1202,42 @@ typedef void (WINAPI *D3D11_UpdateSubresource1_pfn)(
   _In_           UINT                  SrcDepthPitch,
   _In_           UINT                  CopyFlags
 );
+
+HRESULT
+STDMETHODCALLTYPE
+Present1Callback (IDXGISwapChain1         *This,
+                  UINT                     SyncInterval,
+                  UINT                     PresentFlags,
+            const DXGI_PRESENT_PARAMETERS *pPresentParameters);
+
+HRESULT
+STDMETHODCALLTYPE
+DXGIFactory2_CreateSwapChainForHwnd_Override ( IDXGIFactory2                   *This,
+                                    _In_       IUnknown                        *pDevice,
+                                    _In_       HWND                             hWnd,
+                                    _In_ const DXGI_SWAP_CHAIN_DESC1           *pDesc,
+                                _In_opt_       DXGI_SWAP_CHAIN_FULLSCREEN_DESC *pFullscreenDesc,
+                                _In_opt_       IDXGIOutput                     *pRestrictToOutput,
+                                   _Out_       IDXGISwapChain1                 **ppSwapChain );
+HRESULT
+STDMETHODCALLTYPE
+DXGIFactory2_CreateSwapChainForCoreWindow_Override ( IDXGIFactory2             *This,
+                                          _In_       IUnknown                  *pDevice,
+                                          _In_       IUnknown                  *pWindow,
+                                          _In_ const DXGI_SWAP_CHAIN_DESC1     *pDesc,
+                                      _In_opt_       IDXGIOutput               *pRestrictToOutput,
+                                         _Out_       IDXGISwapChain1          **ppSwapChain );
+
+HRESULT
+STDMETHODCALLTYPE
+DXGIFactory2_CreateSwapChainForComposition_Override ( IDXGIFactory2          *This,                           
+                                       _In_           IUnknown               *pDevice,
+                                       _In_     const DXGI_SWAP_CHAIN_DESC1  *pDesc,
+                                       _In_opt_       IDXGIOutput            *pRestrictToOutput,
+                                       _Outptr_       IDXGISwapChain1       **ppSwapChain );
+
+
+
 
 
 namespace SK

@@ -5,7 +5,7 @@
 #define SK_MINOR 9
 #define SK_BUILD 0
 #define SK_REV_N 0
-#define SK_REV   alpha2
+#define SK_REV   alpha3
 
 
 

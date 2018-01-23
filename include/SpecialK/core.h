@@ -148,8 +148,9 @@ SK_GetFramesDrawn (void);
 HWND
 SK_Win32_CreateDummyWindow (void);
 
+// Pass nullptr to cleanup ALL windows; for internal use only.
 void
-SK_Win32_CleanupDummyWindow (void);
+SK_Win32_CleanupDummyWindow (HWND hWnd = nullptr);
 
 void
 __stdcall

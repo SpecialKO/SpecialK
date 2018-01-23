@@ -39,7 +39,8 @@ uint32_t
 __cdecl
 crc32       (uint32_t crc, const void *buf, size_t size);
 
-// Returns the value of crc if attempting to checksum this memory throws an access violation exception
+// Returns the value of crc if attempting to checksum this memory throws an
+//   access violation exception
 uint32_t
 __cdecl
 safe_crc32c (uint32_t crc, const void *buf, size_t size);
@@ -68,7 +69,8 @@ __cdecl
 crc32c_append_sw (uint32_t crc, const void *input, size_t length);
 
 /*
-	Hardware version of CRC-32C (Castagnoli) checksum. Will fail, if CPU does not support related instructions. Use a crc32c_append version instead of.
+	Hardware version of CRC-32C (Castagnoli) checksum. Will fail, if CPU does
+  not support related instructions. Use a crc32c_append version instead of.
 */
 uint32_t
 __cdecl

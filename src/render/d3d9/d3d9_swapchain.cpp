@@ -127,9 +127,9 @@ IWrapDirect3DSwapChain9::Release (void)
 
   if (refs == 0)
   {
-    if (d3d9ex_)
-      InterlockedDecrement (&SK_D3D9_LiveWrappedSwapChainsEx);
-      InterlockedDecrement (&SK_D3D9_LiveWrappedSwapChains);
+    //if (d3d9ex_)
+    //  InterlockedDecrement (&SK_D3D9_LiveWrappedSwapChainsEx);
+    //  InterlockedDecrement (&SK_D3D9_LiveWrappedSwapChains);
 
     delete this;
   }

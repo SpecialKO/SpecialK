@@ -83,8 +83,7 @@ struct IWrapDirect3DDevice9 : IDirect3DDevice9Ex
 
     implicit_swapchain_ = new IWrapDirect3DSwapChain9 (this, pTemp);
 
-                                  orig->AddRef  (),
-    InterlockedExchange  (&refs_, orig->Release ());
+    InterlockedExchange  (&refs_, orig->AddRef ());
 
     //// Immediately try to upgrade
     //CComQIPtr <IDirect3DDevice9Ex> pEx (this);
@@ -99,8 +98,7 @@ struct IWrapDirect3DDevice9 : IDirect3DDevice9Ex
 
     implicit_swapchain_ = new IWrapDirect3DSwapChain9 (this, pTemp);
 
-                                  orig->AddRef  (),
-    InterlockedExchange  (&refs_, orig->Release ());
+    InterlockedExchange  (&refs_, orig->AddRef ());
   }
 
   IWrapDirect3DDevice9            (const IWrapDirect3DDevice9 &) = delete;
