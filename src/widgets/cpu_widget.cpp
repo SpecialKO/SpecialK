@@ -20,9 +20,9 @@
 **/
 
 #include <SpecialK/widgets/widget.h>
-#include <SpecialK/gpu_monitor.h>
 
-#include <SpecialK/io_monitor.h>
+#include <SpecialK/performance/gpu_monitor.h>
+#include <SpecialK/performance/io_monitor.h>
 
 extern iSK_INI* osd_ini;
 

@@ -231,16 +231,7 @@
     <ClInclude Include="include\SpecialK\adl.h">
       <Filter>Header Files\Stats</Filter>
     </ClInclude>
-    <ClInclude Include="include\SpecialK\gpu_monitor.h">
-      <Filter>Header Files\Stats</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SpecialK\memory_monitor.h">
-      <Filter>Header Files\Stats</Filter>
-    </ClInclude>
     <ClInclude Include="include\SpecialK\nvapi.h">
-      <Filter>Header Files\Stats</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SpecialK\io_monitor.h">
       <Filter>Header Files\Stats</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\framerate.h">
@@ -288,12 +279,6 @@
     <ClInclude Include="include\SpecialK\diagnostics\debug_utils.h">
       <Filter>Header Files\Diagnostics</Filter>
     </ClInclude>
-    <ClInclude Include="include\SpecialK\vulkan_backend.h">
-      <Filter>Header Files\Backends\Render\Vulkan</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SpecialK\opengl_backend.h">
-      <Filter>Header Files\Backends\Render\OpenGL</Filter>
-    </ClInclude>
     <ClInclude Include="include\SpecialK\DLL_VERSION.H">
       <Filter>Header Files\Core</Filter>
     </ClInclude>
@@ -311,21 +296,6 @@
     </ClInclude>
     <ClInclude Include="include\SpecialK\steam_api.h">
       <Filter>Header Files\Steam</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SpecialK\d3d9_backend.h">
-      <Filter>Header Files\Backends\Render\D3D9</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SpecialK\d3d12_interfaces.h">
-      <Filter>Header Files\Backends\Render\DXGI</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SpecialK\dxgi_backend.h">
-      <Filter>Header Files\Backends\Render\DXGI</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SpecialK\dxgi_interfaces.h">
-      <Filter>Header Files\Backends\Render\DXGI</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SpecialK\d3d9\texmgr.h">
-      <Filter>Header Files\Backends\Render\D3D9</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\hooks.h">
       <Filter>Header Files\Utility</Filter>
@@ -372,9 +342,6 @@
     <ClInclude Include="include\SpecialK\input\input.h">
       <Filter>Header Files\Backends\Input</Filter>
     </ClInclude>
-    <ClInclude Include="include\SpecialK\render_backend.h">
-      <Filter>Header Files\Backends\Render</Filter>
-    </ClInclude>
     <ClInclude Include="include\SpecialK\input\xinput_hotplug.h">
       <Filter>Header Files\Backends\Input\XInput</Filter>
     </ClInclude>
@@ -386,12 +353,6 @@
     </ClInclude>
     <ClInclude Include="include\SpecialK\plugin\plugin_mgr.h">
       <Filter>Header Files\Plugins</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SpecialK\d3d8_backend.h">
-      <Filter>Header Files\Backends\Render\D3D8</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SpecialK\ddraw_backend.h">
-      <Filter>Header Files\Backends\Render\DDraw</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\input\dinput8_backend.h">
       <Filter>Header Files\Backends\Input\DirectInput</Filter>
@@ -449,6 +410,45 @@
     </ClInclude>
     <ClInclude Include="include\SpecialK\render\d3d9\d3d9_device.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\render\dxgi\dxgi_backend.h">
+      <Filter>Header Files\Backends\Render\DXGI</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\render\dxgi\dxgi_interfaces.h">
+      <Filter>Header Files\Backends\Render\DXGI</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\render\d3d9\d3d9_backend.h">
+      <Filter>Header Files\Backends\Render\D3D9</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\render\vk\vulkan_backend.h">
+      <Filter>Header Files\Backends\Render\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\render\gl\opengl_backend.h">
+      <Filter>Header Files\Backends\Render\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\render\d3d8\d3d8_backend.h">
+      <Filter>Header Files\Backends\Render\D3D8</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\render\d3d12\d3d12_interfaces.h">
+      <Filter>Header Files\Backends\Render\DXGI</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\render\ddraw\ddraw_backend.h">
+      <Filter>Header Files\Backends\Render\DDraw</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\render\backend.h">
+      <Filter>Header Files\Backends\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\performance\gpu_monitor.h">
+      <Filter>Header Files\Stats</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\performance\memory_monitor.h">
+      <Filter>Header Files\Stats</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\performance\io_monitor.h">
+      <Filter>Header Files\Stats</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\render\d3d9\d3d9_texmgr.h">
+      <Filter>Header Files\Backends\Render\D3D9</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -820,6 +820,9 @@
       <Filter>Header Files</Filter>
     </None>
     <None Include="include\SpecialK\commands\update.inl">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="include\imgui\imgui_user.inl">
       <Filter>Header Files</Filter>
     </None>
   </ItemGroup>

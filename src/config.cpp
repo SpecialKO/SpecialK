@@ -21,7 +21,7 @@
 
 #include <SpecialK/config.h>
 #include <SpecialK/core.h>
-#include <SpecialK/dxgi_interfaces.h>
+#include <SpecialK/render/dxgi/dxgi_interfaces.h>
 #include <SpecialK/parameter.h>
 #include <SpecialK/import.h>
 #include <SpecialK/utility.h>
@@ -2171,11 +2171,11 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
 
 
-  //if ( SK_GetDLLRole () == DLL_ROLE::D3D8 ||
-  //     SK_GetDLLRole () == DLL_ROLE::DDraw )
-  //{
-  //  config.render.dxgi.safe_fullscreen = true;
-  //}
+  if ( SK_GetDLLRole () == DLL_ROLE::D3D8 ||
+       SK_GetDLLRole () == DLL_ROLE::DDraw )
+  {
+    config.render.dxgi.safe_fullscreen = true;
+  }
 
 
 

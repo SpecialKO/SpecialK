@@ -31,16 +31,16 @@
 #include <SpecialK/core.h>
 #include <SpecialK/config.h>
 #include <SpecialK/diagnostics/debug_utils.h>
-#include <SpecialK/dxgi_backend.h>
-#include <SpecialK/d3d9_backend.h>
 #include <SpecialK/input/dinput8_backend.h>
+#include <SpecialK/render/dxgi/dxgi_backend.h>
+#include <SpecialK/render/d3d9/d3d9_backend.h>
+#include <SpecialK/render/gl/opengl_backend.h>
 
 #ifndef _WIN64
-#include <SpecialK/d3d8_backend.h>
-#include <SpecialK/ddraw_backend.h>
+#include <SpecialK/render/d3d8/d3d8_backend.h>
+#include <SpecialK/render/ddraw/ddraw_backend.h>
 #endif
 
-#include <SpecialK/opengl_backend.h>
 #include <SpecialK/log.h>
 #include <SpecialK/utility.h>
 #include <SpecialK/thread.h>

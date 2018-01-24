@@ -21,10 +21,10 @@
 //#define IMGUI_DISABLE_WIN32_DEFAULT_IME_FUNCS
 
 //---- Don't implement help and test window functionality (ShowUserGuide()/ShowStyleEditor()/ShowTestWindow() methods will be empty)
-//#define IMGUI_DISABLE_TEST_WINDOWS
+#define IMGUI_DISABLE_TEST_WINDOWS
 
 //---- Don't define obsolete functions names
-//#define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
+#define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
 
 //---- Pack colors to BGRA instead of RGBA (remove need to post process vertex buffer in back ends)
 //#define IMGUI_USE_BGRA_PACKED_COLOR
@@ -42,6 +42,8 @@
         ImVec4(const MyVec4& f) { x = f.x; y = f.y; z = f.z; w = f.w; }     \
         operator MyVec4() const { return MyVec4(x,y,z,w); }
 */
+
+#define IMGUI_INCLUDE_IMGUI_USER_INL
 
 //---- Tip: You can add extra functions within the ImGui:: namespace, here or in your own headers files.
 //---- e.g. create variants of the ImGui::Value() helper for your low-level math types, or your own widgets/helpers.

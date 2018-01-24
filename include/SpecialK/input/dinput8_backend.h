@@ -23,8 +23,6 @@
 
 #define __DINPUT_INCLUDED__
 
-#include <Windows.h>
-
 namespace SK
 {
   namespace DI8
@@ -36,6 +34,8 @@ namespace SK
 
 void SK_Input_HookDI8    (void);
 void SK_Input_PreHookDI8 (void);
+
+#include <Windows.h>
 
 #define DIRECTINPUT_VERSION 0x0800
 
@@ -55,10 +55,6 @@ extern "C" {
 
 #pragma region Desktop Family
 #if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
-
-
-
-
 
 /*
  *  To build applications for older versions of DirectInput

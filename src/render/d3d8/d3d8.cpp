@@ -21,9 +21,9 @@
 
 #ifndef _WIN64
 
-#include <SpecialK/d3d8_backend.h>
-#include <SpecialK/dxgi_backend.h>
-#include <SpecialK/render_backend.h>
+#include <SpecialK/render/d3d8/d3d8_backend.h>
+#include <SpecialK/render/dxgi/dxgi_backend.h>
+#include <SpecialK/render/backend.h>
 
 #include <SpecialK/core.h>
 #include <SpecialK/log.h>

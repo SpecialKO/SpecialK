@@ -1,10 +1,16 @@
-#include <SpecialK/dxgi_backend.h>
+#include <SpecialK/render/dxgi/dxgi_backend.h>
 #include <SpecialK/config.h>
 #include <SpecialK/ini.h>
 #include <SpecialK/parameter.h>
 #include <SpecialK/utility.h>
 #include <SpecialK/log.h>
+#include <SpecialK/hooks.h>
+#include <SpecialK/core.h>
+#include <SpecialK/nvapi.h>
 
+#include <process.h>
+
+#include <string>
 #include <algorithm>
 
 sk::ParameterFactory fo4_factory;
@@ -21,14 +27,7 @@ sk::ParameterBool*   fo4w_center      = nullptr;
 
 #define __NvAPI_GPU_GetMemoryInfo 0x07F9B368
 
-HMODULE nvapi64_dll;
-
-#include <SpecialK/hooks.h>
-#include <SpecialK/core.h>
-#include <SpecialK/nvapi.h>
-
-#include <string>
-#include <process.h>
+static HMODULE nvapi64_dll;
 
 #if 0
 typedef NvAPI_Status (__cdecl *NvAPI_GPU_GetMemoryInfo_t)(NvPhysicalGpuHandle hPhysicalGpu, NV_DISPLAY_DRIVER_MEMORY_INFO *pMemoryInfo);
@@ -212,9 +211,7 @@ SK_FO4_IsBorderlessWindow (void)
   return bRet;
 }
 
-#include <SpecialK/config.h>
-
-RECT window;
+static RECT window;
 
 typedef BOOL (WINAPI *EnumDisplaySettingsW_pfn) (
                         _In_opt_ LPWSTR    lpszDeviceName,

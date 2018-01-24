@@ -21,8 +21,8 @@
 
 #include <d3d9.h>
 
-#include <SpecialK/d3d9_backend.h>
-#include <SpecialK/d3d9/texmgr.h>
+#include <SpecialK/render/d3d9/d3d9_backend.h>
+#include <SpecialK/render/d3d9/d3d9_texmgr.h>
 #include <SpecialK/config.h>
 #include <SpecialK/hooks.h>
 #include <SpecialK/log.h>

@@ -10,10 +10,13 @@
 
 #include <Windows.h>
 #include <../depends/include/GL/glew.h>
-#include <SpecialK/render_backend.h>
+#include <SpecialK/render/backend.h>
 #include <SpecialK/framerate.h>
 
 #include <SpecialK/window.h>
+
+extern void
+SK_ImGui_User_NewFrame (void);
 
 // Data
 static INT64        g_Time                   = 0;
@@ -501,5 +504,5 @@ ImGui_ImplGL3_NewFrame (void)
   SK_ImGui_PollGamepad ();
 
   // Start the frame
-  ImGui::NewFrame ();
+  SK_ImGui_User_NewFrame ();
 }

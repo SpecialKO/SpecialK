@@ -1766,18 +1766,18 @@ Exit 0</Command>
     <ClInclude Include="include\SpecialK\config.h" />
     <ClInclude Include="include\SpecialK\console.h" />
     <ClInclude Include="include\SpecialK\core.h" />
-    <ClInclude Include="include\SpecialK\d3d12_interfaces.h" />
-    <ClInclude Include="include\SpecialK\d3d8_backend.h" />
-    <ClInclude Include="include\SpecialK\d3d9\texmgr.h" />
-    <ClInclude Include="include\SpecialK\d3d9_backend.h" />
-    <ClInclude Include="include\SpecialK\ddraw_backend.h" />
+    <ClInclude Include="include\SpecialK\render\d3d12\d3d12_interfaces.h" />
+    <ClInclude Include="include\SpecialK\render\d3d8\d3d8_backend.h" />
+    <ClInclude Include="include\SpecialK\render\d3d9\d3d9_texmgr.h" />
+    <ClInclude Include="include\SpecialK\render\d3d9\d3d9_backend.h" />
+    <ClInclude Include="include\SpecialK\render\ddraw\ddraw_backend.h" />
     <ClInclude Include="include\SpecialK\diagnostics\compatibility.h" />
     <ClInclude Include="include\SpecialK\diagnostics\crash_handler.h" />
     <ClInclude Include="include\SpecialK\diagnostics\debug_utils.h" />
-    <ClInclude Include="include\SpecialK\dxgi_backend.h" />
-    <ClInclude Include="include\SpecialK\dxgi_interfaces.h" />
+    <ClInclude Include="include\SpecialK\render\dxgi\dxgi_backend.h" />
+    <ClInclude Include="include\SpecialK\render\dxgi\dxgi_interfaces.h" />
     <ClInclude Include="include\SpecialK\framerate.h" />
-    <ClInclude Include="include\SpecialK\gpu_monitor.h" />
+    <ClInclude Include="include\SpecialK\performance\gpu_monitor.h" />
     <ClInclude Include="include\SpecialK\hooks.h" />
     <ClInclude Include="include\SpecialK\import.h" />
     <ClInclude Include="include\SpecialK\ini.h" />
@@ -1786,11 +1786,11 @@ Exit 0</Command>
     <ClInclude Include="include\SpecialK\input\input.h" />
     <ClInclude Include="include\SpecialK\input\xinput.h" />
     <ClInclude Include="include\SpecialK\input\xinput_hotplug.h" />
-    <ClInclude Include="include\SpecialK\io_monitor.h" />
+    <ClInclude Include="include\SpecialK\performance\io_monitor.h" />
     <ClInclude Include="include\SpecialK\log.h" />
-    <ClInclude Include="include\SpecialK\memory_monitor.h" />
+    <ClInclude Include="include\SpecialK\performance\memory_monitor.h" />
     <ClInclude Include="include\SpecialK\nvapi.h" />
-    <ClInclude Include="include\SpecialK\opengl_backend.h" />
+    <ClInclude Include="include\SpecialK\render\gl\opengl_backend.h" />
     <ClInclude Include="include\SpecialK\osd\popup.h" />
     <ClInclude Include="include\SpecialK\osd\text.h" />
     <ClInclude Include="include\SpecialK\parameter.h" />
@@ -1799,7 +1799,7 @@ Exit 0</Command>
     <ClInclude Include="include\SpecialK\render\d3d9\d3d9_device.h" />
     <ClInclude Include="include\SpecialK\render\d3d9\d3d9_swapchain.h" />
     <ClInclude Include="include\SpecialK\render\dxgi\dxgi_swapchain.h" />
-    <ClInclude Include="include\SpecialK\render_backend.h" />
+    <ClInclude Include="include\SpecialK\render\backend.h" />
     <ClInclude Include="include\SpecialK\resource.h" />
     <ClInclude Include="include\SpecialK\sha1.h" />
     <ClInclude Include="include\SpecialK\sound.h" />
@@ -1813,7 +1813,7 @@ Exit 0</Command>
     <ClInclude Include="include\SpecialK\update\network.h" />
     <ClInclude Include="include\SpecialK\update\version.h" />
     <ClInclude Include="include\SpecialK\utility.h" />
-    <ClInclude Include="include\SpecialK\vulkan_backend.h" />
+    <ClInclude Include="include\SpecialK\render\vk\vulkan_backend.h" />
     <ClInclude Include="include\SpecialK\DLL_VERSION.H" />
     <ClInclude Include="include\SpecialK\widgets\widget.h" />
     <ClInclude Include="include\SpecialK\window.h" />
@@ -3009,6 +3009,7 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='IT|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">true</ExcludedFromBuild>
     </None>
+    <None Include="include\imgui\imgui_user.inl" />
     <None Include="include\SpecialK\commands\mem.inl" />
     <None Include="include\SpecialK\commands\update.inl" />
     <None Include="injector64.dll" />

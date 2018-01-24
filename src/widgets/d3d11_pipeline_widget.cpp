@@ -20,9 +20,9 @@
 **/
 
 #include <SpecialK/widgets/widget.h>
-#include <SpecialK/gpu_monitor.h>
-#include <SpecialK/dxgi_backend.h>
-#include <SpecialK/render_backend.h>
+#include <SpecialK/render/backend.h>
+#include <SpecialK/render/dxgi/dxgi_backend.h>
+#include <SpecialK/performance/gpu_monitor.h>
 
 #include <algorithm>
 

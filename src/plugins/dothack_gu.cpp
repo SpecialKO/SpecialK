@@ -20,27 +20,26 @@
 // DEALINGS IN THE SOFTWARE.
 //
 
-#include <SpecialK/dxgi_backend.h>
-#include <SpecialK/config.h>
-#include <SpecialK/command.h>
-#include <SpecialK/framerate.h>
-#include <SpecialK/ini.h>
-#include <SpecialK/parameter.h>
-#include <SpecialK/utility.h>
+#include <SpecialK/render/dxgi/dxgi_backend.h>
+#include <SpecialK/core.h>
 #include <SpecialK/log.h>
+#include <SpecialK/ini.h>
+#include <SpecialK/hooks.h>
+#include <SpecialK/config.h>
+#include <SpecialK/utility.h>
+#include <SpecialK/command.h>
+#include <SpecialK/parameter.h>
+#include <SpecialK/framerate.h>
 #include <SpecialK/steam_api.h>
 
 #include <SpecialK/input/input.h>
 #include <SpecialK/input/xinput.h>
 
-#include <SpecialK/hooks.h>
-#include <SpecialK/core.h>
 #include <process.h>
+#include <atlbase.h>
 
 #include <imgui/imgui.h>
 #include <imgui/backends/imgui_d3d11.h>
-
-#include <atlbase.h>
 
 #define DGPU_VERSION_NUM L"0.2.0.2"
 #define DGPU_VERSION_STR L".hack//G.P.U. v " DGPU_VERSION_NUM

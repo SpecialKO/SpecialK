@@ -28,9 +28,9 @@
 #include <Windows.h>
 #include <SpecialK/tls.h>
 
-#include <SpecialK/render_backend.h>
-#include <SpecialK/opengl_backend.h>
-#include <SpecialK/dxgi_backend.h>
+#include <SpecialK/render/dxgi/dxgi_backend.h>
+#include <SpecialK/render/gl/opengl_backend.h>
+#include <SpecialK/render/backend.h>
 
 #include <SpecialK/window.h>
 

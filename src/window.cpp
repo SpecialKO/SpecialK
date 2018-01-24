@@ -45,7 +45,7 @@
 
 
 #include <imgui/backends/imgui_d3d11.h>
-#include <SpecialK/d3d9_backend.h>
+#include <SpecialK/render/d3d9/d3d9_backend.h>
 
 
 #undef  SK_LOG_FIRST_CALL
@@ -3328,9 +3328,9 @@ DispatchMessageA_Detour (_In_ const MSG *lpMsg)
 }
 
 
-#include <SpecialK/render_backend.h>
-#include <SpecialK/dxgi_backend.h>
-#include <SpecialK/dxgi_interfaces.h>
+#include <SpecialK/render/backend.h>
+#include <SpecialK/render/dxgi/dxgi_backend.h>
+#include <SpecialK/render/dxgi/dxgi_interfaces.h>
 
 
 DWORD

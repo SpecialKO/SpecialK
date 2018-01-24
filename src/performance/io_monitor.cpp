@@ -21,7 +21,8 @@
 **/
 
 #include <SpecialK/com_util.h>
-#include <SpecialK/io_monitor.h>
+#include <SpecialK/performance/io_monitor.h>
+#include <SpecialK/performance/memory_monitor.h>
 #include <SpecialK/log.h>
 
 #include <SpecialK/core.h>
@@ -29,8 +30,6 @@
 #include <SpecialK/config.h>
 #include <SpecialK/utility.h>
 #include <SpecialK/thread.h>
-#include <SpecialK/io_monitor.h>
-#include <SpecialK/memory_monitor.h>
 
 #include <SpecialK/widgets/widget.h>
 

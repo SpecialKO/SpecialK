@@ -39,7 +39,7 @@
 
 #include <SpecialK/osd/popup.h>
 #include <SpecialK/osd/text.h>
-#include <SpecialK/render_backend.h>
+#include <SpecialK/render/backend.h>
 
 #include <SpecialK/command.h>
 #include <SpecialK/utility.h>

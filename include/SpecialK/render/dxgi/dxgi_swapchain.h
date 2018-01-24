@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <SpecialK/dxgi_interfaces.h>
+#include <SpecialK/render/dxgi/dxgi_interfaces.h>
 
 extern volatile LONG SK_DXGI_LiveWrappedSwapChains;
 extern volatile LONG SK_DXGI_LiveWrappedSwapChain1s;

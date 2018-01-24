@@ -22,10 +22,11 @@
 #pragma once
 
 #include <Windows.h>
+
 #include <SpecialK/core.h>
-#include <SpecialK/resource.h>
-#include <SpecialK/render_backend.h>
 #include <SpecialK/config.h>
+#include <SpecialK/resource.h>
+#include <SpecialK/render/backend.h>
 
 #include <imgui/imgui.h>
 

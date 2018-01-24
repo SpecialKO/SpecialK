@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include <SpecialK/d3d9_backend.h>
+#include <SpecialK/render/d3d9/d3d9_backend.h>
 
 interface IWrapDirect3DDevice9;
 

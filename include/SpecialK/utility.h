@@ -24,6 +24,7 @@
 
 #include <intrin.h>
 #include <Windows.h>
+#include <ini.h>
 
 #include <cstdint>
 #include <queue>
@@ -32,8 +33,6 @@
 
 #include <SpecialK/SpecialK.h>
 #include <SpecialK/sha1.h>
-
-interface iSK_INI;
 
 using HANDLE = void *;
 

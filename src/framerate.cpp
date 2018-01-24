@@ -22,7 +22,7 @@
 #include <Windows.h>
 
 #include <SpecialK/framerate.h>
-#include <SpecialK/render_backend.h>
+#include <SpecialK/render/backend.h>
 
 #include <SpecialK/log.h>
 #include <SpecialK/config.h>

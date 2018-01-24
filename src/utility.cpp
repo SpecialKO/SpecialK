@@ -642,9 +642,9 @@ extern BOOL APIENTRY DllMain (HMODULE hModule,
                               DWORD   ul_reason_for_call,
                               LPVOID  /* lpReserved */);
 
-#include <SpecialK/dxgi_backend.h>
-#include <SpecialK/d3d9_backend.h>
-#include <SpecialK/opengl_backend.h>
+#include <SpecialK/render/dxgi/dxgi_backend.h>
+#include <SpecialK/render/d3d9/d3d9_backend.h>
+#include <SpecialK/render/gl/opengl_backend.h>
 #include <SpecialK/input/dinput8_backend.h>
 
 void

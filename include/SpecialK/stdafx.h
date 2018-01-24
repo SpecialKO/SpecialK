@@ -2130,5 +2130,5 @@ enum DXGI_RESIDENCY
     };
 #endif
 #else
-# include <SpecialK/dxgi_interfaces.h>
+# include <SpecialK/render/dxgi/dxgi_interfaces.h>
 #endif

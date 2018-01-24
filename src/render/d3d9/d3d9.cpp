@@ -19,14 +19,13 @@
  *
 **/
 
-#include <SpecialK/d3d9_backend.h>
-#include <SpecialK/D3D9/texmgr.h>
-#include <SpecialK/render_backend.h>
-#include <SpecialK/dxgi_backend.h>
-#include <SpecialK/import.h>
-
-#include <SpecialK/render/d3d9/d3d9_device.h>
+#include <SpecialK/render/d3d9/d3d9_backend.h>
 #include <SpecialK/render/d3d9/d3d9_swapchain.h>
+#include <SpecialK/render/d3d9/d3d9_device.h>
+#include <SpecialK/render/d3d9/d3d9_texmgr.h>
+#include <SpecialK/render/dxgi/dxgi_backend.h>
+#include <SpecialK/render/backend.h>
+#include <SpecialK/import.h>
 
 MIDL_INTERFACE("D0223B96-BF7A-43fd-92BD-A43B0D82B9EB") IDirect3DDevice9;
 MIDL_INTERFACE("B18B10CE-2649-405a-870F-95F777D4313A") IDirect3DDevice9Ex;
@@ -772,7 +771,6 @@ void
 WINAPI
 SK_HookD3D9 (void)
 {
-  extern bool __SK_bypass;
   if (__SK_bypass)
     return;
 
@@ -3230,9 +3228,9 @@ SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* ppara
         RECT wnd_rect =
           *SK_GetGameRect ();
 
-        int x_dlg = SK_GetSystemMetrics (SM_CXDLGFRAME);
-        int y_dlg = SK_GetSystemMetrics (SM_CYDLGFRAME);
-        int title = SK_GetSystemMetrics (SM_CYCAPTION );
+        static int x_dlg = SK_GetSystemMetrics (SM_CXDLGFRAME);
+        static int y_dlg = SK_GetSystemMetrics (SM_CYDLGFRAME);
+        static int title = SK_GetSystemMetrics (SM_CYCAPTION );
 
         if ( SK_DiscontEpsilon ( pparams->BackBufferWidth,
                                    ( wnd_rect.right  - wnd_rect.left ),
@@ -3362,6 +3360,8 @@ SK_D3D9_HookDeviceAndSwapchain (
    IDirect3DDevice9    *pDevice_,
    IDirect3DSwapChain9 *pSwapChain )
 {
+  UNREFERENCED_PARAMETER (pSwapChain);
+
   int num_hooked = 0;
 
   IDirect3DDevice9 *pDevice = nullptr;
@@ -7914,16 +7914,13 @@ SK_D3D9_QuickHook (void)
 
   if (! InterlockedCompareExchange (&quick_hooked, TRUE, FALSE))
   {
-//  if (GetAsyncKeyState (VK_MENU))
-//    return;
-
     sk_hook_cache_enablement_s state =
       SK_Hook_PreCacheModule ( L"D3D9",
                                  local_d3d9_records,
                                    global_d3d9_records );
 
-    if ( state.hooks_loaded.from_shared_dll > 0 ||
-         state.hooks_loaded.from_game_ini   > 0 )
+    if ( ( state.hooks_loaded.from_shared_dll +
+           state.hooks_loaded.from_game_ini     ) > 0 )
     {
       SK_ApplyQueuedHooks ();
     }

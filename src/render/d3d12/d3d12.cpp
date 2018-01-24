@@ -23,7 +23,6 @@
 #include <SpecialK/hooks.h>
 #include <SpecialK/command.h>
 #include <SpecialK/config.h>
-#include <SpecialK/dxgi_backend.h>
 #include <SpecialK/log.h>
 
 extern LARGE_INTEGER SK_QueryPerf (void);
@@ -33,7 +32,8 @@ extern LARGE_INTEGER SK_QueryPerf (void);
 #include <atlbase.h>
 
 #define D3D12_IGNORE_SDK_LAYERS
-#include <SpecialK/d3d12_interfaces.h>
+#include <SpecialK/render/dxgi/dxgi_backend.h>
+#include <SpecialK/render/d3d12/d3d12_interfaces.h>
 
 #include <SpecialK/diagnostics/compatibility.h>
 

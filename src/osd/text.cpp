@@ -22,17 +22,35 @@
 #define OSD_IMP
 #include <SpecialK/osd/text.h>
 
-#include <SpecialK/render_backend.h>
-#include <SpecialK/command.h>
+#include <SpecialK/log.h>
+#include <SpecialK/core.h>
 #include <SpecialK/config.h>
-#include <SpecialK/utility.h>
 #include <SpecialK/thread.h>
+#include <SpecialK/command.h>
+#include <SpecialK/utility.h>
+#include <SpecialK/framerate.h>
+
+#include <SpecialK/performance/io_monitor.h>
+#include <SpecialK/performance/gpu_monitor.h>
+#include <SpecialK/performance/memory_monitor.h>
+
+#include <SpecialK/render/backend.h>
+#include <SpecialK/render/dxgi/dxgi_backend.h>
+#include <SpecialK/render/d3d9/d3d9_backend.h>
+#include <SpecialK/render/gl/opengl_backend.h>
 
 #include <CEGUI/CEGUI.h>
 #include <CEGUI/Rect.h>
 #include <CEGUI/Renderer.h>
 
 #include <map>
+
+#pragma comment (lib, "Shlwapi.lib")
+#include <Shlwapi.h>
+#include <atlbase.h>
+#include <float.h>
+#include <io.h>
+#include <tchar.h>
 
 
 SK_TextOverlayManager*
@@ -208,27 +226,6 @@ SK_TextOverlay::~SK_TextOverlay (void)
   }
 }
 
-#pragma comment (lib, "Shlwapi.lib")
-#include <Shlwapi.h>
-
-#include <atlbase.h>
-
-#include <float.h>
-#include <io.h>
-#include <tchar.h>
-
-#include <SpecialK/io_monitor.h>
-#include <SpecialK/gpu_monitor.h>
-#include <SpecialK/memory_monitor.h>
-
-#include <SpecialK/core.h>
-#include <SpecialK/framerate.h>
-
-#include <SpecialK/log.h>
-
-#include <SpecialK/dxgi_backend.h>
-#include <SpecialK/d3d9_backend.h>
-#include <SpecialK/opengl_backend.h>
 
 #define OSD_PRINTF   if (config.osd.show)     { pszOSD += sprintf (pszOSD,
 #define OSD_R_PRINTF if (config.osd.show &&\
@@ -292,7 +289,6 @@ SK_GetSharedMemory (void)
   return SK_GetSharedMemory (GetCurrentProcessId ());
 }
 
-#include <SpecialK/log.h>
 #include <d3d9.h>
 
 bool

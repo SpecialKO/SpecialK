@@ -8,8 +8,12 @@
 
 #include <imgui/imgui.h>
 #include <imgui/backends/imgui_d3d9.h>
-#include <SpecialK/d3d9_backend.h>
+#include <SpecialK/render/d3d9/d3d9_backend.h>
 #include <SpecialK/framerate.h>
+#include <SpecialK/window.h>
+
+extern void
+SK_ImGui_User_NewFrame (void);
 
 // DirectX
 #include <d3d9.h>
@@ -18,8 +22,6 @@
 
 #include <SpecialK/config.h>
 //#include "render.h"
-
-#include <SpecialK/window.h>
 
 #include <algorithm>
 #include <atlbase.h>
@@ -632,5 +634,5 @@ ImGui_ImplDX9_NewFrame (void)
 
 
   // Start the frame
-  ImGui::NewFrame ();
+  SK_ImGui_User_NewFrame ();
 }

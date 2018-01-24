@@ -19,7 +19,9 @@
  *
 **/
 
-#include <SpecialK/gpu_monitor.h>
+#include <SpecialK/render/dxgi/dxgi_backend.h>
+
+#include <SpecialK/performance/gpu_monitor.h>
 #include <SpecialK/config.h>
 
 #include <SpecialK/log.h>
@@ -555,8 +557,6 @@ SK_GPU_GetFanSpeedRPM       (int gpu)
     gpu_stats_buffers   [current_gpu_stat].gpus [gpu].fans_rpm.supported   ?
       gpu_stats_buffers [current_gpu_stat].gpus [gpu].fans_rpm.gpu : 0 : 0;
 }
-
-#include <dxgi_backend.h>
 
 uint64_t
 __stdcall

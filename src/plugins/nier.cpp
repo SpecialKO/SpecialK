@@ -24,7 +24,6 @@
 // DEALINGS IN THE SOFTWARE.
 //
 
-#include <SpecialK/dxgi_backend.h>
 #include <SpecialK/config.h>
 #include <SpecialK/command.h>
 #include <SpecialK/framerate.h>
@@ -39,12 +38,14 @@
 
 #include <SpecialK/hooks.h>
 #include <SpecialK/core.h>
-#include <process.h>
 
 #include <imgui/imgui.h>
 #include <imgui/backends/imgui_d3d11.h>
 
+#include <SpecialK/render/dxgi/dxgi_backend.h>
+
 #include <atlbase.h>
+#include <process.h>
 
 #include <SpecialK/plugin/nier.h>
 

@@ -29,6 +29,11 @@
 #include <SpecialK/diagnostics/crash_handler.h>
 #include <SpecialK/diagnostics/debug_utils.h>
 
+#include <SpecialK/performance/memory_monitor.h>
+#include <SpecialK/performance/io_monitor.h>
+#include <SpecialK/performance/gpu_monitor.h>
+#include <SpecialK/framerate.h>
+
 #include <SpecialK/log.h>
 #include <SpecialK/config.h>
 #include <SpecialK/utility.h>
@@ -36,27 +41,24 @@
 #include <SpecialK/tls.h>
 
 #include <SpecialK/osd/text.h>
-#include <SpecialK/memory_monitor.h>
-#include <SpecialK/io_monitor.h>
 #include <SpecialK/import.h>
 #include <SpecialK/console.h>
 #include <SpecialK/command.h>
 
-#include <SpecialK/framerate.h>
-#include <SpecialK/render_backend.h>
-#include <SpecialK/dxgi_backend.h>
-#include <SpecialK/d3d9_backend.h>
-#include <SpecialK/vulkan_backend.h>
-#include <SpecialK/resource.h>
+#include <SpecialK/render/backend.h>
+#include <SpecialK/render/dxgi/dxgi_backend.h>
+#include <SpecialK/render/d3d9/d3d9_backend.h>
+#include <SpecialK/render/vk/vulkan_backend.h>
 
 #ifdef _WIN64
 #define D3D12_IGNORE_SDK_LAYERS
-#include <SpecialK/d3d12_interfaces.h>
+#include <SpecialK/render/d3d12/d3d12_interfaces.h>
 #endif
+
+#include <SpecialK/resource.h>
 
 #include <SpecialK/nvapi.h>
 #include <SpecialK/adl.h>
-#include <SpecialK/gpu_monitor.h>
 
 #include <SpecialK/steam_api.h>
 

@@ -58,12 +58,12 @@
 #include <SpecialK/thread.h>
 #include <SpecialK/steam_api.h>
 #include <SpecialK/window.h>
-#include <SpecialK/render_backend.h>
 
-#include <SpecialK/injection/injection.h>
-
+#include <SpecialK/render/backend.h>
 #include <SpecialK/input/dinput7_backend.h>
 #include <SpecialK/input/dinput8_backend.h>
+
+#include <SpecialK/injection/injection.h>
 
 #include <SpecialK/framerate.h>
 #include <SpecialK/DLL_VERSION.H>

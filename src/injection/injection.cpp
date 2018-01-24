@@ -24,17 +24,17 @@
 #include <SpecialK/injection/injection.h>
 #include <SpecialK/injection/address_cache.h>
 #include <SpecialK/diagnostics/compatibility.h>
-#include <SpecialK/hooks.h>
+#include <SpecialK/render/dxgi/dxgi_backend.h>
+#include <SpecialK/render/d3d9/d3d9_backend.h>
+#include <SpecialK/render/backend.h>
 #include <SpecialK/framerate.h>
-#include <SpecialK/dxgi_backend.h>
-#include <SpecialK/d3d9_backend.h>
+#include <SpecialK/hooks.h>
 #include <SpecialK/ini.h>
 #include <SpecialK/window.h>
 #include <SpecialK/core.h>
 #include <SpecialK/config.h>
 #include <SpecialK/log.h>
 #include <SpecialK/utility.h>
-#include <SpecialK/render_backend.h>
 
 
 #include <set>

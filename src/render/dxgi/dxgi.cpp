@@ -24,10 +24,10 @@
 
 #include <Windows.h>
 
-#include <SpecialK/dxgi_interfaces.h>
-#include <SpecialK/dxgi_backend.h>
-#include <SpecialK/render_backend.h>
+#include <SpecialK/render/dxgi/dxgi_interfaces.h>
 #include <SpecialK/render/dxgi/dxgi_swapchain.h> 
+#include <SpecialK/render/dxgi/dxgi_backend.h>
+#include <SpecialK/render/backend.h>
 #include <SpecialK/window.h>
 
 #include <comdef.h>

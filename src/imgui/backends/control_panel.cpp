@@ -23,9 +23,11 @@
 #include <imgui/backends/imgui_gl3.h>
 #include <imgui/backends/imgui_d3d9.h>
 #include <imgui/backends/imgui_d3d11.h>
-#include <imgui/widgets/msgbox.h>
-#include <SpecialK/render_backend.h>
+#include <SpecialK/render/backend.h>
+#include <SpecialK/render/dxgi/dxgi_backend.h>
 #include <SpecialK/render/dxgi/dxgi_swapchain.h>
+#include <SpecialK/render/d3d9/d3d9_backend.h>
+#include <SpecialK/render/d3d9/d3d9_texmgr.h>
 #include <SpecialK/render/d3d9/d3d9_swapchain.h>
 
 #include <SpecialK/widgets/widget.h>
@@ -42,10 +44,6 @@
 #include <SpecialK/log.h>
 #include <SpecialK/steam_api.h>
 
-#include <SpecialK/render_backend.h>
-#include <SpecialK/dxgi_backend.h>
-#include <SpecialK/d3d9_backend.h>
-#include <SpecialK/D3D9/texmgr.h>
 #include <SpecialK/sound.h>
 
 #include <SpecialK/update/version.h>
@@ -61,7 +59,7 @@
 #include <SpecialK/import.h>
 #include <SpecialK/injection/injection.h>
 
-#include <SpecialK/io_monitor.h>
+#include <SpecialK/performance/io_monitor.h>
 
 #include <SpecialK/plugin/reshade.h>
 
@@ -500,7 +498,7 @@ SK_ImGui_IsWindowRightClicked (const ImGuiIO& io)
 {
   if (ImGui::IsWindowFocused () || ImGui::IsWindowHovered ())
   {
-    if (ImGui::IsMouseHoveringWindow () && io.MouseClicked [1])
+    if (ImGui::IsAnyWindowHovered () && io.MouseClicked [1])
       return true;
 
     if (ImGui::IsWindowFocused () && io.MouseDoubleClicked [4])

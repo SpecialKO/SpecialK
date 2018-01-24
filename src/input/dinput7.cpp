@@ -27,7 +27,7 @@
 #include <SpecialK/input/xinput.h>
 #include <SpecialK/input/input.h>
 
-#include <SpecialK/dxgi_backend.h>
+#include <SpecialK/render/dxgi/dxgi_backend.h>
 
 #include <SpecialK/core.h>
 #include <SpecialK/log.h>

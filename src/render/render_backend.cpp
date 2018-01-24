@@ -21,12 +21,14 @@
 
 #include <d3d9.h>
 
-#include <SpecialK/render_backend.h>
-#include <SpecialK/dxgi_backend.h>
-#include <SpecialK/d3d9_backend.h>
-#include <SpecialK/d3d8_backend.h>
-#include <SpecialK/ddraw_backend.h>
-#include <SpecialK/opengl_backend.h>
+#include <SpecialK/render/backend.h>
+#include <SpecialK/render/dxgi/dxgi_backend.h>
+#include <SpecialK/render/d3d9/d3d9_backend.h>
+#include <SpecialK/render/d3d9/d3d9_texmgr.h>
+#include <SpecialK/render/d3d8/d3d8_backend.h>
+#include <SpecialK/render/gl/opengl_backend.h>
+#include <SpecialK/render/ddraw/ddraw_backend.h>
+
 #include <SpecialK/nvapi.h>
 #include <SpecialK/utility.h>
 #include <SpecialK/thread.h>
@@ -35,6 +37,7 @@
 #include <SpecialK/command.h>
 #include <SpecialK/framerate.h>
 #include <SpecialK/log.h>
+#include <SpecialK/hooks.h>
 #include <SpecialK/import.h>
 
 #include <atlbase.h>
@@ -75,9 +78,6 @@ SK_InitRenderBackends (void)
   SK_GetCommandProcessor ()->AddVariable ( "RenderHooks.OpenGL",
                                            new SK_IVarStub <bool> (&config.apis.OpenGL.hook ) );
 }
-
-#include <SpecialK/D3D9/texmgr.h>
-#include <SpecialK/hooks.h>
 
 #define D3D9_TEXTURE_MOD
 

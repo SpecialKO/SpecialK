@@ -23,6 +23,7 @@
 #define __SK__XINPUT_H__
 
 #include <Windows.h>
+#include <joystickapi.h>
 
 #define XUSER_MAX_COUNT               4
 #define XUSER_INDEX_ANY               0x000000FF

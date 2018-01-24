@@ -22,13 +22,13 @@
 #include <Windows.h>
 
 #include <SpecialK/diagnostics/compatibility.h>
+#include <SpecialK/render/dxgi/dxgi_backend.h>
+#include <SpecialK/render/backend.h>
 
 #include <SpecialK/core.h>
 #include <SpecialK/hooks.h>
 #include <SpecialK/command.h>
 #include <SpecialK/config.h>
-#include <SpecialK/dxgi_backend.h>
-#include <SpecialK/render_backend.h>
 #include <SpecialK/log.h>
 #include <SpecialK/crc32.h>
 #include <SpecialK/utility.h>

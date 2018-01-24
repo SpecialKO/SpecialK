@@ -22,7 +22,7 @@
 #define WIN32_LEAN_AND_MEAN
 #define NOGDI
 
-#include <SpecialK/vulkan_backend.h>
+#include <SpecialK/render/vk/vulkan_backend.h>
 #include <SpecialK/log.h>
 #include <SpecialK/utility.h>
 #include <SpecialK/core.h>

@@ -25,7 +25,7 @@
 #include <string>
 #include <set>
 
-#include <SpecialK/render_backend.h>
+#include <SpecialK/render/backend.h>
 
 extern const wchar_t* SK_VER_STR;
 
