@@ -36,7 +36,6 @@
 #include <SpecialK/log.h>
 #include <SpecialK/utility.h>
 
-
 #include <set>
 #include <Shlwapi.h>
 #include <time.h>
@@ -114,6 +113,28 @@ SK_Inject_InitShutdownEvent (void)
                                 LR"(Global\SpecialK64_Reset)" ) );
   }
 }
+
+
+bool
+__stdcall
+SK_IsInjected (bool set)
+{
+// Indicates that the DLL is injected purely as a hooker, rather than
+//   as a wrapper DLL.
+  static std::atomic_bool __injected = false;
+
+  if (__injected == true)
+    return true;
+
+  if (set)
+  {
+    __injected               = true;
+    SK_Inject_AddressManager = new SK_Inject_AddressCacheRegistry ();
+  }
+
+  return set;
+}
+
 
 void
 SK_Inject_ValidateProcesses (void)
@@ -285,22 +306,26 @@ CBTProc ( _In_ int    nCode,
                                   &hModHookInstance ) )
     {
       // Get and keep a reference to this DLL if this is the first time we are injecting.
-      CreateThread ( nullptr, 0,
-           [](LPVOID user) ->
-             DWORD
-               {
-                 SKX_WaitForCBTHookShutdown ();
+      HANDLE hThread =
+        CreateThread ( nullptr, 0,
+             [](LPVOID user) ->
+               DWORD
+                 {
+                   SKX_WaitForCBTHookShutdown ();
 
-                 CloseHandle (GetCurrentThread ());
+                   CloseHandle (GetCurrentThread ());
 
-                 FreeLibraryAndExitThread (static_cast <HMODULE> (user), 0x0);
+                   FreeLibraryAndExitThread (static_cast <HMODULE> (user), 0x0);
 
-                 return 0;
-               },
-             (hModHookInstance),
-           0x00,
-         nullptr
-      );
+                   return 0;
+                 },
+               (hModHookInstance),
+             0x00,
+           nullptr
+        );
+
+      // Closes itself
+      DBG_UNREFERENCED_LOCAL_VARIABLE (hThread);
     }
 
     else
@@ -593,6 +618,7 @@ RunDLL_InjectionManager ( HWND  hwnd,        HINSTANCE hInst,
         fprintf (fPID, "%lu\n", GetCurrentProcessId ());
         fclose  (fPID);
 
+        HANDLE hThread = 
         CreateThread ( nullptr, 0,
          [](LPVOID user) ->
            DWORD
@@ -600,10 +626,14 @@ RunDLL_InjectionManager ( HWND  hwnd,        HINSTANCE hInst,
                SKX_WaitForCBTHookShutdown ();
 
                while ( ReadAcquire (&__SK_DLL_Attached) || (! SK_IsHostAppSKIM ()))
-                 SleepEx (5UL, TRUE);
+                 SleepEx (15UL, TRUE);
 
                if (PtrToInt (user) != -128)
+               {
+                 CloseHandle (GetCurrentThread ());
                  ExitProcess (0x00);
+               }
+
                else
                {
                  CloseHandle (GetCurrentThread ());
@@ -615,7 +645,10 @@ RunDLL_InjectionManager ( HWND  hwnd,        HINSTANCE hInst,
            0x00,
          nullptr );
 
-        SleepEx (INFINITE, FALSE);
+        // Closes itself
+        DBG_UNREFERENCED_LOCAL_VARIABLE (hThread);
+
+        SleepEx (INFINITE, TRUE);
       }
     }
   }

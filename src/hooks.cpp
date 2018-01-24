@@ -250,6 +250,9 @@ SK_Hook_PreCacheModule ( const wchar_t                                *wszModule
                                std::vector <sk_hook_cache_record_s *> &global_cache,
                                iSK_INI                                *ini )
 {
+  extern bool __SK_bypass;
+          if (__SK_bypass) return sk_hook_cache_enablement_s { };
+
   UNREFERENCED_PARAMETER (global_cache);
 
   std::wstring               ini_name     = std::wstring (wszModuleName) +

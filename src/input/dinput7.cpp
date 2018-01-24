@@ -561,37 +561,37 @@ CoCreateInstanceEx_DI7 (
          )
        )
     {
-      if ((! IDirectInput7A_CreateDevice_Original) && SUCCEEDED (pResults->hr))
+      if (SUCCEEDED (pResults->hr))
       {
-        void** vftable = *(void***)*&pResults->pItf;
-        
-        SK_CreateFuncHook (       L"IDirectInput7A::CreateDevice",
-                                   vftable [3],
-                                   IDirectInput7A_CreateDevice_Detour,
-          static_cast_p2p <void> (&IDirectInput7A_CreateDevice_Original) );
-        
-        SK_EnableHook (vftable [3]);
-      }
-    }
-  }
+        if (*pResults->pIID == IID_IDirectInput7A)
+        {
+          if (! IDirectInput7A_CreateDevice_Original)
+          {
+            void** vftable = *(void***)*&pResults->pItf;
+            
+            SK_CreateFuncHook (       L"IDirectInput7A::CreateDevice",
+                                       vftable [3],
+                                       IDirectInput7A_CreateDevice_Detour,
+              static_cast_p2p <void> (&IDirectInput7A_CreateDevice_Original) );
+            
+            SK_EnableHook (vftable [3]);
+          }
+        }
 
-  else if (rclsid == CLSID_DirectInput)
-  {
-    if ( SUCCEEDED (
-           (hr = CoCreateInstanceEx_Original (CLSID_DirectInput, pUnkOuter, dwClsCtx, pServerInfo, dwCount, pResults))
-         )
-       )
-    {
-      if ((! IDirectInput7W_CreateDevice_Original) && SUCCEEDED (pResults->hr))
-      {
-        void** vftable = *(void***)*&pResults->pItf;
-        
-        SK_CreateFuncHook (       L"IDirectInput7W::CreateDevice",
-                                   vftable [3],
-                                   IDirectInput7W_CreateDevice_Detour,
-          static_cast_p2p <void> (&IDirectInput7W_CreateDevice_Original) );
-        
-        SK_EnableHook (vftable [3]);
+        else if (*pResults->pIID == IID_IDirectInput7W)
+        {
+          if (! IDirectInput7W_CreateDevice_Original)
+          {
+            void** vftable = *(void***)*&pResults->pItf;
+            
+            SK_CreateFuncHook (       L"IDirectInput7W::CreateDevice",
+                                       vftable [3],
+                                       IDirectInput7W_CreateDevice_Detour,
+              static_cast_p2p <void> (&IDirectInput7W_CreateDevice_Original) );
+            
+            SK_EnableHook (vftable [3]);
+          }
+        }
       }
     }
   }

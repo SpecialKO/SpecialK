@@ -27,9 +27,12 @@
 #include <process.h>
 
 #include <ctime>
+#include <unordered_set>
+
 
 #include <SpecialK/core.h>
 #include <SpecialK/config.h>
+#include <SpecialK/framerate.h>
 #include <SpecialK/diagnostics/debug_utils.h>
 #include <SpecialK/input/dinput8_backend.h>
 #include <SpecialK/render/dxgi/dxgi_backend.h>
@@ -44,12 +47,10 @@
 #include <SpecialK/log.h>
 #include <SpecialK/utility.h>
 #include <SpecialK/thread.h>
+#include <SpecialK/tls.h>
 
 #include <SpecialK/hooks.h>
 #include <SpecialK/injection/injection.h>
-
-#include <SpecialK/tls.h>
-#include <SpecialK/framerate.h>
 
 
 // Fix that stupid macro that redirects to Unicode/ANSI
@@ -75,112 +76,8 @@ volatile LONG  __SK_DLL_Attached     = FALSE;
     __time64_t __SK_DLL_AttachTime   = 0ULL;
 volatile ULONG __SK_Threads_Attached = 0UL;
 volatile ULONG __SK_DLL_Refs         = 0UL;
-volatile LONG  __SK_TLS_INDEX        = TLS_OUT_OF_INDEXES;
 volatile LONG  __SK_HookContextOwner = false;
 
-
-SK_TLS*
-__stdcall
-SK_TLS_Bottom (void)
-{
-  if (ReadAcquire (&__SK_TLS_INDEX) == TLS_OUT_OF_INDEXES)
-    return nullptr;
-
-  LPVOID lpvData =
-    TlsGetValue (ReadAcquire (&__SK_TLS_INDEX));
-
-  if (lpvData == nullptr)
-  {
-    lpvData =
-      static_cast <LPVOID> (
-        LocalAlloc ( LPTR,
-                       sizeof (SK_TLS) * SK_TLS::stack::max )
-      );
-
-    if (lpvData != nullptr)
-    {
-      if (! TlsSetValue (ReadAcquire (&__SK_TLS_INDEX), lpvData))
-      {
-        LocalFree (lpvData);
-        return nullptr;
-      }
-
-      static_cast <SK_TLS *> (lpvData)->stack.current = 0;
-    }
-  }
-
-  return static_cast <SK_TLS *> (lpvData);
-}
-
-SK_TLS*
-__stdcall
-SK_TLS_Top (void)
-{
-  if (ReadAcquire (&__SK_TLS_INDEX) == TLS_OUT_OF_INDEXES)
-    return nullptr;
-
-  return &(SK_TLS_Bottom ()[SK_TLS_Bottom ()->stack.current]);
-}
-
-bool
-__stdcall
-SK_TLS_Push (void)
-{
-  if (ReadAcquire (&__SK_TLS_INDEX) == TLS_OUT_OF_INDEXES)
-    return false;
-
-  if (SK_TLS_Bottom ()->stack.current < SK_TLS::stack::max)
-  {
-    static_cast <SK_TLS *>   (SK_TLS_Bottom ())[SK_TLS_Bottom ()->stack.current + 1] =
-      static_cast <SK_TLS *> (SK_TLS_Bottom ())[SK_TLS_Bottom ()->stack.current++];
-
-    return true;
-  }
-
-  // Overflow
-  return false;
-}
-
-bool
-__stdcall
-SK_TLS_Pop  (void)
-{
-  if (ReadAcquire (&__SK_TLS_INDEX) == TLS_OUT_OF_INDEXES)
-    return false;
-
-  if (SK_TLS_Bottom ()->stack.current > 0)
-  {
-    static_cast <SK_TLS *> (SK_TLS_Bottom ())->stack.current--;
-
-    return true;
-  }
-
-  // Underflow
-  return false;
-}
-
-
-#include <SpecialK/injection/address_cache.h>
-
-bool
-__stdcall
-SK_IsInjected (bool set)
-{
-// Indicates that the DLL is injected purely as a hooker, rather than
-//   as a wrapper DLL.
-  static std::atomic_bool __injected = false;
-
-  if (__injected == true)
-    return true;
-
-  if (set)
-  {
-    __injected               = true;
-    SK_Inject_AddressManager = new SK_Inject_AddressCacheRegistry ();
-  }
-
-  return set;
-}
 
 HMODULE
 __stdcall
@@ -191,8 +88,6 @@ SK_GetDLL (void)
       reinterpret_cast <volatile PVOID *> (
             const_cast <HMODULE        *> (&hModSelf))));
 }
-
-#include <unordered_set>
 
 const std::unordered_set <std::wstring> blacklist = {
 L"steam.exe",
@@ -967,47 +862,4 @@ DllMain ( HMODULE hModule,
   }
 
   return TRUE;
-}
-
-
-
-
-
-#include <unordered_map>
-
-
-
-SK_ModuleAddrMap::SK_ModuleAddrMap (void) = default;
-
-bool
-SK_ModuleAddrMap::contains (LPCVOID pAddr, HMODULE* phMod)
-{
-  if (pResolved == nullptr)
-      pResolved = new std::unordered_map <LPCVOID, HMODULE> ();
-
-  std::unordered_map <LPCVOID, HMODULE> *pResolved_ =
-    ((std::unordered_map <LPCVOID, HMODULE> *)pResolved);
-
-  const auto&& it =
-    pResolved_->find (pAddr);
-
-  if (it != pResolved_->cend ())
-  {
-    *phMod = (*pResolved_) [pAddr];
-    return true;
-  }
-
-  return false;
-}
-
-void 
-SK_ModuleAddrMap::insert (LPCVOID pAddr, HMODULE hMod)
-{
-  if (pResolved == nullptr)
-    pResolved = new std::unordered_map <LPCVOID, HMODULE> ( );
-
-  std::unordered_map <LPCVOID, HMODULE> *pResolved_ = 
-    ((std::unordered_map <LPCVOID, HMODULE> *)pResolved);
-
-  (*pResolved_) [pAddr] = hMod;
 }

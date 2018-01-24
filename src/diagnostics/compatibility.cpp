@@ -1376,15 +1376,13 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
   static iSK_Logger*
                pLogger  = SK_CreateLog (L"logs/modules.log");
   DWORD        dwProcID = GetCurrentProcessId ();
-
-  HANDLE       hProc    = nullptr;
   DWORD        cbNeeded =   0;
-
-  // Get a handle to the process.
-  hProc = OpenProcess ( PROCESS_QUERY_INFORMATION |
-                        PROCESS_VM_READ,
-                          FALSE,
-                            dwProcID );
+  HANDLE       hProc    =
+    // Get a handle to the process.
+    OpenProcess ( PROCESS_QUERY_INFORMATION |
+                  PROCESS_VM_READ,
+                    FALSE,
+                      dwProcID );
 
   if (pLogger != nullptr) pLogger->flush_freq = 0;
   if (hProc == nullptr)
@@ -1628,10 +1626,7 @@ SK_ValidateGlobalRTSSProfile (void)
                                      L"dxgi.dll",
                                      L"SpecialK64.dll" };
 
-    const int     num_delay_dlls =
-      sizeof (delay_dlls) / sizeof (const wchar_t *);
-
-    for (auto& delay_dll : delay_dlls)
+    for ( auto& delay_dll : delay_dlls )
     {
       if (triggers.find (delay_dll) == std::wstring::npos)
       {
@@ -2505,7 +2500,7 @@ SK_Bypass_CRT (LPVOID user)
     }
   }
 
-  if (nButtonPressed != TDCBF_OK_BUTTON)
+  //if (nButtonPressed != TDCBF_OK_BUTTON)
   {
     if (! temp_dll.length ())
       SK_RestartGame (nullptr);
@@ -2515,14 +2510,17 @@ SK_Bypass_CRT (LPVOID user)
     ExitProcess (0);
   }
 
-  else
-  {
-    dll_ini->write (dll_ini->get_filename ());
-    SK_SaveConfig  ();
-
-    SK_EnumLoadedModules (SK_ModuleEnum::PostLoad);
-    SK_ResumeThreads     (suspended_tids);
-  }
+  // The old system to try and restart the bootstrapping process
+  //   is impractical, restarting the game works better.
+  //
+  ///else
+  ///{
+  ///  dll_ini->write (dll_ini->get_filename ());
+  ///  SK_SaveConfig  ();
+  ///
+  ///  SK_EnumLoadedModules (SK_ModuleEnum::PostLoad);
+  ///  SK_ResumeThreads     (suspended_tids);
+  ///}
 
 
   CloseHandle (GetCurrentThread ());

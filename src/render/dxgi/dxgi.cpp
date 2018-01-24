@@ -4272,7 +4272,7 @@ SK_DXGI_CreateSwapChain_PostInit ( _In_  IUnknown              *pDevice,
 
   SK_CEGUI_QueueResetD3D11 ();
 
-  if (pDesc->BufferDesc.Width != 0)
+  if (pDesc != nullptr && pDesc->BufferDesc.Width != 0)
   {
     SK_SetWindowResX (pDesc->BufferDesc.Width);
     SK_SetWindowResY (pDesc->BufferDesc.Height);
@@ -4280,7 +4280,7 @@ SK_DXGI_CreateSwapChain_PostInit ( _In_  IUnknown              *pDevice,
 
   else
   {
-    RECT client;
+    RECT client = { };
 
     GetClientRect    (game_window.hWnd, &client);
     SK_SetWindowResX (client.right  - client.left);
@@ -4317,7 +4317,8 @@ SK_DXGI_CreateSwapChain_PostInit ( _In_  IUnknown              *pDevice,
   {
     g_pD3D11Dev = pDev;
 
-    SK_GetCurrentRenderBackend ().fullscreen_exclusive = (! pDesc->Windowed);
+    if (pDesc != nullptr)
+      SK_GetCurrentRenderBackend ().fullscreen_exclusive = (! pDesc->Windowed);
   }
 }
 

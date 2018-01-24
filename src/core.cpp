@@ -512,7 +512,7 @@ WaitForInit (void)
 {
   const auto _SpinMax = 32;
 
-  if (ReadAcquire (&__SK_Init))
+  if (ReadAcquire (&__SK_Init) == 1)
     return;
 
   while (ReadPointerAcquire (&hInitThread) != INVALID_HANDLE_VALUE)
@@ -881,6 +881,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   if ( (! __SK_bypass) && (GetAsyncKeyState (VK_SHIFT  ) & 0x8000) != 0 &&
                           (GetAsyncKeyState (VK_CONTROL) & 0x8000) != 0 )
   {
+    InterlockedExchange (&__SK_Init, -1);
     __SK_bypass = true;
 
     SK_BypassInject ();
@@ -1074,16 +1075,12 @@ BACKEND_INIT:
   lstrcatW (wszBackendDLL, backend);
   lstrcatW (wszBackendDLL, L".dll");
 
-        bool     use_system_dll = true;
-  const wchar_t* dll_name       = wszBackendDLL;
+  const wchar_t* dll_name = wszBackendDLL;
 
   if (! SK_Path_wcsicmp (wszProxyName, wszModuleName))
     dll_name = wszBackendDLL;
   else
-  {
-    dll_name       = wszProxyName;
-    use_system_dll = false;
-  }
+    dll_name = wszProxyName;
 
   bool load_proxy = false;
 

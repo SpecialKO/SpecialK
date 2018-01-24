@@ -771,9 +771,6 @@ void
 WINAPI
 SK_HookD3D9 (void)
 {
-  if (__SK_bypass)
-    return;
-
   static volatile LONG hooked = FALSE;
 
   if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
@@ -2934,8 +2931,8 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
               tex_log.LogEx (false, L"blocking (deferred)\n");
             }
 
-            if ( load_op != nullptr && ( load_op->type == TexLoadRequest::Stream ||
-                                         load_op->type == TexLoadRequest::Immediate ) )
+            if ( load_op->type == TexLoadRequest::Stream ||
+                 load_op->type == TexLoadRequest::Immediate )
             {
               load_op->SrcDataSize =
                 static_cast <UINT> (

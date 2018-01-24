@@ -2079,7 +2079,9 @@ SK_RestartGame (const wchar_t* wszDLL)
     STARTUPINFOW        sinfo = { };
     PROCESS_INFORMATION pinfo = { };
 
-    sinfo.cb = sizeof STARTUPINFOW;
+    sinfo.cb          = sizeof STARTUPINFOW;
+    sinfo.wShowWindow = SW_SHOWNORMAL;
+    sinfo.dwFlags     = STARTF_USESHOWWINDOW;
 
     CreateProcess ( nullptr, wszRunDLLCmd,             nullptr, nullptr,
                     FALSE,   CREATE_NEW_PROCESS_GROUP, nullptr, SK_GetHostPath (),
@@ -2127,7 +2129,9 @@ SK_ElevateToAdmin (void)
   STARTUPINFOW        sinfo = { };
   PROCESS_INFORMATION pinfo = { };
 
-  sinfo.cb = sizeof STARTUPINFOW;
+  sinfo.cb          = sizeof STARTUPINFOW;
+  sinfo.wShowWindow = SW_SHOWNORMAL;
+  sinfo.dwFlags     = STARTF_USESHOWWINDOW;
 
   CreateProcess ( nullptr, wszRunDLLCmd,             nullptr, nullptr,
                   FALSE,   CREATE_NEW_PROCESS_GROUP, nullptr, SK_GetHostPath (),

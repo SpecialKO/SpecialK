@@ -461,18 +461,8 @@ CoCreateInstanceEx_DI8 (
             SK_EnableHook (vftable [3]);
           }
         }
-      }
-    }
-  }
 
-  else if (rclsid == CLSID_DirectInput8)
-  {
-    if ( SUCCEEDED (
-           (hr = CoCreateInstanceEx_Original (CLSID_DirectInput8, pUnkOuter, dwClsCtx, pServerInfo, dwCount, pResults))
-         )
-       )
-    {
-        if (*pResults->pIID == IID_IDirectInput8A)
+        else if (*pResults->pIID == IID_IDirectInput8W)
         {
           if (! IDirectInput8W_CreateDevice_Original)
           {
@@ -486,6 +476,7 @@ CoCreateInstanceEx_DI8 (
             SK_EnableHook (vftable [3]);
           }
         }
+      }
     }
   }
 
