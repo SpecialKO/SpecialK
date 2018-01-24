@@ -35,6 +35,8 @@ struct ID3D11DepthStencilView;
 
 #include <unordered_map>
 
+extern volatile LONG __SK_TLS_INDEX;
+
 class SK_ModuleAddrMap
 {
 public:
@@ -104,8 +106,27 @@ struct SK_TLS
   struct 
   {
     BOOL ctx_init_thread     = FALSE;
-  } ddraw,d3d8,d3d9,
-    dinput8,dinput7;
+  } ddraw;
+
+  struct 
+  {
+    BOOL ctx_init_thread     = FALSE;
+  } d3d8;
+
+  struct 
+  {
+    BOOL ctx_init_thread     = FALSE;
+  } d3d9;
+
+  struct 
+  {
+    BOOL ctx_init_thread     = FALSE;
+  } dinput7;
+
+  struct 
+  {
+    BOOL ctx_init_thread     = FALSE;
+  } dinput8;
 
   struct {
     BOOL drawing             = FALSE;
@@ -127,12 +148,16 @@ struct SK_TLS
     bool             last_chance = false;
   } debug;
 
+
+  struct
+  {
+    char text [32768] = { };
+  } osd;
+
   struct stack
   {
                  int current = 0;
     static const int max     = 2;
-
-
   } stack;
 };
 

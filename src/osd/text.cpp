@@ -23,6 +23,7 @@
 #include <SpecialK/osd/text.h>
 
 #include <SpecialK/log.h>
+#include <SpecialK/tls.h>
 #include <SpecialK/core.h>
 #include <SpecialK/config.h>
 #include <SpecialK/thread.h>
@@ -1702,9 +1703,10 @@ SK_TextOverlay::update (const char* szText)
     float   x, y;
     getPos (x, y);
 
-    static __declspec (thread) char text [32768] = { };
+    char* text = 
+      SK_TLS_Bottom ()->osd.text;
 
-    *text = '\0';
+            *text = '\0';
     strncat (text, data_.text, 32766);
 
     int   num_lines    = SK_CountLines (text);

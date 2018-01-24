@@ -84,12 +84,11 @@ SK_InitRenderBackends (void)
 void
 SK_BootD3D9 (void)
 {
-  SK_TLS_Bottom ()->d3d9.ctx_init_thread = true;
-
   // "Normal" games don't change render APIs mid-game; Talos does, but it's
   //   not normal :)
   if (SK_GetFramesDrawn ())
     return;
+
 
   while (backend_dll == nullptr)
   {
@@ -116,6 +115,8 @@ SK_BootD3D9 (void)
 
   if (! InterlockedCompareExchange (&__booted, TRUE, FALSE))
   {
+    SK_TLS_Bottom ()->d3d9.ctx_init_thread = true;
+
     SK_D3D9_InitShaderModTools ();
 
     if (config.textures.d3d9_mod)
@@ -150,6 +151,12 @@ SK_BootD3D9 (void)
 void
 SK_BootD3D8 (void)
 {
+  // "Normal" games don't change render APIs mid-game; Talos does, but it's
+  //   not normal :)
+  if (SK_GetFramesDrawn ())
+    return;
+
+
   while (backend_dll == nullptr)
   {
     dll_log.Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (d3d8.dll) -- tid=%x ***", GetCurrentThreadId ());
@@ -186,6 +193,12 @@ SK_BootD3D8 (void)
 void
 SK_BootDDraw (void)
 {
+  // "Normal" games don't change render APIs mid-game; Talos does, but it's
+  //   not normal :)
+  if (SK_GetFramesDrawn ())
+    return;
+
+
   while (backend_dll == nullptr)
   {
     dll_log.Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (ddraw.dll) -- tid=%x ***", GetCurrentThreadId ());
@@ -227,6 +240,7 @@ SK_BootDXGI (void)
   //   not normal :)
   if (SK_GetFramesDrawn ())
     return;
+
 
   SK_DXGI_QuickHook ();
 
@@ -279,6 +293,7 @@ SK_BootOpenGL (void)
   //   not normal :)
   if (SK_GetFramesDrawn ())
     return;
+
 
   while (backend_dll == nullptr)
   {

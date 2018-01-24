@@ -1999,9 +1999,8 @@ namespace GLPerf
 
   class PipelineQuery {
   public:
-    PipelineQuery (const wchar_t* wszName, GLenum target)
+    PipelineQuery (const wchar_t* wszName, GLenum target) : name_ (wszName)
     {
-      name_ = wszName;
       glGenQueries (1, &query_);
 
       finished_  = GL_FALSE;
@@ -2009,6 +2008,8 @@ namespace GLPerf
 
       target_    = target;
       active_    = GL_FALSE;
+
+      result_    = 0ULL;
     }
 
    ~PipelineQuery (GLvoid)
