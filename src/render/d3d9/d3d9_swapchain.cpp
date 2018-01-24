@@ -43,7 +43,7 @@ IWrapDirect3DSwapChain9::QueryInterface (REFIID riid, void **ppvObj)
   }
 
   else if (
-    //riid == __uuidof (this) ||
+    riid == IID_IWrapDirect3DSwapChain9    ||
     riid == __uuidof (IUnknown)            ||
     riid == __uuidof (IDirect3DSwapChain9) ||
     riid == __uuidof (IDirect3DSwapChain9Ex))

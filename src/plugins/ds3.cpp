@@ -214,13 +214,11 @@ sk::ParameterBool*    ds3_osd_disclaimer        =  nullptr;
 
 sk::ParameterInt64*   ds3_last_addr             =  nullptr;
 
-extern HWND hWndRender;
-
 struct ds3_state_s {
   IDXGISwapChain* SwapChain  = nullptr;
 
   bool            Fullscreen = false;
-  HWND&           Window     = hWndRender;
+  HWND&           Window     = SK_GetCurrentRenderBackend ().windows.focus;
 
   int             Width      = 0;
   int             Height     = 0;

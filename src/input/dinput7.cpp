@@ -1052,7 +1052,7 @@ IDirectInput7W_CreateDevice_Detour ( IDirectInput7W        *This,
   }
 
 
-  dll_log.Log ( L"[   Input  ][!] IDirectInput7W::CreateDevice (%ph, %s, %ph, %ph)",
+  dll_log.Log ( L"[   Input  ] [!] IDirectInput7W::CreateDevice (%ph, %s, %ph, %ph)",
                    This,
                      wszDevice,
                        lplpDirectInputDevice,
@@ -1138,7 +1138,7 @@ IDirectInput7A_CreateDevice_Detour ( IDirectInput7A        *This,
   }
 
 
-  dll_log.Log ( L"[   Input  ][!] IDirectInput7A::CreateDevice (%ph, %s, %ph, %ph)",
+  dll_log.Log ( L"[   Input  ] [!] IDirectInput7A::CreateDevice (%ph, %s, %ph, %ph)",
                    This,
                      wszDevice,
                        lplpDirectInputDevice,

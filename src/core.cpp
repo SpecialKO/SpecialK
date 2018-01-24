@@ -1512,7 +1512,7 @@ SKX_Window_EstablishRoot (void)
   HWND hWndFocus      = GetFocus            ();
   HWND hWndForeground = GetForegroundWindow ();
 
-  HWND  hWndTarget  = hWndRender;
+  HWND  hWndTarget  = SK_GetCurrentRenderBackend ().windows.device;
   DWORD dwWindowPid = 0;
 
   if (IsGUIThread (FALSE) && hWndTarget == 0)

@@ -765,7 +765,6 @@ SK_DXGI_BringRenderWindowToTop (void)
 extern int                      gpu_prio;
 
 bool             bAlwaysAllowFullscreen = false;
-HWND             hWndRender             = nullptr;
 
 bool bFlipMode = false;
 bool bWait     = false;
@@ -4245,16 +4244,16 @@ SK_DXGI_CreateSwapChain_PostInit ( _In_  IUnknown              *pDevice,
     if ( dwRenderThread == 0x00 ||
          dwRenderThread == GetCurrentThreadId () )
     {
-      if ( hWndRender          != nullptr &&
-           pDesc->OutputWindow != nullptr &&
-           pDesc->OutputWindow != hWndRender )
+      if ( SK_GetCurrentRenderBackend ().windows.device != nullptr &&
+           pDesc->OutputWindow                          != nullptr &&
+           pDesc->OutputWindow                          != SK_GetCurrentRenderBackend ().windows.device )
       {
         dll_log.Log (L"[   DXGI   ] Game created a new window?!");
       }
 
       SK_InstallWindowHook (pDesc->OutputWindow);
 
-      hWndRender = pDesc->OutputWindow;
+      SK_GetCurrentRenderBackend ().windows.setDevice (pDesc->OutputWindow);
     }
 
     if (ppSwapChain != nullptr)
@@ -4708,10 +4707,10 @@ SK_DXGI_BringRenderWindowToTop_THREAD (LPVOID user)
 {
   UNREFERENCED_PARAMETER (user);
 
-  if (hWndRender != nullptr)
+  if (SK_GetCurrentRenderBackend ().windows.device != nullptr)
   {
-    SetForegroundWindow (hWndRender);
-    BringWindowToTop    (hWndRender);
+    SetForegroundWindow (SK_GetCurrentRenderBackend ().windows.device);
+    BringWindowToTop    (SK_GetCurrentRenderBackend ().windows.device);
   }
 
   CloseHandle (GetCurrentThread ());

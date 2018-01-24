@@ -118,8 +118,6 @@ SK_DescribeVkResult (VkResult result)
 }
 
 
-extern HWND hWndRender;
-
 #define VK_CALL(_Ret, _Call) {                                        \
   (_Ret) = (_Call);                                                   \
   dll_log.Log ( L"[  Vulkan  ] [@]  Return: %s  -  < " L#_Call L" >", \
@@ -146,20 +144,20 @@ vkCreateWin32SurfaceKHR_Detour ( VkInstance                   instance,
 
   VkResult ret;
 
-  if ((hWndRender == 0 || (! IsWindow (hWndRender)) || (GetForegroundWindow () != hWndRender)) && IsWindow (pCreateInfo->hwnd)) {
-    hWndRender = pCreateInfo->hwnd;
-
-    // Trigger certain events that only happen after a few frames are drawn
-    //
-    //   I haven't hooked queue creation yet and installed fences in order to
-    //     actually measure framerate in games such as DOOM, that do not use
-    //       traditional swapchain presentation.
-    for (int i = 0; i < 30; i++) {
-      SK_BeginBufferSwap ();
-      SK_EndBufferSwap   (S_OK);
-    }
-  }
-
+  ////////if ((hWndRender == 0 || (! IsWindow (hWndRender)) || (GetForegroundWindow () != hWndRender)) && IsWindow (pCreateInfo->hwnd)) {
+  ////////  SK_GetCurrentRenderBackend ().windows.setDevice (pCreateInfo->hwnd);
+  ////////
+  ////////  // Trigger certain events that only happen after a few frames are drawn
+  ////////  //
+  ////////  //   I haven't hooked queue creation yet and installed fences in order to
+  ////////  //     actually measure framerate in games such as DOOM, that do not use
+  ////////  //       traditional swapchain presentation.
+  ////////  for (int i = 0; i < 30; i++) {
+  ////////    SK_BeginBufferSwap ();
+  ////////    SK_EndBufferSwap   (S_OK);
+  ////////  }
+  ////////}
+  ////////
   VK_CALL ( ret, SK::Vulkan::funcs.vkCreateWin32SurfaceKHR (
                    instance,
                      pCreateInfo,

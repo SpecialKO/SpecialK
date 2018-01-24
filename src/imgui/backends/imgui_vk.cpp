@@ -1013,6 +1013,9 @@ ImGui_ImplVulkan_Init (ImGui_ImplVulkan_Init_Data* init_data)
   return true;
 }
 
+
+#include <SpecialK/render_backend.h>
+
 void
 ImGui_ImplVulkan_Shutdown (void)
 {
@@ -1030,7 +1033,7 @@ ImGui_ImplVulkan_NewFrame (void)
   int display_w, display_h;
 
   RECT client;
-  GetClientRect (game_window.hWnd, &client);
+  GetClientRect (SK_GetCurrentRenderBackend ().windows.device, &client);
 
   w = client.right  - client.left;
   h = client.bottom - client.top;

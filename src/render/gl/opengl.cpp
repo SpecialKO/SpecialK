@@ -81,8 +81,6 @@ WaitForInit_GL (void)
   SK_Thread_SpinUntilFlagged (&__gl_ready);
 }
 
-extern HWND hWndRender;
-
 void __stdcall
 SK_GL_UpdateRenderStats (void);
 
@@ -1844,14 +1842,14 @@ SK_GL_TrackHDC (HDC hDC)
   HWND hWnd_DC =
     WindowFromDC (hDC);
 
-  if (hWndRender != hWnd_DC && IsGUIThread (FALSE))
+  if (SK_GetCurrentRenderBackend ().windows.device != hWnd_DC && IsGUIThread (FALSE))
   {
     if (IsWindowVisible (hWnd_DC) && GetFocus () == hWnd_DC)
     {
       SK_InstallWindowHook (GetActiveWindow ());
 
       if (game_window.WndProc_Original != nullptr)
-        hWndRender = hWnd_DC;
+        SK_GetCurrentRenderBackend ().windows.setDevice (hWnd_DC);
     }
   }
 }

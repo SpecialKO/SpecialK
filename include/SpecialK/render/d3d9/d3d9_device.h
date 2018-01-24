@@ -72,6 +72,18 @@ SK_D3D9_Present_GrandCentral ( sk_d3d9_swap_dispatch_s* dispatch );
 
 
 
+// {6DEC0D40-1339-4BDA-A5F2-2231D4010FD1}
+static const GUID IID_IWrapDirect3DDevice9 =
+  { 0x6dec0d40, 0x1339, 0x4bda, { 0xa5, 0xf2, 0x22, 0x31, 0xd4, 0x1, 0xf, 0xd1 } };
+
+// {9A222196-4D44-45C3-AAA4-2FD47915CC70}
+static const GUID IID_IWrapDirect3DDevice9Ex = 
+  { 0x9a222196, 0x4d44, 0x45c3, { 0xaa, 0xa4, 0x2f, 0xd4, 0x79, 0x15, 0xcc, 0x70 } };
+
+struct __declspec (uuid ("6DEC0D40-1339-4BDA-A5F2-2231D4010FD1")) IWrapDirect3DDevice9;
+struct __declspec (uuid ("9A222196-4D44-45C3-AAA4-2FD47915CC70")) IWrapDirect3DDevice9Ex;
+
+
 struct IWrapDirect3DDevice9 : IDirect3DDevice9Ex
 {
   explicit IWrapDirect3DDevice9 (IDirect3DDevice9 *orig) :

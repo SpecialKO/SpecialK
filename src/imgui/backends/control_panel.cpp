@@ -2572,12 +2572,12 @@ SK_ImGui_ControlPanel (void)
       }
     }
 
-    HDC hDC = GetWindowDC (game_window.hWnd);
+    HDC hDC = GetWindowDC (SK_GetCurrentRenderBackend ().windows.device);
 
     int res_x = GetDeviceCaps (hDC, HORZRES);
     int res_y = GetDeviceCaps (hDC, VERTRES);
 
-    ReleaseDC (game_window.hWnd, hDC);
+    ReleaseDC (SK_GetCurrentRenderBackend ().windows.device, hDC);
 
     if ( client.right - client.left   != res_x || client.bottom - client.top   != res_y ||
          io.DisplayFramebufferScale.x != res_x || io.DisplayFramebufferScale.y != res_y )
@@ -5092,7 +5092,7 @@ extern float SK_ImGui_PulseNav_Strength;
           bool moved = false;
 
           HMONITOR hMonitor =
-            MonitorFromWindow ( game_window.hWnd,
+            MonitorFromWindow ( SK_GetCurrentRenderBackend ().windows.device,
                                   MONITOR_DEFAULTTONEAREST );
 
           MONITORINFO mi  = { };

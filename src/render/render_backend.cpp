@@ -634,6 +634,7 @@ SK_RenderBackend_V2::~SK_RenderBackend_V2 (void)
 }
 
 
+LONG                  trigger_frame       = 0L;
 reset_stage_e         trigger_reset       (reset_stage_e::Clear);
 mode_change_request_e request_mode_change (mode_change_request_e::None);
 
@@ -655,4 +656,56 @@ __stdcall
 SK_Render_GetSwapChain (void)
 {
   return SK_GetCurrentRenderBackend ().swapchain;
+}
+
+
+
+
+HWND
+SK_RenderBackend_V2::window_registry_s::getDevice (void)
+{
+  SK_LOG4 ( (__FUNCTIONW__), L"  DEBUG!  " );
+
+  return device;
+}
+
+HWND
+SK_RenderBackend_V2::window_registry_s::getFocus (void)
+{
+  SK_LOG4 ( (__FUNCTIONW__), L"  DEBUG!  " );
+
+  return focus;
+}
+
+
+#include <SpecialK/window.h>
+
+void
+SK_RenderBackend_V2::window_registry_s::setFocus (HWND hWnd)
+{
+  if (focus == nullptr || ( GetActiveWindow () == hWnd && GetFocus () == hWnd && hWnd != 0))
+  {
+    focus            = hWnd;
+    game_window.hWnd = hWnd;
+
+    SK_LOG1 (( __FUNCTIONW__ L" (%X)", hWnd ), L"  DEBUG!  ");
+  }
+
+  else
+  {
+    SK_LOG1 (( __FUNCTIONW__ L" (%X) --- FAIL [%s %s]", hWnd,
+                GetFocus        () != hWnd ?
+                  L"GetFocus () != this,"  : L"",
+                GetActiveWindow () != hWnd     ?
+                 L"GetActiveWindow () != this" : L""  ),
+              L"  DEBUG!  ");
+  }
+}
+
+void
+SK_RenderBackend_V2::window_registry_s::setDevice (HWND hWnd)
+{
+  device = hWnd;
+
+  SK_LOG1 ( (__FUNCTIONW__ L" (%X)", hWnd), L"  DEBUG!  " );
 }

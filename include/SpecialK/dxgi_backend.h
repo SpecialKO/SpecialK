@@ -299,7 +299,6 @@ extern CreateDXGIFactory1_pfn CreateDXGIFactory1_Import;
 extern CreateDXGIFactory2_pfn CreateDXGIFactory2_Import;
 
 extern DWORD dwRenderThread;
-extern HWND  hWndRender;
 
 std::wstring
 __stdcall

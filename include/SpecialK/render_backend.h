@@ -98,6 +98,18 @@ public:
   int                     present_interval     = 0; // Present interval on last call to present
   LONG                    frames_drawn         = 0;
 
+  struct window_registry_s
+  {
+    HWND                  focus                = 0; // Most input processing happens in this HWND's message pump
+    HWND                  device               = 0; // Defines the client rectangle and not much else
+
+    void setFocus  (HWND hWndFocus);
+    void setDevice (HWND hWndRender);
+
+    HWND getFocus  (void);
+    HWND getDevice (void);
+  } windows;
+
 
   // TODO: Proper abstraction
   struct d3d11_s

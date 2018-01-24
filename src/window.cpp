@@ -3594,7 +3594,7 @@ LRESULT CALLBACK CallWndProc(
       //                  game_window.hWnd, hWnd );
       //}
 
-      game_window.hWnd = hWnd;
+      SK_GetCurrentRenderBackend ().windows.setFocus (hWnd);
 
       game_window.active       = true;
       game_window.game.style   = game_window.GetWindowLongPtr (game_window.hWnd, GWL_STYLE);
@@ -4001,7 +4001,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
                       game_window.hWnd, hWnd );
     }
 
-    game_window.hWnd = hWnd;
+    SK_GetCurrentRenderBackend ().windows.setFocus (hWnd);
 
     game_window.active       = true;
     game_window.game.style   = game_window.GetWindowLongPtr (game_window.hWnd, GWL_STYLE);
@@ -4481,7 +4481,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
   static bool first_run = true;
 
-  if (hWnd != game_window.hWnd || first_run)
+  if (first_run)
   {
     if (first_run)
     {
@@ -4508,18 +4508,12 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
     else if (! first_run)
     {
-      if (hWnd != game_window.hWnd)
-      {
-        game_window.hWnd = hWnd;
-        hWndRender       = hWnd;
-      }
-
       return
         SK_COMPAT_SafeCallProc (&game_window, hWnd, uMsg, wParam, lParam);
     }
 
 
-    game_window.hWnd = hWnd;
+    SK_GetCurrentRenderBackend ().windows.setFocus (hWnd);
 
     DWORD dwFocus, dwForeground;
 
@@ -5175,8 +5169,10 @@ SK_InitWindow (HWND hWnd, bool fullscreen_exclusive)
   game_window.game.style_ex = game_window.actual.style_ex;
 
 
-  game_window.hWnd = hWnd;
-  hWndRender       = hWndRender ? hWndRender : hWnd;
+  SK_GetCurrentRenderBackend ().windows.setFocus  (hWnd);
+  SK_GetCurrentRenderBackend ().windows.setDevice (
+    SK_GetCurrentRenderBackend ().windows.device ?
+    SK_GetCurrentRenderBackend ().windows.device : hWnd);
 
 
   if (! fullscreen_exclusive)
@@ -5415,9 +5411,9 @@ SK_InstallWindowHook (HWND hWnd)
 
   if ((! caught_register) && ((! hook_func) || game_window.WndProc_Original == nullptr))
   {
-    //dll_log.Log ( L"[Window Mgr]  >> Hooking was impossible; installing new "
-    //              L"window procedure instead (this may be undone "
-    //              L"by other software)." );
+    dll_log.Log ( L"[Window Mgr]  >> Hooking was impossible; installing new "
+                  L"window procedure instead (this may be undone "
+                  L"by other software)." );
 
     game_window.WndProc_Original =
       static_cast <WNDPROC> (target_proc);
@@ -5497,8 +5493,10 @@ SK_InstallWindowHook (HWND hWnd)
       RegisterRawInputDevices_Original (&rid, 1, sizeof RAWINPUTDEVICE);
     }
 
-    game_window.hWnd = hWnd;
-    hWndRender       = hWndRender ? hWndRender : hWnd;
+    SK_GetCurrentRenderBackend ().windows.setFocus  (hWnd);
+    SK_GetCurrentRenderBackend ().windows.setDevice (
+      SK_GetCurrentRenderBackend ().windows.device ?
+      game_window.hWnd  : hWnd);
 
     SK_ApplyQueuedHooks ();
     SK_InitWindow (hWnd);

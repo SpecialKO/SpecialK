@@ -712,14 +712,21 @@ BOOL WINAPI RegisterRawInputDevices_Detour (
 
       if (pDevices [i].hwndTarget != 0 && pDevices [i].hwndTarget != game_window.hWnd)
       {
+        static wchar_t wszWindowClass [256] = { };
+        static wchar_t wszWindowTitle [256] = { };
+
+        RealGetWindowClassW   (pDevices [i].hwndTarget, wszWindowClass, 255);
+        InternalGetWindowText (pDevices [i].hwndTarget, wszWindowTitle, 255);
+
         //SK_LOG1 ( 
         SK_LOG0 (
-                  ( L"RawInput is being tracked on hWnd=%x",
-                      pDevices [i].hwndTarget ),
+                  ( L"RawInput is being tracked on hWnd=%x - { (%s), '%s' }",
+                      pDevices [i].hwndTarget, wszWindowClass, wszWindowTitle ),
                         L"Input Mgr." );
 
-        if (GetFocus ( ) == pDevices [i].hwndTarget)
-        {
+        //if (pDevices [i].hwndTarget)
+        //{
+        //  SK_GetCurrentRenderBackend ().windows.setFocus (pDevices [i].hwndTarget);
           //if ( InterlockedCompareExchangePointer ( (volatile LPVOID *)&game_window.hWnd,
           //                                           pDevices [i].hwndTarget,
           //                                             nullptr ) == nullptr )
@@ -731,7 +738,7 @@ BOOL WINAPI RegisterRawInputDevices_Detour (
           //  //SK_LOG0 ( (L" # Installed window hook early due to RawInput registration."),
           //  //           L"Input Mgr." );
           //}
-        }
+        //}
       }
     }
 

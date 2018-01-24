@@ -42,7 +42,9 @@ IWrapDirect3DDevice9::QueryInterface (REFIID riid, void **ppvObj)
   }
 
   else if (
-  //riid == __uuidof (this) ||
+    riid == IID_IWrapDirect3DDevice9Ex  ||
+    riid == IID_IWrapDirect3DDevice9    ||
+    riid == __uuidof (this)             ||
     riid == __uuidof (IUnknown)         ||
     riid == __uuidof (IDirect3DDevice9) ||
     riid == __uuidof (IDirect3DDevice9Ex) )
@@ -63,6 +65,12 @@ IWrapDirect3DDevice9::QueryInterface (REFIID riid, void **ppvObj)
       d3d9ex_ = true;
     }
     #pragma endregion
+
+    // We're not wrapping that!
+    if ((! d3d9ex_) && riid == IID_IWrapDirect3DDevice9Ex)
+    {
+      return E_NOINTERFACE;
+    }
 
     AddRef ();
 
@@ -112,10 +120,10 @@ IWrapDirect3DDevice9::Release (void)
   {
     assert (ReadAcquire (&refs_) == 0);
 
-    //if (d3d9ex_)
-    //  InterlockedDecrement (&SK_D3D9_LiveWrappedDevicesEx);
-    //else
-    //  InterlockedDecrement (&SK_D3D9_LiveWrappedDevices);
+    if (d3d9ex_)
+      InterlockedDecrement (&SK_D3D9_LiveWrappedDevicesEx);
+    else
+      InterlockedDecrement (&SK_D3D9_LiveWrappedDevices);
 
     delete this;
   }

@@ -1195,7 +1195,7 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
 
       if (! dummy_window)
       {
-        hWndRender = swap_chain_desc->OutputWindow;
+        SK_GetCurrentRenderBackend ().windows.setDevice (swap_chain_desc->OutputWindow);
 
         void
         SK_InstallWindowHook (HWND hWnd);
@@ -1204,9 +1204,9 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
         if ( dwRenderThread == 0x00 ||
              dwRenderThread == GetCurrentThreadId () )
         {
-          if ( hWndRender                    != nullptr &&
-               swap_chain_desc->OutputWindow != nullptr &&
-               swap_chain_desc->OutputWindow != hWndRender )
+          if ( SK_GetCurrentRenderBackend ().windows.device != nullptr &&
+               swap_chain_desc->OutputWindow                != nullptr &&
+               swap_chain_desc->OutputWindow                != SK_GetCurrentRenderBackend ().windows.device )
             dll_log.Log (L"[  D3D 11  ] Game created a new window?!");
         }
 

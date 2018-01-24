@@ -21,6 +21,7 @@
 
 #include <SpecialK/window.h>
 
+#include <algorithm>
 #include <atlbase.h>
 
 // Data
@@ -193,10 +194,10 @@ ImGui_ImplDX9_RenderDrawLists (ImDrawData* draw_data)
   g_pd3dDevice->GetDeviceCaps (&caps);
 
   CComPtr <IDirect3DSurface9> pBackBuffer = nullptr;
-  CComPtr <IDirect3DSurface9> rts [32];
+  CComPtr <IDirect3DSurface9> rts [8];
   CComPtr <IDirect3DSurface9> pDS         = nullptr;
 
-  for (UINT target = 0; target < caps.NumSimultaneousRTs; target++)
+  for (UINT target = 0; target < std::min (8UL, caps.NumSimultaneousRTs); target++)
   {
     g_pd3dDevice->GetRenderTarget (target, &rts [target]);
   }
@@ -208,7 +209,7 @@ ImGui_ImplDX9_RenderDrawLists (ImDrawData* draw_data)
     g_pd3dDevice->SetRenderTarget        (0, pBackBuffer);
     g_pd3dDevice->SetDepthStencilSurface (nullptr);
 
-    for (UINT target = 1; target < caps.NumSimultaneousRTs; target++)
+    for (UINT target = 0; target < std::min (8UL, caps.NumSimultaneousRTs); target++)
       g_pd3dDevice->SetRenderTarget (target, nullptr);
   }
 
@@ -316,7 +317,7 @@ ImGui_ImplDX9_RenderDrawLists (ImDrawData* draw_data)
     vtx_offset += cmd_list->VtxBuffer.Size;
   }
 
-  for (UINT target = 0; target < caps.NumSimultaneousRTs; target++)
+  for (UINT target = 0; target < std::min (8UL, caps.NumSimultaneousRTs); target++)
     g_pd3dDevice->SetRenderTarget (target, rts [target]);
 
   g_pd3dDevice->SetDepthStencilSurface (pDS);
@@ -542,17 +543,24 @@ ImGui_ImplDX9_NewFrame (void)
 
   // Setup display size (every frame to accommodate for window resizing)
   RECT rect = { };
-  GetClientRect (game_window.hWnd, &rect);//g_hWnd, &rect);
+  GetClientRect (SK_GetCurrentRenderBackend ().windows.device, &rect);
 
-  io.DisplayFramebufferScale =
-    ImVec2 ( static_cast <float> (rect.right  - rect.left),
-             static_cast <float> (rect.bottom - rect.top ) );
+  if ( (rect.right  - rect.left) > 0 &&
+       (rect.bottom - rect.top)  > 0    )
+  {
+    io.DisplayFramebufferScale =
+      ImVec2 ( static_cast <float> (rect.right  - rect.left),
+               static_cast <float> (rect.bottom - rect.top ) );
+  }
 
 //dll_log.Log (L"Window Width: %lu, Height: %lu", rect.right  - rect.left, rect.bottom - rect.top);
-
-
+  
+  
   if (! g_pd3dDevice)
+  {
+     dll_log.Log (L"No device!");
     return;
+  }
 
 
   CComPtr <IDirect3DSwapChain9> pSwapChain = nullptr;
@@ -572,8 +580,25 @@ ImGui_ImplDX9_NewFrame (void)
           ImVec2 ( static_cast <float> (pp.BackBufferWidth),
                    static_cast <float> (pp.BackBufferHeight) );
       }
+
+      else
+      {
+        GetClientRect (pp.hDeviceWindow, &rect);
+
+        if ( (rect.right  - rect.left) > 0 &&
+             (rect.bottom - rect.top)  > 0    )
+        {
+          io.DisplayFramebufferScale =
+            ImVec2 ( static_cast <float> (rect.right  - rect.left),
+                     static_cast <float> (rect.bottom - rect.top ) );
+
+          io.DisplaySize.x = io.DisplayFramebufferScale.x;
+          io.DisplaySize.y = io.DisplayFramebufferScale.y;
+        }
+      }
     }
   }
+
 
   // Setup time step
   INT64 current_time;
