@@ -93,8 +93,11 @@ extern CoCreateInstanceEx_pfn CoCreateInstanceEx_Original;
 
 
 
+bool SK_WMI_Init     (void);
+void SK_WMI_Shutdown (void);
+
 static
-auto SK_WaitForInit_WMI = [&](void) ->
+auto SK_WMI_WaitForInit = [&](void) ->
 void
 {
   SK_Thread_SpinUntilFlagged (&COM::base.wmi.init);

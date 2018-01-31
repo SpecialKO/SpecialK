@@ -223,6 +223,8 @@ struct sk_hook_d3d11_t {
  ID3D11DeviceContext** ppImmediateContext;
 } d3d11_hook_ctx;
 
+void SK_DXGI_HookSwapChain (IDXGISwapChain* pSwapChain);
+
 static IDXGISwapChain* imgui_swap = nullptr;
 
 void
@@ -958,58 +960,58 @@ SK_DXGI_BeginHooking (void)
     WaitForInitDXGI      (); \
 }
 
-#define DXGI_STUB(_Return, _Name, _Proto, _Args)                            \
-  _Return STDMETHODCALLTYPE                                                 \
-  _Name _Proto {                                                            \
-    WaitForInit ();                                                         \
-                                                                            \
-    typedef _Return (STDMETHODCALLTYPE *passthrough_pfn) _Proto;            \
-    static passthrough_pfn _default_impl = nullptr;                         \
-                                                                            \
-    if (_default_impl == nullptr) {                                         \
-      static const char* szName = #_Name;                                   \
-      _default_impl = (passthrough_pfn)GetProcAddress (backend_dll, szName);\
-                                                                            \
-      if (_default_impl == nullptr) {                                       \
-        dll_log.Log (                                                       \
-          L"Unable to locate symbol  %s in dxgi.dll",                       \
-          L#_Name);                                                         \
-        return (_Return)E_NOTIMPL;                                          \
-      }                                                                     \
-    }                                                                       \
-                                                                            \
-    dll_log.Log (L"[   DXGI   ] [!] %s %s - "                               \
-             L"[Calling Thread: 0x%04x]",                                   \
-      L#_Name, L#_Proto, GetCurrentThreadId ());                            \
-                                                                            \
-    return _default_impl _Args;                                             \
+#define DXGI_STUB(_Return, _Name, _Proto, _Args)                          \
+  _Return STDMETHODCALLTYPE                                               \
+  _Name _Proto {                                                          \
+    WaitForInit ();                                                       \
+                                                                          \
+    typedef _Return (STDMETHODCALLTYPE *passthrough_pfn) _Proto;          \
+    static passthrough_pfn _default_impl = nullptr;                       \
+                                                                          \
+    if (_default_impl == nullptr) {                                       \
+      static const char* szName = #_Name;                                 \
+      _default_impl = (passthrough_pfn)GetProcAddress(backend_dll,szName);\
+                                                                          \
+      if (_default_impl == nullptr) {                                     \
+        dll_log.Log (                                                     \
+          L"Unable to locate symbol  %s in dxgi.dll",                     \
+          L#_Name);                                                       \
+        return (_Return)E_NOTIMPL;                                        \
+      }                                                                   \
+    }                                                                     \
+                                                                          \
+    dll_log.Log (L"[   DXGI   ] [!] %s %s - "                             \
+             L"[Calling Thread: 0x%04x]",                                 \
+      L#_Name, L#_Proto, GetCurrentThreadId ());                          \
+                                                                          \
+    return _default_impl _Args;                                           \
 }
 
-#define DXGI_STUB_(_Name, _Proto, _Args)                                    \
-  void STDMETHODCALLTYPE                                                    \
-  _Name _Proto {                                                            \
-    WaitForInit ();                                                         \
-                                                                            \
-    typedef void (STDMETHODCALLTYPE *passthrough_pfn) _Proto;               \
-    static passthrough_pfn _default_impl = nullptr;                         \
-                                                                            \
-    if (_default_impl == nullptr) {                                         \
-      static const char* szName = #_Name;                                   \
-      _default_impl = (passthrough_pfn)GetProcAddress (backend_dll, szName);\
-                                                                            \
-      if (_default_impl == nullptr) {                                       \
-        dll_log.Log (                                                       \
-          L"Unable to locate symbol  %s in dxgi.dll",                       \
-          L#_Name );                                                        \
-        return;                                                             \
-      }                                                                     \
-    }                                                                       \
-                                                                            \
-    dll_log.Log (L"[   DXGI   ] [!] %s %s - "                               \
-             L"[Calling Thread: 0x%04x]",                                   \
-      L#_Name, L#_Proto, GetCurrentThreadId ());                            \
-                                                                            \
-    _default_impl _Args;                                                    \
+#define DXGI_STUB_(_Name, _Proto, _Args)                                  \
+  void STDMETHODCALLTYPE                                                  \
+  _Name _Proto {                                                          \
+    WaitForInit ();                                                       \
+                                                                          \
+    typedef void (STDMETHODCALLTYPE *passthrough_pfn) _Proto;             \
+    static passthrough_pfn _default_impl = nullptr;                       \
+                                                                          \
+    if (_default_impl == nullptr) {                                       \
+      static const char* szName = #_Name;                                 \
+      _default_impl = (passthrough_pfn)GetProcAddress(backend_dll,szName);\
+                                                                          \
+      if (_default_impl == nullptr) {                                     \
+        dll_log.Log (                                                     \
+          L"Unable to locate symbol  %s in dxgi.dll",                     \
+          L#_Name );                                                      \
+        return;                                                           \
+      }                                                                   \
+    }                                                                     \
+                                                                          \
+    dll_log.Log (L"[   DXGI   ] [!] %s %s - "                             \
+             L"[Calling Thread: 0x%04x]",                                 \
+      L#_Name, L#_Proto, GetCurrentThreadId ());                          \
+                                                                          \
+    _default_impl _Args;                                                  \
 }
 
 int
@@ -1599,10 +1601,11 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
                    dc->GetDevice (&pDev);
   const D3D_FEATURE_LEVEL ft_lvl = pDev->GetFeatureLevel ();
 
-  UINT minus_one [D3D11_PS_CS_UAV_REGISTER_COUNT] = { std::numeric_limits <UINT>::max (), std::numeric_limits <UINT>::max (),
-                                                      std::numeric_limits <UINT>::max (), std::numeric_limits <UINT>::max (),
-                                                      std::numeric_limits <UINT>::max (), std::numeric_limits <UINT>::max (),
-                                                      std::numeric_limits <UINT>::max (), std::numeric_limits <UINT>::max () };
+  UINT minus_one [D3D11_PS_CS_UAV_REGISTER_COUNT] =
+    { std::numeric_limits <UINT>::max (), std::numeric_limits <UINT>::max (),
+      std::numeric_limits <UINT>::max (), std::numeric_limits <UINT>::max (),
+      std::numeric_limits <UINT>::max (), std::numeric_limits <UINT>::max (),
+      std::numeric_limits <UINT>::max (), std::numeric_limits <UINT>::max () };
   
   dc->VSSetShader            (sb->VS, sb->VSInterfaces, sb->VSInterfaceCount);
 
@@ -2352,14 +2355,6 @@ SK_DXGI_Present1 ( IDXGISwapChain1         *This,
   return hr;
 }
 
-#ifdef _WIN64
-#define DARK_SOULS
-#ifdef DARK_SOULS
-  extern int* __DS3_WIDTH;
-  extern int* __DS3_HEIGHT;
-#endif
-#endif
-
 static bool first_frame = true;
 
 enum class SK_DXGI_PresentSource
@@ -2572,9 +2567,6 @@ SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
 
         case SK_GAME_ID::WorldOfFinalFantasy:
         {
-          extern void
-          SK_DeferCommand (const char* szCommand);
-
           SK_DeferCommand ("Window.Borderless toggle");
           SleepEx (33, FALSE);
           SK_DeferCommand ("Window.Borderless toggle");
@@ -2604,8 +2596,6 @@ SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
         if (bAlwaysAllowFullscreen)
           pFactory->MakeWindowAssociation (desc.OutputWindow, DXGI_MWA_NO_WINDOW_CHANGES);
       }
-
-      void SK_DXGI_HookSwapChain (IDXGISwapChain* pSwapChain);
 
       SK_DXGI_HookSwapChain (This);
 
@@ -2781,18 +2771,6 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
 
   if (process)
   {
-#ifdef DARK_SOULS
-    if (__DS3_HEIGHT != nullptr)
-    {
-      DXGI_SWAP_CHAIN_DESC swap_desc = {};
-      if (SUCCEEDED (This->GetDesc (&swap_desc)))
-      {
-        *__DS3_WIDTH  = swap_desc.BufferDesc.Width;
-        *__DS3_HEIGHT = swap_desc.BufferDesc.Height;
-      }
-    }
-#endif
-
     // Start / End / Readback Pipeline Stats
     SK_D3D11_UpdateRenderStats (This);
     SK_D3D12_UpdateRenderStats (This);
@@ -2897,10 +2875,7 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
           break;
   
         case SK_GAME_ID::WorldOfFinalFantasy:
-        {
-          extern void
-          SK_DeferCommand (const char* szCommand);
-  
+        {  
           SK_DeferCommand ("Window.Borderless toggle");
           SleepEx (33, FALSE);
           SK_DeferCommand ("Window.Borderless toggle");
@@ -3363,7 +3338,7 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
     Fullscreen = FALSE;
   }
 
-  HRESULT ret;
+  HRESULT    ret;
   DXGI_CALL (ret, SetFullscreenState_Original (This, Fullscreen, pTarget));
 
   //
@@ -3371,12 +3346,6 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
   //
   if (SUCCEEDED (ret))
   {
-    void
-    __stdcall
-    SK_D3D11_ResetTexCache (void);
-
-    ////SK_D3D11_ResetTexCache ();
-
     if (bFlipMode)
     {
       // Steam Overlay does not like this, even though for compliance sake we are supposed to do it :(
@@ -3402,9 +3371,9 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
 
       else
       {
-        RECT client;
-
+        RECT                               client = { };
         GetClientRect (desc.OutputWindow, &client);
+
         SK_SetWindowResX (client.right  - client.left);
         SK_SetWindowResY (client.bottom - client.top);
       }
@@ -3670,9 +3639,9 @@ DXGISwap_ResizeBuffers_Override ( IDXGISwapChain *This,
 
     else
     {
-      RECT client;
-
+      RECT                              client = { };
       GetClientRect (game_window.hWnd, &client);
+
       SK_SetWindowResX (client.right  - client.left);
       SK_SetWindowResY (client.bottom - client.top);
     }
@@ -4094,8 +4063,8 @@ SK_DXGI_CreateSwapChain_PreInit ( _Inout_opt_ DXGI_SWAP_CHAIN_DESC            *p
         (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode;
     }
 
-    if ( config.render.dxgi.scanline_order != -1 &&
-          pDesc->BufferDesc.ScanlineOrdering      !=
+    if ( config.render.dxgi.scanline_order   != -1 &&
+          pDesc->BufferDesc.ScanlineOrdering !=
             (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order )
     {
       dll_log.Log ( L"[   DXGI   ]  >> Scanline Override "
@@ -4112,7 +4081,7 @@ SK_DXGI_CreateSwapChain_PreInit ( _Inout_opt_ DXGI_SWAP_CHAIN_DESC            *p
         (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order;
     }
 
-    if ( config.render.framerate.refresh_rate != -1 &&
+    if ( config.render.framerate.refresh_rate    != -1 &&
          pDesc->BufferDesc.RefreshRate.Numerator != (UINT)config.render.framerate.refresh_rate )
     {
       dll_log.Log ( L"[   DXGI   ]  >> Refresh Override "
@@ -6122,7 +6091,6 @@ SK::DXGI::StartBudgetThread ( IDXGIAdapter** ppAdapter )
   {
     // We darn sure better not spawn multiple threads!
     std::lock_guard <SK_Thread_CriticalSection> auto_lock (*budget_mutex);
-    //SK_AutoCriticalSection auto_cs (&budget_mutex);
 
     if ( budget_thread.handle == INVALID_HANDLE_VALUE )
     {
@@ -6156,7 +6124,7 @@ SK::DXGI::StartBudgetThread ( IDXGIAdapter** ppAdapter )
 
 
       while ( ! ReadAcquire ( &budget_thread.ready )
-            ) SleepEx (100, TRUE);
+            ) SleepEx (500, TRUE);
 
 
       if ( budget_thread.tid != 0 )
@@ -6755,12 +6723,8 @@ SK_DXGI_QuickHook (void)
 
   if (! InterlockedCompareExchange (&quick_hooked, TRUE, FALSE))
   {
-  //  if (GetAsyncKeyState (VK_MENU))
-  //    return;
     SK_D3D11_InitTextures ();
-
-    extern void SK_D3D11_QuickHook (void);
-                SK_D3D11_QuickHook ();
+    SK_D3D11_QuickHook    ();
   
     sk_hook_cache_enablement_s state =
       SK_Hook_PreCacheModule ( L"DXGI",

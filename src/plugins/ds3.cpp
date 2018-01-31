@@ -230,10 +230,6 @@ struct ds3_state_s {
 } ds3_state;
 
 
-int* __DS3_WIDTH  = nullptr;
-int* __DS3_HEIGHT = nullptr;
-
-
 struct sus_state_s {
   bool Center     = false;
   bool MaxWindow  = false;
@@ -677,9 +673,6 @@ void
 SK_DS3_InitPlugin (void)
 {
   SK_DisableDPIScaling ();
-
-  __DS3_WIDTH  = &ds3_state.Width;
-  __DS3_HEIGHT = &ds3_state.Height;
 
   ds3_state.Width  = ds3_cfg.render.res_x;
   ds3_state.Height = ds3_cfg.render.res_y;

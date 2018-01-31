@@ -33,6 +33,7 @@
 #include <SpecialK/performance/io_monitor.h>
 #include <SpecialK/performance/gpu_monitor.h>
 #include <SpecialK/framerate.h>
+#include <SpecialK/com_util.h>
 
 #include <SpecialK/log.h>
 #include <SpecialK/config.h>
@@ -98,8 +99,6 @@
 
 extern iSK_Logger game_debug;
 
-extern void SK_InitWindow    (HWND hWnd);
-extern bool SK_InitWMI       (void);
 extern void SK_Input_PreInit (void);
 
 
@@ -909,8 +908,8 @@ SK_StartupCore (const wchar_t* backend, void* callback)
                               "QueryPerformanceCounter" )
       );
 
-    SK_Init_MinHook        ();
-         SK_InitWMI        ();
+    SK_MinHook_Init        ();
+    SK_WMI_Init            ();
     SK_InitCompatBlacklist ();
 
     // Do this from the startup thread
@@ -1275,7 +1274,7 @@ SK_ShutdownCore (const wchar_t* backend)
   extern __time64_t __SK_DLL_AttachTime;
   if (! __SK_DLL_AttachTime)
   {
-    SK_UnInit_MinHook ();
+    SK_MinHook_UnInit ();
     return true;
   }
 
@@ -1379,13 +1378,13 @@ SK_ShutdownCore (const wchar_t* backend)
   dll_log.LogEx        (true, L"[ SpecialK ] Shutting down MinHook...                     ");
 
   dwTime = timeGetTime ();
-  SK_UnInit_MinHook    ();
+  SK_MinHook_UnInit    ();
   dll_log.LogEx        (false, L"done! (%4u ms)\n", timeGetTime () - dwTime);
 
 
   dll_log.LogEx        (true, L"[ WMI Perf ] Shutting down WMI WbemLocator...             ");
   dwTime = timeGetTime ();
-  SK_ShutdownWMI       ();
+  SK_WMI_Shutdown      ();
   dll_log.LogEx        (false, L"done! (%4u ms)\n", timeGetTime () - dwTime);
 
 
@@ -1485,7 +1484,7 @@ extern void            SK_ImGui_Toggle               (void);
 extern void            SK_ImGui_LoadFonts            (void);
 extern void            SK_ImGui_PollGamepad_EndFrame (void);
 
-extern void            SK_ResetWindow                (void);
+extern void            SK_Window_RepositionIfNeeded  (void);
 
 void
 SKX_Window_EstablishRoot (void)
@@ -1572,14 +1571,26 @@ SK_BeginBufferSwap (void)
   }
 
 
-  if (game_window.WndProc_Original == nullptr)
+  //
+  // Defer this process to rule out dummy init. windows in some engines
+  //
+  if (SK_GetFramesDrawn () > 2)
   {
-    SKX_Window_EstablishRoot ();
-  }
+    if (game_window.WndProc_Original == nullptr)
+    {
+      SKX_Window_EstablishRoot ();
+    }
 
-  if (game_window.WndProc_Original != nullptr)
-  {
-    SK_RunOnce (SK_ResetWindow ());
+    if (game_window.WndProc_Original != nullptr)
+    {
+      // If user wants position / style overrides, kick them off on the first
+      //   frame after a window procedure has been established.
+      //
+      //  (nb: Must be implemented asynchronously)
+      //
+      SK_RunOnce (SK_Window_RepositionIfNeeded ());
+      SK_RunOnce (game_window.active = true);
+    }
   }
 
 
@@ -1592,12 +1603,6 @@ SK_BeginBufferSwap (void)
          ( (! InterlockedCompareExchange (&CEGUI_Init, TRUE, FALSE)) ||
             LastKnownAPI != SK_GetCurrentRenderBackend ().api ) )
     {
-      if (game_window.WndProc_Original == nullptr)
-      {
-        SK_InstallWindowHook (GetForegroundWindow ());
-        game_window.active = true;
-      }
-
       InterlockedIncrement (&SK_GetCurrentRenderBackend ().frames_drawn);
 
       // Brutally stupid hack for brutally stupid OS (Windows 7)

@@ -22,8 +22,12 @@
 #include <SpecialK/com_util.h>
 #include <SpecialK/utility.h>
 #include <SpecialK/thread.h>
+#include <SpecialK/config.h>
 #include <SpecialK/hooks.h>
 #include <SpecialK/log.h>
+
+#include <atlbase.h>
+#include <comdef.h>
 
 #pragma comment (lib, "wbemuuid.lib")
 
@@ -32,14 +36,12 @@ COM::Base COM::base = { };
 void
 COM::Base::WMI::Lock (void)
 {
-  //EnterCriticalSection (&wmi_cs);
   wmi_cs->lock ();
 }
 
 void
 COM::Base::WMI::Unlock (void)
 {
-  //LeaveCriticalSection (&wmi_cs);
   wmi_cs->unlock ();
 }
 
@@ -172,7 +174,7 @@ CoCreateInstanceEx_Detour (
 
 
 bool
-SK_InitCOM (void)
+SK_COM_InitSecurity (void)
 {
   HRESULT hr;
 
@@ -192,8 +194,10 @@ SK_InitCOM (void)
     //     initialized it to.
     if (hr != RPC_E_TOO_LATE)
     {
-      dll_log.Log (L"[COM Secure] Failure to initialize COM Security (%s:%d) -- 0x%X",
-                   __FILEW__, __LINE__, hr);
+      SK_LOG0 ( ( L"Failure to initialize COM Security (%s:%d) -- %s",
+                  __FILEW__, __LINE__, _com_error (hr).ErrorMessage () ),
+                  L"COM Secure" );
+
       return false;
     }
   }
@@ -223,8 +227,10 @@ SK_WMI_ServerThread (LPVOID lpUser)
              )
      )
   {
-    dll_log.Log (L"[ WMI Wbem ] Failed to create Wbem Locator (%s:%d) -- 0x%X",
-      __FILEW__, __LINE__, hr);
+    SK_LOG0 ( ( L"Failed to create Wbem Locator (%s:%d) -- %s",
+                  __FILEW__, __LINE__, _com_error (hr).ErrorMessage () ),
+                L" WMI Wbem " );
+
     goto WMI_CLEANUP;
   }
 
@@ -232,8 +238,10 @@ SK_WMI_ServerThread (LPVOID lpUser)
   COM::base.wmi.bstrNameSpace = SysAllocString (L"\\\\.\\Root\\CIMv2");
   if (COM::base.wmi.bstrNameSpace == nullptr)
   {
-    dll_log.Log (L"[ WMI Wbem ] Out of Memory (%s:%d)",
-      __FILEW__, __LINE__);
+    SK_LOG0 ( ( L"Out of Memory (%s:%d)",
+                  __FILEW__, __LINE__ ),
+                L" WMI Wbem " );
+
     hr = E_OUTOFMEMORY;
     goto WMI_CLEANUP;
   }
@@ -250,8 +258,10 @@ SK_WMI_ServerThread (LPVOID lpUser)
              )
      )
   {
-    dll_log.Log (L"[ WMI Wbem ] Failure to Connect to Wbem Server (%s:%d) -- 0x%X",
-      __FILEW__, __LINE__, hr);
+    SK_LOG0 ( ( L"Failure to Connect to Wbem Server (%s:%d) -- %s",
+                  __FILEW__, __LINE__, _com_error (hr).ErrorMessage () ),
+                L" WMI Wbem " );
+
     goto WMI_CLEANUP;
   }
 
@@ -273,8 +283,10 @@ SK_WMI_ServerThread (LPVOID lpUser)
              )
      )
   {
-    dll_log.Log (L"[ WMI Wbem ] Failure to set proxy impersonation (%s:%d) -- 0x%X",
-      __FILEW__, __LINE__, hr);
+    SK_LOG0 ( ( L"Failure to set proxy impersonation (%s:%d) -- %s",
+                  __FILEW__, __LINE__, _com_error (hr).ErrorMessage () ),
+                L" WMI Wbem " );
+
     pUnk->Release ();
     goto WMI_CLEANUP;
   }
@@ -284,7 +296,8 @@ SK_WMI_ServerThread (LPVOID lpUser)
   InterlockedExchange (&COM::base.wmi.init, 1);
 
   // Keep the thread alive indefinitely so that the WMI stuff continues running
-  while (MsgWaitForMultipleObjects (1, &COM::base.wmi.hShutdownServer, FALSE, INFINITE, QS_ALLEVENTS) != WAIT_OBJECT_0)
+  while ( MsgWaitForMultipleObjects ( 1, &COM::base.wmi.hShutdownServer,
+                                      FALSE, INFINITE, QS_ALLEVENTS ) != WAIT_OBJECT_0 )
     ;
 
 WMI_CLEANUP:
@@ -310,8 +323,10 @@ WMI_CLEANUP:
 
   return 0;
 }
+
+extern "C"
 bool
-SK_InitWMI (void)
+SK_WMI_Init (void)
 {
 #if 0
   CoCreateInstance_Original =
@@ -332,6 +347,7 @@ SK_InitWMI (void)
   SK_ApplyQueuedHooks ();
 #endif
   
+
   COM::base.wmi.Lock ();
 
   if (ReadAcquire (&COM::base.wmi.init) > 0)
@@ -348,26 +364,28 @@ SK_InitWMI (void)
       CreateEvent (nullptr, TRUE, FALSE, L"WMI Shutdown");
 
     InterlockedExchangePointer (&COM::base.wmi.hServerThread,
-      CreateThread (nullptr, 0,
-                    [](LPVOID) ->
-                    DWORD
-                    {
-                      SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_LOWEST);
+      CreateThread ( nullptr, 0,
+              [](LPVOID) ->
+              DWORD
+              {
+                SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_LOWEST);
 
-                      SK_AutoCOMInit auto_com;
+                SK_AutoCOMInit auto_com;
 
-                      SK_InitCOM ();
+                SK_COM_InitSecurity ();
 
-                      return SK_WMI_ServerThread (nullptr);
-                    },
-                    nullptr, 0x00, nullptr
-                    )
+                return SK_WMI_ServerThread (nullptr);
+              },
+            nullptr,
+          0x00, 
+        nullptr
+      )
     );
   }
 
   else
   {
-    SK_WaitForInit_WMI ();
+    SK_WMI_WaitForInit ();
   }
 
   COM::base.wmi.Unlock ();
@@ -375,8 +393,9 @@ SK_InitWMI (void)
   return true;
 }
 
+extern "C"
 void
-SK_ShutdownWMI (void)
+SK_WMI_Shutdown (void)
 {
   if (InterlockedCompareExchange (&COM::base.wmi.init, 0, 1))
   {

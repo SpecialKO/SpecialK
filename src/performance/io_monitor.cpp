@@ -39,19 +39,21 @@
 #include <process.h>
 #include <comdef.h>
 
-thread_events   perfmon;
+thread_events   perfmon        = {};
 
-cpu_perf_t      cpu_stats;
-disk_perf_t     disk_stats;
-pagefile_perf_t pagefile_stats;
-process_stats_t process_stats;
+cpu_perf_t      cpu_stats      = {};
+disk_perf_t     disk_stats     = {};
+pagefile_perf_t pagefile_stats = {};
+process_stats_t process_stats  = {};
 
 
 
 void
 SK_CountIO (io_perf_t& ioc, const double update)
 {
-  static HANDLE hProc = GetCurrentProcess ();
+  // Virtual handle; don't close this.
+  static HANDLE hProc =
+    GetCurrentProcess ();
 
   if (ioc.init == false)
   {
@@ -145,7 +147,7 @@ SK_MonitorCPU (LPVOID user_param)
 {
   SetThreadPriority (GetCurrentThread ( ), THREAD_PRIORITY_LOWEST);
 
-  SK_WaitForInit_WMI ();
+  SK_WMI_WaitForInit ();
 
   SK_AutoCOMInit auto_com;
 
@@ -498,7 +500,7 @@ SK_MonitorDisk (LPVOID user)
 {
   SetThreadPriority (GetCurrentThread ( ), THREAD_PRIORITY_LOWEST);
 
-  SK_WaitForInit_WMI ();
+  SK_WMI_WaitForInit ();
 
   SK_AutoCOMInit auto_com;
 
@@ -916,7 +918,7 @@ SK_MonitorPagefile (LPVOID user)
 {
   SetThreadPriority (GetCurrentThread ( ), THREAD_PRIORITY_LOWEST);
 
-  SK_WaitForInit_WMI ();
+  SK_WMI_WaitForInit ();
 
   SK_AutoCOMInit auto_com;
 
@@ -1246,7 +1248,7 @@ SK_MonitorProcess (LPVOID user)
 {
   SetThreadPriority (GetCurrentThread ( ), THREAD_PRIORITY_LOWEST);
 
-  SK_WaitForInit_WMI ();
+  SK_WMI_WaitForInit ();
 
   SK_AutoCOMInit auto_com;
 
@@ -1268,8 +1270,9 @@ SK_MonitorProcess (LPVOID user)
              )
      )
   {
-    dll_log.Log(L"[ WMI Wbem ] Failed to create Refresher Instance (%s:%d) -- 0x%X",
-      __FILEW__, __LINE__, hr);
+    SK_LOG0 ( ( L"Failed to create Refresher Instance (%s:%d) -- (hr=%x; %s)",
+                  __FILEW__, __LINE__, hr, _com_error (hr).ErrorMessage () ),
+                L" WMI Wbem " );
     goto PROC_CLEANUP;
   }
 
@@ -1279,8 +1282,10 @@ SK_MonitorProcess (LPVOID user)
              )
      )
   {
-    dll_log.Log(L"[ WMI Wbem ] Failed to Query Refresher Interface (%s:%d) -- 0x%X",
-      __FILEW__, __LINE__, hr);
+    SK_LOG0 ( ( L" Failed to Query Refresher Interface (%s:%d) -- (hr=%x; %s)",
+                  __FILEW__, __LINE__, hr, _com_error (hr).ErrorMessage () ),
+                L" WMI Wbem " );
+
     goto PROC_CLEANUP;
   }
 
@@ -1314,8 +1319,10 @@ SK_MonitorProcess (LPVOID user)
              )
      )
   {
-    dll_log.Log(L"[ WMI Wbem ] Failed to AddObjectByPath (%s:%d) -- 0x%X",
-      __FILEW__, __LINE__, hr);
+    SK_LOG0 ( ( L" Failed to AddObjectByPath (%s:%d) -- (hr=%x; %s)",
+                  __FILEW__, __LINE__, hr, _com_error (hr).ErrorMessage () ),
+                L" WMI Wbem " );
+
     goto PROC_CLEANUP;
   }
 
@@ -1324,9 +1331,10 @@ SK_MonitorProcess (LPVOID user)
              )
      )
   {
-    dll_log.Log(L"[ WMI Wbem ] Failed to Query WbemObjectAccess Interface (%s:%d)"
-                L" -- 0x%X",
-      __FILEW__, __LINE__, hr);
+    SK_LOG0 ( ( L" Failed to Query WbemObjectAccess Interface (%s:%d) -- (hr=%x; %s)",
+                  __FILEW__, __LINE__, hr, _com_error (hr).ErrorMessage () ),
+                L" WMI Wbem " );
+
     pClassObj->Release ();
     pClassObj = nullptr;
 

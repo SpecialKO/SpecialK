@@ -15010,8 +15010,8 @@ RunDLL_HookManager_DXGI ( HWND  hwnd,        HINSTANCE hInst,
     config.input.gamepad.hook_hid                = false;
     config.input.gamepad.hook_xinput             = false;
 
-    SK_Init_MinHook        ();
-    SK_ApplyQueuedHooks    ();
+    SK_MinHook_Init     ();
+    SK_ApplyQueuedHooks ();
 
     SK_SetDLLRole (DLL_ROLE::DXGI);
 
