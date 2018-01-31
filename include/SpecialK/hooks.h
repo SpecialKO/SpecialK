@@ -247,7 +247,7 @@ MH_STATUS __stdcall SK_EnableHookEx   (void *pTarget, UINT idx);
 MH_STATUS __stdcall SK_DisableHook    (void *pTarget);
 MH_STATUS __stdcall SK_RemoveHook     (void *pTarget);
 
-MH_STATUS __stdcall SK_Init_MinHook   (void);
-MH_STATUS __stdcall SK_UnInit_MinHook (void);
+MH_STATUS __stdcall SK_MinHook_Init   (void);
+MH_STATUS __stdcall SK_MinHook_UnInit (void);
 
 #endif /* __SK__HOOKS_H__ */

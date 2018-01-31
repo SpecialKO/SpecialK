@@ -155,8 +155,9 @@ const wchar_t*
         __stdcall
                SK_GetCanonicalDLLForRole    (enum DLL_ROLE role);
 
-const wchar_t*
-SK_DescribeHRESULT (HRESULT hr);
+const wchar_t* SK_DescribeHRESULT           (HRESULT hr);
+
+void           SK_DeferCommand              (const char* szCommand);
 
 
 

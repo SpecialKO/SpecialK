@@ -33,6 +33,13 @@
 #include <vector>
 #include <concurrent_unordered_map.h>
 
+#define SK_LOG_MINHOOK(status, msg, ...)      \
+  SK_LOG0 ( ( msg LR"( (Status: "%hs"))",     \
+              ##__VA_ARGS__,                  \
+              MH_StatusToString ((status)) ), \
+                  L" Min Hook " );
+
+
 typedef struct _MODULEINFO {
   LPVOID lpBaseOfDll;
   DWORD  SizeOfImage;
@@ -40,54 +47,6 @@ typedef struct _MODULEINFO {
 } MODULEINFO, *LPMODULEINFO;
 
 concurrency::concurrent_unordered_map <HMODULE, MODULEINFO> SK_KnownModules;
-
-class SK_HookedFunction
-{
-public:
-  enum Type {
-    DLL,
-    VFTable,
-    Generic,
-    Invalid
-  };
-
-protected:
-  Type             type     = Invalid;
-  const char*      name     = "<Initialize_Me>";
-
-  struct {
-    uintptr_t      detour   = 0xCaFACADE;
-    uintptr_t      original = 0x8badf00d;
-    uintptr_t      target   = 0xdeadc0de;
-  } addr;
-
-  union {
-    struct {
-      int_fast16_t idx      = -1;
-    } vftbl;
-
-    struct {
-      HANDLE       module   = nullptr; // Hold a reference; don't let
-                                       //   software unload the DLL while it is
-                                       //     hooked!
-    } dll;
-  };
-
-  bool             enabled  = false;
-};
-
-class HookManager {
-public:
-  bool validateVFTables (void);
-  void rehookVFTables   (void);
-
-  void uninstallAll     (void);
-  void reinstallAll     (void);
-  void install          (SK_HookedFunction* pfn);
-
-std::vector <SK_HookedFunction> hooks;
-};
-
 
 
 std::wstring
@@ -442,11 +401,10 @@ SK_CreateFuncHook ( const wchar_t  *pwszFuncName,
 
   if (status != MH_OK && status != MH_ERROR_ALREADY_CREATED)
   {
-    dll_log.Log ( L"[ Min Hook ] Failed to Install Hook for '%s' "
-                  L"[Address: %04ph]!  (Status: \"%hs\")",
-                    pwszFuncName,
-                      pTarget,
-                        MH_StatusToString (status) );
+    SK_LOG_MINHOOK ( status,
+                       L"Failed to Install Hook for '%s' "
+                       L"[Address: %04ph]! ",
+                         pwszFuncName, pTarget );
   }
 
   else if (status == MH_ERROR_ALREADY_CREATED)
@@ -458,11 +416,11 @@ SK_CreateFuncHook ( const wchar_t  *pwszFuncName,
 
       return SK_CreateFuncHook (pwszFuncName, pTarget, pDetour, ppOriginal);
     } else
-      dll_log.Log ( L"[ Min Hook ] Failed to Uninstall Hook for '%s' "
-                    L"[Address: %04ph]!  (Status: \"%hs\")",
-                      pwszFuncName,
-                        pTarget,
-                          MH_StatusToString (status) );
+    {
+      SK_LOG_MINHOOK ( status,
+                         L"Failed to Uninstall Hook for '%s' [Address: %04ph]!",
+                           pwszFuncName, pTarget );
+    }
   }
 
   return status;
@@ -484,12 +442,9 @@ SK_CreateFuncHookEx ( const wchar_t *pwszFuncName,
 
   if (status != MH_OK && status != MH_ERROR_ALREADY_CREATED)
   {
-    dll_log.Log ( L"[ Min Hook ] Failed to Install Hook (idx=%lu) "
-                  L"for '%s' [Address: %04ph]!  (Status: \"%hs\")",
-                    idx,
-                      pwszFuncName,
-                        pTarget,
-                          MH_StatusToString (status) );
+    SK_LOG_MINHOOK ( status,
+                       L"Failed to Install Hook (idx=%lu) for '%s' [Address: %04ph]!",
+                         idx, pwszFuncName, pTarget );
   }
 
   else if (status == MH_ERROR_ALREADY_CREATED)
@@ -501,11 +456,11 @@ SK_CreateFuncHookEx ( const wchar_t *pwszFuncName,
 
       return SK_CreateFuncHookEx (pwszFuncName, pTarget, pDetour, ppOriginal, idx);
     } else
-      dll_log.Log ( L"[ Min Hook ] Failed to Uninstall Hook for '%s' "
-                    L"[Address: %04ph]!  (Status: \"%hs\")",
-                      pwszFuncName,
-                        pTarget,
-                          MH_StatusToString (status) );
+    {
+      SK_LOG_MINHOOK ( status,
+                         L"Failed to Uninstall Hook for '%s' [Address: %04ph]!",
+                           pwszFuncName, pTarget );
+    }
   }
 
   return status;
@@ -632,8 +587,6 @@ SK_CreateDLLHook ( const wchar_t  *pwszModule, const char  *pszProcName,
     //  >> Pass the library load through the original (now hooked) function so that
     //       anything else that hooks this DLL on-load does not miss its initial load.
     //
-    //if (LoadLibraryW (pwszModule))
-    //  GetModuleHandleExW (GET_MODULE_HANDLE_EX_FLAG_PIN, pwszModule, &hMod);
     if (LoadLibraryW (pwszModule))
       GetModuleHandleExW (GET_MODULE_HANDLE_EX_FLAG_PIN, pwszModule, &hMod);
   }
@@ -655,8 +608,25 @@ SK_CreateDLLHook ( const wchar_t  *pwszModule, const char  *pszProcName,
                           ppOriginal );
   }
 
+
   if (status != MH_OK)
   {
+    // Win32 Quirk  (Procedure Name Strings)
+    // ===========   ----------------------
+    //
+    // If the procedure address fits in the lowest 16-bits, we're referencing it
+    //   by ordinal rather than name.
+    //
+    //   Uninitialized pointers will tend to be reported as ordinals; almost no
+    //     modern game is going to be throwing around DLL ordinals...
+    //
+    const uintptr_t        ordinal = reinterpret_cast <uintptr_t> (pszProcName);
+    std::string proc_name (ordinal > 65535 ?                       pszProcName  :
+                            SK_FormatString ("Ordinal%u", ordinal).c_str ());
+
+    std::wstring mod_name (SK_StripUserNameFromPathW (std::wstring (pwszModule).data ()));
+
+
     if (status == MH_ERROR_ALREADY_CREATED)
     {
       if (ppOriginal == nullptr)
@@ -665,11 +635,10 @@ SK_CreateDLLHook ( const wchar_t  *pwszModule, const char  *pszProcName,
                           SH_TRAMPOLINE,
                             ppOriginal );
 
-        dll_log.Log ( L"[ Min Hook ] WARNING: Hook Already Exists for: '%hs' in '%s'! "
-                      L"(Status: \"%hs\")",
-                        reinterpret_cast <uintptr_t> (pszProcName) > 65536 ? pszProcName : "Ordinal",
-                          SK_StripUserNameFromPathW (std::wstring (pwszModule).data ()),
-                            MH_StatusToString (status) );
+        SK_LOG_MINHOOK ( status,
+                           L"WARNING: Hook Already Exists for: '%hs' in '%s'!",
+                             proc_name.c_str  (),
+                               mod_name.c_str () );
 
         return status;
       }
@@ -677,26 +646,25 @@ SK_CreateDLLHook ( const wchar_t  *pwszModule, const char  *pszProcName,
       else if (MH_OK == (status = MH_RemoveHook (pFuncAddr)))
       {
         dll_log.Log ( L"[HookEngine] Removing Corrupted Hook for '%hs'... software "
-                      L"is probably going to explode!", pszProcName );
+                      L"is probably going to explode!", proc_name.c_str () );
 
         return SK_CreateDLLHook (pwszModule, pszProcName, pDetour, ppOriginal, ppFuncAddr);
       }
 
       else
       {
-        dll_log.Log ( L"[ Min Hook ] Failed to Uninstall Hook for '%hs' "
-                      L"[Address: %04ph]!  (Status: \"%hs\")",
-                        pszProcName,
-                          pFuncAddr,
-                            MH_StatusToString (status) );
+        SK_LOG_MINHOOK ( status,
+                           L"Failed to Uninstall Hook for '%hs' "
+                           L"[Address: %04ph]! ",
+                             proc_name.c_str (),
+                              mod_name.c_str () );
       }
     }
 
-    dll_log.Log ( L"[ Min Hook ] Failed to Install Hook for: '%hs' in '%s'! "
-                  L"(Status: \"%hs\")",
-                    reinterpret_cast <uintptr_t> (pszProcName) > 65536 ? pszProcName : "Ordinal",
-                      SK_StripUserNameFromPathW (std::wstring (pwszModule).data ()),
-                        MH_StatusToString (status) );
+    SK_LOG_MINHOOK ( status,
+                       L"Failed to Install Hook for: '%hs' in '%s'!",
+                        proc_name.c_str  (),
+                          mod_name.c_str () );
 
     if (ppFuncAddr != nullptr)
       *ppFuncAddr = nullptr;
@@ -708,12 +676,12 @@ SK_CreateDLLHook ( const wchar_t  *pwszModule, const char  *pszProcName,
 
     GetModuleHandleExW (GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, pwszModule, &hModTest);
 
-    SK_ValidateHookAddress (
-           pwszModule,
-             SK_UTF8ToWideChar  ((uintptr_t)pszProcName > 65536 ? pszProcName : "Ordinal").c_str (),
-               hModTest,
-                 pFuncAddr
-         );
+    //SK_ValidateHookAddress (
+    //       pwszModule,
+    //         SK_UTF8ToWideChar (proc_name).c_str (),
+    //           hModTest,
+    //             pFuncAddr
+    //     );
 
     if (ppFuncAddr != nullptr)
       *ppFuncAddr = pFuncAddr;
@@ -760,8 +728,25 @@ SK_CreateDLLHook2 ( const wchar_t  *pwszModule, const char  *pszProcName,
                           ppOriginal );
   }
 
+
   if (status != MH_OK)
   {
+    // Win32 Quirk  (Procedure Name Strings)
+    // ===========   ----------------------
+    //
+    // If the procedure address fits in the lowest 16-bits, we're referencing it
+    //   by ordinal rather than name.
+    //
+    //   Uninitialized pointers will tend to be reported as ordinals; almost no
+    //     modern game is going to be throwing around DLL ordinals...
+    //
+    const uintptr_t        ordinal = reinterpret_cast <uintptr_t> (pszProcName);
+    std::string proc_name (ordinal > 65535 ?                       pszProcName  :
+                            SK_FormatString ("Ordinal%u", ordinal).c_str ());
+
+    std::wstring mod_name (SK_StripUserNameFromPathW (std::wstring (pwszModule).data ()));
+
+
     if (status == MH_ERROR_ALREADY_CREATED)
     {
       if (ppOriginal == nullptr)
@@ -770,11 +755,10 @@ SK_CreateDLLHook2 ( const wchar_t  *pwszModule, const char  *pszProcName,
                           SH_TRAMPOLINE,
                             ppOriginal );
 
-        dll_log.Log ( L"[ Min Hook ] WARNING: Hook Already Exists for: '%hs' in '%s'! "
-                      L"(Status: \"%hs\")",
-                        (uintptr_t)pszProcName > 65536 ? pszProcName : "Ordinal",
-                          pwszModule,
-                            MH_StatusToString (status) );
+        SK_LOG_MINHOOK ( status,
+                           L"WARNING: Hook Already Exists for: '%hs' in '%s'!",
+                             proc_name.c_str  (),
+                               mod_name.c_str () );
 
         return status;
       }
@@ -782,26 +766,25 @@ SK_CreateDLLHook2 ( const wchar_t  *pwszModule, const char  *pszProcName,
       else if (MH_OK == (status = MH_RemoveHook (pFuncAddr)))
       {
         dll_log.Log ( L"[HookEngine] Removing Corrupted Hook for '%hs'... software "
-                      L"is probably going to explode!", pszProcName );
+                      L"is probably going to explode!", proc_name.c_str () );
 
         return SK_CreateDLLHook2 (pwszModule, pszProcName, pDetour, ppOriginal, ppFuncAddr);
       }
 
       else
       {
-        dll_log.Log ( L"[ Min Hook ] Failed to Uninstall Hook for '%hs' "
-                      L"[Address: %04ph]!  (Status: \"%hs\")",
-                        pszProcName,
-                          pFuncAddr,
-                            MH_StatusToString (status) );
+        SK_LOG_MINHOOK ( status,
+                           L"Failed to Uninstall Hook for '%hs' "
+                           L"[Address: %04ph]! ",
+                             proc_name.c_str (),
+                               pFuncAddr );
       }
     }
 
-    dll_log.Log ( L"[ Min Hook ] Failed to Install Hook for: '%hs' in '%s'! "
-                  L"(Status: \"%hs\")",
-                    (uintptr_t)pszProcName > 65536 ? pszProcName : "Ordinal",
-                      SK_StripUserNameFromPathW (std::wstring (pwszModule).data ()),
-                        MH_StatusToString (status) );
+    SK_LOG_MINHOOK ( status,
+                       L"Failed to Install Hook for: '%hs' in '%s'!",
+                         proc_name.c_str  (),
+                           mod_name.c_str () );
 
     if (ppFuncAddr != nullptr)
       *ppFuncAddr = nullptr;
@@ -813,12 +796,12 @@ SK_CreateDLLHook2 ( const wchar_t  *pwszModule, const char  *pszProcName,
 
     GetModuleHandleExW (GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, pwszModule, &hModTest);
 
-    SK_ValidateHookAddress (
-           pwszModule,
-             SK_UTF8ToWideChar  ((uintptr_t)pszProcName > 65536 ? pszProcName : "Ordinal").c_str (),
-               hModTest,
-                 pFuncAddr
-         );
+    //SK_ValidateHookAddress (
+    //       pwszModule,
+    //         SK_UTF8ToWideChar (proc_name).c_str (),
+    //           hModTest,
+    //             pFuncAddr
+    //     );
 
     if (ppFuncAddr != nullptr)
       *ppFuncAddr = pFuncAddr;
@@ -864,8 +847,25 @@ SK_CreateDLLHook3 ( const wchar_t  *pwszModule, const char  *pszProcName,
                           ppOriginal );
   }
 
+
   if (status != MH_OK)
   {
+    // Win32 Quirk  (Procedure Name Strings)
+    // ===========   ----------------------
+    //
+    // If the procedure address fits in the lowest 16-bits, we're referencing it
+    //   by ordinal rather than name.
+    //
+    //   Uninitialized pointers will tend to be reported as ordinals; almost no
+    //     modern game is going to be throwing around DLL ordinals...
+    //
+    uintptr_t              ordinal = reinterpret_cast <uintptr_t> (pszProcName);
+    std::string proc_name (ordinal > 65535 ?                       pszProcName  :
+                            SK_FormatString ("Ordinal%u", ordinal).c_str ());
+
+    std::wstring mod_name (SK_StripUserNameFromPathW (std::wstring (pwszModule).data ()));
+
+
     // Silently ignore this problem
     if (status == MH_ERROR_ALREADY_CREATED && ppOriginal != nullptr)
     {
@@ -883,31 +883,29 @@ SK_CreateDLLHook3 ( const wchar_t  *pwszModule, const char  *pszProcName,
                           SH_TRAMPOLINE,
                             ppOriginal );
 
-        dll_log.Log ( L"[ Min Hook ] WARNING: Hook Already Exists for: '%hs' in '%s'! "
-                      L"(Status: \"%hs\")",
-                        (uintptr_t)pszProcName > 65536 ? pszProcName : "Ordinal",
-                          SK_StripUserNameFromPathW (std::wstring (pwszModule).data ()),
-                            MH_StatusToString (status) );
+        SK_LOG_MINHOOK ( status,
+                           L"WARNING: Hook Already Exists for: '%hs' in '%s'!",
+                             proc_name.c_str  (),
+                               mod_name.c_str () );
 
         return status;
       }
     }
 
-    dll_log.Log ( L"[ Min Hook ] Failed to Install Hook for: '%hs' in '%s'! "
-                  L"(Status: \"%hs\")",
-                    (uintptr_t)pszProcName > 65536 ? pszProcName : "Ordinal",
-                      SK_StripUserNameFromPathW (std::wstring (pwszModule).data ()),
-                        MH_StatusToString (status) );
+    SK_LOG_MINHOOK ( status,
+                       L"Failed to Install Hook for: '%hs' in '%s'!",
+                         proc_name.c_str  (),
+                           mod_name.c_str () );
   }
 
   else
   {
-    SK_ValidateHookAddress (
-           pwszModule,
-             SK_UTF8ToWideChar  ((uintptr_t)pszProcName > 65536 ? pszProcName : "Ordinal").c_str (),
-               GetModuleHandleW (pwszModule),
-                 pFuncAddr
-         );
+    //SK_ValidateHookAddress (
+    //       pwszModule,
+    //         proc_name.c_str (),
+    //           GetModuleHandleW (pwszModule),
+    //             pFuncAddr
+    //     );
 
     if (ppFuncAddr != nullptr)
       *ppFuncAddr = pFuncAddr;
@@ -926,30 +924,28 @@ SK_CreateVFTableHook ( const wchar_t  *pwszFuncName,
                              void     *pDetour,
                              void    **ppOriginal )
 {
-  MH_STATUS ret =
+  MH_STATUS status =
     SK_CreateFuncHook (
       pwszFuncName,
         ppVFTable [dwOffset],
           pDetour,
             ppOriginal );
 
-  if (ret == MH_OK)
+  if (status == MH_OK)
   {
     SK_ValidateVFTableAddress (pwszFuncName, *ppVFTable, ppVFTable [dwOffset]);
 
-    ret = SK_EnableHook (ppVFTable [dwOffset]);
+    status = SK_EnableHook (ppVFTable [dwOffset]);
   }
 
-  if (ret != MH_OK)
+  if (status != MH_OK)
   {
-    dll_log.Log ( L"[ Min Hook ] Failed to Install Hook for '%s' "
-                  L"[VFTable Index: %lu]!  (Status: \"%hs\")",
-                    pwszFuncName,
-                      dwOffset,
-                        MH_StatusToString (ret) );
+    SK_LOG_MINHOOK ( status,
+                       L"Failed to Install Hook for '%s' [VFTable Index: %lu]! ",
+                         pwszFuncName, dwOffset );
   }
 
-  return ret;
+  return status;
 }
 
 MH_STATUS
@@ -961,7 +957,7 @@ SK_CreateVFTableHookEx ( const wchar_t  *pwszFuncName,
                                void    **ppOriginal, 
                                UINT      idx )
 {
-  MH_STATUS ret =
+  MH_STATUS status =
     SK_CreateFuncHookEx (
       pwszFuncName,
         ppVFTable [dwOffset],
@@ -969,24 +965,22 @@ SK_CreateVFTableHookEx ( const wchar_t  *pwszFuncName,
             ppOriginal,
               idx );
 
-  if (ret == MH_OK)
+  if (status == MH_OK)
   {
     SK_ValidateVFTableAddress (pwszFuncName, *ppVFTable, ppVFTable [dwOffset]);
 
-    ret =
+    status =
       SK_EnableHookEx (ppVFTable [dwOffset], idx);
   }
 
-  if (ret != MH_OK)
+  if (status != MH_OK)
   {
-    dll_log.Log ( L"[ Min Hook ] Failed to Install Hook for '%s' "
-                  L"[VFTable Index: %lu]!  (Status: \"%hs\")",
-                    pwszFuncName,
-                      dwOffset,
-                        MH_StatusToString (ret) );
+    SK_LOG_MINHOOK ( status,
+                       L"Failed to Install Hook for '%s' [VFTable Index: %lu]! ",
+                         pwszFuncName, dwOffset );
   }
 
-  return ret;
+  return status;
 }
 
 MH_STATUS
@@ -997,31 +991,29 @@ SK_CreateVFTableHook2 ( const wchar_t  *pwszFuncName,
                               void     *pDetour,
                               void    **ppOriginal )
 {
-  MH_STATUS ret =
+  MH_STATUS status =
     SK_CreateFuncHook (
       pwszFuncName,
         ppVFTable [dwOffset],
           pDetour,
             ppOriginal );
 
-  if (ret == MH_OK)
+  if (status == MH_OK)
   {
     SK_ValidateVFTableAddress (pwszFuncName, *ppVFTable, ppVFTable [dwOffset]);
 
-    ret =
+    status =
       MH_QueueEnableHook (ppVFTable [dwOffset]);
   }
 
-  if (ret != MH_OK)
+  if (status != MH_OK)
   {
-    dll_log.Log ( L"[ Min Hook ] Failed to Install Hook for '%s' "
-                  L"[VFTable Index: %lu]!  (Status: \"%hs\")",
-                    pwszFuncName,
-                      dwOffset,
-                        MH_StatusToString (ret) );
+    SK_LOG_MINHOOK ( status,
+                       L"Failed to Install Hook for '%s' [VFTable Index: %lu]! ",
+                         pwszFuncName, dwOffset );
   }
 
-  return ret;
+  return status;
 }
 
 MH_STATUS
@@ -1032,31 +1024,29 @@ SK_CreateVFTableHook3 ( const wchar_t  *pwszFuncName,
                               void     *pDetour,
                               void    **ppOriginal )
 {
-  MH_STATUS ret =
+  MH_STATUS status =
     SK_CreateFuncHook (
       pwszFuncName,
         ppVFTable [dwOffset],
           pDetour,
             ppOriginal );
 
-  if (ret == MH_OK)
+  if (status == MH_OK)
   {
     SK_ValidateVFTableAddress (pwszFuncName, *ppVFTable, ppVFTable [dwOffset]);
 
-    //ret =
+    //status =
     //  MH_QueueEnableHook (ppVFTable [dwOffset]);
   }
 
-  if (ret != MH_OK)
+  if (status != MH_OK)
   {
-    dll_log.Log ( L"[ Min Hook ] Failed to Install Hook for '%s' "
-                  L"[VFTable Index: %lu]!  (Status: \"%hs\")",
-                    pwszFuncName,
-                      dwOffset,
-                        MH_StatusToString (ret) );
+    SK_LOG_MINHOOK ( status,
+                       L"Failed to Install Hook for '%s' [VFTable Index: %lu]! ",
+                         pwszFuncName, dwOffset );
   }
 
-  return ret;
+  return status;
 }
 
 MH_STATUS
@@ -1068,9 +1058,7 @@ SK_ApplyQueuedHooks (void)
 
   if (status != MH_OK)
   {
-    dll_log.Log(L"[ Min Hook ] Failed to Enable Deferred Hooks!"
-                  L" (Status: \"%hs\")",
-                      MH_StatusToString (status) );
+    SK_LOG_MINHOOK ( status, L"Failed to Enable Deferred Hooks!", 0 );
   }
 
   return status;
@@ -1087,17 +1075,14 @@ SK_EnableHook (void *pTarget)
   {
     if (pTarget != MH_ALL_HOOKS)
     {
-      dll_log.Log(L"[ Min Hook ] Failed to Enable Hook with Address: %ph!"
-                  L" (Status: \"%hs\")",
-                    pTarget,
-                      MH_StatusToString (status) );
+      SK_LOG_MINHOOK ( status,
+                         L"Failed to Enable Hook with Address: %04ph!",
+                           pTarget );
     }
 
     else
     {
-      dll_log.Log ( L"[ Min Hook ] Failed to Enable All Hooks! "
-                    L"(Status: \"%hs\")",
-                      MH_StatusToString (status) );
+      SK_LOG_MINHOOK ( status, L"Failed to Enable All Hooks!", 0 );
     }
   }
 
@@ -1115,19 +1100,15 @@ SK_EnableHookEx (void *pTarget, UINT idx)
   {
     if (pTarget != MH_ALL_HOOKS)
     {
-      dll_log.Log ( L"[ Min Hook ] Failed to Enable Hook (Idx=%lu) with "
-                    L"Address: %04ph! (Status: \"%hs\")",
-                    idx,
-                      pTarget,
-                        MH_StatusToString (status) );
+      SK_LOG_MINHOOK ( status,
+                         L"Failed to Enable Hook (Idx=%lu) with "
+                         L"Address: %04ph!",
+                           idx, pTarget );
     }
 
     else
     {
-      dll_log.Log ( L"[ Min Hook ] Failed to Enable All (Idx=%lu) Hooks! "
-                    L"(Status: \"%hs\")",
-                      idx,
-                        MH_StatusToString (status) );
+      SK_LOG_MINHOOK ( status, L"Failed to Enable All (Idx=%lu) Hooks!", idx );
     }
   }
 
@@ -1145,17 +1126,12 @@ SK_DisableHook (void *pTarget)
   {
     if (pTarget != MH_ALL_HOOKS)
     {
-      dll_log.Log ( L"[ Min Hook ] Failed to Disable Hook with Address: %ph!"
-                    L" (Status: \"%hs\")",
-                      pTarget,
-                        MH_StatusToString (status) );
+      SK_LOG_MINHOOK ( status, L"Failed to Disable Hook with Address: %ph!", pTarget );
     }
 
     else
     {
-      dll_log.Log ( L"[ Min Hook ] Failed to Disable All Hooks! "
-                    L"(Status: \"%hs\")",
-                      MH_StatusToString (status) );
+      SK_LOG_MINHOOK ( status, L"Failed to Disable All Hooks!", 0 );
     }
   }
 
@@ -1171,10 +1147,8 @@ SK_RemoveHook (void *pTarget)
 
   if (status != MH_OK)
   {
-    dll_log.Log ( L"[ Min Hook ] Failed to Remove Hook with Address: %ph! "
-                  L"(Status: \"%hs\")",
-                    pTarget,
-                      MH_StatusToString (status) );
+    SK_LOG_MINHOOK ( status, L"Failed to Remove Hook with Address: %ph!",
+                       pTarget );
   }
 
   return status;
@@ -1182,15 +1156,15 @@ SK_RemoveHook (void *pTarget)
 
 MH_STATUS
 __stdcall
-SK_Init_MinHook (void)
+SK_MinHook_Init (void)
 {
   MH_STATUS status;
 
   if ((status = MH_Initialize ()) != MH_OK)
   {
 #if 0
-    dll_log.Log ( L"[ Min Hook ] Failed to Initialize MinHook Library! "
-                  L"(Status: \"%hs\")",
+    dll_log.Log ( L"[ Min Hook ] Failed to Initialize MinHook Library!"
+                  LR"( (Status: "%hs"))",
                     MH_StatusToString (status) );
 #endif
   }
@@ -1200,16 +1174,39 @@ SK_Init_MinHook (void)
 
 MH_STATUS
 __stdcall
-SK_UnInit_MinHook (void)
+SK_MinHook_UnInit (void)
 {
   MH_STATUS status;
 
   if ((status = MH_Uninitialize ()) != MH_OK)
   {
-    dll_log.Log ( L"[ Min Hook ] Failed to Uninitialize MinHook Library! "
-                  L"(Status: \"%hs\")",
-                    MH_StatusToString (status) );
+    SK_LOG_MINHOOK ( status, L"Failed to Uninitialize MinHook Library!",0);
   }
 
   return status;
+}
+
+
+#define SK_LEGACY_DEPRECATE_PUBLIC_API(old_fn,new_fn)                     \
+  SK_LOG0 ( ( L"WARNING: '%ws' is deprecated, please use: '%ws' instead.",\
+              ##old_fn, ##new_fn ),                                       \
+              L"Deprecated" );                                            \
+            return new_fn
+
+extern "C"
+__declspec (dllexport)
+MH_STATUS
+__stdcall
+SK_UnInit_MinHook (void)
+{
+  SK_LEGACY_DEPRECATE_PUBLIC_API (__FUNCTIONW__, SK_MinHook_UnInit ());
+}
+
+extern "C"
+__declspec (dllexport)
+MH_STATUS
+__stdcall
+SK_Init_MinHook (void)
+{
+  SK_LEGACY_DEPRECATE_PUBLIC_API (__FUNCTIONW__, SK_MinHook_Init ());
 }

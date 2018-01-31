@@ -20,6 +20,7 @@
 **/
 
 #include <SpecialK/utility.h>
+#include <SpecialK/command.h>
 #include <SpecialK/config.h>
 #include <SpecialK/core.h>
 #include <SpecialK/log.h>
@@ -2473,6 +2474,35 @@ SK_StripUserNameFromPathW (wchar_t* wszInOut)
 
   return wszInOut;
 }
+
+
+
+//
+// Issue a command that would deadlock the game if executed synchronously
+//   from the render thread.
+//
+void
+SK_DeferCommand (const char* szCommand)
+{
+  CreateThread ( nullptr,
+                   0x00,
+                     [ ](LPVOID user) ->
+      DWORD
+        {
+          CHandle hThread (GetCurrentThread ());
+
+          std::unique_ptr <char> cmd ((char *)user);
+
+          SK_GetCommandProcessor ()->ProcessCommandLine (
+             (const char *)cmd.get ()
+          );
+
+          return 0;
+        },(LPVOID)_strdup (szCommand),
+      0x00,
+    nullptr
+  );
+};
 
 
 
