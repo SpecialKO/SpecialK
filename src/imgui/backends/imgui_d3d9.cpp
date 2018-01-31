@@ -17,8 +17,6 @@ SK_ImGui_User_NewFrame (void);
 
 // DirectX
 #include <d3d9.h>
-#define DIRECTINPUT_VERSION 0x0800
-#include <dinput.h>
 
 #include <SpecialK/config.h>
 //#include "render.h"

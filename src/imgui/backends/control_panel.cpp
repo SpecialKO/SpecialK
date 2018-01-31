@@ -159,32 +159,6 @@ LoadFileInResource ( int          name,
   } 
 }
 
-//
-// If we did this from the render thread, we would deadlock most games
-//
-void
-SK_DeferCommand (const char* szCommand)
-{
-  CreateThread ( nullptr,
-                   0x00,
-                     [ ](LPVOID user) ->
-      DWORD
-        {
-          CHandle hThread (GetCurrentThread ());
-
-          std::unique_ptr <char> cmd ((char *)user);
-
-          SK_GetCommandProcessor ()->ProcessCommandLine (
-             (const char *)cmd.get ()
-          );
-
-          return 0;
-        },(LPVOID)_strdup (szCommand),
-      0x00,
-    nullptr
-  );
-};
-
 extern void SK_Steam_SetNotifyCorner (void);
 
 extern void __stdcall SK_ImGui_DrawEULA (LPVOID reserved);

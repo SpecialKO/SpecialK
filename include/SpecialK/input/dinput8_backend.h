@@ -37,8 +37,6 @@ void SK_Input_PreHookDI8 (void);
 
 #include <Windows.h>
 
-#define DIRECTINPUT_VERSION 0x0800
-
 #include <winapifamily.h>
 
 #ifndef DIJ_RINGZERO

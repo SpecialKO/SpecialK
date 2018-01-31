@@ -2573,7 +2573,7 @@ SK_AdjustBorder (void)
 
 
 void
-SK_ResetWindow (void)
+SK_Window_RepositionIfNeeded (void)
 {
   if (! (config.window.borderless || config.window.center))
     return;
@@ -2623,8 +2623,8 @@ SK_ResetWindow (void)
 
       return 0;
     }, nullptr, 0x00, nullptr);
-
 }
+
 
 // KNOWN ISSUES: 1. Do not move window using title bar while override res is enabled
 //
@@ -4794,7 +4794,7 @@ SK_InitWindow (HWND hWnd, bool fullscreen_exclusive)
 {
   if (game_window.GetWindowLongPtr == nullptr)
   {
-    SK_InstallWindowHook (hWnd);
+    return SK_InstallWindowHook (hWnd);
   }
 
 
@@ -4806,9 +4806,6 @@ SK_InitWindow (HWND hWnd, bool fullscreen_exclusive)
 
   GetCursorPos_Original  (      &game_window.cursor_pos);
 
-
-  if (game_window.GetWindowLongPtr == nullptr)
-    return;
 
 
   game_window.actual.style =
@@ -4841,7 +4838,7 @@ SK_InitWindow (HWND hWnd, bool fullscreen_exclusive)
   {
     // Next, adjust the border and/or window location if the user
     //   wants an override
-    SK_ResetWindow ();
+    SK_Window_RepositionIfNeeded ();
   }
 }
 

@@ -18,7 +18,6 @@
  *   If not, see <http://www.gnu.org/licenses/>.
  *
 **/
-#define DIRECTINPUT_VERSION 0x0800
 
 #include <SpecialK/input/input.h>
 #include <SpecialK/input/xinput.h>
