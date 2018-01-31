@@ -49,6 +49,35 @@ bool          SK_DiscontEpsilon   (int x1, int x2, int tolerance);
 DWORD __stdcall SK_RealizeForegroundWindow (HWND hWndForeground);
 HWND  __stdcall SK_GetGameWindow           (void);
 
+
+using CreateWindowExA_pfn    = HWND (WINAPI *)(
+    _In_     DWORD     dwExStyle,
+    _In_opt_ LPCSTR    lpClassName,
+    _In_opt_ LPCSTR    lpWindowName,
+    _In_     DWORD     dwStyle,
+    _In_     int       X,
+    _In_     int       Y,
+    _In_     int       nWidth,
+    _In_     int       nHeight,
+    _In_opt_ HWND      hWndParent,
+    _In_opt_ HMENU     hMenu,
+    _In_opt_ HINSTANCE hInstance,
+    _In_opt_ LPVOID    lpParam );
+
+using CreateWindowExW_pfn    = HWND (WINAPI *)(
+    _In_     DWORD     dwExStyle,
+    _In_opt_ LPCWSTR   lpClassName,
+    _In_opt_ LPCWSTR   lpWindowName,
+    _In_     DWORD     dwStyle,
+    _In_     int       X,
+    _In_     int       Y,
+    _In_     int       nWidth,
+    _In_     int       nHeight,
+    _In_opt_ HWND      hWndParent,
+    _In_opt_ HMENU     hMenu,
+    _In_opt_ HINSTANCE hInstance,
+    _In_opt_ LPVOID    lpParam );
+
 using MoveWindow_pfn         = BOOL (WINAPI *)(
   _In_ HWND hWnd,
   _In_ int  X,
@@ -367,6 +396,8 @@ struct window_t {
   DWORD proc_id;
   HWND  root;
 };
+
+BOOL SK_Win32_IsGUIThread (void);
 
 window_t
 SK_FindRootWindow (DWORD proc_id);

@@ -100,7 +100,7 @@ IDirectInputDevice7W_SetCooperativeLevel_pfn
 IDirectInput7A_CreateDevice_pfn
         IDirectInput7A_CreateDevice_Original              = nullptr;
 
-IDirectInputDevice7A_GetDeviceState_pfn 
+IDirectInputDevice7A_GetDeviceState_pfn
         IDirectInputDevice7A_GetDeviceState_Original      = nullptr;
 
 IDirectInputDevice7A_SetCooperativeLevel_pfn
@@ -139,9 +139,9 @@ __declspec (noinline)
 HRESULT
 WINAPI
 DirectInputCreateEx ( HINSTANCE hinst,
-                      DWORD     dwVersion, 
-                      REFIID    riidltf, 
-                      LPVOID   *ppvOut, 
+                      DWORD     dwVersion,
+                      REFIID    riidltf,
+                      LPVOID   *ppvOut,
                       LPUNKNOWN punkOuter )
 {
   //if (SK_GetDLLRole () == DLL_ROLE::DInput7)
@@ -171,12 +171,12 @@ DirectInputCreateEx ( HINSTANCE hinst,
         if (! IDirectInput7A_CreateDevice_Original)
         {
           void** vftable = *(void***)*ppvOut;
-          
+
           SK_CreateFuncHook (       L"IDirectInput7A::CreateDevice",
                                      vftable [3],
                                      IDirectInput7A_CreateDevice_Detour,
             static_cast_p2p <void> (&IDirectInput7A_CreateDevice_Original) );
-          
+
           SK_EnableHook (vftable [3]);
         }
       }
@@ -192,12 +192,12 @@ DirectInputCreateEx ( HINSTANCE hinst,
         if (! IDirectInput7W_CreateDevice_Original)
         {
           void** vftable = *(void***)*ppvOut;
-          
+
           SK_CreateFuncHook (       L"IDirectInput7W::CreateDevice",
                                      vftable [3],
                                      IDirectInput7W_CreateDevice_Detour,
             static_cast_p2p <void> (&IDirectInput7W_CreateDevice_Original) );
-          
+
           SK_EnableHook (vftable [3]);
         }
       }
@@ -240,12 +240,12 @@ DirectInputCreateA ( HINSTANCE       hinst,
       if (! IDirectInput7A_CreateDevice_Original)
       {
         void** vftable = *(void***)*lplpDirectInput;
-        
+
         SK_CreateFuncHook (       L"IDirectInput7A::CreateDevice",
                                    vftable [3],
                                    IDirectInput7A_CreateDevice_Detour,
           static_cast_p2p <void> (&IDirectInput7A_CreateDevice_Original) );
-        
+
         SK_EnableHook (vftable [3]);
       }
     }
@@ -287,12 +287,12 @@ DirectInputCreateW ( HINSTANCE       hinst,
       if (! IDirectInput7W_CreateDevice_Original)
       {
         void** vftable = *(void***)*lplpDirectInput;
-        
+
         SK_CreateFuncHook (       L"IDirectInput7W::CreateDevice",
                                    vftable [3],
                                    IDirectInput7W_CreateDevice_Detour,
           static_cast_p2p <void> (&IDirectInput7W_CreateDevice_Original) );
-        
+
         SK_EnableHook (vftable [3]);
       }
     }
@@ -311,7 +311,7 @@ SK_BootDI7 (void)
   {
     if (DirectInputCreateEx_Import == nullptr)
     {
-      HMODULE hBackend = 
+      HMODULE hBackend =
         //(SK_GetDLLRole () & DLL_ROLE::DInput7) ? backend_dll :
                                         LoadLibraryW_Original (L"dinput.dll");
 
@@ -402,7 +402,6 @@ SK_BootDI7 (void)
 #ifdef SPAWN_THREAD
 CreateThread (nullptr, 0x00, [](LPVOID/*user*/) -> DWORD
 {
-  
 UNREFERENCED_PARAMETER (user);
 #endif
 
@@ -491,12 +490,12 @@ CoCreateInstance_DI7 (
       if (! IDirectInput7A_CreateDevice_Original)
       {
         void** vftable = *(void***)*ppv;
-        
+
         SK_CreateFuncHook (       L"IDirectInput7A::CreateDevice",
                                    vftable [3],
                                    IDirectInput7A_CreateDevice_Detour,
           static_cast_p2p <void> (&IDirectInput7A_CreateDevice_Original) );
-        
+
         SK_EnableHook (vftable [3]);
       }
     }
@@ -512,12 +511,12 @@ CoCreateInstance_DI7 (
       if (! IDirectInput7W_CreateDevice_Original)
       {
         void** vftable = *(void***)*ppv;
-        
+
         SK_CreateFuncHook (       L"IDirectInput7W::CreateDevice",
                                    vftable [3],
                                    IDirectInput7W_CreateDevice_Detour,
           static_cast_p2p <void> (&IDirectInput7W_CreateDevice_Original) );
-        
+
         SK_EnableHook (vftable [3]);
       }
     }
@@ -568,12 +567,12 @@ CoCreateInstanceEx_DI7 (
           if (! IDirectInput7A_CreateDevice_Original)
           {
             void** vftable = *(void***)*&pResults->pItf;
-            
+
             SK_CreateFuncHook (       L"IDirectInput7A::CreateDevice",
                                        vftable [3],
                                        IDirectInput7A_CreateDevice_Detour,
               static_cast_p2p <void> (&IDirectInput7A_CreateDevice_Original) );
-            
+
             SK_EnableHook (vftable [3]);
           }
         }
@@ -583,12 +582,12 @@ CoCreateInstanceEx_DI7 (
           if (! IDirectInput7W_CreateDevice_Original)
           {
             void** vftable = *(void***)*&pResults->pItf;
-            
+
             SK_CreateFuncHook (       L"IDirectInput7W::CreateDevice",
                                        vftable [3],
                                        IDirectInput7W_CreateDevice_Detour,
               static_cast_p2p <void> (&IDirectInput7W_CreateDevice_Original) );
-            
+
             SK_EnableHook (vftable [3]);
           }
         }
@@ -623,7 +622,7 @@ SK_HookDI7 (LPVOID user)
 
   if (success)
     CoUninitialize ();
- 
+
   return 0;
 }
 
@@ -693,7 +692,7 @@ SK_Input_DI7Mouse_Acquire (SK_DI7_Mouse* pMouse)
             pMouse->coop_level
       );
     }
-    
+
     else
     {
       IDirectInputDevice7A_SetCooperativeLevel_Original (
@@ -727,7 +726,7 @@ SK_Input_DI7Mouse_Release (SK_DI7_Mouse* pMouse)
             (pMouse->coop_level & (~DISCL_EXCLUSIVE)) | DISCL_NONEXCLUSIVE
       );
     }
-    
+
     else
     {
       IDirectInputDevice7A_SetCooperativeLevel_Original (
@@ -760,7 +759,7 @@ IDirectInputDevice7_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE7       This,
 
   if (SUCCEEDED (hr) && lpvData != nullptr)
   {
-    if (cbData == sizeof DIJOYSTATE2) 
+    if (cbData == sizeof DIJOYSTATE2)
     {
       SK_DI7_READ (sk_input_dev_type::Gamepad)
       static DIJOYSTATE2 last_state;
@@ -786,7 +785,7 @@ IDirectInputDevice7_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE7       This,
         memcpy (&last_state, out, cbData);
     }
 
-    else if (cbData == sizeof DIJOYSTATE) 
+    else if (cbData == sizeof DIJOYSTATE)
     {
       SK_DI7_READ (sk_input_dev_type::Gamepad)
 
@@ -1040,7 +1039,7 @@ IDirectInput7W_CreateDevice_Detour ( IDirectInput7W        *This,
   uint32_t guid_crc32c = crc32c (0, &rguid, sizeof (REFGUID));
 
   const wchar_t* wszDevice = (rguid == GUID_SysKeyboard)   ? L"Default System Keyboard" :
-                                (rguid == GUID_SysMouse)   ? L"Default System Mouse"    :  
+                                (rguid == GUID_SysMouse)   ? L"Default System Mouse"    :
                                   (rguid == GUID_Joystick) ? L"Gamepad / Joystick"      :
                                                            L"Other Device";
 
@@ -1126,7 +1125,7 @@ IDirectInput7A_CreateDevice_Detour ( IDirectInput7A        *This,
   uint32_t guid_crc32c = crc32c (0, &rguid, sizeof (REFGUID));
 
   const wchar_t* wszDevice = (rguid == GUID_SysKeyboard)   ? L"Default System Keyboard" :
-                                (rguid == GUID_SysMouse)   ? L"Default System Mouse"    :  
+                                (rguid == GUID_SysMouse)   ? L"Default System Mouse"    :
                                   (rguid == GUID_Joystick) ? L"Gamepad / Joystick"      :
                                                            L"Other Device";
 
@@ -1220,7 +1219,7 @@ SK_Input_HookDI7 (void)
       SK_LOG0 ( ( L"Game uses DirectInput 7, installing input hooks..." ),
                     L"   Input  " );
 
-      //HMODULE hBackend = 
+      //HMODULE hBackend =
       //  (SK_GetDLLRole () & DLL_ROLE::DInput8) ? backend_dll :
       //                                  GetModuleHandle (L"dinput8.dll");
 

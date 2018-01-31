@@ -2153,7 +2153,10 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
       case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
       case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
       {
-        rtdesc.Format        = DXGI_FORMAT_R8G8B8A8_UNORM;
+        rtdesc.Format        = tex2d_desc.Format == DXGI_FORMAT_R8G8B8A8_UNORM_SRGB ?
+                                                      DXGI_FORMAT_R8G8B8A8_UNORM :
+                                                      DXGI_FORMAT_B8G8R8A8_UNORM;
+
         rtdesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 
         hr = pDev->CreateRenderTargetView (pBackBuffer, &rtdesc, &pRenderTargetView);
@@ -2365,6 +2368,46 @@ enum class SK_DXGI_PresentSource
   Hook    = 1
 };
 
+bool
+SK_DXGI_TestSwapChainCreationFlags (DWORD dwFlags)
+{
+  if ( (dwFlags & DXGI_SWAP_CHAIN_FLAG_FULLSCREEN_VIDEO)   ||
+       (dwFlags & DXGI_SWAP_CHAIN_FLAG_YUV_VIDEO)          ||
+       (dwFlags & DXGI_SWAP_CHAIN_FLAG_RESTRICTED_CONTENT) ||
+       (dwFlags & DXGI_SWAP_CHAIN_FLAG_FOREGROUND_LAYER) )
+  {
+    static bool logged = false;
+
+    if (! logged)
+    {
+      logged = true;
+
+      SK_LOG0 ( ( L"Skipping SwapChain Present due to "
+                    L"SwapChain Creation Flags: %x", dwFlags ),
+                    L"   DXGI   " );
+    }
+
+    return false;
+  }
+
+  return true;
+}
+
+bool
+SK_DXGI_TestPresentFlags (DWORD Flags)
+{
+  if (Flags & DXGI_PRESENT_TEST)
+  {
+    SK_LOG_ONCE ( L"[   DXGI   ] Skipping SwapChain Present due to "
+                  L"SwapChain Present Flag (DXGI_PRESENT_TEST)" );
+
+    return false;
+  }
+
+  return true;
+}
+
+
 HRESULT
 STDMETHODCALLTYPE
 SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
@@ -2393,7 +2436,7 @@ SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
   //
   // Early-out for games that use testing to minimize blocking
   //
-  if (Flags & DXGI_PRESENT_TEST)
+  if (! SK_DXGI_TestPresentFlags (Flags))
   {
     return
       Present1 ( SyncInterval,
@@ -2404,9 +2447,7 @@ SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
   DXGI_SWAP_CHAIN_DESC desc = { };
        This->GetDesc (&desc);
 
-  if ( (desc.Flags & DXGI_SWAP_CHAIN_FLAG_FULLSCREEN_VIDEO) ||
-       (desc.Flags & DXGI_SWAP_CHAIN_FLAG_YUV_VIDEO)        ||
-       (desc.Flags & DXGI_SWAP_CHAIN_FLAG_RESTRICTED_CONTENT) )
+  if (! SK_DXGI_TestSwapChainCreationFlags (desc.Flags))
   {
     return
       Present1 ( SyncInterval,
@@ -2713,15 +2754,13 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
   //
   // Early-out for games that use testing to minimize blocking
   //
-  if (Flags & DXGI_PRESENT_TEST)
+  if (! SK_DXGI_TestPresentFlags (Flags))
     return Present (SyncInterval, Flags);
 
   DXGI_SWAP_CHAIN_DESC desc = { };
        This->GetDesc (&desc);
 
-  if ( (desc.Flags & DXGI_SWAP_CHAIN_FLAG_FULLSCREEN_VIDEO) ||
-       (desc.Flags & DXGI_SWAP_CHAIN_FLAG_YUV_VIDEO)        ||
-       (desc.Flags & DXGI_SWAP_CHAIN_FLAG_RESTRICTED_CONTENT) )
+  if (! SK_DXGI_TestSwapChainCreationFlags (desc.Flags))
   {
     return Present (SyncInterval, Flags);
   }
@@ -2745,7 +2784,7 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
 #ifdef DARK_SOULS
     if (__DS3_HEIGHT != nullptr)
     {
-      DXGI_SWAP_CHAIN_DESC swap_desc;
+      DXGI_SWAP_CHAIN_DESC swap_desc = {};
       if (SUCCEEDED (This->GetDesc (&swap_desc)))
       {
         *__DS3_WIDTH  = swap_desc.BufferDesc.Width;
@@ -4195,11 +4234,9 @@ SK_DXGI_UpdateLatencies (IDXGISwapChain *pSwapChain = (IDXGISwapChain *)SK_GetCu
   const uint32_t max_latency =
     config.render.framerate.pre_render_limit;
 
-  CComPtr <IDXGISwapChain2> pSwapChain2 = nullptr;
+  CComQIPtr <IDXGISwapChain2> pSwapChain2 (pSwapChain);
 
-  if ( SUCCEEDED ( pSwapChain->QueryInterface <IDXGISwapChain2> (&pSwapChain2) 
-                 )
-     )
+  if (pSwapChain2 != nullptr)
   {
     if (max_latency < 16 && max_latency > 0)
     {
@@ -4294,11 +4331,9 @@ SK_DXGI_CreateSwapChain_PostInit ( _In_  IUnknown              *pDevice,
 
   SK_DXGI_UpdateLatencies (*ppSwapChain);
 
-  CComPtr <IDXGISwapChain2> pSwapChain2 = nullptr;
+  CComQIPtr <IDXGISwapChain2> pSwapChain2 (*ppSwapChain);
 
-  if ( SUCCEEDED ( (*ppSwapChain)->QueryInterface <IDXGISwapChain2> (&pSwapChain2) 
-                 )
-     )
+  if (pSwapChain2 != nullptr)
   {
     if (bFlipMode && bWait)
     {
@@ -4370,8 +4405,12 @@ SK_DXGI_WrapSwapChain ( IUnknown        *pDevice,
                         IDXGISwapChain  *pSwapChain,
                         IDXGISwapChain **ppDest )
 {
-  CComPtr <ID3D11Device> pDev11 = nullptr;
-  if (SUCCEEDED (pDevice->QueryInterface <ID3D11Device> (&pDev11)))
+  DXGI_SWAP_CHAIN_DESC  desc = { };
+  pSwapChain->GetDesc (&desc);
+
+  CComQIPtr <ID3D11Device> pDev11 (pDevice);
+  if (pDev11 != nullptr && desc.BufferDesc.Width  > 32 &&
+                           desc.BufferDesc.Height > 32)
   {
     *ppDest =
       new IWrapDXGISwapChain ((ID3D11Device *)pDevice, pSwapChain);
@@ -4384,7 +4423,9 @@ SK_DXGI_WrapSwapChain ( IUnknown        *pDevice,
 
   else
   {
-    SK_LOG0 ( ("Swapchain with unknown device type created"), L"   DXGI   ");
+    if (pDev11 == nullptr)
+      SK_LOG0 ( ("non-D3D11 SwapChain created"), L"   DXGI   ");
+
     *ppDest = pSwapChain;
   }
 
@@ -4396,8 +4437,12 @@ SK_DXGI_WrapSwapChain1 ( IUnknown         *pDevice,
                          IDXGISwapChain1  *pSwapChain,
                          IDXGISwapChain1 **ppDest )
 {
-  CComPtr <ID3D11Device> pDev11 = nullptr;
-  if (SUCCEEDED (pDevice->QueryInterface <ID3D11Device> (&pDev11)))
+  DXGI_SWAP_CHAIN_DESC  desc = { };
+  pSwapChain->GetDesc (&desc);
+
+  CComQIPtr <ID3D11Device> pDev11 (pDevice);
+  if (pDev11 != nullptr && desc.BufferDesc.Width  > 32 &&
+                           desc.BufferDesc.Height > 32)
   {
     *ppDest =
       new IWrapDXGISwapChain ((ID3D11Device *)pDevice, pSwapChain);
@@ -4410,7 +4455,9 @@ SK_DXGI_WrapSwapChain1 ( IUnknown         *pDevice,
 
   else
   {
-    SK_LOG0 ( ("Swapchain with unknown device type created"), L"   DXGI   ");
+    if (pDev11 == nullptr)
+      SK_LOG0 ( ("non-D3D11 SwapChain created"), L"   DXGI   ");
+
     *ppDest = pSwapChain;
   }
 
@@ -5632,30 +5679,30 @@ SK_DXGI_HookSwapChain (IDXGISwapChain* pSwapChain)
     }
 
 
-    //CComPtr <IDXGIOutput> pOutput = nullptr;
-    //
-    //if (SUCCEEDED (pSwapChain->GetContainingOutput (&pOutput)))
-    //{
-    //  if (pOutput != nullptr)
-    //  {
-    //    DXGI_VIRTUAL_HOOK ( &pOutput, 8, "IDXGIOutput::GetDisplayModeList",
-    //                              DXGIOutput_GetDisplayModeList_Override,
-    //                                         GetDisplayModeList_Original,
-    //                                         GetDisplayModeList_pfn );
-    //
-    //    DXGI_VIRTUAL_HOOK ( &pOutput, 9, "IDXGIOutput::FindClosestMatchingMode",
-    //                              DXGIOutput_FindClosestMatchingMode_Override,
-    //                                         FindClosestMatchingMode_Original,
-    //                                         FindClosestMatchingMode_pfn );
-    //
-    //    // Don't hook this unless you want nvspcap to crash the game.
-    //    //
-    //    //DXGI_VIRTUAL_HOOK ( &pOutput, 10, "IDXGIOutput::WaitForVBlank",
-    //    //                         DXGIOutput_WaitForVBlank_Override,
-    //    //                                    WaitForVBlank_Original,
-    //    //                                    WaitForVBlank_pfn );
-    //  }
-    //}
+    CComPtr <IDXGIOutput> pOutput = nullptr;
+    
+    if (SUCCEEDED (pSwapChain->GetContainingOutput (&pOutput)))
+    {
+      if (pOutput != nullptr)
+      {
+        DXGI_VIRTUAL_HOOK ( &pOutput, 8, "IDXGIOutput::GetDisplayModeList",
+                                  DXGIOutput_GetDisplayModeList_Override,
+                                             GetDisplayModeList_Original,
+                                             GetDisplayModeList_pfn );
+    
+        DXGI_VIRTUAL_HOOK ( &pOutput, 9, "IDXGIOutput::FindClosestMatchingMode",
+                                  DXGIOutput_FindClosestMatchingMode_Override,
+                                             FindClosestMatchingMode_Original,
+                                             FindClosestMatchingMode_pfn );
+    
+        // Don't hook this unless you want nvspcap to crash the game.
+        //
+        //DXGI_VIRTUAL_HOOK ( &pOutput, 10, "IDXGIOutput::WaitForVBlank",
+        //                         DXGIOutput_WaitForVBlank_Override,
+        //                                    WaitForVBlank_Original,
+        //                                    WaitForVBlank_pfn );
+      }
+    }
 
     InterlockedIncrement (&hooked);
   }
@@ -5741,10 +5788,10 @@ SK_DXGI_HookFactory (IDXGIFactory* pFactory)
     // 22 RegisterOcclusionStatusEvent
     // 23 UnregisterOcclusionStatus
     // 24 CreateSwapChainForComposition
-    CComQIPtr <IDXGIFactory2> pFactory2 (pFactory);
-
     if ( CreateDXGIFactory1_Import != nullptr )
     {
+      CComPtr <IDXGIFactory2> pFactory2 = nullptr;
+
       if ( SUCCEEDED (CreateDXGIFactory1_Import (IID_IDXGIFactory2, (void **)&pFactory2)) )
       {
         if (! LocalHook_IDXGIFactory2_CreateSwapChainForHwnd.active)
@@ -5926,9 +5973,9 @@ HookDXGI (LPVOID user)
     d3d11_hook_ctx.ppDevice           = &pDevice;
     d3d11_hook_ctx.ppImmediateContext = &pImmediateContext;
 
-    CComPtr <IDXGIDevice>  pDevDXGI = nullptr;
-    CComPtr <IDXGIAdapter> pAdapter = nullptr;
-    CComPtr <IDXGIFactory> pFactory = nullptr;
+    CComQIPtr <IDXGIDevice>  pDevDXGI = nullptr;
+    CComPtr   <IDXGIAdapter> pAdapter = nullptr;
+    CComPtr   <IDXGIFactory> pFactory = nullptr;
     
     if ( pDevice != nullptr &&
          SUCCEEDED (pDevice->QueryInterface <IDXGIDevice> (&pDevDXGI)) &&

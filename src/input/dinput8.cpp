@@ -134,9 +134,9 @@ __declspec (noinline)
 HRESULT
 WINAPI
 DirectInput8Create ( HINSTANCE hinst,
-                     DWORD     dwVersion, 
-                     REFIID    riidltf, 
-                     LPVOID   *ppvOut, 
+                     DWORD     dwVersion,
+                     REFIID    riidltf,
+                     LPVOID   *ppvOut,
                      LPUNKNOWN punkOuter )
 {
   if (SK_GetDLLRole () == DLL_ROLE::DInput8)
@@ -166,12 +166,12 @@ DirectInput8Create ( HINSTANCE hinst,
         if (! IDirectInput8W_CreateDevice_Original)
         {
           void** vftable = *(void***)*ppvOut;
-          
+
           SK_CreateFuncHook (       L"IDirectInput8W::CreateDevice",
                                      vftable [3],
                                      IDirectInput8W_CreateDevice_Detour,
             static_cast_p2p <void> (&IDirectInput8W_CreateDevice_Original) );
-          
+
           SK_EnableHook (vftable [3]);
         }
       }
@@ -187,12 +187,12 @@ DirectInput8Create ( HINSTANCE hinst,
         if (! IDirectInput8A_CreateDevice_Original)
         {
           void** vftable = *(void***)*ppvOut;
-          
+
           SK_CreateFuncHook (       L"IDirectInput8A::CreateDevice",
                                      vftable [3],
                                      IDirectInput8A_CreateDevice_Detour,
             static_cast_p2p <void> (&IDirectInput8A_CreateDevice_Original) );
-          
+
           SK_EnableHook (vftable [3]);
         }
       }
@@ -213,13 +213,13 @@ SK_BootDI8 (void)
   {
     if (DirectInput8Create_Import == nullptr)
     {
-      HMODULE hBackend = 
+      HMODULE hBackend =
         (SK_GetDLLRole () & DLL_ROLE::DInput8) ? backend_dll :
                                         LoadLibraryW_Original (L"dinput8.dll");
 
       dll_log.Log (L"[ DInput 8 ] Importing DirectInput8Create....");
       dll_log.Log (L"[ DInput 8 ] ================================");
-      
+
       if (! _wcsicmp (SK_GetModuleName (SK_GetDLL ()).c_str (), L"dinput8.dll"))
       {
         dll_log.Log (L"[ DInput 8 ]   DirectInput8Create:   %ph",
@@ -282,7 +282,6 @@ SK_BootDI8 (void)
 #ifdef SPAWN_THREAD
 CreateThread (nullptr, 0x00, [](LPVOID/*user*/) -> DWORD
 {
-  
 UNREFERENCED_PARAMETER (user);
 #endif
 
@@ -375,12 +374,12 @@ CoCreateInstance_DI8 (
       if (! IDirectInput8A_CreateDevice_Original)
       {
         void** vftable = *(void***)*ppv;
-        
+
         SK_CreateFuncHook (       L"IDirectInput8A::CreateDevice",
                                    vftable [3],
                                    IDirectInput8A_CreateDevice_Detour,
           static_cast_p2p <void> (&IDirectInput8A_CreateDevice_Original) );
-        
+
         SK_EnableHook (vftable [3]);
       }
     }
@@ -396,12 +395,12 @@ CoCreateInstance_DI8 (
       if (! IDirectInput8W_CreateDevice_Original)
       {
         void** vftable = *(void***)*ppv;
-        
+
         SK_CreateFuncHook (       L"IDirectInput8W::CreateDevice",
                                    vftable [3],
                                    IDirectInput8W_CreateDevice_Detour,
           static_cast_p2p <void> (&IDirectInput8W_CreateDevice_Original) );
-        
+
         SK_EnableHook (vftable [3]);
       }
     }
@@ -452,12 +451,12 @@ CoCreateInstanceEx_DI8 (
           if (! IDirectInput8A_CreateDevice_Original)
           {
             void** vftable = *(void***)*&pResults->pItf;
-            
+
             SK_CreateFuncHook (       L"IDirectInput8A::CreateDevice",
                                        vftable [3],
                                        IDirectInput8A_CreateDevice_Detour,
               static_cast_p2p <void> (&IDirectInput8A_CreateDevice_Original) );
-            
+
             SK_EnableHook (vftable [3]);
           }
         }
@@ -467,12 +466,12 @@ CoCreateInstanceEx_DI8 (
           if (! IDirectInput8W_CreateDevice_Original)
           {
             void** vftable = *(void***)*&pResults->pItf;
-            
+
             SK_CreateFuncHook (       L"IDirectInput8W::CreateDevice",
                                        vftable [3],
                                        IDirectInput8W_CreateDevice_Detour,
               static_cast_p2p <void> (&IDirectInput8W_CreateDevice_Original) );
-            
+
             SK_EnableHook (vftable [3]);
           }
         }
@@ -507,7 +506,7 @@ SK_HookDI8 (LPVOID user)
 
   if (success)
     CoUninitialize ();
- 
+
   return 0;
 }
 
@@ -678,7 +677,7 @@ SK_JOY_TranslateToXInput (JOYINFOEX* pJoy, const JOYCAPSW* pCaps)
 
   bool lt = false,
        rt = false;
-  
+
   switch (config.input.gamepad.predefined_layout)
   {
     case 0:
@@ -912,7 +911,7 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8       This,
 
   if (SUCCEEDED (hr) && lpvData != nullptr)
   {
-    if (cbData == sizeof DIJOYSTATE2) 
+    if (cbData == sizeof DIJOYSTATE2)
     {
       SK_DI8_READ (sk_input_dev_type::Gamepad)
       static DIJOYSTATE2 last_state;
@@ -938,7 +937,7 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8       This,
         memcpy (&last_state, out, cbData);
     }
 
-    else if (cbData == sizeof DIJOYSTATE) 
+    else if (cbData == sizeof DIJOYSTATE)
     {
       SK_DI8_READ (sk_input_dev_type::Gamepad)
 
@@ -1193,7 +1192,7 @@ IDirectInput8W_CreateDevice_Detour ( IDirectInput8W        *This,
   uint32_t guid_crc32c = crc32c (0, &rguid, sizeof (REFGUID));
 
   const wchar_t* wszDevice = (rguid == GUID_SysKeyboard)   ? L"Default System Keyboard" :
-                                (rguid == GUID_SysMouse)   ? L"Default System Mouse"    :  
+                                (rguid == GUID_SysMouse)   ? L"Default System Mouse"    :
                                   (rguid == GUID_Joystick) ? L"Gamepad / Joystick"      :
                                                            L"Other Device";
 
@@ -1279,7 +1278,7 @@ IDirectInput8A_CreateDevice_Detour ( IDirectInput8A        *This,
   uint32_t guid_crc32c = crc32c (0, &rguid, sizeof (REFGUID));
 
   const wchar_t* wszDevice = (rguid == GUID_SysKeyboard)   ? L"Default System Keyboard" :
-                                (rguid == GUID_SysMouse)   ? L"Default System Mouse"    :  
+                                (rguid == GUID_SysMouse)   ? L"Default System Mouse"    :
                                   (rguid == GUID_Joystick) ? L"Gamepad / Joystick"      :
                                                            L"Other Device";
 
@@ -1376,7 +1375,7 @@ SK_Input_HookDI8 (void)
       SK_LOG0 ( ( L"Game uses DirectInput 8, installing input hooks..." ),
                     L"   Input  " );
 
-      //HMODULE hBackend = 
+      //HMODULE hBackend =
       //  (SK_GetDLLRole () & DLL_ROLE::DInput8) ? backend_dll :
       //                                  GetModuleHandle (L"dinput8.dll");
 

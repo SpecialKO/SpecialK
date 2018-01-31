@@ -81,6 +81,12 @@ SK::DXGI::PipelineStatsD3D11 SK::DXGI::pipeline_stats_d3d11 = { };
 volatile HANDLE hResampleThread = nullptr;
 
 
+#undef  SK_LOG_FIRST_CALL
+#define SK_LOG_FIRST_CALL { static bool called = false; if (! called) {  \
+  SK_LOG0 ( (L"[!] > First Call: %34hs", __FUNCTION__), L"  D3D 11  " ); \
+  called = true; } }
+
+
 __declspec (noinline)
 HRESULT
 WINAPI

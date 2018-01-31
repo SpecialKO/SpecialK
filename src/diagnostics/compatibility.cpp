@@ -154,6 +154,7 @@ BlacklistLibrary (const _T* lpFileName)
 #pragma push_macro ("GetModuleHandleEx")
 #pragma push_macro ("LoadLibrary")
 
+#pragma push_macro ("StrStrI")
 #undef StrStrI
 #undef GetModuleHandleEx
 #undef LoadLibrary
@@ -165,12 +166,12 @@ BlacklistLibrary (const _T* lpFileName)
 
   static GetModuleHandleEx_pfn  GetModuleHandleEx =
     (GetModuleHandleEx_pfn)
-      constexpr LPCVOID ( std::type_index (typeid (_T)) == std::type_index (typeid (wchar_t)) ? (GetModuleHandleEx_pfn) &GetModuleHandleExW : 
+      constexpr LPCVOID ( std::type_index (typeid (_T)) == std::type_index (typeid (wchar_t)) ? (GetModuleHandleEx_pfn) &GetModuleHandleExW :
                                                                                                 (GetModuleHandleEx_pfn) &GetModuleHandleExA );
 
   static LoadLibrary_pfn  LoadLibrary =
     (LoadLibrary_pfn)
-      constexpr LPCVOID ( std::type_index (typeid (_T)) == std::type_index (typeid (wchar_t)) ? (LoadLibrary_pfn) &LoadLibraryW_Detour : 
+      constexpr LPCVOID ( std::type_index (typeid (_T)) == std::type_index (typeid (wchar_t)) ? (LoadLibrary_pfn) &LoadLibraryW_Detour :
                                                                                                 (LoadLibrary_pfn) &LoadLibraryA_Detour );
 
   if (config.compatibility.disable_nv_bloat)
@@ -247,7 +248,7 @@ SK_LoadLibrary_PinModule (const _T* pStr)
 
   static GetModuleHandleEx_pfn  GetModuleHandleEx =
     (GetModuleHandleEx_pfn)
-      constexpr LPCVOID ( typeid (_T) == typeid (wchar_t) ? (GetModuleHandleEx_pfn) &GetModuleHandleExW : 
+      constexpr LPCVOID ( typeid (_T) == typeid (wchar_t) ? (GetModuleHandleEx_pfn) &GetModuleHandleExW :
                                                             (GetModuleHandleEx_pfn) &GetModuleHandleExA );
 
   HMODULE hModDontCare;
@@ -354,7 +355,7 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
 
   static LoadLibrary_pfn        LoadLibrary =
     (LoadLibrary_pfn)
-      constexpr LPCVOID ( typeid (_T) == typeid (wchar_t) ? (LoadLibrary_pfn)       &LoadLibraryW        : 
+      constexpr LPCVOID ( typeid (_T) == typeid (wchar_t) ? (LoadLibrary_pfn)       &LoadLibraryW        :
                                                             (LoadLibrary_pfn)       &LoadLibraryA        );
 
   static strncpy_pfn            strncpy_ =
@@ -369,7 +370,7 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
 
   static GetModuleHandleEx_pfn  GetModuleHandleEx =
     (GetModuleHandleEx_pfn)
-      constexpr LPCVOID ( typeid (_T) == typeid (wchar_t) ? (GetModuleHandleEx_pfn) &GetModuleHandleExW  : 
+      constexpr LPCVOID ( typeid (_T) == typeid (wchar_t) ? (GetModuleHandleEx_pfn) &GetModuleHandleExW  :
                                                             (GetModuleHandleEx_pfn) &GetModuleHandleExA  );
 
   // It's impossible to log this if we're loading the DLL necessary to log this...
@@ -382,7 +383,7 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
   wcsncpy (wszModName, SK_GetModuleName (hCallingMod).c_str (), MAX_PATH);
 
   if ((! SK_LoadLibrary_SILENCE) && GetModuleHandle (wszDbgHelp))
-  {    
+  {
     char  szSymbol [1024] = { };
     ULONG ulLen  =  1023;
 
@@ -397,7 +398,7 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
     {
       CHeapPtr <char> file_name (
         _strdup (reinterpret_cast <const char *> (lpFileName))
-      ); 
+      );
 
       SK_StripUserNameFromPathA (file_name);
 
@@ -436,7 +437,7 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
            StrStrIW (wszModName, L"RTSSHooks")           ||
            StrStrIW (wszModName, L"Nahimic2DevProps")    ||
            StrStrIW (wszModName, L"ReShade") )
-      {   
+      {
         SK_ReHookLoadLibrary ();
       }
     }
@@ -447,7 +448,7 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
     if ( (! (SK_GetDLLRole () & DLL_ROLE::D3D9)) && config.apis.d3d9.hook &&
          ( StrStrI  (lpFileName, SK_TEXT("d3d9.dll"))  ||
            StrStrIW (wszModName,        L"d3d9.dll")   ||
-                                                 
+
            StrStrI  (lpFileName, SK_TEXT("d3dx9_"))    ||
            StrStrIW (wszModName,        L"d3dx9_")     ||
 
@@ -539,14 +540,14 @@ FreeLibrary_Detour (HMODULE hLibModule)
   if ( (! (SK_LoadLibrary_SILENCE)) ||
            SK_GetModuleName (hLibModule).find (L"steam") != std::wstring::npos )
   {
-    if ( SK_GetModuleName (hLibModule).find (L"steam") != std::wstring::npos || 
+    if ( SK_GetModuleName (hLibModule).find (L"steam") != std::wstring::npos ||
         (bRet && GetModuleHandle (name.c_str ()) == nullptr ) )
     {
       if (config.system.log_level > 2)
       {
         char  szSymbol [1024] = { };
         ULONG ulLen  =  1024;
-    
+
         ulLen =
           SK_GetSymbolNameFromModuleAddr ( SK_GetCallingDLL (),
                                              reinterpret_cast <uintptr_t> (pAddr),
@@ -585,7 +586,7 @@ LoadLibrary_Marshal (LPVOID lpRet, LPCWSTR lpFileName, const wchar_t* wszSourceF
     GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
                            static_cast <LPCWSTR> (lpFileName),
                              &hModEarly );
-  } 
+  }
 
   __except ( (GetExceptionCode () == EXCEPTION_INVALID_HANDLE) ?
                        EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH  )
@@ -1196,7 +1197,7 @@ SK_BootModule (const wchar_t* wszModName)
                (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::OpenGL))) )
     {
       SK_BootOpenGL ();
-  
+
       loaded_gl = true;
     }
 
@@ -1205,7 +1206,7 @@ SK_BootModule (const wchar_t* wszModName)
                   (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::Vulkan))) )
   {
     SK_BootVulkan ();
-  
+
     loaded_vulkan = true;
   }
 #endif
@@ -1222,7 +1223,7 @@ SK_BootModule (const wchar_t* wszModName)
                       (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::DXGI))) )
   {
     SK_BootDXGI ();
-  
+
     loaded_dxgi = true;
   }
 
@@ -1231,7 +1232,7 @@ SK_BootModule (const wchar_t* wszModName)
                       (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::DXGI))) )
   {
     SK_BootDXGI ();
-  
+
     loaded_dxgi = true;
   }
 #endif
@@ -1240,7 +1241,7 @@ SK_BootModule (const wchar_t* wszModName)
                 (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::D3D9))) )
   {
     SK_BootD3D9 ();
-  
+
     loaded_d3d9 = true;
   }
 
@@ -1249,7 +1250,7 @@ SK_BootModule (const wchar_t* wszModName)
                 (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::D3D8))) )
   {
     SK_BootD3D8 ();
-  
+
     loaded_d3d8 = true;
   }
 
@@ -1257,7 +1258,7 @@ SK_BootModule (const wchar_t* wszModName)
                  (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::DDraw))) )
   {
     SK_BootDDraw ();
-  
+
     loaded_ddraw = true;
   }
 #endif
@@ -2031,14 +2032,14 @@ SK_Bypass_CRT (LPVOID user)
 #ifndef _WIN64
                                            { 7, L"Direct3D8"        },
                                            { 8, L"DirectDraw"       },
-#endif                                                              
+#endif
                                            { 2, L"Direct3D9{Ex}"    },
                                            { 3, L"Direct3D11"       },
-#ifdef _WIN64                                                       
+#ifdef _WIN64
                                            { 4, L"Direct3D12"       },
-#endif                                                              
+#endif
                                            { 5, L"OpenGL"           },
-#ifdef _WIN64                                                       
+#ifdef _WIN64
                                            { 6, L"Vulkan"           }
 #endif
                                        };
@@ -2056,7 +2057,7 @@ SK_Bypass_CRT (LPVOID user)
     task_config.pButtons          =            buttons_global;
     task_config.cButtons          = ARRAYSIZE (buttons_global);
   }
-  
+
   else
   {
     if (SK_HasGlobalInjector ())

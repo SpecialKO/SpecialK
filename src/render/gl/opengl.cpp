@@ -1842,7 +1842,7 @@ SK_GL_TrackHDC (HDC hDC)
   HWND hWnd_DC =
     WindowFromDC (hDC);
 
-  if (SK_GetCurrentRenderBackend ().windows.device != hWnd_DC && IsGUIThread (FALSE))
+  if (SK_GetCurrentRenderBackend ().windows.device != hWnd_DC && SK_Win32_IsGUIThread ())
   {
     if (IsWindowVisible (hWnd_DC) && GetFocus () == hWnd_DC)
     {
@@ -1892,17 +1892,8 @@ SwapBuffers (HDC hDC)
 {
   WaitForInit_GL ();
 
-
   if (config.system.log_level > 1)
     dll_log.Log (L"[%x (tid=%x)]  SwapBuffers (hDC=%x)", WindowFromDC (hDC), GetCurrentThreadId (), hDC);
-
-
-  InterlockedCompareExchangePointer ((void **)&gdi_swap_buffers,
-    GetProcAddress (GetModuleHandle (L"gdi32full.dll"), "SwapBuffers"),
-      nullptr);
-
-  while (! ReadPointerAcquire ((void **)&gdi_swap_buffers))
-    SwitchToThread ();
 
 
   SK_GL_TrackHDC (hDC);
@@ -2406,26 +2397,25 @@ SK_HookGL (void)
 
     cs_gl_ctx = new SK_Thread_HybridSpinlock (64);
 
-    LoadLibraryW_Original (L"gdi32.dll");
+    LoadLibraryW (L"gdi32full.dll");
     SK_LoadRealGL ();
 
     if (StrStrIW ( SK_GetModuleName (SK_GetDLL ()).c_str (), 
                      wszBackendDLL ) )
     {
       wgl_swap_buffers =
-        (wglSwapBuffers_pfn)GetProcAddress   (local_gl, "wglSwapBuffers");
-      wgl_make_current =
-        (wglMakeCurrent_pfn)GetProcAddress   (local_gl, "wglMakeCurrent");
-      wgl_share_lists =
-        (wglShareLists_pfn)GetProcAddress    (local_gl, "wglShareLists");
-      wgl_delete_context =
-        (wglDeleteContext_pfn)GetProcAddress (local_gl, "wglDeleteContext");
-    }
+        (wglSwapBuffers_pfn)GetProcAddress         (local_gl, "wglSwapBuffers");
+      wgl_make_current =                           
+        (wglMakeCurrent_pfn)GetProcAddress         (local_gl, "wglMakeCurrent");
+      wgl_share_lists =                            
+        (wglShareLists_pfn)GetProcAddress          (local_gl, "wglShareLists");
+      wgl_delete_context =                         
+        (wglDeleteContext_pfn)GetProcAddress       (local_gl, "wglDeleteContext");
+      wgl_swap_multiple_buffers =
+        (wglSwapMultipleBuffers_pfn)GetProcAddress (local_gl, "wglSwapMultipleBuffers");
 
-
-    if (__SK_bypass || ReadAcquire (&__gl_ready))
-    {
-      return;
+      // Call the stub to initialize it
+      /*HGLRC init = */wglGetCurrentContext ();
     }
 
 
@@ -2821,11 +2811,8 @@ SK_HookGL (void)
       SK_GL_HOOK(glViewport);
 
       SK_GL_HOOK(wglCopyContext);
-    //SK_GL_HOOK(wglDeleteContext);
       SK_GL_HOOK(wglGetCurrentContext);
       SK_GL_HOOK(wglGetCurrentDC);
-
-    //SK_GL_HOOK(wglSwapMultipleBuffers);
 
       SK_GL_HOOK(wglGetProcAddress);
       SK_GL_HOOK(wglCreateContext);
@@ -2859,14 +2846,11 @@ SK_HookGL (void)
 
     SK_ApplyQueuedHooks ();
 
-
+    InterlockedExchange  (&__gl_ready, TRUE);
     InterlockedIncrement (&SK_GL_initialized);
   }
 
-  if (! (__SK_bypass || ReadAcquire (&__gl_ready)))
-    SK_Thread_SpinUntilAtomicMin (&SK_GL_initialized, 2);
-
-  InterlockedExchange (&__gl_ready, TRUE);
+  SK_Thread_SpinUntilAtomicMin (&SK_GL_initialized, 2);
 }
 
 

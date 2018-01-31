@@ -464,7 +464,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
       <OutputFile>\\zilcho\Tales of Symphonia\d3d9.dll</OutputFile>
-      <CreateHotPatchableImage>X64Image</CreateHotPatchableImage>
+      <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
       <OptimizeReferences>false</OptimizeReferences>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <LargeAddressAware>true</LargeAddressAware>
@@ -478,8 +478,7 @@
       <SetChecksum>true</SetChecksum>
       <BaseAddress>
       </BaseAddress>
-      <SupportNobindOfDelayLoadedDLL>false</SupportNobindOfDelayLoadedDLL>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
     </Link>
     <ProjectReference />
   </ItemDefinitionGroup>
@@ -531,12 +530,11 @@
       <AssemblyDebug>true</AssemblyDebug>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;psapi.lib;legacy_stdio_definitions.lib;lzma\x64\libzma.lib;DirectXTex\x64\DirectXTex.lib;MinHook\x64\libMinHook64.lib;;nvapi\x64\nvapi64.lib;glew\x64\glew.lib;glfw\x64\glfw.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <CreateHotPatchableImage>X64Image</CreateHotPatchableImage>
+      <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
       <SetChecksum>true</SetChecksum>
       <BaseAddress>
       </BaseAddress>
-      <SupportNobindOfDelayLoadedDLL>false</SupportNobindOfDelayLoadedDLL>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
     </Link>
     <ProjectReference />
     <ResourceCompile>
@@ -599,14 +597,13 @@
       <AssemblyDebug>true</AssemblyDebug>
       <SectionAlignment>
       </SectionAlignment>
-      <CreateHotPatchableImage>X64Image</CreateHotPatchableImage>
+      <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
       <OptimizeReferences>false</OptimizeReferences>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <SetChecksum>true</SetChecksum>
       <BaseAddress>
       </BaseAddress>
-      <SupportNobindOfDelayLoadedDLL>false</SupportNobindOfDelayLoadedDLL>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -681,12 +678,11 @@
       <ImportLibrary>
       </ImportLibrary>
       <AssemblyDebug>true</AssemblyDebug>
-      <CreateHotPatchableImage>X64Image</CreateHotPatchableImage>
+      <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
       <SetChecksum>true</SetChecksum>
       <BaseAddress>
       </BaseAddress>
-      <SupportNobindOfDelayLoadedDLL>false</SupportNobindOfDelayLoadedDLL>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -753,13 +749,12 @@ Exit 0</Command>
       <ImportLibrary>
       </ImportLibrary>
       <AssemblyDebug>true</AssemblyDebug>
-      <CreateHotPatchableImage>X64Image</CreateHotPatchableImage>
+      <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
       <RegisterOutput>false</RegisterOutput>
       <SetChecksum>true</SetChecksum>
       <BaseAddress>
       </BaseAddress>
-      <SupportNobindOfDelayLoadedDLL>false</SupportNobindOfDelayLoadedDLL>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -827,13 +822,12 @@ Exit 0</Command>
       <ImportLibrary>
       </ImportLibrary>
       <AssemblyDebug>true</AssemblyDebug>
-      <CreateHotPatchableImage>X64Image</CreateHotPatchableImage>
+      <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
       <RegisterOutput>false</RegisterOutput>
       <SetChecksum>true</SetChecksum>
       <BaseAddress>
       </BaseAddress>
-      <SupportNobindOfDelayLoadedDLL>false</SupportNobindOfDelayLoadedDLL>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -897,7 +891,7 @@ Exit 0</Command>
       <LargeAddressAware>true</LargeAddressAware>
       <ImageHasSafeExceptionHandlers>true</ImageHasSafeExceptionHandlers>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
-      <CreateHotPatchableImage>X64Image</CreateHotPatchableImage>
+      <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
       <EntryPointSymbol>
       </EntryPointSymbol>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;psapi.lib;legacy_stdio_definitions.lib;lzma\Win32\libzma.lib;DirectXTex\Win32\DirectXTex.lib;MinHook\Win32\libMinHook.lib;nvapi\Win32\nvapi.lib;glew\Win32\glew.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -907,8 +901,7 @@ Exit 0</Command>
       <SetChecksum>true</SetChecksum>
       <BaseAddress>
       </BaseAddress>
-      <SupportNobindOfDelayLoadedDLL>false</SupportNobindOfDelayLoadedDLL>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -971,7 +964,7 @@ Exit 0</Command>
       <LargeAddressAware>true</LargeAddressAware>
       <ImageHasSafeExceptionHandlers>true</ImageHasSafeExceptionHandlers>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
-      <CreateHotPatchableImage>X64Image</CreateHotPatchableImage>
+      <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
       <EntryPointSymbol>
       </EntryPointSymbol>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;psapi.lib;legacy_stdio_definitions.lib;lzma\Win32\libzma.lib;DirectXTex\Win32\DirectXTex.lib;MinHook\Win32\libMinHook.lib;nvapi\Win32\nvapi.lib;glew\Win32\glew.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -981,8 +974,7 @@ Exit 0</Command>
       <SetChecksum>true</SetChecksum>
       <BaseAddress>
       </BaseAddress>
-      <SupportNobindOfDelayLoadedDLL>false</SupportNobindOfDelayLoadedDLL>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1045,7 +1037,7 @@ Exit 0</Command>
       <LargeAddressAware>true</LargeAddressAware>
       <ImageHasSafeExceptionHandlers>true</ImageHasSafeExceptionHandlers>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
-      <CreateHotPatchableImage>X64Image</CreateHotPatchableImage>
+      <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
       <EntryPointSymbol>
       </EntryPointSymbol>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;psapi.lib;legacy_stdio_definitions.lib;lzma\Win32\libzma.lib;DirectXTex\Win32\DirectXTex.lib;MinHook\Win32\libMinHook.lib;nvapi\Win32\nvapi.lib;glew\Win32\glew.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -1055,8 +1047,7 @@ Exit 0</Command>
       <SetChecksum>true</SetChecksum>
       <BaseAddress>
       </BaseAddress>
-      <SupportNobindOfDelayLoadedDLL>false</SupportNobindOfDelayLoadedDLL>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1118,7 +1109,7 @@ Exit 0</Command>
       <LargeAddressAware>true</LargeAddressAware>
       <ImageHasSafeExceptionHandlers>true</ImageHasSafeExceptionHandlers>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
-      <CreateHotPatchableImage>X64Image</CreateHotPatchableImage>
+      <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
       <EntryPointSymbol>
       </EntryPointSymbol>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;psapi.lib;legacy_stdio_definitions.lib;lzma\Win32\libzma.lib;DirectXTex\Win32\DirectXTex.lib;MinHook\Win32\libMinHook.lib;nvapi\Win32\nvapi.lib;glew\Win32\glew.lib;%(AdditionalDependencies);C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Lib\x86\d3dcompiler.lib</AdditionalDependencies>
@@ -1128,8 +1119,7 @@ Exit 0</Command>
       <SetChecksum>true</SetChecksum>
       <BaseAddress>
       </BaseAddress>
-      <SupportNobindOfDelayLoadedDLL>false</SupportNobindOfDelayLoadedDLL>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1198,11 +1188,10 @@ Exit 0</Command>
       <SetChecksum>true</SetChecksum>
       <OptimizeReferences>false</OptimizeReferences>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
-      <CreateHotPatchableImage>X64Image</CreateHotPatchableImage>
+      <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
       <BaseAddress>
       </BaseAddress>
-      <SupportNobindOfDelayLoadedDLL>false</SupportNobindOfDelayLoadedDLL>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1265,7 +1254,7 @@ Exit 0</Command>
       </DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib  /OUT:"$(TargetName).dll"</AdditionalOptions>
-      <CreateHotPatchableImage>X64Image</CreateHotPatchableImage>
+      <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
       <EntryPointSymbol>
       </EntryPointSymbol>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
@@ -1277,8 +1266,7 @@ Exit 0</Command>
       <SetChecksum>true</SetChecksum>
       <BaseAddress>
       </BaseAddress>
-      <SupportNobindOfDelayLoadedDLL>false</SupportNobindOfDelayLoadedDLL>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1334,7 +1322,7 @@ Exit 0</Command>
       <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIDirect3D11Renderer-0.dll;;CEGUIOpenGLRenderer-0.dll</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
-      <CreateHotPatchableImage>X64Image</CreateHotPatchableImage>
+      <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
       <EntryPointSymbol>
       </EntryPointSymbol>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
@@ -1346,8 +1334,7 @@ Exit 0</Command>
       <SetChecksum>true</SetChecksum>
       <BaseAddress>
       </BaseAddress>
-      <SupportNobindOfDelayLoadedDLL>false</SupportNobindOfDelayLoadedDLL>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1403,7 +1390,7 @@ Exit 0</Command>
       <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIDirect3D11Renderer-0.dll;;CEGUIOpenGLRenderer-0.dll</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
-      <CreateHotPatchableImage>X64Image</CreateHotPatchableImage>
+      <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
       <EntryPointSymbol>
       </EntryPointSymbol>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
@@ -1415,8 +1402,7 @@ Exit 0</Command>
       <SetChecksum>true</SetChecksum>
       <BaseAddress>
       </BaseAddress>
-      <SupportNobindOfDelayLoadedDLL>false</SupportNobindOfDelayLoadedDLL>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1472,7 +1458,7 @@ Exit 0</Command>
       <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIDirect3D11Renderer-0.dll;;CEGUIOpenGLRenderer-0.dll</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
-      <CreateHotPatchableImage>X64Image</CreateHotPatchableImage>
+      <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
       <EntryPointSymbol>
       </EntryPointSymbol>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
@@ -1484,8 +1470,7 @@ Exit 0</Command>
       <SetChecksum>true</SetChecksum>
       <BaseAddress>
       </BaseAddress>
-      <SupportNobindOfDelayLoadedDLL>false</SupportNobindOfDelayLoadedDLL>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1538,7 +1523,7 @@ Exit 0</Command>
       <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIDirect3D11Renderer-0.dll;;CEGUIOpenGLRenderer-0.dll</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
-      <CreateHotPatchableImage>X64Image</CreateHotPatchableImage>
+      <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
       <EntryPointSymbol>
       </EntryPointSymbol>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
@@ -1554,8 +1539,7 @@ Exit 0</Command>
       <Profile>true</Profile>
       <BaseAddress>
       </BaseAddress>
-      <SupportNobindOfDelayLoadedDLL>false</SupportNobindOfDelayLoadedDLL>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1611,7 +1595,7 @@ Exit 0</Command>
       <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIDirect3D11Renderer-0.dll;;CEGUIOpenGLRenderer-0.dll</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
-      <CreateHotPatchableImage>X64Image</CreateHotPatchableImage>
+      <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
       <EntryPointSymbol>
       </EntryPointSymbol>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
@@ -1626,8 +1610,7 @@ Exit 0</Command>
       <AssemblyDebug>true</AssemblyDebug>
       <BaseAddress>
       </BaseAddress>
-      <SupportNobindOfDelayLoadedDLL>false</SupportNobindOfDelayLoadedDLL>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1688,7 +1671,7 @@ Exit 0</Command>
       <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
-      <CreateHotPatchableImage>X64Image</CreateHotPatchableImage>
+      <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
       <EntryPointSymbol>
       </EntryPointSymbol>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
@@ -1700,8 +1683,7 @@ Exit 0</Command>
       <SetChecksum>true</SetChecksum>
       <BaseAddress>
       </BaseAddress>
-      <SupportNobindOfDelayLoadedDLL>false</SupportNobindOfDelayLoadedDLL>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
     </Link>
     <ProjectReference />
     <PostBuildEvent>

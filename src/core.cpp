@@ -120,22 +120,8 @@ using ChangeDisplaySettingsA_pfn = LONG (WINAPI *)(
   _In_opt_ DEVMODEA *lpDevMode,
   _In_     DWORD     dwFlags
 );
-using CreateWindowExW_pfn = HWND (WINAPI *)(
-    _In_     DWORD     dwExStyle,
-    _In_opt_ LPCWSTR   lpClassName,
-    _In_opt_ LPCWSTR   lpWindowName,
-    _In_     DWORD     dwStyle,
-    _In_     int       X,
-    _In_     int       Y,
-    _In_     int       nWidth,
-    _In_     int       nHeight,
-    _In_opt_ HWND      hWndParent,
-    _In_opt_ HMENU     hMenu,
-    _In_opt_ HINSTANCE hInstance,
-    _In_opt_ LPVOID    lpParam );
 
 extern ChangeDisplaySettingsA_pfn ChangeDisplaySettingsA_Original;
-extern CreateWindowExW_pfn        CreateWindowExW_Original;
 
 
 struct init_params_s {
@@ -1234,18 +1220,15 @@ SK_Win32_CreateDummyWindow (void)
                           L"Special K Dummy Window Class",
                             &wc_existing ) )
   {
-    if (! CreateWindowExW_Original)
-      SK_HookWinAPI ();
-
     HWND hWnd =
-      CreateWindowExW_Original ( 0L, L"Special K Dummy Window Class",
-                                     L"Special K Dummy Window",
-                                       WS_POPUP | WS_CLIPCHILDREN |
-                                       WS_CLIPSIBLINGS,
-                                         0, 0,
-                                         2, 2,
-                                           HWND_DESKTOP,   nullptr,
-                                             SK_GetDLL (), nullptr );
+      CreateWindowExW ( 0L, L"Special K Dummy Window Class",
+                            L"Special K Dummy Window",
+                              WS_POPUP | WS_CLIPCHILDREN |
+                              WS_CLIPSIBLINGS,
+                                0, 0,
+                                2, 2,
+                                  HWND_DESKTOP,   nullptr,
+                                    SK_GetDLL (), nullptr );
 
     if (hWnd != HWND_DESKTOP)
     {
@@ -1514,7 +1497,7 @@ SKX_Window_EstablishRoot (void)
   HWND  hWndTarget  = SK_GetCurrentRenderBackend ().windows.device;
   DWORD dwWindowPid = 0;
 
-  if (IsGUIThread (FALSE) && hWndTarget == 0)
+  if (SK_Win32_IsGUIThread ( ) && hWndTarget == 0)
   {
     GetWindowThreadProcessId (hWndActive, &dwWindowPid);
     if (dwWindowPid == GetCurrentProcessId ())
@@ -1600,15 +1583,21 @@ SK_BeginBufferSwap (void)
   }
 
 
-  static volatile LONG         __SK_CEGUI_Init          = FALSE;
-  static          SK_RenderAPI __SK_Render_LastKnownAPI = SK_RenderAPI::Reserved;
+  static volatile LONG         CEGUI_Init          = FALSE;
+  static          SK_RenderAPI LastKnownAPI = SK_RenderAPI::Reserved;
 
   if (config.cegui.enable)
   {
     if ( (SK_GetCurrentRenderBackend ().api != SK_RenderAPI::Reserved) &&
-         ( (! InterlockedCompareExchange (&__SK_CEGUI_Init, TRUE, FALSE)) ||
-            __SK_Render_LastKnownAPI != SK_GetCurrentRenderBackend ().api ) )
+         ( (! InterlockedCompareExchange (&CEGUI_Init, TRUE, FALSE)) ||
+            LastKnownAPI != SK_GetCurrentRenderBackend ().api ) )
     {
+      if (game_window.WndProc_Original == nullptr)
+      {
+        SK_InstallWindowHook (GetForegroundWindow ());
+        game_window.active = true;
+      }
+
       InterlockedIncrement (&SK_GetCurrentRenderBackend ().frames_drawn);
 
       // Brutally stupid hack for brutally stupid OS (Windows 7)
@@ -1775,7 +1764,7 @@ SK_BeginBufferSwap (void)
     }
   }
 
-  __SK_Render_LastKnownAPI = SK_GetCurrentRenderBackend ().api;
+  LastKnownAPI = SK_GetCurrentRenderBackend ().api;
 
 
   if (config.cegui.enable)

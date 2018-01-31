@@ -823,6 +823,12 @@ void SK_Steam_SetNotifyCorner (void);
 SK_SteamAPIContext steam_ctx;
 
 
+ISteamFriends*
+SK_Steam_Friends (void)
+{
+  return steam_ctx.Friends ();
+}
+
 void
 SK_Steam_SetNotifyCorner (void)
 {

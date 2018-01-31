@@ -1,3 +1,29 @@
+0.9.0 (alpha2/3):
+
+ + Stop booting ancillary graphics APIs after the game draws two frames;
+
+     A game bringing in D3D9 or D3D11 after it's already started rendering
+       using a different graphics API is usually for video playback and I
+         have no interest in modifying that stuff :P
+
+ + Added logging of all HWNDs that are actively tracking RawInput devices
+ + Application restarts after update / compat menu now properly start the
+     game in the foreground
+
+ + Forced fullscreen mode works in D3D9 again, but Unity's still sketchy
+ + Fixed COM wrapper dispatch issues for DirectInput 7 games
+ + Fixed several window activation (alt+tab) issues in D3D9/GL
+ + Fixed compatibility dialog for local wrapper installs causing deadlocks
+ + Added D3D9 OSD visibility toggle for vidcap
+ + Fixed framerate limiter preferences not being applied at start
+
+ + Added timeout detection in the event that third-party
+     software is preventing the OSD hiding feature from working;
+
+  >> OSD will automagically revert to normal drawing behavior
+       if this scenario is detected.
+
+
 0.9.0 (alpha0/1):
  
  + Added option to toggle OSD visibility in D3D11 games

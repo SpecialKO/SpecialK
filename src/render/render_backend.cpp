@@ -43,6 +43,25 @@
 #include <atlbase.h>
 #include <cassert>
 
+
+
+class SK_AutoDC
+{
+public:
+   SK_AutoDC (HWND hWnd, HDC hDC) : hWnd_ (hWnd),
+                                    hDC_  (hDC) { };
+  ~SK_AutoDC (void)    { ReleaseDC (hWnd_, hDC_); }
+
+  HDC  hDC  (void) { return hDC_;  }
+  HWND hWnd (void) { return hWnd_; }
+
+private:
+  HWND hWnd_;
+  HDC  hDC_;
+};
+
+
+
 SK_RenderBackend __SK_RBkEnd;
 
 SK_RenderBackend&
@@ -79,6 +98,12 @@ SK_InitRenderBackends (void)
                                            new SK_IVarStub <bool> (&config.apis.OpenGL.hook ) );
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//  Direct3D 9
+//
+//////////////////////////////////////////////////////////////////////////
 #define D3D9_TEXTURE_MOD
 
 void
@@ -133,7 +158,6 @@ SK_BootD3D9 (void)
                               SK_LoadEarlyImports32 () );
     }
 
-  //SK_D3D9_PreHook ();
     SK_HookD3D9     ();
 
     if (config.textures.d3d9_mod)
@@ -147,7 +171,13 @@ SK_BootD3D9 (void)
   SK_Thread_SpinUntilAtomicMin (&__booted, 2);
 }
 
+
 #ifndef _WIN64
+//////////////////////////////////////////////////////////////////////////
+//
+//  Direct3D 8
+//
+//////////////////////////////////////////////////////////////////////////
 void
 SK_BootD3D8 (void)
 {
@@ -190,6 +220,12 @@ SK_BootD3D8 (void)
   SK_Thread_SpinUntilAtomicMin (&__booted, 2);
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//  DirectDraw
+//
+//////////////////////////////////////////////////////////////////////////
 void
 SK_BootDDraw (void)
 {
@@ -233,6 +269,12 @@ SK_BootDDraw (void)
 }
 #endif
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//  DXGI (D3D10+)
+//
+//////////////////////////////////////////////////////////////////////////
 void
 SK_BootDXGI (void)
 {
@@ -286,6 +328,12 @@ SK_BootDXGI (void)
   SK_Thread_SpinUntilAtomicMin (&__booted, 2);
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//  OpenGL
+//
+//////////////////////////////////////////////////////////////////////////
 void
 SK_BootOpenGL (void)
 {
@@ -582,21 +630,10 @@ SK_RenderBackend_V2::getActiveRefreshRate (void)
     }
   }
 
-  class SK_AutoDC
-  {
-  public:
-    SK_AutoDC (HWND hWnd, HDC hDC) : hWnd_ (hWnd),
-                                     hDC_  (hDC) { };
-    ~SK_AutoDC (void) { ReleaseDC (hWnd_, hDC_); }
-
-    HWND hWnd_;
-    HDC  hDC_;
-  };
-
   SK_AutoDC auto_dc (NULL, GetDC (NULL));
 
   return
-    static_cast <float> (GetDeviceCaps (auto_dc.hDC_, VREFRESH));
+    static_cast <float> (GetDeviceCaps (auto_dc.hDC (), VREFRESH));
 }
 
 
@@ -606,12 +643,12 @@ SK_COM_ValidateRelease (IUnknown** ppObj)
 {
   if ((! ppObj) || (! ReadPointerAcquire ((volatile LPVOID *)ppObj)))
     return nullptr;
-  
+
   ULONG refs =
     (*ppObj)->Release ();
-  
+
   assert (refs == 0);
-  
+
   if (refs == 0)
   {
     InterlockedExchangePointer ((void **)ppObj, nullptr);
@@ -700,8 +737,9 @@ SK_RenderBackend_V2::window_registry_s::setFocus (HWND hWnd)
 {
   if (focus == nullptr || ( GetActiveWindow () == hWnd && GetFocus () == hWnd && hWnd != 0))
   {
-    focus            = hWnd;
-    game_window.hWnd = hWnd;
+    focus              = hWnd;
+    game_window.hWnd   = hWnd;
+    game_window.active = true;
 
     SK_LOG1 (( __FUNCTIONW__ L" (%X)", hWnd ), L"  DEBUG!  ");
   }

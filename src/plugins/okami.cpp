@@ -1,5 +1,5 @@
 ﻿//
-// Copyright 2017 Andon "Kaldaien" Coleman
+// Copyright 2017-2018 Andon "Kaldaien" Coleman
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
@@ -21,6 +21,7 @@
 //
 
 #include <SpecialK/ini.h>
+#include <SpecialK/core.h>
 #include <SpecialK/config.h>
 #include <SpecialK/parameter.h>
 #include <SpecialK/hooks.h>
@@ -103,16 +104,19 @@ SK_Okami_LoadConfig (void)
     SK_D3D11_AddTexHash (L"no_grain.dds", 0xced133fb, 0x00);
   }
 
-  SK_CreateDLLHook2 (                      L"main.dll",
-                                            "?resizeBackBuffers@WindowControl@m2@@QEAA_NII_N@Z",
-                    SK_Okami_m2_WindowControl_resizeBackBuffers_Detour,
-    static_cast_p2p <void> (&m2_WindowControl_resizeBackBuffers_Original) );
-  SK_CreateDLLHook2 (                      L"main.dll",
-                                            "?resizeRenderBuffers@WindowControl@m2@@QEAA_NGG_N@Z",
-                    SK_Okami_m2_WindowControl_resizeRenderBuffers_Detour,
-    static_cast_p2p <void> (&m2_WindowControl_resizeRenderBuffers_Original) );
+  if (SK_IsInjected ())
+  {
+    SK_CreateDLLHook2 (                      L"main.dll",
+                                              "?resizeBackBuffers@WindowControl@m2@@QEAA_NII_N@Z",
+                      SK_Okami_m2_WindowControl_resizeBackBuffers_Detour,
+      static_cast_p2p <void> (&m2_WindowControl_resizeBackBuffers_Original) );
+    SK_CreateDLLHook2 (                      L"main.dll",
+                                              "?resizeRenderBuffers@WindowControl@m2@@QEAA_NGG_N@Z",
+                      SK_Okami_m2_WindowControl_resizeRenderBuffers_Detour,
+      static_cast_p2p <void> (&m2_WindowControl_resizeRenderBuffers_Original) );
 
-  SK_ApplyQueuedHooks ();
+    SK_ApplyQueuedHooks ( );
+  }
 }
 
 void

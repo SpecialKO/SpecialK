@@ -29,6 +29,7 @@
 #include <SpecialK/command.h>
 #include <SpecialK/core.h>
 #include <SpecialK/hooks.h>
+#include <SpecialK/window.h>
 
 #include <d3d9.h>
 #include <d3d11.h>
@@ -86,7 +87,7 @@ HANDLE hModSteamAPI = nullptr;
 void
 SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds)
 {
-  if (IsGUIThread (FALSE))
+  if (SK_Win32_IsGUIThread ())
   {
     HWND hWndThis = GetActiveWindow ();
     bool bUnicode =
@@ -210,7 +211,7 @@ Sleep_Detour (DWORD dwMilliseconds)
 #endif
 
 
-  BOOL bGUIThread    = IsGUIThread (FALSE);
+  BOOL bGUIThread    = SK_Win32_IsGUIThread ();
   BOOL bRenderThread = (SK_GetCurrentRenderBackend ().thread == GetCurrentThreadId ());
 
   if (bRenderThread)
@@ -684,7 +685,7 @@ SK::Framerate::Limiter::wait (void)
     }
 
     bool bGUI =
-      IsGUIThread (FALSE) && GetActiveWindow () == game_window.hWnd;
+      SK_Win32_IsGUIThread () && GetActiveWindow () == game_window.hWnd;
 
     bool bYielded = false;
 

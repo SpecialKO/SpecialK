@@ -136,6 +136,11 @@ struct SK_TLS
     BOOL hid                 = FALSE;
   } input;
 
+  struct
+  {
+    LONG GUI                 = -1;
+  } win32;
+
   // All stack frames except for bottom
   //   have meaningless values for these,
   //

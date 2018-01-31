@@ -1153,7 +1153,7 @@ SK_ImGui_PollGamepad_EndFrame (void)
 
   // Reset Mouse / Keyboard State so that we can process all state transitions
   //   that occur during the next frame without losing any input events.
-  if ( game_window.active || (game_window.hWnd == hWndFocus      &&
+  if ( game_window.active || (game_window.hWnd == hWndFocus      ||
                               game_window.hWnd == hWndForeground) )
   {
     io.MouseDown [0] = (GetAsyncKeyState_Original (VK_LBUTTON)  & 0x8000) != 0;
@@ -1791,8 +1791,8 @@ SK_ImGui_User_NewFrame (void)
   //
   // STUPID HACK: This should be in response to window messages, but there has been
   //                 a bit of trouble reliably receiving those messages in some games.
-  if ( ( GetForegroundWindow () != game_window.hWnd &&
-         GetFocus            () != game_window.hWnd    ) && (! game_window.active) )
+  if ( /*( GetForegroundWindow () != game_window.hWnd &&
+         GetFocus            () != game_window.hWnd    ) && */(! game_window.active) )
   {
       g.IO.WantTextInput                 = false;
       g.IO.WantCaptureKeyboard           = false;

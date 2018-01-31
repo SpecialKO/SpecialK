@@ -6818,10 +6818,28 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
     __stdcall
     SK_GetPluginName (void);
 
+    ISteamFriends*
+    SK_Steam_Friends (void);
+
+    char szName [512] = { };
+
+    if (SK_Steam_Friends ())
+    {
+      strcpy (szName, SK_Steam_Friends ()->GetPersonaName ());
+    }
+
 		ImGui::TextColored     (ImColor::HSV (.11f, 1.f, 1.f),  "%ws   ", SK_GetPluginName ().c_str ()); ImGui::SameLine ();
-		ImGui::TextUnformatted ("   Please see the Release Notes, under");                               ImGui::SameLine ();
-		ImGui::TextColored     (ImColor::HSV (.52f, 1.f, 1.f),  "Help | Release Notes");                 ImGui::SameLine ();
-		ImGui::TextUnformatted ("for what passes as documentation for this project.");
+
+    if (*szName != '\0')
+    {
+      ImGui::Text            ("  Hello");                                                            ImGui::SameLine ();
+      ImGui::TextColored     (ImColor::HSV (0.075f, 1.0f, 1.0f), "%s", szName);                      ImGui::SameLine ();
+      ImGui::TextUnformatted ("please see the Release Notes, under");                                ImGui::SameLine ();
+    }
+    else
+      ImGui::TextUnformatted ("  Please see the Release Notes, under");                              ImGui::SameLine ();
+    ImGui::TextColored       (ImColor::HSV (.52f, 1.f, 1.f),  "Help | Release Notes");               ImGui::SameLine ();
+    ImGui::TextUnformatted   ("for what passes as documentation for this project.");
 
     ImGui::Spacing ();
     ImGui::Spacing ();

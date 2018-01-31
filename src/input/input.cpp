@@ -47,7 +47,7 @@ SK_InputUtil_IsHWCursorVisible (void)
 {
   CURSORINFO cursor_info        = { };
              cursor_info.cbSize = sizeof (CURSORINFO);
-  
+
   GetCursorInfo_Original (&cursor_info);
 
   return (cursor_info.flags & CURSOR_SHOWING);
@@ -79,7 +79,7 @@ SK_HID_FilterPreparsedData (PHIDP_PREPARSED_DATA pData)
   const NTSTATUS  stat =
           HidP_GetCaps_Original (pData, &caps);
 
-  if ( stat           == HIDP_STATUS_SUCCESS && 
+  if ( stat           == HIDP_STATUS_SUCCESS &&
        caps.UsagePage == HID_USAGE_PAGE_GENERIC )
   {
     switch (caps.Usage)
@@ -315,7 +315,6 @@ std::vector <RAWINPUTDEVICE> raw_gamepads;  // View of only game pads
 
 struct
 {
-
   struct
   {
     bool active          = false;
@@ -364,7 +363,7 @@ SK_RawInput_GetMice (bool* pDifferent = nullptr)
         it.dwFlags |= RIDEV_NOLEGACY;
         RegisterRawInputDevices_Original ( &it, 1, sizeof RAWINPUTDEVICE );
       }
-    
+
       overrides.emplace_back (it);
     }
 
@@ -393,7 +392,7 @@ SK_RawInput_GetKeyboards (bool* pDifferent = nullptr)
 
     std::vector <RAWINPUTDEVICE> overrides;
 
-    // Aw, the game doesn't have any mice -- let's fix that.
+    // Aw, the game doesn't have any keyboards -- let's fix that.
     if (raw_keyboards.empty ())
     {
       //raw_devices.push_back   (RAWINPUTDEVICE { HID_USAGE_PAGE_GENERIC, HID_USAGE_GENERIC_KEYBOARD, 0x00, NULL });
@@ -558,19 +557,34 @@ SK_RawInput_ClassifyDevices (void)
       switch ((it).usUsage)
       {
         case HID_USAGE_GENERIC_MOUSE:
+          SK_LOG0 ( (L" >> Registered Mouse    (HWND=%x, Flags=%x)",
+                       it.hwndTarget, it.dwFlags ),
+                     L" RawInput " );
+
           raw_mice.push_back       (it);
           break;
 
         case HID_USAGE_GENERIC_KEYBOARD:
+          SK_LOG0 ( (L" >> Registered Keyboard (HWND=%x, Flags=%x)",
+                       it.hwndTarget, it.dwFlags ),
+                     L" RawInput " );
+
           raw_keyboards.push_back  (it);
           break;
 
         case HID_USAGE_GENERIC_JOYSTICK: // Joystick
         case HID_USAGE_GENERIC_GAMEPAD:  // Gamepad
+          SK_LOG0 ( (L" >> Registered Gamepad  (HWND=%x, Flags=%x)",
+                       it.hwndTarget, it.dwFlags ),
+                     L" RawInput " );
+
           raw_gamepads.push_back   (it);
           break;
 
         default:
+          SK_LOG0 ( (L" >> Registered Unknown  (Usage=%x)", it.usUsage),
+                     L" RawInput " );
+
           // UH OH, what the heck is this device?
           break;
       }
@@ -672,7 +686,9 @@ GetRegisteredRawInputDevices_Detour (
   return idx;
 }
 
-BOOL WINAPI RegisterRawInputDevices_Detour (
+BOOL
+WINAPI
+RegisterRawInputDevices_Detour (
   _In_ PCRAWINPUTDEVICE pRawInputDevices,
   _In_ UINT             uiNumDevices,
   _In_ UINT             cbSize )
@@ -710,15 +726,15 @@ BOOL WINAPI RegisterRawInputDevices_Detour (
       pDevices [i] = pRawInputDevices [i];
       raw_devices.push_back (pDevices [i]);
 
-      if (pDevices [i].hwndTarget != 0 && pDevices [i].hwndTarget != game_window.hWnd)
+      if ( pDevices [i].hwndTarget != 0 &&
+           pDevices [i].hwndTarget != game_window.hWnd )
       {
-        static wchar_t wszWindowClass [256] = { };
-        static wchar_t wszWindowTitle [256] = { };
+        static wchar_t wszWindowClass [128] = { };
+        static wchar_t wszWindowTitle [128] = { };
 
-        RealGetWindowClassW   (pDevices [i].hwndTarget, wszWindowClass, 255);
-        InternalGetWindowText (pDevices [i].hwndTarget, wszWindowTitle, 255);
+        RealGetWindowClassW   (pDevices [i].hwndTarget, wszWindowClass, 127);
+        InternalGetWindowText (pDevices [i].hwndTarget, wszWindowTitle, 127);
 
-        //SK_LOG1 ( 
         SK_LOG0 (
                   ( L"RawInput is being tracked on hWnd=%x - { (%s), '%s' }",
                       pDevices [i].hwndTarget, wszWindowClass, wszWindowTitle ),
@@ -760,7 +776,7 @@ BOOL WINAPI RegisterRawInputDevices_Detour (
                                              cbSize ) :
                 FALSE;
 
-  if (pDevices)
+  if (pDevices != nullptr)
     delete [] pDevices;
 
   return bRet;
@@ -853,7 +869,7 @@ GetRawInputBuffer_Detour (_Out_opt_ PRAWINPUT pData,
                         ++count;
             *pcbSize += advance;
           }
-          
+
           pInput += advance;
         }
 
@@ -1023,14 +1039,14 @@ ImGui_DesiredCursor (void)
       case ImGuiMouseCursor_Arrow:
         //SetCursor_Original ((last_cursor = LoadCursor (nullptr, IDC_ARROW)));
         return ((last_cursor = LoadCursor (SK_GetDLL (), (LPCWSTR)IDC_CURSOR_POINTER)));
-        break;                          
-      case ImGuiMouseCursor_TextInput:  
+        break;
+      case ImGuiMouseCursor_TextInput:
         return ((last_cursor = LoadCursor (nullptr, IDC_IBEAM)));
-        break;                          
+        break;
       case ImGuiMouseCursor_ResizeEW:
         return ((last_cursor = LoadCursor (SK_GetDLL (), (LPCWSTR)IDC_CURSOR_HORZ)));
-        break;                          
-      case ImGuiMouseCursor_ResizeNWSE: 
+        break;
+      case ImGuiMouseCursor_ResizeNWSE:
         return ((last_cursor = LoadCursor (nullptr, IDC_SIZENWSE)));
         break;
     }
@@ -1060,7 +1076,7 @@ ImGuiCursor_Impl (void)
   {
     ImGui::GetIO ().MouseDrawCursor = false;
   }
-  
+
   //
   // Software
   //
@@ -1729,9 +1745,17 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool, bool)
   switch (lpMsg->message)
   {
     case WM_SYSCOMMAND:
-      if ((lpMsg->wParam & 0xfff0) == SC_KEYMENU && lpMsg->lParam == 0) // Disable ALT application menu
-        handled = true;
-      break;
+    {
+      if (lpMsg->hwnd == game_window.hWnd)
+      {
+        if (SK_GetCurrentRenderBackend ().fullscreen_exclusive)
+        {
+          // Disable ALT application menu
+          if ((lpMsg->wParam & 0xfff0) == SC_KEYMENU && lpMsg->lParam == 0)
+            handled = true;
+        }
+      }
+    } break;
 
     case WM_CHAR:
     case WM_MENUCHAR:
@@ -1751,7 +1775,18 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool, bool)
     case WM_SETCURSOR:
     {
       if (lpMsg->hwnd == game_window.hWnd && game_window.hWnd != nullptr)
+      {
         SK_ImGui_Cursor.update ();
+      }
+
+      else if (lpMsg->hwnd != game_window.hWnd)
+      {
+        SK_LOG0 ( ( L"WM_SETCURSOR (%lu:%lu) received for HWND=%x; "
+                    L"game HWND=%x",
+                      lpMsg->wParam, lpMsg->lParam,
+                      lpMsg->hwnd, game_window.hWnd ),
+                    L"Input Mgr." );
+      }
     } break;
 
     // TODO: Does this message have an HWND always?
@@ -1761,7 +1796,7 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool, bool)
         ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
     } break;
 
-    // Pre-Dispose These Mesages (fixes The Witness)
+    // Pre-Dispose These Messages (fixes The Witness)
     case WM_LBUTTONDBLCLK:
     case WM_LBUTTONDOWN:
     case WM_LBUTTONUP:

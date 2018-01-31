@@ -668,9 +668,6 @@ WINAPI
 SK_HookD3D9 (void);
 
 void
-SK_D3D9_PreHook (void);
-
-void
 SK_D3D9_InitShaderModTools (void);
 
 
