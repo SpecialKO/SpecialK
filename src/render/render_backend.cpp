@@ -248,6 +248,7 @@ SK_BootDDraw (void)
   if (! config.apis.ddraw.hook)
     return;
 
+
   static volatile LONG __booted = FALSE;
 
   if (! InterlockedCompareExchange (&__booted, TRUE, FALSE))
@@ -662,15 +663,15 @@ SK_RenderBackend_V2::releaseOwnedResources (void)
 {
   SK_AutoCriticalSection auto_cs (&cs_res);
 
-  if (device != nullptr && swapchain != nullptr && d3d11.immediate_ctx != nullptr)
+  //if (device != nullptr && swapchain != nullptr && d3d11.immediate_ctx != nullptr)
   {
-    ////device              = SK_COM_ValidateRelease (&device);
-    ////swapchain           = SK_COM_ValidateRelease (&swapchain);
     ////d3d11.immediate_ctx = SK_COM_ValidateRelease (&d3d11.immediate_ctx);
+    ////swapchain           = SK_COM_ValidateRelease (&swapchain);
+    ////device              = SK_COM_ValidateRelease (&device);
 
-    device              = nullptr;
-    swapchain           = nullptr;
     d3d11.immediate_ctx = nullptr;
+    swapchain           = nullptr;
+    device              = nullptr;
   }
 }
 
@@ -735,7 +736,7 @@ SK_RenderBackend_V2::window_registry_s::getFocus (void)
 void
 SK_RenderBackend_V2::window_registry_s::setFocus (HWND hWnd)
 {
-  if (focus == nullptr || ( GetActiveWindow () == hWnd && GetFocus () == hWnd && hWnd != 0))
+  if (focus.hwnd == nullptr || ( GetActiveWindow () == hWnd && GetFocus () == hWnd && hWnd != 0))
   {
     focus              = hWnd;
     game_window.hWnd   = hWnd;

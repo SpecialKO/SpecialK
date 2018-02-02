@@ -833,26 +833,25 @@ auto ActivateWindow =[&](HWND hWnd, bool active = false)
 
 
 
-  // If forcing fullscreen, don't screw with window layering.
-  if (! SK_GetCurrentRenderBackend ().fullscreen_exclusive)
-  {
-    if (config.window.always_on_top == PreventAlwaysOnTop)
-    {
-      if (GetForegroundWindow () != SK_GetGameWindow ())
-        SK_GetCommandProcessor ()->ProcessCommandLine ("Window.TopMost false");
-    }
-
-    else if (config.window.always_on_top == AlwaysOnTop)
-    {
-      if (GetForegroundWindow () != SK_GetGameWindow ())
-        SK_GetCommandProcessor ()->ProcessCommandLine ("Window.TopMost true");
-    }
-  }
-
-
-
   if (state_changed)
   {
+    // If forcing fullscreen, don't screw with window layering.
+    if (! SK_GetCurrentRenderBackend ().fullscreen_exclusive)
+    {
+      if (config.window.always_on_top == PreventAlwaysOnTop)
+      {
+        if (GetForegroundWindow () != SK_GetGameWindow ())
+          SK_GetCommandProcessor ()->ProcessCommandLine ("Window.TopMost false");
+      }
+
+      else if (config.window.always_on_top == AlwaysOnTop)
+      {
+        if (GetForegroundWindow () != SK_GetGameWindow ())
+          SK_GetCommandProcessor ()->ProcessCommandLine ("Window.TopMost true");
+      }
+    }
+
+
     SK_Console::getInstance ()->reset ();
 
     if (config.window.background_mute)
@@ -872,12 +871,6 @@ auto ActivateWindow =[&](HWND hWnd, bool active = false)
       SetWindowLongPtrW    (game_window.hWnd, GWL_EXSTYLE,
        ( GetWindowLongPtrW (game_window.hWnd, GWL_EXSTYLE) & ~(WS_EX_TOPMOST | WS_EX_NOACTIVATE)
        ) | WS_EX_APPWINDOW );
-      //SetWindowPos      (game_window.hWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSENDCHANGING | SWP_NOMOVE     | SWP_NOSIZE     |
-      //                                                                 SWP_FRAMECHANGED   | SWP_DEFERERASE | SWP_NOCOPYBITS |
-      //                                                                 SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW | SWP_NOACTIVATE );
-      //SetWindowPos      (game_window.hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOSENDCHANGING | SWP_NOMOVE     | SWP_NOSIZE     |
-      //                                                           SWP_FRAMECHANGED   | SWP_DEFERERASE | SWP_NOCOPYBITS |
-      //                                                           SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW | SWP_NOACTIVATE | SWP_NOZORDER );
 
       SK_D3D9_TriggerReset (false);
     }
@@ -1463,6 +1456,11 @@ GetCursorInfo_Detour (PCURSORINFO pci)
 bool
 SK_ExpandSmallClipCursor (RECT *lpRect)
 {
+  // Don't do this until we've initialized the window
+  if (game_window.WndProc_Original == nullptr)
+    return false;
+
+
   RECT client, window;
 
   GetClientRect_Original (SK_GetGameWindow (), &client);
@@ -4200,23 +4198,16 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
         // Generally an application will handle this, but if it doesn't,
         //   trigger Special K's popup window,
         case SC_CLOSE:
-          if (hWnd == game_window.hWnd && game_window.active)
+          if (hWnd == game_window.hWnd)
           {
             SK_ImGui_WantExit |= config.input.keyboard.catch_alt_f4;
-          } break;
-
-        case SC_TASKLIST:
-          if (hWnd == game_window.hWnd && game_window.active)
-          {
-            SK_ImGui_WantExit |= config.input.keyboard.catch_alt_f4;
-            return 0;
           } break;
 
         case SC_KEYMENU:
-          if (hWnd == game_window.hWnd && game_window.active)
+          if (hWnd == game_window.hWnd)
           {
             // Disable ALT application menu
-            if (lParam == 0 && SK_GetCurrentRenderBackend ().fullscreen_exclusive)
+            if (lParam == 0)
               return 0;
 
             if (lParam == VK_F4)
@@ -4250,7 +4241,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
       else
       {
-        ActivateWindow (hWnd, false);
+      //ActivateWindow (hWnd, false);
 
         // Game window was deactivated, but the game doesn't need to know this!
         //   in fact, it needs to be told the opposite.
@@ -4261,7 +4252,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
           return MA_ACTIVATE;
         }
 
-        SK_GetCurrentRenderBackend ().fullscreen_exclusive = false;
+      //SK_GetCurrentRenderBackend ().fullscreen_exclusive = false;
       }
     } break;
 
@@ -4310,6 +4301,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
             SK_GetCurrentRenderBackend ().fullscreen_exclusive = false;
           }
         }
+
         else// if (wParam == FALSE)
         {
           if (last_active == true)
@@ -4782,8 +4774,9 @@ SK_Window_SetTopMost (bool bTop, bool bBringToTop)
   SetWindowPos_Original ( game_window.hWnd,
                             hWndOrder,
                               0, 0, 0, 0,
-                                SWP_NOACTIVATE | SWP_NOMOVE |
-                                SWP_NOSIZE     | SWP_NOSENDCHANGING );
+                                SWP_NOACTIVATE | SWP_NOMOVE         |
+                                SWP_NOSIZE     | SWP_NOSENDCHANGING |
+                                SWP_ASYNCWINDOWPOS );
 
   if (bBringToTop)
     BringWindowToTop (game_window.hWnd);
@@ -5191,6 +5184,12 @@ SK_MakeWindowHook (WNDPROC class_proc, WNDPROC wnd_proc, HWND hWnd)
 
     game_window.hooked = false;
   }
+
+
+
+  // Kiss of death for sane window management
+  if (! _wcsicmp (wszClassName, L"UnityWndClass"))
+    SK_GetCurrentRenderBackend ().windows.unity = true;
 }
 
 
