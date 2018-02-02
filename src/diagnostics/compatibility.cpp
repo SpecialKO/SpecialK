@@ -1345,6 +1345,11 @@ SK_WalkModules (int cbNeeded, HANDLE hProc, HMODULE* hMods, SK_ModuleEnum when)
                StrStrIW (wszModName, wszSteamNativeDLL) ||
                StrStrIW (wszModName, wszSteamClientDLL) )
           {
+            BOOL
+            SK_Steam_PreHookCore (void);
+
+            SK_Steam_PreHookCore ();
+
             SK_HookSteamAPI ();
           }
         }

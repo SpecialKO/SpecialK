@@ -32,10 +32,15 @@ interface IWrapDirect3DDevice9;
 static const GUID IID_IWrapDirect3DSwapChain9 =
   { 0x2085dc03, 0xc391, 0x4222, { 0xbb, 0x62, 0x56, 0x30, 0x7c, 0x8d, 0x38, 0xba } };
 
+// {B9F3541C-B2A1-4AFF-804D-2F8E18469B5E}
+static const GUID IID_IWrapDirect3DSwapChain9Ex =
+  { 0xb9f3541c, 0xb2a1, 0x4aff, { 0x80, 0x4d, 0x2f, 0x8e, 0x18, 0x46, 0x9b, 0x5e } };
+
 extern volatile LONG SK_D3D9_LiveWrappedSwapChains;
 extern volatile LONG SK_D3D9_LiveWrappedSwapChainsEx;
 
 struct __declspec (uuid ("2085DC03-C391-4222-BB62-56307C8D38BA")) IWrapDirect3DSwapChain9;
+struct __declspec (uuid ("B9F3541C-B2A1-4AFF-804D-2F8E18469B5E")) IWrapDirect3DSwapChain9Ex;
 
 struct IWrapDirect3DSwapChain9 : IDirect3DSwapChain9Ex
 {

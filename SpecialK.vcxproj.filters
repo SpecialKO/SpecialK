@@ -521,9 +521,6 @@
     <ClCompile Include="src\sound.cpp">
       <Filter>Source Files\Utility</Filter>
     </ClCompile>
-    <ClCompile Include="src\hooks.cpp">
-      <Filter>Source Files\Utility</Filter>
-    </ClCompile>
     <ClCompile Include="src\window.cpp">
       <Filter>Source Files\Backends</Filter>
     </ClCompile>
@@ -730,6 +727,9 @@
     </ClCompile>
     <ClCompile Include="src\injection\injection.cpp">
       <Filter>Source Files\Backends\Injection</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hooks.cpp">
+      <Filter>Source Files\Utility</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

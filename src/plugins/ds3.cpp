@@ -218,7 +218,7 @@ struct ds3_state_s {
   IDXGISwapChain* SwapChain  = nullptr;
 
   bool            Fullscreen = false;
-  HWND&           Window     = SK_GetCurrentRenderBackend ().windows.focus;
+  HWND&           Window     = SK_GetCurrentRenderBackend ().windows.focus.hwnd;
 
   int             Width      = 0;
   int             Height     = 0;

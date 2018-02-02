@@ -169,7 +169,7 @@ SK_XInput_EstablishPrimaryHook (HMODULE hModCaller, SK_XInputContext::instance_s
 
   // Calling module (return address) indicates the game made this call
   if (hModCaller == GetModuleHandle (nullptr))
-    InterlockedExchangePointer ((volatile LPVOID*)&xinput_ctx.primary_hook, pCtx);
+    InterlockedExchangePointer ((LPVOID *)&xinput_ctx.primary_hook, pCtx);
 
   // Third-party software polled the controller, it better be using the same
   //   interface version as the game is or a lot of input emulation software
@@ -188,7 +188,7 @@ SK_XInput_EstablishPrimaryHook (HMODULE hModCaller, SK_XInputContext::instance_s
                     SK_GetModuleName (hModCaller).c_str (),
                     pCtx->wszModuleName,
                    ((SK_XInputContext::instance_s *)ReadPointerAcquire (
-                     (volatile LPVOID*)&xinput_ctx.primary_hook
+                     (LPVOID *)&xinput_ctx.primary_hook
                    ))->wszModuleName ),
                   L"Input Mgr." );
 
@@ -961,8 +961,8 @@ SK_Input_HookXInput1_4 (void)
 
     SK_Input_HookXInputContext (pCtx);
 
-    if (ReadPointerAcquire ((volatile LPVOID *)&xinput_ctx.primary_hook) == nullptr)
-      InterlockedExchangePointer ((volatile LPVOID*)&xinput_ctx.primary_hook, &xinput_ctx.XInput1_4);
+    if (ReadPointerAcquire ((LPVOID *)&xinput_ctx.primary_hook) == nullptr)
+      InterlockedExchangePointer ((LPVOID *)&xinput_ctx.primary_hook, &xinput_ctx.XInput1_4);
 
     InterlockedIncrement (&hooked);
   }
@@ -999,8 +999,8 @@ SK_Input_HookXInput1_3 (void)
 
     SK_Input_HookXInputContext (pCtx);
 
-    if (ReadPointerAcquire ((volatile LPVOID *)&xinput_ctx.primary_hook) == nullptr)
-      InterlockedExchangePointer ((volatile LPVOID*)&xinput_ctx.primary_hook, &xinput_ctx.XInput1_3);
+    if (ReadPointerAcquire ((LPVOID *)&xinput_ctx.primary_hook) == nullptr)
+      InterlockedExchangePointer ((LPVOID *)&xinput_ctx.primary_hook, &xinput_ctx.XInput1_3);
 
     InterlockedIncrement (&hooked);
   }
@@ -1036,8 +1036,8 @@ SK_Input_HookXInput9_1_0 (void)
 
     SK_Input_HookXInputContext (pCtx);
 
-    if (ReadPointerAcquire ((volatile LPVOID *)&xinput_ctx.primary_hook) == nullptr)
-      InterlockedExchangePointer ((volatile LPVOID*)&xinput_ctx.primary_hook, &xinput_ctx.XInput9_1_0);
+    if (ReadPointerAcquire ((LPVOID *)&xinput_ctx.primary_hook) == nullptr)
+      InterlockedExchangePointer ((LPVOID *)&xinput_ctx.primary_hook, &xinput_ctx.XInput9_1_0);
 
     InterlockedIncrement (&hooked);
   }
@@ -1508,8 +1508,8 @@ SK_XInput_PollController ( INT           iJoyID,
                   L" input-related features may not work as intended." ),
                   L"Input Mgr." );
       InterlockedExchangePointer (
-        (volatile LPVOID *)&xinput_ctx.primary_hook,
-                           &xinput_ctx.XInput1_3 );
+        (LPVOID *)&xinput_ctx.primary_hook,
+                  &xinput_ctx.XInput1_3 );
 
       pCtx =
         static_cast <SK_XInputContext::instance_s *>

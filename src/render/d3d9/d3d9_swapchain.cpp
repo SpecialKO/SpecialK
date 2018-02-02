@@ -44,6 +44,7 @@ IWrapDirect3DSwapChain9::QueryInterface (REFIID riid, void **ppvObj)
 
   else if (
     riid == IID_IWrapDirect3DSwapChain9    ||
+    riid == IID_IWrapDirect3DSwapChain9Ex  ||
     riid == __uuidof (IUnknown)            ||
     riid == __uuidof (IDirect3DSwapChain9) ||
     riid == __uuidof (IDirect3DSwapChain9Ex))
@@ -64,6 +65,12 @@ IWrapDirect3DSwapChain9::QueryInterface (REFIID riid, void **ppvObj)
       d3d9ex_ = true;
     }
     #pragma endregion
+
+    // We're not wrapping that!
+    if ((! d3d9ex_) && riid == IID_IWrapDirect3DSwapChain9Ex)
+    {
+      return E_NOINTERFACE;
+    }
 
                                  pReal->AddRef  ();
     InterlockedExchange (&refs_, pReal->Release ());
@@ -115,7 +122,7 @@ IWrapDirect3DSwapChain9::Release (void)
                                        remaining.clear ();
   }
 
-	ULONG refs =
+  ULONG refs =
     pReal->Release ();
 
   if (local_refs == 0 && refs != 0)
@@ -159,25 +166,25 @@ HRESULT
 STDMETHODCALLTYPE
 IWrapDirect3DSwapChain9::GetFrontBufferData (IDirect3DSurface9 *pDestSurface)
 {
-	return pReal->GetFrontBufferData (pDestSurface);
+  return pReal->GetFrontBufferData (pDestSurface);
 }
 HRESULT
 STDMETHODCALLTYPE
 IWrapDirect3DSwapChain9::GetBackBuffer (UINT iBackBuffer, D3DBACKBUFFER_TYPE Type, IDirect3DSurface9 **ppBackBuffer)
 {
-	return pReal->GetBackBuffer (iBackBuffer, Type, ppBackBuffer);
+  return pReal->GetBackBuffer (iBackBuffer, Type, ppBackBuffer);
 }
 HRESULT
 STDMETHODCALLTYPE
 IWrapDirect3DSwapChain9::GetRasterStatus (D3DRASTER_STATUS *pRasterStatus)
 {
-	return pReal->GetRasterStatus (pRasterStatus);
+  return pReal->GetRasterStatus (pRasterStatus);
 }
 HRESULT
 STDMETHODCALLTYPE
 IWrapDirect3DSwapChain9::GetDisplayMode (D3DDISPLAYMODE *pMode)
 {
-	return pReal->GetDisplayMode (pMode);
+  return pReal->GetDisplayMode (pMode);
 }
 
 HRESULT
@@ -199,7 +206,7 @@ HRESULT
 STDMETHODCALLTYPE
 IWrapDirect3DSwapChain9::GetPresentParameters (D3DPRESENT_PARAMETERS *pPresentationParameters)
 {
-	return pReal->GetPresentParameters (pPresentationParameters);
+  return pReal->GetPresentParameters (pPresentationParameters);
 }
 
 // IDirect3DSwapChain9Ex
@@ -223,7 +230,7 @@ HRESULT
 STDMETHODCALLTYPE
 IWrapDirect3DSwapChain9::GetDisplayModeEx (D3DDISPLAYMODEEX *pMode, D3DDISPLAYROTATION *pRotation)
 {
-  assert(_extended_interface);
+  assert(d3d9ex_);
   
   return static_cast <IDirect3DSwapChain9Ex *>(pReal)->GetDisplayModeEx(pMode, pRotation);
 }

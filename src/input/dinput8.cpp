@@ -1362,7 +1362,7 @@ SK_Input_HookDI8 (void)
 
   static volatile LONG hooked = FALSE;
 
-  if (ReadAcquire (&hooked) < 2 && GetModuleHandle (L"dinput8.dll"))
+  if (GetModuleHandle (L"dinput8.dll"))
   {
     if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
     {

@@ -367,10 +367,10 @@ D3D9SetDepthStencilSurface_Detour (
 )
 {
   // Ignore anything that's not the primary render device.
-  if (This != SK_GetCurrentRenderBackend ().device)
-  {
-    return D3D9SetDepthStencilSurface_Original (This, pNewZStencil);
-  }
+  //if (! SK_GetCurrentRenderBackend ().device.IsEqualObject (This))
+  //{
+  //  return D3D9SetDepthStencilSurface_Original (This, pNewZStencil);
+  //}
 
   return D3D9SetDepthStencilSurface_Original (This, pNewZStencil);
 }
@@ -551,6 +551,7 @@ D3D9CreateTexture_Detour (IDirect3DDevice9    *This,
                                        ppTexture,
                                          pSharedHandle );
 
+
   if (SUCCEEDED (result) && (! SK::D3D9::tex_mgr.injector.isInjectionThread ()))
   {
     //if (config.textures.log) {
@@ -563,28 +564,17 @@ D3D9CreateTexture_Detour (IDirect3DDevice9    *This,
     //}
 
     if ( ( Usage & D3DUSAGE_RENDERTARGET ) ||
-         ( Usage & D3DUSAGE_DEPTHSTENCIL ) ||
-         ( Usage & D3DUSAGE_DYNAMIC      ) )
+         ( Usage & D3DUSAGE_DEPTHSTENCIL ) /*||
+         ( Usage & D3DUSAGE_DYNAMIC      ) */ )
     {
       tex_mgr.trackRenderTarget (*ppTexture);
     }
 
     else //Format != 0)//Pool != D3DPOOL_MANAGED)
     {
-      static HMODULE hModSteamOverlay =
-#ifndef _WIN64
-        GetModuleHandle (L"gameoverlayrenderer.dll");
-#else
-        GetModuleHandle (L"gameoverlayrenderer64.dll");
-#endif
-
-      // Recent changes to the Steam overlay cause a million
-      //   textures to be pre-loaded at start, we need to ignore
-      //     them or the overlay will kill performance.
       HMODULE hModCaller = SK_GetCallingDLL ();
 
-      if ( hModCaller != hModSteamOverlay &&
-           hModCaller != SK_GetDLL () )
+      if ( hModCaller != SK_GetDLL () )
       {
         ISKTextureD3D9* dontcare;
         if (FAILED ((*ppTexture)->QueryInterface (IID_SKTextureD3D9, (void **)&dontcare)))
@@ -603,13 +593,13 @@ HRESULT
 STDMETHODCALLTYPE
 D3D9BeginScene_Detour (IDirect3DDevice9* This)
 {
-  // Ignore anything that's not the primary render device.
-  if (This != SK_GetCurrentRenderBackend ().device)
-  {
-    dll_log.Log (L"[D3D9 BkEnd] >> WARNING: D3D9 BeginScene came from unknown IDirect3DDevice9! << ");
-
-    return D3D9BeginScene_Original (This);
-  }
+  //// Ignore anything that's not the primary render device.
+  //if (! SK_GetCurrentRenderBackend ().device.IsEqualObject (This))
+  //{
+  //  dll_log.Log (L"[D3D9 BkEnd] >> WARNING: D3D9 BeginScene came from unknown IDirect3DDevice9! (expected %p, got %p) << ", SK_GetCurrentRenderBackend ().device.p, This);
+  //
+  //  return D3D9BeginScene_Original (This);
+  //}
 
   draw_state.draws = 0;
 
@@ -1534,8 +1524,8 @@ D3DXCreateTextureFromFileInMemoryEx_Detour (
   // Necessary to make D3DX texture write functions work
   if ( Pool == D3DPOOL_DEFAULT && ( config.textures.dump_on_load &&
         (! tex_mgr.isTextureDumped     (checksum))         &&
-        (! tex_mgr.isTextureInjectable (checksum)) ) || (
-                                    config.textures.on_demand_dump ) )
+        (! tex_mgr.isTextureInjectable (checksum)) ) /*|| (
+                                    config.textures.on_demand_dump )*/ )
     Usage = D3DUSAGE_DYNAMIC;
 
 
@@ -2123,10 +2113,10 @@ D3D9SetRenderTarget_Detour (
   static int draw_counter = 0;
 
   // Ignore anything that's not the primary render device.
-  if (This != SK_GetCurrentRenderBackend ().device)
-  {
-    return D3D9SetRenderTarget_Original (This, RenderTargetIndex, pRenderTarget);
-  }
+  //if (! SK_GetCurrentRenderBackend ().device.IsEqualObject (This))
+  //{
+  //  return D3D9SetRenderTarget_Original (This, RenderTargetIndex, pRenderTarget);
+  //}
 
   //if (tsf::RenderFix::tracer.log) {
 #ifdef DUMP_RT
@@ -2206,7 +2196,7 @@ SK::D3D9::TextureManager::Init (void)
   if (config.textures.d3d11.dump)
     CreateDirectoryW (SK_D3D11_res_root.c_str (), nullptr);
 
-  tex_log.init (L"logs/textures.log", L"w+");
+  tex_log.init (L"logs/textures.log", L"wt+,ccs=UTF-8");
 
   d3dx9_43_dll =
     LoadLibraryW (L"D3DX9_43.DLL");
@@ -2395,23 +2385,23 @@ D3D9SetDepthStencilSurface_Override (
 void
 SK::D3D9::TextureManager::Hook (void)
 {
-  //SK_CreateDLLHook2 (      SK_GetModuleFullName (SK_GetDLL ()).c_str (),
-  //                          "D3D9BeginScene_Override",
-  //                           D3D9BeginScene_Detour,
-  //  static_cast_p2p <void> (&D3D9BeginScene_Original) );
-  //
-  //SK_CreateDLLHook2 (      SK_GetModuleFullName (SK_GetDLL ()).c_str (),
-  //                          "D3D9StretchRect_Override",
-  //                           D3D9StretchRect_Detour,
-  //  static_cast_p2p <void> (&D3D9StretchRect_Original) );
-  //
+  SK_CreateDLLHook2 (      SK_GetModuleFullName (SK_GetDLL ()).c_str (),
+                            "D3D9BeginScene_Override",
+                             D3D9BeginScene_Detour,
+    static_cast_p2p <void> (&D3D9BeginScene_Original) );
+  
+  SK_CreateDLLHook2 (      SK_GetModuleFullName (SK_GetDLL ()).c_str (),
+                            "D3D9StretchRect_Override",
+                             D3D9StretchRect_Detour,
+    static_cast_p2p <void> (&D3D9StretchRect_Original) );
+  
 
   SK_CreateFuncHook (      L"D3D9CreateRenderTarget_Override",
                             &D3D9CreateRenderTarget_Override,
                             &D3D9CreateRenderTarget_Detour,
     static_cast_p2p <void> (&D3D9CreateRenderTarget_Original) );
   MH_QueueEnableHook (       D3D9CreateRenderTarget_Override );
-
+  
   SK_CreateFuncHook (      L"D3D9CreateDepthStencilSurface_Override",
                             &D3D9CreateDepthStencilSurface_Override,
                             &D3D9CreateDepthStencilSurface_Detour,
@@ -2423,7 +2413,7 @@ SK::D3D9::TextureManager::Hook (void)
                             &D3D9CreateTexture_Detour,
     static_cast_p2p <void> (&D3D9CreateTexture_Original) );
   MH_QueueEnableHook (       D3D9CreateTexture_Override );
-
+  
   SK_CreateFuncHook (      L"D3D9SetTexture_Override",
                             &D3D9SetTexture_Override,
                             &D3D9SetTexture_Detour,
@@ -2435,7 +2425,7 @@ SK::D3D9::TextureManager::Hook (void)
                             &D3D9SetRenderTarget_Detour,
     static_cast_p2p <void> (&D3D9SetRenderTarget_Original) );
   MH_QueueEnableHook (       D3D9SetRenderTarget_Override );
-
+  
   //SK_CreateFuncHook ( L"D3D9SetDepthStencilSurface_Override",
   //                     &D3D9SetDepthStencilSurface_Override,
   //                     &D3D9SetDepthStencilSurface_Detour,

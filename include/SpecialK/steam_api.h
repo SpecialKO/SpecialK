@@ -22,10 +22,15 @@
 #define __SK__STEAM_API_H__
 
 #include <Windows.h>
-#include <steamapi/steam_api.h>
 
 #include <cstdint>
 #include <string>
+#include <vector>
+
+#include <steamapi/steam_api.h>
+#include <SpecialK/log.h>
+#include <SpecialK/command.h>
+
 
 #define STEAM_CALLRESULT( thisclass, func, param, var ) CCallResult< thisclass, param > var; void func( param *pParam, bool )
 
@@ -37,40 +42,42 @@ namespace SK
     void Shutdown (void);
     void Pump     (void);
 
-    void __stdcall SetOverlayState (bool active);
-    bool __stdcall GetOverlayState (bool real);
 
-    void __stdcall UpdateNumPlayers (void);
-    int  __stdcall GetNumPlayers    (void);
+    void  __stdcall SetOverlayState  (bool active);
+    bool  __stdcall GetOverlayState  (bool real);
+    bool  __stdcall IsOverlayAware   (void); // Did the game install a callback?
+
+    void  __stdcall UpdateNumPlayers (void);
+    int   __stdcall GetNumPlayers    (void);
 
     float __stdcall PercentOfAchievementsUnlocked (void);
 
-    bool __stdcall TakeScreenshot  (void);
+    bool  __stdcall TakeScreenshot   (void);
+
 
     uint32_t    AppID        (void);
     std::string AppName      (void);
 
     CSteamID    UserSteamID  (void);
 
+
     // The state that we are explicitly telling the game
     //   about, not the state of the actual overlay...
-    extern bool overlay_state;
+    extern bool      overlay_state;
 
-    extern uint64_t    steam_size;
+    extern uint64_t  steam_size;
     // Must be global for x86 ABI problems
-    extern CSteamID    player;
+    extern CSteamID  player;
   }
 }
 
-extern volatile LONG __SK_Steam_init;
-extern volatile LONG __SteamAPI_hook;
 
 // Tests the Import Table of hMod for anything Steam-Related
 //
 //   If found, and this test is performed after the pre-init
 //     DLL phase, SteamAPI in one of its many forms will be
 //       hooked.
-void
+bool
 SK_Steam_TestImports (HMODULE hMod);
 
 void
@@ -125,10 +132,9 @@ struct SK_SteamAchievement
   __time32_t  time_;
 };
 
-#include <SpecialK/log.h>
-extern          iSK_Logger       steam_log;
 
-#include <vector>
+
+extern iSK_Logger steam_log;
 
 size_t SK_SteamAPI_GetNumPossibleAchievements (void);
 
@@ -276,9 +282,6 @@ extern "C" void S_CALLTYPE SteamAPI_Shutdown_Detour (void);
 void                       SK_Steam_StartPump       (bool force = false);
 
 
-
-#include <SpecialK/command.h>
-
 ISteamMusic*
 SAFE_GetISteamMusic (ISteamClient* pClient, HSteamUser hSteamuser, HSteamPipe hSteamPipe, const char *pchVersion);
 
@@ -295,52 +298,7 @@ public:
                      FileDetailsResult_t,
                      get_file_details );
 
-  void Shutdown (void)
-  {
-    if (InterlockedDecrement (&__SK_Steam_init) <= 0)
-    { 
-      if (client_)
-      {
-#if 0
-        if (hSteamUser != 0)
-          client_->ReleaseUser       (hSteamPipe, hSteamUser);
-      
-        if (hSteamPipe != 0)
-          client_->BReleaseSteamPipe (hSteamPipe);
-#endif
-
-        SK_SteamAPI_DestroyManagers  ();
-      }
-
-      hSteamPipe      = 0;
-      hSteamUser      = 0;
-
-      client_         = nullptr;
-      user_           = nullptr;
-      user_stats_     = nullptr;
-      apps_           = nullptr;
-      friends_        = nullptr;
-      utils_          = nullptr;
-      screenshots_    = nullptr;
-      controller_     = nullptr;
-      music_          = nullptr;
-      remote_storage_ = nullptr;
-
-      user_ver_           = 0;
-      utils_ver_          = 0;
-      remote_storage_ver_ = 0;
-      
-      if (SteamAPI_Shutdown_Original != nullptr)
-      {
-        SteamAPI_Shutdown_Original = nullptr;
-
-        SK_DisableHook (SteamAPI_RunCallbacks);
-        SK_DisableHook (SteamAPI_Shutdown);
-
-        SteamAPI_Shutdown ();
-      }
-    }
-  }
+  void Shutdown (void);
 
   ISteamUser*          User                 (void) { return user_;               }
   int                  UserVersion          (void) { return user_ver_;           }
@@ -413,6 +371,7 @@ enum class SK_SteamUser_LoggedOn_e
 
   Spoofing = 0x2
 };
+
 
 // Returns the REAL state, masked with any necessary spoofing
 SK_SteamUser_LoggedOn_e

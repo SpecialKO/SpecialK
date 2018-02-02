@@ -249,8 +249,10 @@ SK_DGPU_UpdateFlareBuffers (void)
   FlareData_G.pSysMem           = &SK_DGPU_ScreenFlare_Global.data.gBlendType [0];
   FlareData_L.pSysMem           = &SK_DGPU_ScreenFlare_Local.data.gBlendType  [0];
   
-  ((ID3D11Device *)SK_GetCurrentRenderBackend ().device)->CreateBuffer (&FlareDesc, &FlareData_G, &SK_DGPU_ScreenFlare_Global.buffer);
-  ((ID3D11Device *)SK_GetCurrentRenderBackend ().device)->CreateBuffer (&FlareDesc, &FlareData_L, &SK_DGPU_ScreenFlare_Local.buffer);
+  CComQIPtr <ID3D11Device> pDev (SK_GetCurrentRenderBackend ().device);
+
+  pDev->CreateBuffer (&FlareDesc, &FlareData_G, &SK_DGPU_ScreenFlare_Global.buffer);
+  pDev->CreateBuffer (&FlareDesc, &FlareData_L, &SK_DGPU_ScreenFlare_Local.buffer);
 }
 
 

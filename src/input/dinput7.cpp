@@ -1064,7 +1064,7 @@ IDirectInput7W_CreateDevice_Detour ( IDirectInput7W        *This,
                                                            lplpDirectInputDevice,
                                                             pUnkOuter ) );
 
-  if (SUCCEEDED (hr))
+  if (SUCCEEDED (hr) && (! IDirectInputDevice7A_GetDeviceState_Original))
   {
     void** vftable =
       *reinterpret_cast <void ***> (*lplpDirectInputDevice);
@@ -1096,6 +1096,8 @@ IDirectInput7W_CreateDevice_Detour ( IDirectInput7W        *This,
 
     devices_w [guid_crc32c] = *lplpDirectInputDevice;
     devices_w [guid_crc32c]->AddRef ();
+
+    SK_ApplyQueuedHooks ();
   }
 
 #if 0
@@ -1109,8 +1111,6 @@ IDirectInput7W_CreateDevice_Detour ( IDirectInput7W        *This,
     (*lplpDirectInputDevice)->SetCooperativeLevel (SK_GetGameWindow (), dwFlag);
   }
 #endif
-
-  SK_ApplyQueuedHooks ();
 
   return hr;
 }
@@ -1150,7 +1150,7 @@ IDirectInput7A_CreateDevice_Detour ( IDirectInput7A        *This,
                                                            lplpDirectInputDevice,
                                                             pUnkOuter ) );
 
-  if (SUCCEEDED (hr))
+  if (SUCCEEDED (hr) && (! IDirectInputDevice7W_GetDeviceState_Original))
   {
     void** vftable =
       *reinterpret_cast <void ***> (*lplpDirectInputDevice);
@@ -1182,6 +1182,8 @@ IDirectInput7A_CreateDevice_Detour ( IDirectInput7A        *This,
 
     devices_a [guid_crc32c] = *lplpDirectInputDevice;
     devices_a [guid_crc32c]->AddRef ();
+
+    SK_ApplyQueuedHooks ();
   }
 
 #if 0
@@ -1196,8 +1198,6 @@ IDirectInput7A_CreateDevice_Detour ( IDirectInput7A        *This,
   }
 #endif
 
-  SK_ApplyQueuedHooks ();
-
   return hr;
 }
 
@@ -1209,7 +1209,7 @@ SK_Input_HookDI7 (void)
 
   static volatile LONG hooked = FALSE;
 
-  if (ReadAcquire (&hooked) < 2 && GetModuleHandle (L"dinput.dll"))
+  if (GetModuleHandle (L"dinput.dll"))
   {
     if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
     {

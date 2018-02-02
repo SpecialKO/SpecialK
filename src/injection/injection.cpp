@@ -129,7 +129,7 @@ SK_IsInjected (bool set)
   if (set)
   {
     __injected               = true;
-    SK_Inject_AddressManager = new SK_Inject_AddressCacheRegistry ();
+  //SK_Inject_AddressManager = new SK_Inject_AddressCacheRegistry ();
   }
 
   return set;
@@ -551,8 +551,8 @@ SKX_RemoveCBTHook (void)
 
   HHOOK hHookOrig = SKX_GetCBTHook ();
 
-  if ( InterlockedCompareExchangePointer ( reinterpret_cast <volatile PVOID *> (
-                                                 const_cast <         HHOOK *> (&g_CBTHook.hHookCBT)
+  if ( InterlockedCompareExchangePointer ( reinterpret_cast <LPVOID *> (
+                                                 const_cast < HHOOK *> (&g_CBTHook.hHookCBT)
                                            ),
                                              nullptr,
                                                hHookOrig )
@@ -572,8 +572,8 @@ SKX_RemoveCBTHook (void)
     else
     {
       // Couldn't remove the hook, so atomically set it back to non-NULL
-      InterlockedExchangePointer ( reinterpret_cast <volatile PVOID *> (
-                                         const_cast <         HHOOK *> (&g_CBTHook.hHookCBT)
+      InterlockedExchangePointer ( reinterpret_cast <LPVOID *> (
+                                         const_cast < HHOOK *> (&g_CBTHook.hHookCBT)
                                    ), hHookOrig );
     }
   }
@@ -583,8 +583,8 @@ bool
 __stdcall
 SKX_IsHookingCBT (void)
 {
-  return ReadPointerAcquire ( reinterpret_cast <volatile PVOID *> (
-                                    const_cast <         HHOOK *> (&g_CBTHook.hHookCBT)
+  return ReadPointerAcquire ( reinterpret_cast <LPVOID *> (
+                                    const_cast < HHOOK *> (&g_CBTHook.hHookCBT)
                               )
                             ) != nullptr;
 }

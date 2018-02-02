@@ -22,10 +22,8 @@ SteamAPI_ISteamClient_GetISteamController_Detour ( ISteamClient *This,
                                                    HSteamPipe    hSteamPipe,
                                                    const char   *pchVersion )
 {
-  //SK_RunOnce (
-    steam_log.Log ( L"[!] %hs (..., %hs)",
-                      __FUNCTION__, pchVersion );
-  //);
+  steam_log.Log ( L"[!] %ws (%ws)",
+                    __FUNCTIONW__, SK_UTF8ToWideChar (pchVersion).c_str () );
 
   ISteamController* pController =
     SteamAPI_ISteamClient_GetISteamController_Original ( This,
@@ -52,8 +50,8 @@ SteamAPI_ISteamClient_GetISteamController_Detour ( ISteamClient *This,
     else
     {
       SK_RunOnce (
-        steam_log.Log ( L"Game requested unexpected interface version (%hs)!",
-                          pchVersion )
+        steam_log.Log ( L"Game requested unexpected interface version (%s)!",
+                          SK_UTF8ToWideChar (pchVersion).c_str () )
       );
 
       return pController;
@@ -69,7 +67,7 @@ SK_SteamWrapper_WrappedClient_GetISteamController ( ISteamClient *pRealClient,
                                                     HSteamPipe    hSteamPipe,
                                                     const char   *pchVersion )
 {
-  steam_log.Log (L"[Steam Wrap] [!] GetISteamController (%hs)", pchVersion);
+  steam_log.Log ( L"[Steam Wrap] [!] GetISteamController (%ws)", SK_UTF8ToWideChar (pchVersion).c_str () );
 
   //if (! lstrcmpA (pchVersion, "SteamController"))
   //{
@@ -93,24 +91,24 @@ SK_SteamWrapper_WrappedClient_GetISteamController ( ISteamClient *pRealClient,
 
   if (! lstrcmpA (pchVersion, "SteamController005"))
   {
-    if (SK_IsInjected ())
-    {
-      static volatile LONG __init = FALSE;
+    ///if (SK_IsInjected ())
+    ///{
+    ///  static volatile LONG __init = FALSE;
+    ///
+    ///  if (! InterlockedCompareExchange (&__init, 1, 0))
+    ///  {
+    ///    void** vftable = *(void***)*(&pRealClient);
+    ///
+    ///    SK_CreateVFTableHook (             L"ISteamClient017_GetISteamController",
+    ///                             vftable, 25,
+    ///                             SteamAPI_ISteamClient_GetISteamController_Detour,
+    ///    static_cast_p2p <void> (&SteamAPI_ISteamClient_GetISteamController_Original) );
+    ///
+    ///    SK_EnableHook (vftable [25]);
+    ///  }
+    ///}
 
-      if (! InterlockedCompareExchange (&__init, 1, 0))
-      {
-        void** vftable = *(void***)*(&pRealClient);
-
-        SK_CreateVFTableHook (             L"ISteamClient017_GetISteamController",
-                                 vftable, 25,
-                                 SteamAPI_ISteamClient_GetISteamController_Detour,
-        static_cast_p2p <void> (&SteamAPI_ISteamClient_GetISteamController_Original) );
-
-        SK_EnableHook (vftable [25]);
-      }
-    }
-
-    else
+    //else
     {
       auto *pController =
         reinterpret_cast <ISteamController *> ( pRealClient->GetISteamController (hSteamUser, hSteamPipe, pchVersion) );

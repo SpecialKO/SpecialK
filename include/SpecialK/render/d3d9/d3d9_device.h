@@ -29,6 +29,8 @@
 #include <SpecialK/render/d3d9/d3d9_backend.h>
 #include <SpecialK/render/d3d9/d3d9_swapchain.h>
 
+#include <SpecialK/config.h>
+
 #include <concurrent_vector.h>
 
 extern volatile LONG SK_D3D9_LiveWrappedDevices;
@@ -44,7 +46,7 @@ enum class SK_D3D9_PresentSource
 
 enum class SK_D3D9_PresentType
 {
-  Device9_Present     = 0,
+  Device9_Present     = 0, // Not important; this will call-through SwapChain9
   Device9Ex_PresentEx = 1,
   SwapChain9_Present  = 2,
 
@@ -90,15 +92,20 @@ struct IWrapDirect3DDevice9 : IDirect3DDevice9Ex
     pReal   (orig),
     d3d9ex_ (false) {
 
-    IDirect3DSwapChain9* pTemp = nullptr;
+    IDirect3DSwapChain9*     pTemp = nullptr;
     pReal->GetSwapChain (0, &pTemp);
 
-    implicit_swapchain_ = new IWrapDirect3DSwapChain9 (this, pTemp);
+    implicit_swapchain_ =
+      new IWrapDirect3DSwapChain9 (this, pTemp);
 
-    InterlockedExchange  (&refs_, orig->AddRef ());
+                                  orig->AddRef  ();
+    InterlockedExchange  (&refs_, orig->Release ());
 
-    //// Immediately try to upgrade
-    //CComQIPtr <IDirect3DDevice9Ex> pEx (this);
+    if (config.apis.d3d9ex.hook)
+    {
+      //// Immediately try to upgrade
+      CComQIPtr <IDirect3DDevice9Ex> pEx (this);
+    }
   }
 
   explicit IWrapDirect3DDevice9 (IDirect3DDevice9Ex *orig) :
@@ -108,9 +115,13 @@ struct IWrapDirect3DDevice9 : IDirect3DDevice9Ex
     IDirect3DSwapChain9*     pTemp = nullptr;
     pReal->GetSwapChain (0, &pTemp);
 
-    implicit_swapchain_ = new IWrapDirect3DSwapChain9 (this, pTemp);
+    CComQIPtr <IDirect3DSwapChain9Ex> pTempEx (pTemp);
 
-    InterlockedExchange  (&refs_, orig->AddRef ());
+    implicit_swapchain_ =
+      new IWrapDirect3DSwapChain9 (this, pTempEx);
+
+                                  orig->AddRef  ();
+    InterlockedExchange  (&refs_, orig->Release ());
   }
 
   IWrapDirect3DDevice9            (const IWrapDirect3DDevice9 &) = delete;

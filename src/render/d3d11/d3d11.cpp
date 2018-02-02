@@ -4905,26 +4905,27 @@ SK_D3D11_DrawHandler (ID3D11DeviceContext* pDevCtx)
 
   if (on_top)
   {
-    CComPtr <ID3D11Device>        pDev    = nullptr;
+    CComQIPtr <ID3D11Device> pDev (SK_GetCurrentRenderBackend ().device);
 
-    SK_GetCurrentRenderBackend ().device->QueryInterface <ID3D11Device> (&pDev);
-
-    D3D11_DEPTH_STENCIL_DESC desc = { };
-
-    pDevCtx->OMGetDepthStencilState (&SK_TLS_Bottom ()->d3d11.pDepthStencilStateOrig, &SK_TLS_Bottom ()->d3d11.StencilRefOrig);
-
-    SK_TLS_Bottom ()->d3d11.pDepthStencilStateOrig->GetDesc (&desc);
-
-    desc.DepthEnable    = TRUE;
-    desc.DepthFunc      = D3D11_COMPARISON_ALWAYS;
-    desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
-    desc.StencilEnable  = FALSE;
-
-    if (SK_TLS_Bottom ()->d3d11.pDepthStencilStateOrig != nullptr)
+    if (pDev != nullptr)
     {
-      if (SUCCEEDED (pDev->CreateDepthStencilState (&desc, &SK_TLS_Bottom ()->d3d11.pDepthStencilStateNew)))
+      D3D11_DEPTH_STENCIL_DESC desc = { };
+
+      pDevCtx->OMGetDepthStencilState (&SK_TLS_Bottom ()->d3d11.pDepthStencilStateOrig, &SK_TLS_Bottom ()->d3d11.StencilRefOrig);
+
+      SK_TLS_Bottom ()->d3d11.pDepthStencilStateOrig->GetDesc (&desc);
+
+      desc.DepthEnable    = TRUE;
+      desc.DepthFunc      = D3D11_COMPARISON_ALWAYS;
+      desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+      desc.StencilEnable  = FALSE;
+
+      if (SK_TLS_Bottom ()->d3d11.pDepthStencilStateOrig != nullptr)
       {
-        pDevCtx->OMSetDepthStencilState (SK_TLS_Bottom ()->d3d11.pDepthStencilStateNew, 0);
+        if (SUCCEEDED (pDev->CreateDepthStencilState (&desc, &SK_TLS_Bottom ()->d3d11.pDepthStencilStateNew)))
+        {
+          pDevCtx->OMSetDepthStencilState (SK_TLS_Bottom ()->d3d11.pDepthStencilStateNew, 0);
+        }
       }
     }
   }
@@ -4938,26 +4939,27 @@ SK_D3D11_DrawHandler (ID3D11DeviceContext* pDevCtx)
 
   if (wireframe)
   {
-    CComPtr <ID3D11Device>        pDev    = nullptr;
+    CComQIPtr <ID3D11Device> pDev (SK_GetCurrentRenderBackend ().device);
 
-    SK_GetCurrentRenderBackend ().device->QueryInterface <ID3D11Device> (&pDev);
-
-    pDevCtx->RSGetState         (&SK_TLS_Bottom ()->d3d11.pRasterStateOrig);
-
-    D3D11_RASTERIZER_DESC desc = { };
-
-    if (SK_TLS_Bottom ()->d3d11.pRasterStateOrig != nullptr)
+    if (pDev != nullptr)
     {
-      SK_TLS_Bottom ()->d3d11.pRasterStateOrig->GetDesc (&desc);
+      pDevCtx->RSGetState         (&SK_TLS_Bottom ()->d3d11.pRasterStateOrig);
 
-      desc.FillMode = D3D11_FILL_WIREFRAME;
-      desc.CullMode = D3D11_CULL_NONE;
-      //desc.FrontCounterClockwise = TRUE;
-      //desc.DepthClipEnable       = FALSE;
+      D3D11_RASTERIZER_DESC desc = { };
 
-      if (SUCCEEDED (pDev->CreateRasterizerState (&desc, &SK_TLS_Bottom ()->d3d11.pRasterStateNew)))
+      if (SK_TLS_Bottom ()->d3d11.pRasterStateOrig != nullptr)
       {
-        pDevCtx->RSSetState (SK_TLS_Bottom ()->d3d11.pRasterStateNew);
+        SK_TLS_Bottom ()->d3d11.pRasterStateOrig->GetDesc (&desc);
+
+        desc.FillMode = D3D11_FILL_WIREFRAME;
+        desc.CullMode = D3D11_CULL_NONE;
+        //desc.FrontCounterClockwise = TRUE;
+        //desc.DepthClipEnable       = FALSE;
+
+        if (SUCCEEDED (pDev->CreateRasterizerState (&desc, &SK_TLS_Bottom ()->d3d11.pRasterStateNew)))
+        {
+          pDevCtx->RSSetState (SK_TLS_Bottom ()->d3d11.pRasterStateNew);
+        }
       }
     }
   }
@@ -8644,19 +8646,21 @@ SK_D3D11_ReloadTexture (ID3D11Texture2D* pTex)
         load_info.Usage          = D3D11_USAGE_DEFAULT;
         load_info.Width          = texDesc2D.desc.Width;
 
-        CComPtr <ID3D11Texture2D> pInjTex = nullptr;
+        CComPtr   <ID3D11Texture2D> pInjTex = nullptr;
+        CComQIPtr <ID3D11Device>    pDev (SK_GetCurrentRenderBackend ().device);
 
         hr =
           SK_D3DX11_SAFE_CreateTextureFromFileW (
-            (ID3D11Device *)SK_GetCurrentRenderBackend ().device, fname.c_str (),
+            pDev, fname.c_str (),
               &load_info,
 reinterpret_cast <ID3D11Resource **> (&pInjTex)
           );
 
         if (SUCCEEDED (hr))
         {
-          CComPtr <ID3D11DeviceContext> pDevCtx = nullptr;
-          ((ID3D11Device *)SK_GetCurrentRenderBackend ().device)->GetImmediateContext (&pDevCtx);
+          CComQIPtr <ID3D11DeviceContext> pDevCtx (
+            SK_GetCurrentRenderBackend ().d3d11.immediate_ctx
+          );
 
           pDevCtx->CopyResource (pTex, pInjTex);
 
@@ -8854,11 +8858,13 @@ D3D11Dev_CreateTexture2D_Impl (
                                                    //   They will be handled through a
                                                    //     different codepath.
 
+  CComQIPtr <ID3D11Device> pDev (SK_GetCurrentRenderBackend ().device);
+
   //
   // Filter out any noise coming from overlays / video capture software
   //
   if (SK_GetFramesDrawn () > 0)
-    cacheable &= ( This == (ID3D11Device *)SK_GetCurrentRenderBackend ().device );
+    cacheable &= ( pDev.IsEqualObject (This) );
 
 
   if (cacheable)
@@ -13556,6 +13562,10 @@ SK_D3D11_EndFrame (void)
     rb.d3d11.immediate_ctx->QueryInterface <ID3D11DeviceContext> (&pDevCtx);
   }
 
+  else
+    return;
+
+
   if (! pDevCtx)
     disjoint_done = true;
 
@@ -13781,7 +13791,7 @@ SK_D3D11_EndFrame (void)
   if (! SK_D3D11_ShowShaderModDlg ())
     SK_D3D11_EnableMMIOTracking = false;
 
-  SK_D3D11_TextureResampler.processFinished ((ID3D11Device *)(SK_GetCurrentRenderBackend ().device), pDevCtx);
+  SK_D3D11_TextureResampler.processFinished (pDev, pDevCtx);
 }
 
 
@@ -14182,9 +14192,9 @@ SK_D3D11_ShaderModDlg (void)
               srv_desc.Texture2D.MipLevels       = desc.Texture2D.MipSlice + 1;
               srv_desc.Texture2D.MostDetailedMip = desc.Texture2D.MipSlice;
 
-              CComPtr <ID3D11Device> pDev = nullptr;
+              CComQIPtr <ID3D11Device> pDev (SK_GetCurrentRenderBackend ().device);
 
-              if (SUCCEEDED (SK_GetCurrentRenderBackend ().device->QueryInterface <ID3D11Device> (&pDev)))
+              if (pDev != nullptr)
               {
                 if (! render_lifetime.count (it))
                 {
@@ -15594,9 +15604,9 @@ SK_D3D11_PresentFirstFrame (IDXGISwapChain* pSwapChain)
       SK_Hook_ResolveTarget (*it);
 
       // Don't cache addresses that were screwed with by other injectors
-      const wchar_t* wszSection = 
-        StrStrIW (it->target.module_path, LR"(\d3d11.dll)") ?
-                                        L"D3D11.Hooks" : nullptr;
+      const wchar_t* wszSection = L"D3D11.Hooks";
+        //StrStrIW (it->target.module_path, LR"(d3d11.dll)") ?
+        //                                L"D3D11.Hooks" : nullptr;
 
       if (! wszSection)
       {
@@ -15609,7 +15619,9 @@ SK_D3D11_PresentFirstFrame (IDXGISwapChain* pSwapChain)
           )                                                             ),
                     L"Hook Cache" );
       }
-      SK_Hook_CacheTarget ( *it, wszSection );
+
+      else
+        SK_Hook_CacheTarget ( *it, wszSection );
     }
   }
 
@@ -15621,7 +15633,7 @@ SK_D3D11_PresentFirstFrame (IDXGISwapChain* pSwapChain)
     while ( it_local != std::end (local_d3d11_records) )
     {
       if (( *it_local )->hits &&
-StrStrIW (( *it_local )->target.module_path, LR"(\d3d11.dll)") &&
+//StrStrIW (( *it_local )->target.module_path, LR"(d3d11.dll)") &&
           ( *it_local )->active)
         SK_Hook_PushLocalCacheOntoGlobal ( **it_local,
                                              **it_global );
@@ -15642,6 +15654,10 @@ static bool quick_hooked = false;
 void
 SK_D3D11_QuickHook (void)
 {
+  if (config.steam.preload_overlay)
+    return;
+
+
   //if (GetAsyncKeyState (VK_MENU))
   //  return;
 

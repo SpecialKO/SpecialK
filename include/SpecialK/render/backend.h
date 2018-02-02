@@ -25,10 +25,14 @@
 #include <Windows.h>
 #include <../depends/include/nvapi/nvapi_lite_common.h>
 
+#include <comdef.h>
+#include <atlbase.h>
+
 #include <cstdint>
 
-extern HGLRC WINAPI SK_GL_GetCurrentContext (void);
-extern HDC   WINAPI SK_GL_GetCurrentDC      (void);
+ULONG
+__stdcall
+SK_GetFramesDrawn (void);
 
 enum class SK_RenderAPI
 {
@@ -84,14 +88,54 @@ enum mode_change_request_e
   None       = 0xFF
 } extern request_mode_change;
 
+
+struct sk_hwnd_cache_s
+{
+  HWND    hwnd             = HWND_DESKTOP;
+  HWND    parent           = HWND_DESKTOP;
+
+  wchar_t class_name [128] = { };
+  wchar_t title      [128] = { };
+
+  struct {
+    DWORD pid, tid;
+  }       owner            = { 0, 0 };
+
+  bool    unicode          = false;
+
+  ULONG   last_changed     = 0UL;
+
+
+  sk_hwnd_cache_s (HWND wnd)
+  {
+    if (hwnd != wnd || last_changed == 0UL)
+    {
+      hwnd      = wnd;
+      owner.tid =
+        GetWindowThreadProcessId (hwnd, &owner.pid);
+
+      RealGetWindowClassW        (hwnd, class_name, 127);
+      InternalGetWindowText      (hwnd, title,      127);
+
+      unicode = IsWindowUnicode  (hwnd);
+      parent  = GetParent        (hwnd);
+
+      last_changed = SK_GetFramesDrawn ();
+    }
+  }
+
+  operator const HWND& (void) const { return hwnd; };
+};
+
+
 class SK_RenderBackend_V2 : public SK_RenderBackend_V1
 {
 public:
    SK_RenderBackend_V2 (void);
   ~SK_RenderBackend_V2 (void);
 
-  IUnknown*               device               = nullptr;
-  IUnknown*               swapchain            = nullptr;
+  CComPtr <IUnknown>      device               = nullptr;
+  CComPtr <IUnknown>      swapchain            = nullptr;
   NVDX_ObjectHandle       surface              = nullptr;
   bool                    fullscreen_exclusive = false;
   uint64_t                framebuffer_flags    = 0x00;
@@ -100,8 +144,15 @@ public:
 
   struct window_registry_s
   {
-    HWND                  focus                = 0; // Most input processing happens in this HWND's message pump
-    HWND                  device               = 0; // Defines the client rectangle and not much else
+    // Most input processing happens in this HWND's message pump
+    sk_hwnd_cache_s       focus                = { HWND_DESKTOP };
+
+    // Defines the client rectangle and not much else
+    sk_hwnd_cache_s       device               = { HWND_DESKTOP };
+
+    // This Unity engine is so terrible at window management that we need
+    //   to flag the game and start disabling features!
+    bool                  unity                = false;
 
     void setFocus  (HWND hWndFocus);
     void setDevice (HWND hWndRender);
@@ -115,7 +166,7 @@ public:
   struct d3d11_s
   {
     //MIDL_INTERFACE ("c0bfa96c-e089-44fb-8eaf-26f8796190da")     
-    IUnknown*             immediate_ctx        = nullptr;
+    CComPtr <IUnknown>    immediate_ctx        = nullptr;
   } d3d11;
 
 

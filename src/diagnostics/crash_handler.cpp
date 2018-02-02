@@ -65,6 +65,28 @@
 #define SK_SymGetLineFromAddr SymGetLineFromAddr
 #endif
 
+struct {
+  HGLOBAL  ref = nullptr;
+  uint8_t* buf = nullptr;
+} static crash_sound;
+
+void
+SK_Crash_PlaySound (void)
+{
+  // Rare WinMM (SDL/DOSBox) crashes may prevent this from working, so...
+  //   don't create another top-level exception.
+  __try {
+    PlaySound ( reinterpret_cast <LPCWSTR> (crash_sound.buf),
+                  nullptr,
+                    SND_SYNC |
+                    SND_MEMORY );
+  }
+  
+  __except (EXCEPTION_EXECUTE_HANDLER)
+  {
+  
+  }
+}
 
 LONG
 WINAPI
@@ -96,14 +118,14 @@ CrashHandler::Reinstall (void)
   {
     if (MH_OK == SK_RemoveHook (pOldHook))
     {
-      InterlockedExchangePointer (&pOldHook, nullptr);
+      InterlockedExchangePointer ((LPVOID *)&pOldHook, nullptr);
     }
 
-    InterlockedCompareExchangePointer (&pOldHook, nullptr, (PVOID)1);
+    InterlockedCompareExchangePointer ((LPVOID *)&pOldHook, nullptr, (PVOID)1);
   }
 
 
-  if (! InterlockedCompareExchangePointer (&pOldHook, (PVOID)1, nullptr))
+  if (! InterlockedCompareExchangePointer ((LPVOID *)&pOldHook, (PVOID)1, nullptr))
   {
     LPVOID pHook = nullptr;
 
@@ -117,7 +139,7 @@ CrashHandler::Reinstall (void)
       if ( MH_OK == MH_QueueEnableHook  ( pHook ) &&
            MH_OK == SK_ApplyQueuedHooks (       ) )
       {
-        InterlockedExchangePointer (&pOldHook, pHook);
+        InterlockedExchangePointer ((LPVOID *)&pOldHook, pHook);
       }
     }
   }
@@ -134,12 +156,6 @@ CrashHandler::Reinstall (void)
   else
     SetUnhandledExceptionFilter (SK_TopLevelExceptionFilter);
 }
-
-
-struct {
-  HGLOBAL  ref = nullptr;
-  uint8_t* buf = nullptr;
-} static crash_sound;
 
 
 void
@@ -164,7 +180,7 @@ CrashHandler::Init (void)
   {
     crash_log.flush_freq = 0;
     crash_log.lockless   = true;
-    crash_log.init       (L"logs/crash.log",  L"w");
+    crash_log.init       (L"logs/crash.log", L"wt+,ccs=UTF-8");
   }
 
   SymSetOptions ( SYMOPT_CASE_INSENSITIVE | SYMOPT_LOAD_LINES    | SYMOPT_UNDNAME |
@@ -790,16 +806,22 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 
     //if (! (crash_log.initialized && crash_log.silent))
     {
-      PlaySound ( reinterpret_cast <LPCWSTR> (crash_sound.buf),
-                    nullptr,
-                      SND_SYNC |
-                      SND_MEMORY );
+      SK_Crash_PlaySound ();
     }
 
     // CEGUI is potentially the reason we crashed, so ...
     //   set it back to its original state.
     if (! config.cegui.orig_enable)
       config.cegui.enable = false;
+
+    if ( config.cegui.enable && config.cegui.frames_drawn < 90 &&
+         SK_GetFramesDrawn () > config.cegui.frames_drawn )
+    {
+      SK_LOG0 ( ( L"*** CEGUI is the suspected cause of this crash,"
+                  L" disabling..." ),
+                    L"Prognostic" );
+      config.cegui.enable = false;
+    }
 
     // Shutdown the module gracefully
     SK_SelfDestruct ();

@@ -281,10 +281,9 @@ struct {
     sk::ParameterBool*    impure;
     sk::ParameterBool*    enable_texture_mods;
   } d3d9;
-  struct
-  {
-    sk::ParameterBool*    draw_osd_in_vidcap;
-  } gl;
+  struct {
+    sk::ParameterBool*    draw_in_vidcap;
+  } osd;
 } render;
 
 struct {
@@ -547,12 +546,12 @@ SK_LoadConfigEx (std::wstring name, bool create)
   // Create Parameters
   //
   struct param_decl_s {
-    sk::iParameter** parameter_;
-    std::type_index  type_;
-    const wchar_t*   description_;
-    iSK_INI*         ini_;
-    const wchar_t*   section_;
-    const wchar_t*   key_;
+           sk::iParameter **parameter_;
+          std::type_index   type_;
+    const wchar_t          *description_;
+          iSK_INI          *ini_;
+    const wchar_t          *section_;
+    const wchar_t          *key_;
   } params_to_build [] =
 
   //// nb: If you want any hope of reading this table, turn line wrapping off.
@@ -590,7 +589,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
     ConfigEntry (monitoring.gpu.show,                    L"Show GPU Monitoring",                                       osd_ini,         L"Monitor.GPU",           L"Show"),
     ConfigEntry (monitoring.gpu.interval,                L"GPU Monitoring Interval (msecs)",                           osd_ini,         L"Monitor.GPU",           L"Interval"),
-    ConfigEntry (monitoring.gpu.print_slowdown,          L"Print GPU Slowdown Reason (NVIDA GPUs)",                   osd_ini,         L"Monitor.GPU",           L"PrintSlowdown"),
+    ConfigEntry (monitoring.gpu.print_slowdown,          L"Print GPU Slowdown Reason (NVIDA GPUs)",                    osd_ini,         L"Monitor.GPU",           L"PrintSlowdown"),
 
     ConfigEntry (monitoring.pagefile.show,               L"Show Pagefile Monitoring",                                  osd_ini,         L"Monitor.Pagefile",      L"Show"),
     ConfigEntry (monitoring.pagefile.interval,           L"Pagefile Monitoring INterval (seconds)",                    osd_ini,         L"Monitor.Pagefile",      L"Interval"),
@@ -747,7 +746,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
     // OpenGL
     //////////////////////////////////////////////////////////////////////////
-    ConfigEntry (render.gl.draw_osd_in_vidcap,           L"Changes hook order in order to allow recording the OSD.",   dll_ini,         L"Render.OpenGL",         L"AllowOSDVideoCapture"),
+    ConfigEntry (render.osd.draw_in_vidcap,              L"Changes hook order in order to allow recording the OSD.",   dll_ini,         L"Render.OSD",            L"ShowInVideoCapture"),
 
     // D3D9
     //////////////////////////////////////////////////////////////////////////
@@ -940,7 +939,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
   while (sec != sections.end ())
   {
-    if (wcsstr ((*sec).first.c_str (), L"Import."))
+    if ((*sec).first.find (L"Import.") != (*sec).first.npos)
     {
       imports [import].name =
         CharNextW (wcsstr ((*sec).first.c_str (), L"."));
@@ -1011,7 +1010,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
 
 
-    if (wcsstr ((*sec).first.c_str (), L"Macro."))
+    if ((*sec).first.find (L"Macro.") != (*sec).first.npos)
     {
       for ( auto it : (*sec).second.keys )
       {
@@ -1064,9 +1063,9 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
   while (sec != macro_sections.end ())
   {
-    if (wcsstr ((*sec).first.c_str (), L"Macro."))
+    if ((*sec).first.find (L"Macro.") != (*sec).first.npos)
     {
-      for ( auto it : (*sec).second.keys )
+      for ( auto& it : (*sec).second.keys )
       {
         SK_KeyCommand cmd;
 
@@ -1626,10 +1625,8 @@ SK_LoadConfigEx (std::wstring name, bool create)
   render.framerate.control.
                   deadline_transition->load (config.render.framerate.sleep_deadline);
 
-  // GL
-  //
 
-  render.gl.draw_osd_in_vidcap->load        (config.render.gl.osd_in_vidcap);
+  render.osd.draw_in_vidcap->load           (config.render.osd.draw_in_vidcap);
 
   // D3D9/11
   //
@@ -2170,15 +2167,6 @@ SK_LoadConfigEx (std::wstring name, bool create)
   }
 
 
-
-  if ( SK_GetDLLRole () == DLL_ROLE::D3D8 ||
-       SK_GetDLLRole () == DLL_ROLE::DDraw )
-  {
-    config.render.dxgi.safe_fullscreen = true;
-  }
-
-
-
   if (empty)
     return false;
 
@@ -2642,14 +2630,7 @@ SK_SaveConfig ( std::wstring name,
     }
   }
 
-  // GL
-  //
-
-  if ( SK_IsInjected () || ( SK_GetDLLRole () & DLL_ROLE::OpenGL    ) ||
-                           ( SK_GetDLLRole () & DLL_ROLE::DInput8 ) )
-  {
-    render.gl.draw_osd_in_vidcap->store        (config.render.gl.osd_in_vidcap);
-  }
+  render.osd.draw_in_vidcap->store            (config.render.osd.draw_in_vidcap);
 
   texture.res_root->store                      (config.textures.d3d11.res_root);
   texture.dump_on_load->store                  (config.textures.dump_on_load);

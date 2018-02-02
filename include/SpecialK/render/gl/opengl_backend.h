@@ -160,4 +160,7 @@ void
 WINAPI
 SK_HookGL (void);
 
+extern HGLRC WINAPI SK_GL_GetCurrentContext (void);
+extern HDC   WINAPI SK_GL_GetCurrentDC      (void);
+
 #endif /* __SK__OPENGL_BACKEND_H__ */

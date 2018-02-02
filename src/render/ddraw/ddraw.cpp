@@ -411,8 +411,7 @@ ddraw_init_callback (finish_pfn finish)
   {
     SK_BootDDraw ();
 
-    while (! InterlockedCompareExchange (&__ddraw_ready, FALSE, FALSE))
-      MsgWaitForMultipleObjectsEx (0, nullptr, 100, QS_ALLINPUT, MWMO_ALERTABLE);
+    SK_Thread_SpinUntilFlagged (&__ddraw_ready);
   }
 
   finish ();
@@ -470,6 +469,8 @@ SK::DDraw::Shutdown (void)
 }
 
 
+extern bool __SK_bypass;
+
 unsigned int
 __stdcall
 HookDDraw (LPVOID user)
@@ -481,21 +482,19 @@ HookDDraw (LPVOID user)
     return 0;
   }
 
-  const bool success = SUCCEEDED (
-    CoInitializeEx (nullptr, COINIT_MULTITHREADED)
-  );
-
+  if (__SK_bypass || ReadAcquire (&__ddraw_ready))
   {
-    //Direct3DCreate8_Import (0x0800);
-
-    InterlockedExchange (&__ddraw_ready, TRUE);
-
-    if (! (SK_GetDLLRole () & DLL_ROLE::DXGI))
-      SK::DXGI::StartBudgetThread_NoAdapter ();
+    return 0;
   }
 
-  //if (success)
-  //  CoUninitialize ();
+
+  //Direct3DCreate8_Import (0x0800);
+  
+  InterlockedExchange (&__ddraw_ready, TRUE);
+  
+  if (! (SK_GetDLLRole () & DLL_ROLE::DXGI))
+    SK::DXGI::StartBudgetThread_NoAdapter ();
+
 
   SK_ApplyQueuedHooks ();
 

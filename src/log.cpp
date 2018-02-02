@@ -19,9 +19,6 @@
  *
 **/
 
-#undef  _NO_CRT_STDIO_INLINE
-#define _NO_CRT_STDIO_INLINE
-
 #pragma warning (disable: 4996)
 
 #include <Windows.h>
@@ -334,7 +331,7 @@ SK_CreateLog (const wchar_t* const wszName)
   auto* pLog =
     new iSK_Logger ();
 
-  pLog->init   (wszName, L"w+, ccs=UTF-8");
+  pLog->init   (wszName, L"wtc+,ccs=UTF-8");
   pLog->silent = false;
 
   return pLog;

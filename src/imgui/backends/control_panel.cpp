@@ -1975,6 +1975,17 @@ SK_ImGui_ControlPanel (void)
           }
         }
 
+        if (SK::SteamAPI::AppID () == 0 && (! config.steam.force_load_steamapi))
+        {
+          ImGui::Separator ();
+
+          if (ImGui::MenuItem ("Manually Inject SteamAPI", ""))
+          {
+            config.steam.force_load_steamapi = true;
+            SK_Steam_KickStart ();
+          }
+        }
+
         ImGui::Separator ();
 
         if (ImGui::MenuItem ("Exit Game", "Alt+F4"))
@@ -6723,8 +6734,6 @@ SK_ImGui_InstallOpenCloseCallback (SK_ImGui_OpenCloseCallback_pfn fn, void* user
 
 
 #include <SpecialK/osd/text.h>
-
-extern void            SK_ImGui_PollGamepad_EndFrame (void);
 
 //
 // Hook this to override Special K's GUI

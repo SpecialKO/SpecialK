@@ -357,7 +357,7 @@ struct TexThreadStats {
   private:
     struct {
       // In lieu of actually wrapping render targets with a COM interface, just add the creation time
-      //   as the mapped parameter
+      //   as the e9ped parameter
       concurrent_unordered_map <IDirect3DBaseTexture9 *, uint32_t> render_targets;
     } known;
     
@@ -743,8 +743,8 @@ const GUID IID_SKTextureD3D9 =
   { 0xace1f81b, 0x5f3f, 0x45f4, 0xbf, 0x9f, 0x1b, 0xaf, 0xdf, 0xba, 0x11, 0x9b };
 
 
-    extern concurrent_unordered_map <uint32_t, int32_t> injected_refs;
-    extern concurrent_unordered_map <uint32_t, IDirect3DTexture9*> injected_textures;
+extern concurrent_unordered_map <uint32_t, int32_t>            injected_refs;
+extern concurrent_unordered_map <uint32_t, IDirect3DTexture9*> injected_textures;
 
 interface ISKTextureD3D9 : public IDirect3DTexture9
 {
@@ -770,7 +770,9 @@ public:
       must_block    = false;
       uses          =  0;
       freed         = false;
+
       InterlockedExchange (&refs, 1);
+
       img_to_use    = ContentPreference::DontCare;
   };
 
@@ -782,23 +784,19 @@ public:
       return S_OK;
     }
 
-#if 1
-  if ( IsEqualGUID (riid, IID_IUnknown)              ||
-       IsEqualGUID (riid, IID_IDirect3DResource9)    ||
-       IsEqualGUID (riid, IID_IDirect3DTexture9)     ||
-       IsEqualGUID (riid, IID_IDirect3DBaseTexture9)    )
-  {
-    AddRef ();
+    if ( IsEqualGUID (riid, IID_IUnknown)              ||
+         IsEqualGUID (riid, IID_IDirect3DResource9)    ||
+         IsEqualGUID (riid, IID_IDirect3DTexture9)     ||
+         IsEqualGUID (riid, IID_IDirect3DBaseTexture9)    )
+    {
+      AddRef ();
 
-    *ppvObj = this;
+      *ppvObj = this;
 
-    return S_OK;
-  }
+      return S_OK;
+    }
 
-  return E_NOINTERFACE;
-#else
-  return pTex->QueryInterface (riid, ppvObj);
-#endif
+    return E_NOINTERFACE;
   }
   STDMETHOD_(ULONG,AddRef)(THIS) {
     InterlockedIncrement (&refs);
@@ -810,7 +808,7 @@ public:
   STDMETHOD_(ULONG,Release)(THIS) {
     ULONG ret = InterlockedDecrement (&refs);
 
-    if (ret == 1)
+    if (ret <= 2)
     {
       can_free = true;
     }

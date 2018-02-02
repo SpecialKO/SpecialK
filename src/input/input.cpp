@@ -1747,12 +1747,9 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool, bool)
     {
       if (lpMsg->hwnd == game_window.hWnd)
       {
-        if (SK_GetCurrentRenderBackend ().fullscreen_exclusive)
-        {
-          // Disable ALT application menu
-          if ((lpMsg->wParam & 0xfff0) == SC_KEYMENU && lpMsg->lParam == 0)
-            handled = true;
-        }
+        // Disable ALT application menu
+        if ((lpMsg->wParam & 0xfff0) == SC_KEYMENU && lpMsg->lParam == 0)
+          handled = true;
       }
     } break;
 

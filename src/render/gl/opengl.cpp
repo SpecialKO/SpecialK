@@ -24,9 +24,11 @@
 
 #include <cstdint>
 #include <SpecialK/stdafx.h>
+#include <SpecialK/tls.h>
 #include <Shlwapi.h>
 #include <Windows.h>
-#include <SpecialK/tls.h>
+
+#undef _WINGDI_
 
 #include <SpecialK/render/dxgi/dxgi_backend.h>
 #include <SpecialK/render/gl/opengl_backend.h>
@@ -1876,10 +1878,7 @@ wglSwapBuffers (HDC hDC)
 
   SK_GL_TrackHDC (hDC);
 
-  // Temp hack
-  SK_GL_SwapHook = config.render.gl.osd_in_vidcap ? 1 : 0;
-
-  if (SK_GL_SwapHook == 0)
+  if (! config.render.osd.draw_in_vidcap)
     return SK_GL_SwapBuffers (hDC, wgl_swap_buffers);
 
   return wgl_swap_buffers (hDC);
@@ -1898,10 +1897,7 @@ SwapBuffers (HDC hDC)
 
   SK_GL_TrackHDC (hDC);
 
-  // Temp hack
-  SK_GL_SwapHook = config.render.gl.osd_in_vidcap ? 1 : 0;
-
-  if (SK_GL_SwapHook == 1)
+  if (config.render.osd.draw_in_vidcap)
     return SK_GL_SwapBuffers (hDC, gdi_swap_buffers);
 
   return gdi_swap_buffers (hDC);
@@ -2421,9 +2417,6 @@ SK_HookGL (void)
 
     dll_log.Log (L"[ OpenGL32 ] Additional OpenGL Initialization");
     dll_log.Log (L"[ OpenGL32 ] ================================");
-
-    SK_GetCommandProcessor ()->AddVariable ("GL.SwapHook", SK_CreateVar (SK_IVariable::Int, &SK_GL_SwapHook));
-
 
     if (StrStrIW ( SK_GetModuleName (SK_GetDLL ()).c_str (), 
                      wszBackendDLL ) )

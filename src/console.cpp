@@ -262,10 +262,7 @@ SK_HandleConsoleKey (bool keyDown, BYTE vkCode, LPARAM lParam)
     }
 
 
-    //BYTE   vkCode   = LOWORD (wParam) & 0xFF;
-    BYTE     scanCode = HIWORD (lParam) & 0x7F;
-    ///SHORT repeated = LOWORD (lParam);
-    //bool   keyDown  = ! (lParam & 0x80000000UL);
+    BYTE scanCode = HIWORD (lParam) & 0x7F;
 
 
     // Disable the command console if the ImGui overlay is visible
@@ -302,10 +299,6 @@ SK_HandleConsoleKey (bool keyDown, BYTE vkCode, LPARAM lParam)
       if (keyDown) keys_ [vkCode] = 0x81;
       else         keys_ [vkCode] = 0x00;
     }
-
-    //else if ((! repeated) && vkCode == VK_CAPITAL) {
-      //if (keyDown) if (keys_ [VK_CAPITAL] == 0x00) keys_ [VK_CAPITAL] = 0x81; else keys_ [VK_CAPITAL] = 0x00;
-    //}
 
     else if (vkCode == VK_CONTROL || vkCode == VK_LCONTROL || vkCode == VK_RCONTROL)
     {
@@ -356,9 +349,8 @@ SK_HandleConsoleKey (bool keyDown, BYTE vkCode, LPARAM lParam)
           if (result.getStatus ())
           {
             // Don't repeat the same command over and over
-            if (commands.history.empty() ||
-                commands.history.back () != &text [1])
-            {
+            if (commands.history.empty () ||
+                commands.history.back  () != &text [1]) {
               commands.history.emplace_back (&text [1]);
             }
 

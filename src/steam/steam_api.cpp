@@ -845,6 +845,55 @@ SK_Steam_SetNotifyCorner (void)
   }
 }
 
+void
+SK_SteamAPIContext::Shutdown (void)
+{
+  if (InterlockedDecrement (&__SK_Steam_init) == 0)
+  { 
+    if (client_)
+    {
+#if 0
+      if (hSteamUser != 0)
+        client_->ReleaseUser       (hSteamPipe, hSteamUser);
+    
+      if (hSteamPipe != 0)
+        client_->BReleaseSteamPipe (hSteamPipe);
+#endif
+
+      SK_SteamAPI_DestroyManagers  ();
+    }
+
+    hSteamPipe      = 0;
+    hSteamUser      = 0;
+
+    client_         = nullptr;
+    user_           = nullptr;
+    user_stats_     = nullptr;
+    apps_           = nullptr;
+    friends_        = nullptr;
+    utils_          = nullptr;
+    screenshots_    = nullptr;
+    controller_     = nullptr;
+    music_          = nullptr;
+    remote_storage_ = nullptr;
+
+    user_ver_           = 0;
+    utils_ver_          = 0;
+    remote_storage_ver_ = 0;
+    
+    if (SteamAPI_Shutdown_Original != nullptr)
+    {
+      SteamAPI_Shutdown_Original = nullptr;
+
+      SK_DisableHook (SteamAPI_RunCallbacks);
+      SK_DisableHook (SteamAPI_Shutdown);
+
+      SteamAPI_Shutdown ();
+    }
+  }
+}
+
+
 const char*
 SK_SteamAPIContext::GetSteamInstallPath (void)
 {
@@ -2775,31 +2824,35 @@ HANDLE hSteamPump = nullptr;
 
 DWORD
 WINAPI
-SteamAPI_PumpThread (_Unreferenced_parameter_ LPVOID user)
+SteamAPI_PumpThread (LPVOID user)
 {
-  UNREFERENCED_PARAMETER (user);
+  bool   start_immediately = (user != nullptr);
+  double callback_freq     =  0.0;
 
-  // Wait 5 seconds, then begin a timing investigation
-  SleepEx (5000, FALSE);
+  if (! start_immediately)
+  {
+    // Wait 5 seconds, then begin a timing investigation
+    SleepEx (5000, FALSE);
 
-  // First, begin a timing probe.
-  //
-  //   If after 15 seconds the game has not called SteamAPI_RunCallbacks
-  //     frequently enough, switch the thread to auto-pump mode.
+    // First, begin a timing probe.
+    //
+    //   If after 15 seconds the game has not called SteamAPI_RunCallbacks
+    //     frequently enough, switch the thread to auto-pump mode.
 
-  LONGLONG callback_count0 = SK_SteamAPI_CallbackRunCount;
+    const UINT TEST_PERIOD = 15;
 
-  const UINT TEST_PERIOD = 15;
+    LONGLONG callback_count0 = SK_SteamAPI_CallbackRunCount;
 
-  SleepEx (TEST_PERIOD * 1000UL, FALSE);
+    SleepEx (TEST_PERIOD * 1000UL, FALSE);
 
-  LONGLONG callback_count1 = SK_SteamAPI_CallbackRunCount;
+    LONGLONG callback_count1 = SK_SteamAPI_CallbackRunCount;
 
-  double callback_freq = (double)(callback_count1 - callback_count0) / (double)TEST_PERIOD;
+    callback_freq = (double)(callback_count1 - callback_count0) / (double)TEST_PERIOD;
 
-  steam_log.Log ( L"Game runs its callbacks at ~%5.2f Hz ... this is %s the "
-                  L"minimum threshold for achievement unlock sound.\n",
-                    callback_freq, callback_freq > 3.0 ? L"above" : L"below" );
+    steam_log.Log ( L"Game runs its callbacks at ~%5.2f Hz ... this is %s the "
+                    L"minimum threshold for achievement unlock sound.\n",
+                      callback_freq, callback_freq > 3.0 ? L"above" : L"below" );
+  }
 
   // If the timing period failed, then start auto-pumping.
   //
@@ -2837,11 +2890,14 @@ SK_Steam_StartPump (bool force)
 
   if (config.steam.auto_pump_callbacks || force)
   {
+    LPVOID start_params =
+      force ? (LPVOID)1 : nullptr;
+
     InterlockedCompareExchangePointer ( &hSteamPump,
                             CreateThread ( nullptr,
                                              0,
                                                SteamAPI_PumpThread,
-                                                 nullptr,
+                                                 start_params,
                                                    0x00,
                                                      nullptr ), nullptr
                         );
@@ -3373,21 +3429,23 @@ SteamAPI_InitSafe_Detour (void)
 
   if ( SteamAPI_InitSafe_Original () )
   {
-    InterlockedIncrement (&__SK_Steam_init);
+    if (1 == InterlockedIncrement (&__SK_Steam_init))
+    {
+      const wchar_t* steam_dll_str =
+        SK_RunLHIfBitness ( 64, L"steam_api64.dll",
+                                L"steam_api.dll"    );
 
-  const wchar_t* steam_dll_str =
-    SK_RunLHIfBitness ( 64, L"steam_api64.dll",
-                            L"steam_api.dll"    );
+      HMODULE hSteamAPI = LoadLibraryW_Original (steam_dll_str);
 
-    HMODULE hSteamAPI = LoadLibraryW_Original (steam_dll_str);
+      SK_SteamAPI_ContextInit (hSteamAPI);
+      MH_ApplyQueued          (         );
 
-    SK_SteamAPI_ContextInit (hSteamAPI);
+      steam_log.Log ( L"--- Initialization Finished (%d tries [AppId: %lu]) ---\n\n",
+                        init_tries + 1,
+                          SK::SteamAPI::AppID () );
 
-    steam_log.Log ( L"--- Initialization Finished (%d tries [AppId: %lu]) ---\n\n",
-                      init_tries + 1,
-                        SK::SteamAPI::AppID () );
-
-    SK_Steam_StartPump ();
+      SK_Steam_StartPump (config.steam.force_load_steamapi);
+    }
 
     LeaveCriticalSection (&init_cs);
     return true;
@@ -3485,23 +3543,24 @@ SteamAPI_Init_Detour (void)
 
   if (bRet)
   {
-    InterlockedIncrement (&__SK_Steam_init);
+    if (1 == InterlockedIncrement (&__SK_Steam_init))
+    {
+      static const wchar_t* steam_dll_str = 
+        SK_RunLHIfBitness ( 64, L"steam_api64.dll",
+                                L"steam_api.dll" );
 
-    static const wchar_t* steam_dll_str = 
-      SK_RunLHIfBitness ( 64, L"steam_api64.dll",
-                              L"steam_api.dll" );
+      HMODULE hSteamAPI =
+        GetModuleHandleW (steam_dll_str);
 
-    HMODULE hSteamAPI =
-      GetModuleHandleW (steam_dll_str);
+      SK_SteamAPI_ContextInit (hSteamAPI);
+      MH_ApplyQueued          (         );
 
-    SK_SteamAPI_ContextInit (hSteamAPI);
+      steam_log.Log ( L"--- Initialization Finished (%d tries [AppId: %lu]) ---\n\n",
+                        ReadAcquire (&init_tries) + 1,
+                          SK::SteamAPI::AppID () );
 
-    steam_log.Log ( L"--- Initialization Finished (%d tries [AppId: %lu]) ---\n\n",
-                      ReadAcquire (&init_tries) + 1,
-                        SK::SteamAPI::AppID () );
-
-    SK_Steam_StartPump ();
-    MH_ApplyQueued     ();
+      SK_Steam_StartPump (config.steam.force_load_steamapi);
+    }
   }
 
   LeaveCriticalSection (&init_cs);
@@ -3534,7 +3593,7 @@ SK_SteamAPI_TakeScreenshot (void)
 void
 SK_Steam_InitCommandConsoleVariables (void)
 {
-  steam_log.init (L"logs/steam_api.log", L"w");
+  steam_log.init (L"logs/steam_api.log", L"wt+,ccs=UTF-8");
   steam_log.silent = config.steam.silent;
 
   InitializeCriticalSectionAndSpinCount (&callback_cs, 1024UL);
@@ -3582,7 +3641,9 @@ SteamAPI_Delay_Init (LPVOID user)
     SleepEx (config.steam.init_delay, FALSE);
 
     if (ReadAcquire (&__SK_Steam_init))
+    {
       break;
+    }
 
     if (SteamAPI_InitSafe_Original != nullptr)
       SteamAPI_InitSafe_Detour ();
@@ -3615,66 +3676,57 @@ SK_HookSteamAPI (void)
 
   if (! InterlockedCompareExchange (&__SteamAPI_hook, TRUE, FALSE))
   {
-  steam_log.Log (L"%s was loaded, hooking...", wszSteamAPI);
+    steam_log.Log (L"%s was loaded, hooking...", wszSteamAPI);
+  
+      SK_CreateDLLHook2 ( wszSteamAPI,
+                          "SteamAPI_InitSafe",
+                           SteamAPI_InitSafe_Detour,
+  static_cast_p2p <void> (&SteamAPI_InitSafe_Original),
+  static_cast_p2p <void> (&SteamAPI_InitSafe) );
+  
+      SK_CreateDLLHook2 ( wszSteamAPI,
+                          "SteamAPI_Init",
+                           SteamAPI_Init_Detour,
+  static_cast_p2p <void> (&SteamAPI_Init_Original),
+  static_cast_p2p <void> (&SteamAPI_Init) );
+  
+      SK_CreateDLLHook2 ( wszSteamAPI,
+                          "SteamAPI_RegisterCallback",
+                           SteamAPI_RegisterCallback_Detour,
+  static_cast_p2p <void> (&SteamAPI_RegisterCallback_Original),
+  static_cast_p2p <void> (&SteamAPI_RegisterCallback) );
+  
+      SK_CreateDLLHook2 ( wszSteamAPI,
+                          "SteamAPI_UnregisterCallback",
+                           SteamAPI_UnregisterCallback_Detour,
+  static_cast_p2p <void> (&SteamAPI_UnregisterCallback_Original),
+  static_cast_p2p <void> (&SteamAPI_UnregisterCallback) );
+  
+      SK_CreateDLLHook2 ( wszSteamAPI,
+                          "SteamAPI_RunCallbacks",
+                           SteamAPI_RunCallbacks_Detour,
+  static_cast_p2p <void> (&SteamAPI_RunCallbacks_Original),
+  static_cast_p2p <void> (&SteamAPI_RunCallbacks) );
+  
+      //
+      // Do not queue these up (by calling CreateDLLHook2),
+      //   they will be installed only upon the game successfully
+      //     calling one of the SteamAPI initialization functions.
+      //
+      SK_CreateDLLHook  ( wszSteamAPI,
+                          "SteamAPI_Shutdown",
+                           SteamAPI_Shutdown_Detour,
+  static_cast_p2p <void> (&SteamAPI_Shutdown_Original),
+  static_cast_p2p <void> (&SteamAPI_Shutdown) );
 
-  //BOOL
-  //SK_Steam_PreHookCore (void);
-  //
-  //if (config.steam.spoof_BLoggedOn)
-  //  SK_Steam_PreHookCore ();
+    SK_ApplyQueuedHooks ();
 
-    SK_CreateDLLHook2 ( wszSteamAPI,
-                        "SteamAPI_InitSafe",
-                         SteamAPI_InitSafe_Detour,
-static_cast_p2p <void> (&SteamAPI_InitSafe_Original),
-static_cast_p2p <void> (&SteamAPI_InitSafe) );
-
-    SK_CreateDLLHook2 ( wszSteamAPI,
-                        "SteamAPI_Init",
-                         SteamAPI_Init_Detour,
-static_cast_p2p <void> (&SteamAPI_Init_Original),
-static_cast_p2p <void> (&SteamAPI_Init) );
-
-    SK_CreateDLLHook2 ( wszSteamAPI,
-                        "SteamAPI_RegisterCallback",
-                         SteamAPI_RegisterCallback_Detour,
-static_cast_p2p <void> (&SteamAPI_RegisterCallback_Original),
-static_cast_p2p <void> (&SteamAPI_RegisterCallback) );
-
-    SK_CreateDLLHook2 ( wszSteamAPI,
-                        "SteamAPI_UnregisterCallback",
-                         SteamAPI_UnregisterCallback_Detour,
-static_cast_p2p <void> (&SteamAPI_UnregisterCallback_Original),
-static_cast_p2p <void> (&SteamAPI_UnregisterCallback) );
-
-    SK_CreateDLLHook2 ( wszSteamAPI,
-                        "SteamAPI_RunCallbacks",
-                         SteamAPI_RunCallbacks_Detour,
-static_cast_p2p <void> (&SteamAPI_RunCallbacks_Original),
-static_cast_p2p <void> (&SteamAPI_RunCallbacks) );
-
-    //
-    // Do not queue these up (by calling CreateDLLHook2),
-    //   they will be installed only upon the game successfully
-    //     calling one of the SteamAPI initialization functions.
-    //
-    SK_CreateDLLHook  ( wszSteamAPI,
-                        "SteamAPI_Shutdown",
-                         SteamAPI_Shutdown_Detour,
-static_cast_p2p <void> (&SteamAPI_Shutdown_Original),
-static_cast_p2p <void> (&SteamAPI_Shutdown) );
-
-  SK_ApplyQueuedHooks ();
-
-  if (! config.steam.force_load_steamapi)
-  {
-    if (config.steam.init_delay > 0)
+    if (config.steam.force_load_steamapi || config.steam.init_delay > 0)
     {
       CreateThread (nullptr, 0, SteamAPI_Delay_Init, nullptr, 0x00, nullptr);
     }
-  }
 
-  InterlockedIncrement (&__SteamAPI_hook);
+    InterlockedIncrement (&__SteamAPI_hook);
   }
 
   SK_Thread_SpinUntilAtomicMin (&__SteamAPI_hook, 2);
@@ -3980,7 +4032,7 @@ SK_Steam_Imported (void)
                            GetModuleHandle (L"SteamNative.dll");
 }
 
-void
+bool
 SK_Steam_TestImports (HMODULE hMod)
 {
   static const wchar_t* steam_dll_str =
@@ -4023,6 +4075,8 @@ SK_Steam_TestImports (HMODULE hMod)
      SK_HookSteamAPI ();
      steam_imported = true;
   }
+
+  return steam_imported;
 }
 
 void
@@ -5016,10 +5070,15 @@ SK_Steam_KickStart (const wchar_t* wszLibPath)
 
         if (SK_File_GetSize (wszDLLPath) > 0)
         {
-          if (LoadLibraryW (wszSteamDLL))
+          if (LoadLibraryW_Original (wszDLLPath))
           {
             dll_log.Log ( L"[DLL Loader]   Manually booted SteamAPI: '%s'",
-                            SK_StripUserNameFromPathW (std::wstring (wszSteamDLL).data ()) );
+                            SK_StripUserNameFromPathW (std::wstring (wszDLLPath).data ()) );
+
+            config.steam.force_load_steamapi = true;
+
+            SK_HookSteamAPI ();
+
             return true;
           }
         }

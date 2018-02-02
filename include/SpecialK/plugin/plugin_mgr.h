@@ -46,6 +46,44 @@ bool
 __stdcall
 SK_HasPlugin (void);
 
+
+// As a general rule, plug-ins are only _built-in_ to the 64-bit DLL
+#ifdef _WIN64
+#include <Windows.h>
+#include <render/dxgi/dxgi_interfaces.h>
+
+void
+SK_DGPU_InitPlugin (void);
+
+void
+SK_IT_InitPlugin (void);
+
+bool SK_FO4_UseFlipMode        (void);
+bool SK_FO4_IsFullscreen       (void);
+bool SK_FO4_IsBorderlessWindow (void);
+
+HRESULT __stdcall
+     SK_FO4_PresentFirstFrame  (IDXGISwapChain *, UINT, UINT);
+
+
+// TODO: Get this stuff out of here, it's breaking what little design work there is.
+void SK_DS3_InitPlugin         (void);
+bool SK_DS3_UseFlipMode        (void);
+bool SK_DS3_IsBorderless       (void);
+
+HRESULT __stdcall
+     SK_DS3_PresentFirstFrame  (IDXGISwapChain *, UINT, UINT);
+
+HRESULT __stdcall
+     SK_FAR_PresentFirstFrame  (IDXGISwapChain *, UINT, UINT);
+
+HRESULT __stdcall
+     SK_IT_PresentFirstFrame   (IDXGISwapChain *, UINT, UINT);
+
+HRESULT __stdcall
+     SK_DGPU_PresentFirstFrame (IDXGISwapChain *, UINT, UINT);
+#endif
+
 #endif /* __SK__Plugin__Manager_H__ */
 
 

@@ -725,9 +725,9 @@ DllMain ( HMODULE hModule,
     case DLL_PROCESS_ATTACH:
     {
       if (InterlockedExchangePointer (
-            reinterpret_cast <volatile PVOID *> (
-                  const_cast <HMODULE        *> (&hModSelf)
-                                                ),
+            reinterpret_cast <LPVOID  *> (
+                  const_cast <HMODULE *> (&hModSelf)
+                                         ),
             hModule
            )
          )

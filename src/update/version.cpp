@@ -104,7 +104,7 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
   //     install issues.
   if (! dll_log.initialized)
   {
-    dll_log.init (L"logs/installer.log", L"w");
+    dll_log.init (L"logs/installer.log", L"wt+,ccs=UTF-8");
   }
 
 

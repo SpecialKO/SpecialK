@@ -683,6 +683,51 @@ DllThread (LPVOID user)
 }
 
 
+BOOL
+SK_RecursiveFileSearch ( const wchar_t* wszDir,
+                         const wchar_t* wszFile )
+{
+  BOOL found = FALSE;
+
+  wchar_t   wszPath [MAX_PATH * 2] = { };
+  swprintf (wszPath, LR"(%s\*)", wszDir);
+
+  WIN32_FIND_DATA fd          = {   };
+  HANDLE          hFind       =
+    FindFirstFileW ( wszPath, &fd);
+
+  if (hFind == INVALID_HANDLE_VALUE) { return FALSE; }
+
+  do
+  {
+    if ( wcscmp (fd.cFileName, L".")  == 0 ||
+         wcscmp (fd.cFileName, L"..") == 0 )
+    {
+      continue;
+    }
+
+    if (! _wcsicmp (fd.cFileName, wszFile))
+    {
+      found = TRUE;
+      break;
+    }
+
+    if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+    {
+      wchar_t   wszDescend [MAX_PATH * 2] = { };
+      swprintf (wszDescend, LR"(%s\%s)", wszDir, fd.cFileName);
+
+      found = SK_RecursiveFileSearch (wszDescend, wszFile);
+    }
+
+  } while ((! found) && FindNextFile (hFind, &fd));
+
+  FindClose (hFind);
+
+  return found;
+}
+
+
 bool
 __stdcall
 SK_HasGlobalInjector (void)
@@ -872,7 +917,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
     swprintf (log_fname, L"logs/%s.log", SK_IsInjected () ? L"SpecialK" : backend);
 
-    dll_log.init (log_fname, L"w");
+    dll_log.init (log_fname, L"wt+,ccs=UTF-8");
     dll_log.Log  (L"%s.log created",     SK_IsInjected () ? L"SpecialK" : backend);
 
     bool blacklist =
@@ -919,24 +964,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     game_debug.init                  (L"logs/game_output.log", L"w");
     game_debug.lockless = true;
     SK::Diagnostics::Debugger::Allow ();
-
-
-    if (! config.steam.silent)
-    {
-      SK_Steam_InitCommandConsoleVariables  (       );
-
-      // Lazy-load SteamAPI into a process that doesn't use it; this brings
-      //   a number of general-purpose benefits (such as battery charge monitoring).
-      if (config.steam.force_load_steamapi)
-      {
-        SK_Steam_KickStart ();
-      }
-
-      SK_Steam_TestImports (GetModuleHandle (nullptr));
-
-      if (config.steam.spoof_BLoggedOn)
-        SK_Steam_PreHookCore ();
-    }
   }
 
   if (skim)
@@ -946,7 +973,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     return TRUE;
   }
 
-  budget_log.init ( LR"(logs\dxgi_budget.log)", L"w" );
+  budget_log.init ( LR"(logs\dxgi_budget.log)", L"wtc+,ccs=UTF-8" );
 
   dll_log.LogEx (false,
     L"------------------------------------------------------------------------"
@@ -994,6 +1021,43 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     SK_SaveConfig (config_name);
     dll_log.LogEx (false, L"done!\n");
   }
+
+
+  if (! config.steam.silent)
+  {
+    SK_Steam_InitCommandConsoleVariables  (       );
+
+    // Lazy-load SteamAPI into a process that doesn't use it; this brings
+    //   a number of general-purpose benefits (such as battery charge monitoring).
+    bool kick_start = config.steam.force_load_steamapi;
+
+    if ((! SK_Steam_TestImports (GetModuleHandle (nullptr))))
+    {
+      // Implicitly kick-start anything in SteamApps\common that does not import
+      //   SteamAPI...
+      if (! kick_start)
+      {
+        if (StrStrIW (SK_GetHostPath (), LR"(SteamApps\common)") != 0)
+        {
+          // Only do this if the game doesn't have a copy of the DLL lying around somewhere,
+          //   because if we init Special K's SteamAPI DLL, the game's will fail to init and
+          //     the game won't be happy about that!
+          kick_start = (! SK_RecursiveFileSearch ( SK_GetHostPath (),
+                                                   SK_RunLHIfBitness ( 64, L"steam_api64.dll",
+                                                                           L"steam_api.dll"    )
+                                                 )
+                       );
+        }
+      }
+
+      if (kick_start)
+        SK_Steam_KickStart ();
+    }
+
+    if (config.steam.spoof_BLoggedOn)
+      SK_Steam_PreHookCore ();
+  }
+
 
   if (config.system.display_debug_out)
     SK::Diagnostics::Debugger::SpawnConsole ();
@@ -1512,6 +1576,14 @@ SKX_Window_EstablishRoot (void)
 
   SK_InstallWindowHook (hWndTarget);
 }
+
+
+__declspec (dllexport)
+void
+SK_ImGui_Toggle (void);
+
+void
+SK_ImGui_PollGamepad_EndFrame (void);
 
 
 __declspec (noinline)

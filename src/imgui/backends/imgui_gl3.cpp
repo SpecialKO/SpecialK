@@ -9,9 +9,11 @@
 #include <imgui/imgui.h>
 
 #include <Windows.h>
-#include <../depends/include/GL/glew.h>
-#include <SpecialK/render/backend.h>
+
 #include <SpecialK/framerate.h>
+#include <SpecialK/render/backend.h>
+#include <../depends/include/GL/glew.h>
+#include <SpecialK/render/gl/opengl_backend.h>
 
 #include <SpecialK/window.h>
 

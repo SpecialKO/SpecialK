@@ -203,6 +203,30 @@ SK_Hook_CacheTarget (       sk_hook_cache_record_s &cache,
 };
 
 
+#ifdef _WIN64
+# include <../depends/src/SKinHook/hde/hde64.h>
+#else
+# include <../depends/src/SKinHook/hde/hde32.h>
+#endif
+
+bool
+SKX_IsHotPatchableAddr (LPVOID addr)
+{
+  if (! SK_ValidatePointer (addr))
+    return false;
+
+#ifdef _WIN64
+  hde64s               disasm = { };
+  hde64_disasm (addr, &disasm);
+#else
+  hde32s               disasm = { };
+  hde32_disasm (addr, &disasm);
+#endif
+
+  return disasm.len > 2 && (disasm.flags & ( F_ERROR | F_IMM16 | F_IMM8 )) == 0;
+}
+
+
 sk_hook_cache_enablement_s
 SK_Hook_PreCacheModule ( const wchar_t                                *wszModuleName,
                                std::vector <sk_hook_cache_record_s *> &local_cache,
@@ -234,6 +258,15 @@ SK_Hook_PreCacheModule ( const wchar_t                                *wszModule
         LPVOID target_addr = it->target.addr;
 
         it->target.addr = nullptr;
+
+        // If hot-patched, then don't bother
+        if (! SKX_IsHotPatchableAddr (target_addr))
+        {
+          SK_LOG1 ( ( L"Discarding global address for '%50hs' (not hot patched)",
+                      it->target.symbol_name ),
+                      L"Hook Cache" );
+          continue;
+        }
 
         if (LoadLibraryW_Original (it->target.module_path))
         {
@@ -278,6 +311,15 @@ SK_Hook_PreCacheModule ( const wchar_t                                *wszModule
 
         if ( SK_Hook_PredictTarget ( *it, ini_name.c_str () ) )
         {
+          // If hot-patched, then don't bother
+          if (! SKX_IsHotPatchableAddr (it->target.addr))
+          {
+            SK_LOG1 ( ( L"Discarding  local address for '%50hs' (not hot patched)",
+                        it->target.symbol_name ),
+                        L"Hook Cache" );
+            continue;
+          }
+
           SK_LOG0 ( ( L"Trying  local address for '%50hs' :: '%72s'"
                       L" { Last seen in '%s' }",
                                   it->target.symbol_name,

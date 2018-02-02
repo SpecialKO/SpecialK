@@ -140,11 +140,6 @@ bool
 __stdcall
 SK_HasGlobalInjector (void);
 
-ULONG
-__stdcall
-SK_GetFramesDrawn (void);
-
-
 HWND
 SK_Win32_CreateDummyWindow (void);
 

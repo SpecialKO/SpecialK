@@ -160,6 +160,7 @@ struct sk_config_t
   struct {
     bool    enable             = true;
     bool    orig_enable        = false; // Since CEGUI is a frequent source of crashes.
+    ULONG   frames_drawn       = 0;     //   Count the number of frames drawn using it
     bool    safe_init          = true;
   } cegui;
 
@@ -231,6 +232,7 @@ struct sk_config_t
     bool    force_load_steamapi  = false; // Load steam_api{64}.dll even in games
                                           //   that do not use it
     bool    spoof_BLoggedOn      = false;
+    bool    overlay_hides_sk_osd = true;
   } steam;
 
 
@@ -258,7 +260,6 @@ struct sk_config_t
     struct {
       bool    force_d3d9ex      = false;
       bool    force_impure      = false;
-      bool    osd_in_vidcap     = false;
     } d3d9;
     struct {
       int     adapter_override  = -1;
@@ -288,11 +289,10 @@ struct sk_config_t
       bool    deferred_isolation = false;
       bool    rehook_present     = false;
     } dxgi;
-
     struct {
       // Required by default for compatibility with Mirillis Action!
-      bool    osd_in_vidcap      = true;
-    } gl;
+      bool    draw_in_vidcap      = true;
+    } osd;
 
     // OSD Render Stats (D3D11 Only Right Now)
     bool      show              = false;
