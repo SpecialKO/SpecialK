@@ -34,6 +34,7 @@
 #include <SpecialK/ini.h>
 #include <SpecialK/log.h>
 #include <SpecialK/crc32.h>
+#include <SpecialK/thread.h>
 #include <SpecialK/utility.h>
 #include <SpecialK/framerate.h>
 #include <SpecialK/diagnostics/compatibility.h>
@@ -1472,10 +1473,12 @@ public:
     ESteamAPICallFailure eCallFail = k_ESteamAPICallFailureNone;
 
     if (steam_ctx.Utils ())
+    {
       steam_ctx.Utils ()->IsAPICallCompleted (pParam->m_hAsyncCall, &failed);
 
-    if (failed)
-      eCallFail = steam_ctx.Utils ()->GetAPICallFailureReason (pParam->m_hAsyncCall);
+      if (failed)
+        eCallFail = steam_ctx.Utils ( )->GetAPICallFailureReason (pParam->m_hAsyncCall);
+    }
 
     if (pParam->m_hAsyncCall == global_request)
     {
@@ -2652,73 +2655,47 @@ SteamAPI_RunCallbacks_Detour (void)
     void SK_SteamAPI_InitManagers (void);
          SK_SteamAPI_InitManagers (    );
 
-    static volatile HANDLE hThread = 0x00;
-
-    InterlockedCompareExchangePointer (&hThread,
-      CreateThread ( nullptr, 0,
-      [](LPVOID user) ->
-        DWORD
-          {
-            strcpy ( steam_ctx.var_strings.popup_origin,
-                       SK_Steam_PopupOriginToStr (
-                         config.steam.achievements.popup.origin
-                       )
-                   );
-
-            strcpy ( steam_ctx.var_strings.notify_corner,
-                       SK_Steam_PopupOriginToStr (
-                         config.steam.notify_corner
-                       )
-                   );
-
-            if (! steam_ctx.UserStats ())
-            {
-              if (SteamAPI_InitSafe_Original != nullptr)
-                SteamAPI_InitSafe_Detour ();
-
-              if (! steam_ctx.UserStats ())
-              {
-                InterlockedExchangePointer ((PVOID *)&user, nullptr);
-
-                CloseHandle (GetCurrentThread ());
-
-                return (DWORD)-1;
-              }
-            }
-
-            __try
-            {
-              SK_Steam_SetNotifyCorner ();
-
-              SteamAPI_RunCallbacks_Original ();
-
-              ISteamUserStats* pStats =
-                steam_ctx.UserStats ();
-
-              if (pStats)
-                pStats->RequestGlobalAchievementPercentages ();
-
-              SteamAPI_RunCallbacks_Original ();
-            }
-
-            __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION )  ?
-                                 EXCEPTION_EXECUTE_HANDLER :
-                                 EXCEPTION_CONTINUE_SEARCH )
-            {
-              failure = true;
-              steam_log.Log (L" Caught a Structured Exception while running Steam Callbacks!");
-              InterlockedIncrement64 (&SK_SteamAPI_CallbackRunCount);
-            }
-
-            InterlockedExchangePointer ((PVOID *)&user, nullptr);
-
-            CloseHandle (GetCurrentThread ());
-
-            return 0;
-          }, (LPVOID)&hThread,
-        0x00,
-      nullptr), nullptr
-    );
+    strcpy ( steam_ctx.var_strings.popup_origin,
+               SK_Steam_PopupOriginToStr (
+                 config.steam.achievements.popup.origin
+               )
+           );
+    
+    strcpy ( steam_ctx.var_strings.notify_corner,
+               SK_Steam_PopupOriginToStr (
+                 config.steam.notify_corner
+               )
+           );
+    
+    if (! steam_ctx.UserStats ())
+    {
+      if (SteamAPI_InitSafe_Original != nullptr)
+        SteamAPI_InitSafe_Detour ();
+    }
+    
+    __try
+    {
+      SK_Steam_SetNotifyCorner ();
+    
+      SteamAPI_RunCallbacks_Original ();
+    
+      ISteamUserStats* pStats =
+        steam_ctx.UserStats ();
+    
+      if (pStats)
+        pStats->RequestGlobalAchievementPercentages ();
+    
+      SteamAPI_RunCallbacks_Original ();
+    }
+    
+    __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION )  ?
+                         EXCEPTION_EXECUTE_HANDLER :
+                         EXCEPTION_CONTINUE_SEARCH )
+    {
+      failure = true;
+      steam_log.Log (L" Caught a Structured Exception while running Steam Callbacks!");
+      InterlockedIncrement64 (&SK_SteamAPI_CallbackRunCount);
+    }
   }
 
   __try
@@ -3634,27 +3611,17 @@ SK_HookSteamAPI (void)
   if (! GetModuleHandle (wszSteamAPI))
     return;
 
-  if (TryEnterCriticalSection (&init_cs))
-  {
-    if (InterlockedCompareExchange (&__SteamAPI_hook, TRUE, FALSE))
-    {
-      LeaveCriticalSection (&init_cs);
-      return;
-    }
-  }
+  static volatile LONG __SteamAPI_hook = FALSE;
 
-  else
+  if (! InterlockedCompareExchange (&__SteamAPI_hook, TRUE, FALSE))
   {
-    return;
-  }
-
   steam_log.Log (L"%s was loaded, hooking...", wszSteamAPI);
 
-  BOOL
-  SK_Steam_PreHookCore (void);
-
-  if (config.steam.spoof_BLoggedOn)
-    SK_Steam_PreHookCore ();
+  //BOOL
+  //SK_Steam_PreHookCore (void);
+  //
+  //if (config.steam.spoof_BLoggedOn)
+  //  SK_Steam_PreHookCore ();
 
     SK_CreateDLLHook2 ( wszSteamAPI,
                         "SteamAPI_InitSafe",
@@ -3707,22 +3674,10 @@ static_cast_p2p <void> (&SteamAPI_Shutdown) );
     }
   }
 
-  else
-  {
-    CreateThread (nullptr, 0, [](LPVOID user) ->
-      DWORD
-      {
-        UNREFERENCED_PARAMETER (user);
-
-        SteamAPI_InitSafe_Detour ();
-
-        CloseHandle (GetCurrentThread ());
-
-        return 0;
-      }, nullptr, 0x00, nullptr);
+  InterlockedIncrement (&__SteamAPI_hook);
   }
 
-  LeaveCriticalSection (&init_cs);
+  SK_Thread_SpinUntilAtomicMin (&__SteamAPI_hook, 2);
 }
 
 ISteamUserStats*
@@ -4100,7 +4055,7 @@ SK_Steam_LoadOverlayEarly (void)
                                                     LR"(\GameOverlayRenderer.dll)"    ) );
 
   hModOverlay =
-    LoadLibraryW_Original (wszOverlayDLL);
+    LoadLibraryW (wszOverlayDLL);
 
   return hModOverlay != nullptr;
 }
@@ -5021,6 +4976,13 @@ SK_SteamAPIContext::InitSteamAPI (HMODULE hSteamDLL)
   MH_QueueEnableHook (SteamAPI_RunCallbacks);
 
   return true;
+}
+
+bool
+__stdcall
+SK::SteamAPI::IsOverlayAware (void)
+{
+  return (! overlay_activation_callbacks.empty ());
 }
 
 BOOL

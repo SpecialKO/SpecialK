@@ -580,7 +580,7 @@ SK_ImGui_ControlPanelTitle (void)
 void
 SK_ImGui_CPL_OSDInVidCap (void)
 {
-  if (ImGui::Checkbox ("Show OSD in Video Capture", &config.render.gl.osd_in_vidcap))
+  if (ImGui::Checkbox ("Show OSD in Video Capture", &config.render.osd.draw_in_vidcap))
   {
     struct toggle_state_s {
                ULONG    frames_drawn;
@@ -596,9 +596,9 @@ SK_ImGui_CPL_OSDInVidCap (void)
       osd_toggle.frames_drawn = SK_GetFramesDrawn ();
       osd_toggle.initial_time = timeGetTime       ();
       osd_toggle.time_to_wait = 125UL;
-      osd_toggle.original     = (! config.render.gl.osd_in_vidcap);
-      osd_toggle.new_val      =    config.render.gl.osd_in_vidcap;
-      osd_toggle.dest         =   &config.render.gl.osd_in_vidcap;
+      osd_toggle.original     = (! config.render.osd.draw_in_vidcap);
+      osd_toggle.new_val      =    config.render.osd.draw_in_vidcap;
+      osd_toggle.dest         =   &config.render.osd.draw_in_vidcap;
 
       // Automated recovery in case changing this setting blows stuff up.
       //
@@ -863,61 +863,73 @@ DisplayModeMenu (bool windowed)
 
   const char* modes = "Windowed Mode\0Fullscreen Mode\0\0";
 
-  if (ImGui::Combo ("###SubMenu_DisplayMode_Combo", &mode, modes, 2) && mode != orig_mode)
+
+  // ATTN Unity:  Use asynchronous window messages!
+  bool     can_go_full = !( rb.windows.unity && ( 
+                             (int)rb.api & (int)SK_RenderAPI::D3D11) );
+
+  if (can_go_full)
   {
-    switch (mode)
+    if (ImGui::Combo ("###SubMenu_DisplayMode_Combo", &mode, modes, 2) && mode != orig_mode)
     {
-      case DISPLAY_MODE_WINDOWED:
+      switch (mode)
       {
-        rb.requestWindowedMode (force);
-
-        bool borderless = config.window.borderless;
-        bool fullscreen = config.window.fullscreen;
-
-        if (borderless)
-          SK_DeferCommand ("Window.Borderless 1");
-        else
+        case DISPLAY_MODE_WINDOWED:
         {
-          config.window.borderless = true;
-          SK_DeferCommand ("Window.Borderless 0");
-        }
+          rb.requestWindowedMode (force);
 
-        if (borderless && fullscreen)
+          bool borderless = config.window.borderless;
+          bool fullscreen = config.window.fullscreen;
+
+          if (borderless)
+            SK_DeferCommand ("Window.Borderless 1");
+          else
+          {
+            config.window.borderless = true;
+            SK_DeferCommand ("Window.Borderless 0");
+          }
+
+          if (borderless && fullscreen)
+          {
+            SK_ImGui_AdjustCursor ();
+          }
+        } break;
+
+        default:
+        case DISPLAY_MODE_FULLSCREEN:
         {
-          SK_ImGui_AdjustCursor ();
-        }
-      } break;
+          rb.requestFullscreenMode (force);
+        } break;
+      }
+    }
 
-      default:
-      case DISPLAY_MODE_FULLSCREEN:
+    if (ImGui::IsItemHovered ())
+    {
+      ImGui::SetTooltip ("This may lockup non-compliant graphics engines;"
+                         " save your game first!");
+    }
+
+    ImGui::SameLine ();
+
+    if (ImGui::Checkbox ("Force Override", &force))
+    {
+      switch (mode)
       {
-        rb.requestFullscreenMode (force);
-      } break;
+        case DISPLAY_MODE_WINDOWED:
+          config.display.force_fullscreen = false;
+          config.display.force_windowed   = force;
+          break;
+
+        default:
+        case DISPLAY_MODE_FULLSCREEN:
+          if (can_go_full)
+            config.display.force_fullscreen = force;
+          config.display.force_windowed     = false;
+          break;
+      }
     }
   }
 
-  if (ImGui::IsItemHovered ())
-  {
-    ImGui::SetTooltip ("Games that do not natively support Fullscreen mode may require an application restart.");
-  }
-
-  ImGui::SameLine ();
-
-  if (ImGui::Checkbox ("Force Override", &force))
-  {
-    switch (mode)
-    {
-      case DISPLAY_MODE_WINDOWED:
-        config.display.force_fullscreen = false;
-        config.display.force_windowed   = force;
-        break;
-      default:
-      case DISPLAY_MODE_FULLSCREEN:
-        config.display.force_fullscreen = force;
-        config.display.force_windowed   = false;
-        break;
-    }
-  }
 
   if (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D11))
   {
@@ -1092,8 +1104,8 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
       SK_RenderBackend& rb =
         SK_GetCurrentRenderBackend ();
 
-      CComPtr <ID3D11DeviceContext> pDevCtx =
-        static_cast <ID3D11DeviceContext *> (rb.d3d11.immediate_ctx);
+      CComQIPtr <ID3D11DeviceContext> pDevCtx =
+        rb.d3d11.immediate_ctx;
 
       // This limits us to D3D11 for now, but who cares -- D3D10 sucks and D3D12 can't be drawn to yet :)
       if (! pDevCtx)
@@ -1366,6 +1378,8 @@ SK_ImGui_DrawTexCache_Chart (void)
 void
 SK_ImGui_VolumeManager (void)
 {
+  DWORD dwNow = timeGetTime ();
+
   ImGuiIO& io (ImGui::GetIO ());
 
   const  float font_size           =             ImGui::GetFont  ()->FontSize                        * io.FontGlobalScale;
@@ -1584,18 +1598,18 @@ SK_ImGui_VolumeManager (void)
 
           history [i].vu_peaks.disp_min      = history [i].vu_peaks.inst_min;
 
-          if (history [i].vu_peaks.dwMinSample < timeGetTime () - VUMETER_TIME * 3)
+          if (history [i].vu_peaks.dwMinSample < dwNow - VUMETER_TIME * 3)
           {
             history [i].vu_peaks.inst_min    = channel_peaks_ [i];
-            history [i].vu_peaks.dwMinSample = timeGetTime ();
+            history [i].vu_peaks.dwMinSample = dwNow;
           }
 
           history [i].vu_peaks.disp_max      = history [i].vu_peaks.inst_max;
 
-          if (history [i].vu_peaks.dwMaxSample < timeGetTime () - VUMETER_TIME * 3)
+          if (history [i].vu_peaks.dwMaxSample < dwNow - VUMETER_TIME * 3)
           {
             history [i].vu_peaks.inst_max    = channel_peaks_ [i];
-            history [i].vu_peaks.dwMaxSample = timeGetTime ();
+            history [i].vu_peaks.dwMaxSample = dwNow;
           }
 
           history [i].peaks [history [i].current_idx] = channel_peaks_ [i];
@@ -1849,6 +1863,8 @@ __declspec (dllexport)
 bool
 SK_ImGui_ControlPanel (void)
 {
+  DWORD  dwNow = timeGetTime ();
+
   ImGuiIO& io (ImGui::GetIO ());
 
   if (ImGui::GetFont () == nullptr)
@@ -2392,8 +2408,8 @@ SK_ImGui_ControlPanel (void)
   extern bool nav_usable;
 
   if (nav_usable)
-    ImGui::PushStyleColor ( ImGuiCol_Text, ImColor::HSV ( (float)(timeGetTime () % 2800) / 2800.0f, 
-                                            (0.5f + (sin ((float)(timeGetTime () % 500)  / 500.0f)) * 0.5f) / 2.0f,
+    ImGui::PushStyleColor ( ImGuiCol_Text, ImColor::HSV ( (float)(dwNow % 2800) / 2800.0f, 
+                                            (0.5f + (sin ((float)(dwNow % 500)  / 500.0f)) * 0.5f) / 2.0f,
                                              1.0f ) );
   else
     ImGui::PushStyleColor ( ImGuiCol_Text, ImColor (255, 255, 255) );
@@ -3274,14 +3290,18 @@ SK_ImGui_ControlPanel (void)
                                                          SK::D3D9::tex_mgr.cacheSizeTotal () >> 20ULL ); ImGui::NextColumn ();
 
           static DWORD  dwLastVRAMUpdate   = 0UL;
-                 DWORD  dwNow              = timeGetTime ();
           static size_t d3d9_tex_mem_avail = 0UL;
 
           if (dwLastVRAMUpdate < dwNow - 1500)
           {
-            d3d9_tex_mem_avail =
-              static_cast <IDirect3DDevice9 *>(SK_GetCurrentRenderBackend ().device)->GetAvailableTextureMem () / 1048576UL;
-            dwLastVRAMUpdate = dwNow;
+            CComQIPtr <IDirect3DDevice9> pDev (SK_GetCurrentRenderBackend ().device);
+
+            if (pDev != nullptr)
+            {
+              d3d9_tex_mem_avail =
+                pDev->GetAvailableTextureMem () / 1048576UL;
+              dwLastVRAMUpdate = dwNow;
+            }
           }
 
           ImGui::TextColored
@@ -3495,11 +3515,14 @@ SK_ImGui_ControlPanel (void)
           else if (config.render.framerate.pre_render_limit > config.render.framerate.buffer_count + 1)
             config.render.framerate.pre_render_limit = config.render.framerate.buffer_count + 1;
 
-          void
-          SK_DXGI_UpdateLatencies ( IDXGISwapChain *pSwapChain =
-                                   (IDXGISwapChain *)SK_GetCurrentRenderBackend ().swapchain );
+          CComQIPtr <IDXGISwapChain> pSwapChain (SK_GetCurrentRenderBackend ().swapchain);
 
-          SK_DXGI_UpdateLatencies ();
+          if (pSwapChain != nullptr)
+          {
+            void
+            SK_DXGI_UpdateLatencies ( IDXGISwapChain *pSwapChain );
+            SK_DXGI_UpdateLatencies (pSwapChain);
+          }
         }
 
         if ((! config.render.framerate.flip_discard) || config.render.framerate.swapchain_wait == 0)
@@ -4083,46 +4106,94 @@ SK_ImGui_ControlPanel (void)
         }
 
         ImGui::EndGroup    ( );
+
         ImGui::SameLine    ( );
         ImGui::BeginGroup  ( );
-        auto DescribeRect = [](LPRECT rect, const char* szType, const char* szName)
+
+        static int window_pane = 1;
+
+        ImGui::TextColored (ImColor (1.f,1.f,1.f), "Window Management:  "); ImGui::SameLine ();
+        ImGui::RadioButton ("Dimensions", &window_pane, 0);                 ImGui::SameLine ();
+        ImGui::RadioButton ("Details",    &window_pane, 1);
+        ImGui::Separator   (                             );
+
+          auto DescribeRect = [](LPRECT rect, const char* szType, const char* szName)
+          {
+            ImGui::Text (szType);
+            ImGui::NextColumn ();
+            ImGui::Text (szName);
+            ImGui::NextColumn ();
+            ImGui::Text ( "| (%4li,%4li) / %4lix%li |  ",
+                              rect->left, rect->top,
+                                rect->right-rect->left, rect->bottom - rect->top );
+            ImGui::NextColumn ();
+          };
+
+#define __SK_ImGui_FixedWidthFont ImGui::GetIO ().Fonts->Fonts [1]
+
+        ImGui::PushFont    (__SK_ImGui_FixedWidthFont);
+
+        switch (window_pane)
         {
-          ImGui::Text (szType);
-          ImGui::NextColumn ();
-          ImGui::Text (szName);
-          ImGui::NextColumn ();
-          ImGui::Text ( "| (%4li,%4li) / %4lix%li |  ",
-                            rect->left, rect->top,
-                              rect->right-rect->left, rect->bottom - rect->top );
-          ImGui::NextColumn ();
-        };
+        case 0:
+          ImGui::Columns   (3);
 
-        ImGui::Columns (3);
+          DescribeRect (&game_window.actual.window, "Window", "Actual" );
+          DescribeRect (&game_window.actual.client, "Client", "Actual" );
 
-        DescribeRect (&game_window.actual.window, "Window", "Actual" );
-        DescribeRect (&game_window.actual.client, "Client", "Actual" );
+          ImGui::Columns   (1);
+          ImGui::Separator ( );
+          ImGui::Columns   (3);
 
-        ImGui::Columns   (1);
-        ImGui::Separator ( );
-        ImGui::Columns   (3);
+          DescribeRect (&game_window.game.window,   "Window", "Game"   );
+          DescribeRect (&game_window.game.client,   "Client", "Game"   );
 
-        DescribeRect (&game_window.game.window,   "Window", "Game"   );
-        DescribeRect (&game_window.game.client,   "Client", "Game"   );
+          ImGui::Columns   (1);
+          ImGui::Separator ( );
+          ImGui::Columns   (3);
 
-        ImGui::Columns   (1);
-        ImGui::Separator ( );
-        ImGui::Columns   (3);
+          RECT window;
+          GetClientRect (game_window.hWnd, &client);
+          GetWindowRect (game_window.hWnd, &window);
 
-        RECT window;
-        GetClientRect (game_window.hWnd, &client);
-        GetWindowRect (game_window.hWnd, &window);
+          DescribeRect  (&window,   "Window", "GetWindowRect"   );
+          DescribeRect  (&client,   "Client", "GetClientRect"   );
+                             
+          ImGui::Columns   (1);
+          break;
 
-        DescribeRect  (&window,   "Window", "GetWindowRect"   );
-        DescribeRect  (&client,   "Client", "GetClientRect"   );
-                           
-        ImGui::Columns     (1);
+       case 1:
+          ImGui::Text      ( "App_Active   : %s", game_window.active ? "Yes" : "No" );
+          ImGui::Text      ( "Active HWND  : %x", GetActiveWindow     () );
+          ImGui::Text      ( "Foreground   : %x", GetForegroundWindow () );
+          ImGui::Text      ( "Input Focus  : %x", GetFocus            () );
+          ImGui::Separator (    );
+          ImGui::Text      ( "HWND         : Focus: %06x, Device: %06x",
+                                             rb.windows.focus.hwnd, rb.windows.device.hwnd );
+          ImGui::Text      ( "Window Class : %32ws :: %32ws", rb.windows.focus.class_name,
+                                                              rb.windows.device.class_name );
+          ImGui::Text      ( "Window Title : %32ws :: %32ws", rb.windows.focus.title,
+                                                              rb.windows.device.title );
+          ImGui::Text      ( "Owner PID    : %8lu, %8lu",     rb.windows.focus.owner.pid,
+                                                              rb.windows.device.owner.pid );
+          ImGui::Text      ( "Owner TID    : %8lu, %8lu",     rb.windows.focus.owner.tid,
+                                                              rb.windows.device.owner.tid );
+          ImGui::Text      ( "Init. Frame  : %8lu, %8lu",
+                                                              rb.windows.focus.last_changed,
+                                                              rb.windows.device.last_changed );
+          ImGui::Text      ( "Unicode      : %8s, %8s",       rb.windows.focus.unicode  ? "Yes" : "No",
+                                                              rb.windows.device.unicode ? "Yes" : "No" );
+          ImGui::Text      ( "Top          : %08x, %08x",
+                               GetTopWindow (rb.windows.focus.hwnd), 
+                               GetTopWindow (rb.windows.device.hwnd)     );
+          ImGui::Text      ( "Parent       : %08x, %08x",
+                                            (rb.windows.focus.parent),
+                                            (rb.windows.device.parent)   );
+          break;
+        }
+
+        ImGui::PopFont     ( );
         ImGui::Separator   ( );
-        ImGui::EndGroup    ( );
 
         ImGui::Text        ( "ImGui Cursor State: %lu (%lu,%lu) { %lu, %lu }",
                                SK_ImGui_Cursor.visible, SK_ImGui_Cursor.pos.x,
@@ -4133,7 +4204,8 @@ SK_ImGui_ControlPanel (void)
                               SK_ImGui_Cursor.idle ? "Idle" :
                                                      "Not Idle",
                                 SK_ImGui_Cursor.last_move);
-        ImGui::TreePop      ( );
+        ImGui::EndGroup    ( );
+        ImGui::TreePop     ( );
       }
 
       ImGui::PopStyleColor  (3);
@@ -4183,27 +4255,27 @@ SK_ImGui_ControlPanel (void)
 
 
       if (SK_XInput_Backend.nextFrame ())
-        last_xinput = timeGetTime ();
+        last_xinput   = dwNow;
 
       if (SK_Steam_Backend.nextFrame ())
-        last_steam = timeGetTime ();
+        last_steam    = dwNow;
 
       if (SK_HID_Backend.nextFrame ())
-        last_hid = timeGetTime ();
+        last_hid      = dwNow;
 
       if (SK_DI7_Backend.nextFrame ())
-        last_di7 = timeGetTime ();
+        last_di7      = dwNow;
 
       if (SK_DI8_Backend.nextFrame ())
-        last_di8 = timeGetTime ();
+        last_di8      = dwNow;
 
       if (SK_RawInput_Backend.nextFrame ())
-        last_rawinput = timeGetTime ();
+        last_rawinput = dwNow;
 
 
-      if (last_steam > timeGetTime ( ) - 500UL)
+      if (last_steam > dwNow - 500UL)
       {
-        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - ( 0.4f * ( timeGetTime ( ) - last_steam ) / 500.0f ), 1.0f, 0.8f));
+        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - ( 0.4f * ( dwNow - last_steam ) / 500.0f ), 1.0f, 0.8f));
         ImGui::SameLine ( );
         ImGui::Text ("       Steam");
         ImGui::PopStyleColor ( );
@@ -4216,12 +4288,12 @@ SK_ImGui_ControlPanel (void)
         }
       }
 
-      if (last_xinput > timeGetTime () - 500UL)
+      if (last_xinput > dwNow - 500UL)
       {
         extern const char*
         SK_XInput_GetPrimaryHookName (void);
 
-        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * (timeGetTime () - last_xinput) / 500.0f), 1.0f, 0.8f));
+        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * (dwNow - last_xinput) / 500.0f), 1.0f, 0.8f));
         ImGui::SameLine       ();
         ImGui::Text           ("       %s", SK_XInput_GetPrimaryHookName ());
         ImGui::PopStyleColor  ();
@@ -4234,9 +4306,9 @@ SK_ImGui_ControlPanel (void)
         }
       }
 
-      if (last_hid > timeGetTime () - 500UL)
+      if (last_hid > dwNow - 500UL)
       {
-        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * (timeGetTime () - last_hid) / 500.0f), 1.0f, 0.8f));
+        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * (dwNow - last_hid) / 500.0f), 1.0f, 0.8f));
         ImGui::SameLine       ();
         ImGui::Text           ("       HID");
         ImGui::PopStyleColor  ();
@@ -4256,9 +4328,9 @@ SK_ImGui_ControlPanel (void)
         }
       }
 
-      if (last_di7 > timeGetTime () - 500UL)
+      if (last_di7 > dwNow - 500UL)
       {
-        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * (timeGetTime () - last_di7) / 500.0f), 1.0f, 0.8f));
+        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * (dwNow - last_di7) / 500.0f), 1.0f, 0.8f));
         ImGui::SameLine       ();
         ImGui::Text           ("       DirectInput 7");
         ImGui::PopStyleColor  ();
@@ -4281,9 +4353,9 @@ SK_ImGui_ControlPanel (void)
         }
       }
 
-      if (last_di8 > timeGetTime () - 500UL)
+      if (last_di8 > dwNow - 500UL)
       {
-        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * (timeGetTime () - last_di8) / 500.0f), 1.0f, 0.8f));
+        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * (dwNow - last_di8) / 500.0f), 1.0f, 0.8f));
         ImGui::SameLine       ();
         ImGui::Text           ("       DirectInput 8");
         ImGui::PopStyleColor  ();
@@ -4306,9 +4378,9 @@ SK_ImGui_ControlPanel (void)
         }
       }
 
-      if (last_rawinput > timeGetTime () - 500UL)
+      if (last_rawinput > dwNow - 500UL)
       {
-        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * (timeGetTime () - last_rawinput) / 500.0f), 1.0f, 0.8f));
+        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * (dwNow - last_rawinput) / 500.0f), 1.0f, 0.8f));
         ImGui::SameLine       ();
         ImGui::Text           ("       Raw Input");
         ImGui::PopStyleColor  ();
@@ -4723,8 +4795,8 @@ extern float SK_ImGui_PulseNav_Strength;
              ( deadzone_hovered || ImGui::IsMouseHoveringRect ( xy0, xy1, false ) ) )
         {
           ImVec4 col = ImColor::HSV ( 0.18f, 
-                                          std::min (1.0f, 0.85f + (sin ((float)(timeGetTime () % 400) / 400.0f))),
-                                                               (float)(0.66f + (timeGetTime () % 830) / 830.0f ) );
+                                          std::min (1.0f, 0.85f + (sin ((float)(dwNow % 400) / 400.0f))),
+                                                               (float)(0.66f + (dwNow % 830) / 830.0f ) );
           const ImU32 col32 =
             ImColor (col);
 
@@ -6076,13 +6148,13 @@ extern float SK_ImGui_PulseNav_Strength;
           bool dirty = false;
 
           const  DWORD cycle_freq = 2250UL;
-          static DWORD last_cycle = timeGetTime ();
+          static DWORD last_cycle = dwNow;
           static int   detail_idx = 0;
 
-          if (last_cycle < timeGetTime () - cycle_freq)
+          if (last_cycle < dwNow - cycle_freq)
           {
             detail_idx = ~detail_idx;
-            last_cycle =  timeGetTime ();
+            last_cycle =  dwNow;
             dirty      =  true;
           }
 
@@ -6366,7 +6438,7 @@ extern float SK_ImGui_PulseNav_Strength;
       if (ImGui::Selectable ( "SteamAPI Frame", &pause ))
         SK_SteamAPI_SetOverlayState (pause);
 
-      if (ImGui::IsItemHovered ())
+      if (ImGui::IsItemHovered () && SK::SteamAPI::IsOverlayAware ())
       {
         ImGui::BeginTooltip   (       );
         ImGui::Text           ( "In"  );                 ImGui::SameLine ();
@@ -6650,6 +6722,10 @@ SK_ImGui_InstallOpenCloseCallback (SK_ImGui_OpenCloseCallback_pfn fn, void* user
 
 
 
+#include <SpecialK/osd/text.h>
+
+extern void            SK_ImGui_PollGamepad_EndFrame (void);
+
 //
 // Hook this to override Special K's GUI
 //
@@ -6658,6 +6734,16 @@ DWORD
 SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags, 
                                               LPVOID lpUser )
 {
+  // Optionally:  Disable SK's OSD while the Steam overlay is active
+  //
+  if (  config.steam.overlay_hides_sk_osd &&
+        SK::SteamAPI::GetOverlayState (true) )
+  {
+    return 0;
+  }
+
+
+  DWORD  dwNow             = timeGetTime ();
 
 //  static bool skip;
 //
@@ -6770,8 +6856,8 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
 
 
 
-  static DWORD dwStartTime = timeGetTime ();
-  if ((timeGetTime () < dwStartTime + 1000 * config.version_banner.duration) || eula.show)
+  static DWORD dwStartTime = dwNow;
+  if ((dwNow < dwStartTime + 1000 * config.version_banner.duration) || eula.show)
   {
 		ImGui::PushStyleColor    (ImGuiCol_Text,     ImVec4 (1.f,   1.f,   1.f,   1.f));
 		ImGui::PushStyleColor    (ImGuiCol_WindowBg, ImVec4 (.333f, .333f, .333f, 0.828282f));
@@ -7045,8 +7131,8 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
 
   if (d3d9)
   {
-    CComPtr <IDirect3DDevice9> pDev =
-      (IDirect3DDevice9 *)SK_GetCurrentRenderBackend ().device;
+    CComQIPtr <IDirect3DDevice9> pDev =
+      SK_GetCurrentRenderBackend ().device;
 
     if ( SUCCEEDED (
            pDev->BeginScene ()
@@ -7093,6 +7179,7 @@ SK_ImGui_Toggle (void)
 {
   ImGuiIO& io (ImGui::GetIO ());
 
+         DWORD dwNow      = timeGetTime ();
   static DWORD dwLastTime = 0x00;
 
   bool d3d11 = false;
@@ -7106,16 +7193,16 @@ SK_ImGui_Toggle (void)
   if (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D11))  d3d11 = true;
   if (                   rb.api ==                    SK_RenderAPI::OpenGL)  gl    = true;
 
-  auto EnableEULAIfPirate = [](void) ->
+  auto EnableEULAIfPirate = [&](void) ->
   bool
   {
     bool pirate = ( SK_SteamAPI_AppID    () != 0 && 
                     SK_Steam_PiratesAhoy () != 0x0 );
     if (pirate)
     {
-      if (dwLastTime < timeGetTime () - 1000)
+      if (dwLastTime < dwNow - 1000)
       {
-        dwLastTime             = timeGetTime ();
+        dwLastTime             = dwNow;
 
         eula.show              = true;
         eula.never_show_again  = false;
@@ -7310,6 +7397,8 @@ INT
 __stdcall
 SK_ImGui_GamepadComboDialog0 (SK_GamepadCombo_V0* combo)
 {
+  DWORD dwNow = timeGetTime ();
+
   ImGuiIO& io (ImGui::GetIO ());
 
   const  float font_size = ImGui::GetFont ()->FontSize * io.FontGlobalScale;
@@ -7383,10 +7472,10 @@ SK_ImGui_GamepadComboDialog0 (SK_GamepadCombo_V0* combo)
         }
 
         last_buttons = state.Gamepad.wButtons;
-        last_change  = timeGetTime ();
+        last_change  = dwNow;
       }
 
-      else if (last_change > 0 && last_change < timeGetTime () - 1000UL)
+      else if (last_change > 0 && last_change < dwNow - 1000UL)
       {
         combo->unparsed = unparsed;
 

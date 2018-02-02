@@ -49,12 +49,10 @@
 #include <SpecialK/render/backend.h>
 #include <SpecialK/render/dxgi/dxgi_backend.h>
 #include <SpecialK/render/d3d9/d3d9_backend.h>
+#include <SpecialK/render/gl/opengl_backend.h>
 #include <SpecialK/render/vk/vulkan_backend.h>
 
-#ifdef _WIN64
-#define D3D12_IGNORE_SDK_LAYERS
-#include <SpecialK/render/d3d12/d3d12_interfaces.h>
-#endif
+#include <SpecialK/plugin/plugin_mgr.h>
 
 #include <SpecialK/resource.h>
 
@@ -105,7 +103,6 @@ extern void SK_Input_PreInit (void);
 std::queue <DWORD> init_tids;
 
 HANDLE  hInitThread   = { INVALID_HANDLE_VALUE };
-HANDLE  hPumpThread   = { INVALID_HANDLE_VALUE };
 
 NV_GET_CURRENT_SLI_STATE sli_state;
 BOOL                     nvapi_init  = FALSE;
@@ -460,6 +457,7 @@ SK_InitCore (std::wstring backend, void* callback)
 
   init_mutex->lock ();
 
+
 #ifdef _WIN64
   switch (SK_GetCurrentGameID ())
   {
@@ -468,20 +466,15 @@ SK_InitCore (std::wstring backend, void* callback)
       break;
 
     case SK_GAME_ID::BlueReflection:
-      extern void
-      SK_IT_InitPlugin (void);
-
       SK_IT_InitPlugin ();
       break;
 
     case SK_GAME_ID::DotHackGU:
-      extern void
-      SK_DGPU_InitPlugin (void);
-
       SK_DGPU_InitPlugin ();
       break;
   }
 #endif
+
 
          callback_fn (SK_InitFinishCallback);
   SK_ResumeThreads   (init_tids);
@@ -632,6 +625,7 @@ SK_InitFinishCallback (void)
     game_debug.close ();
     game_debug.silent = true;
   }
+
 
   const wchar_t* config_name =
     SK_Backend;
@@ -925,6 +919,24 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     game_debug.init                  (L"logs/game_output.log", L"w");
     game_debug.lockless = true;
     SK::Diagnostics::Debugger::Allow ();
+
+
+    if (! config.steam.silent)
+    {
+      SK_Steam_InitCommandConsoleVariables  (       );
+
+      // Lazy-load SteamAPI into a process that doesn't use it; this brings
+      //   a number of general-purpose benefits (such as battery charge monitoring).
+      if (config.steam.force_load_steamapi)
+      {
+        SK_Steam_KickStart ();
+      }
+
+      SK_Steam_TestImports (GetModuleHandle (nullptr));
+
+      if (config.steam.spoof_BLoggedOn)
+        SK_Steam_PreHookCore ();
+    }
   }
 
   if (skim)
@@ -996,29 +1008,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     goto BACKEND_INIT;
 
 
-  if (! config.steam.silent)
-  {
-    // Lazy-load SteamAPI into a process that doesn't use it, this brings
-    //   a number of benefits.
-    if (config.steam.force_load_steamapi)
-    {
-      SK_Steam_KickStart ();
-    }
-
-    SK_Steam_InitCommandConsoleVariables (                         );
-    SK_Steam_TestImports                 (GetModuleHandle (nullptr));
-  }
-
-
   SK_EnumLoadedModules (SK_ModuleEnum::PreLoad);
-
-
-  // TODO: Rename this to Steam Experimental
-  //
-  if (config.steam.spoof_BLoggedOn && (! config.steam.silent))
-  {
-    SK_Steam_PreHookCore ();
-  }
 
 
 BACKEND_INIT:
@@ -1153,6 +1143,13 @@ BACKEND_INIT:
     {
       SK_D3D9_QuickHook ();
     }
+
+
+    if (config.steam.preload_overlay)
+    {
+      SK_Steam_LoadOverlayEarly ();
+    }
+
 
 
     if (GetModuleHandle (L"dinput8.dll"))
@@ -1313,15 +1310,6 @@ SK_ShutdownCore (const wchar_t* backend)
 
   dll_log.LogEx    (false, L"done! (%4u ms)\n", timeGetTime () - dwTime);
 
-  if (hPumpThread != INVALID_HANDLE_VALUE)
-  {
-    dll_log.LogEx   (true, L"[ Stat OSD ] Shutting down Pump Thread... ");
-
-    CloseHandle     (hPumpThread);
-                     hPumpThread = INVALID_HANDLE_VALUE;
-
-    dll_log.LogEx   (false, L"done!\n");
-  }
 
   SK_Steam_KillPump ();
 
@@ -1372,6 +1360,9 @@ SK_ShutdownCore (const wchar_t* backend)
   }
 
 
+  SK_GetCurrentRenderBackend ().releaseOwnedResources ();
+
+
   SK_UnloadImports        ();
   SK::Framerate::Shutdown ();
 
@@ -1387,8 +1378,6 @@ SK_ShutdownCore (const wchar_t* backend)
   SK_WMI_Shutdown      ();
   dll_log.LogEx        (false, L"done! (%4u ms)\n", timeGetTime () - dwTime);
 
-
-  SK_GetCurrentRenderBackend ().releaseOwnedResources ();
 
 
   if (nvapi_init)
@@ -1419,10 +1408,7 @@ SK_ShutdownCore (const wchar_t* backend)
 auto SK_UnpackCEGUI =
 [](void) -> void
 {
-  HRSRC res;
-
-  // NOTE: providing g_hInstance is important, NULL might not work
-  res =
+  HRSRC res =
     FindResource ( SK_GetDLL (), MAKEINTRESOURCE (IDR_CEGUI_PACKAGE), L"WAVE" );
 
   if (res)
@@ -1480,23 +1466,22 @@ auto SK_UnpackCEGUI =
 };
 
 
-extern void            SK_ImGui_Toggle               (void);
-extern void            SK_ImGui_LoadFonts            (void);
-extern void            SK_ImGui_PollGamepad_EndFrame (void);
 
-extern void            SK_Window_RepositionIfNeeded  (void);
+extern void SK_ImGui_LoadFonts           (void);
+
+extern void SK_Window_RepositionIfNeeded (void);
 
 void
 SKX_Window_EstablishRoot (void)
 {
-  HWND hWndActive     = GetActiveWindow     ();
-  HWND hWndFocus      = GetFocus            ();
-  HWND hWndForeground = GetForegroundWindow ();
+  HWND  hWndActive     = GetActiveWindow     ();
+  HWND  hWndFocus      = GetFocus            ();
+  HWND  hWndForeground = GetForegroundWindow ();
 
-  HWND  hWndTarget  = SK_GetCurrentRenderBackend ().windows.device;
-  DWORD dwWindowPid = 0;
+  HWND  hWndTarget     = SK_GetCurrentRenderBackend ().windows.device;
+  DWORD dwWindowPid    = 0;
 
-  if (SK_Win32_IsGUIThread ( ) && hWndTarget == 0)
+  if (SK_Win32_IsGUIThread () && hWndTarget == HWND_DESKTOP)
   {
     GetWindowThreadProcessId (hWndActive, &dwWindowPid);
     if (dwWindowPid == GetCurrentProcessId ())
@@ -1505,7 +1490,7 @@ SKX_Window_EstablishRoot (void)
     }
   }
 
-  if (hWndTarget == 0)
+  if (hWndTarget == HWND_DESKTOP)
   { 
      GetWindowThreadProcessId (hWndFocus, &dwWindowPid);
 
@@ -1774,8 +1759,8 @@ SK_BeginBufferSwap (void)
 
   if (config.cegui.enable)
   {
-    SK_DrawOSD         ();
-    SK_DrawConsole     ();
+    SK_DrawOSD     ();
+    SK_DrawConsole ();
   }
 
   static HMODULE hModTBFix = GetModuleHandle (L"tbfix.dll");
@@ -1917,9 +1902,6 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
     CComPtr <IDirect3DDevice9>   pDev9   = nullptr;
     CComPtr <IDirect3DDevice9Ex> pDev9Ex = nullptr;
     CComPtr <ID3D11Device>       pDev11  = nullptr;
-#ifdef _WIN64
-    CComPtr <ID3D12Device>       pDev12  = nullptr;
-#endif
 
     if (SUCCEEDED (device->QueryInterface <IDirect3DDevice9Ex> (&pDev9Ex)))
     {
@@ -1953,34 +1935,26 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
           break;
       }
 
-      IUnknown* pTest = nullptr;
+      CComPtr <IUnknown> pTest = nullptr;
 
-      if (SUCCEEDED (device->QueryInterface (IID_ID3D11Device5,        (void **)&pTest))) {
+      if (SUCCEEDED (       device->QueryInterface (IID_ID3D11Device5, (void **)&pTest))) {
         wcsncpy (__SK_RBkEnd.name, L"D3D11.4", 8);
-        pTest->Release ();
       } else if (SUCCEEDED (device->QueryInterface (IID_ID3D11Device4, (void **)&pTest))) {
         wcsncpy (__SK_RBkEnd.name, L"D3D11.4", 8);
-        pTest->Release ();
       } else if (SUCCEEDED (device->QueryInterface (IID_ID3D11Device3, (void **)&pTest))) {
         wcsncpy (__SK_RBkEnd.name, L"D3D11.3", 8);
-        pTest->Release ();
       } else if (SUCCEEDED (device->QueryInterface (IID_ID3D11Device2, (void **)&pTest))) {
         wcsncpy (__SK_RBkEnd.name, L"D3D11.2", 8);
-        pTest->Release ();
       } else if (SUCCEEDED (device->QueryInterface (IID_ID3D11Device1, (void **)&pTest))) {
         wcsncpy (__SK_RBkEnd.name, L"D3D11.1", 8);
-        pTest->Release ();
       } else {
         wcsncpy (__SK_RBkEnd.name, L"D3D11 ", 8);
       }
 
-      if (SK_GetDLLRole () == DLL_ROLE::D3D8)
-      {
+      if (     SK_GetDLLRole () == DLL_ROLE::D3D8)  {
         wcscpy (__SK_RBkEnd.name, L"D3D8");
       }
-
-      else if (SK_GetDLLRole () == DLL_ROLE::DDraw)
-      {
+      else if (SK_GetDLLRole () == DLL_ROLE::DDraw) {
         wcscpy (__SK_RBkEnd.name, L"DDraw");
       }
 
@@ -2006,15 +1980,6 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
 
       extern void SK_D3D11_EndFrame (void);
                   SK_D3D11_EndFrame ();
-#ifdef _WIN64
-    }
-
-
-    else if (SUCCEEDED (device->QueryInterface (IID_PPV_ARGS (&pDev12))))
-    {
-               __SK_RBkEnd.api  = SK_RenderAPI::D3D12;
-      wcsncpy (__SK_RBkEnd.name, L"D3D12 ", 8);
-#endif
     }
 
     else
@@ -2036,13 +2001,8 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
   config.apis.last_known =
     __SK_RBkEnd.api;
 
-  static volatile
-    ULONG budget_init = FALSE;
 
-  if (! InterlockedCompareExchange (&budget_init, TRUE, FALSE))
-  {
-    SK::DXGI::StartBudgetThread_NoAdapter ();
-  }
+  SK_RunOnce (SK::DXGI::StartBudgetThread_NoAdapter ());
 
 
   SK_Input_PollKeyboard ();
@@ -2059,6 +2019,7 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
     }
   }
 
+
   static HMODULE hModTZFix = GetModuleHandle (L"tzfix.dll");
   static HMODULE hModTBFix = GetModuleHandle (L"tbfix.dll");
 
@@ -2070,8 +2031,16 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
     SK::Framerate::GetLimiter ()->wait ();
   }
 
+
+  if (config.cegui.enable)
+  {
+    config.cegui.frames_drawn++;
+  }
+
+
   return hr;
 }
+
 
 static DLL_ROLE dll_role (DLL_ROLE::INVALID);
 
