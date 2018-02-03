@@ -178,6 +178,7 @@ struct {
     sk::ParameterBool*    load_early;
     sk::ParameterBool*    early_overlay;
     sk::ParameterBool*    force_load;
+    sk::ParameterBool*    auto_inject;
   } system;
 
   struct {
@@ -851,6 +852,8 @@ SK_LoadConfigEx (std::wstring name, bool create)
     ConfigEntry (steam.system.load_early,                L"Load the Steam Client DLL Early?",                          dll_ini,         L"Steam.System",          L"PreLoadSteamClient"),
     ConfigEntry (steam.system.early_overlay,             L"Load the Steam Overlay Early",                              dll_ini,         L"Steam.System",          L"PreLoadSteamOverlay"),
     ConfigEntry (steam.system.force_load,                L"Forcefully load steam_api{64}.dll",                         dll_ini,         L"Steam.System",          L"ForceLoadSteamAPI"),
+    ConfigEntry (steam.system.auto_inject,               L"Automatically load steam_api{64}.dll into any game whose "
+                                                         L"path includes SteamApps\\common, but doesn't use steam_api",dll_ini,         L"Steam.System",          L"AutoInjectSteamAPI"),
 
     // Swashbucklers pay attention
     //////////////////////////////////////////////////////////////////////////
@@ -2021,6 +2024,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
   steam.system.load_early->load            (config.steam.preload_client);
   steam.system.early_overlay->load         (config.steam.preload_overlay);
   steam.system.force_load->load            (config.steam.force_load_steamapi);
+  steam.system.auto_inject->load           (config.steam.auto_inject);
 
   if (((sk::iParameter *)steam.system.notify_corner)->load ())
   {
@@ -2668,6 +2672,7 @@ SK_SaveConfig ( std::wstring name,
   steam.system.load_early->store            (config.steam.preload_client);
   steam.system.early_overlay->store         (config.steam.preload_overlay);
   steam.system.force_load->store            (config.steam.force_load_steamapi);
+  steam.system.auto_inject->store           (config.steam.auto_inject);
   steam.system.notify_corner->store         (
     SK_Steam_PopupOriginToWStr (config.steam.notify_corner)
   );

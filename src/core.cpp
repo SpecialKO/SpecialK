@@ -1023,9 +1023,17 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   }
 
 
+
+  // Steam Overlay and SteamAPI Manipulation
+  //
   if (! config.steam.silent)
   {
-    SK_Steam_InitCommandConsoleVariables  (       );
+    config.steam.force_load_steamapi = false;
+
+    // TODO: Rename -- this initializes critical sections and performance
+    //                   counters needed by SK's SteamAPI backend.
+    //
+    SK_Steam_InitCommandConsoleVariables  ();
 
     // Lazy-load SteamAPI into a process that doesn't use it; this brings
     //   a number of general-purpose benefits (such as battery charge monitoring).
@@ -1035,7 +1043,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     {
       // Implicitly kick-start anything in SteamApps\common that does not import
       //   SteamAPI...
-      if (! kick_start)
+      if ((! kick_start) && config.steam.auto_inject)
       {
         if (StrStrIW (SK_GetHostPath (), LR"(SteamApps\common)") != 0)
         {
@@ -1054,9 +1062,12 @@ SK_StartupCore (const wchar_t* backend, void* callback)
         SK_Steam_KickStart ();
     }
 
+    // Again, rename this -- it enables experimental features
     if (config.steam.spoof_BLoggedOn)
       SK_Steam_PreHookCore ();
   }
+
+
 
 
   if (config.system.display_debug_out)
@@ -1591,6 +1602,10 @@ void
 STDMETHODCALLTYPE
 SK_BeginBufferSwap (void)
 {
+  static SK_RenderAPI LastKnownAPI = SK_RenderAPI::Reserved;
+
+
+
   // Maybe make this into an option, but for now just get this the hell out of there
   //   almost no software should be shipping with FP exceptions, it causes compatibility problems.
   _controlfp (MCW_EM, MCW_EM);
@@ -1604,58 +1619,73 @@ SK_BeginBufferSwap (void)
   }
 
 
-  static int import_tries = 0;
 
-  if (import_tries++ == 0)
+  ULONG frames_drawn =
+    SK_GetFramesDrawn ();
+
+  switch (frames_drawn)
   {
-    // Load user-defined DLLs (Late)
-    SK_RunLHIfBitness ( 64, SK_LoadLateImports64 (),
-                            SK_LoadLateImports32 () );
-
-    if (ReadAcquire64 (&SK_SteamAPI_CallbackRunCount) < 1)
+    // First frame
+    //
+    case 0:
     {
-      // Steam Init: Better late than never
+      // Load user-defined DLLs (Late)
+      SK_RunLHIfBitness ( 64, SK_LoadLateImports64 (),
+                              SK_LoadLateImports32 () );
 
-      SK_Steam_TestImports (GetModuleHandle (nullptr));
-    }
+      if (ReadAcquire64 (&SK_SteamAPI_CallbackRunCount) < 1)
+      {
+        // Steam Init: Better late than never
 
-    if (config.system.handle_crashes)
-      SK::Diagnostics::CrashHandler::Reinstall ();
+        SK_Steam_TestImports (GetModuleHandle (nullptr));
+      }
 
-              extern float target_fps;
-                           target_fps = config.render.framerate.target_fps;
-    SK::Framerate::GetLimiter ()->init (config.render.framerate.target_fps);
+      if (config.system.handle_crashes)
+        SK::Diagnostics::CrashHandler::Reinstall ();
+
+                extern float target_fps;
+                             target_fps = config.render.framerate.target_fps;
+      SK::Framerate::GetLimiter ()->init (config.render.framerate.target_fps);
+    } break;
+
+
+    // Grace period frame, just ignore it
+    //
+    case 1:
+      break;
+
+
+    // 2+ frames drawn
+    //
+    default:
+    {
+      //
+      // Defer this process to rule out dummy init. windows in some engines
+      //
+      if (game_window.WndProc_Original == nullptr)
+      {
+        SKX_Window_EstablishRoot ();
+      }
+
+      if (game_window.WndProc_Original != nullptr)
+      {
+        // If user wants position / style overrides, kick them off on the first
+        //   frame after a window procedure has been established.
+        //
+        //  (nb: Must be implemented asynchronously)
+        //
+        SK_RunOnce (SK_Window_RepositionIfNeeded ());
+        SK_RunOnce (game_window.active = true);
+      }
+    } break;
   }
 
 
-  //
-  // Defer this process to rule out dummy init. windows in some engines
-  //
-  if (SK_GetFramesDrawn () > 2)
-  {
-    if (game_window.WndProc_Original == nullptr)
-    {
-      SKX_Window_EstablishRoot ();
-    }
-
-    if (game_window.WndProc_Original != nullptr)
-    {
-      // If user wants position / style overrides, kick them off on the first
-      //   frame after a window procedure has been established.
-      //
-      //  (nb: Must be implemented asynchronously)
-      //
-      SK_RunOnce (SK_Window_RepositionIfNeeded ());
-      SK_RunOnce (game_window.active = true);
-    }
-  }
-
-
-  static volatile LONG         CEGUI_Init          = FALSE;
-  static          SK_RenderAPI LastKnownAPI = SK_RenderAPI::Reserved;
 
   if (config.cegui.enable)
   {
+    static volatile LONG CEGUI_Init   = FALSE;
+
     if ( (SK_GetCurrentRenderBackend ().api != SK_RenderAPI::Reserved) &&
          ( (! InterlockedCompareExchange (&CEGUI_Init, TRUE, FALSE)) ||
             LastKnownAPI != SK_GetCurrentRenderBackend ().api ) )
@@ -1824,16 +1854,14 @@ SK_BeginBufferSwap (void)
 
       SK_UnlockDllLoader  ();
     }
+
+    if (! SK::SteamAPI::GetOverlayState (true))
+    {
+      SK_DrawOSD     ();
+      SK_DrawConsole ();
+    }
   }
 
-  LastKnownAPI = SK_GetCurrentRenderBackend ().api;
-
-
-  if (config.cegui.enable)
-  {
-    SK_DrawOSD     ();
-    SK_DrawConsole ();
-  }
 
   static HMODULE hModTBFix = GetModuleHandle (L"tbfix.dll");
 
@@ -1858,7 +1886,11 @@ SK_BeginBufferSwap (void)
     SK_ImGui_Toggle ();
   }
 
+
   SK_ImGui_PollGamepad_EndFrame ();
+
+
+  LastKnownAPI = SK_GetCurrentRenderBackend ().api;
 }
 
 

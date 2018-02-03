@@ -1,13 +1,17 @@
 0.9.0 (beta1):
 
+ + Enhanced FFXII compatibility
+ + Fixed UI scaling issues preventing Accept button from appearing on EULA.
+
  + Automatically bootstrap steam_api{64}.dll from Special K's distribution for
      any game located in SteamApps\common that does not use SteamAPI
 
   >> This allows AppID name resolution for games that pre-date SteamWorks,
        and adds Special K's Steam overlay enhancements.
 
-  + Added a menu option to File to inject SteamAPI into non-Steam games.
+   ( This feature is configurable through Steam.System::AutoInjectSteamAPI )
 
+  + Added a menu option to File to inject SteamAPI into non-Steam games.
 
 
 0.9.0 (beta0):

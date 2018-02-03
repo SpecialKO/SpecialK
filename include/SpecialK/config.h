@@ -233,6 +233,7 @@ struct sk_config_t
                                           //   that do not use it
     bool    spoof_BLoggedOn      = false;
     bool    overlay_hides_sk_osd = true;
+    bool    auto_inject          = true;  // Control implicit steam_api.dll bootstrapping
   } steam;
 
 
