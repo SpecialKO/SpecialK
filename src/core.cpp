@@ -69,6 +69,7 @@
 #include <SpecialK/input/dinput7_backend.h>
 #include <SpecialK/input/dinput8_backend.h>
 
+#include <SpecialK/injection/injection.h>
 #include <SpecialK/injection/address_cache.h>
 
 #include <atlbase.h>
@@ -769,6 +770,20 @@ void
 __stdcall
 SK_EstablishRootPath (void)
 {
+  FILE* fTest = 
+    _wfopen (L"SpecialK.permissions", L"wtc+");
+
+  if (fTest != nullptr)
+  {
+    fclose      (fTest);
+    DeleteFileW (L"SpecialK.permissions");
+  }
+
+  // File permissions don't permit us to store logs in the game's directory,
+  //   so implicitly turn on the option to relocate this stuff.
+  if (! fTest) config.system.central_repository = true;
+
+
   wchar_t wszConfigPath [MAX_PATH * 2] = { };
 
   // Store config profiles in a centralized location rather than relative to the game's executable
@@ -1216,7 +1231,7 @@ BACKEND_INIT:
 
     if (d3d9 && (config.apis.d3d9.hook || config.apis.d3d9ex.hook))
     {
-      SK_D3D9_QuickHook ();
+      //SK_D3D9_QuickHook ();
     }
 
 
@@ -1542,7 +1557,9 @@ auto SK_UnpackCEGUI =
 
 
 
-extern void SK_ImGui_LoadFonts           (void);
+extern void SK_ImGui_LoadFonts (void);
+extern void SK_ImGui_Warning   (const wchar_t *wszMessage);
+
 
 extern void SK_Window_RepositionIfNeeded (void);
 
@@ -1684,7 +1701,7 @@ SK_BeginBufferSwap (void)
 
   if (config.cegui.enable)
   {
-    static volatile LONG CEGUI_Init   = FALSE;
+    static volatile LONG CEGUI_Init = FALSE;
 
     if ( (SK_GetCurrentRenderBackend ().api != SK_RenderAPI::Reserved) &&
          ( (! InterlockedCompareExchange (&CEGUI_Init, TRUE, FALSE)) ||
@@ -1815,36 +1832,69 @@ SK_BeginBufferSwap (void)
 
         if (DelayLoadDLL ("CEGUIBase-0.dll"))
         {
-          if (SK_GetCurrentRenderBackend ().api == SK_RenderAPI::OpenGL)
+          FILE* fTest = 
+            _wfopen (L"CEGUI.log", L"wtc+");
+
+          if (fTest != nullptr)
           {
-            if (config.apis.OpenGL.hook)
+            fclose (fTest);
+
+            if (SK_GetCurrentRenderBackend ().api == SK_RenderAPI::OpenGL)
             {
-              if (DelayLoadDLL ("CEGUIOpenGLRenderer-0.dll"))
-                config.cegui.enable = true;
+              if (config.apis.OpenGL.hook)
+              {
+                if (DelayLoadDLL ("CEGUIOpenGLRenderer-0.dll"))
+                  config.cegui.enable = true;
+              }
+            }
+
+            if ( SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D9 ||
+                 SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D9Ex )
+            {
+              if (config.apis.d3d9.hook || config.apis.d3d9ex.hook)
+              {
+                if (DelayLoadDLL ("CEGUIDirect3D9Renderer-0.dll"))
+                  config.cegui.enable = true;
+              }
+            }
+
+            if (config.apis.dxgi.d3d11.hook)
+            {
+              if ( static_cast <int> (SK_GetCurrentRenderBackend ().api) &
+                   static_cast <int> (SK_RenderAPI::D3D11              ) )
+              {
+                if (DelayLoadDLL ("CEGUIDirect3D11Renderer-0.dll"))
+                  config.cegui.enable = true;
+              }
             }
           }
 
-          if ( SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D9 ||
-               SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D9Ex )
+          else
           {
-            if (config.apis.d3d9.hook || config.apis.d3d9ex.hook)
-            {
-              if (DelayLoadDLL ("CEGUIDirect3D9Renderer-0.dll"))
-                config.cegui.enable = true;
-            }
-          }
+            const wchar_t* wszDisableMsg = 
+              L"File permissions are preventing CEGUI from functioning;"
+              L" it has been disabled.";
 
-          if (config.apis.dxgi.d3d11.hook)
-          {
-            if ( static_cast <int> (SK_GetCurrentRenderBackend ().api) &
-                 static_cast <int> (SK_RenderAPI::D3D11              ) )
-            {
-              if (DelayLoadDLL ("CEGUIDirect3D11Renderer-0.dll"))
-                config.cegui.enable = true;
-            }
+            SK_ImGui_Warning (
+              SK_FormatStringW ( L"%s\n\n"
+                                 L"\t\t\t\t>> To fix this, run the game %s "
+                                                           L"administrator.",
+                                 wszDisableMsg,
+                                   SK_IsInjected              () &&
+                                (! SK_Inject_IsAdminSupported ()) ?
+                                     L"and SKIM64 as" :
+                                                L"as" ).c_str ()
+            );
+
+            SK_LOG0 ( (L"%ws", wszDisableMsg),
+                       L"  CEGUI   " );
           }
         }
       }
+
+      // If we got this far and CEGUI's not enabled, it's because something went horribly wrong.
+      if (! config.cegui.enable)
+        InterlockedExchange (&CEGUI_Init, FALSE);
 
       if (! config.cegui.safe_init)
       {

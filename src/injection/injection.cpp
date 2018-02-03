@@ -40,35 +40,31 @@
 #include <Shlwapi.h>
 #include <time.h>
 
-struct SK_InjectionBase_s
+extern "C"
 {
-           HANDLE hShutdownEvent = INVALID_HANDLE_VALUE; // Event to signal unloading injected DLL instances
-           DWORD  dwHookPID      =                  0UL; // Process that owns the CBT hook
-  volatile HHOOK  hHookCBT       =              nullptr; // CBT hook
-};
-
 SK_InjectionRecord_s __SK_InjectionHistory [MAX_INJECTED_PROC_HISTORY] = { };
+
 #pragma data_seg (".SK_Hooks")
-SK_InjectionBase_s   g_CBTHook;
+  __declspec (dllexport) SK_InjectionBase_s g_CBTHook;
+  __declspec (dllexport) LONG               g_sHookedPIDs [MAX_INJECTED_PROCS]        = { 0 };
 
-                 LONG g_sHookedPIDs [MAX_INJECTED_PROCS]        = { 0 };
+                wchar_t    __SK_InjectionHistory_name     [MAX_INJECTED_PROC_HISTORY * MAX_PATH] =  { 0 };
+                DWORD      __SK_InjectionHistory_ids      [MAX_INJECTED_PROC_HISTORY]            =  { 0 };
+                __time64_t __SK_InjectionHistory_inject   [MAX_INJECTED_PROC_HISTORY]            =  { 0 };
+                __time64_t __SK_InjectionHistory_eject    [MAX_INJECTED_PROC_HISTORY]            =  { 0 };
 
-    wchar_t    __SK_InjectionHistory_name     [MAX_INJECTED_PROC_HISTORY * MAX_PATH] =  { 0 };
-    DWORD      __SK_InjectionHistory_ids      [MAX_INJECTED_PROC_HISTORY]            =  { 0 };
-    __time64_t __SK_InjectionHistory_inject   [MAX_INJECTED_PROC_HISTORY]            =  { 0 };
-    __time64_t __SK_InjectionHistory_eject    [MAX_INJECTED_PROC_HISTORY]            =  { 0 };
+                SK_RenderAPI __SK_InjectionHistory_api    [MAX_INJECTED_PROC_HISTORY]            =  { SK_RenderAPI::Reserved };
+                ULONG64      __SK_InjectionHistory_frames [MAX_INJECTED_PROC_HISTORY]            =  { 0 };
 
-    SK_RenderAPI __SK_InjectionHistory_api    [MAX_INJECTED_PROC_HISTORY]            =  { SK_RenderAPI::Reserved };
-    ULONG64      __SK_InjectionHistory_frames [MAX_INJECTED_PROC_HISTORY]            =  { 0 };
+  __declspec (dllexport) volatile LONG SK_InjectionRecord_s::count                 =  0L;
+  __declspec (dllexport) volatile LONG SK_InjectionRecord_s::rollovers             =  0L;
 
-       volatile LONG SK_InjectionRecord_s::count                 =  0L;
-       volatile LONG SK_InjectionRecord_s::rollovers             =  0L;
-
-wchar_t whitelist_patterns [16 * MAX_PATH] = { 0 };
-int     whitelist_count                    =   0;
+  __declspec (dllexport) wchar_t whitelist_patterns [16 * MAX_PATH] = { 0 };
+  __declspec (dllexport) int     whitelist_count                    =   0;
 
 #pragma data_seg ()
 #pragma comment  (linker, "/SECTION:.SK_Hooks,RWS")
+};
 
 
 extern volatile LONG  __SK_DLL_Attached;
@@ -101,6 +97,8 @@ SK_Inject_InitShutdownEvent (void)
 {
   if (g_CBTHook.hShutdownEvent == nullptr)
   {
+    g_CBTHook.bAdmin           = SK_IsAdmin ();
+
     SECURITY_ATTRIBUTES sattr;
     sattr.nLength              = sizeof SECURITY_ATTRIBUTES;
     sattr.bInheritHandle       = TRUE;
@@ -382,162 +380,6 @@ SKX_InstallCBTHook (void)
     //   hooking XInput -- CBT is more reliable, but slower.
     g_CBTHook.hHookCBT  =
       SetWindowsHookEx (WH_CBT, CBTProc, hMod, 0);
-
-#if 0
-    bool temp_tls = false;
-
-    if (SKX_GetCBTHook () != nullptr)
-    {
-      wchar_t wszCurrentDir [MAX_PATH * 2] = { };
-      wchar_t wszWOW64      [MAX_PATH * 2] = { };
-      wchar_t wszSys32      [MAX_PATH * 2] = { };
-
-      GetCurrentDirectoryW  (MAX_PATH * 2 - 1, wszCurrentDir);
-      SetCurrentDirectoryW  (SK_SYS_GetInstallPath ().c_str ());
-      GetSystemDirectoryW   (wszSys32, MAX_PATH);
-
-      SK_RunLHIfBitness ( 32, GetSystemDirectoryW      (wszWOW64, MAX_PATH),
-                              GetSystemWow64DirectoryW (wszWOW64, MAX_PATH) );
-
-      InterlockedExchange  (&__SK_HookContextOwner, TRUE);
-      InterlockedIncrement (&__SK_DLL_Refs);
-
-      config.system.central_repository = true;
-      SK_EstablishRootPath ();
-
-      // Setup unhooked function pointers
-      SK_PreInitLoadLibrary ();
-
-      QueryPerformanceCounter_Original =
-        reinterpret_cast <QueryPerformanceCounter_pfn> (
-          GetProcAddress (
-            GetModuleHandle ( L"kernel32.dll"),
-                                "QueryPerformanceCounter" )
-        );
-
-      SK_Init_MinHook        ();
-      SK_ApplyQueuedHooks    ();
-
-      if (SK_Inject_AddressManager != nullptr)
-      {
-        delete SK_Inject_AddressManager;
-        SK_Inject_AddressManager = nullptr;
-      }
-
-      budget_mutex = new SK_Thread_HybridSpinlock ( 400);
-      init_mutex   = new SK_Thread_HybridSpinlock (5000);
-      loader_lock  = new SK_Thread_HybridSpinlock (6536);
-      wmi_cs       = new SK_Thread_HybridSpinlock ( 128);
-      cs_dbghelp   = new SK_Thread_HybridSpinlock (104857);
-
-      if ( TLS_OUT_OF_INDEXES ==
-             InterlockedCompareExchange (&__SK_TLS_INDEX, TlsAlloc (), TLS_OUT_OF_INDEXES) )
-      {
-        temp_tls = true;
-      }
-
-      if (ReadAcquire (&__SK_TLS_INDEX) != TLS_OUT_OF_INDEXES)
-      {
-        SK_SetDLLRole (DLL_ROLE::DXGI);
-
-        extern __time64_t __SK_DLL_AttachTime;
-               _time64 (&__SK_DLL_AttachTime);
-
-        extern bool __SK_RunDLL_Bypass;
-                    __SK_RunDLL_Bypass = true;
-
-        CreateThread (nullptr, 0x0, [](LPVOID /*user*/) ->
-        DWORD
-        {
-          config.apis.d3d9.hook    = false;  config.apis.d3d9ex.hook    = false;
-          config.apis.OpenGL.hook  = false; config.apis.dxgi.d3d11.hook = true;
-          config.apis.NvAPI.enable = false;
-          config.cegui.enable                          = false;
-          config.steam.preload_overlay                 = false;
-          config.steam.silent                          = true;
-          config.system.trace_load_library             = false;
-          config.system.handle_crashes                 = false;
-          config.system.central_repository             = true;
-          config.system.game_output                    = false;
-          config.render.dxgi.rehook_present            = false;
-          config.injection.global.use_static_addresses = false;
-          config.input.gamepad.hook_dinput8            = false;
-          config.input.gamepad.hook_hid                = false;
-          config.input.gamepad.hook_xinput             = false;
-
-          if (SK::DXGI::Startup ())
-          {
-            WaitForInit ();
-
-            extern PresentSwapChain_pfn Present_Target;
-
-            SK_Inject_AddressManager = new SK_Inject_AddressCacheRegistry ();
-            SK_Inject_AddressManager->storeNamedAddress (L"dxgi", "IDXGISwapChain::Present", reinterpret_cast <uintptr_t> (Present_Target));
-
-            delete SK_Inject_AddressManager;
-                   SK_Inject_AddressManager = nullptr;
-
-            dll_log.Log (L"IDXGISwapChain::Present = %ph", Present_Target);
-
-            config.apis.d3d9.hook    = true;  config.apis.d3d9ex.hook     = true;
-            config.apis.OpenGL.hook  = false; config.apis.dxgi.d3d11.hook = false;
-            config.apis.NvAPI.enable = false;
-            config.cegui.enable                          = false;
-            config.steam.preload_overlay                 = false;
-            config.steam.silent                          = true;
-            config.system.trace_load_library             = false;
-            config.system.handle_crashes                 = false;
-            config.system.central_repository             = true;
-            config.system.game_output                    = false;
-            config.render.dxgi.rehook_present            = false;
-            config.injection.global.use_static_addresses = false;
-            config.input.gamepad.hook_dinput8            = false;
-            config.input.gamepad.hook_hid                = false;
-            config.input.gamepad.hook_xinput             = false;
-
-            SK_BootD3D9 ();
-
-            extern D3D9PresentDevice_pfn         D3D9Present_Target;
-            extern D3D9PresentDeviceEx_pfn       D3D9PresentEx_Target;
-            extern D3D9PresentSwapChain_pfn      D3D9PresentSwap_Target;
-            extern D3D9Reset_pfn                 D3D9Reset_Target;
-            extern D3D9ResetEx_pfn               D3D9ResetEx_Target;
-
-            SK_Inject_AddressManager = new SK_Inject_AddressCacheRegistry ();
-
-            SK_Inject_AddressManager->storeNamedAddress (L"d3d9", "IDirect3DDevice9::Present",     reinterpret_cast <uintptr_t> (D3D9Present_Target));
-            SK_Inject_AddressManager->storeNamedAddress (L"d3d9", "IDirect3DDevice9Ex::PresentEx", reinterpret_cast <uintptr_t> (D3D9PresentEx_Target));
-            SK_Inject_AddressManager->storeNamedAddress (L"d3d9", "IDirect3DSwapChain9::Present",  reinterpret_cast <uintptr_t> (D3D9PresentSwap_Target));
-
-            SK_Inject_AddressManager->storeNamedAddress (L"d3d9", "IDirect3DDevice9::Reset",       reinterpret_cast <uintptr_t> (D3D9Reset_Target));
-            SK_Inject_AddressManager->storeNamedAddress (L"d3d9", "IDirect3DDevice9Ex::ResetEx",   reinterpret_cast <uintptr_t> (D3D9ResetEx_Target));
-
-            delete SK_Inject_AddressManager;
-                   SK_Inject_AddressManager = nullptr;
-
-            //SK::DXGI::Shutdown ();
-            
-            extern iSK_INI* dll_ini;
-            DeleteFileW (dll_ini->get_filename ());
-          }
-
-          if (temp_tls)
-          {
-            if (ReadAcquire (&__SK_TLS_INDEX) != TLS_OUT_OF_INDEXES)
-            {
-              TlsFree (InterlockedCompareExchange (&__SK_TLS_INDEX, TLS_OUT_OF_INDEXES, __SK_TLS_INDEX));
-            }
-
-            temp_tls = false;
-          }
-
-          CloseHandle (GetCurrentThread ());
-
-          return 0;
-        }, nullptr, 0, nullptr);
-      }
-    }
-#endif
   }
 }
 
@@ -1300,6 +1142,7 @@ SK_Inject_TestUserWhitelist (const wchar_t* wszExecutable)
       whitelist_count = -1;
   }
 
+
   for ( int i = 0; i < whitelist_count; i++ )
   {
     std::wregex regexp (
@@ -1315,6 +1158,19 @@ SK_Inject_TestUserWhitelist (const wchar_t* wszExecutable)
 
   return false;
 }
+
+bool
+SK_Inject_TestWhitelists (const wchar_t* wszExecutable)
+{
+  // Sort of a temporary hack for important games that I support that are
+  //   sold on alternative stores to Steam.
+  if (StrStrIW (wszExecutable, L"ffxv.exe"))
+    return true;
+
+
+  return SK_Inject_TestUserWhitelist (wszExecutable);
+}
+
 
 //bool
 //SK_Inject_TestUserBlacklist (const wchar_t* wszExecutable)
@@ -1359,3 +1215,9 @@ SK_Inject_TestUserWhitelist (const wchar_t* wszExecutable)
 //
 //  return false;
 //}
+
+bool
+SK_Inject_IsAdminSupported (void)
+{
+  return g_CBTHook.bAdmin;
+}

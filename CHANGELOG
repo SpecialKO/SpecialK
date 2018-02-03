@@ -1,3 +1,20 @@
+0.9.0 (beta2):
+
+ + Added FFXV to an internal whitelist of games _NOT SOLD ON STEAM_ that
+     are compatible with global injection.
+
+ + Added more descriptive version info to the startup banner if you manually
+     place Special K's DLL into a game directory as (dxgi.dll, d3d9.dll, etc).
+   
+ + Fixed file permission problems if you use Special K in the FFXV benchmark
+
+  >> CEGUI cannot be used in the benchmark unless you run _BOTH_ the game,
+      and SKIM64 (if you use global injection) as admin. SK will disable
+        CEGUI automatically if file permission issues are detected.
+
+   
+
+
 0.9.0 (beta1):
 
  + Enhanced FFXII compatibility

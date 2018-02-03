@@ -48,6 +48,10 @@ SK_Inject_SwitchToRenderWrapper (void);
 bool
 SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE role);
 
+// Are we capable of injecting into admin-elevated applications?
+bool
+SK_Inject_IsAdminSupported (void);
+
 
 // Internal use only
 //
@@ -61,6 +65,8 @@ SK_Inject_AcquireProcess (void);
 #define MAX_INJECTED_PROCS        16
 #define MAX_INJECTED_PROC_HISTORY 64
 
+extern "C"
+{
 struct SK_InjectionRecord_s
 {
   struct {
@@ -84,12 +90,25 @@ struct SK_InjectionRecord_s
     bool steam        = false;
   } input;
 
-  static volatile LONG count;
-  static volatile LONG rollovers;
+  static __declspec (dllexport) volatile LONG count;
+  static __declspec (dllexport) volatile LONG rollovers;
+};
 };
 
 SK_InjectionRecord_s*
 SK_Inject_GetRecord (int idx);
+
+
+// Part of the DLL Shared Data Segment
+//
+struct SK_InjectionBase_s
+{
+           HANDLE hShutdownEvent = INVALID_HANDLE_VALUE; // Event to signal unloading injected DLL instances
+           DWORD  dwHookPID      =                  0UL; // Process that owns the CBT hook
+  volatile HHOOK  hHookCBT       =              nullptr; // CBT hook
+           BOOL   bAdmin         =                FALSE; // Is SKIM64 able to inject into admin apps?
+};
+
 
 
 #endif /* __SK__INJECTION_H__ */

@@ -3165,7 +3165,15 @@ SK_AppCache_Manager::getConfigPathForAppID (uint32_t uiAppID) const
                                         {
                                           L'\\', L'/', L':',
                                           L'*',  L'?', L'\"',
-                                          L'<',  L'>', L'|'
+                                          L'<',  L'>', L'|',
+
+                                          //
+                                          // Obviously a period is not an invalid character,
+                                          //   but three of them in a row messes with
+                                          //     Windows Explorer and some Steam games use
+                                          //       ellipsis in their titles.
+                                          //
+                                          L'.'
                                         };
 
                                       if (invalid_file_char.count (tval) > 0)

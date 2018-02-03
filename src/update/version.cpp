@@ -553,8 +553,8 @@ SK_Version_GetLatestInfo_V1 (const wchar_t* wszProduct)
     return ver_info;
   }
 
-  ver_info.package = L"Invalid";
-  ver_info.branch  = L"Invalid";
+  ver_info.package = L"Unknown";
+  ver_info.branch  = L"Unknown";
   ver_info.build   = -1;
 
   return ver_info;
@@ -800,9 +800,9 @@ SK_Version_GetLatestBranchInfo_V1 (const wchar_t* wszProduct, const char* szBran
 
   static SK_BranchInfo_V1 __INVAID_BRANCH
   {
-    0x1, L"Invalid", L"Invalid", L"Invalid",
+    0x1, SK_VER_STR, L"N/A", L"No Description Available",
 
-        SK_VersionInfo_V1 { L"Invalid", L"Invalid", -1 },
+        SK_VersionInfo_V1 { L"Unknown (or Custom Install)", L"N/A", -1 },
 
     0x1, L"NotUsed", L"Invalid"
   };

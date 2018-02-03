@@ -445,11 +445,12 @@ SK_EstablishDllRole (HMODULE hModule)
 
 
       bool
-      SK_Inject_TestUserWhitelist (const wchar_t* wszExecutable);
+      SK_Inject_TestWhitelists (const wchar_t* wszExecutable);
 
 
       // If this is a Steamworks game, then let's figure out the graphics API dynamically
-      if (is_steamworks_game || SK_Inject_TestUserWhitelist (SK_GetFullyQualifiedApp ()))
+      if ( is_steamworks_game || 
+           SK_Inject_TestWhitelists (SK_GetFullyQualifiedApp ()) )
       {
         bool gl   = false, vulkan = false, d3d9  = false, d3d11 = false,
              dxgi = false, d3d8   = false, ddraw = false, glide = false;

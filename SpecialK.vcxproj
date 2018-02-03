@@ -99,7 +99,7 @@
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
-    <WholeProgramOptimization>false</WholeProgramOptimization>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Installer|Win32'" Label="Configuration">
@@ -155,7 +155,7 @@
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
-    <WholeProgramOptimization>false</WholeProgramOptimization>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Installer|x64'" Label="Configuration">
@@ -438,17 +438,16 @@
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Full</Optimization>
       <PreprocessorDefinitions>_NO_CRT_STDIO_INLINE;WIN32;_DEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;%(PreprocessorDefinitions);/D_WIN32_WINNT _WIN32_WINNT_WIN7;/DWINVER _WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE;SK_BUILD_DLL;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE</PreprocessorDefinitions>
-      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <ExceptionHandling>Async</ExceptionHandling>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <ControlFlowGuard>false</ControlFlowGuard>
-      <FunctionLevelLinking>false</FunctionLevelLinking>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <CreateHotpatchableImage>true</CreateHotpatchableImage>
-      <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
+      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <LanguageStandard>stdcpplatest</LanguageStandard>
@@ -456,8 +455,10 @@
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
-      <StringPooling>false</StringPooling>
+      <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
+      <MinimalRebuild>false</MinimalRebuild>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -465,8 +466,8 @@
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
       <OutputFile>\\zilcho\Tales of Symphonia\d3d9.dll</OutputFile>
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
-      <OptimizeReferences>false</OptimizeReferences>
-      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <LargeAddressAware>true</LargeAddressAware>
       <DataExecutionPrevention>false</DataExecutionPrevention>
       <DelayLoadDLLs>CEGUIBase-0.dll</DelayLoadDLLs>
@@ -490,13 +491,12 @@
       <PreprocessorDefinitions>_NO_CRT_STDIO_INLINE;_WIN64;WIN32;_DEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;ISOLATION_AWARE_ENABLED;GLEW_STATIC;%(PreprocessorDefinitions);/D_WIN32_WINNT _WIN32_WINNT_WIN7;/DWINVER _WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE;SK_BUILD_DLL;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <AdditionalOptions>/EHsc %(AdditionalOptions)</AdditionalOptions>
-      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <ControlFlowGuard>false</ControlFlowGuard>
-      <FunctionLevelLinking>false</FunctionLevelLinking>
       <AdditionalIncludeDirectories>
       </AdditionalIncludeDirectories>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
@@ -505,14 +505,16 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
-      <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
+      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ExceptionHandling>Async</ExceptionHandling>
       <OmitFramePointers>false</OmitFramePointers>
-      <StringPooling>false</StringPooling>
+      <StringPooling>true</StringPooling>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
+      <MinimalRebuild>false</MinimalRebuild>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -520,8 +522,8 @@
       <OutputFile>C:\Users\andon\Documents\My Mods\SpecialK\SpecialK64.dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
       <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIOpenGLRenderer-0.dll</DelayLoadDLLs>
-      <OptimizeReferences>false</OptimizeReferences>
-      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <EntryPointSymbol>
       </EntryPointSymbol>
       <DataExecutionPrevention>false</DataExecutionPrevention>
@@ -548,7 +550,7 @@
       <Optimization>Full</Optimization>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;GLEW_STATIC;%(PreprocessorDefinitions);WINVER=_WIN32_WINNT_WIN7;_WIN32_WINNT=_WIN32_WINNT_WIN7;WINVER=_WIN32_WINNT_WIN7;_WIN32_WINNT=_WIN32_WINNT_WIN7;_CRT_SECURE_NO_WARNINGS;_CRT_NON_CONFORMING_SWPRINTFS;NOMINMAX;PSAPI_VERSION=1;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE;SK_BUILD_DLL;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <CallingConvention>Cdecl</CallingConvention>
       <EnablePREfast>false</EnablePREfast>
@@ -563,19 +565,20 @@
       <AdditionalIncludeDirectories>$(SolutionDir)include</AdditionalIncludeDirectories>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <FloatingPointModel>Fast</FloatingPointModel>
-      <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
+      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ExceptionHandling>Async</ExceptionHandling>
-      <FunctionLevelLinking>false</FunctionLevelLinking>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <DiagnosticsFormat>Classic</DiagnosticsFormat>
-      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <StringPooling>false</StringPooling>
+      <StringPooling>true</StringPooling>
+      <OmitFramePointers>false</OmitFramePointers>
+      <MinimalRebuild>false</MinimalRebuild>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -597,8 +600,8 @@
       <SectionAlignment>
       </SectionAlignment>
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
-      <OptimizeReferences>false</OptimizeReferences>
-      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <SetChecksum>true</SetChecksum>
       <BaseAddress>
       </BaseAddress>
@@ -625,13 +628,12 @@
       <PrecompiledHeader>
       </PrecompiledHeader>
       <Optimization>Full</Optimization>
-      <FunctionLevelLinking>false</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>_NO_CRT_STDIO_INLINE;WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;ISOLATION_AWARE_ENABLED;GLEW_STATIC;%(PreprocessorDefinitions);SK_BUILD__INSTALLER;/D_WIN32_WINNT _WIN32_WINNT_WIN7;/DWINVER _WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE SK_BUILD_DLL SK_BUILD_DLL SK_BUILD_DLL=1;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
+      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <CallingConvention>Cdecl</CallingConvention>
       <EnablePREfast>false</EnablePREfast>
       <ExceptionHandling>Async</ExceptionHandling>
@@ -639,7 +641,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <ControlFlowGuard>false</ControlFlowGuard>
       <ExpandAttributedSource>false</ExpandAttributedSource>
-      <BrowseInformation>true</BrowseInformation>
+      <BrowseInformation>false</BrowseInformation>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <AssemblerOutput>All</AssemblerOutput>
       <CreateHotpatchableImage>true</CreateHotpatchableImage>
@@ -652,13 +654,14 @@
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <StringPooling>false</StringPooling>
+      <StringPooling>true</StringPooling>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>false</EnableCOMDATFolding>
-      <OptimizeReferences>false</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>Installer.def</ModuleDefinitionFile>
       <DataExecutionPrevention>false</DataExecutionPrevention>
@@ -697,13 +700,12 @@ Exit 0</Command>
       <PrecompiledHeader>
       </PrecompiledHeader>
       <Optimization>Full</Optimization>
-      <FunctionLevelLinking>false</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>_NO_CRT_STDIO_INLINE;WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;GLEW_STATIC;%(PreprocessorDefinitions);TBFIX;WINVER=_WIN32_WINNT_WIN7;_WIN32_WINNT=_WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE;SK_BUILD_DLL;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
+      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <CallingConvention>Cdecl</CallingConvention>
       <EnablePREfast>false</EnablePREfast>
       <ExceptionHandling>Async</ExceptionHandling>
@@ -723,13 +725,14 @@ Exit 0</Command>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <StringPooling>false</StringPooling>
+      <StringPooling>true</StringPooling>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>false</EnableCOMDATFolding>
-      <OptimizeReferences>false</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
       <DataExecutionPrevention>false</DataExecutionPrevention>
@@ -769,13 +772,12 @@ Exit 0</Command>
       <PrecompiledHeader>
       </PrecompiledHeader>
       <Optimization>Full</Optimization>
-      <FunctionLevelLinking>false</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>_NO_CRT_STDIO_INLINE;WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;GLEW_STATIC;%(PreprocessorDefinitions);TBFIX;WINVER=_WIN32_WINNT_WIN7;_WIN32_WINNT=_WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE;SK_BUILD_DLL;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
+      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <CallingConvention>Cdecl</CallingConvention>
       <EnablePREfast>false</EnablePREfast>
       <ExceptionHandling>Async</ExceptionHandling>
@@ -795,13 +797,14 @@ Exit 0</Command>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <StringPooling>false</StringPooling>
+      <StringPooling>true</StringPooling>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>false</EnableCOMDATFolding>
-      <OptimizeReferences>false</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
       <DataExecutionPrevention>false</DataExecutionPrevention>
@@ -841,13 +844,12 @@ Exit 0</Command>
       <PrecompiledHeader>
       </PrecompiledHeader>
       <Optimization>Full</Optimization>
-      <FunctionLevelLinking>false</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>_NO_CRT_STDIO_INLINE;WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;GLEW_STATIC;%(PreprocessorDefinitions);/D_WIN32_WINNT _WIN32_WINNT_WIN7;/DWINVER _WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE;SK_BUILD_DLL;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
+      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <CallingConvention>Cdecl</CallingConvention>
       <EnablePREfast>false</EnablePREfast>
       <ExceptionHandling>Async</ExceptionHandling>
@@ -855,7 +857,7 @@ Exit 0</Command>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <ControlFlowGuard>false</ControlFlowGuard>
       <ExpandAttributedSource>false</ExpandAttributedSource>
-      <BrowseInformation>true</BrowseInformation>
+      <BrowseInformation>false</BrowseInformation>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <AssemblerOutput>All</AssemblerOutput>
       <PreprocessKeepComments>true</PreprocessKeepComments>
@@ -869,13 +871,14 @@ Exit 0</Command>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <StringPooling>false</StringPooling>
+      <StringPooling>true</StringPooling>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>false</EnableCOMDATFolding>
-      <OptimizeReferences>false</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
       <DataExecutionPrevention>false</DataExecutionPrevention>
@@ -913,13 +916,12 @@ Exit 0</Command>
       <PrecompiledHeader>
       </PrecompiledHeader>
       <Optimization>Full</Optimization>
-      <FunctionLevelLinking>false</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>_NO_CRT_STDIO_INLINE;WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;GLEW_STATIC;%(PreprocessorDefinitions);/D_WIN32_WINNT _WIN32_WINNT_WIN7;/DWINVER _WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE;SK_BUILD_DLL;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
+      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <CallingConvention>Cdecl</CallingConvention>
       <EnablePREfast>false</EnablePREfast>
       <ExceptionHandling>Async</ExceptionHandling>
@@ -927,7 +929,7 @@ Exit 0</Command>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <ControlFlowGuard>false</ControlFlowGuard>
       <ExpandAttributedSource>false</ExpandAttributedSource>
-      <BrowseInformation>true</BrowseInformation>
+      <BrowseInformation>false</BrowseInformation>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <AssemblerOutput>All</AssemblerOutput>
       <PreprocessKeepComments>true</PreprocessKeepComments>
@@ -941,13 +943,14 @@ Exit 0</Command>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <StringPooling>false</StringPooling>
+      <StringPooling>true</StringPooling>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>false</EnableCOMDATFolding>
-      <OptimizeReferences>false</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
       <DataExecutionPrevention>false</DataExecutionPrevention>
@@ -985,13 +988,12 @@ Exit 0</Command>
       <PrecompiledHeader>
       </PrecompiledHeader>
       <Optimization>Full</Optimization>
-      <FunctionLevelLinking>false</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>_NO_CRT_STDIO_INLINE;WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;GLEW_STATIC;%(PreprocessorDefinitions);/D_WIN32_WINNT _WIN32_WINNT_WIN7;/DWINVER _WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE;SK_BUILD_DLL;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
+      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <CallingConvention>Cdecl</CallingConvention>
       <EnablePREfast>false</EnablePREfast>
       <ExceptionHandling>Async</ExceptionHandling>
@@ -999,7 +1001,7 @@ Exit 0</Command>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <ControlFlowGuard>false</ControlFlowGuard>
       <ExpandAttributedSource>false</ExpandAttributedSource>
-      <BrowseInformation>true</BrowseInformation>
+      <BrowseInformation>false</BrowseInformation>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <AssemblerOutput>All</AssemblerOutput>
       <PreprocessKeepComments>true</PreprocessKeepComments>
@@ -1013,13 +1015,14 @@ Exit 0</Command>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <StringPooling>false</StringPooling>
+      <StringPooling>true</StringPooling>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>false</EnableCOMDATFolding>
-      <OptimizeReferences>false</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
       <DataExecutionPrevention>false</DataExecutionPrevention>
@@ -1060,9 +1063,9 @@ Exit 0</Command>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>_NO_CRT_STDIO_INLINE;WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;GLEW_STATIC;%(PreprocessorDefinitions);WINVER=_WIN32_WINNT_WIN7;_WIN32_WINNT=_WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE;SK_BUILD_DLL;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
+      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <CallingConvention>Cdecl</CallingConvention>
       <EnablePREfast>false</EnablePREfast>
       <ExceptionHandling>Async</ExceptionHandling>
@@ -1078,20 +1081,20 @@ Exit 0</Command>
       <AdditionalIncludeDirectories>$(SolutionDir)include</AdditionalIncludeDirectories>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
-      <FunctionLevelLinking>false</FunctionLevelLinking>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <StringPooling>false</StringPooling>
+      <StringPooling>true</StringPooling>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>false</EnableCOMDATFolding>
-      <OptimizeReferences>false</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
       <DataExecutionPrevention>false</DataExecutionPrevention>
@@ -1131,7 +1134,7 @@ Exit 0</Command>
       <PreprocessorDefinitions>_WIN64;WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;GLEW_STATIC;%(PreprocessorDefinitions);PSAPI_VERSION=1;WINVER=_WIN32_WINNT_WIN7;_WIN32_WINNT=_WIN32_WINNT_WIN7;WINVER=_WIN32_WINNT_WIN7;_WIN32_WINNT=_WIN32_WINNT_WIN7;_CRT_SECURE_NO_WARNINGS;_CRT_NON_CONFORMING_SWPRINTFS;NOMINMAX;PSAPI_VERSION=1;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE;SK_BUILD_DLL;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <Optimization>Full</Optimization>
@@ -1139,21 +1142,22 @@ Exit 0</Command>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
-      <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
+      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
-      <FunctionLevelLinking>false</FunctionLevelLinking>
-      <StringPooling>false</StringPooling>
+      <StringPooling>true</StringPooling>
       <UseFullPaths>true</UseFullPaths>
       <DiagnosticsFormat>Classic</DiagnosticsFormat>
       <BrowseInformation>false</BrowseInformation>
-      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <AssemblerOutput>All</AssemblerOutput>
       <OmitFramePointers>false</OmitFramePointers>
       <ExceptionHandling>Async</ExceptionHandling>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <MinimalRebuild>false</MinimalRebuild>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -1178,8 +1182,8 @@ Exit 0</Command>
       <SectionAlignment>
       </SectionAlignment>
       <SetChecksum>true</SetChecksum>
-      <OptimizeReferences>false</OptimizeReferences>
-      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
       <BaseAddress>
       </BaseAddress>
@@ -1208,11 +1212,10 @@ Exit 0</Command>
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <FunctionLevelLinking>false</FunctionLevelLinking>
       <PreprocessorDefinitions>_NO_CRT_STDIO_INLINE;_WIN64;WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;ISOLATION_AWARE_ENABLED;GLEW_STATIC;SK_INSTALLER;%(PreprocessorDefinitions);SK_BUILD__INSTALLER;/D_WIN32_WINNT _WIN32_WINNT_WIN7;/DWINVER _WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE SK_BUILD_DLL SK_BUILD_DLL SK_BUILD_DLL=1;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <AdditionalOptions>/EHsc %(AdditionalOptions)</AdditionalOptions>
@@ -1220,7 +1223,7 @@ Exit 0</Command>
       <ControlFlowGuard>false</ControlFlowGuard>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
-      <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
+      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <LanguageStandard>stdcpplatest</LanguageStandard>
@@ -1228,14 +1231,15 @@ Exit 0</Command>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ExceptionHandling>Async</ExceptionHandling>
       <OmitFramePointers>false</OmitFramePointers>
-      <StringPooling>false</StringPooling>
+      <StringPooling>true</StringPooling>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>false</EnableCOMDATFolding>
-      <OptimizeReferences>false</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
       <OutputFile>Installer64.dll</OutputFile>
       <AssemblyDebug>true</AssemblyDebug>
       <GenerateMapFile>false</GenerateMapFile>
@@ -1277,11 +1281,10 @@ Exit 0</Command>
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <FunctionLevelLinking>false</FunctionLevelLinking>
       <PreprocessorDefinitions>_NO_CRT_STDIO_INLINE;_WIN64;WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;ISOLATION_AWARE_ENABLED;GLEW_STATIC;%(PreprocessorDefinitions);/D_WIN32_WINNT _WIN32_WINNT_WIN7;/DWINVER _WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE;SK_BUILD_DLL;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <AdditionalOptions>/EHsc %(AdditionalOptions)</AdditionalOptions>
@@ -1289,7 +1292,7 @@ Exit 0</Command>
       <ControlFlowGuard>false</ControlFlowGuard>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
-      <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
+      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <LanguageStandard>stdcpplatest</LanguageStandard>
@@ -1297,14 +1300,15 @@ Exit 0</Command>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ExceptionHandling>Async</ExceptionHandling>
       <OmitFramePointers>false</OmitFramePointers>
-      <StringPooling>false</StringPooling>
+      <StringPooling>true</StringPooling>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>false</EnableCOMDATFolding>
-      <OptimizeReferences>false</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <AssemblyDebug>true</AssemblyDebug>
       <GenerateMapFile>false</GenerateMapFile>
@@ -1345,11 +1349,10 @@ Exit 0</Command>
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <FunctionLevelLinking>false</FunctionLevelLinking>
       <PreprocessorDefinitions>_NO_CRT_STDIO_INLINE;_WIN64;WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;ISOLATION_AWARE_ENABLED;GLEW_STATIC;%(PreprocessorDefinitions);/D_WIN32_WINNT _WIN32_WINNT_WIN7;/DWINVER _WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE;SK_BUILD_DLL;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <AdditionalOptions>/EHsc %(AdditionalOptions)</AdditionalOptions>
@@ -1357,7 +1360,7 @@ Exit 0</Command>
       <ControlFlowGuard>false</ControlFlowGuard>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
-      <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
+      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <LanguageStandard>stdcpplatest</LanguageStandard>
@@ -1365,14 +1368,15 @@ Exit 0</Command>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ExceptionHandling>Async</ExceptionHandling>
       <OmitFramePointers>false</OmitFramePointers>
-      <StringPooling>false</StringPooling>
+      <StringPooling>true</StringPooling>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>false</EnableCOMDATFolding>
-      <OptimizeReferences>false</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <AssemblyDebug>true</AssemblyDebug>
       <GenerateMapFile>false</GenerateMapFile>
@@ -1413,11 +1417,10 @@ Exit 0</Command>
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <FunctionLevelLinking>false</FunctionLevelLinking>
       <PreprocessorDefinitions>_NO_CRT_STDIO_INLINE;_WIN64;WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;GLEW_STATIC;%(PreprocessorDefinitions);TBFIX;WINVER=_WIN32_WINNT_WIN7;_WIN32_WINNT=_WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE;SK_BUILD_DLL;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <AdditionalOptions>/EHsc %(AdditionalOptions)</AdditionalOptions>
@@ -1425,7 +1428,7 @@ Exit 0</Command>
       <ControlFlowGuard>false</ControlFlowGuard>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
-      <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
+      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <LanguageStandard>stdcpplatest</LanguageStandard>
@@ -1433,14 +1436,15 @@ Exit 0</Command>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ExceptionHandling>Async</ExceptionHandling>
       <OmitFramePointers>false</OmitFramePointers>
-      <StringPooling>false</StringPooling>
+      <StringPooling>true</StringPooling>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>false</EnableCOMDATFolding>
-      <OptimizeReferences>false</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <AssemblyDebug>true</AssemblyDebug>
       <GenerateMapFile>false</GenerateMapFile>
@@ -1482,11 +1486,10 @@ Exit 0</Command>
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <FunctionLevelLinking>false</FunctionLevelLinking>
       <PreprocessorDefinitions>_NO_CRT_STDIO_INLINE;_WIN64;WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;GLEW_STATIC;%(PreprocessorDefinitions);PSAPI_VERSION=1;WINVER=_WIN32_WINNT_WIN7;_WIN32_WINNT=_WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE;__SK_FAR__;SK_BUILD_DLL;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <AdditionalOptions>/EHsc %(AdditionalOptions)</AdditionalOptions>
@@ -1494,7 +1497,7 @@ Exit 0</Command>
       <ControlFlowGuard>false</ControlFlowGuard>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
-      <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
+      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <LanguageStandard>stdcpplatest</LanguageStandard>
@@ -1502,9 +1505,10 @@ Exit 0</Command>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ExceptionHandling>Async</ExceptionHandling>
       <OmitFramePointers>false</OmitFramePointers>
-      <StringPooling>false</StringPooling>
+      <StringPooling>true</StringPooling>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
-      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -1525,8 +1529,8 @@ Exit 0</Command>
       <ImportLibrary>
       </ImportLibrary>
       <SetChecksum>true</SetChecksum>
-      <OptimizeReferences>false</OptimizeReferences>
-      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <AssemblyDebug>true</AssemblyDebug>
       <Profile>true</Profile>
       <BaseAddress>
@@ -1555,11 +1559,10 @@ Exit 0</Command>
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <FunctionLevelLinking>false</FunctionLevelLinking>
       <PreprocessorDefinitions>_NO_CRT_STDIO_INLINE;_WIN64;WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;GLEW_STATIC;%(PreprocessorDefinitions);PSAPI_VERSION=1;WINVER=_WIN32_WINNT_WIN7;_WIN32_WINNT=_WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE;SK_BUILD_DLL;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <AdditionalOptions>/EHsc %(AdditionalOptions)</AdditionalOptions>
@@ -1567,7 +1570,7 @@ Exit 0</Command>
       <ControlFlowGuard>false</ControlFlowGuard>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
-      <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
+      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <LanguageStandard>stdcpplatest</LanguageStandard>
@@ -1575,8 +1578,9 @@ Exit 0</Command>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ExceptionHandling>Async</ExceptionHandling>
       <OmitFramePointers>false</OmitFramePointers>
-      <StringPooling>false</StringPooling>
+      <StringPooling>true</StringPooling>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -1597,8 +1601,8 @@ Exit 0</Command>
       <ImportLibrary>
       </ImportLibrary>
       <SetChecksum>true</SetChecksum>
-      <OptimizeReferences>false</OptimizeReferences>
-      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <AssemblyDebug>true</AssemblyDebug>
       <BaseAddress>
       </BaseAddress>
@@ -1626,11 +1630,10 @@ Exit 0</Command>
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <FunctionLevelLinking>false</FunctionLevelLinking>
       <PreprocessorDefinitions>_NO_CRT_STDIO_INLINE;_WIN64;WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;GLEW_STATIC;%(PreprocessorDefinitions);/D_WIN32_WINNT _WIN32_WINNT_WIN7;/DWINVER _WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE;SK_BUILD_DLL;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <AdditionalOptions>/EHsc %(AdditionalOptions)</AdditionalOptions>
@@ -1638,7 +1641,7 @@ Exit 0</Command>
       <ControlFlowGuard>false</ControlFlowGuard>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
-      <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
+      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <LanguageStandard>stdcpplatest</LanguageStandard>
@@ -1646,14 +1649,15 @@ Exit 0</Command>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ExceptionHandling>Async</ExceptionHandling>
       <OmitFramePointers>false</OmitFramePointers>
-      <StringPooling>false</StringPooling>
+      <StringPooling>true</StringPooling>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>false</EnableCOMDATFolding>
-      <OptimizeReferences>false</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <AssemblyDebug>true</AssemblyDebug>
       <GenerateMapFile>false</GenerateMapFile>
