@@ -808,7 +808,7 @@ public:
   STDMETHOD_(ULONG,Release)(THIS) {
     ULONG ret = InterlockedDecrement (&refs);
 
-    if (ret <= 2)
+    if (ret == 1)
     {
       can_free = true;
     }

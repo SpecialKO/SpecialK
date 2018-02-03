@@ -1806,7 +1806,6 @@ D3DXCreateTextureFromFileInMemoryEx_Detour (
       pTex->crc32c = checksum;
 
       pTex->d3d9_tex = *(ISKTextureD3D9 **)ppTexture;
-      pTex->d3d9_tex->AddRef ();
       pTex->refs++;
 
       pTex->original_pool = Pool;

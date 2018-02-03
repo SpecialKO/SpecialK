@@ -1398,6 +1398,10 @@ SK_D3D9_Present_GrandCentral ( sk_d3d9_swap_dispatch_s* dispatch )
     SK_D3D9_EndFrame ();
 
 
+    if (hr != D3D_OK && trigger_reset == reset_stage_e::Clear)
+      trigger_reset = reset_stage_e::Initiate;
+
+
     return hr;
   }
 
@@ -4004,7 +4008,7 @@ D3D9CreateDeviceEx_Override ( IDirect3D9Ex           *This,
   // Ignore video swapchains
   if (pPresentationParameters->Flags & D3DPRESENTFLAG_VIDEO)
   {
-    SK_LOG0 ( (L" % Ignoring D3D9Ex device created using a video-only "
+    SK_LOG0 ( (L" %% Ignoring D3D9Ex device created using a video-only "
                L"SwapChain (%p)", This),
                L"  D3D9Ex  ");
     *ppReturnedDeviceInterface = pTemp;
@@ -4105,7 +4109,7 @@ D3D9CreateDevice_Override ( IDirect3D9*            This,
   // Ignore video swapchains
   if (pPresentationParameters->Flags & D3DPRESENTFLAG_VIDEO)
   {
-    SK_LOG0 ( (L" % Ignoring D3D9 device created using a video-only "
+    SK_LOG0 ( (L" %% Ignoring D3D9 device created using a video-only "
                L"SwapChain (%p)", This),
                L"   D3D9   ");
     return ret;
