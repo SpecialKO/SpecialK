@@ -120,8 +120,12 @@ SK_ImGui_DrawEULA (LPVOID reserved)
     last_width = io.DisplaySize.x; last_height = io.DisplaySize.y;
   }
 
-  ImGui::SetNextWindowSizeConstraints (ImVec2 (780.0f, 325.0f), ImVec2 ( 0.925f * io.DisplaySize.x,
-                                                                         0.925f * io.DisplaySize.y ) );
+
+  ImVec2 scaler (io.FontGlobalScale, io.FontGlobalScale);
+
+  ImGui::SetNextWindowSizeConstraints (ImVec2 (780.0f * scaler.x,
+                                               350.0f * scaler.y), ImVec2 ( 0.925f * io.DisplaySize.x * scaler.x,
+                                                                            0.925f * io.DisplaySize.y * scaler.y ) );
 
   std::wstring plugin = SK_GetPluginName ();
 
