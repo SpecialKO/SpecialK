@@ -23,9 +23,13 @@
 #include <SpecialK/ini.h>
 #include <SpecialK/core.h>
 #include <SpecialK/config.h>
+#include <SpecialK/command.h>
 #include <SpecialK/parameter.h>
 #include <SpecialK/hooks.h>
 #include <SpecialK/log.h>
+
+#include <imgui/imgui.h>
+#include <SpecialK/render/dxgi/dxgi_backend.h>
 
 sk::ParameterFactory okami_factory;
 sk::ParameterBool*   sk_okami_grain;
@@ -124,4 +128,241 @@ SK_Okami_SaveConfig (void)
 {
   sk_okami_grain->store (SK_Okami_use_grain);
   dll_ini->write (dll_ini->get_filename ());
+}
+
+
+
+bool
+SK_Okami_PlugInCfg (void)
+{
+  if (ImGui::CollapsingHeader (u8"OKAMI HD / 大神 絶景版", ImGuiTreeNodeFlags_DefaultOpen))
+  {
+    struct patch_addr_s {
+      void*       addr        = 0x0;
+      const char* orig_bytes  = nullptr;
+      const char* patch_bytes = nullptr;
+      size_t      size        = 0;
+      bool        enabled     = false;
+    };
+
+    void*
+    __stdcall
+    SK_ScanAlignedEx2 (const void* pattern, size_t len, const void* mask, void* after, int align, uint8_t* base_addr);
+
+    static patch_addr_s addrs [] = {
+      { 0x00, "\xC6\x05\x48\x0A\xA2\x00\x02", "\x90\x90\x90\x90\x90\x90\x90", 7, false },
+      { 0x00, "\xC6\x05\xED\x0B\xA2\x00\x02", "\x90\x90\x90\x90\x90\x90\x90", 7, false },
+      { 0x00, "\xC6\x05\xDD\x64\x6D\x00\x02", "\x90\x90\x90\x90\x90\x90\x90", 7, false },
+      { 0x00, "\xC6\x05\x99\x65\x75\x00\x02", "\x90\x90\x90\x90\x90\x90\x90", 7, false },
+
+      { 0x00, "\xC7\x05\x42\x49\x6B\x00\x00\x00\x80\x3F", "\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90", 10, false },
+      { 0x00, "\xC7\x05\x16\x49\x6B\x00\x00\x00\x00\x3F", "\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90", 10, false }
+    };
+
+    if (addrs [0].addr == (uintptr_t)0x00)
+    {
+      for (int i = 0; i < 6; i++)
+      {
+        addrs [i].addr =
+          SK_ScanAlignedEx2 (addrs [i].orig_bytes, addrs [i].size, nullptr, nullptr, 1, reinterpret_cast <uint8_t *> (GetModuleHandle (L"main.dll")));
+        dll_log.Log (L"[Okami60FPS] Patch Address #%lu: %ph", i, addrs [i].addr);
+      }
+
+      if (addrs [0].addr == 0x0)
+      {
+        addrs [0].addr = (void *)0x1;
+      }
+    }
+
+
+    if (addrs [0].addr != 0x0 && addrs [0].addr != (void *)0x1)
+    {
+      bool enabled =
+        addrs [0].enabled;
+
+      if (ImGui::Checkbox ("60 FPS", &enabled))
+      {
+        std::queue <DWORD> tids =
+          SK_SuspendAllOtherThreads ();
+
+        for (int i = 0; i < 6; i++)
+        {
+          if (addrs [i].addr != nullptr)
+          {
+            DWORD dwOrig = 0x0;
+            VirtualProtect ( addrs [i].addr, addrs [i].size, PAGE_EXECUTE_READWRITE, &dwOrig );
+            memcpy         ( addrs [i].addr, enabled ? addrs [i].patch_bytes :
+                                                       addrs [i].orig_bytes, addrs [i].size );
+            VirtualProtect ( addrs [i].addr, addrs [i].size, dwOrig,                 &dwOrig );
+
+            addrs [i].enabled = enabled;
+          }
+
+          else
+          {
+            dll_log.Log (L" Missing Pattern #%lu", i);
+          }
+        }
+
+        static DWORD*   dwTick0     = (DWORD *)(((uint8_t *)GetModuleHandle (L"main.dll"))   + 0xB6AC3C);
+        static float*   fTickScale  = (float *)(((uint8_t *)GetModuleHandle (L"main.dll"))   + 0xB6AC38);
+        static float*   fTickScale0 = (float *)(((uint8_t *)GetModuleHandle (L"main.dll"))   + 0xB6ACC0);
+        static uint8_t* bTick1      = (uint8_t *)(((uint8_t *)GetModuleHandle (L"main.dll")) + 0xB6AC45);
+
+        DWORD dwOrig = 0x0;
+        //VirtualProtect ( dwTick0, 4, PAGE_EXECUTE_READWRITE, &dwOrig );
+        //*dwTick0 = enabled ? 2 : 4;
+        //VirtualProtect ( dwTick0, 4, dwOrig, &dwOrig);
+
+        VirtualProtect ( fTickScale, 4, PAGE_EXECUTE_READWRITE, &dwOrig );
+        *fTickScale = enabled ? 0.5f : 1.0f;
+        VirtualProtect ( fTickScale, 4, dwOrig, &dwOrig);
+
+        VirtualProtect ( fTickScale0, 4, PAGE_EXECUTE_READWRITE, &dwOrig );
+        *fTickScale0 = enabled ? 0.5f : 1.0f;
+        VirtualProtect ( fTickScale0, 4, dwOrig, &dwOrig);
+
+        VirtualProtect ( bTick1, 1, PAGE_EXECUTE_READWRITE, &dwOrig );
+        *bTick1 = enabled ? 1 : 2;
+        VirtualProtect ( bTick1, 1, dwOrig, &dwOrig);
+
+        if (enabled) { SK_GetCommandProcessor ()->ProcessCommandLine ("TargetFPS 60.0"); SK_GetCommandProcessor ()->ProcessCommandLine ("PresentationInterval 1"); }
+        else         { SK_GetCommandProcessor ()->ProcessCommandLine ("TargetFPS 30.0"); SK_GetCommandProcessor ()->ProcessCommandLine ("PresentationInterval 2"); }
+
+        SK_ResumeThreads (tids);
+      }
+
+      if (enabled)
+      {
+        DWORD dwOrig = 0x0;
+
+        static float*   fTickScale  = (float *)(((uint8_t *)GetModuleHandle (L"main.dll"))   + 0xB6AC38);
+        static float*   fTickScale0 = (float *)(((uint8_t *)GetModuleHandle (L"main.dll"))   + 0xB6ACC0);
+
+        ImGui::BeginGroup ();
+        VirtualProtect ( fTickScale, 4, PAGE_EXECUTE_READWRITE, &dwOrig );
+        ImGui::SliderFloat ("Physics", fTickScale, 0.25f, 2.5f);
+        VirtualProtect ( fTickScale, 4, dwOrig, &dwOrig);
+
+        VirtualProtect ( fTickScale0, 4, PAGE_EXECUTE_READWRITE, &dwOrig );
+        ImGui::SliderFloat ("Clockrate", fTickScale0, 0.15f, 5.0f);
+        VirtualProtect ( fTickScale0, 4, dwOrig, &dwOrig);
+        ImGui::EndGroup ();
+
+        ImGui::SameLine ();
+
+        ImGui::BeginGroup ();
+        ImGui::BeginGroup ();
+        if (ImGui::Button ("Bullet Time"))        *fTickScale  = 0.25f;
+        if (ImGui::Button ("Paint dries faster")) *fTickScale0 = 0.15f;
+        ImGui::EndGroup   ();
+        ImGui::SameLine   ();
+        ImGui::BeginGroup ();
+        if (ImGui::Button ("Bouncy Castle"))                   *fTickScale  = 2.5f;
+        if (ImGui::Button ("Ain't nobody got time for that!")) *fTickScale0 = 5.0f;
+        ImGui::EndGroup   ();
+        ImGui::EndGroup   ();
+        VirtualProtect ( fTickScale , 4, dwOrig, &dwOrig);
+        VirtualProtect ( fTickScale0, 4, dwOrig, &dwOrig);
+      }
+
+      ImGui::Separator ();
+    }
+
+
+    bool motion_blur, bloom,
+         smoke,       HUD;
+
+    motion_blur = (! SK_D3D11_Shaders.pixel.blacklist.count  (0x06ef081f));
+    bloom       = (! SK_D3D11_Shaders.pixel.blacklist.count  (0x939da69c));
+    smoke       = (! SK_D3D11_Shaders.vertex.blacklist.count (0xbe4b62c2));
+
+    HUD         = (SK_D3D11_Shaders.pixel.blacklist_if_texture [0xec31f12f].empty ());
+
+    ImGui::TreePush ("");
+
+    bool changed = false;
+
+    ImGui::BeginGroup ();
+
+    if (ImGui::Checkbox ("Motion Blur", &motion_blur))
+    {
+      changed = true;
+
+      SK_GetCommandProcessor ()->ProcessCommandLine ("D3D11.ShaderMods.Toggle Pixel 06ef081f Disable");
+    }
+
+    if (ImGui::Checkbox ("Smoke", &smoke))
+    {
+      changed = true;
+
+      SK_GetCommandProcessor ()->ProcessCommandLine ("D3D11.ShaderMods.Toggle Vertex be4b62c2 Disable");
+    }
+
+    ImGui::EndGroup   ();
+    ImGui::SameLine   ();
+    ImGui::BeginGroup ();
+
+    if (ImGui::Checkbox ("Bloom", &bloom))
+    {
+      changed = true;
+
+      SK_GetCommandProcessor ()->ProcessCommandLine ("D3D11.ShaderMods.Toggle Pixel 939da69c Disable");
+      SK_GetCommandProcessor ()->ProcessCommandLine ("D3D11.ShaderMods.Toggle Pixel fa2af8ba Disable");
+      SK_GetCommandProcessor ()->ProcessCommandLine ("D3D11.ShaderMods.Toggle Pixel c75b0341 Disable");
+    }
+
+    extern bool SK_Okami_use_grain;
+
+    if (ImGui::Checkbox ("Grain", &SK_Okami_use_grain))
+    {
+      void
+      WINAPI
+      SK_D3D11_AddTexHash ( const wchar_t* name, uint32_t top_crc32, uint32_t hash );
+
+      void
+      WINAPI
+      SK_D3D11_RemoveTexHash (uint32_t top_crc32, uint32_t hash);
+
+      if (SK_Okami_use_grain)
+      {
+        SK_D3D11_RemoveTexHash (              0xced133fb, 0x00);
+        SK_D3D11_AddTexHash    (L"grain.dds", 0xced133fb, 0x00);
+      }
+
+      else
+      {
+        SK_D3D11_RemoveTexHash (                 0xced133fb, 0x00);
+        SK_D3D11_AddTexHash    (L"no_grain.dds", 0xced133fb, 0x00);
+      }
+
+      extern int
+      SK_D3D11_ReloadAllTextures (void);
+      SK_D3D11_ReloadAllTextures ();
+
+      extern void SK_Okami_SaveConfig (void);
+      SK_Okami_SaveConfig ();
+    }
+
+    ImGui::EndGroup ();
+    ImGui::SameLine ();
+
+    if (ImGui::Checkbox ("HUD", &HUD))
+    {
+      changed = true;
+
+      SK_GetCommandProcessor ()->ProcessCommandLine ("D3D11.ShaderMods.ToggleConfig d3d11_shaders-nohud.ini");
+    }
+
+    //ImGui::InputInt2 ("Forced Internal Resolution", )
+
+    if (changed)
+    {
+      extern void
+      SK_D3D11_StoreShaderState (void);
+      SK_D3D11_StoreShaderState ();
+    }
+
+    ImGui::TreePop ();
+  }
 }

@@ -1629,6 +1629,11 @@ SK_LoadConfigEx (std::wstring name, bool create)
                   deadline_transition->load (config.render.framerate.sleep_deadline);
 
 
+  // Range-restrict this to prevent the user from destroying performance
+  if (config.render.framerate.limiter_tolerance < 0.925f)
+    config.render.framerate.limiter_tolerance = 0.925f;
+
+
   render.osd.draw_in_vidcap->load           (config.render.osd.draw_in_vidcap);
 
   // D3D9/11

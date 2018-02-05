@@ -701,7 +701,7 @@ SK_CEGUI_InitBase    (void);
 void
 ResetCEGUI_D3D9 (IDirect3DDevice9* pDev)
 {
-  if (! ReadAcquire (&ImGui_Init))
+  if ((! ReadAcquire (&ImGui_Init)) && pDev != nullptr)
   {
     //
     // Initialize ImGui for D3D9 games
@@ -778,6 +778,12 @@ SK_HookD3D9 (void)
 
   if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
   {
+    // XXX: Kind of a hack, we may need to implicitly load-up D3D9.DLL so
+    //        we can wait for VBlank in OpenGL..
+    if (! GetModuleHandle (L"d3d9.dll"))
+      LoadLibraryW_Original (L"d3d9.dll");
+
+
     HMODULE hBackend =
       (SK_GetDLLRole () & DLL_ROLE::D3D9) ? backend_dll :
                                      GetModuleHandle (L"d3d9.dll");
@@ -3082,7 +3088,22 @@ SK_DiscontEpsilon (int x1, int x2, int tolerance)
 __declspec (noinline)
 D3DPRESENT_PARAMETERS*
 WINAPI
-SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* pparams)
+SK_SetPresentParamsD3D9 ( IDirect3DDevice9      *pDevice,
+                          D3DPRESENT_PARAMETERS *pparams )
+{
+  D3DDISPLAYMODEEX  implict_mode_ex = { };
+  D3DDISPLAYMODEEX *pImplicitModeEx = &implict_mode_ex;
+
+
+  return SK_SetPresentParamsD3D9Ex (pDevice, pparams, &pImplicitModeEx);
+}
+
+__declspec (noinline)
+D3DPRESENT_PARAMETERS*
+WINAPI
+SK_SetPresentParamsD3D9Ex ( IDirect3DDevice9       *pDevice,
+                            D3DPRESENT_PARAMETERS  *pparams,
+                            D3DDISPLAYMODEEX      **ppFullscreenDisplayMode )
 {
   SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
@@ -3141,21 +3162,6 @@ SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* ppara
 
   if (pparams != nullptr)
   {
-    if (pDevice != nullptr)
-    {
-      //
-      // Initialize ImGui for D3D9 games
-      //
-      if ( ImGui_ImplDX9_Init ( static_cast <void *> (SK_GetCurrentRenderBackend ().windows.device),
-                                  pDevice,
-                                    pparams )
-         )
-      {
-        InterlockedExchange ( &ImGui_Init, TRUE );
-      }
-    }
-
-
     D3DDEVICE_CREATION_PARAMETERS dcparams = {};
 
     if (pDevice != nullptr)
@@ -3168,8 +3174,6 @@ SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* ppara
         SK_GetCurrentRenderBackend ().windows.setFocus (dcparams.hFocusWindow);
       else if (pparams->hDeviceWindow)
         SK_GetCurrentRenderBackend ().windows.setFocus (pparams->hDeviceWindow);
-      //else if (GetFocus () != HWND_DESKTOP && GetActiveWindow () == GetFocus ())
-      //  SK_GetCurrentRenderBackend ().windows.setFocus (GetFocus ());
     }
 
     if (SK_GetCurrentRenderBackend ().windows.device == nullptr || (! IsWindow (SK_GetCurrentRenderBackend ().windows.device)))
@@ -3177,20 +3181,25 @@ SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* ppara
       SK_GetCurrentRenderBackend ().windows.setDevice (
         pparams->hDeviceWindow   != nullptr ?
           pparams->hDeviceWindow :
-            SK_GetCurrentRenderBackend ().windows.device );
+            SK_GetCurrentRenderBackend ().windows.device != nullptr?
+              SK_GetCurrentRenderBackend ().windows.device :
+                SK_GetCurrentRenderBackend ().windows.focus );
     }
 
 
-    bool switch_to_fullscreen = config.display.force_fullscreen  ||
-                               ( (! rb.fullscreen_exclusive)  &&
-                                    request_mode_change       ==   mode_change_request_e::Fullscreen );
+    bool switch_to_fullscreen = ( config.display.force_fullscreen && pparams->Windowed )  ||
+                                   ( (! rb.fullscreen_exclusive)  &&
+                                        request_mode_change       == mode_change_request_e::Fullscreen );
 
-    bool switch_to_windowed   = config.display.force_windowed    ||
-                               (    rb.fullscreen_exclusive   &&
-                                    request_mode_change       ==   mode_change_request_e::Windowed   );
+    bool switch_to_windowed   = ( config.display.force_windowed   && (! pparams->Windowed) ) ||
+                                   (    rb.fullscreen_exclusive   &&
+                                        request_mode_change       == mode_change_request_e::Windowed   );
 
-    if (switch_to_fullscreen)
+
+    if (switch_to_fullscreen && SK_GetCurrentRenderBackend ().windows.device )
     {
+      pparams->hDeviceWindow = SK_GetCurrentRenderBackend ().windows.device;
+
       HMONITOR hMonitor =
         MonitorFromWindow ( game_window.hWnd,
                               MONITOR_DEFAULTTONEAREST );
@@ -3199,16 +3208,80 @@ SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* ppara
       mi.cbSize       = sizeof (mi);
       GetMonitorInfo (hMonitor, &mi);
 
-      pparams->Windowed                   = FALSE;
-      pparams->BackBufferCount            = 1;
-      pparams->EnableAutoDepthStencil     = true;
-      pparams->FullScreen_RefreshRateInHz = 60;
+      // This must be non-zero to go fullscreen
+      if (pparams->FullScreen_RefreshRateInHz == 0)
+      {
+        if (config.render.framerate.refresh_rate == -1)
+        {
+          if (*ppFullscreenDisplayMode != nullptr)
+            pparams->FullScreen_RefreshRateInHz = (*ppFullscreenDisplayMode)->RefreshRate;
 
-      if (pparams->BackBufferWidth  < 512)
-          pparams->BackBufferWidth  =      ( mi.rcMonitor.right  - mi.rcMonitor.left );
-      if (pparams->BackBufferHeight < 256)
-          pparams->BackBufferHeight =      ( mi.rcMonitor.bottom - mi.rcMonitor.top  );
+          if (pparams->FullScreen_RefreshRateInHz == 0)
+          {
+            extern float
+            SK_Display_GetDefaultRefreshRate (void);
+
+            pparams->FullScreen_RefreshRateInHz =
+              static_cast <UINT> (SK_Display_GetDefaultRefreshRate ());
+          }
+        }
+      }
+
+      if (config.render.framerate.refresh_rate != -1)
+      {
+        pparams->FullScreen_RefreshRateInHz =
+          config.render.framerate.refresh_rate;
+      }
+
+      if (pparams->FullScreen_RefreshRateInHz != 0)
+      {
+        pparams->BackBufferCount        = std::max (pparams->BackBufferCount, 1U);
+        pparams->EnableAutoDepthStencil = true;
+
+        pparams->Windowed               = FALSE;
+
+
+        UINT monitor_width  = mi.rcMonitor.right  - mi.rcMonitor.left;
+        UINT monitor_height = mi.rcMonitor.bottom - mi.rcMonitor.top;
+
+        if ( pparams->BackBufferWidth < 512 ||
+             pparams->BackBufferWidth > monitor_width )
+             pparams->BackBufferWidth = monitor_width;
+
+        if ( pparams->BackBufferHeight < 256 ||
+             pparams->BackBufferHeight > monitor_height )
+             pparams->BackBufferHeight = monitor_height;
+
+
+        if (! SK_TLS_Bottom ()->d3d9.temp_fullscreen)
+              SK_TLS_Bottom ()->d3d9.temp_fullscreen = new D3DDISPLAYMODEEX { };
+
+        if (*ppFullscreenDisplayMode == nullptr)
+          *ppFullscreenDisplayMode = (D3DDISPLAYMODEEX *)SK_TLS_Bottom ()->d3d9.temp_fullscreen;
+
+        if (*ppFullscreenDisplayMode != nullptr)
+        {
+          (*ppFullscreenDisplayMode)->Height           = pparams->BackBufferHeight;
+          (*ppFullscreenDisplayMode)->Width            = pparams->BackBufferWidth;
+          (*ppFullscreenDisplayMode)->RefreshRate      = pparams->FullScreen_RefreshRateInHz;
+          (*ppFullscreenDisplayMode)->Format           = pparams->BackBufferFormat;
+          (*ppFullscreenDisplayMode)->ScanLineOrdering = D3DSCANLINEORDERING_PROGRESSIVE;
+        }
+      }
+
+      else
+      {
+        pparams->Windowed = TRUE;
+
+        // Must be NULL if the fullscreen override failed
+        if (ppFullscreenDisplayMode != nullptr)
+          (*ppFullscreenDisplayMode) = nullptr;
+
+        SK_LOG0 ( ( L" *** Could not force fullscreen mode due to indeterminate refresh rate!" ),
+                    L"   D3D9   ");
+      }
     }
+
 
     else if (switch_to_windowed)
     {
@@ -3216,16 +3289,20 @@ SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* ppara
       {
         pparams->Windowed                   = TRUE;
         pparams->FullScreen_RefreshRateInHz = 0;
+
+        // Must be NULL if forcing fullscreen -> windowed
+        if (*ppFullscreenDisplayMode != nullptr)
+          *ppFullscreenDisplayMode = nullptr;
       }
 
       else
       {
         SK_LOG0 ( ( L" *** Could not force windowed mode, game has no device window?!" ),
                     L"   D3D9   ");
-        pparams->Windowed                   = FALSE;
-        pparams->FullScreen_RefreshRateInHz = std::max (pparams->FullScreen_RefreshRateInHz, 60U);
+        pparams->Windowed = FALSE;
       }
     }
+
 
     //
     //  <-(+] Forced Borderless Window [+)->
@@ -3343,22 +3420,22 @@ SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* ppara
 
     else if (switch_to_fullscreen && (! pparams->Windowed))
     {
-      if ( SetWindowLongPtrW_Original == nullptr ||
-           GetWindowLongPtrW_Original == nullptr )
-      {
-        SetWindowLongPtrW (pparams->hDeviceWindow, GWL_EXSTYLE, (GetWindowLongPtrW (pparams->hDeviceWindow, GWL_EXSTYLE) & ~(WS_EX_TOPMOST)) | (WS_EX_APPWINDOW));
-        SetWindowPos      (pparams->hDeviceWindow, HWND_TOP, 0, 0, 0, 0, SWP_NOSENDCHANGING | SWP_NOMOVE             | SWP_NOSIZE     | SWP_DEFERERASE |
-                                                                         SWP_NOCOPYBITS     | SWP_ASYNCWINDOWPOS     | SWP_SHOWWINDOW | SWP_NOREPOSITION );
-
-        SK_InstallWindowHook (pparams->hDeviceWindow);
-      }
-
-      else
-      {
-        SetWindowLongPtrW_Original (game_window.hWnd, GWL_EXSTYLE, (GetWindowLongPtrW_Original (game_window.hWnd, GWL_EXSTYLE) & ~(WS_EX_TOPMOST)) | (WS_EX_APPWINDOW));
-        SetWindowPos_Original      (game_window.hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOSENDCHANGING | SWP_NOMOVE         | SWP_NOSIZE     | SWP_DEFERERASE |
-                                                                            SWP_NOCOPYBITS     | SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW | SWP_NOREPOSITION );
-      }
+      //if ( SetWindowLongPtrW_Original == nullptr ||
+      //     GetWindowLongPtrW_Original == nullptr )
+      //{
+      //  SetWindowLongPtrW (pparams->hDeviceWindow, GWL_EXSTYLE, (GetWindowLongPtrW (pparams->hDeviceWindow, GWL_EXSTYLE) & ~(WS_EX_TOPMOST)) | (WS_EX_APPWINDOW));
+      //  SetWindowPos      (pparams->hDeviceWindow, HWND_TOP, 0, 0, 0, 0, SWP_NOSENDCHANGING | SWP_NOMOVE             | SWP_NOSIZE     | SWP_DEFERERASE |
+      //                                                                   SWP_NOCOPYBITS     | SWP_ASYNCWINDOWPOS     | SWP_SHOWWINDOW | SWP_NOREPOSITION );
+      //
+      //  SK_InstallWindowHook (pparams->hDeviceWindow);
+      //}
+      //
+      //else
+      //{
+      //  SetWindowLongPtrW_Original (game_window.hWnd, GWL_EXSTYLE, (GetWindowLongPtrW_Original (game_window.hWnd, GWL_EXSTYLE) & ~(WS_EX_TOPMOST)) | (WS_EX_APPWINDOW));
+      //  SetWindowPos_Original      (game_window.hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOSENDCHANGING | SWP_NOMOVE         | SWP_NOSIZE     | SWP_DEFERERASE |
+      //                                                                      SWP_NOCOPYBITS     | SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW | SWP_NOREPOSITION );
+      //}
     }
 
     rb.fullscreen_exclusive = (! pparams->Windowed);
@@ -3911,6 +3988,68 @@ SK_D3D9_HookDeviceAndSwapchain (
 }
 
 
+bool
+SK_Win32_IsDummyWindowClass (WNDCLASSEXW* pWindowClass)
+{
+  if (! pWindowClass)
+    return false;
+
+  if ( StrStrIW (pWindowClass->lpszClassName, L"Special K Dummy Window") ||
+       StrStrIW (pWindowClass->lpszClassName, L"RTSSWndClass") )
+  {
+    return true;
+  }
+
+  return false;
+}
+
+bool
+SK_Win32_IsDummyWindowClass (HWND hWndInstance)
+{
+  WNDCLASSEXW wnd_class          = {};
+  wchar_t     wszClassName [128] = {};
+  HINSTANCE   hInstance          =
+    reinterpret_cast <HINSTANCE> (
+      GetWindowLongPtrW_Original (hWndInstance, GWLP_HINSTANCE)
+    );
+
+  if (RealGetWindowClassW (hWndInstance, wszClassName, 127) > 0)
+  {
+    wnd_class.cbSize = sizeof (WNDCLASSEXW);
+
+    if (GetClassInfoExW (hInstance, wszClassName, &wnd_class))
+    {
+      return SK_Win32_IsDummyWindowClass (&wnd_class);
+    }
+  }
+
+  return false; // Indeterminate
+}
+
+bool
+SK_D3D9_IsDummyD3D9Device (D3DPRESENT_PARAMETERS *pPresentationParameters)
+{
+  if (pPresentationParameters == nullptr)
+    return false; // Indeterminate
+
+  if ( ( pPresentationParameters->BackBufferWidth  != 0 &&
+         pPresentationParameters->BackBufferWidth  < 32 ) ||
+       ( pPresentationParameters->BackBufferHeight != 0 &&
+         pPresentationParameters->BackBufferHeight < 32 ) )
+  {
+    return true;
+  }
+
+  if (pPresentationParameters->hDeviceWindow != HWND_DESKTOP)
+  {
+    if (SK_Win32_IsDummyWindowClass (pPresentationParameters->hDeviceWindow))
+      return true;
+  }
+
+  return false;
+}
+
+
 IWrapDirect3DDevice9*
 SK_D3D9_WrapDevice ( IUnknown               *pDevice,
                      D3DPRESENT_PARAMETERS  *pPresentationParameters,
@@ -3918,12 +4057,11 @@ SK_D3D9_WrapDevice ( IUnknown               *pDevice,
 {
   if (pPresentationParameters != nullptr)
   {
-    if (pPresentationParameters->BackBufferHeight > 32 && 
-        pPresentationParameters->BackBufferWidth  > 32)
+    if (! SK_D3D9_IsDummyD3D9Device (pPresentationParameters))
     {
       SK_LOG0 ( (L" + Direct3DDevice9 (%ph) wrapped", pDevice ),
                  L"   D3D9   " );
-      *ppDest=
+      *ppDest =
          (IDirect3DDevice9 *)new IWrapDirect3DDevice9 ((IDirect3DDevice9 *)pDevice);
     }
 
@@ -3983,14 +4121,32 @@ D3D9CreateDeviceEx_Override ( IDirect3D9Ex           *This,
   HRESULT ret = E_FAIL;
 
 
-  SK_D3D9_SetFPSTarget       (pPresentationParameters, pFullscreenDisplayMode);
-  SK_D3D9_FixUpBehaviorFlags (BehaviorFlags);
-  SK_SetPresentParamsD3D9    ( nullptr,
-                                 pPresentationParameters );
+  // In case we need to override this setting...
+  D3DDISPLAYMODEEX* pModeEx = pFullscreenDisplayMode;
+
+  if (! SK_D3D9_IsDummyD3D9Device (pPresentationParameters))
+  {
+    if (config.display.force_fullscreen && hFocusWindow)
+      pPresentationParameters->hDeviceWindow = hFocusWindow;
 
 
-  if (config.display.force_windowed)
-    hFocusWindow = pPresentationParameters->hDeviceWindow;
+    SK_D3D9_SetFPSTarget       (pPresentationParameters, pFullscreenDisplayMode);
+    SK_D3D9_FixUpBehaviorFlags (BehaviorFlags);
+    SK_SetPresentParamsD3D9Ex  ( nullptr,
+                                   pPresentationParameters,
+                                     &pModeEx );
+
+
+    if ((! pPresentationParameters->Windowed) && (! hFocusWindow))
+    {
+      hFocusWindow = pPresentationParameters->hDeviceWindow;
+
+      if (hFocusWindow == 0)
+      {
+        pModeEx = nullptr; pPresentationParameters->Windowed = TRUE;
+      }
+    }
+  }
 
 
   IDirect3DDevice9Ex *pTemp = nullptr;
@@ -4001,7 +4157,7 @@ D3D9CreateDeviceEx_Override ( IDirect3D9Ex           *This,
                                                           hFocusWindow,
                                                             BehaviorFlags,
                                                               pPresentationParameters,
-                                                                pFullscreenDisplayMode,
+                                                                pModeEx,
                                                                   &pTemp ) );
 
 
@@ -4025,23 +4181,17 @@ D3D9CreateDeviceEx_Override ( IDirect3D9Ex           *This,
     return ret;
 
 
-  SK_SetPresentParamsD3D9        (*ppReturnedDeviceInterface, pPresentationParameters);
-  SK_D3D9_HookDeviceAndSwapchain (*ppReturnedDeviceInterface);
-
-
-  ResetCEGUI_D3D9 (nullptr);
-
-
-  //
-  // Initialize ImGui for D3D9 games
-  //
-  if ( ImGui_ImplDX9_Init ( (void *)pPresentationParameters->hDeviceWindow,
-                                  *&pTemp,
-                                   pPresentationParameters )
-     )
+  if (! SK_D3D9_IsDummyD3D9Device (pPresentationParameters))
   {
-    InterlockedExchange ( &ImGui_Init, TRUE );
+    SK_SetPresentParamsD3D9Ex      ( *ppReturnedDeviceInterface, 
+                                       pPresentationParameters,
+                                         &pModeEx );
+
+    SK_D3D9_HookDeviceAndSwapchain (*ppReturnedDeviceInterface);
+
+    ResetCEGUI_D3D9 (nullptr);
   }
+
 
   return ret;
 }
@@ -4079,15 +4229,24 @@ D3D9CreateDevice_Override ( IDirect3D9*            This,
                         SK_SummarizeCaller ().c_str () );
 
 
-  SK_D3D9_SetFPSTarget       (pPresentationParameters);
-  SK_D3D9_FixUpBehaviorFlags (BehaviorFlags);
+  if (! SK_D3D9_IsDummyD3D9Device (pPresentationParameters))
+  {
+    if (config.display.force_fullscreen && hFocusWindow)
+      pPresentationParameters->hDeviceWindow = hFocusWindow;
 
-  SK_SetPresentParamsD3D9    ( nullptr,
-                                 pPresentationParameters );
+
+    SK_D3D9_SetFPSTarget       (pPresentationParameters);
+    SK_D3D9_FixUpBehaviorFlags (BehaviorFlags);
+
+    SK_SetPresentParamsD3D9    ( nullptr,
+                                   pPresentationParameters );
 
 
-  if (config.display.force_windowed)
-    hFocusWindow = pPresentationParameters->hDeviceWindow;
+    if (config.display.force_fullscreen && (! hFocusWindow))
+      hFocusWindow = pPresentationParameters->hDeviceWindow;
+    //if (config.display.force_windowed)
+    //  hFocusWindow = pPresentationParameters->hDeviceWindow;
+  }
 
 
   IDirect3DDevice9* pTemp = nullptr;
@@ -4155,26 +4314,12 @@ SK_D3D9_SwapEffectToStr (pPresentationParameters->SwapEffect).c_str (),
   }
 
 
-  SK_SetPresentParamsD3D9        (*ppReturnedDeviceInterface, pPresentationParameters);
-  SK_D3D9_HookDeviceAndSwapchain (*ppReturnedDeviceInterface);
-
-
-  ResetCEGUI_D3D9 (nullptr);
-  //ResetCEGUI_D3D9 (*pTemp);
-
-
-  HWND hWndImGui = pPresentationParameters->hDeviceWindow ? pPresentationParameters->hDeviceWindow :
-                                                            hFocusWindow;
-
-  //
-  // Initialize ImGui for D3D9 games
-  //
-  if ( ImGui_ImplDX9_Init ( reinterpret_cast <void *> (hWndImGui),
-                                                       pTemp,
-                                                       pPresentationParameters )
-     )
+  if (! SK_D3D9_IsDummyD3D9Device (pPresentationParameters))
   {
-    InterlockedExchange ( &ImGui_Init, TRUE );
+    SK_SetPresentParamsD3D9        (*ppReturnedDeviceInterface, pPresentationParameters);
+    SK_D3D9_HookDeviceAndSwapchain (*ppReturnedDeviceInterface);
+
+    ResetCEGUI_D3D9 (nullptr);
   }
 
 
@@ -4294,19 +4439,6 @@ D3D9ExCreateDevice_Override ( IDirect3D9*            This,
 
   ResetCEGUI_D3D9 (nullptr);
   //ResetCEGUI_D3D9 (*ppReturnedDeviceInterface);
-
-  HWND hWndImGui = pPresentationParameters->hDeviceWindow ? pPresentationParameters->hDeviceWindow :
-                                                            hFocusWindow;
-  //
-  // Initialize ImGui for D3D9 games
-  //
-  if ( ImGui_ImplDX9_Init ( reinterpret_cast <void *> (hWndImGui),
-                                                      *ppReturnedDeviceInterface,
-                                                       pPresentationParameters )
-     )
-  {
-    InterlockedExchange ( &ImGui_Init, TRUE );
-  }
 
 
   return ret;

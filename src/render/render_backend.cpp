@@ -61,6 +61,16 @@ private:
 };
 
 
+float
+SK_Display_GetDefaultRefreshRate (void)
+{
+  SK_AutoDC auto_dc (NULL, GetDC (NULL));
+
+  return
+    static_cast <float> (GetDeviceCaps (auto_dc.hDC (), VREFRESH));
+}
+
+
 
 SK_RenderBackend __SK_RBkEnd;
 
@@ -111,8 +121,8 @@ SK_BootD3D9 (void)
 {
   // "Normal" games don't change render APIs mid-game; Talos does, but it's
   //   not normal :)
-  if (SK_GetFramesDrawn ())
-    return;
+  //if (SK_GetFramesDrawn ())
+  //  return;
 
 
   while (backend_dll == nullptr)
@@ -631,10 +641,7 @@ SK_RenderBackend_V2::getActiveRefreshRate (void)
     }
   }
 
-  SK_AutoDC auto_dc (NULL, GetDC (NULL));
-
-  return
-    static_cast <float> (GetDeviceCaps (auto_dc.hDC (), VREFRESH));
+  return SK_Display_GetDefaultRefreshRate ();
 }
 
 

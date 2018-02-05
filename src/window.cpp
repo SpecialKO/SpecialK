@@ -825,10 +825,13 @@ const int        AlwaysOnTop = 1;
 
 auto ActivateWindow =[&](HWND hWnd, bool active = false)
 {
-  bool state_changed =
-    (wm_dispatch.active_windows [hWnd] != active && hWnd == game_window.hWnd);//game_window.active != active);
+  HWND hWndForeground = GetForegroundWindow ();
 
-  if (hWnd == game_window.hWnd)
+
+  bool state_changed =
+    (wm_dispatch.active_windows [hWnd] != active && hWnd == SK_GetGameWindow ());
+
+  if (hWnd == SK_GetGameWindow ())
     game_window.active = active;
 
 
@@ -840,13 +843,13 @@ auto ActivateWindow =[&](HWND hWnd, bool active = false)
     {
       if (config.window.always_on_top == PreventAlwaysOnTop)
       {
-        if (GetForegroundWindow () != SK_GetGameWindow ())
+        if (hWndForeground != SK_GetGameWindow ())
           SK_GetCommandProcessor ()->ProcessCommandLine ("Window.TopMost false");
       }
 
       else if (config.window.always_on_top == AlwaysOnTop)
       {
-        if (GetForegroundWindow () != SK_GetGameWindow ())
+        if (hWndForeground != SK_GetGameWindow ())
           SK_GetCommandProcessor ()->ProcessCommandLine ("Window.TopMost true");
       }
     }
@@ -4254,6 +4257,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
       //SK_GetCurrentRenderBackend ().fullscreen_exclusive = false;
       }
+
+      if (GetForegroundWindow () == hWnd) ActivateWindow (hWnd, true);
     } break;
 
     // Allow the game to run in the background
@@ -4382,6 +4387,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
         if (! activate)
           SK_GetCurrentRenderBackend ().fullscreen_exclusive = false;
+
+        if (GetForegroundWindow () == hWnd) ActivateWindow (hWnd, true);
       }
     } break;
 

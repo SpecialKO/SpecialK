@@ -36,6 +36,7 @@ void                    __stdcall SK_WASAPI_GetAudioSessionProcs    (size_t* cou
 const char*             __stdcall SK_WASAPI_GetChannelName          (int channel_idx);
 
 #include <SpecialK/steam_api.h>
+#include <SpecialK/window.h>
 
 #include <atlbase.h>
 #include <TlHelp32.h>

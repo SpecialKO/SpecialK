@@ -135,7 +135,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
 {
   std::lock_guard <SK_Thread_HybridSpinlock> lock (raw_input_lock);
 
-  bool focus = true;//game_window.active;
+  bool focus = game_window.active;
 
   static HRAWINPUT last_input = nullptr;
 

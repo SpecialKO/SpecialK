@@ -75,8 +75,8 @@ volatile LONG             __SteamAPI_hook = FALSE;
 
 std::multiset <class CCallbackBase *> overlay_activation_callbacks;
 
-void SK_HookSteamAPI                      (void);
-void SK_SteamAPI_UpdateGlobalAchievements (void);
+void SK_HookSteamAPI                   (void);
+void SK_Steam_UpdateGlobalAchievements (void);
 
 
 using SteamClient_pfn = ISteamClient* (S_CALLTYPE *)(
@@ -825,7 +825,7 @@ SK_SteamAPIContext steam_ctx;
 
 
 ISteamFriends*
-SK_Steam_Friends (void)
+SK_SteamAPI_Friends (void)
 {
   return steam_ctx.Friends ();
 }
@@ -1535,7 +1535,7 @@ public:
       {
         has_global_data = true;
 
-        SK_SteamAPI_UpdateGlobalAchievements ();
+        SK_Steam_UpdateGlobalAchievements ();
       }
 
       else
@@ -2442,7 +2442,7 @@ private:
 } static *steam_achievements = nullptr;
 
 void
-SK_SteamAPI_LoadUnlockSound (const wchar_t* wszUnlockSound)
+SK_Steam_LoadUnlockSound (const wchar_t* wszUnlockSound)
 {
   if (steam_achievements != nullptr)
     steam_achievements->loadSound (wszUnlockSound);
@@ -2461,14 +2461,14 @@ S_API bool S_CALLTYPE SteamAPI_Init_Detour (void);
 #endif
 
 void
-SK_SteamAPI_LogAllAchievements (void)
+SK_Steam_LogAllAchievements (void)
 {
   if (steam_achievements != nullptr)
     steam_achievements->log_all_achievements ();
 }
 
 void
-SK_UnlockSteamAchievement (uint32_t idx)
+SK_Steam_UnlockAchievement (uint32_t idx)
 {
   if (config.steam.silent)
     return;
@@ -2552,11 +2552,11 @@ SK_UnlockSteamAchievement (uint32_t idx)
   else
     steam_log.LogEx   (false, L" (ISteamUserStats is NULL?!)\n");
 
-  SK_SteamAPI_LogAllAchievements ();
+  SK_Steam_LogAllAchievements ();
 }
 
 void
-SK_SteamAPI_UpdateGlobalAchievements (void)
+SK_Steam_UpdateGlobalAchievements (void)
 {
   ISteamUserStats* stats =
     steam_ctx.UserStats ();
@@ -2592,7 +2592,7 @@ SK_SteamAPI_UpdateGlobalAchievements (void)
   }
 
   if (steam_achievements)
-    SK_SteamAPI_LogAllAchievements ();
+    SK_Steam_LogAllAchievements ();
 }
 
 void
@@ -3279,7 +3279,7 @@ SK_Steam_RecursiveFileScrub ( std::wstring   directory, unsigned int& files,
 }
 
 uint64_t
-SK_Steam_ScrubRedistributables (int& total_files, bool erase = false)
+SK_Steam_ScrubRedistributables (int& total_files, bool erase)
 {
   unsigned int   files =  0 ;
   LARGE_INTEGER liSize = { };

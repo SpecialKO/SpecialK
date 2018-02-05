@@ -152,4 +152,8 @@ __stdcall
 SK_EstablishRootPath (void);
 
 
+
+void __stdcall SK_StartPerfMonThreads (void);
+
+
 #endif /* __SK__CORE_H__ */

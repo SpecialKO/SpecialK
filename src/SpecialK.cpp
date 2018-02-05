@@ -849,6 +849,14 @@ DllMain ( HMODULE hModule,
 
         if (lpvData != nullptr)
         {
+          // XXX: Add a function to SK_TLS to do cleanup!
+
+          if (SK_TLS_Bottom ()->d3d9.temp_fullscreen != nullptr)
+          {
+            delete SK_TLS_Bottom ()->d3d9.temp_fullscreen;
+                   SK_TLS_Bottom ()->d3d9.temp_fullscreen = nullptr;
+          }
+
           if (SK_TLS_Bottom ()->known_modules.pResolved != nullptr)
           {
             delete SK_TLS_Bottom ()->known_modules.pResolved;

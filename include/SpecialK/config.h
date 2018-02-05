@@ -240,7 +240,7 @@ struct sk_config_t
   struct {
     struct {
       float   target_fps        =  0.0f;
-      float   limiter_tolerance = 0.25f;
+      float   limiter_tolerance =  1.666f;
       int     pre_render_limit  = -1;
       int     present_interval  = -1;
       int     buffer_count      = -1;

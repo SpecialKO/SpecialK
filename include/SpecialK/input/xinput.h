@@ -184,4 +184,8 @@ WINAPI
 SK_JOY_TranslateToXInput (JOYINFOEX* pJoy, const JOYCAPSW* pCaps);
 
 
+ const char*
+ SK_XInput_GetPrimaryHookName (void);
+
+
 #endif /* __SK__XINPUT_H__ */

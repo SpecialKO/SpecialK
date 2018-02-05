@@ -1528,7 +1528,7 @@ struct SK_D3D11_KnownThreads
 {
   SK_D3D11_KnownThreads (void)
   {
-    InitializeCriticalSectionAndSpinCount (&cs, 0x444);
+    InitializeCriticalSectionAndSpinCount (&cs, 0x400);
 
     //ids.reserve    (16);
     //active.reserve (16);
@@ -1612,7 +1612,7 @@ SK_D3D11_KnownThreads::count_all (void)
 void
 SK_D3D11_KnownThreads::mark (void)
 {
-  //if (! SK_D3D11_EnableTracking)
+  if (! SK_D3D11_EnableTracking)
     return;
 
   if (use_lock)
@@ -3081,13 +3081,6 @@ struct shader_stage_s {
 };
 
 std::unordered_map <ID3D11DeviceContext *, shader_stage_s> d3d11_shader_stages [6];
-
-bool
-SK_D3D11_ShowShaderModDlg (void)
-{
-  extern bool show_shader_mod_dlg;
-  return show_shader_mod_dlg;
-}
 
 __forceinline
 bool
@@ -13788,6 +13781,8 @@ SK_D3D11_EndFrame (void)
     it.second.clear ();
 
 
+  extern bool SK_D3D11_ShowShaderModDlg (void);
+
   if (! SK_D3D11_ShowShaderModDlg ())
     SK_D3D11_EnableMMIOTracking = false;
 
@@ -15604,9 +15599,9 @@ SK_D3D11_PresentFirstFrame (IDXGISwapChain* pSwapChain)
       SK_Hook_ResolveTarget (*it);
 
       // Don't cache addresses that were screwed with by other injectors
-      const wchar_t* wszSection = L"D3D11.Hooks";
-        //StrStrIW (it->target.module_path, LR"(d3d11.dll)") ?
-        //                                L"D3D11.Hooks" : nullptr;
+      const wchar_t* wszSection =
+        StrStrIW (it->target.module_path, LR"(d3d11.dll)") ?
+                                        L"D3D11.Hooks" : nullptr;
 
       if (! wszSection)
       {
@@ -15633,7 +15628,7 @@ SK_D3D11_PresentFirstFrame (IDXGISwapChain* pSwapChain)
     while ( it_local != std::end (local_d3d11_records) )
     {
       if (( *it_local )->hits &&
-//StrStrIW (( *it_local )->target.module_path, LR"(d3d11.dll)") &&
+StrStrIW (( *it_local )->target.module_path, LR"(d3d11.dll)") &&
           ( *it_local )->active)
         SK_Hook_PushLocalCacheOntoGlobal ( **it_local,
                                              **it_global );

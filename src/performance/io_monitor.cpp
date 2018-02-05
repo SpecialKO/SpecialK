@@ -138,8 +138,6 @@ SK_CountIO (io_perf_t& ioc, const double update)
   }
 }
 
-extern void __stdcall SK_StartPerfMonThreads (void);
-
 
 DWORD
 WINAPI

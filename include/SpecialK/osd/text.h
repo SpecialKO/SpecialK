@@ -44,6 +44,8 @@ void __stdcall SK_SetOSDColor      (int red, int green, int blue,             LP
 void __stdcall SK_SetOSDScale      (float fScale, bool relative = false,      LPCSTR lpAppName = nullptr);
 void __stdcall SK_ResizeOSD        (float scale_incr,                         LPCSTR lpAppName = nullptr);
 
+void __stdcall SK_OSD_GetDefaultColor (float& r,  float& g,  float& b);
+
 #include <map>
 
 namespace CEGUI {

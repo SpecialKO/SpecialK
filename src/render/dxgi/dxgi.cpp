@@ -2482,9 +2482,9 @@ SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
           SK_Hook_ResolveTarget (*it);
 
           // Don't cache addresses that were screwed with by other injectors
-          const wchar_t* wszSection =  L"DXGI.Hooks";
-            //StrStrIW (it->target.module_path, LR"(dxgi.dll)") ?
-            //                                  L"DXGI.Hooks" : nullptr;
+          const wchar_t* wszSection =
+            StrStrIW (it->target.module_path, LR"(dxgi.dll)") ?
+                                              L"DXGI.Hooks" : nullptr;
 
           if (! wszSection)
           {
@@ -2509,7 +2509,7 @@ SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
         while ( it_local != std::end (local_dxgi_records) )
         {
           if (( *it_local )->hits &&
-  //StrStrIW (( *it_local )->target.module_path, LR"(dxgi.dll)") &&
+    StrStrIW (( *it_local )->target.module_path, LR"(dxgi.dll)") &&
               ( *it_local )->active)
             SK_Hook_PushLocalCacheOntoGlobal ( **it_local,
                                                  **it_global );

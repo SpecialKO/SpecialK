@@ -1271,6 +1271,10 @@ void  __stdcall SK_D3D11_PresentFirstFrame  (IDXGISwapChain*      pSwapChain);
 
 void  __stdcall SK_D3D11_UpdateRenderStats  (IDXGISwapChain*      pSwapChain);
 
+
+BOOL SK_DXGI_SupportsTearing  (void);
+void SK_CEGUI_QueueResetD3D11 (void);
+
 unsigned int
 __stdcall
 HookD3D11 (LPVOID user);

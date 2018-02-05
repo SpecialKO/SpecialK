@@ -185,6 +185,7 @@ void                  SK_Steam_InitCommandConsoleVariables      (void);
 ISteamUtils*          SK_SteamAPI_Utils                         (void);
 ISteamMusic*          SK_SteamAPI_Music                         (void);
 ISteamRemoteStorage*  SK_SteamAPI_RemoteStorage                 (void);
+ISteamFriends*        SK_SteamAPI_Friends                       (void);
 
 uint32_t __stdcall    SK_Steam_PiratesAhoy                      (void);
 
@@ -391,6 +392,29 @@ SK_Steam_KickStart   (const wchar_t* szLibPath = nullptr);
 
 void
 SK_Steam_KillPump (void);
+
+void
+SK_Steam_SetNotifyCorner (void);
+
+
+void
+__stdcall
+SK_SteamAPI_SetOverlayState (bool active);
+
+bool
+__stdcall
+SK_SteamAPI_GetOverlayState (bool real);
+
+
+void
+SK_Steam_UnlockAchievement (uint32_t idx);
+
+void
+SK_Steam_LoadUnlockSound (const wchar_t* wszUnlockSound);
+
+
+uint64_t
+SK_Steam_ScrubRedistributables (int& total_files, bool erase = false);
 
 
 

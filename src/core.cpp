@@ -2030,7 +2030,7 @@ SK_Input_PollKeyboard (void)
       io.KeysDown [config.time.keys.toggle [2]])
   {
     if (! toggle_time) {
-      SK_UnlockSteamAchievement (0);
+      SK_Steam_UnlockAchievement (0);
 
       config.time.show = (! config.time.show);
     }

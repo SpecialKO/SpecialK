@@ -632,6 +632,13 @@ D3DPRESENT_PARAMETERS*
 WINAPI
 SK_SetPresentParamsD3D9 (IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* pparams);
 
+__declspec (noinline)
+D3DPRESENT_PARAMETERS*
+WINAPI
+SK_SetPresentParamsD3D9Ex ( IDirect3DDevice9       *pDevice,
+                            D3DPRESENT_PARAMETERS  *pparams,
+                            D3DDISPLAYMODEEX      **ppFullscreenDisplayMode = nullptr );
+
 
 
 
@@ -662,6 +669,9 @@ SK_D3D9_PresentParameterFlagsToStr (DWORD dwFlags);
 
 void
 SK_D3D9_TriggerReset (bool);
+
+void
+SK_CEGUI_QueueResetD3D9 (void);
 
 void
 WINAPI

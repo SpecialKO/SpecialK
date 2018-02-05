@@ -550,7 +550,7 @@
       <Optimization>Full</Optimization>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;GLEW_STATIC;%(PreprocessorDefinitions);WINVER=_WIN32_WINNT_WIN7;_WIN32_WINNT=_WIN32_WINNT_WIN7;WINVER=_WIN32_WINNT_WIN7;_WIN32_WINNT=_WIN32_WINNT_WIN7;_CRT_SECURE_NO_WARNINGS;_CRT_NON_CONFORMING_SWPRINTFS;NOMINMAX;PSAPI_VERSION=1;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE;SK_BUILD_DLL;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <CallingConvention>Cdecl</CallingConvention>
       <EnablePREfast>false</EnablePREfast>
@@ -565,7 +565,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)include</AdditionalIncludeDirectories>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <FloatingPointModel>Fast</FloatingPointModel>
-      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
+      <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <LanguageStandard>stdcpplatest</LanguageStandard>
@@ -574,7 +574,7 @@
       <ExceptionHandling>Async</ExceptionHandling>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <DiagnosticsFormat>Classic</DiagnosticsFormat>
-      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
+      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <StringPooling>true</StringPooling>
       <OmitFramePointers>false</OmitFramePointers>
@@ -599,13 +599,14 @@
       <AssemblyDebug>true</AssemblyDebug>
       <SectionAlignment>
       </SectionAlignment>
-      <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
-      <OptimizeReferences>true</OptimizeReferences>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <CreateHotPatchableImage>ItaniumImage</CreateHotPatchableImage>
+      <OptimizeReferences>false</OptimizeReferences>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <SetChecksum>true</SetChecksum>
       <BaseAddress>
       </BaseAddress>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1134,7 +1135,7 @@ Exit 0</Command>
       <PreprocessorDefinitions>_WIN64;WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;GLEW_STATIC;%(PreprocessorDefinitions);PSAPI_VERSION=1;WINVER=_WIN32_WINNT_WIN7;_WIN32_WINNT=_WIN32_WINNT_WIN7;WINVER=_WIN32_WINNT_WIN7;_WIN32_WINNT=_WIN32_WINNT_WIN7;_CRT_SECURE_NO_WARNINGS;_CRT_NON_CONFORMING_SWPRINTFS;NOMINMAX;PSAPI_VERSION=1;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE;SK_BUILD_DLL;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <Optimization>Full</Optimization>
@@ -1142,7 +1143,7 @@ Exit 0</Command>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
-      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
+      <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <LanguageStandard>stdcpplatest</LanguageStandard>
@@ -1152,7 +1153,7 @@ Exit 0</Command>
       <UseFullPaths>true</UseFullPaths>
       <DiagnosticsFormat>Classic</DiagnosticsFormat>
       <BrowseInformation>false</BrowseInformation>
-      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
+      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <AssemblerOutput>All</AssemblerOutput>
       <OmitFramePointers>false</OmitFramePointers>
       <ExceptionHandling>Async</ExceptionHandling>
@@ -1182,12 +1183,13 @@ Exit 0</Command>
       <SectionAlignment>
       </SectionAlignment>
       <SetChecksum>true</SetChecksum>
-      <OptimizeReferences>true</OptimizeReferences>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
+      <OptimizeReferences>false</OptimizeReferences>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+      <CreateHotPatchableImage>ItaniumImage</CreateHotPatchableImage>
       <BaseAddress>
       </BaseAddress>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1726,6 +1728,17 @@ Exit 0</Command>
     <ClInclude Include="depends\DirectXTex\Filters.h" />
     <ClInclude Include="depends\DirectXTex\scoped.h" />
     <ClInclude Include="include\SpecialK\com_util.h" />
+    <ClInclude Include="include\SpecialK\control_panel.h" />
+    <ClInclude Include="include\SpecialK\control_panel\compatibility.h" />
+    <ClInclude Include="include\SpecialK\control_panel\d3d11.h" />
+    <ClInclude Include="include\SpecialK\control_panel\d3d9.h" />
+    <ClInclude Include="include\SpecialK\control_panel\input.h" />
+    <ClInclude Include="include\SpecialK\control_panel\opengl.h" />
+    <ClInclude Include="include\SpecialK\control_panel\osd.h" />
+    <ClInclude Include="include\SpecialK\control_panel\plugins.h" />
+    <ClInclude Include="include\SpecialK\control_panel\sound.h" />
+    <ClInclude Include="include\SpecialK\control_panel\steam.h" />
+    <ClInclude Include="include\SpecialK\control_panel\window.h" />
     <ClInclude Include="include\SpecialK\crc32.h" />
     <ClInclude Include="include\SpecialK\hash.h" />
     <ClInclude Include="include\SpecialK\injection\address_cache.h" />
@@ -1821,7 +1834,18 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
     </ClCompile>
     <ClCompile Include="src\com_util.cpp" />
+    <ClCompile Include="src\control_panel\cfg_compatibility.cpp" />
+    <ClCompile Include="src\control_panel\cfg_d3d11.cpp" />
+    <ClCompile Include="src\control_panel\cfg_d3d9.cpp" />
+    <ClCompile Include="src\control_panel\cfg_input.cpp" />
+    <ClCompile Include="src\control_panel\cfg_opengl.cpp" />
+    <ClCompile Include="src\control_panel\cfg_osd.cpp" />
+    <ClCompile Include="src\control_panel\cfg_plugins.cpp" />
+    <ClCompile Include="src\control_panel\cfg_sound.cpp" />
+    <ClCompile Include="src\control_panel\cfg_steam.cpp" />
+    <ClCompile Include="src\control_panel\cfg_window.cpp" />
     <ClCompile Include="src\crc32.cpp" />
+    <ClCompile Include="src\plugins\unclassified.cpp" />
     <ClCompile Include="src\steam\CSteamWorks.cpp" />
     <ClCompile Include="src\render\d3d11\d3d11.cpp" />
     <ClCompile Include="src\render\d3d11\d3d11_dev_ctx.cpp" />

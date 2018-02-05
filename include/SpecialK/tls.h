@@ -115,7 +115,10 @@ struct SK_TLS
 
   struct 
   {
-    BOOL ctx_init_thread     = FALSE;
+    BOOL   ctx_init_thread   = FALSE;
+    LPVOID temp_fullscreen   = nullptr;
+    // Needed to safely override D3D9Ex fullscreen mode during device
+    //   creation
   } d3d9;
 
   struct 

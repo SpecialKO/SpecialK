@@ -1,3 +1,11 @@
+0.9.0 (beta3):
+
+ + 
+ + Improved framerate limiter WaitForVBLANK and added this feature to GL
+ + Fixed D3D9Ex Fullscreen and Windowed overrides for applications that do
+     not set the Focus / Device HWND parameters during device creation
+
+
 0.9.0 (beta2):
 
  + Added FFXV to an internal whitelist of games _NOT SOLD ON STEAM_ that

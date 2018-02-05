@@ -492,8 +492,8 @@ SK_InstallOSD (void)
 }
 
 
-SK::Framerate::Stats frame_history;
-SK::Framerate::Stats frame_history2;
+extern SK::Framerate::Stats frame_history;
+extern SK::Framerate::Stats frame_history2;
 
 #include <SpecialK/command.h>
 
@@ -622,14 +622,6 @@ SK_DrawOSD (void)
 
   if (config.fps.show)
   {
-    // What the bloody hell?! How do we ever get a dt value near 0?
-    if (dt > 0.0001)
-      frame_history.addSample (1000.0 * dt, now);
-    else
-      frame_history.addSample (INFINITY, now);
-
-    frame_history2.addSample (SK::Framerate::GetLimiter ()->effective_frametime (), now);
-
     double mean    = frame_history.calcMean     ();
     double sd      = frame_history.calcSqStdDev (mean);
     double min     = frame_history.calcMin      ();
