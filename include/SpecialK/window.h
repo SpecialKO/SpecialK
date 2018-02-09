@@ -402,4 +402,10 @@ BOOL SK_Win32_IsGUIThread (void);
 window_t
 SK_FindRootWindow (DWORD proc_id);
 
+bool
+SK_Window_HasBorder (HWND hWnd = game_window.hWnd);
+
+bool
+SK_Window_IsFullscreen (HWND hWnd = game_window.hWnd);
+
 #endif /* __SK__WINDOW_H__ */

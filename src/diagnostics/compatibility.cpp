@@ -280,8 +280,8 @@ SK_LoadLibrary_IsPinnable (const _T* pStr)
     SK_TEXT ("perfos"),    SK_TEXT ("avrt"),
 
     SK_TEXT ("AUDIOSES"),  SK_TEXT ("HID"),
-    SK_TEXT ("d3dx11_43"), SK_TEXT ("d3dx9_43"),
-    SK_TEXT ("CEGUIOpenGLRenderer"),
+
+    SK_TEXT ("d3dx"),
 
     // Fix for premature DLL unload issue discussed here:
     //
@@ -289,11 +289,13 @@ SK_LoadLibrary_IsPinnable (const _T* pStr)
     ///
     SK_TEXT ("XAudio2_7"),
 
-#ifndef _WIN64
-    SK_TEXT ("steam_api"),   SK_TEXT ("nvapi"),
-#else
-    SK_TEXT ("steam_api64"), SK_TEXT ("nvapi64"),
-#endif
+    SK_TEXT ("nvapi"),
+    SK_TEXT ("steam_api"),
+    SK_TEXT ("steamclient"),
+
+    //SK_TEXT ("vstdlib_s"),
+    //SK_TEXT ("tier0_s"),
+
 
     //// Some software repeatedly loads and unloads this, which can
     ////   cause TLS-related problems if left unchecked... just leave
@@ -1098,14 +1100,10 @@ CreateThread (nullptr, 0, [](LPVOID user) -> DWORD
   if (! InterlockedCompareExchange (&init, 1, 0))
   {
     InitializeCriticalSectionAndSpinCount (&cs_thread_walk, 32);
+    InterlockedIncrement                  (&init);
   }
 
-  else
-  {
-    // Spinlock until ... the spinlock is setup :)
-    while (cs_thread_walk.SpinCount != 32)
-      ;
-  }
+  SK_Thread_SpinUntilAtomicMin (&init, 2);
 
 
   SK_LockDllLoader ();
@@ -1121,6 +1119,14 @@ CreateThread (nullptr, 0, [](LPVOID user) -> DWORD
 
   iSK_Logger* pLogger =
     pWorkingSet_->logger;
+
+  // Workaround silly SEH restrictions
+  auto __SEH_Compliant_EmplaceModule =
+  [&](enum_working_set_s* pWorkingSet, int idx)
+   {
+     logged_modules.emplace (pWorkingSet->modules [idx]);
+   };
+
 
   for (int i = 0; i < pWorkingSet_->count; i++ )
   {
@@ -1158,7 +1164,7 @@ CreateThread (nullptr, 0, [](LPVOID user) -> DWORD
                                       wszModName,
                                         pLogger );
 
-        logged_modules.insert (pWorkingSet_->modules [i]);
+        __SEH_Compliant_EmplaceModule (pWorkingSet_, i);
       }
     }
 
@@ -1169,7 +1175,7 @@ CreateThread (nullptr, 0, [](LPVOID user) -> DWORD
     {
       // Sometimes a DLL will be unloaded in the middle of doing this... just ignore that.
     }
-  }
+  };
 
   CloseHandle (pWorkingSet_->proc);
 
@@ -2456,6 +2462,11 @@ SK_Bypass_CRT (LPVOID user)
 
     if (nButtonPressed == BUTTON_RESET_CONFIG)
     {
+      std::wstring fname = dll_ini->get_filename ();
+
+      delete dll_ini;
+
+      SK_DeleteConfig (fname.c_str ());
       SK_DeleteConfig (wszConfigName);
 
       // Hard-code known plug-in config files -- bad (lack of) design.

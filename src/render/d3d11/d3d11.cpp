@@ -40,8 +40,10 @@
 #include <SpecialK/framerate.h>
 #include <SpecialK/tls.h>
 
+#include <SpecialK/control_panel.h>
+
 extern LARGE_INTEGER SK_QueryPerf (void);
-static DWORD         dwFrameTime = timeGetTime (); // For effects that blink; updated once per-frame.
+static DWORD         dwFrameTime = SK::ControlPanel::current_time; // For effects that blink; updated once per-frame.
 
 #include <algorithm>
 #include <memory>
@@ -357,7 +359,7 @@ struct resample_dispatch_s
     const int    MAX_UPLOAD_TIME_PER_FRAME_IN_MS = 10;
 
     size_t uploaded    = 0;
-    DWORD  dwStartTime = timeGetTime ();
+    DWORD  dwStartTime = SK::ControlPanel::current_time;
 
     SK_ScopedBool auto_bool_tex (&SK_TLS_Bottom ()->texture_management.injection_thread);
     SK_ScopedBool auto_bool_mem (&SK_TLS_Bottom ()->imgui.drawing);
@@ -419,7 +421,7 @@ struct resample_dispatch_s
           if (uploaded >= MAX_TEXTURE_UPLOADS_PER_FRAME)
             break;
 
-          if (timeGetTime () > dwStartTime + MAX_UPLOAD_TIME_PER_FRAME_IN_MS)
+          if (SK::ControlPanel::current_time > dwStartTime + MAX_UPLOAD_TIME_PER_FRAME_IN_MS)
             break;
         }
 
@@ -3810,9 +3812,8 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
   // UB: If it's happening, pretend we never saw this...
   if (pResource == nullptr)
   {
-#ifdef _DEBUG
-    ASSERT (pResource != nullptr);
-#endif
+    assert (pResource != nullptr);
+
     return hr;
   }
 
@@ -3983,9 +3984,8 @@ D3D11_Unmap_Override (
   // UB: If it's happening, pretend we never saw this...
   if (pResource == nullptr)
   {
-#ifdef _DEBUG
-    ASSERT (pResource != nullptr);
-#endif
+    assert (pResource != nullptr);
+
     return D3D11_Unmap_Original (This, pResource, Subresource);
   }
 
@@ -9683,12 +9683,12 @@ SK_D3D11_InitTextures (void)
     if (SK_GetCurrentGameID () == SK_GAME_ID::FinalFantasyX_X2)
       SK_D3D11_inject_textures_ffx = true;
 
-    InitializeCriticalSectionAndSpinCount (&preload_cs,   0x0100);
-    InitializeCriticalSectionAndSpinCount (&dump_cs,      0x0200);
-    InitializeCriticalSectionAndSpinCount (&inject_cs,    0x1000);
-    InitializeCriticalSectionAndSpinCount (&hash_cs,      0x4000);
-    InitializeCriticalSectionAndSpinCount (&cache_cs,     0x8000);
-    InitializeCriticalSectionAndSpinCount (&tex_cs,       0xFFFF);
+    InitializeCriticalSectionAndSpinCount (&preload_cs, 0x010);
+    InitializeCriticalSectionAndSpinCount (&dump_cs,    0x020);
+    InitializeCriticalSectionAndSpinCount (&inject_cs,  0x100);
+    InitializeCriticalSectionAndSpinCount (&hash_cs,    0x400);
+    InitializeCriticalSectionAndSpinCount (&cache_cs,   0x800);
+    InitializeCriticalSectionAndSpinCount (&tex_cs,     0xFFF);
 
     cache_opts.max_entries       = config.textures.cache.max_entries;
     cache_opts.min_entries       = config.textures.cache.min_entries;
@@ -9714,7 +9714,7 @@ SK_D3D11_InitTextures (void)
          new SK_IVarStub <bool> ((bool *)&config.textures.d3d11.cache));
     SK_GetCommandProcessor ()->AddVariable ("TexCache.MaxEntries",
          new SK_IVarStub <int> ((int *)&cache_opts.max_entries));
-    SK_GetCommandProcessor ()->AddVariable ("TexCache.MinEntries",
+    SK_GetCommandProcessor ()->AddVariable ("TexC ache.MinEntries",
          new SK_IVarStub <int> ((int *)&cache_opts.min_entries));
     SK_GetCommandProcessor ()->AddVariable ("TexCache.MaxSize",
          new SK_IVarStub <int> ((int *)&cache_opts.max_size));
@@ -10841,9 +10841,6 @@ uint32_t change_sel_ds = 0x00;
 uint32_t change_sel_cs = 0x00;
 
 
-extern bool
-SK_ImGui_IsItemRightClicked (ImGuiIO& io = ImGui::GetIO ());
-
 auto ShaderMenu =
 [&] ( std::unordered_set <uint32_t>&                          blacklist,
       SK_D3D11_KnownShaders::conditional_blacklist_t&    cond_blacklist,
@@ -11355,6 +11352,12 @@ SK_LiveTextureView (bool& can_scroll)
 
       while (sel >= 0 && sel < list_contents.size ())
       {
+        if ( (dir < 0 && sel == 0                        ) ||
+             (dir > 0 && sel == list_contents.size () - 1)    )
+        {
+          break;
+        }
+
         sel += dir;
 
         if (hide_inactive)
@@ -11622,10 +11625,12 @@ SK_LiveTextureView (bool& can_scroll)
                                );
           ImGui::EndChildFrame ();
         }
+        ImGui::PopStyleColor   ();
         ImGui::EndChild        ();
         ImGui::EndGroup        ();
-        last_ht = ImGui::GetItemRectSize ().y;
-        ImGui::PopStyleColor   (2);
+        last_ht =
+        ImGui::GetItemRectSize ().y;
+        ImGui::PopStyleColor   ();
       }
     }
 
@@ -13498,7 +13503,7 @@ SK_D3D11_EndFrame (void)
 {
   std::lock_guard <SK_Thread_CriticalSection> auto_lock (cs_render_view);
 
-  dwFrameTime = timeGetTime ();
+  dwFrameTime = SK::ControlPanel::current_time;
 
   static ULONG frames = 0;
 
@@ -15599,9 +15604,9 @@ SK_D3D11_PresentFirstFrame (IDXGISwapChain* pSwapChain)
       SK_Hook_ResolveTarget (*it);
 
       // Don't cache addresses that were screwed with by other injectors
-      const wchar_t* wszSection =
-        StrStrIW (it->target.module_path, LR"(d3d11.dll)") ?
-                                        L"D3D11.Hooks" : nullptr;
+      const wchar_t* wszSection = L"D3D11.Hooks";
+        //StrStrIW (it->target.module_path, LR"(d3d11.dll)") ?
+        //                                L"D3D11.Hooks" : nullptr;
 
       if (! wszSection)
       {
@@ -15628,7 +15633,7 @@ SK_D3D11_PresentFirstFrame (IDXGISwapChain* pSwapChain)
     while ( it_local != std::end (local_d3d11_records) )
     {
       if (( *it_local )->hits &&
-StrStrIW (( *it_local )->target.module_path, LR"(d3d11.dll)") &&
+//StrStrIW (( *it_local )->target.module_path, LR"(d3d11.dll)") &&
           ( *it_local )->active)
         SK_Hook_PushLocalCacheOntoGlobal ( **it_local,
                                              **it_global );

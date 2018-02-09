@@ -1737,7 +1737,10 @@ ImGui_WndProcHandler (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 bool
 SK_ImGui_HandlesMessage (LPMSG lpMsg, bool, bool)
 {
-  assert (lpMsg->hwnd == game_window.hWnd);
+  // Many GL games mysteriously violate this with no ill-effect...
+  //
+  ///assert ( lpMsg->hwnd == 0 ||
+  ///         lpMsg->hwnd == game_window.hWnd );
 
   bool handled = false;
 
@@ -1818,7 +1821,7 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool, bool)
 
     case WM_INPUT:
     {
-      ////handled = (ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam) != 0);
+    //handled = (ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam) != 0);
     } break;
 
     default:
@@ -1915,7 +1918,7 @@ void SK_Input_PreInit (void)
      static_cast_p2p <void> (&GetRawInputBuffer_Original) );
 
   if (config.input.gamepad.hook_xinput)
-    SK_XInput_InitHotPlugHooks ();
+    SK_XInput_InitHotPlugHooks ( );
 
   SK_ApplyQueuedHooks ();
 }

@@ -146,6 +146,11 @@ void
 CALLBACK
 SK_PluginKeyPress (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode)
 {
+  if (! SK_GetFramesDrawn ())
+    return;
+
+
+
   UNREFERENCED_PARAMETER (Control);
   UNREFERENCED_PARAMETER (Shift);
   UNREFERENCED_PARAMETER (Alt);
@@ -175,6 +180,12 @@ SK_PluginKeyPress (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode)
 BOOL
 SK_ImGui_KeyPress (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode)
 {
+  if (! SK_GetFramesDrawn ())
+    return TRUE;
+
+
+
+
   UNREFERENCED_PARAMETER (Alt);
 
 SHORT SK_ImGui_ToggleKeys [4] = {
@@ -197,6 +208,7 @@ SHORT SK_ImGui_ToggleKeys [4] = {
   return TRUE;
 }
 
+
 extern SHORT SK_ImGui_ToggleKeys [4];
 
 int
@@ -215,6 +227,7 @@ SK_HandleConsoleKey (bool keyDown, BYTE vkCode, LPARAM lParam)
   keys_ [0] = TRUE;
 
 
+
   // Short-hand Lambda for make/break input processing
   auto ProcessKeyPress = [&](BYTE vkCode) ->
   bool
@@ -231,6 +244,7 @@ SK_HandleConsoleKey (bool keyDown, BYTE vkCode, LPARAM lParam)
       {
         // Then give any plug-ins a chance
         SK_PluginKeyPress   (keys_ [VK_CONTROL], keys_ [VK_SHIFT], keys_ [VK_MENU], vkCode);
+
 
         // Finally, toggle the command console
         if ( SK_MakeKeyMask (vkCode, keys_ [VK_CONTROL], keys_ [VK_SHIFT], keys_ [VK_MENU]) ==
@@ -251,6 +265,7 @@ SK_HandleConsoleKey (bool keyDown, BYTE vkCode, LPARAM lParam)
 
     return 0;
   };
+
 
 
   if (! SK_IsSteamOverlayActive ())

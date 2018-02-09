@@ -28,7 +28,8 @@ namespace SK
   {
     namespace Steam
     {
-      bool Draw (void);
+      bool Draw     (void);
+      bool DrawMenu (void);
     };
   };
 };

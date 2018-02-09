@@ -140,7 +140,7 @@ SK_ImGui_DrawEULA (LPVOID reserved)
   const  float font_size           =             ImGui::GetFont  ()->FontSize                        * io.FontGlobalScale;
   const  float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y + ImGui::GetStyle ().ItemInnerSpacing.y;
 
-  if (ImGui::BeginPopupModal (szTitle, nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders | ImGuiWindowFlags_NavFlattened))
+  if (ImGui::BeginPopupModal (szTitle, nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders /*| ImGuiWindowFlags_NavFlattened*/))
   {
     ImGui::SetNextWindowPosCenter (ImGuiSetCond_Appearing);
     ImGui::SetNextWindowFocus     ();

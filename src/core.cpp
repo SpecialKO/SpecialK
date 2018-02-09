@@ -91,10 +91,6 @@
 
 #include <imgui/imgui.h>
 
-#include <CEGUI/CEGUI.h>
-#include <CEGUI/System.h>
-#include <CEGUI/Logger.h>
-
 
 extern iSK_Logger game_debug;
 
@@ -1231,7 +1227,7 @@ BACKEND_INIT:
 
     if (d3d9 && (config.apis.d3d9.hook || config.apis.d3d9ex.hook))
     {
-      //SK_D3D9_QuickHook ();
+      SK_D3D9_QuickHook ();
     }
 
 
@@ -1337,17 +1333,21 @@ SK_Win32_CleanupDummyWindow (HWND hwnd)
 {
   std::lock_guard <std::mutex> auto_lock (dummy_windows.lock);
 
-  for (auto it = dummy_windows.list.begin (); it != dummy_windows.list.end (); ++it)
+  std::set <HWND> cleaned_windows;
+
+  for ( auto& it : dummy_windows.list )
   {
-    if (*it == hwnd || hwnd == nullptr)
+    if (it == hwnd || hwnd == nullptr)
     {
-      if (DestroyWindow (*it))
+      if (DestroyWindow (it))
       {
-        it =
-          dummy_windows.list.erase (it);
+        cleaned_windows.emplace (it);
       }
     }
   }
+
+  for ( auto& it : cleaned_windows )
+    dummy_windows.list.erase (it);
 
   if (dummy_windows.list.empty ())
     UnregisterClassW ( L"Special K Dummy Window Class", SK_GetDLL () );
@@ -1830,6 +1830,41 @@ SK_BeginBufferSwap (void)
               return ret;
             };
 
+        auto LoadCEGUI_Core  = [&](void)
+        { auto LoadCEGUI_DLL = [&](const wchar_t* wszName)
+          {
+            wchar_t   wszFullPath [MAX_PATH * 2] = { };
+            lstrcatW (wszFullPath, wszCEGUIModPath);
+            lstrcatW (wszFullPath, LR"(\)");
+            lstrcatW (wszFullPath, wszName);
+
+            LoadLibraryW (wszFullPath);
+          };
+
+          //LoadCEGUI_DLL (L"zlib.dll");
+          //LoadCEGUI_DLL (L"freetype.dll");
+          //LoadCEGUI_DLL (L"CEGUICoreWindowRendererSet.dll");
+          //LoadCEGUI_DLL (L"CEGUICommonDialogs-0.dll");
+          //LoadCEGUI_DLL (L"CEGUISTBImageCodec.dll");
+        //LoadCEGUI_DLL (L"pcre.dll");
+        //LoadCEGUI_DLL (L"CEGUIRapidXMLParser.dll");
+        };
+
+        auto LoadCEGUI_GLCore= [&](void)
+        { auto LoadCEGUI_DLL = [&](const wchar_t* wszName)
+          {
+            wchar_t   wszFullPath [MAX_PATH * 2] = { };
+            lstrcatW (wszFullPath, wszCEGUIModPath);
+            lstrcatW (wszFullPath, LR"(\)");
+            lstrcatW (wszFullPath, wszName);
+
+            LoadLibraryW (wszFullPath);
+          };
+
+          LoadCEGUI_Core ();
+          LoadCEGUI_DLL  (L"glew.dll");
+        };
+
         if (DelayLoadDLL ("CEGUIBase-0.dll"))
         {
           FILE* fTest = 
@@ -1844,7 +1879,10 @@ SK_BeginBufferSwap (void)
               if (config.apis.OpenGL.hook)
               {
                 if (DelayLoadDLL ("CEGUIOpenGLRenderer-0.dll"))
+                {
+                  LoadCEGUI_GLCore ();
                   config.cegui.enable = true;
+                }
               }
             }
 
@@ -1854,7 +1892,10 @@ SK_BeginBufferSwap (void)
               if (config.apis.d3d9.hook || config.apis.d3d9ex.hook)
               {
                 if (DelayLoadDLL ("CEGUIDirect3D9Renderer-0.dll"))
+                {
+                  LoadCEGUI_Core ();
                   config.cegui.enable = true;
+                }
               }
             }
 
@@ -1864,7 +1905,10 @@ SK_BeginBufferSwap (void)
                    static_cast <int> (SK_RenderAPI::D3D11              ) )
               {
                 if (DelayLoadDLL ("CEGUIDirect3D11Renderer-0.dll"))
+                {
+                  LoadCEGUI_Core ();
                   config.cegui.enable = true;
+                }
               }
             }
           }

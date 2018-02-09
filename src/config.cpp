@@ -179,7 +179,12 @@ struct {
     sk::ParameterBool*    early_overlay;
     sk::ParameterBool*    force_load;
     sk::ParameterBool*    auto_inject;
+    sk::ParameterBool*    reuse_overlay_pause;
   } system;
+
+  struct {
+    sk::ParameterInt*     online_status;
+  } social;
 
   struct {
     sk::ParameterBool*    silent;
@@ -854,6 +859,9 @@ SK_LoadConfigEx (std::wstring name, bool create)
     ConfigEntry (steam.system.force_load,                L"Forcefully load steam_api{64}.dll",                         dll_ini,         L"Steam.System",          L"ForceLoadSteamAPI"),
     ConfigEntry (steam.system.auto_inject,               L"Automatically load steam_api{64}.dll into any game whose "
                                                          L"path includes SteamApps\\common, but doesn't use steam_api",dll_ini,         L"Steam.System",          L"AutoInjectSteamAPI"),
+    ConfigEntry (steam.system.reuse_overlay_pause,       L"Pause Overlay Aware games when control panel is visible",   dll_ini,         L"Steam.System",          L"ReuseOverlayPause"),
+    ConfigEntry (steam.social.online_status,             L"Always apply a social state (defined by EPersonaState) at"
+                                                         L" application start",                                        dll_ini,         L"Steam.Social",          L"OnlineStatus"),
 
     // Swashbucklers pay attention
     //////////////////////////////////////////////////////////////////////////
@@ -1634,7 +1642,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
     config.render.framerate.limiter_tolerance = 0.925f;
 
 
-  render.osd.draw_in_vidcap->load           (config.render.osd.draw_in_vidcap);
+  render.osd.draw_in_vidcap->load           (config.render.osd. draw_in_vidcap);
 
   // D3D9/11
   //
@@ -2030,6 +2038,26 @@ SK_LoadConfigEx (std::wstring name, bool create)
   steam.system.early_overlay->load         (config.steam.preload_overlay);
   steam.system.force_load->load            (config.steam.force_load_steamapi);
   steam.system.auto_inject->load           (config.steam.auto_inject);
+  steam.system.reuse_overlay_pause->load   (config.steam.reuse_overlay_pause);
+
+
+  bool global_override = false;
+
+  if (achievement_ini->contains_section (L"Steam.Social"))
+  {
+    if (achievement_ini->get_section (L"Steam.Social").contains_key (L"OnlineStatus"))
+    {
+      swscanf ( achievement_ini->get_section (L"Steam.Social").
+                                 get_value   (L"OnlineStatus").c_str (),
+                  L"%d", &config.steam.online_status );
+      global_override = true;
+    }
+  }
+
+  // If no global value is set, this can be established per-game.
+  if (! global_override)
+    steam.social.online_status->load (config.steam.online_status);
+
 
   if (((sk::iParameter *)steam.system.notify_corner)->load ())
   {
@@ -2307,9 +2335,15 @@ SK_DeleteConfig (std::wstring name)
 {
   wchar_t wszFullName [ MAX_PATH + 2 ] = { };
 
-  lstrcatW (wszFullName, SK_GetConfigPath ());
-  lstrcatW (wszFullName,       name.c_str ());
-  lstrcatW (wszFullName,             L".ini");
+  if ( name.find (L"/" ) == name.npos &&
+       name.find (L"\\") == name.npos )
+    lstrcatW (wszFullName, SK_GetConfigPath ());
+
+  lstrcatW (wszFullName,   name.c_str ());
+
+  if (name.find (L".ini") == name.npos)
+    lstrcatW (wszFullName, L".ini");
+
 
   return (DeleteFileW (wszFullName) != FALSE);
 }
@@ -2639,7 +2673,7 @@ SK_SaveConfig ( std::wstring name,
     }
   }
 
-  render.osd.draw_in_vidcap->store            (config.render.osd.draw_in_vidcap);
+  render.osd.draw_in_vidcap->store             (config.render.osd.draw_in_vidcap);
 
   texture.res_root->store                      (config.textures.d3d11.res_root);
   texture.dump_on_load->store                  (config.textures.dump_on_load);
@@ -2681,6 +2715,9 @@ SK_SaveConfig ( std::wstring name,
   steam.system.notify_corner->store         (
     SK_Steam_PopupOriginToWStr (config.steam.notify_corner)
   );
+  steam.system.reuse_overlay_pause->store   (config.steam.reuse_overlay_pause);
+
+  steam.social.online_status->store         (config.steam.online_status);
 
   steam.log.silent->store                   (config.steam.silent);
   steam.drm.spoof_BLoggedOn->store          (config.steam.spoof_BLoggedOn);

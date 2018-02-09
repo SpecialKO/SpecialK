@@ -286,7 +286,7 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
   }
 
   pDevCtx->OMSetRenderTargets ( 1,
-                                  &pRenderTargetView,
+                                  &pRenderTargetView.p,
                                     nullptr );
 
   // Setup viewport

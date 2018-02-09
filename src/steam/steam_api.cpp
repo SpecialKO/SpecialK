@@ -43,6 +43,8 @@
 #include <SpecialK/osd/text.h>
 #include <SpecialK/render/backend.h>
 
+#include <SpecialK/tls.h>
+
 #include <array>
 #include <memory>
 #include <atlbase.h>
@@ -337,6 +339,28 @@ public:
     }
 #endif
 
+    // If the game has an activation callback installed, then
+    //   it's also going to see this event... make a note of that when
+    //     tracking its believed overlay state.
+    if (SK::SteamAPI::IsOverlayAware ())
+      SK::SteamAPI::overlay_state = (pParam->m_bActive != 0);
+
+
+    // If we want to use this as our own, then don't let the Steam overlay
+    //   unpause the game on deactivation unless the control panel is closed.
+    if (config.steam.reuse_overlay_pause && SK::SteamAPI::IsOverlayAware ())
+    {
+      // Deactivating, but we might want to hide this event from the game...
+      if (pParam->m_bActive == 0)
+      {
+        extern bool SK_ImGui_Visible;
+
+        // Undo the event the game is about to receive.
+        if (SK_ImGui_Visible) SK::SteamAPI::SetOverlayState (true);
+      }
+    }
+
+
     active_ = (pParam->m_bActive != 0);
   }
 
@@ -467,7 +491,8 @@ SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
       steam_log.Log ( L" * (%-28s) Installed Overlay Activation Callback",
                         caller.c_str () );
 
-      overlay_activation_callbacks.insert (pCallback);
+      if (SK_ValidatePointer (pCallback))
+        overlay_activation_callbacks.insert (pCallback);
     } break;
 
     case ScreenshotRequested_t::k_iCallback:
@@ -848,7 +873,7 @@ SK_Steam_SetNotifyCorner (void)
 void
 SK_SteamAPIContext::Shutdown (void)
 {
-  if (InterlockedDecrement (&__SK_Steam_init) == 0)
+  if (InterlockedDecrement (&__SK_Steam_init) == 1)
   { 
     if (client_)
     {
@@ -861,6 +886,9 @@ SK_SteamAPIContext::Shutdown (void)
 #endif
 
       SK_SteamAPI_DestroyManagers  ();
+
+      ReleaseThreadUser ();
+      ReleaseThreadPipe ();
     }
 
     hSteamPipe      = 0;
@@ -883,12 +911,11 @@ SK_SteamAPIContext::Shutdown (void)
     
     if (SteamAPI_Shutdown_Original != nullptr)
     {
+      SteamAPI_Shutdown_Original ();
       SteamAPI_Shutdown_Original = nullptr;
 
       SK_DisableHook (SteamAPI_RunCallbacks);
       SK_DisableHook (SteamAPI_Shutdown);
-
-      SteamAPI_Shutdown ();
     }
   }
 }
@@ -1403,6 +1430,11 @@ public:
                      friend_listener )
   {
     friend_listener.Cancel ();
+
+
+    if (ReadAcquire (&__SK_DLL_Ending))
+      return;
+
 
     uint32 app_id =
       CGameID (pParam->m_nGameID).AppID ();
@@ -2673,6 +2705,13 @@ void
 S_CALLTYPE
 SteamAPI_RunCallbacks_Detour (void)
 {
+  if (ReadAcquire (&__SK_DLL_Ending))
+  {
+    SteamAPI_RunCallbacks_Original ();
+    return;
+  }
+
+
   static bool failure = false;
 
   // Throttle to 1000 Hz for STUPID games like Akiba's Trip
@@ -2689,11 +2728,15 @@ SteamAPI_RunCallbacks_Detour (void)
       InterlockedIncrement64 (&SK_SteamAPI_CallbackRunCount);
       // Skip the callbacks, one call every 1 ms is enough!!
 
-      if (GetThreadPriority (GetCurrentThread ()) == THREAD_PRIORITY_NORMAL)
-        SleepEx (1, TRUE);
-      else
-        SwitchToThread ();
-      return;
+      //// Sleep 0 doesn't do anything for threads with altered priority,
+      ////   don't do that... there could be HIGHER priority ready threads
+      ////                      and they'll be ignored by a 0 interval!
+      //if (GetThreadPriority (GetCurrentThread ()) != THREAD_PRIORITY_NORMAL)
+      //  MsgWaitForMultipleObjectsEx (0, nullptr, 1, MWMO_INPUTAVAILABLE, 0x00);
+      //else
+      //  YieldProcessor ();
+      //
+      //return;
     }
   }
 
@@ -2749,18 +2792,23 @@ SteamAPI_RunCallbacks_Detour (void)
 
   __try
   {
-    //if (! ReadAcquire (&__SK_DLL_Ending))
-    if (__SK_DLL_Ending == false)
+    if (! ReadAcquire (&__SK_DLL_Ending))
     {
+      static DWORD
+          dwLastOnlineStateCheck = 0UL;
+      if (dwLastOnlineStateCheck < dwNow - 666UL)
+      {
+        if ( config.steam.online_status       != -1 && 
+             SK::SteamAPI::GetPersonaState () != config.steam.online_status )
+        {
+          SK::SteamAPI::SetPersonaState ((EPersonaState)config.steam.online_status);
+        }
+
+        dwLastOnlineStateCheck = dwNow;
+      }
+
       InterlockedIncrement64         (&SK_SteamAPI_CallbackRunCount);
       SteamAPI_RunCallbacks_Original ();
-    }
-
-    else
-    {
-      // Do not keep restarting SteamAPI :)
-      //if (SteamAPI_Shutdown != nullptr)
-      //  TerminateThread (GetCurrentThread (), MAXDWORD);
     }
   }
 
@@ -2775,6 +2823,7 @@ SteamAPI_RunCallbacks_Detour (void)
     }
   }
 }
+
 
 #define STEAMAPI_CALL1(x,y,z) ((x) = SteamAPI_##y z)
 #define STEAMAPI_CALL0(y,z)   (SteamAPI_##y z)
@@ -3348,6 +3397,51 @@ SK::SteamAPI::AppName (void)
   return "";
 }
 
+
+// What the hell is wrong with Steam's 32-bit ABI?!
+//
+//   Some games need __fastcall, others __cdecl.
+//
+typedef void (__cdecl *SK_Steam_Callback_pfn)(CCallbackBase* This, void* pvParam);
+
+//
+// This bypasses SteamAPI and attempts to invoke a registered callback
+//   manually.
+//
+//   In very rare cases there are ABI-related issues. Or... more commonly,
+//     a game has thrown around an invalid pointer for the callback or we
+//       missed an unregister call.
+//
+// For all of those reasons, we run this through a Structured Exception Handler
+//   and ignore access violations caused by this hackjob :)
+//
+void
+SK_Steam_InvokeOverlayActivationCallback ( SK_Steam_Callback_pfn CallbackFn,
+                                           CCallbackBase*        pClosure,
+                                           bool                  active )
+{
+  __try
+  {
+    GameOverlayActivated_t activated = {
+      active
+    };
+
+#ifndef _WIN64
+    UNREFERENCED_PARAMETER (CallbackFn);
+    pClosure->Run (&activated);
+#else
+    CallbackFn (pClosure, &activated);
+#endif
+
+    SK::SteamAPI::overlay_state = active;
+  }
+  __except (EXCEPTION_EXECUTE_HANDLER)
+  {
+    // Oh well, we literally tried...
+  }
+}
+
+
 void
 __stdcall
 SK::SteamAPI::SetOverlayState (bool active)
@@ -3357,24 +3451,16 @@ SK::SteamAPI::SetOverlayState (bool active)
 
   EnterCriticalSection (&callback_cs);
 
-  __try
+  for ( auto& it : overlay_activation_callbacks )
   {
-    GameOverlayActivated_t state;
-    state.m_bActive = active;
-    overlay_state   = active;
+    void** vftable = *(void ***)*(&it);
 
-    auto it =
-      overlay_activation_callbacks.begin ();
-
-    while (it != overlay_activation_callbacks.end ())
-    {
-      (*it++)->Run (&state);
-    }
+    SK_Steam_InvokeOverlayActivationCallback (
+      reinterpret_cast <SK_Steam_Callback_pfn> ( vftable [0]),
+                                                   it,
+                                                     active
+                                             );
   }
-
-  __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION )  ?
-                       EXCEPTION_EXECUTE_HANDLER :
-                       EXCEPTION_CONTINUE_SEARCH ) { }
 
   LeaveCriticalSection (&callback_cs);
 }
@@ -3475,8 +3561,6 @@ SteamAPI_Shutdown_Detour (void)
 
       for (int i = 0; i < 100; i++)
       {
-        SleepEx (100UL, TRUE);
-
         if (ReadAcquire (&__SK_DLL_Ending))
         {
           CloseHandle (GetCurrentThread ());
@@ -3485,11 +3569,14 @@ SteamAPI_Shutdown_Detour (void)
         }
       }
 
+      SleepEx (100UL, FALSE);
+
       // Start back up again :)
       //
       //  >> Stupid hack for The Witcher 3
       //
-      SteamAPI_RunCallbacks_Detour ();
+      if (SteamAPI_RunCallbacks_Original != nullptr)
+        SteamAPI_RunCallbacks_Detour ();
 
       CloseHandle (GetCurrentThread ());
 
@@ -4864,6 +4951,19 @@ SK_SteamAPIContext::InitSteamAPI (HMODULE hSteamDLL)
     return false;
   }
 
+  user_ex_ =
+    (ISteamUser004_Light *)client_->GetISteamUser (
+      hSteamUser,
+        hSteamPipe,
+          "SteamUser004" );
+
+  // Ensure the Steam overlay injects and behaves in a sane way.
+  //
+  //  * Refer to the non-standard interface definition above for more.
+  //
+  SK_Steam_ConnectUserIfNeeded (user_->GetSteamID ());
+
+
   // Blacklist of people not allowed to use my software (for being disruptive to other users)
   //uint32_t aid = user_->GetSteamID ().GetAccountID    ();
   //uint64_t s64 = user_->GetSteamID ().ConvertToUint64 ();
@@ -5088,6 +5188,272 @@ SK_Steam_KickStart (const wchar_t* wszLibPath)
 
   return false;
 }
+
+
+#define CLIENTENGINE_INTERFACE_VERSION  "CLIENTENGINE_INTERFACE_VERSION005"
+#define CLIENTUSER_INTERFACE_VERSION    "CLIENTUSER_INTERFACE_VERSION001"
+#define CLIENTFRIENDS_INTERFACE_VERSION "CLIENTFRIENDS_INTERFACE_VERSION001"
+
+
+class IClientUser_001_Min
+{
+public:
+  virtual HSteamUser  GetHSteamUser                         (void)                                                               = 0;
+  
+  virtual void        LogOn                                 (bool bInteractive, CSteamID steamID)                                = 0;
+  virtual void        LogOnWithPassword                     (bool bInteractive, const char * pchLogin, const char * pchPassword) = 0;
+  virtual void        LogOnAndCreateNewSteamAccountIfNeeded (bool bInteractive)                                                  = 0;
+
+  virtual EResult     LogOnConnectionless                   (void)                                                               = 0;
+  virtual void        LogOff                                (void)                                                               = 0;
+  virtual bool        BLoggedOn                             (void)                                                               = 0;
+  virtual SK::SteamAPI::ELogonState
+                      GetLogonState                         (void)                                                               = 0;
+  virtual bool        BConnected                            (void)                                                               = 0;
+  virtual bool        BTryingToLogin                        (void)                                                               = 0;
+};
+
+class IClientFriends_001_Min
+{
+public:
+  // returns the local players name - guaranteed to not be NULL.
+  virtual const char    *GetPersonaName   (void)                        = 0;
+
+  // sets the player name, stores it on the server and publishes the changes
+  // to all friends who are online
+  virtual void           SetPersonaName   (const char *pchPersonaName)  = 0;
+  virtual SteamAPICall_t SetPersonaNameEx (const char *pchPersonaName,
+                                                 bool  bSendCallback)   = 0;
+
+  virtual bool           IsPersonaNameSet (void)                        = 0;
+
+  // gets the friend status of the current user
+  virtual EPersonaState  GetPersonaState  (void)                        = 0;
+  // sets the status, communicates to server, tells all friends
+  virtual void           SetPersonaState  (EPersonaState ePersonaState) = 0;
+};
+
+class IClientEngine_005_Min
+{
+public:
+  virtual HSteamPipe              CreateSteamPipe       (void)                                                                 = 0; 
+  virtual bool                    BReleaseSteamPipe     (HSteamPipe   hSteamPipe)                                              = 0;
+  virtual HSteamUser              CreateGlobalUser      (HSteamPipe* phSteamPipe)                                              = 0;
+  virtual HSteamUser              ConnectToGlobalUser   (HSteamPipe   hSteamPipe)                                              = 0;
+  virtual HSteamUser              CreateLocalUser       (HSteamPipe* phSteamPipe, EAccountType eAccountType)                   = 0;
+  virtual void                    CreatePipeToLocalUser (HSteamUser   hSteamUser, HSteamPipe* phSteamPipe  )                   = 0;
+  virtual void                    ReleaseUser           (HSteamPipe   hSteamPipe, HSteamUser   hUser       )                   = 0;
+  virtual bool                    IsValidHSteamUserPipe (HSteamPipe   hSteamPipe, HSteamUser   hUser       )                   = 0;
+  
+  virtual IClientUser_001_Min    *GetIClientUser        (HSteamUser hSteamUser, HSteamPipe hSteamPipe, char const* pchVersion) = 0;
+  virtual LPVOID /*DONTCARE*/     GetIClientGameServer  (HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char *pchVersion) = 0;
+  
+  virtual void                    SetLocalIPBinding     (uint32    unIP, uint16 usPort)                                        = 0;
+  virtual char const             *GetUniverseName       (EUniverse eUniverse          )                                        = 0;
+  
+  virtual IClientFriends_001_Min *GetIClientFriends     (HSteamUser hSteamUser, HSteamPipe hSteamPipe, char const* pchVersion) = 0;
+
+  // LOTS MORE DONT CARE...
+};
+
+
+void*
+SK_SteamAPIContext::ClientEngine (void)
+{
+  using  CreateInterface_pfn = void* (__cdecl *)(const char *ver, int* pError);
+  static CreateInterface_pfn SteamClient_CreateInterface = nullptr;
+
+#ifdef _WIN64
+  SteamClient_CreateInterface =
+    (CreateInterface_pfn)
+      GetProcAddress ( GetModuleHandle (L"steamclient64.dll"),
+                                         "CreateInterface" );
+#else
+  SteamClient_CreateInterface =
+    (CreateInterface_pfn)
+      GetProcAddress ( GetModuleHandle (L"steamclient.dll"),
+                                         "CreateInterface" );
+#endif
+
+  static IClientEngine_005_Min* client_engine = nullptr;
+
+  if (SteamClient_CreateInterface != nullptr && client_engine == nullptr)
+  {
+    int err = 0;
+
+    client_engine =
+      (IClientEngine_005_Min *)SteamClient_CreateInterface (
+        CLIENTENGINE_INTERFACE_VERSION, &err
+      );
+
+    if (client_engine == nullptr)
+      client_engine = (IClientEngine_005_Min *)(uintptr_t)1;
+  }
+
+  return (uintptr_t)client_engine > 1 ? client_engine : nullptr;
+}
+
+void*
+SK_SteamAPIContext::ClientUser (void)
+{
+  static IClientEngine_005_Min* client_engine =
+    (IClientEngine_005_Min *)ClientEngine ();
+
+  if (client_engine != nullptr)
+  {
+    return
+      client_engine->GetIClientUser ( hSteamUser,
+                                        hSteamPipe,
+                                          CLIENTUSER_INTERFACE_VERSION );
+  }
+
+  return nullptr;
+}
+
+void*
+SK_SteamAPIContext::ClientFriends (void)
+{
+  static IClientEngine_005_Min* client_engine =
+    (IClientEngine_005_Min *)ClientEngine ();
+
+  assert (client_engine != nullptr);
+
+  if (client_engine != nullptr && client_ != nullptr)
+  {
+    static void* friends = nullptr;
+
+    HSteamPipe& pipe = SK_TLS_Bottom ()->steam.client_pipe;
+    HSteamUser& user = SK_TLS_Bottom ()->steam.client_user;
+
+    if (pipe == 0 && client_ != nullptr)
+      pipe = client_->CreateSteamPipe ();
+
+    if (user == 0 && client_ != nullptr)
+      user = client_->CreateLocalUser (&pipe, k_EAccountTypeIndividual);
+
+
+    if (friends == nullptr && hSteamPipe != 0)
+    {
+      friends =
+        client_engine->GetIClientFriends ( hSteamUser, hSteamPipe,
+                                             CLIENTFRIENDS_INTERFACE_VERSION );
+
+      assert (friends != nullptr);
+
+      if (friends == nullptr) friends = (LPVOID)(uintptr_t)1;
+    }
+
+    return (uintptr_t)friends > 1 ? friends : nullptr;
+  }
+
+  return nullptr;
+}
+
+
+void
+SK::SteamAPI::SetPersonaState (EPersonaState state)
+{
+  IClientFriends_001_Min* client_friends =
+    static_cast <IClientFriends_001_Min *> (
+      steam_ctx.ClientFriends ()
+    );
+
+  if (client_friends)
+  {
+    client_friends->SetPersonaState (state);
+    SteamAPI_RunCallbacks_Detour    (     );
+  }
+}
+
+EPersonaState
+SK::SteamAPI::GetPersonaState (void)
+{
+  IClientFriends_001_Min* client_friends =
+    static_cast <IClientFriends_001_Min *> (
+      steam_ctx.ClientFriends ()
+    );
+
+  if (client_friends)
+  {
+    return
+      client_friends->GetPersonaState ();
+  }
+
+  return
+    steam_ctx.Friends () ? steam_ctx.Friends ()->GetPersonaState () :
+                                                 k_EPersonaStateOffline;
+}
+
+
+//
+// Steam may not inject the Steam overlay in some cases without this,
+//   it may also pull the steamclient{64}.dll rug out from under our feet
+//     at startup without it.
+//
+bool
+SK_Steam_ConnectUserIfNeeded (CSteamID user)
+{
+  bool bRet = false;
+
+  if (steam_ctx.User () != nullptr && user == steam_ctx.User ()->GetSteamID ())
+  {
+    SK::SteamAPI::ISteamUser004_Light*
+      user_ex =
+        steam_ctx.UserEx ();
+
+    if (user_ex != nullptr)
+    {
+      if (! user_ex->BConnected ())
+      {
+        user_ex->LogOn               (user);
+        SteamAPI_RunCallbacks_Detour (    );
+
+        bRet = true;
+      }
+    }
+  }
+
+  if (config.steam.online_status != -1)
+    SK::SteamAPI::SetPersonaState ((EPersonaState)config.steam.online_status);
+
+  return bRet;
+}
+
+bool
+SK_SteamAPIContext::ReleaseThreadPipe (void)
+{
+  HSteamPipe& pipe = SK_TLS_Bottom ()->steam.client_pipe;
+
+  if (pipe != 0 && client_ != nullptr)
+  {
+    if (client_->BReleaseSteamPipe (pipe))
+    {
+      pipe = 0;
+
+      return true;
+    }
+  }
+
+  return false;
+}
+
+bool
+SK_SteamAPIContext::ReleaseThreadUser (void)
+{
+  HSteamUser& user = SK_TLS_Bottom ()->steam.client_user;
+  HSteamPipe& pipe = SK_TLS_Bottom ()->steam.client_pipe;
+
+  if (user != 0 && client_ != nullptr)
+  {
+    client_->ReleaseUser (pipe, user);
+    user = 0;
+
+    return true;
+  }
+
+  return false;
+}
+
 
 
 uint64_t    SK::SteamAPI::steam_size                                    = 0ULL;

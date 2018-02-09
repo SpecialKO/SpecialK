@@ -30,8 +30,8 @@
 
 #include <SpecialK/steam_api.h>
 
-using namespace SK::ControlPanel;
 
+using namespace SK::ControlPanel;
 
 extern bool
 SK_Denuvo_UsedByGame (bool retest = false);
@@ -658,18 +658,40 @@ SK::ControlPanel::Steam::Draw (void)
     bool pause =
       SK_SteamAPI_GetOverlayState (false);
 
-    if (ImGui::Selectable ( "SteamAPI Frame", &pause ))
-      SK_SteamAPI_SetOverlayState (pause);
-
-    if (ImGui::IsItemHovered () && SK::SteamAPI::IsOverlayAware ())
+    if (ImGui::Selectable ( "SteamAPI Frame", &pause, SK::SteamAPI::IsOverlayAware () ? 0 : ImGuiSelectableFlags_Disabled) &&
+                                                      SK::SteamAPI::IsOverlayAware ())
     {
-      ImGui::BeginTooltip   (       );
-      ImGui::Text           ( "In"  );                 ImGui::SameLine ();
-      ImGui::PushStyleColor ( ImGuiCol_Text, ImColor (0.95f, 0.75f, 0.25f, 1.0f) ); 
-      ImGui::Text           ( "Steam Overlay Aware");  ImGui::SameLine ();
-      ImGui::PopStyleColor  (       );
-      ImGui::Text           ( "software, click to toggle the game's overlay pause mode." );
-      ImGui::EndTooltip     (       );
+      SK_SteamAPI_SetOverlayState (pause);
+    }
+
+    if (SK::SteamAPI::IsOverlayAware ())
+    {
+      if (SK_ImGui_IsItemRightClicked ())
+      {
+        ImGui::OpenPopup         ("SteamOverlayPauseMenu");
+        ImGui::SetNextWindowSize (ImVec2 (-1.0f, -1.0f), ImGuiSetCond_Always);
+      }
+
+      else if (ImGui::IsItemHovered ())
+      {
+        ImGui::BeginTooltip   (       );
+        ImGui::Text           ( "In"  );                 ImGui::SameLine ();
+        ImGui::PushStyleColor ( ImGuiCol_Text, ImColor (0.95f, 0.75f, 0.25f, 1.0f) ); 
+        ImGui::Text           ( "Steam Overlay Aware");  ImGui::SameLine ();
+        ImGui::PopStyleColor  (       );
+        ImGui::Text           ( "software, click to toggle the game's overlay pause mode." );
+        ImGui::EndTooltip     (       );
+      }
+
+      if (ImGui::BeginPopup ("SteamOverlayPauseMenu"))
+      {                     
+        if (ImGui::Checkbox ("Pause Game while Control Panel is Visible",
+            &config.steam.reuse_overlay_pause))
+        {
+          SK::SteamAPI::SetOverlayState (config.steam.reuse_overlay_pause);
+        }
+        ImGui::EndPopup     ();
+      }
     }
 
     ImGui::SameLine ();
@@ -709,6 +731,120 @@ static_cast <uint32_t> (
     }
 
     return true;
+  }
+
+  return false;
+}
+
+bool
+SK::ControlPanel::Steam::DrawMenu (void)
+{
+  if (SK::SteamAPI::AppID () != 0 && steam_ctx.UserEx () != nullptr)
+  {
+    if (ImGui::BeginMenu ("Steam"))
+    {
+      auto* user_ex =
+        steam_ctx.UserEx ();
+
+      if (! user_ex->BConnected ())
+      {
+        if (ImGui::MenuItem ("Connect to Steam"))
+        {
+          SK_Steam_ConnectUserIfNeeded (user_ex->GetSteamID ());
+        }
+      }
+
+      else
+      {
+        auto logon_state = user_ex->GetLogonState ();
+
+        static DWORD dwStartLogOffTime = SK::ControlPanel::current_time;
+        static DWORD dwStartLogOnTime  = SK::ControlPanel::current_time;
+
+        switch (logon_state)
+        {
+          case SK::SteamAPI::k_ELogonStateNotLoggedOn:
+          case SK::SteamAPI::k_ELogonStateLoggingOff:
+          {
+            if (ImGui::MenuItem ("Log On"))
+            {
+              dwStartLogOnTime = SK::ControlPanel::current_time;
+              user_ex->LogOn (user_ex->GetSteamID ());
+            }
+
+            if (logon_state == SK::SteamAPI::k_ELogonStateLoggingOff)
+            {
+              ImGui::Separator  (  );
+              ImGui::TreePush   ("");
+              ImGui::BulletText ("Logging off... (%3.1f seconds)",
+                double(SK::ControlPanel::current_time - dwStartLogOffTime)
+                     / 1000.0);
+              ImGui::TreePop    (  );
+            }
+          } break;
+
+          case SK::SteamAPI::k_ELogonStateLoggedOn:
+          case SK::SteamAPI::k_ELogonStateLoggingOn:
+          {
+            if (ImGui::MenuItem ("Log Off"))
+            {
+              dwStartLogOffTime = SK::ControlPanel::current_time;
+              user_ex->LogOff ();
+            }
+
+            if (logon_state == SK::SteamAPI::k_ELogonStateLoggingOn)
+            {
+              ImGui::Separator  (  );
+              ImGui::TreePush   ("");
+              ImGui::BulletText ("Logging on... (%3.1f seconds)",
+                double(SK::ControlPanel::current_time - dwStartLogOnTime)
+                     / 1000.0);
+              ImGui::TreePop    (  );
+            }
+
+            else
+            {
+              ImGui::Separator ();
+
+              int state =
+                SK::SteamAPI::GetPersonaState ();
+
+              bool always_anti_social =
+                config.steam.online_status != -1;
+
+              if (ImGui::Checkbox ("Always Appear", &always_anti_social))
+              {
+                if (always_anti_social) config.steam.online_status = state;
+                else                    config.steam.online_status =    -1;
+              }
+
+              ImGui::SameLine ();
+
+              // Range restrict -- there are online states that are meaningless while in-game,
+              //                     we want to hide these, but not force them on/off.
+              state = std::min (2, std::max (0, state));
+
+              if ( ImGui::Combo ( "###Steam_Social_Status",
+                                    &state,
+                                      "Offline\0"
+                                      "Online\0"
+                                      "Busy\0\0",
+                                        3 ) )
+              {
+                if (always_anti_social)
+                  config.steam.online_status = state;
+
+                SK::SteamAPI::SetPersonaState ((EPersonaState)state);
+              }
+            }
+          } break;
+        }
+      }
+
+      ImGui::EndMenu ();
+
+      return  true;
+    }
   }
 
   return false;

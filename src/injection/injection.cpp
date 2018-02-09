@@ -293,6 +293,8 @@ CBTProc ( _In_ int    nCode,
           _In_ WPARAM wParam,
           _In_ LPARAM lParam )
 {
+  LRESULT ret = CallNextHookEx (SKX_GetCBTHook (), nCode, wParam, lParam);
+
   static volatile LONG lHookIters = 0L;
 
   // Don't create that thread more than once, but don't bother with a complete
@@ -330,7 +332,7 @@ CBTProc ( _In_ int    nCode,
       InterlockedExchange (&lHookIters, 0);
   }
 
-  return CallNextHookEx (SKX_GetCBTHook (), nCode, wParam, lParam);
+  return ret;
 }
 
 BOOL

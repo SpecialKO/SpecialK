@@ -236,18 +236,23 @@ ImGui_DX11Shutdown ( void )
 bool
 ImGui_DX11Startup ( IDXGISwapChain* pSwapChain )
 {
+#ifdef _DEBUG
+  SK_RenderBackend& rb =
+    SK_GetCurrentRenderBackend ();
+#endif
+
   CComPtr <ID3D11Device>        pD3D11Dev         = nullptr;
   CComPtr <ID3D11DeviceContext> pImmediateContext = nullptr;
 
   assert (pSwapChain == rb.swapchain);
-  
+
   if ( SUCCEEDED (pSwapChain->GetDevice (IID_PPV_ARGS (&pD3D11Dev))) )
   {
-    assert (pD3D11Dev == rb.device);
+    assert (pD3D11Dev.IsEqualObject (rb.device));
 
     pD3D11Dev->GetImmediateContext (&pImmediateContext);
 
-    assert (pImmediateContext == rb.d3d11.immediate_ctx);
+    assert (pImmediateContext.IsEqualObject (rb.d3d11.immediate_ctx));
   
     if (pImmediateContext != nullptr)
     {
@@ -303,6 +308,42 @@ SK_CEGUI_GetSystem (void)
 
   return CEGUI::System::getDllSingletonPtr ();
 }
+
+
+void
+__SEH_InitParser (CEGUI::XMLParser* parser)
+{
+  //__try
+  //{
+    if (parser->isPropertyPresent ("SchemaDefaultResourceGroup"))
+      parser->setProperty ("SchemaDefaultResourceGroup", "schemas");
+  //}
+
+  //__except (EXCEPTION_EXECUTE_HANDLER)
+  //{
+  //  config.cegui.enable = false;
+  //}
+}
+
+void
+SK_CEGUI_InitParser (void)
+{
+  CEGUI::System& pSys =
+    CEGUI::System::getDllSingleton ();
+  
+  // setup default group for validation schemas
+  CEGUI::XMLParser* parser =
+    pSys.getXMLParser ();
+
+  if (SK_ValidatePointer (parser))
+  {
+    __SEH_InitParser (parser);
+  }
+
+  else
+    config.cegui.enable = false;
+}
+
 
 void
 SK_CEGUI_InitBase ()
@@ -373,15 +414,15 @@ SK_CEGUI_InitBase ()
     pFontMgr->createFromFile ("Jura-13-NoScale.font");
     pFontMgr->createFromFile ("Jura-10-NoScale.font");
 
-    const CEGUI::System* pSys =
-      CEGUI::System::getDllSingletonPtr ();
-    
-    // setup default group for validation schemas
-    CEGUI::XMLParser* parser =
-      pSys->getXMLParser ();
-    
-    if (parser->isPropertyPresent ("SchemaDefaultResourceGroup"))
-      parser->setProperty ("SchemaDefaultResourceGroup", "schemas");
+
+    SK_CEGUI_InitParser ();
+
+    // ^^^^ This is known to fail in debug builds; if it does,
+    //        config.cegui.enable will be turned off.
+
+    if (! config.cegui.enable)
+      return;
+
 
     // Set a default window size if CEGUI cannot figure it out...
     if ( CEGUI::System::getDllSingleton ().getRenderer ()->getDisplaySize () ==
@@ -422,11 +463,22 @@ SK_CEGUI_InitBase ()
    //    process of instantiating pop ups quicker.
     SK_achv_popup =
       window_mgr.loadLayoutFromFile ("Achievements.layout");
- }
+  }
 
- catch (...)
- {
- }
+  catch (CEGUI::GenericException& e)
+  {
+    SK_LOG0 ( (L"CEGUI Exception During Core Init"),
+               L"   CEGUI  "  );
+    SK_LOG0 ( (L" >> %hs (%hs:%lu): Exception %hs -- %hs",
+                e.getFunctionName    ().c_str (),
+                e.getFileName        ().c_str (),
+                e.getLine            (),
+                        e.getName    ().c_str (),
+                        e.getMessage ().c_str () ),
+               L"   CEGUI  "  );
+
+    config.cegui.enable = false;
+  }
 
   SK_Steam_ClearPopups ();
 }
@@ -518,12 +570,29 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
         CComQIPtr <ID3D11Device>        pCEGUIDev    (rb.device);
         CComQIPtr <ID3D11DeviceContext> pCEGUIDevCtx (rb.d3d11.immediate_ctx);
 
-        cegD3D11 = dynamic_cast <CEGUI::Direct3D11Renderer *>
-          (&CEGUI::Direct3D11Renderer::bootstrapSystem (
-            pCEGUIDev,
-              pCEGUIDevCtx
-           )
-          );
+        try {
+          cegD3D11 = dynamic_cast <CEGUI::Direct3D11Renderer *>
+            (&CEGUI::Direct3D11Renderer::bootstrapSystem (
+              pCEGUIDev,
+                pCEGUIDevCtx
+             )
+            );
+        }
+
+        catch (CEGUI::GenericException& e)
+        {
+          SK_LOG0 ( (L"CEGUI Exception During D3D11 Bootstrap"),
+                     L"   CEGUI  "  );
+          SK_LOG0 ( (L" >> %hs (%hs:%lu): Exception %hs -- %hs",
+                      e.getFunctionName    ().c_str (),
+                      e.getFileName        ().c_str (),
+                      e.getLine            (),
+                              e.getName    ().c_str (),
+                              e.getMessage ().c_str () ),
+                     L"   CEGUI  "  );
+
+          config.cegui.enable = false;
+        }
       }
       else
         cegD3D11 = reinterpret_cast <CEGUI::Direct3D11Renderer *> (1);
@@ -2165,7 +2234,7 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 
       sb->capture (pImmediateContext);
 
-      pImmediateContext->OMSetRenderTargets (1, &pRenderTargetView, nullptr);
+      pImmediateContext->OMSetRenderTargets (1, &pRenderTargetView.p, nullptr);
 
       D3D11_VIEWPORT         vp              = { };
       D3D11_BLEND_DESC       blend           = { };
@@ -2442,6 +2511,11 @@ SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
     process = (Source == SK_DXGI_PresentSource::Hook);
 
 
+  // Our vidcap hook & wrap mechanism is borked (we may need to change the setting)!
+  if (config.render.osd._last_vidcap_frame < SK_GetFramesDrawn () - 1)
+    config.render.osd.draw_in_vidcap = !config.render.osd.draw_in_vidcap;
+
+
 
   if (process)
   {
@@ -2482,9 +2556,9 @@ SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
           SK_Hook_ResolveTarget (*it);
 
           // Don't cache addresses that were screwed with by other injectors
-          const wchar_t* wszSection =
-            StrStrIW (it->target.module_path, LR"(dxgi.dll)") ?
-                                              L"DXGI.Hooks" : nullptr;
+          const wchar_t* wszSection = L"DXGI.Hooks";
+            //StrStrIW (it->target.module_path, LR"(dxgi.dll)") ?
+            //                                  L"DXGI.Hooks" : nullptr;
 
           if (! wszSection)
           {
@@ -2509,7 +2583,7 @@ SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
         while ( it_local != std::end (local_dxgi_records) )
         {
           if (( *it_local )->hits &&
-    StrStrIW (( *it_local )->target.module_path, LR"(dxgi.dll)") &&
+    //StrStrIW (( *it_local )->target.module_path, LR"(dxgi.dll)") &&
               ( *it_local )->active)
             SK_Hook_PushLocalCacheOntoGlobal ( **it_local,
                                                  **it_global );
@@ -2682,8 +2756,10 @@ SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
 
   else
   {
-    return 
+    HRESULT hr =
       Present1 (SyncInterval, Flags, pPresentParameters);
+
+    return hr;
   }
 }
 
@@ -3012,7 +3088,12 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
     return SK_EndBufferSwap (hr);
   }
 
-  return Present (SyncInterval, Flags);
+  HRESULT hr =
+    Present (SyncInterval, Flags);
+
+  config.render.osd._last_vidcap_frame = SK_GetFramesDrawn ();
+
+  return hr;
 }
 
 
@@ -4377,7 +4458,7 @@ SK_DXGI_CreateSwapChain1_PostInit ( _In_     IUnknown                         *p
 
   CComQIPtr <IDXGISwapChain> pSwapChain ((*ppSwapChain1));
 
-  return SK_DXGI_CreateSwapChain_PostInit ( pDevice, &desc, &pSwapChain );
+  return SK_DXGI_CreateSwapChain_PostInit ( pDevice, &desc, &pSwapChain.p );
 }
 
 IWrapDXGISwapChain*
@@ -5663,19 +5744,19 @@ SK_DXGI_HookSwapChain (IDXGISwapChain* pSwapChain)
     {
       if (pOutput != nullptr)
       {
-        DXGI_VIRTUAL_HOOK ( &pOutput, 8, "IDXGIOutput::GetDisplayModeList",
+        DXGI_VIRTUAL_HOOK ( &pOutput.p, 8, "IDXGIOutput::GetDisplayModeList",
                                   DXGIOutput_GetDisplayModeList_Override,
                                              GetDisplayModeList_Original,
                                              GetDisplayModeList_pfn );
     
-        DXGI_VIRTUAL_HOOK ( &pOutput, 9, "IDXGIOutput::FindClosestMatchingMode",
+        DXGI_VIRTUAL_HOOK ( &pOutput.p, 9, "IDXGIOutput::FindClosestMatchingMode",
                                   DXGIOutput_FindClosestMatchingMode_Override,
                                              FindClosestMatchingMode_Original,
                                              FindClosestMatchingMode_pfn );
     
         // Don't hook this unless you want nvspcap to crash the game.
         //
-        //DXGI_VIRTUAL_HOOK ( &pOutput, 10, "IDXGIOutput::WaitForVBlank",
+        //DXGI_VIRTUAL_HOOK ( &pOutput.p, 10, "IDXGIOutput::WaitForVBlank",
         //                         DXGIOutput_WaitForVBlank_Override,
         //                                    WaitForVBlank_Original,
         //                                    WaitForVBlank_pfn );
@@ -5729,7 +5810,7 @@ SK_DXGI_HookFactory (IDXGIFactory* pFactory)
     // 13 IsCurrent
     if (pFactory1 != nullptr)
     {
-      DXGI_VIRTUAL_HOOK ( &pFactory1,     12,
+      DXGI_VIRTUAL_HOOK ( &pFactory1.p,     12,
                           "IDXGIFactory1::EnumAdapters1",
                            EnumAdapters1_Override,
                            EnumAdapters1_Original,
@@ -5774,7 +5855,7 @@ SK_DXGI_HookFactory (IDXGIFactory* pFactory)
       {
         if (! LocalHook_IDXGIFactory2_CreateSwapChainForHwnd.active)
         {
-          DXGI_VIRTUAL_HOOK ( &pFactory2,   15,
+          DXGI_VIRTUAL_HOOK ( &pFactory2.p, 15,
                               "IDXGIFactory2::CreateSwapChainForHwnd",
                                DXGIFactory2_CreateSwapChainForHwnd_Override,
                                             CreateSwapChainForHwnd_Original,
@@ -5782,24 +5863,24 @@ SK_DXGI_HookFactory (IDXGIFactory* pFactory)
 
           SK_Hook_TargetFromVFTable (
             LocalHook_IDXGIFactory2_CreateSwapChainForHwnd,
-              (void **)&pFactory2, 15 );
+              (void **)&pFactory2.p, 15 );
         }
 
         if (! LocalHook_IDXGIFactory2_CreateSwapChainForCoreWindow.active)
         {
-          DXGI_VIRTUAL_HOOK ( &pFactory2,   16,
+          DXGI_VIRTUAL_HOOK ( &pFactory2.p, 16,
                               "IDXGIFactory2::CreateSwapChainForCoreWindow",
                                DXGIFactory2_CreateSwapChainForCoreWindow_Override,
                                             CreateSwapChainForCoreWindow_Original,
                                             CreateSwapChainForCoreWindow_pfn );
           SK_Hook_TargetFromVFTable (
             LocalHook_IDXGIFactory2_CreateSwapChainForCoreWindow,
-              (void **)&pFactory2, 16 );
+              (void **)&pFactory2.p, 16 );
         }
 
         if (! LocalHook_IDXGIFactory2_CreateSwapChainForComposition.active)
         {
-          DXGI_VIRTUAL_HOOK ( &pFactory2,   24,
+          DXGI_VIRTUAL_HOOK ( &pFactory2.p, 24,
                               "IDXGIFactory2::CreateSwapChainForComposition",
                                DXGIFactory2_CreateSwapChainForComposition_Override,
                                             CreateSwapChainForComposition_Original,
@@ -5807,7 +5888,7 @@ SK_DXGI_HookFactory (IDXGIFactory* pFactory)
 
           SK_Hook_TargetFromVFTable (
             LocalHook_IDXGIFactory2_CreateSwapChainForComposition,
-              (void **)&pFactory2, 24 );
+              (void **)&pFactory2.p, 24 );
         }
       }
     }
@@ -5948,8 +6029,8 @@ HookDXGI (LPVOID user)
                           &featureLevel,
                             &pImmediateContext );
 
-    d3d11_hook_ctx.ppDevice           = &pDevice;
-    d3d11_hook_ctx.ppImmediateContext = &pImmediateContext;
+    d3d11_hook_ctx.ppDevice           = &pDevice.p;
+    d3d11_hook_ctx.ppImmediateContext = &pImmediateContext.p;
 
     CComQIPtr <IDXGIDevice>  pDevDXGI = nullptr;
     CComPtr   <IDXGIAdapter> pAdapter = nullptr;
@@ -5968,13 +6049,13 @@ HookDXGI (LPVOID user)
         pImmediateContext->GetDevice (&pDev);
 
         pDev->CreateDeferredContext (0x00,  &pDevCtx);
-        d3d11_hook_ctx.ppImmediateContext = &pDevCtx;
+        d3d11_hook_ctx.ppImmediateContext = &pDevCtx.p;
       }
 
       else
       {
         pDev->GetImmediateContext (&pDevCtx);
-        d3d11_hook_ctx.ppImmediateContext = (ID3D11DeviceContext **)&pDevCtx;
+        d3d11_hook_ctx.ppImmediateContext = (ID3D11DeviceContext **)&pDevCtx.p;
       }
 
       HookD3D11             (&d3d11_hook_ctx);
@@ -6593,11 +6674,11 @@ SK::DXGI::StartBudgetThread_NoAdapter (void)
     {
       if ( SUCCEEDED (
              factory->EnumAdapters ( 0,
-                                       &adapter )
+                                       &adapter.p )
            )
          )
       {
-        hr = StartBudgetThread ( &adapter );
+        hr = StartBudgetThread ( &adapter.p );
       }
     }
   }

@@ -24,6 +24,9 @@
 
 #include <SpecialK/render/backend.h>
 
+#include <imgui/imgui.h>
+#include <imgui/imgui_internal.h> // For ImGuiSelectableFlags_Disabled
+
 namespace SK
 {
   namespace ControlPanel
@@ -39,9 +42,10 @@ namespace SK
   };
 };
 
-void SK_ImGui_Warning       (const wchar_t* wszMessage);
-bool SK_ImGui_IsItemClicked (void);
-void SK_ImGui_AdjustCursor  (void);
+void SK_ImGui_Warning            (const wchar_t* wszMessage);
+bool SK_ImGui_IsItemClicked      (void);
+bool SK_ImGui_IsItemRightClicked (void);
+void SK_ImGui_AdjustCursor       (void);
 
 // Special K Extensions to ImGui (Dialog Controls)
 //

@@ -312,8 +312,6 @@ SK_Okami_PlugInCfg (void)
       SK_GetCommandProcessor ()->ProcessCommandLine ("D3D11.ShaderMods.Toggle Pixel c75b0341 Disable");
     }
 
-    extern bool SK_Okami_use_grain;
-
     if (ImGui::Checkbox ("Grain", &SK_Okami_use_grain))
     {
       void
@@ -364,5 +362,9 @@ SK_Okami_PlugInCfg (void)
     }
 
     ImGui::TreePop ();
+
+    return true;
   }
+
+  return false;
 }

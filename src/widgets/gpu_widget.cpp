@@ -22,6 +22,8 @@
 
 #include <SpecialK/performance/gpu_monitor.h>
 
+#include <SpecialK/control_panel.h>
+
 extern iSK_INI* osd_ini;
 
 constexpr
@@ -52,9 +54,7 @@ public:
 
   virtual void run (void) override
   {
-    DWORD dwNow = timeGetTime ();
-
-    if (last_update < dwNow - update_freq)
+    if (last_update < SK::ControlPanel::current_time - update_freq)
     {
       SK_PollGPU ();
 
@@ -66,7 +66,7 @@ public:
       //vram_shared.addValue    (       SK_GPU_GetVRAMShared        (0));
       //fan_rpm.addValue        (       SK_GPU_GetFanSpeedRPM       (0));
 
-      last_update = dwNow;
+      last_update = SK::ControlPanel::current_time;
     }
   }
 

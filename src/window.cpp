@@ -47,6 +47,8 @@
 #include <imgui/backends/imgui_d3d11.h>
 #include <SpecialK/render/d3d9/d3d9_backend.h>
 
+#include <SpecialK/control_panel.h>
+
 
 #undef  SK_LOG_FIRST_CALL
 #define SK_LOG_FIRST_CALL { static bool called = false; if (! called) { SK_LOG0 ( (L"[!] > First Call: %34hs", __FUNCTION__), L"Window Mgr" ); called = true; } }
@@ -832,26 +834,24 @@ auto ActivateWindow =[&](HWND hWnd, bool active = false)
     (wm_dispatch.active_windows [hWnd] != active && hWnd == SK_GetGameWindow ());
 
   if (hWnd == SK_GetGameWindow ())
+  {
     game_window.active = active;
+  }
 
 
 
   if (state_changed)
   {
-    // If forcing fullscreen, don't screw with window layering.
-    if (! SK_GetCurrentRenderBackend ().fullscreen_exclusive)
+    if (config.window.always_on_top == PreventAlwaysOnTop)
     {
-      if (config.window.always_on_top == PreventAlwaysOnTop)
-      {
-        if (hWndForeground != SK_GetGameWindow ())
-          SK_GetCommandProcessor ()->ProcessCommandLine ("Window.TopMost false");
-      }
+      if (! active)//hWndForeground != SK_GetGameWindow ())
+        SK_DeferCommand ("Window.TopMost false");
+    }
 
-      else if (config.window.always_on_top == AlwaysOnTop)
-      {
-        if (hWndForeground != SK_GetGameWindow ())
-          SK_GetCommandProcessor ()->ProcessCommandLine ("Window.TopMost true");
-      }
+    else if (config.window.always_on_top == AlwaysOnTop)
+    {
+      if (! active)//hWndForeground != SK_GetGameWindow ())
+        SK_DeferCommand ("Window.TopMost true");
     }
 
 
@@ -2497,6 +2497,47 @@ SK_IsRectTooBigForDesktop (RECT wndRect)
   return false;
 }
 
+bool
+SK_Window_HasBorder (HWND hWnd)
+{
+  return
+    SK_WindowManager::StyleHasBorder (
+      GetWindowLongW_Original ( hWnd, GWL_STYLE )
+  );
+}
+
+bool
+SK_Window_IsFullscreen (HWND hWnd)
+{
+  HMONITOR hMonitor =
+    MonitorFromWindow ( hWnd,
+                          MONITOR_DEFAULTTONEAREST );
+
+  RECT                           rc_window = { };
+  GetWindowRect_Original (hWnd, &rc_window);
+
+  auto ResolutionMatches = [](RECT& rect, HMONITOR hMonitor) ->
+  bool
+  {
+    MONITORINFO mon_info        = { };
+                mon_info.cbSize = sizeof (MONITORINFO);
+
+    GetMonitorInfoW (hMonitor, &mon_info);
+
+    if ( rect.left   == mon_info.rcMonitor.left   &&
+         rect.right  == mon_info.rcMonitor.right  &&
+         rect.top    == mon_info.rcMonitor.top    &&
+         rect.bottom == mon_info.rcMonitor.bottom    )
+    {
+      return true;
+    }
+
+    return false;
+  };
+
+  return ResolutionMatches (rc_window, hMonitor);
+}
+
 void
 SK_AdjustBorder (void)
 {
@@ -4028,7 +4069,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
        }
 
        if (changed && (! SK_IsSteamOverlayActive ()))
-         last_mouse.sampled = timeGetTime ();
+         last_mouse.sampled = SK::ControlPanel::current_time;
 
        return (last_mouse.cursor != was_active);
      };
@@ -4040,14 +4081,14 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
        bool was_active = last_mouse.cursor;
 
-       if (last_mouse.sampled <= timeGetTime () - config.input.cursor.timeout)
+       if (last_mouse.sampled <= SK::ControlPanel::current_time - config.input.cursor.timeout)
        {
          if ((! SK_IsSteamOverlayActive ()) && game_window.active)
          {
            while (ShowCursor (FALSE) >= -1) ;
            last_mouse.cursor = false;
 
-           last_mouse.sampled = timeGetTime ();
+           last_mouse.sampled = SK::ControlPanel::current_time;
          }
        }
 
@@ -4388,7 +4429,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
         if (! activate)
           SK_GetCurrentRenderBackend ().fullscreen_exclusive = false;
 
-        if (GetForegroundWindow () == hWnd) ActivateWindow (hWnd, true);
+        if ( GetForegroundWindow () == game_window.hWnd ||
+             GetFocus            () == game_window.hWnd ) ActivateWindow (game_window.hWnd, true);
       }
     } break;
 
@@ -4767,13 +4809,14 @@ SK_Window_SetTopMost (bool bTop, bool bBringToTop)
 
   if (bTop)
   {
-    dwStyleEx |= WS_EX_TOPMOST;
-    hWndOrder  =  HWND_TOPMOST;
+    dwStyleEx |=   WS_EX_TOPMOST;
+    dwStyleEx &= ~(WS_EX_NOACTIVATE);
+    hWndOrder  =   HWND_TOPMOST;
   }
 
   else
   {
-    dwStyleEx &= (~WS_EX_TOPMOST);
+    dwStyleEx &= ~(WS_EX_TOPMOST | WS_EX_NOACTIVATE);
     hWndOrder  =  HWND_NOTOPMOST;
   }
 
@@ -4845,9 +4888,9 @@ SK_InitWindow (HWND hWnd, bool fullscreen_exclusive)
 void
 SK_InstallWindowHook (HWND hWnd)
 {
-  wchar_t wszClass [MAX_PATH * 2] = { };
+  wchar_t wszClass [128] = { };
 
-  RealGetWindowClassW (hWnd, wszClass, MAX_PATH);
+  RealGetWindowClassW (hWnd, wszClass, 127);
 
   bool dummy_window =
     StrStrIW (wszClass, L"Special K Dummy Window Class") ||
@@ -4914,6 +4957,7 @@ SK_InstallWindowHook (HWND hWnd)
 
     SK_ApplyQueuedHooks ();
   }
+
 
   if (! SK_GetFramesDrawn ())
     return;
@@ -4987,6 +5031,7 @@ SK_InstallWindowHook (HWND hWnd)
   void SK_MakeWindowHook (WNDPROC, WNDPROC, HWND);
        SK_MakeWindowHook (class_proc, wnd_proc, hWnd);
 
+  SK_RealizeForegroundWindow (game_window.hWnd);
 
 
   if (game_window.WndProc_Original != nullptr)
@@ -5046,6 +5091,17 @@ SK_InstallWindowHook (HWND hWnd)
 
     SK_ApplyQueuedHooks ();
     SK_InitWindow (hWnd);
+
+
+  // Fix the cursor clipping rect if needed so that we can use Special K's
+  //   menu system.
+  RECT cursor_clip = { };
+  if ( GetClipCursor (&cursor_clip) )
+  {
+    // Run it through the hooked function, which will transform certain
+    //   attributes as needed.
+    ClipCursor (&cursor_clip);
+  }
 
 
     SK_ICommandProcessor* cmd =

@@ -233,7 +233,10 @@ struct sk_config_t
                                           //   that do not use it
     bool    spoof_BLoggedOn      = false;
     bool    overlay_hides_sk_osd = true;
+    bool    reuse_overlay_pause  = true;  // Use Steam's overlay pause mode for our own
+                                          //   control panel
     bool    auto_inject          = true;  // Control implicit steam_api.dll bootstrapping
+    int     online_status        =   -1;  // Force a certain online status at all times
   } steam;
 
 
@@ -292,11 +295,13 @@ struct sk_config_t
     } dxgi;
     struct {
       // Required by default for compatibility with Mirillis Action!
-      bool    draw_in_vidcap      = true;
+      bool    draw_in_vidcap     = true;
+      ULONG _last_vidcap_frame   = 0;
+      ULONG _last_normal_frame   = 0;
     } osd;
 
     // OSD Render Stats (D3D11 Only Right Now)
-    bool      show              = false;
+    bool      show               = false;
     struct {
       BYTE toggle [4]      = { VK_CONTROL, VK_SHIFT, 'R', 0 };
     } keys;
@@ -535,6 +540,11 @@ struct sk_config_t
     bool    trace_load_library  = true;
     bool    strict_compliance   = false;
     float   global_inject_delay = 0.0f;
+#ifdef _DEBUG
+    bool    trace_create_thread = true;
+#else
+    bool    trace_create_thread = false;
+#endif
   } system;
 } extern config;
 

@@ -223,8 +223,6 @@ SK_ImGui_VolumeManager (void)
   if (ImGui::Selectable (app_name.c_str (), &selected))
     ImGui::OpenPopup ("Audio Session Selector");
 
-  ImGui::PopStyleColor (3);
-
   if (ImGui::IsItemHovered ())
     ImGui::SetTooltip ("Click Here to Manage Another Application");
 
@@ -288,6 +286,8 @@ SK_ImGui_VolumeManager (void)
   ImGui::EndGroup   ();
   ImGui::Columns    (1);
 
+  ImGui::PopStyleColor (3);
+
 
   bool session_changed = SK_ImGui_SelectAudioSessionDlg ();
 
@@ -332,7 +332,8 @@ SK_ImGui_VolumeManager (void)
         } vu_peaks;
 
         float peaks    [120] { };
-        int   current_idx =   0;
+        int   current_idx =  0L;
+        DWORD update_time =  0UL;
       } static history [ 32] { };
 
       #define VUMETER_TIME 333
@@ -404,40 +405,53 @@ SK_ImGui_VolumeManager (void)
 
       for (UINT i = 0 ; i < channels; i++)
       {
-        if (SUCCEEDED (pMeterInfo->GetChannelsPeakValues (channels, channel_peaks_)))
+        // Throttle meter updates at extremely high frame rates
+        //
+        //   XXX: TODO: Make this a constant rate instead of sampling once-per frame
+        //
+        if ( history [i].update_time >= SK::ControlPanel::current_time - 2 ||
+             SUCCEEDED (pMeterInfo->GetChannelsPeakValues (channels, channel_peaks_)) )
         {
-          history [i].vu_peaks.inst_min = std::min (history [i].vu_peaks.inst_min, channel_peaks_ [i]);
-          history [i].vu_peaks.inst_max = std::max (history [i].vu_peaks.inst_max, channel_peaks_ [i]);
-
-          history [i].vu_peaks.disp_min      = history [i].vu_peaks.inst_min;
-
-          if (history [i].vu_peaks.dwMinSample < current_time - VUMETER_TIME * 3)
+          if (history [i].update_time < SK::ControlPanel::current_time - 2)
           {
-            history [i].vu_peaks.inst_min    = channel_peaks_ [i];
-            history [i].vu_peaks.dwMinSample = current_time;
-          }
+            history [i].vu_peaks.inst_min = std::min (history [i].vu_peaks.inst_min, channel_peaks_ [i]);
+            history [i].vu_peaks.inst_max = std::max (history [i].vu_peaks.inst_max, channel_peaks_ [i]);
 
-          history [i].vu_peaks.disp_max      = history [i].vu_peaks.inst_max;
+            history [i].vu_peaks.disp_min = history [i].vu_peaks.inst_min;
 
-          if (history [i].vu_peaks.dwMaxSample < current_time - VUMETER_TIME * 3)
-          {
-            history [i].vu_peaks.inst_max    = channel_peaks_ [i];
-            history [i].vu_peaks.dwMaxSample = current_time;
-          }
+            if (history [i].vu_peaks.dwMinSample < current_time - VUMETER_TIME * 3)
+            {
+              history [i].vu_peaks.inst_min    = channel_peaks_ [i];
+              history [i].vu_peaks.dwMinSample = current_time;
+            }
 
-          history [i].peaks [history [i].current_idx] = channel_peaks_ [i];
+            history [i].vu_peaks.disp_max      = history [i].vu_peaks.inst_max;
 
-          if (i & 0x1)
-          {
-            history [i].current_idx          = (history [i].current_idx - 1);
+            if (history [i].vu_peaks.dwMaxSample < current_time - VUMETER_TIME * 3)
+            {
+              history [i].vu_peaks.inst_max    = channel_peaks_ [i];
+              history [i].vu_peaks.dwMaxSample = current_time;
+            }
 
-            if (history [i].current_idx < 0)
-                history [i].current_idx = IM_ARRAYSIZE (history [i].peaks) - 1;
-          }
+            history [i].peaks [history [i].current_idx] =
+                        channel_peaks_ [i];
 
-          else
-          {
-            history [i].current_idx           = (history [i].current_idx + 1) % IM_ARRAYSIZE (history [i].peaks);
+            // Alternate the direction of the graph for channels depending on left/right
+            //   location
+            if (i & 0x1) // Odd-channels go right->left
+            {
+              history [i].current_idx = (history [i].current_idx - 1);
+
+              if (history [i].current_idx < 0)
+                  history [i].current_idx = IM_ARRAYSIZE (history [i].peaks) - 1;
+            }
+
+            else
+            {
+              history [i].current_idx = (history [i].current_idx + 1) % IM_ARRAYSIZE (history [i].peaks);
+            }
+
+            history [i].update_time = SK::ControlPanel::current_time;
           }
 
           ImGui::BeginGroup ();
@@ -579,6 +593,8 @@ SK_ImGui_VolumeManager (void)
       sessions.Deactivate ();
     }
   }
+
+  ImGui::TreePop ();
 }
 
 bool
@@ -587,8 +603,6 @@ SK::ControlPanel::Sound::Draw (void)
   if (ImGui::CollapsingHeader ("Volume Management"))
   {
     SK_ImGui_VolumeManager ();
-
-    ImGui::TreePop ();
 
     return true;
   }

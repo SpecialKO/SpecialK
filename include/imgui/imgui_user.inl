@@ -46,24 +46,22 @@ SK_Thread_HybridSpinlock font_lock (300);
 void
 SK_ImGui_LoadFonts (void)
 {
-  std::lock_guard <SK_Thread_CriticalSection> cs_load_font (font_lock);
+  static volatile LONG init = FALSE;
 
-  static volatile ULONG init = FALSE;
-
-  if (! InterlockedCompareExchange (&init, 1, 0))
+  if (! InterlockedCompareExchange (&init, TRUE, FALSE))
   {
     ImGuiIO& io =
       ImGui::GetIO ();
 
-    ImFontConfig font_cfg;
-    font_cfg.MergeMode = true;
+    ImFontConfig font_cfg = { };
+    font_cfg.MergeMode    = true;
 
     auto LoadFont = [](std::string filename, float point_size, const ImWchar* glyph_range, ImFontConfig* cfg = nullptr)
     {
       char szFullPath [ MAX_PATH * 2 + 1 ] = { };
 
       if (GetFileAttributesA (filename.c_str ()) != INVALID_FILE_ATTRIBUTES)
-        strncpy (szFullPath, filename.c_str (), MAX_PATH * 2);
+         strncpy (szFullPath, filename.c_str (), MAX_PATH * 2);
 
       else
       {
@@ -104,7 +102,11 @@ SK_ImGui_LoadFonts (void)
     LoadFont (config.imgui.font.cyrillic.file,  config.imgui.font.cyrillic.size, io.Fonts->GetGlyphRangesCyrillic (), &font_cfg);
 
     io.Fonts->AddFontDefault ();
+
+    InterlockedIncrement (&init);
   }
+
+  SK_Thread_SpinUntilAtomicMin (&init, 2);
 }
 
 #include <windowsx.h>
@@ -1144,10 +1146,6 @@ SK_ImGui_PollGamepad_EndFrame (void)
 
   extern bool __stdcall SK_IsGameWindowActive (void);
 
-  // Reset Mouse / Keyboard State so that we can process all state transitions
-  //   that occur during the next frame without losing any input events.
-
-
   HWND hWndFocus      = GetFocus            ();
   HWND hWndForeground = GetForegroundWindow ();
 
@@ -1162,10 +1160,16 @@ SK_ImGui_PollGamepad_EndFrame (void)
     io.MouseDown [3] = (GetAsyncKeyState_Original (VK_XBUTTON1) & 0x8000) != 0;
     io.MouseDown [4] = (GetAsyncKeyState_Original (VK_XBUTTON2) & 0x8000) != 0;
 
+    if (io.MouseDown [0] || io.MouseDown [1]) SK_ImGui_Cursor.update ();
+
     // This stupid hack prevents the Steam overlay from making the software
     //   think tab is stuck down.
     for (int i = 8; i < 256; i++)
       io.KeysDown [i] = (GetAsyncKeyState_Original (i) & 0x8000) != 0;
+
+    // Don't cycle window elements when Alt+Tabbing
+    if (io.KeyAlt) io.KeysDown [VK_TAB] = false;
+
 
     if (config.input.keyboard.catch_alt_f4)
     {
@@ -1777,39 +1781,25 @@ ImGui::PlotLinesC ( const char*  label,         const float* values,
 
 
 #include <imgui/imgui_internal.h>
+#include <SpecialK/control_panel.h>
 
 void
 SK_ImGui_User_NewFrame (void)
 {
-  ImGuiContext& g = *GImGui;
+  if ( ImGui::GetIO ().DisplaySize.x <= 0.0f ||
+       ImGui::GetIO ().DisplaySize.y <= 0.0f )
+  {
+    ImGui::GetIO ().DisplaySize.x = 128.0f;
+    ImGui::GetIO ().DisplaySize.y = 128.0f;
+  }
 
+  ImGuiContext& g = *GImGui;
 
   g.Style.AntiAliasedLines  = config.imgui.render.antialias_lines;
   g.Style.AntiAliasedShapes = config.imgui.render.antialias_contours;
 
+  ImGui::NewFrame ();
 
-  //
-  // STUPID HACK: This should be in response to window messages, but there has been
-  //                 a bit of trouble reliably receiving those messages in some games.
-  if ( /*( GetForegroundWindow () != game_window.hWnd &&
-         GetFocus            () != game_window.hWnd    ) && */(! game_window.active) )
-  {
-      g.IO.WantTextInput                 = false;
-      g.IO.WantCaptureKeyboard           = false;
-      g.IO.WantCaptureMouse              = false;
-      g.IO.WantMoveMouse                 = false;
-      ImGui::FocusWindow                 (nullptr);
-      SK_Console::getInstance()->visible = false;
-  }
-        
-  if (g.IO.WantCaptureKeyboard) {
-     SK_Console::getInstance ()->visible = false;
-  }
-
-  //if (g.IO.NavInputsDownDuration [ImGuiNavInput_PadInput] > 0.1f) {
-    //g.IO.MouseClicked [1] = true;
-    //g.IO.WantMoveMouse    = true;
-  //}
 
   //
   // Idle Cursor Detection  (when UI is visible, but mouse does not require capture)
@@ -1819,13 +1809,13 @@ SK_ImGui_User_NewFrame (void)
   static int last_x, last_y;
 
   if (last_x != SK_ImGui_Cursor.pos.x || last_y != SK_ImGui_Cursor.pos.y || SK_ImGui_WantMouseCaptureEx (0x0))
-    SK_ImGui_Cursor.last_move = timeGetTime ();
+    SK_ImGui_Cursor.last_move = SK::ControlPanel::current_time;
 
   last_x = SK_ImGui_Cursor.pos.x; last_y = SK_ImGui_Cursor.pos.y;
 
   bool was_idle = SK_ImGui_Cursor.idle;
 
-  if (SK_ImGui_IsMouseRelevant () && SK_ImGui_Cursor.last_move < timeGetTime () - 500)
+  if (SK_ImGui_IsMouseRelevant () && SK_ImGui_Cursor.last_move < SK::ControlPanel::current_time - 500)
     SK_ImGui_Cursor.idle = true;
 
   else
@@ -1834,7 +1824,6 @@ SK_ImGui_User_NewFrame (void)
   if (was_idle != SK_ImGui_Cursor.idle)
     SK_ImGui_Cursor.update ();
 
-  ImGui::NewFrame ();
 
   if (eula.show)
     SK_ImGui_DrawEULA (&eula);

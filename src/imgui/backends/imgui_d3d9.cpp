@@ -112,13 +112,13 @@ ImGui_ImplDX9_RenderDrawLists (ImDrawData* draw_data)
   if ( g_pVB->Lock ( 0,
     static_cast <UINT> (draw_data->TotalVtxCount * sizeof CUSTOMVERTEX),
                          (void **)&vtx_dst,
-                           D3DLOCK_DISCARD | D3DLOCK_NOSYSLOCK | D3DLOCK_DONOTWAIT ) < 0 )
+                           D3DLOCK_DISCARD ) < 0 )
     return;
 
   if ( g_pIB->Lock ( 0,
     static_cast <UINT> (draw_data->TotalIdxCount * sizeof (ImDrawIdx)),
                          (void **)&idx_dst,
-                           D3DLOCK_DISCARD | D3DLOCK_NOSYSLOCK | D3DLOCK_DONOTWAIT ) < 0 )
+                           D3DLOCK_DISCARD ) < 0 )
     return;
 
   for ( int n = 0;

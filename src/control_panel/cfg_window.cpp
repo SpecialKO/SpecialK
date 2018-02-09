@@ -101,7 +101,7 @@ SK::ControlPanel::Window::Draw (void)
           ImGui::Text         ("Set if Game's Window Resolution is Reported Wrong");
           ImGui::Separator    ();
           ImGui::BulletText   ("0x0 = Disable");
-          ImGui::BulletText   ("Applied the Next Time a Style/Position Setting is Changed");
+          ImGui::BulletText   ("Applied the next time a Style/Position setting is changed");
           ImGui::EndTooltip   ();
         }
       }

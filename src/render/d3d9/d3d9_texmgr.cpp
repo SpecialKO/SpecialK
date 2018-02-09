@@ -421,15 +421,11 @@ D3D9SetTexture_Detour (
   void* dontcare;
   HRESULT hr = E_FAIL;
 
-  __try {
-    hr = pTexture->QueryInterface (IID_SKTextureD3D9, &dontcare);
-  }
+  hr = pTexture->QueryInterface (IID_SKTextureD3D9, &dontcare);
 
-  __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ) ? 
-             EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH )
-  {
-    return D3D9SetTexture_Original (This, Sampler, nullptr);
-  }
+  if (FAILED (hr))
+    return D3D9SetTexture_Original (This, Sampler, pTexture);
+
 
   if ( hr == S_OK )
   {

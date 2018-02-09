@@ -68,6 +68,32 @@ SK_TerminateParentProcess (UINT uExitCode)
   }
 }
 
+typedef HANDLE (WINAPI *CreateThread_pfn)(
+    _In_opt_                  LPSECURITY_ATTRIBUTES  lpThreadAttributes,
+    _In_                      SIZE_T                 dwStackSize,
+    _In_                      LPTHREAD_START_ROUTINE lpStartAddress,
+    _In_opt_ __drv_aliasesMem LPVOID                 lpParameter,
+    _In_                      DWORD                  dwCreationFlags,
+    _Out_opt_                 LPDWORD                lpThreadId
+);
+CreateThread_pfn CreateThread_Original = nullptr;
+
+HANDLE
+WINAPI
+CreateThread_Detour (
+    _In_opt_                  LPSECURITY_ATTRIBUTES  lpThreadAttributes,
+    _In_                      SIZE_T                 dwStackSize,
+    _In_                      LPTHREAD_START_ROUTINE lpStartAddress,
+    _In_opt_ __drv_aliasesMem LPVOID                 lpParameter,
+    _In_                      DWORD                  dwCreationFlags,
+    _Out_opt_                 LPDWORD                lpThreadId )
+{
+  SK_LOG_CALL ("ThreadBase");
+
+  return CreateThread_Original (lpThreadAttributes, dwStackSize, lpStartAddress, lpParameter, dwCreationFlags, lpThreadId);
+}
+
+
 BOOL
 WINAPI
 TerminateProcess_Detour (HANDLE hProcess, UINT uExitCode)
@@ -197,6 +223,14 @@ SK::Diagnostics::Debugger::Allow (bool bAllow)
                             "DebugBreak",
                              DebugBreak_Detour,
     static_cast_p2p <void> (&DebugBreak_Original) );
+
+  if (config.system.trace_create_thread)
+  {
+    SK_CreateDLLHook2 (      L"kernel32.dll",
+                              "CreateThread",
+                               CreateThread_Detour,
+      static_cast_p2p <void> (&CreateThread_Original) );
+  }
 
   return bAllow;
 }

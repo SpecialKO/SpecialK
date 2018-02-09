@@ -143,3 +143,77 @@ SK_ModuleAddrMap::insert (LPCVOID pAddr, HMODULE hMod)
 
   (*pResolved_) [pAddr] = hMod;
 }
+
+
+#include <SpecialK/render/d3d9/d3d9_backend.h>
+#include <SpecialK/steam_api.h>
+
+void*
+SK_TLS::imgui_tls_util_s::allocPolylineStorage (size_t needed)
+{
+  if (polyline_capacity < needed)
+  {
+    polyline_storage = realloc (polyline_storage, needed);
+
+    if (polyline_storage != nullptr)
+      polyline_capacity = needed;
+  }
+
+  return polyline_storage;
+}
+
+size_t
+SK_TLS::Cleanup (SK_TLS::cleanup_reason_e reason)
+{
+  size_t freed = 0UL;
+
+  if (d3d9.temp_fullscreen != nullptr)
+  {
+    delete d3d9.temp_fullscreen;
+           d3d9.temp_fullscreen = nullptr;
+
+           freed += sizeof (D3DDISPLAYMODEEX);
+  }
+
+  if (imgui.polyline_storage != nullptr)
+  {
+
+    freed += imgui.polyline_capacity;
+
+    delete imgui.polyline_storage;
+           imgui.polyline_storage = nullptr;
+  }
+
+
+  if (reason == Unload)
+  {
+    if (steam_ctx.Utils () != nullptr && steam.client_user != 0 && reason == Unload)
+    {
+      if (steam_ctx.ReleaseThreadUser ())
+        steam.client_user = 0;
+    }
+
+    if (steam_ctx.Utils () != nullptr && steam.client_pipe != 0 && reason == Unload)
+    {
+      if (steam_ctx.ReleaseThreadPipe ())
+        steam.client_pipe = 0;
+    }
+  }
+
+
+  if (known_modules.pResolved != nullptr)
+  {
+    freed +=
+      sizeof HMODULE *
+        ((std::unordered_map <LPCVOID, HMODULE> *)known_modules.pResolved)->size () * 2;
+
+    delete known_modules.pResolved;
+           known_modules.pResolved = nullptr;
+  }
+
+  // Include the size of the TLS data structure on thread unload
+  if (reason == Unload)
+    freed += sizeof (SK_TLS);
+
+  return freed;
+}

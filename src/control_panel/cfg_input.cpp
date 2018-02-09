@@ -526,8 +526,6 @@ extern float SK_ImGui_PulseNav_Strength;
       auto GamepadDebug = [](UINT idx) ->
       void
       {
-        ImGui::PushID (idx);
-
         JOYINFOEX joy_ex   { };
         JOYCAPSA  joy_caps { };
 
@@ -540,6 +538,8 @@ extern float SK_ImGui_PulseNav_Strength;
 
         if (joyGetDevCapsA (idx, &joy_caps, sizeof JOYCAPSA) != JOYERR_NOERROR || joy_caps.wCaps == 0)
           return;
+
+        ImGui::PushID (idx);
 
         std::stringstream buttons;
 
@@ -941,8 +941,6 @@ INT
 __stdcall
 SK_ImGui_GamepadComboDialog0 (SK_GamepadCombo_V0* combo)
 {
-  DWORD dwNow = timeGetTime ();
-
   ImGuiIO& io (ImGui::GetIO ());
 
   const  float font_size = ImGui::GetFont ()->FontSize * io.FontGlobalScale;
@@ -1016,10 +1014,10 @@ SK_ImGui_GamepadComboDialog0 (SK_GamepadCombo_V0* combo)
         }
 
         last_buttons = state.Gamepad.wButtons;
-        last_change  = dwNow;
+        last_change  = SK::ControlPanel::current_time;
       }
 
-      else if (last_change > 0 && last_change < dwNow - 1000UL)
+      else if (last_change > 0 && last_change < SK::ControlPanel::current_time - 1000UL)
       {
         combo->unparsed = unparsed;
 

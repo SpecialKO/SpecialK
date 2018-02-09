@@ -131,8 +131,15 @@ struct SK_TLS
     BOOL ctx_init_thread     = FALSE;
   } dinput8;
 
-  struct {
+  struct imgui_tls_util_s {
     BOOL drawing             = FALSE;
+
+    // Allocates and grows this buffer until a cleanup operation demands
+    //   we shrink it.
+    void* allocPolylineStorage (size_t needed);
+
+    void*  polyline_storage  = nullptr;
+    size_t polyline_capacity = 0UL;
   } imgui;
 
   struct  {
@@ -162,11 +169,25 @@ struct SK_TLS
     char text [32768] = { };
   } osd;
 
+  struct
+  {
+    int32_t client_pipe = 0;
+    int32_t client_user = 0;
+  } steam;
+
   struct stack
   {
                  int current = 0;
     static const int max     = 2;
   } stack;
+
+  enum cleanup_reason_e
+  {
+    Periodic = 1, // Periodic temporary buffer cleanup
+    Unload   = 2  // TLS is being completely unloaded for this thread
+  };
+
+  size_t Cleanup (cleanup_reason_e reason = Unload);
 };
 
 extern volatile LONG __SK_TLS_INDEX;

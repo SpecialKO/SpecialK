@@ -424,8 +424,8 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
 
       // Don't cache addresses that were screwed with by other injectors
       const wchar_t* wszSection =
-        StrStrIW (it->target.module_path, LR"(d3d9.dll)") ?
-                                          L"D3D9.Hooks" : nullptr;
+        StrStrIW (it->target.module_path, LR"(\sys)") ?
+                                            L"D3D9.Hooks" : nullptr;
 
       if (! wszSection)
       {
@@ -451,7 +451,7 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
       while ( it_local != std::end (local_d3d9_records) )
       {
         if (( *it_local )->hits &&
-StrStrIW (( *it_local )->target.module_path, LR"(d3d9.dll)") &&
+  StrStrIW (( *it_local )->target.module_path, LR"(\sys)") &&
             ( *it_local )->active)
           SK_Hook_PushLocalCacheOntoGlobal ( **it_local,
                                                **it_global );
@@ -495,7 +495,16 @@ StrStrIW (( *it_local )->target.module_path, LR"(d3d9.dll)") &&
 
     SK_InstallWindowHook (pparams.hDeviceWindow);
 
-    ResetCEGUI_D3D9 (pDev);
+    CComQIPtr <IWrapDirect3DDevice9> pWrappedDevice (pDev);
+
+    if (pWrappedDevice != nullptr)
+    {
+      dll_log.Log (L"Using wrapper for ResetCEGUI_D3D9!");
+      ResetCEGUI_D3D9 ((pWrappedDevice));
+    }
+
+    else
+      ResetCEGUI_D3D9 (pDev);
   }
 
   else if (pDev != nullptr)
@@ -1810,7 +1819,7 @@ SK_D3D9_HookReset (IDirect3DDevice9 *pDev)
   {
     if (! LocalHook_D3D9ResetEx.active)
     {
-      D3D9_INTERCEPT ( &pDevEx, 132,
+      D3D9_INTERCEPT ( &pDevEx.p, 132,
                        "IDirect3DDevice9Ex::ResetEx",
                         D3D9ResetEx,
                         D3D9ExDevice_ResetEx_Original,
@@ -1818,7 +1827,7 @@ SK_D3D9_HookReset (IDirect3DDevice9 *pDev)
 
       SK_Hook_TargetFromVFTable (
         LocalHook_D3D9ResetEx,
-          (void **)&pDevEx, 132 );
+          (void **)&pDevEx.p, 132 );
 
       if (LocalHook_D3D9ResetEx.active) ++hooked;
     }
@@ -1862,7 +1871,7 @@ SK_D3D9_HookPresent (IDirect3DDevice9 *pDev)
       if (pWrappedSwapChain != nullptr)
         vftable_ = (void **)&(pWrappedSwapChain->pReal);
       else
-        vftable_ = (void **)&pSwapChain;
+        vftable_ = (void **)&pSwapChain.p;
 
       if (vftable_ != nullptr)
       {
@@ -1893,7 +1902,7 @@ SK_D3D9_HookPresent (IDirect3DDevice9 *pDev)
         //
         // D3D9Ex Specific Stuff
         //
-        D3D9_INTERCEPT ( &pDevEx, 121,
+        D3D9_INTERCEPT ( &pDevEx.p, 121,
                            "IDirect3DDevice9Ex::PresentEx",
                             D3D9ExDevice_PresentEx,
                             D3D9ExDevice_PresentEx_Original,
@@ -1901,7 +1910,7 @@ SK_D3D9_HookPresent (IDirect3DDevice9 *pDev)
 
         SK_Hook_TargetFromVFTable (
           LocalHook_D3D9PresentEx,
-            (void **)&pDevEx, 121 );
+            (void **)&pDevEx.p, 121 );
 
         if (LocalHook_D3D9PresentEx.active) ++hooked;
       }
@@ -3119,7 +3128,7 @@ SK_SetPresentParamsD3D9Ex ( IDirect3DDevice9       *pDevice,
   if (pWrappedDevice != nullptr)
   {
     dll_log.Log (L"Using wrapper for SetPresentParams!");
-    SK_GetCurrentRenderBackend ().device = pWrappedDevice;
+    SK_GetCurrentRenderBackend ().device = (pWrappedDevice)->pReal;
   }
 
   CComPtr <IDirect3DDevice9Ex> pDevEx = nullptr;
@@ -3473,124 +3482,124 @@ SK_D3D9_HookDeviceAndSwapchain (
   }
 
 
-          //vtbl (This)
-          //-----------
-          // 3   TestCooperativeLevel
-          // 4   GetAvailableTextureMem
-          // 5   EvictManagedResources
-          // 6   GetDirect3D
-          // 7   GetDeviceCaps
-          // 8   GetDisplayMode
-          // 9   GetCreationParameters
-          // 10  SetCursorProperties
-          // 11  SetCursorPosition
-          // 12  ShowCursor
-          // 13  CreateAdditionalSwapChain
-          // 14  GetSwapChain
-          // 15  GetNumberOfSwapChains
-          // 16  Reset
-          // 17  Present
-          // 18  GetBackBuffer
-          // 19  GetRasterStatus
-          // 20  SetDialogBoxMode
-          // 21  SetGammaRamp
-          // 22  GetGammaRamp
-          // 23  CreateTexture
-          // 24  CreateVolumeTexture
-          // 25  CreateCubeTexture
-          // 26  CreateVertexBuffer
-          // 27  CreateIndexBuffer
-          // 28  CreateRenderTarget
-          // 29  CreateDepthStencilSurface
-          // 30  UpdateSurface
-          // 31  UpdateTexture
-          // 32  GetRenderTargetData
-          // 33  GetFrontBufferData
-          // 34  StretchRect
-          // 35  ColorFill
-          // 36  CreateOffscreenPlainSurface
-          // 37  SetRenderTarget
-          // 38  GetRenderTarget
-          // 39  SetDepthStencilSurface
-          // 40  GetDepthStencilSurface
-          // 41  BeginScene
-          // 42  EndScene
-          // 43  Clear
-          // 44  SetTransform
-          // 45  GetTransform
-          // 46  MultiplyTransform
-          // 47  SetViewport
-          // 48  GetViewport
-          // 49  SetMaterial
-          // 50  GetMaterial
-          // 51  SetLight
-          // 52  GetLight
-          // 53  LightEnable
-          // 54  GetLightEnable
-          // 55  SetClipPlane
-          // 56  GetClipPlane
-          // 57  SetRenderState
-          // 58  GetRenderState
-          // 59  CreateStateBlock
-          // 60  BeginStateBlock
-          // 61  EndStateBlock
-          // 62  SetClipStatus
-          // 63  GetClipStatus
-          // 64  GetTexture
-          // 65  SetTexture
-          // 66  GetTextureStageState
-          // 67  SetTextureStageState
-          // 68  GetSamplerState
-          // 69  SetSamplerState
-          // 70  ValidateDevice
-          // 71  SetPaletteEntries
-          // 72  GetPaletteEntries
-          // 73  SetCurrentTexturePalette
-          // 74  GetCurrentTexturePalette
-          // 75  SetScissorRect
-          // 76  GetScissorRect
-          // 77  SetSoftwareVertexProcessing
-          // 78  GetSoftwareVertexProcessing
-          // 79  SetNPatchMode
-          // 80  GetNPatchMode
-          // 81  DrawPrimitive
-          // 82  DrawIndexedPrimitive
-          // 83  DrawPrimitiveUP
-          // 84  DrawIndexedPrimitiveUP
-          // 85  ProcessVertices
-          // 86  CreateVertexDeclaration
-          // 87  SetVertexDeclaration
-          // 88  GetVertexDeclaration
-          // 89  SetFVF
-          // 90  GetFVF
-          // 91  CreateVertexShader
-          // 92  SetVertexShader
-          // 93  GetVertexShader
-          // 94  SetVertexShaderConstantF
-          // 95  GetVertexShaderConstantF
-          // 96  SetVertexShaderConstantI
-          // 97  GetVertexShaderConstantI
-          // 98  SetVertexShaderConstantB
-          // 99  GetVertexShaderConstantB
-          // 100 SetStreamSource
-          // 101 GetStreamSource
-          // 102 SetStreamSourceFreq
-          // 103 GetStreamSourceFreq
-          // 104 SetIndices
-          // 105 GetIndices
-          // 106 CreatePixelShader
-          // 107 SetPixelShader
-          // 108 GetPixelShader
-          // 109 SetPixelShaderConstantF
-          // 110 GetPixelShaderConstantF
-          // 111 SetPixelShaderConstantI
-          // 112 GetPixelShaderConstantI
-          // 113 SetPixelShaderConstantB
-          // 114 GetPixelShaderConstantB
-          // 115 DrawRectPatch
-          // 116 DrawTriPatch
-          // 117 DeletePatch
-          // 118 CreateQuery
+  //vtbl (This)
+  //-----------
+  // 3   TestCooperativeLevel
+  // 4   GetAvailableTextureMem
+  // 5   EvictManagedResources
+  // 6   GetDirect3D
+  // 7   GetDeviceCaps
+  // 8   GetDisplayMode
+  // 9   GetCreationParameters
+  // 10  SetCursorProperties
+  // 11  SetCursorPosition
+  // 12  ShowCursor
+  // 13  CreateAdditionalSwapChain
+  // 14  GetSwapChain
+  // 15  GetNumberOfSwapChains
+  // 16  Reset
+  // 17  Present
+  // 18  GetBackBuffer
+  // 19  GetRasterStatus
+  // 20  SetDialogBoxMode
+  // 21  SetGammaRamp
+  // 22  GetGammaRamp
+  // 23  CreateTexture
+  // 24  CreateVolumeTexture
+  // 25  CreateCubeTexture
+  // 26  CreateVertexBuffer
+  // 27  CreateIndexBuffer
+  // 28  CreateRenderTarget
+  // 29  CreateDepthStencilSurface
+  // 30  UpdateSurface
+  // 31  UpdateTexture
+  // 32  GetRenderTargetData
+  // 33  GetFrontBufferData
+  // 34  StretchRect
+  // 35  ColorFill
+  // 36  CreateOffscreenPlainSurface
+  // 37  SetRenderTarget
+  // 38  GetRenderTarget
+  // 39  SetDepthStencilSurface
+  // 40  GetDepthStencilSurface
+  // 41  BeginScene
+  // 42  EndScene
+  // 43  Clear
+  // 44  SetTransform
+  // 45  GetTransform
+  // 46  MultiplyTransform
+  // 47  SetViewport
+  // 48  GetViewport
+  // 49  SetMaterial
+  // 50  GetMaterial
+  // 51  SetLight
+  // 52  GetLight
+  // 53  LightEnable
+  // 54  GetLightEnable
+  // 55  SetClipPlane
+  // 56  GetClipPlane
+  // 57  SetRenderState
+  // 58  GetRenderState
+  // 59  CreateStateBlock
+  // 60  BeginStateBlock
+  // 61  EndStateBlock
+  // 62  SetClipStatus
+  // 63  GetClipStatus
+  // 64  GetTexture
+  // 65  SetTexture
+  // 66  GetTextureStageState
+  // 67  SetTextureStageState
+  // 68  GetSamplerState
+  // 69  SetSamplerState
+  // 70  ValidateDevice
+  // 71  SetPaletteEntries
+  // 72  GetPaletteEntries
+  // 73  SetCurrentTexturePalette
+  // 74  GetCurrentTexturePalette
+  // 75  SetScissorRect
+  // 76  GetScissorRect
+  // 77  SetSoftwareVertexProcessing
+  // 78  GetSoftwareVertexProcessing
+  // 79  SetNPatchMode
+  // 80  GetNPatchMode
+  // 81  DrawPrimitive
+  // 82  DrawIndexedPrimitive
+  // 83  DrawPrimitiveUP
+  // 84  DrawIndexedPrimitiveUP
+  // 85  ProcessVertices
+  // 86  CreateVertexDeclaration
+  // 87  SetVertexDeclaration
+  // 88  GetVertexDeclaration
+  // 89  SetFVF
+  // 90  GetFVF
+  // 91  CreateVertexShader
+  // 92  SetVertexShader
+  // 93  GetVertexShader
+  // 94  SetVertexShaderConstantF
+  // 95  GetVertexShaderConstantF
+  // 96  SetVertexShaderConstantI
+  // 97  GetVertexShaderConstantI
+  // 98  SetVertexShaderConstantB
+  // 99  GetVertexShaderConstantB
+  // 100 SetStreamSource
+  // 101 GetStreamSource
+  // 102 SetStreamSourceFreq
+  // 103 GetStreamSourceFreq
+  // 104 SetIndices
+  // 105 GetIndices
+  // 106 CreatePixelShader
+  // 107 SetPixelShader
+  // 108 GetPixelShader
+  // 109 SetPixelShaderConstantF
+  // 110 GetPixelShaderConstantF
+  // 111 SetPixelShaderConstantI
+  // 112 GetPixelShaderConstantI
+  // 113 SetPixelShaderConstantB
+  // 114 GetPixelShaderConstantB
+  // 115 DrawRectPatch
+  // 116 DrawTriPatch
+  // 117 DeletePatch
+  // 118 CreateQuery
 
 
   static volatile LONG               __hooked      = FALSE;
@@ -4010,7 +4019,11 @@ SK_Win32_IsDummyWindowClass (HWND hWndInstance)
   wchar_t     wszClassName [128] = {};
   HINSTANCE   hInstance          =
     reinterpret_cast <HINSTANCE> (
-      GetWindowLongPtrW_Original (hWndInstance, GWLP_HINSTANCE)
+#ifndef _WIN64
+      GetWindowLongW    (hWndInstance,  GWL_HINSTANCE)
+#else
+      GetWindowLongPtrW (hWndInstance, GWLP_HINSTANCE)
+#endif
     );
 
   if (RealGetWindowClassW (hWndInstance, wszClassName, 127) > 0)
@@ -4186,10 +4199,18 @@ D3D9CreateDeviceEx_Override ( IDirect3D9Ex           *This,
     SK_SetPresentParamsD3D9Ex      ( *ppReturnedDeviceInterface, 
                                        pPresentationParameters,
                                          &pModeEx );
+    SK_D3D9_HookDeviceAndSwapchain ( *ppReturnedDeviceInterface );
 
-    SK_D3D9_HookDeviceAndSwapchain (*ppReturnedDeviceInterface);
+    CComQIPtr <IWrapDirect3DDevice9> pWrappedDevice (*ppReturnedDeviceInterface);
 
-    ResetCEGUI_D3D9 (nullptr);
+    if (pWrappedDevice != nullptr)
+    {
+      dll_log.Log (L"Using (D3D9Ex) wrapper for ResetCEGUI_D3D9!");
+      ResetCEGUI_D3D9 ((pWrappedDevice));
+    }
+
+    else
+      ResetCEGUI_D3D9 (*ppReturnedDeviceInterface);
   }
 
 
@@ -4319,7 +4340,16 @@ SK_D3D9_SwapEffectToStr (pPresentationParameters->SwapEffect).c_str (),
     SK_SetPresentParamsD3D9        (*ppReturnedDeviceInterface, pPresentationParameters);
     SK_D3D9_HookDeviceAndSwapchain (*ppReturnedDeviceInterface);
 
-    ResetCEGUI_D3D9 (nullptr);
+    CComQIPtr <IWrapDirect3DDevice9> pWrappedDevice (*ppReturnedDeviceInterface);
+
+    if (pWrappedDevice != nullptr)
+    {
+      dll_log.Log (L"Using wrapper for ResetCEGUI_D3D9!");
+      ResetCEGUI_D3D9 ((pWrappedDevice));
+    }
+
+    else
+      ResetCEGUI_D3D9 (*ppReturnedDeviceInterface);
   }
 
 
@@ -4680,15 +4710,17 @@ HookD3D9 (LPVOID user)
 
   if (! InterlockedCompareExchange (&__hooked, TRUE, FALSE))
   {
-    SK_TLS_Bottom ()->d3d9.ctx_init_thread = true;
-
     const bool success = SUCCEEDED (
       CoInitializeEx (nullptr, COINIT_MULTITHREADED)
     );
     {
+      SK_TLS_Bottom ()->d3d9.ctx_init_thread = true;
+
       HWND                 hwnd  = nullptr;
       CComPtr <IDirect3D9> pD3D9 =
         Direct3DCreate9_Import (D3D_SDK_VERSION);
+
+      SK_TLS_Bottom ()->d3d9.ctx_init_thread = false;
 
       if (pD3D9 != nullptr)
       {
@@ -4709,21 +4741,24 @@ HookD3D9 (LPVOID user)
 
         dll_log.Log (L"[   D3D9   ]  Hooking D3D9...");
 
+        SK_TLS_Bottom ()->d3d9.ctx_init_thread = true;
+
         HRESULT hr =
           pD3D9->CreateDevice (
                   D3DADAPTER_DEFAULT,
                     D3DDEVTYPE_HAL,
                       nullptr,
-                        D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED |
-                        D3DCREATE_NOWINDOWCHANGES           | D3DCREATE_DISABLE_DRIVER_MANAGEMENT,
+                        D3DCREATE_HARDWARE_VERTEXPROCESSING,
                           &pparams,
                             &pD3D9Dev );
+
+        SK_TLS_Bottom ()->d3d9.ctx_init_thread = false;
 
         if (SUCCEEDED (hr))
         {
           if (! LocalHook_D3D9CreateDevice.active)
           {
-            D3D9_INTERCEPT ( &pD3D9, 16,
+            D3D9_INTERCEPT ( &pD3D9.p, 16,
                             "IDirect3D9::CreateDevice",
                               D3D9CreateDevice_Override,
                               D3D9_CreateDevice_Original,
@@ -4731,7 +4766,7 @@ HookD3D9 (LPVOID user)
 
             SK_Hook_TargetFromVFTable (
               LocalHook_D3D9CreateDevice,
-                (void **)&pD3D9, 16 );
+                (void **)&pD3D9.p, 16 );
           }
 
           dll_log.Log (L"[   D3D9   ]   * Success");
@@ -4745,7 +4780,7 @@ HookD3D9 (LPVOID user)
 
           if (! LocalHook_D3D9CreateDevice.active)
           {
-            D3D9_INTERCEPT ( &pD3D9, 16,
+            D3D9_INTERCEPT ( &pD3D9.p, 16,
                             "IDirect3D9::CreateDevice",
                               D3D9CreateDevice_Override,
                               D3D9_CreateDevice_Original,
@@ -4753,7 +4788,7 @@ HookD3D9 (LPVOID user)
 
             SK_Hook_TargetFromVFTable (
               LocalHook_D3D9CreateDevice,
-                (void **)&pD3D9, 16 );
+                (void **)&pD3D9.p, 16 );
           }
         }
 
@@ -4761,10 +4796,14 @@ HookD3D9 (LPVOID user)
 
         CComPtr <IDirect3D9Ex> pD3D9Ex = nullptr;
 
+        SK_TLS_Bottom ()->d3d9.ctx_init_thread = true;
+
         hr = (config.apis.d3d9ex.hook) ?
           Direct3DCreate9Ex_Import (D3D_SDK_VERSION, &pD3D9Ex)
                            :
                       E_NOINTERFACE;
+
+        SK_TLS_Bottom ()->d3d9.ctx_init_thread = false;
 
         hwnd = nullptr;
 
@@ -4786,20 +4825,24 @@ HookD3D9 (LPVOID user)
 
           CComPtr <IDirect3DDevice9Ex> pD3D9DevEx = nullptr;
 
-          if ( SUCCEEDED ( pD3D9Ex->CreateDeviceEx (
-                            D3DADAPTER_DEFAULT,
-                              D3DDEVTYPE_HAL,
-                                 hwnd,
-                                  D3DCREATE_HARDWARE_VERTEXPROCESSING,
-                                    &pparams,
-                                      nullptr,
-                                        &pD3D9DevEx )
-                        )
-            )
+          SK_TLS_Bottom ()->d3d9.ctx_init_thread = true;
+
+          hr = pD3D9Ex->CreateDeviceEx (
+                D3DADAPTER_DEFAULT,
+                  D3DDEVTYPE_HAL,
+                     hwnd,
+                      D3DCREATE_HARDWARE_VERTEXPROCESSING,
+                        &pparams,
+                          nullptr,
+                            &pD3D9DevEx );
+
+          SK_TLS_Bottom ()->d3d9.ctx_init_thread = false;
+
+          if ( SUCCEEDED (hr) )
           {
             if (! LocalHook_D3D9CreateDeviceEx.active)
             {
-              D3D9_INTERCEPT ( &pD3D9Ex, 20,
+              D3D9_INTERCEPT ( &pD3D9Ex.p, 20,
                                "IDirect3D9Ex::CreateDeviceEx",
                                 D3D9CreateDeviceEx_Override,
                                 D3D9Ex_CreateDeviceEx_Original,
@@ -4807,7 +4850,7 @@ HookD3D9 (LPVOID user)
 
               SK_Hook_TargetFromVFTable (
                 LocalHook_D3D9CreateDeviceEx,
-                  (void **)&pD3D9Ex, 20 );
+                  (void **)&pD3D9Ex.p, 20 );
             }
 
             SK_D3D9_HookDeviceAndSwapchain (pD3D9DevEx);
@@ -4821,7 +4864,7 @@ HookD3D9 (LPVOID user)
 
             if (! LocalHook_D3D9CreateDeviceEx.active)
             {
-              D3D9_INTERCEPT ( &pD3D9Ex, 20,
+              D3D9_INTERCEPT ( &pD3D9Ex.p, 20,
                                "IDirect3D9Ex::CreateDeviceEx",
                                 D3D9CreateDeviceEx_Override,
                                 D3D9Ex_CreateDeviceEx_Original,
@@ -4829,7 +4872,7 @@ HookD3D9 (LPVOID user)
 
               SK_Hook_TargetFromVFTable (
                 LocalHook_D3D9CreateDeviceEx,
-                  (void **)&pD3D9Ex, 20 );
+                  (void **)&pD3D9Ex.p, 20 );
             }
           }
 
@@ -4846,8 +4889,6 @@ HookD3D9 (LPVOID user)
 
         SK_ApplyQueuedHooks  (                   );
         InterlockedExchange  (&__d3d9_ready, TRUE);
-
-        SK_TLS_Bottom ()->d3d9.ctx_init_thread = false;
 
         if (! (SK_GetDLLRole () & DLL_ROLE::DXGI))
           SK::DXGI::StartBudgetThread_NoAdapter ();
@@ -8090,8 +8131,8 @@ RunDLL_HookManager_D3D9 ( HWND  hwnd,        HINSTANCE hInst,
 void
 SK_D3D9_QuickHook (void)
 {
-  //if (config.steam.preload_overlay)
-  //  return;
+  if (config.steam.preload_overlay)
+    return;
 
 
   static volatile LONG quick_hooked = FALSE;

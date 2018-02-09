@@ -69,19 +69,6 @@ struct SK_GL_Context {
 static unsigned int SK_GL_SwapHook = 0;
 static volatile LONG __gl_ready = FALSE;
 
-void
-WaitForInit_GL (void)
-{
-  //if (wglCreateContext == nullptr)
-  //{
-  //  SK_RunOnce (SK_BootOpenGL ());
-  //}
-
-  if (SK_TLS_Bottom ()->gl.ctx_init_thread)
-    return;
-
-  SK_Thread_SpinUntilFlagged (&__gl_ready);
-}
 
 void __stdcall
 SK_GL_UpdateRenderStats (void);
@@ -97,6 +84,13 @@ using SwapBuffers_pfn  = BOOL (WINAPI *)(HDC);
       gdi_swap_buffers = nullptr;
 
 static ULONG GL_HOOKS  = 0UL;
+
+
+void
+WaitForInit_GL (void)
+{
+  SK_Thread_SpinUntilFlagged (&__gl_ready);
+}
 
 #include <SpecialK/osd/text.h>
 #include <SpecialK/osd/popup.h>
@@ -145,13 +139,12 @@ SK_LoadRealGL (void)
 {
   wchar_t wszBackendDLL [MAX_PATH + 2] = { };
 
-  if (! SK_IsInjected ())
-  {
-    wcsncpy  (wszBackendDLL, SK_GetSystemDirectory (), MAX_PATH);
-    lstrcatW (wszBackendDLL, L"\\");
-  }
+
+  wcsncpy  (wszBackendDLL, SK_GetSystemDirectory (), MAX_PATH);
+  lstrcatW (wszBackendDLL, L"\\");
 
   lstrcatW (wszBackendDLL, L"OpenGL32.dll");
+
 
   if (local_gl == nullptr)
     local_gl = LoadLibraryW (wszBackendDLL);
@@ -175,8 +168,6 @@ WINAPI
 opengl_init_callback (finish_pfn finish)
 {
   SK_BootOpenGL ();
-
-  WaitForInit_GL ();
 
   finish ();
 }
@@ -1237,7 +1228,10 @@ void ResetCEGUI_GL (void)
     return;
 
 
-  if (cegGL == nullptr && SK_GetFramesDrawn () > 10 && imp_wglGetCurrentContext () != 0)
+  assert (imp_wglGetCurrentContext != nullptr);
+
+  if ( cegGL == nullptr && SK_GetFramesDrawn       ()  > 10 &&
+                           SK_GL_GetCurrentContext () != 0  )
   {
     if (GetModuleHandle (L"CEGUIOpenGLRenderer-0.dll"))
     {
@@ -1245,39 +1239,58 @@ void ResetCEGUI_GL (void)
 
       SK_GL_GhettoStateBlock_Capture ();
 
-      cegGL = reinterpret_cast <CEGUI::OpenGL3Renderer *> (
-        &CEGUI::OpenGL3Renderer::bootstrapSystem ()
-      );
+      try {
+        cegGL = reinterpret_cast <CEGUI::OpenGL3Renderer *> (
+          &CEGUI::OpenGL3Renderer::bootstrapSystem ()
+        );
+      }
+
+      catch (CEGUI::GenericException& e)
+      {
+        SK_LOG0 ( (L"CEGUI Exception During OpenGL Bootstrap"),
+                   L"   CEGUI  "  );
+        SK_LOG0 ( (L" >> %hs (%hs:%lu): Exception %hs -- %hs",
+                    e.getFunctionName    ().c_str (),
+                    e.getFileName        ().c_str (),
+                    e.getLine            (),
+                            e.getName    ().c_str (),
+                            e.getMessage ().c_str () ),
+                   L"   CEGUI  "  );
+
+        config.cegui.enable = false;
+      }
 
       SK_GL_GhettoStateBlock_Apply ();
 
+      if (cegGL != nullptr)
+      {
+        cegGL->enableExtraStateSettings (true);
 
-      // Backup GL state
-      glGetIntegerv (GL_ARRAY_BUFFER_BINDING,         &last_array_buffer);
-      glGetIntegerv (GL_ELEMENT_ARRAY_BUFFER_BINDING, &last_element_array_buffer);
-      glGetIntegerv (GL_VERTEX_ARRAY_BINDING,         &last_vertex_array);
-      
-      // Do not touch the default VAO state (assuming the context even has one)
-      static GLuint ceGL_VAO = 0;
-                if (ceGL_VAO == 0 || (! glIsVertexArray (ceGL_VAO))) glGenVertexArrays (1, &ceGL_VAO);
-      
-      glBindVertexArray (ceGL_VAO);
+        // Backup GL state
+        glGetIntegerv (GL_ARRAY_BUFFER_BINDING,         &last_array_buffer);
+        glGetIntegerv (GL_ELEMENT_ARRAY_BUFFER_BINDING, &last_element_array_buffer);
+        glGetIntegerv (GL_VERTEX_ARRAY_BINDING,         &last_vertex_array);
+        
+        // Do not touch the default VAO state (assuming the context even has one)
+        static GLuint ceGL_VAO = 0;
+                  if (ceGL_VAO == 0 || (! glIsVertexArray (ceGL_VAO))) glGenVertexArrays (1, &ceGL_VAO);
 
-      cegGL->enableExtraStateSettings (true);
+        glBindVertexArray (ceGL_VAO);
 
-      SK_CEGUI_InitBase ();
+        SK_CEGUI_InitBase ();
 
-            SK_PopupManager::getInstance ()->destroyAllPopups (     );
-      SK_TextOverlayManager::getInstance ()->resetAllOverlays (cegGL);
+              SK_PopupManager::getInstance ()->destroyAllPopups (     );
+        SK_TextOverlayManager::getInstance ()->resetAllOverlays (cegGL);
 
-      SK_Steam_ClearPopups ();
+        SK_Steam_ClearPopups ();
 
-      glBindVertexArray (                         last_vertex_array);
-      glBindBuffer      (GL_ARRAY_BUFFER,         last_array_buffer);
-      glBindBuffer      (GL_ELEMENT_ARRAY_BUFFER, last_element_array_buffer);
-      
-      SK_CEGUI_RelocateLog ();
-      
+        glBindVertexArray (                         last_vertex_array);
+        glBindBuffer      (GL_ARRAY_BUFFER,         last_array_buffer);
+        glBindBuffer      (GL_ELEMENT_ARRAY_BUFFER, last_element_array_buffer);
+        
+        SK_CEGUI_RelocateLog ();
+      }
+
       glPopAttrib ();
     }
   }
@@ -1308,15 +1321,7 @@ BOOL
 WINAPI
 wglMakeCurrent (HDC hDC, HGLRC hglrc)
 {
-//WaitForInit_GL ();
-
-  InterlockedCompareExchangePointer ((void **)&wgl_make_current,
-                                       GetProcAddress ( local_gl,
-                                         "wglMakeCurrent" ), nullptr);
-
-  while (ReadPointerAcquire ((void **)&wgl_make_current) == nullptr)
-    SwitchToThread ();
-
+  WaitForInit_GL ();
 
   if (config.system.log_level > 1)
   {
@@ -1344,15 +1349,7 @@ BOOL
 WINAPI
 wglDeleteContext (HGLRC hglrc)
 {
-//WaitForInit_GL ();
-
-  InterlockedCompareExchangePointer ((void **)&wgl_delete_context,
-    GetProcAddress ( local_gl,
-                       "wglDeleteContext" ),
-      nullptr );
-
-  while (ReadPointerAcquire ((void **)&wgl_delete_context) == nullptr)
-    SwitchToThread ();
+  WaitForInit_GL ();
 
   if (config.system.log_level >= 0)
   {
@@ -1363,20 +1360,24 @@ wglDeleteContext (HGLRC hglrc)
                                          hglrc );
   }
 
-  return wgl_delete_context (hglrc);
 
-  if (hglrc == wglGetCurrentContext ( ))
+  if (hglrc == SK_GL_GetCurrentContext ())
   {
-    wglMakeCurrent (nullptr, nullptr);
+    wglMakeCurrent (SK_GL_GetCurrentDC (), nullptr);
   }
 
+
   const std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_gl_ctx);
+
+
+  bool has_children = false;
 
   for (auto it = __gl_shared_contexts.begin(); it != __gl_shared_contexts.end();)
   {
     if (it->first == hglrc)
     {
-      it = __gl_shared_contexts.erase (it);
+      has_children = true;
+    //it = __gl_shared_contexts.erase (it);
       continue;
     }
     else if (it->second == hglrc)
@@ -1387,29 +1388,23 @@ wglDeleteContext (HGLRC hglrc)
     ++it;
   }
 
-#if 0
-  HGLRC primary_ctx   = __gl_primary_context;
-//HDC   primary_dc    = SK_TLS_Bottom ()->gl.current_hdc;
-  HWND  current_hwnd  = SK_TLS_Bottom ()->gl.current_hwnd;
-//HGLRC current_hglrc = SK_TLS_Bottom ()->gl.current_hglrc;
 
-  if (hglrc == primary_ctx)
+  if (__gl_primary_context == hglrc && (! has_children))
   {
     ImGui_ImplGL3_InvalidateDeviceObjects ();
 
-    if (config.cegui.enable)
+    if (config.cegui.enable && (uintptr_t)cegGL > 1)
     {
       cegGL->destroy (*cegGL);
       cegGL = nullptr;
     }
     
-    init_ [SK_TLS_Bottom ()->gl.current_hglrc] = false;
+    init_ [__gl_primary_context] = false;
+           __gl_primary_context  = 0;
   }
 
-  BOOL bRet = wgl_delete_context (hglrc);
 
-  return bRet;
-#endif
+  return wgl_delete_context (hglrc);
 }
 
 
@@ -1696,7 +1691,7 @@ SK_Overlay_DrawGL (void)
   else
     rb.framebuffer_flags &= SK_FRAMEBUFFER_FLAG_SRGB;
 
-  glBindVertexArray (ceGL_VAO);
+//glBindVertexArray (ceGL_VAO);
   glBindFramebuffer (GL_FRAMEBUFFER, 0);
   glDisable         (GL_FRAMEBUFFER_SRGB);
   glActiveTexture   (GL_TEXTURE0);
@@ -1754,37 +1749,69 @@ SK_Overlay_DrawGL (void)
 BOOL
 SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
 {
+  HGLRC& thread_hglrc = 
+    SK_TLS_Bottom ()->gl.current_hglrc;
+  HDC&   thread_hdc   =
+    SK_TLS_Bottom ()->gl.current_hdc;
+
+
   bool need_init = false;
-  
-  if (init_.empty () && SK_TLS_Bottom ()->gl.current_hglrc == 0)
   {
-    wglMakeCurrent ( (SK_TLS_Bottom ()->gl.current_hdc   = wglGetCurrentDC      ()),
-                     (SK_TLS_Bottom ()->gl.current_hglrc = wglGetCurrentContext ()) );
-  
-    SK_TLS_Bottom ()->gl.current_hwnd =
-      WindowFromDC (SK_TLS_Bottom ()->gl.current_hdc);
-  
-    need_init = true;
-  }
-  
-  
-  if (                 SK_TLS_Bottom ()->gl.current_hglrc &&
-       (! init_.count (SK_TLS_Bottom ()->gl.current_hglrc) || need_init) ||
-       (! __gl_primary_context) )
-  {
-    if (               __gl_primary_context == 0 )
+    std::lock_guard <SK_Thread_CriticalSection> auto_lock0 (*cs_gl_ctx);
+
+    if (init_.empty () && thread_hglrc == 0)
     {
-      __gl_primary_context = SK_TLS_Bottom ()->gl.current_hglrc;
+      // This is a nop, it sets the same handles it gets... but it ensures that
+      //   other hook libraries are congruent
+      wglMakeCurrent ( (thread_hdc   = SK_GL_GetCurrentDC      ()),
+                       (thread_hglrc = SK_GL_GetCurrentContext ()) );
+    
+      SK_TLS_Bottom ()->gl.current_hwnd =
+        WindowFromDC (thread_hdc);
+    
+      need_init = true;
     }
 
-    if (! init_ [SK_TLS_Bottom ()->gl.current_hglrc])
+ 
+    if (thread_hglrc != 0)
     {
-      glewExperimental = GL_TRUE;
-      glewInit ();
+      bool shared_ctx =
+        __gl_shared_contexts.count (thread_hglrc) != 0;
 
-      init_ [SK_TLS_Bottom ()->gl.current_hglrc] = TRUE;
+      if (init_.count (thread_hglrc) == 0 || need_init)
+      {
+        // Shared context, and the primary share point is already being tracked
+        if (shared_ctx && init_.count (__gl_shared_contexts [thread_hglrc]))
+          need_init = false;
+        else
+          need_init = true;
+      }
 
-      ImGui_ImplGL3_Init ();
+
+      if (__gl_primary_context == 0)
+      {
+        __gl_primary_context = shared_ctx ? __gl_shared_contexts [thread_hglrc] :
+                                                                  thread_hglrc;
+      }
+
+
+      if (need_init)
+      {
+        glewExperimental = GL_TRUE;
+
+#ifndef MULTI_CTX_ICD
+        SK_RunOnce (glewInit ());
+#else
+                    glewInit ();
+#endif
+
+        init_ [thread_hglrc] = TRUE;
+
+        if (shared_ctx)
+          init_ [__gl_shared_contexts [thread_hglrc]] = TRUE;
+
+        ImGui_ImplGL3_Init ();
+      }
     }
   }
 
@@ -1792,20 +1819,41 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
 //HWND  hWnd = SK_TLS_Bottom ()->gl.current_hwnd;
 //HGLRC hRC  = SK_TLS_Bottom ()->gl.current_hglrc;
 
-  assert (hDC == SK_TLS_Bottom ()->gl.current_hdc);
+//assert (hDC == SK_TLS_Bottom ()->gl.current_hdc);
+
 
   BOOL status = false;
 
 
-  cs_gl_ctx->lock ();
+  bool compatible_dc = 
+    (__gl_primary_context == thread_hglrc);
 
-  bool primary = 
-         IsWindowVisible (WindowFromDC (hDC));
+  if (! compatible_dc)
+  {
+    std::lock_guard <SK_Thread_CriticalSection> auto_lock1 (*cs_gl_ctx);
 
-  cs_gl_ctx->unlock ();
+    if (__gl_shared_contexts.count (thread_hglrc))
+    {
+      if (__gl_shared_contexts [thread_hglrc] == __gl_primary_context)
+        compatible_dc = true;
+    }
 
-  if ( primary &&
-       WindowFromDC (SK_TLS_Bottom ()->gl.current_hdc) == WindowFromDC (hDC) )
+    // Ensure the resources we created on the primary context are meaningful
+    //   on this one.
+    if (! compatible_dc)
+    {
+      SK_LOG0 ( ( L"Implicitly sharing lists because Specical K resources were"
+                  L" initialized using a different OpenGL context." ),
+                  L" OpenGL32 " );
+
+      if (wglShareLists (__gl_primary_context, thread_hglrc))
+        compatible_dc = true;
+    }
+  }
+
+
+
+  if ( compatible_dc )
   {
     // TODO: Create a secondary context that shares "display lists" so that
     //         we have a pure state machine all to ourselves.
@@ -1823,9 +1871,11 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
     status =
       static_cast <wglSwapBuffers_pfn> (pfnSwapFunc)(hDC);
 
-    SK_EndBufferSwap (S_OK);
+    if (status)
+      SK_EndBufferSwap (S_OK);
   }
-  
+
+
   // Swap happening on a context we don't care about
   else
   {
@@ -1856,6 +1906,11 @@ SK_GL_TrackHDC (HDC hDC)
   }
 }
 
+//
+// SwapBufers (...) in gdi32.dll calls through wglSwapBuffers -- the appropriate
+//                    place to change hooks is at the end of this function because
+//                      it comes at the very end of a frame.
+//
 __declspec (noinline)
 BOOL
 WINAPI
@@ -1863,25 +1918,24 @@ wglSwapBuffers (HDC hDC)
 {
   WaitForInit_GL ();
 
-
   if (config.system.log_level > 1)
     dll_log.Log (L"[%x (tid=%x)]  wglSwapBuffers (hDC=%x)", WindowFromDC (hDC), GetCurrentThreadId (), hDC);
 
-
-  InterlockedCompareExchangePointer ((void **)&wgl_swap_buffers,
-    GetProcAddress (local_gl, "wglSwapBuffers"),
-      nullptr);
-
-  while (! ReadPointerAcquire ((void **)&wgl_swap_buffers))
-    SwitchToThread ();
-
-
   SK_GL_TrackHDC (hDC);
 
-  if (! config.render.osd.draw_in_vidcap)
-    return SK_GL_SwapBuffers (hDC, wgl_swap_buffers);
 
-  return wgl_swap_buffers (hDC);
+  BOOL bRet = FALSE;
+
+  if (! config.render.osd.draw_in_vidcap)
+    bRet = SK_GL_SwapBuffers (hDC, wgl_swap_buffers);
+
+  else
+    bRet = wgl_swap_buffers (hDC);
+
+  config.render.osd._last_vidcap_frame = SK_GetFramesDrawn ();
+
+
+  return bRet;
 }
 
 __declspec (noinline)
@@ -1894,13 +1948,21 @@ SwapBuffers (HDC hDC)
   if (config.system.log_level > 1)
     dll_log.Log (L"[%x (tid=%x)]  SwapBuffers (hDC=%x)", WindowFromDC (hDC), GetCurrentThreadId (), hDC);
 
-
   SK_GL_TrackHDC (hDC);
 
-  if (config.render.osd.draw_in_vidcap)
-    return SK_GL_SwapBuffers (hDC, gdi_swap_buffers);
 
-  return gdi_swap_buffers (hDC);
+  config.render.osd._last_normal_frame = SK_GetFramesDrawn ();
+
+  BOOL bRet = FALSE;
+
+  if (config.render.osd.draw_in_vidcap)
+    bRet = SK_GL_SwapBuffers (hDC, gdi_swap_buffers);
+
+  else
+    bRet = gdi_swap_buffers (hDC);
+
+
+  return bRet;
 }
 
 
@@ -1929,7 +1991,7 @@ wglSwapMultipleBuffers (UINT n, const WGLSWAP* ps)
 
   for (UINT i = 0; i < n; i++)
   {
-    dwRet    = wglSwapBuffers (ps [i].hDC);
+    dwRet    = SwapBuffers (ps [i].hDC);
     dwTotal += dwRet;
   }
 
@@ -2186,6 +2248,10 @@ void
 __stdcall
 SK_GL_UpdateRenderStats (void)
 {
+  return;
+
+
+
   if (! (config.render.show))
     return;
 
@@ -2387,18 +2453,16 @@ SK_HookGL (void)
 
   if (! InterlockedCompareExchange (&SK_GL_initialized, TRUE, FALSE))
   {
-    SK_TLS_Bottom ()->gl.ctx_init_thread = true;
-
     wchar_t* wszBackendDLL = L"OpenGL32.dll";
 
     cs_gl_ctx = new SK_Thread_HybridSpinlock (64);
 
-    LoadLibraryW (L"gdi32full.dll");
-    SK_LoadRealGL ();
-
     if (StrStrIW ( SK_GetModuleName (SK_GetDLL ()).c_str (), 
                      wszBackendDLL ) )
     {
+      LoadLibraryW (L"gdi32full.dll");
+      SK_LoadRealGL ();
+
       wgl_swap_buffers =
         (wglSwapBuffers_pfn)GetProcAddress         (local_gl, "wglSwapBuffers");
       wgl_make_current =                           
@@ -2410,10 +2474,8 @@ SK_HookGL (void)
       wgl_swap_multiple_buffers =
         (wglSwapMultipleBuffers_pfn)GetProcAddress (local_gl, "wglSwapMultipleBuffers");
 
-      // Call the stub to initialize it
-      /*HGLRC init = */wglGetCurrentContext ();
+      SK_TLS_Bottom ()->gl.ctx_init_thread = true;
     }
-
 
     dll_log.Log (L"[ OpenGL32 ] Additional OpenGL Initialization");
     dll_log.Log (L"[ OpenGL32 ] ================================");
@@ -2428,6 +2490,8 @@ SK_HookGL (void)
     else
     {
       dll_log.Log (L"[ OpenGL32 ] Hooking OpenGL");
+
+      SK_LoadRealGL ();
 
       SK_CreateDLLHook2 (         SK_GetModuleFullName (local_gl).c_str (),
                                  "wglSwapBuffers",
@@ -2454,7 +2518,12 @@ SK_HookGL (void)
                                   wglDeleteContext,
          static_cast_p2p <void> (&wgl_delete_context) );
 
+      SK_GL_HOOK(wglGetCurrentContext);
+      SK_GL_HOOK(wglGetCurrentDC);
+
       SK_ApplyQueuedHooks ();
+
+      SK_TLS_Bottom ()->gl.ctx_init_thread = true;
 
       if (SK_GetDLLRole () == DLL_ROLE::OpenGL)
       {
@@ -2804,8 +2873,6 @@ SK_HookGL (void)
       SK_GL_HOOK(glViewport);
 
       SK_GL_HOOK(wglCopyContext);
-      SK_GL_HOOK(wglGetCurrentContext);
-      SK_GL_HOOK(wglGetCurrentDC);
 
       SK_GL_HOOK(wglGetProcAddress);
       SK_GL_HOOK(wglCreateContext);
@@ -2830,12 +2897,15 @@ SK_HookGL (void)
 
     //
     // This will invoke wglSwapBuffers (...); hooking it is useful
-    //   in order to control when the overlay is drawn.
+    //   in order to control when the overlay is drawn. 
     //
     SK_CreateDLLHook2 (       L"gdi32full.dll",
                                "SwapBuffers",
                                 SwapBuffers,
        static_cast_p2p <void> (&gdi_swap_buffers) );
+
+
+    SK_TLS_Bottom ()->gl.ctx_init_thread = false;
 
     SK_ApplyQueuedHooks ();
 
@@ -2854,14 +2924,6 @@ wglShareLists (HGLRC ctx0, HGLRC ctx1)
 {
   WaitForInit_GL ();
 
-  InterlockedCompareExchangePointer ((void **)&wgl_share_lists,
-                                       GetProcAddress ( local_gl,
-                                         "wglShareLists" ), nullptr);
-
-  while (ReadPointerAcquire ((void **)&wgl_share_lists) == nullptr)
-    SwitchToThread ();
-
-
   dll_log.Log ( L"[%x (tid=%x)]  wglShareLists "
                 L"(ctx0=%x, ctx1=%x)",
                   SK_TLS_Bottom ()->gl.current_hwnd,
@@ -2878,7 +2940,12 @@ wglShareLists (HGLRC ctx0, HGLRC ctx1)
 
     std::lock_guard <SK_Thread_CriticalSection> auto_lock (*cs_gl_ctx);
 
-    __gl_shared_contexts [ctx1] = ctx0;
+    // If sharing with a shared context, then follow the shared context
+    //   back to its parent
+    if (__gl_shared_contexts.count (ctx0))
+      __gl_shared_contexts [ctx1] = __gl_shared_contexts [ctx0];
+    else
+      __gl_shared_contexts [ctx1] = ctx0;
   }
 
   return ret;
@@ -2894,9 +2961,9 @@ SK_GL_GetCurrentContext (void)
   if (      imp_wglGetCurrentContext != nullptr)
     hglrc = imp_wglGetCurrentContext ();
 
-  assert (hglrc == SK_TLS_Bottom ()->gl.current_hglrc);
-          //return SK_TLS_Bottom ()->gl.current_hglrc;
-   return hglrc;
+  SK_TLS_Bottom ()->gl.current_hglrc = hglrc;
+
+  return hglrc;
 }
 
 HDC
@@ -2911,11 +2978,10 @@ SK_GL_GetCurrentDC (void)
 
   hwnd = WindowFromDC (hdc);
 
-  assert (hwnd == SK_TLS_Bottom ()->gl.current_hwnd);
-  assert (hdc  == SK_TLS_Bottom ()->gl.current_hdc);
-         //return SK_TLS_Bottom ()->gl.current_hdc;
+  SK_TLS_Bottom ()->gl.current_hwnd = hwnd;
+  SK_TLS_Bottom ()->gl.current_hdc  = hdc;
 
-   return hdc;
+  return hdc;
 }
 
 

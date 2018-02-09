@@ -1,6 +1,27 @@
 0.9.0 (beta3):
 
- + 
+ + Fixed SteamAPI shutdown issues in some improperly written games;
+   >> SteamAPI isn't thread-safe, stop shutting down stuff from a different
+        thread than owns the client pipe.
+
+ + Enabled the Bordered/Borderless/Borderless Fullscreen Display Menu in GL
+  >> Some games do not properly resize their viewport when overriden in GL;
+       please be aware of this.
+ + Optimized dynamic memory management when drawing line-based performance
+     graphs
+ + Added auto-pause feature for Steam Overlay Aware games when the cpl is open
+   >> This feature requires Special K to observe the game setup an overlay
+        activation callback.
+
+      This callback may be missed in global injection scenarios and the
+        local DLL is more likely to properly detect Overlay Aware software.
+
+    *** Right-click the SteamAPI frame counter to access this setting (if
+          the current game is overlay aware) ***
+  ---
+ + Added Steam Online Status options to a new Steam menu
+  >> This setting is per-game, but a system-wide preference can be manually
+       setup by adding [Steam.Social] OnlineStatus=0 to Global\achievements.ini
  + Improved framerate limiter WaitForVBLANK and added this feature to GL
  + Fixed D3D9Ex Fullscreen and Windowed overrides for applications that do
      not set the Focus / Device HWND parameters during device creation
@@ -10,17 +31,12 @@
 
  + Added FFXV to an internal whitelist of games _NOT SOLD ON STEAM_ that
      are compatible with global injection.
-
  + Added more descriptive version info to the startup banner if you manually
      place Special K's DLL into a game directory as (dxgi.dll, d3d9.dll, etc).
-   
  + Fixed file permission problems if you use Special K in the FFXV benchmark
-
   >> CEGUI cannot be used in the benchmark unless you run _BOTH_ the game,
       and SKIM64 (if you use global injection) as admin. SK will disable
         CEGUI automatically if file permission issues are detected.
-
-   
 
 
 0.9.0 (beta1):

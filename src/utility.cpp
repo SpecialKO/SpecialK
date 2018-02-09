@@ -2504,6 +2504,41 @@ SK_DeferCommand (const char* szCommand)
   );
 };
 
+void
+SK_DeferCommands (const char** szCommands, int count)
+{
+  std::vector <std::string> *cmds =
+   new std::vector <std::string> (count);
+
+  for (int i = 0; i < count; i++)
+  {
+    (*cmds) [i] = szCommands [i];
+  }
+
+  CreateThread ( nullptr,
+                   0x00,
+                     [ ](LPVOID user) ->
+      DWORD
+        {
+          CHandle hThread (GetCurrentThread ());
+
+          std::unique_ptr < std::vector <std::string> > cmds (
+            (std::vector <std::string> *)user);
+
+          for (int i = 0 ; i < cmds.get ()->size () ; i++)
+          {
+            SK_GetCommandProcessor ()->ProcessCommandLine (
+               cmds.get ()->at (i).c_str ()
+            );
+          }
+
+          return 0;
+        },(LPVOID)cmds,
+      0x00,
+    nullptr
+  );
+};
+
 
 
 SK_HostAppUtil::SK_HostAppUtil (void)

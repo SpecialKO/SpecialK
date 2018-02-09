@@ -29,6 +29,8 @@
 #include <SpecialK/render/gl/opengl_backend.h>
 #include <SpecialK/render/ddraw/ddraw_backend.h>
 
+#include <SpecialK/control_panel.h>
+
 #include <SpecialK/nvapi.h>
 #include <SpecialK/utility.h>
 #include <SpecialK/thread.h>
@@ -350,8 +352,8 @@ SK_BootOpenGL (void)
 {
   // "Normal" games don't change render APIs mid-game; Talos does, but it's
   //   not normal :)
-  if (SK_GetFramesDrawn ())
-    return;
+  //if (SK_GetFramesDrawn ())
+  //  return;
 
 
   while (backend_dll == nullptr)
@@ -429,13 +431,13 @@ SK_RenderBackend_V2::gsync_s::update (void)
        rb.swapchain == nullptr ||
        rb.surface   == nullptr )
   {
-    last_checked = timeGetTime ();
+    last_checked = SK::ControlPanel::current_time;
     active       = false;
     return;
   }
 
 
-  if ( last_checked < timeGetTime () - 500UL )
+  if ( last_checked < SK::ControlPanel::current_time - 500UL )
   {
     bool success = false;
 
@@ -443,14 +445,14 @@ SK_RenderBackend_V2::gsync_s::update (void)
     {
       if ( NVAPI_OK == NvAPI_D3D_IsGSyncActive (rb.device, rb.surface, &active))
       {
-        last_checked = timeGetTime ();
+        last_checked = SK::ControlPanel::current_time;
         success      = true;
       }
 
       else
       {
         // On failure, postpone the next check
-        last_checked = timeGetTime () + 3000UL;
+        last_checked = SK::ControlPanel::current_time + 3000UL;
         active       = FALSE;
       }
     }
@@ -461,12 +463,12 @@ SK_RenderBackend_V2::gsync_s::update (void)
     if (! success)
     {
       // On failure, postpone the next check
-      last_checked = timeGetTime () + 3000UL;
+      last_checked = SK::ControlPanel::current_time + 3000UL;
       active       = FALSE;
     }
 
     else
-      last_checked = timeGetTime ();
+      last_checked = SK::ControlPanel::current_time;
 
     // DO NOT hold onto this. NVAPI does not explain how NVDX handles work, but
     //   we can generally assume their lifetime is only as long as the D3D resource

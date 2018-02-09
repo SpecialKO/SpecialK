@@ -459,10 +459,11 @@ ImGui_ImplGL3_NewFrame (void)
 
   ImGuiIO& io (ImGui::GetIO ());
 
+
   ////game_window.hWnd = WindowFromDC (SK_GL_GetCurrentDC ());
 
   RECT client;
-  GetClientRect (WindowFromDC (SK_GL_GetCurrentDC ()), &client);
+  GetClientRect (game_window.hWnd /*WindowFromDC (SK_GL_GetCurrentDC ())*/, &client);
 
   // Setup display size (every frame to accommodate for window resizing)
   int w = client.right  - client.left,
@@ -472,7 +473,27 @@ ImGui_ImplGL3_NewFrame (void)
     ImVec2 ( static_cast <float> (w), static_cast <float> (h) );
   io.DisplayFramebufferScale = 
     ImVec2 ( static_cast <float> (w), static_cast <float> (h) );
-  //ImVec2 (w > 0 ? ((float)display_w / w) : 0, h > 0 ? ((float)display_h / h) : 0);
+
+
+  // Stupid hack for engines that switch between shared contexts for alternate
+  //   frames ---- for now, assume the framebuffer dimensions are the same.
+  //
+  static float last_fb_x = 1920.0f, last_fb_y = 1080;
+
+  if (io.DisplaySize.x <= 0.0f || io.DisplaySize.y <= 0.0f)
+  {
+    io.DisplaySize.x             = last_fb_x;
+    io.DisplaySize.y             = last_fb_y;
+    io.DisplayFramebufferScale.x = last_fb_x;
+    io.DisplayFramebufferScale.y = last_fb_y;
+  }
+
+  else
+  {
+    last_fb_x = io.DisplaySize.x;
+    last_fb_y = io.DisplaySize.y;
+  }
+
 
   // Setup time step
   INT64 current_time;

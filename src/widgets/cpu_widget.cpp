@@ -24,6 +24,8 @@
 #include <SpecialK/performance/gpu_monitor.h>
 #include <SpecialK/performance/io_monitor.h>
 
+#include <SpecialK/control_panel.h>
+
 extern iSK_INI* osd_ini;
 
 class SKWG_CPU_Monitor : public SK_Widget
@@ -51,9 +53,7 @@ public:
     }
 
 
-    DWORD dwNow = timeGetTime ();
-
-    if (last_update < dwNow - update_freq)
+    if (last_update < SK::ControlPanel::current_time - update_freq)
     {
       if (cpu_stats.num_cpus > 0 && cpu_records.empty ())
         cpu_records.resize (cpu_stats.num_cpus);
@@ -63,7 +63,7 @@ public:
         cpu_records [i].addValue (static_cast <float> (cpu_stats.cpus [i].percent_load));
       }
 
-      last_update = dwNow;
+      last_update = SK::ControlPanel::current_time;
     }
   }
 
@@ -73,6 +73,18 @@ public:
     const  float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y + ImGui::GetStyle ().ItemInnerSpacing.y;
 
     static char szAvg [512] = { };
+
+    static bool stress = config.render.framerate.max_delta_time == 500 ?
+                           true : false;
+
+    if (SK_ImGui::VerticalToggleButton ("Stress Test (100% CPU Load)", &stress))
+    {
+      if (stress) config.render.framerate.max_delta_time = 500;
+      else        config.render.framerate.max_delta_time = 0;
+    }
+
+    ImGui::SameLine   ();
+    ImGui::BeginGroup ();
 
     for (unsigned int i = 0; i < cpu_records.size (); i++)
     {
@@ -125,6 +137,8 @@ public:
 
       ImGui::PopStyleColor ();
     }
+
+    ImGui::EndGroup ();
   }
 
   virtual void OnConfig (ConfigEvent event) override

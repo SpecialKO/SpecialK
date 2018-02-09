@@ -757,16 +757,21 @@ iSK_INI::write (const wchar_t* fname)
   //  *** These would cause blank lines to be appended to the end of the INI file
   //        if we did not do something about them here and now. ***
   //
-  for ( auto& it : ordered_sections )
+  std::vector <std::wstring> empty_sections;
+
+  for (auto& it : ordered_sections)
   {
     iSK_INISection& section =
       get_section (it.c_str ());
 
     if (section.ordered_keys.empty ())
     {
-      remove_section (section.name.c_str ());
+      empty_sections.emplace_back (section.name);
     }
   }
+
+  for (auto& it : empty_sections)
+    remove_section (it.c_str ());
 
 
   std::wstring outbuf = L"";
@@ -796,7 +801,7 @@ iSK_INI::write (const wchar_t* fname)
     }
   }
 
-  if (outbuf.back () == L'\n')
+  if (outbuf.length () > 1 && outbuf.back () == L'\n')
   {
     // Strip the unnecessary extra newline
     outbuf.resize (outbuf.size () - 1);

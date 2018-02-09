@@ -53,6 +53,10 @@ bool
 SK_Inject_IsAdminSupported (void);
 
 
+bool
+SK_Inject_TestWhitelists (const wchar_t* wszExecutable);
+
+
 // Internal use only
 //
 void

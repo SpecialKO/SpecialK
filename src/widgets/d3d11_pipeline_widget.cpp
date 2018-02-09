@@ -24,6 +24,8 @@
 #include <SpecialK/render/dxgi/dxgi_backend.h>
 #include <SpecialK/performance/gpu_monitor.h>
 
+#include <SpecialK/control_panel.h>
+
 #include <algorithm>
 
 extern iSK_INI* osd_ini;
@@ -50,9 +52,7 @@ public:
       return;
     }
 
-    DWORD dwNow = timeGetTime ();
-
-    if (last_update < dwNow - update_freq)
+    if (last_update < SK::ControlPanel::current_time - update_freq)
     {
       D3D11_QUERY_DATA_PIPELINE_STATISTICS& stats =
         SK::DXGI::pipeline_stats_d3d11.last_results;
@@ -76,7 +76,7 @@ public:
 
       pipeline.compute.dispatches.addValue         (static_cast <float> (stats.CSInvocations), false);
 
-      last_update = dwNow;
+      last_update = SK::ControlPanel::current_time;
     }
   }
 

@@ -68,8 +68,47 @@ namespace SK
     extern uint64_t  steam_size;
     // Must be global for x86 ABI problems
     extern CSteamID  player;
+
+
+    enum ELogonState
+    {
+      k_ELogonStateNotLoggedOn = 0,
+      k_ELogonStateLoggingOn   = 1,
+      k_ELogonStateLoggingOff  = 2,
+      k_ELogonStateLoggedOn    = 3
+    };
+    
+    // Exposes a few operations not found in modern SteamAPI interfaces,
+    //   some of which are needed to stop the Steam client from doing crazy
+    //     things during debug sessions.
+    //
+    //   * We can get these directly from steamclient{64}.dll, but this
+    //       is actually a hell of a lot more convenient and presumably
+    //         less likely to interact in unexpected ways in the future.
+    //
+    class ISteamUser004_Light
+    {
+    public:
+      // returns the HSteamUser this interface represents
+      virtual HSteamUser  GetHSteamUser (void)             = 0;
+    
+      // steam account management functions
+      virtual void        LogOn         (CSteamID steamID) = 0;
+      virtual void        LogOff        (void)             = 0;
+      virtual bool        BLoggedOn     (void)             = 0;
+      virtual ELogonState GetLogonState (void)             = 0;
+      virtual bool        BConnected    (void)             = 0;
+      virtual CSteamID    GetSteamID    (void)             = 0;
+    
+      // The vftable is quite a bit largest than this, but it's all supposedly
+      //   obsolete and of no interest. This is the minimal ABI for our purposes.
+    };
+
+    void          SetPersonaState (EPersonaState state);
+    EPersonaState GetPersonaState (void);
   }
 }
+
 
 
 // Tests the Import Table of hMod for anything Steam-Related
@@ -288,6 +327,8 @@ SAFE_GetISteamMusic (ISteamClient* pClient, HSteamUser hSteamuser, HSteamPipe hS
 
 class SK_SteamAPIContext : public SK_IVariableListener
 {
+using ISteamUser004_Light = SK::SteamAPI::ISteamUser004_Light;
+
 public:
   virtual bool OnVarChange (SK_IVariable* var, void* val = nullptr) override;
 
@@ -303,6 +344,7 @@ public:
 
   ISteamUser*          User                 (void) { return user_;               }
   int                  UserVersion          (void) { return user_ver_;           }
+  ISteamUser004_Light* UserEx               (void) { return user_ex_;            }
   ISteamUserStats*     UserStats            (void) { return user_stats_;         }
   ISteamApps*          Apps                 (void) { return apps_;               }
   ISteamFriends*       Friends              (void) { return friends_;            }
@@ -330,6 +372,15 @@ public:
 
   const char*        GetSteamInstallPath (void);
 
+  void* ClientEngine  (void);
+  void* ClientFriends (void);
+  void* ClientUser    (void);
+
+  // We create extra pipes any time SteamAPI stuff is invoked from a different
+  //   thread, but we need to shut these down prior to application exit.
+  bool  ReleaseThreadPipe (void);
+  bool  ReleaseThreadUser (void);
+
 protected:
 private:
   HSteamPipe           hSteamPipe      = 0;
@@ -337,6 +388,7 @@ private:
 
   ISteamClient*        client_         = nullptr;
   ISteamUser*          user_           = nullptr;
+  ISteamUser004_Light* user_ex_        = nullptr;
   ISteamUserStats*     user_stats_     = nullptr;
   ISteamApps*          apps_           = nullptr;
   ISteamFriends*       friends_        = nullptr;
@@ -415,6 +467,10 @@ SK_Steam_LoadUnlockSound (const wchar_t* wszUnlockSound);
 
 uint64_t
 SK_Steam_ScrubRedistributables (int& total_files, bool erase = false);
+
+
+bool
+SK_Steam_ConnectUserIfNeeded (CSteamID user);
 
 
 

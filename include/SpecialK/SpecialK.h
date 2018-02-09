@@ -57,5 +57,4 @@
    message ("Newer compiler required.")
 #endif
 
-
 #endif /* __SK__SPECIALK_H__ */

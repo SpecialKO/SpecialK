@@ -19,21 +19,18 @@
  *
 **/
 
+#include <SpecialK/SpecialK.h>
+
 #include <SpecialK/diagnostics/compatibility.h>
+#include <SpecialK/diagnostics/debug_utils.h>
 
 #include <Windows.h>
-
 #include <Shlwapi.h>
 #include <process.h>
 
-#include <ctime>
-#include <unordered_set>
-
-
 #include <SpecialK/core.h>
 #include <SpecialK/config.h>
-#include <SpecialK/framerate.h>
-#include <SpecialK/diagnostics/debug_utils.h>
+
 #include <SpecialK/input/dinput8_backend.h>
 #include <SpecialK/render/dxgi/dxgi_backend.h>
 #include <SpecialK/render/d3d9/d3d9_backend.h>
@@ -51,6 +48,7 @@
 
 #include <SpecialK/hooks.h>
 #include <SpecialK/injection/injection.h>
+#include <SpecialK/injection/blacklist.h>
 
 
 // Fix that stupid macro that redirects to Unicode/ANSI
@@ -62,7 +60,6 @@
 
 
 // We need this to load embedded resources correctly...
-//std::atomic <HMODULE> hModSelf            = nullptr;
 HMODULE hModSelf                       = nullptr;
 
 SK_Thread_HybridSpinlock* init_mutex   = nullptr;
@@ -79,6 +76,33 @@ volatile ULONG __SK_DLL_Refs         = 0UL;
 volatile LONG  __SK_HookContextOwner = false;
 
 
+class SK_DLL_Bootstrapper
+{
+  typedef bool (* BootstrapEntryPoint_pfn)(void);
+  typedef bool (* BootstrapTerminate_pfn )(void);
+
+public:
+  std::set <std::wstring> wrapper_dlls;
+
+  BootstrapEntryPoint_pfn start;
+  BootstrapTerminate_pfn  shutdown;
+};
+
+static const
+std::unordered_map <DLL_ROLE, SK_DLL_Bootstrapper>
+  __SK_DLL_Bootstraps = {
+    { DLL_ROLE::DXGI,       { { L"dxgi.dll", L"d3d11.dll" }, SK::DXGI::Startup,   SK::DXGI::Shutdown   } },
+    { DLL_ROLE::D3D11_CASE, { { L"dxgi.dll", L"d3d11.dll" }, SK::DXGI::Startup,   SK::DXGI::Shutdown   } },
+    { DLL_ROLE::D3D9,       { { L"d3d9.dll"               }, SK::D3D9::Startup,   SK::D3D9::Shutdown   } },
+    { DLL_ROLE::OpenGL,     { { L"OpenGL32.dll"           }, SK::OpenGL::Startup, SK::OpenGL::Shutdown } },
+    { DLL_ROLE::DInput8,    { { L"dinput8.dll"            }, SK::DI8::Startup,    SK::DI8::Shutdown    } },
+#ifndef _WIN64
+    { DLL_ROLE::D3D8,       { { L"d3d8.dll"               }, SK::D3D8::Startup,   SK::D3D8::Shutdown   } },
+    { DLL_ROLE::DDraw,      { { L"ddraw.dll"              }, SK::DDraw::Startup,  SK::DDraw::Shutdown  } },
+#endif
+  };
+
+
 HMODULE
 __stdcall
 SK_GetDLL (void)
@@ -88,108 +112,6 @@ SK_GetDLL (void)
       reinterpret_cast <volatile PVOID *> (
             const_cast <HMODULE        *> (&hModSelf))));
 }
-
-const std::unordered_set <std::wstring> blacklist = {
-L"steam.exe",
-L"gameoverlayui.exe",
-L"streaming_client.exe",
-L"steamerrorreporter.exe",
-L"steamerrorreporter64.exe",
-L"steamservice.exe",
-L"steam_monitor.exe",
-L"steamwebhelper.exe",
-L"html5app_steam.exe",
-L"wow_helper.exe",
-L"uninstall.exe",
-
-L"writeminidump.exe",
-L"crashreporter.exe",
-L"supporttool.exe",
-L"crashsender1400.exe",
-L"werfault.exe",
-
-L"dxsetup.exe",
-L"setup.exe",
-L"vc_redist.x64.exe",
-L"vc_redist.x86.exe",
-L"vc2010redist_x64.exe",
-L"vc2010redist_x86.exe",
-L"vcredist_x64.exe",
-L"vcredist_x86.exe",
-L"ndp451-kb2872776-x86-x64-allos-enu.exe",
-L"dotnetfx35.exe",
-L"dotnetfx35client.exe",
-L"dotnetfx40_full_x86_x64.exe",
-L"dotnetfx40_client_x86_x64.exe",
-L"oalinst.exe",
-L"easyanticheat_setup.exe",
-L"uplayinstaller.exe",
-
-
-L"x64launcher.exe",
-L"x86launcher.exe",
-L"launcher.exe",
-L"ffx&x-2_launcher.exe",
-L"fallout4launcher.exe",
-L"skyrimselauncher.exe",
-L"modlauncher.exe",
-L"akibauu_config.exe",
-L"obduction.exe",
-L"grandia2launcher.exe",
-L"ffxiii2launcher.exe",
-L"bethesda.net_launcher.exe",
-L"ubisoftgamelauncher.exe",
-L"ubisoftgamelauncher64.exe",
-L"splashscreen.exe",
-L"gamelaunchercefchildprocess.exe",
-L"launchpad.exe",
-L"cnnlauncher.exe",
-L"ff9_launcher.exe",
-L"a17config.exe",
-L"a18config.exe", // Atelier Firis
-L"dplauncher.exe",
-L"zeroescape-launcher.exe",
-L"gtavlauncher.exe",
-L"gtavlanguageselect.exe",
-L"nioh_launcher.exe",
-
-
-L"activationui.exe",
-L"zossteamstarter.exe",
-L"notepad.exe",
-L"mspaint.exe",
-L"7zfm.exe",
-L"winrar.exe",
-L"eac.exe",
-L"vcpkgsrv.exe",
-L"dllhost.exe",
-L"git.exe",
-L"link.exe",
-L"cl.exe",
-L"rc.exe",
-L"conhost.exe",
-L"gamebarpresencewriter.exe",
-L"oawrapper.exe",
-L"nvoawrappercache.exe",
-L"perfwatson2.exe",
-
-L"gameserver.exe",// Sacred   game server
-L"s2gs.exe",      // Sacred 2 game server
-
-L"sihost.exe",
-L"chrome.exe",
-L"explorer.exe",
-L"browser_broker.exe",
-L"dwm.exe",
-L"launchtm.exe",
-
-L"sleeponlan.exe",
-
-L"ds3t.exe",
-L"tzt.exe"
-};
-
-
 
 
 HMODULE
@@ -214,20 +136,6 @@ SK_LoadLocalModule (const wchar_t* wszModule)
   return LoadLibraryW (wszLocalModulePath);
 };
 
-BOOL
-SK_DontInject (void)
-{
-  if (ReadAcquire (&__SK_TLS_INDEX) != TLS_OUT_OF_INDEXES)
-  {
-    TlsFree (InterlockedCompareExchange (&__SK_TLS_INDEX, TLS_OUT_OF_INDEXES, __SK_TLS_INDEX));
-  }
-
-  SK_SetDLLRole       (DLL_ROLE::INVALID);
-  InterlockedExchange (&__SK_DLL_Attached, FALSE);
-
-  return FALSE;
-}
-
 // If this is the global injector and there is a wrapper version
 //   of Special K in the DLL search path, then bail-out!
 BOOL
@@ -246,6 +154,115 @@ SK_TryLocalWrapperFirst (std::set <std::wstring> dlls)
 };
 
 
+BOOL
+SK_DontInject (void)
+{
+  LONG idx_to_free =
+    InterlockedCompareExchange ( &__SK_TLS_INDEX,
+                                    TLS_OUT_OF_INDEXES,
+                                      __SK_TLS_INDEX );
+
+  if (idx_to_free != TLS_OUT_OF_INDEXES)
+  {
+    TlsFree (idx_to_free);
+  }
+
+  SK_SetDLLRole       (DLL_ROLE::INVALID);
+  InterlockedExchange (&__SK_DLL_Attached, FALSE);
+
+  return FALSE;
+}
+
+
+bool
+_SKM_AutoBootLastKnownAPI (SK_RenderAPI last_known)
+{
+  using role_from_api_tbl =
+    std::map < SK_RenderAPI, std::tuple < DLL_ROLE, BOOL > >;
+
+  role_from_api_tbl
+    role_reversal =
+    {
+      { SK_RenderAPI::D3D9,
+          { DLL_ROLE::D3D9,           config.apis.d3d9.hook } },
+      { SK_RenderAPI::D3D9Ex,
+          { DLL_ROLE::D3D9,         config.apis.d3d9ex.hook } },
+
+      { SK_RenderAPI::D3D10,
+          { DLL_ROLE::DXGI, FALSE /* Stupid API--begone! */ } },
+      { SK_RenderAPI::D3D11,
+          { DLL_ROLE::DXGI,         config.apis.d3d9ex.hook } },
+      { SK_RenderAPI::D3D12,
+          { DLL_ROLE::DXGI,                            TRUE } },
+
+     { SK_RenderAPI::OpenGL,
+         { DLL_ROLE::OpenGL,        config.apis.OpenGL.hook } },
+
+#ifndef _WIN64
+
+      // Bitness:  32-Bit  (Add:  DDraw, D3D8 and Glide)
+
+      { SK_RenderAPI::D3D8,
+          { DLL_ROLE::DXGI,           config.apis.d3d8.hook } },
+      { SK_RenderAPI::D3D8On11,
+          { DLL_ROLE::DXGI,     config.apis.d3d8.hook   &&
+                                config.apis.dxgi.d3d11.hook } },
+
+      { SK_RenderAPI::Glide,
+          { DLL_ROLE::Glide,         config.apis.glide.hook } },
+      { SK_RenderAPI::GlideOn11,
+          { DLL_ROLE::Glide,    config.apis.glide.hook  &&
+                                config.apis.dxgi.d3d11.hook } },
+
+      { SK_RenderAPI::DDraw,
+          { DLL_ROLE::DDraw,         config.apis.ddraw.hook } },
+      { SK_RenderAPI::DDrawOn11,
+          { DLL_ROLE::DDraw,    config.apis.ddraw.hook  &&
+                                config.apis.dxgi.d3d11.hook } },
+
+      { SK_RenderAPI::Vulkan,    { DLL_ROLE::INVALID, FALSE } },
+#else
+
+      // Bitness:  64-Bit  (Remove Legacy APIs  +  Add Vulkan)
+
+      { SK_RenderAPI::D3D8,      { DLL_ROLE::INVALID, FALSE } },
+      { SK_RenderAPI::D3D8On11,  { DLL_ROLE::INVALID, FALSE } },
+
+      { SK_RenderAPI::Glide,     { DLL_ROLE::INVALID, FALSE } },
+      { SK_RenderAPI::GlideOn11, { DLL_ROLE::INVALID, FALSE } },
+
+      { SK_RenderAPI::DDraw,     { DLL_ROLE::INVALID, FALSE } },
+      { SK_RenderAPI::DDrawOn11, { DLL_ROLE::INVALID, FALSE } },
+
+      { SK_RenderAPI::Vulkan,
+          { DLL_ROLE::Vulkan,       config.apis.Vulkan.hook } },
+#endif
+  };
+
+
+  bool auto_boot_viable = false;
+
+  if (role_reversal.count (last_known) != 0)
+  {
+    auto_boot_viable =
+      std::get <1> (role_reversal [last_known]);
+
+    if (auto_boot_viable)
+    {
+      SK_SetDLLRole (std::get <0> (role_reversal [last_known]));
+
+      // This actually _saves_ the config, after parsing and
+      //   trimming it.
+      SK_LoadConfig (L"SpecialK");
+
+      config.apis.last_known = SK_RenderAPI::Reserved;
+    }
+  }
+
+  return auto_boot_viable;
+}
+
+
 bool
 __stdcall
 SK_EstablishDllRole (HMODULE hModule)
@@ -257,7 +274,7 @@ SK_EstablishDllRole (HMODULE hModule)
   wcsncpy        (wszAppNameLower, SK_GetHostApp (), MAX_PATH);
   CharLowerBuffW (wszAppNameLower,                   MAX_PATH);
 
-  if (blacklist.count (wszAppNameLower)) return false;
+  if (__blacklist.count (wszAppNameLower)) return false;
 
 
   static bool has_dgvoodoo =
@@ -324,7 +341,6 @@ SK_EstablishDllRole (HMODULE hModule)
     SK_SetDLLRole (DLL_ROLE::OpenGL);
 
 
-
   //
   // This is an injected DLL, not a wrapper DLL...
   //
@@ -345,28 +361,28 @@ SK_EstablishDllRole (HMODULE hModule)
     wchar_t wszGL    [MAX_PATH + 2] = { };
     wchar_t wszDI8   [MAX_PATH + 2] = { };
 
-    lstrcatW (wszD3D9, SK_GetHostPath ());
-    lstrcatW (wszD3D9, L"\\SpecialK.d3d9");
+    lstrcatW (wszD3D9,   SK_GetHostPath ());
+    lstrcatW (wszD3D9,   LR"(\SpecialK.d3d9)");
 
 #ifndef _WIN64
-    lstrcatW (wszD3D8, SK_GetHostPath ());
-    lstrcatW (wszD3D8, L"\\SpecialK.d3d8");
+    lstrcatW (wszD3D8,   SK_GetHostPath ());
+    lstrcatW (wszD3D8,   LR"(\SpecialK.d3d8)");
 
-    lstrcatW (wszDDraw, SK_GetHostPath ());
-    lstrcatW (wszDDraw, L"\\SpecialK.ddraw");
+    lstrcatW (wszDDraw,  SK_GetHostPath ());
+    lstrcatW (wszDDraw,  LR"(\SpecialK.ddraw)");
 #endif
 
-    lstrcatW (wszDXGI, SK_GetHostPath ());
-    lstrcatW (wszDXGI, L"\\SpecialK.dxgi");
+    lstrcatW (wszDXGI,  SK_GetHostPath ());
+    lstrcatW (wszDXGI,  LR"(\SpecialK.dxgi)");
 
     lstrcatW (wszD3D11, SK_GetHostPath ());
-    lstrcatW (wszD3D11, L"\\SpecialK.d3d11");
+    lstrcatW (wszD3D11, LR"(\SpecialK.d3d11)");
 
-    lstrcatW (wszGL,   SK_GetHostPath ());
-    lstrcatW (wszGL,   L"\\SpecialK.OpenGL32");
+    lstrcatW (wszGL,    SK_GetHostPath ());
+    lstrcatW (wszGL,    LR"(\SpecialK.OpenGL32)");
 
-    lstrcatW (wszDI8,  SK_GetHostPath ());
-    lstrcatW (wszDI8,  L"\\SpecialK.DInput8");
+    lstrcatW (wszDI8,   SK_GetHostPath ());
+    lstrcatW (wszDI8,   LR"(\SpecialK.DInput8)");
 
 
     if      ( GetFileAttributesW (wszD3D9) != INVALID_FILE_ATTRIBUTES )
@@ -412,20 +428,38 @@ SK_EstablishDllRole (HMODULE hModule)
       explicit_inject = true;
     }
 
+
     // Opted out of explicit injection, now try automatic
+    //
     if (! explicit_inject)
     {
-      SK_EstablishRootPath ();
-      SK_LoadConfigEx      (L"SpecialK", false);
+      // This order is not arbitrary, but not worth explaining
+      const std::set <std::wstring> local_dlls =
+        { L"dxgi.dll",   L"d3d9.dll",
+          L"d3d11.dll",  L"OpenGL32.dll",
+          L"ddraw.dll",  L"d3d8.dll",
+          L"dinput8.dll"                };
+
+      // If there is a local Special K DLL in the game's directory,
+      //   load it and then bow-out -- we are done here.
+      //
+      if ( SK_TryLocalWrapperFirst ( local_dlls ) )
+      {
+        return SK_DontInject ();
+      }
 
 
-      sk_import_test_s steam_tests [] = {
-#ifdef _WIN64
-           { "steam_api64.dll", false },
-#else
-           { "steam_api.dll",   false },
-#endif
-           { "steamnative.dll", false }
+      // Most frequently imported DLLs for games that use SteamAPI
+      //
+      //  It is trivial to use SteamAPI without linking to the DLL, so
+      //    this is not the final test to determine Steam compatibility.
+      //
+      sk_import_test_s steam_tests [] =
+      {
+        { SK_RunLHIfBitness ( 64, "steam_api64.dll",
+                                  "steam_api.dll"    ), false },
+
+        {                         "steamnative.dll",    false }
       };
 
       SK_TestImports ( GetModuleHandle (nullptr), steam_tests, 2 );
@@ -439,19 +473,42 @@ SK_EstablishDllRole (HMODULE hModule)
 
       QueryFullProcessImageName (hProc, 0, wszProcessName, &dwProcessSize);
 
+      // To catch all remaining Steam games, look for "\SteamApps\" in the
+      //   executable path.
+      //
+      //  These games may not use SteamAPI, but they are designed for the
+      //    Steamworks platform and we can connect to the client using the
+      //      steam_api{64}.dll files distributed with Special K.
+      //
       const bool is_steamworks_game =
         ( steam_tests [0].used | steam_tests [1].used ) ||
            SK_Path_wcsstr (wszProcessName, L"steamapps");
 
 
-      bool
-      SK_Inject_TestWhitelists (const wchar_t* wszExecutable);
-
-
-      // If this is a Steamworks game, then let's figure out the graphics API dynamically
+      // If this is a Steamworks game, then lets start doing stuff to it!
+      //
+      //   => We still need to figure out the primary graphics API.
+      //
       if ( is_steamworks_game || 
            SK_Inject_TestWhitelists (SK_GetFullyQualifiedApp ()) )
       {
+        SK_EstablishRootPath ();
+        SK_LoadConfigEx      (L"SpecialK", false);
+
+
+        // Try the last-known API first -- if we have one.
+        //
+        if (config.apis.last_known != SK_RenderAPI::Reserved)
+        {
+          if (_SKM_AutoBootLastKnownAPI (config.apis.last_known))
+          {
+            return true;
+          }
+        }
+
+
+        // That did not work; examine the game's Import Address Table
+        //
         bool gl   = false, vulkan = false, d3d9  = false, d3d11 = false,
              dxgi = false, d3d8   = false, ddraw = false, glide = false;
 
@@ -465,7 +522,6 @@ SK_EstablishDllRole (HMODULE hModule)
         gl     |= (GetModuleHandle (L"OpenGL32.dll") != nullptr);
         d3d9   |= (GetModuleHandle (L"d3d9.dll")     != nullptr);
 
-        //
         // Not specific enough; some engines will pull in DXGI even if they
         //   do not use D3D10/11/12/D2D/DWrite
         //
@@ -537,8 +593,12 @@ SK_EstablishDllRole (HMODULE hModule)
 #endif
 
 
-        // No Freaking Clue What API This is, Let's use the config file to
-        //   filter out any APIs the user knows are not valid.
+        //
+        // *** No Freaking Clue What Graphics API This Game Uses ?!
+        //
+        //  Use the config file to filter out any APIs the user
+        //    knows are not valid.
+        //
         else
         {
           if (config.apis.dxgi.d3d11.hook)
@@ -565,18 +625,16 @@ SK_EstablishDllRole (HMODULE hModule)
         if (SK_GetDLLRole () == DLL_ROLE::INVALID)
           SK_SetDLLRole (DLL_ROLE::DXGI); // Auto-Guess DXGI if all else fails...
 
-        // This time, save the config file
+        // Write any default values to the config file
         SK_LoadConfig (L"SpecialK");
 
-        return true;
+
+        config.apis.last_known = SK_RenderAPI::Reserved;
       }
     }
   }
 
-  if (SK_GetDLLRole () != DLL_ROLE::INVALID)
-    return true;
-
-  return false;
+  return (SK_GetDLLRole () != DLL_ROLE::INVALID);
 }
 
 
@@ -593,32 +651,6 @@ SK_CleanupMutex (SK_Thread_HybridSpinlock** ppMutex)
       );
   }
 };
-
-class SK_DLL_Bootstrapper
-{
-typedef bool (*BootstrapEntryPoint_pfn)(void);
-typedef bool (*BootstrapTerminate_pfn)(void);
-
-public:
-  std::set <std::wstring> wrapper_dlls;
-
-  BootstrapEntryPoint_pfn start;
-  BootstrapTerminate_pfn  shutdown;
-};
-
-const
-std::unordered_map <DLL_ROLE, SK_DLL_Bootstrapper>
-  __SK_DLL_Bootstraps = {
-    { DLL_ROLE::DXGI,       { { L"dxgi.dll", L"d3d11.dll" }, SK::DXGI::Startup,   SK::DXGI::Shutdown   } },
-    { DLL_ROLE::D3D11_CASE, { { L"dxgi.dll", L"d3d11.dll" }, SK::DXGI::Startup,   SK::DXGI::Shutdown   } },
-    { DLL_ROLE::D3D9,       { { L"d3d9.dll"               }, SK::D3D9::Startup,   SK::D3D9::Shutdown   } },
-    { DLL_ROLE::OpenGL,     { { L"OpenGL32.dll"           }, SK::OpenGL::Startup, SK::OpenGL::Shutdown } },
-    { DLL_ROLE::DInput8,    { { L"dinput8.dll"            }, SK::DI8::Startup,    SK::DI8::Shutdown    } },
-#ifndef _WIN64
-    { DLL_ROLE::D3D8,       { { L"d3d8.dll"               }, SK::D3D8::Startup,   SK::D3D8::Shutdown   } },
-    { DLL_ROLE::DDraw,      { { L"ddraw.dll"              }, SK::DDraw::Startup,  SK::DDraw::Shutdown  } },
-#endif
-  };
 
 
 BOOL
@@ -685,8 +717,7 @@ SK_Detach (DLL_ROLE role)
          InterlockedCompareExchange (
                     &__SK_DLL_Attached,
                       FALSE,
-                        TRUE
-         )
+                        TRUE        )
      )
   {
     if ( __SK_DLL_Bootstraps.count (role) &&
@@ -796,19 +827,25 @@ DllMain ( HMODULE hModule,
         }
       }
 
-
       if (ReadAcquire (&__SK_DLL_Attached))
         SK_Detach (SK_GetDLLRole ());
 
-      if (ReadAcquire (&__SK_TLS_INDEX) != TLS_OUT_OF_INDEXES)
+      LONG idx_to_free =
+        InterlockedCompareExchange ( &__SK_TLS_INDEX,
+                                        TLS_OUT_OF_INDEXES,
+                                          __SK_TLS_INDEX );
+
+      if (idx_to_free != TLS_OUT_OF_INDEXES)
       {
-        TlsFree (InterlockedCompareExchange (&__SK_TLS_INDEX, TLS_OUT_OF_INDEXES, __SK_TLS_INDEX));
+        TlsFree (idx_to_free);
       }
 
-      //else {
-        //Sanity FAILURE: Attempt to detach something that was not properly attached?!
-        //dll_log.Log (L"[ SpecialK ]  ** SANITY CHECK FAILED: DLL was never attached !! **");
-      //}
+#ifdef _DEBUG
+      else {
+      //Sanity FAILURE: Attempt to detach something that was not properly attached?!
+        dll_log.Log (L"[ SpecialK ]  ** SANITY CHECK FAILED: DLL was never attached !! **");
+      }
+#endif
 
       return TRUE;
     } break;
@@ -849,19 +886,15 @@ DllMain ( HMODULE hModule,
 
         if (lpvData != nullptr)
         {
-          // XXX: Add a function to SK_TLS to do cleanup!
+#ifdef _DEBUG
+          size_t freed =
+#endif
+          SK_TLS_Bottom ()->Cleanup (SK_TLS::cleanup_reason_e::Unload);
 
-          if (SK_TLS_Bottom ()->d3d9.temp_fullscreen != nullptr)
-          {
-            delete SK_TLS_Bottom ()->d3d9.temp_fullscreen;
-                   SK_TLS_Bottom ()->d3d9.temp_fullscreen = nullptr;
-          }
-
-          if (SK_TLS_Bottom ()->known_modules.pResolved != nullptr)
-          {
-            delete SK_TLS_Bottom ()->known_modules.pResolved;
-                   SK_TLS_Bottom ()->known_modules.pResolved = nullptr;
-          }
+#ifdef _DEBUG
+          SK_LOG0 ( ( L"Freed %zu bytes of temporary heap storage for tid=%x",
+                        freed, GetCurrentThreadId () ), L"TLS Memory" );
+#endif
 
           LocalFree   (lpvData);
           TlsSetValue (ReadAcquire (&__SK_TLS_INDEX), nullptr);

@@ -483,6 +483,9 @@
     <ClInclude Include="include\SpecialK\control_panel\plugins.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\SpecialK\injection\blacklist.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stdafx.cpp">
@@ -567,9 +570,6 @@
       <Filter>Source Files\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="src\imgui\imgui_draw.cpp">
-      <Filter>Source Files\ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="src\imgui\backends\control_panel.cpp">
       <Filter>Source Files\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="src\imgui\backends\imgui_d3d9.cpp">
@@ -796,6 +796,9 @@
     </ClCompile>
     <ClCompile Include="src\plugins\unclassified.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\control_panel.cpp">
+      <Filter>Source Files\ImGui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

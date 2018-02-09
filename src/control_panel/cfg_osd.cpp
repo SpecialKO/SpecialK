@@ -54,7 +54,7 @@ SK::ControlPanel::OSD::DrawVideoCaptureOptions (void)
     if (! InterlockedCompareExchange (&osd_toggle.testing, TRUE, FALSE))
     {
       osd_toggle.frames_drawn = SK_GetFramesDrawn ();
-      osd_toggle.initial_time = timeGetTime       ();
+      osd_toggle.initial_time = SK::ControlPanel::current_time;
       osd_toggle.time_to_wait = 125UL;
       osd_toggle.original     = (! config.render.osd.draw_in_vidcap);
       osd_toggle.new_val      =    config.render.osd.draw_in_vidcap;
