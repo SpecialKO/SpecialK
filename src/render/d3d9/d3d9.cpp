@@ -3262,11 +3262,8 @@ SK_SetPresentParamsD3D9Ex ( IDirect3DDevice9       *pDevice,
              pparams->BackBufferHeight = monitor_height;
 
 
-        if (! SK_TLS_Bottom ()->d3d9.temp_fullscreen)
-              SK_TLS_Bottom ()->d3d9.temp_fullscreen = new D3DDISPLAYMODEEX { };
-
         if (*ppFullscreenDisplayMode == nullptr)
-          *ppFullscreenDisplayMode = (D3DDISPLAYMODEEX *)SK_TLS_Bottom ()->d3d9.temp_fullscreen;
+          *ppFullscreenDisplayMode = (D3DDISPLAYMODEEX *)SK_TLS_Bottom ()->d3d9.allocTempFullscreenStorage ();
 
         if (*ppFullscreenDisplayMode != nullptr)
         {

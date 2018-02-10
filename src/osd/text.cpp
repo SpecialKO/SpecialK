@@ -1696,10 +1696,10 @@ SK_TextOverlay::update (const char* szText)
     getPos (x, y);
 
     char* text = 
-      SK_TLS_Bottom ()->osd.text;
+      SK_TLS_Bottom ()->osd.allocText (32768);
 
             *text = '\0';
-    strncat (text, data_.text, 32766);
+    strncat (text, data_.text, 32767);
 
     int   num_lines    = SK_CountLines (text);
     char* line         = strtok_ex     (text, "\n");
@@ -1734,7 +1734,7 @@ SK_TextOverlay::update (const char* szText)
       // Add 1.0 so that an X position of -1.0 is perfectly flush with the right
       x = renderer_->getDisplaySize ().d_width + x - longest_line + 1.0f;
 
-      strncpy (text, data_.text, 32766);
+      strncpy (text, data_.text, 32767);
 
       // Restart tokenizing
       if (! has_tokens)

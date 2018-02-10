@@ -63,93 +63,173 @@ enum SK_TLS_STACK_MASK
   SK_TLS_DWORD_ALIGNED  = 0xFFFFFFFF
 };
 
+enum SK_TLS_CleanupReason_e
+{
+  Periodic = 1, // Periodic temporary buffer cleanup
+  Unload   = 2  // TLS is being completely unloaded for this thread
+};
+
+struct SK_TLS_DynamicContext
+{
+  size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload);
+};
+
+struct SK_TLS_ScratchMemory : SK_TLS_DynamicContext
+{
+  struct cmd_s
+  {
+    char*  allocFormattedStorage (size_t needed_len);
+  
+    char*  line = nullptr;
+    size_t len  = 0;
+  } cmd;
+  
+  struct eula_s
+  {
+    char*  allocTextStorage (size_t needed_len);
+  
+    char*  text = nullptr;
+    size_t len  = 0;
+  } eula;
+
+  size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload);
+};
+
+
+struct SK_TLS_RenderContext
+{
+  BOOL ctx_init_thread = FALSE;
+};
+
+struct SK_D3D9_ThreadContext : SK_TLS_DynamicContext,
+                               SK_TLS_RenderContext
+{
+  LPVOID temp_fullscreen = nullptr;
+
+  void* allocTempFullscreenStorage (size_t D3DDISPLAYMODEEX_is_always_24_bytes = 24);
+
+  // Needed to safely override D3D9Ex fullscreen mode during device
+  //   creation
+
+  size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload);
+};
+
+struct SK_D3D8_ThreadContext : SK_TLS_RenderContext
+{
+};
+
+struct SK_DDraw_ThreadContext : SK_TLS_RenderContext
+{
+};
+
+struct SK_D3D11_ThreadContext : SK_TLS_RenderContext
+{
+  ID3D11RasterizerState*   pRasterStateOrig       = nullptr;
+  ID3D11RasterizerState*   pRasterStateNew        = nullptr;
+
+  ID3D11DepthStencilState* pDepthStencilStateOrig = nullptr;
+  ID3D11DepthStencilState* pDepthStencilStateNew  = nullptr;
+  ID3D11DepthStencilView*  pDSVOrig               = nullptr;
+
+  UINT                     StencilRefOrig         = 0;
+  UINT                     StencilRefNew          = 0;
+};
+
+struct SK_GL_ThreadContext : SK_TLS_RenderContext
+{
+  HGLRC current_hglrc = 0;
+  HDC   current_hdc   = 0;
+  HWND  current_hwnd  = 0;
+};
+
+
+struct SK_RawInput_ThreadContext : SK_TLS_DynamicContext
+{
+  uint8_t* allocData (size_t needed);
+
+  void*  data     = nullptr;
+  size_t capacity = 0UL;
+
+  RAWINPUTDEVICE* allocateDevices (size_t needed);
+
+  RAWINPUTDEVICE* devices     = nullptr;
+  size_t          num_devices = 0UL;
+
+  size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload);
+};
+
+struct SK_Input_ThreadContext
+{
+  BOOL hid                 = FALSE;
+};
+
+
+struct SK_Win32_ThreadContext
+{
+  int  getThreadPriority (bool nocache = false);
+
+  LONG GUI                 = -1;
+
+  int   thread_prio        =  0;
+  DWORD last_tested_prio   = 0UL;
+};
+
+struct SK_ImGui_ThreadContext : SK_TLS_DynamicContext
+{
+  BOOL drawing             = FALSE;
+
+  // Allocates and grows this buffer until a cleanup operation demands
+  //   we shrink it.
+  void* allocPolylineStorage (size_t needed);
+
+  void*  polyline_storage  = nullptr;
+  size_t polyline_capacity = 0UL;
+
+  size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload);
+};
+
+struct SK_OSD_ThreadContext : SK_TLS_DynamicContext
+{
+  // Allocates and grows this buffer until a cleanup operation demands
+  //   we shrink it.
+  char* allocText (size_t needed);
+
+  char*  text          = nullptr;
+  size_t text_capacity = 0;
+
+  size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload);
+};
+
+struct SK_Steam_ThreadContext : SK_TLS_DynamicContext
+{
+  int32_t client_pipe = 0;
+  int32_t client_user = 0;
+
+  size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload);
+};
+
+
 struct SK_TLS
 {
-  SK_ModuleAddrMap known_modules;
+  SK_ModuleAddrMap          known_modules;
+  SK_TLS_ScratchMemory      scratch_memory;
 
-  struct tex_mgmt_s
-  {
-    struct stream_pool_s
-    {
-      void*    data         = nullptr;
-      size_t   data_len     = 0;
-      uint32_t data_age     = 0;
-    } streaming_memory;
+  SK_DDraw_ThreadContext    ddraw;
+  SK_D3D8_ThreadContext     d3d8;
+  SK_D3D9_ThreadContext     d3d9;
+  SK_D3D11_ThreadContext    d3d11;
+  SK_GL_ThreadContext       gl;
 
-    BOOL injection_thread   = FALSE;
+//SK_DInput7_ThreadContext   dinput7;
+//SK_DInput8_ThreadContext   dinput8;
 
-    IUnknown* refcount_obj  = nullptr; // Object to expect a reference count change on
-    LONG      refcount_test = 0;       // Used to validate 3rd party D3D texture wrappers
-  } texture_management;
+  SK_ImGui_ThreadContext    imgui;
+  SK_Input_ThreadContext    input_core;
+  SK_RawInput_ThreadContext raw_input;
+  SK_Win32_ThreadContext    win32;
 
-  struct {
-    ID3D11RasterizerState*   pRasterStateOrig       = nullptr;
-    ID3D11RasterizerState*   pRasterStateNew        = nullptr;
-
-    ID3D11DepthStencilState* pDepthStencilStateOrig = nullptr;
-    ID3D11DepthStencilState* pDepthStencilStateNew  = nullptr;
-    ID3D11DepthStencilView*  pDSVOrig               = nullptr;
-
-    UINT                     StencilRefOrig         = 0;
-    UINT                     StencilRefNew          = 0;
-    BOOL                     ctx_init_thread        = FALSE;
-  } d3d11;
-
-  struct
-  {
-    HGLRC current_hglrc       = 0;
-    HDC   current_hdc         = 0;
-    HWND  current_hwnd        = 0;
-   BOOL   ctx_init_thread     = FALSE;
-  } gl;
-
-  struct 
-  {
-    BOOL ctx_init_thread     = FALSE;
-  } ddraw;
-
-  struct 
-  {
-    BOOL ctx_init_thread     = FALSE;
-  } d3d8;
-
-  struct 
-  {
-    BOOL   ctx_init_thread   = FALSE;
-    LPVOID temp_fullscreen   = nullptr;
-    // Needed to safely override D3D9Ex fullscreen mode during device
-    //   creation
-  } d3d9;
-
-  struct 
-  {
-    BOOL ctx_init_thread     = FALSE;
-  } dinput7;
-
-  struct 
-  {
-    BOOL ctx_init_thread     = FALSE;
-  } dinput8;
-
-  struct imgui_tls_util_s {
-    BOOL drawing             = FALSE;
-
-    // Allocates and grows this buffer until a cleanup operation demands
-    //   we shrink it.
-    void* allocPolylineStorage (size_t needed);
-
-    void*  polyline_storage  = nullptr;
-    size_t polyline_capacity = 0UL;
-  } imgui;
-
-  struct  {
-    BOOL hid                 = FALSE;
-  } input;
-
-  struct
-  {
-    LONG GUI                 = -1;
-  } win32;
+  SK_OSD_ThreadContext      osd;
+  SK_Steam_ThreadContext    steam;
 
   // All stack frames except for bottom
   //   have meaningless values for these,
@@ -163,17 +243,21 @@ struct SK_TLS
     bool             last_chance = false;
   } debug;
 
-
-  struct
+  struct tex_mgmt_s
   {
-    char text [32768] = { };
-  } osd;
+    struct stream_pool_s
+    {
+      void*    data          = nullptr;
+      size_t   data_len      = 0;
+      uint32_t data_age      = 0;
+    } streaming_memory;
 
-  struct
-  {
-    int32_t client_pipe = 0;
-    int32_t client_user = 0;
-  } steam;
+    BOOL injection_thread    = FALSE;
+
+    IUnknown* refcount_obj   = nullptr; // Object to expect a reference count change on
+    LONG      refcount_test  = 0;       // Used to validate 3rd party D3D texture wrappers
+  } texture_management;
+
 
   struct stack
   {
@@ -181,13 +265,7 @@ struct SK_TLS
     static const int max     = 2;
   } stack;
 
-  enum cleanup_reason_e
-  {
-    Periodic = 1, // Periodic temporary buffer cleanup
-    Unload   = 2  // TLS is being completely unloaded for this thread
-  };
-
-  size_t Cleanup (cleanup_reason_e reason = Unload);
+  size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload);
 };
 
 extern volatile LONG __SK_TLS_INDEX;

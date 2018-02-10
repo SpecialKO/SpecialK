@@ -68,12 +68,12 @@ SK_Thread_HybridSpinlock* loader_lock  = nullptr;
 SK_Thread_HybridSpinlock* wmi_cs       = nullptr;
 SK_Thread_HybridSpinlock* cs_dbghelp   = nullptr;
 
-volatile LONG  __SK_DLL_Ending       = FALSE;
-volatile LONG  __SK_DLL_Attached     = FALSE;
-    __time64_t __SK_DLL_AttachTime   = 0ULL;
-volatile ULONG __SK_Threads_Attached = 0UL;
-volatile ULONG __SK_DLL_Refs         = 0UL;
-volatile LONG  __SK_HookContextOwner = false;
+volatile          long __SK_DLL_Ending       = FALSE;
+volatile          long __SK_DLL_Attached     = FALSE;
+            __time64_t __SK_DLL_AttachTime   = 0ULL;
+volatile unsigned long __SK_Threads_Attached = 0UL;
+volatile unsigned long __SK_DLL_Refs         = 0UL;
+volatile          long __SK_HookContextOwner = false;
 
 
 class SK_DLL_Bootstrapper
@@ -871,7 +871,10 @@ DllMain ( HMODULE hModule,
           }
 
           else
+          {
+            *(SK_TLS *)lpvData = SK_TLS::SK_TLS ();
             (static_cast <SK_TLS *> (lpvData))->stack.current = 0;
+          }
         }
       }
     } break;
@@ -889,7 +892,7 @@ DllMain ( HMODULE hModule,
 #ifdef _DEBUG
           size_t freed =
 #endif
-          SK_TLS_Bottom ()->Cleanup (SK_TLS::cleanup_reason_e::Unload);
+          SK_TLS_Bottom ()->Cleanup (SK_TLS_CleanupReason_e::Unload);
 
 #ifdef _DEBUG
           SK_LOG0 ( ( L"Freed %zu bytes of temporary heap storage for tid=%x",

@@ -872,16 +872,13 @@ SK_D3D11_SetDevice ( ID3D11Device           **ppDevice,
     if (config.render.dxgi.exception_mode != -1)
       (*ppDevice)->SetExceptionMode (config.render.dxgi.exception_mode);
 
-    CComPtr <IDXGIDevice>  pDXGIDev = nullptr;
-    CComPtr <IDXGIAdapter> pAdapter = nullptr;
+    CComQIPtr <IDXGIDevice>  pDXGIDev (*ppDevice);
+    CComPtr   <IDXGIAdapter> pAdapter = nullptr;
 
-    HRESULT hr =
-      (*ppDevice)->QueryInterface <IDXGIDevice> (&pDXGIDev);
-
-    if ( SUCCEEDED ( hr ) )
+    if ( pDXGIDev != nullptr )
     {
-      hr =
-        pDXGIDev->GetParent ( IID_PPV_ARGS (&pAdapter) );
+      HRESULT hr =
+        pDXGIDev->GetParent ( IID_PPV_ARGS (&pAdapter.p) );
 
       if ( SUCCEEDED ( hr ) )
       {
@@ -894,7 +891,7 @@ SK_D3D11_SetDevice ( ID3D11Device           **ppDevice,
         // IDXGIAdapter3 = DXGI 1.4 (Windows 10+)
         if ( iver >= 3 )
         {
-          SK::DXGI::StartBudgetThread ( &pAdapter );
+          SK::DXGI::StartBudgetThread ( &pAdapter.p );
         }
       }
     }
@@ -5513,7 +5510,7 @@ void WINAPI SK_D3D11_SetResourceRoot      (const wchar_t* root);
 void WINAPI SK_D3D11_EnableTexDump        (bool enable);
 void WINAPI SK_D3D11_EnableTexInject      (bool enable);
 void WINAPI SK_D3D11_EnableTexCache       (bool enable);
-void WINAPI SK_D3D11_PopulateResourceList (void);
+void WINAPI SK_D3D11_PopulateResourceList (bool refresh = false);
 
 #include <unordered_set>
 #include <unordered_map>
@@ -5527,8 +5524,10 @@ std::unordered_map <uint32_t, std::wstring> tex_hashes;
 std::unordered_map <uint32_t, std::wstring> tex_hashes_ex;
 
 std::unordered_set <uint32_t>               dumped_textures;
+uint64_t                                    dumped_texture_bytes;
 std::unordered_set <uint32_t>               dumped_collisions;
 std::unordered_set <uint32_t>               injectable_textures;
+uint64_t                                    injectable_texture_bytes;
 std::unordered_set <uint32_t>               injected_collisions;
 
 std::unordered_set <uint32_t>               injectable_ffx; // HACK FOR FFX
@@ -6143,15 +6142,24 @@ SK_D3D11_RecursiveEnumAndAddTex ( std::wstring   directory, unsigned int& files,
 
 void
 WINAPI
-SK_D3D11_PopulateResourceList (void)
+SK_D3D11_PopulateResourceList (bool refresh)
 {
   static bool init = false;
 
-  if (init || SK_D3D11_res_root.empty ())
+  if (((! refresh) && init) || SK_D3D11_res_root.empty ())
     return;
 
   SK_AutoCriticalSection critical0 (&tex_cs);
   SK_AutoCriticalSection critical1 (&inject_cs);
+
+  if (refresh)
+  {
+    dumped_textures.clear ();
+    dumped_texture_bytes = 0;
+
+    injectable_textures.clear ();
+    injectable_texture_bytes = 0;
+  }
 
   init = true;
 
@@ -6272,6 +6280,8 @@ SK_D3D11_PopulateResourceList (void)
       FindClose (hFind);
     }
 
+    dumped_texture_bytes = liSize.QuadPart;
+
     dll_log.LogEx ( false, L" %lu files (%3.1f MiB -- %3.1f:%3.1f MiB Un:Compressed)\n",
                       files, (double)liSize.QuadPart / (1024.0 * 1024.0),
                                (double)liUncompressed.QuadPart / (1024.0 * 1024.0),
@@ -6296,6 +6306,8 @@ SK_D3D11_PopulateResourceList (void)
     LARGE_INTEGER   liSize = {   };
 
     SK_D3D11_RecursiveEnumAndAddTex (wszTexInjectDir, files, liSize);
+
+    injectable_texture_bytes = liSize.QuadPart;
 
     dll_log.LogEx ( false, L" %lu files (%3.1f MiB)\n",
                       files, (double)liSize.QuadPart / (1024.0 * 1024.0) );
@@ -6371,7 +6383,8 @@ SK_D3D11_SetResourceRoot (const wchar_t* root)
   if (! wcsstr (root, L":"))
   {
          wchar_t wszPath [MAX_PATH * 2] = { };
-    wcsncpy     (wszPath, SK_GetRootPath (), MAX_PATH);
+    wcsncpy     (wszPath, SK_IsInjected () ? SK_GetConfigPath () :
+                                             SK_GetRootPath   (),  MAX_PATH);
     PathAppendW (wszPath, root);
 
     SK_D3D11_res_root = wszPath;
@@ -7372,6 +7385,8 @@ SK_D3D11_DumpTexture2D ( _In_ ID3D11Texture2D* pTex, uint32_t crc32c )
 
       if (SUCCEEDED (hr))
       {
+        dumped_texture_bytes += SK_File_GetSize (wszOutName);
+
         SK_D3D11_AddDumped (crc32c, crc32c);
 
         return hr;
@@ -7700,9 +7715,13 @@ SK_D3D11_DeleteDumpedTexture (uint32_t crc32c)
   _swprintf ( wszOutName, LR"(%s\Compressed_%08X.dds)",
                 wszPath, crc32c );
 
+  uint64_t size = SK_File_GetSize (wszOutName);
+
   if (DeleteFileW (wszOutName))
   {
     SK_D3D11_RemoveDumped (crc32c, crc32c);
+
+    dumped_texture_bytes -= size;
 
     return TRUE;
   }
@@ -7712,9 +7731,13 @@ SK_D3D11_DeleteDumpedTexture (uint32_t crc32c)
   _swprintf ( wszOutName, LR"(%s\Uncompressed_%08X.dds)",
                 wszPath, crc32c );
 
+  size = SK_File_GetSize (wszOutName);
+
   if (DeleteFileW (wszOutName))
   {
     SK_D3D11_RemoveDumped (crc32c, crc32c);
+
+    dumped_texture_bytes -= size;
 
     return TRUE;
   }
@@ -7894,9 +7917,14 @@ SK_D3D11_DumpTexture2D (  _In_ const D3D11_TEXTURE2D_DESC   *pDesc,
       }
 #endif
 
-      return SaveToDDSFile ( image.GetImages (), image.GetImageCount (),
-                               image.GetMetadata (), DirectX::DDS_FLAGS_NONE,
-                                 wszOutName );
+      HRESULT hr =  SaveToDDSFile ( image.GetImages (), image.GetImageCount (),
+                                      image.GetMetadata (), DirectX::DDS_FLAGS_NONE,
+                                        wszOutName );
+
+      if (SUCCEEDED (hr))
+      {
+        dumped_texture_bytes += SK_File_GetSize (wszOutName);
+      }
     }
   }
 
@@ -8678,6 +8706,8 @@ reinterpret_cast <ID3D11Resource **> (&pInjTex)
 int
 SK_D3D11_ReloadAllTextures (void)
 {
+  SK_D3D11_PopulateResourceList (true);
+
   int count = 0;
 
   for ( auto& it : SK_D3D11_Textures.Textures_2D )
@@ -11245,12 +11275,15 @@ SK_LiveTextureView (bool& can_scroll)
   if (ImGui::IsWindowHovered ())
     can_scroll = false;
 
+  static int draws = 0;
+
   if (! list_contents.empty ())
   {
     static size_t last_sel     = std::numeric_limits <size_t>::max ();
     static bool   sel_changed  = false;
-    
-    if (sel != last_sel)
+
+    // Don't select a texture immediately
+    if (sel != last_sel && draws++ != 0)
       sel_changed = true;
     
     last_sel = sel;

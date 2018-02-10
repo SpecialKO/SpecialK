@@ -106,6 +106,9 @@ namespace SK
 
     void          SetPersonaState (EPersonaState state);
     EPersonaState GetPersonaState (void);
+
+    std::string   GetConfigDir (void);
+    std::string   GetDataDir   (void);
   }
 }
 

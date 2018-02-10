@@ -5740,7 +5740,7 @@ SK_DXGI_HookSwapChain (IDXGISwapChain* pSwapChain)
 
     CComPtr <IDXGIOutput> pOutput = nullptr;
     
-    if (SUCCEEDED (pSwapChain->GetContainingOutput (&pOutput)))
+    if (SUCCEEDED (pSwapChain->GetContainingOutput (&pOutput.p)))
     {
       if (pOutput != nullptr)
       {
@@ -5755,11 +5755,11 @@ SK_DXGI_HookSwapChain (IDXGISwapChain* pSwapChain)
                                              FindClosestMatchingMode_pfn );
     
         // Don't hook this unless you want nvspcap to crash the game.
-        //
-        //DXGI_VIRTUAL_HOOK ( &pOutput.p, 10, "IDXGIOutput::WaitForVBlank",
-        //                         DXGIOutput_WaitForVBlank_Override,
-        //                                    WaitForVBlank_Original,
-        //                                    WaitForVBlank_pfn );
+
+        DXGI_VIRTUAL_HOOK ( &pOutput.p, 10, "IDXGIOutput::WaitForVBlank",
+                                 DXGIOutput_WaitForVBlank_Override,
+                                            WaitForVBlank_Original,
+                                            WaitForVBlank_pfn );
       }
     }
 
@@ -6046,25 +6046,25 @@ HookDXGI (LPVOID user)
 
       if (config.render.dxgi.deferred_isolation)
       {
-        pImmediateContext->GetDevice (&pDev);
+        pImmediateContext->GetDevice (&pDev.p);
 
-        pDev->CreateDeferredContext (0x00,  &pDevCtx);
+        pDev->CreateDeferredContext (0x00,  &pDevCtx.p);
         d3d11_hook_ctx.ppImmediateContext = &pDevCtx.p;
       }
 
       else
       {
-        pDev->GetImmediateContext (&pDevCtx);
+        pDev->GetImmediateContext (&pDevCtx.p);
         d3d11_hook_ctx.ppImmediateContext = (ID3D11DeviceContext **)&pDevCtx.p;
       }
 
       HookD3D11             (&d3d11_hook_ctx);
       SK_DXGI_HookFactory   (pFactory);
-      SK_DXGI_HookSwapChain (pSwapChain);
+      SK_DXGI_HookSwapChain (pSwapChain.p);
 
       // This won't catch Present1 (...), but no games use that
       //   and we can deal with it later if it happens.
-      SK_DXGI_HookPresentBase ((IDXGISwapChain *)pSwapChain);
+      SK_DXGI_HookPresentBase ((IDXGISwapChain *)pSwapChain.p);
 
       CComQIPtr <IDXGISwapChain1> pSwapChain1 (pSwapChain);
 

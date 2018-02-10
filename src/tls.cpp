@@ -22,7 +22,7 @@
 #include <SpecialK/tls.h>
 
 
-volatile LONG __SK_TLS_INDEX = TLS_OUT_OF_INDEXES;
+volatile long __SK_TLS_INDEX = TLS_OUT_OF_INDEXES;
 
 
 SK_TLS*
@@ -107,6 +107,40 @@ SK_TLS_Pop  (void)
 
 
 
+char*
+SK_TLS_ScratchMemory::cmd_s::allocFormattedStorage (size_t needed_len)
+{
+  if (len < needed_len)
+  {
+    line = (char *)realloc (line, needed_len);
+
+    if (line != nullptr)
+    {
+      len = needed_len;
+    }
+  }
+
+  return line;
+}
+
+char*
+SK_TLS_ScratchMemory::eula_s::allocTextStorage (size_t needed_len)
+{
+  if (len < needed_len)
+  {
+    text = (char *)realloc (text, needed_len);
+
+    if (text != nullptr)
+    {
+      len = needed_len;
+    }
+  }
+
+  return text;
+}
+
+
+
 
 
 SK_ModuleAddrMap::SK_ModuleAddrMap (void) = default;
@@ -149,7 +183,7 @@ SK_ModuleAddrMap::insert (LPCVOID pAddr, HMODULE hMod)
 #include <SpecialK/steam_api.h>
 
 void*
-SK_TLS::imgui_tls_util_s::allocPolylineStorage (size_t needed)
+SK_ImGui_ThreadContext::allocPolylineStorage (size_t needed)
 {
   if (polyline_capacity < needed)
   {
@@ -162,43 +196,234 @@ SK_TLS::imgui_tls_util_s::allocPolylineStorage (size_t needed)
   return polyline_storage;
 }
 
+char*
+SK_OSD_ThreadContext::allocText (size_t needed)
+{
+  if (text_capacity < needed)
+  {
+    text = (char *)realloc (text, needed);
+
+    if (text != nullptr)
+      text_capacity = needed;
+  }
+
+  return text;
+}
+
+
+uint8_t*
+SK_RawInput_ThreadContext::allocData (size_t needed)
+{
+  if (capacity < needed)
+  {
+    data = (uint8_t *)realloc (data, needed);
+
+    if (data != nullptr)
+      capacity = needed;
+  }
+
+  return (uint8_t *)data;
+}
+
+RAWINPUTDEVICE*
+SK_RawInput_ThreadContext::allocateDevices (size_t needed)
+{
+  if (num_devices < needed)
+  {
+    devices = (RAWINPUTDEVICE *)realloc (devices, needed * sizeof (RAWINPUTDEVICE));
+
+    if (devices != nullptr)
+      num_devices = needed;
+  }
+
+  return devices;
+}
+
+
 size_t
-SK_TLS::Cleanup (SK_TLS::cleanup_reason_e reason)
+SK_TLS_ScratchMemory::Cleanup (SK_TLS_CleanupReason_e /*reason*/)
 {
   size_t freed = 0UL;
 
-  if (d3d9.temp_fullscreen != nullptr)
+  if (cmd.line != nullptr)
   {
-    delete d3d9.temp_fullscreen;
-           d3d9.temp_fullscreen = nullptr;
+    freed += cmd.len;
+
+       free (cmd.line);
+             cmd.line = nullptr;
+
+             cmd.len  = 0;
+  }
+
+  if (eula.text != nullptr)
+  {
+    freed += eula.len;
+
+       free (eula.text);
+             eula.text = nullptr;
+
+             eula.len  = 0;
+  }
+
+  return freed;
+}
+
+size_t
+SK_ImGui_ThreadContext::Cleanup (SK_TLS_CleanupReason_e /*reason*/)
+{
+  size_t freed = 0;
+
+  if (polyline_storage != nullptr)
+  {
+    freed += polyline_capacity;
+
+    free (polyline_storage);
+          polyline_storage = nullptr;
+
+          polyline_capacity = 0;
+  }
+
+  return freed;
+}
+
+size_t
+SK_OSD_ThreadContext::Cleanup (SK_TLS_CleanupReason_e /*reason*/)
+{
+  size_t freed = 0;
+
+  if (text != nullptr)
+  {
+    freed += text_capacity;
+
+    free (text);
+          text = nullptr;
+
+          text_capacity = 0;
+  }
+
+  return freed;
+}
+
+size_t
+SK_RawInput_ThreadContext::Cleanup (SK_TLS_CleanupReason_e /*reason*/)
+{
+  size_t freed = 0;
+
+  if (data != nullptr)
+  {
+    freed += capacity;
+
+    free (data);
+          data = nullptr;
+
+          capacity = 0;
+  }
+
+  if (devices != nullptr)
+  {
+    freed += num_devices * sizeof (RAWINPUTDEVICE);
+
+    free (devices);
+          devices = nullptr;
+
+          num_devices = 0;
+  }
+
+  return freed;
+}
+
+size_t
+SK_Steam_ThreadContext::Cleanup (SK_TLS_CleanupReason_e reason)
+{
+  size_t freed = 0;
+
+  if (reason == Unload)
+  {
+    if (steam_ctx.Utils () != nullptr && client_user != 0 && reason == Unload)
+    {
+      if (steam_ctx.ReleaseThreadUser ())
+      {
+      //freed += 4;
+
+        client_user = 0;
+      }
+    }
+
+    if (steam_ctx.Utils () != nullptr && client_pipe != 0 && reason == Unload)
+    {
+      if (steam_ctx.ReleaseThreadPipe ())
+      {
+      //freed += 4;
+
+        client_pipe = 0;
+      }
+    }
+  }
+
+  return freed;
+}
+
+int
+SK_Win32_ThreadContext::getThreadPriority (bool nocache)
+{
+  const DWORD _RefreshInterval = 30000UL;
+
+  DWORD dwNow = timeGetTime ();
+
+  if (! nocache)
+  {
+    thread_prio      = GetThreadPriority (GetCurrentThread ());
+    last_tested_prio = dwNow;
+  }
+
+  else if (last_tested_prio < dwNow - _RefreshInterval)
+  {
+    thread_prio      = GetThreadPriority (GetCurrentThread ());
+    last_tested_prio = dwNow;
+  }
+
+  return thread_prio;
+}
+
+void*
+SK_D3D9_ThreadContext::allocTempFullscreenStorage (size_t /*dontcare*/)
+{
+  if (temp_fullscreen == nullptr)
+  {
+    temp_fullscreen = new D3DDISPLAYMODEEX { };
+  }
+
+  return temp_fullscreen;
+}
+
+size_t
+SK_D3D9_ThreadContext::Cleanup (SK_TLS_CleanupReason_e /*reason*/)
+{
+  size_t freed = 0;
+
+  if (temp_fullscreen != nullptr)
+  {
+    delete temp_fullscreen;
+           temp_fullscreen = nullptr;
 
            freed += sizeof (D3DDISPLAYMODEEX);
   }
 
-  if (imgui.polyline_storage != nullptr)
-  {
-
-    freed += imgui.polyline_capacity;
-
-    delete imgui.polyline_storage;
-           imgui.polyline_storage = nullptr;
-  }
+  return freed;
+}
 
 
-  if (reason == Unload)
-  {
-    if (steam_ctx.Utils () != nullptr && steam.client_user != 0 && reason == Unload)
-    {
-      if (steam_ctx.ReleaseThreadUser ())
-        steam.client_user = 0;
-    }
+size_t
+SK_TLS::Cleanup (SK_TLS_CleanupReason_e reason)
+{
+  size_t freed = 0UL;
 
-    if (steam_ctx.Utils () != nullptr && steam.client_pipe != 0 && reason == Unload)
-    {
-      if (steam_ctx.ReleaseThreadPipe ())
-        steam.client_pipe = 0;
-    }
-  }
+  freed += d3d9          .Cleanup (reason);
+  freed += imgui         .Cleanup (reason);
+  freed += osd           .Cleanup (reason);
+  freed += raw_input     .Cleanup (reason);
+  freed += scratch_memory.Cleanup (reason);
+  freed += steam         .Cleanup (reason);
 
 
   if (known_modules.pResolved != nullptr)

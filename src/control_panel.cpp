@@ -942,8 +942,6 @@ SK_ImGui_ControlPanel (void)
     {
       if (ImGui::BeginMenu ("File"))
       {
-        bool selected = false;
-
         static HMODULE hModReShade      = SK_ReShade_GetDLL ();
         static bool    bIsReShadeCustom =
                           ( hModReShade != nullptr &&
@@ -951,12 +949,101 @@ SK_ImGui_ControlPanel (void)
           SK_RunLHIfBitness ( 64, GetProcAddress (hModReShade, "?SK_ImGui_DrawCallback@@YAIPEAX@Z"),
                                   GetProcAddress (hModReShade, "?SK_ImGui_DrawCallback@@YGIPAX@Z" ) ) );
 
-        if (ImGui::MenuItem ( "Browse Logs", "", &selected ))
+        if (ImGui::MenuItem ( "Browse Game Directory", "" ))
+        {
+          ShellExecuteW (GetActiveWindow (), L"explore", SK_GetHostPath (), nullptr, nullptr, SW_NORMAL);
+        }
+
+#if 0
+        if (SK::SteamAPI::AppID () != 0 && SK::SteamAPI::GetDataDir () != "")
+        {
+          if (ImGui::BeginMenu ("Browse Steam Directories"))
+          {
+            if (ImGui::MenuItem ("Cloud Data", ""))
+            {
+              ShellExecuteA (GetActiveWindow (), "explore", SK::SteamAPI::GetDataDir ().c_str (), nullptr, nullptr, SW_NORMAL);
+            }
+
+            if (ImGui::MenuItem ("Cloud Config", ""))
+            {
+              ShellExecuteA (GetActiveWindow (), "explore", SK::SteamAPI::GetConfigDir ().c_str (), nullptr, nullptr, SW_NORMAL);
+            }
+
+            ImGui::EndMenu ();
+          }
+        }
+#endif
+
+        ImGui::Separator ();
+
+        if (ImGui::MenuItem ( "Browse Special K Logs", "" ))
         {
           std::wstring log_dir =
             std::wstring (SK_GetConfigPath ()) + std::wstring (LR"(\logs)");
 
           ShellExecuteW (GetActiveWindow (), L"explore", log_dir.c_str (), nullptr, nullptr, SW_NORMAL);
+        }
+
+
+        SK_RenderBackend& rb = SK_GetCurrentRenderBackend ();
+
+        bool supports_texture_mods = 
+        //( static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D9)  ) ||
+          ( static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D11) );
+
+        if (supports_texture_mods)
+        {
+          extern std::wstring SK_D3D11_res_root;
+
+          static bool bHasTextureMods =
+                       ( GetFileAttributesW (SK_D3D11_res_root.c_str ()) != INVALID_FILE_ATTRIBUTES );
+
+          if (bHasTextureMods)
+          {
+            if (ImGui::BeginMenu ("Browse Texture Assets"))
+            {
+              extern uint64_t injectable_texture_bytes;
+
+              wchar_t wszPath [MAX_PATH * 2] = { };
+
+              if (ImGui::MenuItem ("Injectable Textures", SK_FormatString ("%ws", SK_File_SizeToString (injectable_texture_bytes).c_str ()).c_str (), nullptr))
+              {
+                wcscpy      (wszPath, SK_D3D11_res_root.c_str ());
+                PathAppendW (wszPath, LR"(inject\textures)");
+
+                ShellExecuteW (GetActiveWindow (), L"explore", wszPath, nullptr, nullptr, SW_NORMAL);
+              }
+
+              extern std::unordered_set <uint32_t> dumped_textures;
+              extern uint64_t                      dumped_texture_bytes;
+
+              if ((! dumped_textures.empty ()) && ImGui::MenuItem ("Dumped Textures", SK_FormatString ("%ws", SK_File_SizeToString (dumped_texture_bytes).c_str ()).c_str (), nullptr))
+              {
+                wcscpy      (wszPath, SK_D3D11_res_root.c_str ());
+                PathAppendW (wszPath, LR"(dump\textures)");
+                PathAppendW (wszPath, SK_GetHostApp ());
+
+                ShellExecuteW (GetActiveWindow (), L"explore", wszPath, nullptr, nullptr, SW_NORMAL);
+              }
+
+              ImGui::EndMenu ();
+            }
+          }
+
+          else
+          {
+            if (ImGui::MenuItem ("Initialize Texture Mods", "", nullptr))
+            {
+              wchar_t      wszPath [MAX_PATH * 2] = { };
+              wcscpy      (wszPath, SK_D3D11_res_root.c_str ());
+              PathAppendW (wszPath, LR"(inject\textures\)");
+
+              SK_CreateDirectories (wszPath);
+
+              bHasTextureMods =
+                ( GetFileAttributesW (SK_D3D11_res_root.c_str ()) != INVALID_FILE_ATTRIBUTES );
+            }
+          }
         }
 
         if (bIsReShadeCustom && ImGui::MenuItem ( "Browse ReShade Assets", "", nullptr ))

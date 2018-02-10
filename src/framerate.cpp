@@ -921,6 +921,8 @@ SK_GetPerfFreq (void)
 #include <d3d11.h>
 #include <atlbase.h>
 
+#include <SpecialK/tls.h>
+
 SK::Framerate::Stats frame_history;
 SK::Framerate::Stats frame_history2;
 
@@ -942,9 +944,9 @@ QueryPerformanceCounter_pfn QueryPerformanceCounter_Original = nullptr;
 
 auto SK_CurrentPerf =
  []{
-     LARGE_INTEGER                     time;
+     LARGE_INTEGER                      time;
      QueryPerformanceCounter_Original (&time);
-     return                            time;
+     return                             time;
    };
 
 auto SK_DeltaPerf =
@@ -1120,7 +1122,7 @@ Sleep_Detour (DWORD dwMilliseconds)
 
       if (dwMilliseconds <= 1)
       {
-        if (GetThreadPriority (GetCurrentThread ()) == THREAD_PRIORITY_NORMAL)
+        if (SK_TLS_Bottom ()->win32.getThreadPriority () == THREAD_PRIORITY_NORMAL)
           SleepEx (0, TRUE);
         else
           YieldProcessor ();

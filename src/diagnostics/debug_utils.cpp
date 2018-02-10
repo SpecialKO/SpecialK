@@ -588,6 +588,26 @@ SymUnloadModule64 (
 }
 
 
+using SymFromAddr_pfn = BOOL (IMAGEAPI *)( _In_      HANDLE       hProcess,
+                                           _In_      DWORD64      Address,
+                                           _Out_opt_ PDWORD64     Displacement,
+                                           _Inout_   PSYMBOL_INFO Symbol );
+
+BOOL
+__stdcall
+SAFE_SymFromAddr (
+  _In_      HANDLE          hProcess,
+  _In_      DWORD64         Address,
+  _Out_opt_ PDWORD64        Displacement,
+  _Inout_   PSYMBOL_INFO    Symbol,
+            SymFromAddr_pfn Trampoline )
+{
+  __try {
+    return Trampoline (hProcess, Address, Displacement, Symbol);
+  }
+  __except (EXCEPTION_EXECUTE_HANDLER) { return FALSE; }
+}
+
 BOOL
 IMAGEAPI
 SymFromAddr (
@@ -608,7 +628,7 @@ SymFromAddr (
 
   if (SymFromAddr_Imp != nullptr)
   {
-    return SymFromAddr_Imp ( hProcess, Address, Displacement, Symbol );
+    return SAFE_SymFromAddr (hProcess, Address, Displacement, Symbol, SymFromAddr_Imp);
   }
 
   return FALSE;

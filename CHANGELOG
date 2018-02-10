@@ -1,4 +1,7 @@
-0.9.0 (beta3):
+0.9.0:
+
+ + Added a new File menu for texture modders, that will take you to your
+     game's texture dump / injection directory (D3D11 only at the moment)
 
  + Fixed SteamAPI shutdown issues in some improperly written games;
    >> SteamAPI isn't thread-safe, stop shutting down stuff from a different
@@ -26,9 +29,6 @@
  + Fixed D3D9Ex Fullscreen and Windowed overrides for applications that do
      not set the Focus / Device HWND parameters during device creation
 
-
-0.9.0 (beta2):
-
  + Added FFXV to an internal whitelist of games _NOT SOLD ON STEAM_ that
      are compatible with global injection.
  + Added more descriptive version info to the startup banner if you manually
@@ -37,9 +37,6 @@
   >> CEGUI cannot be used in the benchmark unless you run _BOTH_ the game,
       and SKIM64 (if you use global injection) as admin. SK will disable
         CEGUI automatically if file permission issues are detected.
-
-
-0.9.0 (beta1):
 
  + Enhanced FFXII compatibility
  + Fixed UI scaling issues preventing Accept button from appearing on EULA.
@@ -52,17 +49,11 @@
 
    ( This feature is configurable through Steam.System::AutoInjectSteamAPI )
 
-  + Added a menu option to File to inject SteamAPI into non-Steam games.
-
-
-0.9.0 (beta0):
+ + Added a menu option to File to inject SteamAPI into non-Steam games.
 
  + Fixed window focus issues in some OpenGL and DirectDraw/Direct3D 8 games
  + Renamed Render.GL::ShowOSDInVidCap to Render.OSD::ShowInVidCap since it
      affects all graphics APIs now
-
-
-0.9.0 (alpha2/3):
 
  + Stop booting ancillary graphics APIs after the game draws two frames;
 
@@ -87,9 +78,6 @@
   >> OSD will automagically revert to normal drawing behavior
        if this scenario is detected.
 
-
-0.9.0 (alpha0/1):
- 
  + Added option to toggle OSD visibility in D3D11 games
  + 100% support for video capture software in D3D11
  + Nearly complete support for vidcap software in D3D9

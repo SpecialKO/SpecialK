@@ -680,11 +680,11 @@ DllThread (LPVOID user)
 }
 
 
-BOOL
+std::wstring
 SK_RecursiveFileSearch ( const wchar_t* wszDir,
                          const wchar_t* wszFile )
 {
-  BOOL found = FALSE;
+  std::wstring found = L"";
 
   wchar_t   wszPath [MAX_PATH * 2] = { };
   swprintf (wszPath, LR"(%s\*)", wszDir);
@@ -705,7 +705,9 @@ SK_RecursiveFileSearch ( const wchar_t* wszDir,
 
     if (! _wcsicmp (fd.cFileName, wszFile))
     {
-      found = TRUE;
+      found = wszDir;
+      found += L"\\"; found += wszFile;
+
       break;
     }
 
@@ -717,7 +719,7 @@ SK_RecursiveFileSearch ( const wchar_t* wszDir,
       found = SK_RecursiveFileSearch (wszDescend, wszFile);
     }
 
-  } while ((! found) && FindNextFile (hFind, &fd));
+  } while ((found.empty ()) && FindNextFile (hFind, &fd));
 
   FindClose (hFind);
 
@@ -1061,11 +1063,11 @@ SK_StartupCore (const wchar_t* backend, void* callback)
           // Only do this if the game doesn't have a copy of the DLL lying around somewhere,
           //   because if we init Special K's SteamAPI DLL, the game's will fail to init and
           //     the game won't be happy about that!
-          kick_start = (! SK_RecursiveFileSearch ( SK_GetHostPath (),
-                                                   SK_RunLHIfBitness ( 64, L"steam_api64.dll",
-                                                                           L"steam_api.dll"    )
-                                                 )
-                       );
+          kick_start = (SK_RecursiveFileSearch ( SK_GetHostPath (),
+                                                 SK_RunLHIfBitness ( 64, L"steam_api64.dll",
+                                                                         L"steam_api.dll"    )
+                                               )
+                       ).empty ();
         }
       }
 
@@ -1994,6 +1996,7 @@ const ULONGLONG poll_interval = 1ULL;
 void
 SK_Input_PollKeyboard (void)
 {
+
   //
   // Do not poll the keyboard while the game window is inactive
   //

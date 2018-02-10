@@ -2525,7 +2525,7 @@ SK_DeferCommands (const char** szCommands, int count)
           std::unique_ptr < std::vector <std::string> > cmds (
             (std::vector <std::string> *)user);
 
-          for (int i = 0 ; i < cmds.get ()->size () ; i++)
+          for (size_t i = 0 ; i < cmds.get ()->size () ; i++)
           {
             SK_GetCommandProcessor ()->ProcessCommandLine (
                cmds.get ()->at (i).c_str ()

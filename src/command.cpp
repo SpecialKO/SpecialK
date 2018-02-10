@@ -24,6 +24,7 @@
 #include <SpecialK/command.h>
 #include <SpecialK/utility.h>
 #include <SpecialK/thread.h>
+#include <SpecialK/tls.h>
 
 
 static CRITICAL_SECTION cs_process_cmd = { };
@@ -469,7 +470,7 @@ SK_ICommandProcessor::ProcessCommandFormatted (const char* szCommandFormat, ...)
 
   auto* szFormattedCommandLine =
     static_cast <char *> (
-      malloc (sizeof (char) * (len + 1))
+      SK_TLS_Bottom ()->scratch_memory.cmd.allocFormattedStorage (sizeof (char) * (len + 1))
     );
 
   if (szFormattedCommandLine != nullptr)
@@ -482,8 +483,6 @@ SK_ICommandProcessor::ProcessCommandFormatted (const char* szCommandFormat, ...)
 
     SK_ICommandResult result =
       ProcessCommandLine (szFormattedCommandLine);
-
-    free (szFormattedCommandLine);
 
     return result;
   }

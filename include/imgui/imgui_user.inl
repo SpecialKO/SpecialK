@@ -9,6 +9,7 @@ bool SK_ImGui_Visible = false;
 #include <SpecialK/utility.h>
 #include <SpecialK/config.h>
 #include <SpecialK/thread.h>
+#include <SpecialK/tls.h>
 
 #include <SpecialK/console.h>
 #include <SpecialK/window.h>
@@ -920,7 +921,7 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
         if (ret)
         {
           auto *pData =
-            new uint8_t [size];
+            SK_TLS_Bottom ()->raw_input.allocData (size);
 
           if (! pData)
             return 0;
@@ -930,22 +931,20 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
           switch (data.header.dwType)
           {
             case RIM_TYPEMOUSE:
-              cap  = SK_ImGui_ProcessRawInput ((HRAWINPUT)lParam, RID_INPUT, &data, &size, sizeof (data.header), true) != 0;
+              cap  = SK_ImGui_ProcessRawInput ((HRAWINPUT)lParam, RID_INPUT, pData, &size, sizeof (data.header), true) != 0;
               cap &= SK_ImGui_WantMouseCapture ();
               break;
 
             case RIM_TYPEKEYBOARD:
-              cap  = SK_ImGui_ProcessRawInput ((HRAWINPUT)lParam, RID_INPUT, &data, &size, sizeof (data.header), true) != 0;
+              cap  = SK_ImGui_ProcessRawInput ((HRAWINPUT)lParam, RID_INPUT, pData, &size, sizeof (data.header), true) != 0;
               cap &= ( SK_Console::getInstance ()->isVisible () || SK_ImGui_WantKeyboardCapture () || SK_ImGui_WantGamepadCapture () );
               break;
 
             default:
-              cap  = SK_ImGui_ProcessRawInput ((HRAWINPUT)lParam, RID_INPUT, &data, &size, sizeof (data.header), true) != 0;
+              cap  = SK_ImGui_ProcessRawInput ((HRAWINPUT)lParam, RID_INPUT, pData, &size, sizeof (data.header), true) != 0;
               cap &= SK_ImGui_WantGamepadCapture ();
               break;
           }
-
-          delete [] pData;
 
           return cap;
         }

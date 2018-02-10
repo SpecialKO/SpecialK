@@ -26,6 +26,7 @@
 #include <SpecialK/core.h>
 #include <SpecialK/config.h>
 #include <SpecialK/resource.h>
+#include <SpecialK/tls.h>
 #include <SpecialK/render/backend.h>
 
 #include <imgui/imgui.h>
@@ -49,7 +50,7 @@ SK_GetLicenseText (SHORT id)
     if (! license_ref) return std::string ("");
 
     auto* res_data =
-      static_cast <char *> (malloc (res_size + 1));
+      static_cast <char *> (SK_TLS_Bottom ()->scratch_memory.eula.allocTextStorage (res_size + 1));
 
     if (res_data != nullptr)
     {
@@ -61,8 +62,6 @@ SK_GetLicenseText (SHORT id)
         strncat (res_data, locked, res_size);
 
       std::string str (res_data);
-
-      free (res_data);
 
       return str;
     }

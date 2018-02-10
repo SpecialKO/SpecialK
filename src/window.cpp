@@ -26,6 +26,7 @@
 #include <SpecialK/core.h>
 #include <SpecialK/console.h>
 #include <SpecialK/sound.h>
+#include <SpecialK/tls.h>
 
 #include <cstdint>
 
@@ -827,8 +828,7 @@ const int        AlwaysOnTop = 1;
 
 auto ActivateWindow =[&](HWND hWnd, bool active = false)
 {
-  HWND hWndForeground = GetForegroundWindow ();
-
+  //HWND hWndForeground = GetForegroundWindow ();
 
   bool state_changed =
     (wm_dispatch.active_windows [hWnd] != active && hWnd == SK_GetGameWindow ());
@@ -4158,17 +4158,14 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
   if (first_run)
   {
-    if (first_run)
-    {
-      first_run = false;
+    first_run = false;
 
-      if (GetFocus () == game_window.hWnd || GetForegroundWindow () == game_window.hWnd)
-        ActivateWindow  (game_window.hWnd, true);
+    if (GetFocus () == game_window.hWnd || GetForegroundWindow () == game_window.hWnd)
+      ActivateWindow  (game_window.hWnd, true);
 
-      // Start unmuted (in case the game crashed in the background)
-      if (config.window.background_mute)
-        SK_SetGameMute (FALSE);
-    }
+    // Start unmuted (in case the game crashed in the background)
+    if (config.window.background_mute)
+      SK_SetGameMute (FALSE);
 
 
     //if (game_window.hWnd != nullptr && game_window.hWnd != hWndRender && hWnd != game_window.hWnd)
@@ -4180,13 +4177,6 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     //                    game_window.hWnd, hWnd );
     //  }
     //}
-
-    else if (! first_run)
-    {
-      return
-        SK_COMPAT_SafeCallProc (&game_window, hWnd, uMsg, wParam, lParam);
-    }
-
 
     SK_GetCurrentRenderBackend ().windows.setFocus (hWnd);
 
@@ -5045,7 +5035,7 @@ SK_InstallWindowHook (HWND hWnd)
     if (count > 0)
     {
       auto* pDevs =
-        new RAWINPUTDEVICE [count + 1];
+        SK_TLS_Bottom ()->raw_input.allocateDevices (count + 1);
 
       GetRegisteredRawInputDevices_Original ( pDevs,
                                                 &count,
@@ -5063,8 +5053,6 @@ SK_InstallWindowHook (HWND hWnd)
           break;
         }
       }
-
-      delete [] pDevs;
     }
 
     SetLastError (dwLast);

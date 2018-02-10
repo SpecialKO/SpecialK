@@ -614,8 +614,7 @@ SK_RawInput_PopulateDeviceList (void)
 
   if (uiNumDevices != 0 && ret == -1)
   {
-    pDevices = new
-      RAWINPUTDEVICE [uiNumDevices + 1];
+    pDevices = SK_TLS_Bottom ()->raw_input.allocateDevices (uiNumDevices + 1);
 
     GetRegisteredRawInputDevices_Original ( pDevices,
                                               &uiNumDevices,
@@ -627,8 +626,6 @@ SK_RawInput_PopulateDeviceList (void)
       raw_devices.push_back (pDevices [i]);
 
     SK_RawInput_ClassifyDevices ();
-
-    delete [] pDevices;
   }
 
   return uiNumDevices;
@@ -712,7 +709,7 @@ RegisterRawInputDevices_Detour (
   RAWINPUTDEVICE* pDevices = nullptr;
 
   if (pRawInputDevices && uiNumDevices > 0)
-    pDevices = new RAWINPUTDEVICE [uiNumDevices] { };
+    pDevices = SK_TLS_Bottom ()->raw_input.allocateDevices (uiNumDevices);
 
   // The devices that we will pass to Windows after any overrides are applied
   std::vector <RAWINPUTDEVICE> actual_device_list;
@@ -774,9 +771,6 @@ RegisterRawInputDevices_Detour (
                        static_cast <UINT> (actual_device_list.size () ),
                                              cbSize ) :
                 FALSE;
-
-  if (pDevices != nullptr)
-    delete [] pDevices;
 
   return bRet;
 }

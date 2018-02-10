@@ -198,6 +198,53 @@ extern "C" SteamAPI_GetSteamInstallPath_pfn   SteamAPI_GetSteamInstallPath      
 
 LPVOID pfnSteamInternal_CreateInterface = nullptr;
 
+
+std::wstring
+_SK_RecursiveFileSearch ( const wchar_t* wszDir,
+                          const wchar_t* wszFile )
+{
+  std::wstring found = L"";
+
+  wchar_t   wszPath [MAX_PATH * 2] = { };
+  swprintf (wszPath, LR"(%s\*)", wszDir);
+
+  WIN32_FIND_DATA fd          = {   };
+  HANDLE          hFind       =
+    FindFirstFileW ( wszPath, &fd);
+
+  if (hFind == INVALID_HANDLE_VALUE) { return FALSE; }
+
+  do
+  {
+    if ( wcscmp (fd.cFileName, L".")  == 0 ||
+         wcscmp (fd.cFileName, L"..") == 0 )
+    {
+      continue;
+    }
+
+    if (! _wcsicmp (fd.cFileName, wszFile))
+    {
+      found = wszDir;
+      found += L"\\"; found += wszFile;
+
+      break;
+    }
+
+    if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+    {
+      wchar_t   wszDescend [MAX_PATH * 2] = { };
+      swprintf (wszDescend, LR"(%s\%s)", wszDir, fd.cFileName);
+
+      found = _SK_RecursiveFileSearch (wszDescend, wszFile);
+    }
+
+  } while ((found.empty ()) && FindNextFile (hFind, &fd));
+
+  FindClose (hFind);
+
+  return found;
+}
+
 BOOL
 SK_Steam_PreHookCore (void)
 {
@@ -209,6 +256,21 @@ SK_Steam_PreHookCore (void)
   const wchar_t* wszSteamLib =
     SK_RunLHIfBitness ( 64, L"steam_api64.dll",
                             L"steam_api.dll"    );
+
+  std::wstring result;
+
+  //if (! GetModuleHandle (wszSteamLib))
+  {
+    result =
+      _SK_RecursiveFileSearch (SK_GetHostPath (), wszSteamLib);
+
+    if (! result.empty ())
+    {
+      LoadLibraryW (result.c_str ());
+
+      wszSteamLib = result.data ();
+    }
+  }
 
   SK_CreateDLLHook2 (          wszSteamLib,
                                 "SteamClient",
@@ -520,7 +582,7 @@ SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
       //     so hook the game's callback procedure and filter out failure
       //       events that we generated much to the game's surprise :)
       //
-      else if (config.steam.filter_stat_callback)
+      else if (true)//else if (config.steam.filter_stat_callback)
       {
 #ifdef _WIN64
         void** vftable = *reinterpret_cast <void ***> (&pCallback);
@@ -5213,6 +5275,104 @@ public:
   virtual bool        BTryingToLogin                        (void)                                                               = 0;
 };
 
+class IClientUser_001_Ext : IClientUser_001_Min
+{
+public:
+  virtual CSteamID    GetSteamID                            (void)                                                               = 0;
+  virtual CSteamID    GetConsoleSteamID                     (void)                                                               = 0;
+
+  virtual bool IsVACBanned( AppId_t nGameID ) = 0;
+  virtual bool RequireShowVACBannedMessage( AppId_t nAppID ) = 0;
+  virtual void AcknowledgeVACBanning( AppId_t nAppID ) = 0;
+
+  virtual bool SetEmail( const char *pchEmail ) = 0;
+
+  virtual bool SetConfigString( DWORD eRegistrySubTree, const char *pchKey, const char *pchValue ) = 0;
+  virtual bool GetConfigString( DWORD eRegistrySubTree, const char *pchKey, char *pchValue, int32 cbValue ) = 0;
+  virtual bool SetConfigInt( DWORD eRegistrySubTree, const char *pchKey, int32 iValue ) = 0;
+  virtual bool GetConfigInt( DWORD eRegistrySubTree, const char *pchKey, int32 *pValue ) = 0;
+
+  virtual bool GetConfigStoreKeyName( DWORD eRegistrySubTree, const char *pchKey, char *pchStoreName, int32 cbStoreName ) = 0;
+
+  virtual int32 InitiateGameConnection( void *pOutputBlob, int32 cbBlobMax, CSteamID steamIDGS, CGameID gameID, uint32 unIPServer, uint16 usPortServer, bool bSecure ) = 0;
+  virtual int32 InitiateGameConnectionOld( void *pOutputBlob, int32 cbBlobMax, CSteamID steamIDGS, CGameID gameID, uint32 unIPServer, uint16 usPortServer, bool bSecure, void *pvSteam2GetEncryptionKey, int32 cbSteam2GetEncryptionKey ) = 0;
+
+  virtual void TerminateGameConnection( uint32 unIPServer, uint16 usPortServer ) = 0;
+  virtual bool TerminateAppMultiStep( uint32, uint32 ) = 0;
+
+  virtual void SetSelfAsPrimaryChatDestination() = 0;
+  virtual bool IsPrimaryChatDestination() = 0;
+
+  virtual void RequestLegacyCDKey( AppId_t iAppID ) = 0;
+
+  virtual bool AckGuestPass( const char *pchGuestPassCode ) = 0;
+  virtual bool RedeemGuestPass( const char *pchGuestPassCode ) = 0;
+
+  virtual uint32 GetGuestPassToGiveCount() = 0;
+  virtual uint32 GetGuestPassToRedeemCount() = 0;
+
+  virtual bool GetGuestPassToGiveInfo( uint32 nPassIndex, GID_t *pgidGuestPassID, PackageId_t* pnPackageID, RTime32* pRTime32Created, RTime32* pRTime32Expiration, RTime32* pRTime32Sent, RTime32* pRTime32Redeemed, char* pchRecipientAddress, int32 cRecipientAddressSize ) = 0;
+  virtual bool GetGuestPassToRedeemInfo( uint32 nPassIndex, GID_t *pgidGuestPassID, PackageId_t* pnPackageID, RTime32* pRTime32Created, RTime32* pRTime32Expiration, RTime32* pRTime32Sent, RTime32* pRTime32Redeemed ) = 0;
+  virtual bool GetGuestPassToRedeemSenderName( uint32 nPassIndex, char* pchSenderName, int32 cSenderNameSize ) = 0;
+
+  virtual void AcknowledgeMessageByGID( const char *pchMessageGID ) = 0;
+
+  virtual bool SetLanguage( const char *pchLanguage ) = 0;
+
+  virtual void TrackAppUsageEvent( CGameID gameID, int32 eAppUsageEvent, const char *pchExtraInfo = "" ) = 0;
+
+  virtual int32 RaiseConnectionPriority( DWORD eConnectionPriority ) = 0;
+  virtual void ResetConnectionPriority( int32 hRaiseConnectionPriorityPrev ) = 0;
+
+  virtual void SetAccountNameFromSteam2( const char *pchAccountName ) = 0;
+  virtual bool SetPasswordFromSteam2( const char *pchPassword ) = 0;
+
+  virtual bool BHasCachedCredentials( const char * pchUnk ) = 0;
+  virtual bool SetAccountNameForCachedCredentialLogin( const char *pchAccountName, bool bUnk ) = 0;
+  virtual void SetLoginInformation( const char *pchAccountName, const char *pchPassword, bool bRememberPassword ) = 0;
+  virtual void ClearAllLoginInformation() = 0;
+
+  virtual void SetAccountCreationTime( RTime32 rtime32Time ) = 0;
+
+  virtual SteamAPICall_t RequestWebAuthToken() = 0;
+  virtual bool GetCurrentWebAuthToken( char *pchBuffer, int32 cubBuffer ) = 0;
+
+  virtual bool GetLanguage( char* pchLanguage, int32 cbLanguage ) = 0;
+
+  virtual bool BIsCyberCafe() = 0;
+  virtual bool BIsAcademicAccount() = 0;
+
+  virtual void CreateAccount( const char *pchAccountName, const char *pchNewPassword, const char *pchNewEmail, int32 iQuestion, const char *pchNewQuestion, const char *pchNewAnswer ) = 0;
+
+  virtual SteamAPICall_t ResetPassword( const char *pchAccountName, const char *pchOldPassword, const char *pchNewPassword, const char *pchValidationCode, const char *pchAnswer ) = 0;
+
+  virtual void TrackNatTraversalStat( const LPVOID pNatStat ) = 0;
+
+  virtual void TrackSteamUsageEvent( DWORD eSteamUsageEvent, const uint8 *pubKV, uint32 cubKV ) = 0;
+  virtual void TrackSteamGUIUsage( const char * ) = 0;
+
+  virtual void SetComputerInUse() = 0;
+
+  virtual bool BIsGameRunning( CGameID gameID ) = 0;
+
+
+  virtual uint64 GetCurrentSessionToken() = 0;
+
+  virtual bool BUpdateAppOwnershipTicket( AppId_t nAppID, bool bOnlyUpdateIfStale, bool bIsDepot ) = 0;
+
+  virtual bool RequestCustomBinary( const char *pszAbsolutePath, AppId_t nAppID, bool bForceUpdate, bool bAppLaunchRequest ) = 0;
+  virtual EResult GetCustomBinariesState( AppId_t unAppID, uint32 *punProgress ) = 0;
+  virtual EResult RequestCustomBinaries( AppId_t unAppID, bool, bool, uint32 * ) = 0;
+
+  virtual void SetCellID( CellID_t cellID ) = 0;
+  virtual void SetWinningPingTimeForCellID( uint32 uPing ) = 0;
+
+  virtual const char *GetUserBaseFolder() = 0;
+
+  virtual bool GetUserDataFolder( CGameID gameID, char* pchBuffer, int32 cubBuffer ) = 0;
+  virtual bool GetUserConfigFolder( char *pchBuffer, int32 cubBuffer ) = 0;
+};
+
 class IClientFriends_001_Min
 {
 public:
@@ -5299,12 +5459,31 @@ SK_SteamAPIContext::ClientUser (void)
   static IClientEngine_005_Min* client_engine =
     (IClientEngine_005_Min *)ClientEngine ();
 
-  if (client_engine != nullptr)
+  if (client_engine != nullptr && client_ != nullptr)
   {
-    return
-      client_engine->GetIClientUser ( hSteamUser,
-                                        hSteamPipe,
-                                          CLIENTUSER_INTERFACE_VERSION );
+    static void* client_user = nullptr;
+
+    HSteamPipe& pipe = SK_TLS_Bottom ()->steam.client_pipe;
+    HSteamUser& user = SK_TLS_Bottom ()->steam.client_user;
+
+    if (pipe == 0 && client_ != nullptr)
+      pipe = client_->CreateSteamPipe ();
+
+    if (user == 0 && client_ != nullptr)
+      user = client_->CreateLocalUser (&pipe, k_EAccountTypeIndividual);
+
+
+    if (client_user == nullptr && hSteamPipe != 0)
+    {
+      client_user =
+        client_engine->GetIClientUser ( hSteamUser,
+                                          hSteamPipe,
+                                            CLIENTUSER_INTERFACE_VERSION );
+
+      if (client_user == nullptr) client_user = (LPVOID)(uintptr_t)1;
+    }
+
+    return (uintptr_t)client_user > 1 ? client_user : nullptr;
   }
 
   return nullptr;
@@ -5452,6 +5631,35 @@ SK_SteamAPIContext::ReleaseThreadUser (void)
   }
 
   return false;
+}
+
+
+std::string
+SK::SteamAPI::GetConfigDir (void)
+{
+  if (steam_ctx.ClientUser () != nullptr)
+  {
+    char szDir [MAX_PATH * 2] = { };
+
+    if (((IClientUser_001_Ext *)steam_ctx.ClientUser ())->GetUserConfigFolder (szDir, MAX_PATH))
+      return szDir;
+  }
+
+  return "";
+}
+
+std::string
+SK::SteamAPI::GetDataDir (void)
+{
+  if (steam_ctx.ClientUser () != nullptr)
+  {
+    char szDir [MAX_PATH * 2] = { };
+
+    if (((IClientUser_001_Ext *)steam_ctx.ClientUser ())->GetUserDataFolder (CGameID (SK::SteamAPI::AppID ()), szDir, MAX_PATH))
+      return szDir;
+  }
+
+  return "";
 }
 
 
