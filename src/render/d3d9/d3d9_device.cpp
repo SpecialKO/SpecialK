@@ -24,6 +24,7 @@
 
 #include <SpecialK/render/d3d9/d3d9_swapchain.h>
 #include <SpecialK/render/d3d9/d3d9_device.h>
+#include <cinttypes>
 #include <algorithm>
 
 #include <assert.h>
@@ -111,8 +112,9 @@ IWrapDirect3DDevice9::Release (void)
 
   if (local_refs == 0 && refs != 0)
   {
-    SK_LOG0 ( (L"Reference count for 'IDirect3DDevice9' object %p is inconsistent: %lu, but expected 0.",
-                this, refs ),
+    SK_LOG0 ( (L"Reference count for 'IDirect3DDevice9' object %08" PRIxPTR
+               L"h is inconsistent: %lu, but expected 0.",
+                (uintptr_t)this, refs ),
                L"   D3D9   " );
 
     refs = 0;

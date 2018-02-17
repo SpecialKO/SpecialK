@@ -40,6 +40,7 @@ MIDL_INTERFACE("B18B10CE-2649-405a-870F-95F777D4313A") IDirect3DDevice9Ex;
 #include <cstdio>
 #include <cstdlib>
 #include <string>
+#include <cinttypes>
 
 #include <atlbase.h>
 #include <comdef.h>
@@ -1697,10 +1698,11 @@ D3D9CreateAdditionalSwapChain_Override ( IDirect3DDevice9       *This,
                                          D3DPRESENT_PARAMETERS  *pPresentationParameters,
                                          IDirect3DSwapChain9   **ppSwapChain )
 {
-  dll_log.Log (L"[   D3D9   ] [!] %s (%ph, %ph, %ph) - "
+  dll_log.Log (L"[   D3D9   ] [!] %s (%08" PRIxPTR L"h, %08" PRIxPTR L"h,"
+                                   L" %08" PRIxPTR L"h) - "
     L"%s",
     L"IDirect3DDevice9::CreateAdditionalSwapChain", This,
-      pPresentationParameters, ppSwapChain,
+      (uintptr_t)pPresentationParameters, (uintptr_t)ppSwapChain,
         SK_SummarizeCaller ().c_str ()
   );
 
@@ -2026,10 +2028,11 @@ D3D9Reset_Override ( IDirect3DDevice9      *This,
   }
 
 
-  dll_log.Log ( L"[   D3D9   ] [!] %s (%ph, %ph) - "
+  dll_log.Log ( L"[   D3D9   ] [!] %s (%08" PRIxPTR L"h, %08" PRIxPTR L"h) - "
                 L"%s",
-                L"IDirect3DDevice9::Reset", This, pPresentationParameters,
-                  SK_SummarizeCaller ().c_str ()
+                L"IDirect3DDevice9::Reset",
+                  (uintptr_t)This, (uintptr_t)pPresentationParameters,
+                    SK_SummarizeCaller ().c_str ()
   );
 
   SK_InitWindow ( pPresentationParameters->hDeviceWindow,
@@ -2084,10 +2087,12 @@ D3D9ResetEx ( IDirect3DDevice9Ex    *This,
   }
 
 
-  dll_log.Log ( L"[   D3D9   ] [!] %s (%ph, %ph, %ph) - "
+  dll_log.Log ( L"[   D3D9   ] [!] %s (%08" PRIxPTR L"h, %08" PRIxPTR L"h,"
+                                    L" %08" PRIxPTR L"h) - "
                 L"%s",
                   L"IDirect3DDevice9Ex::ResetEx",
-                    This, pPresentationParameters, pFullscreenDisplayMode,
+                    (uintptr_t)This, (uintptr_t)pPresentationParameters,
+                    (uintptr_t)pFullscreenDisplayMode,
                       SK_SummarizeCaller ().c_str () );
 
   SK_InitWindow ( pPresentationParameters->hDeviceWindow,
@@ -4070,7 +4075,7 @@ SK_D3D9_WrapDevice ( IUnknown               *pDevice,
   {
     if (! SK_D3D9_IsDummyD3D9Device (pPresentationParameters))
     {
-      SK_LOG0 ( (L" + Direct3DDevice9 (%ph) wrapped", pDevice ),
+      SK_LOG0 ( (L" + Direct3DDevice9 (%08" PRIxPTR L"h) wrapped", (uintptr_t)pDevice ),
                  L"   D3D9   " );
       *ppDest =
          (IDirect3DDevice9 *)new IWrapDirect3DDevice9 ((IDirect3DDevice9 *)pDevice);
@@ -4084,7 +4089,7 @@ SK_D3D9_WrapDevice ( IUnknown               *pDevice,
 
   else
   {
-    SK_LOG0 ( (L" + Direct3DDevice9 {Headless} (%ph) wrapped", pDevice ),
+    SK_LOG0 ( (L" + Direct3DDevice9 {Headless} (%08" PRIxPTR L"h) wrapped", (uintptr_t)pDevice ),
                L"   D3D9   " );
 
     *ppDest=
@@ -4121,12 +4126,15 @@ D3D9CreateDeviceEx_Override ( IDirect3D9Ex           *This,
   }
 
 
-  dll_log.Log ( L"[   D3D9   ] [!] %s (%ph, %lu, %lu, %ph, 0x%04X, %ph, %ph, %ph) - "
+  dll_log.Log ( L"[   D3D9   ] [!] %s (%08" PRIxPTR L"h, %lu, %lu,"
+                                    L" %08" PRIxPTR L"h, 0x%04X,"
+                                    L" %08" PRIxPTR L"h, %08" PRIxPTR L"h,"
+                                    L" %08" PRIxPTR L"h) - "
                 L"%s",
                 L"IDirect3D9Ex::CreateDeviceEx",
-                  This, Adapter, (DWORD)DeviceType,
-                    hFocusWindow, BehaviorFlags, pPresentationParameters,
-                      pFullscreenDisplayMode, ppReturnedDeviceInterface,
+                  (uintptr_t)This, Adapter, (DWORD)DeviceType,
+                    hFocusWindow, BehaviorFlags, (uintptr_t)pPresentationParameters,
+                      (uintptr_t)pFullscreenDisplayMode, (uintptr_t)ppReturnedDeviceInterface,
                         SK_SummarizeCaller ().c_str () );
 
   HRESULT ret = E_FAIL;
@@ -4176,7 +4184,7 @@ D3D9CreateDeviceEx_Override ( IDirect3D9Ex           *This,
   if (pPresentationParameters->Flags & D3DPRESENTFLAG_VIDEO)
   {
     SK_LOG0 ( (L" %% Ignoring D3D9Ex device created using a video-only "
-               L"SwapChain (%p)", This),
+               L"SwapChain (%08" PRIxPTR L"h)", (uintptr_t)This),
                L"  D3D9Ex  ");
     *ppReturnedDeviceInterface = pTemp;
     return ret;
@@ -4240,11 +4248,14 @@ D3D9CreateDevice_Override ( IDirect3D9*            This,
   }
 
 
-  dll_log.Log ( L"[   D3D9   ] [!] %s (%ph, %lu, %lu, %ph, 0x%04X, %ph, %ph) - "
+  dll_log.Log ( L"[   D3D9   ] [!] %s (%08" PRIxPTR L"h, %lu, %lu, %08"
+                                            PRIxPTR L"h, 0x%04X, %08"
+                                            PRIxPTR L"h, %08"
+                                            PRIxPTR L"h) - "
                 L"%s",
-                  L"IDirect3D9::CreateDevice", This, Adapter, (DWORD)DeviceType,
-                    hFocusWindow, BehaviorFlags, pPresentationParameters,
-                      ppReturnedDeviceInterface,
+                  L"IDirect3D9::CreateDevice", (uintptr_t)This, Adapter, (DWORD)DeviceType,
+                    hFocusWindow, BehaviorFlags, (uintptr_t)pPresentationParameters,
+                      (uintptr_t)ppReturnedDeviceInterface,
                         SK_SummarizeCaller ().c_str () );
 
 
@@ -4288,7 +4299,7 @@ D3D9CreateDevice_Override ( IDirect3D9*            This,
   if (pPresentationParameters->Flags & D3DPRESENTFLAG_VIDEO)
   {
     SK_LOG0 ( (L" %% Ignoring D3D9 device created using a video-only "
-               L"SwapChain (%p)", This),
+               L"SwapChain (%08" PRIxPTR L")", (uintptr_t)This),
                L"   D3D9   ");
     return ret;
   }
@@ -4385,11 +4396,12 @@ D3D9ExCreateDevice_Override ( IDirect3D9*            This,
 
 
 
-  dll_log.Log ( L"[   D3D9   ] [!] %s (%ph, %lu, %lu, %ph, 0x%04X, %ph, %ph) - "
+  dll_log.Log ( L"[   D3D9   ] [!] %s (%08" PRIxPTR L"h, %lu, %lu, %08" PRIxPTR
+                          L"h, 0x%04X, %08" PRIxPTR L"h, %08" PRIxPTR L"h) - "
                 L"%s",
-                  L"IDirect3D9Ex::CreateDevice", This, Adapter, (DWORD)DeviceType,
-                    hFocusWindow, BehaviorFlags, pPresentationParameters,
-                      ppReturnedDeviceInterface,
+                  L"IDirect3D9Ex::CreateDevice", (uintptr_t)This, Adapter, (DWORD)DeviceType,
+                    hFocusWindow, BehaviorFlags, (uintptr_t)pPresentationParameters,
+                      (uintptr_t)ppReturnedDeviceInterface,
                         SK_SummarizeCaller ().c_str () );
 
   DeviceType = D3DDEVTYPE_HAL;
@@ -4549,11 +4561,11 @@ Direct3DCreate9Ex (_In_ UINT SDKVersion, _Out_ IDirect3D9Ex **ppD3D)
     WaitForInit       ();
 
 
-  dll_log.Log ( L"[   D3D9   ] [!] %s (%lu, %ph) - "
+  dll_log.Log ( L"[   D3D9   ] [!] %s (%lu, %08" PRIxPTR L"h) - "
                 L"%s",
                   L"Direct3DCreate9Ex",
                     SDKVersion,
-                      ppD3D,
+                      (uintptr_t)ppD3D,
                         SK_SummarizeCaller ().c_str () );
 
   HRESULT       hr     = E_FAIL;

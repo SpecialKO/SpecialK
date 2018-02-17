@@ -50,6 +50,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <string>
+#include <cinttypes>
 
 #include <atlbase.h>
 #include <comdef.h>
@@ -151,11 +152,12 @@ DirectInputCreateEx ( HINSTANCE hinst,
     WaitForInit_DI7 ();
   }
 
-  dll_log.Log ( L"[ DInput 7 ] [!] %s (%ph, %lu, {...}, ppvOut=%p, %p) - "
+  dll_log.Log ( L"[ DInput 7 ] [!] %s (%08" PRIxPTR L"h, %lu, {...}, ppvOut="
+                                     L"%08" PRIxPTR L"h, %08" PRIxPTR L"h) - "
                 L"%s",
                   L"DirectInputCreate",
-                    hinst,  dwVersion, /*,*/
-                    ppvOut, punkOuter,
+                    (uintptr_t)hinst,             dwVersion, /*,*/
+                    (uintptr_t)ppvOut, (uintptr_t)punkOuter,
                       SK_SummarizeCaller ().c_str () );
 
   HRESULT hr = E_NOINTERFACE;
@@ -165,7 +167,9 @@ DirectInputCreateEx ( HINSTANCE hinst,
     if (riidltf == IID_IDirectInput7A)
     {
       if ( SUCCEEDED (
-             (hr = DirectInputCreateEx_Import (hinst, dwVersion, riidltf, ppvOut, punkOuter))
+             (hr = DirectInputCreateEx_Import ( hinst, dwVersion, riidltf,
+                                                ppvOut, punkOuter )
+             )
            )
          )
       {
@@ -186,7 +190,9 @@ DirectInputCreateEx ( HINSTANCE hinst,
     else if (riidltf == IID_IDirectInput7W)
     {
       if ( SUCCEEDED (
-             (hr = DirectInputCreateEx_Import (hinst, dwVersion, riidltf, ppvOut, punkOuter))
+             (hr = DirectInputCreateEx_Import ( hinst, dwVersion, riidltf,
+                                                ppvOut, punkOuter )
+             )
            )
          )
       {
@@ -222,11 +228,12 @@ DirectInputCreateA ( HINSTANCE       hinst,
     WaitForInit_DI7 ();
   }
 
-  dll_log.Log ( L"[ DInput 7 ] [!] %s (%ph, %lu, {...}, lplpDirectInput=%p, %p) - "
-                L"%s",
+  dll_log.Log ( L"[ DInput 7 ] [!] %s (%08" PRIxPTR L"h, %lu, {...}, "
+                     L"lplpDirectInput=%08" PRIxPTR L"h, %08" PRIxPTR
+                L"h) - %s",
                   L"DirectInputCreateA",
-                    hinst,  dwVersion, /*,*/
-                    lplpDirectInput, punkOuter,
+                    (uintptr_t)hinst,                      dwVersion, /*,*/
+                    (uintptr_t)lplpDirectInput, (uintptr_t)punkOuter,
                       SK_SummarizeCaller ().c_str () );
 
   HRESULT hr = E_NOINTERFACE;
@@ -234,7 +241,9 @@ DirectInputCreateA ( HINSTANCE       hinst,
   if (DirectInputCreateA_Import != nullptr)
   {
     if ( SUCCEEDED (
-           (hr = DirectInputCreateA_Import (hinst, dwVersion, lplpDirectInput, punkOuter))
+           (hr = DirectInputCreateA_Import ( hinst,           dwVersion,
+                                             lplpDirectInput, punkOuter )
+           )
          )
        )
     {
@@ -269,11 +278,12 @@ DirectInputCreateW ( HINSTANCE       hinst,
     WaitForInit_DI7 ();
   }
 
-  dll_log.Log ( L"[ DInput 7 ] [!] %s (%ph, %lu, {...}, lplpDirectInput=%p, %p) - "
-                L"%s",
+  dll_log.Log ( L"[ DInput 7 ] [!] %s (%08" PRIxPTR L"h, %lu, {...}, "
+                     L"lplpDirectInput=%08" PRIxPTR L"h, %08" PRIxPTR
+                L"h) - %s",
                   L"DirectInputCreateW",
-                    hinst,  dwVersion, /*,*/
-                    lplpDirectInput, punkOuter,
+                    (uintptr_t)hinst,                      dwVersion, /*,*/
+                    (uintptr_t)lplpDirectInput, (uintptr_t)punkOuter,
                       SK_SummarizeCaller ().c_str () );
 
   HRESULT hr = E_NOINTERFACE;
@@ -281,7 +291,9 @@ DirectInputCreateW ( HINSTANCE       hinst,
   if (DirectInputCreateW_Import != nullptr)
   {
     if ( SUCCEEDED (
-           (hr = DirectInputCreateW_Import (hinst, dwVersion, lplpDirectInput, punkOuter))
+           (hr = DirectInputCreateW_Import ( hinst,           dwVersion,
+                                             lplpDirectInput, punkOuter )
+           )
          )
        )
     {
@@ -338,12 +350,15 @@ SK_BootDI7 (void)
                                      DirectInputCreateW,
             static_cast_p2p <void> (&DirectInputCreateW_Import) );
 
-          dll_log.Log (L"[ DInput 7 ]   DirectInputCreateEx: %p  { Hooked }",
-            (DirectInputCreateEx_Import) );
-          dll_log.Log (L"[ DInput 7 ]   DirectInputCreateA:  %p  { Hooked }",
-            (DirectInputCreateA_Import) );
-          dll_log.Log (L"[ DInput 7 ]   DirectInputCreateW:  %p  { Hooked }",
-            (DirectInputCreateW_Import) );
+          dll_log.Log (L"[ DInput 7 ]   DirectInputCreateEx: %08" PRIxPTR
+                                 L"h  { Hooked }",
+            (uintptr_t)(DirectInputCreateEx_Import) );
+          dll_log.Log (L"[ DInput 7 ]   DirectInputCreateA:  %08" PRIxPTR
+                                 L"h  { Hooked }",
+            (uintptr_t)(DirectInputCreateA_Import) );
+          dll_log.Log (L"[ DInput 7 ]   DirectInputCreateW:  %08" PRIxPTR
+                                 L"h  { Hooked }",
+            (uintptr_t)(DirectInputCreateW_Import) );
         }
       }
 
@@ -369,12 +384,15 @@ SK_BootDI7 (void)
                                      DirectInputCreateW,
             static_cast_p2p <void> (&DirectInputCreateW_Import) );
 
-          dll_log.Log (L"[ DInput 7 ]   DirectInputCreateEx: %p  { Hooked }",
-            (DirectInputCreateEx_Import) );
-          dll_log.Log (L"[ DInput 7 ]   DirectInputCreateA:  %p  { Hooked }",
-            (DirectInputCreateA_Import) );
-          dll_log.Log (L"[ DInput 7 ]   DirectInputCreateW:  %p  { Hooked }",
-            (DirectInputCreateW_Import) );
+          dll_log.Log (L"[ DInput 7 ]   DirectInputCreateEx: %08" PRIxPTR
+                                 L"h  { Hooked }",
+            (uintptr_t)(DirectInputCreateEx_Import) );
+          dll_log.Log (L"[ DInput 7 ]   DirectInputCreateA:  %08" PRIxPTR
+                                 L"h  { Hooked }",
+            (uintptr_t)(DirectInputCreateA_Import) );
+          dll_log.Log (L"[ DInput 7 ]   DirectInputCreateW:  %08" PRIxPTR
+                                 L"h  { Hooked }",
+            (uintptr_t)(DirectInputCreateW_Import) );
         }
       }
     }
@@ -452,8 +470,10 @@ UNREFERENCED_PARAMETER (user);
     ;
 }
 
-DEFINE_GUID(CLSID_DirectInput,        0x25E609E0,0xB259,0x11CF,0xBF,0xC7,0x44,0x45,0x53,0x54,0x00,0x00);
-DEFINE_GUID(CLSID_DirectInputDevice,  0x25E609E1,0xB259,0x11CF,0xBF,0xC7,0x44,0x45,0x53,0x54,0x00,0x00);
+DEFINE_GUID(CLSID_DirectInput,        0x25E609E0,0xB259,0x11CF,0xBF,0xC7,\
+                                            0x44,0x45,0x53,0x54,0x00,0x00);
+DEFINE_GUID(CLSID_DirectInputDevice,  0x25E609E1,0xB259,0x11CF,0xBF,0xC7,\
+                                            0x44,0x45,0x53,0x54,0x00,0x00);
 
 HRESULT
 WINAPI
@@ -471,11 +491,12 @@ CoCreateInstance_DI7 (
     WaitForInit_DI7 ();
   }
 
-  dll_log.Log ( L"[ DInput 7 ] [!] %s (%ph, %lu, {...}, ppvOut=%p, %p) - "
+  dll_log.Log ( L"[ DInput 7 ] [!] %s (%08" PRIxPTR L"h, %lu, {...}, "
+                              L"ppvOut=%08" PRIxPTR L"h, %08" PRIxPTR L"h) - "
                 L"%s",
                   L"DirectInputCreate <CoCreateInstance> ",
                     0, 0x700,
-                    ppv, pUnkOuter,
+                    (uintptr_t)ppv, (uintptr_t)pUnkOuter,
                       SK_SummarizeCaller (pCallerAddr).c_str () );
 
   HRESULT hr =
@@ -484,7 +505,9 @@ CoCreateInstance_DI7 (
   if (riid == IID_IDirectInput7A)
   {
     if ( SUCCEEDED (
-           (hr = CoCreateInstance_Original (CLSID_DirectInput, pUnkOuter, dwClsContext, riid, ppv))
+           (hr = CoCreateInstance_Original ( CLSID_DirectInput, pUnkOuter,
+                                               dwClsContext, riid, ppv )
+           )
          )
        )
     {
@@ -505,7 +528,9 @@ CoCreateInstance_DI7 (
   else if (riid == IID_IDirectInput7W)
   {
     if ( SUCCEEDED (
-           (hr = CoCreateInstance_Original (CLSID_DirectInput, pUnkOuter, dwClsContext, riid, ppv))
+           (hr = CoCreateInstance_Original ( CLSID_DirectInput, pUnkOuter,
+                                               dwClsContext, riid, ppv )
+           )
          )
        )
     {
@@ -544,11 +569,12 @@ CoCreateInstanceEx_DI7 (
     WaitForInit_DI7 ();
   }
 
-  dll_log.Log ( L"[ DInput 7 ] [!] %s (%ph, %lu, {...}, ppvOut=%p) - "
+  dll_log.Log ( L"[ DInput 7 ] [!] %s (%08" PRIxPTR L"h, %lu, {...}, "
+                              L"ppvOut=%08" PRIxPTR L"h) - "
                 L"%s",
                   L"DirectInputCreate <CoCreateInstanceEx> ",
                     0, 0x700,
-                    pResults->pItf,
+                    (uintptr_t)pResults->pItf,
                       SK_SummarizeCaller (pCallerAddr).c_str () );
 
   HRESULT hr =
@@ -557,7 +583,10 @@ CoCreateInstanceEx_DI7 (
   if (rclsid == CLSID_DirectInput)
   {
     if ( SUCCEEDED (
-           (hr = CoCreateInstanceEx_Original (CLSID_DirectInput, pUnkOuter, dwClsCtx, pServerInfo, dwCount, pResults))
+           (hr = CoCreateInstanceEx_Original ( CLSID_DirectInput, pUnkOuter,
+                                                 dwClsCtx, pServerInfo,
+                                                   dwCount, pResults )
+           )
          )
        )
     {
@@ -1042,7 +1071,7 @@ IDirectInput7W_CreateDevice_Detour ( IDirectInput7W        *This,
   const wchar_t* wszDevice = (rguid == GUID_SysKeyboard)   ? L"Default System Keyboard" :
                                 (rguid == GUID_SysMouse)   ? L"Default System Mouse"    :
                                   (rguid == GUID_Joystick) ? L"Gamepad / Joystick"      :
-                                                           L"Other Device";
+                                                             L"Other Device";
 
   if (devices_w.count (guid_crc32c))
   {
@@ -1051,12 +1080,21 @@ IDirectInput7W_CreateDevice_Detour ( IDirectInput7W        *This,
     return S_OK;
   }
 
-
-  dll_log.Log ( L"[   Input  ] [!] IDirectInput7W::CreateDevice (%ph, %s, %ph, %ph)",
-                   This,
-                     wszDevice,
-                       lplpDirectInputDevice,
-                         pUnkOuter );
+  if (config.system.log_level > 1)
+  {
+    dll_log.Log ( L"[   Input  ] [!] IDirectInput7W::CreateDevice (%08" PRIxPTR L"h, %s, "
+                                                                 L"%08" PRIxPTR L"h, "
+                                                                 L"%08" PRIxPTR L"h)",
+                     (uintptr_t)This,
+                                  wszDevice,
+                         (uintptr_t)lplpDirectInputDevice,
+                           (uintptr_t)pUnkOuter );
+  }
+  else
+  {
+    dll_log.Log ( L"[   Input  ] [!] IDirectInput7W::CreateDevice         [ %24s ]",
+                       wszDevice );
+  }
 
   HRESULT hr;
   DINPUT7_CALL ( hr,
@@ -1128,7 +1166,7 @@ IDirectInput7A_CreateDevice_Detour ( IDirectInput7A        *This,
   const wchar_t* wszDevice = (rguid == GUID_SysKeyboard)   ? L"Default System Keyboard" :
                                 (rguid == GUID_SysMouse)   ? L"Default System Mouse"    :
                                   (rguid == GUID_Joystick) ? L"Gamepad / Joystick"      :
-                                                           L"Other Device";
+                                                             L"Other Device";
 
   if (devices_a.count (guid_crc32c))
   {
@@ -1138,11 +1176,22 @@ IDirectInput7A_CreateDevice_Detour ( IDirectInput7A        *This,
   }
 
 
-  dll_log.Log ( L"[   Input  ] [!] IDirectInput7A::CreateDevice (%ph, %s, %ph, %ph)",
-                   This,
-                     wszDevice,
-                       lplpDirectInputDevice,
-                         pUnkOuter );
+  if (config.system.log_level > 1)
+  {
+    dll_log.Log ( L"[   Input  ] [!] IDirectInput7A::CreateDevice (%08" PRIxPTR L"h, %s, "
+                                                                 L"%08" PRIxPTR L"h, "
+                                                                 L"%08" PRIxPTR L"h)",
+                     (uintptr_t)This,
+                                  wszDevice,
+                         (uintptr_t)lplpDirectInputDevice,
+                           (uintptr_t)pUnkOuter );
+  }
+  else
+  {
+    dll_log.Log ( L"[   Input  ] [!] IDirectInput7A::CreateDevice         [ %24s ]",
+                       wszDevice );
+  }
+
 
   HRESULT hr;
   DINPUT7_CALL ( hr,

@@ -36,6 +36,7 @@
 #include <SpecialK/nvapi.h>
 #include <SpecialK/config.h>
 
+#include <cinttypes>
 #include <cstdio>
 #include <cstdlib>
 #include <string>
@@ -3123,7 +3124,6 @@ STDMETHODCALLTYPE PresentCallback ( IDXGISwapChain *This,
                               SK_DXGI_Present, SK_DXGI_PresentSource::Hook );
 }
 
-
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
@@ -3139,12 +3139,13 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
   if (pDesc != nullptr)
   {
     DXGI_LOG_CALL_I5 ( L"       IDXGIOutput", L"GetDisplayModeList         ",
-                         L"%ph, %i, %02x, NumModes=%lu, %ph)",
-                           This,
+                         L"%08" PRIxPTR L"h, %i, %02x, NumModes=%lu, %08"
+                                PRIxPTR L"h)",
+                (uintptr_t)This,
                            EnumFormat,
                                Flags,
                                  *pNumModes,
-                                    pDesc );
+                                    (uintptr_t)pDesc );
   }
 
   if (config.render.dxgi.scaling_mode != -1)
@@ -3263,8 +3264,10 @@ DXGIOutput_FindClosestMatchingMode_Override ( IDXGIOutput    *This,
                                     _In_opt_  IUnknown       *pConcernedDevice )
 {
   DXGI_LOG_CALL_I4 ( L"       IDXGIOutput", L"FindClosestMatchingMode         ",
-                       L"%p, %p, %p, %p",
-      This, pModeToMatch, pClosestMatch, pConcernedDevice );
+                       L"%p, %08" PRIxPTR L"h, %08" PRIxPTR L"h, %08"
+                                  PRIxPTR L"h",
+      This, (uintptr_t)pModeToMatch, (uintptr_t)pClosestMatch,
+            (uintptr_t)pConcernedDevice );
 
   SK_LOG0 ( (L"[?]  Desired Mode:  %lux%lu@%.2f Hz, Format=%s, Scaling=%s, Scanlines=%s",
                pModeToMatch->Width, pModeToMatch->Height,
@@ -3396,9 +3399,9 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
                                        IDXGIOutput    *pTarget )
 {
   DXGI_LOG_CALL_I2 ( L"    IDXGISwapChain", L"SetFullscreenState         ",
-                     L"%s, %ph",
+                     L"%s, %08" PRIxPTR L"h",
                       Fullscreen ? L"{ Fullscreen }" :
-                                   L"{ Windowed }",     pTarget );
+                                   L"{ Windowed }",   (uintptr_t)pTarget );
 
   SK_CEGUI_QueueResetD3D11 ();
 
@@ -3506,7 +3509,9 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
 
 
 HRESULT
-SK_DXGI_ValidateSwapChainResize (IDXGISwapChain* pSwapChain, UINT BufferCount, UINT Width, UINT Height, DXGI_FORMAT Format, INT Fullscreen = -1)
+SK_DXGI_ValidateSwapChainResize ( IDXGISwapChain* pSwapChain, UINT BufferCount,
+                                  UINT            Width,      UINT Height,
+                                  DXGI_FORMAT     Format,     INT  Fullscreen = -1 )
 {
   static CRITICAL_SECTION cs_resize = { };
   static volatile LONG    init      = FALSE;
@@ -4491,7 +4496,8 @@ SK_DXGI_WrapSwapChain ( IUnknown        *pDevice,
     *ppDest =
       new IWrapDXGISwapChain ((ID3D11Device *)pDevice, pSwapChain);
 
-    SK_LOG0 ( (L" + SwapChain <IDXGISwapChain> (%ph) wrapped", pSwapChain ),
+    SK_LOG0 ( (L" + SwapChain <IDXGISwapChain> (%08" PRIxPTR L"h) wrapped",
+                 (uintptr_t)pSwapChain ),
                L"   DXGI   " );
 
     return (IWrapDXGISwapChain *)*ppDest;
@@ -4522,7 +4528,8 @@ SK_DXGI_WrapSwapChain1 ( IUnknown         *pDevice,
     *ppDest =
       new IWrapDXGISwapChain ((ID3D11Device *)pDevice, pSwapChain);
 
-    SK_LOG0 ( (L" + SwapChain <IDXGISwapChain1> (%ph) wrapped", pSwapChain ),
+    SK_LOG0 ( (L" + SwapChain <IDXGISwapChain1> (%08" PRIxPTR L"h) wrapped",
+                 (uintptr_t)pSwapChain ),
                L"   DXGI   " );
 
     return (IWrapDXGISwapChain *)*ppDest;
@@ -4556,8 +4563,10 @@ DXGIFactory_CreateSwapChain_Override (             IDXGIFactory          *This,
     {
       run_once = true;
       DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChain         ",
-                           L"%ph, %ph, %ph",
-                             pDevice, pDesc, ppSwapChain );
+                           L"%08" PRIxPTR L"h, %08" PRIxPTR L"h, %08"
+                                  PRIxPTR L"h",
+                             (uintptr_t)pDevice, (uintptr_t)pDesc,
+                             (uintptr_t)ppSwapChain );
     }
 
     IDXGISwapChain* pTemp = nullptr;
@@ -4574,8 +4583,10 @@ DXGIFactory_CreateSwapChain_Override (             IDXGIFactory          *This,
 
 
   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChain         ",
-                       L"%ph, %ph, %ph",
-                         pDevice, pDesc, ppSwapChain );
+                       L"%08" PRIxPTR L"h, %08" PRIxPTR L"h, %08"
+                              PRIxPTR L"h",
+                         (uintptr_t)pDevice, (uintptr_t)pDesc,
+                         (uintptr_t)ppSwapChain );
 
   HRESULT ret = E_FAIL;
 
@@ -4637,8 +4648,8 @@ DXGIFactory2_CreateSwapChainForCoreWindow_Override ( IDXGIFactory2             *
 
   // Wrong prototype, but who cares right now? :P
   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChainForCoreWindow         ",
-                       L"%ph, %ph, %ph",
-                         pDevice, pDesc, ppSwapChain );
+                       L"%08" PRIxPTR L"h, %08" PRIxPTR L"h, %08" PRIxPTR L"h",
+                         (uintptr_t)pDevice, (uintptr_t)pDesc, (uintptr_t)ppSwapChain );
 
   if (iname == L"{Invalid-Factory-UUID}")
     return CreateSwapChainForCoreWindow_Original (This, pDevice, pWindow, pDesc, pRestrictToOutput, ppSwapChain);
@@ -4709,8 +4720,9 @@ DXGIFactory2_CreateSwapChainForHwnd_Override ( IDXGIFactory2                   *
 
   // Wrong prototype, but who cares right now? :P
   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChainForHwnd         ",
-                       L"%ph, %ph, %ph",
-                         pDevice, pDesc, ppSwapChain );
+                       L"%08" PRIxPTR L"h, %08" PRIxPTR L"h, %08"
+                              PRIxPTR L"h",
+                         (uintptr_t)pDevice, (uintptr_t)pDesc, (uintptr_t)ppSwapChain );
 
   if (iname == L"{Invalid-Factory-UUID}")
     return CreateSwapChainForHwnd_Original (This, pDevice, hWnd, pDesc, pFullscreenDesc, pRestrictToOutput, ppSwapChain);
@@ -4779,8 +4791,8 @@ DXGIFactory2_CreateSwapChainForComposition_Override ( IDXGIFactory2          *Th
 
   // Wrong prototype, but who cares right now? :P
   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChainForComposition         ",
-                       L"%ph, %ph, %ph",
-                         pDevice, pDesc, ppSwapChain );
+                       L"%08" PRIxPTR L"h, %08" PRIxPTR L"h, %08" PRIxPTR L"h",
+                         (uintptr_t)pDevice, (uintptr_t)pDesc, (uintptr_t)ppSwapChain );
 
   HRESULT ret = E_FAIL;
 
@@ -5177,8 +5189,8 @@ STDMETHODCALLTYPE EnumAdapters1_Override (IDXGIFactory1  *This,
   std::wstring iname = SK_GetDXGIFactoryInterface    (This);
 
   DXGI_LOG_CALL_I3 ( iname.c_str (), L"EnumAdapters1         ",
-                       L"%ph, %u, %ph",
-                         This, Adapter, ppAdapter );
+                       L"%08" PRIxPTR L"h, %u, %08" PRIxPTR L"h",
+                         (uintptr_t)This, Adapter, (uintptr_t)ppAdapter );
 
   HRESULT ret;
   DXGI_CALL (ret, EnumAdapters1_Original (This,Adapter,ppAdapter));
@@ -5221,8 +5233,8 @@ STDMETHODCALLTYPE EnumAdapters_Override (IDXGIFactory  *This,
   std::wstring iname = SK_GetDXGIFactoryInterface    (This);
 
   DXGI_LOG_CALL_I3 ( iname.c_str (), L"EnumAdapters         ",
-                       L"%ph, %u, %ph",
-                         This, Adapter, ppAdapter );
+                       L"%08" PRIxPTR L"h, %u, %08" PRIxPTR L"h",
+                         (uintptr_t)This, Adapter, (uintptr_t)ppAdapter );
 
   HRESULT ret;
   DXGI_CALL (ret, EnumAdapters_Original (This, Adapter, ppAdapter));
@@ -5304,8 +5316,9 @@ STDMETHODCALLTYPE CreateDXGIFactory (REFIID   riid,
 
   UNREFERENCED_PARAMETER (iver);
 
-  DXGI_LOG_CALL_2 ( L"                    CreateDXGIFactory        ", L"%s, %ph",
-                      iname.c_str (), ppFactory );
+  DXGI_LOG_CALL_2 ( L"                    CreateDXGIFactory        ", 
+                    L"%s, %08" PRIxPTR L"h",
+                      iname.c_str (), (uintptr_t)ppFactory );
 
   if (CreateDXGIFactory_Import == nullptr)
   {
@@ -5336,8 +5349,9 @@ STDMETHODCALLTYPE CreateDXGIFactory1 (REFIID   riid,
 
   UNREFERENCED_PARAMETER (iver);
 
-  DXGI_LOG_CALL_2 ( L"                    CreateDXGIFactory1       ", L"%s, %ph",
-                      iname.c_str (), ppFactory );
+  DXGI_LOG_CALL_2 ( L"                    CreateDXGIFactory1       ",
+                    L"%s, %08" PRIxPTR L"h",
+                      iname.c_str (), (uintptr_t)ppFactory );
 
   if (CreateDXGIFactory_Import == nullptr)
   {
@@ -5371,8 +5385,9 @@ STDMETHODCALLTYPE CreateDXGIFactory2 (UINT     Flags,
 
   UNREFERENCED_PARAMETER (iver);
 
-  DXGI_LOG_CALL_3 ( L"                    CreateDXGIFactory2       ", L"0x%04X, %s, %ph",
-                      Flags, iname.c_str (), ppFactory );
+  DXGI_LOG_CALL_3 ( L"                    CreateDXGIFactory2       ",
+                    L"0x%04X, %s, %08" PRIxPTR L"h",
+                      Flags, iname.c_str (), (uintptr_t)ppFactory );
 
   if (CreateDXGIFactory_Import == nullptr)
   {
@@ -6256,9 +6271,9 @@ SK::DXGI::StartBudgetThread ( IDXGIAdapter** ppAdapter )
         if ( SUCCEEDED ( result ) )
         {
           dll_log.LogEx ( false,
-                            L"eid=0x%p, cookie=%u\n",
-                              budget_thread.event,
-                                        budget_thread.cookie );
+                            L"eid=0x%08" PRIxPTR L", cookie=%u\n",
+                              (uintptr_t)budget_thread.event,
+                                         budget_thread.cookie );
 
           hr = S_OK;
         }

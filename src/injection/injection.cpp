@@ -311,9 +311,11 @@ CBTProc ( _In_ int    nCode,
              [](LPVOID user) ->
                DWORD
                  {
+                   SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_IDLE);
+
                    SKX_WaitForCBTHookShutdown ();
 
-                   CloseHandle (GetCurrentThread ());
+                 //CloseHandle (GetCurrentThread ());
 
                    FreeLibraryAndExitThread (static_cast <HMODULE> (user), 0x0);
 

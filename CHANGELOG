@@ -1,5 +1,10 @@
 0.9.1:
 
+ (.2): Fixed support for caching / injecting Unordered Access View qualified
+         textures (about 2/3 of FFXII's textures are Unordered Access Views)
+
+ (.1): Fixed mouse capture issues caused by the previously mentioned fix :P
+
   + Fixed keyboard / mouse focus issues when Win32 modal dialogs are
       active at the same time as an ImGui modal dialog
 

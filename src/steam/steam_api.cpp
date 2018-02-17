@@ -3152,6 +3152,8 @@ DWORD
 WINAPI
 SteamAPI_PumpThread (LPVOID user)
 {
+  SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_IDLE);
+
   bool   start_immediately = (user != nullptr);
   double callback_freq     =  0.0;
 
@@ -3186,13 +3188,15 @@ SteamAPI_PumpThread (LPVOID user)
   {
     if (SteamAPI_InitSafe_Original ())
     {
-      steam_log.Log ( L" >> Installing a callback auto-pump at 4 Hz.\n\n");
+      SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_LOWEST);
+
+      steam_log.Log ( L" >> Installing a callback auto-pump at 8 Hz.\n\n");
 
       while (true)
       {
         SK::SteamAPI::Pump ();
 
-        SleepEx (250, FALSE);
+        SleepEx (125, FALSE);
       }
     }
 
@@ -3986,6 +3990,8 @@ WINAPI
 SteamAPI_Delay_Init (LPVOID user)
 {
   UNREFERENCED_PARAMETER (user);
+
+  SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_HIGHEST);
 
   if (! SK_IsInjected ())
   {

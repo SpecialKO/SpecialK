@@ -558,7 +558,7 @@ SK_RawInput_ClassifyDevices (void)
       switch ((it).usUsage)
       {
         case HID_USAGE_GENERIC_MOUSE:
-          SK_LOG0 ( (L" >> Registered Mouse    (HWND=%x, Flags=%x)",
+          SK_LOG1 ( (L" >> Registered Mouse    (HWND=%x, Flags=%x)",
                        it.hwndTarget, it.dwFlags ),
                      L" RawInput " );
 
@@ -566,7 +566,7 @@ SK_RawInput_ClassifyDevices (void)
           break;
 
         case HID_USAGE_GENERIC_KEYBOARD:
-          SK_LOG0 ( (L" >> Registered Keyboard (HWND=%x, Flags=%x)",
+          SK_LOG1 ( (L" >> Registered Keyboard (HWND=%x, Flags=%x)",
                        it.hwndTarget, it.dwFlags ),
                      L" RawInput " );
 
@@ -575,7 +575,7 @@ SK_RawInput_ClassifyDevices (void)
 
         case HID_USAGE_GENERIC_JOYSTICK: // Joystick
         case HID_USAGE_GENERIC_GAMEPAD:  // Gamepad
-          SK_LOG0 ( (L" >> Registered Gamepad  (HWND=%x, Flags=%x)",
+          SK_LOG1 ( (L" >> Registered Gamepad  (HWND=%x, Flags=%x)",
                        it.hwndTarget, it.dwFlags ),
                      L" RawInput " );
 
@@ -695,10 +695,10 @@ RegisterRawInputDevices_Detour (
 
   if (cbSize != sizeof RAWINPUTDEVICE)
   {
-    dll_log.Log ( L"[ RawInput ] RegisterRawInputDevices has wrong "
-                  L"structure size (%lu bytes), expected: %zu",
-                    cbSize,
-                      sizeof RAWINPUTDEVICE );
+    SK_LOG0 ( ( L"RegisterRawInputDevices has wrong "
+                L"structure size (%lu bytes), expected: %zu",
+                  cbSize, sizeof RAWINPUTDEVICE ),
+               L" RawInput " );
 
     return
       RegisterRawInputDevices_Original ( pRawInputDevices,
@@ -733,7 +733,7 @@ RegisterRawInputDevices_Detour (
         RealGetWindowClassW   (pDevices [i].hwndTarget, wszWindowClass, 127);
         InternalGetWindowText (pDevices [i].hwndTarget, wszWindowTitle, 127);
 
-        SK_LOG0 (
+        SK_LOG1 (
                   ( L"RawInput is being tracked on hWnd=%x - { (%s), '%s' }",
                       pDevices [i].hwndTarget, wszWindowClass, wszWindowTitle ),
                         __SK_SUBSYSTEM__ );
@@ -1156,7 +1156,7 @@ SK_ImGui_WantKeyboardCapture (void)
   if (config.input.keyboard.disabled_to_game)
     imgui_capture = true;
 
-  return imgui_capture && GetFocus () == game_window.hWnd;
+  return imgui_capture && GetForegroundWindow () == game_window.hWnd;
 }
 
 bool
@@ -1167,7 +1167,7 @@ SK_ImGui_WantTextCapture (void)
   ImGuiIO& io =
     ImGui::GetIO ();
 
-  if (io.WantTextInput && GetFocus () == game_window.hWnd)
+  if (io.WantTextInput && GetForegroundWindow () == game_window.hWnd)
     imgui_capture = true;
 
   return imgui_capture;
@@ -1207,7 +1207,7 @@ SK_ImGui_WantMouseCaptureEx (DWORD dwReasonMask)
 {
   bool imgui_capture = false;
 
-  if (SK_ImGui_IsMouseRelevant () && GetFocus () == game_window.hWnd)
+  if (SK_ImGui_IsMouseRelevant () && GetForegroundWindow () == game_window.hWnd)
   {
     ImGuiIO& io =
       ImGui::GetIO ();

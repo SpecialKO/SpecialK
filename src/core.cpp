@@ -873,10 +873,21 @@ SK_ReenterCore  (void) // During startup, we have the option of bypassing init a
   SK_StartupCore (params->backend.c_str (), params->callback);
 }
 
+typedef BOOL (WINAPI *SetProcessDEPPolicy_pfn)(_In_ DWORD dwFlags);
+
 bool
 __stdcall
 SK_StartupCore (const wchar_t* backend, void* callback)
 {
+  static SetProcessDEPPolicy_pfn _SetProcessDEPPolicy =
+    (SetProcessDEPPolicy_pfn)
+      GetProcAddress ( GetModuleHandleW (L"Kernel32.dll"),
+                         "SetProcessDEPPolicy" );
+
+  // Disable DEP for stupid Windows 7 machines
+  if (_SetProcessDEPPolicy != nullptr) _SetProcessDEPPolicy (0);
+
+
   // Allow users to centralize all files if they want
   //
   //   Stupid hack, if the application is running with a different working-directory than
@@ -958,12 +969,15 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
   //init_tids = SK_SuspendAllOtherThreads ();
 
-    wchar_t log_fname [MAX_PATH + 2] = { };
-
+    wchar_t   log_fname [MAX_PATH + 2] = { };
     swprintf (log_fname, L"logs/%s.log", SK_IsInjected () ? L"SpecialK" : backend);
 
     dll_log.init (log_fname, L"wS+,ccs=UTF-8");
-    dll_log.Log  (L"%s.log created",     SK_IsInjected () ? L"SpecialK" : backend);
+    dll_log.Log  ( L"%s.log created\t\t(Special K  %s,  %hs)",
+                     SK_IsInjected () ? L"SpecialK" :
+                                        backend,
+                                                      SK_VER_STR,
+                                        __DATE__ );
 
     bool blacklist =
       SK_IsInjected () &&

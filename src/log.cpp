@@ -355,7 +355,7 @@ SK_SummarizeCaller (LPVOID lpReturnAddr)
   if (ulLen > 0)
   {
     _snwprintf ( wszSummary, 255,
-                   L"[ %-18s <%30hs>, tid=0x%04x ]",
+                   L"[ %-25s <%30hs>, tid=0x%04x ]",
 
            SK_GetCallerName (lpReturnAddr).c_str (),
              szSymbol,
@@ -365,7 +365,7 @@ SK_SummarizeCaller (LPVOID lpReturnAddr)
 
   else {
     _snwprintf ( wszSummary, 255,
-                   L"[ %-28s,                        tid=0x%04x ]",
+                   L"[ %-58s, tid=0x%04x ]",
                               
            SK_GetCallerName (lpReturnAddr).c_str (),
                GetCurrentThreadId                ()

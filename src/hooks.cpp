@@ -22,6 +22,7 @@
 #include <Windows.h>
 
 #include <string>
+#include <cinttypes>
 #include <SpecialK/ini.h>
 #include <SpecialK/core.h>
 #include <SpecialK/log.h>
@@ -1102,11 +1103,11 @@ MH_STATUS
 __stdcall
 SK_ApplyQueuedHooks (void)
 {
-//#ifdef _DEBUG
+#ifdef _DEBUG
   SK_LOG_CALL (" Min Hook ");
 
   DWORD dwStart = timeGetTime ();
-//#endif
+#endif
 
   MH_STATUS status =
     MH_ApplyQueued ();
@@ -1116,9 +1117,9 @@ SK_ApplyQueuedHooks (void)
     SK_LOG_MINHOOK ( status, L"Failed to Enable Deferred Hooks!", 0 );
   }
 
-//#ifdef _DEBUG
+#ifdef _DEBUG
   SK_LOG0 ((L" >> %lu ms", timeGetTime () - dwStart), L" Min Hook ");
-//#endif
+#endif
 
   return status;
 }
@@ -1185,7 +1186,9 @@ SK_DisableHook (void *pTarget)
   {
     if (pTarget != MH_ALL_HOOKS)
     {
-      SK_LOG_MINHOOK ( status, L"Failed to Disable Hook with Address: %ph!", pTarget );
+      SK_LOG_MINHOOK ( status, L"Failed to Disable Hook with Address: %08"
+                               PRIxPTR L"h!",
+                         (uintptr_t)pTarget );
     }
 
     else
@@ -1206,8 +1209,9 @@ SK_RemoveHook (void *pTarget)
 
   if (status != MH_OK)
   {
-    SK_LOG_MINHOOK ( status, L"Failed to Remove Hook with Address: %ph!",
-                       pTarget );
+    SK_LOG_MINHOOK ( status, L"Failed to Remove Hook with Address: %08"
+                             PRIxPTR L"h!",
+                       (uintptr_t)pTarget );
   }
 
   return status;

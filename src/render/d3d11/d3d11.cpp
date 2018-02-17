@@ -47,6 +47,7 @@
 extern LARGE_INTEGER SK_QueryPerf (void);
 static DWORD         dwFrameTime = SK::ControlPanel::current_time; // For effects that blink; updated once per-frame.
 
+#include <cinttypes>
 #include <algorithm>
 #include <memory>
 #include <atomic>
@@ -850,8 +851,8 @@ SK_D3D11_SetDevice ( ID3D11Device           **ppDevice,
   {
     if ( *ppDevice != g_pD3D11Dev )
     {
-      SK_LOG0 ( (L" >> Device = %ph (Feature Level:%s)",
-                      *ppDevice,
+      SK_LOG0 ( (L" >> Device = %08" PRIxPTR L"h (Feature Level:%s)",
+                      (uintptr_t)*ppDevice,
                         SK_DXGI_FeatureLevelsToStr ( 1,
                                                       (DWORD *)&FeatureLevel
                                                    ).c_str ()
@@ -6079,10 +6080,10 @@ SK_D3D11_TexMgr::refTexture2D ( ID3D11Texture2D*      pTex,
                 L"DX11TexMgr" );
   }
 
-  SK_LOG4 ( ( L"Referencing Texture '%x' with %lu mipmap levels :: (%ph)",
+  SK_LOG4 ( ( L"Referencing Texture '%x' with %lu mipmap levels :: (%08" PRIxPTR L"h)",
                 desc2d.crc32c,
                   desc2d.orig_desc.MipLevels,
-                    pTex ),
+                    (uintptr_t)pTex ),
               L"DX11TexMgr" );
 
   SK_LOG4 ( ( L"  >> (%ux%u:%u) [CPU Access: %x], Misc Flags: %x, Usage: %u, Bind Flags: %x",
@@ -8847,11 +8848,11 @@ D3D11Dev_CreateTexture2D_Impl (
   bool injectable = false;
 
   cacheable = cacheable &&
-    ((! (pDesc->BindFlags & D3D11_BIND_DEPTH_STENCIL)    ||
-        (pDesc->BindFlags & D3D11_BIND_RENDER_TARGET)    ||
-        (pDesc->BindFlags & D3D11_BIND_UNORDERED_ACCESS) )) &&
-        (pDesc->BindFlags & D3D11_BIND_SHADER_RESOURCE)     &&
-        (pDesc->Usage     < D3D11_USAGE_DYNAMIC); // Cancel out Staging
+    (! (pDesc->BindFlags & ( D3D11_BIND_DEPTH_STENCIL |
+                             D3D11_BIND_RENDER_TARGET   )))  &&
+       (pDesc->BindFlags & ( D3D11_BIND_SHADER_RESOURCE |
+                             D3D11_BIND_UNORDERED_ACCESS  )) &&
+        (pDesc->Usage    <   D3D11_USAGE_DYNAMIC); // Cancel out Staging
                                                    //   They will be handled through a
                                                    //     different codepath.
 
@@ -8908,10 +8909,11 @@ D3D11Dev_CreateTexture2D_Impl (
   if (config.textures.d3d11.cache && (! cacheable))
   {
     SK_LOG1 ( ( L"Impossible to cache texture (Code Origin: '%s') -- Misc Flags: %x, MipLevels: %lu, "
-                L"ArraySize: %lu, CPUAccess: %x, BindFlags: %x, Usage: %x, pInitialData: %p (%p)",
+                L"ArraySize: %lu, CPUAccess: %x, BindFlags: %x, Usage: %x, pInitialData: %08"
+                PRIxPTR L" (%08" PRIxPTR L")",
                   SK_GetModuleName (hModCaller).c_str (), pDesc->MiscFlags, pDesc->MipLevels, pDesc->ArraySize,
-                    pDesc->CPUAccessFlags, pDesc->BindFlags, pDesc->Usage, pInitialData,
-                      pInitialData ? pInitialData->pSysMem : nullptr
+                    pDesc->CPUAccessFlags, pDesc->BindFlags, pDesc->Usage, (uintptr_t)pInitialData,
+                      pInitialData ? (uintptr_t)pInitialData->pSysMem : (uintptr_t)nullptr
               ),
               L"DX11TexMgr" );
 

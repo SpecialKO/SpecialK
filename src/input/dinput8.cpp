@@ -49,6 +49,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <string>
+#include <cinttypes>
 
 #include <atlbase.h>
 #include <comdef.h>
@@ -146,11 +147,12 @@ DirectInput8Create ( HINSTANCE hinst,
     WaitForInit_DI8 ();
   }
 
-  dll_log.Log ( L"[ DInput 8 ] [!] %s (%ph, %lu, {...}, ppvOut=%p, %p) - "
-                L"%s",
+  dll_log.Log ( L"[ DInput 8 ] [!] %s (%08" PRIxPTR L"h, %lu, {...}, ppvOut="
+                                     L"%08" PRIxPTR L"h, %08" PRIxPTR L"h)"
+                                     L"                               -- %s",
                   L"DirectInput8Create",
-                    hinst,  dwVersion, /*,*/
-                    ppvOut, punkOuter,
+                    (uintptr_t)hinst,             dwVersion, /*,*/
+                    (uintptr_t)ppvOut, (uintptr_t)punkOuter,
                       SK_SummarizeCaller ().c_str () );
 
   HRESULT hr = E_NOINTERFACE;
@@ -223,11 +225,12 @@ SK_BootDI8 (void)
 
       if (! _wcsicmp (SK_GetModuleName (SK_GetDLL ()).c_str (), L"dinput8.dll"))
       {
-        dll_log.Log (L"[ DInput 8 ]   DirectInput8Create:   %ph",
-          (DirectInput8Create_Import) =  \
+        dll_log.Log (L"[ DInput 8 ]   DirectInput8Create:   %08" PRIxPTR L"h",
+          (uintptr_t)(DirectInput8Create_Import =  \
             reinterpret_cast <DirectInput8Create_pfn> (
               GetProcAddress (hBackend, "DirectInput8Create")
             )
+          )
         );
       }
 
@@ -246,14 +249,15 @@ SK_BootDI8 (void)
         {
           if (bProxy)
           {
-            (DirectInput8Create_Import) =  \
+            DirectInput8Create_Import =
               reinterpret_cast <DirectInput8Create_pfn> (
                 GetProcAddress (hBackend, "DirectInput8Create")
               );
           }
 
-          dll_log.Log (L"[ DInput 8 ]   DirectInput8Create:   %p  { Hooked }",
-            (DirectInput8Create_Import) );
+          dll_log.Log (L"[ DInput 8 ]   DirectInput8Create:   %08" PRIxPTR
+                                                       L"h  { Hooked }",
+            (uintptr_t)DirectInput8Create_Import );
         }
       }
     }
@@ -354,11 +358,12 @@ CoCreateInstance_DI8 (
     WaitForInit_DI8 ();
   }
 
-  dll_log.Log ( L"[ DInput 8 ] [!] %s (%ph, %lu, {...}, ppvOut=%p, %p) - "
-                L"%s",
-                  L"DirectInput8Create <CoCreateInstance> ",
+  dll_log.Log ( L"[ DInput 8 ] [!] %s (%08" PRIxPTR L"h, %lu, {...}, ppvOut="
+                                     L"%08" PRIxPTR L"h, %08" PRIxPTR L"h)"
+                                     L"             -- %s",
+                  L"DirectInput8Create <CoCreateInstance>",
                     0, 0x800,
-                    ppv, pUnkOuter,
+                    (uintptr_t)ppv, (uintptr_t)pUnkOuter,
                       SK_SummarizeCaller (pCallerAddr).c_str () );
 
   HRESULT hr =
@@ -421,18 +426,16 @@ CoCreateInstanceEx_DI8 (
   _Inout_ MULTI_QI     *pResults,
   _In_    LPVOID        pCallerAddr )
 {
-  SK_BootDI8      ();
-
+  SK_BootDI8        ();
   if (SK_GetDLLRole () == DLL_ROLE::DInput8)
-  {
-    WaitForInit_DI8 ();
-  }
+  { WaitForInit_DI8 ();                      }
 
-  dll_log.Log ( L"[ DInput 8 ] [!] %s (%ph, %lu, {...}, ppvOut=%p) - "
-                L"%s",
-                  L"DirectInputCreate <CoCreateInstanceEx> ",
+  dll_log.Log ( L"[ DInput 8 ] [!] %s (%08" PRIxPTR L"h, %lu, {...}, ppvOut="
+                                     L"%08" PRIxPTR L"h)"
+                                     L"           -- %s",
+                  L"DirectInputCreate <CoCreateInstanceEx>",
                     0, 0x800,
-                    pResults->pItf,
+                    (uintptr_t)pResults->pItf,
                       SK_SummarizeCaller (pCallerAddr).c_str () );
 
   HRESULT hr =
@@ -1201,7 +1204,7 @@ IDirectInput8W_CreateDevice_Detour ( IDirectInput8W        *This,
   const wchar_t* wszDevice = (rguid == GUID_SysKeyboard)   ? L"Default System Keyboard" :
                                 (rguid == GUID_SysMouse)   ? L"Default System Mouse"    :
                                   (rguid == GUID_Joystick) ? L"Gamepad / Joystick"      :
-                                                           L"Other Device";
+                                                             L"Other Device";
 
   if (devices_w.count (guid_crc32c))
   {
@@ -1211,11 +1214,22 @@ IDirectInput8W_CreateDevice_Detour ( IDirectInput8W        *This,
   }
 
 
-  dll_log.Log ( L"[   Input  ] [!] IDirectInput8W::CreateDevice (%ph, %s, %ph, %ph)",
-                   This,
-                     wszDevice,
-                       lplpDirectInputDevice,
-                         pUnkOuter );
+  if (config.system.log_level > 1)
+  {
+    dll_log.Log ( L"[   Input  ] [!] IDirectInput8W::CreateDevice ("
+                                     L"%08" PRIxPTR L"h, %s,"
+                                     L"%08" PRIxPTR L"h, "
+                                     L"%08" PRIxPTR L"h)",
+                     (uintptr_t)This,
+                                  wszDevice,
+                         (uintptr_t)lplpDirectInputDevice,
+                           (uintptr_t)pUnkOuter );
+  }
+  else
+  {
+    dll_log.Log ( L"[   Input  ] [!] IDirectInput8W::CreateDevice         [ %24s ]",
+                       wszDevice );
+  }
 
   HRESULT hr;
   DINPUT8_CALL ( hr,
@@ -1294,7 +1308,7 @@ IDirectInput8A_CreateDevice_Detour ( IDirectInput8A        *This,
   const wchar_t* wszDevice = (rguid == GUID_SysKeyboard)   ? L"Default System Keyboard" :
                                 (rguid == GUID_SysMouse)   ? L"Default System Mouse"    :
                                   (rguid == GUID_Joystick) ? L"Gamepad / Joystick"      :
-                                                           L"Other Device";
+                                                             L"Other Device";
 
   if (devices_a.count (guid_crc32c))
   {
@@ -1303,12 +1317,22 @@ IDirectInput8A_CreateDevice_Detour ( IDirectInput8A        *This,
     return S_OK;
   }
 
-
-  dll_log.Log ( L"[   Input  ] [!] IDirectInput8A::CreateDevice (%ph, %s, %ph, %ph)",
-                   This,
-                     wszDevice,
-                       lplpDirectInputDevice,
-                         pUnkOuter );
+  if (config.system.log_level > 1)
+  {
+    dll_log.Log ( L"[   Input  ] [!] IDirectInput8A::CreateDevice ("
+                                     L"%08" PRIxPTR L"h, %s,"
+                                     L"%08" PRIxPTR L"h, "
+                                     L"%08" PRIxPTR L"h)",
+                     (uintptr_t)This,
+                                  wszDevice,
+                         (uintptr_t)lplpDirectInputDevice,
+                           (uintptr_t)pUnkOuter );
+  }
+  else
+  {
+    dll_log.Log ( L"[   Input  ] [!] IDirectInput8A::CreateDevice         [ %24s ]",
+                       wszDevice );
+  }
 
   HRESULT hr;
   DINPUT8_CALL ( hr,
