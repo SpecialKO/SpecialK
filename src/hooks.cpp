@@ -48,7 +48,6 @@ typedef struct _MODULEINFO {
 
 concurrency::concurrent_unordered_map <HMODULE, MODULEINFO> SK_KnownModules;
 
-
 std::wstring
 sk_hook_target_s::serialize_ini (void)
 {
@@ -125,7 +124,7 @@ SK_Hook_RemoveTarget (       sk_hook_cache_record_s &cache,
 
     hook_cfg.remove_key (SK_UTF8ToWideChar (cache.target.symbol_name).c_str ());
 
-    ini->write ( ini->get_filename () );
+  //ini->write ( ini->get_filename () );
   }
 }
 
@@ -197,8 +196,8 @@ SK_Hook_CacheTarget (       sk_hook_cache_record_s &cache,
       SK_Hook_RemoveTarget (cache, wszSectionName, ini);
     }
 
-    if (wszSectionName)
-      ini->write ( ini->get_filename () );
+    //if (wszSectionName)
+    //  ini->write ( ini->get_filename () );
   }
 };
 
@@ -212,7 +211,7 @@ SK_Hook_CacheTarget (       sk_hook_cache_record_s &cache,
 bool
 SKX_IsHotPatchableAddr (LPVOID addr)
 {
-  if (! SK_ValidatePointer (addr))
+  if (! SK_IsAddressExecutable (addr))
     return false;
 
 #ifdef _WIN64
@@ -249,13 +248,15 @@ SK_Hook_PreCacheModule ( const wchar_t                                *wszModule
   //
   if ( SK_IsInjected () && cache_state.use_cached_addresses.global )
   {
+    auto it_global = global_cache.begin ();
+
     for ( auto& it : local_cache )
     {
       it->active = false;
 
-      if (it->target.addr != nullptr)
+      if ((*it_global)->target.addr != nullptr)
       {
-        LPVOID target_addr = it->target.addr;
+        LPVOID target_addr = (*it_global)->target.addr;
 
         it->target.addr = nullptr;
 
@@ -265,6 +266,9 @@ SK_Hook_PreCacheModule ( const wchar_t                                *wszModule
           SK_LOG1 ( ( L"Discarding global address for '%50hs' (not hot patched)",
                       it->target.symbol_name ),
                       L"Hook Cache" );
+
+          ++it_global;
+
           continue;
         }
 
@@ -294,6 +298,8 @@ SK_Hook_PreCacheModule ( const wchar_t                                *wszModule
           }
         }
       }
+
+      ++it_global;
     }
   }
 
@@ -344,11 +350,12 @@ SK_Hook_PreCacheModule ( const wchar_t                                *wszModule
     }
   }
 
-  if ( cache_state.hooks_loaded.from_game_ini + 
-       cache_state.hooks_loaded.from_shared_dll > 0 )
-  {
-    SK_ApplyQueuedHooks ();
-  }
+  // It is the calling function's responsibility to do this.
+  //if ( cache_state.hooks_loaded.from_game_ini + 
+  //     cache_state.hooks_loaded.from_shared_dll > 0 )
+  //{
+  //  SK_ApplyQueuedHooks ();
+  //}
 
   return cache_state;
 };
@@ -829,7 +836,7 @@ SK_CreateDLLHook2 ( const wchar_t  *pwszModule, const char  *pszProcName,
                            mod_name.c_str () );
 
     if (ppFuncAddr != nullptr)
-      *ppFuncAddr = nullptr;
+       *ppFuncAddr  = nullptr;
   }
 
   else
@@ -1095,6 +1102,12 @@ MH_STATUS
 __stdcall
 SK_ApplyQueuedHooks (void)
 {
+//#ifdef _DEBUG
+  SK_LOG_CALL (" Min Hook ");
+
+  DWORD dwStart = timeGetTime ();
+//#endif
+
   MH_STATUS status =
     MH_ApplyQueued ();
 
@@ -1102,6 +1115,10 @@ SK_ApplyQueuedHooks (void)
   {
     SK_LOG_MINHOOK ( status, L"Failed to Enable Deferred Hooks!", 0 );
   }
+
+//#ifdef _DEBUG
+  SK_LOG0 ((L" >> %lu ms", timeGetTime () - dwStart), L" Min Hook ");
+//#endif
 
   return status;
 }

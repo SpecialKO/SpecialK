@@ -180,6 +180,7 @@ struct {
     sk::ParameterBool*    force_load;
     sk::ParameterBool*    auto_inject;
     sk::ParameterBool*    reuse_overlay_pause;
+    sk::ParameterStringW* dll_path;
   } system;
 
   struct {
@@ -198,15 +199,6 @@ struct {
     sk::ParameterStringW* blacklist;
   } cloud;
 } steam;
-
-struct
-{
-  struct
-  {
-    sk::ParameterBool*    use_static_addresses;
-    bool                  has_local_preference = false;
-  } global;
-} injection;
 
 struct {
   struct {
@@ -280,7 +272,6 @@ struct {
     sk::ParameterBool*    safe_fullscreen;
     sk::ParameterBool*    enhanced_depth;
     sk::ParameterBool*    deferred_isolation;
-    sk::ParameterBool*    rehook_present;
   } dxgi;
   struct {
     sk::ParameterBool*    force_d3d9ex;
@@ -393,13 +384,6 @@ struct {
 struct {
   sk::ParameterBool*      rehook_loadlibrary;
   sk::ParameterBool*      disable_nv_bloat;
-
-  struct {
-    sk::ParameterBool*    rehook_reset;
-    sk::ParameterBool*    rehook_present;
-    sk::ParameterBool*    hook_reset_vtable;
-    sk::ParameterBool*    hook_present_vtable;
-  } d3d9;
 } compatibility;
 
 struct {
@@ -757,11 +741,6 @@ SK_LoadConfigEx (std::wstring name, bool create)
     // D3D9
     //////////////////////////////////////////////////////////////////////////
 
-    ConfigEntry (compatibility.d3d9.rehook_present,      L"Rehook D3D9 Present On Device Reset",                       dll_ini,         L"Compatibility.D3D9",    L"RehookPresent"),
-    ConfigEntry (compatibility.d3d9.rehook_reset,        L"Rehook D3D9 Reset On Device Reset",                         dll_ini,         L"Compatibility.D3D9",    L"RehookReset"),
-    ConfigEntry (compatibility.d3d9.hook_present_vtable, L"Use VFtable Override for Present",                          dll_ini,         L"Compatibility.D3D9",    L"UseVFTableForPresent"),
-    ConfigEntry (compatibility.d3d9.hook_reset_vtable,   L"Use VFtable Override for Reset",                            dll_ini,         L"Compatibility.D3D9",    L"UseVFTableForReset"),
-
     ConfigEntry (render.d3d9.force_d3d9ex,               L"Force D3D9Ex Context",                                      dll_ini,         L"Render.D3D9",           L"ForceD3D9Ex"),
     ConfigEntry (render.d3d9.impure,                     L"Force PURE device off",                                     dll_ini,         L"Render.D3D9",           L"ForceImpure"),
     ConfigEntry (render.d3d9.enable_texture_mods,        L"Enable Texture Modding Support",                            dll_ini,         L"Render.D3D9",           L"EnableTextureMods"),
@@ -791,7 +770,6 @@ SK_LoadConfigEx (std::wstring name, bool create)
     ConfigEntry (render.dxgi.enhanced_depth,             L"Use 32-bit Depth + 8-bit Stencil + 24-bit Padding",         dll_ini,         L"Render.DXGI",           L"Use64BitDepthStencil"),
     ConfigEntry (render.dxgi.deferred_isolation,         L"Isolate D3D11 Deferred Context Queues instead of Tracking"
                                                          L" in Immediate Mode.",                                       dll_ini,         L"Render.DXGI",           L"IsolateD3D11DeferredContexts"),
-    ConfigEntry (render.dxgi.rehook_present,             L"Attempt to Fix Altered SwapChain Presentation Hooks",       dll_ini,         L"Render.DXGI",           L"RehookPresent"),
 
 
     ConfigEntry (texture.d3d11.cache,                    L"Cache Textures",                                            dll_ini,         L"Textures.D3D11",        L"Cache"),
@@ -814,9 +792,6 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
     ConfigEntry (texture.cache.ignore_non_mipped,        L"Ignore textures without mipmaps?",                          dll_ini,         L"Textures.Cache",        L"IgnoreNonMipmapped"),
     ConfigEntry (texture.cache.allow_staging,            L"Enable texture caching/dumping/injecting staged textures",  dll_ini,         L"Textures.Cache",        L"AllowStaging"),
-
-
-    ConfigEntry (injection.global.use_static_addresses,  L"Use Cached Memory Addresses in Global\\injection.ini",      dll_ini,         L"Injection.Global",      L"UseStaticAddresses"),
 
 
     ConfigEntry (nvidia.api.disable,                     L"Disable NvAPI",                                             dll_ini,         L"NVIDIA.API",            L"Disable"),
@@ -862,6 +837,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
     ConfigEntry (steam.system.reuse_overlay_pause,       L"Pause Overlay Aware games when control panel is visible",   dll_ini,         L"Steam.System",          L"ReuseOverlayPause"),
     ConfigEntry (steam.social.online_status,             L"Always apply a social state (defined by EPersonaState) at"
                                                          L" application start",                                        dll_ini,         L"Steam.Social",          L"OnlineStatus"),
+    ConfigEntry (steam.system.dll_path,                  L"Path to a known-working SteamAPI dll for this game.",       dll_ini,         L"Steam.System",          L"SteamPipeDLL"),
 
     // Swashbucklers pay attention
     //////////////////////////////////////////////////////////////////////////
@@ -1164,6 +1140,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
   games.emplace ( L"DarkSoulsIII.exe",                       SK_GAME_ID::DarkSouls3                   );
   games.emplace ( L"Fallout4.exe",                           SK_GAME_ID::Fallout4                     );
   games.emplace ( L"dis1_st.exe",                            SK_GAME_ID::DisgaeaPC                    );
+  games.emplace (L"Secret_of_Mana.exe",                      SK_GAME_ID::SecretOfMana                 );
 
   //
   // Application Compatibility Overrides
@@ -1483,6 +1460,11 @@ SK_LoadConfigEx (std::wstring name, bool create)
         config.apis.OpenGL.hook     = false;
         config.apis.dxgi.d3d11.hook = false;
         break;
+
+      // (0.9.1 - 2/15/18) -> SteamAPI init happens before CBT hook injects SpecialK
+      case SK_GAME_ID::SecretOfMana:
+        config.steam.init_delay = 1; // Non-zero value causes forced injection
+        break;
     }
   }
 
@@ -1570,53 +1552,6 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
   if (amd.adl.disable->load (config.apis.ADL.enable))
      config.apis.ADL.enable = (! amd.adl.disable->get_value ());
-
-
-
-
-  // Global Injection
-  //
-  //   Hook Address Policy
-  //
-  if (injection.global.use_static_addresses->load (config.injection.global.use_static_addresses))
-  {
-    injection.global.has_local_preference = true;
-  }
-
-  else
-  {
-    auto inject_config =
-      SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\Global\injection.ini)";
-
-    iSK_INI* pInjectINI =
-      SK_CreateINI (inject_config.c_str ());
-
-    auto* default_usage =
-      dynamic_cast <sk::ParameterBool *> (
-        g_ParameterFactory.create_parameter <bool> (L"Default Usage")
-      );
-    default_usage->register_to_ini (pInjectINI, L"Injection.Policy", L"DefaultStaticAddressUsage");
-
-    // Highly Experimental, so OFF by default
-    if (! default_usage->load (config.injection.global.use_static_addresses))
-    {
-      default_usage->store (false);
-
-      config.injection.global.use_static_addresses = false;
-
-      pInjectINI->write (pInjectINI->get_filename ());
-    }
-
-    if (SK_IsInjected ())
-    {
-      // Apply this by default
-      config.render.dxgi.rehook_present = config.injection.global.use_static_addresses;
-    }
-
-    delete pInjectINI;
-  }
-
-
 
 
   display.force_fullscreen->load            (config.display.force_fullscreen);
@@ -1812,7 +1747,6 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
   render.dxgi.enhanced_depth->load     (config.render.dxgi.enhanced_depth);
   render.dxgi.deferred_isolation->load (config.render.dxgi.deferred_isolation);
-  render.dxgi.rehook_present->load     (config.render.dxgi.rehook_present);
 
 
   texture.d3d11.cache->load        (config.textures.d3d11.cache);
@@ -2039,6 +1973,12 @@ SK_LoadConfigEx (std::wstring name, bool create)
   steam.system.force_load->load            (config.steam.force_load_steamapi);
   steam.system.auto_inject->load           (config.steam.auto_inject);
   steam.system.reuse_overlay_pause->load   (config.steam.reuse_overlay_pause);
+
+  // Setup sane initial values
+  config.steam.dll_path = SK_RunLHIfBitness ( 64, L"steam_api64.dll",
+                                                  L"steam_api.dll" );
+
+  steam.system.dll_path->load              (config.steam.dll_path);
 
 
   bool global_override = false;
@@ -2662,7 +2602,6 @@ SK_SaveConfig ( std::wstring name,
       render.dxgi.safe_fullscreen->store    (config.render.dxgi.safe_fullscreen);
       render.dxgi.enhanced_depth->store     (config.render.dxgi.enhanced_depth);
       render.dxgi.deferred_isolation->store (config.render.dxgi.deferred_isolation);
-      render.dxgi.rehook_present->store     (config.render.dxgi.rehook_present);
     }
 
     if ( SK_IsInjected () || ( SK_GetDLLRole () & DLL_ROLE::D3D9    ) ||
@@ -2716,6 +2655,7 @@ SK_SaveConfig ( std::wstring name,
     SK_Steam_PopupOriginToWStr (config.steam.notify_corner)
   );
   steam.system.reuse_overlay_pause->store   (config.steam.reuse_overlay_pause);
+  steam.system.dll_path->store              (config.steam.dll_path);
 
   steam.social.online_status->store         (config.steam.online_status);
 
@@ -2727,11 +2667,6 @@ SK_SaveConfig ( std::wstring name,
   log_level->store                          (config.system.log_level);
   prefer_fahrenheit->store                  (config.system.prefer_fahrenheit);
 
-
-  if (SK_IsInjected () && injection.global.has_local_preference)
-  {
-    injection.global.use_static_addresses->store (config.injection.global.use_static_addresses);
-  }
 
   nvidia.api.disable->store                 (! config.apis.NvAPI.enable);
   amd.adl.disable->store                    (! config.apis.ADL.enable);

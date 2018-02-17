@@ -19,18 +19,17 @@
  *
 **/
 
+#define __SK_SUBSYSTEM__ L"XInput_Hot"
+
 #include <SpecialK/input/input.h>
 #include <SpecialK/input/xinput.h>
 #include <SpecialK/input/xinput_hotplug.h>
+#include <SpecialK/utility.h>
 #include <SpecialK/config.h>
 #include <SpecialK/log.h>
 
 #include <algorithm>
 #include <dbt.h>
-
-
-#undef  SK_LOG_FIRST_CALL
-#define SK_LOG_FIRST_CALL { static bool called = false; if (! called) { SK_LOG0 ( (L"[!] > First Call: %34hs", __FUNCTION__), L"XInput_Hot" ); called = true; } }
 
 struct {
   static const DWORD RecheckInterval = 1000UL;

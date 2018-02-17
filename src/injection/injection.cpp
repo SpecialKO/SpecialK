@@ -99,7 +99,7 @@ SK_Inject_InitShutdownEvent (void)
   {
     g_CBTHook.bAdmin           = SK_IsAdmin ();
 
-    SECURITY_ATTRIBUTES sattr;
+    SECURITY_ATTRIBUTES sattr  = { };
     sattr.nLength              = sizeof SECURITY_ATTRIBUTES;
     sattr.bInheritHandle       = TRUE;
     sattr.lpSecurityDescriptor = nullptr;
@@ -139,9 +139,10 @@ SK_Inject_ValidateProcesses (void)
 {
   for (volatile LONG& g_sHookedPID : g_sHookedPIDs)
   {
-    HANDLE hProc =
+    CHandle hProc (
       OpenProcess ( PROCESS_QUERY_INFORMATION, FALSE, 
-                      ReadAcquire (&g_sHookedPID) );
+                      ReadAcquire (&g_sHookedPID) )
+                  );
 
     if (hProc == nullptr)
     {
@@ -156,8 +157,6 @@ SK_Inject_ValidateProcesses (void)
 
       if (dwExitCode != STILL_ACTIVE)
         ReadAcquire (&g_sHookedPID);
-
-      CloseHandle (hProc);
     }
   }
 }
@@ -268,15 +267,16 @@ SKX_WaitForCBTHookShutdown (void)
   HANDLE hHookOwner = 
     OpenProcess ( PROCESS_DUP_HANDLE, FALSE, g_CBTHook.dwHookPID );
 
-  if (hHookOwner != 0)
+  if (hHookOwner != nullptr)
   {
-    DuplicateHandle ( hHookOwner,  g_CBTHook.hShutdownEvent,
-                      GetCurrentProcess (), &hShutdown,
-                      0x00, TRUE, DUPLICATE_SAME_ACCESS );
+    BOOL success =
+      DuplicateHandle ( hHookOwner,  g_CBTHook.hShutdownEvent,
+                        GetCurrentProcess (), &hShutdown,
+                        0x00, TRUE, DUPLICATE_SAME_ACCESS );
 
     CloseHandle (hHookOwner);
 
-    if (hShutdown != INVALID_HANDLE_VALUE)
+    if (success && hShutdown != INVALID_HANDLE_VALUE)
     {
       SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_IDLE);
 
@@ -472,15 +472,11 @@ RunDLL_InjectionManager ( HWND  hwnd,        HINSTANCE hInst,
                while ( ReadAcquire (&__SK_DLL_Attached) || (! SK_IsHostAppSKIM ()))
                  SleepEx (15UL, TRUE);
 
+               CloseHandle (GetCurrentThread ());
+
                if (PtrToInt (user) != -128)
                {
-                 CloseHandle (GetCurrentThread ());
                  ExitProcess (0x00);
-               }
-
-               else
-               {
-                 CloseHandle (GetCurrentThread ());
                }
 
                return 0;
@@ -673,13 +669,10 @@ SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE role)
 
     lstrcatW (wszOut, SK_GetHostPath ());
 
-#ifdef _WIN64
-    lstrcatW (wszIn,  L"SpecialK64.pdb");
-    lstrcatW (wszOut, L"\\SpecialK64.pdb");
-#else
-    lstrcatW (wszIn,  L"SpecialK32.pdb");
-    lstrcatW (wszOut, L"\\SpecialK32.pdb");
-#endif
+    SK_RunLHIfBitness (64, PathAppendW (wszIn,  L"SpecialK64.pdb"),
+                           PathAppendW (wszIn,  L"SpecialK32.pdb") );
+    SK_RunLHIfBitness (64, PathAppendW (wszOut, L"SpecialK64.pdb"),
+                           PathAppendW (wszOut, L"SpecialK32.pdb") );
 
     if (! CopyFileW (wszIn, wszOut, TRUE))
       ReplaceFileW (wszOut, wszIn, nullptr, 0x00, nullptr, nullptr);
@@ -914,8 +907,8 @@ SK_ExitRemoteProcess (const wchar_t* wszProcName, UINT uExitCode = 0x0)
 
 
   PROCESSENTRY32 pe32      = { };
-  HANDLE         hProcSnap =
-    CreateToolhelp32Snapshot (TH32CS_SNAPPROCESS, 0);
+  CHandle hProcSnap          (
+    CreateToolhelp32Snapshot (TH32CS_SNAPPROCESS, 0) );
 
   if (hProcSnap == INVALID_HANDLE_VALUE)
     return false;
@@ -924,7 +917,6 @@ SK_ExitRemoteProcess (const wchar_t* wszProcName, UINT uExitCode = 0x0)
 
   if (! Process32First (hProcSnap, &pe32))
   {
-    CloseHandle (hProcSnap);
     return false;
   }
 
@@ -936,12 +928,9 @@ SK_ExitRemoteProcess (const wchar_t* wszProcName, UINT uExitCode = 0x0)
 
       SendMessage (win.root, WM_USER + 0x123, 0x00, 0x00);
 
-      CloseHandle (hProcSnap);
       return true;
     }
   } while (Process32Next (hProcSnap, &pe32));
-
-  CloseHandle (hProcSnap);
 
   return false;
 }

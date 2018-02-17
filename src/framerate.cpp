@@ -300,7 +300,7 @@ QueryPerformanceCounter_Detour (_Out_ LARGE_INTEGER *lpPerformanceCount)
   return QueryPerformanceCounter_Original (lpPerformanceCount);
 }
 
-using NTSTATUS = _Return_type_success_(return >= 0) LONG;
+using NTSTATUS = _Return_type_success_ (return >= 0) LONG;
 
 using NtQueryTimerResolution_pfn = NTSTATUS (NTAPI *)
 (

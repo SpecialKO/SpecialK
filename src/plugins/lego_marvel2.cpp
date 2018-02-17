@@ -383,7 +383,7 @@ SK_MSS_InitPlugin (void)
   mss_config.ui.res_x->load (mss_res.x);
   mss_config.ui.res_y->load (mss_res.y);
 
-   MH_ApplyQueued ();
+   SK_ApplyQueuedHooks ();
 
   InterlockedExchange (&__MSS_init, 1);
 };

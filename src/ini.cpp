@@ -89,8 +89,7 @@ iSK_INI::iSK_INI (const wchar_t* filename)
     wszData = new wchar_t [size + 3] { };
     alloc   = wszData;
 
-    fread  (wszData, size, 1, fINI);
-    fflush (fINI);
+    fread  (wszData, size, 1, fINI);;
     fclose (fINI);
 
     // First, consider Unicode
@@ -449,7 +448,7 @@ iSK_INI::parse (void)
           }
         }
 
-        iSK_INISection section =
+        const iSK_INISection& section =
           Process_Section (sec_name, start, finish);
 
         sections.emplace (
@@ -730,17 +729,17 @@ iSK_INI::write (const wchar_t* fname)
   switch (encoding_)
   {
     case INI_UTF8:
-      TRY_FILE_IO (_wfsopen (fname, L"wtc,ccs=UTF-8",    _SH_DENYNO), fname, fOut);
+      TRY_FILE_IO (_wfsopen (fname, L"wc,ccs=UTF-8",    _SH_DENYNO), fname, fOut);
       break;
 
     // Cannot preserve this, consider adding a byte-swap on file close
     case INI_UTF16BE:
-      TRY_FILE_IO (_wfsopen (fname, L"wtc,ccs=UTF-16LE", _SH_DENYNO), fname, fOut);
+      TRY_FILE_IO (_wfsopen (fname, L"wc,ccs=UTF-16LE", _SH_DENYNO), fname, fOut);
       break;
 
     default:
     case INI_UTF16LE:
-      TRY_FILE_IO (_wfsopen (fname, L"wtc,ccs=UTF-16LE", _SH_DENYNO), fname, fOut);
+      TRY_FILE_IO (_wfsopen (fname, L"wc,ccs=UTF-16LE", _SH_DENYNO), fname, fOut);
       break;
   }
 

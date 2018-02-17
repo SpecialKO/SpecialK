@@ -630,5 +630,5 @@ SK_DGPU_InitPlugin (void)
         "SK_ReShade_SetResolutionScale"
   );
 
-  MH_ApplyQueued ();
+  SK_ApplyQueuedHooks ();
 };

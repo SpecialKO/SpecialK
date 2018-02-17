@@ -568,15 +568,10 @@ D3D9CreateTexture_Detour (IDirect3DDevice9    *This,
 
     else //Format != 0)//Pool != D3DPOOL_MANAGED)
     {
-      HMODULE hModCaller = SK_GetCallingDLL ();
-
-      if ( hModCaller != SK_GetDLL () )
+      ISKTextureD3D9* dontcare;
+      if (FAILED ((*ppTexture)->QueryInterface (IID_SKTextureD3D9, (void **)&dontcare)))
       {
-        ISKTextureD3D9* dontcare;
-        if (FAILED ((*ppTexture)->QueryInterface (IID_SKTextureD3D9, (void **)&dontcare)))
-        {
-          new ISKTextureD3D9 (ppTexture, 0, 0x00);
-        }
+        new ISKTextureD3D9 (ppTexture, 0, 0x00);
       }
     }
   }
@@ -2431,8 +2426,6 @@ SK::D3D9::TextureManager::Hook (void)
                             "D3DXCreateTextureFromFileInMemoryEx",
                              D3DXCreateTextureFromFileInMemoryEx_Detour,
     static_cast_p2p <void> (&D3DXCreateTextureFromFileInMemoryEx_Original) );
-
-  SK_ApplyQueuedHooks ();
 }
 
 // Skip the purge step on shutdown

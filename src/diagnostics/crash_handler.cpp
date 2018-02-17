@@ -130,14 +130,13 @@ CrashHandler::Reinstall (void)
     LPVOID pHook = nullptr;
 
     if ( MH_OK ==
-           SK_CreateDLLHook2  (       L"kernel32.dll",
+           SK_CreateDLLHook   (       L"kernel32.dll",
                                        "SetUnhandledExceptionFilter",
                                         SetUnhandledExceptionFilter_Detour,
                static_cast_p2p <void> (&SetUnhandledExceptionFilter_Original),
                                        &pHook) )
     {
-      if ( MH_OK == MH_QueueEnableHook  ( pHook ) &&
-           MH_OK == SK_ApplyQueuedHooks (       ) )
+      if ( MH_OK == MH_EnableHook  ( pHook ) )
       {
         InterlockedExchangePointer ((LPVOID *)&pOldHook, pHook);
       }
@@ -183,8 +182,8 @@ CrashHandler::Init (void)
     crash_log.init       (L"logs/crash.log", L"wt+,ccs=UTF-8");
   }
 
-  SymSetOptions ( SYMOPT_CASE_INSENSITIVE | SYMOPT_LOAD_LINES    | SYMOPT_UNDNAME |
-                  SYMOPT_NO_PROMPTS       | SYMOPT_DEFERRED_LOADS );
+  SymSetOptions ( SYMOPT_CASE_INSENSITIVE | SYMOPT_LOAD_LINES     | SYMOPT_UNDNAME                |
+                  SYMOPT_NO_PROMPTS       | SYMOPT_DEFERRED_LOADS | SYMOPT_ALLOW_ABSOLUTE_SYMBOLS );
 
   SymRefreshModuleList (GetCurrentProcess ());
 
@@ -284,8 +283,8 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
   bool scaleform = false;
 
 #if 1
-  SymSetOptions ( SYMOPT_CASE_INSENSITIVE | SYMOPT_LOAD_LINES    | SYMOPT_UNDNAME |
-                  SYMOPT_NO_PROMPTS       | SYMOPT_DEFERRED_LOADS );
+  SymSetOptions ( SYMOPT_CASE_INSENSITIVE | SYMOPT_LOAD_LINES     | SYMOPT_UNDNAME                |
+                SYMOPT_NO_PROMPTS       | SYMOPT_DEFERRED_LOADS | SYMOPT_ALLOW_ABSOLUTE_SYMBOLS );
 #else
   SymSetOptions ( SYMOPT_ALLOW_ZERO_ADDRESS | SYMOPT_LOAD_LINES |
                   SYMOPT_LOAD_ANYTHING      | SYMOPT_UNDNAME    |
@@ -846,6 +845,9 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
   }
 }
 
+#include <concurrent_unordered_set.h>
+extern concurrency::concurrent_unordered_set <HMODULE> dbghelp_callers;
+
 ULONG
 SK_GetSymbolNameFromModuleAddr ( HMODULE hMod,   uintptr_t addr,
                                  char*   pszOut, ULONG     ulLen )
@@ -853,7 +855,13 @@ SK_GetSymbolNameFromModuleAddr ( HMODULE hMod,   uintptr_t addr,
   ULONG ret = 0;
 
   //if (config.system.strict_compliance)
-    cs_dbghelp->lock ();
+    //cs_dbghelp->lock ();
+
+  if (! dbghelp_callers.count (hMod))
+  {
+    dbghelp_callers.insert (hMod);
+    SymRefreshModuleList   (GetCurrentProcess ());
+  }
 
   HANDLE hProc =
     GetCurrentProcess ();
@@ -908,7 +916,7 @@ SK_GetSymbolNameFromModuleAddr ( HMODULE hMod,   uintptr_t addr,
   }
 
   //if (config.system.strict_compliance)
-    cs_dbghelp->unlock ();
+    //cs_dbghelp->unlock ();
 
   return ret;
 }
@@ -918,12 +926,12 @@ WINAPI
 SK_SymRefreshModuleList ( HANDLE hProc = GetCurrentProcess () )
 {
   //if (config.system.strict_compliance)
-    cs_dbghelp->lock ();
+    //cs_dbghelp->lock ();
 
   SymRefreshModuleList (hProc);
 
   //if (config.system.strict_compliance)
-    cs_dbghelp->unlock ();
+    //cs_dbghelp->unlock ();
 }
 
 using SteamAPI_SetBreakpadAppID_pfn = void (__cdecl *)( uint32_t unAppID );
@@ -984,8 +992,6 @@ SK_BypassSteamCrashHandler (void)
                                   "SteamAPI_SetBreakpadAppID",
                                    SteamAPI_SetBreakpadAppID_Detour,
           static_cast_p2p <void> (&SteamAPI_SetBreakpadAppID_NEVER) );
-
-        SK_ApplyQueuedHooks ();
       }
     }
   }
@@ -997,34 +1003,34 @@ void
 CrashHandler::InitSyms (void)
 {
   //if (config.system.strict_compliance)
-    cs_dbghelp->lock ();
+    //cs_dbghelp->lock ();
 
   static volatile LONG               init = 0L;
   if (! InterlockedCompareExchange (&init, 1, 0))
   {
+    HRSRC   default_sound =
+      FindResource (SK_GetDLL (), MAKEINTRESOURCE (IDR_CRASH), L"WAVE");
+
+    if (default_sound != nullptr)
+    {
+      crash_sound.ref   =
+        LoadResource (SK_GetDLL (), default_sound);
+
+      if (crash_sound.ref != nullptr)
+      {
+        crash_sound.buf =
+          reinterpret_cast <uint8_t *> (LockResource (crash_sound.ref));
+      }
+    }
+
     if (config.system.handle_crashes)
     {
-      HRSRC   default_sound =
-        FindResource (SK_GetDLL (), MAKEINTRESOURCE (IDR_CRASH), L"WAVE");
-
-      if (default_sound != nullptr)
-      {
-        crash_sound.ref   =
-          LoadResource (SK_GetDLL (), default_sound);
-
-        if (crash_sound.ref != nullptr)
-        {
-          crash_sound.buf =
-            reinterpret_cast <uint8_t *> (LockResource (crash_sound.ref));
-        }
-      }
-
       if (! config.steam.silent)
         SK_BypassSteamCrashHandler ();
     }
 
-    SymSetOptions ( SYMOPT_CASE_INSENSITIVE | SYMOPT_LOAD_LINES    | SYMOPT_UNDNAME |
-                    SYMOPT_NO_PROMPTS       | SYMOPT_DEFERRED_LOADS );
+    SymSetOptions ( SYMOPT_CASE_INSENSITIVE | SYMOPT_LOAD_LINES     | SYMOPT_UNDNAME                |
+                    SYMOPT_NO_PROMPTS       | SYMOPT_DEFERRED_LOADS | SYMOPT_ALLOW_ABSOLUTE_SYMBOLS );
 
     SymInitialize (
       GetCurrentProcess (),
@@ -1033,5 +1039,5 @@ CrashHandler::InitSyms (void)
   }
 
   //if (config.system.strict_compliance)
-    cs_dbghelp->unlock ();
+    //cs_dbghelp->unlock ();
 }

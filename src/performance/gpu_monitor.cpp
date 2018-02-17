@@ -175,6 +175,7 @@ SK_GPUPollingThread (LPVOID user)
         }
 
         NvU32 pcie_lanes = 0;
+
         if (NVAPI_OK == NvAPI_GPU_GetCurrentPCIEDownstreamWidth (gpu, &pcie_lanes))
         {
           stats.gpus [i].hwinfo.pcie_lanes = pcie_lanes;
@@ -185,12 +186,12 @@ SK_GPUPollingThread (LPVOID user)
 
         if (NVAPI_OK == NvAPI_GPU_GetPCIEInfo (gpu, &pcieinfo))
         {
-          stats.gpus [i].hwinfo.pcie_gen   =
-            pcieinfo.info [0].unknown5;//states [pstate].pciLinkRate;
-          stats.gpus [i].hwinfo.pcie_lanes =
-            pcieinfo.info [0].unknown6;//pstates [pstate].pciLinkWidth;
+          stats.gpus [i].hwinfo.pcie_gen           =
+            pcieinfo.info [0].unknown5;               //states [pstate].pciLinkRate;
+          stats.gpus [i].hwinfo.pcie_lanes         =
+            pcieinfo.info [0].unknown6;              //pstates [pstate].pciLinkWidth;
           stats.gpus [i].hwinfo.pcie_transfer_rate =
-            pcieinfo.info [0].unknown0;//pstates [pstate].pciLinkTransferRate;
+            pcieinfo.info [0].unknown0;              //pstates [pstate].pciLinkTransferRate;
         }
 
         NvU32 mem_width = 0,
@@ -279,7 +280,6 @@ SK_GPUPollingThread (LPVOID user)
             {
               if (ps20info.pstates [pstate].pstateId == current_pstate)
               {
-#if 1
                 // First, check for over-voltage...
                 if (stats.gpus [i].volts_mV.supported == false)
                 {
@@ -314,7 +314,6 @@ SK_GPUPollingThread (LPVOID user)
                 }
 
                 // If that fails, look through the normal voltages.
-#endif
                 for (NvU32 volt = 0; volt < ps20info.numBaseVoltages; volt++)
                 {
                   if ( ps20info.pstates [pstate].baseVoltages [volt].domainId ==

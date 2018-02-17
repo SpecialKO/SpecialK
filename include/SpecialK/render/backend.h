@@ -94,6 +94,19 @@ struct sk_hwnd_cache_s
   HWND    hwnd             = HWND_DESKTOP;
   HWND    parent           = HWND_DESKTOP;
 
+  struct devcaps_s
+  {
+    struct
+    {
+      int x, y, refresh;
+    } res;
+
+    DWORD last_checked     = 0UL;
+  } devcaps;
+
+  devcaps_s&
+  getDevCaps (void);
+
   wchar_t class_name [128] = { };
   wchar_t title      [128] = { };
 

@@ -2521,12 +2521,12 @@ SK_HookGL (void)
       SK_GL_HOOK(wglGetCurrentContext);
       SK_GL_HOOK(wglGetCurrentDC);
 
-      SK_ApplyQueuedHooks ();
-
       SK_TLS_Bottom ()->gl.ctx_init_thread = true;
 
       if (SK_GetDLLRole () == DLL_ROLE::OpenGL)
       {
+        SK_ApplyQueuedHooks ();
+
         // Load user-defined DLLs (Plug-In)
         SK_RunLHIfBitness (64, SK_LoadPlugIns64 (), SK_LoadPlugIns32 ());
       }

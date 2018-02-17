@@ -92,6 +92,8 @@ __blacklist = {
   L"configtool.exe",
 
   L"coherentui_host.exe",
+  L"vhui64.exe",
+  L"vhui.exe",
   L"activationui.exe",
   L"zossteamstarter.exe",
   L"notepad.exe",

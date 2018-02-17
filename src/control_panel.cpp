@@ -73,6 +73,10 @@
 #include <SpecialK/control_panel/plugins.h>
 #include <SpecialK/control_panel/compatibility.h>
 
+LONG imgui_staged_frames   = 0;
+LONG imgui_finished_frames = 0;
+BOOL imgui_staged          = FALSE;
+
 using namespace SK::ControlPanel;
 
 SK_RenderAPI                 SK::ControlPanel::render_api;
@@ -899,6 +903,9 @@ __declspec (dllexport)
 bool
 SK_ImGui_ControlPanel (void)
 {
+  if (! imgui_staged_frames)
+    return false;
+
   ImGuiIO& io (ImGui::GetIO ());
 
   if (ImGui::GetFont () == nullptr)
@@ -1103,7 +1110,8 @@ SK_ImGui_ControlPanel (void)
           if (ImGui::MenuItem ("Manually Inject SteamAPI", ""))
           {
             config.steam.force_load_steamapi = true;
-            SK_Steam_KickStart ();
+            SK_Steam_KickStart  ();
+            SK_ApplyQueuedHooks ();
           }
         }
 
@@ -1207,6 +1215,9 @@ SK_ImGui_ControlPanel (void)
         }
 
         else
+        {
+
+        }
           ImGui::MenuItem  ("Current Branch###Menu_CurrentBranch", current_branch_str, &selected, false);
 
         ImGui::Separator ();
@@ -1697,24 +1708,22 @@ SK_ImGui_ControlPanel (void)
       }
     }
 
-    HDC hDC = GetWindowDC (SK_GetCurrentRenderBackend ().windows.device);
+    int device_x =
+      rb.windows.device.getDevCaps ().res.x;
+    int device_y =
+      rb.windows.device.getDevCaps ().res.y;
 
-    int res_x = GetDeviceCaps (hDC, HORZRES);
-    int res_y = GetDeviceCaps (hDC, VERTRES);
-
-    ReleaseDC (SK_GetCurrentRenderBackend ().windows.device, hDC);
-
-    if ( client.right - client.left   != res_x || client.bottom - client.top   != res_y ||
-         io.DisplayFramebufferScale.x != res_x || io.DisplayFramebufferScale.y != res_y )
+    if ( client.right - client.left   != device_x || client.bottom - client.top   != device_y ||
+         io.DisplayFramebufferScale.x != device_x || io.DisplayFramebufferScale.y != device_y )
     {
       snprintf ( szResolution, 63, "   %ix%i",
-                                     res_x,
-                                       res_y );
+                                     device_x,
+                                       device_y );
     
       if (ImGui::MenuItem (" Device Resolution    ", szResolution))
       {
-        config.window.res.override.x = res_x;
-        config.window.res.override.y = res_y;
+        config.window.res.override.x = device_x;
+        config.window.res.override.y = device_y;
 
         override = true;
       }
@@ -1943,10 +1952,10 @@ SK_ImGui_ControlPanel (void)
                       SK::Framerate::GetEvents ()->getRenderThreadStats ();
 
                       ImGui::SetTooltip
-                                     ( "(%llu ms asleep, %llu ms awake)",
+                                     ( "(%li ms asleep, %li ms awake)",
                                          /*(stats.attempts - stats.rejections), stats.attempts,*/
-                                           InterlockedAdd64 (&stats.time.allowed,  0),
-                                           InterlockedAdd64 (&stats.time.deprived, 0) );
+                                           ReadAcquire (&stats.time.allowed),
+                                           ReadAcquire (&stats.time.deprived) );
                     }
                      ImGui::SameLine (                                                                              );
 
@@ -1957,10 +1966,10 @@ SK_ImGui_ControlPanel (void)
                       SK::Framerate::GetEvents ()->getMessagePumpStats ();
 
                       ImGui::SetTooltip
-                                     ( "(%llu ms asleep, %llu ms awake)",
+                                     ( "(%li ms asleep, %li ms awake)",
                                          /*(stats.attempts - stats.rejections), stats.attempts,*/
-                                           InterlockedAdd64 (&stats.time.allowed,  0),
-                                           InterlockedAdd64 (&stats.time.deprived, 0) );
+                                           ReadAcquire (&stats.time.allowed),
+                                           ReadAcquire (&stats.time.deprived) );
                   }
 
           ImGui::Separator ();
@@ -2181,21 +2190,13 @@ SK_ImGui_InstallOpenCloseCallback (SK_ImGui_OpenCloseCallback_pfn fn, void* user
 
 #include <SpecialK/osd/text.h>
 
-//
-// Hook this to override Special K's GUI
-//
-__declspec (dllexport)
-DWORD
-SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags, 
-                                              LPVOID lpUser )
+static bool keep_open;
+
+void
+SK_ImGui_StageNextFrame (void)
 {
-  // Optionally:  Disable SK's OSD while the Steam overlay is active
-  //
-  if (  config.steam.overlay_hides_sk_osd &&
-        SK::SteamAPI::GetOverlayState (true) )
-  {
-    return 0;
-  }
+  if (imgui_staged)
+    return;
 
 
   // Excessively long frames from things like toggling the Steam overlay
@@ -2224,20 +2225,6 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
   }
 
   current_time = timeGetTime ();
-
-//  static bool skip;
-//
-//  if (dwFlags == 0)
-//    skip = true;
-//
-//  if (skip)
-//    return 0;
-//
-//  if (dwFlags == 1)
-//    skip = false;
-
-  UNREFERENCED_PARAMETER (dwFlags);
-  UNREFERENCED_PARAMETER (lpUser);
 
   bool d3d9  = false;
   bool d3d11 = false;
@@ -2270,7 +2257,7 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
   else
   {
     SK_LOG0 ( (L"No Render API"), L"Overlay" );
-    return 0x00;
+    return;
   }
 
   ImGuiIO& io (ImGui::GetIO ());
@@ -2317,7 +2304,7 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
   //      import SK_ImGui_ControlPanel and call that somewhere
   //        from your hook.
 
-  bool keep_open = true;
+  keep_open = true;
 
 
   if (SK_ImGui_Visible)
@@ -2597,9 +2584,52 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
     SK_ImGui_UpdateCursor ();
   }
 
+  imgui_staged = true;
+  imgui_staged_frames++;
+}
 
-  if (d3d9)
+//
+// Hook this to override Special K's GUI
+//
+__declspec (dllexport)
+DWORD
+SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags, 
+                                              LPVOID lpUser )
+{
+  UNREFERENCED_PARAMETER (dwFlags);
+  UNREFERENCED_PARAMETER (lpUser);
+
+  // Optionally:  Disable SK's OSD while the Steam overlay is active
+  //
+  if (  config.steam.overlay_hides_sk_osd &&
+        SK::SteamAPI::GetOverlayState (true) )
   {
+    return 0;
+  }
+
+  if (! imgui_staged)
+  {
+    SK_ImGui_StageNextFrame ();
+  }
+
+  bool d3d9  = false;
+  bool d3d11 = false;
+  bool gl    = false;
+
+  SK_RenderBackend& rb =
+    SK_GetCurrentRenderBackend ();
+
+  if (rb.api == SK_RenderAPI::OpenGL)
+  {
+    gl = true;
+
+    ImGui::Render ();
+  }
+
+  else if (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D9))
+  {
+    d3d9 = true;
+
     CComQIPtr <IDirect3DDevice9> pDev =
       SK_GetCurrentRenderBackend ().device;
 
@@ -2613,11 +2643,18 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
     }
   }
 
-  else if (d3d11)
-    ImGui::Render ();
+  else if (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D11))
+  {
+    d3d11 = true;
 
-  else if (gl)
     ImGui::Render ();
+  }
+
+  else
+  {
+    SK_LOG0 ( (L"No Render API"), L"Overlay" );
+    return 0x0;
+  }
 
   if (! keep_open)
     SK_ImGui_Toggle ();
@@ -2629,6 +2666,11 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
   SK_ImGui_Cursor.update ();
 
   SetCursorPos_Original  (orig_pos.x, orig_pos.y);
+
+  imgui_finished_frames++;
+
+
+  imgui_staged = false;
 
   return 0;
 }

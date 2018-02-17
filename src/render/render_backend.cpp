@@ -66,10 +66,21 @@ private:
 float
 SK_Display_GetDefaultRefreshRate (void)
 {
-  SK_AutoDC auto_dc (NULL, GetDC (NULL));
+  static float fRefresh      = 0.0f;
+  static DWORD dwLastChecked = 0;
 
-  return
-    static_cast <float> (GetDeviceCaps (auto_dc.hDC (), VREFRESH));
+  if (dwLastChecked < timeGetTime () - 500UL)
+  {
+    SK_RenderBackend& rb =
+      SK_GetCurrentRenderBackend ();
+
+    fRefresh =
+      static_cast <float> (rb.windows.device.getDevCaps ().res.refresh);
+
+    dwLastChecked = timeGetTime ();
+  }
+
+  return fRefresh;
 }
 
 
@@ -170,12 +181,14 @@ SK_BootD3D9 (void)
                               SK_LoadEarlyImports32 () );
     }
 
-    SK_HookD3D9     ();
-
     if (config.textures.d3d9_mod)
     {
       SK::D3D9::tex_mgr.Hook ();
     }
+
+    SK_HookD3D9     ();
+
+    SK_TLS_Bottom ()->d3d9.ctx_init_thread = false;
 
     InterlockedIncrement (&__booted);
   }
@@ -763,6 +776,13 @@ SK_RenderBackend_V2::window_registry_s::setFocus (HWND hWnd)
                  L"GetActiveWindow () != this" : L""  ),
               L"  DEBUG!  ");
   }
+
+  if (! IsWindow (device))
+  {
+    SK_LOG0 ( (L"Treating focus HWND as device HWND because device HWND was invalid."),
+               L"Window Mgr");
+    device = hWnd;
+  }
 }
 
 void
@@ -771,4 +791,26 @@ SK_RenderBackend_V2::window_registry_s::setDevice (HWND hWnd)
   device = hWnd;
 
   SK_LOG1 ( (__FUNCTIONW__ L" (%X)", hWnd), L"  DEBUG!  " );
+}
+
+
+sk_hwnd_cache_s::devcaps_s&
+sk_hwnd_cache_s::getDevCaps (void)
+{
+  DWORD dwNow = timeGetTime ();
+
+  if (devcaps.last_checked < dwNow - 333UL)
+  {
+    HDC hDC = GetWindowDC (hwnd);
+
+    devcaps.res.x       = GetDeviceCaps (hDC, HORZRES);
+    devcaps.res.y       = GetDeviceCaps (hDC, VERTRES);
+    devcaps.res.refresh = GetDeviceCaps (hDC, VREFRESH);
+
+    ReleaseDC (hwnd, hDC);
+
+    devcaps.last_checked = dwNow;
+  }
+
+  return devcaps;
 }

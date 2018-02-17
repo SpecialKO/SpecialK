@@ -71,13 +71,13 @@ namespace SK
 
         struct
         {
-          volatile LONG64 deprived = 0ULL,
-                          allowed  = 0ULL;
+          volatile LONG deprived = 0ULL,
+                        allowed  = 0ULL;
         } time;
 
 
-        void sleep (DWORD dwMilliseconds) { InterlockedIncrement (&attempts);                                     InterlockedAdd64 (&time.allowed,  (ULONGLONG)dwMilliseconds); }
-        void wake  (DWORD dwMilliseconds) { InterlockedIncrement (&attempts); InterlockedIncrement (&rejections); InterlockedAdd64 (&time.deprived, (ULONGLONG)dwMilliseconds); }
+        void sleep (DWORD dwMilliseconds) { InterlockedIncrement (&attempts);                                     InterlockedAdd (&time.allowed,  (ULONG)dwMilliseconds); }
+        void wake  (DWORD dwMilliseconds) { InterlockedIncrement (&attempts); InterlockedIncrement (&rejections); InterlockedAdd (&time.deprived, (ULONG)dwMilliseconds); }
       };
 
       SleepStats& getMessagePumpStats  (void) { return message_pump;  }
@@ -89,6 +89,7 @@ namespace SK
       SleepStats message_pump, render_thread,
                  micro_sleep,  macro_sleep;
     } extern events;
+
 
     static inline EventCounter* GetEvents  (void) { return &events; }
                   Limiter*      GetLimiter (void);

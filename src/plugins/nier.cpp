@@ -1812,7 +1812,7 @@ SK_FAR_InitPlugin (void)
     far_prefs->write (far_prefs_file);
 
 
-    MH_ApplyQueued ();
+    SK_ApplyQueuedHooks ();
 
     SK_GetCommandProcessor ()->AddVariable ("FAR.GIWorkgroups", SK_CreateVar (SK_IVariable::Int,     &__FAR_GlobalIllumWorkGroupSize));
     //SK_GetCommandProcessor ()->AddVariable ("FAR.BusyWait",     SK_CreateVar (SK_IVariable::Boolean, &__FAR_BusyWait));
@@ -4735,7 +4735,7 @@ SK_FAR_InitPlugin (void)
     far_prefs->write (far_prefs_file);
 
 
-    MH_ApplyQueued ();
+    SK_ApplyQueuedHooks ();
 
     SK_GetCommandProcessor ()->AddVariable ("FAR.GIWorkgroups", SK_CreateVar (SK_IVariable::Int,     &__FAR_GlobalIllumWorkGroupSize));
     //SK_GetCommandProcessor ()->AddVariable ("FAR.BusyWait",     SK_CreateVar (SK_IVariable::Boolean, &__FAR_BusyWait));

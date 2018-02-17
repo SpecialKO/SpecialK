@@ -133,11 +133,11 @@ auto SK_Hook_PushLocalCacheOntoGlobal =
 
 static
 auto SK_Hook_PullGlobalCacheDownToLocal =
-[]( sk_hook_cache_record_s& global,
-    sk_hook_cache_record_s& local   )
+[]( sk_hook_cache_record_s* global,
+    sk_hook_cache_record_s* local   )
 {
   // LOL, right?
-  local = global;
+  *local = *global;
 };
 
 

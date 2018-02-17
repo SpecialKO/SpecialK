@@ -39,10 +39,6 @@ SK::ControlPanel::OpenGL::Draw (void)
   {
     ImGui::TreePush ("");
 
-    OSD::DrawVideoCaptureOptions ();
-
-    ImGui::SameLine ();
-
     ImGui::Checkbox ("Enable CEGUI", &config.cegui.enable);
 
     if (ImGui::IsItemHovered ())
@@ -51,6 +47,10 @@ SK::ControlPanel::OpenGL::Draw (void)
       ImGui::TextUnformatted ("Disabling may resolve graphics issues, but will disable achievement pop-ups and OSD text.");
       ImGui::EndTooltip      ();
     }
+
+    ImGui::SameLine ();
+
+    OSD::DrawVideoCaptureOptions ();
 
     ImGui::TreePop  ();
 

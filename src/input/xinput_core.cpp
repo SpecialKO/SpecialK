@@ -19,6 +19,8 @@
  *
 **/
 
+#define __SK_SUBSYSTEM__ L"Input Mgr."
+
 #include <SpecialK/input/input.h>
 #include <SpecialK/input/xinput.h>
 #include <SpecialK/input/xinput_hotplug.h>
@@ -34,7 +36,6 @@
 #include <algorithm>
 
 #define SK_LOG_INPUT_CALL { static int  calls  = 0;                   { SK_LOG0 ( (L"[!] > Call #%lu: %hs", calls++, __FUNCTION__), L"Input Mgr." ); } }
-#define SK_LOG_FIRST_CALL { static bool called = false; if (! called) { SK_LOG0 ( (L"[!] > First Call: %34hs", __FUNCTION__), L"Input Mgr." ); called = true; } }
 
 ///////////////////////////////////////////////////////
 //
@@ -911,7 +912,7 @@ SK_Input_HookXInputContext (SK_XInputContext::instance_s* pCtx)
        static_cast_p2p <void> (&pCtx->XInputEnable_Original) );
   }
 
-  MH_ApplyQueued ();
+  SK_ApplyQueuedHooks ();
 
   if (pCtx->XInputGetState_Target != nullptr)
     memcpy (pCtx->orig_inst, pCtx->XInputGetState_Target,                   6);
@@ -1071,7 +1072,7 @@ SK_XInput_RehookIfNeeded (void)
 
 
   MH_STATUS ret = 
-    MH_EnableHook (pCtx->XInputGetState_Target);
+    MH_QueueEnableHook (pCtx->XInputGetState_Target);
 
 
   // Test for modified hooks
@@ -1120,7 +1121,7 @@ SK_XInput_RehookIfNeeded (void)
 
 
   ret =
-    MH_EnableHook (pCtx->XInputSetState_Target);
+    MH_QueueEnableHook (pCtx->XInputSetState_Target);
 
 
   // Test for modified hooks
@@ -1171,7 +1172,7 @@ SK_XInput_RehookIfNeeded (void)
 
 
   ret =
-    MH_EnableHook (pCtx->XInputGetCapabilities_Target);
+    MH_QueueEnableHook (pCtx->XInputGetCapabilities_Target);
 
 
   // Test for modified hooks
@@ -1223,7 +1224,7 @@ SK_XInput_RehookIfNeeded (void)
   if (pCtx->XInputGetBatteryInformation_Target != nullptr)
   {
     ret =
-      MH_EnableHook (pCtx->XInputGetBatteryInformation_Target);
+      MH_QueueEnableHook (pCtx->XInputGetBatteryInformation_Target);
 
 
     // Test for modified hooks
@@ -1274,7 +1275,7 @@ SK_XInput_RehookIfNeeded (void)
   if (pCtx->XInputGetStateEx_Target != nullptr)
   {
     ret = 
-      MH_EnableHook (pCtx->XInputGetStateEx_Target);
+      MH_QueueEnableHook (pCtx->XInputGetStateEx_Target);
   
     // Test for modified hooks
     if ( ( ret != MH_OK && ret != MH_ERROR_ENABLED ) ||
@@ -1323,7 +1324,7 @@ SK_XInput_RehookIfNeeded (void)
   if (pCtx->XInputEnable_Target != nullptr)
   {
     ret =
-      MH_EnableHook (pCtx->XInputEnable_Target);
+      MH_QueueEnableHook (pCtx->XInputEnable_Target);
 
 
     // Test for modified hooks
@@ -1371,7 +1372,7 @@ SK_XInput_RehookIfNeeded (void)
 
 
 
-  MH_ApplyQueued ();
+  SK_ApplyQueuedHooks ();
 
 
   if (pCtx->XInputGetState_Target != nullptr)
@@ -1455,6 +1456,8 @@ WINAPI
 SK_XInput_PollController ( INT           iJoyID,
                            XINPUT_STATE* pState )
 {
+  bool queued_hooks = false;
+
   iJoyID =
     config.input.gamepad.xinput.assignment [std::max (0, std::min (iJoyID, 3))];
 
@@ -1527,7 +1530,7 @@ SK_XInput_PollController ( INT           iJoyID,
       }
     }
 
-    SK_ApplyQueuedHooks ();
+    queued_hooks = true;
   }
 
   // Lazy-load DLLs if somehow a game uses an XInput DLL not listed
@@ -1543,9 +1546,8 @@ SK_XInput_PollController ( INT           iJoyID,
     if (GetModuleHandle (L"XInput9_1_0.dll"))
       SK_Input_HookXInput9_1_0 ();
 
-    first_frame = false;
-
-    SK_ApplyQueuedHooks ();
+    first_frame  = false;
+    queued_hooks = true;
   }
 
   if (iJoyID == -1)
@@ -1556,7 +1558,10 @@ SK_XInput_PollController ( INT           iJoyID,
 
 
 
-  SK_XInput_RehookIfNeeded ();
+  if (queued_hooks)
+    SK_ApplyQueuedHooks ();
+  else
+    SK_XInput_RehookIfNeeded ();
 
 
 

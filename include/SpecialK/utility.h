@@ -97,6 +97,8 @@ int            SK_MessageBox                (std::wstring caption,
                                              std::wstring title,
                                              uint32_t     flags);
 
+time_t         SK_Win32_FILETIME_to_time_t  (FILETIME const& ft);
+
 std::string    SK_WideCharToUTF8            (std::wstring in);
 std::wstring   SK_UTF8ToWideChar            (std::string  in);
 
@@ -105,10 +107,10 @@ __cdecl        SK_FormatString              (char    const* const _Format, ...);
 std::wstring
 __cdecl        SK_FormatStringW             (wchar_t const* const _Format, ...);
 
-void           SK_StripTrailingSlashesW     (wchar_t* wszInOut);
-void           SK_FixSlashesW               (wchar_t* wszInOut);
-void           SK_StripTrailingSlashesA     (char*     szInOut);
-void           SK_FixSlashesA               (char*     szInOut);
+void           SK_StripTrailingSlashesW     (wchar_t *wszInOut);
+void           SK_StripTrailingSlashesA     (char    *szInOut);
+void           SK_FixSlashesW               (wchar_t *wszInOut);
+void           SK_FixSlashesA               (char    *szInOut);
 
 void           SK_File_SetNormalAttribs     (std::wstring   file);
 void           SK_File_MoveNoFail           (const wchar_t* wszOld,    const wchar_t* wszNew);
@@ -122,6 +124,8 @@ uint64_t       SK_File_GetSize              (const wchar_t* wszFile);
 std::wstring   SK_File_SizeToString         (uint64_t       size,      SK_UNITS       unit = Auto);
 std::wstring   SK_File_SizeToStringF        (uint64_t       size,      int            width,
                                              int            precision, SK_UNITS       unit = Auto);
+bool           SK_File_IsDirectory          (const wchar_t* wszPath);
+
 std::wstring   SK_SYS_GetInstallPath        (void);
 
 const wchar_t* SK_GetHostApp                (void);
@@ -139,6 +143,7 @@ std::wstring   SK_GetModuleNameFromAddr     (LPCVOID addr);
 std::wstring   SK_GetModuleFullNameFromAddr (LPCVOID addr);
 std::wstring   SK_MakePrettyAddress         (LPCVOID addr, DWORD dwFlags = 0x0);
 bool           SK_ValidatePointer           (LPCVOID addr);
+bool           SK_IsAddressExecutable       (LPCVOID addr);
 void           SK_LogSymbolName             (LPCVOID addr);
 
 char*          SK_StripUserNameFromPathA    (   char*  szInOut);
@@ -176,6 +181,10 @@ SK_GetBitness (void)
 #define SK_RunIf32Bit(x)         { SK_GetBitness () == 32  ? (x) :  0; }
 #define SK_RunIf64Bit(x)         { SK_GetBitness () == 64  ? (x) :  0; }
 #define SK_RunLHIfBitness(b,l,r)   SK_GetBitness () == (b) ? (l) : (r)
+
+
+#define SK_LOG_FIRST_CALL { static bool called = false; if (! called) { SK_LOG0 ( (L"[!] > First Call: %34hs", __FUNCTION__),      __SK_SUBSYSTEM__); \
+                                                                        SK_LOG1 ( (L"    <*> %s", SK_SummarizeCaller ().c_str ()), __SK_SUBSYSTEM__); called = true; } }
 
 
 

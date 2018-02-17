@@ -3,7 +3,7 @@
 
 #define SK_MAJOR 0
 #define SK_MINOR 9
-#define SK_BUILD 0
+#define SK_BUILD 1
 #define SK_REV_N 0
 #define SK_REV   0
 
@@ -17,7 +17,7 @@
 #define  _L(w) _L2(w)
 
 
-#ifdef SK_REV
+#if (defined (SK_REV) && SK_REV_N > 0)
 #define SK_VERSION_STR_A    _A(SK_MAJOR) "." _A(SK_MINOR) "." _A(SK_BUILD) "." _A(SK_REV)
 #else
 #define SK_VERSION_STR_A    _A(SK_MAJOR) "." _A(SK_MINOR) "." _A(SK_BUILD)

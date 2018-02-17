@@ -21,6 +21,7 @@
 
 #include <Windows.h>
 
+#define __SK_SUBSYSTEM__ L" DInput 7 "
 
 #include <SpecialK/input/dinput8_backend.h>
 #include <SpecialK/input/dinput7_backend.h>
@@ -753,7 +754,7 @@ IDirectInputDevice7_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE7       This,
 
   SK_LOG4 ( ( L" DirectInput 7 - GetDeviceState: cbData = %lu",
                 cbData ),
-              L"Direct Inp" );
+              __SK_SUBSYSTEM__ );
 
   HRESULT hr = S_OK;
 

@@ -540,7 +540,7 @@ SK_IT_InitPlugin (void)
   //
   //MH_QueueEnableHook (SK_ImGui_DrawEULA_PlugIn);
 
-   MH_ApplyQueued ();
+   SK_ApplyQueuedHooks ();
 
   InterlockedExchange (&__IT_init, 1);
 };

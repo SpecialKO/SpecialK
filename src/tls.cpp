@@ -363,23 +363,32 @@ SK_Steam_ThreadContext::Cleanup (SK_TLS_CleanupReason_e reason)
   return freed;
 }
 
+#include <SpecialK/render/backend.h>
+
 int
 SK_Win32_ThreadContext::getThreadPriority (bool nocache)
 {
   const DWORD _RefreshInterval = 30000UL;
 
-  DWORD dwNow = timeGetTime ();
-
-  if (! nocache)
+  if (nocache)
   {
-    thread_prio      = GetThreadPriority (GetCurrentThread ());
-    last_tested_prio = dwNow;
+    thread_prio            = GetThreadPriority (GetCurrentThread ());
+    last_tested_prio.time  = timeGetTime ();
+    last_tested_prio.frame = SK_GetFramesDrawn ();
+
+    return thread_prio;
   }
 
-  else if (last_tested_prio < dwNow - _RefreshInterval)
+  if (last_tested_prio.frame < SK_GetFramesDrawn ())
   {
-    thread_prio      = GetThreadPriority (GetCurrentThread ());
-    last_tested_prio = dwNow;
+    DWORD dwNow = timeGetTime ();
+
+    if (last_tested_prio.time < dwNow - _RefreshInterval)
+    {
+      thread_prio            = GetThreadPriority (GetCurrentThread ());
+      last_tested_prio.time  = dwNow;
+      last_tested_prio.frame = SK_GetFramesDrawn ();
+    }
   }
 
   return thread_prio;

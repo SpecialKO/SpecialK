@@ -1,3 +1,18 @@
+0.9.1:
+
+  + Fixed keyboard / mouse focus issues when Win32 modal dialogs are
+      active at the same time as an ImGui modal dialog
+
+ [!] Moved SpecialK[32|64].dll's texture injection directory to
+
+      Documents\My Mods\SpecialK\Profiles\<game_name>\SK_Res
+
+  + Fixed Secret of Mana late SteamAPI init. in global injector
+  + Fixed address cache invalidation for D3D11 games
+  + Updated 64-bit SteamAPI DLL for compat. with newer games
+  + Increased MinHook performance (faster startup)
+
+
 0.9.0:
 
  + Added a new File menu for texture modders, that will take you to your

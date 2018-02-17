@@ -673,11 +673,11 @@ SK_Attach (DLL_ROLE role)
         }
 
 
-        budget_mutex = new SK_Thread_HybridSpinlock (   400);
-        init_mutex   = new SK_Thread_HybridSpinlock (  5000);
-        loader_lock  = new SK_Thread_HybridSpinlock (  6536);
-        wmi_cs       = new SK_Thread_HybridSpinlock (   128);
-        cs_dbghelp   = new SK_Thread_HybridSpinlock (104857);
+        budget_mutex = new SK_Thread_HybridSpinlock (  400);
+        init_mutex   = new SK_Thread_HybridSpinlock ( 5000);
+        loader_lock  = new SK_Thread_HybridSpinlock ( 6536);
+        wmi_cs       = new SK_Thread_HybridSpinlock (  128);
+        cs_dbghelp   = new SK_Thread_HybridSpinlock (65536);
 
 
         _time64 (&__SK_DLL_AttachTime);

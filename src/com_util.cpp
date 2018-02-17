@@ -343,8 +343,6 @@ SK_WMI_Init (void)
                             "CoCreateInstanceEx",
                              CoCreateInstanceEx_Detour,
     static_cast_p2p <void> (&CoCreateInstanceEx_Original) );
-
-  SK_ApplyQueuedHooks ();
 #endif
   
 
@@ -368,7 +366,7 @@ SK_WMI_Init (void)
               [](LPVOID) ->
               DWORD
               {
-                SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_LOWEST);
+                SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_BELOW_NORMAL);
 
                 SK_AutoCOMInit auto_com;
 

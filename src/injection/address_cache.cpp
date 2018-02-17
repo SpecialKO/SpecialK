@@ -19,22 +19,15 @@
  *
 **/
 
+// Maybe someday I'll revisit this code...
+//   it's not doing anything useful right now :P
+//
+#if 0
 #include <SpecialK/injection/address_cache.h>
 #include <SpecialK/ini.h>
 #include <SpecialK/utility.h>
 
 #include <atlbase.h>
-
-time_t
-SK_Win32_FILETIME_to_time_t ( FILETIME const& ft)
-{
-  ULARGE_INTEGER ull;
-
-  ull.LowPart  = ft.dwLowDateTime;
-  ull.HighPart = ft.dwHighDateTime;
-
-  return ull.QuadPart / 10000000ULL - 11644473600ULL;
-}
 
 extern bool __SK_RunDLL_Bypass;
 
@@ -260,3 +253,4 @@ SK_Inject_AddressCacheRegistry::removeAddress      (SK_Inject_Address& addr)
 }
 
 SK_Inject_AddressCacheRegistry *SK_Inject_AddressManager = nullptr;
+#endif

@@ -97,7 +97,8 @@ extern iSK_Logger game_debug;
 extern void SK_Input_PreInit (void);
 
 
-std::queue <DWORD> init_tids;
+std::queue <DWORD> init_tids; 
+            DWORD  init_start = 0;
 
 HANDLE  hInitThread   = { INVALID_HANDLE_VALUE };
 
@@ -433,6 +434,9 @@ SK_LoadGPUVendorAPIs (void)
 
     else
       dll_log.Log (L"[Hybrid GPU]  AmdPowerXpressRequestHighPerformance.: UNDEFINED");
+
+    dll_log.LogEx (false, L"================================================"
+                          L"===========================================\n" );
   }
 }
 
@@ -522,9 +526,6 @@ WaitForInit (void)
     if ( ReadPointerAcquire (&hInitThread) != GetCurrentThread () &&
          ReadPointerAcquire (&hInitThread) != INVALID_HANDLE_VALUE )
     {
-      SK_Input_Init       ();
-      SK_ApplyQueuedHooks ();
-
       CloseHandle (
         reinterpret_cast <HANDLE> (
           InterlockedExchangePointer ( &hInitThread, INVALID_HANDLE_VALUE )
@@ -550,8 +551,6 @@ void
 __stdcall
 SK_InitFinishCallback (void)
 {
-  SK_LoadGPUVendorAPIs ();
-
   bool rundll_invoked =
     (StrStrIW (SK_GetHostApp (), L"Rundll32") != nullptr);
 
@@ -565,8 +564,6 @@ SK_InitFinishCallback (void)
   SK_DeleteTemporaryFiles (L"Version", L"*.old");
 
   SK::Framerate::Init ();
-
-  dll_log.Log (L"[ SpecialK ] === Initialization Finished! ===");
 
   extern int32_t SK_D3D11_amount_to_purge;
   SK_GetCommandProcessor ()->AddVariable (
@@ -637,6 +634,32 @@ SK_InitFinishCallback (void)
   SK_Console::getInstance ()->Start ();
 
   SK_StartPerfMonThreads ();
+
+  if (! (SK_GetDLLRole () & DLL_ROLE::DXGI))
+    SK::DXGI::StartBudgetThread_NoAdapter ();
+
+  dll_log.LogEx (false, L"------------------------------------------------"
+                        L"-------------------------------------------\n" );
+  dll_log.Log   (       L"[ SpecialK ] === Initialization Finished! ===   "
+                        L"       (%lu ms)",
+                          timeGetTime () - init_start );
+  dll_log.LogEx (false, L"------------------------------------------------"
+                        L"-------------------------------------------\n" );
+
+  // NvAPI takes an excessively long time to startup and we don't need it
+  //   immediately...
+  CreateThread (nullptr, 0, [] (LPVOID) -> DWORD {
+    SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_IDLE);
+
+    SleepEx (5, FALSE);
+
+    SK_LoadGPUVendorAPIs ();
+
+    CloseHandle (GetCurrentThread ());
+
+    return 0;
+  }, nullptr, 0x00, nullptr);
+
   init_mutex->unlock     ();
 }
 
@@ -645,6 +668,9 @@ DWORD
 WINAPI
 CheckVersionThread (LPVOID user)
 {
+  SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_IDLE);
+  SleepEx           (5, FALSE);
+
   UNREFERENCED_PARAMETER (user);
 
   // If a local repository is present, use that.
@@ -669,6 +695,8 @@ DWORD
 WINAPI
 DllThread (LPVOID user)
 {
+  SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_TIME_CRITICAL);
+
   auto* params =
     static_cast <init_params_s *> (user);
   
@@ -693,7 +721,7 @@ SK_RecursiveFileSearch ( const wchar_t* wszDir,
   HANDLE          hFind       =
     FindFirstFileW ( wszPath, &fd);
 
-  if (hFind == INVALID_HANDLE_VALUE) { return FALSE; }
+  if (hFind == INVALID_HANDLE_VALUE) { return found; }
 
   do
   {
@@ -926,11 +954,15 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
   else
   {
+    SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_ABOVE_NORMAL);
+
+  //init_tids = SK_SuspendAllOtherThreads ();
+
     wchar_t log_fname [MAX_PATH + 2] = { };
 
     swprintf (log_fname, L"logs/%s.log", SK_IsInjected () ? L"SpecialK" : backend);
 
-    dll_log.init (log_fname, L"wt+,ccs=UTF-8");
+    dll_log.init (log_fname, L"wS+,ccs=UTF-8");
     dll_log.Log  (L"%s.log created",     SK_IsInjected () ? L"SpecialK" : backend);
 
     bool blacklist =
@@ -948,6 +980,8 @@ SK_StartupCore (const wchar_t* backend, void* callback)
       return false;
     }
 
+    init_start = timeGetTime ();
+
     if (config.compatibility.init_while_suspended)
     {
       ////init_tids = SK_SuspendAllOtherThreads ();
@@ -964,10 +998,9 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     SK_WMI_Init            ();
     SK_InitCompatBlacklist ();
 
-    // Do this from the startup thread
-    SK_HookWinAPI    ();
-    SK_Input_PreInit (); // Hook only symbols in user32 and kernel32
-    MH_ApplyQueued   ();
+    // Do this from the startup thread [these functions queue, but don't apply]
+    SK_HookWinAPI       ();
+    SK_Input_PreInit    (); // Hook only symbols in user32 and kernel32
 
     // For the global injector, when not started by SKIM, check its version
     if ( (SK_IsInjected () && (! SK_IsSuperSpecialK ())) )
@@ -977,16 +1010,20 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     game_debug.init                  (L"logs/game_output.log", L"w");
     game_debug.lockless = true;
     SK::Diagnostics::Debugger::Allow ();
+
+    SK::Diagnostics::CrashHandler::InitSyms ();
   }
 
   if (skim)
   {
+    SK_ResumeThreads (init_tids);
+
     init_mutex->unlock ();
 
     return TRUE;
   }
 
-  budget_log.init ( LR"(logs\dxgi_budget.log)", L"wtc+,ccs=UTF-8" );
+  budget_log.init ( LR"(logs\dxgi_budget.log)", L"wc+,ccs=UTF-8" );
 
   dll_log.LogEx (false,
     L"------------------------------------------------------------------------"
@@ -1005,10 +1042,12 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   if (SK_IsInjected ())
     config_name = L"SpecialK";
 
+  DWORD dwStartConfig = timeGetTime ();
+
   dll_log.LogEx (true, L"Loading user preferences from %s.ini... ", config_name);
 
   if (SK_LoadConfig (config_name))
-    dll_log.LogEx (false, L"done!\n");
+    dll_log.LogEx (false, L"done! (%lu ms)\n", timeGetTime () - dwStartConfig);
 
   else
   {
@@ -1035,6 +1074,11 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     dll_log.LogEx (false, L"done!\n");
   }
 
+  if (config.system.display_debug_out)
+    SK::Diagnostics::Debugger::SpawnConsole ();
+
+  if (config.system.handle_crashes)
+    SK::Diagnostics::CrashHandler::Init     ();
 
 
   // Steam Overlay and SteamAPI Manipulation
@@ -1058,16 +1102,15 @@ SK_StartupCore (const wchar_t* backend, void* callback)
       //   SteamAPI...
       if ((! kick_start) && config.steam.auto_inject)
       {
-        if (StrStrIW (SK_GetHostPath (), LR"(SteamApps\common)") != 0)
+        if (StrStrIW (SK_GetHostPath (), LR"(SteamApps\common)") != nullptr)
         {
+          extern const std::wstring
+          SK_Steam_GetDLLPath (void);
+
           // Only do this if the game doesn't have a copy of the DLL lying around somewhere,
           //   because if we init Special K's SteamAPI DLL, the game's will fail to init and
           //     the game won't be happy about that!
-          kick_start = (SK_RecursiveFileSearch ( SK_GetHostPath (),
-                                                 SK_RunLHIfBitness ( 64, L"steam_api64.dll",
-                                                                         L"steam_api.dll"    )
-                                               )
-                       ).empty ();
+          kick_start = (! LoadLibraryW (SK_Steam_GetDLLPath ().c_str ())) || config.steam.force_load_steamapi;
         }
       }
 
@@ -1075,22 +1118,8 @@ SK_StartupCore (const wchar_t* backend, void* callback)
         SK_Steam_KickStart ();
     }
 
-    // Again, rename this -- it enables experimental features
-    if (config.steam.spoof_BLoggedOn)
-      SK_Steam_PreHookCore ();
+    SK_Steam_PreHookCore ();
   }
-
-
-
-
-  if (config.system.display_debug_out)
-    SK::Diagnostics::Debugger::SpawnConsole ();
-
-  if (config.system.handle_crashes)
-    SK::Diagnostics::CrashHandler::Init ();
-
-  SK::Diagnostics::CrashHandler::InitSyms ();
-
 
   if (__SK_bypass)
     goto BACKEND_INIT;
@@ -1212,9 +1241,9 @@ BACKEND_INIT:
     bool gl   = false, vulkan = false, d3d9  = false, d3d11 = false,
          dxgi = false, d3d8   = false, ddraw = false, glide = false;
 
-    dxgi  |= GetModuleHandle (L"dxgi.dll")  != 0;
-    d3d11 |= GetModuleHandle (L"d3d11.dll") != 0;
-    d3d9  |= GetModuleHandle (L"d3d9.dll")  != 0;
+    dxgi  |= GetModuleHandle (L"dxgi.dll")  != nullptr;
+    d3d11 |= GetModuleHandle (L"d3d11.dll") != nullptr;
+    d3d9  |= GetModuleHandle (L"d3d9.dll")  != nullptr;
 
     SK_TestRenderImports (
       GetModuleHandle (nullptr),
@@ -1239,7 +1268,6 @@ BACKEND_INIT:
     }
 
 
-
     if (GetModuleHandle (L"dinput8.dll"))
       SK_Input_HookDI8 ();
 
@@ -1247,9 +1275,16 @@ BACKEND_INIT:
       SK_Input_HookDI7 ();
 
 
+    SK_Input_Init       ();
+    SK_ApplyQueuedHooks ();
+
+
     CreateThread (nullptr, 0x00, [](LPVOID) -> DWORD
     {
+      SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_BELOW_NORMAL);
       WaitForInit ();
+
+      SK_ApplyQueuedHooks ();
 
       CloseHandle (GetCurrentThread ());
 
@@ -1288,11 +1323,11 @@ SK_Win32_CreateDummyWindow (void)
     CS_OWNDC,
     DefWindowProcW,
     0x00, 0x00,
-    SK_GetDLL        (                     ),
-    LoadIcon         (NULL, IDI_APPLICATION),
-    LoadCursor       (NULL, IDC_WAIT       ),
+    SK_GetDLL        (                        ),
+    LoadIcon         (nullptr, IDI_APPLICATION),
+    LoadCursor       (nullptr, IDC_WAIT       ),
     static_cast <HBRUSH> (
-      GetStockObject (BLACK_BRUSH          )
+      GetStockObject (         BLACK_BRUSH    )
     ),
     nullptr,
     L"Special K Dummy Window Class"
@@ -2232,6 +2267,13 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
     SK::Framerate::GetLimiter ()->wait ();
   }
 
+  ////extern LONG imgui_finished_frames;
+  ////
+  ////if (imgui_finished_frames > 0)
+  ////{
+  ////  extern void SK_ImGui_StageNextFrame (void);
+  ////              SK_ImGui_StageNextFrame ();
+  ////}
 
   if (config.cegui.enable)
   {

@@ -245,9 +245,9 @@ SK_SummarizeCaller (LPVOID lpReturnAddr = _ReturnAddress ());
                   szSymbol,                         \
                     ulLen );                        \
                                                     \
-  dll_log.Log ( L"[%hs][!] %32hs - %s",             \
+  dll_log.Log ( L"[%hs][!] %32s - %s",              \
                  (source),                          \
-                   __FUNCTION__,                    \
+                   __FUNCTIONW__,                   \
                      SK_SummarizeCaller ().c_str () \
              );                                     \
 }

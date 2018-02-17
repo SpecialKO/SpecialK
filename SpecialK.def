@@ -641,9 +641,6 @@ RunDLL_RestartGame           = RunDLL_RestartGame             PRIVATE
 RunDLL_InjectionManager      = RunDLL_InjectionManager        PRIVATE
 
 
-RunDLL_HookManager_DXGI      = RunDLL_HookManager_DXGI        PRIVATE
-RunDLL_HookManager_D3D9      = RunDLL_HookManager_D3D9        PRIVATE
-
 SKX_InstallCBTHook           = SKX_InstallCBTHook
 SKX_RemoveCBTHook            = SKX_RemoveCBTHook
 SKX_IsHookingCBT             = SKX_IsHookingCBT

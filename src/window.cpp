@@ -22,6 +22,8 @@
 #include <Windows.h>
 #include <SpecialK/window.h>
 
+#define __SK_SUBSYSTEM__ L"Window Mgr"
+
 #include <SpecialK/hooks.h>
 #include <SpecialK/core.h>
 #include <SpecialK/console.h>
@@ -49,10 +51,6 @@
 #include <SpecialK/render/d3d9/d3d9_backend.h>
 
 #include <SpecialK/control_panel.h>
-
-
-#undef  SK_LOG_FIRST_CALL
-#define SK_LOG_FIRST_CALL { static bool called = false; if (! called) { SK_LOG0 ( (L"[!] > First Call: %34hs", __FUNCTION__), L"Window Mgr" ); called = true; } }
 
 #include <mmsystem.h>
 #pragma comment (lib, "winmm.lib")
@@ -1485,8 +1483,7 @@ SK_ExpandSmallClipCursor (RECT *lpRect)
       dwLastReported = timeGetTime ();
     }
 
-    lpRect->left   = window.left;   lpRect->right = window.right;
-    lpRect->bottom = window.bottom; lpRect->top   = window.top;
+    return true;
   }
 
   return false;
@@ -1500,7 +1497,10 @@ ClipCursor_Detour (const RECT *lpRect)
 
   if (lpRect != nullptr)
   {
-    SK_ExpandSmallClipCursor ((RECT *)lpRect);
+    if (SK_ExpandSmallClipCursor ((RECT *)lpRect))
+    {
+      return ClipCursor_Original (nullptr);
+    }
 
     game_window.cursor_clip = *lpRect;
   }
@@ -4793,9 +4793,14 @@ SK_Window_IsTopMost (void)
 void
 SK_Window_SetTopMost (bool bTop, bool bBringToTop)
 {
+  auto SetWindowLongFn = game_window.unicode ?
+                          &SetWindowLongW : &SetWindowLongA;
+  auto GetWindowLongFn = game_window.unicode ?
+                          &GetWindowLongW : &GetWindowLongA;
+
   HWND      hWndOrder = nullptr;
   DWORD_PTR dwStyleEx =
-    GetWindowLongW (game_window.hWnd, GWL_EXSTYLE);
+    GetWindowLongFn (game_window.hWnd, GWL_EXSTYLE);
 
   if (bTop)
   {
@@ -4810,7 +4815,7 @@ SK_Window_SetTopMost (bool bTop, bool bBringToTop)
     hWndOrder  =  HWND_NOTOPMOST;
   }
 
-  SetWindowLongW        ( game_window.hWnd, GWL_EXSTYLE, (LONG)dwStyleEx );
+  SetWindowLongFn       ( game_window.hWnd, GWL_EXSTYLE, (LONG)dwStyleEx );
   SetWindowPos_Original ( game_window.hWnd,
                             hWndOrder,
                               0, 0, 0, 0,
@@ -4944,8 +4949,6 @@ SK_InstallWindowHook (HWND hWnd)
        static_cast_p2p <void> (&DispatchMessageA_Original) );
 
     game_window.WndProc_Original = nullptr;
-
-    SK_ApplyQueuedHooks ();
   }
 
 
@@ -5077,19 +5080,19 @@ SK_InstallWindowHook (HWND hWnd)
       SK_GetCurrentRenderBackend ().windows.device ?
       game_window.hWnd  : hWnd);
 
-    SK_ApplyQueuedHooks ();
+
     SK_InitWindow (hWnd);
 
 
-  // Fix the cursor clipping rect if needed so that we can use Special K's
-  //   menu system.
-  RECT cursor_clip = { };
-  if ( GetClipCursor (&cursor_clip) )
-  {
-    // Run it through the hooked function, which will transform certain
-    //   attributes as needed.
-    ClipCursor (&cursor_clip);
-  }
+    // Fix the cursor clipping rect if needed so that we can use Special K's
+    //   menu system.
+    RECT cursor_clip = { };
+    if ( GetClipCursor (&cursor_clip) )
+    {
+      // Run it through the hooked function, which will transform certain
+      //   attributes as needed.
+      ClipCursor (&cursor_clip);
+    }
 
 
     SK_ICommandProcessor* cmd =
@@ -5646,8 +5649,6 @@ SK_HookWinAPI (void)
       (EnumDisplaySettingsW_pfn) GetProcAddress (
                           GetModuleHandle (L"user32.dll"),
                                              "EnumDisplaySettingsW" );
-
-    SK_ApplyQueuedHooks ();
 
     InterlockedIncrement (&hooked);
   }

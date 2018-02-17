@@ -290,8 +290,6 @@ SK_GetSharedMemory (void)
   return SK_GetSharedMemory (GetCurrentProcessId ());
 }
 
-#include <d3d9.h>
-
 bool
 __stdcall
 SK_IsD3D8 (void)

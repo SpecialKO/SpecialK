@@ -398,7 +398,7 @@ ImGui_ImplDX11_CreateFontsTexture (void)
     SK_GetCurrentRenderBackend ();
 
   CComPtr                   <ID3D11Device>   pDev = nullptr;
-  rb.device->QueryInterface <ID3D11Device> (&pDev);
+  rb.device->QueryInterface <ID3D11Device> (&pDev.p);
 
   // Upload texture to graphics system
   {
@@ -895,8 +895,8 @@ ImGui_ImplDX11_Resize ( IDXGISwapChain *This,
 
   if (rb.d3d11.immediate_ctx != nullptr)
   {
-    HRESULT hr0 = rb.device->QueryInterface              <ID3D11Device>        (&pDev);
-    HRESULT hr1 = rb.d3d11.immediate_ctx->QueryInterface <ID3D11DeviceContext> (&pDevCtx);
+    HRESULT hr0 = rb.device->QueryInterface              <ID3D11Device>        (&pDev.p);
+    HRESULT hr1 = rb.d3d11.immediate_ctx->QueryInterface <ID3D11DeviceContext> (&pDevCtx.p);
 
     if (SUCCEEDED (hr0) && SUCCEEDED (hr1))
     {

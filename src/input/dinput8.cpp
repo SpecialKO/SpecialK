@@ -21,6 +21,8 @@
 
 #include <Windows.h>
 
+#define __SK_SUBSYSTEM__ L" DInput 8 "
+
 #include <SpecialK/input/dinput8_backend.h>
 #include <SpecialK/input/xinput.h>
 #include <SpecialK/input/input.h>
@@ -121,8 +123,7 @@ void
 WINAPI
 WaitForInit_DI8 (void)
 {
-  while (! ReadAcquire (&__di8_ready))
-    MsgWaitForMultipleObjectsEx (0, nullptr, 2UL, QS_ALLINPUT, MWMO_ALERTABLE);
+  SK_Thread_SpinUntilFlagged (&__di8_ready);
 }
 
 
@@ -577,7 +578,7 @@ SK_Input_DI8Mouse_Acquire (SK_DI8_Mouse* pMouse)
       );
     }
 
-    else
+    else if (IDirectInputDevice8A_SetCooperativeLevel_Original)
     {
       IDirectInputDevice8A_SetCooperativeLevel_Original (
         (IDirectInputDevice8A *)pMouse->pDev,
@@ -585,6 +586,8 @@ SK_Input_DI8Mouse_Acquire (SK_DI8_Mouse* pMouse)
             pMouse->coop_level
       );
     }
+
+    else return false;
 
     return true;
   }
@@ -611,7 +614,7 @@ SK_Input_DI8Mouse_Release (SK_DI8_Mouse* pMouse)
       );
     }
 
-    else
+    else if (IDirectInputDevice8A_SetCooperativeLevel_Original)
     {
       IDirectInputDevice8A_SetCooperativeLevel_Original (
         (IDirectInputDevice8A *)pMouse->pDev,
@@ -619,6 +622,8 @@ SK_Input_DI8Mouse_Release (SK_DI8_Mouse* pMouse)
             (pMouse->coop_level & (~DISCL_EXCLUSIVE)) | DISCL_NONEXCLUSIVE
       );
     }
+
+    else return false;
 
     return true;
   }
@@ -905,7 +910,7 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8       This,
 
   SK_LOG4 ( ( L" DirectInput 8 - GetDeviceState: cbData = %lu",
                 cbData ),
-              L"Direct Inp" );
+              __SK_SUBSYSTEM__ );
 
   HRESULT hr = S_OK;
 
@@ -1059,8 +1064,10 @@ SK_DInput8_BlockWindowsKey (bool block)
   {
     if (IDirectInputDevice8W_SetCooperativeLevel_Original)
       IDirectInputDevice8W_SetCooperativeLevel_Original (                        _dik.pDev, game_window.hWnd, dwFlags);
-    else
+    else if (IDirectInputDevice8A_SetCooperativeLevel_Original)
       IDirectInputDevice8A_SetCooperativeLevel_Original ((IDirectInputDevice8A *)_dik.pDev, game_window.hWnd, dwFlags);
+    else
+      return false;
   }
   else
     return false;
@@ -1219,6 +1226,8 @@ IDirectInput8W_CreateDevice_Detour ( IDirectInput8W        *This,
 
   if (SUCCEEDED (hr))
   {
+    int hook_count = 0;
+
     void** vftable =
       *reinterpret_cast <void ***> (*lplpDirectInputDevice);
 
@@ -1228,7 +1237,9 @@ IDirectInput8W_CreateDevice_Detour ( IDirectInput8W        *This,
                                  vftable [9],
                                  IDirectInputDevice8W_GetDeviceState_Detour,
         static_cast_p2p <void> (&IDirectInputDevice8W_GetDeviceState_Original) );
-      MH_QueueEnableHook (vftable [9]);
+
+      if (MH_OK == MH_QueueEnableHook (vftable [9]))
+        ++hook_count;
     }
 
     if (! IDirectInputDevice8W_SetCooperativeLevel_Original)
@@ -1237,7 +1248,9 @@ IDirectInput8W_CreateDevice_Detour ( IDirectInput8W        *This,
                                  vftable [13],
                                  IDirectInputDevice8W_SetCooperativeLevel_Detour,
         static_cast_p2p <void> (&IDirectInputDevice8W_SetCooperativeLevel_Original) );
-      MH_QueueEnableHook (vftable [13]);
+
+      if (MH_OK == MH_QueueEnableHook (vftable [13]))
+        ++hook_count;
     }
 
     if (rguid == GUID_SysMouse)
@@ -1249,6 +1262,9 @@ IDirectInput8W_CreateDevice_Detour ( IDirectInput8W        *This,
 
     devices_w [guid_crc32c] = *lplpDirectInputDevice;
     devices_w [guid_crc32c]->AddRef ();
+
+    if (hook_count > 0)
+      SK_ApplyQueuedHooks ();
   }
 
 #if 0
@@ -1262,8 +1278,6 @@ IDirectInput8W_CreateDevice_Detour ( IDirectInput8W        *This,
     (*lplpDirectInputDevice)->SetCooperativeLevel (SK_GetGameWindow (), dwFlag);
   }
 #endif
-
-  SK_ApplyQueuedHooks ();
 
   return hr;
 }
@@ -1305,6 +1319,8 @@ IDirectInput8A_CreateDevice_Detour ( IDirectInput8A        *This,
 
   if (SUCCEEDED (hr))
   {
+    int hook_count = 0;
+
     void** vftable =
       *reinterpret_cast <void ***> (*lplpDirectInputDevice);
 
@@ -1314,7 +1330,9 @@ IDirectInput8A_CreateDevice_Detour ( IDirectInput8A        *This,
                                  vftable [9],
                                  IDirectInputDevice8A_GetDeviceState_Detour,
         static_cast_p2p <void> (&IDirectInputDevice8A_GetDeviceState_Original) );
-      MH_QueueEnableHook (vftable [9]);
+
+      if (MH_OK == MH_QueueEnableHook (vftable [9]))
+        ++hook_count;
     }
 
     if (! IDirectInputDevice8A_SetCooperativeLevel_Original)
@@ -1323,7 +1341,9 @@ IDirectInput8A_CreateDevice_Detour ( IDirectInput8A        *This,
                                  vftable [13],
                                  IDirectInputDevice8A_SetCooperativeLevel_Detour,
         static_cast_p2p <void> (&IDirectInputDevice8A_SetCooperativeLevel_Original) );
-      MH_QueueEnableHook (vftable [13]);
+
+      if (MH_OK == MH_QueueEnableHook (vftable [13]))
+        ++hook_count;
     }
 
     if (rguid == GUID_SysMouse)
@@ -1335,6 +1355,9 @@ IDirectInput8A_CreateDevice_Detour ( IDirectInput8A        *This,
 
     devices_a [guid_crc32c] = *lplpDirectInputDevice;
     devices_a [guid_crc32c]->AddRef ();
+
+    if (hook_count > 0)
+      SK_ApplyQueuedHooks ();
   }
 
 #if 0
@@ -1348,8 +1371,6 @@ IDirectInput8A_CreateDevice_Detour ( IDirectInput8A        *This,
     (*lplpDirectInputDevice)->SetCooperativeLevel (SK_GetGameWindow (), dwFlag);
   }
 #endif
-
-  SK_ApplyQueuedHooks ();
 
   return hr;
 }
@@ -1393,8 +1414,6 @@ SK_Input_HookDI8 (void)
         SK_Input_HookDI7 (void);
         SK_Input_HookDI7 ();
       }
-
-      SK_ApplyQueuedHooks ();
 
       InterlockedIncrement (&hooked);
     }

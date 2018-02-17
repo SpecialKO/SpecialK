@@ -388,6 +388,7 @@ SK_HookCSteamworks (void)
 
       SK_HookSteamAPI ();
 
+      SK_ApplyQueuedHooks      ();
       SteamAPI_InitSafe_Detour ();
     }
 

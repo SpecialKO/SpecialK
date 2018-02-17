@@ -245,6 +245,31 @@ SK_IsTrue (const wchar_t* string)
   return true;
 }
 
+time_t
+SK_Win32_FILETIME_to_time_t ( FILETIME const& ft)
+{
+  ULARGE_INTEGER ull;
+
+  ull.LowPart  = ft.dwLowDateTime;
+  ull.HighPart = ft.dwHighDateTime;
+
+  return ull.QuadPart / 10000000ULL - 11644473600ULL;
+}
+
+bool
+SK_File_IsDirectory (const wchar_t* wszPath)
+{
+  DWORD dwAttrib = 
+    GetFileAttributes (wszPath);
+
+  if ( dwAttrib != INVALID_FILE_ATTRIBUTES &&
+       dwAttrib  & FILE_ATTRIBUTE_DIRECTORY )
+    return true;
+
+  return false;
+}
+
+
 #include <Shlwapi.h>
 
 void
@@ -557,6 +582,34 @@ SK_ValidatePointer (LPCVOID addr)
   return false;
 }
 
+bool
+SK_IsAddressExecutable (LPCVOID addr)
+{
+  MEMORY_BASIC_INFORMATION minfo = { };
+
+  if (VirtualQuery (addr, &minfo, sizeof minfo))
+  {
+    if (! (minfo.Protect & PAGE_NOACCESS))
+    {
+      if ( (minfo.Protect & ( PAGE_EXECUTE           |
+                              PAGE_EXECUTE_READ      |
+                              PAGE_EXECUTE_READWRITE |
+                              PAGE_EXECUTE_WRITECOPY   )
+           )
+         )
+      {
+        return true;
+      }
+    }
+  }
+
+  SK_LOG0 ( ( L"Executable Address Validation for addr. %s FAILED!",
+                SK_MakePrettyAddress (addr).c_str () ),
+              L" SK Debug " );
+
+  return false;
+}
+
 void
 SK_LogSymbolName (LPCVOID addr)
 {
@@ -709,7 +762,7 @@ SK_GetCallerName (LPCVOID pReturn)
 
 #include <queue>
 
-std::queue <DWORD>\
+std::queue <DWORD>
 SK_SuspendAllOtherThreads (void)
 {
   std::queue <DWORD> threads;

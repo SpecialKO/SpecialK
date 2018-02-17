@@ -170,8 +170,13 @@ struct SK_Win32_ThreadContext
 
   LONG GUI                 = -1;
 
-  int   thread_prio        =  0;
-  DWORD last_tested_prio   = 0UL;
+  int  thread_prio         =  0;
+
+  struct
+  {
+    DWORD time             = 0;
+    ULONG frame            = 0;
+  } last_tested_prio;
 };
 
 struct SK_ImGui_ThreadContext : SK_TLS_DynamicContext

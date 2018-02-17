@@ -1283,4 +1283,7 @@ void
 WINAPI
 SK_HookDXGI (void);
 
+int  SK_D3D11_PurgeHookAddressCache  (void);
+void SK_D3D11_UpdateHookAddressCache (void);
+
 #endif /* __SK__DXGI_BACKEND_H__ */

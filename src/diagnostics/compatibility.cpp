@@ -68,6 +68,10 @@
 #include <SpecialK/framerate.h>
 #include <SpecialK/DLL_VERSION.H>
 
+#include <concurrent_unordered_set.h>
+
+  concurrency::concurrent_unordered_set <HMODULE> dbghelp_callers;
+
 #define SK_CHAR(x) (_T)        (constexpr _T      (std::type_index (typeid (_T)) == std::type_index (typeid (wchar_t))) ? (      _T  )(_L(x)) : (      _T  )(x))
 #define SK_TEXT(x) (const _T*) (constexpr LPCVOID (std::type_index (typeid (_T)) == std::type_index (typeid (wchar_t))) ? (const _T *)(_L(x)) : (const _T *)(x))
 
@@ -127,13 +131,13 @@ SK_LockDllLoader (void)
   if (config.system.strict_compliance)
   {
     //bool unlocked = TryEnterCriticalSection (&loader_lock);
-                       //loader_lock->lock ();
+                       loader_lock->lock ();
     //EnterCriticalSection (&loader_lock);
-    loader_lock->lock ();
-     //if (unlocked)
+    //loader_lock->lock ();
+     ///if (unlocked)
                        //LeaveCriticalSection (&loader_lock);
     //else
-      //dll_log.Log (L"[DLL Loader]  *** DLL Loader Lock Contention ***");
+//      dll_log.Log (L"[DLL Loader]  *** DLL Loader Lock Contention ***");
   }
 }
 
@@ -187,7 +191,7 @@ BlacklistLibrary (const _T* lpFileName)
       nv_blacklist.emplace_back (SK_TEXT("rxcore.dll"));
       nv_blacklist.emplace_back (SK_TEXT("nvinject.dll"));
       nv_blacklist.emplace_back (SK_TEXT("rxinput.dll"));
-#if 0
+
 #ifdef _WIN64
       nv_blacklist.emplace_back (SK_TEXT("nvspcap64.dll"));
       nv_blacklist.emplace_back (SK_TEXT("nvSCPAPI64.dll"));
@@ -195,25 +199,9 @@ BlacklistLibrary (const _T* lpFileName)
       nv_blacklist.emplace_back (SK_TEXT("nvspcap.dll"));
       nv_blacklist.emplace_back (SK_TEXT("nvSCPAPI.dll"));
 #endif
-#endif
+
       init = true;
     }
-
-
-//#ifdef _WIN64
-//  if (StrStrI (lpFileName, SK_TEXT("action_x64")))
-//  {
-//    WaitForInit      ();
-//    WaitForInputIdle (GetCurrentProcess (), 16);
-//  }
-//#else
-//  if (StrStrI (lpFileName, SK_TEXT("action_x86")))
-//  {
-//    WaitForInit      ();
-//    WaitForInputIdle (GetCurrentProcess (), 16);
-//  }
-//#endif
-
 
     for ( auto&& it : nv_blacklist )
     {
@@ -342,8 +330,11 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
     PathAppendW (wszDbgHelp, L"dbghelp.dll");
   }
 
-  if (GetModuleHandle (wszDbgHelp))
-    SymRefreshModuleList (GetCurrentProcess ());
+  if (GetModuleHandle (wszDbgHelp) && (! dbghelp_callers.count (hCallingMod)))
+  {
+    dbghelp_callers.insert (hCallingMod);
+    SymRefreshModuleList   (GetCurrentProcess ());
+  }
 
   static StrStrI_pfn            StrStrI =
     (StrStrI_pfn)
@@ -826,22 +817,10 @@ struct SK_ThirdPartyDLLs {
   } misc;
 } third_party_dlls;
 
-bool
-__stdcall
-SK_CheckForGeDoSaTo (void)
-{
-  if (third_party_dlls.misc.gedosato)
-    return true;
-
-  return false;
-}
-
 //
 // Gameoverlayrenderer{64}.dll messes with LoadLibrary hooking, which
 //   means identifying which DLL loaded another becomes impossible
 //     unless we remove and re-install our hooks.
-//
-//   ** GeDoSaTo and RTSS may also do the same depending on config. **
 //
 // Hook order with LoadLibrary is not traditionally important for a mod
 //   system such as Special K, but the compatibility layer benefits from
@@ -943,6 +922,13 @@ SK_ReHookLoadLibrary (void)
     _loader_hooks.FreeLibrary_target = nullptr;
   }
 
+  static int calls = 0;
+
+  if (calls++ > 0)
+  {
+    SK_ApplyQueuedHooks ();
+  }
+
 
   // Steamclient64.dll leaks heap memory when unloaded,
   //   to prevent this from showing up during debug sessions,
@@ -957,8 +943,7 @@ SK_ReHookLoadLibrary (void)
   MH_QueueEnableHook (_loader_hooks.FreeLibrary_target);
 #endif
 
-  MH_ApplyQueued     ();
-  SK_UnlockDllLoader ( );
+  SK_UnlockDllLoader ();
 }
 
 void
@@ -982,7 +967,7 @@ SK_UnhookLoadLibrary (void)
   if (_loader_hooks.FreeLibrary_target != nullptr)
     MH_QueueDisableHook (_loader_hooks.FreeLibrary_target);
 
-  MH_ApplyQueued ();
+  SK_ApplyQueuedHooks ();
 
   if (_loader_hooks.LoadLibraryA_target != nullptr)
     MH_RemoveHook (_loader_hooks.LoadLibraryA_target);
@@ -1052,7 +1037,14 @@ _SK_SummarizeModule ( LPVOID   base_addr,  size_t      mod_size,
   ULONG ulLen  =  511;
 
   ulLen =
+#ifdef _DEBUG
+    //~~~ This is too slow and useless
     SK_GetSymbolNameFromModuleAddr (hMod, addr, szSymbol, ulLen);
+#else
+    0;
+  UNREFERENCED_PARAMETER (hMod);
+  UNREFERENCED_PARAMETER (addr);
+#endif
 
   std::wstring ver_str =
     SK_GetDLLVersionStr (wszModName);
@@ -1105,8 +1097,6 @@ CreateThread (nullptr, 0, [](LPVOID user) -> DWORD
 
   SK_Thread_SpinUntilAtomicMin (&init, 2);
 
-
-  SK_LockDllLoader ();
 
   EnterCriticalSection (&cs_thread_walk);
 
@@ -1180,7 +1170,6 @@ CreateThread (nullptr, 0, [](LPVOID user) -> DWORD
   CloseHandle (pWorkingSet_->proc);
 
   LeaveCriticalSection (&cs_thread_walk);
-  SK_UnlockDllLoader   ();
 
   free (pWorkingSet_);
 
@@ -1216,14 +1205,6 @@ SK_BootModule (const wchar_t* wszModName)
     loaded_vulkan = true;
   }
 #endif
-
-  //else if ( config.apis.dxgi.d3d11.hook && StrStrIW (wszModName, L"\\dxgi.dll") &&
-  //                    (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::DXGI))))
-  //{
-  //  SK_BootDXGI ();
-  //
-  //  loaded_dxgi = true;
-  //}
 
   else if ( config.apis.dxgi.d3d11.hook && StrStrIW (wszModName, L"d3d11.dll") &&
                       (SK_IsInjected () || (! (SK_GetDLLRole () & DLL_ROLE::DXGI))) )
@@ -1298,9 +1279,8 @@ SK_BootModule (const wchar_t* wszModName)
 void
 SK_WalkModules (int cbNeeded, HANDLE hProc, HMODULE* hMods, SK_ModuleEnum when)
 {
-  SK_LockDllLoader ();
-
-  bool rehook = false;
+  bool rehook    = false;
+  bool new_hooks = false;
 
   for ( int i = 0; i < static_cast <int> (cbNeeded / sizeof (HMODULE)); i++ )
   {
@@ -1348,15 +1328,18 @@ SK_WalkModules (int cbNeeded, HANDLE hProc, HMODULE* hMods, SK_ModuleEnum when)
         {
           if ( StrStrIW (wszModName, wszSteamAPIDLL)    ||
                StrStrIW (wszModName, wszSteamAPIAltDLL) ||
-               StrStrIW (wszModName, wszSteamNativeDLL) ||
-               StrStrIW (wszModName, wszSteamClientDLL) )
+              StrStrIW (wszModName, wszSteamNativeDLL) ||
+               StrStrIW (wszModName, wszSteamClientDLL) ||
+               StrStrIW (wszModName, L"steamwrapper") )
           {
             BOOL
             SK_Steam_PreHookCore (void);
 
-            SK_Steam_PreHookCore ();
+            if (SK_Steam_PreHookCore ())
+              new_hooks = true;
 
-            SK_HookSteamAPI ();
+            if (SK_HookSteamAPI () > 0)
+              new_hooks = true;
           }
         }
       }
@@ -1368,14 +1351,17 @@ SK_WalkModules (int cbNeeded, HANDLE hProc, HMODULE* hMods, SK_ModuleEnum when)
     {
       // Sometimes a DLL will be unloaded in the middle of doing this... just ignore that.
     }
-
-    if (rehook)
-    {
-      SK_ReHookLoadLibrary ();
-    }
   }
 
-  SK_UnlockDllLoader ();
+  if (rehook)
+  {
+    SK_ReHookLoadLibrary ();
+  }
+
+  if (rehook || new_hooks)
+  {
+    SK_ApplyQueuedHooks ();
+  }
 }
 
 void
@@ -1424,7 +1410,9 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
 
     CreateThread (nullptr, 0, [](LPVOID user) -> DWORD
       {
-        SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_BELOW_NORMAL);
+        SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_LOWEST);
+
+        SleepEx (1UL, FALSE);
 
         static volatile LONG                walking = 0;
         while (InterlockedCompareExchange (&walking, 1, 0))
@@ -1663,7 +1651,7 @@ SK_ValidateGlobalRTSSProfile (void)
 
   task_config.cbSize              = sizeof (task_config);
   task_config.hInstance           = GetModuleHandleW (nullptr);
-  task_config.hwndParent          =                          0;
+  task_config.hwndParent          =                   nullptr;
   task_config.pszWindowTitle      = L"Special K Compatibility Layer (v " SK_VERSION_STR_W L")";
   task_config.dwCommonButtons     = TDCBF_OK_BUTTON;
   task_config.pButtons            = nullptr;
@@ -1793,7 +1781,7 @@ SK_TaskBoxWithConfirm ( wchar_t* wszMainInstruction,
 
   task_config.cbSize              = sizeof (task_config);
   task_config.hInstance           = GetModuleHandleW (nullptr);
-  task_config.hwndParent          =                          0;
+  task_config.hwndParent          =                   nullptr;
   task_config.pszWindowTitle      = L"Special K Compatibility Layer (v " SK_VERSION_STR_W L")";
   task_config.dwCommonButtons     = TDCBF_OK_BUTTON;
   task_config.pButtons            = nullptr;
@@ -1848,7 +1836,7 @@ SK_TaskBoxWithConfirmEx ( wchar_t* wszMainInstruction,
 
   task_config.cbSize              = sizeof    (task_config);
   task_config.hInstance           = GetModuleHandleW (nullptr);
-  task_config.hwndParent          =                          0;
+  task_config.hwndParent          =                   nullptr;
   task_config.pszWindowTitle      = L"Special K Compatibility Layer (v " SK_VERSION_STR_W L")";
   task_config.dwCommonButtons     = TDCBF_OK_BUTTON;
 
@@ -2057,7 +2045,7 @@ SK_Bypass_CRT (LPVOID user)
 
   task_config.cbSize              = sizeof (task_config);
   task_config.hInstance           = GetModuleHandleW (nullptr);
-  task_config.hwndParent          =                          0;
+  task_config.hwndParent          =                   nullptr;
   task_config.pszWindowTitle      = L"Special K Compatibility Layer (v " SK_VERSION_STR_W L")";
   task_config.dwCommonButtons     = TDCBF_OK_BUTTON;
   task_config.pRadioButtons       = rbuttons;

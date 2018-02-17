@@ -237,6 +237,8 @@ struct sk_config_t
                                           //   control panel
     bool    auto_inject          = true;  // Control implicit steam_api.dll bootstrapping
     int     online_status        =   -1;  // Force a certain online status at all times
+    std::wstring
+            dll_path             = L"";
   } steam;
 
 
@@ -291,7 +293,6 @@ struct sk_config_t
       bool    safe_fullscreen    = false;
       bool    enhanced_depth     = false;
       bool    deferred_isolation = false;
-      bool    rehook_present     = false;
     } dxgi;
     struct {
       // Required by default for compatibility with Mirillis Action!
@@ -666,6 +667,7 @@ enum class SK_GAME_ID
   DarkSouls3,                   // DarkSoulsIII.exe
   Fallout4,                     // Fallout4.exe
   DisgaeaPC,                    // dis1_st.exe
+  SecretOfMana,                 // Secret_of_Mana.exe
   UNKNOWN_GAME               = 0xffff
 };
 

@@ -487,16 +487,12 @@ HookDDraw (LPVOID user)
     return 0;
   }
 
-
   //Direct3DCreate8_Import (0x0800);
   
   InterlockedExchange (&__ddraw_ready, TRUE);
   
   if (! (SK_GetDLLRole () & DLL_ROLE::DXGI))
     SK::DXGI::StartBudgetThread_NoAdapter ();
-
-
-  SK_ApplyQueuedHooks ();
 
   return 0;
 }

@@ -19,6 +19,8 @@
  *
 **/
 
+#define __SK_SUBSYSTEM__ L"DebugUtils"
+
 #include <SpecialK/diagnostics/debug_utils.h>
 #include <SpecialK/diagnostics/compatibility.h>
 
@@ -29,6 +31,7 @@
 #include <SpecialK/log.h>
 #include <SpecialK/resource.h>
 #include <SpecialK/utility.h>
+#include <SpecialK/thread.h>
 
 #include <Windows.h>
 
@@ -41,6 +44,11 @@
 #include <dbghelp.h>
 
 iSK_Logger game_debug;
+
+extern SK_Thread_HybridSpinlock* cs_dbghelp;
+
+typedef LPWSTR (WINAPI *GetCommandLineW_pfn)(void);
+GetCommandLineW_pfn     GetCommandLineW_Original   = nullptr;
 
 TerminateProcess_pfn
                        TerminateProcess_Original   = nullptr;
@@ -68,7 +76,29 @@ SK_TerminateParentProcess (UINT uExitCode)
   }
 }
 
-typedef HANDLE (WINAPI *CreateThread_pfn)(
+using ResetEvent_pfn = BOOL (WINAPI *)(
+  _In_ HANDLE hEvent
+);
+ResetEvent_pfn ResetEvent_Original = nullptr;
+
+BOOL
+WINAPI
+ResetEvent_Detour (
+  _In_ HANDLE hEvent
+)
+{
+  // Compliance failure in some games makes application verifier useless
+  if (hEvent == nullptr)
+  {
+    SK_RunOnce (dll_log.Log ( L"[DebugUtils] Invalid handle passed to ResetEvent (...) - %s",
+                               SK_SummarizeCaller ().c_str () ));
+    return TRUE;
+  }
+
+  return ResetEvent_Original (hEvent);
+}
+
+using CreateThread_pfn = HANDLE (WINAPI *)(
     _In_opt_                  LPSECURITY_ATTRIBUTES  lpThreadAttributes,
     _In_                      SIZE_T                 dwStackSize,
     _In_                      LPTHREAD_START_ROUTINE lpStartAddress,
@@ -127,6 +157,43 @@ ExitProcess_Detour (UINT uExitCode)
 
   else
     ExitProcess (uExitCode);
+}
+
+
+
+
+LPWSTR
+WINAPI
+GetCommandLineW_Detour (void)
+{
+  SK_LOG_FIRST_CALL
+
+  static
+  wchar_t wszFakeOut [MAX_PATH * 4] = { };
+
+  if (*wszFakeOut != L'\0')
+    return wszFakeOut;
+
+  wcscpy   (wszFakeOut, L"\"");
+  lstrcatW (wszFakeOut, SK_GetFullyQualifiedApp ());
+  lstrcatW (wszFakeOut, L"\"");
+
+  if (! _wcsicmp (SK_GetHostApp (), L"RED-Win64-Shipping.exe"))
+  {
+    lstrcatW (wszFakeOut, L" -eac-nop-loaded");
+    return wszFakeOut;
+  }
+
+  if (! _wcsicmp (SK_GetHostApp (), L"DBFighterZ.exe"))
+  {
+    lstrcatW (wszFakeOut, L" -eac-nop-loaded");
+    return wszFakeOut;
+  }
+
+  if (_wcsicmp (wszFakeOut, GetCommandLineW_Original ()))
+    dll_log.Log (L"GetCommandLineW () ==> %ws", GetCommandLineW_Original ());
+
+  return GetCommandLineW_Original ();
 }
 
 
@@ -232,6 +299,16 @@ SK::Diagnostics::Debugger::Allow (bool bAllow)
       static_cast_p2p <void> (&CreateThread_Original) );
   }
 
+  SK_CreateDLLHook2 (  L"kernel32.dll",
+                        "GetCommandLineW",
+                         GetCommandLineW_Detour,
+static_cast_p2p <void> (&GetCommandLineW_Original) );
+
+    SK_CreateDLLHook2 (      L"kernel32.dll",
+                             "ResetEvent",
+                              ResetEvent_Detour,
+     static_cast_p2p <void> (&ResetEvent_Original) );
+
   return bAllow;
 }
 
@@ -295,7 +372,7 @@ SK_Debug_LoadHelper (void)
   wchar_t wszSystemDbgHelp [MAX_PATH * 2] = { };
 
   GetSystemDirectory (wszSystemDbgHelp, MAX_PATH * 2 - 1);
-  PathAppendW (wszSystemDbgHelp, L"dbghelp.dll");
+  PathAppendW        (wszSystemDbgHelp, L"dbghelp.dll");
 
   return (hModDbgHelp = LoadLibraryW (wszSystemDbgHelp));
 }
@@ -313,7 +390,13 @@ SymRefreshModuleList (
       GetProcAddress ( SK_Debug_LoadHelper (), "SymRefreshModuleList" );
 
   if (SymRefreshModuleList_Imp != nullptr)
-    return SymRefreshModuleList_Imp (hProcess);
+  {
+    BOOL bRet =
+      SymRefreshModuleList_Imp (hProcess);
+
+    return bRet;
+  }
+
 
   return FALSE;
 }
@@ -409,7 +492,8 @@ SymSetOptions (
 
   if (SymSetOptions_Imp != nullptr)
   {
-    return SymSetOptions_Imp ( SymOptions );
+    return
+      SymSetOptions_Imp (SymOptions);
   }
 
   return 0x0;

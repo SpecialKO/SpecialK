@@ -19,6 +19,8 @@
  *
 **/
 
+#define __SK_SUBSYSTEM__ L"  D3D 11  "
+
 #include <Windows.h>
 
 #include <SpecialK/diagnostics/compatibility.h>
@@ -81,13 +83,6 @@ HMODULE SK::DXGI::hModD3D11 = nullptr;
 SK::DXGI::PipelineStatsD3D11 SK::DXGI::pipeline_stats_d3d11 = { };
 
 volatile HANDLE hResampleThread = nullptr;
-
-
-#undef  SK_LOG_FIRST_CALL
-#define SK_LOG_FIRST_CALL { static bool called = false; if (! called) {  \
-  SK_LOG0 ( (L"[!] > First Call: %34hs", __FUNCTION__), L"  D3D 11  " ); \
-  called = true; } }
-
 
 __declspec (noinline)
 HRESULT
@@ -405,7 +400,7 @@ struct resample_dispatch_s
 
           else
           {
-            dll_log.Log (L"[DX11TexMgr] Texture was loaded too late, discarding...");
+            SK_LOG0 ( (L"Texture was loaded too late, discarding..."), L"DX11TexMgr" );
 
             InterlockedIncrement (&stats.textures_too_late);
           }
@@ -855,12 +850,12 @@ SK_D3D11_SetDevice ( ID3D11Device           **ppDevice,
   {
     if ( *ppDevice != g_pD3D11Dev )
     {
-      dll_log.Log ( L"[  D3D 11  ]  >> Device = %ph (Feature Level:%s)",
+      SK_LOG0 ( (L" >> Device = %ph (Feature Level:%s)",
                       *ppDevice,
                         SK_DXGI_FeatureLevelsToStr ( 1,
                                                       (DWORD *)&FeatureLevel
                                                    ).c_str ()
-                  );
+                  ), __SK_SUBSYSTEM__ );
 
       // We ARE technically holding a reference, but we never make calls to this
       //   interface - it's just for tracking purposes.
@@ -1085,7 +1080,7 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
     if (config.render.dxgi.debug_layer && (! (Flags & D3D11_CREATE_DEVICE_DEBUG)))
     {
       SK_LOG0 ( ( L" ==> Enabling D3D11 Debug layer" ),
-                  L"  D3D 11  " );
+                  __SK_SUBSYSTEM__ );
       Flags |= D3D11_CREATE_DEVICE_DEBUG;
     }
   }
@@ -1137,15 +1132,15 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
           swap_chain_desc->BufferDesc.Scaling !=
             (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode )
     {
-      dll_log.Log ( L"[  D3D 11  ]  >> Scaling Override "
-                    L"(Requested: %s, Using: %s)",
+      SK_LOG0 ( ( L" >> Scaling Override "
+                  L"(Requested: %s, Using: %s)",
                       SK_DXGI_DescribeScalingMode (
                         swap_chain_desc->BufferDesc.Scaling
                       ),
                         SK_DXGI_DescribeScalingMode (
                           (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode
                         )
-                  );
+                  ), __SK_SUBSYSTEM__ );
 
       swap_chain_desc->BufferDesc.Scaling =
         (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode;
@@ -1212,7 +1207,7 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
           if ( SK_GetCurrentRenderBackend ().windows.device != nullptr &&
                swap_chain_desc->OutputWindow                != nullptr &&
                swap_chain_desc->OutputWindow                != SK_GetCurrentRenderBackend ().windows.device )
-            dll_log.Log (L"[  D3D 11  ] Game created a new window?!");
+            SK_LOG0 ( (L"Game created a new window?!"), __SK_SUBSYSTEM__ );
         }
 
         extern void SK_DXGI_HookSwapChain (IDXGISwapChain* pSwapChain);
@@ -2268,7 +2263,8 @@ SK_D3D11_ChecksumShaderBytecode ( _In_      const void                *pShaderBy
   __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ) ? 
              EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH )
   {
-    dll_log.Log (L"[   DXGI   ]  >> Threw out disassembled shader due to access violation during hash.");
+    SK_LOG0 ( (L" >> Threw out disassembled shader due to access violation during hash."),
+               L"   DXGI   ");
     return 0x00;
   }
 }
@@ -2476,19 +2472,7 @@ D3D11Dev_CreateVertexShader_Override (
   _In_opt_        ID3D11ClassLinkage  *pClassLinkage,
   _Out_opt_       ID3D11VertexShader **ppVertexShader )
 {
-  bool early_out = false;
-
-#ifndef _WIN64
-  if (SK_GetCallerName ().find (L"ReShade32") != std::wstring::npos)
-    early_out = true;
-#else
-  if (SK_GetCallerName ().find (L"ReShade64") != std::wstring::npos)
-    early_out = true;
-#endif
-
-  if (early_out)
-    return D3D11Dev_CreateVertexShader_Original (This, pShaderBytecode, BytecodeLength, pClassLinkage, ppVertexShader);
-
+  SK_D3D11_ShaderThreads.mark ();
 
   return
     SK_D3D11_CreateShader_Impl ( This,
@@ -2508,19 +2492,7 @@ D3D11Dev_CreatePixelShader_Override (
   _In_opt_        ID3D11ClassLinkage  *pClassLinkage,
   _Out_opt_       ID3D11PixelShader  **ppPixelShader )
 {
-  bool early_out = false;
-
-#ifndef _WIN64
-  if (SK_GetCallerName ().find (L"ReShade32") != std::wstring::npos)
-    early_out = true;
-#else
-  if (SK_GetCallerName ().find (L"ReShade64") != std::wstring::npos)
-    early_out = true;
-#endif
-
-  if (early_out)
-    return D3D11Dev_CreatePixelShader_Original (This, pShaderBytecode, BytecodeLength, pClassLinkage, ppPixelShader);
-
+  SK_D3D11_ShaderThreads.mark ();
 
   return
     SK_D3D11_CreateShader_Impl ( This,
@@ -2540,6 +2512,8 @@ D3D11Dev_CreateGeometryShader_Override (
   _In_opt_        ID3D11ClassLinkage    *pClassLinkage,
   _Out_opt_       ID3D11GeometryShader **ppGeometryShader )
 {
+  SK_D3D11_ShaderThreads.mark ();
+
   return
     SK_D3D11_CreateShader_Impl ( This,
                                    pShaderBytecode, BytecodeLength,
@@ -3552,8 +3526,8 @@ D3D11_UpdateSubresource1_Override (
       {
         if (SK_D3D11_TextureIsCached (pTex))
         {
-          dll_log.Log (L"[DX11TexMgr] Cached texture was updated (UpdateSubresource)... removing from cache! - <%s>",
-                         SK_GetCallerName ().c_str ());
+          SK_LOG0 ( (L"Cached texture was updated (UpdateSubresource)... removing from cache! - <%s>",
+                         SK_GetCallerName ().c_str ()), L"DX11TexMgr" );
           SK_D3D11_RemoveTexFromCache (pTex, true);
         }
 
@@ -3708,8 +3682,8 @@ D3D11_UpdateSubresource_Override (
         {
           if (SK_D3D11_TextureIsCached (pTex))
           {
-            dll_log.Log (L"[DX11TexMgr] Cached texture was updated (UpdateSubresource)... removing from cache! - <%s>",
-                           SK_GetCallerName ().c_str ());
+            SK_LOG0 ( (L"Cached texture was updated (UpdateSubresource)... removing from cache! - <%s>",
+                           SK_GetCallerName ().c_str ()), L"DX11TexMgr" );
             SK_D3D11_RemoveTexFromCache (pTex, true);
           }
 
@@ -4109,8 +4083,8 @@ D3D11_CopyResource_Override (
     {
       if (SK_D3D11_TextureIsCached (pDstTex))
       {
-        dll_log.Log (L"[DX11TexMgr] Cached texture was modified (CopyResource)... removing from cache! - <%s>",
-                       SK_GetCallerName ().c_str ());
+        SK_LOG0 ( (L"Cached texture was modified (CopyResource)... removing from cache! - <%s>",
+                       SK_GetCallerName ().c_str ()), L"DX11TexMgr" );
         SK_D3D11_RemoveTexFromCache (pDstTex, true);
       }
     }
@@ -4268,8 +4242,8 @@ D3D11_CopySubresourceRegion_Override (
     {
       if (DstSubresource == 0 && SK_D3D11_TextureIsCached (pDstTex))
       {
-        dll_log.Log (L"[DX11TexMgr] Cached texture was modified (CopySubresourceRegion)... removing from cache! - <%s>",
-                       SK_GetCallerName ().c_str ());
+        SK_LOG0 ( (L"Cached texture was modified (CopySubresourceRegion)... removing from cache! - <%s>",
+                       SK_GetCallerName ().c_str ()), L"DX11TexMgr" );
         SK_D3D11_RemoveTexFromCache (pDstTex, true);
       }
     }
@@ -6265,9 +6239,9 @@ SK_D3D11_PopulateResourceList (bool refresh)
               liUncompressed.QuadPart += fsize.QuadPart;
 
             if (dumped_textures.count (top_crc32) >= 1)
-              dll_log.Log ( L"[DX11TexDmp] >> WARNING: Multiple textures have "
+              SK_LOG0 ( ( L" >> WARNING: Multiple textures have "
                             L"the same top-level LOD hash (%08X) <<",
-                              top_crc32 );
+                              top_crc32 ), L"DX11TexDmp" );
 
             if (checksum == 0x00)
               dumped_textures.insert (top_crc32);
@@ -7041,9 +7015,9 @@ crc32_tex (  _In_      const D3D11_TEXTURE2D_DESC   *pDesc,
 
   if (pDesc->MiscFlags > D3D11_RESOURCE_MISC_GENERATE_MIPS)
   {
-    dll_log.Log ( L"[ Tex Hash ] >> Hashing texture with unexpected MiscFlags: "
+    SK_LOG0 ( (L">> Hashing texture with unexpected MiscFlags: "
                    L"0x%04X",
-                     pDesc->MiscFlags );
+                     pDesc->MiscFlags), L" Tex Hash " );
     return 0;
   }
 
@@ -7752,7 +7726,7 @@ SK_D3D11_DumpTexture2D (  _In_ const D3D11_TEXTURE2D_DESC   *pDesc,
                           _In_       uint32_t                top_crc32,
                           _In_       uint32_t                checksum )
 {
-  dll_log.Log ( L"[DX11TexDmp] Dumping Texture: %08x::%08x... (fmt=%03lu, "
+  SK_LOG0 ( (L"Dumping Texture: %08x::%08x... (fmt=%03lu, "
                     L"BindFlags=0x%04x, Usage=0x%04x, CPUAccessFlags"
                     L"=0x%02x, Misc=0x%02x, MipLODs=%02lu, ArraySize=%02lu)",
                   top_crc32,
@@ -7763,7 +7737,7 @@ SK_D3D11_DumpTexture2D (  _In_ const D3D11_TEXTURE2D_DESC   *pDesc,
                             pDesc->CPUAccessFlags,
                               pDesc->MiscFlags,
                                 pDesc->MipLevels,
-                                  pDesc->ArraySize );
+                                  pDesc->ArraySize), L"DX11TexDmp" );
 
   SK_D3D11_AddDumped (top_crc32, checksum);
 
@@ -7877,10 +7851,10 @@ SK_D3D11_DumpTexture2D (  _In_ const D3D11_TEXTURE2D_DESC   *pDesc,
   {
     if (GetFileAttributes (wszOutName) == INVALID_FILE_ATTRIBUTES)
     {
-      dll_log.Log ( L"[DX11TexDmp]  >> File: '%s' (top: %x, full: %x)",
+      SK_LOG0 ( (L" >> File: '%s' (top: %x, full: %x)",
                       wszOutName,
                         top_crc32,
-                          checksum );
+                          checksum), L"DX11TexDmp" );
 
 #if 0
       wchar_t wszMetaFilename [ MAX_PATH + 2 ] = { };
@@ -9120,7 +9094,8 @@ reinterpret_cast <ID3D11Resource **> (ppTexture2D)
           }
         }
 
-        dll_log.Log (L"[DX11TexMgr] *** Texture '%s' is corrupted (HRESULT=%x), skipping!", wszTex, hr);
+        SK_LOG0 ( (L"*** Texture '%s' is corrupted (HRESULT=%x), skipping!", wszTex, hr),
+                   L"DX11TexMgr" );
       }
     }
   }
@@ -9372,31 +9347,6 @@ D3D11Dev_CreateTexture2D_Override (
   _In_opt_  const D3D11_SUBRESOURCE_DATA *pInitialData,
   _Out_opt_       ID3D11Texture2D        **ppTexture2D )
 {
-  static HMODULE hModSteamOverlay =
-#ifndef _WIN64
-        GetModuleHandle (L"gameoverlayrenderer.dll");
-#else
-        GetModuleHandle (L"gameoverlayrenderer64.dll");
-#endif
-
-  HMODULE hModCaller = SK_GetCallingDLL ();
-
-  bool early_out = false;
-
-#ifndef _WIN64
-  if (SK_GetCallerName ().find (L"ReShade32") != std::wstring::npos)
-    early_out = true;
-#else
-  if (SK_GetCallerName ().find (L"ReShade64") != std::wstring::npos)
-    early_out = true;
-#endif
-
-  if ( hModCaller == hModSteamOverlay || early_out )
-  {
-    return
-      D3D11Dev_CreateTexture2D_Original (This, pDesc, pInitialData, ppTexture2D);
-  }
-
   const D3D11_TEXTURE2D_DESC* pDescOrig = pDesc;
 
   // Make a copy, then change the value on the stack to point to
@@ -9835,9 +9785,10 @@ volatile LONG SK_D3D11_initialized = FALSE;
       }                                                                     \
     }                                                                       \
                                                                             \
-    dll_log.Log (L"[  D3D 11  ] [!] %s %s - "                               \
-             L"[Calling Thread: 0x%04x]",                                   \
-      L#_Name, L#_Proto, GetCurrentThreadId ());                            \
+    SK_LOG0 ( (L"[!] %s %s - "                                              \
+               L"[Calling Thread: 0x%04x]",                                 \
+      L#_Name, L#_Proto, GetCurrentThreadId ()),                            \
+                 __SK_SUBSYSTEM__ );                                        \
                                                                             \
     return _default_impl _Args;                                             \
 }
@@ -9864,9 +9815,10 @@ volatile LONG SK_D3D11_initialized = FALSE;
       }                                                                     \
     }                                                                       \
                                                                             \
-    dll_log.Log (L"[  D3D 11  ] [!] %s %s - "                               \
-             L"[Calling Thread: 0x%04x]",                                   \
-      L#_Name, L#_Proto, GetCurrentThreadId ());                            \
+    SK_LOG0 ( (L"[!] %s %s - "                                              \
+               L"[Calling Thread: 0x%04x]",                                 \
+      L#_Name, L#_Proto, GetCurrentThreadId ()),                            \
+                 __SK_SUBSYSTEM__ );                                        \
                                                                             \
     _default_impl _Args;                                                    \
 }
@@ -9934,8 +9886,8 @@ SK_D3D11_Init (void)
     D3DPerformance_SetMarker               = GetProcAddress (SK::DXGI::hModD3D11, "D3DPerformance_SetMarker");
 
 
-    SK_LOG0 ( (L"Importing D3D11CreateDevice[AndSwapChain]"), L"  D3D 11  " );
-    SK_LOG0 ( (L"========================================="), L"  D3D 11  " );
+    SK_LOG0 ( (L"Importing D3D11CreateDevice[AndSwapChain]"), __SK_SUBSYSTEM__ );
+    SK_LOG0 ( (L"========================================="), __SK_SUBSYSTEM__ );
 
     if (! _wcsicmp (SK_GetModuleName (SK_GetDLL ()).c_str (), L"d3d11.dll"))
     {
@@ -9955,12 +9907,12 @@ SK_D3D11_Init (void)
 
       SK_LOG0 ( ( L"  D3D11CreateDevice:             %s",
                     SK_MakePrettyAddress (D3D11CreateDevice_Import).c_str () ),
-                  L"  D3D 11  " );
+                  __SK_SUBSYSTEM__ );
       SK_LogSymbolName                    (D3D11CreateDevice_Import);
 
       SK_LOG0 ( ( L"  D3D11CreateDeviceAndSwapChain: %s",
                     SK_MakePrettyAddress (D3D11CreateDeviceAndSwapChain_Import).c_str () ),
-                  L"  D3D 11  " );
+                  __SK_SUBSYSTEM__ );
       SK_LogSymbolName                   (D3D11CreateDeviceAndSwapChain_Import);
 
       pfnD3D11CreateDeviceAndSwapChain = D3D11CreateDeviceAndSwapChain_Import;
@@ -9986,7 +9938,7 @@ SK_D3D11_Init (void)
                                                         D3D11CreateDevice_Import).c_str (),
                               pfnD3D11CreateDevice ? L"{ Hooked }" :
                                                      L"{ Cached }" ),
-                        L"  D3D 11  " );
+                        __SK_SUBSYSTEM__ );
       }
 
       if ( LocalHook_D3D11CreateDeviceAndSwapChain.active ||
@@ -10004,7 +9956,7 @@ SK_D3D11_Init (void)
                                                         D3D11CreateDeviceAndSwapChain_Import).c_str (),
                             pfnD3D11CreateDeviceAndSwapChain ? L"{ Hooked }" :
                                                                L"{ Cached }" ),
-                        L"  D3D 11  " );
+                        __SK_SUBSYSTEM__ );
         SK_LogSymbolName     (pfnD3D11CreateDeviceAndSwapChain);
 
         if ((SK_GetDLLRole () & DLL_ROLE::D3D11) || (SK_GetDLLRole () & DLL_ROLE::DInput8))
@@ -10024,10 +9976,8 @@ SK_D3D11_Init (void)
 
       if (! success)
       {
-        dll_log.Log (L"[  D3D 11  ] Something went wrong hooking D3D11 -- need better errors.");
+        SK_LOG0 ( (L"Something went wrong hooking D3D11 -- need better errors."), __SK_SUBSYSTEM__ );
       }
-
-      SK_ApplyQueuedHooks ();
 
       InterlockedIncrement (&SK_D3D11_initialized);
     }
@@ -10056,12 +10006,13 @@ SK_D3D11_Shutdown (void)
 
   if (SK_D3D11_Textures.RedundantLoads_2D > 0)
   {
-    dll_log.Log ( L"[Perf Stats] At shutdown: %7.2f seconds and %7.2f MiB of"
+    SK_LOG0 ( (L"At shutdown: %7.2f seconds and %7.2f MiB of"
                   L" CPU->GPU I/O avoided by %lu texture cache hits.",
                     SK_D3D11_Textures.RedundantTime_2D / 1000.0f,
                       (float)SK_D3D11_Textures.RedundantData_2D.load () /
                                  (1024.0f * 1024.0f),
-                             SK_D3D11_Textures.RedundantLoads_2D.load () );
+                             SK_D3D11_Textures.RedundantLoads_2D.load ()),
+               L"Perf Stats" );
   }
 
   SK_D3D11_Textures.reset ();
@@ -10381,7 +10332,6 @@ SK_D3D11_HookDevCtx (sk_hook_d3d11_t *pHooks)
                                           D3D11_CSGetShader_Override,
                                           D3D11_CSGetShader_Original,
                                           D3D11_CSGetShader_pfn );
-    SK_ApplyQueuedHooks ();
 }
 
 
@@ -10463,7 +10413,7 @@ HookD3D11 (LPVOID user)
     //   begin the process, but ... only do this once.
     if (! InterlockedCompareExchange (&implicit_init, TRUE, FALSE))
     {
-      dll_log.Log (L"[  D3D 11  ]  >> Implicit Initialization Triggered <<");
+      SK_LOG0 ( (L" >> Implicit Initialization Triggered <<"), __SK_SUBSYSTEM__ );
       SK_BootDXGI ();
     }
 
@@ -10478,7 +10428,7 @@ HookD3D11 (LPVOID user)
   // This only needs to be done once
   if (! InterlockedCompareExchange (&__d3d11_hooked, TRUE, FALSE))
   {
-  dll_log.Log (L"[  D3D 11  ]   Hooking D3D11");
+  SK_LOG0 ( (L"  Hooking D3D11"), __SK_SUBSYSTEM__ );
 
   auto* pHooks = 
     static_cast <sk_hook_d3d11_t *> (user);
@@ -10640,8 +10590,6 @@ HookD3D11 (LPVOID user)
     //                                         D3D11_UpdateSubresource1_pfn );
     //}
 #endif
-
-    SK_ApplyQueuedHooks ();
   }
 
   InterlockedIncrement (&__d3d11_hooked);
@@ -11044,6 +10992,8 @@ const std::set          <ID3D11ShaderResourceView *>& set_of_resources,
 
 static size_t debug_tex_id = 0x0;
 static size_t tex_dbg_idx  = 0;
+
+#include <SpecialK/steam_api.h>
 
 void
 SK_LiveTextureView (bool& can_scroll)
@@ -14172,7 +14122,7 @@ SK_D3D11_ShaderModDlg (void)
                                   ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NavFlattened );
 
       uncollapsed_rtv =
-        ImGui::CollapsingHeader ("Live RenderTarget View", ImGuiTreeNodeFlags_DefaultOpen);
+          ImGui::CollapsingHeader ("Live RenderTarget View", ImGuiTreeNodeFlags_DefaultOpen);
 
       if (uncollapsed_rtv)
       {
@@ -15008,90 +14958,6 @@ concurrency::concurrent_unordered_map <
 
 
 
-
-#include <specialk/injection/address_cache.h>
-
-void
-CALLBACK
-RunDLL_HookManager_DXGI ( HWND  hwnd,        HINSTANCE hInst,
-                          LPSTR lpszCmdLine, int )
-{
-  UNREFERENCED_PARAMETER (hInst);
-  UNREFERENCED_PARAMETER (hwnd);
-
-  if (StrStrA (lpszCmdLine, "dump"))
-  {
-    extern void
-    __stdcall
-    SK_EstablishRootPath (void);
-
-    config.system.central_repository = true;
-    SK_EstablishRootPath ();
-
-    // Setup unhooked function pointers
-    SK_PreInitLoadLibrary ();
-
-    QueryPerformanceCounter_Original =
-      reinterpret_cast <QueryPerformanceCounter_pfn> (
-        GetProcAddress (
-          GetModuleHandle ( L"kernel32.dll"),
-                              "QueryPerformanceCounter" )
-      );
-
-    config.apis.d3d9.hook    = false; config.apis.d3d9ex.hook     = false;
-    config.apis.OpenGL.hook  = false; config.apis.dxgi.d3d11.hook = true;
-    config.apis.NvAPI.enable = false;
-    config.textures.d3d11.inject                 = false;
-    config.steam.preload_overlay                 = false;
-    config.steam.silent                          = true;
-    config.system.trace_load_library             = false;
-    config.system.handle_crashes                 = false;
-    config.system.central_repository             = true;
-    config.system.game_output                    = false;
-    config.injection.global.use_static_addresses = false;
-    config.input.gamepad.hook_dinput8            = false;
-    config.input.gamepad.hook_hid                = false;
-    config.input.gamepad.hook_xinput             = false;
-
-    SK_MinHook_Init     ();
-    SK_ApplyQueuedHooks ();
-
-    SK_SetDLLRole (DLL_ROLE::DXGI);
-
-    BOOL
-    __stdcall
-    SK_Attach (DLL_ROLE role);
-
-    extern bool __SK_RunDLL_Bypass;
-                __SK_RunDLL_Bypass = true;
-
-    BOOL bRet =
-      SK_Attach (DLL_ROLE::DXGI);
-
-    if (bRet)
-    {
-      WaitForInit ();
-
-      extern PresentSwapChain_pfn Present_Original;
-
-      SK_Inject_AddressManager = new SK_Inject_AddressCacheRegistry ();
-      SK_Inject_AddressManager->storeNamedAddress (L"dxgi", "IDXGISwapChain::Present", reinterpret_cast <uintptr_t> (Present_Original));
-      delete SK_Inject_AddressManager;
-
-      dll_log.Log (L"IDXGISwapChain::Present = %ph", Present_Original);
-
-      SK::DXGI::Shutdown ();
-
-      extern iSK_INI* dll_ini;
-      DeleteFileW (dll_ini->get_filename ());
-    }
-
-    ExitProcess (0x00);
-  }
-}
-
-
-
 void
 SK_D3D11_ResetShaders (void)
 {
@@ -15722,4 +15588,69 @@ bool
 SK_D3D11_QuickHooked (void)
 {
   return quick_hooked;
+}
+
+int
+SK_D3D11_PurgeHookAddressCache (void)
+{
+  int i = 0;
+
+  for ( auto& it : local_d3d11_records )
+  {
+    SK_Hook_RemoveTarget ( *it, L"D3D11.Hooks" );
+
+    ++i;
+  }
+
+  return i;
+}
+
+void
+SK_D3D11_UpdateHookAddressCache (void)
+{
+  for ( auto& it : local_d3d11_records )
+  {
+    if (it->active)
+    {
+      SK_Hook_ResolveTarget (*it);
+
+      // Don't cache addresses that were screwed with by other injectors
+      const wchar_t* wszSection =
+        StrStrIW (it->target.module_path, LR"(\sys)") ?
+                                          L"D3D11.Hooks" : nullptr;
+
+      if (! wszSection)
+      {
+        SK_LOG0 ( ( L"Hook for '%hs' resides in '%s', will not cache!",
+                      it->target.symbol_name,
+          SK_StripUserNameFromPathW (
+            std::wstring (
+                      it->target.module_path
+                         ).data ()
+          )                                                             ),
+                    L"Hook Cache" );
+      }
+      SK_Hook_CacheTarget ( *it, wszSection );
+    }
+  }
+
+  auto it_local  = std::begin (local_d3d11_records);
+  auto it_global = std::begin (global_d3d11_records);
+
+  while ( it_local != std::end (local_d3d11_records) )
+  {
+    if (( *it_local )->hits &&
+ StrStrIW (( *it_local )->target.module_path, LR"(\sys)") &&
+        ( *it_local )->active)
+      SK_Hook_PushLocalCacheOntoGlobal ( **it_local,
+                                           **it_global );
+    else
+    {
+      ( *it_global )->target.addr = nullptr;
+      ( *it_global )->hits        = 0;
+      ( *it_global )->active      = false;
+    }
+
+    it_global++, it_local++;
+  }
 }

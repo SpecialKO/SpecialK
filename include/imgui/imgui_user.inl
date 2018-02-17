@@ -1145,13 +1145,9 @@ SK_ImGui_PollGamepad_EndFrame (void)
 
   extern bool __stdcall SK_IsGameWindowActive (void);
 
-  HWND hWndFocus      = GetFocus            ();
-  HWND hWndForeground = GetForegroundWindow ();
-
   // Reset Mouse / Keyboard State so that we can process all state transitions
   //   that occur during the next frame without losing any input events.
-  if ( game_window.active || (game_window.hWnd == hWndFocus      ||
-                              game_window.hWnd == hWndForeground) )
+  if ( SK_IsGameWindowActive () )
   {
     io.MouseDown [0] = (GetAsyncKeyState_Original (VK_LBUTTON)  & 0x8000) != 0;
     io.MouseDown [1] = (GetAsyncKeyState_Original (VK_RBUTTON)  & 0x8000) != 0;

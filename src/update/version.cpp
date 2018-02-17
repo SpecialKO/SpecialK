@@ -636,7 +636,7 @@ SK_Version_GetAvailableBranches (const wchar_t* wszProduct)
     iSK_INI::_TSectionMap& sections =
       repo_ini.get_sections ();
 
-    for ( auto it : sections )
+    for ( auto& it : sections )
     {
       if (StrStrIW (it.first.c_str (), L"Version.") == it.first.c_str ())
       {

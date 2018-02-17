@@ -2502,13 +2502,14 @@ SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
   }
 
 
-  bool process = false;
+  bool process                = false;
+  bool has_wrapped_swapchains = ReadAcquire (&SK_DXGI_LiveWrappedSwapChain1s);
 
-  if (config.render.osd.draw_in_vidcap && ReadAcquire (&SK_DXGI_LiveWrappedSwapChain1s))
+  if (config.render.osd.draw_in_vidcap && has_wrapped_swapchains)
     process = (Source == SK_DXGI_PresentSource::Wrapper);
 
   else
-    process = (Source == SK_DXGI_PresentSource::Hook);
+    process = (Source == SK_DXGI_PresentSource::Hook) || (! has_wrapped_swapchains);
 
 
   // Our vidcap hook & wrap mechanism is borked (we may need to change the setting)!
@@ -2517,7 +2518,7 @@ SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
 
 
 
-  if (process)
+  if (process || SK_GetFramesDrawn () < 2)
   {
     // Start / End / Readback Pipeline Stats
     SK_D3D11_UpdateRenderStats (This);
@@ -2547,6 +2548,8 @@ SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
 
     if (pDev && first_frame)
     {
+      int hooked = 0;
+
       SK_D3D11_PresentFirstFrame (This);
 
       for ( auto& it : local_dxgi_records )
@@ -2556,9 +2559,9 @@ SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
           SK_Hook_ResolveTarget (*it);
 
           // Don't cache addresses that were screwed with by other injectors
-          const wchar_t* wszSection = L"DXGI.Hooks";
-            //StrStrIW (it->target.module_path, LR"(dxgi.dll)") ?
-            //                                  L"DXGI.Hooks" : nullptr;
+          const wchar_t* wszSection =
+            StrStrIW (it->target.module_path, LR"(\sys)") ?
+                                              L"DXGI.Hooks" : nullptr;
 
           if (! wszSection)
           {
@@ -2572,6 +2575,8 @@ SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
                         L"Hook Cache" );
           }
           SK_Hook_CacheTarget ( *it, wszSection );
+
+          ++hooked;
         }
       }
 
@@ -2583,7 +2588,7 @@ SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
         while ( it_local != std::end (local_dxgi_records) )
         {
           if (( *it_local )->hits &&
-    //StrStrIW (( *it_local )->target.module_path, LR"(dxgi.dll)") &&
+    StrStrIW (( *it_local )->target.module_path, LR"(\sys)") &&
               ( *it_local )->active)
             SK_Hook_PushLocalCacheOntoGlobal ( **it_local,
                                                  **it_global );
@@ -2596,7 +2601,12 @@ SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
 
           it_global++, it_local++;
         }
+
+        SK_D3D11_UpdateHookAddressCache ();
       }
+
+      if (hooked > 0)
+        SK_GetDLLConfig ()->write (SK_GetDLLConfig ()->get_filename ());
 
 #ifdef _WIN64
       switch (SK_GetCurrentGameID ())
@@ -2814,20 +2824,19 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
   }
 
 
-  bool process = false;
+  bool process                = false;
+  bool has_wrapped_swapchains = ReadAcquire (&SK_DXGI_LiveWrappedSwapChain1s) ||
+                                ReadAcquire (&SK_DXGI_LiveWrappedSwapChains);
+  // ^^^ It's not required that IDXGISwapChain1 or higher invokes Present1!
 
-  if (config.render.osd.draw_in_vidcap && (ReadAcquire (&SK_DXGI_LiveWrappedSwapChains) ||
-                                           ReadAcquire (&SK_DXGI_LiveWrappedSwapChain1s)))
-  {
-    // ^^^ It's not required that IDXGISwapChain1 or higher invokes Present1!
+  if (config.render.osd.draw_in_vidcap && has_wrapped_swapchains)
     process = (Source == SK_DXGI_PresentSource::Wrapper);
-  }
 
   else
-    process = (Source == SK_DXGI_PresentSource::Hook);
+    process = (Source == SK_DXGI_PresentSource::Hook) || (! has_wrapped_swapchains);
 
 
-  if (process)
+  if (process || SK_GetFramesDrawn () < 2)
   {
     // Start / End / Readback Pipeline Stats
     SK_D3D11_UpdateRenderStats (This);
@@ -2857,6 +2866,7 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
 
     if (pDev && first_frame)
     {
+      int hooked = 0;
 
       SK_D3D11_PresentFirstFrame (This);
 
@@ -2867,9 +2877,9 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
           SK_Hook_ResolveTarget (*it);
 
           // Don't cache addresses that were screwed with by other injectors
-          const wchar_t* wszSection = L"DXGI.Hooks";
-            //StrStrIW (it->target.module_path, LR"(dxgi.dll)") ?
-            //                                  L"DXGI.Hooks" : nullptr;
+          const wchar_t* wszSection =
+            StrStrIW (it->target.module_path, LR"(\sys)") ?
+                                              L"DXGI.Hooks" : nullptr;
 
           if (! wszSection)
           {
@@ -2882,9 +2892,9 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
               )                                                             ),
                         L"Hook Cache" );
           }
+          SK_Hook_CacheTarget ( *it, wszSection );
 
-          else
-            SK_Hook_CacheTarget ( *it, wszSection );
+          ++hooked;
         }
       }
 
@@ -2896,7 +2906,7 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
         while ( it_local != std::end (local_dxgi_records) )
         {
           if (( *it_local )->hits &&
-  //StrStrIW (( *it_local )->target.module_path, LR"(dxgi.dll)") &&
+    StrStrIW (( *it_local )->target.module_path, LR"(\sys)") &&
               ( *it_local )->active)
             SK_Hook_PushLocalCacheOntoGlobal ( **it_local,
                                                  **it_global );
@@ -2909,7 +2919,12 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
 
           it_global++, it_local++;
         }
+
+        SK_D3D11_UpdateHookAddressCache ();
       }
+
+      if (hooked > 0)
+        SK_GetDLLConfig ()->write (SK_GetDLLConfig ()->get_filename ());
 
 #ifdef _WIN64
       switch (SK_GetCurrentGameID ())
@@ -3744,7 +3759,7 @@ DXGISwap_ResizeBuffers_Override ( IDXGISwapChain *This,
     }
 
     SK_RunOnce (SK_DXGI_HookPresent (This));
-    SK_RunOnce (MH_ApplyQueued      (    ));
+    SK_RunOnce (SK_ApplyQueuedHooks (    ));
   }
 
   return ret;
@@ -3925,7 +3940,7 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
   if (SUCCEEDED (ret))
   {
     SK_RunOnce (SK_DXGI_HookPresent (This));
-    SK_RunOnce (MH_ApplyQueued      (    ));
+    SK_RunOnce (SK_ApplyQueuedHooks (    ));
   }
 
   return ret;
@@ -4352,6 +4367,7 @@ SK_DXGI_CreateSwapChain_PostInit ( _In_  IUnknown              *pDevice,
       SK_InstallWindowHook (pDesc->OutputWindow);
 
       SK_GetCurrentRenderBackend ().windows.setDevice (pDesc->OutputWindow);
+      SK_GetCurrentRenderBackend ().windows.setFocus  (pDesc->OutputWindow);
     }
 
     if (ppSwapChain != nullptr)
@@ -5554,7 +5570,7 @@ SK_HookDXGI (void)
       LocalHook_CreateDXGIFactory2.target.addr = pfnCreateDXGIFactory2;
     }
 
-    MH_ApplyQueued ();
+    SK_ApplyQueuedHooks ();
 
     if (CreateDXGIFactory1_Import != nullptr)
     {
@@ -6071,7 +6087,7 @@ HookDXGI (LPVOID user)
       if (pSwapChain1 != nullptr)
         SK_DXGI_HookPresent1 (pSwapChain1);
 
-      MH_ApplyQueued  ();
+      SK_ApplyQueuedHooks ();
 
       if (config.apis.dxgi.d3d11.hook) SK_D3D11_EnableHooks ();
         
@@ -6127,6 +6143,10 @@ SK::DXGI::Shutdown (void)
     {
       SK_Hook_RemoveTarget ( *it, L"DXGI.Hooks" );
     }
+
+    SK_D3D11_PurgeHookAddressCache ();
+
+    SK_GetDLLConfig ()->write (SK_GetDLLConfig ()->get_filename ());
   }
 
 
@@ -6214,8 +6234,7 @@ SK::DXGI::StartBudgetThread ( IDXGIAdapter** ppAdapter )
                                    nullptr );
 
 
-      while ( ! ReadAcquire ( &budget_thread.ready )
-            ) SleepEx (500, TRUE);
+      SK_Thread_SpinUntilFlagged (&budget_thread.ready);
 
 
       if ( budget_thread.tid != 0 )

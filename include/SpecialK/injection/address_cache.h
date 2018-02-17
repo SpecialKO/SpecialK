@@ -22,6 +22,10 @@
 #ifndef __SK__ADDRESS_CACHE_H__
 #define __SK__ADDRESS_CACHE_H__
 
+// Maybe someday I'll revisit this code...
+//   it's not doing anything useful right now :P
+//
+#if 0
 #include <SpecialK/core.h>
 
 #include <string>
@@ -85,5 +89,6 @@ protected:
 private:
   std::shared_ptr <iSK_INI> address_ini_;
 } extern *SK_Inject_AddressManager;
+#endif
 
 #endif /* __SK__ADDRESS_CACHE_H__ */

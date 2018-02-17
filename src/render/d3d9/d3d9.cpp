@@ -890,8 +890,7 @@ SK_HookD3D9 (void)
       SK_LogSymbolName                   (pfnDirect3DCreate9Ex);
     }
 
-    HookD3D9            (nullptr);
-    SK_ApplyQueuedHooks (       );
+    HookD3D9 (nullptr);
 
     // Load user-defined DLLs (Plug-In)
     SK_RunLHIfBitness ( 64, SK_LoadPlugIns64 (),
@@ -955,6 +954,8 @@ SK::D3D9::Shutdown (void)
         *it,
           L"D3D9.Hooks" );
     }
+
+    SK_GetDLLConfig ()->write (SK_GetDLLConfig ()->get_filename ());
   }
 
 
@@ -4884,11 +4885,7 @@ HookD3D9 (LPVOID user)
           }
         }
 
-        SK_ApplyQueuedHooks  (                   );
         InterlockedExchange  (&__d3d9_ready, TRUE);
-
-        if (! (SK_GetDLLRole () & DLL_ROLE::DXGI))
-          SK::DXGI::StartBudgetThread_NoAdapter ();
       }
     }
     if (success)
@@ -8032,96 +8029,6 @@ SK::D3D9::ShaderTracker::use (IUnknown *pShader)
   }
 }
 
-
-
-
-#include <SpecialK/ini.h>
-
-void
-CALLBACK
-RunDLL_HookManager_D3D9 ( HWND  hwnd,        HINSTANCE hInst,
-                          LPSTR lpszCmdLine, int )
-{
-  UNREFERENCED_PARAMETER (hInst);
-  UNREFERENCED_PARAMETER (hwnd);
-
-#if 1
-  UNREFERENCED_PARAMETER (lpszCmdLine);
-#else
-  if (StrStrA (lpszCmdLine, "dump"))
-  {
-    extern void
-    __stdcall
-    SK_EstablishRootPath (void);
-
-    config.system.central_repository = true;
-    SK_EstablishRootPath ();
-
-    // Setup unhooked function pointers
-    SK_PreInitLoadLibrary ();
-
-    QueryPerformanceCounter_Original =
-      reinterpret_cast <QueryPerformanceCounter_pfn> (
-        GetProcAddress (
-          GetModuleHandle ( L"kernel32.dll"),
-                              "QueryPerformanceCounter" )
-      );
-
-    config.apis.d3d9.hook    = true;  config.apis.d3d9ex.hook     = true;
-    config.apis.OpenGL.hook  = false; config.apis.dxgi.d3d11.hook = false;
-    config.apis.NvAPI.enable = false;
-    config.steam.preload_overlay                 = false;
-    config.steam.silent                          = true;
-    config.system.trace_load_library             = false;
-    config.system.handle_crashes                 = false;
-    config.system.central_repository             = true;
-    config.system.game_output                    = false;
-    config.render.dxgi.rehook_present            = false;
-    config.injection.global.use_static_addresses = false;
-    config.input.gamepad.hook_dinput8            = false;
-    config.input.gamepad.hook_hid                = false;
-    config.input.gamepad.hook_xinput             = false;
-
-    SK_Init_MinHook        ();
-    SK_ApplyQueuedHooks    ();
-
-    SK_SetDLLRole (DLL_ROLE::D3D9);
-
-    BOOL
-    __stdcall
-    SK_Attach (DLL_ROLE role);
-
-    extern bool __SK_RunDLL_Bypass;
-                __SK_RunDLL_Bypass = true;
-
-    BOOL bRet =
-      SK_Attach (DLL_ROLE::D3D9);
-
-    if (bRet)
-    {
-      WaitForInit ();
-
-      SK_Inject_AddressManager = new SK_Inject_AddressCacheRegistry ();
-
-      SK_Inject_AddressManager->storeNamedAddress (L"d3d9", "IDirect3DDevice9::Present",     reinterpret_cast <uintptr_t> (D3D9Present_Target));
-      SK_Inject_AddressManager->storeNamedAddress (L"d3d9", "IDirect3DDevice9Ex::PresentEx", reinterpret_cast <uintptr_t> (D3D9PresentEx_Target));
-      SK_Inject_AddressManager->storeNamedAddress (L"d3d9", "IDirect3DSwapChain9::Present",  reinterpret_cast <uintptr_t> (D3D9PresentSwap_Target));
-
-      SK_Inject_AddressManager->storeNamedAddress (L"d3d9", "IDirect3DDevice9::Reset",       reinterpret_cast <uintptr_t> (D3D9Reset_Target));
-      SK_Inject_AddressManager->storeNamedAddress (L"d3d9", "IDirect3DDevice9Ex::ResetEx",   reinterpret_cast <uintptr_t> (D3D9ResetEx_Target));
-
-      delete SK_Inject_AddressManager;
-
-      SK::D3D9::Shutdown ();
-
-      extern iSK_INI* dll_ini;
-      DeleteFileW (dll_ini->get_filename ());
-    }
-
-    ExitProcess (0x00);
-  }
-#endif
-}
 
 
 

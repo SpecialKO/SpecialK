@@ -215,7 +215,7 @@ void                  SK_UnlockSteamAchievement                 (uint32_t idx);
 bool                  SK_Steam_Imported                         (void);
 
 void                  SK_HookCSteamworks                        (void);
-void                  SK_HookSteamAPI                           (void);
+int                   SK_HookSteamAPI                           (void);
 
 void                  SK_Steam_ClearPopups                      (void);
 int                   SK_Steam_DrawOSD                          (void);

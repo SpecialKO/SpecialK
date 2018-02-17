@@ -19,6 +19,8 @@
  *
 **/
 
+#define __SK_SUBSYSTEM__ L"Input Mgr."
+
 #include <SpecialK/input/input.h>
 #include <SpecialK/input/dinput8_backend.h>
 #include <SpecialK/window.h>
@@ -51,11 +53,6 @@ SK_InputUtil_IsHWCursorVisible (void)
 
   return (cursor_info.flags & CURSOR_SHOWING);
 }
-
-
-#define SK_LOG_INPUT_CALL { static int  calls  = 0;                   { SK_LOG0 ( (L"[!] > Call #%lu: %hs", calls++, __FUNCTION__), L"Input Mgr." ); } }
-#define SK_LOG_FIRST_CALL { static bool called = false; if (! called) { SK_LOG0 ( (L"[!] > First Call: %34hs", __FUNCTION__), L"Input Mgr." ); called = true; } }
-
 
 #define SK_HID_READ(type)  SK_HID_Backend.markRead  (type);
 #define SK_HID_WRITE(type) SK_HID_Backend.markWrite (type);
@@ -276,7 +273,8 @@ SK_Input_HookHID (void)
       (HidP_GetCaps_pfn)GetProcAddress ( GetModuleHandle (L"HID.DLL"),
                                            "HidP_GetCaps" );
 
-    SK_ApplyQueuedHooks ();
+    if (SK_GetFramesDrawn () > 1)
+      SK_ApplyQueuedHooks ();
 
     InterlockedIncrement (&hooked);
   }
@@ -284,11 +282,11 @@ SK_Input_HookHID (void)
   SK_Thread_SpinUntilAtomicMin (&hooked, 2);
 }
 
-void
+bool
 SK_Input_PreHookHID (void)
 {
   if (! config.input.gamepad.hook_hid)
-    return;
+    return false;
 
   static sk_import_test_s tests [] = { { "hid.dll", false } };
 
@@ -297,7 +295,11 @@ SK_Input_PreHookHID (void)
   if (tests [0].used)// || GetModuleHandle (L"hid.dll"))
   {
     SK_Input_HookHID ();
+
+    return true;
   }
+
+  return false;
 }
 
 
@@ -734,7 +736,7 @@ RegisterRawInputDevices_Detour (
         SK_LOG0 (
                   ( L"RawInput is being tracked on hWnd=%x - { (%s), '%s' }",
                       pDevices [i].hwndTarget, wszWindowClass, wszWindowTitle ),
-                        L"Input Mgr." );
+                        __SK_SUBSYSTEM__ );
 
         //if (pDevices [i].hwndTarget)
         //{
@@ -748,7 +750,7 @@ RegisterRawInputDevices_Detour (
           //  //SK_InstallWindowHook (game_window.hWnd);
           //  //
           //  //SK_LOG0 ( (L" # Installed window hook early due to RawInput registration."),
-          //  //           L"Input Mgr." );
+          //  //           __SK_SUBSYSTEM__ );
           //}
         //}
       }
@@ -1154,7 +1156,7 @@ SK_ImGui_WantKeyboardCapture (void)
   if (config.input.keyboard.disabled_to_game)
     imgui_capture = true;
 
-  return imgui_capture;
+  return imgui_capture && GetFocus () == game_window.hWnd;
 }
 
 bool
@@ -1165,7 +1167,7 @@ SK_ImGui_WantTextCapture (void)
   ImGuiIO& io =
     ImGui::GetIO ();
 
-  if (io.WantTextInput)
+  if (io.WantTextInput && GetFocus () == game_window.hWnd)
     imgui_capture = true;
 
   return imgui_capture;
@@ -1205,7 +1207,7 @@ SK_ImGui_WantMouseCaptureEx (DWORD dwReasonMask)
 {
   bool imgui_capture = false;
 
-  if (SK_ImGui_IsMouseRelevant ())
+  if (SK_ImGui_IsMouseRelevant () && GetFocus () == game_window.hWnd)
   {
     ImGuiIO& io =
       ImGui::GetIO ();
@@ -1778,7 +1780,7 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool, bool)
                     L"game HWND=%x",
                       lpMsg->wParam, lpMsg->lParam,
                       lpMsg->hwnd, game_window.hWnd ),
-                    L"Input Mgr." );
+                    __SK_SUBSYSTEM__ );
       }
     } break;
 
@@ -1913,8 +1915,6 @@ void SK_Input_PreInit (void)
 
   if (config.input.gamepad.hook_xinput)
     SK_XInput_InitHotPlugHooks ( );
-
-  SK_ApplyQueuedHooks ();
 }
 
 
