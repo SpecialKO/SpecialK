@@ -446,7 +446,7 @@ SK_InitFinishCallback (void);
 
 void
 __stdcall
-SK_InitCore (std::wstring backend, void* callback)
+SK_InitCore (std::wstring& backend, void* callback)
 {
   using finish_pfn   = void (WINAPI *)  (void);
   using callback_pfn = void (WINAPI *)(_Releases_exclusive_lock_ (init_mutex) finish_pfn);
@@ -2016,10 +2016,10 @@ SK_BeginBufferSwap (void)
 
   if (hModTBFix)
   {
-    const char* szFirst = "First-frame Done";
-
     if (SK_Steam_PiratesAhoy () != 0x00)
     {
+      const char* szFirst = "First-frame Done";
+
       extern float target_fps;
                    target_fps =
         static_cast <float> (

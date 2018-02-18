@@ -4597,7 +4597,8 @@ SK_D3D9_UpdateRenderStats (IDirect3DSwapChain9* pSwapChain, IDirect3DDevice9* pD
 
   CComPtr <IDirect3DDevice9> dev = pDevice;
 
-  if (pDevice != nullptr || SUCCEEDED (pSwapChain->GetDevice (&dev)))
+  if (  pDevice    != nullptr || 
+       (pSwapChain != nullptr && SUCCEEDED (pSwapChain->GetDevice (&dev))) )
   {
     if (pipeline_stats.query.object != nullptr)
     {
@@ -4970,7 +4971,7 @@ SK_D3D9_DrawFileList (bool& can_scroll)
       uint64_t   size                 = 0ULL;
     } streaming, blocking;
 
-    uint64_t     totalSize (void) { return streaming.size + blocking.size; };
+    uint64_t     totalSize (void) const { return streaming.size + blocking.size; };
   };
 
   static std::vector <enumerated_source_s> sources;
@@ -5295,11 +5296,7 @@ SK_D3D9_LiveShaderClassView (SK::D3D9::ShaderClass shader_type, bool& can_scroll
     {
       char szDesc [16] = { };
 
-#ifdef _WIN64
-      sprintf (szDesc, "%08llx", (uintptr_t)it);
-#else
-      sprintf (szDesc, "%08lx",  (uintptr_t)it);
-#endif
+      sprintf (szDesc, "%08" PRIxPTR, (uintptr_t)it);
 
       list->contents.emplace_back (szDesc);
 
@@ -5724,11 +5721,7 @@ SK_LiveVertexStreamView (bool& can_scroll)
     {
       char szDesc [16] = { };
 
-#ifdef _WIN64
-      sprintf (szDesc, "%08llx", (uintptr_t)it);
-#else
-      sprintf (szDesc, "%08lx",  (uintptr_t)it);
-#endif
+      sprintf (szDesc, "%08" PRIxPTR, (uintptr_t)it);
 
       list->contents.emplace_back (szDesc);
 
@@ -6764,11 +6757,7 @@ SK_D3D9_TextureModDlg (void)
       {
         char szDesc [16] = { };
 
-#ifdef _WIN64
-        sprintf (szDesc, "%llx", (uintptr_t)it);
-#else
-        sprintf (szDesc, "%lx",  (uintptr_t)it);
-#endif
+        sprintf (szDesc, "%" PRIxPTR, (uintptr_t)it);
 
         list_contents.emplace_back (szDesc);
 

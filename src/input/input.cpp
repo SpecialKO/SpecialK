@@ -647,7 +647,7 @@ GetRegisteredRawInputDevices_Detour (
   assert (cbSize == sizeof RAWINPUTDEVICE);
 
   // On the first call to this function, we will need to query this stuff.
-  static bool init = false;
+  //static bool init = false;
 
   //if (! init)
   //{
@@ -1372,7 +1372,7 @@ GetCursorInfo_Detour (PCURSORINFO pci)
 
   struct state_backup
   {
-    state_backup (PCURSORINFO pci) :
+    explicit state_backup (PCURSORINFO pci) :
       hCursor     (pci->hCursor),
       ptScreenPos (pci->ptScreenPos) { };
 

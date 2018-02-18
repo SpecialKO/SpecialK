@@ -1300,8 +1300,6 @@ SK::Framerate::Limiter::Limiter (double target)
 IDirect3DDevice9Ex*
 SK_D3D9_GetTimingDevice (void)
 {
-  return nullptr;
-
   static auto* pTimingDevice =
     reinterpret_cast <IDirect3DDevice9Ex *> (-1);
 

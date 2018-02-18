@@ -812,9 +812,6 @@ struct SK_ThirdPartyDLLs {
     HMODULE rtss_hooks    = nullptr;
     HMODULE steam_overlay = nullptr;
   } overlays;
-  struct {
-    HMODULE gedosato      = nullptr;
-  } misc;
 } third_party_dlls;
 
 //
@@ -1035,21 +1032,22 @@ _SK_SummarizeModule ( LPVOID   base_addr,  size_t      mod_size,
                       HMODULE  hMod,       uintptr_t   addr,
                       wchar_t* wszModName, iSK_Logger* pLogger )
 {
-  char  szSymbol [512] = { };
-  ULONG ulLen  =  511;
-
-  ulLen =
+  ULONG ulLen =
 #ifdef _DEBUG
     //~~~ This is too slow and useless
     SK_GetSymbolNameFromModuleAddr (hMod, addr, szSymbol, ulLen);
 #else
     0;
+  UNREFERENCED_PARAMETER (ulLen);
   UNREFERENCED_PARAMETER (hMod);
   UNREFERENCED_PARAMETER (addr);
 #endif
 
   std::wstring ver_str =
     SK_GetDLLVersionStr (wszModName);
+
+#ifdef _DEBUG
+  char szSymbol [512] = { };
 
   if (ulLen != 0)
   {
@@ -1060,6 +1058,7 @@ _SK_SummarizeModule ( LPVOID   base_addr,  size_t      mod_size,
   }
 
   else
+#endif
   {
     pLogger->Log ( L"[ Module ]  ( %ph + %08i )       %-64hs       %s",
                     static_cast   <void *>  (base_addr),

@@ -417,11 +417,10 @@ D3D9SetTexture_Detour (
 
 
   uint32_t tex_crc32c = 0x0;
+  void*    dontcare   = nullptr;
 
-  void* dontcare;
-  HRESULT hr = E_FAIL;
-
-  hr = pTexture->QueryInterface (IID_SKTextureD3D9, &dontcare);
+  HRESULT hr =
+    pTexture->QueryInterface (IID_SKTextureD3D9, &dontcare);
 
   if (FAILED (hr))
     return D3D9SetTexture_Original (This, Sampler, pTexture);
@@ -681,7 +680,7 @@ SK::D3D9::TextureWorkerThread::~TextureWorkerThread (void)
 bool
 SK::D3D9::TextureManager::Injector::hasPendingLoads (void) const
 {
-  bool ret = false;
+  //bool ret = false;
 
   return
     ( stream_pool.working () );//||
@@ -691,7 +690,7 @@ SK::D3D9::TextureManager::Injector::hasPendingLoads (void) const
 //  ret = (! finished_loads.empty ());
 //  LeaveCriticalSection (&cs_tex_inject);
 
-  return ret;
+//return ret;
 }
 
 void
@@ -1827,18 +1826,15 @@ D3DXCreateTextureFromFileInMemoryEx_Detour (
   if ( dump && (! tex_mgr.isTextureInjectable (checksum)) &&
                (! tex_mgr.isTextureDumped     (checksum)) )
   {
-    D3DXIMAGE_INFO info_     = {            };
-    D3DFORMAT      fmt_real_ = D3DFMT_UNKNOWN;
+    D3DXIMAGE_INFO info_ = { };
 
-    tex_mgr.injector.beginLoad  ();
+    tex_mgr.injector.beginLoad ();
 
     D3DXGetImageInfoFromFileInMemory (pSrcData, SrcDataSize, &info_);
 
-    fmt_real_ = info_.Format;
+    tex_mgr.dumpTexture (info_.Format, checksum, *ppTexture);
 
-    tex_mgr.dumpTexture (fmt_real_, checksum, *ppTexture);
-
-    tex_mgr.injector.endLoad  ();
+    tex_mgr.injector.endLoad   ();
   }
 
   return hr;
@@ -2843,6 +2839,7 @@ SK::D3D9::TextureManager::reset (void)
 void
 SK::D3D9::TextureManager::updateOSD (void)
 {
+#if 0
   return;
 
   if (! init)
@@ -2906,6 +2903,7 @@ SK::D3D9::TextureManager::updateOSD (void)
 
     osd_stats += szFormatted;
   }
+#endif
 }
 
 std::set <uint32_t> textures_used_last_dump;

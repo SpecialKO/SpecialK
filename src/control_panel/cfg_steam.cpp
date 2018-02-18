@@ -89,11 +89,11 @@ SK::ControlPanel::Steam::Draw (void)
         {
           ImGui::BeginTooltip   ();
 
-          static int num_records = 0;
+        //static int num_records = 0;
 
-          auto max_lines = static_cast <int> ((io.DisplaySize.y * 0.725f) / (font.size_multiline * 0.9f));
-          int  cur_line  = 0;
-             num_records = 0;
+          auto max_lines   = static_cast <int> ((io.DisplaySize.y * 0.725f) / (font.size_multiline * 0.9f));
+          int  cur_line    = 0;
+          int  num_records = 0;
 
           ImGui::BeginGroup     ();
 

@@ -72,8 +72,7 @@ public:
 
   virtual void draw (void) override
   {
-    const  float font_size           =             ImGui::GetFont  ()->FontSize                        ;//* scale;
-    const  float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y + ImGui::GetStyle ().ItemInnerSpacing.y;
+    const  float font_size = ImGui::GetFont ()->FontSize;//* scale;
 
     char szAvg  [512] = { };
 

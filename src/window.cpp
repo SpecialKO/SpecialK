@@ -359,15 +359,11 @@ public:
 
         else if (var == fullscreen_)
         {
-          static int x = config.window.res.override.x;
-          static int y = config.window.res.override.y;
-
           if ( config.window.fullscreen != *static_cast <bool *> (val) &&
              ( config.window.borderless || (config.window.fullscreen) ) )
           {
             config.window.fullscreen = *static_cast <bool *> (val);
 
-            static bool first_set         = true;
             static RECT last_known_client = { };
             static RECT last_known_window = { };
 

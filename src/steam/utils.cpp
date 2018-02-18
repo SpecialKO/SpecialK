@@ -16,6 +16,7 @@ concurrency::concurrent_unordered_map <ISteamUtils*, IWrapSteamUtils*>   SK_Stea
 class IWrapSteamUtils : public ISteamUtils
 {
 public:
+  explicit
   IWrapSteamUtils (ISteamUtils* pUtils) :
                     pRealUtils (pUtils) {
   };

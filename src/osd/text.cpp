@@ -1517,7 +1517,7 @@ public:
    SE_Exception (unsigned int n) : nSE (n) {
    }
   
-  unsigned int getSeNumber (void) {
+  unsigned int getSeNumber (void) const {
     return nSE;
   }
 

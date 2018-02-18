@@ -187,10 +187,10 @@ namespace SK_ImGui
     const ImU32 text_color =
       ImGui::ColorConvertFloat4ToU32 (style.Colors [ImGuiCol_Text]);
 
-    color = style.Colors [ImGuiCol_Button];
-
     if (*v)
       color = style.Colors [ImGuiCol_ButtonActive];
+    else
+      color = style.Colors [ImGuiCol_Button];
 
     ImGui::PushStyleColor (ImGuiCol_Button, color);
     ImGui::PushID         (text);
@@ -256,7 +256,7 @@ namespace SK_ImGui
         const float battery_ratio = (float)battery_level/100.0f;
 
         static char szBatteryLevel [128] = { };
-        snprintf (szBatteryLevel, 127, "%hu%% Battery Charge Remaining", battery_level);
+        snprintf (szBatteryLevel, 127, "%hhu%% Battery Charge Remaining", battery_level);
 
         ImGui::PushStyleColor (ImGuiCol_PlotHistogram,  ImColor::HSV (battery_ratio * 0.278f, 0.88f, 0.666f));
         ImGui::PushStyleColor (ImGuiCol_Text,           ImColor (255, 255, 255));
@@ -510,7 +510,7 @@ SK_ImGui_ControlPanelTitle (void)
 
       if (config.steam.show_playtime)
       {
-        snprintf ( szTitle, 511, "%ws%s     (%01lu:%02lu:%02lu)###SK_MAIN_CPL",
+        snprintf ( szTitle, 511, "%ws%s     (%01u:%02u:%02u)###SK_MAIN_CPL",
                      title.c_str (), appname.c_str (),
                        hours, mins, secs );
       }
@@ -528,7 +528,7 @@ SK_ImGui_ControlPanelTitle (void)
       {
         title += L"      -      ";
 
-        snprintf ( szTitle, 511, "%ws(%01lu:%02lu:%02lu)###SK_MAIN_CPL",
+        snprintf ( szTitle, 511, "%ws(%01u:%02u:%02u)###SK_MAIN_CPL",
                      title.c_str (),
                        hours, mins, secs );
       }
@@ -1630,7 +1630,7 @@ SK_ImGui_ControlPanel (void)
          static_cast <int> (io.DisplayFramebufferScale.y) != client.bottom - client.top  ||
          sRGB )
     {
-      snprintf ( szResolution, 63, "   %lux%lu", 
+      snprintf ( szResolution, 63, "   %ux%u", 
                    static_cast <UINT> (io.DisplayFramebufferScale.x),
                    static_cast <UINT> (io.DisplayFramebufferScale.y) );
 

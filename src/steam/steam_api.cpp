@@ -641,7 +641,7 @@ public:
     active_ = (pParam->m_bActive != 0);
   }
 
-  bool isActive (void) { return active_; }
+  bool isActive (void) const { return active_; }
 
 private:
   bool cursor_visible_; // Cursor visible prior to activation?
@@ -1570,7 +1570,7 @@ public:
     async_complete.Unregister  ();
   }
 
-  void log_all_achievements (void)
+  void log_all_achievements (void) const
   {
     ISteamUserStats* stats = steam_ctx.UserStats ();
 
@@ -1925,14 +1925,14 @@ public:
     if (achievement != nullptr)
     {
       if (steam_ctx.UserStats ())
-        achievement->update(steam_ctx.UserStats());
+        achievement->update (steam_ctx.UserStats ());
 
       achievement->progress_.current = pParam->m_nCurProgress;
       achievement->progress_.max     = pParam->m_nMaxProgress;
 
       // Pre-Fetch
       if (steam_ctx.UserStats ())
-        steam_ctx.UserStats()->GetAchievementIcon (pParam->m_rgchAchievementName);
+        steam_ctx.UserStats ()->GetAchievementIcon (pParam->m_rgchAchievementName);
 
       if ( pParam->m_nMaxProgress == pParam->m_nCurProgress )
       {
@@ -1943,11 +1943,8 @@ public:
         if (config.steam.achievements.play_sound)
           PlaySound ( (LPCWSTR)unlock_sound, nullptr, SND_ASYNC | SND_MEMORY );
 
-        if (achievement != nullptr)
-        {
-          steam_log.Log (L" Achievement: '%hs' (%hs) - Unlocked!",
-            achievement->human_name_, achievement->desc_);
-        }
+        steam_log.Log (L" Achievement: '%hs' (%hs) - Unlocked!",
+          achievement->human_name_, achievement->desc_);
 
         // If the user wants a screenshot, but no popups (why?!), this is when
         //   the screenshot needs to be taken.
@@ -2277,15 +2274,15 @@ public:
     return drawn;
   }
 
-  float getPercentOfAchievementsUnlocked (void)
+  float getPercentOfAchievementsUnlocked (void) const
   {
     return percent_unlocked;
   }
 
-  Achievement* getAchievement (const char* szName)
+  Achievement* getAchievement (const char* szName) const
   {
     if (achievements.string_map.count (szName))
-      return achievements.string_map [szName];
+      return achievements.string_map.at (szName);
 
     return nullptr;
   }
@@ -2508,17 +2505,17 @@ public:
     }
   }
 
-  const std::string& getFriendName (uint32_t friend_idx)
+  const std::string& getFriendName (uint32_t friend_idx) const
   {
     return friend_stats [friend_idx].name;
   }
 
-  float getFriendUnlockPercentage (uint32_t friend_idx)
+  float getFriendUnlockPercentage (uint32_t friend_idx) const
   {
     return friend_stats [friend_idx].percent_unlocked;
   }
 
-  bool hasFriendUnlockedAchievement (uint32_t friend_idx, uint32_t achv_idx)
+  bool hasFriendUnlockedAchievement (uint32_t friend_idx, uint32_t achv_idx) const
   {
     return friend_stats [friend_idx].unlocked [achv_idx];
   }
@@ -2528,7 +2525,6 @@ protected:
   {
     if (!config.cegui.enable) return nullptr;
 
-
     if (popup->achievement == nullptr)
       return nullptr;
 
@@ -2536,12 +2532,14 @@ protected:
 
     extern CEGUI::Window* SK_achv_popup;
 
-    char szPopupName [16];
+    char     szPopupName [32] = { };
     sprintf (szPopupName, "Achievement_%i", lifetime_popups++);
 
     popup->window              = SK_achv_popup->clone (true);
     Achievement*   achievement = popup->achievement;
     CEGUI::Window* achv_popup  = popup->window;
+
+    assert (achievement != nullptr);
 
     achv_popup->setName (szPopupName);
 
@@ -2574,7 +2572,7 @@ protected:
 
 
     // If the server hasn't updated the unlock time, just use the current time
-    if (achievement != nullptr && achievement->time_ == 0)
+    if (achievement->time_ == 0)
       _time32 (&achievement->time_);
 
     CEGUI::Window* achv_unlock  = achv_popup->getChild ("UnlockTime");

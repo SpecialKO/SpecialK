@@ -69,13 +69,10 @@ public:
 
   virtual void draw (void) override
   {
-    const  float font_size           =             ImGui::GetFont  ()->FontSize;//                        * scale;
-    const  float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y + ImGui::GetStyle ().ItemInnerSpacing.y;
-
-    static char szAvg [512] = { };
-
-    static bool stress = config.render.framerate.max_delta_time == 500 ?
-                           true : false;
+    const  float font_size   = ImGui::GetFont ()->FontSize;
+    static char  szAvg [512] = { };
+    static bool  stress      = config.render.framerate.max_delta_time == 500 ?
+                                 true : false;
 
     if (SK_ImGui::VerticalToggleButton ("Stress Test (100% CPU Load)", &stress))
     {

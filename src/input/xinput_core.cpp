@@ -166,8 +166,6 @@ SK_XInput_GetPrimaryHookName (void)
 void
 SK_XInput_EstablishPrimaryHook (HMODULE hModCaller, SK_XInputContext::instance_s* pCtx)
 {
-  return;
-
   // Calling module (return address) indicates the game made this call
   if (hModCaller == GetModuleHandle (nullptr))
     InterlockedExchangePointer ((LPVOID *)&xinput_ctx.primary_hook, pCtx);

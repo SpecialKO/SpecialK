@@ -2070,7 +2070,7 @@ namespace GLPerf
       }
     }
 
-    std::wstring getName         (GLvoid)
+    std::wstring getName         (GLvoid) const
     {
       return name_;
     }
@@ -2102,11 +2102,11 @@ namespace GLPerf
 
       return GL_FALSE;
     }
-    GLboolean isReady            (GLvoid)
+    GLboolean isReady            (GLvoid) const
     {
       return ready_;
     }
-    GLboolean isActive           (GLvoid)
+    GLboolean isActive           (GLvoid) const
     {
       return active_;
     }
@@ -2132,7 +2132,7 @@ namespace GLPerf
       result_ = *pResult;
     }
 
-    GLuint64 getLastResult (void)
+    GLuint64 getLastResult (void) const
     {
       return result_;
     }
@@ -2216,14 +2216,12 @@ GLPerf::Init (void)
   glGetQueryObjectui64v =
     (glGetQueryObjectui64v_pfn)wglGetProcAddress ("glGetQueryObjectui64v");
 
-  HAS_pipeline_query = true;
-
-#if 0
+  HAS_pipeline_query =
     glGenQueries && glDeleteQueries && glBeginQuery       && glBeginQueryIndexed  && glEndQuery &&
     glIsQuery    && glQueryCounter  && glGetQueryObjectiv && glGetQueryObjecti64v && glGetQueryObjectui64v;
-#endif
 
-  if (HAS_pipeline_query) {
+  if (HAS_pipeline_query)
+  {
     pipeline_states [ 0] = new PipelineQuery (L"Vertices Submitted",                         GL_VERTICES_SUBMITTED_ARB);
     pipeline_states [ 1] = new PipelineQuery (L"Primitives Submitted",                       GL_PRIMITIVES_SUBMITTED_ARB);
     pipeline_states [ 2] = new PipelineQuery (L"Vertex Shader Invocations",                  GL_VERTEX_SHADER_INVOCATIONS_ARB);
@@ -2248,10 +2246,6 @@ void
 __stdcall
 SK_GL_UpdateRenderStats (void)
 {
-  return;
-
-
-
   if (! (config.render.show))
     return;
 

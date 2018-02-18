@@ -43,11 +43,7 @@ SK_ImGui_SelectAudioSessionDlg (void)
 {
   ImGuiIO& io (ImGui::GetIO ());
 
-         bool  changed   = false;
-  const  float font_size = ImGui::GetFont ()->FontSize * io.FontGlobalScale;
-
-  int            sel_idx = -1;
-
+  bool changed = false;
 
   ImGui::SetNextWindowSizeConstraints ( ImVec2 (io.DisplaySize.x * 0.25f,
                                                 io.DisplaySize.y * 0.15f),
@@ -57,7 +53,8 @@ SK_ImGui_SelectAudioSessionDlg (void)
   if (ImGui::BeginPopupModal ("Audio Session Selector", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders |
                                                                  ImGuiWindowFlags_NoScrollbar      | ImGuiWindowFlags_NoScrollWithMouse))
   {
-    int count = 0;
+    int sel_idx = -1;
+    int count   = 0;
 
     SK_WASAPI_AudioSession** pSessions =
       sessions.getActive (&count);
@@ -86,7 +83,7 @@ SK_ImGui_SelectAudioSessionDlg (void)
     ImGui::Separator  ();
 
     //if (ImGui::ListBoxHeader ("##empty", count, std::min (count + 3, 10)))
-    ImGui::BeginGroup ( );
+    ImGui::BeginGroup ();
     {
       ImGui::PushStyleColor (ImGuiCol_ChildWindowBg, ImColor (0, 0, 0, 0));
       ImGui::BeginChild     ("SessionSelectData",    ImVec2  (0, 0), true,  ImGuiWindowFlags_NavFlattened);
@@ -462,8 +459,8 @@ SK_ImGui_VolumeManager (void)
           {
             session_changed = true;
 
-            snprintf (channel_volumes [i].mute_button, 13, "  Mute  ##%lu", i);
-            snprintf (channel_volumes [i].slider_label, 7, "##vol%lu",      i);
+            snprintf (channel_volumes [i].mute_button, 13, "  Mute  ##%u", i);
+            snprintf (channel_volumes [i].slider_label, 7, "##vol%u",      i);
           }
 
           if (pChannelVolume && SUCCEEDED (pChannelVolume->GetChannelVolume (i, &channel_volumes [i].volume)))
