@@ -421,3 +421,13 @@ SK_WMI_Shutdown (void)
     }
   }
 }
+
+#include <SpecialK/diagnostics/debug_utils.h>
+
+bool
+SK_AutoCOMInit::_assert_not_dllmain (void)
+{
+  SK_ASSERT_NOT_DLLMAIN_THREAD ();
+
+  return (! SK_TLS_Bottom ()->debug.in_DllMain);
+}

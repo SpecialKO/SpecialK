@@ -23,6 +23,7 @@
 #define __SK__DEBUG_UTILS_H__
 
 #include <Windows.h>
+#include <SpecialK/tls.h>
 
 namespace SK
 {
@@ -46,5 +47,19 @@ using ExitProcess_pfn        = void (WINAPI *)(UINT   uExitCode);
 
 using OutputDebugStringA_pfn = void (WINAPI *)(LPCSTR  lpOutputString);
 using OutputDebugStringW_pfn = void (WINAPI *)(LPCWSTR lpOutputString);
+
+
+#include <cassert>
+
+#define SK_ASSERT_NOT_THREADSAFE() {                \
+  static DWORD dwLastThread = 0;                    \
+                                                    \
+  assert ( dwLastThread == 0 ||                     \
+           dwLastThread == GetCurrentThreadId () ); \
+                                                    \
+  dwLastThread = GetCurrentThreadId ();             \
+}
+
+#define SK_ASSERT_NOT_DLLMAIN_THREAD() assert (! SK_TLS_Bottom ()->debug.in_DllMain);
 
 #endif /* __SK__DEBUG_UTILS_H__ */

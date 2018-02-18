@@ -1466,6 +1466,11 @@ SK::Framerate::Limiter::try_wait (void)
 void
 SK::Framerate::Limiter::wait (void)
 {
+  // Don't limit under certain circumstances or exiting / alt+tabbing takes
+  //   longer than it should.
+  if (ReadAcquire (&__SK_DLL_Ending))
+    return;
+
   SK_RunOnce ( SetThreadPriority ( GetCurrentThread (),
                                      THREAD_PRIORITY_ABOVE_NORMAL ) );
 

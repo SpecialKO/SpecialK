@@ -49,6 +49,7 @@
 
 #include <imgui/backends/imgui_d3d11.h>
 #include <SpecialK/render/d3d9/d3d9_backend.h>
+#include <SpecialK/diagnostics/debug_utils.h>
 
 #include <SpecialK/control_panel.h>
 
@@ -826,7 +827,7 @@ const int        AlwaysOnTop = 1;
 
 auto ActivateWindow =[&](HWND hWnd, bool active = false)
 {
-  //HWND hWndForeground = GetForegroundWindow ();
+  SK_ASSERT_NOT_THREADSAFE ();
 
   bool state_changed =
     (wm_dispatch.active_windows [hWnd] != active && hWnd == SK_GetGameWindow ());
@@ -842,13 +843,13 @@ auto ActivateWindow =[&](HWND hWnd, bool active = false)
   {
     if (config.window.always_on_top == PreventAlwaysOnTop)
     {
-      if (! active)//hWndForeground != SK_GetGameWindow ())
+      if ((! active) && SK_Window_IsTopMost ())
         SK_DeferCommand ("Window.TopMost false");
     }
 
     else if (config.window.always_on_top == AlwaysOnTop)
     {
-      if (! active)//hWndForeground != SK_GetGameWindow ())
+      if ((! active) && (! SK_Window_IsTopMost ()))
         SK_DeferCommand ("Window.TopMost true");
     }
 
@@ -1040,6 +1041,8 @@ window_message_dispatch_s::On_MOUSEACTIVATE (HWND hWnd, WPARAM& wParam, LPARAM&,
 bool
 window_message_dispatch_s::On_NCACTIVATE (HWND hWnd, WPARAM& wParam, LPARAM& lParam, LRESULT*)
 {
+  SK_ASSERT_NOT_THREADSAFE ();
+
   if (wParam != FALSE)
   {
     if (active_windows [hWnd] == false)
@@ -1077,6 +1080,8 @@ window_message_dispatch_s::On_NCACTIVATE (HWND hWnd, WPARAM& wParam, LPARAM& lPa
 bool
 window_message_dispatch_s::On_ACTIVATEAPP (HWND hWnd, WPARAM& wParam, LPARAM& lParam, LRESULT*)
 {
+  SK_ASSERT_NOT_THREADSAFE ();
+
   if (wParam != FALSE)
   {
     if (active_windows [hWnd] == false)
@@ -3412,10 +3417,37 @@ DWORD
 WINAPI
 SK_RealizeForegroundWindow (HWND hWndForeground)
 {
+  auto TryToEarlyOut =
+  [&]
+  {
+    bool focused = 
+      ( GetFocus () == hWndForeground );
+
+    bool foreground =
+      ( GetForegroundWindow () == hWndForeground );
+
+    // Nothing needs to be done
+    if (focused || foreground)
+    {
+      if (! focused)    SetFocus            (hWndForeground);
+      if (! foreground) SetForegroundWindow (hWndForeground);
+
+      return true;
+    }
+
+    return false;
+  };
+
+
+  if (TryToEarlyOut ()) return 0UL;
+
   static volatile LONG nest_lvl = 0L;
 
   while (ReadAcquire (&nest_lvl))
     MsgWaitForMultipleObjectsEx (0, nullptr, 15, QS_ALLINPUT, MWMO_ALERTABLE);
+
+  if (TryToEarlyOut ()) return 0UL;
+
 
   InterlockedIncrementAcquire (&nest_lvl);
 
@@ -3432,7 +3464,6 @@ SK_RealizeForegroundWindow (HWND hWndForeground)
                                   SWP_NOSENDCHANGING | SWP_FRAMECHANGED | SWP_DEFERERASE   |
                                   SWP_NOMOVE         | SWP_NOSIZE       | SWP_NOREPOSITION );
 
-          SetActiveWindow     (static_cast <HWND> (user));
           SetForegroundWindow (static_cast <HWND> (user));
           SetFocus            (static_cast <HWND> (user));
           BringWindowToTop    (static_cast <HWND> (user));

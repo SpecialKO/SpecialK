@@ -527,7 +527,6 @@ struct sk_config_t
   } apis;
 
   struct {
-    int     init_delay          = 250;
     bool    silent              = false;
     int     log_level           = 0;
     bool    handle_crashes      = true;

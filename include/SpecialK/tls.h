@@ -20,14 +20,10 @@
 **/
 #pragma once
 
-// Useless warninn:  'typedef ': ignored on left of '' when no variable is declared
+// Useless warning:  'typedef ': ignored on left of '' when no variable is declared
 #pragma warning (disable: 4091)
 
 #include <Windows.h>
-
-#define _NO_CVCONST_H
-#define _IMAGEHLP_SOURCE_
-#include <dbghelp.h>
 
 struct ID3D11RasterizerState;
 struct ID3D11DepthStencilState;
@@ -246,6 +242,7 @@ struct SK_TLS
     CONTEXT          last_ctx    = {   };
     EXCEPTION_RECORD last_exc    = {   };
     bool             last_chance = false;
+    bool             in_DllMain  = false;
   } debug;
 
   struct tex_mgmt_s

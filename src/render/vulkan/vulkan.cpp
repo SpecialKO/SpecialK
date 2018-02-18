@@ -34,6 +34,7 @@
 #include <SpecialK/config.h>
 #include <SpecialK/hooks.h>
 
+#include <SpecialK/thread.h>
 #include <SpecialK/framerate.h>
 #include <SpecialK/diagnostics/compatibility.h>
 
@@ -45,8 +46,7 @@ volatile LONG __vk_ready = FALSE;
 void
 WaitForInit_Vk (void)
 {
-  while (! ReadAcquire (&__vk_ready))
-    MsgWaitForMultipleObjectsEx (0, nullptr, config.system.init_delay, QS_ALLINPUT, MWMO_ALERTABLE);
+  SK_Thread_SpinUntilFlagged (&__vk_ready);
 }
 
 extern HMODULE WINAPI SK_GetDLL   (void);

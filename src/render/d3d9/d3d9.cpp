@@ -44,6 +44,7 @@ MIDL_INTERFACE("B18B10CE-2649-405a-870F-95F777D4313A") IDirect3DDevice9Ex;
 
 #include <atlbase.h>
 #include <comdef.h>
+#include <SpecialK/com_util.h>
 
 #include <SpecialK/log.h>
 #include <SpecialK/crc32.h>
@@ -4720,9 +4721,7 @@ HookD3D9 (LPVOID user)
 
   if (! InterlockedCompareExchange (&__hooked, TRUE, FALSE))
   {
-    const bool success = SUCCEEDED (
-      CoInitializeEx (nullptr, COINIT_MULTITHREADED)
-    );
+    SK_AutoCOMInit auto_com;
     {
       SK_TLS_Bottom ()->d3d9.ctx_init_thread = true;
 
@@ -4900,8 +4899,6 @@ HookD3D9 (LPVOID user)
         InterlockedExchange  (&__d3d9_ready, TRUE);
       }
     }
-    if (success)
-      CoUninitialize ();
 
     InterlockedIncrement (&__hooked);
   }

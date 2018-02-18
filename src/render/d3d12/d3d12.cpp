@@ -56,8 +56,7 @@ WaitForInitD3D12 (void)
 {
   return;
 
-  while (! InterlockedCompareExchange (&__d3d12_ready, FALSE, FALSE))
-    MsgWaitForMultipleObjectsEx (0, nullptr, config.system.init_delay, QS_ALLINPUT, MWMO_ALERTABLE);
+//SK_Thread_SpinUntilFlagged (&__d3d12_ready);
 }
 
 namespace SK

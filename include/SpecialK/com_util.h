@@ -30,20 +30,35 @@ SK_INCLUDE_START (COM_UTIL)
 class SK_AutoCOMInit
 {
 public:
-  SK_AutoCOMInit (void) {
-    HRESULT hr = CoInitializeEx (NULL, COINIT_MULTITHREADED);
+  SK_AutoCOMInit (DWORD dwCoInit = COINIT_MULTITHREADED) :
+           init_flags_ (dwCoInit)
+  {
+    _assert_not_dllmain ();
+
+    HRESULT hr =
+      CoInitializeEx (nullptr, init_flags_);
 
     if (SUCCEEDED (hr))
-      success = true;
+      success_ = true;
+    else
+      init_flags_ = ~init_flags_;
   }
 
-  ~SK_AutoCOMInit (void) {
-    if (success)
+  ~SK_AutoCOMInit (void)
+  {
+    if (success_)
       CoUninitialize ();
   }
 
+  bool  isInit       (void) { return success_;    }
+  DWORD getInitFlags (void) { return init_flags_; }
+
+protected:
+  static bool _assert_not_dllmain (void);
+
 private:
-  bool success = false;
+  DWORD init_flags_ = COINIT_MULTITHREADED;
+  bool  success_    = false;
 };
 
 

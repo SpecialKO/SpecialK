@@ -227,12 +227,11 @@ sk::ParameterBool*        game_output;
 sk::ParameterBool*        handle_crashes;
 sk::ParameterBool*        prefer_fahrenheit;
 sk::ParameterBool*        ignore_rtss_delay;
-sk::ParameterInt*         init_delay;
 sk::ParameterInt*         log_level;
 sk::ParameterBool*        trace_libraries;
 sk::ParameterBool*        strict_compliance;
 sk::ParameterBool*        silent;
-sk::ParameterStringW*     version;
+sk::ParameterStringW*     version; // Version at last boot
 
 struct {
   struct {
@@ -690,7 +689,6 @@ SK_LoadConfigEx (std::wstring name, bool create)
     // General Mod System Settings
     //////////////////////////////////////////////////////////////////////////
 
-    ConfigEntry (init_delay,                             L"Initialization Delay (msecs)",                              dll_ini,         L"SpecialK.System",       L"InitDelay"),
     ConfigEntry (silent,                                 L"Log Silence",                                               dll_ini,         L"SpecialK.System",       L"Silent"),
     ConfigEntry (strict_compliance,                      L"Strict DLL Loader Compliance",                              dll_ini,         L"SpecialK.System",       L"StrictCompliant"),
     ConfigEntry (trace_libraries,                        L"Trace DLL Loading (needed for dynamic API detection)",      dll_ini,         L"SpecialK.System",       L"TraceLoadLibrary"),
@@ -2018,7 +2016,6 @@ SK_LoadConfigEx (std::wstring name, bool create)
   osd.viewport.scale->load (config.osd.scale);
 
 
-  init_delay->load        (config.system.init_delay);
   silent->load            (config.system.silent);
   trace_libraries->load   (config.system.trace_load_library);
   strict_compliance->load (config.system.strict_compliance);
@@ -2662,7 +2659,6 @@ SK_SaveConfig ( std::wstring name,
   steam.log.silent->store                   (config.steam.silent);
   steam.drm.spoof_BLoggedOn->store          (config.steam.spoof_BLoggedOn);
 
-  init_delay->store                         (config.system.init_delay);
   silent->store                             (config.system.silent);
   log_level->store                          (config.system.log_level);
   prefer_fahrenheit->store                  (config.system.prefer_fahrenheit);

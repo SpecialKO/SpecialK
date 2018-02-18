@@ -481,10 +481,16 @@ volatile LONG  __d3d11_ready    = FALSE;
 
 void WaitForInitD3D11 (void)
 {
-  while (! ReadAcquire (&__d3d11_ready))
+  if (CreateDXGIFactory_Import == nullptr)
   {
-    MsgWaitForMultipleObjectsEx (0, nullptr, config.system.init_delay, QS_ALLINPUT, MWMO_ALERTABLE);
+    SK_RunOnce (SK_BootDXGI ());
   }
+
+  if (SK_TLS_Bottom ()->d3d11.ctx_init_thread)
+    return;
+
+  if (! ReadAcquire (&__d3d11_ready))
+    SK_Thread_SpinUntilFlagged (&__d3d11_ready);
 }
 
 

@@ -47,6 +47,7 @@
 #include <SpecialK/steam_api.h>
 #include <SpecialK/tls.h>
 
+#include <SpecialK/com_util.h>
 #include <SpecialK/framerate.h>
 #include <SpecialK/diagnostics/compatibility.h>
 
@@ -224,19 +225,13 @@ HookD3D8 (LPVOID user)
     return 0;
   }
 
-  const bool success = SUCCEEDED (
-    CoInitializeEx (nullptr, COINIT_MULTITHREADED)
-  );
-
+  SK_AutoCOMInit auto_com;
   {
     InterlockedExchange (&__d3d8_ready, TRUE);
 
     if (! (SK_GetDLLRole () & DLL_ROLE::DXGI))
       SK::DXGI::StartBudgetThread_NoAdapter ();
   }
-
-  if (success)
-    CoUninitialize ();
  
   return 0;
 }

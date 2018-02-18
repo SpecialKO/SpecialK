@@ -237,28 +237,50 @@ ImGui_DX11Shutdown ( void )
 bool
 ImGui_DX11Startup ( IDXGISwapChain* pSwapChain )
 {
-#ifdef _DEBUG
   SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
-#endif
+
 
   CComPtr <ID3D11Device>        pD3D11Dev         = nullptr;
   CComPtr <ID3D11DeviceContext> pImmediateContext = nullptr;
 
-  assert (pSwapChain == rb.swapchain);
+  //assert (pSwapChain == rb.swapchain ||
+  //                      rb.swapchain.IsEqualObject (pSwapChain));
 
   if ( SUCCEEDED (pSwapChain->GetDevice (IID_PPV_ARGS (&pD3D11Dev))) )
   {
-    assert (pD3D11Dev.IsEqualObject (rb.device));
+    //assert (pD3D11Dev.IsEqualObject (rb.device) ||
+    //                                 rb.device == nullptr);
 
     pD3D11Dev->GetImmediateContext (&pImmediateContext);
 
-    assert (pImmediateContext.IsEqualObject (rb.d3d11.immediate_ctx));
-  
-    if (pImmediateContext != nullptr)
+    //assert (pImmediateContext.IsEqualObject (rb.d3d11.immediate_ctx) ||
+    //                                         rb.d3d11.immediate_ctx == nullptr);
+
+    if ( pImmediateContext != nullptr )
     {
+      if (! (( rb.device    == nullptr || rb.device.IsEqualObject    (pD3D11Dev)  ) ||
+             ( rb.swapchain == nullptr || rb.swapchain.IsEqualObject (pSwapChain) )) )
+      {
+        DXGI_SWAP_CHAIN_DESC swap_desc = { };
+
+        if (SUCCEEDED (pSwapChain->GetDesc (&swap_desc)))
+        {
+          if (swap_desc.OutputWindow != nullptr)
+          {
+            if (rb.windows.focus.hwnd != swap_desc.OutputWindow)
+              rb.windows.setFocus (swap_desc.OutputWindow);
+
+            if (rb.windows.device.hwnd == 0)
+              rb.windows.setDevice (swap_desc.OutputWindow);
+          }
+        }
+      }
+
       imgui_swap = pSwapChain;
-      return ImGui_ImplDX11_Init (pSwapChain, pD3D11Dev, pImmediateContext);
+
+      return
+        ImGui_ImplDX11_Init (pSwapChain, pD3D11Dev, pImmediateContext);
     }
   }
 
@@ -496,7 +518,7 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
     SK_GetCurrentRenderBackend ();
 
 
-  assert (rb.swapchain == nullptr || This == rb.swapchain);
+  assert (rb.swapchain == nullptr || This == rb.swapchain || rb.swapchain.IsEqualObject (This));
 
   CComPtr <ID3D11Device> pDev = nullptr;
 
@@ -5956,6 +5978,7 @@ SK_DXGI_HookFactory (IDXGIFactory* pFactory)
 
 #include <mmsystem.h>
 #include <d3d11_2.h>
+#include <SpecialK/com_util.h>
 
 void
 SK_DXGI_InitHooksBeforePlugIn (void)
@@ -6014,9 +6037,7 @@ HookDXGI (LPVOID user)
   {
     SK_TLS_Bottom ()->d3d11.ctx_init_thread = true;
 
-    bool success =
-      SUCCEEDED ( CoInitializeEx (nullptr, COINIT_MULTITHREADED) );
-    DBG_UNREFERENCED_LOCAL_VARIABLE (success);
+    SK_AutoCOMInit auto_com;
 
     SK_D3D11_Init ();
 
@@ -6141,8 +6162,6 @@ HookDXGI (LPVOID user)
     }
 
     SK_Win32_CleanupDummyWindow (desc.OutputWindow);
-
-    if (success) CoUninitialize ();
 
     InterlockedIncrement (&__hooked);
   }
@@ -6482,9 +6501,7 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
   InterlockedExchange ( &params->ready, TRUE );
 
 
-  bool success =
-    SUCCEEDED ( CoInitializeEx (nullptr, COINIT_MULTITHREADED ) );
-
+  SK_AutoCOMInit auto_com;
 
   while ( ReadAcquire ( &params->ready ) )
   {
@@ -6693,9 +6710,6 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
   CloseHandle (params->shutdown);
                params->shutdown = INVALID_HANDLE_VALUE;
 
-  if (success)
-    CoUninitialize ();
-
   return 0;
 }
 
@@ -6704,8 +6718,7 @@ SK::DXGI::StartBudgetThread_NoAdapter (void)
 {
   HRESULT hr = E_NOTIMPL;
 
-  bool success =
-    SUCCEEDED ( CoInitializeEx ( nullptr, COINIT_MULTITHREADED ) );
+  SK_AutoCOMInit auto_com;
 
   static HMODULE
     hDXGI = LoadLibraryW_Original ( L"dxgi.dll" );
@@ -6735,9 +6748,6 @@ SK::DXGI::StartBudgetThread_NoAdapter (void)
       }
     }
   }
-
-  if (success)
-    CoUninitialize ();
 
   return hr;
 }

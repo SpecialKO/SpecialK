@@ -658,45 +658,41 @@ __stdcall
 SK_Attach (DLL_ROLE role)
 {
   if (! InterlockedCompareExchange (&__SK_DLL_Attached, TRUE,        FALSE))
-  {     InterlockedCompareExchange (&__SK_TLS_INDEX,    TlsAlloc (), TLS_OUT_OF_INDEXES);
-    if ( TLS_OUT_OF_INDEXES !=
-           ReadAcquire (&__SK_TLS_INDEX) )
+  {
+    if (__SK_DLL_Bootstraps.count (role))
     {
-      if (__SK_DLL_Bootstraps.count (role))
+      const auto& bootstrap =
+        __SK_DLL_Bootstraps.at (role);
+
+      if (SK_IsInjected () && SK_TryLocalWrapperFirst (bootstrap.wrapper_dlls))
       {
-        const auto& bootstrap =
-          __SK_DLL_Bootstraps.at (role);
-
-        if (SK_IsInjected () && SK_TryLocalWrapperFirst (bootstrap.wrapper_dlls))
-        {
-          return SK_DontInject ();
-        }
-
-
-        budget_mutex = new SK_Thread_HybridSpinlock (  400);
-        init_mutex   = new SK_Thread_HybridSpinlock ( 5000);
-        loader_lock  = new SK_Thread_HybridSpinlock ( 6536);
-        wmi_cs       = new SK_Thread_HybridSpinlock (  128);
-        cs_dbghelp   = new SK_Thread_HybridSpinlock (65536);
-
-
-        _time64 (&__SK_DLL_AttachTime);
-
-        InterlockedCompareExchange (
-          &__SK_DLL_Attached,
-            bootstrap.start (),
-              TRUE );
-
-        if (ReadAcquire (&__SK_DLL_Attached))
-        {
-          return TRUE;
-        }
-
-
-        SK_CleanupMutex (&budget_mutex); SK_CleanupMutex (&init_mutex);
-        SK_CleanupMutex (&loader_lock);  SK_CleanupMutex (&cs_dbghelp);
-        SK_CleanupMutex (&wmi_cs);
+        return SK_DontInject ();
       }
+
+
+      budget_mutex = new SK_Thread_HybridSpinlock (  400);
+      init_mutex   = new SK_Thread_HybridSpinlock ( 5000);
+      loader_lock  = new SK_Thread_HybridSpinlock ( 6536);
+      wmi_cs       = new SK_Thread_HybridSpinlock (  128);
+      cs_dbghelp   = new SK_Thread_HybridSpinlock (65536);
+
+
+      _time64 (&__SK_DLL_AttachTime);
+
+      InterlockedCompareExchange (
+        &__SK_DLL_Attached,
+          bootstrap.start (),
+            TRUE );
+
+      if (ReadAcquire (&__SK_DLL_Attached))
+      {
+        return TRUE;
+      }
+
+
+      SK_CleanupMutex (&budget_mutex); SK_CleanupMutex (&init_mutex);
+      SK_CleanupMutex (&loader_lock);  SK_CleanupMutex (&cs_dbghelp);
+      SK_CleanupMutex (&wmi_cs);
     }
   }
 
@@ -740,6 +736,58 @@ SK_Detach (DLL_ROLE role)
 
 
 
+void SK_AllocTLS (void)
+{
+  InterlockedCompareExchange (&__SK_TLS_INDEX, TlsAlloc (), TLS_OUT_OF_INDEXES);
+
+  if ( TLS_OUT_OF_INDEXES !=
+         ReadAcquire (&__SK_TLS_INDEX) )
+  {
+    auto lpvData =
+      static_cast <LPVOID> (
+        LocalAlloc ( LPTR, sizeof (SK_TLS) * SK_TLS::stack::max )
+      );
+
+    if (lpvData != nullptr)
+    {
+      if (! TlsSetValue (ReadAcquire (&__SK_TLS_INDEX), lpvData))
+      {
+        LocalFree (lpvData);
+      }
+
+      else
+      {
+        *(SK_TLS *)lpvData = SK_TLS::SK_TLS ();
+        (static_cast <SK_TLS *> (lpvData))->stack.current = 0;
+      }
+    }
+  }
+}
+
+void SK_CleanupTLS (void)
+{
+  if (ReadAcquire (&__SK_TLS_INDEX) != TLS_OUT_OF_INDEXES)
+  {
+    auto lpvData =
+      static_cast <LPVOID> (TlsGetValue (__SK_TLS_INDEX));
+
+    if (lpvData != nullptr)
+    {
+#ifdef _DEBUG
+      size_t freed =
+#endif
+      SK_TLS_Bottom ()->Cleanup (SK_TLS_CleanupReason_e::Unload);
+
+#ifdef _DEBUG
+      SK_LOG0 ( ( L"Freed %zu bytes of temporary heap storage for tid=%x",
+                    freed, GetCurrentThreadId () ), L"TLS Memory" );
+#endif
+
+      LocalFree   (lpvData);
+      TlsSetValue (ReadAcquire (&__SK_TLS_INDEX), nullptr);
+    }
+  }
+}
 
 BOOL
 APIENTRY
@@ -749,13 +797,27 @@ DllMain ( HMODULE hModule,
 {
   UNREFERENCED_PARAMETER (lpReserved);
 
-  auto EarlyOut = [&](BOOL bRet = TRUE) { return bRet; };
+  auto EarlyOut =
+  [&](BOOL bRet = TRUE)
+  {
+    if (ReadAcquire (&__SK_TLS_INDEX) != TLS_OUT_OF_INDEXES)
+      SK_TLS_Bottom ()->debug.in_DllMain = false;
+
+    SK_CleanupTLS ();
+
+    return bRet;
+  };
 
 
   switch (ul_reason_for_call)
   {
     case DLL_PROCESS_ATTACH:
     {
+      SK_AllocTLS ();
+
+      if (ReadAcquire (&__SK_TLS_INDEX) != TLS_OUT_OF_INDEXES)
+        SK_TLS_Bottom ()->debug.in_DllMain = true;
+
       if (InterlockedExchangePointer (
             reinterpret_cast <LPVOID  *> (
                   const_cast <HMODULE *> (&hModSelf)
@@ -801,6 +863,10 @@ DllMain ( HMODULE hModule,
       {
         SK_Inject_AcquireProcess ();
       }
+
+      // We're done with DllMain, this thread is no longer special...
+      if (ReadAcquire (&__SK_TLS_INDEX) != TLS_OUT_OF_INDEXES)
+        SK_TLS_Bottom ()->debug.in_DllMain = false;
 
       return TRUE;
     } break;
@@ -856,54 +922,16 @@ DllMain ( HMODULE hModule,
     {
       InterlockedIncrement (&__SK_Threads_Attached);
 
-      if (ReadAcquire (&__SK_TLS_INDEX) != TLS_OUT_OF_INDEXES)
-      {
-        auto lpvData =
-          static_cast <LPVOID> (
-            LocalAlloc ( LPTR, sizeof (SK_TLS) * SK_TLS::stack::max )
-          );
-
-        if (lpvData != nullptr)
-        {
-          if (! TlsSetValue (ReadAcquire (&__SK_TLS_INDEX), lpvData))
-          {
-            LocalFree (lpvData);
-          }
-
-          else
-          {
-            *(SK_TLS *)lpvData = SK_TLS::SK_TLS ();
-            (static_cast <SK_TLS *> (lpvData))->stack.current = 0;
-          }
-        }
-      }
-    } break;
+      SK_AllocTLS ();
+    }
+    break;
 
 
     case DLL_THREAD_DETACH:
     {
-      if (ReadAcquire (&__SK_TLS_INDEX) != TLS_OUT_OF_INDEXES)
-      {
-        auto lpvData =
-          static_cast <LPVOID> (TlsGetValue (__SK_TLS_INDEX));
-
-        if (lpvData != nullptr)
-        {
-#ifdef _DEBUG
-          size_t freed =
-#endif
-          SK_TLS_Bottom ()->Cleanup (SK_TLS_CleanupReason_e::Unload);
-
-#ifdef _DEBUG
-          SK_LOG0 ( ( L"Freed %zu bytes of temporary heap storage for tid=%x",
-                        freed, GetCurrentThreadId () ), L"TLS Memory" );
-#endif
-
-          LocalFree   (lpvData);
-          TlsSetValue (ReadAcquire (&__SK_TLS_INDEX), nullptr);
-        }
-      }
-    } break;
+      SK_CleanupTLS ();
+    }
+    break;
   }
 
   return TRUE;

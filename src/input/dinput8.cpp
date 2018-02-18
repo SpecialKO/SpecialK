@@ -497,19 +497,13 @@ SK_HookDI8 (LPVOID user)
   //  return 0;
   //}
 
-  const bool success = SUCCEEDED (
-    CoInitializeEx (nullptr, COINIT_MULTITHREADED)
-  );
-
+  SK_AutoCOMInit auto_com;
   {
     SK_BootDI8 ();
 
     if (! (SK_GetDLLRole () & DLL_ROLE::DXGI))
       SK::DXGI::StartBudgetThread_NoAdapter ();
   }
-
-  if (success)
-    CoUninitialize ();
 
   return 0;
 }
