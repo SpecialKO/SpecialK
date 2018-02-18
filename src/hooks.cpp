@@ -1099,15 +1099,23 @@ SK_CreateVFTableHook3 ( const wchar_t  *pwszFuncName,
   return status;
 }
 
+#ifdef _DEBUG
+#define SK_IsDebug() true
+#else
+#define SK_IsDebug() false
+#endif
+
 MH_STATUS
 __stdcall
 SK_ApplyQueuedHooks (void)
 {
 #ifdef _DEBUG
   SK_LOG_CALL (" Min Hook ");
+#else
+  if (config.system.log_level > 0) SK_LOG_CALL (" Min Hook ");
+#endif
 
   DWORD dwStart = timeGetTime ();
-#endif
 
   MH_STATUS status =
     MH_ApplyQueued ();
@@ -1117,9 +1125,10 @@ SK_ApplyQueuedHooks (void)
     SK_LOG_MINHOOK ( status, L"Failed to Enable Deferred Hooks!", 0 );
   }
 
-#ifdef _DEBUG
-  SK_LOG0 ((L" >> %lu ms", timeGetTime () - dwStart), L" Min Hook ");
-#endif
+  const int lvl =
+    SK_IsDebug () ? 0 : 1;
+
+  SK_LOG ((L" >> %lu ms", timeGetTime () - dwStart), lvl, L" Min Hook ");
 
   return status;
 }

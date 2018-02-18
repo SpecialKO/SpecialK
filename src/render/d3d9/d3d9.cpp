@@ -8047,6 +8047,11 @@ SK::D3D9::ShaderTracker::use (IUnknown *pShader)
 void
 SK_D3D9_QuickHook (void)
 {
+  // We don't want to hook this, and we certainly don't want to hook it using
+  //   cached addresses!
+  if (! (config.apis.d3d9.hook || config.apis.d3d9ex.hook))
+    return;
+
   if (config.steam.preload_overlay)
     return;
 

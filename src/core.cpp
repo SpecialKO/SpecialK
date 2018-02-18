@@ -479,10 +479,6 @@ SK_InitCore (std::wstring backend, void* callback)
 
          callback_fn (SK_InitFinishCallback);
   SK_ResumeThreads   (init_tids);
-
-  // Setup the compatibility backend, which monitors loaded libraries,
-  //   blacklists bad DLLs and detects render APIs...
-  SK_EnumLoadedModules (SK_ModuleEnum::PostLoad);
 }
 
 
@@ -1298,7 +1294,9 @@ BACKEND_INIT:
       SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_BELOW_NORMAL);
       WaitForInit ();
 
-      SK_ApplyQueuedHooks ();
+      // Setup the compatibility backend, which monitors loaded libraries,
+      //   blacklists bad DLLs and detects render APIs...
+      SK_EnumLoadedModules (SK_ModuleEnum::PostLoad);
 
       CloseHandle (GetCurrentThread ());
 

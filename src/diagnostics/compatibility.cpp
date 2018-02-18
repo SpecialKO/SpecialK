@@ -49,6 +49,8 @@
 #include <memory>
 #include <typeindex>
 
+#include <cassert>
+
 #include <SpecialK/config.h>
 #include <SpecialK/hooks.h>
 #include <SpecialK/core.h>
@@ -85,8 +87,6 @@ using GetModuleHandleEx_pfn  = BOOL    (__stdcall *)(DWORD   dwFlags,   LPCVOID 
 
 BOOL __stdcall SK_TerminateParentProcess    (UINT uExitCode);
 BOOL __stdcall SK_ValidateGlobalRTSSProfile (void);
-void __stdcall SK_ReHookLoadLibrary         (void);
-void __stdcall SK_UnhookLoadLibrary         (void);
 
 bool SK_LoadLibrary_SILENCE = false;
 
@@ -826,15 +826,15 @@ struct SK_ThirdPartyDLLs {
 //   system such as Special K, but the compatibility layer benefits from
 //     knowing exactly WHAT was responsible for loading a library.
 //
-void
+bool
 __stdcall
 SK_ReHookLoadLibrary (void)
 {
   if (! config.system.trace_load_library)
-    return;
+    return false;
 
   if (_loader_hooks.unhooked)
-    return;
+    return false;
 
   SK_LockDllLoader ();
 
@@ -924,11 +924,6 @@ SK_ReHookLoadLibrary (void)
 
   static int calls = 0;
 
-  if (calls++ > 0)
-  {
-    SK_ApplyQueuedHooks ();
-  }
-
 
   // Steamclient64.dll leaks heap memory when unloaded,
   //   to prevent this from showing up during debug sessions,
@@ -943,7 +938,14 @@ SK_ReHookLoadLibrary (void)
   MH_QueueEnableHook (_loader_hooks.FreeLibrary_target);
 #endif
 
+  if (calls++ > 0)
+  {
+    SK_ApplyQueuedHooks ();
+  }
+
   SK_UnlockDllLoader ();
+
+  return (calls > 1);
 }
 
 void
@@ -1328,7 +1330,7 @@ SK_WalkModules (int cbNeeded, HANDLE hProc, HMODULE* hMods, SK_ModuleEnum when)
         {
           if ( StrStrIW (wszModName, wszSteamAPIDLL)    ||
                StrStrIW (wszModName, wszSteamAPIAltDLL) ||
-              StrStrIW (wszModName, wszSteamNativeDLL) ||
+               StrStrIW (wszModName, wszSteamNativeDLL) ||
                StrStrIW (wszModName, wszSteamClientDLL) ||
                StrStrIW (wszModName, L"steamwrapper") )
           {
@@ -1355,10 +1357,12 @@ SK_WalkModules (int cbNeeded, HANDLE hProc, HMODULE* hMods, SK_ModuleEnum when)
 
   if (rehook)
   {
-    SK_ReHookLoadLibrary ();
+    // We took care of ApplyQueuedHooks already
+    if (SK_ReHookLoadLibrary ())
+      return;
   }
 
-  if (rehook || new_hooks)
+  if (rehook || new_hooks || when == SK_ModuleEnum::PostLoad)
   {
     SK_ApplyQueuedHooks ();
   }
@@ -1396,7 +1400,7 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
                       sizeof (working_set->modules),
                                   &cbNeeded) )
   {
-  //assert (cbNeeded <= sizeof (working_set->modules));
+    assert (cbNeeded <= sizeof (working_set->modules));
 
     working_set->proc   = hProc;
     working_set->logger = pLogger;

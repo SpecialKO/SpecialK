@@ -1156,7 +1156,7 @@ SK_ImGui_WantKeyboardCapture (void)
   if (config.input.keyboard.disabled_to_game)
     imgui_capture = true;
 
-  return imgui_capture && GetForegroundWindow () == game_window.hWnd;
+  return imgui_capture && game_window.active && GetForegroundWindow () == game_window.hWnd;
 }
 
 bool
@@ -1167,7 +1167,7 @@ SK_ImGui_WantTextCapture (void)
   ImGuiIO& io =
     ImGui::GetIO ();
 
-  if (io.WantTextInput && GetForegroundWindow () == game_window.hWnd)
+  if (io.WantTextInput && game_window.active && GetForegroundWindow () == game_window.hWnd)
     imgui_capture = true;
 
   return imgui_capture;
@@ -1207,7 +1207,7 @@ SK_ImGui_WantMouseCaptureEx (DWORD dwReasonMask)
 {
   bool imgui_capture = false;
 
-  if (SK_ImGui_IsMouseRelevant () && GetForegroundWindow () == game_window.hWnd)
+  if (SK_ImGui_IsMouseRelevant () && game_window.active && GetForegroundWindow () == game_window.hWnd)
   {
     ImGuiIO& io =
       ImGui::GetIO ();

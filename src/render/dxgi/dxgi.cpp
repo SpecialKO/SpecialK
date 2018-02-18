@@ -1074,7 +1074,8 @@ SK_GetDXGIFactoryInterfaceVer (const IID& riid)
   if (riid == __uuidof (IDXGIFactory5))
     return 5;
 
-  //assert (false);
+  assert (false);
+
   return -1;
 }
 
@@ -1179,7 +1180,8 @@ SK_GetDXGIFactoryInterfaceVer (IUnknown *pFactory)
     return 0;
   }
 
-  //assert (false);
+  assert (false);
+
   return -1;
 }
 
@@ -1222,7 +1224,8 @@ SK_GetDXGIAdapterInterfaceVer (const IID& riid)
   if (riid == __uuidof (IDXGIAdapter3))
     return 3;
 
-  //assert (false);
+  assert (false);
+
   return -1;
 }
 
@@ -1282,7 +1285,8 @@ SK_GetDXGIAdapterInterfaceVer (IUnknown *pAdapter)
     return 0;
   }
 
-  //assert (false);
+  assert (false);
+
   return -1;
 }
 
@@ -5585,7 +5589,7 @@ SK_HookDXGI (void)
       LocalHook_CreateDXGIFactory2.target.addr = pfnCreateDXGIFactory2;
     }
 
-    SK_ApplyQueuedHooks ();
+  //SK_ApplyQueuedHooks ();
 
     if (CreateDXGIFactory1_Import != nullptr)
     {
@@ -5953,6 +5957,15 @@ SK_DXGI_HookFactory (IDXGIFactory* pFactory)
 #include <mmsystem.h>
 #include <d3d11_2.h>
 
+void
+SK_DXGI_InitHooksBeforePlugIn (void)
+{
+  extern int SK_Import_GetNumberOfPlugIns (void);
+
+  if (SK_Import_GetNumberOfPlugIns () > 0)
+    SK_ApplyQueuedHooks ();
+}
+
 DWORD
 __stdcall
 HookDXGI (LPVOID user)
@@ -6041,6 +6054,9 @@ HookDXGI (LPVOID user)
 
     if ((SK_GetDLLRole () & DLL_ROLE::DXGI) || (SK_GetDLLRole () & DLL_ROLE::DInput8))
     {
+      // PlugIns need to be loaded AFTER we've hooked the device creation functions
+      SK_DXGI_InitHooksBeforePlugIn ();
+
       // Load user-defined DLLs (Plug-In)
       SK_RunLHIfBitness ( 64, SK_LoadPlugIns64 (),
                               SK_LoadPlugIns32 () );
@@ -6103,6 +6119,9 @@ HookDXGI (LPVOID user)
         SK_DXGI_HookPresent1 (pSwapChain1);
 
       SK_ApplyQueuedHooks ();
+
+      extern volatile LONG   SK_D3D11_initialized;
+      InterlockedIncrement (&SK_D3D11_initialized);
 
       if (config.apis.dxgi.d3d11.hook) SK_D3D11_EnableHooks ();
         
@@ -6844,6 +6863,11 @@ SK::DXGI::ShutdownBudgetThread ( void )
 void
 SK_DXGI_QuickHook (void)
 {
+  // We don't want to hook this, and we certainly don't want to hook it using
+  //   cached addresses!
+  if (! config.apis.dxgi.d3d11.hook)
+    return;
+
   if (config.steam.preload_overlay)
     return;
 

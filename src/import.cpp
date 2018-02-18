@@ -68,6 +68,32 @@ using SKPlugIn_Shutdown_pfn = BOOL (WINAPI *)(LPVOID  user);
 
 #include <diagnostics/debug_utils.h>
 
+int
+SK_Import_GetNumberOfPlugIns (void)
+{
+  int num = 0;
+
+  const std::wstring& target_arch =
+    SK_RunLHIfBitness ( 64, SK_IMPORT_ARCH_X64,
+                            SK_IMPORT_ARCH_WIN32 );
+
+  for (int i = 0; i < SK_MAX_IMPORTS; i++)
+  {
+    if (imports [i].name.empty ())
+      continue;
+
+    if (imports [i].architecture->get_value () == target_arch)
+    {
+      if (imports [i].when->get_value () == SK_IMPORT_PLUGIN)
+      {
+        ++num;
+      }
+    }
+  }
+
+  return num;
+}
+
 bool
 SK_Import_GetShimmedLibrary (HMODULE hModShim, HMODULE& hModReal)
 {

@@ -4603,11 +4603,25 @@ SK_D3D11_DrawHandler (ID3D11DeviceContext* pDevCtx)
   if (SK_TLS_Bottom ()->imgui.drawing)
     return false;
 
-  uint32_t current_vs = SK_D3D11_Shaders.vertex.current.shader   [pDevCtx];
-  uint32_t current_ps = SK_D3D11_Shaders.pixel.current.shader    [pDevCtx];
-  uint32_t current_gs = SK_D3D11_Shaders.geometry.current.shader [pDevCtx];
-  uint32_t current_hs = SK_D3D11_Shaders.hull.current.shader     [pDevCtx];
-  uint32_t current_ds = SK_D3D11_Shaders.domain.current.shader   [pDevCtx];
+  uint32_t current_vs = SK_D3D11_Shaders.vertex.current.shader.empty ()        ? 0 :
+                        SK_D3D11_Shaders.vertex.current.shader.count (pDevCtx) ?
+                        SK_D3D11_Shaders.vertex.current.shader       [pDevCtx] : 0;
+
+  uint32_t current_ps = SK_D3D11_Shaders.pixel.current.shader.empty ()        ? 0 :
+                        SK_D3D11_Shaders.pixel.current.shader.count (pDevCtx) ?
+                        SK_D3D11_Shaders.pixel.current.shader       [pDevCtx] : 0;
+
+  uint32_t current_gs = SK_D3D11_Shaders.geometry.current.shader.empty ()        ? 0 :
+                        SK_D3D11_Shaders.geometry.current.shader.count (pDevCtx) ?
+                        SK_D3D11_Shaders.geometry.current.shader       [pDevCtx] : 0;
+
+  uint32_t current_hs = SK_D3D11_Shaders.hull.current.shader.empty ()        ? 0 :
+                        SK_D3D11_Shaders.hull.current.shader.count (pDevCtx) ?
+                        SK_D3D11_Shaders.hull.current.shader       [pDevCtx] : 0;
+
+  uint32_t current_ds = SK_D3D11_Shaders.domain.current.shader.empty ()        ? 0 :
+                        SK_D3D11_Shaders.domain.current.shader.count (pDevCtx) ?
+                        SK_D3D11_Shaders.domain.current.shader       [pDevCtx] : 0;
 
 
   auto TriggerReShade_Before = [&]
@@ -8861,8 +8875,11 @@ D3D11Dev_CreateTexture2D_Impl (
   //
   // Filter out any noise coming from overlays / video capture software
   //
-  if (SK_GetFramesDrawn () > 0)
-    cacheable &= ( pDev.IsEqualObject (This) );
+  ///if (SK_GetFramesDrawn () > 0)
+  ///  cacheable &= ( pDev.IsEqualObject (This) );
+
+  // XXX: Good idea in theory, but in practice these software packages wrap
+  //        the D3D11 device in incompatible ways.
 
 
   if (cacheable)
@@ -9759,7 +9776,11 @@ SK_D3D11_InitTextures (void)
       extern void SK_Okami_LoadConfig (void);
                   SK_Okami_LoadConfig ();
     }
+
+    InterlockedIncrement (&SK_D3D11_tex_init);
   }
+
+  SK_Thread_SpinUntilAtomicMin (&SK_D3D11_tex_init, 2);
 }
 
 
@@ -9972,7 +9993,7 @@ SK_D3D11_Init (void)
              ( LocalHook_D3D11CreateDeviceAndSwapChain.active ||
                MH_OK == MH_QueueEnableHook (pfnD3D11CreateDeviceAndSwapChain) ) )
         {
-          success = (MH_OK == SK_ApplyQueuedHooks ());
+          success = TRUE;//(MH_OK == SK_ApplyQueuedHooks ());
         }
       }
 
@@ -9980,8 +10001,6 @@ SK_D3D11_Init (void)
       {
         SK_LOG0 ( (L"Something went wrong hooking D3D11 -- need better errors."), __SK_SUBSYSTEM__ );
       }
-
-      InterlockedIncrement (&SK_D3D11_initialized);
     }
 
     LocalHook_D3D11CreateDeviceAndSwapChain.target.addr =

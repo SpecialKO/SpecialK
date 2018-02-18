@@ -579,43 +579,40 @@ ISteamController_GetDigitalActionData_Detour ( ISteamController                *
 
 
 
+extern const std::wstring
+SK_Steam_GetDLLPath (void);
+
 bool
 SK_Steam_HookController (void)
 {
-  const wchar_t* wszSteamLib =
-#ifdef _WIN64
-    L"steam_api64.dll";
-#else
-    L"steam_api.dll";
-#endif
+  std::wstring steam_dll =
+    SK_Steam_GetDLLPath ();
 
   if ( GetProcAddress (
-         GetModuleHandleW (wszSteamLib),
+         GetModuleHandleW (steam_dll.c_str ()),
          "SteamAPI_ISteamController_GetAnalogActionData"
        )
      )
   {
-    SK_CreateDLLHook2 (       wszSteamLib,
+    SK_CreateDLLHook2 (       steam_dll.c_str (),
                      "SteamAPI_ISteamController_Init",
                                ISteamController_Init_Detour,
       static_cast_p2p <void> (&ISteamController_Init_Original) );
 
-    SK_CreateDLLHook2 (       wszSteamLib,
+    SK_CreateDLLHook2 (       steam_dll.c_str (),
                      "SteamAPI_ISteamController_RunFrame",
                                ISteamController_RunFrame_Detour,
       static_cast_p2p <void> (&ISteamController_RunFrame_Original) );
 
-    SK_CreateDLLHook2 (       wszSteamLib,
+    SK_CreateDLLHook2 (       steam_dll.c_str (),
                      "SteamAPI_ISteamController_GetAnalogActionData",
                                ISteamController_GetAnalogActionData_Detour,
       static_cast_p2p <void> (&ISteamController_GetAnalogActionData_Original) );
 
-    SK_CreateDLLHook2 (       wszSteamLib,
+    SK_CreateDLLHook2 (       steam_dll.c_str (),
                      "SteamAPI_ISteamController_GetDigitalActionData",
                                ISteamController_GetDigitalActionData_Detour,
       static_cast_p2p <void> (&ISteamController_GetDigitalActionData_Original) );
-
-    SK_ApplyQueuedHooks ();
 
     return true;
   }
