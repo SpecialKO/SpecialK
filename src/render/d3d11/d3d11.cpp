@@ -287,6 +287,8 @@ struct resample_dispatch_s
       CreateThread ( nullptr, 0, [](LPVOID) ->
       DWORD
       {
+        SetCurrentThreadDescription (L"[SK] D3D11 Texture Resampling Thread");
+
         SetThreadPriority ( GetCurrentThread (),
                             THREAD_PRIORITY_BELOW_NORMAL |
                             THREAD_MODE_BACKGROUND_BEGIN );
@@ -673,7 +675,8 @@ SK_D3D11_TestRefCountHooks (ID3D11Texture2D* pInputTex)
     SK_LOG1 ( (L"Expected %lu after Release (); got %lu.",
                  initial, initial_again ),
                L"DX11TexMgr" );
-    return FALSE;
+
+    return SanityFail ();
   }
 
 
@@ -694,7 +697,7 @@ SK_D3D11_TestRefCountHooks (ID3D11Texture2D* pInputTex)
   pInputTex->QueryInterface <ID3D11Texture2D> (&pReferenced);
 
   if (! pReferenced)
-    return FALSE;
+    return SanityFail ();
 
   SK_TLS_Bottom ()->texture_management.refcount_obj = pReferenced;
 
@@ -715,7 +718,8 @@ SK_D3D11_TestRefCountHooks (ID3D11Texture2D* pInputTex)
     SK_LOG1 ( (L"Expected %lu after Release (); got %lu.",
                  initial, initial_again ),
                L"DX11TexMgr" );
-    return FALSE;
+
+    return SanityFail ();
   }
 
 
@@ -1703,6 +1707,9 @@ SK_D3D11_KnownThreads::count_all (void)
 void
 SK_D3D11_KnownThreads::mark (void)
 {
+  return;
+
+
   if (! SK_D3D11_EnableTracking)
     return;
 

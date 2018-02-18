@@ -3152,7 +3152,8 @@ DWORD
 WINAPI
 SteamAPI_PumpThread (LPVOID user)
 {
-  SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_IDLE);
+  SetCurrentThreadDescription (L"[SK] SteamAPI Callback Pump");
+  SetThreadPriority           (GetCurrentThread (), THREAD_PRIORITY_IDLE);
 
   bool   start_immediately = (user != nullptr);
   double callback_freq     =  0.0;
@@ -3832,10 +3833,10 @@ SteamAPI_Shutdown_Detour (void)
   steam_ctx.Shutdown           ();
 
   CreateThread (nullptr, 0,
-    [](LPVOID user) ->
+    [](LPVOID) ->
     DWORD
     {
-      UNREFERENCED_PARAMETER (user);
+      SetCurrentThreadDescription (L"[SK] SteamAPI Restart Thread");
 
       for (int i = 0; i < 100; i++)
       {
@@ -3987,11 +3988,11 @@ SK_Steam_InitCommandConsoleVariables (void)
 
 DWORD
 WINAPI
-SteamAPI_Delay_Init (LPVOID user)
+SteamAPI_Delay_Init (LPVOID)
 {
-  UNREFERENCED_PARAMETER (user);
+  SetThreadPriority           (GetCurrentThread (), THREAD_PRIORITY_HIGHEST);
+  SetCurrentThreadDescription (L"[SK] SteamAPI Delayed Init. Thread");
 
-  SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_HIGHEST);
 
   if (! SK_IsInjected ())
   {
@@ -4801,6 +4802,8 @@ SK_SteamAPIContext::OnFileDetailsDone ( FileDetailsResult_t* pParam,
   CreateThread (nullptr, 0, [](LPVOID user) ->
     DWORD
     {
+      SetCurrentThreadDescription (L"[SK] Steam File Validation Thread");
+
       // We don't need these results anytime soon, get them when we get them...
       SetThreadPriority ( GetCurrentThread (), THREAD_MODE_BACKGROUND_BEGIN |
                                                THREAD_PRIORITY_IDLE );

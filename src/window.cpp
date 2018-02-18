@@ -45,6 +45,7 @@
 #include <SpecialK/command.h>
 #include <SpecialK/utility.h>
 #include <SpecialK/osd/text.h>
+#include <SpecialK/thread.h>
 
 
 #include <imgui/backends/imgui_d3d11.h>
@@ -1289,29 +1290,6 @@ SK_FindRootWindow (DWORD proc_id)
 void SK_AdjustBorder (void);
 void SK_AdjustWindow (void);
 
-//
-// If we did this from the render thread, we would deadlock most games
-//
-auto DeferCommand = [&] (const char* szCommand)
-{
-  CreateThread ( nullptr,
-                   0x00,
-                [](LPVOID user) ->
-    DWORD
-      {
-        SK_GetCommandProcessor ()->ProcessCommandLine (
-           static_cast <const char *> (user)
-        );
-
-        CloseHandle (GetCurrentThread ());
-
-        return 0;
-      }, static_cast <LPVOID> (const_cast <char *> (szCommand)),
-      0x00,
-    nullptr
-  );
-};
-
 SK_WindowManager* SK_WindowManager::pWindowManager = nullptr;
 
 
@@ -1567,75 +1545,72 @@ SK_CenterWindowAtMouse (BOOL remember_pos)
   if (config.window.center || (config.window.borderless && config.window.fullscreen))
     return;
 
-  static CRITICAL_SECTION cs_center;
-  static bool             init = false;
-
-  if (! init)
+  static volatile LONG               __busy = FALSE;
+  if (! InterlockedCompareExchange (&__busy, TRUE, FALSE))
   {
-    InitializeCriticalSection (&cs_center);
-    init = true;
-  }
-
-  CreateThread ( nullptr, 0,
+    CreateThread ( nullptr, 0,
     [](LPVOID user) ->
-      DWORD {
-  EnterCriticalSection (&cs_center);
+    DWORD
+    {
+      SetCurrentThreadDescription (L"[SK] Window Center Thread");
 
-  BOOL  remember_pos = (user != nullptr);
-  POINT mouse        = { 0, 0 };
+      BOOL  remember_pos = (user != nullptr);
+      POINT mouse        = { 0, 0 };
 
-  if (GetCursorPos_Original != nullptr)
-    GetCursorPos_Original (&mouse);
+      if (GetCursorPos_Original != nullptr)
+        GetCursorPos_Original (&mouse);
 
-  struct {
-    struct {
-      float percent  = 0.0f;
-      int   absolute =   0L;
-    } x,y;
-  } offsets;
+      struct {
+        struct {
+          float percent  = 0.0f;
+          int   absolute =   0L;
+        } x,y;
+      } offsets;
 
-  if (! remember_pos)
-  {
-    offsets.x.absolute = config.window.offset.x.absolute;
-    offsets.y.absolute = config.window.offset.y.absolute;
+      if (! remember_pos)
+      {
+        offsets.x.absolute = config.window.offset.x.absolute;
+        offsets.y.absolute = config.window.offset.y.absolute;
 
-    offsets.x.percent = config.window.offset.x.percent;
-    offsets.y.percent = config.window.offset.y.percent;
-  }
+        offsets.x.percent = config.window.offset.x.percent;
+        offsets.y.percent = config.window.offset.y.percent;
+      }
 
-  config.window.offset.x.absolute = mouse.x;
-  config.window.offset.y.absolute = mouse.y;
+      config.window.offset.x.absolute = mouse.x;
+      config.window.offset.y.absolute = mouse.y;
 
-  config.window.offset.x.absolute -= (game_window.actual.window.right  - game_window.actual.window.left) / 2;
-  config.window.offset.y.absolute -= (game_window.actual.window.bottom - game_window.actual.window.top)  / 2;
+      config.window.offset.x.absolute -= (game_window.actual.window.right  - game_window.actual.window.left) / 2;
+      config.window.offset.y.absolute -= (game_window.actual.window.bottom - game_window.actual.window.top)  / 2;
 
-  if (config.window.offset.x.absolute <= 0)
-    config.window.offset.x.absolute = 1;  // 1 = Flush with Left
+      if (config.window.offset.x.absolute <= 0)
+        config.window.offset.x.absolute = 1;  // 1 = Flush with Left
 
-  if (config.window.offset.y.absolute <= 0)
-    config.window.offset.y.absolute = 1;  // 1 = Flush with Top
+      if (config.window.offset.y.absolute <= 0)
+        config.window.offset.y.absolute = 1;  // 1 = Flush with Top
 
-  config.window.offset.x.percent = 0.0f;
-  config.window.offset.y.percent = 0.0f;
+      config.window.offset.x.percent = 0.0f;
+      config.window.offset.y.percent = 0.0f;
 
-  SK_AdjustWindow ();
+      SK_AdjustWindow ();
 
-  if (! remember_pos)
-  {
-    config.window.offset.x.absolute = offsets.x.absolute;
-    config.window.offset.y.absolute = offsets.y.absolute;
+      if (! remember_pos)
+      {
+        config.window.offset.x.absolute = offsets.x.absolute;
+        config.window.offset.y.absolute = offsets.y.absolute;
 
-    config.window.offset.x.percent  = offsets.x.percent;
-    config.window.offset.y.percent  = offsets.y.percent;
-  }
+        config.window.offset.x.percent  = offsets.x.percent;
+        config.window.offset.y.percent  = offsets.y.percent;
+      }
 
-  LeaveCriticalSection (&cs_center);
+      InterlockedExchange (&__busy, FALSE);
 
-  CloseHandle (GetCurrentThread ());
+      CloseHandle (GetCurrentThread ());
 
-  return 0;
+      return 0;
        // Don't dereference this, it's actually a boolean
-    }, reinterpret_cast <LPVOID> (static_cast <uintptr_t> (remember_pos)), 0x0, nullptr );
+    }, reinterpret_cast <LPVOID> (static_cast <uintptr_t> (remember_pos)),
+    0x0, nullptr );
+  }
 }
 
 BOOL
@@ -2625,24 +2600,17 @@ SK_Window_RepositionIfNeeded (void)
   if (! (config.window.borderless || config.window.center))
     return;
 
-  static CRITICAL_SECTION cs_reset;
-  static volatile LONG    init = FALSE;
-
-  if (! InterlockedCompareExchange (&init, 1, 0))
+  static volatile LONG               __busy = FALSE;
+  if (! InterlockedCompareExchange (&__busy, TRUE, FALSE))
   {
-    InitializeCriticalSection (&cs_reset);
-  }
-
-  CreateThread (nullptr, 0,
-    [](LPVOID user) ->
+    CreateThread (nullptr, 0,
+    [](LPVOID) ->
     DWORD
     {
-      UNREFERENCED_PARAMETER (user);
+      SetCurrentThreadDescription (L"[SK] Window Reposition Thread");
 
       while (! ReadPointerAcquire ((void **)&GetWindowLongPtrW_Original))
-        SleepEx (16UL, FALSE);
-
-      EnterCriticalSection (&cs_reset);
+        SleepEx (33UL, FALSE);
 
       GetWindowRect (game_window.hWnd, &game_window.actual.window);
       GetClientRect (game_window.hWnd, &game_window.actual.client);
@@ -2664,12 +2632,13 @@ SK_Window_RepositionIfNeeded (void)
       else if (config.window.center)
         SK_AdjustWindow ();
 
-      LeaveCriticalSection (&cs_reset);
+      InterlockedExchange (&__busy, FALSE);
 
       CloseHandle (GetCurrentThread ());
 
       return 0;
     }, nullptr, 0x00, nullptr);
+  }
 }
 
 
@@ -3420,7 +3389,10 @@ SK_RealizeForegroundWindow (HWND hWndForeground)
   auto TryToEarlyOut =
   [&]
   {
-    bool focused = 
+    if (! game_window.active)
+      return true;
+
+    bool focused =
       ( GetFocus () == hWndForeground );
 
     bool foreground =
@@ -3455,9 +3427,10 @@ SK_RealizeForegroundWindow (HWND hWndForeground)
     nullptr,
       0,
         [](LPVOID user)->
-
         DWORD
         {
+          SetCurrentThreadDescription (L"[SK] Window Foreground Promotion");
+
           SetWindowPos      ( static_cast <HWND> (user), HWND_TOPMOST,
                                 0, 0,
                                 0, 0,

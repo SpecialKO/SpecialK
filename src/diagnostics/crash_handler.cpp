@@ -456,6 +456,16 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
   crash_log.Log (L"-----------------------------------------------------------");
   crash_log.Log (L"[! Except !] %s", desc.c_str ());
   crash_log.Log (L"-----------------------------------------------------------");
+
+  wchar_t* wszThreadDescription = nullptr;
+
+  if (SUCCEEDED (GetCurrentThreadDescription (&wszThreadDescription)))
+  {
+    if (wcslen (wszThreadDescription))
+      crash_log.Log (LR"([  Thread  ]  ~ Name.....: "%ws")", wszThreadDescription);
+                                                  LocalFree (wszThreadDescription);
+  }
+
   crash_log.Log (L"[ FaultMod ]  # File.....: '%hs'",  szModName);
 #ifndef _WIN64
   crash_log.Log (L"[ FaultMod ]  * EIP Addr.: %hs+%08Xh", pszShortName, ip-BaseAddr);
@@ -516,7 +526,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
   crash_log.Log (
     L"-----------------------------------------------------------");
 
-  SK_SymUnloadModule (hProc, BaseAddr);
+//SK_SymUnloadModule (hProc, BaseAddr);
 
   free (szDupName);
 
@@ -623,7 +633,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
       free (szDupName);
     }
 
-    SK_SymUnloadModule (hProc, BaseAddr);
+  //SK_SymUnloadModule (hProc, BaseAddr);
 
     ret =
       SK_StackWalk ( SK_RunLHIfBitness ( 32, IMAGE_FILE_MACHINE_I386,

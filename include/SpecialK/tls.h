@@ -243,6 +243,7 @@ struct SK_TLS
     EXCEPTION_RECORD last_exc    = {   };
     bool             last_chance = false;
     bool             in_DllMain  = false;
+    wchar_t          name [256]  = {   };
   } debug;
 
   struct tex_mgmt_s

@@ -1,4 +1,4 @@
-/**+
+/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -49,6 +49,7 @@ extern BOOL ADL_init;
 static HANDLE hPollEvent     = nullptr;
 static HANDLE hShutdownEvent = nullptr;
 static HANDLE hPollThread    = nullptr;
+static HANDLE hCommandEvent  = nullptr;
 
 DWORD
 __stdcall
@@ -61,12 +62,13 @@ SK_GPUPollingThread (LPVOID user)
     hShutdownEvent
   };
 
-  SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_LOWEST);
+  SetCurrentThreadDescription (L"[SK] GPU Performance Monitoring Thread");
+  SetThreadPriority           (GetCurrentThread (), THREAD_PRIORITY_LOWEST);
 
   while (true)
   {
     DWORD dwWait =
-      WaitForMultipleObjects (2, hEvents, FALSE, INFINITE);
+      WaitForMultipleObjects (3, hEvents, FALSE, INFINITE);
 
     if (dwWait == WAIT_OBJECT_0 + 1)
       break;

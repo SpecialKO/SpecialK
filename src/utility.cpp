@@ -2529,6 +2529,56 @@ SK_StripUserNameFromPathW (wchar_t* wszInOut)
 }
 
 
+#include <concurrent_queue.h>
+
+void
+SK_DeferCommands (const char** szCommands, int count)
+{
+  static          concurrency::concurrent_queue <std::string> cmds;
+  static          HANDLE                                      hNewCmds =
+    CreateEvent (nullptr, FALSE, FALSE, L"DeferredCmdEvent");
+  static volatile HANDLE                                      hCommandThread = nullptr;
+
+  for (int i = 0; i < count; i++)
+  {
+    cmds.push (szCommands [i]);
+  }
+
+  SetEvent (hNewCmds);
+
+  // ============================================== //
+
+  InterlockedCompareExchangePointer (&hCommandThread,
+    CreateThread ( nullptr,
+                     0x00,
+                       [](LPVOID) ->
+      DWORD
+      {
+        SetCurrentThreadDescription (L"[SK] Async Command Processor");
+
+        SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_BELOW_NORMAL);
+        CHandle  hThread  (GetCurrentThread ());
+
+        while (! ReadAcquire (&__SK_DLL_Ending))
+        {
+          if (WaitForSingleObjectEx (hNewCmds, INFINITE, TRUE) == WAIT_OBJECT_0)
+          {
+            std::string cmd = "";
+
+            while (cmds.try_pop (cmd))
+            {
+              SK_GetCommandProcessor ()->ProcessCommandLine (cmd.c_str ());
+            }
+          }
+        }
+
+        CloseHandle (hNewCmds);
+
+        return 0;
+      }, nullptr, 0x00, nullptr
+    ), nullptr
+  );
+};
 
 //
 // Issue a command that would deadlock the game if executed synchronously
@@ -2537,59 +2587,7 @@ SK_StripUserNameFromPathW (wchar_t* wszInOut)
 void
 SK_DeferCommand (const char* szCommand)
 {
-  CreateThread ( nullptr,
-                   0x00,
-                     [ ](LPVOID user) ->
-      DWORD
-        {
-          CHandle hThread (GetCurrentThread ());
-
-          std::unique_ptr <char> cmd ((char *)user);
-
-          SK_GetCommandProcessor ()->ProcessCommandLine (
-             (const char *)cmd.get ()
-          );
-
-          return 0;
-        },(LPVOID)_strdup (szCommand),
-      0x00,
-    nullptr
-  );
-};
-
-void
-SK_DeferCommands (const char** szCommands, int count)
-{
-  std::vector <std::string> *cmds =
-   new std::vector <std::string> (count);
-
-  for (int i = 0; i < count; i++)
-  {
-    (*cmds) [i] = szCommands [i];
-  }
-
-  CreateThread ( nullptr,
-                   0x00,
-                     [ ](LPVOID user) ->
-      DWORD
-        {
-          CHandle hThread (GetCurrentThread ());
-
-          std::unique_ptr < std::vector <std::string> > cmds (
-            (std::vector <std::string> *)user);
-
-          for (size_t i = 0 ; i < cmds.get ()->size () ; i++)
-          {
-            SK_GetCommandProcessor ()->ProcessCommandLine (
-               cmds.get ()->at (i).c_str ()
-            );
-          }
-
-          return 0;
-        },(LPVOID)cmds,
-      0x00,
-    nullptr
-  );
+  return SK_DeferCommands (&szCommand, 1);
 };
 
 

@@ -1413,78 +1413,80 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
     }
 
     CreateThread (nullptr, 0, [](LPVOID user) -> DWORD
+    {
+      SetCurrentThreadDescription (L"[SK] DLL Enumeration Thread");
+
+      SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_LOWEST);
+
+      SleepEx (1UL, FALSE);
+
+      static volatile LONG                walking = 0;
+      while (InterlockedCompareExchange (&walking, 1, 0))
       {
-        SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_LOWEST);
+        SleepEx (200UL, FALSE);
+      }
 
-        SleepEx (1UL, FALSE);
-
-        static volatile LONG                walking = 0;
-        while (InterlockedCompareExchange (&walking, 1, 0))
+      auto CleanupLog = [](iSK_Logger*& pLogger) ->
+      void
+      {
+        if (pLogger != nullptr)
         {
-          SleepEx (200UL, FALSE);
+          pLogger->close ();
+          delete pLogger;
+          pLogger = nullptr;
         }
+      };
 
-        auto CleanupLog = [](iSK_Logger*& pLogger) ->
-        void
-        {
-          if (pLogger != nullptr)
-          {
-            pLogger->close ();
-            delete pLogger;
-            pLogger = nullptr;
-          }
-        };
+      // Doing a full enumeration is slow as hell, spawn a worker thread for this
+      //   and learn to deal with the fact that some symbol names will be invalid;
+      //     the crash handler will load them, but certain diagnostic readings under
+      //       normal operation will not.
+      auto* pWorkingSet =
+        static_cast <enum_working_set_s *> (user);
 
-        // Doing a full enumeration is slow as hell, spawn a worker thread for this
-        //   and learn to deal with the fact that some symbol names will be invalid;
-        //     the crash handler will load them, but certain diagnostic readings under
-        //       normal operation will not.
-        auto* pWorkingSet =
-          static_cast <enum_working_set_s *> (user);
+      SK_ModuleEnum when = pWorkingSet->when;
 
-        SK_ModuleEnum when = pWorkingSet->when;
-
-        if (pWorkingSet->proc == nullptr && (when != SK_ModuleEnum::PreLoad))
-        {
-          delete pWorkingSet;
-
-          InterlockedExchange (&walking, 0);
-
-          CleanupLog (pLogger);
-          CloseHandle (GetCurrentThread ());
-
-          return 0;
-        }
-
-        if ( when != SK_ModuleEnum::PreLoad )
-          SK_WalkModules     (pWorkingSet->count * sizeof (HMODULE), pWorkingSet->proc, pWorkingSet->modules, pWorkingSet->when);
-
-        SK_ThreadWalkModules (pWorkingSet);
-
-        if ( when   == SK_ModuleEnum::PreLoad &&
-            pLogger != nullptr )
-        {
-          pLogger->LogEx (
-            false,
-              L"================================================================== "
-              L"(End Preloads) "
-              L"==================================================================\n\n"
-          );
-        }
-
-        if (when != SK_ModuleEnum::PreLoad)
-        {
-          CleanupLog (pLogger);
-        }
-
+      if (pWorkingSet->proc == nullptr && (when != SK_ModuleEnum::PreLoad))
+      {
         delete pWorkingSet;
 
         InterlockedExchange (&walking, 0);
 
+        CleanupLog (pLogger);
         CloseHandle (GetCurrentThread ());
 
         return 0;
-      }, (LPVOID)working_set, 0x00, nullptr);
+      }
+
+      if ( when != SK_ModuleEnum::PreLoad )
+        SK_WalkModules     (pWorkingSet->count * sizeof (HMODULE), pWorkingSet->proc, pWorkingSet->modules, pWorkingSet->when);
+
+      SK_ThreadWalkModules (pWorkingSet);
+
+      if ( when   == SK_ModuleEnum::PreLoad &&
+          pLogger != nullptr )
+      {
+        pLogger->LogEx (
+          false,
+            L"================================================================== "
+            L"(End Preloads) "
+            L"==================================================================\n\n"
+        );
+      }
+
+      if (when != SK_ModuleEnum::PreLoad)
+      {
+        CleanupLog (pLogger);
+      }
+
+      delete pWorkingSet;
+
+      InterlockedExchange (&walking, 0);
+
+      CloseHandle (GetCurrentThread ());
+
+      return 0;
+    }, (LPVOID)working_set, 0x00, nullptr);
   }
 
   if (third_party_dlls.overlays.rtss_hooks != nullptr)
@@ -1907,9 +1909,9 @@ std::queue <DWORD> suspended_tids;
 
 DWORD
 WINAPI
-SK_Bypass_CRT (LPVOID user)
+SK_Bypass_CRT (LPVOID)
 {
-  UNREFERENCED_PARAMETER (user);
+  SetCurrentThreadDescription (L"[SK] Compatibility Layer Dialog");
 
   static BOOL     disable      = __bypass.disable;
          wchar_t* wszBlacklist = __bypass.wszBlacklist;

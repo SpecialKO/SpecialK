@@ -440,7 +440,6 @@ SK_LoadGPUVendorAPIs (void)
   }
 }
 
-
 void
 __stdcall
 SK_InitFinishCallback (void);
@@ -644,8 +643,10 @@ SK_InitFinishCallback (void)
 
   // NvAPI takes an excessively long time to startup and we don't need it
   //   immediately...
-  CreateThread (nullptr, 0, [] (LPVOID) -> DWORD {
-    SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_IDLE);
+  CreateThread (nullptr, 0, [](LPVOID) -> DWORD
+  {
+    SetCurrentThreadDescription (L"[SK] GPU Vendor Support Library Thread");
+    SetThreadPriority           (GetCurrentThread (), THREAD_PRIORITY_IDLE);
 
     SleepEx (5, FALSE);
 
@@ -662,12 +663,11 @@ SK_InitFinishCallback (void)
 
 DWORD
 WINAPI
-CheckVersionThread (LPVOID user)
+CheckVersionThread (LPVOID)
 {
-  SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_IDLE);
-  SleepEx           (5, FALSE);
-
-  UNREFERENCED_PARAMETER (user);
+  SetCurrentThreadDescription (L"[SK] Auto-Update Thread");
+  SetThreadPriority           (GetCurrentThread (), THREAD_PRIORITY_IDLE);
+  SleepEx                     (5, FALSE);
 
   // If a local repository is present, use that.
   if (GetFileAttributes (LR"(Version\installed.ini)") == INVALID_FILE_ATTRIBUTES)
@@ -691,7 +691,8 @@ DWORD
 WINAPI
 DllThread (LPVOID user)
 {
-  SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_TIME_CRITICAL);
+  SetCurrentThreadDescription (L"[SK] Primary Initialization Thread");
+  SetThreadPriority           (GetCurrentThread (), THREAD_PRIORITY_TIME_CRITICAL);
 
   auto* params =
     static_cast <init_params_s *> (user);
@@ -875,6 +876,8 @@ bool
 __stdcall
 SK_StartupCore (const wchar_t* backend, void* callback)
 {
+  SK_Thread_InitDebugExtras ();
+
   static SetProcessDEPPolicy_pfn _SetProcessDEPPolicy =
     (SetProcessDEPPolicy_pfn)
       GetProcAddress ( GetModuleHandleW (L"Kernel32.dll"),
@@ -1291,7 +1294,8 @@ BACKEND_INIT:
 
     CreateThread (nullptr, 0x00, [](LPVOID) -> DWORD
     {
-      SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_BELOW_NORMAL);
+      SetCurrentThreadDescription (L"[SK] Init Cleanup Thread");
+      SetThreadPriority           (GetCurrentThread (), THREAD_PRIORITY_BELOW_NORMAL);
       WaitForInit ();
 
       // Setup the compatibility backend, which monitors loaded libraries,
@@ -1695,6 +1699,8 @@ SK_BeginBufferSwap (void)
     //
     case 0:
     {
+      SetCurrentThreadDescription (L"[SK] Primary Render Thread");
+
       // Load user-defined DLLs (Late)
       SK_RunLHIfBitness ( 64, SK_LoadLateImports64 (),
                               SK_LoadLateImports32 () );

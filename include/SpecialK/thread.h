@@ -155,5 +155,24 @@ SK_Thread_SpinUntilAtomicMin (volatile LONG* pVar, LONG count, LONG _SpinMax = 7
   }
 }
 
+typedef HRESULT (WINAPI *SetThreadDescription_pfn)(
+  _In_ HANDLE hThread,
+  _In_ PCWSTR lpThreadDescription
+);
+
+typedef HRESULT (WINAPI *GetThreadDescription_pfn)(
+  _In_  HANDLE hThread,
+  _Out_ PWSTR  *threadDescription
+);
+
+extern "C" SetThreadDescription_pfn SetThreadDescription;
+extern "C" GetThreadDescription_pfn GetThreadDescription;
+
+extern "C" HRESULT WINAPI SetCurrentThreadDescription (_In_  PCWSTR lpThreadDescription);
+extern "C" HRESULT WINAPI GetCurrentThreadDescription (_Out_  PWSTR  *threadDescription);
+
+extern "C" bool SK_Thread_InitDebugExtras (void);
+
+
 
 #endif /* __SK__THREAD_H__ */

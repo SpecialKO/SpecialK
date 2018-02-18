@@ -7,6 +7,8 @@
 ;      in the future.
 ;
 
+STACKSIZE 4194304,2097152
+
 ;LIBRARY "d3d9"
 
 EXPORTS

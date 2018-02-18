@@ -5994,6 +5994,8 @@ DWORD
 __stdcall
 HookDXGI (LPVOID user)
 {
+  SetCurrentThreadDescription (L"[SK] DXGI Hook Crawler Thread");
+
   // "Normal" games don't change render APIs mid-game; Talos does, but it's
   //   not normal :)
   if (SK_GetFramesDrawn ())
@@ -6482,6 +6484,8 @@ DWORD
 WINAPI
 SK::DXGI::BudgetThread ( LPVOID user_data )
 {
+  SetCurrentThreadDescription (L"[SK] DXGI Budget Tracking Thread");
+
   auto* params =
     static_cast <budget_thread_params_t *> (user_data);
 

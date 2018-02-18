@@ -46,6 +46,7 @@
 #include <SpecialK/nvapi.h>
 #include <SpecialK/ini.h>
 #include <SpecialK/import.h>
+#include <SpecialK/thread.h>
 
 #include <SpecialK/input/xinput.h>
 #include <SpecialK/injection/injection.h>
@@ -544,10 +545,10 @@ void
 SK_ImGui_AdjustCursor (void)
 {
   CreateThread ( nullptr, 0,
-    [](LPVOID user)->
+    [](LPVOID)->
     DWORD
     {
-      UNREFERENCED_PARAMETER (user);
+      SetCurrentThreadDescription (L"[SK] Cursor Adjustment Thread");
 
       ClipCursor_Original (nullptr);
         SK_AdjustWindow   ();        // Restore game's clip cursor behavior

@@ -31,6 +31,7 @@
 #include <SpecialK/update/archive.h>
 #include <SpecialK/update/network.h>
 
+#include <SpecialK/thread.h>
 #include <SpecialK/window.h>
 
 #include <Windows.h>
@@ -88,6 +89,8 @@ DWORD
 WINAPI
 DownloadThread (LPVOID user)
 {
+  SetCurrentThreadDescription (L"[SK] HTTP Download Thread");
+
   auto* get =
     static_cast <sk_internet_get_t *> (user);
 
@@ -939,6 +942,8 @@ DWORD
 WINAPI
 UpdateDlg_Thread (LPVOID user)
 {
+  SetCurrentThreadDescription (L"[SK] Auto-Update Dialog Message Pump");
+
   bool started = false;
 
   HWND hWndDlg =

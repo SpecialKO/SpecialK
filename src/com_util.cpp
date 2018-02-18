@@ -212,6 +212,8 @@ DWORD
 WINAPI
 SK_WMI_ServerThread (LPVOID lpUser)
 {
+  SetCurrentThreadDescription (L"[SK] WMI Server Thread");
+
   SK_AutoCOMInit auto_com;
 
   UNREFERENCED_PARAMETER (lpUser);
