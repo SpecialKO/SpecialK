@@ -4284,10 +4284,11 @@ SK_DXGI_CreateSwapChain_PreInit ( _Inout_opt_ DXGI_SWAP_CHAIN_DESC            *p
       }
     }
 
-    dll_log.Log ( L"[ DXGI 1.2 ] >> Using %s Presentation Model  [Waitable: %s - %li ms]",
+    SK_LOG0 ( ( L"  >> Using %s Presentation Model  [Waitable: %s - %li ms]",
                    bFlipMode ? L"Flip" : L"Traditional",
                      bWait ? L"Yes" : L"No",
-                       bWait ? config.render.framerate.swapchain_wait : 0 );
+                       bWait ? config.render.framerate.swapchain_wait : 0 ),
+                L" DXGI 1.2 " );
 
 
     if ((! config.render.dxgi.res.max.isZero ()) && pDesc->BufferDesc.Width > config.render.dxgi.res.max.x)

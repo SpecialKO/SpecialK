@@ -1,5 +1,10 @@
 0.9.1:
 
+ (.4): Add option to cache textures even if a graphics engine is under- or
+         overflowing Special K's reference count sanity tests
+
+           (i.e. Tokyo Xanadu)
+
  (.3): Tweaked thread priority scheduling at boot for faster startup
  (.3): Improved window management in Sonic Mania and Lightning Returns
  (.2): Fixed support for caching / injecting Unordered Access View qualified

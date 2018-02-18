@@ -119,7 +119,7 @@ SK_GetLocalModuleHandle (const wchar_t* wszModule)
 {
   wchar_t   wszLocalModulePath [MAX_PATH * 2] = { };
   wcsncpy  (wszLocalModulePath, SK_GetHostPath (), MAX_PATH);
-  lstrcatW (wszLocalModulePath, L"\\");
+  lstrcatW (wszLocalModulePath, LR"(\)");
   lstrcatW (wszLocalModulePath, wszModule);
 
   return GetModuleHandleW (wszLocalModulePath);
@@ -130,7 +130,7 @@ SK_LoadLocalModule (const wchar_t* wszModule)
 {
   wchar_t   wszLocalModulePath [MAX_PATH * 2] = { };
   wcsncpy  (wszLocalModulePath, SK_GetHostPath (), MAX_PATH);
-  lstrcatW (wszLocalModulePath, L"\\");
+  lstrcatW (wszLocalModulePath, LR"(\)");
   lstrcatW (wszLocalModulePath, wszModule);
 
   return LoadLibraryW (wszLocalModulePath);

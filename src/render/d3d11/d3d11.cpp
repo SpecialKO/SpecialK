@@ -52,6 +52,7 @@ static DWORD         dwFrameTime = SK::ControlPanel::current_time; // For effect
 #include <memory>
 #include <atomic>
 #include <mutex>
+#include <stack>
 #include <concurrent_unordered_set.h>
 #include <concurrent_queue.h>
 #include <atlbase.h>
@@ -625,6 +626,7 @@ using IUnknown_AddRef_pfn  =
 IUnknown_Release_pfn IUnknown_Release_Original = nullptr;
 IUnknown_AddRef_pfn  IUnknown_AddRef_Original  = nullptr;
 
+static volatile LONG __SK_D3D11_TexRefCount_Failures = 0;
 //
 // If reference counting is broken by some weird COM wrapper
 //   misbehaving, then for the love of ... don't cache textures
@@ -633,6 +635,18 @@ IUnknown_AddRef_pfn  IUnknown_AddRef_Original  = nullptr;
 BOOL
 SK_D3D11_TestRefCountHooks (ID3D11Texture2D* pInputTex)
 {
+  // This is unsafe, but ... the variable name already told you that!
+  if (config.textures.cache.allow_unsafe_refs)
+    return TRUE;
+
+  auto SanityFail =
+  [&](void) ->
+  BOOL
+  {
+    InterlockedIncrement (&__SK_D3D11_TexRefCount_Failures);
+    return FALSE;
+  };
+
   SK_TLS_Bottom ()->texture_management.refcount_obj = pInputTex;
 
   LONG initial =
@@ -785,39 +799,115 @@ SK_D3D11_DescribeUsage (D3D11_USAGE usage)
 }
 
 std::wstring
+SK_D3D11_DescribeMiscFlags (D3D11_RESOURCE_MISC_FLAG flags)
+{
+  std::wstring                 out = L"";
+  std::stack <const wchar_t *> flag_text;
+
+  if (flags & D3D11_RESOURCE_MISC_GENERATE_MIPS)
+    flag_text.push (L"Generates Mipmaps");
+
+  if (flags & D3D11_RESOURCE_MISC_SHARED)
+    flag_text.push (L"Shared Resource");
+
+  if (flags & D3D11_RESOURCE_MISC_TEXTURECUBE)
+    flag_text.push (L"Cubemap");
+
+  if (flags & D3D11_RESOURCE_MISC_DRAWINDIRECT_ARGS)
+    flag_text.push (L"Draw Indirect Arguments");
+
+  if (flags & D3D11_RESOURCE_MISC_BUFFER_ALLOW_RAW_VIEWS)
+    flag_text.push (L"Allows Raw Buffer Views");
+
+  if (flags & D3D11_RESOURCE_MISC_BUFFER_STRUCTURED)
+    flag_text.push (L"Structured Buffer");
+
+  if (flags & D3D11_RESOURCE_MISC_RESOURCE_CLAMP)
+    flag_text.push (L"Resource Clamp");
+
+  if (flags & D3D11_RESOURCE_MISC_SHARED_KEYEDMUTEX)
+    flag_text.push (L"Shared Key Mutex");
+
+  if (flags & D3D11_RESOURCE_MISC_GDI_COMPATIBLE)
+    flag_text.push (L"GDI Compatible");
+
+  if (flags & D3D11_RESOURCE_MISC_SHARED_NTHANDLE)
+    flag_text.push (L"Shared Through NT Handles");
+
+  if (flags & D3D11_RESOURCE_MISC_RESTRICTED_CONTENT)
+    flag_text.push (L"Content is Encrypted");
+
+  if (flags & D3D11_RESOURCE_MISC_RESTRICT_SHARED_RESOURCE)
+    flag_text.push (L"Shared Encrypted Content");
+
+  if (flags & D3D11_RESOURCE_MISC_RESTRICT_SHARED_RESOURCE_DRIVER)
+    flag_text.push (L"Driver-level Encrypted Resource Sharing");
+
+  if (flags & D3D11_RESOURCE_MISC_GUARDED)
+    flag_text.push (L"Guarded");
+
+  if (flags & D3D11_RESOURCE_MISC_TILE_POOL)
+    flag_text.push (L"Stored in Tiled Resource Memory Pool");
+
+  if (flags & D3D11_RESOURCE_MISC_TILED)
+    flag_text.push (L"Tiled Resource");
+
+  while (! flag_text.empty ())
+  {
+    out += flag_text.top ();
+           flag_text.pop ();
+
+    if (! flag_text.empty ())
+      out += L", ";
+  }
+
+  return out;
+}
+
+std::wstring
 SK_D3D11_DescribeBindFlags (D3D11_BIND_FLAG flags)
 {
-  std::wstring out = L"";
+  std::wstring                 out = L"";
+  std::stack <const wchar_t *> flag_text;
 
   if (flags & D3D11_BIND_CONSTANT_BUFFER)
-    out += L"Constant Buffer  ";
+    flag_text.push (L"Constant Buffer");
 
   if (flags & D3D11_BIND_DECODER)
-    out += L"Video Decoder  ";
+    flag_text.push (L"Video Decoder");
 
   if (flags & D3D11_BIND_DEPTH_STENCIL)
-    out += L"Depth/Stencil  ";
+    flag_text.push (L"Depth/Stencil");
 
   if (flags & D3D11_BIND_INDEX_BUFFER)
-    out += L"Index Buffer  ";
+    flag_text.push (L"Index Buffer");
 
   if (flags & D3D11_BIND_RENDER_TARGET)
-    out += L"Render Target  ";
+    flag_text.push (L"Render Target");
 
   if (flags & D3D11_BIND_SHADER_RESOURCE)
-    out += L"Shader Resource  ";
+    flag_text.push (L"Shader Resource");
 
   if (flags & D3D11_BIND_STREAM_OUTPUT)
-    out += L"Stream Output  ";
+    flag_text.push (L"Stream Output");
 
   if (flags & D3D11_BIND_UNORDERED_ACCESS)
-    out += L"Unordered Access  ";
+    flag_text.push (L"Unordered Access");
 
   if (flags & D3D11_BIND_VERTEX_BUFFER)
-    out += L"Vertex Buffer  ";
+    flag_text.push (L"Vertex Buffer");
 
   if (flags & D3D11_BIND_VIDEO_ENCODER)
-    out += L"Video Encoder  ";
+    flag_text.push (L"Video Encoder");
+
+  while (! flag_text.empty ())
+  {
+    out += flag_text.top ();
+           flag_text.pop ();
+
+    if (! flag_text.empty ())
+      out += L", ";
+  }
 
   return out;
 }
@@ -2285,6 +2375,24 @@ enum class sk_shader_class {
   Domain   = 0x10,
   Compute  = 0x20
 };
+
+#define ShaderColorDecl(idx) {                                                \
+  { ImGuiCol_Header,        ImColor::HSV ( (idx + 1) / 6.0f, 0.5f,  0.45f) }, \
+  { ImGuiCol_HeaderHovered, ImColor::HSV ( (idx + 1) / 6.0f, 0.55f, 0.6f ) }, \
+  { ImGuiCol_HeaderActive,  ImColor::HSV ( (idx + 1) / 6.0f, 0.6f,  0.6f ) } }
+
+static
+std::unordered_map < sk_shader_class, std::tuple < std::pair <ImGuiCol, ImColor>,
+                                                   std::pair <ImGuiCol, ImColor>,
+                                                   std::pair <ImGuiCol, ImColor> > >
+SK_D3D11_ShaderColors =
+  { { sk_shader_class::Unknown,  ShaderColorDecl (-1) },
+    { sk_shader_class::Vertex,   ShaderColorDecl ( 0) },
+    { sk_shader_class::Pixel,    ShaderColorDecl ( 1) },
+    { sk_shader_class::Geometry, ShaderColorDecl ( 2) },
+    { sk_shader_class::Hull,     ShaderColorDecl ( 3) },
+    { sk_shader_class::Domain,   ShaderColorDecl ( 4) },
+    { sk_shader_class::Compute,  ShaderColorDecl ( 5) } };
 
 __forceinline
 HRESULT
@@ -6013,7 +6121,7 @@ SK_D3D11_TexMgr::refTexture2D ( ID3D11Texture2D*      pTex,
 
   else
   {
-    SK_LOG0 ( (L"Potentially cacheable texture (%x) is not correctly referenced counted; opting out!",
+    SK_LOG0 ( (L"Potentially cacheable texture (%x) is not correctly reference counted; opting out!",
                   crc32c ),
                L"DX11TexMgr" );
     return;
@@ -11601,7 +11709,7 @@ SK_LiveTextureView (bool& can_scroll)
         }
 
         if ( effective_height != (float)(tex_desc.Height >> lod) ||
-             effective_width  != (float)(tex_desc.Width >> lod) )
+             effective_width  != (float)(tex_desc.Width  >> lod) )
         {
           if (! entry.injected)
             ImGui::SameLine ();
@@ -11634,6 +11742,42 @@ SK_LiveTextureView (bool& can_scroll)
                                        ImColor (255,255,255,255), ImColor (255,255,255,128)
                                );
           ImGui::EndChildFrame ();
+
+          static DWORD dwLastUnhovered = 0;
+
+          if (ImGui::IsItemHovered ())
+          {
+            if (SK::ControlPanel::current_time - dwLastUnhovered > 666UL)
+            {
+              ImGui::BeginTooltip    ();
+              ImGui::BeginGroup      ();
+              ImGui::PushStyleColor  (ImGuiCol_Text, ImColor (0.785f, 0.785f, 0.785f));
+              ImGui::TextUnformatted ("Usage:");
+              ImGui::TextUnformatted ("Bind Flags:");
+              if (tex_desc.MiscFlags != 0)
+              ImGui::TextUnformatted ("Misc Flags:");
+              ImGui::PopStyleColor   ();
+              ImGui::EndGroup        ();
+              ImGui::SameLine        ();
+              ImGui::BeginGroup      ();
+              ImGui::PushStyleColor  (ImGuiCol_Text, ImColor (1.0f, 1.0f, 1.0f));
+              ImGui::Text            ("%ws", SK_D3D11_DescribeUsage     (
+                                               tex_desc.Usage )             );
+              ImGui::Text            ("%ws", SK_D3D11_DescribeBindFlags (
+                              (D3D11_BIND_FLAG)tex_desc.BindFlags).c_str () );
+              if (tex_desc.MiscFlags != 0)
+              {
+                ImGui::Text          ("%ws", SK_D3D11_DescribeMiscFlags (
+                     (D3D11_RESOURCE_MISC_FLAG)tex_desc.MiscFlags).c_str () );
+              }
+              ImGui::PopStyleColor   ();
+              ImGui::EndGroup        ();
+              ImGui::EndTooltip      ();
+            }
+          }
+
+          else
+            dwLastUnhovered = SK::ControlPanel::current_time;
         }
         ImGui::PopStyleColor   ();
         ImGui::EndChild        ();
@@ -13907,10 +14051,19 @@ SK_D3D11_ShaderModDlg (void)
             if (ui_link_activated)
               ImGui::SetNextTreeNodeOpen (true, ImGuiSetCond_Always);
 
+            ImGui::PushStyleColor ( std::get <0> (SK_D3D11_ShaderColors [shader_type]).first,
+                                    std::get <0> (SK_D3D11_ShaderColors [shader_type]).second );
+            ImGui::PushStyleColor ( std::get <1> (SK_D3D11_ShaderColors [shader_type]).first,
+                                    std::get <1> (SK_D3D11_ShaderColors [shader_type]).second );
+            ImGui::PushStyleColor ( std::get <2> (SK_D3D11_ShaderColors [shader_type]).first,
+                                    std::get <2> (SK_D3D11_ShaderColors [shader_type]).second );
+
             if (ImGui::CollapsingHeader (label))
             {
               SK_LiveShaderClassView (shader_type, can_scroll);
             }
+
+            ImGui::PopStyleColor (3);
           }
         };
 
@@ -14136,6 +14289,17 @@ SK_D3D11_ShaderModDlg (void)
 
       if (uncollapsed_tex)
       {
+        static bool warned_invalid_ref_count = false;
+
+        if ((! warned_invalid_ref_count) && ReadAcquire (&__SK_D3D11_TexRefCount_Failures) > 0)
+        {
+          SK_ImGui_Warning ( L"The game's graphics engine is not correctly tracking texture memory.\n\n"
+                             L"\t\t\t\t>> Texture mod support has been partially disabled to prevent memory leaks.\n\n"
+                             L"\t\tYou may force support for texture mods by setting AllowUnsafeRefCounting=true" );
+
+          warned_invalid_ref_count = true;
+        }
+
         SK_LiveTextureView (can_scroll);
       }
 
@@ -14605,11 +14769,25 @@ SK_D3D11_ShaderModDlg (void)
                                       true,
                                         ImGuiWindowFlags_AlwaysAutoResize |
                                         ImGuiWindowFlags_NavFlattened );
+
+                  auto _SetupShaderHeaderColors =
+                  [&](sk_shader_class type)
+                  {
+                    ImGui::PushStyleColor ( std::get <0> (SK_D3D11_ShaderColors [type]).first,
+                                            std::get <0> (SK_D3D11_ShaderColors [type]).second );
+                    ImGui::PushStyleColor ( std::get <1> (SK_D3D11_ShaderColors [type]).first,
+                                            std::get <1> (SK_D3D11_ShaderColors [type]).second );
+                    ImGui::PushStyleColor ( std::get <2> (SK_D3D11_ShaderColors [type]).first,
+                                            std::get <2> (SK_D3D11_ShaderColors [type]).second );
+                  };
   
                   if ((! tracked_rtv.ref_vs.empty ()) || (! tracked_rtv.ref_ps.empty ()))
                   {
                     ImGui::Columns (2);
   
+
+                    _SetupShaderHeaderColors (sk_shader_class::Vertex);
+
                     if (ImGui::CollapsingHeader ("Vertex Shaders##rtv_refs", ImGuiTreeNodeFlags_DefaultOpen))
                     {
                       ImGui::TreePush ("");
@@ -14660,9 +14838,13 @@ SK_D3D11_ShaderModDlg (void)
   
                       ImGui::TreePop ();
                     }
+
+                    ImGui::PopStyleColor (3);
   
                     ImGui::NextColumn ();
   
+                    _SetupShaderHeaderColors (sk_shader_class::Pixel);
+
                     if (ImGui::CollapsingHeader ("Pixel Shaders##rtv_refs", ImGuiTreeNodeFlags_DefaultOpen))
                     {
                       ImGui::TreePush ("");
@@ -14713,14 +14895,17 @@ SK_D3D11_ShaderModDlg (void)
   
                       ImGui::TreePop ();
                     }
-  
-                    ImGui::Columns   (1);
+
+                    ImGui::PopStyleColor (3);  
+                    ImGui::Columns       (1);
                   }
   
                   if (! tracked_rtv.ref_gs.empty ())
                   {
                     ImGui::Separator ( );
   
+                    _SetupShaderHeaderColors (sk_shader_class::Geometry);
+
                     if (ImGui::CollapsingHeader ("Geometry Shaders##rtv_refs", ImGuiTreeNodeFlags_DefaultOpen))
                     {
                       ImGui::TreePush ("");
@@ -14771,6 +14956,8 @@ SK_D3D11_ShaderModDlg (void)
   
                       ImGui::TreePop ();
                     }
+
+                    ImGui::PopStyleColor (3);
                   }
   
                   if ((! tracked_rtv.ref_hs.empty ()) || (! tracked_rtv.ref_ds.empty ()))
@@ -14779,6 +14966,8 @@ SK_D3D11_ShaderModDlg (void)
   
                     ImGui::Columns   (2);
   
+                    _SetupShaderHeaderColors (sk_shader_class::Hull);
+
                     if (ImGui::CollapsingHeader ("Hull Shaders##rtv_refs", ImGuiTreeNodeFlags_DefaultOpen))
                     {
                       ImGui::TreePush ("");
@@ -14829,9 +15018,13 @@ SK_D3D11_ShaderModDlg (void)
   
                       ImGui::TreePop ();
                     }
+
+                    ImGui::PopStyleColor (3);
   
                     ImGui::NextColumn ();
   
+                    _SetupShaderHeaderColors (sk_shader_class::Domain);
+
                     if (ImGui::CollapsingHeader ("Domain Shaders##rtv_refs", ImGuiTreeNodeFlags_DefaultOpen))
                     {
                       ImGui::TreePush ("");
@@ -14882,14 +15075,17 @@ SK_D3D11_ShaderModDlg (void)
   
                       ImGui::TreePop ();
                     }
-  
-                    ImGui::Columns (1);
+
+                    ImGui::PopStyleColor (3); 
+                    ImGui::Columns       (1);
                   }
   
                   if (! tracked_rtv.ref_cs.empty ())
                   {
                     ImGui::Separator ( );
   
+                    _SetupShaderHeaderColors (sk_shader_class::Compute);
+
                     if (ImGui::CollapsingHeader ("Compute Shaders##rtv_refs", ImGuiTreeNodeFlags_DefaultOpen))
                     {
                       ImGui::TreePush ("");
@@ -14931,6 +15127,8 @@ SK_D3D11_ShaderModDlg (void)
   
                       ImGui::TreePop ( );
                     }
+
+                    ImGui::PopStyleColor (3);
                   }
   
                   ImGui::EndChild    ( );

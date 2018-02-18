@@ -342,6 +342,8 @@ struct sk_config_t
       int     max_size            = 2048L;
       bool    ignore_nonmipped    = false;
       bool    allow_staging       = false;
+      bool    allow_unsafe_refs   = false; // Allow texture caching even in engines that
+                                           //   are not correctly keeping track of resources
     } cache;
 
     bool highlight_debug_tex      = false;
