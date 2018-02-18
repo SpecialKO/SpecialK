@@ -3684,6 +3684,52 @@ SK_DXGI_ValidateSwapChainResize ( IDXGISwapChain* pSwapChain, UINT BufferCount,
 }
 
 
+bool
+SK_DXGI_FilterRedundant_ResizeBuffers ( IDXGISwapChain *This,
+                                   _In_ UINT            BufferCount,
+                                   _In_ UINT            Width,
+                                   _In_ UINT            Height,
+                                   _In_ DXGI_FORMAT     NewFormat,
+                                   _In_ UINT            SwapChainFlags )
+{
+#ifndef _DEBUG
+  return false;
+#endif
+
+  DXGI_SWAP_CHAIN_DESC desc = { };
+       This->GetDesc (&desc);
+
+  if ( desc.BufferCount       == BufferCount &&
+       desc.BufferDesc.Width  == Width       &&
+       desc.BufferDesc.Height == Height      &&
+       desc.BufferDesc.Format == NewFormat )
+  {
+    if (desc.Flags != SwapChainFlags)
+    {
+      if ( (desc.Flags     & DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH) !=
+           (SwapChainFlags & DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH) )
+      {
+        return true;
+      }
+
+      dll_log.Log ( L"[   DXGI   ] _ALMOST_ Redundant resize; OLD Flags: %x,"
+                                                           L" NEW Flags: %x",
+                      desc.Flags,
+                        SwapChainFlags );
+
+      return false;
+    }
+
+    return true;
+  }
+
+  return false;
+}
+
+
+
+
+
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
@@ -3694,30 +3740,34 @@ DXGISwap_ResizeBuffers_Override ( IDXGISwapChain *This,
                              _In_ DXGI_FORMAT     NewFormat,
                              _In_ UINT            SwapChainFlags )
 {
+  if (SK_DXGI_FilterRedundant_ResizeBuffers ( This, BufferCount, Width,
+                                                Height, NewFormat,
+                                                  SwapChainFlags )
+     )
+  {
+    DXGI_SWAP_CHAIN_DESC desc = { };
+         This->GetDesc (&desc);
+
+    SK_LOG0 ((L"Eliminated redundant ResizeBuffers (...) call"),L"   DXGI   ");
+    SK_LOG0 ((L" >> (%lux%lu*%lu {%lu} 0x%x) ==> (%lux%lu*%lu {%lu} 0x%x)",
+                desc.BufferDesc.Width, desc.BufferDesc.Height, desc.BufferCount,
+                desc.BufferDesc.Format, desc.Flags,
+                  Width, Height, BufferCount, NewFormat, SwapChainFlags),
+              L"   DXGI   ");
+
+    return S_OK;
+  }
+
+
   DXGI_LOG_CALL_I5 ( L"    IDXGISwapChain", L"ResizeBuffers         ",
                        L"%lu,%lu,%lu,fmt=%lu,0x%08X",
                          BufferCount, Width, Height,
                    (UINT)NewFormat, SwapChainFlags );
 
 
-  // Skip buffer resizes if we didn't actually resize anything
-  //
-  //if (SUCCEEDED (SK_DXGI_ValidateSwapChainResize (This, BufferCount, Width, Height, NewFormat)))
-  //  return S_OK;
-
-
   // Can't do this if waitable
   if (dxgi_caps.present.waitable && config.render.framerate.swapchain_wait > 0)
     return S_OK;
-
-
-  {
-    std::lock_guard <SK_Thread_CriticalSection> auto_lock (cs_mmio);
-
-    SK_D3D11_EndFrame (    );
-    ////ResetCEGUI_D3D11  (This);
-    SK_CEGUI_QueueResetD3D11 (); // Prior to the next present, reset the UI
-  }
 
 
   if (       config.render.framerate.buffer_count != -1           &&
@@ -3774,6 +3824,8 @@ DXGISwap_ResizeBuffers_Override ( IDXGISwapChain *This,
 
   if (SUCCEEDED (ret))
   {
+    SK_CEGUI_QueueResetD3D11 (); // Prior to the next present, reset the UI
+
     if (Width != 0 && Height != 0)
     {
       SK_SetWindowResX (Width);
@@ -3796,12 +3848,45 @@ DXGISwap_ResizeBuffers_Override ( IDXGISwapChain *This,
   return ret;
 }
 
+
+__forceinline
+bool
+SK_DXGI_FilterRedundant_ResizeTarget ( IDXGISwapChain *This,
+                            _In_ const DXGI_MODE_DESC *pNewTargetParameters )
+{
+#ifndef _DEBUG
+  return false;
+#endif
+
+  DXGI_SWAP_CHAIN_DESC desc = { };
+       This->GetDesc (&desc);
+
+  if ( desc.BufferDesc.Format                  == pNewTargetParameters->Format                  &&
+       desc.BufferDesc.Height                  == pNewTargetParameters->Height                  &&
+       desc.BufferDesc.Width                   == pNewTargetParameters->Width                   &&
+       desc.BufferDesc.RefreshRate.Numerator   == pNewTargetParameters->RefreshRate.Numerator   &&
+       desc.BufferDesc.RefreshRate.Denominator == pNewTargetParameters->RefreshRate.Denominator &&
+       desc.BufferDesc.Scaling                 == pNewTargetParameters->Scaling )
+       //desc.BufferDesc.ScanlineOrdering        == pNewTargetParameters->ScanlineOrdering )
+  {
+    return true;
+  }
+
+  return false;
+}
+
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
 DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
                       _In_ const DXGI_MODE_DESC *pNewTargetParameters )
 {
+  if ( SK_DXGI_FilterRedundant_ResizeTarget ( This, pNewTargetParameters ) )
+  {
+    SK_LOG_ONCE (L"[   DXGI   ] Eliminated redundant ResizeTarget (...) call");
+    return S_OK;
+  }
+
   // Can't do this if waitable
   if (dxgi_caps.present.waitable && config.render.framerate.swapchain_wait > 0)
     return S_OK;
@@ -3813,13 +3898,7 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
     SK_CEGUI_QueueResetD3D11 (); // Prior to the next present, reset the UI
   }
 
-
-  if (pNewTargetParameters == nullptr)
-  {
-    HRESULT ret;
-    DXGI_CALL (ret, ResizeTarget_Original (This, pNewTargetParameters));
-    return ret;
-  }
+  assert (pNewTargetParameters != nullptr);
 
   DXGI_LOG_CALL_I6 ( L"    IDXGISwapChain", L"ResizeTarget         ",
                        L"{ (%lux%lu@%3.1f Hz),"
@@ -3970,8 +4049,8 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
 
   if (SUCCEEDED (ret))
   {
-    SK_RunOnce (SK_DXGI_HookPresent (This));
-    SK_RunOnce (SK_ApplyQueuedHooks (    ));
+    //SK_RunOnce (SK_DXGI_HookPresent (This));
+    //SK_RunOnce (SK_ApplyQueuedHooks (    ));
   }
 
   return ret;

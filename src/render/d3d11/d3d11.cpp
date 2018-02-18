@@ -1707,9 +1707,9 @@ SK_D3D11_KnownThreads::count_all (void)
 void
 SK_D3D11_KnownThreads::mark (void)
 {
+#ifndef _DEBUG
   return;
-
-
+#else
   if (! SK_D3D11_EnableTracking)
     return;
 
@@ -1723,6 +1723,7 @@ SK_D3D11_KnownThreads::mark (void)
 
   ids.emplace    (GetCurrentThreadId ());
   active.emplace (GetCurrentThreadId ());
+#endif
 }
 
 #include <array>
@@ -3765,106 +3766,103 @@ D3D11_UpdateSubresource_Override (
       D3D11_TEXTURE2D_DESC desc = { };
            pTex->GetDesc (&desc);
 
-      if (DstSubresource == 0)
+      D3D11_SUBRESOURCE_DATA srd = { };
+
+      srd.pSysMem           = pSrcData;
+      srd.SysMemPitch       = SrcRowPitch;
+      srd.SysMemSlicePitch  = 0;
+
+      size_t   size         = 0;
+      uint32_t top_crc32c   = 0x0;
+
+      uint32_t checksum     =
+        crc32_tex   (&desc, &srd, &size, &top_crc32c);
+
+      uint32_t cache_tag    =
+        safe_crc32c (top_crc32c, (uint8_t *)&desc, sizeof D3D11_TEXTURE2D_DESC);
+
+      auto start            = SK_QueryPerf ().QuadPart;
+
+      CComPtr <ID3D11Texture2D> pCachedTex =
+        SK_D3D11_Textures.getTexture2D (cache_tag, &desc);
+
+      if (pCachedTex != nullptr)
       {
-        D3D11_SUBRESOURCE_DATA srd = { };
+        CComQIPtr <ID3D11Resource> pCachedResource = pCachedTex;
 
-        srd.pSysMem           = pSrcData;
-        srd.SysMemPitch       = SrcRowPitch;
-        srd.SysMemSlicePitch  = 0;
+        D3D11_CopyResource_Original (This, pDstResource, pCachedResource);
 
-        size_t   size         = 0;
-        uint32_t top_crc32c   = 0x0;
+        SK_LOG1 ( ( L"Texture Cache Hit (Slow Path): (%lux%lu) -- %x",
+                      desc.Width, desc.Height, top_crc32c ),
+                    L"DX11TexMgr" );
 
-        uint32_t checksum     =
-          crc32_tex   (&desc, &srd, &size, &top_crc32c);
+        return;
+      }
 
-        uint32_t cache_tag    =
-          safe_crc32c (top_crc32c, (uint8_t *)&desc, sizeof D3D11_TEXTURE2D_DESC);
-
-        auto start            = SK_QueryPerf ().QuadPart;
-
-        CComPtr <ID3D11Texture2D> pCachedTex =
-          SK_D3D11_Textures.getTexture2D (cache_tag, &desc);
-
-        if (pCachedTex != nullptr)
+      else
+      {
+        if (SK_D3D11_TextureIsCached (pTex))
         {
-          CComQIPtr <ID3D11Resource> pCachedResource = pCachedTex;
+          SK_LOG0 ( (L"Cached texture was updated (UpdateSubresource)... removing from cache! - <%s>",
+                         SK_GetCallerName ().c_str ()), L"DX11TexMgr" );
+          SK_D3D11_RemoveTexFromCache (pTex, true);
+        }
 
-          D3D11_CopyResource_Original (This, pDstResource, pCachedResource);
+        D3D11_UpdateSubresource_Original ( This, pDstResource, DstSubresource,
+                                             pDstBox, pSrcData, SrcRowPitch,
+                                               SrcDepthPitch );
+        auto end     = SK_QueryPerf ().QuadPart;
+        auto elapsed = end - start;
 
-          SK_LOG1 ( ( L"Texture Cache Hit (Slow Path): (%lux%lu) -- %x",
+        if (desc.Usage == D3D11_USAGE_STAGING)
+        {
+          auto&& map_ctx = mapped_resources [This];
+
+          map_ctx.dynamic_textures  [pDstResource] = checksum;
+          map_ctx.dynamic_texturesx [pDstResource] = top_crc32c;
+
+          SK_LOG1 ( ( L"New Staged Texture: (%lux%lu) -- %x",
                         desc.Width, desc.Height, top_crc32c ),
                       L"DX11TexMgr" );
+
+          map_ctx.dynamic_times2    [checksum]  = elapsed;
+          map_ctx.dynamic_sizes2    [checksum]  = size;
 
           return;
         }
 
         else
         {
-          if (SK_D3D11_TextureIsCached (pTex))
+          bool cacheable = ( //desc.CPUAccessFlags == 0          &&
+                             //desc.Usage != D3D11_USAGE_DYNAMIC &&
+                             desc.MiscFlags <= 4               &&
+                             desc.Width      > 0               && 
+                             desc.Height     > 0               &&
+                             desc.ArraySize == 1 );
+
+          bool compressed = false;
+
+          if ( (desc.Format >= DXGI_FORMAT_BC1_TYPELESS  &&
+                desc.Format <= DXGI_FORMAT_BC5_SNORM)    ||
+               (desc.Format >= DXGI_FORMAT_BC6H_TYPELESS &&
+                desc.Format <= DXGI_FORMAT_BC7_UNORM_SRGB) )
+            compressed = true;
+
+          // If this isn't an injectable texture, then filter out non-mipmapped
+          //   textures.
+          if (/*(! injectable) && */cache_opts.ignore_non_mipped)
+            cacheable &= (desc.MipLevels > 1 || compressed);
+
+          if (cacheable)
           {
-            SK_LOG0 ( (L"Cached texture was updated (UpdateSubresource)... removing from cache! - <%s>",
-                           SK_GetCallerName ().c_str ()), L"DX11TexMgr" );
-            SK_D3D11_RemoveTexFromCache (pTex, true);
-          }
-
-          D3D11_UpdateSubresource_Original ( This, pDstResource, DstSubresource,
-                                               pDstBox, pSrcData, SrcRowPitch,
-                                                 SrcDepthPitch );
-          auto end     = SK_QueryPerf ().QuadPart;
-          auto elapsed = end - start;
-
-          if (desc.Usage == D3D11_USAGE_STAGING)
-          {
-            auto&& map_ctx = mapped_resources [This];
-
-            map_ctx.dynamic_textures  [pDstResource] = checksum;
-            map_ctx.dynamic_texturesx [pDstResource] = top_crc32c;
-
-            SK_LOG1 ( ( L"New Staged Texture: (%lux%lu) -- %x",
+            SK_LOG1 ( ( L"New Cacheable Texture: (%lux%lu) -- %x",
                           desc.Width, desc.Height, top_crc32c ),
                         L"DX11TexMgr" );
 
-            map_ctx.dynamic_times2    [checksum]  = elapsed;
-            map_ctx.dynamic_sizes2    [checksum]  = size;
+            SK_D3D11_Textures.CacheMisses_2D++;
+            SK_D3D11_Textures.refTexture2D (pTex, &desc, cache_tag, size, elapsed, top_crc32c);
 
             return;
-          }
-
-          else
-          {
-            bool cacheable = ( //desc.CPUAccessFlags == 0          &&
-                               //desc.Usage != D3D11_USAGE_DYNAMIC &&
-                               desc.MiscFlags <= 4               &&
-                               desc.Width      > 0               && 
-                               desc.Height     > 0               &&
-                               desc.ArraySize == 1 );
-
-            bool compressed = false;
-
-            if ( (desc.Format >= DXGI_FORMAT_BC1_TYPELESS  &&
-                  desc.Format <= DXGI_FORMAT_BC5_SNORM)    ||
-                 (desc.Format >= DXGI_FORMAT_BC6H_TYPELESS &&
-                  desc.Format <= DXGI_FORMAT_BC7_UNORM_SRGB) )
-              compressed = true;
-
-            // If this isn't an injectable texture, then filter out non-mipmapped
-            //   textures.
-            if (/*(! injectable) && */cache_opts.ignore_non_mipped)
-              cacheable &= (desc.MipLevels > 1 || compressed);
-
-            if (cacheable)
-            {
-              SK_LOG1 ( ( L"New Cacheable Texture: (%lux%lu) -- %x",
-                            desc.Width, desc.Height, top_crc32c ),
-                          L"DX11TexMgr" );
-
-              SK_D3D11_Textures.CacheMisses_2D++;
-              SK_D3D11_Textures.refTexture2D (pTex, &desc, cache_tag, size, elapsed, top_crc32c);
-
-              return;
-            }
           }
         }
       }
@@ -8966,6 +8964,7 @@ D3D11Dev_CreateTexture2D_Impl (
   bool cacheable = ( ppTexture2D           != nullptr &&
                      pInitialData          != nullptr &&
                      pInitialData->pSysMem != nullptr &&
+                     pDesc                 != nullptr &&
                      pDesc->SampleDesc.Count == 1     &&
                      pDesc->MiscFlags <= 4            &&
                      pDesc->MiscFlags != 1            &&
@@ -8974,7 +8973,8 @@ D3D11Dev_CreateTexture2D_Impl (
                      pDesc->MipLevels  > 0            &&
                      pDesc->ArraySize == 1 );
 
-  if (pDesc->MipLevels == 0 && pDesc->MiscFlags == D3D11_RESOURCE_MISC_GENERATE_MIPS)
+  if ( cacheable && pDesc->MipLevels == 0 &&
+                    pDesc->MiscFlags == D3D11_RESOURCE_MISC_GENERATE_MIPS )
   {
     SK_LOG0 ( ( L"Skipping Texture because of Mipmap Autogen" ),
                 L" TexCache " );
@@ -9033,7 +9033,8 @@ D3D11Dev_CreateTexture2D_Impl (
 
   // Video planes; don't cache them.
   //
-  if ( ( pDesc->Format    == DXGI_FORMAT_R8_UNORM || pDesc->Format == DXGI_FORMAT_R8_TYPELESS )
+  if ( cacheable &&
+       ( pDesc->Format    == DXGI_FORMAT_R8_UNORM || pDesc->Format == DXGI_FORMAT_R8_TYPELESS )
     &&   pDesc->MipLevels == 1
     && ( pDesc->Width     == 1920 || pDesc->Width == 960 ) )
   {
@@ -9044,7 +9045,7 @@ D3D11Dev_CreateTexture2D_Impl (
 
   bool dynamic = false;
 
-  if (config.textures.d3d11.cache && (! cacheable))
+  if (config.textures.d3d11.cache && (! cacheable) && pDesc != nullptr)
   {
     SK_LOG1 ( ( L"Impossible to cache texture (Code Origin: '%s') -- Misc Flags: %x, MipLevels: %lu, "
                 L"ArraySize: %lu, CPUAccess: %x, BindFlags: %x, Usage: %x, pInitialData: %08"
@@ -11475,7 +11476,7 @@ SK_LiveTextureView (bool& can_scroll)
       if (         sel >= list_contents.size ()) sel = list_contents.size () - 1;
       if ((SSIZE_T)sel <  0)                     sel = 0;
 
-      while (sel >= 0 && sel < list_contents.size ())
+      while ((SSIZE_T)sel >= 0 && sel < list_contents.size ())
       {
         if ( (dir < 0 && sel == 0                        ) ||
              (dir > 0 && sel == list_contents.size () - 1)    )
@@ -11538,7 +11539,7 @@ SK_LiveTextureView (bool& can_scroll)
         for ( UINT i = 0 ; i < tex_desc.MipLevels ; i++ )
         {
           int len =
-            sprintf (pszLODList, "LOD%lu: (%ux%u)", i, std::max (1U, w >> i), std::max (1U, h >> i));
+            sprintf (pszLODList, "LOD%u: (%ux%u)", i, std::max (1U, w >> i), std::max (1U, h >> i));
 
           pszLODList += (len + 1);
         }
@@ -12022,7 +12023,7 @@ SK_D3D11_LoadShaderStateEx (std::wstring name, bool clear)
 
       for ( auto it : (*sec).second.keys )
       {
-        int                                 shader = 0;
+        unsigned int                        shader = 0U;
         swscanf (it.first.c_str (), L"%x", &shader);
 
         CHeapPtr <wchar_t> wszState (
@@ -12186,7 +12187,7 @@ SK_D3D11_UnloadShaderState (std::wstring name)
 
       for ( auto it : (*sec).second.keys )
       {
-        int                                 shader = 0;
+        unsigned int                        shader = 0U;
         swscanf (it.first.c_str (), L"%x", &shader);
 
         CHeapPtr <wchar_t> wszState (
@@ -13278,7 +13279,9 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
   bool&       on_top       = on_top_dummy;
 
 
-  if (ReadAcquire ((volatile LONG *)&tracker->crc32c) != 0x00 && list->sel >= 0 && list->sel < (int)list->contents.size ())
+  if (ReadAcquire ((volatile LONG *)&tracker->crc32c)    != 0x00 &&
+                                      (SSIZE_T)list->sel >= 0    &&
+                                               list->sel < (int)list->contents.size ())
   {
     ImGui::BeginGroup ();
 
@@ -13327,7 +13330,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
         snprintf (szDraws, 128, "%3lu Dispatch%sLast Frame        ", tracker->num_draws.load (), tracker->num_draws != 1 ? "es " : " ");
     }
 
-    snprintf (szTextures,   64, "(%#li %s)", num_used_textures, num_used_textures != 1 ? "textures" : "texture");
+    snprintf (szTextures,   64, "(%#i %s)",  num_used_textures, num_used_textures != 1 ? "textures" : "texture");
     snprintf (szRuntime,    32,  "%0.4f ms", tracker->runtime_ms);
     snprintf (szAvgRuntime, 32,  "%0.4f ms", tracker->runtime_ms / tracker->num_draws);
 
@@ -14449,11 +14452,7 @@ SK_D3D11_ShaderModDlg (void)
           {
             static char szDesc [48] = { };
 
-#ifdef _WIN64
-            sprintf (szDesc, "%07llx###rtv_%p", (uintptr_t)it, it);
-#else
-            sprintf (szDesc, "%07lx###rtv_%p", (uintptr_t)it, it);
-#endif
+            sprintf (szDesc, "%07" PRIxPTR "###rtv_%p", (uintptr_t)it, it);
 
             list_contents.emplace_back (szDesc);
   
@@ -14550,7 +14549,7 @@ SK_D3D11_ShaderModDlg (void)
   
           static bool sel_changed  = false;
   
-          if (sel >= 0 && sel < (int)render_textures.size ())
+          if ((SSIZE_T)sel >= 0 && sel < (int)render_textures.size ())
           {
             if (last_sel_ptr != (uintptr_t)render_textures [sel])
               sel_changed = true;
