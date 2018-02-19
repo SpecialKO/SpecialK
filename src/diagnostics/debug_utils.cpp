@@ -120,7 +120,9 @@ CreateThread_Detour (
 {
   SK_LOG_CALL ("ThreadBase");
 
-  return CreateThread_Original (lpThreadAttributes, dwStackSize, lpStartAddress, lpParameter, dwCreationFlags, lpThreadId);
+  return CreateThread_Original ( lpThreadAttributes,  dwStackSize,
+                                   lpStartAddress,    lpParameter,
+                                     dwCreationFlags, lpThreadId   );
 }
 
 

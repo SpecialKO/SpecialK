@@ -1016,11 +1016,12 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds)
 
     DWORD dwStartTime = timeGetTime ();
     DWORD dwEndTime   = dwStartTime + dwMilliseconds;
+    DWORD dwNow       = 0;
 
-    while (timeGetTime () <= dwEndTime)
+    while ((dwNow = timeGetTime ()) <= dwEndTime)
     {
       DWORD dwMaxWait =
-        dwEndTime - timeGetTime ();
+        dwEndTime - dwNow;
 
       if (dwMaxWait < INT_MAX)
       {

@@ -225,13 +225,10 @@ struct sk_hook_d3d11_t {
 
 void SK_DXGI_HookSwapChain (IDXGISwapChain* pSwapChain);
 
-static IDXGISwapChain* imgui_swap = nullptr;
-
 void
 ImGui_DX11Shutdown ( void )
 {
   ImGui_ImplDX11_Shutdown ();
-  imgui_swap = nullptr;
 }
 
 bool
@@ -276,8 +273,6 @@ ImGui_DX11Startup ( IDXGISwapChain* pSwapChain )
           }
         }
       }
-
-      imgui_swap = pSwapChain;
 
       return
         ImGui_ImplDX11_Init (pSwapChain, pD3D11Dev, pImmediateContext);
@@ -3692,9 +3687,9 @@ SK_DXGI_FilterRedundant_ResizeBuffers ( IDXGISwapChain *This,
                                    _In_ DXGI_FORMAT     NewFormat,
                                    _In_ UINT            SwapChainFlags )
 {
-#ifndef _DEBUG
-  return false;
-#endif
+//#ifndef _DEBUG
+//  return false;
+//#endif
 
   DXGI_SWAP_CHAIN_DESC desc = { };
        This->GetDesc (&desc);
@@ -3755,7 +3750,7 @@ DXGISwap_ResizeBuffers_Override ( IDXGISwapChain *This,
                   Width, Height, BufferCount, NewFormat, SwapChainFlags),
               L"   DXGI   ");
 
-    return S_OK;
+    return S_OK;//ResizeBuffers_Original (This, 0, 0, 0, (DXGI_FORMAT)0, 0);
   }
 
 
@@ -3768,6 +3763,8 @@ DXGISwap_ResizeBuffers_Override ( IDXGISwapChain *This,
   // Can't do this if waitable
   if (dxgi_caps.present.waitable && config.render.framerate.swapchain_wait > 0)
     return S_OK;
+
+  SK_CEGUI_QueueResetD3D11 (); // Prior to the next present, reset the UI
 
 
   if (       config.render.framerate.buffer_count != -1           &&
@@ -3824,8 +3821,6 @@ DXGISwap_ResizeBuffers_Override ( IDXGISwapChain *This,
 
   if (SUCCEEDED (ret))
   {
-    SK_CEGUI_QueueResetD3D11 (); // Prior to the next present, reset the UI
-
     if (Width != 0 && Height != 0)
     {
       SK_SetWindowResX (Width);
@@ -3841,8 +3836,8 @@ DXGISwap_ResizeBuffers_Override ( IDXGISwapChain *This,
       SK_SetWindowResY (client.bottom - client.top);
     }
 
-    SK_RunOnce (SK_DXGI_HookPresent (This));
-    SK_RunOnce (SK_ApplyQueuedHooks (    ));
+    //SK_RunOnce (SK_DXGI_HookPresent (This));
+    //SK_RunOnce (SK_ApplyQueuedHooks (    ));
   }
 
   return ret;
@@ -4548,6 +4543,7 @@ SK_DXGI_CreateSwapChain_PostInit ( _In_  IUnknown              *pDevice,
 __forceinline
 void
 SK_DXGI_CreateSwapChain1_PostInit ( _In_     IUnknown                         *pDevice,
+                                    _In_     HWND                              hwnd,
                                     _In_     DXGI_SWAP_CHAIN_DESC1            *pDesc1,
                                     _In_opt_ DXGI_SWAP_CHAIN_FULLSCREEN_DESC  *pFullscreenDesc,
                                     _In_     IDXGISwapChain1                 **ppSwapChain1 )
@@ -4575,6 +4571,7 @@ SK_DXGI_CreateSwapChain1_PostInit ( _In_     IUnknown                         *p
   desc.Flags              = pDesc1->Flags;
   desc.SampleDesc         = pDesc1->SampleDesc;
   desc.SwapEffect         = pDesc1->SwapEffect;
+  desc.OutputWindow       = hwnd;
 
   if (pFullscreenDesc)
   {
@@ -4791,8 +4788,8 @@ DXGIFactory2_CreateSwapChainForCoreWindow_Override ( IDXGIFactory2             *
         if ( SUCCEEDED (ret)         &&
              pTemp != nullptr )
         {
-          SK_DXGI_CreateSwapChain1_PostInit (pDevice, &new_desc1, nullptr, &pTemp);
-          SK_DXGI_WrapSwapChain1            (pDevice,                       pTemp,   ppSwapChain);
+          SK_DXGI_CreateSwapChain1_PostInit (pDevice, 0, &new_desc1, nullptr, &pTemp);
+          SK_DXGI_WrapSwapChain1            (pDevice,                          pTemp,   ppSwapChain);
 
           return TRUE;
         }
@@ -4862,8 +4859,8 @@ DXGIFactory2_CreateSwapChainForHwnd_Override ( IDXGIFactory2                   *
 
         if ( SUCCEEDED (ret) )
         {
-          SK_DXGI_CreateSwapChain1_PostInit (pDevice, &new_desc1, &new_fullscreen_desc, &pTemp);
-          SK_DXGI_WrapSwapChain1            (pDevice,                                    pTemp, ppSwapChain);
+          SK_DXGI_CreateSwapChain1_PostInit (pDevice, hWnd, &new_desc1, &new_fullscreen_desc, &pTemp);
+          SK_DXGI_WrapSwapChain1            (pDevice,                                          pTemp, ppSwapChain);
 
           return TRUE;
         }
@@ -4920,7 +4917,7 @@ DXGIFactory2_CreateSwapChainForComposition_Override ( IDXGIFactory2          *Th
   if ( SUCCEEDED (ret) )
   {
     if (ppSwapChain != nullptr)
-      SK_DXGI_CreateSwapChain1_PostInit (pDevice, &new_desc1, &new_fullscreen_desc, ppSwapChain);
+      SK_DXGI_CreateSwapChain1_PostInit (pDevice, hWnd, &new_desc1, &new_fullscreen_desc, ppSwapChain);
   }
 
   return ret;
@@ -6589,7 +6586,7 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
 
   while ( ReadAcquire ( &params->ready ) )
   {
-    if (__SK_DLL_Ending)
+    if (ReadAcquire (&__SK_DLL_Ending))
       break;
 
     if ( params->event == nullptr )

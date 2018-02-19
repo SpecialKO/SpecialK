@@ -1669,9 +1669,9 @@ struct SK_D3D11_KnownThreads
   void   mark         (void);
 
 private:
-  std::set <DWORD> ids;
-  std::set <DWORD> active;
-  CRITICAL_SECTION cs;
+  std::unordered_set <DWORD> ids;
+  std::unordered_set <DWORD> active;
+  CRITICAL_SECTION           cs;
   bool             use_lock = true;
 } SK_D3D11_MemoryThreads,
   SK_D3D11_DrawThreads,
@@ -4718,8 +4718,11 @@ SK_D3D11_DrawHandler (ID3D11DeviceContext* pDevCtx)
     return false;
   }
 
+  SK_TLS *pTLS =
+        SK_TLS_Bottom ();
+
   // ImGui gets to pass-through without invoking the hook
-  if (SK_TLS_Bottom ()->imgui.drawing)
+  if (pTLS->imgui.drawing)
     return false;
 
   uint32_t current_vs = SK_D3D11_Shaders.vertex.current.shader.empty ()        ? 0 :
@@ -4745,8 +4748,8 @@ SK_D3D11_DrawHandler (ID3D11DeviceContext* pDevCtx)
 
   auto TriggerReShade_Before = [&]
   {
-    SK_ScopedBool auto_bool (&SK_TLS_Bottom ()->imgui.drawing);
-    SK_TLS_Bottom ()->imgui.drawing = true;
+    SK_ScopedBool auto_bool (&pTLS->imgui.drawing);
+    pTLS->imgui.drawing = true;
 
     if (SK_ReShade_PresentCallback.fn && (! SK_D3D11_Shaders.reshade_triggered [pDevCtx]))
     {
@@ -5009,20 +5012,20 @@ SK_D3D11_DrawHandler (ID3D11DeviceContext* pDevCtx)
     {
       D3D11_DEPTH_STENCIL_DESC desc = { };
 
-      pDevCtx->OMGetDepthStencilState (&SK_TLS_Bottom ()->d3d11.pDepthStencilStateOrig, &SK_TLS_Bottom ()->d3d11.StencilRefOrig);
+      pDevCtx->OMGetDepthStencilState (&pTLS->d3d11.pDepthStencilStateOrig, &pTLS->d3d11.StencilRefOrig);
 
-      SK_TLS_Bottom ()->d3d11.pDepthStencilStateOrig->GetDesc (&desc);
+      pTLS->d3d11.pDepthStencilStateOrig->GetDesc (&desc);
 
       desc.DepthEnable    = TRUE;
       desc.DepthFunc      = D3D11_COMPARISON_ALWAYS;
       desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
       desc.StencilEnable  = FALSE;
 
-      if (SK_TLS_Bottom ()->d3d11.pDepthStencilStateOrig != nullptr)
+      if (pTLS->d3d11.pDepthStencilStateOrig != nullptr)
       {
-        if (SUCCEEDED (pDev->CreateDepthStencilState (&desc, &SK_TLS_Bottom ()->d3d11.pDepthStencilStateNew)))
+        if (SUCCEEDED (pDev->CreateDepthStencilState (&desc, &pTLS->d3d11.pDepthStencilStateNew)))
         {
-          pDevCtx->OMSetDepthStencilState (SK_TLS_Bottom ()->d3d11.pDepthStencilStateNew, 0);
+          pDevCtx->OMSetDepthStencilState (pTLS->d3d11.pDepthStencilStateNew, 0);
         }
       }
     }
@@ -5041,22 +5044,22 @@ SK_D3D11_DrawHandler (ID3D11DeviceContext* pDevCtx)
 
     if (pDev != nullptr)
     {
-      pDevCtx->RSGetState         (&SK_TLS_Bottom ()->d3d11.pRasterStateOrig);
+      pDevCtx->RSGetState         (&pTLS->d3d11.pRasterStateOrig);
 
       D3D11_RASTERIZER_DESC desc = { };
 
-      if (SK_TLS_Bottom ()->d3d11.pRasterStateOrig != nullptr)
+      if (pTLS->d3d11.pRasterStateOrig != nullptr)
       {
-        SK_TLS_Bottom ()->d3d11.pRasterStateOrig->GetDesc (&desc);
+        pTLS->d3d11.pRasterStateOrig->GetDesc (&desc);
 
         desc.FillMode = D3D11_FILL_WIREFRAME;
         desc.CullMode = D3D11_CULL_NONE;
         //desc.FrontCounterClockwise = TRUE;
         //desc.DepthClipEnable       = FALSE;
 
-        if (SUCCEEDED (pDev->CreateRasterizerState (&desc, &SK_TLS_Bottom ()->d3d11.pRasterStateNew)))
+        if (SUCCEEDED (pDev->CreateRasterizerState (&desc, &pTLS->d3d11.pRasterStateNew)))
         {
-          pDevCtx->RSSetState (SK_TLS_Bottom ()->d3d11.pRasterStateNew);
+          pDevCtx->RSSetState (pTLS->d3d11.pRasterStateNew);
         }
       }
     }
@@ -8369,7 +8372,7 @@ D3D11Dev_CreateShaderResourceView_Override (
 
             SK_LOG1 ( ( L"Overriding Resource View Format for Cached Texture '%08x'  { Was: '%s', Now: '%s' }",
                           cache_desc.crc32c,
-                            SK_DXGI_FormatToStr   (pDescOrig->Format).c_str (),
+                     SK_DXGI_FormatToStr (pDescOrig->Format).c_str ( ),
                               SK_DXGI_FormatToStr (newFormat).c_str         () ),
                         L"DX11TexMgr" );
           }
@@ -10115,6 +10118,7 @@ SK_D3D11_Init (void)
              ( LocalHook_D3D11CreateDeviceAndSwapChain.active ||
                MH_OK == MH_QueueEnableHook (pfnD3D11CreateDeviceAndSwapChain) ) )
         {
+          InterlockedIncrement (&SK_D3D11_initialized);
           success = TRUE;//(MH_OK == SK_ApplyQueuedHooks ());
         }
       }
@@ -13513,12 +13517,11 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 
         if (srv_desc.ViewDimension == D3D_SRV_DIMENSION_TEXTURE2D)
         {
-          CComPtr <ID3D11Resource>  pRes = nullptr;
-          CComPtr <ID3D11Texture2D> pTex = nullptr;
+          CComPtr   <ID3D11Resource>        pRes = nullptr;
+                          it->GetResource (&pRes.p);
+          CComQIPtr <ID3D11Texture2D> pTex (pRes);
 
-          it->GetResource (&pRes);
-
-          if (pRes && SUCCEEDED (pRes->QueryInterface <ID3D11Texture2D> (&pTex)) && pTex)
+          if (pRes && pTex)
           {
             D3D11_TEXTURE2D_DESC desc = { };
             pTex->GetDesc      (&desc);
@@ -14362,12 +14365,11 @@ SK_D3D11_ShaderModDlg (void)
 
           if (desc.ViewDimension == D3D11_RTV_DIMENSION_TEXTURE2D)
           {
-            CComPtr <ID3D11Texture2D> pTex = nullptr;
-            CComPtr <ID3D11Resource>  pRes = nullptr;
+            CComPtr   <ID3D11Resource>        pRes = nullptr;
+                            it->GetResource (&pRes.p);
+            CComQIPtr <ID3D11Texture2D> pTex (pRes);
 
-            it->GetResource (&pRes);
-
-            if (pRes && SUCCEEDED (pRes->QueryInterface <ID3D11Texture2D> (&pTex)) && pTex)
+            if (pRes && pTex)
             {
               D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc;
 
@@ -14615,20 +14617,19 @@ SK_D3D11_ShaderModDlg (void)
         {
           ID3D11RenderTargetView* rt_view = render_textures [sel];
   
-          D3D11_RENDER_TARGET_VIEW_DESC rtv_desc;
-          rt_view->GetDesc (&rtv_desc);
+          D3D11_RENDER_TARGET_VIEW_DESC rtv_desc = { };
+          rt_view->GetDesc            (&rtv_desc);
   
           if (rtv_desc.ViewDimension == D3D11_RTV_DIMENSION_TEXTURE2D)
           {
-            CComPtr <ID3D11Texture2D> pTex = nullptr;
-            CComPtr <ID3D11Resource>  pRes = nullptr;
+            CComPtr <ID3D11Resource>          pRes = nullptr;
+            rt_view->GetResource            (&pRes.p);
+            CComQIPtr <ID3D11Texture2D> pTex (pRes);
 
-            rt_view->GetResource (&pRes);
-
-            if (pRes && SUCCEEDED (pRes->QueryInterface <ID3D11Texture2D> (&pTex)) && pTex)
+            if (pRes && pTex)
             {
               D3D11_TEXTURE2D_DESC desc = { };
-              pTex->GetDesc (&desc);
+              pTex->GetDesc      (&desc);
 
               ID3D11ShaderResourceView*       pSRV     = nullptr;
               D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc = { };
@@ -14705,7 +14706,7 @@ SK_D3D11_ShaderModDlg (void)
                                       SK_DXGI_FormatToStr (desc.Format).c_str () );
                 ImGui::EndGroup   (                                              );
     
-                if (success)
+                if (success && pSRV != nullptr)
                 {
                   ImGui::Separator  ( );
 
@@ -14714,6 +14715,8 @@ SK_D3D11_ShaderModDlg (void)
                                               ImVec2 (effective_width + 8.0f, effective_height + 8.0f),
                                               ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders );
 
+                  temp_resources.push_back (rt_view);
+                                            rt_view->AddRef ();
                   temp_resources.push_back (pSRV);
                   ImGui::Image             ( pSRV,
                                                ImVec2 (effective_width, effective_height),

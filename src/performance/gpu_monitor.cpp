@@ -29,6 +29,12 @@
 #include <algorithm>
 #include <vector>
 
+//
+// All GPU performance data are double-buffered and it is safe to read
+//   gpu_stats without any thread synchronization.
+//
+//  >> It will always reference the last complete set of performance data.
+//
 volatile ULONG          current_gpu_stat      =  0;
          gpu_sensors_t  gpu_stats_buffers [2] = { };
          gpu_sensors_t& gpu_stats             = gpu_stats_buffers [0];
@@ -49,7 +55,6 @@ extern BOOL ADL_init;
 static HANDLE hPollEvent     = nullptr;
 static HANDLE hShutdownEvent = nullptr;
 static HANDLE hPollThread    = nullptr;
-static HANDLE hCommandEvent  = nullptr;
 
 DWORD
 __stdcall
@@ -68,7 +73,7 @@ SK_GPUPollingThread (LPVOID user)
   while (true)
   {
     DWORD dwWait =
-      WaitForMultipleObjects (3, hEvents, FALSE, INFINITE);
+      WaitForMultipleObjects (2, hEvents, FALSE, INFINITE);
 
     if (dwWait == WAIT_OBJECT_0 + 1)
       break;
@@ -115,7 +120,7 @@ SK_GPUPollingThread (LPVOID user)
         NvPhysicalGpuHandle gpu;
 
         // In order for DXGI Adapter info to match up... don't just assign
-        //   these GPUs willy-nilly, use the high 24-bits of the GPUID as
+        //   these GPUs wily-nilly, use the high 24-bits of the GPUID as
         //     a bitmask.
         //NvAPI_GetPhysicalGPUFromGPUID (1 << (i + 8), &gpu);
         //stats.gpus [i].nv_gpuid = (1 << (i + 8));

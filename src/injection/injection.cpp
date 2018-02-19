@@ -315,7 +315,7 @@ CBTProc ( _In_ int    nCode,
 
                    SKX_WaitForCBTHookShutdown ();
 
-                 //CloseHandle (GetCurrentThread ());
+                   CloseHandle (GetCurrentThread ());
 
                    FreeLibraryAndExitThread (static_cast <HMODULE> (user), 0x0);
 
@@ -392,6 +392,7 @@ void
 __stdcall
 SKX_RemoveCBTHook (void)
 {
+START_OVER:
   if (g_CBTHook.hShutdownEvent != nullptr)
     SetEvent (g_CBTHook.hShutdownEvent);
 
@@ -406,8 +407,8 @@ SKX_RemoveCBTHook (void)
   {
     if (UnhookWindowsHookEx (hHookOrig))
     {
-      ZeroMemory (whitelist_patterns, sizeof (whitelist_patterns));
-                  whitelist_count = 0;
+      SecureZeroMemory (whitelist_patterns, sizeof (whitelist_patterns));
+                        whitelist_count = 0;
 
       InterlockedExchange (&__SK_HookContextOwner, FALSE);
 
@@ -423,6 +424,9 @@ SKX_RemoveCBTHook (void)
                                    ), hHookOrig );
     }
   }
+
+  while (ReadPointerAcquire ((PVOID *)&g_CBTHook.hHookCBT) != nullptr)
+    goto START_OVER;
 }
 
 bool

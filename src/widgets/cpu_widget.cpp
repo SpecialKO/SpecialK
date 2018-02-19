@@ -71,16 +71,16 @@ public:
   {
     const  float font_size   = ImGui::GetFont ()->FontSize;
     static char  szAvg [512] = { };
-    static bool  stress      = config.render.framerate.max_delta_time == 500 ?
-                                 true : false;
-
-    if (SK_ImGui::VerticalToggleButton ("Stress Test (100% CPU Load)", &stress))
-    {
-      if (stress) config.render.framerate.max_delta_time = 500;
-      else        config.render.framerate.max_delta_time = 0;
-    }
-
-    ImGui::SameLine   ();
+    //static bool  stress      = config.render.framerate.max_delta_time == 500 ?
+    //                             true : false;
+    //
+    //if (SK_ImGui::VerticalToggleButton ("Stress Test (100% CPU Load)", &stress))
+    //{
+    //  if (stress) config.render.framerate.max_delta_time = 500;
+    //  else        config.render.framerate.max_delta_time = 0;
+    //}
+    //
+    //ImGui::SameLine   ();
     ImGui::BeginGroup ();
 
     for (unsigned int i = 0; i < cpu_records.size (); i++)

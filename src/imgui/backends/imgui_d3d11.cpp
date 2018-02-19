@@ -397,8 +397,7 @@ ImGui_ImplDX11_CreateFontsTexture (void)
   SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
-  CComPtr                   <ID3D11Device>   pDev = nullptr;
-  rb.device->QueryInterface <ID3D11Device> (&pDev.p);
+  CComQIPtr <ID3D11Device> pDev (rb.device);
 
   // Upload texture to graphics system
   {
@@ -483,8 +482,7 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
   if (! rb.swapchain)
     return false;
 
-  CComPtr                   <ID3D11Device>   pDev = nullptr;
-  rb.device->QueryInterface <ID3D11Device> (&pDev);
+  CComQIPtr <ID3D11Device> pDev (rb.device);
 
   // Create the vertex shader
   {
@@ -801,7 +799,7 @@ ImGui_ImplDX11_Shutdown (void)
   ImGui_ImplDX11_InvalidateDeviceObjects ();
   ImGui::Shutdown                        ();
 
-  g_hWnd              = HWND_DESKTOP;
+//g_hWnd              = HWND_DESKTOP;
 }
 
 #include <SpecialK/window.h>

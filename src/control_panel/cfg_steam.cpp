@@ -324,13 +324,16 @@ SK::ControlPanel::Steam::Draw (void)
       }
 
 
-      static uint64_t redist_size  = 0ULL;
+      static uint64_t redist_size  = UINT64_MAX;
       static int      redist_count = -1;
 
-      if (redist_count == -1)
+      if (redist_count == -1 || redist_size == UINT64_MAX)
       {
-        redist_size =
+        uint64_t finished_size =
           SK_Steam_ScrubRedistributables (redist_count, false);
+
+        if (redist_count != -1)
+          redist_size = finished_size;
       }
 
       if (redist_count > 0)

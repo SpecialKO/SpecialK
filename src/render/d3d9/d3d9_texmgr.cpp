@@ -2185,7 +2185,7 @@ SK::D3D9::TextureManager::Init (void)
   tex_log.init (L"logs/textures.log", L"wt+,ccs=UTF-8");
 
   d3dx9_43_dll =
-    LoadLibraryW (L"D3DX9_43.DLL");
+    GetModuleHandle (L"D3DX9_43.DLL");
 
   init = true;
 
@@ -2466,7 +2466,8 @@ SK::D3D9::TextureManager::Shutdown (void)
     DeleteFileW (file_to_delete.c_str ());
   }
 
-  FreeLibrary (d3dx9_43_dll);
+  // Special K is explicitly linked against D3DX9_43 in 0.8.x+
+  //FreeLibrary (d3dx9_43_dll);
 }
 
 void

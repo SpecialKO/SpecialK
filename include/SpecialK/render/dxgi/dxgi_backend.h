@@ -65,10 +65,10 @@ static const GUID IID_ID3D11Device5 = { 0x8ffde202, 0xa0e7, 0x45df, { 0x9e, 0x01
 }
 
 
-#define DXGI_CALL(_Ret, _Call) {                                      \
-  (_Ret) = (_Call);                                                   \
-  dll_log.Log ( L"[   DXGI   ] [@]  Return: %s  -  < " L#_Call L" >", \
-                SK_DescribeHRESULT (_Ret) );                          \
+#define DXGI_CALL(_Ret, _Call) {                                            \
+  (_Ret) = (_Call);                                                         \
+  dll_log.Log ( L"[   DXGI   ] [@]  Return: %s  -  < " __FUNCTIONW__ L" >", \
+                SK_DescribeHRESULT (_Ret) );                                \
 }
 
   // Interface-based DXGI call

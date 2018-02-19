@@ -29,6 +29,7 @@
 #include <SpecialK/hooks.h>
 #include <SpecialK/utility.h>
 #include <SpecialK/thread.h>
+#include <SpecialK/tls.h>
 
 #include <SpecialK/diagnostics/compatibility.h>
 
@@ -86,7 +87,7 @@ struct SK_XInputContext
     XInputEnable_pfn                XInputEnable_Original                = nullptr;
     LPVOID                          XInputEnable_Target                  = nullptr;
 
-    uint8_t                         orig_inst_enable [7]                 =    {   };
+    uint8_t                         orig_inst_enable [7]                 =   {   };
 
     //
     // Extended stuff (XInput1_3 and XInput1_4 ONLY)
@@ -943,6 +944,9 @@ SK_Input_HookXInput1_4 (void)
 
   if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
   {
+    if (ReadPointerAcquire ((LPVOID *)&xinput_ctx.primary_hook) == nullptr)
+      SK_TLS_Bottom ()->input_core.ctx_init_thread = TRUE;
+
     SK_XInputContext::instance_s* pCtx =
       &xinput_ctx.XInput1_4;
 
@@ -966,7 +970,8 @@ SK_Input_HookXInput1_4 (void)
     InterlockedIncrement (&hooked);
   }
 
-  SK_Thread_SpinUntilAtomicMin (&hooked, 2);
+  if (! SK_TLS_Bottom ()->input_core.ctx_init_thread)
+    SK_Thread_SpinUntilAtomicMin (&hooked, 2);
 }
 
 void
@@ -981,6 +986,9 @@ SK_Input_HookXInput1_3 (void)
 
   if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
   {
+    if (ReadPointerAcquire ((LPVOID *)&xinput_ctx.primary_hook) == nullptr)
+      SK_TLS_Bottom ()->input_core.ctx_init_thread = TRUE;
+
     SK_XInputContext::instance_s* pCtx =
       &xinput_ctx.XInput1_3;
 
@@ -1004,7 +1012,8 @@ SK_Input_HookXInput1_3 (void)
     InterlockedIncrement (&hooked);
   }
 
-  SK_Thread_SpinUntilAtomicMin (&hooked, 2);
+  if (!SK_TLS_Bottom ()->input_core.ctx_init_thread)
+    SK_Thread_SpinUntilAtomicMin (&hooked, 2);
 }
 
 void
@@ -1019,6 +1028,9 @@ SK_Input_HookXInput9_1_0 (void)
 
   if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
   {
+    if (ReadPointerAcquire ((LPVOID *)&xinput_ctx.primary_hook) == nullptr)
+      SK_TLS_Bottom ()->input_core.ctx_init_thread = TRUE;
+
     SK_XInputContext::instance_s* pCtx =
       &xinput_ctx.XInput9_1_0;
 
@@ -1041,7 +1053,8 @@ SK_Input_HookXInput9_1_0 (void)
     InterlockedIncrement (&hooked);
   }
 
-  SK_Thread_SpinUntilAtomicMin (&hooked, 2);
+  if (! SK_TLS_Bottom ()->input_core.ctx_init_thread)
+    SK_Thread_SpinUntilAtomicMin (&hooked, 2);
 }
 
 

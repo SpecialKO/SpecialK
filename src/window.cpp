@@ -3387,26 +3387,26 @@ SK_RealizeForegroundWindow (HWND hWndForeground)
   {
     if (! game_window.active)
       return true;
-
+  
     bool focused =
       ( GetFocus () == hWndForeground );
-
+  
     bool foreground =
       ( GetForegroundWindow () == hWndForeground );
-
+  
     // Nothing needs to be done
     if (focused || foreground)
     {
       if (! focused)    SetFocus            (hWndForeground);
       if (! foreground) SetForegroundWindow (hWndForeground);
-
+  
       return true;
     }
-
+  
     return false;
   };
-
-
+  
+  
   if (TryToEarlyOut ()) return 0UL;
 
   static volatile LONG nest_lvl = 0L;

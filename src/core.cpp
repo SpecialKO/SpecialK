@@ -190,104 +190,59 @@ void
 __stdcall
 SK_StartPerfMonThreads (void)
 {
-  if (config.mem.show)
+  auto SpawnMonitorThread =
+  []( volatile HANDLE                 *phThread,
+      const    wchar_t                *wszName,
+               LPTHREAD_START_ROUTINE  pThunk ) ->
+  bool
   {
-    //
-    // Spawn Process Monitor Thread
-    //
-    if ( InterlockedCompareExchangePointer (&process_stats.hThread, nullptr, INVALID_HANDLE_VALUE) ==
+    if ( InterlockedCompareExchangePointer (phThread, nullptr, INVALID_HANDLE_VALUE) ==
            INVALID_HANDLE_VALUE )
     {
-      dll_log.LogEx (true, L"[ WMI Perf ] Spawning Process Monitor...  ");
+      dll_log.LogEx (true, L"[ WMI Perf ] Spawning %ws...  ", wszName);
 
-      InterlockedExchangePointer ( (void **)&process_stats.hThread,
+      InterlockedExchangePointer ( (void **)phThread,
         CreateThread ( nullptr,
                          0,
-                           SK_MonitorProcess,
+                           pThunk,
                              nullptr,
                                0,
                                  nullptr )
       );
 
-      if (process_stats.hThread != INVALID_HANDLE_VALUE)
-        dll_log.LogEx (false, L"tid=0x%04x\n", GetThreadId (process_stats.hThread));
-      else
-        dll_log.LogEx (false, L"Failed!\n");
-    }
-  }
+      if (ReadPointerAcquire (phThread) != INVALID_HANDLE_VALUE)
+      {
+        dll_log.LogEx (false, L"tid=0x%04x\n",
+                         GetThreadId (ReadPointerAcquire (phThread)));
+        return true;
+      }
 
+      else
+      {
+        dll_log.LogEx (false, L"Failed!\n");
+      }
+    }
+
+    return false;
+  };
+
+  //
+  // Spawn CPU Refresh Thread
+  //
   if (config.cpu.show || SK_ImGui_Widgets.cpu_monitor->isActive ())
-  {
-    //
-    // Spawn CPU Refresh Thread
-    //
-    if ( InterlockedCompareExchangePointer (&cpu_stats.hThread, nullptr, INVALID_HANDLE_VALUE) ==
-           INVALID_HANDLE_VALUE )
-    {
-      dll_log.LogEx (true, L"[ WMI Perf ] Spawning CPU Monitor...      ");
+    SpawnMonitorThread (&cpu_stats.hThread, L"CPU Monitor", SK_MonitorCPU);
 
-      InterlockedExchangePointer ( (void **)&cpu_stats.hThread,
-        CreateThread ( nullptr,
-                         0,
-                           SK_MonitorCPU,
-                             nullptr,
-                               0,
-                                 nullptr )
-      );
-
-      if (cpu_stats.hThread != INVALID_HANDLE_VALUE)
-        dll_log.LogEx (false, L"tid=0x%04x\n", GetThreadId (cpu_stats.hThread));
-      else
-        dll_log.LogEx (false, L"Failed!\n");
-    }
-  }
+  //
+  // Spawn Process Monitor Thread
+  //
+  if (config.mem.show)
+    SpawnMonitorThread (&process_stats.hThread,  L"Process Monitor",  SK_MonitorProcess);
 
   if (config.disk.show)
-  {
-    if ( InterlockedCompareExchangePointer (&disk_stats.hThread, nullptr, INVALID_HANDLE_VALUE) ==
-           INVALID_HANDLE_VALUE )
-    {
-      dll_log.LogEx (true, L"[ WMI Perf ] Spawning Disk Monitor...     ");
-
-      InterlockedExchangePointer ( (void **)&disk_stats.hThread,
-        CreateThread ( nullptr,
-                         0,
-                           SK_MonitorDisk,
-                             nullptr,
-                               0,
-                                 nullptr )
-      );
-
-      if (disk_stats.hThread != INVALID_HANDLE_VALUE)
-        dll_log.LogEx (false, L"tid=0x%04x\n", GetThreadId (disk_stats.hThread));
-      else
-        dll_log.LogEx (false, L"failed!\n");
-    }
-  }
+    SpawnMonitorThread (&disk_stats.hThread,     L"Disk Monitor",     SK_MonitorDisk);
 
   if (config.pagefile.show)
-  {
-    if ( InterlockedCompareExchangePointer (&pagefile_stats.hThread, nullptr, INVALID_HANDLE_VALUE) ==
-           INVALID_HANDLE_VALUE )
-    {
-      dll_log.LogEx (true, L"[ WMI Perf ] Spawning Pagefile Monitor... ");
-
-      InterlockedExchangePointer ( (void **)&pagefile_stats.hThread,
-        CreateThread ( nullptr,
-                         0,
-                           SK_MonitorPagefile,
-                             nullptr,
-                               0,
-                                 nullptr )
-      );
-
-      if (pagefile_stats.hThread != INVALID_HANDLE_VALUE)
-        dll_log.LogEx ( false, L"tid=0x%04x\n",
-                          GetThreadId (pagefile_stats.hThread) );
-      else
-        dll_log.LogEx (false, L"failed!\n");
-    }
-  }
+    SpawnMonitorThread (&pagefile_stats.hThread, L"Pagefile Monitor", SK_MonitorPagefile);
 }
 
 
@@ -446,7 +401,7 @@ SK_InitFinishCallback (void);
 
 void
 __stdcall
-SK_InitCore (std::wstring& backend, void* callback)
+SK_InitCore (std::wstring, void* callback)
 {
   using finish_pfn   = void (WINAPI *)  (void);
   using callback_pfn = void (WINAPI *)(_Releases_exclusive_lock_ (init_mutex) finish_pfn);
@@ -766,11 +721,8 @@ SK_HasGlobalInjector (void)
                 std::wstring ( SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\)" ).c_str (),
                   MAX_PATH - 1 );
 
-#ifdef _WIN64
-    lstrcatW (wszBasePath, L"SpecialK64.dll");
-#else
-    lstrcatW (wszBasePath, L"SpecialK32.dll");
-#endif
+    lstrcatW (wszBasePath, SK_RunLHIfBitness ( 64, L"SpecialK64.dll",
+                                                   L"SpecialK32.dll" ));
 
     bool result = (GetFileAttributesW (wszBasePath) != INVALID_FILE_ATTRIBUTES);
     last_test   = result ? 1 : -1;
@@ -1344,7 +1296,7 @@ SK_Win32_CreateDummyWindow (void)
     LoadCursor       (nullptr, IDC_WAIT       ),
     static_cast <HBRUSH> (
       GetStockObject (         BLACK_BRUSH    )
-    ),
+                         ),
     nullptr,
     L"Special K Dummy Window Class"
   };
@@ -1858,67 +1810,32 @@ SK_BeginBufferSwap (void)
         // This tests for the existence of the DLL before attempting to load it...
         auto DelayLoadDLL = [&](const char* szDLL)->
           bool
+          {
+            if (! config.cegui.safe_init)
+              return SUCCEEDED ( __HrLoadAllImportsForDll (szDLL) );
+
+            k32_SetDefaultDllDirectories (
+              LOAD_LIBRARY_SEARCH_APPLICATION_DIR | LOAD_LIBRARY_SEARCH_DEFAULT_DIRS |
+              LOAD_LIBRARY_SEARCH_SYSTEM32        | LOAD_LIBRARY_SEARCH_USER_DIRS
+            );
+
+            DLL_DIRECTORY_COOKIE cookie = nullptr;
+            bool                 ret    = false;
+
+            __try
             {
-              if (! config.cegui.safe_init)
-                return SUCCEEDED ( __HrLoadAllImportsForDll (szDLL) );
+              cookie =               k32_AddDllDirectory    (wszCEGUIModPath);
+              ret    = SUCCEEDED ( __HrLoadAllImportsForDll (szDLL)           );
+            }
 
-              k32_SetDefaultDllDirectories (
-                LOAD_LIBRARY_SEARCH_APPLICATION_DIR | LOAD_LIBRARY_SEARCH_DEFAULT_DIRS |
-                LOAD_LIBRARY_SEARCH_SYSTEM32        | LOAD_LIBRARY_SEARCH_USER_DIRS
-              );
+            __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ) ?
+                       EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH )
+            {
+            }
+            k32_RemoveDllDirectory (cookie);
 
-              DLL_DIRECTORY_COOKIE cookie = nullptr;
-              bool                 ret    = false;
-
-              __try
-              {
-                cookie =               k32_AddDllDirectory    (wszCEGUIModPath);
-                ret    = SUCCEEDED ( __HrLoadAllImportsForDll (szDLL)           );
-              }
-
-              __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ) ?
-                         EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH )
-              {
-              }
-              k32_RemoveDllDirectory (cookie);
-
-              return ret;
-            };
-
-        auto LoadCEGUI_Core  = [&](void)
-        { auto LoadCEGUI_DLL = [&](const wchar_t* wszName)
-          {
-            wchar_t   wszFullPath [MAX_PATH * 2] = { };
-            lstrcatW (wszFullPath, wszCEGUIModPath);
-            lstrcatW (wszFullPath, LR"(\)");
-            lstrcatW (wszFullPath, wszName);
-
-            LoadLibraryW (wszFullPath);
+            return ret;
           };
-
-          //LoadCEGUI_DLL (L"zlib.dll");
-          //LoadCEGUI_DLL (L"freetype.dll");
-          //LoadCEGUI_DLL (L"CEGUICoreWindowRendererSet.dll");
-          //LoadCEGUI_DLL (L"CEGUICommonDialogs-0.dll");
-          //LoadCEGUI_DLL (L"CEGUISTBImageCodec.dll");
-        //LoadCEGUI_DLL (L"pcre.dll");
-        //LoadCEGUI_DLL (L"CEGUIRapidXMLParser.dll");
-        };
-
-        auto LoadCEGUI_GLCore= [&](void)
-        { auto LoadCEGUI_DLL = [&](const wchar_t* wszName)
-          {
-            wchar_t   wszFullPath [MAX_PATH * 2] = { };
-            lstrcatW (wszFullPath, wszCEGUIModPath);
-            lstrcatW (wszFullPath, LR"(\)");
-            lstrcatW (wszFullPath, wszName);
-
-            LoadLibraryW (wszFullPath);
-          };
-
-          LoadCEGUI_Core ();
-          LoadCEGUI_DLL  (L"glew.dll");
-        };
 
         if (DelayLoadDLL ("CEGUIBase-0.dll"))
         {
@@ -1933,11 +1850,8 @@ SK_BeginBufferSwap (void)
             {
               if (config.apis.OpenGL.hook)
               {
-                if (DelayLoadDLL ("CEGUIOpenGLRenderer-0.dll"))
-                {
-                  LoadCEGUI_GLCore ();
-                  config.cegui.enable = true;
-                }
+                config.cegui.enable =
+                  DelayLoadDLL ("CEGUIOpenGLRenderer-0.dll");
               }
             }
 
@@ -1946,11 +1860,8 @@ SK_BeginBufferSwap (void)
             {
               if (config.apis.d3d9.hook || config.apis.d3d9ex.hook)
               {
-                if (DelayLoadDLL ("CEGUIDirect3D9Renderer-0.dll"))
-                {
-                  LoadCEGUI_Core ();
-                  config.cegui.enable = true;
-                }
+                config.cegui.enable =
+                  DelayLoadDLL ("CEGUIDirect3D9Renderer-0.dll");
               }
             }
 
@@ -1959,11 +1870,8 @@ SK_BeginBufferSwap (void)
               if ( static_cast <int> (SK_GetCurrentRenderBackend ().api) &
                    static_cast <int> (SK_RenderAPI::D3D11              ) )
               {
-                if (DelayLoadDLL ("CEGUIDirect3D11Renderer-0.dll"))
-                {
-                  LoadCEGUI_Core ();
-                  config.cegui.enable = true;
-                }
+                config.cegui.enable =
+                  DelayLoadDLL ("CEGUIDirect3D11Renderer-0.dll");
               }
             }
           }

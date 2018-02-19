@@ -971,10 +971,11 @@ SK::D3D9::Shutdown (void)
                         _Original, _Type );                            \
 }
 
-#define D3D9_CALL(_Ret, _Call) {                                      \
-  (_Ret) = (_Call);                                                   \
-  dll_log.Log ( L"[   D3D9   ] [@]  Return: %s  -  < " L#_Call L" >", \
-                  SK_DescribeHRESULT (_Ret) );                        \
+#define D3D9_CALL(_Ret, _Call) {                              \
+  (_Ret) = (_Call);                                           \
+  dll_log.Log ( L"[   D3D9   ] [@]  Return: %s  -  "          \
+                                   L"< " __FUNCTIONW__ L" >", \
+                  SK_DescribeHRESULT (_Ret) );                \
 }
 
 void
@@ -5626,9 +5627,9 @@ SK_D3D9_LiveShaderClassView (SK::D3D9::ShaderClass shader_type, bool& can_scroll
       }
       ImGui::PopID ();
     }
-    ImGui::PopItemWidth ();
-    ImGui::TreePop      ();
-    ImGui::EndGroup     ();
+    ImGui::PopItemWidth   ();
+    ImGui::TreePop        ();
+    ImGui::EndGroup       ();
 
     ImGui::Separator      ();
 
@@ -5641,7 +5642,8 @@ SK_D3D9_LiveShaderClassView (SK::D3D9::ShaderClass shader_type, bool& can_scroll
     ImGui::TextWrapped    (disassembly [tracker->crc32c].footer.c_str ());
     ImGui::PopFont        ();
 
-    ImGui::PopStyleColor (4);
+    ImGui::PopStyleColor  (4);
+    ImGui::PopID          ( );
   }
   else
     tracker->cancel_draws = false;
@@ -6379,8 +6381,6 @@ SK_D3D9_TextureModDlg (void)
                         ImVec2 ( font_size * 6.0f, std::max (font_size * 15.0f, last_ht)),
                           true, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NavFlattened );
 
-    ImGui::PopStyleColor  ();
-
     if (ImGui::IsWindowHovered ())
       can_scroll = false;
 
@@ -6430,7 +6430,8 @@ SK_D3D9_TextureModDlg (void)
      }
    }
 
-   ImGui::EndChild ();
+   ImGui::EndChild      ();
+   ImGui::PopStyleColor ();
 
    if (ImGui::IsItemHovered ())
    {
@@ -6476,8 +6477,6 @@ SK_D3D9_TextureModDlg (void)
                                 (float)desc.Height + font_size * 11.0f),
                                     true,
                                       ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NavFlattened );
-
-          ImGui::PopStyleColor  ();
 
           if ((! config.textures.highlight_debug_tex) && has_alternate)
           {
@@ -6578,9 +6577,10 @@ SK_D3D9_TextureModDlg (void)
                                        ImColor (255,255,255,255), ImColor (255,255,255,128)
                                  );
           ImGui::EndChildFrame   ();
+          ImGui::PopStyleColor   ();
           ImGui::EndChild        ();
           ImGui::EndGroup        ();
-          ImGui::PopStyleColor   (1);
+          ImGui::PopStyleColor   ();
         }
      }
 

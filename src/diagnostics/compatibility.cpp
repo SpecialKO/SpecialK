@@ -1032,12 +1032,13 @@ _SK_SummarizeModule ( LPVOID   base_addr,  size_t      mod_size,
                       HMODULE  hMod,       uintptr_t   addr,
                       wchar_t* wszModName, iSK_Logger* pLogger )
 {
-  ULONG ulLen =
+  ULONG ulLen =  0;
+
 #ifdef _DEBUG
+    char  szSymbol [512] = { };
     //~~~ This is too slow and useless
-    SK_GetSymbolNameFromModuleAddr (hMod, addr, szSymbol, ulLen);
+    ulLen = SK_GetSymbolNameFromModuleAddr (hMod, addr, szSymbol, ulLen);
 #else
-    0;
   UNREFERENCED_PARAMETER (ulLen);
   UNREFERENCED_PARAMETER (hMod);
   UNREFERENCED_PARAMETER (addr);
@@ -1047,8 +1048,6 @@ _SK_SummarizeModule ( LPVOID   base_addr,  size_t      mod_size,
     SK_GetDLLVersionStr (wszModName);
 
 #ifdef _DEBUG
-  char szSymbol [512] = { };
-
   if (ulLen != 0)
   {
     pLogger->Log ( L"[ Module ]  ( %ph + %08u )   -:< %-64hs >:-   %s",

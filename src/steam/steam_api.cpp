@@ -1351,9 +1351,12 @@ Steam_Callback_RunStatEx (CCallbackBase *pThis, void           *pvParam,
 #define VERY_RARE   15.0f
 #define ONE_PERCENT  1.0f
 
-const char*
+#include <imgui/imgui.h>
+
+std::string
 SK_Steam_RarityToColor (float percent)
 {
+#ifdef SK_USE_OLD_ACHIEVEMENT_COLORS
   if (percent <= ONE_PERCENT)
     return "FFFF1111";
 
@@ -1373,6 +1376,14 @@ SK_Steam_RarityToColor (float percent)
     return "FFBBBBBB";
 
   return "FFFFFFFF";
+#else
+  ImVec4 color =
+    ImColor::HSV (0.4f * (percent / 100.0f), 1.0f, 1.0f);
+
+  return SK_FormatString ("FF%02X%02X%02X", (int)(color.x * 255.0f),
+                                            (int)(color.y * 255.0f),
+                                            (int)(color.z * 255.0f) );
+#endif
 }
 
 const char*
@@ -2551,7 +2562,7 @@ protected:
 
     CEGUI::Window* achv_rank = achv_popup->getChild ("Rank");
     achv_rank->setProperty ( "NormalTextColour",
-                               SK_Steam_RarityToColor (achievement->global_percent_)
+                               SK_Steam_RarityToColor (achievement->global_percent_).c_str ()
                            );
     achv_rank->setText ( SK_Steam_RarityToName (achievement->global_percent_) );
 
@@ -3607,56 +3618,99 @@ SK_Steam_RecursiveFileScrub ( std::wstring   directory, unsigned int& files,
 uint64_t
 SK_Steam_ScrubRedistributables (int& total_files, bool erase)
 {
-  unsigned int   files =  0 ;
-  LARGE_INTEGER liSize = { };
+  static volatile LONGLONG size    = 0LL;
+  static volatile HANDLE   hThread =
+    INVALID_HANDLE_VALUE;
 
-  steam_library_t* steam_lib_paths = nullptr;
-              int  steam_libs      = SK_Steam_GetLibraries (&steam_lib_paths);
+  if (total_files != -1 && (! erase))
+    return size;
 
-  // Search custom library paths first
-  if (steam_libs != 0)
+  if ( INVALID_HANDLE_VALUE ==
+         InterlockedCompareExchangePointer ( &hThread, (LPVOID)1,
+                                               INVALID_HANDLE_VALUE ) )
   {
-    for (int i = 0; i < steam_libs; i++)
+    struct scrub_params_s {
+      int   &total_files;
+      bool   erase;
+    } static params { total_files, erase };
+
+    params.total_files = total_files;
+    params.erase       = erase;
+
+    HANDLE hScrub =
+    CreateThread (nullptr, 0, [](LPVOID) ->
+    DWORD
     {
-      WIN32_FIND_DATA fd        = {   };
-      std::wstring    directory =
-        SK_FormatStringW (LR"(%hs\steamapps\common)", (const char *)steam_lib_paths [i]);
-      HANDLE          hFind     =
-        FindFirstFileW   (_ConstructPath (directory, L"*").data (), &fd);
+      DWORD dwStart = timeGetTime ();
 
-      if (hFind != INVALID_HANDLE_VALUE)
+      SetCurrentThreadDescription (L"[SK] Steam Redistributable File Cleanup");
+      SetThreadPriority           (GetCurrentThread (), THREAD_PRIORITY_LOWEST |
+                                                        THREAD_MODE_BACKGROUND_BEGIN );
+
+      unsigned int     files =  0 ;
+      LARGE_INTEGER   liSize = { };
+
+      steam_library_t* steam_lib_paths = nullptr;
+                  int  steam_libs      = SK_Steam_GetLibraries (&steam_lib_paths);
+
+      // Search custom library paths first
+      if (steam_libs != 0)
       {
-        do
+        for (int i = 0; i < steam_libs; i++)
         {
-          if (          (fd.dwFileAttributes  & FILE_ATTRIBUTE_DIRECTORY) &&
-              (_wcsicmp (fd.cFileName, L"." ) != 0)                       &&
-              (_wcsicmp (fd.cFileName, L"..") != 0) )
+          WIN32_FIND_DATA fd        = {   };
+          std::wstring    directory =
+            SK_FormatStringW (LR"(%hs\steamapps\common)", (const char *)steam_lib_paths [i]);
+          HANDLE          hFind     =
+            FindFirstFileW   (_ConstructPath (directory, L"*").data (), &fd);
+
+          if (hFind != INVALID_HANDLE_VALUE)
           {
-            SK_Steam_RecursiveFileScrub ( _ConstructPath   (
-                                            _ConstructPath ( directory, fd.cFileName ),
-                                                               L"_CommonRedist"
-                                                           ).data (),
-                                            files, liSize, 
-                                              L"*", L"installscript.vdf",
-                                                erase );
+            do
+            {
+              if (          (fd.dwFileAttributes  & FILE_ATTRIBUTE_DIRECTORY) &&
+                  (_wcsicmp (fd.cFileName, L"." ) != 0)                       &&
+                  (_wcsicmp (fd.cFileName, L"..") != 0) )
+              {
+                SK_Steam_RecursiveFileScrub ( _ConstructPath   (
+                                                _ConstructPath ( directory, fd.cFileName ),
+                                                                   L"_CommonRedist"
+                                                               ).data (),
+                                                files, liSize, 
+                                                  L"*", L"installscript.vdf",
+                                                    params.erase );
+              }
+            } while (FindNextFile (hFind, &fd));
+
+            FindClose (hFind);
           }
-        } while (FindNextFile (hFind, &fd));
-
-        FindClose (hFind);
+        }
       }
-    }
+
+      if (files > 0)
+      {
+        SK_LOG0 ( ( L"Common Redistributables: %lu files (%7.2f MiB)",
+                      files, (float)(liSize.QuadPart / 1024ULL) / 1024.0f ),
+                    L"SteamBloat" );
+        SK_LOG0 ( ( L" >> Search Completed in %lu ms",
+                      timeGetTime () - dwStart ),
+                    L"SteamBloat" );
+      }
+
+         params.total_files = files;
+       InterlockedExchange64 (&size, liSize.QuadPart);
+
+      InterlockedExchangePointer ((void **)&hThread, INVALID_HANDLE_VALUE);
+
+      CloseHandle (GetCurrentThread ());
+
+      return 0;
+    }, nullptr, 0x00, nullptr);
+
+    InterlockedExchangePointer ((void **)&hThread, hScrub);
   }
 
-  if (files > 0)
-  {
-    SK_LOG0 ( ( L"Common Redistributables: %lu files (%7.2f MiB)",
-                  files, (float)(liSize.QuadPart / 1024ULL) / 1024.0f ),
-                L"SteamBloat" );
-  }
-
-  total_files = files;
-
-  return liSize.QuadPart;
+  return ReadAcquire64 (&size);
 }
 
 std::string
@@ -4199,15 +4253,23 @@ SK_SteamAPI_DestroyManagers (void)
 }
 
 
+// Cache this instead of getting it from the Steam client constantly;
+//   doing that is far more expensive than you would think.
 size_t
 SK_SteamAPI_GetNumPossibleAchievements (void)
 {
-  size_t possible = 0;
+  static std::pair <size_t,bool> possible =
+    { 0, false };
 
-  if (steam_achievements != nullptr)
-    steam_achievements->getAchievements (&possible);
+  if ( possible.second    == false   && 
+       steam_achievements != nullptr    )
+  {
+    steam_achievements->getAchievements (&possible.first);
 
-  return possible;
+    possible = { possible.first, true };
+  }
+
+  return possible.first;
 }
 
 std::vector <SK_SteamAchievement *>&

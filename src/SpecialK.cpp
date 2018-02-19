@@ -802,7 +802,7 @@ DllMain ( HMODULE hModule,
   {
     if (ReadAcquire (&__SK_TLS_INDEX) != TLS_OUT_OF_INDEXES)
       SK_TLS_Bottom ()->debug.in_DllMain = false;
-
+    
     SK_CleanupTLS ();
 
     return bRet;
@@ -813,6 +813,11 @@ DllMain ( HMODULE hModule,
   {
     case DLL_PROCESS_ATTACH:
     {
+      SK_AllocTLS ();
+      
+      if (ReadAcquire (&__SK_TLS_INDEX) != TLS_OUT_OF_INDEXES)
+        SK_TLS_Bottom ()->debug.in_DllMain = true;
+
       if (InterlockedExchangePointer (
             reinterpret_cast <LPVOID  *> (
                   const_cast <HMODULE *> (&hModSelf)
@@ -836,13 +841,6 @@ DllMain ( HMODULE hModule,
 
 
       InterlockedIncrement (&__SK_DLL_Refs);
-
-
-      SK_AllocTLS ();
-
-      if (ReadAcquire (&__SK_TLS_INDEX) != TLS_OUT_OF_INDEXES)
-        SK_TLS_Bottom ()->debug.in_DllMain = true;
-
 
       // We reserve the right to deny attaching the DLL, this will generally
       //   happen if a game does not opt-in to system wide injection.

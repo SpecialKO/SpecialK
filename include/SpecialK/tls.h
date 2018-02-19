@@ -157,6 +157,7 @@ struct SK_RawInput_ThreadContext : SK_TLS_DynamicContext
 struct SK_Input_ThreadContext
 {
   BOOL hid                 = FALSE;
+  BOOL ctx_init_thread     = FALSE;
 };
 
 

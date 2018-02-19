@@ -2548,36 +2548,36 @@ SK_DeferCommands (const char** szCommands, int count)
 
   // ============================================== //
 
-  InterlockedCompareExchangePointer (&hCommandThread,
-    CreateThread ( nullptr,
-                     0x00,
-                       [](LPVOID) ->
-      DWORD
+  if (! InterlockedCompareExchangePointer (&hCommandThread, (LPVOID)1, 0))
+  {     InterlockedExchangePointer        ((void **)&hCommandThread,
+
+    CreateThread   ( nullptr, 0x00,
+    [ ](LPVOID) ->
+    DWORD
+    {
+      SetCurrentThreadDescription (L"[SK] Async Command Processor");
+
+      SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_BELOW_NORMAL);
+      CHandle  hThread  (GetCurrentThread ());
+
+      while (! ReadAcquire (&__SK_DLL_Ending))
       {
-        SetCurrentThreadDescription (L"[SK] Async Command Processor");
-
-        SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_BELOW_NORMAL);
-        CHandle  hThread  (GetCurrentThread ());
-
-        while (! ReadAcquire (&__SK_DLL_Ending))
+        if (WaitForSingleObjectEx (hNewCmds, INFINITE, TRUE) == WAIT_OBJECT_0)
         {
-          if (WaitForSingleObjectEx (hNewCmds, INFINITE, TRUE) == WAIT_OBJECT_0)
-          {
-            std::string cmd = "";
+          std::string cmd = "";
 
-            while (cmds.try_pop (cmd))
-            {
-              SK_GetCommandProcessor ()->ProcessCommandLine (cmd.c_str ());
-            }
+          while (cmds.try_pop (cmd))
+          {
+            SK_GetCommandProcessor ()->ProcessCommandLine (cmd.c_str ());
           }
         }
+      }
 
-        CloseHandle (hNewCmds);
+      CloseHandle (hNewCmds);
 
-        return 0;
-      }, nullptr, 0x00, nullptr
-    ), nullptr
-  );
+      return 0;
+    }, nullptr, 0x00, nullptr ) );
+  }
 };
 
 //
