@@ -656,7 +656,7 @@ LoadPackagedLibrary_Detour (LPCWSTR lpLibFileName, DWORD Reserved)
   if (lpLibFileName == nullptr)
     return nullptr;
 
- SK_LockDllLoader ();
+  SK_LockDllLoader ();
 
   HMODULE hModEarly = nullptr;
 

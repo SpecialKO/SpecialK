@@ -1323,6 +1323,9 @@ wglMakeCurrent (HDC hDC, HGLRC hglrc)
 {
   WaitForInit_GL ();
 
+  SK_TLS* pTLS =
+    SK_TLS_Bottom ();
+
   if (config.system.log_level > 1)
   {
     dll_log.Log ( L"[%x (tid=%x)]  wglMakeCurrent "
@@ -1336,10 +1339,10 @@ wglMakeCurrent (HDC hDC, HGLRC hglrc)
     wgl_make_current (hDC, hglrc);
 
 
-  SK_TLS_Bottom ()->gl.current_hglrc = hglrc;
-  SK_TLS_Bottom ()->gl.current_hdc   = hDC;
-  SK_TLS_Bottom ()->gl.current_hwnd  = SK_TLS_Bottom ()->gl.current_hdc != 0 ?
-                        WindowFromDC  (SK_TLS_Bottom ()->gl.current_hdc)     : 0;
+  pTLS->gl.current_hglrc = hglrc;
+  pTLS->gl.current_hdc   = hDC;
+  pTLS->gl.current_hwnd  = pTLS->gl.current_hdc != 0 ?
+            WindowFromDC  (pTLS->gl.current_hdc)     : 0;
 
   return ret;
 }
@@ -1749,10 +1752,13 @@ SK_Overlay_DrawGL (void)
 BOOL
 SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
 {
+  SK_TLS* pTLS =
+    SK_TLS_Bottom ();
+
   HGLRC& thread_hglrc = 
-    SK_TLS_Bottom ()->gl.current_hglrc;
+    pTLS->gl.current_hglrc;
   HDC&   thread_hdc   =
-    SK_TLS_Bottom ()->gl.current_hdc;
+    pTLS->gl.current_hdc;
 
 
   bool need_init = false;
@@ -1766,7 +1772,7 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
       wglMakeCurrent ( (thread_hdc   = SK_GL_GetCurrentDC      ()),
                        (thread_hglrc = SK_GL_GetCurrentContext ()) );
     
-      SK_TLS_Bottom ()->gl.current_hwnd =
+      pTLS->gl.current_hwnd =
         WindowFromDC (thread_hdc);
     
       need_init = true;
@@ -1816,10 +1822,10 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
   }
 
 
-//HWND  hWnd = SK_TLS_Bottom ()->gl.current_hwnd;
-//HGLRC hRC  = SK_TLS_Bottom ()->gl.current_hglrc;
+//HWND  hWnd = pTLS->gl.current_hwnd;
+//HGLRC hRC  = ->gl.current_hglrc;
 
-//assert (hDC == SK_TLS_Bottom ()->gl.current_hdc);
+//assert (hDC == pTLS->gl.current_hdc);
 
 
   BOOL status = false;

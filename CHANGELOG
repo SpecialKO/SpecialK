@@ -1,5 +1,7 @@
 0.9.2:
 
+ + Fixed auto-update fetching version.ini multiple times if user postpones
+ + Tweaked Steam achievement rarity colors in unlock popup for visibility
  + Sped up redundant Steam redisributable file detection (cpl opens faster)
  + Fixed DXGI CreateSwapChainForHwnd not actually using the HWND :)
  + Fixed Secret of Mana's resolution quirkiness

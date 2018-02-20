@@ -479,7 +479,6 @@ SK_D3D11_Resampler_GetErrorCount (void)
   return ReadAcquire (&SK_D3D11_TextureResampler.stats.error_count);
 }
 
-volatile LONG SK_D3D11_tex_init = FALSE;
 volatile LONG  __d3d11_ready    = FALSE;
 
 void WaitForInitD3D11 (void)
@@ -641,6 +640,9 @@ SK_D3D11_TestRefCountHooks (ID3D11Texture2D* pInputTex)
   if (config.textures.cache.allow_unsafe_refs)
     return TRUE;
 
+  SK_TLS* pTLS =
+    SK_TLS_Bottom ();
+
   auto SanityFail =
   [&](void) ->
   BOOL
@@ -649,22 +651,22 @@ SK_D3D11_TestRefCountHooks (ID3D11Texture2D* pInputTex)
     return FALSE;
   };
 
-  SK_TLS_Bottom ()->texture_management.refcount_obj = pInputTex;
+  pTLS->texture_management.refcount_obj = pInputTex;
 
   LONG initial =
-    SK_TLS_Bottom ()->texture_management.refcount_test;
+    pTLS->texture_management.refcount_test;
 
   pInputTex->AddRef ();
 
   LONG initial_plus_one =
-    SK_TLS_Bottom ()->texture_management.refcount_test;
+    pTLS->texture_management.refcount_test;
 
   pInputTex->Release ();
 
   LONG initial_again =
-    SK_TLS_Bottom ()->texture_management.refcount_test;
+    pTLS->texture_management.refcount_test;
 
-  SK_TLS_Bottom ()->texture_management.refcount_obj = nullptr;
+  pTLS->texture_management.refcount_obj = nullptr;
 
   if ( initial != initial_plus_one - 1 ||
        initial != initial_again )
@@ -688,7 +690,7 @@ SK_D3D11_TestRefCountHooks (ID3D11Texture2D* pInputTex)
   //       never expect to get the original object by making this call!
   //
 
-            SK_TLS_Bottom ()->texture_management.refcount_test = 0;
+            pTLS->texture_management.refcount_test = 0;
 
   // Also validate that the wrapper's QueryInterface method is
   //   invoking our hooks
@@ -699,16 +701,16 @@ SK_D3D11_TestRefCountHooks (ID3D11Texture2D* pInputTex)
   if (! pReferenced)
     return SanityFail ();
 
-  SK_TLS_Bottom ()->texture_management.refcount_obj = pReferenced;
+  pTLS->texture_management.refcount_obj = pReferenced;
 
   initial =
-    SK_TLS_Bottom ()->texture_management.refcount_test;
+    pTLS->texture_management.refcount_test;
 
   pReferenced->Release ();
 
   LONG initial_after_release =
-    SK_TLS_Bottom ()->texture_management.refcount_test;
-  SK_TLS_Bottom   ()->texture_management.refcount_obj = nullptr;
+    pTLS->texture_management.refcount_test;
+    pTLS->texture_management.refcount_obj = nullptr;
 
   if ( initial != initial_after_release + 1 )
   {
@@ -732,8 +734,11 @@ ULONG
 WINAPI
 IUnknown_Release (IUnknown* This)
 {
-  if (This == SK_TLS_Bottom ()->texture_management.refcount_obj)
-    SK_TLS_Bottom ()->texture_management.refcount_test--;
+  SK_TLS* pTLS =
+    SK_TLS_Bottom ();
+
+  if (This == pTLS->texture_management.refcount_obj)
+    pTLS->texture_management.refcount_test--;
 
   if (! SK_D3D11_IsTexInjectThread ())
   {
@@ -758,20 +763,23 @@ ULONG
 WINAPI
 IUnknown_AddRef (IUnknown* This)
 {
-  if (This == SK_TLS_Bottom ()->texture_management.refcount_obj)
-    SK_TLS_Bottom ()->texture_management.refcount_test++;
+  SK_TLS* pTLS =
+    SK_TLS_Bottom ();
+
+  if (This == pTLS->texture_management.refcount_obj)
+    pTLS->texture_management.refcount_test++;
 
   if (! SK_D3D11_IsTexInjectThread ())
   {
     // Flag this thread so we don't infinitely recurse when querying the interface
-    SK_ScopedBool auto_bool (&SK_TLS_Bottom ()->texture_management.injection_thread);
-    SK_TLS_Bottom ()->texture_management.injection_thread = true;
+    SK_ScopedBool auto_bool (&pTLS->texture_management.injection_thread);
+    pTLS->texture_management.injection_thread = true;
 
     ID3D11Texture2D* pTex = nullptr;
 
     if (SUCCEEDED (This->QueryInterface <ID3D11Texture2D> (&pTex)))
     {
-      SK_TLS_Bottom ()->texture_management.injection_thread = false;
+      pTLS->texture_management.injection_thread = false;
 
       if (SK_D3D11_TextureIsCached (pTex))
         SK_D3D11_UseTexture (pTex);
@@ -8730,11 +8738,14 @@ SK_D3D11_ReloadTexture (ID3D11Texture2D* pTex)
   HRESULT hr =
     E_UNEXPECTED;
 
-  SK_ScopedBool auto_bool  (&SK_TLS_Bottom ()->texture_management.injection_thread);
-  SK_ScopedBool auto_bool2 (&SK_TLS_Bottom ()->imgui.drawing);
+  SK_TLS* pTLS =
+    SK_TLS_Bottom ();
 
-  SK_TLS_Bottom ()->texture_management.injection_thread = true;
-  SK_TLS_Bottom ()->imgui.drawing                       = true;
+  SK_ScopedBool auto_bool  (&pTLS->texture_management.injection_thread);
+  SK_ScopedBool auto_bool2 (&pTLS->imgui.drawing);
+
+  pTLS->texture_management.injection_thread = true;
+  pTLS->imgui.drawing                       = true;
   {
     SK_D3D11_TexMgr::tex2D_descriptor_s texDesc2D =
       SK_D3D11_Textures.Textures_2D [pTex];
@@ -9141,6 +9152,9 @@ D3D11Dev_CreateTexture2D_Impl (
   LARGE_INTEGER load_start =
     SK_QueryPerf ();
 
+  SK_TLS* pTLS =
+    SK_TLS_Bottom ();
+
   if (cacheable)
   {
     if (D3DX11CreateTextureFromFileW != nullptr && SK_D3D11_res_root.length ())
@@ -9158,8 +9172,8 @@ D3D11Dev_CreateTexture2D_Impl (
         D3DX11_IMAGE_INFO      img_info   = {   };
         D3DX11_IMAGE_LOAD_INFO load_info  = {   };
 
-        SK_ScopedBool auto_bool (&SK_TLS_Bottom ()->texture_management.injection_thread);
-        SK_TLS_Bottom ()->texture_management.injection_thread = true;
+        SK_ScopedBool auto_bool (&pTLS->texture_management.injection_thread);
+                                  pTLS->texture_management.injection_thread = true;
 
         HRESULT hr = E_UNEXPECTED;
 
@@ -9259,11 +9273,11 @@ reinterpret_cast <ID3D11Resource **> (ppTexture2D)
     SK_LOG4 ( ( L"Generating mipmaps for texture with crc32c: %x", top_crc32 ),
                 L" Tex Hash " );
 
-    SK_ScopedBool auto_tex_inject (&SK_TLS_Bottom ()->texture_management.injection_thread);
-    SK_ScopedBool auto_draw       (&SK_TLS_Bottom ()->imgui.drawing);
+    SK_ScopedBool auto_tex_inject (&pTLS->texture_management.injection_thread);
+    SK_ScopedBool auto_draw       (&pTLS->imgui.drawing);
 
-    SK_TLS_Bottom ()->texture_management.injection_thread = true;
-    SK_TLS_Bottom ()->imgui.drawing                       = true;
+    pTLS->texture_management.injection_thread = true;
+    pTLS->imgui.drawing                       = true;
 
     CComPtr <ID3D11DeviceContext> pDevCtx   = nullptr;
     CComPtr <ID3D11Texture2D>     pTempTex  = nullptr;
@@ -9450,8 +9464,8 @@ reinterpret_cast <ID3D11Resource **> (ppTexture2D)
   {
     if (! SK_D3D11_IsDumped (top_crc32, checksum))
     {
-      SK_ScopedBool auto_bool (&SK_TLS_Bottom ()->texture_management.injection_thread);
-      SK_TLS_Bottom ()->texture_management.injection_thread = true;
+      SK_ScopedBool auto_bool (&pTLS->texture_management.injection_thread);
+                                pTLS->texture_management.injection_thread = true;
 
       SK_D3D11_DumpTexture2D (&orig_desc, pInitialData, top_crc32, checksum);
     }
@@ -9802,8 +9816,12 @@ SK::DXGI::getPipelineStatsDesc (void)
 void
 SK_D3D11_InitTextures (void)
 {
+  static volatile LONG SK_D3D11_tex_init = FALSE;
+
   if (! InterlockedCompareExchange (&SK_D3D11_tex_init, TRUE, FALSE))
   {
+    SK_TLS_Bottom ()->d3d11.ctx_init_thread = true;
+
     if (SK_GetCurrentGameID () == SK_GAME_ID::FinalFantasyX_X2)
       SK_D3D11_inject_textures_ffx = true;
 
@@ -9904,6 +9922,9 @@ SK_D3D11_InitTextures (void)
 
     InterlockedIncrement (&SK_D3D11_tex_init);
   }
+
+  if (SK_TLS_Bottom ()->d3d11.ctx_init_thread)
+    return;
 
   SK_Thread_SpinUntilAtomicMin (&SK_D3D11_tex_init, 2);
 }
@@ -15794,27 +15815,36 @@ SK_D3D11_QuickHook (void)
   //if (GetAsyncKeyState (VK_MENU))
   //  return;
 
-  sk_hook_cache_enablement_s state =
-    SK_Hook_PreCacheModule ( L"D3D11",
-                               local_d3d11_records,
-                                 global_d3d11_records );
+  static volatile LONG hooked = FALSE;
 
-  if ( state.hooks_loaded.from_shared_dll > 0 ||
-       state.hooks_loaded.from_game_ini   > 0 )
+  if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
   {
-    // For early loading UnX
-    SK_D3D11_InitTextures ();
+    sk_hook_cache_enablement_s state =
+      SK_Hook_PreCacheModule ( L"D3D11",
+                                 local_d3d11_records,
+                                   global_d3d11_records );
 
-    quick_hooked = true;
-  }
-
-  else 
-  {
-    for ( auto& it : local_d3d11_records )
+    if ( state.hooks_loaded.from_shared_dll > 0 ||
+         state.hooks_loaded.from_game_ini   > 0 )
     {
-      it->active = false;
+      // For early loading UnX
+      SK_D3D11_InitTextures ();
+
+      quick_hooked = true;
     }
+
+    else 
+    {
+      for ( auto& it : local_d3d11_records )
+      {
+        it->active = false;
+      }
+    }
+
+    InterlockedIncrement (&hooked);
   }
+
+  SK_Thread_SpinUntilAtomicMin (&hooked, 2);
 }
 
 

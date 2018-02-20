@@ -158,9 +158,8 @@ BOOL
 SK_DontInject (void)
 {
   LONG idx_to_free =
-    InterlockedCompareExchange ( &__SK_TLS_INDEX,
-                                    TLS_OUT_OF_INDEXES,
-                                      __SK_TLS_INDEX );
+    InterlockedExchange ( &__SK_TLS_INDEX,
+                            TLS_OUT_OF_INDEXES );
 
   if (idx_to_free != TLS_OUT_OF_INDEXES)
   {
@@ -277,12 +276,14 @@ SK_EstablishDllRole (HMODULE hModule)
   if (__blacklist.count (wszAppNameLower)) return false;
 
 
+#ifndef _WIN64
   static bool has_dgvoodoo =
-    GetFileAttributesA (
-      SK_FormatString ( R"(%ws\PlugIns\ThirdParty\dgVoodoo\d3dimm.dll)",
+    GetFileAttributesW (
+      SK_FormatStringW ( LR"(%ws\PlugIns\ThirdParty\dgVoodoo\d3dimm.dll)",
                           std::wstring ( SK_GetDocumentsDir () + LR"(\My Mods\SpecialK)" ).c_str ()
-                      ).c_str ()
+                       ).c_str ()
     ) != INVALID_FILE_ATTRIBUTES;
+#endif
 
 
   wchar_t wszDllFullName [  MAX_PATH + 2 ] = { };
@@ -354,12 +355,15 @@ SK_EstablishDllRole (HMODULE hModule)
 
 
     wchar_t wszD3D9  [MAX_PATH + 2] = { };
-    wchar_t wszD3D8  [MAX_PATH + 2] = { };
-    wchar_t wszDDraw [MAX_PATH + 2] = { };
     wchar_t wszDXGI  [MAX_PATH + 2] = { };
     wchar_t wszD3D11 [MAX_PATH + 2] = { };
     wchar_t wszGL    [MAX_PATH + 2] = { };
     wchar_t wszDI8   [MAX_PATH + 2] = { };
+
+#ifndef _WIN64
+    wchar_t wszD3D8  [MAX_PATH + 2] = { };
+    wchar_t wszDDraw [MAX_PATH + 2] = { };
+#endif
 
     lstrcatW (wszD3D9,   SK_GetHostPath ());
     lstrcatW (wszD3D9,   LR"(\SpecialK.d3d9)");
@@ -391,6 +395,7 @@ SK_EstablishDllRole (HMODULE hModule)
       explicit_inject = true;
     }
 
+#ifndef _WIN64
     else if ( GetFileAttributesW (wszD3D8) != INVALID_FILE_ATTRIBUTES && has_dgvoodoo )
     {
       SK_SetDLLRole (DLL_ROLE::D3D8);
@@ -402,6 +407,7 @@ SK_EstablishDllRole (HMODULE hModule)
       SK_SetDLLRole (DLL_ROLE::DDraw);
       explicit_inject = true;
     }
+#endif
 
     else if ( GetFileAttributesW (wszDXGI) != INVALID_FILE_ATTRIBUTES )
     {
@@ -657,7 +663,7 @@ BOOL
 __stdcall
 SK_Attach (DLL_ROLE role)
 {
-  if (! InterlockedCompareExchange (&__SK_DLL_Attached, TRUE,        FALSE))
+  if (! InterlockedCompareExchange (&__SK_DLL_Attached, TRUE, FALSE))
   {
     if (__SK_DLL_Bootstraps.count (role))
     {
@@ -736,12 +742,19 @@ SK_Detach (DLL_ROLE role)
 
 
 
-void SK_AllocTLS (void)
+DWORD
+SK_AllocTLS (void)
 {
-  InterlockedCompareExchange (&__SK_TLS_INDEX, TlsAlloc (), TLS_OUT_OF_INDEXES);
+  DWORD dwTlsIdx =
+    ReadAcquire (&__SK_TLS_INDEX);
 
-  if ( TLS_OUT_OF_INDEXES !=
-         ReadAcquire (&__SK_TLS_INDEX) )
+  if (dwTlsIdx == TLS_OUT_OF_INDEXES)
+  {
+    InterlockedExchange ( &__SK_TLS_INDEX,
+                            (dwTlsIdx = TlsAlloc ()) );
+  }
+
+  if ( dwTlsIdx < TLS_MINIMUM_AVAILABLE )
   {
     auto lpvData =
       static_cast <LPVOID> (
@@ -750,26 +763,39 @@ void SK_AllocTLS (void)
 
     if (lpvData != nullptr)
     {
-      if (! TlsSetValue (ReadAcquire (&__SK_TLS_INDEX), lpvData))
+      if (! TlsSetValue (dwTlsIdx, lpvData))
       {
         LocalFree (lpvData);
       }
 
       else
       {
-        *(SK_TLS *)lpvData = SK_TLS::SK_TLS ();
-        (static_cast <SK_TLS *> (lpvData))->stack.current = 0;
+        SK_TLS* pTLS =
+          static_cast <SK_TLS *> (lpvData);
+
+        *pTLS = SK_TLS::SK_TLS ();
+
+        // Stack semantics are deprecated and will be removed soon
+        pTLS->stack.current = 0;
       }
     }
   }
+
+  else
+    dwTlsIdx = TLS_OUT_OF_INDEXES;
+
+  return dwTlsIdx;
 }
 
 void SK_CleanupTLS (void)
 {
-  if (ReadAcquire (&__SK_TLS_INDEX) != TLS_OUT_OF_INDEXES)
+  DWORD dwTlsIdx =
+    ReadAcquire (&__SK_TLS_INDEX);
+
+  if (dwTlsIdx < TLS_MINIMUM_AVAILABLE)
   {
     auto lpvData =
-      static_cast <LPVOID> (TlsGetValue (__SK_TLS_INDEX));
+      static_cast <LPVOID> (TlsGetValue (dwTlsIdx));
 
     if (lpvData != nullptr)
     {
@@ -783,8 +809,8 @@ void SK_CleanupTLS (void)
                     freed, GetCurrentThreadId () ), L"TLS Memory" );
 #endif
 
-      LocalFree   (lpvData);
-      TlsSetValue (ReadAcquire (&__SK_TLS_INDEX), nullptr);
+      if (TlsSetValue (dwTlsIdx, nullptr))
+        LocalFree     (lpvData);
     }
   }
 }
@@ -800,10 +826,23 @@ DllMain ( HMODULE hModule,
   auto EarlyOut =
   [&](BOOL bRet = TRUE)
   {
-    if (ReadAcquire (&__SK_TLS_INDEX) != TLS_OUT_OF_INDEXES)
-      SK_TLS_Bottom ()->debug.in_DllMain = false;
-    
-    SK_CleanupTLS ();
+    DWORD dwTlsIdx =
+      ReadAcquire (&__SK_TLS_INDEX);
+
+    if (dwTlsIdx < TLS_MINIMUM_AVAILABLE)
+    {
+      SK_CleanupTLS ();
+
+      // We're not using TLS for anything, so we don't need thread
+      //  attach/detach events.
+      if (TlsFree (dwTlsIdx) || (! GetLastError ()))
+      {
+        InterlockedExchange (&__SK_TLS_INDEX, TLS_OUT_OF_INDEXES);
+      }
+    }
+
+    if (ReadAcquire (&__SK_TLS_INDEX) < TLS_MINIMUM_AVAILABLE)
+      DisableThreadLibraryCalls (hModule);
 
     return bRet;
   };
@@ -813,10 +852,12 @@ DllMain ( HMODULE hModule,
   {
     case DLL_PROCESS_ATTACH:
     {
-      SK_AllocTLS ();
-      
-      if (ReadAcquire (&__SK_TLS_INDEX) != TLS_OUT_OF_INDEXES)
+      DWORD dwTlsIdx =
+        SK_AllocTLS ();
+
+      if (dwTlsIdx < TLS_MINIMUM_AVAILABLE)
         SK_TLS_Bottom ()->debug.in_DllMain = true;
+
 
       if (InterlockedExchangePointer (
             reinterpret_cast <LPVOID  *> (
@@ -840,21 +881,23 @@ DllMain ( HMODULE hModule,
       }
 
 
-      InterlockedIncrement (&__SK_DLL_Refs);
-
       // We reserve the right to deny attaching the DLL, this will generally
       //   happen if a game does not opt-in to system wide injection.
       if (! SK_EstablishDllRole (hModule))              return EarlyOut (TRUE);
-
+      
       // We don't want to initialize the DLL, but we also don't want it to
       //   re-inject itself constantly; just return TRUE here.
       else if (SK_GetDLLRole () == DLL_ROLE::INVALID)   return EarlyOut (TRUE);
+
 
       // Setup unhooked function pointers
       SK_PreInitLoadLibrary ();
 
       if (! SK_Attach (SK_GetDLLRole ()))               return EarlyOut (TRUE);
 
+
+      InterlockedIncrement (&__SK_DLL_Refs);
+      
       // If we got this far, it's because this is an injection target
       //
       //   Must hold a reference to this DLL so that removing the CBT hook does
@@ -863,9 +906,9 @@ DllMain ( HMODULE hModule,
       {
         SK_Inject_AcquireProcess ();
       }
-
+      
       // We're done with DllMain, this thread is no longer special...
-      if (ReadAcquire (&__SK_TLS_INDEX) != TLS_OUT_OF_INDEXES)
+      if (dwTlsIdx < TLS_MINIMUM_AVAILABLE)
         SK_TLS_Bottom ()->debug.in_DllMain = false;
 
       return TRUE;
@@ -894,16 +937,17 @@ DllMain ( HMODULE hModule,
       }
 
       if (ReadAcquire (&__SK_DLL_Attached))
+      {
         SK_Detach (SK_GetDLLRole ());
 
-      LONG idx_to_free =
-        InterlockedCompareExchange ( &__SK_TLS_INDEX,
-                                        TLS_OUT_OF_INDEXES,
-                                          __SK_TLS_INDEX );
+        DWORD idx_to_free =
+          InterlockedExchange ( &__SK_TLS_INDEX,
+                                  TLS_OUT_OF_INDEXES );
 
-      if (idx_to_free != TLS_OUT_OF_INDEXES)
-      {
-        TlsFree (idx_to_free);
+        if (idx_to_free < TLS_MINIMUM_AVAILABLE)
+        {
+          TlsFree (idx_to_free);
+        }
       }
 
 #ifdef _DEBUG
@@ -920,16 +964,24 @@ DllMain ( HMODULE hModule,
 
     case DLL_THREAD_ATTACH:
     {
-      InterlockedIncrement (&__SK_Threads_Attached);
+      // We conditionally disable thread attach/detach events and should never
+      //   be reaching here without a valid TLS index.
+      assert (ReadAcquire (&__SK_DLL_Attached));
 
-      SK_AllocTLS ();
+      if (ReadAcquire (&__SK_DLL_Attached))
+      {
+        InterlockedIncrement (&__SK_Threads_Attached);
+
+        SK_AllocTLS ();
+      }
     }
     break;
 
 
     case DLL_THREAD_DETACH:
     {
-      SK_CleanupTLS ();
+      if (ReadAcquire (&__SK_DLL_Attached))
+        SK_CleanupTLS ();
     }
     break;
   }

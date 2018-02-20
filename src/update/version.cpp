@@ -93,10 +93,21 @@ bool
 __stdcall
 SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
 {
+  //
+  // Cache the last tested product
+  //
+  struct last_result_s {
+    bool         ret     = false;
+    std::wstring product = L"";
+  } static last_result;
+
+
   static volatile LONG spinlock = 0;
 
   while (InterlockedCompareExchange (&spinlock, 1, 0) != 0)
-    MsgWaitForMultipleObjectsEx (0, nullptr, 1, QS_ALLEVENTS, MWMO_ALERTABLE);
+  {
+    MsgWaitForMultipleObjectsEx (0, nullptr, 33, QS_ALLEVENTS, MWMO_ALERTABLE);
+  }
 
 
   // If no log is initialized yet, it's because SKIM is doing
@@ -107,9 +118,24 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
     dll_log.init (L"logs/installer.log", L"wt+,ccs=UTF-8");
   }
 
-
   if (wszProduct == nullptr)
-    wszProduct = __SK_LastProductTested.c_str ();
+    wszProduct = __SK_LastProductTested.empty () ?
+                   L"SpecialK" : __SK_LastProductTested.c_str ();
+
+
+  if (! force)
+  {
+    if ((! last_result.product.empty ()) &&
+           last_result.product.find (wszProduct) != std::wstring::npos)
+    {
+      InterlockedExchange (&spinlock, 0);
+      return last_result.ret;
+    }
+  }
+
+  last_result.product = wszProduct;
+  last_result.ret     = false;
+
 
 #define INJECTOR
 #ifndef INJECTOR
@@ -384,7 +410,7 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
 
   extern bool SK_IsSuperSpecialK (void);
 
-  if (SK_IsSuperSpecialK ())
+  if (SK_IsSuperSpecialK () || force)
     dwFlags |= INTERNET_FLAG_RELOAD;
 
   HINTERNET hInetGitHubOpen =
@@ -502,6 +528,9 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
   InternetCloseHandle (hInetGitHubOpen);
   InternetCloseHandle (hInetGitHub);
   InternetCloseHandle (hInetRoot);
+
+  last_result.product = wszProduct;
+  last_result.ret     = bRet;
 
   InterlockedExchange (&spinlock, 0);
 

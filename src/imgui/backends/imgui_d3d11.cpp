@@ -369,12 +369,15 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
 static void
 ImGui_ImplDX11_CreateFontsTexture (void)
 {
-  SK_ScopedBool auto_bool0 (&SK_TLS_Bottom ()->texture_management.injection_thread);
-  SK_ScopedBool auto_bool1 (&SK_TLS_Bottom ()->imgui.drawing                      );
+  SK_TLS* pTLS =
+    SK_TLS_Bottom ();
+
+  SK_ScopedBool auto_bool0 (&pTLS->texture_management.injection_thread);
+  SK_ScopedBool auto_bool1 (&pTLS->imgui.drawing                      );
 
   // Do not dump ImGui font textures
-  SK_TLS_Bottom ()->texture_management.injection_thread = true;
-  SK_TLS_Bottom ()->imgui.drawing                       = true;
+  pTLS->texture_management.injection_thread = true;
+  pTLS->imgui.drawing                       = true;
 
   // Build texture atlas
   ImGuiIO& io (ImGui::GetIO ());
@@ -456,7 +459,7 @@ ImGui_ImplDX11_CreateFontsTexture (void)
     pDev->CreateSamplerState (&desc, &g_pFontSampler);
   }
 
-  SK_TLS_Bottom ()->texture_management.injection_thread = false;
+  pTLS->texture_management.injection_thread = false;
 }
 
 bool

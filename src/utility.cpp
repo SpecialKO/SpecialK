@@ -738,8 +738,10 @@ HMODULE
 SK_GetCallingDLL (LPCVOID pReturn)
 {
   HMODULE hCallingMod = nullptr;
+  SK_TLS* pTLS        =
+    SK_TLS_Bottom ();
 
-  if (SK_TLS_Bottom ()->known_modules.contains (pReturn, &hCallingMod))
+  if (pTLS->known_modules.contains (pReturn, &hCallingMod))
   {
     return hCallingMod;
   }
@@ -749,7 +751,7 @@ SK_GetCallingDLL (LPCVOID pReturn)
                         static_cast <const wchar_t *> (pReturn),
                           &hCallingMod );
 
-  SK_TLS_Bottom ()->known_modules.insert (pReturn, hCallingMod);
+  pTLS->known_modules.insert (pReturn, hCallingMod);
 
   return hCallingMod;
 }
@@ -1844,7 +1846,8 @@ SK_DeleteTemporaryFiles (const wchar_t* wszPath, const wchar_t* wszPattern)
 
   if (hFind != INVALID_HANDLE_VALUE)
   {
-    dll_log.LogEx ( true, L"[Clean Mgr.] Cleaning temporary files in '%s'...    ", wszPath );
+    dll_log.LogEx ( true, L"[Clean Mgr.] Cleaning temporary files in '%s'...    ", 
+                   SK_StripUserNameFromPathW (std::wstring (wszPath).data ()) );
 
     wchar_t wszFullPath [MAX_PATH * 2 + 1] = { };
 

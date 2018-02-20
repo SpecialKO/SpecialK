@@ -3639,382 +3639,6 @@ window_message_dispatch_s::On_WINDOWPOSCHANGED (HWND hWnd, WPARAM&, LPARAM& lPar
   return false;
 }
 
-#if 0
-__declspec (noinline)
-LRESULT
-CALLBACK
-SK_DetourWindowProc ( _In_  HWND   hWnd,
-                      _In_  UINT   uMsg,
-                      _In_  WPARAM wParam,
-                      _In_  LPARAM lParam )
-{
-  if (ReadAcquire (&SK_bypass_dialog_active))
-    return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
-
-  // If we are forcing a shutdown, then route any messages through the
-  //   default Win32 handler.
-  if (__SK_DLL_Ending)
-    return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
-
-  static bool first_run = true;
-
-  if (first_run)
-  {
-    // Start unmuted (in case the game crashed in the background)
-    if (config.window.background_mute)
-      SK_SetGameMute (FALSE);
-
-    first_run = false;
-  }
-
-  if (hWnd != game_window.hWnd)
-  {
-    if (game_window.hWnd != nullptr)
-    {
-      dll_log.Log ( L"[Window Mgr] New HWND detected in the window proc. used"
-                    L" for rendering... (Old=%p, New=%p)",
-                      game_window.hWnd, hWnd );
-    }
-
-    SK_GetCurrentRenderBackend ().windows.setFocus (hWnd);
-
-    game_window.active       = true;
-    game_window.game.style   = game_window.GetWindowLongPtr (game_window.hWnd, GWL_STYLE);
-    game_window.actual.style = game_window.GetWindowLongPtr (game_window.hWnd, GWL_STYLE);
-    game_window.unicode      =              IsWindowUnicode (game_window.hWnd)   != FALSE;
-
-    GetWindowRect_Original (game_window.hWnd, &game_window.game.window  );
-    GetClientRect_Original (game_window.hWnd, &game_window.game.client  );
-    GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
-    GetClientRect_Original (game_window.hWnd, &game_window.actual.client);
-
-    SK_InitWindow (hWnd, false);
-  }
-
-
-
-    if (config.input.cursor.manage)
-    {
-      //extern bool IsControllerPluggedIn (INT iJoyID);
-
-     auto ActivateCursor = [](bool changed = false)->
-      bool
-       {
-         bool was_active = last_mouse.cursor;
-
-         if (! last_mouse.cursor)
-         {
-           if ((! SK_IsSteamOverlayActive ()) && game_window.active)
-           {
-             while (ShowCursor (TRUE) < 0) ;
-             last_mouse.cursor = true;
-           }
-         }
-
-         if (changed && (! SK_IsSteamOverlayActive ()))
-           last_mouse.sampled = timeGetTime ();
-
-         return (last_mouse.cursor != was_active);
-       };
-
-     auto DeactivateCursor =
-     []{
-         if (! last_mouse.cursor)
-           return false;
-
-         bool was_active = last_mouse.cursor;
-
-         if (last_mouse.sampled <= timeGetTime () - config.input.cursor.timeout)
-         {
-           if ((! SK_IsSteamOverlayActive ()) && game_window.active)
-           {
-             while (ShowCursor (FALSE) >= -1) ;
-             last_mouse.cursor = false;
-
-             last_mouse.sampled = timeGetTime ();
-           }
-         }
-
-         return (last_mouse.cursor != was_active);
-       };
-
-      if (! last_mouse.init)
-      {
-        if (config.input.cursor.timeout != 0)
-        {
-          SetTimer ( hWnd,
-                       static_cast <UINT_PTR> (        last_mouse.timer_id),
-                       static_cast <UINT>     (config.input.cursor.timeout) / 2,
-                         nullptr );
-        }
-        else
-        {
-          SetTimer ( hWnd,
-                       static_cast <UINT_PTR> (last_mouse.timer_id),
-                         250UL/*USER_TIMER_MINIMUM*/,
-                           nullptr );
-        }
-
-        last_mouse.init = true;
-      }
-
-      bool activation_event =
-        (! SK_IsSteamOverlayActive ());
-
-      // Don't blindly accept that WM_MOUSEMOVE actually means the mouse moved...
-      if (activation_event)
-      {
-        const short threshold = 2;
-
-        // Filter out small movements
-        if ( abs (last_mouse.pos.x - GET_X_LPARAM (lParam)) < threshold &&
-             abs (last_mouse.pos.y - GET_Y_LPARAM (lParam)) < threshold )
-          activation_event = false;
-
-        last_mouse.pos = MAKEPOINTS (lParam);
-      }
-
-      if (config.input.cursor.keys_activate)
-        activation_event |= ( uMsg == WM_CHAR       ||
-                              uMsg == WM_SYSKEYDOWN ||
-                              uMsg == WM_SYSKEYUP );
-
-      // If timeout is 0, just hide the thing indefinitely
-      if (activation_event && config.input.cursor.timeout != 0)
-        ActivateCursor (true);
-
-      else if ( uMsg   == WM_TIMER            &&
-                wParam == last_mouse.timer_id &&
-               (! SK_IsSteamOverlayActive ()) &&
-                game_window.active )
-      {
-        if (true)//IsControllerPluggedIn (config.input.gamepad_slot))
-          DeactivateCursor ();
-
-        else
-          ActivateCursor ();
-      }
-    }
-
-
-
-
-  switch (uMsg)
-  {
-    case WM_SYSCOMMAND:
-      if ((wParam & 0xfff0) == SC_KEYMENU && lParam == 0) // Disable ALT application menu
-        return 0;
-      if ( (wParam & 0xfff0) == SC_SCREENSAVE ||
-           (wParam & 0xfff0) == SC_MONITORPOWER )
-      {
-        if (config.window.disable_screensaver)
-          return 0;
-      }
-      break;
-
-    // Ignore (and physically remove) this event from the message queue if background_render = true
-    case WM_MOUSEACTIVATE:
-    case WM_ACTIVATEAPP:
-    case WM_ACTIVATE:
-    case WM_NCACTIVATE:
-    {
-      LRESULT lRet = 0;
-      if (wm_dispatch.ProcessMessage (hWnd, uMsg, wParam, lParam, &lRet))
-        return lRet;
-    } break;
-
-    case WM_NCCALCSIZE:
-      break;
-
-    case WM_WINDOWPOSCHANGING:
-    case WM_WINDOWPOSCHANGED:
-    {
-      LRESULT lRet = 1;
-      if (wm_dispatch.ProcessMessage (hWnd, uMsg, wParam, lParam, &lRet)) return lRet;
-    } break;
-
-    case WM_ENTERSIZEMOVE:
-    case WM_EXITSIZEMOVE:
-    {
-      wm_dispatch.ProcessMessage (hWnd, uMsg, wParam, lParam);
-    } break;
-
-    //case WM_CAPTURECHANGED:
-    //{
-    //  if (reinterpret_cast <HWND> (lParam) == game_window.hWnd)
-    //  {
-    //    wm_dispatch.ProcessMessage (hWnd, WM_ENTERSIZEMOVE, wParam, lParam);
-    //  }
-    //  else
-    //    wm_dispatch.ProcessMessage (hWnd, WM_EXITSIZEMOVE, wParam, lParam);
-    //} break;
-
-    case WM_SIZING:
-    case WM_MOVING:
-      ClipCursor (nullptr);
-
-      // Filter this message
-      if (config.window.borderless && config.window.fullscreen)
-        return 0;
-      break;
-
-
-    case WM_KEYDOWN:
-    case WM_SYSKEYDOWN:
-      if (game_window.active)
-      {
-        if (SK_Console::getInstance ()->KeyDown (wParam & 0xFF, lParam) && (uMsg != WM_SYSKEYDOWN))
-        {
-          return SK_COMPAT_SafeCallProc (&game_window, hWnd, uMsg, wParam, lParam);
-        }
-      }
-      else
-        return DefWindowProcW (hWnd, uMsg, wParam, lParam);
-      break;
-
-    case WM_KEYUP:
-    case WM_SYSKEYUP:
-      if (game_window.active)
-      {
-        if (SK_Console::getInstance ()->KeyUp (wParam & 0xFF, lParam) && (uMsg != WM_SYSKEYUP))
-        {
-          return SK_COMPAT_SafeCallProc (&game_window, hWnd, uMsg, wParam, lParam);
-        }
-      }
-      else
-        return DefWindowProcW (hWnd, uMsg, wParam, lParam);
-      break;
-
-    case WM_MOUSEMOVE:
-      wm_dispatch.ProcessMessage (hWnd, uMsg, wParam, lParam);
-      break;
-
-    case WM_INPUT:
-      if (! game_window.active)
-        return DefWindowProcW (hWnd, uMsg, wParam, lParam);
-      break;
-  }
-
-
-  bool handled =
-    ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam);
-
-
-  // Synaptics Touchpad Compat Hack:
-  // -------------------------------
-  //
-  //  PROBLEM:    Driver only generates window messages for mousewheel, it does
-  //                not activate RawInput, DirectInput or HID like a real mouse
-  //
-  //  WORKAROUND: Generate a full-blown input event using SendInput (...); be
-  //                aware that this event will generate ANOTHER WM_MOUSEWHEEL.
-  //
-  //    ** MUST handle recursive behavior caused by this fix-up **
-  //
-  static bool recursive_wheel = false;
-
-  // Dual purpose: This also catches any WM_MOUSEWHEEL messages that Synaptics
-  //                 issued through CallWindowProc (...) rather than
-  //                   SendMessage (...) / PostMessage (...) -- UGH.
-  //
-  //      >> We need to process those for ImGui <<
-  //
-  if ((! handled) && uMsg == WM_MOUSEWHEEL && (! recursive_wheel))
-  {
-    //if (! game_window.hooked)
-    //  handled = ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam);
-
-    if ((! handled) && config.input.mouse.fix_synaptics)
-    {
-      INPUT input        = { };
-
-      input.type         = INPUT_MOUSE;
-      input.mi.dwFlags   = MOUSEEVENTF_WHEEL;
-      input.mi.mouseData = GET_WHEEL_DELTA_WPARAM (wParam);
-
-      recursive_wheel    = true;
-
-      SendInput_Original (1, &input, sizeof INPUT);
-    }
-  }
-
-  // In-lieu of a proper fence, this solves the recursion problem.
-  //
-  //   There's no guarantee the message we are ignoring is the one we
-  //     generated, but one misplaced message won't kill anything.
-  //
-  else if (recursive_wheel && uMsg == WM_MOUSEWHEEL)
-    recursive_wheel = false;
-
-
-
-  //
-  // Squelch input messages that managed to get into the loop without triggering
-  //   filtering logic in the GetMessage (...), PeekMessage (...) and
-  //     DispatchMessage (...) hooks.
-  //
-  //   [ Mostly for EverQuest ]
-  //
-  if (uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST && SK_ImGui_WantMouseCapture    ())
-    return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
-
-  if (uMsg >= WM_KEYFIRST   && uMsg <= WM_KEYLAST   && SK_ImGui_WantKeyboardCapture ())
-    return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
-
-  if (uMsg == WM_INPUT      && SK_ImGui_WantGamepadCapture ())
-    return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
-
-
-
-  //
-  // DO NOT HOOK THIS FUNCTION outside of SpecialK plug-ins, the ABI is not guaranteed
-  //
-  if (SK_DetourWindowProc2 (hWnd, uMsg, wParam, lParam))
-  {
-    bool console_visible =
-      SK_Console::getInstance ()->isVisible ();
-
-    // Block keyboard input to the game while the console is visible
-    if (console_visible)
-    {
-      if (uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST)
-        return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
-
-      if (uMsg >= WM_KEYFIRST   && uMsg <= WM_KEYLAST)
-        return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
-
-      // Block RAW Input
-      if (uMsg == WM_INPUT)
-        return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
-    }
-  }
-
-  else {
-    return 0;
-  }
-
-
-  // Filter this out for fullscreen override safety
-  ////if (uMsg == WM_DISPLAYCHANGE)    return 1;//game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
-  ////if (uMsg == WM_WINDOWPOSCHANGED) return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
-
-
-  LRESULT lRet =
-    SK_COMPAT_SafeCallProc (&game_window, hWnd, uMsg, wParam, lParam);
-
-
-  // Post-Process the game's result to fix any non-compliant behaviors
-  //
-
-
-  // Fix for Skyrim SE beeping when Alt is pressed.
-  if (uMsg == WM_MENUCHAR && (! HIWORD (lRet)))
-    return MAKEWPARAM (0, MNC_CLOSE);
-
-
-  return lRet;
-}
-#else
 __declspec (noinline)
 LRESULT
 CALLBACK
@@ -4777,7 +4401,6 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
   return lRet;
 }
-#endif
 
 bool
 SK_Window_IsTopMost (void)
@@ -5417,18 +5040,20 @@ SK_HookWinAPI (void)
     SK_WindowManager::getInstance ();
 
 
-    //int phys_w         = GetDeviceCaps (GetDC (GetDesktopWindow ()), PHYSICALWIDTH);
-    //int phys_h         = GetDeviceCaps (GetDC (GetDesktopWindow ()), PHYSICALHEIGHT);
-    //int phys_off_x     = GetDeviceCaps (GetDC (GetDesktopWindow ()), PHYSICALOFFSETX);
-    //int phys_off_y     = GetDeviceCaps (GetDC (GetDesktopWindow ()), PHYSICALOFFSETY);
-    //int scale_factor_x = GetDeviceCaps (GetDC (GetDesktopWindow ()), SCALINGFACTORX);
-    //int scale_factor_y = GetDeviceCaps (GetDC (GetDesktopWindow ()), SCALINGFACTORY);
+#ifdef _DEBUG
+    int phys_w         = GetDeviceCaps (GetDC (GetDesktopWindow ()), PHYSICALWIDTH);
+    int phys_h         = GetDeviceCaps (GetDC (GetDesktopWindow ()), PHYSICALHEIGHT);
+    int phys_off_x     = GetDeviceCaps (GetDC (GetDesktopWindow ()), PHYSICALOFFSETX);
+    int phys_off_y     = GetDeviceCaps (GetDC (GetDesktopWindow ()), PHYSICALOFFSETY);
+    int scale_factor_x = GetDeviceCaps (GetDC (GetDesktopWindow ()), SCALINGFACTORX);
+    int scale_factor_y = GetDeviceCaps (GetDC (GetDesktopWindow ()), SCALINGFACTORY);
 
-    //SK_LOG0 ( ( L" Physical Coordinates  ::  { %lux%lu) + <%lu,%lu> * {%lu:%lu}",
-                  //phys_w, phys_h,
-                  //phys_off_x, phys_off_y,
-                  //scale_factor_x, scale_factor_y ),
-                //L"Window Sys" );
+    SK_LOG0 ( ( L" Physical Coordinates  ::  { %lux%lu) + <%lu,%lu> * {%lu:%lu}",
+                phys_w, phys_h,
+                phys_off_x, phys_off_y,
+                scale_factor_x, scale_factor_y ),
+              L"Window Sys" );
+#endif
 
 
 #if 1
@@ -5777,13 +5402,16 @@ SK_COMPAT_SafeCallProc (sk_window_s* pWin, HWND hWnd_, UINT Msg, WPARAM wParam, 
 BOOL
 SK_Win32_IsGUIThread (void)
 {
-  if (SK_TLS_Bottom ()->win32.GUI != 0)
+  SK_TLS* pTLS =
+    SK_TLS_Bottom ();
+
+  if (pTLS->win32.GUI != 0)
   {
-    return (SK_TLS_Bottom ()->win32.GUI > 0);
+    return (pTLS->win32.GUI > 0);
   }
 
-  SK_TLS_Bottom ()->win32.GUI =
+  pTLS->win32.GUI =
     IsGUIThread (FALSE) ? 1 : -1;
 
-  return ( SK_TLS_Bottom ()->win32.GUI > 0 );
+  return ( pTLS->win32.GUI > 0 );
 }

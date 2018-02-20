@@ -6951,6 +6951,9 @@ SK::DXGI::ShutdownBudgetThread ( void )
 
 #include <SpecialK/ini.h>
 
+bool
+SK_D3D11_QuickHooked (void);
+
 void
 SK_DXGI_QuickHook (void)
 {
@@ -6967,7 +6970,6 @@ SK_DXGI_QuickHook (void)
 
   if (! InterlockedCompareExchange (&quick_hooked, TRUE, FALSE))
   {
-    SK_D3D11_InitTextures ();
     SK_D3D11_QuickHook    ();
   
     sk_hook_cache_enablement_s state =
@@ -6976,7 +6978,8 @@ SK_DXGI_QuickHook (void)
                                    global_dxgi_records );
   
     if ( state.hooks_loaded.from_shared_dll > 0 ||
-         state.hooks_loaded.from_game_ini   > 0 )
+         state.hooks_loaded.from_game_ini   > 0 ||
+         SK_D3D11_QuickHooked () )
     {
       SK_D3D11_Init       ();
       SK_ApplyQueuedHooks ();

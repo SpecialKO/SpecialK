@@ -178,7 +178,7 @@ std::vector <sk_hook_cache_record_s *> global_d3d9_records =
     &GlobalHook_D3D9PresentEx,
     &GlobalHook_D3D9PresentSwap,          &GlobalHook_D3D9CreateAdditionalSwapChain,
 
-    &GlobalHook_D3D9TestCooperativeLevel, 
+    //&GlobalHook_D3D9TestCooperativeLevel,
 
     &GlobalHook_Direct3DCreate9,          &GlobalHook_Direct3DCreate9Ex,
     &GlobalHook_D3D9CreateDevice,         &GlobalHook_D3D9CreateDeviceEx  };
@@ -192,7 +192,7 @@ std::vector <sk_hook_cache_record_s *> local_d3d9_records =
      &LocalHook_D3D9PresentEx,
      &LocalHook_D3D9PresentSwap,          &LocalHook_D3D9CreateAdditionalSwapChain,
 
-     &LocalHook_D3D9TestCooperativeLevel, 
+     //&LocalHook_D3D9TestCooperativeLevel,
 
      &LocalHook_Direct3DCreate9,          &LocalHook_Direct3DCreate9Ex,
      &LocalHook_D3D9CreateDevice,         &LocalHook_D3D9CreateDeviceEx   };
@@ -4357,7 +4357,9 @@ SK_D3D9_SwapEffectToStr (pPresentationParameters->SwapEffect).c_str (),
 
     if (pWrappedDevice != nullptr)
     {
+#ifdef _DEBUG
       dll_log.Log (L"Using wrapper for ResetCEGUI_D3D9!");
+#endif
       ResetCEGUI_D3D9 ((pWrappedDevice));
     }
 
@@ -4725,6 +4727,9 @@ HookD3D9 (LPVOID user)
 
   if (! InterlockedCompareExchange (&__hooked, TRUE, FALSE))
   {
+    SK_TLS* pTLS =
+      SK_TLS_Bottom ();
+
     SK_AutoCOMInit auto_com;
     {
       SK_TLS_Bottom ()->d3d9.ctx_init_thread = true;
@@ -4733,7 +4738,7 @@ HookD3D9 (LPVOID user)
       CComPtr <IDirect3D9> pD3D9 =
         Direct3DCreate9_Import (D3D_SDK_VERSION);
 
-      SK_TLS_Bottom ()->d3d9.ctx_init_thread = false;
+      pTLS->d3d9.ctx_init_thread = false;
 
       if (pD3D9 != nullptr)
       {
@@ -4754,7 +4759,7 @@ HookD3D9 (LPVOID user)
 
         dll_log.Log (L"[   D3D9   ]  Hooking D3D9...");
 
-        SK_TLS_Bottom ()->d3d9.ctx_init_thread = true;
+        pTLS->d3d9.ctx_init_thread = true;
 
         HRESULT hr =
           pD3D9->CreateDevice (
@@ -4765,7 +4770,7 @@ HookD3D9 (LPVOID user)
                           &pparams,
                             &pD3D9Dev );
 
-        SK_TLS_Bottom ()->d3d9.ctx_init_thread = false;
+        pTLS->d3d9.ctx_init_thread = false;
 
         if (SUCCEEDED (hr))
         {
@@ -4809,14 +4814,14 @@ HookD3D9 (LPVOID user)
 
         CComPtr <IDirect3D9Ex> pD3D9Ex = nullptr;
 
-        SK_TLS_Bottom ()->d3d9.ctx_init_thread = true;
+        pTLS->d3d9.ctx_init_thread = true;
 
         hr = (config.apis.d3d9ex.hook) ?
           Direct3DCreate9Ex_Import (D3D_SDK_VERSION, &pD3D9Ex)
                            :
                       E_NOINTERFACE;
 
-        SK_TLS_Bottom ()->d3d9.ctx_init_thread = false;
+        pTLS->d3d9.ctx_init_thread = false;
 
         hwnd = nullptr;
 
@@ -4838,7 +4843,7 @@ HookD3D9 (LPVOID user)
 
           CComPtr <IDirect3DDevice9Ex> pD3D9DevEx = nullptr;
 
-          SK_TLS_Bottom ()->d3d9.ctx_init_thread = true;
+          pTLS->d3d9.ctx_init_thread = true;
 
           hr = pD3D9Ex->CreateDeviceEx (
                 D3DADAPTER_DEFAULT,
@@ -4849,7 +4854,7 @@ HookD3D9 (LPVOID user)
                           nullptr,
                             &pD3D9DevEx );
 
-          SK_TLS_Bottom ()->d3d9.ctx_init_thread = false;
+          pTLS->d3d9.ctx_init_thread = false;
 
           if ( SUCCEEDED (hr) )
           {

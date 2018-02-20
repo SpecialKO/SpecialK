@@ -192,8 +192,10 @@ GetCommandLineW_Detour (void)
     return wszFakeOut;
   }
 
+#ifdef _DEBUG
   if (_wcsicmp (wszFakeOut, GetCommandLineW_Original ()))
     dll_log.Log (L"GetCommandLineW () ==> %ws", GetCommandLineW_Original ());
+#endif
 
   return GetCommandLineW_Original ();
 }
