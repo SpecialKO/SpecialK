@@ -29,14 +29,11 @@ SK_TLS*
 __stdcall
 SK_TLS_Bottom (void)
 {
-  DWORD dwTlsIdx =
-    ReadAcquire (&__SK_TLS_INDEX);
-
-  if (dwTlsIdx >= TLS_MINIMUM_AVAILABLE)
+  if (ReadAcquire (&__SK_TLS_INDEX) == TLS_OUT_OF_INDEXES)
     return nullptr;
 
   LPVOID lpvData =
-    TlsGetValue (dwTlsIdx);
+    TlsGetValue (ReadAcquire (&__SK_TLS_INDEX));
 
   if (lpvData == nullptr)
   {
@@ -48,7 +45,7 @@ SK_TLS_Bottom (void)
 
     if (lpvData != nullptr)
     {
-      if (! TlsSetValue (dwTlsIdx, lpvData))
+      if (! TlsSetValue (ReadAcquire (&__SK_TLS_INDEX), lpvData))
       {
         LocalFree (lpvData);
         return nullptr;
@@ -61,24 +58,32 @@ SK_TLS_Bottom (void)
   return static_cast <SK_TLS *> (lpvData);
 }
 
-
-#include <cassert>
-
 SK_TLS*
 __stdcall
 SK_TLS_Top (void)
 {
-  assert (false);
+  if (ReadAcquire (&__SK_TLS_INDEX) == TLS_OUT_OF_INDEXES)
+    return nullptr;
 
-  return nullptr;
+  return &(SK_TLS_Bottom ()[SK_TLS_Bottom ()->stack.current]);
 }
 
 bool
 __stdcall
 SK_TLS_Push (void)
 {
-  assert (false);
+  if (ReadAcquire (&__SK_TLS_INDEX) == TLS_OUT_OF_INDEXES)
+    return false;
 
+  if (SK_TLS_Bottom ()->stack.current < SK_TLS::stack::max)
+  {
+    static_cast <SK_TLS *>   (SK_TLS_Bottom ())[SK_TLS_Bottom ()->stack.current + 1] =
+      static_cast <SK_TLS *> (SK_TLS_Bottom ())[SK_TLS_Bottom ()->stack.current++];
+
+    return true;
+  }
+
+  // Overflow
   return false;
 }
 
@@ -86,8 +91,17 @@ bool
 __stdcall
 SK_TLS_Pop  (void)
 {
-assert (false);
+  if (ReadAcquire (&__SK_TLS_INDEX) == TLS_OUT_OF_INDEXES)
+    return false;
 
+  if (SK_TLS_Bottom ()->stack.current > 0)
+  {
+    static_cast <SK_TLS *> (SK_TLS_Bottom ())->stack.current--;
+
+    return true;
+  }
+
+  // Underflow
   return false;
 }
 
