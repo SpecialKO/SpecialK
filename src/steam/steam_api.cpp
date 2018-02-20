@@ -797,19 +797,22 @@ SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
       //     so hook the game's callback procedure and filter out failure
       //       events that we generated much to the game's surprise :)
       //
-      else if (true)//else if (config.steam.filter_stat_callback)
+      else if (SK_ValidatePointer (pCallback) && config.steam.filter_stat_callback)
       {
 #ifdef _WIN64
         void** vftable = *reinterpret_cast <void ***> (&pCallback);
 
-        SK_CreateFuncHook (      L"Callback Redirect",
-                                   vftable [3],
-                                   SteamAPI_UserStatsReceived_Detour,
-          static_cast_p2p <void> (&SteamAPI_UserStatsReceived_Original) );
-        SK_EnableHook (            vftable [3]);
+        if (SK_ValidatePointer (vftable [3]))
+        {
+          SK_CreateFuncHook (      L"Callback Redirect",
+                                     vftable [3],
+                                     SteamAPI_UserStatsReceived_Detour,
+            static_cast_p2p <void> (&SteamAPI_UserStatsReceived_Original) );
+          SK_EnableHook (            vftable [3]);
 
-        steam_log.Log ( L" ### Callback Redirected (APPLYING FILTER:  Remove "
-                             L"Third-Party CSteamID / AppID Achievements) ###" );
+          steam_log.Log ( L" ### Callback Redirected (APPLYING FILTER:  Remove "
+                               L"Third-Party CSteamID / AppID Achievements) ###" );
+        }
 #else
         /*
         SK_CreateFuncHook ( L"Callback Redirect",

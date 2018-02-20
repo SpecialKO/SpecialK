@@ -2589,6 +2589,33 @@ SK_COMPAT_FixUpFullscreen_DXGI (bool Fullscreen)
 
 
 
+#include <SpecialK/sound.h>
+
+//
+// MSI Nahimic sometimes @#$%s the bed of MMDevAPI.dll is not loaded
+//   in the right order, so to make it happy, we need a link-time reference
+//     to a function in that DLL that won't be optimized away.
+//
+//   This causes the kernel to load MMDevAPI before Special K and before
+//     Nahimic, and now we don't race to be the first to blow up the program.
+//
+HRESULT
+SK_COMPAT_FixNahimicDeadlock (void)
+{
+  CComPtr <IActivateAudioInterfaceAsyncOperation> aOp;
+
+  ActivateAudioInterfaceAsync ( L"I don't exist",
+                                  __uuidof (IAudioClient),
+                                    nullptr, nullptr, &aOp );
+
+  //if (GetModuleHandle (L"NahimicDevProps.dll"))
+  //  return S_OK;
+
+  return S_FALSE;
+}
+
+
+
 
 
 

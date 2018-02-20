@@ -1,6 +1,7 @@
 0.9.2:
 
  + Sped up redundant Steam redisributable file detection (cpl opens faster)
+ + Fixed DXGI CreateSwapChainForHwnd not actually using the HWND :)
  + Fixed Secret of Mana's resolution quirkiness
  + Cleaned up log file formatting and added performance counters to it
  + Removed CPU Stress Test Button

@@ -172,7 +172,7 @@ SK_HookCacheEntryLocal (D3D9ResetEx,                   L"d3d9.dll", D3D9ResetEx,
 static
 std::vector <sk_hook_cache_record_s *> global_d3d9_records =
   { &GlobalHook_D3D9BeginScene,           &GlobalHook_D3D9EndScene,
-    &GlobalHook_D3D9Reset,                &GlobalHook_D3D9ResetEx,
+    //&GlobalHook_D3D9Reset,                &GlobalHook_D3D9ResetEx,
 
     &GlobalHook_D3D9Present,
     &GlobalHook_D3D9PresentEx,
@@ -186,7 +186,7 @@ std::vector <sk_hook_cache_record_s *> global_d3d9_records =
 static
 std::vector <sk_hook_cache_record_s *> local_d3d9_records =
   {  &LocalHook_D3D9BeginScene,           &LocalHook_D3D9EndScene,
-     &LocalHook_D3D9Reset,                &LocalHook_D3D9ResetEx,
+     //&LocalHook_D3D9Reset,                &LocalHook_D3D9ResetEx,
        
      &LocalHook_D3D9Present,
      &LocalHook_D3D9PresentEx,
@@ -501,7 +501,9 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
 
     if (pWrappedDevice != nullptr)
     {
+#ifdef _DEBUG
       dll_log.Log (L"Using wrapper for ResetCEGUI_D3D9!");
+#endif
       ResetCEGUI_D3D9 ((pWrappedDevice));
     }
 
@@ -584,14 +586,14 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
     CComPtr <IDirect3DSurface9> ds          = nullptr;
 
     for (UINT target = 0; target < std::min (caps.NumSimultaneousRTs, 8UL); target++) {
-      pDev->GetRenderTarget (target, &rts [target]);
+      pDev->GetRenderTarget (target, &rts [target].p);
     }
 
     pDev->GetDepthStencilSurface (&ds);
 
     D3DSURFACE_DESC surf_desc = { };
 
-    if (SUCCEEDED (pDev->GetBackBuffer (0, 0, D3DBACKBUFFER_TYPE_MONO, &pBackBuffer)))
+    if (SUCCEEDED (pDev->GetBackBuffer (0, 0, D3DBACKBUFFER_TYPE_MONO, &pBackBuffer.p)))
     {
       pBackBuffer->GetDesc (&surf_desc);
 
@@ -631,7 +633,7 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
     surf_desc.Width  = vp_orig.Width;
     surf_desc.Height = vp_orig.Height;
 
-    if (config.cegui.enable && GetModuleHandle (L"CEGUIDirect3D9Renderer-0.dll"))
+    if (config.cegui.enable && (uintptr_t)cegD3D9 > 1)
     {
       CEGUI::System::getDllSingleton ().getRenderer ()->setDisplaySize (
           CEGUI::Sizef (
@@ -712,25 +714,6 @@ SK_CEGUI_InitBase    (void);
 void
 ResetCEGUI_D3D9 (IDirect3DDevice9* pDev)
 {
-  if ((! ReadAcquire (&ImGui_Init)) && pDev != nullptr)
-  {
-    //
-    // Initialize ImGui for D3D9 games
-    //
-    D3DDEVICE_CREATION_PARAMETERS params;
-    pDev->GetCreationParameters (&params);
-
-    if ( ImGui_ImplDX9_Init ( (void *)params.hFocusWindow,
-                                    pDev,
-                                     nullptr )
-       )
-    {
-      InterlockedExchange ( &ImGui_Init, TRUE );
-    }
-  }
-
-
-
   if (cegD3D9 != nullptr || (pDev == nullptr))
   {
     SK_Steam_ClearPopups ();
@@ -773,6 +756,23 @@ ResetCEGUI_D3D9 (IDirect3DDevice9* pDev)
 
 
     SK_Steam_ClearPopups ();
+  }
+
+  if (pDev != nullptr)
+  {
+    //
+    // Initialize ImGui for D3D9 games
+    //
+    D3DDEVICE_CREATION_PARAMETERS params;
+    pDev->GetCreationParameters (&params);
+
+    if ( ImGui_ImplDX9_Init ( (void *)params.hFocusWindow,
+                                    pDev,
+                                     nullptr )
+       )
+    {
+      InterlockedExchange ( &ImGui_Init, TRUE );
+    }
   }
 }
 
@@ -3135,7 +3135,9 @@ SK_SetPresentParamsD3D9Ex ( IDirect3DDevice9       *pDevice,
 
   if (pWrappedDevice != nullptr)
   {
+#ifdef _DEBUG
     dll_log.Log (L"Using wrapper for SetPresentParams!");
+#endif
     SK_GetCurrentRenderBackend ().device = (pWrappedDevice)->pReal;
   }
 
@@ -4265,15 +4267,15 @@ D3D9CreateDevice_Override ( IDirect3D9*            This,
   {
     if (config.display.force_fullscreen && hFocusWindow)
       pPresentationParameters->hDeviceWindow = hFocusWindow;
-
-
+  
+  
     SK_D3D9_SetFPSTarget       (pPresentationParameters);
     SK_D3D9_FixUpBehaviorFlags (BehaviorFlags);
-
+  
     SK_SetPresentParamsD3D9    ( nullptr,
                                    pPresentationParameters );
-
-
+  
+  
     if (config.display.force_fullscreen && (! hFocusWindow))
       hFocusWindow = pPresentationParameters->hDeviceWindow;
     //if (config.display.force_windowed)

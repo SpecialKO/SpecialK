@@ -824,11 +824,15 @@ SK_ReenterCore  (void) // During startup, we have the option of bypassing init a
 
 typedef BOOL (WINAPI *SetProcessDEPPolicy_pfn)(_In_ DWORD dwFlags);
 
+
+
 bool
 __stdcall
 SK_StartupCore (const wchar_t* backend, void* callback)
 {
-  SK_Thread_InitDebugExtras ();
+  SK_Thread_InitDebugExtras    ();
+  SK_COMPAT_FixNahimicDeadlock (); // Use load-time link dependencies to resolve race conditions
+                                   //   involving WASAPI and MMDevAPI in MSI Nahimic.
 
   static SetProcessDEPPolicy_pfn _SetProcessDEPPolicy =
     (SetProcessDEPPolicy_pfn)
@@ -1310,15 +1314,15 @@ SK_Win32_CreateDummyWindow (void)
     HWND hWnd =
       CreateWindowExW ( 0L, L"Special K Dummy Window Class",
                             L"Special K Dummy Window",
-                              WS_POPUP | WS_CLIPCHILDREN |
-                              WS_CLIPSIBLINGS,
-                                0, 0,
-                                2, 2,
-                                  HWND_DESKTOP,   nullptr,
+                              WS_OVERLAPPED,
+                                CW_USEDEFAULT, CW_USEDEFAULT,
+                                 CW_USEDEFAULT, CW_USEDEFAULT,
+                                  HWND_MESSAGE, nullptr,
                                     SK_GetDLL (), nullptr );
 
     if (hWnd != HWND_DESKTOP)
     {
+      ShowWindowAsync (hWnd, SW_HIDE);
       dummy_windows.list.emplace (hWnd);
     }
 

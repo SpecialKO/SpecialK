@@ -21,7 +21,6 @@
 
 #ifndef __SK__COMPATIBILITY_H__
 #define __SK__COMPATIBILITY_H__
-
 enum class SK_ModuleEnum {
   PreLoad    = 0x0,
   PostLoad   = 0x1,
@@ -78,6 +77,8 @@ template <typename _T>
 BOOL
 __stdcall
 SK_LoadLibrary_PinModule (const _T* pStr);
+
+HRESULT SK_COMPAT_FixNahimicDeadlock (void);
 
 #endif
 #endif /* __SK_COMPATIBILITY_H__ */

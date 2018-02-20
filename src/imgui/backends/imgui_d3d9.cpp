@@ -11,6 +11,7 @@
 #include <SpecialK/render/d3d9/d3d9_backend.h>
 #include <SpecialK/framerate.h>
 #include <SpecialK/window.h>
+#include <SpecialK/log.h>
 
 extern void
 SK_ImGui_User_NewFrame (void);
@@ -44,6 +45,32 @@ struct CUSTOMVERTEX
 };
 #define D3DFVF_CUSTOMVERTEX (D3DFVF_XYZ|D3DFVF_DIFFUSE|D3DFVF_TEX2)
 
+bool
+SK_D3D9_TestFramebufferDimensions (float& width, float& height)
+{
+  RECT                                 rect = { };
+  GetClientRect (SK_GetGameWindow (), &rect);
+
+  float client_width  =
+    static_cast <float> (rect.right  - rect.left);
+
+  float client_height =
+    static_cast <float> (rect.bottom - rect.top);
+
+  if (width <= 0.0f && height <= 0.0f)
+  {
+    width  = client_width;
+    height = client_height;
+
+    return true;
+  }
+
+  else if (width != client_width || height != client_height)
+    return false;
+
+  return true;
+}
+
 // This is the main rendering function that you have to implement and provide to ImGui (via setting up 'RenderDrawListsFn' in the ImGuiIO structure)
 // If text or lines are blurry when integrating ImGui in your engine:
 // - in your Render function, try translating your projection matrix by (0.5f,0.5f) or (0.375f,0.375f)
@@ -55,7 +82,12 @@ ImGui_ImplDX9_RenderDrawLists (ImDrawData* draw_data)
   ImGuiIO& io (ImGui::GetIO ());
 
   if ( io.DisplaySize.x <= 0.0f || io.DisplaySize.y <= 0.0f )
-    return;
+  {
+    SK_D3D9_TestFramebufferDimensions (io.DisplaySize.x, io.DisplaySize.y);
+
+    if ( io.DisplaySize.x <= 0.0f || io.DisplaySize.y <= 0.0f )
+      return;
+  }
 
   // Create and grow buffers if needed
   if ((! g_pVB) || g_VertexBufferSize < draw_data->TotalVtxCount )
@@ -100,10 +132,10 @@ ImGui_ImplDX9_RenderDrawLists (ImDrawData* draw_data)
   }
 
   //// Backup the DX9 state
-//  IDirect3DStateBlock9* d3d9_state_block = nullptr;
-//
-//  if (g_pd3dDevice->CreateStateBlock ( D3DSBT_ALL, &d3d9_state_block ) < 0 )
-//    return;
+  IDirect3DStateBlock9* d3d9_state_block = nullptr;
+
+  if (g_pd3dDevice->CreateStateBlock ( D3DSBT_ALL, &d3d9_state_block ) < 0 )
+    return;
 
   // Copy and convert all vertices into a single contiguous buffer
   CUSTOMVERTEX* vtx_dst = 0;
@@ -186,6 +218,10 @@ ImGui_ImplDX9_RenderDrawLists (ImDrawData* draw_data)
   vp.MaxZ   = 1.0f;
   g_pd3dDevice->SetViewport (&vp);
 
+  if (config.system.log_level > 3)
+    dll_log.Log ( L"io.DisplaySize.x = %f, io.DisplaySize.y = %f",
+                    io.DisplaySize.x,      io.DisplaySize.y );
+
   // Setup render state: fixed-pipeline, alpha-blending, no face culling, no depth testing
   g_pd3dDevice->SetPixelShader       (NULL);
   g_pd3dDevice->SetVertexShader      (NULL);
@@ -199,17 +235,17 @@ ImGui_ImplDX9_RenderDrawLists (ImDrawData* draw_data)
 
   for (UINT target = 0; target < std::min (8UL, caps.NumSimultaneousRTs); target++)
   {
-    g_pd3dDevice->GetRenderTarget (target, &rts [target]);
+    g_pd3dDevice->GetRenderTarget (target, &rts [target].p);
   }
 
   g_pd3dDevice->GetDepthStencilSurface (&pDS);
   
-  if (SUCCEEDED (g_pd3dDevice->GetBackBuffer (0, 0, D3DBACKBUFFER_TYPE_MONO, &pBackBuffer)))
+  if (SUCCEEDED (g_pd3dDevice->GetBackBuffer (0, 0, D3DBACKBUFFER_TYPE_MONO, &pBackBuffer.p)))
   {
     g_pd3dDevice->SetRenderTarget        (0, pBackBuffer);
     g_pd3dDevice->SetDepthStencilSurface (nullptr);
 
-    for (UINT target = 0; target < std::min (8UL, caps.NumSimultaneousRTs); target++)
+    for (UINT target = 1; target < std::min (8UL, caps.NumSimultaneousRTs); target++)
       g_pd3dDevice->SetRenderTarget (target, nullptr);
   }
 
@@ -323,8 +359,8 @@ ImGui_ImplDX9_RenderDrawLists (ImDrawData* draw_data)
   g_pd3dDevice->SetDepthStencilSurface (pDS);
 
   //// Restore the DX9 state
-  //d3d9_state_block->Apply   ();
-  //d3d9_state_block->Release ();
+  d3d9_state_block->Apply   ();
+  d3d9_state_block->Release ();
 }
 
 IMGUI_API
@@ -333,6 +369,9 @@ ImGui_ImplDX9_Init ( void*                  hwnd,
                      IDirect3DDevice9*      device,
                      D3DPRESENT_PARAMETERS* pparams )
 {
+  if (device != g_pd3dDevice)
+    ImGui_ImplDX9_InvalidateDeviceObjects (pparams);
+
   g_hWnd       = static_cast <HWND> (hwnd);
   g_pd3dDevice = device;
 
@@ -404,7 +443,9 @@ IMGUI_API
 bool
 ImGui_ImplDX9_CreateFontsTexture (void)
 {
-  SK_TLS_Bottom ()->texture_management.injection_thread = TRUE;
+  SK_TLS* pTLS = SK_TLS_Bottom ();
+
+  pTLS->texture_management.injection_thread = TRUE;
 
   // Build texture atlas
   ImGuiIO& io (ImGui::GetIO ());
@@ -433,7 +474,7 @@ ImGui_ImplDX9_CreateFontsTexture (void)
                                             &g_FontTexture,
                                               nullptr ) < 0 )
   {
-    SK_TLS_Bottom ()->texture_management.injection_thread = FALSE;
+    pTLS->texture_management.injection_thread = FALSE;
     return false;
   }
 
@@ -442,7 +483,7 @@ ImGui_ImplDX9_CreateFontsTexture (void)
   if ( g_FontTexture->LockRect ( 0,       &tex_locked_rect,
                                  nullptr, 0 ) != D3D_OK )
   {
-    SK_TLS_Bottom ()->texture_management.injection_thread = FALSE;
+    pTLS->texture_management.injection_thread = FALSE;
     return false;
   }
 
@@ -459,7 +500,7 @@ ImGui_ImplDX9_CreateFontsTexture (void)
   io.Fonts->TexID =
     static_cast <void *> (g_FontTexture);
 
-  SK_TLS_Bottom ()->texture_management.injection_thread = FALSE;
+  pTLS->texture_management.injection_thread = FALSE;
 
   return true;
 }
