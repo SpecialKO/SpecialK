@@ -138,14 +138,25 @@ SK_GetDocumentsDir (wchar_t* buf, uint32_t* pdwLen)
 bool
 SK_GetUserProfileDir (wchar_t* buf, uint32_t* pdwLen)
 {
+  typedef BOOL (WINAPI *GetUserProfileDirectoryW_pfn)(
+    _In_                            HANDLE  hToken,
+    _Out_writes_opt_(*lpcchSize)    LPWSTR lpProfileDir,
+    _Inout_                         LPDWORD lpcchSize);
+
+  static GetUserProfileDirectoryW_pfn imp_GetUserProfileDirectoryW =
+    (GetUserProfileDirectoryW_pfn)
+     GetProcAddress ( LoadLibraryW (L"userenv.dll"),
+                                     "GetUserProfileDirectoryW" );
+
+
   CHandle hToken;
 
   if (! OpenProcessToken (GetCurrentProcess (), TOKEN_READ, &hToken.m_h))
     return false;
 
-  if (! GetUserProfileDirectory ( hToken, buf,
-                                    reinterpret_cast <DWORD *> (pdwLen)
-                                )
+  if (! imp_GetUserProfileDirectoryW ( hToken, buf,
+                                         reinterpret_cast <DWORD *> (pdwLen)
+                                     )
      )
   {
     return false;
@@ -1057,8 +1068,56 @@ SK_Path_wcsstr (const wchar_t* wszStr, const wchar_t* wszSubStr)
 
 
 #include <Winver.h>
-//#pragma comment (lib, "Mincore_Downlevel.lib") // Windows 8     (Delay-Load)
-#pragma comment (lib, "version.lib")             // Windows 2000+ (Normal Import)
+static HMODULE hModVersion = nullptr;
+
+BOOL
+WINAPI
+SK_VerQueryValueW (
+  _In_ LPCVOID pBlock,
+  _In_ LPCWSTR lpSubBlock,
+  _Outptr_result_buffer_ (_Inexpressible_ ("buffer can be PWSTR or DWORD*")) LPVOID * lplpBuffer,
+  _Out_ PUINT  puLen )
+{
+  if (hModVersion == nullptr) hModVersion = LoadLibraryW (L"version.dll");
+
+  typedef BOOL (WINAPI *VerQueryValueW_pfn)(
+    _In_ LPCVOID pBlock,
+    _In_ LPCWSTR lpSubBlock,
+    _Outptr_result_buffer_ (_Inexpressible_ ("buffer can be PWSTR or DWORD*")) LPVOID * lplpBuffer,
+    _Out_ PUINT  puLen);
+
+  static VerQueryValueW_pfn imp_VerQueryValueW =
+    (VerQueryValueW_pfn)
+       GetProcAddress (hModVersion, "VerQueryValueW");
+
+  return imp_VerQueryValueW ( pBlock, lpSubBlock, lplpBuffer, puLen );
+}
+
+BOOL
+WINAPI
+SK_GetFileVersionInfoExW (_In_                      DWORD   dwFlags,
+                          _In_                      LPCWSTR lpwstrFilename,
+                          _Reserved_                DWORD   dwHandle,
+                          _In_                      DWORD   dwLen,
+                          _Out_writes_bytes_(dwLen) LPVOID  lpData)
+{
+  if (hModVersion == nullptr) hModVersion = LoadLibraryW (L"version.dll");
+
+  typedef BOOL (WINAPI *GetFileVersionInfoExW_pfn)(
+    _In_                      DWORD   dwFlags,
+    _In_                      LPCWSTR lpwstrFilename,
+    _Reserved_                DWORD   dwHandle,
+    _In_                      DWORD   dwLen,
+    _Out_writes_bytes_(dwLen) LPVOID  lpData
+  );
+
+  static GetFileVersionInfoExW_pfn imp_GetFileVersionInfoExW =
+    (GetFileVersionInfoExW_pfn)
+       GetProcAddress (hModVersion, "GetFileVersionInfoExW");
+
+  return imp_GetFileVersionInfoExW ( dwFlags, lpwstrFilename,
+                                     dwHandle, dwLen, lpData );
+}
 
 bool
 __stdcall
@@ -1085,17 +1144,18 @@ SK_IsDLLSpecialK (const wchar_t* wszName)
   if (GetFileAttributes (wszFullyQualifiedName) == INVALID_FILE_ATTRIBUTES)
     return false;
 
-  GetFileVersionInfoEx ( FILE_VER_GET_NEUTRAL |
-                         FILE_VER_GET_PREFETCHED,
-                           wszFullyQualifiedName,
-                             0x00,
-                               4096,
-                                 cbData );
+  SK_GetFileVersionInfoExW ( FILE_VER_GET_NEUTRAL |
+                             FILE_VER_GET_PREFETCHED,
+                               wszFullyQualifiedName,
+                                 0x00,
+                                   4096,
+                                     cbData );
 
-  if ( VerQueryValue ( cbData,
-                       TEXT ("\\VarFileInfo\\Translation"),
-           static_cast_p2p <void> (&lpTranslate),
-                                   &cbTranslatedBytes ) && cbTranslatedBytes && lpTranslate )
+  if ( SK_VerQueryValueW ( cbData,
+                           TEXT ("\\VarFileInfo\\Translation"),
+               static_cast_p2p <void> (&lpTranslate),
+                                       &cbTranslatedBytes ) && cbTranslatedBytes &&
+                                                               lpTranslate )
   {
     wchar_t wszPropName [64] = { };
 
@@ -1104,10 +1164,10 @@ SK_IsDLLSpecialK (const wchar_t* wszName)
                     lpTranslate   [0].wLanguage,
                       lpTranslate [0].wCodePage );
 
-    VerQueryValue ( cbData,
-                      wszPropName,
-          static_cast_p2p <void> (&wszProduct),
-                                  &cbProductBytes );
+    SK_VerQueryValueW ( cbData,
+                          wszPropName,
+              static_cast_p2p <void> (&wszProduct),
+                                      &cbProductBytes );
 
     return (cbProductBytes && (StrStrIW (wszProduct, L"Special K")));
   }
@@ -1136,17 +1196,18 @@ SK_GetDLLVersionStr (const wchar_t* wszName)
   if (GetFileAttributes (wszName) == INVALID_FILE_ATTRIBUTES)
     return L"N/A";
 
-  GetFileVersionInfoEx ( FILE_VER_GET_NEUTRAL |
-                         FILE_VER_GET_PREFETCHED,
-                           wszName,
-                             0x00,
-                               4096,
-                                 cbData );
+  SK_GetFileVersionInfoExW ( FILE_VER_GET_NEUTRAL |
+                             FILE_VER_GET_PREFETCHED,
+                               wszName,
+                                 0x00,
+                                   4096,
+                                     cbData );
 
-  if ( VerQueryValue ( cbData,
-                         TEXT ("\\VarFileInfo\\Translation"),
-             static_cast_p2p <void> (&lpTranslate),
-                                     &cbTranslatedBytes ) && cbTranslatedBytes && lpTranslate )
+  if ( SK_VerQueryValueW ( cbData,
+                             TEXT ("\\VarFileInfo\\Translation"),
+                 static_cast_p2p <void> (&lpTranslate),
+                                         &cbTranslatedBytes ) && cbTranslatedBytes &&
+                                                                 lpTranslate )
   {
     wchar_t wszPropName [64] = { };
 
@@ -1155,20 +1216,20 @@ SK_GetDLLVersionStr (const wchar_t* wszName)
                     lpTranslate   [0].wLanguage,
                       lpTranslate [0].wCodePage );
 
-    VerQueryValue ( cbData,
-                      wszPropName,
-          static_cast_p2p <void> (&wszFileDescrip),
-                                  &cbProductBytes );
+    SK_VerQueryValueW ( cbData,
+                          wszPropName,
+              static_cast_p2p <void> (&wszFileDescrip),
+                                      &cbProductBytes );
 
     wsprintfW ( wszPropName,
                   LR"(\StringFileInfo\%04x%04x\FileVersion)",
                     lpTranslate   [0].wLanguage,
                       lpTranslate [0].wCodePage );
 
-    VerQueryValue ( cbData,
-                      wszPropName,
-          static_cast_p2p <void> (&wszFileVersion),
-                                  &cbVersionBytes );
+    SK_VerQueryValueW ( cbData,
+                          wszPropName,
+              static_cast_p2p <void> (&wszFileVersion),
+                                      &cbVersionBytes );
   }
 
   if ( cbTranslatedBytes == 0 ||
@@ -2338,7 +2399,44 @@ SK_FixSlashesA (char* szInOut)
 
 #define SECURITY_WIN32
 #include <Security.h>
-#pragma comment (lib, "secur32.lib")
+
+HMODULE hModSecur32 = nullptr;
+
+_Success_(return != 0)
+BOOLEAN
+WINAPI
+SK_GetUserNameExA (
+  _In_                               EXTENDED_NAME_FORMAT  NameFormat,
+  _Out_writes_to_opt_(*nSize,*nSize) LPSTR                 lpNameBuffer,
+  _Inout_                            PULONG                nSize )
+{
+  if (hModSecur32 == nullptr) hModSecur32 = LoadLibraryW (L"Secur32.dll");
+
+  typedef BOOLEAN (WINAPI *GetUserNameExA_pfn)(EXTENDED_NAME_FORMAT,LPSTR,PULONG);
+
+  static GetUserNameExA_pfn imp_GetUserNameExA =
+    (GetUserNameExA_pfn)GetProcAddress (hModSecur32, "GetUserNameExA");
+
+  return imp_GetUserNameExA (NameFormat, lpNameBuffer, nSize);
+}
+
+_Success_(return != 0)
+BOOLEAN
+SEC_ENTRY
+SK_GetUserNameExW (
+    _In_                               EXTENDED_NAME_FORMAT NameFormat,
+    _Out_writes_to_opt_(*nSize,*nSize) LPWSTR               lpNameBuffer,
+    _Inout_                            PULONG               nSize )
+{
+  if (hModSecur32 == nullptr) hModSecur32 = LoadLibraryW (L"Secur32.dll");
+
+  typedef BOOLEAN (WINAPI *GetUserNameExW_pfn)(EXTENDED_NAME_FORMAT,LPWSTR,PULONG);
+
+  static GetUserNameExW_pfn imp_GetUserNameExW =
+    (GetUserNameExW_pfn)GetProcAddress (hModSecur32, "GetUserNameExW");
+
+  return imp_GetUserNameExW (NameFormat, lpNameBuffer, nSize);
+}
 
 // Doesn't need to be this complicated; it's a string function, might as well optimize it.
 
@@ -2364,8 +2462,8 @@ SK_StripUserNameFromPathA (char* szInOut)
 
   if (*szUserName == '\0')
   {
-                                        DWORD dwLen = MAX_PATH;
-    GetUserNameExA (NameUnknown, szUserName, &dwLen);
+                                           DWORD dwLen = MAX_PATH;
+    SK_GetUserNameExA (NameUnknown, szUserName, &dwLen);
 
     if (dwLen == 0)
       *szUserName = '?'; // Invalid filesystem char
@@ -2375,8 +2473,8 @@ SK_StripUserNameFromPathA (char* szInOut)
 
   if (*szUserNameDisplay == '\0')
   {
-                                               DWORD dwLen = MAX_PATH;
-    GetUserNameExA (NameDisplay, szUserNameDisplay, &dwLen);
+                                                  DWORD dwLen = MAX_PATH;
+    SK_GetUserNameExA (NameDisplay, szUserNameDisplay, &dwLen);
 
     if (dwLen == 0)
       *szUserNameDisplay = '?'; // Invalid filesystem char
@@ -2455,8 +2553,8 @@ SK_StripUserNameFromPathW (wchar_t* wszInOut)
 
   if (*wszUserName == L'\0')
   {
-                                               DWORD dwLen = MAX_PATH;
-    GetUserNameExW (NameSamCompatible, wszUserName, &dwLen);
+                                                  DWORD dwLen = MAX_PATH;
+    SK_GetUserNameExW (NameSamCompatible, wszUserName, &dwLen);
 
     if (dwLen == 0)
       *wszUserName = L'?'; // Invalid filesystem char
@@ -2466,8 +2564,8 @@ SK_StripUserNameFromPathW (wchar_t* wszInOut)
 
   if (*wszUserNameDisplay == L'\0')
   {
-                                                DWORD dwLen = MAX_PATH;
-    GetUserNameExW (NameDisplay, wszUserNameDisplay, &dwLen);
+                                                   DWORD dwLen = MAX_PATH;
+    SK_GetUserNameExW (NameDisplay, wszUserNameDisplay, &dwLen);
 
     if (dwLen == 0)
       *wszUserNameDisplay = L'?'; // Invalid filesystem char

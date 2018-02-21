@@ -1,4 +1,27 @@
+0.9.3:
+
+ Updates should no longer cause WerFault.exe to flip out :P
+ ----------------------------------------------------------
+
+ + Joined the update dialog's thread with the game's message pump so that
+     input processing behaves consistently.
+ + Delay-load most non-standard DLL dependencies (i.e. d3dx9_43.dll) to
+     reduce injection overhead in applications that are not games.
+
+  >> Prevents the DLL from getting stuck in explorer.exe, browser_broker, etc.
+       without the need for a shim loader.
+
+
 0.9.2:
+
+ (.1): Updates should no longer cause WerFault.exe to flip out :P
+ ----------------------------------------------------------------
+
+ (.1): Joined the update dialog's thread with the game's message pump so that
+         input processing behaves consistently.
+ (.1): Delay-load most non-standard DLL dependencies (i.e. d3dx9_43.dll) to
+         reduce injection overhead in applications that are not games.
+
 
  + Fixed Skyrim Special Edition launcher crashes
  + Fixed auto-update fetching version.ini multiple times if user postpones

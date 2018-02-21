@@ -23,11 +23,9 @@
 
 #include "targetver.h"
 
-#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
-#undef COM_NO_WINDOWS_H
-#include <Windows.h>
-
 #include <SpecialK/core.h>
+
+
 
 #if 0
 

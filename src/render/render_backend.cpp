@@ -163,7 +163,10 @@ SK_BootD3D9 (void)
 
   if (! InterlockedCompareExchange (&__booted, TRUE, FALSE))
   {
-    SK_TLS_Bottom ()->d3d9.ctx_init_thread = true;
+    SK_TLS *pTLS =
+      SK_TLS_Bottom ();
+
+    pTLS->d3d9.ctx_init_thread = true;
 
     SK_D3D9_InitShaderModTools ();
 
@@ -188,7 +191,7 @@ SK_BootD3D9 (void)
 
     SK_HookD3D9     ();
 
-    SK_TLS_Bottom ()->d3d9.ctx_init_thread = false;
+    pTLS->d3d9.ctx_init_thread = false;
 
     InterlockedIncrement (&__booted);
   }

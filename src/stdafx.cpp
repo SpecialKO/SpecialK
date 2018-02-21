@@ -27,3 +27,9 @@
 
 // TODO: reference any additional headers you need in STDAFX.H
 // and not in this file
+#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
+#undef COM_NO_WINDOWS_H
+#define ISOLATION_AWARE_ENABLED 1
+#include <Windows.h>
+#include <windowsx.h>
+#include <CommCtrl.h>

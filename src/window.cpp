@@ -3382,39 +3382,42 @@ DWORD
 WINAPI
 SK_RealizeForegroundWindow (HWND hWndForeground)
 {
-  auto TryToEarlyOut =
-  [&]
-  {
-    if (! game_window.active)
-      return true;
-  
-    bool focused =
-      ( GetFocus () == hWndForeground );
-  
-    bool foreground =
-      ( GetForegroundWindow () == hWndForeground );
-  
-    // Nothing needs to be done
-    if (focused || foreground)
-    {
-      if (! focused)    SetFocus            (hWndForeground);
-      if (! foreground) SetForegroundWindow (hWndForeground);
-  
-      return true;
-    }
-  
-    return false;
-  };
-  
-  
-  if (TryToEarlyOut ()) return 0UL;
+  //auto TryToEarlyOut =
+  //[&]
+  //{
+  //  if (! game_window.active)
+  //    return true;
+  //
+  //  bool focused =
+  //    ( GetFocus () == hWndForeground );
+  //
+  //  bool foreground =
+  //    ( GetForegroundWindow () == hWndForeground );
+  //
+  //  // Nothing needs to be done
+  //  if (focused || foreground)
+  //  {
+  //    if (! focused)    SetFocus            (hWndForeground);
+  //    if (! foreground) SetForegroundWindow (hWndForeground);
+  //
+  //    return true;
+  //  }
+  //
+  //  return false;
+  //};
+  //
+  //
+  //if (TryToEarlyOut ()) return 0UL;
 
   static volatile LONG nest_lvl = 0L;
 
-  while (ReadAcquire (&nest_lvl))
+  if (ReadAcquire (&nest_lvl))
     MsgWaitForMultipleObjectsEx (0, nullptr, 15, QS_ALLINPUT, MWMO_ALERTABLE);
 
-  if (TryToEarlyOut ()) return 0UL;
+  if (ReadAcquire (&nest_lvl))
+    return 0UL;
+
+  //if (TryToEarlyOut ()) return 0UL;
 
 
   InterlockedIncrementAcquire (&nest_lvl);
@@ -3439,6 +3442,8 @@ SK_RealizeForegroundWindow (HWND hWndForeground)
 
           CloseHandle (GetCurrentThread ());
 
+          InterlockedDecrementRelease (&nest_lvl);
+
           return 0;
         },
 
@@ -3446,8 +3451,6 @@ SK_RealizeForegroundWindow (HWND hWndForeground)
       0x00,
     nullptr
   );
-
-  InterlockedDecrementRelease (&nest_lvl);
 
   return 0UL;
 }
@@ -4377,7 +4380,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   }
 
   else {
-    return DefWindowProcW (hWnd, uMsg, wParam, lParam);;
+    return DefWindowProcW (hWnd, uMsg, wParam, lParam);
   }
 
 

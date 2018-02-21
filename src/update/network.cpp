@@ -19,6 +19,9 @@
  *
 **/
 
+#define ISOLATION_AWARE_ENABLED 1
+#define ISOLATION_AWARE_BUILD_STATIC_LIBRARY 1
+
 #include <SpecialK/ini.h>
 #include <SpecialK/parameter.h>
 #include <SpecialK/utility.h>
@@ -34,10 +37,6 @@
 #include <SpecialK/thread.h>
 #include <SpecialK/window.h>
 
-#include <Windows.h>
-#include <windowsx.h>
-
-#include <CommCtrl.h>
 #pragma comment (lib,    "advapi32.lib")
 #pragma comment (lib,    "user32.lib")
 #pragma comment (lib,    "comctl32.lib")
@@ -45,10 +44,12 @@
                          "version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df'" \
                          " language='*'\"")
 
+#include <Windows.h>
+#include <windowsx.h>
+#include <CommCtrl.h>
+
 #include <process.h>
 #include <cstdint>
-
-#include <Windows.h>
 #include <Wininet.h>
 #pragma comment (lib, "wininet.lib")
 
@@ -768,8 +769,7 @@ Update_DlgProc (
              )
            )
         {
-          TASKDIALOGCONFIG task_cfg;
-          ZeroMemory (&task_cfg, sizeof TASKDIALOGCONFIG);
+          TASKDIALOGCONFIG task_cfg = { };
 
           task_cfg.cbSize = sizeof TASKDIALOGCONFIG;
 
@@ -831,6 +831,9 @@ Update_DlgProc (
                 {
                   SK_RealizeForegroundWindow (hWnd);
 
+                  AttachThreadInput ( GetCurrentThreadId         (),
+                                        GetWindowThreadProcessId (game_window.hWnd, nullptr),
+                                          TRUE );
                 } break;
 
                 case TDN_HYPERLINK_CLICKED:
@@ -930,6 +933,10 @@ Update_DlgProc (
 
     case WM_CREATE:
     {
+      AttachThreadInput ( GetCurrentThreadId         (),
+                            GetWindowThreadProcessId (game_window.hWnd, nullptr),
+                              TRUE );
+
       SK_RealizeForegroundWindow (hWndDlg);
       InterlockedExchange        ( &__SK_UpdateStatus, 0 );
     } break;
@@ -944,6 +951,16 @@ UpdateDlg_Thread (LPVOID user)
 {
   SetCurrentThreadDescription (L"[SK] Auto-Update Dialog Message Pump");
 
+
+  // Common Control Sex
+  INITCOMMONCONTROLSEX ccsex = {
+    sizeof INITCOMMONCONTROLSEX,
+    0x7ff
+  };
+
+  InitCommonControlsEx (&ccsex);
+
+
   bool started = false;
 
   HWND hWndDlg =
@@ -952,8 +969,16 @@ UpdateDlg_Thread (LPVOID user)
                        0,
                          Update_DlgProc );
 
+  if (game_window.hWnd != HWND_DESKTOP)
+  {
+    AttachThreadInput ( GetCurrentThreadId         (),
+                          GetWindowThreadProcessId (game_window.hWnd, nullptr),
+                            TRUE );
+  }
+
   IsGUIThread                (TRUE);
   SK_RealizeForegroundWindow (static_cast <HWND> (user));
+
 
   MSG  msg;
   BOOL bRet;
@@ -965,7 +990,6 @@ UpdateDlg_Thread (LPVOID user)
       CloseHandle (GetCurrentThread ());
       return 0;
     }
-
 
     TranslateMessage (&msg);
     DispatchMessage  (&msg);
@@ -1144,8 +1168,8 @@ SK_UpdateSoftware1 (const wchar_t*, bool force)
 
     URL_COMPONENTSW    urlcomps;
 
-    ZeroMemory (get,       sizeof *get);
-    ZeroMemory (&urlcomps, sizeof URL_COMPONENTSW);
+    SecureZeroMemory (get,       sizeof *get);
+    SecureZeroMemory (&urlcomps, sizeof URL_COMPONENTSW);
 
     urlcomps.dwStructSize     = sizeof URL_COMPONENTSW;
 

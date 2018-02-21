@@ -330,120 +330,85 @@ SK_Steam_FindInstallPath (uint32_t appid)
 }
 
 
+//
+// Go-go-gadget garbage code compactor!
+//
 bool
 SK_Steam_GetDLLPath (wchar_t* wszDestBuf, size_t max_size = MAX_PATH * 2)
 {
+  constexpr wchar_t* wszSteamLib =
+    SK_RunLHIfBitness ( 64, L"steam_api64.dll",
+                            L"steam_api.dll"    );
+
   static std::wstring dll_file = L"";
 
   // Already have a working DLL
-  if ((! dll_file.empty ()) && LoadLibraryW (dll_file.c_str ()))
-  {
-    wcsncpy (wszDestBuf, dll_file.c_str (), max_size);
+  if (LoadLibraryW (     dll_file.c_str ()))
+  { wcsncpy (wszDestBuf, dll_file.c_str (), max_size);
     return true;
   }
-
 
   std::wstring& cfg_path (config.steam.dll_path);
 
   if (                  (! cfg_path.empty ()) &&
        GetFileAttributesW (cfg_path.c_str ()) != INVALID_FILE_ATTRIBUTES )
-  {
-    if (LoadLibraryW (cfg_path.c_str ()))
-    {
-      dll_file = cfg_path;
-
-      wcsncpy (wszDestBuf, dll_file.c_str (), max_size);
-
+  { if (LoadLibraryW      (cfg_path.c_str ()))
+    { wcsncpy (wszDestBuf, cfg_path.c_str (), max_size);
+                dll_file = cfg_path;
       return true;
     }
-    else
-      cfg_path = L"";
   }
 
-  else cfg_path = L"";
+  cfg_path.clear ();
 
-
-
-  const wchar_t* wszSteamLib =
-    SK_RunLHIfBitness ( 64, L"steam_api64.dll",
-                            L"steam_api.dll"    );
-
-  wchar_t   wszExecutablePath [MAX_PATH * 2] = { };
-  wchar_t *pwszUpLevelPath = wszExecutablePath;
-
+  wchar_t      wszExecutablePath                    [MAX_PATH * 2] = { };
   wcsncpy     (wszExecutablePath, SK_GetHostPath (), MAX_PATH * 2 - 1);
   PathAppendW (wszExecutablePath, wszSteamLib);
 
   // The simplest case:  * DLL is in the same directory as the executable.
   //
-  if (LoadLibraryW (wszExecutablePath))
-  {
-    dll_file = wszExecutablePath;
-    wcsncpy (wszDestBuf, dll_file.c_str (), max_size);
+  if (LoadLibraryW                   (wszExecutablePath))
+  {                        dll_file = wszExecutablePath;
+      wcsncpy (wszDestBuf, dll_file.c_str (), max_size);
+    cfg_path = wszDestBuf;
+    return true; }
 
-    config.steam.dll_path = wszDestBuf;
-
-    return true;
-  }
-
-
-  wcsncpy (wszExecutablePath, SK_GetHostPath (), MAX_PATH * 2 - 1);
-
+  wcsncpy  (wszExecutablePath, SK_GetHostPath (), MAX_PATH * 2 - 1);
+  lstrcatW (wszExecutablePath, L".");
 
   // Moonwalk to find the game's absolute root directory, rather than
   //   whatever subdirectory the executable might be in.
-  while (pwszUpLevelPath = wcsrchr (pwszUpLevelPath, L'\\'))
-  {
-    if ( StrStrIW (wszExecutablePath, LR"(SteamApps\common\)") &&
-         StrStrIW (SK_GetHostPath (), wszExecutablePath) )
-    {
-              dll_file = wszExecutablePath;
-      *pwszUpLevelPath = L'\0';
-    }
-
-    else
-    {
-      if (! StrStrIW (SK_GetHostPath (), wszExecutablePath))
-      {
-        dll_file = SK_GetHostPath ();
-      }
-      break;
-    }
+  while (PathRemoveFileSpecW (wszExecutablePath))
+  { if  (StrStrIW            (wszExecutablePath, LR"(SteamApps\common\)"))
+    {              dll_file = wszExecutablePath;
+                   lstrcatW  (wszExecutablePath, L".");
+    } else break;
   }
-
 
   // Try the DLL we went back to the root of the install dir-tree for first.
-  if (! dll_file.empty ())
-  {
-    wcsncpy (wszExecutablePath, dll_file.c_str (), MAX_PATH * 2 - 1);
-  }
+  if (!                         dll_file.empty ())
+  { wcsncpy (wszExecutablePath, dll_file.c_str (), MAX_PATH * 2 - 1); }
 
   // Then get the base install directory from Steam (if we can).
   else if (config.steam.appid != 0)
-  {
-    wcsncpy (wszExecutablePath,
-               SK_Steam_FindInstallPath (config.steam.appid),
-                 MAX_PATH * 2 - 1);
+  { wcsncpy ( wszExecutablePath,
+                SK_Steam_FindInstallPath (config.steam.appid),
+                  MAX_PATH * 2 - 1 );
   }
 
   // Finally, give up and hope the DLL is relative to the executable.
   else
     wcsncpy (wszExecutablePath, SK_GetHostPath (), MAX_PATH * 2 - 1);
 
+  const wchar_t* wszFullSteamDllPath =
+    (dll_file =
+       _SK_RecursiveFileSearch (wszExecutablePath, wszSteamLib)).c_str ();
 
-  dll_file =
-    _SK_RecursiveFileSearch (wszExecutablePath, wszSteamLib);
-
-
-  if ((! dll_file.empty ()) && LoadLibraryW (dll_file.c_str ()))
-  {
-    wcsncpy (wszDestBuf, dll_file.c_str (), max_size);
-
-    config.steam.dll_path = wszDestBuf;
-
+  if (LoadLibraryW        (wszFullSteamDllPath))
+  { wcsncpy   (wszDestBuf, wszFullSteamDllPath, max_size);
+    cfg_path = wszDestBuf;
     return true;
   }
-
 
   return false;
 }
@@ -452,15 +417,13 @@ SK_Steam_GetDLLPath (wchar_t* wszDestBuf, size_t max_size = MAX_PATH * 2)
 const std::wstring
 SK_Steam_GetDLLPath (void)
 {
-  static std::wstring dll_file = L"";
+  static std::wstring
+    dll_file = L"";
 
-  if (! dll_file.empty ())
-    return dll_file;
-
-  wchar_t                  wszDLLPath [MAX_PATH * 2] = { };
-  if (SK_Steam_GetDLLPath (wszDLLPath))
-  {
-    dll_file = wszDLLPath;
+  if (dll_file.empty ())
+  { wchar_t                  wszDLLPath [MAX_PATH * 2] = { };
+    if (SK_Steam_GetDLLPath (wszDLLPath)) {
+                  dll_file = wszDLLPath;  }
   }
 
   return dll_file;
@@ -4401,7 +4364,7 @@ SK_SteamAPI_GetSharedAchievementsForFriend (uint32_t friend_idx, BOOL* pStats)
     unlocked_achvs = SK_SteamAPI_GetUnlockedAchievements ();
 
   if (pStats != nullptr)
-    ZeroMemory (pStats, SK_SteamAPI_GetNumPossibleAchievements ());
+    SecureZeroMemory (pStats, SK_SteamAPI_GetNumPossibleAchievements ());
 
   for ( auto it : unlocked_achvs )
   {

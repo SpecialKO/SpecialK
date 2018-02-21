@@ -422,20 +422,25 @@ protected:
     if (cached_stats.last_calc != updates)
     {
       int sample =  0;
-      _T  sum    = { };
+      _T  sum    =  0;
 
       _T  min    = std::numeric_limits <_T>::max ();
       _T  max    = std::numeric_limits <_T>::min ();
 
-      for (auto& val : values)
+      for (auto val : values)
       {
         if (++sample > updates)
           break;
-
+      
         sum += val;
 
-        max = std::max (val, max);
-        min = std::min (val, min);
+        if (sample == 1) { max = val; min = val; }
+
+        else
+        {      
+          max = val != max ? std::max (val, max) : max;
+          min = val != min ? std::min (val, min) : min;
+        }
       }
 
       cached_stats.avg = sum / sample;
@@ -449,7 +454,7 @@ protected:
   int                          updates       = 0;
   std::array <_T, max_samples> values;
   int                          values_offset = 0;
-  _T                           last_val      = { };
+  _T                           last_val      = 0;
 
   struct stat_cache_s {
     _T  min, max, avg;

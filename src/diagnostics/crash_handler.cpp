@@ -298,10 +298,13 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
   //    NULL,
   //      TRUE );
 
-  bool&             last_chance = SK_TLS_Bottom ()->debug.last_chance;
+  SK_TLS* pTLS =
+    SK_TLS_Bottom ();
 
-  CONTEXT&          last_ctx    = SK_TLS_Bottom ()->debug.last_ctx;
-  EXCEPTION_RECORD& last_exc    = SK_TLS_Bottom ()->debug.last_exc;
+  bool&             last_chance = pTLS->debug.last_chance;
+
+  CONTEXT&          last_ctx    = pTLS->debug.last_ctx;
+  EXCEPTION_RECORD& last_exc    = pTLS->debug.last_exc;
 
   std::wstring desc;
 

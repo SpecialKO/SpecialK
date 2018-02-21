@@ -641,7 +641,7 @@ SK_JOY_TranslateToXInput (JOYINFOEX* pJoy, const JOYCAPSW* pCaps)
 
   static DWORD dwPacket = 0;
 
-  ZeroMemory (&joy_to_xi.Gamepad, sizeof (XINPUT_STATE::Gamepad));
+  SecureZeroMemory (&joy_to_xi.Gamepad, sizeof (XINPUT_STATE::Gamepad));
 
 
   auto ComputeAxialPos_XInput =
@@ -829,7 +829,7 @@ SK_DI8_TranslateToXInput (DIJOYSTATE* pJoy)
 {
   static DWORD dwPacket = 0;
 
-  ZeroMemory (&di8_to_xi.Gamepad, sizeof (XINPUT_STATE::Gamepad));
+  SecureZeroMemory (&di8_to_xi.Gamepad, sizeof (XINPUT_STATE::Gamepad));
 
   //
   // Hard-coded mappings for DualShock 4 -> XInput

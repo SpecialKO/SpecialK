@@ -67,9 +67,11 @@ IMGUI_API
 void
 ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
 {
-  SK_ScopedBool auto_bool (&SK_TLS_Bottom ()->imgui.drawing);
+  SK_TLS* pTLS =
+    SK_TLS_Bottom ();
 
-  SK_TLS_Bottom ()->imgui.drawing = true;
+  SK_ScopedBool auto_bool (&pTLS->imgui.drawing);
+                            pTLS->imgui.drawing = true;
 
   ImGuiIO& io =
     ImGui::GetIO ();
@@ -465,10 +467,13 @@ ImGui_ImplDX11_CreateFontsTexture (void)
 bool
 ImGui_ImplDX11_CreateDeviceObjects (void)
 {
-  SK_ScopedBool auto_bool (&SK_TLS_Bottom ()->imgui.drawing);
+  SK_TLS* pTLS =
+    SK_TLS_Bottom ();
+
+  SK_ScopedBool auto_bool (&pTLS->imgui.drawing);
 
   // Do not dump ImGui font textures
-  SK_TLS_Bottom ()->imgui.drawing = true;
+  pTLS->imgui.drawing = true;
 
   if (g_pFontSampler)
     ImGui_ImplDX11_InvalidateDeviceObjects ();
@@ -708,13 +713,16 @@ SK_ImGui_ResetExternal (void)
 void
 ImGui_ImplDX11_InvalidateDeviceObjects (void)
 {
+  SK_TLS* pTLS =
+    SK_TLS_Bottom ();
+
   //if (! g_pd3dDevice)
   //  return;
 
-  SK_ScopedBool auto_bool (&SK_TLS_Bottom ()->imgui.drawing);
+  SK_ScopedBool auto_bool (&pTLS->imgui.drawing);
 
   // Do not dump ImGui font textures
-  SK_TLS_Bottom ()->imgui.drawing = true;
+  pTLS->imgui.drawing = true;
 
   SK_ImGui_ResetExternal ();
 
@@ -794,15 +802,16 @@ ImGui_ImplDX11_Init ( IDXGISwapChain* pSwapChain,
 void
 ImGui_ImplDX11_Shutdown (void)
 {
-  SK_ScopedBool auto_bool (&SK_TLS_Bottom ()->imgui.drawing);
+  SK_TLS *pTLS =
+    SK_TLS_Bottom ();
+
+  SK_ScopedBool auto_bool (&pTLS->imgui.drawing);
 
   // Do not dump ImGui font textures
-  SK_TLS_Bottom ()->imgui.drawing = true;
+  pTLS->imgui.drawing = true;
 
   ImGui_ImplDX11_InvalidateDeviceObjects ();
   ImGui::Shutdown                        ();
-
-//g_hWnd              = HWND_DESKTOP;
 }
 
 #include <SpecialK/window.h>
@@ -876,17 +885,19 @@ ImGui_ImplDX11_Resize ( IDXGISwapChain *This,
   UNREFERENCED_PARAMETER (Height);
   UNREFERENCED_PARAMETER (This);
 
-
   SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   if (! rb.device)
     return;
 
-  SK_ScopedBool auto_bool (&SK_TLS_Bottom ()->imgui.drawing);
+  SK_TLS *pTLS =
+    SK_TLS_Bottom ();
+
+  SK_ScopedBool auto_bool (&pTLS->imgui.drawing);
 
   // Do not dump ImGui font textures
-  SK_TLS_Bottom ()->imgui.drawing = true;
+  pTLS->imgui.drawing = true;
 
 
   assert (This == rb.swapchain);

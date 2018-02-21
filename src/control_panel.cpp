@@ -1228,17 +1228,6 @@ SK_ImGui_ControlPanel (void)
           if (ImGui::MenuItem  ("Update Now"))
             SK_UpdateSoftware (nullptr);
 
-          if (ImGui::IsItemHovered ())
-          {
-            ImGui::BeginTooltip   ();
-            ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (1.0f, 0.8f, 0.1f, 1.0f));
-            ImGui::Text           ("DO NOT DO THIS IN FULLSCREEN EXCLUSIVE MODE");
-            ImGui::PopStyleColor  ();
-            ImGui::Separator      ();
-            ImGui::BulletText     ("In fact you should not do this at all if you can help it");
-            ImGui::BulletText     ("Restart the software and let it do the update at startup for best results.");
-            ImGui::EndTooltip     ();
-          }
           ImGui::Separator ();
         }
 

@@ -106,7 +106,7 @@ SK_XInput_PlaceHold ( DWORD         dwRet,
       packets [dwUserIndex].sequence.current++;
     }
 
-    ZeroMemory (&pState->Gamepad, sizeof XINPUT_GAMEPAD);
+    SecureZeroMemory (&pState->Gamepad, sizeof XINPUT_GAMEPAD);
 
     if (! was_holding)
     {
@@ -165,7 +165,7 @@ SK_XInput_PlaceHoldCaps ( DWORD                dwRet,
 
     dwRet = ERROR_SUCCESS;
 
-    ZeroMemory (pCapabilities, sizeof XINPUT_CAPABILITIES);
+    SecureZeroMemory (pCapabilities, sizeof XINPUT_CAPABILITIES);
 
     pCapabilities->Type    = XINPUT_DEVTYPE_GAMEPAD;
     pCapabilities->SubType = XINPUT_DEVSUBTYPE_GAMEPAD;

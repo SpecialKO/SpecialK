@@ -278,9 +278,9 @@ SKX_WaitForCBTHookShutdown (void)
 
     if (success && hShutdown != INVALID_HANDLE_VALUE)
     {
-      SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_IDLE);
+      SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_LOWEST);
 
-      WaitForSingleObjectEx (hShutdown, INFINITE, FALSE);
+      MsgWaitForMultipleObjects (1, &hShutdown, TRUE, INFINITE, QS_ALLEVENTS);
 
       CloseHandle (hShutdown);
     }
@@ -293,48 +293,28 @@ CBTProc ( _In_ int    nCode,
           _In_ WPARAM wParam,
           _In_ LPARAM lParam )
 {
-  LRESULT ret = CallNextHookEx (SKX_GetCBTHook (), nCode, wParam, lParam);
+  if (nCode < 0)
+    return CallNextHookEx (0, nCode, wParam, lParam);
 
-  static volatile LONG lHookIters = 0L;
-
-  // Don't create that thread more than once, but don't bother with a complete
-  //   critical section.
-  if (InterlockedIncrement (&lHookIters) == 1L)
+  switch (nCode)
   {
-    if ( GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
-                                (LPCWSTR)SK_GetDLL (),
-                                  &hModHookInstance ) )
-    {
-      // Get and keep a reference to this DLL if this is the first time we are injecting.
-      HANDLE hThread =
-        CreateThread ( nullptr, 0,
-             [](LPVOID user) ->
-               DWORD
-                 {
-                   SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_IDLE);
+    case HCBT_ACTIVATE:
+    case HCBT_CREATEWND:
+    case HCBT_DESTROYWND:
+    case HCBT_MINMAX:
+    case HCBT_MOVESIZE:
+    case HCBT_SETFOCUS:
+    case HCBT_SYSCOMMAND:
+      return CallNextHookEx (0, nCode, wParam, lParam);
 
-                   SKX_WaitForCBTHookShutdown ();
+    case HCBT_CLICKSKIPPED:
+    case HCBT_KEYSKIPPED:
+    case HCBT_QS:
+      return CallNextHookEx (0, nCode, wParam, lParam);
 
-                   CloseHandle (GetCurrentThread ());
-
-                   FreeLibraryAndExitThread (static_cast <HMODULE> (user), 0x0);
-
-                   return 0;
-                 },
-               (hModHookInstance),
-             0x00,
-           nullptr
-        );
-
-      // Closes itself
-      DBG_UNREFERENCED_LOCAL_VARIABLE (hThread);
-    }
-
-    else
-      InterlockedExchange (&lHookIters, 0);
+    default:
+      return CallNextHookEx (0, nCode, wParam, lParam);
   }
-
-  return ret;
 }
 
 BOOL
@@ -366,8 +346,8 @@ SKX_InstallCBTHook (void)
   if (SKX_GetCBTHook () != nullptr)
     return;
 
-  ZeroMemory (whitelist_patterns, sizeof (whitelist_patterns));
-              whitelist_count = 0;
+  SecureZeroMemory (whitelist_patterns, sizeof (whitelist_patterns));
+                    whitelist_count = 0;
 
   HMODULE hMod = nullptr;
 
@@ -425,7 +405,7 @@ START_OVER:
     }
   }
 
-  while (ReadPointerAcquire ((PVOID *)&g_CBTHook.hHookCBT) != nullptr)
+  if (ReadPointerAcquire ((PVOID *)&g_CBTHook.hHookCBT) != nullptr)
     goto START_OVER;
 }
 

@@ -2460,7 +2460,7 @@ SK_HookGL (void)
     if (StrStrIW ( SK_GetModuleName (SK_GetDLL ()).c_str (), 
                      wszBackendDLL ) )
     {
-      LoadLibraryW (L"gdi32full.dll");
+      LoadLibraryW (L"gdi32.dll");
       SK_LoadRealGL ();
 
       wgl_swap_buffers =
@@ -2899,7 +2899,7 @@ SK_HookGL (void)
     // This will invoke wglSwapBuffers (...); hooking it is useful
     //   in order to control when the overlay is drawn. 
     //
-    SK_CreateDLLHook2 (       L"gdi32full.dll",
+    SK_CreateDLLHook2 (       L"gdi32.dll",
                                "SwapBuffers",
                                 SwapBuffers,
        static_cast_p2p <void> (&gdi_swap_buffers) );

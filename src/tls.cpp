@@ -20,89 +20,105 @@
 **/
 
 #include <SpecialK/tls.h>
+#include <SpecialK/log.h>
+#include <SpecialK/config.h>
 
 
 volatile long __SK_TLS_INDEX = TLS_OUT_OF_INDEXES;
+
+
+SK_TlsRecord
+SK_GetTLS (bool initialize)
+{
+  DWORD dwTlsIdx =
+    ReadAcquire (&__SK_TLS_INDEX);
+
+  LPVOID lpvData =
+    nullptr;
+
+  if ( dwTlsIdx != TLS_OUT_OF_INDEXES )
+  {
+    lpvData =
+      TlsGetValue (dwTlsIdx);
+
+    if (lpvData == nullptr)
+    {
+      if (GetLastError () == ERROR_SUCCESS)
+      {
+        lpvData =
+          static_cast <LPVOID> (
+            LocalAlloc (LPTR, sizeof (SK_TLS) * SK_TLS::stack::max)
+        );
+
+        if (! TlsSetValue (dwTlsIdx, lpvData))
+        {
+          LocalFree (lpvData);
+                     lpvData = nullptr;
+        }
+
+        else initialize = true;
+      }
+    }
+
+    if (lpvData != nullptr && initialize)
+    {
+      SK_TLS* pTLS =
+        static_cast <SK_TLS *> (lpvData);
+
+      *pTLS = SK_TLS::SK_TLS ();
+
+      // Stack semantics are deprecated and will be removed soon
+      pTLS->stack.current = 0;
+    }
+  }
+
+  else
+    dwTlsIdx = TLS_OUT_OF_INDEXES;
+
+  return
+    { dwTlsIdx, lpvData };
+}
+
+
+void
+SK_CleanupTLS (void)
+{
+  auto tls_slot =
+    SK_GetTLS ();
+
+  if (tls_slot.lpvData != nullptr)
+  {
+#ifdef _DEBUG
+    size_t freed =
+#endif
+    static_cast <SK_TLS *> (tls_slot.lpvData)->Cleanup (
+      SK_TLS_CleanupReason_e::Unload
+    );
+
+#ifdef _DEBUG
+    SK_LOG0 ( ( L"Freed %zu bytes of temporary heap storage for tid=%x",
+                  freed, GetCurrentThreadId () ), L"TLS Memory" );
+#endif
+
+    if (TlsSetValue (tls_slot.dwTlsIdx, nullptr))
+      LocalFree     (tls_slot.lpvData);
+  }
+}
+
 
 
 SK_TLS*
 __stdcall
 SK_TLS_Bottom (void)
 {
-  if (ReadAcquire (&__SK_TLS_INDEX) == TLS_OUT_OF_INDEXES)
+  auto tls_slot =
+    SK_GetTLS ();
+
+  if (tls_slot.dwTlsIdx == TLS_OUT_OF_INDEXES)
     return nullptr;
 
-  LPVOID lpvData =
-    TlsGetValue (ReadAcquire (&__SK_TLS_INDEX));
-
-  if (lpvData == nullptr)
-  {
-    lpvData =
-      static_cast <LPVOID> (
-        LocalAlloc ( LPTR,
-                       sizeof (SK_TLS) * SK_TLS::stack::max )
-      );
-
-    if (lpvData != nullptr)
-    {
-      if (! TlsSetValue (ReadAcquire (&__SK_TLS_INDEX), lpvData))
-      {
-        LocalFree (lpvData);
-        return nullptr;
-      }
-
-      static_cast <SK_TLS *> (lpvData)->stack.current = 0;
-    }
-  }
-
-  return static_cast <SK_TLS *> (lpvData);
-}
-
-SK_TLS*
-__stdcall
-SK_TLS_Top (void)
-{
-  if (ReadAcquire (&__SK_TLS_INDEX) == TLS_OUT_OF_INDEXES)
-    return nullptr;
-
-  return &(SK_TLS_Bottom ()[SK_TLS_Bottom ()->stack.current]);
-}
-
-bool
-__stdcall
-SK_TLS_Push (void)
-{
-  if (ReadAcquire (&__SK_TLS_INDEX) == TLS_OUT_OF_INDEXES)
-    return false;
-
-  if (SK_TLS_Bottom ()->stack.current < SK_TLS::stack::max)
-  {
-    static_cast <SK_TLS *>   (SK_TLS_Bottom ())[SK_TLS_Bottom ()->stack.current + 1] =
-      static_cast <SK_TLS *> (SK_TLS_Bottom ())[SK_TLS_Bottom ()->stack.current++];
-
-    return true;
-  }
-
-  // Overflow
-  return false;
-}
-
-bool
-__stdcall
-SK_TLS_Pop  (void)
-{
-  if (ReadAcquire (&__SK_TLS_INDEX) == TLS_OUT_OF_INDEXES)
-    return false;
-
-  if (SK_TLS_Bottom ()->stack.current > 0)
-  {
-    static_cast <SK_TLS *> (SK_TLS_Bottom ())->stack.current--;
-
-    return true;
-  }
-
-  // Underflow
-  return false;
+  return
+    static_cast <SK_TLS *> (tls_slot.lpvData);
 }
 
 

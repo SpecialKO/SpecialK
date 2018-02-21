@@ -228,9 +228,9 @@ D3D9CreateOffscreenPlainSurface_Override (
 {
   if (SK_GetCurrentGameID () == SK_GAME_ID::YS_Seven)
   {
-    CComPtr <IDirect3DSwapChain9> pSwapChain;
+    CComPtr <IDirect3DSwapChain9> pSwapChain = nullptr;
 
-    if (SUCCEEDED (This->GetSwapChain (0, &pSwapChain)))
+    if (SUCCEEDED (This->GetSwapChain (0, &pSwapChain.p)))
     {
       D3DPRESENT_PARAMETERS pparams = { };
       pSwapChain->GetPresentParameters (&pparams);
@@ -514,7 +514,7 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
   else if (pDev != nullptr)
   {
     CComPtr <IDirect3DStateBlock9>       pStateBlock = nullptr;
-    pDev->CreateStateBlock (D3DSBT_ALL, &pStateBlock);
+    pDev->CreateStateBlock (D3DSBT_ALL, &pStateBlock.p);
 
     if (! pStateBlock)
       return;
@@ -582,7 +582,7 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
     pDev->GetDeviceCaps (&caps);
 
     CComPtr <IDirect3DSurface9> pBackBuffer = nullptr;
-    CComPtr <IDirect3DSurface9> rts [8];
+    CComPtr <IDirect3DSurface9> rts [8]     = { };
     CComPtr <IDirect3DSurface9> ds          = nullptr;
 
     for (UINT target = 0; target < std::min (caps.NumSimultaneousRTs, 8UL); target++) {
@@ -1214,7 +1214,7 @@ SK_D3D9_ShouldProcessPresentCall (SK_D3D9_PresentSource Source)
 }
 
 
-
+__inline
 HRESULT
 STDMETHODCALLTYPE
 SK_D3D9_Present_GrandCentral ( sk_d3d9_swap_dispatch_s* dispatch )
@@ -1356,7 +1356,7 @@ SK_D3D9_Present_GrandCentral ( sk_d3d9_swap_dispatch_s* dispatch )
 
     CComPtr <IDirect3DSurface9> pSurf = nullptr;
 
-    if (SUCCEEDED (pSwapChain->GetBackBuffer (0, D3DBACKBUFFER_TYPE_MONO, &pSurf)))
+    if (SUCCEEDED (pSwapChain->GetBackBuffer (0, D3DBACKBUFFER_TYPE_MONO, &pSurf.p)))
     {
       D3DPRESENT_PARAMETERS              pparams = { };
       pSwapChain->GetPresentParameters (&pparams);
@@ -1464,7 +1464,7 @@ D3D9Device_Present ( IDirect3DDevice9 *This,
   CComPtr <IDirect3DSwapChain9> pSwapChain = nullptr;
 
 
-  if ( SUCCEEDED (This->GetSwapChain (0, &pSwapChain)) &&
+  if ( SUCCEEDED (This->GetSwapChain (0, &pSwapChain.p)) &&
                                           pSwapChain != nullptr )
   {
     sk_d3d9_swap_dispatch_s dispatch =
@@ -1500,7 +1500,7 @@ D3D9ExDevice_PresentEx ( IDirect3DDevice9Ex *This,
 
   CComPtr <IDirect3DSwapChain9> pSwapChain = nullptr;
 
-  if ( SUCCEEDED (This->GetSwapChain (0, &pSwapChain)) &&
+  if ( SUCCEEDED (This->GetSwapChain (0, &pSwapChain.p)) &&
                                           pSwapChain != nullptr )
   {
     sk_d3d9_swap_dispatch_s dispatch =
@@ -1671,7 +1671,7 @@ D3D9Swap_Present ( IDirect3DSwapChain9 *This,
 
   CComPtr <IDirect3DDevice9> pDevice = nullptr;
 
-  if (SUCCEEDED (This->GetDevice (&pDevice)) && pDevice != nullptr)
+  if (SUCCEEDED (This->GetDevice (&pDevice.p)) && pDevice != nullptr)
   {
     sk_d3d9_swap_dispatch_s dispatch =
     {
@@ -1684,8 +1684,10 @@ D3D9Swap_Present ( IDirect3DSwapChain9 *This,
       SK_D3D9_PresentType::SwapChain9_Present
     };
 
-    return
+    HRESULT hr =
       SK_D3D9_Present_GrandCentral (&dispatch);
+
+    return hr;
   }
 
   return D3DERR_DEVICELOST;
@@ -1867,7 +1869,7 @@ SK_D3D9_HookPresent (IDirect3DDevice9 *pDev)
   {
     CComPtr <IDirect3DSwapChain9> pSwapChain = nullptr;
 
-    if (SUCCEEDED (pDev->GetSwapChain (0, &pSwapChain)))
+    if (SUCCEEDED (pDev->GetSwapChain (0, &pSwapChain.p)))
     {
       void** vftable_ = nullptr;
 
@@ -2716,9 +2718,9 @@ D3D9CreateRenderTarget_Override (IDirect3DDevice9     *This,
 {
   if (SK_GetCurrentGameID () == SK_GAME_ID::YS_Seven)
   {
-    CComPtr <IDirect3DSwapChain9> pSwapChain;
+    CComPtr <IDirect3DSwapChain9> pSwapChain = nullptr;
 
-    if (SUCCEEDED (This->GetSwapChain (0, &pSwapChain)))
+    if (SUCCEEDED (This->GetSwapChain (0, &pSwapChain.p)))
     {
       D3DPRESENT_PARAMETERS pparams = { };
       pSwapChain->GetPresentParameters (&pparams);
@@ -2758,9 +2760,9 @@ D3D9CreateDepthStencilSurface_Override ( IDirect3DDevice9     *This,
 {
   if (SK_GetCurrentGameID () == SK_GAME_ID::YS_Seven)
   {
-    CComPtr <IDirect3DSwapChain9> pSwapChain;
+    CComPtr <IDirect3DSwapChain9> pSwapChain = nullptr;
 
-    if (SUCCEEDED (This->GetSwapChain (0, &pSwapChain)))
+    if (SUCCEEDED (This->GetSwapChain (0, &pSwapChain.p)))
     {
       D3DPRESENT_PARAMETERS pparams = { };
       pSwapChain->GetPresentParameters (&pparams);
@@ -3143,7 +3145,7 @@ SK_SetPresentParamsD3D9Ex ( IDirect3DDevice9       *pDevice,
 
   CComPtr <IDirect3DDevice9Ex> pDevEx = nullptr;
 
-  if (pparams != nullptr && pDevice != nullptr && ( SUCCEEDED (((IUnknown *)pDevice)->QueryInterface <IDirect3DDevice9Ex> (&pDevEx)) && config.render.d3d9.force_d3d9ex ))
+  if (pparams != nullptr && pDevice != nullptr && ( SUCCEEDED (((IUnknown *)pDevice)->QueryInterface <IDirect3DDevice9Ex> (&pDevEx.p)) && config.render.d3d9.force_d3d9ex ))
   {
     if (config.render.d3d9.force_d3d9ex)
     {
@@ -4603,7 +4605,7 @@ SK_D3D9_UpdateRenderStats (IDirect3DSwapChain9* pSwapChain, IDirect3DDevice9* pD
   CComPtr <IDirect3DDevice9> dev = pDevice;
 
   if (  pDevice    != nullptr || 
-       (pSwapChain != nullptr && SUCCEEDED (pSwapChain->GetDevice (&dev))) )
+       (pSwapChain != nullptr && SUCCEEDED (pSwapChain->GetDevice (&dev.p))) )
   {
     if (pipeline_stats.query.object != nullptr)
     {
@@ -4768,7 +4770,7 @@ HookD3D9 (LPVOID user)
                       nullptr,
                         D3DCREATE_HARDWARE_VERTEXPROCESSING,
                           &pparams,
-                            &pD3D9Dev );
+                            &pD3D9Dev.p );
 
         pTLS->d3d9.ctx_init_thread = false;
 
@@ -4817,7 +4819,7 @@ HookD3D9 (LPVOID user)
         pTLS->d3d9.ctx_init_thread = true;
 
         hr = (config.apis.d3d9ex.hook) ?
-          Direct3DCreate9Ex_Import (D3D_SDK_VERSION, &pD3D9Ex)
+          Direct3DCreate9Ex_Import (D3D_SDK_VERSION, &pD3D9Ex.p)
                            :
                       E_NOINTERFACE;
 
@@ -4852,7 +4854,7 @@ HookD3D9 (LPVOID user)
                       D3DCREATE_HARDWARE_VERTEXPROCESSING,
                         &pparams,
                           nullptr,
-                            &pD3D9DevEx );
+                            &pD3D9DevEx.p );
 
           pTLS->d3d9.ctx_init_thread = false;
 
@@ -6804,7 +6806,7 @@ SK_D3D9_TextureModDlg (void)
 
        CComPtr <IDirect3DTexture9> pTex = nullptr;
 
-       if (SUCCEEDED (render_textures [line]->QueryInterface (IID_PPV_ARGS (&pTex))))
+       if (SUCCEEDED (render_textures [line]->QueryInterface (IID_PPV_ARGS (&pTex.p))))
        {
          if (SUCCEEDED (pTex->GetLevelDesc (0, &desc)))
          {
@@ -6849,7 +6851,7 @@ SK_D3D9_TextureModDlg (void)
    CComPtr <IDirect3DTexture9> pTex = nullptr;
 
    if ((! render_textures.empty ()) && sel >= 0)
-     render_textures [sel]->QueryInterface (IID_PPV_ARGS (&pTex));
+     render_textures [sel]->QueryInterface (IID_PPV_ARGS (&pTex.p));
 
    if (pTex != nullptr)
    {
@@ -7767,7 +7769,7 @@ SK_D3D9_ShouldSkipRenderPass (D3DPRIMITIVETYPE /*PrimitiveType*/, UINT/* Primiti
 
   CComPtr <IDirect3DDevice9> pDevice = nullptr;
 
-  if (FAILED (SK_GetCurrentRenderBackend ().device->QueryInterface <IDirect3DDevice9> (&pDevice)))
+  if (FAILED (SK_GetCurrentRenderBackend ().device->QueryInterface <IDirect3DDevice9> (&pDevice.p)))
     return false;
 
   const uint32_t vs_checksum = Shaders.vertex.current.crc32c;

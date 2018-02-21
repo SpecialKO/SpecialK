@@ -13561,6 +13561,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
               ImGui::Image ( it,         ImVec2  ( std::max (64.0f, (float)desc.Width / 16.0f),
         ((float)desc.Height / (float)desc.Width) * std::max (64.0f, (float)desc.Width / 16.0f) ),
                                          ImVec2  (0,0),             ImVec2  (1,1),
+                            desc.Format == DXGI_FORMAT_R8_UNORM ? ImColor (0, 255, 255, 255) :
                                          ImColor (255,255,255,255), ImColor (242,242,13,255) );
             }
 

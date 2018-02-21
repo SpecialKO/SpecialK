@@ -63,9 +63,7 @@ SetCurrentThreadDescription (_In_ PCWSTR lpThreadDescription)
   wcsncpy (SK_TLS_Bottom ()->debug.name, lpThreadDescription, 255);
 
 
-  char* szDesc =
-    (char *)alloca (256);
-
+  char      szDesc [256] = { };
   wcstombs (szDesc, lpThreadDescription, 255);
 
   const DWORD tid =
@@ -83,13 +81,13 @@ SetCurrentThreadDescription (_In_ PCWSTR lpThreadDescription)
     {
       const DWORD argc = sizeof (info) /
                          sizeof (ULONG_PTR);
-
+  
       RaiseException ( MAGIC_THREAD_EXCEPTION,
                          0,
                            argc,
                              reinterpret_cast <const ULONG_PTR *>(&info) );
     }
-
+  
     __except (EXCEPTION_EXECUTE_HANDLER) { }
   }
 

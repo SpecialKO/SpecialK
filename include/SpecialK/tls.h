@@ -65,6 +65,20 @@ enum SK_TLS_CleanupReason_e
   Unload   = 2  // TLS is being completely unloaded for this thread
 };
 
+
+// Low-level construct, encapsulates a TLS slot's kernel index
+//   and a pointer to any allocated storage.
+struct SK_TlsRecord {
+  DWORD  dwTlsIdx;
+  LPVOID lpvData;
+};
+
+SK_TlsRecord SK_GetTLS     (bool initialize = false);
+void         SK_CleanupTLS (void);
+
+
+
+
 struct SK_TLS_DynamicContext
 {
   size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload);
@@ -275,14 +289,7 @@ struct SK_TLS
 extern volatile LONG __SK_TLS_INDEX;
 
 SK_TLS* __stdcall SK_TLS_Get    (void); // Alias: SK_TLS_Top
-SK_TLS* __stdcall SK_TLS_Top    (void);
 SK_TLS* __stdcall SK_TLS_Bottom (void);
-
-//bool    __stdcall SK_TLS_Push   (void);
-//bool    __stdcall SK_TLS_Pop    (void);
-
-void    __stdcall SK_TLS_Push   (SK_TLS_STACK_MASK mask);
-void    __stdcall SK_TLS_Pop    (SK_TLS_STACK_MASK mask);
 
 class SK_ScopedBool
 {

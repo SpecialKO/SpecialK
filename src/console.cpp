@@ -57,8 +57,8 @@ SK_Console::SK_Console (void)
   command_issued = false;
   result_str     = "";
 
-  ZeroMemory (text, 4096);
-  ZeroMemory (keys_, 256);
+  SecureZeroMemory (text, 4096);
+  SecureZeroMemory (keys_, 256);
 }
 
 SK_Console*
@@ -120,7 +120,7 @@ SK_Console::Draw (void)
 void
 SK_Console::Start (void)
 {
-  ZeroMemory (text, 4096);
+  SecureZeroMemory (text, 4096);
 
   text [0] = '>';
 }

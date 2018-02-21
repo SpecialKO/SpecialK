@@ -1526,6 +1526,13 @@ TaskDialogCallback (
   if (uNotification == TDN_TIMER)
   {
     SK_RealizeForegroundWindow (hWnd);
+
+    if (game_window.hWnd != HWND_DESKTOP)
+    {
+      AttachThreadInput ( GetCurrentThreadId         (),
+                            GetWindowThreadProcessId (game_window.hWnd, nullptr),
+                              TRUE );
+    }
   }
 
   if (uNotification == TDN_HYPERLINK_CLICKED)
@@ -1539,11 +1546,25 @@ TaskDialogCallback (
   if (uNotification == TDN_DIALOG_CONSTRUCTED)
   {
     SK_RealizeForegroundWindow (hWnd);
+
+    if (game_window.hWnd != HWND_DESKTOP)
+    {
+      AttachThreadInput ( GetCurrentThreadId         (),
+                            GetWindowThreadProcessId (game_window.hWnd, nullptr),
+                              TRUE );
+    }
   }
 
   if (uNotification == TDN_CREATED)
   {
     SK_RealizeForegroundWindow (hWnd);
+
+    if (game_window.hWnd != HWND_DESKTOP)
+    {
+      AttachThreadInput ( GetCurrentThreadId         (),
+                            GetWindowThreadProcessId (game_window.hWnd, nullptr),
+                              TRUE );
+    }
   }
 
   if (uNotification == TDN_DESTROYED)
@@ -2602,14 +2623,14 @@ SK_COMPAT_FixUpFullscreen_DXGI (bool Fullscreen)
 HRESULT
 SK_COMPAT_FixNahimicDeadlock (void)
 {
-  CComPtr <IActivateAudioInterfaceAsyncOperation> aOp;
-
-  ActivateAudioInterfaceAsync ( L"I don't exist",
-                                  __uuidof (IAudioClient),
-                                    nullptr, nullptr, &aOp );
-
-  //if (GetModuleHandle (L"NahimicDevProps.dll"))
-  //  return S_OK;
+  //CComPtr <IActivateAudioInterfaceAsyncOperation> aOp;
+  //
+  //ActivateAudioInterfaceAsync ( L"I don't exist",
+  //                                __uuidof (IAudioClient),
+  //                                  nullptr, nullptr, &aOp );
+  //
+  ////if (GetModuleHandle (L"NahimicDevProps.dll"))
+  ////  return S_OK;
 
   return S_FALSE;
 }

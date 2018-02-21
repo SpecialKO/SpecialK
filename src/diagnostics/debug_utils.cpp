@@ -210,7 +210,7 @@ OutputDebugStringA_Detour (LPCSTR lpOutputString)
   //   fputs would just add another one...
   game_debug.LogEx (true,   L"%-24ws:  %hs", SK_GetCallerName ().c_str (),
                                              lpOutputString);
-  fprintf          (stdout,  "%s",           lpOutputString);
+  fwprintf         (stdout, L"%hs",          lpOutputString);
 
   if (! strstr (lpOutputString, "\n"))
     game_debug.LogEx (false, L"\n");
@@ -227,7 +227,7 @@ OutputDebugStringW_Detour (LPCWSTR lpOutputString)
 {
   game_debug.LogEx (true,   L"%-24ws:  %ws", SK_GetCallerName ().c_str (),
                                              lpOutputString);
-  fprintf          (stdout,  "%ws",          lpOutputString);
+  fwprintf         (stdout, L"%ws",          lpOutputString);
 
   if (! wcsstr (lpOutputString, L"\n"))
     game_debug.LogEx (false, L"\n");
@@ -325,9 +325,9 @@ SK::Diagnostics::Debugger::SpawnConsole (void)
 
   if (! InterlockedCompareExchange (&init, 1, 0))
   {
-    freopen ("CONIN$",  "r", stdin);
-    freopen ("CONOUT$", "w", stdout);
-    freopen ("CONOUT$", "w", stderr);
+    _wfreopen (L"CONIN$",  L"r", stdin);
+    _wfreopen (L"CONOUT$", L"w", stdout);
+    _wfreopen (L"CONOUT$", L"w", stderr);
 
     SK_CreateDLLHook2 (      L"kernel32.dll",
                               "TerminateProcess",

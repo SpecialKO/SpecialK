@@ -742,78 +742,7 @@ SK_Detach (DLL_ROLE role)
 
 
 
-DWORD
-SK_AllocTLS (void)
-{
-  DWORD dwTlsIdx =
-    ReadAcquire (&__SK_TLS_INDEX);
 
-  if (dwTlsIdx == TLS_OUT_OF_INDEXES)
-  {
-    InterlockedExchange ( &__SK_TLS_INDEX,
-                            (dwTlsIdx = TlsAlloc ()) );
-  }
-
-  if ( dwTlsIdx < TLS_MINIMUM_AVAILABLE )
-  {
-    auto lpvData =
-      static_cast <LPVOID> (
-        LocalAlloc ( LPTR, sizeof (SK_TLS) * SK_TLS::stack::max )
-      );
-
-    if (lpvData != nullptr)
-    {
-      if (! TlsSetValue (dwTlsIdx, lpvData))
-      {
-        LocalFree (lpvData);
-      }
-
-      else
-      {
-        SK_TLS* pTLS =
-          static_cast <SK_TLS *> (lpvData);
-
-        *pTLS = SK_TLS::SK_TLS ();
-
-        // Stack semantics are deprecated and will be removed soon
-        pTLS->stack.current = 0;
-      }
-    }
-  }
-
-  else
-    dwTlsIdx = TLS_OUT_OF_INDEXES;
-
-  return dwTlsIdx;
-}
-
-void SK_CleanupTLS (void)
-{
-  DWORD dwTlsIdx =
-    ReadAcquire (&__SK_TLS_INDEX);
-
-  if (dwTlsIdx < TLS_MINIMUM_AVAILABLE)
-  {
-    auto lpvData =
-      static_cast <LPVOID> (TlsGetValue (dwTlsIdx));
-
-    if (lpvData != nullptr)
-    {
-#ifdef _DEBUG
-      size_t freed =
-#endif
-      SK_TLS_Bottom ()->Cleanup (SK_TLS_CleanupReason_e::Unload);
-
-#ifdef _DEBUG
-      SK_LOG0 ( ( L"Freed %zu bytes of temporary heap storage for tid=%x",
-                    freed, GetCurrentThreadId () ), L"TLS Memory" );
-#endif
-
-      if (TlsSetValue (dwTlsIdx, nullptr))
-        LocalFree     (lpvData);
-    }
-  }
-}
 
 BOOL
 APIENTRY
@@ -826,23 +755,28 @@ DllMain ( HMODULE hModule,
   auto EarlyOut =
   [&](BOOL bRet = TRUE)
   {
-    DWORD dwTlsIdx =
-      ReadAcquire (&__SK_TLS_INDEX);
+    auto tls_slot =
+      SK_GetTLS ();
 
-    if (dwTlsIdx < TLS_MINIMUM_AVAILABLE)
+    if (tls_slot.dwTlsIdx != TLS_OUT_OF_INDEXES)
     {
       SK_CleanupTLS ();
 
       // We're not using TLS for anything, so we don't need thread
       //  attach/detach events.
-      if (TlsFree (dwTlsIdx) || (! GetLastError ()))
+      if (TlsFree (tls_slot.dwTlsIdx) || (! GetLastError ()))
       {
-        InterlockedExchange (&__SK_TLS_INDEX, TLS_OUT_OF_INDEXES);
+        tls_slot.dwTlsIdx = TLS_OUT_OF_INDEXES;
       }
     }
 
-    if (ReadAcquire (&__SK_TLS_INDEX) < TLS_MINIMUM_AVAILABLE)
-      DisableThreadLibraryCalls (hModule);
+    if (tls_slot.dwTlsIdx == TLS_OUT_OF_INDEXES)
+    {
+      InterlockedExchange (&__SK_TLS_INDEX, TLS_OUT_OF_INDEXES);
+
+      if (DisableThreadLibraryCalls (hModule))
+        InterlockedExchange (&__SK_DLL_Attached, 0);
+    }
 
     return bRet;
   };
@@ -852,12 +786,7 @@ DllMain ( HMODULE hModule,
   {
     case DLL_PROCESS_ATTACH:
     {
-      DWORD dwTlsIdx =
-        SK_AllocTLS ();
-
-      if (dwTlsIdx < TLS_MINIMUM_AVAILABLE)
-        SK_TLS_Bottom ()->debug.in_DllMain = true;
-
+      InterlockedExchange (&__SK_TLS_INDEX, TlsAlloc ());
 
       if (InterlockedExchangePointer (
             reinterpret_cast <LPVOID  *> (
@@ -883,17 +812,17 @@ DllMain ( HMODULE hModule,
 
       // We reserve the right to deny attaching the DLL, this will generally
       //   happen if a game does not opt-in to system wide injection.
-      if (! SK_EstablishDllRole (hModule))              return EarlyOut (TRUE);
+      if (! SK_EstablishDllRole (hModule))              return EarlyOut (FALSE);
       
       // We don't want to initialize the DLL, but we also don't want it to
       //   re-inject itself constantly; just return TRUE here.
-      else if (SK_GetDLLRole () == DLL_ROLE::INVALID)   return EarlyOut (TRUE);
+      else if (SK_GetDLLRole () == DLL_ROLE::INVALID)   return EarlyOut (FALSE);
 
 
       // Setup unhooked function pointers
       SK_PreInitLoadLibrary ();
 
-      if (! SK_Attach (SK_GetDLLRole ()))               return EarlyOut (TRUE);
+      if (! SK_Attach (SK_GetDLLRole ()))               return EarlyOut (FALSE);
 
 
       InterlockedIncrement (&__SK_DLL_Refs);
@@ -906,10 +835,6 @@ DllMain ( HMODULE hModule,
       {
         SK_Inject_AcquireProcess ();
       }
-      
-      // We're done with DllMain, this thread is no longer special...
-      if (dwTlsIdx < TLS_MINIMUM_AVAILABLE)
-        SK_TLS_Bottom ()->debug.in_DllMain = false;
 
       return TRUE;
     } break;
@@ -940,13 +865,12 @@ DllMain ( HMODULE hModule,
       {
         SK_Detach (SK_GetDLLRole ());
 
-        DWORD idx_to_free =
-          InterlockedExchange ( &__SK_TLS_INDEX,
-                                  TLS_OUT_OF_INDEXES );
+        auto tls_slot =
+          SK_GetTLS ();
 
-        if (idx_to_free < TLS_MINIMUM_AVAILABLE)
+        if (tls_slot.dwTlsIdx != TLS_OUT_OF_INDEXES)
         {
-          TlsFree (idx_to_free);
+          TlsFree (tls_slot.dwTlsIdx);
         }
       }
 
@@ -964,15 +888,11 @@ DllMain ( HMODULE hModule,
 
     case DLL_THREAD_ATTACH:
     {
-      // We conditionally disable thread attach/detach events and should never
-      //   be reaching here without a valid TLS index.
-      assert (ReadAcquire (&__SK_DLL_Attached));
-
       if (ReadAcquire (&__SK_DLL_Attached))
       {
         InterlockedIncrement (&__SK_Threads_Attached);
 
-        SK_AllocTLS ();
+        SK_GetTLS (true);
       }
     }
     break;

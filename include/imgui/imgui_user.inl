@@ -608,8 +608,8 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
 
       if ((! active) && changed)
       {
-        ZeroMemory (io.MouseDown, sizeof (bool) * 5  );
-        ZeroMemory (io.KeysDown,  sizeof (bool) * 512);
+        SecureZeroMemory (io.MouseDown, sizeof (bool) * 5  );
+        SecureZeroMemory (io.KeysDown,  sizeof (bool) * 512);
       }
 
       window_active = active;
@@ -1179,8 +1179,8 @@ SK_ImGui_PollGamepad_EndFrame (void)
 
   else
   {
-    ZeroMemory (io.KeysDown,  sizeof (bool) * 512);
-    ZeroMemory (io.MouseDown, sizeof (bool) * 5);
+    SecureZeroMemory (io.KeysDown,  sizeof (bool) * 512);
+    SecureZeroMemory (io.MouseDown, sizeof (bool) * 5);
   }
 
          XINPUT_STATE state      = {      };
@@ -1268,7 +1268,7 @@ SK_ImGui_PollGamepad_EndFrame (void)
   }
 
   else
-    ZeroMemory (&state.Gamepad, sizeof XINPUT_GAMEPAD);
+    SecureZeroMemory (&state.Gamepad, sizeof XINPUT_GAMEPAD);
 
 
   if (SK_ImGui_Active () && config.input.gamepad.haptic_ui)

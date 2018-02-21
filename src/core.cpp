@@ -91,7 +91,6 @@
 
 #include <imgui/imgui.h>
 
-
 extern iSK_Logger game_debug;
 
 extern void SK_Input_PreInit (void);
@@ -412,10 +411,9 @@ SK_InitCore (std::wstring, void* callback)
 
   init_mutex->lock ();
 
-
-#ifdef _WIN64
   switch (SK_GetCurrentGameID ())
   {
+#ifdef _WIN64
     case SK_GAME_ID::NieRAutomata:
       SK_FAR_InitPlugin ();
       break;
@@ -427,8 +425,12 @@ SK_InitCore (std::wstring, void* callback)
     case SK_GAME_ID::DotHackGU:
       SK_DGPU_InitPlugin ();
       break;
-  }
+#else
+    case SK_GAME_ID::SecretOfMana:
+      SK_SOM_InitPlugin ();
+      break;
 #endif
+  }
 
 
          callback_fn (SK_InitFinishCallback);
@@ -889,7 +891,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
       );
     }
   }
-
 
   extern bool __SK_RunDLL_Bypass;
 
@@ -1525,7 +1526,7 @@ auto SK_UnpackCEGUI =
 
     if (res_data != nullptr)
     {
-      ZeroMemory (res_data, res_size + 1);
+      SecureZeroMemory (res_data, res_size + 1);
 
       const void* const locked =
         (void *)LockResource (packed_cegui);

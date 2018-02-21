@@ -54,7 +54,7 @@ SK_GetLicenseText (SHORT id)
 
     if (res_data != nullptr)
     {
-      ZeroMemory (res_data, res_size + 1);
+      SecureZeroMemory (res_data, res_size + 1);
 
       const char* const locked = (char *)LockResource (license_ref);
 

@@ -46,12 +46,11 @@ bool
 __stdcall
 SK_HasPlugin (void);
 
-
-// As a general rule, plug-ins are only _built-in_ to the 64-bit DLL
-#ifdef _WIN64
 #include <Windows.h>
 #include <render/dxgi/dxgi_interfaces.h>
 
+// As a general rule, plug-ins are only _built-in_ to the 64-bit DLL
+#ifdef _WIN64
 void
 SK_DGPU_InitPlugin (void);
 
@@ -82,6 +81,12 @@ HRESULT __stdcall
 
 HRESULT __stdcall
      SK_DGPU_PresentFirstFrame (IDXGISwapChain *, UINT, UINT);
+#else
+HRESULT __stdcall
+     SK_SOM_PresentFirstFrame (IDXGISwapChain *, UINT, UINT);
+
+void
+SK_SOM_InitPlugin (void);
 #endif
 
 #endif /* __SK__Plugin__Manager_H__ */
