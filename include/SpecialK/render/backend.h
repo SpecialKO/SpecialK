@@ -140,7 +140,8 @@ struct sk_hwnd_cache_s
   operator const HWND& (void) const { return hwnd; };
 };
 
-
+#pragma pack(push)
+#pragma pack(8)
 class SK_RenderBackend_V2 : public SK_RenderBackend_V1
 {
 public:
@@ -214,6 +215,7 @@ public:
 
   void releaseOwnedResources (void);
 };
+#pragma pack(pop)
 
 using SK_RenderBackend = SK_RenderBackend_V2;
 

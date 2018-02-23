@@ -298,7 +298,7 @@
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\depends\include</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;$(SolutionDir)\depends\lib</LibraryPath>
-    <IgnoreImportLibrary>&lt;different options&gt;;mmdevapi.lib</IgnoreImportLibrary>
+    <IgnoreImportLibrary>&lt;different options&gt;</IgnoreImportLibrary>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -307,7 +307,7 @@
     <IntDir>C:\Users\Andon\Documents\My Mods\SpecialK\x64</IntDir>
     <IncludePath>$(SolutionDir)include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\depends\include;$(SolutionDir)\depends\build\x64;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Include;$(SolutionDir)include\SpecialK</IncludePath>
     <LibraryPath>$(LibraryPath);$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;$(SolutionDir)\depends\lib\CEGUI\x64;$(SolutionDir)\depends\lib;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Lib\x64</LibraryPath>
-    <IgnoreImportLibrary>&lt;different options&gt;;mmdevapi.lib</IgnoreImportLibrary>
+    <IgnoreImportLibrary>&lt;different options&gt;</IgnoreImportLibrary>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>C:\Users\Andon\Documents\My Mods\SpecialK\</OutDir>
@@ -320,7 +320,7 @@
     <EnableCppCoreCheck>true</EnableCppCoreCheck>
     <EnableExperimentalCppCoreCheck>true</EnableExperimentalCppCoreCheck>
     <LinkIncremental>false</LinkIncremental>
-    <IgnoreImportLibrary>&lt;different options&gt;;mmdevapi.lib</IgnoreImportLibrary>
+    <IgnoreImportLibrary>&lt;different options&gt;</IgnoreImportLibrary>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Rel_Debug|Win32'">
     <OutDir>C:\Users\Andon\Documents\My Mods\SpecialK\</OutDir>
@@ -333,7 +333,7 @@
     <EnableCppCoreCheck>true</EnableCppCoreCheck>
     <EnableExperimentalCppCoreCheck>true</EnableExperimentalCppCoreCheck>
     <LinkIncremental>false</LinkIncremental>
-    <IgnoreImportLibrary>&lt;different options&gt;;mmdevapi.lib</IgnoreImportLibrary>
+    <IgnoreImportLibrary>&lt;different options&gt;</IgnoreImportLibrary>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Installer|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -344,7 +344,7 @@
     <IncludePath>$(SolutionDir)include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\depends\include;$(SolutionDir)\depends\build\Win32;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Include;$(SolutionDir)include\SpecialK</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;$(SolutionDir)\depends\lib;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Lib\x86</LibraryPath>
     <IntDir>$(SolutionDir)build\$(Configuration)\Win32\</IntDir>
-    <IgnoreImportLibrary>&lt;different options&gt;;mmdevapi.lib</IgnoreImportLibrary>
+    <IgnoreImportLibrary>&lt;different options&gt;</IgnoreImportLibrary>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -356,7 +356,7 @@
     <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;$(SolutionDir)\depends\lib;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Lib\x86</LibraryPath>
     <IntDir>$(SolutionDir)build\$(Configuration)\Win32\</IntDir>
     <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
-    <IgnoreImportLibrary>&lt;different options&gt;;mmdevapi.lib</IgnoreImportLibrary>
+    <IgnoreImportLibrary>&lt;different options&gt;</IgnoreImportLibrary>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TSFix|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -368,7 +368,7 @@
     <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;$(SolutionDir)\depends\lib;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Lib\x86</LibraryPath>
     <IntDir>$(SolutionDir)build\$(Configuration)\Win32\</IntDir>
     <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
-    <IgnoreImportLibrary>&lt;different options&gt;;mmdevapi.lib</IgnoreImportLibrary>
+    <IgnoreImportLibrary>&lt;different options&gt;</IgnoreImportLibrary>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -379,7 +379,7 @@
     <IncludePath>$(SolutionDir)include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\depends\include;$(SolutionDir)\depends\build\Win32;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Include;$(SolutionDir)include\SpecialK</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;$(SolutionDir)\depends\lib;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Lib\x86</LibraryPath>
     <IntDir>$(SolutionDir)build\$(Configuration)\Win32\</IntDir>
-    <IgnoreImportLibrary>&lt;different options&gt;;mmdevapi.lib</IgnoreImportLibrary>
+    <IgnoreImportLibrary>&lt;different options&gt;</IgnoreImportLibrary>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -390,7 +390,7 @@
     <IncludePath>$(SolutionDir)include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\depends\include;$(SolutionDir)\depends\build\Win32;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Include;$(SolutionDir)include\SpecialK</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;$(SolutionDir)\depends\lib;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Lib\x86</LibraryPath>
     <IntDir>$(SolutionDir)build\$(Configuration)\Win32\</IntDir>
-    <IgnoreImportLibrary>&lt;different options&gt;;mmdevapi.lib</IgnoreImportLibrary>
+    <IgnoreImportLibrary>&lt;different options&gt;</IgnoreImportLibrary>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='IT|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -401,7 +401,7 @@
     <IncludePath>$(SolutionDir)include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\depends\include;$(SolutionDir)\depends\build\Win32;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Include;$(SolutionDir)include\SpecialK</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;$(SolutionDir)\depends\lib;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Lib\x86</LibraryPath>
     <IntDir>$(SolutionDir)build\$(Configuration)\Win32\</IntDir>
-    <IgnoreImportLibrary>&lt;different options&gt;;mmdevapi.lib</IgnoreImportLibrary>
+    <IgnoreImportLibrary>&lt;different options&gt;</IgnoreImportLibrary>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -412,7 +412,7 @@
     <IncludePath>$(SolutionDir)include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\depends\include;$(SolutionDir)\depends\build\Win32;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Include;$(SolutionDir)include\SpecialK</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;$(SolutionDir)\depends\lib;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Lib\x86</LibraryPath>
     <IntDir>$(SolutionDir)build\$(Configuration)\Win32\</IntDir>
-    <IgnoreImportLibrary>&lt;different options&gt;;mmdevapi.lib</IgnoreImportLibrary>
+    <IgnoreImportLibrary>&lt;different options&gt;</IgnoreImportLibrary>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <TargetName>SpecialK64</TargetName>
@@ -424,7 +424,7 @@
     <EnableCppCoreCheck>true</EnableCppCoreCheck>
     <EnableExperimentalCppCoreCheck>true</EnableExperimentalCppCoreCheck>
     <LinkIncremental>false</LinkIncremental>
-    <IgnoreImportLibrary>&lt;different options&gt;;mmdevapi.lib</IgnoreImportLibrary>
+    <IgnoreImportLibrary>&lt;different options&gt;</IgnoreImportLibrary>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Rel_Debug|x64'">
     <TargetName>SpecialK64</TargetName>
@@ -436,7 +436,7 @@
     <EnableCppCoreCheck>true</EnableCppCoreCheck>
     <EnableExperimentalCppCoreCheck>true</EnableExperimentalCppCoreCheck>
     <LinkIncremental>false</LinkIncremental>
-    <IgnoreImportLibrary>&lt;different options&gt;;mmdevapi.lib</IgnoreImportLibrary>
+    <IgnoreImportLibrary>&lt;different options&gt;</IgnoreImportLibrary>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -445,7 +445,7 @@
     <IntDir>$(SolutionDir)build\$(Configuration)\x64\</IntDir>
     <IncludePath>$(SolutionDir)include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\depends\include;$(SolutionDir)\depends\build\x64;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Include;$(SolutionDir)include\SpecialK</IncludePath>
     <LibraryPath>$(LibraryPath);$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;$(SolutionDir)\depends\lib;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Lib\x64</LibraryPath>
-    <IgnoreImportLibrary>&lt;different options&gt;;mmdevapi.lib</IgnoreImportLibrary>
+    <IgnoreImportLibrary>&lt;different options&gt;</IgnoreImportLibrary>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -454,7 +454,7 @@
     <IntDir>$(SolutionDir)build\$(Configuration)\x64\</IntDir>
     <IncludePath>$(SolutionDir)include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\depends\include;$(SolutionDir)\depends\build\x64;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Include;$(SolutionDir)include\SpecialK</IncludePath>
     <LibraryPath>$(LibraryPath);$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;$(SolutionDir)\depends\lib;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Lib\x64</LibraryPath>
-    <IgnoreImportLibrary>&lt;different options&gt;;mmdevapi.lib</IgnoreImportLibrary>
+    <IgnoreImportLibrary>&lt;different options&gt;</IgnoreImportLibrary>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TSFix|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -463,7 +463,7 @@
     <IntDir>$(SolutionDir)build\$(Configuration)\x64\</IntDir>
     <IncludePath>$(SolutionDir)include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\depends\include;$(SolutionDir)\depends\build\x64;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Include;$(SolutionDir)include\SpecialK</IncludePath>
     <LibraryPath>$(LibraryPath);$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;$(SolutionDir)\depends\lib;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Lib\x64</LibraryPath>
-    <IgnoreImportLibrary>&lt;different options&gt;;mmdevapi.lib</IgnoreImportLibrary>
+    <IgnoreImportLibrary>&lt;different options&gt;</IgnoreImportLibrary>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -472,7 +472,7 @@
     <IntDir>$(SolutionDir)build\$(Configuration)\x64\</IntDir>
     <IncludePath>$(SolutionDir)include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\depends\include;$(SolutionDir)\depends\build\x64;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Include;$(SolutionDir)include\SpecialK</IncludePath>
     <LibraryPath>$(LibraryPath);$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;$(SolutionDir)\depends\lib;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Lib\x64</LibraryPath>
-    <IgnoreImportLibrary>&lt;different options&gt;;mmdevapi.lib</IgnoreImportLibrary>
+    <IgnoreImportLibrary>&lt;different options&gt;</IgnoreImportLibrary>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -481,7 +481,7 @@
     <IntDir>$(SolutionDir)build\$(Configuration)\x64\</IntDir>
     <IncludePath>$(SolutionDir)include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\depends\include;$(SolutionDir)\depends\build\x64;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Include;$(SolutionDir)include\SpecialK</IncludePath>
     <LibraryPath>$(LibraryPath);$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;$(SolutionDir)\depends\lib;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Lib\x64</LibraryPath>
-    <IgnoreImportLibrary>&lt;different options&gt;;mmdevapi.lib</IgnoreImportLibrary>
+    <IgnoreImportLibrary>&lt;different options&gt;</IgnoreImportLibrary>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='IT|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -490,7 +490,7 @@
     <IntDir>$(SolutionDir)build\$(Configuration)\x64\</IntDir>
     <IncludePath>$(SolutionDir)include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\depends\include;$(SolutionDir)\depends\build\x64;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Include;$(SolutionDir)include\SpecialK</IncludePath>
     <LibraryPath>$(LibraryPath);$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;$(SolutionDir)\depends\lib;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Lib\x64</LibraryPath>
-    <IgnoreImportLibrary>&lt;different options&gt;;mmdevapi.lib</IgnoreImportLibrary>
+    <IgnoreImportLibrary>&lt;different options&gt;</IgnoreImportLibrary>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -499,7 +499,7 @@
     <IntDir>$(SolutionDir)build\$(Configuration)\x64\</IntDir>
     <IncludePath>$(SolutionDir)include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\depends\include;$(SolutionDir)\depends\build\x64;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Include;$(SolutionDir)include\SpecialK</IncludePath>
     <LibraryPath>$(LibraryPath);$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;$(SolutionDir)\depends\lib;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Lib\x64</LibraryPath>
-    <IgnoreImportLibrary>&lt;different options&gt;;mmdevapi.lib</IgnoreImportLibrary>
+    <IgnoreImportLibrary>&lt;different options&gt;</IgnoreImportLibrary>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -507,8 +507,8 @@
       </PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Full</Optimization>
-      <PreprocessorDefinitions>_NO_CRT_STDIO_INLINE;WIN32;_DEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;%(PreprocessorDefinitions);/D_WIN32_WINNT _WIN32_WINNT_WIN7;/DWINVER _WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE;SK_BUILD_DLL;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE</PreprocessorDefinitions>
-      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <PreprocessorDefinitions>_NO_CRT_STDIO_INLINE;WIN32;_DEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;%(PreprocessorDefinitions);/D_WIN32_WINNT _WIN32_WINNT_WIN7;/DWINVER _WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE;SK_BUILD_DLL;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE;_M_CEE_PURE</PreprocessorDefinitions>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -517,7 +517,7 @@
       <ControlFlowGuard>false</ControlFlowGuard>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <CreateHotpatchableImage>true</CreateHotpatchableImage>
-      <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
+      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <LanguageStandard>stdcpplatest</LanguageStandard>
@@ -525,11 +525,15 @@
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
-      <StringPooling>false</StringPooling>
+      <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <MinimalRebuild>false</MinimalRebuild>
       <SDLCheck>false</SDLCheck>
+      <StructMemberAlignment>16Bytes</StructMemberAlignment>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED;_M_CEE_PURE</UndefinePreprocessorDefinitions>
+      <OpenMPSupport>false</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -537,11 +541,11 @@
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
       <OutputFile>\\zilcho\Tales of Symphonia\d3d9.dll</OutputFile>
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
-      <OptimizeReferences>false</OptimizeReferences>
+      <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <LargeAddressAware>true</LargeAddressAware>
       <DataExecutionPrevention>false</DataExecutionPrevention>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;oleaut32.dll;comctl32.dll;d3dx9_43.dll;shell32.dll;advapi32.dll;d3dcompiler_43.dll;psapi.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;d3dx9_43.dll;d3dcompiler_43.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll</DelayLoadDLLs>
       <EntryPointSymbol />
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <AssemblyDebug>false</AssemblyDebug>
@@ -549,9 +553,13 @@
       <SetChecksum>true</SetChecksum>
       <BaseAddress>
       </BaseAddress>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <TurnOffAssemblyGeneration>true</TurnOffAssemblyGeneration>
+      <Profile>true</Profile>
+      <IgnoreSpecificDefaultLibraries>;vcomp140.lib</IgnoreSpecificDefaultLibraries>
+      <ForceSymbolReferences>
+      </ForceSymbolReferences>
     </Link>
     <ProjectReference />
     <Manifest>
@@ -568,10 +576,10 @@
       </PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Full</Optimization>
-      <PreprocessorDefinitions>_NO_CRT_STDIO_INLINE;_WIN64;WIN32;_DEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;ISOLATION_AWARE_ENABLED;GLEW_STATIC;%(PreprocessorDefinitions);/D_WIN32_WINNT _WIN32_WINNT_WIN7;/DWINVER _WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE;SK_BUILD_DLL;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_NO_CRT_STDIO_INLINE;_WIN64;WIN32;_DEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;ISOLATION_AWARE_ENABLED;GLEW_STATIC;%(PreprocessorDefinitions);/D_WIN32_WINNT _WIN32_WINNT_WIN7;/DWINVER _WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE;SK_BUILD_DLL;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE;_M_CEE_PURE</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <AdditionalOptions>/EHsc %(AdditionalOptions)</AdditionalOptions>
-      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -585,25 +593,29 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
-      <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
+      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ExceptionHandling>Async</ExceptionHandling>
       <OmitFramePointers>false</OmitFramePointers>
-      <StringPooling>false</StringPooling>
+      <StringPooling>true</StringPooling>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
-      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <MinimalRebuild>false</MinimalRebuild>
       <SDLCheck>false</SDLCheck>
+      <StructMemberAlignment>16Bytes</StructMemberAlignment>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED;_M_CEE_PURE</UndefinePreprocessorDefinitions>
+      <OpenMPSupport>false</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>C:\Users\andon\Documents\My Mods\SpecialK\SpecialK64.dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;oleaut32.dll;comctl32.dll;d3dx9_43.dll;shell32.dll;advapi32.dll;d3dcompiler_43.dll;psapi.dll</DelayLoadDLLs>
-      <OptimizeReferences>false</OptimizeReferences>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;d3dx9_43.dll;d3dcompiler_43.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll</DelayLoadDLLs>
+      <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <EntryPointSymbol>
       </EntryPointSymbol>
@@ -616,9 +628,13 @@
       <SetChecksum>true</SetChecksum>
       <BaseAddress>
       </BaseAddress>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <TurnOffAssemblyGeneration>true</TurnOffAssemblyGeneration>
+      <Profile>true</Profile>
+      <IgnoreSpecificDefaultLibraries>;vcomp140.lib</IgnoreSpecificDefaultLibraries>
+      <ForceSymbolReferences>
+      </ForceSymbolReferences>
     </Link>
     <ProjectReference />
     <ResourceCompile>
@@ -638,9 +654,9 @@
       <PrecompiledHeader>
       </PrecompiledHeader>
       <Optimization>Full</Optimization>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;GLEW_STATIC;%(PreprocessorDefinitions);WINVER=_WIN32_WINNT_WIN7;_WIN32_WINNT=_WIN32_WINNT_WIN7;WINVER=_WIN32_WINNT_WIN7;_WIN32_WINNT=_WIN32_WINNT_WIN7;_CRT_SECURE_NO_WARNINGS;_CRT_NON_CONFORMING_SWPRINTFS;NOMINMAX;PSAPI_VERSION=1;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE;SK_BUILD_DLL;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;GLEW_STATIC;%(PreprocessorDefinitions);WINVER=_WIN32_WINNT_WIN7;_WIN32_WINNT=_WIN32_WINNT_WIN7;WINVER=_WIN32_WINNT_WIN7;_WIN32_WINNT=_WIN32_WINNT_WIN7;_CRT_SECURE_NO_WARNINGS;_CRT_NON_CONFORMING_SWPRINTFS;NOMINMAX;PSAPI_VERSION=1;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE;SK_BUILD_DLL;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE;_M_CEE_PURE</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <CallingConvention>Cdecl</CallingConvention>
       <EnablePREfast>false</EnablePREfast>
@@ -655,7 +671,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)include</AdditionalIncludeDirectories>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <FloatingPointModel>Fast</FloatingPointModel>
-      <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
+      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <LanguageStandard>stdcpplatest</LanguageStandard>
@@ -664,12 +680,16 @@
       <ExceptionHandling>Async</ExceptionHandling>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <DiagnosticsFormat>Classic</DiagnosticsFormat>
-      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <StringPooling>false</StringPooling>
+      <StringPooling>true</StringPooling>
       <OmitFramePointers>false</OmitFramePointers>
       <MinimalRebuild>false</MinimalRebuild>
       <SDLCheck>false</SDLCheck>
+      <StructMemberAlignment>16Bytes</StructMemberAlignment>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED;_M_CEE_PURE</UndefinePreprocessorDefinitions>
+      <OpenMPSupport>false</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -677,7 +697,7 @@
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
       <DataExecutionPrevention>false</DataExecutionPrevention>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;oleaut32.dll;comctl32.dll;d3dx9_43.dll;shell32.dll;advapi32.dll;d3dcompiler_43.dll;psapi.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;d3dx9_43.dll;d3dcompiler_43.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll</DelayLoadDLLs>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
@@ -691,14 +711,18 @@
       <SectionAlignment>
       </SectionAlignment>
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
-      <OptimizeReferences>false</OptimizeReferences>
+      <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <SetChecksum>true</SetChecksum>
       <BaseAddress>
       </BaseAddress>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <TurnOffAssemblyGeneration>true</TurnOffAssemblyGeneration>
+      <Profile>true</Profile>
+      <IgnoreSpecificDefaultLibraries>;vcomp140.lib</IgnoreSpecificDefaultLibraries>
+      <ForceSymbolReferences>
+      </ForceSymbolReferences>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -728,9 +752,9 @@
       <PrecompiledHeader>
       </PrecompiledHeader>
       <Optimization>Full</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;GLEW_STATIC;%(PreprocessorDefinitions);WINVER=_WIN32_WINNT_WIN7;_WIN32_WINNT=_WIN32_WINNT_WIN7;WINVER=_WIN32_WINNT_WIN7;_WIN32_WINNT=_WIN32_WINNT_WIN7;_CRT_SECURE_NO_WARNINGS;_CRT_NON_CONFORMING_SWPRINTFS;NOMINMAX;PSAPI_VERSION=1;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE;SK_BUILD_DLL;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;GLEW_STATIC;%(PreprocessorDefinitions);WINVER=_WIN32_WINNT_WIN7;_WIN32_WINNT=_WIN32_WINNT_WIN7;WINVER=_WIN32_WINNT_WIN7;_WIN32_WINNT=_WIN32_WINNT_WIN7;_CRT_SECURE_NO_WARNINGS;_CRT_NON_CONFORMING_SWPRINTFS;NOMINMAX;PSAPI_VERSION=1;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE;SK_BUILD_DLL;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE;_M_CEE_PURE</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
-      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <CallingConvention>Cdecl</CallingConvention>
       <EnablePREfast>false</EnablePREfast>
@@ -745,7 +769,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)include</AdditionalIncludeDirectories>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <FloatingPointModel>Fast</FloatingPointModel>
-      <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
+      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <LanguageStandard>stdcpplatest</LanguageStandard>
@@ -754,12 +778,16 @@
       <ExceptionHandling>Async</ExceptionHandling>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <DiagnosticsFormat>Classic</DiagnosticsFormat>
-      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <StringPooling>false</StringPooling>
+      <StringPooling>true</StringPooling>
       <OmitFramePointers>false</OmitFramePointers>
       <MinimalRebuild>false</MinimalRebuild>
       <SDLCheck>false</SDLCheck>
+      <StructMemberAlignment>16Bytes</StructMemberAlignment>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED;_M_CEE_PURE</UndefinePreprocessorDefinitions>
+      <OpenMPSupport>false</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -767,7 +795,7 @@
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
       <DataExecutionPrevention>false</DataExecutionPrevention>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;oleaut32.dll;comctl32.dll;d3dx9_43.dll;shell32.dll;advapi32.dll;d3dcompiler_43.dll;psapi.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;d3dx9_43.dll;d3dcompiler_43.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll</DelayLoadDLLs>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
@@ -782,15 +810,18 @@
       <SectionAlignment>
       </SectionAlignment>
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
-      <OptimizeReferences>false</OptimizeReferences>
+      <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <SetChecksum>true</SetChecksum>
       <BaseAddress>
       </BaseAddress>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
-      <IgnoreSpecificDefaultLibraries>msvcrt.lib</IgnoreSpecificDefaultLibraries>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <IgnoreSpecificDefaultLibraries>msvcrt.lib;vcomp140.lib</IgnoreSpecificDefaultLibraries>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <TurnOffAssemblyGeneration>true</TurnOffAssemblyGeneration>
+      <Profile>true</Profile>
+      <ForceSymbolReferences>
+      </ForceSymbolReferences>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -821,11 +852,11 @@
       </PrecompiledHeader>
       <Optimization>Full</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>_NO_CRT_STDIO_INLINE;WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;ISOLATION_AWARE_ENABLED;GLEW_STATIC;%(PreprocessorDefinitions);SK_BUILD__INSTALLER;/D_WIN32_WINNT _WIN32_WINNT_WIN7;/DWINVER _WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE SK_BUILD_DLL SK_BUILD_DLL SK_BUILD_DLL=1;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_NO_CRT_STDIO_INLINE;WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;ISOLATION_AWARE_ENABLED;GLEW_STATIC;%(PreprocessorDefinitions);SK_BUILD__INSTALLER;/D_WIN32_WINNT _WIN32_WINNT_WIN7;/DWINVER _WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE SK_BUILD_DLL SK_BUILD_DLL SK_BUILD_DLL=1;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE;_M_CEE_PURE</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
+      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <CallingConvention>Cdecl</CallingConvention>
       <EnablePREfast>false</EnablePREfast>
       <ExceptionHandling>Async</ExceptionHandling>
@@ -846,19 +877,23 @@
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <StringPooling>false</StringPooling>
-      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+      <StringPooling>true</StringPooling>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <SDLCheck>false</SDLCheck>
+      <StructMemberAlignment>16Bytes</StructMemberAlignment>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED;_M_CEE_PURE</UndefinePreprocessorDefinitions>
+      <OpenMPSupport>false</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
-      <OptimizeReferences>false</OptimizeReferences>
+      <OptimizeReferences>true</OptimizeReferences>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>Installer.def</ModuleDefinitionFile>
       <DataExecutionPrevention>false</DataExecutionPrevention>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;oleaut32.dll;comctl32.dll;d3dx9_43.dll;shell32.dll;advapi32.dll;d3dcompiler_43.dll;psapi.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;d3dx9_43.dll;d3dcompiler_43.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll</DelayLoadDLLs>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
@@ -874,9 +909,13 @@
       <SetChecksum>true</SetChecksum>
       <BaseAddress>
       </BaseAddress>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <TurnOffAssemblyGeneration>true</TurnOffAssemblyGeneration>
+      <Profile>true</Profile>
+      <IgnoreSpecificDefaultLibraries>;vcomp140.lib</IgnoreSpecificDefaultLibraries>
+      <ForceSymbolReferences>
+      </ForceSymbolReferences>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -901,11 +940,11 @@ Exit 0</Command>
       </PrecompiledHeader>
       <Optimization>Full</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>_NO_CRT_STDIO_INLINE;WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;GLEW_STATIC;%(PreprocessorDefinitions);TBFIX;WINVER=_WIN32_WINNT_WIN7;_WIN32_WINNT=_WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE;SK_BUILD_DLL;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_NO_CRT_STDIO_INLINE;WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;GLEW_STATIC;%(PreprocessorDefinitions);TBFIX;WINVER=_WIN32_WINNT_WIN7;_WIN32_WINNT=_WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE;SK_BUILD_DLL;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE;_M_CEE_PURE</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
+      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <CallingConvention>Cdecl</CallingConvention>
       <EnablePREfast>false</EnablePREfast>
       <ExceptionHandling>Async</ExceptionHandling>
@@ -925,19 +964,23 @@ Exit 0</Command>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <StringPooling>false</StringPooling>
-      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+      <StringPooling>true</StringPooling>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <SDLCheck>false</SDLCheck>
+      <StructMemberAlignment>16Bytes</StructMemberAlignment>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED;_M_CEE_PURE</UndefinePreprocessorDefinitions>
+      <OpenMPSupport>false</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
-      <OptimizeReferences>false</OptimizeReferences>
+      <OptimizeReferences>true</OptimizeReferences>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
       <DataExecutionPrevention>false</DataExecutionPrevention>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;oleaut32.dll;comctl32.dll;d3dx9_43.dll;shell32.dll;advapi32.dll;d3dcompiler_43.dll;psapi.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;d3dx9_43.dll;d3dcompiler_43.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll</DelayLoadDLLs>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
@@ -954,9 +997,13 @@ Exit 0</Command>
       <SetChecksum>true</SetChecksum>
       <BaseAddress>
       </BaseAddress>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <TurnOffAssemblyGeneration>true</TurnOffAssemblyGeneration>
+      <Profile>true</Profile>
+      <IgnoreSpecificDefaultLibraries>;vcomp140.lib</IgnoreSpecificDefaultLibraries>
+      <ForceSymbolReferences>
+      </ForceSymbolReferences>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -982,11 +1029,11 @@ Exit 0</Command>
       </PrecompiledHeader>
       <Optimization>Full</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>_NO_CRT_STDIO_INLINE;WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;GLEW_STATIC;%(PreprocessorDefinitions);TBFIX;WINVER=_WIN32_WINNT_WIN7;_WIN32_WINNT=_WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE;SK_BUILD_DLL;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_NO_CRT_STDIO_INLINE;WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;GLEW_STATIC;%(PreprocessorDefinitions);TBFIX;WINVER=_WIN32_WINNT_WIN7;_WIN32_WINNT=_WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE;SK_BUILD_DLL;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE;_M_CEE_PURE</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
+      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <CallingConvention>Cdecl</CallingConvention>
       <EnablePREfast>false</EnablePREfast>
       <ExceptionHandling>Async</ExceptionHandling>
@@ -1006,19 +1053,23 @@ Exit 0</Command>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <StringPooling>false</StringPooling>
-      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+      <StringPooling>true</StringPooling>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <SDLCheck>false</SDLCheck>
+      <StructMemberAlignment>16Bytes</StructMemberAlignment>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED;_M_CEE_PURE</UndefinePreprocessorDefinitions>
+      <OpenMPSupport>false</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
-      <OptimizeReferences>false</OptimizeReferences>
+      <OptimizeReferences>true</OptimizeReferences>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
       <DataExecutionPrevention>false</DataExecutionPrevention>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;oleaut32.dll;comctl32.dll;d3dx9_43.dll;shell32.dll;advapi32.dll;d3dcompiler_43.dll;psapi.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;d3dx9_43.dll;d3dcompiler_43.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll</DelayLoadDLLs>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
@@ -1035,9 +1086,13 @@ Exit 0</Command>
       <SetChecksum>true</SetChecksum>
       <BaseAddress>
       </BaseAddress>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <TurnOffAssemblyGeneration>true</TurnOffAssemblyGeneration>
+      <Profile>true</Profile>
+      <IgnoreSpecificDefaultLibraries>;vcomp140.lib</IgnoreSpecificDefaultLibraries>
+      <ForceSymbolReferences>
+      </ForceSymbolReferences>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1063,11 +1118,11 @@ Exit 0</Command>
       </PrecompiledHeader>
       <Optimization>Full</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>_NO_CRT_STDIO_INLINE;WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;GLEW_STATIC;%(PreprocessorDefinitions);/D_WIN32_WINNT _WIN32_WINNT_WIN7;/DWINVER _WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE;SK_BUILD_DLL;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_NO_CRT_STDIO_INLINE;WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;GLEW_STATIC;%(PreprocessorDefinitions);/D_WIN32_WINNT _WIN32_WINNT_WIN7;/DWINVER _WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE;SK_BUILD_DLL;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE;_M_CEE_PURE</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
+      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <CallingConvention>Cdecl</CallingConvention>
       <EnablePREfast>false</EnablePREfast>
       <ExceptionHandling>Async</ExceptionHandling>
@@ -1089,19 +1144,23 @@ Exit 0</Command>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <StringPooling>false</StringPooling>
-      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+      <StringPooling>true</StringPooling>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <SDLCheck>false</SDLCheck>
+      <StructMemberAlignment>16Bytes</StructMemberAlignment>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED;_M_CEE_PURE</UndefinePreprocessorDefinitions>
+      <OpenMPSupport>false</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
-      <OptimizeReferences>false</OptimizeReferences>
+      <OptimizeReferences>true</OptimizeReferences>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
       <DataExecutionPrevention>false</DataExecutionPrevention>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;oleaut32.dll;comctl32.dll;d3dx9_43.dll;shell32.dll;advapi32.dll;d3dcompiler_43.dll;psapi.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;d3dx9_43.dll;d3dcompiler_43.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll</DelayLoadDLLs>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
@@ -1117,9 +1176,13 @@ Exit 0</Command>
       <SetChecksum>true</SetChecksum>
       <BaseAddress>
       </BaseAddress>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <TurnOffAssemblyGeneration>true</TurnOffAssemblyGeneration>
+      <Profile>true</Profile>
+      <IgnoreSpecificDefaultLibraries>;vcomp140.lib</IgnoreSpecificDefaultLibraries>
+      <ForceSymbolReferences>
+      </ForceSymbolReferences>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1144,11 +1207,11 @@ Exit 0</Command>
       </PrecompiledHeader>
       <Optimization>Full</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>_NO_CRT_STDIO_INLINE;WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;GLEW_STATIC;%(PreprocessorDefinitions);/D_WIN32_WINNT _WIN32_WINNT_WIN7;/DWINVER _WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE;SK_BUILD_DLL;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_NO_CRT_STDIO_INLINE;WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;GLEW_STATIC;%(PreprocessorDefinitions);/D_WIN32_WINNT _WIN32_WINNT_WIN7;/DWINVER _WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE;SK_BUILD_DLL;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE;_M_CEE_PURE</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
+      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <CallingConvention>Cdecl</CallingConvention>
       <EnablePREfast>false</EnablePREfast>
       <ExceptionHandling>Async</ExceptionHandling>
@@ -1170,19 +1233,23 @@ Exit 0</Command>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <StringPooling>false</StringPooling>
-      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+      <StringPooling>true</StringPooling>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <SDLCheck>false</SDLCheck>
+      <StructMemberAlignment>16Bytes</StructMemberAlignment>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED;_M_CEE_PURE</UndefinePreprocessorDefinitions>
+      <OpenMPSupport>false</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
-      <OptimizeReferences>false</OptimizeReferences>
+      <OptimizeReferences>true</OptimizeReferences>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
       <DataExecutionPrevention>false</DataExecutionPrevention>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;oleaut32.dll;comctl32.dll;d3dx9_43.dll;shell32.dll;advapi32.dll;d3dcompiler_43.dll;psapi.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;d3dx9_43.dll;d3dcompiler_43.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll</DelayLoadDLLs>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
@@ -1198,9 +1265,13 @@ Exit 0</Command>
       <SetChecksum>true</SetChecksum>
       <BaseAddress>
       </BaseAddress>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <TurnOffAssemblyGeneration>true</TurnOffAssemblyGeneration>
+      <Profile>true</Profile>
+      <IgnoreSpecificDefaultLibraries>;vcomp140.lib</IgnoreSpecificDefaultLibraries>
+      <ForceSymbolReferences>
+      </ForceSymbolReferences>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1225,11 +1296,11 @@ Exit 0</Command>
       </PrecompiledHeader>
       <Optimization>Full</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>_NO_CRT_STDIO_INLINE;WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;GLEW_STATIC;%(PreprocessorDefinitions);/D_WIN32_WINNT _WIN32_WINNT_WIN7;/DWINVER _WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE;SK_BUILD_DLL;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_NO_CRT_STDIO_INLINE;WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;GLEW_STATIC;%(PreprocessorDefinitions);/D_WIN32_WINNT _WIN32_WINNT_WIN7;/DWINVER _WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE;SK_BUILD_DLL;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE;_M_CEE_PURE</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
+      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <CallingConvention>Cdecl</CallingConvention>
       <EnablePREfast>false</EnablePREfast>
       <ExceptionHandling>Async</ExceptionHandling>
@@ -1251,19 +1322,23 @@ Exit 0</Command>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <StringPooling>false</StringPooling>
-      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+      <StringPooling>true</StringPooling>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <SDLCheck>false</SDLCheck>
+      <StructMemberAlignment>16Bytes</StructMemberAlignment>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED;_M_CEE_PURE</UndefinePreprocessorDefinitions>
+      <OpenMPSupport>false</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
-      <OptimizeReferences>false</OptimizeReferences>
+      <OptimizeReferences>true</OptimizeReferences>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
       <DataExecutionPrevention>false</DataExecutionPrevention>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;oleaut32.dll;comctl32.dll;d3dx9_43.dll;shell32.dll;advapi32.dll;d3dcompiler_43.dll;psapi.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;d3dx9_43.dll;d3dcompiler_43.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll</DelayLoadDLLs>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
@@ -1279,9 +1354,13 @@ Exit 0</Command>
       <SetChecksum>true</SetChecksum>
       <BaseAddress>
       </BaseAddress>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <TurnOffAssemblyGeneration>true</TurnOffAssemblyGeneration>
+      <Profile>true</Profile>
+      <IgnoreSpecificDefaultLibraries>;vcomp140.lib</IgnoreSpecificDefaultLibraries>
+      <ForceSymbolReferences>
+      </ForceSymbolReferences>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1306,11 +1385,11 @@ Exit 0</Command>
       </PrecompiledHeader>
       <Optimization>Full</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>_NO_CRT_STDIO_INLINE;WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;GLEW_STATIC;%(PreprocessorDefinitions);WINVER=_WIN32_WINNT_WIN7;_WIN32_WINNT=_WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE;SK_BUILD_DLL;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_NO_CRT_STDIO_INLINE;WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;GLEW_STATIC;%(PreprocessorDefinitions);WINVER=_WIN32_WINNT_WIN7;_WIN32_WINNT=_WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE;SK_BUILD_DLL;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE;_M_CEE_PURE</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
+      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <CallingConvention>Cdecl</CallingConvention>
       <EnablePREfast>false</EnablePREfast>
       <ExceptionHandling>Async</ExceptionHandling>
@@ -1332,19 +1411,23 @@ Exit 0</Command>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <StringPooling>false</StringPooling>
-      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+      <StringPooling>true</StringPooling>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <SDLCheck>false</SDLCheck>
+      <StructMemberAlignment>16Bytes</StructMemberAlignment>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED;_M_CEE_PURE</UndefinePreprocessorDefinitions>
+      <OpenMPSupport>false</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
-      <OptimizeReferences>false</OptimizeReferences>
+      <OptimizeReferences>true</OptimizeReferences>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
       <DataExecutionPrevention>false</DataExecutionPrevention>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;oleaut32.dll;comctl32.dll;d3dx9_43.dll;shell32.dll;advapi32.dll;d3dcompiler_43.dll;psapi.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;d3dx9_43.dll;d3dcompiler_43.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll</DelayLoadDLLs>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
@@ -1360,9 +1443,13 @@ Exit 0</Command>
       <SetChecksum>true</SetChecksum>
       <BaseAddress>
       </BaseAddress>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <TurnOffAssemblyGeneration>true</TurnOffAssemblyGeneration>
+      <Profile>true</Profile>
+      <IgnoreSpecificDefaultLibraries>;vcomp140.lib</IgnoreSpecificDefaultLibraries>
+      <ForceSymbolReferences>
+      </ForceSymbolReferences>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1386,10 +1473,10 @@ Exit 0</Command>
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PreprocessorDefinitions>_WIN64;WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;GLEW_STATIC;%(PreprocessorDefinitions);PSAPI_VERSION=1;WINVER=_WIN32_WINNT_WIN7;_WIN32_WINNT=_WIN32_WINNT_WIN7;WINVER=_WIN32_WINNT_WIN7;_WIN32_WINNT=_WIN32_WINNT_WIN7;_CRT_SECURE_NO_WARNINGS;_CRT_NON_CONFORMING_SWPRINTFS;NOMINMAX;PSAPI_VERSION=1;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE;SK_BUILD_DLL;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_WIN64;WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;GLEW_STATIC;%(PreprocessorDefinitions);PSAPI_VERSION=1;WINVER=_WIN32_WINNT_WIN7;_WIN32_WINNT=_WIN32_WINNT_WIN7;WINVER=_WIN32_WINNT_WIN7;_WIN32_WINNT=_WIN32_WINNT_WIN7;_CRT_SECURE_NO_WARNINGS;_CRT_NON_CONFORMING_SWPRINTFS;NOMINMAX;PSAPI_VERSION=1;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE;SK_BUILD_DLL;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE;_M_CEE_PURE</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <Optimization>Full</Optimization>
@@ -1397,23 +1484,27 @@ Exit 0</Command>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
-      <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
+      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
-      <StringPooling>false</StringPooling>
+      <StringPooling>true</StringPooling>
       <UseFullPaths>true</UseFullPaths>
       <DiagnosticsFormat>Classic</DiagnosticsFormat>
       <BrowseInformation>false</BrowseInformation>
-      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <AssemblerOutput>All</AssemblerOutput>
       <OmitFramePointers>false</OmitFramePointers>
       <ExceptionHandling>Async</ExceptionHandling>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <MinimalRebuild>false</MinimalRebuild>
       <SDLCheck>false</SDLCheck>
+      <StructMemberAlignment>16Bytes</StructMemberAlignment>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED;_M_CEE_PURE</UndefinePreprocessorDefinitions>
+      <OpenMPSupport>false</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -1424,7 +1515,7 @@ Exit 0</Command>
       <MapExports>false</MapExports>
       <DataExecutionPrevention>false</DataExecutionPrevention>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;oleaut32.dll;comctl32.dll;d3dx9_43.dll;shell32.dll;advapi32.dll;d3dcompiler_43.dll;psapi.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;d3dx9_43.dll;d3dcompiler_43.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
       <EntryPointSymbol>
@@ -1434,18 +1525,21 @@ Exit 0</Command>
       <AdditionalLibraryDirectories>
       </AdditionalLibraryDirectories>
       <ImportLibrary />
-      <Profile>false</Profile>
+      <Profile>true</Profile>
       <SectionAlignment>
       </SectionAlignment>
       <SetChecksum>true</SetChecksum>
-      <OptimizeReferences>false</OptimizeReferences>
+      <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
       <BaseAddress>
       </BaseAddress>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <TurnOffAssemblyGeneration>true</TurnOffAssemblyGeneration>
+      <IgnoreSpecificDefaultLibraries>;vcomp140.lib</IgnoreSpecificDefaultLibraries>
+      <ForceSymbolReferences>
+      </ForceSymbolReferences>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1477,10 +1571,10 @@ Exit 0</Command>
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PreprocessorDefinitions>_WIN64;WIN32;_DEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;GLEW_STATIC;%(PreprocessorDefinitions);PSAPI_VERSION=1;WINVER=_WIN32_WINNT_WIN7;_WIN32_WINNT=_WIN32_WINNT_WIN7;WINVER=_WIN32_WINNT_WIN7;_WIN32_WINNT=_WIN32_WINNT_WIN7;_CRT_SECURE_NO_WARNINGS;_CRT_NON_CONFORMING_SWPRINTFS;NOMINMAX;PSAPI_VERSION=1;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE;SK_BUILD_DLL;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_WIN64;WIN32;_DEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;GLEW_STATIC;%(PreprocessorDefinitions);PSAPI_VERSION=1;WINVER=_WIN32_WINNT_WIN7;_WIN32_WINNT=_WIN32_WINNT_WIN7;WINVER=_WIN32_WINNT_WIN7;_WIN32_WINNT=_WIN32_WINNT_WIN7;_CRT_SECURE_NO_WARNINGS;_CRT_NON_CONFORMING_SWPRINTFS;NOMINMAX;PSAPI_VERSION=1;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE;SK_BUILD_DLL;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE;_M_CEE_PURE</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <Optimization>Full</Optimization>
@@ -1488,23 +1582,27 @@ Exit 0</Command>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
-      <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
+      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
-      <StringPooling>false</StringPooling>
+      <StringPooling>true</StringPooling>
       <UseFullPaths>true</UseFullPaths>
       <DiagnosticsFormat>Classic</DiagnosticsFormat>
       <BrowseInformation>false</BrowseInformation>
-      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <AssemblerOutput>All</AssemblerOutput>
       <OmitFramePointers>false</OmitFramePointers>
       <ExceptionHandling>Async</ExceptionHandling>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <MinimalRebuild>false</MinimalRebuild>
       <SDLCheck>false</SDLCheck>
+      <StructMemberAlignment>16Bytes</StructMemberAlignment>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED;_M_CEE_PURE</UndefinePreprocessorDefinitions>
+      <OpenMPSupport>false</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -1515,7 +1613,7 @@ Exit 0</Command>
       <MapExports>false</MapExports>
       <DataExecutionPrevention>false</DataExecutionPrevention>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;oleaut32.dll;comctl32.dll;d3dx9_43.dll;shell32.dll;advapi32.dll;d3dcompiler_43.dll;psapi.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;d3dx9_43.dll;d3dcompiler_43.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
       <EntryPointSymbol>
@@ -1526,19 +1624,21 @@ Exit 0</Command>
       </AdditionalLibraryDirectories>
       <ImportLibrary>
       </ImportLibrary>
-      <Profile>false</Profile>
+      <Profile>true</Profile>
       <SectionAlignment>
       </SectionAlignment>
       <SetChecksum>true</SetChecksum>
-      <OptimizeReferences>false</OptimizeReferences>
+      <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
       <BaseAddress>
       </BaseAddress>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
-      <IgnoreSpecificDefaultLibraries>msvcrt.lib</IgnoreSpecificDefaultLibraries>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <IgnoreSpecificDefaultLibraries>msvcrt.lib;vcomp140.lib</IgnoreSpecificDefaultLibraries>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <TurnOffAssemblyGeneration>true</TurnOffAssemblyGeneration>
+      <ForceSymbolReferences>
+      </ForceSymbolReferences>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1570,10 +1670,10 @@ Exit 0</Command>
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PreprocessorDefinitions>_NO_CRT_STDIO_INLINE;_WIN64;WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;ISOLATION_AWARE_ENABLED;GLEW_STATIC;SK_INSTALLER;%(PreprocessorDefinitions);SK_BUILD__INSTALLER;/D_WIN32_WINNT _WIN32_WINNT_WIN7;/DWINVER _WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE SK_BUILD_DLL SK_BUILD_DLL SK_BUILD_DLL=1;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_NO_CRT_STDIO_INLINE;_WIN64;WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;ISOLATION_AWARE_ENABLED;GLEW_STATIC;SK_INSTALLER;%(PreprocessorDefinitions);SK_BUILD__INSTALLER;/D_WIN32_WINNT _WIN32_WINNT_WIN7;/DWINVER _WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE SK_BUILD_DLL SK_BUILD_DLL SK_BUILD_DLL=1;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE;_M_CEE_PURE</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <AdditionalOptions>/EHsc %(AdditionalOptions)</AdditionalOptions>
@@ -1581,7 +1681,7 @@ Exit 0</Command>
       <ControlFlowGuard>false</ControlFlowGuard>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
-      <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
+      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <LanguageStandard>stdcpplatest</LanguageStandard>
@@ -1589,23 +1689,27 @@ Exit 0</Command>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ExceptionHandling>Async</ExceptionHandling>
       <OmitFramePointers>false</OmitFramePointers>
-      <StringPooling>false</StringPooling>
+      <StringPooling>true</StringPooling>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
-      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <SDLCheck>false</SDLCheck>
+      <StructMemberAlignment>16Bytes</StructMemberAlignment>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED;_M_CEE_PURE</UndefinePreprocessorDefinitions>
+      <OpenMPSupport>false</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
-      <OptimizeReferences>false</OptimizeReferences>
+      <OptimizeReferences>true</OptimizeReferences>
       <OutputFile>Installer64.dll</OutputFile>
       <AssemblyDebug>false</AssemblyDebug>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
       <DataExecutionPrevention>false</DataExecutionPrevention>
       <ModuleDefinitionFile>Installer.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;oleaut32.dll;comctl32.dll;d3dx9_43.dll;shell32.dll;advapi32.dll;d3dcompiler_43.dll;psapi.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;d3dx9_43.dll;d3dcompiler_43.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib  /OUT:"$(TargetName).dll"</AdditionalOptions>
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
@@ -1620,9 +1724,13 @@ Exit 0</Command>
       <SetChecksum>true</SetChecksum>
       <BaseAddress>
       </BaseAddress>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <TurnOffAssemblyGeneration>true</TurnOffAssemblyGeneration>
+      <Profile>true</Profile>
+      <IgnoreSpecificDefaultLibraries>;vcomp140.lib</IgnoreSpecificDefaultLibraries>
+      <ForceSymbolReferences>
+      </ForceSymbolReferences>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1648,10 +1756,10 @@ Exit 0</Command>
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PreprocessorDefinitions>_NO_CRT_STDIO_INLINE;_WIN64;WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;ISOLATION_AWARE_ENABLED;GLEW_STATIC;%(PreprocessorDefinitions);/D_WIN32_WINNT _WIN32_WINNT_WIN7;/DWINVER _WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE;SK_BUILD_DLL;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_NO_CRT_STDIO_INLINE;_WIN64;WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;ISOLATION_AWARE_ENABLED;GLEW_STATIC;%(PreprocessorDefinitions);/D_WIN32_WINNT _WIN32_WINNT_WIN7;/DWINVER _WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE;SK_BUILD_DLL;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE;_M_CEE_PURE</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <AdditionalOptions>/EHsc %(AdditionalOptions)</AdditionalOptions>
@@ -1659,7 +1767,7 @@ Exit 0</Command>
       <ControlFlowGuard>false</ControlFlowGuard>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
-      <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
+      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <LanguageStandard>stdcpplatest</LanguageStandard>
@@ -1667,23 +1775,27 @@ Exit 0</Command>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ExceptionHandling>Async</ExceptionHandling>
       <OmitFramePointers>false</OmitFramePointers>
-      <StringPooling>false</StringPooling>
+      <StringPooling>true</StringPooling>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
-      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <SDLCheck>false</SDLCheck>
+      <StructMemberAlignment>16Bytes</StructMemberAlignment>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED;_M_CEE_PURE</UndefinePreprocessorDefinitions>
+      <OpenMPSupport>false</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
-      <OptimizeReferences>false</OptimizeReferences>
+      <OptimizeReferences>true</OptimizeReferences>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <AssemblyDebug>false</AssemblyDebug>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
       <DataExecutionPrevention>false</DataExecutionPrevention>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;oleaut32.dll;comctl32.dll;d3dx9_43.dll;shell32.dll;advapi32.dll;d3dcompiler_43.dll;psapi.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;d3dx9_43.dll;d3dcompiler_43.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
@@ -1698,9 +1810,13 @@ Exit 0</Command>
       <SetChecksum>true</SetChecksum>
       <BaseAddress>
       </BaseAddress>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <TurnOffAssemblyGeneration>true</TurnOffAssemblyGeneration>
+      <Profile>true</Profile>
+      <IgnoreSpecificDefaultLibraries>;vcomp140.lib</IgnoreSpecificDefaultLibraries>
+      <ForceSymbolReferences>
+      </ForceSymbolReferences>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1726,10 +1842,10 @@ Exit 0</Command>
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PreprocessorDefinitions>_NO_CRT_STDIO_INLINE;_WIN64;WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;ISOLATION_AWARE_ENABLED;GLEW_STATIC;%(PreprocessorDefinitions);/D_WIN32_WINNT _WIN32_WINNT_WIN7;/DWINVER _WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE;SK_BUILD_DLL;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_NO_CRT_STDIO_INLINE;_WIN64;WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;ISOLATION_AWARE_ENABLED;GLEW_STATIC;%(PreprocessorDefinitions);/D_WIN32_WINNT _WIN32_WINNT_WIN7;/DWINVER _WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE;SK_BUILD_DLL;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE;_M_CEE_PURE</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <AdditionalOptions>/EHsc %(AdditionalOptions)</AdditionalOptions>
@@ -1737,7 +1853,7 @@ Exit 0</Command>
       <ControlFlowGuard>false</ControlFlowGuard>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
-      <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
+      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <LanguageStandard>stdcpplatest</LanguageStandard>
@@ -1745,23 +1861,27 @@ Exit 0</Command>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ExceptionHandling>Async</ExceptionHandling>
       <OmitFramePointers>false</OmitFramePointers>
-      <StringPooling>false</StringPooling>
+      <StringPooling>true</StringPooling>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
-      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <SDLCheck>false</SDLCheck>
+      <StructMemberAlignment>16Bytes</StructMemberAlignment>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED;_M_CEE_PURE</UndefinePreprocessorDefinitions>
+      <OpenMPSupport>false</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
-      <OptimizeReferences>false</OptimizeReferences>
+      <OptimizeReferences>true</OptimizeReferences>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <AssemblyDebug>false</AssemblyDebug>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
       <DataExecutionPrevention>false</DataExecutionPrevention>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;oleaut32.dll;comctl32.dll;d3dx9_43.dll;shell32.dll;advapi32.dll;d3dcompiler_43.dll;psapi.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;d3dx9_43.dll;d3dcompiler_43.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
@@ -1776,9 +1896,13 @@ Exit 0</Command>
       <SetChecksum>true</SetChecksum>
       <BaseAddress>
       </BaseAddress>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <TurnOffAssemblyGeneration>true</TurnOffAssemblyGeneration>
+      <Profile>true</Profile>
+      <IgnoreSpecificDefaultLibraries>;vcomp140.lib</IgnoreSpecificDefaultLibraries>
+      <ForceSymbolReferences>
+      </ForceSymbolReferences>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1804,10 +1928,10 @@ Exit 0</Command>
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PreprocessorDefinitions>_NO_CRT_STDIO_INLINE;_WIN64;WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;GLEW_STATIC;%(PreprocessorDefinitions);TBFIX;WINVER=_WIN32_WINNT_WIN7;_WIN32_WINNT=_WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE;SK_BUILD_DLL;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_NO_CRT_STDIO_INLINE;_WIN64;WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;GLEW_STATIC;%(PreprocessorDefinitions);TBFIX;WINVER=_WIN32_WINNT_WIN7;_WIN32_WINNT=_WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE;SK_BUILD_DLL;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE;_M_CEE_PURE</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <AdditionalOptions>/EHsc %(AdditionalOptions)</AdditionalOptions>
@@ -1815,7 +1939,7 @@ Exit 0</Command>
       <ControlFlowGuard>false</ControlFlowGuard>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
-      <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
+      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <LanguageStandard>stdcpplatest</LanguageStandard>
@@ -1823,23 +1947,27 @@ Exit 0</Command>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ExceptionHandling>Async</ExceptionHandling>
       <OmitFramePointers>false</OmitFramePointers>
-      <StringPooling>false</StringPooling>
+      <StringPooling>true</StringPooling>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
-      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <SDLCheck>false</SDLCheck>
+      <StructMemberAlignment>16Bytes</StructMemberAlignment>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED;_M_CEE_PURE</UndefinePreprocessorDefinitions>
+      <OpenMPSupport>false</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
-      <OptimizeReferences>false</OptimizeReferences>
+      <OptimizeReferences>true</OptimizeReferences>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <AssemblyDebug>false</AssemblyDebug>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
       <DataExecutionPrevention>false</DataExecutionPrevention>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;oleaut32.dll;comctl32.dll;d3dx9_43.dll;shell32.dll;advapi32.dll;d3dcompiler_43.dll;psapi.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;d3dx9_43.dll;d3dcompiler_43.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
@@ -1854,9 +1982,13 @@ Exit 0</Command>
       <SetChecksum>true</SetChecksum>
       <BaseAddress>
       </BaseAddress>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <TurnOffAssemblyGeneration>true</TurnOffAssemblyGeneration>
+      <Profile>true</Profile>
+      <IgnoreSpecificDefaultLibraries>;vcomp140.lib</IgnoreSpecificDefaultLibraries>
+      <ForceSymbolReferences>
+      </ForceSymbolReferences>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1883,10 +2015,10 @@ Exit 0</Command>
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PreprocessorDefinitions>_NO_CRT_STDIO_INLINE;_WIN64;WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;GLEW_STATIC;%(PreprocessorDefinitions);PSAPI_VERSION=1;WINVER=_WIN32_WINNT_WIN7;_WIN32_WINNT=_WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE;__SK_FAR__;SK_BUILD_DLL;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_NO_CRT_STDIO_INLINE;_WIN64;WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;GLEW_STATIC;%(PreprocessorDefinitions);PSAPI_VERSION=1;WINVER=_WIN32_WINNT_WIN7;_WIN32_WINNT=_WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE;__SK_FAR__;SK_BUILD_DLL;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE;_M_CEE_PURE</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <AdditionalOptions>/EHsc %(AdditionalOptions)</AdditionalOptions>
@@ -1894,7 +2026,7 @@ Exit 0</Command>
       <ControlFlowGuard>false</ControlFlowGuard>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
-      <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
+      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <LanguageStandard>stdcpplatest</LanguageStandard>
@@ -1902,11 +2034,15 @@ Exit 0</Command>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ExceptionHandling>Async</ExceptionHandling>
       <OmitFramePointers>false</OmitFramePointers>
-      <StringPooling>false</StringPooling>
+      <StringPooling>true</StringPooling>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <SDLCheck>false</SDLCheck>
+      <StructMemberAlignment>16Bytes</StructMemberAlignment>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED;_M_CEE_PURE</UndefinePreprocessorDefinitions>
+      <OpenMPSupport>false</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -1914,7 +2050,7 @@ Exit 0</Command>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <DataExecutionPrevention>false</DataExecutionPrevention>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;oleaut32.dll;comctl32.dll;d3dx9_43.dll;shell32.dll;advapi32.dll;d3dcompiler_43.dll;psapi.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;d3dx9_43.dll;d3dcompiler_43.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
@@ -1927,15 +2063,18 @@ Exit 0</Command>
       <ImportLibrary>
       </ImportLibrary>
       <SetChecksum>true</SetChecksum>
-      <OptimizeReferences>false</OptimizeReferences>
+      <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <AssemblyDebug>false</AssemblyDebug>
       <Profile>true</Profile>
       <BaseAddress>
       </BaseAddress>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <TurnOffAssemblyGeneration>true</TurnOffAssemblyGeneration>
+      <IgnoreSpecificDefaultLibraries>;vcomp140.lib</IgnoreSpecificDefaultLibraries>
+      <ForceSymbolReferences>
+      </ForceSymbolReferences>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1966,10 +2105,10 @@ Exit 0</Command>
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PreprocessorDefinitions>_NO_CRT_STDIO_INLINE;_WIN64;WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;GLEW_STATIC;%(PreprocessorDefinitions);PSAPI_VERSION=1;WINVER=_WIN32_WINNT_WIN7;_WIN32_WINNT=_WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE;SK_BUILD_DLL;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_NO_CRT_STDIO_INLINE;_WIN64;WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;GLEW_STATIC;%(PreprocessorDefinitions);PSAPI_VERSION=1;WINVER=_WIN32_WINNT_WIN7;_WIN32_WINNT=_WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE;SK_BUILD_DLL;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE;_M_CEE_PURE</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <AdditionalOptions>/EHsc %(AdditionalOptions)</AdditionalOptions>
@@ -1977,7 +2116,7 @@ Exit 0</Command>
       <ControlFlowGuard>false</ControlFlowGuard>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
-      <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
+      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <LanguageStandard>stdcpplatest</LanguageStandard>
@@ -1985,10 +2124,14 @@ Exit 0</Command>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ExceptionHandling>Async</ExceptionHandling>
       <OmitFramePointers>false</OmitFramePointers>
-      <StringPooling>false</StringPooling>
+      <StringPooling>true</StringPooling>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
-      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <SDLCheck>false</SDLCheck>
+      <StructMemberAlignment>16Bytes</StructMemberAlignment>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED;_M_CEE_PURE</UndefinePreprocessorDefinitions>
+      <OpenMPSupport>false</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -1996,7 +2139,7 @@ Exit 0</Command>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <DataExecutionPrevention>false</DataExecutionPrevention>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;oleaut32.dll;comctl32.dll;d3dx9_43.dll;shell32.dll;advapi32.dll;d3dcompiler_43.dll;psapi.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;d3dx9_43.dll;d3dcompiler_43.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
@@ -2009,14 +2152,18 @@ Exit 0</Command>
       <ImportLibrary>
       </ImportLibrary>
       <SetChecksum>true</SetChecksum>
-      <OptimizeReferences>false</OptimizeReferences>
+      <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <AssemblyDebug>false</AssemblyDebug>
       <BaseAddress>
       </BaseAddress>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <TurnOffAssemblyGeneration>true</TurnOffAssemblyGeneration>
+      <Profile>true</Profile>
+      <IgnoreSpecificDefaultLibraries>;vcomp140.lib</IgnoreSpecificDefaultLibraries>
+      <ForceSymbolReferences>
+      </ForceSymbolReferences>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -2047,10 +2194,10 @@ Exit 0</Command>
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PreprocessorDefinitions>_NO_CRT_STDIO_INLINE;_WIN64;WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;GLEW_STATIC;%(PreprocessorDefinitions);/D_WIN32_WINNT _WIN32_WINNT_WIN7;/DWINVER _WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE;SK_BUILD_DLL;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_NO_CRT_STDIO_INLINE;_WIN64;WIN32;NDEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;GLEW_STATIC;%(PreprocessorDefinitions);/D_WIN32_WINNT _WIN32_WINNT_WIN7;/DWINVER _WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;_NO_CRT_STDIO_INLINE;SK_BUILD_DLL;DIRECTINPUT_VERSION=0x0800;_NO_CRT_STDIO_INLINE;_M_CEE_PURE</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <AdditionalOptions>/EHsc %(AdditionalOptions)</AdditionalOptions>
@@ -2058,7 +2205,7 @@ Exit 0</Command>
       <ControlFlowGuard>false</ControlFlowGuard>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
-      <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
+      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <LanguageStandard>stdcpplatest</LanguageStandard>
@@ -2066,23 +2213,27 @@ Exit 0</Command>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ExceptionHandling>Async</ExceptionHandling>
       <OmitFramePointers>false</OmitFramePointers>
-      <StringPooling>false</StringPooling>
+      <StringPooling>true</StringPooling>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
-      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <SDLCheck>false</SDLCheck>
+      <StructMemberAlignment>16Bytes</StructMemberAlignment>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED;_M_CEE_PURE</UndefinePreprocessorDefinitions>
+      <OpenMPSupport>false</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
-      <OptimizeReferences>false</OptimizeReferences>
+      <OptimizeReferences>true</OptimizeReferences>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <AssemblyDebug>false</AssemblyDebug>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
       <DataExecutionPrevention>false</DataExecutionPrevention>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;oleaut32.dll;comctl32.dll;d3dx9_43.dll;shell32.dll;advapi32.dll;d3dcompiler_43.dll;psapi.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;d3dx9_43.dll;d3dcompiler_43.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
@@ -2097,9 +2248,13 @@ Exit 0</Command>
       <SetChecksum>true</SetChecksum>
       <BaseAddress>
       </BaseAddress>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <TurnOffAssemblyGeneration>true</TurnOffAssemblyGeneration>
+      <Profile>true</Profile>
+      <IgnoreSpecificDefaultLibraries>;vcomp140.lib</IgnoreSpecificDefaultLibraries>
+      <ForceSymbolReferences>
+      </ForceSymbolReferences>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -2166,7 +2321,6 @@ Exit 0</Command>
     <ClInclude Include="include\SpecialK\control_panel\window.h" />
     <ClInclude Include="include\SpecialK\crc32.h" />
     <ClInclude Include="include\SpecialK\hash.h" />
-    <ClInclude Include="include\SpecialK\injection\address_cache.h" />
     <ClInclude Include="include\SpecialK\injection\blacklist.h" />
     <ClInclude Include="include\SpecialK\input\dinput7_backend.h" />
     <ClInclude Include="include\SpecialK\input\steam.h" />
@@ -2606,7 +2760,6 @@ Exit 0</Command>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Rel_Debug|x64'">false</WholeProgramOptimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Installer|x64'">false</WholeProgramOptimization>
     </ClCompile>
-    <ClCompile Include="src\injection\address_cache.cpp" />
     <ClCompile Include="src\injection\injection.cpp" />
     <ClCompile Include="src\input\dinput7.cpp" />
     <ClCompile Include="src\input\dinput8.cpp" />
@@ -3810,6 +3963,10 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='IT|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">true</ExcludedFromBuild>
     </Library>
+    <Library Include="depends\lib\glew\Win32\glew.lib" />
+    <Library Include="depends\lib\glew\x64\glew.lib" />
+    <Library Include="depends\lib\lzma\Win32\libzma.lib" />
+    <Library Include="depends\lib\lzma\x64\libzma.lib" />
     <Library Include="depends\lib\MinHook\Win32\libMinHook.lib">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Rel_Debug|x64'">true</ExcludedFromBuild>

@@ -1206,33 +1206,60 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
 
   if (swap_chain_desc != nullptr)
   {
+   wchar_t wszMSAA [128] = { };
+
+    _swprintf ( wszMSAA, swap_chain_desc->SampleDesc.Count > 1 ?
+                           L"%u Samples" :
+                           L"Not Used (or Offscreen)",
+                  swap_chain_desc->SampleDesc.Count );
+
     dll_log.LogEx ( true,
-                      L"[   DXGI   ]  SwapChain: (%lux%lu@%4.1f Hz - Scaling: %s) - "
-                      L"[%lu Buffers] :: Flags=0x%04X, SwapEffect: %s\n",
-                        swap_chain_desc->BufferDesc.Width,
-                        swap_chain_desc->BufferDesc.Height,
-                        swap_chain_desc->BufferDesc.RefreshRate.Denominator > 0 ?
-   static_cast <float> (swap_chain_desc->BufferDesc.RefreshRate.Numerator) /
-   static_cast <float> (swap_chain_desc->BufferDesc.RefreshRate.Denominator) :
-   static_cast <float> (swap_chain_desc->BufferDesc.RefreshRate.Numerator),
-                        swap_chain_desc->BufferDesc.Scaling == DXGI_MODE_SCALING_UNSPECIFIED ?
-                          L"Unspecified" :
-                          swap_chain_desc->BufferDesc.Scaling == DXGI_MODE_SCALING_CENTERED  ?
-                            L"Centered" :
-                            L"Stretched",
-                        swap_chain_desc->BufferCount,
-                        swap_chain_desc->Flags,
-                        swap_chain_desc->SwapEffect == 0         ?
-                          L"Discard" :
-                          swap_chain_desc->SwapEffect == 1       ?
-                            L"Sequential" :
-                            swap_chain_desc->SwapEffect == 2     ?
-                              L"<Unknown>" :
-                              swap_chain_desc->SwapEffect == 3   ?
-                                L"Flip Sequential" :
-                                swap_chain_desc->SwapEffect == 4 ?
-                                  L"Flip Discard" :
-                                  L"<Unknown>");
+      L"[Swap Chain]\n"
+      L"  +-------------+-------------------------------------------------------------------------+\n"
+      L"  | Resolution. |  %4lux%4lu @ %6.2f Hz%-50ws|\n"
+      L"  | Format..... |  %-71ws|\n"
+      L"  | Buffers.... |  %-2lu%-69ws|\n"
+      L"  | MSAA....... |  %-71ws|\n"
+      L"  | Mode....... |  %-71ws|\n"
+      L"  | Scaling.... |  %-71ws|\n"
+      L"  | Scanlines.. |  %-71ws|\n"
+      L"  | Flags...... |  0x%04x%-65ws|\n"
+      L"  | SwapEffect. |  %-71ws|\n"
+      L"  +-------------+-------------------------------------------------------------------------+\n",
+          swap_chain_desc->BufferDesc.Width,
+          swap_chain_desc->BufferDesc.Height,
+          swap_chain_desc->BufferDesc.RefreshRate.Denominator != 0 ?
+            static_cast <float> (swap_chain_desc->BufferDesc.RefreshRate.Numerator) /
+            static_cast <float> (swap_chain_desc->BufferDesc.RefreshRate.Denominator) :
+              std::numeric_limits <float>::quiet_NaN (), L" ",
+    SK_DXGI_FormatToStr (swap_chain_desc->BufferDesc.Format).c_str (),
+          swap_chain_desc->BufferCount, L" ",
+          wszMSAA,
+          swap_chain_desc->Windowed ? L"Windowed" : L"Fullscreen",
+          swap_chain_desc->BufferDesc.Scaling == DXGI_MODE_SCALING_UNSPECIFIED ?
+            L"Unspecified" :
+            swap_chain_desc->BufferDesc.Scaling == DXGI_MODE_SCALING_CENTERED ?
+              L"Centered" :
+              L"Stretched",
+          swap_chain_desc->BufferDesc.ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED ?
+            L"Unspecified" :
+            swap_chain_desc->BufferDesc.ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE ?
+              L"Progressive" :
+              swap_chain_desc->BufferDesc.ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_UPPER_FIELD_FIRST ?
+                L"Interlaced Even" :
+                L"Interlaced Odd",
+          swap_chain_desc->Flags, L" ",
+          swap_chain_desc->SwapEffect         == 0 ?
+            L"Discard" :
+            swap_chain_desc->SwapEffect       == 1 ?
+              L"Sequential" :
+              swap_chain_desc->SwapEffect     == 2 ?
+                L"<Unknown>" :
+                swap_chain_desc->SwapEffect   == 3 ?
+                  L"Flip Sequential" :
+                  swap_chain_desc->SwapEffect == 4 ?
+                    L"Flip Discard" :
+                    L"<Unknown>" );
 
     swap_chain_override = *swap_chain_desc;
     swap_chain_desc     = &swap_chain_override;

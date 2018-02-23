@@ -30,8 +30,11 @@
 
 #include <psapi.h>
 
+#include <comdef.h>
 #include <atlbase.h>
+
 #include <Commctrl.h>
+#include <Shlwapi.h>
 #pragma comment (lib,    "advapi32.lib")
 #pragma comment (lib,    "user32.lib")
 #pragma comment (lib,    "comctl32.lib")
@@ -39,15 +42,13 @@
                          "version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df'" \
                          " language='*'\"")
 
-#include <Shlwapi.h>
 #pragma comment (lib, "Shlwapi.lib")
-
-#include <comdef.h>
 
 #include <array>
 #include <string>
 #include <memory>
 #include <typeindex>
+#include <unordered_set>
 
 #include <cassert>
 
@@ -72,7 +73,7 @@
 
 #include <concurrent_unordered_set.h>
 
-  concurrency::concurrent_unordered_set <HMODULE> dbghelp_callers;
+concurrency::concurrent_unordered_set <HMODULE> dbghelp_callers;
 
 #define SK_CHAR(x) (_T)        (constexpr _T      (std::type_index (typeid (_T)) == std::type_index (typeid (wchar_t))) ? (      _T  )(_L(x)) : (      _T  )(x))
 #define SK_TEXT(x) (const _T*) (constexpr LPCVOID (std::type_index (typeid (_T)) == std::type_index (typeid (wchar_t))) ? (const _T *)(_L(x)) : (const _T *)(x))
@@ -86,7 +87,6 @@ using GetModuleHandleEx_pfn  = BOOL    (__stdcall *)(DWORD   dwFlags,   LPCVOID 
 
 
 BOOL __stdcall SK_TerminateParentProcess    (UINT uExitCode);
-BOOL __stdcall SK_ValidateGlobalRTSSProfile (void);
 
 bool SK_LoadLibrary_SILENCE = false;
 
@@ -121,6 +121,8 @@ struct sk_loader_hooks_t {
   LPVOID LoadLibraryExW_target      = nullptr;
   LPVOID LoadPackagedLibrary_target = nullptr;
 
+  LPVOID GetModuleHandleA_target    = nullptr;
+
   LPVOID FreeLibrary_target         = nullptr;
 } _loader_hooks;
 
@@ -148,6 +150,36 @@ SK_UnlockDllLoader (void)
   if (config.system.strict_compliance)
     loader_lock->unlock ();
 }
+
+typedef HMODULE (WINAPI *GetModuleHandleA_pfn)(_In_opt_ LPCSTR lpModuleName);
+                         GetModuleHandleA_pfn GetModuleHandleA_Original = nullptr;
+
+HMODULE
+WINAPI
+GetModuleHandleA_Detour (
+  _In_opt_ LPCSTR lpModuleName
+)
+{
+  static const std::unordered_set <std::string> blacklist_nv =
+  {
+    "libovrrt64_1", "libovrrt32_1", "openvr_api"
+  };
+
+  if (lpModuleName != nullptr && blacklist_nv.count (lpModuleName))
+  {
+    if (config.system.log_level > 4)
+    {
+      dll_log.Log (L"[Driver Bug] NVIDIA tried to load %hs", lpModuleName);
+    }
+
+    SetLastError (0x0000007e);
+    return nullptr;
+  }
+
+  return
+    GetModuleHandleA_Original (lpModuleName);
+}
+
 
 template <typename _T>
 BOOL
@@ -191,15 +223,8 @@ BlacklistLibrary (const _T* lpFileName)
       nv_blacklist.emplace_back (SK_TEXT("rxcore.dll"));
       nv_blacklist.emplace_back (SK_TEXT("nvinject.dll"));
       nv_blacklist.emplace_back (SK_TEXT("rxinput.dll"));
-
-#ifdef _WIN64
-      nv_blacklist.emplace_back (SK_TEXT("nvspcap64.dll"));
-      nv_blacklist.emplace_back (SK_TEXT("nvSCPAPI64.dll"));
-#else
-      nv_blacklist.emplace_back (SK_TEXT("nvspcap.dll"));
-      nv_blacklist.emplace_back (SK_TEXT("nvSCPAPI.dll"));
-#endif
-
+      nv_blacklist.emplace_back (SK_TEXT("nvspcap"));
+      nv_blacklist.emplace_back (SK_TEXT("nvSCPAPI"));
       init = true;
     }
 
@@ -1001,6 +1026,15 @@ __stdcall
 SK_InitCompatBlacklist (void)
 {
   memset (&_loader_hooks, 0, sizeof sk_loader_hooks_t);
+  
+  SK_CreateDLLHook2 (      L"kernel32.dll",
+                            "GetModuleHandleA",
+                             GetModuleHandleA_Detour,
+    static_cast_p2p <void> (&GetModuleHandleA_Original),
+              &_loader_hooks.GetModuleHandleA_target );
+  
+  MH_QueueEnableHook (_loader_hooks.GetModuleHandleA_target);
+  
   SK_ReHookLoadLibrary ();
 }
 
@@ -1367,6 +1401,71 @@ SK_WalkModules (int cbNeeded, HANDLE hProc, HMODULE* hMods, SK_ModuleEnum when)
 }
 
 void
+SK_PrintUnloadedDLLs (iSK_Logger* pLogger)
+{
+  typedef struct _RTL_UNLOAD_EVENT_TRACE {
+      PVOID BaseAddress;   // Base address of dll
+      SIZE_T SizeOfImage;  // Size of image
+      ULONG Sequence;      // Sequence number for this event
+      ULONG TimeDateStamp; // Time and date of image
+      ULONG CheckSum;      // Image checksum
+      WCHAR ImageName[32]; // Image name
+  } RTL_UNLOAD_EVENT_TRACE, *PRTL_UNLOAD_EVENT_TRACE;
+
+  typedef void (WINAPI *RtlGetUnloadEventTraceEx_pfn)(
+    _Out_ PULONG *ElementSize,
+    _Out_ PULONG *ElementCount,
+    _Out_ PVOID  *EventTrace
+  );
+
+  HMODULE hModNtDLL =
+    LoadLibraryW (L"ntdll.dll");
+
+  RtlGetUnloadEventTraceEx_pfn RtlGetUnloadEventTraceEx =
+    (RtlGetUnloadEventTraceEx_pfn)GetProcAddress (hModNtDLL, "RtlGetUnloadEventTraceEx");
+
+  PULONG element_size  = 0,
+         element_count = 0;
+
+  PVOID trace_log     = nullptr;
+
+  RtlGetUnloadEventTraceEx (&element_size, &element_count, &trace_log);
+
+  RTL_UNLOAD_EVENT_TRACE* pTraceEntry =
+    *(RTL_UNLOAD_EVENT_TRACE **)trace_log;
+
+  ULONG ElementSize  = *element_size;
+  ULONG ElementCount = *element_count;
+
+  if (ElementCount > 0)
+  {
+    pLogger->LogEx ( false, 
+      L"================================================================== "
+      L"(List Unloads) "
+      L"==================================================================\n" );
+
+    for (ULONG i = 0; i < ElementCount; i++)
+    {
+      if (! SK_ValidatePointer (pTraceEntry))
+        break;
+
+      if (pTraceEntry->BaseAddress != nullptr)
+      {
+        pLogger->Log ( L"[%lu] Unloaded '%32ws' [ (0x%p) : (0x%p) ]",
+                      pTraceEntry->Sequence,    pTraceEntry->ImageName,
+                      pTraceEntry->BaseAddress, (uintptr_t)pTraceEntry->BaseAddress +
+                                                           pTraceEntry->SizeOfImage );
+      }
+
+      pTraceEntry =
+        (RTL_UNLOAD_EVENT_TRACE *)((uintptr_t)pTraceEntry + ElementSize);
+    }
+  }
+
+  FreeLibrary (hModNtDLL);
+}
+
+void
 __stdcall
 SK_EnumLoadedModules (SK_ModuleEnum when)
 {
@@ -1421,7 +1520,7 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
       static volatile LONG                walking = 0;
       while (InterlockedCompareExchange (&walking, 1, 0))
       {
-        SleepEx (200UL, FALSE);
+        SleepEx (20UL, FALSE);
       }
 
       auto CleanupLog = [](iSK_Logger*& pLogger) ->
@@ -1450,7 +1549,7 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
 
         InterlockedExchange (&walking, 0);
 
-        CleanupLog (pLogger);
+        CleanupLog  (pLogger);
         CloseHandle (GetCurrentThread ());
 
         return 0;
@@ -1460,6 +1559,11 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
         SK_WalkModules     (pWorkingSet->count * sizeof (HMODULE), pWorkingSet->proc, pWorkingSet->modules, pWorkingSet->when);
 
       SK_ThreadWalkModules (pWorkingSet);
+
+      if ( when != SK_ModuleEnum::PreLoad && pLogger != nullptr )
+      {
+        SK_PrintUnloadedDLLs (pLogger);
+      }
 
       if ( when   == SK_ModuleEnum::PreLoad &&
           pLogger != nullptr )
@@ -1486,29 +1590,9 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
       return 0;
     }, (LPVOID)working_set, 0x00, nullptr);
   }
-
-  if (third_party_dlls.overlays.rtss_hooks != nullptr)
-  {
-    SK_ValidateGlobalRTSSProfile ();
-  }
-
-  // In 64-bit builds, RTSS is really sneaky :-/
-  else if (SK_GetRTSSInstallDir ().length ())
-  {
-    SK_ValidateGlobalRTSSProfile ();
-  }
-
-  else if ( SK_RunLHIfBitness (64, GetModuleHandle (L"RTSSHooks64.dll"),
-                                   GetModuleHandle (L"RTSSHooks.dll")) )
-  {
-    SK_ValidateGlobalRTSSProfile ();
-    // RTSS is in High App Detection or Stealth Mode
-    //
-    //   The software is probably going to crash.
-    dll_log.Log ( L"[RTSSCompat] RTSS appears to be in High App Detection or Stealth mode, "
-                  L"your game is probably going to crash." );
-  }
 }
+
+volatile LONG __SK_TaskDialogActive = FALSE;
 
 HRESULT
 CALLBACK
@@ -1526,13 +1610,9 @@ TaskDialogCallback (
   if (uNotification == TDN_TIMER)
   {
     SK_RealizeForegroundWindow (hWnd);
-
-    if (game_window.hWnd != HWND_DESKTOP)
-    {
-      AttachThreadInput ( GetCurrentThreadId         (),
-                            GetWindowThreadProcessId (game_window.hWnd, nullptr),
-                              TRUE );
-    }
+    SetForegroundWindow        (hWnd);
+    SetFocus                   (hWnd);
+    SetActiveWindow            (hWnd);
   }
 
   if (uNotification == TDN_HYPERLINK_CLICKED)
@@ -1545,244 +1625,24 @@ TaskDialogCallback (
   //   the "Always On Top" window style can give us.
   if (uNotification == TDN_DIALOG_CONSTRUCTED)
   {
+    InterlockedExchange (&__SK_TaskDialogActive, TRUE);
     SK_RealizeForegroundWindow (hWnd);
-
-    if (game_window.hWnd != HWND_DESKTOP)
-    {
-      AttachThreadInput ( GetCurrentThreadId         (),
-                            GetWindowThreadProcessId (game_window.hWnd, nullptr),
-                              TRUE );
-    }
   }
 
   if (uNotification == TDN_CREATED)
   {
-    SK_RealizeForegroundWindow (hWnd);
-
-    if (game_window.hWnd != HWND_DESKTOP)
-    {
-      AttachThreadInput ( GetCurrentThreadId         (),
-                            GetWindowThreadProcessId (game_window.hWnd, nullptr),
-                              TRUE );
-    }
   }
 
   if (uNotification == TDN_DESTROYED)
   {
+    SK_RealizeForegroundWindow (game_window.hWnd);
+    SetForegroundWindow        (game_window.hWnd);
+    SetFocus                   (game_window.hWnd);
+    SetActiveWindow            (game_window.hWnd);
+    InterlockedExchange   (&__SK_TaskDialogActive, FALSE);
   }
 
   return S_OK;
-}
-
-
-
-BOOL
-__stdcall
-SK_ValidateGlobalRTSSProfile (void)
-{
-  if (config.system.ignore_rtss_delay)
-    return TRUE;
-
-  wchar_t wszRTSSHooks [MAX_PATH + 2] = { };
-
-  if (third_party_dlls.overlays.rtss_hooks)
-  {
-    GetModuleFileNameW (
-      third_party_dlls.overlays.rtss_hooks,
-        wszRTSSHooks,
-          MAX_PATH );
-
-    wchar_t* pwszShortName = wszRTSSHooks + lstrlenW (wszRTSSHooks);
-
-    while (  pwszShortName      >  wszRTSSHooks &&
-           *(pwszShortName - 1) != L'\\')
-      --pwszShortName;
-
-    *(pwszShortName - 1) = L'\0';
-  } else {
-    wcscpy (wszRTSSHooks, SK_GetRTSSInstallDir ().c_str ());
-  }
-
-  lstrcatW (wszRTSSHooks, LR"(\Profiles\Global)");
-
-
-  iSK_INI rtss_global (wszRTSSHooks);
-
-  rtss_global.parse ();
-
-  iSK_INISection& rtss_hooking =
-    rtss_global.get_section (L"Hooking");
-
-
-  bool valid = true;
-
-
-  if ( (! rtss_hooking.contains_key (L"InjectionDelay")) )
-  {
-    rtss_hooking.add_key_value (L"InjectionDelay", L"10000");
-    valid = false;
-  }
-
-  else if (_wtol (rtss_hooking.get_value (L"InjectionDelay").c_str()) < 10000)
-  {
-    rtss_hooking.get_value (L"InjectionDelay") = L"10000";
-    valid = false;
-  }
-
-
-  if ( (! rtss_hooking.contains_key (L"InjectionDelayTriggers")) )
-  {
-    rtss_hooking.add_key_value (
-      L"InjectionDelayTriggers",
-        L"SpecialK32.dll,d3d9.dll,steam_api.dll,steam_api64.dll,dxgi.dll,SpecialK64.dll"
-    );
-    valid = false;
-  }
-
-  else
-  {
-    std::wstring& triggers =
-      rtss_hooking.get_value (L"InjectionDelayTriggers");
-
-    const wchar_t* delay_dlls [] = { L"SpecialK32.dll",
-                                     L"d3d9.dll",
-                                     L"steam_api.dll",
-                                     L"steam_api64.dll",
-                                     L"dxgi.dll",
-                                     L"SpecialK64.dll" };
-
-    for ( auto& delay_dll : delay_dlls )
-    {
-      if (triggers.find (delay_dll) == std::wstring::npos)
-      {
-        valid = false;
-        triggers += L",";
-        triggers += delay_dll;
-      }
-    }
-  }
-
-  // No action is necessary, delay triggers are working as intended.
-  if (valid)
-    return TRUE;
-
-  static BOOL warned = FALSE;
-
-  // Prevent the dialog from repeatedly popping up if the user decides to ignore
-  if (warned)
-    return TRUE;
-
-  TASKDIALOGCONFIG task_config    = { };
-
-  task_config.cbSize              = sizeof (task_config);
-  task_config.hInstance           = GetModuleHandleW (nullptr);
-  task_config.hwndParent          =                   nullptr;
-  task_config.pszWindowTitle      = L"Special K Compatibility Layer (v " SK_VERSION_STR_W L")";
-  task_config.dwCommonButtons     = TDCBF_OK_BUTTON;
-  task_config.pButtons            = nullptr;
-  task_config.cButtons            = 0;
-  task_config.dwFlags             = TDF_ENABLE_HYPERLINKS;
-  task_config.pfCallback          = TaskDialogCallback;
-  task_config.lpCallbackData      = 0;
-
-  task_config.pszMainInstruction  = L"RivaTuner Statistics Server Incompatibility";
-
-  wchar_t wszFooter [1024] = { };
-
-  // Delay triggers are invalid, but we can do nothing about it due to
-  //   privilige issues.
-  if (! SK_IsAdmin ())
-  {
-    task_config.pszMainIcon        = TD_WARNING_ICON;
-    task_config.pszContent         = L"RivaTuner Statistics Server requires a 10 second injection delay to workaround "
-                                     L"compatibility issues.";
-
-    task_config.pszFooterIcon      = TD_SHIELD_ICON;
-    task_config.pszFooter          = L"This can be fixed by starting the game as Admin once.";
-
-    task_config.pszVerificationText = L"Check here if you do not care (risky).";
-
-    BOOL verified;
-
-    TaskDialogIndirect (&task_config, nullptr, nullptr, &verified);
-
-    if (verified)
-      config.system.ignore_rtss_delay = true;
-    else
-      ExitProcess (0);
-  }
-
-  else
-  {
-    task_config.pszMainIcon        = TD_INFORMATION_ICON;
-
-    task_config.pszContent         = L"RivaTuner Statistics Server requires a 10 second injection delay to workaround "
-                                     L"compatibility issues.";
-
-    task_config.dwCommonButtons    = TDCBF_YES_BUTTON | TDCBF_NO_BUTTON;
-    task_config.nDefaultButton     = IDNO;
-
-    wsprintf ( wszFooter,
-
-                L"\r\n\r\n"
-
-                L"Proposed Changes\r\n\r\n"
-
-                L"<A HREF=\"%s\">%s</A>\r\n\r\n"
-
-                L"[Hooking]\r\n"
-                L"InjectionDelay=%s\r\n"
-                L"InjectionDelayTriggers=%s",
-
-                  wszRTSSHooks, wszRTSSHooks,
-                    rtss_global.get_section (L"Hooking").get_value (L"InjectionDelay").c_str (),
-                      rtss_global.get_section (L"Hooking").get_value (L"InjectionDelayTriggers").c_str () );
-
-    task_config.pszExpandedInformation = wszFooter;
-    task_config.pszExpandedControlText = L"Apply Proposed Config Changes?";
-
-    int nButton;
-
-    TaskDialogIndirect (&task_config, &nButton, nullptr, nullptr);
-
-    if (nButton == IDYES)
-    {
-      // Delay triggers are invalid, and we are going to fix them...
-      dll_log.Log ( L"[RTSSCompat] NEW Global Profile:  InjectDelay=%s,  DelayTriggers=%s",
-                      rtss_global.get_section (L"Hooking").get_value (L"InjectionDelay").c_str (),
-                        rtss_global.get_section (L"Hooking").get_value (L"InjectionDelayTriggers").c_str () );
-
-      rtss_global.write  (wszRTSSHooks);
-
-      STARTUPINFO         sinfo = { };
-      PROCESS_INFORMATION pinfo = { };
-
-      sinfo.cb          = sizeof STARTUPINFO;
-      sinfo.dwFlags     = STARTF_USESHOWWINDOW | STARTF_RUNFULLSCREEN;
-      sinfo.wShowWindow = SW_SHOWNORMAL;
-
-      CreateProcess (
-        nullptr,
-const_cast <LPWSTR> (SK_GetHostApp ()),
-            nullptr, nullptr,
-              TRUE,
-                CREATE_SUSPENDED,
-                  nullptr, nullptr,
-                    &sinfo, &pinfo );
-
-      while (ResumeThread (pinfo.hThread))
-        ;
-
-      CloseHandle  (pinfo.hThread);
-      CloseHandle  (pinfo.hProcess);
-
-      SK_TerminateParentProcess (0x00);
-    }
-  }
-
-  warned = TRUE;
-
-  return TRUE;
 }
 
 HRESULT
@@ -1805,7 +1665,7 @@ SK_TaskBoxWithConfirm ( wchar_t* wszMainInstruction,
   TASKDIALOGCONFIG task_config    = {0};
 
   task_config.cbSize              = sizeof (task_config);
-  task_config.hInstance           = GetModuleHandleW (nullptr);
+  task_config.hInstance           = __SK_HMODULE_0;
   task_config.hwndParent          =                   nullptr;
   task_config.pszWindowTitle      = L"Special K Compatibility Layer (v " SK_VERSION_STR_W L")";
   task_config.dwCommonButtons     = TDCBF_OK_BUTTON;
@@ -1860,8 +1720,8 @@ SK_TaskBoxWithConfirmEx ( wchar_t* wszMainInstruction,
   TASKDIALOGCONFIG task_config    = {   };
 
   task_config.cbSize              = sizeof    (task_config);
-  task_config.hInstance           = GetModuleHandleW (nullptr);
-  task_config.hwndParent          =                   nullptr;
+  task_config.hInstance           = __SK_HMODULE_0;
+  task_config.hwndParent          =        nullptr;
   task_config.pszWindowTitle      = L"Special K Compatibility Layer (v " SK_VERSION_STR_W L")";
   task_config.dwCommonButtons     = TDCBF_OK_BUTTON;
 
@@ -1975,7 +1835,7 @@ SK_Bypass_CRT (LPVOID)
        d3d11  = false,
        glide  = false;
 
-  SK_TestRenderImports (GetModuleHandle (nullptr), &gl, &vulkan, &d3d9, &dxgi, &d3d11, &d3d8, &ddraw, &glide);
+  SK_TestRenderImports (__SK_HMODULE_0, &gl, &vulkan, &d3d9, &dxgi, &d3d11, &d3d8, &ddraw, &glide);
 
   const bool no_imports = !(gl || vulkan || d3d9 || d3d8 || ddraw || d3d11 || glide);
 
@@ -2069,8 +1929,8 @@ SK_Bypass_CRT (LPVOID)
                                        };
 
   task_config.cbSize              = sizeof (task_config);
-  task_config.hInstance           = GetModuleHandleW (nullptr);
-  task_config.hwndParent          =                   nullptr;
+  task_config.hInstance           = __SK_HMODULE_0;
+  task_config.hwndParent          =        nullptr;
   task_config.pszWindowTitle      = L"Special K Compatibility Layer (v " SK_VERSION_STR_W L")";
   task_config.dwCommonButtons     = TDCBF_OK_BUTTON;
   task_config.pRadioButtons       = rbuttons;

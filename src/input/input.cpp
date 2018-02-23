@@ -36,6 +36,7 @@
 #include <comdef.h>
 
 #include <stdarg.h>
+#include <psapi.h>
 
 #include <imgui/imgui.h>
 #include <SpecialK/tls.h>
@@ -1663,6 +1664,49 @@ GetAsyncKeyState_Detour (_In_ int vKey)
       SK_ConsumeVKey (vKey);
   }
 
+
+  //
+  // Workaround for driver bug in NVIDIA's D3D10/11 driver.
+  //
+  //   NVIDIA refuses to acknowledge it, so I've taken it upon myself
+  //     to fix.
+  //
+  static HMODULE   hMod_nvwgf2umx = nullptr;
+  static uintptr_t nvwgf2umx_min  = 0,
+                   nvwgf2umx_max  = 0;
+
+  if (vKey == VK_SHIFT && hMod_nvwgf2umx == nullptr )
+  {
+    hMod_nvwgf2umx =
+      GetModuleHandleW (L"nvwgf2umx.dll");
+
+    if (hMod_nvwgf2umx == nullptr)
+      hMod_nvwgf2umx = reinterpret_cast <HMODULE> (-1);
+    else
+    {
+      MODULEINFO                               modi = { };
+      GetModuleInformation (
+        GetCurrentProcess (), hMod_nvwgf2umx, &modi,
+         sizeof MODULEINFO );
+
+      nvwgf2umx_min = (uintptr_t)modi.lpBaseOfDll;
+      nvwgf2umx_max = nvwgf2umx_min + modi.SizeOfImage;
+    }
+  }
+
+  if ( vKey == VK_SHIFT && (uintptr_t)(_ReturnAddress ()) >
+                           (uintptr_t) hMod_nvwgf2umx &&
+                                     SK_GetCallingDLL () == hMod_nvwgf2umx )
+  {
+    if (config.system.log_level > 4)
+    {
+      dll_log.Log (L"[Driver Bug] NVIDIA polled the Shift Key");
+    }
+    return 0;
+  }
+
+
+
   return GetAsyncKeyState_Original (vKey);
 }
 
@@ -1916,6 +1960,45 @@ void SK_Input_PreInit (void)
   if (config.input.gamepad.hook_xinput)
     SK_XInput_InitHotPlugHooks ( );
 }
+
+
+
+
+#include <concurrent_unordered_map.h>
+
+typedef HKL (WINAPI *GetKeyboardLayout_pfn)(
+  _In_ DWORD idThread
+);
+
+GetKeyboardLayout_pfn GetKeyboardLayout_Original = nullptr;
+
+static concurrency::concurrent_unordered_map <DWORD, HKL> CachedHKL;
+
+void
+SK_Win32_InvalidateHKLCache (void)
+{
+  CachedHKL.clear ();
+}
+
+HKL
+WINAPI
+GetKeyboardLayout_Detour (_In_ DWORD idThread)
+{
+  const auto& ret =
+    CachedHKL.find (idThread);
+
+  if (ret != CachedHKL.cend ())
+    return ret->second;
+
+
+  HKL current_hkl =
+    GetKeyboardLayout_Original (idThread);
+
+  CachedHKL [idThread] = current_hkl;
+
+  return current_hkl;
+}
+
 
 
 #include <SpecialK/command.h>

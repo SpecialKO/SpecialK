@@ -61,6 +61,7 @@
 
 // We need this to load embedded resources correctly...
 HMODULE hModSelf                       = nullptr;
+HMODULE __SK_HMODULE_0                 = nullptr;
 
 SK_Thread_HybridSpinlock* init_mutex   = nullptr;
 SK_Thread_HybridSpinlock* budget_mutex = nullptr;
@@ -741,9 +742,6 @@ SK_Detach (DLL_ROLE role)
 }
 
 
-
-
-
 BOOL
 APIENTRY
 DllMain ( HMODULE hModule,
@@ -752,8 +750,15 @@ DllMain ( HMODULE hModule,
 {
   UNREFERENCED_PARAMETER (lpReserved);
 
+
+  wchar_t* bouncy [8] = { g_LastBouncedModule0, g_LastBouncedModule1,
+                          g_LastBouncedModule2, g_LastBouncedModule3,
+                          g_LastBouncedModule4, g_LastBouncedModule5,
+                          g_LastBouncedModule6, g_LastBouncedModule7 };
+
+
   auto EarlyOut =
-  [&](BOOL bRet = TRUE)
+  [&](BOOL bRet = TRUE, int local_idx = g_LastBounceIdx)
   {
     auto tls_slot =
       SK_GetTLS ();
@@ -778,6 +783,21 @@ DllMain ( HMODULE hModule,
         InterlockedExchange (&__SK_DLL_Attached, 0);
     }
 
+    if (! bRet)
+    {
+      if (wcscmp (bouncy [local_idx], SK_GetFullyQualifiedApp ()))
+      {
+        if (local_idx == 7)
+            local_idx  = 0;
+        else
+            local_idx++;
+
+        wcsncpy (bouncy [local_idx], SK_GetFullyQualifiedApp (), MAX_PATH);
+
+        g_LastBounceIdx = local_idx;
+      }
+    }
+
     return bRet;
   };
 
@@ -786,6 +806,19 @@ DllMain ( HMODULE hModule,
   {
     case DLL_PROCESS_ATTACH:
     {
+      //// CBT hooks usually inject into the same process over and over
+      ////   given the way window interaction works -- cache the last failure
+      ////     in the DLL's shared date seg. and skip a ton of init. logic.
+      ////
+      if (! wcscmp (bouncy [g_LastBounceIdx], SK_GetFullyQualifiedApp ()))
+      {
+        return EarlyOut (FALSE, g_LastBounceIdx-1);
+      }
+
+
+      __SK_HMODULE_0 =
+        GetModuleHandleW (nullptr);
+
       InterlockedExchange (&__SK_TLS_INDEX, TlsAlloc ());
 
       if (InterlockedExchangePointer (

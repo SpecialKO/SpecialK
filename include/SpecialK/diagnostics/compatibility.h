@@ -80,5 +80,10 @@ SK_LoadLibrary_PinModule (const _T* pStr);
 
 HRESULT SK_COMPAT_FixNahimicDeadlock (void);
 
+struct iSK_Logger;
+
+void
+SK_PrintUnloadedDLLs (iSK_Logger* pLogger);
+
 #endif
 #endif /* __SK_COMPATIBILITY_H__ */

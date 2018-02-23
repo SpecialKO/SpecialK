@@ -176,7 +176,7 @@ SK_GetBitness (void)
   return 32;
 }
 
-#define SK_RunOnce(x)    { static volatile LONG first = TRUE; if (InterlockedCompareExchange (&first, FALSE, TRUE)) { (x); first = false; } }
+#define SK_RunOnce(x)    { static volatile LONG first = TRUE; if (InterlockedCompareExchange (&first, FALSE, TRUE)) { (x); } }
 
 #define SK_RunIf32Bit(x)         { SK_GetBitness () == 32  ? (x) :  0; }
 #define SK_RunIf64Bit(x)         { SK_GetBitness () == 64  ? (x) :  0; }

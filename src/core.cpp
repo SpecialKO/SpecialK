@@ -70,7 +70,6 @@
 #include <SpecialK/input/dinput8_backend.h>
 
 #include <SpecialK/injection/injection.h>
-#include <SpecialK/injection/address_cache.h>
 
 #include <atlbase.h>
 #include <comdef.h>
@@ -827,11 +826,99 @@ SK_ReenterCore  (void) // During startup, we have the option of bypassing init a
 typedef BOOL (WINAPI *SetProcessDEPPolicy_pfn)(_In_ DWORD dwFlags);
 
 
+#include <SpecialK/steam_api.h>
+
+uint32_t
+SK_Steam_GetAppID_NoAPI (void)
+{
+  if (StrStrIW (SK_GetHostPath (), LR"(SteamApps\common)") == nullptr)
+    return 0;
+
+  DWORD    dwSteamGameIdLen     =  0 ;
+  uint32_t AppID                =  0 ;
+  char     szSteamGameId [0x21] = { };
+
+  if (GetFileAttributesW (L"steam_appid.txt") != INVALID_FILE_ATTRIBUTES)
+  {
+    FILE* fAppID = fopen ("steam_appid.txt", "r");
+
+    if (fAppID != nullptr)
+    {
+      fgets (szSteamGameId, 0x20, fAppID);
+                          fclose (fAppID);
+
+      dwSteamGameIdLen = (DWORD)strlen (szSteamGameId);
+      AppID            =          atoi (szSteamGameId);
+    }
+  }
+
+  if (AppID == 0)
+  {
+    dwSteamGameIdLen =
+      GetEnvironmentVariableA ( "SteamGameId",
+                                  szSteamGameId,
+                                    0x20 );
+
+    if (dwSteamGameIdLen > 1)
+      AppID = atoi (szSteamGameId);
+
+    if (GetFileAttributesW (L"steam_appid.txt") == INVALID_FILE_ATTRIBUTES)
+    {
+      FILE* fAppID =
+        fopen ("steam_appid.txt", "w+");
+
+      if (fAppID != nullptr)
+      {
+        fputs   (szSteamGameId,   fAppID);
+        fflush                   (fAppID);
+                         fclose  (fAppID);
+      }
+    }
+  }
+
+  if (AppID != 0)
+    config.steam.appid = AppID;
+
+  if (dwSteamGameIdLen > 1 && config.steam.appid != 0)
+  {
+    __declspec (noinline)
+    const wchar_t*
+    __stdcall
+    SK_GetConfigPathEx (bool reset = false);
+
+    SK_GetConfigPathEx (true);
+
+    app_cache_mgr.loadAppCacheForExe (SK_GetFullyQualifiedApp ());
+    app_cache_mgr.addAppToCache
+    (
+      SK_GetFullyQualifiedApp (),
+                SK_GetHostApp (),
+            SK_UTF8ToWideChar (
+             SK_UseManifestToGetAppName   (AppID)
+                               ).c_str (), AppID
+    );
+
+    app_cache_mgr.saveAppCache       (true);
+    app_cache_mgr.loadAppCacheForExe (SK_GetFullyQualifiedApp ());
+
+    // Trigger profile migration if necessary
+    app_cache_mgr.getConfigPathForAppID (AppID);
+
+    return config.steam.appid;
+  }
+
+  return 0;
+}
 
 bool
 __stdcall
 SK_StartupCore (const wchar_t* backend, void* callback)
 {
+  // Before loading any config files, test the game's environment variables
+  //  to determine if the Steam client has given us the AppID without having
+  //    to initialize SteamAPI first.
+  SK_Steam_GetAppID_NoAPI      ();
+
   SK_Thread_InitDebugExtras    ();
   SK_COMPAT_FixNahimicDeadlock (); // Use load-time link dependencies to resolve race conditions
                                    //   involving WASAPI and MMDevAPI in MSI Nahimic.
@@ -1368,17 +1455,22 @@ __stdcall
 SK_ShutdownCore (const wchar_t* backend)
 {
   // Fast path for DLLs that were never really attached.
-  extern __time64_t __SK_DLL_AttachTime;
+  extern __time64_t
+        __SK_DLL_AttachTime;
   if (! __SK_DLL_AttachTime)
   {
     SK_MinHook_UnInit ();
     return true;
   }
 
+  SK_PrintUnloadedDLLs (&dll_log);
+  dll_log.LogEx ( false, 
+               L"========================================================="
+               L"========= (End  Unloads) ================================"
+               L"==================================\n" );
 
   dll_log.Log (L"[ SpecialK ] *** Initiating DLL Shutdown ***");
   SK_Win32_CleanupDummyWindow ();
-
 
 
   if (config.window.background_mute)

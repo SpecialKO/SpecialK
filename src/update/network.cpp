@@ -19,7 +19,9 @@
  *
 **/
 
-#define ISOLATION_AWARE_ENABLED 1
+// Use the modern Common Controls and not those God-awful Windows 95 era
+//   buttons !!
+#define ISOLATION_AWARE_ENABLED              1
 #define ISOLATION_AWARE_BUILD_STATIC_LIBRARY 1
 
 #include <SpecialK/ini.h>
@@ -37,13 +39,6 @@
 #include <SpecialK/thread.h>
 #include <SpecialK/window.h>
 
-#pragma comment (lib,    "advapi32.lib")
-#pragma comment (lib,    "user32.lib")
-#pragma comment (lib,    "comctl32.lib")
-#pragma comment (linker, "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' "  \
-                         "version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df'" \
-                         " language='*'\"")
-
 #include <Windows.h>
 #include <windowsx.h>
 #include <CommCtrl.h>
@@ -51,7 +46,12 @@
 #include <process.h>
 #include <cstdint>
 #include <Wininet.h>
-#pragma comment (lib, "wininet.lib")
+
+#pragma comment (lib,    "wininet.lib")
+#pragma comment (lib,    "comctl32.lib")
+#pragma comment (linker, "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' "  \
+                         "version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df'" \
+                         " language='*'\"")
 
 extern void
 SK_Inject_Stop (void);
@@ -187,7 +187,8 @@ DownloadThread (LPVOID user)
   // Wait 2500 msecs for a dead connection, then give up
   //
   ULONG ulTimeout = 2500UL;
-  InternetSetOptionW ( hInetHTTPGetReq, INTERNET_OPTION_RECEIVE_TIMEOUT, &ulTimeout, sizeof ULONG );
+  InternetSetOptionW ( hInetHTTPGetReq, INTERNET_OPTION_RECEIVE_TIMEOUT,
+                         &ulTimeout,      sizeof ULONG );
 
 
   if (! hInetHTTPGetReq)
@@ -495,6 +496,8 @@ DownloadDialogCallback (
   _In_ LPARAM   lParam,
   _In_ LONG_PTR dwRefData )
 {
+  static HWND hWndOrigTop = 0;
+
   auto* get =
     reinterpret_cast <sk_internet_get_t *> (dwRefData);
 
@@ -505,17 +508,26 @@ DownloadDialogCallback (
     return S_FALSE;
 
 
-  extern DWORD WINAPI SK_RealizeForegroundWindow (HWND);
+  extern HWND WINAPI SK_RealizeForegroundWindow (HWND);
 
   if (uNotification == TDN_TIMER)
   {
-    SK_RealizeForegroundWindow (hWnd);
+    if (GetFocus            () != hWnd ||
+        GetForegroundWindow () != hWnd)
+    {
+      SetForegroundWindow (hWnd);
+      BringWindowToTop    (hWnd);
+    }
 
     if ( get->status == STATUS_UPDATED   ||
          get->status == STATUS_CANCELLED ||
          get->status == STATUS_REMINDER )
     {
+      SK_RealizeForegroundWindow (game_window.hWnd);
+      ShowWindowAsync            (game_window.hWnd, SW_SHOWNA);
+
       EndDialog ( hWnd, 0 );
+
       return S_OK;
     }
   }
@@ -535,13 +547,16 @@ DownloadDialogCallback (
 
     SK_RealizeForegroundWindow (hWnd);
 
+    SetForegroundWindow (hWnd);
+    SetWindowLongW      (hWnd, GWL_EXSTYLE,
+     ( (GetWindowLongW  (hWnd, GWL_EXSTYLE) | (WS_EX_TOPMOST))));
+    BringWindowToTop    (hWnd);
+
     return S_OK;
   }
 
   if (uNotification == TDN_CREATED)
   {
-    SK_RealizeForegroundWindow (hWnd);
-
     return S_OK;
   }
 
@@ -593,18 +608,13 @@ DownloadDialogCallback (
 
   if (uNotification == TDN_DESTROYED)
   {
-    //sk_internet_get_t* get =
-      //(sk_internet_get_t *)dwRefData;
-
-    //delete get;
+    SK_RealizeForegroundWindow (game_window.hWnd);
+    ShowWindowAsync            (game_window.hWnd, SW_SHOWNA);
   }
 
   return S_FALSE;
 }
 
-
-#include <Windowsx.h>
-#include <CommCtrl.h>
 
 int
 __stdcall
@@ -830,10 +840,6 @@ Update_DlgProc (
                 case TDN_CREATED:
                 {
                   SK_RealizeForegroundWindow (hWnd);
-
-                  AttachThreadInput ( GetCurrentThreadId         (),
-                                        GetWindowThreadProcessId (game_window.hWnd, nullptr),
-                                          TRUE );
                 } break;
 
                 case TDN_HYPERLINK_CLICKED:
@@ -933,10 +939,6 @@ Update_DlgProc (
 
     case WM_CREATE:
     {
-      AttachThreadInput ( GetCurrentThreadId         (),
-                            GetWindowThreadProcessId (game_window.hWnd, nullptr),
-                              TRUE );
-
       SK_RealizeForegroundWindow (hWndDlg);
       InterlockedExchange        ( &__SK_UpdateStatus, 0 );
     } break;
@@ -966,24 +968,13 @@ UpdateDlg_Thread (LPVOID user)
   HWND hWndDlg =
     CreateDialog ( SK_GetDLL (),
                      MAKEINTRESOURCE (IDD_UPDATE),
-                       0,
+                       (HWND)user,
                          Update_DlgProc );
-
-  if (game_window.hWnd != HWND_DESKTOP)
-  {
-    AttachThreadInput ( GetCurrentThreadId         (),
-                          GetWindowThreadProcessId (game_window.hWnd, nullptr),
-                            TRUE );
-  }
-
-  IsGUIThread                (TRUE);
-  SK_RealizeForegroundWindow (static_cast <HWND> (user));
-
 
   MSG  msg;
   BOOL bRet;
 
-  while ((bRet = GetMessage (&msg, nullptr, 0, 0)) != 0)
+  while ((bRet = GetMessage (&msg, hWndDlg, 0, 0)) != 0)
   {
     if (bRet == -1)
     {
@@ -993,7 +984,6 @@ UpdateDlg_Thread (LPVOID user)
 
     TranslateMessage (&msg);
     DispatchMessage  (&msg);
-
 
     if ((! started) && msg.hwnd == hWndDlg)
     {

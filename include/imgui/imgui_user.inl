@@ -543,6 +543,19 @@ SK_ImGui_DeltaTestMouse (POINTS& last_pos, DWORD lParam, const short threshold =
 
 #include <dbt.h>
 
+// GetKeyboardLayout (...) is somewhat slow and it is unnecessary unless
+//   WM_INPUTLANGCHANGE is encountered.
+void SK_ImGui_InputLanguage_s::update (void)
+{
+  if (changed)
+  {
+    keybd_layout = GetKeyboardLayout (0);
+    changed      = false;
+  }
+}
+SK_ImGui_InputLanguage_s SK_ImGui_InputLanguage;
+//^^^^^^^^ This is per-thread, but we only process input on one.
+
 LRESULT
 WINAPI
 ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
@@ -754,6 +767,11 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
         io.MouseWheel += GET_WHEEL_DELTA_WPARAM (wParam) > 0 ? +1.0f : -1.0f;
         return true;
 
+      case WM_INPUTLANGCHANGE:
+        SK_ImGui_InputLanguage.changed      = true;
+        SK_ImGui_InputLanguage.keybd_layout = nullptr;
+        return false;
+
       case WM_KEYDOWN:
       case WM_SYSKEYDOWN:
       {
@@ -774,13 +792,15 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
           {
             wchar_t key_str;
 
+            SK_ImGui_InputLanguage.update ();
+
             if ( ToUnicodeEx ( vkCode,
                                scanCode,
                                (const BYTE *)io.KeysDown,
                               &key_str,
                                1,
                                0x00,
-                               GetKeyboardLayout (0) )
+                               SK_ImGui_InputLanguage.keybd_layout )
                      &&
                   iswprint ( key_str )
                )
@@ -920,8 +940,10 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
 
         if (ret)
         {
-          auto *pData =
-            SK_TLS_Bottom ()->raw_input.allocData (size);
+          static auto* pTLS =
+            SK_TLS_Bottom ();
+
+          auto pData = pTLS->raw_input.allocData (size);
 
           if (! pData)
             return 0;

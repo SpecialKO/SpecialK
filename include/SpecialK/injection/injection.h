@@ -97,6 +97,15 @@ struct SK_InjectionRecord_s
   static __declspec (dllexport) volatile LONG count;
   static __declspec (dllexport) volatile LONG rollovers;
 };
+  extern __declspec (dllexport) wchar_t g_LastBouncedModule0 [MAX_PATH + 1];
+  extern __declspec (dllexport) wchar_t g_LastBouncedModule1 [MAX_PATH + 1];
+  extern __declspec (dllexport) wchar_t g_LastBouncedModule2 [MAX_PATH + 1];
+  extern __declspec (dllexport) wchar_t g_LastBouncedModule3 [MAX_PATH + 1];
+  extern __declspec (dllexport) wchar_t g_LastBouncedModule4 [MAX_PATH + 1];
+  extern __declspec (dllexport) wchar_t g_LastBouncedModule5 [MAX_PATH + 1];
+  extern __declspec (dllexport) wchar_t g_LastBouncedModule6 [MAX_PATH + 1];
+  extern __declspec (dllexport) wchar_t g_LastBouncedModule7 [MAX_PATH + 1];
+  extern __declspec (dllexport) int     g_LastBounceIdx;
 };
 
 SK_InjectionRecord_s*

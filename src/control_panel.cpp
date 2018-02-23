@@ -1190,9 +1190,12 @@ SK_ImGui_ControlPanel (void)
                 vinfo_latest   = SK_Version_GetLatestInfo        (nullptr);
                 current_branch = SK_Version_GetLatestBranchInfo  (nullptr, SK_WideCharToUTF8 (vinfo_latest.branch).c_str ());
                 branch_details = PopulateBranches (branches);
+
+                // !!! Handle the case where the number of branches changes after we fetch the repo
+                break;
               }
 
-              if (ImGui::IsItemHovered ())
+              else if (ImGui::IsItemHovered ())
               {
                 ImGui::BeginTooltip ();
                 ImGui::Text         ("%ws", branch_details [it].release.title.c_str ());
@@ -1382,6 +1385,18 @@ SK_ImGui_ControlPanel (void)
               ImGui::Text ( " [%ws]  ", record->process.name );
             }
             ImGui::EndGroup   ();
+
+            ImGui::Separator  ();
+
+            wchar_t* bouncy [8] = { g_LastBouncedModule0, g_LastBouncedModule1,
+                                    g_LastBouncedModule2, g_LastBouncedModule3,
+                                    g_LastBouncedModule4, g_LastBouncedModule5,
+                                    g_LastBouncedModule6, g_LastBouncedModule7 };
+
+            for (int i = 0; i < 8; i++)
+            {
+              ImGui::Text     ("Bounced Executable - %ws", bouncy [i]);
+            }
             //ImGui::SameLine   ();
             //ImGui::BeginGroup ();
             //for (int i = 0; i < count; i++)

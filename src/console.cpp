@@ -406,12 +406,16 @@ SK_HandleConsoleKey (bool keyDown, BYTE vkCode, LPARAM lParam)
         unsigned char key_str [2];
                       key_str [1] = '\0';
 
+
+        SK_ImGui_InputLanguage.update ();
+
+
         if (1 == ToAsciiEx ( vkCode,
                               scanCode,
                               keys_,
    reinterpret_cast <LPWORD> (key_str),
                               0,
-                              GetKeyboardLayout (0) ) &&
+                              SK_ImGui_InputLanguage.keybd_layout ) &&
              isprint ( *key_str ) )
         {
           strncat (text, reinterpret_cast <char *> (key_str), 1);

@@ -134,9 +134,15 @@ SK_BootD3D9 (void)
 {
   // "Normal" games don't change render APIs mid-game; Talos does, but it's
   //   not normal :)
-  //if (SK_GetFramesDrawn ())
-  //  return;
+  if (SK_GetFramesDrawn ())
+    return;
 
+
+  SK_TLS *pTLS =
+    SK_TLS_Bottom ();
+
+  if (pTLS->d3d9.ctx_init_thread)
+    return;
 
   while (backend_dll == nullptr)
   {
@@ -163,9 +169,6 @@ SK_BootD3D9 (void)
 
   if (! InterlockedCompareExchange (&__booted, TRUE, FALSE))
   {
-    SK_TLS *pTLS =
-      SK_TLS_Bottom ();
-
     pTLS->d3d9.ctx_init_thread = true;
 
     SK_D3D9_InitShaderModTools ();
@@ -190,8 +193,6 @@ SK_BootD3D9 (void)
     }
 
     SK_HookD3D9     ();
-
-    pTLS->d3d9.ctx_init_thread = false;
 
     InterlockedIncrement (&__booted);
   }
@@ -307,6 +308,12 @@ SK_BootDDraw (void)
 void
 SK_BootDXGI (void)
 {
+  //SK_TLS *pTLS =
+  //  SK_TLS_Bottom ();
+  //
+  //if (pTLS->d3d11.ctx_init_thread)
+  //  return;
+
   // "Normal" games don't change render APIs mid-game; Talos does, but it's
   //   not normal :)
   if (SK_GetFramesDrawn ())
@@ -366,6 +373,12 @@ SK_BootDXGI (void)
 void
 SK_BootOpenGL (void)
 {
+  SK_TLS *pTLS =
+    SK_TLS_Bottom ();
+
+  if (pTLS->gl.ctx_init_thread)
+    return;
+
   // "Normal" games don't change render APIs mid-game; Talos does, but it's
   //   not normal :)
   //if (SK_GetFramesDrawn ())
@@ -390,6 +403,8 @@ SK_BootOpenGL (void)
 
   if (! InterlockedCompareExchange (&__booted, TRUE, FALSE))
   {
+    pTLS->gl.ctx_init_thread = true;
+
     dll_log.Log (L"[API Detect]  <!> [ Bootstrapping OpenGL (OpenGL32.dll) ] <!>");
 
     if (SK_GetDLLRole () == DLL_ROLE::OpenGL)

@@ -27,6 +27,8 @@
 #undef COM_NO_WINDOWS_H
 #include <Windows.h>
 
+extern HMODULE __SK_HMODULE_0;
+
 enum DLL_ROLE
 {
   INVALID    = 0x000,

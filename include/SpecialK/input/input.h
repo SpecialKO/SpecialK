@@ -255,6 +255,14 @@ class SK_Input_PadBindFactory
 };
 
 
+struct SK_ImGui_InputLanguage_s
+{
+bool changed;
+HKL  keybd_layout;
+
+void update (void);
+} extern SK_ImGui_InputLanguage;
+
 bool
 SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove, bool peek);
 

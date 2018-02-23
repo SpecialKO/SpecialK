@@ -1,3 +1,8 @@
+0.9.4:
+
+ + "Borrowed" an enivornment variable exported by the Steam client to get
+     game's AppID without booting up SteamAPI.
+
 0.9.3:
 
  Updates should no longer cause WerFault.exe to flip out :P

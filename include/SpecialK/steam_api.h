@@ -475,6 +475,9 @@ SK_Steam_ScrubRedistributables (int& total_files, bool erase = false);
 bool
 SK_Steam_ConnectUserIfNeeded (CSteamID user);
 
+std::string
+SK_UseManifestToGetAppName (uint32_t appid);
+
 
 
 #endif /* __SK__STEAM_API_H__ */

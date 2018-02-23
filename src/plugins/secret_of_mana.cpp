@@ -122,8 +122,8 @@ SK_SOM_CreateTexture2D (
       {
         if (pDesc->Width == 2048 && pDesc->Height == 2048)
         {
-          copy.Width  *= shadow_scale;
-          copy.Height *= shadow_scale;
+          copy.Width  = UINT(float(copy.Width)  * shadow_scale);
+          copy.Height = UINT(float(copy.Height) * shadow_scale);
 
           pDesc = &copy;
         }

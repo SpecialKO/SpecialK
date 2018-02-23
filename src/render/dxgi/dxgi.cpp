@@ -3438,6 +3438,16 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
   bool no_override = (! SK_DXGI_IsSwapChainReal (This));
 
 
+  // If auto-update prompt is visible, don't go fullscreen.
+  extern          HWND hWndUpdateDlg;
+  extern volatile LONG __SK_TaskDialogActive;
+  if ( hWndUpdateDlg != static_cast <HWND> (INVALID_HANDLE_VALUE) ||
+                               ReadAcquire (&__SK_TaskDialogActive) )
+  {
+    Fullscreen = false;
+  }
+
+
 
   if (! no_override)
   {
@@ -4101,15 +4111,45 @@ SK_DXGI_CreateSwapChain_PreInit ( _Inout_opt_ DXGI_SWAP_CHAIN_DESC            *p
 
   if (pDesc != nullptr)
   {
+    // If auto-update prompt is visible, don't go fullscreen.
+    extern          HWND hWndUpdateDlg;
+    extern volatile LONG __SK_TaskDialogActive;
+    if ( hWndUpdateDlg != static_cast <HWND> (INVALID_HANDLE_VALUE) ||
+                                 ReadAcquire (&__SK_TaskDialogActive) )
+    {
+      pDesc->Windowed = true;
+    }
+
+    wchar_t wszMSAA [128] = { };
+
+    _swprintf ( wszMSAA, pDesc->SampleDesc.Count > 1 ?
+                           L"%u Samples" :
+                           L"Not Used (or Offscreen)",
+                  pDesc->SampleDesc.Count );
+
     dll_log.LogEx ( true,
-      L"[   DXGI   ]  SwapChain: (%lux%lu @ %4.1f Hz - Scaling: %s - Scanlines: %s) - {%s}"
-      L" [%lu Buffers] :: Flags=0x%04X, SwapEffect: %s\n",
+      L"[Swap Chain]\n"
+      L"  +-------------+-------------------------------------------------------------------------+\n"
+      L"  | Resolution. |  %4lux%4lu @ %6.2f Hz%-50ws|\n"
+      L"  | Format..... |  %-71ws|\n"
+      L"  | Buffers.... |  %-2lu%-69ws|\n"
+      L"  | MSAA....... |  %-71ws|\n"
+      L"  | Mode....... |  %-71ws|\n"
+      L"  | Scaling.... |  %-71ws|\n"
+      L"  | Scanlines.. |  %-71ws|\n"
+      L"  | Flags...... |  0x%04x%-65ws|\n"
+      L"  | SwapEffect. |  %-71ws|\n"
+      L"  +-------------+-------------------------------------------------------------------------+\n",
       pDesc->BufferDesc.Width,
       pDesc->BufferDesc.Height,
       pDesc->BufferDesc.RefreshRate.Denominator != 0 ?
         static_cast <float> (pDesc->BufferDesc.RefreshRate.Numerator) /
         static_cast <float> (pDesc->BufferDesc.RefreshRate.Denominator) :
-          std::numeric_limits <float>::quiet_NaN (),
+          std::numeric_limits <float>::quiet_NaN (), L" ",
+SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).c_str (),
+      pDesc->BufferCount, L" ",
+      wszMSAA,
+      pDesc->Windowed ? L"Windowed" : L"Fullscreen",
       pDesc->BufferDesc.Scaling == DXGI_MODE_SCALING_UNSPECIFIED ?
         L"Unspecified" :
         pDesc->BufferDesc.Scaling == DXGI_MODE_SCALING_CENTERED ?
@@ -4122,9 +4162,7 @@ SK_DXGI_CreateSwapChain_PreInit ( _Inout_opt_ DXGI_SWAP_CHAIN_DESC            *p
           pDesc->BufferDesc.ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_UPPER_FIELD_FIRST ?
             L"Interlaced Even" :
             L"Interlaced Odd",
-      pDesc->Windowed ? L"Windowed" : L"Fullscreen",
-      pDesc->BufferCount,
-      pDesc->Flags,
+      pDesc->Flags, L" ",
       pDesc->SwapEffect         == 0 ?
         L"Discard" :
         pDesc->SwapEffect       == 1 ?
@@ -5739,7 +5777,6 @@ dxgi_init_callback (finish_pfn finish)
 
 
 #include <SpecialK/ini.h>
-#include <SpecialK/injection/address_cache.h>
 
 bool
 SK::DXGI::Startup (void)
@@ -6235,9 +6272,14 @@ HookDXGI (LPVOID user)
     else
     {
       _com_error err (hr);
+
+      std::wstring err_desc (err.Description ());
+      std::wstring err_src  (err.Source      ());
     
-      dll_log.Log (L"[   DXGI   ] Unable to hook D3D11?! (0x%04x :: '%s')",
-                               err.WCode (), err.ErrorMessage () );
+      dll_log.Log (L"[   DXGI   ] Unable to hook D3D11?! HRESULT=%x ('%s')",
+                               err.Error (), err.ErrorMessage () );
+      dll_log.Log (L"[   DXGI   ]  >> %s, in %s",
+                               err_desc.c_str (), err_src.c_str () );
     }
 
     SK_Win32_CleanupDummyWindow (desc.OutputWindow);

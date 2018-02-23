@@ -416,7 +416,7 @@ SK_AppCache_Manager app_cache_mgr;
 __declspec (noinline)
 const wchar_t*
 __stdcall
-SK_GetConfigPath (void)
+SK_GetConfigPathEx (bool reset = false)
 {
   if ((! SK_IsInjected ()) && (! config.system.central_repository))
     return SK_GetNaiveConfigPath ();
@@ -432,7 +432,21 @@ SK_GetConfigPath (void)
   static std::wstring path =
     app_cache_mgr.getConfigPathFromAppPath (SK_GetFullyQualifiedApp ());
 
+  if (reset)
+  {
+    path =
+      app_cache_mgr.getConfigPathFromAppPath (SK_GetFullyQualifiedApp ());
+  }
+
   return path.c_str ();
+}
+
+__declspec (noinline)
+const wchar_t*
+__stdcall
+SK_GetConfigPath (void)
+{
+  return SK_GetConfigPathEx ();
 }
 
 
@@ -461,6 +475,10 @@ SK_CreateINIParameter ( const wchar_t *wszDescription,
 bool
 SK_LoadConfigEx (std::wstring name, bool create)
 {
+  static std::wstring orig_name = name;
+
+  if (name.empty ()) name = orig_name;
+
   // Load INI File
   std::wstring full_name;
   std::wstring custom_name; // User may have custom prefs
@@ -1965,7 +1983,10 @@ SK_LoadConfigEx (std::wstring name, bool create)
   steam.log.silent->load          (config.steam.silent);
   steam.drm.spoof_BLoggedOn->load (config.steam.spoof_BLoggedOn);
 
-  steam.system.appid->load                 (config.steam.appid);
+  // We may already know the AppID before loading the game's config.
+  if (config.steam.appid == 0)
+    steam.system.appid->load               (config.steam.appid);
+
   steam.system.init_delay->load            (config.steam.init_delay);
   steam.system.auto_pump->load             (config.steam.auto_pump_callbacks);
   steam.system.block_stat_callback->load   (config.steam.block_stat_callback);
@@ -3074,24 +3095,28 @@ SK_AppCache_Manager::addAppToCache ( const wchar_t* wszFullPath,
   wchar_t* wszRelativePath = _wcsdup (wszFullPath);
 
   wchar_t* wszRelPath =
-    CharNextW (StrStrIW (CharNextW (StrStrIW (StrStrIW (wszRelativePath, LR"(SteamApps\common\)"), L"\\")), L"\\"));
+    CharNextW (StrStrIW (CharNextW (StrStrIW (StrStrIW (wszRelativePath, LR"(SteamApps\common\)"), LR"(\)")), LR"(\)"));
+
+
+  wchar_t    wszAppID [0x21] = { };
+  _swprintf (wszAppID, L"%u", uiAppID);
 
   if (fwd_map.contains_key (wszRelPath))
-    fwd_map.get_value (wszRelPath) = SK_FormatStringW   (L"%u", uiAppID).c_str ();
+    fwd_map.get_value      (wszRelPath) = wszAppID;
   else
-    fwd_map.add_key_value (wszRelPath, SK_FormatStringW (L"%u", uiAppID).c_str ());
+    fwd_map.add_key_value  (wszRelPath,   wszAppID);
 
 
-  if (rev_map.contains_key (SK_FormatStringW  (L"%u", uiAppID).c_str ()))
-    rev_map.get_value (SK_FormatStringW       (L"%u", uiAppID).c_str ()) = wszRelPath;
+  if (rev_map.contains_key (wszAppID))
+    rev_map.get_value      (wszAppID) = wszRelPath;
   else
-    rev_map.add_key_value (SK_FormatStringW   (L"%u", uiAppID).c_str (), wszRelPath);
+    rev_map.add_key_value  (wszAppID,   wszRelPath);
 
 
-  if (name_map.contains_key (SK_FormatStringW (L"%u", uiAppID).c_str ()))
-    name_map.get_value (SK_FormatStringW      (L"%u", uiAppID).c_str ()) = wszAppName;
+  if (name_map.contains_key (wszAppID))
+    name_map.get_value      (wszAppID) = wszAppName;
   else
-    name_map.add_key_value (SK_FormatStringW  (L"%u", uiAppID).c_str (), wszAppName);
+    name_map.add_key_value  (wszAppID,   wszAppName);
 
 
   app_cache_db->write (app_cache_db->get_filename ());
@@ -3113,6 +3138,8 @@ SK_AppCache_Manager::getConfigPathFromAppPath (const wchar_t* wszPath) const
 std::wstring
 SK_AppCache_Manager::getConfigPathForAppID (uint32_t uiAppID) const
 {
+  static bool recursing = false;
+
   // If no AppCache (probably not a Steam game), or opting-out of central repo,
   //   then don't parse crap and just use the traditional path.
   if ( app_cache_db == nullptr || (! config.system.central_repository) )
@@ -3171,16 +3198,31 @@ SK_AppCache_Manager::getConfigPathForAppID (uint32_t uiAppID) const
 
     SK_StripTrailingSlashesW (path.data ());
 
+    if (recursing)
+      return path.c_str ();
+
     DWORD dwAttribs = 
       GetFileAttributesW (original_dir.c_str ());
 
-    if ( GetFileAttributesW (path.c_str ()) == INVALID_FILE_ATTRIBUTES &&
-                                  dwAttribs != INVALID_FILE_ATTRIBUTES && 
-                                ( dwAttribs & FILE_ATTRIBUTE_DIRECTORY ) )
+    //if ( GetFileAttributesW (path.c_str ()) == INVALID_FILE_ATTRIBUTES &&
+    if (   dwAttribs != INVALID_FILE_ATTRIBUTES && 
+         ( dwAttribs & FILE_ATTRIBUTE_DIRECTORY )  )
     {
-      MoveFileExW ( original_dir.c_str (),
-                      path.c_str       (),
-                        MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED );
+      UINT
+      SK_RecursiveMove ( const wchar_t* wszOrigDir,
+                         const wchar_t* wszDestDir,
+                               bool     replace );
+
+      DeleteFileW (dll_ini->get_filename ());
+            delete dll_ini;
+                   dll_ini = nullptr;
+
+      SK_RecursiveMove (original_dir.c_str (), path.c_str (), false);
+
+      recursing         = true;
+      SK_GetConfigPathEx (true);
+      SK_LoadConfigEx    (L"" );
+      recursing         = false;
     }
   }
 
@@ -3196,8 +3238,8 @@ SK_AppCache_Manager::saveAppCache (bool close)
 
     if (close)
     {
-      delete app_cache_db;
-      app_cache_db = nullptr;
+      delete app_cache_db,
+             app_cache_db = nullptr;
     }
 
     return true;

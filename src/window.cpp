@@ -3378,81 +3378,34 @@ DispatchMessageA_Detour (_In_ const MSG *lpMsg)
 #include <SpecialK/render/dxgi/dxgi_interfaces.h>
 
 
-DWORD
+HWND
 WINAPI
 SK_RealizeForegroundWindow (HWND hWndForeground)
 {
-  //auto TryToEarlyOut =
-  //[&]
-  //{
-  //  if (! game_window.active)
-  //    return true;
-  //
-  //  bool focused =
-  //    ( GetFocus () == hWndForeground );
-  //
-  //  bool foreground =
-  //    ( GetForegroundWindow () == hWndForeground );
-  //
-  //  // Nothing needs to be done
-  //  if (focused || foreground)
-  //  {
-  //    if (! focused)    SetFocus            (hWndForeground);
-  //    if (! foreground) SetForegroundWindow (hWndForeground);
-  //
-  //    return true;
-  //  }
-  //
-  //  return false;
-  //};
-  //
-  //
-  //if (TryToEarlyOut ()) return 0UL;
+  HWND  hWndOrig       =
+    GetForegroundWindow ();
+  DWORD dwThreadId     =
+    GetCurrentThreadId  ();
+  DWORD dwOrigThreadId =
+    GetWindowThreadProcessId (hWndOrig, nullptr);
 
-  static volatile LONG nest_lvl = 0L;
+  AttachThreadInput   (dwThreadId, dwOrigThreadId, true );
+  SetForegroundWindow (hWndForeground);
+  SetWindowPos        (hWndForeground, HWND_TOPMOST,
+                          0, 0,
+                          0, 0, SWP_NOSIZE | SWP_NOMOVE |
+                                SWP_SHOWWINDOW          );
+  SetForegroundWindow (hWndForeground);
+  SetWindowPos        (hWndForeground, HWND_NOTOPMOST,
+                          0, 0,
+                          0, 0, SWP_NOSIZE | SWP_NOMOVE |
+                                SWP_SHOWWINDOW          );
+  SetForegroundWindow (hWndForeground);
+  AttachThreadInput   (dwOrigThreadId, dwThreadId, false);
+  SetFocus            (hWndForeground);
+  SetActiveWindow     (hWndForeground);
 
-  if (ReadAcquire (&nest_lvl))
-    MsgWaitForMultipleObjectsEx (0, nullptr, 15, QS_ALLINPUT, MWMO_ALERTABLE);
-
-  if (ReadAcquire (&nest_lvl))
-    return 0UL;
-
-  //if (TryToEarlyOut ()) return 0UL;
-
-
-  InterlockedIncrementAcquire (&nest_lvl);
-
-  CreateThread (
-    nullptr,
-      0,
-        [](LPVOID user)->
-        DWORD
-        {
-          SetCurrentThreadDescription (L"[SK] Window Foreground Promotion");
-
-          SetWindowPos      ( static_cast <HWND> (user), HWND_TOPMOST,
-                                0, 0,
-                                0, 0,
-                                  SWP_NOSENDCHANGING | SWP_FRAMECHANGED | SWP_DEFERERASE   |
-                                  SWP_NOMOVE         | SWP_NOSIZE       | SWP_NOREPOSITION );
-
-          SetForegroundWindow (static_cast <HWND> (user));
-          SetFocus            (static_cast <HWND> (user));
-          BringWindowToTop    (static_cast <HWND> (user));
-
-          CloseHandle (GetCurrentThread ());
-
-          InterlockedDecrementRelease (&nest_lvl);
-
-          return 0;
-        },
-
-        static_cast <LPVOID> (hWndForeground),
-      0x00,
-    nullptr
-  );
-
-  return 0UL;
+  return hWndOrig;
 }
 
 __declspec (noinline)

@@ -266,7 +266,7 @@ typedef struct tagPIXELFORMATDESCRIPTOR
     imp_##_Name _Args;                                                   \
 }
 
-#if 0
+#if 1
 typedef uint32_t  GLenum;
 typedef uint8_t   GLboolean;
 typedef uint32_t  GLbitfield;
@@ -2519,7 +2519,7 @@ SK_HookGL (void)
          static_cast_p2p <void> (&wgl_delete_context) );
 
       SK_GL_HOOK(wglGetCurrentContext);
-      SK_GL_HOOK(wglGetCurrentDC);
+    //SK_GL_HOOK(wglGetCurrentDC);
 
       SK_TLS_Bottom ()->gl.ctx_init_thread = true;
 
@@ -2874,7 +2874,7 @@ SK_HookGL (void)
 
       SK_GL_HOOK(wglCopyContext);
 
-      SK_GL_HOOK(wglGetProcAddress);
+    //SK_GL_HOOK(wglGetProcAddress);
       SK_GL_HOOK(wglCreateContext);
 
       SK_GL_HOOK(wglUseFontBitmapsA);
@@ -2973,8 +2973,13 @@ SK_GL_GetCurrentDC (void)
   HDC  hdc  = 0;
   HWND hwnd = 0;
 
-  if (    imp_wglGetCurrentDC != nullptr)
-    hdc = imp_wglGetCurrentDC ();
+  typedef HDC (WINAPI *wglGetCurrentDC_pfn)(void);
+
+  wglGetCurrentDC_pfn __imp__wglGetCurrentDC =
+    (wglGetCurrentDC_pfn)GetProcAddress (local_gl, "wglGetCurrentDC");
+
+  if (    __imp__wglGetCurrentDC != nullptr)
+    hdc = __imp__wglGetCurrentDC ();
 
   hwnd = WindowFromDC (hdc);
 

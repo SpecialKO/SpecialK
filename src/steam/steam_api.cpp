@@ -3224,13 +3224,6 @@ SK_Steam_KillPump (void)
   }
 }
 
-
-extern const wchar_t*
-SK_GetFullyQualifiedApp (void);
-
-std::string
-SK_UseManifestToGetAppName (uint32_t appid);
-
 CSteamID
 SK::SteamAPI::UserSteamID (void)
 {
@@ -3269,9 +3262,12 @@ SK::SteamAPI::AppID (void)
       {
         first = false;
 
-        if (config.system.central_repository)
+        if ( config.system.central_repository                        &&
+          (! app_cache_mgr.getAppIDFromPath (SK_GetFullyQualifiedApp ())) )
         {
-          app_cache_mgr.addAppToCache      (SK_GetFullyQualifiedApp (), SK_GetHostApp (), SK_UTF8ToWideChar (SK_UseManifestToGetAppName (id)).c_str (), id);
+          app_cache_mgr.addAppToCache      (SK_GetFullyQualifiedApp (  ),
+                                            SK_GetHostApp           (  ),
+                      SK_UTF8ToWideChar (SK_UseManifestToGetAppName (id)).c_str (), id);
           app_cache_mgr.saveAppCache       (true);
 
           app_cache_mgr.loadAppCacheForExe (SK_GetFullyQualifiedApp ());

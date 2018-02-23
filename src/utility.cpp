@@ -2992,3 +2992,149 @@ SK_DescribeHRESULT (HRESULT hr)
     return L"UNKNOWN";
   }
 }
+
+
+
+UINT
+SK_RecursiveMove ( const wchar_t* wszOrigDir,
+                   const wchar_t* wszDestDir,
+                         bool     replace )
+{
+  UINT moved = 0;
+
+  wchar_t       wszPath [MAX_PATH * 2 + 1] = { };
+  PathCombineW (wszPath, wszOrigDir, L"*");
+
+  WIN32_FIND_DATA fd          = {   };
+  HANDLE          hFind       =
+    FindFirstFileW ( wszPath, &fd);
+
+  if (hFind == INVALID_HANDLE_VALUE) { return 0; }
+
+  do
+  {
+    if ( wcscmp (fd.cFileName, L".")  == 0 ||
+         wcscmp (fd.cFileName, L"..") == 0 )
+    {
+      continue;
+    }
+
+    if (! (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
+    {
+      wchar_t       wszOld [MAX_PATH * 2 + 1];
+                   *wszOld = L'\0';
+      PathCombineW (wszOld, wszOrigDir, fd.cFileName);
+
+      wchar_t       wszNew [MAX_PATH * 2 + 1];
+                   *wszNew = L'\0';
+      PathCombineW (wszNew, wszDestDir, fd.cFileName);
+
+
+      bool move = true;
+
+      if (GetFileAttributesW (wszNew) != INVALID_FILE_ATTRIBUTES)
+        move = replace; // Only move the file if replacement is desired,
+                        //   otherwise just delete the original.
+             
+
+      if (StrStrIW (fd.cFileName, L".log"))
+      {
+        iSK_Logger* log_file = nullptr;
+
+        extern iSK_Logger steam_log,  tex_log,
+                          game_debug, crash_log,
+                          budget_log;
+
+        if (dll_log.name.find (fd.cFileName) != std::wstring::npos)
+        {
+          log_file = &dll_log;
+        }
+
+        else if (steam_log.name.find (fd.cFileName) != std::wstring::npos)
+        {
+          log_file = &steam_log;
+        }
+
+        else if (crash_log.name.find (fd.cFileName) != std::wstring::npos)
+        {
+          log_file = &crash_log;
+        }
+
+        else if (game_debug.name.find (fd.cFileName) != std::wstring::npos)
+        {
+          log_file = &game_debug;
+        }
+
+        else if (tex_log.name.find (fd.cFileName) != std::wstring::npos)
+        {
+          log_file = &tex_log;
+        }
+
+        else if (budget_log.name.find (fd.cFileName) != std::wstring::npos)
+        {
+          log_file = &budget_log;
+        }
+
+        if (log_file != nullptr && log_file->fLog)
+        {
+          log_file->lockless = false;
+          fflush (log_file->fLog);
+          log_file->lock   ();
+          fclose (log_file->fLog);
+        }
+
+        DeleteFileW                      (wszNew);
+        SK_File_MoveNoFail       (wszOld, wszNew);
+        SK_File_SetNormalAttribs (wszNew);
+
+        ++moved;
+
+        if (log_file != nullptr && log_file->fLog)// && log_file != &crash_log)
+        {
+          log_file->name = wszNew;
+          log_file->fLog = _wfopen (log_file->name.c_str (), L"a");
+          log_file->unlock ();
+        }
+      }
+
+      else
+      {
+        if (move)
+        {
+          DeleteFileW                (wszNew);
+          SK_File_MoveNoFail (wszOld, wszNew);
+          ++moved;
+        }
+        else
+        {
+          std::wstring tmp_dest = SK_GetHostPath ();
+                       tmp_dest += L"\\SKI0.tmp";
+
+          SK_File_MoveNoFail (wszOld, tmp_dest.c_str ());
+        }
+      }
+    }
+
+    if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+    {
+      wchar_t            wszDescend0 [MAX_PATH * 2 + 1] = { };
+      PathCombineW      (wszDescend0, wszOrigDir, fd.cFileName);
+      PathAddBackslashW (wszDescend0);
+
+      wchar_t            wszDescend1 [MAX_PATH * 2 + 1] = { };
+      PathCombineW      (wszDescend1, wszDestDir, fd.cFileName);
+      PathAddBackslashW (wszDescend1);
+
+      SK_CreateDirectories (wszDescend1);
+
+      moved +=
+        SK_RecursiveMove (wszDescend0, wszDescend1, replace);
+    }
+  } while (FindNextFile (hFind, &fd));
+
+  FindClose (hFind);
+
+  RemoveDirectoryW (wszOrigDir);
+
+  return moved;
+}

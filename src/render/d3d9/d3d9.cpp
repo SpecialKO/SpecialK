@@ -921,7 +921,6 @@ d3d9_init_callback (finish_pfn finish)
 
 
 #include <SpecialK/ini.h>
-#include <SpecialK/injection/address_cache.h>
 
 bool
 SK::D3D9::Startup (void)
@@ -4105,6 +4104,39 @@ SK_D3D9_WrapDevice ( IUnknown               *pDevice,
   return (IWrapDirect3DDevice9 *)*ppDest;
 }
 
+IWrapDirect3DDevice9Ex*
+SK_D3D9Ex_WrapDevice ( IUnknown               *pDevice,
+                       D3DPRESENT_PARAMETERS  *pPresentationParameters,
+                       IDirect3DDevice9Ex    **ppDest )
+{
+  if (pPresentationParameters != nullptr)
+  {
+    if (! SK_D3D9_IsDummyD3D9Device (pPresentationParameters))
+    {
+      SK_LOG0 ( (L" + Direct3DDevice9Ex (%08" PRIxPTR L"h) wrapped", (uintptr_t)pDevice ),
+                 L"  D3D9Ex  " );
+      *ppDest =
+         (IDirect3DDevice9Ex *)new IWrapDirect3DDevice9 ((IDirect3DDevice9Ex *)pDevice);
+    }
+
+    else
+    {
+      *ppDest = (IDirect3DDevice9Ex *)pDevice;
+    }
+  }
+
+  else
+  {
+    SK_LOG0 ( (L" + Direct3DDevice9Ex {Headless} (%08" PRIxPTR L"h) wrapped", (uintptr_t)pDevice ),
+               L"  D3D9Ex  " );
+
+    *ppDest=
+       (IDirect3DDevice9Ex *)new IWrapDirect3DDevice9 ((IDirect3DDevice9Ex *)pDevice);
+  }
+
+  return (IWrapDirect3DDevice9Ex *)*ppDest;
+}
+
 
 __declspec (noinline)
 HRESULT
@@ -4199,7 +4231,7 @@ D3D9CreateDeviceEx_Override ( IDirect3D9Ex           *This,
 
   if (SUCCEEDED (ret))
   {
-    SK_D3D9_WrapDevice (pTemp, pPresentationParameters,(IDirect3DDevice9 **)ppReturnedDeviceInterface);
+    SK_D3D9Ex_WrapDevice (pTemp, pPresentationParameters,(IDirect3DDevice9Ex **)ppReturnedDeviceInterface);
   }
 
   else

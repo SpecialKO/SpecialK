@@ -122,6 +122,7 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
     wszProduct = __SK_LastProductTested.empty () ?
                    L"SpecialK" : __SK_LastProductTested.c_str ();
 
+  __SK_LastProductTested = wszProduct;
 
   if (! force)
   {
@@ -148,8 +149,6 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
     }
   }
 #endif
-
-  __SK_LastProductTested = wszProduct;
 
   FILETIME                  ftNow;
   GetSystemTimeAsFileTime (&ftNow);

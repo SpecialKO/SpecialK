@@ -46,7 +46,7 @@ int __stdcall SK_GetSystemMetrics (_In_ int nIndex);
 LPRECT        SK_GetGameRect      (void);
 bool          SK_DiscontEpsilon   (int x1, int x2, int tolerance);
 
-DWORD __stdcall SK_RealizeForegroundWindow (HWND hWndForeground);
+HWND  __stdcall SK_RealizeForegroundWindow (HWND hWndForeground);
 HWND  __stdcall SK_GetGameWindow           (void);
 
 

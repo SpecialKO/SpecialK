@@ -22,7 +22,6 @@
 
 
 #include <SpecialK/injection/injection.h>
-#include <SpecialK/injection/address_cache.h>
 #include <SpecialK/diagnostics/compatibility.h>
 #include <SpecialK/render/dxgi/dxgi_backend.h>
 #include <SpecialK/render/d3d9/d3d9_backend.h>
@@ -46,7 +45,17 @@ SK_InjectionRecord_s __SK_InjectionHistory [MAX_INJECTED_PROC_HISTORY] = { };
 
 #pragma data_seg (".SK_Hooks")
   __declspec (dllexport) SK_InjectionBase_s g_CBTHook;
-  __declspec (dllexport) LONG               g_sHookedPIDs [MAX_INJECTED_PROCS]        = { 0 };
+  __declspec (dllexport) LONG               g_sHookedPIDs [MAX_INJECTED_PROCS]         = { 0 };
+
+  __declspec (dllexport) wchar_t g_LastBouncedModule0 [MAX_PATH + 1] = { };
+  __declspec (dllexport) wchar_t g_LastBouncedModule1 [MAX_PATH + 1] = { };
+  __declspec (dllexport) wchar_t g_LastBouncedModule2 [MAX_PATH + 1] = { };
+  __declspec (dllexport) wchar_t g_LastBouncedModule3 [MAX_PATH + 1] = { };
+  __declspec (dllexport) wchar_t g_LastBouncedModule4 [MAX_PATH + 1] = { };
+  __declspec (dllexport) wchar_t g_LastBouncedModule5 [MAX_PATH + 1] = { };
+  __declspec (dllexport) wchar_t g_LastBouncedModule6 [MAX_PATH + 1] = { };
+  __declspec (dllexport) wchar_t g_LastBouncedModule7 [MAX_PATH + 1] = { };
+  __declspec (dllexport) int     g_LastBounceIdx                     =  0;
 
                 wchar_t    __SK_InjectionHistory_name     [MAX_INJECTED_PROC_HISTORY * MAX_PATH] =  { 0 };
                 DWORD      __SK_InjectionHistory_ids      [MAX_INJECTED_PROC_HISTORY]            =  { 0 };
