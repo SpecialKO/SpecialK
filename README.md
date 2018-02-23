@@ -1,8 +1,25 @@
-# SpecialK
-Core systems used by all of my mods
+### SpecialK
+_*Core systems used by all of my mods*_
+
+> I have actually stopped making game-specifc mods to work entirely on this framework
+> and hope to have a documented and extensible mod / reverse engineering / graphics
+> debugger tool soon.
+
+>> Although I use GitLab to store my source code publically, for now if you need support
+>> the best way to reach me is through the Steam forums. This project has its owwn
+>> group on Steam and I am a curator who analyzes technical problems in contemporary
+>> PC ports.
+
+
+
+
+
+
+
+-----
 
 ## This file is part of Special K.
-#### Copyright (C) 2015-2017 Andon "Kaldaien" Coleman.
+#### Copyright (C) 2015-2018 Andon "Kaldaien" Coleman.
 > Special K is free software : you can redistribute it and / or modify
 > it under the terms of the GNU General Public License as published by
 > The Free Software Foundation, either version 3 of the License, or
