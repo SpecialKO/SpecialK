@@ -520,7 +520,7 @@
       <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp14</LanguageStandard>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
@@ -594,7 +594,7 @@
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp14</LanguageStandard>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ExceptionHandling>Async</ExceptionHandling>
@@ -674,7 +674,7 @@
       <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp14</LanguageStandard>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ExceptionHandling>Async</ExceptionHandling>
@@ -772,7 +772,7 @@
       <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp14</LanguageStandard>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ExceptionHandling>Async</ExceptionHandling>
@@ -871,7 +871,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)include</AdditionalIncludeDirectories>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp14</LanguageStandard>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
@@ -958,7 +958,7 @@ Exit 0</Command>
       <AdditionalIncludeDirectories>$(SolutionDir)include</AdditionalIncludeDirectories>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp14</LanguageStandard>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
@@ -1047,7 +1047,7 @@ Exit 0</Command>
       <AdditionalIncludeDirectories>$(SolutionDir)include</AdditionalIncludeDirectories>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp14</LanguageStandard>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
@@ -1138,7 +1138,7 @@ Exit 0</Command>
       <AdditionalIncludeDirectories>$(SolutionDir)include</AdditionalIncludeDirectories>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp14</LanguageStandard>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
@@ -1227,7 +1227,7 @@ Exit 0</Command>
       <AdditionalIncludeDirectories>$(SolutionDir)include</AdditionalIncludeDirectories>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp14</LanguageStandard>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
@@ -1316,7 +1316,7 @@ Exit 0</Command>
       <AdditionalIncludeDirectories>$(SolutionDir)include</AdditionalIncludeDirectories>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp14</LanguageStandard>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
@@ -1407,7 +1407,7 @@ Exit 0</Command>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp14</LanguageStandard>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <WholeProgramOptimization>false</WholeProgramOptimization>
@@ -1487,7 +1487,7 @@ Exit 0</Command>
       <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp14</LanguageStandard>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <StringPooling>true</StringPooling>
@@ -1585,7 +1585,7 @@ Exit 0</Command>
       <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp14</LanguageStandard>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <StringPooling>true</StringPooling>
@@ -1684,7 +1684,7 @@ Exit 0</Command>
       <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp14</LanguageStandard>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ExceptionHandling>Async</ExceptionHandling>
@@ -1770,7 +1770,7 @@ Exit 0</Command>
       <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp14</LanguageStandard>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ExceptionHandling>Async</ExceptionHandling>
@@ -1856,7 +1856,7 @@ Exit 0</Command>
       <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp14</LanguageStandard>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ExceptionHandling>Async</ExceptionHandling>
@@ -1942,7 +1942,7 @@ Exit 0</Command>
       <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp14</LanguageStandard>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ExceptionHandling>Async</ExceptionHandling>
@@ -2029,7 +2029,7 @@ Exit 0</Command>
       <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp14</LanguageStandard>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ExceptionHandling>Async</ExceptionHandling>
@@ -2119,7 +2119,7 @@ Exit 0</Command>
       <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp14</LanguageStandard>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ExceptionHandling>Async</ExceptionHandling>
@@ -2208,7 +2208,7 @@ Exit 0</Command>
       <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp14</LanguageStandard>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ExceptionHandling>Async</ExceptionHandling>
@@ -2307,6 +2307,14 @@ Exit 0</Command>
     <ClInclude Include="depends\DirectXTex\DirectXTexP.h" />
     <ClInclude Include="depends\DirectXTex\Filters.h" />
     <ClInclude Include="depends\DirectXTex\scoped.h" />
+    <ClInclude Include="depends\include\frozen\algorithm.h" />
+    <ClInclude Include="depends\include\frozen\map.h" />
+    <ClInclude Include="depends\include\frozen\random.h" />
+    <ClInclude Include="depends\include\frozen\set.h" />
+    <ClInclude Include="depends\include\frozen\string.h" />
+    <ClInclude Include="depends\include\frozen\unordered_map.h" />
+    <ClInclude Include="depends\include\frozen\unordered_set.h" />
+    <ClInclude Include="depends\include\frozen\wstring.h" />
     <ClInclude Include="include\SpecialK\com_util.h" />
     <ClInclude Include="include\SpecialK\control_panel.h" />
     <ClInclude Include="include\SpecialK\control_panel\compatibility.h" />

@@ -496,7 +496,8 @@ DownloadDialogCallback (
   _In_ LPARAM   lParam,
   _In_ LONG_PTR dwRefData )
 {
-  static HWND hWndOrigTop = 0;
+  static HWND    hWndOrigTop = 0;
+  static HCURSOR hCursorOrig = 0;
 
   auto* get =
     reinterpret_cast <sk_internet_get_t *> (dwRefData);
@@ -512,20 +513,24 @@ DownloadDialogCallback (
 
   if (uNotification == TDN_TIMER)
   {
+    while (! ShowCursor (TRUE))
+      ;
+
     if (GetFocus            () != hWnd ||
         GetForegroundWindow () != hWnd)
     {
       SetForegroundWindow (hWnd);
-      BringWindowToTop    (hWnd);
+      SetWindowPos        (hWnd, HWND_TOPMOST, 0, 0, 0, 0,
+                           SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW   |
+                           SWP_NOSIZE         | SWP_NOMOVE       |
+                           SWP_NOSENDCHANGING   );
     }
 
     if ( get->status == STATUS_UPDATED   ||
          get->status == STATUS_CANCELLED ||
          get->status == STATUS_REMINDER )
     {
-      SK_RealizeForegroundWindow (game_window.hWnd);
-      ShowWindowAsync            (game_window.hWnd, SW_SHOWNA);
-
+    //SK_RealizeForegroundWindow (game_window.hWnd);
       EndDialog ( hWnd, 0 );
 
       return S_OK;
@@ -546,6 +551,14 @@ DownloadDialogCallback (
     SendMessage (hWnd, TDM_SET_PROGRESS_BAR_STATE, PBST_PAUSED, 0L);
 
     SK_RealizeForegroundWindow (hWnd);
+
+    if (game_window.hWnd != 0)
+    {
+      SetWindowPos ( game_window.hWnd, HWND_DESKTOP, 0, 0, 0, 0,
+                     SWP_ASYNCWINDOWPOS | SWP_HIDEWINDOW   |
+                     SWP_NOSIZE         | SWP_NOMOVE       |
+                     SWP_NOSENDCHANGING | SWP_NOREPOSITION   );
+    }
 
     SetForegroundWindow (hWnd);
     SetWindowLongW      (hWnd, GWL_EXSTYLE,
@@ -608,8 +621,15 @@ DownloadDialogCallback (
 
   if (uNotification == TDN_DESTROYED)
   {
-    SK_RealizeForegroundWindow (game_window.hWnd);
-    ShowWindowAsync            (game_window.hWnd, SW_SHOWNA);
+    if (game_window.hWnd != 0)
+    {
+      SetForegroundWindow (game_window.hWnd);
+      SetWindowPos        (game_window.hWnd, HWND_TOP, 0, 0, 0, 0,
+                           SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW |
+                           SWP_NOSIZE         | SWP_NOMOVE     |
+                           SWP_NOREPOSITION   | SWP_NOACTIVATE );
+      ShowWindowAsync     (game_window.hWnd,    SW_SHOWNORMAL);
+    }
   }
 
   return S_FALSE;

@@ -22,11 +22,17 @@
 #ifndef __SK__INJECTION_BLACKLIST_H__
 #define __SK__INJECTION_BLACKLIST_H__
 
-#include <unordered_set>
+#pragma warning (push)
+#pragma warning (disable: 4245)
+#pragma warning (disable: 4244)
+#pragma warning (disable: 4305)
+
+#include <frozen/unordered_set.h>
+#include <frozen/wstring.h>
 #include <string>
 
-static const std::unordered_set <std::wstring>
-__blacklist = {
+constexpr
+frozen::unordered_set<frozen::wstring, 91> __blacklist = {
   L"steam.exe",
   L"gameoverlayui.exe",
   L"streaming_client.exe",
@@ -45,22 +51,22 @@ __blacklist = {
   L"crashsender1400.exe",
   L"werfault.exe",
   
-  //L"dxsetup.exe",
-  //L"setup.exe",
-  //L"vc_redist.x64.exe",
-  //L"vc_redist.x86.exe",
-  //L"vc2010redist_x64.exe",
-  //L"vc2010redist_x86.exe",
-  //L"vcredist_x64.exe",
-  //L"vcredist_x86.exe",
-  //L"ndp451-kb2872776-x86-x64-allos-enu.exe",
-  //L"dotnetfx35.exe",
-  //L"dotnetfx35client.exe",
-  //L"dotnetfx40_full_x86_x64.exe",
-  //L"dotnetfx40_client_x86_x64.exe",
-  //L"oalinst.exe",
-  //L"easyanticheat_setup.exe",
-  //L"uplayinstaller.exe",
+  L"dxsetup.exe",
+  L"setup.exe",
+  L"vc_redist.x64.exe",
+  L"vc_redist.x86.exe",
+  L"vc2010redist_x64.exe",
+  L"vc2010redist_x86.exe",
+  L"vcredist_x64.exe",
+  L"vcredist_x86.exe",
+  L"ndp451-kb2872776-x86-x64-allos-enu.exe",
+  L"dotnetfx35.exe",
+  L"dotnetfx35client.exe",
+  L"dotnetfx40_full_x86_x64.exe",
+  L"dotnetfx40_client_x86_x64.exe",
+  L"oalinst.exe",
+  L"easyanticheat_setup.exe",
+  L"uplayinstaller.exe",
   
   L"x64launcher.exe",
   L"x86launcher.exe",
@@ -126,5 +132,6 @@ __blacklist = {
   L"ds3t.exe",
   L"tzt.exe"
 };
+#pragma warning(pop)
 
 #endif /* __SK__INJECTION_BLACKLIST_H__ */

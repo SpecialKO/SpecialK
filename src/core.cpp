@@ -1217,8 +1217,8 @@ BACKEND_INIT:
   GetCurrentDirectoryW (MAX_PATH, wszWorkDir);
        SK_StripUserNameFromPathW (wszWorkDir);
 
-  dll_log.Log (L" Working Directory:          %s", SK_StripUserNameFromPathW (std::wstring (wszWorkDir).data    ()));
-  dll_log.Log (L" System Directory:           %s", SK_StripUserNameFromPathW (std::wstring (wszBackendDLL).data ()));
+  dll_log.Log (L" Working Directory:          %s", SK_StripUserNameFromPathW ((wchar_t *)std::wstring (wszWorkDir).data    ()));
+  dll_log.Log (L" System Directory:           %s", SK_StripUserNameFromPathW ((wchar_t *)std::wstring (wszBackendDLL).data ()));
 
   lstrcatW (wszBackendDLL, L"\\");
   lstrcatW (wszBackendDLL, backend);
@@ -1260,9 +1260,9 @@ BACKEND_INIT:
     backend_dll = LoadLibraryW_Original (dll_name);
 
   if (backend_dll != nullptr)
-    dll_log.LogEx (false, L" (%s)\n",         SK_StripUserNameFromPathW (std::wstring (dll_name).data ()));
+    dll_log.LogEx (false, L" (%s)\n",         SK_StripUserNameFromPathW ((wchar_t *)std::wstring (dll_name).data ()));
   else
-    dll_log.LogEx (false, L" FAILED (%s)!\n", SK_StripUserNameFromPathW (std::wstring (dll_name).data ()));
+    dll_log.LogEx (false, L" FAILED (%s)!\n", SK_StripUserNameFromPathW ((wchar_t *)std::wstring (dll_name).data ()));
 
   // Free the temporary string storage
   if (load_proxy)
@@ -1410,7 +1410,7 @@ SK_Win32_CreateDummyWindow (void)
 
     if (hWnd != HWND_DESKTOP)
     {
-      ShowWindowAsync (hWnd, SW_HIDE);
+      ShowWindowAsync (hWnd, SW_SHOWMINNOACTIVE);
       dummy_windows.list.emplace (hWnd);
     }
 

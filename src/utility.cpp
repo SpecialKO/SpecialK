@@ -569,9 +569,9 @@ SK_MakePrettyAddress (LPCVOID addr, DWORD /*dwFlags*/)
   return
     SK_FormatStringW ( L"( %s ) + %6xh",
       SK_StripUserNameFromPathW (
-                         SK_GetModuleFullNameFromAddr (addr).data () ),
+                       (wchar_t *)SK_GetModuleFullNameFromAddr (addr).data ()),
                                             (uintptr_t)addr -
-                      (uintptr_t)SK_GetModuleFromAddr (addr) );
+                      (uintptr_t)SK_GetModuleFromAddr (addr));
 }
 
 
@@ -1908,7 +1908,7 @@ SK_DeleteTemporaryFiles (const wchar_t* wszPath, const wchar_t* wszPattern)
   if (hFind != INVALID_HANDLE_VALUE)
   {
     dll_log.LogEx ( true, L"[Clean Mgr.] Cleaning temporary files in '%s'...    ", 
-                   SK_StripUserNameFromPathW (std::wstring (wszPath).data ()) );
+                   SK_StripUserNameFromPathW ((wchar_t *)(std::wstring (wszPath).data ())) );
 
     wchar_t wszFullPath [MAX_PATH * 2 + 1] = { };
 

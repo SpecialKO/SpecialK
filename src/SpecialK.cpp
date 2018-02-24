@@ -76,6 +76,8 @@ volatile unsigned long __SK_Threads_Attached = 0UL;
 volatile unsigned long __SK_DLL_Refs         = 0UL;
 volatile          long __SK_HookContextOwner = false;
 
+bool has_local_dll = false;
+
 
 class SK_DLL_Bootstrapper
 {
@@ -158,6 +160,8 @@ SK_TryLocalWrapperFirst (std::set <std::wstring> dlls)
 BOOL
 SK_DontInject (void)
 {
+  has_local_dll = true;
+
   LONG idx_to_free =
     InterlockedExchange ( &__SK_TLS_INDEX,
                             TLS_OUT_OF_INDEXES );
@@ -798,6 +802,8 @@ DllMain ( HMODULE hModule,
       }
     }
 
+    if (has_local_dll) return TRUE;
+
     return bRet;
   };
 
@@ -860,7 +866,7 @@ DllMain ( HMODULE hModule,
 
       InterlockedIncrement (&__SK_DLL_Refs);
       
-      // If we got this far, it's because this is an injection target
+      // If we got this far, it 's because this is an injection target
       //
       //   Must hold a reference to this DLL so that removing the CBT hook does
       //     not crash the game.

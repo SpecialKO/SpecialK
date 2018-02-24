@@ -3382,28 +3382,36 @@ HWND
 WINAPI
 SK_RealizeForegroundWindow (HWND hWndForeground)
 {
-  HWND  hWndOrig       =
-    GetForegroundWindow ();
-  DWORD dwThreadId     =
-    GetCurrentThreadId  ();
-  DWORD dwOrigThreadId =
-    GetWindowThreadProcessId (hWndOrig, nullptr);
+  HWND hWndOrig = 0;
 
-  AttachThreadInput   (dwThreadId, dwOrigThreadId, true );
-  SetForegroundWindow (hWndForeground);
-  SetWindowPos        (hWndForeground, HWND_TOPMOST,
-                          0, 0,
-                          0, 0, SWP_NOSIZE | SWP_NOMOVE |
-                                SWP_SHOWWINDOW          );
-  SetForegroundWindow (hWndForeground);
-  SetWindowPos        (hWndForeground, HWND_NOTOPMOST,
-                          0, 0,
-                          0, 0, SWP_NOSIZE | SWP_NOMOVE |
-                                SWP_SHOWWINDOW          );
-  SetForegroundWindow (hWndForeground);
-  AttachThreadInput   (dwOrigThreadId, dwThreadId, false);
-  SetFocus            (hWndForeground);
-  SetActiveWindow     (hWndForeground);
+  if (SK_GetFramesDrawn () > 1)
+  {
+    IsGUIThread (TRUE);
+
+          hWndOrig       =
+      GetForegroundWindow ();
+    DWORD dwThreadId     =
+      GetCurrentThreadId  ();
+    DWORD dwOrigThreadId =
+      GetWindowThreadProcessId (hWndOrig, nullptr);
+
+    AttachThreadInput   (dwThreadId, dwOrigThreadId, true );
+    SetForegroundWindow (hWndForeground);
+    SetWindowPos        (hWndForeground, HWND_TOPMOST,
+                            0, 0,
+                            0, 0, SWP_NOSIZE | SWP_NOMOVE |
+                                  SWP_SHOWWINDOW          );
+    SetForegroundWindow (hWndForeground);
+    SetWindowPos        (hWndForeground, HWND_NOTOPMOST,
+                            0, 0,
+                            0, 0, SWP_NOSIZE | SWP_NOMOVE |
+                                  SWP_SHOWWINDOW          );
+    SetForegroundWindow (hWndForeground);
+    AttachThreadInput   (dwOrigThreadId, dwThreadId, false);
+    SetFocus            (hWndForeground);
+    SetActiveWindow     (hWndForeground);
+    BringWindowToTop    (hWndForeground);
+  }
 
   return hWndOrig;
 }
