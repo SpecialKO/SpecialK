@@ -122,6 +122,12 @@ struct sk_loader_hooks_t {
   LPVOID LoadPackagedLibrary_target = nullptr;
 
   LPVOID GetModuleHandleA_target    = nullptr;
+  LPVOID GetModuleHandleW_target    = nullptr;
+  LPVOID GetModuleHandleExA_target  = nullptr;
+  LPVOID GetModuleHandleExW_target  = nullptr;
+
+  LPVOID GetModuleFileNameA_target  = nullptr;
+  LPVOID GetModuleFileNameW_target  = nullptr;
 
   LPVOID FreeLibrary_target         = nullptr;
 } _loader_hooks;
@@ -151,6 +157,106 @@ SK_UnlockDllLoader (void)
     loader_lock->unlock ();
 }
 
+
+typedef BOOL (WINAPI* GetModuleHandleExW_pfn)(
+  _In_     DWORD       dwFlags,
+  _In_opt_ LPCWSTR     lpModuleName,
+  _Outptr_ HMODULE*    phModule
+);
+
+typedef BOOL (WINAPI* GetModuleHandleExA_pfn)(
+  _In_     DWORD       dwFlags,
+  _In_opt_ LPCSTR      lpModuleName,
+  _Outptr_ HMODULE*    phModule
+);
+GetModuleHandleExA_pfn GetModuleHandleExA_Original = nullptr;
+GetModuleHandleExW_pfn GetModuleHandleExW_Original = nullptr;
+
+BOOL
+WINAPI
+GetModuleHandleExA_Detour (
+  _In_     DWORD       dwFlags,
+  _In_opt_ LPCSTR      lpModuleName,
+  _Outptr_ HMODULE*    phModule )
+{
+  if (dwFlags & GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS)
+  {
+    if ((LPVOID)lpModuleName == SK_GetDLL ())
+      return false;
+  }
+
+  if (StrStrIA (lpModuleName, SK_RunLHIfBitness (64, "SpecialK64",
+                                                     "SpecialK32")) )
+    return false;
+
+  return GetModuleHandleExA_Original (dwFlags, lpModuleName, phModule);
+}
+
+BOOL
+WINAPI
+GetModuleHandleExW_Detour (
+  _In_     DWORD       dwFlags,
+  _In_opt_ LPCWSTR     lpModuleName,
+  _Outptr_ HMODULE*    phModule )
+{
+  if (dwFlags & GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS)
+  {
+    if ((LPVOID)lpModuleName == SK_GetDLL ())
+      return false;
+  }
+
+  if (StrStrIW (lpModuleName, SK_RunLHIfBitness (64, L"SpecialK64",
+                                                     L"SpecialK32")) )
+    return false;
+
+  return GetModuleHandleExW_Original (dwFlags, lpModuleName, phModule);
+}
+
+
+
+
+typedef DWORD (WINAPI *GetModuleFileNameA_pfn)(
+_In_opt_ HMODULE hModule,
+_Out_writes_to_(nSize, ((return < nSize) ? (return + 1) : nSize)) LPSTR lpFilename,
+_In_ DWORD nSize
+);
+GetModuleFileNameA_pfn GetModuleFileNameA_Original = nullptr;
+
+
+typedef DWORD (WINAPI *GetModuleFileNameW_pfn)(
+_In_opt_ HMODULE hModule,
+_Out_writes_to_(nSize, ((return < nSize) ? (return + 1) : nSize)) LPWSTR lpFilename,
+_In_ DWORD nSize
+);
+GetModuleFileNameW_pfn GetModuleFileNameW_Original = nullptr;
+
+
+DWORD
+WINAPI
+GetModuleFileNameA_Detour (
+  _In_opt_ HMODULE hModule,
+  _Out_writes_to_ (nSize, ( ( return < nSize ) ? ( return +1 ) : nSize )) LPSTR lpFilename,
+  _In_ DWORD nSize)
+{
+  if (hModule == SK_GetDLL ())
+    return 0;
+
+  return GetModuleFileNameA_Original (hModule, lpFilename, nSize);
+}
+
+DWORD
+WINAPI
+GetModuleFileNameW_Detour (
+  _In_opt_ HMODULE hModule,
+  _Out_writes_to_ (nSize, ( ( return < nSize ) ? ( return +1 ) : nSize )) LPWSTR lpFilename,
+  _In_ DWORD nSize)
+{
+  if (hModule == SK_GetDLL ())
+    return 0;
+
+  return GetModuleFileNameW_Original (hModule, lpFilename, nSize);
+}
+
 typedef HMODULE (WINAPI *GetModuleHandleA_pfn)(_In_opt_ LPCSTR lpModuleName);
                          GetModuleHandleA_pfn GetModuleHandleA_Original = nullptr;
 
@@ -160,6 +266,12 @@ GetModuleHandleA_Detour (
   _In_opt_ LPCSTR lpModuleName
 )
 {
+  if ( SK_RunLHIfBitness (64, StrStrIA (lpModuleName, "SpecialK64"),
+                              StrStrIA (lpModuleName, "SpecialK32")) )
+  {
+    return nullptr;
+  }
+
   static const std::unordered_set <std::string> blacklist_nv =
   {
     "libovrrt64_1", "libovrrt32_1", "openvr_api"
@@ -178,6 +290,25 @@ GetModuleHandleA_Detour (
 
   return
     GetModuleHandleA_Original (lpModuleName);
+}
+
+typedef HMODULE (WINAPI *GetModuleHandleW_pfn)(_In_opt_ LPCWSTR lpModuleName);
+                         GetModuleHandleW_pfn GetModuleHandleW_Original = nullptr;
+
+HMODULE
+WINAPI
+GetModuleHandleW_Detour (
+  _In_opt_ LPCWSTR lpModuleName
+)
+{
+  if ( SK_RunLHIfBitness (64, StrStrIW (lpModuleName, L"SpecialK64"),
+                              StrStrIW (lpModuleName, L"SpecialK32")) )
+  {
+    return nullptr;
+  }
+
+  return
+    GetModuleHandleW_Original (lpModuleName);
 }
 
 
@@ -549,6 +680,9 @@ FreeLibrary_Detour (HMODULE hLibModule)
     return FreeLibrary_Original (hLibModule);
   }
 
+  if (hLibModule == SK_GetDLL ())
+    return TRUE;
+
   SK_LockDllLoader ();
 
   std::wstring name = SK_GetModuleName (hLibModule);
@@ -589,6 +723,12 @@ FreeLibrary_Detour (HMODULE hLibModule)
 HMODULE
 LoadLibrary_Marshal (LPVOID lpRet, LPCWSTR lpFileName, const wchar_t* wszSourceFunc)
 {
+  if ( SK_RunLHIfBitness (64, StrStrIW (lpFileName, L"SpecialK64"),
+                              StrStrIW (lpFileName, L"SpecialK32")) )
+  {
+    return nullptr;
+  }
+
   if (lpFileName == nullptr)
     return nullptr;
 
@@ -728,6 +868,12 @@ LoadPackagedLibrary_Detour (LPCWSTR lpLibFileName, DWORD Reserved)
 HMODULE
 LoadLibraryEx_Marshal (LPVOID lpRet, LPCWSTR lpFileName, HANDLE hFile, DWORD dwFlags, const wchar_t* wszSourceFunc)
 {
+  if ( SK_RunLHIfBitness (64, StrStrIW (lpFileName, L"SpecialK64"),
+                              StrStrIW (lpFileName, L"SpecialK32")) )
+  {
+    return nullptr;
+  }
+
   if (lpFileName == nullptr)
     return nullptr;
 
@@ -1027,13 +1173,53 @@ SK_InitCompatBlacklist (void)
 {
   memset (&_loader_hooks, 0, sizeof sk_loader_hooks_t);
   
-  SK_CreateDLLHook2 (      L"kernel32.dll",
-                            "GetModuleHandleA",
-                             GetModuleHandleA_Detour,
-    static_cast_p2p <void> (&GetModuleHandleA_Original),
-              &_loader_hooks.GetModuleHandleA_target );
-  
-  MH_QueueEnableHook (_loader_hooks.GetModuleHandleA_target);
+  //SK_CreateDLLHook2 (      L"kernel32.dll",
+  //                          "GetModuleHandleA",
+  //                           GetModuleHandleA_Detour,
+  //  static_cast_p2p <void> (&GetModuleHandleA_Original),
+  //            &_loader_hooks.GetModuleHandleA_target );
+  //
+  //MH_QueueEnableHook (_loader_hooks.GetModuleHandleA_target);
+  //
+  //SK_CreateDLLHook2 (      L"kernel32.dll",
+  //                          "GetModuleHandleW",
+  //                           GetModuleHandleW_Detour,
+  //  static_cast_p2p <void> (&GetModuleHandleW_Original),
+  //            &_loader_hooks.GetModuleHandleW_target );
+  //
+  //MH_QueueEnableHook (_loader_hooks.GetModuleHandleW_target);
+  //
+  //SK_CreateDLLHook2 (      L"kernel32.dll",
+  //                          "GetModuleHandleExA",
+  //                           GetModuleHandleExA_Detour,
+  //  static_cast_p2p <void> (&GetModuleHandleExA_Original),
+  //            &_loader_hooks.GetModuleHandleExA_target );
+  //
+  //MH_QueueEnableHook (_loader_hooks.GetModuleHandleExA_target);
+  //
+  //SK_CreateDLLHook2 (      L"kernel32.dll",
+  //                          "GetModuleHandleExW",
+  //                           GetModuleHandleExW_Detour,
+  //  static_cast_p2p <void> (&GetModuleHandleExW_Original),
+  //            &_loader_hooks.GetModuleHandleExW_target );
+  //
+  //MH_QueueEnableHook (_loader_hooks.GetModuleHandleExW_target);
+  //
+  //SK_CreateDLLHook2 (      L"kernel32.dll",
+  //                          "GetModuleFileNameA",
+  //                           GetModuleFileNameA_Detour,
+  //  static_cast_p2p <void> (&GetModuleFileNameA_Original),
+  //            &_loader_hooks.GetModuleFileNameA_target );
+  //
+  //MH_QueueEnableHook (_loader_hooks.GetModuleFileNameA_target);
+  //
+  //SK_CreateDLLHook2 (      L"kernel32.dll",
+  //                          "GetModuleFileNameW",
+  //                           GetModuleFileNameW_Detour,
+  //  static_cast_p2p <void> (&GetModuleFileNameW_Original),
+  //            &_loader_hooks.GetModuleFileNameW_target );
+  //
+  //MH_QueueEnableHook (_loader_hooks.GetModuleFileNameW_target);
   
   SK_ReHookLoadLibrary ();
 }
@@ -2495,16 +2681,6 @@ SK_COMPAT_FixNahimicDeadlock (void)
   return S_FALSE;
 }
 
-
-
-
-
-
-
-
-
-
-
 void
 __stdcall
 SK_PreInitLoadLibrary (void)
@@ -2514,6 +2690,12 @@ SK_PreInitLoadLibrary (void)
   LoadLibraryW_Original        = &LoadLibraryW;
   LoadLibraryExA_Original      = &LoadLibraryExA;
   LoadLibraryExW_Original      = &LoadLibraryExW;
+  GetModuleHandleA_Original    = &GetModuleHandleA;
+  GetModuleHandleW_Original    = &GetModuleHandleW;
+  GetModuleHandleExA_Original  = &GetModuleHandleExA;
+  GetModuleHandleExW_Original  = &GetModuleHandleExW;
+  GetModuleFileNameA_Original  = &GetModuleFileNameA;
+  GetModuleFileNameW_Original  = &GetModuleFileNameW;
   LoadPackagedLibrary_Original = nullptr; // Windows 8 feature
 }
 

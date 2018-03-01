@@ -804,7 +804,7 @@ DllMain ( HMODULE hModule,
 
     if (has_local_dll) return TRUE;
 
-    return bRet;
+    return TRUE;//return bRet;
   };
 
 
@@ -852,7 +852,7 @@ DllMain ( HMODULE hModule,
       // We reserve the right to deny attaching the DLL, this will generally
       //   happen if a game does not opt-in to system wide injection.
       if (! SK_EstablishDllRole (hModule))              return EarlyOut (FALSE);
-      
+
       // We don't want to initialize the DLL, but we also don't want it to
       //   re-inject itself constantly; just return TRUE here.
       else if (SK_GetDLLRole () == DLL_ROLE::INVALID)   return EarlyOut (FALSE);
@@ -865,7 +865,7 @@ DllMain ( HMODULE hModule,
 
 
       InterlockedIncrement (&__SK_DLL_Refs);
-      
+
       // If we got this far, it 's because this is an injection target
       //
       //   Must hold a reference to this DLL so that removing the CBT hook does

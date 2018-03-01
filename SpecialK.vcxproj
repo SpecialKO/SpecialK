@@ -518,9 +518,9 @@
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <CreateHotpatchableImage>true</CreateHotpatchableImage>
       <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
-      <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
+      <EnforceTypeConversionRules>false</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <LanguageStandard>stdcpp14</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
@@ -587,14 +587,14 @@
       <ControlFlowGuard>false</ControlFlowGuard>
       <AdditionalIncludeDirectories>
       </AdditionalIncludeDirectories>
-      <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
+      <EnforceTypeConversionRules>false</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <SmallerTypeCheck>false</SmallerTypeCheck>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
-      <LanguageStandard>stdcpp14</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ExceptionHandling>Async</ExceptionHandling>
@@ -672,9 +672,9 @@
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <FloatingPointModel>Fast</FloatingPointModel>
       <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
-      <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
+      <EnforceTypeConversionRules>false</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <LanguageStandard>stdcpp14</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ExceptionHandling>Async</ExceptionHandling>
@@ -770,9 +770,9 @@
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <FloatingPointModel>Fast</FloatingPointModel>
       <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
-      <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
+      <EnforceTypeConversionRules>false</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <LanguageStandard>stdcpp14</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ExceptionHandling>Async</ExceptionHandling>
@@ -869,9 +869,9 @@
       <AssemblerOutput>All</AssemblerOutput>
       <CreateHotpatchableImage>true</CreateHotpatchableImage>
       <AdditionalIncludeDirectories>$(SolutionDir)include</AdditionalIncludeDirectories>
-      <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
+      <EnforceTypeConversionRules>false</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <LanguageStandard>stdcpp14</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
@@ -956,9 +956,9 @@ Exit 0</Command>
       <AssemblerOutput>NoListing</AssemblerOutput>
       <CreateHotpatchableImage>true</CreateHotpatchableImage>
       <AdditionalIncludeDirectories>$(SolutionDir)include</AdditionalIncludeDirectories>
-      <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
+      <EnforceTypeConversionRules>false</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <LanguageStandard>stdcpp14</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
@@ -1045,9 +1045,9 @@ Exit 0</Command>
       <AssemblerOutput>NoListing</AssemblerOutput>
       <CreateHotpatchableImage>true</CreateHotpatchableImage>
       <AdditionalIncludeDirectories>$(SolutionDir)include</AdditionalIncludeDirectories>
-      <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
+      <EnforceTypeConversionRules>false</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <LanguageStandard>stdcpp14</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
@@ -1136,9 +1136,9 @@ Exit 0</Command>
       <PreprocessKeepComments>false</PreprocessKeepComments>
       <CreateHotpatchableImage>true</CreateHotpatchableImage>
       <AdditionalIncludeDirectories>$(SolutionDir)include</AdditionalIncludeDirectories>
-      <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
+      <EnforceTypeConversionRules>false</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <LanguageStandard>stdcpp14</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
@@ -1225,9 +1225,9 @@ Exit 0</Command>
       <PreprocessKeepComments>false</PreprocessKeepComments>
       <CreateHotpatchableImage>true</CreateHotpatchableImage>
       <AdditionalIncludeDirectories>$(SolutionDir)include</AdditionalIncludeDirectories>
-      <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
+      <EnforceTypeConversionRules>false</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <LanguageStandard>stdcpp14</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
@@ -1314,9 +1314,9 @@ Exit 0</Command>
       <PreprocessKeepComments>false</PreprocessKeepComments>
       <CreateHotpatchableImage>true</CreateHotpatchableImage>
       <AdditionalIncludeDirectories>$(SolutionDir)include</AdditionalIncludeDirectories>
-      <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
+      <EnforceTypeConversionRules>false</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <LanguageStandard>stdcpp14</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
@@ -1405,9 +1405,9 @@ Exit 0</Command>
       <AdditionalIncludeDirectories>$(SolutionDir)include</AdditionalIncludeDirectories>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
-      <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
+      <EnforceTypeConversionRules>false</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <LanguageStandard>stdcpp14</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <WholeProgramOptimization>false</WholeProgramOptimization>
@@ -1485,9 +1485,9 @@ Exit 0</Command>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
-      <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
+      <EnforceTypeConversionRules>false</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <LanguageStandard>stdcpp14</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <StringPooling>true</StringPooling>
@@ -1583,9 +1583,9 @@ Exit 0</Command>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
-      <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
+      <EnforceTypeConversionRules>false</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <LanguageStandard>stdcpp14</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <StringPooling>true</StringPooling>
@@ -1682,9 +1682,9 @@ Exit 0</Command>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
-      <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
+      <EnforceTypeConversionRules>false</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <LanguageStandard>stdcpp14</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ExceptionHandling>Async</ExceptionHandling>
@@ -1768,9 +1768,9 @@ Exit 0</Command>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
-      <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
+      <EnforceTypeConversionRules>false</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <LanguageStandard>stdcpp14</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ExceptionHandling>Async</ExceptionHandling>
@@ -1854,9 +1854,9 @@ Exit 0</Command>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
-      <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
+      <EnforceTypeConversionRules>false</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <LanguageStandard>stdcpp14</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ExceptionHandling>Async</ExceptionHandling>
@@ -1940,9 +1940,9 @@ Exit 0</Command>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
-      <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
+      <EnforceTypeConversionRules>false</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <LanguageStandard>stdcpp14</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ExceptionHandling>Async</ExceptionHandling>
@@ -2027,9 +2027,9 @@ Exit 0</Command>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
-      <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
+      <EnforceTypeConversionRules>false</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <LanguageStandard>stdcpp14</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ExceptionHandling>Async</ExceptionHandling>
@@ -2117,9 +2117,9 @@ Exit 0</Command>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
-      <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
+      <EnforceTypeConversionRules>false</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <LanguageStandard>stdcpp14</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ExceptionHandling>Async</ExceptionHandling>
@@ -2206,9 +2206,9 @@ Exit 0</Command>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
-      <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
+      <EnforceTypeConversionRules>false</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <LanguageStandard>stdcpp14</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ExceptionHandling>Async</ExceptionHandling>

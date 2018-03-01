@@ -3697,9 +3697,9 @@ SK_DXGI_FilterRedundant_ResizeBuffers ( IDXGISwapChain *This,
                                    _In_ DXGI_FORMAT     NewFormat,
                                    _In_ UINT            SwapChainFlags )
 {
-//#ifndef _DEBUG
-//  return false;
-//#endif
+  #ifndef _DEBUG
+    return false;
+  #endif
 
   DXGI_SWAP_CHAIN_DESC desc = { };
        This->GetDesc (&desc);
@@ -4196,6 +4196,12 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).c_str (),
         pDesc->BufferDesc.Width,
           pDesc->BufferDesc.Height
       );
+    }
+
+
+    if (config.render.dxgi.msaa_samples != -1 && config.render.dxgi.msaa_samples > 0)
+    {
+      pDesc->SampleDesc.Count = config.render.dxgi.msaa_samples;
     }
 
 

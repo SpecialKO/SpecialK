@@ -289,7 +289,7 @@ SKX_WaitForCBTHookShutdown (void)
     {
       SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_LOWEST);
 
-      MsgWaitForMultipleObjects (1, &hShutdown, TRUE, INFINITE, QS_ALLEVENTS);
+      MsgWaitForMultipleObjects (1, &hShutdown, FALSE, INFINITE, QS_ALLEVENTS);
 
       CloseHandle (hShutdown);
     }
@@ -304,6 +304,34 @@ CBTProc ( _In_ int    nCode,
 {
   if (nCode < 0)
     return CallNextHookEx (0, nCode, wParam, lParam);
+
+  static HANDLE hThread = nullptr;
+
+  if (! InterlockedCompareExchangePointer (&hThread, (LPVOID)1, 0))
+  {
+    static HMODULE hModSelf;
+
+    if ( GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
+                      (LPCWSTR)&CBTProc,
+                               &hModSelf ) )
+    {
+      CreateThread ( nullptr, 0,
+       [](LPVOID user) ->
+         DWORD
+           {
+             SKX_WaitForCBTHookShutdown ();
+
+             CloseHandle (GetCurrentThread ());
+
+             FreeLibraryAndExitThread ((HMODULE)user, 0x0);
+
+             return 0;
+           },
+           hModSelf,
+         0x00,
+       nullptr );
+    }
+  }
 
   switch (nCode)
   {
@@ -1132,7 +1160,7 @@ SK_Inject_TestUserWhitelist (const wchar_t* wszExecutable)
   for ( int i = 0; i < whitelist_count; i++ )
   {
     std::wregex regexp (
-      (wchar_t *)&whitelist_patterns [MAX_PATH * i],
+      &whitelist_patterns [MAX_PATH * i],
         std::regex_constants::icase
     );
 

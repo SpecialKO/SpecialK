@@ -126,7 +126,7 @@ SK_GPUPollingThread (LPVOID user)
 
       for (int i = 0; i < stats.num_gpus; i++)
       {
-        NvPhysicalGpuHandle gpu;
+        NvPhysicalGpuHandle gpu = { };
 
         // In order for DXGI Adapter info to match up... don't just assign
         //   these GPUs wily-nilly, use the high 24-bits of the GPUID as
@@ -167,7 +167,7 @@ SK_GPUPollingThread (LPVOID user)
 #endif
         }
 
-        NV_GPU_THERMAL_SETTINGS thermal;
+        NV_GPU_THERMAL_SETTINGS thermal = { };
         thermal.version = NV_GPU_THERMAL_SETTINGS_VER;
 
         status = NvAPI_GPU_GetThermalSettings == nullptr ?

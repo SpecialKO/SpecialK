@@ -293,6 +293,7 @@ struct sk_config_t
       bool    safe_fullscreen    = false;
       bool    enhanced_depth     = false;
       bool    deferred_isolation = false;
+      int     msaa_samples       =    -1;
     } dxgi;
     struct {
       // Required by default for compatibility with Mirillis Action!

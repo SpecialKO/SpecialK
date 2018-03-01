@@ -271,6 +271,7 @@ struct {
     sk::ParameterBool*    safe_fullscreen;
     sk::ParameterBool*    enhanced_depth;
     sk::ParameterBool*    deferred_isolation;
+    sk::ParameterInt*     msaa_samples;
   } dxgi;
   struct {
     sk::ParameterBool*    force_d3d9ex;
@@ -787,6 +788,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
     ConfigEntry (render.dxgi.enhanced_depth,             L"Use 32-bit Depth + 8-bit Stencil + 24-bit Padding",         dll_ini,         L"Render.DXGI",           L"Use64BitDepthStencil"),
     ConfigEntry (render.dxgi.deferred_isolation,         L"Isolate D3D11 Deferred Context Queues instead of Tracking"
                                                          L" in Immediate Mode.",                                       dll_ini,         L"Render.DXGI",           L"IsolateD3D11DeferredContexts"),
+    ConfigEntry (render.dxgi.msaa_samples,               L"Override ON-SCREEN Multisample Antialiasing Level; -1 = None", dll_ini,      L"Render.DXGI",           L"OverrideMSAA"),
 
 
     ConfigEntry (texture.d3d11.cache,                    L"Cache Textures",                                            dll_ini,         L"Textures.D3D11",        L"Cache"),
@@ -1766,6 +1768,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
   render.dxgi.enhanced_depth->load     (config.render.dxgi.enhanced_depth);
   render.dxgi.deferred_isolation->load (config.render.dxgi.deferred_isolation);
+  render.dxgi.msaa_samples->load       (config.render.dxgi.msaa_samples);
 
 
   texture.d3d11.cache->load        (config.textures.d3d11.cache);
@@ -2625,6 +2628,7 @@ SK_SaveConfig ( std::wstring name,
       render.dxgi.safe_fullscreen->store    (config.render.dxgi.safe_fullscreen);
       render.dxgi.enhanced_depth->store     (config.render.dxgi.enhanced_depth);
       render.dxgi.deferred_isolation->store (config.render.dxgi.deferred_isolation);
+      render.dxgi.msaa_samples->store       (config.render.dxgi.msaa_samples);
     }
 
     if ( SK_IsInjected () || ( SK_GetDLLRole () & DLL_ROLE::D3D9    ) ||

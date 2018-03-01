@@ -31,8 +31,7 @@
 #include <frozen/wstring.h>
 #include <string>
 
-constexpr
-frozen::unordered_set<frozen::wstring, 91> __blacklist = {
+std::unordered_set <std::wstring> __blacklist = {
   L"steam.exe",
   L"gameoverlayui.exe",
   L"streaming_client.exe",
@@ -50,6 +49,7 @@ frozen::unordered_set<frozen::wstring, 91> __blacklist = {
   L"supporttool.exe",
   L"crashsender1400.exe",
   L"werfault.exe",
+  L"firaxisbugreporter.exe",
   
   L"dxsetup.exe",
   L"setup.exe",

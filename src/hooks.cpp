@@ -125,6 +125,11 @@ SK_Hook_RemoveTarget (       sk_hook_cache_record_s &cache,
 
     hook_cfg.remove_key (SK_UTF8ToWideChar (cache.target.symbol_name).c_str ());
 
+  // The INI parser can take as many as 1-2 ms to complete this operation,
+  //    so don't bother immediately flushing.
+  //
+  // --> We'll take care of this after we draw our first frame.
+  //------------------------------------
   //ini->write ( ini->get_filename () );
   }
 }
@@ -280,7 +285,7 @@ SK_Hook_PreCacheModule ( const wchar_t                                *wszModule
                                   it->target.symbol_name,
             SK_MakePrettyAddress (    target_addr).c_str (),
        SK_StripUserNameFromPathW (
-         (wchar_t *)std::wstring (it->target.module_path).data ()) ),
+                    std::wstring (it->target.module_path).data ()) ),
                       L"Hook Cache" );
 
           if ( MH_CreateHook ( target_addr,
@@ -332,7 +337,7 @@ SK_Hook_PreCacheModule ( const wchar_t                                *wszModule
                                   it->target.symbol_name,
             SK_MakePrettyAddress (it->target.addr).c_str (),
        SK_StripUserNameFromPathW (
-         (wchar_t *)std::wstring (it->target.module_path).data ()) ),
+                    std::wstring (it->target.module_path).data ()) ),
                       L"Hook Cache");
 
           if ( MH_CreateHook ( it->target.addr,
@@ -574,7 +579,7 @@ SK_ValidateHookAddress ( const wchar_t *wszModuleName,
     {
       dll_log.Log ( L"[HookEngine] Function address for '%s' points to module '%s'; expected '%s'",
                     wszHookName,
-                      SK_StripUserNameFromPathW ((wchar_t *)SK_GetModuleFullName ((HMODULE)hook_addr).data ()),
+                      SK_StripUserNameFromPathW (SK_GetModuleFullName ((HMODULE)hook_addr).data ()),
                         wszModuleName );
       return false;
     }
@@ -612,8 +617,8 @@ SK_ValidateVFTableAddress ( const wchar_t *wszHookName,
   {
     dll_log.Log ( L"[HookEngine] VFTable Entry for '%s' found in '%s'; expected '%s'",
                   wszHookName,
-                    SK_StripUserNameFromPathW (  (wchar_t *)SK_GetModuleFullName (hModVFAddr).data  ()),
-                      SK_StripUserNameFromPathW ((wchar_t *)SK_GetModuleFullName (hModVFTable).data () )
+                    SK_StripUserNameFromPathW (  SK_GetModuleFullName (hModVFAddr).data  ()),
+                      SK_StripUserNameFromPathW (SK_GetModuleFullName (hModVFTable).data () )
                 );
 
     return false;
@@ -674,7 +679,7 @@ SK_CreateDLLHook ( const wchar_t  *pwszModule, const char  *pszProcName,
     std::string proc_name (ordinal > 65535 ?                       pszProcName  :
                             SK_FormatString ("Ordinal%u", ordinal).c_str ());
 
-    std::wstring mod_name (SK_StripUserNameFromPathW ((wchar_t *)std::wstring (pwszModule).data ()));
+    std::wstring mod_name (SK_StripUserNameFromPathW (std::wstring (pwszModule).data ()));
 
 
     if (status == MH_ERROR_ALREADY_CREATED)
@@ -794,7 +799,7 @@ SK_CreateDLLHook2 ( const wchar_t  *pwszModule, const char  *pszProcName,
     std::string proc_name (ordinal > 65535 ?                       pszProcName  :
                             SK_FormatString ("Ordinal%u", ordinal).c_str ());
 
-    std::wstring mod_name (SK_StripUserNameFromPathW ((wchar_t *)std::wstring (pwszModule).data ()));
+    std::wstring mod_name (SK_StripUserNameFromPathW (std::wstring (pwszModule).data ()));
 
 
     if (status == MH_ERROR_ALREADY_CREATED)
@@ -913,7 +918,7 @@ SK_CreateDLLHook3 ( const wchar_t  *pwszModule, const char  *pszProcName,
     std::string proc_name (ordinal > 65535 ?                       pszProcName  :
                             SK_FormatString ("Ordinal%u", ordinal).c_str ());
 
-    std::wstring mod_name (SK_StripUserNameFromPathW ((wchar_t *)std::wstring (pwszModule).data ()));
+    std::wstring mod_name (SK_StripUserNameFromPathW (std::wstring (pwszModule).data ()));
 
 
     // Silently ignore this problem

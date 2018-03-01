@@ -1,7 +1,21 @@
 0.9.4:
 
- + "Borrowed" an enivornment variable exported by the Steam client to get
+(.2) Tweaked global injection behavior for certain non-standard Windows apps
+
+ + Added more detailed pixel format information to SK's log in D3D11 games.
+ + Added logging of unloaded DLLs to SK's log
+ + Improved the reliability of using auto-update and branch selection
+     features from the Update menu in-game.
+
+   >> Please give these a try, I know of a few Unity games that don't handle
+        window management correctly and they're forever WONTFIX, but if you
+          encounter errors with other games, I'll be happy to investigate.
+
+ + "Borrowed" an environment variable exported by the Steam client to get
      game's AppID without booting up SteamAPI.
+ + Switched the static injection blacklist to a constexpr hash set for
+     improved startup performance.
+
 
 0.9.3:
 

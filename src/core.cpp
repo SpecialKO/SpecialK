@@ -910,10 +910,13 @@ SK_Steam_GetAppID_NoAPI (void)
   return 0;
 }
 
+const wchar_t* __SK_BootedCore = L"";
 bool
 __stdcall
 SK_StartupCore (const wchar_t* backend, void* callback)
 {
+  __SK_BootedCore = backend;
+
   // Before loading any config files, test the game's environment variables
   //  to determine if the Steam client has given us the AppID without having
   //    to initialize SteamAPI first.
@@ -1217,8 +1220,8 @@ BACKEND_INIT:
   GetCurrentDirectoryW (MAX_PATH, wszWorkDir);
        SK_StripUserNameFromPathW (wszWorkDir);
 
-  dll_log.Log (L" Working Directory:          %s", SK_StripUserNameFromPathW ((wchar_t *)std::wstring (wszWorkDir).data    ()));
-  dll_log.Log (L" System Directory:           %s", SK_StripUserNameFromPathW ((wchar_t *)std::wstring (wszBackendDLL).data ()));
+  dll_log.Log (L" Working Directory:          %s", SK_StripUserNameFromPathW (std::wstring (wszWorkDir).data    ()));
+  dll_log.Log (L" System Directory:           %s", SK_StripUserNameFromPathW (std::wstring (wszBackendDLL).data ()));
 
   lstrcatW (wszBackendDLL, L"\\");
   lstrcatW (wszBackendDLL, backend);
@@ -1260,9 +1263,9 @@ BACKEND_INIT:
     backend_dll = LoadLibraryW_Original (dll_name);
 
   if (backend_dll != nullptr)
-    dll_log.LogEx (false, L" (%s)\n",         SK_StripUserNameFromPathW ((wchar_t *)std::wstring (dll_name).data ()));
+    dll_log.LogEx (false, L" (%s)\n",         SK_StripUserNameFromPathW (std::wstring (dll_name).data ()));
   else
-    dll_log.LogEx (false, L" FAILED (%s)!\n", SK_StripUserNameFromPathW ((wchar_t *)std::wstring (dll_name).data ()));
+    dll_log.LogEx (false, L" FAILED (%s)!\n", SK_StripUserNameFromPathW (std::wstring (dll_name).data ()));
 
   // Free the temporary string storage
   if (load_proxy)
@@ -1584,10 +1587,6 @@ SK_ShutdownCore (const wchar_t* backend)
   // Breakpad Disable Disclaimer; pretend the log was empty :)
   if (crash_log.lines == 1)
     crash_log.lines = 0;
-
-  crash_log.close ();
-
-  config.system.handle_crashes = false;
 
   InterlockedExchange (&__SK_Init, FALSE);
 

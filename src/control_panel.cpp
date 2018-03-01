@@ -1117,6 +1117,15 @@ SK_ImGui_ControlPanel (void)
         }
 
         ImGui::Separator ();
+        //if (ImGui::MenuItem ("Unload Special K", "EXPERIMENTAL"))
+        //{
+        //  bool
+        //  __stdcall
+        //  SK_ShutdownCore (const wchar_t* backend);
+        //  extern const wchar_t* __SK_BootedCore;
+        //
+        //  SK_ShutdownCore (__SK_BootedCore);
+        //}
 
         if (ImGui::MenuItem ("Exit Game", "Alt+F4"))
         {
