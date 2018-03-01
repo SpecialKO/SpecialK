@@ -245,8 +245,12 @@ Process_Section (wchar_t* name, wchar_t* start, wchar_t* end)
       wchar_t* value =
         CharNextW (k);
 
-      for (wchar_t* l = value; l <= end; l < end ? l = CharNextW (l) : 0)
+      for (wchar_t* l = value; l <= end; l < end ? l = CharNextW (l) : nullptr)
       {
+        assert (l != nullptr);
+
+        if (l == nullptr) break;
+
         if (l > penultimate || *l == L'\n')
         {
           key = CharNextW (l);
@@ -294,8 +298,12 @@ Import_Section (iSK_INISection& section, wchar_t* start, wchar_t* end)
       wchar_t* value =
         CharNextW (k);
 
-      for (wchar_t* l = value; l <= end; l < end ? l = CharNextW (l) : 0)
+      for (wchar_t* l = value; l <= end; l < end ? l = CharNextW (l) : nullptr)
       {
+        assert (l != nullptr);
+
+        if (l == nullptr) break;
+
         if (l > penultimate || *l == L'\n')
         {
           key = CharNextW (l);

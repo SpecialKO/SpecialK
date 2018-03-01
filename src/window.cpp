@@ -3382,7 +3382,7 @@ HWND
 WINAPI
 SK_RealizeForegroundWindow (HWND hWndForeground)
 {
-  HWND hWndOrig = 0;
+  HWND hWndOrig = HWND_DESKTOP;
 
   if (SK_GetFramesDrawn () > 1)
   {
@@ -3399,13 +3399,14 @@ SK_RealizeForegroundWindow (HWND hWndForeground)
     SetForegroundWindow (hWndForeground);
     SetWindowPos        (hWndForeground, HWND_TOPMOST,
                             0, 0,
-                            0, 0, SWP_NOSIZE | SWP_NOMOVE |
-                                  SWP_SHOWWINDOW          );
+                            0, 0, SWP_NOSIZE     | SWP_NOMOVE     |
+                                  SWP_SHOWWINDOW | SWP_NOACTIVATE |
+                                  SWP_NOSENDCHANGING );
     SetForegroundWindow (hWndForeground);
     SetWindowPos        (hWndForeground, HWND_NOTOPMOST,
                             0, 0,
-                            0, 0, SWP_NOSIZE | SWP_NOMOVE |
-                                  SWP_SHOWWINDOW          );
+                            0, 0, SWP_NOSIZE     | SWP_NOMOVE     |
+                                  SWP_SHOWWINDOW | SWP_NOSENDCHANGING );
     SetForegroundWindow (hWndForeground);
     AttachThreadInput   (dwOrigThreadId, dwThreadId, false);
     SetFocus            (hWndForeground);
@@ -4485,7 +4486,7 @@ SK_InstallWindowHook (HWND hWnd)
   if (game_window.WndProc_Original != nullptr)
     return;
 
-  static volatile LONG             __installed =      FALSE;
+  static volatile LONG               __installed =      FALSE;
   if (! InterlockedCompareExchange (&__installed, TRUE, FALSE))
   {
     // When ImGui is active, we will do character translation internally
@@ -4541,6 +4542,10 @@ SK_InstallWindowHook (HWND hWnd)
 
   if (! SK_GetFramesDrawn ())
     return;
+
+
+  if (config.render.framerate.enable_mmcss)
+    SK_DWM_EnableMMCSS (config.render.framerate.enable_mmcss);
 
 
   DWORD                            dwWindowPid = 0;
@@ -4611,7 +4616,25 @@ SK_InstallWindowHook (HWND hWnd)
   void SK_MakeWindowHook (WNDPROC, WNDPROC, HWND);
        SK_MakeWindowHook (class_proc, wnd_proc, hWnd);
 
-  SK_RealizeForegroundWindow (game_window.hWnd);
+  auto SetForeground = [&](HWND hWndForeground)
+  {
+    SetForegroundWindow (hWndForeground);
+    SetWindowPos        (hWndForeground, HWND_TOPMOST,
+                            0, 0,
+                            0, 0, SWP_NOSIZE     | SWP_NOMOVE         |
+                                  SWP_SHOWWINDOW | SWP_ASYNCWINDOWPOS |
+                                  SWP_NOACTIVATE | SWP_NOSENDCHANGING );
+    SetWindowPos        (hWndForeground, HWND_NOTOPMOST,
+                            0, 0,
+                            0, 0, SWP_NOSIZE     | SWP_NOMOVE         |
+                                  SWP_SHOWWINDOW | SWP_ASYNCWINDOWPOS |
+                                  SWP_NOACTIVATE | SWP_NOSENDCHANGING );
+    SetForegroundWindow (hWndForeground);
+    SetFocus            (hWndForeground);
+  };
+
+  if (GetActiveWindow () == game_window.hWnd)
+    SetForeground (game_window.hWnd);
 
 
   if (game_window.WndProc_Original != nullptr)
@@ -5378,4 +5401,26 @@ SK_Win32_IsGUIThread (void)
     IsGUIThread (FALSE) ? 1 : -1;
 
   return ( pTLS->win32.GUI > 0 );
+}
+
+
+
+
+
+HRESULT
+WINAPI
+SK_DWM_EnableMMCSS (BOOL enable)
+{
+  HRESULT hr = E_NOTIMPL;
+
+  typedef HRESULT (WINAPI *DwmEnableMMCSS_pfn)(BOOL);
+  static DwmEnableMMCSS_pfn DwmEnableMMCSS =
+    (DwmEnableMMCSS_pfn)GetProcAddress (LoadLibraryW (L"dwmapi.dll"), "DwmEnableMMCSS");
+
+  if (DwmEnableMMCSS != nullptr)
+  {
+    hr = DwmEnableMMCSS (enable);
+  }
+
+  return hr;
 }

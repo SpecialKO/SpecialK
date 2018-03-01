@@ -44,18 +44,12 @@ extern "C"
 SK_InjectionRecord_s __SK_InjectionHistory [MAX_INJECTED_PROC_HISTORY] = { };
 
 #pragma data_seg (".SK_Hooks")
-  __declspec (dllexport) SK_InjectionBase_s g_CBTHook;
-  __declspec (dllexport) LONG               g_sHookedPIDs [MAX_INJECTED_PROCS]         = { 0 };
+  __declspec (dllexport)          HANDLE hShutdownEvent = INVALID_HANDLE_VALUE; // Event to signal unloading injected DLL instances
+  __declspec (dllexport)          DWORD  dwHookPID      =                  0UL; // Process that owns the CBT hook
+  __declspec (dllexport) volatile HHOOK  hHookCBT       =              nullptr; // CBT hook
+  __declspec (dllexport)          BOOL   bAdmin         =                FALSE; // Is SKIM64 able to inject into admin apps?
 
-  __declspec (dllexport) wchar_t g_LastBouncedModule0 [MAX_PATH + 1] = { };
-  __declspec (dllexport) wchar_t g_LastBouncedModule1 [MAX_PATH + 1] = { };
-  __declspec (dllexport) wchar_t g_LastBouncedModule2 [MAX_PATH + 1] = { };
-  __declspec (dllexport) wchar_t g_LastBouncedModule3 [MAX_PATH + 1] = { };
-  __declspec (dllexport) wchar_t g_LastBouncedModule4 [MAX_PATH + 1] = { };
-  __declspec (dllexport) wchar_t g_LastBouncedModule5 [MAX_PATH + 1] = { };
-  __declspec (dllexport) wchar_t g_LastBouncedModule6 [MAX_PATH + 1] = { };
-  __declspec (dllexport) wchar_t g_LastBouncedModule7 [MAX_PATH + 1] = { };
-  __declspec (dllexport) int     g_LastBounceIdx                     =  0;
+  __declspec (dllexport) LONG               g_sHookedPIDs [MAX_INJECTED_PROCS]         = { 0 };
 
                 wchar_t    __SK_InjectionHistory_name     [MAX_INJECTED_PROC_HISTORY * MAX_PATH] =  { 0 };
                 DWORD      __SK_InjectionHistory_ids      [MAX_INJECTED_PROC_HISTORY]            =  { 0 };
@@ -104,17 +98,17 @@ static LONG local_record = 0;
 void
 SK_Inject_InitShutdownEvent (void)
 {
-  if (g_CBTHook.hShutdownEvent == nullptr)
+  if (hShutdownEvent == nullptr)
   {
-    g_CBTHook.bAdmin           = SK_IsAdmin ();
+    bAdmin           = SK_IsAdmin ();
 
     SECURITY_ATTRIBUTES sattr  = { };
     sattr.nLength              = sizeof SECURITY_ATTRIBUTES;
     sattr.bInheritHandle       = TRUE;
     sattr.lpSecurityDescriptor = nullptr;
 
-    g_CBTHook.dwHookPID      = GetCurrentProcessId ();
-    g_CBTHook.hShutdownEvent = 
+    dwHookPID      = GetCurrentProcessId ();
+    hShutdownEvent = 
       CreateEventW ( &sattr, TRUE, FALSE,
         SK_RunLHIfBitness ( 32, LR"(Global\SpecialK32_Reset)",
                                 LR"(Global\SpecialK64_Reset)" ) );
@@ -263,7 +257,7 @@ SKX_GetCBTHook (void)
   return
     static_cast <HHOOK> (
       ReadPointerAcquire ( reinterpret_cast <volatile PVOID *> (
-                                 const_cast <         HHOOK *> (&g_CBTHook.hHookCBT)
+                                 const_cast <         HHOOK *> (&hHookCBT)
                            )
                          )
     );
@@ -274,12 +268,12 @@ SKX_WaitForCBTHookShutdown (void)
 {
   HANDLE hShutdown  = INVALID_HANDLE_VALUE;
   HANDLE hHookOwner = 
-    OpenProcess ( PROCESS_DUP_HANDLE, FALSE, g_CBTHook.dwHookPID );
+    OpenProcess ( PROCESS_DUP_HANDLE, FALSE, dwHookPID );
 
   if (hHookOwner != nullptr)
   {
     BOOL success =
-      DuplicateHandle ( hHookOwner,  g_CBTHook.hShutdownEvent,
+      DuplicateHandle ( hHookOwner,  hShutdownEvent,
                         GetCurrentProcess (), &hShutdown,
                         0x00, TRUE, DUPLICATE_SAME_ACCESS );
 
@@ -289,7 +283,8 @@ SKX_WaitForCBTHookShutdown (void)
     {
       SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_LOWEST);
 
-      MsgWaitForMultipleObjects (1, &hShutdown, FALSE, INFINITE, QS_ALLEVENTS);
+      MsgWaitForMultipleObjectsEx (1, &hShutdown, INFINITE, QS_ALLINPUT, MWMO_INPUTAVAILABLE |
+                                                                         MWMO_ALERTABLE);
 
       CloseHandle (hShutdown);
     }
@@ -305,53 +300,7 @@ CBTProc ( _In_ int    nCode,
   if (nCode < 0)
     return CallNextHookEx (0, nCode, wParam, lParam);
 
-  static HANDLE hThread = nullptr;
-
-  if (! InterlockedCompareExchangePointer (&hThread, (LPVOID)1, 0))
-  {
-    static HMODULE hModSelf;
-
-    if ( GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
-                      (LPCWSTR)&CBTProc,
-                               &hModSelf ) )
-    {
-      CreateThread ( nullptr, 0,
-       [](LPVOID user) ->
-         DWORD
-           {
-             SKX_WaitForCBTHookShutdown ();
-
-             CloseHandle (GetCurrentThread ());
-
-             FreeLibraryAndExitThread ((HMODULE)user, 0x0);
-
-             return 0;
-           },
-           hModSelf,
-         0x00,
-       nullptr );
-    }
-  }
-
-  switch (nCode)
-  {
-    case HCBT_ACTIVATE:
-    case HCBT_CREATEWND:
-    case HCBT_DESTROYWND:
-    case HCBT_MINMAX:
-    case HCBT_MOVESIZE:
-    case HCBT_SETFOCUS:
-    case HCBT_SYSCOMMAND:
-      return CallNextHookEx (0, nCode, wParam, lParam);
-
-    case HCBT_CLICKSKIPPED:
-    case HCBT_KEYSKIPPED:
-    case HCBT_QS:
-      return CallNextHookEx (0, nCode, wParam, lParam);
-
-    default:
-      return CallNextHookEx (0, nCode, wParam, lParam);
-  }
+  return CallNextHookEx (hHookCBT, nCode, wParam, lParam);
 }
 
 BOOL
@@ -388,9 +337,8 @@ SKX_InstallCBTHook (void)
 
   HMODULE hMod = nullptr;
 
-  GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-      SK_RunLHIfBitness ( 32, L"SpecialK32.dll",
-                              L"SpecialK64.dll" ),
+  GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
+                        (LPCWSTR)&CBTProc,
                           (HMODULE *) &hMod );
 
   if (hMod == SK_GetDLL () && hMod != nullptr)
@@ -399,7 +347,7 @@ SKX_InstallCBTHook (void)
 
     // Shell hooks don't work very well, they run into problems with
     //   hooking XInput -- CBT is more reliable, but slower.
-    g_CBTHook.hHookCBT  =
+    hHookCBT  =
       SetWindowsHookEx (WH_CBT, CBTProc, hMod, 0);
   }
 }
@@ -410,13 +358,13 @@ __stdcall
 SKX_RemoveCBTHook (void)
 {
 START_OVER:
-  if (g_CBTHook.hShutdownEvent != nullptr)
-    SetEvent (g_CBTHook.hShutdownEvent);
+  if (hShutdownEvent != nullptr)
+    SetEvent (hShutdownEvent);
 
   HHOOK hHookOrig = SKX_GetCBTHook ();
 
   if ( InterlockedCompareExchangePointer ( reinterpret_cast <LPVOID *> (
-                                                 const_cast < HHOOK *> (&g_CBTHook.hHookCBT)
+                                                 const_cast < HHOOK *> (&hHookCBT)
                                            ),
                                              nullptr,
                                                hHookOrig )
@@ -429,20 +377,20 @@ START_OVER:
 
       InterlockedExchange (&__SK_HookContextOwner, FALSE);
 
-                   g_CBTHook.dwHookPID = 0x0;
-      CloseHandle (g_CBTHook.hShutdownEvent);
+                   dwHookPID = 0x0;
+      CloseHandle (hShutdownEvent);
     }
 
     else
     {
       // Couldn't remove the hook, so atomically set it back to non-NULL
       InterlockedExchangePointer ( reinterpret_cast <LPVOID *> (
-                                         const_cast < HHOOK *> (&g_CBTHook.hHookCBT)
+                                         const_cast < HHOOK *> (&hHookCBT)
                                    ), hHookOrig );
     }
   }
 
-  if (ReadPointerAcquire ((PVOID *)&g_CBTHook.hHookCBT) != nullptr)
+  if (ReadPointerAcquire ((PVOID *)&hHookCBT) != nullptr)
     goto START_OVER;
 }
 
@@ -451,7 +399,7 @@ __stdcall
 SKX_IsHookingCBT (void)
 {
   return ReadPointerAcquire ( reinterpret_cast <LPVOID *> (
-                                    const_cast < HHOOK *> (&g_CBTHook.hHookCBT)
+                                    const_cast < HHOOK *> (&hHookCBT)
                               )
                             ) != nullptr;
 }
@@ -1233,5 +1181,5 @@ SK_Inject_TestWhitelists (const wchar_t* wszExecutable)
 bool
 SK_Inject_IsAdminSupported (void)
 {
-  return g_CBTHook.bAdmin;
+  return bAdmin;
 }

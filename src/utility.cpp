@@ -138,12 +138,12 @@ SK_GetDocumentsDir (wchar_t* buf, uint32_t* pdwLen)
 bool
 SK_GetUserProfileDir (wchar_t* buf, uint32_t* pdwLen)
 {
-  typedef BOOL (WINAPI *GetUserProfileDirectoryW_pfn)(
+  using GetUserProfileDirectoryW_pfn = BOOL (WINAPI *)(
     _In_                            HANDLE  hToken,
     _Out_writes_opt_(*lpcchSize)    LPWSTR lpProfileDir,
     _Inout_                         LPDWORD lpcchSize);
 
-  static GetUserProfileDirectoryW_pfn imp_GetUserProfileDirectoryW =
+  static auto imp_GetUserProfileDirectoryW =
     (GetUserProfileDirectoryW_pfn)
      GetProcAddress ( LoadLibraryW (L"userenv.dll"),
                                      "GetUserProfileDirectoryW" );
@@ -1080,13 +1080,13 @@ SK_VerQueryValueW (
 {
   if (hModVersion == nullptr) hModVersion = LoadLibraryW (L"version.dll");
 
-  typedef BOOL (WINAPI *VerQueryValueW_pfn)(
+  using VerQueryValueW_pfn = BOOL (WINAPI *)(
     _In_ LPCVOID pBlock,
     _In_ LPCWSTR lpSubBlock,
     _Outptr_result_buffer_ (_Inexpressible_ ("buffer can be PWSTR or DWORD*")) LPVOID * lplpBuffer,
     _Out_ PUINT  puLen);
 
-  static VerQueryValueW_pfn imp_VerQueryValueW =
+  static auto imp_VerQueryValueW =
     (VerQueryValueW_pfn)
        GetProcAddress (hModVersion, "VerQueryValueW");
 
@@ -1103,7 +1103,7 @@ SK_GetFileVersionInfoExW (_In_                      DWORD   dwFlags,
 {
   if (hModVersion == nullptr) hModVersion = LoadLibraryW (L"version.dll");
 
-  typedef BOOL (WINAPI *GetFileVersionInfoExW_pfn)(
+  using GetFileVersionInfoExW_pfn = BOOL (WINAPI *)(
     _In_                      DWORD   dwFlags,
     _In_                      LPCWSTR lpwstrFilename,
     _Reserved_                DWORD   dwHandle,
@@ -1111,7 +1111,7 @@ SK_GetFileVersionInfoExW (_In_                      DWORD   dwFlags,
     _Out_writes_bytes_(dwLen) LPVOID  lpData
   );
 
-  static GetFileVersionInfoExW_pfn imp_GetFileVersionInfoExW =
+  static auto imp_GetFileVersionInfoExW =
     (GetFileVersionInfoExW_pfn)
        GetProcAddress (hModVersion, "GetFileVersionInfoExW");
 
@@ -2412,9 +2412,9 @@ SK_GetUserNameExA (
 {
   if (hModSecur32 == nullptr) hModSecur32 = LoadLibraryW (L"Secur32.dll");
 
-  typedef BOOLEAN (WINAPI *GetUserNameExA_pfn)(EXTENDED_NAME_FORMAT,LPSTR,PULONG);
+  using GetUserNameExA_pfn = BOOLEAN (WINAPI *)(EXTENDED_NAME_FORMAT,LPSTR,PULONG);
 
-  static GetUserNameExA_pfn imp_GetUserNameExA =
+  static auto imp_GetUserNameExA =
     (GetUserNameExA_pfn)GetProcAddress (hModSecur32, "GetUserNameExA");
 
   return imp_GetUserNameExA (NameFormat, lpNameBuffer, nSize);
@@ -2430,9 +2430,9 @@ SK_GetUserNameExW (
 {
   if (hModSecur32 == nullptr) hModSecur32 = LoadLibraryW (L"Secur32.dll");
 
-  typedef BOOLEAN (WINAPI *GetUserNameExW_pfn)(EXTENDED_NAME_FORMAT,LPWSTR,PULONG);
+  using GetUserNameExW_pfn = BOOLEAN (WINAPI *)(EXTENDED_NAME_FORMAT,LPWSTR,PULONG);
 
-  static GetUserNameExW_pfn imp_GetUserNameExW =
+  static auto imp_GetUserNameExW =
     (GetUserNameExW_pfn)GetProcAddress (hModSecur32, "GetUserNameExW");
 
   return imp_GetUserNameExW (NameFormat, lpNameBuffer, nSize);
@@ -2649,7 +2649,7 @@ SK_DeferCommands (const char** szCommands, int count)
 
   // ============================================== //
 
-  if (! InterlockedCompareExchangePointer (&hCommandThread, (LPVOID)1, 0))
+  if (! InterlockedCompareExchangePointer (&hCommandThread, (LPVOID)1, nullptr))
   {     InterlockedExchangePointer        ((void **)&hCommandThread,
 
     CreateThread   ( nullptr, 0x00,

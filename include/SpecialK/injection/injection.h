@@ -97,15 +97,6 @@ struct SK_InjectionRecord_s
   static __declspec (dllexport) volatile LONG count;
   static __declspec (dllexport) volatile LONG rollovers;
 };
-  extern __declspec (dllexport) wchar_t g_LastBouncedModule0 [MAX_PATH + 1];
-  extern __declspec (dllexport) wchar_t g_LastBouncedModule1 [MAX_PATH + 1];
-  extern __declspec (dllexport) wchar_t g_LastBouncedModule2 [MAX_PATH + 1];
-  extern __declspec (dllexport) wchar_t g_LastBouncedModule3 [MAX_PATH + 1];
-  extern __declspec (dllexport) wchar_t g_LastBouncedModule4 [MAX_PATH + 1];
-  extern __declspec (dllexport) wchar_t g_LastBouncedModule5 [MAX_PATH + 1];
-  extern __declspec (dllexport) wchar_t g_LastBouncedModule6 [MAX_PATH + 1];
-  extern __declspec (dllexport) wchar_t g_LastBouncedModule7 [MAX_PATH + 1];
-  extern __declspec (dllexport) int     g_LastBounceIdx;
 };
 
 SK_InjectionRecord_s*
@@ -114,13 +105,9 @@ SK_Inject_GetRecord (int idx);
 
 // Part of the DLL Shared Data Segment
 //
-struct SK_InjectionBase_s
-{
-           HANDLE hShutdownEvent = INVALID_HANDLE_VALUE; // Event to signal unloading injected DLL instances
-           DWORD  dwHookPID      =                  0UL; // Process that owns the CBT hook
-  volatile HHOOK  hHookCBT       =              nullptr; // CBT hook
-           BOOL   bAdmin         =                FALSE; // Is SKIM64 able to inject into admin apps?
-};
+//struct SK_InjectionBase_s
+//{
+//};
 
 
 

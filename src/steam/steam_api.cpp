@@ -1958,6 +1958,7 @@ public:
     }
 
     if ( config.cegui.enable && config.steam.achievements.popup.show &&
+         config.cegui.frames_drawn > 0 &&
          achievement != nullptr )
     {
       CEGUI::System* pSys = CEGUI::System::getDllSingletonPtr ();
@@ -2005,7 +2006,7 @@ public:
 
   int drawPopups (void)
   {
-    if (! config.cegui.enable) return 0;
+    if (! (config.cegui.enable && config.cegui.frames_drawn > 0)) return 0;
 
 
     int drawn = 0;
@@ -2500,7 +2501,7 @@ public:
 protected:
   CEGUI::Window* createPopupWindow (SK_AchievementPopup* popup)
   {
-    if (!config.cegui.enable) return nullptr;
+    if (! (config.cegui.enable && config.cegui.frames_drawn > 0)) return nullptr;
 
     if (popup->achievement == nullptr)
       return nullptr;
@@ -2772,9 +2773,8 @@ SK_Steam_UnlockAchievement (uint32_t idx)
   if ( stats                        && idx <
        stats->GetNumAchievements () )
   {
-    // I am dubious about querying these things by name, so duplicate this
-    //   string immediately.
-    const char* szName = _strdup (stats->GetAchievementName (idx));
+    const char* szName =
+      _strdup (stats->GetAchievementName (idx));
 
     if (szName != nullptr)
     {
@@ -3532,8 +3532,9 @@ SK_Steam_RecursiveFileScrub ( std::wstring   directory, unsigned int& files,
       }
 
       if (          (fd.dwFileAttributes  & FILE_ATTRIBUTE_DIRECTORY) &&
-          (_wcsicmp (fd.cFileName, L"." ) != 0)                       &&
-          (_wcsicmp (fd.cFileName, L"..") != 0) )
+          (_wcsicmp (fd.cFileName, L"." )                != 0)        &&
+          (_wcsicmp (fd.cFileName, L"..")                != 0)        &&
+          (_wcsicmp (fd.cFileName, L"Steamworks Shared") != 0) )
       {
         // Detect empty directories
         //
@@ -3631,8 +3632,9 @@ SK_Steam_ScrubRedistributables (int& total_files, bool erase)
             do
             {
               if (          (fd.dwFileAttributes  & FILE_ATTRIBUTE_DIRECTORY) &&
-                  (_wcsicmp (fd.cFileName, L"." ) != 0)                       &&
-                  (_wcsicmp (fd.cFileName, L"..") != 0) )
+                  (_wcsicmp (fd.cFileName, L"." )                != 0)        &&
+                  (_wcsicmp (fd.cFileName, L"..")                != 0)        &&
+                  (_wcsicmp (fd.cFileName, L"Steamworks Shared") != 0) )
               {
                 SK_Steam_RecursiveFileScrub ( _ConstructPath   (
                                                 _ConstructPath ( directory, fd.cFileName ),
@@ -5292,7 +5294,8 @@ SK_SteamAPIContext::InitSteamAPI (HMODULE hSteamDLL)
   //
   //  * Refer to the non-standard interface definition above for more.
   //
-  SK_Steam_ConnectUserIfNeeded (user_->GetSteamID ());
+  if (config.steam.online_status != -1)
+    SK_Steam_ConnectUserIfNeeded (user_->GetSteamID ());
 
 
   // Blacklist of people not allowed to use my software (for being disruptive to other users)

@@ -496,8 +496,8 @@ DownloadDialogCallback (
   _In_ LPARAM   lParam,
   _In_ LONG_PTR dwRefData )
 {
-  static HWND    hWndOrigTop = 0;
-  static HCURSOR hCursorOrig = 0;
+  static HWND    hWndOrigTop = nullptr;
+  static HCURSOR hCursorOrig = nullptr;
 
   auto* get =
     reinterpret_cast <sk_internet_get_t *> (dwRefData);
@@ -552,7 +552,7 @@ DownloadDialogCallback (
 
     SK_RealizeForegroundWindow (hWnd);
 
-    if (game_window.hWnd != 0)
+    if (game_window.hWnd != nullptr)
     {
       SetWindowPos ( game_window.hWnd, HWND_DESKTOP, 0, 0, 0, 0,
                      SWP_ASYNCWINDOWPOS | SWP_HIDEWINDOW   |
@@ -621,7 +621,7 @@ DownloadDialogCallback (
 
   if (uNotification == TDN_DESTROYED)
   {
-    if (game_window.hWnd != 0)
+    if (game_window.hWnd != nullptr)
     {
       SetForegroundWindow (game_window.hWnd);
       SetWindowPos        (game_window.hWnd, HWND_TOP, 0, 0, 0, 0,
@@ -1039,7 +1039,7 @@ SK_UpdateSoftware1 (const wchar_t*, bool force)
 
   task_config.cbSize             = sizeof ( task_config );
   task_config.hInstance          = GetModuleHandleW (nullptr);
-  task_config.hwndParent         =                          0;
+  task_config.hwndParent         =                          nullptr;
 
 
   if (! SK_IsHostAppSKIM ())

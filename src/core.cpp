@@ -83,6 +83,9 @@
 #  include <DbgHelp.h>
 #pragma warning   (pop)
 
+#include <avrt.h>
+#pragma comment (lib, "avrt.lib")
+
 #include <d3d9.h>
 #include <d3d11.h>
 #include <wingdi.h>
@@ -862,18 +865,18 @@ SK_Steam_GetAppID_NoAPI (void)
     if (dwSteamGameIdLen > 1)
       AppID = atoi (szSteamGameId);
 
-    if (GetFileAttributesW (L"steam_appid.txt") == INVALID_FILE_ATTRIBUTES)
-    {
-      FILE* fAppID =
-        fopen ("steam_appid.txt", "w+");
-
-      if (fAppID != nullptr)
-      {
-        fputs   (szSteamGameId,   fAppID);
-        fflush                   (fAppID);
-                         fclose  (fAppID);
-      }
-    }
+    //if (GetFileAttributesW (L"steam_appid.txt") == INVALID_FILE_ATTRIBUTES)
+    //{
+    //  FILE* fAppID =
+    //    fopen ("steam_appid.txt", "w+");
+    //
+    //  if (fAppID != nullptr)
+    //  {
+    //    fputs   (szSteamGameId,   fAppID);
+    //    fflush                   (fAppID);
+    //                     fclose  (fAppID);
+    //  }
+    //}
   }
 
   if (AppID != 0)
@@ -1328,22 +1331,21 @@ BACKEND_INIT:
     }
 
 
-    if (GetModuleHandle (L"dinput8.dll"))
-      SK_Input_HookDI8 ();
-
-    if (GetModuleHandle (L"dinput.dll"))
-      SK_Input_HookDI7 ();
-
-
-    SK_Input_Init       ();
-    SK_ApplyQueuedHooks ();
-
-
     CreateThread (nullptr, 0x00, [](LPVOID) -> DWORD
     {
       SetCurrentThreadDescription (L"[SK] Init Cleanup Thread");
       SetThreadPriority           (GetCurrentThread (), THREAD_PRIORITY_BELOW_NORMAL);
-      WaitForInit ();
+
+      WaitForInit         ();
+
+      if (GetModuleHandle (L"dinput8.dll"))
+        SK_Input_HookDI8  ();
+
+      if (GetModuleHandle (L"dinput.dll"))
+        SK_Input_HookDI7  ();
+
+      SK_Input_Init       ();
+      SK_ApplyQueuedHooks ();
 
       // Setup the compatibility backend, which monitors loaded libraries,
       //   blacklists bad DLLs and detects render APIs...
@@ -1715,6 +1717,221 @@ void
 SK_ImGui_PollGamepad_EndFrame (void);
 
 
+static volatile LONG CEGUI_Init = FALSE;
+
+void
+SetupCEGUI (SK_RenderAPI& LastKnownAPI)
+{
+  if ( (SK_GetCurrentRenderBackend ().api != SK_RenderAPI::Reserved) &&
+        SK_GetCurrentRenderBackend ().api == LastKnownAPI            &&
+       ( (! InterlockedCompareExchange (&CEGUI_Init, TRUE, FALSE)) ) )
+  {
+    InterlockedIncrement (&SK_GetCurrentRenderBackend ().frames_drawn);
+
+    // Brutally stupid hack for brutally stupid OS (Windows 7)
+    //
+    //   1. Lock the DLL loader + Suspend all Threads
+    //   2. Change Working Dir  + Delay-Load CEGUI DLLs
+    //   3. Restore Working Dir
+    //   4. Resume all Threads  + Unlock DLL Loader
+    //
+    //     >> Not necessary if the kernel supports altered DLL serarch
+    //          paths <<
+    //
+
+    SK_LockDllLoader ();
+
+    // Disable until we validate CEGUI's state
+    config.cegui.enable = false;
+
+    wchar_t wszCEGUIModPath [MAX_PATH]        = { };
+    wchar_t wszCEGUITestDLL [MAX_PATH]        = { };
+    wchar_t wszEnvPath      [ MAX_PATH + 32 ] = { };
+
+    const wchar_t* wszArch = SK_RunLHIfBitness ( 64, L"x64",
+                                                     L"Win32" );
+
+    _swprintf (wszCEGUIModPath, LR"(%sCEGUI\bin\%s)", SK_GetRootPath (), wszArch);
+
+    if (GetFileAttributes (wszCEGUIModPath) == INVALID_FILE_ATTRIBUTES)
+    {
+      _swprintf ( wszCEGUIModPath, LR"(%s\My Mods\SpecialK\CEGUI\bin\%s)",
+                    SK_GetDocumentsDir ().c_str (), wszArch );
+
+      _swprintf (wszEnvPath, LR"(CEGUI_PARENT_DIR=%s\My Mods\SpecialK\)", SK_GetDocumentsDir ().c_str ());
+    }
+    else
+      _swprintf (wszEnvPath, L"CEGUI_PARENT_DIR=%s", SK_GetRootPath ());
+
+    if (GetFileAttributes (wszCEGUIModPath) == INVALID_FILE_ATTRIBUTES)
+    {
+      SK_UnpackCEGUI ();
+    }
+
+    _wputenv  (wszEnvPath);
+
+    lstrcatW  (wszCEGUITestDLL, wszCEGUIModPath);
+    lstrcatW  (wszCEGUITestDLL, L"\\CEGUIBase-0.dll");
+
+    wchar_t wszWorkingDir [MAX_PATH + 2] = { };
+
+    if (! config.cegui.safe_init)
+    {
+      //std::queue <DWORD> tids =
+      //  SK_SuspendAllOtherThreads ();
+
+      GetCurrentDirectory    (MAX_PATH, wszWorkingDir);
+      SetCurrentDirectory    (        wszCEGUIModPath);
+    }
+
+    // This is only guaranteed to be supported on Windows 8, but Win7 and Vista
+    //   do support it if a certain Windows Update (KB2533623) is installed.
+    using AddDllDirectory_pfn          = DLL_DIRECTORY_COOKIE (WINAPI *)(_In_ PCWSTR               NewDirectory);
+    using RemoveDllDirectory_pfn       = BOOL                 (WINAPI *)(_In_ DLL_DIRECTORY_COOKIE Cookie);
+    using SetDefaultDllDirectories_pfn = BOOL                 (WINAPI *)(_In_ DWORD                DirectoryFlags);
+
+    static auto k32_AddDllDirectory =
+      (AddDllDirectory_pfn)
+        GetProcAddress ( GetModuleHandle (L"kernel32.dll"),
+                           "AddDllDirectory" );
+
+    static auto k32_RemoveDllDirectory =
+      (RemoveDllDirectory_pfn)
+        GetProcAddress ( GetModuleHandle (L"kernel32.dll"),
+                           "RemoveDllDirectory" );
+
+    static auto k32_SetDefaultDllDirectories =
+      (SetDefaultDllDirectories_pfn)
+        GetProcAddress ( GetModuleHandle (L"kernel32.dll"),
+                           "SetDefaultDllDirectories" );
+
+    if ( k32_AddDllDirectory          && k32_RemoveDllDirectory &&
+         k32_SetDefaultDllDirectories &&
+
+           GetFileAttributesW (wszCEGUITestDLL) != INVALID_FILE_ATTRIBUTES )
+    {
+      SK_StripUserNameFromPathW (wszCEGUITestDLL);
+
+      dll_log.Log (L"[  CEGUI   ] Enabling CEGUI: (%s)", wszCEGUITestDLL);
+
+      wchar_t wszEnvVar [ MAX_PATH + 32 ] = { };
+
+      _swprintf (wszEnvVar, L"CEGUI_MODULE_DIR=%s", wszCEGUIModPath);
+      _wputenv  (wszEnvVar);
+
+      // This tests for the existence of the DLL before attempting to load it...
+      auto DelayLoadDLL = [&](const char* szDLL)->
+        bool
+        {
+          if (! config.cegui.safe_init)
+            return SUCCEEDED ( __HrLoadAllImportsForDll (szDLL) );
+
+          k32_SetDefaultDllDirectories (
+            LOAD_LIBRARY_SEARCH_APPLICATION_DIR | LOAD_LIBRARY_SEARCH_DEFAULT_DIRS |
+            LOAD_LIBRARY_SEARCH_SYSTEM32        | LOAD_LIBRARY_SEARCH_USER_DIRS
+          );
+
+          DLL_DIRECTORY_COOKIE cookie = nullptr;
+          bool                 ret    = false;
+
+          __try
+          {
+            cookie =               k32_AddDllDirectory    (wszCEGUIModPath);
+            ret    = SUCCEEDED ( __HrLoadAllImportsForDll (szDLL)           );
+          }
+
+          __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ) ?
+                     EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH )
+          {
+          }
+          k32_RemoveDllDirectory (cookie);
+
+          return ret;
+        };
+
+      if (DelayLoadDLL ("CEGUIBase-0.dll"))
+      {
+        FILE* fTest = 
+          _wfopen (L"CEGUI.log", L"wtc+");
+
+        if (fTest != nullptr)
+        {
+          fclose (fTest);
+
+          if (SK_GetCurrentRenderBackend ().api == SK_RenderAPI::OpenGL)
+          {
+            if (config.apis.OpenGL.hook)
+            {
+              config.cegui.enable =
+                DelayLoadDLL ("CEGUIOpenGLRenderer-0.dll");
+            }
+          }
+
+          if ( SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D9 ||
+               SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D9Ex )
+          {
+            if (config.apis.d3d9.hook || config.apis.d3d9ex.hook)
+            {
+              config.cegui.enable =
+                DelayLoadDLL ("CEGUIDirect3D9Renderer-0.dll");
+            }
+          }
+
+          if (config.apis.dxgi.d3d11.hook)
+          {
+            if ( static_cast <int> (SK_GetCurrentRenderBackend ().api) &
+                 static_cast <int> (SK_RenderAPI::D3D11              ) )
+            {
+              config.cegui.enable =
+                DelayLoadDLL ("CEGUIDirect3D11Renderer-0.dll");
+            }
+          }
+        }
+
+        else
+        {
+          const wchar_t* wszDisableMsg = 
+            L"File permissions are preventing CEGUI from functioning;"
+            L" it has been disabled.";
+
+          SK_ImGui_Warning (
+            SK_FormatStringW ( L"%s\n\n"
+                               L"\t\t\t\t>> To fix this, run the game %s "
+                                                         L"administrator.",
+                               wszDisableMsg,
+                                 SK_IsInjected              () &&
+                              (! SK_Inject_IsAdminSupported ()) ?
+                                   L"and SKIM64 as" :
+                                              L"as" ).c_str ()
+          );
+
+          SK_LOG0 ( (L"%ws", wszDisableMsg),
+                     L"  CEGUI   " );
+        }
+      }
+    }
+
+    // If we got this far and CEGUI's not enabled, it's because something went horribly wrong.
+    if (! (config.cegui.enable && GetModuleHandle (L"CEGUIBase-0")))
+      InterlockedExchange (&CEGUI_Init, FALSE);
+
+    if (! config.cegui.safe_init)
+    {
+      SetCurrentDirectory (wszWorkingDir);
+    //SK_ResumeThreads    (tids);
+    }
+
+    SK_UnlockDllLoader  ();
+  }
+}
+
+
+struct {
+  DWORD  dwTid     = 0;
+  DWORD  dwTaskIdx = 0;                    // MMCSS Task Idx
+  HANDLE hTask     = INVALID_HANDLE_VALUE; // MMCSS Priority Boost Handle
+} SK_BufferFlinger;
+
 __declspec (noinline)
 void
 STDMETHODCALLTYPE
@@ -1722,11 +1939,23 @@ SK_BeginBufferSwap (void)
 {
   static SK_RenderAPI LastKnownAPI = SK_RenderAPI::Reserved;
 
+  assert ( SK_BufferFlinger.dwTid == 0 ||
+           SK_BufferFlinger.dwTid == GetCurrentThreadId () );
+
+  SK_BufferFlinger.dwTid = GetCurrentThreadId ();
+
+  if (config.render.framerate.enable_mmcss && SK_BufferFlinger.dwTaskIdx == 0)
+  {
+    SK_BufferFlinger.hTask = 
+      AvSetMmMaxThreadCharacteristics ( L"Games",
+                                        L"Window Manager",
+                                          &SK_BufferFlinger.dwTaskIdx );
+  }
+
+  if (SK_BufferFlinger.hTask != INVALID_HANDLE_VALUE)
+    AvSetMmThreadPriority (SK_BufferFlinger.hTask, AVRT_PRIORITY_CRITICAL);
 
 
-  // Maybe make this into an option, but for now just get this the hell out of there
-  //   almost no software should be shipping with FP exceptions, it causes compatibility problems.
-  _controlfp (MCW_EM, MCW_EM);
 
   ImGuiIO& io =
     ImGui::GetIO ();
@@ -1748,6 +1977,12 @@ SK_BeginBufferSwap (void)
     case 0:
     {
       SetCurrentThreadDescription (L"[SK] Primary Render Thread");
+
+
+      // Maybe make this into an option, but for now just get this the hell out of there
+      //   almost no software should be shipping with FP exceptions, it causes compatibility problems.
+      _controlfp (MCW_EM, MCW_EM);
+
 
       // Load user-defined DLLs (Late)
       SK_RunLHIfBitness ( 64, SK_LoadLateImports64 (),
@@ -1804,214 +2039,15 @@ SK_BeginBufferSwap (void)
 
   if (config.cegui.enable)
   {
-    static volatile LONG CEGUI_Init = FALSE;
+    SetupCEGUI (LastKnownAPI);
 
-    if ( (SK_GetCurrentRenderBackend ().api != SK_RenderAPI::Reserved) &&
-         ( (! InterlockedCompareExchange (&CEGUI_Init, TRUE, FALSE)) ||
-            LastKnownAPI != SK_GetCurrentRenderBackend ().api ) )
+    if (config.cegui.frames_drawn > 0)
     {
-      InterlockedIncrement (&SK_GetCurrentRenderBackend ().frames_drawn);
-
-      // Brutally stupid hack for brutally stupid OS (Windows 7)
-      //
-      //   1. Lock the DLL loader + Suspend all Threads
-      //   2. Change Working Dir  + Delay-Load CEGUI DLLs
-      //   3. Restore Working Dir
-      //   4. Resume all Threads  + Unlock DLL Loader
-      //
-      //     >> Not necessary if the kernel supports altered DLL serarch
-      //          paths <<
-      //
-
-      SK_LockDllLoader ();
-
-      // Disable until we validate CEGUI's state
-      config.cegui.enable = false;
-
-      wchar_t wszCEGUIModPath [MAX_PATH]        = { };
-      wchar_t wszCEGUITestDLL [MAX_PATH]        = { };
-      wchar_t wszEnvPath      [ MAX_PATH + 32 ] = { };
-
-      const wchar_t* wszArch = SK_RunLHIfBitness ( 64, L"x64",
-                                                       L"Win32" );
-
-      _swprintf (wszCEGUIModPath, LR"(%sCEGUI\bin\%s)", SK_GetRootPath (), wszArch);
-
-      if (GetFileAttributes (wszCEGUIModPath) == INVALID_FILE_ATTRIBUTES)
+      if (! SK::SteamAPI::GetOverlayState (true))
       {
-        _swprintf ( wszCEGUIModPath, LR"(%s\My Mods\SpecialK\CEGUI\bin\%s)",
-                      SK_GetDocumentsDir ().c_str (), wszArch );
-
-        _swprintf (wszEnvPath, LR"(CEGUI_PARENT_DIR=%s\My Mods\SpecialK\)", SK_GetDocumentsDir ().c_str ());
+        SK_DrawOSD     ();
+        SK_DrawConsole ();
       }
-      else
-        _swprintf (wszEnvPath, L"CEGUI_PARENT_DIR=%s", SK_GetRootPath ());
-
-      if (GetFileAttributes (wszCEGUIModPath) == INVALID_FILE_ATTRIBUTES)
-      {
-        SK_UnpackCEGUI ();
-      }
-
-      _wputenv  (wszEnvPath);
-
-      lstrcatW  (wszCEGUITestDLL, wszCEGUIModPath);
-      lstrcatW  (wszCEGUITestDLL, L"\\CEGUIBase-0.dll");
-
-      wchar_t wszWorkingDir [MAX_PATH + 2] = { };
-
-      if (! config.cegui.safe_init)
-      {
-        //std::queue <DWORD> tids =
-        //  SK_SuspendAllOtherThreads ();
-
-        GetCurrentDirectory    (MAX_PATH, wszWorkingDir);
-        SetCurrentDirectory    (        wszCEGUIModPath);
-      }
-
-      // This is only guaranteed to be supported on Windows 8, but Win7 and Vista
-      //   do support it if a certain Windows Update (KB2533623) is installed.
-      using AddDllDirectory_pfn          = DLL_DIRECTORY_COOKIE (WINAPI *)(_In_ PCWSTR               NewDirectory);
-      using RemoveDllDirectory_pfn       = BOOL                 (WINAPI *)(_In_ DLL_DIRECTORY_COOKIE Cookie);
-      using SetDefaultDllDirectories_pfn = BOOL                 (WINAPI *)(_In_ DWORD                DirectoryFlags);
-
-      static auto k32_AddDllDirectory =
-        (AddDllDirectory_pfn)
-          GetProcAddress ( GetModuleHandle (L"kernel32.dll"),
-                             "AddDllDirectory" );
-
-      static auto k32_RemoveDllDirectory =
-        (RemoveDllDirectory_pfn)
-          GetProcAddress ( GetModuleHandle (L"kernel32.dll"),
-                             "RemoveDllDirectory" );
-
-      static auto k32_SetDefaultDllDirectories =
-        (SetDefaultDllDirectories_pfn)
-          GetProcAddress ( GetModuleHandle (L"kernel32.dll"),
-                             "SetDefaultDllDirectories" );
-
-      if ( k32_AddDllDirectory          && k32_RemoveDllDirectory &&
-           k32_SetDefaultDllDirectories &&
-
-             GetFileAttributesW (wszCEGUITestDLL) != INVALID_FILE_ATTRIBUTES )
-      {
-        SK_StripUserNameFromPathW (wszCEGUITestDLL);
-
-        dll_log.Log (L"[  CEGUI   ] Enabling CEGUI: (%s)", wszCEGUITestDLL);
-
-        wchar_t wszEnvVar [ MAX_PATH + 32 ] = { };
-
-        _swprintf (wszEnvVar, L"CEGUI_MODULE_DIR=%s", wszCEGUIModPath);
-        _wputenv  (wszEnvVar);
-
-        // This tests for the existence of the DLL before attempting to load it...
-        auto DelayLoadDLL = [&](const char* szDLL)->
-          bool
-          {
-            if (! config.cegui.safe_init)
-              return SUCCEEDED ( __HrLoadAllImportsForDll (szDLL) );
-
-            k32_SetDefaultDllDirectories (
-              LOAD_LIBRARY_SEARCH_APPLICATION_DIR | LOAD_LIBRARY_SEARCH_DEFAULT_DIRS |
-              LOAD_LIBRARY_SEARCH_SYSTEM32        | LOAD_LIBRARY_SEARCH_USER_DIRS
-            );
-
-            DLL_DIRECTORY_COOKIE cookie = nullptr;
-            bool                 ret    = false;
-
-            __try
-            {
-              cookie =               k32_AddDllDirectory    (wszCEGUIModPath);
-              ret    = SUCCEEDED ( __HrLoadAllImportsForDll (szDLL)           );
-            }
-
-            __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ) ?
-                       EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH )
-            {
-            }
-            k32_RemoveDllDirectory (cookie);
-
-            return ret;
-          };
-
-        if (DelayLoadDLL ("CEGUIBase-0.dll"))
-        {
-          FILE* fTest = 
-            _wfopen (L"CEGUI.log", L"wtc+");
-
-          if (fTest != nullptr)
-          {
-            fclose (fTest);
-
-            if (SK_GetCurrentRenderBackend ().api == SK_RenderAPI::OpenGL)
-            {
-              if (config.apis.OpenGL.hook)
-              {
-                config.cegui.enable =
-                  DelayLoadDLL ("CEGUIOpenGLRenderer-0.dll");
-              }
-            }
-
-            if ( SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D9 ||
-                 SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D9Ex )
-            {
-              if (config.apis.d3d9.hook || config.apis.d3d9ex.hook)
-              {
-                config.cegui.enable =
-                  DelayLoadDLL ("CEGUIDirect3D9Renderer-0.dll");
-              }
-            }
-
-            if (config.apis.dxgi.d3d11.hook)
-            {
-              if ( static_cast <int> (SK_GetCurrentRenderBackend ().api) &
-                   static_cast <int> (SK_RenderAPI::D3D11              ) )
-              {
-                config.cegui.enable =
-                  DelayLoadDLL ("CEGUIDirect3D11Renderer-0.dll");
-              }
-            }
-          }
-
-          else
-          {
-            const wchar_t* wszDisableMsg = 
-              L"File permissions are preventing CEGUI from functioning;"
-              L" it has been disabled.";
-
-            SK_ImGui_Warning (
-              SK_FormatStringW ( L"%s\n\n"
-                                 L"\t\t\t\t>> To fix this, run the game %s "
-                                                           L"administrator.",
-                                 wszDisableMsg,
-                                   SK_IsInjected              () &&
-                                (! SK_Inject_IsAdminSupported ()) ?
-                                     L"and SKIM64 as" :
-                                                L"as" ).c_str ()
-            );
-
-            SK_LOG0 ( (L"%ws", wszDisableMsg),
-                       L"  CEGUI   " );
-          }
-        }
-      }
-
-      // If we got this far and CEGUI's not enabled, it's because something went horribly wrong.
-      if (! config.cegui.enable)
-        InterlockedExchange (&CEGUI_Init, FALSE);
-
-      if (! config.cegui.safe_init)
-      {
-        SetCurrentDirectory (wszWorkingDir);
-      //SK_ResumeThreads    (tids);
-      }
-
-      SK_UnlockDllLoader  ();
-    }
-
-    if (! SK::SteamAPI::GetOverlayState (true))
-    {
-      SK_DrawOSD     ();
-      SK_DrawConsole ();
     }
   }
 
@@ -2043,7 +2079,8 @@ SK_BeginBufferSwap (void)
   SK_ImGui_PollGamepad_EndFrame ();
 
 
-  LastKnownAPI = SK_GetCurrentRenderBackend ().api;
+  LastKnownAPI =
+    SK_GetCurrentRenderBackend ().api;
 }
 
 
@@ -2151,11 +2188,14 @@ HRESULT
 STDMETHODCALLTYPE
 SK_EndBufferSwap (HRESULT hr, IUnknown* device)
 {
+  static SK_RenderAPI     LastKnownAPI = SK_RenderAPI::Reserved;
   extern SK_RenderBackend __SK_RBkEnd;
+
+  assert (__SK_RBkEnd.thread == GetCurrentThreadId () || LastKnownAPI == SK_RenderAPI::Reserved);
 
   __SK_RBkEnd.thread = GetCurrentThreadId ();
 
-  if (device != nullptr)
+  if (device != nullptr && LastKnownAPI != __SK_RBkEnd.api)
   {
     CComPtr <IDirect3DDevice9>   pDev9   = nullptr;
     CComPtr <IDirect3DDevice9Ex> pDev9Ex = nullptr;
@@ -2196,7 +2236,7 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
       CComPtr <IUnknown> pTest = nullptr;
 
       if (SUCCEEDED (       device->QueryInterface (IID_ID3D11Device5, (void **)&pTest))) {
-        wcsncpy (__SK_RBkEnd.name, L"D3D11.4", 8);
+        wcsncpy (__SK_RBkEnd.name, L"D3D11.4", 8); // Creators Update
       } else if (SUCCEEDED (device->QueryInterface (IID_ID3D11Device4, (void **)&pTest))) {
         wcsncpy (__SK_RBkEnd.name, L"D3D11.4", 8);
       } else if (SUCCEEDED (device->QueryInterface (IID_ID3D11Device3, (void **)&pTest))) {
@@ -2215,29 +2255,6 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
       else if (SK_GetDLLRole () == DLL_ROLE::DDraw) {
         wcscpy (__SK_RBkEnd.name, L"DDraw");
       }
-
-
-      if ( static_cast <int> (__SK_RBkEnd.api)  &
-           static_cast <int> (SK_RenderAPI::D3D11) )
-      {
-        BOOL fullscreen = FALSE;
-
-        CComPtr                                 <IDXGISwapChain>   pSwapChain = nullptr;
-        if (__SK_RBkEnd.swapchain)
-          __SK_RBkEnd.swapchain->QueryInterface <IDXGISwapChain> (&pSwapChain);
-
-        if ( pSwapChain &&
-  SUCCEEDED (pSwapChain->GetFullscreenState (&fullscreen, nullptr)) )
-        {
-          __SK_RBkEnd.fullscreen_exclusive = fullscreen;
-        }
-
-        else
-          __SK_RBkEnd.fullscreen_exclusive = false;
-      }
-
-      extern void SK_D3D11_EndFrame (void);
-                  SK_D3D11_EndFrame ();
     }
 
     else
@@ -2247,7 +2264,7 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
     }
   }
 
-  else
+  else if (LastKnownAPI != __SK_RBkEnd.api)
   {
     if (config.apis.OpenGL.hook && SK_GL_GetCurrentContext () != nullptr)
     {
@@ -2256,7 +2273,34 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
     }
   }
 
-  config.apis.last_known =
+
+  // Determine Fullscreen Exclusive state in D3D11
+  //
+  if ( static_cast <int> (__SK_RBkEnd.api)  &
+       static_cast <int> (SK_RenderAPI::D3D11) )
+  {
+    BOOL fullscreen = FALSE;
+
+    CComPtr                                 <IDXGISwapChain>   pSwapChain = nullptr;
+    if (__SK_RBkEnd.swapchain)
+      __SK_RBkEnd.swapchain->QueryInterface <IDXGISwapChain> (&pSwapChain);
+
+    if ( pSwapChain &&
+  SUCCEEDED (pSwapChain->GetFullscreenState (&fullscreen, nullptr)) )
+    {
+      __SK_RBkEnd.fullscreen_exclusive = fullscreen;
+    }
+
+    else
+      __SK_RBkEnd.fullscreen_exclusive = false;
+
+    // Also clear any resources we were tracking for the shader mod subsystem
+    extern void SK_D3D11_EndFrame (void);
+                SK_D3D11_EndFrame ();
+  }
+
+
+  LastKnownAPI = config.apis.last_known =
     __SK_RBkEnd.api;
 
 
@@ -2266,6 +2310,7 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
   SK_Input_PollKeyboard ();
 
   InterlockedIncrement (&SK_GetCurrentRenderBackend ().frames_drawn);
+
 
   if (config.sli.show && device != nullptr)
   {
@@ -2289,17 +2334,16 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
     SK::Framerate::GetLimiter ()->wait ();
   }
 
-  ////extern LONG imgui_finished_frames;
-  ////
-  ////if (imgui_finished_frames > 0)
-  ////{
-  ////  extern void SK_ImGui_StageNextFrame (void);
-  ////              SK_ImGui_StageNextFrame ();
-  ////}
 
-  if (config.cegui.enable)
+  if (config.cegui.enable && ReadAcquire (&CEGUI_Init))
   {
     config.cegui.frames_drawn++;
+  }
+
+
+  if (SK_BufferFlinger.hTask != INVALID_HANDLE_VALUE)
+  {
+    AvRevertMmThreadCharacteristics (SK_BufferFlinger.hTask);
   }
 
 

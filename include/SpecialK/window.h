@@ -49,6 +49,9 @@ bool          SK_DiscontEpsilon   (int x1, int x2, int tolerance);
 HWND  __stdcall SK_RealizeForegroundWindow (HWND hWndForeground);
 HWND  __stdcall SK_GetGameWindow           (void);
 
+HRESULT
+WINAPI
+SK_DWM_EnableMMCSS (BOOL enable);
 
 using CreateWindowExA_pfn    = HWND (WINAPI *)(
     _In_     DWORD     dwExStyle,

@@ -257,6 +257,7 @@ struct sk_config_t
       bool    wait_for_vblank   = false;
       bool    sleepless_render  = false;
       bool    sleepless_window  = false;
+      bool    enable_mmcss      = true;
       bool    busy_wait_limiter = true;
       bool    yield_once        = true;
       bool    min_input_latency = true;

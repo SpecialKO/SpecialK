@@ -1231,7 +1231,7 @@ void ResetCEGUI_GL (void)
   assert (imp_wglGetCurrentContext != nullptr);
 
   if ( cegGL == nullptr && SK_GetFramesDrawn       ()  > 10 &&
-                           SK_GL_GetCurrentContext () != 0  )
+                           SK_GL_GetCurrentContext () != nullptr  )
   {
     if (GetModuleHandle (L"CEGUIOpenGLRenderer-0.dll"))
     {
@@ -1341,8 +1341,8 @@ wglMakeCurrent (HDC hDC, HGLRC hglrc)
 
   pTLS->gl.current_hglrc = hglrc;
   pTLS->gl.current_hdc   = hDC;
-  pTLS->gl.current_hwnd  = pTLS->gl.current_hdc != 0 ?
-            WindowFromDC  (pTLS->gl.current_hdc)     : 0;
+  pTLS->gl.current_hwnd  = pTLS->gl.current_hdc != nullptr ?
+            WindowFromDC  (pTLS->gl.current_hdc)     : nullptr;
 
   return ret;
 }
@@ -1403,7 +1403,7 @@ wglDeleteContext (HGLRC hglrc)
     }
     
     init_ [__gl_primary_context] = false;
-           __gl_primary_context  = 0;
+           __gl_primary_context  = nullptr;
   }
 
 
@@ -1765,7 +1765,7 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
   {
     std::lock_guard <SK_Thread_CriticalSection> auto_lock0 (*cs_gl_ctx);
 
-    if (init_.empty () && thread_hglrc == 0)
+    if (init_.empty () && thread_hglrc == nullptr)
     {
       // This is a nop, it sets the same handles it gets... but it ensures that
       //   other hook libraries are congruent
@@ -1779,7 +1779,7 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
     }
 
  
-    if (thread_hglrc != 0)
+    if (thread_hglrc != nullptr)
     {
       bool shared_ctx =
         __gl_shared_contexts.count (thread_hglrc) != 0;
@@ -1794,7 +1794,7 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
       }
 
 
-      if (__gl_primary_context == 0)
+      if (__gl_primary_context == nullptr)
       {
         __gl_primary_context = shared_ctx ? __gl_shared_contexts [thread_hglrc] :
                                                                   thread_hglrc;
@@ -2935,7 +2935,7 @@ wglShareLists (HGLRC ctx0, HGLRC ctx1)
 
   if (ret == TRUE)
   {
-    if (__gl_primary_context == 0)
+    if (__gl_primary_context == nullptr)
       __gl_primary_context = ctx0;
 
     std::lock_guard <SK_Thread_CriticalSection> auto_lock (*cs_gl_ctx);
@@ -2956,7 +2956,7 @@ HGLRC
 WINAPI
 SK_GL_GetCurrentContext (void)
 {
-  HGLRC hglrc = 0;
+  HGLRC hglrc = nullptr;
 
   if (      imp_wglGetCurrentContext != nullptr)
     hglrc = imp_wglGetCurrentContext ();
@@ -2970,12 +2970,12 @@ HDC
 WINAPI
 SK_GL_GetCurrentDC (void)
 {
-  HDC  hdc  = 0;
-  HWND hwnd = 0;
+  HDC  hdc  = nullptr;
+  HWND hwnd = nullptr;
 
-  typedef HDC (WINAPI *wglGetCurrentDC_pfn)(void);
+  using wglGetCurrentDC_pfn = HDC (WINAPI *)(void);
 
-  wglGetCurrentDC_pfn __imp__wglGetCurrentDC =
+  auto __imp__wglGetCurrentDC =
     (wglGetCurrentDC_pfn)GetProcAddress (local_gl, "wglGetCurrentDC");
 
   if (    __imp__wglGetCurrentDC != nullptr)

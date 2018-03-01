@@ -426,7 +426,7 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
 
       // Don't cache addresses that were screwed with by other injectors
       const wchar_t* wszSection =
-        StrStrIW (it->target.module_path, LR"(\sys)") ?
+        StrStrIW (it->target.module_path, LR"(d3d9.dll)") ?
                                             L"D3D9.Hooks" : nullptr;
 
       if (! wszSection)
@@ -453,7 +453,7 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
       while ( it_local != std::end (local_d3d9_records) )
       {
         if (( *it_local )->hits &&
-  StrStrIW (( *it_local )->target.module_path, LR"(\sys)") &&
+  StrStrIW (( *it_local )->target.module_path, LR"(d3d9.dll)") &&
             ( *it_local )->active)
           SK_Hook_PushLocalCacheOntoGlobal ( **it_local,
                                                **it_global );
@@ -663,15 +663,18 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
       CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
 
 
-    if ( static_cast <int> (SK_GetCurrentRenderBackend ().api) &
-         static_cast <int> (SK_RenderAPI::D3D9)                  )
+    const auto api = SK_GetCurrentRenderBackend ().api;
+
+    if ( api == SK_RenderAPI::D3D9   ||
+         api == SK_RenderAPI::D3D9Ex ||
+         api == SK_RenderAPI::Reserved )
     {
       extern DWORD SK_ImGui_DrawFrame (DWORD dwFlags, void* user);
                    SK_ImGui_DrawFrame (       0x00,     nullptr );
     }
 
 
-    if (SK_Steam_DrawOSD () != 0)
+    if ((uintptr_t)cegD3D9 > 1 && SK_Steam_DrawOSD () != 0)
     {
       pDev->SetRenderState (D3DRS_SRGBWRITEENABLE,          FALSE);
       pDev->SetRenderState (D3DRS_ALPHABLENDENABLE,         TRUE);
@@ -1192,6 +1195,18 @@ __inline
 bool
 SK_D3D9_ShouldProcessPresentCall (SK_D3D9_PresentSource Source)
 {
+  const auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  if (rb.api == SK_RenderAPI::Reserved)
+    return true;
+
+  // No transient graphics APIs please.
+  if (! ((rb.api == SK_RenderAPI::D3D9) ||
+         (rb.api == SK_RenderAPI::D3D9Ex)) )
+    return false;
+
+
   bool has_wrapped_swapchains =
     ( ReadAcquire (&SK_D3D9_LiveWrappedSwapChains) +
       ReadAcquire (&SK_D3D9_LiveWrappedSwapChainsEx) ) > 0;
@@ -1315,16 +1330,20 @@ SK_D3D9_Present_GrandCentral ( sk_d3d9_swap_dispatch_s* dispatch )
     return E_NOTIMPL;
   };
 
-
-  SK_GetCurrentRenderBackend ().device    = dispatch->pDevice;
-  SK_GetCurrentRenderBackend ().swapchain = dispatch->pSwapChain;
-
   bool process =
     SK_D3D9_ShouldProcessPresentCall (dispatch->Source);
 
 
   if (process || trigger_reset != reset_stage_e::Clear)
   {
+    if ( SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D9   || 
+         SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D9Ex ||
+         SK_GetCurrentRenderBackend ().api == SK_RenderAPI::Reserved )
+    {
+      SK_GetCurrentRenderBackend ().device    = dispatch->pDevice;
+      SK_GetCurrentRenderBackend ().swapchain = dispatch->pSwapChain;
+    }
+
 #if 0
     SetThreadIdealProcessor (GetCurrentThread (),       6);
     SetThreadAffinityMask   (GetCurrentThread (), (1 << 7) | (1 << 6));//config.render.framerate.pin_render_thread);
@@ -2006,7 +2025,12 @@ D3D9Reset_Post ( IDirect3DDevice9      *This,
     trigger_reset       = reset_stage_e::Clear;
     request_mode_change = mode_change_request_e::None;
 
-    SK_GetCurrentRenderBackend ().device = This;
+    if ( SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D9   || 
+         SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D9Ex ||
+         SK_GetCurrentRenderBackend ().api == SK_RenderAPI::Reserved )
+    {
+      SK_GetCurrentRenderBackend ().device = This;
+    }
   }
 }
 
@@ -3139,7 +3163,13 @@ SK_SetPresentParamsD3D9Ex ( IDirect3DDevice9       *pDevice,
 #ifdef _DEBUG
     dll_log.Log (L"Using wrapper for SetPresentParams!");
 #endif
-    SK_GetCurrentRenderBackend ().device = (pWrappedDevice)->pReal;
+    // Filter out devices used only for video playback
+    if ( SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D9   || 
+         SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D9Ex ||
+         SK_GetCurrentRenderBackend ().api == SK_RenderAPI::Reserved )
+    {
+      SK_GetCurrentRenderBackend ().device = (pWrappedDevice)->pReal;
+    }
   }
 
   CComPtr <IDirect3DDevice9Ex> pDevEx = nullptr;
@@ -3302,7 +3332,7 @@ SK_SetPresentParamsD3D9Ex ( IDirect3DDevice9       *pDevice,
 
     else if (switch_to_windowed)
     {
-      if (pparams->hDeviceWindow || dcparams.hFocusWindow != 0)
+      if (pparams->hDeviceWindow || dcparams.hFocusWindow != nullptr)
       {
         pparams->Windowed                   = TRUE;
         pparams->FullScreen_RefreshRateInHz = 0;
@@ -4198,7 +4228,7 @@ D3D9CreateDeviceEx_Override ( IDirect3D9Ex           *This,
     {
       hFocusWindow = pPresentationParameters->hDeviceWindow;
 
-      if (hFocusWindow == 0)
+      if (hFocusWindow == nullptr)
       {
         pModeEx = nullptr; pPresentationParameters->Windowed = TRUE;
       }

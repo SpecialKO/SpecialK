@@ -1256,31 +1256,33 @@ SK::Framerate::Init (void)
       );
 #endif
 
-  if (NtDll == nullptr)
+  if (! config.render.framerate.enable_mmcss)
   {
-    NtDll = LoadLibrary (L"ntdll.dll");
-
-    NtQueryTimerResolution =
-      reinterpret_cast <NtQueryTimerResolution_pfn> (
-        GetProcAddress (NtDll, "NtQueryTimerResolution")
-      );
-
-    NtSetTimerResolution =
-      reinterpret_cast <NtSetTimerResolution_pfn> (
-        GetProcAddress (NtDll, "NtSetTimerResolution")
-      );
-
-    if (NtQueryTimerResolution != nullptr &&
-        NtSetTimerResolution   != nullptr)
+    if (NtDll == nullptr)
     {
-      ULONG min, max, cur;
-      NtQueryTimerResolution (&min, &max, &cur);
-      dll_log.Log ( L"[  Timing  ] Kernel resolution.: %f ms",
-                      static_cast <float> (cur * 100)/1000000.0f );
-      NtSetTimerResolution   (max, TRUE,  &cur);
-      dll_log.Log ( L"[  Timing  ] New resolution....: %f ms",
-                      static_cast <float> (cur * 100)/1000000.0f );
+      NtDll = LoadLibrary (L"ntdll.dll");
 
+      NtQueryTimerResolution =
+        reinterpret_cast <NtQueryTimerResolution_pfn> (
+          GetProcAddress (NtDll, "NtQueryTimerResolution")
+        );
+
+      NtSetTimerResolution =
+        reinterpret_cast <NtSetTimerResolution_pfn> (
+          GetProcAddress (NtDll, "NtSetTimerResolution")
+        );
+
+      if (NtQueryTimerResolution != nullptr &&
+          NtSetTimerResolution   != nullptr)
+      {
+        ULONG min, max, cur;
+        NtQueryTimerResolution (&min, &max, &cur);
+        dll_log.Log ( L"[  Timing  ] Kernel resolution.: %f ms",
+                        static_cast <float> (cur * 100)/1000000.0f );
+        NtSetTimerResolution   (max, TRUE,  &cur);
+        dll_log.Log ( L"[  Timing  ] New resolution....: %f ms",
+                        static_cast <float> (cur * 100)/1000000.0f );
+      }
     }
   }
 }
@@ -1288,6 +1290,9 @@ SK::Framerate::Init (void)
 void
 SK::Framerate::Shutdown (void)
 {
+  if (NtDll != nullptr)
+    FreeLibrary (NtDll);
+
   SK_DisableHook (pfnSleep);
   //SK_DisableHook (pfnQueryPerformanceCounter);
 }

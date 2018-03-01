@@ -22,15 +22,9 @@
 #ifndef __SK__INJECTION_BLACKLIST_H__
 #define __SK__INJECTION_BLACKLIST_H__
 
-#pragma warning (push)
-#pragma warning (disable: 4245)
-#pragma warning (disable: 4244)
-#pragma warning (disable: 4305)
-
-#include <frozen/unordered_set.h>
-#include <frozen/wstring.h>
 #include <string>
 
+const static
 std::unordered_set <std::wstring> __blacklist = {
   L"steam.exe",
   L"gameoverlayui.exe",
@@ -132,6 +126,5 @@ std::unordered_set <std::wstring> __blacklist = {
   L"ds3t.exe",
   L"tzt.exe"
 };
-#pragma warning(pop)
 
 #endif /* __SK__INJECTION_BLACKLIST_H__ */

@@ -545,7 +545,7 @@
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <LargeAddressAware>true</LargeAddressAware>
       <DataExecutionPrevention>false</DataExecutionPrevention>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;d3dx9_43.dll;d3dcompiler_43.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll;avrt.dll</DelayLoadDLLs>
       <EntryPointSymbol />
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <AssemblyDebug>false</AssemblyDebug>
@@ -614,7 +614,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>C:\Users\andon\Documents\My Mods\SpecialK\SpecialK64.dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;d3dx9_43.dll;d3dcompiler_43.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll;avrt.dll</DelayLoadDLLs>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <EntryPointSymbol>
@@ -697,7 +697,7 @@
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
       <DataExecutionPrevention>false</DataExecutionPrevention>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;d3dx9_43.dll;d3dcompiler_43.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll;avrt.dll</DelayLoadDLLs>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
@@ -795,7 +795,7 @@
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
       <DataExecutionPrevention>false</DataExecutionPrevention>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;d3dx9_43.dll;d3dcompiler_43.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll;avrt.dll</DelayLoadDLLs>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
@@ -893,7 +893,7 @@
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>Installer.def</ModuleDefinitionFile>
       <DataExecutionPrevention>false</DataExecutionPrevention>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;d3dx9_43.dll;d3dcompiler_43.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll;avrt.dll</DelayLoadDLLs>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
@@ -980,7 +980,7 @@ Exit 0</Command>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
       <DataExecutionPrevention>false</DataExecutionPrevention>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;d3dx9_43.dll;d3dcompiler_43.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll;avrt.dll</DelayLoadDLLs>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
@@ -1069,7 +1069,7 @@ Exit 0</Command>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
       <DataExecutionPrevention>false</DataExecutionPrevention>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;d3dx9_43.dll;d3dcompiler_43.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll;avrt.dll</DelayLoadDLLs>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
@@ -1160,7 +1160,7 @@ Exit 0</Command>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
       <DataExecutionPrevention>false</DataExecutionPrevention>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;d3dx9_43.dll;d3dcompiler_43.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll;avrt.dll</DelayLoadDLLs>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
@@ -1249,7 +1249,7 @@ Exit 0</Command>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
       <DataExecutionPrevention>false</DataExecutionPrevention>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;d3dx9_43.dll;d3dcompiler_43.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll;avrt.dll</DelayLoadDLLs>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
@@ -1338,7 +1338,7 @@ Exit 0</Command>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
       <DataExecutionPrevention>false</DataExecutionPrevention>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;d3dx9_43.dll;d3dcompiler_43.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll;avrt.dll</DelayLoadDLLs>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
@@ -1427,7 +1427,7 @@ Exit 0</Command>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
       <DataExecutionPrevention>false</DataExecutionPrevention>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;d3dx9_43.dll;d3dcompiler_43.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll;avrt.dll</DelayLoadDLLs>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
@@ -1515,7 +1515,7 @@ Exit 0</Command>
       <MapExports>false</MapExports>
       <DataExecutionPrevention>false</DataExecutionPrevention>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;d3dx9_43.dll;d3dcompiler_43.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll;avrt.dll</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
       <EntryPointSymbol>
@@ -1613,7 +1613,7 @@ Exit 0</Command>
       <MapExports>false</MapExports>
       <DataExecutionPrevention>false</DataExecutionPrevention>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;d3dx9_43.dll;d3dcompiler_43.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll;avrt.dll</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
       <EntryPointSymbol>
@@ -1709,7 +1709,7 @@ Exit 0</Command>
       <MapExports>false</MapExports>
       <DataExecutionPrevention>false</DataExecutionPrevention>
       <ModuleDefinitionFile>Installer.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;d3dx9_43.dll;d3dcompiler_43.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll;avrt.dll</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib  /OUT:"$(TargetName).dll"</AdditionalOptions>
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
@@ -1795,7 +1795,7 @@ Exit 0</Command>
       <MapExports>false</MapExports>
       <DataExecutionPrevention>false</DataExecutionPrevention>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;d3dx9_43.dll;d3dcompiler_43.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll;avrt.dll</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
@@ -1881,7 +1881,7 @@ Exit 0</Command>
       <MapExports>false</MapExports>
       <DataExecutionPrevention>false</DataExecutionPrevention>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;d3dx9_43.dll;d3dcompiler_43.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll;avrt.dll</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
@@ -1967,7 +1967,7 @@ Exit 0</Command>
       <MapExports>false</MapExports>
       <DataExecutionPrevention>false</DataExecutionPrevention>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;d3dx9_43.dll;d3dcompiler_43.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll;avrt.dll</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
@@ -2050,7 +2050,7 @@ Exit 0</Command>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <DataExecutionPrevention>false</DataExecutionPrevention>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;d3dx9_43.dll;d3dcompiler_43.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll;avrt.dll</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
@@ -2139,7 +2139,7 @@ Exit 0</Command>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <DataExecutionPrevention>false</DataExecutionPrevention>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;d3dx9_43.dll;d3dcompiler_43.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll;avrt.dll</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
@@ -2233,7 +2233,7 @@ Exit 0</Command>
       <MapExports>false</MapExports>
       <DataExecutionPrevention>false</DataExecutionPrevention>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;d3dx9_43.dll;d3dcompiler_43.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;winmm.dll;gdi32.dll;wininet.dll;ole32.dll;shell32.dll;COMCTL32.dll;psapi.dll;advapi32.dll;oleaut32.dll;VCRUNTIME140.dll;SHLWAPI.dll;USER32.dll;api-ms-win-crt-heap-l1-1-0.dll;api-ms-win-crt-runtime-l1-1-0.dll;api-ms-win-crt-math-l1-1-0.dll;api-ms-win-crt-string-l1-1-0.dll;api-ms-win-crt-convert-l1-1-0.dll;api-ms-win-crt-time-l1-1-0.dll;api-ms-win-crt-stdio-l1-1-0.dll;api-ms-win-crt-utility-l1-1-0.dll;api-ms-win-crt-filesystem-l1-1-0.dll;api-ms-win-crt-environment-l1-1-0.dll;avrt.dll</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
@@ -2307,14 +2307,6 @@ Exit 0</Command>
     <ClInclude Include="depends\DirectXTex\DirectXTexP.h" />
     <ClInclude Include="depends\DirectXTex\Filters.h" />
     <ClInclude Include="depends\DirectXTex\scoped.h" />
-    <ClInclude Include="depends\include\frozen\algorithm.h" />
-    <ClInclude Include="depends\include\frozen\map.h" />
-    <ClInclude Include="depends\include\frozen\random.h" />
-    <ClInclude Include="depends\include\frozen\set.h" />
-    <ClInclude Include="depends\include\frozen\string.h" />
-    <ClInclude Include="depends\include\frozen\unordered_map.h" />
-    <ClInclude Include="depends\include\frozen\unordered_set.h" />
-    <ClInclude Include="depends\include\frozen\wstring.h" />
     <ClInclude Include="include\SpecialK\com_util.h" />
     <ClInclude Include="include\SpecialK\control_panel.h" />
     <ClInclude Include="include\SpecialK\control_panel\compatibility.h" />

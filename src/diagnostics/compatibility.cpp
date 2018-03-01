@@ -158,13 +158,13 @@ SK_UnlockDllLoader (void)
 }
 
 
-typedef BOOL (WINAPI* GetModuleHandleExW_pfn)(
+using GetModuleHandleExW_pfn = BOOL (WINAPI*)(
   _In_     DWORD       dwFlags,
   _In_opt_ LPCWSTR     lpModuleName,
   _Outptr_ HMODULE*    phModule
 );
 
-typedef BOOL (WINAPI* GetModuleHandleExA_pfn)(
+using GetModuleHandleExA_pfn = BOOL (WINAPI*)(
   _In_     DWORD       dwFlags,
   _In_opt_ LPCSTR      lpModuleName,
   _Outptr_ HMODULE*    phModule
@@ -257,7 +257,7 @@ GetModuleFileNameW_Detour (
   return GetModuleFileNameW_Original (hModule, lpFilename, nSize);
 }
 
-typedef HMODULE (WINAPI *GetModuleHandleA_pfn)(_In_opt_ LPCSTR lpModuleName);
+using GetModuleHandleA_pfn = HMODULE (WINAPI *)(_In_opt_ LPCSTR lpModuleName);
                          GetModuleHandleA_pfn GetModuleHandleA_Original = nullptr;
 
 HMODULE
@@ -292,7 +292,7 @@ GetModuleHandleA_Detour (
     GetModuleHandleA_Original (lpModuleName);
 }
 
-typedef HMODULE (WINAPI *GetModuleHandleW_pfn)(_In_opt_ LPCWSTR lpModuleName);
+using GetModuleHandleW_pfn = HMODULE (WINAPI *)(_In_opt_ LPCWSTR lpModuleName);
                          GetModuleHandleW_pfn GetModuleHandleW_Original = nullptr;
 
 HMODULE
@@ -1598,7 +1598,7 @@ SK_PrintUnloadedDLLs (iSK_Logger* pLogger)
       WCHAR ImageName[32]; // Image name
   } RTL_UNLOAD_EVENT_TRACE, *PRTL_UNLOAD_EVENT_TRACE;
 
-  typedef void (WINAPI *RtlGetUnloadEventTraceEx_pfn)(
+  using RtlGetUnloadEventTraceEx_pfn = void (WINAPI *)(
     _Out_ PULONG *ElementSize,
     _Out_ PULONG *ElementCount,
     _Out_ PVOID  *EventTrace
@@ -1607,13 +1607,12 @@ SK_PrintUnloadedDLLs (iSK_Logger* pLogger)
   HMODULE hModNtDLL =
     LoadLibraryW (L"ntdll.dll");
 
-  RtlGetUnloadEventTraceEx_pfn RtlGetUnloadEventTraceEx =
+  auto RtlGetUnloadEventTraceEx =
     (RtlGetUnloadEventTraceEx_pfn)GetProcAddress (hModNtDLL, "RtlGetUnloadEventTraceEx");
 
-  PULONG element_size  = 0,
-         element_count = 0;
-
-  PVOID trace_log     = nullptr;
+  PULONG element_size  = nullptr,
+         element_count = nullptr;
+  PVOID trace_log      = nullptr;
 
   RtlGetUnloadEventTraceEx (&element_size, &element_count, &trace_log);
 

@@ -5852,14 +5852,13 @@ SK_D3D11_TexMgr::reset (void)
 
   LastPurge_2D.store (time_now);
 
-
   std::set    <ID3D11Texture2D *>                     cleared;
   std::vector <SK_D3D11_TexMgr::tex2D_descriptor_s *> textures;
 
-  textures.reserve (Entries_2D.load ());
-
-  SK_AutoCriticalSection critical (&cache_cs);
+  textures.reserve (cache_opts.max_evict);
   {
+  //SK_AutoCriticalSection critical (&cache_cs);
+
     for ( auto& desc : Textures_2D )
     {
       if (desc.second.texture == nullptr || desc.second.crc32c == 0x00)
@@ -5868,7 +5867,7 @@ SK_D3D11_TexMgr::reset (void)
       bool can_free = true;
 
       if (! SK_D3D11_need_tex_reset)
-        can_free = (IUnknown_AddRef_Original (desc.second.texture) == 2);
+        can_free = (IUnknown_AddRef_Original (desc.second.texture) <= 2);
 
       if (can_free)
         textures.emplace_back (&desc.second);
@@ -5879,10 +5878,11 @@ SK_D3D11_TexMgr::reset (void)
 
     std::sort ( textures.begin (),
                   textures.end (),
-        []( const SK_D3D11_TexMgr::tex2D_descriptor_s* const a,
+       [&]( const SK_D3D11_TexMgr::tex2D_descriptor_s* const a,
             const SK_D3D11_TexMgr::tex2D_descriptor_s* const b )
       {
-        return b->last_used < a->last_used;
+        return (b->load_time * 10 + b->last_used / 10 + b->hits * 100) <
+               (a->load_time * 10 + a->last_used / 10 + a->hits * 100);
       }
     );
   }
@@ -13162,64 +13162,64 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
         {
             std::lock_guard <SK_Thread_CriticalSection> auto_lock_vs (cs_shader_vs);
             hr = D3DDisassemble ( SK_D3D11_Shaders.vertex.descs [tracker->crc32c].bytecode.data (), SK_D3D11_Shaders.vertex.descs [tracker->crc32c].bytecode.size (),
-                                    D3D_DISASM_ENABLE_DEFAULT_VALUE_PRINTS, "", &pDisasm);
+                                    D3D_DISASM_ENABLE_DEFAULT_VALUE_PRINTS, "", &pDisasm.p);
             if (SUCCEEDED (hr))
                  D3DReflect     ( SK_D3D11_Shaders.vertex.descs [tracker->crc32c].bytecode.data (), SK_D3D11_Shaders.vertex.descs [tracker->crc32c].bytecode.size (),
-                                    IID_ID3D11ShaderReflection, (void **)&pReflect);
+                                    IID_ID3D11ShaderReflection, (void **)&pReflect.p);
         } break;
 
         case sk_shader_class::Pixel:
         {
             std::lock_guard <SK_Thread_CriticalSection> auto_lock_ps (cs_shader_ps);
             hr = D3DDisassemble ( SK_D3D11_Shaders.pixel.descs [tracker->crc32c].bytecode.data (), SK_D3D11_Shaders.pixel.descs [tracker->crc32c].bytecode.size (),
-                                    D3D_DISASM_ENABLE_DEFAULT_VALUE_PRINTS, "", &pDisasm);
+                                    D3D_DISASM_ENABLE_DEFAULT_VALUE_PRINTS, "", &pDisasm.p);
             if (SUCCEEDED (hr))
                  D3DReflect     ( SK_D3D11_Shaders.pixel.descs [tracker->crc32c].bytecode.data (), SK_D3D11_Shaders.pixel.descs [tracker->crc32c].bytecode.size (),
-                                    IID_ID3D11ShaderReflection, (void **)&pReflect);
+                                    IID_ID3D11ShaderReflection, (void **)&pReflect.p);
         } break;
 
         case sk_shader_class::Geometry:
         {
             std::lock_guard <SK_Thread_CriticalSection> auto_lock_gs (cs_shader_gs);
             hr = D3DDisassemble ( SK_D3D11_Shaders.geometry.descs [tracker->crc32c].bytecode.data (), SK_D3D11_Shaders.geometry.descs [tracker->crc32c].bytecode.size (), 
-                                    D3D_DISASM_ENABLE_DEFAULT_VALUE_PRINTS, "", &pDisasm);
+                                    D3D_DISASM_ENABLE_DEFAULT_VALUE_PRINTS, "", &pDisasm.p);
             if (SUCCEEDED (hr))
                  D3DReflect     ( SK_D3D11_Shaders.geometry.descs [tracker->crc32c].bytecode.data (), SK_D3D11_Shaders.geometry.descs [tracker->crc32c].bytecode.size (),
-                                    IID_ID3D11ShaderReflection, (void **)&pReflect);
+                                    IID_ID3D11ShaderReflection, (void **)&pReflect.p);
         } break;
 
         case sk_shader_class::Hull:
         {
             std::lock_guard <SK_Thread_CriticalSection> auto_lock_hs (cs_shader_hs);
             hr = D3DDisassemble ( SK_D3D11_Shaders.hull.descs [tracker->crc32c].bytecode.data (), SK_D3D11_Shaders.hull.descs [tracker->crc32c].bytecode.size (), 
-                                    D3D_DISASM_ENABLE_DEFAULT_VALUE_PRINTS, "", &pDisasm);
+                                    D3D_DISASM_ENABLE_DEFAULT_VALUE_PRINTS, "", &pDisasm.p);
             if (SUCCEEDED (hr))
                  D3DReflect     ( SK_D3D11_Shaders.hull.descs [tracker->crc32c].bytecode.data (), SK_D3D11_Shaders.hull.descs [tracker->crc32c].bytecode.size (),
-                                    IID_ID3D11ShaderReflection, (void **)&pReflect);
+                                    IID_ID3D11ShaderReflection, (void **)&pReflect.p);
         } break;
 
         case sk_shader_class::Domain:
         {
             std::lock_guard <SK_Thread_CriticalSection> auto_lock_ds (cs_shader_ds);
             hr = D3DDisassemble ( SK_D3D11_Shaders.domain.descs [tracker->crc32c].bytecode.data (), SK_D3D11_Shaders.domain.descs [tracker->crc32c].bytecode.size (), 
-                                    D3D_DISASM_ENABLE_DEFAULT_VALUE_PRINTS, "", &pDisasm);
+                                    D3D_DISASM_ENABLE_DEFAULT_VALUE_PRINTS, "", &pDisasm.p);
             if (SUCCEEDED (hr))
                  D3DReflect     ( SK_D3D11_Shaders.domain.descs [tracker->crc32c].bytecode.data (), SK_D3D11_Shaders.domain.descs [tracker->crc32c].bytecode.size (),
-                                    IID_ID3D11ShaderReflection, (void **)&pReflect);
+                                    IID_ID3D11ShaderReflection, (void **)&pReflect.p);
         } break;
 
         case sk_shader_class::Compute:
         {
             std::lock_guard <SK_Thread_CriticalSection> auto_lock_cs (cs_shader_cs);
             hr = D3DDisassemble ( SK_D3D11_Shaders.compute.descs [tracker->crc32c].bytecode.data (), SK_D3D11_Shaders.compute.descs [tracker->crc32c].bytecode.size (), 
-                                    D3D_DISASM_ENABLE_DEFAULT_VALUE_PRINTS, "", &pDisasm);
+                                    D3D_DISASM_ENABLE_DEFAULT_VALUE_PRINTS, "", &pDisasm.p);
             if (SUCCEEDED (hr))
                  D3DReflect     ( SK_D3D11_Shaders.compute.descs [tracker->crc32c].bytecode.data (), SK_D3D11_Shaders.compute.descs [tracker->crc32c].bytecode.size (),
-                                    IID_ID3D11ShaderReflection, (void **)&pReflect);
+                                    IID_ID3D11ShaderReflection, (void **)&pReflect.p);
         } break;
       }
 
-      if (SUCCEEDED (hr) && strlen ((const char *)pDisasm->GetBufferPointer ()))
+      if (SUCCEEDED (hr)    && strlen ((const char *)pDisasm->GetBufferPointer ()))
       {
         char* szDisasm      = _strdup ((const char *)pDisasm->GetBufferPointer ());
         char* comments_end  = nullptr;
@@ -13253,45 +13253,52 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 
           if (pReflect)
           {
-            pReflect->GetDesc (&desc);
-
-            for (UINT i = 0; i < desc.ConstantBuffers; i++)
+            if (SUCCEEDED (pReflect->GetDesc (&desc)))
             {
-              ID3D11ShaderReflectionConstantBuffer* pReflectedCBuffer =
-                pReflect->GetConstantBufferByIndex (i);
-
-              if (pReflectedCBuffer)
+              for (UINT i = 0; i < desc.ConstantBuffers; i++)
               {
-                D3D11_SHADER_BUFFER_DESC buffer_desc;
+                ID3D11ShaderReflectionConstantBuffer* pReflectedCBuffer =
+                  pReflect->GetConstantBufferByIndex (i);
 
-                if (SUCCEEDED (pReflectedCBuffer->GetDesc (&buffer_desc)))
+                if (pReflectedCBuffer)
                 {
-                  if (buffer_desc.Type == D3D11_CT_CBUFFER)
+                  D3D11_SHADER_BUFFER_DESC buffer_desc = { };
+
+                  if (SUCCEEDED (pReflectedCBuffer->GetDesc (&buffer_desc)))
                   {
-                    shader_disasm_s::constant_buffer cbuffer;
-                    cbuffer.name = buffer_desc.Name;
-                    cbuffer.size = buffer_desc.Size;
-
-                    for (UINT j = 0; j < buffer_desc.Variables; j++)
+                    if (buffer_desc.Type == D3D_CT_CBUFFER)//D3D11_CT_CBUFFER)
                     {
-                      ID3D11ShaderReflectionVariable* pReflectedVariable =
-                        pReflectedCBuffer->GetVariableByIndex (j);
+                      shader_disasm_s::constant_buffer cbuffer;
 
-                      if (pReflectedVariable)
+                      cbuffer.name = buffer_desc.Name;
+                      cbuffer.size = buffer_desc.Size;
+
+                      dll_log.Log (cbuffer.name.c_str ());
+
+                      for (UINT j = 0; j < buffer_desc.Variables; j++)
                       {
-                        D3D11_SHADER_VARIABLE_DESC var_desc;
+                        ID3D11ShaderReflectionVariable* pReflectedVariable =
+                          pReflectedCBuffer->GetVariableByIndex (j);
 
-                        if (SUCCEEDED (pReflectedVariable->GetDesc (&var_desc)))
+                        if (pReflectedVariable)
                         {
-                          shader_disasm_s::constant_buffer::variable var;
-                          var.name = var_desc.Name;
+                          D3D11_SHADER_VARIABLE_DESC var_desc = { };
 
-                          cbuffer.variables.emplace_back (var);
+                          if (SUCCEEDED (pReflectedVariable->GetDesc (&var_desc)))
+                          {
+                            shader_disasm_s::constant_buffer::variable var;
+
+                            var.name = var_desc.Name;
+
+                            cbuffer.variables.emplace_back (var);
+
+                            dll_log.Log (var.name.c_str ());
+                          }
                         }
                       }
-                    }
 
-                    (*disassembly) [ReadAcquire ((volatile LONG *)&tracker->crc32c)].cbuffers.emplace_back (cbuffer);
+                      (*disassembly) [ReadAcquire ((volatile LONG *)&tracker->crc32c)].cbuffers.emplace_back (cbuffer);
+                    }
                   }
                 }
               }

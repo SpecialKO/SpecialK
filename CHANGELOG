@@ -1,4 +1,17 @@
+0.9.5:
+
+ + Replaced kernel scheduling resolution tricks with Multimedia Class Scheduler
+
+  >> This will increase battery life on mobile systems (versus the old code),
+       and should not have a measurable impact on framerate limiter performance.
+
+
 0.9.4:
+
+(.3) Ignore D3D9 video playback in Atelier Firis (a D3D11 game)
+(.3) Disabled automatic steam_appid.txt generation
+(.3) Disabled code to automatically bring a game's window to the foreground at
+       start, it was causing too many compat. issues.
 
 (.2) Tweaked global injection behavior for certain non-standard Windows apps
 
@@ -13,8 +26,6 @@
 
  + "Borrowed" an environment variable exported by the Steam client to get
      game's AppID without booting up SteamAPI.
- + Switched the static injection blacklist to a constexpr hash set for
-     improved startup performance.
 
 
 0.9.3:

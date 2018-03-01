@@ -268,7 +268,7 @@ ImGui_DX11Startup ( IDXGISwapChain* pSwapChain )
             if (rb.windows.focus.hwnd != swap_desc.OutputWindow)
               rb.windows.setFocus (swap_desc.OutputWindow);
 
-            if (rb.windows.device.hwnd == 0)
+            if (rb.windows.device.hwnd == nullptr)
               rb.windows.setDevice (swap_desc.OutputWindow);
           }
         }
@@ -3491,7 +3491,6 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
     }
   }
 
-
   HRESULT    ret;
   DXGI_CALL (ret, SetFullscreenState_Original (This, Fullscreen, pTarget));
 
@@ -4832,7 +4831,7 @@ DXGIFactory2_CreateSwapChainForCoreWindow_Override ( IDXGIFactory2             *
         if ( SUCCEEDED (ret)         &&
              pTemp != nullptr )
         {
-          SK_DXGI_CreateSwapChain1_PostInit (pDevice, 0, &new_desc1, nullptr, &pTemp);
+          SK_DXGI_CreateSwapChain1_PostInit (pDevice, nullptr, &new_desc1, nullptr, &pTemp);
           SK_DXGI_WrapSwapChain1            (pDevice,                          pTemp,   ppSwapChain);
 
           return TRUE;

@@ -1367,8 +1367,7 @@ SK_ImGui_ControlPanel (void)
           if (ImGui::IsItemHovered ())
           {
             ImGui::BeginTooltip ();
-            ImGui::Text         ("%lu-Bit Injection History", sizeof (uintptr_t) == 4 ? 32 :
-                                                                                        64);
+            ImGui::Text         ("%lu-Bit Injection History", SK_RunLHIfBitness ( 64, 64, 32 ));
             ImGui::Separator    ();
 
             int count = InterlockedAdd (&SK_InjectionRecord_s::count, 0UL);
@@ -1395,17 +1394,6 @@ SK_ImGui_ControlPanel (void)
             }
             ImGui::EndGroup   ();
 
-            ImGui::Separator  ();
-
-            wchar_t* bouncy [8] = { g_LastBouncedModule0, g_LastBouncedModule1,
-                                    g_LastBouncedModule2, g_LastBouncedModule3,
-                                    g_LastBouncedModule4, g_LastBouncedModule5,
-                                    g_LastBouncedModule6, g_LastBouncedModule7 };
-
-            for (int i = 0; i < 8; i++)
-            {
-              ImGui::Text     ("Bounced Executable - %ws", bouncy [i]);
-            }
             //ImGui::SameLine   ();
             //ImGui::BeginGroup ();
             //for (int i = 0; i < count; i++)
@@ -1990,6 +1978,21 @@ SK_ImGui_ControlPanel (void)
 
           if (target_fps > 0.0f)
           {
+
+            if (ImGui::Checkbox ("Use Multimedia Class Scheduling", &config.render.framerate.enable_mmcss))
+            {
+              SK_DWM_EnableMMCSS (config.render.framerate.enable_mmcss);
+            }
+
+            if (ImGui::IsItemHovered ())
+            {
+              ImGui::BeginTooltip ();
+              ImGui::Text         ("Minimizes dropped frames when combined with FPS limiting.");
+              ImGui::Separator    ();
+              ImGui::BulletText   ("Keep this option enabled unless troubleshooting something");
+              ImGui::EndTooltip   ();
+            }
+
             ImGui::Checkbox      ("Busy-Wait Limiter",        &config.render.framerate.busy_wait_limiter);
 
             if (ImGui::IsItemHovered ())

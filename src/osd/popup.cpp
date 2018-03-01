@@ -37,7 +37,7 @@ public:
 protected:
   SK_PopupWindow (const char* szLayout)
   {
-    if (!config.cegui.enable) return;
+    if (! (config.cegui.enable && config.cegui.frames_drawn > 0)) return;
 
 
     try
@@ -56,7 +56,7 @@ protected:
 
   ~SK_PopupWindow (void)
   {
-    if (!config.cegui.enable) return;
+    if (! (config.cegui.enable && config.cegui.frames_drawn > 0)) return;
 
 
     if (window_ != nullptr)
@@ -167,7 +167,7 @@ SK_PopupManager::isPopup (SK_PopupWindow* popup)
 SK_PopupWindow*
 SK_PopupManager::createPopup (const char* szLayout)
 {
-  if (! config.cegui.enable) return nullptr;
+  if (! (config.cegui.enable && config.cegui.frames_drawn > 0)) return nullptr;
 
 
   if (gui_ctx_ == nullptr)
@@ -207,7 +207,7 @@ SK_PopupManager::createPopup (const char* szLayout)
 void
 SK_PopupManager::destroyPopup (SK_PopupWindow* popup)
 {
-  if (! config.cegui.enable) return;
+  if (! (config.cegui.enable && config.cegui.frames_drawn > 0)) return;
 
 
   if (isPopup (popup))

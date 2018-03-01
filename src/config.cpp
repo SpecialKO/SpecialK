@@ -247,6 +247,7 @@ struct {
     sk::ParameterBool*    allow_dwm_tearing;
     sk::ParameterBool*    sleepless_window;
     sk::ParameterBool*    sleepless_render;
+    sk::ParameterBool*    enable_mmcss;
 
     struct
     {
@@ -738,6 +739,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
     ConfigEntry (render.framerate.prerender_limit,       L"Maximum Frames to Render-Ahead",                            dll_ini,         L"Render.FrameRate",      L"PreRenderLimit"),
     ConfigEntry (render.framerate.sleepless_render,      L"Sleep Free Render Thread",                                  dll_ini,         L"Render.FrameRate",      L"SleeplessRenderThread"),
     ConfigEntry (render.framerate.sleepless_window,      L"Sleep Free Window Thread",                                  dll_ini,         L"Render.FrameRate",      L"SleeplessWindowThread"),
+    ConfigEntry (render.framerate.enable_mmcss,          L"Enable Multimedia Class Scheduling for FPS Limiter Sleep",  dll_ini,         L"Render.FrameRate",      L"EnableMMCSS"),
 
     ConfigEntry (render.framerate.control.busy_wait,     L"Burn through the render thread's CPU time so that a game's"
                                                          L" own framerate limiter will never engage.",                 dll_ini,         L"FrameRate.Control",     L"AlwaysBusyWait"),
@@ -1582,6 +1584,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
   render.framerate.limiter_tolerance->load  (config.render.framerate.limiter_tolerance);
   render.framerate.sleepless_render->load   (config.render.framerate.sleepless_render);
   render.framerate.sleepless_window->load   (config.render.framerate.sleepless_window);
+  render.framerate.enable_mmcss->load       (config.render.framerate.enable_mmcss);
 
   render.framerate.control.busy_wait->load  (config.render.framerate.busy_wait_limiter);
   render.framerate.control.yield_once->load (config.render.framerate.yield_once);
@@ -2508,6 +2511,7 @@ SK_SaveConfig ( std::wstring name,
   render.framerate.limiter_tolerance->store   (config.render.framerate.limiter_tolerance);
   render.framerate.sleepless_render->store    (config.render.framerate.sleepless_render);
   render.framerate.sleepless_window->store    (config.render.framerate.sleepless_window);
+  render.framerate.enable_mmcss->store        (config.render.framerate.enable_mmcss);
 
   render.framerate.control.busy_wait->store   (config.render.framerate.busy_wait_limiter);
   render.framerate.control.yield_once->store  (config.render.framerate.yield_once);

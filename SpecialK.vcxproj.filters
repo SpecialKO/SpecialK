@@ -483,30 +483,6 @@
     <ClInclude Include="include\SpecialK\injection\blacklist.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="depends\include\frozen\algorithm.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\frozen\map.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\frozen\random.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\frozen\set.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\frozen\string.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\frozen\unordered_map.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\frozen\unordered_set.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\frozen\wstring.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stdafx.cpp">
