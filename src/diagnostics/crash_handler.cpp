@@ -160,44 +160,73 @@ CrashHandler::Reinstall (void)
 void
 CrashHandler::Init (void)
 {
-  HRSRC   default_sound =
-    FindResource (SK_GetDLL (), MAKEINTRESOURCE (IDR_CRASH), L"WAVE");
+  static volatile LONG init = FALSE;
 
-  if (default_sound != nullptr)
+  if (! InterlockedCompareExchange (&init, TRUE, FALSE))
   {
-    crash_sound.ref   =
-      LoadResource (SK_GetDLL (), default_sound);
+    CreateThread (nullptr, 0,
+    [ ](LPVOID) ->
+      DWORD
+        {
+          HANDLE hThread = GetCurrentThread ();
 
-    if (crash_sound.ref != nullptr)
-    {
-      crash_sound.buf =
-        static_cast <uint8_t *> (LockResource (crash_sound.ref));
-    }
+          SetThreadDescription (hThread, L"[SK] Crash Handler Init");
+          SetThreadPriority    (hThread, THREAD_PRIORITY_LOWEST);
+          HRSRC   default_sound =
+            FindResource (SK_GetDLL (), MAKEINTRESOURCE (IDR_CRASH), L"WAVE");
+
+          if (default_sound != nullptr)
+          {
+            crash_sound.ref   =
+              LoadResource (SK_GetDLL (), default_sound);
+
+            if (crash_sound.ref != nullptr)
+            {
+              crash_sound.buf =
+                static_cast <uint8_t *> (LockResource (crash_sound.ref));
+            }
+          }
+
+          if (! crash_log.initialized)
+          {
+            crash_log.flush_freq = 0;
+            crash_log.lockless   = true;
+            crash_log.init       (L"logs/crash.log", L"wt+,ccs=UTF-8");
+          }
+
+          SymSetOptions ( SYMOPT_CASE_INSENSITIVE | SYMOPT_LOAD_LINES     | SYMOPT_UNDNAME                |
+                          SYMOPT_NO_PROMPTS       | SYMOPT_DEFERRED_LOADS | SYMOPT_ALLOW_ABSOLUTE_SYMBOLS );
+
+          SymRefreshModuleList (GetCurrentProcess ());
+
+          //SymInitialize (
+          //  GetCurrentProcess (),
+          //    NULL,
+          //      TRUE );
+
+          Reinstall ();
+
+          CloseHandle (hThread);
+
+          InterlockedIncrement (&init);
+
+          return 0;
+        }, nullptr,
+        0x00,
+      nullptr
+    );
   }
-
-  if (! crash_log.initialized)
-  {
-    crash_log.flush_freq = 0;
-    crash_log.lockless   = true;
-    crash_log.init       (L"logs/crash.log", L"wt+,ccs=UTF-8");
-  }
-
-  SymSetOptions ( SYMOPT_CASE_INSENSITIVE | SYMOPT_LOAD_LINES     | SYMOPT_UNDNAME                |
-                  SYMOPT_NO_PROMPTS       | SYMOPT_DEFERRED_LOADS | SYMOPT_ALLOW_ABSOLUTE_SYMBOLS );
-
-  SymRefreshModuleList (GetCurrentProcess ());
-
-  //SymInitialize (
-  //  GetCurrentProcess (),
-  //    NULL,
-  //      TRUE );
-
-  Reinstall ();
 }
 
 void
 CrashHandler::Shutdown (void)
 {
+//SK_SymCleanup (GetCurrentProcess ());
+
+  // Strip the blank line and cause empty-file deletion to happen
+  if (crash_log.lines == 1)
+      crash_log.lines =  0;
+
   crash_log.close ();
 }
 
@@ -941,7 +970,13 @@ SK_SymRefreshModuleList ( HANDLE hProc = GetCurrentProcess () )
   //if (config.system.strict_compliance)
     //cs_dbghelp->lock ();
 
-  SymRefreshModuleList (hProc);
+  static DWORD dwLastRefresh = 0;
+
+  if (dwLastRefresh < timeGetTime () - 150UL)
+  {
+    SymRefreshModuleList (hProc);
+    dwLastRefresh = timeGetTime ();
+  }
 
   //if (config.system.strict_compliance)
     //cs_dbghelp->unlock ();
