@@ -1794,10 +1794,18 @@ TaskDialogCallback (
 
   if (uNotification == TDN_TIMER)
   {
-    SK_RealizeForegroundWindow (hWnd);
-    SetForegroundWindow        (hWnd);
-    SetFocus                   (hWnd);
-    SetActiveWindow            (hWnd);
+    if (GetFocus            () != hWnd ||
+        GetForegroundWindow () != hWnd)
+    {
+      SK_RealizeForegroundWindow (hWnd);
+
+      SetForegroundWindow (hWnd);
+      SetWindowPos        (hWnd, HWND_TOPMOST, 0, 0, 0, 0,
+                           SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW   |
+                           SWP_NOSIZE         | SWP_NOMOVE       |
+                           SWP_NOSENDCHANGING   );
+      SetFocus            (hWnd);
+    }
   }
 
   if (uNotification == TDN_HYPERLINK_CLICKED)
@@ -1811,7 +1819,13 @@ TaskDialogCallback (
   if (uNotification == TDN_DIALOG_CONSTRUCTED)
   {
     InterlockedExchange (&__SK_TaskDialogActive, TRUE);
+
     SK_RealizeForegroundWindow (hWnd);
+
+    SetForegroundWindow (hWnd);
+    SetWindowLongW      (hWnd, GWL_EXSTYLE,
+     ( (GetWindowLongW  (hWnd, GWL_EXSTYLE) | (WS_EX_TOPMOST))));
+    BringWindowToTop    (hWnd);
   }
 
   if (uNotification == TDN_CREATED)

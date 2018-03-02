@@ -1141,15 +1141,15 @@ SK_IsDLLSpecialK (const wchar_t* wszName)
   lstrcatW (wszFullyQualifiedName, L"\\");
   lstrcatW (wszFullyQualifiedName, wszName);
 
-  if (GetFileAttributes (wszFullyQualifiedName) == INVALID_FILE_ATTRIBUTES)
-    return false;
+  BOOL bRet =
+    SK_GetFileVersionInfoExW ( FILE_VER_GET_NEUTRAL |
+                               FILE_VER_GET_PREFETCHED,
+                                 wszFullyQualifiedName,
+                                   0x00,
+                                     4096,
+                                       cbData );
 
-  SK_GetFileVersionInfoExW ( FILE_VER_GET_NEUTRAL |
-                             FILE_VER_GET_PREFETCHED,
-                               wszFullyQualifiedName,
-                                 0x00,
-                                   4096,
-                                     cbData );
+  if (! bRet) return false;
 
   if ( SK_VerQueryValueW ( cbData,
                            TEXT ("\\VarFileInfo\\Translation"),
@@ -1193,15 +1193,15 @@ SK_GetDLLVersionStr (const wchar_t* wszName)
     WORD wCodePage;
   } *lpTranslate = nullptr;
 
-  if (GetFileAttributes (wszName) == INVALID_FILE_ATTRIBUTES)
-    return L"N/A";
+  BOOL bRet =
+    SK_GetFileVersionInfoExW ( FILE_VER_GET_NEUTRAL |
+                               FILE_VER_GET_PREFETCHED,
+                                 wszName,
+                                   0x00,
+                                     4096,
+                                       cbData );
 
-  SK_GetFileVersionInfoExW ( FILE_VER_GET_NEUTRAL |
-                             FILE_VER_GET_PREFETCHED,
-                               wszName,
-                                 0x00,
-                                   4096,
-                                     cbData );
+  if (! bRet) return L"N/A";
 
   if ( SK_VerQueryValueW ( cbData,
                              TEXT ("\\VarFileInfo\\Translation"),
@@ -1701,7 +1701,7 @@ const wchar_t*
 SK_GetBlacklistFilename (void)
 {
   static volatile
-    ULONG init = FALSE;
+    LONG init = FALSE;
 
   if (! InterlockedCompareExchange (&init, TRUE, FALSE))
   {
@@ -1710,7 +1710,11 @@ SK_GetBlacklistFilename (void)
     lstrcatW (host_proc.wszBlacklist, SK_GetHostApp  ());
 
     SK_PathRemoveExtension (host_proc.wszBlacklist);
+
+    InterlockedIncrement (&init);
   }
+
+  SK_Thread_SpinUntilAtomicMin (&init, 2);
 
   return host_proc.wszBlacklist;
 }
@@ -1719,7 +1723,7 @@ const wchar_t*
 SK_GetHostApp (void)
 {
   static volatile
-    ULONG init = FALSE;
+    LONG init = FALSE;
 
   if (! InterlockedCompareExchange (&init, TRUE, FALSE))
   {
@@ -1763,7 +1767,11 @@ SK_GetHostApp (void)
         pwszShortName,
           MAX_PATH * 2 - 1
     );
+
+    InterlockedIncrement (&init);
   }
+
+  SK_Thread_SpinUntilAtomicMin (&init, 2);
 
   return host_proc.wszApp;
 }
@@ -1772,7 +1780,7 @@ const wchar_t*
 SK_GetFullyQualifiedApp (void)
 {
   static volatile
-    ULONG init = FALSE;
+    LONG init = FALSE;
 
   if (! InterlockedCompareExchange (&init, TRUE, FALSE))
   {
@@ -1793,7 +1801,11 @@ SK_GetFullyQualifiedApp (void)
         wszProcessName,
           MAX_PATH * 2 - 1
     );
+
+    InterlockedIncrement (&init);
   }
+
+  SK_Thread_SpinUntilAtomicMin (&init, 2);
 
   return host_proc.wszFullName;
 }
@@ -1805,7 +1817,7 @@ const wchar_t*
 SK_GetHostPath (void)
 {
   static volatile
-    ULONG init = FALSE;
+    LONG init = FALSE;
 
   if (! InterlockedCompareExchange (&init, TRUE, FALSE))
   {
@@ -1854,7 +1866,11 @@ SK_GetHostPath (void)
         wszProcessName,
           MAX_PATH * 2 - 1
     );
+
+    InterlockedIncrement (&init);
   }
+
+  SK_Thread_SpinUntilAtomicMin (&init, 2);
 
   return host_proc.wszPath;
 }
@@ -1864,7 +1880,7 @@ const wchar_t*
 SK_GetSystemDirectory (void)
 {
   static volatile
-    ULONG init = FALSE;
+    LONG init = FALSE;
 
   if (! InterlockedCompareExchange (&init, TRUE, FALSE))
   {
@@ -1881,7 +1897,11 @@ SK_GetSystemDirectory (void)
     else
       GetSystemDirectory      (host_proc.wszSystemDir, MAX_PATH);
 #endif
+
+    InterlockedIncrement (&init);
   }
+
+  SK_Thread_SpinUntilAtomicMin (&init, 2);
 
   return host_proc.wszSystemDir;
 }
@@ -2065,21 +2085,9 @@ SK_Generate8Dot3 (const wchar_t* wszLongFileName)
       const wchar_t* pwszExt =
         PathFindExtension (wszFileName);
 
-      if (*pwszExt == L'.')
+      if (pwszExt != nullptr && *pwszExt == L'.')
       {
-        if (*CharNextW (pwszExt) != L'\0')
-        {
-          if (*CharNextW (CharNextW (pwszExt)) != L'\0')
-          {
-            if (*CharNextW (CharNextW (CharNextW (pwszExt))) != L'\0')
-            {
-              // DOT3 Satisfied
-              *CharNextW (CharNextW (CharNextW (CharNextW (pwszExt)))) = L'\0';
-
-              wcsncpy (wszDot3, CharNextW (pwszExt), 3);
-            }
-          }
-        }
+        swprintf (wszDot3, L"%3s", CharNextW (pwszExt));
       }
 
       PathRemoveExtension (wszFileName);
@@ -2400,7 +2408,7 @@ SK_FixSlashesA (char* szInOut)
 #define SECURITY_WIN32
 #include <Security.h>
 
-HMODULE hModSecur32 = nullptr;
+#pragma comment (lib, "secur32.lib")
 
 _Success_(return != 0)
 BOOLEAN
@@ -2410,14 +2418,7 @@ SK_GetUserNameExA (
   _Out_writes_to_opt_(*nSize,*nSize) LPSTR                 lpNameBuffer,
   _Inout_                            PULONG                nSize )
 {
-  if (hModSecur32 == nullptr) hModSecur32 = LoadLibraryW (L"Secur32.dll");
-
-  using GetUserNameExA_pfn = BOOLEAN (WINAPI *)(EXTENDED_NAME_FORMAT,LPSTR,PULONG);
-
-  static auto imp_GetUserNameExA =
-    (GetUserNameExA_pfn)GetProcAddress (hModSecur32, "GetUserNameExA");
-
-  return imp_GetUserNameExA (NameFormat, lpNameBuffer, nSize);
+  return GetUserNameExA (NameFormat, lpNameBuffer, nSize);
 }
 
 _Success_(return != 0)
@@ -2428,14 +2429,7 @@ SK_GetUserNameExW (
     _Out_writes_to_opt_(*nSize,*nSize) LPWSTR               lpNameBuffer,
     _Inout_                            PULONG               nSize )
 {
-  if (hModSecur32 == nullptr) hModSecur32 = LoadLibraryW (L"Secur32.dll");
-
-  using GetUserNameExW_pfn = BOOLEAN (WINAPI *)(EXTENDED_NAME_FORMAT,LPWSTR,PULONG);
-
-  static auto imp_GetUserNameExW =
-    (GetUserNameExW_pfn)GetProcAddress (hModSecur32, "GetUserNameExW");
-
-  return imp_GetUserNameExW (NameFormat, lpNameBuffer, nSize);
+  return GetUserNameExW (NameFormat, lpNameBuffer, nSize);
 }
 
 // Doesn't need to be this complicated; it's a string function, might as well optimize it.
@@ -2692,8 +2686,8 @@ SK_DeferCommand (const char* szCommand)
 };
 
 
-
-SK_HostAppUtil::SK_HostAppUtil (void)
+void
+SK_HostAppUtil::init (void)
 {
   SKIM     = StrStrIW (SK_GetHostApp (), L"SKIM")     != nullptr;
   RunDll32 = StrStrIW (SK_GetHostApp (), L"RunDLL32") != nullptr;

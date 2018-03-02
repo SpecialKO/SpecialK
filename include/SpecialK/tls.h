@@ -24,6 +24,7 @@
 #pragma warning (disable: 4091)
 
 #include <Windows.h>
+#include <algorithm>
 
 struct ID3D11RasterizerState;
 struct ID3D11DepthStencilState;
@@ -77,45 +78,97 @@ SK_TlsRecord SK_GetTLS     (bool initialize = false);
 void         SK_CleanupTLS (void);
 
 
-
-
-struct SK_TLS_DynamicContext
+template <typename _T>
+class SK_TLS_LocalDataStore
 {
+public:
+  _T*    alloc   (size_t needed, bool zero_fill = false)
+  {
+    if (data == nullptr || len <= needed)
+    {
+      if   (data != nullptr)
+      free (data);
+
+      len = std::max (len, needed);
+
+      data = (_T *)malloc (len * sizeof (_T));
+    }
+
+    if (zero_fill)
+      RtlZeroMemory (data, len * sizeof (_T));
+
+    return data;
+  }
+
+  size_t reclaim (void)
+  {
+    if (data != nullptr)
+    {
+      free (data);
+            data = nullptr;
+
+      size_t freed = len;
+                     len = 0;
+
+      return freed * sizeof (_T);
+    }
+
+    return 0;
+  }
+
+  bool   empty   (void) const { return data == nullptr || len == 0; }
+
+//protected:
+  _T*    data = nullptr;
+  size_t len  = 0;
+};
+
+
+
+class SK_TLS_DynamicContext
+{
+public:
   size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload);
 };
 
-struct SK_TLS_ScratchMemory : SK_TLS_DynamicContext
+class SK_TLS_ScratchMemory : public SK_TLS_DynamicContext
 {
-  struct cmd_s
+public:
+  SK_TLS_ScratchMemory (void) = default;
+
+  SK_TLS_LocalDataStore <char> cmd;
+  SK_TLS_LocalDataStore <char> eula;
+
+  struct
   {
-    char*  allocFormattedStorage (size_t needed_len);
-  
-    char*  line = nullptr;
-    size_t len  = 0;
-  } cmd;
-  
-  struct eula_s
-  {
-    char*  allocTextStorage (size_t needed_len);
-  
-    char*  text = nullptr;
-    size_t len  = 0;
-  } eula;
+    SK_TLS_LocalDataStore <wchar_t> val;
+    SK_TLS_LocalDataStore <wchar_t> key;
+    SK_TLS_LocalDataStore <wchar_t> sec;
+  } ini;
 
   size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload);
 };
 
 
-struct SK_TLS_RenderContext
+class SK_TLS_RenderContext
 {
+public:
   BOOL ctx_init_thread = FALSE;
 };
 
-struct SK_D3D9_ThreadContext : SK_TLS_DynamicContext,
-                               SK_TLS_RenderContext
+class SK_D3D9_ThreadContext : public SK_TLS_DynamicContext,
+                              public SK_TLS_RenderContext
 {
+public:
   LPVOID temp_fullscreen = nullptr;
 
+  struct scratch_mem_s
+  {
+    LPVOID   storage = nullptr;
+    uint32_t size    = 0;
+  } stack_scratch;
+
+  void* allocStackScratchStorage   (size_t size);
   void* allocTempFullscreenStorage (size_t D3DDISPLAYMODEEX_is_always_24_bytes = 24);
 
   // Needed to safely override D3D9Ex fullscreen mode during device
@@ -124,16 +177,17 @@ struct SK_D3D9_ThreadContext : SK_TLS_DynamicContext,
   size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload);
 };
 
-struct SK_D3D8_ThreadContext : SK_TLS_RenderContext
+class SK_D3D8_ThreadContext : public SK_TLS_RenderContext
 {
 };
 
-struct SK_DDraw_ThreadContext : SK_TLS_RenderContext
+class SK_DDraw_ThreadContext : public SK_TLS_RenderContext
 {
 };
 
-struct SK_D3D11_ThreadContext : SK_TLS_RenderContext
+class SK_D3D11_ThreadContext : public SK_TLS_RenderContext
 {
+public:
   ID3D11RasterizerState*   pRasterStateOrig       = nullptr;
   ID3D11RasterizerState*   pRasterStateNew        = nullptr;
 
@@ -145,16 +199,18 @@ struct SK_D3D11_ThreadContext : SK_TLS_RenderContext
   UINT                     StencilRefNew          = 0;
 };
 
-struct SK_GL_ThreadContext : SK_TLS_RenderContext
+class SK_GL_ThreadContext : public SK_TLS_RenderContext
 {
+public:
   HGLRC current_hglrc = 0;
   HDC   current_hdc   = 0;
   HWND  current_hwnd  = 0;
 };
 
 
-struct SK_RawInput_ThreadContext : SK_TLS_DynamicContext
+class SK_RawInput_ThreadContext : public SK_TLS_DynamicContext
 {
+public:
   uint8_t* allocData (size_t needed);
 
   void*  data     = nullptr;
@@ -168,15 +224,17 @@ struct SK_RawInput_ThreadContext : SK_TLS_DynamicContext
   size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload);
 };
 
-struct SK_Input_ThreadContext
+class SK_Input_ThreadContext
 {
+public:
   BOOL hid                 = FALSE;
   BOOL ctx_init_thread     = FALSE;
 };
 
 
-struct SK_Win32_ThreadContext
+class SK_Win32_ThreadContext
 {
+public:
   int  getThreadPriority (bool nocache = false);
 
   LONG GUI                 = -1;
@@ -190,8 +248,9 @@ struct SK_Win32_ThreadContext
   } last_tested_prio;
 };
 
-struct SK_ImGui_ThreadContext : SK_TLS_DynamicContext
+class SK_ImGui_ThreadContext : public SK_TLS_DynamicContext
 {
+public:
   BOOL drawing             = FALSE;
 
   // Allocates and grows this buffer until a cleanup operation demands
@@ -204,8 +263,9 @@ struct SK_ImGui_ThreadContext : SK_TLS_DynamicContext
   size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload);
 };
 
-struct SK_OSD_ThreadContext : SK_TLS_DynamicContext
+class SK_OSD_ThreadContext : public SK_TLS_DynamicContext
 {
+public:
   // Allocates and grows this buffer until a cleanup operation demands
   //   we shrink it.
   char* allocText (size_t needed);
@@ -216,8 +276,9 @@ struct SK_OSD_ThreadContext : SK_TLS_DynamicContext
   size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload);
 };
 
-struct SK_Steam_ThreadContext : SK_TLS_DynamicContext
+class SK_Steam_ThreadContext : public SK_TLS_DynamicContext
 {
+public:
   int32_t client_pipe = 0;
   int32_t client_user = 0;
 
@@ -225,8 +286,9 @@ struct SK_Steam_ThreadContext : SK_TLS_DynamicContext
 };
 
 
-struct SK_TLS
+class SK_TLS
 {
+public:
   SK_ModuleAddrMap          known_modules;
   SK_TLS_ScratchMemory      scratch_memory;
 

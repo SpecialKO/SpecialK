@@ -239,6 +239,15 @@ struct sk_config_t
     int     online_status        =   -1;  // Force a certain online status at all times
     std::wstring
             dll_path             = L"";
+
+    struct callback_cache_s
+    {
+      HMODULE
+            module               = nullptr;
+      uintptr_t
+            offset               = 0;
+      void* resolved             = nullptr;
+    } cached_overlay_callback;
   } steam;
 
 

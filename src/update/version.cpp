@@ -209,7 +209,9 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
   {
     iSK_INI install_ini (SK_Version_GetInstallIniPath ().c_str ());
 
-    if (! install_ini.get_sections ().empty ())
+    if ((! install_ini.get_sections ().empty ())         &&
+           install_ini.contains_section (L"Update.User") &&
+           install_ini.contains_section (L"Version.Local") )
     {
       iSK_INISection& user_prefs =
         install_ini.get_section (L"Update.User");

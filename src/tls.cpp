@@ -122,43 +122,6 @@ SK_TLS_Bottom (void)
 }
 
 
-
-char*
-SK_TLS_ScratchMemory::cmd_s::allocFormattedStorage (size_t needed_len)
-{
-  if (len < needed_len)
-  {
-    line = (char *)realloc (line, needed_len);
-
-    if (line != nullptr)
-    {
-      len = needed_len;
-    }
-  }
-
-  return line;
-}
-
-char*
-SK_TLS_ScratchMemory::eula_s::allocTextStorage (size_t needed_len)
-{
-  if (len < needed_len)
-  {
-    text = (char *)realloc (text, needed_len);
-
-    if (text != nullptr)
-    {
-      len = needed_len;
-    }
-  }
-
-  return text;
-}
-
-
-
-
-
 SK_ModuleAddrMap::SK_ModuleAddrMap (void) = default;
 
 bool
@@ -261,25 +224,11 @@ SK_TLS_ScratchMemory::Cleanup (SK_TLS_CleanupReason_e /*reason*/)
 {
   size_t freed = 0UL;
 
-  if (cmd.line != nullptr)
-  {
-    freed += cmd.len;
+  freed += cmd.reclaim  ();
+  freed += eula.reclaim ();
 
-       free (cmd.line);
-             cmd.line = nullptr;
-
-             cmd.len  = 0;
-  }
-
-  if (eula.text != nullptr)
-  {
-    freed += eula.len;
-
-       free (eula.text);
-             eula.text = nullptr;
-
-             eula.len  = 0;
-  }
+  for ( auto* segment : { &ini.key, &ini.val, &ini.sec } )
+    freed += segment->reclaim ();
 
   return freed;
 }
@@ -421,10 +370,40 @@ SK_D3D9_ThreadContext::allocTempFullscreenStorage (size_t /*dontcare*/)
   return temp_fullscreen;
 }
 
+void*
+SK_D3D9_ThreadContext::allocStackScratchStorage (size_t size)
+{
+  if (stack_scratch.storage == nullptr)
+  {
+    stack_scratch.storage = new uint8_t [size] { };
+  }
+
+  else
+  {
+    if (stack_scratch.size < size)
+    {
+      delete [] stack_scratch.storage;
+                stack_scratch.storage = new uint8_t [size];
+                stack_scratch.size    =              size ;
+    }
+  }
+
+  return stack_scratch.storage;
+}
+
 size_t
 SK_D3D9_ThreadContext::Cleanup (SK_TLS_CleanupReason_e /*reason*/)
 {
   size_t freed = 0;
+
+  if (stack_scratch.storage != nullptr)
+  {
+    delete stack_scratch.storage;
+           stack_scratch.storage = nullptr;
+
+    freed += stack_scratch.size;
+             stack_scratch.size = 0;
+  }
 
   if (temp_fullscreen != nullptr)
   {

@@ -203,10 +203,12 @@ bool __cdecl   SK_IsSuperSpecialK        (void);
 class SK_HostAppUtil
 {
 public:
-               SK_HostAppUtil            (void);
+  void         init                      (void);
 
   bool         isInjectionTool           (void)
   {
+    init ();
+
     return SKIM || (RunDll32 && SK_IsRunDLLInvocation ());
   }
 

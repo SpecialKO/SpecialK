@@ -62,8 +62,9 @@ SK_InjectionRecord_s __SK_InjectionHistory [MAX_INJECTED_PROC_HISTORY] = { };
   __declspec (dllexport) volatile LONG SK_InjectionRecord_s::count                 =  0L;
   __declspec (dllexport) volatile LONG SK_InjectionRecord_s::rollovers             =  0L;
 
-  __declspec (dllexport) wchar_t whitelist_patterns [16 * MAX_PATH] = { 0 };
-  __declspec (dllexport) int     whitelist_count                    =   0;
+  __declspec (dllexport)          wchar_t whitelist_patterns [16 * MAX_PATH] = { 0 };
+  __declspec (dllexport)          int     whitelist_count                    =   0;
+  __declspec (dllexport) volatile LONG    injected_procs                     =   0;
 
 #pragma data_seg ()
 #pragma comment  (linker, "/SECTION:.SK_Hooks,RWS")
@@ -270,7 +271,7 @@ SKX_WaitForCBTHookShutdown (void)
   HANDLE hHookOwner = 
     OpenProcess ( PROCESS_DUP_HANDLE, FALSE, dwHookPID );
 
-  if (hHookOwner != nullptr)
+  if (hHookOwner != nullptr && dwHookPID != GetCurrentProcessId ())
   {
     BOOL success =
       DuplicateHandle ( hHookOwner,  hShutdownEvent,
@@ -283,8 +284,12 @@ SKX_WaitForCBTHookShutdown (void)
     {
       SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_LOWEST);
 
-      MsgWaitForMultipleObjectsEx (1, &hShutdown, INFINITE, QS_ALLINPUT, MWMO_INPUTAVAILABLE |
-                                                                         MWMO_ALERTABLE);
+#ifdef NOT_SANE_SCHEDULING
+      for (int i = 0; i < 16; i++)
+        if (WaitForSingleObject (hShutdown, 25UL) == WAIT_OBJECT_0) break;
+#else
+      WaitForSingleObject (hShutdown, INFINITE);
+#endif
 
       CloseHandle (hShutdown);
     }
@@ -297,8 +302,37 @@ CBTProc ( _In_ int    nCode,
           _In_ WPARAM wParam,
           _In_ LPARAM lParam )
 {
-  if (nCode < 0)
-    return CallNextHookEx (0, nCode, wParam, lParam);
+  static LONG hooked = FALSE;
+
+  if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
+  {
+    if (GetCurrentProcessId () != dwHookPID)
+    {
+      InterlockedIncrement (&injected_procs);
+
+      CreateThread (nullptr, 0,
+      [ ](LPVOID) -> DWORD
+       {
+         HMODULE hModThis;
+
+         if ( GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
+                                    (LPCWSTR)&CBTProc,
+                                      &hModThis ) )
+         {
+           SKX_WaitForCBTHookShutdown    (               );
+           InterlockedDecrement          (&injected_procs);
+
+           CloseHandle (GetCurrentThread (              ));
+           FreeLibraryAndExitThread      (hModThis,   0x0);
+         }
+
+         InterlockedDecrement            (&injected_procs    );
+         CloseHandle                     (GetCurrentThread ());
+
+         return 0;
+       }, nullptr, 0x0, nullptr);
+    }
+  }
 
   return CallNextHookEx (hHookCBT, nCode, wParam, lParam);
 }
@@ -332,16 +366,18 @@ SKX_InstallCBTHook (void)
   if (SKX_GetCBTHook () != nullptr)
     return;
 
+
   SecureZeroMemory (whitelist_patterns, sizeof (whitelist_patterns));
                     whitelist_count = 0;
 
   HMODULE hMod = nullptr;
 
-  GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
+  GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+                      GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
                         (LPCWSTR)&CBTProc,
                           (HMODULE *) &hMod );
 
-  if (hMod == SK_GetDLL () && hMod != nullptr)
+  if (hMod != nullptr)
   {
     SK_Inject_InitShutdownEvent ();
 
@@ -359,35 +395,29 @@ SKX_RemoveCBTHook (void)
 {
 START_OVER:
   if (hShutdownEvent != nullptr)
+  {
     SetEvent (hShutdownEvent);
+  }
+
+  while (ReadAcquire (&injected_procs) > 0)
+    SleepEx (5, TRUE);
 
   HHOOK hHookOrig = SKX_GetCBTHook ();
 
-  if ( InterlockedCompareExchangePointer ( reinterpret_cast <LPVOID *> (
-                                                 const_cast < HHOOK *> (&hHookCBT)
-                                           ),
-                                             nullptr,
-                                               hHookOrig )
-     )
+  if (UnhookWindowsHookEx (hHookOrig))
   {
-    if (UnhookWindowsHookEx (hHookOrig))
-    {
-      SecureZeroMemory (whitelist_patterns, sizeof (whitelist_patterns));
-                        whitelist_count = 0;
+    SecureZeroMemory (whitelist_patterns, sizeof (whitelist_patterns));
+                      whitelist_count = 0;
 
-      InterlockedExchange (&__SK_HookContextOwner, FALSE);
+    InterlockedExchange        (&__SK_HookContextOwner, FALSE);
+    InterlockedExchangePointer ( reinterpret_cast <LPVOID *> (
+                                       const_cast < HHOOK *> (&hHookCBT)
+                                 ), nullptr );
 
-                   dwHookPID = 0x0;
-      CloseHandle (hShutdownEvent);
-    }
+                 dwHookPID = 0x0;
 
-    else
-    {
-      // Couldn't remove the hook, so atomically set it back to non-NULL
-      InterlockedExchangePointer ( reinterpret_cast <LPVOID *> (
-                                         const_cast < HHOOK *> (&hHookCBT)
-                                   ), hHookOrig );
-    }
+    CloseHandle (hShutdownEvent);
+                 hShutdownEvent = nullptr;
   }
 
   if (ReadPointerAcquire ((PVOID *)&hHookCBT) != nullptr)
@@ -441,7 +471,7 @@ RunDLL_InjectionManager ( HWND  hwnd,        HINSTANCE hInst,
                SKX_WaitForCBTHookShutdown ();
 
                while ( ReadAcquire (&__SK_DLL_Attached) || (! SK_IsHostAppSKIM ()))
-                 SleepEx (15UL, TRUE);
+                 SleepEx (5UL, TRUE);
 
                CloseHandle (GetCurrentThread ());
 
@@ -897,7 +927,7 @@ SK_ExitRemoteProcess (const wchar_t* wszProcName, UINT uExitCode = 0x0)
     {
       window_t win = SK_FindRootWindow (pe32.th32ProcessID);
 
-      SendMessage (win.root, WM_USER + 0x123, 0x00, 0x00);
+      PostMessage (win.root, WM_USER + 0x123, 0x00, 0x00);
 
       return true;
     }
@@ -945,7 +975,7 @@ SK_Inject_Stop (void)
     if (hWndExisting)
     {
       SendMessage (hWndExisting, WM_USER + 0x122, 0, 0);
-      SleepEx     (100UL, FALSE);
+      SleepEx     (333UL, FALSE);
     }
 
     // Worst-case, we do this manually and confuse Steam
@@ -955,7 +985,7 @@ SK_Inject_Stop (void)
                                "open", "SKIM64.exe",
                                "-Inject", SK_WideCharToUTF8 (SK_SYS_GetInstallPath ()).c_str (),
                                  SW_FORCEMINIMIZE );
-      SleepEx              ( 100UL, FALSE);
+      SleepEx              ( 333UL, FALSE);
       SK_ExitRemoteProcess ( L"SKIM64.exe", 0x00);
     }
   }
@@ -1011,7 +1041,7 @@ SK_Inject_Start (void)
     if (hWndExisting)
     {
       SendMessage (hWndExisting, WM_USER + 0x125, 0, 0);
-      SleepEx     (100, FALSE);
+      SleepEx     (250UL, FALSE);
       SendMessage (hWndExisting, WM_USER + 0x124, 0, 0);
     }
 

@@ -3382,37 +3382,66 @@ HWND
 WINAPI
 SK_RealizeForegroundWindow (HWND hWndForeground)
 {
-  HWND hWndOrig = HWND_DESKTOP;
+  DWORD dwPid          = 0;
 
-  if (SK_GetFramesDrawn () > 1)
+  HWND  hWndOrig       =
+    GetForegroundWindow ();
+
+
+  DWORD dwThreadId     =
+    GetCurrentThreadId  ();
+  DWORD dwOrigThreadId =
+    GetWindowThreadProcessId (hWndOrig, &dwPid);
+
+
+  bool show_hide = IsWindow (hWndOrig) &&
+           hWndForeground != hWndOrig  && dwPid == GetCurrentProcessId ();
+
+
+  IsGUIThread (TRUE);
+
+  AttachThreadInput   (dwThreadId, dwOrigThreadId, true );
+
+  if (show_hide && game_window.hWnd == 0 && hWndOrig != hWndForeground)
   {
-    IsGUIThread (TRUE);
+    WINDOWINFO wi = { };
+        wi.cbSize = sizeof wi;
 
-          hWndOrig       =
-      GetForegroundWindow ();
-    DWORD dwThreadId     =
-      GetCurrentThreadId  ();
-    DWORD dwOrigThreadId =
-      GetWindowThreadProcessId (hWndOrig, nullptr);
+    GetWindowInfo (hWndOrig, &wi);
 
-    AttachThreadInput   (dwThreadId, dwOrigThreadId, true );
-    SetForegroundWindow (hWndForeground);
-    SetWindowPos        (hWndForeground, HWND_TOPMOST,
-                            0, 0,
-                            0, 0, SWP_NOSIZE     | SWP_NOMOVE     |
-                                  SWP_SHOWWINDOW | SWP_NOACTIVATE |
-                                  SWP_NOSENDCHANGING );
-    SetForegroundWindow (hWndForeground);
-    SetWindowPos        (hWndForeground, HWND_NOTOPMOST,
-                            0, 0,
-                            0, 0, SWP_NOSIZE     | SWP_NOMOVE     |
-                                  SWP_SHOWWINDOW | SWP_NOSENDCHANGING );
-    SetForegroundWindow (hWndForeground);
-    AttachThreadInput   (dwOrigThreadId, dwThreadId, false);
-    SetFocus            (hWndForeground);
-    SetActiveWindow     (hWndForeground);
-    BringWindowToTop    (hWndForeground);
+    // We only need to do this for fullscreen exclusive mode
+    if ( wi.cxWindowBorders == wi.cyWindowBorders ==
+         wi.rcClient.left   == wi.rcClient.bottom == 0 )
+    {
+      
+      SetWindowPos ( hWndOrig, HWND_DESKTOP, 0, 0, 0, 0,
+                     SWP_HIDEWINDOW     | SWP_NOACTIVATE   |
+                     SWP_NOSIZE         | SWP_NOMOVE       |
+                     SWP_NOSENDCHANGING | SWP_NOREPOSITION );
+    }
   }
+
+  SetForegroundWindow (hWndForeground);
+  SetWindowPos        (hWndForeground, HWND_TOPMOST,
+                          0, 0,
+                          0, 0, SWP_NOSIZE         | SWP_NOMOVE     |
+                                SWP_SHOWWINDOW     | SWP_NOACTIVATE |
+                                SWP_NOSENDCHANGING | SWP_NOCOPYBITS );
+
+  SetForegroundWindow (hWndForeground);
+  SetWindowPos        (hWndForeground, HWND_NOTOPMOST,
+                          0, 0,
+                          0, 0, SWP_NOSIZE     | SWP_NOMOVE     |
+                                SWP_SHOWWINDOW | SWP_NOACTIVATE |
+                                SWP_DEFERERASE | SWP_NOSENDCHANGING );
+
+  SetForegroundWindow (hWndForeground);
+
+  AttachThreadInput   (dwOrigThreadId, dwThreadId, false);
+
+  SetActiveWindow     (hWndForeground);
+  BringWindowToTop    (hWndForeground);
+  SetFocus            (hWndForeground);
 
   return hWndOrig;
 }
@@ -4615,26 +4644,6 @@ SK_InstallWindowHook (HWND hWnd)
 
   void SK_MakeWindowHook (WNDPROC, WNDPROC, HWND);
        SK_MakeWindowHook (class_proc, wnd_proc, hWnd);
-
-  auto SetForeground = [&](HWND hWndForeground)
-  {
-    SetForegroundWindow (hWndForeground);
-    SetWindowPos        (hWndForeground, HWND_TOPMOST,
-                            0, 0,
-                            0, 0, SWP_NOSIZE     | SWP_NOMOVE         |
-                                  SWP_SHOWWINDOW | SWP_ASYNCWINDOWPOS |
-                                  SWP_NOACTIVATE | SWP_NOSENDCHANGING );
-    SetWindowPos        (hWndForeground, HWND_NOTOPMOST,
-                            0, 0,
-                            0, 0, SWP_NOSIZE     | SWP_NOMOVE         |
-                                  SWP_SHOWWINDOW | SWP_ASYNCWINDOWPOS |
-                                  SWP_NOACTIVATE | SWP_NOSENDCHANGING );
-    SetForegroundWindow (hWndForeground);
-    SetFocus            (hWndForeground);
-  };
-
-  if (GetActiveWindow () == game_window.hWnd)
-    SetForeground (game_window.hWnd);
 
 
   if (game_window.WndProc_Original != nullptr)

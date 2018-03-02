@@ -10722,25 +10722,15 @@ static void SetClipboardTextFn_DefaultImpl(void*, const char* text)
 
 static void ImeSetInputScreenPosFn_DefaultImpl(int x, int y)
 {
-typedef HIMC (WINAPI *ImmGetContext_pfn)(IN HWND);
-typedef BOOL (WINAPI *ImmSetCompositionWindow_pfn)(IN HIMC, _In_ LPCOMPOSITIONFORM lpCompForm);
-
-    static HMODULE                     hModImm32                   =
-      LoadLibraryW (L"imm32.dll");
-    static ImmGetContext_pfn           imp_ImmGetContext           = 
-      (ImmGetContext_pfn)GetProcAddress           (hModImm32, "ImmGetContext");
-    static ImmSetCompositionWindow_pfn imp_ImmSetCompositionWindow =
-      (ImmSetCompositionWindow_pfn)GetProcAddress (hModImm32, "ImmSetCompositionWindow");
-
     // Notify OS Input Method Editor of text input position
     if (HWND hwnd = (HWND)GImGui->IO.ImeWindowHandle)
-        if (HIMC himc = imp_ImmGetContext(hwnd))
+        if (HIMC himc = ImmGetContext(hwnd))
         {
             COMPOSITIONFORM cf;
             cf.ptCurrentPos.x = x;
             cf.ptCurrentPos.y = y;
             cf.dwStyle = CFS_FORCE_POSITION;
-            imp_ImmSetCompositionWindow(himc, &cf);
+            ImmSetCompositionWindow(himc, &cf);
         }
 }
 

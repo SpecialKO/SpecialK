@@ -430,15 +430,15 @@ SK_ICommandProcessor::ProcessCommandLine (const char* szCommandLine)
       var->getValueString (nullptr, &len);
 
       auto* pszNew =
-        new char [len + 1] { };
+        SK_TLS_Bottom ()->scratch_memory.cmd.alloc (len + 1, true);
+
+      *(pszNew + len) = '\0';
 
       ++len;
 
       var->getValueString (pszNew, &len);
 
       SK_ICommandResult ret (cmd_word.c_str (), cmd_args.c_str (), pszNew, true, var, nullptr);
-
-      delete [] pszNew;
 
       return ret;
     }
@@ -469,9 +469,7 @@ SK_ICommandProcessor::ProcessCommandFormatted (const char* szCommandFormat, ...)
   va_end               (ap);
 
   auto* szFormattedCommandLine =
-    static_cast <char *> (
-      SK_TLS_Bottom ()->scratch_memory.cmd.allocFormattedStorage (sizeof (char) * (len + 1))
-    );
+    SK_TLS_Bottom ()->scratch_memory.cmd.alloc (len + 1, true);
 
   if (szFormattedCommandLine != nullptr)
   {

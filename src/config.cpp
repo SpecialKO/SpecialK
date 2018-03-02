@@ -2988,9 +2988,6 @@ SK_Keybind::parse (void)
 bool
 SK_AppCache_Manager::loadAppCacheForExe (const wchar_t* wszExe)
 {
-  std::wstring naive_name =
-    SK_GetNaiveConfigPath ();
-
   wchar_t* wszPath =
     StrStrIW (wszExe, LR"(SteamApps\common\)");
 
@@ -3002,8 +2999,8 @@ SK_AppCache_Manager::loadAppCacheForExe (const wchar_t* wszExe)
     PathRemoveFileSpecW (wszRelPath);
 
     std::wstring wstr_appcache =
-     SK_FormatStringW ( LR"(%s\..\AppCache\%s\SpecialK.AppCache)",
-                          naive_name.c_str (),
+     SK_FormatStringW ( LR"(%s\My Mods\SpecialK\Profiles\AppCache\%s\SpecialK.AppCache)",
+                          SK_GetDocumentsDir ().c_str (),
                             wszRelPath );
 
     SK_CreateDirectories (wstr_appcache.c_str ());

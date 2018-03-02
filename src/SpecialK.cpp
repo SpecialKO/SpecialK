@@ -58,6 +58,8 @@
 #define LoadLibrary int x = __stdcall;
 #define FreeLibrary int x = __stdcall;
 
+bool has_local_dll = false;
+
 
 // We need this to load embedded resources correctly...
 HMODULE hModSelf                       = nullptr;
@@ -75,9 +77,6 @@ volatile          long __SK_DLL_Attached     = FALSE;
 volatile unsigned long __SK_Threads_Attached = 0UL;
 volatile unsigned long __SK_DLL_Refs         = 0UL;
 volatile          long __SK_HookContextOwner = false;
-
-bool has_local_dll = false;
-
 
 class SK_DLL_Bootstrapper
 {
@@ -758,56 +757,35 @@ DllMain ( HMODULE hModule,
   auto EarlyOut =
   [&](BOOL bRet = TRUE)
   {
-    auto tls_slot =
-      SK_GetTLS ();
-
-    if (tls_slot.dwTlsIdx != TLS_OUT_OF_INDEXES)
+    if (! (SK_HostApp.isInjectionTool () || has_local_dll))
     {
-      SK_CleanupTLS ();
+      auto tls_slot =
+        SK_GetTLS ();
 
-      // We're not using TLS for anything, so we don't need thread
-      //  attach/detach events.
-      if (TlsFree (tls_slot.dwTlsIdx) || (! GetLastError ()))
+      if (tls_slot.dwTlsIdx != TLS_OUT_OF_INDEXES)
       {
-        tls_slot.dwTlsIdx = TLS_OUT_OF_INDEXES;
+        SK_CleanupTLS ();
+
+        // We're not using TLS for anything, so we don't need thread
+        //  attach/detach events.
+        if (TlsFree (tls_slot.dwTlsIdx) || (! GetLastError ()))
+        {
+          tls_slot.dwTlsIdx = TLS_OUT_OF_INDEXES;
+        }
+      }
+
+      if (tls_slot.dwTlsIdx == TLS_OUT_OF_INDEXES)
+      {
+        InterlockedExchange (&__SK_TLS_INDEX, TLS_OUT_OF_INDEXES);
+
+        if (DisableThreadLibraryCalls ((HMODULE)hModule))
+          InterlockedExchange (&__SK_DLL_Attached, 0);
       }
     }
 
-    if (tls_slot.dwTlsIdx == TLS_OUT_OF_INDEXES)
-    {
-      InterlockedExchange (&__SK_TLS_INDEX, TLS_OUT_OF_INDEXES);
+    //else { SK_Inject_AcquireProcess (); }
 
-      if (DisableThreadLibraryCalls (hModule))
-        InterlockedExchange (&__SK_DLL_Attached, 0);
-    }
-
-    if (has_local_dll) return TRUE;
-
-    HMODULE hModHookDll;
-
-    if (GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
-                               (LPCWSTR)&DllMain, &hModHookDll) )
-    {
-      void
-      SKX_WaitForCBTHookShutdown (void);
-
-      CreateThread ( nullptr, 0,
-       [](LPVOID user) ->
-         DWORD
-           {
-             SKX_WaitForCBTHookShutdown (                   );
-             CloseHandle                (GetCurrentThread ());
-             FreeLibraryAndExitThread   ((HMODULE)user,  0x0);
-
-             return 0;
-           },
-           hModHookDll,
-         0x00,
-       nullptr
-      );
-    }
-
-    return (bRet = TRUE);
+    return ( bRet = TRUE );
   };
 
 
@@ -815,6 +793,8 @@ DllMain ( HMODULE hModule,
   {
     case DLL_PROCESS_ATTACH:
     {
+      SK_Thread_ScopedPriority prio_boost (THREAD_PRIORITY_HIGHEST);
+
       __SK_HMODULE_0 =
         GetModuleHandleW (nullptr);
 
@@ -844,17 +824,18 @@ DllMain ( HMODULE hModule,
 
       // We reserve the right to deny attaching the DLL, this will generally
       //   happen if a game does not opt-in to system wide injection.
-      if (! SK_EstablishDllRole (hModule))              return EarlyOut (FALSE);
+      if (! SK_EstablishDllRole ((HMODULE)hModule))     return EarlyOut (FALSE);
 
       // We don't want to initialize the DLL, but we also don't want it to
       //   re-inject itself constantly; just return TRUE here.
-      else if (SK_GetDLLRole () == DLL_ROLE::INVALID)   return EarlyOut (FALSE);
+      else if (SK_GetDLLRole () == DLL_ROLE::INVALID)   return EarlyOut (TRUE);
+
 
 
       // Setup unhooked function pointers
       SK_PreInitLoadLibrary ();
 
-      if (! SK_Attach (SK_GetDLLRole ()))               return EarlyOut (FALSE);
+      if (! SK_Attach (SK_GetDLLRole ()))               return EarlyOut (TRUE);
 
 
       InterlockedIncrement (&__SK_DLL_Refs);
@@ -874,6 +855,8 @@ DllMain ( HMODULE hModule,
 
     case DLL_PROCESS_DETACH:
     {
+      SK_Thread_ScopedPriority prio_boost (THREAD_PRIORITY_HIGHEST);
+
       SK_Inject_ReleaseProcess ();
 
       if (! InterlockedCompareExchange (&__SK_DLL_Ending, TRUE, FALSE))
@@ -912,8 +895,6 @@ DllMain ( HMODULE hModule,
         dll_log.Log (L"[ SpecialK ]  ** SANITY CHECK FAILED: DLL was never attached !! **");
       }
 #endif
-
-      return TRUE;
     } break;
 
 

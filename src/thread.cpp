@@ -51,8 +51,8 @@ typedef struct tagTHREADNAME_INFO
 } THREADNAME_INFO;
 #pragma pack(pop)
 
-SetThreadDescription_pfn SetThreadDescription;
-GetThreadDescription_pfn GetThreadDescription;
+SetThreadDescription_pfn SetThreadDescription = &SetThreadDescription_NOP;
+GetThreadDescription_pfn GetThreadDescription = &GetThreadDescription_NOP;
 
 HRESULT
 WINAPI
@@ -95,7 +95,8 @@ SetCurrentThreadDescription (_In_ PCWSTR lpThreadDescription)
   // Windows 7 / 8 can go no further, they will have to be happy with the
   //   TLS-backed name or a debugger must catch the exception above.
   //
-  if (SetThreadDescription == &SetThreadDescription_NOP)
+  if ( SetThreadDescription == &SetThreadDescription_NOP ||
+       SetThreadDescription == nullptr ) // Will be nullptr in SKIM64
     return S_OK;
 
 
@@ -139,7 +140,8 @@ GetCurrentThreadDescription (_Out_  PWSTR  *threadDescription)
 
   // No TLS, no GetThreadDescription (...) -- we are boned :-\
   //
-  if (GetThreadDescription == &GetThreadDescription_NOP)
+  if ( GetThreadDescription == &GetThreadDescription_NOP ||
+       GetThreadDescription ==  nullptr )
   {
     return E_NOTIMPL;
   }

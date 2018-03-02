@@ -7629,7 +7629,7 @@ SK_D3D9_SetVertexShader ( IDirect3DDevice9*       /*pDev*/,
         pShader->GetFunction (nullptr, &len);
 
         void* pbFunc =
-          malloc (len);
+          SK_TLS_Bottom ()->d3d9.allocStackScratchStorage (len);
 
         if (pbFunc != nullptr)
         {
@@ -7639,8 +7639,6 @@ SK_D3D9_SetVertexShader ( IDirect3DDevice9*       /*pDev*/,
             safe_crc32c (0, pbFunc, len);
 
           SK_D3D9_DumpShader (L"vs", checksum, pbFunc);
-
-          free (pbFunc);
 
           EnterCriticalSection (&cs_vs);
 
@@ -7701,7 +7699,7 @@ SK_D3D9_SetPixelShader ( IDirect3DDevice9*     /*pDev*/,
         pShader->GetFunction (nullptr, &len);
 
         void* pbFunc =
-          malloc (len);
+          SK_TLS_Bottom ()->d3d9.allocStackScratchStorage (len);
 
         if (pbFunc != nullptr)
         {
@@ -7711,8 +7709,6 @@ SK_D3D9_SetPixelShader ( IDirect3DDevice9*     /*pDev*/,
             safe_crc32c (0, pbFunc, len);
 
           SK_D3D9_DumpShader (L"ps", checksum, pbFunc);
-
-          free (pbFunc);
 
           EnterCriticalSection (&cs_ps);
 
@@ -8060,7 +8056,7 @@ SK::D3D9::ShaderTracker::use (IUnknown *pShader)
     if (SUCCEEDED (((IDirect3DVertexShader9 *)pShader)->GetFunction (nullptr, &len)))
     {
       void* pbFunc =
-        malloc (len);
+        SK_TLS_Bottom ()->d3d9.allocStackScratchStorage (len);
 
       if (pbFunc != nullptr)
       {
@@ -8091,8 +8087,6 @@ SK::D3D9::ShaderTracker::use (IUnknown *pShader)
             }
           }
         }
-
-        free (pbFunc);
       }
     }
   }

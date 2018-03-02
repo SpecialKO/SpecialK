@@ -1,5 +1,9 @@
 0.9.5:
 
+ (.1): Fixed various rare NvAPI issues
+ (.1): Upon successful shutdown, crash.log is deleted again
+ (.1): All Steam AppID resolution cache data is stored in Profiles\AppCache\... now
+
  + Replaced kernel scheduling resolution tricks with Multimedia Class Scheduler
 
   >> This will increase battery life on mobile systems (versus the old code),

@@ -24,6 +24,26 @@
 
 #include <Windows.h>
 
+class SK_Thread_ScopedPriority
+{
+public:
+  SK_Thread_ScopedPriority (int prio) : hThread   (GetCurrentThread  (       )),
+                                        orig_prio (GetThreadPriority (hThread))
+  {
+    SetThreadPriority (hThread, prio);
+  }
+
+ ~SK_Thread_ScopedPriority (void)
+  {
+    SetThreadPriority (hThread, orig_prio);
+  }
+
+protected:
+  int    orig_prio;
+  HANDLE hThread;
+};
+
+
 class SK_Thread_CriticalSection
 {
 public:

@@ -50,12 +50,10 @@ SK_GetLicenseText (SHORT id)
     if (! license_ref) return std::string ("");
 
     auto* res_data =
-      static_cast <char *> (SK_TLS_Bottom ()->scratch_memory.eula.allocTextStorage (res_size + 1));
+      SK_TLS_Bottom ()->scratch_memory.eula.alloc (res_size + 1, true);
 
     if (res_data != nullptr)
     {
-      SecureZeroMemory (res_data, res_size + 1);
-
       const char* const locked = (char *)LockResource (license_ref);
 
       if (locked != nullptr)

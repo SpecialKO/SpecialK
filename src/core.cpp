@@ -1584,11 +1584,8 @@ SK_ShutdownCore (const wchar_t* backend)
   dll_log.Log (L"[ SpecialK ] Custom %s.dll Detached (pid=0x%04x)",
     backend, GetCurrentProcessId ());
 
-  //SymCleanup (GetCurrentProcess ());
-
-  // Breakpad Disable Disclaimer; pretend the log was empty :)
-  if (crash_log.lines == 1)
-    crash_log.lines = 0;
+  if (config.system.handle_crashes)
+    SK::Diagnostics::CrashHandler::Shutdown ();
 
   InterlockedExchange (&__SK_Init, FALSE);
 
@@ -1942,17 +1939,16 @@ SK_BeginBufferSwap (void)
   assert ( SK_BufferFlinger.dwTid == 0 ||
            SK_BufferFlinger.dwTid == GetCurrentThreadId () );
 
-  SK_BufferFlinger.dwTid = GetCurrentThreadId ();
-
-  if (config.render.framerate.enable_mmcss && SK_BufferFlinger.dwTaskIdx == 0)
+  if (SK_BufferFlinger.dwTid == 0 && config.render.framerate.enable_mmcss && SK_BufferFlinger.dwTaskIdx == 0)
   {
+    SK_BufferFlinger.dwTid = GetCurrentThreadId ();
     SK_BufferFlinger.hTask = 
       AvSetMmMaxThreadCharacteristics ( L"Games",
                                         L"Window Manager",
                                           &SK_BufferFlinger.dwTaskIdx );
   }
 
-  if (SK_BufferFlinger.hTask != INVALID_HANDLE_VALUE)
+  if (SK_BufferFlinger.hTask != INVALID_HANDLE_VALUE && SK_BufferFlinger.dwTid == GetCurrentThreadId ())
     AvSetMmThreadPriority (SK_BufferFlinger.hTask, AVRT_PRIORITY_CRITICAL);
 
 
@@ -2341,9 +2337,10 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
   }
 
 
-  if (SK_BufferFlinger.hTask != INVALID_HANDLE_VALUE)
+  if (SK_BufferFlinger.hTask != INVALID_HANDLE_VALUE && SK_BufferFlinger.dwTid == GetCurrentThreadId ())
   {
     AvRevertMmThreadCharacteristics (SK_BufferFlinger.hTask);
+    SK_BufferFlinger.dwTid = 0;
   }
 
 
