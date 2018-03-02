@@ -36,7 +36,7 @@
 //
 //  >> It will always reference the last complete set of performance data.
 //
-volatile ULONG          current_gpu_stat      =  0;
+volatile LONG           current_gpu_stat      =  0;
          gpu_sensors_t  gpu_stats_buffers [2] = { };
          gpu_sensors_t& gpu_stats             = gpu_stats_buffers [0];
 
@@ -82,9 +82,10 @@ SK_GPUPollingThread (LPVOID user)
     else if (dwWait != WAIT_OBJECT_0)
       break;
 
-    current_gpu_stat = (! current_gpu_stat);
+    if (InterlockedCompareExchange (&current_gpu_stat, TRUE, FALSE))
+        InterlockedCompareExchange (&current_gpu_stat, FALSE, TRUE);
 
-    gpu_sensors_t& stats = gpu_stats_buffers [current_gpu_stat];
+    gpu_sensors_t& stats = gpu_stats_buffers [ReadAcquire (&current_gpu_stat)];
 
     if (nvapi_init)
     {
@@ -102,7 +103,8 @@ SK_GPUPollingThread (LPVOID user)
       NV_GPU_DYNAMIC_PSTATES_INFO_EX psinfoex;
       psinfoex.version = NV_GPU_DYNAMIC_PSTATES_INFO_EX_VER;
 
-      stats.num_gpus = gpu_count;
+      stats.num_gpus =
+        std::min (gpu_count, static_cast <NvU32> (NVAPI_MAX_PHYSICAL_GPUS));
 
       static std::vector <NvU32> gpu_ids;
       static bool init = false;
@@ -179,7 +181,7 @@ SK_GPUPollingThread (LPVOID user)
         
         if (status == NVAPI_OK)
         {
-          for (NvU32 j = 0; j < thermal.count; j++)
+          for (NvU32 j = 0; j < std::min (3UL, thermal.count); j++)
           {
 #ifdef SMOOTH_GPU_UPDATES
             if (thermal.sensor [j].target == NVAPI_THERMAL_TARGET_GPU)
@@ -207,7 +209,8 @@ SK_GPUPollingThread (LPVOID user)
         NV_PCIE_INFO pcieinfo         = {              };
                      pcieinfo.version = NV_PCIE_INFO_VER;
 
-        if (NVAPI_OK == NvAPI_GPU_GetPCIEInfo (gpu, &pcieinfo))
+        if (            NvAPI_GPU_GetPCIEInfo != nullptr &&
+            NVAPI_OK == NvAPI_GPU_GetPCIEInfo (gpu, &pcieinfo))
         {
           stats.gpus [i].hwinfo.pcie_gen           =
             pcieinfo.info [0].unknown5;               //states [pstate].pciLinkRate;
@@ -452,7 +455,7 @@ SK_GPUPollingThread (LPVOID user)
       }
     }
 
-    gpu_stats = gpu_stats_buffers [current_gpu_stat];
+    gpu_stats = gpu_stats_buffers [ReadAcquire (&current_gpu_stat)];
     ResetEvent (hPollEvent);
   }
 
@@ -542,8 +545,8 @@ uint32_t
 __stdcall
 SK_GPU_GetClockRateInkHz (int gpu)
 {
-  return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus)                  ?
-                            gpu_stats_buffers [current_gpu_stat].gpus [gpu].clocks_kHz.gpu  :
+  return (gpu > -1 && gpu < gpu_stats_buffers [ReadAcquire (&current_gpu_stat)].num_gpus)                  ?
+                            gpu_stats_buffers [ReadAcquire (&current_gpu_stat)].gpus [gpu].clocks_kHz.gpu  :
                                               0;
 }
 
@@ -551,8 +554,8 @@ uint32_t
 __stdcall
 SK_GPU_GetMemClockRateInkHz (int gpu)
 {
-  return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus)                  ?
-                            gpu_stats_buffers [current_gpu_stat].gpus [gpu].clocks_kHz.ram  :
+  return (gpu > -1 && gpu < gpu_stats_buffers [ReadAcquire (&current_gpu_stat)].num_gpus)                  ?
+                            gpu_stats_buffers [ReadAcquire (&current_gpu_stat)].gpus [gpu].clocks_kHz.ram  :
                                               0;
 };
 
@@ -560,9 +563,9 @@ uint64_t
 __stdcall
 SK_GPU_GetMemoryBandwidth (int gpu)
 {
-  return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus) ?
-      (static_cast <uint64_t> (gpu_stats_buffers [current_gpu_stat].gpus [gpu].clocks_kHz.ram) * 2ULL * 1000ULL *
-       static_cast <uint64_t> (gpu_stats_buffers [current_gpu_stat].gpus [gpu].hwinfo.mem_bus_width)) / 8 :
+  return (gpu > -1 && gpu < gpu_stats_buffers    [ReadAcquire (&current_gpu_stat)].num_gpus) ?
+      (static_cast <uint64_t> (gpu_stats_buffers [ReadAcquire (&current_gpu_stat)].gpus [gpu].clocks_kHz.ram) * 2ULL * 1000ULL *
+       static_cast <uint64_t> (gpu_stats_buffers [ReadAcquire (&current_gpu_stat)].gpus [gpu].hwinfo.mem_bus_width)) / 8 :
                                                  0;
 }
 
@@ -570,16 +573,16 @@ float
 __stdcall
 SK_GPU_GetMemoryLoad (int gpu)
 {
-  return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus) ?
-       static_cast <float> (gpu_stats_buffers [current_gpu_stat].gpus [gpu].loads_percent.fb) :
+  return (gpu > -1 && gpu < gpu_stats_buffers [ReadAcquire (&current_gpu_stat)].num_gpus) ?
+       static_cast <float> (gpu_stats_buffers [ReadAcquire (&current_gpu_stat)].gpus [gpu].loads_percent.fb) :
                                              0.0f;
 }
 
 float
 __stdcall SK_GPU_GetGPULoad (int gpu)
 {
-  return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus) ?
-       static_cast <float> (gpu_stats_buffers [current_gpu_stat].gpus [gpu].loads_percent.gpu) :
+  return (gpu > -1 && gpu < gpu_stats_buffers [ReadAcquire (&current_gpu_stat)].num_gpus) ?
+       static_cast <float> (gpu_stats_buffers [ReadAcquire (&current_gpu_stat)].gpus [gpu].loads_percent.gpu) :
                                              0.0f;
 }
 
@@ -587,8 +590,8 @@ float
 __stdcall
 SK_GPU_GetTempInC           (int gpu)
 {
-  return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus)               ?
-       static_cast <float> (gpu_stats_buffers [current_gpu_stat].gpus [gpu].temps_c.gpu) :
+  return (gpu > -1 && gpu < gpu_stats_buffers [ReadAcquire (&current_gpu_stat)].num_gpus)               ?
+       static_cast <float> (gpu_stats_buffers [ReadAcquire (&current_gpu_stat)].gpus [gpu].temps_c.gpu) :
                                              0.0f;
 }
 
@@ -596,9 +599,9 @@ uint32_t
 __stdcall
 SK_GPU_GetFanSpeedRPM       (int gpu)
 {
-  return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus) ?
-    gpu_stats_buffers   [current_gpu_stat].gpus [gpu].fans_rpm.supported   ?
-      gpu_stats_buffers [current_gpu_stat].gpus [gpu].fans_rpm.gpu : 0 : 0;
+  return (gpu > -1 && gpu < gpu_stats_buffers [ReadAcquire (&current_gpu_stat)].num_gpus) ?
+    gpu_stats_buffers   [ReadAcquire (&current_gpu_stat)].gpus [gpu].fans_rpm.supported   ?
+      gpu_stats_buffers [ReadAcquire (&current_gpu_stat)].gpus [gpu].fans_rpm.gpu : 0 : 0;
 }
 
 uint64_t
@@ -608,9 +611,9 @@ SK_GPU_GetVRAMUsed          (int gpu)
   buffer_t buffer = mem_info [0].buffer;
   int      nodes  = mem_info [buffer].nodes;
 
-  return ( gpu   > -1   && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus ) ?
+  return ( gpu   > -1   && gpu < gpu_stats_buffers [ReadAcquire (&current_gpu_stat)].num_gpus ) ?
          ( nodes >= gpu ?  mem_info [buffer].local [gpu].CurrentUsage            :
-                  gpu_stats_buffers [current_gpu_stat].gpus->memory_B.local )    :
+                  gpu_stats_buffers [ReadAcquire (&current_gpu_stat)].gpus->memory_B.local )    :
                                      0;
 }
 
@@ -621,9 +624,9 @@ SK_GPU_GetVRAMShared        (int gpu)
   buffer_t buffer = mem_info [0].buffer;
   int      nodes  = mem_info [buffer].nodes;
 
-  return ( gpu   > -1   && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus ) ?
+  return ( gpu   > -1   && gpu < gpu_stats_buffers [ReadAcquire (&current_gpu_stat)].num_gpus ) ?
          ( nodes >= gpu ?  mem_info [buffer].nonlocal [gpu].CurrentUsage         :
-                  gpu_stats_buffers [current_gpu_stat].gpus->memory_B.nonlocal ) :
+                  gpu_stats_buffers [ReadAcquire (&current_gpu_stat)].gpus->memory_B.nonlocal ) :
                                      0;
 }
 
@@ -631,8 +634,8 @@ uint64_t
 __stdcall
 SK_GPU_GetVRAMCapacity      (int gpu)
 {
-  return (gpu > -1 && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus)                    ?
-                            gpu_stats_buffers [current_gpu_stat].gpus [gpu].memory_B.capacity :
+  return (gpu > -1 && gpu < gpu_stats_buffers [ReadAcquire (&current_gpu_stat)].num_gpus)                    ?
+                            gpu_stats_buffers [ReadAcquire (&current_gpu_stat)].gpus [gpu].memory_B.capacity :
                                               0;
 }
 
@@ -643,8 +646,8 @@ SK_GPU_GetVRAMBudget        (int gpu)
   buffer_t buffer = mem_info [0].buffer;
   int      nodes  = mem_info [buffer].nodes;
 
-  return ( gpu   > -1   && gpu < gpu_stats_buffers [current_gpu_stat].num_gpus ) ?
-         ( nodes >= gpu ?  mem_info [buffer].local [gpu].Budget                  :
-                            SK_GPU_GetVRAMCapacity (gpu) )                       :
+  return ( gpu   > -1   && gpu < gpu_stats_buffers [ReadAcquire (&current_gpu_stat)].num_gpus ) ?
+         ( nodes >= gpu ?  mem_info [buffer].local [gpu].Budget                                 :
+                            SK_GPU_GetVRAMCapacity (gpu) )                                      :
                                      0;
 }

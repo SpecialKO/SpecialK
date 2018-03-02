@@ -243,6 +243,7 @@ SK_MonitorCPU (LPVOID user_param)
         && cpu.dwNumReturned > cpu.dwNumObjects)
     {
       cpu.apEnumAccess = new IWbemObjectAccess* [cpu.dwNumReturned];
+
       if (cpu.apEnumAccess == nullptr)
       {
         dll_log.Log (L"[ WMI Wbem ] Out of Memory (%s:%d)",
@@ -280,6 +281,15 @@ SK_MonitorCPU (LPVOID user_param)
         hr = WBEM_E_NOT_FOUND;
         goto CPU_CLEANUP;
       }
+    }
+
+    if (cpu.dwNumReturned < 1 || cpu.apEnumAccess [0] == nullptr)
+    {
+      SleepEx (100UL, FALSE);
+
+      COM::base.wmi.Unlock ();
+
+      continue;
     }
 
     // First time through, get the handles.
