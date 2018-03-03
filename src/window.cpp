@@ -1447,9 +1447,9 @@ SK_ExpandSmallClipCursor (RECT *lpRect)
   GetWindowRect_Original (SK_GetGameWindow (), &window);
 
   if (        (lpRect->right  - lpRect->left) <
-       0.75f * (client.right  -  client.left) ||
+       0.75f * (window.right  -  window.left) ||
               (lpRect->bottom - lpRect->top)  <
-       0.75f * (client.bottom -  client.top) )
+       0.75f * (window.bottom -  window.top) )
   {
     static DWORD dwLastReported = 0;
 
@@ -1478,7 +1478,14 @@ ClipCursor_Detour (const RECT *lpRect)
   {
     if (SK_ExpandSmallClipCursor ((RECT *)lpRect))
     {
-      return ClipCursor_Original (nullptr);
+      // Generally this only matters if background rendering is enabled;
+      //   flat-out ignore cursor clip rects if the window's not even active.
+      if (game_window.active)
+      {
+        return
+          ClipCursor_Original ( config.window.unconfine_cursor ? nullptr :
+                                  &game_window.actual.window );
+      }
     }
 
     game_window.cursor_clip = *lpRect;
@@ -1486,10 +1493,12 @@ ClipCursor_Detour (const RECT *lpRect)
   else
     return ClipCursor_Original (nullptr);
 
+
   // Don't let the game unclip the cursor, but DO remember the
   //   coordinates that it wants.
   if (config.window.confine_cursor && lpRect != &game_window.cursor_clip)
     return TRUE;
+
 
   //
   // If the game uses mouse clipping and we are running in borderless,
@@ -4157,40 +4166,6 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     {
       GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
       GetClientRect_Original (game_window.hWnd, &game_window.actual.client);
-
-      //if (SK_GetCurrentGameID () == SK_GAME_ID::DotHackGU)
-      //{
-      //  if ( game_window.actual.window.right - game_window.actual.window.left ==
-      //       game_window.actual.client.right - game_window.actual.client.left + 6 )
-      //  {
-      //    SetWindowLongW (hWnd, GWL_STYLE,   SK_BORDERLESS);
-      //    SetWindowLongW (hWnd, GWL_EXSTYLE, SK_BORDERLESS_EX);
-      //
-      //    HMONITOR hMonitor =
-      //    MonitorFromWindow ( hWnd,
-      //                          MONITOR_DEFAULTTONEAREST );
-      //
-      //    MONITORINFO mi = { 0 };
-      //    mi.cbSize      = sizeof (mi);
-      //
-      //    GetMonitorInfo (hMonitor, &mi);
-      //
-      //    game_window.actual.window = mi.rcMonitor;
-      //
-      //    game_window.actual.client.left   = 0;
-      //    game_window.actual.client.right  = game_window.actual.window.right - game_window.actual.window.left;
-      //    game_window.actual.client.top    = 0;
-      //    game_window.actual.client.bottom = game_window.actual.window.bottom - game_window.actual.window.top;
-      //
-      //    SetWindowPos_Original ( game_window.hWnd,
-      //          HWND_TOP,
-      //            game_window.actual.client.left, game_window.actual.client.top,
-      //              game_window.actual.window.right  - game_window.actual.window.left,
-      //              game_window.actual.window.bottom - game_window.actual.window.top,
-      //                SWP_NOZORDER     | SWP_NOSENDCHANGING | SWP_ASYNCWINDOWPOS |
-      //                SWP_FRAMECHANGED | SWP_SHOWWINDOW );
-      //  }
-      //}
 
       if (config.window.confine_cursor)
         ClipCursor_Original (&game_window.actual.window);

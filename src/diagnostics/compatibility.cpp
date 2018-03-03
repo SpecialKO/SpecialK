@@ -1794,18 +1794,21 @@ TaskDialogCallback (
 
   if (uNotification == TDN_TIMER)
   {
-    if (GetFocus            () != hWnd ||
-        GetForegroundWindow () != hWnd)
+    if (GetForegroundWindow () != hWnd &&
+        GetFocus            () != hWnd)
     {
       SK_RealizeForegroundWindow (hWnd);
-
-      SetForegroundWindow (hWnd);
-      SetWindowPos        (hWnd, HWND_TOPMOST, 0, 0, 0, 0,
-                           SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW   |
-                           SWP_NOSIZE         | SWP_NOMOVE       |
-                           SWP_NOSENDCHANGING   );
-      SetFocus            (hWnd);
     }
+
+    SetForegroundWindow (hWnd);
+    SetWindowPos        (hWnd, HWND_TOPMOST, 0, 0, 0, 0,
+                         SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW   |
+                         SWP_NOSIZE         | SWP_NOMOVE       |
+                         SWP_NOSENDCHANGING   );
+    SetActiveWindow     (hWnd);
+
+    SetWindowLongW      (hWnd, GWL_EXSTYLE,
+     ( (GetWindowLongW  (hWnd, GWL_EXSTYLE) | (WS_EX_TOPMOST))));
   }
 
   if (uNotification == TDN_HYPERLINK_CLICKED)
@@ -1823,9 +1826,15 @@ TaskDialogCallback (
     SK_RealizeForegroundWindow (hWnd);
 
     SetForegroundWindow (hWnd);
+    SetWindowPos        (hWnd, HWND_TOPMOST, 0, 0, 0, 0,
+                         SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW   |
+                         SWP_NOSIZE         | SWP_NOMOVE       |
+                         SWP_NOSENDCHANGING   );
+    SetActiveWindow     (hWnd);
+    SetFocus            (hWnd);
+
     SetWindowLongW      (hWnd, GWL_EXSTYLE,
      ( (GetWindowLongW  (hWnd, GWL_EXSTYLE) | (WS_EX_TOPMOST))));
-    BringWindowToTop    (hWnd);
   }
 
   if (uNotification == TDN_CREATED)
@@ -1834,10 +1843,6 @@ TaskDialogCallback (
 
   if (uNotification == TDN_DESTROYED)
   {
-    SK_RealizeForegroundWindow (game_window.hWnd);
-    SetForegroundWindow        (game_window.hWnd);
-    SetFocus                   (game_window.hWnd);
-    SetActiveWindow            (game_window.hWnd);
     InterlockedExchange   (&__SK_TaskDialogActive, FALSE);
   }
 

@@ -269,6 +269,34 @@ extern Sleep_pfn                   Sleep_Original;
 extern QueryPerformanceCounter_pfn QueryPerformanceCounter_Original;
 
 extern LARGE_INTEGER& SK_GetPerfFreq (void);
+extern LARGE_INTEGER  SK_QueryPerf   (void);
+
+static auto SK_CurrentPerf =
+ []{
+     LARGE_INTEGER                      time;
+     QueryPerformanceCounter_Original (&time);
+     return                             time;
+   };
+
+static auto SK_DeltaPerf =
+ [](auto delta, auto freq)->
+  LARGE_INTEGER
+   {
+     LARGE_INTEGER time = SK_CurrentPerf ();
+
+     time.QuadPart -= static_cast <LONGLONG> (delta * freq);
+
+     return time;
+   };
+
+static auto SK_DeltaPerfMS =
+ [](auto delta, auto freq)->
+  double
+   {
+     return
+       1000.0 * (double)(SK_DeltaPerf (delta, freq).QuadPart) /
+                (double)SK_GetPerfFreq           ().QuadPart;
+   };
 
 
 #endif /* __SK__FRAMERATE_H__ */

@@ -942,24 +942,6 @@ LPVOID pfnSleep                   = nullptr;
 Sleep_pfn                   Sleep_Original                   = nullptr;
 QueryPerformanceCounter_pfn QueryPerformanceCounter_Original = nullptr;
 
-auto SK_CurrentPerf =
- []{
-     LARGE_INTEGER                      time;
-     QueryPerformanceCounter_Original (&time);
-     return                             time;
-   };
-
-auto SK_DeltaPerf =
- [](auto delta, auto freq)->
-  LARGE_INTEGER
-   {
-     LARGE_INTEGER time = SK_CurrentPerf ();
-   
-     time.QuadPart -= static_cast <LONGLONG> (delta * freq);
-   
-     return time;
-   };
-
 LARGE_INTEGER
 SK_QueryPerf ()
 {

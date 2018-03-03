@@ -97,10 +97,6 @@ extern iSK_Logger game_debug;
 
 extern void SK_Input_PreInit (void);
 
-
-std::queue <DWORD> init_tids; 
-            DWORD  init_start = 0;
-
 HANDLE  hInitThread   = { INVALID_HANDLE_VALUE };
 
 NV_GET_CURRENT_SLI_STATE sli_state;
@@ -120,8 +116,9 @@ extern ChangeDisplaySettingsA_pfn ChangeDisplaySettingsA_Original;
 
 
 struct init_params_s {
-  std::wstring backend  = L"INVALID";
-  void*        callback =    nullptr;
+  std::wstring  backend    = L"INVALID";
+  void*         callback   =    nullptr;
+  LARGE_INTEGER start_time {   0,   0 };
 } static init_, reentrant_core;
 
 
@@ -434,9 +431,7 @@ SK_InitCore (std::wstring, void* callback)
 #endif
   }
 
-
-         callback_fn (SK_InitFinishCallback);
-  SK_ResumeThreads   (init_tids);
+  callback_fn (SK_InitFinishCallback);
 }
 
 
@@ -593,8 +588,9 @@ SK_InitFinishCallback (void)
   dll_log.LogEx (false, L"------------------------------------------------"
                         L"-------------------------------------------\n" );
   dll_log.Log   (       L"[ SpecialK ] === Initialization Finished! ===   "
-                        L"       (%lu ms)",
-                          timeGetTime () - init_start );
+                        L"       (%6.2f ms)",
+                          SK_DeltaPerfMS ( init_.start_time.QuadPart, 1 )
+                );
   dll_log.LogEx (false, L"------------------------------------------------"
                         L"-------------------------------------------\n" );
 
@@ -860,8 +856,10 @@ SK_Steam_GetAppID_NoAPI (void)
                                   szSteamGameId,
                                     0x20 );
 
+    
     if (dwSteamGameIdLen > 1)
       AppID = atoi (szSteamGameId);
+
 
     //if (GetFileAttributesW (L"steam_appid.txt") == INVALID_FILE_ATTRIBUTES)
     //{
@@ -916,6 +914,14 @@ bool
 __stdcall
 SK_StartupCore (const wchar_t* backend, void* callback)
 {
+  QueryPerformanceCounter_Original =
+    reinterpret_cast <QueryPerformanceCounter_pfn> (
+      GetProcAddress (
+        GetModuleHandle ( L"kernel32.dll"),
+                            "QueryPerformanceCounter" )
+    );
+
+
   __SK_BootedCore = backend;
 
   // Before loading any config files, test the game's environment variables
@@ -1014,8 +1020,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   {
     SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_ABOVE_NORMAL);
 
-  //init_tids = SK_SuspendAllOtherThreads ();
-
     wchar_t   log_fname [MAX_PATH + 2] = { };
     swprintf (log_fname, L"logs/%s.log", SK_IsInjected () ? L"SpecialK" : backend);
 
@@ -1041,19 +1045,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
       return false;
     }
 
-    init_start = timeGetTime ();
-
-    if (config.compatibility.init_while_suspended)
-    {
-      ////init_tids = SK_SuspendAllOtherThreads ();
-    }
-
-    QueryPerformanceCounter_Original =
-      reinterpret_cast <QueryPerformanceCounter_pfn> (
-        GetProcAddress (
-          GetModuleHandle ( L"kernel32.dll"),
-                              "QueryPerformanceCounter" )
-      );
+    init_.start_time = SK_QueryPerf ();
 
     SK_MinHook_Init        ();
     SK_WMI_Init            ();
@@ -1076,14 +1068,16 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     SK::Diagnostics::CrashHandler::InitSyms ();
   }
 
+
+
   if (skim)
   {
-    SK_ResumeThreads (init_tids);
-
     init_mutex->unlock ();
 
     return TRUE;
   }
+
+
 
   budget_log.init ( LR"(logs\dxgi_budget.log)", L"wc+,ccs=UTF-8" );
 
@@ -1104,12 +1098,13 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   if (SK_IsInjected ())
     config_name = L"SpecialK";
 
-  DWORD dwStartConfig = timeGetTime ();
+  LARGE_INTEGER liStartConfig = SK_CurrentPerf ();
 
   dll_log.LogEx (true, L"Loading user preferences from %s.ini... ", config_name);
 
   if (SK_LoadConfig (config_name))
-    dll_log.LogEx (false, L"done! (%lu ms)\n", timeGetTime () - dwStartConfig);
+    dll_log.LogEx (false, L"done! (%6.2f ms)\n",
+      SK_DeltaPerfMS (liStartConfig.QuadPart, 1));
 
   else
   {
