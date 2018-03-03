@@ -587,8 +587,6 @@ SK_InitFinishCallback (void)
 
   SK_Console::getInstance ()->Start ();
 
-  SK_StartPerfMonThreads ();
-
   if (! (SK_GetDLLRole () & DLL_ROLE::DXGI))
     SK::DXGI::StartBudgetThread_NoAdapter ();
 
@@ -1059,6 +1057,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
     SK_MinHook_Init        ();
     SK_WMI_Init            ();
+    SK_StartPerfMonThreads ();
     SK_InitCompatBlacklist ();
 
     // Do this from the startup thread [these functions queue, but don't apply]
@@ -1515,6 +1514,10 @@ SK_ShutdownCore (const wchar_t* backend)
       volatile HANDLE&  hThread,
                wchar_t* wszName )
   {
+    if ( ReadPointerAcquire (&hSignal) == INVALID_HANDLE_VALUE &&
+         ReadPointerAcquire (&hThread) == INVALID_HANDLE_VALUE )
+      return;
+
     wchar_t wszFmtName [32] = { };
 
     lstrcatW (wszFmtName, wszName);
@@ -1525,8 +1528,6 @@ SK_ShutdownCore (const wchar_t* backend)
     DWORD dwTime = timeGetTime ();
 
     // Signal the thread to shutdown
-    SetEvent (hSignal);
-
     if (SignalObjectAndWait (hSignal, hThread, 1000UL, TRUE) != WAIT_OBJECT_0) // Give 1 second, and
     {                                                                          // then we're killing
       TerminateThread (hThread, 0x00);                                         // the thing!

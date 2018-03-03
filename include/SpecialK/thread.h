@@ -27,10 +27,10 @@
 class SK_Thread_ScopedPriority
 {
 public:
-  SK_Thread_ScopedPriority (int prio) : hThread   (GetCurrentThread  (       )),
-                                        orig_prio (GetThreadPriority (hThread))
+  SK_Thread_ScopedPriority (int prio) : hThread (GetCurrentThread ())
   {
-    SetThreadPriority (hThread, prio);
+    orig_prio = GetThreadPriority (hThread);
+                SetThreadPriority (hThread, prio);
   }
 
  ~SK_Thread_ScopedPriority (void)

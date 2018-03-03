@@ -2702,10 +2702,10 @@ private:
   } achievements; // SELF
 
   struct friend_s {
-    std::string        name;
-    float              percent_unlocked;
-    std::vector <BOOL> unlocked;
-    uint64_t           account_id;
+    std::string        name             =   "";
+    float              percent_unlocked = 0.0f;
+    std::vector <BOOL> unlocked         = {  };
+    uint64_t           account_id       =    0;
   };
 
   std::vector <friend_s>
@@ -5084,39 +5084,45 @@ ISteamMusic*
 SAFE_GetISteamMusic (ISteamClient* pClient, HSteamUser hSteamuser, HSteamPipe hSteamPipe, const char *pchVersion)
 {
   __try {
-    return pClient->GetISteamMusic (hSteamuser, hSteamPipe, pchVersion);
+    if (SK_IsAddressExecutable ((*(void ***)*&pClient)[24]))
+      return pClient->GetISteamMusic (hSteamuser, hSteamPipe, pchVersion);
   }
   __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION )  ?
                        EXCEPTION_EXECUTE_HANDLER :
                        EXCEPTION_CONTINUE_SEARCH ) {
-    return nullptr;
   }
+
+  return nullptr;
 }
 
 ISteamController*
 SAFE_GetISteamController (ISteamClient* pClient, HSteamUser hSteamuser, HSteamPipe hSteamPipe, const char *pchVersion)
 {
   __try {
-    return pClient->GetISteamController (hSteamuser, hSteamPipe, pchVersion);
+    if (SK_IsAddressExecutable ((*(void ***)*&pClient)[21]))
+      return pClient->GetISteamController (hSteamuser, hSteamPipe, pchVersion);
   }
   __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION )  ?
                        EXCEPTION_EXECUTE_HANDLER :
                        EXCEPTION_CONTINUE_SEARCH ) {
-    return nullptr;
   }
+
+  return nullptr;
 }
 
 ISteamRemoteStorage*
 SAFE_GetISteamRemoteStorage (ISteamClient* pClient, HSteamUser hSteamuser, HSteamPipe hSteamPipe, const char *pchVersion)
 {
   __try {
-    return pClient->GetISteamRemoteStorage (hSteamuser, hSteamPipe, pchVersion);
+    if (SK_IsAddressExecutable ((*(void ***)*&pClient)[13]))
+      return pClient->GetISteamRemoteStorage (hSteamuser, hSteamPipe, pchVersion);
   }
   __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION )  ?
                        EXCEPTION_EXECUTE_HANDLER :
                        EXCEPTION_CONTINUE_SEARCH ) {
-    return nullptr;
   }
+
+  return nullptr;
 }
 
 

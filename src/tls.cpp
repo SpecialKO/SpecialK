@@ -166,10 +166,13 @@ SK_ImGui_ThreadContext::allocPolylineStorage (size_t needed)
 {
   if (polyline_capacity < needed)
   {
-    polyline_storage = realloc (polyline_storage, needed);
+    free (polyline_storage);
+          polyline_storage = _aligned_malloc (needed, 16);
 
     if (polyline_storage != nullptr)
       polyline_capacity = needed;
+    else
+      polyline_capacity = 0;
   }
 
   return polyline_storage;
@@ -180,10 +183,13 @@ SK_OSD_ThreadContext::allocText (size_t needed)
 {
   if (text_capacity < needed)
   {
-    text = (char *)realloc (text, needed);
+    free (text);
+          text = (char *)_aligned_malloc (needed, 16);
 
     if (text != nullptr)
       text_capacity = needed;
+    else
+      text_capacity = 0;
   }
 
   return text;
@@ -195,10 +201,13 @@ SK_RawInput_ThreadContext::allocData (size_t needed)
 {
   if (capacity < needed)
   {
-    data = (uint8_t *)realloc (data, needed);
+    free (data);
+          data = (uint8_t *)_aligned_malloc (needed, 16);
 
     if (data != nullptr)
       capacity = needed;
+    else
+      capacity = 0;
   }
 
   return (uint8_t *)data;
@@ -209,10 +218,13 @@ SK_RawInput_ThreadContext::allocateDevices (size_t needed)
 {
   if (num_devices < needed)
   {
-    devices = (RAWINPUTDEVICE *)realloc (devices, needed * sizeof (RAWINPUTDEVICE));
+    free (devices);
+          devices = (RAWINPUTDEVICE *)_aligned_malloc (needed * sizeof (RAWINPUTDEVICE), 16);
 
     if (devices != nullptr)
       num_devices = needed;
+    else
+      num_devices = 0;
   }
 
   return devices;
@@ -375,16 +387,19 @@ SK_D3D9_ThreadContext::allocStackScratchStorage (size_t size)
 {
   if (stack_scratch.storage == nullptr)
   {
-    stack_scratch.storage = new uint8_t [size] { };
+    stack_scratch.storage = _aligned_malloc (size, 16);
+    ZeroMemory (&stack_scratch.storage, size);
   }
 
   else
   {
     if (stack_scratch.size < size)
     {
-      delete [] stack_scratch.storage;
-                stack_scratch.storage = new uint8_t [size];
-                stack_scratch.size    =              size ;
+      free (stack_scratch.storage);
+            stack_scratch.storage = _aligned_malloc (size, 16);
+            stack_scratch.size    =        (uint32_t)size ;
+
+      ZeroMemory (&stack_scratch.storage, size);
     }
   }
 

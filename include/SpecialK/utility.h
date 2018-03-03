@@ -80,7 +80,7 @@ const wchar_t* SK_GetHostPath               (void);
 const wchar_t* SK_GetBlacklistFilename      (void);
 
 bool           SK_GetDocumentsDir           (_Out_opt_ wchar_t* buf, _Inout_ uint32_t* pdwLen);
-std::wstring   SK_GetDocumentsDir           (void);
+std::wstring&  SK_GetDocumentsDir           (void);
 std::wstring   SK_GetFontsDir               (void);
 std::wstring   SK_GetRTSSInstallDir         (void);
 bool
@@ -114,7 +114,7 @@ void           SK_FixSlashesA               (char    *szInOut);
 
 void           SK_File_SetNormalAttribs     (std::wstring   file);
 void           SK_File_MoveNoFail           (const wchar_t* wszOld,    const wchar_t* wszNew);
-void           SK_File_FullCopy                 (std::wstring   from,      std::wstring   to);
+void           SK_File_FullCopy             (std::wstring   from,      std::wstring   to);
 BOOL           SK_File_SetAttribs           (std::wstring   file,      DWORD          dwAttribs);
 BOOL           SK_File_ApplyAttribMask      (std::wstring   file,      DWORD          dwAttribMask,
                                              bool           clear = false);
@@ -284,7 +284,7 @@ SK_ScanAlignedEx (const void* pattern, size_t len, const void* mask, void* after
 BOOL
 __stdcall
 SK_InjectMemory ( LPVOID  base_addr,
-                  void   *new_data,
+            const void   *new_data,
                   size_t  data_size,
                   DWORD   permissions,
                   void   *old_data     = nullptr );

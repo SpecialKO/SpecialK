@@ -285,9 +285,9 @@ SK_MonitorCPU (LPVOID user_param)
 
     if (cpu.dwNumReturned < 1 || cpu.apEnumAccess [0] == nullptr)
     {
-      SleepEx (100UL, FALSE);
-
       COM::base.wmi.Unlock ();
+
+      SleepEx (100UL, FALSE);
 
       continue;
     }

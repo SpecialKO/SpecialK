@@ -1,5 +1,20 @@
 0.9.5:
 
+ (.2): Defer initialization of D3D11 texture management until D3D11 is actually
+         used :P
+ (.2): Improve AppCache generation on first execution of games w/ launchers
+
+ -----------------------------------------------------------
+ *** It is STRONGLY suggested that you delete the directory:
+
+       Documents\My Mods\SpecialK\Profiles\AppCache
+
+     after receiving this update ***
+ -----------------------------------
+
+ (.1): Partitioned scratch memory per-thread for D3D shader disassembly,
+         ini parser, command processor and debug stack traces for faster startup
+
  (.1): Fixed various rare NvAPI issues
  (.1): Upon successful shutdown, crash.log is deleted again
  (.1): All Steam AppID resolution cache data is stored in Profiles\AppCache\... now

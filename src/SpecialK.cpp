@@ -142,9 +142,9 @@ SK_LoadLocalModule (const wchar_t* wszModule)
 // If this is the global injector and there is a wrapper version
 //   of Special K in the DLL search path, then bail-out!
 BOOL
-SK_TryLocalWrapperFirst (std::set <std::wstring> dlls)
+SK_TryLocalWrapperFirst (const std::set <std::wstring> dlls)
 {
-  for ( auto& dll : dlls )
+  for ( const auto& dll : dlls )
   {
     if ( SK_IsDLLSpecialK   (dll.c_str ()) &&
          SK_LoadLocalModule (dll.c_str ()) )
@@ -783,9 +783,10 @@ DllMain ( HMODULE hModule,
       }
     }
 
-    //else { SK_Inject_AcquireProcess (); }
+    else bRet = TRUE;
 
-    return ( bRet = TRUE );
+    return
+      bRet;
   };
 
 

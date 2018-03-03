@@ -310,6 +310,8 @@ struct TexThreadStats {
       friend class TextureManager;
 
     public:
+      void            init               (void);
+
       bool            hasPendingLoads    (void)              const;
 
       void            beginLoad          (void);
@@ -327,31 +329,31 @@ struct TexThreadStats {
         return SK_TLS_Bottom ()->texture_management.injection_thread;
       }
 
-      void lockStreaming    (void) const { EnterCriticalSection (&cs_tex_stream);    };
-      void lockResampling   (void) const { EnterCriticalSection (&cs_tex_resample);  };
-      void lockDumping      (void) const { EnterCriticalSection (&cs_tex_dump);      };
-      void lockBlacklist    (void) const { EnterCriticalSection (&cs_tex_blacklist); };
+      void lockStreaming    (void) { EnterCriticalSection (&cs_tex_stream);    };
+      void lockResampling   (void) { EnterCriticalSection (&cs_tex_resample);  };
+      void lockDumping      (void) { EnterCriticalSection (&cs_tex_dump);      };
+      void lockBlacklist    (void) { EnterCriticalSection (&cs_tex_blacklist); };
 
-      void unlockStreaming  (void) const { LeaveCriticalSection (&cs_tex_stream);    };
-      void unlockResampling (void) const { LeaveCriticalSection (&cs_tex_resample);  };
-      void unlockDumping    (void) const { LeaveCriticalSection (&cs_tex_dump);      };
-      void unlockBlacklist  (void) const { LeaveCriticalSection (&cs_tex_blacklist); };
+      void unlockStreaming  (void) { LeaveCriticalSection (&cs_tex_stream);    };
+      void unlockResampling (void) { LeaveCriticalSection (&cs_tex_resample);  };
+      void unlockDumping    (void) { LeaveCriticalSection (&cs_tex_dump);      };
+      void unlockBlacklist  (void) { LeaveCriticalSection (&cs_tex_blacklist); };
 
     //protected:
-      static concurrent_unordered_map   <uint32_t, TexLoadRequest *>
-                                                               textures_in_flight;
-      static concurrent_queue <TexLoadRef>                     textures_to_stream;
-      static concurrent_queue <TexLoadRef>                     finished_loads;
+      concurrent_unordered_map   <uint32_t, TexLoadRequest *>
+                                                        textures_in_flight;
+      concurrent_queue <TexLoadRef>                     textures_to_stream;
+      concurrent_queue <TexLoadRef>                     finished_loads;
 
-      static CRITICAL_SECTION                                  cs_tex_stream;
-      static CRITICAL_SECTION                                  cs_tex_resample;
-      static CRITICAL_SECTION                                  cs_tex_dump;
-      static CRITICAL_SECTION                                  cs_tex_blacklist;
+      CRITICAL_SECTION                                  cs_tex_stream;
+      CRITICAL_SECTION                                  cs_tex_resample;
+      CRITICAL_SECTION                                  cs_tex_dump;
+      CRITICAL_SECTION                                  cs_tex_blacklist;
 
-      static volatile  LONG                                    streaming;//       = 0L;
-      static volatile ULONG                                    streaming_bytes;// = 0UL;
+      volatile  LONG                                    streaming;//       = 0L;
+      volatile ULONG                                    streaming_bytes;// = 0UL;
 
-      static volatile  LONG                                    resampling;//      = 0L;
+      volatile  LONG                                    resampling;//      = 0L;
     } injector;
 
   private:

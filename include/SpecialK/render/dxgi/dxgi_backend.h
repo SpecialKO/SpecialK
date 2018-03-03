@@ -542,7 +542,25 @@ public:
   std::atomic_int64_t                         LastPurge_2D      = 0ULL;
 
   LARGE_INTEGER                               PerfFreq;
-} extern SK_D3D11_Textures;
+
+  std::unordered_map <uint32_t, std::wstring> tex_hashes;
+  std::unordered_map <uint32_t, std::wstring> tex_hashes_ex;
+  
+  std::unordered_set <uint32_t>               dumped_textures;
+  uint64_t                                    dumped_texture_bytes;
+  std::unordered_set <uint32_t>               dumped_collisions;
+  std::unordered_set <uint32_t>               injectable_textures;
+  uint64_t                                    injectable_texture_bytes;
+  std::unordered_set <uint32_t>               injected_collisions;
+  
+  std::unordered_set <uint32_t>               injectable_ffx; // HACK FOR FFX
+};
+
+using  SK_D3D11_TexMgr_Singleton = SK_D3D11_TexMgr&;
+extern SK_D3D11_TexMgr_Singleton __SK_Singleton_D3D11_Textures (void);
+
+static auto&& SK_D3D11_Textures = __SK_Singleton_D3D11_Textures ();
+
 
 typedef HRESULT (STDMETHODCALLTYPE *D3D11Dev_CreateDeferredContext_pfn)( 
   _In_            ID3D11Device         *This,

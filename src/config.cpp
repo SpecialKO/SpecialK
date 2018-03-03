@@ -530,7 +530,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
   while (init < 0)
     MsgWaitForMultipleObjectsEx (0, nullptr, 2UL, QS_ALLINPUT, MWMO_ALERTABLE);
 
-  if (init == FALSE)
+  if (init == FALSE || dll_ini == nullptr)
   {
     init = -1;
 

@@ -627,3 +627,34 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
     }
   }
 }
+
+extern std::wstring SK_D3D11_res_root;
+
+void
+SK::ControlPanel::D3D11::TextureMenu (void)
+{
+  if (ImGui::BeginMenu ("Browse Texture Assets"))
+  {  
+    wchar_t wszPath [MAX_PATH * 2] = { };
+  
+    if (ImGui::MenuItem ("Injectable Textures", SK_FormatString ("%ws", SK_File_SizeToString (SK_D3D11_Textures.injectable_texture_bytes).c_str ()).c_str (), nullptr))
+    {
+      wcscpy      (wszPath, SK_D3D11_res_root.c_str ());
+      PathAppendW (wszPath, LR"(inject\textures)");
+  
+      ShellExecuteW (GetActiveWindow (), L"explore", wszPath, nullptr, nullptr, SW_NORMAL);
+    }
+  
+    if ((! SK_D3D11_Textures.dumped_textures.empty ()) &&
+          ImGui::MenuItem ("Dumped Textures", SK_FormatString ("%ws", SK_File_SizeToString (SK_D3D11_Textures.dumped_texture_bytes).c_str ()).c_str (), nullptr))
+    {
+      wcscpy      (wszPath, SK_D3D11_res_root.c_str ());
+      PathAppendW (wszPath, LR"(dump\textures)");
+      PathAppendW (wszPath, SK_GetHostApp ());
+  
+      ShellExecuteW (GetActiveWindow (), L"explore", wszPath, nullptr, nullptr, SW_NORMAL);
+    }
+  
+    ImGui::EndMenu ();
+  }
+}

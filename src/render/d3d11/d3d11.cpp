@@ -3270,7 +3270,9 @@ D3D11_VSSetShaderResources_Override (
   if (((! config.render.dxgi.deferred_isolation) && This->GetType () == D3D11_DEVICE_CONTEXT_DEFERRED) || SK_TLS_Bottom ()->imgui.drawing || (! SK_D3D11_EnableTracking))
     return D3D11_VSSetShaderResources_Original (This, StartSlot, NumViews, ppShaderResourceViews);
 
-  ID3D11ShaderResourceView* newResourceViews [D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT] = { };
+  auto&& newResourceViews = SK_TLS_Bottom ()->d3d11.newResourceViews;
+
+  RtlZeroMemory (newResourceViews, sizeof (ID3D11ShaderResourceView*) * NumViews);
 
   if (ppShaderResourceViews && NumViews > 0)
   {
@@ -3331,7 +3333,9 @@ D3D11_PSSetShaderResources_Override (
   if (((! config.render.dxgi.deferred_isolation) && This->GetType () == D3D11_DEVICE_CONTEXT_DEFERRED) || SK_TLS_Bottom ()->imgui.drawing || (! SK_D3D11_EnableTracking))
     return D3D11_PSSetShaderResources_Original (This, StartSlot, NumViews, ppShaderResourceViews);
 
-  ID3D11ShaderResourceView* newResourceViews [D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT] = { };
+  auto&& newResourceViews = SK_TLS_Bottom ()->d3d11.newResourceViews;
+
+  RtlZeroMemory (newResourceViews, sizeof (ID3D11ShaderResourceView*) * NumViews);
 
   if (ppShaderResourceViews && NumViews > 0)
   {
@@ -3392,7 +3396,9 @@ D3D11_GSSetShaderResources_Override (
   if (((! config.render.dxgi.deferred_isolation) && This->GetType () == D3D11_DEVICE_CONTEXT_DEFERRED) || SK_TLS_Bottom ()->imgui.drawing || (! SK_D3D11_EnableTracking))
     return D3D11_GSSetShaderResources_Original (This, StartSlot, NumViews, ppShaderResourceViews);
 
-  ID3D11ShaderResourceView* newResourceViews [D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT] = { };
+  auto&& newResourceViews = SK_TLS_Bottom ()->d3d11.newResourceViews;
+
+  RtlZeroMemory (newResourceViews, sizeof (ID3D11ShaderResourceView*) * NumViews);
 
   if (ppShaderResourceViews && NumViews > 0)
   {
@@ -3440,7 +3446,9 @@ D3D11_HSSetShaderResources_Override (
   if (((! config.render.dxgi.deferred_isolation) && This->GetType () == D3D11_DEVICE_CONTEXT_DEFERRED) || SK_TLS_Bottom ()->imgui.drawing || (! SK_D3D11_EnableTracking))
     return D3D11_HSSetShaderResources_Original (This, StartSlot, NumViews, ppShaderResourceViews);
 
-  ID3D11ShaderResourceView* newResourceViews [D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT] = { };
+  auto&& newResourceViews = SK_TLS_Bottom ()->d3d11.newResourceViews;
+
+  RtlZeroMemory (newResourceViews, sizeof (ID3D11ShaderResourceView*) * NumViews);
 
   if (ppShaderResourceViews && NumViews > 0)
   {
@@ -3488,7 +3496,9 @@ D3D11_DSSetShaderResources_Override (
   if (((! config.render.dxgi.deferred_isolation) && This->GetType () == D3D11_DEVICE_CONTEXT_DEFERRED) || SK_TLS_Bottom ()->imgui.drawing || (! SK_D3D11_EnableTracking))
     return D3D11_DSSetShaderResources_Original (This, StartSlot, NumViews, ppShaderResourceViews);
 
-  ID3D11ShaderResourceView* newResourceViews [D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT] = { };
+  auto&& newResourceViews = SK_TLS_Bottom ()->d3d11.newResourceViews;
+
+  RtlZeroMemory (newResourceViews, sizeof (ID3D11ShaderResourceView*) * NumViews);
 
   if (ppShaderResourceViews && NumViews > 0)
   {
@@ -3536,7 +3546,9 @@ D3D11_CSSetShaderResources_Override (
   if (((! config.render.dxgi.deferred_isolation) && This->GetType () == D3D11_DEVICE_CONTEXT_DEFERRED) || SK_TLS_Bottom ()->imgui.drawing || (! SK_D3D11_EnableTracking))
     return D3D11_CSSetShaderResources_Original (This, StartSlot, NumViews, ppShaderResourceViews);
 
-  ID3D11ShaderResourceView* newResourceViews [D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT] = { };
+  auto&& newResourceViews = SK_TLS_Bottom ()->d3d11.newResourceViews;
+
+  RtlZeroMemory (newResourceViews, sizeof (ID3D11ShaderResourceView*) * NumViews);
 
   if (ppShaderResourceViews && NumViews > 0)
   {
@@ -5662,29 +5674,25 @@ void WINAPI SK_D3D11_PopulateResourceList (bool refresh = false);
 #include <unordered_map>
 #include <map>
 
-// TODO:
-//
-//  Why the hell is this stuff global? :)
-//
-std::unordered_map <uint32_t, std::wstring> tex_hashes;
-std::unordered_map <uint32_t, std::wstring> tex_hashes_ex;
+SK_D3D11_TexMgr_Singleton
+__SK_Singleton_D3D11_Textures (void)
+{
+  static SK_D3D11_TexMgr* pSK_D3D11_Textures = nullptr;
+  static volatile LONG    single             = FALSE;
 
-std::unordered_set <uint32_t>               dumped_textures;
-uint64_t                                    dumped_texture_bytes;
-std::unordered_set <uint32_t>               dumped_collisions;
-std::unordered_set <uint32_t>               injectable_textures;
-uint64_t                                    injectable_texture_bytes;
-std::unordered_set <uint32_t>               injected_collisions;
+  if (! InterlockedCompareExchange (&single, 1, 0))
+  {
+    pSK_D3D11_Textures =
+      new SK_D3D11_TexMgr ();
 
-std::unordered_set <uint32_t>               injectable_ffx; // HACK FOR FFX
+    InterlockedIncrement (&single);
+  }
 
-struct {
-  std::unordered_set <uint32_t>             wanted;
-  std::unordered_set <uint32_t>             active;
-} tex_preloads;
+  SK_Thread_SpinUntilAtomicMin (&single, 2);
 
+  return *pSK_D3D11_Textures;
+}
 
-SK_D3D11_TexMgr SK_D3D11_Textures;
 
 class SK_D3D11_TexCacheMgr {
 public:
@@ -5698,7 +5706,7 @@ SK_D3D11_SummarizeTexCache (void)
 
   snprintf ( szOut, 511, "  Tex Cache: %#5llu MiB   Entries:   %#7li\n"
                          "  Hits:      %#5li       Time Saved: %#7.01lf ms\n"
-                         "  Evictions: %#5li",
+                         "  Evictions: %#5lu",
                SK_D3D11_Textures.AggregateSize_2D >> 20ULL,
                SK_D3D11_Textures.Entries_2D.load        (),
                SK_D3D11_Textures.RedundantLoads_2D.load (),
@@ -5789,24 +5797,19 @@ SK_D3D11_TexCacheCheckpoint (void)
                        (config.mem.reserve / 100.0f)
       );
 
-    if (SK_D3D11_need_tex_reset)
-    {
-      tex_preloads.active.clear ();
-    }
-
     SK_D3D11_need_tex_reset = false;
     SK_D3D11_Textures.reset ();
   }
 
   else
   {
-    SK_RenderBackend& rb =
-      SK_GetCurrentRenderBackend ();
+    //SK_RenderBackend& rb =
+    //  SK_GetCurrentRenderBackend ();
 
-    if (rb.d3d11.immediate_ctx != nullptr)
-    {
-      SK_D3D11_PreLoadTextures ();
-    }
+    //if (rb.d3d11.immediate_ctx != nullptr)
+    //{
+    //  SK_D3D11_PreLoadTextures ();
+    //}
   }
 }
 
@@ -5839,7 +5842,7 @@ SK_D3D11_TexMgr::reset (void)
       must_free = true;
 
     if ( SK_D3D11_Textures.Entries_2D > (LONG)       cache_opts.max_entries +
-                                        (LONG)(float)cache_opts.max_entries * overfill_factor )
+                                         (LONG)(float)cache_opts.max_entries * overfill_factor )
       must_free = true;
 
     if ( SK_D3D11_amount_to_purge > 0 )
@@ -6138,21 +6141,26 @@ SK_D3D11_TexMgr::refTexture2D ( ID3D11Texture2D*      pTex,
   if (pTex == nullptr || tag == 0x00)
     return;
 
-  {
-    static volatile ULONG init = FALSE;
+  
+  static volatile LONG init = FALSE;
 
-    if (! InterlockedCompareExchange (&init, TRUE, FALSE))
-    {
-      DXGI_VIRTUAL_HOOK_IMM ( &pTex, 2, "IUnknown::Release",
-                              IUnknown_Release,
-                              IUnknown_Release_Original,
-                              IUnknown_Release_pfn );
-      DXGI_VIRTUAL_HOOK_IMM ( &pTex, 1, "IUnknown::AddRef",
-                              IUnknown_AddRef,
-                              IUnknown_AddRef_Original,
-                              IUnknown_AddRef_pfn );
-    }
+  if (! InterlockedCompareExchange (&init, TRUE, FALSE))
+  {
+    DXGI_VIRTUAL_HOOK ( &pTex, 2, "IUnknown::Release",
+                        IUnknown_Release,
+                        IUnknown_Release_Original,
+                        IUnknown_Release_pfn );
+    DXGI_VIRTUAL_HOOK ( &pTex, 1, "IUnknown::AddRef",
+                        IUnknown_AddRef,
+                        IUnknown_AddRef_Original,
+                        IUnknown_AddRef_pfn );
+
+    SK_ApplyQueuedHooks ();
+
+    InterlockedIncrement (&init);
   }
+
+  SK_Thread_SpinUntilAtomicMin (&init, 2);
 
 
   if (SK_D3D11_TestRefCountHooks (pTex))
@@ -6300,11 +6308,11 @@ SK_D3D11_PopulateResourceList (bool refresh)
 
   if (refresh)
   {
-    dumped_textures.clear ();
-    dumped_texture_bytes = 0;
+    SK_D3D11_Textures.dumped_textures.clear ();
+    SK_D3D11_Textures.dumped_texture_bytes = 0;
 
-    injectable_textures.clear ();
-    injectable_texture_bytes = 0;
+    SK_D3D11_Textures.injectable_textures.clear ();
+    SK_D3D11_Textures.injectable_texture_bytes = 0;
   }
 
   init = true;
@@ -6410,15 +6418,15 @@ SK_D3D11_PopulateResourceList (bool refresh)
             else
               liUncompressed.QuadPart += fsize.QuadPart;
 
-            if (dumped_textures.count (top_crc32) >= 1)
+            if (SK_D3D11_Textures.dumped_textures.count (top_crc32) >= 1)
               SK_LOG0 ( ( L" >> WARNING: Multiple textures have "
                             L"the same top-level LOD hash (%08X) <<",
                               top_crc32 ), L"DX11TexDmp" );
 
             if (checksum == 0x00)
-              dumped_textures.insert (top_crc32);
+              SK_D3D11_Textures.dumped_textures.insert (top_crc32);
             else
-              dumped_collisions.insert (crc32c (top_crc32, (uint8_t *)&checksum, 4));
+              SK_D3D11_Textures.dumped_collisions.insert (crc32c (top_crc32, (uint8_t *)&checksum, 4));
           }
         }
       } while (FindNextFileW (hFind, &fd) != 0);
@@ -6426,7 +6434,7 @@ SK_D3D11_PopulateResourceList (bool refresh)
       FindClose (hFind);
     }
 
-    dumped_texture_bytes = liSize.QuadPart;
+    SK_D3D11_Textures.dumped_texture_bytes = liSize.QuadPart;
 
     dll_log.LogEx ( false, L" %lu files (%3.1f MiB -- %3.1f:%3.1f MiB Un:Compressed)\n",
                       files, (double)liSize.QuadPart / (1024.0 * 1024.0),
@@ -6453,7 +6461,7 @@ SK_D3D11_PopulateResourceList (bool refresh)
 
     SK_D3D11_RecursiveEnumAndAddTex (wszTexInjectDir, files, liSize);
 
-    injectable_texture_bytes = liSize.QuadPart;
+    SK_D3D11_Textures.injectable_texture_bytes = liSize.QuadPart;
 
     dll_log.LogEx ( false, L" %lu files (%3.1f MiB)\n",
                       files, (double)liSize.QuadPart / (1024.0 * 1024.0) );
@@ -6503,7 +6511,7 @@ SK_D3D11_PopulateResourceList (bool refresh)
 
             liSize.QuadPart += fsize.QuadPart;
 
-            injectable_ffx.insert           (ffx_crc32);
+            SK_D3D11_Textures.injectable_ffx.insert           (ffx_crc32);
           }
         }
       } while (FindNextFileW (hFind, &fd) != 0);
@@ -6578,102 +6586,19 @@ SKX_D3D11_MarkTextures (bool x, bool y, bool z)
   UNREFERENCED_PARAMETER (z);
 }
 
-
-
-bool
-WINAPI
-SK_D3D11_IsTexPreLoadable (uint32_t top_crc32c)
-{
-  SK_AutoCriticalSection critical (&preload_cs);
-
-  return tex_preloads.wanted.count (top_crc32c) != 0;
-}
-
-void
-WINAPI
-SK_D3D11_AddTexPreLoad (uint32_t top_crc32c)
-{
-  if (top_crc32c != 0x00)
-  {
-    if (! SK_D3D11_IsTexPreLoadable (top_crc32c))
-    {
-      SK_AutoCriticalSection critical (&preload_cs);
-
-      tex_preloads.wanted.emplace (top_crc32c);
-    }
-  }
-}
-
-
-bool
-WINAPI
-SK_D3D11_IsTexPreLoaded (uint32_t top_crc32c)
-{
-  SK_AutoCriticalSection critical (&preload_cs);
-
-  return tex_preloads.active.count (top_crc32c) != 0;
-}
-
-void
-WINAPI
-SK_D3D11_PreLoadTexture (uint32_t top_crc32c)
-{
-  if (top_crc32c != 0x00)
-  {
-    SK_AutoCriticalSection critical (&preload_cs);
-
-    if (SK_D3D11_IsTexPreLoadable (top_crc32c) && (! SK_D3D11_IsTexPreLoaded (top_crc32c)))
-    {
-      tex_preloads.active.emplace (top_crc32c);
-
-      SK_RenderBackend& rb =
-        SK_GetCurrentRenderBackend ();
-
-      if (rb.d3d11.immediate_ctx != nullptr)
-      {
-        CComQIPtr <ID3D11Device> pDevice (rb.device);
-
-        if (pDevice != nullptr)
-        {
-          //pDevice->CreateTexture2D ()
-        }
-      }
-    }
-  }
-}
-
-
-void
-WINAPI
-SK_D3D11_PreLoadTextures (void)
-{
-  if (tex_preloads.wanted.size () > tex_preloads.active.size ())
-  {
-    SK_AutoCriticalSection critical (&preload_cs);
-
-    for (auto it : tex_preloads.wanted)
-    {
-      if (! tex_preloads.active.count (it))
-      {
-        SK_D3D11_PreLoadTexture (it);
-      }
-    }
-  }
-}
-
 bool
 WINAPI
 SK_D3D11_IsTexHashed (uint32_t top_crc32, uint32_t hash)
 {
-  if (tex_hashes_ex.empty () && tex_hashes.empty ())
+  if (SK_D3D11_Textures.tex_hashes_ex.empty () && SK_D3D11_Textures.tex_hashes.empty ())
     return false;
 
   SK_AutoCriticalSection critical (&hash_cs);
 
-  if (tex_hashes_ex.count (crc32c (top_crc32, (const uint8_t *)&hash, 4)) != 0)
+  if (SK_D3D11_Textures.tex_hashes.count (crc32c (top_crc32, (const uint8_t *)&hash, 4)) != 0)
     return true;
 
-  return tex_hashes.count (top_crc32) != 0;
+  return SK_D3D11_Textures.tex_hashes.count (top_crc32) != 0;
 }
 
 void
@@ -6693,7 +6618,7 @@ SK_D3D11_AddTexHash ( const wchar_t* name, uint32_t top_crc32, uint32_t hash )
     {
       {
         SK_AutoCriticalSection critical (&hash_cs);
-        tex_hashes_ex.emplace  (crc32c (top_crc32, (const uint8_t *)&hash, 4), name);
+        SK_D3D11_Textures.tex_hashes_ex.emplace  (crc32c (top_crc32, (const uint8_t *)&hash, 4), name);
       }
 
       SK_D3D11_AddInjectable (top_crc32, hash);
@@ -6704,7 +6629,7 @@ SK_D3D11_AddTexHash ( const wchar_t* name, uint32_t top_crc32, uint32_t hash )
   {
     {
       SK_AutoCriticalSection critical (&hash_cs);
-      tex_hashes.emplace (top_crc32, name);
+      SK_D3D11_Textures.tex_hashes.emplace (top_crc32, name);
     }
 
     if (! SK_D3D11_inject_textures_ffx)
@@ -6712,7 +6637,7 @@ SK_D3D11_AddTexHash ( const wchar_t* name, uint32_t top_crc32, uint32_t hash )
     else
     {
       SK_AutoCriticalSection critical (&inject_cs);
-      injectable_ffx.emplace (top_crc32);
+      SK_D3D11_Textures.injectable_ffx.emplace (top_crc32);
     }
   }
 }
@@ -6721,20 +6646,20 @@ void
 WINAPI
 SK_D3D11_RemoveTexHash (uint32_t top_crc32, uint32_t hash)
 {
-  if (tex_hashes_ex.empty () && tex_hashes.empty ())
+  if (SK_D3D11_Textures.tex_hashes_ex.empty () && SK_D3D11_Textures.tex_hashes.empty ())
     return;
 
   SK_AutoCriticalSection critical (&hash_cs);
 
   if (hash != 0x00 && SK_D3D11_IsTexHashed (top_crc32, hash))
   {
-    tex_hashes_ex.erase (crc32c (top_crc32, (const uint8_t *)&hash, 4));
+    SK_D3D11_Textures.tex_hashes_ex.erase (crc32c (top_crc32, (const uint8_t *)&hash, 4));
 
     SK_D3D11_RemoveInjectable (top_crc32, hash);
   }
 
   else if (hash == 0x00 && SK_D3D11_IsTexHashed (top_crc32, 0x00)) {
-    tex_hashes.erase (top_crc32);
+    SK_D3D11_Textures.tex_hashes.erase (top_crc32);
 
     SK_D3D11_RemoveInjectable (top_crc32, 0x00);
   }
@@ -6744,7 +6669,7 @@ std::wstring
 __stdcall
 SK_D3D11_TexHashToName (uint32_t top_crc32, uint32_t hash)
 {
-  if (tex_hashes_ex.empty () && tex_hashes.empty ())
+  if (SK_D3D11_Textures.tex_hashes_ex.empty () && SK_D3D11_Textures.tex_hashes.empty ())
     return std::move (L"");
 
   SK_AutoCriticalSection critical (&hash_cs);
@@ -6753,12 +6678,12 @@ SK_D3D11_TexHashToName (uint32_t top_crc32, uint32_t hash)
 
   if (hash != 0x00 && SK_D3D11_IsTexHashed (top_crc32, hash))
   {
-    ret = tex_hashes_ex [crc32c (top_crc32, (const uint8_t *)&hash, 4)];
+    ret = SK_D3D11_Textures.tex_hashes_ex [crc32c (top_crc32, (const uint8_t *)&hash, 4)];
   }
 
   else if (hash == 0x00 && SK_D3D11_IsTexHashed (top_crc32, 0x00))
   {
-    ret = tex_hashes [top_crc32];
+    ret = SK_D3D11_Textures.tex_hashes [top_crc32];
   }
 
   return ret;
@@ -6800,8 +6725,8 @@ SK_D3D11_RecursiveEnumAndAddTex ( std::wstring   directory, unsigned int& files,
   hFind =
     FindFirstFileW (wszFullPattern, &fd);
 
-  bool preload =
-    StrStrIW (directory.c_str (), LR"(\Preload\)") != nullptr;
+  //bool preload =
+  //  StrStrIW (directory.c_str (), LR"(\Preload\)") != nullptr;
 
   if (hFind != INVALID_HANDLE_VALUE)
   {
@@ -6811,22 +6736,22 @@ SK_D3D11_RecursiveEnumAndAddTex ( std::wstring   directory, unsigned int& files,
       {
         if (StrStrIW (fd.cFileName, L".dds"))
         {
-          bool     preloaded = preload;
+        //bool     preloaded = preload;
           uint32_t top_crc32 = 0x00;
           uint32_t checksum  = 0x00;
 
           wchar_t* wszFileName = fd.cFileName;
 
-          if (StrStrIW (wszFileName, L"Preload") == fd.cFileName)
-          {
-            const size_t skip =
-              wcslen (L"Preload");
-
-            for ( size_t i = 0; i < skip; i++ )
-              wszFileName = CharNextW (wszFileName);
-
-            preloaded = true;
-          }
+          //if (StrStrIW (wszFileName, L"Preload") == fd.cFileName)
+          //{
+          //  const size_t skip =
+          //    wcslen (L"Preload");
+          //
+          //  for ( size_t i = 0; i < skip; i++ )
+          //    wszFileName = CharNextW (wszFileName);
+          //
+          //  preloaded = true;
+          //}
 
           if (StrStrIW (wszFileName, L"_"))
           {
@@ -6856,8 +6781,8 @@ SK_D3D11_RecursiveEnumAndAddTex ( std::wstring   directory, unsigned int& files,
             if (checksum != 0x00)
               SK_D3D11_AddTexHash (wszPath, top_crc32, checksum);
 
-            if (preloaded)
-              SK_D3D11_AddTexPreLoad (top_crc32);
+            //if (preloaded)
+            //  SK_D3D11_AddTexPreLoad (top_crc32);
 
           }
 
@@ -7379,15 +7304,15 @@ bool
 __stdcall
 SK_D3D11_IsDumped (uint32_t top_crc32, uint32_t checksum)
 {
-  if (dumped_textures.empty ())
+  if (SK_D3D11_Textures.dumped_textures.empty ())
     return false;
 
   SK_AutoCriticalSection critical (&dump_cs);
 
-  if (config.textures.d3d11.precise_hash && dumped_collisions.count (crc32c (top_crc32, (uint8_t *)&checksum, 4)))
+  if (config.textures.d3d11.precise_hash && SK_D3D11_Textures.dumped_collisions.count (crc32c (top_crc32, (uint8_t *)&checksum, 4)))
     return true;
   if (! config.textures.d3d11.precise_hash)
-    return dumped_textures.count (top_crc32) != 0;
+    return SK_D3D11_Textures.dumped_textures.count (top_crc32) != 0;
 
   return false;
 }
@@ -7399,56 +7324,56 @@ SK_D3D11_AddDumped (uint32_t top_crc32, uint32_t checksum)
   SK_AutoCriticalSection critical (&dump_cs);
 
   if (! config.textures.d3d11.precise_hash)
-    dumped_textures.insert (top_crc32);
+    SK_D3D11_Textures.dumped_textures.insert (top_crc32);
 
-  dumped_collisions.insert (crc32c (top_crc32, (uint8_t *)&checksum, 4));
+  SK_D3D11_Textures.dumped_collisions.insert (crc32c (top_crc32, (uint8_t *)&checksum, 4));
 }
 
 void
 __stdcall
 SK_D3D11_RemoveDumped (uint32_t top_crc32, uint32_t checksum)
 {
-  if (dumped_textures.empty ())
+  if (SK_D3D11_Textures.dumped_textures.empty ())
     return;
 
   SK_AutoCriticalSection critical (&dump_cs);
 
   if (! config.textures.d3d11.precise_hash)
-    dumped_textures.erase (top_crc32);
+    SK_D3D11_Textures.dumped_textures.erase (top_crc32);
 
-  dumped_collisions.erase (crc32c (top_crc32, (uint8_t *)&checksum, 4));
+  SK_D3D11_Textures.dumped_collisions.erase (crc32c (top_crc32, (uint8_t *)&checksum, 4));
 }
 
 bool
 __stdcall
 SK_D3D11_IsInjectable (uint32_t top_crc32, uint32_t checksum)
 {
-  if (injectable_textures.empty ())
+  if (SK_D3D11_Textures.injectable_textures.empty ())
     return false;
 
   SK_AutoCriticalSection critical (&inject_cs);
 
   if (checksum != 0x00)
   {
-    if (injected_collisions.count (crc32c (top_crc32, (uint8_t *)&checksum, 4)))
+    if (SK_D3D11_Textures.injected_collisions.count (crc32c (top_crc32, (uint8_t *)&checksum, 4)))
       return true;
 
     return false;
   }
 
-  return injectable_textures.count (top_crc32) != 0;
+  return SK_D3D11_Textures.injectable_textures.count (top_crc32) != 0;
 }
 
 bool
 __stdcall
 SK_D3D11_IsInjectable_FFX (uint32_t top_crc32)
 {
-  if (injectable_ffx.empty ())
+  if (SK_D3D11_Textures.injectable_ffx.empty ())
     return false;
 
   SK_AutoCriticalSection critical (&inject_cs);
 
-  return injectable_ffx.count (top_crc32) != 0;
+  return SK_D3D11_Textures.injectable_ffx.count (top_crc32) != 0;
 }
 
 
@@ -7459,9 +7384,9 @@ SK_D3D11_AddInjectable (uint32_t top_crc32, uint32_t checksum)
   SK_AutoCriticalSection critical (&inject_cs);
 
   if (checksum != 0x00)
-    injected_collisions.insert (crc32c (top_crc32, (uint8_t *)&checksum, 4));
+    SK_D3D11_Textures.injected_collisions.insert (crc32c (top_crc32, (uint8_t *)&checksum, 4));
 
-  injectable_textures.insert (top_crc32);
+  SK_D3D11_Textures.injectable_textures.insert (top_crc32);
 }
 
 
@@ -7472,9 +7397,9 @@ SK_D3D11_RemoveInjectable (uint32_t top_crc32, uint32_t checksum)
   SK_AutoCriticalSection critical (&inject_cs);
 
   if (checksum != 0x00)
-    injected_collisions.erase (crc32c (top_crc32, (uint8_t *)&checksum, 4));
+    SK_D3D11_Textures.injected_collisions.erase (crc32c (top_crc32, (uint8_t *)&checksum, 4));
 
-  injectable_textures.erase (top_crc32);
+  SK_D3D11_Textures.injectable_textures.erase (top_crc32);
 }
 
 HRESULT
@@ -7531,7 +7456,7 @@ SK_D3D11_DumpTexture2D ( _In_ ID3D11Texture2D* pTex, uint32_t crc32c )
 
       if (SUCCEEDED (hr))
       {
-        dumped_texture_bytes += SK_File_GetSize (wszOutName);
+        SK_D3D11_Textures.dumped_texture_bytes += SK_File_GetSize (wszOutName);
 
         SK_D3D11_AddDumped (crc32c, crc32c);
 
@@ -7867,7 +7792,7 @@ SK_D3D11_DeleteDumpedTexture (uint32_t crc32c)
   {
     SK_D3D11_RemoveDumped (crc32c, crc32c);
 
-    dumped_texture_bytes -= size;
+    SK_D3D11_Textures.dumped_texture_bytes -= size;
 
     return TRUE;
   }
@@ -7883,7 +7808,7 @@ SK_D3D11_DeleteDumpedTexture (uint32_t crc32c)
   {
     SK_D3D11_RemoveDumped (crc32c, crc32c);
 
-    dumped_texture_bytes -= size;
+    SK_D3D11_Textures.dumped_texture_bytes -= size;
 
     return TRUE;
   }
@@ -8069,7 +7994,7 @@ SK_D3D11_DumpTexture2D (  _In_ const D3D11_TEXTURE2D_DESC   *pDesc,
 
       if (SUCCEEDED (hr))
       {
-        dumped_texture_bytes += SK_File_GetSize (wszOutName);
+        SK_D3D11_Textures.dumped_texture_bytes += SK_File_GetSize (wszOutName);
       }
     }
   }
@@ -8120,7 +8045,7 @@ typedef struct D3D11_SHADER_RESOURCE_VIEW_DESC1
   DXGI_FORMAT         Format;
   D3D11_SRV_DIMENSION ViewDimension;
 
-  union
+  unionP
   {
     D3D11_BUFFER_SRV        Buffer;
     D3D11_TEX1D_SRV         Texture1D;
@@ -9455,7 +9380,7 @@ reinterpret_cast <ID3D11Resource **> (ppTexture2D)
 
     else
     {
-      resample_job_s resample;
+      resample_job_s resample = { };
 
       (*ppTexture2D)   = pFinalTex;
       (*ppTexture2D)->AddRef ();
@@ -9554,7 +9479,7 @@ D3D11Dev_CreateTexture2D_Override (
 
 void
 __stdcall
-SK_D3D11_UpdateRenderStatsEx (IDXGISwapChain* pSwapChain)
+SK_D3D11_UpdateRenderStatsEx (const IDXGISwapChain* pSwapChain)
 {
   if (! (pSwapChain))
     return;
@@ -9603,7 +9528,8 @@ SK_D3D11_UpdateRenderStatsEx (IDXGISwapChain* pSwapChain)
         {  D3D11_QUERY_PIPELINE_STATISTICS,
            0x00                             };
 
-      ID3D11Query* pQuery;
+      ID3D11Query* pQuery = nullptr;
+
       if (SUCCEEDED (pDev->CreateQuery (&query_desc, &pQuery)))
       {
         InterlockedExchangePointer ((void **)&pipeline_stats.query.async,  pQuery);
@@ -10839,6 +10765,7 @@ auto IsWireframe = [&](sk_shader_class shader_class, uint32_t crc32c)
       wireframe =  SK_D3D11_Shaders.domain.wireframe;
     } break;
 
+    default:
     case sk_shader_class::Compute:
     {
       return false;
@@ -10889,6 +10816,7 @@ auto IsOnTop = [&](sk_shader_class shader_class, uint32_t crc32c)
       on_top  =  SK_D3D11_Shaders.domain.on_top;
     } break;
 
+    default:
     case sk_shader_class::Compute:
     {
       return false;
@@ -10944,6 +10872,9 @@ auto IsSkipped = [&](sk_shader_class shader_class, uint32_t crc32c)
       tracker   = &SK_D3D11_Shaders.compute.tracked;
       blacklist =  SK_D3D11_Shaders.compute.blacklist;
     } break;
+
+    default:
+      return false;
   }
 
   if (tracker->crc32c == crc32c && tracker->cancel_draws)
@@ -12200,7 +12131,7 @@ SK_D3D11_UnloadShaderState (std::wstring name)
 
   int shader_class = 0;
 
-  iSK_INI::_TSectionMap& sections =
+  const iSK_INI::_TSectionMap& sections =
     d3d11_shaders_ini->get_sections ();
 
   auto sec =

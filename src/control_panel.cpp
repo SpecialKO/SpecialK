@@ -1008,34 +1008,7 @@ SK_ImGui_ControlPanel (void)
 
           if (bHasTextureMods)
           {
-            if (ImGui::BeginMenu ("Browse Texture Assets"))
-            {
-              extern uint64_t injectable_texture_bytes;
-
-              wchar_t wszPath [MAX_PATH * 2] = { };
-
-              if (ImGui::MenuItem ("Injectable Textures", SK_FormatString ("%ws", SK_File_SizeToString (injectable_texture_bytes).c_str ()).c_str (), nullptr))
-              {
-                wcscpy      (wszPath, SK_D3D11_res_root.c_str ());
-                PathAppendW (wszPath, LR"(inject\textures)");
-
-                ShellExecuteW (GetActiveWindow (), L"explore", wszPath, nullptr, nullptr, SW_NORMAL);
-              }
-
-              extern std::unordered_set <uint32_t> dumped_textures;
-              extern uint64_t                      dumped_texture_bytes;
-
-              if ((! dumped_textures.empty ()) && ImGui::MenuItem ("Dumped Textures", SK_FormatString ("%ws", SK_File_SizeToString (dumped_texture_bytes).c_str ()).c_str (), nullptr))
-              {
-                wcscpy      (wszPath, SK_D3D11_res_root.c_str ());
-                PathAppendW (wszPath, LR"(dump\textures)");
-                PathAppendW (wszPath, SK_GetHostApp ());
-
-                ShellExecuteW (GetActiveWindow (), L"explore", wszPath, nullptr, nullptr, SW_NORMAL);
-              }
-
-              ImGui::EndMenu ();
-            }
+            SK::ControlPanel::D3D11::TextureMenu ();
           }
 
           else

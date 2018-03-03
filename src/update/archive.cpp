@@ -88,8 +88,7 @@ SK_Get7ZFileContents (const wchar_t* wszArchive)
                            &thread_tmp_alloc ) == SZ_OK )
   {
     uint32_t i;
-
-    wchar_t wszEntry [MAX_PATH];
+    wchar_t  wszEntry [MAX_PATH] = { };
 
     for (i = 0; i < arc.NumFiles; i++)
     {
@@ -98,8 +97,7 @@ SK_Get7ZFileContents (const wchar_t* wszArchive)
 
       SzArEx_GetFileNameUtf16 (&arc, i, (UInt16 *)wszEntry);
 
-      uint64_t fileSize = SzArEx_GetFileSize (&arc, i);
-
+      uint64_t fileSize  = SzArEx_GetFileSize (&arc, i);
       wchar_t* pwszEntry = wszEntry;
 
       if (*wszEntry == L'\\')

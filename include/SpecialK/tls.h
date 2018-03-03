@@ -29,6 +29,7 @@
 struct ID3D11RasterizerState;
 struct ID3D11DepthStencilState;
 struct ID3D11DepthStencilView;
+struct ID3D11ShaderResourceView;
 
 #include <unordered_map>
 
@@ -197,6 +198,8 @@ public:
 
   UINT                     StencilRefOrig         = 0;
   UINT                     StencilRefNew          = 0;
+
+  ID3D11ShaderResourceView* newResourceViews [128];
 };
 
 class SK_GL_ThreadContext : public SK_TLS_RenderContext

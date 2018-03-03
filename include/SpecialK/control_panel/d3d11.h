@@ -28,7 +28,8 @@ namespace SK
   {
     namespace D3D11
     {
-      bool Draw (void);
+      bool Draw        (void);
+      void TextureMenu (void);
 
       extern bool show_shader_mod_dlg;
     };

@@ -425,7 +425,7 @@ SK_LoadLibrary_IsPinnable (const _T* pStr)
 
     SK_TEXT ("AUDIOSES"),  SK_TEXT ("HID"),
 
-    SK_TEXT ("d3dx"),
+    SK_TEXT ("d3dx"),      SK_TEXT ("dsound"),
 
     // Fix for premature DLL unload issue discussed here:
     //

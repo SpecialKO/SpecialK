@@ -811,19 +811,6 @@ SK_DXGI_FeatureLevelsToStr (       int    FeatureLevels,
   return out;
 }
 
-extern DWORD WINAPI SK_DXGI_BringRenderWindowToTop_THREAD (LPVOID);
-
-void
-WINAPI
-SK_DXGI_BringRenderWindowToTop (void)
-{
-  CreateThread ( nullptr,
-                   0,
-                     SK_DXGI_BringRenderWindowToTop_THREAD,
-                       nullptr,
-                         0,
-                           nullptr );
-}
 
 extern int                      gpu_prio;
 
@@ -4978,26 +4965,6 @@ STDMETHODCALLTYPE CreateDXGIFactory (REFIID   riid,
 HRESULT
 STDMETHODCALLTYPE CreateDXGIFactory1 (REFIID   riid,
                                 _Out_ void   **ppFactory);
-
-// Do this in a thread because it is not safe to do from
-//   the thread that created the window or drives the message
-//     pump...
-DWORD
-WINAPI
-SK_DXGI_BringRenderWindowToTop_THREAD (LPVOID user)
-{
-  UNREFERENCED_PARAMETER (user);
-
-  if (SK_GetCurrentRenderBackend ().windows.device != nullptr)
-  {
-    SetForegroundWindow (SK_GetCurrentRenderBackend ().windows.device);
-    BringWindowToTop    (SK_GetCurrentRenderBackend ().windows.device);
-  }
-
-  CloseHandle (GetCurrentThread ());
-
-  return 0;
-}
 
 void
 WINAPI

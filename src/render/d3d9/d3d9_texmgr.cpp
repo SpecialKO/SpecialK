@@ -677,6 +677,20 @@ SK::D3D9::TextureWorkerThread::~TextureWorkerThread (void)
   CloseHandle (thread_);
 }
 
+void
+SK::D3D9::TextureManager::Injector::init (void)
+{
+  InitializeCriticalSectionAndSpinCount (&cs_tex_blacklist, 100000);
+  InitializeCriticalSectionAndSpinCount (&cs_tex_resample,  10000);
+  InitializeCriticalSectionAndSpinCount (&cs_tex_stream,    10000);
+  InitializeCriticalSectionAndSpinCount (&cs_tex_dump,      1000);
+ 
+  streaming         = 0L;
+  streaming_bytes   = 0UL;
+
+  resampling        = 0L;
+}
+
 bool
 SK::D3D9::TextureManager::Injector::hasPendingLoads (void) const
 {
@@ -722,7 +736,7 @@ SK::D3D9::TextureManager::Injector::isStreaming (uint32_t checksum) const
 {
   bool ret = false;
 
-  if (textures_in_flight.count (checksum) && textures_in_flight [checksum] != nullptr)
+  if (textures_in_flight.count (checksum) && textures_in_flight.at (checksum) != nullptr)
     ret = true;
 
   return ret;
@@ -2164,16 +2178,13 @@ SK::D3D9::TextureManager::Init (void)
   tracked_rt.pixel_shaders.reserve    (32);
   tracked_rt.vertex_shaders.reserve   (32);
 
+  injector.init ();
+
   InitializeCriticalSectionAndSpinCount (&cs_cache,        10240UL);
   InitializeCriticalSectionAndSpinCount (&cs_free_list,     6144UL);
   InitializeCriticalSectionAndSpinCount (&cs_unreferenced, 16384UL);
 
   InitializeCriticalSectionAndSpinCount (&osd_cs,   32UL);
-
-  InitializeCriticalSectionAndSpinCount (&injector.cs_tex_blacklist, 100000);
-  InitializeCriticalSectionAndSpinCount (&injector.cs_tex_resample,  10000);
-  InitializeCriticalSectionAndSpinCount (&injector.cs_tex_stream,    10000);
-  InitializeCriticalSectionAndSpinCount (&injector.cs_tex_dump,      1000);
 
   void WINAPI SK_D3D11_SetResourceRoot      (const wchar_t* root);
   SK_D3D11_SetResourceRoot (config.textures.d3d11.res_root.c_str ());
@@ -3975,16 +3986,3 @@ ISKTextureD3D9::UnlockRect (UINT Level)
 
 
 
-concurrent_unordered_map   <uint32_t, TexLoadRequest *> SK::D3D9::TextureManager::Injector::textures_in_flight;
-concurrent_queue <TexLoadRef>                           SK::D3D9::TextureManager::Injector::textures_to_stream;
-concurrent_queue <TexLoadRef>                           SK::D3D9::TextureManager::Injector::finished_loads;
-
-CRITICAL_SECTION                                  SK::D3D9::TextureManager::Injector::cs_tex_stream    = { };
-CRITICAL_SECTION                                  SK::D3D9::TextureManager::Injector::cs_tex_resample  = { };
-CRITICAL_SECTION                                  SK::D3D9::TextureManager::Injector::cs_tex_dump      = { };
-CRITICAL_SECTION                                  SK::D3D9::TextureManager::Injector::cs_tex_blacklist = { };
-
-volatile  LONG                                    SK::D3D9::TextureManager::Injector::streaming          = 0L;
-volatile ULONG                                    SK::D3D9::TextureManager::Injector::streaming_bytes    = 0UL;
-
-volatile  LONG                                    SK::D3D9::TextureManager::Injector::resampling         = 0L;

@@ -71,18 +71,30 @@ SK_UTF8ToWideChar (std::string in)
   return out;
 }
 
-std::wstring
+std::wstring&
 SK_GetDocumentsDir (void)
 {
+  // Fast Path  (cached)
+  //
+  static std::wstring dir = L"";
+
+  if (! dir.empty ())
+    return dir;
+
+
   CHandle               hToken;
   CComHeapPtr <wchar_t> str;
 
   if (! OpenProcessToken (GetCurrentProcess (), TOKEN_READ, &hToken.m_h))
-    return L"(null)";
+    return dir;
 
   SHGetKnownFolderPath (FOLDERID_Documents, 0, hToken, &str);
 
-  return std::wstring (str);
+  // Weak; not atomic, but we can worry about it later.
+  if (dir.empty ())
+      dir = str.m_pData;
+
+  return dir;
 }
 
 std::wstring
@@ -102,10 +114,10 @@ SK_GetFontsDir (void)
 bool
 SK_GetDocumentsDir (wchar_t* buf, uint32_t* pdwLen)
 {
-  CHandle               hToken;
-  CComHeapPtr <wchar_t> str;
+  const std::wstring& docs =
+    SK_GetDocumentsDir ();
 
-  if (! OpenProcessToken (GetCurrentProcess (), TOKEN_READ, &hToken.m_h))
+  if (docs.empty ())
   {
     if (buf != nullptr && pdwLen != nullptr && *pdwLen > 0)
     {
@@ -116,17 +128,12 @@ SK_GetDocumentsDir (wchar_t* buf, uint32_t* pdwLen)
     return false;
   }
 
-  if ( SUCCEEDED (
-         SHGetKnownFolderPath (
-           FOLDERID_Documents, 0, hToken, &str
-         )
-       )
-     )
+  else
   {
     if (buf != nullptr && pdwLen != nullptr && *pdwLen > 0)
     {
       *buf = '\0';
-      wcsncat (buf, str, *pdwLen);
+      wcsncat (buf, docs.c_str (), *pdwLen);
 
       return true;
     }
@@ -1458,7 +1465,7 @@ SK_ScanAligned (const void* pattern, size_t len, const void* mask, int align)
 BOOL
 __stdcall
 SK_InjectMemory ( LPVOID  base_addr,
-                  void   *new_data,
+            const void   *new_data,
                   size_t  data_size,
                   DWORD   permissions,
                   void   *old_data )
