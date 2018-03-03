@@ -166,8 +166,8 @@ SK_ImGui_ThreadContext::allocPolylineStorage (size_t needed)
 {
   if (polyline_capacity < needed)
   {
-    free (polyline_storage);
-          polyline_storage = _aligned_malloc (needed, 16);
+    _aligned_free (polyline_storage);
+                   polyline_storage = _aligned_malloc (needed, 16);
 
     if (polyline_storage != nullptr)
       polyline_capacity = needed;
@@ -183,8 +183,9 @@ SK_OSD_ThreadContext::allocText (size_t needed)
 {
   if (text_capacity < needed)
   {
-    free (text);
-          text = (char *)_aligned_malloc (needed, 16);
+    _aligned_free (text);
+                   text =
+    (char *)_aligned_malloc (needed, 16);
 
     if (text != nullptr)
       text_capacity = needed;
@@ -201,8 +202,9 @@ SK_RawInput_ThreadContext::allocData (size_t needed)
 {
   if (capacity < needed)
   {
-    free (data);
-          data = (uint8_t *)_aligned_malloc (needed, 16);
+    _aligned_free (data);
+                   data =
+      (uint8_t *)_aligned_malloc (needed, 16);
 
     if (data != nullptr)
       capacity = needed;
@@ -218,8 +220,9 @@ SK_RawInput_ThreadContext::allocateDevices (size_t needed)
 {
   if (num_devices < needed)
   {
-    free (devices);
-          devices = (RAWINPUTDEVICE *)_aligned_malloc (needed * sizeof (RAWINPUTDEVICE), 16);
+    _aligned_free (devices);
+                   devices =
+    (RAWINPUTDEVICE *)_aligned_malloc (needed * sizeof (RAWINPUTDEVICE), 16);
 
     if (devices != nullptr)
       num_devices = needed;
@@ -254,10 +257,10 @@ SK_ImGui_ThreadContext::Cleanup (SK_TLS_CleanupReason_e /*reason*/)
   {
     freed += polyline_capacity;
 
-    free (polyline_storage);
-          polyline_storage = nullptr;
+    _aligned_free (polyline_storage);
+                   polyline_storage = nullptr;
 
-          polyline_capacity = 0;
+             polyline_capacity = 0;
   }
 
   return freed;
@@ -272,8 +275,8 @@ SK_OSD_ThreadContext::Cleanup (SK_TLS_CleanupReason_e /*reason*/)
   {
     freed += text_capacity;
 
-    free (text);
-          text = nullptr;
+    _aligned_free (text);
+                   text = nullptr;
 
           text_capacity = 0;
   }
@@ -290,8 +293,8 @@ SK_RawInput_ThreadContext::Cleanup (SK_TLS_CleanupReason_e /*reason*/)
   {
     freed += capacity;
 
-    free (data);
-          data = nullptr;
+    _aligned_free (data);
+                   data = nullptr;
 
           capacity = 0;
   }
@@ -300,8 +303,8 @@ SK_RawInput_ThreadContext::Cleanup (SK_TLS_CleanupReason_e /*reason*/)
   {
     freed += num_devices * sizeof (RAWINPUTDEVICE);
 
-    free (devices);
-          devices = nullptr;
+    _aligned_free (devices);
+                   devices = nullptr;
 
           num_devices = 0;
   }
@@ -387,7 +390,8 @@ SK_D3D9_ThreadContext::allocStackScratchStorage (size_t size)
 {
   if (stack_scratch.storage == nullptr)
   {
-    stack_scratch.storage = _aligned_malloc (size, 16);
+    stack_scratch.storage =
+                       _aligned_malloc (size, 16);
     ZeroMemory (&stack_scratch.storage, size);
   }
 
@@ -395,9 +399,9 @@ SK_D3D9_ThreadContext::allocStackScratchStorage (size_t size)
   {
     if (stack_scratch.size < size)
     {
-      free (stack_scratch.storage);
-            stack_scratch.storage = _aligned_malloc (size, 16);
-            stack_scratch.size    =        (uint32_t)size ;
+      _aligned_free (stack_scratch.storage);
+                     stack_scratch.storage = _aligned_malloc (size, 16);
+                     stack_scratch.size    =        (uint32_t)size ;
 
       ZeroMemory (&stack_scratch.storage, size);
     }
@@ -413,8 +417,8 @@ SK_D3D9_ThreadContext::Cleanup (SK_TLS_CleanupReason_e /*reason*/)
 
   if (stack_scratch.storage != nullptr)
   {
-    delete stack_scratch.storage;
-           stack_scratch.storage = nullptr;
+    _aligned_free (stack_scratch.storage);
+                   stack_scratch.storage = nullptr;
 
     freed += stack_scratch.size;
              stack_scratch.size = 0;
