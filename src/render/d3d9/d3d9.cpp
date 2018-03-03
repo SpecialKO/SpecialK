@@ -7643,10 +7643,13 @@ SK_D3D9_SetVertexShader ( IDirect3DDevice9*       /*pDev*/,
           EnterCriticalSection (&cs_vs);
 
           Shaders.vertex.rev [pShader] = checksum;
+
+          LeaveCriticalSection (&cs_vs);
         }
       }
 
-      LeaveCriticalSection (&cs_vs);
+      else
+        LeaveCriticalSection (&cs_vs);
     }
 
     else
@@ -7713,10 +7716,13 @@ SK_D3D9_SetPixelShader ( IDirect3DDevice9*     /*pDev*/,
           EnterCriticalSection (&cs_ps);
 
           Shaders.pixel.rev  [pShader] = checksum;
+
+          LeaveCriticalSection (&cs_ps);
         }
       }
 
-      LeaveCriticalSection (&cs_ps);
+      else
+        LeaveCriticalSection (&cs_ps);
     }
 
     else
