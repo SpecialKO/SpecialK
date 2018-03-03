@@ -309,10 +309,10 @@ SHA1Final (
 
 void
 SHA1 (
-        char                        *hash_out,
-  const char                        *str,
-        unsigned int                 len,
-        SK_HashProgressCallback_pfn  callback )
+        char                        *__restrict hash_out,
+  const char                        *__restrict str,
+        unsigned int                            len,
+        SK_HashProgressCallback_pfn             callback )
 {
   SHA1_CTX     ctx;
   unsigned int ii;

@@ -517,10 +517,10 @@ calc_count (_T** arr, UINT max_count)
 __declspec (noinline)
 uint32_t
 __cdecl
-crc32_tex (  _In_      const D3D11_TEXTURE2D_DESC   *pDesc,
-             _In_      const D3D11_SUBRESOURCE_DATA *pInitialData,
-             _Out_opt_       size_t                 *pSize,
-             _Out_opt_       uint32_t               *pLOD0_CRC32 );
+crc32_tex (  _In_      const D3D11_TEXTURE2D_DESC   *__restrict pDesc,
+             _In_      const D3D11_SUBRESOURCE_DATA *__restrict pInitialData,
+             _Out_opt_       size_t                 *__restrict pSize,
+             _Out_opt_       uint32_t               *__restrict pLOD0_CRC32 );
 
 
 
@@ -7089,10 +7089,10 @@ SK_DXGI_FormatToStr (DXGI_FORMAT fmt)
 __declspec (noinline)
 uint32_t
 __cdecl
-crc32_tex (  _In_      const D3D11_TEXTURE2D_DESC   *pDesc,
-             _In_      const D3D11_SUBRESOURCE_DATA *pInitialData,
-             _Out_opt_       size_t                 *pSize,
-             _Out_opt_       uint32_t               *pLOD0_CRC32 )
+crc32_tex (  _In_      const D3D11_TEXTURE2D_DESC   *__restrict pDesc,
+             _In_      const D3D11_SUBRESOURCE_DATA *__restrict pInitialData,
+             _Out_opt_       size_t                 *__restrict pSize,
+             _Out_opt_       uint32_t               *__restrict pLOD0_CRC32 )
 {
   if (pLOD0_CRC32 != nullptr)
     *pLOD0_CRC32 = 0ui32;
@@ -7258,9 +7258,9 @@ crc32_tex (  _In_      const D3D11_TEXTURE2D_DESC   *pDesc,
 __declspec (noinline)
 uint32_t
 __cdecl
-crc32_ffx (  _In_      const D3D11_TEXTURE2D_DESC   *pDesc,
-             _In_      const D3D11_SUBRESOURCE_DATA *pInitialData,
-             _Out_opt_       size_t                 *pSize )
+crc32_ffx (  _In_      const D3D11_TEXTURE2D_DESC   *__restrict pDesc,
+             _In_      const D3D11_SUBRESOURCE_DATA *__restrict pInitialData,
+             _Out_opt_       size_t                 *__restrict pSize )
 {
   uint32_t checksum = 0;
 
@@ -12411,7 +12411,9 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 
   struct shader_class_imp_s
   {
-    std::vector <std::string> contents;
+    std::vector <
+      std::pair <uint32_t, bool>
+    >                         contents;
     bool                      dirty      = true;
     uint32_t                  last_sel   =    std::numeric_limits <uint32_t>::max ();
     unsigned int                   sel   =    0;
@@ -12721,7 +12723,6 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
     unsigned int active_frames = 3;
             bool hovering      = false;
             bool focused       = false;
-          size_t last_size     = 0; // Determines dirty state
 
     static int ClassToIdx (sk_shader_class& shader_class)
     {
@@ -12745,8 +12746,6 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
   bool&         sel_changed   =  shader_state [sk_shader_state_s::ClassToIdx (shader_type)].sel_changed;
   bool*         hide_inactive = &shader_state [sk_shader_state_s::ClassToIdx (shader_type)].hide_inactive;
   unsigned int& active_frames =  shader_state [sk_shader_state_s::ClassToIdx (shader_type)].active_frames;
-  size_t&       last_size     =  shader_state [sk_shader_state_s::ClassToIdx (shader_type)].last_size;
-
   bool scrolled = false;
 
   int dir = 0;
@@ -12810,13 +12809,44 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
     }
   }
 
-  if (shaders.size () != last_size)
+  if (shaders.size () != list->contents.size ())
   {
     list->dirty = true;
-    last_size   = shaders.size ();
   }
 
-  if (true || list->dirty || GetShaderChange (shader_type) != 0)
+    auto ShaderBase = [](sk_shader_class& shader_class) ->
+      void*
+      {
+        switch (shader_class)
+        {
+          case sk_shader_class::Vertex:   return &SK_D3D11_Shaders.vertex;
+          case sk_shader_class::Pixel:    return &SK_D3D11_Shaders.pixel;
+          case sk_shader_class::Geometry: return &SK_D3D11_Shaders.geometry;
+          case sk_shader_class::Hull:     return &SK_D3D11_Shaders.hull;
+          case sk_shader_class::Domain:   return &SK_D3D11_Shaders.domain;
+          case sk_shader_class::Compute:  return &SK_D3D11_Shaders.compute;
+          default:
+          return nullptr;
+        }
+      };
+
+
+    auto GetShaderDesc = [&](sk_shader_class type, uint32_t crc32c) ->
+      SK_D3D11_ShaderDesc&
+        {
+          return
+            ((SK_D3D11_KnownShaders::ShaderRegistry <ID3D11VertexShader>*)ShaderBase (type))->descs [
+              crc32c
+            ];
+        };
+
+    auto ShaderIsActive = [&](sk_shader_class type, uint32_t crc32c) ->
+      bool
+        {
+          return GetShaderDesc (type, crc32c).usage.last_frame > SK_GetFramesDrawn () - active_frames;
+        };
+
+  if (list->dirty || GetShaderChange (shader_type) != 0)
   {
         list->sel = 0;
     int idx       = 0;
@@ -12824,14 +12854,10 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 
     for ( auto it : shaders )
     {
-      char szDesc [64] = { };
-
       const bool disabled =
         ( GetShaderBlacklist (shader_type).count (it) != 0 );
 
-      sprintf (szDesc, "%s%08lx", disabled ? "*" : " ", it);
-
-      list->contents.emplace_back (szDesc);
+      list->contents.emplace_back (std::make_pair (it, (! disabled)));
 
       if ( ((! GetShaderChange (shader_type)) && list->last_sel == (uint32_t)it) ||
                GetShaderChange (shader_type)                    == (uint32_t)it )
@@ -12906,32 +12932,6 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 
   if (! shaders.empty ())
   {
-    auto ShaderBase = [](sk_shader_class& shader_class) ->
-      void*
-      {
-        switch (shader_class)
-        {
-          case sk_shader_class::Vertex:   return &SK_D3D11_Shaders.vertex;
-          case sk_shader_class::Pixel:    return &SK_D3D11_Shaders.pixel;
-          case sk_shader_class::Geometry: return &SK_D3D11_Shaders.geometry;
-          case sk_shader_class::Hull:     return &SK_D3D11_Shaders.hull;
-          case sk_shader_class::Domain:   return &SK_D3D11_Shaders.domain;
-          case sk_shader_class::Compute:  return &SK_D3D11_Shaders.compute;
-          default:
-          return nullptr;
-        }
-      };
-
-
-    auto GetShaderDesc = [&](sk_shader_class type, uint32_t crc32c) ->
-      SK_D3D11_ShaderDesc&
-        {
-          return
-            ((SK_D3D11_KnownShaders::ShaderRegistry <ID3D11VertexShader>*)ShaderBase (type))->descs [
-              crc32c
-            ];
-        };
-
     // User wants to cycle list elements, we know only the direction, not how many indices in the list
     //   we need to increment to get an unfiltered list item.
     if (dir != 0)
@@ -12949,10 +12949,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 
         if (*hide_inactive && list->sel <= shaders.size ())
         {
-          SK_D3D11_ShaderDesc& rDesc =
-            GetShaderDesc (shader_type, (uint32_t)shaders [list->sel]);
-
-          if (rDesc.usage.last_frame <= SK_GetFramesDrawn () - active_frames)
+          if (! ShaderIsActive (shader_type, (uint32_t)shaders [list->sel]))
           {
             continue;
           }
@@ -12984,25 +12981,35 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
       tracker->runtime_ticks.store (0LL);
     };
 
-    for ( UINT line = 0; line < shaders.size (); line++ )
+    // Line counting; assume the list sort order is unchanged
+    unsigned int line = 0;
+
+    for ( auto& it : list->contents )
     {
       SK_D3D11_ShaderDesc& rDesc =
-        GetShaderDesc (shader_type, (uint32_t)shaders [line]);
+        GetShaderDesc (shader_type, it.first);
 
-      bool active =
-        ( rDesc.usage.last_frame > SK_GetFramesDrawn () - active_frames );
 
-      if (IsSkipped   (shader_type, shaders [line]))
+      bool active = ShaderIsActive (shader_type, it.first);
+
+      if ((! active) && (*hide_inactive))
+      {
+        line++;
+        continue;
+      }
+
+
+      if (IsSkipped        (shader_type, it.first))
       {
         ImGui::PushStyleColor (ImGuiCol_Text, SkipColorCycle ());
       }
 
-      else if (IsOnTop     (shader_type, shaders [line]))
+      else if (IsOnTop     (shader_type, it.first))
       {
        ImGui::PushStyleColor (ImGuiCol_Text, OnTopColorCycle ());
       }
 
-      else if (IsWireframe (shader_type, shaders [line]))
+      else if (IsWireframe (shader_type, it.first))
       {
         ImGui::PushStyleColor (ImGuiCol_Text, WireframeColorCycle ());
       }
@@ -13015,12 +13022,15 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
           ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (0.425f, 0.425f, 0.425f, 0.9f));
       }
 
+      std::string line_text =
+        SK_FormatString ("%c%08x", it.second ? ' ' : '*', it.first);
+
+
       if (line == list->sel)
       {
         bool selected = true;
 
-        if (active || (! *hide_inactive))
-          ImGui::Selectable (list->contents [line].c_str (), &selected);
+        ImGui::Selectable (line_text.c_str (), &selected);
 
         if (sel_changed)
         {
@@ -13037,46 +13047,43 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
       {
         bool selected    = false;
 
-        if (active || (! *hide_inactive))
+        if (ImGui::Selectable (line_text.c_str (), &selected))
         {
-          if (ImGui::Selectable (list->contents [line].c_str (), &selected))
-          {
-            sel_changed = true;
-            list->sel   =  line;
+          sel_changed = true;
+          list->sel   = line;
 
-            ChangeSelectedShader (list, tracker, rDesc);
-          }
+          ChangeSelectedShader (list, tracker, rDesc);
         }
       }
 
-      if (active || (! *hide_inactive))
+      ImGui::PushID (it.first);
+
+      if (SK_ImGui_IsItemRightClicked ())
       {
-        ImGui::PushID ((uint32_t)shaders [line]);
-
-        if (SK_ImGui_IsItemRightClicked ())
-        {
-          ImGui::SetNextWindowSize (ImVec2 (-1.0f, -1.0f), ImGuiSetCond_Always);
-          ImGui::OpenPopup         ("ShaderSubMenu");
-        }
-
-        if (ImGui::BeginPopup      ("ShaderSubMenu"))
-        {
-          static std::vector <ID3D11ShaderResourceView *> empty_list;
-          static std::set    <ID3D11ShaderResourceView *> empty_set;
-
-          ShaderMenu ( GetShaderBlacklist         (shader_type),
-                       GetShaderBlacklistEx       (shader_type),
-                       line == list->sel ? GetShaderUsedResourceViews (shader_type) :
-                                           empty_list,
-                       line == list->sel ? GetShaderResourceSet       (shader_type) :
-                                           empty_set,
-                       (uint32_t)shaders [line] );
-          list->dirty = true;
-
-          ImGui::EndPopup  ();
-        }
-        ImGui::PopID       ();
+        ImGui::SetNextWindowSize (ImVec2 (-1.0f, -1.0f), ImGuiSetCond_Always);
+        ImGui::OpenPopup         ("ShaderSubMenu");
       }
+
+      if (ImGui::BeginPopup      ("ShaderSubMenu"))
+      {
+        static std::vector <ID3D11ShaderResourceView *> empty_list;
+        static std::set    <ID3D11ShaderResourceView *> empty_set;
+
+        ShaderMenu ( GetShaderBlacklist         (shader_type),
+                     GetShaderBlacklistEx       (shader_type),
+                     line == list->sel ? GetShaderUsedResourceViews (shader_type) :
+                                         empty_list,
+                     line == list->sel ? GetShaderResourceSet       (shader_type) :
+                                         empty_set,
+                     it.first );
+        list->dirty = true;
+
+        ImGui::EndPopup  ();
+      }
+      ImGui::PopID       ();
+
+      line++;
+
       ImGui::PopStyleColor ();
     }
 

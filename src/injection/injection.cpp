@@ -927,7 +927,7 @@ SK_ExitRemoteProcess (const wchar_t* wszProcName, UINT uExitCode = 0x0)
     {
       window_t win = SK_FindRootWindow (pe32.th32ProcessID);
 
-      PostMessage (win.root, WM_USER + 0x123, 0x00, 0x00);
+      SendMessage (win.root, WM_USER + 0x123, 0x00, 0x00);
 
       return true;
     }

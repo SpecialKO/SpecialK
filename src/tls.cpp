@@ -391,8 +391,8 @@ SK_D3D9_ThreadContext::allocStackScratchStorage (size_t size)
   if (stack_scratch.storage == nullptr)
   {
     stack_scratch.storage =
-                       _aligned_malloc (size, 16);
-    ZeroMemory (&stack_scratch.storage, size);
+                         _aligned_malloc (size, 16);
+    RtlZeroMemory (stack_scratch.storage, size);
   }
 
   else
@@ -403,7 +403,7 @@ SK_D3D9_ThreadContext::allocStackScratchStorage (size_t size)
                      stack_scratch.storage = _aligned_malloc (size, 16);
                      stack_scratch.size    =        (uint32_t)size ;
 
-      ZeroMemory (&stack_scratch.storage, size);
+      RtlZeroMemory (stack_scratch.storage, size);
     }
   }
 

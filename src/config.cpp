@@ -2323,7 +2323,8 @@ SK_SaveConfig ( std::wstring name,
   //
   // Shutting down before initialization would be damn near fatal if we didn't catch this! :)
   //
-  if (dll_ini == nullptr)
+  if ( dll_ini         == nullptr ||
+       osd_ini         == nullptr    )
     return;
 
   compatibility.disable_nv_bloat->store       (config.compatibility.disable_nv_bloat);

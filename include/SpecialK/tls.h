@@ -85,14 +85,16 @@ class SK_TLS_LocalDataStore
 public:
   _T*    alloc   (size_t needed, bool zero_fill = false)
   {
-    if (data == nullptr || len <= needed)
+    if (data == nullptr || len < needed)
     {
-      if   (data != nullptr)
-      free (data);
+      if (data != nullptr)
+        _aligned_free (data);
 
-      len = std::max (len, needed);
+      len  = std::max (len, needed);
+      data = (_T *)_aligned_malloc (len * sizeof (_T), 16);
 
-      data = (_T *)malloc (len * sizeof (_T));
+      if (data == nullptr)
+        len = 0;
     }
 
     if (zero_fill)
@@ -105,8 +107,8 @@ public:
   {
     if (data != nullptr)
     {
-      free (data);
-            data = nullptr;
+      _aligned_free (data);
+                     data = nullptr;
 
       size_t freed = len;
                      len = 0;
