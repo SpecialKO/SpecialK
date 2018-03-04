@@ -36,8 +36,6 @@ uint32_t
 SK_PUBLIC_API
 SK_File_GetCRC32C (const wchar_t* wszFile, SK_HashProgressCallback_pfn callback)
 {
-  __crc32_init ();
-
   return SK_File_GetHash_32 (SK_CRC32C, wszFile, callback);
 }
 
