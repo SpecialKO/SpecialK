@@ -1,5 +1,9 @@
 0.9.5:
 
+ (.3): Fixed mouse cursor confinement in FFXV
+ (.3): Optimized live shader view in D3D11 for games with thousands of
+         pre-compiled, but inactive, shaders.
+
  (.2): Defer initialization of D3D11 texture management until D3D11 is actually
          used :P
  (.2): Improve AppCache generation on first execution of games w/ launchers

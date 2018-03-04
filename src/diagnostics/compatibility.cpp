@@ -1636,7 +1636,7 @@ SK_PrintUnloadedDLLs (iSK_Logger* pLogger)
 
       if (pTraceEntry->BaseAddress != nullptr)
       {
-        pLogger->Log ( L"[%lu] Unloaded '%32ws' [ (0x%p) : (0x%p) ]",
+        pLogger->Log ( L"[%02lu] Unloaded '%32ws' [ (0x%p) : (0x%p) ]",
                       pTraceEntry->Sequence,    pTraceEntry->ImageName,
                       pTraceEntry->BaseAddress, (uintptr_t)pTraceEntry->BaseAddress +
                                                            pTraceEntry->SizeOfImage );
