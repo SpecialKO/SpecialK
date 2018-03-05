@@ -218,7 +218,7 @@ OutputDebugStringA_Detour (LPCSTR lpOutputString)
   // NVIDIA's drivers do something weird, we cannot call the trampoline and
   //   must bail-out, or the NVIDIA streaming service will crash the game!~
   //
-  //OutputDebugStringA_Original (lpOutputString);
+  OutputDebugStringA_Original (lpOutputString);
 }
 
 void
@@ -235,10 +235,10 @@ OutputDebugStringW_Detour (LPCWSTR lpOutputString)
   // NVIDIA's drivers do something weird, we cannot call the trampoline and
   //   must bail-out, or the NVIDIA streaming service will crash the game!~
   //
-  //OutputDebugStringW_Original (lpOutputString);
+  OutputDebugStringW_Original (lpOutputString);
 }
 
-bool spoof_debugger = false;
+bool spoof_debugger = true;
 
 using IsDebuggerPresent_pfn = BOOL (WINAPI *)(void);
 IsDebuggerPresent_pfn IsDebuggerPresent_Original = nullptr;
@@ -247,9 +247,9 @@ BOOL
 WINAPI
 IsDebuggerPresent_Detour (void)
 {
-  //if (spoof_debugger)
-  //  return FALSE;
-  //
+  if (spoof_debugger)
+    return FALSE;
+
   return IsDebuggerPresent_Original ();
 }
 
@@ -263,6 +263,8 @@ DebugBreak_Detour (void)
 {
   //if (config.debug.allow_break)
   //  return DebugBreak_Original ();
+
+  return DebugBreak_Original ();
 }
 
 bool

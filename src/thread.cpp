@@ -23,6 +23,8 @@
 #include <SpecialK/thread.h>
 #include <SpecialK/utility.h>
 
+#include <SpecialK/diagnostics/debug_utils.h>
+
 #include <string>
 
 
@@ -75,20 +77,24 @@ SetCurrentThreadDescription (_In_ PCWSTR lpThreadDescription)
 
   // Next: The old way (requires a debugger attached at the time we raise
   //                      this stupid exception)
-  if (IsDebuggerPresent ())
+  if (SK_IsDebuggerPresent ())
   {
     __try
     {
       const DWORD argc = sizeof (info) /
                          sizeof (ULONG_PTR);
-  
+
       RaiseException ( MAGIC_THREAD_EXCEPTION,
                          0,
                            argc,
                              reinterpret_cast <const ULONG_PTR *>(&info) );
     }
-  
-    __except (EXCEPTION_EXECUTE_HANDLER) { }
+
+    __except ( (GetExceptionCode () == MAGIC_THREAD_EXCEPTION) ?
+                         EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH  )
+
+    {
+    }
   }
 
 
