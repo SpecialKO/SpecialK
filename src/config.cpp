@@ -62,6 +62,19 @@ SK_GetCurrentGameID (void)
           games [SK_GetHostApp ()] :
           SK_GAME_ID::UNKNOWN_GAME;
 
+  static bool first_check = true;
+  if         (first_check)
+  {
+    first_check = false;
+
+    // For games that can't be matched using a single executable filename
+    if (current_game == SK_GAME_ID::UNKNOWN_GAME)
+    {
+      if (StrStrIW (SK_GetHostApp (), L"ffxv"))
+        current_game = SK_GAME_ID::FinalFantasyXV;
+    }
+  }
+
   return current_game;
 }
 
@@ -1163,15 +1176,15 @@ SK_LoadConfigEx (std::wstring name, bool create)
   games.emplace ( L"DarkSoulsIII.exe",                       SK_GAME_ID::DarkSouls3                   );
   games.emplace ( L"Fallout4.exe",                           SK_GAME_ID::Fallout4                     );
   games.emplace ( L"dis1_st.exe",                            SK_GAME_ID::DisgaeaPC                    );
-  games.emplace (L"Secret_of_Mana.exe",                      SK_GAME_ID::SecretOfMana                 );
+  games.emplace ( L"Secret_of_Mana.exe",                      SK_GAME_ID::SecretOfMana                );
 
   //
   // Application Compatibility Overrides
   // ===================================
   //
-  if (games.count (std::wstring (SK_GetHostApp ())))
+  if (SK_GetCurrentGameID () != SK_GAME_ID::UNKNOWN_GAME)
   {
-    switch (games [std::wstring (SK_GetHostApp ())])
+    switch (SK_GetCurrentGameID ())
     {
       case SK_GAME_ID::Tyranny:
         // Cannot auto-detect API?!
@@ -1487,6 +1500,11 @@ SK_LoadConfigEx (std::wstring name, bool create)
       // (0.9.1 - 2/15/18) -> SteamAPI init happens before CBT hook injects SpecialK
       case SK_GAME_ID::SecretOfMana:
         config.steam.init_delay = 1; // Non-zero value causes forced injection
+        break;
+
+      case SK_GAME_ID::FinalFantasyXV:
+        config.textures.d3d11.cache       = false;
+        config.textures.cache.max_entries = 262144; // Uses a ton of small textures
         break;
     }
   }

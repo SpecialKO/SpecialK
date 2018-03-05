@@ -1,3 +1,26 @@
+0.9.6:
+
+===========================================================================
+ IMPORTANT NOTES REGARDING Final Fantasy XV:
+ -------------------------------------------
+ 
+  If you opt to use texture caching, set the limit to your entire VRAM
+    capacity, otherwise it will fight with the game's internal cache and
+      cause stuttering.
+
+  I cannot fix this in time for the game's launch and have disabled texture
+     caching by default for this game as an interim solution.
+
+ *** Texture modding in D3D11 requires caching to be enabled, so if you see
+       no textures in the mod tools, it's probably because caching is OFF.
+===========================================================================
+
+ + Re-enabled IsDebuggerAttached (...) spoofing to allow FFXV to be run
+     through a normal debugger (i.e. not Cheat Engine) without bailing out
+ + Optimized D3D11 shader cache for games that create the same shader
+     concurrently across multiple threads
+
+
 0.9.5:
 
  (.3): Fixed mouse cursor confinement in FFXV

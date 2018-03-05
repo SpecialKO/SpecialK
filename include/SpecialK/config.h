@@ -680,6 +680,7 @@ enum class SK_GAME_ID
   Fallout4,                     // Fallout4.exe
   DisgaeaPC,                    // dis1_st.exe
   SecretOfMana,                 // Secret_of_Mana.exe
+  FinalFantasyXV,               // ffxv*.exe
   UNKNOWN_GAME               = 0xffff
 };
 
