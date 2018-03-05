@@ -2447,6 +2447,18 @@ SK_D3D11_CreateShader_Impl (
   _Out_opt_       IUnknown            **ppShader,
                   sk_shader_class       type )
 {
+  // In debug builds, keep a tally of threads involved in shader management.
+  //
+  //   (Per-frame and lifetime statistics are tabulated)
+  //
+  //  ---------------------------------------------------------------------
+  //
+  //  * D3D11 devices are free-threaded and will perform resource creation
+  //      from concurrent threads.
+  //
+  //   >> Ideally, we must keep our own locking to a minimum otherwise we
+  //        can derail game's performance! <<
+  //
   SK_D3D11_ShaderThreads.mark ();
 
   HRESULT hr =
@@ -2549,70 +2561,111 @@ SK_D3D11_CreateShader_Impl (
     uint32_t checksum =
       SK_D3D11_ChecksumShaderBytecode (pShaderBytecode, BytecodeLength);
 
+    // Checksum failure, just give the data to D3D11 and hope for the best
     if (checksum == 0x00)
     {
       hr = InvokeCreateRoutine ();
     }
 
-    else if (! pShaderRepo->descs.count (checksum))
-    {
-      hr = InvokeCreateRoutine ();
-
-      if (SUCCEEDED (hr))
-      {
-        std::lock_guard <SK_Thread_CriticalSection> auto_lock (*pCritical);
-
-        SK_D3D11_ShaderDesc desc;
-
-        switch (type)
-        {
-          default:
-          case sk_shader_class::Vertex:   desc.type = SK_D3D11_ShaderType::Vertex;   break;
-          case sk_shader_class::Pixel:    desc.type = SK_D3D11_ShaderType::Pixel;    break;
-          case sk_shader_class::Geometry: desc.type = SK_D3D11_ShaderType::Geometry; break;
-          case sk_shader_class::Domain:   desc.type = SK_D3D11_ShaderType::Domain;   break;
-          case sk_shader_class::Hull:     desc.type = SK_D3D11_ShaderType::Hull;     break;
-          case sk_shader_class::Compute:  desc.type = SK_D3D11_ShaderType::Compute;  break;
-        }
-
-        desc.crc32c  =  checksum;
-        desc.pShader = *ppShader;
-        desc.pShader->AddRef ();
-
-        for (UINT i = 0; i < BytecodeLength; i++)
-        {
-          desc.bytecode.push_back (((uint8_t *)pShaderBytecode) [i]);
-        }
-
-        pShaderRepo->descs.emplace (std::make_pair (checksum, desc));
-      }
-    }
-
     else
     {
-      std::lock_guard <SK_Thread_CriticalSection> auto_lock (*pCritical);
+      pCritical->lock ();     // Lock during cache check
 
-       *ppShader = (IUnknown *)pShaderRepo->descs [checksum].pShader;
-      (*ppShader)->AddRef ();
-    }
+      bool cached =
+        pShaderRepo->descs.count (checksum) != 0;
 
-    if (SUCCEEDED (hr))
-    {
-      pCritical->lock ();
+      SK_D3D11_ShaderDesc* pCachedDesc = nullptr;
 
-      if ( pShaderRepo->rev.count (*ppShader) &&
-                 pShaderRepo->rev [*ppShader] != checksum )
-        pShaderRepo->rev.erase (*ppShader);
+      if (! cached)
+      {
+        pCritical->unlock (); // Release lock during resource creation
 
-      pShaderRepo->rev.emplace (std::make_pair (*ppShader, checksum));
+        hr = InvokeCreateRoutine ();
 
-      SK_D3D11_ShaderDesc& desc =
-        pShaderRepo->descs [checksum];
+        if (SUCCEEDED (hr))
+        {
+          SK_D3D11_ShaderDesc desc;
 
-      pCritical->unlock ();
+          switch (type)
+          {
+            default:
+            case sk_shader_class::Vertex:   desc.type = SK_D3D11_ShaderType::Vertex;   break;
+            case sk_shader_class::Pixel:    desc.type = SK_D3D11_ShaderType::Pixel;    break;
+            case sk_shader_class::Geometry: desc.type = SK_D3D11_ShaderType::Geometry; break;
+            case sk_shader_class::Domain:   desc.type = SK_D3D11_ShaderType::Domain;   break;
+            case sk_shader_class::Hull:     desc.type = SK_D3D11_ShaderType::Hull;     break;
+            case sk_shader_class::Compute:  desc.type = SK_D3D11_ShaderType::Compute;  break;
+          }
 
-      InterlockedExchange (&desc.usage.last_frame, SK_GetFramesDrawn ());
-                  _time64 (&desc.usage.last_time);
+          desc.crc32c  =  checksum;
+          desc.pShader = *ppShader;
+
+          desc.bytecode.reserve (BytecodeLength);
+
+          for (UINT i = 0; i < BytecodeLength; i++)
+          {
+            desc.bytecode.push_back (((uint8_t *)pShaderBytecode) [i]);
+          }
+
+          pCritical->lock (); // Re-acquire before cache manipulation
+
+          // Concurrent shader creation resulted in the same shader twice,
+          //   release this one and use the one currently in cache.
+          //
+          //  (nb: DOES NOT ACCOUNT FOR ALT. SUBROUTINES [Class Linkage])
+          //
+          if (pShaderRepo->descs.count (checksum) != 0)
+          {
+            ((IUnknown *)*ppShader)->Release ();
+
+            SK_LOG0 ( (L"Discarding Concurrent Shader Cache Collision for %x",
+                         checksum ), L"DX11Shader" );
+          }
+
+          else
+            pShaderRepo->descs.emplace (std::make_pair (checksum, desc));
+
+          pCachedDesc = &pShaderRepo->descs [checksum];
+        }
+      }
+
+      // Cache hit
+      else
+      {
+        //
+        // NOTE:
+        //
+        //   Because of this caching system, we alias some render passes that
+        //     could ordinarily be distinguished because they use two different
+        //       instances of the same shader.
+        //
+        //  * Consider a tagging system to prevent aliasing in the future.
+        //
+        pCachedDesc = &pShaderRepo->descs [checksum];
+
+        SK_LOG3 ( ( L"Shader Class %lu Cache Hit for Checksum %08x", type, checksum ),
+                    L"DX11Shader" );
+      }
+
+      if (pCachedDesc != nullptr)
+      {
+         *ppShader = (IUnknown *)pCachedDesc->pShader;
+        (*ppShader)->AddRef ();
+
+        // XXX: Creation does not imply usage
+        //
+        //InterlockedExchange (&pCachedDesc->usage.last_frame, SK_GetFramesDrawn ());
+        //            _time64 (&pCachedDesc->usage.last_time);
+
+        // Update cache mapping (see note about aliasing above)
+        if ( pShaderRepo->rev.count (*ppShader) &&
+                   pShaderRepo->rev [*ppShader] != checksum )
+          pShaderRepo->rev.erase (*ppShader);
+
+        pShaderRepo->rev.emplace (std::make_pair (*ppShader, checksum));
+
+        pCritical->unlock ();
+      }
     }
   }
 
@@ -2630,8 +2683,6 @@ D3D11Dev_CreateVertexShader_Override (
   _In_opt_        ID3D11ClassLinkage  *pClassLinkage,
   _Out_opt_       ID3D11VertexShader **ppVertexShader )
 {
-  SK_D3D11_ShaderThreads.mark ();
-
   return
     SK_D3D11_CreateShader_Impl ( This,
                                    pShaderBytecode, BytecodeLength,
@@ -2650,8 +2701,6 @@ D3D11Dev_CreatePixelShader_Override (
   _In_opt_        ID3D11ClassLinkage  *pClassLinkage,
   _Out_opt_       ID3D11PixelShader  **ppPixelShader )
 {
-  SK_D3D11_ShaderThreads.mark ();
-
   return
     SK_D3D11_CreateShader_Impl ( This,
                                    pShaderBytecode, BytecodeLength,
@@ -2670,8 +2719,6 @@ D3D11Dev_CreateGeometryShader_Override (
   _In_opt_        ID3D11ClassLinkage    *pClassLinkage,
   _Out_opt_       ID3D11GeometryShader **ppGeometryShader )
 {
-  SK_D3D11_ShaderThreads.mark ();
-
   return
     SK_D3D11_CreateShader_Impl ( This,
                                    pShaderBytecode, BytecodeLength,
@@ -2695,9 +2742,6 @@ D3D11Dev_CreateGeometryShaderWithStreamOutput_Override (
   _In_opt_        ID3D11ClassLinkage         *pClassLinkage,
   _Out_opt_       ID3D11GeometryShader       **ppGeometryShader )
 {
-  SK_D3D11_ShaderThreads.mark ();
-
-
   HRESULT hr =
     D3D11Dev_CreateGeometryShaderWithStreamOutput_Original ( This, pShaderBytecode,
                                                                BytecodeLength,
@@ -5061,15 +5105,15 @@ SK_D3D11_DrawHandler (ID3D11DeviceContext* pDevCtx)
 
       pDevCtx->OMGetDepthStencilState (&pTLS->d3d11.pDepthStencilStateOrig, &pTLS->d3d11.StencilRefOrig);
 
-      pTLS->d3d11.pDepthStencilStateOrig->GetDesc (&desc);
-
-      desc.DepthEnable    = TRUE;
-      desc.DepthFunc      = D3D11_COMPARISON_ALWAYS;
-      desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
-      desc.StencilEnable  = FALSE;
-
       if (pTLS->d3d11.pDepthStencilStateOrig != nullptr)
       {
+        pTLS->d3d11.pDepthStencilStateOrig->GetDesc (&desc);
+
+        desc.DepthEnable    = TRUE;
+        desc.DepthFunc      = D3D11_COMPARISON_ALWAYS;
+        desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+        desc.StencilEnable  = FALSE;
+
         if (SUCCEEDED (pDev->CreateDepthStencilState (&desc, &pTLS->d3d11.pDepthStencilStateNew)))
         {
           pDevCtx->OMSetDepthStencilState (pTLS->d3d11.pDepthStencilStateNew, 0);
