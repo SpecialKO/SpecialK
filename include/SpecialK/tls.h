@@ -291,6 +291,19 @@ public:
 };
 
 
+class SK_DInput7_ThreadContext
+{
+public:
+  HRESULT hr_GetDevicestate;
+};
+
+class SK_DInput8_ThreadContext
+{
+public:
+  HRESULT hr_GetDevicestate;
+};
+
+
 class SK_TLS
 {
 public:
@@ -303,8 +316,8 @@ public:
   SK_D3D11_ThreadContext    d3d11;
   SK_GL_ThreadContext       gl;
 
-//SK_DInput7_ThreadContext   dinput7;
-//SK_DInput8_ThreadContext   dinput8;
+  SK_DInput7_ThreadContext  dinput7;
+  SK_DInput8_ThreadContext  dinput8;
 
   SK_ImGui_ThreadContext    imgui;
   SK_Input_ThreadContext    input_core;

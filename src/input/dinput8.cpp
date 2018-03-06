@@ -39,6 +39,7 @@
 #include <SpecialK/utility.h>
 #include <SpecialK/command.h>
 #include <SpecialK/hooks.h>
+#include <SpecialK/tls.h>
 #include <SpecialK/window.h>
 #include <SpecialK/steam_api.h>
 
@@ -909,13 +910,19 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8       This,
                 cbData ),
               __SK_SUBSYSTEM__ );
 
-  HRESULT hr = S_OK;
+  HRESULT hr =
+    SK_TLS_Bottom ()->dinput8.hr_GetDevicestate;
 
-  if (SUCCEEDED (hr) && lpvData != nullptr)
+  if (lpvData != nullptr)
   {
     if (cbData == sizeof DIJOYSTATE2)
     {
       SK_DI8_READ (sk_input_dev_type::Gamepad)
+
+      // Not only is this 1. not thread-safe, it also doesn't 2. account for multiple gamepads...
+      //
+      //  *** This is beyond stupid and you need to remove it :)
+      //
       static DIJOYSTATE2 last_state;
 
       auto* out =
@@ -927,15 +934,17 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8       This,
         ( config.input.gamepad.disabled_to_game ||
           SK_ImGui_WantGamepadCapture ()           );
 
-      if (disabled_to_game)
+      if (disabled_to_game || (! game_window.active))
       {
-        memcpy (out, &last_state, cbData);
+        RtlZeroMemory (out, cbData);
 
         out->rgdwPOV [0] = std::numeric_limits <DWORD>::max ();
         out->rgdwPOV [1] = std::numeric_limits <DWORD>::max ();
         out->rgdwPOV [2] = std::numeric_limits <DWORD>::max ();
         out->rgdwPOV [3] = std::numeric_limits <DWORD>::max ();
-      } else
+      }
+      
+      else if (SUCCEEDED (hr) && game_window.active)
         memcpy (&last_state, out, cbData);
     }
 
@@ -956,51 +965,36 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8       This,
         ( config.input.gamepad.disabled_to_game ||
           SK_ImGui_WantGamepadCapture ()           );
 
-      if (disabled_to_game)
+      if (disabled_to_game || (! game_window.active))
       {
-        memcpy (out, &last_state, cbData);
+        RtlZeroMemory (out, cbData);
 
         out->rgdwPOV [0] = std::numeric_limits <DWORD>::max ();
         out->rgdwPOV [1] = std::numeric_limits <DWORD>::max ();
         out->rgdwPOV [2] = std::numeric_limits <DWORD>::max ();
         out->rgdwPOV [3] = std::numeric_limits <DWORD>::max ();
       }
-      else
+      
+      else if (SUCCEEDED (hr) && game_window.active)
         memcpy (&last_state, out, cbData);
-
-#if 0
-      XINPUT_STATE xis;
-      SK_XInput_PollController (0, &xis);
-
-      out->rgbButtons [ 9] = (( xis.Gamepad.wButtons & XINPUT_GAMEPAD_START          ) != 0x0 ? 0xFF : 0x00);
-      out->rgbButtons [ 8] = (( xis.Gamepad.wButtons & XINPUT_GAMEPAD_BACK           ) != 0x0 ? 0xFF : 0x00);
-      out->rgbButtons [10] = (( xis.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_THUMB     ) != 0x0 ? 0xFF : 0x00);
-      out->rgbButtons [11] = (( xis.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_THUMB    ) != 0x0 ? 0xFF : 0x00);
-      out->rgbButtons [ 6] = (( xis.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_TRIGGER   ) != 0x0 ? 0xFF : 0x00);
-      out->rgbButtons [ 7] = (( xis.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_TRIGGER  ) != 0x0 ? 0xFF : 0x00);
-      out->rgbButtons [ 4] = (( xis.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER  ) != 0x0 ? 0xFF : 0x00);
-      out->rgbButtons [ 5] = (( xis.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER ) != 0x0 ? 0xFF : 0x00);
-      out->rgbButtons [ 1] = (( xis.Gamepad.wButtons & XINPUT_GAMEPAD_A              ) != 0x0 ? 0xFF : 0x00);
-      out->rgbButtons [ 2] = (( xis.Gamepad.wButtons & XINPUT_GAMEPAD_B              ) != 0x0 ? 0xFF : 0x00);
-      out->rgbButtons [ 0] = (( xis.Gamepad.wButtons & XINPUT_GAMEPAD_X              ) != 0x0 ? 0xFF : 0x00);
-      out->rgbButtons [ 3] = (( xis.Gamepad.wButtons & XINPUT_GAMEPAD_Y              ) != 0x0 ? 0xFF : 0x00);
-
-      out->rgdwPOV [0] += (( xis.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP           ) != 0x0 ?      0 : 0);
-      out->rgdwPOV [0] += (( xis.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT        ) != 0x0 ?  90000 : 0);
-      out->rgdwPOV [0] += (( xis.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN         ) != 0x0 ? 180000 : 0);
-      out->rgdwPOV [0] += (( xis.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT         ) != 0x0 ? 270000 : 0);
-
-      if (out->rgdwPOV [0] == 0)
-        out->rgdwPOV [0] = -1;
-#endif
     }
 
     else if (This == _dik.pDev || cbData == 256)
     {
       SK_DI8_READ (sk_input_dev_type::Keyboard)
 
-      if (SK_ImGui_WantKeyboardCapture () && lpvData != nullptr)
-        memset (lpvData, 0, cbData);
+      bool disabled_to_game =
+        ( config.input.keyboard.disabled_to_game ||
+          SK_ImGui_WantKeyboardCapture ()           );
+
+      if ((disabled_to_game || (! game_window.active)) && lpvData != nullptr)
+        RtlZeroMemory (lpvData, cbData);
+
+      if (lpvData != nullptr && game_window.active)
+      {
+        if (hr == S_OK)
+          memcpy (SK_Input_GetDI8Keyboard ()->state, lpvData, cbData);
+      }
     }
 
     else if ( cbData == sizeof (DIMOUSESTATE2) ||
@@ -1013,24 +1007,19 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8       This,
       //((DIMOUSESTATE *)lpvData)->lZ += InterlockedAdd      (&SK_Input_GetDI8Mouse ()->delta_z, 0);
                                        //InterlockedExchange (&SK_Input_GetDI8Mouse ()->delta_z, 0);
 
-      if (SK_ImGui_WantMouseCapture ())
-      {
-        switch (cbData)
-        {
-          case sizeof (DIMOUSESTATE2):
-            static_cast <DIMOUSESTATE2 *> (lpvData)->lX = 0;
-            static_cast <DIMOUSESTATE2 *> (lpvData)->lY = 0;
-            static_cast <DIMOUSESTATE2 *> (lpvData)->lZ = 0;
-            memset (static_cast <DIMOUSESTATE2 *> (lpvData)->rgbButtons, 0, 8);
-            break;
+      bool disabled_to_game =
+        ( config.input.mouse.disabled_to_game ||
+          SK_ImGui_WantMouseCapture ()           );
 
-          case sizeof (DIMOUSESTATE):
-            static_cast <DIMOUSESTATE *> (lpvData)->lX = 0;
-            static_cast <DIMOUSESTATE *> (lpvData)->lY = 0;
-            static_cast <DIMOUSESTATE *> (lpvData)->lZ = 0;
-            memset (static_cast <DIMOUSESTATE *> (lpvData)->rgbButtons, 0, 4);
-            break;
-        }
+      if (lpvData != nullptr && game_window.active)
+      {
+        if (hr == S_OK)
+          memcpy (&SK_Input_GetDI8Mouse ()->state, lpvData, cbData);
+      }
+
+      if (lpvData != nullptr && (disabled_to_game || (! game_window.active)))
+      {
+        RtlZeroMemory (lpvData, cbData);
       }
     }
   }
@@ -1085,13 +1074,11 @@ IDirectInputDevice8A_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8A      This,
                                              DWORD                      cbData,
                                              LPVOID                     lpvData )
 {
-  HRESULT hr =
+  SK_TLS_Bottom ()->dinput8.hr_GetDevicestate =
     IDirectInputDevice8A_GetDeviceState_Original ( This, cbData, lpvData );
 
-  if (SUCCEEDED (hr))
+  return
     IDirectInputDevice8_GetDeviceState_Detour ( (LPDIRECTINPUTDEVICE8)This, cbData, lpvData );
-
-  return hr;
 }
 
 HRESULT
@@ -1100,13 +1087,11 @@ IDirectInputDevice8W_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8W      This,
                                              DWORD                      cbData,
                                              LPVOID                     lpvData )
 {
-  HRESULT hr =
+  SK_TLS_Bottom ()->dinput8.hr_GetDevicestate =
     IDirectInputDevice8W_GetDeviceState_Original ( This, cbData, lpvData );
 
-  if (SUCCEEDED (hr))
-    IDirectInputDevice8_GetDeviceState_Detour ( This, cbData, lpvData );
-
-  return hr;
+  return
+    IDirectInputDevice8_GetDeviceState_Detour ( (LPDIRECTINPUTDEVICE8)This, cbData, lpvData );
 }
 
 
