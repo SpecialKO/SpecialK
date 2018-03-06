@@ -1176,7 +1176,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
   games.emplace ( L"DarkSoulsIII.exe",                       SK_GAME_ID::DarkSouls3                   );
   games.emplace ( L"Fallout4.exe",                           SK_GAME_ID::Fallout4                     );
   games.emplace ( L"dis1_st.exe",                            SK_GAME_ID::DisgaeaPC                    );
-  games.emplace ( L"Secret_of_Mana.exe",                      SK_GAME_ID::SecretOfMana                );
+  games.emplace ( L"Secret_of_Mana.exe",                     SK_GAME_ID::SecretOfMana                 );
 
   //
   // Application Compatibility Overrides
@@ -1505,6 +1505,10 @@ SK_LoadConfigEx (std::wstring name, bool create)
       case SK_GAME_ID::FinalFantasyXV:
         config.textures.d3d11.cache       = false;
         config.textures.cache.max_entries = 262144; // Uses a ton of small textures
+
+        // Don't show the cursor, ever, because the game doesn't use it.
+        config.input.cursor.manage        = true;
+        config.input.cursor.timeout       = 0;
         break;
     }
   }
@@ -1676,6 +1680,31 @@ SK_LoadConfigEx (std::wstring name, bool create)
                 &config.render.dxgi.res.min.x,
                   &config.render.dxgi.res.min.y );
   }
+
+  //
+  // MUST establish sanity  If both limits exist, then ( max.x >= min.x  &&  max.y >= min.y )
+  //
+  bool sane = true;
+
+  if (config.render.dxgi.res.max.x != 0 && config.render.dxgi.res.min.x > config.render.dxgi.res.max.x)
+    sane = false;
+  if (config.render.dxgi.res.min.x != 0 && config.render.dxgi.res.max.x < config.render.dxgi.res.min.x)
+    sane = false;
+
+  if (config.render.dxgi.res.max.y != 0 && config.render.dxgi.res.min.y > config.render.dxgi.res.max.y)
+    sane = false;
+  if (config.render.dxgi.res.min.y != 0 && config.render.dxgi.res.max.y < config.render.dxgi.res.min.y)
+    sane = false;
+
+  // Discard the lower-bound and hope for the best
+  if (! sane) { config.render.dxgi.res.min.x = 0;
+                config.render.dxgi.res.min.y = 0;
+
+                // Correct handling involves actually querying supported resolutions from the display
+                //   device, but that's not practical at the time the config file is parsed.
+  };
+
+
 
   if (((sk::iParameter *)render.dxgi.scaling_mode)->load ())
   {

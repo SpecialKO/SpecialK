@@ -725,19 +725,11 @@ SK_SelfDestruct (void)
 {
   if (! InterlockedCompareExchange (&__SK_DLL_Ending, 1, 0))
   {
-    //FreeLibrary (SK_GetDLL ());
-    const wchar_t* wszBackend = SK_GetBackend ();
+    BOOL
+    __stdcall
+    SK_Detach (DLL_ROLE role);
 
-    if (     ! _wcsicmp (wszBackend, L"d3d9"))
-      SK::D3D9::Shutdown ();
-    else if (! _wcsicmp (wszBackend, L"dxgi"))
-      SK::DXGI::Shutdown ();
-    else if (! _wcsicmp (wszBackend, L"dinput8"))
-      SK::DI8::Shutdown ();
-#ifndef SK_BUILD__INSTALLER
-    else if (! _wcsicmp (wszBackend, L"OpenGL32"))
-      SK::OpenGL::Shutdown ();
-#endif
+    SK_Detach (SK_GetDLLRole ());
 
     using  TerminateProcess_pfn = BOOL (WINAPI *)(HANDLE hProcess, UINT uExitCode);
 

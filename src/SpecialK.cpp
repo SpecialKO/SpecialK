@@ -727,6 +727,8 @@ SK_Detach (DLL_ROLE role)
                         TRUE        )
      )
   {
+    SK_Inject_ReleaseProcess ();
+
     if ( __SK_DLL_Bootstraps.count (role) &&
          __SK_DLL_Bootstraps.at    (role).shutdown () )
     {
@@ -857,8 +859,6 @@ DllMain ( HMODULE hModule,
     case DLL_PROCESS_DETACH:
     {
       SK_Thread_ScopedPriority prio_boost (THREAD_PRIORITY_HIGHEST);
-
-      SK_Inject_ReleaseProcess ();
 
       if (! InterlockedCompareExchange (&__SK_DLL_Ending, TRUE, FALSE))
       {
