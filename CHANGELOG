@@ -1,3 +1,22 @@
+0.9.7:
+
+ + Added DirectXTex DLL Exports:
+
+   * SK_DXTex_GetMetadataFromDDSFile
+   * SK_DXTex_LoadFromDDSFile
+   * SK_DXTex_CreateTexture
+
+     ( Plug-in Authors: Use these instead of D3DX11; refer to updated UnX
+                          plug-in for example code )
+
+ --
+
+ + Fixed ReShade shim loader (1.0.0.3) not correctly invoking LoadLibraryW
+ + Reduced volume of crash sound and added a MessageBox if sound is muted
+ + Added version info to the kernel DLL unload trace log
+ + Added render API and crash info to global DLL's shared data segment
+
+
 0.9.6:
 
 ===========================================================================
