@@ -19,6 +19,8 @@
  *
 **/
 
+#define __SK_SUBSYSTEM__ L"   DXGI   "
+
 #include <SpecialK/stdafx.h>
 #include <SpecialK/import.h>
 
@@ -1336,7 +1338,7 @@ SK_DXGI_UpdateSwapChain (IDXGISwapChain* This)
     SK_RenderBackend& rb =
       SK_GetCurrentRenderBackend ();
 
-    rb.device    = pDev;
+    rb.device    = pDev.p;
     rb.swapchain = This;
 
     CComPtr <ID3D11DeviceContext> pDevCtx = nullptr;
@@ -2658,7 +2660,7 @@ SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
            SUCCEEDED (pDevDXGI->GetAdapter               (&pAdapter)) &&
            SUCCEEDED (pAdapter->GetParent  (IID_PPV_ARGS (&pFactory))) )
       {
-        SK_GetCurrentRenderBackend ().device    = pDev;
+        SK_GetCurrentRenderBackend ().device    = pDev.p;
         SK_GetCurrentRenderBackend ().swapchain = This;
 
         //if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status)
@@ -2976,7 +2978,7 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
            SUCCEEDED (pDevDXGI->GetAdapter               (&pAdapter)) &&
            SUCCEEDED (pAdapter->GetParent  (IID_PPV_ARGS (&pFactory))) )
       {
-        SK_GetCurrentRenderBackend ().device    = pDev;
+        SK_GetCurrentRenderBackend ().device    = pDev.p;
         SK_GetCurrentRenderBackend ().swapchain = This;
   
         //if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status)
@@ -3683,9 +3685,9 @@ SK_DXGI_FilterRedundant_ResizeBuffers ( IDXGISwapChain *This,
                                    _In_ DXGI_FORMAT     NewFormat,
                                    _In_ UINT            SwapChainFlags )
 {
-  #ifndef _DEBUG
-    return false;
-  #endif
+  //#ifndef _DEBUG
+  //  return false;
+  //#endif
 
   DXGI_SWAP_CHAIN_DESC desc = { };
        This->GetDesc (&desc);
@@ -3731,23 +3733,23 @@ DXGISwap_ResizeBuffers_Override ( IDXGISwapChain *This,
                              _In_ DXGI_FORMAT     NewFormat,
                              _In_ UINT            SwapChainFlags )
 {
-  if (SK_DXGI_FilterRedundant_ResizeBuffers ( This, BufferCount, Width,
-                                                Height, NewFormat,
-                                                  SwapChainFlags )
-     )
-  {
-    DXGI_SWAP_CHAIN_DESC desc = { };
-         This->GetDesc (&desc);
-
-    SK_LOG0 ((L"Eliminated redundant ResizeBuffers (...) call"),L"   DXGI   ");
-    SK_LOG0 ((L" >> (%lux%lu*%lu {%lu} 0x%x) ==> (%lux%lu*%lu {%lu} 0x%x)",
-                desc.BufferDesc.Width, desc.BufferDesc.Height, desc.BufferCount,
-                desc.BufferDesc.Format, desc.Flags,
-                  Width, Height, BufferCount, NewFormat, SwapChainFlags),
-              L"   DXGI   ");
-
-    return S_OK;//ResizeBuffers_Original (This, 0, 0, 0, (DXGI_FORMAT)0, 0);
-  }
+  //if (SK_DXGI_FilterRedundant_ResizeBuffers ( This, BufferCount, Width,
+  //                                              Height, NewFormat,
+  //                                                SwapChainFlags )
+  //   )
+  //{
+  //  DXGI_SWAP_CHAIN_DESC desc = { };
+  //       This->GetDesc (&desc);
+  //
+  //  SK_LOG0 ((L"Eliminated redundant ResizeBuffers (...) call"),L"   DXGI   ");
+  //  SK_LOG0 ((L" >> (%lux%lu*%lu {%lu} 0x%x) ==> (%lux%lu*%lu {%lu} 0x%x)",
+  //              desc.BufferDesc.Width, desc.BufferDesc.Height, desc.BufferCount,
+  //              desc.BufferDesc.Format, desc.Flags,
+  //                Width, Height, BufferCount, NewFormat, SwapChainFlags),
+  //            L"   DXGI   ");
+  //
+  //  return S_OK;//ResizeBuffers_Original (This, 0, 0, 0, (DXGI_FORMAT)0, 0);
+  //}
 
 
   DXGI_LOG_CALL_I5 ( L"    IDXGISwapChain", L"ResizeBuffers         ",
@@ -3796,15 +3798,14 @@ DXGISwap_ResizeBuffers_Override ( IDXGISwapChain *This,
   }
 
 
-  if ((! config.render.dxgi.res.max.isZero ()) && Width > config.render.dxgi.res.max.x)
-    Width = config.render.dxgi.res.max.x;
-  if ((! config.render.dxgi.res.max.isZero ()) && Height > config.render.dxgi.res.max.y)
-    Height = config.render.dxgi.res.max.y;
+  // Clamp the buffer dimensions if the user has a min/max resolution preference
+  const UINT max_x = config.render.dxgi.res.max.x < Width  ? config.render.dxgi.res.max.x : Width,
+             min_x = config.render.dxgi.res.min.x > Width  ? config.render.dxgi.res.min.x : Width,
+             max_y = config.render.dxgi.res.max.y < Height ? config.render.dxgi.res.max.y : Height,
+             min_y = config.render.dxgi.res.min.y > Height ? config.render.dxgi.res.min.y : Height;
 
-  if ((! config.render.dxgi.res.min.isZero ()) && Width < config.render.dxgi.res.min.x)
-    Width = config.render.dxgi.res.min.x;
-  if ((! config.render.dxgi.res.min.isZero ()) && Height < config.render.dxgi.res.min.y)
-    Height = config.render.dxgi.res.min.y;
+  Width   =  std::max ( max_x , min_x );
+  Height  =  std::max ( max_y , min_y );
 
 
   if (SK_GetCurrentGameID () == SK_GAME_ID::DotHackGU)
@@ -3814,6 +3815,20 @@ DXGISwap_ResizeBuffers_Override ( IDXGISwapChain *This,
   HRESULT     ret;
   DXGI_CALL ( ret, ResizeBuffers_Original ( This, BufferCount, Width, Height,
                                               NewFormat, SwapChainFlags ) );
+
+  // Hack for FFX / FFX-2
+  if ( FAILED (ret) &&
+         SK_DXGI_FilterRedundant_ResizeBuffers ( This, BufferCount, Width,
+                                                   Height, NewFormat,
+                                                     SwapChainFlags )
+     )
+  {
+    SK_LOG0 ( (L"[@]      *** Failure is OK; working around resource management bug in Final Fantasy X/X-2." ),
+               __SK_SUBSYSTEM__ );
+
+    ret = S_OK;
+  }
+
 
   if (SUCCEEDED (ret))
   {
@@ -3845,9 +3860,9 @@ bool
 SK_DXGI_FilterRedundant_ResizeTarget ( IDXGISwapChain *This,
                             _In_ const DXGI_MODE_DESC *pNewTargetParameters )
 {
-#ifndef _DEBUG
-  return false;
-#endif
+//#ifndef _DEBUG
+//  return false;
+//#endif
 
   DXGI_SWAP_CHAIN_DESC desc = { };
        This->GetDesc (&desc);
@@ -3872,12 +3887,6 @@ STDMETHODCALLTYPE
 DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
                       _In_ const DXGI_MODE_DESC *pNewTargetParameters )
 {
-  if ( SK_DXGI_FilterRedundant_ResizeTarget ( This, pNewTargetParameters ) )
-  {
-    SK_LOG_ONCE (L"[   DXGI   ] Eliminated redundant ResizeTarget (...) call");
-    return S_OK;
-  }
-
   // Can't do this if waitable
   if (dxgi_caps.present.waitable && config.render.framerate.swapchain_wait > 0)
     return S_OK;
@@ -3990,9 +3999,34 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
 
 
 
+    // Clamp the buffer dimensions if the user has a min/max resolution preference
+    const UINT max_x = config.render.dxgi.res.max.x < new_new_params.Width  ?
+                       config.render.dxgi.res.max.x : new_new_params.Width,
+               min_x = config.render.dxgi.res.min.x > new_new_params.Width  ?
+                       config.render.dxgi.res.min.x : new_new_params.Width,
+               max_y = config.render.dxgi.res.max.y < new_new_params.Height ?
+                       config.render.dxgi.res.max.y : new_new_params.Height,
+               min_y = config.render.dxgi.res.min.y > new_new_params.Height ?
+                       config.render.dxgi.res.min.y : new_new_params.Height;
+
+    new_new_params.Width   =  std::max ( max_x , min_x );
+    new_new_params.Height  =  std::max ( max_y , min_y );
+
+
+
     //SK_DXGI_ValidateSwapChainResize (This, 0, pNewNewTargetParameters->Width, pNewNewTargetParameters->Height, pNewNewTargetParameters->Format);
 
     DXGI_CALL (ret, ResizeTarget_Original (This, pNewNewTargetParameters));
+
+    // Hack for FFX / FFX-2
+    if (FAILED (ret) && SK_DXGI_FilterRedundant_ResizeTarget ( This, pNewTargetParameters ))
+    {
+      SK_LOG0 ( (L"[@]      *** Failure is OK; working around resource management bug in Final Fantasy X/X-2." ),
+                 __SK_SUBSYSTEM__ );
+
+      ret = S_OK;
+    }
+
 
     if (SUCCEEDED (ret))
     {
@@ -4240,11 +4274,14 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).c_str (),
       else
 #endif
       {
-        // If forcing flip-model, then force multisampling off
+        // If forcing flip-model, then force multisampling (of the primary framebuffer) off
         if (config.render.framerate.flip_discard)
         {
-          bFlipMode = dxgi_caps.present.flip_sequential;
-          pDesc->SampleDesc.Count = 1; pDesc->SampleDesc.Quality = 0;
+          bFlipMode =
+            dxgi_caps.present.flip_sequential;
+
+          pDesc->SampleDesc.Count   = 1;
+          pDesc->SampleDesc.Quality = 0;
 
           // Format overrides must be performed in certain cases (sRGB / 10:10:10:2)
           switch (pDesc->BufferDesc.Format)
@@ -4338,10 +4375,12 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).c_str (),
         pDesc->BufferDesc.RefreshRate.Denominator = 1;
       }
 
-      bWait = bFlipMode && dxgi_caps.present.waitable;
+      bWait =
+        bFlipMode && dxgi_caps.present.waitable;
 
       // We cannot change the swapchain parameters if this is used...
-      bWait = bWait && config.render.framerate.swapchain_wait > 0;
+      bWait =
+        bWait && ( config.render.framerate.swapchain_wait > 0 );
 
 #ifdef _WIN64
       if (SK_GetCurrentGameID () == SK_GAME_ID::DarkSouls3)
@@ -4351,6 +4390,8 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).c_str (),
       }
 #endif
 
+      // User is forcing flip mode
+      //
       if (bFlipMode)
       {
         if (bWait)
@@ -4363,24 +4404,28 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).c_str (),
         if (config.render.framerate.flip_discard &&
             dxgi_caps.present.flip_discard)
           pDesc->SwapEffect  = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-        else
+
+        else // On Windows 8.1 and older, sequential must substitute for discard
           pDesc->SwapEffect  = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
       }
 
+      // User is not forcing flip mode, and the game is not using it either
+      //
       else if ( pDesc->SwapEffect != DXGI_SWAP_EFFECT_FLIP_DISCARD &&
                 pDesc->SwapEffect != DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL )
       {
         // Resort to triple-buffering if flip mode is not available
+        //   because AMD drivers tend not to work correctly if a game ever
+        //     tries to use more than 3 buffers in BitBlit mode.
         if (config.render.framerate.buffer_count > 3)
           config.render.framerate.buffer_count = 3;
-
-        pDesc->SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
       }
 
       if (config.render.framerate.buffer_count > 0)
         pDesc->BufferCount = config.render.framerate.buffer_count;
 
       // We cannot switch modes on a waitable swapchain
+      //
       if (bFlipMode && bWait)
       {
         pDesc->Flags |=  DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
@@ -4389,21 +4434,21 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).c_str (),
     }
 
     SK_LOG0 ( ( L"  >> Using %s Presentation Model  [Waitable: %s - %li ms]",
-                   bFlipMode ? L"Flip" : L"Traditional",
-                     bWait ? L"Yes" : L"No",
+                   (pDesc->SwapEffect >= DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL) ?
+                     L"Flip" : L"Traditional",
+                       bWait ? L"Yes" : L"No",
                        bWait ? config.render.framerate.swapchain_wait : 0 ),
                 L" DXGI 1.2 " );
 
 
-    if ((! config.render.dxgi.res.max.isZero ()) && pDesc->BufferDesc.Width > config.render.dxgi.res.max.x)
-      pDesc->BufferDesc.Width = config.render.dxgi.res.max.x;
-    if ((! config.render.dxgi.res.max.isZero ()) && pDesc->BufferDesc.Height > config.render.dxgi.res.max.y)
-      pDesc->BufferDesc.Height = config.render.dxgi.res.max.y;
+    // Clamp the buffer dimensions if the user has a min/max resolution preference
+    const UINT max_x = config.render.dxgi.res.max.x < pDesc->BufferDesc.Width  ? config.render.dxgi.res.max.x : pDesc->BufferDesc.Width,
+               min_x = config.render.dxgi.res.min.x > pDesc->BufferDesc.Width  ? config.render.dxgi.res.min.x : pDesc->BufferDesc.Width,
+               max_y = config.render.dxgi.res.max.y < pDesc->BufferDesc.Height ? config.render.dxgi.res.max.y : pDesc->BufferDesc.Height,
+               min_y = config.render.dxgi.res.min.y > pDesc->BufferDesc.Height ? config.render.dxgi.res.min.y : pDesc->BufferDesc.Height;
 
-    if ((! config.render.dxgi.res.min.isZero ()) && pDesc->BufferDesc.Width < config.render.dxgi.res.min.x)
-      pDesc->BufferDesc.Width = config.render.dxgi.res.min.x;
-    if ((! config.render.dxgi.res.min.isZero ()) && pDesc->BufferDesc.Height < config.render.dxgi.res.min.y)
-      pDesc->BufferDesc.Height = config.render.dxgi.res.min.y;
+    pDesc->BufferDesc.Width   =  std::max ( max_x , min_x );
+    pDesc->BufferDesc.Height  =  std::max ( max_y , min_y );
   }
 
 
