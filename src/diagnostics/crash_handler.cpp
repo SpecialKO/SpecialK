@@ -25,6 +25,7 @@
 #include <SpecialK/core.h>
 #include <SpecialK/hooks.h>
 #include <SpecialK/log.h>
+#include <SpecialK/sound.h>
 #include <SpecialK/resource.h>
 #include <SpecialK/utility.h>
 #include <SpecialK/thread.h>
@@ -65,12 +66,24 @@
 #define SK_SymGetLineFromAddr SymGetLineFromAddr
 #endif
 
-struct {
-  HGLOBAL  ref = nullptr;
-  uint8_t* buf = nullptr;
+
+// Set to true during abnormal program termination;
+//   used primarily for prognostics in the global injector.
+bool __SK_Crashed = false;
+
+bool SK_Debug_IsCrashing (void) { return __SK_Crashed; }
+
+
+struct sk_crash_sound_s {
+  HGLOBAL             ref        = nullptr;
+  uint8_t*            buf        = nullptr;
+  ISimpleAudioVolume* volume_ctl = nullptr;
+
+  bool play (void);
 } static crash_sound;
 
-void
+
+bool
 SK_Crash_PlaySound (void)
 {
   // Rare WinMM (SDL/DOSBox) crashes may prevent this from working, so...
@@ -80,13 +93,55 @@ SK_Crash_PlaySound (void)
                   nullptr,
                     SND_SYNC |
                     SND_MEMORY );
+
+    return true;
   }
   
   __except (EXCEPTION_EXECUTE_HANDLER)
   {
-  
+    return false;
   }
 }
+
+bool
+sk_crash_sound_s::play (void)
+{
+  // Reverse Volume Ducking the stupid way ;)
+  //
+  //  * Crash sound is quite loud and PlaySound has no means of volume modulation
+  //
+  if (volume_ctl == nullptr)
+  {
+    volume_ctl =
+      SK_WASAPI_GetVolumeControl (GetCurrentProcessId ());
+  }
+
+  BOOL  muted       = FALSE;
+  float orig_volume = 1.0f;
+
+  if (volume_ctl != nullptr)
+  {
+    if (SUCCEEDED (volume_ctl->GetMasterVolume (&orig_volume))) {
+                   volume_ctl->GetMute         (&muted);
+                   volume_ctl->SetMasterVolume (0.4f, nullptr);
+
+      // < 0.1% is effectively muted
+      muted = ( muted || orig_volume < 0.001f );
+    }
+  }
+
+  bool played_sound =
+    (! muted) && SK_Crash_PlaySound ();
+
+  if (volume_ctl != nullptr)
+  {
+      volume_ctl->SetMasterVolume (orig_volume, nullptr);
+      volume_ctl->Release ();
+  }
+
+  return played_sound;
+}
+
 
 LONG
 WINAPI
@@ -172,6 +227,7 @@ CrashHandler::Init (void)
 
           SetThreadDescription (hThread, L"[SK] Crash Handler Init");
           SetThreadPriority    (hThread, THREAD_PRIORITY_LOWEST);
+
           HRSRC   default_sound =
             FindResource (SK_GetDLL (), MAKEINTRESOURCE (IDR_CRASH), L"WAVE");
 
@@ -306,7 +362,8 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
   if ( ReadAcquire (&__SK_DLL_Ending)   != 0 ||
        ReadAcquire (&__SK_DLL_Attached) == 0 )
   {
-    TerminateProcess (GetCurrentProcess (), (UINT)-1);
+    abort ();
+  //TerminateProcess (GetCurrentProcess (), (UINT)-1);
   }
 
   bool scaleform = false;
@@ -847,8 +904,17 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 
     //if (! (crash_log.initialized && crash_log.silent))
     {
-      SK_Crash_PlaySound ();
+      if (! crash_sound.play ())
+      {
+        // If we cannot play the sound, then give a message box so we don't
+        //   appear to have vanished without a trace...
+        SK_MessageBox ( L"Application Crashed (Unable to Play Sound)!",
+                          L"Special K Crash Handler [Abnormal Termination]",
+                            MB_OK | MB_ICONERROR );
+      }
     }
+
+    __SK_Crashed = true;
 
     // CEGUI is potentially the reason we crashed, so ...
     //   set it back to its original state.

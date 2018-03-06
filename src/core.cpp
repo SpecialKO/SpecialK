@@ -1927,7 +1927,7 @@ struct {
 
 __declspec (noinline)
 void
-STDMETHODCALLTYPE
+__stdcall
 SK_BeginBufferSwap (void)
 {
   static SK_RenderAPI LastKnownAPI = SK_RenderAPI::Reserved;
@@ -2177,7 +2177,7 @@ SK_Input_PollKeyboard (void)
 
 __declspec (noinline) // lol
 HRESULT
-STDMETHODCALLTYPE
+__stdcall
 SK_EndBufferSwap (HRESULT hr, IUnknown* device)
 {
   static SK_RenderAPI     LastKnownAPI = SK_RenderAPI::Reserved;
@@ -2348,7 +2348,7 @@ static DLL_ROLE dll_role (DLL_ROLE::INVALID);
 
 extern "C"
 DLL_ROLE
-SK_PUBLIC_API
+__stdcall
 SK_GetDLLRole (void)
 {
   return dll_role;

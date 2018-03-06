@@ -218,7 +218,7 @@ OutputDebugStringA_Detour (LPCSTR lpOutputString)
   // NVIDIA's drivers do something weird, we cannot call the trampoline and
   //   must bail-out, or the NVIDIA streaming service will crash the game!~
   //
-  OutputDebugStringA_Original (lpOutputString);
+//OutputDebugStringA_Original (lpOutputString);
 }
 
 void
@@ -235,7 +235,7 @@ OutputDebugStringW_Detour (LPCWSTR lpOutputString)
   // NVIDIA's drivers do something weird, we cannot call the trampoline and
   //   must bail-out, or the NVIDIA streaming service will crash the game!~
   //
-  OutputDebugStringW_Original (lpOutputString);
+//OutputDebugStringW_Original (lpOutputString);
 }
 
 bool spoof_debugger = true;

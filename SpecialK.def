@@ -531,11 +531,10 @@ SK_ImGui_DrawFrame               = SK_ImGui_DrawFrame                PRIVATE
 SK_ImGui_Toggle                  = SK_ImGui_Toggle
 SK_ImGui_DrawEULA                = SK_ImGui_DrawEULA
 
-; Deprecated stuff
-BMF_BeginBufferSwap              = SK_BeginBufferSwap                PRIVATE
-BMF_EndBufferSwap                = SK_EndBufferSwap                  PRIVATE
-BMF_DrawExternalOSD              = SK_DrawExternalOSD                PRIVATE
-BMF_SetPresentParamsD3D9         = SK_SetPresentParamsD3D9           PRIVATE
+SK_BeginBufferSwap               = SK_BeginBufferSwap
+SK_EndBufferSwap                 = SK_EndBufferSwap
+SK_GetDLL                        = SK_GetDLL
+SK_GetDLLRole                    = SK_GetDLLRole
 
 ; First new symbol to use the new name for this project
 SK_SetPluginName                 = SK_SetPluginName                  PRIVATE
@@ -553,6 +552,9 @@ SK_GetGameWindow                 = SK_GetGameWindow
 SK_PluginKeyPress                = SK_PluginKeyPress
 SK_PlugIn_ControlPanelWidget     = SK_PlugIn_ControlPanelWidget      PRIVATE
 SK_GetConfigPath                 = SK_GetConfigPath
+SK_GetHostPath                   = SK_GetHostPath
+SK_GetHostApp                    = SK_GetHostApp
+SK_GetFullyQualifiedApp          = SK_GetFullyQualifiedApp
 SK_CreateLog                     = SK_CreateLog
 SK_CreateINI                     = SK_CreateINI
 SK_CreateVar                     = SK_CreateVar
@@ -582,14 +584,6 @@ SK_NvAPI_SetAppFriendlyName      = SK_NvAPI_SetAppFriendlyName
 SK_NvAPI_SetAppName              = SK_NvAPI_SetAppName
 SK_NvAPI_SetLauncher             = SK_NvAPI_SetLauncher
 SK_NvAPI_AddLauncherToProf       = SK_NvAPI_AddLauncherToProf
-                                 
-BMF_NvAPI_IsInit                 = SK_NvAPI_IsInit                   PRIVATE
-BMF_NvAPI_SetFramerateLimit      = SK_NvAPI_SetFramerateLimit        PRIVATE
-BMF_NvAPI_SetAppFriendlyName     = SK_NvAPI_SetAppFriendlyName       PRIVATE
-BMF_NvAPI_SetAppName             = SK_NvAPI_SetAppName               PRIVATE
-BMF_NvAPI_SetLauncher            = SK_NvAPI_SetLauncher              PRIVATE
-BMF_NvAPI_AddLauncherToProf      = SK_NvAPI_AddLauncherToProf        PRIVATE
-
 
 SK_CreateFuncHook                = SK_CreateFuncHook
 SK_CreateDLLHook                 = SK_CreateDLLHook
@@ -600,12 +594,6 @@ SK_ApplyQueuedHooks              = SK_ApplyQueuedHooks
 SK_EnableHook                    = SK_EnableHook
 SK_DisableHook                   = SK_DisableHook
 SK_RemoveHook                    = SK_RemoveHook
-
-BMF_CreateFuncHook               = SK_CreateFuncHook                 PRIVATE
-BMF_CreateDLLHook                = SK_CreateDLLHook                  PRIVATE
-BMF_EnableHook                   = SK_EnableHook                     PRIVATE
-BMF_DisableHook                  = SK_DisableHook                    PRIVATE
-BMF_RemoveHook                   = SK_RemoveHook                     PRIVATE
 
 SK_GPU_GetClockRateInkHz         = SK_GPU_GetClockRateInkHz
 SK_GPU_GetMemClockRateInkHz      = SK_GPU_GetMemClockRateInkHz
@@ -624,6 +612,13 @@ SK_SteamAPI_WriteScreenshot        = SK_SteamAPI_WriteScreenshot
 SK_SteamAPI_AddScreenshotToLibrary = SK_SteamAPI_AddScreenshotToLibrary
 SK_Steam_PiratesAhoy               = SK_Steam_PiratesAhoy2              PRIVATE
 
+SK_DXTex_GetMetadataFromDDSFile  = GetMetadataFromDDSFile                 PRIVATE
+SK_DXTex_LoadFromDDSFile         = LoadFromDDSFile                        PRIVATE
+SK_DXTex_CreateTexture           = SK_DXTex_CreateTexture                 PRIVATE
+
+SK_Render_GetDevice              = SK_Render_GetDevice PRIVATE
+                                     
+
 
 ;
 ; Exposing stuff in the 400 range is so-so design wise, but the
@@ -635,8 +630,6 @@ SK_SteamAPI_SetOverlayState  = SK_SteamAPI_SetOverlayState
 
 SKX_DrawExternalOSD          = SKX_DrawExternalOSD            ; No more C++ string across DLL boundaries
 SKX_SetPluginName            = SKX_SetPluginName              ; No more C++ string across DLL boundaries
-
-BMF_SteamAPI_SetOverlayState = SK_SteamAPI_SetOverlayState    PRIVATE
 
 RunDLL_ElevateMe             = RunDLL_ElevateMe               PRIVATE
 RunDLL_RestartGame           = RunDLL_RestartGame             PRIVATE

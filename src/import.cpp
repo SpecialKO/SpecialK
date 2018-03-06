@@ -97,6 +97,24 @@ SK_Import_GetNumberOfPlugIns (void)
 bool
 SK_Import_GetShimmedLibrary (HMODULE hModShim, HMODULE& hModReal)
 {
+  //
+  // This is the preferred method for doing this; invoking LoadLibraryW (...) from the shim itself
+  //   tends to have undefined results due to loader locking.
+  //
+  using SK_SHIM_GetReShadeFilename_pfn = const wchar_t* (__stdcall *)(void);
+
+  auto SK_SHIM_GetReShadeFilename =
+    (SK_SHIM_GetReShadeFilename_pfn)GetProcAddress (hModShim, "SK_SHIM_GetReShadeFilename");
+
+  if (SK_SHIM_GetReShadeFilename != nullptr)
+  {
+    hModReal = LoadLibraryW_Original (SK_SHIM_GetReShadeFilename ());
+
+    if (hModReal != nullptr)
+      return true;
+  }
+
+
   using SK_SHIM_GetReShade_pfn = HMODULE (__stdcall *)(void);
 
   auto SK_SHIM_GetReShade =
@@ -112,6 +130,7 @@ SK_Import_GetShimmedLibrary (HMODULE hModShim, HMODULE& hModReal)
       return true;
     }
   }
+
 
   return false;
 }
@@ -891,7 +910,13 @@ SK_UnloadImports (void)
   // Unload in reverse order, because that's safer :)
   for (int i = SK_MAX_IMPORTS - 1; i >= 0; i--)
   {
-    if (imports [i].hLibrary > 0)
+    // We use the sign-bit for error codes, so... negative
+    //   modules need to be ignored.
+    //
+    //  ** No module should be loaded at an address that high anyway
+    //       (in 32-bit code it's kernel-reserved memory)
+    //
+    if ((intptr_t)imports [i].hLibrary > 0)
     {
       DWORD dwTime = timeGetTime ();
 

@@ -41,6 +41,11 @@
 
 extern "C"
 {
+// It's not possible to store a structure in the shared data segment.
+//
+//   This struct will be filled-in when SK boots up using the loose mess of
+//     variables below, in order to make working with that data less insane.
+//
 SK_InjectionRecord_s __SK_InjectionHistory [MAX_INJECTED_PROC_HISTORY] = { };
 
 #pragma data_seg (".SK_Hooks")
@@ -49,18 +54,22 @@ SK_InjectionRecord_s __SK_InjectionHistory [MAX_INJECTED_PROC_HISTORY] = { };
   __declspec (dllexport) volatile HHOOK  hHookCBT       =              nullptr; // CBT hook
   __declspec (dllexport)          BOOL   bAdmin         =                FALSE; // Is SKIM64 able to inject into admin apps?
 
-  __declspec (dllexport) LONG               g_sHookedPIDs [MAX_INJECTED_PROCS]         = { 0 };
 
-                wchar_t    __SK_InjectionHistory_name     [MAX_INJECTED_PROC_HISTORY * MAX_PATH] =  { 0 };
-                DWORD      __SK_InjectionHistory_ids      [MAX_INJECTED_PROC_HISTORY]            =  { 0 };
-                __time64_t __SK_InjectionHistory_inject   [MAX_INJECTED_PROC_HISTORY]            =  { 0 };
-                __time64_t __SK_InjectionHistory_eject    [MAX_INJECTED_PROC_HISTORY]            =  { 0 };
+  __declspec (dllexport) LONG               g_sHookedPIDs [MAX_INJECTED_PROCS]     = { 0 };
 
-                SK_RenderAPI __SK_InjectionHistory_api    [MAX_INJECTED_PROC_HISTORY]            =  { SK_RenderAPI::Reserved };
-                ULONG64      __SK_InjectionHistory_frames [MAX_INJECTED_PROC_HISTORY]            =  { 0 };
+
+  wchar_t      __SK_InjectionHistory_name   [MAX_INJECTED_PROC_HISTORY * MAX_PATH] =  { 0 };
+  DWORD        __SK_InjectionHistory_ids    [MAX_INJECTED_PROC_HISTORY]            =  { 0 };
+  __time64_t   __SK_InjectionHistory_inject [MAX_INJECTED_PROC_HISTORY]            =  { 0 };
+  __time64_t   __SK_InjectionHistory_eject  [MAX_INJECTED_PROC_HISTORY]            =  { 0 };
+  bool         __SK_InjectionHistory_crash  [MAX_INJECTED_PROC_HISTORY]            =  { 0 };
+
+  SK_RenderAPI __SK_InjectionHistory_api    [MAX_INJECTED_PROC_HISTORY]            =  { SK_RenderAPI::Reserved };
+  ULONG64      __SK_InjectionHistory_frames [MAX_INJECTED_PROC_HISTORY]            =  { 0 };
 
   __declspec (dllexport) volatile LONG SK_InjectionRecord_s::count                 =  0L;
   __declspec (dllexport) volatile LONG SK_InjectionRecord_s::rollovers             =  0L;
+
 
   __declspec (dllexport)          wchar_t whitelist_patterns [16 * MAX_PATH] = { 0 };
   __declspec (dllexport)          int     whitelist_count                    =   0;
@@ -72,21 +81,17 @@ SK_InjectionRecord_s __SK_InjectionHistory [MAX_INJECTED_PROC_HISTORY] = { };
 
 
 extern volatile LONG  __SK_DLL_Attached;
-extern volatile ULONG __SK_DLL_Refs;
 extern volatile LONG  __SK_HookContextOwner;
-extern volatile LONG  __SK_TLS_INDEX;
-
-               HMODULE hModHookInstance = nullptr;
-
 
 
 SK_InjectionRecord_s*
 SK_Inject_GetRecord (int idx)
 {
-  wcsncpy (__SK_InjectionHistory [idx].process.name,   &__SK_InjectionHistory_name   [idx * MAX_PATH], MAX_PATH - 1);
-           __SK_InjectionHistory [idx].process.id     = __SK_InjectionHistory_ids    [idx];
-           __SK_InjectionHistory [idx].process.inject = __SK_InjectionHistory_inject [idx];
-           __SK_InjectionHistory [idx].process.eject  = __SK_InjectionHistory_eject  [idx];
+  wcsncpy (__SK_InjectionHistory [idx].process.name,   &__SK_InjectionHistory_name    [idx * MAX_PATH], MAX_PATH - 1);
+           __SK_InjectionHistory [idx].process.id      = __SK_InjectionHistory_ids    [idx];
+           __SK_InjectionHistory [idx].process.inject  = __SK_InjectionHistory_inject [idx];
+           __SK_InjectionHistory [idx].process.eject   = __SK_InjectionHistory_eject  [idx];
+           __SK_InjectionHistory [idx].process.crashed = __SK_InjectionHistory_crash  [idx];
            
            __SK_InjectionHistory [idx].render.api     = __SK_InjectionHistory_api    [idx];
            __SK_InjectionHistory [idx].render.frames  = __SK_InjectionHistory_frames [idx];
@@ -141,16 +146,16 @@ SK_IsInjected (bool set)
 void
 SK_Inject_ValidateProcesses (void)
 {
-  for (volatile LONG& g_sHookedPID : g_sHookedPIDs)
+  for (volatile LONG& hooked_pid : g_sHookedPIDs)
   {
     CHandle hProc (
       OpenProcess ( PROCESS_QUERY_INFORMATION, FALSE, 
-                      ReadAcquire (&g_sHookedPID) )
+                      ReadAcquire (&hooked_pid) )
                   );
 
     if (hProc == nullptr)
     {
-      ReadAcquire (&g_sHookedPID);
+      ReadAcquire (&hooked_pid);
     }
 
     else
@@ -160,10 +165,12 @@ SK_Inject_ValidateProcesses (void)
       GetExitCodeProcess (hProc, &dwExitCode);
 
       if (dwExitCode != STILL_ACTIVE)
-        ReadAcquire (&g_sHookedPID);
+        ReadAcquire (&hooked_pid);
     }
   }
 }
+
+extern bool SK_Debug_IsCrashing (void);
 
 void
 SK_Inject_ReleaseProcess (void)
@@ -171,24 +178,28 @@ SK_Inject_ReleaseProcess (void)
   if (! SK_IsInjected ())
     return;
 
-  for (volatile LONG& g_sHookedPID : g_sHookedPIDs)
+  for (volatile LONG& hooked_pid : g_sHookedPIDs)
   {
-    InterlockedCompareExchange (&g_sHookedPID, 0, GetCurrentProcessId ());
+    InterlockedCompareExchange (&hooked_pid, 0, GetCurrentProcessId ());
   }
 
-  //if (local_record != 0)
-  {
-    _time64 (&__SK_InjectionHistory_eject [local_record]);
+  _time64 (&__SK_InjectionHistory_eject [local_record]);
 
-    __SK_InjectionHistory_api    [local_record] = SK_GetCurrentRenderBackend ().api;
-    __SK_InjectionHistory_frames [local_record] = SK_GetFramesDrawn          ();
+  __SK_InjectionHistory_api    [local_record] = SK_GetCurrentRenderBackend ().api;
+  __SK_InjectionHistory_frames [local_record] = SK_GetFramesDrawn          ();
+  __SK_InjectionHistory_crash  [local_record] = SK_Debug_IsCrashing        ();
 
-    //local_record.input.xinput  = SK_Input_
-    // ...
-    // ...
-    // ...
-    // ...
-  }
+#ifdef _DEBUG
+  dll_log.Log (L"Injection Release (%u, %lu, %s)", (unsigned int)SK_GetCurrentRenderBackend ().api,
+                                                                 SK_GetFramesDrawn          (),
+                                                                 SK_Debug_IsCrashing        () ? L"Crash" : L"Normal" );
+#endif
+
+  //local_record.input.xinput  = SK_Input_
+  // ...
+  // ...
+  // ...
+  // ...
 }
 
 void
@@ -197,9 +208,9 @@ SK_Inject_AcquireProcess (void)
   if (! SK_IsInjected ())
     return;
 
-  for (volatile LONG& g_sHookedPID : g_sHookedPIDs)
+  for (volatile LONG& hooked_pid : g_sHookedPIDs)
   {
-    if (! InterlockedCompareExchange (&g_sHookedPID, GetCurrentProcessId (), 0))
+    if (! InterlockedCompareExchange (&hooked_pid, GetCurrentProcessId (), 0))
     {
       ULONG injection_idx = InterlockedIncrement (&SK_InjectionRecord_s::count);
 
@@ -222,13 +233,15 @@ SK_Inject_AcquireProcess (void)
                 __SK_InjectionHistory_ids    [local_record] = GetCurrentProcessId ();
       _time64 (&__SK_InjectionHistory_inject [local_record]);
 
-      wchar_t wszName [MAX_PATH] = { 0 };
-
+      wchar_t  wszName [MAX_PATH] = { 0 };
       wcsncpy (wszName, SK_GetModuleFullName (GetModuleHandle (nullptr)).c_str (),
-                    MAX_PATH - 1);
-      PathStripPath (wszName);
+                        MAX_PATH - 1);
 
+      PathStripPath (wszName);
       wcsncpy (&__SK_InjectionHistory_name [local_record * MAX_PATH], wszName, MAX_PATH - 1);
+
+
+      static HMODULE hModHookInstance = nullptr;
 
       // Hold a reference so that removing the CBT hook doesn't crash the software
       GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
@@ -241,11 +254,11 @@ SK_Inject_AcquireProcess (void)
 }
 
 bool
-SK_Inject_InvadingProcess (DWORD dwThreadId)
+SK_Inject_IsInvadingProcess (DWORD dwThreadId)
 {
-  for (volatile LONG& g_sHookedPID : g_sHookedPIDs)
+  for (volatile LONG& hooked_pid : g_sHookedPIDs)
   {
-    if (ReadAcquire (&g_sHookedPID) == static_cast <LONG> (dwThreadId))
+    if (ReadAcquire (&hooked_pid) == static_cast <LONG> (dwThreadId))
       return true;
   }
 
@@ -1069,15 +1082,15 @@ SKX_GetInjectedPIDs ( DWORD* pdwList,
 
   SK_Inject_ValidateProcesses ();
 
-  for (volatile LONG& g_sHookedPID : g_sHookedPIDs)
+  for (volatile LONG& hooked_pid : g_sHookedPIDs)
   {
-    if (ReadAcquire (&g_sHookedPID) != 0)
+    if (ReadAcquire (&hooked_pid) != 0)
     {
       if (i < (SSIZE_T)capacity - 1)
       {
         if (pdwListIter != nullptr)
         {
-          *pdwListIter = ReadAcquire (&g_sHookedPID);
+          *pdwListIter = ReadAcquire (&hooked_pid);
            pdwListIter++;
         }
       }
@@ -1156,7 +1169,7 @@ SK_Inject_TestWhitelists (const wchar_t* wszExecutable)
 {
   // Sort of a temporary hack for important games that I support that are
   //   sold on alternative stores to Steam.
-  if (StrStrIW (wszExecutable, L"ffxv.exe"))
+  if (StrStrIW (wszExecutable, L"ffxv"))
     return true;
 
 

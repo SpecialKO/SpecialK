@@ -1632,7 +1632,7 @@ SK_PrintUnloadedDLLs (iSK_Logger* pLogger)
     for (ULONG i = 0; i < ElementCount; i++)
     {
       if (! SK_ValidatePointer (pTraceEntry))
-        break;
+        continue;
 
       if (pTraceEntry->BaseAddress != nullptr)
       {
@@ -1640,6 +1640,16 @@ SK_PrintUnloadedDLLs (iSK_Logger* pLogger)
                       pTraceEntry->Sequence,    pTraceEntry->ImageName,
                       pTraceEntry->BaseAddress, (uintptr_t)pTraceEntry->BaseAddress +
                                                            pTraceEntry->SizeOfImage );
+
+        std::wstring ver_str =
+          SK_GetDLLVersionStr (pTraceEntry->ImageName);
+
+        if (ver_str != L"N/A")
+        {
+          pLogger->Log (
+            L"[%02lu]  * Ver.:  %s",
+              i, ver_str.c_str () );
+        }
       }
 
       pTraceEntry =
@@ -2677,7 +2687,7 @@ SK_COMPAT_FixUpFullscreen_DXGI (bool Fullscreen)
 #include <SpecialK/sound.h>
 
 //
-// MSI Nahimic sometimes @#$%s the bed of MMDevAPI.dll is not loaded
+// MSI Nahimic sometimes @#$%s the bed if MMDevAPI.dll is not loaded
 //   in the right order, so to make it happy, we need a link-time reference
 //     to a function in that DLL that won't be optimized away.
 //
@@ -2693,8 +2703,8 @@ SK_COMPAT_FixNahimicDeadlock (void)
   //                                __uuidof (IAudioClient),
   //                                  nullptr, nullptr, &aOp );
   //
-  ////if (GetModuleHandle (L"NahimicDevProps.dll"))
-  ////  return S_OK;
+  //if (GetModuleHandle (L"NahimicDevProps.dll"))
+  //  return S_OK;
 
   return S_FALSE;
 }
