@@ -9873,7 +9873,7 @@ SK_D3D11_InitTextures (void)
     if (hModD3DX11_43 == nullptr)
     {
       hModD3DX11_43 =
-        LoadLibraryW_Original (L"d3dx11_43.dll");
+        LoadLibraryW (L"d3dx11_43.dll");
 
       if (hModD3DX11_43 == nullptr)
         hModD3DX11_43 = (HMODULE)1;
@@ -15920,9 +15920,9 @@ SK_D3D11_UpdateHookAddressCache (void)
 
   while ( it_local != std::end (local_d3d11_records) )
   {
-    if (( *it_local )->hits &&
+    if (   ( *it_local )->hits &&
  StrStrIW (( *it_local )->target.module_path, LR"(\sys)") &&
-        ( *it_local )->active)
+           ( *it_local )->active)
       SK_Hook_PushLocalCacheOntoGlobal ( **it_local,
                                            **it_global );
     else
@@ -15934,4 +15934,22 @@ SK_D3D11_UpdateHookAddressCache (void)
 
     it_global++, it_local++;
   }
+}
+
+#ifdef _WIN64
+#pragma comment (linker, "/export:DirectX::ScratchImage::Release=?Release@ScratchImage@DirectX@@QEAAXXZ")
+#else
+#pragma comment (linker, "/export:DirectX::ScratchImage::Release=?Release@ScratchImage@DirectX@@QAAXXZ")
+#endif
+
+HRESULT
+__cdecl
+SK_DXTex_CreateTexture ( _In_reads_(nimages) const DirectX::Image*       srcImages,
+                         _In_                      size_t                nimages,
+                         _In_                const DirectX::TexMetadata& metadata,
+                         _Outptr_                  ID3D11Resource**      ppResource )
+{
+  return
+    DirectX::CreateTexture ( (ID3D11Device *)SK_Render_GetDevice (),
+                               srcImages, nimages, metadata, ppResource );
 }

@@ -739,7 +739,7 @@ IUnknown*
 __stdcall
 SK_Render_GetDevice (void)
 {
-  return SK_GetCurrentRenderBackend ().device;
+  return SK_GetCurrentRenderBackend ().device.p;
 }
 
 // Does NOT implicitly AddRef, do NOT hold a reference to this!
@@ -748,7 +748,7 @@ IUnknown*
 __stdcall
 SK_Render_GetSwapChain (void)
 {
-  return SK_GetCurrentRenderBackend ().swapchain;
+  return SK_GetCurrentRenderBackend ().swapchain.p;
 }
 
 
@@ -831,4 +831,24 @@ sk_hwnd_cache_s::getDevCaps (void)
   }
 
   return devcaps;
+}
+
+
+const wchar_t*
+SK_Render_GetAPIName (SK_RenderAPI api)
+{
+  std::unordered_map <SK_RenderAPI, const wchar_t *> api_map {
+    { SK_RenderAPI::D3D11,  L"D3D11" },
+    { SK_RenderAPI::D3D9,   L"D3D9"  }, { SK_RenderAPI::D3D9Ex,   L"D3D9Ex" },
+    { SK_RenderAPI::OpenGL, L"OpenGL"}, { SK_RenderAPI::D3D8,     L"D3D8"   },
+    { SK_RenderAPI::DDraw,  L"DDraw" }, { SK_RenderAPI::Reserved, L"N/A"    }
+  };
+
+  if (api_map.count (api) != 0)
+    return api_map [api];
+
+  SK_LOG0 ( ( L"Missing render API name mapping for %x", (unsigned int)api ),
+              L"  FIXME!  " );
+
+  return L"Unknown API";
 }

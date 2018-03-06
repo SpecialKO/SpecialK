@@ -247,4 +247,7 @@ _Return_type_success_ (nullptr)
 IUnknown*
 SK_COM_ValidateRelease (IUnknown** ppObj);
 
+const wchar_t*
+SK_Render_GetAPIName (SK_RenderAPI api);
+
 #endif /* __SK__RENDER_BACKEND__H__ */
