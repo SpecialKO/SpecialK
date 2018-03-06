@@ -104,11 +104,11 @@ struct IUnknown;
 extern "C" {
 #endif
 
-      void     SK_PUBLIC_API SK_BeginBufferSwap (void);
-      HRESULT  SK_PUBLIC_API SK_EndBufferSwap   (HRESULT hr, IUnknown* device = nullptr);
+      void     __stdcall SK_BeginBufferSwap (void);
+      HRESULT  __stdcall SK_EndBufferSwap   (HRESULT hr, IUnknown* device = nullptr);
 
-      HMODULE  SK_PUBLIC_API SK_GetDLL          (void);
-      DLL_ROLE SK_PUBLIC_API SK_GetDLLRole      (void);
+      HMODULE  __stdcall SK_GetDLL          (void);
+      DLL_ROLE __stdcall SK_GetDLLRole      (void);
 
 #ifdef __cplusplus
 };

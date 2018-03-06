@@ -74,6 +74,9 @@
 #include <SpecialK/control_panel/plugins.h>
 #include <SpecialK/control_panel/compatibility.h>
 
+// Fixed-width font
+#define SK_IMGUI_FIXED_FONT 1
+
 LONG imgui_staged_frames   = 0;
 LONG imgui_finished_frames = 0;
 BOOL imgui_staged          = FALSE;
@@ -1343,27 +1346,81 @@ SK_ImGui_ControlPanel (void)
             ImGui::Text         ("%lu-Bit Injection History", SK_RunLHIfBitness ( 64, 64, 32 ));
             ImGui::Separator    ();
 
-            int count = InterlockedAdd (&SK_InjectionRecord_s::count, 0UL);
-            ImGui::BulletText   ("%lu injections since restart", count);
 
+            ImGui::PushFont (ImGui::GetIO ().Fonts->Fonts [SK_IMGUI_FIXED_FONT]);
+            //ImGui::BulletText   ("%lu injections since restart", count);
+            
+
+            std::vector <SK_InjectionRecord_s*> records (
+              ReadAcquire (&SK_InjectionRecord_s::count)
+            );
 
             ImGui::BeginGroup ();
-            for (int i = 0; i < count; i++)
+            for ( unsigned int i = 0 ; i < records.capacity () ; i++ )
             {
-              SK_InjectionRecord_s* record =
-                SK_Inject_GetRecord (i);
-            
-              ImGui::Text ( " pid %04x:  ", record->process.id );
+              records [i] = SK_Inject_GetRecord (i);
+              ImGui::BulletText ("");
             }
             ImGui::EndGroup   ();
             ImGui::SameLine   ();
             ImGui::BeginGroup ();
-            for (int i = 0; i < count; i++)
+            for ( const auto& it : records )
             {
-              SK_InjectionRecord_s* record =
-                SK_Inject_GetRecord (i);
-            
-              ImGui::Text ( " [%ws]  ", record->process.name );
+              ImGui::Text ( " pid %04u: ", it->process.id );
+            }
+            ImGui::EndGroup   ();
+            ImGui::SameLine   ();
+            ImGui::BeginGroup ();
+            for ( const auto& it : records )
+            {
+              ImGui::Text ( " [%32ws] ",
+                                      it->process.name );
+            }
+            ImGui::EndGroup   ();
+            ImGui::SameLine   ();
+            ImGui::BeginGroup ();
+            for ( const auto& it : records )
+            {
+              if (it->process.id == GetCurrentProcessId ())
+                  it->render.api  = SK_GetCurrentRenderBackend ().api;
+
+              ImGui::Text ( " - %-12ws",
+                                    SK_Render_GetAPIName (it->render.api) );
+            }
+            ImGui::EndGroup   ();
+            ImGui::SameLine   ();
+            ImGui::BeginGroup ();
+            for ( const auto& it : records )
+            {
+              enum status_e {
+                Finished,
+                Running,
+                Crashed
+              } app_stat = Finished;
+
+              if (it->process.id == GetCurrentProcessId ())
+              {
+                app_stat = Running;
+              }
+
+              else
+              {
+                if (it->process.crashed)
+                  app_stat = Crashed;
+              }
+
+              if (app_stat == Crashed)
+              {
+                ImGui::Text (" { Crashed%s}",
+                                 ( it->render.frames == 0 ? " at start? " :
+                                                            " " ) );
+
+              }
+
+              else
+              {
+                ImGui::Text ("");
+              }
             }
             ImGui::EndGroup   ();
 
@@ -1379,6 +1436,8 @@ SK_ImGui_ControlPanel (void)
             //                                      record->render.frames );
             //}
             //ImGui::EndGroup  ();
+
+           ImGui::PopFont  ();
            ImGui::EndTooltip ();
          }
        }
@@ -2179,12 +2238,19 @@ SK_ImGui_InstallOpenCloseCallback (SK_ImGui_OpenCloseCallback_pfn fn, void* user
 
 
 #include <SpecialK/osd/text.h>
+#include <SpecialK/tls.h>
 
 static bool keep_open;
 
 void
 SK_ImGui_StageNextFrame (void)
 {
+  SK_TLS* pTLS =
+    SK_TLS_Bottom ();
+
+  SK_ScopedBool auto_bool (&pTLS->imgui.drawing);
+                            pTLS->imgui.drawing = true;
+
   if (imgui_staged)
     return;
 

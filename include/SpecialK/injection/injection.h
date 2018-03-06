@@ -78,6 +78,7 @@ struct SK_InjectionRecord_s
     DWORD      id              =    0;
     __time64_t inject          = 0ULL;
     __time64_t eject           = 0ULL;
+    bool       crashed         = false;
   } process;
 
   struct {
