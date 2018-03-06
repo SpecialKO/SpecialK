@@ -57,49 +57,37 @@ SK_CountIO (io_perf_t& ioc, const double update)
 
   if (ioc.init == false)
   {
-    memset (&ioc, 0, sizeof (io_perf_t));
-    ioc.init = true;
+    RtlZeroMemory (&ioc, sizeof io_perf_t);
+                    ioc.init = true;
   }
 
-  SYSTEMTIME     update_time  = { };
-  FILETIME       update_ftime = { };
-  ULARGE_INTEGER update_ul    = { };
+  extern LARGE_INTEGER SK_QueryPerf (void);
+   LARGE_INTEGER now = SK_QueryPerf ();
 
-  GetSystemTime        (&update_time);
-  SystemTimeToFileTime (&update_time, &update_ftime);
-
-  update_ul.HighPart = update_ftime.dwHighDateTime;
-  update_ul.LowPart  = update_ftime.dwLowDateTime;
-
-  ioc.dt += update_ul.QuadPart - ioc.last_update.QuadPart;
+  ioc.dt =
+    now.QuadPart - ioc.last_update.QuadPart;
 
   if (ioc.dt >= update)
   {
     IO_COUNTERS current_io = { };
 
+    static SK::Framerate::Stats write_rate;
+    static SK::Framerate::Stats read_rate;
+    static SK::Framerate::Stats other_rate;
+
+    static SK::Framerate::Stats write_ops;
+    static SK::Framerate::Stats read_ops;
+    static SK::Framerate::Stats other_ops;
+
     GetProcessIoCounters (hProc, &current_io);
 
-    ioc.accum.ReadTransferCount +=
-      current_io.ReadTransferCount - ioc.last_counter.ReadTransferCount;
-    ioc.accum.WriteTransferCount +=
-      current_io.WriteTransferCount - ioc.last_counter.WriteTransferCount;
-    ioc.accum.OtherTransferCount +=
-      current_io.OtherTransferCount - ioc.last_counter.OtherTransferCount;
+    const auto dRB = (current_io.ReadTransferCount   - ioc.last_counter.ReadTransferCount);
+    const auto dWB = (current_io.WriteTransferCount  - ioc.last_counter.WriteTransferCount);
+    const auto dOB = (current_io.OtherTransferCount  - ioc.last_counter.OtherTransferCount);
 
-    ioc.accum.ReadOperationCount +=
-      current_io.ReadOperationCount - ioc.last_counter.ReadOperationCount;
-    ioc.accum.WriteOperationCount +=
-      current_io.WriteOperationCount - ioc.last_counter.WriteOperationCount;
-    ioc.accum.OtherOperationCount +=
-      current_io.OtherOperationCount - ioc.last_counter.OtherOperationCount;
-
-    auto dRB = static_cast <double> (ioc.accum.ReadTransferCount);
-    auto dWB = static_cast <double> (ioc.accum.WriteTransferCount);
-    auto dOB = static_cast <double> (ioc.accum.OtherTransferCount);
-
-    auto dRC = static_cast <double> (ioc.accum.ReadOperationCount);
-    auto dWC = static_cast <double> (ioc.accum.WriteOperationCount);
-    auto dOC = static_cast <double> (ioc.accum.OtherOperationCount);
+    const auto dRC = (current_io.ReadOperationCount  - ioc.last_counter.ReadOperationCount);
+    const auto dWC = (current_io.WriteOperationCount - ioc.last_counter.WriteOperationCount);
+    const auto dOC = (current_io.OtherOperationCount - ioc.last_counter.OtherOperationCount);
 
     double& read_mb_sec   = ioc.read_mb_sec;
     double& write_mb_sec  = ioc.write_mb_sec;
@@ -109,31 +97,38 @@ SK_CountIO (io_perf_t& ioc, const double update)
     double& write_iop_sec = ioc.write_iop_sec;
     double& other_iop_sec = ioc.other_iop_sec;
 
-    read_mb_sec  = (
-      read_mb_sec + ((dRB / 1048576.0) / (1.0e-7 * static_cast <double> (ioc.dt)))
-                   ) / 2.0;
-    write_mb_sec = (
-      write_mb_sec + ((dWB / 1048576.0) / (1.0e-7 * static_cast <double> (ioc.dt)))
-                   ) / 2.0;
-    other_mb_sec = (
-      other_mb_sec + ((dOB / 1048576.0) / (1.0e-7 * static_cast <double> (ioc.dt)))
-                   ) / 2.0;
+    const double inst_read_mb_sec  =
+      ((static_cast <double> (dRB) / 1048576.0) / (1.0e-7 * static_cast <double> (ioc.dt)));
+    const double inst_write_mb_sec  =
+      ((static_cast <double> (dWB) / 1048576.0) / (1.0e-7 * static_cast <double> (ioc.dt)));
+    const double inst_other_mb_sec  =
+      ((static_cast <double> (dOB) / 1048576.0) / (1.0e-7 * static_cast <double> (ioc.dt)));
 
-    read_iop_sec  = (read_iop_sec  + (dRC / (1.0e-7 * static_cast <double> (ioc.dt)))) / 2.0;
-    write_iop_sec = (write_iop_sec + (dWC / (1.0e-7 * static_cast <double> (ioc.dt)))) / 2.0;
-    other_iop_sec = (other_iop_sec + (dOC / (1.0e-7 * static_cast <double> (ioc.dt)))) / 2.0;
+    const double inst_read_ops_sec  =
+      (static_cast <double> (dRC) / (1.0e-7 * static_cast <double> (ioc.dt)));
+    const double inst_write_ops_sec  =
+      (static_cast <double> (dWC) / (1.0e-7 * static_cast <double> (ioc.dt)));
+    const double inst_other_ops_sec  =
+      (static_cast <double> (dOC) / (1.0e-7 * static_cast <double> (ioc.dt)));
 
-    ioc.accum.ReadTransferCount   = 0;
-    ioc.accum.WriteTransferCount  = 0;
-    ioc.accum.OtherTransferCount  = 0;
+    read_rate.addSample  (inst_read_mb_sec,   now);
+    write_rate.addSample (inst_write_mb_sec,  now);
+    other_rate.addSample (inst_other_mb_sec,  now);
 
-    ioc.accum.ReadOperationCount  = 0;
-    ioc.accum.WriteOperationCount = 0;
-    ioc.accum.OtherOperationCount = 0;
+    read_ops.addSample   (inst_read_ops_sec,  now);
+    write_ops.addSample  (inst_write_ops_sec, now);
+    other_ops.addSample  (inst_other_ops_sec, now);
 
-    ioc.dt = 0;
+    read_mb_sec  = read_rate.calcMean  (2.0f);
+    write_mb_sec = write_rate.calcMean (2.0f);
+    other_mb_sec = other_rate.calcMean (2.0f);
 
-    ioc.last_update.QuadPart = update_ul.QuadPart;
+    read_iop_sec  = read_ops.calcMean  (2.0f);
+    write_iop_sec = write_ops.calcMean (2.0f);
+    other_iop_sec = other_ops.calcMean (2.0f);
+
+    ioc.last_update.QuadPart = now.QuadPart;
+
     memcpy (&ioc.last_counter, &current_io, sizeof (IO_COUNTERS));
   }
 }
@@ -846,9 +841,9 @@ SK_MonitorDisk (LPVOID user)
       read_rate     [i].addSample (static_cast <double> (bytes_read_sec),   now );
       combined_rate [i].addSample (static_cast <double> (bytes_sec),        now );
 
-      double combined_mean = combined_rate [i].calcMean (3.0);
-      double write_mean    = write_rate    [i].calcMean (3.0);
-      double read_mean     = read_rate     [i].calcMean (3.0);
+      double combined_mean = combined_rate [i].calcMean (2.0);
+      double write_mean    = write_rate    [i].calcMean (2.0);
+      double read_mean     = read_rate     [i].calcMean (2.0);
 
       disk.disks [i].bytes_sec       = isnan (combined_mean) ? 0ULL : static_cast <uint64_t> (combined_mean);
       disk.disks [i].write_bytes_sec = isnan (write_mean)    ? 0ULL : static_cast <uint64_t> (write_mean);

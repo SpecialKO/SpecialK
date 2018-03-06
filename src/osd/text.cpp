@@ -1114,14 +1114,14 @@ static_cast <double> (                         gpu_stats.gpus [i].loads_percent.
 
   // Only do this if the IO data view is active
   if (config.io.show)
-    SK_CountIO (io_counter, config.io.interval / 1.0e-7);
+    SK_CountIO (io_counter, 0);//config.io.interval / 1.0e-7);
 
-  OSD_I_PRINTF "\n  Read   :%#6.02f MiB/s - (%#6.01f IOP/s)"
-               "\n  Write  :%#6.02f MiB/s - (%#6.01f IOP/s)"
-               "\n  Other  :%#6.02f MiB/s - (%#6.01f IOP/s)\n",
+  OSD_I_PRINTF "\n  Read   :%#6.02f MiB/s - (%#7.01f IOP/s)"
+               "\n  Write  :%#6.02f MiB/s - (%#7.01f IOP/s)\n",
+             //"\n  Other  :%#6.02f MiB/s - (%#7.01f IOP/s)\n",
                io_counter.read_mb_sec,  io_counter.read_iop_sec,
-               io_counter.write_mb_sec, io_counter.write_iop_sec,
-               io_counter.other_mb_sec, io_counter.other_iop_sec
+               io_counter.write_mb_sec, io_counter.write_iop_sec//,
+               //io_counter.other_mb_sec, io_counter.other_iop_sec
   OSD_END
 
   if (nodes > 0 && nodes < 4)
