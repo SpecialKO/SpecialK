@@ -1,7 +1,29 @@
+/**
+ * This file is part of Special K.
+ *
+ * Special K is free software : you can redistribute it
+ * and/or modify it under the terms of the GNU General Public License
+ * as published by The Free Software Foundation, either version 3 of
+ * the License, or (at your option) any later version.
+ *
+ * Special K is distributed in the hope that it will be useful,
+ *
+ * But WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Special K.
+ *
+ *   If not, see <http://www.gnu.org/licenses/>.
+ *
+**/
+
 #include <SpecialK/adl.h>
 #include <SpecialK/log.h>
 
-#include <SpecialK/diagnostics/compatibility.h>
+#include <SpecialK/diagnostics/modules.h>
+#include <SpecialK/diagnostics/load_library.h>
 
 BOOL      ADL_init = ADL_FALSE;
 HINSTANCE hADL_DLL;
@@ -51,11 +73,11 @@ SK_InitADL (void)
     adl_active   [i].iSize = sizeof (AdapterInfo);
   }
 
-  hADL_DLL = LoadLibraryW_Original (L"atiadlxx.dll");
+  hADL_DLL = SK_Modules.LoadLibraryLL (L"atiadlxx.dll");
   if (hADL_DLL == nullptr) {
     // A 32 bit calling application on 64 bit OS will fail to LoadLibrary.
     // Try to load the 32 bit library (atiadlxy.dll) instead
-    hADL_DLL = LoadLibraryW_Original (L"atiadlxy.dll");
+    hADL_DLL = SK_Modules.LoadLibraryLL (L"atiadlxy.dll");
   }
 
   if (hADL_DLL == nullptr) {

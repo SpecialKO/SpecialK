@@ -206,7 +206,7 @@ interface iSK_Logger : public IUnknown
   bool             initialized = false;
   int              lines       =   0;
   CRITICAL_SECTION log_mutex   = {   };
-  ULONG            refs        =   0UL;
+  volatile LONG    refs        =   0UL;
   DWORD            last_flush  =   0;
   DWORD            flush_freq  =   100; // msecs
 

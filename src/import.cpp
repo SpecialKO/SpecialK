@@ -27,7 +27,8 @@
 #include <SpecialK/import.h>
 #include <SpecialK/log.h>
 #include <SpecialK/utility.h>
-#include <SpecialK/diagnostics/compatibility.h>
+#include <SpecialK/diagnostics/modules.h>
+#include <SpecialK/diagnostics/load_library.h>
 #include <SpecialK/config.h>
 #include <SpecialK/core.h>
 
@@ -108,7 +109,7 @@ SK_Import_GetShimmedLibrary (HMODULE hModShim, HMODULE& hModReal)
 
   if (SK_SHIM_GetReShadeFilename != nullptr)
   {
-    hModReal = LoadLibraryW_Original (SK_SHIM_GetReShadeFilename ());
+    hModReal = SK_Modules.LoadLibraryLL (SK_SHIM_GetReShadeFilename ());
 
     if (hModReal != nullptr)
       return true;
@@ -144,14 +145,14 @@ SK_LoadImportModule = [&](import_s& import)
     wcsncpy (wszProfilePlugIn, SK_GetConfigPath (), MAX_PATH);
     PathAppendW (wszProfilePlugIn, import.filename->get_value_str ().c_str ());
 
-    import.hLibrary = LoadLibraryW_Original (
+    import.hLibrary = SK_Modules.LoadLibraryLL (
       wszProfilePlugIn
     );
   }
 
   if (import.hLibrary == nullptr)
   {
-    import.hLibrary = LoadLibraryW_Original (
+    import.hLibrary = SK_Modules.LoadLibraryLL (
       import.filename->get_value_str ().c_str ()
     );
   }

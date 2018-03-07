@@ -41,7 +41,8 @@
 #include <SpecialK/utility.h>
 #include <SpecialK/thread.h>
 #include <SpecialK/framerate.h>
-#include <SpecialK/diagnostics/compatibility.h>
+#include <SpecialK/diagnostics/modules.h>
+#include <SpecialK/diagnostics/load_library.h>
 
 extern bool __SK_bypass;
 
@@ -147,7 +148,7 @@ SK_LoadRealGL (void)
 
 
   if (local_gl == nullptr)
-    local_gl = LoadLibraryW (wszBackendDLL);
+    local_gl = SK_Modules.LoadLibrary (wszBackendDLL);
   else {
     HMODULE hMod;
     GetModuleHandleEx (0x00, wszBackendDLL, &hMod);
@@ -2449,18 +2450,20 @@ SK_HookGL (void)
   if (! config.apis.OpenGL.hook)
     return;
 
-  static volatile LONG SK_GL_initialized = FALSE;
+  static volatile LONG
+    SK_GL_initialized = FALSE;
 
   if (! InterlockedCompareExchange (&SK_GL_initialized, TRUE, FALSE))
   {
-    wchar_t* wszBackendDLL = L"OpenGL32.dll";
+    const wchar_t* wszBackendDLL (L"OpenGL32.dll");
 
     cs_gl_ctx = new SK_Thread_HybridSpinlock (64);
 
-    if (StrStrIW ( SK_GetModuleName (SK_GetDLL ()).c_str (), 
-                     wszBackendDLL ) )
+    if ( StrStrIW ( static_cast <const std::wstring &> (
+                      skModuleRegistry::Self
+                    ).c_str (), wszBackendDLL ) )
     {
-      LoadLibraryW (L"gdi32.dll");
+      SK_Modules.LoadLibrary (L"gdi32.dll");
       SK_LoadRealGL ();
 
       wgl_swap_buffers =
@@ -2480,8 +2483,9 @@ SK_HookGL (void)
     dll_log.Log (L"[ OpenGL32 ] Additional OpenGL Initialization");
     dll_log.Log (L"[ OpenGL32 ] ================================");
 
-    if (StrStrIW ( SK_GetModuleName (SK_GetDLL ()).c_str (), 
-                     wszBackendDLL ) )
+    if ( StrStrIW ( static_cast <const std::wstring &> (
+                      skModuleRegistry::Self
+                    ).c_str (), wszBackendDLL ) )
     {
       // Load user-defined DLLs (Plug-In)
       SK_RunLHIfBitness (64, SK_LoadPlugIns64 (), SK_LoadPlugIns32 ());

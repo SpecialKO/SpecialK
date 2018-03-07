@@ -681,6 +681,7 @@ enum class SK_GAME_ID
   DisgaeaPC,                    // dis1_st.exe
   SecretOfMana,                 // Secret_of_Mana.exe
   FinalFantasyXV,               // ffxv*.exe
+  DragonBallFighterZ,           // DBFighterZ.exe
   UNKNOWN_GAME               = 0xffff
 };
 

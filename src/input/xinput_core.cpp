@@ -31,7 +31,8 @@
 #include <SpecialK/thread.h>
 #include <SpecialK/tls.h>
 
-#include <SpecialK/diagnostics/compatibility.h>
+#include <SpecialK/diagnostics/modules.h>
+#include <SpecialK/diagnostics/load_library.h>
 
 #include <cstdint>
 #include <algorithm>
@@ -1530,7 +1531,7 @@ SK_XInput_PollController ( INT           iJoyID,
           (ReadPointerAcquire ((volatile LPVOID *)&xinput_ctx.primary_hook));
 
       HMODULE hModXInput1_3 =
-        LoadLibraryW_Original (L"XInput1_3.dll");
+        SK_Modules.LoadLibraryLL (L"XInput1_3.dll");
 
       if (hModXInput1_3 != nullptr)
       {

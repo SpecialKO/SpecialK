@@ -20,11 +20,12 @@
 **/
 
 #include <SpecialK/SpecialK.h>
+#include <SpecialK/core.h>
+
+#include <cstdlib>
 
 SK_INCLUDE_START (COM_UTIL)
 
-#include <stdlib.h>
-#include <SpecialK/core.h>
 #include <SpecialK/thread.h>
 
 class SK_AutoCOMInit

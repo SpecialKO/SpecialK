@@ -72,10 +72,10 @@ SK_Denuvo_UsedByGame (bool retest)
         size_t len =
           wcslen (fd.cFileName);
 
-        if ( len >= 9  &&
-             len <= 10 &&
-               (! wcsstr (fd.cFileName, L".")) && fd.nFileSizeLow > 1024UL &&
-                                                  fd.nFileSizeLow < 4096UL )
+        if ( len >= 8  &&
+             len <= 11 &&
+               (! wcsstr (fd.cFileName, L".")) && fd.nFileSizeLow >  1024UL &&
+                                                  fd.nFileSizeLow <= 8192UL )
         {
           denuvo_file_s file = { };
 

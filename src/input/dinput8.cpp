@@ -45,7 +45,8 @@
 
 #include <SpecialK/com_util.h>
 #include <SpecialK/framerate.h>
-#include <SpecialK/diagnostics/compatibility.h>
+#include <SpecialK/diagnostics/modules.h>
+#include <SpecialK/diagnostics/load_library.h>
 
 #include <cstdio>
 #include <cstdlib>
@@ -219,7 +220,7 @@ SK_BootDI8 (void)
     {
       HMODULE hBackend =
         (SK_GetDLLRole () & DLL_ROLE::DInput8) ? backend_dll :
-                                        LoadLibraryW_Original (L"dinput8.dll");
+                                        SK_Modules.LoadLibraryLL (L"dinput8.dll");
 
       dll_log.Log (L"[ DInput 8 ] Importing DirectInput8Create....");
       dll_log.Log (L"[ DInput 8 ] ================================");
@@ -1453,7 +1454,7 @@ SK_Input_PreHookDI8 (void)
 
     if (tests [0].used || GetModuleHandle (L"dinput.dll"))
     {
-      LoadLibraryW_Original (L"dinput.dll");
+      SK_Modules.LoadLibraryLL (L"dinput.dll");
       SK_Input_PreHookDI7 ();
     }
   }

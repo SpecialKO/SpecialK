@@ -63,7 +63,8 @@
 #include <SpecialK/framerate.h>
 #include <SpecialK/steam_api.h>
 
-#include <SpecialK/diagnostics/compatibility.h>
+#include <SpecialK/diagnostics/modules.h>
+#include <SpecialK/diagnostics/load_library.h>
 #include <SpecialK/diagnostics/crash_handler.h>
 
 #include <SpecialK/plugin/plugin_mgr.h>
@@ -2570,8 +2571,9 @@ SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
           SK_Hook_ResolveTarget (*it);
 
           // Don't cache addresses that were screwed with by other injectors
-          const wchar_t* wszSection =
-            StrStrIW (it->target.module_path, LR"(\sys)") ?
+          const wchar_t* wszSection = (
+            StrStrIW (it->target.module_path, LR"(\sys)") ||
+            StrStrIW (it->target.module_path, LR"(ReShade)") ) ?
                                               L"DXGI.Hooks" : nullptr;
 
           if (! wszSection)
@@ -2598,8 +2600,9 @@ SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
 
         while ( it_local != std::end (local_dxgi_records) )
         {
-          if (( *it_local )->hits &&
-    StrStrIW (( *it_local )->target.module_path, LR"(\sys)") &&
+          if (( *it_local )->hits && (
+    StrStrIW (( *it_local )->target.module_path, LR"(\sys)")    ||
+    StrStrIW (( *it_local )->target.module_path, LR"(ReShade)")    ) &&
               ( *it_local )->active)
             SK_Hook_PushLocalCacheOntoGlobal ( **it_local,
                                                  **it_global );
@@ -5441,7 +5444,7 @@ SK_D3D11_GetSystemDLL (void)
     lstrcatW (wszPath, LR"(\d3d11.dll)");
 
     hModSystemD3D11 =
-      LoadLibraryW_Original (wszPath);
+      SK_Modules.LoadLibraryLL (wszPath);
   }
 
   return hModSystemD3D11;
@@ -5455,7 +5458,7 @@ SK_D3D11_GetLocalDLL (void)
   if (hModLocalD3D11 == nullptr)
   {
     hModLocalD3D11 =
-      LoadLibraryW_Original (L"d3d11.dll");
+      SK_Modules.LoadLibraryLL (L"d3d11.dll");
   }
 
   return hModLocalD3D11;
@@ -5625,7 +5628,7 @@ SK_HookDXGI (void)
 
     HMODULE hBackend = 
       ( (SK_GetDLLRole () & DLL_ROLE::DXGI) && (! d3d11) ) ? backend_dll :
-                                                               LoadLibraryW_Original (L"dxgi.dll");
+                                                               SK_Modules.LoadLibraryLL (L"dxgi.dll");
 
 
     dll_log.Log (L"[   DXGI   ] Importing CreateDXGIFactory{1|2}");
@@ -6861,7 +6864,7 @@ SK::DXGI::StartBudgetThread_NoAdapter (void)
   SK_AutoCOMInit auto_com;
 
   static HMODULE
-    hDXGI = LoadLibraryW_Original ( L"dxgi.dll" );
+    hDXGI = SK_Modules.LoadLibraryLL ( L"dxgi.dll" );
 
   if (hDXGI)
   {

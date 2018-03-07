@@ -30,10 +30,10 @@
 #include <SpecialK/utility.h>
 
 
-typedef void (WINAPI *GetSystemTimePreciseAsFileTime_pfn)(
-             _Out_ LPFILETIME lpSystemTimeAsFileTime
-);                    GetSystemTimePreciseAsFileTime_pfn
-                  _k32GetSystemTimePreciseAsFileTime = nullptr;
+typedef void ( WINAPI *GetSystemTimePreciseAsFileTime_pfn )(
+  _Out_ LPFILETIME lpSystemTimeAsFileTime
+  );                    GetSystemTimePreciseAsFileTime_pfn
+  _k32GetSystemTimePreciseAsFileTime = nullptr;
 
 WORD
 SK_Timestamp (wchar_t* const out)
@@ -42,31 +42,32 @@ SK_Timestamp (wchar_t* const out)
 
   // Check for Windows 8 / Server 2012
   static bool __hasSystemTimePrecise =
-    (LOBYTE (LOWORD (GetVersion ( ))) == 6  &&
-     HIBYTE (LOWORD (GetVersion ( ))) >= 2) ||
-     LOBYTE (LOWORD (GetVersion ( )   > 6));
+    ( LOBYTE (LOWORD (GetVersion ( ))) == 6 &&
+     HIBYTE (LOWORD (GetVersion  ( ))) >= 2 ) ||
+    LOBYTE (LOWORD (GetVersion   ( )    > 6));
 
-  // More accurate timestamp is available on Windows 6.2+
+ // More accurate timestamp is available on Windows 6.2+
   if (__hasSystemTimePrecise)
   {
     if (_k32GetSystemTimePreciseAsFileTime == nullptr)
     {
-        _k32GetSystemTimePreciseAsFileTime =
-           (GetSystemTimePreciseAsFileTime_pfn)
-          GetProcAddress ( GetModuleHandle (L"Kernel32.dll"),
-                           "GetSystemTimePreciseAsFileTime" );
+      _k32GetSystemTimePreciseAsFileTime =
+        (GetSystemTimePreciseAsFileTime_pfn)
+        GetProcAddress (GetModuleHandle (L"Kernel32.dll"),
+                        "GetSystemTimePreciseAsFileTime");
     }
 
     if (_k32GetSystemTimePreciseAsFileTime == nullptr)
-    {     __hasSystemTimePrecise = false;
-             GetLocalTime (&stLogTime);
+    {
+      __hasSystemTimePrecise = false;
+      GetLocalTime (&stLogTime);
     }
     else
     {
-      FILETIME                              ftLogTime  ;
-      _k32GetSystemTimePreciseAsFileTime ( &ftLogTime );
-      FileTimeToSystemTime               ( &ftLogTime ,
-                                           &stLogTime );
+      FILETIME                              ftLogTime;
+      _k32GetSystemTimePreciseAsFileTime (&ftLogTime);
+      FileTimeToSystemTime (&ftLogTime,
+                            &stLogTime);
     }
   }
 
@@ -75,11 +76,11 @@ SK_Timestamp (wchar_t* const out)
     GetLocalTime (&stLogTime);
   }
 
-  wchar_t date [64] = { };
-  wchar_t time [64] = { };
+  wchar_t date [16] = { };
+  wchar_t time [16] = { };
 
-  GetDateFormat (LOCALE_INVARIANT,DATE_SHORTDATE,   &stLogTime,nullptr,date,64);
-  GetTimeFormat (LOCALE_INVARIANT,TIME_NOTIMEMARKER,&stLogTime,nullptr,time,64);
+  GetDateFormat (LOCALE_INVARIANT, DATE_SHORTDATE,    &stLogTime, nullptr, date, 15);
+  GetTimeFormat (LOCALE_INVARIANT, TIME_NOTIMEMARKER, &stLogTime, nullptr, time, 15);
 
   out [0] = L'\0';
 
@@ -91,29 +92,124 @@ SK_Timestamp (wchar_t* const out)
   return stLogTime.wMilliseconds;
 }
 
+
+#include <concurrent_unordered_map.h>
+#include <SpecialK/thread.h>
+
+// Due to the way concurrent data structures grow, we can't shrink this beast
+//   and this _is_ technically a set, of sorts... but knowing if an element is
+//     present requires treating it like a map and reading a boolean.
+concurrency::concurrent_unordered_map <iSK_Logger *, bool> flush_set;
+HANDLE                                                     hFlushReq  = 0;
+
+DWORD
+WINAPI
+SK_Log_AsyncFlushThreadPump (LPVOID)
+{
+  CHandle hThread (GetCurrentThread ());
+
+  SetThreadDescription ( hThread, L"[SK] Async Log Flush Thread Pump" );
+  SetThreadPriority    ( hThread, THREAD_PRIORITY_LOWEST              );
+
+  // TODO:  Consider an interlocked singly-linked list instead
+  //
+  //         ( The only drawback is Windows 7 does not support
+  //             these in 64-bit code ... but what's new? )
+  //
+  //    _Have I remembered to mention how much Windows 7 sucks recently?_
+  //
+  while (! ReadAcquire (&__SK_DLL_Ending))
+  {
+    if (! flush_set.empty ())
+    {
+      for ( auto& it : flush_set )
+      {
+        if ( it.second != false  )
+        {
+          if ( it.first       != nullptr &&
+               it.first->fLog != nullptr    )
+          {
+            fflush ( it.first->fLog );
+          }
+
+          it.second = false;
+        }
+      }
+    }
+
+    WaitForSingleObjectEx (hFlushReq, INFINITE, TRUE);
+    ResetEvent            (hFlushReq);
+  }
+
+  CloseHandle (hFlushReq);
+  CloseHandle (GetCurrentThread ());
+
+  return 0;
+}
+
+
 BOOL
 SK_FlushLog (iSK_Logger* pLog)
 {
-#if 1
-  fflush (pLog->fLog);
-  return TRUE;
-#else
-  DWORD dwTime = timeGetTime ();
+#ifdef _DEBUG
+  static volatile LONG   flush_reqs  (0);
+#endif
 
-  if ( pLog->flush_freq == 00 ||
-       pLog->last_flush <= dwTime - pLog->flush_freq )
+  static volatile HANDLE
+    hFlushThread = INVALID_HANDLE_VALUE;
+
+  if ( INVALID_HANDLE_VALUE ==
+         InterlockedCompareExchangePointer (
+           &hFlushThread,
+             reinterpret_cast <PVOID> (1),
+               INVALID_HANDLE_VALUE
+         )
+     )
   {
-    fflush (pLog->fLog);
-            pLog->last_flush = dwTime;
+    hFlushReq =
+      CreateEvent ( nullptr, TRUE, TRUE, LR"(Local\SK_LogFlush)" );
 
-    return TRUE;
+    InterlockedExchangePointer (
+      const_cast         <         LPVOID *> (
+        reinterpret_cast <volatile LPVOID *>   (&hFlushThread)
+                                             ),
+        CreateThread ( nullptr, 0x0,
+                         SK_Log_AsyncFlushThreadPump, nullptr,
+                                0x0,                  nullptr )
+    );
   }
 
-  return FALSE;
+  if ( (! flush_set.count ( pLog )) ||
+          flush_set       [ pLog ] == false )
+  { flush_set             [ pLog ]  = true;
+    SetEvent              ( hFlushReq );
+#ifdef _DEBUG
+    InterlockedIncrement  (&flush_reqs);
 #endif
+  }
+
+
+  return TRUE;
 }
 
 iSK_Logger dll_log, budget_log;
+
+
+std::wstring
+__stdcall
+SK_Log_GetPath (const wchar_t* wszFileName)
+{
+  std::wstring formatted_file =
+    SK_FormatStringW ( LR"(%slogs\%s)",
+                         SK_GetConfigPath (),
+                           wszFileName );
+
+  SK_CreateDirectories (
+    formatted_file.c_str ()
+  );
+
+  return formatted_file;
+}
 
 
 void
@@ -125,35 +221,47 @@ iSK_Logger::close (void)
   else
     return;
 
+
   if (fLog != nullptr)
   {
+    if ( flush_set.count (this) )
+    {
+         flush_set       [this] = false;
+    }
+
     fflush (fLog);
     fclose (fLog);
-    fLog = nullptr;
+            fLog = nullptr;
   }
+
 
   if (lines == 0)
   {
-    std::wstring full_name =
-      SK_GetConfigPath ();
+    std::wstring  full_name (
+      SK_GetConfigPath ()
+    );
 
-    full_name += name;
+    full_name  += name;
 
-    if (StrStrIW (name.c_str (), L"crash\\"))
+    if (StrStrIW (name.c_str (), LR"(crash\)"))
       full_name = name;
 
-    DeleteFileW (full_name.c_str ());
+    DeleteFileW  (full_name.c_str ());
   }
+
 
   if (initialized)
   {
     initialized = false;
     silent      = true;
 
+    Release ();
+
     LeaveCriticalSection  (&log_mutex);
     DeleteCriticalSection (&log_mutex);
   }
 }
+
 
 bool
 iSK_Logger::init ( const wchar_t* const wszFileName,
@@ -167,16 +275,17 @@ iSK_Logger::init ( const wchar_t* const wszFileName,
 
   name = wszFileName;
 
-  std::wstring full_name =
-    SK_GetConfigPath ();
-
-  SK_CreateDirectories (
-    std::wstring (full_name + L"logs\\").c_str ()
+  std::wstring full_name (
+    SK_GetConfigPath ()
   );
 
-  full_name += wszFileName;
+  SK_CreateDirectories (
+    std::wstring (full_name + LR"(logs\)").c_str ()
+  );
 
-  if (StrStrIW (wszFileName, L"crash\\"))
+  full_name  += wszFileName;
+
+  if (StrStrIW (wszFileName, LR"(crash\)"))
   {
     full_name = wszFileName;
   }
@@ -184,8 +293,8 @@ iSK_Logger::init ( const wchar_t* const wszFileName,
   fLog   = _wfopen (full_name.c_str (), wszMode);
   silent = false;
 
-  BOOL bRet = InitializeCriticalSectionAndSpinCount (&log_mutex, 250000);
-   lockless = true;
+  BOOL bRet = InitializeCriticalSectionAndSpinCount (&log_mutex, 400);
+   lockless = false;//true;
 
   if ((! bRet) || (fLog == nullptr))
   {
@@ -193,8 +302,9 @@ iSK_Logger::init ( const wchar_t* const wszFileName,
     return false;
   }
 
-  initialized = true;
-  return initialized;
+  AddRef ();
+
+  return (initialized = true);
 }
 
 void
@@ -206,16 +316,16 @@ iSK_Logger::LogEx ( bool                 _Timestamp,
   if ((! initialized) || (! fLog) || silent)
     return;
 
-  ++lines;
 
   if (_Timestamp)
   {
-    wchar_t wszLogTime [128];
-
-    UINT ms = SK_Timestamp (wszLogTime);
+    wchar_t                    wszLogTime [32] = { };
+    UINT    ms = SK_Timestamp (wszLogTime);
 
     lock ();
-    fwprintf (fLog, L"%s%03u: ", wszLogTime, ms);
+
+    fwprintf ( fLog,
+                 L"%s%03u: ",  wszLogTime, ms );
   }
 
   else
@@ -223,14 +333,19 @@ iSK_Logger::LogEx ( bool                 _Timestamp,
     lock ();
   }
 
+
   va_list   _ArgList;
   va_start (_ArgList, _Format);
   {
-    vfwprintf (fLog, _Format, _ArgList);
+    vfwprintf ( fLog, _Format,
+            _ArgList);
   }
   va_end   (_ArgList);
 
-  unlock ();
+          ++lines;
+
+  unlock   ();
+
 
   SK_FlushLog (this);
 }
@@ -243,26 +358,28 @@ iSK_Logger::Log   ( _In_z_ _Printf_format_string_
   if ((! initialized) || (! fLog) || silent)
     return;
 
-  wchar_t wszLogTime [128];
 
-  UINT ms = SK_Timestamp (wszLogTime);
+  wchar_t                    wszLogTime [32] = { };
+  UINT    ms = SK_Timestamp (wszLogTime);
 
-  lock ();
-
-  ++lines;
-
-  fwprintf (fLog, L"%s%03u: ", wszLogTime, ms);
+  lock     ();
+  fwprintf ( fLog,
+               L"%s%03u: ",  wszLogTime, ms );
 
   va_list   _ArgList;
   va_start (_ArgList, _Format);
   {
-    vfwprintf (fLog, _Format, _ArgList);
+    vfwprintf (
+            fLog,     _Format,
+            _ArgList);
   }
   va_end   (_ArgList);
-
   fwprintf (fLog, L"\n");
 
+          ++lines;
+
   unlock   ();
+
 
   SK_FlushLog (this);
 }
@@ -275,26 +392,29 @@ iSK_Logger::Log   ( _In_z_ _Printf_format_string_
   if ((! initialized) || (! fLog) || silent)
     return;
 
-  wchar_t wszLogTime [128];
 
-  UINT ms = SK_Timestamp (wszLogTime);
+  wchar_t                    wszLogTime [32] = { };
+  UINT    ms = SK_Timestamp (wszLogTime);
 
   lock ();
 
-  ++lines;
-
-  fwprintf (fLog, L"%s%03u: ", wszLogTime, ms);
+  fwprintf ( fLog,
+               L"%s%03u: ",  wszLogTime, ms );
 
   va_list   _ArgList;
   va_start (_ArgList, _Format);
   {
-    vfprintf (fLog, _Format, _ArgList);
+    vfprintf ( fLog,  _Format,
+            _ArgList);
   }
   va_end   (_ArgList);
 
   fwprintf (fLog, L"\n");
 
+          ++lines;
+
   unlock   ();
+
 
   SK_FlushLog (this);
 }
@@ -305,24 +425,37 @@ iSK_Logger::QueryInterface (THIS_ REFIID riid, void** ppvObj)
   if (IsEqualGUID (riid, IID_SK_Logger))
   {
     AddRef ();
+
     *ppvObj = this;
+
     return S_OK;
   }
 
-  return E_NOTIMPL;
+  return E_NOINTERFACE;
 }
 
 ULONG
 iSK_Logger::AddRef (THIS)
 {
-  return InterlockedIncrement (&refs);
+  return
+    InterlockedIncrement (&refs);
 }
 
 ULONG
 iSK_Logger::Release (THIS)
 {
-  return InterlockedDecrement (&refs);
+  if (   InterlockedDecrement (&refs) != 0UL )
+    return (ULONG)ReadAcquire (&refs);
+
+  if (initialized)
+  {
+    initialized = false;
+    delete this;
+  }
+
+  return 0;
 }
+
 
 iSK_Logger*
 __stdcall
@@ -337,14 +470,14 @@ SK_CreateLog (const wchar_t* const wszName)
   return pLog;
 }
 
+
 std::wstring
 __stdcall
 SK_SummarizeCaller (LPVOID lpReturnAddr)
 {
-  wchar_t wszSummary [ 256] = { };
-
-  char    szSymbol   [1024] = { };
-  ULONG   ulLen             = 1024;
+  wchar_t wszSummary [256] = { };
+  char    szSymbol   [256] = { };
+  ULONG   ulLen            = 191;
     
   ulLen = SK_GetSymbolNameFromModuleAddr (
             SK_GetCallingDLL (),
@@ -373,22 +506,4 @@ SK_SummarizeCaller (LPVOID lpReturnAddr)
   }
 
   return wszSummary;
-}
-
-std::wstring
-__stdcall
-SK_Log_GetPath (const wchar_t* wszFileName)
-{
-  std::wstring full_name =
-    SK_GetConfigPath ();
-
-  full_name += L"logs\\";
-
-  SK_CreateDirectories (
-    std::wstring (full_name).c_str ()
-  );
-
-  full_name += wszFileName;
-
-  return full_name;
 }

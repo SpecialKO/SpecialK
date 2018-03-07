@@ -22,8 +22,6 @@
 #define __SK_SUBSYSTEM__ L"DebugUtils"
 
 #include <SpecialK/diagnostics/debug_utils.h>
-#include <SpecialK/diagnostics/compatibility.h>
-
 
 #include <SpecialK/config.h>
 #include <SpecialK/core.h>
@@ -34,6 +32,8 @@
 #include <SpecialK/thread.h>
 
 #include <Windows.h>
+#include <SpecialK/diagnostics/modules.h>
+#include <SpecialK/diagnostics/load_library.h>
 
 // Fix warnings in dbghelp.h
 #pragma warning (disable : 4091)
@@ -380,7 +380,7 @@ SK_Debug_LoadHelper (void)
   GetSystemDirectory (wszSystemDbgHelp, MAX_PATH * 2 - 1);
   PathAppendW        (wszSystemDbgHelp, L"dbghelp.dll");
 
-  return (hModDbgHelp = LoadLibraryW (wszSystemDbgHelp));
+  return (hModDbgHelp = SK_Modules.LoadLibraryLL (wszSystemDbgHelp));
 }
 
 BOOL

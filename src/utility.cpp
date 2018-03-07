@@ -25,6 +25,8 @@
 #include <SpecialK/core.h>
 #include <SpecialK/log.h>
 
+#include <SpecialK/diagnostics/modules.h>
+
 #include <UserEnv.h>
 #pragma comment (lib, "userenv.lib")
 
@@ -152,8 +154,8 @@ SK_GetUserProfileDir (wchar_t* buf, uint32_t* pdwLen)
 
   static auto imp_GetUserProfileDirectoryW =
     (GetUserProfileDirectoryW_pfn)
-     GetProcAddress ( LoadLibraryW (L"userenv.dll"),
-                                     "GetUserProfileDirectoryW" );
+     GetProcAddress ( SK_Modules.LoadLibrary (L"userenv.dll"),
+                                               "GetUserProfileDirectoryW" );
 
 
   CHandle hToken;
@@ -176,6 +178,12 @@ bool
 __stdcall
 SK_CreateDirectories ( const wchar_t* wszPath )
 {
+  // If the final path already exists, well... there's no work to be done, so
+  //   don't do that crazy loop of crap below and just abort early !
+  if (GetFileAttributesW (wszPath) != INVALID_FILE_ATTRIBUTES)
+    return true;
+
+
   CHeapPtr <wchar_t>
            wszSubDir         (_wcsdup (wszPath));
 
@@ -1077,7 +1085,7 @@ SK_VerQueryValueW (
   _Outptr_result_buffer_ (_Inexpressible_ ("buffer can be PWSTR or DWORD*")) LPVOID * lplpBuffer,
   _Out_ PUINT  puLen )
 {
-  if (hModVersion == nullptr) hModVersion = LoadLibraryW (L"version.dll");
+  if (hModVersion == nullptr) hModVersion = SK_Modules.LoadLibrary (L"version.dll");
 
   using VerQueryValueW_pfn = BOOL (WINAPI *)(
     _In_ LPCVOID pBlock,
@@ -1100,7 +1108,7 @@ SK_GetFileVersionInfoExW (_In_                      DWORD   dwFlags,
                           _In_                      DWORD   dwLen,
                           _Out_writes_bytes_(dwLen) LPVOID  lpData)
 {
-  if (hModVersion == nullptr) hModVersion = LoadLibraryW (L"version.dll");
+  if (hModVersion == nullptr) hModVersion = SK_Modules.LoadLibrary (L"version.dll");
 
   using GetFileVersionInfoExW_pfn = BOOL (WINAPI *)(
     _In_                      DWORD   dwFlags,

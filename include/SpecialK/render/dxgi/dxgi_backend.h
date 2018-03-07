@@ -559,7 +559,7 @@ public:
 using  SK_D3D11_TexMgr_Singleton = SK_D3D11_TexMgr&;
 extern SK_D3D11_TexMgr_Singleton __SK_Singleton_D3D11_Textures (void);
 
-static auto&& SK_D3D11_Textures = __SK_Singleton_D3D11_Textures ();
+#define SK_D3D11_Textures __SK_Singleton_D3D11_Textures()
 
 
 typedef HRESULT (STDMETHODCALLTYPE *D3D11Dev_CreateDeferredContext_pfn)( 
@@ -1049,7 +1049,10 @@ struct SK_D3D11_KnownShaders
   ShaderRegistry <ID3D11ComputeShader>  compute;
 };
 
-extern SK_D3D11_KnownShaders SK_D3D11_Shaders;
+using  SK_D3D11_KnownShaders_Singleton = SK_D3D11_KnownShaders&;
+extern SK_D3D11_KnownShaders_Singleton __SK_Singleton_D3D11_Shaders (void);
+
+#define SK_D3D11_Shaders __SK_Singleton_D3D11_Shaders()
 
 
 typedef HRESULT (WINAPI *D3D11CreateDevice_pfn)(

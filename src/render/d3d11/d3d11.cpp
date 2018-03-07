@@ -23,7 +23,8 @@
 
 #include <Windows.h>
 
-#include <SpecialK/diagnostics/compatibility.h>
+#include <SpecialK/diagnostics/modules.h>
+#include <SpecialK/diagnostics/load_library.h>
 #include <SpecialK/render/dxgi/dxgi_backend.h>
 #include <SpecialK/render/backend.h>
 
@@ -1619,8 +1620,14 @@ D3D11Dev_CreateRenderTargetView_Override (
 bool SK_D3D11_EnableTracking     = false;
 bool SK_D3D11_EnableMMIOTracking = false;
 
+SK_D3D11_KnownShaders_Singleton
+__SK_Singleton_D3D11_Shaders (void)
+{
+  static SK_D3D11_KnownShaders _SK_D3D11_Shaders;
 
-SK_D3D11_KnownShaders SK_D3D11_Shaders;
+  return _SK_D3D11_Shaders;
+}
+
 
 struct SK_D3D11_KnownTargets
 {
@@ -5789,7 +5796,6 @@ SK_D3D11_ResetTexCache (void)
   SK_D3D11_Textures.reset ();
 }
 
-#include <psapi.h>
 
 static volatile ULONG live_textures_dirty = FALSE;
 
@@ -9873,7 +9879,7 @@ SK_D3D11_InitTextures (void)
     if (hModD3DX11_43 == nullptr)
     {
       hModD3DX11_43 =
-        LoadLibraryW (L"d3dx11_43.dll");
+        SK_Modules.LoadLibrary (L"d3dx11_43.dll");
 
       if (hModD3DX11_43 == nullptr)
         hModD3DX11_43 = (HMODULE)1;
@@ -9998,7 +10004,7 @@ SK_D3D11_Init (void)
   {
     HMODULE hBackend = 
       ( (SK_GetDLLRole () & DLL_ROLE::D3D11) ) ? backend_dll :
-                                                   LoadLibraryW_Original (L"d3d11.dll");
+                                                  SK_Modules.LoadLibraryLL (L"d3d11.dll");
 
     SK::DXGI::hModD3D11 = hBackend;
 
@@ -15381,12 +15387,12 @@ protected:
 
 
 
-
-
-
-static const
+const std::unordered_map <std::wstring, SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*>&
+__SK_Singleton_D3D11_ShaderClassMap (void)
+{
+  static const
   std::unordered_map <std::wstring, SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*>
-    SK_D3D11_ShaderClassMap
+    SK_D3D11_ShaderClassMap_ =
     {
       std::make_pair (L"Vertex",   (SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*)&SK_D3D11_Shaders.vertex),
       std::make_pair (L"VS",       (SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*)&SK_D3D11_Shaders.vertex),
@@ -15407,7 +15413,21 @@ static const
       std::make_pair (L"CS",       (SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*)&SK_D3D11_Shaders.compute)
     };
 
-static std::unordered_set <std::wstring> loaded_configs;
+  return SK_D3D11_ShaderClassMap_;
+}
+
+std::unordered_set <std::wstring>&
+__SK_Singleton_D3D11_loaded_configs (void)
+{
+  static std::unordered_set <std::wstring> loaded_configs_;
+
+  return loaded_configs_;
+}
+
+#define loaded_configs          __SK_Singleton_D3D11_loaded_configs()
+#define SK_D3D11_ShaderClassMap __SK_Singleton_D3D11_ShaderClassMap()
+
+
 
 struct SK_D3D11_CommandBase
 {
@@ -15776,7 +15796,8 @@ SK_D3D11_PresentFirstFrame (IDXGISwapChain* pSwapChain)
 
       // Don't cache addresses that were screwed with by other injectors
       const wchar_t* wszSection =
-        StrStrIW (it->target.module_path, LR"(d3d11.dll)") ?
+        StrStrIW (it->target.module_path, LR"(d3d11.dll)") ||
+        StrStrIW (it->target.module_path, LR"(ReShade)") ?
                                         L"D3D11.Hooks" : nullptr;
 
       if (! wszSection)
@@ -15803,8 +15824,9 @@ SK_D3D11_PresentFirstFrame (IDXGISwapChain* pSwapChain)
 
     while ( it_local != std::end (local_d3d11_records) )
     {
-      if (( *it_local )->hits &&
-StrStrIW (( *it_local )->target.module_path, LR"(d3d11.dll)") &&
+      if (( *it_local )->hits && (
+StrStrIW (( *it_local )->target.module_path, LR"(d3d11.dll)") ||
+StrStrIW (( *it_local )->target.module_path, LR"(ReShade")")     ) &&
           ( *it_local )->active)
         SK_Hook_PushLocalCacheOntoGlobal ( **it_local,
                                              **it_global );

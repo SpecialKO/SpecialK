@@ -19,8 +19,6 @@
  *
 **/
 
-#include <SpecialK/diagnostics/crash_handler.h>
-
 #include <SpecialK/config.h>
 #include <SpecialK/core.h>
 #include <SpecialK/hooks.h>
@@ -40,6 +38,10 @@
 
 #include <CEGUI/CEGUI.h>
 #include <CEGUI/System.h>
+
+#include <SpecialK/diagnostics/load_library.h>
+#include <SpecialK/diagnostics/crash_handler.h>
+
 
 //#define STRICT_COMPLIANCE
 
@@ -223,7 +225,7 @@ CrashHandler::Init (void)
     [ ](LPVOID) ->
       DWORD
         {
-          HANDLE hThread = GetCurrentThread ();
+          CHandle hThread (GetCurrentThread ());
 
           SetThreadDescription (hThread, L"[SK] Crash Handler Init");
           SetThreadPriority    (hThread, THREAD_PRIORITY_LOWEST);
@@ -261,8 +263,6 @@ CrashHandler::Init (void)
           //      TRUE );
 
           Reinstall ();
-
-          CloseHandle (hThread);
 
           InterlockedIncrement (&init);
 

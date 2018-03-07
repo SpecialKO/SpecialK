@@ -23,8 +23,6 @@
 #include <process.h>
 #include <Shlwapi.h>
 
-#include <psapi.h>
-
 #include <SpecialK/steam_api.h>
 #include <SpecialK/resource.h>
 
@@ -35,7 +33,8 @@
 #include <SpecialK/ini.h>
 #include <SpecialK/log.h>
 #include <SpecialK/framerate.h>
-#include <SpecialK/diagnostics/compatibility.h>
+#include <SpecialK/diagnostics/modules.h>
+#include <SpecialK/diagnostics/load_library.h>
 
 #include <SpecialK/osd/popup.h>
 #include <SpecialK/osd/text.h>
@@ -281,7 +280,7 @@ InitSafe_Detour (void)
     InterlockedExchange (&__SK_Steam_init, TRUE);
 
     HMODULE hSteamAPI =
-      LoadLibraryW_Original (L"CSteamworks.dll");
+      SK_Modules.LoadLibraryLL (L"CSteamworks.dll");
 
     if (hSteamAPI)
     {
@@ -379,7 +378,7 @@ SK_HookCSteamworks (void)
     lstrcatW (wszModName, L"steam_api.dll");
 #endif
 
-    if (LoadLibraryW_Original (wszModName))
+    if (SK_Modules.LoadLibraryLL (wszModName))
     {
       steam_log.Log ( L" >>> Located a real steam_api DLL: '%s'...",
                       wszModName );

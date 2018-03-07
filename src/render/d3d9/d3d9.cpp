@@ -58,7 +58,8 @@ MIDL_INTERFACE("B18B10CE-2649-405a-870F-95F777D4313A") IDirect3DDevice9Ex;
 #include <imgui/backends/imgui_d3d9.h>
 
 #include <SpecialK/framerate.h>
-#include <SpecialK/diagnostics/compatibility.h>
+#include <SpecialK/diagnostics/modules.h>
+#include <SpecialK/diagnostics/load_library.h>
 
 using namespace SK::D3D9;
 
@@ -342,8 +343,22 @@ SK::D3D9::VertexBufferTracker::use (void)
 // For now, let's just focus on stream0 and pretend nothing else exists...
 IDirect3DVertexBuffer9* vb_stream0 = nullptr;
 
-std::unordered_map <uint32_t, ShaderDisassembly> ps_disassembly;
-std::unordered_map <uint32_t, ShaderDisassembly> vs_disassembly;
+
+std::unordered_map <uint32_t, ShaderDisassembly>&
+__SK_Singleton_D3D9_PS_Disassembly (void)
+{
+  static std::unordered_map <uint32_t, ShaderDisassembly> _ps_disassembly; return _ps_disassembly;
+}
+
+
+std::unordered_map <uint32_t, ShaderDisassembly>&
+__SK_Singleton_D3D9_VS_Disassembly (void)
+{
+  static std::unordered_map <uint32_t, ShaderDisassembly> _vs_disassembly; return _vs_disassembly;
+}
+
+#define ps_disassembly __SK_Singleton_D3D9_PS_Disassembly()
+#define vs_disassembly __SK_Singleton_D3D9_VS_Disassembly()
 
 
 void SK_D3D9_InitShaderModTools   (void);
@@ -795,7 +810,7 @@ SK_HookD3D9 (void)
     // XXX: Kind of a hack, we may need to implicitly load-up D3D9.DLL so
     //        we can wait for VBlank in OpenGL..
     if (! GetModuleHandle (L"d3d9.dll"))
-      LoadLibraryW_Original (L"d3d9.dll");
+      SK_Modules.LoadLibraryLL (L"d3d9.dll");
 
 
     HMODULE hBackend =

@@ -70,7 +70,7 @@ SK_GetCurrentGameID (void)
     // For games that can't be matched using a single executable filename
     if (current_game == SK_GAME_ID::UNKNOWN_GAME)
     {
-      if (StrStrIW (SK_GetHostApp (), L"ffxv"))
+      if ( StrStrIW ( SK_GetHostApp (), L"ffxv" ) )
         current_game = SK_GAME_ID::FinalFantasyXV;
     }
   }
@@ -440,17 +440,17 @@ SK_GetConfigPathEx (bool reset = false)
 
   if (! init)
   {
-    app_cache_mgr.loadAppCacheForExe (SK_GetFullyQualifiedApp ());
+    app_cache_mgr.loadAppCacheForExe         ( SK_GetFullyQualifiedApp () );
     init = true;
   }
 
   static std::wstring path =
-    app_cache_mgr.getConfigPathFromAppPath (SK_GetFullyQualifiedApp ());
+    app_cache_mgr.getConfigPathFromAppPath   ( SK_GetFullyQualifiedApp () );
 
   if (reset)
   {
     path =
-      app_cache_mgr.getConfigPathFromAppPath (SK_GetFullyQualifiedApp ());
+      app_cache_mgr.getConfigPathFromAppPath ( SK_GetFullyQualifiedApp () );
   }
 
   return path.c_str ();
@@ -500,25 +500,35 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
   std::wstring osd_config, achievement_config, macro_config;
 
-  full_name = SK_GetConfigPath () +
-                name              +
-                  L".ini";
-
-  std::wstring undecorated_name = name;
-
-  if (undecorated_name.find (L"default_") != std::wstring::npos)
+  full_name =
   {
-    undecorated_name.erase ( undecorated_name.find (L"default_"),
-                             std::wstring (L"default_").length () );
+    std::move (
+      SK_FormatStringW   ( L"%s%s.ini",
+        SK_GetConfigPath (), name.c_str ()
+      )
+    )
+  };
+
+  std::wstring undecorated_name (name);
+
+  if ( undecorated_name.find (L"default_") != undecorated_name.npos )
+  {
+      undecorated_name.erase ( undecorated_name.find (L"default_"),
+                                        std::wstring (L"default_").length () );
   }
 
-  custom_name = std::wstring   (SK_GetConfigPath ()) +
-                  std::wstring (L"custom_")          +
-                    undecorated_name                 +
-                      L".ini";
+  custom_name =
+  {
+    std::move (
+      SK_FormatStringW ( L"%scustom_%s.ini",
+        SK_GetConfigPath (), undecorated_name.c_str ()
+      )
+    )
+  };
+
 
   if (create)
-    SK_CreateDirectories (full_name.c_str ());
+    SK_CreateDirectories ( full_name.c_str () );
 
   static LONG         init     = FALSE;
   static bool         empty    = true;
@@ -531,39 +541,58 @@ SK_LoadConfigEx (std::wstring name, bool create)
     last_try = name;
   }
 
-  osd_config =
+
+  osd_config         =
     SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\Global\osd.ini)";
 
   achievement_config =
     SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\Global\achievements.ini)";
 
-  macro_config =
+  macro_config       =
     SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\Global\macros.ini)";
 
+
+  // NO IDEA WHAT THIS CODE IS/WAS for
+  //
+  //   I am pretty sure it is as stupid as it looks and does not implement
+  //     an effective synchronization construct by anyone's definition.
+  //
   while (init < 0)
     MsgWaitForMultipleObjectsEx (0, nullptr, 2UL, QS_ALLINPUT, MWMO_ALERTABLE);
+
 
   if (init == FALSE || dll_ini == nullptr)
   {
     init = -1;
 
+
     dll_ini =
       SK_CreateINI (full_name.c_str ());
 
-    empty = dll_ini->get_sections ().empty ();
+    empty   =
+      dll_ini->get_sections ().empty ();
+
 
     SK_CreateDirectories (osd_config.c_str ());
 
-    osd_ini =
+
+    osd_ini         =
       SK_CreateINI (osd_config.c_str ());
 
     achievement_ini =
       SK_CreateINI (achievement_config.c_str ());
 
-    macro_ini =
+    macro_ini       =
       SK_CreateINI (macro_config.c_str ());
 
-  #define ConfigEntry(param,descrip,ini,sec,key) { (sk::iParameter **)&(param), std::type_index (typeid ((param))), (descrip), (ini), (sec), (key) }
+
+// TODO:  Covert this to a template
+#define ConfigEntry(param,descrip,ini,sec,key) {   \
+  reinterpret_cast <sk::iParameter **> (&(param)), \
+  std::type_index (         typeid ((param))),     \
+                    (descrip),  (ini),             \
+                    (sec),      (key)              \
+}
 
   //
   // Create Parameters
@@ -1177,6 +1206,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
   games.emplace ( L"Fallout4.exe",                           SK_GAME_ID::Fallout4                     );
   games.emplace ( L"dis1_st.exe",                            SK_GAME_ID::DisgaeaPC                    );
   games.emplace ( L"Secret_of_Mana.exe",                     SK_GAME_ID::SecretOfMana                 );
+  games.emplace ( L"DBFighterZ.exe",                         SK_GAME_ID::DragonBallFighterZ           );
 
   //
   // Application Compatibility Overrides
@@ -1509,6 +1539,11 @@ SK_LoadConfigEx (std::wstring name, bool create)
         // Don't show the cursor, ever, because the game doesn't use it.
         config.input.cursor.manage        = true;
         config.input.cursor.timeout       = 0;
+        break;
+
+      case SK_GAME_ID::DragonBallFighterZ:
+        WinExec ("RED\\Binaries\\Win64\\RED-Win64-Shipping.exe", SW_SHOWNORMAL);
+        exit (0);
         break;
     }
   }
@@ -3036,29 +3071,51 @@ SK_Keybind::parse (void)
 bool
 SK_AppCache_Manager::loadAppCacheForExe (const wchar_t* wszExe)
 {
+  //
+  // "AppCaches" are basically fast-path lookups for a game's user-friendly
+  //   name that avoid using SteamAPI, the Steam Client or exhaustive app-
+  //     manifest file searches for games we have seen before.
+  //
   wchar_t* wszPath =
-    StrStrIW (wszExe, LR"(SteamApps\common\)");
+    StrStrIW ( wszExe, LR"(SteamApps\common\)" );
 
   if (wszPath != nullptr)
   {
-    wchar_t* wszRelPath =
-      _wcsdup (CharNextW (StrStrIW (CharNextW (StrStrIW (wszPath, L"\\")), L"\\")));
+    CHeapPtr <wchar_t> wszRelPath (
+      _wcsdup ( CharNextW (
+                  StrStrIW (
+                    CharNextW (
+                      StrStrIW ( wszPath, LR"(\)" )
+                              ),
+                    LR"(\)"
+                  )
+                )
+              )
+    );
 
     PathRemoveFileSpecW (wszRelPath);
 
-    std::wstring wstr_appcache =
-     SK_FormatStringW ( LR"(%s\My Mods\SpecialK\Profiles\AppCache\%s\SpecialK.AppCache)",
-                          SK_GetDocumentsDir ().c_str (),
-                            wszRelPath );
+    std::wstring wstr_appcache
+    (
+      SK_FormatStringW ( LR"(%s\My Mods\SpecialK\Profiles\AppCache\%s\SpecialK.AppCache)",
+                           SK_GetDocumentsDir ().c_str (),
+                             wszRelPath.m_pData
+                       )
+    );
 
-    SK_CreateDirectories (wstr_appcache.c_str ());
+    // It may be necessary to write the INI immediately after creating it,
+    //   but usually not.
+    bool need_to_create =
+      ( GetFileAttributesW (wstr_appcache.c_str ()) == INVALID_FILE_ATTRIBUTES );
+
+    if ( need_to_create )
+      SK_CreateDirectories (wstr_appcache.c_str ());
 
     app_cache_db =
-      SK_CreateINI (wstr_appcache.c_str ());
+      SK_CreateINI         (wstr_appcache.c_str ());
 
-    app_cache_db->write (app_cache_db->get_filename ());
-
-    free (wszRelPath);
+    if ( need_to_create )
+      app_cache_db->write (app_cache_db->get_filename ());
   }
 
   if (app_cache_db != nullptr)
@@ -3078,17 +3135,24 @@ SK_AppCache_Manager::getAppIDFromPath (const wchar_t* wszPath) const
       app_cache_db->get_section (L"AppID_Cache.FwdMap");
 
   wchar_t* wszSteamApps =
-    StrStrIW (wszPath, LR"(SteamApps\common\)");
+    StrStrIW ( wszPath, LR"(SteamApps\common\)" );
 
   if (wszSteamApps != nullptr)
   {
     wchar_t* wszRelPath =
-      CharNextW (StrStrIW (CharNextW (StrStrIW (wszSteamApps, L"\\")), L"\\"));
-
-    if (fwd_map.contains_key (wszRelPath))
     {
-      return _wtoi (fwd_map.get_value (wszRelPath).c_str ());
-    }
+      CharNextW (
+        StrStrIW (
+          CharNextW (
+            StrStrIW ( wszSteamApps, LR"(\)" )
+                    ),
+          LR"(\)"
+        )
+      )
+    };
+
+    if (            fwd_map.contains_key (wszRelPath)           )
+      return _wtoi (fwd_map.get_value    (wszRelPath).c_str ());
   }
 
   return 0;
@@ -3104,10 +3168,11 @@ SK_AppCache_Manager::getAppNameFromID (uint32_t uiAppID) const
     name_map =
       app_cache_db->get_section (L"AppID_Cache.Names");
 
-  if (name_map.contains_key   (SK_FormatStringW (L"%u", uiAppID).c_str ()))
-  {
-    return name_map.get_value (SK_FormatStringW (L"%u", uiAppID).c_str ());
-  }
+  std::wstring app_id_as_wstr =
+    std::to_wstring (uiAppID);
+
+  if (     name_map.contains_key (app_id_as_wstr.c_str ()) )
+    return name_map.get_value    (app_id_as_wstr.c_str ());
 
   return L"";
 }
@@ -3145,10 +3210,21 @@ SK_AppCache_Manager::addAppToCache ( const wchar_t* wszFullPath,
     app_cache_db->get_section (L"AppID_Cache.Names");
 
 
-  wchar_t* wszRelativePath = _wcsdup (wszFullPath);
+  CHeapPtr <wchar_t> wszRelativeCopy (_wcsdup (wszFullPath));
 
   wchar_t* wszRelPath =
-    CharNextW (StrStrIW (CharNextW (StrStrIW (StrStrIW (wszRelativePath, LR"(SteamApps\common\)"), LR"(\)")), LR"(\)"));
+  {
+    CharNextW (
+      StrStrIW (
+        CharNextW (
+          StrStrIW (
+            StrStrIW ( wszRelativeCopy, LR"(SteamApps\common\)" ),
+          LR"(\)"  )
+                  ),
+          LR"(\)"
+               )
+              )
+  };
 
 
   wchar_t    wszAppID [0x21] = { };
@@ -3172,10 +3248,8 @@ SK_AppCache_Manager::addAppToCache ( const wchar_t* wszFullPath,
     name_map.add_key_value  (wszAppID,   wszAppName);
 
 
-  app_cache_db->write (app_cache_db->get_filename ());
+  app_cache_db->write ( app_cache_db->get_filename () );
 
-
-  free (wszRelativePath);
 
   return true;
 }
@@ -3183,7 +3257,8 @@ SK_AppCache_Manager::addAppToCache ( const wchar_t* wszFullPath,
 std::wstring
 SK_AppCache_Manager::getConfigPathFromAppPath (const wchar_t* wszPath) const
 {
-  return getConfigPathForAppID (getAppIDFromPath (wszPath));
+  return
+    getConfigPathForAppID ( getAppIDFromPath (wszPath) );
 }
 
 #include <unordered_set>
@@ -3287,7 +3362,7 @@ SK_AppCache_Manager::saveAppCache (bool close)
 {
   if (app_cache_db != nullptr)
   {
-    app_cache_db->write (app_cache_db->get_filename ());
+    app_cache_db->write ( app_cache_db->get_filename () );
 
     if (close)
     {

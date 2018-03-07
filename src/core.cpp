@@ -25,6 +25,8 @@
 #include <SpecialK/hooks.h>
 #include <SpecialK/window.h>
 
+#include <SpecialK/diagnostics/modules.h>
+#include <SpecialK/diagnostics/load_library.h>
 #include <SpecialK/diagnostics/compatibility.h>
 #include <SpecialK/diagnostics/crash_handler.h>
 #include <SpecialK/diagnostics/debug_utils.h>
@@ -427,6 +429,19 @@ SK_InitCore (std::wstring, void* callback)
 #else
     case SK_GAME_ID::SecretOfMana:
       SK_SOM_InitPlugin ();
+      break;
+
+    case SK_GAME_ID::DragonBallFighterZ:
+      wchar_t      wszPath       [MAX_PATH * 2] = { };
+      wchar_t      wszWorkingDir [MAX_PATH * 2] = { };
+      wcscpy      (wszWorkingDir, SK_GetHostPath  ());
+      PathAppendW (wszWorkingDir, L"RED\\Binaries\\Win64\\");
+
+      wcscpy      (wszPath,       wszWorkingDir);
+      PathAppendW (wszPath,       L"RED-Win64-Shipping.exe");
+
+      ShellExecuteW (0, L"open", wszPath, L"-eac-nop-loaded", wszWorkingDir, SW_SHOWNORMAL);
+      ExitProcess   (0);
       break;
 #endif
   }
@@ -1167,7 +1182,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
           // Only do this if the game doesn't have a copy of the DLL lying around somewhere,
           //   because if we init Special K's SteamAPI DLL, the game's will fail to init and
           //     the game won't be happy about that!
-          kick_start = (! LoadLibraryW (SK_Steam_GetDLLPath ().c_str ())) || config.steam.force_load_steamapi;
+          kick_start = (! SK_Modules.LoadLibrary (SK_Steam_GetDLLPath ().c_str ())) || config.steam.force_load_steamapi;
         }
       }
 
@@ -1252,12 +1267,12 @@ BACKEND_INIT:
 
   // Pre-Load the original DLL into memory
   if (dll_name != wszBackendDLL) {
-                  LoadLibraryW_Original (wszBackendDLL);
-    backend_dll = LoadLibraryW_Original (dll_name);
+                  SK_Modules.LoadLibraryLL (wszBackendDLL);
+    backend_dll = SK_Modules.LoadLibraryLL (dll_name);
   }
 
   else
-    backend_dll = LoadLibraryW_Original (dll_name);
+    backend_dll = SK_Modules.LoadLibraryLL (dll_name);
 
   if (backend_dll != nullptr)
     dll_log.LogEx (false, L" (%s)\n",         SK_StripUserNameFromPathW (std::wstring (dll_name).data ()));

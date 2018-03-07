@@ -29,7 +29,8 @@
 #include <SpecialK/hooks.h>
 #include <SpecialK/config.h>
 #include <SpecialK/utility.h>
-#include <SpecialK/diagnostics/compatibility.h>
+#include <SpecialK/diagnostics/modules.h>
+#include <SpecialK/diagnostics/load_library.h>
 
 #include <vector>
 #include <concurrent_unordered_map.h>
@@ -39,13 +40,6 @@
               ##__VA_ARGS__,                  \
               MH_StatusToString ((status)) ), \
                   L" Min Hook " );
-
-
-typedef struct _MODULEINFO {
-  LPVOID lpBaseOfDll;
-  DWORD  SizeOfImage;
-  LPVOID EntryPoint;
-} MODULEINFO, *LPMODULEINFO;
 
 concurrency::concurrent_unordered_map <HMODULE, MODULEINFO> SK_KnownModules;
 
@@ -72,7 +66,7 @@ sk_hook_target_s::deserialize_ini (const std::wstring& serial_data)
   if (hModLib == 0)
   {
     hModLib =
-      LoadLibraryW_Original (wszPath);
+      SK_Modules.LoadLibraryLL (wszPath);
   }
 
   if (SK_LoadLibrary_PinModule <wchar_t> (wszPath))
@@ -278,7 +272,7 @@ SK_Hook_PreCacheModule ( const wchar_t                                *wszModule
           continue;
         }
 
-        if (LoadLibraryW_Original (it->target.module_path))
+        if (SK_Modules.LoadLibraryLL (it->target.module_path))
         {
           SK_LOG0 ( ( L"Trying global address for '%50hs' :: '%72s'"
                       L" { Last seen in '%s' }",
@@ -642,7 +636,7 @@ SK_CreateDLLHook ( const wchar_t  *pwszModule, const char  *pszProcName,
     //  >> Pass the library load through the original (now hooked) function so that
     //       anything else that hooks this DLL on-load does not miss its initial load.
     //
-    if (LoadLibraryW (pwszModule))
+    if (SK_Modules.LoadLibrary (pwszModule))
       GetModuleHandleExW (GET_MODULE_HANDLE_EX_FLAG_PIN, pwszModule, &hMod);
   }
 
@@ -762,7 +756,7 @@ SK_CreateDLLHook2 ( const wchar_t  *pwszModule, const char  *pszProcName,
     //  >> Pass the library load through the original (now hooked) function so that
     //       anything else that hooks this DLL on-load does not miss its initial load.
     //
-    if (LoadLibraryW (pwszModule))
+    if (SK_Modules.LoadLibrary (pwszModule))
       GetModuleHandleExW (GET_MODULE_HANDLE_EX_FLAG_PIN, pwszModule, &hMod);
   }
 
@@ -882,7 +876,7 @@ SK_CreateDLLHook3 ( const wchar_t  *pwszModule, const char  *pszProcName,
     //  >> Pass the library load through the original (now hooked) function so that
     //       anything else that hooks this DLL on-load does not miss its initial load.
     //
-    if (LoadLibraryW (pwszModule))
+    if (SK_Modules.LoadLibrary (pwszModule))
       GetModuleHandleExW (GET_MODULE_HANDLE_EX_FLAG_PIN, pwszModule, &hMod);
   }
 

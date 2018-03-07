@@ -23,8 +23,6 @@
 #include <process.h>
 #include <Shlwapi.h>
 
-#include <psapi.h>
-
 #include <SpecialK/resource.h>
 
 #include <SpecialK/hooks.h>
@@ -37,7 +35,8 @@
 #include <SpecialK/thread.h>
 #include <SpecialK/utility.h>
 #include <SpecialK/framerate.h>
-#include <SpecialK/diagnostics/compatibility.h>
+#include <SpecialK/diagnostics/modules.h>
+#include <SpecialK/diagnostics/load_library.h>
 
 #include <SpecialK/osd/popup.h>
 #include <SpecialK/osd/text.h>
@@ -343,18 +342,18 @@ SK_Steam_GetDLLPath (wchar_t* wszDestBuf, size_t max_size = MAX_PATH * 2)
   static std::wstring dll_file = L"";
 
   // Already have a working DLL
-  if (LoadLibraryW (     dll_file.c_str ()))
-  { wcsncpy (wszDestBuf, dll_file.c_str (), max_size);
+  if (SK_Modules.LoadLibrary (dll_file.c_str ()))
+  {      wcsncpy (wszDestBuf, dll_file.c_str (), max_size);
     return true;
   }
 
   std::wstring& cfg_path (config.steam.dll_path);
 
-  if (                  (! cfg_path.empty ()) &&
-       GetFileAttributesW (cfg_path.c_str ()) != INVALID_FILE_ATTRIBUTES )
-  { if (LoadLibraryW      (cfg_path.c_str ()))
-    { wcsncpy (wszDestBuf, cfg_path.c_str (), max_size);
-                dll_file = cfg_path;
+  if (                       (! cfg_path.empty ()) &&
+       GetFileAttributesW      (cfg_path.c_str ()) != INVALID_FILE_ATTRIBUTES )
+  { if (SK_Modules.LoadLibrary (cfg_path.c_str ()))
+    { wcsncpy (wszDestBuf,      cfg_path.c_str (), max_size);
+                     dll_file = cfg_path;
       return true;
     }
   }
@@ -367,7 +366,7 @@ SK_Steam_GetDLLPath (wchar_t* wszDestBuf, size_t max_size = MAX_PATH * 2)
 
   // The simplest case:  * DLL is in the same directory as the executable.
   //
-  if (LoadLibraryW                   (wszExecutablePath))
+  if (SK_Modules.LoadLibrary         (wszExecutablePath))
   {                        dll_file = wszExecutablePath;
       wcsncpy (wszDestBuf, dll_file.c_str (), max_size);
     cfg_path = wszDestBuf;
@@ -404,8 +403,8 @@ SK_Steam_GetDLLPath (wchar_t* wszDestBuf, size_t max_size = MAX_PATH * 2)
     (dll_file =
        _SK_RecursiveFileSearch (wszExecutablePath, wszSteamLib)).c_str ();
 
-  if (LoadLibraryW        (wszFullSteamDllPath))
-  { wcsncpy   (wszDestBuf, wszFullSteamDllPath, max_size);
+  if (SK_Modules.LoadLibrary (wszFullSteamDllPath))
+  { wcsncpy   (wszDestBuf,    wszFullSteamDllPath, max_size);
     cfg_path = wszDestBuf;
     return true;
   }
@@ -441,16 +440,15 @@ SK_Steam_PreHookCore (void)
     SK_RunLHIfBitness ( 64, L"steam_api64.dll",
                             L"steam_api.dll"    );
 
-  if (! (GetModuleHandle (wszSteamLib) || LoadLibraryW (wszSteamLib)))
+  if (! SK_Modules.LoadLibrary (wszSteamLib))
   {
     const std::wstring& qualified_lib =
       SK_Steam_GetDLLPath ();
 
     if (! qualified_lib.empty ())
     {
-      LoadLibraryW (qualified_lib.c_str ());
-
-      wszSteamLib = qualified_lib.data ();
+      SK_Modules.LoadLibrary (qualified_lib.c_str ());
+      wszSteamLib =           qualified_lib.data  ();
     }
   }
 
@@ -484,7 +482,7 @@ SK_Steam_PreHookCore (void)
   }
 
   if ( GetProcAddress (
-         LoadLibraryW_Original (wszSteamLib),
+         SK_Modules.LoadLibraryLL(wszSteamLib),
            "SteamInternal_CreateInterface" ) )
   {
     SK_CreateDLLHook2 (          wszSteamLib,
@@ -3816,7 +3814,7 @@ SteamAPI_InitSafe_Detour (void)
         SK_RunLHIfBitness ( 64, L"steam_api64.dll",
                                 L"steam_api.dll"    );
 
-      HMODULE hSteamAPI = LoadLibraryW_Original (steam_dll_str);
+      HMODULE hSteamAPI = SK_Modules.LoadLibraryLL (steam_dll_str);
 
       SK_SteamAPI_ContextInit (hSteamAPI);
       SK_ApplyQueuedHooks     (         );
@@ -4466,8 +4464,8 @@ SK_Steam_TestImports (HMODULE hMod)
 
     else if (! SK_IsInjected ())
     {
-      if ( LoadLibraryW    (steam_dll_str) ||
-           GetModuleHandle (L"SteamNative.dll") )
+      if ( SK_Modules.LoadLibrary (steam_dll_str) ||
+                  GetModuleHandle (L"SteamNative.dll") )
       {
          SK_HookSteamAPI ();
          steam_imported = true;
@@ -4475,8 +4473,8 @@ SK_Steam_TestImports (HMODULE hMod)
     }
   }
 
-  if ( LoadLibraryW    (steam_dll_str) ||
-       GetModuleHandle (L"SteamNative.dll") )
+  if ( SK_Modules.LoadLibrary (steam_dll_str) ||
+              GetModuleHandle (L"SteamNative.dll") )
   {
      SK_HookSteamAPI ();
      steam_imported = true;
@@ -4521,7 +4519,7 @@ SK_Steam_LoadOverlayEarly (void)
                                                     LR"(\GameOverlayRenderer.dll)"    ) );
 
   hModOverlay =
-    LoadLibraryW (wszOverlayDLL);
+    SK_Modules.LoadLibrary (wszOverlayDLL);
 
   return hModOverlay != nullptr;
 }
@@ -5510,7 +5508,7 @@ SK_Steam_KickStart (const wchar_t* wszLibPath)
 
         if (SK_File_GetSize (wszDLLPath) > 0)
         {
-          if (LoadLibraryW_Original (wszDLLPath))
+          if (SK_Modules.LoadLibraryLL (wszDLLPath))
           {
             dll_log.Log ( L"[DLL Loader]   Manually booted SteamAPI: '%s'",
                             SK_StripUserNameFromPathW (std::wstring (wszDLLPath).data ()) );

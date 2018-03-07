@@ -35,7 +35,7 @@ extern LARGE_INTEGER SK_QueryPerf (void);
 #include <SpecialK/render/dxgi/dxgi_backend.h>
 #include <SpecialK/render/d3d12/d3d12_interfaces.h>
 
-#include <SpecialK/diagnostics/compatibility.h>
+#include <SpecialK/diagnostics/load_library.h>
 
 #include <algorithm>
 

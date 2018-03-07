@@ -23,6 +23,7 @@
 
 #include <SpecialK/input/input.h>
 #include <SpecialK/input/dinput8_backend.h>
+#include <SpecialK/diagnostics/modules.h>
 #include <SpecialK/window.h>
 #include <SpecialK/console.h>
 
@@ -36,7 +37,6 @@
 #include <comdef.h>
 
 #include <stdarg.h>
-#include <psapi.h>
 
 #include <imgui/imgui.h>
 #include <SpecialK/tls.h>

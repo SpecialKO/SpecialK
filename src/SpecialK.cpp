@@ -21,12 +21,13 @@
 
 #include <SpecialK/SpecialK.h>
 
-#include <SpecialK/diagnostics/compatibility.h>
-#include <SpecialK/diagnostics/debug_utils.h>
-
 #include <Windows.h>
 #include <Shlwapi.h>
 #include <process.h>
+
+#include <SpecialK/diagnostics/modules.h>
+#include <SpecialK/diagnostics/debug_utils.h>
+#include <SpecialK/diagnostics/load_library.h>
 
 #include <SpecialK/core.h>
 #include <SpecialK/config.h>
@@ -48,7 +49,7 @@
 
 #include <SpecialK/hooks.h>
 #include <SpecialK/injection/injection.h>
-#include <SpecialK/injection/blacklist.h>
+#include <SpecialK/diagnostics/modules.h>
 
 
 // Fix that stupid macro that redirects to Unicode/ANSI
@@ -61,9 +62,7 @@
 bool has_local_dll = false;
 
 
-// We need this to load embedded resources correctly...
-HMODULE hModSelf                       = nullptr;
-HMODULE __SK_HMODULE_0                 = nullptr;
+skModuleRegistry SK_Modules;
 
 SK_Thread_HybridSpinlock* init_mutex   = nullptr;
 SK_Thread_HybridSpinlock* budget_mutex = nullptr;
@@ -105,15 +104,15 @@ std::unordered_map <DLL_ROLE, SK_DLL_Bootstrapper>
   };
 
 
+
+skWin32Module skModuleRegistry::HostApp;
+skWin32Module skModuleRegistry::Self;
+
 HMODULE
 __stdcall
 SK_GetDLL (void)
 {
-  // This language lawyer nonsense is by no means necessary, but makes me laugh
-  return reinterpret_cast <HMODULE>       (
-    ReadPointerAcquire                    (
-      reinterpret_cast <volatile PVOID *> (
-            const_cast <HMODULE        *> (&hModSelf))));
+  return __SK_hModSelf;
 }
 
 
@@ -269,7 +268,7 @@ _SKM_AutoBootLastKnownAPI (SK_RenderAPI last_known)
 
 bool
 __stdcall
-SK_EstablishDllRole (HMODULE hModule)
+SK_EstablishDllRole (skWin32Module&& module)
 {
   SK_SetDLLRole (DLL_ROLE::INVALID);
 
@@ -277,6 +276,8 @@ SK_EstablishDllRole (HMODULE hModule)
   wchar_t         wszAppNameLower                   [MAX_PATH + 2] = { };
   wcsncpy        (wszAppNameLower, SK_GetHostApp (), MAX_PATH);
   CharLowerBuffW (wszAppNameLower,                   MAX_PATH);
+
+#include <SpecialK/injection/blacklist.h>
 
   if (__blacklist.count (wszAppNameLower)) return false;
 
@@ -291,15 +292,15 @@ SK_EstablishDllRole (HMODULE hModule)
 #endif
 
 
-  wchar_t wszDllFullName [  MAX_PATH + 2 ] = { };
-
-  GetModuleFileName (hModule, wszDllFullName, MAX_PATH );
+  const wchar_t* wszSelfTitledDLL =
+    static_cast <const std::wstring &> (module).c_str ();
 
   const wchar_t* wszShort =
-    SK_Path_wcsrchr (wszDllFullName, L'\\') + 1;
+    SK_Path_wcsrchr ( wszSelfTitledDLL, *LR"(\)" ) + 1;
 
+  // The DLL path was _already_ in non-fully-qualified form... oops?
   if (wszShort == static_cast <const wchar_t *>(nullptr) + 1)
-    wszShort = wszDllFullName;
+    wszShort = wszSelfTitledDLL;
 
 
   if (! SK_Path_wcsicmp (wszShort, L"dinput8.dll"))
@@ -756,63 +757,52 @@ DllMain ( HMODULE hModule,
 {
   UNREFERENCED_PARAMETER (lpReserved);
 
-  auto EarlyOut =
-  [&](BOOL bRet = TRUE)
-  {
-    if (! (SK_HostApp.isInjectionTool () || has_local_dll))
-    {
-      auto tls_slot =
-        SK_GetTLS ();
-
-      if (tls_slot.dwTlsIdx != TLS_OUT_OF_INDEXES)
-      {
-        SK_CleanupTLS ();
-
-        // We're not using TLS for anything, so we don't need thread
-        //  attach/detach events.
-        if (TlsFree (tls_slot.dwTlsIdx) || (! GetLastError ()))
-        {
-          tls_slot.dwTlsIdx = TLS_OUT_OF_INDEXES;
-        }
-      }
-
-      if (tls_slot.dwTlsIdx == TLS_OUT_OF_INDEXES)
-      {
-        InterlockedExchange (&__SK_TLS_INDEX, TLS_OUT_OF_INDEXES);
-
-        if (DisableThreadLibraryCalls ((HMODULE)hModule))
-          InterlockedExchange (&__SK_DLL_Attached, 0);
-      }
-    }
-
-    else bRet = TRUE;
-
-    return
-      bRet;
-  };
-
-
   switch (ul_reason_for_call)
   {
     case DLL_PROCESS_ATTACH:
     {
-      SK_Thread_ScopedPriority prio_boost (THREAD_PRIORITY_HIGHEST);
+      // Try, if assigned already (how?!) do not deadlock the Kernel loader
+      if ( __SK_hModSelf       != hModule )
+        skModuleRegistry::Self  = hModule;
 
-      __SK_HMODULE_0 =
-        GetModuleHandleW (nullptr);
+
+      auto EarlyOut =
+      [&](BOOL bRet = TRUE)
+      {
+        if (! (SK_HostApp.isInjectionTool () || has_local_dll))
+        {
+          auto tls_slot =
+            SK_GetTLS ();
+
+          if (tls_slot.dwTlsIdx != TLS_OUT_OF_INDEXES)
+          {
+            SK_CleanupTLS ();
+
+            // We're not using TLS for anything, so we don't need thread
+            //  attach/detach events.
+            if (TlsFree (tls_slot.dwTlsIdx) || (! GetLastError ()))
+            {
+              tls_slot.dwTlsIdx = TLS_OUT_OF_INDEXES;
+            }
+          }
+
+          if (tls_slot.dwTlsIdx == TLS_OUT_OF_INDEXES)
+          {
+            InterlockedExchange (&__SK_TLS_INDEX, TLS_OUT_OF_INDEXES);
+
+            if (DisableThreadLibraryCalls (hModule))
+              InterlockedExchange (&__SK_DLL_Attached, 0);
+          }
+        }
+
+        else bRet = TRUE;
+
+        return
+          bRet;
+      };
 
       InterlockedExchange (&__SK_TLS_INDEX, TlsAlloc ());
 
-      if (InterlockedExchangePointer (
-            reinterpret_cast <LPVOID  *> (
-                  const_cast <HMODULE *> (&hModSelf)
-                                         ),
-            hModule
-           )
-         )
-      {
-        return EarlyOut (FALSE);
-      }
 
       // We use SKIM for injection and rundll32 for various tricks involving restarting
       //   the currently running game; neither needs or even wants this DLL fully
@@ -825,13 +815,21 @@ DllMain ( HMODULE hModule,
       }
 
 
+      SK_Thread_ScopedPriority prio_boost (THREAD_PRIORITY_HIGHEST);
+
+
+
       // We reserve the right to deny attaching the DLL, this will generally
       //   happen if a game does not opt-in to system wide injection.
-      if (! SK_EstablishDllRole ((HMODULE)hModule))     return EarlyOut (FALSE);
+      if (! SK_EstablishDllRole (hModule))              return EarlyOut (FALSE);
 
       // We don't want to initialize the DLL, but we also don't want it to
       //   re-inject itself constantly; just return TRUE here.
       else if (SK_GetDLLRole () == DLL_ROLE::INVALID)   return EarlyOut (TRUE);
+
+
+
+      skModuleRegistry::HostApp = GetModuleHandle (nullptr);
 
 
 

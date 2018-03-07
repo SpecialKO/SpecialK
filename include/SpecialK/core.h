@@ -27,8 +27,6 @@
 #undef COM_NO_WINDOWS_H
 #include <Windows.h>
 
-extern HMODULE __SK_HMODULE_0;
-
 enum DLL_ROLE
 {
   INVALID    = 0x000,
@@ -152,8 +150,6 @@ SK_Win32_CleanupDummyWindow (HWND hWnd = nullptr);
 void
 __stdcall
 SK_EstablishRootPath (void);
-
-
 
 void __stdcall SK_StartPerfMonThreads (void);
 
