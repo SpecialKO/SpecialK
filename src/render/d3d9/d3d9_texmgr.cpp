@@ -90,26 +90,20 @@ bool __need_purge     = false;
 bool __log_used       = false;
 bool __show_cache     = true;//false;
 
-// Cleanup
-std::queue <std::wstring>              screenshots_to_delete;
+SK::D3D9::TextureManager&
+SK_D3D9_GetTextureManager (void)
+{
+  static SK::D3D9::TextureManager tex_mgr;
+  return                          tex_mgr;
+}
 
-// Textures that are missing mipmaps
-std::set   <IDirect3DBaseTexture9 *>   incomplete_textures;
+SK_D3D9_TextureStorageBase&
+SK_D3D9_GetBasicTextureDataStore (void)
+{
+  static SK_D3D9_TextureStorageBase _datastore;
+  return                            _datastore;
+}
 
-//SK::D3D9::TextureThreadPool *SK::D3D9::resample_pool = nullptr;
-SK::D3D9::StreamSplitter     SK::D3D9::stream_pool;
-
-TextureManager               SK::D3D9::tex_mgr;
-
-concurrent_unordered_map <uint32_t, IDirect3DTexture9*> injected_textures;
-concurrent_unordered_map <uint32_t, float>              injected_load_times;
-concurrent_unordered_map <uint32_t, size_t>             injected_sizes;
-concurrent_unordered_map <uint32_t, int32_t>            injected_refs;
-
-SK_ThreadSafe_HashSet <IDirect3DSurface9 *> outstanding_screenshots;
-                                            // Not excellent screenshots, but screenhots
-                                            //   that aren't finished yet and we can't reset
-                                            //     the D3D9 device because of.
 
 size_t
 SK::D3D9::TextureManager::getTextureArchives (std::vector <std::wstring>& arcs)
@@ -397,6 +391,8 @@ D3D9SetTexture_Detour (
     //               Sampler, pTexture );
   //}
 
+  SK::D3D9::TextureManager& tex_mgr =
+    SK_D3D9_GetTextureManager ();
 
   tex_mgr.applyTexture (pTexture);
   tracked_rt.active  = (pTexture == tracked_rt.tracking_tex);
@@ -546,8 +542,10 @@ D3D9CreateTexture_Detour (IDirect3DDevice9    *This,
                                        ppTexture,
                                          pSharedHandle );
 
+  SK::D3D9::TextureManager& tex_mgr =
+    SK_D3D9_GetTextureManager ();
 
-  if (SUCCEEDED (result) && (! SK::D3D9::tex_mgr.injector.isInjectionThread ()))
+  if (SUCCEEDED (result) && (! tex_mgr.injector.isInjectionThread ()))
   {
     //if (config.textures.log) {
     //  tex_log.Log ( L"[Load-Trace] >> Creating Texture: "
@@ -1467,9 +1465,12 @@ D3DXCreateTextureFromFileInMemoryEx_Detour (
   _Out_   LPDIRECT3DTEXTURE9 *ppTexture
 )
 {
+  SK::D3D9::TextureManager& tex_mgr =
+    SK_D3D9_GetTextureManager ();
+
   // Injection would recurse slightly and cause impossible to diagnose reference counting problems
   //   with texture caching if we did not check for this!
-  if (SK::D3D9::tex_mgr.injector.isInjectionThread ())
+  if (tex_mgr.injector.isInjectionThread ())
   {
     return
       D3DXCreateTextureFromFileInMemoryEx_Original (
@@ -2441,6 +2442,10 @@ bool shutting_down = false;
 void
 SK::D3D9::TextureManager::Shutdown (void)
 {
+  // Seriously?  WTF was I smoking?!
+  SK::D3D9::TextureManager& tex_mgr =
+    SK_D3D9_GetTextureManager ();
+
   // 16.6 ms per-frame (60 FPS)
   const float frame_time = 16.6f;
 
@@ -3019,6 +3024,9 @@ unsigned int
 __stdcall
 SK::D3D9::TextureWorkerThread::ThreadProc (LPVOID user)
 {
+  SK::D3D9::TextureManager& tex_mgr =
+    SK_D3D9_GetTextureManager ();
+
   {
     if (! streaming_memory::data_len ())
     {
@@ -3798,11 +3806,14 @@ ISKTextureD3D9::use (void)
 {
   if (config.textures.dump_on_load && pTex != nullptr && uses > 0 && uses < 2)
   {
+    SK::D3D9::TextureManager& tex_mgr =
+      SK_D3D9_GetTextureManager ();
+
     D3DSURFACE_DESC desc = { };
 
     if ( SUCCEEDED (pTex->GetLevelDesc (0, &desc)) &&
-      ( ! ( SK::D3D9::tex_mgr.isTextureDumped     (tex_crc32c) ||
-            SK::D3D9::tex_mgr.isTextureInjectable (tex_crc32c) ) ) &&
+      ( ! ( tex_mgr.isTextureDumped     (tex_crc32c) ||
+            tex_mgr.isTextureInjectable (tex_crc32c) ) ) &&
           (desc.Pool != D3DPOOL_MANAGED) )
     {
       tex_log.Log ( L"[Dump Trace] Texture:   (%lu x %lu) * <LODs: %lu> - CRC32C: %08X",
@@ -3813,11 +3824,11 @@ ISKTextureD3D9::use (void)
       tex_log.Log ( L"[Dump Trace]               Pool: %s",
                        SK_D3D9_PoolToStr (desc.Pool));
 
-      SK::D3D9::tex_mgr.injector.beginLoad ();
+      tex_mgr.injector.beginLoad ();
 
-      SK::D3D9::tex_mgr.dumpTexture (desc.Format, tex_crc32c, pTex);
+      tex_mgr.dumpTexture (desc.Format, tex_crc32c, pTex);
 
-      SK::D3D9::tex_mgr.injector.endLoad ();
+      tex_mgr.injector.endLoad ();
     }
   }
 
@@ -3936,7 +3947,10 @@ ISKTextureD3D9::UnlockRect (UINT Level)
     hr =
       pTex->UnlockRect (Level);
 
-    if (SUCCEEDED (hr) && crc32c_ != 0x0 && (! SK::D3D9::tex_mgr.injector.isInjectionThread ()))
+    SK::D3D9::TextureManager& tex_mgr =
+      SK_D3D9_GetTextureManager ();
+
+    if (SUCCEEDED (hr) && crc32c_ != 0x0 && (! tex_mgr.injector.isInjectionThread ()))
     {
       auto* pCacheTex =
         new SK::D3D9::Texture ();
@@ -3961,9 +3975,9 @@ ISKTextureD3D9::UnlockRect (UINT Level)
 
       //else
       {
-        SK::D3D9::tex_mgr.addTexture  (this->tex_crc32c, pCacheTex, this->tex_size);
+        tex_mgr.addTexture  (this->tex_crc32c, pCacheTex, this->tex_size);
       }
-      //SK::D3D9::tex_mgr.missTexture ();
+      //tex_mgr.missTexture ();
     }
   }
   else

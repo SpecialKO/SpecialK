@@ -84,14 +84,12 @@ SK_Display_GetDefaultRefreshRate (void)
 }
 
 
-
-SK_RenderBackend __SK_RBkEnd;
-
 SK_RenderBackend&
 __stdcall
 SK_GetCurrentRenderBackend (void)
 {
-  return __SK_RBkEnd;
+  static SK_RenderBackend __SK_RBkEnd;
+  return                  __SK_RBkEnd;
 }
 
 void
@@ -171,11 +169,14 @@ SK_BootD3D9 (void)
   {
     pTLS->d3d9.ctx_init_thread = true;
 
-    SK_D3D9_InitShaderModTools ();
+    SK_D3D9_InitShaderModTools  ();
+
+    SK::D3D9::TextureManager& tex_mgr =
+      SK_D3D9_GetTextureManager ();
 
     if (config.textures.d3d9_mod)
     {
-      SK::D3D9::tex_mgr.Init ();
+      tex_mgr.Init ();
     }
 
     dll_log.Log (L"[API Detect]  <!> [ Bootstrapping Direct3D 9 (d3d9.dll) ] <!>");
@@ -189,10 +190,10 @@ SK_BootD3D9 (void)
 
     if (config.textures.d3d9_mod)
     {
-      SK::D3D9::tex_mgr.Hook ();
+      tex_mgr.Hook ();
     }
 
-    SK_HookD3D9     ();
+    SK_HookD3D9    ();
 
     InterlockedIncrement (&__booted);
   }

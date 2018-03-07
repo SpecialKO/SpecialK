@@ -121,32 +121,82 @@ struct init_params_s {
   std::wstring  backend    = L"INVALID";
   void*         callback   =    nullptr;
   LARGE_INTEGER start_time {   0,   0 };
-} static init_, reentrant_core;
+};
 
 
-wchar_t SK_RootPath   [MAX_PATH + 2] = { };
-wchar_t SK_ConfigPath [MAX_PATH + 2] = { };
-wchar_t SK_Backend    [     128    ] = { };
+init_params_s&
+SKX_GetInitParams (void)
+{
+  static init_params_s params;
+  return               params;
+};
+
+const init_params_s&
+SK_GetInitParams (void)
+{
+  return SKX_GetInitParams ();
+};
+
+
+
+
+wchar_t*
+SKX_GetBackend (void)
+{
+  static wchar_t SK_Backend [     128    ] = { };
+  return         SK_Backend;
+}
 
 const wchar_t*
 __stdcall
 SK_GetBackend (void)
 {
-  return SK_Backend;
+  return SKX_GetBackend ();
 }
 
 const wchar_t*
 __stdcall
 SK_SetBackend (const wchar_t* wszBackend)
 {
-  return wcsncpy (SK_Backend, wszBackend, 127);
+  return
+    lstrcpynW ( SKX_GetBackend (),
+                  wszBackend,
+                    127 );
+}
+
+wchar_t*
+SKX_GetRootPath (void)
+{
+  static wchar_t SK_RootPath [MAX_PATH + 2 + 1] = { };
+  return         SK_RootPath;
 }
 
 const wchar_t*
 __stdcall
 SK_GetRootPath (void)
 {
-  return SK_RootPath;
+  return SKX_GetRootPath ();
+}
+
+
+
+
+const wchar_t*
+__stdcall
+SK_GetConfigPath (void);
+
+wchar_t*
+SKX_GetNaiveConfigPath (void)
+{
+  static wchar_t SK_ConfigPath [MAX_PATH + 2 + 1] = { };
+  return         SK_ConfigPath;
+}
+__declspec (noinline)
+const wchar_t*
+__stdcall
+SK_GetNaiveConfigPath (void)
+{
+  return SKX_GetNaiveConfigPath ();
 }
 
 //
@@ -158,23 +208,11 @@ void
 __stdcall
 SK_SetConfigPath (const wchar_t* path)
 {
-  lstrcpynW (SK_ConfigPath, path, MAX_PATH);
+  lstrcpynW (SKX_GetNaiveConfigPath (), path, MAX_PATH);
 }
 
 
-const wchar_t*
-__stdcall
-SK_GetConfigPath (void);
-
-
-__declspec (noinline)
-const wchar_t*
-__stdcall
-SK_GetNaiveConfigPath (void)
-{
-  return SK_ConfigPath;
-}
-
+volatile LONG SK_RenderBackend::frames_drawn = 0;
 
 __declspec (noinline)
 ULONG
@@ -182,7 +220,7 @@ __stdcall
 SK_GetFramesDrawn (void)
 {
   return
-    static_cast <ULONG> (ReadNoFence (&SK_GetCurrentRenderBackend ().frames_drawn));
+    static_cast <ULONG> (ReadNoFence (&SK_RenderBackend::frames_drawn));
 }
 
 
@@ -586,7 +624,7 @@ SK_InitFinishCallback (void)
 
 
   const wchar_t* config_name =
-    SK_Backend;
+    SK_GetBackend ();
 
   // Use a generic "SpecialK" name instead of the primary wrapped/hooked API name
   //   for this DLL when it is injected at run-time rather than a proxy DLL.
@@ -604,7 +642,7 @@ SK_InitFinishCallback (void)
                         L"-------------------------------------------\n" );
   dll_log.Log   (       L"[ SpecialK ] === Initialization Finished! ===   "
                         L"       (%6.2f ms)",
-                          SK_DeltaPerfMS ( init_.start_time.QuadPart, 1 )
+                          SK_DeltaPerfMS ( SK_GetInitParams ().start_time.QuadPart, 1 )
                 );
   dll_log.LogEx (false, L"------------------------------------------------"
                         L"-------------------------------------------\n" );
@@ -655,6 +693,7 @@ CheckVersionThread (LPVOID)
   return 0;
 }
 
+
 DWORD
 WINAPI
 DllThread (LPVOID user)
@@ -664,10 +703,8 @@ DllThread (LPVOID user)
 
   auto* params =
     static_cast <init_params_s *> (user);
-  
-  reentrant_core = *params;
-
-  SK_InitCore (params->backend, params->callback);
+ 
+  SK_InitCore ( params->backend, params->callback );
 
   return 0;
 }
@@ -782,18 +819,17 @@ SK_EstablishRootPath (void)
   {
     if (! SK_IsSuperSpecialK ())
     {
-      lstrcpynW ( SK_RootPath,
+      lstrcpynW ( SKX_GetRootPath (),
                     std::wstring ( SK_GetDocumentsDir () + LR"(\My Mods\SpecialK)" ).c_str (),
                       MAX_PATH - 1 );
     }
 
     else
     {
-      GetCurrentDirectory (MAX_PATH, SK_RootPath);
+      GetCurrentDirectory (MAX_PATH, SKX_GetRootPath ());
     }
 
-
-    lstrcpynW (wszConfigPath, SK_GetRootPath (), MAX_PATH);
+    lstrcpynW (wszConfigPath, SKX_GetRootPath (), MAX_PATH);
     lstrcatW  (wszConfigPath, LR"(\Profiles\)");
     lstrcatW  (wszConfigPath, SK_GetHostApp  ());
   }
@@ -805,35 +841,36 @@ SK_EstablishRootPath (void)
   {
     if (! SK_IsSuperSpecialK ())
     {
-      lstrcpynW (SK_RootPath, SK_GetHostPath (), MAX_PATH);
+      lstrcpynW (SKX_GetRootPath (), SK_GetHostPath (), MAX_PATH);
     }
 
     else
     {
-      GetCurrentDirectory (MAX_PATH, SK_RootPath);
+      GetCurrentDirectory (MAX_PATH, SKX_GetRootPath ());
     }
 
-    lstrcpynW (wszConfigPath, SK_GetRootPath (), MAX_PATH);
+    lstrcpynW (wszConfigPath, SKX_GetRootPath (), MAX_PATH);
   }
 
 
   // Not using the ShellW API because at this (init) stage,
   //   we can only reliably use Kernel32 functions.
-  lstrcatW (SK_RootPath,   L"\\");
-  lstrcatW (wszConfigPath, L"\\");
+  lstrcatW (SKX_GetRootPath (), L"\\");
+  lstrcatW (wszConfigPath,      L"\\");
 
   SK_SetConfigPath (wszConfigPath);
 }
 
-void
-__stdcall
-SK_ReenterCore  (void) // During startup, we have the option of bypassing init and resuming later
-{
-  auto* params =
-    static_cast <init_params_s *> (&reentrant_core);
+////void
+////__stdcall
+////SK_ReenterCore  (void) // During startup, we have the option of bypassing init and resuming later
+////{
+////  auto* params =
+////    static_cast <init_params_s *> (&reentrant_core);
+////
+////  SK_StartupCore (params->backend.c_str (), params->callback);
+////}
 
-  SK_StartupCore (params->backend.c_str (), params->callback);
-}
 
 typedef BOOL (WINAPI *SetProcessDEPPolicy_pfn)(_In_ DWORD dwFlags);
 
@@ -1013,9 +1050,14 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
   __SK_bypass |= skim;
 
-  init_ = {               };
+
+  auto& init_ =
+    SKX_GetInitParams ();
+
+  init_          = {     };
   init_.backend  = backend;
   init_.callback = callback;
+
 
   init_mutex->lock ();
 
@@ -2091,12 +2133,11 @@ SK_BeginBufferSwap (void)
 }
 
 
-const ULONGLONG poll_interval = 1ULL;
-
 // Todo, move out of here
 void
 SK_Input_PollKeyboard (void)
 {
+  const ULONGLONG poll_interval = 1ULL;
 
   //
   // Do not poll the keyboard while the game window is inactive
@@ -2195,14 +2236,18 @@ HRESULT
 __stdcall
 SK_EndBufferSwap (HRESULT hr, IUnknown* device)
 {
-  static SK_RenderAPI     LastKnownAPI = SK_RenderAPI::Reserved;
-  extern SK_RenderBackend __SK_RBkEnd;
+  static SK_RenderAPI LastKnownAPI =
+         SK_RenderAPI::Reserved;
 
-  assert (__SK_RBkEnd.thread == GetCurrentThreadId () || LastKnownAPI == SK_RenderAPI::Reserved);
+  SK_RenderBackend& rb =
+    SK_GetCurrentRenderBackend ();
 
-  __SK_RBkEnd.thread = GetCurrentThreadId ();
+  assert (    rb.thread == GetCurrentThreadId () ||
+           LastKnownAPI == SK_RenderAPI::Reserved );
 
-  if (device != nullptr && LastKnownAPI != __SK_RBkEnd.api)
+  rb.thread = GetCurrentThreadId ();
+
+  if (device != nullptr && LastKnownAPI != rb.api)
   {
     CComPtr <IDirect3DDevice9>   pDev9   = nullptr;
     CComPtr <IDirect3DDevice9Ex> pDev9Ex = nullptr;
@@ -2210,17 +2255,17 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
 
     if (SUCCEEDED (device->QueryInterface <IDirect3DDevice9Ex> (&pDev9Ex)))
     {
-      reinterpret_cast <int &> (__SK_RBkEnd.api) =
+      reinterpret_cast <int &> (rb.api) =
         ( static_cast <int> (SK_RenderAPI::D3D9  ) |
           static_cast <int> (SK_RenderAPI::D3D9Ex)  );
 
-      wcsncpy (__SK_RBkEnd.name, L"D3D9Ex", 8);
+      wcsncpy (rb.name, L"D3D9Ex", 8);
     }
 
     else if (SUCCEEDED (device->QueryInterface <IDirect3DDevice9> (&pDev9)))
     {
-               __SK_RBkEnd.api  = SK_RenderAPI::D3D9;
-      wcsncpy (__SK_RBkEnd.name, L"D3D9  ", 8);
+               rb.api  = SK_RenderAPI::D3D9;
+      wcsncpy (rb.name, L"D3D9  ", 8);
     }
 
     else if (SUCCEEDED (device->QueryInterface <ID3D11Device> (&pDev11)))
@@ -2230,76 +2275,76 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
       switch (SK_GetDLLRole ())
       {
         case DLL_ROLE::D3D8:
-          __SK_RBkEnd.api = SK_RenderAPI::D3D8On11;
+          rb.api = SK_RenderAPI::D3D8On11;
           break;
         case DLL_ROLE::DDraw:
-          __SK_RBkEnd.api = SK_RenderAPI::DDrawOn11;
+          rb.api = SK_RenderAPI::DDrawOn11;
           break;
         default:
-          __SK_RBkEnd.api = SK_RenderAPI::D3D11;
+          rb.api = SK_RenderAPI::D3D11;
           break;
       }
 
       CComPtr <IUnknown> pTest = nullptr;
 
       if (SUCCEEDED (       device->QueryInterface (IID_ID3D11Device5, (void **)&pTest))) {
-        wcsncpy (__SK_RBkEnd.name, L"D3D11.4", 8); // Creators Update
+        wcsncpy (rb.name, L"D3D11.4", 8); // Creators Update
       } else if (SUCCEEDED (device->QueryInterface (IID_ID3D11Device4, (void **)&pTest))) {
-        wcsncpy (__SK_RBkEnd.name, L"D3D11.4", 8);
+        wcsncpy (rb.name, L"D3D11.4", 8);
       } else if (SUCCEEDED (device->QueryInterface (IID_ID3D11Device3, (void **)&pTest))) {
-        wcsncpy (__SK_RBkEnd.name, L"D3D11.3", 8);
+        wcsncpy (rb.name, L"D3D11.3", 8);
       } else if (SUCCEEDED (device->QueryInterface (IID_ID3D11Device2, (void **)&pTest))) {
-        wcsncpy (__SK_RBkEnd.name, L"D3D11.2", 8);
+        wcsncpy (rb.name, L"D3D11.2", 8);
       } else if (SUCCEEDED (device->QueryInterface (IID_ID3D11Device1, (void **)&pTest))) {
-        wcsncpy (__SK_RBkEnd.name, L"D3D11.1", 8);
+        wcsncpy (rb.name, L"D3D11.1", 8);
       } else {
-        wcsncpy (__SK_RBkEnd.name, L"D3D11 ", 8);
+        wcsncpy (rb.name, L"D3D11 ", 8);
       }
 
       if (     SK_GetDLLRole () == DLL_ROLE::D3D8)  {
-        wcscpy (__SK_RBkEnd.name, L"D3D8");
+        wcscpy (rb.name, L"D3D8");
       }
       else if (SK_GetDLLRole () == DLL_ROLE::DDraw) {
-        wcscpy (__SK_RBkEnd.name, L"DDraw");
+        wcscpy (rb.name, L"DDraw");
       }
     }
 
     else
     {
-               __SK_RBkEnd.api  = SK_RenderAPI::Reserved;
-      wcsncpy (__SK_RBkEnd.name, L"UNKNOWN", 8);
+               rb.api  = SK_RenderAPI::Reserved;
+      wcsncpy (rb.name, L"UNKNOWN", 8);
     }
   }
 
-  else if (LastKnownAPI != __SK_RBkEnd.api)
+  else if (LastKnownAPI != rb.api)
   {
     if (config.apis.OpenGL.hook && SK_GL_GetCurrentContext () != nullptr)
     {
-               __SK_RBkEnd.api  = SK_RenderAPI::OpenGL;
-      wcsncpy (__SK_RBkEnd.name, L"OpenGL", 8);
+               rb.api  = SK_RenderAPI::OpenGL;
+      wcsncpy (rb.name, L"OpenGL", 8);
     }
   }
 
 
   // Determine Fullscreen Exclusive state in D3D11
   //
-  if ( static_cast <int> (__SK_RBkEnd.api)  &
+  if ( static_cast <int> (rb.api)  &
        static_cast <int> (SK_RenderAPI::D3D11) )
   {
     BOOL fullscreen = FALSE;
 
-    CComPtr                                 <IDXGISwapChain>   pSwapChain = nullptr;
-    if (__SK_RBkEnd.swapchain)
-      __SK_RBkEnd.swapchain->QueryInterface <IDXGISwapChain> (&pSwapChain);
+    CComPtr                          <IDXGISwapChain>   pSwapChain = nullptr;
+    if (rb.swapchain)
+        rb.swapchain->QueryInterface <IDXGISwapChain> (&pSwapChain);
 
     if ( pSwapChain &&
   SUCCEEDED (pSwapChain->GetFullscreenState (&fullscreen, nullptr)) )
     {
-      __SK_RBkEnd.fullscreen_exclusive = fullscreen;
+      rb.fullscreen_exclusive =               fullscreen;
     }
 
     else
-      __SK_RBkEnd.fullscreen_exclusive = false;
+      rb.fullscreen_exclusive = false;
 
     // Also clear any resources we were tracking for the shader mod subsystem
     extern void SK_D3D11_EndFrame (void);
@@ -2308,7 +2353,7 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
 
 
   LastKnownAPI = config.apis.last_known =
-    __SK_RBkEnd.api;
+    rb.api;
 
 
   SK_RunOnce (SK::DXGI::StartBudgetThread_NoAdapter ());
@@ -2358,22 +2403,27 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
   return hr;
 }
 
-
-static DLL_ROLE dll_role (DLL_ROLE::INVALID);
+DLL_ROLE&
+SKX_GetDLLRole (void)
+{
+  static DLL_ROLE dll_role (DLL_ROLE::INVALID);
+  return          dll_role;
+}
 
 extern "C"
 DLL_ROLE
 __stdcall
 SK_GetDLLRole (void)
 {
-  return dll_role;
+  return SKX_GetDLLRole ();
 }
+
 
 void
 __cdecl
 SK_SetDLLRole (DLL_ROLE role)
 {
-  dll_role = role;
+  SKX_GetDLLRole () = role;
 }
 
 

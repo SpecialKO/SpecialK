@@ -108,8 +108,8 @@ SK_Log_AsyncFlushThreadPump (LPVOID)
 {
   CHandle hThread (GetCurrentThread ());
 
-  SetThreadDescription ( hThread, L"[SK] Async Log Flush Thread Pump" );
-  SetThreadPriority    ( hThread, THREAD_PRIORITY_LOWEST              );
+  SetCurrentThreadDescription (         L"[SK] Async Log Flush Thread Pump");
+  SetThreadPriority           (hThread, THREAD_PRIORITY_LOWEST             );
 
   // TODO:  Consider an interlocked singly-linked list instead
   //

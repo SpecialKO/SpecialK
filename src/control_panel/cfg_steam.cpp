@@ -30,6 +30,7 @@
 
 #include <SpecialK/steam_api.h>
 
+extern volatile LONG SK_SteamAPI_CallbackRateLimit;
 
 using namespace SK::ControlPanel;
 
@@ -667,9 +668,11 @@ SK::ControlPanel::Steam::Draw (void)
       SK_SteamAPI_SetOverlayState (pause);
     }
 
+    bool right_clicked = SK_ImGui_IsItemRightClicked ();
+
     if (SK::SteamAPI::IsOverlayAware ())
     {
-      if (SK_ImGui_IsItemRightClicked ())
+      if (right_clicked)
       {
         ImGui::OpenPopup         ("SteamOverlayPauseMenu");
         ImGui::SetNextWindowSize (ImVec2 (-1.0f, -1.0f), ImGuiSetCond_Always);
@@ -695,6 +698,22 @@ SK::ControlPanel::Steam::Draw (void)
         }
         ImGui::EndPopup     ();
       }
+    }
+
+    if (right_clicked)
+    {
+      ImGui::OpenPopup         ("SteamCallbackRateMenu");
+      ImGui::SetNextWindowSize (ImVec2 (-1.0f, -1.0f), ImGuiSetCond_Always);
+    }
+
+    if (ImGui::BeginPopup ("SteamCallbackRateMenu"))
+    {                     
+      int rate = ReadAcquire (&SK_SteamAPI_CallbackRateLimit);
+
+      if (ImGui::SliderInt ("Limit SteamAPI Rate", &rate, -1, 240))
+          InterlockedExchange (&SK_SteamAPI_CallbackRateLimit, rate);
+
+      ImGui::EndPopup     ();
     }
 
     ImGui::SameLine ();

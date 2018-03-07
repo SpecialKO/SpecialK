@@ -769,7 +769,9 @@ DllMain ( HMODULE hModule,
       auto EarlyOut =
       [&](BOOL bRet = TRUE)
       {
-        if (! (SK_HostApp.isInjectionTool () || has_local_dll))
+        if ( (! bRet) ||
+             (! ( has_local_dll ||
+                  SK_GetHostAppUtil ().isInjectionTool () ) ) )
         {
           auto tls_slot =
             SK_GetTLS ();
@@ -795,10 +797,11 @@ DllMain ( HMODULE hModule,
           }
         }
 
-        else bRet = TRUE;
-
-        return
-          bRet;
+        return TRUE;
+        //else bRet = TRUE;
+        //
+        //return
+        //  bRet;
       };
 
       InterlockedExchange (&__SK_TLS_INDEX, TlsAlloc ());
@@ -807,7 +810,7 @@ DllMain ( HMODULE hModule,
       // We use SKIM for injection and rundll32 for various tricks involving restarting
       //   the currently running game; neither needs or even wants this DLL fully
       //     initialized!
-      if (SK_HostApp.isInjectionTool ())
+      if (SK_GetHostAppUtil  ().isInjectionTool ())
       {
         SK_EstablishRootPath ();
 

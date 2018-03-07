@@ -154,7 +154,7 @@ public:
   bool                    fullscreen_exclusive = false;
   uint64_t                framebuffer_flags    = 0x00;
   int                     present_interval     = 0; // Present interval on last call to present
-  LONG                    frames_drawn         = 0;
+  static volatile LONG    frames_drawn;
 
   struct window_registry_s
   {

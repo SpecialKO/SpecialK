@@ -1646,8 +1646,11 @@ GetAsyncKeyState_Detour (_In_ int vKey)
   if (SK_Console::getInstance ()->isVisible ())
     SK_ConsumeVKey (vKey);
 
+  bool fullscreen =
+    ( SK_GetFramesDrawn () && SK_GetCurrentRenderBackend ().fullscreen_exclusive );
+
   // Block keyboard input to the game while it's in the background
-  if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) &&
+  if ((! fullscreen) &&
       config.window.background_render && (! game_window.active))
     SK_ConsumeVKey (vKey);
 
@@ -1722,8 +1725,11 @@ GetKeyState_Detour (_In_ int nVirtKey)
   if (SK_Console::getInstance ()->isVisible ())
     SK_ConsumeVirtKey (nVirtKey);
 
+  bool fullscreen =
+    ( SK_GetFramesDrawn () && SK_GetCurrentRenderBackend ().fullscreen_exclusive );
+
   // Block keyboard input to the game while it's in the background
-  if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) &&
+  if ((! fullscreen) &&
       config.window.background_render && (! game_window.active))
     SK_ConsumeVirtKey (nVirtKey);
 

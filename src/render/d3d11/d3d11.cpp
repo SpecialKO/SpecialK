@@ -2426,23 +2426,6 @@ enum class sk_shader_class {
   Compute  = 0x20
 };
 
-#define ShaderColorDecl(idx) {                                                \
-  { ImGuiCol_Header,        ImColor::HSV ( (idx + 1) / 6.0f, 0.5f,  0.45f) }, \
-  { ImGuiCol_HeaderHovered, ImColor::HSV ( (idx + 1) / 6.0f, 0.55f, 0.6f ) }, \
-  { ImGuiCol_HeaderActive,  ImColor::HSV ( (idx + 1) / 6.0f, 0.6f,  0.6f ) } }
-
-static
-std::unordered_map < sk_shader_class, std::tuple < std::pair <ImGuiCol, ImColor>,
-                                                   std::pair <ImGuiCol, ImColor>,
-                                                   std::pair <ImGuiCol, ImColor> > >
-SK_D3D11_ShaderColors =
-  { { sk_shader_class::Unknown,  ShaderColorDecl (-1) },
-    { sk_shader_class::Vertex,   ShaderColorDecl ( 0) },
-    { sk_shader_class::Pixel,    ShaderColorDecl ( 1) },
-    { sk_shader_class::Geometry, ShaderColorDecl ( 2) },
-    { sk_shader_class::Hull,     ShaderColorDecl ( 3) },
-    { sk_shader_class::Domain,   ShaderColorDecl ( 4) },
-    { sk_shader_class::Compute,  ShaderColorDecl ( 5) } };
 
 __forceinline
 HRESULT
@@ -3262,7 +3245,15 @@ struct shader_stage_s {
   std::array <ID3D11ShaderResourceView*, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT> real_bindings    = { };
 };
 
-std::unordered_map <ID3D11DeviceContext *, shader_stage_s> d3d11_shader_stages [6];
+std::unordered_map <ID3D11DeviceContext *, shader_stage_s>*
+SK_D3D11_GetShaderStages (void)
+{
+  static std::unordered_map <ID3D11DeviceContext *, shader_stage_s> _stages [6];
+  return                                                            _stages;
+}
+
+#define d3d11_shader_stages SK_D3D11_GetShaderStages ()
+
 
 __forceinline
 bool
@@ -14006,9 +13997,29 @@ SK_D3D11_EndFrame (void)
 }
 
 
+#define ShaderColorDecl(idx) {                                                \
+  { ImGuiCol_Header,        ImColor::HSV ( (idx + 1) / 6.0f, 0.5f,  0.45f) }, \
+  { ImGuiCol_HeaderHovered, ImColor::HSV ( (idx + 1) / 6.0f, 0.55f, 0.6f ) }, \
+  { ImGuiCol_HeaderActive,  ImColor::HSV ( (idx + 1) / 6.0f, 0.6f,  0.6f ) } }
+
+
 bool
 SK_D3D11_ShaderModDlg (void)
 {
+  static
+  std::unordered_map < sk_shader_class, std::tuple < std::pair <ImGuiCol, ImColor>,
+                                                     std::pair <ImGuiCol, ImColor>,
+                                                     std::pair <ImGuiCol, ImColor> > >
+    SK_D3D11_ShaderColors =
+      { { sk_shader_class::Unknown,  ShaderColorDecl (-1) },
+        { sk_shader_class::Vertex,   ShaderColorDecl ( 0) },
+        { sk_shader_class::Pixel,    ShaderColorDecl ( 1) },
+        { sk_shader_class::Geometry, ShaderColorDecl ( 2) },
+        { sk_shader_class::Hull,     ShaderColorDecl ( 3) },
+        { sk_shader_class::Domain,   ShaderColorDecl ( 4) },
+        { sk_shader_class::Compute,  ShaderColorDecl ( 5) } };
+
+
   std::lock_guard <SK_Thread_CriticalSection> auto_lock_gp (cs_shader);
   std::lock_guard <SK_Thread_CriticalSection> auto_lock_vs (cs_shader_vs);
   std::lock_guard <SK_Thread_CriticalSection> auto_lock_ps (cs_shader_ps);
@@ -14016,6 +14027,7 @@ SK_D3D11_ShaderModDlg (void)
   std::lock_guard <SK_Thread_CriticalSection> auto_lock_ds (cs_shader_ds);
   std::lock_guard <SK_Thread_CriticalSection> auto_lock_hs (cs_shader_hs);
   std::lock_guard <SK_Thread_CriticalSection> auto_lock_cs (cs_shader_cs);
+
 
   ImGuiIO& io (ImGui::GetIO ());
 
@@ -15758,7 +15770,18 @@ struct SK_D3D11_CommandBase
     SK_GetCommandProcessor ()->AddCommand ("D3D11.ShaderMods.Unset",        new ShaderMods::Unset        ());
     SK_GetCommandProcessor ()->AddCommand ("D3D11.ShaderMods.Toggle",       new ShaderMods::Toggle       ());
   }
-} SK_D3D11_Commands;
+};
+
+
+SK_D3D11_CommandBase&
+SK_D3D11_GetCommands (void)
+{
+  static SK_D3D11_CommandBase _commands;
+  return                      _commands;
+};
+
+#define SK_D3D11_Commands SK_D3D11_GetCommands ()
+
 
 //SK_ICommand
 //{

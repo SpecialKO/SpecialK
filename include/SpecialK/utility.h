@@ -216,7 +216,10 @@ public:
 protected:
   bool        SKIM     = false;
   bool        RunDll32 = false;
-} extern SK_HostApp;
+};
+
+SK_HostAppUtil&
+SK_GetHostAppUtil (void);
 
 bool __stdcall SK_IsDLLSpecialK          (const wchar_t* wszName);
 void __stdcall SK_SelfDestruct           (void);

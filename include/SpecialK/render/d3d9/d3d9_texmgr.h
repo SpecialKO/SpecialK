@@ -393,7 +393,7 @@ public:
 
   public:
     bool                                                     init            = false;
-  } extern tex_mgr;
+  };
 
 
   class TextureWorkerThread
@@ -732,8 +732,7 @@ public:
   
     TextureThreadPool* lrg_tex = nullptr;
     TextureThreadPool* sm_tex  = nullptr;
-  } extern stream_pool;
-
+  };
 }
 }
 
@@ -745,8 +744,47 @@ const GUID IID_SKTextureD3D9 =
   { 0xace1f81b, 0x5f3f, 0x45f4, 0xbf, 0x9f, 0x1b, 0xaf, 0xdf, 0xba, 0x11, 0x9b };
 
 
-extern concurrent_unordered_map <uint32_t, int32_t>            injected_refs;
-extern concurrent_unordered_map <uint32_t, IDirect3DTexture9*> injected_textures;
+struct SK_D3D9_TextureStorageBase
+{
+//SK::D3D9::TextureThreadPool *SK::D3D9::resample_pool = nullptr;
+  SK::D3D9::StreamSplitter                                _stream_pool;
+
+  // Cleanup
+  std::queue <std::wstring>                               _screenshots_to_delete;
+
+  // Textures that are missing mipmaps
+  std::set   <IDirect3DBaseTexture9 *>                    _incomplete_textures;
+
+  Concurrency::
+  concurrent_unordered_map <uint32_t, IDirect3DTexture9*> _injected_textures;
+  Concurrency::
+  concurrent_unordered_map <uint32_t, float>              _injected_load_times;
+  Concurrency::
+  concurrent_unordered_map <uint32_t, size_t>             _injected_sizes;
+  Concurrency::
+  concurrent_unordered_map <uint32_t, int32_t>            _injected_refs;
+  
+  SK_ThreadSafe_HashSet <IDirect3DSurface9 *>             _outstanding_screenshots;
+                                           // Not excellent screenshots, but screenhots
+                                           //   that aren't finished yet and we can't reset
+                                           //     the D3D9 device because of.
+};
+
+SK::D3D9::TextureManager&
+SK_D3D9_GetTextureManager (void);
+
+SK_D3D9_TextureStorageBase&
+SK_D3D9_GetBasicTextureDataStore (void);
+
+#define screenshots_to_delete   SK_D3D9_GetBasicTextureDataStore ()._screenshots_to_delete
+#define incomplete_textures     SK_D3D9_GetBasicTextureDataStore ()._incomplete_textures
+#define injected_textures       SK_D3D9_GetBasicTextureDataStore ()._injected_textures
+#define injected_load_times     SK_D3D9_GetBasicTextureDataStore ()._injected_load_times
+#define injected_sizes          SK_D3D9_GetBasicTextureDataStore ()._injected_sizes
+#define injected_refs           SK_D3D9_GetBasicTextureDataStore ()._injected_refs
+#define outstanding_screenshots SK_D3D9_GetBasicTextureDataStore ()._outstanding_screenshots
+#define stream_pool             SK_D3D9_GetBasicTextureDataStore ()._stream_pool
+
 
 interface ISKTextureD3D9 : public IDirect3DTexture9
 {
@@ -840,7 +878,7 @@ public:
       can_free = true;
       // Does not delete this immediately; defers the
       //   process until the next cached texture load.
-      SK::D3D9::tex_mgr.removeTexture (this);
+      SK_D3D9_GetTextureManager ().removeTexture (this);
     }
 
     return ret;
@@ -1095,10 +1133,6 @@ public:
 
   ContentPreference  img_to_use;
 };
-
-extern concurrent_unordered_map <uint32_t, IDirect3DTexture9*> injected_textures;
-extern concurrent_unordered_map <uint32_t, float>              injected_load_times;
-extern concurrent_unordered_map <uint32_t, size_t>             injected_sizes;
 
 typedef HRESULT (STDMETHODCALLTYPE *D3DXCreateTextureFromFileInMemoryEx_pfn)
 (

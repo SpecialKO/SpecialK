@@ -227,16 +227,30 @@ struct ds3_state_s {
     int           Width     = 0;
     int           Height    = 0;
   } monitor;
-} ds3_state;
+};
+
+ds3_state_s&
+SK_DS3_GetState (void)
+{
+  static ds3_state_s ds3_state;
+  return             ds3_state;
+}
 
 
 struct sus_state_s {
   bool Center     = false;
   bool MaxWindow  = false;
-} sus_state;
+};
+
+sus_state_s&
+SK_SUS_GetState (void)
+{
+  static sus_state_s sus_state;
+  return             sus_state;
+}
 
 
-struct {
+struct ds3_cfg_s {
   struct {
     int  res_x       = 1280;
     int  res_y       = 720;
@@ -270,7 +284,18 @@ struct {
   struct {
     bool disclaimer  = true;
   } osd;
-} ds3_cfg;
+};
+
+ds3_cfg_s&
+SK_DS3_GetConfig (void)
+{
+  static ds3_cfg_s ds3_cfg;
+  return           ds3_cfg;
+}
+
+#define ds3_cfg   SK_DS3_GetConfig ( )
+#define ds3_state SK_DS3_GetState  ( )
+#define sus_state SK_SUS_GetState  ( )
 
 
 #include <SpecialK/core.h>

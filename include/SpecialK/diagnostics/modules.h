@@ -58,20 +58,6 @@ typedef struct _MODULEINFO {
   LPVOID EntryPoint;
 } MODULEINFO, *LPMODULEINFO;
 
-_Success_   (return != 0)
-_Ret_range_ (1, nSize)
-DWORD
-WINAPI
-GetModuleFileNameExW
-( _In_opt_ HANDLE  hProcess,
-  _In_opt_ HMODULE hModule,
-
-  _When_ (return  < nSize, _Out_writes_to_  (nSize, return + 1))
-  _When_ (return == nSize, _Out_writes_all_ (nSize))
-
-           LPWSTR  lpFilename,
-  _In_     DWORD   nSize );
-
 BOOL
 WINAPI
 GetModuleInformation

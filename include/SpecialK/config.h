@@ -224,6 +224,7 @@ struct sk_config_t
     bool    auto_pump_callbacks  = true;
     bool    block_stat_callback  = false;
     bool    filter_stat_callback = true;
+    int     callback_throttle    = -1;
 
     int     appid                = 0;
     bool    preload_client       = false;

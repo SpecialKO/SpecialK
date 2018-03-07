@@ -211,6 +211,11 @@ struct {
   struct {
     sk::ParameterStringW* blacklist;
   } cloud;
+
+  struct
+  {
+    sk::ParameterInt*     throttle;
+  } callbacks;
 } steam;
 
 struct {
@@ -423,6 +428,8 @@ bool
 SK_LoadConfig (std::wstring name) {
   return SK_LoadConfigEx (name);
 }
+
+extern volatile LONG SK_SteamAPI_CallbackRateLimit;
 
 
 SK_AppCache_Manager app_cache_mgr;
@@ -903,6 +910,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
     ConfigEntry (steam.social.online_status,             L"Always apply a social state (defined by EPersonaState) at"
                                                          L" application start",                                        dll_ini,         L"Steam.Social",          L"OnlineStatus"),
     ConfigEntry (steam.system.dll_path,                  L"Path to a known-working SteamAPI dll for this game.",       dll_ini,         L"Steam.System",          L"SteamPipeDLL"),
+    ConfigEntry (steam.callbacks.throttle,               L"-1=Unlimited, 0-oo=Upper bound limit to SteaAPI rate",      dll_ini,         L"Steam.System",          L"CallbackThrottle"),
 
     // Swashbucklers pay attention
     //////////////////////////////////////////////////////////////////////////
@@ -1539,6 +1547,8 @@ SK_LoadConfigEx (std::wstring name, bool create)
         // Don't show the cursor, ever, because the game doesn't use it.
         config.input.cursor.manage        = true;
         config.input.cursor.timeout       = 0;
+
+        InterlockedExchange (&SK_SteamAPI_CallbackRateLimit, 8);
         break;
 
       case SK_GAME_ID::DragonBallFighterZ:
@@ -2084,6 +2094,13 @@ SK_LoadConfigEx (std::wstring name, bool create)
   steam.system.force_load->load            (config.steam.force_load_steamapi);
   steam.system.auto_inject->load           (config.steam.auto_inject);
   steam.system.reuse_overlay_pause->load   (config.steam.reuse_overlay_pause);
+
+  int                                 throttle = -1;
+  if (steam.callbacks.throttle->load (throttle))
+  {
+    InterlockedExchange ( &SK_SteamAPI_CallbackRateLimit,
+                                      throttle );
+  }
 
   // Setup sane initial values
   config.steam.dll_path = SK_RunLHIfBitness ( 64, L"steam_api64.dll",
@@ -2770,6 +2787,8 @@ SK_SaveConfig ( std::wstring name,
   );
   steam.system.reuse_overlay_pause->store   (config.steam.reuse_overlay_pause);
   steam.system.dll_path->store              (config.steam.dll_path);
+
+  steam.callbacks.throttle->store           (ReadAcquire (&SK_SteamAPI_CallbackRateLimit));
 
   steam.social.online_status->store         (config.steam.online_status);
 

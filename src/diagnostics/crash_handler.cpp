@@ -227,8 +227,8 @@ CrashHandler::Init (void)
         {
           CHandle hThread (GetCurrentThread ());
 
-          SetThreadDescription (hThread, L"[SK] Crash Handler Init");
-          SetThreadPriority    (hThread, THREAD_PRIORITY_LOWEST);
+          SetCurrentThreadDescription (         L"[SK] Crash Handler Init");
+          SetThreadPriority           (hThread, THREAD_PRIORITY_LOWEST    );
 
           HRSRC   default_sound =
             FindResource (SK_GetDLL (), MAKEINTRESOURCE (IDR_CRASH), L"WAVE");

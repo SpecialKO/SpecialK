@@ -1735,45 +1735,33 @@ SK_GetHostApp (void)
   if (! InterlockedCompareExchange (&init, TRUE, FALSE))
   {
     DWORD   dwProcessSize =  MAX_PATH * 2;
-    wchar_t wszProcessName [ MAX_PATH * 2 ] = { };
+    wchar_t wszProcessName [ MAX_PATH * 2 + 1 ] = { };
 
-    HANDLE hProc =
-      GetCurrentProcess ();
+    GetModuleFileNameW ( 0, wszProcessName, dwProcessSize );
 
-    QueryFullProcessImageName (
-      hProc,
-        0,
-          wszProcessName,
-            &dwProcessSize );
+    wchar_t* wszSepBack = wcsrchr (wszProcessName, L'\\');
+    wchar_t* wszSepFwd  = wcsrchr (wszProcessName, L'/');
 
-    int      len           = lstrlenW (wszProcessName);
-    wchar_t* pwszShortName =           wszProcessName;
+    wchar_t* wszLastSep =
+      ( wszSepBack > wszSepFwd ? wszSepBack : wszSepFwd );
 
-    for (int i = 0; i < len; i++)
-      pwszShortName = CharNextW (pwszShortName);
-
-    while (  pwszShortName > wszProcessName )
+    if ( wszLastSep != nullptr )
     {
-      wchar_t* wszPrev =
-        CharPrevW (wszProcessName, pwszShortName);
-
-      if (wszPrev < wszProcessName)
-        break;
-
-      if (*wszPrev != L'\\' && *wszPrev != L'/')
-      {
-        pwszShortName = wszPrev;
-        continue;
-      }
-
-      break;
+      lstrcpynW (
+        host_proc.wszApp,
+          wszLastSep + 1,
+            MAX_PATH * 2 - 1
+      );
     }
 
-    lstrcpynW (
-      host_proc.wszApp,
-        pwszShortName,
-          MAX_PATH * 2 - 1
-    );
+    else
+    {
+      lstrcpynW (
+        host_proc.wszApp,
+          wszProcessName,
+            MAX_PATH * 2 - 1
+      );
+    }
 
     InterlockedIncrement (&init);
   }
@@ -1791,17 +1779,10 @@ SK_GetFullyQualifiedApp (void)
 
   if (! InterlockedCompareExchange (&init, TRUE, FALSE))
   {
-    DWORD   dwProcessSize = MAX_PATH * 2;
-    wchar_t wszProcessName [MAX_PATH * 2] = { };
+    DWORD   dwProcessSize =  MAX_PATH * 2;
+    wchar_t wszProcessName [ MAX_PATH * 2 + 1 ] = { };
 
-    HANDLE hProc =
-      GetCurrentProcess ();
-
-    QueryFullProcessImageName (
-      hProc,
-        0,
-          wszProcessName,
-            &dwProcessSize );
+    GetModuleFileNameW ( 0, wszProcessName, dwProcessSize );
 
     lstrcpynW (
       host_proc.wszFullName,
@@ -1828,45 +1809,17 @@ SK_GetHostPath (void)
 
   if (! InterlockedCompareExchange (&init, TRUE, FALSE))
   {
-    DWORD   dwProcessSize = MAX_PATH * 2;
-    wchar_t wszProcessName [MAX_PATH * 2] = { };
+    wchar_t    wszProcessName [ MAX_PATH * 2 + 1 ] = { };
+    lstrcpynW (wszProcessName, SK_GetFullyQualifiedApp (), MAX_PATH * 2);
 
-    HANDLE hProc =
-      GetCurrentProcess ();
+    wchar_t* wszSepBack = wcsrchr (wszProcessName, L'\\');
+    wchar_t* wszSepFwd  = wcsrchr (wszProcessName, L'/');
 
-    QueryFullProcessImageName (
-      hProc,
-        0,
-          wszProcessName,
-            &dwProcessSize );
+    wchar_t* wszLastSep =
+      ( wszSepBack > wszSepFwd ? wszSepBack : wszSepFwd );
 
-    int      len           = lstrlenW (wszProcessName);
-    wchar_t* pwszShortName =           wszProcessName;
-
-    for (int i = 0; i < len; i++)
-      pwszShortName = CharNextW (pwszShortName);
-
-    wchar_t* wszFirstSep = nullptr;
-
-    while (  pwszShortName > wszProcessName )
-    {
-      wchar_t* wszPrev =
-        CharPrevW (wszProcessName, pwszShortName);
-
-      if (wszPrev < wszProcessName)
-        break;
-
-      if (*wszPrev == L'\\' || *wszPrev == L'/')
-      {                              // Leave the trailing separator
-        wszFirstSep = wszPrev; 
-        break;
-      }
-
-      pwszShortName = wszPrev;
-    }
-
-    if (wszFirstSep != nullptr)
-       *wszFirstSep  = L'\0';
+    if (wszLastSep != nullptr)
+       *wszLastSep  = L'\0';
 
     lstrcpynW (
       host_proc.wszPath,
@@ -2696,11 +2649,18 @@ SK_DeferCommand (const char* szCommand)
 void
 SK_HostAppUtil::init (void)
 {
-  SKIM     = StrStrIW (SK_GetHostApp (), L"SKIM")     != nullptr;
-  RunDll32 = StrStrIW (SK_GetHostApp (), L"RunDLL32") != nullptr;
+  SKIM     = StrStrIW ( SK_GetHostApp (), L"SKIM"     ) != nullptr;
+  RunDll32 = StrStrIW ( SK_GetHostApp (), L"RunDLL32" ) != nullptr;
 }
 
-SK_HostAppUtil SK_HostApp;
+SK_HostAppUtil&
+SK_GetHostAppUtil (void)
+{
+  static SK_HostAppUtil SK_HostApp;
+  return                SK_HostApp;
+}
+
+
 
 const wchar_t*
 __stdcall

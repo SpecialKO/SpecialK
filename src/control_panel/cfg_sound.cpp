@@ -31,8 +31,23 @@
 
 #include <TlHelp32.h>
 
-static SK_WASAPI_SessionManager sessions;
-static SK_WASAPI_AudioSession*  audio_session;
+SK_WASAPI_SessionManager&
+SK_WASAPI_GetSessionManager (void)
+{
+  static SK_WASAPI_SessionManager sessions;
+  return                          sessions;
+}
+
+SK_WASAPI_AudioSession*&
+SK_WASAPI_GetAudioSession (void)
+{
+  static SK_WASAPI_AudioSession* audio_session;
+  return                         audio_session;
+}
+
+#define sessions      SK_WASAPI_GetSessionManager ()
+#define audio_session SK_WASAPI_GetAudioSession   ()
+
 
 #define IM_ARRAYSIZE(_ARR)  ((int)(sizeof(_ARR)/sizeof(*_ARR)))
 

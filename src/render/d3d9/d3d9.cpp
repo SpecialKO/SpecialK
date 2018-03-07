@@ -951,6 +951,9 @@ SK::D3D9::Startup (void)
 bool
 SK::D3D9::Shutdown (void)
 {
+  SK::D3D9::TextureManager& tex_mgr =
+    SK_D3D9_GetTextureManager ();
+
   // The texture manager built-in to SK is derived from these ...
   //   until those projects are modified to use THIS texture manager,
   //     they need special treatment.
@@ -1786,10 +1789,13 @@ HRESULT
 STDMETHODCALLTYPE
 D3D9BeginScene_Override (IDirect3DDevice9 *This)
 {
+  SK::D3D9::TextureManager& tex_mgr =
+    SK_D3D9_GetTextureManager ();
+
   if (tex_mgr.init)
   {
     if (tex_mgr.injector.hasPendingLoads ())
-      tex_mgr.loadQueuedTextures ();
+        tex_mgr.loadQueuedTextures ();
   }
 
   HRESULT hr =
@@ -1805,6 +1811,9 @@ HRESULT
 STDMETHODCALLTYPE
 D3D9EndScene_Override (IDirect3DDevice9 *This)
 {
+  SK::D3D9::TextureManager& tex_mgr =
+    SK_D3D9_GetTextureManager ();
+
   //dll_log.Log (L"[   D3D9   ] [!] %s (%ph) - "
     //L"[Calling Thread: 0x%04x]",
     //L"IDirect3DDevice9::EndScene", This,
@@ -1981,6 +1990,9 @@ D3D9Reset_Pre ( IDirect3DDevice9      *This,
       ResetCEGUI_D3D9                       (nullptr);
       ImGui_ImplDX9_InvalidateDeviceObjects (pPresentationParameters);
     }
+
+    SK::D3D9::TextureManager& tex_mgr =
+      SK_D3D9_GetTextureManager ();
 
     if (tex_mgr.init)
     {
@@ -2858,7 +2870,10 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
                              IDirect3DBaseTexture9 *pSourceTexture,
                              IDirect3DBaseTexture9 *pDestinationTexture )
 {
-  if ((! config.textures.d3d9_mod) || (! SK::D3D9::tex_mgr.init) || SK::D3D9::tex_mgr.injector.isInjectionThread ())
+  SK::D3D9::TextureManager& tex_mgr =
+    SK_D3D9_GetTextureManager ();
+
+  if ((! config.textures.d3d9_mod) || (! tex_mgr.init) || tex_mgr.injector.isInjectionThread ())
   {
     return
       D3D9Device_UpdateTexture_Original ( This,
@@ -5110,8 +5125,11 @@ SK_D3D9_DrawFileList (bool& can_scroll)
 
   if (list_dirty)
   {
-    SK::D3D9::tex_mgr.getInjectableTextures (injectable);
-    SK::D3D9::tex_mgr.getTextureArchives    (archives);
+    SK::D3D9::TextureManager& tex_mgr =
+      SK_D3D9_GetTextureManager ();
+
+    tex_mgr.getInjectableTextures (injectable);
+    tex_mgr.getTextureArchives    (archives);
 
     sources.clear  ();
 
@@ -5243,6 +5261,9 @@ SK_D3D9_DrawFileList (bool& can_scroll)
 
     if (ImGui::IsWindowHovered ())
       can_scroll = false;
+
+    SK::D3D9::TextureManager& tex_mgr =
+      SK_D3D9_GetTextureManager ();
 
     ImGui::BeginGroup ();
     for ( auto it : sources [sel].checksums )
@@ -6252,12 +6273,10 @@ bool
 SK_D3D9_TextureModDlg (void)
 {
   const float font_size = ImGui::GetFont ()->FontSize * ImGui::GetIO ().FontGlobalScale;
-
-  bool show_dlg = true;
+  bool        show_dlg  = true;
 
   ImGuiIO& io =
     ImGui::GetIO ();
-
 
 
   auto HandleKeyboard = [&](void)
@@ -6304,7 +6323,10 @@ SK_D3D9_TextureModDlg (void)
           }
         }
 
-        SK::D3D9::tex_mgr.updateOSD ();
+        SK::D3D9::TextureManager& tex_mgr =
+          SK_D3D9_GetTextureManager ();
+
+        tex_mgr.updateOSD ();
       }
     }
   };
@@ -6371,6 +6393,9 @@ SK_D3D9_TextureModDlg (void)
 
   if (ImGui::CollapsingHeader ("Live Texture View", ImGuiTreeNodeFlags_CollapsingHeader | ImGuiTreeNodeFlags_DefaultOpen))
   {
+    SK::D3D9::TextureManager& tex_mgr =
+      SK_D3D9_GetTextureManager ();
+
     HandleKeyboard ();
 
     static float last_ht    = 256.0f;
@@ -6397,7 +6422,7 @@ SK_D3D9_TextureModDlg (void)
 
       command.ProcessCommandLine ("Textures.Trace true");
 
-      SK::D3D9::tex_mgr.updateOSD ();
+      tex_mgr.updateOSD ();
 
       list_dirty = true;
     }
@@ -6538,7 +6563,7 @@ SK_D3D9_TextureModDlg (void)
    if (debug_tex_id != 0x00)
    {
      SK::D3D9::Texture* pTex =
-       SK::D3D9::tex_mgr.getTexture (debug_tex_id);
+       tex_mgr.getTexture (debug_tex_id);
 
      extern bool __remap_textures;
             bool has_alternate = (pTex != nullptr && pTex->d3d9_tex->pTexOverride != nullptr);
@@ -6632,11 +6657,11 @@ SK_D3D9_TextureModDlg (void)
           ImGui::Checkbox ("Flip Vertically##D3D9_FlipVertical0",     &flip_vertical0);   ImGui::SameLine ( );
           ImGui::Checkbox ("Flip Horizontally##D3D9_FlipHorizontal0", &flip_horizontal0);
 
-          if (! SK::D3D9::tex_mgr.isTextureDumped (debug_tex_id))
+          if (! tex_mgr.isTextureDumped (debug_tex_id))
           {
             if ( ImGui::Button ("  Dump Texture to Disk  ###DumpTexture") )
             {
-              SK::D3D9::tex_mgr.dumpTexture (desc.Format, debug_tex_id, pTex->d3d9_tex->pTex);
+              tex_mgr.dumpTexture (desc.Format, debug_tex_id, pTex->d3d9_tex->pTex);
             }
 
             //if (config.textures.quick_load && ImGui::IsItemHovered ())
@@ -6647,7 +6672,7 @@ SK_D3D9_TextureModDlg (void)
           {
             if ( ImGui::Button ("  Delete Dumped Texture from Disk  ###DumpTexture") )
             {
-              SK::D3D9::tex_mgr.deleteDumpedTexture (desc.Format, debug_tex_id);
+              tex_mgr.deleteDumpedTexture (desc.Format, debug_tex_id);
             }
           }
 
@@ -6730,7 +6755,7 @@ SK_D3D9_TextureModDlg (void)
 
 
           bool injected  =
-            (SK::D3D9::tex_mgr.getInjectableTexture (debug_tex_id).size != 0),
+            (tex_mgr.getInjectableTexture (debug_tex_id).size != 0),
                reloading = false;
 
           int num_lods =
@@ -6767,11 +6792,11 @@ SK_D3D9_TextureModDlg (void)
 
           if (injected)
           {
-            if ( ImGui::Button ("  Reload This Texture  ") && SK::D3D9::tex_mgr.reloadTexture (debug_tex_id) )
+            if ( ImGui::Button ("  Reload This Texture  ") && tex_mgr.reloadTexture (debug_tex_id) )
             {
               reloading = true;
 
-              SK::D3D9::tex_mgr.updateOSD ();
+              tex_mgr.updateOSD ();
             }
           }
 
@@ -6808,6 +6833,9 @@ SK_D3D9_TextureModDlg (void)
 
   if (ImGui::CollapsingHeader ("Live Render Target View"))
   {
+    SK::D3D9::TextureManager& tex_mgr =
+      SK_D3D9_GetTextureManager ();
+
     static float last_ht    = 256.0f;
     static float last_width = 256.0f;
 
@@ -7814,6 +7842,9 @@ SK_D3D9_EndFrame (void)
 
     tracked_ps.clear ();
   }
+
+  SK::D3D9::TextureManager& tex_mgr =
+    SK_D3D9_GetTextureManager ();
 
   if (trigger_reset == Clear)
   {

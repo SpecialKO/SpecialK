@@ -2948,8 +2948,43 @@ SK_Steam_DrawOSD (void)
   return 0;
 }
 
-volatile LONGLONG SK_SteamAPI_CallbackRunCount    = 0LL;
-volatile LONG     SK_SteamAPI_ManagersInitialized = 0L;
+volatile LONGLONG SK_SteamAPI_CallbackRunCount    =  0LL;
+volatile LONG     SK_SteamAPI_ManagersInitialized =  0L;
+volatile LONG     SK_SteamAPI_CallbackRateLimit   = -1L;
+
+bool
+SK_Steam_ShouldThrottleCallbacks (void)
+{
+  if (ReadAcquire (&__SK_Steam_init))
+  {
+    InterlockedIncrement64 (&SK_SteamAPI_CallbackRunCount);
+    // Might want to skip the callbacks; one call every 1 ms is enough!!
+
+
+    static LONG          lastFrame        =
+      SK_GetFramesDrawn ();
+    static LARGE_INTEGER liLastCallbacked =
+      SK_CurrentPerf    ();
+
+
+    LONG limit = ReadAcquire (&SK_SteamAPI_CallbackRateLimit);
+    if  (limit < 0) return false;
+
+
+    if ( limit == 0 ||
+         ( SK_CurrentPerf ().QuadPart - liLastCallbacked.QuadPart  <
+           SK_GetPerfFreq ().QuadPart / limit ) )
+    {
+      InterlockedDecrement64 ( &SK_SteamAPI_CallbackRunCount );
+      return true;
+    }
+
+    lastFrame        = SK_GetFramesDrawn ();
+    liLastCallbacked = SK_CurrentPerf    ();
+  }
+
+  return false;
+}
 
 void
 S_CALLTYPE
@@ -2964,31 +2999,11 @@ SteamAPI_RunCallbacks_Detour (void)
 
   static bool failure = false;
 
-  // Throttle to 1000 Hz for STUPID games like Akiba's Trip
-  static DWORD dwLastTick = 0;
-         DWORD dwNow      = timeGetTime ();
 
-  if (dwLastTick < dwNow)
-    dwLastTick = dwNow;
+  if (SK_Steam_ShouldThrottleCallbacks ())
+    return;
 
-  else
-  {
-    if (ReadAcquire (&__SK_Steam_init))
-    {
-      InterlockedIncrement64 (&SK_SteamAPI_CallbackRunCount);
-      // Skip the callbacks, one call every 1 ms is enough!!
 
-      //// Sleep 0 doesn't do anything for threads with altered priority,
-      ////   don't do that... there could be HIGHER priority ready threads
-      ////                      and they'll be ignored by a 0 interval!
-      //if (GetThreadPriority (GetCurrentThread ()) != THREAD_PRIORITY_NORMAL)
-      //  MsgWaitForMultipleObjectsEx (0, nullptr, 1, MWMO_INPUTAVAILABLE, 0x00);
-      //else
-      //  YieldProcessor ();
-      //
-      //return;
-    }
-  }
 
   if ((! failure) && (( ReadAcquire64 (&SK_SteamAPI_CallbackRunCount) == 0LL || steam_achievements == nullptr )))
   {
@@ -3044,6 +3059,8 @@ SteamAPI_RunCallbacks_Detour (void)
   {
     if (! ReadAcquire (&__SK_DLL_Ending))
     {
+      DWORD dwNow = timeGetTime ();
+
       static DWORD
           dwLastOnlineStateCheck = 0UL;
       if (dwLastOnlineStateCheck < dwNow - 666UL)

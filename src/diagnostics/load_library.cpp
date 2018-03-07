@@ -1340,10 +1340,9 @@ CreateThread (nullptr, 0, [](LPVOID user) -> DWORD
     {
       // Get the full path to the module's file.
       if ( (! logged_modules.count (pWorkingSet_->modules [i])) &&
-              GetModuleFileNameExW ( pWorkingSet_->proc,
-                                       pWorkingSet_->modules [i],
-                                        wszModName,
-                                          MAX_PATH ) )
+               GetModuleFileNameW ( pWorkingSet_->modules [i],
+                                      wszModName,
+                                        MAX_PATH ) )
       {
         MODULEINFO mi = { };
 
@@ -1491,7 +1490,7 @@ SK_BootModule (const wchar_t* wszModName)
 }
 
 void
-SK_WalkModules (int cbNeeded, HANDLE hProc, HMODULE* hMods, SK_ModuleEnum when)
+SK_WalkModules (int cbNeeded, HANDLE /*hProc*/, HMODULE* hMods, SK_ModuleEnum when)
 {
   bool rehook    = false;
   bool new_hooks = false;
@@ -1503,10 +1502,9 @@ SK_WalkModules (int cbNeeded, HANDLE hProc, HMODULE* hMods, SK_ModuleEnum when)
     __try
     {
       // Get the full path to the module's file.
-      if ( GetModuleFileNameExW ( hProc,
-                                    hMods [i],
-                                      wszModName,
-                                        MAX_PATH ) )
+      if ( GetModuleFileNameW ( hMods [i],
+                                  wszModName,
+                                    MAX_PATH ) )
       {
         if (! rehook)
         {

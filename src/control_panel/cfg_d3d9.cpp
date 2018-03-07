@@ -89,6 +89,9 @@ SK::ControlPanel::D3D9::Draw (void)
     ImGui::TreePush ("");
     if (ImGui::CollapsingHeader ("Texture Memory Stats", ImGuiTreeNodeFlags_DefaultOpen))
     {
+      SK::D3D9::TextureManager& tex_mgr =
+        SK_D3D9_GetTextureManager ();
+
       ImGui::PushStyleVar (ImGuiStyleVar_ChildWindowRounding, 15.0f);
       ImGui::TreePush     ("");
 
@@ -112,7 +115,7 @@ SK::ControlPanel::D3D9::Draw (void)
     //ImGui::PushFont  (ImGui::GetIO ().Fonts->Fonts [1]);
       ImGui::Columns   ( 3 );
         ImGui::Text    ( "%#6zu MiB Total",
-                                                       SK::D3D9::tex_mgr.cacheSizeTotal () >> 20ULL ); ImGui::NextColumn ();
+                                                       tex_mgr.cacheSizeTotal () >> 20ULL ); ImGui::NextColumn ();
 
         static DWORD  dwLastVRAMUpdate   = 0UL;
         static size_t d3d9_tex_mem_avail = 0UL;
@@ -131,7 +134,7 @@ SK::ControlPanel::D3D9::Draw (void)
 
         ImGui::TextColored
                        (ImVec4 (0.3f, 1.0f, 0.3f, 1.0f),
-                         "%#5lu     Hits",             SK::D3D9::tex_mgr.getHitCount    ()          ); ImGui::NextColumn ();
+                         "%#5lu     Hits",             tex_mgr.getHitCount    ()          ); ImGui::NextColumn ();
         ImGui::Text       ( "Budget: %#7zu MiB  ",     d3d9_tex_mem_avail );
       ImGui::Columns   ( 1 );
 
@@ -147,7 +150,7 @@ SK::ControlPanel::D3D9::Draw (void)
 
       ImGui::Columns   ( 3 );
         ImGui::Selectable  ( SK_FormatString ( "%#6zu MiB Base###D3D9_BaseTextures",
-                                                 SK::D3D9::tex_mgr.cacheSizeBasic () >> 20ULL ).c_str (),
+                                                 tex_mgr.cacheSizeBasic () >> 20ULL ).c_str (),
                                &selected ); ImGui::NextColumn ();
 
         ImGui::PopStyleColor ();
@@ -159,8 +162,8 @@ SK::ControlPanel::D3D9::Draw (void)
 
         ImGui::TextColored
                        (ImVec4 (1.0f, 0.3f, 0.3f, 1.0f),
-                         "%#5lu   Misses",             SK::D3D9::tex_mgr.getMissCount   ()          );  ImGui::NextColumn ();
-        ImGui::Text    ( "Time:    %#7.03lf  s  ",     SK::D3D9::tex_mgr.getTimeSaved   () / 1000.0f);
+                         "%#5lu   Misses",             tex_mgr.getMissCount   ()          );  ImGui::NextColumn ();
+        ImGui::Text    ( "Time:    %#7.03lf  s  ",     tex_mgr.getTimeSaved   () / 1000.0f);
       ImGui::Columns   ( 1 );
 
       ImGui::Separator (   );
@@ -172,7 +175,7 @@ SK::ControlPanel::D3D9::Draw (void)
 
       ImGui::Columns   ( 3 );
         ImGui::Selectable  ( SK_FormatString ( "%#6zu MiB Injected###D3D9_InjectedTextures",
-                                                           SK::D3D9::tex_mgr.cacheSizeInjected () >> 20ULL ).c_str (),
+                                                           tex_mgr.cacheSizeInjected () >> 20ULL ).c_str (),
                                          &selected ); ImGui::NextColumn ();
 
         ImGui::PopStyleColor ();
@@ -182,11 +185,11 @@ SK::ControlPanel::D3D9::Draw (void)
         if ((! selected) && (ImGui::IsItemHovered () || ImGui::IsItemFocused ()))
           ImGui::SetTooltip ("Click here to use custom textures.");
 
-        ImGui::TextColored (ImColor::HSV (std::min ( 0.4f * (float)SK::D3D9::tex_mgr.getHitCount  ()   / 
-                                                            (float)SK::D3D9::tex_mgr.getMissCount (), 0.4f ), 0.98f, 1.0f),
-                         "%.2f  Hit/Miss",          (double)SK::D3D9::tex_mgr.getHitCount  () / 
-                                                    (double)SK::D3D9::tex_mgr.getMissCount ()          ); ImGui::NextColumn ();
-        ImGui::Text    ( "Driver: %#7zu MiB  ",    SK::D3D9::tex_mgr.getByteSaved          () >> 20ULL );
+        ImGui::TextColored (ImColor::HSV (std::min ( 0.4f * (float)tex_mgr.getHitCount  ()   / 
+                                                            (float)tex_mgr.getMissCount (), 0.4f ), 0.98f, 1.0f),
+                         "%.2f  Hit/Miss",                 (double)tex_mgr.getHitCount  () / 
+                                                           (double)tex_mgr.getMissCount ()          ); ImGui::NextColumn ();
+        ImGui::Text    ( "Driver: %#7zu MiB  ",                    tex_mgr.getByteSaved () >> 20ULL );
 
       ImGui::PopStyleColor
                        (   );

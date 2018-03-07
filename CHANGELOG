@@ -1,3 +1,19 @@
+0.9.8:
+
+ + Added SteamAPI rate throttling to fix resource load hitches in FFXV
+
+   >> Right-click the SteamAPI Frame counter in the control panel to access:
+
+       -1 = Unlimited (will hitch)
+        0 = Disabled  (no idea what will happen, but probably not good)
+       *8 = (Suggested max. for FFXV)
+
+
+ + DLL static initialization cleanup (most global scope data is now scoped)
+
+    (Dramatic global injection performance speedup)
+
+
 0.9.7:
 
  + Added DirectXTex DLL Exports:
