@@ -883,7 +883,7 @@ SK_Bypass_CRT (LPVOID)
   ///}
 
 
-  CloseHandle (GetCurrentThread ());
+  SK_Thread_CloseSelf ();
 
   return 0;
 }

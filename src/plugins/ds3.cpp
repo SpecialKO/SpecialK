@@ -7,6 +7,7 @@
 
 #include <SpecialK/log.h>
 #include <SpecialK/config.h>
+#include <SpecialK/thread.h>
 #include <SpecialK/hooks.h>
 #include <SpecialK/core.h>
 
@@ -1350,7 +1351,7 @@ SK_DS3_PluginKeyPress ( BOOL Control,
 #define DS3_SendScancode(vk,x,y) {                         DS3_SendScancodeMake  ((vk), (x));                          \
           CreateThread (nullptr, 0, [](LPVOID) -> DWORD {             SleepEx (66, TRUE);                              \
                                                            DS3_SendScancodeBreak ((vk), (x));                          \
-                                                           CloseHandle (GetCurrentThread ());                          \
+                                                           SK_Thread_CloseSelf ();                          \
                                                                                   return 0; }, nullptr, 0x0, nullptr); \
 };
 
@@ -1391,7 +1392,7 @@ SK_DS3_OSD_Disclaimer (LPVOID user)
 
   ds3_prefs->write              (ds3_prefs_file);
 
-  CloseHandle (GetCurrentThread ());
+  SK_Thread_CloseSelf ();
 
   return 0;
 }

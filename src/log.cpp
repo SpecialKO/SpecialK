@@ -106,10 +106,8 @@ DWORD
 WINAPI
 SK_Log_AsyncFlushThreadPump (LPVOID)
 {
-  CHandle hThread (GetCurrentThread ());
-
-  SetCurrentThreadDescription (         L"[SK] Async Log Flush Thread Pump");
-  SetThreadPriority           (hThread, THREAD_PRIORITY_LOWEST             );
+  SetCurrentThreadDescription (            L"[SK] Async Log Flush Thread Pump" );
+  SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_LOWEST );
 
   // TODO:  Consider an interlocked singly-linked list instead
   //
@@ -142,7 +140,7 @@ SK_Log_AsyncFlushThreadPump (LPVOID)
   }
 
   CloseHandle (hFlushReq);
-  CloseHandle (GetCurrentThread ());
+  SK_Thread_CloseSelf  ();
 
   return 0;
 }

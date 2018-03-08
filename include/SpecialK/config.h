@@ -305,6 +305,7 @@ struct sk_config_t
       bool    enhanced_depth     = false;
       bool    deferred_isolation = false;
       int     msaa_samples       =    -1;
+      bool    present_test_skip  = false;
     } dxgi;
     struct {
       // Required by default for compatibility with Mirillis Action!

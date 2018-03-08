@@ -22,6 +22,7 @@
 #include <SpecialK/tls.h>
 #include <SpecialK/log.h>
 #include <SpecialK/config.h>
+#include <SpecialK/thread.h>
 
 
 volatile long __SK_TLS_INDEX = TLS_OUT_OF_INDEXES;
@@ -352,8 +353,8 @@ SK_Win32_ThreadContext::getThreadPriority (bool nocache)
 
   if (nocache)
   {
-    thread_prio            = GetThreadPriority (GetCurrentThread ());
-    last_tested_prio.time  = timeGetTime ();
+    thread_prio            = GetThreadPriority (SK_GetCurrentThread ());
+    last_tested_prio.time  = timeGetTime       ();
     last_tested_prio.frame = SK_GetFramesDrawn ();
 
     return thread_prio;
@@ -365,7 +366,7 @@ SK_Win32_ThreadContext::getThreadPriority (bool nocache)
 
     if (last_tested_prio.time < dwNow - _RefreshInterval)
     {
-      thread_prio            = GetThreadPriority (GetCurrentThread ());
+      thread_prio            = GetThreadPriority (SK_GetCurrentThread ());
       last_tested_prio.time  = dwNow;
       last_tested_prio.frame = SK_GetFramesDrawn ();
     }

@@ -280,31 +280,31 @@ SKX_GetCBTHook (void)
 void
 SKX_WaitForCBTHookShutdown (void)
 {
-  HANDLE hShutdown  = INVALID_HANDLE_VALUE;
-  HANDLE hHookOwner = 
-    OpenProcess ( PROCESS_DUP_HANDLE, FALSE, dwHookPID );
+  CHandle hShutdown  ( INVALID_HANDLE_VALUE );
+  CHandle hHookOwner (
+    OpenProcess ( PROCESS_DUP_HANDLE, FALSE, dwHookPID )
+  );
 
   if (hHookOwner != nullptr && dwHookPID != GetCurrentProcessId ())
   {
     BOOL success =
-      DuplicateHandle ( hHookOwner,  hShutdownEvent,
-                        GetCurrentProcess (), &hShutdown,
+      DuplicateHandle ( hHookOwner, hShutdownEvent,
+                        SK_GetCurrentProcess (), &hShutdown.m_h,
                         0x00, TRUE, DUPLICATE_SAME_ACCESS );
 
-    CloseHandle (hHookOwner);
-
-    if (success && hShutdown != INVALID_HANDLE_VALUE)
+    if ( success &&
+         hShutdown != INVALID_HANDLE_VALUE )
     {
-      SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_LOWEST);
+      SetThreadPriority      ( SK_GetCurrentThread (),
+                               THREAD_PRIORITY_LOWEST       );
+      SetThreadPriorityBoost ( SK_GetCurrentThread (), TRUE );
 
 #ifdef NOT_SANE_SCHEDULING
       for (int i = 0; i < 16; i++)
         if (WaitForSingleObject (hShutdown, 25UL) == WAIT_OBJECT_0) break;
 #else
-      WaitForSingleObject (hShutdown, INFINITE);
+      WaitForSingleObject ( hShutdown, INFINITE );
 #endif
-
-      CloseHandle (hShutdown);
     }
   }
 }
@@ -321,11 +321,11 @@ CBTProc ( _In_ int    nCode,
   {
     if (GetCurrentProcessId () != dwHookPID)
     {
-      InterlockedIncrement (&injected_procs);
-
       CreateThread (nullptr, 0,
       [ ](LPVOID) -> DWORD
        {
+         InterlockedIncrement (&injected_procs);
+
          HMODULE hModThis;
 
          if ( GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
@@ -335,12 +335,12 @@ CBTProc ( _In_ int    nCode,
            SKX_WaitForCBTHookShutdown    (               );
            InterlockedDecrement          (&injected_procs);
 
-           CloseHandle (GetCurrentThread (              ));
+           SK_Thread_CloseSelf           (               );
            FreeLibraryAndExitThread      (hModThis,   0x0);
          }
 
          InterlockedDecrement            (&injected_procs    );
-         CloseHandle                     (GetCurrentThread ());
+         SK_Thread_CloseSelf             (                   );
 
          return 0;
        }, nullptr, 0x0, nullptr);
@@ -409,11 +409,11 @@ SKX_RemoveCBTHook (void)
 START_OVER:
   if (hShutdownEvent != nullptr)
   {
-    SetEvent (hShutdownEvent);
+    while (ReadAcquire (&injected_procs) > 0)
+    {
+      SignalObjectAndWait (hShutdownEvent, hShutdownEvent, 5, TRUE);;
+    }
   }
-
-  while (ReadAcquire (&injected_procs) > 0)
-    SleepEx (5, TRUE);
 
   HHOOK hHookOrig = SKX_GetCBTHook ();
 
@@ -486,7 +486,7 @@ RunDLL_InjectionManager ( HWND  hwnd,        HINSTANCE hInst,
                while ( ReadAcquire (&__SK_DLL_Attached) || (! SK_IsHostAppSKIM ()))
                  SleepEx (5UL, TRUE);
 
-               CloseHandle (GetCurrentThread ());
+               SK_Thread_CloseSelf ();
 
                if (PtrToInt (user) != -128)
                {

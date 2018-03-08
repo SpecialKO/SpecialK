@@ -1609,7 +1609,7 @@ SK_CenterWindowAtMouse (BOOL remember_pos)
 
       InterlockedExchange (&__busy, FALSE);
 
-      CloseHandle (GetCurrentThread ());
+      SK_Thread_CloseSelf ();
 
       return 0;
        // Don't dereference this, it's actually a boolean
@@ -2639,7 +2639,7 @@ SK_Window_RepositionIfNeeded (void)
 
       InterlockedExchange (&__busy, FALSE);
 
-      CloseHandle (GetCurrentThread ());
+      SK_Thread_CloseSelf ();
 
       return 0;
     }, nullptr, 0x00, nullptr);

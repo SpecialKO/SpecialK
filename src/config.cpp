@@ -27,6 +27,7 @@
 #include <SpecialK/utility.h>
 #include <SpecialK/ini.h>
 #include <SpecialK/log.h>
+#include <SpecialK/thread.h>
 #include <SpecialK/steam_api.h>
 #include <SpecialK/nvapi.h>
 
@@ -291,6 +292,7 @@ struct {
     sk::ParameterBool*    enhanced_depth;
     sk::ParameterBool*    deferred_isolation;
     sk::ParameterInt*     msaa_samples;
+    sk::ParameterBool*    skip_present_test;
   } dxgi;
   struct {
     sk::ParameterBool*    force_d3d9ex;
@@ -839,7 +841,10 @@ SK_LoadConfigEx (std::wstring name, bool create)
     ConfigEntry (render.dxgi.enhanced_depth,             L"Use 32-bit Depth + 8-bit Stencil + 24-bit Padding",         dll_ini,         L"Render.DXGI",           L"Use64BitDepthStencil"),
     ConfigEntry (render.dxgi.deferred_isolation,         L"Isolate D3D11 Deferred Context Queues instead of Tracking"
                                                          L" in Immediate Mode.",                                       dll_ini,         L"Render.DXGI",           L"IsolateD3D11DeferredContexts"),
-    ConfigEntry (render.dxgi.msaa_samples,               L"Override ON-SCREEN Multisample Antialiasing Level; -1 = None", dll_ini,      L"Render.DXGI",           L"OverrideMSAA"),
+    ConfigEntry (render.dxgi.msaa_samples,               L"Override ON-SCREEN Multisample Antialiasing Level;-1=None", dll_ini,         L"Render.DXGI",           L"OverrideMSAA"),
+    ConfigEntry (render.dxgi.skip_present_test,          L"Nix the swapchain present flag: DXGI_PRESENT_TEST to "
+                                                         L"workaround bad third-party software that doesn't handle it"
+                                                         L" incorrectly.",                                             dll_ini,         L"Render.DXGI",           L"SkipSwapChainPresentTest"),
 
 
     ConfigEntry (texture.d3d11.cache,                    L"Cache Textures",                                            dll_ini,         L"Textures.D3D11",        L"Cache"),
@@ -1541,12 +1546,17 @@ SK_LoadConfigEx (std::wstring name, bool create)
         break;
 
       case SK_GAME_ID::FinalFantasyXV:
-        config.textures.d3d11.cache       = false;
-        config.textures.cache.max_entries = 262144; // Uses a ton of small textures
+        // On many systems, people have third-party software that is behaving
+        //   incorrectly when the game issues DXGI_PRESENT_TEST; so disable
+        //     this feature to improve performance and compat.
+        config.render.dxgi.present_test_skip = true;
+
+        config.textures.d3d11.cache          = false;
+        config.textures.cache.max_entries    = 262144; // Uses a ton of small textures
 
         // Don't show the cursor, ever, because the game doesn't use it.
-        config.input.cursor.manage        = true;
-        config.input.cursor.timeout       = 0;
+        config.input.cursor.manage           = true;
+        config.input.cursor.timeout          = 0;
 
         InterlockedExchange (&SK_SteamAPI_CallbackRateLimit, 8);
         break;
@@ -1863,8 +1873,9 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
   render.dxgi.enhanced_depth->load     (config.render.dxgi.enhanced_depth);
   render.dxgi.deferred_isolation->load (config.render.dxgi.deferred_isolation);
+  render.dxgi.skip_present_test->load  (config.render.dxgi.present_test_skip);
   render.dxgi.msaa_samples->load       (config.render.dxgi.msaa_samples);
-
+ 
 
   texture.d3d11.cache->load        (config.textures.d3d11.cache);
   texture.d3d11.precise_hash->load (config.textures.d3d11.precise_hash);
@@ -2219,7 +2230,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
             SK_ResHack_PatchGame (1920, 1080);
 
-            CloseHandle (GetCurrentThread ());
+            SK_Thread_CloseSelf ();
 
             return 0;
           }, nullptr, 0x00, nullptr);
@@ -2240,7 +2251,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
             SK_ResHack_PatchGame2 (1920, 1080);
 
-            CloseHandle (GetCurrentThread ());
+            SK_Thread_CloseSelf ();
 
             return 0;
           }, nullptr, 0x00, nullptr);
@@ -2261,7 +2272,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
             SK_ResHack_PatchGame (1920, 1080);
 
-            CloseHandle (GetCurrentThread ());
+            SK_Thread_CloseSelf ();
 
             return 0;
           }, nullptr, 0x00, nullptr);
@@ -2732,6 +2743,7 @@ SK_SaveConfig ( std::wstring name,
       render.dxgi.safe_fullscreen->store    (config.render.dxgi.safe_fullscreen);
       render.dxgi.enhanced_depth->store     (config.render.dxgi.enhanced_depth);
       render.dxgi.deferred_isolation->store (config.render.dxgi.deferred_isolation);
+      render.dxgi.skip_present_test->store  (config.render.dxgi.present_test_skip);
       render.dxgi.msaa_samples->store       (config.render.dxgi.msaa_samples);
     }
 

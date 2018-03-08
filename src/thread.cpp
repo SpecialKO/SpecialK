@@ -60,6 +60,10 @@ HRESULT
 WINAPI
 SetCurrentThreadDescription (_In_ PCWSTR lpThreadDescription)
 {
+  if ( SK_GetHostAppUtil ().isInjectionTool () )
+    return S_OK;
+
+
   // Push this to the TLS datastore so we can get thread names even
   //   when no debugger is attached.
   wcsncpy (SK_TLS_Bottom ()->debug.name, lpThreadDescription, 255);
@@ -110,9 +114,9 @@ SetCurrentThreadDescription (_In_ PCWSTR lpThreadDescription)
   HRESULT hr = E_UNEXPECTED;
   HANDLE  hRealHandle;
 
-  if ( DuplicateHandle ( GetCurrentProcess (),
-                         GetCurrentThread  (),
-                         GetCurrentProcess (),
+  if ( DuplicateHandle ( SK_GetCurrentProcess (),
+                         SK_GetCurrentThread  (),
+                         SK_GetCurrentProcess (),
                            &hRealHandle,
                              0,
                                FALSE,
@@ -156,9 +160,9 @@ GetCurrentThreadDescription (_Out_  PWSTR  *threadDescription)
   HRESULT hr          = E_UNEXPECTED;
   HANDLE  hRealHandle = nullptr;
 
-  if ( DuplicateHandle ( GetCurrentProcess (),
-                         GetCurrentThread  (),
-                         GetCurrentProcess (),
+  if ( DuplicateHandle ( SK_GetCurrentProcess (),
+                         SK_GetCurrentThread  (),
+                         SK_GetCurrentProcess (),
                            &hRealHandle,
                              0,
                                FALSE,

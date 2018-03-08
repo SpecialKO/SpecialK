@@ -455,7 +455,7 @@ SK_EstablishDllRole (skWin32Module&& module)
       // If there is a local Special K DLL in the game's directory,
       //   load it and then bow-out -- we are done here.
       //
-      if ( SK_TryLocalWrapperFirst ( local_dlls ) )
+      if ( (! SK_IsHostAppSKIM ()) && SK_TryLocalWrapperFirst ( local_dlls ) )
       {
         return SK_DontInject ();
       }
@@ -480,10 +480,7 @@ SK_EstablishDllRole (skWin32Module&& module)
       DWORD   dwProcessSize = MAX_PATH;
       wchar_t wszProcessName [MAX_PATH + 2] = { };
 
-      HANDLE hProc =
-        GetCurrentProcess ();
-
-      QueryFullProcessImageName (hProc, 0, wszProcessName, &dwProcessSize);
+      GetModuleFileNameW (0, wszProcessName, dwProcessSize);
 
       // To catch all remaining Steam games, look for "\SteamApps\" in the
       //   executable path.
@@ -764,6 +761,9 @@ DllMain ( HMODULE hModule,
       // Try, if assigned already (how?!) do not deadlock the Kernel loader
       if ( __SK_hModSelf       != hModule )
         skModuleRegistry::Self  = hModule;
+
+      else
+        return FALSE;
 
 
       auto EarlyOut =

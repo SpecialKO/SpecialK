@@ -2496,6 +2496,12 @@ SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
   //
   if (! SK_DXGI_TestPresentFlags (Flags))
   {
+    // Third-party software doesn't always behave compliantly in games that
+    //   use presentation testing... so we may need to resort to this or
+    //     the game's performance derails itself.
+    if ( (Flags & DXGI_PRESENT_TEST) && config.render.dxgi.present_test_skip )
+     return S_OK;
+
     return
       Present1 ( SyncInterval,
                    Flags,
@@ -2827,7 +2833,15 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
   // Early-out for games that use testing to minimize blocking
   //
   if (! SK_DXGI_TestPresentFlags (Flags))
-    return Present (SyncInterval, Flags);
+  {
+    // Third-party software doesn't always behave compliantly in games that
+    //   use presentation testing... so we may need to resort to this or
+    //     the game's performance derails itself.
+    if ( (Flags & DXGI_PRESENT_TEST) && config.render.dxgi.present_test_skip )
+     return S_OK;
+
+   return Present (SyncInterval, Flags);
+  }
 
   DXGI_SWAP_CHAIN_DESC desc = { };
        This->GetDesc (&desc);

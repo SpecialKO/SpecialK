@@ -26,6 +26,7 @@
 #include <SpecialK/steam_api.h>
 #include <SpecialK/resource.h>
 
+#include <SpecialK/thread.h>
 #include <SpecialK/hooks.h>
 #include <SpecialK/core.h>
 
@@ -310,7 +311,7 @@ CSteamworks_Delay_Init (LPVOID user)
 
   if (! SK_IsInjected ())
   {
-    CloseHandle (GetCurrentThread ());
+    SK_Thread_CloseSelf ();
     return 0;
   }
 
@@ -330,7 +331,7 @@ CSteamworks_Delay_Init (LPVOID user)
     ++tries;
   }
 
-  CloseHandle (GetCurrentThread ());
+  SK_Thread_CloseSelf ();
 
   return 0;
 }

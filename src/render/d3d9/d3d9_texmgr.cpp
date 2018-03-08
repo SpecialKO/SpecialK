@@ -957,7 +957,7 @@ SK::D3D9::TextureManager::injectTexture (TexLoadRequest* load)
 
         if (streamed && size > (128 * 1024))
         {
-          SetThreadPriority ( GetCurrentThread (),
+          SetThreadPriority ( SK_GetCurrentThread (),
                                 THREAD_PRIORITY_BELOW_NORMAL |
                                 THREAD_MODE_BACKGROUND_BEGIN );
         }
@@ -1024,7 +1024,7 @@ SK::D3D9::TextureManager::injectTexture (TexLoadRequest* load)
 
     if (streamed && size > (128 * 1024))
     {
-      SetThreadPriority ( GetCurrentThread (),
+      SetThreadPriority ( SK_GetCurrentThread (),
                             THREAD_PRIORITY_LOWEST |
                             THREAD_MODE_BACKGROUND_BEGIN );
     }
@@ -1136,7 +1136,7 @@ SK::D3D9::TextureManager::injectTexture (TexLoadRequest* load)
 
   if (streamed && size > (128 * 1024))
   {
-    SetThreadPriority ( GetCurrentThread (),
+    SetThreadPriority ( SK_GetCurrentThread (),
                           THREAD_MODE_BACKGROUND_END );
   }
 
@@ -3052,8 +3052,8 @@ SK::D3D9::TextureWorkerThread::ThreadProc (LPVOID user)
   // Tales of Symphonia and Zestiria both pin the render thread to the last
   //   CPU... let's try to keep our worker threads OFF that CPU.
 
-  SetThreadIdealProcessor (GetCurrentThread (),         processor_num);
-  SetThreadAffinityMask   (GetCurrentThread (), (1UL << processor_num) & 0xFFFFFFFF);
+  SetThreadIdealProcessor (SK_GetCurrentThread (),         processor_num);
+  SetThreadAffinityMask   (SK_GetCurrentThread (), (1UL << processor_num) & 0xFFFFFFFF);
 
   auto* pThread =
     static_cast <TextureWorkerThread *> (user);
@@ -3197,7 +3197,7 @@ SK::D3D9::TextureWorkerThread::ThreadProc (LPVOID user)
 
   streaming_memory::trim (0, timeGetTime ());
 
-  //CloseHandle (GetCurrentThread ());
+  //SK_Thread_CloseSelf ();
   return 0;
 }
 
@@ -3265,7 +3265,7 @@ SK::D3D9::TextureThreadPool::Spooler (LPVOID user)
     }
   }
 
-  //CloseHandle (GetCurrentThread ());
+  //SK_Thread_CloseSelf ();
   return 0;
 }
 

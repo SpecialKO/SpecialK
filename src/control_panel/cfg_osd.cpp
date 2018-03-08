@@ -28,6 +28,7 @@
 
 #include <SpecialK/core.h>
 #include <SpecialK/config.h>
+#include <SpecialK/thread.h>
 
 #include <algorithm>
 #include <set>
@@ -77,7 +78,7 @@ SK::ControlPanel::OSD::DrawVideoCaptureOptions (void)
 
         InterlockedExchange (&pToggle->testing, FALSE);
 
-        CloseHandle (GetCurrentThread ());
+        SK_Thread_CloseSelf ();
 
         return 0;
       }, (LPVOID)&osd_toggle, 0x00, nullptr);

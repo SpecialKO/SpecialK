@@ -176,20 +176,20 @@ GetCommandLineW_Detour (void)
   if (*wszFakeOut != L'\0')
     return wszFakeOut;
 
-  wcscpy   (wszFakeOut, L"\"");
+  lstrcpyW (wszFakeOut, L"\"");
   lstrcatW (wszFakeOut, SK_GetFullyQualifiedApp ());
   lstrcatW (wszFakeOut, L"\"");
 
-  if (! _wcsicmp (SK_GetHostApp (), L"RED-Win64-Shipping.exe"))
+  if (! lstrcmpiW ( SK_GetHostApp (), L"RED-Win64-Shipping.exe" ))
   {
     lstrcatW (wszFakeOut, L" -eac-nop-loaded");
-    return wszFakeOut;
+    return    wszFakeOut;
   }
 
-  if (! _wcsicmp (SK_GetHostApp (), L"DBFighterZ.exe"))
+  if (! lstrcmpiW ( SK_GetHostApp (), L"DBFighterZ.exe" ))
   {
     lstrcatW (wszFakeOut, L" -eac-nop-loaded");
-    return wszFakeOut;
+    return    wszFakeOut;
   }
 
 #ifdef _DEBUG
@@ -197,7 +197,8 @@ GetCommandLineW_Detour (void)
     dll_log.Log (L"GetCommandLineW () ==> %ws", GetCommandLineW_Original ());
 #endif
 
-  return GetCommandLineW_Original ();
+  return
+    GetCommandLineW_Original ();
 }
 
 
@@ -270,6 +271,9 @@ DebugBreak_Detour (void)
 bool
 SK::Diagnostics::Debugger::Allow (bool bAllow)
 {
+  if (SK_IsHostAppSKIM ())
+    return true;
+
   SK_CreateDLLHook2 (      L"kernel32.dll",
                             "IsDebuggerPresent",
                              IsDebuggerPresent_Detour,
@@ -353,10 +357,10 @@ SK_IsDebuggerPresent (void)
     SK::Diagnostics::Debugger::Allow (); // DONTCARE, just init
   }
 
-  if (IsDebuggerPresent_Original)
+  if (     IsDebuggerPresent_Original != nullptr )
     return IsDebuggerPresent_Original ();
 
-  return FALSE;
+  return IsDebuggerPresent ();
 }
 
 
@@ -370,17 +374,19 @@ SK_IsDebuggerPresent (void)
 HMODULE
 SK_Debug_LoadHelper (void)
 {
-  static HMODULE hModDbgHelp = nullptr;
-
-  if (hModDbgHelp != nullptr)
+  static HMODULE
+       hModDbgHelp  = nullptr;
+  if ( hModDbgHelp != nullptr )
     return hModDbgHelp;
 
-  wchar_t wszSystemDbgHelp [MAX_PATH * 2] = { };
+  wchar_t wszSystemDbgHelp [MAX_PATH * 2 + 1] = { };
 
-  GetSystemDirectory (wszSystemDbgHelp, MAX_PATH * 2 - 1);
-  PathAppendW        (wszSystemDbgHelp, L"dbghelp.dll");
+  GetSystemDirectory ( wszSystemDbgHelp, MAX_PATH * 2   );
+  PathAppendW        ( wszSystemDbgHelp, L"dbghelp.dll" );
 
-  return (hModDbgHelp = SK_Modules.LoadLibraryLL (wszSystemDbgHelp));
+  return (
+    hModDbgHelp = SK_Modules.LoadLibraryLL (wszSystemDbgHelp)
+  );
 }
 
 BOOL
@@ -394,6 +400,7 @@ SymRefreshModuleList (
   static auto SymRefreshModuleList_Imp =
     (SymRefreshModuleList_pfn)
       GetProcAddress ( SK_Debug_LoadHelper (), "SymRefreshModuleList" );
+
 
   if (SymRefreshModuleList_Imp != nullptr)
   {
@@ -410,26 +417,26 @@ SymRefreshModuleList (
 BOOL
 IMAGEAPI
 StackWalk64(
-    _In_ DWORD MachineType,
-    _In_ HANDLE hProcess,
-    _In_ HANDLE hThread,
-    _Inout_ LPSTACKFRAME64 StackFrame,
-    _Inout_ PVOID ContextRecord,
-    _In_opt_ PREAD_PROCESS_MEMORY_ROUTINE64 ReadMemoryRoutine,
+    _In_     DWORD                            MachineType,
+    _In_     HANDLE                           hProcess,
+    _In_     HANDLE                           hThread,
+    _Inout_  LPSTACKFRAME64                   StackFrame,
+    _Inout_  PVOID                            ContextRecord,
+    _In_opt_ PREAD_PROCESS_MEMORY_ROUTINE64   ReadMemoryRoutine,
     _In_opt_ PFUNCTION_TABLE_ACCESS_ROUTINE64 FunctionTableAccessRoutine,
-    _In_opt_ PGET_MODULE_BASE_ROUTINE64 GetModuleBaseRoutine,
-    _In_opt_ PTRANSLATE_ADDRESS_ROUTINE64 TranslateAddress
+    _In_opt_ PGET_MODULE_BASE_ROUTINE64       GetModuleBaseRoutine,
+    _In_opt_ PTRANSLATE_ADDRESS_ROUTINE64     TranslateAddress
     )
 {
-  using StackWalk64_pfn = BOOL (IMAGEAPI *)(_In_ DWORD MachineType,
-                                            _In_ HANDLE hProcess,
-                                            _In_ HANDLE hThread,
-                                            _Inout_ LPSTACKFRAME64 StackFrame,
-                                            _Inout_ PVOID ContextRecord,
-                                            _In_opt_ PREAD_PROCESS_MEMORY_ROUTINE64 ReadMemoryRoutine,
+  using StackWalk64_pfn = BOOL (IMAGEAPI *)(_In_     DWORD                            MachineType,
+                                            _In_     HANDLE                           hProcess,
+                                            _In_     HANDLE                           hThread,
+                                            _Inout_  LPSTACKFRAME64                   StackFrame,
+                                            _Inout_  PVOID                            ContextRecord,
+                                            _In_opt_ PREAD_PROCESS_MEMORY_ROUTINE64   ReadMemoryRoutine,
                                             _In_opt_ PFUNCTION_TABLE_ACCESS_ROUTINE64 FunctionTableAccessRoutine,
-                                            _In_opt_ PGET_MODULE_BASE_ROUTINE64 GetModuleBaseRoutine,
-                                            _In_opt_ PTRANSLATE_ADDRESS_ROUTINE64 TranslateAddress);
+                                            _In_opt_ PGET_MODULE_BASE_ROUTINE64       GetModuleBaseRoutine,
+                                            _In_opt_ PTRANSLATE_ADDRESS_ROUTINE64     TranslateAddress);
 
   static auto StackWalk64_Imp =
     (StackWalk64_pfn)
@@ -437,9 +444,14 @@ StackWalk64(
 
   if (StackWalk64_Imp != nullptr)
   {
-    return StackWalk64_Imp ( MachineType, hProcess, hThread, StackFrame, ContextRecord,
-                             ReadMemoryRoutine, FunctionTableAccessRoutine, GetModuleBaseRoutine,
-                             TranslateAddress );
+    return
+      StackWalk64_Imp ( MachineType,
+                          hProcess, hThread,
+                            StackFrame, ContextRecord,
+                              ReadMemoryRoutine,
+                              FunctionTableAccessRoutine,
+                              GetModuleBaseRoutine,
+                                TranslateAddress );
   }
 
   return FALSE;
@@ -460,14 +472,14 @@ StackWalk (
     )
 {
   using StackWalk_pfn = BOOL (IMAGEAPI *)(_In_     DWORD                          MachineType,
-                                         _In_     HANDLE                         hProcess,
-                                         _In_     HANDLE                         hThread,
-                                         _Inout_  LPSTACKFRAME                   StackFrame,
-                                         _Inout_  PVOID                          ContextRecord,
-                                         _In_opt_ PREAD_PROCESS_MEMORY_ROUTINE   ReadMemoryRoutine,
-                                         _In_opt_ PFUNCTION_TABLE_ACCESS_ROUTINE FunctionTableAccessRoutine,
-                                         _In_opt_ PGET_MODULE_BASE_ROUTINE       GetModuleBaseRoutine,
-                                         _In_opt_ PTRANSLATE_ADDRESS_ROUTINE     TranslateAddress);
+                                          _In_     HANDLE                         hProcess,
+                                          _In_     HANDLE                         hThread,
+                                          _Inout_  LPSTACKFRAME                   StackFrame,
+                                          _Inout_  PVOID                          ContextRecord,
+                                          _In_opt_ PREAD_PROCESS_MEMORY_ROUTINE   ReadMemoryRoutine,
+                                          _In_opt_ PFUNCTION_TABLE_ACCESS_ROUTINE FunctionTableAccessRoutine,
+                                          _In_opt_ PGET_MODULE_BASE_ROUTINE       GetModuleBaseRoutine,
+                                          _In_opt_ PTRANSLATE_ADDRESS_ROUTINE     TranslateAddress);
 
   static auto StackWalk_Imp =
     (StackWalk_pfn)
@@ -475,9 +487,14 @@ StackWalk (
 
   if (StackWalk_Imp != nullptr)
   {
-    return StackWalk_Imp ( MachineType, hProcess, hThread, StackFrame, ContextRecord,
-                             ReadMemoryRoutine, FunctionTableAccessRoutine, GetModuleBaseRoutine,
-                             TranslateAddress );
+    return
+      StackWalk_Imp ( MachineType,
+                        hProcess, hThread,
+                          StackFrame, ContextRecord,
+                            ReadMemoryRoutine,
+                            FunctionTableAccessRoutine,
+                            GetModuleBaseRoutine,
+                              TranslateAddress );
   }
 
   return FALSE;
@@ -514,7 +531,7 @@ SymGetModuleBase64 (
 )
 {
   using SymGetModuleBase64_pfn = DWORD64 (IMAGEAPI *)(_In_ HANDLE  hProcess,
-                                                     _In_ DWORD64 qwAddr);
+                                                      _In_ DWORD64 qwAddr);
 
   static auto SymGetModuleBase64_Imp =
     (SymGetModuleBase64_pfn)
@@ -536,7 +553,7 @@ SymGetModuleBase (
 )
 {
   using SymGetModuleBase_pfn = DWORD (IMAGEAPI *)(_In_ HANDLE  hProcess,
-                                                 _In_ DWORD   dwAddr);
+                                                  _In_ DWORD   dwAddr);
 
   static auto SymGetModuleBase_Imp =
     (SymGetModuleBase_pfn)
@@ -614,8 +631,8 @@ SymInitialize (
 )
 {
   using SymInitialize_pfn = BOOL (IMAGEAPI *)( _In_     HANDLE hProcess,
-                                              _In_opt_ PCSTR  UserSearchPath,
-                                              _In_     BOOL   fInvadeProcess );
+                                               _In_opt_ PCSTR  UserSearchPath,
+                                               _In_     BOOL   fInvadeProcess );
 
 
   static auto SymInitialize_Imp =

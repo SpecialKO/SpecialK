@@ -290,7 +290,7 @@ struct resample_dispatch_s
       {
         SetCurrentThreadDescription (L"[SK] D3D11 Texture Resampling Thread");
 
-        SetThreadPriority ( GetCurrentThread (),
+        SetThreadPriority ( SK_GetCurrentThread (),
                             THREAD_PRIORITY_BELOW_NORMAL |
                             THREAD_MODE_BACKGROUND_BEGIN );
 
@@ -336,7 +336,7 @@ struct resample_dispatch_s
           }
         }
 
-        CloseHandle (GetCurrentThread ());
+        SK_Thread_CloseSelf ();
 
         InterlockedDecrement (&SK_D3D11_TextureResampler.active_workers);
 
@@ -5803,7 +5803,7 @@ SK_D3D11_TexCacheCheckpoint (void)
   if (! init)
   {
     init  = true;
-    hProc = GetCurrentProcess ();
+    hProc = SK_GetCurrentProcess ();
 
     GetPhysicallyInstalledSystemMemory (&ullMemoryTotal_KiB);
   }

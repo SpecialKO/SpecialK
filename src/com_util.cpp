@@ -368,13 +368,16 @@ SK_WMI_Init (void)
               [](LPVOID) ->
               DWORD
               {
-                SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_BELOW_NORMAL);
+                SetThreadPriority (
+                  SK_GetCurrentThread (), THREAD_PRIORITY_BELOW_NORMAL
+                );
 
                 SK_AutoCOMInit auto_com;
 
                 SK_COM_InitSecurity ();
 
-                return SK_WMI_ServerThread (nullptr);
+                return
+                  SK_WMI_ServerThread (nullptr);
               },
             nullptr,
           0x00, 

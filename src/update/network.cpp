@@ -53,6 +53,8 @@
                          "version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df'" \
                          " language='*'\"")
 
+#include <SpecialK/diagnostics/modules.h>
+
 extern void
 SK_Inject_Stop (void);
 
@@ -307,7 +309,7 @@ END:
   //if (! get->hTaskDlg)
     //delete get;
 
-  CloseHandle (GetCurrentThread ());
+  SK_Thread_CloseSelf ();
 
   return 0;
 }
@@ -342,12 +344,12 @@ RemindMeLater_DlgProc (
     case WM_INITDIALOG:
     {
       HRSRC   default_sound =
-        FindResource (SK_GetDLL (), MAKEINTRESOURCE (IDR_ANNOYING), L"WAVE");
+        FindResource (__SK_hModSelf, MAKEINTRESOURCE (IDR_ANNOYING), L"WAVE");
 
       if (default_sound != nullptr)
       {
         annoy_sound.ref   =
-          LoadResource (SK_GetDLL (), default_sound);
+          LoadResource (__SK_hModSelf, default_sound);
 
         if (annoy_sound.ref != nullptr)
           annoy_sound.buf = (uint8_t *)LockResource (annoy_sound.ref);
@@ -578,7 +580,7 @@ DownloadDialogCallback (
     if (wParam == ID_REMIND)
     {
       hWndRemind =
-        CreateDialog ( SK_GetDLL (),
+        CreateDialog ( __SK_hModSelf,
                          MAKEINTRESOURCE (IDD_REMIND_ME_LATER),
                            hWnd,
                              RemindMeLater_DlgProc );
@@ -627,7 +629,8 @@ DownloadDialogCallback (
       SetWindowPos        (game_window.hWnd, HWND_TOP, 0, 0, 0, 0,
                            SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW |
                            SWP_NOSIZE         | SWP_NOMOVE     |
-                           SWP_NOREPOSITION   | SWP_NOACTIVATE );
+                           SWP_NOREPOSITION   | SWP_NOACTIVATE |
+                           SWP_NOSENDCHANGING );
       ShowWindowAsync     (game_window.hWnd,    SW_SHOWNORMAL);
     }
   }
@@ -773,7 +776,7 @@ Update_DlgProc (
                                 SW_SHOWMAXIMIZED );
 
         InterlockedExchange ( &__SK_UpdateStatus, 1 );
-        EndDialog           (  hWndUpdateDlg,     0 );
+        PostMessage         ( hWndUpdateDlg, WM_CLOSE, 0x0, 0x0 );
         hWndUpdateDlg = (HWND)INVALID_HANDLE_VALUE;
       }
 
@@ -929,7 +932,7 @@ Update_DlgProc (
 
           // SUCCESS:
           InterlockedExchange ( &__SK_UpdateStatus, 1 );
-          EndDialog           (  hWndUpdateDlg,     0 );
+          PostMessage         ( hWndUpdateDlg, WM_CLOSE, 0x0, 0x0 );
 
           hWndUpdateDlg =
             static_cast <HWND> (INVALID_HANDLE_VALUE);
@@ -938,8 +941,8 @@ Update_DlgProc (
         else
         {
           // FAILURE:
-          InterlockedExchange ( &__SK_UpdateStatus, -1 );
-          EndDialog           (  hWndUpdateDlg,      0 );
+          InterlockedExchange ( &__SK_UpdateStatus, -1            );
+          PostMessage         ( hWndUpdateDlg, WM_CLOSE, 0x0, 0x0 );
 
           hWndUpdateDlg =
             static_cast <HWND> (INVALID_HANDLE_VALUE);
@@ -986,7 +989,7 @@ UpdateDlg_Thread (LPVOID user)
   bool started = false;
 
   HWND hWndDlg =
-    CreateDialog ( SK_GetDLL (),
+    CreateDialog ( __SK_hModSelf,
                      MAKEINTRESOURCE (IDD_UPDATE),
                        (HWND)user,
                          Update_DlgProc );
@@ -998,7 +1001,7 @@ UpdateDlg_Thread (LPVOID user)
   {
     if (bRet == -1)
     {
-      CloseHandle (GetCurrentThread ());
+      SK_Thread_CloseSelf ();
       return 0;
     }
 
@@ -1007,7 +1010,7 @@ UpdateDlg_Thread (LPVOID user)
 
     if ((! started) && msg.hwnd == hWndDlg)
     {
-      if (SK_IsHostAppSKIM ())
+      if ( SK_IsHostAppSKIM () )
       {
         started = true;
         SendMessage (hWndDlg, WM_COMMAND, MAKEWPARAM (IDC_AUTO_CMD, 0), 0);
@@ -1015,7 +1018,7 @@ UpdateDlg_Thread (LPVOID user)
     }
   }
 
-  CloseHandle (GetCurrentThread ());
+  SK_Thread_CloseSelf ();
 
   return 0;
 }

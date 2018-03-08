@@ -556,7 +556,7 @@ SK_ImGui_AdjustCursor (void)
       ClipCursor_Original (nullptr);
         SK_AdjustWindow   ();        // Restore game's clip cursor behavior
 
-      CloseHandle (GetCurrentThread ());
+      SK_Thread_CloseSelf ();
 
       return 0;
     }, nullptr, 0x00, nullptr );
@@ -1147,12 +1147,20 @@ SK_ImGui_ControlPanel (void)
       static SK_BranchInfo_V1 current_branch =
         SK_Version_GetLatestBranchInfo (nullptr, SK_WideCharToUTF8 (vinfo.branch).c_str ());
 
+      extern std::wstring
+      __stdcall
+      SK_GetPluginName (void);
+
+      bool updatable =
+        ( SK_GetPluginName ().find (L"Special K") == std::wstring::npos ||
+          SK_IsInjected    () );
+
       if (ImGui::BeginMenu ("Update"))
       {
         bool selected = false;
             ImGui::MenuItem  ("Current Version###Menu_CurrentVersion", current_ver, &selected, false);
 
-        if (branches.size () > 1)
+        if (updatable && branches.size () > 1)
         {
           char szCurrentBranchMenu [128] = { };
           sprintf (szCurrentBranchMenu, "Current Branch:  (%s)###SelectBranchMenu", current_branch_str);
@@ -1256,41 +1264,44 @@ SK_ImGui_ControlPanel (void)
 
         static int sel = GetFrequencyPreset ();
 
-        ImGui::Text     ("Check for Updates");
-        ImGui::TreePush ("");
-
-        if ( ImGui::Combo ( "###UpdateCheckFreq", &sel,
-                              "Once every 6 hours\0"
-                              "Once every 12 hours\0"
-                              "Once per-day\0"
-                              "Once per-week\0"
-                              "Never (disable)\0\0" ) )
+        if (updatable)
         {
-          switch (sel)
+          ImGui::Text     ("Check for Updates");
+          ImGui::TreePush ("");
+
+          if ( ImGui::Combo ( "###UpdateCheckFreq", &sel,
+                                "Once every 6 hours\0"
+                                "Once every 12 hours\0"
+                                "Once per-day\0"
+                                "Once per-week\0"
+                                "Never (disable)\0\0" ) )
           {
-            default:
-            case SixHours:    SK_Version_SetUpdateFrequency (nullptr,      6 * _Hour); break;
-            case TwelveHours: SK_Version_SetUpdateFrequency (nullptr,     12 * _Hour); break;
-            case OneDay:      SK_Version_SetUpdateFrequency (nullptr,     24 * _Hour); break;
-            case OneWeek:     SK_Version_SetUpdateFrequency (nullptr, 7 * 24 * _Hour); break;
-            case Never:       SK_Version_SetUpdateFrequency (nullptr,              0); break;
+            switch (sel)
+            {
+              default:
+              case SixHours:    SK_Version_SetUpdateFrequency (nullptr,      6 * _Hour); break;
+              case TwelveHours: SK_Version_SetUpdateFrequency (nullptr,     12 * _Hour); break;
+              case OneDay:      SK_Version_SetUpdateFrequency (nullptr,     24 * _Hour); break;
+              case OneWeek:     SK_Version_SetUpdateFrequency (nullptr, 7 * 24 * _Hour); break;
+              case Never:       SK_Version_SetUpdateFrequency (nullptr,              0); break;
+            }
           }
-        }
 
-        ImGui::TreePop ();
+          ImGui::TreePop ( );
 
-        if (vinfo.build >= vinfo_latest.build)
-        {
-          if (ImGui::MenuItem  (" >> Check Now"))
+          if (vinfo.build >= vinfo_latest.build)
           {
-            SK_FetchVersionInfo1 (nullptr, true);
-            branches       = SK_Version_GetAvailableBranches (nullptr);
-            vinfo          = SK_Version_GetLocalInfo         (nullptr);
-            vinfo_latest   = SK_Version_GetLatestInfo        (nullptr);
-            branch_details = PopulateBranches                (branches);
+            if (ImGui::MenuItem  (" >> Check Now"))
+            {
+              SK_FetchVersionInfo1 (nullptr, true);
+              branches       = SK_Version_GetAvailableBranches (nullptr);
+              vinfo          = SK_Version_GetLocalInfo         (nullptr);
+              vinfo_latest   = SK_Version_GetLatestInfo        (nullptr);
+              branch_details = PopulateBranches                (branches);
 
-            if (vinfo.build < vinfo_latest.build)
-              SK_Version_ForceUpdateNextLaunch (nullptr);
+              if (vinfo.build < vinfo_latest.build)
+                SK_Version_ForceUpdateNextLaunch (nullptr);
+            }
           }
         }
 

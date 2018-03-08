@@ -684,26 +684,26 @@ FindProcessByName (const wchar_t* wszName)
 std::wstring
 SK_GetRTSSInstallDir (void)
 {
-  PROCESSENTRY32 pe32 =
-    FindProcessByName (L"RTSS.exe");
-
+  //PROCESSENTRY32 pe32 =
+  //  FindProcessByName (L"RTSS.exe");
+  //
   wchar_t wszPath [MAX_PATH] = { };
-
-  if (wcsstr (pe32.szExeFile, L"RTSS.exe"))
-  {
-    CHandle hProcess (
-      OpenProcess (PROCESS_QUERY_LIMITED_INFORMATION , FALSE, pe32.th32ProcessID)
-    );
-
-    DWORD len = MAX_PATH;
-    QueryFullProcessImageName (hProcess, 0, wszPath, &len);
-
-    wchar_t* wszRTSS =
-      wcsstr (wszPath, L"RTSS.exe");
-
-    if (wszRTSS != nullptr)
-      *wszRTSS = L'\0';
-  }
+  //
+  //if (wcsstr (pe32.szExeFile, L"RTSS.exe"))
+  //{
+  //  CHandle hProcess (
+  //    OpenProcess (PROCESS_QUERY_LIMITED_INFORMATION , FALSE, pe32.th32ProcessID)
+  //  );
+  //
+  //  DWORD len = MAX_PATH;
+  //  QueryFullProcessImageName (hProcess, 0, wszPath, &len);
+  //
+  //  wchar_t* wszRTSS =
+  //    wcsstr (wszPath, L"RTSS.exe");
+  //
+  //  if (wszRTSS != nullptr)
+  //    *wszRTSS = L'\0';
+  //}
 
   return wszPath;
 }
@@ -1637,7 +1637,8 @@ bool
 __cdecl
 SK_IsHostAppSKIM (void)
 {
-  return ((! __SK_RunDLL_Bypass) && StrStrIW (SK_GetHostApp (), L"SKIM") != nullptr);
+  return ( (! __SK_RunDLL_Bypass) &&
+      StrStrIW (SK_GetHostApp (), L"SKIM") != nullptr );
 }
 
 bool
@@ -1658,14 +1659,9 @@ SK_IsRunDLLInvocation (void)
     //  The CBT hook may have been triggered by some other software that used
     //    rundll32 and then launched a Win32 application with it.
     //
-    wchar_t* wszArgs =
-      _wcsdup (PathGetArgsW (GetCommandLineW ()));
-
     // If the command line does not reference our DLL
-    if (! StrStrW (wszArgs, L"RunDLL_"))
+    if (! StrStrW (PathGetArgsW (GetCommandLineW ()), L"RunDLL_"))
       rundll_invoked = false;
-
-    free (wszArgs);
   }
 
   return rundll_invoked;
@@ -1675,7 +1671,8 @@ bool
 __cdecl
 SK_IsSuperSpecialK (void)
 {
-  return (SK_IsRunDLLInvocation () || SK_IsHostAppSKIM ());
+  return ( SK_IsRunDLLInvocation () ||
+           SK_IsHostAppSKIM      () );
 }
 
 
@@ -1990,8 +1987,8 @@ HRESULT ModifyPrivilege(
 bool
 SK_Generate8Dot3 (const wchar_t* wszLongFileName)
 {
-  wchar_t* wszFileName  = _wcsdup (wszLongFileName);
-  wchar_t* wszFileName1 = _wcsdup (wszLongFileName);
+  CHeapPtr <wchar_t> wszFileName  (_wcsdup (wszLongFileName));
+  CHeapPtr <wchar_t> wszFileName1 (_wcsdup (wszLongFileName));
 
   wchar_t  wsz8     [11] = { }; // One non-nul for overflow
   wchar_t  wszDot3  [ 4] = { };
@@ -2014,9 +2011,6 @@ SK_Generate8Dot3 (const wchar_t* wszLongFileName)
 
     if (hFile == INVALID_HANDLE_VALUE)
     {
-      free (wszFileName);
-      free (wszFileName1);
-
       return false;
     }
 
@@ -2025,9 +2019,6 @@ SK_Generate8Dot3 (const wchar_t* wszLongFileName)
 
     if (dwAttrib == INVALID_FILE_ATTRIBUTES)
     {
-      free (wszFileName);
-      free (wszFileName1);
-
       return false;
     }
 
@@ -2086,18 +2077,12 @@ SK_Generate8Dot3 (const wchar_t* wszLongFileName)
 
     if (idx == 9)
     {
-      free (wszFileName);
-      free (wszFileName1);
-
       return false;
     }
 
     PathRemoveFileSpec  (wszFileName1);
     wcscpy (wszFileName, wszFileName1);
   }
-
-  free (wszFileName);
-  free (wszFileName1);
 
   return true;
 }
@@ -2189,7 +2174,7 @@ SK_ElevateToAdmin (void)
 
   wcsncpy (wszFullname, SK_GetModuleFullName (SK_GetDLL ()).c_str (), MAX_PATH );
  
-  SK_Generate8Dot3 (wszFullname);
+  SK_Generate8Dot3     (wszFullname);
   wcscpy (wszShortPath, wszFullname);
  
   if (SK_FileHasSpaces (wszFullname))
@@ -2240,23 +2225,23 @@ SK_FormatString (char const* const _Format, ...)
   va_list   _ArgList;
   va_start (_ArgList, _Format);
   {
-    len = vsnprintf (nullptr, 0, _Format, _ArgList);
+    len =
+      vsnprintf ( nullptr, 0, _Format, _ArgList );
   }
-  va_end (_ArgList);
+  va_end   (_ArgList);
 
-  auto* out = new char [len + 1] { };
+  std::string out (
+    len + 1, '\0'
+  );
 
   va_start (_ArgList, _Format);
   {
-    len = vsprintf (out, _Format, _ArgList);
+    len =
+      vsprintf ( out.data (), _Format, _ArgList );
   }
-  va_end (_ArgList);
+  va_end   (_ArgList);
 
-  std::string str_out (out);
-
-  delete [] out;
-
-  return str_out;
+  return out;
 }
 
 std::wstring
@@ -2268,23 +2253,23 @@ SK_FormatStringW (wchar_t const* const _Format, ...)
   va_list   _ArgList;
   va_start (_ArgList, _Format);
   {
-    len = _vsnwprintf (nullptr, 0, _Format, _ArgList);
+    len =
+      _vsnwprintf ( nullptr, 0, _Format, _ArgList );
   }
-  va_end (_ArgList);
+  va_end   (_ArgList);
 
-  auto* out = new wchar_t [len + 1] { };
+  std::wstring out (
+    len + 1, L'\0'
+  );
 
   va_start (_ArgList, _Format);
   {
-    len = _vswprintf (out, _Format, _ArgList);
+    len =
+      _vswprintf ( out.data (), _Format, _ArgList );
   }
-  va_end (_ArgList);
+  va_end   (_ArgList);
 
-  std::wstring wstr_out (out);
-
-  delete [] out;
-
-  return wstr_out;
+  return out;
 }
 
 
@@ -2315,7 +2300,7 @@ SK_StripTrailingSlashesW (wchar_t* wszInOut)
 void
 SK_FixSlashesW (wchar_t* wszInOut)
 { 
-  std::wstring wstr (wszInOut);
+  std::wstring wstr ( wszInOut );
 
   for ( auto&& it : wstr )
   {
@@ -2401,6 +2386,10 @@ SK_StripUserNameFromPathA (char* szInOut)
   static char szUserNameDisplay [MAX_PATH + 2] = { };
   static char szUserProfile     [MAX_PATH + 2] = { }; // Most likely to match
 
+  static volatile LONG               calls  =  0;
+  if (InterlockedCompareExchange   (&calls, 1, 0))
+      SK_Thread_SpinUntilAtomicMin (&calls, 2);
+
   if (*szUserProfile == '\0')
   {
     wchar_t wszUserProfile [MAX_PATH + 2] = { };
@@ -2434,6 +2423,7 @@ SK_StripUserNameFromPathA (char* szInOut)
       *szUserNameDisplay = '?'; // Invalid filesystem char
   }
 
+  InterlockedIncrement (&calls);
 
   char* pszUserNameSubstr =
     StrStrIA (szInOut, szUserProfile);
@@ -2496,6 +2486,10 @@ SK_StripUserNameFromPathW (wchar_t* wszInOut)
   static wchar_t wszUserNameDisplay [MAX_PATH + 2] = { };
   static wchar_t wszUserProfile     [MAX_PATH + 2] = { }; // Most likely to match
 
+  static volatile LONG               calls  =  0;
+  if (InterlockedCompareExchange   (&calls, 1, 0))
+      SK_Thread_SpinUntilAtomicMin (&calls, 2);
+
   if (*wszUserProfile == L'\0')
   {
                                         uint32_t len = MAX_PATH;
@@ -2526,6 +2520,7 @@ SK_StripUserNameFromPathW (wchar_t* wszInOut)
   }
 
 
+  InterlockedIncrement (&calls);
   //dll_log.Log (L"Profile: %ws, User: %ws, Display: %ws", wszUserProfile, wszUserName, wszUserNameDisplay);
 
 
@@ -2610,10 +2605,8 @@ SK_DeferCommands (const char** szCommands, int count)
     [ ](LPVOID) ->
     DWORD
     {
-      SetCurrentThreadDescription (L"[SK] Async Command Processor");
-
-      SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_BELOW_NORMAL);
-      CHandle  hThread  (GetCurrentThread ());
+      SetCurrentThreadDescription (                      L"[SK] Async Command Processor" );
+      SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_BELOW_NORMAL );
 
       while (! ReadAcquire (&__SK_DLL_Ending))
       {
@@ -2629,6 +2622,7 @@ SK_DeferCommands (const char** szCommands, int count)
       }
 
       CloseHandle (hNewCmds);
+      SK_Thread_CloseSelf ();
 
       return 0;
     }, nullptr, 0x00, nullptr ) );
@@ -2649,8 +2643,9 @@ SK_DeferCommand (const char* szCommand)
 void
 SK_HostAppUtil::init (void)
 {
-  SKIM     = StrStrIW ( SK_GetHostApp (), L"SKIM"     ) != nullptr;
-  RunDll32 = StrStrIW ( SK_GetHostApp (), L"RunDLL32" ) != nullptr;
+  
+  SK_RunOnce (SKIM     = StrStrIW ( SK_GetHostApp (), L"SKIM"     ) != nullptr);
+  SK_RunOnce (RunDll32 = StrStrIW ( SK_GetHostApp (), L"RunDLL32" ) != nullptr);
 }
 
 SK_HostAppUtil&

@@ -225,10 +225,9 @@ CrashHandler::Init (void)
     [ ](LPVOID) ->
       DWORD
         {
-          CHandle hThread (GetCurrentThread ());
-
           SetCurrentThreadDescription (         L"[SK] Crash Handler Init");
-          SetThreadPriority           (hThread, THREAD_PRIORITY_LOWEST    );
+          SetThreadPriority           (
+                        SK_GetCurrentThread (), THREAD_PRIORITY_LOWEST    );
 
           HRSRC   default_sound =
             FindResource (SK_GetDLL (), MAKEINTRESOURCE (IDR_CRASH), L"WAVE");
@@ -255,7 +254,7 @@ CrashHandler::Init (void)
           SymSetOptions ( SYMOPT_CASE_INSENSITIVE | SYMOPT_LOAD_LINES     | SYMOPT_UNDNAME                |
                           SYMOPT_NO_PROMPTS       | SYMOPT_DEFERRED_LOADS | SYMOPT_ALLOW_ABSOLUTE_SYMBOLS );
 
-          SymRefreshModuleList (GetCurrentProcess ());
+          SymRefreshModuleList (SK_GetCurrentProcess ());
 
           //SymInitialize (
           //  GetCurrentProcess (),
@@ -265,6 +264,8 @@ CrashHandler::Init (void)
           Reinstall ();
 
           InterlockedIncrement (&init);
+
+          SK_Thread_CloseSelf ();
 
           return 0;
         }, nullptr,
@@ -294,7 +295,7 @@ SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr)
   std::string ret = "";
 
   HANDLE hProc =
-    GetCurrentProcess ();
+    SK_GetCurrentProcess ();
 
 #ifdef _WIN64
   DWORD64 BaseAddr =
@@ -378,7 +379,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 #endif
 
 
-  SymRefreshModuleList (GetCurrentProcess ());
+  SymRefreshModuleList (SK_GetCurrentProcess ());
   //SymInitialize (
   //  GetCurrentProcess (),
   //    NULL,
@@ -513,7 +514,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 
   HMODULE hModSource               = nullptr;
   char    szModName [MAX_PATH + 2] = { };
-  HANDLE  hProc                    = GetCurrentProcess ();
+  HANDLE  hProc                    = SK_GetCurrentProcess ();
 
   SymRefreshModuleList ( hProc );
 
@@ -728,7 +729,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
       SK_StackWalk ( SK_RunLHIfBitness ( 32, IMAGE_FILE_MACHINE_I386,
                                              IMAGE_FILE_MACHINE_AMD64 ),
                        hProc,
-                         GetCurrentThread (),
+                         SK_GetCurrentThread (),
                            &stackframe,
                              &ctx,
                                nullptr, nullptr,
@@ -748,7 +749,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
   if ( (repeated || non_continue) && (! scaleform) && desc.length () )
   {
     if (! config.system.handle_crashes)
-      TerminateProcess (GetCurrentProcess (), 0xdeadbeef);
+      TerminateProcess (SK_GetCurrentProcess (), 0xdeadbeef);
 
     last_chance = true;
 
@@ -968,11 +969,11 @@ SK_GetSymbolNameFromModuleAddr ( HMODULE hMod,   uintptr_t addr,
   if (! dbghelp_callers.count (hMod))
   {
     dbghelp_callers.insert (hMod);
-    SymRefreshModuleList   (GetCurrentProcess ());
+    SymRefreshModuleList   (SK_GetCurrentProcess ());
   }
 
   HANDLE hProc =
-    GetCurrentProcess ();
+    SK_GetCurrentProcess ();
 
   DWORD64                           ip;
 
@@ -1031,7 +1032,7 @@ SK_GetSymbolNameFromModuleAddr ( HMODULE hMod,   uintptr_t addr,
 
 void
 WINAPI
-SK_SymRefreshModuleList ( HANDLE hProc = GetCurrentProcess () )
+SK_SymRefreshModuleList ( HANDLE hProc = SK_GetCurrentProcess () )
 {
   //if (config.system.strict_compliance)
     //cs_dbghelp->lock ();
@@ -1147,7 +1148,7 @@ CrashHandler::InitSyms (void)
                     SYMOPT_NO_PROMPTS       | SYMOPT_DEFERRED_LOADS | SYMOPT_ALLOW_ABSOLUTE_SYMBOLS );
 
     SymInitialize (
-      GetCurrentProcess (),
+      SK_GetCurrentProcess (),
         nullptr,
           TRUE );
   }

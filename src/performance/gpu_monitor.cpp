@@ -68,8 +68,8 @@ SK_GPUPollingThread (LPVOID user)
     hShutdownEvent
   };
 
-  SetCurrentThreadDescription (L"[SK] GPU Performance Monitoring Thread");
-  SetThreadPriority           (GetCurrentThread (), THREAD_PRIORITY_LOWEST);
+  SetCurrentThreadDescription (     L"[SK] GPU Performance Monitoring Thread");
+  SetThreadPriority           (SK_GetCurrentThread (), THREAD_PRIORITY_LOWEST);
 
   while (true)
   {
@@ -464,7 +464,7 @@ SK_GPUPollingThread (LPVOID user)
   CloseHandle (hPollEvent);
                hPollEvent = nullptr;
 
-  CloseHandle (GetCurrentThread ());
+  SK_Thread_CloseSelf ();
 
   return 0;
 }

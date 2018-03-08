@@ -1387,7 +1387,7 @@ CreateThread (nullptr, 0, [](LPVOID user) -> DWORD
   free (pWorkingSet_);
 
 #ifdef REAL_THREAD
-  CloseHandle (GetCurrentThread ());
+  SK_Thread_CloseSelf ();
 
   return 0;
 }, static_cast <LPVOID> (WorkingSet), 0x00, nullptr);
@@ -1743,8 +1743,8 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
 
         InterlockedExchange (&walking, 0);
 
-        CleanupLog  (pLogger);
-        CloseHandle (GetCurrentThread ());
+        CleanupLog   (pLogger);
+        SK_Thread_CloseSelf ();
 
         return 0;
       }
@@ -1779,7 +1779,7 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
 
       InterlockedExchange (&walking, 0);
 
-      CloseHandle (GetCurrentThread ());
+      SK_Thread_CloseSelf ();
 
       return 0;
     }, (LPVOID)working_set, 0x00, nullptr);

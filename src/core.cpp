@@ -498,8 +498,8 @@ WaitForInit (void)
 
   while (ReadPointerAcquire (&hInitThread) != INVALID_HANDLE_VALUE)
   {
-    if ( ReadPointerAcquire (&hInitThread) == GetCurrentThread () )
-      break;
+    ///if ( ReadPointerAcquire (&hInitThread) == SK_GetCurrentThread () )
+    ///  break;
 
     for (int i = 0; i < _SpinMax && (ReadPointerAcquire (&hInitThread) != INVALID_HANDLE_VALUE); i++)
       ;
@@ -525,7 +525,7 @@ WaitForInit (void)
   //
   if (! InterlockedCompareExchange (&__SK_Init, TRUE, FALSE))
   {
-    if ( ReadPointerAcquire (&hInitThread) != GetCurrentThread () &&
+    if ( ///ReadPointerAcquire (&hInitThread) != GetCurrentThread () &&
          ReadPointerAcquire (&hInitThread) != INVALID_HANDLE_VALUE )
     {
       CloseHandle (
@@ -651,14 +651,14 @@ SK_InitFinishCallback (void)
   //   immediately...
   CreateThread (nullptr, 0, [](LPVOID) -> DWORD
   {
-    SetCurrentThreadDescription (L"[SK] GPU Vendor Support Library Thread");
-    SetThreadPriority           (GetCurrentThread (), THREAD_PRIORITY_IDLE);
+    SetCurrentThreadDescription (    L"[SK] GPU Vendor Support Library Thread" );
+    SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_IDLE );
 
     SleepEx (5, FALSE);
 
     SK_LoadGPUVendorAPIs ();
 
-    CloseHandle (GetCurrentThread ());
+    SK_Thread_CloseSelf ();
 
     return 0;
   }, nullptr, 0x00, nullptr);
@@ -671,9 +671,9 @@ DWORD
 WINAPI
 CheckVersionThread (LPVOID)
 {
-  SetCurrentThreadDescription (L"[SK] Auto-Update Thread");
-  SetThreadPriority           (GetCurrentThread (), THREAD_PRIORITY_IDLE);
-  SleepEx                     (5, FALSE);
+  SetCurrentThreadDescription (                   L"[SK] Auto-Update Thread"   );
+  SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_LOWEST );
+  SleepEx                     ( 5,                      FALSE                  );
 
   // If a local repository is present, use that.
   if (GetFileAttributes (LR"(Version\installed.ini)") == INVALID_FILE_ATTRIBUTES)
@@ -688,7 +688,7 @@ CheckVersionThread (LPVOID)
     }
   }
 
-  CloseHandle (GetCurrentThread ());
+  SK_Thread_CloseSelf ();
 
   return 0;
 }
@@ -698,8 +698,8 @@ DWORD
 WINAPI
 DllThread (LPVOID user)
 {
-  SetCurrentThreadDescription (L"[SK] Primary Initialization Thread");
-  SetThreadPriority           (GetCurrentThread (), THREAD_PRIORITY_TIME_CRITICAL);
+  SetCurrentThreadDescription (                 L"[SK] Primary Initialization Thread" );
+  SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_TIME_CRITICAL );
 
   auto* params =
     static_cast <init_params_s *> (user);
@@ -1075,7 +1075,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
   else
   {
-    SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_ABOVE_NORMAL);
+    SetThreadPriority (SK_GetCurrentThread (), THREAD_PRIORITY_ABOVE_NORMAL);
 
     wchar_t   log_fname [MAX_PATH + 2] = { };
     swprintf (log_fname, L"logs/%s.log", SK_IsInjected () ? L"SpecialK" : backend);
@@ -1384,8 +1384,8 @@ BACKEND_INIT:
 
     CreateThread (nullptr, 0x00, [](LPVOID) -> DWORD
     {
-      SetCurrentThreadDescription (L"[SK] Init Cleanup Thread");
-      SetThreadPriority           (GetCurrentThread (), THREAD_PRIORITY_BELOW_NORMAL);
+      SetCurrentThreadDescription (                          L"[SK] Init Cleanup Thread" );
+      SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_BELOW_NORMAL );
 
       WaitForInit         ();
 
@@ -1402,7 +1402,7 @@ BACKEND_INIT:
       //   blacklists bad DLLs and detects render APIs...
       SK_EnumLoadedModules (SK_ModuleEnum::PostLoad);
 
-      CloseHandle (GetCurrentThread ());
+      SK_Thread_CloseSelf ();
 
       return 0;
     }, nullptr, 0x00, nullptr);

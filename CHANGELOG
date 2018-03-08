@@ -1,5 +1,10 @@
 0.9.8:
 
+ (.1): Disable a user's ability to perform software updates using the in-game
+         config menu on installs done without SKIM.
+ (.1): Add option to disable DXGI_PRESENT_TEST swapchain present for FFXV
+
+
  + Added SteamAPI rate throttling to fix resource load hitches in FFXV
 
    >> Right-click the SteamAPI Frame counter in the control panel to access:

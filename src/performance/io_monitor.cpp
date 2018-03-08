@@ -53,7 +53,7 @@ SK_CountIO (io_perf_t& ioc, const double update)
 {
   // Virtual handle; don't close this.
   static HANDLE hProc =
-    GetCurrentProcess ();
+    SK_GetCurrentProcess ();
 
   if (ioc.init == false)
   {
@@ -138,7 +138,7 @@ DWORD
 WINAPI
 SK_MonitorCPU (LPVOID user_param)
 {
-  SetThreadPriority (GetCurrentThread ( ), THREAD_PRIORITY_LOWEST);
+  SetThreadPriority ( SK_GetCurrentThread (), THREAD_PRIORITY_LOWEST );
 
   SK_WMI_WaitForInit ();
 
@@ -501,7 +501,7 @@ DWORD
 WINAPI
 SK_MonitorDisk (LPVOID user)
 {
-  SetThreadPriority (GetCurrentThread ( ), THREAD_PRIORITY_LOWEST);
+  SetThreadPriority ( SK_GetCurrentThread (), THREAD_PRIORITY_LOWEST );
 
   SK_WMI_WaitForInit ();
 
@@ -919,7 +919,7 @@ DWORD
 WINAPI
 SK_MonitorPagefile (LPVOID user)
 {
-  SetThreadPriority (GetCurrentThread ( ), THREAD_PRIORITY_LOWEST);
+  SetThreadPriority ( SK_GetCurrentThread (), THREAD_PRIORITY_LOWEST );
 
   SK_WMI_WaitForInit ();
 
@@ -1249,7 +1249,7 @@ DWORD
 WINAPI
 SK_MonitorProcess (LPVOID user)
 {
-  SetThreadPriority (GetCurrentThread ( ), THREAD_PRIORITY_LOWEST);
+  SetThreadPriority ( SK_GetCurrentThread (), THREAD_PRIORITY_LOWEST );
 
   SK_WMI_WaitForInit ();
 
@@ -1294,12 +1294,10 @@ SK_MonitorProcess (LPVOID user)
 
   IWbemClassObject *pClassObj = nullptr;
 
-  HANDLE hProc = GetCurrentProcess ();
+  DWORD   dwProcessSize = MAX_PATH * 2;
+  wchar_t wszProcessName [MAX_PATH * 2 + 1] = { };
 
-  DWORD   dwProcessSize = MAX_PATH;
-  wchar_t wszProcessName [MAX_PATH] = { };
-
-  QueryFullProcessImageName (hProc, 0, wszProcessName, &dwProcessSize);
+  GetModuleFileNameW (0, wszProcessName, dwProcessSize);
 
   wchar_t* pwszShortName = wcsrchr (wszProcessName, L'\\') + 1;
   wchar_t* pwszTruncName = wcsrchr (pwszShortName,  L'.');
@@ -1307,10 +1305,11 @@ SK_MonitorProcess (LPVOID user)
   if (pwszTruncName != nullptr)
     *pwszTruncName = L'\0';
 
-  wchar_t wszInstance [512];
-  wsprintf ( wszInstance,
-               L"Win32_PerfFormattedData_PerfProc_Process.Name='%ws'",
-                 pwszShortName );
+  wchar_t      wszInstance [256] = { };
+  _snwprintf ( wszInstance,
+                255,
+                  L"Win32_PerfFormattedData_PerfProc_Process.Name='%ws'",
+                    pwszShortName );
 
   if (FAILED (hr = proc.pConfig->AddObjectByPath (
                      COM::base.wmi.pNameSpace,

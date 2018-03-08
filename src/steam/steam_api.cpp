@@ -3142,8 +3142,8 @@ DWORD
 WINAPI
 SteamAPI_PumpThread (LPVOID user)
 {
-  SetCurrentThreadDescription (L"[SK] SteamAPI Callback Pump");
-  SetThreadPriority           (GetCurrentThread (), THREAD_PRIORITY_IDLE);
+  SetCurrentThreadDescription (               L"[SK] SteamAPI Callback Pump" );
+  SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_IDLE );
 
   bool   start_immediately = (user != nullptr);
   double callback_freq     =  0.0;
@@ -3179,7 +3179,7 @@ SteamAPI_PumpThread (LPVOID user)
   {
     if (SteamAPI_InitSafe_Original ())
     {
-      SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_LOWEST);
+      SetThreadPriority (SK_GetCurrentThread (), THREAD_PRIORITY_LOWEST);
 
       steam_log.Log ( L" >> Installing a callback auto-pump at 8 Hz.\n\n");
 
@@ -3621,9 +3621,9 @@ SK_Steam_ScrubRedistributables (int& total_files, bool erase)
     {
       DWORD dwStart = timeGetTime ();
 
-      SetCurrentThreadDescription (L"[SK] Steam Redistributable File Cleanup");
-      SetThreadPriority           (GetCurrentThread (), THREAD_PRIORITY_LOWEST |
-                                                        THREAD_MODE_BACKGROUND_BEGIN );
+      SetCurrentThreadDescription (          L"[SK] Steam Redistributable File Cleanup" );
+      SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_LOWEST |
+                                                           THREAD_MODE_BACKGROUND_BEGIN );
 
       unsigned int     files =  0 ;
       LARGE_INTEGER   liSize = { };
@@ -3681,7 +3681,7 @@ SK_Steam_ScrubRedistributables (int& total_files, bool erase)
 
       InterlockedExchangePointer ((void **)&hThread, INVALID_HANDLE_VALUE);
 
-      CloseHandle (GetCurrentThread ());
+      SK_Thread_CloseSelf ();
 
       return 0;
     }, nullptr, 0x00, nullptr);
@@ -3873,7 +3873,7 @@ SteamAPI_Shutdown_Detour (void)
       {
         if (ReadAcquire (&__SK_DLL_Ending))
         {
-          CloseHandle (GetCurrentThread ());
+          SK_Thread_CloseSelf ();
 
           return 0;
         }
@@ -3888,7 +3888,7 @@ SteamAPI_Shutdown_Detour (void)
       if (SteamAPI_RunCallbacks_Original != nullptr)
         SteamAPI_RunCallbacks_Detour ();
 
-      CloseHandle (GetCurrentThread ());
+      SK_Thread_CloseSelf ();
 
       return 0;
     }, nullptr, 0x00, nullptr);
@@ -4021,13 +4021,13 @@ DWORD
 WINAPI
 SteamAPI_Delay_Init (LPVOID)
 {
-  SetThreadPriority           (GetCurrentThread (), THREAD_PRIORITY_HIGHEST);
-  SetCurrentThreadDescription (L"[SK] SteamAPI Delayed Init. Thread");
+  SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_HIGHEST  );
+  SetCurrentThreadDescription (            L"[SK] SteamAPI Delayed Init. Thread" );
 
 
   if (! SK_IsInjected ())
   {
-    CloseHandle (GetCurrentThread ());
+    SK_Thread_CloseSelf ();
 
     return 0;
   }
@@ -4050,7 +4050,7 @@ SteamAPI_Delay_Init (LPVOID)
     ++tries;
   }
 
-  CloseHandle (GetCurrentThread ());
+  SK_Thread_CloseSelf ();
 
   return 0;
 }
@@ -4965,7 +4965,7 @@ SK_SteamAPIContext::OnFileDetailsDone ( FileDetailsResult_t* pParam,
 
       delete pParam;
 
-      CloseHandle (GetCurrentThread ());
+      SK_Thread_CloseSelf ();
 
       return 0;
     }, pCopy,

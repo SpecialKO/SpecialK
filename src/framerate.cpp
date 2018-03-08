@@ -922,6 +922,7 @@ SK_GetPerfFreq (void)
 #include <atlbase.h>
 
 #include <SpecialK/tls.h>
+#include <SpecialK/thread.h>
 
 SK::Framerate::Stats frame_history;
 SK::Framerate::Stats frame_history2;
@@ -1457,7 +1458,7 @@ SK::Framerate::Limiter::wait (void)
   if (ReadAcquire (&__SK_DLL_Ending))
     return;
 
-  SK_RunOnce ( SetThreadPriority ( GetCurrentThread (),
+  SK_RunOnce ( SetThreadPriority ( SK_GetCurrentThread (),
                                      THREAD_PRIORITY_ABOVE_NORMAL ) );
 
   static bool restart      = false;

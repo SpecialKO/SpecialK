@@ -24,6 +24,18 @@
 
 #include <Windows.h>
 
+
+
+static inline constexpr
+  const HANDLE
+    SK_GetCurrentThread  (void) { return (PVOID)-1; };
+
+static inline constexpr
+  const HANDLE
+    SK_GetCurrentProcess (void) { return (PVOID)-1; };
+
+
+
 class SK_Thread_ScopedPriority
 {
 public:
@@ -176,6 +188,31 @@ SK_Thread_SpinUntilAtomicMin (volatile LONG* pVar, LONG count, LONG _SpinMax = 7
   }
 }
 
+
+__forceinline
+static bool
+SK_Thread_CloseSelf (void)
+{
+  HANDLE hRealHandle = INVALID_HANDLE_VALUE;
+
+  if ( DuplicateHandle ( SK_GetCurrentProcess (),
+                         SK_GetCurrentThread  (),
+                         SK_GetCurrentProcess (),
+                           &hRealHandle,
+                             0,
+                               FALSE,
+                                 DUPLICATE_CLOSE_SOURCE |
+                                 DUPLICATE_SAME_ACCESS ) )
+  {
+    CloseHandle (hRealHandle);
+
+    return true;
+  }
+
+  return false;
+}
+
+
 typedef HRESULT (WINAPI *SetThreadDescription_pfn)(
   _In_ HANDLE hThread,
   _In_ PCWSTR lpThreadDescription
@@ -193,7 +230,6 @@ extern "C" HRESULT WINAPI SetCurrentThreadDescription (_In_  PCWSTR lpThreadDesc
 extern "C" HRESULT WINAPI GetCurrentThreadDescription (_Out_  PWSTR  *threadDescription);
 
 extern "C" bool SK_Thread_InitDebugExtras (void);
-
 
 
 #endif /* __SK__THREAD_H__ */
