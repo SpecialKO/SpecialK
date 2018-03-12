@@ -2230,18 +2230,17 @@ SK_FormatString (char const* const _Format, ...)
   }
   va_end   (_ArgList);
 
-  std::string out (
-    len + 1, '\0'
-  );
+  char* pData =
+    (char *)SK_TLS_Bottom ()->scratch_memory.eula.alloc (len + 1, true);
 
   va_start (_ArgList, _Format);
   {
     len =
-      vsprintf ( out.data (), _Format, _ArgList );
+      vsprintf ( pData, _Format, _ArgList );
   }
   va_end   (_ArgList);
 
-  return out;
+  return std::move (pData);
 }
 
 std::wstring
@@ -2258,18 +2257,17 @@ SK_FormatStringW (wchar_t const* const _Format, ...)
   }
   va_end   (_ArgList);
 
-  std::wstring out (
-    len + 1, L'\0'
-  );
+  wchar_t* pData =
+    (wchar_t *)SK_TLS_Bottom ()->scratch_memory.eula.alloc (sizeof (wchar_t) * (len + 1), true);
 
   va_start (_ArgList, _Format);
   {
     len =
-      _vswprintf ( out.data (), _Format, _ArgList );
+      _vswprintf ( (wchar_t *)pData, _Format, _ArgList );
   }
   va_end   (_ArgList);
 
-  return out;
+  return std::move (pData);
 }
 
 

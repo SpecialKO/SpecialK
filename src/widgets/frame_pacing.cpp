@@ -39,18 +39,21 @@ class SKWG_FramePacing : public SK_Widget
 public:
   SKWG_FramePacing (void) : SK_Widget ("FramePacing")
   {
+    SK_ImGui_Widgets.frame_pacing = this;
+
     setResizable    (                false).setAutoFit      (true).setMovable (false).
     setDockingPoint (DockAnchor::SouthEast).setClickThrough (true).setVisible (false);
-
-    SK_ImGui_Widgets.frame_pacing = this;
   };
 
   virtual void run (void) override
   {
-    const  float font_size           =             ImGui::GetFont  ()->FontSize                        ;//* scale;
-    const  float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y + ImGui::GetStyle ().ItemInnerSpacing.y;
+    if (! ImGui::GetFont ())
+      return;
 
-    ImVec2 new_size (font_size * 35, font_size_multiline * (has_battery ? 6.5f : 5.44f));
+    const float font_size           =             ImGui::GetFont  ()->FontSize                        ;//* scale;
+    const float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y + ImGui::GetStyle ().ItemInnerSpacing.y;
+
+    ImVec2   new_size (font_size * 35, font_size_multiline * (has_battery ? 6.5f : 5.44f));
     setSize (new_size);
 
     if (isVisible ())
@@ -59,6 +62,9 @@ public:
 
   virtual void draw (void) override
   {
+    if (! ImGui::GetFont ())
+      return;
+
     ImGuiIO& io (ImGui::GetIO ());
 
     static bool move = true;

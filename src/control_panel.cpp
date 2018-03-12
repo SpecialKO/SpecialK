@@ -1884,6 +1884,12 @@ SK_ImGui_ControlPanel (void)
         extern bool SK_LSBTS_PlugInCfg (void);
                     SK_LSBTS_PlugInCfg ();
       } break;
+
+      case SK_GAME_ID::FinalFantasyXV:
+      {
+        extern bool SK_FFXV_PlugInCfg (void);
+                    SK_FFXV_PlugInCfg ();
+      }
     };
 #endif
 
@@ -2344,8 +2350,7 @@ SK_ImGui_StageNextFrame (void)
 
 
   static bool init_widgets = true;
-
-  static std::array <SK_Widget *, 5> widgets
+  static auto widgets =
   {
     SK_ImGui_Widgets.frame_pacing,
       SK_ImGui_Widgets.volume_control,
@@ -2356,10 +2361,10 @@ SK_ImGui_StageNextFrame (void)
 
   if (init_widgets)
   {
+    init_widgets = false;
+
     for (auto& widget : widgets)
       widget->run_base ();
-
-    init_widgets = false;
   }
 
 

@@ -121,6 +121,44 @@ SK_LSBTS_PlugInCfg (void)
 }
 
 bool
+SK_FFXV_PlugInCfg (void)
+{
+  if (ImGui::CollapsingHeader ("Final Fantasy XV Windows Edition", ImGuiTreeNodeFlags_DefaultOpen))
+  {
+    ImGui::TreePush ("");
+
+    static bool ignis_vision = false;
+
+    if (ImGui::Checkbox (u8"Ignis Vision ™", &ignis_vision))
+    {
+      if (ignis_vision)
+      {
+        SK_D3D11_Shaders.vertex.wireframe.emplace (0x89d01dda);
+        SK_D3D11_Shaders.vertex.on_top.emplace    (0x89d01dda);
+      } else {
+        SK_D3D11_Shaders.vertex.wireframe.erase   (0x89d01dda);
+        SK_D3D11_Shaders.vertex.on_top.erase      (0x89d01dda);
+      }
+    }
+
+    if (ImGui::IsItemHovered ())
+    {
+      ImGui::BeginTooltip    ();
+      ImGui::TextUnformatted ("Note to Swashbucklers");
+      ImGui::BulletText      ("Everyone sees through your delusions");
+      ImGui::EndTooltip      ();
+    }
+
+    ImGui::TreePop ();
+
+    return true;
+  }
+
+  return false;
+}
+
+
+bool
 SK_SO4_PlugInCfg (void)
 {
   if (ImGui::CollapsingHeader ("STAR OCEAN - THE LAST HOPE - 4K & Full HD Remaster", ImGuiTreeNodeFlags_DefaultOpen))

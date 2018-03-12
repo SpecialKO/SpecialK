@@ -35,6 +35,8 @@
 #include <SpecialK/performance/gpu_monitor.h>
 #include <SpecialK/performance/memory_monitor.h>
 
+#include <SpecialK/diagnostics/modules.h>
+
 #include <SpecialK/render/backend.h>
 #include <SpecialK/render/dxgi/dxgi_backend.h>
 #include <SpecialK/render/d3d9/d3d9_backend.h>
@@ -534,7 +536,7 @@ SK_DrawOSD (void)
     return FALSE;
 
   char* pszOSD = szOSD;
-  *pszOSD = '\0';
+       *pszOSD = '\0';
 
   static io_perf_t
     io_counter;
@@ -554,9 +556,9 @@ SK_DrawOSD (void)
                         &st,
                           nullptr,
                             time,
-                              128 );
+                              127 );
 
-    static HMODULE hModGame = GetModuleHandle (nullptr);
+    static HMODULE hModGame = SK_Modules.HostApp;
     static wchar_t wszGameName [MAX_PATH + 1] = { };
 
     if (wszGameName [0] == L'\0')

@@ -2849,20 +2849,14 @@ SK_SaveConfig ( std::wstring name,
   lstrcatW (wszFullName,       name.c_str ());
   lstrcatW (wszFullName,             L".ini");
 
+  dll_ini->write ( wszFullName );
+    ;
+
   SK_ImGui_Widgets.SaveConfig ();
 
-
-  dll_ini->write ( wszFullName );
-  osd_ini->write ( std::wstring ( SK_GetDocumentsDir () +
-                     LR"(\My Mods\SpecialK\Global\osd.ini)"
-                   ).c_str () );
-  achievement_ini->write ( std::wstring ( SK_GetDocumentsDir () +
-                     LR"(\My Mods\SpecialK\Global\achievements.ini)"
-                   ).c_str () );
-
-  macro_ini->write ( std::wstring ( SK_GetDocumentsDir () +
-                     LR"(\My Mods\SpecialK\Global\macros.ini)"
-                   ).c_str () );
+  osd_ini->write         ( osd_ini->get_filename         () );
+  achievement_ini->write ( achievement_ini->get_filename () );
+  macro_ini->write       ( macro_ini->get_filename       () );
 
 
   if (close_config)

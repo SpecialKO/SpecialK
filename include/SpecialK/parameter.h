@@ -66,8 +66,8 @@ public:
   void register_to_ini (iSK_INI* file, std::wstring section, std::wstring key)
   {
     ini         = file;
-    ini_section = section;
-    ini_key     = key;
+    ini_section = std::move (section);
+    ini_key     = std::move (key);
   }
 
   std::type_index          type_;

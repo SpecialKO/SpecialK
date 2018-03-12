@@ -69,6 +69,8 @@ public:
 
   virtual void draw (void) override
   {
+    if (! ImGui::GetFont ()) return;
+
     const  float font_size   = ImGui::GetFont ()->FontSize;
     static char  szAvg [512] = { };
     //static bool  stress      = config.render.framerate.max_delta_time == 500 ?

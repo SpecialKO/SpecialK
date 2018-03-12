@@ -108,10 +108,10 @@ public:
                                                            if (visible)
                                                              setActive (visible);
 
-                                                           if (param_visible != nullptr)
-                                                           {
-                                                             param_visible->store (visible);
-                                                           }
+                                                           //if (param_visible != nullptr)
+                                                           //{
+                                                           //  param_visible->store (visible);
+                                                           //}
                                                                                           return *this; }
   SK_Widget& setActive       (bool        bActive)       { active        = bActive;       return *this; }
 //--------------------
@@ -123,7 +123,11 @@ public:
   SK_Widget& setMinSize      (ImVec2&     iv2MinSize)    { min_size      = iv2MinSize;    return *this; }
   SK_Widget& setMaxSize      (ImVec2&     iv2MaxSize)    { max_size      = iv2MaxSize;    return *this; }
   SK_Widget& setSize         (ImVec2&     iv2Size)       { size          = iv2Size;       return *this; }
-  SK_Widget& setPos          (ImVec2&     iv2Pos)        { pos           = iv2Pos;        return *this; }
+  SK_Widget& setPos          (ImVec2&     iv2Pos)        { pos           = iv2Pos;
+
+                                                           //if (param_pos) param_pos->store (pos);
+
+                                                                                          return *this; }
   SK_Widget& setDockingPoint (DockAnchor  dock_anchor)   { docking       = dock_anchor;   return *this; }
 
 
@@ -173,21 +177,21 @@ protected:
      false, false, false, 0, 0
   };
 
-  sk::ParameterStringW* toggle_key_val;
-  sk::ParameterStringW* focus_key_val;
+  sk::ParameterStringW* toggle_key_val      = nullptr;
+  sk::ParameterStringW* focus_key_val       = nullptr;
 
-  sk::ParameterBool*    param_visible;
-  sk::ParameterBool*    param_movable;
-  sk::ParameterBool*    param_autofit;
-  sk::ParameterBool*    param_resizable;
-  sk::ParameterBool*    param_border;
-  sk::ParameterBool*    param_clickthrough;
-  sk::ParameterVec2f*   param_minsize;
-  sk::ParameterVec2f*   param_maxsize;
-  sk::ParameterVec2f*   param_size;
-  sk::ParameterVec2f*   param_pos;
-  sk::ParameterInt*     param_docking;
-  sk::ParameterFloat*   param_scale;
+  sk::ParameterBool*    param_visible       = nullptr;
+  sk::ParameterBool*    param_movable       = nullptr;
+  sk::ParameterBool*    param_autofit       = nullptr;
+  sk::ParameterBool*    param_resizable     = nullptr;
+  sk::ParameterBool*    param_border        = nullptr;
+  sk::ParameterBool*    param_clickthrough  = nullptr;
+  sk::ParameterVec2f*   param_minsize       = nullptr;
+  sk::ParameterVec2f*   param_maxsize       = nullptr;
+  sk::ParameterVec2f*   param_size          = nullptr;
+  sk::ParameterVec2f*   param_pos           = nullptr;
+  sk::ParameterInt*     param_docking       = nullptr;
+  sk::ParameterFloat*   param_scale         = nullptr;
 
   // TODO: Add memory allocator and timing so that performance and resource
   //         consumption for individual widgets can be tracked.
@@ -234,9 +238,9 @@ __inline
 sk::ParameterStringW*
 LoadWidgetKeybind ( SK_Keybind *binding,
                     iSK_INI    *ini_file,
-              const wchar_t    *wszDesc,
-              const wchar_t    *sec_name,
-              const wchar_t    *key_name )
+                const wchar_t*  wszDesc,
+            const std::wstring& sec_name,
+            const std::wstring& key_name )
 {
   sk::ParameterStringW* ret =
     dynamic_cast <sk::ParameterStringW *>
@@ -261,9 +265,9 @@ __inline
 sk::ParameterBool*
 LoadWidgetBool ( bool    *pbVal,
                  iSK_INI *ini_file,
-           const wchar_t *wszDesc,
-           const wchar_t *sec_name,
-           const wchar_t *key_name )
+          const wchar_t*  wszDesc,
+      const std::wstring& sec_name,
+      const std::wstring& key_name )
 {
   sk::ParameterBool* ret =
     dynamic_cast <sk::ParameterBool *>
@@ -288,9 +292,9 @@ __inline
 sk::ParameterInt*
 LoadWidgetDocking ( SK_Widget::DockAnchor *pdaVal,
                                   iSK_INI *ini_file,
-                            const wchar_t *wszDesc,
-                            const wchar_t *sec_name,
-                            const wchar_t *key_name )
+                           const wchar_t*  wszDesc,
+                       const std::wstring& sec_name,
+                       const std::wstring& key_name )
 {
   sk::ParameterInt* ret =
    dynamic_cast <sk::ParameterInt *>
@@ -313,9 +317,9 @@ __inline
 sk::ParameterVec2f*
 LoadWidgetVec2 ( ImVec2  *piv2Val,
                  iSK_INI *ini_file,
-           const wchar_t *wszDesc,
-           const wchar_t *sec_name,
-           const wchar_t *key_name )
+          const wchar_t*  wszDesc,
+      const std::wstring& sec_name,
+      const std::wstring& key_name )
 {
   sk::ParameterVec2f* ret =
    dynamic_cast <sk::ParameterVec2f *>

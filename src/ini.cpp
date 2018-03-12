@@ -396,10 +396,9 @@ iSK_INI::parse (void)
       const wchar_t* wszNext =
         CharNextW (wszDataNext);
 
-      memset ( wszDataEnd,
-                 0x00,
-                   reinterpret_cast <uintptr_t> (wszNext) -
-                   reinterpret_cast <uintptr_t> (wszDataEnd) );
+      RtlZeroMemory ( wszDataEnd,
+                        reinterpret_cast <uintptr_t> (wszNext) -
+                        reinterpret_cast <uintptr_t> (wszDataEnd) );
 
       len =
         lstrlenW (wszData);
@@ -463,11 +462,11 @@ iSK_INI::parse (void)
         const iSK_INISection& section =
           Process_Section (sec_name, start, finish);
 
-        sections.emplace (
+        sections.insert (
           std::make_pair (sec_name, section)
         );
 
-        ordered_sections.emplace_back (sec_name);
+        ordered_sections.push_back (sec_name);
 
         if (eof)
           break;
@@ -531,10 +530,9 @@ iSK_INI::import (const wchar_t* import_data)
       const wchar_t* wszNext =
         CharNextW (wszImportNext);
 
-      memset ( wszImportEnd,
-                 0x00,
-                   reinterpret_cast <uintptr_t> (wszNext) -
-                   reinterpret_cast <uintptr_t> (wszImportEnd) );
+      RtlZeroMemory ( wszImportEnd,
+                        reinterpret_cast <uintptr_t> (wszNext) -
+                        reinterpret_cast <uintptr_t> (wszImportEnd) );
 
       len =
         lstrlenW (wszImport);
@@ -613,11 +611,11 @@ iSK_INI::import (const wchar_t* import_data)
           iSK_INISection section =
             Process_Section (sec_name, start, finish);
 
-          sections.emplace  (
+          sections.insert  (
             std::make_pair  (sec_name, section)
           );
 
-          ordered_sections.emplace_back (sec_name);
+          ordered_sections.push_back (sec_name);
         }
 
         if (eof)
@@ -682,13 +680,16 @@ iSK_INISection&
 __stdcall
 iSK_INI::get_section (const wchar_t* section)
 {
-  if (! sections.count (section))
-    ordered_sections.emplace_back (section);
+  bool try_emplace =
+    (! sections.count (section));
 
   iSK_INISection& ret =
     sections [section];
 
-  ret.name = section;
+  ret.set_name (section);
+
+  if (try_emplace)
+    ordered_sections.emplace_back (section);
 
   return ret;
 }
@@ -715,13 +716,16 @@ iSK_INI::get_section_f ( _In_z_ _Printf_format_string_
   }
   va_end   (_ArgList);
 
-  if (! sections.count (wszFormatted))
-    ordered_sections.emplace_back (wszFormatted);
+  bool try_emplace =
+    (! sections.count (wszFormatted));
 
   iSK_INISection& ret =
     sections [wszFormatted];
 
   ret.name = wszFormatted;
+
+  if (try_emplace)
+    ordered_sections.emplace_back (wszFormatted);
 
   return ret;
 }
@@ -768,21 +772,21 @@ iSK_INI::write (const wchar_t* fname)
   //  *** These would cause blank lines to be appended to the end of the INI file
   //        if we did not do something about them here and now. ***
   //
-  std::vector <std::wstring> empty_sections;
-
-  for (auto& it : ordered_sections)
-  {
-    iSK_INISection& section =
-      get_section (it.c_str ());
-
-    if (section.ordered_keys.empty ())
-    {
-      empty_sections.emplace_back (section.name);
-    }
-  }
-
-  for (auto& it : empty_sections)
-    remove_section (it.c_str ());
+  //std::vector <std::wstring> empty_sections;
+  //
+  //for (auto& it : ordered_sections)
+  //{
+  //  iSK_INISection& section =
+  //    get_section (it.c_str ());
+  //
+  //  if (section.ordered_keys.empty ())
+  //  {
+  //    empty_sections.emplace_back (section.name);
+  //  }
+  //}
+  //
+  //for (auto& it : empty_sections)
+  //  remove_section (it.c_str ());
 
 
   std::wstring outbuf = L"";
@@ -793,7 +797,7 @@ iSK_INI::write (const wchar_t* fname)
     iSK_INISection& section =
       get_section (it.c_str ());
 
-    if (    section.name.length       () &&
+    if (    section.name.length        () &&
          (! section.ordered_keys.empty ()) )
     {
       outbuf += L"[";

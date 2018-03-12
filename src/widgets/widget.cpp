@@ -26,6 +26,7 @@
 
 
 extern iSK_INI* osd_ini;
+extern iSK_INI* osd_ini;
 
 
 extern bool
@@ -35,83 +36,81 @@ SK_ImGui_IsWindowRightClicked (const ImGuiIO& io = ImGui::GetIO ());
 void
 SK_Widget::run_base (void)
 {
-  if (! run_once__)
+  if ((! run_once__ )&& osd_ini)
   {
     run_once__ = true;
 
     toggle_key_val =
       LoadWidgetKeybind ( &toggle_key, osd_ini,
-                            SK_FormatStringW   (L"Widget Toggle Keybinding (%hs)", name.c_str ()).c_str (),
-                              SK_FormatStringW (L"Widget.%hs",                     name.c_str ()).c_str (),
+                            L"",
+                              SK_FormatStringW (L"Widget.%hs", name.c_str ()),
                                 L"ToggleKey" );
 
     param_visible =
       LoadWidgetBool ( &visible, osd_ini,
-                         SK_FormatStringW   (L"Widget Visible (%hs)", name.c_str ()).c_str (),
-                           SK_FormatStringW (L"Widget.%hs",           name.c_str ()).c_str (),
+                         L"",
+                           SK_FormatStringW (L"Widget.%hs", name.c_str ()),
                              L"Visible" );
 
     param_movable =
       LoadWidgetBool ( &movable, osd_ini,
-                         SK_FormatStringW   (L"Widget Movable (%hs)", name.c_str ()).c_str (),
-                           SK_FormatStringW (L"Widget.%hs",           name.c_str ()).c_str (),
+                         L"",
+                           SK_FormatStringW (L"Widget.%hs", name.c_str ()),
                              L"Movable" );
 
     param_resizable =
       LoadWidgetBool ( &resizable, osd_ini,
-                         SK_FormatStringW   (L"Widget Resizable (%hs)", name.c_str ()).c_str (),
-                           SK_FormatStringW (L"Widget.%hs",             name.c_str ()).c_str (),
+                         L"",
+                           SK_FormatStringW (L"Widget.%hs", name.c_str ()),
                              L"Resizable" );
 
     param_autofit =
       LoadWidgetBool ( &autofit, osd_ini,
-                         SK_FormatStringW   (L"Widget AutoFitted (%hs)", name.c_str ()).c_str (),
-                           SK_FormatStringW (L"Widget.%hs",              name.c_str ()).c_str (),
+                         L"",
+                           SK_FormatStringW (L"Widget.%hs", name.c_str ()),
                              L"AutoFit" );
 
     param_border =
       LoadWidgetBool ( &border, osd_ini,
-                         SK_FormatStringW   (L"Widget Draws Border (%hs)", name.c_str ()).c_str (),
-                           SK_FormatStringW (L"Widget.%hs",                name.c_str ()).c_str (),
+                         L"",
+                           SK_FormatStringW (L"Widget.%hs", name.c_str ()),
                              L"Border" );
 
     param_clickthrough =
       LoadWidgetBool ( &click_through, osd_ini,
-                         SK_FormatStringW   (L"Widget Ignores Clicks (%hs)", name.c_str ()).c_str (),
-                           SK_FormatStringW (L"Widget.%hs",                  name.c_str ()).c_str (),
+                         L"",
+                           SK_FormatStringW (L"Widget.%hs", name.c_str ()),
                              L"ClickThrough" );
 
     param_docking =
       LoadWidgetDocking ( &docking, osd_ini,
-                            SK_FormatStringW   (L"Widget Docks to... (%hs)", name.c_str ()).c_str (),
-                              SK_FormatStringW (L"Widget.%hs",               name.c_str ()).c_str (),
+                            L"",
+                              SK_FormatStringW (L"Widget.%hs", name.c_str ()),
                                 L"DockingPoint" );
 
     param_minsize =
       LoadWidgetVec2 ( &min_size, osd_ini,
-                         SK_FormatStringW   (L"Widget Min Size (%hs)", name.c_str ()).c_str (),
-                           SK_FormatStringW (L"Widget.%hs",            name.c_str ()).c_str (),
+                         L"",
+                           SK_FormatStringW (L"Widget.%hs",    name.c_str ()),
                              L"MinSize" );
 
     param_maxsize =
       LoadWidgetVec2 ( &max_size, osd_ini,
-                         SK_FormatStringW   (L"Widget Max Size (%hs)", name.c_str ()).c_str (),
-                           SK_FormatStringW (L"Widget.%hs",            name.c_str ()).c_str (),
+                         L"",
+                           SK_FormatStringW (L"Widget.%hs",    name.c_str ()),
                              L"MaxSize" );
 
     param_size =
       LoadWidgetVec2 ( &size, osd_ini,
-                         SK_FormatStringW   (L"Widget Size (%hs)", name.c_str ()).c_str (),
-                           SK_FormatStringW (L"Widget.%hs",        name.c_str ()).c_str (),
+                         L"",
+                           SK_FormatStringW (L"Widget.%hs",    name.c_str ()),
                              L"Size" );
 
     param_pos =
       LoadWidgetVec2 ( &pos, osd_ini,
-                         SK_FormatStringW   (L"Widget Position (%hs)", name.c_str ()).c_str (),
-                           SK_FormatStringW (L"Widget.%hs",            name.c_str ()).c_str (),
+                         L"",
+                           SK_FormatStringW (L"Widget.%hs",    name.c_str ()),
                              L"Position" );
-
-    return;
   }
 
   run ();
@@ -448,31 +447,21 @@ SK_Widget::save (iSK_INI* ini)
 {
   OnConfig (ConfigEvent::SaveStart);
 
+  run_base ();
+
   if (param_visible)
   {
-    param_visible->store (visible);
-  }
-
-  else
-    return;
-
-  param_movable->store      (     movable      );
-  param_border->store       (     border       );
-  param_clickthrough->store (     click_through);
-  param_autofit->store      (     autofit      );
-  param_resizable->store    (     resizable    );
-  param_docking->store      ((int)docking      );
-  param_minsize->store      (     min_size     );
-  param_maxsize->store      (     max_size     );
-  param_size->store         (     size         );
-  param_pos->store          (     pos          );
-
-  static DWORD dwLastWrite = 0;
-
-  if (dwLastWrite < timeGetTime () - 250)
-  {
-    ini->write (ini->get_filename ());
-    dwLastWrite = timeGetTime ();
+    param_visible->store      (     visible      );
+    param_movable->store      (     movable      );
+    param_border->store       (     border       );
+    param_clickthrough->store (     click_through);
+    param_autofit->store      (     autofit      );
+    param_resizable->store    (     resizable    );
+    param_docking->store      ((int)docking      );
+    param_minsize->store      (     min_size     );
+    param_maxsize->store      (     max_size     );
+    param_size->store         (     size         );
+    param_pos->store          (     pos          );
   }
 
   OnConfig (ConfigEvent::SaveComplete);
@@ -669,15 +658,16 @@ SK_Widget::load (iSK_INI*)
                               (((shift)!= 0) << 10) |   \
                               (((alt)  != 0) << 11))
 
+static auto widgets =
+  { SK_ImGui_Widgets.frame_pacing, SK_ImGui_Widgets.volume_control, SK_ImGui_Widgets.gpu_monitor, SK_ImGui_Widgets.cpu_monitor, SK_ImGui_Widgets.d3d11_pipeline };
+
 BOOL
 SK_ImGui_WidgetRegistry::DispatchKeybinds (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode)
 {
   auto uiMaskedKeyCode =
     SK_MakeKeyMask (vkCode, Control, Shift, Alt);
 
-  static std::array <SK_Widget *, 5> widgets { frame_pacing, volume_control, gpu_monitor, cpu_monitor, d3d11_pipeline };
-
-  for (auto&& widget : widgets)
+  for (auto widget : widgets)
   {
     if (widget && uiMaskedKeyCode == widget->getToggleKey ().masked_code)
     {
@@ -693,15 +683,7 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds (BOOL Control, BOOL Shift, BOOL Alt, B
 BOOL
 SK_ImGui_WidgetRegistry::SaveConfig (void)
 {
-  static std::array <SK_Widget *, 5> widgets { frame_pacing, volume_control, gpu_monitor, cpu_monitor, d3d11_pipeline };
-
-  for (auto widget : widgets)
-  {
-    if (widget)
-    {
-      widget->save (osd_ini);
-    }
-  }
+  for ( auto& widget : widgets ) widget->save (osd_ini);
 
   return TRUE;
 }

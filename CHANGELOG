@@ -1,4 +1,17 @@
+0.9.9:
+
+ + Disabled compiler options known to cause problems with Ansel; forced to
+     replace them with options known to cause issues with MSI Nahimic.
+
+ + Prevent FFXV from running SteamAPI with TIME_CRITICAL scheduling and
+     starving more important threads that actually use the CPU productively
+
+
 0.9.8:
+
+ (.4): Fixed concurrency issues with texture cache in FFXV, it is safe to
+         enable caching now and highly recommended
+ (.3): Added error message on systems missing June 2010 DirectX Runtimes
 
  (.1): Disable a user's ability to perform software updates using the in-game
          config menu on installs done without SKIM.
