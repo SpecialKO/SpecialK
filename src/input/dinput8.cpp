@@ -1398,7 +1398,7 @@ SK_Input_HookDI8 (void)
       }
 
       SK_LOG0 ( ( L"Game uses DirectInput 8, installing input hooks..." ),
-                    L"   Input  " );
+                    L"  Input   " );
 
       //HMODULE hBackend =
       //  (SK_GetDLLRole () & DLL_ROLE::DInput8) ? backend_dll :

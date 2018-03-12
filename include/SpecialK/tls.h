@@ -98,7 +98,7 @@ public:
     }
 
     if (zero_fill)
-      RtlZeroMemory (data, len * sizeof (_T));
+      RtlZeroMemory (data, needed * sizeof (_T));
 
     return data;
   }
@@ -188,7 +188,10 @@ class SK_DDraw_ThreadContext : public SK_TLS_RenderContext
 {
 };
 
-class SK_D3D11_ThreadContext : public SK_TLS_RenderContext
+struct SK_D3D11_Stateblock_Lite;
+
+class SK_D3D11_ThreadContext : public SK_TLS_DynamicContext,
+                               public SK_TLS_RenderContext
 {
 public:
   ID3D11RasterizerState*   pRasterStateOrig       = nullptr;
@@ -202,6 +205,13 @@ public:
   UINT                     StencilRefNew          = 0;
 
   ID3D11ShaderResourceView* newResourceViews [128];
+
+  SK_D3D11_Stateblock_Lite* stateBlock            = nullptr;
+  size_t                    stateBlockSize        = 0;
+
+  SK_D3D11_Stateblock_Lite* getStateBlock (void);
+
+  size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload);
 };
 
 class SK_GL_ThreadContext : public SK_TLS_RenderContext

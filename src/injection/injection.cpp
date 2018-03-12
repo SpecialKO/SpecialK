@@ -153,7 +153,7 @@ SK_Inject_ValidateProcesses (void)
                       ReadAcquire (&hooked_pid) )
                   );
 
-    if (hProc == nullptr)
+    if (hProc == INVALID_HANDLE_VALUE)
     {
       ReadAcquire (&hooked_pid);
     }
@@ -292,8 +292,16 @@ SKX_WaitForCBTHookShutdown (void)
                         SK_GetCurrentProcess (), &hShutdown.m_h,
                         0x00, TRUE, DUPLICATE_SAME_ACCESS );
 
-    if ( success &&
-         hShutdown != INVALID_HANDLE_VALUE )
+    if ( ! ( success &&
+             hShutdown != INVALID_HANDLE_VALUE ) )
+    {
+      hShutdown.m_h =
+        OpenEvent ( SYNCHRONIZE, TRUE,
+          SK_RunLHIfBitness ( 32, LR"(Global\SpecialK32_Reset)",
+                                  LR"(Global\SpecialK64_Reset)" ) );
+    }
+
+    if ( hShutdown != INVALID_HANDLE_VALUE && (! SK_IsHostAppSKIM ()) )
     {
       SetThreadPriority      ( SK_GetCurrentThread (),
                                THREAD_PRIORITY_LOWEST       );
@@ -380,8 +388,8 @@ SKX_InstallCBTHook (void)
     return;
 
 
-  SecureZeroMemory (whitelist_patterns, sizeof (whitelist_patterns));
-                    whitelist_count = 0;
+  RtlSecureZeroMemory (whitelist_patterns, sizeof (whitelist_patterns));
+                       whitelist_count = 0;
 
   HMODULE hMod = nullptr;
 
@@ -407,34 +415,39 @@ __stdcall
 SKX_RemoveCBTHook (void)
 {
 START_OVER:
-  if (hShutdownEvent != nullptr)
+  if (hShutdownEvent > 0)
   {
-    while (ReadAcquire (&injected_procs) > 0)
-    {
-      SignalObjectAndWait (hShutdownEvent, hShutdownEvent, 5, TRUE);;
-    }
+    SignalObjectAndWait ( hShutdownEvent,
+                          hShutdownEvent, 5, TRUE );
   }
 
   HHOOK hHookOrig = SKX_GetCBTHook ();
 
   if (UnhookWindowsHookEx (hHookOrig))
   {
-    SecureZeroMemory (whitelist_patterns, sizeof (whitelist_patterns));
-                      whitelist_count = 0;
+    RtlSecureZeroMemory (whitelist_patterns, sizeof (whitelist_patterns));
+                         whitelist_count = 0;
 
+    InterlockedExchange        (&injected_procs,        0);
     InterlockedExchange        (&__SK_HookContextOwner, FALSE);
     InterlockedExchangePointer ( reinterpret_cast <LPVOID *> (
                                        const_cast < HHOOK *> (&hHookCBT)
                                  ), nullptr );
+  }
 
-                 dwHookPID = 0x0;
+  if ( ReadPointerAcquire ((PVOID *)&hHookCBT) != nullptr ||
+       ReadAcquire        (         &injected_procs) > 0     )
+  {
+    goto START_OVER;
+  }
 
+  if (hShutdownEvent > 0)
+  {
     CloseHandle (hShutdownEvent);
                  hShutdownEvent = nullptr;
   }
 
-  if (ReadPointerAcquire ((PVOID *)&hHookCBT) != nullptr)
-    goto START_OVER;
+  dwHookPID = 0x0;
 }
 
 bool
@@ -477,27 +490,28 @@ RunDLL_InjectionManager ( HWND  hwnd,        HINSTANCE hInst,
         fclose  (fPID);
 
         HANDLE hThread = 
-        CreateThread ( nullptr, 0,
-         [](LPVOID user) ->
-           DWORD
-             {
-               SKX_WaitForCBTHookShutdown ();
+          CreateThread ( nullptr, 0,
+           [](LPVOID user) ->
+             DWORD
+               {
+                 SKX_WaitForCBTHookShutdown ();
 
                while ( ReadAcquire (&__SK_DLL_Attached) || (! SK_IsHostAppSKIM ()))
                  SleepEx (5UL, TRUE);
 
-               SK_Thread_CloseSelf ();
+                 SK_Thread_CloseSelf ();
 
-               if (PtrToInt (user) != -128)
-               {
-                 ExitProcess (0x00);
-               }
+                 if (PtrToInt (user) != -128)
+                 {
+                   ExitProcess (0x00);
+                 }
 
-               return 0;
-             },
-             UIntToPtr (nCmdShow),
-           0x00,
-         nullptr );
+                 return 0;
+               },
+               UIntToPtr (nCmdShow),
+             0x00,
+           nullptr
+          );
 
         // Closes itself
         DBG_UNREFERENCED_LOCAL_VARIABLE (hThread);
@@ -524,7 +538,8 @@ RunDLL_InjectionManager ( HWND  hwnd,        HINSTANCE hInst,
       fscanf (fPID, "%lu", &dwPID);
       fclose (fPID);
 
-      if (dwPID == GetCurrentProcessId () || SK_TerminatePID (dwPID, 0x00))
+      if ( dwPID == GetCurrentProcessId () ||
+           SK_TerminatePID (dwPID, 0x00) )
       {
         DeleteFileA (szPIDFile);
       }
@@ -1146,6 +1161,10 @@ SK_Inject_TestUserWhitelist (const wchar_t* wszExecutable)
     else
       whitelist_count = -1;
   }
+
+
+  if ( whitelist_count <= 0 )
+    return false;
 
 
   for ( int i = 0; i < whitelist_count; i++ )

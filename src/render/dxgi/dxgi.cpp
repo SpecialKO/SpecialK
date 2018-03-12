@@ -1486,6 +1486,22 @@ struct SK_D3D11_Stateblock_Lite : StateBlockDataStore
   }
 };
 
+// The struct is implemented here, so that's where we allocate it.
+SK_D3D11_Stateblock_Lite*
+SK_D3D11_AllocStateBlock (size_t& size)
+{
+  size =
+    sizeof ( SK_D3D11_Stateblock_Lite );
+  return new SK_D3D11_Stateblock_Lite { };
+}
+
+void
+SK_D3D11_FreeStateBlock (SK_D3D11_Stateblock_Lite* sb)
+{
+  if (sb != nullptr)
+    delete sb;
+}
+
 
 
 struct D3DX11_STATE_BLOCK
@@ -1567,7 +1583,7 @@ void CreateStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
                    dc->GetDevice (&pDev);
   const D3D_FEATURE_LEVEL ft_lvl = pDev->GetFeatureLevel ();
 
-  ZeroMemory (sb, sizeof D3DX11_STATE_BLOCK);
+  RtlZeroMemory (sb, sizeof D3DX11_STATE_BLOCK);
 
   sb->OMBlendFactor [0] = 0.0f;
   sb->OMBlendFactor [1] = 0.0f;
@@ -2240,9 +2256,12 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 
     if (SUCCEEDED (hr))
     {
-      std::unique_ptr <SK_D3D11_Stateblock_Lite> sb (
-        new SK_D3D11_Stateblock_Lite { }
-      );
+      // Uses TLS to reduce dynamic memory pressure as much as possible
+      auto* sb =
+        SK_TLS_Bottom ()->d3d11.getStateBlock ();
+
+      RtlZeroMemory ( sb,
+                        sizeof (SK_D3D11_Stateblock_Lite) );
 
       sb->capture (pImmediateContext);
 
@@ -2278,7 +2297,7 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
         if ((uintptr_t)cegD3D11 > 1)
         {
                     cegD3D11->beginRendering ();
-          SK_TextOverlayManager::getInstance ()->drawAllOverlays (0.0f, 0.0f);
+          SK_TextOverlayManager::getInstance ()->drawAllOverlays     (0.0f, 0.0f);
               CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
                       cegD3D11->endRendering ();
         }
@@ -2578,8 +2597,7 @@ SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
 
           // Don't cache addresses that were screwed with by other injectors
           const wchar_t* wszSection = (
-            StrStrIW (it->target.module_path, LR"(\sys)") ||
-            StrStrIW (it->target.module_path, LR"(ReShade)") ) ?
+            StrStrIW (it->target.module_path, LR"(\sys)") ) ?
                                               L"DXGI.Hooks" : nullptr;
 
           if (! wszSection)
@@ -2607,8 +2625,7 @@ SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
         while ( it_local != std::end (local_dxgi_records) )
         {
           if (( *it_local )->hits && (
-    StrStrIW (( *it_local )->target.module_path, LR"(\sys)")    ||
-    StrStrIW (( *it_local )->target.module_path, LR"(ReShade)")    ) &&
+    StrStrIW (( *it_local )->target.module_path, LR"(\sys)") ) &&
               ( *it_local )->active)
             SK_Hook_PushLocalCacheOntoGlobal ( **it_local,
                                                  **it_global );
@@ -5805,6 +5822,8 @@ dxgi_init_callback (finish_pfn finish)
     SK_BootDXGI     ();
     WaitForInitDXGI ();
   }
+
+  __HrLoadAllImportsForDll ("d3dx11_43.dll");
 
   finish ();
 }

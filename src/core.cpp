@@ -99,7 +99,8 @@ extern iSK_Logger game_debug;
 
 extern void SK_Input_PreInit (void);
 
-HANDLE  hInitThread   = { INVALID_HANDLE_VALUE };
+volatile HANDLE hInitThread    = { INVALID_HANDLE_VALUE };
+volatile LONG   dwInitThreadId = 0;
 
 NV_GET_CURRENT_SLI_STATE sli_state;
 BOOL                     nvapi_init  = FALSE;
@@ -496,10 +497,13 @@ WaitForInit (void)
   if (ReadAcquire (&__SK_Init) == 1)
     return;
 
+  LONG dwThreadId =
+    (LONG)GetCurrentProcessId ();
+
   while (ReadPointerAcquire (&hInitThread) != INVALID_HANDLE_VALUE)
   {
-    ///if ( ReadPointerAcquire (&hInitThread) == SK_GetCurrentThread () )
-    ///  break;
+    if ( ReadAcquire (&dwInitThreadId) == dwThreadId )
+      break;
 
     for (int i = 0; i < _SpinMax && (ReadPointerAcquire (&hInitThread) != INVALID_HANDLE_VALUE); i++)
       ;
@@ -525,12 +529,15 @@ WaitForInit (void)
   //
   if (! InterlockedCompareExchange (&__SK_Init, TRUE, FALSE))
   {
-    if ( ///ReadPointerAcquire (&hInitThread) != GetCurrentThread () &&
-         ReadPointerAcquire (&hInitThread) != INVALID_HANDLE_VALUE )
+    if ( ReadAcquire        (&dwInitThreadId) != dwThreadId &&
+         ReadPointerAcquire (&hInitThread)    != INVALID_HANDLE_VALUE )
     {
+      InterlockedExchange (&dwInitThreadId, 0);
+
       CloseHandle (
         reinterpret_cast <HANDLE> (
-          InterlockedExchangePointer ( &hInitThread, INVALID_HANDLE_VALUE )
+          InterlockedExchangePointer ( const_cast <void **> (&hInitThread),
+                                         INVALID_HANDLE_VALUE )
         )
       );
     }
@@ -561,6 +568,20 @@ SK_InitFinishCallback (void)
     init_mutex->unlock ();
     return;
   }
+
+  // NOTE: This is case-sensitive and a nightmare to debug; always use this
+  //         unorthodox case because it's what the DLL uses internally as
+  //           its name (unrelated to the name in System32\...)
+  if ( FAILED (__HrLoadAllImportsForDll ("D3DCOMPILER_43.dll")) )
+  {
+    SK_MessageBox ( L"D3DCompiler_43.dll is required by Special K, but missing."
+                    L"\r\n\r\n"
+                    L"Please install DirectX End - User Runtimes (June 2010) first.",
+  
+                    L"Missing Dependency DLL", MB_ICONERROR | MB_OK );
+    abort ();
+  }
+
 
   SK_DeleteTemporaryFiles ();
   SK_DeleteTemporaryFiles (L"Version", L"*.old");
@@ -638,7 +659,7 @@ SK_InitFinishCallback (void)
   if (! (SK_GetDLLRole () & DLL_ROLE::DXGI))
     SK::DXGI::StartBudgetThread_NoAdapter ();
 
-  dll_log.LogEx (false, L"------------------------------------------------"
+  dll_log.LogEx (false, L"----------------------------------------------- -"
                         L"-------------------------------------------\n" );
   dll_log.Log   (       L"[ SpecialK ] === Initialization Finished! ===   "
                         L"       (%6.2f ms)",
@@ -698,6 +719,8 @@ DWORD
 WINAPI
 DllThread (LPVOID user)
 {
+  InterlockedExchange (&dwInitThreadId, GetCurrentThreadId ());
+
   SetCurrentThreadDescription (                 L"[SK] Primary Initialization Thread" );
   SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_TIME_CRITICAL );
 
@@ -1106,7 +1129,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
     SK_MinHook_Init        ();
     SK_WMI_Init            ();
-    SK_StartPerfMonThreads ();
     SK_InitCompatBlacklist ();
 
     // Do this from the startup thread [these functions queue, but don't apply]
@@ -1409,7 +1431,7 @@ BACKEND_INIT:
 
 
     InterlockedExchangePointer (
-      &hInitThread,
+      const_cast <void **> (&hInitThread),
         CreateThread ( nullptr,
                          0,
                            DllThread,
@@ -1989,10 +2011,14 @@ SK_BeginBufferSwap (void)
 {
   static SK_RenderAPI LastKnownAPI = SK_RenderAPI::Reserved;
 
+  SK_RunOnce ( SetThreadPriority ( GetCurrentThread (), THREAD_PRIORITY_HIGHEST - 1 ) );
+
   assert ( SK_BufferFlinger.dwTid == 0 ||
            SK_BufferFlinger.dwTid == GetCurrentThreadId () );
 
-  if (SK_BufferFlinger.dwTid == 0 && config.render.framerate.enable_mmcss && SK_BufferFlinger.dwTaskIdx == 0)
+  if ( SK_BufferFlinger.dwTid     == 0      &&
+       config.render.framerate.enable_mmcss &&
+       SK_BufferFlinger.dwTaskIdx == 0 )
   {
     SK_BufferFlinger.dwTid = GetCurrentThreadId ();
     SK_BufferFlinger.hTask = 
@@ -2001,8 +2027,12 @@ SK_BeginBufferSwap (void)
                                           &SK_BufferFlinger.dwTaskIdx );
   }
 
-  if (SK_BufferFlinger.hTask != INVALID_HANDLE_VALUE && SK_BufferFlinger.dwTid == GetCurrentThreadId ())
-    AvSetMmThreadPriority (SK_BufferFlinger.hTask, AVRT_PRIORITY_CRITICAL);
+  if ( SK_BufferFlinger.hTask != INVALID_HANDLE_VALUE &&
+       SK_BufferFlinger.dwTid == GetCurrentThreadId   () )
+  {
+    AvSetMmThreadPriority ( SK_BufferFlinger.hTask,
+                              AVRT_PRIORITY_HIGH );
+  }
 
 
 
@@ -2393,12 +2423,15 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
   }
 
 
-  if (SK_BufferFlinger.hTask != INVALID_HANDLE_VALUE && SK_BufferFlinger.dwTid == GetCurrentThreadId ())
+  if ( SK_BufferFlinger.hTask != INVALID_HANDLE_VALUE &&
+       SK_BufferFlinger.dwTid == GetCurrentThreadId () )
   {
-    AvRevertMmThreadCharacteristics (SK_BufferFlinger.hTask);
-    SK_BufferFlinger.dwTid = 0;
+    AvRevertMmThreadCharacteristics ( SK_BufferFlinger.hTask );
+                                      SK_BufferFlinger.dwTid = 0;
   }
 
+
+  //SK_StartPerfMonThreads ();
 
   return hr;
 }

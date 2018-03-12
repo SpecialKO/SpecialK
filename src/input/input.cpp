@@ -248,7 +248,7 @@ SK_Input_HookHID (void)
   if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
   {
     SK_LOG0 ( ( L"Game uses HID, installing input hooks..." ),
-                L"   Input  " );
+                L"  Input   " );
 
     SK_CreateDLLHook2 (     L"HID.DLL",
                              "HidP_GetData",

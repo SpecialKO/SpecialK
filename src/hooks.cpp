@@ -403,7 +403,7 @@ SK_Hook_IsCacheEnabled ( const wchar_t *wszSecName,
         cfg_sec.add_key_value ( key_name.c_str (),
                                   *(it.pEnable) ? L"true" :
                                                   L"false" );
-        ini->write (ini->get_filename ());
+      //ini->write (ini->get_filename ());
       }
     }
   }

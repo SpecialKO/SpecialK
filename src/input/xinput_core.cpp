@@ -123,7 +123,7 @@ struct SK_XInputContext
         {
           SK_LOG0 ( ( L"WARNING: Recursive haptic feedback loop detected on XInput controller %lu!",
                        dwUserIndex ),
-                    L"   Input  " );
+                    L"  Input   " );
 
           extern void
           SK_ImGui_Warning (const wchar_t* wszMessage);
@@ -952,7 +952,7 @@ SK_Input_HookXInput1_4 (void)
       &xinput_ctx.XInput1_4;
 
     SK_LOG0 ( ( L"  >> Hooking XInput 1.4" ),
-                L"   Input  " );
+                L"  Input   " );
 
     pCtx->wszModuleName                      = L"XInput1_4.dll";
     pCtx->hMod                               = GetModuleHandle (pCtx->wszModuleName);
@@ -1036,7 +1036,7 @@ SK_Input_HookXInput9_1_0 (void)
       &xinput_ctx.XInput9_1_0;
 
     SK_LOG0 ( ( L"  >> Hooking XInput9_1_0" ),
-                L"   Input  " );
+                L"  Input   " );
 
     pCtx->wszModuleName                      = L"XInput9_1_0.dll";
     pCtx->hMod                               = GetModuleHandle (pCtx->wszModuleName);
@@ -1647,7 +1647,7 @@ SK_Input_PreHookXInput (void)
     if (tests [0].used || tests [1].used || tests [2].used)
     {
       SK_LOG0 ( ( L"Game uses XInput, installing input hooks..." ),
-                  L"   Input  " );
+                  L"  Input   " );
       if (tests [0].used) SK_Input_HookXInput1_3   ();
       if (tests [1].used) SK_Input_HookXInput1_4   ();
       if (tests [2].used) SK_Input_HookXInput9_1_0 ();

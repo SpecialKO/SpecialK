@@ -437,6 +437,43 @@ SK_D3D9_ThreadContext::Cleanup (SK_TLS_CleanupReason_e /*reason*/)
 }
 
 
+
+extern SK_D3D11_Stateblock_Lite*
+SK_D3D11_AllocStateBlock (size_t& size);
+
+extern void
+SK_D3D11_FreeStateBlock (SK_D3D11_Stateblock_Lite* sb);
+
+SK_D3D11_Stateblock_Lite*
+SK_D3D11_ThreadContext::getStateBlock (void)
+{
+  if (stateBlock == nullptr)
+  {
+    stateBlock =
+      SK_D3D11_AllocStateBlock (stateBlockSize);
+  }
+
+  return stateBlock;
+}
+
+size_t
+SK_D3D11_ThreadContext::Cleanup (SK_TLS_CleanupReason_e /*reason*/)
+{
+  size_t freed = 0;
+
+  if (stateBlock != nullptr)
+  {
+    SK_D3D11_FreeStateBlock (stateBlock);
+                             stateBlock = nullptr;
+
+    freed += stateBlockSize;
+             stateBlockSize = 0;
+  }
+
+  return freed;
+}
+
+
 size_t
 SK_TLS::Cleanup (SK_TLS_CleanupReason_e reason)
 {
@@ -448,6 +485,7 @@ SK_TLS::Cleanup (SK_TLS_CleanupReason_e reason)
   freed += raw_input     .Cleanup (reason);
   freed += scratch_memory.Cleanup (reason);
   freed += steam         .Cleanup (reason);
+  freed += d3d11         .Cleanup (reason);
 
 
   if (known_modules.pResolved != nullptr)

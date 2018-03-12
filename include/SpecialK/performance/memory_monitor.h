@@ -74,4 +74,9 @@ DWORD
 WINAPI
 SK_MonitorProcess (LPVOID user);
 
+
+        process_stats_t& __SK_WMI_ProcessStats (void);
+#define process_stats    __SK_WMI_ProcessStats ()
+
+
 #endif /* __SK__MEMORY_MONITOR_H__ */

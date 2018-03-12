@@ -65,8 +65,10 @@
 #define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
 #include <imgui/imgui.h>
 
-#define SK_BORDERLESS    ( WS_VISIBLE | WS_POPUP | WS_MINIMIZEBOX | WS_SYSMENU )
-#define SK_BORDERLESS_EX ( WS_EX_APPWINDOW )                     // ^^^ Keep the window's icon unchanged
+                           // WS_SYSMENU keeps the window's icon unchanged
+#define SK_BORDERLESS    ( WS_VISIBLE | WS_POPUP | WS_MINIMIZEBOX | WS_SYSMENU | \
+                           WS_CLIPCHILDREN | WS_CLIPSIBLINGS )
+#define SK_BORDERLESS_EX ( WS_EX_APPWINDOW )
 
 #define SK_LOG_LEVEL_UNTESTED
 

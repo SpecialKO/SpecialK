@@ -28,7 +28,7 @@
 
 static inline constexpr
   const HANDLE
-    SK_GetCurrentThread  (void) { return (PVOID)-1; };
+    SK_GetCurrentThread  (void) { return (PVOID)-2; };
 
 static inline constexpr
   const HANDLE

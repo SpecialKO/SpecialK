@@ -41,11 +41,16 @@
 
 thread_events   perfmon        = {};
 
-cpu_perf_t      cpu_stats      = {};
-disk_perf_t     disk_stats     = {};
-pagefile_perf_t pagefile_stats = {};
-process_stats_t process_stats  = {};
 
+process_stats_t& __SK_WMI_ProcessStats (void)
+ { static process_stats_t _process_stats;  return _process_stats;  };
+
+cpu_perf_t&      __SK_WMI_CPUStats      (void)
+ { static cpu_perf_t      _cpu_stats;      return _cpu_stats;      };
+disk_perf_t&     __SK_WMI_DiskStats     (void)
+ { static disk_perf_t     _disk_stats;     return _disk_stats;     };
+pagefile_perf_t& __SK_WMI_PagefileStats (void)
+ { static pagefile_perf_t _pagefile_stats; return _pagefile_stats; };
 
 
 void

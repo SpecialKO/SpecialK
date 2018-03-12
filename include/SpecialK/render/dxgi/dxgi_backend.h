@@ -418,7 +418,7 @@ public:
     HashMap_2D.resize   (20);
     Blacklist_2D.resize (20);
 
-    TexRefs_2D.reserve       (8192);
+    //TexRefs_2D.reserve       (8192);
     //Textures_2D.reserve      (8192);
     HashMap_2D [ 1].reserve  ( 128); // Only      1x1
     HashMap_2D [ 2].reserve  ( 256); // Up to     2x2
@@ -482,12 +482,7 @@ public:
     std::wstring          file_name  = L"";  // If injected, this is the source file
   };
 
-  // Thread safety is strong; we don't need this
-#if 0
   concurrency::concurrent_unordered_set <ID3D11Texture2D *> TexRefs_2D;
-#else
-  std::unordered_set <ID3D11Texture2D *>      TexRefs_2D;
-#endif
 
   struct lod_hash_table_s
   {

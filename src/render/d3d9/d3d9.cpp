@@ -934,6 +934,8 @@ d3d9_init_callback (finish_pfn finish)
     SK_Thread_SpinUntilFlagged (&__d3d9_ready);
   }
 
+  __HrLoadAllImportsForDll ("d3dx9_43.dll");
+
   finish ();
 }
 
@@ -943,9 +945,7 @@ d3d9_init_callback (finish_pfn finish)
 bool
 SK::D3D9::Startup (void)
 {
-  bool ret = SK_StartupCore (L"d3d9", d3d9_init_callback);
-
-  return ret;
+  return SK_StartupCore (L"d3d9", d3d9_init_callback);
 }
 
 bool

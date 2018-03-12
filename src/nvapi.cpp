@@ -332,11 +332,11 @@ NVAPI::GetDriverVersion (NvU32* pVer)
 
   NvAPI_SYS_GetDriverAndBranchVersion (&ver, ver_str);
 
-  // The driver-branch string's not particularly user frieldy,
+  // The driver-branch string's not particularly user friendly,
   //   let's do this the right way and report a number the end-user
   //     is actually going to recognize...
-  _snwprintf (ver_wstr, 63, L"%u.%u", ver / 100, ver % 100);
-  ver_wstr [63] = L'\0';
+  _snwprintf (ver_wstr, 63, L"%03u.%02u", ver / 100, ver % 100);
+              ver_wstr [63] = L'\0';
 
   if (pVer != nullptr)
     *pVer = ver;
