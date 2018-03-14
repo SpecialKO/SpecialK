@@ -2385,9 +2385,9 @@ SK_StripUserNameFromPathA (char* szInOut)
   static char szUserNameDisplay [MAX_PATH + 2] = { };
   static char szUserProfile     [MAX_PATH + 2] = { }; // Most likely to match
 
-  static volatile LONG               calls  =  0;
-  if (InterlockedCompareExchange   (&calls, 1, 0))
-      SK_Thread_SpinUntilAtomicMin (&calls, 2);
+  //static volatile LONG               calls  =  0;
+  //if (InterlockedCompareExchange   (&calls, 1, 0))
+  //    SK_Thread_SpinUntilAtomicMin (&calls, 2);
 
   if (*szUserProfile == '\0')
   {
@@ -2399,7 +2399,8 @@ SK_StripUserNameFromPathA (char* szInOut)
     else
       PathStripPathW (wszUserProfile);
 
-    strcpy (szUserProfile, SK_WideCharToUTF8 (wszUserProfile).c_str ());
+    strncpy ( szUserProfile,
+                SK_WideCharToUTF8 (wszUserProfile).c_str (), len );
   }
 
   if (*szUserName == '\0')
@@ -2422,7 +2423,7 @@ SK_StripUserNameFromPathA (char* szInOut)
       *szUserNameDisplay = '?'; // Invalid filesystem char
   }
 
-  InterlockedIncrement (&calls);
+//InterlockedIncrement (&calls);
 
   char* pszUserNameSubstr =
     StrStrIA (szInOut, szUserProfile);
@@ -2485,9 +2486,9 @@ SK_StripUserNameFromPathW (wchar_t* wszInOut)
   static wchar_t wszUserNameDisplay [MAX_PATH + 2] = { };
   static wchar_t wszUserProfile     [MAX_PATH + 2] = { }; // Most likely to match
 
-  static volatile LONG               calls  =  0;
-  if (InterlockedCompareExchange   (&calls, 1, 0))
-      SK_Thread_SpinUntilAtomicMin (&calls, 2);
+//  static volatile LONG               calls  =  0;
+//  if (InterlockedCompareExchange   (&calls, 1, 0))
+//      SK_Thread_SpinUntilAtomicMin (&calls, 2);
 
   if (*wszUserProfile == L'\0')
   {
@@ -2519,7 +2520,7 @@ SK_StripUserNameFromPathW (wchar_t* wszInOut)
   }
 
 
-  InterlockedIncrement (&calls);
+//InterlockedIncrement (&calls);
   //dll_log.Log (L"Profile: %ws, User: %ws, Display: %ws", wszUserProfile, wszUserName, wszUserNameDisplay);
 
 

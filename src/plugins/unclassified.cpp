@@ -70,27 +70,27 @@ SK_LSBTS_PlugInCfg (void)
         SK_D3D11_Shaders.pixel.wireframe.emplace (ps_skin);
         SK_D3D11_Shaders.pixel.wireframe.emplace (ps_face);
       }
-    
+
       else
       {
         SK_D3D11_Shaders.pixel.wireframe.erase (ps_skin);
         SK_D3D11_Shaders.pixel.wireframe.erase (ps_face);
       }
     }
-    
+
     if (ImGui::Checkbox ("Life is Evil", &evil))
     {
       if (evil)
       {
         SK_D3D11_Shaders.vertex.blacklist.emplace (vs_eyes);
       }
-    
+
       else
       {
         SK_D3D11_Shaders.vertex.blacklist.erase (vs_eyes);
       }
     }
-    
+
     if (ImGui::Checkbox ("Life is Even Stranger", &even_stranger))
     {
       if (even_stranger)
@@ -98,7 +98,7 @@ SK_LSBTS_PlugInCfg (void)
         SK_D3D11_Shaders.pixel.blacklist.emplace (ps_face);
         SK_D3D11_Shaders.pixel.blacklist.emplace (ps_skin);
       }
-    
+
       else
       {
         SK_D3D11_Shaders.pixel.blacklist.erase (ps_face);
@@ -125,27 +125,59 @@ static const DWORD priority_levels [] =
   { THREAD_PRIORITY_NORMAL,  THREAD_PRIORITY_ABOVE_NORMAL,
     THREAD_PRIORITY_HIGHEST, THREAD_PRIORITY_TIME_CRITICAL };
 
+#include <SpecialK/parameter.h>
+
 struct SK_FFXV_Thread
 {
   HANDLE hThread = INVALID_HANDLE_VALUE;
   DWORD  dwPrio  = THREAD_PRIORITY_NORMAL;
-  BOOL   bBoost  = FALSE;
+
+  sk::ParameterInt* prio_cfg;
 
   void setup (void);
 } sk_ffxv_swapchain,
   sk_ffxv_vsync,
   sk_ffxv_async_run;
 
+extern iSK_INI*             dll_ini;
+extern sk::ParameterFactory g_ParameterFactory;
+
 void
 SK_FFXV_Thread::setup (void)
 {
   if (hThread == INVALID_HANDLE_VALUE)
   {
+    prio_cfg =
+      dynamic_cast <sk::ParameterInt *> (
+        g_ParameterFactory.create_parameter <int> (L"Thread Priority")
+      );
+
+    if (this == &sk_ffxv_swapchain) 
+    {
+      prio_cfg->register_to_ini ( dll_ini, L"FFXV.CPUFix", L"SwapChainPriority" );
+    }
+
+    else if (this == &sk_ffxv_vsync)
+    {
+      prio_cfg->register_to_ini ( dll_ini, L"FFXV.CPUFix", L"VSyncPriority" );
+    }
+
+    else if (this == &sk_ffxv_async_run)
+    {
+      prio_cfg->register_to_ini ( dll_ini, L"FFXV.DiskFix", L"AsyncFileRun" );
+    }
+
+
     hThread = OpenThread ( THREAD_SET_INFORMATION,
                              FALSE, GetCurrentThreadId () );
 
-    dwPrio = GetThreadPriority      (hThread);
-    bBoost = GetThreadPriorityBoost (hThread, &bBoost);
+    int                  prio                       = 0;
+    if ( prio_cfg->load (prio) && prio < 4 && prio >= 0 )
+    {
+      dwPrio = priority_levels [prio];
+
+      SetThreadPriority ( hThread, dwPrio );
+    }
   }
 }
 
@@ -171,8 +203,9 @@ SK_FFXV_PlugInCfg (void)
       }
     }
 
+
     auto ConfigThreadPriority = [](const char* name, SK_FFXV_Thread& thread) ->
-    void
+    int
     {
       ImGui::PushID (name);
 
@@ -187,30 +220,69 @@ SK_FFXV_PlugInCfg (void)
           thread.dwPrio = priority_levels [idx];
 
           SetThreadPriority ( thread.hThread, thread.dwPrio );
+
+          thread.prio_cfg->store ( idx );
+                  dll_ini->write ( dll_ini->get_filename () );
         }
 
-        ImGui::SameLine ();
-
-        bool boost = thread.bBoost;
-
-        if (ImGui::Checkbox ("Boost Thread Priority", &boost))
+        if (ImGui::IsItemHovered ())
         {
-          thread.bBoost = 
-            boost ?
-              TRUE : FALSE;
+          ImGui::BeginTooltip ( );
+          ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.075, 0.8, 0.9));
+          ImGui::Text         ( "The graphics engine has bass-acwkwards scheduling priorities." );
+          ImGui::PopStyleColor ();
+          ImGui::Separator    ( );
 
-          SetThreadPriorityBoost (thread.hThread, thread.bBoost);
+          ImGui::BulletText  ("Time Critical Scheduling is for simple threads that write data constantly and would break if ever interrupted.");
+          ImGui::TreePush    ("");
+          ImGui::BulletText  ("Audio, for example.");
+          ImGui::TreePop     (  );
+
+          ImGui::Text        ("");
+
+          ImGui::BulletText  ("--- Rendering is completely different ---");
+          ImGui::TreePush    ("");
+          ImGui::BulletText  ("The engine starves threads with more important work to do because it assigned them the wrong priority too.");
+          ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.25, 0.8, 0.9));
+          ImGui::BulletText  ("LOWER the priority of all render-related threads for best results.");
+          ImGui::PopStyleColor ();
+          ImGui::TreePop     (  );
+          ImGui::EndTooltip  (  );
         }
+
+        return idx;
       }
 
       ImGui::PopID ();
     };
 
+    ImGui::BeginGroup ();
+    int x =
     ConfigThreadPriority ("VSYNC Emulation Thread###VSE_Thr", sk_ffxv_vsync);
+    int y =
     ConfigThreadPriority ("SwapChain Flip Thread###SWF_Thr",  sk_ffxv_swapchain);
+    int z =
     ConfigThreadPriority ("Aync. File Run Thread###AFR_Thr",  sk_ffxv_async_run);
 
-    ImGui::TreePop ();
+    ImGui::EndGroup   ();
+    ImGui::SameLine   ();
+    ImGui::BeginGroup ();
+
+    for ( auto* label_me : { &x, &y, &z } )
+    {
+      if ( *label_me == 3 &&
+            label_me != &z   )
+      {
+        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.12f, 0.9f, 0.95f));
+        ImGui::BulletText     ("Change this for better performance!"); 
+        ImGui::PopStyleColor  ();
+      }
+
+      else
+        ImGui::Text ("");
+    }
+    ImGui::EndGroup (  );
+    ImGui::TreePop  (  );
 
     return true;
   }

@@ -540,30 +540,34 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
 
     if (constexpr (typeid (_T) == typeid (char)))
     {
-      CHeapPtr <char> file_name (
-        _strdup (reinterpret_cast <const char *> (lpFileName))
-      );
+      char szFileName [MAX_PATH * 2 + 1];
 
-      SK_StripUserNameFromPathA (file_name);
+      lstrcpynA ( szFileName,
+                    reinterpret_cast <const char *> (lpFileName),
+                      MAX_PATH );
+
+      SK_StripUserNameFromPathA (szFileName);
 
       dll_log.Log ( "[DLL Loader]   ( %-28ws ) loaded '%#116hs' <%14hs> { '%21hs' }",
                       wszModName,
-                        file_name.m_pData,
+                        szFileName,
                           lpFunction,
                             szSymbol );
     }
 
     else
     {
-      CHeapPtr <wchar_t> file_name (
-        _wcsdup (reinterpret_cast <const wchar_t *> (lpFileName))
-      );
+      wchar_t wszFileName [MAX_PATH * 2 + 1];
 
-      SK_StripUserNameFromPathW (file_name);
+      lstrcpynW ( wszFileName,
+                    reinterpret_cast <const wchar_t *> (lpFileName),
+                      MAX_PATH );
+
+      SK_StripUserNameFromPathW (wszFileName);
 
       dll_log.Log ( L"[DLL Loader]   ( %-28ws ) loaded '%#116ws' <%14ws> { '%21hs' }",
                       wszModName,
-                        file_name.m_pData,
+                        wszFileName,
                           lpFunction,
                             szSymbol );
     }

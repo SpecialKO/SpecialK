@@ -273,8 +273,8 @@ IsDebuggerPresent_Detour (void)
     }
   }
 
-  if (spoof_debugger)
-    return FALSE;
+  //if (spoof_debugger)
+  //  return FALSE;
 
   return IsDebuggerPresent_Original ();
 }
