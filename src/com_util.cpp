@@ -364,9 +364,10 @@ SK_WMI_Init (void)
       CreateEvent (nullptr, TRUE, FALSE, L"WMI Shutdown");
 
     InterlockedExchangePointer (&COM::base.wmi.hServerThread,
-      CreateThread ( nullptr, 0,
+      (HANDLE)
+        _beginthreadex ( nullptr, 0,
               [](LPVOID) ->
-              DWORD
+              unsigned int
               {
                 SetThreadPriority (
                   SK_GetCurrentThread (), THREAD_PRIORITY_BELOW_NORMAL

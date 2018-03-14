@@ -670,7 +670,7 @@ void WaitForInitDXGI (void)
   SK_Thread_SpinUntilFlagged (&__dxgi_ready);
 }
 
-DWORD __stdcall HookDXGI (LPVOID user);
+unsigned int __stdcall HookDXGI (LPVOID user);
 
 #define D3D_FEATURE_LEVEL_12_0 0xc000
 #define D3D_FEATURE_LEVEL_12_1 0xc100
@@ -995,12 +995,12 @@ SK_DXGI_BeginHooking (void)
   {
 #if 1
     //HANDLE hHookInitDXGI =
-      CreateThread ( nullptr,
-                       0,
-                         HookDXGI,
-                           nullptr,
-                             0x00,
-                               nullptr );
+      _beginthreadex ( nullptr,
+                         0,
+                           HookDXGI,
+                             nullptr,
+                               0x00,
+                                 nullptr );
 #else
     HookDXGI (nullptr);
 #endif
@@ -2384,6 +2384,8 @@ SK_DXGI_BorderCompensation (UINT& x, UINT& y)
 }
 
 
+struct SK_FFXV_Thread { HANDLE hThread; DWORD dwPrio; void setup (); } extern sk_ffxv_swapchain;
+
 HRESULT
 STDMETHODCALLTYPE
 SK_DXGI_Present ( IDXGISwapChain *This,
@@ -2391,6 +2393,11 @@ SK_DXGI_Present ( IDXGISwapChain *This,
                   UINT            Flags )
 {
   HRESULT hr = S_OK;
+
+  if (SK_GetCurrentGameID () == SK_GAME_ID::FinalFantasyXV)
+  {
+    sk_ffxv_swapchain.setup ();
+  }
 
   __try                                {
     hr = Present_Original (This, SyncInterval, Flags);
@@ -6156,7 +6163,7 @@ SK_DXGI_InitHooksBeforePlugIn (void)
     SK_ApplyQueuedHooks ();
 }
 
-DWORD
+unsigned int
 __stdcall
 HookDXGI (LPVOID user)
 {
@@ -6453,12 +6460,14 @@ SK::DXGI::StartBudgetThread ( IDXGIAdapter** ppAdapter )
 
 
       budget_thread.handle =
-          CreateThread ( nullptr,
-                           0,
-                             BudgetThread,
-                               (LPVOID)&budget_thread,
-                                 0x00,
-                                   nullptr );
+        (HANDLE)
+        _beginthreadex
+          ( nullptr,
+              0,
+                BudgetThread,
+                  (LPVOID)&budget_thread,
+                    0x00,
+                      nullptr );
 
 
       SK_Thread_SpinUntilFlagged (&budget_thread.ready);
@@ -6651,7 +6660,7 @@ const uint32_t
   BUDGET_POLL_INTERVAL = 133UL; // How often to sample the budget
                                 //  in msecs
 
-DWORD
+unsigned int
 WINAPI
 SK::DXGI::BudgetThread ( LPVOID user_data )
 {

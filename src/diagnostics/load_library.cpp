@@ -1292,14 +1292,9 @@ _SK_SummarizeModule ( LPVOID   base_addr,  size_t      mod_size,
 void
 SK_ThreadWalkModules (enum_working_set_s* pWorkingSet)
 {
-#ifdef REAL_THREAD
-CreateThread (nullptr, 0, [](LPVOID user) -> DWORD
-{
-#else
-{
   auto user =
     static_cast <LPVOID> (pWorkingSet);
-#endif
+#
   static volatile LONG    init           = FALSE;
   static CRITICAL_SECTION cs_thread_walk = { };
 
@@ -1385,15 +1380,6 @@ CreateThread (nullptr, 0, [](LPVOID user) -> DWORD
   LeaveCriticalSection (&cs_thread_walk);
 
   free (pWorkingSet_);
-
-#ifdef REAL_THREAD
-  SK_Thread_CloseSelf ();
-
-  return 0;
-}, static_cast <LPVOID> (WorkingSet), 0x00, nullptr);
-#else
-}
-#endif
 }
 
 void
@@ -1696,7 +1682,7 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
       SK_WalkModules (cbNeeded, hProc, working_set->modules, when);
     }
 
-    CreateThread (nullptr, 0, [](LPVOID user) -> DWORD
+    _beginthreadex (nullptr, 0, [](LPVOID user) -> unsigned int
     {
       SetCurrentThreadDescription (L"[SK] DLL Enumeration Thread");
 

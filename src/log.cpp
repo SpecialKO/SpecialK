@@ -102,7 +102,7 @@ SK_Timestamp (wchar_t* const out)
 concurrency::concurrent_unordered_map <iSK_Logger *, bool> flush_set;
 HANDLE                                                     hFlushReq  = 0;
 
-DWORD
+unsigned int
 WINAPI
 SK_Log_AsyncFlushThreadPump (LPVOID)
 {
@@ -171,9 +171,10 @@ SK_FlushLog (iSK_Logger* pLog)
       const_cast         <         LPVOID *> (
         reinterpret_cast <volatile LPVOID *>   (&hFlushThread)
                                              ),
-        CreateThread ( nullptr, 0x0,
-                         SK_Log_AsyncFlushThreadPump, nullptr,
-                                0x0,                  nullptr )
+        (HANDLE)
+        _beginthreadex ( nullptr, 0x0,
+                           SK_Log_AsyncFlushThreadPump, nullptr,
+                                  0x0,                  nullptr )
     );
   }
 

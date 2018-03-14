@@ -232,7 +232,7 @@ SK_StartPerfMonThreads (void)
   auto SpawnMonitorThread =
   []( volatile HANDLE                 *phThread,
       const    wchar_t                *wszName,
-               LPTHREAD_START_ROUTINE  pThunk ) ->
+             _beginthreadex_proc_type  pThunk ) ->
   bool
   {
     if ( InterlockedCompareExchangePointer (phThread, nullptr, INVALID_HANDLE_VALUE) ==
@@ -241,12 +241,13 @@ SK_StartPerfMonThreads (void)
       dll_log.LogEx (true, L"[ WMI Perf ] Spawning %ws...  ", wszName);
 
       InterlockedExchangePointer ( (void **)phThread,
-        CreateThread ( nullptr,
-                         0,
-                           pThunk,
-                             nullptr,
-                               0,
-                                 nullptr )
+        (HANDLE)
+        _beginthreadex ( nullptr,
+                           0,
+                             pThunk,
+                               nullptr,
+                                 0,
+                                   nullptr )
       );
 
       if (ReadPointerAcquire (phThread) != INVALID_HANDLE_VALUE)
@@ -670,7 +671,7 @@ SK_InitFinishCallback (void)
 
   // NvAPI takes an excessively long time to startup and we don't need it
   //   immediately...
-  CreateThread (nullptr, 0, [](LPVOID) -> DWORD
+  _beginthreadex (nullptr, 0, [](LPVOID) -> unsigned int
   {
     SetCurrentThreadDescription (    L"[SK] GPU Vendor Support Library Thread" );
     SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_IDLE );
@@ -688,7 +689,7 @@ SK_InitFinishCallback (void)
 }
 
 
-DWORD
+unsigned int
 WINAPI
 CheckVersionThread (LPVOID)
 {
@@ -715,7 +716,7 @@ CheckVersionThread (LPVOID)
 }
 
 
-DWORD
+unsigned int
 WINAPI
 DllThread (LPVOID user)
 {
@@ -1137,7 +1138,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
     // For the global injector, when not started by SKIM, check its version
     if ( (SK_IsInjected () && (! SK_IsSuperSpecialK ())) )
-      CreateThread (nullptr, 0, CheckVersionThread, nullptr, 0x00, nullptr);
+      _beginthreadex (nullptr, 0, CheckVersionThread, nullptr, 0x00, nullptr);
 
     // Don't let Steam prevent me from attaching a debugger at startup
     game_debug.init                  (L"logs/game_output.log", L"w");
@@ -1404,7 +1405,7 @@ BACKEND_INIT:
     }
 
 
-    CreateThread (nullptr, 0x00, [](LPVOID) -> DWORD
+    _beginthreadex (nullptr, 0x00, [](LPVOID) -> unsigned int
     {
       SetCurrentThreadDescription (                          L"[SK] Init Cleanup Thread" );
       SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_BELOW_NORMAL );
@@ -1431,13 +1432,13 @@ BACKEND_INIT:
 
 
     InterlockedExchangePointer (
-      const_cast <void **> (&hInitThread),
-        CreateThread ( nullptr,
-                         0,
-                           DllThread,
-                             &init_,
-                               0x00,
-                                 nullptr )
+      const_cast <void **> (&hInitThread), (HANDLE)
+        _beginthreadex ( nullptr,
+                           0,
+                             DllThread,
+                               &init_,
+                                 0x00,
+                                   nullptr )
     ); // Avoid the temptation to wait on this thread
   }
 
@@ -1673,60 +1674,60 @@ SK_ShutdownCore (const wchar_t* backend)
 auto SK_UnpackCEGUI =
 [](void) -> void
 {
+  HMODULE hModSelf = 
+    SK_GetDLL ();
+
   HRSRC res =
-    FindResource ( SK_GetDLL (), MAKEINTRESOURCE (IDR_CEGUI_PACKAGE), L"WAVE" );
+    FindResource ( hModSelf, MAKEINTRESOURCE (IDR_CEGUI_PACKAGE), L"7ZIP" );
 
   if (res)
   {
-    DWORD res_size =
-      SizeofResource ( SK_GetDLL (), res );
+    DWORD   res_size     =
+      SizeofResource ( hModSelf, res );
 
     HGLOBAL packed_cegui =
-      LoadResource ( SK_GetDLL (), res );
+      LoadResource   ( hModSelf, res );
 
     if (! packed_cegui) return;
 
-    auto* res_data =
-      static_cast <char *> (malloc (res_size + 1));
 
-    if (res_data != nullptr)
+    const void* const locked =
+      (void *)LockResource (packed_cegui);
+
+
+    if (locked != nullptr)
     {
-      SecureZeroMemory (res_data, res_size + 1);
+      wchar_t      wszArchive     [MAX_PATH * 2 + 1] = { };
+      wchar_t      wszDestination [MAX_PATH * 2 + 1] = { };
 
-      const void* const locked =
-        (void *)LockResource (packed_cegui);
+      _snwprintf ( wszDestination, MAX_PATH, LR"(%s\My Mods\SpecialK\)",
+                     SK_GetDocumentsDir ().c_str () );
 
-      if (locked != nullptr)
-      {
-        memcpy (res_data, locked, res_size + 1);
+      if (GetFileAttributesW (wszDestination) == INVALID_FILE_ATTRIBUTES)
+        SK_CreateDirectories (wszDestination);
 
-        wchar_t      wszArchive     [MAX_PATH] = { };
-        wchar_t      wszDestination [MAX_PATH] = { };
-        _swprintf   (wszDestination, LR"(%s\My Mods\SpecialK\)", SK_GetDocumentsDir ().c_str ());
+      wcscpy      (wszArchive, wszDestination);
+      PathAppendW (wszArchive, L"CEGUI.7z");
 
-        wcscpy      (wszArchive, wszDestination);
-        PathAppendW (wszArchive, L"CEGUI.7z");
-        FILE* fPackedCEGUI =
-          _wfopen   (wszArchive, L"wb");
-        fwrite      (res_data, 1, res_size, fPackedCEGUI);
-        fclose      (fPackedCEGUI);
+      FILE* fPackedCEGUI =
+        _wfopen   (wszArchive, L"wb");
 
-        using SK_7Z_DECOMP_PROGRESS_PFN = int (__stdcall *)(int current, int total);
+      fwrite      (locked, 1, res_size, fPackedCEGUI);
+      fclose      (fPackedCEGUI);
 
-        extern
-        HRESULT
-        SK_Decompress7zEx ( const wchar_t*            wszArchive,
-                            const wchar_t*            wszDestination,
-                            SK_7Z_DECOMP_PROGRESS_PFN callback );
+      using SK_7Z_DECOMP_PROGRESS_PFN = int (__stdcall *)(int current, int total);
 
-        SK_Decompress7zEx (wszArchive, wszDestination, nullptr);
-        DeleteFileW       (wszArchive);
-      }
+      extern
+      HRESULT
+      SK_Decompress7zEx ( const wchar_t*            wszArchive,
+                          const wchar_t*            wszDestination,
+                          SK_7Z_DECOMP_PROGRESS_PFN callback );
 
-      UnlockResource (packed_cegui);
-
-      free (res_data);
+      SK_Decompress7zEx (wszArchive, wszDestination, nullptr);
+      DeleteFileW       (wszArchive);
     }
+
+    UnlockResource (packed_cegui);
   }
 };
 
@@ -2010,8 +2011,6 @@ __stdcall
 SK_BeginBufferSwap (void)
 {
   static SK_RenderAPI LastKnownAPI = SK_RenderAPI::Reserved;
-
-  SK_RunOnce ( SetThreadPriority ( GetCurrentThread (), THREAD_PRIORITY_HIGHEST - 1 ) );
 
   assert ( SK_BufferFlinger.dwTid == 0 ||
            SK_BufferFlinger.dwTid == GetCurrentThreadId () );

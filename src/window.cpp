@@ -1555,9 +1555,9 @@ SK_CenterWindowAtMouse (BOOL remember_pos)
   static volatile LONG               __busy = FALSE;
   if (! InterlockedCompareExchange (&__busy, TRUE, FALSE))
   {
-    CreateThread ( nullptr, 0,
+    _beginthreadex ( nullptr, 0,
     [](LPVOID user) ->
-    DWORD
+    unsigned int
     {
       SetCurrentThreadDescription (L"[SK] Window Center Thread");
 
@@ -2610,9 +2610,9 @@ SK_Window_RepositionIfNeeded (void)
   static volatile LONG               __busy = FALSE;
   if (! InterlockedCompareExchange (&__busy, TRUE, FALSE))
   {
-    CreateThread (nullptr, 0,
+    _beginthreadex (nullptr, 0,
     [](LPVOID) ->
-    DWORD
+    unsigned int
     {
       SetCurrentThreadDescription (L"[SK] Window Reposition Thread");
 

@@ -88,7 +88,7 @@ wchar_t update_dlg_build    [MAX_PATH]                 = { };
 wchar_t update_dlg_relnotes [INTERNET_MAX_PATH_LENGTH] = { };
 
 
-DWORD
+unsigned int
 WINAPI
 DownloadThread (LPVOID user)
 {
@@ -601,12 +601,12 @@ DownloadDialogCallback (
 
       get->hTaskDlg = hWnd;
 
-      CreateThread ( nullptr,
-                       0,
-                         DownloadThread,
-                           (LPVOID)get,
-                             0x00,
-                               nullptr );
+      _beginthreadex ( nullptr,
+                         0,
+                           DownloadThread,
+                             (LPVOID)get,
+                               0x00,
+                                 nullptr );
     }
 
     else if (wParam == IDCANCEL)
@@ -970,7 +970,7 @@ Update_DlgProc (
   return 0;
 }
 
-DWORD
+unsigned int
 WINAPI
 UpdateDlg_Thread (LPVOID user)
 {
@@ -1258,12 +1258,12 @@ SK_UpdateSoftware1 (const wchar_t*, bool force)
 
           InterlockedExchangeAcquire ( &__SK_UpdateStatus, 0 );
 
-          CreateThread ( nullptr,
-                           0,
-                             UpdateDlg_Thread,
-                               GetActiveWindow (),
-                                 0x00,
-                                   nullptr );
+          _beginthreadex ( nullptr,
+                             0,
+                               UpdateDlg_Thread,
+                                 GetActiveWindow (),
+                                   0x00,
+                                     nullptr );
 
           LONG status = 0;
 

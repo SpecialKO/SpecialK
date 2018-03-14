@@ -327,32 +327,28 @@ CBTProc ( _In_ int    nCode,
 
   if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
   {
-    if (GetCurrentProcessId () != dwHookPID)
-    {
-      CreateThread (nullptr, 0,
-      [ ](LPVOID) -> DWORD
+    _beginthreadex (nullptr, 0,
+    [ ](LPVOID) -> unsigned int
+     {
+       InterlockedIncrement (&injected_procs);
+
+       HMODULE hModThis;
+
+       if ( GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
+                                  (LPCWSTR)&CBTProc,
+                                    &hModThis ) )
        {
-         InterlockedIncrement (&injected_procs);
+         SKX_WaitForCBTHookShutdown    (               );
 
-         HMODULE hModThis;
+         InterlockedDecrement          (&injected_procs);
+         FreeLibraryAndExitThread      (hModThis,   0x0);
+       }
 
-         if ( GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
-                                    (LPCWSTR)&CBTProc,
-                                      &hModThis ) )
-         {
-           SKX_WaitForCBTHookShutdown    (               );
-           InterlockedDecrement          (&injected_procs);
+       InterlockedDecrement            (&injected_procs    );
+       SK_Thread_CloseSelf             (                   );
 
-           SK_Thread_CloseSelf           (               );
-           FreeLibraryAndExitThread      (hModThis,   0x0);
-         }
-
-         InterlockedDecrement            (&injected_procs    );
-         SK_Thread_CloseSelf             (                   );
-
-         return 0;
-       }, nullptr, 0x0, nullptr);
-    }
+       return 0;
+     }, nullptr, 0x0, nullptr);
   }
 
   return CallNextHookEx (hHookCBT, nCode, wParam, lParam);
@@ -361,21 +357,15 @@ CBTProc ( _In_ int    nCode,
 BOOL
 SK_TerminatePID ( DWORD dwProcessId, UINT uExitCode )
 {
-  const DWORD dwDesiredAccess = PROCESS_TERMINATE;
-  const BOOL  bInheritHandle  = FALSE;
+  CHandle hProcess (
+    OpenProcess ( PROCESS_TERMINATE, FALSE, dwProcessId )
+  );
 
-  HANDLE hProcess =
-    OpenProcess ( dwDesiredAccess, bInheritHandle, dwProcessId );
-
-  if (hProcess == nullptr)
+  if (hProcess == INVALID_HANDLE_VALUE)
     return FALSE;
-  
-  BOOL result =
-    TerminateProcess (hProcess, uExitCode);
-  
-  CloseHandle (hProcess);
-  
-  return result;
+
+  return
+    TerminateProcess ( hProcess, uExitCode );
 }
 
 
@@ -387,9 +377,6 @@ SKX_InstallCBTHook (void)
   if (SKX_GetCBTHook () != nullptr)
     return;
 
-
-  RtlSecureZeroMemory (whitelist_patterns, sizeof (whitelist_patterns));
-                       whitelist_count = 0;
 
   HMODULE hMod = nullptr;
 
@@ -404,8 +391,9 @@ SKX_InstallCBTHook (void)
 
     // Shell hooks don't work very well, they run into problems with
     //   hooking XInput -- CBT is more reliable, but slower.
-    hHookCBT  =
-      SetWindowsHookEx (WH_CBT, CBTProc, hMod, 0);
+    InterlockedExchangePointer ( (PVOID *)&hHookCBT,
+      SetWindowsHookEx (WH_CBT, CBTProc, hMod, 0)
+    );
   }
 }
 
@@ -489,10 +477,14 @@ RunDLL_InjectionManager ( HWND  hwnd,        HINSTANCE hInst,
         fprintf (fPID, "%lu\n", GetCurrentProcessId ());
         fclose  (fPID);
 
+        // We are FORCED to bring the MSVCRT in here due to recent
+        //  changes to SK_IsHostAppSKIM and that cascades through most other
+        //    thread creation is a result
         HANDLE hThread = 
-          CreateThread ( nullptr, 0,
+          (HANDLE)
+          _beginthreadex ( nullptr, 0,
            [](LPVOID user) ->
-             DWORD
+             unsigned int
                {
                  SKX_WaitForCBTHookShutdown ();
 

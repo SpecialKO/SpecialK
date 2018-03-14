@@ -50,6 +50,9 @@ extern SK_Thread_HybridSpinlock* cs_dbghelp;
 typedef LPWSTR (WINAPI *GetCommandLineW_pfn)(void);
 GetCommandLineW_pfn     GetCommandLineW_Original   = nullptr;
 
+typedef LPSTR (WINAPI *GetCommandLineA_pfn)(void);
+GetCommandLineA_pfn    GetCommandLineA_Original   = nullptr;
+
 TerminateProcess_pfn
                        TerminateProcess_Original   = nullptr;
 ExitProcess_pfn        ExitProcess_Original        = nullptr;
@@ -197,8 +200,18 @@ GetCommandLineW_Detour (void)
     dll_log.Log (L"GetCommandLineW () ==> %ws", GetCommandLineW_Original ());
 #endif
 
-  return
-    GetCommandLineW_Original ();
+  return GetCommandLineW_Original ();
+}
+
+
+
+LPSTR
+WINAPI
+GetCommandLineA_Detour (void)
+{
+  SK_LOG_FIRST_CALL
+
+  return GetCommandLineA_Original ();
 }
 
 
@@ -248,6 +261,18 @@ BOOL
 WINAPI
 IsDebuggerPresent_Detour (void)
 {
+  // Community Service Time
+  if (SK_GetCurrentGameID () == SK_GAME_ID::FinalFantasyXV)
+  {
+    static bool killed_ffxv = false;
+
+    if ((! killed_ffxv) && GetThreadPriority (SK_GetCurrentThread ()) == THREAD_PRIORITY_LOWEST)
+    {
+      killed_ffxv    = SK_Thread_CloseSelf ();
+      TerminateThread (SK_GetCurrentThread (), 0x00);
+    }
+  }
+
   if (spoof_debugger)
     return FALSE;
 
@@ -267,6 +292,66 @@ DebugBreak_Detour (void)
 
   return DebugBreak_Original ();
 }
+
+
+using RaiseException_pfn = void (WINAPI *)(DWORD,DWORD,DWORD,const ULONG_PTR *);
+RaiseException_pfn RaiseException_Original = nullptr;
+
+struct SK_FFXV_Thread { HANDLE hThread; DWORD dwPrio; void setup (); } extern sk_ffxv_vsync,
+                                                                              sk_ffxv_async_run;
+
+// Detoured so we can get thread names
+__declspec (noinline)
+void
+WINAPI
+RaiseException_Detour (
+  _In_       DWORD      dwExceptionCode,
+  _In_       DWORD      dwExceptionFlags,
+  _In_       DWORD      nNumberOfArguments,
+  _In_ const ULONG_PTR *lpArguments )
+{
+  constexpr static DWORD MAGIC_THREAD_EXCEPTION = 0x406D1388;
+
+  if (dwExceptionCode == MAGIC_THREAD_EXCEPTION)
+  {
+    #pragma pack(push,8)
+    typedef struct tagTHREADNAME_INFO
+    {
+      DWORD  dwType;     // Always 4096
+      LPCSTR szName;     // Pointer to name (in user addr space).
+      DWORD  dwThreadID; // Thread ID (-1=caller thread).
+      DWORD  dwFlags;    // Reserved for future use, must be zero.
+    } THREADNAME_INFO;
+    #pragma pack(pop)
+
+    THREADNAME_INFO* info = 
+      (THREADNAME_INFO *)lpArguments;
+
+    // Push this to the TLS datastore so we can get thread names even
+    //   when no debugger is attached.
+    wcsncpy ( SK_TLS_Bottom ()->debug.name,
+                SK_UTF8ToWideChar (info->szName).c_str (),
+                  255 );
+
+    if (SK_GetCurrentGameID () == SK_GAME_ID::FinalFantasyXV)
+    {
+      if (StrStrIA (info->szName, "VSync"))
+      {
+        sk_ffxv_vsync.setup ();
+      }
+
+      else if (StrStrA (info->szName, "AsyncFile.Run"))
+      {
+        sk_ffxv_async_run.setup ();
+      }
+    }
+  }
+
+  return
+    RaiseException_Original ( dwExceptionCode, dwExceptionFlags,
+                              nNumberOfArguments, lpArguments );
+}
+
 
 bool
 SK::Diagnostics::Debugger::Allow (bool bAllow)
@@ -314,10 +399,22 @@ SK::Diagnostics::Debugger::Allow (bool bAllow)
                          GetCommandLineW_Detour,
 static_cast_p2p <void> (&GetCommandLineW_Original) );
 
+  SK_CreateDLLHook2 (  L"kernel32.dll",
+                        "GetCommandLineA",
+                         GetCommandLineA_Detour,
+static_cast_p2p <void> (&GetCommandLineA_Original) );
+
     SK_CreateDLLHook2 (      L"kernel32.dll",
                              "ResetEvent",
                               ResetEvent_Detour,
      static_cast_p2p <void> (&ResetEvent_Original) );
+
+    SK_CreateDLLHook2 (      L"kernel32.dll",
+                             "RaiseException",
+                              RaiseException_Detour,
+     static_cast_p2p <void> (&RaiseException_Original) );
+
+    SK_ApplyQueuedHooks ();
 
   return bAllow;
 }

@@ -25,6 +25,7 @@
 #include <SpecialK/core.h>
 #include <SpecialK/log.h>
 
+#include <SpecialK/thread.h>
 #include <SpecialK/diagnostics/modules.h>
 
 #include <UserEnv.h>
@@ -87,14 +88,14 @@ SK_GetDocumentsDir (void)
   CHandle               hToken;
   CComHeapPtr <wchar_t> str;
 
-  if (! OpenProcessToken (GetCurrentProcess (), TOKEN_READ, &hToken.m_h))
+  if (! OpenProcessToken (SK_GetCurrentProcess (), TOKEN_READ, &hToken.m_h))
     return dir;
 
   SHGetKnownFolderPath (FOLDERID_Documents, 0, hToken, &str);
 
   // Weak; not atomic, but we can worry about it later.
   if (dir.empty ())
-      dir = str.m_pData;
+      dir = std::move (str.m_pData);
 
   return dir;
 }
@@ -105,7 +106,7 @@ SK_GetFontsDir (void)
   CHandle               hToken;
   CComHeapPtr <wchar_t> str;
 
-  if (! OpenProcessToken (GetCurrentProcess (), TOKEN_READ, &hToken.m_h))
+  if (! OpenProcessToken (SK_GetCurrentProcess (), TOKEN_READ, &hToken.m_h))
     return L"(null)";
 
   SHGetKnownFolderPath (FOLDERID_Fonts, 0, hToken, &str);
@@ -160,7 +161,7 @@ SK_GetUserProfileDir (wchar_t* buf, uint32_t* pdwLen)
 
   CHandle hToken;
 
-  if (! OpenProcessToken (GetCurrentProcess (), TOKEN_READ, &hToken.m_h))
+  if (! OpenProcessToken (SK_GetCurrentProcess (), TOKEN_READ, &hToken.m_h))
     return false;
 
   if (! imp_GetUserProfileDirectoryW ( hToken, buf,
@@ -427,7 +428,7 @@ SK_IsAdmin (void)
   bool    bRet = false;
   CHandle hToken;
 
-  if ( OpenProcessToken ( GetCurrentProcess (),
+  if ( OpenProcessToken ( SK_GetCurrentProcess (),
                             TOKEN_QUERY,
                               &hToken.m_h )
      )
@@ -743,7 +744,7 @@ SK_SelfDestruct (void)
 
     ( (TerminateProcess_pfn)GetProcAddress ( GetModuleHandle ( L"kernel32.dll" ),
                                                "TerminateProcess" )
-    )(GetCurrentProcess (), 0x00);
+    )(SK_GetCurrentProcess (), 0x00);
   }
 }
 
@@ -1844,7 +1845,7 @@ SK_GetSystemDirectory (void)
 #ifdef _WIN64
     GetSystemDirectory (host_proc.wszSystemDir, MAX_PATH);
 #else
-    HANDLE hProc = GetCurrentProcess ();
+    HANDLE hProc = SK_GetCurrentProcess ();
 
     BOOL   bWOW64;
     ::IsWow64Process (hProc, &bWOW64);
@@ -1944,7 +1945,7 @@ HRESULT ModifyPrivilege(
     HANDLE hToken    = nullptr;
 
     // Open the process token for this process.
-    if (!OpenProcessToken(GetCurrentProcess(),
+    if (! OpenProcessToken(SK_GetCurrentProcess (),
                           TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY,
                           &hToken ))
     {
@@ -2162,7 +2163,7 @@ SK_RestartGame (const wchar_t* wszDLL)
     CloseHandle (pinfo.hProcess);
   }
 
-  TerminateProcess (GetCurrentProcess (), 0x00);
+  TerminateProcess (SK_GetCurrentProcess (), 0x00);
 }
 
 void
@@ -2211,7 +2212,7 @@ SK_ElevateToAdmin (void)
   CloseHandle (pinfo.hThread);
   CloseHandle (pinfo.hProcess);
 
-  TerminateProcess    (GetCurrentProcess (), 0x00);
+  TerminateProcess    (SK_GetCurrentProcess (), 0x00);
 }
 
 #include <memory>
@@ -2599,12 +2600,13 @@ SK_DeferCommands (const char** szCommands, int count)
   if (! InterlockedCompareExchangePointer (&hCommandThread, (LPVOID)1, nullptr))
   {     InterlockedExchangePointer        ((void **)&hCommandThread,
 
-    CreateThread   ( nullptr, 0x00,
-    [ ](LPVOID) ->
-    DWORD
+    (HANDLE)
+    _beginthreadex   ( nullptr, 0x00,
+    [](LPVOID) ->
+    unsigned int
     {
       SetCurrentThreadDescription (                      L"[SK] Async Command Processor" );
-      SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_BELOW_NORMAL );
+      SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_LOWEST       );
 
       while (! ReadAcquire (&__SK_DLL_Ending))
       {

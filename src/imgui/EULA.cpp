@@ -34,34 +34,29 @@
 std::string
 SK_GetLicenseText (SHORT id)
 {
-  HRSRC res;
+  HMODULE hMod = SK_GetDLL ();
+  HRSRC   res;
 
   // NOTE: providing g_hInstance is important, NULL might not work
-  res = FindResource ( SK_GetDLL (), MAKEINTRESOURCE (id), L"WAVE" );
+  res =
+    FindResource ( hMod, MAKEINTRESOURCE (id), L"TEXT" );
 
   if (res)
   {
-    DWORD res_size = SizeofResource ( SK_GetDLL (), res );
-
-    HGLOBAL license_ref =
-      LoadResource ( SK_GetDLL (), res );
+    DWORD   res_size    = SizeofResource ( hMod, res );
+    HGLOBAL license_ref = LoadResource   ( hMod, res );
 
     // There's no forseeable reason this would be NULL, but the Application Verifier won't shutup about it.
     if (! license_ref) return std::string ("");
 
-    auto* res_data =
-      SK_TLS_Bottom ()->scratch_memory.eula.alloc (res_size + 1, true);
+    const char* const locked =
+      (char *)LockResource (license_ref);
 
-    if (res_data != nullptr)
+    if (locked != nullptr)
     {
-      const char* const locked = (char *)LockResource (license_ref);
-
-      if (locked != nullptr)
-        strncat (res_data, locked, res_size);
-
-      std::string str (res_data);
-
-      return str;
+      std::string str ( locked, res_size );
+      UnlockResource  ( locked );
+      return      str;
     }
   }
 

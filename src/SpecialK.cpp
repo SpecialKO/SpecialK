@@ -62,6 +62,7 @@
 bool has_local_dll = false;
 
 
+
 skModuleRegistry SK_Modules;
 
 SK_Thread_HybridSpinlock* init_mutex   = nullptr;
@@ -114,6 +115,198 @@ SK_GetDLL (void)
 {
   return __SK_hModSelf;
 }
+
+BOOL
+__stdcall
+SK_Attach (DLL_ROLE role);
+
+BOOL
+__stdcall
+SK_Detach (DLL_ROLE role);
+
+BOOL
+__stdcall
+SK_EstablishDllRole (skWin32Module&& module);
+
+
+
+//=========================================================================
+BOOL
+APIENTRY
+DllMain ( HMODULE hModule,
+          DWORD   ul_reason_for_call,
+          LPVOID  lpReserved )
+{
+  UNREFERENCED_PARAMETER (lpReserved);
+
+  switch (ul_reason_for_call)
+  {
+    case DLL_PROCESS_ATTACH:
+    {
+      // Try, if assigned already (how?!) do not deadlock the Kernel loader
+      if ( __SK_hModSelf       != hModule )
+        skModuleRegistry::Self  = hModule;
+
+      else
+        return FALSE;
+
+
+      auto EarlyOut =
+      [&](BOOL bRet = TRUE)
+      {
+        if ( (! bRet) ||
+             (! ( has_local_dll ||
+                  SK_GetHostAppUtil ().isInjectionTool () ) ) )
+        {
+          auto tls_slot =
+            SK_GetTLS ();
+
+          if (tls_slot.dwTlsIdx != TLS_OUT_OF_INDEXES)
+          {
+            SK_CleanupTLS ();
+
+            // We're not using TLS for anything, so we don't need thread
+            //  attach/detach events.
+            if (TlsFree (tls_slot.dwTlsIdx) || (! GetLastError ()))
+            {
+              tls_slot.dwTlsIdx = TLS_OUT_OF_INDEXES;
+            }
+          }
+
+          if (tls_slot.dwTlsIdx == TLS_OUT_OF_INDEXES)
+          {
+            InterlockedExchange (&__SK_TLS_INDEX, TLS_OUT_OF_INDEXES);
+
+            if (DisableThreadLibraryCalls (hModule))
+              InterlockedExchange (&__SK_DLL_Attached, 0);
+          }
+        }
+
+        return TRUE;
+      };
+
+      InterlockedExchange (&__SK_TLS_INDEX, TlsAlloc ());
+
+
+      // We use SKIM for injection and rundll32 for various tricks involving restarting
+      //   the currently running game; neither needs or even wants this DLL fully
+      //     initialized!
+      if (SK_GetHostAppUtil  ().isInjectionTool ())
+      {
+        SK_EstablishRootPath ();
+
+        return EarlyOut (TRUE);
+      }
+
+
+      SK_Thread_ScopedPriority prio_boost (THREAD_PRIORITY_HIGHEST);
+
+
+
+      // We reserve the right to deny attaching the DLL, this will generally
+      //   happen if a game does not opt-in to system wide injection.
+      if (! SK_EstablishDllRole (hModule))              return EarlyOut (FALSE);
+
+      // We don't want to initialize the DLL, but we also don't want it to
+      //   re-inject itself constantly; just return TRUE here.
+      else if (SK_GetDLLRole () == DLL_ROLE::INVALID)   return EarlyOut (TRUE);
+
+
+
+      skModuleRegistry::HostApp = GetModuleHandle (nullptr);
+
+
+
+      // Setup unhooked function pointers
+      SK_PreInitLoadLibrary ();
+
+      if (! SK_Attach (SK_GetDLLRole ()))               return EarlyOut (TRUE);
+
+
+      InterlockedIncrement (&__SK_DLL_Refs);
+
+      // If we got this far, it's because this is an injection target
+      //
+      //   Must hold a reference to this DLL so that removing the CBT hook does
+      //     not crash the game.
+      if (SK_IsInjected ())
+      {
+        SK_Inject_AcquireProcess ();
+      }
+
+      return TRUE;
+    } break;
+
+
+    case DLL_PROCESS_DETACH:
+    {
+      SK_Thread_ScopedPriority prio_boost (THREAD_PRIORITY_HIGHEST);
+
+      if (! InterlockedCompareExchange (&__SK_DLL_Ending, TRUE, FALSE))
+      {
+        // If the DLL being unloaded is the source of a CBT hook, then
+        //   shut that down before detaching the DLL.
+        if (ReadAcquire (&__SK_HookContextOwner))
+        {
+          SKX_RemoveCBTHook ();
+
+          // If SKX_RemoveCBTHook (...) is successful: (__SK_HookContextOwner = 0)
+          if (! ReadAcquire (&__SK_HookContextOwner))
+          {
+            SK_RunLHIfBitness ( 64, DeleteFileW (L"SpecialK64.pid"),
+                                    DeleteFileW (L"SpecialK32.pid") );
+          }
+        }
+      }
+
+      if (ReadAcquire (&__SK_DLL_Attached))
+      {
+        SK_Detach (SK_GetDLLRole ());
+
+        auto tls_slot =
+          SK_GetTLS ();
+
+        if (tls_slot.dwTlsIdx != TLS_OUT_OF_INDEXES)
+        {
+          TlsFree (tls_slot.dwTlsIdx);
+        }
+      }
+
+#ifdef _DEBUG
+      else {
+      //Sanity FAILURE: Attempt to detach something that was not properly attached?!
+        dll_log.Log (L"[ SpecialK ]  ** SANITY CHECK FAILED: DLL was never attached !! **");
+      }
+#endif
+    } break;
+
+
+
+    case DLL_THREAD_ATTACH:
+    {
+      if (ReadAcquire (&__SK_DLL_Attached))
+      {
+        InterlockedIncrement (&__SK_Threads_Attached);
+
+        SK_GetTLS (true);
+      }
+    }
+    break;
+
+
+    case DLL_THREAD_DETACH:
+    {
+      if (ReadAcquire (&__SK_DLL_Attached))
+        SK_CleanupTLS ();
+    }
+    break;
+  }
+
+  return TRUE;
+}
+//=========================================================================
+
+
 
 
 HMODULE
@@ -266,7 +459,7 @@ _SKM_AutoBootLastKnownAPI (SK_RenderAPI last_known)
 }
 
 
-bool
+BOOL
 __stdcall
 SK_EstablishDllRole (skWin32Module&& module)
 {
@@ -743,183 +936,4 @@ SK_Detach (DLL_ROLE role)
   }
 
   return FALSE;
-}
-
-
-BOOL
-APIENTRY
-DllMain ( HMODULE hModule,
-          DWORD   ul_reason_for_call,
-          LPVOID  lpReserved )
-{
-  UNREFERENCED_PARAMETER (lpReserved);
-
-  switch (ul_reason_for_call)
-  {
-    case DLL_PROCESS_ATTACH:
-    {
-      // Try, if assigned already (how?!) do not deadlock the Kernel loader
-      if ( __SK_hModSelf       != hModule )
-        skModuleRegistry::Self  = hModule;
-
-      else
-        return FALSE;
-
-
-      auto EarlyOut =
-      [&](BOOL bRet = TRUE)
-      {
-        if ( (! bRet) ||
-             (! ( has_local_dll ||
-                  SK_GetHostAppUtil ().isInjectionTool () ) ) )
-        {
-          auto tls_slot =
-            SK_GetTLS ();
-
-          if (tls_slot.dwTlsIdx != TLS_OUT_OF_INDEXES)
-          {
-            SK_CleanupTLS ();
-
-            // We're not using TLS for anything, so we don't need thread
-            //  attach/detach events.
-            if (TlsFree (tls_slot.dwTlsIdx) || (! GetLastError ()))
-            {
-              tls_slot.dwTlsIdx = TLS_OUT_OF_INDEXES;
-            }
-          }
-
-          if (tls_slot.dwTlsIdx == TLS_OUT_OF_INDEXES)
-          {
-            InterlockedExchange (&__SK_TLS_INDEX, TLS_OUT_OF_INDEXES);
-
-            if (DisableThreadLibraryCalls (hModule))
-              InterlockedExchange (&__SK_DLL_Attached, 0);
-          }
-        }
-
-        return TRUE;
-        //else bRet = TRUE;
-        //
-        //return
-        //  bRet;
-      };
-
-      InterlockedExchange (&__SK_TLS_INDEX, TlsAlloc ());
-
-
-      // We use SKIM for injection and rundll32 for various tricks involving restarting
-      //   the currently running game; neither needs or even wants this DLL fully
-      //     initialized!
-      if (SK_GetHostAppUtil  ().isInjectionTool ())
-      {
-        SK_EstablishRootPath ();
-
-        return EarlyOut (TRUE);
-      }
-
-
-      SK_Thread_ScopedPriority prio_boost (THREAD_PRIORITY_HIGHEST);
-
-
-
-      // We reserve the right to deny attaching the DLL, this will generally
-      //   happen if a game does not opt-in to system wide injection.
-      if (! SK_EstablishDllRole (hModule))              return EarlyOut (FALSE);
-
-      // We don't want to initialize the DLL, but we also don't want it to
-      //   re-inject itself constantly; just return TRUE here.
-      else if (SK_GetDLLRole () == DLL_ROLE::INVALID)   return EarlyOut (TRUE);
-
-
-
-      skModuleRegistry::HostApp = GetModuleHandle (nullptr);
-
-
-
-      // Setup unhooked function pointers
-      SK_PreInitLoadLibrary ();
-
-      if (! SK_Attach (SK_GetDLLRole ()))               return EarlyOut (TRUE);
-
-
-      InterlockedIncrement (&__SK_DLL_Refs);
-
-      // If we got this far, it 's because this is an injection target
-      //
-      //   Must hold a reference to this DLL so that removing the CBT hook does
-      //     not crash the game.
-      if (SK_IsInjected ())
-      {
-        SK_Inject_AcquireProcess ();
-      }
-
-      return TRUE;
-    } break;
-
-
-    case DLL_PROCESS_DETACH:
-    {
-      SK_Thread_ScopedPriority prio_boost (THREAD_PRIORITY_HIGHEST);
-
-      if (! InterlockedCompareExchange (&__SK_DLL_Ending, TRUE, FALSE))
-      {
-        // If the DLL being unloaded is the source of a CBT hook, then
-        //   shut that down before detaching the DLL.
-        if (ReadAcquire (&__SK_HookContextOwner))
-        {
-          SKX_RemoveCBTHook ();
-
-          // If SKX_RemoveCBTHook (...) is successful: (__SK_HookContextOwner = 0)
-          if (! ReadAcquire (&__SK_HookContextOwner))
-          {
-            SK_RunLHIfBitness ( 64, DeleteFileW (L"SpecialK64.pid"),
-                                    DeleteFileW (L"SpecialK32.pid") );
-          }
-        }
-      }
-
-      if (ReadAcquire (&__SK_DLL_Attached))
-      {
-        SK_Detach (SK_GetDLLRole ());
-
-        auto tls_slot =
-          SK_GetTLS ();
-
-        if (tls_slot.dwTlsIdx != TLS_OUT_OF_INDEXES)
-        {
-          TlsFree (tls_slot.dwTlsIdx);
-        }
-      }
-
-#ifdef _DEBUG
-      else {
-      //Sanity FAILURE: Attempt to detach something that was not properly attached?!
-        dll_log.Log (L"[ SpecialK ]  ** SANITY CHECK FAILED: DLL was never attached !! **");
-      }
-#endif
-    } break;
-
-
-
-    case DLL_THREAD_ATTACH:
-    {
-      if (ReadAcquire (&__SK_DLL_Attached))
-      {
-        InterlockedIncrement (&__SK_Threads_Attached);
-
-        SK_GetTLS (true);
-      }
-    }
-    break;
-
-
-    case DLL_THREAD_DETACH:
-    {
-      if (ReadAcquire (&__SK_DLL_Attached))
-        SK_CleanupTLS ();
-    }
-    break;
-  }
-
-  return TRUE;
 }

@@ -139,7 +139,7 @@ SK_CountIO (io_perf_t& ioc, const double update)
 }
 
 
-DWORD
+unsigned int
 WINAPI
 SK_MonitorCPU (LPVOID user_param)
 {
@@ -502,7 +502,7 @@ CPU_CLEANUP:
 }
 
 
-DWORD
+unsigned int
 WINAPI
 SK_MonitorDisk (LPVOID user)
 {
@@ -920,7 +920,7 @@ DISK_CLEANUP:
 
 
 
-DWORD
+unsigned int
 WINAPI
 SK_MonitorPagefile (LPVOID user)
 {
@@ -1250,7 +1250,7 @@ PAGEFILE_CLEANUP:
 
 
 
-DWORD
+unsigned int
 WINAPI
 SK_MonitorProcess (LPVOID user)
 {

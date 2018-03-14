@@ -285,8 +285,8 @@ struct resample_dispatch_s
 
       InterlockedIncrement (&active_workers);
 
-      CreateThread ( nullptr, 0, [](LPVOID) ->
-      DWORD
+      _beginthreadex ( nullptr, 0, [](LPVOID) ->
+      unsigned int
       {
         SetCurrentThreadDescription (L"[SK] D3D11 Texture Resampling Thread");
 
@@ -15917,56 +15917,56 @@ SK_D3D11_PresentFirstFrame (IDXGISwapChain* pSwapChain)
   LocalHook_D3D11CreateDevice.active             = true;
   LocalHook_D3D11CreateDeviceAndSwapChain.active = true;
 
-  //for ( auto& it : local_d3d11_records )
-  //{
-  //  if (it->active)
-  //  {
-  //    SK_Hook_ResolveTarget (*it);
-  //
-  //    // Don't cache addresses that were screwed with by other injectors
-  //    const wchar_t* wszSection =
-  //      StrStrIW (it->target.module_path, LR"(d3d11.dll)") ?
-  //                                      L"D3D11.Hooks" : nullptr;
-  //
-  //    if (! wszSection)
-  //    {
-  //      SK_LOG0 ( ( L"Hook for '%hs' resides in '%s', will not cache!",
-  //                    it->target.symbol_name,
-  //        SK_StripUserNameFromPathW (
-  //          std::wstring (
-  //                    it->target.module_path
-  //                       ).data ()
-  //        )                                                             ),
-  //                  L"Hook Cache" );
-  //    }
-  //
-  //    else
-  //      SK_Hook_CacheTarget ( *it, wszSection );
-  //  }
-  //}
-  //
-  //if (SK_IsInjected ())
-  //{
-  //  auto it_local  = std::begin (local_d3d11_records);
-  //  auto it_global = std::begin (global_d3d11_records);
-  //
-  //  while ( it_local != std::end (local_d3d11_records) )
-  //  {
-  //    if (( *it_local )->hits && (
-//StrStrIW (( *it_local )->target.module_path, LR"(d3d11.dll)") ) &&
-  //        ( *it_local )->active)
-  //      SK_Hook_PushLocalCacheOntoGlobal ( **it_local,
-  //                                           **it_global );
-  //    else
-  //    {
-  //      ( *it_global )->target.addr = nullptr;
-  //      ( *it_global )->hits        = 0;
-  //      ( *it_global )->active      = false;
-  //    }
-  //
-  //    it_global++, it_local++;
-  //  }
-  //}
+  for ( auto& it : local_d3d11_records )
+  {
+    if (it->active)
+    {
+      SK_Hook_ResolveTarget (*it);
+  
+      // Don't cache addresses that were screwed with by other injectors
+      const wchar_t* wszSection =
+        StrStrIW (it->target.module_path, LR"(d3d11.dll)") ?
+                                        L"D3D11.Hooks" : nullptr;
+  
+      if (! wszSection)
+      {
+        SK_LOG0 ( ( L"Hook for '%hs' resides in '%s', will not cache!",
+                      it->target.symbol_name,
+          SK_StripUserNameFromPathW (
+            std::wstring (
+                      it->target.module_path
+                         ).data ()
+          )                                                             ),
+                    L"Hook Cache" );
+      }
+  
+      else
+        SK_Hook_CacheTarget ( *it, wszSection );
+    }
+  }
+  
+  if (SK_IsInjected ())
+  {
+    auto it_local  = std::begin (local_d3d11_records);
+    auto it_global = std::begin (global_d3d11_records);
+  
+    while ( it_local != std::end (local_d3d11_records) )
+    {
+      if (( *it_local )->hits && (
+StrStrIW (( *it_local )->target.module_path, LR"(d3d11.dll)") ) &&
+          ( *it_local )->active)
+        SK_Hook_PushLocalCacheOntoGlobal ( **it_local,
+                                             **it_global );
+      else
+      {
+        ( *it_global )->target.addr = nullptr;
+        ( *it_global )->hits        = 0;
+        ( *it_global )->active      = false;
+      }
+  
+      it_global++, it_local++;
+    }
+  }
 }
 
 static bool quick_hooked = false;

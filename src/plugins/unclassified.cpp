@@ -120,6 +120,36 @@ SK_LSBTS_PlugInCfg (void)
   return false;
 }
 
+
+static const DWORD priority_levels [] =
+  { THREAD_PRIORITY_NORMAL,  THREAD_PRIORITY_ABOVE_NORMAL,
+    THREAD_PRIORITY_HIGHEST, THREAD_PRIORITY_TIME_CRITICAL };
+
+struct SK_FFXV_Thread
+{
+  HANDLE hThread = INVALID_HANDLE_VALUE;
+  DWORD  dwPrio  = THREAD_PRIORITY_NORMAL;
+  BOOL   bBoost  = FALSE;
+
+  void setup (void);
+} sk_ffxv_swapchain,
+  sk_ffxv_vsync,
+  sk_ffxv_async_run;
+
+void
+SK_FFXV_Thread::setup (void)
+{
+  if (hThread == INVALID_HANDLE_VALUE)
+  {
+    hThread = OpenThread ( THREAD_SET_INFORMATION,
+                             FALSE, GetCurrentThreadId () );
+
+    dwPrio = GetThreadPriority      (hThread);
+    bBoost = GetThreadPriorityBoost (hThread, &bBoost);
+  }
+}
+
+
 bool
 SK_FFXV_PlugInCfg (void)
 {
@@ -141,13 +171,44 @@ SK_FFXV_PlugInCfg (void)
       }
     }
 
-    if (ImGui::IsItemHovered ())
+    auto ConfigThreadPriority = [](const char* name, SK_FFXV_Thread& thread) ->
+    void
     {
-      ImGui::BeginTooltip    ();
-      ImGui::TextUnformatted ("Note to Swashbucklers");
-      ImGui::BulletText      ("Everyone sees through your delusions");
-      ImGui::EndTooltip      ();
-    }
+      ImGui::PushID (name);
+
+      int idx = ( thread.dwPrio == priority_levels [0] ? 0 :
+                ( thread.dwPrio == priority_levels [1] ? 1 :
+                ( thread.dwPrio == priority_levels [2] ? 2 : 3 ) ) );
+
+      if (thread.hThread != INVALID_HANDLE_VALUE)
+      {
+        if (ImGui::Combo (name, &idx, "Normal Priority\0Above Normal\0Highest\0Time Critical\0\0"))
+        {
+          thread.dwPrio = priority_levels [idx];
+
+          SetThreadPriority ( thread.hThread, thread.dwPrio );
+        }
+
+        ImGui::SameLine ();
+
+        bool boost = thread.bBoost;
+
+        if (ImGui::Checkbox ("Boost Thread Priority", &boost))
+        {
+          thread.bBoost = 
+            boost ?
+              TRUE : FALSE;
+
+          SetThreadPriorityBoost (thread.hThread, thread.bBoost);
+        }
+      }
+
+      ImGui::PopID ();
+    };
+
+    ConfigThreadPriority ("VSYNC Emulation Thread###VSE_Thr", sk_ffxv_vsync);
+    ConfigThreadPriority ("SwapChain Flip Thread###SWF_Thr",  sk_ffxv_swapchain);
+    ConfigThreadPriority ("Aync. File Run Thread###AFR_Thr",  sk_ffxv_async_run);
 
     ImGui::TreePop ();
 

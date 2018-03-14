@@ -57,7 +57,7 @@ static HANDLE hPollEvent     = nullptr;
 static HANDLE hShutdownEvent = nullptr;
 static HANDLE hPollThread    = nullptr;
 
-DWORD
+unsigned int
 __stdcall
 SK_GPUPollingThread (LPVOID user)
 {
@@ -509,9 +509,10 @@ SK_PollGPU (void)
 
   if (! InterlockedCompareExchange (&init, TRUE, FALSE))
   {
-    hShutdownEvent = CreateEvent  (nullptr, FALSE, FALSE, nullptr);
-    hPollEvent     = CreateEvent  (nullptr, TRUE,  FALSE, nullptr);
-    hPollThread    = CreateThread (nullptr, 0, SK_GPUPollingThread, nullptr, 0x00, nullptr);
+    hShutdownEvent = CreateEvent    (nullptr, FALSE, FALSE, nullptr);
+    hPollEvent     = CreateEvent    (nullptr, TRUE,  FALSE, nullptr);
+    hPollThread    = (HANDLE)
+                     _beginthreadex (nullptr, 0, SK_GPUPollingThread, nullptr, 0x00, nullptr);
   }
 
   SYSTEMTIME     update_time;

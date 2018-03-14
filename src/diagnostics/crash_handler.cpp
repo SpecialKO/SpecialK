@@ -221,9 +221,9 @@ CrashHandler::Init (void)
 
   if (! InterlockedCompareExchange (&init, TRUE, FALSE))
   {
-    CreateThread (nullptr, 0,
-    [ ](LPVOID) ->
-      DWORD
+    _beginthreadex (nullptr, 0,
+    [](LPVOID) ->
+      unsigned int
         {
           SetCurrentThreadDescription (         L"[SK] Crash Handler Init");
           SetThreadPriority           (

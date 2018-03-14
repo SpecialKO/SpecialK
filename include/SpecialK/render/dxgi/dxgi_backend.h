@@ -281,7 +281,7 @@ namespace SK
 
     void    ShutdownBudgetThread        (void);
 
-    DWORD
+    unsigned int
     WINAPI
     BudgetThread (LPVOID user_data);
   }

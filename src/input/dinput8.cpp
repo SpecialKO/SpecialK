@@ -287,7 +287,7 @@ SK_BootDI8 (void)
 
 //#define SPAWN_THREAD
 #ifdef SPAWN_THREAD
-CreateThread (nullptr, 0x00, [](LPVOID/*user*/) -> DWORD
+_beginthreadex (nullptr, 0x00, [](LPVOID/*user*/) -> unsigned int
 {
 UNREFERENCED_PARAMETER (user);
 #endif

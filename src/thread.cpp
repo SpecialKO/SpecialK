@@ -19,6 +19,7 @@
  *
 **/
 
+#include <SpecialK/log.h>
 #include <SpecialK/tls.h>
 #include <SpecialK/thread.h>
 #include <SpecialK/utility.h>
@@ -71,6 +72,7 @@ SetCurrentThreadDescription (_In_ PCWSTR lpThreadDescription)
 
   char      szDesc [256] = { };
   wcstombs (szDesc, lpThreadDescription, 255);
+
 
   const DWORD tid =
     GetCurrentThreadId ();
