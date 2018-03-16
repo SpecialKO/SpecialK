@@ -1796,7 +1796,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
     for (UINT i = 0; i < sb->HSInterfaceCount; i++)
     {
       if (sb->HSInterfaces [i] != nullptr)
-        sb->HSInterfaces [i]->Release ();
+          sb->HSInterfaces [i]->Release ();
     }
 
     UINT HSSamplerCount =
@@ -1809,7 +1809,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
       for (UINT i = 0; i < HSSamplerCount; i++)
       {
         if (sb->HSSamplers [i] != nullptr)
-          sb->HSSamplers [i]->Release ();
+            sb->HSSamplers [i]->Release ();
       }
     }
 
@@ -1823,7 +1823,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
       for (UINT i = 0; i < HSShaderResourceCount; i++)
       {
         if (sb->HSShaderResources [i] != nullptr)
-          sb->HSShaderResources [i]->Release ();
+            sb->HSShaderResources [i]->Release ();
       }
     }
 
@@ -1837,7 +1837,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
       for (UINT i = 0; i < HSConstantBufferCount; i++)
       {
         if (sb->HSConstantBuffers [i] != nullptr)
-          sb->HSConstantBuffers [i]->Release ();
+            sb->HSConstantBuffers [i]->Release ();
       }
     }
 
@@ -1849,7 +1849,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
     for (UINT i = 0; i < sb->DSInterfaceCount; i++)
     {
       if (sb->DSInterfaces [i] != nullptr)
-        sb->DSInterfaces [i]->Release ();
+          sb->DSInterfaces [i]->Release ();
     }
 
     UINT DSSamplerCount =
@@ -1862,7 +1862,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
       for (UINT i = 0; i < DSSamplerCount; i++)
       {
         if (sb->DSSamplers [i] != nullptr)
-          sb->DSSamplers [i]->Release ();
+            sb->DSSamplers [i]->Release ();
       }
     }
 
@@ -1876,7 +1876,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
       for (UINT i = 0; i < DSShaderResourceCount; i++)
       {
         if (sb->DSShaderResources [i] != nullptr)
-          sb->DSShaderResources [i]->Release ();
+            sb->DSShaderResources [i]->Release ();
       }
     }
 
@@ -1890,7 +1890,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
       for (UINT i = 0; i < DSConstantBufferCount; i++)
       {
         if (sb->DSConstantBuffers [i] != nullptr)
-          sb->DSConstantBuffers [i]->Release ();
+            sb->DSConstantBuffers [i]->Release ();
       }
     }
   }
@@ -1903,7 +1903,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
   for (UINT i = 0; i < sb->PSInterfaceCount; i++)
   {
     if (sb->PSInterfaces [i] != nullptr)
-      sb->PSInterfaces [i]->Release ();
+        sb->PSInterfaces [i]->Release ();
   }
 
   UINT PSSamplerCount =
@@ -1916,7 +1916,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
     for (UINT i = 0; i < PSSamplerCount; i++)
     {
       if (sb->PSSamplers [i] != nullptr)
-        sb->PSSamplers [i]->Release ();
+          sb->PSSamplers [i]->Release ();
     }
   }
 
@@ -1930,7 +1930,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
     for (UINT i = 0; i < PSShaderResourceCount; i++)
     {
       if (sb->PSShaderResources [i] != nullptr)
-        sb->PSShaderResources [i]->Release ();
+          sb->PSShaderResources [i]->Release ();
     }
   }
 
@@ -1944,7 +1944,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
     for (UINT i = 0; i < PSConstantBufferCount; i++)
     {
       if (sb->PSConstantBuffers [i] != nullptr)
-        sb->PSConstantBuffers [i]->Release ();
+          sb->PSConstantBuffers [i]->Release ();
     }
   }
 
@@ -1959,7 +1959,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
     for (UINT i = 0; i < sb->CSInterfaceCount; i++)
     {
       if (sb->CSInterfaces [i] != nullptr)
-        sb->CSInterfaces [i]->Release ();
+          sb->CSInterfaces [i]->Release ();
     }
 
     UINT CSSamplerCount =
@@ -1972,7 +1972,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
       for (UINT i = 0; i < CSSamplerCount; i++)
       {
         if (sb->CSSamplers [i] != nullptr)
-          sb->CSSamplers [i]->Release ();
+            sb->CSSamplers [i]->Release ();
       }
     }
 
@@ -1986,7 +1986,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
       for (UINT i = 0; i < CSShaderResourceCount; i++)
       {
         if (sb->CSShaderResources [i] != nullptr)
-          sb->CSShaderResources [i]->Release ();
+            sb->CSShaderResources [i]->Release ();
       }
     }
 
@@ -2000,7 +2000,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
       for (UINT i = 0; i < CSConstantBufferCount; i++)
       {
         if (sb->CSConstantBuffers [i] != nullptr)
-          sb->CSConstantBuffers [i]->Release ();
+            sb->CSConstantBuffers [i]->Release ();
       }
     }
 
@@ -2052,12 +2052,12 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
     for (UINT i = 0; i < OMRenderTargetCount; i++)
     {
       if (sb->OMRenderTargets [i] != nullptr)
-        sb->OMRenderTargets [i]->Release ();
+          sb->OMRenderTargets [i]->Release ();
     }
   }
 
   if (sb->OMRenderTargetStencilView != nullptr)
-    sb->OMRenderTargetStencilView->Release ();
+      sb->OMRenderTargetStencilView->Release ();
 
   dc->RSSetViewports         (sb->RSViewportCount,     sb->RSViewports);
   dc->RSSetScissorRects      (sb->RSScissorRectCount,  sb->RSScissorRects);
@@ -2065,7 +2065,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
   dc->RSSetState             (sb->RSRasterizerState);
 
   if (sb->RSRasterizerState != nullptr)
-    sb->RSRasterizerState->Release ();
+      sb->RSRasterizerState->Release ();
 
   if (ft_lvl >= D3D_FEATURE_LEVEL_10_0)
   {
@@ -2084,7 +2084,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
       for (UINT i = 0; i < SOBufferCount; i++)
       {
         if (sb->SOBuffers [i] != nullptr)
-        sb->SOBuffers [i]->Release ();
+            sb->SOBuffers [i]->Release ();
       }
     }
   }
@@ -2092,7 +2092,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
   dc->SetPredication (sb->Predication, sb->PredicationValue);
 
   if (sb->Predication != nullptr)
-    sb->Predication->Release ();
+      sb->Predication->Release ();
 }
 
 
@@ -2384,7 +2384,20 @@ SK_DXGI_BorderCompensation (UINT& x, UINT& y)
 }
 
 
-struct SK_FFXV_Thread { HANDLE hThread; DWORD dwPrio; void setup (); } extern sk_ffxv_swapchain;
+#include <unordered_set>
+
+struct SK_FFXV_Thread
+{
+  ~SK_FFXV_Thread (void) { for ( auto && h : hThreads ) CloseHandle (h); }
+
+           std::set <HANDLE> hThreads;
+  volatile LONG     dwPrio = THREAD_PRIORITY_NORMAL;
+
+  sk::ParameterInt* prio_cfg;
+
+  void setup (void);
+} extern sk_ffxv_swapchain;
+
 
 HRESULT
 STDMETHODCALLTYPE
@@ -2396,7 +2409,8 @@ SK_DXGI_Present ( IDXGISwapChain *This,
 
   if (SK_GetCurrentGameID () == SK_GAME_ID::FinalFantasyXV)
   {
-    sk_ffxv_swapchain.setup ();
+    if (sk_ffxv_swapchain.hThreads.empty ())
+        sk_ffxv_swapchain.setup ();
   }
 
   __try                                {
@@ -6590,15 +6604,18 @@ SK::DXGI::StartBudgetThread ( IDXGIAdapter** ppAdapter )
                               _mem_info.Budget                  >> 20ULL
                       );
 
-        pAdapter3->SetVideoMemoryReservation (
-              ( i - 1 ),
-                DXGI_MEMORY_SEGMENT_GROUP_LOCAL,
-                  ( i == 1 ) ?
-                    uint64_t ( _mem_info.AvailableForReservation *
-                                 config.mem.reserve * 0.01f ) 
-                           :
-                           0
-        );
+        if (config.mem.reserve > 0.0f)
+        {
+          pAdapter3->SetVideoMemoryReservation (
+                ( i - 1 ),
+                  DXGI_MEMORY_SEGMENT_GROUP_LOCAL,
+                    ( i == 1 ) ?
+                      uint64_t ( _mem_info.AvailableForReservation *
+                                   config.mem.reserve * 0.01f ) 
+                             :
+                             0
+          );
+        }
       }
 
       i = 0;
@@ -6631,15 +6648,18 @@ SK::DXGI::StartBudgetThread ( IDXGIAdapter** ppAdapter )
                               _mem_info.Budget                  >> 20ULL
                       );
 
-        pAdapter3->SetVideoMemoryReservation (
-              ( i - 1 ),
-                DXGI_MEMORY_SEGMENT_GROUP_NON_LOCAL,
-                  ( i == 1 ) ?
-                    uint64_t ( _mem_info.AvailableForReservation *
-                                 config.mem.reserve * 0.01f )
-                           :
-                           0
-        );
+        if (config.mem.reserve > .0f)
+        {
+          pAdapter3->SetVideoMemoryReservation (
+                ( i - 1 ),
+                  DXGI_MEMORY_SEGMENT_GROUP_NON_LOCAL,
+                    ( i == 1 ) ?
+                      uint64_t ( _mem_info.AvailableForReservation *
+                                   config.mem.reserve * 0.01f )
+                             :
+                             0
+          );
+        }
       }
 
       ::mem_info [0].nodes = ( i - 1 );
@@ -6687,6 +6707,9 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
 
 
   SK_AutoCOMInit auto_com;
+
+
+  SetThreadPriority ( SK_GetCurrentThread (), THREAD_PRIORITY_IDLE );
 
   while ( ReadAcquire ( &params->ready ) )
   {

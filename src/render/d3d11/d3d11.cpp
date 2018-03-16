@@ -5903,6 +5903,8 @@ SK_D3D11_TexCacheCheckpoint (void)
 
   static PROCESS_MEMORY_COUNTERS pmc = {   };
 
+  bool has_non_zero_reserve = config.mem.reserve > 0.0f;
+
   if (! (iter % 5))
   {
                                   pmc.cb = sizeof pmc;
@@ -5911,9 +5913,10 @@ SK_D3D11_TexCacheCheckpoint (void)
     reset |=
       ( (SK_D3D11_Textures.AggregateSize_2D >> 20ULL) > (uint64_t)cache_opts.max_size    ||
          SK_D3D11_Textures.Entries_2D                 >           cache_opts.max_entries ||
-         (config.mem.reserve / 100.0f) * ullMemoryTotal_KiB 
-                                                      <
-                            (pmc.PagefileUsage >> 10UL) );
+        ( has_non_zero_reserve && config.mem.reserve / 100.0f) * ullMemoryTotal_KiB 
+                                                        <
+                              (pmc.PagefileUsage >> 10UL)
+      );
   }
 
   if (reset)
@@ -5921,10 +5924,11 @@ SK_D3D11_TexCacheCheckpoint (void)
     //dll_log.Log (L"[DX11TexMgr] DXGI 1.4 Budget Change: Triggered a texture manager purge...");
 
     SK_D3D11_amount_to_purge =
+      has_non_zero_reserve   ? 
       static_cast <int32_t> (
         (pmc.PagefileUsage >> 10UL) - (float)(ullMemoryTotal_KiB) *
                        (config.mem.reserve / 100.0f)
-      );
+      )                      : 0;
 
     SK_D3D11_need_tex_reset = false;
     SK_D3D11_Textures.reset ();

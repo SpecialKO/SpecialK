@@ -252,6 +252,128 @@ OutputDebugStringW_Detour (LPCWSTR lpOutputString)
 //OutputDebugStringW_Original (lpOutputString);
 }
 
+
+
+using GetThreadContext_pfn = BOOL (WINAPI *)(HANDLE,LPCONTEXT);
+using SetThreadContext_pfn = BOOL (WINAPI *)(HANDLE,const CONTEXT *);
+
+GetThreadContext_pfn GetThreadContext_Original = nullptr;
+SetThreadContext_pfn SetThreadContext_Original = nullptr;
+
+#define NT_SUCCESS(Status)                      ((NTSTATUS)(Status) >= 0)
+#define STATUS_SUCCESS                          0
+
+const ULONG ThreadHideFromDebugger = 0x11;
+
+#define THREAD_CREATE_FLAGS_CREATE_SUSPENDED        0x00000001
+#define THREAD_CREATE_FLAGS_SKIP_THREAD_ATTACH      0x00000002
+#define THREAD_CREATE_FLAGS_HIDE_FROM_DEBUGGER      0x00000004
+#define THREAD_CREATE_FLAGS_HAS_SECURITY_DESCRIPTOR 0x00000010
+#define THREAD_CREATE_FLAGS_ACCESS_CHECK_IN_TARGET  0x00000020
+#define THREAD_CREATE_FLAGS_INITIAL_THREAD          0x00000080
+
+typedef PVOID *POBJECT_ATTRIBUTES;
+
+typedef NTSTATUS (NTAPI *NtSetInformationThread_pfn)(
+  _In_ HANDLE ThreadHandle,
+  _In_ ULONG  ThreadInformationClass,
+  _In_ PVOID  ThreadInformation,
+  _In_ ULONG  ThreadInformationLength
+);
+
+typedef NTSTATUS (NTAPI *NtCreateThreadEx_pfn)(
+    _Out_    PHANDLE              ThreadHandle,
+    _In_     ACCESS_MASK          DesiredAccess,
+    _In_opt_ POBJECT_ATTRIBUTES   ObjectAttributes,
+    _In_     HANDLE               ProcessHandle,
+    _In_     PVOID                StartRoutine,
+    _In_opt_ PVOID                Argument,
+    _In_     ULONG                CreateFlags,
+    _In_opt_ ULONG_PTR            ZeroBits,
+    _In_opt_ SIZE_T               StackSize,
+    _In_opt_ SIZE_T               MaximumStackSize,
+    _In_opt_ PVOID                AttributeList
+);
+
+NtCreateThreadEx_pfn       NtCreateThreadEx_Original       = nullptr;
+NtSetInformationThread_pfn NtSetInformationThread_Original = nullptr;
+
+NTSTATUS
+NTAPI
+NtSetInformationThread_Detour (
+  _In_ HANDLE ThreadHandle,
+  _In_ ULONG  ThreadInformationClass,
+  _In_ PVOID  ThreadInformation,
+  _In_ ULONG  ThreadInformationLength )
+{
+  SK_LOG_FIRST_CALL
+
+  if ( ThreadInformationClass  == ThreadHideFromDebugger && 
+       ThreadInformation       == 0                      &&
+       ThreadInformationLength == 0 )
+  {
+    SK_LOG0 ( ( L"tid=%x tried to hide itself from debuggers; please attach one and investigate!",
+                  GetThreadId (ThreadHandle) ),
+                L"AntiAntiDbg" );
+
+    SuspendThread (ThreadHandle);
+
+    return STATUS_SUCCESS;
+  }
+
+  return
+    NtSetInformationThread_Original ( ThreadHandle, 
+                                        ThreadInformationClass,
+                                        ThreadInformation,
+                                          ThreadInformationLength );
+}
+
+NTSTATUS
+NTAPI
+NtCreateThreadEx_Detour (
+  _Out_    PHANDLE              ThreadHandle,
+  _In_     ACCESS_MASK          DesiredAccess,
+  _In_opt_ POBJECT_ATTRIBUTES   ObjectAttributes,
+  _In_     HANDLE               ProcessHandle,
+  _In_     PVOID                StartRoutine,
+  _In_opt_ PVOID                Argument,
+  _In_     ULONG                CreateFlags,
+  _In_opt_ ULONG_PTR            ZeroBits,
+  _In_opt_ SIZE_T               StackSize,
+  _In_opt_ SIZE_T               MaximumStackSize,
+  _In_opt_ PVOID                AttributeList)
+{
+  SK_LOG_FIRST_CALL
+
+  BOOL Suspicious = FALSE;
+
+  if ( CreateFlags & THREAD_CREATE_FLAGS_HIDE_FROM_DEBUGGER )
+  {
+    CreateFlags &= ~THREAD_CREATE_FLAGS_HIDE_FROM_DEBUGGER;
+    CreateFlags |=  THREAD_CREATE_FLAGS_CREATE_SUSPENDED;
+
+    SK_LOG0 ( ( L"Tried to begin a debugger-hidden thread; punish it by starting visible and suspended!",
+                  GetThreadId (ThreadHandle) ),
+                L"AntiAntiDbg" );
+
+    Suspicious = TRUE;
+  }
+
+  NTSTATUS ret =
+    NtCreateThreadEx_Original ( ThreadHandle, DesiredAccess, ObjectAttributes,
+                                ProcessHandle, StartRoutine, Argument, CreateFlags,
+                                ZeroBits, StackSize, MaximumStackSize, AttributeList );
+
+  if (NT_SUCCESS (ret) && Suspicious)
+  {
+    SK_LOG0 ( ( L">>tid=%x", GetThreadId (*ThreadHandle) ),
+                L"AntiAntiDbg" );
+  }
+
+  return ret;
+}
+
+
 bool spoof_debugger = true;
 
 using IsDebuggerPresent_pfn = BOOL (WINAPI *)(void);
@@ -265,11 +387,12 @@ IsDebuggerPresent_Detour (void)
   if (SK_GetCurrentGameID () == SK_GAME_ID::FinalFantasyXV)
   {
     static bool killed_ffxv = false;
-
+  
     if ((! killed_ffxv) && GetThreadPriority (SK_GetCurrentThread ()) == THREAD_PRIORITY_LOWEST)
     {
-      killed_ffxv    = SK_Thread_CloseSelf ();
+      //SuspendThread   (SK_GetCurrentThread ());
       TerminateThread (SK_GetCurrentThread (), 0x00);
+      killed_ffxv    = SK_Thread_CloseSelf ();
     }
   }
 
@@ -294,11 +417,26 @@ DebugBreak_Detour (void)
 }
 
 
+#include <SpecialK/parameter.h>
+
 using RaiseException_pfn = void (WINAPI *)(DWORD,DWORD,DWORD,const ULONG_PTR *);
 RaiseException_pfn RaiseException_Original = nullptr;
 
-struct SK_FFXV_Thread { HANDLE hThread; DWORD dwPrio; void setup (); } extern sk_ffxv_vsync,
-                                                                              sk_ffxv_async_run;
+#include <unordered_set>
+
+struct SK_FFXV_Thread
+{
+  ~SK_FFXV_Thread (void) { for ( auto && h : hThreads ) CloseHandle (h); }
+
+  std::vector <HANDLE> hThreads;
+  volatile LONG        dwPrio = THREAD_PRIORITY_NORMAL;
+
+  sk::ParameterInt* prio_cfg;
+
+  void setup (void);
+} extern sk_ffxv_swapchain,
+         sk_ffxv_vsync,
+         sk_ffxv_async_run;
 
 // Detoured so we can get thread names
 __declspec (noinline)
@@ -335,14 +473,17 @@ RaiseException_Detour (
 
     if (SK_GetCurrentGameID () == SK_GAME_ID::FinalFantasyXV)
     {
-      if (StrStrIA (info->szName, "VSync"))
+      if (info->szName != 0)
       {
-        sk_ffxv_vsync.setup ();
-      }
+        if (sk_ffxv_vsync.hThreads.empty () && StrStrIA (info->szName, "VSync"))
+        {
+          sk_ffxv_vsync.setup ();
+        }
 
-      else if (StrStrA (info->szName, "AsyncFile.Run"))
-      {
-        sk_ffxv_async_run.setup ();
+        else if (sk_ffxv_async_run.hThreads.empty () && StrStrIA (info->szName, "AsyncFile.Run"))
+        {
+          sk_ffxv_async_run.setup ();
+        }
       }
     }
   }
@@ -413,6 +554,16 @@ static_cast_p2p <void> (&GetCommandLineA_Original) );
                              "RaiseException",
                               RaiseException_Detour,
      static_cast_p2p <void> (&RaiseException_Original) );
+
+    SK_CreateDLLHook2 (      L"NtDll.dll",
+                             "NtCreateThreadEx",
+                              NtCreateThreadEx_Detour,
+     static_cast_p2p <void> (&NtCreateThreadEx_Original) );
+
+    SK_CreateDLLHook2 (      L"NtDll.dll",
+                             "NtSetInformationThread",
+                              NtSetInformationThread_Detour,
+     static_cast_p2p <void> (&NtSetInformationThread_Original) );
 
     SK_ApplyQueuedHooks ();
 

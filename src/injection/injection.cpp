@@ -304,7 +304,7 @@ SKX_WaitForCBTHookShutdown (void)
     if ( hShutdown != INVALID_HANDLE_VALUE && (! SK_IsHostAppSKIM ()) )
     {
       SetThreadPriority      ( SK_GetCurrentThread (),
-                               THREAD_PRIORITY_LOWEST       );
+                               THREAD_PRIORITY_IDLE         );
       SetThreadPriorityBoost ( SK_GetCurrentThread (), TRUE );
 
 #ifdef NOT_SANE_SCHEDULING

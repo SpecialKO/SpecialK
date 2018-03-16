@@ -432,7 +432,7 @@ SK_Widget::draw_base (void)
       state__ = 1;
   }
 
-  ImGui::End         ();
+  ImGui::End     ();
 
   ImGui::PopFont ();
   ImGui::GetFont ()->Scale = fScale;
@@ -601,27 +601,24 @@ SK_Widget::config_base (void)
 
   ImGui::BeginGroup (  );
   if (toggle_key_val != nullptr)
-    ImGui::Text       ("Widget Toggle");
+    ImGui::Text     ("Widget Toggle");
   if (focus_key_val != nullptr)
-    ImGui::Text       ("Widget Focus");
+    ImGui::Text     ("Widget Focus");
   ImGui::EndGroup   (  );
 
   ImGui::SameLine   (  );
 
   ImGui::BeginGroup (  );
   if (toggle_key_val != nullptr)
-    Keybinding        (&toggle_key, toggle_key_val);
+    Keybinding      (&toggle_key, toggle_key_val);
   if (focus_key_val != nullptr)
-    Keybinding        (&focus_key,  focus_key_val);
+    Keybinding      (&focus_key,  focus_key_val);
   ImGui::EndGroup   (  );
-
   ImGui::TreePop    (  );
 
-  ImGui::Separator ();
-
-  ImGui::SliderFloat ("Widget Scale", &scale, 0.25f, 2.0f);
-
-  ImGui::Separator ();
+  ImGui::Separator  (  );
+  ImGui::SliderFloat("Widget Scale", &scale, 0.25f, 2.0f);
+  ImGui::Separator  (  );
 
   bool done = false;
 
@@ -659,7 +656,9 @@ SK_Widget::load (iSK_INI*)
                               (((alt)  != 0) << 11))
 
 static auto widgets =
-  { SK_ImGui_Widgets.frame_pacing, SK_ImGui_Widgets.volume_control, SK_ImGui_Widgets.gpu_monitor, SK_ImGui_Widgets.cpu_monitor, SK_ImGui_Widgets.d3d11_pipeline };
+  { SK_ImGui_Widgets.frame_pacing, SK_ImGui_Widgets.volume_control,
+    SK_ImGui_Widgets.gpu_monitor,  SK_ImGui_Widgets.cpu_monitor,
+    SK_ImGui_Widgets.d3d11_pipeline };
 
 BOOL
 SK_ImGui_WidgetRegistry::DispatchKeybinds (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode)

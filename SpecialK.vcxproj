@@ -528,13 +528,13 @@
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
-      <StringPooling>true</StringPooling>
+      <StringPooling>false</StringPooling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <MinimalRebuild>false</MinimalRebuild>
       <SDLCheck>false</SDLCheck>
       <StructMemberAlignment>16Bytes</StructMemberAlignment>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
       <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED</UndefinePreprocessorDefinitions>
       <OpenMPSupport>false</OpenMPSupport>
       <WholeProgramOptimization>false</WholeProgramOptimization>
@@ -545,11 +545,11 @@
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
       <OutputFile>\\zilcho\Tales of Symphonia\d3d9.dll</OutputFile>
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
-      <OptimizeReferences>true</OptimizeReferences>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>false</OptimizeReferences>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <LargeAddressAware>true</LargeAddressAware>
       <DataExecutionPrevention>false</DataExecutionPrevention>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;wininet.dll;psapi.dll;comctl32.dll;SHELL32.dll;advapi32.dll;secur32.dll;imm32.dll;ole32.dll;d3dx9_43.dll;D3DCOMPILER_43.dll;WINMM.dll;AVRT.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll;</DelayLoadDLLs>
       <EntryPointSymbol>
       </EntryPointSymbol>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
@@ -559,7 +559,7 @@
       <BaseAddress>
       </BaseAddress>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
-      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
       <TurnOffAssemblyGeneration>true</TurnOffAssemblyGeneration>
       <Profile>true</Profile>
       <ForceSymbolReferences>
@@ -604,13 +604,13 @@
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ExceptionHandling>Async</ExceptionHandling>
       <OmitFramePointers>false</OmitFramePointers>
-      <StringPooling>true</StringPooling>
+      <StringPooling>false</StringPooling>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <MinimalRebuild>false</MinimalRebuild>
       <SDLCheck>false</SDLCheck>
       <StructMemberAlignment>16Bytes</StructMemberAlignment>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
       <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED</UndefinePreprocessorDefinitions>
       <OpenMPSupport>false</OpenMPSupport>
       <WholeProgramOptimization>false</WholeProgramOptimization>
@@ -620,9 +620,9 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>C:\Users\andon\Documents\My Mods\SpecialK\SpecialK64.dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;wininet.dll;psapi.dll;comctl32.dll;SHELL32.dll;advapi32.dll;secur32.dll;imm32.dll;ole32.dll;d3dx9_43.dll;D3DCOMPILER_43.dll;WINMM.dll;AVRT.dll</DelayLoadDLLs>
-      <OptimizeReferences>true</OptimizeReferences>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll;</DelayLoadDLLs>
+      <OptimizeReferences>false</OptimizeReferences>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <EntryPointSymbol>
       </EntryPointSymbol>
       <DataExecutionPrevention>false</DataExecutionPrevention>
@@ -635,7 +635,7 @@
       <BaseAddress>
       </BaseAddress>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
-      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
       <TurnOffAssemblyGeneration>true</TurnOffAssemblyGeneration>
       <Profile>true</Profile>
       <ForceSymbolReferences>
@@ -685,11 +685,11 @@
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <DiagnosticsFormat>Classic</DiagnosticsFormat>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <StringPooling>true</StringPooling>
+      <StringPooling>false</StringPooling>
       <OmitFramePointers>false</OmitFramePointers>
       <MinimalRebuild>false</MinimalRebuild>
       <StructMemberAlignment>16Bytes</StructMemberAlignment>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
       <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED</UndefinePreprocessorDefinitions>
       <OpenMPSupport>false</OpenMPSupport>
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
@@ -701,7 +701,7 @@
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
       <DataExecutionPrevention>false</DataExecutionPrevention>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;ole32.dll;WININET.dll;AVRT.dll;Secur32.dll;COMCTL32.dll;ADVAPI32.dll;IMM32.dll;d3dx9_43.dll;PSAPI.DLL;WINMM.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll;</DelayLoadDLLs>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
@@ -715,12 +715,12 @@
       <SectionAlignment>
       </SectionAlignment>
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
-      <OptimizeReferences>true</OptimizeReferences>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>false</OptimizeReferences>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <SetChecksum>true</SetChecksum>
       <BaseAddress>
       </BaseAddress>
-      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
       <ForceSymbolReferences>
       </ForceSymbolReferences>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
@@ -781,12 +781,12 @@
       <DiagnosticsFormat>Classic</DiagnosticsFormat>
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <StringPooling>true</StringPooling>
+      <StringPooling>false</StringPooling>
       <OmitFramePointers>false</OmitFramePointers>
       <MinimalRebuild>false</MinimalRebuild>
       <SDLCheck>false</SDLCheck>
       <StructMemberAlignment>16Bytes</StructMemberAlignment>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
       <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED</UndefinePreprocessorDefinitions>
       <OpenMPSupport>false</OpenMPSupport>
     </ClCompile>
@@ -796,7 +796,7 @@
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
       <DataExecutionPrevention>false</DataExecutionPrevention>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;wininet.dll;psapi.dll;comctl32.dll;SHELL32.dll;advapi32.dll;secur32.dll;imm32.dll;ole32.dll;d3dx9_43.dll;D3DCOMPILER_43.dll;WINMM.dll;AVRT.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll;</DelayLoadDLLs>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
@@ -811,13 +811,13 @@
       <SectionAlignment>
       </SectionAlignment>
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
-      <OptimizeReferences>true</OptimizeReferences>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>false</OptimizeReferences>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <SetChecksum>true</SetChecksum>
       <BaseAddress>
       </BaseAddress>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
-      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
       <TurnOffAssemblyGeneration>true</TurnOffAssemblyGeneration>
       <Profile>true</Profile>
       <ForceSymbolReferences>
@@ -878,23 +878,23 @@
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <StringPooling>true</StringPooling>
+      <StringPooling>false</StringPooling>
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <SDLCheck>false</SDLCheck>
       <StructMemberAlignment>16Bytes</StructMemberAlignment>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
       <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED</UndefinePreprocessorDefinitions>
       <OpenMPSupport>false</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+      <OptimizeReferences>false</OptimizeReferences>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>Installer.def</ModuleDefinitionFile>
       <DataExecutionPrevention>false</DataExecutionPrevention>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;wininet.dll;psapi.dll;comctl32.dll;SHELL32.dll;advapi32.dll;secur32.dll;imm32.dll;ole32.dll;d3dx9_43.dll;D3DCOMPILER_43.dll;WINMM.dll;AVRT.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll;</DelayLoadDLLs>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
@@ -911,7 +911,7 @@
       <BaseAddress>
       </BaseAddress>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
-      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
       <TurnOffAssemblyGeneration>true</TurnOffAssemblyGeneration>
       <Profile>true</Profile>
       <ForceSymbolReferences>
@@ -965,23 +965,23 @@ Exit 0</Command>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <StringPooling>true</StringPooling>
+      <StringPooling>false</StringPooling>
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <SDLCheck>false</SDLCheck>
       <StructMemberAlignment>16Bytes</StructMemberAlignment>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
       <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED</UndefinePreprocessorDefinitions>
       <OpenMPSupport>false</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+      <OptimizeReferences>false</OptimizeReferences>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
       <DataExecutionPrevention>false</DataExecutionPrevention>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;wininet.dll;psapi.dll;comctl32.dll;SHELL32.dll;advapi32.dll;secur32.dll;imm32.dll;ole32.dll;d3dx9_43.dll;D3DCOMPILER_43.dll;WINMM.dll;AVRT.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll;</DelayLoadDLLs>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
@@ -999,7 +999,7 @@ Exit 0</Command>
       <BaseAddress>
       </BaseAddress>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
-      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
       <TurnOffAssemblyGeneration>true</TurnOffAssemblyGeneration>
       <Profile>true</Profile>
       <ForceSymbolReferences>
@@ -1054,23 +1054,23 @@ Exit 0</Command>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <StringPooling>true</StringPooling>
+      <StringPooling>false</StringPooling>
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <SDLCheck>false</SDLCheck>
       <StructMemberAlignment>16Bytes</StructMemberAlignment>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
       <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED</UndefinePreprocessorDefinitions>
       <OpenMPSupport>false</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+      <OptimizeReferences>false</OptimizeReferences>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
       <DataExecutionPrevention>false</DataExecutionPrevention>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;wininet.dll;psapi.dll;comctl32.dll;SHELL32.dll;advapi32.dll;secur32.dll;imm32.dll;ole32.dll;d3dx9_43.dll;D3DCOMPILER_43.dll;WINMM.dll;AVRT.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll;</DelayLoadDLLs>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
@@ -1088,7 +1088,7 @@ Exit 0</Command>
       <BaseAddress>
       </BaseAddress>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
-      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
       <TurnOffAssemblyGeneration>true</TurnOffAssemblyGeneration>
       <Profile>true</Profile>
       <ForceSymbolReferences>
@@ -1145,23 +1145,23 @@ Exit 0</Command>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <StringPooling>true</StringPooling>
+      <StringPooling>false</StringPooling>
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <SDLCheck>false</SDLCheck>
       <StructMemberAlignment>16Bytes</StructMemberAlignment>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
       <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED</UndefinePreprocessorDefinitions>
       <OpenMPSupport>false</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+      <OptimizeReferences>false</OptimizeReferences>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
       <DataExecutionPrevention>false</DataExecutionPrevention>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;wininet.dll;psapi.dll;comctl32.dll;SHELL32.dll;advapi32.dll;secur32.dll;imm32.dll;ole32.dll;d3dx9_43.dll;D3DCOMPILER_43.dll;WINMM.dll;AVRT.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll;</DelayLoadDLLs>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
@@ -1178,7 +1178,7 @@ Exit 0</Command>
       <BaseAddress>
       </BaseAddress>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
-      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
       <TurnOffAssemblyGeneration>true</TurnOffAssemblyGeneration>
       <Profile>true</Profile>
       <ForceSymbolReferences>
@@ -1234,23 +1234,23 @@ Exit 0</Command>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <StringPooling>true</StringPooling>
+      <StringPooling>false</StringPooling>
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <SDLCheck>false</SDLCheck>
       <StructMemberAlignment>16Bytes</StructMemberAlignment>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
       <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED</UndefinePreprocessorDefinitions>
       <OpenMPSupport>false</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+      <OptimizeReferences>false</OptimizeReferences>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
       <DataExecutionPrevention>false</DataExecutionPrevention>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;wininet.dll;psapi.dll;comctl32.dll;SHELL32.dll;advapi32.dll;secur32.dll;imm32.dll;ole32.dll;d3dx9_43.dll;D3DCOMPILER_43.dll;WINMM.dll;AVRT.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll;</DelayLoadDLLs>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
@@ -1267,7 +1267,7 @@ Exit 0</Command>
       <BaseAddress>
       </BaseAddress>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
-      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
       <TurnOffAssemblyGeneration>true</TurnOffAssemblyGeneration>
       <Profile>true</Profile>
       <ForceSymbolReferences>
@@ -1323,23 +1323,23 @@ Exit 0</Command>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <StringPooling>true</StringPooling>
+      <StringPooling>false</StringPooling>
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <SDLCheck>false</SDLCheck>
       <StructMemberAlignment>16Bytes</StructMemberAlignment>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
       <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED</UndefinePreprocessorDefinitions>
       <OpenMPSupport>false</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+      <OptimizeReferences>false</OptimizeReferences>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
       <DataExecutionPrevention>false</DataExecutionPrevention>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;wininet.dll;psapi.dll;comctl32.dll;SHELL32.dll;advapi32.dll;secur32.dll;imm32.dll;ole32.dll;d3dx9_43.dll;D3DCOMPILER_43.dll;WINMM.dll;AVRT.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll;</DelayLoadDLLs>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
@@ -1356,7 +1356,7 @@ Exit 0</Command>
       <BaseAddress>
       </BaseAddress>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
-      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
       <TurnOffAssemblyGeneration>true</TurnOffAssemblyGeneration>
       <Profile>true</Profile>
       <ForceSymbolReferences>
@@ -1412,23 +1412,23 @@ Exit 0</Command>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <StringPooling>true</StringPooling>
+      <StringPooling>false</StringPooling>
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <SDLCheck>false</SDLCheck>
       <StructMemberAlignment>16Bytes</StructMemberAlignment>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
       <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED</UndefinePreprocessorDefinitions>
       <OpenMPSupport>false</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+      <OptimizeReferences>false</OptimizeReferences>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
       <DataExecutionPrevention>false</DataExecutionPrevention>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;wininet.dll;psapi.dll;comctl32.dll;SHELL32.dll;advapi32.dll;secur32.dll;imm32.dll;ole32.dll;d3dx11_43.dll;d3dx9_43.dll;D3DCOMPILER_43.dll;WINMM.dll;AVRT.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll;</DelayLoadDLLs>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
@@ -1445,7 +1445,7 @@ Exit 0</Command>
       <BaseAddress>
       </BaseAddress>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
-      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
       <TurnOffAssemblyGeneration>true</TurnOffAssemblyGeneration>
       <Profile>true</Profile>
       <ForceSymbolReferences>
@@ -1489,7 +1489,7 @@ Exit 0</Command>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
-      <StringPooling>true</StringPooling>
+      <StringPooling>false</StringPooling>
       <UseFullPaths>true</UseFullPaths>
       <DiagnosticsFormat>Classic</DiagnosticsFormat>
       <BrowseInformation>false</BrowseInformation>
@@ -1499,7 +1499,7 @@ Exit 0</Command>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <MinimalRebuild>false</MinimalRebuild>
       <StructMemberAlignment>16Bytes</StructMemberAlignment>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
       <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED</UndefinePreprocessorDefinitions>
       <OpenMPSupport>false</OpenMPSupport>
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
@@ -1514,7 +1514,7 @@ Exit 0</Command>
       <MapExports>false</MapExports>
       <DataExecutionPrevention>false</DataExecutionPrevention>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;ole32.dll;WININET.dll;AVRT.dll;Secur32.dll;COMCTL32.dll;ADVAPI32.dll;IMM32.dll;d3dx9_43.dll;PSAPI.DLL;WINMM.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll;</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
       <EntryPointSymbol>
@@ -1527,12 +1527,12 @@ Exit 0</Command>
       <SectionAlignment>
       </SectionAlignment>
       <SetChecksum>true</SetChecksum>
-      <OptimizeReferences>true</OptimizeReferences>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>false</OptimizeReferences>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
       <BaseAddress>
       </BaseAddress>
-      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
       <ForceSymbolReferences>
       </ForceSymbolReferences>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
@@ -1584,7 +1584,7 @@ Exit 0</Command>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
-      <StringPooling>true</StringPooling>
+      <StringPooling>false</StringPooling>
       <UseFullPaths>true</UseFullPaths>
       <DiagnosticsFormat>Classic</DiagnosticsFormat>
       <BrowseInformation>false</BrowseInformation>
@@ -1596,7 +1596,7 @@ Exit 0</Command>
       <MinimalRebuild>false</MinimalRebuild>
       <SDLCheck>false</SDLCheck>
       <StructMemberAlignment>16Bytes</StructMemberAlignment>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
       <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED</UndefinePreprocessorDefinitions>
       <OpenMPSupport>false</OpenMPSupport>
     </ClCompile>
@@ -1609,7 +1609,7 @@ Exit 0</Command>
       <MapExports>false</MapExports>
       <DataExecutionPrevention>false</DataExecutionPrevention>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;wininet.dll;psapi.dll;comctl32.dll;SHELL32.dll;advapi32.dll;secur32.dll;imm32.dll;ole32.dll;d3dx9_43.dll;D3DCOMPILER_43.dll;WINMM.dll;AVRT.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll;</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
       <EntryPointSymbol>
@@ -1624,13 +1624,13 @@ Exit 0</Command>
       <SectionAlignment>
       </SectionAlignment>
       <SetChecksum>true</SetChecksum>
-      <OptimizeReferences>true</OptimizeReferences>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>false</OptimizeReferences>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
       <BaseAddress>
       </BaseAddress>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
-      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
       <TurnOffAssemblyGeneration>true</TurnOffAssemblyGeneration>
       <ForceSymbolReferences>
       </ForceSymbolReferences>
@@ -1685,12 +1685,12 @@ Exit 0</Command>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ExceptionHandling>Async</ExceptionHandling>
       <OmitFramePointers>false</OmitFramePointers>
-      <StringPooling>true</StringPooling>
+      <StringPooling>false</StringPooling>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <SDLCheck>false</SDLCheck>
       <StructMemberAlignment>16Bytes</StructMemberAlignment>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
       <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED</UndefinePreprocessorDefinitions>
       <OpenMPSupport>false</OpenMPSupport>
       <WholeProgramOptimization>false</WholeProgramOptimization>
@@ -1698,15 +1698,15 @@ Exit 0</Command>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+      <OptimizeReferences>false</OptimizeReferences>
       <OutputFile>Installer64.dll</OutputFile>
       <AssemblyDebug>false</AssemblyDebug>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
       <DataExecutionPrevention>false</DataExecutionPrevention>
       <ModuleDefinitionFile>Installer.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;wininet.dll;psapi.dll;comctl32.dll;SHELL32.dll;advapi32.dll;secur32.dll;imm32.dll;ole32.dll;d3dx9_43.dll;D3DCOMPILER_43.dll;WINMM.dll;AVRT.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll;</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib  /OUT:"$(TargetName).dll"</AdditionalOptions>
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
@@ -1722,7 +1722,7 @@ Exit 0</Command>
       <BaseAddress>
       </BaseAddress>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
-      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
       <TurnOffAssemblyGeneration>true</TurnOffAssemblyGeneration>
       <Profile>true</Profile>
       <ForceSymbolReferences>
@@ -1772,12 +1772,12 @@ Exit 0</Command>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ExceptionHandling>Async</ExceptionHandling>
       <OmitFramePointers>false</OmitFramePointers>
-      <StringPooling>true</StringPooling>
+      <StringPooling>false</StringPooling>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <SDLCheck>false</SDLCheck>
       <StructMemberAlignment>16Bytes</StructMemberAlignment>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
       <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED</UndefinePreprocessorDefinitions>
       <OpenMPSupport>false</OpenMPSupport>
       <WholeProgramOptimization>false</WholeProgramOptimization>
@@ -1785,15 +1785,15 @@ Exit 0</Command>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+      <OptimizeReferences>false</OptimizeReferences>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <AssemblyDebug>false</AssemblyDebug>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
       <DataExecutionPrevention>false</DataExecutionPrevention>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;wininet.dll;psapi.dll;comctl32.dll;SHELL32.dll;advapi32.dll;secur32.dll;imm32.dll;ole32.dll;d3dx9_43.dll;D3DCOMPILER_43.dll;WINMM.dll;AVRT.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll;</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
@@ -1809,7 +1809,7 @@ Exit 0</Command>
       <BaseAddress>
       </BaseAddress>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
-      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
       <TurnOffAssemblyGeneration>true</TurnOffAssemblyGeneration>
       <Profile>true</Profile>
       <ForceSymbolReferences>
@@ -1859,12 +1859,12 @@ Exit 0</Command>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ExceptionHandling>Async</ExceptionHandling>
       <OmitFramePointers>false</OmitFramePointers>
-      <StringPooling>true</StringPooling>
+      <StringPooling>false</StringPooling>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <SDLCheck>false</SDLCheck>
       <StructMemberAlignment>16Bytes</StructMemberAlignment>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
       <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED</UndefinePreprocessorDefinitions>
       <OpenMPSupport>false</OpenMPSupport>
       <WholeProgramOptimization>false</WholeProgramOptimization>
@@ -1872,15 +1872,15 @@ Exit 0</Command>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+      <OptimizeReferences>false</OptimizeReferences>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <AssemblyDebug>false</AssemblyDebug>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
       <DataExecutionPrevention>false</DataExecutionPrevention>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;wininet.dll;psapi.dll;comctl32.dll;SHELL32.dll;advapi32.dll;secur32.dll;imm32.dll;ole32.dll;d3dx9_43.dll;D3DCOMPILER_43.dll;WINMM.dll;AVRT.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll;</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
@@ -1896,7 +1896,7 @@ Exit 0</Command>
       <BaseAddress>
       </BaseAddress>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
-      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
       <TurnOffAssemblyGeneration>true</TurnOffAssemblyGeneration>
       <Profile>true</Profile>
       <ForceSymbolReferences>
@@ -1946,12 +1946,12 @@ Exit 0</Command>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ExceptionHandling>Async</ExceptionHandling>
       <OmitFramePointers>false</OmitFramePointers>
-      <StringPooling>true</StringPooling>
+      <StringPooling>false</StringPooling>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <SDLCheck>false</SDLCheck>
       <StructMemberAlignment>16Bytes</StructMemberAlignment>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
       <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED</UndefinePreprocessorDefinitions>
       <OpenMPSupport>false</OpenMPSupport>
       <WholeProgramOptimization>false</WholeProgramOptimization>
@@ -1959,15 +1959,15 @@ Exit 0</Command>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+      <OptimizeReferences>false</OptimizeReferences>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <AssemblyDebug>false</AssemblyDebug>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
       <DataExecutionPrevention>false</DataExecutionPrevention>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;wininet.dll;psapi.dll;comctl32.dll;SHELL32.dll;advapi32.dll;secur32.dll;imm32.dll;ole32.dll;d3dx9_43.dll;D3DCOMPILER_43.dll;WINMM.dll;AVRT.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll;</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
@@ -1983,7 +1983,7 @@ Exit 0</Command>
       <BaseAddress>
       </BaseAddress>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
-      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
       <TurnOffAssemblyGeneration>true</TurnOffAssemblyGeneration>
       <Profile>true</Profile>
       <ForceSymbolReferences>
@@ -2034,13 +2034,13 @@ Exit 0</Command>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ExceptionHandling>Async</ExceptionHandling>
       <OmitFramePointers>false</OmitFramePointers>
-      <StringPooling>true</StringPooling>
+      <StringPooling>false</StringPooling>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <SDLCheck>false</SDLCheck>
       <StructMemberAlignment>16Bytes</StructMemberAlignment>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
       <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED</UndefinePreprocessorDefinitions>
       <OpenMPSupport>false</OpenMPSupport>
     </ClCompile>
@@ -2050,7 +2050,7 @@ Exit 0</Command>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <DataExecutionPrevention>false</DataExecutionPrevention>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;wininet.dll;psapi.dll;comctl32.dll;SHELL32.dll;advapi32.dll;secur32.dll;imm32.dll;ole32.dll;d3dx9_43.dll;D3DCOMPILER_43.dll;WINMM.dll;AVRT.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll;</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
@@ -2063,14 +2063,14 @@ Exit 0</Command>
       <ImportLibrary>
       </ImportLibrary>
       <SetChecksum>true</SetChecksum>
-      <OptimizeReferences>true</OptimizeReferences>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>false</OptimizeReferences>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <AssemblyDebug>false</AssemblyDebug>
       <Profile>true</Profile>
       <BaseAddress>
       </BaseAddress>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
-      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
       <TurnOffAssemblyGeneration>true</TurnOffAssemblyGeneration>
       <ForceSymbolReferences>
       </ForceSymbolReferences>
@@ -2124,12 +2124,12 @@ Exit 0</Command>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ExceptionHandling>Async</ExceptionHandling>
       <OmitFramePointers>false</OmitFramePointers>
-      <StringPooling>true</StringPooling>
+      <StringPooling>false</StringPooling>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <SDLCheck>false</SDLCheck>
       <StructMemberAlignment>16Bytes</StructMemberAlignment>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
       <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED</UndefinePreprocessorDefinitions>
       <OpenMPSupport>false</OpenMPSupport>
       <WholeProgramOptimization>false</WholeProgramOptimization>
@@ -2140,7 +2140,7 @@ Exit 0</Command>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <DataExecutionPrevention>false</DataExecutionPrevention>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;wininet.dll;psapi.dll;comctl32.dll;SHELL32.dll;advapi32.dll;secur32.dll;imm32.dll;ole32.dll;d3dx9_43.dll;D3DCOMPILER_43.dll;WINMM.dll;AVRT.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll;</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
@@ -2153,13 +2153,13 @@ Exit 0</Command>
       <ImportLibrary>
       </ImportLibrary>
       <SetChecksum>true</SetChecksum>
-      <OptimizeReferences>true</OptimizeReferences>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>false</OptimizeReferences>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <AssemblyDebug>false</AssemblyDebug>
       <BaseAddress>
       </BaseAddress>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
-      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
       <TurnOffAssemblyGeneration>true</TurnOffAssemblyGeneration>
       <Profile>true</Profile>
       <ForceSymbolReferences>
@@ -2214,12 +2214,12 @@ Exit 0</Command>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ExceptionHandling>Async</ExceptionHandling>
       <OmitFramePointers>false</OmitFramePointers>
-      <StringPooling>true</StringPooling>
+      <StringPooling>false</StringPooling>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <SDLCheck>false</SDLCheck>
       <StructMemberAlignment>16Bytes</StructMemberAlignment>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
       <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED</UndefinePreprocessorDefinitions>
       <OpenMPSupport>false</OpenMPSupport>
       <WholeProgramOptimization>false</WholeProgramOptimization>
@@ -2227,15 +2227,15 @@ Exit 0</Command>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+      <OptimizeReferences>false</OptimizeReferences>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <AssemblyDebug>false</AssemblyDebug>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
       <DataExecutionPrevention>false</DataExecutionPrevention>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;wininet.dll;psapi.dll;comctl32.dll;SHELL32.dll;advapi32.dll;secur32.dll;imm32.dll;ole32.dll;d3dx9_43.dll;D3DCOMPILER_43.dll;WINMM.dll;AVRT.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll;</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
@@ -2251,7 +2251,7 @@ Exit 0</Command>
       <BaseAddress>
       </BaseAddress>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
-      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
       <TurnOffAssemblyGeneration>true</TurnOffAssemblyGeneration>
       <Profile>true</Profile>
       <ForceSymbolReferences>

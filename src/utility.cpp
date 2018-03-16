@@ -2607,7 +2607,7 @@ SK_DeferCommands (const char** szCommands, int count)
     unsigned int
     {
       SetCurrentThreadDescription (                      L"[SK] Async Command Processor" );
-      SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_LOWEST       );
+      SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_IDLE         );
 
       while (! ReadAcquire (&__SK_DLL_Ending))
       {

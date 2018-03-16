@@ -52,7 +52,7 @@ struct sk_config_t
 
   struct {
     bool   show           = false;
-    float  reserve        = 75.0f; // 75%
+    float  reserve        = 25.0f; // 25%
     float  interval       = 0.25f;
 
     struct {

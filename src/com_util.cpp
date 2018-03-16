@@ -370,7 +370,7 @@ SK_WMI_Init (void)
               unsigned int
               {
                 SetThreadPriority (
-                  SK_GetCurrentThread (), THREAD_PRIORITY_BELOW_NORMAL
+                  SK_GetCurrentThread (), THREAD_PRIORITY_IDLE
                 );
 
                 SK_AutoCOMInit auto_com;

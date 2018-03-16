@@ -126,11 +126,15 @@ static const DWORD priority_levels [] =
     THREAD_PRIORITY_HIGHEST, THREAD_PRIORITY_TIME_CRITICAL };
 
 #include <SpecialK/parameter.h>
+#include <unordered_set>
 
 struct SK_FFXV_Thread
 {
-  HANDLE hThread = INVALID_HANDLE_VALUE;
-  DWORD  dwPrio  = THREAD_PRIORITY_NORMAL;
+  ~SK_FFXV_Thread (void) { for ( auto && h : hThreads )
+                            CloseHandle (h); }
+
+  std::vector <HANDLE> hThreads;
+  volatile LONG        dwPrio = THREAD_PRIORITY_NORMAL;
 
   sk::ParameterInt* prio_cfg;
 
@@ -142,18 +146,78 @@ struct SK_FFXV_Thread
 extern iSK_INI*             dll_ini;
 extern sk::ParameterFactory g_ParameterFactory;
 
+#if 0
+using SleepConditionVariableCS_pfn = BOOL (WINAPI *)(PCONDITION_VARIABLE, PCRITICAL_SECTION, DWORD);
+SleepConditionVariableCS_pfn SleepConditionVariableCS_Original = nullptr;
+
+#include <SpecialK/hooks.h>
+#include <SpecialK/tls.h>
+#include <SpecialK/log.h>
+
+#define __SK_SUBSYSTEM__ L"FFXV_Fix"
+
+BOOL
+WINAPI
+SleepConditionVariableCS_Detour (
+  _Inout_ PCONDITION_VARIABLE ConditionVariable,
+  _Inout_ PCRITICAL_SECTION   CriticalSection,
+  _In_    DWORD               dwMilliseconds )
+{
+  extern float target_fps;
+  if (target_fps != 0.0f)
+  {
+    extern DWORD dwRenderThread;
+
+    if (GetCurrentThreadId () == dwRenderThread)
+    {
+      SK_LOG_FIRST_CALL
+
+      LeaveCriticalSection (CriticalSection);
+
+      //SleepConditionVariableCS_Original ( ConditionVariable, CriticalSection, 0 );
+
+      EnterCriticalSection (CriticalSection);
+
+      SetLastError (ERROR_TIMEOUT);
+
+      return 0;
+    }
+  }
+
+  return
+    SleepConditionVariableCS_Original ( ConditionVariable, CriticalSection, dwMilliseconds );
+}
+#endif
+
+
 void
 SK_FFXV_Thread::setup (void)
 {
-  if (hThread == INVALID_HANDLE_VALUE)
+  HANDLE hThread;
+
+  if ( DuplicateHandle ( (HANDLE)-1, (HANDLE)-2,
+                         (HANDLE)-1, &hThread,
+                         0, FALSE, DUPLICATE_SAME_ACCESS ) )
   {
+    hThreads.push_back (hThread);
+
     prio_cfg =
       dynamic_cast <sk::ParameterInt *> (
         g_ParameterFactory.create_parameter <int> (L"Thread Priority")
       );
 
+
     if (this == &sk_ffxv_swapchain) 
     {
+#if 0
+      SK_CreateDLLHook2 (      L"kernel32.dll",
+                                "SleepConditionVariableCS",
+                                 SleepConditionVariableCS_Detour,
+        static_cast_p2p <void> (&SleepConditionVariableCS_Original) );
+
+      SK_ApplyQueuedHooks ();
+#endif
+
       prio_cfg->register_to_ini ( dll_ini, L"FFXV.CPUFix", L"SwapChainPriority" );
     }
 
@@ -167,20 +231,26 @@ SK_FFXV_Thread::setup (void)
       prio_cfg->register_to_ini ( dll_ini, L"FFXV.DiskFix", L"AsyncFileRun" );
     }
 
+    else
+    {
+      return;
+    }
 
-    hThread = OpenThread ( THREAD_SET_INFORMATION,
-                             FALSE, GetCurrentThreadId () );
+    dwPrio = GetThreadPriority ( &hThread );
 
     int                  prio                       = 0;
     if ( prio_cfg->load (prio) && prio < 4 && prio >= 0 )
     {
-      dwPrio = priority_levels [prio];
+      InterlockedExchange ( &dwPrio, 
+                              priority_levels [prio] );
 
-      SetThreadPriority ( hThread, dwPrio );
+      for ( auto && h : hThreads )
+      {
+        SetThreadPriority ( h, ReadAcquire (&dwPrio) );
+      }
     }
   }
 }
-
 
 bool
 SK_FFXV_PlugInCfg (void)
@@ -209,21 +279,29 @@ SK_FFXV_PlugInCfg (void)
     {
       ImGui::PushID (name);
 
-      int idx = ( thread.dwPrio == priority_levels [0] ? 0 :
-                ( thread.dwPrio == priority_levels [1] ? 1 :
-                ( thread.dwPrio == priority_levels [2] ? 2 : 3 ) ) );
+      int idx = ( (int)thread.dwPrio == priority_levels [0] ? 0 :
+                ( (int)thread.dwPrio == priority_levels [1] ? 1 :
+                ( (int)thread.dwPrio == priority_levels [2] ? 2 : 3 ) ) );
 
-      if (thread.hThread != INVALID_HANDLE_VALUE)
+      if ( ! thread.hThreads.empty () )
       {
         if (ImGui::Combo (name, &idx, "Normal Priority\0Above Normal\0Highest\0Time Critical\0\0"))
         {
-          thread.dwPrio = priority_levels [idx];
-
-          SetThreadPriority ( thread.hThread, thread.dwPrio );
+          for ( auto && h : thread.hThreads )
+          {
+            InterlockedExchange ( &thread.dwPrio, priority_levels [idx]);
+            SetThreadPriority   ( h, ReadAcquire (&thread.dwPrio) );
+          }
 
           thread.prio_cfg->store ( idx );
                   dll_ini->write ( dll_ini->get_filename () );
         }
+
+
+        DWORD dwPrio = idx;
+        idx = ( dwPrio == priority_levels [0] ? 0 :
+              ( dwPrio == priority_levels [1] ? 1 :
+              ( dwPrio == priority_levels [2] ? 2 : 3 ) ) );
 
         if (ImGui::IsItemHovered ())
         {
@@ -249,11 +327,11 @@ SK_FFXV_PlugInCfg (void)
           ImGui::TreePop     (  );
           ImGui::EndTooltip  (  );
         }
-
-        return idx;
       }
 
       ImGui::PopID ();
+
+      return idx;
     };
 
     ImGui::BeginGroup ();
