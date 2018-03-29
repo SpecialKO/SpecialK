@@ -3383,6 +3383,25 @@ DispatchMessageA_Detour (_In_ const MSG *lpMsg)
   return DispatchMessageA_Original (lpMsg);
 }
 
+typedef HWND (WINAPI *GetActiveWindow_pfn)(void);
+GetActiveWindow_pfn GetActiveWindow_Original = nullptr;
+
+HWND
+WINAPI
+GetActiveWindow_Detour (void)
+{
+  SK_LOG_FIRST_CALL
+
+  if (config.window.background_render && config.window.treat_fg_as_active)
+  {
+    if (SK_GetCallingDLL () != SK_GetDLL ())
+      return game_window.hWnd;
+  }
+
+  return GetActiveWindow_Original ();
+}
+
+
 typedef HWND (WINAPI *GetForegroundWindow_pfn)(void);
 GetForegroundWindow_pfn GetForegroundWindow_Original = nullptr;
 
@@ -3394,7 +3413,7 @@ GetForegroundWindow_Detour (void)
 
   if (config.window.background_render && config.window.treat_fg_as_active)
   {
-    if (SK_GetCallingDLL () == GetModuleHandle (nullptr))
+    if (SK_GetCallingDLL () != SK_GetDLL ())
       return game_window.hWnd;
   }
 
@@ -5225,6 +5244,11 @@ SK_HookWinAPI (void)
                                "GetForegroundWindow",
                                 GetForegroundWindow_Detour,
        static_cast_p2p <void> (&GetForegroundWindow_Original) );
+
+    SK_CreateDLLHook2 (       L"user32.dll",
+                               "GetActiveWindow",
+                                GetActiveWindow_Detour,
+       static_cast_p2p <void> (&GetActiveWindow_Original) );
 
 
 #if 0

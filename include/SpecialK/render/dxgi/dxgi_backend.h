@@ -1020,8 +1020,8 @@ struct SK_D3D11_KnownShaders
     d3d11_shader_tracking_s                              tracked;
 
     struct {
-      std::unordered_map < ID3D11DeviceContext*, uint32_t>      shader;
-      std::unordered_map < ID3D11DeviceContext*,
+      concurrency::concurrent_unordered_map < ID3D11DeviceContext*, uint32_t>      shader;
+      concurrency::concurrent_unordered_map < ID3D11DeviceContext*,
                            std::array 
                              <ID3D11ShaderResourceView *, 128>> views;
     } current;

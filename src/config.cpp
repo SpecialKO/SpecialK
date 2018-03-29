@@ -1567,7 +1567,10 @@ SK_LoadConfigEx (std::wstring name, bool create)
         break;
 
       case SK_GAME_ID::NiNoKuni2:
-        config.window.treat_fg_as_active = true;
+        config.window.treat_fg_as_active      = true;
+
+        // Evaluate deferred command lists for state tracking
+        config.render.dxgi.deferred_isolation = true;
         break;
 
       case SK_GAME_ID::DragonBallFighterZ:

@@ -1860,13 +1860,13 @@ struct memory_tracking_s
       active_set;
 
     concurrency::concurrent_unordered_set <ID3D11Buffer *>&
-      index_buffers    = empty_set.index_buffers;
+      index_buffers    = active_set.index_buffers;
     concurrency::concurrent_unordered_set <ID3D11Buffer *>&
-      vertex_buffers   = empty_set.vertex_buffers;
+      vertex_buffers   = active_set.vertex_buffers;
     concurrency::concurrent_unordered_set <ID3D11Buffer *>&
-      constant_buffers = empty_set.constant_buffers;
+      constant_buffers = active_set.constant_buffers;
     concurrency::concurrent_unordered_set <ID3D11Resource *>&
-      mapped_resources = empty_set.mapped_resources;
+      mapped_resources = active_set.mapped_resources;
 
 
     std::atomic <uint32_t> map_types      [__types] = { };
@@ -1915,11 +1915,68 @@ struct target_tracking_s
       i = false;
     }
 
-    ref_vs.reserve (16); ref_ps.reserve (16);
-    ref_gs.reserve (8);
-    ref_hs.reserve (4);  ref_ds.reserve (4);
-    ref_cs.reserve (2);
+    //ref_vs.reserve (16); ref_ps.reserve (16);
+    //ref_gs.reserve (8);
+    //ref_hs.reserve (4);  ref_ds.reserve (4);
+    //ref_cs.reserve (2);
   };
+
+
+  struct refs_s {
+    concurrency::concurrent_unordered_set <uint32_t> ref_vs;
+    concurrency::concurrent_unordered_set <uint32_t> ref_ps;
+    concurrency::concurrent_unordered_set <uint32_t> ref_gs;
+    concurrency::concurrent_unordered_set <uint32_t> ref_hs;
+    concurrency::concurrent_unordered_set <uint32_t> ref_ds;
+    concurrency::concurrent_unordered_set <uint32_t> ref_cs;
+
+    // It is only safe to call this at the end of a frame
+    void clear_using ( refs_s& fresh )
+    {
+      //
+      // Swap-and-Discard a pre-allocated concurrent set, because
+      //   clearing any of the concurrency runtime containers causes heap
+      //     allocation even if the container was already empty!
+      //
+      if (ref_vs.size ())
+      {
+        std::swap (ref_vs, fresh.ref_vs);
+                           fresh.ref_vs.clear ();
+      }
+
+      if (ref_ps.size ())
+      {
+        std::swap (ref_ps, fresh.ref_ps);
+                           fresh.ref_ps.clear ();
+      }
+
+      if (ref_gs.size ())
+      {
+        std::swap (ref_gs, fresh.ref_gs);
+                           fresh.ref_gs.clear ();
+      }
+
+      if (ref_ds.size ())
+      {
+        std::swap (ref_ds, fresh.ref_ds);
+                           fresh.ref_ds.clear ();
+      }
+
+      if (ref_hs.size ())
+      {
+        std::swap (ref_hs, fresh.ref_hs);
+                           fresh.ref_hs.clear ();
+      }
+
+      if (ref_cs.size ())
+      {
+        std::swap (ref_cs, fresh.ref_cs);
+                           fresh.ref_cs.clear ();
+      }
+    }
+  } empty_set,
+    active_set;
+
 
   void clear (void)
   {
@@ -1928,16 +1985,9 @@ struct target_tracking_s
       i = false;
     }
 
-    std::lock_guard <SK_Thread_CriticalSection> auto_lock (cs_render_view);
-
     num_draws = 0;
 
-    ref_vs.clear ();
-    ref_ps.clear ();
-    ref_gs.clear ();
-    ref_hs.clear ();
-    ref_ds.clear ();
-    ref_cs.clear ();
+    active_set.clear_using (empty_set);
   }
 
   volatile ID3D11RenderTargetView*       resource     =  (ID3D11RenderTargetView *)INTPTR_MAX;
@@ -1945,12 +1995,18 @@ struct target_tracking_s
                                                       = { };
   std::atomic <uint32_t>                 num_draws    =     0;
 
-  std::unordered_set <uint32_t> ref_vs;
-  std::unordered_set <uint32_t> ref_ps;
-  std::unordered_set <uint32_t> ref_gs;
-  std::unordered_set <uint32_t> ref_hs;
-  std::unordered_set <uint32_t> ref_ds;
-  std::unordered_set <uint32_t> ref_cs;
+  concurrency::concurrent_unordered_set <uint32_t>& ref_vs =
+    active_set.ref_vs;
+  concurrency::concurrent_unordered_set <uint32_t>& ref_ps =
+    active_set.ref_ps;
+  concurrency::concurrent_unordered_set <uint32_t>& ref_gs =
+    active_set.ref_gs;
+  concurrency::concurrent_unordered_set <uint32_t>& ref_hs =
+    active_set.ref_hs;
+  concurrency::concurrent_unordered_set <uint32_t>& ref_ds =
+    active_set.ref_ds;
+  concurrency::concurrent_unordered_set <uint32_t>& ref_cs =
+    active_set.ref_cs;
 } tracked_rtv;
 
 ID3D11Texture2D* tracked_texture               = nullptr;
@@ -2002,6 +2058,12 @@ d3d11_shader_tracking_s::activate ( ID3D11DeviceContext        *pDevContext,
 
   else
     return;
+
+
+  // Figure out the proper way to deal with this later...
+  if (pDevContext->GetType () == D3D11_DEVICE_CONTEXT_DEFERRED)
+    return;
+
 
   CComPtr <ID3D11Device>        dev     = nullptr;
   CComPtr <ID3D11DeviceContext> dev_ctx = nullptr;
@@ -2080,6 +2142,7 @@ d3d11_shader_tracking_s::deactivate (void)
 
   else
     return;
+
 
   CComPtr <ID3D11Device>        dev     = nullptr;
   CComPtr <ID3D11DeviceContext> dev_ctx = nullptr;
@@ -3431,9 +3494,9 @@ D3D11_VSSetShaderResources_Override (
     std::lock_guard <SK_Thread_CriticalSection> auto_lock (cs_shader_vs);
 
     auto&& views =
-          SK_D3D11_Shaders.vertex.current.views.try_emplace (This);
+          SK_D3D11_Shaders.vertex.current.views [This];
     auto&& stage =
-      d3d11_shader_stages [VERTEX_SHADER_STAGE].try_emplace (This);
+      d3d11_shader_stages [VERTEX_SHADER_STAGE] [This];
 
     d3d11_shader_tracking_s& tracked =
       SK_D3D11_Shaders.vertex.tracked;
@@ -3443,7 +3506,7 @@ D3D11_VSSetShaderResources_Override (
 
     for (UINT i = 0; i < NumViews; i++)
     {
-      if (SK_D3D11_ActivateSRVOnSlot (stage.first->second,
+      if (SK_D3D11_ActivateSRVOnSlot (stage,
                                              ppShaderResourceViews [i], StartSlot + i))
         newResourceViews [i] =               ppShaderResourceViews [i];
       else
@@ -3454,8 +3517,7 @@ D3D11_VSSetShaderResources_Override (
             tracked.set_of_views.emplace (ppShaderResourceViews [i]);
                                           ppShaderResourceViews [i]->AddRef (); }
             tracked.used_views.push_back (ppShaderResourceViews [i]);           }
-                  views.first->second 
-                        [StartSlot + i] = ppShaderResourceViews [i];
+                  views [StartSlot + i] = ppShaderResourceViews [i];
     }
   }
 
@@ -3487,9 +3549,9 @@ D3D11_PSSetShaderResources_Override (
     std::lock_guard <SK_Thread_CriticalSection> auto_lock (cs_shader_ps);
 
     auto&& views =
-          SK_D3D11_Shaders.pixel.current.views.try_emplace (This);
+          SK_D3D11_Shaders.pixel.current.views [This];
     auto&& stage =
-      d3d11_shader_stages [PIXEL_SHADER_STAGE].try_emplace (This);
+      d3d11_shader_stages [PIXEL_SHADER_STAGE] [This];
 
     d3d11_shader_tracking_s& tracked =
       SK_D3D11_Shaders.pixel.tracked;
@@ -3499,7 +3561,7 @@ D3D11_PSSetShaderResources_Override (
 
     for (UINT i = 0; i < NumViews; i++)
     {
-      if (SK_D3D11_ActivateSRVOnSlot (stage.first->second,
+      if (SK_D3D11_ActivateSRVOnSlot (stage,
                                           ppShaderResourceViews [i], StartSlot + i))
         newResourceViews [i] =            ppShaderResourceViews [i];
       else
@@ -3510,8 +3572,7 @@ D3D11_PSSetShaderResources_Override (
             tracked.set_of_views.emplace (ppShaderResourceViews [i]);
                                           ppShaderResourceViews [i]->AddRef (); }
             tracked.used_views.push_back (ppShaderResourceViews [i]);           }
-                  views.first->second 
-                        [StartSlot + i] = ppShaderResourceViews [i];
+                  views [StartSlot + i] = ppShaderResourceViews [i];
     }
   }
 
@@ -3542,9 +3603,9 @@ D3D11_GSSetShaderResources_Override (
     std::lock_guard <SK_Thread_CriticalSection> auto_lock (cs_shader_gs);
 
     auto&& views =
-          SK_D3D11_Shaders.geometry.current.views.try_emplace (This);
+          SK_D3D11_Shaders.geometry.current.views [This];
     auto&& stage =
-      d3d11_shader_stages [GEOMETRY_SHADER_STAGE].try_emplace (This);
+      d3d11_shader_stages [GEOMETRY_SHADER_STAGE] [This];
 
     d3d11_shader_tracking_s& tracked =
       SK_D3D11_Shaders.geometry.tracked;
@@ -3554,7 +3615,7 @@ D3D11_GSSetShaderResources_Override (
 
     for (UINT i = 0; i < NumViews; i++)
     {
-      if (SK_D3D11_ActivateSRVOnSlot (stage.first->second,
+      if (SK_D3D11_ActivateSRVOnSlot (stage,
                                           ppShaderResourceViews [i], StartSlot + i))
         newResourceViews [i] =            ppShaderResourceViews [i];
       else
@@ -3565,8 +3626,7 @@ D3D11_GSSetShaderResources_Override (
             tracked.set_of_views.emplace (ppShaderResourceViews [i]);
                                           ppShaderResourceViews [i]->AddRef (); }
             tracked.used_views.push_back (ppShaderResourceViews [i]);           }
-                  views.first->second 
-                        [StartSlot + i] = ppShaderResourceViews [i];
+                  views [StartSlot + i] = ppShaderResourceViews [i];
     }
   }
 
@@ -3597,9 +3657,9 @@ D3D11_HSSetShaderResources_Override (
     std::lock_guard <SK_Thread_CriticalSection> auto_lock (cs_shader_hs);
 
     auto&& views =
-          SK_D3D11_Shaders.hull.current.views.try_emplace (This);
+          SK_D3D11_Shaders.hull.current.views[This];
     auto&& stage =
-      d3d11_shader_stages [HULL_SHADER_STAGE].try_emplace (This);
+      d3d11_shader_stages [HULL_SHADER_STAGE][This];
 
     d3d11_shader_tracking_s& tracked =
       SK_D3D11_Shaders.hull.tracked;
@@ -3609,7 +3669,7 @@ D3D11_HSSetShaderResources_Override (
 
     for (UINT i = 0; i < NumViews; i++)
     {
-      if (SK_D3D11_ActivateSRVOnSlot (stage.first->second,
+      if (SK_D3D11_ActivateSRVOnSlot (stage,
                                           ppShaderResourceViews [i], StartSlot + i))
         newResourceViews [i] =            ppShaderResourceViews [i];
       else
@@ -3620,8 +3680,7 @@ D3D11_HSSetShaderResources_Override (
             tracked.set_of_views.emplace (ppShaderResourceViews [i]);
                                           ppShaderResourceViews [i]->AddRef (); }
             tracked.used_views.push_back (ppShaderResourceViews [i]);           }
-                  views.first->second 
-                        [StartSlot + i] = ppShaderResourceViews [i];
+                  views [StartSlot + i] = ppShaderResourceViews [i];
     }
   }
 
@@ -3652,9 +3711,9 @@ D3D11_DSSetShaderResources_Override (
     std::lock_guard <SK_Thread_CriticalSection> auto_lock (cs_shader_ds);
 
     auto&& views =
-          SK_D3D11_Shaders.domain.current.views.try_emplace (This);
+          SK_D3D11_Shaders.domain.current.views [This];
     auto&& stage =
-      d3d11_shader_stages [DOMAIN_SHADER_STAGE].try_emplace (This);
+      d3d11_shader_stages [DOMAIN_SHADER_STAGE] [This];
 
     d3d11_shader_tracking_s& tracked =
       SK_D3D11_Shaders.domain.tracked;
@@ -3664,7 +3723,7 @@ D3D11_DSSetShaderResources_Override (
 
     for (UINT i = 0; i < NumViews; i++)
     {
-      if (SK_D3D11_ActivateSRVOnSlot (stage.first->second,
+      if (SK_D3D11_ActivateSRVOnSlot (stage,
                                           ppShaderResourceViews [i], StartSlot + i))
         newResourceViews [i] =            ppShaderResourceViews [i];
       else
@@ -3675,8 +3734,7 @@ D3D11_DSSetShaderResources_Override (
             tracked.set_of_views.emplace (ppShaderResourceViews [i]);
                                           ppShaderResourceViews [i]->AddRef (); }
             tracked.used_views.push_back (ppShaderResourceViews [i]);           }
-                  views.first->second 
-                        [StartSlot + i] = ppShaderResourceViews [i];
+                  views [StartSlot + i] = ppShaderResourceViews [i];
     }
   }
 
@@ -3707,9 +3765,9 @@ D3D11_CSSetShaderResources_Override (
     std::lock_guard <SK_Thread_CriticalSection> auto_lock (cs_shader_cs);
 
     auto&& views =
-          SK_D3D11_Shaders.compute.current.views.try_emplace (This);
+          SK_D3D11_Shaders.compute.current.views [This];
     auto&& stage =
-      d3d11_shader_stages [COMPUTE_SHADER_STAGE].try_emplace (This);
+      d3d11_shader_stages [COMPUTE_SHADER_STAGE] [This];
 
     d3d11_shader_tracking_s& tracked =
       SK_D3D11_Shaders.compute.tracked;
@@ -3719,7 +3777,7 @@ D3D11_CSSetShaderResources_Override (
 
     for (UINT i = 0; i < NumViews; i++)
     {
-      if (SK_D3D11_ActivateSRVOnSlot (stage.first->second,
+      if (SK_D3D11_ActivateSRVOnSlot (stage,
                                           ppShaderResourceViews [i], StartSlot + i))
         newResourceViews [i] =            ppShaderResourceViews [i];
       else
@@ -3730,8 +3788,7 @@ D3D11_CSSetShaderResources_Override (
             tracked.set_of_views.emplace (ppShaderResourceViews [i]);
                                           ppShaderResourceViews [i]->AddRef (); }
             tracked.used_views.push_back (ppShaderResourceViews [i]);           }
-                  views.first->second 
-                        [StartSlot + i] = ppShaderResourceViews [i];
+                  views [StartSlot + i] = ppShaderResourceViews [i];
     }
   }
 
@@ -4927,23 +4984,27 @@ SK_D3D11_DrawHandler (ID3D11DeviceContext* pDevCtx)
   if (pTLS->imgui.drawing)
     return false;
 
-  auto HashFromCtx = [&]( std::unordered_map < ID3D11DeviceContext*, uint32_t>& registry,
-                          ID3D11DeviceContext*                                  pCtx ) ->
+  auto HashFromCtx = []( concurrency::concurrent_unordered_map <ID3D11DeviceContext*, uint32_t>* registry,
+                         ID3D11DeviceContext*                                                    pCtx ) ->
   uint32_t
   {
-    const auto& it = registry.find (pCtx);
+    if (registry->empty ())
+      return 0;
 
-    if (it != registry.cend ())
+    const auto it =
+      registry->find (pCtx);
+
+    if (it != registry->cend ())
       return it->second;
 
     return 0;
   };
 
-  uint32_t current_vs = HashFromCtx (SK_D3D11_Shaders.vertex.current.shader,   pDevCtx);
-  uint32_t current_ps = HashFromCtx (SK_D3D11_Shaders.pixel.current.shader,    pDevCtx);
-  uint32_t current_gs = HashFromCtx (SK_D3D11_Shaders.geometry.current.shader, pDevCtx);
-  uint32_t current_hs = HashFromCtx (SK_D3D11_Shaders.hull.current.shader,     pDevCtx);
-  uint32_t current_ds = HashFromCtx (SK_D3D11_Shaders.domain.current.shader,   pDevCtx);
+  uint32_t current_vs = HashFromCtx (&SK_D3D11_Shaders.vertex.current.shader,   pDevCtx);
+  uint32_t current_ps = HashFromCtx (&SK_D3D11_Shaders.pixel.current.shader,    pDevCtx);
+  uint32_t current_gs = HashFromCtx (&SK_D3D11_Shaders.geometry.current.shader, pDevCtx);
+  uint32_t current_hs = HashFromCtx (&SK_D3D11_Shaders.hull.current.shader,     pDevCtx);
+  uint32_t current_ds = HashFromCtx (&SK_D3D11_Shaders.domain.current.shader,   pDevCtx);
 
 
   auto TriggerReShade_Before = [&]
