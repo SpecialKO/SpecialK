@@ -670,7 +670,7 @@ void WaitForInitDXGI (void)
   SK_Thread_SpinUntilFlagged (&__dxgi_ready);
 }
 
-unsigned int __stdcall HookDXGI (LPVOID user);
+DWORD __stdcall HookDXGI (LPVOID user);
 
 #define D3D_FEATURE_LEVEL_12_0 0xc000
 #define D3D_FEATURE_LEVEL_12_1 0xc100
@@ -833,10 +833,10 @@ SKX_D3D11_EnableFullscreen (bool bFullscreen)
 }
 
 extern
-unsigned int __stdcall HookD3D11                   (LPVOID user);
+DWORD __stdcall HookD3D11                   (LPVOID user);
 
-void                   SK_DXGI_HookPresent         (IDXGISwapChain* pSwapChain);
-void         WINAPI    SK_DXGI_SetPreferredAdapter (int override_id);
+void            SK_DXGI_HookPresent         (IDXGISwapChain* pSwapChain);
+void  WINAPI    SK_DXGI_SetPreferredAdapter (int override_id);
 
 
 enum SK_DXGI_ResType {
@@ -995,7 +995,7 @@ SK_DXGI_BeginHooking (void)
   {
 #if 1
     //HANDLE hHookInitDXGI =
-      _beginthreadex ( nullptr,
+      CreateThread ( nullptr,
                          0,
                            HookDXGI,
                              nullptr,
@@ -6177,7 +6177,7 @@ SK_DXGI_InitHooksBeforePlugIn (void)
     SK_ApplyQueuedHooks ();
 }
 
-unsigned int
+DWORD
 __stdcall
 HookDXGI (LPVOID user)
 {
@@ -6475,7 +6475,7 @@ SK::DXGI::StartBudgetThread ( IDXGIAdapter** ppAdapter )
 
       budget_thread.handle =
         (HANDLE)
-        _beginthreadex
+        CreateThread
           ( nullptr,
               0,
                 BudgetThread,
@@ -6680,7 +6680,7 @@ const uint32_t
   BUDGET_POLL_INTERVAL = 133UL; // How often to sample the budget
                                 //  in msecs
 
-unsigned int
+DWORD
 WINAPI
 SK::DXGI::BudgetThread ( LPVOID user_data )
 {
@@ -6709,7 +6709,7 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
   SK_AutoCOMInit auto_com;
 
 
-  SetThreadPriority ( SK_GetCurrentThread (), THREAD_PRIORITY_IDLE );
+  SetThreadPriority ( SK_GetCurrentThread (), THREAD_PRIORITY_LOWEST );
 
   while ( ReadAcquire ( &params->ready ) )
   {

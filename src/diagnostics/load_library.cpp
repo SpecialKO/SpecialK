@@ -1686,7 +1686,7 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
       SK_WalkModules (cbNeeded, hProc, working_set->modules, when);
     }
 
-    _beginthreadex (nullptr, 0, [](LPVOID user) -> unsigned int
+    CreateThread (nullptr, 0, [](LPVOID user) -> DWORD
     {
       SetCurrentThreadDescription (L"[SK] DLL Enumeration Thread");
 

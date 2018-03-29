@@ -420,7 +420,7 @@ SK_BootDI7 (void)
 
 //#define SPAWN_THREAD
 #ifdef SPAWN_THREAD
-_beginthreadex (nullptr, 0x00, [](LPVOID/*user*/) -> DWORD
+CreateThread (nullptr, 0x00, [](LPVOID/*user*/) -> DWORD
 {
 UNREFERENCED_PARAMETER (user);
 #endif

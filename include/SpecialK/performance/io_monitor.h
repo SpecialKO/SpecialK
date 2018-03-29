@@ -154,9 +154,9 @@ struct pagefile_perf_t : WMI_refresh_thread_t
 };
 
 
-unsigned int WINAPI SK_MonitorCPU      (LPVOID user);
-unsigned int WINAPI SK_MonitorDisk     (LPVOID user);
-unsigned int WINAPI SK_MonitorPagefile (LPVOID user);
+DWORD WINAPI SK_MonitorCPU      (LPVOID user);
+DWORD WINAPI SK_MonitorDisk     (LPVOID user);
+DWORD WINAPI SK_MonitorPagefile (LPVOID user);
 
 cpu_perf_t&      __SK_WMI_CPUStats      (void);
 disk_perf_t&     __SK_WMI_DiskStats     (void);

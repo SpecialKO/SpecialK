@@ -121,7 +121,7 @@ SK_LSBTS_PlugInCfg (void)
 }
 
 
-static const DWORD priority_levels [] =
+static const int priority_levels [] =
   { THREAD_PRIORITY_NORMAL,  THREAD_PRIORITY_ABOVE_NORMAL,
     THREAD_PRIORITY_HIGHEST, THREAD_PRIORITY_TIME_CRITICAL };
 
@@ -360,6 +360,11 @@ SK_FFXV_PlugInCfg (void)
         ImGui::Text ("");
     }
     ImGui::EndGroup (  );
+    ImGui::SameLine (  );
+
+    extern bool fix_sleep_0;
+    ImGui::Checkbox ("Sleep (0) --> SwitchToThread ()", &fix_sleep_0);
+
     ImGui::TreePop  (  );
 
     return true;

@@ -95,7 +95,7 @@ ResetEvent_Detour (
   {
     SK_RunOnce (dll_log.Log ( L"[DebugUtils] Invalid handle passed to ResetEvent (...) - %s",
                                SK_SummarizeCaller ().c_str () ));
-    return TRUE;
+    return FALSE;
   }
 
   return ResetEvent_Original (hEvent);
@@ -316,7 +316,8 @@ NtSetInformationThread_Detour (
                   GetThreadId (ThreadHandle) ),
                 L"AntiAntiDbg" );
 
-    SuspendThread (ThreadHandle);
+    if (config.system.log_level > 1)
+      SuspendThread (ThreadHandle);
 
     return STATUS_SUCCESS;
   }
@@ -350,7 +351,9 @@ NtCreateThreadEx_Detour (
   if ( CreateFlags & THREAD_CREATE_FLAGS_HIDE_FROM_DEBUGGER )
   {
     CreateFlags &= ~THREAD_CREATE_FLAGS_HIDE_FROM_DEBUGGER;
-    CreateFlags |=  THREAD_CREATE_FLAGS_CREATE_SUSPENDED;
+
+    if (config.system.log_level > 1)
+      CreateFlags |=  THREAD_CREATE_FLAGS_CREATE_SUSPENDED;
 
     SK_LOG0 ( ( L"Tried to begin a debugger-hidden thread; punish it by starting visible and suspended!",
                   GetThreadId (ThreadHandle) ),
@@ -390,6 +393,10 @@ IsDebuggerPresent_Detour (void)
   
     if ((! killed_ffxv) && GetThreadPriority (SK_GetCurrentThread ()) == THREAD_PRIORITY_LOWEST)
     {
+      SK_LOG0 ( ( L"Anti-Debug Detected (tid=%x)",
+                    GetCurrentThreadId () ),
+                  L"AntiAntiDbg");
+
       //SuspendThread   (SK_GetCurrentThread ());
       TerminateThread (SK_GetCurrentThread (), 0x00);
       killed_ffxv    = SK_Thread_CloseSelf ();

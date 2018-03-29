@@ -547,9 +547,9 @@ SK_ImGui_ControlPanelTitle (void)
 void
 SK_ImGui_AdjustCursor (void)
 {
-  _beginthreadex ( nullptr, 0,
+  CreateThread ( nullptr, 0,
     [](LPVOID)->
-    unsigned int
+    DWORD
     {
       SetCurrentThreadDescription (L"[SK] Cursor Adjustment Thread");
 

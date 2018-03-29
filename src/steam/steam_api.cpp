@@ -3125,7 +3125,7 @@ void SK::SteamAPI::Pump (void)
 
 HANDLE hSteamPump = nullptr;
 
-unsigned int
+DWORD
 WINAPI
 SteamAPI_PumpThread (LPVOID user)
 {
@@ -3210,7 +3210,7 @@ SK_Steam_StartPump (bool force)
       force ? (LPVOID)1 : nullptr;
 
     InterlockedCompareExchangePointer ( &hSteamPump, (HANDLE)
-                            _beginthreadex ( nullptr,
+                            CreateThread ( nullptr,
                                                0,
                                                  SteamAPI_PumpThread,
                                                    start_params,
@@ -3611,8 +3611,8 @@ SK_Steam_ScrubRedistributables (int& total_files, bool erase)
     params.erase       = erase;
 
     HANDLE hScrub = (HANDLE)
-    _beginthreadex (nullptr, 0, [](LPVOID) ->
-    unsigned int
+    CreateThread (nullptr, 0, [](LPVOID) ->
+    DWORD
     {
       DWORD dwStart = timeGetTime ();
 
@@ -3858,9 +3858,9 @@ SteamAPI_Shutdown_Detour (void)
 
   steam_ctx.Shutdown           ();
 
-  _beginthreadex (nullptr, 0,
+  CreateThread (nullptr, 0,
     [](LPVOID) ->
-    unsigned int
+    DWORD
     {
       SetCurrentThreadDescription (L"[SK] SteamAPI Restart Thread");
 
@@ -4012,7 +4012,7 @@ SK_Steam_InitCommandConsoleVariables (void)
   steam_ctx.tbf_pirate_fun = SK_CreateVar (SK_IVariable::Float, &steam_ctx.tbf_float, &steam_ctx);
 }
 
-unsigned int
+DWORD
 WINAPI
 SteamAPI_Delay_Init (LPVOID)
 {
@@ -4126,7 +4126,7 @@ SK_HookSteamAPI (void)
          (! SK_RecursiveFileSearch (SK_GetHostPath (), L"SteamNative.dll").empty  ())
        )
     {
-      _beginthreadex (nullptr, 0, SteamAPI_Delay_Init, nullptr, 0x00, nullptr);
+      CreateThread (nullptr, 0, SteamAPI_Delay_Init, nullptr, 0x00, nullptr);
     }
 
     InterlockedIncrement (&__SteamAPI_hook);
@@ -4839,8 +4839,8 @@ SK_SteamAPIContext::OnFileDetailsDone ( FileDetailsResult_t* pParam,
   //   the result immediately... so do not destroy the game's performance
   //     by blocking at startup!
   //
-  _beginthreadex (nullptr, 0, [](LPVOID user) ->
-    unsigned int
+  CreateThread (nullptr, 0, [](LPVOID user) ->
+    DWORD
     {
       SetCurrentThreadDescription (L"[SK] Steam File Validation Thread");
 

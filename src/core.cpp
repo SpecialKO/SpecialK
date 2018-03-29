@@ -251,7 +251,7 @@ SK_StartPerfMonThreads (void)
   auto SpawnMonitorThread =
   []( volatile HANDLE                 *phThread,
       const    wchar_t                *wszName,
-             _beginthreadex_proc_type  pThunk ) ->
+               LPTHREAD_START_ROUTINE  pThunk ) ->
   bool
   {
     if ( InterlockedCompareExchangePointer (phThread, nullptr, INVALID_HANDLE_VALUE) ==
@@ -261,7 +261,7 @@ SK_StartPerfMonThreads (void)
 
       InterlockedExchangePointer ( (void **)phThread,
         (HANDLE)
-        _beginthreadex ( nullptr,
+        CreateThread ( nullptr,
                            0,
                              pThunk,
                                nullptr,
@@ -690,10 +690,10 @@ SK_InitFinishCallback (void)
 
   // NvAPI takes an excessively long time to startup and we don't need it
   //   immediately...
-  _beginthreadex (nullptr, 0, [](LPVOID) -> unsigned int
+  CreateThread (nullptr, 0, [](LPVOID) -> DWORD
   {
     SetCurrentThreadDescription (    L"[SK] GPU Vendor Support Library Thread" );
-    SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_IDLE );
+    SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_LOWEST );
 
     SleepEx (5, FALSE);
 
@@ -708,7 +708,7 @@ SK_InitFinishCallback (void)
 }
 
 
-unsigned int
+DWORD
 WINAPI
 CheckVersionThread (LPVOID)
 {
@@ -735,7 +735,7 @@ CheckVersionThread (LPVOID)
 }
 
 
-unsigned int
+DWORD
 WINAPI
 DllThread (LPVOID user)
 {
@@ -743,6 +743,7 @@ DllThread (LPVOID user)
 
   SetCurrentThreadDescription (                 L"[SK] Primary Initialization Thread" );
   SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_TIME_CRITICAL );
+  SetThreadPriorityBoost      ( SK_GetCurrentThread (), TRUE                          );
 
   auto* params =
     static_cast <init_params_s *> (user);
@@ -1157,7 +1158,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
     // For the global injector, when not started by SKIM, check its version
     if ( (SK_IsInjected () && (! SK_IsSuperSpecialK ())) )
-      _beginthreadex (nullptr, 0, CheckVersionThread, nullptr, 0x00, nullptr);
+      CreateThread (nullptr, 0, CheckVersionThread, nullptr, 0x00, nullptr);
 
     // Don't let Steam prevent me from attaching a debugger at startup
     game_debug.init                  (L"logs/game_output.log", L"w");
@@ -1424,7 +1425,7 @@ BACKEND_INIT:
     }
 
 
-    _beginthreadex (nullptr, 0x00, [](LPVOID) -> unsigned int
+    CreateThread (nullptr, 0x00, [](LPVOID) -> DWORD
     {
       SetCurrentThreadDescription (                          L"[SK] Init Cleanup Thread" );
       SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_BELOW_NORMAL );
@@ -1452,7 +1453,7 @@ BACKEND_INIT:
 
     InterlockedExchangePointer (
       const_cast <void **> (&hInitThread), (HANDLE)
-        _beginthreadex ( nullptr,
+        CreateThread ( nullptr,
                            0,
                              DllThread,
                                &init_,
@@ -2290,13 +2291,19 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
   SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
-  assert (    rb.thread == GetCurrentThreadId () ||
-           LastKnownAPI == SK_RenderAPI::Reserved );
+  assert ( ReadAcquire (&rb.thread) == GetCurrentThreadId () ||
+           LastKnownAPI             == SK_RenderAPI::Reserved );
 
-  rb.thread = GetCurrentThreadId ();
+  InterlockedExchange (&rb.thread, GetCurrentThreadId ());
 
   if (device != nullptr && LastKnownAPI != rb.api)
   {
+    SK_LOG0 ( ( L"SwapChain Presentation Thread has Priority=%i",
+                GetThreadPriority (SK_GetCurrentThread ()) ),
+                L"RenderBack" );
+
+    SK_RunOnce (SetThreadPriority ( SK_GetCurrentThread (), THREAD_PRIORITY_ABOVE_NORMAL ));
+
     CComPtr <IDirect3DDevice9>   pDev9   = nullptr;
     CComPtr <IDirect3DDevice9Ex> pDev9Ex = nullptr;
     CComPtr <ID3D11Device>       pDev11  = nullptr;

@@ -365,13 +365,11 @@ SK_WMI_Init (void)
 
     InterlockedExchangePointer (&COM::base.wmi.hServerThread,
       (HANDLE)
-        _beginthreadex ( nullptr, 0,
+        CreateThread ( nullptr, 0,
               [](LPVOID) ->
-              unsigned int
+              DWORD
               {
-                SetThreadPriority (
-                  SK_GetCurrentThread (), THREAD_PRIORITY_IDLE
-                );
+                SK_Thread_SetCurrentPriority (THREAD_PRIORITY_BELOW_NORMAL);
 
                 SK_AutoCOMInit auto_com;
 

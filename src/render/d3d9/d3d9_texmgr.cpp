@@ -654,7 +654,7 @@ SK::D3D9::TextureWorkerThread::TextureWorkerThread (SK::D3D9::TextureThreadPool*
     CreateEvent (nullptr, FALSE, FALSE, nullptr);
 
   thread_ =
-    (HANDLE)_beginthreadex ( nullptr,
+    (HANDLE)CreateThread ( nullptr,
                                0,
                                  ThreadProc,
                                    this,
@@ -3020,7 +3020,7 @@ ResampleTexture (TexLoadRequest* load)
   return hr;
 }
 
-unsigned int
+DWORD
 __stdcall
 SK::D3D9::TextureWorkerThread::ThreadProc (LPVOID user)
 {
@@ -3201,7 +3201,7 @@ SK::D3D9::TextureWorkerThread::ThreadProc (LPVOID user)
   return 0;
 }
 
-unsigned int
+DWORD
 __stdcall
 SK::D3D9::TextureThreadPool::Spooler (LPVOID user)
 {
@@ -3738,7 +3738,7 @@ SK::D3D9::TextureThreadPool::postJob (TexLoadRequest* job)
   if (! spool_thread_)
   {
     spool_thread_ =
-      (HANDLE)_beginthreadex ( nullptr,
+      (HANDLE)CreateThread ( nullptr,
                                  0,
                                    Spooler,
                                      this,

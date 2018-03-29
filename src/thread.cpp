@@ -215,4 +215,26 @@ SK_Thread_InitDebugExtras (void)
   return false;
 }
 
+// Returns TRUE if the call required a change to priority level
+BOOL
+__stdcall
+SK_Thread_SetCurrentPriority (int prio)
+{
+  if (SK_Thread_GetCurrentPriority () != prio)
+  {
+    return SetThreadPriority (SK_GetCurrentThread (), prio);
+  }
+
+  return FALSE;
+}
+
+
+int
+__stdcall
+SK_Thread_GetCurrentPriority (void)
+{
+  return GetThreadPriority (SK_GetCurrentThread ());
+}
+
+
 } /* extern "C" */

@@ -19,6 +19,7 @@
  *
 **/
 
+#include <SpecialK/render/backend.h>
 #include <SpecialK/render/dxgi/dxgi_backend.h>
 
 #include <SpecialK/performance/gpu_monitor.h>
@@ -57,7 +58,7 @@ static HANDLE hPollEvent     = nullptr;
 static HANDLE hShutdownEvent = nullptr;
 static HANDLE hPollThread    = nullptr;
 
-unsigned int
+DWORD
 __stdcall
 SK_GPUPollingThread (LPVOID user)
 {
@@ -69,7 +70,15 @@ SK_GPUPollingThread (LPVOID user)
   };
 
   SetCurrentThreadDescription (     L"[SK] GPU Performance Monitoring Thread");
-  SetThreadPriority           (SK_GetCurrentThread (), THREAD_PRIORITY_LOWEST);
+
+  //
+  // Start normal, we will adjust the priority to match the thread handling swapchain
+  //   presentation later on.
+  //
+  //  Matching priority levels reduces potential performance problems caused if
+  //    NvAPI or ADL acquire / release locks.
+  //
+  SK_Thread_SetCurrentPriority (THREAD_PRIORITY_NORMAL);
 
   while (true)
   {
@@ -81,6 +90,28 @@ SK_GPUPollingThread (LPVOID user)
 
     else if (dwWait != WAIT_OBJECT_0)
       break;
+
+
+    CHandle hSwapChainThread (
+      OpenThread ( THREAD_ALL_ACCESS,
+                     FALSE,
+                       ReadAcquire (&SK_GetCurrentRenderBackend ().thread)
+                 )
+    );
+
+    if ( hSwapChainThread.m_h != 0 )
+    {
+      if ( SK_Thread_GetCurrentPriority () != 
+           GetThreadPriority (hSwapChainThread) )
+      {
+        SK_LOG0 ( ( "Matching priority between GPU perf. data collection and swapchain threads (new prio=%i)",
+                      GetThreadPriority (hSwapChainThread) ),
+                  L" GPU Mon. " );
+
+        SK_Thread_SetCurrentPriority (GetThreadPriority (hSwapChainThread));
+      }
+    }
+
 
     if (InterlockedCompareExchange (&current_gpu_stat, TRUE, FALSE))
         InterlockedCompareExchange (&current_gpu_stat, FALSE, TRUE);
@@ -512,7 +543,7 @@ SK_PollGPU (void)
     hShutdownEvent = CreateEvent    (nullptr, FALSE, FALSE, nullptr);
     hPollEvent     = CreateEvent    (nullptr, TRUE,  FALSE, nullptr);
     hPollThread    = (HANDLE)
-                     _beginthreadex (nullptr, 0, SK_GPUPollingThread, nullptr, 0x00, nullptr);
+                     CreateThread (nullptr, 0, SK_GPUPollingThread, nullptr, 0x00, nullptr);
   }
 
   SYSTEMTIME     update_time;

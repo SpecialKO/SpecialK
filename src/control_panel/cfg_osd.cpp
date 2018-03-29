@@ -63,7 +63,7 @@ SK::ControlPanel::OSD::DrawVideoCaptureOptions (void)
 
       // Automated recovery in case changing this setting blows stuff up.
       //
-      _beginthreadex (nullptr, 0, [](LPVOID toggle) -> unsigned int
+      CreateThread (nullptr, 0, [](LPVOID toggle) -> DWORD
       {
         toggle_state_s* pToggle = (toggle_state_s *)toggle;
 

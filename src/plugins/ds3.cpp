@@ -313,7 +313,7 @@ SK_SetPluginName (std::wstring name);
 //     draw the first frame.
 volatile LONG __SUS_init = FALSE;
 
-unsigned int
+DWORD
 __stdcall
 SK_DS3_CheckVersion (LPVOID user)
 {
@@ -512,7 +512,7 @@ SK_DS3_GetMonitorDims (void)
   return dims;
 }
 
-unsigned int
+DWORD
 __stdcall
 SK_DS3_CenterWindow_Thread (LPVOID user)
 {
@@ -557,7 +557,7 @@ SK_DS3_CenterWindow_Thread (LPVOID user)
   return 0;
 }
 
-unsigned int
+DWORD
 __stdcall
 SK_DS3_FinishResize_Thread (LPVOID user)
 {
@@ -592,7 +592,7 @@ SK_DS3_FinishResize (void)
 {
   // It is not safe to do this stuff from the render or message pump thread,
   //   so always spawn a worker thread to do it. This prevents deadlocks.
-  _beginthreadex ( nullptr,
+  CreateThread ( nullptr,
                     0,
                       SK_DS3_FinishResize_Thread,
                         nullptr,
@@ -605,7 +605,7 @@ SK_DS3_CenterWindow (void)
 {
   // It is not safe to do this stuff from the render or message pump thread,
   //   so always spawn a worker thread to do it. This prevents deadlocks.
-  _beginthreadex ( nullptr,
+  CreateThread ( nullptr,
                     0,
                       SK_DS3_CenterWindow_Thread,
                         nullptr,
@@ -1355,7 +1355,7 @@ SK_DS3_PluginKeyPress ( BOOL Control,
                                                                                   return 0; }, nullptr, 0x0, nullptr); \
 };
 
-unsigned int
+DWORD
 __stdcall
 SK_DS3_FullscreenToggle_Thread (LPVOID user)
 {
@@ -1439,7 +1439,7 @@ SK_DS3_PresentFirstFrame ( IDXGISwapChain *This,
     //
     if (ds3_cfg.render.fullscreen)
     {
-      _beginthreadex ( nullptr,
+      CreateThread ( nullptr,
                          0,
                            SK_DS3_FullscreenToggle_Thread,
                              nullptr,

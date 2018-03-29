@@ -304,14 +304,18 @@ SKX_WaitForCBTHookShutdown (void)
     if ( hShutdown != INVALID_HANDLE_VALUE && (! SK_IsHostAppSKIM ()) )
     {
       SetThreadPriority      ( SK_GetCurrentThread (),
-                               THREAD_PRIORITY_IDLE         );
-      SetThreadPriorityBoost ( SK_GetCurrentThread (), TRUE );
+                               THREAD_PRIORITY_ABOVE_NORMAL );
 
 #ifdef NOT_SANE_SCHEDULING
       for (int i = 0; i < 16; i++)
         if (WaitForSingleObject (hShutdown, 25UL) == WAIT_OBJECT_0) break;
 #else
-      WaitForSingleObject ( hShutdown, INFINITE );
+      DWORD dwWaitState = 0;
+
+      do {
+        dwWaitState =
+          WaitForSingleObject (hShutdown, INFINITE);
+      } while (dwWaitState != WAIT_OBJECT_0);
 #endif
     }
   }
@@ -327,8 +331,8 @@ CBTProc ( _In_ int    nCode,
 
   if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
   {
-    _beginthreadex (nullptr, 0,
-    [ ](LPVOID) -> unsigned int
+    CreateThread (nullptr, 0,
+    [ ](LPVOID) -> DWORD
      {
        InterlockedIncrement (&injected_procs);
 
@@ -482,9 +486,9 @@ RunDLL_InjectionManager ( HWND  hwnd,        HINSTANCE hInst,
         //    thread creation is a result
         HANDLE hThread = 
           (HANDLE)
-          _beginthreadex ( nullptr, 0,
+          CreateThread ( nullptr, 0,
            [](LPVOID user) ->
-             unsigned int
+             DWORD
                {
                  SKX_WaitForCBTHookShutdown ();
 

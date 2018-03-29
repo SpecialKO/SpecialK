@@ -226,7 +226,7 @@ using ChangeDisplaySettingsW_pfn = LONG (WINAPI *)(
 extern EnumDisplaySettingsW_pfn   EnumDisplaySettingsW_Original;
 extern ChangeDisplaySettingsW_pfn ChangeDisplaySettingsW_Original;
 
-unsigned int
+DWORD
 __stdcall
 SK_FO4_RealizeFullscreenBorderless (LPVOID user)
 {
@@ -395,7 +395,7 @@ SK_FO4_PresentFirstFrame ( IDXGISwapChain *This,
       static_cast_p2p <void> (&SK_DetourWindowProc_Original) );
     SK_EnableHook (SK_DetourWindowProc);
 
-    _beginthreadex ( nullptr,
+    CreateThread ( nullptr,
                        0,
                          SK_FO4_RealizeFullscreenBorderless,
                            (LPVOID)This,

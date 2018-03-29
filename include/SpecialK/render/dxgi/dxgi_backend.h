@@ -281,7 +281,7 @@ namespace SK
 
     void    ShutdownBudgetThread        (void);
 
-    unsigned int
+    DWORD
     WINAPI
     BudgetThread (LPVOID user_data);
   }
@@ -1281,7 +1281,7 @@ void  __stdcall SK_D3D11_PreLoadTextures    (void);
 void  __stdcall SK_D3D11_TexCacheCheckpoint (void);
 bool  __stdcall SK_D3D11_TextureIsCached    (ID3D11Texture2D*     pTex);
 void  __stdcall SK_D3D11_UseTexture         (ID3D11Texture2D*     pTex);
-void  __stdcall SK_D3D11_RemoveTexFromCache (ID3D11Texture2D*     pTex, bool blacklist = false);
+bool  __stdcall SK_D3D11_RemoveTexFromCache (ID3D11Texture2D*     pTex, bool blacklist = false);
 void  __stdcall SK_D3D11_PresentFirstFrame  (IDXGISwapChain*      pSwapChain);
 
 
@@ -1291,7 +1291,7 @@ void  __stdcall SK_D3D11_UpdateRenderStats  (IDXGISwapChain*      pSwapChain);
 BOOL SK_DXGI_SupportsTearing  (void);
 void SK_CEGUI_QueueResetD3D11 (void);
 
-unsigned int
+DWORD
 __stdcall
 HookD3D11 (LPVOID user);
 

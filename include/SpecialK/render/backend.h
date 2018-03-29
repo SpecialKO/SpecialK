@@ -201,7 +201,7 @@ public:
   //   This is the thread that handles SwapChain Presentation;
   //     nothing else can safely be inferred about this thread.
   //
-  DWORD                   thread       = 0;
+  volatile LONG           thread       = 0;
   CRITICAL_SECTION        cs_res       = { };
 
 

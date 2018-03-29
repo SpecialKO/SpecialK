@@ -462,11 +462,11 @@ public:
   protected:
     static volatile LONG  num_threads_init;
   
-    static unsigned int __stdcall ThreadProc (LPVOID user);
+    static DWORD __stdcall ThreadProc (LPVOID user);
   
     TextureThreadPool*    pool_;
   
-    unsigned int          thread_id_;
+    DWORD                 thread_id_;
     HANDLE                thread_;
   
     TexLoadRequest*       job_;
@@ -609,7 +609,7 @@ public:
   
   
   protected:
-    static unsigned int __stdcall Spooler (LPVOID user);
+    static DWORD __stdcall Spooler (LPVOID user);
   
     TexLoadRequest* getNextJob   (void)
     {

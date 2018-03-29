@@ -1017,6 +1017,9 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds)
   }
 }
 
+bool
+fix_sleep_0 = true;
+
 void
 WINAPI
 Sleep_Detour (DWORD dwMilliseconds)
@@ -1027,6 +1030,19 @@ Sleep_Detour (DWORD dwMilliseconds)
   //       Steam first!
   if (SK_GetFramesDrawn () < 30)
     return Sleep_Original (dwMilliseconds);
+
+  //if (dwMilliseconds == 0) { dll_log.Log (L"Sleep (0) from thread with priority=%lu", GetThreadPriority (GetCurrentThread ())); }
+  if (dwMilliseconds == 0 && fix_sleep_0)
+  {
+    static int Switches = 0;
+
+    if ((Switches++ % 8) != 0)
+    {
+      SwitchToThread ();
+
+      return;
+    }
+  }
 
   //
   // 0 is a special case that only yields if there are waiting threads at the

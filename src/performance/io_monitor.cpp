@@ -139,11 +139,11 @@ SK_CountIO (io_perf_t& ioc, const double update)
 }
 
 
-unsigned int
+DWORD
 WINAPI
 SK_MonitorCPU (LPVOID user_param)
 {
-  SetThreadPriority ( SK_GetCurrentThread (), THREAD_PRIORITY_LOWEST );
+  SK_Thread_SetCurrentPriority (THREAD_PRIORITY_BELOW_NORMAL);
 
   SK_WMI_WaitForInit ();
 
@@ -502,11 +502,11 @@ CPU_CLEANUP:
 }
 
 
-unsigned int
+DWORD
 WINAPI
 SK_MonitorDisk (LPVOID user)
 {
-  SetThreadPriority ( SK_GetCurrentThread (), THREAD_PRIORITY_LOWEST );
+  SK_Thread_SetCurrentPriority (THREAD_PRIORITY_BELOW_NORMAL);
 
   SK_WMI_WaitForInit ();
 
@@ -920,11 +920,11 @@ DISK_CLEANUP:
 
 
 
-unsigned int
+DWORD
 WINAPI
 SK_MonitorPagefile (LPVOID user)
 {
-  SetThreadPriority ( SK_GetCurrentThread (), THREAD_PRIORITY_LOWEST );
+  SK_Thread_SetCurrentPriority (THREAD_PRIORITY_BELOW_NORMAL);
 
   SK_WMI_WaitForInit ();
 
@@ -1250,11 +1250,11 @@ PAGEFILE_CLEANUP:
 
 
 
-unsigned int
+DWORD
 WINAPI
 SK_MonitorProcess (LPVOID user)
 {
-  SetThreadPriority ( SK_GetCurrentThread (), THREAD_PRIORITY_LOWEST );
+  SK_Thread_SetCurrentPriority (THREAD_PRIORITY_BELOW_NORMAL);
 
   SK_WMI_WaitForInit ();
 

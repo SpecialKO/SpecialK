@@ -65,6 +65,8 @@ static DWORD         dwFrameTime = SK::ControlPanel::current_time; // For effect
 #include <../depends/include/nvapi/nvapi.h>
 
 
+// Only accessed by the swapchain thread and only to clear any outstanding
+//   references prior to a buffer resize
 std::vector <IUnknown *> temp_resources;
 
 SK_Thread_HybridSpinlock cs_shader      (0xcafe);
@@ -285,8 +287,8 @@ struct resample_dispatch_s
 
       InterlockedIncrement (&active_workers);
 
-      _beginthreadex ( nullptr, 0, [](LPVOID) ->
-      unsigned int
+      CreateThread ( nullptr, 0, [](LPVOID) ->
+      DWORD
       {
         SetCurrentThreadDescription (L"[SK] D3D11 Texture Resampling Thread");
 
@@ -743,16 +745,27 @@ IUnknown_Release (IUnknown* This)
 
   if (! SK_D3D11_IsTexInjectThread ())
   {
-    ID3D11Texture2D* pTex = nullptr;
+    ID3D11Texture2D* pTex = (ID3D11Texture2D *)This;
 
-    if (SUCCEEDED (This->QueryInterface <ID3D11Texture2D> (&pTex)))
+    LONG count =
+      IUnknown_AddRef_Original  (pTex);
+      IUnknown_Release_Original (pTex);
+
+    // If count is == 0, something's screwy
+    if (pTex != nullptr && count <= (config.textures.cache.merge_mode ? 3 : 2))
     {
-      ULONG count =
+      if (SK_D3D11_RemoveTexFromCache (pTex))
+      {
+        if (count < 2)
+          SK_LOG0 ( ( L"Unexpected reference count: %lu", count ), L"DX11TexMgr" );
+
         IUnknown_Release_Original (pTex);
 
-      // If count is == 0, something's screwy
-      if (pTex != nullptr && count <= 1)
-        SK_D3D11_RemoveTexFromCache (pTex);
+        if (count == 3)
+        {
+          return pTex->Release ();
+        }
+      }
     }
   }
 
@@ -4914,25 +4927,23 @@ SK_D3D11_DrawHandler (ID3D11DeviceContext* pDevCtx)
   if (pTLS->imgui.drawing)
     return false;
 
-  uint32_t current_vs = SK_D3D11_Shaders.vertex.current.shader.empty ()        ? 0 :
-                        SK_D3D11_Shaders.vertex.current.shader.count (pDevCtx) ?
-                        SK_D3D11_Shaders.vertex.current.shader       [pDevCtx] : 0;
+  auto HashFromCtx = [&]( std::unordered_map < ID3D11DeviceContext*, uint32_t>& registry,
+                          ID3D11DeviceContext*                                  pCtx ) ->
+  uint32_t
+  {
+    const auto& it = registry.find (pCtx);
 
-  uint32_t current_ps = SK_D3D11_Shaders.pixel.current.shader.empty ()        ? 0 :
-                        SK_D3D11_Shaders.pixel.current.shader.count (pDevCtx) ?
-                        SK_D3D11_Shaders.pixel.current.shader       [pDevCtx] : 0;
+    if (it != registry.cend ())
+      return it->second;
 
-  uint32_t current_gs = SK_D3D11_Shaders.geometry.current.shader.empty ()        ? 0 :
-                        SK_D3D11_Shaders.geometry.current.shader.count (pDevCtx) ?
-                        SK_D3D11_Shaders.geometry.current.shader       [pDevCtx] : 0;
+    return 0;
+  };
 
-  uint32_t current_hs = SK_D3D11_Shaders.hull.current.shader.empty ()        ? 0 :
-                        SK_D3D11_Shaders.hull.current.shader.count (pDevCtx) ?
-                        SK_D3D11_Shaders.hull.current.shader       [pDevCtx] : 0;
-
-  uint32_t current_ds = SK_D3D11_Shaders.domain.current.shader.empty ()        ? 0 :
-                        SK_D3D11_Shaders.domain.current.shader.count (pDevCtx) ?
-                        SK_D3D11_Shaders.domain.current.shader       [pDevCtx] : 0;
+  uint32_t current_vs = HashFromCtx (SK_D3D11_Shaders.vertex.current.shader,   pDevCtx);
+  uint32_t current_ps = HashFromCtx (SK_D3D11_Shaders.pixel.current.shader,    pDevCtx);
+  uint32_t current_gs = HashFromCtx (SK_D3D11_Shaders.geometry.current.shader, pDevCtx);
+  uint32_t current_hs = HashFromCtx (SK_D3D11_Shaders.hull.current.shader,     pDevCtx);
+  uint32_t current_ds = HashFromCtx (SK_D3D11_Shaders.domain.current.shader,   pDevCtx);
 
 
   auto TriggerReShade_Before = [&]
@@ -6214,12 +6225,12 @@ SK_D3D11_UseTexture (ID3D11Texture2D* pTex)
   }
 }
 
-void
+bool
 __stdcall
 SK_D3D11_RemoveTexFromCache (ID3D11Texture2D* pTex, bool blacklist)
 {
   if (! SK_D3D11_TextureIsCached (pTex))
-    return;
+    return false;
 
   if (pTex != nullptr)
   {
@@ -6254,6 +6265,8 @@ SK_D3D11_RemoveTexFromCache (ID3D11Texture2D* pTex, bool blacklist)
 
   // Lightweight signal that something changed and a purge may be needed
   SK_D3D11_Textures.LastModified_2D = SK_QueryPerf ().QuadPart;
+
+  return true;
 }
 
 void
@@ -10654,7 +10667,7 @@ D3D11Dev_GetImmediateContext_Override (
 extern
 unsigned int __stdcall HookD3D12                   (LPVOID user);
 
-unsigned int
+DWORD
 __stdcall
 HookD3D11 (LPVOID user)
 {

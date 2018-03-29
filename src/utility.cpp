@@ -2602,9 +2602,9 @@ SK_DeferCommands (const char** szCommands, int count)
   {     InterlockedExchangePointer        ((void **)&hCommandThread,
 
     (HANDLE)
-    _beginthreadex   ( nullptr, 0x00,
+    CreateThread   ( nullptr, 0x00,
     [](LPVOID) ->
-    unsigned int
+    DWORD
     {
       SetCurrentThreadDescription (                      L"[SK] Async Command Processor" );
       SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_IDLE         );
