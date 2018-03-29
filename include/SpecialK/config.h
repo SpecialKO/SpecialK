@@ -357,6 +357,7 @@ struct sk_config_t
       bool    allow_staging       = false;
       bool    allow_unsafe_refs   = false; // Allow texture caching even in engines that
                                            //   are not correctly keeping track of resources
+      bool    merge_mode          = false;
     } cache;
 
     bool highlight_debug_tex      = false;
@@ -480,6 +481,7 @@ struct sk_config_t
     bool    fullscreen          = false;
     int     always_on_top       = 0;
     bool    disable_screensaver = false;
+    bool    treat_fg_as_active  = false; // Compat. hack for NiNoKuni 2
     struct {
       struct {
         unsigned int x          = 0;
@@ -684,6 +686,7 @@ enum class SK_GAME_ID
   SecretOfMana,                 // Secret_of_Mana.exe
   FinalFantasyXV,               // ffxv*.exe
   DragonBallFighterZ,           // DBFighterZ.exe
+  NiNoKuni2,                    // Nino2.exe
   UNKNOWN_GAME               = 0xffff
 };
 

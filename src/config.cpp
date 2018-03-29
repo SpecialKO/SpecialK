@@ -329,6 +329,7 @@ struct {
     sk::ParameterBool*    ignore_non_mipped;
     sk::ParameterBool*    allow_staging;
     sk::ParameterBool*    allow_unsafe_refs;
+    sk::ParameterBool*    merge_mode;
   } cache;
     sk::ParameterStringW* res_root;
     sk::ParameterBool*    dump_on_load;
@@ -869,6 +870,8 @@ SK_LoadConfigEx (std::wstring name, bool create)
     ConfigEntry (texture.cache.allow_staging,            L"Enable texture caching/dumping/injecting staged textures",  dll_ini,         L"Textures.Cache",        L"AllowStaging"),
     ConfigEntry (texture.cache.allow_unsafe_refs,        L"For games with broken resource reference counting, allow"
                                                          L" textures to be cached anyway (needed for injection).",     dll_ini,         L"Textures.Cache",        L"AllowUnsafeRefCounting"),
+    ConfigEntry (texture.cache.merge_mode,               L"Cache will only prevent duplicate uploads, never retain "
+                                                         L"unloads; makes the max_size setting meaningless.",          dll_ini,         L"Textures.Cache",        L"MergeOnlyMode"),
 
 
     ConfigEntry (nvidia.api.disable,                     L"Disable NvAPI",                                             dll_ini,         L"NVIDIA.API",            L"Disable"),
@@ -1220,6 +1223,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
   games.emplace ( L"dis1_st.exe",                            SK_GAME_ID::DisgaeaPC                    );
   games.emplace ( L"Secret_of_Mana.exe",                     SK_GAME_ID::SecretOfMana                 );
   games.emplace ( L"DBFighterZ.exe",                         SK_GAME_ID::DragonBallFighterZ           );
+  games.emplace ( L"Nino2.exe",                              SK_GAME_ID::NiNoKuni2                    );
 
   //
   // Application Compatibility Overrides
@@ -1551,14 +1555,19 @@ SK_LoadConfigEx (std::wstring name, bool create)
         //     this feature to improve performance and compat.
         config.render.dxgi.present_test_skip = true;
 
-        config.textures.d3d11.cache          = false;
+        config.textures.d3d11.cache          = true;
         config.textures.cache.max_entries    = 262144; // Uses a ton of small textures
+        config.textures.cache.merge_mode     = true;
 
         // Don't show the cursor, ever, because the game doesn't use it.
         config.input.cursor.manage           = true;
         config.input.cursor.timeout          = 0;
 
         InterlockedExchange (&SK_SteamAPI_CallbackRateLimit, 8);
+        break;
+
+      case SK_GAME_ID::NiNoKuni2:
+        config.window.treat_fg_as_active = true;
         break;
 
       case SK_GAME_ID::DragonBallFighterZ:
@@ -1662,6 +1671,10 @@ SK_LoadConfigEx (std::wstring name, bool create)
   render.framerate.sleepless_render->load   (config.render.framerate.sleepless_render);
   render.framerate.sleepless_window->load   (config.render.framerate.sleepless_window);
   render.framerate.enable_mmcss->load       (config.render.framerate.enable_mmcss);
+
+  extern float target_fps;
+
+  target_fps = config.render.framerate.target_fps;
 
   render.framerate.control.busy_wait->load  (config.render.framerate.busy_wait_limiter);
   render.framerate.control.yield_once->load (config.render.framerate.yield_once);
@@ -1898,6 +1911,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
   texture.cache.ignore_non_mipped->load (config.textures.cache.ignore_nonmipped);
   texture.cache.allow_staging->load     (config.textures.cache.allow_staging);
   texture.cache.allow_unsafe_refs->load (config.textures.cache.allow_unsafe_refs);
+  texture.cache.merge_mode->load        (config.textures.cache.merge_mode);
 
   extern void WINAPI SK_DXGI_SetPreferredAdapter (int override_id);
 
@@ -2676,6 +2690,7 @@ SK_SaveConfig ( std::wstring name,
       texture.cache.ignore_non_mipped->store      (config.textures.cache.ignore_nonmipped);
       texture.cache.allow_staging->store          (config.textures.cache.allow_staging);
       texture.cache.allow_unsafe_refs->store      (config.textures.cache.allow_unsafe_refs);
+      texture.cache.merge_mode->store             (config.textures.cache.merge_mode);
 
       wsprintf ( wszFormattedRes, L"%lux%lu",
                    config.render.dxgi.res.max.x,

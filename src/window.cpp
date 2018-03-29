@@ -1555,9 +1555,9 @@ SK_CenterWindowAtMouse (BOOL remember_pos)
   static volatile LONG               __busy = FALSE;
   if (! InterlockedCompareExchange (&__busy, TRUE, FALSE))
   {
-    _beginthreadex ( nullptr, 0,
+    CreateThread ( nullptr, 0,
     [](LPVOID user) ->
-    unsigned int
+    DWORD
     {
       SetCurrentThreadDescription (L"[SK] Window Center Thread");
 
@@ -2610,9 +2610,9 @@ SK_Window_RepositionIfNeeded (void)
   static volatile LONG               __busy = FALSE;
   if (! InterlockedCompareExchange (&__busy, TRUE, FALSE))
   {
-    _beginthreadex (nullptr, 0,
+    CreateThread (nullptr, 0,
     [](LPVOID) ->
-    unsigned int
+    DWORD
     {
       SetCurrentThreadDescription (L"[SK] Window Reposition Thread");
 
@@ -3382,6 +3382,25 @@ DispatchMessageA_Detour (_In_ const MSG *lpMsg)
 
   return DispatchMessageA_Original (lpMsg);
 }
+
+typedef HWND (WINAPI *GetForegroundWindow_pfn)(void);
+GetForegroundWindow_pfn GetForegroundWindow_Original = nullptr;
+
+HWND
+WINAPI
+GetForegroundWindow_Detour (void)
+{
+  SK_LOG_FIRST_CALL
+
+  if (config.window.background_render && config.window.treat_fg_as_active)
+  {
+    if (SK_GetCallingDLL () == GetModuleHandle (nullptr))
+      return game_window.hWnd;
+  }
+
+  return GetForegroundWindow_Original ();
+}
+
 
 
 #include <SpecialK/render/backend.h>
@@ -5201,6 +5220,11 @@ SK_HookWinAPI (void)
                                "GetSystemMetrics",
                                 GetSystemMetrics_Detour,
        static_cast_p2p <void> (&GetSystemMetrics_Original) );
+
+    SK_CreateDLLHook2 (       L"user32.dll",
+                               "GetForegroundWindow",
+                                GetForegroundWindow_Detour,
+       static_cast_p2p <void> (&GetForegroundWindow_Original) );
 
 
 #if 0
