@@ -195,6 +195,12 @@ GetCommandLineW_Detour (void)
     return    wszFakeOut;
   }
 
+  if (SK_GetCurrentGameID () == SK_GAME_ID::FarCry5)
+  {
+    lstrcatW (wszFakeOut, L" -eac_launcher");
+    return    wszFakeOut;
+  }
+
 #ifdef _DEBUG
   if (_wcsicmp (wszFakeOut, GetCommandLineW_Original ()))
     dll_log.Log (L"GetCommandLineW () ==> %ws", GetCommandLineW_Original ());
@@ -210,6 +216,22 @@ WINAPI
 GetCommandLineA_Detour (void)
 {
   SK_LOG_FIRST_CALL
+
+  static
+  char szFakeOut [MAX_PATH * 4] = { };
+
+  if (*szFakeOut != L'\0')
+    return szFakeOut;
+
+  lstrcpyA (szFakeOut, "\"");
+  lstrcatA (szFakeOut, SK_WideCharToUTF8 (SK_GetFullyQualifiedApp ()).c_str ());
+  lstrcatA (szFakeOut, "\"");
+
+  if (SK_GetCurrentGameID () == SK_GAME_ID::FarCry5)
+  {
+    lstrcatA (szFakeOut, " -eac_launcher");
+    return    szFakeOut;
+  }
 
   return GetCommandLineA_Original ();
 }

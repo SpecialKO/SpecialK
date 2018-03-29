@@ -834,6 +834,58 @@ SK_SuspendAllOtherThreads (void)
   return threads;
 }
 
+std::queue <DWORD>
+SK_SuspendAllThreadsExcept (std::set <DWORD> exempt_tids)
+{
+  std::queue <DWORD> threads;
+
+  CHandle hSnap (
+    CreateToolhelp32Snapshot (TH32CS_SNAPTHREAD, 0)
+  );
+
+  if (hSnap != INVALID_HANDLE_VALUE)
+  {
+    THREADENTRY32 tent        = {                  };
+                  tent.dwSize = sizeof THREADENTRY32;
+
+    if (Thread32First (hSnap, &tent))
+    {
+      //bool locked = 
+      //  dll_log.lock ();
+
+      do
+      {
+        if ( tent.dwSize >= FIELD_OFFSET (THREADENTRY32, th32OwnerProcessID) +
+                                  sizeof (tent.th32OwnerProcessID) )
+        {
+          if ( (! exempt_tids.count (tent.th32ThreadID)) &&
+                                     tent.th32ThreadID       != GetCurrentThreadId  () &&
+                                     tent.th32OwnerProcessID == GetCurrentProcessId () )
+          {
+            CHandle hThread (
+              OpenThread (THREAD_SUSPEND_RESUME, FALSE, tent.th32ThreadID)
+            );
+
+            if (hThread != nullptr)
+            {
+              threads.push  (tent.th32ThreadID);
+
+              SuspendThread (hThread);
+            }
+          }
+        }
+
+        tent.dwSize = sizeof (tent);
+      } while (Thread32Next (hSnap, &tent));
+
+      //if (locked)
+      //  dll_log.unlock ();
+    }
+  }
+
+  return threads;
+}
+
 void
 SK_ResumeThreads (std::queue <DWORD> threads)
 {

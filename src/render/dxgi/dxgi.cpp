@@ -2471,7 +2471,7 @@ SK_DXGI_TestSwapChainCreationFlags (DWORD dwFlags)
 {
   if ( (dwFlags & DXGI_SWAP_CHAIN_FLAG_FULLSCREEN_VIDEO)   ||
        (dwFlags & DXGI_SWAP_CHAIN_FLAG_YUV_VIDEO)          ||
-       (dwFlags & DXGI_SWAP_CHAIN_FLAG_RESTRICTED_CONTENT) ||
+      ( dwFlags & DXGI_SWAP_CHAIN_FLAG_RESTRICTED_CONTENT ) ||
        (dwFlags & DXGI_SWAP_CHAIN_FLAG_FOREGROUND_LAYER) )
   {
     static bool logged = false;

@@ -1224,6 +1224,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
   games.emplace ( L"Secret_of_Mana.exe",                     SK_GAME_ID::SecretOfMana                 );
   games.emplace ( L"DBFighterZ.exe",                         SK_GAME_ID::DragonBallFighterZ           );
   games.emplace ( L"Nino2.exe",                              SK_GAME_ID::NiNoKuni2                    );
+  games.emplace ( L"FarCry5.exe",                            SK_GAME_ID::FarCry5                      );
 
   //
   // Application Compatibility Overrides
@@ -1568,9 +1569,11 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
       case SK_GAME_ID::NiNoKuni2:
         config.window.treat_fg_as_active      = true;
+        config.window.background_render       = true;
 
         // Evaluate deferred command lists for state tracking
         config.render.dxgi.deferred_isolation = true;
+        // BE CAREFUL, this is only safe for texture mods at the moment
         break;
 
       case SK_GAME_ID::DragonBallFighterZ:

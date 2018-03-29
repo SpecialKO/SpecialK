@@ -1,4 +1,33 @@
+0.9.10:
+
+  + Dynamically adjust NvAPI monitoring thread priority to prevent rare hitching
+      when the render thread's priority is != NORMAL
+  + Added various options to make Ni No Kuni 2 less annoying; refer to control panel
+  + Rolled up all of the changes from the standalone FFXV version (0.9.9)
+
+
 0.9.9:
+
+ (.15): Add logging of unexpected ref. counts on texture data to locate FFXV leaks
+ (.14): TargetFPS applied at startup again
+ (.13): Add merge mode to texture cache -- only prevents duplicate resources
+ (.12): Sleep(0) on render thread -> SwitchToThread(); useful for i5 users
+ (.11): Workaround for threads that try to skip attach notifications and corrupt TLS
+ (.10): Alternate compiler options for better support with Ansel -- again
+ (.8): Add persistent storage of settings introduced in .6, and explain them
+        [They are actually applied when the engine starts said thread now]
+
+ (.6): Add options for thread scheduling; can lower render and VSYNC threads
+         to help people with fewer CPU cores in FFXV
+
+ (.5): Anti-Debug Workaround for FFXV
+
+ (.3): Correctly packed 64-bit version of CEGUI into 64-bit builds :P
+
+ (.2): Fixed floating ImGui widgets not saving position in osd.ini
+ (.1): Fix issue preventing Special K from identifying and assigning its own
+         threads their initial priority (all were running NORMAL but most are
+           designed to run at lower priority).
 
  + Disabled compiler options known to cause problems with Ansel; forced to
      replace them with options known to cause issues with MSI Nahimic.

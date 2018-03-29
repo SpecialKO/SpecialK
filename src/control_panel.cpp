@@ -1889,7 +1889,13 @@ SK_ImGui_ControlPanel (void)
       {
         extern bool SK_FFXV_PlugInCfg (void);
                     SK_FFXV_PlugInCfg ();
-      }
+      } break;
+
+      case SK_GAME_ID::NiNoKuni2:
+      { 
+        extern bool SK_NNK2_PlugInCfg (void);
+                    SK_NNK2_PlugInCfg ();
+      } break;
     };
 #endif
 

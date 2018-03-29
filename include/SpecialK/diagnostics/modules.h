@@ -147,7 +147,7 @@ public:
     LONG refs =
       ReadAcquire (&refs_);
 
-    assert ( refs == 0        || refs == 1              );
+    assert ( refs == 0        || refs <= 2              );
     //       Pinned / Unowned || Owned and About to Die
     //          ... then there's you
 
@@ -239,14 +239,12 @@ private:
   {
     MODULEINFO mod_info = { };
 
-SK_DBG_ONLY (
-    BOOL bHasValidInfo =
-            )
+    //BOOL bHasValidInfo =
       GetModuleInformation (
         GetCurrentProcess (), hMod, &mod_info, sizeof MODULEINFO
       );
 
-    assert (bHasValidInfo); // WTF?
+    //assert (bHasValidInfo); // WTF?
 
     return
       _loaded_libraries.emplace (hMod,

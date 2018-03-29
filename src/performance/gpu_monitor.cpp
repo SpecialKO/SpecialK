@@ -159,6 +159,8 @@ SK_GPUPollingThread (LPVOID user)
 
       for (int i = 0; i < stats.num_gpus; i++)
       {
+        SwitchToThread ();
+
         NvPhysicalGpuHandle gpu = { };
 
         // In order for DXGI Adapter info to match up... don't just assign
@@ -179,16 +181,6 @@ SK_GPUPollingThread (LPVOID user)
 
         if (status == NVAPI_OK)
         {
-#ifdef SMOOTH_GPU_UPDATES
-          stats.gpus [i].loads_percent.gpu = (stats.gpus [i].loads_percent.gpu +
-           psinfoex.utilization [NVAPI_GPU_UTILIZATION_DOMAIN_GPU].percentage) / 2;
-          stats.gpus [i].loads_percent.fb  = (stats.gpus [i].loads_percent.fb +
-            psinfoex.utilization [NVAPI_GPU_UTILIZATION_DOMAIN_FB].percentage) / 2;
-          stats.gpus [i].loads_percent.vid = (stats.gpus [i].loads_percent.vid +
-            psinfoex.utilization [NVAPI_GPU_UTILIZATION_DOMAIN_VID].percentage) / 2;
-          stats.gpus [i].loads_percent.bus = (stats.gpus [i].loads_percent.bus +
-            psinfoex.utilization [NVAPI_GPU_UTILIZATION_DOMAIN_BUS].percentage) / 2;
-#else
           stats.gpus [i].loads_percent.gpu =
             psinfoex.utilization [NVAPI_GPU_UTILIZATION_DOMAIN_GPU].percentage;
           stats.gpus [i].loads_percent.fb =
@@ -197,19 +189,22 @@ SK_GPUPollingThread (LPVOID user)
             psinfoex.utilization [NVAPI_GPU_UTILIZATION_DOMAIN_VID].percentage;
           stats.gpus [i].loads_percent.bus =
             psinfoex.utilization [NVAPI_GPU_UTILIZATION_DOMAIN_BUS].percentage;
-#endif
         }
+
+
+        static bool has_thermal = true;
 
         NV_GPU_THERMAL_SETTINGS thermal = { };
         thermal.version = NV_GPU_THERMAL_SETTINGS_VER;
 
-        status = NvAPI_GPU_GetThermalSettings == nullptr ?
-                   NVAPI_ERROR :
+        status = ( NvAPI_GPU_GetThermalSettings == nullptr ||
+                   (! has_thermal) )                        ?
+                                                NVAPI_ERROR :
                  NvAPI_GPU_GetThermalSettings (gpu,
                                                NVAPI_THERMAL_TARGET_ALL,
                                                &thermal);
 
-        
+
         if (status == NVAPI_OK)
         {
           for (NvU32 j = 0; j < std::min (3UL, thermal.count); j++)
@@ -229,6 +224,10 @@ SK_GPUPollingThread (LPVOID user)
 #endif
           }
         }
+
+        else has_thermal = false;
+
+        SwitchToThread ();
 
         NvU32 pcie_lanes = 0;
         if (            NvAPI_GPU_GetCurrentPCIEDownstreamWidth != nullptr &&
@@ -289,6 +288,8 @@ SK_GPUPollingThread (LPVOID user)
             stats.gpus [i].memory_B.total - stats.gpus [i].memory_B.local;
         }
 
+        SwitchToThread ();
+
         NV_GPU_CLOCK_FREQUENCIES freq           = {                          };
                                  freq.version   = NV_GPU_CLOCK_FREQUENCIES_VER;
                                  freq.ClockType = NV_GPU_CLOCK_FREQUENCIES_CURRENT_FREQ;
@@ -303,6 +304,8 @@ SK_GPUPollingThread (LPVOID user)
           ////stats.gpus [i].clocks_kHz.shader =
             ////freq.domain [NVAPI_GPU_PUBLIC_CLOCK_PROCESSOR].frequency;
         }
+
+        SwitchToThread ();
 
         NvU32 tach = 0;
 
@@ -334,9 +337,13 @@ SK_GPUPollingThread (LPVOID user)
 
         stats.gpus [i].volts_mV.supported   = false;
 
-        if (            NvAPI_GPU_GetPstates20 != nullptr &&
+        static bool has_pstates = true;
+
+        if (            NvAPI_GPU_GetPstates20 != nullptr && has_pstates &&
             NVAPI_OK == NvAPI_GPU_GetPstates20 (gpu, &ps20info))
         {
+          if (ps20info.numPstates == 0) has_pstates = false;
+
           NV_GPU_PERF_PSTATE_ID current_pstate = { };
 
           if (            NvAPI_GPU_GetCurrentPstate != nullptr &&
@@ -430,6 +437,10 @@ SK_GPUPollingThread (LPVOID user)
             }
           }
         }
+
+        else has_pstates = false;
+
+        SwitchToThread ();
       }
     }
 

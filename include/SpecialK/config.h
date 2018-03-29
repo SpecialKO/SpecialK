@@ -687,6 +687,7 @@ enum class SK_GAME_ID
   FinalFantasyXV,               // ffxv*.exe
   DragonBallFighterZ,           // DBFighterZ.exe
   NiNoKuni2,                    // Nino2.exe
+  FarCry5,                      // FarCry5.exe
   UNKNOWN_GAME               = 0xffff
 };
 

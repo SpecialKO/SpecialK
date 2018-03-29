@@ -3392,12 +3392,6 @@ GetActiveWindow_Detour (void)
 {
   SK_LOG_FIRST_CALL
 
-  if (config.window.background_render && config.window.treat_fg_as_active)
-  {
-    if (SK_GetCallingDLL () != SK_GetDLL ())
-      return game_window.hWnd;
-  }
-
   return GetActiveWindow_Original ();
 }
 
@@ -3413,11 +3407,13 @@ GetForegroundWindow_Detour (void)
 
   if (config.window.background_render && config.window.treat_fg_as_active)
   {
-    if (SK_GetCallingDLL () != SK_GetDLL ())
+    if ( GetForegroundWindow_Original () != game_window.hWnd &&
+                     SK_GetCallingDLL () != SK_GetDLL () )
       return game_window.hWnd;
   }
 
-  return GetForegroundWindow_Original ();
+  return
+    GetForegroundWindow_Original ();
 }
 
 
