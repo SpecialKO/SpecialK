@@ -99,6 +99,7 @@ public:
     if (pipeline.vertex.verts_invoked.getAvg () > 0)
     {
       static uint64_t max_invoke = (                     static_cast <uint64_t> (pipeline.vertex.verts_invoked.getMax ()));
+                      max_invoke *= 0.8888f;
                       max_invoke = std::max (max_invoke, static_cast <uint64_t> (pipeline.vertex.verts_invoked.getMax ()));
 
       sprintf_s
@@ -131,6 +132,7 @@ public:
                                        ImGui::GetContentRegionAvailWidth (), font_size * 4.5f) );
 
       static uint64_t max_verts = (                    static_cast <uint64_t> (pipeline.vertex.verts_input.getMax ()));
+                      max_verts *= 0.8888f;
                       max_verts = std::max (max_verts, static_cast <uint64_t> (pipeline.vertex.verts_input.getMax ()));
 
       sprintf_s
@@ -163,6 +165,7 @@ public:
                                        ImGui::GetContentRegionAvailWidth (), font_size * 4.5f) );
 
       static uint64_t max_prims = (                    static_cast <uint64_t> (pipeline.vertex.prims_input.getMax ()));
+                      max_prims *= 0.8888f;
                       max_prims = std::max (max_prims, static_cast <uint64_t> (pipeline.vertex.prims_input.getMax ()));
 
       sprintf_s
@@ -219,7 +222,7 @@ public:
                    pipeline.raster.fill_ratio.getCapacity () );
 
       static float max_ratio = (pipeline.raster.fill_ratio.getMax ());
-                   max_ratio = std::max (max_ratio, pipeline.raster.fill_ratio.getMax ());
+                   max_ratio = std::fmax (max_ratio, pipeline.raster.fill_ratio.getMax ());
 
       ImGui::PushStyleColor ( ImGuiCol_PlotLines, 
                                 ImColor::HSV ( 0.31f - 0.31f *
@@ -238,6 +241,7 @@ public:
                                        ImGui::GetContentRegionAvailWidth (), font_size * 4.5f), sizeof (float), 0.0, 0.0, 0.0, true );
 
       static uint64_t max_fill = (   static_cast <uint64_t> (pipeline.raster.pixels_filled.getMax ()) );
+                      max_fill *= 0.8888f;
                       max_fill = std::max (
                                    max_fill,
                                      static_cast <uint64_t> (pipeline.raster.pixels_filled.getMax ())
@@ -279,6 +283,7 @@ public:
     if (pipeline.compute.dispatches.getAvg () > 0)
     {
       static uint64_t max_dispatch = (   static_cast <uint64_t> (pipeline.compute.dispatches.getMax ()) );
+                      max_dispatch *= 0.8888f;
                       max_dispatch = std::max (
                                        max_dispatch,
                                          static_cast <uint64_t> (pipeline.compute.dispatches.getMax ())

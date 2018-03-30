@@ -435,13 +435,13 @@ protected:
       {
         if (++sample > updates)
           break;
-      
+
         sum += val;
 
         if (sample == 1) { max = val; min = val; }
 
         else
-        {      
+        {
           max = val != max ? std::max (val, max) : max;
           min = val != min ? std::min (val, min) : min;
         }

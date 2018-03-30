@@ -562,15 +562,6 @@ SK_LoadConfigEx (std::wstring name, bool create)
     SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\Global\macros.ini)";
 
 
-  // NO IDEA WHAT THIS CODE IS/WAS for
-  //
-  //   I am pretty sure it is as stupid as it looks and does not implement
-  //     an effective synchronization construct by anyone's definition.
-  //
-  while (init < 0)
-    MsgWaitForMultipleObjectsEx (0, nullptr, 2UL, QS_ALLINPUT, MWMO_ALERTABLE);
-
-
   if (init == FALSE || dll_ini == nullptr)
   {
     init = -1;
@@ -1579,6 +1570,9 @@ SK_LoadConfigEx (std::wstring name, bool create)
       case SK_GAME_ID::DragonBallFighterZ:
         WinExec ("RED\\Binaries\\Win64\\RED-Win64-Shipping.exe", SW_SHOWNORMAL);
         exit (0);
+        break;
+
+      case SK_GAME_ID::FarCry5:
         break;
     }
   }
