@@ -2456,6 +2456,13 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
   }
 
 
+
+  if (SK_GetCurrentGameID () == SK_GAME_ID::FinalFantasyXV)
+  {
+    void SK_FFXV_SetupThreadPriorities (void);
+         SK_FFXV_SetupThreadPriorities ();
+  }
+
   //SK_StartPerfMonThreads ();
 
   return hr;

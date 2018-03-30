@@ -2383,22 +2383,6 @@ SK_DXGI_BorderCompensation (UINT& x, UINT& y)
 #endif
 }
 
-
-#include <unordered_set>
-
-struct SK_FFXV_Thread
-{
-  ~SK_FFXV_Thread (void) { for ( auto && h : hThreads ) CloseHandle (h); }
-
-           std::set <HANDLE> hThreads;
-  volatile LONG     dwPrio = THREAD_PRIORITY_NORMAL;
-
-  sk::ParameterInt* prio_cfg;
-
-  void setup (void);
-} extern sk_ffxv_swapchain;
-
-
 HRESULT
 STDMETHODCALLTYPE
 SK_DXGI_Present ( IDXGISwapChain *This,
@@ -2406,12 +2390,6 @@ SK_DXGI_Present ( IDXGISwapChain *This,
                   UINT            Flags )
 {
   HRESULT hr = S_OK;
-
-  if (SK_GetCurrentGameID () == SK_GAME_ID::FinalFantasyXV)
-  {
-    if (sk_ffxv_swapchain.hThreads.empty ())
-        sk_ffxv_swapchain.setup ();
-  }
 
   __try                                {
     hr = Present_Original (This, SyncInterval, Flags);

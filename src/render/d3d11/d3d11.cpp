@@ -4741,7 +4741,7 @@ SK_D3D11_ClearResidualDrawState (void)
   if (pTLS->d3d11.pDSVOrig != nullptr)
   {
     CComQIPtr <ID3D11DeviceContext> pDevCtx (
-      SK_GetCurrentRenderBackend ().d3d11.immediate_ctx
+      pTLS->d3d11.pDevCtx
     );
 
     if (pDevCtx != nullptr)
@@ -4768,7 +4768,7 @@ SK_D3D11_ClearResidualDrawState (void)
   if (pTLS->d3d11.pDepthStencilStateOrig != nullptr)
   {
     CComQIPtr <ID3D11DeviceContext> pDevCtx (
-      SK_GetCurrentRenderBackend ().d3d11.immediate_ctx
+      pTLS->d3d11.pDevCtx
     );
 
     if (pDevCtx != nullptr)
@@ -4790,7 +4790,7 @@ SK_D3D11_ClearResidualDrawState (void)
   if (pTLS->d3d11.pRasterStateOrig != nullptr)
   {
     CComQIPtr <ID3D11DeviceContext> pDevCtx (
-      SK_GetCurrentRenderBackend ().d3d11.immediate_ctx
+      pTLS->d3d11.pDevCtx
     );
 
     if (pDevCtx != nullptr)
@@ -4983,6 +4983,10 @@ SK_D3D11_DrawHandler (ID3D11DeviceContext* pDevCtx)
   // ImGui gets to pass-through without invoking the hook
   if (pTLS->imgui.drawing)
     return false;
+
+  // Make sure state cleanup happens on the same context, or deferred rendering
+  //   will make life miserable!
+  pTLS->d3d11.pDevCtx = pDevCtx;
 
   auto HashFromCtx = []( concurrency::concurrent_unordered_map <ID3D11DeviceContext*, uint32_t>* registry,
                          ID3D11DeviceContext*                                                    pCtx ) ->
