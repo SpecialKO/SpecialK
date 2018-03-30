@@ -195,12 +195,6 @@ GetCommandLineW_Detour (void)
     return    wszFakeOut;
   }
 
-  if (SK_GetCurrentGameID () == SK_GAME_ID::FarCry5)
-  {
-    lstrcatW (wszFakeOut, L" -eac_launcher");
-    return    wszFakeOut;
-  }
-
 #ifdef _DEBUG
   if (_wcsicmp (wszFakeOut, GetCommandLineW_Original ()))
     dll_log.Log (L"GetCommandLineW () ==> %ws", GetCommandLineW_Original ());
@@ -219,19 +213,23 @@ GetCommandLineA_Detour (void)
 
   static
   char szFakeOut [MAX_PATH * 4] = { };
-
-  if (*szFakeOut != L'\0')
+  
+  if (*szFakeOut != '\0')
     return szFakeOut;
 
   lstrcpyA (szFakeOut, "\"");
   lstrcatA (szFakeOut, SK_WideCharToUTF8 (SK_GetFullyQualifiedApp ()).c_str ());
   lstrcatA (szFakeOut, "\"");
 
-  if (SK_GetCurrentGameID () == SK_GAME_ID::FarCry5)
-  {
-    lstrcatA (szFakeOut, " -eac_launcher");
-    return    szFakeOut;
-  }
+  //
+  //if (SK_GetCurrentGameID () == SK_GAME_ID::FarCry5)
+  //{
+  //  lstrcatA (szFakeOut, " -eac_launcher");
+  //  return    szFakeOut;
+  //}
+
+  if (_stricmp (szFakeOut, GetCommandLineA_Original ()))
+    dll_log.Log (L"GetCommandLineA () ==> %hs", GetCommandLineA_Original ());
 
   return GetCommandLineA_Original ();
 }
@@ -551,10 +549,10 @@ SK::Diagnostics::Debugger::Allow (bool bAllow)
                              ExitProcess_Detour,
     static_cast_p2p <void> (&ExitProcess_Original) );
 
-  SK_CreateDLLHook2 (      L"kernel32.dll",
-                            "DebugBreak",
-                             DebugBreak_Detour,
-    static_cast_p2p <void> (&DebugBreak_Original) );
+  //SK_CreateDLLHook2 (      L"kernel32.dll",
+  //                          "DebugBreak",
+  //                           DebugBreak_Detour,
+  //  static_cast_p2p <void> (&DebugBreak_Original) );
 
   if (config.system.trace_create_thread)
   {
@@ -588,7 +586,7 @@ static_cast_p2p <void> (&GetCommandLineA_Original) );
                              "NtCreateThreadEx",
                               NtCreateThreadEx_Detour,
      static_cast_p2p <void> (&NtCreateThreadEx_Original) );
-
+    
     SK_CreateDLLHook2 (      L"NtDll.dll",
                              "NtSetInformationThread",
                               NtSetInformationThread_Detour,

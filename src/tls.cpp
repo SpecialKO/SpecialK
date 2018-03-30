@@ -108,6 +108,8 @@ SK_CleanupTLS (void)
 
 
 
+#include <cassert>
+
 SK_TLS*
 __stdcall
 SK_TLS_Bottom (void)
@@ -115,8 +117,15 @@ SK_TLS_Bottom (void)
   auto tls_slot =
     SK_GetTLS ();
 
+  assert (tls_slot.dwTlsIdx != TLS_OUT_OF_INDEXES);
+
   if (tls_slot.dwTlsIdx == TLS_OUT_OF_INDEXES)
-    return nullptr;
+  {
+    // This whole situation is bad, but try to limp along and keep the software
+    //   running in rare edge cases.
+    static SK_TLS safety_net;
+    return       &safety_net;
+  }
 
   return
     static_cast <SK_TLS *> (tls_slot.lpvData);

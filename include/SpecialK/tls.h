@@ -26,6 +26,7 @@
 #include <Windows.h>
 #include <algorithm>
 
+struct ID3D11DeviceContext;
 struct ID3D11RasterizerState;
 struct ID3D11DepthStencilState;
 struct ID3D11DepthStencilView;
@@ -194,6 +195,8 @@ class SK_D3D11_ThreadContext : public SK_TLS_DynamicContext,
                                public SK_TLS_RenderContext
 {
 public:
+  ID3D11DeviceContext*     pDevCtx                = nullptr;
+
   ID3D11RasterizerState*   pRasterStateOrig       = nullptr;
   ID3D11RasterizerState*   pRasterStateNew        = nullptr;
 

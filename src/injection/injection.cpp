@@ -483,12 +483,12 @@ RunDLL_InjectionManager ( HWND  hwnd,        HINSTANCE hInst,
 
         // We are FORCED to bring the MSVCRT in here due to recent
         //  changes to SK_IsHostAppSKIM and that cascades through most other
-        //    thread creation is a result
+        //    thread creation as a result
         HANDLE hThread = 
           (HANDLE)
-          CreateThread ( nullptr, 0,
+          _beginthreadex ( nullptr, 0,
            [](LPVOID user) ->
-             DWORD
+             unsigned int
                {
                  SKX_WaitForCBTHookShutdown ();
 

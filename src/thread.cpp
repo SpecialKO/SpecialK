@@ -61,7 +61,7 @@ HRESULT
 WINAPI
 SetCurrentThreadDescription (_In_ PCWSTR lpThreadDescription)
 {
-  if ( SK_GetHostAppUtil ().isInjectionTool () )
+  if ( SK_GetHostAppUtil ().isInjectionTool () || SK_TLS_Bottom () == nullptr )
     return S_OK;
 
 
