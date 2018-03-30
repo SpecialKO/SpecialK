@@ -35,6 +35,10 @@ void                    __stdcall SK_WASAPI_GetAudioSessionProcs    (size_t* cou
 
 const char*             __stdcall SK_WASAPI_GetChannelName          (int channel_idx);
 
+IAudioEndpointVolume*   __stdcall SK_MMDev_GetEndpointVolumeControl (void);
+IAudioLoudness*         __stdcall SK_MMDev_GetLoudness              (void);
+IAudioAutoGainControl*  __stdcall SK_MMDev_GetAutoGainControl       (void);
+
 #include <SpecialK/steam_api.h>
 #include <SpecialK/window.h>
 
@@ -136,6 +140,10 @@ public:
 
     return nullptr;
   }
+
+  IAudioEndpointVolume*  getEndpointVolume  (void);
+  IAudioLoudness*        getLoudness        (void);
+  IAudioAutoGainControl* getAutoGainControl (void);
 
   DWORD getProcessId (void)
   {
@@ -280,7 +288,10 @@ public:
 
   void Deactivate (void)
   {
-    meter_info_ = nullptr;
+    meter_info_   = nullptr;
+    endpoint_vol_ = nullptr;
+    auto_gain_    = nullptr;
+    loudness_     = nullptr;
   }
 
   void Activate (void)
@@ -374,6 +385,10 @@ public:
     }
 
     session_mgr_->RegisterSessionNotification (this);
+
+    endpoint_vol_ = SK_MMDev_GetEndpointVolumeControl ();
+    auto_gain_    = SK_MMDev_GetAutoGainControl       ();
+    loudness_     = SK_MMDev_GetLoudness              ();
   }
 
   // IUnknown
@@ -533,6 +548,9 @@ private:
     
     CComPtr <IAudioSessionManager2>                session_mgr_;
     CComPtr <IAudioMeterInformation>               meter_info_;
+    CComPtr <IAudioEndpointVolume>                 endpoint_vol_;
+    CComPtr <IAudioLoudness>                       loudness_;
+    CComPtr <IAudioAutoGainControl>                auto_gain_;
 };
 
 

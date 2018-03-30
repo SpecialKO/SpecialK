@@ -285,6 +285,96 @@ SK_WASAPI_GetVolumeControl (DWORD proc_id)
   return nullptr;
 }
 
+IAudioEndpointVolume*
+__stdcall
+SK_MMDev_GetEndpointVolumeControl (void)
+{
+           IAudioEndpointVolume *pEndVol  = nullptr;
+  CComPtr <IMMDeviceEnumerator>  pDevEnum = nullptr;
+  CComPtr <IMMDevice>            pDevice  = nullptr;
+
+
+  if (SUCCEEDED (pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)))
+          &&
+      SUCCEEDED (pDevEnum->GetDefaultAudioEndpoint (eRender,
+                                                      eConsole,
+                                                        &pDevice))
+     )
+  {
+    if (FAILED (
+          pDevice->Activate (__uuidof (IAudioEndpointVolume),
+                               CLSCTX_ALL,
+                                 nullptr,
+                                   IID_PPV_ARGS_Helper (&pEndVol))
+       )          )
+    {
+      pEndVol = nullptr;
+    }
+  }
+
+  return pEndVol;
+}
+
+IAudioLoudness*
+__stdcall
+SK_MMDev_GetLoudness (void)
+{
+           IAudioLoudness       *pLoudness = nullptr;
+  CComPtr <IMMDeviceEnumerator>  pDevEnum  = nullptr;
+  CComPtr <IMMDevice>            pDevice   = nullptr;
+
+
+  if (SUCCEEDED (pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)))
+          &&
+      SUCCEEDED (pDevEnum->GetDefaultAudioEndpoint (eRender,
+                                                      eConsole,
+                                                        &pDevice))
+     )
+  {
+    if (FAILED (
+          pDevice->Activate (__uuidof (IAudioLoudness),
+                               CLSCTX_ALL,
+                                 nullptr,
+                                   IID_PPV_ARGS_Helper (&pLoudness))
+       )          )
+    {
+      pLoudness = nullptr;
+    }
+  }
+
+  return pLoudness;
+}
+
+IAudioAutoGainControl*
+__stdcall
+SK_MMDev_GetAutoGainControl (void)
+{
+           IAudioAutoGainControl *pAutoGain = nullptr;
+  CComPtr <IMMDeviceEnumerator>   pDevEnum  = nullptr;
+  CComPtr <IMMDevice>             pDevice   = nullptr;
+
+
+  if (SUCCEEDED (pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)))
+          &&
+      SUCCEEDED (pDevEnum->GetDefaultAudioEndpoint (eRender,
+                                                      eConsole,
+                                                        &pDevice))
+     )
+  {
+    if (FAILED (
+          pDevice->Activate (__uuidof (IAudioAutoGainControl),
+                               CLSCTX_ALL,
+                                 nullptr,
+                                   IID_PPV_ARGS_Helper (&pAutoGain))
+       )          )
+    {
+      pAutoGain = nullptr;
+    }
+  }
+
+  return pAutoGain;
+}
+
 #include <dsound.h>
 
 // Misnomer, since this uses DirectSound instead (much simpler =P)
@@ -485,4 +575,22 @@ SK_WASAPI_AudioSession::OnSessionDisconnected (AudioSessionDisconnectReason Disc
   parent_->RemoveSession (this);
 
   return S_OK;
+}
+
+IAudioEndpointVolume*
+SK_WASAPI_AudioSession::getEndpointVolume (void)
+{
+  return parent_->endpoint_vol_;
+}
+
+IAudioLoudness*
+SK_WASAPI_AudioSession::getLoudness (void)
+{
+  return parent_->loudness_;
+}
+
+IAudioAutoGainControl*
+SK_WASAPI_AudioSession::getAutoGainControl (void)
+{
+  return parent_->auto_gain_;
 }

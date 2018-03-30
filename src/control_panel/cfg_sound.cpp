@@ -372,6 +372,39 @@ SK_ImGui_VolumeManager (void)
       pVolume->GetMasterVolume (&master_vol);
       pVolume->GetMute         (&master_mute);
 
+      IAudioEndpointVolume* pEndVol =
+        audio_session->getEndpointVolume ();
+
+      if (pEndVol != nullptr)
+      {
+        float min_dB  = 0.0f,
+              max_dB  = 0.0f,
+              incr_dB = 0.0f;
+        float cur_dB  = 0.0f;
+
+        pEndVol->GetVolumeRange       (&min_dB, &max_dB, &incr_dB);
+        pEndVol->GetMasterVolumeLevel (&cur_dB);
+
+        if ( ImGui::InputFloat ( "Adjusted Endpoint Volume (dB)", &cur_dB, incr_dB, incr_dB * 5 ) )
+        {
+          pEndVol->SetMasterVolumeLevel (std::max (min_dB, std::min (max_dB, cur_dB)), nullptr);
+        }
+
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::BeginTooltip    ();
+          ImGui::Text            ("Your device supports %06.03f dB - %06.03f dB "
+                                  "in %06.03f dB steps", min_dB, max_dB, incr_dB);
+          ImGui::Separator       ();
+          ImGui::BulletText      ("-dB represents attenuation from reference volume");
+          ImGui::BulletText      ("+dB represents gain (amplification)%s", max_dB > 0.0f ? 
+                                           " " : " - your hardware does not support gain." );
+          ImGui::Separator       ();
+          ImGui::TextUnformatted ("Hold Ctrl for faster +/- adjustment.");
+          ImGui::EndTooltip      ();
+        }
+      }
+
       const char* szMuteButtonTitle = ( master_mute ? "  Unmute  ###MasterMute" :
                                                       "   Mute   ###MasterMute" );
 
@@ -393,7 +426,7 @@ SK_ImGui_VolumeManager (void)
       ImGui::PushStyleColor (ImGuiCol_Text,           ImColor::HSV ( 0.15f, 0.0f,
                                                                        0.5f + master_vol * 0.5f) );
 
-      if (ImGui::SliderFloat ("      Master Volume Control  ", &master_vol, 0.0, 1.0, ""))
+      if (ImGui::SliderFloat ("     Session Master Volume   ", &master_vol, 0.0, 1.0, ""))
       {
         if (master_mute)
         {
