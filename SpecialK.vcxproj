@@ -549,7 +549,7 @@
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <LargeAddressAware>true</LargeAddressAware>
       <DataExecutionPrevention>false</DataExecutionPrevention>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll;</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;gdi32.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll</DelayLoadDLLs>
       <EntryPointSymbol>
       </EntryPointSymbol>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
@@ -620,7 +620,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>C:\Users\andon\Documents\My Mods\SpecialK\SpecialK64.dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll;</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;gdi32.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll</DelayLoadDLLs>
       <OptimizeReferences>false</OptimizeReferences>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <EntryPointSymbol>
@@ -701,7 +701,7 @@
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
       <DataExecutionPrevention>false</DataExecutionPrevention>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll;</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;gdi32.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll</DelayLoadDLLs>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
@@ -796,7 +796,7 @@
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
       <DataExecutionPrevention>false</DataExecutionPrevention>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll;</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;gdi32.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll</DelayLoadDLLs>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
@@ -894,7 +894,7 @@
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>Installer.def</ModuleDefinitionFile>
       <DataExecutionPrevention>false</DataExecutionPrevention>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll;</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;gdi32.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll</DelayLoadDLLs>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
@@ -981,7 +981,7 @@ Exit 0</Command>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
       <DataExecutionPrevention>false</DataExecutionPrevention>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll;</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;gdi32.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll</DelayLoadDLLs>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
@@ -1070,7 +1070,7 @@ Exit 0</Command>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
       <DataExecutionPrevention>false</DataExecutionPrevention>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll;</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;gdi32.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll</DelayLoadDLLs>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
@@ -1161,7 +1161,7 @@ Exit 0</Command>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
       <DataExecutionPrevention>false</DataExecutionPrevention>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll;</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;gdi32.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll</DelayLoadDLLs>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
@@ -1250,7 +1250,7 @@ Exit 0</Command>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
       <DataExecutionPrevention>false</DataExecutionPrevention>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll;</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;gdi32.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll</DelayLoadDLLs>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
@@ -1339,7 +1339,7 @@ Exit 0</Command>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
       <DataExecutionPrevention>false</DataExecutionPrevention>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll;</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;gdi32.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll</DelayLoadDLLs>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
@@ -1428,7 +1428,7 @@ Exit 0</Command>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
       <DataExecutionPrevention>false</DataExecutionPrevention>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll;</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;gdi32.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll</DelayLoadDLLs>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
@@ -1514,7 +1514,7 @@ Exit 0</Command>
       <MapExports>false</MapExports>
       <DataExecutionPrevention>false</DataExecutionPrevention>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll;</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;gdi32.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
       <EntryPointSymbol>
@@ -1609,7 +1609,7 @@ Exit 0</Command>
       <MapExports>false</MapExports>
       <DataExecutionPrevention>false</DataExecutionPrevention>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll;</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;gdi32.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
       <EntryPointSymbol>
@@ -1706,7 +1706,7 @@ Exit 0</Command>
       <MapExports>false</MapExports>
       <DataExecutionPrevention>false</DataExecutionPrevention>
       <ModuleDefinitionFile>Installer.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll;</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;gdi32.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib  /OUT:"$(TargetName).dll"</AdditionalOptions>
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
@@ -1793,7 +1793,7 @@ Exit 0</Command>
       <MapExports>false</MapExports>
       <DataExecutionPrevention>false</DataExecutionPrevention>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll;</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;gdi32.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
@@ -1880,7 +1880,7 @@ Exit 0</Command>
       <MapExports>false</MapExports>
       <DataExecutionPrevention>false</DataExecutionPrevention>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll;</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;gdi32.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
@@ -1967,7 +1967,7 @@ Exit 0</Command>
       <MapExports>false</MapExports>
       <DataExecutionPrevention>false</DataExecutionPrevention>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll;</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;gdi32.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
@@ -2050,7 +2050,7 @@ Exit 0</Command>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <DataExecutionPrevention>false</DataExecutionPrevention>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll;</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;gdi32.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
@@ -2140,7 +2140,7 @@ Exit 0</Command>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <DataExecutionPrevention>false</DataExecutionPrevention>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll;</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;gdi32.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
@@ -2235,7 +2235,7 @@ Exit 0</Command>
       <MapExports>false</MapExports>
       <DataExecutionPrevention>false</DataExecutionPrevention>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll;</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCompiler_43.dll;d3dx9_43.dll;gdi32.dll;psapi.dll;WININET.dll;COMCTL32.dll;IMM32.dll</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>

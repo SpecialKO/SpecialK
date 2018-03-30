@@ -252,6 +252,28 @@ SK_FFXV_Thread::setup (void)
   }
 }
 
+void
+SK_FFXV_SetupThreadPriorities (void)
+{
+  static int iters = 0;
+
+  if (sk_ffxv_swapchain.hThreads.empty ())
+      sk_ffxv_swapchain.setup ();
+
+  else  if ((iters++ % 120) == 0)
+  {
+    for (auto hThread : sk_ffxv_swapchain.hThreads)
+    {
+      SetThreadPriority (hThread, sk_ffxv_swapchain.dwPrio);
+    }
+
+    for (auto hThread : sk_ffxv_vsync.hThreads)
+    {
+      SetThreadPriority (hThread, sk_ffxv_vsync.dwPrio);
+    }
+  }
+}
+
 bool
 SK_FFXV_PlugInCfg (void)
 {
@@ -440,9 +462,9 @@ SK_NNK2_PlugInCfg (void)
     if (ImGui::IsItemHovered ()) ImGui::SetTooltip ("Speedhack...");
 
     ImGui::SameLine ();
-    ImGui::Checkbox ("Prevent Controller Disconnect Messages",    &config.input.gamepad.xinput.placehold [0]);
+    ImGui::Checkbox ("Prevent Controller Disconnect Messages",        &config.input.gamepad.xinput.placehold [0]);
     ImGui::SameLine ();
-    ImGui::Checkbox ("Continue Rendering if Windows is Inactive", &config.window.background_render);
+    ImGui::Checkbox ("Continue Rendering if Game Window is Inactive", &config.window.background_render);
 
     ImGui::TreePop  ();
 

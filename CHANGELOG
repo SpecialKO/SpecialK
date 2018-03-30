@@ -1,3 +1,11 @@
+0.9.11:
+
+  + Fixed injection-blacklisted games failing to start while global injection is active
+  + Fixed DLL init. issues with Far Cry 5 (_after_ Easy Anti-Cheat is worked around)
+  + Improved support for shader state tracking in multi-threaded D3D11 engines
+  + Added audio gain control (+dB) to volume management for hardware that supports it
+
+
 0.9.10:
 
   + Dynamically adjust NvAPI monitoring thread priority to prevent rare hitching
