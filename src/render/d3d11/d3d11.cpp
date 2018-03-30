@@ -15996,6 +15996,8 @@ SK_D3D11_PresentFirstFrame (IDXGISwapChain* pSwapChain)
 {
   UNREFERENCED_PARAMETER (pSwapChain);
 
+  auto cmds = SK_D3D11_GetCommands ();
+
   LocalHook_D3D11CreateDevice.active             = true;
   LocalHook_D3D11CreateDeviceAndSwapChain.active = true;
 

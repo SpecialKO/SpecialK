@@ -1,5 +1,7 @@
 0.9.11:
 
+ (.1): Fix D3D11 Shader Mod Commands (i.e. D3D11.ShaderMods.ToggleConfig ...)
+
   + Fixed injection-blacklisted games failing to start while global injection is active
   + Fixed DLL init. issues with Far Cry 5 (_after_ Easy Anti-Cheat is worked around)
   + Improved support for shader state tracking in multi-threaded D3D11 engines

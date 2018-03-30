@@ -155,6 +155,11 @@ SK_PluginKeyPress (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode)
   UNREFERENCED_PARAMETER (Shift);
   UNREFERENCED_PARAMETER (Alt);
 
+
+  // Hack because some games block this
+  Alt = ImGui::GetIO ().KeyAlt;
+
+
   SK_ImGui_Widgets.DispatchKeybinds (Control, Shift, Alt, vkCode);
 
 

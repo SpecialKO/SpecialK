@@ -1071,7 +1071,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
     if ((*sec).first.find (L"Macro.") != (*sec).first.npos)
     {
-      for ( auto it : (*sec).second.keys )
+      for ( auto& it : (*sec).second.keys )
       {
         SK_KeyCommand cmd;
 
@@ -3099,7 +3099,7 @@ SK_Keybind::parse (void)
     wszTok = std::wcstok (nullptr, L"+", &wszBuf);
   }
 
-  masked_code = SK_MakeKeyMask (vKey & 0xFF, ctrl, shift, alt);
+  masked_code = SK_MakeKeyMask (vKey & 0xFFUL, ctrl, shift, alt);
 }
 
 
