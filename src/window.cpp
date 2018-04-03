@@ -3408,7 +3408,7 @@ GetForegroundWindow_Detour (void)
   if (config.window.background_render && config.window.treat_fg_as_active)
   {
     if ( GetForegroundWindow_Original () != game_window.hWnd &&
-                     SK_GetCallingDLL () != SK_GetDLL () )
+                     SK_GetCallingDLL () == GetModuleHandle (nullptr) )
       return game_window.hWnd;
   }
 

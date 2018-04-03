@@ -1,3 +1,12 @@
+0.9.12:
+
+ + Updated build of SKIM64 allows installation of standalone Ni No Stutter mod
+  - Ni No Stutter is built-in to this release of the global injector
+ + Reduced memory consumption for D3D11 shader state tracking
+ + No longer write ReservePercent to ini files, it is being phased out
+ + Remove Merge-Only Cache Policy from D3D11 Texture Cache
+
+
 0.9.11:
 
  (.1): Fix D3D11 Shader Mod Commands (i.e. D3D11.ShaderMods.ToggleConfig ...)

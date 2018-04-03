@@ -443,7 +443,7 @@ __stdcall
 SK_ImGui_KeybindDialog (SK_Keybind* keybind);
 
 void
-SK_Widget::save (iSK_INI* ini)
+SK_Widget::save (iSK_INI* /*ini*/)
 {
   OnConfig (ConfigEvent::SaveStart);
 

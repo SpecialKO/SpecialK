@@ -1020,6 +1020,7 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds)
 bool
 fix_sleep_0 = true;
 
+
 void
 WINAPI
 Sleep_Detour (DWORD dwMilliseconds)
@@ -1102,7 +1103,7 @@ Sleep_Detour (DWORD dwMilliseconds)
 
 
   BOOL bGUIThread    = SK_Win32_IsGUIThread ();
-  BOOL bRenderThread = (SK_GetCurrentRenderBackend ().thread == GetCurrentThreadId ());
+  BOOL bRenderThread = ((DWORD)ReadAcquire (&SK_GetCurrentRenderBackend ().thread) == GetCurrentThreadId ());
 
   if (bRenderThread)
   {

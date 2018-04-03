@@ -126,19 +126,11 @@ SK_ImGui_DrawTexCache_Chart (void)
     int size = config.textures.cache.max_size;
 
     ImGui::TreePush  ( "" );
-
-    ImGui::Checkbox ("Merge-Only Cache Policy", &config.textures.cache.merge_mode);
-
-    if (ImGui::IsItemHovered ())
-      ImGui::SetTooltip ("Merge-Mode only prevents duplicate textures from being created, it saves memory but offers little to no performance benefit.");
-
-    if (! config.textures.cache.merge_mode)
-    {
-      ImGui::SameLine ();
  
-      if (ImGui::SliderInt ( "Maximum Cache Size", &size, 256, 8192, "%.0f MiB"))
-        config.textures.cache.max_size = size;
-        SK_GetCommandProcessor ()->ProcessCommandFormatted ("TexCache.MaxSize %d ", config.textures.cache.max_size);
+    if (ImGui::SliderInt ( "Maximum Cache Size", &size, 256, 8192, "%.0f MiB"))
+    {
+      config.textures.cache.max_size = size;
+      SK_GetCommandProcessor ()->ProcessCommandFormatted ("TexCache.MaxSize %d ", config.textures.cache.max_size);
     }
     ImGui::TreePop   (    );
 

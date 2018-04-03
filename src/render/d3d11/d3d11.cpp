@@ -752,7 +752,7 @@ IUnknown_Release (IUnknown* This)
       IUnknown_Release_Original (pTex);
 
     // If count is == 0, something's screwy
-    if (pTex != nullptr && count <= (config.textures.cache.merge_mode ? 3 : 2))
+    if (pTex != nullptr && count <= 2)
     {
       if (SK_D3D11_RemoveTexFromCache (pTex))
       {
@@ -2765,9 +2765,9 @@ SK_D3D11_CreateShader_Impl (
         //            _time64 (&pCachedDesc->usage.last_time);
 
         // Update cache mapping (see note about aliasing above)
-        if ( pShaderRepo->rev.count (*ppShader) &&
-                   pShaderRepo->rev [*ppShader] != checksum )
-          pShaderRepo->rev.erase (*ppShader);
+        ///if ( pShaderRepo->rev.count (*ppShader) &&
+        ///           pShaderRepo->rev [*ppShader] != checksum )
+        ///  pShaderRepo->rev.erase (*ppShader);
 
         pShaderRepo->rev.emplace (std::make_pair (*ppShader, checksum));
 
@@ -3397,7 +3397,7 @@ SK_D3D11_ActivateSRVOnSlot (shader_stage_s& stage, ID3D11ShaderResourceView* pSR
     {
       std::lock_guard <SK_Thread_CriticalSection> auto_lock (cs_render_view);
 
-      used_textures.insert        (pTex);
+      used_textures.emplace       (pTex);
       temp_resources.emplace_back (pTex);
 
       if (tracked_texture == pTex && config.textures.d3d11.highlight_debug)
@@ -3516,7 +3516,7 @@ D3D11_VSSetShaderResources_Override (
         if (! tracked.set_of_views.count (ppShaderResourceViews [i]))           {
             tracked.set_of_views.emplace (ppShaderResourceViews [i]);
                                           ppShaderResourceViews [i]->AddRef (); }
-            tracked.used_views.push_back (ppShaderResourceViews [i]);           }
+         tracked.used_views.emplace_back (ppShaderResourceViews [i]);           }
                   views [StartSlot + i] = ppShaderResourceViews [i];
     }
   }
@@ -3571,7 +3571,7 @@ D3D11_PSSetShaderResources_Override (
         if (! tracked.set_of_views.count (ppShaderResourceViews [i]))           {
             tracked.set_of_views.emplace (ppShaderResourceViews [i]);
                                           ppShaderResourceViews [i]->AddRef (); }
-            tracked.used_views.push_back (ppShaderResourceViews [i]);           }
+         tracked.used_views.emplace_back (ppShaderResourceViews [i]);           }
                   views [StartSlot + i] = ppShaderResourceViews [i];
     }
   }
@@ -3625,7 +3625,7 @@ D3D11_GSSetShaderResources_Override (
         if (! tracked.set_of_views.count (ppShaderResourceViews [i]))           {
             tracked.set_of_views.emplace (ppShaderResourceViews [i]);
                                           ppShaderResourceViews [i]->AddRef (); }
-            tracked.used_views.push_back (ppShaderResourceViews [i]);           }
+         tracked.used_views.emplace_back (ppShaderResourceViews [i]);           }
                   views [StartSlot + i] = ppShaderResourceViews [i];
     }
   }
@@ -3679,7 +3679,7 @@ D3D11_HSSetShaderResources_Override (
         if (! tracked.set_of_views.count (ppShaderResourceViews [i]))           {
             tracked.set_of_views.emplace (ppShaderResourceViews [i]);
                                           ppShaderResourceViews [i]->AddRef (); }
-            tracked.used_views.push_back (ppShaderResourceViews [i]);           }
+         tracked.used_views.emplace_back (ppShaderResourceViews [i]);           }
                   views [StartSlot + i] = ppShaderResourceViews [i];
     }
   }
@@ -3787,7 +3787,7 @@ D3D11_CSSetShaderResources_Override (
         if (! tracked.set_of_views.count (ppShaderResourceViews [i]))           {
             tracked.set_of_views.emplace (ppShaderResourceViews [i]);
                                           ppShaderResourceViews [i]->AddRef (); }
-            tracked.used_views.push_back (ppShaderResourceViews [i]);           }
+         tracked.used_views.emplace_back (ppShaderResourceViews [i]);           }
                   views [StartSlot + i] = ppShaderResourceViews [i];
     }
   }
@@ -4289,14 +4289,16 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
           {
             ///std::lock_guard <SK_Thread_CriticalSection> auto_lock (cs_mmio);
 
-            if (buf_desc.BindFlags & D3D11_BIND_INDEX_BUFFER)
-              mem_map_stats.last_frame.index_buffers.insert (pBuffer);
-
-            if (buf_desc.BindFlags & D3D11_BIND_VERTEX_BUFFER)
-              mem_map_stats.last_frame.vertex_buffers.insert (pBuffer);
-
-            if (buf_desc.BindFlags & D3D11_BIND_CONSTANT_BUFFER)
-              mem_map_stats.last_frame.constant_buffers.insert (pBuffer);
+            // Extra memory allocation pressure for no good reason -- kill it.
+            //  
+            ////if (buf_desc.BindFlags & D3D11_BIND_INDEX_BUFFER)
+            ////  mem_map_stats.last_frame.index_buffers.insert (pBuffer);
+            ////
+            ////if (buf_desc.BindFlags & D3D11_BIND_VERTEX_BUFFER)
+            ////  mem_map_stats.last_frame.vertex_buffers.insert (pBuffer);
+            ////
+            ////if (buf_desc.BindFlags & D3D11_BIND_CONSTANT_BUFFER)
+            ////  mem_map_stats.last_frame.constant_buffers.insert (pBuffer);
           }
 
           if (read)
@@ -5686,11 +5688,8 @@ _In_opt_ ID3D11DepthStencilView        *pDepthStencilView )
 
       for (UINT i = 0; i < NumViews; i++)
       {
-        if (ppRenderTargetViews [i] && (! rt_views.count (ppRenderTargetViews [i])))
-        {
-                           ppRenderTargetViews [i]->AddRef ();
-          rt_views.insert (ppRenderTargetViews [i]);
-        }
+        if (ppRenderTargetViews [i] && rt_views.emplace (ppRenderTargetViews [i]).second)
+            ppRenderTargetViews [i]->AddRef ();
 
         tracked_rtv.active [i] =
           ( tracked_rtv_res == ppRenderTargetViews [i] ) ?
@@ -5704,11 +5703,8 @@ _In_opt_ ID3D11DepthStencilView        *pDepthStencilView )
       auto&& ds_views =
         SK_D3D11_RenderTargets [This].ds_views;
 
-      if (! ds_views.count (pDepthStencilView))
-      {
-                         pDepthStencilView->AddRef ();
-        ds_views.insert (pDepthStencilView);
-      }
+      if (ds_views.emplace (pDepthStencilView).second)
+                            pDepthStencilView->AddRef ();
     }
   }
 }
@@ -5768,12 +5764,10 @@ D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Override ( ID3D11DeviceContext  
 
       for (UINT i = 0; i < NumRTVs; i++)
       {
-        if (ppRenderTargetViews [i] && (! rt_views.count (ppRenderTargetViews [i])))
+        if (ppRenderTargetViews [i] && rt_views.emplace (ppRenderTargetViews [i]).second)
         {
-                           ppRenderTargetViews [i]->AddRef ();
-          rt_views.insert (ppRenderTargetViews [i]);
-
-          tracked_rtv.active [i] =
+            ppRenderTargetViews [i]->AddRef ();
+             tracked_rtv.active [i] =
                                  ( tracked_rtv_res == ppRenderTargetViews [i] ) ?
                                               true :
                                                      false;
@@ -6051,7 +6045,7 @@ SK_D3D11_TexMgr::reset (void)
       must_free = true;
 
     if ( SK_D3D11_Textures.Entries_2D > (LONG)       cache_opts.max_entries +
-                                         (LONG)(float)cache_opts.max_entries * overfill_factor )
+                                        (LONG)(float)cache_opts.max_entries * overfill_factor )
       must_free = true;
 
     if ( SK_D3D11_amount_to_purge > 0 )
@@ -6488,8 +6482,7 @@ SK_D3D11_TexMgr::refTexture2D ( ID3D11Texture2D*      pTex,
   Textures_2D.insert            (std::make_pair (pTex, desc2d));
   TexRefs_2D.insert             (                pTex);
 
-  Entries_2D =
-    static_cast <LONG> (TexRefs_2D.size ());
+  Entries_2D++;
 
   // Hold a reference ourselves so that the game cannot free it
   pTex->AddRef ();
@@ -13520,10 +13513,8 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
     {
       for ( auto it : tracker->used_views )
       {
-        if (unique_views.count (it))
+        if (! unique_views.emplace (it).second)
           continue;
-
-        unique_views.emplace (it);
 
         D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc;
 
@@ -13752,10 +13743,8 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 
             if (desc.Height > 0 && desc.Width > 0)
             {
-              if (unique_views.count (it))
+              if (! unique_views.emplace (it).second)
                 continue;
-
-              unique_views.emplace (it);
 
                                            it->AddRef ();
               temp_resources.emplace_back (it);
@@ -14171,10 +14160,10 @@ SK_D3D11_EndFrame (void)
   for (auto it : temp_resources)
     it->Release ();
 
-  temp_resources = { };
+  temp_resources.clear ();
 
   for (auto& it : SK_D3D11_RenderTargets)
-    it.second = { };
+    it.second.clear ();
 
 
   extern bool SK_D3D11_ShowShaderModDlg (void);

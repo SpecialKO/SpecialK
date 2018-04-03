@@ -467,6 +467,7 @@ public:
   bool             purgeTextures (size_t size_to_free, int* pCount, size_t* pFreed);
 
   struct tex2D_descriptor_s {
+    volatile LONG         hits       = 0L;
     ID3D11Texture2D      *texture    = nullptr;
     D3D11_TEXTURE2D_DESC  desc       = { };
     D3D11_TEXTURE2D_DESC  orig_desc  = { };
@@ -474,9 +475,8 @@ public:
     uint64_t              load_time  = 0ULL;
     uint32_t              tag        = 0x00; // Combined data and descriptor hash for collision mitigation
     uint32_t              crc32c     = 0x00;
-    bool                  injected   = false;
-    bool                  discard    = false;
-    volatile LONG         hits       = 0L;
+        bool              injected   = false;
+        bool              discard    = false;
     uint32_t              last_frame = 0UL;
     uint64_t              last_used  = 0ULL;
     std::wstring          file_name  = L"";  // If injected, this is the source file

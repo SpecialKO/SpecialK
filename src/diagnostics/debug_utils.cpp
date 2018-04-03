@@ -211,25 +211,18 @@ GetCommandLineA_Detour (void)
 {
   SK_LOG_FIRST_CALL
 
-  static
-  char szFakeOut [MAX_PATH * 4] = { };
-  
-  if (*szFakeOut != '\0')
-    return szFakeOut;
-
-  lstrcpyA (szFakeOut, "\"");
-  lstrcatA (szFakeOut, SK_WideCharToUTF8 (SK_GetFullyQualifiedApp ()).c_str ());
-  lstrcatA (szFakeOut, "\"");
-
+  //static
+  //char szFakeOut [MAX_PATH * 4] = { };
   //
-  //if (SK_GetCurrentGameID () == SK_GAME_ID::FarCry5)
-  //{
-  //  lstrcatA (szFakeOut, " -eac_launcher");
-  //  return    szFakeOut;
-  //}
-
-  if (_stricmp (szFakeOut, GetCommandLineA_Original ()))
-    dll_log.Log (L"GetCommandLineA () ==> %hs", GetCommandLineA_Original ());
+  //if (*szFakeOut != '\0')
+  //  return szFakeOut;
+  //
+  //lstrcpyA (szFakeOut, "\"");
+  //lstrcatA (szFakeOut, SK_WideCharToUTF8 (SK_GetFullyQualifiedApp ()).c_str ());
+  //lstrcatA (szFakeOut, "\"");
+  //
+  //if (_stricmp (szFakeOut, GetCommandLineA_Original ()))
+  //  dll_log.Log (L"GetCommandLineA () ==> %hs", GetCommandLineA_Original ());
 
   return GetCommandLineA_Original ();
 }
@@ -549,10 +542,10 @@ SK::Diagnostics::Debugger::Allow (bool bAllow)
                              ExitProcess_Detour,
     static_cast_p2p <void> (&ExitProcess_Original) );
 
-  //SK_CreateDLLHook2 (      L"kernel32.dll",
-  //                          "DebugBreak",
-  //                           DebugBreak_Detour,
-  //  static_cast_p2p <void> (&DebugBreak_Original) );
+  SK_CreateDLLHook2 (      L"kernel32.dll",
+                            "DebugBreak",
+                             DebugBreak_Detour,
+    static_cast_p2p <void> (&DebugBreak_Original) );
 
   if (config.system.trace_create_thread)
   {

@@ -485,6 +485,12 @@ SK_InitCore (std::wstring, void* callback)
     case SK_GAME_ID::DotHackGU:
       SK_DGPU_InitPlugin ();
       break;
+
+    case SK_GAME_ID::NiNoKuni2:
+      extern void
+      SK_NNK2_InitPlugin (void);
+      SK_NNK2_InitPlugin ();
+      break;
 #else
     case SK_GAME_ID::SecretOfMana:
       SK_SOM_InitPlugin ();
@@ -518,7 +524,7 @@ WaitForInit (void)
     return;
 
   LONG dwThreadId =
-    (LONG)GetCurrentProcessId ();
+    (LONG)GetCurrentThreadId ();
 
   while (ReadPointerAcquire (&hInitThread) != INVALID_HANDLE_VALUE)
   {
@@ -536,17 +542,7 @@ WaitForInit (void)
       break;
   }
 
-  // First thread to reach this point wins ... a shiny new car and
-  //   various other initialization tasks.
-  //
-  // This is important because if this DLL is loaded at application start,
-  //   there are potentially other threads queued up waiting to make calls
-  //     to this one.
-  //
-  //   These other threads start out life suspended but Windows will resume
-  //     them as soon as all DLL code is loaded. Then it becomes a sloppy race
-  //       for each attached thread to finish its DllMain (...) function.
-  //
+
   if (! InterlockedCompareExchange (&__SK_Init, TRUE, FALSE))
   {
     if ( ReadAcquire        (&dwInitThreadId) != dwThreadId &&

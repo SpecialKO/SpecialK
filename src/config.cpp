@@ -312,12 +312,10 @@ struct {
 struct {
   struct {
     sk::ParameterBool*    precise_hash;
-    sk::ParameterBool*    dump;
     sk::ParameterBool*    inject;
     sk::ParameterBool*    injection_keeps_format;
     sk::ParameterBool*    gen_mips;
     sk::ParameterBool*    cache;
-    sk::ParameterStringW* res_root;
   } d3d11;
   struct {
     sk::ParameterInt*     min_evict;
@@ -329,7 +327,6 @@ struct {
     sk::ParameterBool*    ignore_non_mipped;
     sk::ParameterBool*    allow_staging;
     sk::ParameterBool*    allow_unsafe_refs;
-    sk::ParameterBool*    merge_mode;
   } cache;
     sk::ParameterStringW* res_root;
     sk::ParameterBool*    dump_on_load;
@@ -747,6 +744,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
     // Misc.
     //////////////////////////////////////////////////////////////////////////
 
+      // Hidden setting (it will be read, but not written -- setting this is discouraged and I intend to phase it out)
     ConfigEntry (mem_reserve,                            L"Memory Reserve Percentage",                                 dll_ini,         L"Manage.Memory",         L"ReservePercent"),
 
 
@@ -842,10 +840,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
     ConfigEntry (texture.d3d11.cache,                    L"Cache Textures",                                            dll_ini,         L"Textures.D3D11",        L"Cache"),
     ConfigEntry (texture.d3d11.precise_hash,             L"Precise Hash Generation",                                   dll_ini,         L"Textures.D3D11",        L"PreciseHash"),
 
-    ConfigEntry (texture.d3d11.dump,                     L"Dump Textures",                                             dll_ini,         L"Textures.D3D11",        L"Dump"),
-
     ConfigEntry (texture.d3d11.inject,                   L"Inject Textures",                                           dll_ini,         L"Textures.D3D11",        L"Inject"),
-    ConfigEntry (texture.d3d11.res_root,                 L"Resource Root",                                             dll_ini,         L"Textures.D3D11",        L"ResourceRoot"),
     ConfigEntry (texture.d3d11.injection_keeps_format,   L"Allow image format to change during texture injection",     dll_ini,         L"Textures.D3D11",        L"InjectionKeepsFormat"),
     ConfigEntry (texture.d3d11.gen_mips,                 L"Create complete mipmap chain for textures without them",    dll_ini,         L"Textures.D3D11",        L"GenerateMipmaps"),
     ConfigEntry (texture.res_root,                       L"Resource Root",                                             dll_ini,         L"Textures.General",      L"ResourceRoot"),
@@ -861,8 +856,6 @@ SK_LoadConfigEx (std::wstring name, bool create)
     ConfigEntry (texture.cache.allow_staging,            L"Enable texture caching/dumping/injecting staged textures",  dll_ini,         L"Textures.Cache",        L"AllowStaging"),
     ConfigEntry (texture.cache.allow_unsafe_refs,        L"For games with broken resource reference counting, allow"
                                                          L" textures to be cached anyway (needed for injection).",     dll_ini,         L"Textures.Cache",        L"AllowUnsafeRefCounting"),
-    ConfigEntry (texture.cache.merge_mode,               L"Cache will only prevent duplicate uploads, never retain "
-                                                         L"unloads; makes the max_size setting meaningless.",          dll_ini,         L"Textures.Cache",        L"MergeOnlyMode"),
 
 
     ConfigEntry (nvidia.api.disable,                     L"Disable NvAPI",                                             dll_ini,         L"NVIDIA.API",            L"Disable"),
@@ -1549,7 +1542,6 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
         config.textures.d3d11.cache          = true;
         config.textures.cache.max_entries    = 262144; // Uses a ton of small textures
-        config.textures.cache.merge_mode     = true;
 
         // Don't show the cursor, ever, because the game doesn't use it.
         config.input.cursor.manage           = true;
@@ -1564,7 +1556,6 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
         // Evaluate deferred command lists for state tracking
         config.render.dxgi.deferred_isolation = true;
-        // BE CAREFUL, this is only safe for texture mods at the moment
         break;
 
       case SK_GAME_ID::DragonBallFighterZ:
@@ -1573,6 +1564,8 @@ SK_LoadConfigEx (std::wstring name, bool create)
         break;
 
       case SK_GAME_ID::FarCry5:
+        // Game shares buggy XInput code with Watch_Dogs2
+        config.input.gamepad.xinput.placehold [0] = true;
         break;
     }
   }
@@ -1892,12 +1885,11 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
   texture.d3d11.cache->load        (config.textures.d3d11.cache);
   texture.d3d11.precise_hash->load (config.textures.d3d11.precise_hash);
-  texture.d3d11.dump->load         (config.textures.d3d11.dump);
   texture.d3d11.inject->load       (config.textures.d3d11.inject);
-  texture.d3d11.res_root->load     (config.textures.d3d11.res_root);
         texture.res_root->load     (config.textures.d3d11.res_root);
 
   texture.d3d11.injection_keeps_format->load (config.textures.d3d11.injection_keeps_fmt);
+                  texture.dump_on_load->load (config.textures.d3d11.dump);
                   texture.dump_on_load->load (config.textures.dump_on_load);
 
   texture.d3d11.gen_mips->load     (config.textures.d3d11.generate_mips);
@@ -1911,7 +1903,6 @@ SK_LoadConfigEx (std::wstring name, bool create)
   texture.cache.ignore_non_mipped->load (config.textures.cache.ignore_nonmipped);
   texture.cache.allow_staging->load     (config.textures.cache.allow_staging);
   texture.cache.allow_unsafe_refs->load (config.textures.cache.allow_unsafe_refs);
-  texture.cache.merge_mode->load        (config.textures.cache.merge_mode);
 
   extern void WINAPI SK_DXGI_SetPreferredAdapter (int override_id);
 
@@ -2235,10 +2226,6 @@ SK_LoadConfigEx (std::wstring name, bool create)
           CreateThread (nullptr, 0, [](LPVOID) ->
           DWORD
           {
-            // Wait for the image relocation to settle down, or we'll probably
-            //   break the memory scanner.
-            WaitForInputIdle (GetCurrentProcess (), 3333UL);
-
             void
             SK_ResHack_PatchGame (uint32_t w, uint32_t h);
 
@@ -2256,10 +2243,6 @@ SK_LoadConfigEx (std::wstring name, bool create)
           CreateThread (nullptr, 0, [ ] (LPVOID) ->
                         DWORD
           {
-            // Wait for the image relocation to settle down, or we'll probably
-            //   break the memory scanner.
-            WaitForInputIdle (GetCurrentProcess (), 3333UL);
-
             void
               SK_ResHack_PatchGame2 (uint32_t w, uint32_t h);
 
@@ -2277,10 +2260,6 @@ SK_LoadConfigEx (std::wstring name, bool create)
           CreateThread (nullptr, 0, [](LPVOID) ->
           DWORD
           {
-            // Wait for the image relocation to settle down, or we'll probably
-            //   break the memory scanner.
-            WaitForInputIdle (GetCurrentProcess (), 3333UL);
-
             void
             SK_ResHack_PatchGame (uint32_t w, uint32_t h);
 
@@ -2455,7 +2434,7 @@ SK_SaveConfig ( std::wstring name,
   compatibility.rehook_loadlibrary->store     (config.compatibility.rehook_loadlibrary);
 
   monitoring.memory.show->set_value           (config.mem.show);
-  mem_reserve->store                          (config.mem.reserve);
+//mem_reserve->store                          (config.mem.reserve);
 
   monitoring.fps.show->store                  (config.fps.show);
   monitoring.fps.advanced->store              (config.fps.advanced);
@@ -2674,11 +2653,9 @@ SK_SaveConfig ( std::wstring name,
 
       texture.d3d11.cache->store                  (config.textures.d3d11.cache);
       texture.d3d11.precise_hash->store           (config.textures.d3d11.precise_hash);
-      texture.d3d11.dump->store                   (config.textures.d3d11.dump);
       texture.d3d11.inject->store                 (config.textures.d3d11.inject);
       texture.d3d11.injection_keeps_format->store (config.textures.d3d11.injection_keeps_fmt);
       texture.d3d11.gen_mips->store               (config.textures.d3d11.generate_mips);
-      texture.d3d11.res_root->store               (config.textures.d3d11.res_root);
 
       texture.cache.max_entries->store            (config.textures.cache.max_entries);
       texture.cache.min_entries->store            (config.textures.cache.min_entries);
@@ -2690,7 +2667,6 @@ SK_SaveConfig ( std::wstring name,
       texture.cache.ignore_non_mipped->store      (config.textures.cache.ignore_nonmipped);
       texture.cache.allow_staging->store          (config.textures.cache.allow_staging);
       texture.cache.allow_unsafe_refs->store      (config.textures.cache.allow_unsafe_refs);
-      texture.cache.merge_mode->store             (config.textures.cache.merge_mode);
 
       wsprintf ( wszFormattedRes, L"%lux%lu",
                    config.render.dxgi.res.max.x,

@@ -153,20 +153,14 @@ SK_GetUserProfileDir (wchar_t* buf, uint32_t* pdwLen)
     _Out_writes_opt_(*lpcchSize)    LPWSTR lpProfileDir,
     _Inout_                         LPDWORD lpcchSize);
 
-  static auto imp_GetUserProfileDirectoryW =
-    (GetUserProfileDirectoryW_pfn)
-     GetProcAddress ( SK_Modules.LoadLibrary (L"userenv.dll"),
-                                               "GetUserProfileDirectoryW" );
-
-
   CHandle hToken;
 
   if (! OpenProcessToken (SK_GetCurrentProcess (), TOKEN_READ, &hToken.m_h))
     return false;
 
-  if (! imp_GetUserProfileDirectoryW ( hToken, buf,
-                                         reinterpret_cast <DWORD *> (pdwLen)
-                                     )
+  if (! GetUserProfileDirectoryW ( hToken, buf,
+                                     reinterpret_cast <DWORD *> (pdwLen)
+                                 )
      )
   {
     return false;

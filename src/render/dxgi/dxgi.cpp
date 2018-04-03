@@ -3167,6 +3167,8 @@ STDMETHODCALLTYPE PresentCallback ( IDXGISwapChain *This,
                               SK_DXGI_Present, SK_DXGI_PresentSource::Hook );
 }
 
+#include <SpecialK/crc32.h>
+
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
@@ -3179,6 +3181,50 @@ DXGIOutput_GetDisplayModeList_Override ( IDXGIOutput    *This,
 _Out_writes_to_opt_(*pNumModes,*pNumModes)
                                          DXGI_MODE_DESC *pDesc)
 {
+  struct callframe_s {
+    DXGI_FORMAT ef;
+    UINT         f;
+  } frame = { EnumFormat, Flags };
+
+  uint32_t tag =
+    crc32c (0x0, &frame, sizeof (callframe_s));
+
+  static concurrency::concurrent_unordered_map <
+           uint32_t, std::vector <DXGI_MODE_DESC>
+         > cached_descs;
+
+
+  extern bool SK_NNK2_CacheModes;
+
+  if (SK_GetCurrentGameID () == SK_GAME_ID::NiNoKuni2 && SK_NNK2_CacheModes)
+  {
+    if (! cached_descs [tag].empty ())
+    {
+      int modes = 0;
+
+      if (*pNumModes == 0)
+      {
+        *pNumModes = (UINT)cached_descs [tag].size ();
+             modes = *pNumModes;
+      }
+
+      else
+        modes = (int)std::min (cached_descs [tag].size (), (size_t)*pNumModes);
+
+
+      if (pDesc)
+      {
+        for (int i = 0; i < modes; i++)
+        {
+          pDesc [i] = cached_descs [tag][i];
+        }
+      }
+
+      return S_OK;
+    }
+  }
+
+
   if (pDesc != nullptr)
   {
     DXGI_LOG_CALL_I5 ( L"       IDXGIOutput", L"GetDisplayModeList         ",
@@ -3281,6 +3327,13 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
       dll_log.Log ( L"[   DXGI   ]      >> %lu modes (%li removed)",
                       *pNumModes,
                         removed_count );
+
+      cached_descs [tag].resize (*pNumModes);
+
+      for (UINT i = 0; i < *pNumModes; i++)
+      {
+        cached_descs [tag][i] = pDesc [i];
+      }
     }
   }
 

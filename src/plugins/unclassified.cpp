@@ -282,6 +282,12 @@ SK_FFXV_PlugInCfg (void)
     ImGui::TreePush ("");
 
     static bool ignis_vision = false;
+    static bool hair_club    = false;
+
+    extern bool SK_D3D11_EnableTracking;
+
+    if (ignis_vision || hair_club)
+      SK_D3D11_EnableTracking = true;
 
     if (ImGui::Checkbox (u8"Ignis Vision ™", &ignis_vision))
     {
@@ -292,6 +298,39 @@ SK_FFXV_PlugInCfg (void)
       } else {
         SK_D3D11_Shaders.vertex.wireframe.erase   (0x89d01dda);
         SK_D3D11_Shaders.vertex.on_top.erase      (0x89d01dda);
+      }
+    }
+
+    ImGui::SameLine ();
+
+    if (ImGui::Checkbox (u8"(No)Hair Club for Men™", &hair_club))
+    {
+      if (hair_club)
+      {
+        // Normal Hair
+        SK_D3D11_Shaders.pixel.blacklist.emplace (0x1a77046d);
+        SK_D3D11_Shaders.pixel.blacklist.emplace (0x132b907a);
+        SK_D3D11_Shaders.pixel.blacklist.emplace (0x8a0dbca1);
+        SK_D3D11_Shaders.pixel.blacklist.emplace (0xc9bb3e7f);
+
+        // Wet Hair
+        //SK_D3D11_Shaders.pixel.blacklist.emplace (0x41c6add3);
+        //SK_D3D11_Shaders.pixel.blacklist.emplace (0x4524bf4f);
+        //SK_D3D11_Shaders.pixel.blacklist.emplace (0x62f9cfe8);
+        //SK_D3D11_Shaders.pixel.blacklist.emplace (0x95f7de71);
+
+        // HairWorks
+        SK_D3D11_Shaders.pixel.blacklist.emplace (0x2d6f6ee8);
+      } else {
+        SK_D3D11_Shaders.pixel.blacklist.erase (0x1a77046d);
+        SK_D3D11_Shaders.pixel.blacklist.erase (0x132b907a);
+        SK_D3D11_Shaders.pixel.blacklist.erase (0x8a0dbca1);
+        SK_D3D11_Shaders.pixel.blacklist.erase (0xc9bb3e7f);
+        SK_D3D11_Shaders.pixel.blacklist.erase (0x2d6f6ee8);
+        //SK_D3D11_Shaders.pixel.blacklist.erase (0x41c6add3);
+        //SK_D3D11_Shaders.pixel.blacklist.erase (0x4524bf4f);
+        //SK_D3D11_Shaders.pixel.blacklist.erase (0x62f9cfe8);
+        //SK_D3D11_Shaders.pixel.blacklist.erase (0x95f7de71);
       }
     }
 
@@ -320,7 +359,7 @@ SK_FFXV_PlugInCfg (void)
         }
 
 
-        DWORD dwPrio = idx;
+        int dwPrio = idx;
         idx = ( dwPrio == priority_levels [0] ? 0 :
               ( dwPrio == priority_levels [1] ? 1 :
               ( dwPrio == priority_levels [2] ? 2 : 3 ) ) );
@@ -395,84 +434,6 @@ SK_FFXV_PlugInCfg (void)
   return false;
 }
 
-#include <SpecialK/log.h>
-
-bool
-SK_NNK2_PlugInCfg (void)
-{
-  const char* ping = "\xF2\x48\x0F\x2A\xC1\x79\x04\xF2\x0F\x58\xC6";
-  const char* pong = "\xF2\x48\x0F\x2A\xC1\x90\x90\xF2\x0F\x58\xC6";
-
-  if (ImGui::CollapsingHeader (u8"Ni no Kuni™ II Revenant Kingdom", ImGuiTreeNodeFlags_DefaultOpen))
-  {
-    ImGui::TreePush ("");
-
-    static bool hyper_evan = false;
-
-    if (ImGui::Checkbox ("Hyper-Evan", &hyper_evan))
-    {
-      const char* szPattern = hyper_evan ? ping : pong;
-      const char* szReplace = hyper_evan ? "\x90\x90" :
-                                           "\x79\x04";
-
-      // F2 48 0F2A C1         - cvtsi2sd xmm0,rcx
-      // << 79 04 >>           - jns Nino2.agsInit+2B2135
-      // F2 0F58 C6            - addsd xmm0,xmm6
-
-      static void *first_guess = nullptr;
-      static int   matches     = 0;
-
-      void* rep =
-        SK_ScanAlignedEx (szPattern, 11, nullptr, (void *)((uintptr_t)first_guess - 2), 2);
-
-      if (rep != nullptr)
-      {
-        int match = 0;
-
-        // Speed up the search the next time we do this
-        if (! first_guess) first_guess = rep;
-
-        while (rep != nullptr)
-        {
-          DWORD dwProtect = 0;
-
-          // Safely patch 16-bytes without needing to analyze thread contexts,
-          //   interlocking takes care of cache coherency and performs this atomically
-          //     ( assuming 2-byte alignment ).
-          volatile SHORT* szStartAddr =
-         (volatile SHORT*)((uintptr_t)rep + 5);
-
-          VirtualProtect ((LPVOID)szStartAddr,            2, PAGE_EXECUTE_READWRITE, &dwProtect);
-          InterlockedExchange16  (szStartAddr, *(uint16_t *)szReplace);
-          VirtualProtect ((LPVOID)szStartAddr,            2, dwProtect,              &dwProtect);
-
-        //dll_log.Log (L"Hyper-Evan Replacement at addr. %ph", rep);
-
-          if (match++ > matches && matches != 0)
-            break;
-
-          rep =
-            SK_ScanAlignedEx (szPattern, 11, nullptr, (uint8_t *)rep + 2, 2);
-        }
-
-        if (! matches) matches = match;
-      }
-    }
-
-    if (ImGui::IsItemHovered ()) ImGui::SetTooltip ("Speedhack...");
-
-    ImGui::SameLine ();
-    ImGui::Checkbox ("Prevent Controller Disconnect Messages",        &config.input.gamepad.xinput.placehold [0]);
-    ImGui::SameLine ();
-    ImGui::Checkbox ("Continue Rendering if Game Window is Inactive", &config.window.background_render);
-
-    ImGui::TreePop  ();
-
-    return false;
-  }
-
-  return true;
-}
 
 
 bool

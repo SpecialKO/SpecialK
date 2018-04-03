@@ -52,7 +52,7 @@ struct sk_config_t
 
   struct {
     bool   show           = false;
-    float  reserve        = 25.0f; // 25%
+    float  reserve        = 0.0f;// Unused / Unlimited
     float  interval       = 0.25f;
 
     struct {
@@ -212,7 +212,7 @@ struct sk_config_t
       std::set <std::string> blacklist;
     } cloud;
 
-    int     notify_corner        = 0; // 0=Top-Left,
+    int     notify_corner        = 4; // 0=Top-Left,
                                       // 1=Top-Right,
                                       // 2=Bottom-Left,
                                       // 3=Bottom-Right,
@@ -346,7 +346,7 @@ struct sk_config_t
       int     min_evict           = 64;
       int     max_evict           = 1024;
       int     min_entries         = 512;
-      int     max_entries         = 16384; // Bump max up from 8192 since the hashmap
+      int     max_entries         = 65536; // Bump max up from 8192 since the hashmap
                                            //   is now segmented by number of mipmap LODs;
                                            //
                                            //  Overhead of managing a large hashmap is
@@ -357,7 +357,6 @@ struct sk_config_t
       bool    allow_staging       = false;
       bool    allow_unsafe_refs   = false; // Allow texture caching even in engines that
                                            //   are not correctly keeping track of resources
-      bool    merge_mode          = false;
     } cache;
 
     bool highlight_debug_tex      = false;
