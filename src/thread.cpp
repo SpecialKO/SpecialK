@@ -42,6 +42,40 @@ HRESULT WINAPI GetThreadDescription_NOP (HANDLE, PWSTR*) { return E_NOTIMPL; }
 
 const DWORD MAGIC_THREAD_EXCEPTION = 0x406D1388;
 
+#include <concurrent_unordered_map.h>
+#include <concurrent_unordered_set.h>
+
+concurrency::concurrent_unordered_map <DWORD, std::wstring> _SK_ThreadNames;
+concurrency::concurrent_unordered_set <DWORD>               _SK_SelfTitledThreads;
+
+// Game has given this thread a custom name, it's special :)
+bool
+SK_Thread_HasCustomName (DWORD dwTid)
+{
+  if (_SK_SelfTitledThreads.count (dwTid) != 0)
+    return true;
+
+  return false;
+}
+
+std::wstring
+SK_Thread_GetName (DWORD dwTid)
+{
+  auto it  =
+    _SK_ThreadNames.find (dwTid);
+
+  if (it != _SK_ThreadNames.end ())
+    return (*it).second;
+
+  return L"";
+}
+
+std::wstring
+SK_Thread_GetName (HANDLE hThread)
+{
+  return SK_Thread_GetName (GetThreadId (hThread));
+}
+
 extern "C" {
 
 #pragma pack(push,8)
@@ -65,72 +99,72 @@ SetCurrentThreadDescription (_In_ PCWSTR lpThreadDescription)
     return S_OK;
 
 
-  // Push this to the TLS datastore so we can get thread names even
-  //   when no debugger is attached.
-  wcsncpy (SK_TLS_Bottom ()->debug.name, lpThreadDescription, 255);
+  bool non_empty =
+    lstrlenW (lpThreadDescription) != 0;
 
 
-  char      szDesc [256] = { };
-  wcstombs (szDesc, lpThreadDescription, 255);
-
-
-  const DWORD tid =
-    GetCurrentThreadId ();
-
-  const THREADNAME_INFO info =
-   { 4096, szDesc, tid, 0x0 };
-
-
-  // Next: The old way (requires a debugger attached at the time we raise
-  //                      this stupid exception)
-  if (SK_IsDebuggerPresent ())
+  if (non_empty)
   {
-    __try
-    {
-      const DWORD argc = sizeof (info) /
-                         sizeof (ULONG_PTR);
+    _SK_SelfTitledThreads.insert (GetCurrentThreadId ());
 
+    // Push this to the TLS datastore so we can get thread names even
+    //   when no debugger is attached.
+    wcsncpy (SK_TLS_Bottom ()->debug.name, lpThreadDescription, 255);
+
+    _SK_ThreadNames [GetCurrentThreadId ()] = lpThreadDescription;
+
+
+    char      szDesc [256] = { };
+    wcstombs (szDesc, lpThreadDescription, 255);
+
+
+    const THREADNAME_INFO info =
+     { 4096, szDesc, (DWORD)-1, 0x0 };
+
+    const DWORD argc = sizeof (info) /
+                       sizeof (ULONG_PTR);
+
+    __try {
       RaiseException ( MAGIC_THREAD_EXCEPTION,
                          0,
                            argc,
                              reinterpret_cast <const ULONG_PTR *>(&info) );
     }
 
-    __except ( (GetExceptionCode () == MAGIC_THREAD_EXCEPTION) ?
-                         EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH  )
+    __except (EXCEPTION_CONTINUE_EXECUTION) {
 
-    {
     }
+
+    // Windows 7 / 8 can go no further, they will have to be happy with the
+    //   TLS-backed name or a debugger must catch the exception above.
+    //
+    if ( SetThreadDescription == &SetThreadDescription_NOP ||
+         SetThreadDescription == nullptr ) // Will be nullptr in SKIM64
+      return S_OK;
+
+
+    // Finally, use the new API added in Windows 10...
+    HRESULT hr = E_UNEXPECTED;
+    HANDLE  hRealHandle;
+
+    if ( DuplicateHandle ( SK_GetCurrentProcess (),
+                           SK_GetCurrentThread  (),
+                           SK_GetCurrentProcess (),
+                             &hRealHandle,
+                               THREAD_ALL_ACCESS,
+                                 FALSE,
+                                    0 ) )
+    {
+      hr =
+        SetThreadDescription (hRealHandle, lpThreadDescription);
+
+      CloseHandle (hRealHandle);
+    }
+
+    return hr;
   }
 
-
-  // Windows 7 / 8 can go no further, they will have to be happy with the
-  //   TLS-backed name or a debugger must catch the exception above.
-  //
-  if ( SetThreadDescription == &SetThreadDescription_NOP ||
-       SetThreadDescription == nullptr ) // Will be nullptr in SKIM64
-    return S_OK;
-
-
-  // Finally, use the new API added in Windows 10...
-  HRESULT hr = E_UNEXPECTED;
-  HANDLE  hRealHandle;
-
-  if ( DuplicateHandle ( SK_GetCurrentProcess (),
-                         SK_GetCurrentThread  (),
-                         SK_GetCurrentProcess (),
-                           &hRealHandle,
-                             0,
-                               FALSE,
-                                 DUPLICATE_SAME_ACCESS ) )
-  {
-    hr =
-      SetThreadDescription (hRealHandle, lpThreadDescription);
-
-    CloseHandle (hRealHandle);
-  }
-
-  return hr;
+  return S_OK;
 }
 
 HRESULT
@@ -166,9 +200,9 @@ GetCurrentThreadDescription (_Out_  PWSTR  *threadDescription)
                          SK_GetCurrentThread  (),
                          SK_GetCurrentProcess (),
                            &hRealHandle,
-                             0,
+                             THREAD_ALL_ACCESS,
                                FALSE,
-                                 DUPLICATE_SAME_ACCESS ) )
+                                 0 ) )
   {
     hr =
       GetThreadDescription (hRealHandle, threadDescription);
@@ -237,4 +271,4 @@ SK_Thread_GetCurrentPriority (void)
 }
 
 
-} /* extern "C" */
+} /* extern "C" */  

@@ -656,9 +656,9 @@ SK_Widget::load (iSK_INI*)
                               (((alt)  != 0) << 11))
 
 static auto widgets =
-  { SK_ImGui_Widgets.frame_pacing, SK_ImGui_Widgets.volume_control,
-    SK_ImGui_Widgets.gpu_monitor,  SK_ImGui_Widgets.cpu_monitor,
-    SK_ImGui_Widgets.d3d11_pipeline };
+  { SK_ImGui_Widgets.frame_pacing,   SK_ImGui_Widgets.volume_control,
+    SK_ImGui_Widgets.gpu_monitor,    SK_ImGui_Widgets.cpu_monitor,
+    SK_ImGui_Widgets.d3d11_pipeline, SK_ImGui_Widgets.thread_profiler };
 
 BOOL
 SK_ImGui_WidgetRegistry::DispatchKeybinds (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode)

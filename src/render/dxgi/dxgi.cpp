@@ -6452,8 +6452,8 @@ SK_DXGI_SetPreferredAdapter (int override_id)
 
 extern bool SK_D3D11_need_tex_reset;
 
-memory_stats_t   mem_stats [MAX_GPU_NODES];
-mem_info_t       mem_info  [NumBuffers];
+memory_stats_t   mem_stats [MAX_GPU_NODES] = { };
+mem_info_t       mem_info  [NumBuffers]    = { };
 
 struct budget_thread_params_t
 {
@@ -6740,7 +6740,8 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
   SK_AutoCOMInit auto_com;
 
 
-  SetThreadPriority ( SK_GetCurrentThread (), THREAD_PRIORITY_LOWEST );
+  SetThreadPriority      ( SK_GetCurrentThread (), THREAD_PRIORITY_LOWEST );
+  SetThreadPriorityBoost ( SK_GetCurrentThread (), TRUE                   );
 
   while ( ReadAcquire ( &params->ready ) )
   {

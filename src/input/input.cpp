@@ -1437,6 +1437,14 @@ GetCursorPos_Detour (LPPOINT lpPoint)
   SK_LOG_FIRST_CALL
 
 
+  if (config.window.background_render && (! game_window.active))
+  {
+    *lpPoint = SK_ImGui_Cursor.orig_pos;
+
+    return TRUE;
+  }
+
+
   if (SK_ImGui_IsMouseRelevant ())
   {
     bool implicit_capture = false;

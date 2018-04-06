@@ -144,6 +144,7 @@ WINAPI
 SK_MonitorCPU (LPVOID user_param)
 {
   SK_Thread_SetCurrentPriority (THREAD_PRIORITY_BELOW_NORMAL);
+  SetThreadPriorityBoost       (GetCurrentThread (), TRUE);
 
   SK_WMI_WaitForInit ();
 
@@ -507,6 +508,7 @@ WINAPI
 SK_MonitorDisk (LPVOID user)
 {
   SK_Thread_SetCurrentPriority (THREAD_PRIORITY_BELOW_NORMAL);
+  SetThreadPriorityBoost       (GetCurrentThread (), TRUE);
 
   SK_WMI_WaitForInit ();
 
@@ -925,6 +927,7 @@ WINAPI
 SK_MonitorPagefile (LPVOID user)
 {
   SK_Thread_SetCurrentPriority (THREAD_PRIORITY_BELOW_NORMAL);
+  SetThreadPriorityBoost       (GetCurrentThread (), TRUE);
 
   SK_WMI_WaitForInit ();
 
@@ -1255,6 +1258,7 @@ WINAPI
 SK_MonitorProcess (LPVOID user)
 {
   SK_Thread_SetCurrentPriority (THREAD_PRIORITY_BELOW_NORMAL);
+  SetThreadPriorityBoost       (GetCurrentThread (), TRUE);
 
   SK_WMI_WaitForInit ();
 

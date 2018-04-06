@@ -49,6 +49,10 @@ using OutputDebugStringA_pfn = void (WINAPI *)(LPCSTR  lpOutputString);
 using OutputDebugStringW_pfn = void (WINAPI *)(LPCWSTR lpOutputString);
 
 
+std::wstring SK_Thread_GetName (DWORD  dwTid);
+std::wstring SK_Thread_GetName (HANDLE hThread);
+
+
 #include <cassert>
 
 #define SK_ASSERT_NOT_THREADSAFE() {                \

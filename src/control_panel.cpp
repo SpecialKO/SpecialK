@@ -2142,11 +2142,12 @@ SK_ImGui_ControlPanel (void)
 
   if (open_widgets)
   {
-    bool framepacing   = SK_ImGui_Widgets.frame_pacing->isVisible   ();
-    bool gpumon        = SK_ImGui_Widgets.gpu_monitor->isVisible    ();
-    bool volumecontrol = SK_ImGui_Widgets.volume_control->isVisible ();
-    bool cpumon        = SK_ImGui_Widgets.cpu_monitor->isVisible    ();
-    bool pipeline      = SK_ImGui_Widgets.d3d11_pipeline->isVisible ();
+    bool framepacing   = SK_ImGui_Widgets.frame_pacing->isVisible    ();
+    bool gpumon        = SK_ImGui_Widgets.gpu_monitor->isVisible     ();
+    bool volumecontrol = SK_ImGui_Widgets.volume_control->isVisible  ();
+    bool cpumon        = SK_ImGui_Widgets.cpu_monitor->isVisible     ();
+    bool pipeline      = SK_ImGui_Widgets.d3d11_pipeline->isVisible  ();
+    bool threads       = SK_ImGui_Widgets.thread_profiler->isVisible ();
 
     ImGui::TreePush ("");
 
@@ -2189,7 +2190,14 @@ SK_ImGui_ControlPanel (void)
         SK_ImGui_Widgets.d3d11_pipeline->setVisible (pipeline).setActive (pipeline);
       }
     }
-    ImGui::TreePop  (  );
+
+    ImGui::SameLine ();
+    if (ImGui::Checkbox ("Threads", &threads))
+    {
+      SK_ImGui_Widgets.thread_profiler->setVisible (threads).setActive (threads);
+    }
+
+    ImGui::TreePop  ();
   }
 
   SK::ControlPanel::PlugIns::Draw ();
@@ -2362,7 +2370,8 @@ SK_ImGui_StageNextFrame (void)
       SK_ImGui_Widgets.volume_control,
         SK_ImGui_Widgets.gpu_monitor,
           SK_ImGui_Widgets.cpu_monitor,
-            SK_ImGui_Widgets.d3d11_pipeline
+            SK_ImGui_Widgets.d3d11_pipeline,
+              SK_ImGui_Widgets.thread_profiler
   };
 
   if (init_widgets)

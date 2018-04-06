@@ -812,6 +812,9 @@
     <ClCompile Include="src\plugins\ninokuni2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\widgets\threads.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="SpecialK.def">

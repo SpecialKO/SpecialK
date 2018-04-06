@@ -1538,16 +1538,16 @@ SK_LoadConfigEx (std::wstring name, bool create)
         // On many systems, people have third-party software that is behaving
         //   incorrectly when the game issues DXGI_PRESENT_TEST; so disable
         //     this feature to improve performance and compat.
-        config.render.dxgi.present_test_skip = true;
+        config.render.dxgi.present_test_skip = false;
 
-        config.textures.d3d11.cache          = true;
-        config.textures.cache.max_entries    = 262144; // Uses a ton of small textures
+        config.textures.d3d11.cache          = false;
+        config.textures.cache.max_entries    = 16384; // Uses a ton of small textures
 
         // Don't show the cursor, ever, because the game doesn't use it.
         config.input.cursor.manage           = true;
         config.input.cursor.timeout          = 0;
 
-        InterlockedExchange (&SK_SteamAPI_CallbackRateLimit, 8);
+        InterlockedExchange (&SK_SteamAPI_CallbackRateLimit, 10);
         break;
 
       case SK_GAME_ID::NiNoKuni2:

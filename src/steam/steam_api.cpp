@@ -244,7 +244,7 @@ _SK_RecursiveFileSearch ( const wchar_t* wszDir,
   return found;
 }
 
-using steam_library_t = char* [MAX_PATH * 2];
+using steam_library_t = wchar_t* [MAX_PATH * 2];
 
 int
 SK_Steam_GetLibraries (steam_library_t** ppLibraries = nullptr);
@@ -259,20 +259,20 @@ SK_Steam_FindInstallPath (uint32_t appid)
   {
     for (int i = 0; i < steam_libs; i++)
     {
-      char szManifest [MAX_PATH * 2 + 1] = { };
+      wchar_t wszManifest [MAX_PATH * 2 + 1] = { };
 
-      sprintf ( szManifest,
-                  R"(%s\steamapps\appmanifest_%u.acf)",
-                    (char *)steam_lib_paths [i],
+      wsprintf ( wszManifest,
+                  LR"(%ws\steamapps\appmanifest_%u.acf)",
+                    (wchar_t *)steam_lib_paths [i],
                       appid );
 
       CHandle hManifest (
-        CreateFileA ( szManifest,
+        CreateFileW ( wszManifest,
                       GENERIC_READ,
                         FILE_SHARE_READ | FILE_SHARE_WRITE,
                           nullptr,
                             OPEN_EXISTING,
-                              GetFileAttributesA (szManifest),
+                              GetFileAttributesW (wszManifest),
                                 nullptr )
       );
 
@@ -3405,7 +3405,8 @@ SK_Steam_GetLibraries (steam_library_t** ppLibraries)
                 else if (((char *)data) [j] == '"')
                 {
                   ((char *)data) [j] = '\0';
-                  lstrcpyA ((char *)steam_lib_paths [steam_libs++], lib_start);
+
+                  wsprintfW ((wchar_t *)steam_lib_paths [steam_libs++], L"%hs", lib_start);
                   lib_start = nullptr;
                 }
               }
@@ -3416,8 +3417,8 @@ SK_Steam_GetLibraries (steam_library_t** ppLibraries)
     }
 
     // Finally, add the default Steam library
-    lstrcpyA ( (char *)steam_lib_paths [steam_libs++],
-                 SK_WideCharToUTF8 (wszSteamPath).c_str () );
+    lstrcpyW ( (wchar_t *)steam_lib_paths [steam_libs++],
+                 wszSteamPath );
 
     scanned_libs = true;
   }
@@ -3438,20 +3439,20 @@ SK_UseManifestToGetAppName (uint32_t appid)
   {
     for (int i = 0; i < steam_libs; i++)
     {
-      char szManifest [MAX_PATH * 2 + 1] = { };
+      wchar_t wszManifest [MAX_PATH * 2 + 1] = { };
 
-      sprintf ( szManifest,
-                  R"(%s\steamapps\appmanifest_%u.acf)",
-                    (char *)steam_lib_paths [i],
+      wsprintf ( wszManifest,
+                  LR"(%s\steamapps\appmanifest_%u.acf)",
+                    (wchar_t *)steam_lib_paths [i],
                       appid );
 
       CHandle hManifest (
-        CreateFileA ( szManifest,
+        CreateFileW ( wszManifest,
                       GENERIC_READ,
                         FILE_SHARE_READ | FILE_SHARE_WRITE,
                           nullptr,
                             OPEN_EXISTING,
-                              GetFileAttributesA (szManifest),
+                              GetFileAttributesW (wszManifest),
                                 nullptr )
       );
 
@@ -3619,6 +3620,7 @@ SK_Steam_ScrubRedistributables (int& total_files, bool erase)
       SetCurrentThreadDescription (          L"[SK] Steam Redistributable File Cleanup" );
       SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_LOWEST |
                                                             THREAD_MODE_BACKGROUND_BEGIN );
+      SetThreadPriorityBoost      ( SK_GetCurrentThread (), TRUE                         );
 
       unsigned int      files =  0 ;
       LARGE_INTEGER    liSize = { };
@@ -4018,6 +4020,7 @@ SteamAPI_Delay_Init (LPVOID)
 {
   SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_HIGHEST  );
   SetCurrentThreadDescription (            L"[SK] SteamAPI Delayed Init. Thread" );
+  SetThreadPriorityBoost      ( SK_GetCurrentThread (), TRUE                     );
 
 
   if (! SK_IsInjected ())
@@ -5518,8 +5521,8 @@ SK_Steam_KickStart (const wchar_t* wszLibPath)
   if (! InterlockedCompareExchange (&tried, TRUE, FALSE))
   {
     static const wchar_t* wszSteamDLL =
-      SK_RunLHIfBitness ( 64, L"steam_api64.dll",
-                              L"steam_api.dll" );
+      SK_RunLHIfBitness ( 64, LR"(PlugIns\ThirdParty\Steamworks\steam_api64.dll)",
+                              LR"(PlugIns\ThirdParty\Steamworks\steam_api.dll)" );
 
     if (! GetModuleHandle (wszSteamDLL))
     {

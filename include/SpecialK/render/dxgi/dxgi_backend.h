@@ -256,11 +256,11 @@ enum buffer_t {
 };
 
 struct mem_info_t {
-  DXGI_QUERY_VIDEO_MEMORY_INFO local    [MAX_GPU_NODES];
-  DXGI_QUERY_VIDEO_MEMORY_INFO nonlocal [MAX_GPU_NODES];
-  SYSTEMTIME                   time;
-  buffer_t                     buffer = Front;
-  int                          nodes  = 0;//MAX_GPU_NODES;
+  DXGI_QUERY_VIDEO_MEMORY_INFO local    [MAX_GPU_NODES] = { };
+  DXGI_QUERY_VIDEO_MEMORY_INFO nonlocal [MAX_GPU_NODES] = { };
+  SYSTEMTIME                   time                     = { };
+  buffer_t                     buffer                   = Front;
+  int                          nodes                    = 0;//MAX_GPU_NODES;
 } extern mem_info [NumBuffers];
 
 namespace SK

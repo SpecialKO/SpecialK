@@ -69,21 +69,27 @@ SK_GPUPollingThread (LPVOID user)
     hShutdownEvent
   };
 
-  SetCurrentThreadDescription (     L"[SK] GPU Performance Monitoring Thread");
+  SetCurrentThreadDescription  (     L"[SK] GPU Performance Monitoring Thread");
+  SK_Thread_SetCurrentPriority (THREAD_PRIORITY_IDLE);
+  SetThreadPriorityBoost       (GetCurrentThread (), TRUE);
+  
 
-  //
-  // Start normal, we will adjust the priority to match the thread handling swapchain
-  //   presentation later on.
-  //
-  //  Matching priority levels reduces potential performance problems caused if
-  //    NvAPI or ADL acquire / release locks.
-  //
-  SK_Thread_SetCurrentPriority (THREAD_PRIORITY_NORMAL);
+  auto SwitchToThreadMinPageFaults = [](void) ->
+  void
+  {
+    static int iters = 0;
+
+    if ((iters++ % 13) == 0)
+      SleepEx (0, FALSE);
+
+    else if ((iters % 9) != 0)
+      SwitchToThread ();
+  };
 
   while (true)
   {
     DWORD dwWait =
-      WaitForMultipleObjects (2, hEvents, FALSE, INFINITE);
+      WaitForMultipleObjectsEx (2, hEvents, FALSE, INFINITE, TRUE);
 
     if (dwWait == WAIT_OBJECT_0 + 1)
       break;
@@ -92,25 +98,25 @@ SK_GPUPollingThread (LPVOID user)
       break;
 
 
-    CHandle hSwapChainThread (
-      OpenThread ( THREAD_ALL_ACCESS,
-                     FALSE,
-                       ReadAcquire (&SK_GetCurrentRenderBackend ().thread)
-                 )
-    );
-
-    if ( hSwapChainThread.m_h != 0 )
-    {
-      if ( SK_Thread_GetCurrentPriority () != 
-           GetThreadPriority (hSwapChainThread) )
-      {
-        SK_LOG0 ( ( "Matching priority between GPU perf. data collection and swapchain threads (new prio=%i)",
-                      GetThreadPriority (hSwapChainThread) ),
-                  L" GPU Mon. " );
-
-        SK_Thread_SetCurrentPriority (GetThreadPriority (hSwapChainThread));
-      }
-    }
+    //CHandle hSwapChainThread (
+    //  OpenThread ( THREAD_ALL_ACCESS,
+    //                 FALSE,
+    //                   ReadAcquire (&SK_GetCurrentRenderBackend ().thread)
+    //             )
+    //);
+    //
+    //if ( hSwapChainThread.m_h != 0 )
+    //{
+    //  if ( SK_Thread_GetCurrentPriority () != 
+    //       GetThreadPriority (hSwapChainThread) )
+    //  {
+    //    SK_LOG0 ( ( "Matching priority between GPU perf. data collection and swapchain threads (new prio=%i)",
+    //                  GetThreadPriority (hSwapChainThread) ),
+    //              L" GPU Mon. " );
+    //
+    //    SK_Thread_SetCurrentPriority (GetThreadPriority (hSwapChainThread));
+    //  }
+    //}
 
 
     if (InterlockedCompareExchange (&current_gpu_stat, TRUE, FALSE))
@@ -159,8 +165,6 @@ SK_GPUPollingThread (LPVOID user)
 
       for (int i = 0; i < stats.num_gpus; i++)
       {
-        SwitchToThread ();
-
         NvPhysicalGpuHandle gpu = { };
 
         // In order for DXGI Adapter info to match up... don't just assign
@@ -227,8 +231,6 @@ SK_GPUPollingThread (LPVOID user)
 
         else has_thermal = false;
 
-        SwitchToThread ();
-
         NvU32 pcie_lanes = 0;
         if (            NvAPI_GPU_GetCurrentPCIEDownstreamWidth != nullptr &&
             NVAPI_OK == NvAPI_GPU_GetCurrentPCIEDownstreamWidth (gpu, &pcie_lanes))
@@ -288,7 +290,7 @@ SK_GPUPollingThread (LPVOID user)
             stats.gpus [i].memory_B.total - stats.gpus [i].memory_B.local;
         }
 
-        SwitchToThread ();
+        SwitchToThreadMinPageFaults ();
 
         NV_GPU_CLOCK_FREQUENCIES freq           = {                          };
                                  freq.version   = NV_GPU_CLOCK_FREQUENCIES_VER;
@@ -304,8 +306,6 @@ SK_GPUPollingThread (LPVOID user)
           ////stats.gpus [i].clocks_kHz.shader =
             ////freq.domain [NVAPI_GPU_PUBLIC_CLOCK_PROCESSOR].frequency;
         }
-
-        SwitchToThread ();
 
         NvU32 tach = 0;
 
@@ -440,7 +440,7 @@ SK_GPUPollingThread (LPVOID user)
 
         else has_pstates = false;
 
-        SwitchToThread ();
+        SwitchToThreadMinPageFaults ();
       }
     }
 

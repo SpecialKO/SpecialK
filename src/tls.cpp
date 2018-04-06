@@ -24,9 +24,11 @@
 #include <SpecialK/config.h>
 #include <SpecialK/thread.h>
 
+#include <concurrent_unordered_map.h>
+Concurrency::concurrent_unordered_map <DWORD, SK_TlsRecord> tls_map;
+
 
 volatile long __SK_TLS_INDEX = TLS_OUT_OF_INDEXES;
-
 
 SK_TlsRecord
 SK_GetTLS (bool initialize)
@@ -70,6 +72,8 @@ SK_GetTLS (bool initialize)
 
       // Stack semantics are deprecated and will be removed soon
       pTLS->stack.current = 0;
+
+      tls_map [GetCurrentThreadId ()] = { dwTlsIdx, lpvData };
     }
   }
 
@@ -129,6 +133,19 @@ SK_TLS_Bottom (void)
 
   return
     static_cast <SK_TLS *> (tls_slot.lpvData);
+}
+
+SK_TLS*
+__stdcall
+SK_TLS_BottomEx (DWORD dwTid)
+{
+  auto tls_slot =
+    tls_map.find (dwTid);
+
+  if (tls_slot != tls_map.end ())
+    static_cast <SK_TLS *> ( (*tls_slot).second.lpvData );
+
+  return nullptr;
 }
 
 

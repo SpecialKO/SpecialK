@@ -213,6 +213,9 @@ SK_Thread_CloseSelf (void)
 }
 
 
+
+
+
 // Returns TRUE if the call required a change to priority level
 extern "C" BOOL WINAPI SK_Thread_SetCurrentPriority (int prio);
 extern "C" int  WINAPI SK_Thread_GetCurrentPriority (void);

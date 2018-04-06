@@ -37,6 +37,7 @@ SK_ImGui_GetGlyphRangesDefaultEx (void)
     0x2100, 0x21FF, // Letterlike Symbols
     0x2600, 0x26FF, // Misc. Characters
     0x2700, 0x27BF, // Dingbats
+    0x207f, 0x2090, // N/A (literally, the symbols for N/A :P)
     0
   };
   return &ranges [0];

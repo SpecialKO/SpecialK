@@ -1,3 +1,16 @@
+0.9.13:
+
+ + Added a new Threads widget, that lists performance per-thread (kernel/user)
+     and can even allow you to suspend individual threads.
+
+   >> Suspending threads is dangerous, I expect this feature will be used for
+        mod developers only. There is a high likelihood that you will have to
+         restart a game to recover after using that.
+
+ + Moved SteamAPI support DLLs to PlugIns\ThirdParty\Steamworks\...
+ + Added proper Unicode filesystem path translation to SKIM64 for Steam manifests
+
+
 0.9.12:
 
  + Updated build of SKIM64 allows installation of standalone Ni No Stutter mod

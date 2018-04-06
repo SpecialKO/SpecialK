@@ -63,7 +63,6 @@ using SKPlugIn_Shutdown_pfn = BOOL (WINAPI *)(LPVOID  user);
 // Fix warnings in dbghelp.h
 #pragma warning (disable : 4091)
 
-#define _NO_CVCONST_H
 #define _IMAGEHLP_SOURCE_
 #include <dbghelp.h>
 

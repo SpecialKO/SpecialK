@@ -1354,7 +1354,7 @@ SK_D3D9_Present_GrandCentral ( sk_d3d9_swap_dispatch_s* dispatch )
 
   if (process || trigger_reset != reset_stage_e::Clear)
   {
-    if ( SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D9   || 
+    if ( SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D9   ||
          SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D9Ex ||
          SK_GetCurrentRenderBackend ().api == SK_RenderAPI::Reserved )
     {

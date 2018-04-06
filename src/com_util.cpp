@@ -297,6 +297,8 @@ SK_WMI_ServerThread (LPVOID lpUser)
 
   InterlockedExchange (&COM::base.wmi.init, 1);
 
+  SK_Thread_SetCurrentPriority (THREAD_PRIORITY_IDLE);
+
   // Keep the thread alive indefinitely so that the WMI stuff continues running
   while ( MsgWaitForMultipleObjects ( 1, &COM::base.wmi.hShutdownServer,
                                       FALSE, INFINITE, QS_ALLEVENTS ) != WAIT_OBJECT_0 )
@@ -369,7 +371,7 @@ SK_WMI_Init (void)
               [](LPVOID) ->
               DWORD
               {
-                SK_Thread_SetCurrentPriority (THREAD_PRIORITY_BELOW_NORMAL);
+                SK_Thread_SetCurrentPriority (THREAD_PRIORITY_ABOVE_NORMAL);
 
                 SK_AutoCOMInit auto_com;
 

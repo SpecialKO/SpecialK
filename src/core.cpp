@@ -690,6 +690,7 @@ SK_InitFinishCallback (void)
   {
     SetCurrentThreadDescription (    L"[SK] GPU Vendor Support Library Thread" );
     SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_LOWEST );
+    SetThreadPriorityBoost      ( SK_GetCurrentThread (), TRUE                   );
 
     SleepEx (5, FALSE);
 
@@ -1116,6 +1117,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   else
   {
     SetThreadPriority (SK_GetCurrentThread (), THREAD_PRIORITY_ABOVE_NORMAL);
+    SetThreadPriorityBoost ( SK_GetCurrentThread (), FALSE                 );
 
     wchar_t   log_fname [MAX_PATH + 2] = { };
     swprintf (log_fname, L"logs/%s.log", SK_IsInjected () ? L"SpecialK" : backend);
@@ -1425,6 +1427,7 @@ BACKEND_INIT:
     {
       SetCurrentThreadDescription (                          L"[SK] Init Cleanup Thread" );
       SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_BELOW_NORMAL );
+      SetThreadPriorityBoost      ( SK_GetCurrentThread (), TRUE                         );
 
       WaitForInit         ();
 

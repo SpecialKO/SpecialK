@@ -130,15 +130,15 @@ static const int priority_levels [] =
 
 struct SK_FFXV_Thread
 {
-  ~SK_FFXV_Thread (void) { for ( auto && h : hThreads )
-                            CloseHandle (h); }
+  ~SK_FFXV_Thread (void) { if (hThread)
+                            CloseHandle (hThread); }
 
-  std::vector <HANDLE> hThreads;
+  HANDLE               hThread;
   volatile LONG        dwPrio = THREAD_PRIORITY_NORMAL;
 
   sk::ParameterInt* prio_cfg;
 
-  void setup (void);
+  void setup (HANDLE hThread);
 } sk_ffxv_swapchain,
   sk_ffxv_vsync,
   sk_ffxv_async_run;
@@ -191,64 +191,59 @@ SleepConditionVariableCS_Detour (
 
 
 void
-SK_FFXV_Thread::setup (void)
+SK_FFXV_Thread::setup (HANDLE __hThread)
 {
-  HANDLE hThread;
+  HANDLE hThreadCopy;
 
-  if ( DuplicateHandle ( (HANDLE)-1, (HANDLE)-2,
-                         (HANDLE)-1, &hThread,
-                         0, FALSE, DUPLICATE_SAME_ACCESS ) )
+  if (! DuplicateHandle ( GetCurrentProcess (), __hThread, GetCurrentProcess (), &hThreadCopy, THREAD_ALL_ACCESS, FALSE, 0 ))
+    return;
+
+  hThread = hThreadCopy;
+
+  prio_cfg =
+    dynamic_cast <sk::ParameterInt *> (
+      g_ParameterFactory.create_parameter <int> (L"Thread Priority")
+    );
+
+
+  if (this == &sk_ffxv_swapchain) 
   {
-    hThreads.push_back (hThread);
-
-    prio_cfg =
-      dynamic_cast <sk::ParameterInt *> (
-        g_ParameterFactory.create_parameter <int> (L"Thread Priority")
-      );
-
-
-    if (this == &sk_ffxv_swapchain) 
-    {
 #if 0
-      SK_CreateDLLHook2 (      L"kernel32.dll",
-                                "SleepConditionVariableCS",
-                                 SleepConditionVariableCS_Detour,
-        static_cast_p2p <void> (&SleepConditionVariableCS_Original) );
+    SK_CreateDLLHook2 (      L"kernel32.dll",
+                              "SleepConditionVariableCS",
+                               SleepConditionVariableCS_Detour,
+      static_cast_p2p <void> (&SleepConditionVariableCS_Original) );
 
-      SK_ApplyQueuedHooks ();
+    SK_ApplyQueuedHooks ();
 #endif
 
-      prio_cfg->register_to_ini ( dll_ini, L"FFXV.CPUFix", L"SwapChainPriority" );
-    }
+    prio_cfg->register_to_ini ( dll_ini, L"FFXV.CPUFix", L"SwapChainPriority" );
+  }
 
-    else if (this == &sk_ffxv_vsync)
-    {
-      prio_cfg->register_to_ini ( dll_ini, L"FFXV.CPUFix", L"VSyncPriority" );
-    }
+  else if (this == &sk_ffxv_vsync)
+  {
+    prio_cfg->register_to_ini ( dll_ini, L"FFXV.CPUFix", L"VSyncPriority" );
+  }
 
-    else if (this == &sk_ffxv_async_run)
-    {
-      prio_cfg->register_to_ini ( dll_ini, L"FFXV.DiskFix", L"AsyncFileRun" );
-    }
+  else if (this == &sk_ffxv_async_run)
+  {
+    prio_cfg->register_to_ini ( dll_ini, L"FFXV.DiskFix", L"AsyncFileRun" );
+  }
 
-    else
-    {
-      return;
-    }
+  else
+  {
+    return;
+  }
 
-    dwPrio = GetThreadPriority ( &hThread );
+  dwPrio = GetThreadPriority ( hThread );
 
-    int                  prio                       = 0;
-    if ( prio_cfg->load (prio) && prio < 4 && prio >= 0 )
-    {
-      InterlockedExchange ( &dwPrio, 
-                              priority_levels [prio] );
+  int                  prio                       = 0;
+  if ( prio_cfg->load (prio) && prio < 4 && prio >= 0 )
+  {
+    InterlockedExchange ( &dwPrio, 
+                            priority_levels [prio] );
 
-      for ( auto && h : hThreads )
-      {
-        SetThreadPriority ( h, ReadAcquire (&dwPrio) );
-      }
-    }
+    SetThreadPriority ( hThread, ReadAcquire (&dwPrio) );
   }
 }
 
@@ -257,20 +252,14 @@ SK_FFXV_SetupThreadPriorities (void)
 {
   static int iters = 0;
 
-  if (sk_ffxv_swapchain.hThreads.empty ())
-      sk_ffxv_swapchain.setup ();
+  if (sk_ffxv_swapchain.hThread == 0)
+      sk_ffxv_swapchain.setup (OpenThread ( THREAD_ALL_ACCESS, FALSE, GetCurrentThreadId () ) );
 
   else  if ((iters++ % 120) == 0)
   {
-    for (auto hThread : sk_ffxv_swapchain.hThreads)
-    {
-      SetThreadPriority (hThread, sk_ffxv_swapchain.dwPrio);
-    }
-
-    for (auto hThread : sk_ffxv_vsync.hThreads)
-    {
-      SetThreadPriority (hThread, sk_ffxv_vsync.dwPrio);
-    }
+    SetThreadPriority (sk_ffxv_swapchain.hThread, sk_ffxv_swapchain.dwPrio);
+    SetThreadPriority (sk_ffxv_vsync.hThread,     sk_ffxv_vsync.dwPrio);
+    SetThreadPriority (sk_ffxv_async_run.hThread, sk_ffxv_async_run.dwPrio);
   }
 }
 
@@ -344,15 +333,12 @@ SK_FFXV_PlugInCfg (void)
                 ( (int)thread.dwPrio == priority_levels [1] ? 1 :
                 ( (int)thread.dwPrio == priority_levels [2] ? 2 : 3 ) ) );
 
-      if ( ! thread.hThreads.empty () )
+      if ( thread.hThread )
       {
         if (ImGui::Combo (name, &idx, "Normal Priority\0Above Normal\0Highest\0Time Critical\0\0"))
         {
-          for ( auto && h : thread.hThreads )
-          {
-            InterlockedExchange ( &thread.dwPrio, priority_levels [idx]);
-            SetThreadPriority   ( h, ReadAcquire (&thread.dwPrio) );
-          }
+          InterlockedExchange ( &thread.dwPrio, priority_levels [idx]);
+          SetThreadPriority   ( thread.hThread, ReadAcquire (&thread.dwPrio) );
 
           thread.prio_cfg->store ( idx );
                   dll_ini->write ( dll_ini->get_filename () );

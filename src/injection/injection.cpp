@@ -304,7 +304,7 @@ SKX_WaitForCBTHookShutdown (void)
     if ( hShutdown != INVALID_HANDLE_VALUE && (! SK_IsHostAppSKIM ()) )
     {
       SetThreadPriority      ( SK_GetCurrentThread (),
-                               THREAD_PRIORITY_ABOVE_NORMAL );
+                               THREAD_PRIORITY_NORMAL );
 
 #ifdef NOT_SANE_SCHEDULING
       for (int i = 0; i < 16; i++)
@@ -314,7 +314,7 @@ SKX_WaitForCBTHookShutdown (void)
 
       do {
         dwWaitState =
-          WaitForSingleObject (hShutdown, INFINITE);
+          WaitForSingleObjectEx (hShutdown, INFINITE, TRUE);
       } while (dwWaitState != WAIT_OBJECT_0);
 #endif
     }

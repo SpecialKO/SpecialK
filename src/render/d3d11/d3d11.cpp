@@ -8558,20 +8558,19 @@ D3D11Dev_CreateShaderResourceView_Override (
 
         if (override)
         {
-          auto pDescCopy =
-            std::make_unique <D3D11_SHADER_RESOURCE_VIEW_DESC> (*pDescOrig);
+          auto descCopy = *pDescOrig;
 
-          pDescCopy->Format                    = newFormat;
-          pDescCopy->Texture2D.MipLevels       = newMipLevels;
+          descCopy.Format              = newFormat;
+          descCopy.Texture2D.MipLevels = newMipLevels;
 
           //if (newMipLevels > 0 && ( pDesc->Format == DXGI_FORMAT_BC3_UNORM || pDesc->Format == DXGI_FORMAT_BC3_UNORM_SRGB || pDesc->Format == DXGI_FORMAT_BC3_TYPELESS ||
           //                          pDesc->Format == DXGI_FORMAT_BC2_UNORM || pDesc->Format == DXGI_FORMAT_BC2_UNORM_SRGB || pDesc->Format == DXGI_FORMAT_BC2_TYPELESS ))
           //{
-            //pDescCopy->Texture2D.MostDetailedMip =  1;
-            //pDescCopy->Texture2D.MipLevels       = -1;
+            //descCopy.Texture2D.MostDetailedMip =  1;
+            //descCopy.Texture2D.MipLevels       = -1;
           //}
 
-          pDesc                          = pDescCopy.get ();
+          pDesc                          = &descCopy;
 
           HRESULT hr =
             D3D11Dev_CreateShaderResourceView_Original ( This, pResource,
@@ -8626,11 +8625,10 @@ D3D11Dev_CreateDepthStencilView_Override (
 
         if ( SK_D3D11_OverrideDepthStencil (newFormat) )
         {
-          auto pDescCopy =
-            std::make_unique <D3D11_DEPTH_STENCIL_VIEW_DESC> (*pDescOrig);
+          auto descCopy = *pDescOrig;
 
-          pDescCopy->Format = newFormat;
-          pDesc             = pDescCopy.get ();
+          descCopy.Format = newFormat;
+          pDesc           = &descCopy;
 
           hr = 
             D3D11Dev_CreateDepthStencilView_Original ( This, pResource,
@@ -8686,11 +8684,10 @@ D3D11Dev_CreateUnorderedAccessView_Override (
 
         if (override)
         {
-          auto pDescCopy =
-            std::make_unique <D3D11_UNORDERED_ACCESS_VIEW_DESC> (*pDescOrig);
+          auto descCopy = *pDescOrig;
 
-          pDescCopy->Format = newFormat;
-          pDesc             = pDescCopy.get ();
+          descCopy.Format = newFormat;
+          pDesc           = &descCopy;
 
           HRESULT hr = 
             D3D11Dev_CreateUnorderedAccessView_Original ( This, pResource,
@@ -9665,19 +9662,12 @@ D3D11Dev_CreateTexture2D_Override (
 {
   const D3D11_TEXTURE2D_DESC* pDescOrig = pDesc;
 
-  // Make a copy, then change the value on the stack to point to
-  //   our copy in order to make changes propagate to other software
-  //     that hooks this...
-  auto pDescCopy =
-    std::make_unique <D3D11_TEXTURE2D_DESC> (*pDescOrig);
+  auto descCopy = *pDescOrig;
 
   HRESULT hr =
-    D3D11Dev_CreateTexture2D_Impl (This, pDescCopy.get (), pInitialData, ppTexture2D, SK_GetCallingDLL ());
+    D3D11Dev_CreateTexture2D_Impl (This, &descCopy, pInitialData, ppTexture2D, SK_GetCallingDLL ());
 
-  //__try {
-    *const_cast <D3D11_TEXTURE2D_DESC *> ( pDesc ) = *pDescCopy;
-  //} __except (EXCEPTION_EXECUTE_HANDLER) {
-  //}
+  *const_cast <D3D11_TEXTURE2D_DESC *> ( pDesc ) = descCopy;
 
   return hr;
 }

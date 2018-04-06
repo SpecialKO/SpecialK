@@ -48,8 +48,6 @@
 // Fix warnings in dbghelp.h
 #pragma warning (disable : 4091)
 
-#define _NO_CVCONST_H
-
 #define _IMAGEHLP_SOURCE_
 #include <dbghelp.h>
 
@@ -67,6 +65,16 @@
 #define SK_SymGetModuleBase   SymGetModuleBase
 #define SK_SymGetLineFromAddr SymGetLineFromAddr
 #endif
+
+void
+SK_SymSetOpts (void)
+{
+  SymSetOptions ( SYMOPT_CASE_INSENSITIVE     | SYMOPT_LOAD_LINES         |
+                  SYMOPT_NO_PROMPTS           | SYMOPT_UNDNAME            |
+                  SYMOPT_OMAP_FIND_NEAREST    | SYMOPT_ALLOW_ZERO_ADDRESS |
+                  SYMOPT_IGNORE_CVREC         | SYMOPT_DEBUG              |
+                  SYMOPT_DEFERRED_LOADS );
+}
 
 
 // Set to true during abnormal program termination;
@@ -229,6 +237,8 @@ CrashHandler::Init (void)
           SetThreadPriority           (
                         SK_GetCurrentThread (), THREAD_PRIORITY_LOWEST    );
 
+          //std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+
           HRSRC   default_sound =
             FindResource (SK_GetDLL (), MAKEINTRESOURCE (IDR_CRASH), L"WAVE");
 
@@ -251,15 +261,14 @@ CrashHandler::Init (void)
             crash_log.init       (L"logs/crash.log", L"wt+,ccs=UTF-8");
           }
 
-          SymSetOptions ( SYMOPT_CASE_INSENSITIVE | SYMOPT_LOAD_LINES     | SYMOPT_UNDNAME                |
-                          SYMOPT_NO_PROMPTS       | SYMOPT_DEFERRED_LOADS | SYMOPT_ALLOW_ABSOLUTE_SYMBOLS );
+          SK_SymSetOpts ();
 
           SymRefreshModuleList (SK_GetCurrentProcess ());
 
-          //SymInitialize (
-          //  GetCurrentProcess (),
-          //    NULL,
-          //      TRUE );
+          SymInitialize (
+            GetCurrentProcess (),
+              NULL,
+                TRUE );
 
           Reinstall ();
 
@@ -358,6 +367,8 @@ LONG
 WINAPI
 SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 {
+  //std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+
   // Sadly, if this ever happens, there's no way to report the problem, so just
   //   terminate with exit code = -1.
   if ( ReadAcquire (&__SK_DLL_Ending)   != 0 ||
@@ -369,21 +380,13 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 
   bool scaleform = false;
 
-#if 1
-  SymSetOptions ( SYMOPT_CASE_INSENSITIVE | SYMOPT_LOAD_LINES     | SYMOPT_UNDNAME                |
-                SYMOPT_NO_PROMPTS       | SYMOPT_DEFERRED_LOADS | SYMOPT_ALLOW_ABSOLUTE_SYMBOLS );
-#else
-  SymSetOptions ( SYMOPT_ALLOW_ZERO_ADDRESS | SYMOPT_LOAD_LINES |
-                  SYMOPT_LOAD_ANYTHING      | SYMOPT_UNDNAME    |
-                  SYMOPT_DEFERRED_LOADS );
-#endif
-
+  SK_SymSetOpts ();
 
   SymRefreshModuleList (SK_GetCurrentProcess ());
-  //SymInitialize (
-  //  GetCurrentProcess (),
-  //    NULL,
-  //      TRUE );
+  SymInitialize (
+    GetCurrentProcess (),
+      NULL,
+        TRUE );
 
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
@@ -963,8 +966,7 @@ SK_GetSymbolNameFromModuleAddr ( HMODULE hMod,   uintptr_t addr,
 {
   ULONG ret = 0;
 
-  //if (config.system.strict_compliance)
-    //cs_dbghelp->lock ();
+  //std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
   if (! dbghelp_callers.count (hMod))
   {
@@ -1024,9 +1026,6 @@ SK_GetSymbolNameFromModuleAddr ( HMODULE hMod,   uintptr_t addr,
     ret     = 0;
   }
 
-  //if (config.system.strict_compliance)
-    //cs_dbghelp->unlock ();
-
   return ret;
 }
 
@@ -1034,19 +1033,9 @@ void
 WINAPI
 SK_SymRefreshModuleList ( HANDLE hProc = SK_GetCurrentProcess () )
 {
-  //if (config.system.strict_compliance)
-    //cs_dbghelp->lock ();
+  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
-  static DWORD dwLastRefresh = 0;
-
-  if (dwLastRefresh < timeGetTime () - 150UL)
-  {
-    SymRefreshModuleList (hProc);
-    dwLastRefresh = timeGetTime ();
-  }
-
-  //if (config.system.strict_compliance)
-    //cs_dbghelp->unlock ();
+  SymRefreshModuleList (hProc);
 }
 
 using SteamAPI_SetBreakpadAppID_pfn = void (__cdecl *)( uint32_t unAppID );
@@ -1117,8 +1106,7 @@ SK_BypassSteamCrashHandler (void)
 void
 CrashHandler::InitSyms (void)
 {
-  //if (config.system.strict_compliance)
-    //cs_dbghelp->lock ();
+  //std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
   static volatile LONG               init = 0L;
   if (! InterlockedCompareExchange (&init, 1, 0))
@@ -1144,15 +1132,11 @@ CrashHandler::InitSyms (void)
         SK_BypassSteamCrashHandler ();
     }
 
-    SymSetOptions ( SYMOPT_CASE_INSENSITIVE | SYMOPT_LOAD_LINES     | SYMOPT_UNDNAME                |
-                    SYMOPT_NO_PROMPTS       | SYMOPT_DEFERRED_LOADS | SYMOPT_ALLOW_ABSOLUTE_SYMBOLS );
+    SK_SymSetOpts ();
 
     SymInitialize (
       SK_GetCurrentProcess (),
         nullptr,
           TRUE );
   }
-
-  //if (config.system.strict_compliance)
-    //cs_dbghelp->unlock ();
 }

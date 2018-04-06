@@ -381,8 +381,9 @@ public:
 
 extern volatile LONG __SK_TLS_INDEX;
 
-SK_TLS* __stdcall SK_TLS_Get    (void); // Alias: SK_TLS_Top
-SK_TLS* __stdcall SK_TLS_Bottom (void);
+SK_TLS* __stdcall SK_TLS_Get      (void); // Alias: SK_TLS_Top
+SK_TLS* __stdcall SK_TLS_Bottom   (void);
+SK_TLS* __stdcall SK_TLS_BottomEx (DWORD dwTid);
 
 class SK_ScopedBool
 {
