@@ -270,5 +270,43 @@ SK_Thread_GetCurrentPriority (void)
   return GetThreadPriority (SK_GetCurrentThread ());
 }
 
-
 } /* extern "C" */  
+
+
+extern "C" SetThreadAffinityMask_pfn SetThreadAffinityMask_Original = nullptr;
+
+DWORD_PTR
+WINAPI
+SetThreadAffinityMask_Detour (
+  _In_ HANDLE    hThread,
+  _In_ DWORD_PTR dwThreadAffinityMask )
+{
+  DWORD_PTR dwRet = 0;
+  DWORD     dwTid = GetThreadId (hThread);
+  SK_TLS*   pTLS  =
+    (dwTid == GetCurrentThreadId ()) ?
+      SK_TLS_Bottom   (     )        :
+      SK_TLS_BottomEx (dwTid);
+
+
+  if (pTLS != nullptr && pTLS->scheduler.lock_affinity)
+  {
+    dwRet =
+      pTLS->scheduler.affinity_mask;
+  }
+
+  else
+  {
+    dwRet =
+      SetThreadAffinityMask_Original ( hThread, dwThreadAffinityMask );
+  }
+
+
+  if ( pTLS != nullptr && dwRet != 0 &&
+    (! pTLS->scheduler.lock_affinity) )
+  {
+    pTLS->scheduler.affinity_mask = dwThreadAffinityMask;
+  }
+
+  return dwRet;
+}

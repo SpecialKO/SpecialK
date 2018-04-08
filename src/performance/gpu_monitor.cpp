@@ -86,6 +86,25 @@ SK_GPUPollingThread (LPVOID user)
       SwitchToThread ();
   };
 
+
+  NvPhysicalGpuHandle gpus [NVAPI_MAX_PHYSICAL_GPUS] = { };
+  NvU32               gpu_count                      =  0;
+
+
+  if (nvapi_init)
+  {
+    SK_RunOnce (assert (NvAPI_GetGPUIDFromPhysicalGPU != nullptr));
+    SK_RunOnce (assert (NvAPI_GetPhysicalGPUFromGPUID != nullptr));
+    SK_RunOnce (assert (NvAPI_EnumPhysicalGPUs        != nullptr));
+
+    if (            NvAPI_EnumPhysicalGPUs == nullptr ||
+        NVAPI_OK != NvAPI_EnumPhysicalGPUs (gpus, &gpu_count))
+    {
+      return 0;
+    }
+  }
+
+
   while (true)
   {
     DWORD dwWait =
@@ -126,22 +145,11 @@ SK_GPUPollingThread (LPVOID user)
 
     if (nvapi_init)
     {
-      SK_RunOnce (assert (NvAPI_GetGPUIDFromPhysicalGPU != nullptr));
-      SK_RunOnce (assert (NvAPI_GetPhysicalGPUFromGPUID != nullptr));
-      SK_RunOnce (assert (NvAPI_EnumPhysicalGPUs        != nullptr));
-
-      NvPhysicalGpuHandle gpus [NVAPI_MAX_PHYSICAL_GPUS] = { };
-      NvU32               gpu_count                      =  0;
-
-      if (            NvAPI_EnumPhysicalGPUs == nullptr ||
-          NVAPI_OK != NvAPI_EnumPhysicalGPUs (gpus, &gpu_count))
-        return 0;
+      stats.num_gpus =
+        std::min (gpu_count, static_cast <NvU32> (NVAPI_MAX_PHYSICAL_GPUS));
 
       NV_GPU_DYNAMIC_PSTATES_INFO_EX psinfoex;
       psinfoex.version = NV_GPU_DYNAMIC_PSTATES_INFO_EX_VER;
-
-      stats.num_gpus =
-        std::min (gpu_count, static_cast <NvU32> (NVAPI_MAX_PHYSICAL_GPUS));
 
       static std::vector <NvU32> gpu_ids;
       static bool init = false;
@@ -322,7 +330,7 @@ SK_GPUPollingThread (LPVOID user)
         
         // This is an expensive operation for very little gain,
         //   it rarely changes, but it eats CPU time.
-        if (iter++ % 6 == 0 && config.gpu.print_slowdown)
+        if ((iter++ % 8) == 0 && config.gpu.print_slowdown)
         {
           NvU32 perf_decrease_info = 0;
 

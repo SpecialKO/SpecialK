@@ -32,6 +32,9 @@
 #include <SpecialK/thread.h>
 
 #include <Windows.h>
+#include <SpecialK/diagnostics/file.h>
+#include <SpecialK/diagnostics/memory.h>
+#include <SpecialK/diagnostics/network.h>
 #include <SpecialK/diagnostics/modules.h>
 #include <SpecialK/diagnostics/load_library.h>
 
@@ -58,6 +61,13 @@ ExitProcess_pfn        ExitProcess_Original        = nullptr;
 ExitProcess_pfn        ExitProcess_Hook            = nullptr;
 OutputDebugStringA_pfn OutputDebugStringA_Original = nullptr;
 OutputDebugStringW_pfn OutputDebugStringW_Original = nullptr;
+
+extern
+DWORD_PTR
+WINAPI
+SetThreadAffinityMask_Detour (
+  _In_ HANDLE    hThread,
+  _In_ DWORD_PTR dwThreadAffinityMask);
 
 BOOL
 __stdcall
@@ -346,7 +356,7 @@ DWORD dwLastThreadCreate = 0;
 #include <concurrent_unordered_map.h>
 #include <concurrent_unordered_set.h>
 #include <SpecialK/diagnostics/crash_handler.h>
-      
+
 extern concurrency::concurrent_unordered_set <HMODULE>              dbghelp_callers;
 extern concurrency::concurrent_unordered_map <DWORD, std::wstring> _SK_ThreadNames;
 #include <concurrent_unordered_set.h>
@@ -381,7 +391,7 @@ NtCreateThreadEx_Detour (
       CreateFlags |= THREAD_CREATE_FLAGS_CREATE_SUSPENDED;
 
     SK_LOG0 ( ( L"Tried to begin a debugger-hidden thread; punish it by starting visible and suspended!",
-                  GetThreadId (ThreadHandle) ),
+                  GetThreadId (*ThreadHandle) ),
                 L"DieAntiDbg" );
 
     Suspicious = TRUE;
@@ -407,6 +417,8 @@ NtCreateThreadEx_Detour (
     if (! suspended)
       ResumeThread (*ThreadHandle);
 
+    SleepEx (5UL, TRUE);
+
     if (! _SK_ThreadNames.count (tid))
     {
       extern bool
@@ -415,19 +427,68 @@ NtCreateThreadEx_Detour (
       SK_RunOnce (SK::Diagnostics::CrashHandler::InitSyms ());
       SK_RunOnce (SK_Thread_InitDebugExtras ());
 
-      if (! dbghelp_callers.count (SK_GetCallingDLL ()))
+      HMODULE hModStart = SK_GetModuleFromAddr (StartRoutine);
+
+      if (! dbghelp_callers.count (hModStart))
       {
-        dbghelp_callers.insert (SK_GetCallingDLL     ());
-        SymRefreshModuleList   (SK_GetCurrentProcess ());
+        std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+
+#ifdef _WIN64
+#define SK_StackWalk          StackWalk64
+#define SK_SymLoadModule      SymLoadModule64
+#define SK_SymUnloadModule    SymUnloadModule64
+#define SK_SymGetModuleBase   SymGetModuleBase64
+#define SK_SymGetLineFromAddr SymGetLineFromAddr64
+#else
+#define SK_StackWalk          StackWalk
+#define SK_SymLoadModule      SymLoadModule
+#define SK_SymUnloadModule    SymUnloadModule
+#define SK_SymGetModuleBase   SymGetModuleBase
+#define SK_SymGetLineFromAddr SymGetLineFromAddr
+#endif
+
+#ifdef _WIN64
+        DWORD64 BaseAddr;
+#else
+        DWORD   BaseAddr;
+#endif
+
+        CHeapPtr <char> szDupName (_strdup (SK_WideCharToUTF8 (SK_GetModuleFullNameFromAddr (StartRoutine)).c_str ()));
+
+        MODULEINFO mod_info = { };
+
+        GetModuleInformation (
+          GetCurrentProcess (), hModStart, &mod_info, sizeof (mod_info)
+        );
+
+#ifdef _WIN64
+        BaseAddr = (DWORD64)mod_info.lpBaseOfDll;
+#else
+        BaseAddr =   (DWORD)mod_info.lpBaseOfDll;
+#endif
+
+        char* pszShortName = szDupName.m_pData;
+
+        PathStripPathA (pszShortName);
+
+
+        SK_SymLoadModule ( GetCurrentProcess (),
+                             nullptr,
+                              pszShortName,
+                                nullptr,
+                                  BaseAddr,
+                                    mod_info.SizeOfImage );
+
+        dbghelp_callers.insert (hModStart);
       }
 
       char    thread_name [512] = { };
       char    szSymbol    [256] = { };
       ULONG   ulLen             = 191;
-      
+
       ulLen = SK_GetSymbolNameFromModuleAddr (
-                SK_GetCallingDLL (),
-      reinterpret_cast <uintptr_t> (StartRoutine),
+                hModStart,
+       reinterpret_cast <uintptr_t> ((LPVOID)StartRoutine),
                     szSymbol,
                       ulLen );
 
@@ -703,6 +764,15 @@ static_cast_p2p <void> (&GetCommandLineA_Original) );
                               NtSetInformationThread_Detour,
      static_cast_p2p <void> (&NtSetInformationThread_Original) );
 
+    SK_CreateDLLHook2 (      L"kernel32.dll",
+                              "SetThreadAffinityMask",
+                               SetThreadAffinityMask_Detour,
+      static_cast_p2p <void> (&SetThreadAffinityMask_Original) );
+
+    SK_Memory_InitHooks  ();
+    SK_File_InitHooks    ();
+    SK_Network_InitHooks ();
+
     SK_ApplyQueuedHooks ();
 
   return bAllow;
@@ -760,7 +830,7 @@ SK_IsDebuggerPresent (void)
 HMODULE
 SK_Debug_LoadHelper (void)
 {
-  //std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
   static HMODULE
        hModDbgHelp  = nullptr;
@@ -783,7 +853,7 @@ SymRefreshModuleList (
   _In_ HANDLE hProcess
 )
 {
-  //std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
   using SymRefreshModuleList_pfn = BOOL (IMAGEAPI *)(HANDLE hProcess);
 
@@ -818,7 +888,7 @@ StackWalk64(
     _In_opt_ PTRANSLATE_ADDRESS_ROUTINE64     TranslateAddress
     )
 {
-  //std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
   using StackWalk64_pfn = BOOL (IMAGEAPI *)(_In_     DWORD                            MachineType,
                                             _In_     HANDLE                           hProcess,
@@ -863,7 +933,7 @@ StackWalk (
     _In_opt_ PTRANSLATE_ADDRESS_ROUTINE     TranslateAddress
     )
 {
-  //std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
   using StackWalk_pfn = BOOL (IMAGEAPI *)(_In_     DWORD                          MachineType,
                                           _In_     HANDLE                         hProcess,
@@ -901,7 +971,7 @@ SymSetOptions (
   _In_ DWORD SymOptions
 )
 {
-  //std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
   using SymSetOptions_pfn = DWORD (IMAGEAPI *)(_In_ DWORD SymOptions);
 
@@ -926,7 +996,7 @@ SymGetModuleBase64 (
   _In_ DWORD64 qwAddr
 )
 {
-  //std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
   using SymGetModuleBase64_pfn = DWORD64 (IMAGEAPI *)(_In_ HANDLE  hProcess,
                                                       _In_ DWORD64 qwAddr);
@@ -950,7 +1020,7 @@ SymGetModuleBase (
   _In_ DWORD  dwAddr
 )
 {
-  //std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
   using SymGetModuleBase_pfn = DWORD (IMAGEAPI *)(_In_ HANDLE  hProcess,
                                                   _In_ DWORD   dwAddr);
@@ -977,7 +1047,7 @@ SymGetLineFromAddr64 (
   _Out_ PIMAGEHLP_LINE64 Line64
 )
 {
-  //std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
   using SymGetLineFromAddr64_pfn = BOOL (IMAGEAPI *)(_In_  HANDLE           hProcess,
                                                      _In_  DWORD64          qwAddr,
@@ -1006,7 +1076,7 @@ SymGetLineFromAddr (
   _Out_ PIMAGEHLP_LINE   Line
 )
 {
-  //std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
   using SymGetLineFromAddr_pfn = BOOL (IMAGEAPI *)(_In_  HANDLE         hProcess,
                                                    _In_  DWORD          dwAddr,
@@ -1034,7 +1104,7 @@ SymInitialize (
   _In_     BOOL   fInvadeProcess
 )
 {
-  //std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
   using SymInitialize_pfn = BOOL (IMAGEAPI *)( _In_     HANDLE hProcess,
                                                _In_opt_ PCSTR  UserSearchPath,
@@ -1061,7 +1131,7 @@ SymUnloadModule (
   _In_ DWORD  BaseOfDll
 )
 {
-  //std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
   using SymUnloadModule_pfn = BOOL (IMAGEAPI *)( _In_ HANDLE hProcess,
                                                  _In_ DWORD  BaseOfDll );
@@ -1086,7 +1156,7 @@ SymUnloadModule64 (
   _In_ DWORD64 BaseOfDll
 )
 {
-  //std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
   using SymUnloadModule64_pfn = BOOL (IMAGEAPI *)( _In_ HANDLE  hProcess,
                                                    _In_ DWORD64 BaseOfDll );
@@ -1134,7 +1204,7 @@ SymFromAddr (
   _Inout_   PSYMBOL_INFO Symbol
 )
 {
-  //std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
   using SymFromAddr_pfn = BOOL (IMAGEAPI *)( _In_      HANDLE       hProcess,
                                              _In_      DWORD64      Address,
@@ -1165,7 +1235,7 @@ SymLoadModule (
   _In_     DWORD  SizeOfDll
 )
 {
-  //std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
   using SymLoadModule_pfn = DWORD (IMAGEAPI *)( _In_     HANDLE hProcess,
                                                 _In_opt_ HANDLE hFile,
@@ -1197,7 +1267,7 @@ SymLoadModule64 (
   _In_     DWORD   SizeOfDll
 )
 {
-  //std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
   using SymLoadModule64_pfn = DWORD64 (IMAGEAPI *)( _In_     HANDLE  hProcess,
                                                     _In_opt_ HANDLE  hFile,

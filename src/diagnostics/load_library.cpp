@@ -483,8 +483,47 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
 
   if (GetModuleHandle (wszDbgHelp) && (! dbghelp_callers.count (hCallingMod)))
   {
+    std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+
+#ifdef _WIN64
+#define SK_StackWalk          StackWalk64
+#define SK_SymLoadModule      SymLoadModule64
+#define SK_SymUnloadModule    SymUnloadModule64
+#define SK_SymGetModuleBase   SymGetModuleBase64
+#define SK_SymGetLineFromAddr SymGetLineFromAddr64
+#else
+#define SK_StackWalk          StackWalk
+#define SK_SymLoadModule      SymLoadModule
+#define SK_SymUnloadModule    SymUnloadModule
+#define SK_SymGetModuleBase   SymGetModuleBase
+#define SK_SymGetLineFromAddr SymGetLineFromAddr
+#endif
+
+    MODULEINFO mod_info = { };
+
+    GetModuleInformation (
+      GetCurrentProcess (), hCallingMod, &mod_info, sizeof (mod_info)
+    );
+
+    CHeapPtr <char> szDupName (_strdup (SK_WideCharToUTF8 (SK_GetModuleFullName (hCallingMod)).c_str ()));
+
+    char* pszShortName = szDupName.m_pData;
+
+    PathStripPathA (pszShortName);
+
+
+    SK_SymLoadModule ( GetCurrentProcess (),
+                         nullptr,
+                          pszShortName,
+                            nullptr,
+#ifdef _WIN64
+                              (DWORD64)mod_info.lpBaseOfDll,
+#else
+                                (DWORD)mod_info.lpBaseOfDll,
+#endif
+                                  mod_info.SizeOfImage );
+
     dbghelp_callers.insert (hCallingMod);
-    SymRefreshModuleList   (GetCurrentProcess ());
   }
 
   static StrStrI_pfn            StrStrI =

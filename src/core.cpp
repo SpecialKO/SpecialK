@@ -2462,7 +2462,7 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
          SK_FFXV_SetupThreadPriorities ();
   }
 
-  //SK_StartPerfMonThreads ();
+  SK_StartPerfMonThreads ();
 
   return hr;
 }

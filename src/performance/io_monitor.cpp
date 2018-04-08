@@ -143,7 +143,9 @@ DWORD
 WINAPI
 SK_MonitorCPU (LPVOID user_param)
 {
-  SK_Thread_SetCurrentPriority (THREAD_PRIORITY_BELOW_NORMAL);
+  SK_Thread_SetCurrentPriority (THREAD_PRIORITY_LOWEST);
+  SetCurrentThreadDescription  (L"[SK] WMI CPU Monitoring Thread");
+
   SetThreadPriorityBoost       (GetCurrentThread (), TRUE);
 
   SK_WMI_WaitForInit ();
@@ -253,8 +255,8 @@ SK_MonitorCPU (LPVOID user_param)
         goto CPU_CLEANUP;
       }
 
-      SecureZeroMemory (cpu.apEnumAccess,
-                        cpu.dwNumReturned * sizeof(IWbemObjectAccess *));
+      RtlSecureZeroMemory ( cpu.apEnumAccess,
+                            cpu.dwNumReturned * sizeof(IWbemObjectAccess *) );
 
       cpu.dwNumObjects = cpu.dwNumReturned;
 
@@ -507,7 +509,9 @@ DWORD
 WINAPI
 SK_MonitorDisk (LPVOID user)
 {
-  SK_Thread_SetCurrentPriority (THREAD_PRIORITY_BELOW_NORMAL);
+  SK_Thread_SetCurrentPriority (THREAD_PRIORITY_LOWEST);
+  SetCurrentThreadDescription  (L"[SK] WMI Disk Monitoring Thread");
+
   SetThreadPriorityBoost       (GetCurrentThread (), TRUE);
 
   SK_WMI_WaitForInit ();
@@ -926,7 +930,9 @@ DWORD
 WINAPI
 SK_MonitorPagefile (LPVOID user)
 {
-  SK_Thread_SetCurrentPriority (THREAD_PRIORITY_BELOW_NORMAL);
+  SK_Thread_SetCurrentPriority (THREAD_PRIORITY_LOWEST);
+  SetCurrentThreadDescription  (L"[SK] WMI Pagefile Monitoring Thread");
+
   SetThreadPriorityBoost       (GetCurrentThread (), TRUE);
 
   SK_WMI_WaitForInit ();
@@ -1257,7 +1263,9 @@ DWORD
 WINAPI
 SK_MonitorProcess (LPVOID user)
 {
-  SK_Thread_SetCurrentPriority (THREAD_PRIORITY_BELOW_NORMAL);
+  SK_Thread_SetCurrentPriority (THREAD_PRIORITY_LOWEST);
+  SetCurrentThreadDescription  (L"[SK] WMI Memory Monitoring Thread");
+
   SetThreadPriorityBoost       (GetCurrentThread (), TRUE);
 
   SK_WMI_WaitForInit ();

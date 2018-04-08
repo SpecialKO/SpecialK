@@ -1029,7 +1029,7 @@ Sleep_Detour (DWORD dwMilliseconds)
   //   is skipped -- if the user wants to replace or eliminate sleep from the
   //     render / window thread for better frame pacing, we have to wait for
   //       Steam first!
-  if (SK_GetFramesDrawn () < 30)
+  if (SK_GetFramesDrawn () < 90)
     return Sleep_Original (dwMilliseconds);
 
   //if (dwMilliseconds == 0) { dll_log.Log (L"Sleep (0) from thread with priority=%lu", GetThreadPriority (GetCurrentThread ())); }

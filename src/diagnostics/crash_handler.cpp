@@ -66,13 +66,27 @@
 #define SK_SymGetLineFromAddr SymGetLineFromAddr
 #endif
 
+typedef struct _MODULEINFO {
+  LPVOID lpBaseOfDll;
+  DWORD  SizeOfImage;
+  LPVOID EntryPoint;
+} MODULEINFO, *LPMODULEINFO;
+
+extern "C"
+BOOL
+WINAPI
+GetModuleInformation
+( _In_  HANDLE       hProcess,
+  _In_  HMODULE      hModule,
+  _Out_ LPMODULEINFO lpmodinfo,
+  _In_  DWORD        cb );
+
 void
 SK_SymSetOpts (void)
 {
   SymSetOptions ( SYMOPT_CASE_INSENSITIVE     | SYMOPT_LOAD_LINES         |
                   SYMOPT_NO_PROMPTS           | SYMOPT_UNDNAME            |
                   SYMOPT_OMAP_FIND_NEAREST    | SYMOPT_ALLOW_ZERO_ADDRESS |
-                  SYMOPT_IGNORE_CVREC         | SYMOPT_DEBUG              |
                   SYMOPT_DEFERRED_LOADS );
 }
 
@@ -237,7 +251,7 @@ CrashHandler::Init (void)
           SetThreadPriority           (
                         SK_GetCurrentThread (), THREAD_PRIORITY_LOWEST    );
 
-          //std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+          std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
           HRSRC   default_sound =
             FindResource (SK_GetDLL (), MAKEINTRESOURCE (IDR_CRASH), L"WAVE");
@@ -260,15 +274,6 @@ CrashHandler::Init (void)
             crash_log.lockless   = true;
             crash_log.init       (L"logs/crash.log", L"wt+,ccs=UTF-8");
           }
-
-          SK_SymSetOpts ();
-
-          SymRefreshModuleList (SK_GetCurrentProcess ());
-
-          SymInitialize (
-            GetCurrentProcess (),
-              NULL,
-                TRUE );
 
           Reinstall ();
 
@@ -306,12 +311,17 @@ SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr)
   HANDLE hProc =
     SK_GetCurrentProcess ();
 
+  MODULEINFO mod_info = { };
+
+  GetModuleInformation (
+    GetCurrentProcess (), hMod, &mod_info, sizeof (mod_info)
+  );
+
 #ifdef _WIN64
-  DWORD64 BaseAddr =
+  DWORD64 BaseAddr = (DWORD64)mod_info.lpBaseOfDll;
 #else
-  DWORD BaseAddr   =
+  DWORD BaseAddr   = (DWORD)  mod_info.lpBaseOfDll;
 #endif
-    SK_SymGetModuleBase ( hProc, addr );
 
   char szModName [MAX_PATH + 2] = { };
 
@@ -327,7 +337,7 @@ SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr)
                          pszShortName,
                            nullptr,
                              BaseAddr,
-                               0 );
+                               mod_info.SizeOfImage );
 
   SYMBOL_INFO_PACKAGE sip                 = {                };
                       sip.si.SizeOfStruct = sizeof SYMBOL_INFO;
@@ -367,7 +377,7 @@ LONG
 WINAPI
 SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 {
-  //std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
   // Sadly, if this ever happens, there's no way to report the problem, so just
   //   terminate with exit code = -1.
@@ -379,14 +389,6 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
   }
 
   bool scaleform = false;
-
-  SK_SymSetOpts ();
-
-  SymRefreshModuleList (SK_GetCurrentProcess ());
-  SymInitialize (
-    GetCurrentProcess (),
-      NULL,
-        TRUE );
 
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
@@ -519,8 +521,6 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
   char    szModName [MAX_PATH + 2] = { };
   HANDLE  hProc                    = SK_GetCurrentProcess ();
 
-  SymRefreshModuleList ( hProc );
-
 #ifdef _WIN64
   DWORD64  ip = ExceptionInfo->ContextRecord->Rip;
 #else
@@ -649,8 +649,6 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 
   do
   {
-    SymRefreshModuleList ( hProc );
-
     ip = stackframe.AddrPC.Offset;
 
     if ( GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
@@ -661,8 +659,17 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
       GetModuleFileNameA (hModSource, szModName, MAX_PATH);
     }
 
-    BaseAddr =
-      SK_SymGetModuleBase ( hProc, ip );
+    MODULEINFO mod_info = { };
+
+    GetModuleInformation (
+      GetCurrentProcess (), hModSource, &mod_info, sizeof (mod_info)
+    );
+
+#ifdef _WIN64
+    BaseAddr = (DWORD64)mod_info.lpBaseOfDll;
+#else
+    BaseAddr = (DWORD)  mod_info.lpBaseOfDll;
+#endif
 
     szDupName    = _strdup (szModName);
     pszShortName = szDupName;
@@ -675,7 +682,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
                           pszShortName,
                             nullptr,
                               BaseAddr,
-                                0 );
+                                mod_info.SizeOfImage );
 
     SYMBOL_INFO_PACKAGE sip = { };
 
@@ -966,12 +973,37 @@ SK_GetSymbolNameFromModuleAddr ( HMODULE hMod,   uintptr_t addr,
 {
   ULONG ret = 0;
 
-  //std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
-
   if (! dbghelp_callers.count (hMod))
   {
+    std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+
+    MODULEINFO mod_info = { };
+
+    GetModuleInformation (
+      GetCurrentProcess (), hMod, &mod_info, sizeof (mod_info)
+    );
+
+    DWORD64 BaseAddr =
+      (DWORD64)mod_info.lpBaseOfDll;
+
+    char szModName [MAX_PATH + 2] = {  };
+
+    GetModuleFileNameA  ( hMod,
+                            szModName,
+                              MAX_PATH );
+
+    char* pszShortName = szModName;
+
+    PathStripPathA (pszShortName);
+
+    SymLoadModule64 ( GetCurrentProcess (),
+                        nullptr,
+                          pszShortName,
+                            nullptr,
+                              BaseAddr,
+                                mod_info.SizeOfImage );
+
     dbghelp_callers.insert (hMod);
-    SymRefreshModuleList   (SK_GetCurrentProcess ());
   }
 
   HANDLE hProc =
@@ -980,26 +1012,6 @@ SK_GetSymbolNameFromModuleAddr ( HMODULE hMod,   uintptr_t addr,
   DWORD64                           ip;
 
   UIntPtrToInt64 (addr, (int64_t *)&ip);
-
-  DWORD64 BaseAddr =
-    SymGetModuleBase64 ( hProc, ip );
-
-  char szModName [MAX_PATH + 2] = {  };
-
-  GetModuleFileNameA  ( hMod,
-                          szModName,
-                            MAX_PATH );
-
-  char* pszShortName = szModName;
-
-  PathStripPathA (pszShortName);
-
-  SymLoadModule64 ( hProc,
-                      nullptr,
-                        pszShortName,
-                          nullptr,
-                            BaseAddr,
-                              0 );
 
   SYMBOL_INFO_PACKAGE sip                 = {                };
                       sip.si.SizeOfStruct = sizeof SYMBOL_INFO;
@@ -1106,7 +1118,7 @@ SK_BypassSteamCrashHandler (void)
 void
 CrashHandler::InitSyms (void)
 {
-  //std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
   static volatile LONG               init = 0L;
   if (! InterlockedCompareExchange (&init, 1, 0))
@@ -1132,11 +1144,13 @@ CrashHandler::InitSyms (void)
         SK_BypassSteamCrashHandler ();
     }
 
-    SK_SymSetOpts ();
-
     SymInitialize (
       SK_GetCurrentProcess (),
         nullptr,
-          TRUE );
+          FALSE );
+
+    SK_SymSetOpts ();
+
+    SymRefreshModuleList (SK_GetCurrentProcess ());
   }
 }

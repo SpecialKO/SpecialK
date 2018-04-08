@@ -27,6 +27,7 @@
 #include <concurrent_unordered_map.h>
 Concurrency::concurrent_unordered_map <DWORD, SK_TlsRecord> tls_map;
 
+extern volatile LONG _SK_IgnoreTLSAlloc;
 
 volatile long __SK_TLS_INDEX = TLS_OUT_OF_INDEXES;
 
@@ -46,6 +47,8 @@ SK_GetTLS (bool initialize)
 
     if (lpvData == nullptr)
     {
+      InterlockedIncrement (&_SK_IgnoreTLSAlloc);
+
       if (GetLastError () == ERROR_SUCCESS)
       {
         lpvData =
@@ -61,10 +64,14 @@ SK_GetTLS (bool initialize)
 
         else initialize = true;
       }
+
+      InterlockedDecrement (&_SK_IgnoreTLSAlloc);
     }
 
     if (lpvData != nullptr && initialize)
     {
+      InterlockedIncrement (&_SK_IgnoreTLSAlloc);
+
       SK_TLS* pTLS =
         static_cast <SK_TLS *> (lpvData);
 
@@ -73,7 +80,9 @@ SK_GetTLS (bool initialize)
       // Stack semantics are deprecated and will be removed soon
       pTLS->stack.current = 0;
 
-      tls_map [GetCurrentThreadId ()] = { dwTlsIdx, lpvData };
+      tls_map   [GetCurrentThreadId ()] = { dwTlsIdx, lpvData };
+
+      InterlockedDecrement (&_SK_IgnoreTLSAlloc);
     }
   }
 
@@ -106,7 +115,16 @@ SK_CleanupTLS (void)
 #endif
 
     if (TlsSetValue (tls_slot.dwTlsIdx, nullptr))
+    {
+      InterlockedIncrement (&_SK_IgnoreTLSAlloc);
+
       LocalFree     (tls_slot.lpvData);
+
+      tls_map      [GetCurrentThreadId ()].lpvData  = nullptr;
+      tls_map      [GetCurrentThreadId ()].dwTlsIdx = TLS_OUT_OF_INDEXES;
+
+      InterlockedDecrement (&_SK_IgnoreTLSAlloc);
+    }
   }
 }
 
@@ -143,7 +161,14 @@ SK_TLS_BottomEx (DWORD dwTid)
     tls_map.find (dwTid);
 
   if (tls_slot != tls_map.end ())
-    static_cast <SK_TLS *> ( (*tls_slot).second.lpvData );
+  {
+    // If out-of-indexes, then the thread was probably destroyed
+    if (tls_slot->second.dwTlsIdx != TLS_OUT_OF_INDEXES)
+    {
+      return
+        static_cast <SK_TLS *> ( (*tls_slot).second.lpvData );
+    }
+  }
 
   return nullptr;
 }

@@ -489,6 +489,15 @@
     <ClInclude Include="include\SpecialK\diagnostics\modules.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\SpecialK\diagnostics\memory.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\diagnostics\file.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\diagnostics\network.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stdafx.cpp">
@@ -813,6 +822,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\widgets\threads.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\diagnostics\memory.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\diagnostics\file.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\diagnostics\net.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -1,5 +1,9 @@
 0.9.13:
 
+ (.3): Added disk read/write info to thread tooltip
+ (.2): Added memory info to thread tooltip
+ (.1): Assigned names to unnamed threads using debug symbols
+
  + Added a new Threads widget, that lists performance per-thread (kernel/user)
      and can even allow you to suspend individual threads.
 

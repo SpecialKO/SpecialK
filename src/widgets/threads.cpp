@@ -22,6 +22,7 @@
 #include <SpecialK/utility.h>
 #include <SpecialK/thread.h>
 #include <SpecialK/diagnostics/debug_utils.h>
+#include <SpecialK/diagnostics/crash_handler.h>
 #include <SpecialK/performance/gpu_monitor.h>
 #include <SpecialK/control_panel.h>
 
@@ -227,6 +228,95 @@ public:
   {
     if (! ImGui::GetFont ()) return;
 
+
+    bool drew_tooltip = false;
+
+    auto ThreadMemTooltip = [&](DWORD dwSelectedTid) ->
+    void
+    {
+      if (drew_tooltip)
+        return;
+
+      drew_tooltip= true;
+
+      SK_TLS* pTLS =
+        SK_TLS_BottomEx (dwSelectedTid);
+
+      if (pTLS != nullptr)
+      {
+        ImGui::BeginTooltip ();
+
+        if (ReadAcquire64 (&pTLS->memory.global_bytes)  ||
+            ReadAcquire64 (&pTLS->memory.local_bytes)   ||
+            ReadAcquire64 (&pTLS->memory.virtual_bytes) ||
+            ReadAcquire64 (&pTLS->memory.heap_bytes)       )
+        {
+          ImGui::BeginGroup   ();
+          if (ReadAcquire64 (&pTLS->memory.local_bytes))   ImGui::Text ("Local Memory:\t");
+          if (ReadAcquire64 (&pTLS->memory.global_bytes))  ImGui::Text ("Global Memory:\t");
+          if (ReadAcquire64 (&pTLS->memory.heap_bytes))    ImGui::Text ("Heap Memory:\t");
+          if (ReadAcquire64 (&pTLS->memory.virtual_bytes)) ImGui::Text ("Virtual Memory:\t");
+          ImGui::EndGroup     ();
+
+          ImGui::SameLine     ();
+
+          ImGui::BeginGroup   ();
+          if (ReadAcquire64 (&pTLS->memory.local_bytes))   ImGui::Text ("%ws", SK_File_SizeToStringF (ReadAcquire64 (&pTLS->memory.local_bytes),   2, 3).c_str ());
+          if (ReadAcquire64 (&pTLS->memory.global_bytes))  ImGui::Text ("%ws", SK_File_SizeToStringF (ReadAcquire64 (&pTLS->memory.global_bytes),  2, 3).c_str ());
+          if (ReadAcquire64 (&pTLS->memory.heap_bytes))    ImGui::Text ("%ws", SK_File_SizeToStringF (ReadAcquire64 (&pTLS->memory.heap_bytes),    2, 3).c_str ());
+          if (ReadAcquire64 (&pTLS->memory.virtual_bytes)) ImGui::Text ("%ws", SK_File_SizeToStringF (ReadAcquire64 (&pTLS->memory.virtual_bytes), 2, 3).c_str ());
+          ImGui::EndGroup     ();
+
+          ImGui::SameLine     ();
+
+          ImGui::BeginGroup   ();
+          if (ReadAcquire64 (&pTLS->memory.local_bytes))   ImGui::Text ("\t(Lifetime)");
+          if (ReadAcquire64 (&pTLS->memory.global_bytes))  ImGui::Text ("\t(Lifetime)");
+          if (ReadAcquire64 (&pTLS->memory.heap_bytes))    ImGui::Text ("\t(Lifetime)");
+          if (ReadAcquire64 (&pTLS->memory.virtual_bytes)) ImGui::Text ("\t(In-Use Now)");
+          ImGui::EndGroup     ();
+        }
+
+        if ( ReadAcquire64 (&pTLS->disk.bytes_read)    > 0 ||
+             ReadAcquire64 (&pTLS->disk.bytes_written) > 0    )
+        {
+          ImGui::Separator ();
+
+          ImGui::BeginGroup ();
+          if (ReadAcquire64 (&pTLS->disk.bytes_read))    ImGui::Text ("File Reads:\t\t\t");
+          if (ReadAcquire64 (&pTLS->disk.bytes_written)) ImGui::Text ("File Writes:\t\t\t");
+          ImGui::EndGroup   ();
+
+          ImGui::SameLine   ();
+
+          ImGui::BeginGroup ();
+          if (ReadAcquire64 (&pTLS->disk.bytes_read))    ImGui::Text ("%ws", SK_File_SizeToStringF (ReadAcquire64 (&pTLS->disk.bytes_read),    2, 3).c_str  ());
+          if (ReadAcquire64 (&pTLS->disk.bytes_written)) ImGui::Text ("%ws", SK_File_SizeToStringF (ReadAcquire64 (&pTLS->disk.bytes_written), 2, 3).c_str  ());
+          ImGui::EndGroup   ();
+        }
+
+        if ( ReadAcquire64 (&pTLS->net.bytes_received) > 0 ||
+             ReadAcquire64 (&pTLS->net.bytes_sent)     > 0 )
+        {
+          ImGui::Separator ();
+
+          ImGui::BeginGroup ();
+          if (ReadAcquire64 (&pTLS->net.bytes_sent))     ImGui::Text ("Network Sent:\t");
+          if (ReadAcquire64 (&pTLS->net.bytes_received)) ImGui::Text ("Network Received:\t");
+          ImGui::EndGroup   ();
+
+          ImGui::SameLine   ();
+
+          ImGui::BeginGroup ();
+          if (ReadAcquire64 (&pTLS->net.bytes_sent))     ImGui::Text ("%ws", SK_File_SizeToStringF (ReadAcquire64 (&pTLS->net.bytes_sent),     2, 3).c_str  ());
+          if (ReadAcquire64 (&pTLS->net.bytes_received)) ImGui::Text ("%ws", SK_File_SizeToStringF (ReadAcquire64 (&pTLS->net.bytes_received), 2, 3).c_str  ());
+          ImGui::EndGroup   ();
+        }
+
+        ImGui::EndTooltip   ();
+      }
+    };
+
            DWORD dwExitCode    = 0;
     static DWORD dwSelectedTid = 0;
     static UINT  uMaxCPU       = 0;
@@ -268,6 +358,12 @@ public:
           OpenThread ( THREAD_QUERY_INFORMATION |
                        THREAD_SET_INFORMATION   |
                        THREAD_SUSPEND_RESUME, FALSE, dwSelectedTid );
+
+        if (GetProcessIdOfThread (hSelectedThread) != GetCurrentProcessId ())
+        {
+          hSelectedThread.Close ();
+          hSelectedThread.m_h = INVALID_HANDLE_VALUE;
+        }
       }
 
       bool active_selection =
@@ -278,13 +374,16 @@ public:
 
       if (active_selection)
       {
+        ImGui::BeginGroup ();
+
         bool suspended =
           SKWG_SuspendedThreads [dwSelectedTid];
 
-        if ( ImGui::Checkbox ( suspended ?  "Resume this Thread" :
-                                           "Suspend this Thread",
-                              &suspended ) )
+        if ( ImGui::Button ( suspended ?  "Resume this Thread" :
+                                          "Suspend this Thread" ) )
         {
+          suspended = (! suspended);
+
           if (suspended)
           {
             struct suspend_params_s
@@ -358,7 +457,6 @@ public:
             }
           }
 
-
           else
           {
             if (ResumeThread (hSelectedThread) != (DWORD)-1)
@@ -371,7 +469,111 @@ public:
           }
         }
 
+        SYSTEM_INFO     sysinfo = { };
+        GetSystemInfo (&sysinfo);
+
+        SK_TLS* pTLS =
+          SK_TLS_BottomEx (dwSelectedTid);
+
+        if (sysinfo.dwNumberOfProcessors > 1 &&  pTLS != nullptr)
+        {
+          ImGui::Separator ();
+
+          for (DWORD_PTR j = 0; j < sysinfo.dwNumberOfProcessors; j++)
+          {
+            constexpr DWORD_PTR Processor0 = 0x1;
+
+            bool affinity =
+              (pTLS->scheduler.affinity_mask & (Processor0 << j)) != 0;
+
+            PROCESSOR_NUMBER pnum = { };
+            GetThreadIdealProcessorEx (hSelectedThread, &pnum);
+
+            UINT i = 
+              ( pnum.Group + pnum.Number );
+
+            bool ideal = (i == j);
+
+            float c_scale = 
+              pTLS->scheduler.lock_affinity ? 0.5f : 1.0f;
+
+            ImGui::TextColored ( ideal    ? ImColor (0.5f   * c_scale, 1.0f   * c_scale,   0.5f * c_scale):
+                                 affinity ? ImColor (1.0f   * c_scale, 1.0f   * c_scale,   1.0f * c_scale) :
+                                            ImColor (0.375f * c_scale, 0.375f * c_scale, 0.375f * c_scale),
+                                   "CPU%lu",
+                                     j );
+
+            if (ImGui::IsItemClicked () && (! pTLS->scheduler.lock_affinity))
+            {
+              affinity = (! affinity);
+
+              DWORD_PTR dwAffinityMask =
+                pTLS->scheduler.affinity_mask;
+
+                if (affinity) dwAffinityMask |=  (Processor0 << j);
+                else          dwAffinityMask &= ~(Processor0 << j);
+
+              SetThreadAffinityMask ( hSelectedThread, dwAffinityMask );
+            }
+
+            if (  j < (sysinfo.dwNumberOfProcessors / 2 - 1) ||
+                 (j > (sysinfo.dwNumberOfProcessors / 2 - 1) && j != (sysinfo.dwNumberOfProcessors - 1) ) )
+            {
+              ImGui::SameLine ();
+            }
+          }
+
+          ImGui::Checkbox ("Prevent changes to affinity", &pTLS->scheduler.lock_affinity);
+        }
+        ImGui::EndGroup ();
+        ImGui::SameLine ();
+
+        ImGui::BeginGroup ();
+        ImGui::Spacing    ();
+        ImGui::EndGroup   ();
+
+        ImGui::SameLine   ();
+        ImGui::BeginGroup ();
         //if (ImGui::Button ("Terminate this Thread")) TerminateThread (hThread_, 0x0);
+
+        int sel = 0;
+
+        DWORD dwPrio =
+          GetThreadPriority (hSelectedThread);
+
+        switch (dwPrio)
+        {
+          case THREAD_PRIORITY_IDLE:          sel = 0; break;
+          case THREAD_PRIORITY_LOWEST:        sel = 1; break;
+          case THREAD_PRIORITY_BELOW_NORMAL:  sel = 2; break;
+          case THREAD_PRIORITY_NORMAL:        sel = 3; break;
+          case THREAD_PRIORITY_ABOVE_NORMAL:  sel = 4; break;
+          case THREAD_PRIORITY_HIGHEST:       sel = 5; break;
+          case THREAD_PRIORITY_TIME_CRITICAL: sel = 6; break;
+          default:                            sel = 7; break;
+        }
+
+        if (sel < 7)
+        {
+          if (ImGui::Combo ( "Thread Priority", &sel,
+                             "Idle\0Lowest\0Below Normal\0Normal\0"
+                             "Above Normal\0Highest\0Time Critical\0\0" ))
+          {
+            switch (sel)
+            {
+              case 0: dwPrio = (DWORD)THREAD_PRIORITY_IDLE;          break;
+              case 1: dwPrio = (DWORD)THREAD_PRIORITY_LOWEST;        break;
+              case 2: dwPrio = (DWORD)THREAD_PRIORITY_BELOW_NORMAL;  break;
+              case 3: dwPrio = (DWORD)THREAD_PRIORITY_NORMAL;        break;
+              case 4: dwPrio = (DWORD)THREAD_PRIORITY_ABOVE_NORMAL;  break;
+              case 5: dwPrio = (DWORD)THREAD_PRIORITY_HIGHEST;       break;
+              case 6: dwPrio = (DWORD)THREAD_PRIORITY_TIME_CRITICAL; break;
+              default:                                               break;
+            }
+
+            SetThreadPriority (hSelectedThread, dwPrio);
+          }
+        }
 
         BOOL bDisableBoost = FALSE;
 
@@ -415,9 +617,6 @@ public:
         bool& throttle =
           SKWG_Threads [dwSelectedTid]->power_throttle;
 
-        DWORD dwPrio =
-          GetThreadPriority (hSelectedThread);
-
         if (! throttle)
           SKWG_Threads [dwSelectedTid]->orig_prio = dwPrio;
 
@@ -431,6 +630,8 @@ public:
             SetThreadPriority ( hSelectedThread, SKWG_Threads [dwSelectedTid]->orig_prio );
           }
         }
+
+        ImGui::EndGroup   ();
       }
 
       ImGui::EndPopup ();
@@ -496,6 +697,8 @@ public:
       }
 
       ImGui::PopStyleColor ();
+
+      if (ImGui::IsItemHovered ()) ThreadMemTooltip (it.second->dwTid);
     }
     ImGui::EndGroup   (); ImGui::SameLine ();
 
@@ -543,6 +746,8 @@ public:
           char    szSymbol    [256] = { };
           ULONG   ulLen             = 191;
 
+          SK::Diagnostics::CrashHandler::InitSyms ();
+
           ULONG
           SK_GetSymbolNameFromModuleAddr ( HMODULE hMod,   uintptr_t addr,
                                            char*   pszOut, ULONG     ulLen );
@@ -565,7 +770,11 @@ public:
                         SK_WideCharToUTF8 (SK_GetCallerName ((LPVOID)dwStartAddress)).c_str () );
           }
 
-          //wcsncpy (SK_TLS_BottomEx (tid)->debug.name, SK_UTF8ToWideChar (thread_name).c_str (), 255);
+          SK_TLS* pTLS =
+            SK_TLS_BottomEx (it.second->dwTid);
+
+          if (pTLS != nullptr)
+            wcsncpy (pTLS->debug.name, SK_UTF8ToWideChar (thread_name).c_str ( ), 255);
 
           {
             extern concurrency::concurrent_unordered_map <DWORD, std::wstring> _SK_ThreadNames;
@@ -584,6 +793,8 @@ public:
       }
 
       ImGui::PopStyleColor ();
+
+      if (ImGui::IsItemHovered ()) ThreadMemTooltip (it.second->dwTid);
     }
     ImGui::EndGroup   (); ImGui::SameLine ();
 
@@ -606,6 +817,8 @@ public:
       ImGui::TextColored ( ImColor::HSV ( (float)( i       + 1 ) /
                                           (float)( uMaxCPU + 1 ), 0.5f, 1.0f ),
                              "CPU %lu", i );
+
+      if (ImGui::IsItemHovered ()) ThreadMemTooltip (it.second->dwTid);
 
       uMaxCPU  =  std::max (uMaxCPU, i);
     }
@@ -667,6 +880,8 @@ public:
       }
 
       ImGui::Text ("  %s  ", prio_txt.c_str ());
+
+      if (ImGui::IsItemHovered ()) ThreadMemTooltip (it.second->dwTid);
     }
     ImGui::EndGroup (); ImGui::SameLine ();
 
@@ -778,6 +993,8 @@ public:
 
       if (it.second->runtimes.percent_kernel == p_kmax)
         ImGui::PopStyleColor ();
+
+      if (ImGui::IsItemHovered ()) ThreadMemTooltip (it.second->dwTid);
     }
     ImGui::EndGroup (); ImGui::SameLine ();
 
@@ -797,6 +1014,8 @@ public:
 
       if (it.second->runtimes.percent_user == p_umax)
         ImGui::PopStyleColor ();
+
+      if (ImGui::IsItemHovered ()) ThreadMemTooltip (it.second->dwTid);
     }
     ImGui::EndGroup ();    ImGui::SameLine ();
 
@@ -819,9 +1038,18 @@ public:
 
       else
         ImGui::Text ("");
+
+      if (ImGui::IsItemHovered ()) ThreadMemTooltip (it.second->dwTid);
     }
     ImGui::EndGroup ();    ImGui::SameLine ();
 
+
+    // Used to determine whether to srhink the dialog box;
+    //
+    //   Waiting I/O is a status that frequently comes and goes, but we don't
+    //     want the widget rapidly resizing itself, so we need a grace period.
+    static DWORD dwLastWaiting = 0;
+    const  DWORD WAIT_GRACE    = 666UL;
 
     ImGui::BeginGroup ();
     for (auto& it : SKWG_Ordered_Threads)
@@ -835,9 +1063,15 @@ public:
       BOOL bPending = FALSE;
 
       if (GetThreadIOPendingFlag (hThread, &bPending) && bPending)
+      {
+        dwLastWaiting = dwNow;
         ImGui::TextColored (ImColor (1.0f, 0.090196f, 0.364706f), "Waiting I/O");
-      else
+      }
+      else if (dwNow > dwLastWaiting + WAIT_GRACE)
         ImGui::Text ("");
+      else
+        // Alpha: 0  ==>  Hide this text, it's for padding only.
+        ImGui::TextColored (ImColor (1.0f, 0.090196f, 0.364706f, 0.0f), "Waiting I/O");
 
       ImGui::SameLine ();
 
@@ -845,6 +1079,8 @@ public:
         ImGui::TextColored (ImColor (0.090196f, 1.0f, 0.364706f), "Power-Throttle");
       else
         ImGui::Text ("");
+
+      if (ImGui::IsItemHovered ()) ThreadMemTooltip (it.second->dwTid);
     }
     ImGui::EndGroup   ();
 

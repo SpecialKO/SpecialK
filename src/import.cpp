@@ -196,9 +196,6 @@ SK_InitPlugIn64 (HMODULE hLibrary)
     hLibrary = nullptr;
   }
 
-  if (hLibrary != nullptr)
-    SK_SymRefreshModuleList ();
-
   return hLibrary;
 }
 
@@ -282,9 +279,6 @@ SK_LoadEarlyImports64 (void)
       }
     }
   }
-
-  if (success > 0)
-    SK_SymRefreshModuleList ();
 }
 
 void
@@ -368,9 +362,6 @@ SK_LoadPlugIns64 (void)
       }
     }
   }
-
-  if (success > 0)
-    SK_SymRefreshModuleList ();
 }
 
 void
@@ -446,9 +437,6 @@ SK_LoadLateImports64 (void)
       }
     }
   }
-
-  if (success > 0)
-    SK_SymRefreshModuleList ();
 }
 
 void
@@ -524,9 +512,6 @@ SK_LoadLazyImports64 (void)
       }
     }
   }
-
-  if (success > 0)
-    SK_SymRefreshModuleList ();
 }
 
 
@@ -568,9 +553,6 @@ SK_InitPlugIn32 (HMODULE hLibrary)
     FreeLibrary_Original (hLibrary);
     hLibrary = nullptr;
   }
-
-  if (hLibrary != nullptr)
-    SK_SymRefreshModuleList ();
 
   return hLibrary;
 }
@@ -656,9 +638,6 @@ SK_LoadEarlyImports32 (void)
       }
     }
   }
-
-  if (success > 0)
-    SK_SymRefreshModuleList ();
 }
 
 void
@@ -742,9 +721,6 @@ SK_LoadPlugIns32 (void)
       }
     }
   }
-
-  if (success > 0)
-    SK_SymRefreshModuleList ();
 }
 
 void
@@ -820,9 +796,6 @@ SK_LoadLateImports32 (void)
       }
     }
   }
-
-  if (success > 0)
-    SK_SymRefreshModuleList ();
 }
 
 void
@@ -899,9 +872,6 @@ SK_LoadLazyImports32 (void)
       }
     }
   }
-
-  if (success > 0)
-    SK_SymRefreshModuleList ();
 }
 
 void
@@ -957,8 +927,6 @@ SK_UnloadImports (void)
       }
     }
   }
-
-  SK_SymRefreshModuleList ();
 }
 
 

@@ -317,6 +317,45 @@ public:
 };
 
 
+class SK_Memory_ThreadContext
+{
+public:
+  volatile LONG64 virtual_bytes = 0ULL;
+  volatile LONG64 heap_bytes    = 0ULL;
+  volatile LONG64 global_bytes  = 0ULL;
+  volatile LONG64 local_bytes   = 0ULL;
+
+  BOOL   allocating_virtual = FALSE;
+  BOOL   allocating_heap    = FALSE;
+  BOOL   allocating_local   = FALSE;
+  BOOL   allocating_global  = FALSE;
+};
+
+class SK_Disk_ThreadContext
+{
+public:
+  volatile LONG64 bytes_read    = 0ULL;
+  volatile LONG64 bytes_written = 0ULL;
+};
+
+class SK_Net_ThreadContext
+{
+public:
+  volatile LONG64 bytes_sent     = 0ULL;
+  volatile LONG64 bytes_received = 0ULL;
+};
+
+class SK_Sched_ThreadContext
+{
+public:
+    DWORD         priority      = THREAD_PRIORITY_NORMAL;
+  //UINT          ideal_cpu     =             0;
+    DWORD_PTR     affinity_mask = (DWORD_PTR)-1;
+    bool          lock_affinity = false;
+    bool          background_io = false;
+};
+
+
 class SK_TLS
 {
 public:
@@ -340,6 +379,12 @@ public:
   SK_OSD_ThreadContext      osd;
   SK_Steam_ThreadContext    steam;
 
+  SK_Sched_ThreadContext    scheduler;
+
+  SK_Memory_ThreadContext   memory;
+  SK_Disk_ThreadContext     disk;
+  SK_Net_ThreadContext      net;
+
   // All stack frames except for bottom
   //   have meaningless values for these,
   //
@@ -347,11 +392,11 @@ public:
   //
   struct
   {
-    CONTEXT          last_ctx    = {   };
-    EXCEPTION_RECORD last_exc    = {   };
-    bool             last_chance = false;
-    bool             in_DllMain  = false;
-    wchar_t          name [256]  = {   };
+    CONTEXT          last_ctx      = {   };
+    EXCEPTION_RECORD last_exc      = {   };
+    bool             last_chance   = false;
+    bool             in_DllMain    = false;
+    wchar_t          name [256]    = {   };
   } debug;
 
   struct tex_mgmt_s

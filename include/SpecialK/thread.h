@@ -231,6 +231,11 @@ typedef HRESULT (WINAPI *GetThreadDescription_pfn)(
   _Out_ PWSTR  *threadDescription
 );
 
+typedef DWORD_PTR (WINAPI *SetThreadAffinityMask_pfn)(
+  _In_ HANDLE    hThread,
+  _In_ DWORD_PTR dwThreadAffinityMask
+);
+
 extern "C" SetThreadDescription_pfn SetThreadDescription;
 extern "C" GetThreadDescription_pfn GetThreadDescription;
 
@@ -238,6 +243,8 @@ extern "C" HRESULT WINAPI SetCurrentThreadDescription (_In_  PCWSTR lpThreadDesc
 extern "C" HRESULT WINAPI GetCurrentThreadDescription (_Out_  PWSTR  *threadDescription);
 
 extern "C" bool SK_Thread_InitDebugExtras (void);
+
+extern "C" SetThreadAffinityMask_pfn SetThreadAffinityMask_Original;
 
 
 #endif /* __SK__THREAD_H__ */
