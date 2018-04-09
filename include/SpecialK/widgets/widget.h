@@ -47,6 +47,8 @@ struct SK_ImGui_WidgetRegistry
   SK_Widget* d3d11_pipeline;
   SK_Widget* thread_profiler;
 
+  SK_Widget* hdr_control;
+
   SK_Widget* cmd_console;
   SK_Widget* txt_editor;
   SK_Widget* file_browser;

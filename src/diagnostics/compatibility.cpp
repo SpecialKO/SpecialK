@@ -942,6 +942,8 @@ SK_COMPAT_FixUpFullscreen_DXGI (bool Fullscreen)
 
 #include <SpecialK/sound.h>
 
+#pragma comment (lib,"mmdevapi.lib")
+
 //
 // MSI Nahimic sometimes @#$%s the bed if MMDevAPI.dll is not loaded
 //   in the right order, so to make it happy, we need a link-time reference
@@ -953,14 +955,42 @@ SK_COMPAT_FixUpFullscreen_DXGI (bool Fullscreen)
 HRESULT
 SK_COMPAT_FixNahimicDeadlock (void)
 {
-  //CComPtr <IActivateAudioInterfaceAsyncOperation> aOp;
-  //
-  //ActivateAudioInterfaceAsync ( L"I don't exist",
-  //                                __uuidof (IAudioClient),
-  //                                  nullptr, nullptr, &aOp );
-  //
-  //if (GetModuleHandle (L"NahimicDevProps.dll"))
-  //  return S_OK;
+  CComPtr <IActivateAudioInterfaceAsyncOperation> aOp;
+  
+  ActivateAudioInterfaceAsync ( L"I don't exist",
+                                  __uuidof (IAudioClient),
+                                    nullptr, nullptr, &aOp );
+  
+  if (GetModuleHandle (L"NahimicDevProps.dll"))
+    return S_OK;
 
   return S_FALSE;
 }
+
+
+bool
+SK_COMPAT_IsSystemDllInstalled (wchar_t* wszDll, bool* locally)
+{
+  if (GetFileAttributesW (wszDll) != INVALID_FILE_ATTRIBUTES)
+  {
+    if (locally != nullptr) *locally = true;
+  }
+
+  else if (locally != nullptr) *locally = false;
+
+  wchar_t wszSystemDir [MAX_PATH * 2] = { };
+
+#ifdef _WIN64
+  GetSystemDirectoryW (wszSystemDir, MAX_PATH);
+#else
+  BOOL bWoW64 = FALSE;
+  if (IsWow64Process (SK_GetCurrentProcess (), &bWoW64) && bWoW64)
+    GetSystemWow64DirectoryW (wszSystemDir, MAX_PATH);
+  else
+    GetSystemDirectoryW      (wszSystemDir, MAX_PATH);
+#endif
+
+  PathAppendW (wszSystemDir, wszDll);
+
+  return GetFileAttributesW (wszSystemDir) != INVALID_FILE_ATTRIBUTES;
+};

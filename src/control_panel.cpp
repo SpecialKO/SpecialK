@@ -74,6 +74,8 @@
 #include <SpecialK/control_panel/plugins.h>
 #include <SpecialK/control_panel/compatibility.h>
 
+#include <SpecialK/render/dxgi/dxgi_hdr.h>
+
 // Fixed-width font
 #define SK_IMGUI_FIXED_FONT 1
 
@@ -480,7 +482,8 @@ SK_ImGui_ControlPanelTitle (void)
     // TEMP HACK
     static HMODULE hModTBFix = GetModuleHandle (L"tbfix.dll");
 
-    std::wstring title = L"";
+    static std::wstring title = L"";
+                        title.clear ();
 
     extern std::wstring __stdcall SK_GetPluginName (void);
     extern bool         __stdcall SK_HasPlugin     (void);
@@ -1791,6 +1794,8 @@ SK_ImGui_ControlPanel (void)
     }
 
 
+    bool show_10bit_gsync_option = config.nvidia.bugs.fix_10bit_gsync;
+
     if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status)
     {
       char szGSyncStatus [128] = { };
@@ -1799,7 +1804,14 @@ SK_ImGui_ControlPanel (void)
       {
         strcat (szGSyncStatus, "    Supported + ");
         if (rb.gsync_state.active)
+        {
           strcat (szGSyncStatus, "Active");
+
+          if (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_RGB10A2)
+          {
+            show_10bit_gsync_option = true;
+          }
+        }
         else
           strcat (szGSyncStatus, "Inactive");
       }
@@ -1814,6 +1826,33 @@ SK_ImGui_ControlPanel (void)
       if (rb.api == SK_RenderAPI::OpenGL && ImGui::IsItemHovered ())
       {
         ImGui::SetTooltip ("The NVIDIA driver API does not report this status in OpenGL.");
+      }
+    }
+
+
+    static bool original_bypass = config.nvidia.bugs.fix_10bit_gsync;
+
+    if (show_10bit_gsync_option || original_bypass)
+    {
+      if (ImGui::Checkbox ("Workaround G-Sync + 10-bit Color", &config.nvidia.bugs.fix_10bit_gsync))
+      {
+        config.window.borderless             = config.nvidia.bugs.fix_10bit_gsync;
+        config.window.fullscreen             = config.nvidia.bugs.fix_10bit_gsync;
+        config.render.framerate.flip_discard = config.nvidia.bugs.fix_10bit_gsync;
+      }
+
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::SetTooltip ("Fix red/green color banding by rendering to an 8-bit Flip Model (advanced window mode) swapchain");
+      }
+
+      if (original_bypass != config.nvidia.bugs.fix_10bit_gsync)
+      {
+        ImGui::SameLine ();
+
+        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.3f, .8f, .9f));
+        ImGui::BulletText     ("Game Restart Required");
+        ImGui::PopStyleColor  ();
       }
     }
 
@@ -2148,6 +2187,7 @@ SK_ImGui_ControlPanel (void)
     bool cpumon        = SK_ImGui_Widgets.cpu_monitor->isVisible     ();
     bool pipeline      = SK_ImGui_Widgets.d3d11_pipeline->isVisible  ();
     bool threads       = SK_ImGui_Widgets.thread_profiler->isVisible ();
+    bool hdr           = SK_ImGui_Widgets.hdr_control->isVisible     ();
 
     ImGui::TreePush ("");
 
@@ -2188,6 +2228,18 @@ SK_ImGui_ControlPanel (void)
       if (ImGui::Checkbox ("Pipeline Stats", &pipeline))
       {
         SK_ImGui_Widgets.d3d11_pipeline->setVisible (pipeline).setActive (pipeline);
+      }
+
+      SK_DXGI_HDRControl* pHDRCtl =
+        SK_HDR_GetControl ();
+
+      if (pHDRCtl->meta._AdjustmentCount > 0)
+      {
+        ImGui::SameLine ();
+        if (ImGui::Checkbox ("HDR Display", &hdr))
+        {
+          SK_ImGui_Widgets.hdr_control->setVisible (hdr).setActive (hdr);
+        }
       }
     }
 
@@ -2371,7 +2423,8 @@ SK_ImGui_StageNextFrame (void)
         SK_ImGui_Widgets.gpu_monitor,
           SK_ImGui_Widgets.cpu_monitor,
             SK_ImGui_Widgets.d3d11_pipeline,
-              SK_ImGui_Widgets.thread_profiler
+              SK_ImGui_Widgets.thread_profiler,
+                SK_ImGui_Widgets.hdr_control
   };
 
   if (init_widgets)

@@ -170,7 +170,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
     GetRawInputData_Original (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader);
 
     if (*pcbSize < 1024)
-      pData = new uint8_t [*pcbSize];
+      pData = SK_TLS_Bottom ()->raw_input.allocData (*pcbSize);
 
     if (pData != nullptr)
       owns_data = true;
@@ -377,7 +377,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
     {
       if (! keyboard)
       {
-        memset (pData, 0, *pcbSize);
+        RtlZeroMemory (pData, *pcbSize);
       }
 
       // Tell the game this event happened in the background, most will
@@ -438,9 +438,6 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
 
     size = *pcbSize;
   }
-
-  if (owns_data)
-    delete [] pData;
 
   return owns_data ? 0 : size;
 }

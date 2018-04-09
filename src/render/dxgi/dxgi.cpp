@@ -310,12 +310,18 @@ SK_CEGUI_RelocateLog (void)
                     nullptr, nullptr, nullptr,
                       0x00 );
 
-    CEGUI::Logger::getDllSingleton ().setLogFilename (reinterpret_cast <const CEGUI::utf8 *> (szNewLogPath), true);
+    try {
+      CEGUI::Logger::getDllSingleton ().setLogFilename (reinterpret_cast <const CEGUI::utf8 *> (szNewLogPath), true);
 
-    CEGUI::Logger::getDllSingleton ().logEvent       ("[Special K] ---- Log File Moved ----");
-    CEGUI::Logger::getDllSingleton ().logEvent       ("");
+      CEGUI::Logger::getDllSingleton ().logEvent       ("[Special K] ---- Log File Moved ----");
+      CEGUI::Logger::getDllSingleton ().logEvent       ("");
 
-    DeleteFileW (L"CEGUI.log");
+      DeleteFileW (L"CEGUI.log");
+    }
+
+    catch (CEGUI::FileIOException e)
+    {
+    }
   }
 }
 
@@ -1230,6 +1236,8 @@ SK_GetDXGIAdapterInterfaceVer (const IID& riid)
     return 2;
   if (riid == __uuidof (IDXGIAdapter3))
     return 3;
+  if (riid == __uuidof (IDXGIAdapter4))
+    return 4;
 
   assert (false);
 
@@ -1249,6 +1257,8 @@ SK_GetDXGIAdapterInterfaceEx (const IID& riid)
     interface_name = L"IDXGIAdapter2";
   else if (riid == __uuidof (IDXGIAdapter3))
     interface_name = L"IDXGIAdapter3";
+  else if (riid == __uuidof (IDXGIAdapter4))
+    interface_name = L"IDXGIAdapter4";
   else
   {
     wchar_t *pwszIID = nullptr;
@@ -2243,8 +2253,14 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 
         hr = pDev->CreateRenderTargetView (pBackBuffer, &rtdesc, &pRenderTargetView);
 
-        rb.framebuffer_flags |= SK_FRAMEBUFFER_FLAG_SRGB;
+        rb.framebuffer_flags |=   SK_FRAMEBUFFER_FLAG_SRGB;
+        rb.framebuffer_flags &= (~SK_FRAMEBUFFER_FLAG_RGB10A2);
       } break;
+
+      case DXGI_FORMAT_R10G10B10A2_TYPELESS:
+      case DXGI_FORMAT_R10G10B10A2_UNORM:
+        rb.framebuffer_flags |= SK_FRAMEBUFFER_FLAG_RGB10A2;
+        // Deliberately fall-through to default
 
       default:
       {
@@ -4064,8 +4080,6 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
       new_new_params.Scaling =
         (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode;
     }
-
-
 
 
     if (! config.window.res.override.isZero ())
@@ -5917,6 +5931,246 @@ SK_DXGI_HookPresentBase (IDXGISwapChain* pSwapChain)
   }
 }
 
+typedef HRESULT (WINAPI *IDXGISwapChain3_CheckColorSpaceSupport_pfn)(IDXGISwapChain3*, DXGI_COLOR_SPACE_TYPE, UINT*);
+                         IDXGISwapChain3_CheckColorSpaceSupport_pfn
+                         IDXGISwapChain3_CheckColorSpaceSupport_Original =nullptr;
+
+typedef HRESULT (WINAPI *IDXGISwapChain3_SetColorSpace1_pfn)        (IDXGISwapChain3*, DXGI_COLOR_SPACE_TYPE);
+                         IDXGISwapChain3_SetColorSpace1_pfn
+                         IDXGISwapChain3_SetColorSpace1_Original = nullptr;
+
+typedef HRESULT (WINAPI *IDXGISwapChain4_SetHDRMetaData_pfn)(IDXGISwapChain4*, DXGI_HDR_METADATA_TYPE, UINT, void*);
+                         IDXGISwapChain4_SetHDRMetaData_pfn
+                         IDXGISwapChain4_SetHDRMetaData_Original = nullptr;
+
+#include <SpecialK/render/dxgi/dxgi_hdr.h>
+
+extern SK_DXGI_HDRControl* SK_HDR_GetControl (void);
+
+HRESULT
+WINAPI
+IDXGISwapChain4_SetHDRMetaData ( IDXGISwapChain4*        This,
+                        _In_     DXGI_HDR_METADATA_TYPE  Type,
+                        _In_     UINT                    Size,
+                        _In_opt_ void                   *pMetaData )
+{
+  SK_LOG_FIRST_CALL
+
+  if (Type == DXGI_HDR_METADATA_TYPE_HDR10)
+  {
+    if (Size == sizeof (DXGI_HDR_METADATA_HDR10))
+    {
+      DXGI_HDR_METADATA_HDR10* pData =
+        (DXGI_HDR_METADATA_HDR10*)pMetaData;
+
+      SK_DXGI_HDRControl* pHDRCtl =
+        SK_HDR_GetControl ();
+
+
+      if (! pHDRCtl->overrides.MaxContentLightLevel)
+        pHDRCtl->meta.MaxContentLightLevel = pData->MaxContentLightLevel;
+      else
+        pData->MaxContentLightLevel = pHDRCtl->meta.MaxContentLightLevel;
+
+      if (! pHDRCtl->overrides.MaxFrameAverageLightLevel)
+        pHDRCtl->meta.MaxFrameAverageLightLevel = pData->MaxFrameAverageLightLevel;
+      else
+        pData->MaxFrameAverageLightLevel = pHDRCtl->meta.MaxFrameAverageLightLevel;
+
+
+      if (! pHDRCtl->overrides.MinMaster)
+        pHDRCtl->meta.MinMasteringLuminance = pData->MinMasteringLuminance;
+      else
+        pData->MinMasteringLuminance = pHDRCtl->meta.MinMasteringLuminance;
+
+      if (! pHDRCtl->overrides.MaxMaster)
+        pHDRCtl->meta.MaxMasteringLuminance = pData->MaxMasteringLuminance;
+      else
+        pData->MaxMasteringLuminance = pHDRCtl->meta.MaxMasteringLuminance;
+    }
+  }
+
+  HRESULT hr =
+    IDXGISwapChain4_SetHDRMetaData_Original (This, Type, Size, pMetaData);
+
+  SK_HDR_GetControl ()->meta._AdjustmentCount++;
+
+  if (FAILED (hr))
+  {
+    if (config.render.dxgi.spoof_hdr)
+      return S_OK;
+  }
+
+  return hr;
+}
+
+
+  auto DXGIColorSpaceToStr = [](DXGI_COLOR_SPACE_TYPE space) ->
+  const wchar_t*
+  {
+    switch (space)
+    {
+      case DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709:           return L"DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709";
+      case DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709:           return L"DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709";
+      case DXGI_COLOR_SPACE_RGB_STUDIO_G22_NONE_P709:         return L"DXGI_COLOR_SPACE_RGB_STUDIO_G22_NONE_P709";
+      case DXGI_COLOR_SPACE_RGB_STUDIO_G22_NONE_P2020:        return L"DXGI_COLOR_SPACE_RGB_STUDIO_G22_NONE_P2020";
+      case DXGI_COLOR_SPACE_RESERVED:                         return L"DXGI_COLOR_SPACE_RESERVED";
+      case DXGI_COLOR_SPACE_YCBCR_FULL_G22_NONE_P709_X601:    return L"DXGI_COLOR_SPACE_YCBCR_FULL_G22_NONE_P709_X601";
+      case DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P601:       return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P601";
+      case DXGI_COLOR_SPACE_YCBCR_FULL_G22_LEFT_P601:         return L"DXGI_COLOR_SPACE_YCBCR_FULL_G22_LEFT_P601";
+      case DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P709:       return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P709";
+      case DXGI_COLOR_SPACE_YCBCR_FULL_G22_LEFT_P709:         return L"DXGI_COLOR_SPACE_YCBCR_FULL_G22_LEFT_P709";
+      case DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P2020:      return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P2020";
+      case DXGI_COLOR_SPACE_YCBCR_FULL_G22_LEFT_P2020:        return L"DXGI_COLOR_SPACE_YCBCR_FULL_G22_LEFT_P2020";
+      case DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020:        return L"DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020";
+      case DXGI_COLOR_SPACE_YCBCR_STUDIO_G2084_LEFT_P2020:    return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_G2084_LEFT_P2020";
+      case DXGI_COLOR_SPACE_RGB_STUDIO_G2084_NONE_P2020:      return L"DXGI_COLOR_SPACE_RGB_STUDIO_G2084_NONE_P2020";
+      case DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_TOPLEFT_P2020:   return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_TOPLEFT_P2020";
+      case DXGI_COLOR_SPACE_YCBCR_STUDIO_G2084_TOPLEFT_P2020: return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_G2084_TOPLEFT_P2020";
+      case DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P2020:          return L"DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P2020";
+      case DXGI_COLOR_SPACE_YCBCR_STUDIO_GHLG_TOPLEFT_P2020:  return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_GHLG_TOPLEFT_P2020";
+      case DXGI_COLOR_SPACE_YCBCR_FULL_GHLG_TOPLEFT_P2020:    return L"DXGI_COLOR_SPACE_YCBCR_FULL_GHLG_TOPLEFT_P2020";
+      case DXGI_COLOR_SPACE_RGB_STUDIO_G24_NONE_P709:         return L"DXGI_COLOR_SPACE_RGB_STUDIO_G24_NONE_P709";
+      case DXGI_COLOR_SPACE_RGB_STUDIO_G24_NONE_P2020:        return L"DXGI_COLOR_SPACE_RGB_STUDIO_G24_NONE_P2020";
+      case DXGI_COLOR_SPACE_YCBCR_STUDIO_G24_LEFT_P709:       return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_G24_LEFT_P709";
+      case DXGI_COLOR_SPACE_YCBCR_STUDIO_G24_LEFT_P2020:      return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_G24_LEFT_P2020";
+      case DXGI_COLOR_SPACE_YCBCR_STUDIO_G24_TOPLEFT_P2020:   return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_G24_TOPLEFT_P2020";
+      case DXGI_COLOR_SPACE_CUSTOM:                           return L"DXGI_COLOR_SPACE_CUSTOM";
+                                                     default: return L"Unknown?!";
+    };
+  };
+
+DXGI_COLOR_SPACE_TYPE SpoofColorSpace = DXGI_COLOR_SPACE_RESERVED;
+
+HRESULT
+WINAPI
+IDXGISwapChain3_CheckColorSpaceSupport_Override ( IDXGISwapChain3       *This,
+                                                  DXGI_COLOR_SPACE_TYPE  ColorSpace,
+                                                  UINT                  *pColorSpaceSupported)
+{
+  SK_LOG0 ( ( "[!] IDXGISwapChain3::CheckColorSpaceSupport (%s)",
+                DXGIColorSpaceToStr (ColorSpace) ),
+              L"   DXGI   " );
+
+  HRESULT hr =
+    IDXGISwapChain3_CheckColorSpaceSupport_Original (This, ColorSpace, pColorSpaceSupported);
+
+  if (config.render.dxgi.spoof_hdr)
+  {
+    *pColorSpaceSupported = DXGI_SWAP_CHAIN_COLOR_SPACE_SUPPORT_FLAG_PRESENT;
+    return S_OK;
+  }
+
+  return hr;
+}
+
+HRESULT
+WINAPI
+IDXGISwapChain3_SetColorSpace1_Override         ( IDXGISwapChain3       *This,
+                                                  DXGI_COLOR_SPACE_TYPE  ColorSpace )
+{
+  SK_LOG0 ( ( "[!] IDXGISwapChain3::SetColorSpace1 (%s)",
+                DXGIColorSpaceToStr (ColorSpace) ),
+              L"   DXGI   " );
+
+  HRESULT hr =
+    IDXGISwapChain3_SetColorSpace1_Original (This, ColorSpace);
+
+  if (config.render.dxgi.spoof_hdr)
+  {
+    SpoofColorSpace = ColorSpace;
+    return S_OK;
+  }
+
+  return hr;
+}
+
+typedef HRESULT (WINAPI *IDXGIOutput6_GetDesc1_pfn)(IDXGIOutput6*, DXGI_OUTPUT_DESC1*);
+                         IDXGIOutput6_GetDesc1_pfn
+                         IDXGIOutput6_GetDesc1_Original = nullptr;
+
+HRESULT
+WINAPI
+IDXGIOutput6_GetDesc1_Override ( IDXGIOutput6      *This,
+                           _Out_ DXGI_OUTPUT_DESC1 *pDesc )
+{
+  SK_LOG_FIRST_CALL
+
+  HRESULT hr =
+    IDXGIOutput6_GetDesc1_Original (This, pDesc);
+
+  if (SUCCEEDED (hr))
+  {
+    SK_RunOnce (
+      dll_log.LogEx ( true,
+        L"[Swap Chain]\n"
+        L"  +-----------------+---------------------\n"
+        L"  | Bits Per Color. |  %u\n"
+        L"  | Color Space.... |  %s\n"
+        L"  | Red Primary.... |  %f, %f\n"
+        L"  | Green Primary.. |  %f, %f\n"
+        L"  | Blue Primary... |  %f, %f\n"
+        L"  | White Point.... |  %f, %f\n"
+        L"  | Min Luminance.. |  %f\n"
+        L"  | Max Luminance.. |  %f\n"
+        L"  |  \"  FullFrame.. |  %f\n"
+        L"  +-----------------+---------------------\n",
+          pDesc->BitsPerColor,
+          DXGIColorSpaceToStr (pDesc->ColorSpace),
+          pDesc->RedPrimary   [0], pDesc->RedPrimary   [1],
+          pDesc->GreenPrimary [0], pDesc->GreenPrimary [1],
+          pDesc->BluePrimary  [0], pDesc->BluePrimary  [1],
+          pDesc->WhitePoint   [0], pDesc->WhitePoint   [1],
+          pDesc->MinLuminance,     pDesc->MaxLuminance,
+          pDesc->MaxFullFrameLuminance )
+    );
+
+    SK_DXGI_HDRControl* pHDRCtl =
+      SK_HDR_GetControl ();
+
+    if (config.render.dxgi.spoof_hdr)
+    {
+      pDesc->BitsPerColor          = 10;
+      pDesc->RedPrimary   [0]      = 0.659680f; pDesc->RedPrimary   [1] = 0.340344f;
+      pDesc->GreenPrimary [0]      = 0.244641f; pDesc->GreenPrimary [1] = 0.670422f;
+      pDesc->BluePrimary  [0]      = 0.130383f; pDesc->BluePrimary  [1] = 0.040539f;
+      pDesc->WhitePoint   [0]      = 0.313000f; pDesc->WhitePoint   [1] = 0.329602f;
+      pDesc->ColorSpace            = DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020;
+      pDesc->MinLuminance          =   1.00000f;
+      pDesc->MaxLuminance          = 300.000000f;
+      pDesc->MaxFullFrameLuminance = 250.000000f;
+
+      if (SpoofColorSpace != DXGI_COLOR_SPACE_RESERVED)
+        pDesc->ColorSpace = SpoofColorSpace;
+    }
+
+    pHDRCtl->devcaps.BitsPerColor = pDesc->BitsPerColor;
+    pHDRCtl->devcaps.ColorSpace   = pDesc->ColorSpace;
+
+    pHDRCtl->devcaps.BluePrimary  [0] = pDesc->BluePrimary  [0];
+    pHDRCtl->devcaps.BluePrimary  [1] = pDesc->BluePrimary  [1];
+
+    pHDRCtl->devcaps.RedPrimary   [0] = pDesc->RedPrimary   [0];
+    pHDRCtl->devcaps.RedPrimary   [1] = pDesc->RedPrimary   [1];
+
+    pHDRCtl->devcaps.GreenPrimary [0] = pDesc->GreenPrimary [0];
+    pHDRCtl->devcaps.GreenPrimary [1] = pDesc->GreenPrimary [1];
+
+    pHDRCtl->devcaps.WhitePoint   [0] = pDesc->WhitePoint   [0];
+    pHDRCtl->devcaps.WhitePoint   [1] = pDesc->WhitePoint   [1];
+
+    pHDRCtl->devcaps.MinLuminance = pDesc->MinLuminance;
+    pHDRCtl->devcaps.MaxLuminance = pDesc->MaxLuminance;
+
+    pHDRCtl->devcaps.MaxFullFrameLuminance = pDesc->MaxFullFrameLuminance;
+
+    if (config.render.dxgi.spoof_hdr)
+      return S_OK;
+  }
+
+  return hr;
+}
+
 void
 SK_DXGI_HookPresent1 (IDXGISwapChain1* pSwapChain1)
 {
@@ -6013,6 +6267,57 @@ SK_DXGI_HookSwapChain (IDXGISwapChain* pSwapChain)
           (void **)&pSwapChain, 14 );
     }
 
+    // 23 IsTemporaryMonoSupported
+    // 24 GetRestrictToOutput
+    // 25 SetBackgroundColor
+    // 26 GetBackgroundColor
+    // 27 SetRotation
+    // 28 GetRotation
+    // 29 SetSourceSize
+    // 30 GetSourceSize
+    // 31 SetMaximumFrameLatency
+    // 32 GetMaximumFrameLatency
+    // 33 GetFrameLatencyWaitableObject
+    // 34 SetMatrixTransform
+    // 35 GetMatrixTransform
+
+    // 36 GetCurrentBackBufferIndex
+    // 37 CheckColorSpaceSupport
+    // 38 SetColorSpace1
+    // 39 ResizeBuffers1
+
+    // 40 SetHDRMetaData
+
+    CComQIPtr <IDXGISwapChain4> pSwapChain3 (pSwapChain);
+
+    if ( pSwapChain3                                 != nullptr &&
+     IDXGISwapChain3_CheckColorSpaceSupport_Original == nullptr )
+    {
+      DXGI_VIRTUAL_HOOK ( &pSwapChain3.p, 37,
+                          "IDXGISwapChain3::CheckColorSpaceSupport",
+                           IDXGISwapChain3_CheckColorSpaceSupport_Override,
+                           IDXGISwapChain3_CheckColorSpaceSupport_Original,
+                           IDXGISwapChain3_CheckColorSpaceSupport_pfn );
+
+      DXGI_VIRTUAL_HOOK ( &pSwapChain3.p, 38,
+                          "IDXGISwapChain3::SetColorSpace1",
+                           IDXGISwapChain3_SetColorSpace1_Override,
+                           IDXGISwapChain3_SetColorSpace1_Original,
+                           IDXGISwapChain3_SetColorSpace1_pfn );
+    }
+
+    CComQIPtr <IDXGISwapChain4> pSwapChain4 (pSwapChain);
+
+    if ( pSwapChain4                         != nullptr &&
+     IDXGISwapChain4_SetHDRMetaData_Original == nullptr )
+    {
+      DXGI_VIRTUAL_HOOK ( &pSwapChain, 40,
+                          "IDXGISwapChain4::SetHDRMetaData",
+                           IDXGISwapChain4_SetHDRMetaData,
+                           IDXGISwapChain4_SetHDRMetaData_Original,
+                           IDXGISwapChain4_SetHDRMetaData_pfn );
+    }
+
 
     CComPtr <IDXGIOutput> pOutput = nullptr;
     
@@ -6036,6 +6341,34 @@ SK_DXGI_HookSwapChain (IDXGISwapChain* pSwapChain)
                                  DXGIOutput_WaitForVBlank_Override,
                                             WaitForVBlank_Original,
                                             WaitForVBlank_pfn );
+
+        // 11 TakeOwnership
+        // 12 ReleaseOwnership
+        // 13 GetGammaControlCapabilities
+        // 14 SetGammaControl
+        // 15 GetGammaControl
+        // 16 SetDisplaySurface
+        // 17 GetDisplaySurfaceData
+        // 18 GetFrameStatistics
+        // 19 GetDisplayModeList1
+        // 20 FindClosestMatchingMode1
+        // 21 GetDisplaySurfaceData1
+        // 22 DuplicateOutput
+        // 23 SupportsOverlays
+        // 24 CheckOverlaySupport
+        // 25 CheckOverlayColorSpaceSupport
+        // 26 DuplicateOutput1
+        // 27 GetDesc1
+
+        CComQIPtr <IDXGIOutput6> pOutput6 (pOutput);
+
+        if (pOutput6 != nullptr)
+        {
+          DXGI_VIRTUAL_HOOK ( &pOutput6.p, 27, "IDXGIOutput6::GetDesc1",
+                                 IDXGIOutput6_GetDesc1_Override,
+                                 IDXGIOutput6_GetDesc1_Original,
+                                 IDXGIOutput6_GetDesc1_pfn );
+        }
       }
     }
 

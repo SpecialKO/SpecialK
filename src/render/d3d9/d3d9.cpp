@@ -26,6 +26,7 @@
 #include <SpecialK/render/dxgi/dxgi_backend.h>
 #include <SpecialK/render/backend.h>
 #include <SpecialK/import.h>
+#include <SpecialK/diagnostics/compatibility.h>
 
 MIDL_INTERFACE("D0223B96-BF7A-43fd-92BD-A43B0D82B9EB") IDirect3DDevice9;
 MIDL_INTERFACE("B18B10CE-2649-405a-870F-95F777D4313A") IDirect3DDevice9Ex;
@@ -923,6 +924,70 @@ SK_HookD3D9 (void)
   SK_Thread_SpinUntilFlagged   (&__d3d9_ready);
 }
 
+#include <SpecialK/resource.h>
+
+auto SK_UnpackD3DX9 =
+[](void) -> void
+{
+  HMODULE hModSelf = 
+    SK_GetDLL ();
+
+  HRSRC res =
+    FindResource ( hModSelf, MAKEINTRESOURCE (IDR_D3DX9_PACKAGE), L"7ZIP" );
+
+  if (res)
+  {
+    SK_LOG0 ( ( L"Unpacking D3DX9_43.dll because user does not have June 2010 DirectX Redistributables installed." ),
+                L"D3DCompile" );
+
+    DWORD   res_size     =
+      SizeofResource ( hModSelf, res );
+
+    HGLOBAL packed_d3dx9 =
+      LoadResource   ( hModSelf, res );
+
+    if (! packed_d3dx9) return;
+
+
+    const void* const locked =
+      (void *)LockResource (packed_d3dx9);
+
+
+    if (locked != nullptr)
+    {
+      wchar_t      wszArchive     [MAX_PATH * 2 + 1] = { };
+      wchar_t      wszDestination [MAX_PATH * 2 + 1] = { };
+
+      wcscpy (wszDestination, SK_GetHostPath ());
+
+      if (GetFileAttributesW (wszDestination) == INVALID_FILE_ATTRIBUTES)
+        SK_CreateDirectories (wszDestination);
+
+      wcscpy      (wszArchive, wszDestination);
+      PathAppendW (wszArchive, L"D3DX9_43.7z");
+
+      FILE* fPackedD3DX9 =
+        _wfopen   (wszArchive, L"wb");
+
+      fwrite      (locked, 1, res_size, fPackedD3DX9);
+      fclose      (fPackedD3DX9);
+
+      using SK_7Z_DECOMP_PROGRESS_PFN = int (__stdcall *)(int current, int total);
+
+      extern
+      HRESULT
+      SK_Decompress7zEx ( const wchar_t*            wszArchive,
+                          const wchar_t*            wszDestination,
+                          SK_7Z_DECOMP_PROGRESS_PFN callback );
+
+      SK_Decompress7zEx (wszArchive, wszDestination, nullptr);
+      DeleteFileW       (wszArchive);
+    }
+
+    UnlockResource (packed_d3dx9);
+  }
+};
+
 void
 WINAPI
 d3d9_init_callback (finish_pfn finish)
@@ -932,6 +997,13 @@ d3d9_init_callback (finish_pfn finish)
     SK_BootD3D9 ();
 
     SK_Thread_SpinUntilFlagged (&__d3d9_ready);
+  }
+
+  bool local_d3d9 = false;
+  if (! SK_COMPAT_IsSystemDllInstalled (L"d3dx9_43.dll", &local_d3d9))
+  {
+    if (! local_d3d9)
+     SK_UnpackD3DX9 ();
   }
 
   __HrLoadAllImportsForDll ("d3dx9_43.dll");

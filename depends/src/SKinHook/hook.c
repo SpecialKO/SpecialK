@@ -722,16 +722,35 @@ ProcessInformation ( PDWORD    pdData,
   return pspi;
 }
 
+volatile LONG* plThreadsCreated = NULL;
+
+void
+WINAPI
+SH_RegisterThreadCountVar (volatile LONG* pltc)
+{
+  plThreadsCreated = pltc;
+}
+
+PSYSTEM_PROCESS_INFORMATION pInfo;
+LONG                        last_update = -1L;
+
 static
 VOID
 EnumerateThreads (PFROZEN_THREADS pThreads)
 {
-#if 1
+#if 0
   DWORD dwPID = GetCurrentProcessId ();
   DWORD dwTID = GetCurrentThreadId  ();
 
-  PSYSTEM_PROCESS_INFORMATION pInfo =
-    ProcessInformation (NULL, NULL);
+  LONG last = 0;
+  if ( plThreadsCreated == NULL || ((last = ReadAcquire (plThreadsCreated)) != last_update) || pInfo == NULL )
+  {
+    if (pInfo != NULL)
+      LocalFree (pInfo);
+
+    pInfo =
+      ProcessInformation (NULL, NULL);
+  }
 
   int i = 0;
 
@@ -786,8 +805,6 @@ EnumerateThreads (PFROZEN_THREADS pThreads)
     pThreads->pItems [pThreads->size++] =
       pProc->aThreads [i].Cid.UniqueThread;
   }
-
-  LocalFree (pInfo);
 #else
 
   HANDLE hSnapshot =

@@ -73,6 +73,8 @@
 
 #include <SpecialK/injection/injection.h>
 
+#include <SpecialK/control_panel.h>
+
 #include <atlbase.h>
 #include <comdef.h>
 #include <delayimp.h>
@@ -572,6 +574,71 @@ WaitForInit (void)
 #include <SpecialK/commands/mem.inl>
 #include <SpecialK/commands/update.inl>
 
+auto SK_UnpackD3DShaderCompiler =
+[](void) -> void
+{
+  HMODULE hModSelf = 
+    SK_GetDLL ();
+
+  HRSRC res =
+    FindResource ( hModSelf, MAKEINTRESOURCE (IDR_D3DCOMPILER_PACKAGE), L"7ZIP" );
+
+  if (res)
+  {
+    SK_LOG0 ( ( L"Unpacking D3DCompiler_43.dll because user does not have June 2010 DirectX Redistributables installed." ),
+                L"D3DCompile" );
+
+    DWORD   res_size     =
+      SizeofResource ( hModSelf, res );
+
+    HGLOBAL packed_compiler =
+      LoadResource   ( hModSelf, res );
+
+    if (! packed_compiler) return;
+
+
+    const void* const locked =
+      (void *)LockResource (packed_compiler);
+
+
+    if (locked != nullptr)
+    {
+      wchar_t      wszArchive     [MAX_PATH * 2 + 1] = { };
+      wchar_t      wszDestination [MAX_PATH * 2 + 1] = { };
+
+      wcscpy (wszDestination, SK_GetHostPath ());
+
+      if (GetFileAttributesW (wszDestination) == INVALID_FILE_ATTRIBUTES)
+        SK_CreateDirectories (wszDestination);
+
+      wcscpy      (wszArchive, wszDestination);
+      PathAppendW (wszArchive, L"D3DCompiler_43.7z");
+
+      SK_LOG0 ( ( L" >> Archive: %s [Destination: %s]", wszArchive,wszDestination ),
+                  L"D3DCompile" );
+
+      FILE* fPackedCompiler =
+        _wfopen   (wszArchive, L"wb");
+
+      fwrite      (locked, 1, res_size, fPackedCompiler);
+      fclose      (fPackedCompiler);
+
+      using SK_7Z_DECOMP_PROGRESS_PFN = int (__stdcall *)(int current, int total);
+
+      extern
+      HRESULT
+      SK_Decompress7zEx ( const wchar_t*            wszArchive,
+                          const wchar_t*            wszDestination,
+                          SK_7Z_DECOMP_PROGRESS_PFN callback );
+
+      SK_Decompress7zEx (wszArchive, wszDestination, nullptr);
+      DeleteFileW       (wszArchive);
+    }
+
+    UnlockResource (packed_compiler);
+  }
+};
+
 void
 __stdcall
 SK_InitFinishCallback (void)
@@ -585,18 +652,24 @@ SK_InitFinishCallback (void)
     return;
   }
 
+  bool local_install = false;
+  if (! SK_COMPAT_IsSystemDllInstalled (L"D3DCompiler_43.dll", &local_install))
+  {
+    if (! local_install)
+    {
+      SK_UnpackD3DShaderCompiler ();
+    }
+
+    SK_ImGui_Warning (L"Your system is missing the June 2010 DirectX Runtime.\t\t\n"
+                      L"\n"
+                      L"\t\t\t\t* Please install it as soon as possible.");
+  }
+
   // NOTE: This is case-sensitive and a nightmare to debug; always use this
   //         unorthodox case because it's what the DLL uses internally as
   //           its name (unrelated to the name in System32\...)
   if ( FAILED (__HrLoadAllImportsForDll ("D3DCOMPILER_43.dll")) )
-  {
-    SK_MessageBox ( L"D3DCompiler_43.dll is required by Special K, but missing."
-                    L"\r\n\r\n"
-                    L"Please install DirectX End - User Runtimes (June 2010) first.",
-  
-                    L"Missing Dependency DLL", MB_ICONERROR | MB_OK );
     abort ();
-  }
 
 
   SK_DeleteTemporaryFiles ();
@@ -1023,8 +1096,8 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   SK_Steam_GetAppID_NoAPI      ();
 
   SK_Thread_InitDebugExtras    ();
-  SK_COMPAT_FixNahimicDeadlock (); // Use load-time link dependencies to resolve race conditions
-                                   //   involving WASAPI and MMDevAPI in MSI Nahimic.
+//SK_COMPAT_FixNahimicDeadlock (); // Use load-time link dependencies to resolve race conditions
+//                                 //   involving WASAPI and MMDevAPI in MSI Nahimic.
 
   static SetProcessDEPPolicy_pfn _SetProcessDEPPolicy =
     (SetProcessDEPPolicy_pfn)
@@ -1146,7 +1219,11 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
     init_.start_time = SK_QueryPerf ();
 
+    void
+    SK_NvAPI_PreInitHDR (void);
+
     SK_MinHook_Init        ();
+    SK_NvAPI_PreInitHDR    ();
     SK_WMI_Init            ();
     SK_InitCompatBlacklist ();
 

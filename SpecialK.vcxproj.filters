@@ -498,6 +498,9 @@
     <ClInclude Include="include\SpecialK\diagnostics\network.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\SpecialK\render\dxgi\dxgi_hdr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stdafx.cpp">
@@ -833,6 +836,9 @@
     <ClCompile Include="src\diagnostics\net.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\widgets\hdr.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="SpecialK.def">
@@ -930,6 +936,12 @@
     <None Include="include\imgui\imgui_user.inl">
       <Filter>Header Files</Filter>
     </None>
+    <None Include="resource\packages\D3DCompiler_43_32.7z" />
+    <None Include="resource\packages\D3DCompiler_43_64.7z" />
+    <None Include="resource\packages\D3DX9_43_32.7z" />
+    <None Include="resource\packages\D3DX9_43_64.7z" />
+    <None Include="resource\packages\D3DX11_43_32.7z" />
+    <None Include="resource\packages\D3DX11_43_64.7z" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource\Resource.rc">

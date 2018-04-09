@@ -303,9 +303,10 @@ struct sk_config_t
       bool    allow_tearing      = false;
       bool    safe_fullscreen    = false;
       bool    enhanced_depth     = false;
-      bool    deferred_isolation = false;
+      bool    deferred_isolation =  true;
       int     msaa_samples       =    -1;
       bool    present_test_skip  = false;
+      bool    spoof_hdr          = false;
     } dxgi;
     struct {
       // Required by default for compatibility with Mirillis Action!
@@ -375,6 +376,9 @@ struct sk_config_t
               num_gpus          = L"Auto";
       bool    override          = false;
     } sli;
+    struct {
+      bool    fix_10bit_gsync   = false;
+    } bugs;
   } nvidia;
 
   struct {
@@ -687,6 +691,7 @@ enum class SK_GAME_ID
   DragonBallFighterZ,           // DBFighterZ.exe
   NiNoKuni2,                    // Nino2.exe
   FarCry5,                      // FarCry5.exe
+  ChronoTrigger,                // Chrono Trigger.exe
   UNKNOWN_GAME               = 0xffff
 };
 

@@ -351,7 +351,7 @@ NtSetInformationThread_Detour (
                                           ThreadInformationLength );
 }
 
-DWORD dwLastThreadCreate = 0;
+volatile LONG lLastThreadCreate = 0;
 
 #include <concurrent_unordered_map.h>
 #include <concurrent_unordered_set.h>
@@ -361,6 +361,11 @@ extern concurrency::concurrent_unordered_set <HMODULE>              dbghelp_call
 extern concurrency::concurrent_unordered_map <DWORD, std::wstring> _SK_ThreadNames;
 #include <concurrent_unordered_set.h>
 extern concurrency::concurrent_unordered_set <DWORD>               _SK_SelfTitledThreads;
+
+extern "C"
+void
+WINAPI
+SH_RegisterThreadCountVar (volatile LONG* pltc);
 
 NTSTATUS
 NTAPI
@@ -375,11 +380,13 @@ NtCreateThreadEx_Detour (
   _In_opt_ ULONG_PTR            ZeroBits,
   _In_opt_ SIZE_T               StackSize,
   _In_opt_ SIZE_T               MaximumStackSize,
-  _In_opt_ PVOID                AttributeList)
+  _In_opt_ PVOID                AttributeList )
 {
   SK_LOG_FIRST_CALL
 
-  dwLastThreadCreate = timeGetTime ();
+  InterlockedIncrement (&lLastThreadCreate);
+
+  SH_RegisterThreadCountVar (&lLastThreadCreate);
 
   BOOL Suspicious = FALSE;
 
@@ -413,11 +420,6 @@ NtCreateThreadEx_Detour (
   {
     const DWORD tid =
       GetThreadId (*ThreadHandle);
-
-    if (! suspended)
-      ResumeThread (*ThreadHandle);
-
-    SleepEx (5UL, TRUE);
 
     if (! _SK_ThreadNames.count (tid))
     {
@@ -520,6 +522,9 @@ NtCreateThreadEx_Detour (
       SK_LOG0 ( ( L">>tid=%x", GetThreadId (*ThreadHandle) ),
                   L"DieAntiDbg" );
     }
+
+    if (! suspended)
+      ResumeThread (*ThreadHandle);
   }
 
   return ret;

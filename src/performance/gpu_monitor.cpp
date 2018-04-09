@@ -340,16 +340,23 @@ SK_GPUPollingThread (LPVOID user)
           stats.gpus [i].nv_perf_state = perf_decrease_info;
         }
 
-        NV_GPU_PERF_PSTATES20_INFO ps20info = {                            };
-        ps20info.version                    = NV_GPU_PERF_PSTATES20_INFO_VER;
+        static NV_GPU_PERF_PSTATES20_INFO ps20info = {                            };
+               ps20info.version                    = NV_GPU_PERF_PSTATES20_INFO_VER;
 
         stats.gpus [i].volts_mV.supported   = false;
 
-        static bool has_pstates = true;
+        static bool has_pstates     = true;
+        static bool queried_pstates = false;
 
-        if (            NvAPI_GPU_GetPstates20 != nullptr && has_pstates &&
-            NVAPI_OK == NvAPI_GPU_GetPstates20 (gpu, &ps20info))
+        if ( queried_pstates ||
+             ( NvAPI_GPU_GetPstates20 != nullptr && has_pstates &&
+               NVAPI_OK == NvAPI_GPU_GetPstates20 (gpu, &ps20info) )
+           )
         {
+          // Rather than querying the list over and over, just get the current
+          //   index into the list.
+          queried_pstates = true;
+
           if (ps20info.numPstates == 0) has_pstates = false;
 
           NV_GPU_PERF_PSTATE_ID current_pstate = { };

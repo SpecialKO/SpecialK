@@ -28,6 +28,8 @@
 #include <SpecialK/render/dxgi/dxgi_backend.h>
 #include <SpecialK/render/backend.h>
 
+#include <SpecialK/diagnostics/compatibility.h>
+
 #include <SpecialK/core.h>
 #include <SpecialK/hooks.h>
 #include <SpecialK/command.h>
@@ -9963,6 +9965,70 @@ SK::DXGI::getPipelineStatsDesc (void)
 }
 
 
+#include <SpecialK/resource.h>
+
+auto SK_UnpackD3DX11 =
+[](void) -> void
+{
+  HMODULE hModSelf = 
+    SK_GetDLL ();
+
+  HRSRC res =
+    FindResource ( hModSelf, MAKEINTRESOURCE (IDR_D3DX11_PACKAGE), L"7ZIP" );
+
+  if (res)
+  {
+    SK_LOG0 ( ( L"Unpacking D3DX11_43.dll because user does not have June 2010 DirectX Redistributables installed." ),
+                L"D3DCompile" );
+
+    DWORD   res_size     =
+      SizeofResource ( hModSelf, res );
+
+    HGLOBAL packed_d3dx11 =
+      LoadResource   ( hModSelf, res );
+
+    if (! packed_d3dx11) return;
+
+
+    const void* const locked =
+      (void *)LockResource (packed_d3dx11);
+
+
+    if (locked != nullptr)
+    {
+      wchar_t      wszArchive     [MAX_PATH * 2 + 1] = { };
+      wchar_t      wszDestination [MAX_PATH * 2 + 1] = { };
+
+      wcscpy (wszDestination, SK_GetHostPath ());
+
+      if (GetFileAttributesW (wszDestination) == INVALID_FILE_ATTRIBUTES)
+        SK_CreateDirectories (wszDestination);
+
+      wcscpy      (wszArchive, wszDestination);
+      PathAppendW (wszArchive, L"D3DX11_43.7z");
+
+      FILE* fPackedD3DX11 =
+        _wfopen   (wszArchive, L"wb");
+
+      fwrite      (locked, 1, res_size, fPackedD3DX11);
+      fclose      (fPackedD3DX11);
+
+      using SK_7Z_DECOMP_PROGRESS_PFN = int (__stdcall *)(int current, int total);
+
+      extern
+      HRESULT
+      SK_Decompress7zEx ( const wchar_t*            wszArchive,
+                          const wchar_t*            wszDestination,
+                          SK_7Z_DECOMP_PROGRESS_PFN callback );
+
+      SK_Decompress7zEx (wszArchive, wszDestination, nullptr);
+      DeleteFileW       (wszArchive);
+    }
+
+    UnlockResource (packed_d3dx11);
+  }
+};
+
 void
 SK_D3D11_InitTextures (void)
 {
@@ -10029,7 +10095,15 @@ SK_D3D11_InitTextures (void)
         SK_Modules.LoadLibrary (L"d3dx11_43.dll");
 
       if (hModD3DX11_43 == nullptr)
-        hModD3DX11_43 = (HMODULE)1;
+      {
+        SK_UnpackD3DX11 ();
+
+        hModD3DX11_43 =
+          SK_Modules.LoadLibrary (L"d3dx11_43.dll");
+
+        if (hModD3DX11_43 == nullptr)
+            hModD3DX11_43 = (HMODULE)1;
+      }
     }
 
     if ((uintptr_t)hModD3DX11_43 > 1)

@@ -31,4 +31,6 @@ typedef long HRESULT;
 
 HRESULT SK_COMPAT_FixNahimicDeadlock (void);
 
+bool SK_COMPAT_IsSystemDllInstalled (wchar_t* wszDll, bool* locally = nullptr);
+
 #endif /* __SK_COMPATIBILITY_H__ */

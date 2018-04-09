@@ -5246,7 +5246,7 @@ NVAPI_INTERFACE NvAPI_Disp_GetHdrCapabilities(__in NvU32 displayId, __inout NV_H
 
 //! \ingroup dispcontrol
 //! @{
- ///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 // FUNCTION NAME:   NvAPI_Disp_HdrColorControl
 //
 //! \fn NvAPI_Disp_HdrColorControl(NvU32 displayId, NV_HDR_COLOR_DATA *pHdrColorData)

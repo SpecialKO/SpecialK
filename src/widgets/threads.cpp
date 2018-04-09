@@ -135,16 +135,18 @@ public:
     );
 
     // Snapshotting is _slow_, so only do it when a thread has been created...
-    extern DWORD dwLastThreadCreate;
-    static DWORD dwLastThreadRefresh = 0;
+    extern volatile LONG lLastThreadCreate;
+    static          LONG lLastThreadRefresh = 0;
 
-    if (dwLastThreadCreate == dwLastThreadRefresh)
+    LONG last = ReadAcquire (&lLastThreadCreate);
+
+    if (last == lLastThreadRefresh)
     {
       return;
     }
 
-    dwLastThreadRefresh =
-    dwLastThreadCreate;
+    lLastThreadRefresh =
+      last;
 
     CHandle hSnap (
       CreateToolhelp32Snapshot (TH32CS_SNAPTHREAD, 0)
@@ -166,15 +168,11 @@ public:
             {
               if (! SKWG_Threads.count (tent.th32ThreadID))
               {
-                CHandle hThread (
-                  OpenThread (THREAD_ALL_ACCESS, FALSE, tent.th32ThreadID)
-                );
-
                 SKWG_Thread_Entry::runtimes_s runtimes = { };
 
                 SKWG_Thread_Entry *ptEntry =
                   new SKWG_Thread_Entry {
-                                   hThread.m_h,
+                                   INVALID_HANDLE_VALUE,
                                       tent.th32ThreadID,
                                       { { 0 , 0 } , { 0 , 0 },
                                         { 0 , 0 } , { 0 , 0 }, 0.0, 0.0,
@@ -659,11 +657,12 @@ public:
     ImGui::BeginGroup ();
     for ( auto& it : SKWG_Ordered_Threads )
     {
+      it.second->hThread =
+        OpenThread (THREAD_ALL_ACCESS, FALSE, it.second->dwTid);
+
       if (! IsThreadNonIdle (*it.second)) continue;
 
-      CHandle hThread (
-        OpenThread (THREAD_QUERY_INFORMATION, FALSE, it.second->dwTid)
-      );
+      HANDLE hThread = it.second->hThread;
 
       if (! GetExitCodeThread (hThread, &dwExitCode)) dwExitCode = 0;
 
@@ -730,9 +729,7 @@ public:
         HANDLE hCurrentProc =
           GetCurrentProcess ();
 
-        CHandle hThread (
-          OpenThread (THREAD_QUERY_INFORMATION, FALSE, it.second->dwTid)
-        );
+        HANDLE hThread = it.second->hThread;
 
         if (DuplicateHandle (hCurrentProc, hThread,
                               hCurrentProc, &hDupHandle,
@@ -804,9 +801,7 @@ public:
     {
       if (! IsThreadNonIdle (*it.second)) continue;
 
-      CHandle hThread (
-        OpenThread (THREAD_QUERY_LIMITED_INFORMATION, FALSE, it.second->dwTid)
-      );
+      HANDLE hThread = it.second->hThread;
 
       PROCESSOR_NUMBER pnum = { };
       GetThreadIdealProcessorEx (hThread, &pnum);
@@ -830,11 +825,9 @@ public:
     {
       if (! IsThreadNonIdle (*it.second)) continue;
 
-      CHandle hThread (
-        OpenThread (THREAD_QUERY_INFORMATION, FALSE, it.second->dwTid)
-      );
+      HANDLE hThread = it.second->hThread;
 
-      int dwPrio = GetThreadPriority (hThread.m_h);
+      int dwPrio = GetThreadPriority (hThread);
 
       if (! it.second->power_throttle)
         it.second->orig_prio = dwPrio;
@@ -926,9 +919,7 @@ public:
 
     for ( auto& it : SKWG_Ordered_Threads )
     {
-      CHandle hThread (
-        OpenThread (THREAD_QUERY_INFORMATION, FALSE, it.second->dwTid)
-      );
+      HANDLE hThread = it.second->hThread;
 
       GetThreadTimes ( hThread, &it.second->runtimes.created,
                                 &it.second->runtimes.exited,
@@ -1025,9 +1016,7 @@ public:
     {
       if (! IsThreadNonIdle (*it.second)) continue;
 
-      CHandle hThread (
-        OpenThread (THREAD_QUERY_INFORMATION, FALSE, it.second->dwTid)
-      );
+      HANDLE hThread = it.second->hThread;
 
       BOOL bDisableBoost = FALSE;
 
@@ -1056,11 +1045,8 @@ public:
     {
       if (! IsThreadNonIdle (*it.second)) continue;
 
-      CHandle hThread (
-        OpenThread (THREAD_QUERY_INFORMATION, FALSE, it.second->dwTid)
-      );
-
-      BOOL bPending = FALSE;
+      HANDLE hThread  = it.second->hThread;
+      BOOL   bPending = FALSE;
 
       if (GetThreadIOPendingFlag (hThread, &bPending) && bPending)
       {
@@ -1087,6 +1073,14 @@ public:
   //ImGui::EndChildFrame ();
     ImGui::EndGroup      ();
 
+    for (auto& it : SKWG_Ordered_Threads)
+    {
+      if (it.second->hThread != INVALID_HANDLE_VALUE)
+      {
+        CloseHandle (it.second->hThread);
+                     it.second->hThread = INVALID_HANDLE_VALUE;
+      }
+    }
 
     if ( (reset_stats && (dwLastSnap < dwNow - SNAP_FREQUENCY)) ||
           clear_counters )

@@ -33,8 +33,16 @@
 #include <dxgi.h>
 #include <string>
 
+#include <SpecialK/hooks.h>
+
 #include <SpecialK/diagnostics/compatibility.h>
 #include <SpecialK/utility.h>
+
+typedef NvAPI_Status (__cdecl *NvAPI_Disp_GetHdrCapabilities_pfn)(NvU32, NV_HDR_CAPABILITIES*);
+typedef NvAPI_Status (__cdecl *NvAPI_Disp_HdrColorControl_pfn)   (NvU32, NV_HDR_COLOR_DATA*);
+
+NvAPI_Disp_GetHdrCapabilities_pfn NvAPI_Disp_GetHdrCapabilities_Original = nullptr;
+NvAPI_Disp_HdrColorControl_pfn    NvAPI_Disp_HdrColorControl_Original    = nullptr;
 
 //
 // Undocumented Functions (unless you sign an NDA)
@@ -345,6 +353,294 @@ NVAPI::GetDriverVersion (NvU32* pVer)
 }
 
 
+#include <SpecialK/render/dxgi/dxgi_hdr.h>
+
+#define __SK_SUBSYSTEM__ L"  NvAPI   "
+
+NvAPI_Status
+__cdecl
+NvAPI_Disp_GetHdrCapabilities_Override ( NvU32                displayId,
+                                         NV_HDR_CAPABILITIES *pHdrCapabilities )
+{
+  SK_LOG_FIRST_CALL
+
+  SK_LOG0 ( ( L"NV_HDR_CAPABILITIES Version: %lu", pHdrCapabilities->version ),
+              __SK_SUBSYSTEM__ );
+  SK_LOG0 ( ( L" >> Wants Driver to Expand Default HDR Params: %s",
+                pHdrCapabilities->driverExpandDefaultHdrParameters ? L"Yes" :
+                                                                     L"No" ),
+              __SK_SUBSYSTEM__ );
+
+  NvAPI_Status ret =
+    NvAPI_Disp_GetHdrCapabilities_Original ( displayId, pHdrCapabilities );
+
+  SK_DXGI_HDRControl* pHDRCtl =
+    SK_HDR_GetControl ();
+
+
+    dll_log.LogEx ( true,
+      L"[ HDR Caps ]\n"
+      L"  +-----------------+---------------------\n"
+      L"  | Red Primary.... |  %f, %f\n"
+      L"  | Green Primary.. |  %f, %f\n"
+      L"  | Blue Primary... |  %f, %f\n"
+      L"  | White Point.... |  %f, %f\n"
+      L"  | Min Luminance.. |  %f\n"
+      L"  | Max Luminance.. |  %f\n"
+      L"  |  \"  FullFrame.. |  %f\n"
+      L"  | EDR Support.... |  %s\n"
+      L"  | ST2084 Gamma... |  %s\n"
+      L"  | HDR Gamma...... |  %s\n"
+      L"  | SDR Gamma...... |  %s\n"
+      L"  +-----------------+---------------------\n",
+        pHdrCapabilities->display_data.displayPrimary_x0,   pHdrCapabilities->display_data.displayPrimary_y0,
+        pHdrCapabilities->display_data.displayPrimary_x1,   pHdrCapabilities->display_data.displayPrimary_y1,
+        pHdrCapabilities->display_data.displayPrimary_x2,   pHdrCapabilities->display_data.displayPrimary_y2,
+        pHdrCapabilities->display_data.displayWhitePoint_x, pHdrCapabilities->display_data.displayWhitePoint_y, 
+        (float)pHdrCapabilities->display_data.desired_content_min_luminance,
+        (float)pHdrCapabilities->display_data.desired_content_max_luminance, 
+        (float)pHdrCapabilities->display_data.desired_content_max_frame_average_luminance,
+               pHdrCapabilities->isEdrSupported                 ? L"Yes" : L"No",
+               pHdrCapabilities->isST2084EotfSupported          ? L"Yes" : L"No",
+               pHdrCapabilities->isTraditionalHdrGammaSupported ? L"Yes" : L"No",
+               pHdrCapabilities->isTraditionalSdrGammaSupported ? L"Yes" : L"No" );
+
+
+  if (config.render.dxgi.spoof_hdr)
+  {
+    pHdrCapabilities->isTraditionalHdrGammaSupported = 1;
+    pHdrCapabilities->isTraditionalSdrGammaSupported = 1;
+    pHdrCapabilities->isEdrSupported                 = 1;
+    pHdrCapabilities->isST2084EotfSupported          = 1;
+
+    pHdrCapabilities->driverExpandDefaultHdrParameters = 0;
+    pHdrCapabilities->static_metadata_descriptor_id    = NV_STATIC_METADATA_TYPE_1;
+
+    pHdrCapabilities->display_data.desired_content_max_luminance               = 300;//1499;
+    pHdrCapabilities->display_data.desired_content_min_luminance               = 1;
+    pHdrCapabilities->display_data.desired_content_max_frame_average_luminance = 200;
+
+    pHdrCapabilities->display_data.displayPrimary_x0 = 0.659680f;
+    pHdrCapabilities->display_data.displayPrimary_y0 = 0.340344f;
+
+    pHdrCapabilities->display_data.displayPrimary_x1 = 0.244641f;
+    pHdrCapabilities->display_data.displayPrimary_y1 = 0.670422f;
+
+    pHdrCapabilities->display_data.displayPrimary_x2 = 0.130383f;
+    pHdrCapabilities->display_data.displayPrimary_y2 = 0.040539f;
+
+    pHdrCapabilities->display_data.displayWhitePoint_x = 0.313000f;
+    pHdrCapabilities->display_data.displayWhitePoint_y = 0.329602f;
+
+    pHDRCtl->devcaps.BitsPerColor          = 10;
+    pHDRCtl->devcaps.RedPrimary   [0]      = 0.659680f; pHDRCtl->devcaps.RedPrimary   [1] = 0.340344f;
+    pHDRCtl->devcaps.GreenPrimary [0]      = 0.244641f; pHDRCtl->devcaps.GreenPrimary [1] = 0.670422f;
+    pHDRCtl->devcaps.BluePrimary  [0]      = 0.130383f; pHDRCtl->devcaps.BluePrimary  [1] = 0.040539f;
+    pHDRCtl->devcaps.WhitePoint   [0]      = 0.313000f; pHDRCtl->devcaps.WhitePoint   [1] = 0.329602f;
+    pHDRCtl->devcaps.ColorSpace            = DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020;
+    pHDRCtl->devcaps.MinLuminance          =    1.000000f;
+    pHDRCtl->devcaps.MaxLuminance          = 300.0f;//1499.000000f;
+    pHDRCtl->devcaps.MaxFullFrameLuminance =  250.0f;//.000000f;
+
+    return NVAPI_OK;
+  }
+
+  if (ret == NVAPI_OK)
+  {
+  //pHDRCtl->devcaps.BitsPerColor          = 10;
+    pHDRCtl->devcaps.RedPrimary   [0]      = pHdrCapabilities->display_data.displayPrimary_x0;
+    pHDRCtl->devcaps.RedPrimary   [1]      = pHdrCapabilities->display_data.displayPrimary_y0;
+
+    pHDRCtl->devcaps.GreenPrimary [0]      = pHdrCapabilities->display_data.displayPrimary_x1;
+    pHDRCtl->devcaps.GreenPrimary [1]      = pHdrCapabilities->display_data.displayPrimary_y1;
+
+    pHDRCtl->devcaps.BluePrimary  [0]      = pHdrCapabilities->display_data.displayPrimary_x2;
+    pHDRCtl->devcaps.BluePrimary  [1]      = pHdrCapabilities->display_data.displayPrimary_y2;
+
+    pHDRCtl->devcaps.WhitePoint   [0]      = pHdrCapabilities->display_data.displayWhitePoint_x;
+    pHDRCtl->devcaps.WhitePoint   [1]      = pHdrCapabilities->display_data.displayWhitePoint_y;
+
+  //pHDRCtl->devcaps.ColorSpace            = DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020;
+    pHDRCtl->devcaps.MinLuminance          = (float)pHdrCapabilities->display_data.desired_content_min_luminance;
+    pHDRCtl->devcaps.MaxLuminance          = (float)pHdrCapabilities->display_data.desired_content_max_luminance;
+    pHDRCtl->devcaps.MaxFullFrameLuminance = (float)pHdrCapabilities->display_data.desired_content_max_frame_average_luminance;
+  }
+
+  return ret;
+}
+
+NvAPI_Status
+__cdecl
+NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
+                                      NV_HDR_COLOR_DATA *pHdrColorData )
+{
+  SK_LOG_FIRST_CALL
+
+  auto HDRModeToStr = [](NV_HDR_MODE mode) ->
+  const wchar_t*
+  {
+    switch (mode)
+    {
+      case NV_HDR_MODE_OFF:              return L"Off";
+      case NV_HDR_MODE_UHDA:             return L"HDR10";
+      case NV_HDR_MODE_EDR:              return L"Extended Dynamic Range";
+      case NV_HDR_MODE_SDR:              return L"Standard Dynamic Range";
+      case NV_HDR_MODE_UHDA_PASSTHROUGH: return L"HDR10 Passthrough";
+      default:                           return L"Invalid";
+    };
+  };
+
+  SK_LOG0 ( ( L"NV_HDR_COLOR_DATA Version: %lu", pHdrColorData->version ),
+              __SK_SUBSYSTEM__ );
+  SK_LOG0 ( ( L"HDR Mode:    %s", HDRModeToStr (pHdrColorData->hdrMode) ),
+              __SK_SUBSYSTEM__ );
+  SK_LOG0 ( ( L"HDR Command: %s", pHdrColorData->cmd == NV_HDR_CMD_GET ?
+                                                        L"Get" : L"Set" ),
+              __SK_SUBSYSTEM__ );
+
+  SK_DXGI_HDRControl* pHDRCtl =
+    SK_HDR_GetControl ();
+
+
+  if (config.render.dxgi.spoof_hdr && pHdrColorData->hdrMode != NV_HDR_MODE_OFF)
+  {
+    if (pHdrColorData->mastering_display_data.max_display_mastering_luminance == 0)
+      pHdrColorData->mastering_display_data.max_display_mastering_luminance = 1499;
+    if (pHdrColorData->mastering_display_data.min_display_mastering_luminance == 0)
+      pHdrColorData->mastering_display_data.min_display_mastering_luminance = 1;
+
+    //pHdrColorData->hdrMode = NV_HDR_MODE_UHDA_PASSTHROUGH;
+
+    if (pHdrColorData->cmd == NV_HDR_CMD_GET)
+    {
+      pHdrColorData->mastering_display_data.max_content_light_level         = pHDRCtl->meta.MaxContentLightLevel;
+      pHdrColorData->mastering_display_data.max_frame_average_light_level   = pHDRCtl->meta.MaxFrameAverageLightLevel;
+      pHdrColorData->mastering_display_data.min_display_mastering_luminance = pHDRCtl->meta.MinMasteringLuminance / 10000.0f;
+      pHdrColorData->mastering_display_data.max_display_mastering_luminance = pHDRCtl->meta.MaxMasteringLuminance / 10000.0f;
+    }
+
+    pHdrColorData->mastering_display_data.displayPrimary_x0 = 0.659680f;
+    pHdrColorData->mastering_display_data.displayPrimary_y0 = 0.340344f;
+
+    pHdrColorData->mastering_display_data.displayPrimary_x1 = 0.244641f;
+    pHdrColorData->mastering_display_data.displayPrimary_y1 = 0.670422f;
+
+    pHdrColorData->mastering_display_data.displayPrimary_x2 = 0.130383f;
+    pHdrColorData->mastering_display_data.displayPrimary_y2 = 0.040539f;
+
+    pHdrColorData->mastering_display_data.displayWhitePoint_x = 0.313000f;
+    pHdrColorData->mastering_display_data.displayWhitePoint_y = 0.329602f;
+
+    pHDRCtl->devcaps.BitsPerColor          = 10;
+    pHDRCtl->devcaps.RedPrimary   [0]      = 0.659680f; pHDRCtl->devcaps.RedPrimary   [1] = 0.340344f;
+    pHDRCtl->devcaps.GreenPrimary [0]      = 0.244641f; pHDRCtl->devcaps.GreenPrimary [1] = 0.670422f;
+    pHDRCtl->devcaps.BluePrimary  [0]      = 0.130383f; pHDRCtl->devcaps.BluePrimary  [1] = 0.040539f;
+    pHDRCtl->devcaps.WhitePoint   [0]      = 0.313000f; pHDRCtl->devcaps.WhitePoint   [1] = 0.329602f;
+    pHDRCtl->devcaps.ColorSpace            = DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020;
+    pHDRCtl->devcaps.MinLuminance          =    1.000000f;
+    pHDRCtl->devcaps.MaxLuminance          = 1499.000000f;
+    pHDRCtl->devcaps.MaxFullFrameLuminance =  799.000000f;
+
+    pHDRCtl->meta.MaxContentLightLevel      = pHdrColorData->mastering_display_data.max_content_light_level;
+    pHDRCtl->meta.MaxFrameAverageLightLevel = pHdrColorData->mastering_display_data.max_frame_average_light_level;
+    pHDRCtl->meta.MinMasteringLuminance     = pHdrColorData->mastering_display_data.min_display_mastering_luminance * 10000.0f;
+    pHDRCtl->meta.MaxMasteringLuminance     = pHdrColorData->mastering_display_data.max_display_mastering_luminance * 10000.0f;
+
+
+    if (pHdrColorData->cmd == NV_HDR_CMD_SET)
+      pHDRCtl->meta._AdjustmentCount++;
+
+    return NVAPI_OK;
+  }
+
+
+  if (pHdrColorData->cmd == NV_HDR_CMD_SET)
+  {
+    if (! pHDRCtl->overrides.MaxContentLightLevel)
+      pHDRCtl->meta.MaxContentLightLevel                            = pHdrColorData->mastering_display_data.max_content_light_level;
+    else
+      pHdrColorData->mastering_display_data.max_content_light_level = pHDRCtl->meta.MaxContentLightLevel;
+
+    if (! pHDRCtl->overrides.MaxFrameAverageLightLevel)
+      pHDRCtl->meta.MaxFrameAverageLightLevel                             = pHdrColorData->mastering_display_data.max_frame_average_light_level;
+    else
+      pHdrColorData->mastering_display_data.max_frame_average_light_level = pHDRCtl->meta.MaxFrameAverageLightLevel;
+
+
+    if (! pHDRCtl->overrides.MinMaster)
+      pHDRCtl->meta.MinMasteringLuminance = pHdrColorData->mastering_display_data.min_display_mastering_luminance;
+    else
+      pHdrColorData->mastering_display_data.min_display_mastering_luminance = pHDRCtl->meta.MinMasteringLuminance;
+
+    if (! pHDRCtl->overrides.MaxMaster)
+      pHDRCtl->meta.MaxMasteringLuminance = pHdrColorData->mastering_display_data.max_display_mastering_luminance;
+    else
+      pHdrColorData->mastering_display_data.max_display_mastering_luminance = pHDRCtl->meta.MaxMasteringLuminance;
+  }
+
+
+  if (pHdrColorData->cmd == NV_HDR_CMD_GET)
+  {
+    if ((! pHDRCtl->overrides.MaxContentLightLevel) && (! config.render.dxgi.spoof_hdr))
+      pHDRCtl->meta.MaxContentLightLevel                            = pHdrColorData->mastering_display_data.max_content_light_level;
+    else
+      pHdrColorData->mastering_display_data.max_content_light_level = pHDRCtl->meta.MaxContentLightLevel;
+
+    if ((! pHDRCtl->overrides.MaxFrameAverageLightLevel) && (! config.render.dxgi.spoof_hdr))
+      pHDRCtl->meta.MaxFrameAverageLightLevel                             = pHdrColorData->mastering_display_data.max_frame_average_light_level;
+    else
+      pHdrColorData->mastering_display_data.max_frame_average_light_level = pHDRCtl->meta.MaxFrameAverageLightLevel;
+
+
+    if ((! pHDRCtl->overrides.MinMaster) && (! config.render.dxgi.spoof_hdr))
+      pHDRCtl->meta.MinMasteringLuminance = pHdrColorData->mastering_display_data.min_display_mastering_luminance;
+    else
+      pHdrColorData->mastering_display_data.min_display_mastering_luminance = pHDRCtl->meta.MinMasteringLuminance;
+
+    if ((! pHDRCtl->overrides.MaxMaster) && (! config.render.dxgi.spoof_hdr))
+      pHDRCtl->meta.MaxMasteringLuminance = pHdrColorData->mastering_display_data.max_display_mastering_luminance;
+    else
+      pHdrColorData->mastering_display_data.max_display_mastering_luminance = pHDRCtl->meta.MaxMasteringLuminance;
+  }
+
+
+  pHDRCtl->meta._AdjustmentCount++;
+
+  if (config.render.dxgi.spoof_hdr)
+  {
+    pHdrColorData->static_metadata_descriptor_id = NV_STATIC_METADATA_TYPE_1;
+    return NVAPI_OK;
+  }
+
+  NvAPI_Status ret =
+    NvAPI_Disp_HdrColorControl_Original ( displayId, pHdrColorData );
+
+  return ret;
+}
+
+
+using NvAPI_QueryInterface_pfn = void* (*)(unsigned int ordinal);
+      NvAPI_QueryInterface_pfn
+      NvAPI_QueryInterface_Original = nullptr;
+
+#include <concurrent_unordered_set.h>
+
+void*
+NvAPI_QueryInterface_Detour (unsigned int ordinal)
+{
+  static Concurrency::concurrent_unordered_set <unsigned int> logged_ordinals;
+
+  if (logged_ordinals.count (ordinal) == 0)
+  {
+    logged_ordinals.insert (ordinal);
+
+    dll_log.Log (L"NvAPI Ordinal: %lu  --  %s", ordinal, SK_SummarizeCaller ().c_str ());
+  }
+
+  return NvAPI_QueryInterface_Original (ordinal);
+}
+
+
 BOOL bLibShutdown = FALSE;
 BOOL bLibInit     = FALSE;
 
@@ -367,6 +663,41 @@ NVAPI::UnloadLibrary (void)
   }
 
   return bLibShutdown;
+}
+
+void
+SK_NvAPI_PreInitHDR (void)
+{
+  if (NvAPI_Disp_HdrColorControl_Original == nullptr)
+  {
+#ifdef _WIN64
+    HMODULE hLib = LoadLibraryW (L"nvapi64.dll");
+    GetModuleHandleEx (GET_MODULE_HANDLE_EX_FLAG_PIN, L"nvapi64.dll", &hLib);
+#else
+    HMODULE hLib = LoadLibraryW (L"nvapi.dll");
+    GetModuleHandleEx (GET_MODULE_HANDLE_EX_FLAG_PIN, L"nvapi.dll",   &hLib);
+#endif
+
+    static auto NvAPI_QueryInterface =
+      reinterpret_cast <NvAPI_QueryInterface_pfn> (
+        GetProcAddress (hLib, "nvapi_QueryInterface")
+      );
+
+    SK_CreateFuncHook ( L"NvAPI_Disp_HdrColorControl", 
+                          NvAPI_QueryInterface (891134500),
+                          NvAPI_Disp_HdrColorControl_Override,
+ static_cast_p2p <void> (&NvAPI_Disp_HdrColorControl_Original) );
+  
+    SK_CreateFuncHook ( L"NvAPI_Disp_GetHdrCapabilities", 
+                          NvAPI_QueryInterface (2230495455),
+                          NvAPI_Disp_GetHdrCapabilities_Override,
+ static_cast_p2p <void> (&NvAPI_Disp_GetHdrCapabilities_Original) );
+ 
+    MH_QueueEnableHook (NvAPI_QueryInterface (891134500));
+    MH_QueueEnableHook (NvAPI_QueryInterface (2230495455));
+
+    SK_ApplyQueuedHooks ();
+  }
 }
 
 BOOL
@@ -424,8 +755,6 @@ NVAPI::InitializeLibrary (const wchar_t* wszAppName)
 
     if (hLib != nullptr)
     {
-      using NvAPI_QueryInterface_pfn = void* (*)(unsigned int ordinal);
-
       static auto NvAPI_QueryInterface =
         reinterpret_cast <NvAPI_QueryInterface_pfn> (
           GetProcAddress (hLib, "nvapi_QueryInterface")
@@ -466,6 +795,30 @@ NVAPI::InitializeLibrary (const wchar_t* wszAppName)
         dll_log.LogEx (false, L"missing NvAPI_GetGPUIDFromPhysicalGPU ");
         nv_hardware = false;
       }
+
+
+      if (NvAPI_Disp_HdrColorControl_Original == nullptr)
+      {
+        SK_CreateFuncHook ( L"NvAPI_Disp_HdrColorControl", 
+                              NvAPI_QueryInterface (891134500),
+                              NvAPI_Disp_HdrColorControl_Override,
+     static_cast_p2p <void> (&NvAPI_Disp_HdrColorControl_Original) );
+  
+        SK_CreateFuncHook ( L"NvAPI_Disp_GetHdrCapabilities", 
+                              NvAPI_QueryInterface (2230495455),
+                              NvAPI_Disp_GetHdrCapabilities_Override,
+     static_cast_p2p <void> (&NvAPI_Disp_GetHdrCapabilities_Original) );
+  
+        MH_QueueEnableHook (NvAPI_QueryInterface (891134500));
+        MH_QueueEnableHook (NvAPI_QueryInterface (2230495455));
+      }
+
+  //    SK_CreateDLLHook2 ( L"nvapi64.dll",
+  //                         "nvapi_QueryInterface",
+  //                          NvAPI_QueryInterface_Detour,
+  // static_cast_p2p <void> (&NvAPI_QueryInterface_Original) );
+
+      SK_ApplyQueuedHooks ();
     }
 
     else {

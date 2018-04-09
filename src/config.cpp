@@ -230,6 +230,11 @@ struct {
   struct {
     sk::ParameterBool*    disable;
   } api;
+
+  struct
+  {
+    sk::ParameterBool*    fix_10bit_gsync;
+  } bugs;
 } nvidia;
 
 struct {
@@ -293,6 +298,7 @@ struct {
     sk::ParameterBool*    deferred_isolation;
     sk::ParameterInt*     msaa_samples;
     sk::ParameterBool*    skip_present_test;
+    sk::ParameterBool*    spoof_hdr; // Not very practical; debug only
   } dxgi;
   struct {
     sk::ParameterBool*    force_d3d9ex;
@@ -864,6 +870,10 @@ SK_LoadConfigEx (std::wstring name, bool create)
     ConfigEntry (nvidia.sli.mode,                        L"SLI Mode",                                                  dll_ini,         L"NVIDIA.SLI",            L"Mode"),
     ConfigEntry (nvidia.sli.override,                    L"Override Driver Defaults",                                  dll_ini,         L"NVIDIA.SLI",            L"Override"),
 
+    // Never had much luck getting NVIDIA to fix any bug or even acknowledge they received a bug report, so... they get their own INI section!
+    ConfigEntry (nvidia.bugs.fix_10bit_gsync,            L"Fix red/green contouring artifacts in games that use 10-bit"
+                                                         L"color.",                                                    dll_ini,         L"NVIDIA.Bugs",           L"Fix10BitGSync"),
+
     ConfigEntry (amd.adl.disable,                        L"Disable AMD's ADL library",                                 dll_ini,         L"AMD.ADL",               L"Disable"),
 
     ConfigEntry (imgui.show_eula,                        L"Show Software EULA",                                        dll_ini,         L"SpecialK.System",       L"ShowEULA"),
@@ -1209,6 +1219,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
   games.emplace ( L"DBFighterZ.exe",                         SK_GAME_ID::DragonBallFighterZ           );
   games.emplace ( L"Nino2.exe",                              SK_GAME_ID::NiNoKuni2                    );
   games.emplace ( L"FarCry5.exe",                            SK_GAME_ID::FarCry5                      );
+  games.emplace ( L"Chrono Trigger.exe",                     SK_GAME_ID::ChronoTrigger                );
 
   //
   // Application Compatibility Overrides
@@ -1567,6 +1578,10 @@ SK_LoadConfigEx (std::wstring name, bool create)
         // Game shares buggy XInput code with Watch_Dogs2
         config.input.gamepad.xinput.placehold [0] = true;
         break;
+
+      case SK_GAME_ID::ChronoTrigger:
+        config.cegui.enable = false;
+        break;
     }
   }
 
@@ -1693,6 +1708,8 @@ SK_LoadConfigEx (std::wstring name, bool create)
   nvidia.sli.mode->load                     (config.nvidia.sli.mode);
   nvidia.sli.num_gpus->load                 (config.nvidia.sli.num_gpus);
   nvidia.sli.override->load                 (config.nvidia.sli.override);
+
+  nvidia.bugs.fix_10bit_gsync->load         (config.nvidia.bugs.fix_10bit_gsync);
 
   render.framerate.wait_for_vblank->load    (config.render.framerate.wait_for_vblank);
   render.framerate.buffer_count->load       (config.render.framerate.buffer_count);
@@ -2642,6 +2659,8 @@ SK_SaveConfig ( std::wstring name,
     nvidia.sli.mode->store                    (config.nvidia.sli.mode);
     nvidia.sli.num_gpus->store                (config.nvidia.sli.num_gpus);
     nvidia.sli.override->store                (config.nvidia.sli.override);
+
+    nvidia.bugs.fix_10bit_gsync->store        (config.nvidia.bugs.fix_10bit_gsync);
 
     if (  SK_IsInjected ()                       ||
         ( SK_GetDLLRole () & DLL_ROLE::DInput8 ) ||

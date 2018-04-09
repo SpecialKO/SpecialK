@@ -1,3 +1,16 @@
+0.9.14:
+
+ (.1): Added option to fix red/green color banding if G-Sync is used with a
+         10-bit framebuffer
+
+ + Added D3DCompiler_43.dll, D3DX11_43.dll and D3DX9_43.dll as compressed .7z
+     archives that will be unpacked to a game's directory if a user does not
+       have the June 2010 DirectX Redistributables installed.
+
+   >> In theory I could now start using D3DCompiler_47.dll, but I'll stick
+        with _43 until I need the more advanced features for shader modding.
+
+
 0.9.13:
 
  (.3): Added disk read/write info to thread tooltip

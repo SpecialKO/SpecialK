@@ -552,8 +552,8 @@ SK_Decompress7zEx ( const wchar_t*            wszArchive,
 
     wchar_t wszDestPath [MAX_PATH] = { };
 
-    wcscpy   (wszDestPath, wszDestination);
-    lstrcatW (wszDestPath, files [i].name.c_str ());
+    wcscpy      (wszDestPath, wszDestination);
+    PathAppendW (wszDestPath, files [i].name.c_str ());
 
     SK_CreateDirectories (wszDestPath);
 
