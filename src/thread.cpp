@@ -19,10 +19,16 @@
  *
 **/
 
+#define __SK_SUBSYSTEM__ L"ThreadUtil"
+
 #include <SpecialK/log.h>
 #include <SpecialK/tls.h>
 #include <SpecialK/thread.h>
 #include <SpecialK/utility.h>
+
+#include <SpecialK/ini.h>
+#include <SpecialK/hooks.h>
+#include <SpecialK/config.h>
 
 #include <SpecialK/diagnostics/debug_utils.h>
 
@@ -39,6 +45,11 @@
 ///////////////////////////////////////////////////////////////////////////
 HRESULT WINAPI SetThreadDescription_NOP (HANDLE, PCWSTR) { return E_NOTIMPL; }
 HRESULT WINAPI GetThreadDescription_NOP (HANDLE, PWSTR*) { return E_NOTIMPL; }
+
+
+typedef HRESULT (WINAPI *SetThreadDescription_pfn)(HANDLE, PCWSTR);
+                         SetThreadDescription_pfn
+                         SetThreadDescription_Original = nullptr;
 
 const DWORD MAGIC_THREAD_EXCEPTION = 0x406D1388;
 

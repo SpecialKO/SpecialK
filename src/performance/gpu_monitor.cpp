@@ -116,28 +116,6 @@ SK_GPUPollingThread (LPVOID user)
     else if (dwWait != WAIT_OBJECT_0)
       break;
 
-
-    //CHandle hSwapChainThread (
-    //  OpenThread ( THREAD_ALL_ACCESS,
-    //                 FALSE,
-    //                   ReadAcquire (&SK_GetCurrentRenderBackend ().thread)
-    //             )
-    //);
-    //
-    //if ( hSwapChainThread.m_h != 0 )
-    //{
-    //  if ( SK_Thread_GetCurrentPriority () != 
-    //       GetThreadPriority (hSwapChainThread) )
-    //  {
-    //    SK_LOG0 ( ( "Matching priority between GPU perf. data collection and swapchain threads (new prio=%i)",
-    //                  GetThreadPriority (hSwapChainThread) ),
-    //              L" GPU Mon. " );
-    //
-    //    SK_Thread_SetCurrentPriority (GetThreadPriority (hSwapChainThread));
-    //  }
-    //}
-
-
     if (InterlockedCompareExchange (&current_gpu_stat, TRUE, FALSE))
         InterlockedCompareExchange (&current_gpu_stat, FALSE, TRUE);
 
@@ -239,6 +217,7 @@ SK_GPUPollingThread (LPVOID user)
 
         else has_thermal = false;
 
+
         NvU32 pcie_lanes = 0;
         if (            NvAPI_GPU_GetCurrentPCIEDownstreamWidth != nullptr &&
             NVAPI_OK == NvAPI_GPU_GetCurrentPCIEDownstreamWidth (gpu, &pcie_lanes))
@@ -297,6 +276,7 @@ SK_GPUPollingThread (LPVOID user)
           stats.gpus [i].memory_B.nonlocal =
             stats.gpus [i].memory_B.total - stats.gpus [i].memory_B.local;
         }
+
 
         SwitchToThreadMinPageFaults ();
 

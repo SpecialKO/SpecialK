@@ -1901,18 +1901,18 @@ void SK_Input_PreInit (void)
                               GetRawInputData_Detour,
      static_cast_p2p <void> (&GetRawInputData_Original) );
 
-  SK_CreateDLLHook2 (       L"user32.dll",
-                             "GetAsyncKeyState",
+  SK_CreateDLLHook2 (       L"win32u.dll",
+                             "NtUserGetAsyncKeyState",
                               GetAsyncKeyState_Detour,
      static_cast_p2p <void> (&GetAsyncKeyState_Original) );
 
-  SK_CreateDLLHook2 (       L"user32.dll",
-                             "GetKeyState",
+  SK_CreateDLLHook2 (       L"win32u.dll",
+                             "NtUserGetKeyState",
                               GetKeyState_Detour,
      static_cast_p2p <void> (&GetKeyState_Original) );
 
-  SK_CreateDLLHook2 (       L"user32.dll",
-                             "GetKeyboardState",
+  SK_CreateDLLHook2 (       L"win32u.dll",
+                             "NtUserGetKeyboardState",
                               GetKeyboardState_Detour,
      static_cast_p2p <void> (&GetKeyboardState_Original) );
 
@@ -1931,8 +1931,8 @@ void SK_Input_PreInit (void)
                               GetMouseMovePointsEx_Detour,
      static_cast_p2p <void> (&GetMouseMovePointsEx_Original) );
 
-  SK_CreateDLLHook2 (       L"user32.dll",
-                             "SetCursor",
+  SK_CreateDLLHook2 (       L"win32u.dll",
+                             "NtUserSetCursor",
                               SetCursor_Detour,
      static_cast_p2p <void> (&SetCursor_Original) );
 
@@ -1956,13 +1956,13 @@ void SK_Input_PreInit (void)
                               keybd_event_Detour,
      static_cast_p2p <void> (&keybd_event_Original) );
 
-  SK_CreateDLLHook2 (       L"user32.dll",
-                             "RegisterRawInputDevices",
+  SK_CreateDLLHook2 (       L"win32u.dll",
+                             "NtUserRegisterRawInputDevices",
                               RegisterRawInputDevices_Detour,
      static_cast_p2p <void> (&RegisterRawInputDevices_Original) );
 
-  SK_CreateDLLHook2 (       L"user32.dll",
-                             "GetRegisteredRawInputDevices",
+  SK_CreateDLLHook2 (       L"win32u.dll",
+                             "NtUserGetRegisteredRawInputDevices",
                               GetRegisteredRawInputDevices_Detour,
      static_cast_p2p <void> (&GetRegisteredRawInputDevices_Original) );
 

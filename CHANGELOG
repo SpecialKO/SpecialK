@@ -1,3 +1,9 @@
+0.9.15:
+
+ ** Substantial performance and stability gains by switching critical system call
+     hooks from User32.dll to their NtUser* counterparts in win32u.dll **
+
+
 0.9.14:
 
  (.1): Added option to fix red/green color banding if G-Sync is used with a

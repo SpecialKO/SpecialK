@@ -359,7 +359,6 @@ volatile LONG lLastThreadCreate = 0;
 
 extern concurrency::concurrent_unordered_set <HMODULE>              dbghelp_callers;
 extern concurrency::concurrent_unordered_map <DWORD, std::wstring> _SK_ThreadNames;
-#include <concurrent_unordered_set.h>
 extern concurrency::concurrent_unordered_set <DWORD>               _SK_SelfTitledThreads;
 
 extern "C"
@@ -597,8 +596,8 @@ DebugBreak_Detour (void)
 
 #include <SpecialK/parameter.h>
 
-using RaiseException_pfn = void (WINAPI *)(DWORD,DWORD,DWORD,const ULONG_PTR *);
-RaiseException_pfn RaiseException_Original = nullptr;
+using RtlRaiseException_pfn = void (WINAPI *)(_In_ PEXCEPTION_RECORD ExceptionRecord);
+RtlRaiseException_pfn RtlRaiseException_Original = nullptr;
 
 #include <unordered_set>
 
@@ -619,13 +618,15 @@ struct SK_FFXV_Thread
 // Detoured so we can get thread names
 __declspec (noinline)
 void
-WINAPI
-RaiseException_Detour (
-  _In_       DWORD      dwExceptionCode,
-  _In_       DWORD      dwExceptionFlags,
-  _In_       DWORD      nNumberOfArguments,
-  _In_ const ULONG_PTR *lpArguments )
+NTAPI
+RtlRaiseException_Detour (
+  _In_       PEXCEPTION_RECORD ExceptionRecord )
 {
+        DWORD      dwExceptionCode    = ExceptionRecord->ExceptionCode;
+      //DWORD      dwExceptionFlags   = ExceptionRecord->ExceptionFlags;
+      //DWORD      nNumberOfArguments = ExceptionRecord->NumberParameters;
+  const ULONG_PTR *lpArguments        = ExceptionRecord->ExceptionInformation;
+
   constexpr static DWORD MAGIC_THREAD_EXCEPTION = 0x406D1388;
 
   if (dwExceptionCode == MAGIC_THREAD_EXCEPTION)
@@ -693,8 +694,7 @@ RaiseException_Detour (
   }
 
   return
-    RaiseException_Original ( dwExceptionCode, dwExceptionFlags,
-                              nNumberOfArguments, lpArguments );
+    RtlRaiseException_Original ( ExceptionRecord );
 }
 
 
@@ -754,10 +754,10 @@ static_cast_p2p <void> (&GetCommandLineA_Original) );
                               ResetEvent_Detour,
      static_cast_p2p <void> (&ResetEvent_Original) );
 
-    SK_CreateDLLHook2 (      L"kernel32.dll",
-                             "RaiseException",
-                              RaiseException_Detour,
-     static_cast_p2p <void> (&RaiseException_Original) );
+    SK_CreateDLLHook2 (      L"NtDll.dll",
+                             "RtlRaiseException",
+                              RtlRaiseException_Detour,
+     static_cast_p2p <void> (&RtlRaiseException_Original) );
 
     SK_CreateDLLHook2 (      L"NtDll.dll",
                              "NtCreateThreadEx",

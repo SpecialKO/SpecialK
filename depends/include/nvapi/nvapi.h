@@ -4483,7 +4483,7 @@ NVAPI_INTERFACE NvAPI_SetDisplayPort(NvDisplayHandle hNvDisplay, NvU32 outputId,
 
 
 //! \ingroup dispcontrol
-//! Used in NvAPI_GetHDMISupportInfo().
+//! Used in NvAPI_GetHDMISupportInfoRes
 typedef struct _NV_HDMI_SUPPORT_INFO_V1
 {
     NvU32      version;                     //!< Structure version

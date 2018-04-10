@@ -1083,10 +1083,9 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   QueryPerformanceCounter_Original =
     reinterpret_cast <QueryPerformanceCounter_pfn> (
       GetProcAddress (
-        GetModuleHandle ( L"kernel32.dll"),
-                            "QueryPerformanceCounter" )
+        GetModuleHandle ( L"NtDll.dll"),
+                            "RtlQueryPerformanceCounter" )
     );
-
 
   __SK_BootedCore = backend;
 
@@ -1095,6 +1094,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   //    to initialize SteamAPI first.
   SK_Steam_GetAppID_NoAPI      ();
 
+  SK_MinHook_Init              ();
   SK_Thread_InitDebugExtras    ();
 //SK_COMPAT_FixNahimicDeadlock (); // Use load-time link dependencies to resolve race conditions
 //                                 //   involving WASAPI and MMDevAPI in MSI Nahimic.
@@ -1222,7 +1222,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     void
     SK_NvAPI_PreInitHDR (void);
 
-    SK_MinHook_Init        ();
     SK_NvAPI_PreInitHDR    ();
     SK_WMI_Init            ();
     SK_InitCompatBlacklist ();
