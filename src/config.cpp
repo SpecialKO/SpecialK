@@ -1580,7 +1580,6 @@ SK_LoadConfigEx (std::wstring name, bool create)
         break;
 
       case SK_GAME_ID::ChronoTrigger:
-        config.cegui.enable = false;
         break;
     }
   }
@@ -3354,10 +3353,18 @@ SK_AppCache_Manager::getConfigPathForAppID (uint32_t uiAppID) const
                      name.end ()
                );
 
+    for (auto it = name.rbegin (); it != name.rend (); it++)
+    {
+      if (*it == L' ') *it = L'\0';
+      else                   break;
+    }
+
     // Truncating a std::wstring by inserting L'\0' actually does nothing,
     //   so construct path by treating name as a C-String.
-    path += name.c_str ();
-    path += L"\\";
+    path =
+      SK_FormatStringW ( LR"(%s\%s\)",
+                           path.c_str (),
+                             name.c_str () );
 
     SK_StripTrailingSlashesW (path.data ());
 
@@ -3376,9 +3383,12 @@ SK_AppCache_Manager::getConfigPathForAppID (uint32_t uiAppID) const
                          const wchar_t* wszDestDir,
                                bool     replace );
 
-      DeleteFileW (dll_ini->get_filename ());
-            delete dll_ini;
-                   dll_ini = nullptr;
+      if (dll_ini != nullptr)
+      {
+        DeleteFileW (dll_ini->get_filename ());
+              delete dll_ini;
+                     dll_ini = nullptr;
+      }
 
       SK_RecursiveMove (original_dir.c_str (), path.c_str (), false);
 

@@ -759,9 +759,32 @@ ResetCEGUI_D3D9 (IDirect3DDevice9* pDev)
 
     if (config.cegui.enable && GetModuleHandle (L"CEGUIDirect3D9Renderer-0.dll"))
     {
-      cegD3D9 = dynamic_cast <CEGUI::Direct3D9Renderer *> (
-        &CEGUI::Direct3D9Renderer::bootstrapSystem (pDev)
-      );
+      const char *locale_orig =
+        _strdup (setlocale (LC_ALL, NULL));
+
+      try {
+        cegD3D9 = dynamic_cast <CEGUI::Direct3D9Renderer *> (
+          &CEGUI::Direct3D9Renderer::bootstrapSystem (pDev)
+        );
+      }
+
+      catch (CEGUI::GenericException& e)
+      {
+        SK_LOG0 ( (L"CEGUI Exception During D3D9 Bootstrap"),
+                   L"   CEGUI  "  );
+        SK_LOG0 ( (L" >> %hs (%hs:%lu): Exception %hs -- %hs",
+                    e.getFunctionName    ().c_str (),
+                    e.getFileName        ().c_str (),
+                    e.getLine            (),
+                            e.getName    ().c_str (),
+                            e.getMessage ().c_str () ),
+                   L"   CEGUI  "  );
+
+        config.cegui.enable = false;
+      }
+
+      setlocale (LC_ALL, locale_orig);
+      free      ((void *)locale_orig);
 
       SK_CEGUI_RelocateLog ();
       SK_CEGUI_InitBase    ();
@@ -3599,6 +3622,8 @@ SK_D3D9_HookDeviceAndSwapchain (
    IDirect3DDevice9    *pDevice_,
    IDirect3DSwapChain9 *pSwapChain )
 {
+  if (pDevice_ == nullptr) return 0;
+
   UNREFERENCED_PARAMETER (pSwapChain);
 
   int num_hooked = 0;
@@ -4353,11 +4378,14 @@ D3D9CreateDeviceEx_Override ( IDirect3D9Ex           *This,
   // Ignore video swapchains
   if (pPresentationParameters->Flags & D3DPRESENTFLAG_VIDEO)
   {
-    SK_LOG0 ( (L" %% Ignoring D3D9Ex device created using a video-only "
-               L"SwapChain (%08" PRIxPTR L"h)", (uintptr_t)This),
-               L"  D3D9Ex  ");
-    *ppReturnedDeviceInterface = pTemp;
-    return ret;
+    if (!StrStrIW (SK_GetHostApp ( ), L"vlc.exe"))
+    {
+      SK_LOG0 ( (L" %% Ignoring D3D9Ex device created using a video-only "
+                 L"SwapChain (%08" PRIxPTR L"h)", (uintptr_t)This),
+                 L"  D3D9Ex  ");
+      *ppReturnedDeviceInterface = pTemp;
+      return ret;
+    }
   }
 
 
@@ -4468,10 +4496,13 @@ D3D9CreateDevice_Override ( IDirect3D9*            This,
   // Ignore video swapchains
   if (pPresentationParameters->Flags & D3DPRESENTFLAG_VIDEO)
   {
-    SK_LOG0 ( (L" %% Ignoring D3D9 device created using a video-only "
-               L"SwapChain (%08" PRIxPTR L")", (uintptr_t)This),
-               L"   D3D9   ");
-    return ret;
+    if (! StrStrIW (SK_GetHostApp (), L"vlc.exe"))
+    {
+      SK_LOG0 ( (L" %% Ignoring D3D9 device created using a video-only "
+                 L"SwapChain (%08" PRIxPTR L")", (uintptr_t)This),
+                 L"   D3D9   ");
+      return ret;
+    }
   }
 
   // Do not attempt to do vftable override stuff if this failed,

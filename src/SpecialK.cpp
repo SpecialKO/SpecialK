@@ -130,6 +130,23 @@ SK_EstablishDllRole (skWin32Module&& module);
 
 
 
+typedef HHOOK (NTAPI *NtUserSetWindowsHookEx_pfn)(
+          HINSTANCE hMod,
+     const wchar_t* UnsafeModuleName,
+              DWORD ThreadId,
+                int HookId,
+           HOOKPROC HookProc,
+               BOOL Ansi );
+
+typedef LRESULT (NTAPI *NtUserCallNextHookEx_pfn)(
+ _In_opt_ HHOOK  hhk,
+ _In_     int    nCode,
+ _In_     WPARAM wParam,
+ _In_     LPARAM lParam
+);
+
+extern NtUserCallNextHookEx_pfn NtUserCallNextHookEx;
+
 //=========================================================================
 BOOL
 APIENTRY
@@ -149,6 +166,12 @@ DllMain ( HMODULE hModule,
 
       else
         return FALSE;
+
+
+    NtUserCallNextHookEx =
+      (NtUserCallNextHookEx_pfn)GetProcAddress (
+        LoadLibraryW (L"Win32u.dll"), "NtUserCallNextHookEx"
+      );
 
 
       auto EarlyOut =
@@ -334,7 +357,7 @@ SK_LoadLocalModule (const wchar_t* wszModule)
 // If this is the global injector and there is a wrapper version
 //   of Special K in the DLL search path, then bail-out!
 BOOL
-SK_TryLocalWrapperFirst (const std::set <std::wstring> dlls)
+SK_TryLocalWrapperFirst (const std::set <std::wstring>& dlls)
 {
   for ( const auto& dll : dlls )
   {

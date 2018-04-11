@@ -513,8 +513,8 @@ DI8_GetDeviceState_Override      = IDirectInputDevice8_GetDeviceState_Detour PRI
 XInputGetState9_1_0_Override     = XInputGetState9_1_0_Detour                PRIVATE
 XInputGetState1_3_Override       = XInputGetState1_3_Detour                  PRIVATE
 XInputGetState1_4_Override       = XInputGetState1_4_Detour                  PRIVATE
-RegisterRawInputDevices_Override = RegisterRawInputDevices_Detour            PRIVATE
-GetRawInputData_Override         = GetRawInputData_Detour                    PRIVATE
+RegisterRawInputDevices_Override = NtUserRegisterRawInputDevices_Detour      PRIVATE
+GetRawInputData_Override         = NtUserGetRawInputData_Detour              PRIVATE
 HidP_GetData_Override            = HidP_GetData_Detour                       PRIVATE
 
 SK_Input_GetDI8Keyboard          = SK_Input_GetDI8Keyboard
@@ -547,7 +547,7 @@ SK_GetFramesDrawn                = SK_GetFramesDrawn
 SK_DetourWindowProc              = SK_DetourWindowProc               PRIVATE
 SK_DetourWindowProc2             = SK_DetourWindowProc2              PRIVATE
 SK_GetCursorPos                  = GetCursorPos_Detour               PRIVATE
-SK_GetCursorInfo                 = GetCursorInfo_Detour              PRIVATE
+SK_GetCursorInfo                 = NtUserGetCursorInfo_Detour        PRIVATE
 SK_GetGameWindow                 = SK_GetGameWindow
 SK_PluginKeyPress                = SK_PluginKeyPress
 SK_PlugIn_ControlPanelWidget     = SK_PlugIn_ControlPanelWidget      PRIVATE
@@ -574,8 +574,8 @@ SK_GetFileHash_32                = SK_File_GetHash_32
                                  
 QueryPerformanceCounter_Detour   = QueryPerformanceCounter_Detour    PRIVATE
 Sleep_Detour                     = Sleep_Detour                      PRIVATE
-GetAsyncKeyState_Detour          = GetAsyncKeyState_Detour           PRIVATE
-GetRawInputData_Detour           = GetRawInputData_Detour            PRIVATE
+GetAsyncKeyState_Detour          = NtUserGetAsyncKeyState_Detour     PRIVATE
+GetRawInputData_Detour           = NtUserGetRawInputData_Detour      PRIVATE
                                  
 SK_NvAPI_IsInit                  = SK_NvAPI_IsInit
 SK_NvAPI_SetAntiAliasingOverride = SK_NvAPI_SetAntiAliasingOverride

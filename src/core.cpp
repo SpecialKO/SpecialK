@@ -765,7 +765,7 @@ SK_InitFinishCallback (void)
     SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_LOWEST );
     SetThreadPriorityBoost      ( SK_GetCurrentThread (), TRUE                   );
 
-    SleepEx (5, FALSE);
+    SleepEx (15, FALSE);
 
     SK_LoadGPUVendorAPIs ();
 
@@ -1304,6 +1304,8 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     SK_SaveConfig (config_name);
     dll_log.LogEx (false, L"done!\n");
   }
+
+//config.compatibility.rehook_loadlibrary = true;
 
   if (config.system.display_debug_out)
     SK::Diagnostics::Debugger::SpawnConsole ();

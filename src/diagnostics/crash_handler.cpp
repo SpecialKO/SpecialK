@@ -84,10 +84,10 @@ GetModuleInformation
 void
 SK_SymSetOpts (void)
 {
-  SymSetOptions ( SYMOPT_CASE_INSENSITIVE     | SYMOPT_LOAD_LINES         |
-                  SYMOPT_NO_PROMPTS           | SYMOPT_UNDNAME            |
-                  SYMOPT_OMAP_FIND_NEAREST    | SYMOPT_ALLOW_ZERO_ADDRESS |
-                  SYMOPT_DEFERRED_LOADS );
+  SymSetOptions ( SYMOPT_CASE_INSENSITIVE  | SYMOPT_LOAD_LINES        |
+                  SYMOPT_NO_PROMPTS        | SYMOPT_UNDNAME           |
+                  SYMOPT_DEFERRED_LOADS    | SYMOPT_FAVOR_COMPRESSED  |
+                  SYMOPT_FAIL_CRITICAL_ERRORS );
 }
 
 
@@ -789,14 +789,14 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
       lstrcatW (wszOutDir, L"crash\\");
 
              time_t now = { };
-      struct tm*    now_tm;
+      struct tm     now_tm;
 
-                    time (&now);
-      now_tm = localtime (&now);
+                      time (&now);
+      localtime_s (&now_tm, &now);
 
       const wchar_t* wszTimestamp = L"%m-%d-%Y__%H'%M'%S\\";
 
-      wcsftime (wszTime, MAX_PATH, wszTimestamp, now_tm);
+      wcsftime (wszTime, MAX_PATH, wszTimestamp, &now_tm);
       lstrcatW (wszOutDir, wszTime);
 
       wchar_t wszOrigPath [MAX_PATH * 2 + 1] = { };
@@ -1143,6 +1143,8 @@ CrashHandler::InitSyms (void)
       if (! config.steam.silent)
         SK_BypassSteamCrashHandler ();
     }
+
+    SymCleanup (SK_GetCurrentProcess ());
 
     SymInitialize (
       SK_GetCurrentProcess (),

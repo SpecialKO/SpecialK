@@ -1,5 +1,8 @@
 0.9.15:
 
+ (.1): Fix for Chrono Trigger + CEGUI
+ (.1): Fix global injection profile creation for games with : in their name
+
  ** Substantial performance and stability gains by switching critical system call
      hooks from User32.dll to their NtUser* counterparts in win32u.dll **
 
@@ -19,7 +22,7 @@
 
 0.9.13:
 
- (.3): Added disk read/write info to thread tooltip
+ (.3): Added disk read/write info to thread tfooltip
  (.2): Added memory info to thread tooltip
  (.1): Assigned names to unnamed threads using debug symbols
 

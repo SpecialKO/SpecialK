@@ -751,20 +751,20 @@ HMODULE
 SK_GetCallingDLL (LPCVOID pReturn)
 {
   HMODULE hCallingMod = nullptr;
-  SK_TLS* pTLS        =
-    SK_TLS_Bottom ();
+//   SK_TLS* pTLS        =
+//     SK_TLS_Bottom ();
 
-  if (pTLS->known_modules.contains (pReturn, &hCallingMod))
-  {
-    return hCallingMod;
-  }
+  //if (pTLS->known_modules.contains (pReturn, &hCallingMod))
+  //{
+  //  return hCallingMod;
+  //}
 
   GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT |
                       GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
                         static_cast <const wchar_t *> (pReturn),
                           &hCallingMod );
 
-  pTLS->known_modules.insert (pReturn, hCallingMod);
+  //pTLS->known_modules.insert (pReturn, hCallingMod);
 
   return hCallingMod;
 }
@@ -2691,8 +2691,8 @@ void
 SK_HostAppUtil::init (void)
 {
   
-  SK_RunOnce (SKIM     = StrStrIW ( SK_GetHostApp (), L"SKIM"     ) != nullptr);
-  SK_RunOnce (RunDll32 = StrStrIW ( SK_GetHostApp (), L"RunDLL32" ) != nullptr);
+  SK_RunOnce (SKIM     = (StrStrIW ( SK_GetHostApp (), L"SKIM"     ) != nullptr));
+  SK_RunOnce (RunDll32 = (StrStrIW ( SK_GetHostApp (), L"RunDLL32" ) != nullptr));
 }
 
 SK_HostAppUtil&

@@ -636,7 +636,7 @@ SK_RawInput_PopulateDeviceList (void)
 
 UINT
 WINAPI
-GetRegisteredRawInputDevices_Detour (
+NtUserGetRegisteredRawInputDevices_Detour (
   _Out_opt_ PRAWINPUTDEVICE pRawInputDevices,
   _Inout_   PUINT           puiNumDevices,
   _In_      UINT            cbSize )
@@ -687,7 +687,7 @@ GetRegisteredRawInputDevices_Detour (
 
 BOOL
 WINAPI
-RegisterRawInputDevices_Detour (
+NtUserRegisterRawInputDevices_Detour (
   _In_ PCRAWINPUTDEVICE pRawInputDevices,
   _In_ UINT             uiNumDevices,
   _In_ UINT             cbSize )
@@ -890,11 +890,11 @@ SK_ImGui_ProcessRawInput (_In_      HRAWINPUT hRawInput,
 
 UINT
 WINAPI
-GetRawInputData_Detour (_In_      HRAWINPUT hRawInput,
-                        _In_      UINT      uiCommand,
-                        _Out_opt_ LPVOID    pData,
-                        _Inout_   PUINT     pcbSize,
-                        _In_      UINT      cbSizeHeader)
+NtUserGetRawInputData_Detour (_In_      HRAWINPUT hRawInput,
+                              _In_      UINT      uiCommand,
+                              _Out_opt_ LPVOID    pData,
+                              _Inout_   PUINT     pcbSize,
+                              _In_      UINT      cbSizeHeader)
 {
   SK_LOG_FIRST_CALL
 
@@ -1346,7 +1346,7 @@ GetMouseMovePointsEx_Detour(
 
 HCURSOR
 WINAPI
-SetCursor_Detour (
+NtUserSetCursor_Detour (
   _In_opt_ HCURSOR hCursor )
 {
   SK_LOG_FIRST_CALL
@@ -1363,7 +1363,7 @@ SetCursor_Detour (
 
 BOOL
 WINAPI
-GetCursorInfo_Detour (PCURSORINFO pci)
+NtUserGetCursorInfo_Detour (PCURSORINFO pci)
 {
   SK_LOG_FIRST_CALL
 
@@ -1574,7 +1574,7 @@ SetCursorPos_Detour (_In_ int x, _In_ int y)
 
 UINT
 WINAPI
-SendInput_Detour (
+NtUserSendInput_Detour (
   _In_ UINT    nInputs,
   _In_ LPINPUT pInputs,
   _In_ int     cbSize
@@ -1644,7 +1644,7 @@ GetKeyboardState_pfn        GetKeyboardState_Original        = nullptr;
 
 SHORT
 WINAPI
-GetAsyncKeyState_Detour (_In_ int vKey)
+NtUserGetAsyncKeyState_Detour (_In_ int vKey)
 {
   SK_LOG_FIRST_CALL
 
@@ -1675,55 +1675,12 @@ GetAsyncKeyState_Detour (_In_ int vKey)
       SK_ConsumeVKey (vKey);
   }
 
-
-  //
-  // Workaround for driver bug in NVIDIA's D3D10/11 driver.
-  //
-  //   NVIDIA refuses to acknowledge it, so I've taken it upon myself
-  //     to fix.
-  //
-  static HMODULE   hMod_nvwgf2umx = nullptr;
-  static uintptr_t nvwgf2umx_min  = 0,
-                   nvwgf2umx_max  = 0;
-
-  if (vKey == VK_SHIFT && hMod_nvwgf2umx == nullptr )
-  {
-    hMod_nvwgf2umx =
-      GetModuleHandleW (L"nvwgf2umx.dll");
-
-    if (hMod_nvwgf2umx == nullptr)
-      hMod_nvwgf2umx = reinterpret_cast <HMODULE> (-1);
-    else
-    {
-      MODULEINFO                               modi = { };
-      GetModuleInformation (
-        GetCurrentProcess (), hMod_nvwgf2umx, &modi,
-         sizeof MODULEINFO );
-
-      nvwgf2umx_min = (uintptr_t)modi.lpBaseOfDll;
-      nvwgf2umx_max = nvwgf2umx_min + modi.SizeOfImage;
-    }
-  }
-
-  if ( vKey == VK_SHIFT && (uintptr_t)(_ReturnAddress ()) >
-                           (uintptr_t) hMod_nvwgf2umx &&
-                                     SK_GetCallingDLL () == hMod_nvwgf2umx )
-  {
-    if (config.system.log_level > 4)
-    {
-      dll_log.Log (L"[Driver Bug] NVIDIA polled the Shift Key");
-    }
-    return 0;
-  }
-
-
-
   return GetAsyncKeyState_Original (vKey);
 }
 
 SHORT
 WINAPI
-GetKeyState_Detour (_In_ int nVirtKey)
+NtUserGetKeyState_Detour (_In_ int nVirtKey)
 {
   SK_LOG_FIRST_CALL
 
@@ -1761,7 +1718,7 @@ GetKeyState_Detour (_In_ int nVirtKey)
 
 BOOL
 WINAPI
-GetKeyboardState_Detour (PBYTE lpKeyState)
+NtUserGetKeyboardState_Detour (PBYTE lpKeyState)
 {
   SK_LOG_FIRST_CALL
 
@@ -1896,24 +1853,24 @@ void SK_Input_Init (void);
 // Parts of the Win32 API that are safe to hook from DLL Main
 void SK_Input_PreInit (void)
 {
-  SK_CreateDLLHook2 (       L"user32.dll",
-                             "GetRawInputData",
-                              GetRawInputData_Detour,
+  SK_CreateDLLHook2 (       L"win32u.dll",
+                             "NtUserGetRawInputData",
+                              NtUserGetRawInputData_Detour,
      static_cast_p2p <void> (&GetRawInputData_Original) );
 
   SK_CreateDLLHook2 (       L"win32u.dll",
                              "NtUserGetAsyncKeyState",
-                              GetAsyncKeyState_Detour,
+                              NtUserGetAsyncKeyState_Detour,
      static_cast_p2p <void> (&GetAsyncKeyState_Original) );
 
   SK_CreateDLLHook2 (       L"win32u.dll",
                              "NtUserGetKeyState",
-                              GetKeyState_Detour,
+                              NtUserGetKeyState_Detour,
      static_cast_p2p <void> (&GetKeyState_Original) );
 
   SK_CreateDLLHook2 (       L"win32u.dll",
                              "NtUserGetKeyboardState",
-                              GetKeyboardState_Detour,
+                              NtUserGetKeyboardState_Detour,
      static_cast_p2p <void> (&GetKeyboardState_Original) );
 
   SK_CreateDLLHook2 (       L"user32.dll",
@@ -1921,9 +1878,9 @@ void SK_Input_PreInit (void)
                               GetCursorPos_Detour,
      static_cast_p2p <void> (&GetCursorPos_Original) );
 
-  SK_CreateDLLHook2 (       L"user32.dll",
-                             "GetCursorInfo",
-                              GetCursorInfo_Detour,
+  SK_CreateDLLHook2 (       L"win32u.dll",
+                             "NtUserGetCursorInfo",
+                              NtUserGetCursorInfo_Detour,
      static_cast_p2p <void> (&GetCursorInfo_Original) );
 
   SK_CreateDLLHook2 (       L"user32.dll",
@@ -1933,7 +1890,7 @@ void SK_Input_PreInit (void)
 
   SK_CreateDLLHook2 (       L"win32u.dll",
                              "NtUserSetCursor",
-                              SetCursor_Detour,
+                              NtUserSetCursor_Detour,
      static_cast_p2p <void> (&SetCursor_Original) );
 
   SK_CreateDLLHook2 (       L"user32.dll",
@@ -1941,9 +1898,9 @@ void SK_Input_PreInit (void)
                               SetCursorPos_Detour,
      static_cast_p2p <void> (&SetCursorPos_Original) );
 
-  SK_CreateDLLHook2 (       L"user32.dll",
-                             "SendInput",
-                              SendInput_Detour,
+  SK_CreateDLLHook2 (       L"win32u.dll",
+                             "NtUserSendInput",
+                              NtUserSendInput_Detour,
      static_cast_p2p <void> (&SendInput_Original) );
 
   SK_CreateDLLHook2 (       L"user32.dll",
@@ -1958,12 +1915,12 @@ void SK_Input_PreInit (void)
 
   SK_CreateDLLHook2 (       L"win32u.dll",
                              "NtUserRegisterRawInputDevices",
-                              RegisterRawInputDevices_Detour,
+                              NtUserRegisterRawInputDevices_Detour,
      static_cast_p2p <void> (&RegisterRawInputDevices_Original) );
 
   SK_CreateDLLHook2 (       L"win32u.dll",
                              "NtUserGetRegisteredRawInputDevices",
-                              GetRegisteredRawInputDevices_Detour,
+                              NtUserGetRegisteredRawInputDevices_Detour,
      static_cast_p2p <void> (&GetRegisteredRawInputDevices_Original) );
 
   SK_CreateDLLHook2 (       L"user32.dll",

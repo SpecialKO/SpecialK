@@ -164,148 +164,6 @@ using GetModuleHandleExA_pfn = BOOL (WINAPI*)(
   _In_opt_ LPCSTR      lpModuleName,
   _Outptr_ HMODULE*    phModule
 );
-GetModuleHandleExA_pfn GetModuleHandleExA_Original = nullptr;
-GetModuleHandleExW_pfn GetModuleHandleExW_Original = nullptr;
-
-BOOL
-WINAPI
-GetModuleHandleExA_Detour (
-  _In_     DWORD       dwFlags,
-  _In_opt_ LPCSTR      lpModuleName,
-  _Outptr_ HMODULE*    phModule )
-{
-  if (dwFlags & GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS)
-  {
-    if ((LPVOID)lpModuleName == SK_GetDLL ())
-      return false;
-  }
-
-  if (StrStrIA (lpModuleName, SK_RunLHIfBitness (64, "SpecialK64",
-                                                     "SpecialK32")) )
-    return false;
-
-  return GetModuleHandleExA_Original (dwFlags, lpModuleName, phModule);
-}
-
-BOOL
-WINAPI
-GetModuleHandleExW_Detour (
-  _In_     DWORD       dwFlags,
-  _In_opt_ LPCWSTR     lpModuleName,
-  _Outptr_ HMODULE*    phModule )
-{
-  if (dwFlags & GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS)
-  {
-    if ((LPVOID)lpModuleName == SK_GetDLL ())
-      return false;
-  }
-
-  if (StrStrIW (lpModuleName, SK_RunLHIfBitness (64, L"SpecialK64",
-                                                     L"SpecialK32")) )
-    return false;
-
-  return GetModuleHandleExW_Original (dwFlags, lpModuleName, phModule);
-}
-
-
-
-
-typedef DWORD (WINAPI *GetModuleFileNameA_pfn)(
-_In_opt_ HMODULE hModule,
-_Out_writes_to_(nSize, ((return < nSize) ? (return + 1) : nSize)) LPSTR lpFilename,
-_In_ DWORD nSize
-);
-GetModuleFileNameA_pfn GetModuleFileNameA_Original = nullptr;
-
-
-typedef DWORD (WINAPI *GetModuleFileNameW_pfn)(
-_In_opt_ HMODULE hModule,
-_Out_writes_to_(nSize, ((return < nSize) ? (return + 1) : nSize)) LPWSTR lpFilename,
-_In_ DWORD nSize
-);
-GetModuleFileNameW_pfn GetModuleFileNameW_Original = nullptr;
-
-
-DWORD
-WINAPI
-GetModuleFileNameA_Detour (
-  _In_opt_ HMODULE hModule,
-  _Out_writes_to_ (nSize, ( ( return < nSize ) ? ( return +1 ) : nSize )) LPSTR lpFilename,
-  _In_ DWORD nSize)
-{
-  if (hModule == SK_GetDLL ())
-    return 0;
-
-  return GetModuleFileNameA_Original (hModule, lpFilename, nSize);
-}
-
-DWORD
-WINAPI
-GetModuleFileNameW_Detour (
-  _In_opt_ HMODULE hModule,
-  _Out_writes_to_ (nSize, ( ( return < nSize ) ? ( return +1 ) : nSize )) LPWSTR lpFilename,
-  _In_ DWORD nSize)
-{
-  if (hModule == SK_GetDLL ())
-    return 0;
-
-  return GetModuleFileNameW_Original (hModule, lpFilename, nSize);
-}
-
-using GetModuleHandleA_pfn = HMODULE (WINAPI *)(_In_opt_ LPCSTR lpModuleName);
-                         GetModuleHandleA_pfn GetModuleHandleA_Original = nullptr;
-
-HMODULE
-WINAPI
-GetModuleHandleA_Detour (
-  _In_opt_ LPCSTR lpModuleName
-)
-{
-  if ( SK_RunLHIfBitness (64, StrStrIA (lpModuleName, "SpecialK64"),
-                              StrStrIA (lpModuleName, "SpecialK32")) )
-  {
-    return nullptr;
-  }
-
-  static const std::unordered_set <std::string> blacklist_nv =
-  {
-    "libovrrt64_1", "libovrrt32_1", "openvr_api"
-  };
-
-  if (lpModuleName != nullptr && blacklist_nv.count (lpModuleName))
-  {
-    if (config.system.log_level > 4)
-    {
-      dll_log.Log (L"[Driver Bug] NVIDIA tried to load %hs", lpModuleName);
-    }
-
-    SetLastError (0x0000007e);
-    return nullptr;
-  }
-
-  return
-    GetModuleHandleA_Original (lpModuleName);
-}
-
-using GetModuleHandleW_pfn = HMODULE (WINAPI *)(_In_opt_ LPCWSTR lpModuleName);
-                         GetModuleHandleW_pfn GetModuleHandleW_Original = nullptr;
-
-HMODULE
-WINAPI
-GetModuleHandleW_Detour (
-  _In_opt_ LPCWSTR lpModuleName
-)
-{
-  if ( SK_RunLHIfBitness (64, StrStrIW (lpModuleName, L"SpecialK64"),
-                              StrStrIW (lpModuleName, L"SpecialK32")) )
-  {
-    return nullptr;
-  }
-
-  return
-    GetModuleHandleW_Original (lpModuleName);
-}
-
 
 template <typename _T>
 BOOL
@@ -926,7 +784,7 @@ LoadLibraryEx_Marshal (LPVOID lpRet, LPCWSTR lpFileName, HANDLE hFile, DWORD dwF
     HMODULE hModRet =
       LoadLibraryExW_Original (lpFileName, hFile, dwFlags);
 
-    free (static_cast <void *> (compliant_path));
+    free (static_cast <void *> ( compliant_path ));
 
     SK_UnlockDllLoader ();
     return hModRet;
@@ -1825,11 +1683,5 @@ SK_PreInitLoadLibrary (void)
   LoadLibraryW_Original        = &LoadLibraryW;
   LoadLibraryExA_Original      = &LoadLibraryExA;
   LoadLibraryExW_Original      = &LoadLibraryExW;
-  GetModuleHandleA_Original    = &GetModuleHandleA;
-  GetModuleHandleW_Original    = &GetModuleHandleW;
-  GetModuleHandleExA_Original  = &GetModuleHandleExA;
-  GetModuleHandleExW_Original  = &GetModuleHandleExW;
-  GetModuleFileNameA_Original  = &GetModuleFileNameA;
-  GetModuleFileNameW_Original  = &GetModuleFileNameW;
   LoadPackagedLibrary_Original = nullptr; // Windows 8 feature
 }

@@ -33,8 +33,8 @@ LocalFree_pfn    LocalFree_Original    = nullptr;
 VirtualAlloc_pfn VirtualAlloc_Original = nullptr;
 VirtualFree_pfn  VirtualFree_Original  = nullptr;
 
-HeapAlloc_pfn    HeapAlloc_Original    = nullptr;
-HeapFree_pfn     HeapFree_Original     = nullptr;
+RtlAllocateHeap_pfn RtlAllocateHeap_Original = nullptr;
+HeapFree_pfn        HeapFree_Original        = nullptr;
 
 
 // If > 0, then skip memory tracking momentarily because we are going
@@ -93,16 +93,25 @@ LocalAlloc_Detour (
 
 LPVOID
 WINAPI
-HeapAlloc_Detour (
+RtlAllocateHeap_Detour (
   _In_ HANDLE hHeap,
   _In_ DWORD  dwFlags,
   _In_ SIZE_T dwBytes )
 {
+  bool bZero = false;
+  if (dwFlags & HEAP_ZERO_MEMORY)
+  {
+    bZero    = true;
+    dwFlags &= ~HEAP_ZERO_MEMORY;
+  }
+
   LPVOID lpRet =
-    HeapAlloc_Original (hHeap, dwFlags, dwBytes);
+    RtlAllocateHeap_Original (hHeap, dwFlags, dwBytes);
 
   if (lpRet != nullptr)
   {
+    if (bZero) RtlZeroMemory (lpRet, dwBytes);
+
     if (ReadAcquire (&_SK_IgnoreTLSAlloc) == 0)
     {
       SK_TLS* pTLS = 
@@ -214,10 +223,10 @@ SK_Memory_InitHooks (void)
                              VirtualAlloc_Detour,
     static_cast_p2p <void> (&VirtualAlloc_Original) );
 
-  SK_CreateDLLHook2 (      L"kernel32.dll",
-                            "HeapAlloc",
-                             HeapAlloc_Detour,
-    static_cast_p2p <void> (&HeapAlloc_Original) );
+  SK_CreateDLLHook2 (      L"NtDll.dll",
+                            "RtlAllocateHeap",
+                             RtlAllocateHeap_Detour,
+    static_cast_p2p <void> (&RtlAllocateHeap_Original) );
 
 
   SK_CreateDLLHook2 (      L"kernel32.dll",

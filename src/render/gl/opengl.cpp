@@ -1231,19 +1231,24 @@ void ResetCEGUI_GL (void)
 
   assert (imp_wglGetCurrentContext != nullptr);
 
-  if ( cegGL == nullptr && SK_GetFramesDrawn       ()  > 8 &&
+  if ( cegGL == nullptr && SK_GetFramesDrawn       ()  > 10 &&
                            SK_GL_GetCurrentContext () != nullptr  )
   {
     if (GetModuleHandle (L"CEGUIOpenGLRenderer-0.dll"))
     {
+      glPushAttrib (GL_ALL_ATTRIB_BITS);
+
       SK_GL_GhettoStateBlock_Capture ();
+
+      const char *locale_orig =
+        _strdup (setlocale (LC_ALL, NULL));
 
       try {
         cegGL = reinterpret_cast <CEGUI::OpenGL3Renderer *> (
           &CEGUI::OpenGL3Renderer::bootstrapSystem ()
         );
       }
-      
+
       catch (CEGUI::GenericException& e)
       {
         SK_LOG0 ( (L"CEGUI Exception During OpenGL Bootstrap"),
@@ -1255,14 +1260,19 @@ void ResetCEGUI_GL (void)
                             e.getName    ().c_str (),
                             e.getMessage ().c_str () ),
                    L"   CEGUI  "  );
-      
+
         config.cegui.enable = false;
       }
+
+      setlocale (LC_ALL, locale_orig);
+      free      ((void *)locale_orig);
+
+      SK_GL_GhettoStateBlock_Apply ();
 
       if (cegGL != nullptr)
       {
         cegGL->enableExtraStateSettings (true);
-      
+
         // Backup GL state
         glGetIntegerv (GL_ARRAY_BUFFER_BINDING,         &last_array_buffer);
         glGetIntegerv (GL_ELEMENT_ARRAY_BUFFER_BINDING, &last_element_array_buffer);
@@ -1271,16 +1281,16 @@ void ResetCEGUI_GL (void)
         // Do not touch the default VAO state (assuming the context even has one)
         static GLuint ceGL_VAO = 0;
                   if (ceGL_VAO == 0 || (! glIsVertexArray (ceGL_VAO))) glGenVertexArrays (1, &ceGL_VAO);
-        
+
         glBindVertexArray (ceGL_VAO);
-      
+
         SK_CEGUI_InitBase ();
-      
+
               SK_PopupManager::getInstance ()->destroyAllPopups (     );
         SK_TextOverlayManager::getInstance ()->resetAllOverlays (cegGL);
-      
+
         SK_Steam_ClearPopups ();
-      
+
         glBindVertexArray (                         last_vertex_array);
         glBindBuffer      (GL_ARRAY_BUFFER,         last_array_buffer);
         glBindBuffer      (GL_ELEMENT_ARRAY_BUFFER, last_element_array_buffer);
@@ -1288,7 +1298,7 @@ void ResetCEGUI_GL (void)
         SK_CEGUI_RelocateLog ();
       }
 
-      SK_GL_GhettoStateBlock_Apply ();
+      glPopAttrib ();
     }
   }
 }

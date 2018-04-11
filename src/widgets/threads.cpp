@@ -31,7 +31,7 @@
 #include <processthreadsapi.h>
 
 typedef LONG NTSTATUS;
-typedef      NTSTATUS (WINAPI *NtQueryInformationThread_pfn)(HANDLE,/*THREADINFOCLASS*/LONG,PVOID,ULONG,PULONG);
+typedef      NTSTATUS (WINAPI *NtQueryInformationThread_pfn)(HANDLE,/*THREADINFOCLASS*/LONG,DWORD_PTR*,ULONG,PULONG);
 
 #define ThreadQuerySetWin32StartAddress 9
 
@@ -719,9 +719,9 @@ public:
         ImGui::Text (u8R"(“%ws”)", it.second->name.c_str ());
       else
       {
-        NTSTATUS ntStatus;
-        HANDLE   hDupHandle;
-        DWORD    dwStartAddress;
+        NTSTATUS  ntStatus;
+        HANDLE    hDupHandle;
+        DWORD_PTR pdwStartAddress; 
 
         NtQueryInformationThread_pfn NtQueryInformationThread =
           (NtQueryInformationThread_pfn)GetProcAddress ( GetModuleHandle (L"NtDll.dll"),
@@ -736,8 +736,8 @@ public:
                                 THREAD_QUERY_INFORMATION, FALSE, 0 ) )
         {
           ntStatus =
-            NtQueryInformationThread ( hDupHandle, ThreadQuerySetWin32StartAddress,
-                                      &dwStartAddress, sizeof (DWORD), NULL );
+            NtQueryInformationThread (  hDupHandle, ThreadQuerySetWin32StartAddress,
+                                       &pdwStartAddress, sizeof (DWORD), NULL );
 
           char    thread_name [512] = { };
           char    szSymbol    [256] = { };
@@ -750,21 +750,21 @@ public:
                                            char*   pszOut, ULONG     ulLen );
 
           ulLen = SK_GetSymbolNameFromModuleAddr (
-                    SK_GetCallingDLL (),
-          reinterpret_cast <uintptr_t> ((LPVOID)dwStartAddress),
+                  SK_GetModuleFromAddr ((LPCVOID)pdwStartAddress),
+          reinterpret_cast <uintptr_t> ((LPCVOID)pdwStartAddress),
                         szSymbol,
                           ulLen );
 
           if (ulLen > 0)
           {
             sprintf ( thread_name, "%s+%s",
-                     SK_WideCharToUTF8 (SK_GetCallerName ((LPVOID)dwStartAddress)).c_str ( ),
+                     SK_WideCharToUTF8 (SK_GetCallerName ((LPCVOID)pdwStartAddress)).c_str ( ),
                                                              szSymbol );
           }
 
           else {
             sprintf ( thread_name, "%s",
-                        SK_WideCharToUTF8 (SK_GetCallerName ((LPVOID)dwStartAddress)).c_str () );
+                        SK_WideCharToUTF8 (SK_GetCallerName ((LPCVOID)pdwStartAddress)).c_str () );
           }
 
           SK_TLS* pTLS =

@@ -105,7 +105,7 @@ SetWindowPlacement_Detour (
 
 BOOL
 WINAPI
-SetWindowPos_Detour(
+NtUserSetWindowPos_Detour(
     _In_     HWND hWnd,
     _In_opt_ HWND hWndInsertAfter,
     _In_     int  X,
@@ -1472,7 +1472,7 @@ SK_ExpandSmallClipCursor (RECT *lpRect)
 
 BOOL
 WINAPI
-ClipCursor_Detour (const RECT *lpRect)
+NtUserClipCursor_Detour (const RECT *lpRect)
 {
   SK_LOG_FIRST_CALL
 
@@ -1622,7 +1622,7 @@ SK_CenterWindowAtMouse (BOOL remember_pos)
 
 BOOL
 WINAPI
-MoveWindow_Detour(
+NtUserMoveWindow_Detour(
     _In_ HWND hWnd,
     _In_ int  X,
     _In_ int  Y,
@@ -1651,7 +1651,7 @@ SetWindowPlacement_Detour(
 
 BOOL
 WINAPI
-SetWindowPos_Detour(
+NtUserSetWindowPos_Detour(
     _In_     HWND hWnd,
     _In_opt_ HWND hWndInsertAfter,
     _In_     int  X,
@@ -3112,32 +3112,16 @@ SK_GetSystemMetrics (_In_ int nIndex)
 using TranslateMessage_pfn =
   BOOL (WINAPI *)(_In_ const MSG *lpMsg);
 
-using DispatchMessageW_pfn =
-  LRESULT (WINAPI *)(
+using NtUserDispatchMessage_pfn =
+  LRESULT (NTAPI *)(
     _In_ const MSG *lpmsg
   );
 
-using DispatchMessageA_pfn =
-  LRESULT (WINAPI *)(
-    _In_ const MSG *lpmsg
-  );
+using NtUserGetMessage_pfn =
+  BOOL (NTAPI *)( LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax );
 
-using GetMessageA_pfn =
-  BOOL (WINAPI *)( LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax );
-using GetMessageW_pfn =
-  BOOL (WINAPI *)( LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax );
-
-using PeekMessageW_pfn =
-  BOOL (WINAPI *)(
-    _Out_    LPMSG lpMsg,
-    _In_opt_ HWND  hWnd,
-    _In_     UINT  wMsgFilterMin,
-    _In_     UINT  wMsgFilterMax,
-    _In_     UINT  wRemoveMsg
-  );
-
-using PeekMessageA_pfn =
-  BOOL (WINAPI *)(
+using NtUserPeekMessage_pfn =
+  BOOL (NTAPI *)(
     _Out_    LPMSG lpMsg,
     _In_opt_ HWND  hWnd,
     _In_     UINT  wMsgFilterMin,
@@ -3147,12 +3131,9 @@ using PeekMessageA_pfn =
 
 TranslateMessage_pfn TranslateMessage_Original = nullptr;
 
-PeekMessageW_pfn     PeekMessageW_Original     = nullptr;
-PeekMessageA_pfn     PeekMessageA_Original     = nullptr;
-GetMessageA_pfn      GetMessageA_Original      = nullptr;
-GetMessageW_pfn      GetMessageW_Original      = nullptr;
-DispatchMessageW_pfn DispatchMessageW_Original = nullptr;
-DispatchMessageA_pfn DispatchMessageA_Original = nullptr;
+NtUserPeekMessage_pfn     NtUserPeekMessage_Original     = nullptr;
+NtUserGetMessage_pfn      NtUserGetMessage_Original      = nullptr;
+NtUserDispatchMessage_pfn NtUserDispatchMessage_Original = nullptr;
 
 BOOL
 WINAPI
@@ -3210,61 +3191,8 @@ SK_EarlyDispatchMessage (LPMSG lpMsg, bool remove, bool peek = false)
 }
 
 BOOL
-WINAPI
-PeekMessageW_Detour (
-  _Out_    LPMSG lpMsg,
-  _In_opt_ HWND  hWnd,
-  _In_     UINT  wMsgFilterMin,
-  _In_     UINT  wMsgFilterMax,
-  _In_     UINT  wRemoveMsg )
-{
-  SK_LOG_FIRST_CALL
-
-  if (config.render.dxgi.safe_fullscreen && (IsWindowUnicode (GetActiveWindow ())))
-    wRemoveMsg |= PM_REMOVE;
-
-  MSG msg = { };
-
-  if (PeekMessageW_Original (&msg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg))
-  {
-    *lpMsg = msg;
-
-    if (SK_EarlyDispatchMessage (&msg, true, true))
-    {
-      if (! (wRemoveMsg & PM_REMOVE))
-      {
-        // We don't want this message marshaled if we can avoid it, so invoke
-        //   the correct function for the window type.
-        auto PeekFunc = IsWindowUnicode (lpMsg->hwnd) ? PeekMessageW_Original :
-                                                        PeekMessageA_Original;
-
-        PeekFunc ( &msg, lpMsg->hwnd, lpMsg->message,
-                                      lpMsg->message, PM_REMOVE );
-      }
-
-      if (lpMsg->message == WM_INPUT)
-      {
-        auto DefWindowFunc = IsWindowUnicode (lpMsg->hwnd) ? DefWindowProcW :
-                                                             DefWindowProcA;
-
-        DefWindowFunc (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
-      }
-
-      lpMsg->message = WM_NULL;
-      lpMsg->pt.x    = 0; lpMsg->pt.y = 0;
-
-      return FALSE;
-    }
-
-    return TRUE;
-  }
-
-  return FALSE;
-}
-
-BOOL
-WINAPI
-PeekMessageA_Detour (
+NTAPI
+NtUserPeekMessage_Detour (
   _Out_    LPMSG lpMsg,
   _In_opt_ HWND  hWnd,
   _In_     UINT  wMsgFilterMin,
@@ -3278,7 +3206,7 @@ PeekMessageA_Detour (
 
   MSG msg = { };
 
-  if (PeekMessageA_Original (&msg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg))
+  if (NtUserPeekMessage_Original (&msg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg))
   {
     *lpMsg = msg;
 
@@ -3286,10 +3214,7 @@ PeekMessageA_Detour (
     {
       if (! (wRemoveMsg & PM_REMOVE))
       {
-        // We don't want this message marshaled if we can avoid it, so invoke
-        //   the correct function for the window type.
-        auto PeekFunc = IsWindowUnicode (lpMsg->hwnd) ? PeekMessageW_Original :
-                                                        PeekMessageA_Original;
+        auto PeekFunc = NtUserPeekMessage_Original;
 
         PeekFunc ( &msg, lpMsg->hwnd, lpMsg->message,
                                       lpMsg->message, PM_REMOVE );
@@ -3316,27 +3241,12 @@ PeekMessageA_Detour (
 }
 
 BOOL
-WINAPI
-GetMessageA_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax)
+NTAPI
+NtUserGetMessage_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax)
 {
   SK_LOG_FIRST_CALL
 
-  if (! GetMessageA_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax))
-    return FALSE;
-
-  if (lpMsg->hwnd == game_window.hWnd)
-    SK_EarlyDispatchMessage (lpMsg, true);
-
-  return TRUE;
-}
-
-BOOL
-WINAPI
-GetMessageW_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax)
-{
-  SK_LOG_FIRST_CALL
-
-  if (! GetMessageW_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax))
+  if (! NtUserGetMessage_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax))
     return FALSE;
 
   if (lpMsg->hwnd == game_window.hWnd)
@@ -3346,8 +3256,8 @@ GetMessageW_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
 }
 
 LRESULT
-WINAPI
-DispatchMessageW_Detour (_In_ const MSG *lpMsg)
+NTAPI
+NtUserDispatchMessage_Detour (_In_ const MSG *lpMsg)
 {
   SK_LOG_FIRST_CALL
 
@@ -3357,30 +3267,14 @@ DispatchMessageW_Detour (_In_ const MSG *lpMsg)
                                      false )
        )
     {
-      return DefWindowProcW (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
-    }
-  }
+      if (IsWindowUnicode (lpMsg->hwnd))
+        return DefWindowProcW (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
 
-  return DispatchMessageW_Original (lpMsg);
-}
-
-LRESULT
-WINAPI
-DispatchMessageA_Detour (_In_ const MSG *lpMsg)
-{
-  SK_LOG_FIRST_CALL
-
-  if (lpMsg->hwnd == game_window.hWnd)
-  {
-    if ( SK_EarlyDispatchMessage ( const_cast <MSG *> (lpMsg),
-                                     false )
-       )
-    {
       return DefWindowProcA (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
     }
   }
 
-  return DispatchMessageA_Original (lpMsg);
+  return NtUserDispatchMessage_Original (lpMsg);
 }
 
 typedef HWND (WINAPI *GetActiveWindow_pfn)(void);
@@ -3401,7 +3295,7 @@ GetForegroundWindow_pfn GetForegroundWindow_Original = nullptr;
 
 HWND
 WINAPI
-GetForegroundWindow_Detour (void)
+NtUserGetForegroundWindow_Detour (void)
 {
   SK_LOG_FIRST_CALL
 
@@ -4538,16 +4432,10 @@ SK_InstallWindowHook (HWND hWnd)
                                 TranslateMessage_Detour,
        static_cast_p2p <void> (&TranslateMessage_Original) );
 
-
-    SK_CreateDLLHook2 (       L"user32.dll",
-                               "PeekMessageW",
-                                PeekMessageW_Detour,
-       static_cast_p2p <void> (&PeekMessageW_Original) );
-
-    SK_CreateDLLHook2 (       L"user32.dll",
-                               "PeekMessageA",
-                                PeekMessageA_Detour,
-       static_cast_p2p <void> (&PeekMessageA_Original) );
+    SK_CreateDLLHook2 (       L"win32u.dll",
+                               "NtUserPeekMessage",
+                                NtUserPeekMessage_Detour,
+       static_cast_p2p <void> (&NtUserPeekMessage_Original) );
 
 
     // Hook as few of these as possible, disrupting the message pump
@@ -4556,25 +4444,15 @@ SK_InstallWindowHook (HWND hWnd)
     //   ** PeekMessage is hooked because The Witness pulls mouse click events
     //        out of the pump without passing them through its window procedure.
     //
-    SK_CreateDLLHook2 (       L"user32.dll",
-                               "GetMessageW",
-                                GetMessageW_Detour,
-       static_cast_p2p <void> (&GetMessageW_Original) );
+    SK_CreateDLLHook2 (       L"win32u.dll",
+                               "NtUserGetMessage",
+                                NtUserGetMessage_Detour,
+       static_cast_p2p <void> (&NtUserGetMessage_Original) );
 
-    SK_CreateDLLHook2 (       L"user32.dll",
-                               "DispatchMessageW",
-                                DispatchMessageW_Detour,
-       static_cast_p2p <void> (&DispatchMessageW_Original) );
-
-    SK_CreateDLLHook2 (       L"user32.dll",
-                               "GetMessageA",
-                                GetMessageA_Detour,
-       static_cast_p2p <void> (&GetMessageA_Original) );
-
-    SK_CreateDLLHook2 (       L"user32.dll",
-                               "DispatchMessageA",
-                                DispatchMessageA_Detour,
-       static_cast_p2p <void> (&DispatchMessageA_Original) );
+    SK_CreateDLLHook2 (       L"win32u.dll",
+                               "NtUserDispatchMessage",
+                                NtUserDispatchMessage_Detour,
+       static_cast_p2p <void> (&NtUserDispatchMessage_Original) );
 
     game_window.WndProc_Original = nullptr;
   }
@@ -5064,9 +4942,9 @@ SK_HookWinAPI (void)
 
 
 #if 1
-    SK_CreateDLLHook2 (       L"user32.dll",
-                               "SetWindowPos",
-                                SetWindowPos_Detour,
+    SK_CreateDLLHook2 (       L"win32u.dll",
+                               "NtUserSetWindowPos",
+                                NtUserSetWindowPos_Detour,
        static_cast_p2p <void> (&SetWindowPos_Original) );
 
     SK_CreateDLLHook2 (       L"user32.dll",
@@ -5074,9 +4952,9 @@ SK_HookWinAPI (void)
                                 SetWindowPlacement_Detour,
        static_cast_p2p <void> (&SetWindowPlacement_Original) );
 
-    SK_CreateDLLHook2 (       L"user32.dll",
-                               "MoveWindow",
-                                MoveWindow_Detour,
+    SK_CreateDLLHook2 (       L"win32u.dll",
+                               "NtUserMoveWindow",
+                                NtUserMoveWindow_Detour,
        static_cast_p2p <void> (&MoveWindow_Original) );
 #else
       SetWindowPos_Original =
@@ -5095,9 +4973,9 @@ SK_HookWinAPI (void)
 #endif
 
 
-    SK_CreateDLLHook2 (       L"user32.dll",
-                               "ClipCursor",
-                                ClipCursor_Detour,
+    SK_CreateDLLHook2 (       L"win32u.dll",
+                               "NtUserClipCursor",
+                                NtUserClipCursor_Detour,
        static_cast_p2p <void> (&ClipCursor_Original) );
 
 
@@ -5236,9 +5114,9 @@ SK_HookWinAPI (void)
                                 GetSystemMetrics_Detour,
        static_cast_p2p <void> (&GetSystemMetrics_Original) );
 
-    SK_CreateDLLHook2 (       L"user32.dll",
-                               "GetForegroundWindow",
-                                GetForegroundWindow_Detour,
+    SK_CreateDLLHook2 (       L"win32u.dll",
+                               "NtUserGetForegroundWindow",
+                                NtUserGetForegroundWindow_Detour,
        static_cast_p2p <void> (&GetForegroundWindow_Original) );
 
     SK_CreateDLLHook2 (       L"user32.dll",
@@ -5419,6 +5297,7 @@ SK_COMPAT_SafeCallProc (sk_window_s* pWin, HWND hWnd_, UINT Msg, WPARAM wParam, 
 BOOL
 SK_Win32_IsGUIThread (void)
 {
+#if 0
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
 
@@ -5431,6 +5310,9 @@ SK_Win32_IsGUIThread (void)
     IsGUIThread (FALSE) ? 1 : -1;
 
   return ( pTLS->win32.GUI > 0 );
+#else
+  return IsGUIThread (FALSE);
+#endif
 }
 
 

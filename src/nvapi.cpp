@@ -671,11 +671,17 @@ SK_NvAPI_PreInitHDR (void)
   if (NvAPI_Disp_HdrColorControl_Original == nullptr)
   {
 #ifdef _WIN64
-    HMODULE hLib = LoadLibraryW (L"nvapi64.dll");
-    GetModuleHandleEx (GET_MODULE_HANDLE_EX_FLAG_PIN, L"nvapi64.dll", &hLib);
+    HMODULE hLib =
+      LoadLibraryW (L"nvapi64.dll");
+
+    if (hLib)
+      GetModuleHandleEx (GET_MODULE_HANDLE_EX_FLAG_PIN, L"nvapi64.dll", &hLib);
 #else
-    HMODULE hLib = LoadLibraryW (L"nvapi.dll");
-    GetModuleHandleEx (GET_MODULE_HANDLE_EX_FLAG_PIN, L"nvapi.dll",   &hLib);
+    HMODULE hLib =
+      LoadLibraryW (L"nvapi.dll");
+
+    if (hLib)
+      GetModuleHandleEx (GET_MODULE_HANDLE_EX_FLAG_PIN, L"nvapi.dll",   &hLib);
 #endif
 
     static auto NvAPI_QueryInterface =
@@ -683,20 +689,23 @@ SK_NvAPI_PreInitHDR (void)
         GetProcAddress (hLib, "nvapi_QueryInterface")
       );
 
-    SK_CreateFuncHook ( L"NvAPI_Disp_HdrColorControl", 
-                          NvAPI_QueryInterface (891134500),
-                          NvAPI_Disp_HdrColorControl_Override,
- static_cast_p2p <void> (&NvAPI_Disp_HdrColorControl_Original) );
+    if (NvAPI_QueryInterface != nullptr)
+    {
+      SK_CreateFuncHook ( L"NvAPI_Disp_HdrColorControl", 
+                            NvAPI_QueryInterface (891134500),
+                            NvAPI_Disp_HdrColorControl_Override,
+  static_cast_p2p <void> (&NvAPI_Disp_HdrColorControl_Original) );
+   
+      SK_CreateFuncHook ( L"NvAPI_Disp_GetHdrCapabilities", 
+                            NvAPI_QueryInterface (2230495455),
+                            NvAPI_Disp_GetHdrCapabilities_Override,
+   static_cast_p2p <void> (&NvAPI_Disp_GetHdrCapabilities_Original) );
   
-    SK_CreateFuncHook ( L"NvAPI_Disp_GetHdrCapabilities", 
-                          NvAPI_QueryInterface (2230495455),
-                          NvAPI_Disp_GetHdrCapabilities_Override,
- static_cast_p2p <void> (&NvAPI_Disp_GetHdrCapabilities_Original) );
- 
-    MH_QueueEnableHook (NvAPI_QueryInterface (891134500));
-    MH_QueueEnableHook (NvAPI_QueryInterface (2230495455));
-
-    SK_ApplyQueuedHooks ();
+      MH_QueueEnableHook (NvAPI_QueryInterface (891134500));
+      MH_QueueEnableHook (NvAPI_QueryInterface (2230495455));
+      
+      SK_ApplyQueuedHooks ();
+    }
   }
 }
 

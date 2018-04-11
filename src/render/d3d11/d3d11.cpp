@@ -1635,7 +1635,8 @@ D3D11Dev_CreateRenderTargetView_Override (
 bool SK_D3D11_EnableTracking     = false;
 bool SK_D3D11_EnableMMIOTracking = false;
 
-SK_D3D11_KnownShaders_Singleton
+__forceinline
+SK_D3D11_KnownShaders_Singleton&
 __SK_Singleton_D3D11_Shaders (void)
 {
   static SK_D3D11_KnownShaders _SK_D3D11_Shaders;
@@ -3399,8 +3400,8 @@ SK_D3D11_ActivateSRVOnSlot (shader_stage_s& stage, ID3D11ShaderResourceView* pSR
     {
       std::lock_guard <SK_Thread_CriticalSection> auto_lock (cs_render_view);
 
-      used_textures.emplace       (pTex);
-      temp_resources.emplace_back (pTex);
+      if (used_textures.emplace      (pTex).second)
+         temp_resources.emplace_back (pTex);
 
       if (tracked_texture == pTex && config.textures.d3d11.highlight_debug)
       {
@@ -3515,8 +3516,7 @@ D3D11_VSSetShaderResources_Override (
         newResourceViews [i] = nullptr;
 
       if (shader_crc32c != 0 && active && ppShaderResourceViews [i])            {
-        if (! tracked.set_of_views.count (ppShaderResourceViews [i]))           {
-            tracked.set_of_views.emplace (ppShaderResourceViews [i]);
+        if (tracked.set_of_views.emplace (ppShaderResourceViews [i]).second)    {
                                           ppShaderResourceViews [i]->AddRef (); }
          tracked.used_views.emplace_back (ppShaderResourceViews [i]);           }
                   views [StartSlot + i] = ppShaderResourceViews [i];
@@ -3570,8 +3570,7 @@ D3D11_PSSetShaderResources_Override (
         newResourceViews [i] = nullptr;
 
       if (shader_crc32c != 0 && active && ppShaderResourceViews [i])            {
-        if (! tracked.set_of_views.count (ppShaderResourceViews [i]))           {
-            tracked.set_of_views.emplace (ppShaderResourceViews [i]);
+        if (tracked.set_of_views.emplace (ppShaderResourceViews [i]).second)    {
                                           ppShaderResourceViews [i]->AddRef (); }
          tracked.used_views.emplace_back (ppShaderResourceViews [i]);           }
                   views [StartSlot + i] = ppShaderResourceViews [i];
@@ -3624,8 +3623,7 @@ D3D11_GSSetShaderResources_Override (
         newResourceViews [i] = nullptr;
 
       if (shader_crc32c != 0 && active && ppShaderResourceViews [i])            {
-        if (! tracked.set_of_views.count (ppShaderResourceViews [i]))           {
-            tracked.set_of_views.emplace (ppShaderResourceViews [i]);
+        if (tracked.set_of_views.emplace (ppShaderResourceViews [i]).second)    {
                                           ppShaderResourceViews [i]->AddRef (); }
          tracked.used_views.emplace_back (ppShaderResourceViews [i]);           }
                   views [StartSlot + i] = ppShaderResourceViews [i];
@@ -3678,8 +3676,7 @@ D3D11_HSSetShaderResources_Override (
         newResourceViews [i] = nullptr;
 
       if (shader_crc32c != 0 && active && ppShaderResourceViews [i])            {
-        if (! tracked.set_of_views.count (ppShaderResourceViews [i]))           {
-            tracked.set_of_views.emplace (ppShaderResourceViews [i]);
+        if (tracked.set_of_views.emplace (ppShaderResourceViews [i]).second)    {
                                           ppShaderResourceViews [i]->AddRef (); }
          tracked.used_views.emplace_back (ppShaderResourceViews [i]);           }
                   views [StartSlot + i] = ppShaderResourceViews [i];
@@ -3732,8 +3729,7 @@ D3D11_DSSetShaderResources_Override (
         newResourceViews [i] = nullptr;
 
       if (shader_crc32c != 0 && active && ppShaderResourceViews [i])            {
-        if (! tracked.set_of_views.count (ppShaderResourceViews [i]))           {
-            tracked.set_of_views.emplace (ppShaderResourceViews [i]);
+        if (tracked.set_of_views.emplace (ppShaderResourceViews [i]).second)    {
                                           ppShaderResourceViews [i]->AddRef (); }
             tracked.used_views.push_back (ppShaderResourceViews [i]);           }
                   views [StartSlot + i] = ppShaderResourceViews [i];
@@ -3786,8 +3782,7 @@ D3D11_CSSetShaderResources_Override (
         newResourceViews [i] = nullptr;
 
       if (shader_crc32c != 0 && active && ppShaderResourceViews [i])            {
-        if (! tracked.set_of_views.count (ppShaderResourceViews [i]))           {
-            tracked.set_of_views.emplace (ppShaderResourceViews [i]);
+        if (tracked.set_of_views.emplace (ppShaderResourceViews [i]).second)    {
                                           ppShaderResourceViews [i]->AddRef (); }
          tracked.used_views.emplace_back (ppShaderResourceViews [i]);           }
                   views [StartSlot + i] = ppShaderResourceViews [i];
@@ -4903,8 +4898,11 @@ public:
   {
     auto TriggerReShade_After = [&]
     {
-      SK_ScopedBool auto_bool (&SK_TLS_Bottom ()->imgui.drawing);
-      SK_TLS_Bottom ()->imgui.drawing = true;
+      SK_TLS* pTLS =
+        SK_TLS_Bottom ();
+
+      SK_ScopedBool auto_bool (&pTLS->imgui.drawing);
+      pTLS->imgui.drawing = true;
 
       if (SK_ReShade_PresentCallback.fn && (! SK_D3D11_Shaders.reshade_triggered [_ctx]))
       {
@@ -5888,7 +5886,8 @@ void WINAPI SK_D3D11_PopulateResourceList (bool refresh = false);
 #include <unordered_map>
 #include <map>
 
-SK_D3D11_TexMgr_Singleton
+__forceinline
+SK_D3D11_TexMgr_Singleton&
 __SK_Singleton_D3D11_Textures (void)
 {
   static SK_D3D11_TexMgr _SK_D3D11_Textures;
@@ -8562,8 +8561,9 @@ D3D11Dev_CreateShaderResourceView_Override (
         {
           auto descCopy = *pDescOrig;
 
-          descCopy.Format              = newFormat;
-          descCopy.Texture2D.MipLevels = newMipLevels;
+          descCopy.Format                    = newFormat;
+          descCopy.Texture2D.MipLevels       = (UINT)-1;
+          descCopy.Texture2D.MostDetailedMip = tex_desc.MipLevels;
 
           //if (newMipLevels > 0 && ( pDesc->Format == DXGI_FORMAT_BC3_UNORM || pDesc->Format == DXGI_FORMAT_BC3_UNORM_SRGB || pDesc->Format == DXGI_FORMAT_BC3_TYPELESS ||
           //                          pDesc->Format == DXGI_FORMAT_BC2_UNORM || pDesc->Format == DXGI_FORMAT_BC2_UNORM_SRGB || pDesc->Format == DXGI_FORMAT_BC2_TYPELESS ))
@@ -8574,26 +8574,41 @@ D3D11Dev_CreateShaderResourceView_Override (
 
           pDesc                          = &descCopy;
 
-          HRESULT hr =
-            D3D11Dev_CreateShaderResourceView_Original ( This, pResource,
-                                                           pDesc, ppSRView );
+          try {
+            HRESULT hr =
+              D3D11Dev_CreateShaderResourceView_Original ( This, pResource,
+                                                             pDesc, ppSRView );
 
-          if (SUCCEEDED (hr))
+            if (SUCCEEDED (hr))
+            {
+              return hr;
+            }
+          }
+
+          catch (_com_error& err)
           {
-            return hr;
+            SK_LOG0 ( ( L"Caught _com_error (%s) during D3D11Dev_CreateShaderResourceView_Override (overriding format)",
+                          err.ErrorMessage () ), L"  D3D 11  " );
+
+            return E_FAIL;
           }
         }
       }
+
+      //if (desc.Texture2D.MipLevels > 128)
+      //    desc.Texture2D.MipLevels = 1;
     }
 
-    pDesc = pDescOrig;
+    pDesc = &desc;
+
+    return
+      D3D11Dev_CreateShaderResourceView_Original ( This, pResource,
+                                                     pDesc, ppSRView );
   }
 
-  HRESULT hr =
+  return
     D3D11Dev_CreateShaderResourceView_Original ( This, pResource,
                                                    pDesc, ppSRView );
-
-  return hr;
 }
 
 __declspec (noinline)
@@ -9086,7 +9101,7 @@ D3D11Dev_CreateTexture2D_Impl (
   _Inout_opt_       D3D11_TEXTURE2D_DESC    *pDesc,
   _In_opt_    const D3D11_SUBRESOURCE_DATA  *pInitialData,
   _Out_opt_         ID3D11Texture2D        **ppTexture2D,
-                    HMODULE                  hModCaller)
+                    LPVOID                   lpCallerAddr)
 {
   ////if (SK_GetCurrentGameID () == SK_GAME_ID::DotHackGU)
   ////{
@@ -9221,7 +9236,7 @@ D3D11Dev_CreateTexture2D_Impl (
     SK_LOG1 ( ( L"Impossible to cache texture (Code Origin: '%s') -- Misc Flags: %x, MipLevels: %lu, "
                 L"ArraySize: %lu, CPUAccess: %x, BindFlags: %x, Usage: %x, pInitialData: %08"
                 PRIxPTR L" (%08" PRIxPTR L")",
-                  SK_GetModuleName (hModCaller).c_str (), pDesc->MiscFlags, pDesc->MipLevels, pDesc->ArraySize,
+                  SK_GetModuleName (SK_GetCallingDLL (lpCallerAddr)).c_str (), pDesc->MiscFlags, pDesc->MipLevels, pDesc->ArraySize,
                     pDesc->CPUAccessFlags, pDesc->BindFlags, pDesc->Usage, (uintptr_t)pInitialData,
                       pInitialData ? (uintptr_t)pInitialData->pSysMem : (uintptr_t)nullptr
               ),
@@ -9667,7 +9682,7 @@ D3D11Dev_CreateTexture2D_Override (
   auto descCopy = *pDescOrig;
 
   HRESULT hr =
-    D3D11Dev_CreateTexture2D_Impl (This, &descCopy, pInitialData, ppTexture2D, SK_GetCallingDLL ());
+    D3D11Dev_CreateTexture2D_Impl (This, &descCopy, pInitialData, ppTexture2D, _ReturnAddress ());
 
   *const_cast <D3D11_TEXTURE2D_DESC *> ( pDesc ) = descCopy;
 
@@ -10998,6 +11013,8 @@ HookD3D11 (LPVOID user)
 }
 
 
+bool convert_typeless = false;
+
 auto IsWireframe = [&](sk_shader_class shader_class, uint32_t crc32c)
 {
   d3d11_shader_tracking_s* tracker   = nullptr;
@@ -11236,7 +11253,7 @@ const std::set          <ID3D11ShaderResourceView *>& set_of_resources,
     }
   }
 
-  auto DrawRSV = [&](ID3D11ShaderResourceView* pSRV)
+  auto DrawSRV = [&](ID3D11ShaderResourceView* pSRV)
   {
     DXGI_FORMAT                     fmt = DXGI_FORMAT_UNKNOWN;
     D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc;
@@ -11262,13 +11279,94 @@ const std::set          <ID3D11ShaderResourceView *>& set_of_resources,
 
           std::lock_guard <SK_Thread_CriticalSection> auto_lock (cs_render_view);
 
-          temp_resources.emplace_back (pSRV);
-                                       pSRV->AddRef ();
+          ID3D11ShaderResourceView* pSRV2 = nullptr;
 
-          ImGui::Image ( pSRV,       ImVec2  ( std::max (64.0f, (float)desc.Width / 16.0f),
-    ((float)desc.Height / (float)desc.Width) * std::max (64.0f, (float)desc.Width / 16.0f) ),
-                                     ImVec2  (0,0),             ImVec2  (1,1),
-                                     ImColor (255,255,255,255), ImColor (242,242,13,255) );
+          // Typeless compressed types need to assume a type, or they won't render :P
+          switch (srv_desc.Format)
+          {
+            case DXGI_FORMAT_BC1_TYPELESS:
+              srv_desc.Format = DXGI_FORMAT_BC1_UNORM;
+              break;
+            case DXGI_FORMAT_BC2_TYPELESS:
+              srv_desc.Format = DXGI_FORMAT_BC2_UNORM;
+              break;
+            case DXGI_FORMAT_BC3_TYPELESS:
+              srv_desc.Format = DXGI_FORMAT_BC3_UNORM;
+              break;
+            case DXGI_FORMAT_BC4_TYPELESS:
+              srv_desc.Format = DXGI_FORMAT_BC4_UNORM;
+              break;
+            case DXGI_FORMAT_BC5_TYPELESS:
+              srv_desc.Format = DXGI_FORMAT_BC5_UNORM;
+              break;
+            case DXGI_FORMAT_BC6H_TYPELESS:
+              srv_desc.Format = DXGI_FORMAT_BC6H_SF16;
+              break;
+            case DXGI_FORMAT_BC7_TYPELESS:
+              srv_desc.Format = DXGI_FORMAT_BC7_UNORM;
+              break;
+
+            case DXGI_FORMAT_B8G8R8A8_TYPELESS:
+              srv_desc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+              break;
+            case DXGI_FORMAT_R8G8B8A8_TYPELESS:
+              srv_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+
+
+            case DXGI_FORMAT_R8_TYPELESS:
+              srv_desc.Format = DXGI_FORMAT_R8_UNORM;
+              break;
+            case DXGI_FORMAT_R8G8_TYPELESS:
+              srv_desc.Format = DXGI_FORMAT_R8G8_UNORM;
+              break;
+
+            case DXGI_FORMAT_R16_TYPELESS:
+              srv_desc.Format = DXGI_FORMAT_R16_UNORM;
+              break;
+            case DXGI_FORMAT_R16G16_TYPELESS:
+              srv_desc.Format = DXGI_FORMAT_R16G16_UNORM;
+              break;
+            case DXGI_FORMAT_R16G16B16A16_TYPELESS:
+              srv_desc.Format = DXGI_FORMAT_R16G16B16A16_UNORM;
+              break;
+
+            case DXGI_FORMAT_R32_TYPELESS:
+              srv_desc.Format = DXGI_FORMAT_R32_FLOAT;
+              break;
+            case DXGI_FORMAT_R32G32_TYPELESS:
+              srv_desc.Format = DXGI_FORMAT_R32G32_FLOAT;
+              break;
+            case DXGI_FORMAT_R32G32B32_TYPELESS:
+              srv_desc.Format = DXGI_FORMAT_R32G32B32_FLOAT;
+              break;
+            case DXGI_FORMAT_R32G32B32A32_TYPELESS:
+              srv_desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+              break;
+          };
+
+          srv_desc.Texture2D.MipLevels       = (UINT)-1;
+          srv_desc.Texture2D.MostDetailedMip =        desc.MipLevels;
+
+          if (convert_typeless && SUCCEEDED (((ID3D11Device *)(SK_GetCurrentRenderBackend ().device.p))->CreateShaderResourceView (pRes, &srv_desc, &pSRV2)))
+          {
+            temp_resources.emplace_back (pSRV2);
+
+            ImGui::Image ( pSRV2,      ImVec2  ( std::max (64.0f, (float)desc.Width / 16.0f),
+      ((float)desc.Height / (float)desc.Width) * std::max (64.0f, (float)desc.Width / 16.0f) ),
+                                       ImVec2  (0,0),             ImVec2  (1,1),
+                                       ImColor (255,255,255,255), ImColor (242,242,13,255) );
+          }
+
+          else
+          {
+            temp_resources.emplace_back (pSRV);
+                                         pSRV->AddRef ();
+
+            ImGui::Image ( pSRV,       ImVec2  ( std::max (64.0f, (float)desc.Width / 16.0f),
+      ((float)desc.Height / (float)desc.Width) * std::max (64.0f, (float)desc.Width / 16.0f) ),
+                                       ImVec2  (0,0),             ImVec2  (1,1),
+                                       ImColor (255,255,255,255), ImColor (242,242,13,255) );
+          }
           ImGui::TreePop  ();
         }
       }
@@ -11312,7 +11410,7 @@ const std::set          <ID3D11ShaderResourceView *>& set_of_resources,
       if (crc32c != 0x00)
         ImGui::MenuItem ( SK_FormatString ("Enable Shader for Texture %x", crc32c).c_str (), nullptr, &selected);
 
-      DrawRSV (it);
+      DrawSRV (it);
 
       ImGui::EndGroup ();
     }
@@ -11368,7 +11466,7 @@ const std::set          <ID3D11ShaderResourceView *>& set_of_resources,
         ImGui::MenuItem ( SK_FormatString ("Disable Shader for Texture %x", crc32c).c_str (), nullptr, &selected);
 
         if (set_of_resources.count (it))
-          DrawRSV (it);
+          DrawSRV (it);
       }
 
       ImGui::EndGroup ();
@@ -11832,11 +11930,41 @@ SK_LiveTextureView (bool& can_scroll)
           break;
         case DXGI_FORMAT_R8G8B8A8_TYPELESS:
           srv_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+
+
+        case DXGI_FORMAT_R8_TYPELESS:
+          srv_desc.Format = DXGI_FORMAT_R8_UNORM;
+          break;
+        case DXGI_FORMAT_R8G8_TYPELESS:
+          srv_desc.Format = DXGI_FORMAT_R8G8_UNORM;
+          break;
+
+        case DXGI_FORMAT_R16_TYPELESS:
+          srv_desc.Format = DXGI_FORMAT_R16_UNORM;
+          break;
+        case DXGI_FORMAT_R16G16_TYPELESS:
+          srv_desc.Format = DXGI_FORMAT_R16G16_UNORM;
+          break;
+        case DXGI_FORMAT_R16G16B16A16_TYPELESS:
+          srv_desc.Format = DXGI_FORMAT_R16G16B16A16_UNORM;
+          break;
+
+        case DXGI_FORMAT_R32_TYPELESS:
+          srv_desc.Format = DXGI_FORMAT_R32_FLOAT;
+          break;
+        case DXGI_FORMAT_R32G32_TYPELESS:
+          srv_desc.Format = DXGI_FORMAT_R32G32_FLOAT;
+          break;
+        case DXGI_FORMAT_R32G32B32_TYPELESS:
+          srv_desc.Format = DXGI_FORMAT_R32G32B32_FLOAT;
+          break;
+        case DXGI_FORMAT_R32G32B32A32_TYPELESS:
+          srv_desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
           break;
       };
 
-      srv_desc.Texture2D.MipLevels       = 1;
-      srv_desc.Texture2D.MostDetailedMip = 0;
+      srv_desc.Texture2D.MipLevels       = (UINT)-1;
+      srv_desc.Texture2D.MostDetailedMip =        tex_desc.MipLevels;
 
       CComQIPtr <ID3D11Device> pDev (SK_GetCurrentRenderBackend ().device);
 
@@ -14411,6 +14539,9 @@ SK_D3D11_ShaderModDlg (void)
           SK_D3D11_LoadShaderState ();
         }
 
+        ImGui::SameLine ();
+        ImGui::Checkbox ("Convert typeless resource views", &convert_typeless);
+
         ImGui::TreePop     ();
 
         ShaderClassMenu (sk_shader_class::Vertex);
@@ -14934,7 +15065,7 @@ SK_D3D11_ShaderModDlg (void)
   
               srv_desc.ViewDimension             = D3D11_SRV_DIMENSION_TEXTURE2D;
               srv_desc.Format                    = rtv_desc.Format;
-              srv_desc.Texture2D.MipLevels       = UINT_MAX;
+              srv_desc.Texture2D.MipLevels       = (UINT)-1;
               srv_desc.Texture2D.MostDetailedMip =  0;
 
               CComQIPtr <ID3D11Device> pDev (SK_GetCurrentRenderBackend ().device);
@@ -15641,6 +15772,7 @@ protected:
 
 
 
+__forceinline
 const std::unordered_map <std::wstring, SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*>&
 __SK_Singleton_D3D11_ShaderClassMap (void)
 {
@@ -15670,6 +15802,7 @@ __SK_Singleton_D3D11_ShaderClassMap (void)
   return SK_D3D11_ShaderClassMap_;
 }
 
+__forceinline
 std::unordered_set <std::wstring>&
 __SK_Singleton_D3D11_loaded_configs (void)
 {

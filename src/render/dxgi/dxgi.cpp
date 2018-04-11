@@ -319,8 +319,17 @@ SK_CEGUI_RelocateLog (void)
       DeleteFileW (L"CEGUI.log");
     }
 
-    catch (CEGUI::FileIOException e)
+    catch (CEGUI::FileIOException& e)
     {
+      SK_LOG0 ( (L"CEGUI Exception During Log File Relocation"),
+                L"   CEGUI  "  );
+      SK_LOG0 ( (L" >> %hs (%hs:%lu): Exception %hs -- %hs",
+                  e.getFunctionName    ().c_str (),
+                  e.getFileName        ().c_str (),
+                  e.getLine            (),
+                          e.getName    ().c_str (),
+                          e.getMessage ().c_str () ),
+                 L"   CEGUI  "  );
     }
   }
 }
@@ -597,6 +606,9 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
         CComQIPtr <ID3D11Device>        pCEGUIDev    (rb.device);
         CComQIPtr <ID3D11DeviceContext> pCEGUIDevCtx (rb.d3d11.immediate_ctx);
 
+        const char *locale_orig =
+          _strdup (setlocale (LC_ALL, NULL));
+
         try {
           cegD3D11 = dynamic_cast <CEGUI::Direct3D11Renderer *>
             (&CEGUI::Direct3D11Renderer::bootstrapSystem (
@@ -620,6 +632,9 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
 
           config.cegui.enable = false;
         }
+
+        setlocale (LC_ALL, locale_orig);
+        free      ((void *)locale_orig);
       }
       else
         cegD3D11 = reinterpret_cast <CEGUI::Direct3D11Renderer *> (1);

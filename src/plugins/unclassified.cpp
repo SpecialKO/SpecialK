@@ -138,7 +138,7 @@ struct SK_FFXV_Thread
 
   sk::ParameterInt* prio_cfg;
 
-  void setup (HANDLE hThread);
+  void setup (HANDLE __hThread);
 } sk_ffxv_swapchain,
   sk_ffxv_vsync,
   sk_ffxv_async_run;

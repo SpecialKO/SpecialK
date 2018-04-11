@@ -37,7 +37,7 @@ typedef HLOCAL (WINAPI *LocalAlloc_pfn)(
   _In_ SIZE_T uBytes
 );
 
-typedef LPVOID (WINAPI *HeapAlloc_pfn)(
+typedef LPVOID (WINAPI *RtlAllocateHeap_pfn)(
   _In_ HANDLE hHeap,
   _In_ DWORD  dwFlags,
   _In_ SIZE_T dwBytes
@@ -79,7 +79,7 @@ typedef BOOL (WINAPI *HeapFree_pfn)(
   extern VirtualAlloc_pfn VirtualAlloc_Original;
   extern VirtualFree_pfn  VirtualFree_Original;
 
-  extern HeapAlloc_pfn    HeapAlloc_Original;
-  extern HeapFree_pfn     HeapFree_Original;
+  extern RtlAllocateHeap_pfn RtlAllocaeHeap_Original;
+  extern HeapFree_pfn        HeapFree_Original;
 
 #endif /* __SK__MEMORY_H__ */

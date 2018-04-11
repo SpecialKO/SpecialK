@@ -39,6 +39,28 @@
 #include <Shlwapi.h>
 #include <time.h>
 
+typedef HHOOK (NTAPI *NtUserSetWindowsHookEx_pfn)(
+ _In_     int       idHook,
+ _In_     HOOKPROC  lpfn,
+ _In_opt_ HINSTANCE hmod,
+ _In_     DWORD     dwThreadId
+);
+
+typedef LRESULT (NTAPI *NtUserCallNextHookEx_pfn)(
+ _In_opt_ HHOOK  hhk,
+ _In_     int    nCode,
+ _In_     WPARAM wParam,
+ _In_     LPARAM lParam
+);
+
+typedef BOOL (WINAPI *NtUserUnhookWindowsHookEx_pfn)(
+ _In_ HHOOK hhk
+);
+
+NtUserSetWindowsHookEx_pfn    NtUserSetWindowsHookEx    = nullptr;
+NtUserCallNextHookEx_pfn      NtUserCallNextHookEx      = nullptr;
+NtUserUnhookWindowsHookEx_pfn NtUserUnhookWindowsHookEx = nullptr;
+
 extern "C"
 {
 // It's not possible to store a structure in the shared data segment.
@@ -355,7 +377,7 @@ CBTProc ( _In_ int    nCode,
      }, nullptr, 0x0, nullptr);
   }
 
-  return CallNextHookEx (hHookCBT, nCode, wParam, lParam);
+  return NtUserCallNextHookEx (hHookCBT, nCode, wParam, lParam);
 }
 
 BOOL

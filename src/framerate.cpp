@@ -1083,25 +1083,6 @@ Sleep_Detour (DWORD dwMilliseconds)
   ///  }
   ///}
 
-#if 0
-  if (SK::SteamAPI::AppID () > 0)
-  {
-    if (hModSteamAPI == nullptr)
-    {
-      hModSteamAPI = 
-#ifndef _WIN64
-        GetModuleHandle (L"steam_api.dll");
-#else
-        GetModuleHandle (L"steam_api64.dll");
-#endif
-    }
-
-    if (SK_GetCallingDLL () == hModSteamAPI)
-      return Sleep_Original (dwMilliseconds);
-  }
-#endif
-
-
   BOOL bGUIThread    = SK_Win32_IsGUIThread ();
   BOOL bRenderThread = ((DWORD)ReadAcquire (&SK_GetCurrentRenderBackend ().thread) == GetCurrentThreadId ());
 
@@ -1162,8 +1143,14 @@ Sleep_Detour (DWORD dwMilliseconds)
   //if (config.framerate.yield_processor && dwMilliseconds == 0)
   if (dwMilliseconds == 0)
   {
-    YieldProcessor ();
-  //SleepEx (0, TRUE);
+    YieldProcessor ( );
+    static LONG sleep0_count = 0;
+
+    if ((sleep0_count++ % 64) != 0)
+      Sleep_Original (0);
+    else
+      SwitchToThread ( );
+
     return;
   }
 
