@@ -102,11 +102,20 @@ typedef struct tagTHREADNAME_INFO
 SetThreadDescription_pfn SetThreadDescription = &SetThreadDescription_NOP;
 GetThreadDescription_pfn GetThreadDescription = &GetThreadDescription_NOP;
 
+// Avoid SEH unwind problems
+void
+__make_self_titled (DWORD dwTid)
+{
+  _SK_SelfTitledThreads.insert (dwTid);
+}
+
 HRESULT
 WINAPI
 SetCurrentThreadDescription (_In_ PCWSTR lpThreadDescription)
 {
-  if ( SK_GetHostAppUtil ().isInjectionTool () || SK_TLS_Bottom () == nullptr )
+  SK_TLS* pTLS = nullptr;
+
+  if ( SK_GetHostAppUtil ().isInjectionTool () || ((pTLS = SK_TLS_Bottom ()) == nullptr) )
     return S_OK;
 
 
@@ -114,15 +123,17 @@ SetCurrentThreadDescription (_In_ PCWSTR lpThreadDescription)
     lstrlenW (lpThreadDescription) != 0;
 
 
-  if (non_empty)
+  if (non_empty && pTLS != nullptr)
   {
-    _SK_SelfTitledThreads.insert (GetCurrentThreadId ());
+    DWORD dwTid = GetCurrentThreadId ();
+
+    __make_self_titled (dwTid);
 
     // Push this to the TLS datastore so we can get thread names even
     //   when no debugger is attached.
-    wcsncpy (SK_TLS_Bottom ()->debug.name, lpThreadDescription, 255);
+    wcsncpy (pTLS->debug.name, lpThreadDescription, 255);
 
-    _SK_ThreadNames [GetCurrentThreadId ()] = lpThreadDescription;
+    _SK_ThreadNames [dwTid] = lpThreadDescription;
 
 
     char      szDesc [256] = { };
@@ -182,14 +193,17 @@ HRESULT
 WINAPI
 GetCurrentThreadDescription (_Out_  PWSTR  *threadDescription)
 {
+  SK_TLS* pTLS =
+    SK_TLS_Bottom ();
+
   // Always use the TLS value if there is one
-  if (wcslen (SK_TLS_Bottom ()->debug.name))
+  if (wcslen (pTLS->debug.name))
   {
     // This is not freed here; the caller is expected to free it!
     *threadDescription =
       (wchar_t *)LocalAlloc (LPTR, 1024);
 
-    wcsncpy (*threadDescription, SK_TLS_Bottom ()->debug.name, 255);
+    wcsncpy (*threadDescription, pTLS->debug.name, 255);
 
     return S_OK;
   }

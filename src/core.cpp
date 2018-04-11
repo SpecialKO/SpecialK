@@ -2368,8 +2368,8 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
   SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
-  assert ( ReadAcquire (&rb.thread) == GetCurrentThreadId () ||
-           LastKnownAPI             == SK_RenderAPI::Reserved );
+  assert ( ReadAcquire (&rb.thread) == (LONG)GetCurrentThreadId () ||
+           LastKnownAPI             ==       SK_RenderAPI::Reserved );
 
   InterlockedExchange (&rb.thread, GetCurrentThreadId ());
 

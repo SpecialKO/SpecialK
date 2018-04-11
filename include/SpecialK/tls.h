@@ -397,6 +397,7 @@ public:
     bool             last_chance   = false;
     bool             in_DllMain    = false;
     wchar_t          name [256]    = {   };
+    DWORD            tid           = GetCurrentThreadId ();
   } debug;
 
   struct tex_mgmt_s

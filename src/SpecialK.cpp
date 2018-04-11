@@ -63,6 +63,9 @@ bool has_local_dll = false;
 
 
 
+#include <concurrent_unordered_map.h>
+
+
 skModuleRegistry SK_Modules;
 
 SK_Thread_HybridSpinlock* init_mutex   = nullptr;
@@ -311,7 +314,15 @@ DllMain ( HMODULE hModule,
       {
         InterlockedIncrement (&__SK_Threads_Attached);
 
-        SK_GetTLS (true);
+        SK_TlsRecord tls_rec =
+          SK_GetTLS (true);
+
+        extern Concurrency::concurrent_unordered_map <DWORD, SK_TlsRecord> tls_map;
+
+        tls_map.insert (
+          std::make_pair ( ((SK_TLS *)tls_rec.lpvData)->debug.tid,
+                             std::move (tls_rec) )
+        );
       }
     }
     break;

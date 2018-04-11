@@ -80,8 +80,6 @@ SK_GetTLS (bool initialize)
       // Stack semantics are deprecated and will be removed soon
       pTLS->stack.current = 0;
 
-      tls_map   [GetCurrentThreadId ()] = { dwTlsIdx, lpvData };
-
       InterlockedDecrement (&_SK_IgnoreTLSAlloc);
     }
   }
