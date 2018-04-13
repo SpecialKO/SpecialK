@@ -2996,6 +2996,11 @@ SteamAPI_RunCallbacks_Detour (void)
   static bool failure = false;
 
 
+  SK_TLS* pTLS = SK_TLS_Bottom ();
+
+  if (pTLS != nullptr) InterlockedIncrement64 (&pTLS->steam.callback_count);
+
+
   if (SK_Steam_ShouldThrottleCallbacks ())
     return;
 
@@ -3035,10 +3040,11 @@ SteamAPI_RunCallbacks_Detour (void)
       ISteamUserStats* pStats =
         steam_ctx.UserStats ();
 
-      if (pStats)
-          pStats->RequestGlobalAchievementPercentages ();
-
-      SteamAPI_RunCallbacks_Original ();
+      if (pStats && (steam_achievements != nullptr))
+      {
+        pStats->RequestGlobalAchievementPercentages ();
+        SteamAPI_RunCallbacks_Original ();
+      }
     }
     
     __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION )  ?
@@ -3047,7 +3053,6 @@ SteamAPI_RunCallbacks_Detour (void)
     {
       failure = true;
       steam_log.Log (L" Caught a Structured Exception while running Steam Callbacks!");
-      InterlockedIncrement64 (&SK_SteamAPI_CallbackRunCount);
     }
   }
 
@@ -3070,7 +3075,6 @@ SteamAPI_RunCallbacks_Detour (void)
         dwLastOnlineStateCheck = dwNow;
       }
 
-      InterlockedIncrement64         (&SK_SteamAPI_CallbackRunCount);
       SteamAPI_RunCallbacks_Original ();
     }
   }
@@ -4171,14 +4175,14 @@ SK_SteamAPI_InitManagers (void)
 {
   if (! InterlockedCompareExchange (&SK_SteamAPI_ManagersInitialized, 1, 0))
   {
-    has_global_data = false;
-    next_friend     = 0;
-
     ISteamUserStats* stats =
       steam_ctx.UserStats ();
 
-    if (stats != nullptr)
+    if (stats != nullptr && ((! user_manager) || (! steam_achievements)))
     {
+      has_global_data = false;
+      next_friend     = 0;
+
       if (stats->GetNumAchievements ())
       {
         steam_log.Log (L" Creating Achievement Manager...");
@@ -4195,11 +4199,11 @@ SK_SteamAPI_InitManagers (void)
       user_manager         = new SK_Steam_UserManager    ();
     }
 
-    if (steam_ctx.Utils ())
+    if (steam_ctx.Utils () && (! overlay_manager))
       overlay_manager      = new SK_Steam_OverlayManager ();
 
     // Failed, try again later...
-    if (overlay_manager == nullptr && steam_achievements == nullptr)
+    if (overlay_manager == nullptr || steam_achievements == nullptr)
       InterlockedExchange (&SK_SteamAPI_ManagersInitialized, 0);
   }
 }

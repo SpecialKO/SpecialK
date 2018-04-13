@@ -64,6 +64,27 @@ SK_ImGui_NV_DepthBoundsD3D11 (void)
   }
 }
 
+extern bool
+WINAPI
+SK_DXGI_IsTrackingBudget (void);
+
+struct SK_D3D11_TexCacheResidency_s
+{
+  struct
+  {
+    volatile LONG InVRAM   = 0L;
+    volatile LONG Shared   = 0L;
+    volatile LONG PagedOut = 0L;
+  } count;
+
+  struct
+  {
+    volatile LONG64 InVRAM   = 0LL;
+    volatile LONG64 Shared   = 0LL;
+    volatile LONG64 PagedOut = 0LL;
+  } size;
+} SK_D3D11_TexCacheResidency;
+
 void
 SK_ImGui_DrawTexCache_Chart (void)
 {
@@ -132,9 +153,51 @@ SK_ImGui_DrawTexCache_Chart (void)
       config.textures.cache.max_size = size;
       SK_GetCommandProcessor ()->ProcessCommandFormatted ("TexCache.MaxSize %d ", config.textures.cache.max_size);
     }
-    ImGui::TreePop   (    );
 
-    ImGui::PopStyleColor ( );
+    ImGui::TreePop       ();
+    ImGui::PopStyleColor ();
+
+    if (SK_DXGI_IsTrackingBudget ())
+    {
+      ImGui::Separator ();
+
+      ImGui::Checkbox ("Measure residency", &config.textures.cache.residency_managemnt);
+
+      if (config.textures.cache.residency_managemnt)
+      {
+        int fully_resident = ReadAcquire (&SK_D3D11_TexCacheResidency.count.InVRAM);
+        int shared_memory  = ReadAcquire (&SK_D3D11_TexCacheResidency.count.Shared);
+        int on_disk        = ReadAcquire (&SK_D3D11_TexCacheResidency.count.PagedOut);
+
+        LONG64 size_vram   = ReadAcquire64 (&SK_D3D11_TexCacheResidency.size.InVRAM);
+        LONG64 size_shared = ReadAcquire64 (&SK_D3D11_TexCacheResidency.size.Shared);
+        LONG64 size_disk   = ReadAcquire64 (&SK_D3D11_TexCacheResidency.size.PagedOut);
+
+        ImGui::BeginGroup ();
+        if (fully_resident != 0)
+          ImGui::TextColored (ImColor (0.3f, 0.78f, 0.3f),   "%lu Textures in VRAM\t",          fully_resident);
+
+        if (shared_memory != 0)
+          ImGui::TextColored (ImColor (0.78f, 0.78f, 0.55f), "%lu Textures in Shared Memory\t", shared_memory);
+
+        if (on_disk != 0)
+          ImGui::TextColored (ImColor (0.78f, 0.3f, 0.3f),   "%lu Textures Paged to Disk\t",    on_disk);
+        ImGui::EndGroup ();
+
+        ImGui::SameLine ();
+
+        ImGui::BeginGroup ();
+        if (fully_resident != 0)
+          ImGui::TextColored (ImColor (0.1f, 0.98f, 0.1f),   "\t\t%ws", SK_File_SizeToStringF (size_vram,   2, 3).c_str ());
+
+        if (shared_memory != 0)
+          ImGui::TextColored (ImColor (0.98f, 0.98f, 0.25f), "\t\t%ws", SK_File_SizeToStringF (size_shared, 2, 3).c_str ());
+
+        if (on_disk != 0)
+          ImGui::TextColored (ImColor (0.98f, 0.1f, 0.1f),   "\t\t%ws", SK_File_SizeToStringF (size_disk,   2, 3).c_str ());
+        ImGui::EndGroup ();
+      }
+    }
   }
 }
 
@@ -475,17 +538,12 @@ SK::ControlPanel::D3D11::Draw (void)
 
     ImGui::SameLine ();
 
-#if 0
-    if (ImGui::Button (" Re-Hook SwapChain Present "))
-    {
-      extern void
-      SK_DXGI_HookPresent (IDXGISwapChain* pSwapChain, bool rehook = false);
+    ImGui::Checkbox ("D3D11 Deferred Mode", &config.render.dxgi.deferred_isolation);
 
-      SK_DXGI_HookPresent ((IDXGISwapChain *)SK_GetCurrentRenderBackend ().swapchain, true);
-    }
+    if (ImGui::IsItemHovered ())
+      ImGui::SetTooltip ("Try changing this option if textures / shaders are missing from the mod tools.");
 
     ImGui::SameLine ();
-#endif
 
     if (ImGui::Checkbox ("Enable CEGUI", &config.cegui.enable))
     {

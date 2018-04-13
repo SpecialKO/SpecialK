@@ -172,6 +172,7 @@ extern SK_Thread_HybridSpinlock cs_mmio;
 extern void SK_D3D11_EndFrame       (void);
 extern void SK_DXGI_UpdateSwapChain (IDXGISwapChain*);
 
+
 #include <CEGUI/CEGUI.h>
 #include <CEGUI/System.h>
 #include <CEGUI/DefaultResourceProvider.h>
@@ -6814,6 +6815,13 @@ struct budget_thread_params_t
   volatile LONG           ready    = FALSE;
 } budget_thread;
 
+bool
+WINAPI
+SK_DXGI_IsTrackingBudget (void)
+{
+  return budget_thread.tid != 0UL;
+}
+
 
 HRESULT
 SK::DXGI::StartBudgetThread ( IDXGIAdapter** ppAdapter )
@@ -7119,6 +7127,22 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
       ResetEvent          (  params->shutdown     );
       break;
     }
+
+
+    //static DWORD dwLastEvict = 0;
+    //static DWORD dwLastTest  = 0;
+    //static DWORD dwLastSize  = SK_D3D11_Textures.Entries_2D.load ();
+    //
+    //DWORD dwNow = timeGetTime ();
+    //
+    //if ( ( SK_D3D11_Textures.Evicted_2D.load () != dwLastEvict || 
+    //       SK_D3D11_Textures.Entries_2D.load () != dwLastSize     ) &&
+    //                                        dwLastTest < dwNow - 750UL )
+    ////if (ImGui::Button ("Compute Residency Statistics"))
+    //{
+    //  dwLastTest  = dwNow;
+    //  dwLastEvict = SK_D3D11_Textures.Evicted_2D.load ();
+    //  dwLastSize  = SK_D3D11_Textures.Entries_2D.load ();
 
     int         node = 0;
 

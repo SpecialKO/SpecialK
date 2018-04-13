@@ -520,7 +520,7 @@ using K32GetModuleInformation_pfn = BOOL (WINAPI *)(HANDLE, HMODULE, LPMODULEINF
 
 static K32GetModuleInformation_pfn K32GetModuleInformation =
   reinterpret_cast <K32GetModuleInformation_pfn> (
-    GetProcAddress ( GetModuleHandle (L"Kernel32.dll"),
+    GetProcAddress ( GetModuleHandle (L"kernel32"),
                                        "K32GetModuleInformation" )
   );
 
@@ -636,7 +636,7 @@ SK_CreateDLLHook ( const wchar_t  *pwszModule, const char  *pszProcName,
     //  >> Pass the library load through the original (now hooked) function so that
     //       anything else that hooks this DLL on-load does not miss its initial load.
     //
-    if (SK_Modules.LoadLibrary (pwszModule))
+    if ((hMod = SK_Modules.LoadLibrary (pwszModule)))
       GetModuleHandleExW (GET_MODULE_HANDLE_EX_FLAG_PIN, pwszModule, &hMod);
   }
 
@@ -756,7 +756,7 @@ SK_CreateDLLHook2 ( const wchar_t  *pwszModule, const char  *pszProcName,
     //  >> Pass the library load through the original (now hooked) function so that
     //       anything else that hooks this DLL on-load does not miss its initial load.
     //
-    if (SK_Modules.LoadLibrary (pwszModule))
+    if ((hMod = SK_Modules.LoadLibrary (pwszModule)))
       GetModuleHandleExW (GET_MODULE_HANDLE_EX_FLAG_PIN, pwszModule, &hMod);
   }
 
@@ -876,7 +876,7 @@ SK_CreateDLLHook3 ( const wchar_t  *pwszModule, const char  *pszProcName,
     //  >> Pass the library load through the original (now hooked) function so that
     //       anything else that hooks this DLL on-load does not miss its initial load.
     //
-    if (SK_Modules.LoadLibrary (pwszModule))
+    if ((hMod = SK_Modules.LoadLibrary (pwszModule)))
       GetModuleHandleExW (GET_MODULE_HANDLE_EX_FLAG_PIN, pwszModule, &hMod);
   }
 
@@ -964,6 +964,53 @@ SK_CreateDLLHook3 ( const wchar_t  *pwszModule, const char  *pszProcName,
 
   return status;
 }
+
+
+MH_STATUS
+__stdcall
+SK_CreateUser32Hook ( const char  *pszProcName,
+                         void     *pDetour,          void **ppOriginal,
+                         void    **ppFuncAddr )
+{
+  // Win32u is faster on systems that dispatch system calls through it
+  //
+  static sk_import_test_s win32u_test [] = { { "win32u.dll", false } };
+  static bool             tested         =                   false;
+
+  if (! tested)
+  {
+    SK_TestImports (GetModuleHandle (L"user32"), win32u_test, sizeof (win32u_test) / sizeof sk_import_test_s);
+    tested = true;
+
+    if (! win32u_test [0].used)
+    {
+      SK_LOG0 ( (L" *** WARNING: System's user32.dll does not dispatch system calls through Win32U.DLL ***"),
+                 L"HookEngine" );
+    }
+  }
+
+  char    proc_name   [128] = { };
+  wchar_t module_name [128] = L"Win32U.DLL";
+
+  if (win32u_test [0].used)
+  {
+    strncpy (proc_name, pszProcName, 127);
+  }
+
+  else
+  {
+    wcscpy (module_name, L"user32");
+
+    if (StrStrIA (pszProcName, "NtUser"))
+      strncpy (proc_name, pszProcName + 6, 127);
+    else
+      strncpy (proc_name, pszProcName, 127);
+  }
+
+  return SK_CreateDLLHook2 (module_name, proc_name, pDetour, ppOriginal, ppFuncAddr);
+}
+
+
 
 MH_STATUS
 __stdcall

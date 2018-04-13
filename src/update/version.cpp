@@ -138,6 +138,13 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
   last_result.ret     = false;
 
 
+  if (! wcslen (wszProduct))
+  {
+    InterlockedExchange (&spinlock, 0);
+    return false;
+  }
+
+
 #define INJECTOR
 #ifndef INJECTOR
   if (! SK_IsInjected ())
@@ -298,7 +305,7 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
   }
 
 
-  
+
   if (GetFileAttributes (SK_Version_GetRepoIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
   {
     CHandle hVersionConfig (
@@ -393,7 +400,7 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
   else
     swprintf ( wszRemoteRepoURL,
                  L"/Kaldaien/%s/master/version.ini",
-                   wszProduct );
+                   wcslen (wszProduct) ? wszProduct : L"SpecialK" );
 
   ULONG ulTimeout = 5000UL;
   bool  bRet      = FALSE;

@@ -210,6 +210,13 @@ SK_CreateDLLHook3 ( const wchar_t  *pwszModule, const char  *pszProcName,
 
 MH_STATUS
 __stdcall
+SK_CreateUser32Hook ( const char  *pszProcName,
+                         void     *pDetour,          void **ppOriginal,
+                         void    **ppFuncAddr
+                                      = nullptr );
+
+MH_STATUS
+__stdcall
 SK_CreateVFTableHook ( const wchar_t  *pwszFuncName,
                              void    **ppVFTable,
                              DWORD     dwOffset,

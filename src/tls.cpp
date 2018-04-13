@@ -77,6 +77,8 @@ SK_GetTLS (bool initialize)
 
       *pTLS = SK_TLS::SK_TLS ();
 
+      pTLS->debug.tls_idx = dwTlsIdx;
+
       // Stack semantics are deprecated and will be removed soon
       pTLS->stack.current = 0;
 
@@ -147,8 +149,35 @@ SK_TLS_Bottom (void)
     return       &safety_net;
   }
 
-  return
+  SK_TLS* pTLS =
     static_cast <SK_TLS *> (tls_slot.lpvData);
+
+  ULONG frame = SK_GetFramesDrawn ();
+
+  if (pTLS->debug.last_frame == (frame - 1))
+  {
+    if ((! pTLS->debug.mapped) && frame > 1)
+    {
+      if (! tls_map.count (pTLS->debug.tid))
+      {
+        pTLS->debug.mapped = true;
+
+        InterlockedIncrement (&_SK_IgnoreTLSAlloc);
+
+        tls_map.insert (
+          std::make_pair ( pTLS->debug.tid,
+                             SK_TlsRecord { pTLS->debug.tls_idx, pTLS } )
+        );
+
+        InterlockedDecrement (&_SK_IgnoreTLSAlloc);
+      }
+    }
+  }
+
+  pTLS->debug.last_frame = frame;
+
+  return
+    pTLS;
 }
 
 SK_TLS*

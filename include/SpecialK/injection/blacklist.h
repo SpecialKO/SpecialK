@@ -22,7 +22,7 @@ std::unordered_set <std::wstring> __blacklist = {
   L"dxsetup.exe",
   L"setup.exe",
   L"vc_redist.x64.exe",
-  L"vc_redist.x86.exe",
+  L"vc_redist.x86.exe"  
   L"vc2010redist_x64.exe",
   L"vc2010redist_x86.exe",
   L"vcredist_x64.exe",
@@ -85,7 +85,7 @@ std::unordered_set <std::wstring> __blacklist = {
   L"gamebarpresencewriter.exe",
   L"oawrapper.exe",
   L"nvoawrappercache.exe",
-  L"perfwatson2.exe",
+//L"perfwatson2.exe",
   
   L"gameserver.exe",// Sacred   game server
   L"s2gs.exe",      // Sacred 2 game server
@@ -96,6 +96,10 @@ std::unordered_set <std::wstring> __blacklist = {
   L"browser_broker.exe",
   L"dwm.exe",
   L"launchtm.exe",
+
+  L"synchost.exe",
+  L"settingsynchost.exe",
+  L"applicationframehost.exe",
   
   L"ds3t.exe",
   L"tzt.exe"

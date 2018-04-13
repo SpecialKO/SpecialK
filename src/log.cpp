@@ -53,7 +53,7 @@ SK_Timestamp (wchar_t* const out)
     {
       _k32GetSystemTimePreciseAsFileTime =
         (GetSystemTimePreciseAsFileTime_pfn)
-        GetProcAddress (GetModuleHandle (L"Kernel32.dll"),
+        GetProcAddress (GetModuleHandle (L"kernel32"),
                         "GetSystemTimePreciseAsFileTime");
     }
 

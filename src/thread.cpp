@@ -250,11 +250,11 @@ SK_Thread_InitDebugExtras (void)
     //
     SetThreadDescription =
       (SetThreadDescription_pfn)
-        GetProcAddress ( GetModuleHandle (L"Kernel32.dll"),
+        GetProcAddress ( GetModuleHandle (L"kernel32"),
                                            "SetThreadDescription" );
     GetThreadDescription =
       (GetThreadDescription_pfn)
-        GetProcAddress ( GetModuleHandle (L"Kernel32.dll"),
+        GetProcAddress ( GetModuleHandle (L"kernel32"),
                                            "GetThreadDescription" );
 
     if (SetThreadDescription == nullptr)

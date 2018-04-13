@@ -1853,80 +1853,81 @@ void SK_Input_Init (void);
 // Parts of the Win32 API that are safe to hook from DLL Main
 void SK_Input_PreInit (void)
 {
-  SK_CreateDLLHook2 (       L"win32u.dll",
-                             "NtUserGetRawInputData",
+  SK_CreateUser32Hook (      "NtUserGetRawInputData",
                               NtUserGetRawInputData_Detour,
      static_cast_p2p <void> (&GetRawInputData_Original) );
 
-  SK_CreateDLLHook2 (       L"win32u.dll",
-                             "NtUserGetAsyncKeyState",
+  SK_CreateUser32Hook (      "NtUserGetAsyncKeyState",
                               NtUserGetAsyncKeyState_Detour,
      static_cast_p2p <void> (&GetAsyncKeyState_Original) );
 
-  SK_CreateDLLHook2 (       L"win32u.dll",
-                             "NtUserGetKeyState",
+  SK_CreateUser32Hook (      "NtUserGetKeyState",
                               NtUserGetKeyState_Detour,
      static_cast_p2p <void> (&GetKeyState_Original) );
 
-  SK_CreateDLLHook2 (       L"win32u.dll",
-                             "NtUserGetKeyboardState",
+  SK_CreateUser32Hook (      "NtUserGetKeyboardState",
                               NtUserGetKeyboardState_Detour,
      static_cast_p2p <void> (&GetKeyboardState_Original) );
 
-  SK_CreateDLLHook2 (       L"user32.dll",
+
+  SK_CreateDLLHook2 (       L"user32",
                              "GetCursorPos",
                               GetCursorPos_Detour,
      static_cast_p2p <void> (&GetCursorPos_Original) );
 
-  SK_CreateDLLHook2 (       L"win32u.dll",
-                             "NtUserGetCursorInfo",
+
+  SK_CreateUser32Hook (      "NtUserGetCursorInfo",
                               NtUserGetCursorInfo_Detour,
      static_cast_p2p <void> (&GetCursorInfo_Original) );
 
-  SK_CreateDLLHook2 (       L"user32.dll",
+
+  SK_CreateDLLHook2 (       L"user32",
                              "GetMouseMovePointsEx",
                               GetMouseMovePointsEx_Detour,
      static_cast_p2p <void> (&GetMouseMovePointsEx_Original) );
 
-  SK_CreateDLLHook2 (       L"win32u.dll",
-                             "NtUserSetCursor",
+
+  SK_CreateUser32Hook (      "NtUserSetCursor",
                               NtUserSetCursor_Detour,
      static_cast_p2p <void> (&SetCursor_Original) );
 
-  SK_CreateDLLHook2 (       L"user32.dll",
+
+  SK_CreateDLLHook2 (       L"user32",
                              "SetCursorPos",
                               SetCursorPos_Detour,
      static_cast_p2p <void> (&SetCursorPos_Original) );
 
-  SK_CreateDLLHook2 (       L"win32u.dll",
-                             "NtUserSendInput",
+
+  SK_CreateUser32Hook (      "NtUserSendInput",
                               NtUserSendInput_Detour,
      static_cast_p2p <void> (&SendInput_Original) );
 
-  SK_CreateDLLHook2 (       L"user32.dll",
+
+  SK_CreateDLLHook2 (       L"user32",
                              "mouse_event",
                               mouse_event_Detour,
      static_cast_p2p <void> (&mouse_event_Original) );
 
-  SK_CreateDLLHook2 (       L"user32.dll",
+  SK_CreateDLLHook2 (       L"user32",
                              "keybd_event",
                               keybd_event_Detour,
      static_cast_p2p <void> (&keybd_event_Original) );
 
-  SK_CreateDLLHook2 (       L"win32u.dll",
-                             "NtUserRegisterRawInputDevices",
+
+  SK_CreateUser32Hook (      "NtUserRegisterRawInputDevices",
                               NtUserRegisterRawInputDevices_Detour,
      static_cast_p2p <void> (&RegisterRawInputDevices_Original) );
 
-  SK_CreateDLLHook2 (       L"win32u.dll",
-                             "NtUserGetRegisteredRawInputDevices",
+  SK_CreateUser32Hook (      "NtUserGetRegisteredRawInputDevices",
                               NtUserGetRegisteredRawInputDevices_Detour,
      static_cast_p2p <void> (&GetRegisteredRawInputDevices_Original) );
 
-  SK_CreateDLLHook2 (       L"user32.dll",
+
+  SK_CreateDLLHook2 (       L"user32",
                              "GetRawInputBuffer",
                               GetRawInputBuffer_Detour,
      static_cast_p2p <void> (&GetRawInputBuffer_Original) );
+
 
   if (config.input.gamepad.hook_xinput)
     SK_XInput_InitHotPlugHooks ( );

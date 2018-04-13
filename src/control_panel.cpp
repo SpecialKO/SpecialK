@@ -2323,6 +2323,25 @@ SK_ImGui_InstallOpenCloseCallback (SK_ImGui_OpenCloseCallback_pfn fn, void* user
 #include <SpecialK/osd/text.h>
 #include <SpecialK/tls.h>
 
+
+struct SK_D3D11_TexCacheResidency_s
+{
+  struct
+  {
+    volatile LONG InVRAM;
+    volatile LONG Shared;
+    volatile LONG PagedOut;
+  } count;
+
+  struct
+  {
+    volatile LONG64 InVRAM;
+    volatile LONG64 Shared;
+    volatile LONG64 PagedOut;
+  } size;
+} extern SK_D3D11_TexCacheResidency;
+
+
 static bool keep_open;
 
 void
@@ -2638,7 +2657,16 @@ SK_ImGui_StageNextFrame (void)
         move = false;
       }
 
-      ImGui::SetNextWindowSize  (ImVec2 (font.size * 35, font.size_multiline * 6.25f),      ImGuiSetCond_Always);
+      float extra_lines = 0.0f;
+
+      if (config.textures.cache.residency_managemnt)
+      {
+        if (ReadAcquire (&SK_D3D11_TexCacheResidency.count.InVRAM)   > 0) extra_lines++;
+        if (ReadAcquire (&SK_D3D11_TexCacheResidency.count.Shared)   > 0) extra_lines++;
+        if (ReadAcquire (&SK_D3D11_TexCacheResidency.count.PagedOut) > 0) extra_lines++;
+      }
+
+      ImGui::SetNextWindowSize  (ImVec2 (font.size * 35, font.size_multiline * (7.25f + extra_lines)), ImGuiSetCond_Always);
       
       ImGui::Begin            ("###Widget_TexCacheD3D11", nullptr, ImGuiWindowFlags_NoTitleBar         | ImGuiWindowFlags_NoResize         |
                                                                    ImGuiWindowFlags_NoScrollbar        | ImGuiWindowFlags_AlwaysAutoResize |

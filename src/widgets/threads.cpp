@@ -121,7 +121,7 @@ public:
     SK_RunOnce (
       k32SetThreadInformation =
         (SetThreadInformation_pfn)GetProcAddress (
-          GetModuleHandle (L"Kernel32.dll"),
+          GetModuleHandle (L"kernel32"),
                             "SetThreadInformation"
         )
     );
@@ -129,7 +129,7 @@ public:
     SK_RunOnce (
       k32GetThreadInformation =
         (GetThreadInformation_pfn)GetProcAddress (
-          GetModuleHandle (L"Kernel32.dll"),
+          GetModuleHandle (L"kernel32"),
                             "GetThreadInformation"
         )
     );
@@ -308,6 +308,23 @@ public:
           ImGui::BeginGroup ();
           if (ReadAcquire64 (&pTLS->net.bytes_sent))     ImGui::Text ("%ws", SK_File_SizeToStringF (ReadAcquire64 (&pTLS->net.bytes_sent),     2, 3).c_str  ());
           if (ReadAcquire64 (&pTLS->net.bytes_received)) ImGui::Text ("%ws", SK_File_SizeToStringF (ReadAcquire64 (&pTLS->net.bytes_received), 2, 3).c_str  ());
+          ImGui::EndGroup   ();
+        }
+
+        LONG64 steam_calls = ReadAcquire64 (&pTLS->steam.callback_count);
+
+        if ( steam_calls > 0 )
+        {
+          ImGui::Separator ();
+
+          ImGui::BeginGroup ();
+          ImGui::Text ("Steam Callbacks:\t");
+          ImGui::EndGroup   ();
+
+          ImGui::SameLine   ();
+
+          ImGui::BeginGroup ();
+          ImGui::Text ("%lli", steam_calls);
           ImGui::EndGroup   ();
         }
 

@@ -1,3 +1,13 @@
+0.9.16:
+
+ + Added workaround for systems that do not dispatch user32.dll system calls
+     through win32u.dll
+ + Added D3D11 Texture Cache residency management, to reduce cache pressure on
+     textures that the driver isn't storing in VRAM.
+ + Added D3D11 Deferred Context Isolation checkbox to D3D11 settings
+ + Added SteamAPI callback count to thread monitoring info
+
+
 0.9.15:
 
  (.1): Fix for Chrono Trigger + CEGUI

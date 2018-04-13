@@ -736,7 +736,7 @@ SK_SelfDestruct (void)
 
     using  TerminateProcess_pfn = BOOL (WINAPI *)(HANDLE hProcess, UINT uExitCode);
 
-    ( (TerminateProcess_pfn)GetProcAddress ( GetModuleHandle ( L"kernel32.dll" ),
+    ( (TerminateProcess_pfn)GetProcAddress ( GetModuleHandle ( L"kernel32" ),
                                                "TerminateProcess" )
     )(SK_GetCurrentProcess (), 0x00);
   }

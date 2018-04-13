@@ -300,6 +300,8 @@ public:
   int32_t client_pipe = 0;
   int32_t client_user = 0;
 
+  volatile LONG64 callback_count = 0;
+
   size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload);
 };
 
@@ -396,8 +398,11 @@ public:
     EXCEPTION_RECORD last_exc      = {   };
     bool             last_chance   = false;
     bool             in_DllMain    = false;
-    wchar_t          name [256]    = {   };
+    wchar_t          name [256] = {   };
+    DWORD            tls_idx       =     0;
     DWORD            tid           = GetCurrentThreadId ();
+    ULONG            last_frame    = (ULONG)-1;
+    bool             mapped        = false;
   } debug;
 
   struct tex_mgmt_s

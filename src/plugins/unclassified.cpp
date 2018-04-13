@@ -209,7 +209,7 @@ SK_FFXV_Thread::setup (HANDLE __hThread)
   if (this == &sk_ffxv_swapchain) 
   {
 #if 0
-    SK_CreateDLLHook2 (      L"kernel32.dll",
+    SK_CreateDLLHook2 (      L"kernel32",
                               "SleepConditionVariableCS",
                                SleepConditionVariableCS_Detour,
       static_cast_p2p <void> (&SleepConditionVariableCS_Original) );

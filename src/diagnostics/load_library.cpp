@@ -908,7 +908,7 @@ SK_ReHookLoadLibrary (void)
     _loader_hooks.LoadLibraryA_target = nullptr;
   }
 
-  SK_CreateDLLHook2 (      L"kernel32.dll",
+  SK_CreateDLLHook2 (      L"kernel32",
                             "LoadLibraryA",
                              LoadLibraryA_Detour,
     static_cast_p2p <void> (&LoadLibraryA_Original),
@@ -923,7 +923,7 @@ SK_ReHookLoadLibrary (void)
     _loader_hooks.LoadLibraryW_target = nullptr;
   }
 
-  SK_CreateDLLHook2 (      L"kernel32.dll",
+  SK_CreateDLLHook2 (      L"kernel32",
                             "LoadLibraryW",
                              LoadLibraryW_Detour,
     static_cast_p2p <void> (&LoadLibraryW_Original),
@@ -932,7 +932,7 @@ SK_ReHookLoadLibrary (void)
   MH_QueueEnableHook (_loader_hooks.LoadLibraryW_target);
 
 
-  if (GetProcAddress (GetModuleHandle (L"kernel32.dll"), "LoadPackagedLibrary") != nullptr)
+  if (GetProcAddress (GetModuleHandle (L"kernel32"), "LoadPackagedLibrary") != nullptr)
   {
     if (_loader_hooks.LoadPackagedLibrary_target != nullptr)
     {
@@ -940,7 +940,7 @@ SK_ReHookLoadLibrary (void)
       _loader_hooks.LoadPackagedLibrary_target = nullptr;
     }
 
-    SK_CreateDLLHook2 (      L"kernel32.dll",
+    SK_CreateDLLHook2 (      L"kernel32",
                               "LoadPackagedLibrary",
                                LoadPackagedLibrary_Detour,
       static_cast_p2p <void> (&LoadPackagedLibrary_Original),
@@ -956,7 +956,7 @@ SK_ReHookLoadLibrary (void)
     _loader_hooks.LoadLibraryExA_target = nullptr;
   }
 
-  SK_CreateDLLHook2 (      L"kernel32.dll",
+  SK_CreateDLLHook2 (      L"kernel32",
                             "LoadLibraryExA",
                              LoadLibraryExA_Detour,
     static_cast_p2p <void> (&LoadLibraryExA_Original),
@@ -971,7 +971,7 @@ SK_ReHookLoadLibrary (void)
     _loader_hooks.LoadLibraryExW_target = nullptr;
   }
 
-  SK_CreateDLLHook2 (      L"kernel32.dll",
+  SK_CreateDLLHook2 (      L"kernel32",
                             "LoadLibraryExW",
                              LoadLibraryExW_Detour,
     static_cast_p2p <void> (&LoadLibraryExW_Original),
@@ -993,7 +993,7 @@ SK_ReHookLoadLibrary (void)
   //   to prevent this from showing up during debug sessions,
   //     don't hook this function :)
 #if 0
-   SK_CreateDLLHook2 (      L"kernel32.dll",
+   SK_CreateDLLHook2 (      L"kernel32",
                              "FreeLibrary",
                               FreeLibrary_Detour,
      static_cast_p2p <void> (&FreeLibrary_Original),
@@ -1069,7 +1069,7 @@ SK_InitCompatBlacklist (void)
 {
   memset (&_loader_hooks, 0, sizeof sk_loader_hooks_t);
   
-  //SK_CreateDLLHook2 (      L"kernel32.dll",
+  //SK_CreateDLLHook2 (      L"kernel32",
   //                          "GetModuleHandleA",
   //                           GetModuleHandleA_Detour,
   //  static_cast_p2p <void> (&GetModuleHandleA_Original),
@@ -1077,7 +1077,7 @@ SK_InitCompatBlacklist (void)
   //
   //MH_QueueEnableHook (_loader_hooks.GetModuleHandleA_target);
   //
-  //SK_CreateDLLHook2 (      L"kernel32.dll",
+  //SK_CreateDLLHook2 (      L"kernel32",
   //                          "GetModuleHandleW",
   //                           GetModuleHandleW_Detour,
   //  static_cast_p2p <void> (&GetModuleHandleW_Original),
@@ -1085,7 +1085,7 @@ SK_InitCompatBlacklist (void)
   //
   //MH_QueueEnableHook (_loader_hooks.GetModuleHandleW_target);
   //
-  //SK_CreateDLLHook2 (      L"kernel32.dll",
+  //SK_CreateDLLHook2 (      L"kernel32",
   //                          "GetModuleHandleExA",
   //                           GetModuleHandleExA_Detour,
   //  static_cast_p2p <void> (&GetModuleHandleExA_Original),
@@ -1093,7 +1093,7 @@ SK_InitCompatBlacklist (void)
   //
   //MH_QueueEnableHook (_loader_hooks.GetModuleHandleExA_target);
   //
-  //SK_CreateDLLHook2 (      L"kernel32.dll",
+  //SK_CreateDLLHook2 (      L"kernel32",
   //                          "GetModuleHandleExW",
   //                           GetModuleHandleExW_Detour,
   //  static_cast_p2p <void> (&GetModuleHandleExW_Original),
@@ -1101,7 +1101,7 @@ SK_InitCompatBlacklist (void)
   //
   //MH_QueueEnableHook (_loader_hooks.GetModuleHandleExW_target);
   //
-  //SK_CreateDLLHook2 (      L"kernel32.dll",
+  //SK_CreateDLLHook2 (      L"kernel32",
   //                          "GetModuleFileNameA",
   //                           GetModuleFileNameA_Detour,
   //  static_cast_p2p <void> (&GetModuleFileNameA_Original),
@@ -1109,7 +1109,7 @@ SK_InitCompatBlacklist (void)
   //
   //MH_QueueEnableHook (_loader_hooks.GetModuleFileNameA_target);
   //
-  //SK_CreateDLLHook2 (      L"kernel32.dll",
+  //SK_CreateDLLHook2 (      L"kernel32",
   //                          "GetModuleFileNameW",
   //                           GetModuleFileNameW_Detour,
   //  static_cast_p2p <void> (&GetModuleFileNameW_Original),

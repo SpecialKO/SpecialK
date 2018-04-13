@@ -342,9 +342,10 @@ NtSetInformationThread_Detour (
                 L"DieAntiDbg" );
 
     if (config.system.log_level > 1)
-      SuspendThread (ThreadHandle);
-
-    return STATUS_SUCCESS;
+    {
+      //SuspendThread (ThreadHandle);
+      return STATUS_SUCCESS;
+    }
   }
 
   return
@@ -707,52 +708,52 @@ SK::Diagnostics::Debugger::Allow (bool bAllow)
   if (SK_IsHostAppSKIM ())
     return true;
 
-  SK_CreateDLLHook2 (      L"kernel32.dll",
+  SK_CreateDLLHook2 (      L"kernel32",
                             "IsDebuggerPresent",
                              IsDebuggerPresent_Detour,
     static_cast_p2p <void> (&IsDebuggerPresent_Original) );
 
   spoof_debugger = bAllow;
 
-  SK_CreateDLLHook2 (      L"kernel32.dll",
+  SK_CreateDLLHook2 (      L"kernel32",
                             "OutputDebugStringA",
                              OutputDebugStringA_Detour,
     static_cast_p2p <void> (&OutputDebugStringA_Original) );
 
-  SK_CreateDLLHook2 (      L"kernel32.dll",
+  SK_CreateDLLHook2 (      L"kernel32",
                             "OutputDebugStringW",
                              OutputDebugStringW_Detour,
     static_cast_p2p <void> (&OutputDebugStringW_Original) );
 
-  SK_CreateDLLHook2 (      L"kernel32.dll",
+  SK_CreateDLLHook2 (      L"kernel32",
                             "ExitProcess",
                              ExitProcess_Detour,
     static_cast_p2p <void> (&ExitProcess_Original) );
 
-  SK_CreateDLLHook2 (      L"kernel32.dll",
+  SK_CreateDLLHook2 (      L"kernel32",
                             "DebugBreak",
                              DebugBreak_Detour,
     static_cast_p2p <void> (&DebugBreak_Original) );
 
   if (config.system.trace_create_thread)
   {
-    SK_CreateDLLHook2 (      L"kernel32.dll",
+    SK_CreateDLLHook2 (      L"kernel32",
                               "CreateThread",
                                CreateThread_Detour,
       static_cast_p2p <void> (&CreateThread_Original) );
   }
 
-  SK_CreateDLLHook2 (  L"kernel32.dll",
+  SK_CreateDLLHook2 (  L"kernel32",
                         "GetCommandLineW",
                          GetCommandLineW_Detour,
 static_cast_p2p <void> (&GetCommandLineW_Original) );
 
-  SK_CreateDLLHook2 (  L"kernel32.dll",
+  SK_CreateDLLHook2 (  L"kernel32",
                         "GetCommandLineA",
                          GetCommandLineA_Detour,
 static_cast_p2p <void> (&GetCommandLineA_Original) );
 
-    SK_CreateDLLHook2 (      L"kernel32.dll",
+    SK_CreateDLLHook2 (      L"kernel32",
                              "ResetEvent",
                               ResetEvent_Detour,
      static_cast_p2p <void> (&ResetEvent_Original) );
@@ -772,7 +773,7 @@ static_cast_p2p <void> (&GetCommandLineA_Original) );
                               NtSetInformationThread_Detour,
      static_cast_p2p <void> (&NtSetInformationThread_Original) );
 
-    SK_CreateDLLHook2 (      L"kernel32.dll",
+    SK_CreateDLLHook2 (      L"kernel32",
                               "SetThreadAffinityMask",
                                SetThreadAffinityMask_Detour,
       static_cast_p2p <void> (&SetThreadAffinityMask_Original) );
@@ -799,7 +800,7 @@ SK::Diagnostics::Debugger::SpawnConsole (void)
     _wfreopen (L"CONOUT$", L"w", stdout);
     _wfreopen (L"CONOUT$", L"w", stderr);
 
-    SK_CreateDLLHook2 (      L"kernel32.dll",
+    SK_CreateDLLHook2 (      L"kernel32",
                               "TerminateProcess",
                                TerminateProcess_Detour,
       static_cast_p2p <void> (&TerminateProcess_Original) );

@@ -171,12 +171,6 @@ DllMain ( HMODULE hModule,
         return FALSE;
 
 
-    NtUserCallNextHookEx =
-      (NtUserCallNextHookEx_pfn)GetProcAddress (
-        LoadLibraryW (L"Win32u.dll"), "NtUserCallNextHookEx"
-      );
-
-
       auto EarlyOut =
       [&](BOOL bRet = TRUE)
       {
@@ -318,6 +312,8 @@ DllMain ( HMODULE hModule,
           SK_GetTLS (true);
 
         extern Concurrency::concurrent_unordered_map <DWORD, SK_TlsRecord> tls_map;
+
+        ((SK_TLS *)tls_rec.lpvData)->debug.mapped = true;
 
         tls_map.insert (
           std::make_pair ( ((SK_TLS *)tls_rec.lpvData)->debug.tid,
@@ -498,15 +494,6 @@ __stdcall
 SK_EstablishDllRole (skWin32Module&& module)
 {
   SK_SetDLLRole (DLL_ROLE::INVALID);
-
-  // If Blacklisted, Bail-Out
-  wchar_t         wszAppNameLower                   [MAX_PATH + 2] = { };
-  wcsncpy        (wszAppNameLower, SK_GetHostApp (), MAX_PATH);
-  CharLowerBuffW (wszAppNameLower,                   MAX_PATH);
-
-#include <SpecialK/injection/blacklist.h>
-
-  if (__blacklist.count (wszAppNameLower)) return false;
 
 
 #ifndef _WIN64

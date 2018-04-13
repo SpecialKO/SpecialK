@@ -349,14 +349,14 @@ SK::Framerate::Init (void)
 
 #define NO_HOOK_QPC
 #ifndef NO_HOOK_QPC
-  SK_CreateDLLHook2 (      L"kernel32.dll",
+  SK_CreateDLLHook2 (      L"kernel32",
                             "QueryPerformanceCounter",
                              QueryPerformanceCounter_Detour,
     static_cast_p2p <void> (&QueryPerformanceCounter_Original),
     static_cast_p2p <void> (&pfnQueryPerformanceCounter) );
 #endif
 
-  SK_CreateDLLHook2 (      L"kernel32.dll",
+  SK_CreateDLLHook2 (      L"kernel32",
                             "Sleep",
                              Sleep_Detour,
     static_cast_p2p <void> (&Sleep_Original),
@@ -365,7 +365,7 @@ SK::Framerate::Init (void)
 #ifdef NO_HOOK_QPC
     QueryPerformanceCounter_Original =
       reinterpret_cast <QueryPerformanceCounter_pfn> (
-        GetProcAddress ( GetModuleHandle (L"kernel32.dll"),
+        GetProcAddress ( GetModuleHandle (L"kernel32"),
                            "QueryPerformanceCounter" )
       );
 #endif
@@ -1222,14 +1222,14 @@ SK::Framerate::Init (void)
 
 #define NO_HOOK_QPC
 #ifndef NO_HOOK_QPC
-  SK_CreateDLLHook2 (      L"kernel32.dll",
+  SK_CreateDLLHook2 (      L"kernel32",
                             "QueryPerformanceCounter",
                              QueryPerformanceCounter_Detour,
     static_cast_p2p <void> (&QueryPerformanceCounter_Original),
     static_cast_p2p <void> (&pfnQueryPerformanceCounter) );
 #endif
 
-  SK_CreateDLLHook2 (      L"kernel32.dll",
+  SK_CreateDLLHook2 (      L"kernel32",
                             "Sleep",
                              Sleep_Detour,
     static_cast_p2p <void> (&Sleep_Original),
@@ -1238,7 +1238,7 @@ SK::Framerate::Init (void)
 #ifdef NO_HOOK_QPC
     QueryPerformanceCounter_Original =
       reinterpret_cast <QueryPerformanceCounter_pfn> (
-        GetProcAddress ( GetModuleHandle (L"kernel32.dll"),
+        GetProcAddress ( GetModuleHandle (L"kernel32"),
                            "QueryPerformanceCounter" )
       );
 #endif

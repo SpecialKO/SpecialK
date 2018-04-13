@@ -3135,6 +3135,14 @@ NtUserPeekMessage_pfn     NtUserPeekMessage_Original     = nullptr;
 NtUserGetMessage_pfn      NtUserGetMessage_Original      = nullptr;
 NtUserDispatchMessage_pfn NtUserDispatchMessage_Original = nullptr;
 
+NtUserPeekMessage_pfn     PeekMessageA_Original     = nullptr;
+NtUserGetMessage_pfn      GetMessageA_Original      = nullptr;
+NtUserDispatchMessage_pfn DispatchMessageA_Original = nullptr;
+
+NtUserPeekMessage_pfn     PeekMessageW_Original     = nullptr;
+NtUserGetMessage_pfn      GetMessageW_Original      = nullptr;
+NtUserDispatchMessage_pfn DispatchMessageW_Original = nullptr;
+
 BOOL
 WINAPI
 TranslateMessage_Detour (_In_ const MSG *lpMsg)
@@ -3201,7 +3209,7 @@ NtUserPeekMessage_Detour (
 {
   SK_LOG_FIRST_CALL
 
-  if (config.render.dxgi.safe_fullscreen && (! IsWindowUnicode (GetActiveWindow ())))
+  if (config.render.dxgi.safe_fullscreen)
     wRemoveMsg |= PM_REMOVE;
 
   MSG msg = { };
@@ -3240,6 +3248,109 @@ NtUserPeekMessage_Detour (
   return FALSE;
 }
 
+
+BOOL
+WINAPI
+PeekMessageA_Detour (
+  _Out_    LPMSG lpMsg,
+  _In_opt_ HWND  hWnd,
+  _In_     UINT  wMsgFilterMin,
+  _In_     UINT  wMsgFilterMax,
+  _In_     UINT  wRemoveMsg )
+{
+  SK_LOG_FIRST_CALL
+
+  if (config.render.dxgi.safe_fullscreen)
+    wRemoveMsg |= PM_REMOVE;
+
+  MSG msg = { };
+
+  if (PeekMessageA_Original (&msg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg))
+  {
+    *lpMsg = msg;
+
+    if (SK_EarlyDispatchMessage (&msg, true, true))
+    {
+      if (! (wRemoveMsg & PM_REMOVE))
+      {
+        auto PeekFunc = PeekMessageA_Original;
+
+        PeekFunc ( &msg, lpMsg->hwnd, lpMsg->message,
+                                      lpMsg->message, PM_REMOVE );
+      }
+
+      if (lpMsg->message == WM_INPUT)
+      {
+        auto DefWindowFunc = IsWindowUnicode (lpMsg->hwnd) ? DefWindowProcW :
+                                                             DefWindowProcA;
+
+        DefWindowFunc (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
+      }
+
+      lpMsg->message = WM_NULL;
+      lpMsg->pt.x    = 0; lpMsg->pt.y = 0;
+
+      return FALSE;
+    }
+
+    return TRUE;
+  }
+
+  return FALSE;
+}
+
+BOOL
+WINAPI
+PeekMessageW_Detour (
+  _Out_    LPMSG lpMsg,
+  _In_opt_ HWND  hWnd,
+  _In_     UINT  wMsgFilterMin,
+  _In_     UINT  wMsgFilterMax,
+  _In_     UINT  wRemoveMsg )
+{
+  SK_LOG_FIRST_CALL
+
+  if (config.render.dxgi.safe_fullscreen)
+    wRemoveMsg |= PM_REMOVE;
+
+  MSG msg = { };
+
+  if (PeekMessageW_Original (&msg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg))
+  {
+    *lpMsg = msg;
+
+    if (SK_EarlyDispatchMessage (&msg, true, true))
+    {
+      if (! (wRemoveMsg & PM_REMOVE))
+      {
+        auto PeekFunc = PeekMessageW_Original;
+
+        PeekFunc ( &msg, lpMsg->hwnd, lpMsg->message,
+                                      lpMsg->message, PM_REMOVE );
+      }
+
+      if (lpMsg->message == WM_INPUT)
+      {
+        auto DefWindowFunc = IsWindowUnicode (lpMsg->hwnd) ? DefWindowProcW :
+                                                             DefWindowProcA;
+
+        DefWindowFunc (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
+      }
+
+      lpMsg->message = WM_NULL;
+      lpMsg->pt.x    = 0; lpMsg->pt.y = 0;
+
+      return FALSE;
+    }
+
+    return TRUE;
+  }
+
+  return FALSE;
+}
+
+
+
 BOOL
 NTAPI
 NtUserGetMessage_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax)
@@ -3254,6 +3365,37 @@ NtUserGetMessage_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFi
 
   return TRUE;
 }
+
+BOOL
+WINAPI
+GetMessageA_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax)
+{
+  SK_LOG_FIRST_CALL
+
+  if (! GetMessageA_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax))
+    return FALSE;
+
+  if (lpMsg->hwnd == game_window.hWnd)
+    SK_EarlyDispatchMessage (lpMsg, true);
+
+  return TRUE;
+}
+
+BOOL
+WINAPI
+GetMessageW_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax)
+{
+  SK_LOG_FIRST_CALL
+
+  if (! GetMessageW_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax))
+    return FALSE;
+
+  if (lpMsg->hwnd == game_window.hWnd)
+    SK_EarlyDispatchMessage (lpMsg, true);
+
+  return TRUE;
+}
+
 
 LRESULT
 NTAPI
@@ -3276,6 +3418,51 @@ NtUserDispatchMessage_Detour (_In_ const MSG *lpMsg)
 
   return NtUserDispatchMessage_Original (lpMsg);
 }
+
+LRESULT
+WINAPI
+DispatchMessageA_Detour (_In_ const MSG *lpMsg)
+{
+  SK_LOG_FIRST_CALL
+
+  if (lpMsg->hwnd == game_window.hWnd)
+  {
+    if ( SK_EarlyDispatchMessage ( const_cast <MSG *> (lpMsg),
+                                     false )
+       )
+    {
+      if (IsWindowUnicode (lpMsg->hwnd))
+        return DefWindowProcW (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
+
+      return DefWindowProcA (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
+    }
+  }
+
+  return DispatchMessageA_Original (lpMsg);
+}
+
+LRESULT
+WINAPI
+DispatchMessageW_Detour (_In_ const MSG *lpMsg)
+{
+  SK_LOG_FIRST_CALL
+
+  if (lpMsg->hwnd == game_window.hWnd)
+  {
+    if ( SK_EarlyDispatchMessage ( const_cast <MSG *> (lpMsg),
+                                     false )
+       )
+    {
+      if (IsWindowUnicode (lpMsg->hwnd))
+        return DefWindowProcW (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
+
+      return DefWindowProcA (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
+    }
+  }
+
+  return DispatchMessageW_Original (lpMsg);
+}
+
 
 typedef HWND (WINAPI *GetActiveWindow_pfn)(void);
 GetActiveWindow_pfn GetActiveWindow_Original = nullptr;
@@ -4423,19 +4610,45 @@ SK_InstallWindowHook (HWND hWnd)
   static volatile LONG               __installed =      FALSE;
   if (! InterlockedCompareExchange (&__installed, TRUE, FALSE))
   {
+    // Win32u is faster on systems that dispatch system calls through it
+    //
+    static sk_import_test_s win32u_test [] = { { "win32u.dll", false } };
+    static bool             tested         =                   false;
+
+    if (! tested)
+    {
+      SK_TestImports (GetModuleHandle (L"user32"), win32u_test, sizeof (win32u_test) / sizeof sk_import_test_s);
+      tested = true;
+    }
+
+
     // When ImGui is active, we will do character translation internally
     //   for any Raw Input or Win32 keydown event -- disable Windows'
     //     translation from WM_KEYDOWN to WM_CHAR while we are doing this.
     //
-    SK_CreateDLLHook2 (       L"user32.dll",
+    SK_CreateDLLHook2 (       L"user32",
                                "TranslateMessage",
                                 TranslateMessage_Detour,
        static_cast_p2p <void> (&TranslateMessage_Original) );
 
-    SK_CreateDLLHook2 (       L"win32u.dll",
-                               "NtUserPeekMessage",
-                                NtUserPeekMessage_Detour,
-       static_cast_p2p <void> (&NtUserPeekMessage_Original) );
+
+
+    if (win32u_test [0].used)
+    {
+      SK_CreateUser32Hook (      "NtUserPeekMessage",
+                                  NtUserPeekMessage_Detour,
+         static_cast_p2p <void> (&NtUserPeekMessage_Original) );
+    }
+
+    else
+    {
+      SK_CreateUser32Hook (      "PeekMessageA",
+                                  PeekMessageA_Detour,
+         static_cast_p2p <void> (&PeekMessageA_Original) );
+      SK_CreateUser32Hook (      "PeekMessageW",
+                                  PeekMessageW_Detour,
+         static_cast_p2p <void> (&PeekMessageW_Original) );
+    }
 
 
     // Hook as few of these as possible, disrupting the message pump
@@ -4444,15 +4657,33 @@ SK_InstallWindowHook (HWND hWnd)
     //   ** PeekMessage is hooked because The Witness pulls mouse click events
     //        out of the pump without passing them through its window procedure.
     //
-    SK_CreateDLLHook2 (       L"win32u.dll",
-                               "NtUserGetMessage",
-                                NtUserGetMessage_Detour,
-       static_cast_p2p <void> (&NtUserGetMessage_Original) );
+    if (win32u_test [0].used)
+    {
+      SK_CreateUser32Hook (      "NtUserGetMessage",
+                                  NtUserGetMessage_Detour,
+         static_cast_p2p <void> (&NtUserGetMessage_Original) );
 
-    SK_CreateDLLHook2 (       L"win32u.dll",
-                               "NtUserDispatchMessage",
-                                NtUserDispatchMessage_Detour,
-       static_cast_p2p <void> (&NtUserDispatchMessage_Original) );
+      SK_CreateUser32Hook (      "NtUserDispatchMessage",
+                                  NtUserDispatchMessage_Detour,
+         static_cast_p2p <void> (&NtUserDispatchMessage_Original) );
+    }
+
+    else
+    {
+      SK_CreateUser32Hook (      "GetMessageA",
+                                  GetMessageA_Detour,
+         static_cast_p2p <void> (&GetMessageA_Original) );
+      SK_CreateUser32Hook (      "GetMessageW",
+                                  GetMessageW_Detour,
+         static_cast_p2p <void> (&GetMessageW_Original) );
+
+      SK_CreateUser32Hook (      "DispatchMessageA",
+                                  DispatchMessageA_Detour,
+         static_cast_p2p <void> (&DispatchMessageA_Original) );
+      SK_CreateUser32Hook (      "DispatchMessageW",
+                                  DispatchMessageW_Detour,
+         static_cast_p2p <void> (&DispatchMessageW_Original) );
+    }
 
     game_window.WndProc_Original = nullptr;
   }
@@ -4492,10 +4723,10 @@ SK_InstallWindowHook (HWND hWnd)
   //game_window.SetClassLongPtr  = SetClassLongPtrW_Original;
 
     game_window.DefWindowProc    = (DefWindowProc_pfn)
-      GetProcAddress ( GetModuleHandle (L"user32.dll"),
+      GetProcAddress ( GetModuleHandle (L"user32"),
                          "DefWindowProcW" );
     game_window.CallWindowProc   = (CallWindowProc_pfn)
-      GetProcAddress ( GetModuleHandle (L"user32.dll"),
+      GetProcAddress ( GetModuleHandle (L"user32"),
                          "CallWindowProcW" );
   }
 
@@ -4509,11 +4740,11 @@ SK_InstallWindowHook (HWND hWnd)
     game_window.SetWindowLongPtr = SetWindowLongPtrA_Original;
   //game_window.SetClassLongPtr  = SetClassLongPtrA_Original;
     game_window.DefWindowProc    = reinterpret_cast <DefWindowProc_pfn>
-      ( GetProcAddress ( GetModuleHandle (L"user32.dll"),
+      ( GetProcAddress ( GetModuleHandle (L"user32"),
                           "DefWindowProcA" )
       );
     game_window.CallWindowProc   = reinterpret_cast <CallWindowProc_pfn>
-      ( GetProcAddress ( GetModuleHandle (L"user32.dll"),
+      ( GetProcAddress ( GetModuleHandle (L"user32"),
                            "CallWindowProcA" )
       );
   }
@@ -4942,122 +5173,121 @@ SK_HookWinAPI (void)
 
 
 #if 1
-    SK_CreateDLLHook2 (       L"win32u.dll",
-                               "NtUserSetWindowPos",
+    SK_CreateUser32Hook (      "NtUserSetWindowPos",
                                 NtUserSetWindowPos_Detour,
        static_cast_p2p <void> (&SetWindowPos_Original) );
 
-    SK_CreateDLLHook2 (       L"user32.dll",
+
+    SK_CreateDLLHook2 (       L"user32",
                                "SetWindowPlacement",
                                 SetWindowPlacement_Detour,
        static_cast_p2p <void> (&SetWindowPlacement_Original) );
 
-    SK_CreateDLLHook2 (       L"win32u.dll",
-                               "NtUserMoveWindow",
+
+    SK_CreateUser32Hook (      "NtUserMoveWindow",
                                 NtUserMoveWindow_Detour,
        static_cast_p2p <void> (&MoveWindow_Original) );
 #else
       SetWindowPos_Original =
         (SetWindowPos_pfn)
-          GetProcAddress ( GetModuleHandleW (L"user32.dll"),
+          GetProcAddress ( GetModuleHandleW (L"user32"),
                            "SetWindowPos" );
       SetWindowPlacement_Original =
         (SetWindowPlacement_pfn)
-          GetProcAddress ( GetModuleHandleW (L"user32.dll"),
+          GetProcAddress ( GetModuleHandleW (L"user32"),
                            "SetWindowPlacement" );
 
       MoveWindow_Original =
         (MoveWindow_pfn)
-          GetProcAddress ( GetModuleHandleW (L"user32.dll"),
+          GetProcAddress ( GetModuleHandleW (L"user32"),
                            "MoveWindow" );
 #endif
 
 
-    SK_CreateDLLHook2 (       L"win32u.dll",
-                               "NtUserClipCursor",
+    SK_CreateUser32Hook (      "NtUserClipCursor",
                                 NtUserClipCursor_Detour,
        static_cast_p2p <void> (&ClipCursor_Original) );
 
 
 // These functions are dispatched through the Ptr version, so
 //   hooking them in the 64-bit version would be a bad idea.
-    SK_CreateDLLHook2 (       L"user32.dll",
+    SK_CreateDLLHook2 (       L"user32",
                                "SetWindowLongA",
                                 SetWindowLongA_Detour,
        static_cast_p2p <void> (&SetWindowLongA_Original) );
 
-    SK_CreateDLLHook2 (       L"user32.dll",
+    SK_CreateDLLHook2 (       L"user32",
                                "SetWindowLongW",
                                 SetWindowLongW_Detour,
        static_cast_p2p <void> (&SetWindowLongW_Original) );
 
-    SK_CreateDLLHook2 (       L"user32.dll",
+    SK_CreateDLLHook2 (       L"user32",
                                "GetWindowLongA",
                                 GetWindowLongA_Detour,
        static_cast_p2p <void> (&GetWindowLongA_Original) );
 
-    SK_CreateDLLHook2 (       L"user32.dll",
+    SK_CreateDLLHook2 (       L"user32",
                                "GetWindowLongW",
                                 GetWindowLongW_Detour,
        static_cast_p2p <void> (&GetWindowLongW_Original) );
 
-    //SK_CreateDLLHook2 (       L"user32.dll",
+    //SK_CreateDLLHook2 (       L"user32",
     //                           "SetClassLongA",
     //                            SetClassLongA_Detour,
     //   static_cast_p2p <void> (&SetClassLongA_Original) );
     //
-    //SK_CreateDLLHook2 (       L"user32.dll",
+    //SK_CreateDLLHook2 (       L"user32",
     //                           "SetClassLongW",
     //                            SetClassLongW_Detour,
     //   static_cast_p2p <void> (&SetClassLongW_Original) );
     //
-    //SK_CreateDLLHook2 (       L"user32.dll",
+    //SK_CreateDLLHook2 (       L"user32",
     //                           "GetClassLongA",
     //                            GetClassLongA_Detour,
     //   static_cast_p2p <void> (&GetClassLongA_Original) );
     //
-    //SK_CreateDLLHook2 (       L"user32.dll",
+    //SK_CreateDLLHook2 (       L"user32",
     //                           "GetClassLongW",
     //                            GetClassLongW_Detour,
     //   static_cast_p2p <void> (&GetClassLongW_Original) );
 
 #ifdef _WIN64
-    SK_CreateDLLHook2 (       L"user32.dll",
+    SK_CreateDLLHook2 (       L"user32",
                                "SetWindowLongPtrA",
                                 SetWindowLongPtrA_Detour,
        static_cast_p2p <void> (&SetWindowLongPtrA_Original) );
 
-    SK_CreateDLLHook2 (       L"user32.dll",
+    SK_CreateDLLHook2 (       L"user32",
                                "SetWindowLongPtrW",
                                 SetWindowLongPtrW_Detour,
        static_cast_p2p <void> (&SetWindowLongPtrW_Original) );
 
-    SK_CreateDLLHook2 (       L"user32.dll",
+    SK_CreateDLLHook2 (       L"user32",
                                "GetWindowLongPtrA",
                                 GetWindowLongPtrA_Detour,
        static_cast_p2p <void> (&GetWindowLongPtrA_Original) );
 
-    SK_CreateDLLHook2 (       L"user32.dll",
+    SK_CreateDLLHook2 (       L"user32",
                                "GetWindowLongPtrW",
                                 GetWindowLongPtrW_Detour,
        static_cast_p2p <void> (&GetWindowLongPtrW_Original) );
 
-    //SK_CreateDLLHook2 (       L"user32.dll",
+    //SK_CreateDLLHook2 (       L"user32",
     //                           "SetClassLongPtrA",
     //                            SetClassLongPtrA_Detour,
     //   static_cast_p2p <void> (&SetClassLongPtrA_Original) );
     //
-    //SK_CreateDLLHook2 (       L"user32.dll",
+    //SK_CreateDLLHook2 (       L"user32",
     //                           "SetClassLongPtrW",
     //                            SetClassLongPtrW_Detour,
     //   static_cast_p2p <void> (&SetClassLongPtrW_Original) );
     //
-    //SK_CreateDLLHook2 (       L"user32.dll",
+    //SK_CreateDLLHook2 (       L"user32",
     //                           "GetClassLongPtrA",
     //                            GetClassLongPtrA_Detour,
     //   static_cast_p2p <void> (&GetClassLongPtrA_Original) );
     //
-    //SK_CreateDLLHook2 (       L"user32.dll",
+    //SK_CreateDLLHook2 (       L"user32",
     //                           "GetClassLongPtrW",
     //                            GetClassLongPtrW_Detour,
     //   static_cast_p2p <void> (&GetClassLongPtrW_Original) );
@@ -5074,100 +5304,101 @@ SK_HookWinAPI (void)
 
 
 #if 0
-    SK_CreateDLLHook2 (         L"user32.dll",
+    SK_CreateDLLHook2 (         L"user32",
                                "GetWindowRect",
                                 GetWindowRect_Detour,
        static_cast_p2p <void> (&GetWindowRect_Original) );
 #else
     GetWindowRect_Original =
       reinterpret_cast <GetWindowRect_pfn> (
-        GetProcAddress ( GetModuleHandleW (L"user32.dll"),
+        GetProcAddress ( GetModuleHandleW (L"user32"),
                                             "GetWindowRect" )
       );
 #endif
 
 #if 0
-    SK_CreateDLLHook2 (       L"user32.dll",
+    SK_CreateDLLHook2 (       L"user32",
                                "GetClientRect",
                                 GetClientRect_Detour,
        static_cast_p2p <void> (&GetClientRect_Original) );
 #else
     GetClientRect_Original =
       reinterpret_cast <GetClientRect_pfn> (
-        GetProcAddress ( GetModuleHandleW (L"user32.dll"),
+        GetProcAddress ( GetModuleHandleW (L"user32"),
                                             "GetClientRect" )
       );
 #endif
 
-    SK_CreateDLLHook2 (       L"user32.dll",
+    SK_CreateDLLHook2 (       L"user32",
                                "AdjustWindowRect",
                                 AdjustWindowRect_Detour,
        static_cast_p2p <void> (&AdjustWindowRect_Original) );
 
-    SK_CreateDLLHook2 (       L"user32.dll",
+    SK_CreateDLLHook2 (       L"user32",
                                "AdjustWindowRectEx",
                                 AdjustWindowRectEx_Detour,
        static_cast_p2p <void> (&AdjustWindowRectEx_Original) );
 
-    SK_CreateDLLHook2 (       L"user32.dll",
+    SK_CreateDLLHook2 (       L"user32",
                                "GetSystemMetrics",
                                 GetSystemMetrics_Detour,
        static_cast_p2p <void> (&GetSystemMetrics_Original) );
 
-    SK_CreateDLLHook2 (       L"win32u.dll",
-                               "NtUserGetForegroundWindow",
+
+    SK_CreateUser32Hook (      "NtUserGetForegroundWindow",
                                 NtUserGetForegroundWindow_Detour,
        static_cast_p2p <void> (&GetForegroundWindow_Original) );
 
-    SK_CreateDLLHook2 (       L"user32.dll",
+
+    SK_CreateDLLHook2 (       L"user32",
                                "GetActiveWindow",
                                 GetActiveWindow_Detour,
        static_cast_p2p <void> (&GetActiveWindow_Original) );
 
 
 #if 0
-    SK_CreateDLLHook2 (       L"user32.dll",
+    SK_CreateDLLHook2 (       L"user32",
                               "ChangeDisplaySettingsA",
                                ChangeDisplaySettingsA_Detour,
       static_cast_p2p <void> (&ChangeDisplaySettingsA_Original) );
 
-    SK_CreateDLLHook2 (       L"user32.dll",
+    SK_CreateDLLHook2 (       L"user32",
                               "ChangeDisplaySettingsW",
                                ChangeDisplaySettingsW_Detour,
       static_cast_p2p <void> (&ChangeDisplaySettingsW_Original) );
 
-    SK_CreateDLLHook2 (       L"user32.dll",
+    SK_CreateDLLHook2 (       L"user32",
                               "ChangeDisplaySettingsExA",
                                ChangeDisplaySettingsExA_Detour,
       static_cast_p2p <void> (&ChangeDisplaySettingsExA_Original) );
 
-    SK_CreateDLLHook2 (       L"user32.dll",
+    SK_CreateDLLHook2 (       L"user32",
                               "ChangeDisplaySettingsExW",
                                ChangeDisplaySettingsExW_Detour,
       static_cast_p2p <void> (&ChangeDisplaySettingsExW_Original) );
 #else
     ChangeDisplaySettingsA_Original =
       (ChangeDisplaySettingsA_pfn)SK_GetProcAddress
-        ( L"user32.dll", "ChangeDisplaySettingsA" );
+        ( L"user32", "ChangeDisplaySettingsA" );
     ChangeDisplaySettingsExA_Original =
       (ChangeDisplaySettingsExA_pfn)SK_GetProcAddress
-        ( L"user32.dll", "ChangeDisplaySettingsExA" );
+        ( L"user32", "ChangeDisplaySettingsExA" );
     ChangeDisplaySettingsW_Original =
       (ChangeDisplaySettingsW_pfn)SK_GetProcAddress
-        ( L"user32.dll", "ChangeDisplaySettingsW" );
+        ( L"user32", "ChangeDisplaySettingsW" );
     ChangeDisplaySettingsExW_Original =
       (ChangeDisplaySettingsExW_pfn)SK_GetProcAddress
-        ( L"user32.dll", "ChangeDisplaySettingsExW" );
+        ( L"user32", "ChangeDisplaySettingsExW" );
 #endif
 
 
     EnumDisplaySettingsA_Original =
       (EnumDisplaySettingsA_pfn) GetProcAddress (
-                          GetModuleHandle (L"user32.dll"),
+                          GetModuleHandle (L"user32"),
                                               "EnumDisplaySettingsA" );
     EnumDisplaySettingsW_Original =
       (EnumDisplaySettingsW_pfn) GetProcAddress (
-                          GetModuleHandle (L"user32.dll"),
+                          GetModuleHandle (L"user32"),
                                              "EnumDisplaySettingsW" );
 
     InterlockedIncrement (&hooked);

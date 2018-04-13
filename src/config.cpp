@@ -333,6 +333,7 @@ struct {
     sk::ParameterBool*    ignore_non_mipped;
     sk::ParameterBool*    allow_staging;
     sk::ParameterBool*    allow_unsafe_refs;
+    sk::ParameterBool*    manage_residency;
   } cache;
     sk::ParameterStringW* res_root;
     sk::ParameterBool*    dump_on_load;
@@ -862,6 +863,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
     ConfigEntry (texture.cache.allow_staging,            L"Enable texture caching/dumping/injecting staged textures",  dll_ini,         L"Textures.Cache",        L"AllowStaging"),
     ConfigEntry (texture.cache.allow_unsafe_refs,        L"For games with broken resource reference counting, allow"
                                                          L" textures to be cached anyway (needed for injection).",     dll_ini,         L"Textures.Cache",        L"AllowUnsafeRefCounting"),
+    ConfigEntry (texture.cache.manage_residency,         L"Actively manage D3D11 teture residency",                    dll_ini,         L"Textures.Cache",        L"ManageResidency"),
 
 
     ConfigEntry (nvidia.api.disable,                     L"Disable NvAPI",                                             dll_ini,         L"NVIDIA.API",            L"Disable"),
@@ -1919,6 +1921,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
   texture.cache.ignore_non_mipped->load (config.textures.cache.ignore_nonmipped);
   texture.cache.allow_staging->load     (config.textures.cache.allow_staging);
   texture.cache.allow_unsafe_refs->load (config.textures.cache.allow_unsafe_refs);
+  texture.cache.manage_residency->load  (config.textures.cache.residency_managemnt);
 
   extern void WINAPI SK_DXGI_SetPreferredAdapter (int override_id);
 
@@ -2685,6 +2688,7 @@ SK_SaveConfig ( std::wstring name,
       texture.cache.ignore_non_mipped->store      (config.textures.cache.ignore_nonmipped);
       texture.cache.allow_staging->store          (config.textures.cache.allow_staging);
       texture.cache.allow_unsafe_refs->store      (config.textures.cache.allow_unsafe_refs);
+      texture.cache.manage_residency->store       (config.textures.cache.residency_managemnt);
 
       wsprintf ( wszFormattedRes, L"%lux%lu",
                    config.render.dxgi.res.max.x,

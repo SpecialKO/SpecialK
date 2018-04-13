@@ -326,7 +326,7 @@ SKX_WaitForCBTHookShutdown (void)
     if ( hShutdown != INVALID_HANDLE_VALUE && (! SK_IsHostAppSKIM ()) )
     {
       SetThreadPriority      ( SK_GetCurrentThread (),
-                               THREAD_PRIORITY_NORMAL );
+                               THREAD_PRIORITY_LOWEST );
 
 #ifdef NOT_SANE_SCHEDULING
       for (int i = 0; i < 16; i++)
@@ -336,7 +336,7 @@ SKX_WaitForCBTHookShutdown (void)
 
       do {
         dwWaitState =
-          WaitForSingleObjectEx (hShutdown, INFINITE, TRUE);
+          WaitForSingleObjectEx (hShutdown, 1000UL, TRUE);
       } while (dwWaitState != WAIT_OBJECT_0);
 #endif
     }
@@ -353,6 +353,19 @@ CBTProc ( _In_ int    nCode,
 
   if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
   {
+    NtUserCallNextHookEx =
+      (NtUserCallNextHookEx_pfn)GetProcAddress (
+        LoadLibraryW (L"Win32u.dll"), "NtUserCallNextHookEx"
+      );
+
+    if (! NtUserCallNextHookEx)
+    {
+      NtUserCallNextHookEx =
+        (NtUserCallNextHookEx_pfn)GetProcAddress (
+          LoadLibraryW (L"User32.dll"), "CallNextHookEx"
+        );
+    }
+
     CreateThread (nullptr, 0,
     [ ](LPVOID) -> DWORD
      {

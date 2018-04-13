@@ -208,17 +208,17 @@ HeapFree_Detour (
 void
 SK_Memory_InitHooks (void)
 {
-  SK_CreateDLLHook2 (      L"kernel32.dll",
+  SK_CreateDLLHook2 (      L"kernel32",
                             "LocalAlloc",
                              LocalAlloc_Detour,
     static_cast_p2p <void> (&LocalAlloc_Original) );
 
-  SK_CreateDLLHook2 (      L"kernel32.dll",
+  SK_CreateDLLHook2 (      L"kernel32",
                             "GlobalAlloc",
                              GlobalAlloc_Detour,
     static_cast_p2p <void> (&GlobalAlloc_Original) );
 
-  SK_CreateDLLHook2 (      L"kernel32.dll",
+  SK_CreateDLLHook2 (      L"kernel32",
                             "VirtualAlloc",
                              VirtualAlloc_Detour,
     static_cast_p2p <void> (&VirtualAlloc_Original) );
@@ -229,22 +229,22 @@ SK_Memory_InitHooks (void)
     static_cast_p2p <void> (&RtlAllocateHeap_Original) );
 
 
-  SK_CreateDLLHook2 (      L"kernel32.dll",
+  SK_CreateDLLHook2 (      L"kernel32",
                             "LocalFree",
                              LocalFree_Detour,
     static_cast_p2p <void> (&LocalFree_Original) );
 
-  SK_CreateDLLHook2 (      L"kernel32.dll",
+  SK_CreateDLLHook2 (      L"kernel32",
                             "GlobalFree",
                              GlobalFree_Detour,
     static_cast_p2p <void> (&GlobalFree_Original) );
 
-  SK_CreateDLLHook2 (      L"kernel32.dll",
+  SK_CreateDLLHook2 (      L"kernel32",
                             "VirtualFree",
                              VirtualFree_Detour,
     static_cast_p2p <void> (&VirtualFree_Original) );
 
-  SK_CreateDLLHook2 (      L"kernel32.dll",
+  SK_CreateDLLHook2 (      L"kernel32",
                             "HeapFree",
                              HeapFree_Detour,
     static_cast_p2p <void> (&HeapFree_Original) );

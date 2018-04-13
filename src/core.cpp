@@ -1080,6 +1080,15 @@ bool
 __stdcall
 SK_StartupCore (const wchar_t* backend, void* callback)
 {
+#include <SpecialK/injection/blacklist.h>
+
+  // If Blacklisted, Bail-Out
+  wchar_t         wszAppNameLower                   [MAX_PATH + 2] = { };
+  wcsncpy        (wszAppNameLower, SK_GetHostApp (), MAX_PATH);
+  CharLowerBuffW (wszAppNameLower,                   MAX_PATH);
+
+  if (__blacklist.count (wszAppNameLower)) return false;
+
   QueryPerformanceCounter_Original =
     reinterpret_cast <QueryPerformanceCounter_pfn> (
       GetProcAddress (
@@ -1101,7 +1110,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
   static SetProcessDEPPolicy_pfn _SetProcessDEPPolicy =
     (SetProcessDEPPolicy_pfn)
-      GetProcAddress ( GetModuleHandleW (L"Kernel32.dll"),
+      GetProcAddress ( GetModuleHandleW (L"kernel32"),
                          "SetProcessDEPPolicy" );
 
   // Disable DEP for stupid Windows 7 machines
@@ -1962,17 +1971,17 @@ SetupCEGUI (SK_RenderAPI& LastKnownAPI)
 
     static auto k32_AddDllDirectory =
       (AddDllDirectory_pfn)
-        GetProcAddress ( GetModuleHandle (L"kernel32.dll"),
+        GetProcAddress ( GetModuleHandle (L"kernel32"),
                            "AddDllDirectory" );
 
     static auto k32_RemoveDllDirectory =
       (RemoveDllDirectory_pfn)
-        GetProcAddress ( GetModuleHandle (L"kernel32.dll"),
+        GetProcAddress ( GetModuleHandle (L"kernel32"),
                            "RemoveDllDirectory" );
 
     static auto k32_SetDefaultDllDirectories =
       (SetDefaultDllDirectories_pfn)
-        GetProcAddress ( GetModuleHandle (L"kernel32.dll"),
+        GetProcAddress ( GetModuleHandle (L"kernel32"),
                            "SetDefaultDllDirectories" );
 
     if ( k32_AddDllDirectory          && k32_RemoveDllDirectory &&

@@ -81,6 +81,13 @@ SK_Thread_HybridSpinlock cs_shader_cs   (0x9000);
 SK_Thread_HybridSpinlock cs_mmio        (0x7f7f);
 SK_Thread_HybridSpinlock cs_render_view (0xdddd);
 
+CRITICAL_SECTION tex_cs     = { };
+CRITICAL_SECTION hash_cs    = { };
+CRITICAL_SECTION dump_cs    = { };
+CRITICAL_SECTION cache_cs   = { };
+CRITICAL_SECTION inject_cs  = { };
+CRITICAL_SECTION preload_cs = { };
+
 LPVOID pfnD3D11CreateDevice             = nullptr;
 LPVOID pfnD3D11CreateDeviceAndSwapChain = nullptr;
 LPVOID pfnD3D11CoreCreateDevice         = nullptr;
@@ -4359,7 +4366,7 @@ D3D11_Unmap_Override (
       // More of an assertion, if this fails something's screwy!
       if (map_ctx.textures.count (pResource))
       {
-        std::lock_guard <SK_Thread_CriticalSection> auto_lock (cs_mmio);
+        std::lock_guard <SK_Thread_CriticalSection> auto_lock  (cs_mmio);
 
         uint64_t time_elapsed =
           SK_QueryPerf ().QuadPart - map_ctx.texture_times [pResource];
@@ -5869,13 +5876,6 @@ D3D11_RSSetViewports_Override (
   D3D11_RSSetViewports_Original (This, NumViewports, pViewports);
 }
 
-CRITICAL_SECTION tex_cs     = { };
-CRITICAL_SECTION hash_cs    = { };
-CRITICAL_SECTION dump_cs    = { };
-CRITICAL_SECTION cache_cs   = { };
-CRITICAL_SECTION inject_cs  = { };
-CRITICAL_SECTION preload_cs = { };
-
 void WINAPI SK_D3D11_SetResourceRoot      (const wchar_t* root);
 void WINAPI SK_D3D11_EnableTexDump        (bool enable);
 void WINAPI SK_D3D11_EnableTexInject      (bool enable);
@@ -5949,10 +5949,191 @@ SK_D3D11_ResetTexCache (void)
 
 static volatile ULONG live_textures_dirty = FALSE;
 
+struct SK_D3D11_TexCacheResidency_s
+{
+  struct
+  {
+    volatile LONG InVRAM;
+    volatile LONG Shared;
+    volatile LONG PagedOut;
+  } count;
+
+  struct
+  {
+    volatile LONG64 InVRAM;
+    volatile LONG64 Shared;
+    volatile LONG64 PagedOut;
+  } size;
+} extern SK_D3D11_TexCacheResidency;
+
 void
 __stdcall
 SK_D3D11_TexCacheCheckpoint (void)
 {
+  IDXGIDevice  *pDXGIDev = nullptr;
+  ID3D11Device *pDevice  = nullptr;
+
+  if (SK_GetCurrentRenderBackend ().device != nullptr)
+      SK_GetCurrentRenderBackend ().device->QueryInterface <ID3D11Device> (&pDevice);
+  if ( config.textures.cache.residency_managemnt &&
+      pDevice &&        SUCCEEDED (pDevice->QueryInterface <IDXGIDevice>  (&pDXGIDev)) && pDXGIDev != nullptr)
+  {
+    static DWORD dwLastEvict = 0;
+    static DWORD dwLastTest  = 0;
+    static DWORD dwLastSize  = SK_D3D11_Textures.Entries_2D.load ();
+
+    static DWORD dwInitiateEvict = 0;
+    static DWORD dwInitiateSize  = 0;
+
+    DWORD dwNow = timeGetTime ();
+
+    const int MAX_TEXTURES_PER_PASS = 175UL;
+
+    static int cur_tex = 0;
+
+    if ( ( SK_D3D11_Textures.Evicted_2D.load () != dwLastEvict || 
+           SK_D3D11_Textures.Entries_2D.load () != dwLastSize     ) &&
+                                            dwLastTest < dwNow - 133L )
+    {
+      if (cur_tex == 0)
+      {
+        dwInitiateEvict = SK_D3D11_Textures.Evicted_2D.load ();
+        dwInitiateSize  = SK_D3D11_Textures.Entries_2D.load ();
+      }
+
+      static LONG fully_resident = 0;
+      static LONG shared_memory  = 0;
+      static LONG on_disk        = 0;
+
+      static LONG64 size_vram   = 0ULL;
+      static LONG64 size_shared = 0ULL;
+      static LONG64 size_disk   = 0ULL;
+
+      static std::vector <IUnknown *>                           residency_tests   (MAX_TEXTURES_PER_PASS + 2);
+      static std::vector <SK_D3D11_TexMgr::tex2D_descriptor_s*> residency_descs   (MAX_TEXTURES_PER_PASS + 2);
+      static std::vector <DXGI_RESIDENCY>                       residency_results (MAX_TEXTURES_PER_PASS + 2);
+
+      int record_count = 0;
+
+      auto record =
+        residency_tests.begin ();
+      auto desc =
+        residency_descs.begin ();
+
+      int start_idx = cur_tex;
+      int idx       = 0;
+
+      size_t max_size = SK_D3D11_Textures.Textures_2D.size ();
+
+      bool done = false;
+
+      for ( auto& tex : SK_D3D11_Textures.Textures_2D )
+      {
+        if (++idx < cur_tex)
+          continue;
+
+        if (idx > start_idx + MAX_TEXTURES_PER_PASS)
+        {
+          cur_tex = idx;
+          break;
+        }
+
+        if (tex.second.crc32c != 0x0 && tex.first != nullptr)
+        {
+          *(record++) =  tex.first;
+          *(desc++)   = &tex.second;
+                      ++record_count;
+        }
+      }
+
+      if (idx >= max_size)
+        done = true;
+
+      pDXGIDev->QueryResourceResidency (
+        residency_tests.data   (),
+        residency_results.data (),
+                                   (UINT)record_count
+      );
+
+      idx = 0;
+
+      desc = residency_descs.begin ();
+
+      for ( auto it : residency_results )
+      {
+        if (it != DXGI_RESIDENCY_FULLY_RESIDENT)
+        {
+          SK_LOG1 ( (L"Texture %x is non-resident, last use: %lu <Residence: %lu>",  (*desc)->crc32c, (*desc)->last_used, it),
+                     L"DXGI Cache" );
+
+          D3D11_TEXTURE2D_DESC* tex_desc = &(*desc)->desc;
+
+          UINT refs_plus_1 = (*desc)->texture->AddRef  ();
+          UINT refs        = (*desc)->texture->Release ();
+
+          SK_LOG1 ( ( L"(%lux%lu@%lu [%s] - %s, %s, %s : CPU Usage=%x -- refs+1=%lu, refs=%lu",
+                      tex_desc->Width, tex_desc->Height, tex_desc->MipLevels,
+                      SK_DXGI_FormatToStr (tex_desc->Format).c_str (),
+                      SK_D3D11_DescribeBindFlags ((D3D11_BIND_FLAG)tex_desc->BindFlags).c_str (), 
+                      SK_D3D11_DescribeMiscFlags ((D3D11_RESOURCE_MISC_FLAG)tex_desc->MiscFlags).c_str (),
+                      SK_D3D11_DescribeUsage     (tex_desc->Usage),
+                      (UINT)tex_desc->CPUAccessFlags,
+                      refs_plus_1, refs ),
+                     L"DXGI Cache" );
+
+          // If this texture is _NOT_ injected and also not resident in VRAM, then
+          //   remove it from cache.
+          //
+          //  If it is injected, leave it loaded because this cache's purpose is to prevent
+          //    re-loading injected textures.
+          if (refs == 1 && (! (*desc)->injected))
+            (*desc)->texture->Release ();
+        }
+
+        if (it == DXGI_RESIDENCY_FULLY_RESIDENT)            { ++fully_resident; size_vram   += (*(desc++))->mem_size; }
+        if (it == DXGI_RESIDENCY_RESIDENT_IN_SHARED_MEMORY) { ++shared_memory;  size_shared += (*(desc++))->mem_size; }
+        if (it == DXGI_RESIDENCY_EVICTED_TO_DISK)           { ++on_disk;        size_disk   += (*(desc++))->mem_size; }
+
+        if (++idx >= record_count)
+          break;
+      }
+
+      dwLastTest = dwNow;
+
+      if (done)
+      {
+        InterlockedExchange   (&SK_D3D11_TexCacheResidency.count.InVRAM,   fully_resident);
+        InterlockedExchange   (&SK_D3D11_TexCacheResidency.count.Shared,   shared_memory);
+        InterlockedExchange   (&SK_D3D11_TexCacheResidency.count.PagedOut, on_disk);
+
+        InterlockedExchange64 (&SK_D3D11_TexCacheResidency.size.InVRAM,   size_vram);
+        InterlockedExchange64 (&SK_D3D11_TexCacheResidency.size.Shared,   size_shared);
+        InterlockedExchange64 (&SK_D3D11_TexCacheResidency.size.PagedOut, size_disk);
+
+        SK_D3D11_Textures.AggregateSize_2D = size_vram      + size_shared + size_disk;
+        SK_D3D11_Textures.Entries_2D       = fully_resident + shared_memory + on_disk;
+
+        fully_resident = 0;
+        shared_memory  = 0;
+        on_disk        = 0;
+
+        size_vram   = 0ULL;
+        size_shared = 0ULL;
+        size_disk   = 0ULL;
+
+        dwLastEvict = dwInitiateEvict;
+        dwLastSize  = dwInitiateSize;
+
+        cur_tex = 0;
+      }
+    }
+  }
+
+  if (pDXGIDev) pDXGIDev->Release ();
+  if (pDevice)  pDevice->Release  ();
+
+
+
   static int       iter               = 0;
 
   static bool      init               = false;
@@ -6020,6 +6201,8 @@ SK_D3D11_TexCacheCheckpoint (void)
 void
 SK_D3D11_TexMgr::reset (void)
 {
+  SK_AutoCriticalSection critical (&cache_cs);
+
   uint32_t count  = 0;
   int64_t  purged = 0;
 
@@ -6064,8 +6247,6 @@ SK_D3D11_TexMgr::reset (void)
 
   textures.reserve (cache_opts.max_evict);
   {
-  //SK_AutoCriticalSection critical (&cache_cs);
-
     for ( auto& desc : Textures_2D )
     {
       if (desc.second.texture == nullptr || desc.second.crc32c == 0x00)
@@ -6300,8 +6481,6 @@ SK_D3D11_RemoveTexFromCache (ID3D11Texture2D* pTex, bool blacklist)
           uint32_t              tag  = it.tag;
     const D3D11_TEXTURE2D_DESC& desc = it.orig_desc;
 
-    SK_AutoCriticalSection critical (&cache_cs);
-
     SK_D3D11_Textures.AggregateSize_2D -=
       it.mem_size;
       it.crc32c = 0x00;
@@ -6399,7 +6578,6 @@ SK_D3D11_TexMgr::refTexture2D ( ID3D11Texture2D*      pTex,
   ///  return;
   ///}
 
-
   tex2D_descriptor_s  null_desc = { };
   tex2D_descriptor_s&   texDesc = null_desc;
 
@@ -6455,8 +6633,6 @@ SK_D3D11_TexMgr::refTexture2D ( ID3D11Texture2D*      pTex,
   desc2d.last_frame =  SK_GetFramesDrawn ();
   desc2d.file_name  =  fileName;
 
-
-  SK_AutoCriticalSection critical (&cache_cs);
 
   if (desc2d.orig_desc.MipLevels >= 18)
   {
@@ -9117,6 +9293,9 @@ D3D11Dev_CreateTexture2D_Impl (
     return D3D11Dev_CreateTexture2D_Original (This, pDesc, pInitialData, ppTexture2D);
 
 
+  SK_AutoCriticalSection critical (&cache_cs);
+
+
   SK_D3D11_MemoryThreads.mark ();
 
 
@@ -9648,8 +9827,6 @@ reinterpret_cast <ID3D11Resource **> (ppTexture2D)
 
   if ( SUCCEEDED (ret) && cacheable )
   {
-    SK_AutoCriticalSection critical (&cache_cs);
-
     if (! SK_D3D11_Textures.Blacklist_2D [orig_desc.MipLevels].count (checksum))
     {
       SK_D3D11_Textures.refTexture2D (

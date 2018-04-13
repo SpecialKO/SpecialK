@@ -390,12 +390,12 @@ SK_XInput_InitHotPlugHooks (void)
   CLSIDFromString (L"{00000000-0000-0000-0000-000000000000}", &GUID_Zero);
 
 // According to the DLL Export Table, ...A and ...W are the same freaking function :)
-  SK_CreateDLLHook3 (       L"user32.dll",
+  SK_CreateDLLHook3 (       L"user32",
                              "RegisterDeviceNotificationW",
                               RegisterDeviceNotificationW_Detour,
      static_cast_p2p <void> (&RegisterDeviceNotificationW_Original) );
 
-  SK_CreateDLLHook3 (       L"user32.dll",
+  SK_CreateDLLHook3 (       L"user32",
                              "RegisterDeviceNotificationA",
                               RegisterDeviceNotificationA_Detour,
      static_cast_p2p <void> (&RegisterDeviceNotificationA_Original) );

@@ -209,7 +209,7 @@ CrashHandler::Reinstall (void)
     LPVOID pHook = nullptr;
 
     if ( MH_OK ==
-           SK_CreateDLLHook   (       L"kernel32.dll",
+           SK_CreateDLLHook   (       L"kernel32",
                                        "SetUnhandledExceptionFilter",
                                         SetUnhandledExceptionFilter_Detour,
                static_cast_p2p <void> (&SetUnhandledExceptionFilter_Original),
