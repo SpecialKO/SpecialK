@@ -157,11 +157,14 @@ SK_ImGui_DrawTexCache_Chart (void)
     ImGui::TreePop       ();
     ImGui::PopStyleColor ();
 
-    if (SK_DXGI_IsTrackingBudget ())
+  //if (SK_DXGI_IsTrackingBudget ())
     {
       ImGui::Separator ();
 
       ImGui::Checkbox ("Measure residency", &config.textures.cache.residency_managemnt);
+
+      ImGui::SameLine ();
+      ImGui::Checkbox ("Vibrate on cache miss", &config.textures.cache.vibrate_on_miss);
 
       if (config.textures.cache.residency_managemnt)
       {

@@ -223,7 +223,7 @@ struct sk_config_t
     int     init_delay           = 0UL; // Disable to prevent crashing in many games
     bool    auto_pump_callbacks  = true;
     bool    block_stat_callback  = false;
-    bool    filter_stat_callback = true;
+    bool    filter_stat_callback = false;
     int     callback_throttle    = -1;
 
     int     appid                = 0;
@@ -359,6 +359,7 @@ struct sk_config_t
       bool    allow_unsafe_refs   = false; // Allow texture caching even in engines that
                                            //   are not correctly keeping track of resources
       bool    residency_managemnt = true;
+      bool    vibrate_on_miss     = false;
     } cache;
 
     bool highlight_debug_tex      = false;

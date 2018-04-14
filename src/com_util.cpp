@@ -26,6 +26,8 @@
 #include <SpecialK/hooks.h>
 #include <SpecialK/log.h>
 
+#include <SpecialK/diagnostics/modules.h>
+
 #include <atlbase.h>
 #include <comdef.h>
 
@@ -332,6 +334,8 @@ extern "C"
 bool
 SK_WMI_Init (void)
 {
+  SK_Modules.LoadLibrary (L"ole32.dll");
+
 #if 0
   CoCreateInstance_Original =
     (CoCreateInstance_pfn)GetProcAddress   (GetModuleHandleW (L"ole32.dll"), "CoCreateInstance");

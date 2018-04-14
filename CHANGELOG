@@ -1,5 +1,9 @@
 0.9.16:
 
+ (.1): Switched to D3DCompiler_47.dll (built-in)
+ (.1): Eliminated unnecessary lock contention during texture uploads
+ (.1): Fixed Alt+F4 menu in games that mixup Virtual Key Codes with Character Codes
+
  + Added workaround for systems that do not dispatch user32.dll system calls
      through win32u.dll
  + Added D3D11 Texture Cache residency management, to reduce cache pressure on

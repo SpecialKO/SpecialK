@@ -3988,7 +3988,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
             if (lParam == 0)
               return 0;
 
-            if (lParam == VK_F4)
+            if (lParam == 0x05/*VK_F4*/) // DOES NOT USE Virtual Key Codes!
               SK_ImGui_WantExit |= config.input.keyboard.catch_alt_f4;
           }
           break;

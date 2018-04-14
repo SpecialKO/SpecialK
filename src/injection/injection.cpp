@@ -336,7 +336,7 @@ SKX_WaitForCBTHookShutdown (void)
 
       do {
         dwWaitState =
-          WaitForSingleObjectEx (hShutdown, 1000UL, TRUE);
+          WaitForSingleObjectEx (hShutdown, INFINITE, TRUE);
       } while (dwWaitState != WAIT_OBJECT_0);
 #endif
     }
@@ -369,26 +369,43 @@ CBTProc ( _In_ int    nCode,
     CreateThread (nullptr, 0,
     [ ](LPVOID) -> DWORD
      {
-       InterlockedIncrement (&injected_procs);
-
        HMODULE hModThis;
 
-       if ( GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
+       if ( GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+                                GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
                                   (LPCWSTR)&CBTProc,
                                     &hModThis ) )
        {
-         SKX_WaitForCBTHookShutdown    (               );
+         if ( SK_IsHostAppSKIM () )
+         {
+           GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
+                                 (LPCWSTR)&CBTProc,
+                                   &hModThis );
+         }
 
+         InterlockedIncrement          (&injected_procs);
+         InterlockedIncrement          (&hooked);
+         SKX_WaitForCBTHookShutdown    (               );
          InterlockedDecrement          (&injected_procs);
-         FreeLibraryAndExitThread      (hModThis,   0x0);
+
+         if ( SK_IsHostAppSKIM () )
+         {
+           FreeLibraryAndExitThread (hModThis, 0x0);
+         }
        }
 
-       InterlockedDecrement            (&injected_procs    );
-       SK_Thread_CloseSelf             (                   );
+       else
+       {
+         InterlockedIncrement          (&hooked);
+       }
+
+       SK_Thread_CloseSelf             (               );
 
        return 0;
      }, nullptr, 0x0, nullptr);
   }
+
+  SK_Thread_SpinUntilAtomicMin (&hooked, 2);
 
   return NtUserCallNextHookEx (hHookCBT, nCode, wParam, lParam);
 }
@@ -465,7 +482,8 @@ START_OVER:
   if ( ReadPointerAcquire ((PVOID *)&hHookCBT) != nullptr ||
        ReadAcquire        (         &injected_procs) > 0     )
   {
-    goto START_OVER;
+    if (! SK_GetHostAppUtil ().isInjectionTool ())
+      goto START_OVER;
   }
 
   if (hShutdownEvent > 0)
@@ -516,19 +534,15 @@ RunDLL_InjectionManager ( HWND  hwnd,        HINSTANCE hInst,
         fprintf (fPID, "%lu\n", GetCurrentProcessId ());
         fclose  (fPID);
 
-        // We are FORCED to bring the MSVCRT in here due to recent
-        //  changes to SK_IsHostAppSKIM and that cascades through most other
-        //    thread creation as a result
-        HANDLE hThread = 
-          (HANDLE)
-          _beginthreadex ( nullptr, 0,
+        HANDLE hThread =
+          CreateThread ( nullptr, 0,
            [](LPVOID user) ->
-             unsigned int
+             DWORD
                {
                  SKX_WaitForCBTHookShutdown ();
 
-               while ( ReadAcquire (&__SK_DLL_Attached) || (! SK_IsHostAppSKIM ()))
-                 SleepEx (5UL, TRUE);
+                 while ( ReadAcquire (&__SK_DLL_Attached) || SK_GetHostAppUtil ().isInjectionTool () )
+                   SleepEx (5UL, TRUE);
 
                  SK_Thread_CloseSelf ();
 

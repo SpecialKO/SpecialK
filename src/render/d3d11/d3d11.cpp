@@ -6201,8 +6201,6 @@ SK_D3D11_TexCacheCheckpoint (void)
 void
 SK_D3D11_TexMgr::reset (void)
 {
-  SK_AutoCriticalSection critical (&cache_cs);
-
   uint32_t count  = 0;
   int64_t  purged = 0;
 
@@ -6247,21 +6245,25 @@ SK_D3D11_TexMgr::reset (void)
 
   textures.reserve (cache_opts.max_evict);
   {
-    for ( auto& desc : Textures_2D )
     {
-      if (desc.second.texture == nullptr || desc.second.crc32c == 0x00)
-        continue;
+      SK_AutoCriticalSection critical (&cache_cs);
 
-      bool can_free = true;
+      for ( auto& desc : Textures_2D )
+      {
+        if (desc.second.texture == nullptr || desc.second.crc32c == 0x00)
+          continue;
 
-      if (! SK_D3D11_need_tex_reset)
-        can_free = (IUnknown_AddRef_Original (desc.second.texture) <= 2);
+        bool can_free = true;
 
-      if (can_free)
-        textures.emplace_back (&desc.second);
+        if (! SK_D3D11_need_tex_reset)
+          can_free = (IUnknown_AddRef_Original (desc.second.texture) <= 2);
 
-      if (! SK_D3D11_need_tex_reset)
-        IUnknown_Release_Original (desc.second.texture);
+        if (can_free)
+          textures.emplace_back (&desc.second);
+
+        if (! SK_D3D11_need_tex_reset)
+          IUnknown_Release_Original (desc.second.texture);
+      }
     }
 
     std::sort ( textures.begin (),
@@ -9293,9 +9295,6 @@ D3D11Dev_CreateTexture2D_Impl (
     return D3D11Dev_CreateTexture2D_Original (This, pDesc, pInitialData, ppTexture2D);
 
 
-  SK_AutoCriticalSection critical (&cache_cs);
-
-
   SK_D3D11_MemoryThreads.mark ();
 
 
@@ -9497,7 +9496,18 @@ D3D11Dev_CreateTexture2D_Impl (
   // The concept of a cache-miss only applies if the texture had data at the time
   //   of creation...
   if ( cacheable )
+  {
+    bool
+    WINAPI
+    SK_XInput_PulseController ( INT   iJoyID,
+                                float fStrengthLeft,
+                                float fStrengthRight );
+
+    if (config.textures.cache.vibrate_on_miss)
+      SK_XInput_PulseController (0, 1.0f, 0.0f);
+
     SK_D3D11_Textures.CacheMisses_2D++;
+  }
 
 
   LARGE_INTEGER load_start =
@@ -9586,6 +9596,8 @@ reinterpret_cast <ID3D11Resource **> (ppTexture2D)
 
             size =
               SK_D3D11_ComputeTextureSize (pDesc);
+
+          //SK_AutoCriticalSection critical (&cache_cs);
 
             SK_D3D11_Textures.refTexture2D (
               *ppTexture2D,
@@ -9827,6 +9839,8 @@ reinterpret_cast <ID3D11Resource **> (ppTexture2D)
 
   if ( SUCCEEDED (ret) && cacheable )
   {
+  //SK_AutoCriticalSection critical (&cache_cs);
+
     if (! SK_D3D11_Textures.Blacklist_2D [orig_desc.MipLevels].count (checksum))
     {
       SK_D3D11_Textures.refTexture2D (
@@ -10237,8 +10251,8 @@ SK_D3D11_InitTextures (void)
     InitializeCriticalSectionAndSpinCount (&dump_cs,    0x020);
     InitializeCriticalSectionAndSpinCount (&inject_cs,  0x100);
     InitializeCriticalSectionAndSpinCount (&hash_cs,    0x400);
-    InitializeCriticalSectionAndSpinCount (&cache_cs,   0x800);
-    InitializeCriticalSectionAndSpinCount (&tex_cs,     0xFFF);
+    InitializeCriticalSectionAndSpinCount (&cache_cs,   0x8000);
+    InitializeCriticalSectionAndSpinCount (&tex_cs,     0xFFFF);
 
     cache_opts.max_entries       = config.textures.cache.max_entries;
     cache_opts.min_entries       = config.textures.cache.min_entries;
@@ -14904,7 +14918,17 @@ SK_D3D11_ShaderModDlg (void)
                                   ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NavFlattened );
 
       uncollapsed_tex = 
-        ImGui::CollapsingHeader ("Live Texture View", ImGuiTreeNodeFlags_DefaultOpen);
+        ImGui::CollapsingHeader ( "Live Texture View",
+                                  config.textures.d3d11.cache ? ImGuiTreeNodeFlags_DefaultOpen :
+                                                                0x0 );
+
+      if (! config.textures.d3d11.cache)
+      {
+        ImGui::SameLine    ();
+        ImGui::TextColored (ImColor::HSV (0.15f, 1.0f, 1.0f), "\t(Unavailable because Texture Caching is not enabled!)");
+      }
+
+      uncollapsed_tex = uncollapsed_tex && config.textures.d3d11.cache;
 
       if (uncollapsed_tex)
       {

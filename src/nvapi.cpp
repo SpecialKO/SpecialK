@@ -364,12 +364,12 @@ NvAPI_Disp_GetHdrCapabilities_Override ( NvU32                displayId,
 {
   SK_LOG_FIRST_CALL
 
-  SK_LOG0 ( ( L"NV_HDR_CAPABILITIES Version: %lu", pHdrCapabilities->version ),
-              __SK_SUBSYSTEM__ );
-  SK_LOG0 ( ( L" >> Wants Driver to Expand Default HDR Params: %s",
-                pHdrCapabilities->driverExpandDefaultHdrParameters ? L"Yes" :
-                                                                     L"No" ),
-              __SK_SUBSYSTEM__ );
+  //SK_LOG0 ( ( L"NV_HDR_CAPABILITIES Version: %lu", pHdrCapabilities->version ),
+  //            __SK_SUBSYSTEM__ );
+  //SK_LOG0 ( ( L" >> Wants Driver to Expand Default HDR Params: %s",
+  //              pHdrCapabilities->driverExpandDefaultHdrParameters ? L"Yes" :
+  //                                                                   L"No" ),
+  //            __SK_SUBSYSTEM__ );
 
   NvAPI_Status ret =
     NvAPI_Disp_GetHdrCapabilities_Original ( displayId, pHdrCapabilities );
@@ -420,17 +420,17 @@ NvAPI_Disp_GetHdrCapabilities_Override ( NvU32                displayId,
     pHdrCapabilities->display_data.desired_content_min_luminance               = 1;
     pHdrCapabilities->display_data.desired_content_max_frame_average_luminance = 200;
 
-    pHdrCapabilities->display_data.displayPrimary_x0 = 0.659680f;
-    pHdrCapabilities->display_data.displayPrimary_y0 = 0.340344f;
+    pHdrCapabilities->display_data.displayPrimary_x0 = (NvU16)( 0.659680f * 0xC350 );
+    pHdrCapabilities->display_data.displayPrimary_y0 = (NvU16)( 0.340344f * 0xC350 );
 
-    pHdrCapabilities->display_data.displayPrimary_x1 = 0.244641f;
-    pHdrCapabilities->display_data.displayPrimary_y1 = 0.670422f;
+    pHdrCapabilities->display_data.displayPrimary_x1 = (NvU16)( 0.244641f * 0xC350 );
+    pHdrCapabilities->display_data.displayPrimary_y1 = (NvU16)( 0.670422f * 0xC350 );
 
-    pHdrCapabilities->display_data.displayPrimary_x2 = 0.130383f;
-    pHdrCapabilities->display_data.displayPrimary_y2 = 0.040539f;
+    pHdrCapabilities->display_data.displayPrimary_x2 = (NvU16)( 0.130383f * 0xC350 );
+    pHdrCapabilities->display_data.displayPrimary_y2 = (NvU16)( 0.040539f * 0xC350 );
 
-    pHdrCapabilities->display_data.displayWhitePoint_x = 0.313000f;
-    pHdrCapabilities->display_data.displayWhitePoint_y = 0.329602f;
+    pHdrCapabilities->display_data.displayWhitePoint_x = (NvU16)( 0.313000f * 0xC350 );
+    pHdrCapabilities->display_data.displayWhitePoint_y = (NvU16)( 0.329602f * 0xC350 );
 
     pHDRCtl->devcaps.BitsPerColor          = 10;
     pHDRCtl->devcaps.RedPrimary   [0]      = 0.659680f; pHDRCtl->devcaps.RedPrimary   [1] = 0.340344f;
@@ -448,17 +448,17 @@ NvAPI_Disp_GetHdrCapabilities_Override ( NvU32                displayId,
   if (ret == NVAPI_OK)
   {
   //pHDRCtl->devcaps.BitsPerColor          = 10;
-    pHDRCtl->devcaps.RedPrimary   [0]      = pHdrCapabilities->display_data.displayPrimary_x0;
-    pHDRCtl->devcaps.RedPrimary   [1]      = pHdrCapabilities->display_data.displayPrimary_y0;
+    pHDRCtl->devcaps.RedPrimary   [0]      = ((float)pHdrCapabilities->display_data.displayPrimary_x0) / (float)0xC350;
+    pHDRCtl->devcaps.RedPrimary   [1]      = ((float)pHdrCapabilities->display_data.displayPrimary_y0) / (float)0xC350;
 
-    pHDRCtl->devcaps.GreenPrimary [0]      = pHdrCapabilities->display_data.displayPrimary_x1;
-    pHDRCtl->devcaps.GreenPrimary [1]      = pHdrCapabilities->display_data.displayPrimary_y1;
+    pHDRCtl->devcaps.GreenPrimary [0]      = ((float)pHdrCapabilities->display_data.displayPrimary_x1) / (float)0xC350;
+    pHDRCtl->devcaps.GreenPrimary [1]      = ((float)pHdrCapabilities->display_data.displayPrimary_y1) / (float)0xC350;
 
-    pHDRCtl->devcaps.BluePrimary  [0]      = pHdrCapabilities->display_data.displayPrimary_x2;
-    pHDRCtl->devcaps.BluePrimary  [1]      = pHdrCapabilities->display_data.displayPrimary_y2;
+    pHDRCtl->devcaps.BluePrimary  [0]      = ((float)pHdrCapabilities->display_data.displayPrimary_x2) / (float)0xC350;
+    pHDRCtl->devcaps.BluePrimary  [1]      = ((float)pHdrCapabilities->display_data.displayPrimary_y2) / (float)0xC350;
 
-    pHDRCtl->devcaps.WhitePoint   [0]      = pHdrCapabilities->display_data.displayWhitePoint_x;
-    pHDRCtl->devcaps.WhitePoint   [1]      = pHdrCapabilities->display_data.displayWhitePoint_y;
+    pHDRCtl->devcaps.WhitePoint   [0]      = ((float)pHdrCapabilities->display_data.displayWhitePoint_x) / (float)0xC350;
+    pHDRCtl->devcaps.WhitePoint   [1]      = ((float)pHdrCapabilities->display_data.displayWhitePoint_y) / (float)0xC350;
 
   //pHDRCtl->devcaps.ColorSpace            = DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020;
     pHDRCtl->devcaps.MinLuminance          = (float)pHdrCapabilities->display_data.desired_content_min_luminance;
@@ -490,12 +490,11 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
     };
   };
 
-  SK_LOG0 ( ( L"NV_HDR_COLOR_DATA Version: %lu", pHdrColorData->version ),
-              __SK_SUBSYSTEM__ );
-  SK_LOG0 ( ( L"HDR Mode:    %s", HDRModeToStr (pHdrColorData->hdrMode) ),
-              __SK_SUBSYSTEM__ );
-  SK_LOG0 ( ( L"HDR Command: %s", pHdrColorData->cmd == NV_HDR_CMD_GET ?
-                                                        L"Get" : L"Set" ),
+  //SK_LOG0 ( ( L"NV_HDR_COLOR_DATA Version: %lu", pHdrColorData->version ),
+  //            __SK_SUBSYSTEM__ );
+  SK_LOG0 ( ( L"<%s> HDR Mode:    %s", pHdrColorData->cmd == NV_HDR_CMD_GET ?
+                                                        L"Get" : L"Set",
+                                       HDRModeToStr (pHdrColorData->hdrMode) ),
               __SK_SUBSYSTEM__ );
 
   SK_DXGI_HDRControl* pHDRCtl =
@@ -519,17 +518,17 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
       pHdrColorData->mastering_display_data.max_display_mastering_luminance = pHDRCtl->meta.MaxMasteringLuminance / 10000.0f;
     }
 
-    pHdrColorData->mastering_display_data.displayPrimary_x0 = 0.659680f;
-    pHdrColorData->mastering_display_data.displayPrimary_y0 = 0.340344f;
+    pHdrColorData->mastering_display_data.displayPrimary_x0 = (NvU16)( 0.659680f * 0xC350 );
+    pHdrColorData->mastering_display_data.displayPrimary_y0 = (NvU16)( 0.340344f * 0xC350 );
 
-    pHdrColorData->mastering_display_data.displayPrimary_x1 = 0.244641f;
-    pHdrColorData->mastering_display_data.displayPrimary_y1 = 0.670422f;
+    pHdrColorData->mastering_display_data.displayPrimary_x1 = (NvU16)( 0.244641f * 0xC350 );
+    pHdrColorData->mastering_display_data.displayPrimary_y1 = (NvU16)( 0.670422f * 0xC350 );
 
-    pHdrColorData->mastering_display_data.displayPrimary_x2 = 0.130383f;
-    pHdrColorData->mastering_display_data.displayPrimary_y2 = 0.040539f;
+    pHdrColorData->mastering_display_data.displayPrimary_x2 = (NvU16)( 0.130383f * 0xC350 );
+    pHdrColorData->mastering_display_data.displayPrimary_y2 = (NvU16)( 0.040539f * 0xC350 );
 
-    pHdrColorData->mastering_display_data.displayWhitePoint_x = 0.313000f;
-    pHdrColorData->mastering_display_data.displayWhitePoint_y = 0.329602f;
+    pHdrColorData->mastering_display_data.displayWhitePoint_x = (NvU16)( 0.313000f * 0xC350 );
+    pHdrColorData->mastering_display_data.displayWhitePoint_y = (NvU16)( 0.329602f * 0xC350 );
 
     pHDRCtl->devcaps.BitsPerColor          = 10;
     pHDRCtl->devcaps.RedPrimary   [0]      = 0.659680f; pHDRCtl->devcaps.RedPrimary   [1] = 0.340344f;

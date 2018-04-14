@@ -506,6 +506,16 @@ SK_EstablishDllRole (skWin32Module&& module)
 #endif
 
 
+#include <SpecialK/injection/blacklist.h>
+
+  //// If Blacklisted, Bail-Out
+  wchar_t         wszAppNameLower                   [MAX_PATH + 2] = { };
+  lstrcpynW      (wszAppNameLower, SK_GetHostApp (), MAX_PATH);
+  CharLowerBuffW (wszAppNameLower,                   MAX_PATH);
+  
+  if (__blacklist.count (wszAppNameLower)) return false;
+
+
   const wchar_t* wszSelfTitledDLL =
     static_cast <const std::wstring &> (module).c_str ();
 

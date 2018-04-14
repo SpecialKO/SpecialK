@@ -54,6 +54,14 @@
 #include <SpecialK/steam_api.h>
 #include <../depends/include/steamapi/steamclientpublic.h>
 
+
+#include <concurrent_unordered_map.h>
+static Concurrency::concurrent_unordered_map <LPVOID, bool> UserStatsReceived_callbacks;
+
+volatile LONGLONG SK_SteamAPI_CallbackRunCount    =  0LL;
+volatile LONG     SK_SteamAPI_ManagersInitialized =  0L;
+volatile LONG     SK_SteamAPI_CallbackRateLimit   = -1L;
+
 // PlaySound
 #pragma comment (lib, "winmm.lib")
 
@@ -452,10 +460,13 @@ SK_Steam_PreHookCore (void)
     }
   }
 
-  SK_CreateDLLHook2 (          wszSteamLib,
-                                "SteamClient",
-                                 SteamClient_Detour,
-        static_cast_p2p <void> (&SteamClient_Original) );
+  if (GetProcAddress (GetModuleHandle (wszSteamLib), "SteamClient"))
+  {
+    SK_CreateDLLHook2 (          wszSteamLib,
+                                  "SteamClient",
+                                   SteamClient_Detour,
+          static_cast_p2p <void> (&SteamClient_Original) );
+  }
 
   if (GetProcAddress (GetModuleHandle (wszSteamLib), "SteamUser"))
   {
@@ -648,7 +659,6 @@ callback_func_t SteamAPI_UserStatsReceived_Original = nullptr;
 extern "C" void __fastcall SteamAPI_UserStatsReceived_Detour       (CCallbackBase* This, UserStatsReceived_t* pParam);
 //extern "C" void __cdecl SteamAPI_UserStatsReceivedIOFail_Detour (CCallbackBase* This, UserStatsReceived_t* pParam, bool bIOFailure, SteamAPICall_t hSteamAPICall);
 
-
 const char*
 __stdcall
 SK_Steam_ClassifyCallback (int iCallback)
@@ -741,52 +751,53 @@ SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
       steam_log.Log ( L" * (%-28s) Installed User Stats Receipt Callback",
                         caller.c_str () );
 
-      if (config.steam.block_stat_callback)
-      {
-        steam_log.Log (L" ### Callback Blacklisted ###");
-        LeaveCriticalSection (&callback_cs);
-        return;
-      }
-
-      //
-      // Many games shutdown SteamAPI on an async operation I/O failure;
-      //   reading friend achievement stats will fail-fast thanks to Valve
-      //     not implementing a query for friends who have a specific AppID
-      //       in their library.
-      //
-      //   Most friends will have no achievements for the current game,
-      //     so hook the game's callback procedure and filter out failure
-      //       events that we generated much to the game's surprise :)
-      //
-      else if (SK_ValidatePointer (pCallback) && config.steam.filter_stat_callback)
-      {
-#ifdef _WIN64
-        void** vftable = *reinterpret_cast <void ***> (&pCallback);
-
-        if (SK_ValidatePointer (vftable [3]))
-        {
-          SK_CreateFuncHook (      L"Callback Redirect",
-                                     vftable [3],
-                                     SteamAPI_UserStatsReceived_Detour,
-            static_cast_p2p <void> (&SteamAPI_UserStatsReceived_Original) );
-          SK_EnableHook (            vftable [3]);
-
-          steam_log.Log ( L" ### Callback Redirected (APPLYING FILTER:  Remove "
-                               L"Third-Party CSteamID / AppID Achievements) ###" );
-        }
-#else
-        /*
-        SK_CreateFuncHook ( L"Callback Redirect",
-                              vftable [4],
-                              SteamAPI_UserStatsReceived_Detour,
-     static_cast_p2p <void> (&SteamAPI_UserStatsReceived_Original) );
-        SK_EnableHook (vftable [4]);
-
-        steam_log.Log ( L" ### Callback Redirected (APPLYING FILTER:  Remove "
-                             L"Third-Party CSteamID / AppID Achievements) ###" );
-        */
-#endif
-      }
+//      if (config.steam.block_stat_callback)
+//      {
+//        steam_log.Log (L" ### Callback Blacklisted ###");
+//        LeaveCriticalSection (&callback_cs);
+//        return;
+//      }
+//
+//      //
+//      // Many games shutdown SteamAPI on an async operation I/O failure;
+//      //   reading friend achievement stats will fail-fast thanks to Valve
+//      //     not implementing a query for friends who have a specific AppID
+//      //       in their library.
+//      //
+//      //   Most friends will have no achievements for the current game,
+//      //     so hook the game's callback procedure and filter out failure
+//      //       events that we generated much to the game's surprise :)
+//      //
+//      else if (SK_ValidatePointer (pCallback) && config.steam.filter_stat_callback)
+//      {
+//#ifdef _WIN64
+//        void** vftable = *reinterpret_cast <void ***> (&pCallback);
+//
+//        if (SK_ValidatePointer (vftable [3]))
+//        {
+//          SK_CreateFuncHook (      L"Callback Redirect",
+//                                     vftable [3],
+//                                     SteamAPI_UserStatsReceived_Detour,
+//            static_cast_p2p <void> (&SteamAPI_UserStatsReceived_Original) );
+//          SK_EnableHook (            vftable [3]);
+//
+//          steam_log.Log ( L" ### Callback Redirected (APPLYING FILTER:  Remove "
+//                               L"Third-Party CSteamID / AppID Achievements) ###" );
+//        }
+//#else
+//        /*
+//        SK_CreateFuncHook ( L"Callback Redirect",
+//                              vftable [4],
+//                              SteamAPI_UserStatsReceived_Detour,
+//     static_cast_p2p <void> (&SteamAPI_UserStatsReceived_Original) );
+//        SK_EnableHook (vftable [4]);
+//
+//        steam_log.Log ( L" ### Callback Redirected (APPLYING FILTER:  Remove "
+//                             L"Third-Party CSteamID / AppID Achievements) ###" );
+//        */
+//#endif
+      //}
+      UserStatsReceived_callbacks [pCallback] = true;
       break;
     case UserStatsStored_t::k_iCallback:
       steam_log.Log ( L" * (%-28s) Installed User Stats Storage Callback",
@@ -915,16 +926,17 @@ SteamAPI_UnregisterCallback_Detour (class CCallbackBase *pCallback)
       steam_log.Log ( L" * (%-28s) Uninstalled User Stats Receipt Callback",
                         caller.c_str () );
 
-      // May need to block this callback to prevent some games from spuriously shutting
-      //   SteamAPI down if the server's not cooperating.
-      //
-      //  * Fixes issues with missed/backlogged achievements in games like The Witcher 3
-      if (config.steam.block_stat_callback)
-      {
-        steam_log.Log (L" ### Callback Blacklisted ###");
-        LeaveCriticalSection (&callback_cs);
-        return;
-      }
+      //// May need to block this callback to prevent some games from spuriously shutting
+      ////   SteamAPI down if the server's not cooperating.
+      ////
+      ////  * Fixes issues with missed/backlogged achievements in games like The Witcher 3
+      //if (config.steam.block_stat_callback)
+      //{
+      //  steam_log.Log (L" ### Callback Blacklisted ###");
+      //  LeaveCriticalSection (&callback_cs);
+      //  return;
+      //}
+      UserStatsReceived_callbacks [pCallback] = false;
       break;
     case UserStatsStored_t::k_iCallback:
       steam_log.Log ( L" * (%-28s) Uninstalled User Stats Storage Callback",
@@ -1376,6 +1388,7 @@ bool           has_global_data  = false;
 ULONG          next_friend      = 0UL;
 ULONG          friend_count     = 0UL;
 SteamAPICall_t friend_query     = 0;
+LONGLONG       friends_done     = 0;
 
 class SK_Steam_AchievementManager
 {
@@ -1792,6 +1805,11 @@ public:
         hCall,
           this,
             &SK_Steam_AchievementManager::OnRecvFriendStats );
+    }
+
+    else
+    {
+      friends_done = ReadAcquire64 (&SK_SteamAPI_CallbackRunCount);
     }
   }
 
@@ -2944,10 +2962,6 @@ SK_Steam_DrawOSD (void)
   return 0;
 }
 
-volatile LONGLONG SK_SteamAPI_CallbackRunCount    =  0LL;
-volatile LONG     SK_SteamAPI_ManagersInitialized =  0L;
-volatile LONG     SK_SteamAPI_CallbackRateLimit   = -1L;
-
 bool
 SK_Steam_ShouldThrottleCallbacks (void)
 {
@@ -2986,6 +3000,16 @@ void
 S_CALLTYPE
 SteamAPI_RunCallbacks_Detour (void)
 {
+  if (friends_done == ReadAcquire64 (&SK_SteamAPI_CallbackRunCount - 10) &&
+       11           < ReadAcquire64 (&SK_SteamAPI_CallbackRunCount) )
+  {
+    for ( auto it : UserStatsReceived_callbacks )
+    {
+      if (it.second)
+        SteamAPI_RegisterCallback_Original ((class CCallbackBase *)it.first, UserStatsReceived_t::k_iCallback);
+    }
+  }
+
   //if (ReadAcquire (&__SK_DLL_Ending))
   //{
   //  SteamAPI_RunCallbacks_Original ();
@@ -3003,8 +3027,6 @@ SteamAPI_RunCallbacks_Detour (void)
 
   if (SK_Steam_ShouldThrottleCallbacks ())
     return;
-
-
 
   if ((! failure) && (( ReadAcquire64 (&SK_SteamAPI_CallbackRunCount) == 0LL || steam_achievements == nullptr )))
   {
@@ -4180,6 +4202,12 @@ SK_SteamAPI_InitManagers (void)
 
     if (stats != nullptr && ((! user_manager) || (! steam_achievements)))
     {
+      for ( auto it : UserStatsReceived_callbacks )
+      {
+        if (it.second)
+          SteamAPI_UnregisterCallback_Original ((class CCallbackBase *)it.first);
+      }
+
       has_global_data = false;
       next_friend     = 0;
 

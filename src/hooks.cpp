@@ -520,8 +520,8 @@ using K32GetModuleInformation_pfn = BOOL (WINAPI *)(HANDLE, HMODULE, LPMODULEINF
 
 static K32GetModuleInformation_pfn K32GetModuleInformation =
   reinterpret_cast <K32GetModuleInformation_pfn> (
-    GetProcAddress ( GetModuleHandle (L"kernel32"),
-                                       "K32GetModuleInformation" )
+    SK_GetProcAddress ( L"kernel32",
+                          "K32GetModuleInformation" )
   );
 
 bool
@@ -649,7 +649,7 @@ SK_CreateDLLHook ( const wchar_t  *pwszModule, const char  *pszProcName,
   else
   {
     pFuncAddr =
-      GetProcAddress (hMod, pszProcName);
+      SK_GetProcAddress (pwszModule, pszProcName);
 
     status =
       MH_CreateHook ( pFuncAddr,
@@ -769,7 +769,7 @@ SK_CreateDLLHook2 ( const wchar_t  *pwszModule, const char  *pszProcName,
   else
   {
     pFuncAddr =
-      GetProcAddress (hMod, pszProcName);
+      SK_GetProcAddress (pwszModule, pszProcName);
 
     status =
       MH_CreateHook ( pFuncAddr,
@@ -888,7 +888,7 @@ SK_CreateDLLHook3 ( const wchar_t  *pwszModule, const char  *pszProcName,
 
   else {
     pFuncAddr =
-      GetProcAddress (hMod, pszProcName);
+      SK_GetProcAddress (pwszModule, pszProcName);
 
     status =
       MH_CreateHook ( pFuncAddr,

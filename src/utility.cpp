@@ -28,9 +28,6 @@
 #include <SpecialK/thread.h>
 #include <SpecialK/diagnostics/modules.h>
 
-#include <UserEnv.h>
-#pragma comment (lib, "userenv.lib")
-
 #include <Shlobj.h>
 #pragma comment (lib, "shell32.lib")
 
@@ -153,14 +150,19 @@ SK_GetUserProfileDir (wchar_t* buf, uint32_t* pdwLen)
     _Out_writes_opt_(*lpcchSize)    LPWSTR lpProfileDir,
     _Inout_                         LPDWORD lpcchSize);
 
+  static GetUserProfileDirectoryW_pfn GetUserProfileDirectoryW_Import =
+    (GetUserProfileDirectoryW_pfn)
+       GetProcAddress ( SK_Modules.LoadLibrary (L"USERENV.dll"),
+                            "GetUserProfileDirectoryW" );
+
   CHandle hToken;
 
   if (! OpenProcessToken (SK_GetCurrentProcess (), TOKEN_READ, &hToken.m_h))
     return false;
 
-  if (! GetUserProfileDirectoryW ( hToken, buf,
-                                     reinterpret_cast <DWORD *> (pdwLen)
-                                 )
+  if (! GetUserProfileDirectoryW_Import ( hToken, buf,
+                                            reinterpret_cast <DWORD *> (pdwLen)
+                                        )
      )
   {
     return false;
@@ -487,14 +489,26 @@ SK_IsProcessRunning (const wchar_t* wszProcName)
 
 
 
-LPVOID
+typedef FARPROC (WINAPI *GetProcAddress_pfn)(HMODULE,LPCSTR);
+                  extern GetProcAddress_pfn
+                         GetProcAddress_Original;
+
+FARPROC
+WINAPI
 SK_GetProcAddress (const wchar_t* wszModule, const char* szFunc)
 {
   HMODULE hMod = 
     GetModuleHandle (wszModule);
 
   if (hMod != nullptr)
+  {
+    if (GetProcAddress_Original != nullptr)
+    {
+      return GetProcAddress_Original (hMod, szFunc);
+    }
+
    return GetProcAddress (hMod, szFunc);
+  }
 
   return nullptr;
 }
@@ -1783,8 +1797,30 @@ SK_GetHostApp (void)
 
     GetModuleFileNameW ( 0, wszProcessName, dwProcessSize );
 
-    wchar_t* wszSepBack = wcsrchr (wszProcessName, L'\\');
-    wchar_t* wszSepFwd  = wcsrchr (wszProcessName, L'/');
+    int      len    = lstrlenW (wszProcessName) - 1;
+    wchar_t* wszEnd =           wszProcessName;
+
+    for (int i = 0; i < len; i++)
+      wszEnd = CharNextW (wszEnd);
+
+    wchar_t* wszSepBack = wszEnd;
+    wchar_t* wszSepFwd  = wszEnd;
+
+    while (wszSepBack > wszProcessName)
+    {
+      wszSepBack = CharPrevW (wszProcessName, wszSepBack);
+
+      if (*wszSepBack == L'\\')
+        break;
+    }
+
+    while (wszSepFwd > wszProcessName)
+    {
+      wszSepFwd = CharPrevW (wszProcessName, wszSepFwd);
+
+      if (*wszSepFwd == L'/')
+        break;
+    }
 
     wchar_t* wszLastSep =
       ( wszSepBack > wszSepFwd ? wszSepBack : wszSepFwd );

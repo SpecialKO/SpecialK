@@ -1185,11 +1185,10 @@ SK_ImGui_PollGamepad_EndFrame (void)
     // Don't cycle window elements when Alt+Tabbing
     if (io.KeyAlt) io.KeysDown [VK_TAB] = false;
 
-
     if (config.input.keyboard.catch_alt_f4)
     {
       if ( io.KeyAlt && io.KeysDown [VK_F4] && ( ( io.KeysDownDuration [VK_MENU] > 0 ) ^
-                                                 ( io.KeysDownDuration [VK_F4]   > 0 ) ) )
+              ( io.KeysDownDuration [VK_F4] > 0 ) ))
       {
         extern bool SK_ImGui_WantExit;
                     SK_ImGui_WantExit = true;

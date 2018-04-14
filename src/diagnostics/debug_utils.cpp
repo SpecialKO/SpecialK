@@ -38,6 +38,8 @@
 #include <SpecialK/diagnostics/modules.h>
 #include <SpecialK/diagnostics/load_library.h>
 
+#include <unordered_set>
+
 // Fix warnings in dbghelp.h
 #pragma warning (disable : 4091)
 
@@ -64,6 +66,55 @@ OutputDebugStringW_pfn OutputDebugStringW_Original = nullptr;
 
 void
 SK_SymSetOpts (void);
+
+typedef FARPROC (WINAPI *GetProcAddress_pfn)(HMODULE,LPCSTR);
+                         GetProcAddress_pfn
+                         GetProcAddress_Original = nullptr;
+
+FARPROC
+WINAPI
+GetProcAddress_Detour (
+  _In_ HMODULE hModule,
+  _In_ LPCSTR  lpProcName
+)
+{
+  static DWORD dwOptimus        = 0x1;
+  static DWORD dwAMDPowerXPress = 0x1;
+
+  // We have to handle ordinals as well, those would generally crash anything
+  //   that treats them as a nul-terminated string.
+  if ((uintptr_t)lpProcName < 65536)
+    return GetProcAddress_Original (hModule, lpProcName);
+
+
+  //
+  // With how frequently this function is called, we need to be smarter about
+  //   string handling -- thus a hash set.
+  //
+  static const std::unordered_set <std::string> handled_strings = {
+    "NvOptimusEnablement", "AmdPowerXpressRequestHighPerformance"
+  };
+
+  if (handled_strings.count (lpProcName))
+  {
+    if (! strcmp (lpProcName, "NvOptimusEnablement"))
+    {
+      dll_log.Log (L"Optimus Enablement");
+      return (FARPROC)&dwOptimus;
+    }
+
+    if (! strcmp (lpProcName, "AmdPowerXpressRequestHighPerformance"))
+      return (FARPROC)&dwAMDPowerXPress;
+  }
+
+
+//dll_log.Log (L"GetProcAddress (%hs)", lpProcName);
+
+
+  return
+    GetProcAddress_Original (hModule, lpProcName);
+}
+
 
 extern
 DWORD_PTR
@@ -354,6 +405,7 @@ NtSetInformationThread_Detour (
                                         ThreadInformation,
                                           ThreadInformationLength );
 }
+
 
 volatile LONG lLastThreadCreate = 0;
 
@@ -753,36 +805,41 @@ static_cast_p2p <void> (&GetCommandLineW_Original) );
                          GetCommandLineA_Detour,
 static_cast_p2p <void> (&GetCommandLineA_Original) );
 
-    SK_CreateDLLHook2 (      L"kernel32",
-                             "ResetEvent",
-                              ResetEvent_Detour,
-     static_cast_p2p <void> (&ResetEvent_Original) );
+  SK_CreateDLLHook2 (      L"kernel32",
+                           "ResetEvent",
+                            ResetEvent_Detour,
+   static_cast_p2p <void> (&ResetEvent_Original) );
 
-    SK_CreateDLLHook2 (      L"NtDll.dll",
-                             "RtlRaiseException",
-                              RtlRaiseException_Detour,
-     static_cast_p2p <void> (&RtlRaiseException_Original) );
+  SK_CreateDLLHook2 (      L"NtDll.dll",
+                           "RtlRaiseException",
+                            RtlRaiseException_Detour,
+   static_cast_p2p <void> (&RtlRaiseException_Original) );
 
-    SK_CreateDLLHook2 (      L"NtDll.dll",
-                             "NtCreateThreadEx",
-                              NtCreateThreadEx_Detour,
-     static_cast_p2p <void> (&NtCreateThreadEx_Original) );
-    
-    SK_CreateDLLHook2 (      L"NtDll.dll",
-                             "NtSetInformationThread",
-                              NtSetInformationThread_Detour,
-     static_cast_p2p <void> (&NtSetInformationThread_Original) );
+  SK_CreateDLLHook2 (      L"NtDll.dll",
+                           "NtCreateThreadEx",
+                            NtCreateThreadEx_Detour,
+   static_cast_p2p <void> (&NtCreateThreadEx_Original) );
+  
+  SK_CreateDLLHook2 (      L"NtDll.dll",
+                           "NtSetInformationThread",
+                            NtSetInformationThread_Detour,
+   static_cast_p2p <void> (&NtSetInformationThread_Original) );
 
-    SK_CreateDLLHook2 (      L"kernel32",
-                              "SetThreadAffinityMask",
-                               SetThreadAffinityMask_Detour,
-      static_cast_p2p <void> (&SetThreadAffinityMask_Original) );
+  SK_CreateDLLHook2 (      L"kernel32",
+                            "SetThreadAffinityMask",
+                             SetThreadAffinityMask_Detour,
+    static_cast_p2p <void> (&SetThreadAffinityMask_Original) );
 
-    SK_Memory_InitHooks  ();
-    SK_File_InitHooks    ();
-    SK_Network_InitHooks ();
+  ///SK_CreateDLLHook2 (      L"kernel32",
+  ///                          "GetProcAddress",
+  ///                           GetProcAddress_Detour,
+  ///  static_cast_p2p <void> (&GetProcAddress_Original) );
 
-    SK_ApplyQueuedHooks ();
+  SK_Memory_InitHooks  ();
+  SK_File_InitHooks    ();
+  SK_Network_InitHooks ();
+
+  SK_ApplyQueuedHooks ();
 
   return bAllow;
 }

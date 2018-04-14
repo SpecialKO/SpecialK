@@ -85,7 +85,7 @@ std::unordered_set <std::wstring> __blacklist = {
   L"gamebarpresencewriter.exe",
   L"oawrapper.exe",
   L"nvoawrappercache.exe",
-//L"perfwatson2.exe",
+  L"perfwatson2.exe",
   
   L"gameserver.exe",// Sacred   game server
   L"s2gs.exe",      // Sacred 2 game server

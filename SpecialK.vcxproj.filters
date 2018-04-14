@@ -936,12 +936,12 @@
     <None Include="include\imgui\imgui_user.inl">
       <Filter>Header Files</Filter>
     </None>
-    <None Include="resource\packages\D3DCompiler_43_32.7z" />
-    <None Include="resource\packages\D3DCompiler_43_64.7z" />
     <None Include="resource\packages\D3DX9_43_32.7z" />
     <None Include="resource\packages\D3DX9_43_64.7z" />
     <None Include="resource\packages\D3DX11_43_32.7z" />
     <None Include="resource\packages\D3DX11_43_64.7z" />
+    <None Include="resource\packages\D3DCompiler_47_32.7z" />
+    <None Include="resource\packages\D3DCompiler_47_64.7z" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource\Resource.rc">

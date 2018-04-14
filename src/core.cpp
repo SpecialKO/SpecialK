@@ -417,8 +417,8 @@ SK_LoadGPUVendorAPIs (void)
   {
     auto* dwOptimus =
       reinterpret_cast <DWORD *> (
-        GetProcAddress ( hMod,
-                           "NvOptimusEnablement" )
+        SK_GetProcAddress ( SK_GetHostApp (),
+                              "NvOptimusEnablement" )
       );
 
     if (dwOptimus != nullptr)
@@ -436,8 +436,8 @@ SK_LoadGPUVendorAPIs (void)
 
     auto* dwPowerXpress =
       reinterpret_cast <DWORD *> (
-        GetProcAddress ( hMod,
-                           "AmdPowerXpressRequestHighPerformance" )
+        SK_GetProcAddress ( SK_GetHostApp (),
+                              "AmdPowerXpressRequestHighPerformance" )
       );
 
     if (dwPowerXpress != nullptr)
@@ -655,20 +655,25 @@ SK_InitFinishCallback (void)
   bool local_install = false;
   if (! SK_COMPAT_IsSystemDllInstalled (L"D3DCompiler_43.dll", &local_install))
   {
-    if (! local_install)
-    {
-      SK_UnpackD3DShaderCompiler ();
-    }
-
     SK_ImGui_Warning (L"Your system is missing the June 2010 DirectX Runtime.\t\t\n"
                       L"\n"
                       L"\t\t\t\t* Please install it as soon as possible.");
   }
 
+  local_install = false;
+  if (! SK_COMPAT_IsSystemDllInstalled (L"D3DCompiler_47.dll", &local_install))
+  {
+    if (! local_install)
+    {
+      SK_UnpackD3DShaderCompiler ();
+    }
+  }
+
+
   // NOTE: This is case-sensitive and a nightmare to debug; always use this
   //         unorthodox case because it's what the DLL uses internally as
   //           its name (unrelated to the name in System32\...)
-  if ( FAILED (__HrLoadAllImportsForDll ("D3DCOMPILER_43.dll")) )
+  if ( FAILED (__HrLoadAllImportsForDll ("D3DCOMPILER_47.dll")) )
     abort ();
 
 
@@ -1080,15 +1085,6 @@ bool
 __stdcall
 SK_StartupCore (const wchar_t* backend, void* callback)
 {
-#include <SpecialK/injection/blacklist.h>
-
-  // If Blacklisted, Bail-Out
-  wchar_t         wszAppNameLower                   [MAX_PATH + 2] = { };
-  wcsncpy        (wszAppNameLower, SK_GetHostApp (), MAX_PATH);
-  CharLowerBuffW (wszAppNameLower,                   MAX_PATH);
-
-  if (__blacklist.count (wszAppNameLower)) return false;
-
   QueryPerformanceCounter_Original =
     reinterpret_cast <QueryPerformanceCounter_pfn> (
       GetProcAddress (

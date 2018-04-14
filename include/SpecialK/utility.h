@@ -149,7 +149,7 @@ void           SK_LogSymbolName             (LPCVOID addr);
 char*          SK_StripUserNameFromPathA    (   char*  szInOut);
 wchar_t*       SK_StripUserNameFromPathW    (wchar_t* wszInOut);
 
-LPVOID         SK_GetProcAddress            (const wchar_t* wszModule, const char* szFunc);
+FARPROC WINAPI SK_GetProcAddress            (const wchar_t* wszModule, const char* szFunc);
 
 
 std::wstring

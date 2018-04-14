@@ -977,7 +977,7 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds)
       if (bUnicode)
       {
         if ( PeekMessageW ( &msg, hWndThis, 0, 0,
-                                              PM_REMOVE | PM_QS_INPUT)
+                                              PM_REMOVE | QS_ALLINPUT | QS_ALLPOSTMESSAGE)
                  &&          msg.message != WM_NULL
            )
         {
@@ -988,7 +988,7 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds)
       else
       {
         if ( PeekMessageA ( &msg, hWndThis, 0, 0,
-                                              PM_REMOVE | PM_QS_INPUT)
+                                              PM_REMOVE | QS_ALLINPUT | QS_ALLPOSTMESSAGE)
                  &&          msg.message != WM_NULL
            )
         {
@@ -997,18 +997,21 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds)
       }
     };
 
-    DWORD dwStartTime = timeGetTime ();
-    DWORD dwEndTime   = dwStartTime + dwMilliseconds;
-    DWORD dwNow       = 0;
+    LARGE_INTEGER liStart      = SK_CurrentPerf ();
+    long long     liTicksPerMS = SK_GetPerfFreq ().QuadPart / 1000LL;
+    long long     liEnd        = liStart.QuadPart + ( liTicksPerMS * dwMilliseconds );
 
-    while ((dwNow = timeGetTime ()) <= dwEndTime)
+    LARGE_INTEGER liNow = liStart;
+
+    while ((liNow = SK_CurrentPerf ()).QuadPart < liEnd)
     {
       DWORD dwMaxWait =
-        dwEndTime - dwNow;
+        (DWORD)((liEnd - liNow.QuadPart) / liTicksPerMS);
 
       if (dwMaxWait < INT_MAX)
       {
-        if (MsgWaitForMultipleObjectsEx (0, nullptr, dwMaxWait, QS_ALLEVENTS, MWMO_ALERTABLE | MWMO_INPUTAVAILABLE) == WAIT_OBJECT_0)
+        if (MsgWaitForMultipleObjectsEx (0, nullptr, dwMaxWait, QS_ALLINPUT    | QS_ALLPOSTMESSAGE,
+                                                                MWMO_ALERTABLE | MWMO_INPUTAVAILABLE) == WAIT_OBJECT_0)
         {
           PeekAndDispatch ();
         }
