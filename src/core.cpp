@@ -670,13 +670,6 @@ SK_InitFinishCallback (void)
   }
 
 
-  // NOTE: This is case-sensitive and a nightmare to debug; always use this
-  //         unorthodox case because it's what the DLL uses internally as
-  //           its name (unrelated to the name in System32\...)
-  if ( FAILED (__HrLoadAllImportsForDll ("D3DCOMPILER_47.dll")) )
-    abort ();
-
-
   SK_DeleteTemporaryFiles ();
   SK_DeleteTemporaryFiles (L"Version", L"*.old");
 
@@ -1980,6 +1973,10 @@ SetupCEGUI (SK_RenderAPI& LastKnownAPI)
         GetProcAddress ( GetModuleHandle (L"kernel32"),
                            "SetDefaultDllDirectories" );
 
+    const char *locale_orig =
+      _strdup (setlocale (LC_ALL, NULL));
+               setlocale (LC_ALL, "C");
+
     if ( k32_AddDllDirectory          && k32_RemoveDllDirectory &&
          k32_SetDefaultDllDirectories &&
 
@@ -2085,6 +2082,10 @@ SetupCEGUI (SK_RenderAPI& LastKnownAPI)
         }
       }
     }
+
+    setlocale (LC_ALL, locale_orig);
+    free      ((void *)locale_orig);
+
 
     // If we got this far and CEGUI's not enabled, it's because something went horribly wrong.
     if (! (config.cegui.enable && GetModuleHandle (L"CEGUIBase-0")))

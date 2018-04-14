@@ -6068,31 +6068,36 @@ SK_D3D11_TexCacheCheckpoint (void)
 
           D3D11_TEXTURE2D_DESC* tex_desc = &(*desc)->desc;
 
-          UINT refs_plus_1 = (*desc)->texture->AddRef  ();
-          UINT refs        = (*desc)->texture->Release ();
+          if ((*desc)->texture != nullptr)
+          {
+            UINT refs_plus_1 = (*desc)->texture->AddRef  ();
+            UINT refs        = (*desc)->texture->Release ();
 
-          SK_LOG1 ( ( L"(%lux%lu@%lu [%s] - %s, %s, %s : CPU Usage=%x -- refs+1=%lu, refs=%lu",
-                      tex_desc->Width, tex_desc->Height, tex_desc->MipLevels,
-                      SK_DXGI_FormatToStr (tex_desc->Format).c_str (),
-                      SK_D3D11_DescribeBindFlags ((D3D11_BIND_FLAG)tex_desc->BindFlags).c_str (), 
-                      SK_D3D11_DescribeMiscFlags ((D3D11_RESOURCE_MISC_FLAG)tex_desc->MiscFlags).c_str (),
-                      SK_D3D11_DescribeUsage     (tex_desc->Usage),
-                      (UINT)tex_desc->CPUAccessFlags,
-                      refs_plus_1, refs ),
-                     L"DXGI Cache" );
+            SK_LOG1 ( ( L"(%lux%lu@%lu [%s] - %s, %s, %s : CPU Usage=%x -- refs+1=%lu, refs=%lu",
+                        tex_desc->Width, tex_desc->Height, tex_desc->MipLevels,
+                        SK_DXGI_FormatToStr (tex_desc->Format).c_str (),
+                        SK_D3D11_DescribeBindFlags ((D3D11_BIND_FLAG)tex_desc->BindFlags).c_str (), 
+                        SK_D3D11_DescribeMiscFlags ((D3D11_RESOURCE_MISC_FLAG)tex_desc->MiscFlags).c_str (),
+                        SK_D3D11_DescribeUsage     (tex_desc->Usage),
+                        (UINT)tex_desc->CPUAccessFlags,
+                        refs_plus_1, refs ),
+                       L"DXGI Cache" );
 
-          // If this texture is _NOT_ injected and also not resident in VRAM, then
-          //   remove it from cache.
-          //
-          //  If it is injected, leave it loaded because this cache's purpose is to prevent
-          //    re-loading injected textures.
-          if (refs == 1 && (! (*desc)->injected))
-            (*desc)->texture->Release ();
+            // If this texture is _NOT_ injected and also not resident in VRAM, then
+            //   remove it from cache.
+            //
+            //  If it is injected, leave it loaded because this cache's purpose is to prevent
+            //    re-loading injected textures.
+            if (refs == 1 && (! (*desc)->injected))
+              (*desc)->texture->Release ();
+          }
         }
 
-        if (it == DXGI_RESIDENCY_FULLY_RESIDENT)            { ++fully_resident; size_vram   += (*(desc++))->mem_size; }
-        if (it == DXGI_RESIDENCY_RESIDENT_IN_SHARED_MEMORY) { ++shared_memory;  size_shared += (*(desc++))->mem_size; }
-        if (it == DXGI_RESIDENCY_EVICTED_TO_DISK)           { ++on_disk;        size_disk   += (*(desc++))->mem_size; }
+        if (it == DXGI_RESIDENCY_FULLY_RESIDENT)            { ++fully_resident; size_vram   += (*(desc))->mem_size; }
+        if (it == DXGI_RESIDENCY_RESIDENT_IN_SHARED_MEMORY) { ++shared_memory;  size_shared += (*(desc))->mem_size; }
+        if (it == DXGI_RESIDENCY_EVICTED_TO_DISK)           { ++on_disk;        size_disk   += (*(desc))->mem_size; }
+
+        ++desc;
 
         if (++idx >= record_count)
           break;

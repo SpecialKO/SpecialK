@@ -653,7 +653,7 @@ DebugBreak_Detour (void)
 #include <SpecialK/parameter.h>
 
 using RtlRaiseException_pfn = void (WINAPI *)(_In_ PEXCEPTION_RECORD ExceptionRecord);
-RtlRaiseException_pfn RtlRaiseException_Original = nullptr;
+extern "C" RtlRaiseException_pfn RtlRaiseException_Original = nullptr;
 
 #include <unordered_set>
 
@@ -671,6 +671,21 @@ struct SK_FFXV_Thread
          sk_ffxv_vsync,
          sk_ffxv_async_run;
 
+void
+WINAPI
+SK_SEHCompatibleRaiseException (
+  _In_       PEXCEPTION_RECORD ExceptionRecord)
+{
+  __try {
+    return
+      RtlRaiseException_Original ( ExceptionRecord );
+  }
+
+  __except (EXCEPTION_CONTINUE_SEARCH)
+  {
+
+  }
+}
 // Detoured so we can get thread names
 __declspec (noinline)
 void
@@ -749,8 +764,12 @@ RtlRaiseException_Detour (
     }
   }
 
-  return
-    RtlRaiseException_Original ( ExceptionRecord );
+  SK_TLS* pTlsThis =
+    SK_TLS_Bottom ();
+
+  if (pTlsThis) InterlockedIncrement (&pTlsThis->debug.exceptions);
+
+  SK_SEHCompatibleRaiseException (ExceptionRecord);
 }
 
 

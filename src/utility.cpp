@@ -28,6 +28,9 @@
 #include <SpecialK/thread.h>
 #include <SpecialK/diagnostics/modules.h>
 
+#include <userenv.h>
+#pragma comment (lib, "userenv.lib")
+
 #include <Shlobj.h>
 #pragma comment (lib, "shell32.lib")
 
@@ -145,24 +148,14 @@ SK_GetDocumentsDir (wchar_t* buf, uint32_t* pdwLen)
 bool
 SK_GetUserProfileDir (wchar_t* buf, uint32_t* pdwLen)
 {
-  using GetUserProfileDirectoryW_pfn = BOOL (WINAPI *)(
-    _In_                            HANDLE  hToken,
-    _Out_writes_opt_(*lpcchSize)    LPWSTR lpProfileDir,
-    _Inout_                         LPDWORD lpcchSize);
-
-  static GetUserProfileDirectoryW_pfn GetUserProfileDirectoryW_Import =
-    (GetUserProfileDirectoryW_pfn)
-       GetProcAddress ( SK_Modules.LoadLibrary (L"USERENV.dll"),
-                            "GetUserProfileDirectoryW" );
-
   CHandle hToken;
 
   if (! OpenProcessToken (SK_GetCurrentProcess (), TOKEN_READ, &hToken.m_h))
     return false;
 
-  if (! GetUserProfileDirectoryW_Import ( hToken, buf,
-                                            reinterpret_cast <DWORD *> (pdwLen)
-                                        )
+  if (! GetUserProfileDirectoryW ( hToken, buf,
+                                     reinterpret_cast <DWORD *> (pdwLen)
+                                 )
      )
   {
     return false;

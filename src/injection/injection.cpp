@@ -407,7 +407,7 @@ CBTProc ( _In_ int    nCode,
 
   SK_Thread_SpinUntilAtomicMin (&hooked, 2);
 
-  return NtUserCallNextHookEx (hHookCBT, nCode, wParam, lParam);
+  return NtUserCallNextHookEx (0, nCode, wParam, lParam);
 }
 
 BOOL

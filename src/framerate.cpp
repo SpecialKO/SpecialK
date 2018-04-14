@@ -1040,7 +1040,7 @@ Sleep_Detour (DWORD dwMilliseconds)
   {
     static int Switches = 0;
 
-    if ((Switches++ % 8) != 0)
+    if ((Switches++ % 127) != 0)
     {
       SwitchToThread ();
 

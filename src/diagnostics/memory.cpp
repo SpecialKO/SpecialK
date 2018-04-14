@@ -64,6 +64,19 @@ GlobalAlloc_Detour (
   return hgRet;
 }
 
+
+HLOCAL
+WINAPI
+SK_LocalAlloc (
+  _In_ UINT   uFlags,
+  _In_ SIZE_T uBytes )
+{
+  if (LocalAlloc_Original != nullptr)
+    return LocalAlloc_Original (uFlags, uBytes);
+
+  return LocalAlloc (uFlags, uBytes);
+}
+
 HLOCAL
 WINAPI
 LocalAlloc_Detour (
@@ -159,6 +172,17 @@ GlobalFree_Detour   (
   _In_ HGLOBAL hMem )
 {
   return GlobalFree_Original (hMem);
+}
+
+HLOCAL
+WINAPI
+SK_LocalFree       (
+  _In_ HLOCAL hMem )
+{
+  if (LocalFree_Original != nullptr)
+    return LocalFree_Original (hMem);
+
+  return LocalFree (hMem);
 }
 
 HLOCAL

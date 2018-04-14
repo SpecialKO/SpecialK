@@ -109,6 +109,9 @@ __make_self_titled (DWORD dwTid)
   _SK_SelfTitledThreads.insert (dwTid);
 }
 
+using RtlRaiseException_pfn = void (WINAPI *)(_In_ PEXCEPTION_RECORD ExceptionRecord);
+extern "C" RtlRaiseException_pfn RtlRaiseException_Original;
+
 HRESULT
 WINAPI
 SetCurrentThreadDescription (_In_ PCWSTR lpThreadDescription)
@@ -146,16 +149,25 @@ SetCurrentThreadDescription (_In_ PCWSTR lpThreadDescription)
     const DWORD argc = sizeof (info) /
                        sizeof (ULONG_PTR);
 
-    __try {
-      RaiseException ( MAGIC_THREAD_EXCEPTION,
-                         0,
-                           argc,
-                             reinterpret_cast <const ULONG_PTR *>(&info) );
-    }
+    __try
+    {
+      __try
+      {
+        static EXCEPTION_RECORD ExceptionRecord;
 
-    __except (EXCEPTION_CONTINUE_EXECUTION) {
+        ExceptionRecord.ExceptionAddress         = &SetThreadDescription;
+        ExceptionRecord.ExceptionCode            = MAGIC_THREAD_EXCEPTION;
+        ExceptionRecord.ExceptionFlags           = 0;
+        ExceptionRecord.NumberParameters         = argc;
+        ExceptionRecord.ExceptionInformation [0] = reinterpret_cast <const ULONG_PTR>(&info);
 
+        if (RtlRaiseException_Original != nullptr)
+          RtlRaiseException_Original (&ExceptionRecord);
+      }
+
+      __except (EXCEPTION_CONTINUE_SEARCH) { }
     }
+    __except   (EXCEPTION_EXECUTE_HANDLER) { }
 
     // Windows 7 / 8 can go no further, they will have to be happy with the
     //   TLS-backed name or a debugger must catch the exception above.

@@ -602,13 +602,14 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
 
       pDevCtx->RSSetViewports (1, &vp);
 
+      const char *locale_orig =
+        _strdup (setlocale (LC_ALL, NULL));
+                 setlocale (LC_ALL, "C");
+
       if (config.cegui.enable)
       {
         CComQIPtr <ID3D11Device>        pCEGUIDev    (rb.device);
         CComQIPtr <ID3D11DeviceContext> pCEGUIDevCtx (rb.d3d11.immediate_ctx);
-
-        const char *locale_orig =
-          _strdup (setlocale (LC_ALL, NULL));
 
         try {
           cegD3D11 = dynamic_cast <CEGUI::Direct3D11Renderer *>
@@ -633,9 +634,6 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
 
           config.cegui.enable = false;
         }
-
-        setlocale (LC_ALL, locale_orig);
-        free      ((void *)locale_orig);
       }
       else
         cegD3D11 = reinterpret_cast <CEGUI::Direct3D11Renderer *> (1);
@@ -649,6 +647,7 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
 
       if ((uintptr_t)cegD3D11 > 1)
       {
+        setlocale (LC_ALL, "C");
         SK_CEGUI_InitBase    ();
 
         SK_PopupManager::getInstance       ()->destroyAllPopups (        );
@@ -656,6 +655,9 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
       }
 
       SK_Steam_ClearPopups ();
+
+      setlocale (LC_ALL, locale_orig);
+      free      ((void *)locale_orig);
     }
 
     else

@@ -81,7 +81,7 @@ void         SK_CleanupTLS (void);
 
 
 template <typename _T>
-class SK_TLS_LocalDataStore
+class SK_TLS_HeapDataStore
 {
 public:
   _T*    alloc   (size_t needed, bool zero_fill = false)
@@ -128,6 +128,65 @@ public:
 };
 
 
+HLOCAL
+WINAPI
+SK_LocalFree       (
+  _In_ HLOCAL hMem );
+
+HLOCAL
+WINAPI
+SK_LocalAlloc (
+  _In_ UINT   uFlags,
+  _In_ SIZE_T uBytes );
+
+template <typename _T>
+class SK_TLS_LocalDataStore
+{
+public:
+  _T*    alloc   (size_t needed, bool zero_fill = false)
+  {
+    if (data == nullptr || len < needed)
+    {
+      if (data != nullptr)
+        SK_LocalFree ((HLOCAL)data);
+
+      len  = std::max (len, needed);
+      data = (_T *)SK_LocalAlloc (LMEM_FIXED, len * sizeof (_T));
+
+      if (data == nullptr)
+        len = 0;
+    }
+
+    if (zero_fill)
+      RtlZeroMemory (data, needed * sizeof (_T));
+
+    return data;
+  }
+
+  size_t reclaim (void)
+  {
+    if (data != nullptr)
+    {
+      SK_LocalFree (data);
+                    data = nullptr;
+
+      size_t freed = len;
+                     len = 0;
+
+      return freed * sizeof (_T);
+    }
+
+    return 0;
+  }
+
+  bool   empty   (void) const { return data == nullptr || len == 0; }
+
+//protected:
+  _T*    data = nullptr;
+  size_t len  = 0;
+};
+
+
 
 class SK_TLS_DynamicContext
 {
@@ -140,15 +199,25 @@ class SK_TLS_ScratchMemory : public SK_TLS_DynamicContext
 public:
   SK_TLS_ScratchMemory (void) = default;
 
-  SK_TLS_LocalDataStore <char> cmd;
-  SK_TLS_LocalDataStore <char> eula;
+  SK_TLS_HeapDataStore <char> cmd;
+  SK_TLS_HeapDataStore <char> eula;
 
   struct
   {
-    SK_TLS_LocalDataStore <wchar_t> val;
-    SK_TLS_LocalDataStore <wchar_t> key;
-    SK_TLS_LocalDataStore <wchar_t> sec;
+    SK_TLS_HeapDataStore <wchar_t> val;
+    SK_TLS_HeapDataStore <wchar_t> key;
+    SK_TLS_HeapDataStore <wchar_t> sec;
   } ini;
+
+  size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload);
+};
+
+class SK_TLS_ScratchMemoryLocal : public SK_TLS_DynamicContext
+{
+public:
+  SK_TLS_ScratchMemoryLocal (void) = default;
+
+  SK_TLS_LocalDataStore <BYTE> NtQuerySystemInformation;
 
   size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload);
 };
@@ -363,6 +432,7 @@ class SK_TLS
 public:
   SK_ModuleAddrMap          known_modules;
   SK_TLS_ScratchMemory      scratch_memory;
+  SK_TLS_ScratchMemoryLocal local_scratch; // Takes memory from LocalAlloc
 
   SK_DDraw_ThreadContext    ddraw;
   SK_D3D8_ThreadContext     d3d8;
@@ -403,6 +473,7 @@ public:
     DWORD            tid           = GetCurrentThreadId ();
     ULONG            last_frame    = (ULONG)-1;
     bool             mapped        = false;
+    volatile LONG    exceptions    =     0;
   } debug;
 
   struct tex_mgmt_s

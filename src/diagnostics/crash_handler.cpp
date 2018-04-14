@@ -39,6 +39,10 @@
 #include <CEGUI/CEGUI.h>
 #include <CEGUI/System.h>
 
+#include <diagnostics/compatibility.h>
+#include <diagnostics/modules.h>
+
+
 #include <SpecialK/diagnostics/load_library.h>
 #include <SpecialK/diagnostics/crash_handler.h>
 
@@ -65,21 +69,6 @@
 #define SK_SymGetModuleBase   SymGetModuleBase
 #define SK_SymGetLineFromAddr SymGetLineFromAddr
 #endif
-
-typedef struct _MODULEINFO {
-  LPVOID lpBaseOfDll;
-  DWORD  SizeOfImage;
-  LPVOID EntryPoint;
-} MODULEINFO, *LPMODULEINFO;
-
-extern "C"
-BOOL
-WINAPI
-GetModuleInformation
-( _In_  HANDLE       hProcess,
-  _In_  HMODULE      hModule,
-  _Out_ LPMODULEINFO lpmodinfo,
-  _In_  DWORD        cb );
 
 void
 SK_SymSetOpts (void)
@@ -399,6 +388,16 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
   EXCEPTION_RECORD& last_exc    = pTLS->debug.last_exc;
 
   std::wstring desc;
+
+
+  using IsDebuggerPresent_pfn = BOOL (WINAPI *)(void);
+  extern IsDebuggerPresent_pfn IsDebuggerPresent_Original;
+
+  //if ( ExceptionInfo->ExceptionRecord->ExceptionCode == EXCEPTION_BREAKPOINT &&
+  //     (   IsDebuggerPresent_Original != nullptr &&
+  //      (! IsDebuggerPresent_Original () ) ) )
+  //  return EXCEPTION_CONTINUE_EXECUTION;
+
 
   switch (ExceptionInfo->ExceptionRecord->ExceptionCode)
   {
@@ -1082,8 +1081,6 @@ SteamAPI_UseBreakpadCrashHandler_Detour ( char const *pchVersion,
   UNREFERENCED_PARAMETER (m_pfnPreMinidumpCallback);
 }
 
-#include <diagnostics/compatibility.h>
-
 void
 SK_BypassSteamCrashHandler (void)
 {
@@ -1093,9 +1090,9 @@ SK_BypassSteamCrashHandler (void)
       SK_RunLHIfBitness (64, L"steam_api64.dll",
                              L"steam_api.dll");
 
-    if (SK_File_GetSize (wszSteamDLL) > 0)
+    //if (SK_File_GetSize (wszSteamDLL) > 0)
     {
-      if (LoadLibraryW_Original (wszSteamDLL))
+      if (SK_Modules.LoadLibraryLL (wszSteamDLL))
       {
         crash_log.Log (L"Disabling Steam Breakpad...");
 

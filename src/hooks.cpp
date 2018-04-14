@@ -636,7 +636,9 @@ SK_CreateDLLHook ( const wchar_t  *pwszModule, const char  *pszProcName,
     //  >> Pass the library load through the original (now hooked) function so that
     //       anything else that hooks this DLL on-load does not miss its initial load.
     //
-    if ((hMod = SK_Modules.LoadLibrary (pwszModule)))
+    hMod = SK_Modules.LoadLibrary (pwszModule);
+
+    if (hMod != skModuleRegistry::INVALID_MODULE)
       GetModuleHandleExW (GET_MODULE_HANDLE_EX_FLAG_PIN, pwszModule, &hMod);
   }
 
@@ -756,7 +758,9 @@ SK_CreateDLLHook2 ( const wchar_t  *pwszModule, const char  *pszProcName,
     //  >> Pass the library load through the original (now hooked) function so that
     //       anything else that hooks this DLL on-load does not miss its initial load.
     //
-    if ((hMod = SK_Modules.LoadLibrary (pwszModule)))
+    hMod = SK_Modules.LoadLibrary (pwszModule);
+
+    if (hMod != skModuleRegistry::INVALID_MODULE)
       GetModuleHandleExW (GET_MODULE_HANDLE_EX_FLAG_PIN, pwszModule, &hMod);
   }
 
@@ -876,7 +880,9 @@ SK_CreateDLLHook3 ( const wchar_t  *pwszModule, const char  *pszProcName,
     //  >> Pass the library load through the original (now hooked) function so that
     //       anything else that hooks this DLL on-load does not miss its initial load.
     //
-    if ((hMod = SK_Modules.LoadLibrary (pwszModule)))
+    hMod = SK_Modules.LoadLibrary (pwszModule);
+
+    if (hMod != skModuleRegistry::INVALID_MODULE)
       GetModuleHandleExW (GET_MODULE_HANDLE_EX_FLAG_PIN, pwszModule, &hMod);
   }
 

@@ -119,7 +119,7 @@ _SKC_MakeCEGUILib ("CEGUISTBImageCodec")
 
 #pragma comment (lib, "delayimp.lib")
 
-static CEGUI::OpenGL3Renderer* cegGL = nullptr;
+static CEGUI::OpenGL3Renderer* cegGL       = nullptr;
 #endif
 
 
@@ -132,8 +132,6 @@ SK_CEGUI_InitBase (void);
 
 static
 HMODULE local_gl = nullptr;
-static
-std::wstring local_gl_name = L"";
 
 using finish_pfn = void (WINAPI *)(void);
 
@@ -150,13 +148,8 @@ SK_LoadRealGL (void)
 
 
   if (local_gl == nullptr)
-  {
-    local_gl      = SK_Modules.LoadLibrary (wszBackendDLL);
-    local_gl_name = SK_GetModuleFullName (local_gl);
-  }
-
-  else
-  {
+    local_gl = SK_Modules.LoadLibrary (wszBackendDLL);
+  else {
     HMODULE hMod;
     GetModuleHandleEx (0x00, wszBackendDLL, &hMod);
   }
@@ -239,8 +232,7 @@ typedef struct tagPIXELFORMATDESCRIPTOR
     if (imp_##_Name == nullptr) {                                        \
                                                                          \
       static const char* szName = #_Name;                                \
-      imp_##_Name = (imp_##_Name##_pfn)                                  \
-        SK_GetProcAddress (local_gl_name.c_str (), szName);              \
+      imp_##_Name = (imp_##_Name##_pfn)GetProcAddress (local_gl, szName);\
                                                                          \
       if (imp_##_Name == nullptr) {                                      \
         dll_log.Log (                                                    \
@@ -262,8 +254,7 @@ typedef struct tagPIXELFORMATDESCRIPTOR
     if (imp_##_Name == nullptr) {                                        \
                                                                          \
       static const char* szName = #_Name;                                \
-      imp_##_Name = (imp_##_Name##_pfn)                                  \
-        SK_GetProcAddress (local_gl_name.c_str (), szName);              \
+      imp_##_Name = (imp_##_Name##_pfn)GetProcAddress (local_gl, szName);\
                                                                          \
       if (imp_##_Name == nullptr) {                                      \
         dll_log.Log (                                                    \
@@ -1251,11 +1242,16 @@ void ResetCEGUI_GL (void)
 
       const char *locale_orig =
         _strdup (setlocale (LC_ALL, NULL));
+                 setlocale (LC_ALL, "C");
 
       try {
-        cegGL = reinterpret_cast <CEGUI::OpenGL3Renderer *> (
+        CEGUI::OpenGL3Renderer* cegGL_new = nullptr;
+
+        cegGL_new = reinterpret_cast <CEGUI::OpenGL3Renderer *> (
           &CEGUI::OpenGL3Renderer::bootstrapSystem ()
         );
+
+        cegGL = cegGL_new;
       }
 
       catch (CEGUI::GenericException& e)
@@ -1271,15 +1267,14 @@ void ResetCEGUI_GL (void)
                    L"   CEGUI  "  );
 
         config.cegui.enable = false;
+        cegGL               = nullptr;
       }
-
-      setlocale (LC_ALL, locale_orig);
-      free      ((void *)locale_orig);
 
       SK_GL_GhettoStateBlock_Apply ();
 
       if (cegGL != nullptr)
       {
+        setlocale (LC_ALL, "C");
         cegGL->enableExtraStateSettings (true);
 
         // Backup GL state
@@ -1293,7 +1288,8 @@ void ResetCEGUI_GL (void)
 
         glBindVertexArray (ceGL_VAO);
 
-        SK_CEGUI_InitBase ();
+        SK_CEGUI_RelocateLog ();
+        SK_CEGUI_InitBase    ();
 
               SK_PopupManager::getInstance ()->destroyAllPopups (     );
         SK_TextOverlayManager::getInstance ()->resetAllOverlays (cegGL);
@@ -1303,9 +1299,10 @@ void ResetCEGUI_GL (void)
         glBindVertexArray (                         last_vertex_array);
         glBindBuffer      (GL_ARRAY_BUFFER,         last_array_buffer);
         glBindBuffer      (GL_ELEMENT_ARRAY_BUFFER, last_element_array_buffer);
-        
-        SK_CEGUI_RelocateLog ();
       }
+
+      setlocale (LC_ALL, locale_orig);
+      free      ((void *)locale_orig);
 
       glPopAttrib ();
     }
@@ -1414,8 +1411,9 @@ wglDeleteContext (HGLRC hglrc)
 
     if (config.cegui.enable && (uintptr_t)cegGL > 1)
     {
-      cegGL->destroy (*cegGL);
-      cegGL = nullptr;
+    //cegGL->destroy (*cegGL);
+      cegGL->destroySystem ();
+      cegGL       = nullptr;
     }
     
     init_ [__gl_primary_context] = false;
@@ -2482,15 +2480,15 @@ SK_HookGL (void)
       SK_LoadRealGL ();
 
       wgl_swap_buffers =
-        (wglSwapBuffers_pfn)SK_GetProcAddress         (local_gl_name.c_str (), "wglSwapBuffers");
+        (wglSwapBuffers_pfn)GetProcAddress         (local_gl, "wglSwapBuffers");
       wgl_make_current =                           
-        (wglMakeCurrent_pfn)SK_GetProcAddress         (local_gl_name.c_str (), "wglMakeCurrent");
+        (wglMakeCurrent_pfn)GetProcAddress         (local_gl, "wglMakeCurrent");
       wgl_share_lists =                            
-        (wglShareLists_pfn)SK_GetProcAddress          (local_gl_name.c_str (), "wglShareLists");
+        (wglShareLists_pfn)GetProcAddress          (local_gl, "wglShareLists");
       wgl_delete_context =                         
-        (wglDeleteContext_pfn)SK_GetProcAddress       (local_gl_name.c_str (), "wglDeleteContext");
+        (wglDeleteContext_pfn)GetProcAddress       (local_gl, "wglDeleteContext");
       wgl_swap_multiple_buffers =
-        (wglSwapMultipleBuffers_pfn)SK_GetProcAddress (local_gl_name.c_str (), "wglSwapMultipleBuffers");
+        (wglSwapMultipleBuffers_pfn)GetProcAddress (local_gl, "wglSwapMultipleBuffers");
 
       SK_TLS_Bottom ()->gl.ctx_init_thread = true;
     }
@@ -2512,27 +2510,27 @@ SK_HookGL (void)
 
       SK_LoadRealGL ();
 
-      SK_CreateDLLHook2 (         local_gl_name.c_str (),
+      SK_CreateDLLHook2 (         SK_GetModuleFullName (local_gl).c_str (),
                                  "wglSwapBuffers",
                                   wglSwapBuffers,
          static_cast_p2p <void> (&wgl_swap_buffers) );
 
-      SK_CreateDLLHook2 (         local_gl_name.c_str (),
+      SK_CreateDLLHook2 (         SK_GetModuleFullName (local_gl).c_str (),
                                  "wglMakeCurrent",
                                   wglMakeCurrent,
          static_cast_p2p <void> (&wgl_make_current) );
 
-      SK_CreateDLLHook2 (         local_gl_name.c_str (),
+      SK_CreateDLLHook2 (         SK_GetModuleFullName (local_gl).c_str (),
                                  "wglShareLists",
                                   wglShareLists,
          static_cast_p2p <void> (&wgl_share_lists) );
 
-      SK_CreateDLLHook2 (         local_gl_name.c_str (),
+      SK_CreateDLLHook2 (         SK_GetModuleFullName (local_gl).c_str (),
                                  "wglSwapMultipleBuffers",
                                   wglSwapMultipleBuffers,
          static_cast_p2p <void> (&wgl_swap_multiple_buffers) );
 
-      SK_CreateDLLHook2 (         local_gl_name.c_str (),
+      SK_CreateDLLHook2 (         SK_GetModuleFullName (local_gl).c_str (),
                                  "wglDeleteContext",
                                   wglDeleteContext,
          static_cast_p2p <void> (&wgl_delete_context) );
@@ -2995,7 +2993,7 @@ SK_GL_GetCurrentDC (void)
   using wglGetCurrentDC_pfn = HDC (WINAPI *)(void);
 
   auto __imp__wglGetCurrentDC =
-    (wglGetCurrentDC_pfn)SK_GetProcAddress (local_gl_name.c_str (), "wglGetCurrentDC");
+    (wglGetCurrentDC_pfn)GetProcAddress (local_gl, "wglGetCurrentDC");
 
   if (    __imp__wglGetCurrentDC != nullptr)
     hdc = __imp__wglGetCurrentDC ();

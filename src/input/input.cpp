@@ -1856,14 +1856,34 @@ void SK_Input_PreInit (void)
   SK_CreateUser32Hook (      "NtUserGetRawInputData",
                               NtUserGetRawInputData_Detour,
      static_cast_p2p <void> (&GetRawInputData_Original) );
+  //SK_CreateDLLHook2 (       L"user32",
+  //                           "GetRawInputData",
+  //                      NtUserGetRawInputData_Detour,
+  //   static_cast_p2p <void> (&GetRawInputData_Original) );
 
+#if 1
   SK_CreateUser32Hook (      "NtUserGetAsyncKeyState",
                               NtUserGetAsyncKeyState_Detour,
      static_cast_p2p <void> (&GetAsyncKeyState_Original) );
+#else
+  SK_CreateDLLHook2 (       L"user32",
+                                   "GetAsyncKeyState",
+                              NtUserGetAsyncKeyState_Detour,
+     static_cast_p2p <void> (&GetAsyncKeyState_Original) );
+#endif
 
+  // Trails of Cold Steel doesn't work right if we hook NtUserGetKeyState;
+  //   it uses keyboard state for mouse buttons.
+#if 0
   SK_CreateUser32Hook (      "NtUserGetKeyState",
                               NtUserGetKeyState_Detour,
      static_cast_p2p <void> (&GetKeyState_Original) );
+#else
+  SK_CreateDLLHook2 (       L"user32",
+                                    "GetKeyState",
+                              NtUserGetKeyState_Detour,
+     static_cast_p2p <void> (&GetKeyState_Original) );
+#endif
 
   SK_CreateUser32Hook (      "NtUserGetKeyboardState",
                               NtUserGetKeyboardState_Detour,
@@ -1898,9 +1918,14 @@ void SK_Input_PreInit (void)
      static_cast_p2p <void> (&SetCursorPos_Original) );
 
 
-  SK_CreateUser32Hook (      "NtUserSendInput",
-                              NtUserSendInput_Detour,
-     static_cast_p2p <void> (&SendInput_Original) );
+  SK_CreateDLLHook2 (     L"user32",
+                           "SendInput",
+                      NtUserSendInput_Detour,
+   static_cast_p2p <void> (&SendInput_Original) );
+
+  //SK_CreateUser32Hook (      "NtUserSendInput",
+  //                            NtUserSendInput_Detour,
+  //   static_cast_p2p <void> (&SendInput_Original) );
 
 
   SK_CreateDLLHook2 (       L"user32",

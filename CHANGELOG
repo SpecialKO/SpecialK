@@ -1,3 +1,21 @@
+0.9.17:
+
+ + Finsihed re-writing MinHook's injection core to use MUCH more efficient thread
+     suspend / resume.
+
+  >> Boot up in some applications is 2-3x faster now and that is 2-3x less time for
+       third-party injection to poke its nose where it does not belong while Special K
+         is rewriting application code :)
+
+ + Fixed various CBT hook issues in global injection; for users who frequently start/stop
+     (why?) injection, things should behave better.
+
+ + Added Exceptions Raised counter to the Thread Monitor widget; debug feature.
+
+  >> Any exception counted here is the "continuable" sort; they generally pose no threat
+       to software stability but high exception counts usually indicate a software defect.
+
+
 0.9.16:
 
  (.1): Switched to D3DCompiler_47.dll (built-in)

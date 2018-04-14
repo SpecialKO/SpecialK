@@ -761,6 +761,7 @@ ResetCEGUI_D3D9 (IDirect3DDevice9* pDev)
     {
       const char *locale_orig =
         _strdup (setlocale (LC_ALL, NULL));
+                 setlocale (LC_ALL, "C");
 
       try {
         cegD3D9 = dynamic_cast <CEGUI::Direct3D9Renderer *> (
@@ -783,11 +784,13 @@ ResetCEGUI_D3D9 (IDirect3DDevice9* pDev)
         config.cegui.enable = false;
       }
 
+      SK_CEGUI_RelocateLog ();
+
+      setlocale (LC_ALL, "C");
+      SK_CEGUI_InitBase    ();
+
       setlocale (LC_ALL, locale_orig);
       free      ((void *)locale_orig);
-
-      SK_CEGUI_RelocateLog ();
-      SK_CEGUI_InitBase    ();
 
       SK_PopupManager::getInstance ()->destroyAllPopups       ();
       SK_TextOverlayManager::getInstance ()->resetAllOverlays (cegD3D9);

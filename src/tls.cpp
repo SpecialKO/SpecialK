@@ -53,7 +53,7 @@ SK_GetTLS (bool initialize)
       {
         lpvData =
           static_cast <LPVOID> (
-            LocalAlloc (LPTR, sizeof (SK_TLS) * SK_TLS::stack::max)
+            SK_LocalAlloc (LPTR, sizeof (SK_TLS) * SK_TLS::stack::max)
         );
 
         if (! TlsSetValue (dwTlsIdx, lpvData))
@@ -116,14 +116,10 @@ SK_CleanupTLS (void)
 
     if (TlsSetValue (tls_slot.dwTlsIdx, nullptr))
     {
-      InterlockedIncrement (&_SK_IgnoreTLSAlloc);
-
-      LocalFree     (tls_slot.lpvData);
+      SK_LocalFree (tls_slot.lpvData);
 
       tls_map      [GetCurrentThreadId ()].lpvData  = nullptr;
       tls_map      [GetCurrentThreadId ()].dwTlsIdx = TLS_OUT_OF_INDEXES;
-
-      InterlockedDecrement (&_SK_IgnoreTLSAlloc);
     }
   }
 }
@@ -318,11 +314,21 @@ SK_TLS_ScratchMemory::Cleanup (SK_TLS_CleanupReason_e /*reason*/)
 {
   size_t freed = 0UL;
 
-  freed += cmd.reclaim  ();
-  freed += eula.reclaim ();
+  freed += cmd.reclaim                      ();
+  freed += eula.reclaim                     ();
 
   for ( auto* segment : { &ini.key, &ini.val, &ini.sec } )
     freed += segment->reclaim ();
+
+  return freed;
+}
+
+size_t
+SK_TLS_ScratchMemoryLocal::Cleanup (SK_TLS_CleanupReason_e /*reason*/)
+{
+  size_t freed = 0UL;
+
+  freed += NtQuerySystemInformation.reclaim ();
 
   return freed;
 }
@@ -562,6 +568,7 @@ SK_TLS::Cleanup (SK_TLS_CleanupReason_e reason)
   freed += osd           .Cleanup (reason);
   freed += raw_input     .Cleanup (reason);
   freed += scratch_memory.Cleanup (reason);
+  freed += local_scratch. Cleanup (reason);
   freed += steam         .Cleanup (reason);
   freed += d3d11         .Cleanup (reason);
 

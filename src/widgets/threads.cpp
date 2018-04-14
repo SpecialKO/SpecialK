@@ -21,6 +21,8 @@
 #include <SpecialK/widgets/widget.h>
 #include <SpecialK/utility.h>
 #include <SpecialK/thread.h>
+#include <SpecialK/diagnostics/memory.h>
+#include <SpecialK/diagnostics/modules.h>
 #include <SpecialK/diagnostics/debug_utils.h>
 #include <SpecialK/diagnostics/crash_handler.h>
 #include <SpecialK/performance/gpu_monitor.h>
@@ -30,11 +32,11 @@
 
 #include <processthreadsapi.h>
 
+#pragma pack(push,8)
 typedef LONG NTSTATUS;
 typedef      NTSTATUS (WINAPI *NtQueryInformationThread_pfn)(HANDLE,/*THREADINFOCLASS*/LONG,DWORD_PTR*,ULONG,PULONG);
 
 #define ThreadQuerySetWin32StartAddress 9
-
 
 enum THREAD_INFORMATION_CLASS_EX {
 //ThreadMemoryPriority      = 0,
@@ -61,7 +63,412 @@ GetThreadInformation_pfn k32GetThreadInformation = nullptr;
 SetThreadInformation_pfn k32SetThreadInformation = nullptr;
 
 
+typedef enum _PROCESS_INFORMATION_CLASS_FULL {
+  ProcessBasicInformation,
+  ProcessQuotaLimits,
+  ProcessIoCounters,
+  ProcessVmCounters,
+  ProcessTimes,
+  ProcessBasePriority,
+  ProcessRaisePriority,
+  ProcessDebugPort,
+  ProcessExceptionPort,
+  ProcessAccessToken,
+  ProcessLdtInformation,
+  ProcessLdtSize,
+  ProcessDefaultHardErrorMode,
+  ProcessIoPortHandlers,          // Note: this is kernel mode only
+  ProcessPooledUsageAndLimits,
+  ProcessWorkingSetWatch,
+  ProcessUserModeIOPL,
+  ProcessEnableAlignmentFaultFixup,
+  ProcessPriorityClass,
+  ProcessWx86Information,
+  ProcessHandleCount,
+  ProcessAffinityMask,
+  ProcessPriorityBoost,
+  ProcessDeviceMap,
+  ProcessSessionInformation,
+  ProcessForegroundInformation,
+  ProcessWow64Information,
+  ProcessImageFileName,
+  ProcessLUIDDeviceMapsEnabled,
+  ProcessBreakOnTermination,
+  ProcessDebugObjectHandle,
+  ProcessDebugFlags,
+  ProcessHandleTracing,
+  ProcessIoPriority,
+  ProcessExecuteFlags,
+  ProcessTlsInformation,
+  ProcessCookie,
+  ProcessImageInformation,
+  ProcessCycleTime,
+  ProcessPagePriority,
+  ProcessInstrumentationCallback,
+  ProcessThreadStackAllocation,
+  ProcessWorkingSetWatchEx,
+  ProcessImageFileNameWin32,
+  ProcessImageFileMapping,
+  ProcessAffinityUpdateMode,
+  ProcessMemoryAllocationMode,
+  ProcessGroupInformation,
+  ProcessTokenVirtualizationEnabled,
+  ProcessConsoleHostProcess,
+  ProcessWindowInformation,
+  MaxProcessInfoClass             // MaxProcessInfoClass should always be the last enum
+} PROCESS_INFORMATION_CLASS_FULL, *PPROCESS_INFORMATION_CLASS_FULL;
+
+#define NT_SUCCESS(Status)                      ((NTSTATUS)(Status) >= 0)
+#define STATUS_SUCCESS                          0
+#define STATUS_INFO_LENGTH_MISMATCH             ((NTSTATUS)0xC0000004L)
+#define SystemProcessAndThreadInformation       5
+
+typedef LONG       NTSTATUS;
+typedef LONG       KPRIORITY;
+typedef LONG       KWAIT_REASON;
+
+typedef struct _CLIENT_ID {
+    HANDLE         UniqueProcess;
+    HANDLE         UniqueThread;
+} CLIENT_ID;
+
+typedef struct _UNICODE_STRING {
+    USHORT         Length;
+    USHORT         MaximumLength;
+    PWSTR          Buffer;
+} UNICODE_STRING;
+
+typedef struct _SYSTEM_THREAD {
+    FILETIME     ftKernelTime;   // 100 nsec units
+    FILETIME     ftUserTime;     // 100 nsec units
+    FILETIME     ftCreateTime;   // relative to 01-01-1601
+    ULONG        dWaitTime;
+#ifdef _WIN64
+    DWORD32      dwPaddingFor64Bit;
+#endif
+    PVOID        pStartAddress;
+    CLIENT_ID    Cid;           // process/thread ids
+    KPRIORITY    dPriority;
+    LONG         dBasePriority;
+    ULONG        dContextSwitches;
+    ULONG        dThreadState;  // 2=running, 5=waiting
+    KWAIT_REASON WaitReason;
+
+    // Not even needed if correct packing is used, but let's just make this
+    //   obvious since it's easy to overlook!
+    DWORD32      dwPaddingEveryoneGets;
+} SYSTEM_THREAD,             *PSYSTEM_THREAD;
+#define SYSTEM_THREAD_ sizeof (SYSTEM_THREAD)
+// -----------------------------------------------------------------
+typedef struct _SYSTEM_PROCESS     // common members
+{
+    ULONG          dNext;
+    ULONG          dThreadCount;
+    LARGE_INTEGER  WorkingSetPrivateSize;
+    ULONG          HardFaultCount;
+    ULONG          NumberOfThreadsHighWatermark;
+    ULONGLONG      CycleTime;
+    LARGE_INTEGER  CreateTime;
+    LARGE_INTEGER  UserTime;
+    LARGE_INTEGER  KernelTime;
+    UNICODE_STRING ImageName;
+    KPRIORITY      BasePriority;
+    HANDLE         UniqueProcessId;
+    HANDLE         InheritedFromUniqueProcessId;
+    ULONG          HandleCount;
+    ULONG          SessionId;
+    ULONG_PTR      UniqueProcessKey;
+    ULONG_PTR      PeakVirtualSize;
+    ULONG_PTR      VirtualSize;
+    ULONG          PageFaultCount;
+    ULONG_PTR      PeakWorkingSetSize;
+    ULONG_PTR      WorkingSetSize;
+    ULONG_PTR      QuotaPeakPagedPoolUsage;
+    ULONG_PTR      QuotaPagedPoolUsage;
+    ULONG_PTR      QuotaPeakNonPagedPoolUsage;
+    ULONG_PTR      QuotaNonPagedPoolUsage;
+    ULONG_PTR      PagefileUsage;
+    ULONG_PTR      PeakPagefileUsage;
+    ULONG_PTR      PrivatePageCount;
+    LARGE_INTEGER  ReadOperationCount;
+    LARGE_INTEGER  WriteOperationCount;
+    LARGE_INTEGER  OtherOperationCount;
+    LARGE_INTEGER  ReadTransferCount;
+    LARGE_INTEGER  WriteTransferCount;
+    LARGE_INTEGER  OtherTransferCount;
+    SYSTEM_THREAD  aThreads [1];
+} SYSTEM_PROCESS_INFORMATION, *PSYSTEM_PROCESS_INFORMATION;
+#define SYSTEM_PROCESS_ sizeof (SYSTEM_PROCESS_INFORMATION)
+
+typedef enum _SYSTEM_INFORMATION_CLASS {
+    SystemBasicInformation                                = 0,
+    SystemProcessorInformation                            = 1,
+    SystemPerformanceInformation                          = 2,
+    SystemTimeOfDayInformation                            = 3,
+    SystemPathInformation                                 = 4,
+    SystemProcessInformation                              = 5,
+    SystemCallCountInformation                            = 6,
+    SystemDeviceInformation                               = 7,
+    SystemProcessorPerformanceInformation                 = 8,
+    SystemFlagsInformation                                = 9,
+    SystemCallTimeInformation                             = 10,
+    SystemModuleInformation                               = 11,
+    SystemLocksInformation                                = 12,
+    SystemStackTraceInformation                           = 13,
+    SystemPagedPoolInformation                            = 14,
+    SystemNonPagedPoolInformation                         = 15,
+    SystemHandleInformation                               = 16,
+    SystemObjectInformation                               = 17,
+    SystemPageFileInformation                             = 18,
+    SystemVdmInstemulInformation                          = 19,
+    SystemVdmBopInformation                               = 20,
+    SystemFileCacheInformation                            = 21,
+    SystemPoolTagInformation                              = 22,
+    SystemInterruptInformation                            = 23,
+    SystemDpcBehaviorInformation                          = 24,
+    SystemFullMemoryInformation                           = 25,
+    SystemLoadGdiDriverInformation                        = 26,
+    SystemUnloadGdiDriverInformation                      = 27,
+    SystemTimeAdjustmentInformation                       = 28,
+    SystemSummaryMemoryInformation                        = 29,
+    SystemMirrorMemoryInformation                         = 30,
+    SystemPerformanceTraceInformation                     = 31,
+    SystemObsolete0                                       = 32,
+    SystemExceptionInformation                            = 33,
+    SystemCrashDumpStateInformation                       = 34,
+    SystemKernelDebuggerInformation                       = 35,
+    SystemContextSwitchInformation                        = 36,
+    SystemRegistryQuotaInformation                        = 37,
+    SystemExtendedServiceTableInformation                 = 38,
+    SystemPrioritySeparation                              = 39,
+    SystemVerifierAddDriverInformation                    = 40,
+    SystemVerifierRemoveDriverInformation                 = 41,
+    SystemProcessorIdleInformation                        = 42,
+    SystemLegacyDriverInformation                         = 43,
+    SystemCurrentTimeZoneInformation                      = 44,
+    SystemLookasideInformation                            = 45,
+    SystemTimeSlipNotification                            = 46,
+    SystemSessionCreate                                   = 47,
+    SystemSessionDetach                                   = 48,
+    SystemSessionInformation                              = 49,
+    SystemRangeStartInformation                           = 50,
+    SystemVerifierInformation                             = 51,
+    SystemVerifierThunkExtend                             = 52,
+    SystemSessionProcessInformation                       = 53,
+    SystemLoadGdiDriverInSystemSpace                      = 54,
+    SystemNumaProcessorMap                                = 55,
+    SystemPrefetcherInformation                           = 56,
+    SystemExtendedProcessInformation                      = 57,
+    SystemRecommendedSharedDataAlignment                  = 58,
+    SystemComPlusPackage                                  = 59,
+    SystemNumaAvailableMemory                             = 60,
+    SystemProcessorPowerInformation                       = 61,
+    SystemEmulationBasicInformation                       = 62,
+    SystemEmulationProcessorInformation                   = 63,
+    SystemExtendedHandleInformation                       = 64,
+    SystemLostDelayedWriteInformation                     = 65,
+    SystemBigPoolInformation                              = 66,
+    SystemSessionPoolTagInformation                       = 67,
+    SystemSessionMappedViewInformation                    = 68,
+    SystemHotpatchInformation                             = 69,
+    SystemObjectSecurityMode                              = 70,
+    SystemWatchdogTimerHandler                            = 71,
+    SystemWatchdogTimerInformation                        = 72,
+    SystemLogicalProcessorInformation                     = 73,
+    SystemWow64SharedInformationObsolete                  = 74,
+    SystemRegisterFirmwareTableInformationHandler         = 75,
+    SystemFirmwareTableInformation                        = 76,
+    SystemModuleInformationEx                             = 77,
+    SystemVerifierTriageInformation                       = 78,
+    SystemSuperfetchInformation                           = 79,
+    SystemMemoryListInformation                           = 80,
+    SystemFileCacheInformationEx                          = 81,
+    SystemThreadPriorityClientIdInformation               = 82,
+    SystemProcessorIdleCycleTimeInformation               = 83,
+    SystemVerifierCancellationInformation                 = 84,
+    SystemProcessorPowerInformationEx                     = 85,
+    SystemRefTraceInformation                             = 86,
+    SystemSpecialPoolInformation                          = 87,
+    SystemProcessIdInformation                            = 88,
+    SystemErrorPortInformation                            = 89,
+    SystemBootEnvironmentInformation                      = 90,
+    SystemHypervisorInformation                           = 91,
+    SystemVerifierInformationEx                           = 92,
+    SystemTimeZoneInformation                             = 93,
+    SystemImageFileExecutionOptionsInformation            = 94,
+    SystemCoverageInformation                             = 95,
+    SystemPrefetchPatchInformation                        = 96,
+    SystemVerifierFaultsInformation                       = 97,
+    SystemSystemPartitionInformation                      = 98,
+    SystemSystemDiskInformation                           = 99,
+    SystemProcessorPerformanceDistribution                = 100,
+    SystemNumaProximityNodeInformation                    = 101,
+    SystemDynamicTimeZoneInformation                      = 102,
+    SystemCodeIntegrityInformation                        = 103,
+    SystemProcessorMicrocodeUpdateInformation             = 104,
+    SystemProcessorBrandString                            = 105,
+    SystemVirtualAddressInformation                       = 106,
+    SystemLogicalProcessorAndGroupInformation             = 107,
+    SystemProcessorCycleTimeInformation                   = 108,
+    SystemStoreInformation                                = 109,
+    SystemRegistryAppendString                            = 110,
+    SystemAitSamplingValue                                = 111,
+    SystemVhdBootInformation                              = 112,
+    SystemCpuQuotaInformation                             = 113,
+    SystemNativeBasicInformation                          = 114,
+    SystemErrorPortTimeouts                               = 115,
+    SystemLowPriorityIoInformation                        = 116,
+    SystemBootEntropyInformation                          = 117,
+    SystemVerifierCountersInformation                     = 118,
+    SystemPagedPoolInformationEx                          = 119,
+    SystemSystemPtesInformationEx                         = 120,
+    SystemNodeDistanceInformation                         = 121,
+    SystemAcpiAuditInformation                            = 122,
+    SystemBasicPerformanceInformation                     = 123,
+    SystemQueryPerformanceCounterInformation              = 124,
+    SystemSessionBigPoolInformation                       = 125,
+    SystemBootGraphicsInformation                         = 126,
+    SystemScrubPhysicalMemoryInformation                  = 127,
+    SystemBadPageInformation                              = 128,
+    SystemProcessorProfileControlArea                     = 129,
+    SystemCombinePhysicalMemoryInformation                = 130,
+    SystemEntropyInterruptTimingInformation               = 131,
+    SystemConsoleInformation                              = 132,
+    SystemPlatformBinaryInformation                       = 133,
+    SystemThrottleNotificationInformation                 = 134,
+    SystemPolicyInformation                               = 134,
+    SystemHypervisorProcessorCountInformation             = 135,
+    SystemDeviceDataInformation                           = 136,
+    SystemDeviceDataEnumerationInformation                = 137,
+    SystemMemoryTopologyInformation                       = 138,
+    SystemMemoryChannelInformation                        = 139,
+    SystemBootLogoInformation                             = 140,
+    SystemProcessorPerformanceInformationEx               = 141,
+    SystemSpare0                                          = 142,
+    SystemSecureBootPolicyInformation                     = 143,
+    SystemPageFileInformationEx                           = 144,
+    SystemSecureBootInformation                           = 145,
+    SystemEntropyInterruptTimingRawInformation            = 146,
+    SystemPortableWorkspaceEfiLauncherInformation         = 147,
+    SystemFullProcessInformation                          = 148,
+    SystemKernelDebuggerInformationEx                     = 149,
+    SystemBootMetadataInformation                         = 150,
+    SystemSoftRebootInformation                           = 151,
+    SystemElamCertificateInformation                      = 152,
+    SystemOfflineDumpConfigInformation                    = 153,
+    SystemProcessorFeaturesInformation                    = 154,
+    SystemRegistryReconciliationInformation               = 155,
+    SystemEdidInformation                                 = 156,
+    SystemManufacturingInformation                        = 157,
+    SystemEnergyEstimationConfigInformation               = 158,
+    SystemHypervisorDetailInformation                     = 159,
+    SystemProcessorCycleStatsInformation                  = 160,
+    SystemVmGenerationCountInformation                    = 161,
+    SystemTrustedPlatformModuleInformation                = 162,
+    SystemKernelDebuggerFlags                             = 163,
+    SystemCodeIntegrityPolicyInformation                  = 164,
+    SystemIsolatedUserModeInformation                     = 165,
+    SystemHardwareSecurityTestInterfaceResultsInformation = 166,
+    SystemSingleModuleInformation                         = 167,
+    SystemAllowedCpuSetsInformation                       = 168,
+    SystemDmaProtectionInformation                        = 169,
+    SystemInterruptCpuSetsInformation                     = 170,
+    SystemSecureBootPolicyFullInformation                 = 171,
+    SystemCodeIntegrityPolicyFullInformation              = 172,
+    SystemAffinitizedInterruptProcessorInformation        = 173,
+    SystemRootSiloInformation                             = 174,
+    SystemCpuSetInformation                               = 175,
+    SystemCpuSetTagInformation                            = 176,
+    MaxSystemInfoClass                                    = 177,
+} SYSTEM_INFORMATION_CLASS;
+
+typedef NTSTATUS (WINAPI *NtQuerySystemInformation_pfn)(
+  _In_      SYSTEM_INFORMATION_CLASS SystemInformationClass,
+  _Inout_   PVOID                    SystemInformation,
+  _In_      ULONG                    SystemInformationLength,
+  _Out_opt_ PULONG                   ReturnLength
+);
+
+static NtQuerySystemInformation_pfn NtQuerySystemInformation = nullptr;
+
+typedef struct _PEB {
+  BYTE  Reserved1 [2];
+  BYTE  BeingDebugged;
+  BYTE  Reserved2 [229];
+  PVOID Reserved3 [59];
+  ULONG SessionId;
+} PEB, *PPEB;
+
+typedef struct _PROCESS_BASIC_INFORMATION
+{
+  NTSTATUS  ExitStatus;
+  PPEB      PebBaseAddress;
+  ULONG_PTR AffinityMask;
+  KPRIORITY BasePriority;
+  HANDLE    UniqueProcessId;
+  HANDLE    InheritedFromUniqueProcessId;
+} PROCESS_BASIC_INFORMATION, *PPROCESS_BASIC_INFORMATION;
+
+typedef NTSTATUS (NTAPI *NtQueryInformationProcess_pfn)(
+__in                                   HANDLE                         ProcessHandle,
+__in                                   PROCESS_INFORMATION_CLASS_FULL ProcessInformationClass,
+__out_bcount(ProcessInformationLength) PVOID                          ProcessInformation,
+__in                                   ULONG                          ProcessInformationLength,
+__out_opt                              PULONG                         ReturnLength );
+
+NtQueryInformationProcess_pfn NtQueryInformationProcess = nullptr;
+
 extern iSK_INI* osd_ini;
+
+enum class WaitReason
+{
+  Executive,
+  FreePage,
+  PageIn,
+  PoolAllocation,
+  DelayExecution,
+  Suspended,
+  UserRequest,
+  WrExecutive,
+  WrFreePage,
+  WrPageIn,
+  WrPoolAllocation,
+  WrDelayExecution,
+  WrSuspended,
+  WrUserRequest,
+  WrEventPair,
+  WrQueue,
+  WrLpcReceive,
+  WrLpcReply,
+  WrVirtualMemory,
+  WrPageOut,
+  WrRendezvous,
+  Spare2,
+  Spare3,
+  Spare4,
+  Spare5,
+  Spare6,
+  WrKernel,
+  MaximumWaitReason,
+  NotWaiting = MaximumWaitReason
+};
+
+enum class ThreadState
+{                  
+  //Aborted          = 256,
+  //AbortRequested   = 128,
+  //Background       = 4,
+  //Running          = 0,
+  //Stopped          = 16,
+  //StopRequested    = 1,
+  //Suspended        = 64,
+  //SuspendRequested = 2,
+  //Unstarted        = 8,
+  //WaitSleepJoin    = 32
+  Running = 2,
+  Waiting = 5
+};
+#pragma pack(pop)
 
 struct SKWG_Thread_Entry
 {
@@ -92,6 +499,9 @@ struct SKWG_Thread_Entry
   bool  power_throttle;
   DWORD orig_prio;
 
+  WaitReason  wait_reason  = WaitReason::NotWaiting;
+  ThreadState thread_state = ThreadState::Running;
+
   bool         self_titled;
   std::wstring name;
 };
@@ -101,10 +511,81 @@ SK_Thread_HasCustomName (DWORD dwTid);
 
 std::map <DWORD,    SKWG_Thread_Entry*> SKWG_Threads;
 std::map <LONGLONG, SKWG_Thread_Entry*> SKWG_Ordered_Threads;
-std::map <DWORD,    BOOL>               SKWG_SuspendedThreads;
+
+PSYSTEM_PROCESS_INFORMATION
+ProcessInformation ( PDWORD    pdData,
+                     PNTSTATUS pns )
+{
+  if (NtQuerySystemInformation == nullptr)
+  {
+    HMODULE hModNtDLL =
+      GetModuleHandleW (L"Ntdll.dll");
+
+    if (! hModNtDLL) hModNtDLL = SK_Modules.LoadLibrary (L"Ntdll.dll");
+
+    NtQuerySystemInformation =
+      (NtQuerySystemInformation_pfn)
+      GetProcAddress (hModNtDLL, "NtQuerySystemInformation");
+  }
+
+  if (! NtQuerySystemInformation)
+    return nullptr;
+
+  SK_TLS* pTLS =
+    SK_TLS_Bottom ();
+
+  if (! pTLS) return nullptr;
+
+  size_t                       dSize;
+  DWORD                        dData = 0;
+  NTSTATUS                        ns = STATUS_INVALID_PARAMETER;
+
+  if (pTLS->local_scratch.NtQuerySystemInformation.len < 4096)
+    pTLS->local_scratch.NtQuerySystemInformation.alloc (4096, true);
+
+  void* pspi = nullptr;
+
+  for ( dSize = pTLS->local_scratch.NtQuerySystemInformation.len;
+             (pspi == nullptr) && dSize;
+                                  dSize <<= 1 )
+  {
+    pTLS->local_scratch.NtQuerySystemInformation.alloc (dSize, true);
+
+    if (pTLS->local_scratch.NtQuerySystemInformation.len < dSize)
+    {
+      ns = STATUS_NO_MEMORY;
+      break;
+    }
+
+    dSize =
+      pTLS->local_scratch.NtQuerySystemInformation.len;
+
+    pspi  = pTLS->local_scratch.NtQuerySystemInformation.data;
+
+    ns = NtQuerySystemInformation ( SystemProcessInformation,
+                                      (PSYSTEM_PROCESS_INFORMATION)pspi,
+                                        (DWORD)dSize,
+                                          &dData );
+
+    if (ns != STATUS_SUCCESS)
+    {
+      dData = 0;
+      pspi  = nullptr;
+
+      if (ns != STATUS_INFO_LENGTH_MISMATCH) break;
+    }
+  }
+
+  if (pdData != nullptr) *pdData = dData;
+  if (pns    != nullptr) *pns    = ns;
+
+  return (PSYSTEM_PROCESS_INFORMATION)pspi;
+}
 
 #include <process.h>
 #include <tlhelp32.h>
+
+#include <SpecialK/log.h>
 
 class SKWG_Thread_Profiler : public SK_Widget
 {
@@ -134,89 +615,111 @@ public:
         )
     );
 
+    SK_RunOnce (
+      NtQueryInformationProcess =
+          (NtQueryInformationProcess_pfn)GetProcAddress ( GetModuleHandle (L"NtDll.dll"),
+                                                            "NtQueryInformationProcess" )
+    );
+
     // Snapshotting is _slow_, so only do it when a thread has been created...
     extern volatile LONG lLastThreadCreate;
     static          LONG lLastThreadRefresh = 0;
 
     LONG last = ReadAcquire (&lLastThreadCreate);
 
-    if (last == lLastThreadRefresh)
+    if ((last == lLastThreadRefresh) && (! visible))
     {
       return;
     }
 
-    lLastThreadRefresh =
-      last;
+    NTSTATUS nts = STATUS_INVALID_PARAMETER;
 
-    CHandle hSnap (
-      CreateToolhelp32Snapshot (TH32CS_SNAPTHREAD, 0)
-    );
+    ProcessInformation (nullptr, &nts);
 
-    if (hSnap != INVALID_HANDLE_VALUE)
+    PSYSTEM_PROCESS_INFORMATION pInfo =
+      (PSYSTEM_PROCESS_INFORMATION)SK_TLS_Bottom ()->local_scratch.NtQuerySystemInformation.data;
+  
+    if (pInfo != nullptr && nts == STATUS_SUCCESS)
     {
-      THREADENTRY32 tent        = {                  };
-                    tent.dwSize = sizeof THREADENTRY32;
+      int i = 0;
 
-      if (Thread32First (hSnap, &tent))
+      const DWORD dwPID = GetCurrentProcessId ();
+      const DWORD dwTID = GetCurrentThreadId  ();
+  
+      SYSTEM_PROCESS_INFORMATION* pProc = pInfo;
+  
+      do
       {
-        do
+        if ((DWORD)((uintptr_t)pProc->UniqueProcessId & 0xFFFFFFFFU) == dwPID)
+          break;
+
+        pProc = (SYSTEM_PROCESS_INFORMATION *)((BYTE *)pProc + pProc->dNext);
+      } while (pProc->dNext != 0);
+
+
+      if ((DWORD)((uintptr_t)pProc->UniqueProcessId & 0xFFFFFFFFU) == dwPID)
+      {
+        int threads =
+          pProc->dThreadCount;
+
+        for (i = 0; i < threads; i++)
         {
-          if ( tent.dwSize >= FIELD_OFFSET (THREADENTRY32, th32OwnerProcessID) +
-                                    sizeof (tent.th32OwnerProcessID) )
+          if ((DWORD)((uintptr_t)pProc->aThreads [i].Cid.UniqueProcess & 0xFFFFFFFFU) != dwPID)
+            continue;
+
+          bool new_thread = false;
+
+          DWORD dwLocalTID = (DWORD)((uintptr_t)pProc->aThreads [i].Cid.UniqueThread & 0xFFFFFFFFU);
+
+          if (! SKWG_Threads.count (dwLocalTID))
           {
-            if (tent.th32OwnerProcessID == GetCurrentProcessId ())
-            {
-              if (! SKWG_Threads.count (tent.th32ThreadID))
-              {
-                SKWG_Thread_Entry::runtimes_s runtimes = { };
+            new_thread = true;
 
-                SKWG_Thread_Entry *ptEntry =
-                  new SKWG_Thread_Entry {
-                                   INVALID_HANDLE_VALUE,
-                                      tent.th32ThreadID,
-                                      { { 0 , 0 } , { 0 , 0 },
-                                        { 0 , 0 } , { 0 , 0 }, 0.0, 0.0,
-                                              { 0 , 0 } },    0, false,
-                                                false, false, 0,
-                     SK_Thread_GetName (tent.th32ThreadID)
-                  };
+            SKWG_Thread_Entry::runtimes_s runtimes = { };
 
-                extern std::wstring
-                SK_Thread_GetName (DWORD dwTid);
+            SKWG_Thread_Entry *ptEntry =
+              new SKWG_Thread_Entry {
+                               INVALID_HANDLE_VALUE,
+                                  dwLocalTID,
+                                  { { 0 , 0 } , { 0 , 0 },
+                                    { 0 , 0 } , { 0 , 0 }, 0.0, 0.0,
+                                          { 0 , 0 } },    0, false,
+                                            false,  0, WaitReason::NotWaiting,
+                                                      ThreadState::Running,
+                                            false,
+                 SK_Thread_GetName (dwLocalTID)
+              };
 
-                SKWG_Threads.insert ( 
-                  std::make_pair ( tent.th32ThreadID, ptEntry )
-                );
-              }
-            }
+            SKWG_Threads.insert (
+              std::make_pair ( dwLocalTID, ptEntry )
+            );
           }
 
-          tent.dwSize = sizeof (tent);
-        } while (Thread32Next (hSnap, &tent));
-      }
+          SKWG_Thread_Entry* ptEnt =
+            SKWG_Threads [dwLocalTID];
 
-      SKWG_Ordered_Threads.clear ();
+          ptEnt->wait_reason =
+            (WaitReason)pProc->aThreads [i].WaitReason;
+          ptEnt->thread_state =
+            (ThreadState)pProc->aThreads [i].dThreadState;
 
-      for ( auto& it : SKWG_Threads )
-      {
-        FILETIME ftCreate, ftExit,
-                 ftKernel, ftUser;
+          ptEnt->runtimes.created = pProc->aThreads [i].ftCreateTime;
+          ptEnt->runtimes.kernel  = pProc->aThreads [i].ftKernelTime;
+          ptEnt->runtimes.user    = pProc->aThreads [i].ftUserTime;
 
-        GetThreadTimes (
-              OpenThread ( THREAD_QUERY_INFORMATION,
-                             FALSE,
-                               it.second->dwTid
-                         ),   &ftCreate, &ftExit,
-          &ftKernel,
-          &ftUser
-        );
+          if (new_thread)
+          {
+            LARGE_INTEGER liCreate;
+                          liCreate.HighPart = ptEnt->runtimes.created.dwHighDateTime;
+                          liCreate.LowPart  = ptEnt->runtimes.created.dwLowDateTime;
 
-        LARGE_INTEGER liCreate;
-                      liCreate.HighPart = ftCreate.dwHighDateTime;
-                      liCreate.LowPart  = ftCreate.dwLowDateTime;
+            SKWG_Ordered_Threads [liCreate.QuadPart] =
+              ptEnt;
+          }
+        }
 
-        SKWG_Ordered_Threads [liCreate.QuadPart] =
-          it.second;
+        lLastThreadRefresh =
+          last;
       }
     }
   }
@@ -315,18 +818,50 @@ public:
 
         if ( steam_calls > 0 )
         {
-          ImGui::Separator ();
+          ImGui::Separator  ();
 
           ImGui::BeginGroup ();
-          ImGui::Text ("Steam Callbacks:\t");
+          ImGui::Text       ("Steam Callbacks:\t");
           ImGui::EndGroup   ();
 
           ImGui::SameLine   ();
 
           ImGui::BeginGroup ();
-          ImGui::Text ("%lli", steam_calls);
+          ImGui::Text       ("%lli", steam_calls);
           ImGui::EndGroup   ();
         }
+
+        LONG exceptions = ReadAcquire (&pTLS->debug.exceptions);
+
+        if (exceptions > 0)
+        {
+          ImGui::Separator  ();
+
+          ImGui::BeginGroup ();
+          ImGui::Text       ("Exceptions Raised:");
+          ImGui::EndGroup   ();
+
+          ImGui::SameLine   ();
+
+          ImGui::BeginGroup ();
+          ImGui::Text       ("\t%i", exceptions);
+          ImGui::EndGroup   ();
+        }
+
+        //if (SKWG_Threads [dwSelectedTid]->thread_state != ThreadState::Running)
+        //{
+        //  ImGui::Separator  ();
+        //
+        //  ImGui::BeginGroup ();
+        //  ImGui::Text       ("Thread State:");
+        //  ImGui::EndGroup   ();
+        //
+        //  ImGui::SameLine   ();
+        //
+        //  ImGui::BeginGroup ();
+        //  ImGui::Text       ("\t%i", (LONG)SKWG_Threads [dwSelectedTid]->thread_state);
+        //  ImGui::EndGroup   ();
+        //}
 
         ImGui::EndTooltip   ();
       }
@@ -392,7 +927,7 @@ public:
         ImGui::BeginGroup ();
 
         bool suspended =
-          SKWG_SuspendedThreads [dwSelectedTid];
+          SKWG_Threads [dwSelectedTid]->wait_reason == WaitReason::Suspended;
 
         if ( ImGui::Button ( suspended ?  "Resume this Thread" :
                                           "Suspend this Thread" ) )
@@ -405,8 +940,6 @@ public:
               { DWORD* pdwTid;
                 ULONG  frames; } static params { &dwSelectedTid,
                                                   SK_GetFramesDrawn () };
-
-            SKWG_SuspendedThreads [dwSelectedTid] = true;
 
             static HANDLE hThreadRecovery = INVALID_HANDLE_VALUE;
             static HANDLE hRecoveryEvent  = INVALID_HANDLE_VALUE;
@@ -445,13 +978,8 @@ public:
                     if (SK_GetFramesDrawn () <= ((suspend_params_s *)user)->frames)
                     {
                       ResumeThread (hThread__);
-
-                      SKWG_SuspendedThreads [dwTid] = false;
                     }
                   }
-
-                  else
-                    SKWG_SuspendedThreads [dwTid] = false;
                 }
 
                 CloseHandle (hRecoveryEvent);
@@ -474,13 +1002,7 @@ public:
 
           else
           {
-            if (ResumeThread (hSelectedThread) != (DWORD)-1)
-            {
-              SKWG_SuspendedThreads [dwSelectedTid] = false;
-            }
-
-            else
-              SKWG_SuspendedThreads [dwSelectedTid] = true;
+            ResumeThread (hSelectedThread);
           }
         }
 
@@ -683,7 +1205,7 @@ public:
 
       if (! GetExitCodeThread (hThread, &dwExitCode)) dwExitCode = 0;
 
-      if (SKWG_SuspendedThreads [it.second->dwTid])
+      if (SKWG_Threads [it.second->dwTid]->wait_reason == WaitReason::Suspended)
         ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.85f, 0.95f, 0.99f));
       else if (dwExitCode == STILL_ACTIVE)
         ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.3f, 0.95f, 0.99f));
@@ -733,14 +1255,14 @@ public:
         ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.472222, 0.23f, 0.91f));
 
       if ((! it.second->name.empty ()) && wcslen (it.second->name.c_str ()))
-        ImGui::Text (u8R"(“%ws”)", it.second->name.c_str ());
+        ImGui::Text (u8R"(%ws)", it.second->name.c_str ());
       else
       {
         NTSTATUS  ntStatus;
         HANDLE    hDupHandle;
         DWORD_PTR pdwStartAddress; 
 
-        NtQueryInformationThread_pfn NtQueryInformationThread =
+        static NtQueryInformationThread_pfn NtQueryInformationThread =
           (NtQueryInformationThread_pfn)GetProcAddress ( GetModuleHandle (L"NtDll.dll"),
                                                            "NtQueryInformationThread" );
         HANDLE hCurrentProc =
@@ -936,13 +1458,6 @@ public:
 
     for ( auto& it : SKWG_Ordered_Threads )
     {
-      HANDLE hThread = it.second->hThread;
-
-      GetThreadTimes ( hThread, &it.second->runtimes.created,
-                                &it.second->runtimes.exited,
-                                &it.second->runtimes.kernel,
-                                &it.second->runtimes.user );
-
       if ( (reset_stats && (dwLastSnap < dwNow - SNAP_FREQUENCY)) ||
             clear_counters )
       {
@@ -1122,4 +1637,3 @@ public:
 protected:
 private:
 } __thread_profiler__;
-
