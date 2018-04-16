@@ -29,10 +29,112 @@
 #include <windows.h>
 #include <tlhelp32.h>
 #include <limits.h>
+#include <assert.h>
 
 #include "../../include/MinHook/MinHook.h"
 #include "buffer.h"
 #include "trampoline.h"
+
+
+
+#pragma pack (push,8)
+#define NT_SUCCESS(Status)                      ((NTSTATUS)(Status) >= 0)
+#define STATUS_SUCCESS                          0
+#define STATUS_INFO_LENGTH_MISMATCH             ((NTSTATUS)0xC0000004L)
+#define SystemProcessAndThreadInformation       5
+
+typedef LONG       NTSTATUS;
+typedef LONG       KPRIORITY;
+typedef LONG       KWAIT_REASON;
+
+typedef struct _CLIENT_ID {
+    HANDLE         UniqueProcess;
+    HANDLE         UniqueThread;
+} CLIENT_ID;
+
+typedef struct _UNICODE_STRING {
+    USHORT         Length;
+    USHORT         MaximumLength;
+    PWSTR          Buffer;
+} UNICODE_STRING;
+
+typedef struct _SYSTEM_THREAD {
+    FILETIME     ftKernelTime;
+    FILETIME     ftUserTime;
+    FILETIME     ftCreateTime;
+    ULONG        dWaitTime;
+#ifdef _WIN64
+    DWORD32      dwPaddingFor64Bit;
+#endif
+    PVOID        pStartAddress;
+    CLIENT_ID    Cid;           // PID / TID Pairing
+    KPRIORITY    dPriority;
+    LONG         dBasePriority;
+    ULONG        dContextSwitches;
+    ULONG        dThreadState;  // 2 = running,  5 = waiting
+    KWAIT_REASON WaitReason;
+
+    // Not needed if correct packing is used, but these data structures
+    //   have tricky alignment and the whole world needs to know!
+    DWORD32      dwPaddingEveryoneGets;
+} SYSTEM_THREAD,             *PSYSTEM_THREAD;
+#define SYSTEM_THREAD_ sizeof (SYSTEM_THREAD)
+// -----------------------------------------------------------------
+typedef struct _SYSTEM_PROCESS     // common members
+{
+    ULONG          NextThreadOffset;
+    ULONG          TotalThreadCount;
+    LARGE_INTEGER  WorkingSetPrivateSize;
+    ULONG          HardFaultCount;
+    ULONG          NumberOfThreadsHighWatermark;
+    ULONGLONG      CycleTime;
+    LARGE_INTEGER  CreateTime;
+    LARGE_INTEGER  UserTime;
+    LARGE_INTEGER  KernelTime;
+    UNICODE_STRING ImageName;
+    KPRIORITY      BasePriority;
+    HANDLE         UniqueProcessId;
+    HANDLE         InheritedFromUniqueProcessId;
+    ULONG          HandleCount;
+    ULONG          SessionId;
+    ULONG_PTR      UniqueProcessKey;
+    ULONG_PTR      PeakVirtualSize;
+    ULONG_PTR      VirtualSize;
+    ULONG          PageFaultCount;
+    ULONG_PTR      PeakWorkingSetSize;
+    ULONG_PTR      WorkingSetSize;
+    ULONG_PTR      QuotaPeakPagedPoolUsage;
+    ULONG_PTR      QuotaPagedPoolUsage;
+    ULONG_PTR      QuotaPeakNonPagedPoolUsage;
+    ULONG_PTR      QuotaNonPagedPoolUsage;
+    ULONG_PTR      PagefileUsage;
+    ULONG_PTR      PeakPagefileUsage;
+    ULONG_PTR      PrivatePageCount;
+    LARGE_INTEGER  ReadOperationCount;
+    LARGE_INTEGER  WriteOperationCount;
+    LARGE_INTEGER  OtherOperationCount;
+    LARGE_INTEGER  ReadTransferCount;
+    LARGE_INTEGER  WriteTransferCount;
+    LARGE_INTEGER  OtherTransferCount;
+    SYSTEM_THREAD  aThreads [1];
+} SYSTEM_PROCESS_INFORMATION, *PSYSTEM_PROCESS_INFORMATION;
+#define SYSTEM_PROCESS_ sizeof (SYSTEM_PROCESS_INFORMATION)
+
+// There are about 100 more enumerates; all 100 of them are useless and omitted.
+typedef enum _SYSTEM_INFORMATION_CLASS {
+    SystemProcessInformation                              = 5,
+} SYSTEM_INFORMATION_CLASS;
+
+typedef NTSTATUS (WINAPI *NtQuerySystemInformation_pfn)(
+  _In_      SYSTEM_INFORMATION_CLASS SystemInformationClass,
+  _Inout_   PVOID                    SystemInformation,
+  _In_      ULONG                    SystemInformationLength,
+  _Out_opt_ PULONG                   ReturnLength
+);
+#pragma pack (pop)
+
+
+
 
 #ifndef ARRAYSIZE
     #define ARRAYSIZE(A) (sizeof(A)/sizeof((A)[0]))
@@ -74,13 +176,22 @@ typedef struct _HOOK_ENTRY
   UINT8  newIPs [8];      // Instruction boundaries of the trampoline function.
 } HOOK_ENTRY, *PHOOK_ENTRY;
 
+typedef struct _THREAD_ENTRY
+{
+  DWORD tid;
+  BYTE  suspensions;     // Calling SuspendThread once guarantees *nothing!
+  BYTE  runstate;        //
+  BYTE  padding2[2];     //   (*) Multiple calls may be required and an equal
+                         //       number of ResumeThread calls is necessary
+} THREAD_ENTRY, *PTHREAD_ENTRY;// to put things back the way we found them.
+
 // Suspended threads for Freeze()/Unfreeze().
 typedef struct _FROZEN_THREADS
 {
-  LPDWORD pItems;         // Data heap
-  UINT    capacity;       // Size of allocated data heap, items
-  UINT    size;           // Actual number of data items
-  DWORD   priority;       // Original thread priority
+  PTHREAD_ENTRY pItems;   // Data heap
+  UINT          capacity; // Size of allocated data heap, items
+  UINT          size;     // Actual number of data items
+  DWORD         priority; // Original thread priority
 } FROZEN_THREADS, *PFROZEN_THREADS;
 
 //-------------------------------------------------------------------------
@@ -92,6 +203,18 @@ volatile LONG   g_isLocked = FALSE;
 
 // Private heap handle. If not NULL, this library is initialized.
          HANDLE g_hHeap    = NULL;
+
+// Secondary heap, because NtDll snapshots are massive.
+struct
+{
+  NtQuerySystemInformation_pfn QuerySystemInformation;
+
+  HMODULE                      Module;
+  HANDLE                       hHeap;
+  DWORD                        dwHeapSize;
+  DWORD                        dwPadding0;
+  PSYSTEM_PROCESS_INFORMATION  pSnapshot;
+} g_NtDll = { NULL, NULL, NULL, 0, 0, NULL };
 
 // Hook entries.
 struct
@@ -115,12 +238,11 @@ EnterSpinLock (VOID)
     // generates a full memory barrier itself.
 
     // Prevent the loop from being too busy.
-    if (spinCount < 32)
+    if (spinCount < 17)
         ;
     else
     {
-      spinCount = 0;
-      SleepEx (1, TRUE);
+      SleepEx (0, TRUE);
     }
 
     spinCount++;
@@ -361,373 +483,100 @@ ProcessThreadIPs (HANDLE hThread, UINT pos, UINT action)
 }
 
 //-------------------------------------------------------------------------
-#pragma pack (push,8)
-#define NT_SUCCESS(Status)                      ((NTSTATUS)(Status) >= 0)
-#define STATUS_SUCCESS                          0
-#define STATUS_INFO_LENGTH_MISMATCH             ((NTSTATUS)0xC0000004L)
-#define SystemProcessAndThreadInformation       5
-
-typedef LONG       NTSTATUS;
-typedef LONG       KPRIORITY;
-typedef LONG       KWAIT_REASON;
-
-typedef struct _CLIENT_ID {
-    HANDLE         UniqueProcess;
-    HANDLE         UniqueThread;
-} CLIENT_ID;
-
-typedef struct _UNICODE_STRING {
-    USHORT         Length;
-    USHORT         MaximumLength;
-    PWSTR          Buffer;
-} UNICODE_STRING;
-
-typedef struct _SYSTEM_THREAD {
-    FILETIME     ftKernelTime;   // 100 nsec units
-    FILETIME     ftUserTime;     // 100 nsec units
-    FILETIME     ftCreateTime;   // relative to 01-01-1601
-    ULONG        dWaitTime;
-#ifdef _WIN64
-    DWORD32      dwPaddingFor64Bit;
-#endif
-    PVOID        pStartAddress;
-    CLIENT_ID    Cid;           // process/thread ids
-    KPRIORITY    dPriority;
-    LONG         dBasePriority;
-    ULONG        dContextSwitches;
-    ULONG        dThreadState;  // 2=running, 5=waiting
-    KWAIT_REASON WaitReason;
-
-    // Not even needed if correct packing is used, but let's just make this
-    //   obvious since it's easy to overlook!
-    DWORD32      dwPaddingEveryoneGets;
-} SYSTEM_THREAD,             *PSYSTEM_THREAD;
-#define SYSTEM_THREAD_ sizeof (SYSTEM_THREAD)
-// -----------------------------------------------------------------
-typedef struct _SYSTEM_PROCESS     // common members
-{
-    ULONG          dNext;
-    ULONG          dThreadCount;
-    LARGE_INTEGER  WorkingSetPrivateSize;
-    ULONG          HardFaultCount;
-    ULONG          NumberOfThreadsHighWatermark;
-    ULONGLONG      CycleTime;
-    LARGE_INTEGER  CreateTime;
-    LARGE_INTEGER  UserTime;
-    LARGE_INTEGER  KernelTime;
-    UNICODE_STRING ImageName;
-    KPRIORITY      BasePriority;
-    HANDLE         UniqueProcessId;
-    HANDLE         InheritedFromUniqueProcessId;
-    ULONG          HandleCount;
-    ULONG          SessionId;
-    ULONG_PTR      UniqueProcessKey;
-    ULONG_PTR      PeakVirtualSize;
-    ULONG_PTR      VirtualSize;
-    ULONG          PageFaultCount;
-    ULONG_PTR      PeakWorkingSetSize;
-    ULONG_PTR      WorkingSetSize;
-    ULONG_PTR      QuotaPeakPagedPoolUsage;
-    ULONG_PTR      QuotaPagedPoolUsage;
-    ULONG_PTR      QuotaPeakNonPagedPoolUsage;
-    ULONG_PTR      QuotaNonPagedPoolUsage;
-    ULONG_PTR      PagefileUsage;
-    ULONG_PTR      PeakPagefileUsage;
-    ULONG_PTR      PrivatePageCount;
-    LARGE_INTEGER  ReadOperationCount;
-    LARGE_INTEGER  WriteOperationCount;
-    LARGE_INTEGER  OtherOperationCount;
-    LARGE_INTEGER  ReadTransferCount;
-    LARGE_INTEGER  WriteTransferCount;
-    LARGE_INTEGER  OtherTransferCount;
-    SYSTEM_THREAD  aThreads [1];
-} SYSTEM_PROCESS_INFORMATION, *PSYSTEM_PROCESS_INFORMATION;
-#define SYSTEM_PROCESS_ sizeof (SYSTEM_PROCESS_INFORMATION)
-
-typedef enum _SYSTEM_INFORMATION_CLASS {
-    SystemBasicInformation                                = 0,
-    SystemProcessorInformation                            = 1,
-    SystemPerformanceInformation                          = 2,
-    SystemTimeOfDayInformation                            = 3,
-    SystemPathInformation                                 = 4,
-    SystemProcessInformation                              = 5,
-    SystemCallCountInformation                            = 6,
-    SystemDeviceInformation                               = 7,
-    SystemProcessorPerformanceInformation                 = 8,
-    SystemFlagsInformation                                = 9,
-    SystemCallTimeInformation                             = 10,
-    SystemModuleInformation                               = 11,
-    SystemLocksInformation                                = 12,
-    SystemStackTraceInformation                           = 13,
-    SystemPagedPoolInformation                            = 14,
-    SystemNonPagedPoolInformation                         = 15,
-    SystemHandleInformation                               = 16,
-    SystemObjectInformation                               = 17,
-    SystemPageFileInformation                             = 18,
-    SystemVdmInstemulInformation                          = 19,
-    SystemVdmBopInformation                               = 20,
-    SystemFileCacheInformation                            = 21,
-    SystemPoolTagInformation                              = 22,
-    SystemInterruptInformation                            = 23,
-    SystemDpcBehaviorInformation                          = 24,
-    SystemFullMemoryInformation                           = 25,
-    SystemLoadGdiDriverInformation                        = 26,
-    SystemUnloadGdiDriverInformation                      = 27,
-    SystemTimeAdjustmentInformation                       = 28,
-    SystemSummaryMemoryInformation                        = 29,
-    SystemMirrorMemoryInformation                         = 30,
-    SystemPerformanceTraceInformation                     = 31,
-    SystemObsolete0                                       = 32,
-    SystemExceptionInformation                            = 33,
-    SystemCrashDumpStateInformation                       = 34,
-    SystemKernelDebuggerInformation                       = 35,
-    SystemContextSwitchInformation                        = 36,
-    SystemRegistryQuotaInformation                        = 37,
-    SystemExtendedServiceTableInformation                 = 38,
-    SystemPrioritySeparation                              = 39,
-    SystemVerifierAddDriverInformation                    = 40,
-    SystemVerifierRemoveDriverInformation                 = 41,
-    SystemProcessorIdleInformation                        = 42,
-    SystemLegacyDriverInformation                         = 43,
-    SystemCurrentTimeZoneInformation                      = 44,
-    SystemLookasideInformation                            = 45,
-    SystemTimeSlipNotification                            = 46,
-    SystemSessionCreate                                   = 47,
-    SystemSessionDetach                                   = 48,
-    SystemSessionInformation                              = 49,
-    SystemRangeStartInformation                           = 50,
-    SystemVerifierInformation                             = 51,
-    SystemVerifierThunkExtend                             = 52,
-    SystemSessionProcessInformation                       = 53,
-    SystemLoadGdiDriverInSystemSpace                      = 54,
-    SystemNumaProcessorMap                                = 55,
-    SystemPrefetcherInformation                           = 56,
-    SystemExtendedProcessInformation                      = 57,
-    SystemRecommendedSharedDataAlignment                  = 58,
-    SystemComPlusPackage                                  = 59,
-    SystemNumaAvailableMemory                             = 60,
-    SystemProcessorPowerInformation                       = 61,
-    SystemEmulationBasicInformation                       = 62,
-    SystemEmulationProcessorInformation                   = 63,
-    SystemExtendedHandleInformation                       = 64,
-    SystemLostDelayedWriteInformation                     = 65,
-    SystemBigPoolInformation                              = 66,
-    SystemSessionPoolTagInformation                       = 67,
-    SystemSessionMappedViewInformation                    = 68,
-    SystemHotpatchInformation                             = 69,
-    SystemObjectSecurityMode                              = 70,
-    SystemWatchdogTimerHandler                            = 71,
-    SystemWatchdogTimerInformation                        = 72,
-    SystemLogicalProcessorInformation                     = 73,
-    SystemWow64SharedInformationObsolete                  = 74,
-    SystemRegisterFirmwareTableInformationHandler         = 75,
-    SystemFirmwareTableInformation                        = 76,
-    SystemModuleInformationEx                             = 77,
-    SystemVerifierTriageInformation                       = 78,
-    SystemSuperfetchInformation                           = 79,
-    SystemMemoryListInformation                           = 80,
-    SystemFileCacheInformationEx                          = 81,
-    SystemThreadPriorityClientIdInformation               = 82,
-    SystemProcessorIdleCycleTimeInformation               = 83,
-    SystemVerifierCancellationInformation                 = 84,
-    SystemProcessorPowerInformationEx                     = 85,
-    SystemRefTraceInformation                             = 86,
-    SystemSpecialPoolInformation                          = 87,
-    SystemProcessIdInformation                            = 88,
-    SystemErrorPortInformation                            = 89,
-    SystemBootEnvironmentInformation                      = 90,
-    SystemHypervisorInformation                           = 91,
-    SystemVerifierInformationEx                           = 92,
-    SystemTimeZoneInformation                             = 93,
-    SystemImageFileExecutionOptionsInformation            = 94,
-    SystemCoverageInformation                             = 95,
-    SystemPrefetchPatchInformation                        = 96,
-    SystemVerifierFaultsInformation                       = 97,
-    SystemSystemPartitionInformation                      = 98,
-    SystemSystemDiskInformation                           = 99,
-    SystemProcessorPerformanceDistribution                = 100,
-    SystemNumaProximityNodeInformation                    = 101,
-    SystemDynamicTimeZoneInformation                      = 102,
-    SystemCodeIntegrityInformation                        = 103,
-    SystemProcessorMicrocodeUpdateInformation             = 104,
-    SystemProcessorBrandString                            = 105,
-    SystemVirtualAddressInformation                       = 106,
-    SystemLogicalProcessorAndGroupInformation             = 107,
-    SystemProcessorCycleTimeInformation                   = 108,
-    SystemStoreInformation                                = 109,
-    SystemRegistryAppendString                            = 110,
-    SystemAitSamplingValue                                = 111,
-    SystemVhdBootInformation                              = 112,
-    SystemCpuQuotaInformation                             = 113,
-    SystemNativeBasicInformation                          = 114,
-    SystemErrorPortTimeouts                               = 115,
-    SystemLowPriorityIoInformation                        = 116,
-    SystemBootEntropyInformation                          = 117,
-    SystemVerifierCountersInformation                     = 118,
-    SystemPagedPoolInformationEx                          = 119,
-    SystemSystemPtesInformationEx                         = 120,
-    SystemNodeDistanceInformation                         = 121,
-    SystemAcpiAuditInformation                            = 122,
-    SystemBasicPerformanceInformation                     = 123,
-    SystemQueryPerformanceCounterInformation              = 124,
-    SystemSessionBigPoolInformation                       = 125,
-    SystemBootGraphicsInformation                         = 126,
-    SystemScrubPhysicalMemoryInformation                  = 127,
-    SystemBadPageInformation                              = 128,
-    SystemProcessorProfileControlArea                     = 129,
-    SystemCombinePhysicalMemoryInformation                = 130,
-    SystemEntropyInterruptTimingInformation               = 131,
-    SystemConsoleInformation                              = 132,
-    SystemPlatformBinaryInformation                       = 133,
-    SystemThrottleNotificationInformation                 = 134,
-    SystemPolicyInformation                               = 134,
-    SystemHypervisorProcessorCountInformation             = 135,
-    SystemDeviceDataInformation                           = 136,
-    SystemDeviceDataEnumerationInformation                = 137,
-    SystemMemoryTopologyInformation                       = 138,
-    SystemMemoryChannelInformation                        = 139,
-    SystemBootLogoInformation                             = 140,
-    SystemProcessorPerformanceInformationEx               = 141,
-    SystemSpare0                                          = 142,
-    SystemSecureBootPolicyInformation                     = 143,
-    SystemPageFileInformationEx                           = 144,
-    SystemSecureBootInformation                           = 145,
-    SystemEntropyInterruptTimingRawInformation            = 146,
-    SystemPortableWorkspaceEfiLauncherInformation         = 147,
-    SystemFullProcessInformation                          = 148,
-    SystemKernelDebuggerInformationEx                     = 149,
-    SystemBootMetadataInformation                         = 150,
-    SystemSoftRebootInformation                           = 151,
-    SystemElamCertificateInformation                      = 152,
-    SystemOfflineDumpConfigInformation                    = 153,
-    SystemProcessorFeaturesInformation                    = 154,
-    SystemRegistryReconciliationInformation               = 155,
-    SystemEdidInformation                                 = 156,
-    SystemManufacturingInformation                        = 157,
-    SystemEnergyEstimationConfigInformation               = 158,
-    SystemHypervisorDetailInformation                     = 159,
-    SystemProcessorCycleStatsInformation                  = 160,
-    SystemVmGenerationCountInformation                    = 161,
-    SystemTrustedPlatformModuleInformation                = 162,
-    SystemKernelDebuggerFlags                             = 163,
-    SystemCodeIntegrityPolicyInformation                  = 164,
-    SystemIsolatedUserModeInformation                     = 165,
-    SystemHardwareSecurityTestInterfaceResultsInformation = 166,
-    SystemSingleModuleInformation                         = 167,
-    SystemAllowedCpuSetsInformation                       = 168,
-    SystemDmaProtectionInformation                        = 169,
-    SystemInterruptCpuSetsInformation                     = 170,
-    SystemSecureBootPolicyFullInformation                 = 171,
-    SystemCodeIntegrityPolicyFullInformation              = 172,
-    SystemAffinitizedInterruptProcessorInformation        = 173,
-    SystemRootSiloInformation                             = 174,
-    SystemCpuSetInformation                               = 175,
-    SystemCpuSetTagInformation                            = 176,
-    MaxSystemInfoClass                                    = 177,
-} SYSTEM_INFORMATION_CLASS;
-#pragma pack (pop)
-
-typedef NTSTATUS (WINAPI *NtQuerySystemInformation_pfn)(
-  _In_      SYSTEM_INFORMATION_CLASS SystemInformationClass,
-  _Inout_   PVOID                    SystemInformation,
-  _In_      ULONG                    SystemInformationLength,
-  _Out_opt_ PULONG                   ReturnLength
-);
-
-static NtQuerySystemInformation_pfn NtQuerySystemInformation = NULL;
-
 
 PSYSTEM_PROCESS_INFORMATION
-ProcessInformation ( PDWORD    pdData,
-                     PNTSTATUS pns )
-{
-  DWORD                      dSize;
+SnapshotProcs_NtDll (void)
+{                          
+  DWORD                      dSize = 0;
   DWORD                      dData = 0;
   NTSTATUS                      ns = STATUS_INVALID_PARAMETER;
   PSYSTEM_PROCESS_INFORMATION pspi = NULL;
 
-  if (NtQuerySystemInformation == NULL)
+
+  if (g_NtDll.QuerySystemInformation == NULL)
   {
-    HMODULE hModNtDLL =
-      GetModuleHandleW (L"Ntdll.dll");
+    g_NtDll.Module =
+      LoadLibraryW (L"NtDll.dll");
 
-    if (! hModNtDLL) hModNtDLL = LoadLibraryW (L"Ntdll.dll");
-
-    NtQuerySystemInformation =
+    g_NtDll.QuerySystemInformation =
       (NtQuerySystemInformation_pfn)
-      GetProcAddress (hModNtDLL, "NtQuerySystemInformation");
+        GetProcAddress (g_NtDll.Module, "NtQuerySystemInformation");
   }
 
-  for (dSize = 4096; (pspi == NULL) && dSize; dSize <<= 1)
+
+  RtlZeroMemory ( g_NtDll.pSnapshot, g_NtDll.dwHeapSize );
+
+  ns = g_NtDll.QuerySystemInformation ( SystemProcessInformation,
+                                          g_NtDll.pSnapshot,
+                                          g_NtDll.dwHeapSize,  &dData );
+
+  // Memory was not filled.
+  if (ns != STATUS_SUCCESS)
   {
-    if ((pspi = LocalAlloc (LMEM_FIXED, dSize)) == NULL)
+    for (  dSize = g_NtDll.dwHeapSize   ; 
+          (pspi == NULL) && dSize  != 0 ;
+                            dSize <<= 1  )
     {
-      ns = STATUS_NO_MEMORY;
-      break;
-    }
+      if ( ( pspi = HeapReAlloc ( g_NtDll.hHeap,     0x0, 
+                                  g_NtDll.pSnapshot, dSize ) ) == NULL )
+      {
+        ns = STATUS_NO_MEMORY;
+        break;
+      }
 
-    ns = NtQuerySystemInformation ( SystemProcessInformation,
-                                      pspi, dSize, &dData );
+      g_NtDll.dwHeapSize = dSize;
+      g_NtDll.pSnapshot  = pspi;
 
-    if (ns != STATUS_SUCCESS)
-    {
-      LocalFree (pspi);
+      ns = g_NtDll.QuerySystemInformation ( SystemProcessInformation,
+                                              pspi, dSize, &dData );
 
-      pspi  = NULL;
-      dData = 0;
+      if (ns != STATUS_SUCCESS)
+      {
+        pspi  = NULL;
+        dData = 0;
 
-      if (ns != STATUS_INFO_LENGTH_MISMATCH) break;
+        if (ns != STATUS_INFO_LENGTH_MISMATCH) break;
+      }
     }
   }
 
-  if (pdData != NULL) *pdData = dData;
-  if (pns    != NULL) *pns    = ns;
+  if (dData != 0)
+    return g_NtDll.pSnapshot;
 
-  return pspi;
+//OutputDebugStringA ("Total failure!  (NtStat=%x)", ns);
+
+  return NULL;
 }
-
-volatile LONG* plThreadsCreated = NULL;
-
-void
-WINAPI
-SH_RegisterThreadCountVar (volatile LONG* pltc)
-{
-  plThreadsCreated = pltc;
-}
-
-
-LONG                        last_update = -1L;
 
 static
 VOID
 EnumerateThreads (PFROZEN_THREADS pThreads)
 {
-#if 1
-  DWORD dwPID = GetCurrentProcessId ();
-  DWORD dwTID = GetCurrentThreadId  ();
+  DWORD dwPID = GetCurrentProcessId (),
+        dwTID = GetCurrentThreadId  ();
 
-  PSYSTEM_PROCESS_INFORMATION pInfo =
-    ProcessInformation (NULL, NULL);
+  PSYSTEM_PROCESS_INFORMATION pProc =
+    SnapshotProcs_NtDll ();
 
   int i = 0;
-
-  SYSTEM_PROCESS_INFORMATION* pProc = pInfo;
   
   do
   {
     if ((DWORD)((uintptr_t)pProc->UniqueProcessId & 0xFFFFFFFFU) == dwPID)
       break;
 
-    pProc = (SYSTEM_PROCESS_INFORMATION *)((BYTE *)pProc + pProc->dNext);
-  } while (pProc->dNext != 0);
+    pProc = (SYSTEM_PROCESS_INFORMATION *)((BYTE *)pProc + pProc->NextThreadOffset);
+  } while (pProc->NextThreadOffset != 0);
+
 
   if ((DWORD)((uintptr_t)pProc->UniqueProcessId & 0xFFFFFFFFU) == dwPID)
   {
     int threads = 
-      pProc->dThreadCount;
+      pProc->TotalThreadCount;
 
-    for (i = 0; i < threads; i++)
+    for ( i = 0; i < threads; ++i )
     {
+      // We want threads for the current PID, except for the thread we're running from!
       if ( (DWORD)((uintptr_t)pProc->aThreads [i].Cid.UniqueThread  & 0xFFFFFFFFU) == dwTID ||
            (DWORD)((uintptr_t)pProc->aThreads [i].Cid.UniqueProcess & 0xFFFFFFFFU) != dwPID )
         continue;
@@ -736,9 +585,9 @@ EnumerateThreads (PFROZEN_THREADS pThreads)
       {
         pThreads->capacity = INITIAL_THREAD_CAPACITY;
         pThreads->pItems   =
-              (LPDWORD)HeapAlloc (
+              (PTHREAD_ENTRY)HeapAlloc (
                 g_hHeap, 0,
-                  pThreads->capacity * sizeof (DWORD)
+                  pThreads->capacity * sizeof (THREAD_ENTRY)
               );
 
         if (pThreads->pItems == NULL)
@@ -747,90 +596,24 @@ EnumerateThreads (PFROZEN_THREADS pThreads)
 
       else if (pThreads->size >= pThreads->capacity)
       {
-        LPDWORD p =
-            (LPDWORD)HeapReAlloc (
+        PTHREAD_ENTRY p =
+            (PTHREAD_ENTRY)HeapReAlloc (
               g_hHeap, 0,
                 pThreads->pItems,
-               (pThreads->capacity * 2) * sizeof (DWORD)
+               (pThreads->capacity << 1) * sizeof (THREAD_ENTRY)
             );
 
         if (p == NULL)
           break;
 
-        pThreads->capacity *= 2;
-        pThreads->pItems    = p;
+        pThreads->capacity <<= 1;
+        pThreads->pItems     = p;
       }
 
-      pThreads->pItems [pThreads->size++] =
+      pThreads->pItems [pThreads->size++].tid =
         (DWORD)((uintptr_t)pProc->aThreads [i].Cid.UniqueThread & 0xFFFFFFFFU);
     }
   }
-
-  LocalFree (pInfo);
-#else
-
-  HANDLE hSnapshot =
-    CreateToolhelp32Snapshot (TH32CS_SNAPTHREAD, GetProcessId (GetCurrentProcess ()));
-
-  DWORD dwPID = GetCurrentProcessId ();
-  DWORD dwTID = GetCurrentThreadId  ();
-
-  if (hSnapshot != INVALID_HANDLE_VALUE)
-  {
-                        THREADENTRY32 te;
-    te.dwSize = sizeof (THREADENTRY32);
-
-    if (Thread32First (hSnapshot, &te))
-    {
-      do
-      {
-        if ( te.dwSize >= 
-              (FIELD_OFFSET ( THREADENTRY32,
-                                th32OwnerProcessID ) + sizeof (DWORD) ) &&
-             te.th32OwnerProcessID == dwPID                             &&
-             te.th32ThreadID       != dwTID
-           )
-        {
-          if (pThreads->pItems == NULL)
-          {
-            pThreads->capacity = INITIAL_THREAD_CAPACITY;
-            pThreads->pItems   =
-                  (LPDWORD)HeapAlloc (
-                    g_hHeap, 0,
-                      pThreads->capacity * sizeof (DWORD)
-                  );
-
-            if (pThreads->pItems == NULL)
-              break;
-          }
-
-          else if (pThreads->size >= pThreads->capacity)
-          {
-            LPDWORD p =
-                (LPDWORD)HeapReAlloc (
-                  g_hHeap, 0,
-                    pThreads->pItems,
-                   (pThreads->capacity * 2) * sizeof (DWORD)
-                );
-
-            if (p == NULL)
-              break;
-
-            pThreads->capacity *= 2;
-            pThreads->pItems    = p;
-          }
-
-          pThreads->pItems [pThreads->size++] = te.th32ThreadID;
-        }
-
-        te.dwSize = sizeof (THREADENTRY32);
-
-      } while (Thread32Next (hSnapshot, &te));
-    }
-
-    CloseHandle (hSnapshot);
-  }
-#endif
 }
 
 //-------------------------------------------------------------------------
@@ -845,7 +628,7 @@ FreezeEx (PFROZEN_THREADS pThreads, UINT pos, UINT action, UINT idx)
   pThreads->size     = 0;
   pThreads->priority = GetThreadPriority (hThreadSelf);
 
-  SetThreadPriority (hThreadSelf, THREAD_PRIORITY_HIGHEST);
+  SetThreadPriority (hThreadSelf, THREAD_PRIORITY_TIME_CRITICAL);
 
   EnumerateThreads (pThreads);
 
@@ -855,16 +638,62 @@ FreezeEx (PFROZEN_THREADS pThreads, UINT pos, UINT action, UINT idx)
 
     for (i = 0; i < pThreads->size; ++i)
     {
+      PTHREAD_ENTRY pThread =
+        &pThreads->pItems [i];
+
       HANDLE hThread =
         OpenThread ( THREAD_ACCESS,
                        FALSE,
-                         pThreads->pItems [i] );
+                         pThread->tid );
 
       if (hThread != NULL)
       {
-        SuspendThread      (hThread);
-        ProcessThreadIPsEx (hThread, pos, action, idx);
-        CloseHandle        (hThread);
+        pThread->suspensions = 0;
+        pThread->runstate    = 2; // Unknown
+
+        DWORD                            dwExitCode = 0;
+        if (GetExitCodeThread (hThread, &dwExitCode))
+        {
+          pThread->runstate = ( dwExitCode == STILL_ACTIVE ? 1 : 0 );
+        }
+
+        if (pThread->runstate == 1)
+        {
+          DWORD dwRet,
+                dwErr = GetLastError ();
+
+          do
+          {
+            while ((dwRet = SuspendThread (hThread)) != 0xFFFFFFFF)
+            {
+              ++pThread->suspensions;
+
+              // Thread is suspended, we can stop now
+              if (dwRet > 0)
+                break;
+
+              if (pThread->suspensions == 255)
+              {
+                OutputDebugStringA ("[MinHook] Too many attempts to suspend a thread!");
+                break;
+              }
+            }
+
+            dwErr =
+              GetLastError ();
+
+            if ( dwErr == ERROR_THREAD_NOT_IN_PROCESS ||
+                 dwErr == ERROR_THREAD_WAS_SUSPENDED )
+            {
+              break;
+            }
+
+          //if (dwErr != NO_ERROR) OutputDebugStringA ("dwErr != NO_ERROR");//assert (dwErr == NO_ERROR);
+          } while (pThread->suspensions == 0);
+
+          ProcessThreadIPsEx (hThread, pos, action, idx);
+          CloseHandle        (hThread);
+        }
       }
     }
   }
@@ -884,19 +713,28 @@ Unfreeze (PFROZEN_THREADS pThreads)
 {
   if (pThreads->pItems != NULL)
   {
-    UINT i;
+    UINT i, j;
 
     for (i = 0; i < pThreads->size; ++i)
     {
-      HANDLE hThread =
-        OpenThread ( THREAD_SUSPEND_RESUME,
-                       FALSE,
-                         pThreads->pItems [i] );
+      PTHREAD_ENTRY pThread =
+        &pThreads->pItems [i];
 
-      if (hThread != NULL)
+      if ( pThread->runstate   == 1 &&
+           pThread->suspensions > 0 )
       {
-        ResumeThread (hThread);
-        CloseHandle  (hThread);
+        HANDLE hThread =
+          OpenThread ( THREAD_SUSPEND_RESUME,
+                         FALSE,
+                           pThread->tid );
+
+        if (hThread != NULL)
+        {
+          for (j = 0; j < pThread->suspensions; ++j)
+            ResumeThread (hThread);
+
+          CloseHandle (hThread);
+        }
       }
     }
 
@@ -1033,14 +871,19 @@ MH_Initialize (VOID)
 
   if (g_hHeap == NULL)
   {
-    g_hHeap = HeapCreate ( 0, sizeof (HOOK_ENTRY)     * (INITIAL_HOOK_CAPACITY*4) + 1 +
-                              sizeof (FROZEN_THREADS) * INITIAL_THREAD_CAPACITY   + 1 +
-                              16384 * 16, 0 );
+    g_hHeap       = HeapCreate ( 0x0, sizeof (HOOK_ENTRY)     * (INITIAL_HOOK_CAPACITY*4) + 1 +
+                                      sizeof (FROZEN_THREADS) * INITIAL_THREAD_CAPACITY   + 1 +
+                                      16384 * 16, 0 );
 
-    if (g_hHeap != NULL)
+    g_NtDll.hHeap = HeapCreate ( 0x0, 4096, 0 );
+
+    if (g_hHeap != NULL && g_NtDll.hHeap != NULL)
     {
       // Initialize the internal function buffer.
       InitializeBuffer ();
+
+      g_NtDll.pSnapshot  = HeapAlloc ( g_NtDll.hHeap, 0x0, 4096 );
+      g_NtDll.dwHeapSize = g_NtDll.pSnapshot != NULL ? 4096 : 0;
     }
 
     else
@@ -1077,18 +920,25 @@ MH_Uninitialize (VOID)
         // HeapFree is actually not required, but some tools detect a false
         // memory leak without HeapFree.
 
-        HeapFree (g_hHeap, 0, g_hooks [i].pItems);
+        HeapFree (g_hHeap,       0, g_hooks [i].pItems);
+        HeapFree (g_NtDll.hHeap, 0, g_NtDll.pSnapshot );
 
         g_hooks [i].pItems   = NULL;
         g_hooks [i].capacity = 0;
         g_hooks [i].size     = 0;
+
+        g_NtDll.pSnapshot    = NULL;
+        g_NtDll.dwHeapSize   = 0UL;
       }
     }
 
     // Free the internal function buffer.
     UninitializeBuffer ();
+
     HeapDestroy        (g_hHeap);
-                        g_hHeap = NULL;
+    HeapDestroy        (g_NtDll.hHeap);
+                        g_NtDll.hHeap = NULL;
+                        g_hHeap       = NULL;
   }
   else
   {
@@ -1431,6 +1281,10 @@ MH_QueueDisableHook (LPVOID pTarget)
 }
 
 //-------------------------------------------------------------------------
+#include <debugapi.h>
+#include <stdio.h>
+#include <Windows.h>
+
 MH_STATUS
 WINAPI
 MH_ApplyQueuedEx (UINT idx)
@@ -1479,6 +1333,13 @@ MH_ApplyQueuedEx (UINT idx)
     status = MH_ERROR_NOT_INITIALIZED;
   }
 
+  //char szDesc [4096];
+  //sprintf ( szDesc, "g_NtDll = { %ph, %ph, (%x), %lu, %lu, %ph }",
+  //                g_NtDll.QuerySystemInformation, g_NtDll.Module, (unsigned int)((uintptr_t)g_NtDll.hHeap & 0xFFFFFFFFUL),
+  //                g_NtDll.dwHeapSize, g_NtDll.dwPadding0, g_NtDll.pSnapshot );
+  //
+  //OutputDebugStringA (szDesc);
+
   LeaveSpinLock ();
 
   return status;
@@ -1503,6 +1364,7 @@ MH_CreateHookApiEx2 (
   LPVOID  pTarget;
 
   hModule = GetModuleHandleW (pszModule);
+
   if (hModule == NULL)
       return MH_ERROR_MODULE_NOT_FOUND;
 
