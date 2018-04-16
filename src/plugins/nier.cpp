@@ -851,9 +851,7 @@ SK_FAR_PresentFirstFrame (IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Fl
     // Since people don't read guides, nag them to death...
     if (far_osd_disclaimer->get_value ())
     {
-      CreateThread ( nullptr,                 0,
-                       SK_FAR_OSD_Disclaimer, nullptr,
-                         0x00,                nullptr );
+      SK_Thread_Create ( SK_FAR_OSD_Disclaimer );
     }
   }
 

@@ -71,6 +71,102 @@ typedef FARPROC (WINAPI *GetProcAddress_pfn)(HMODULE,LPCSTR);
                          GetProcAddress_pfn
                          GetProcAddress_Original = nullptr;
 
+#define NT_SUCCESS(Status) ((NTSTATUS)(Status) >= 0)
+#define STATUS_SUCCESS     0
+
+typedef struct _UNICODE_STRING
+{
+  WORD           Length;
+  WORD           MaximumLength;
+  WORD          *Buffer;
+} UNICODE_STRING, *PUNICODE_STRING;
+
+
+typedef struct _LDR_DATA_TABLE_ENTRY
+{
+  LIST_ENTRY     InLoadOrderLinks;
+  LIST_ENTRY     InMemoryOrderLinks;
+  LIST_ENTRY     InInitializationOrderLinks;
+  PVOID          DllBase;
+  PVOID          EntryPoint;
+  ULONG          SizeOfImage;
+  UNICODE_STRING FullDllName;
+  UNICODE_STRING BaseDllName;
+  ULONG          Flags;
+  WORD           LoadCount;
+  WORD           TlsIndex;
+
+  union
+  {
+    LIST_ENTRY   HashLinks;
+    struct
+    {
+      PVOID      SectionPointer;
+      ULONG      CheckSum;
+    };
+  };
+
+  union
+  {
+    ULONG        TimeDateStamp;
+    PVOID        LoadedImports;
+  };
+
+  _ACTIVATION_CONTEXT
+                *EntryPointActivationContext;
+  PVOID          PatchInformation;
+  LIST_ENTRY     ForwarderLinks;
+  LIST_ENTRY     ServiceTagLinks;
+  LIST_ENTRY     StaticLinks;
+} LDR_DATA_TABLE_ENTRY, *PLDR_DATA_TABLE_ENTRY;
+
+typedef NTSTATUS (NTAPI *LdrFindEntryForAddress_pfn)(
+  HMODULE                 hMod,
+  LDR_DATA_TABLE_ENTRY **ppLdrData
+);
+
+static LdrFindEntryForAddress_pfn LdrFindEntryForAddress =
+      (LdrFindEntryForAddress_pfn)
+  GetProcAddress ( GetModuleHandleW (L"NtDll.dll"),
+                                      "LdrFindEntryForAddress" );
+
+BOOL
+WINAPI
+SK_Module_IsProcAddrLocal ( HMODULE  hModExpected,
+                             LPCSTR  lpProcName,
+                            FARPROC  lpProcAddr,
+              PLDR_DATA_TABLE_ENTRY *ppldrEntry = nullptr )
+{
+  PLDR_DATA_TABLE_ENTRY pLdrEntry;
+
+  if (NT_SUCCESS (LdrFindEntryForAddress ((HMODULE)lpProcAddr, &pLdrEntry)))
+  {
+    if (ppldrEntry != nullptr) *ppldrEntry = pLdrEntry;
+
+    if ( StrStrIW ( SK_GetModuleName (hModExpected).c_str (),
+                (wchar_t *)pLdrEntry->BaseDllName.Buffer ) )
+    {
+      return TRUE;
+    }
+
+    else
+    {
+      SK_LOG0 ( ( LR"(Procedure: '%hs' located by NtLdr in '%ws')",
+                      lpProcName, (wchar_t *)pLdrEntry->FullDllName.Buffer ),
+                  L"DebugUtils" );
+      SK_LOG0 ( ( L"  >>  Expected Location:  '%ws'!",
+                      SK_GetModuleFullName (hModExpected).c_str () ),
+                  L"DebugUtils" );
+
+      return FALSE;
+    }
+  }
+
+  if (ppldrEntry != nullptr) *ppldrEntry = nullptr;
+
+  return FALSE;
+}
+
 FARPROC
 WINAPI
 GetProcAddress_Detour (
@@ -78,13 +174,64 @@ GetProcAddress_Detour (
   _In_ LPCSTR  lpProcName
 )
 {
+  // Ignore ordinals for this (Disable Nahimic) test
+  if ((uintptr_t)lpProcName > 16UL * 1024UL * 1024UL)
+  {
+    if (! lstrcmpA (lpProcName, "NoHotPatch"))
+    {
+      static     DWORD NoHotPatch = 0x1;
+      return (FARPROC)&NoHotPatch;
+    }
+
+
+    if (config.system.log_level > 1)
+    {
+      SK_Module_IsProcAddrLocal ( hModule, lpProcName,
+         GetProcAddress_Original (hModule, lpProcName) );
+    }
+  }
+
+  if (config.system.log_level == 0)
+    return GetProcAddress_Original (hModule, lpProcName);
+
+  HMODULE hModCaller =
+    SK_GetCallingDLL ();
+  
+  if (hModCaller == SK_GetDLL ())
+    return GetProcAddress_Original (hModule, lpProcName);
+
+
   static DWORD dwOptimus        = 0x1;
   static DWORD dwAMDPowerXPress = 0x1;
 
   // We have to handle ordinals as well, those would generally crash anything
   //   that treats them as a nul-terminated string.
   if ((uintptr_t)lpProcName < 65536)
+  {
+    ///if ((uintptr_t)lpProcName == 100 && SK_GetCallerName ().find (L"gameoverlayrenderer") != std::wstring::npos)
+    ///{
+    ///  static FARPROC original_addr =
+    ///    GetProcAddress_Original (hModule, lpProcName);
+    ///
+    ///  return original_addr;
+    ///}
+
+    if (config.system.log_level > 0)
+    {
+      //HMODULE hModCaller =
+      //  SK_GetCallingDLL ();
+    
+      if (hModCaller != SK_GetDLL ())
+      {
+        SK_LOG1 ( ( LR"(GetProcAddress ([%ws], {Ordinal: %lu})  -  %s)", 
+                           SK_GetModuleFullName (hModule).c_str (),
+                        ((uintptr_t)lpProcName & 0xFFFFU), SK_SummarizeCaller ().c_str () ),
+                    L"DLL_Loader" );
+      }
+    }
+
     return GetProcAddress_Original (hModule, lpProcName);
+  }
 
 
   //
@@ -108,7 +255,41 @@ GetProcAddress_Detour (
   }
 
 
-//dll_log.Log (L"GetProcAddress (%hs)", lpProcName);
+  ///if (config.system.trace_load_library && StrStrA (lpProcName, "LoadLibrary"))
+  ///{
+  ///  // Make other DLLs install their hooks _after_ SK.
+  ///  if (! strcmp (lpProcName, "LoadLibraryExW"))
+  ///  {
+  ///    extern HMODULE
+  ///    WINAPI
+  ///    LoadLibraryExW_Detour (
+  ///      _In_       LPCWSTR lpFileName,
+  ///      _Reserved_ HANDLE  hFile,
+  ///      _In_       DWORD   dwFlags );
+  ///    return (FARPROC)LoadLibraryExW_Detour;
+  ///  }
+  ///
+  ///  if (! strcmp (lpProcName, "LoadLibraryW"))
+  ///    return (FARPROC)*LoadLibraryW_Original;
+  ///
+  ///  if (! strcmp (lpProcName, "LoadLibraryExA"))
+  ///    return (FARPROC)*LoadLibraryExA_Original;
+  ///
+  ///  if (! strcmp (lpProcName, "LoadLibraryA"))
+  ///    return (FARPROC)*LoadLibraryA_Original;
+  ///}
+
+
+  if (config.system.log_level > 0)
+  {  
+    if (hModCaller != SK_GetDLL ())
+    {
+      SK_LOG1 ( ( LR"(GetProcAddress ([%ws], "%hs")  -  %s)", 
+                         SK_GetModuleFullName (hModule).c_str (),
+                      lpProcName, SK_SummarizeCaller ().c_str () ),
+                  L"DLL_Loader" );
+    }
+  }
 
 
   return
@@ -162,33 +343,6 @@ ResetEvent_Detour (
   }
 
   return ResetEvent_Original (hEvent);
-}
-
-using CreateThread_pfn = HANDLE (WINAPI *)(
-    _In_opt_                  LPSECURITY_ATTRIBUTES  lpThreadAttributes,
-    _In_                      SIZE_T                 dwStackSize,
-    _In_                      LPTHREAD_START_ROUTINE lpStartAddress,
-    _In_opt_ __drv_aliasesMem LPVOID                 lpParameter,
-    _In_                      DWORD                  dwCreationFlags,
-    _Out_opt_                 LPDWORD                lpThreadId
-);
-CreateThread_pfn CreateThread_Original = nullptr;
-
-HANDLE
-WINAPI
-CreateThread_Detour (
-    _In_opt_                  LPSECURITY_ATTRIBUTES  lpThreadAttributes,
-    _In_                      SIZE_T                 dwStackSize,
-    _In_                      LPTHREAD_START_ROUTINE lpStartAddress,
-    _In_opt_ __drv_aliasesMem LPVOID                 lpParameter,
-    _In_                      DWORD                  dwCreationFlags,
-    _Out_opt_                 LPDWORD                lpThreadId )
-{
-  SK_LOG_CALL ("ThreadBase");
-
-  return CreateThread_Original ( lpThreadAttributes,  dwStackSize,
-                                   lpStartAddress,    lpParameter,
-                                     dwCreationFlags, lpThreadId   );
 }
 
 
@@ -392,11 +546,11 @@ NtSetInformationThread_Detour (
                   GetThreadId (ThreadHandle) ),
                 L"DieAntiDbg" );
 
-    if (config.system.log_level > 1)
-    {
-      //SuspendThread (ThreadHandle);
-      return STATUS_SUCCESS;
-    }
+    //if (config.system.log_level > 1)
+    //{
+    //  //SuspendThread (ThreadHandle);
+    //  return STATUS_SUCCESS;
+    //}
   }
 
   return
@@ -417,11 +571,6 @@ extern concurrency::concurrent_unordered_set <HMODULE>              dbghelp_call
 extern concurrency::concurrent_unordered_map <DWORD, std::wstring> _SK_ThreadNames;
 extern concurrency::concurrent_unordered_set <DWORD>               _SK_SelfTitledThreads;
 
-extern "C"
-void
-WINAPI
-SH_RegisterThreadCountVar (volatile LONG* pltc);
-
 NTSTATUS
 NTAPI
 NtCreateThreadEx_Detour (
@@ -439,57 +588,16 @@ NtCreateThreadEx_Detour (
 {
   SK_LOG_FIRST_CALL
 
-  SH_RegisterThreadCountVar (&lLastThreadCreate);
+  extern bool
+  SK_Thread_InitDebugExtras (void);
 
-  BOOL Suspicious = FALSE;
+  SK_RunOnce (SK::Diagnostics::CrashHandler::InitSyms ());
+  SK_RunOnce (SK_Thread_InitDebugExtras ());
 
-  if ( CreateFlags & THREAD_CREATE_FLAGS_HIDE_FROM_DEBUGGER )
+  HMODULE hModStart = SK_GetModuleFromAddr (StartRoutine);
+
+  if (! dbghelp_callers.count (hModStart))
   {
-    CreateFlags &= ~THREAD_CREATE_FLAGS_HIDE_FROM_DEBUGGER;
-
-    if (config.system.log_level > 1)
-      CreateFlags |= THREAD_CREATE_FLAGS_CREATE_SUSPENDED;
-
-    SK_LOG0 ( ( L"Tried to begin a debugger-hidden thread; punish it by starting visible and suspended!",
-                  GetThreadId (*ThreadHandle) ),
-                L"DieAntiDbg" );
-
-    Suspicious = TRUE;
-  }
-
-  CreateFlags &= ~THREAD_CREATE_FLAGS_SKIP_THREAD_ATTACH;
-
-
-
-  BOOL suspended = CreateFlags  & THREAD_CREATE_FLAGS_CREATE_SUSPENDED;
-                   CreateFlags |= THREAD_CREATE_FLAGS_CREATE_SUSPENDED;
-
-  NTSTATUS ret =
-    NtCreateThreadEx_Original ( ThreadHandle, DesiredAccess, ObjectAttributes,
-                                ProcessHandle, StartRoutine, Argument, CreateFlags,
-                                ZeroBits, StackSize, MaximumStackSize, AttributeList );
-
-  if (NT_SUCCESS (ret))
-  {
-    InterlockedIncrement (&lLastThreadCreate);
-
-    const DWORD tid =
-      GetThreadId (*ThreadHandle);
-
-    if (! _SK_ThreadNames.count (tid))
-    {
-      extern bool
-      SK_Thread_InitDebugExtras (void);
-
-      SK_RunOnce (SK::Diagnostics::CrashHandler::InitSyms ());
-      SK_RunOnce (SK_Thread_InitDebugExtras ());
-
-      HMODULE hModStart = SK_GetModuleFromAddr (StartRoutine);
-
-      if (! dbghelp_callers.count (hModStart))
-      {
-        std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
-
 #ifdef _WIN64
 #define SK_StackWalk          StackWalk64
 #define SK_SymLoadModule      SymLoadModule64
@@ -505,71 +613,109 @@ NtCreateThreadEx_Detour (
 #endif
 
 #ifdef _WIN64
-        DWORD64 BaseAddr;
+    DWORD64 BaseAddr;
 #else
-        DWORD   BaseAddr;
+    DWORD   BaseAddr;
 #endif
 
-        CHeapPtr <char> szDupName (_strdup (SK_WideCharToUTF8 (SK_GetModuleFullNameFromAddr (StartRoutine)).c_str ()));
+    CHeapPtr <char> szDupName (_strdup (SK_WideCharToUTF8 (SK_GetModuleFullNameFromAddr (StartRoutine)).c_str ()));
 
-        MODULEINFO mod_info = { };
+    MODULEINFO mod_info = { };
 
-        GetModuleInformation (
-          GetCurrentProcess (), hModStart, &mod_info, sizeof (mod_info)
-        );
+    GetModuleInformation (
+      GetCurrentProcess (), hModStart, &mod_info, sizeof (mod_info)
+    );
 
 #ifdef _WIN64
-        BaseAddr = (DWORD64)mod_info.lpBaseOfDll;
+    BaseAddr = (DWORD64)mod_info.lpBaseOfDll;
 #else
-        BaseAddr =   (DWORD)mod_info.lpBaseOfDll;
+    BaseAddr =   (DWORD)mod_info.lpBaseOfDll;
 #endif
 
-        char* pszShortName = szDupName.m_pData;
+    char* pszShortName = szDupName.m_pData;
 
-        PathStripPathA (pszShortName);
+    PathStripPathA (pszShortName);
 
 
-        SK_SymLoadModule ( GetCurrentProcess (),
-                             nullptr,
-                              pszShortName,
-                                nullptr,
-                                  BaseAddr,
-                                    mod_info.SizeOfImage );
+    SK_SymLoadModule ( GetCurrentProcess (),
+                         nullptr,
+                          pszShortName,
+                            nullptr,
+                              BaseAddr,
+                                mod_info.SizeOfImage );
 
-        dbghelp_callers.insert (hModStart);
-      }
 
-      char    thread_name [512] = { };
-      char    szSymbol    [256] = { };
-      ULONG   ulLen             = 191;
+    dbghelp_callers.insert (hModStart);
+  }
 
-      ulLen = SK_GetSymbolNameFromModuleAddr (
-                hModStart,
-       reinterpret_cast <uintptr_t> ((LPVOID)StartRoutine),
-                    szSymbol,
-                      ulLen );
 
-      if (ulLen > 0)
-      {
-        sprintf ( thread_name, "%s+%s",
-                 SK_WideCharToUTF8 (SK_GetCallerName (StartRoutine)).c_str ( ),
-                                                         szSymbol );
-      }
+  char    thread_name [512] = { };
+  char    szSymbol    [256] = { };
+  ULONG   ulLen             = 191;
 
-      else {
-        sprintf ( thread_name, "%s",
-                    SK_WideCharToUTF8 (SK_GetCallerName (StartRoutine)).c_str () );
-      }
+  ulLen = SK_GetSymbolNameFromModuleAddr (
+            hModStart,
+   reinterpret_cast <uintptr_t> ((LPVOID)StartRoutine),
+                szSymbol,
+                  ulLen );
+
+  if (ulLen > 0)
+  {
+    sprintf ( thread_name, "%s+%s",
+             SK_WideCharToUTF8 (SK_GetCallerName (StartRoutine)).c_str ( ),
+                                                     szSymbol );
+  }
+
+  else {
+    sprintf ( thread_name, "%s",
+                SK_WideCharToUTF8 (SK_GetCallerName (StartRoutine)).c_str () );
+  }
+
+
+
+
+
+  BOOL Suspicious = FALSE;
+
+  if ( CreateFlags & THREAD_CREATE_FLAGS_HIDE_FROM_DEBUGGER )
+  {
+    CreateFlags &= ~THREAD_CREATE_FLAGS_HIDE_FROM_DEBUGGER;
+
+    if (config.system.log_level > 1)
+      CreateFlags |= THREAD_CREATE_FLAGS_CREATE_SUSPENDED;
+
+    //SK_LOG0 ( ( L"Tried to begin a debugger-hidden thread; punish it by starting visible and suspended!",
+    //              GetThreadId (*ThreadHandle) ),
+    //            L"DieAntiDbg" );
+
+    Suspicious = TRUE;
+  }
+
+  CreateFlags &= ~THREAD_CREATE_FLAGS_SKIP_THREAD_ATTACH;
+
+
+
+  //BOOL suspended = CreateFlags  & THREAD_CREATE_FLAGS_CREATE_SUSPENDED;
+                 //CreateFlags |= THREAD_CREATE_FLAGS_CREATE_SUSPENDED;
+
+  NTSTATUS ret =
+    NtCreateThreadEx_Original ( ThreadHandle, DesiredAccess, ObjectAttributes,
+                                ProcessHandle, StartRoutine, Argument, CreateFlags,
+                                ZeroBits, StackSize, MaximumStackSize, AttributeList );
+
+  if (NT_SUCCESS (ret))
+  {
+    InterlockedIncrement (&lLastThreadCreate);
+
+    const DWORD tid =
+      GetThreadId (*ThreadHandle);
+
+    if (! _SK_ThreadNames.count (tid))
+    {
+      _SK_ThreadNames [tid] =
+        std::move (SK_UTF8ToWideChar (thread_name));
 
       //wcsncpy (SK_TLS_BottomEx (tid)->debug.name, SK_UTF8ToWideChar (thread_name).c_str (), 255);
-
-      {
-        if (! _SK_ThreadNames.count (tid))
-        {
-          _SK_ThreadNames [tid] =
-            std::move (SK_UTF8ToWideChar (thread_name));
-        }
-      }
     }
 
     if (Suspicious)
@@ -578,8 +724,8 @@ NtCreateThreadEx_Detour (
                   L"DieAntiDbg" );
     }
 
-    if (! suspended)
-      ResumeThread (*ThreadHandle);
+    //if (! suspended)
+    //  ResumeThread (*ThreadHandle);
   }
 
   return ret;
@@ -671,21 +817,26 @@ struct SK_FFXV_Thread
          sk_ffxv_vsync,
          sk_ffxv_async_run;
 
+constexpr static DWORD MAGIC_THREAD_EXCEPTION = 0x406D1388;
+
+extern "C"
 void
 WINAPI
 SK_SEHCompatibleRaiseException (
   _In_       PEXCEPTION_RECORD ExceptionRecord)
 {
   __try {
-    return
-      RtlRaiseException_Original ( ExceptionRecord );
+    __try {
+      return
+        RtlRaiseException_Original ( ExceptionRecord );
+    }
+
+    __except ( EXCEPTION_CONTINUE_SEARCH  ) { }
   }
 
-  __except (EXCEPTION_CONTINUE_SEARCH)
-  {
-
-  }
+  __finally { }
 }
+
 // Detoured so we can get thread names
 __declspec (noinline)
 void
@@ -697,8 +848,6 @@ RtlRaiseException_Detour (
       //DWORD      dwExceptionFlags   = ExceptionRecord->ExceptionFlags;
       //DWORD      nNumberOfArguments = ExceptionRecord->NumberParameters;
   const ULONG_PTR *lpArguments        = ExceptionRecord->ExceptionInformation;
-
-  constexpr static DWORD MAGIC_THREAD_EXCEPTION = 0x406D1388;
 
   if (dwExceptionCode == MAGIC_THREAD_EXCEPTION)
   {
@@ -762,6 +911,8 @@ RtlRaiseException_Detour (
         }
       }
     }
+
+    return;
   }
 
   SK_TLS* pTlsThis =
@@ -806,13 +957,13 @@ SK::Diagnostics::Debugger::Allow (bool bAllow)
                              DebugBreak_Detour,
     static_cast_p2p <void> (&DebugBreak_Original) );
 
-  if (config.system.trace_create_thread)
-  {
-    SK_CreateDLLHook2 (      L"kernel32",
-                              "CreateThread",
-                               CreateThread_Detour,
-      static_cast_p2p <void> (&CreateThread_Original) );
-  }
+  //if (config.system.trace_create_thread)
+  //{
+  //  SK_CreateDLLHook2 (      L"kernel32",
+  //                            "CreateThread",
+  //                             CreateThread_Detour,
+  //    static_cast_p2p <void> (&CreateThread_Original) );
+  //}
 
   SK_CreateDLLHook2 (  L"kernel32",
                         "GetCommandLineW",
@@ -849,10 +1000,10 @@ static_cast_p2p <void> (&GetCommandLineA_Original) );
                              SetThreadAffinityMask_Detour,
     static_cast_p2p <void> (&SetThreadAffinityMask_Original) );
 
-  ///SK_CreateDLLHook2 (      L"kernel32",
-  ///                          "GetProcAddress",
-  ///                           GetProcAddress_Detour,
-  ///  static_cast_p2p <void> (&GetProcAddress_Original) );
+  SK_CreateDLLHook2 (      L"kernel32",
+                            "GetProcAddress",
+                             GetProcAddress_Detour,
+    static_cast_p2p <void> (&GetProcAddress_Original) );
 
   SK_Memory_InitHooks  ();
   SK_File_InitHooks    ();
@@ -915,7 +1066,7 @@ SK_IsDebuggerPresent (void)
 HMODULE
 SK_Debug_LoadHelper (void)
 {
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+//std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
   static HMODULE
        hModDbgHelp  = nullptr;
@@ -938,10 +1089,6 @@ SymRefreshModuleList (
   _In_ HANDLE hProcess
 )
 {
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
-
-  SK_SymSetOpts ();
-
   using SymRefreshModuleList_pfn = BOOL (IMAGEAPI *)(HANDLE hProcess);
 
   static auto SymRefreshModuleList_Imp =
@@ -951,6 +1098,8 @@ SymRefreshModuleList (
 
   if (SymRefreshModuleList_Imp != nullptr)
   {
+    SK_SymSetOpts ();
+
     BOOL bRet =
       SymRefreshModuleList_Imp (hProcess);
 
@@ -975,10 +1124,6 @@ StackWalk64(
     _In_opt_ PTRANSLATE_ADDRESS_ROUTINE64     TranslateAddress
     )
 {
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
-
-  SK_SymSetOpts ();
-
   using StackWalk64_pfn = BOOL (IMAGEAPI *)(_In_     DWORD                            MachineType,
                                             _In_     HANDLE                           hProcess,
                                             _In_     HANDLE                           hThread,
@@ -995,6 +1140,10 @@ StackWalk64(
 
   if (StackWalk64_Imp != nullptr)
   {
+  //std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+
+    SK_SymSetOpts ();
+
     return
       StackWalk64_Imp ( MachineType,
                           hProcess, hThread,
@@ -1022,10 +1171,6 @@ StackWalk (
     _In_opt_ PTRANSLATE_ADDRESS_ROUTINE     TranslateAddress
     )
 {
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
-
-  SK_SymSetOpts ();
-
   using StackWalk_pfn = BOOL (IMAGEAPI *)(_In_     DWORD                          MachineType,
                                           _In_     HANDLE                         hProcess,
                                           _In_     HANDLE                         hThread,
@@ -1042,6 +1187,10 @@ StackWalk (
 
   if (StackWalk_Imp != nullptr)
   {
+  //std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+
+    SK_SymSetOpts ();
+
     return
       StackWalk_Imp ( MachineType,
                         hProcess, hThread,
@@ -1062,8 +1211,6 @@ SymSetOptions (
   _In_ DWORD SymOptions
 )
 {
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
-
   using SymSetOptions_pfn = DWORD (IMAGEAPI *)(_In_ DWORD SymOptions);
 
   static auto SymSetOptions_Imp =
@@ -1072,6 +1219,8 @@ SymSetOptions (
 
   if (SymSetOptions_Imp != nullptr)
   {
+  //std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+
     return
       SymSetOptions_Imp (SymOptions);
   }
@@ -1087,10 +1236,6 @@ SymGetModuleBase64 (
   _In_ DWORD64 qwAddr
 )
 {
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
-
-  SK_SymSetOpts ();
-
   using SymGetModuleBase64_pfn = DWORD64 (IMAGEAPI *)(_In_ HANDLE  hProcess,
                                                       _In_ DWORD64 qwAddr);
 
@@ -1100,6 +1245,10 @@ SymGetModuleBase64 (
 
   if (SymGetModuleBase64_Imp != nullptr)
   {
+  //std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+
+    SK_SymSetOpts ();
+
     return SymGetModuleBase64_Imp ( hProcess, qwAddr );
   }
 
@@ -1113,10 +1262,6 @@ SymGetModuleBase (
   _In_ DWORD  dwAddr
 )
 {
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
-
-  SK_SymSetOpts ();
-
   using SymGetModuleBase_pfn = DWORD (IMAGEAPI *)(_In_ HANDLE  hProcess,
                                                   _In_ DWORD   dwAddr);
 
@@ -1126,6 +1271,10 @@ SymGetModuleBase (
 
   if (SymGetModuleBase_Imp != nullptr)
   {
+  //std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+
+    SK_SymSetOpts ();
+
     return SymGetModuleBase_Imp ( hProcess, dwAddr );
   }
 
@@ -1142,10 +1291,6 @@ SymGetLineFromAddr64 (
   _Out_ PIMAGEHLP_LINE64 Line64
 )
 {
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
-
-  SK_SymSetOpts ();
-
   using SymGetLineFromAddr64_pfn = BOOL (IMAGEAPI *)(_In_  HANDLE           hProcess,
                                                      _In_  DWORD64          qwAddr,
                                                      _Out_ PDWORD           pdwDisplacement,
@@ -1158,6 +1303,10 @@ SymGetLineFromAddr64 (
 
   if (SymGetLineFromAddr64_Imp != nullptr)
   {
+  //std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+
+    SK_SymSetOpts ();
+
     return SymGetLineFromAddr64_Imp ( hProcess, qwAddr, pdwDisplacement, Line64 );
   }
 
@@ -1173,10 +1322,6 @@ SymGetLineFromAddr (
   _Out_ PIMAGEHLP_LINE   Line
 )
 {
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
-
-  SK_SymSetOpts ();
-
   using SymGetLineFromAddr_pfn = BOOL (IMAGEAPI *)(_In_  HANDLE         hProcess,
                                                    _In_  DWORD          dwAddr,
                                                    _Out_ PDWORD         pdwDisplacement,
@@ -1188,6 +1333,10 @@ SymGetLineFromAddr (
 
   if (SymGetLineFromAddr_Imp != nullptr)
   {
+  //std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+
+    SK_SymSetOpts ();
+
     return SymGetLineFromAddr_Imp ( hProcess, dwAddr, pdwDisplacement, Line );
   }
 
@@ -1203,8 +1352,6 @@ SymInitialize (
   _In_     BOOL   fInvadeProcess
 )
 {
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
-
   using SymInitialize_pfn = BOOL (IMAGEAPI *)( _In_     HANDLE hProcess,
                                                _In_opt_ PCSTR  UserSearchPath,
                                                _In_     BOOL   fInvadeProcess );
@@ -1216,6 +1363,8 @@ SymInitialize (
 
   if (SymInitialize_Imp != nullptr)
   {
+  //std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+
     return SymInitialize_Imp ( hProcess, UserSearchPath, fInvadeProcess );
   }
 
@@ -1230,10 +1379,6 @@ SymUnloadModule (
   _In_ DWORD  BaseOfDll
 )
 {
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
-
-  SK_SymSetOpts ();
-
   using SymUnloadModule_pfn = BOOL (IMAGEAPI *)( _In_ HANDLE hProcess,
                                                  _In_ DWORD  BaseOfDll );
 
@@ -1244,6 +1389,10 @@ SymUnloadModule (
 
   if (SymUnloadModule_Imp != nullptr)
   {
+  //std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+
+    SK_SymSetOpts ();
+
     return SymUnloadModule_Imp ( hProcess, BaseOfDll );
   }
 
@@ -1257,10 +1406,6 @@ SymUnloadModule64 (
   _In_ DWORD64 BaseOfDll
 )
 {
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
-
-  SK_SymSetOpts ();
-
   using SymUnloadModule64_pfn = BOOL (IMAGEAPI *)( _In_ HANDLE  hProcess,
                                                    _In_ DWORD64 BaseOfDll );
 
@@ -1271,6 +1416,10 @@ SymUnloadModule64 (
 
   if (SymUnloadModule64_Imp != nullptr)
   {
+  //std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+
+    SK_SymSetOpts ();
+
     return SymUnloadModule64_Imp ( hProcess, BaseOfDll );
   }
 
@@ -1307,10 +1456,6 @@ SymFromAddr (
   _Inout_   PSYMBOL_INFO Symbol
 )
 {
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
-
-  SK_SymSetOpts ();
-
   using SymFromAddr_pfn = BOOL (IMAGEAPI *)( _In_      HANDLE       hProcess,
                                              _In_      DWORD64      Address,
                                              _Out_opt_ PDWORD64     Displacement,
@@ -1322,6 +1467,10 @@ SymFromAddr (
 
   if (SymFromAddr_Imp != nullptr)
   {
+  //std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+
+    SK_SymSetOpts ();
+
     return SAFE_SymFromAddr (hProcess, Address, Displacement, Symbol, SymFromAddr_Imp);
   }
 
@@ -1334,8 +1483,6 @@ IMAGEAPI
 SymCleanup (
   _In_ HANDLE hProcess )
 {
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
-
   using SymCleanup_pfn = BOOL (IMAGEAPI *)( _In_ HANDLE hProcess );
 
   static auto SymCleanup_Imp =
@@ -1344,6 +1491,8 @@ SymCleanup (
 
   if (SymCleanup_Imp != nullptr)
   {
+  //std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+
     return SymCleanup_Imp ( hProcess );
   }
 
@@ -1351,6 +1500,9 @@ SymCleanup (
 }
 
 
+
+concurrency::concurrent_unordered_set <DWORD>   _SK_DbgHelp_LoadedModules__32;
+concurrency::concurrent_unordered_set <DWORD64> _SK_DbgHelp_LoadedModules__64;
 
 DWORD
 IMAGEAPI
@@ -1363,27 +1515,39 @@ SymLoadModule (
   _In_     DWORD  SizeOfDll
 )
 {
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
-
-  SK_SymSetOpts ();
-
-  using SymLoadModule_pfn = DWORD (IMAGEAPI *)( _In_     HANDLE hProcess,
-                                                _In_opt_ HANDLE hFile,
-                                                _In_opt_ PCSTR  ImageName,
-                                                _In_opt_ PCSTR  ModuleName,
-                                                _In_     DWORD  BaseOfDll,
-                                                _In_     DWORD  SizeOfDll );
-
-  static auto SymLoadModule_Imp =
-    (SymLoadModule_pfn)
-      GetProcAddress ( SK_Debug_LoadHelper (), "SymLoadModule" );
-
-  if (SymLoadModule_Imp != nullptr)
+  if (! _SK_DbgHelp_LoadedModules__32.count (BaseOfDll))
   {
-    return SymLoadModule_Imp ( hProcess, hFile, ImageName, ModuleName, BaseOfDll, SizeOfDll );
+    using SymLoadModule_pfn = DWORD (IMAGEAPI *)( _In_     HANDLE hProcess,
+                                                  _In_opt_ HANDLE hFile,
+                                                  _In_opt_ PCSTR  ImageName,
+                                                  _In_opt_ PCSTR  ModuleName,
+                                                  _In_     DWORD  BaseOfDll,
+                                                  _In_     DWORD  SizeOfDll );
+
+    static auto SymLoadModule_Imp =
+      (SymLoadModule_pfn)
+        GetProcAddress ( SK_Debug_LoadHelper (), "SymLoadModule" );
+
+    if (SymLoadModule_Imp != nullptr)
+    {
+    //std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+
+      SK_SymSetOpts ();
+
+      BOOL bRet = ( SymLoadModule_Imp ( hProcess, hFile, ImageName, ModuleName, BaseOfDll, SizeOfDll ) != 0 );
+
+      if (bRet)
+      {
+        _SK_DbgHelp_LoadedModules__32.insert (BaseOfDll);
+
+        return TRUE;
+      }
+    }
+
+    return FALSE;
   }
 
-  return FALSE;
+  return TRUE;
 }
 
 DWORD64
@@ -1397,25 +1561,37 @@ SymLoadModule64 (
   _In_     DWORD   SizeOfDll
 )
 {
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
-
-  SK_SymSetOpts ();
-
-  using SymLoadModule64_pfn = DWORD64 (IMAGEAPI *)( _In_     HANDLE  hProcess,
-                                                    _In_opt_ HANDLE  hFile,
-                                                    _In_opt_ PCSTR   ImageName,
-                                                    _In_opt_ PCSTR   ModuleName,
-                                                    _In_     DWORD64 BaseOfDll,
-                                                    _In_     DWORD   SizeOfDll );
-
-  static auto SymLoadModule64_Imp =
-    (SymLoadModule64_pfn)
-      GetProcAddress ( SK_Debug_LoadHelper (), "SymLoadModule64" );
-
-  if (SymLoadModule64_Imp != nullptr)
+  if (! _SK_DbgHelp_LoadedModules__64.count (BaseOfDll))
   {
-    return SymLoadModule64_Imp ( hProcess, hFile, ImageName, ModuleName, BaseOfDll, SizeOfDll );
+    using SymLoadModule64_pfn = DWORD64 (IMAGEAPI *)( _In_     HANDLE  hProcess,
+                                                      _In_opt_ HANDLE  hFile,
+                                                      _In_opt_ PCSTR   ImageName,
+                                                      _In_opt_ PCSTR   ModuleName,
+                                                      _In_     DWORD64 BaseOfDll,
+                                                      _In_     DWORD   SizeOfDll );
+
+    static auto SymLoadModule64_Imp =
+      (SymLoadModule64_pfn)
+        GetProcAddress ( SK_Debug_LoadHelper (), "SymLoadModule64" );
+
+    if (SymLoadModule64_Imp != nullptr)
+    {
+    //std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+
+      SK_SymSetOpts ();
+    
+      BOOL bRet = ( SymLoadModule64_Imp ( hProcess, hFile, ImageName, ModuleName, BaseOfDll, SizeOfDll ) != 0 );
+
+      if (bRet)
+      {
+        _SK_DbgHelp_LoadedModules__64.insert (BaseOfDll);
+
+        return TRUE;
+      }
+    }
+
+    return FALSE;
   }
 
-  return FALSE;
+  return TRUE;
 }

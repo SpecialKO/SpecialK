@@ -161,6 +161,12 @@ NTSTATUS WINAPI NtQueryInformationThread(
 );
 
 
+extern "C"
+bool
+NTAPI
+SK_Thread_CloseSelf (void);
+
+
 
 wchar_t*
 SKX_GetBackend (void)
@@ -262,13 +268,7 @@ SK_StartPerfMonThreads (void)
       dll_log.LogEx (true, L"[ WMI Perf ] Spawning %ws...  ", wszName);
 
       InterlockedExchangePointer ( (void **)phThread,
-        (HANDLE)
-        CreateThread ( nullptr,
-                           0,
-                             pThunk,
-                               nullptr,
-                                 0,
-                                   nullptr )
+        SK_Thread_CreateEx ( pThunk )
       );
 
       if (ReadPointerAcquire (phThread) != INVALID_HANDLE_VALUE)
@@ -461,6 +461,9 @@ __stdcall
 SK_InitFinishCallback (void);
 
 void
+SK_UnpackD3DShaderCompiler (void);
+
+void
 __stdcall
 SK_InitCore (std::wstring, void* callback)
 {
@@ -472,6 +475,7 @@ SK_InitCore (std::wstring, void* callback)
 
 
   init_mutex->lock ();
+
 
   switch (SK_GetCurrentGameID ())
   {
@@ -550,6 +554,23 @@ WaitForInit (void)
     if ( ReadAcquire        (&dwInitThreadId) != dwThreadId &&
          ReadPointerAcquire (&hInitThread)    != INVALID_HANDLE_VALUE )
     {
+      bool local_install = false;
+      if (! SK_COMPAT_IsSystemDllInstalled (L"D3DCompiler_43.dll", &local_install))
+      {
+        SK_ImGui_Warning (L"Your system is missing the June 2010 DirectX Runtime.\t\t\n"
+                          L"\n"
+                          L"\t\t\t\t* Please install it as soon as possible.");
+      }
+
+      local_install = false;
+      if (! SK_COMPAT_IsSystemDllInstalled (L"D3DCompiler_47.dll", &local_install))
+      {
+        if (! local_install)
+        {
+          SK_UnpackD3DShaderCompiler ();
+        }
+      }
+
       InterlockedExchange (&dwInitThreadId, 0);
 
       CloseHandle (
@@ -574,8 +595,8 @@ WaitForInit (void)
 #include <SpecialK/commands/mem.inl>
 #include <SpecialK/commands/update.inl>
 
-auto SK_UnpackD3DShaderCompiler =
-[](void) -> void
+void
+SK_UnpackD3DShaderCompiler (void)
 {
   HMODULE hModSelf = 
     SK_GetDLL ();
@@ -585,7 +606,7 @@ auto SK_UnpackD3DShaderCompiler =
 
   if (res)
   {
-    SK_LOG0 ( ( L"Unpacking D3DCompiler_43.dll because user does not have June 2010 DirectX Redistributables installed." ),
+    SK_LOG0 ( ( L"Unpacking D3DCompiler_47.dll because user does not have June 2010 DirectX Redistributables installed." ),
                 L"D3DCompile" );
 
     DWORD   res_size     =
@@ -612,7 +633,7 @@ auto SK_UnpackD3DShaderCompiler =
         SK_CreateDirectories (wszDestination);
 
       wcscpy      (wszArchive, wszDestination);
-      PathAppendW (wszArchive, L"D3DCompiler_43.7z");
+      PathAppendW (wszArchive, L"D3DCompiler_47.7z");
 
       SK_LOG0 ( ( L" >> Archive: %s [Destination: %s]", wszArchive,wszDestination ),
                   L"D3DCompile" );
@@ -639,34 +660,19 @@ auto SK_UnpackD3DShaderCompiler =
   }
 };
 
+const wchar_t* __SK_BootedCore = L"";
 void
 __stdcall
 SK_InitFinishCallback (void)
 {
+
   bool rundll_invoked =
     (StrStrIW (SK_GetHostApp (), L"Rundll32") != nullptr);
 
-  if (rundll_invoked || SK_IsSuperSpecialK ())
+  if (rundll_invoked || SK_IsSuperSpecialK () || (! wcslen (__SK_BootedCore)))
   {
     init_mutex->unlock ();
     return;
-  }
-
-  bool local_install = false;
-  if (! SK_COMPAT_IsSystemDllInstalled (L"D3DCompiler_43.dll", &local_install))
-  {
-    SK_ImGui_Warning (L"Your system is missing the June 2010 DirectX Runtime.\t\t\n"
-                      L"\n"
-                      L"\t\t\t\t* Please install it as soon as possible.");
-  }
-
-  local_install = false;
-  if (! SK_COMPAT_IsSystemDllInstalled (L"D3DCompiler_47.dll", &local_install))
-  {
-    if (! local_install)
-    {
-      SK_UnpackD3DShaderCompiler ();
-    }
   }
 
 
@@ -757,22 +763,19 @@ SK_InitFinishCallback (void)
 
   // NvAPI takes an excessively long time to startup and we don't need it
   //   immediately...
-  CreateThread (nullptr, 0, [](LPVOID) -> DWORD
+  SK_Thread_Create ([](LPVOID) -> DWORD
   {
     SetCurrentThreadDescription (    L"[SK] GPU Vendor Support Library Thread" );
     SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_LOWEST );
     SetThreadPriorityBoost      ( SK_GetCurrentThread (), TRUE                   );
 
-    SleepEx (15, FALSE);
-
     SK_LoadGPUVendorAPIs ();
-
-    SK_Thread_CloseSelf ();
+    SK_Thread_CloseSelf  ();
 
     return 0;
-  }, nullptr, 0x00, nullptr);
+  });
 
-  init_mutex->unlock     ();
+  init_mutex->unlock ();
 }
 
 
@@ -782,7 +785,6 @@ CheckVersionThread (LPVOID)
 {
   SetCurrentThreadDescription (                   L"[SK] Auto-Update Thread"   );
   SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_LOWEST );
-  SleepEx                     ( 5,                      FALSE                  );
 
   // If a local repository is present, use that.
   if (GetFileAttributes (LR"(Version\installed.ini)") == INVALID_FILE_ATTRIBUTES)
@@ -1073,7 +1075,6 @@ SK_Steam_GetAppID_NoAPI (void)
   return 0;
 }
 
-const wchar_t* __SK_BootedCore = L"";
 bool
 __stdcall
 SK_StartupCore (const wchar_t* backend, void* callback)
@@ -1092,11 +1093,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   //    to initialize SteamAPI first.
   SK_Steam_GetAppID_NoAPI      ();
 
-  SK_MinHook_Init              ();
-  SK_Thread_InitDebugExtras    ();
-//SK_COMPAT_FixNahimicDeadlock (); // Use load-time link dependencies to resolve race conditions
-//                                 //   involving WASAPI and MMDevAPI in MSI Nahimic.
-
   static SetProcessDEPPolicy_pfn _SetProcessDEPPolicy =
     (SetProcessDEPPolicy_pfn)
       GetProcAddress ( GetModuleHandleW (L"kernel32"),
@@ -1104,6 +1100,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
   // Disable DEP for stupid Windows 7 machines
   if (_SetProcessDEPPolicy != nullptr) _SetProcessDEPPolicy (0);
+
 
 
   // Allow users to centralize all files if they want
@@ -1217,6 +1214,17 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
     init_.start_time = SK_QueryPerf ();
 
+
+    SK_MinHook_Init           ();
+    SK_Thread_InitDebugExtras ();
+
+    // Don't let Steam prevent me from attaching a debugger at startup
+    game_debug.init                  (L"logs/game_output.log", L"w");
+    game_debug.lockless = true;
+    SK::Diagnostics::Debugger::Allow ();
+
+    SK::Diagnostics::CrashHandler::InitSyms ();
+
     void
     SK_NvAPI_PreInitHDR (void);
 
@@ -1226,18 +1234,11 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
     // Do this from the startup thread [these functions queue, but don't apply]
     SK_HookWinAPI       ();
-    SK_Input_PreInit    (); // Hook only symbols in user32 and kernel32
+    SK_Input_PreInit    (); // Hook only symbols in user32 and kernel32z
 
     // For the global injector, when not started by SKIM, check its version
     if ( (SK_IsInjected () && (! SK_IsSuperSpecialK ())) )
-      CreateThread (nullptr, 0, CheckVersionThread, nullptr, 0x00, nullptr);
-
-    // Don't let Steam prevent me from attaching a debugger at startup
-    game_debug.init                  (L"logs/game_output.log", L"w");
-    game_debug.lockless = true;
-    SK::Diagnostics::Debugger::Allow ();
-
-    SK::Diagnostics::CrashHandler::InitSyms ();
+      SK_Thread_Create ( CheckVersionThread );
   }
 
 
@@ -1499,7 +1500,7 @@ BACKEND_INIT:
     }
 
 
-    CreateThread (nullptr, 0x00, [](LPVOID) -> DWORD
+    SK_Thread_Create ([](LPVOID) -> DWORD
     {
       SetCurrentThreadDescription (                          L"[SK] Init Cleanup Thread" );
       SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_BELOW_NORMAL );
@@ -1523,17 +1524,13 @@ BACKEND_INIT:
       SK_Thread_CloseSelf ();
 
       return 0;
-    }, nullptr, 0x00, nullptr);
+    });
 
 
     InterlockedExchangePointer (
-      const_cast <void **> (&hInitThread), (HANDLE)
-        CreateThread ( nullptr,
-                           0,
-                             DllThread,
-                               &init_,
-                                 0x00,
-                                   nullptr )
+      const_cast <void **> (&hInitThread),
+        SK_Thread_CreateEx ( DllThread, nullptr,
+                               &init_ )
     ); // Avoid the temptation to wait on this thread
   }
 

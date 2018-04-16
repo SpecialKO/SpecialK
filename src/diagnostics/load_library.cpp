@@ -341,8 +341,6 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
 
   if (GetModuleHandle (wszDbgHelp) && (! dbghelp_callers.count (hCallingMod)))
   {
-    std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
-
 #ifdef _WIN64
 #define SK_StackWalk          StackWalk64
 #define SK_SymLoadModule      SymLoadModule64
@@ -437,7 +435,7 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
 
     if (constexpr (typeid (_T) == typeid (char)))
     {
-      char szFileName [MAX_PATH * 2 + 1];
+      char szFileName [MAX_PATH * 2 + 1] = { };
 
       lstrcpynA ( szFileName,
                     reinterpret_cast <const char *> (lpFileName),
@@ -454,7 +452,7 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
 
     else
     {
-      wchar_t wszFileName [MAX_PATH * 2 + 1];
+      wchar_t wszFileName [MAX_PATH * 2 + 1] = { };
 
       lstrcpynW ( wszFileName,
                     reinterpret_cast <const wchar_t *> (lpFileName),
@@ -470,9 +468,9 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
     }
   }
 
-  if (hCallingMod != SK_GetDLL ())
+  if (config.compatibility.rehook_loadlibrary)
   {
-    if (config.compatibility.rehook_loadlibrary)
+    if (hCallingMod != SK_GetDLL ())
     {
       // This is silly, this many string comparisons per-load is
       //   not good. Hash the string and compare it in the future.
@@ -622,7 +620,12 @@ LoadLibrary_Marshal (LPVOID lpRet, LPCWSTR lpFileName, const wchar_t* wszSourceF
   if ( SK_RunLHIfBitness (64, StrStrIW (lpFileName, L"SpecialK64"),
                               StrStrIW (lpFileName, L"SpecialK32")) )
   {
-    return nullptr;
+    HMODULE hModRet = 0;
+
+    GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
+                         (LPCWSTR)SK_GetDLL (), &hModRet );
+
+    return hModRet;
   }
 
   if (lpFileName == nullptr)
@@ -632,26 +635,31 @@ LoadLibrary_Marshal (LPVOID lpRet, LPCWSTR lpFileName, const wchar_t* wszSourceF
 
   HMODULE hModEarly = nullptr;
 
-  wchar_t*        compliant_path = _wcsdup (lpFileName);
-  SK_FixSlashesW (compliant_path);
-     lpFileName = compliant_path;
+  wchar_t*          compliant_path = (wchar_t *)lpFileName;
+
+  if (StrStrW (compliant_path, L"/"))
+  {
+                    compliant_path = _wcsdup (lpFileName);
+    SK_FixSlashesW (compliant_path);
+  }
 
   __try {
     GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-                           static_cast <LPCWSTR> (lpFileName),
+                           static_cast <LPCWSTR> (compliant_path),
                              &hModEarly );
   }
 
-  __except ( (GetExceptionCode () == EXCEPTION_INVALID_HANDLE) ?
-                       EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH  )
+    __except ( (GetExceptionCode () == EXCEPTION_INVALID_HANDLE) ?
+                         EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH  )
   {
     SetLastError (0);
   }
 
 
-  if (hModEarly == nullptr && BlacklistLibrary (lpFileName))
+  if (hModEarly == nullptr && BlacklistLibrary (compliant_path))
   {
-    free ( static_cast <void *> (compliant_path) );
+    if (compliant_path != lpFileName)
+      free ( static_cast <void *> (compliant_path) );
 
     SK_UnlockDllLoader ();
     return nullptr;
@@ -660,25 +668,26 @@ LoadLibrary_Marshal (LPVOID lpRet, LPCWSTR lpFileName, const wchar_t* wszSourceF
 
   HMODULE hMod = hModEarly;
 
-  __try                                  { hMod = LoadLibraryW_Original (lpFileName); }
+  __try                                  { hMod = LoadLibraryW_Original (compliant_path); }
   __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION )  ?
                        EXCEPTION_EXECUTE_HANDLER :
                        EXCEPTION_CONTINUE_SEARCH )
   {
     dll_log.Log ( L"[DLL Loader]  ** Crash Prevented **  DLL raised an exception during"
                   L" %s ('%hs')!",
-                    wszSourceFunc, lpFileName );
+                    wszSourceFunc, compliant_path );
   }
 
 
   if (hModEarly != hMod)
   {
     SK_TraceLoadLibrary ( SK_GetCallingDLL (lpRet),
-                            lpFileName,
+                            compliant_path,
                               wszSourceFunc, lpRet );
   }
 
-  free ( static_cast <void *> (compliant_path) );
+  if (compliant_path != lpFileName)
+    free ( static_cast <void *> (compliant_path) );
 
   SK_UnlockDllLoader ();
   return hMod;
@@ -767,24 +776,34 @@ LoadLibraryEx_Marshal (LPVOID lpRet, LPCWSTR lpFileName, HANDLE hFile, DWORD dwF
   if ( SK_RunLHIfBitness (64, StrStrIW (lpFileName, L"SpecialK64"),
                               StrStrIW (lpFileName, L"SpecialK32")) )
   {
-    return nullptr;
+    HMODULE hModRet = 0;
+
+    GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
+                         (LPCWSTR)SK_GetDLL (), &hModRet );
+
+    return hModRet;
   }
 
   if (lpFileName == nullptr)
     return nullptr;
 
-  wchar_t*        compliant_path = _wcsdup (lpFileName);
-  SK_FixSlashesW (compliant_path);
-  lpFileName    = compliant_path;
+  wchar_t* compliant_path = (wchar_t *)lpFileName;
+
+  if (StrStrW (lpFileName, L"/"))
+  {
+                    compliant_path = _wcsdup (lpFileName);
+    SK_FixSlashesW (compliant_path);
+  }
 
   SK_LockDllLoader ();
 
-  if ((dwFlags & LOAD_LIBRARY_AS_DATAFILE) && (! BlacklistLibrary (lpFileName)))
+  if ((dwFlags & LOAD_LIBRARY_AS_DATAFILE) && (! BlacklistLibrary (compliant_path)))
   {
     HMODULE hModRet =
-      LoadLibraryExW_Original (lpFileName, hFile, dwFlags);
+      LoadLibraryExW_Original (compliant_path, hFile, dwFlags);
 
-    free (static_cast <void *> ( compliant_path ));
+    if (compliant_path != lpFileName)
+      free (static_cast <void *> (compliant_path));
 
     SK_UnlockDllLoader ();
     return hModRet;
@@ -794,7 +813,7 @@ LoadLibraryEx_Marshal (LPVOID lpRet, LPCWSTR lpFileName, HANDLE hFile, DWORD dwF
 
   __try
   {
-    GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, lpFileName, &hModEarly );
+    GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, compliant_path, &hModEarly );
   }
 
   __except ( (GetExceptionCode () == EXCEPTION_INVALID_HANDLE) ?
@@ -804,9 +823,10 @@ LoadLibraryEx_Marshal (LPVOID lpRet, LPCWSTR lpFileName, HANDLE hFile, DWORD dwF
     SetLastError (0);
   }
 
-  if (hModEarly == nullptr && BlacklistLibrary (lpFileName))
+  if (hModEarly == nullptr && BlacklistLibrary (compliant_path))
   {
-    free (static_cast <void *> (compliant_path));
+    if (compliant_path != lpFileName)
+      free (static_cast <void *> (compliant_path));
 
     SK_UnlockDllLoader ();
     return nullptr;
@@ -815,14 +835,14 @@ LoadLibraryEx_Marshal (LPVOID lpRet, LPCWSTR lpFileName, HANDLE hFile, DWORD dwF
 
   HMODULE hMod = hModEarly;
 
-  __try                                  { hMod = LoadLibraryExW_Original (lpFileName, hFile, dwFlags); }
+  __try                                  { hMod = LoadLibraryExW_Original (compliant_path, hFile, dwFlags); }
   __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION )  ?
                        EXCEPTION_EXECUTE_HANDLER :
                        EXCEPTION_CONTINUE_SEARCH )
   {
     dll_log.Log ( L"[DLL Loader]  ** Crash Prevented **  DLL raised an exception during"
                   L" %s ('%ws')!",
-                    wszSourceFunc, lpFileName );
+                    wszSourceFunc, compliant_path );
   }
 
 
@@ -830,11 +850,12 @@ LoadLibraryEx_Marshal (LPVOID lpRet, LPCWSTR lpFileName, HANDLE hFile, DWORD dwF
                                 (dwFlags & LOAD_LIBRARY_AS_IMAGE_RESOURCE))) )
   {
     SK_TraceLoadLibrary ( SK_GetCallingDLL (lpRet),
-                            lpFileName,
+                            compliant_path,
                               wszSourceFunc, lpRet );
   }
 
-  free (static_cast <void *> (compliant_path));
+  if (compliant_path != lpFileName)
+    free (static_cast <void *> (compliant_path));
 
   SK_UnlockDllLoader ();
   return hMod;
@@ -1195,7 +1216,7 @@ SK_ThreadWalkModules (enum_working_set_s* pWorkingSet)
 {
   auto user =
     static_cast <LPVOID> (pWorkingSet);
-#
+
   static volatile LONG    init           = FALSE;
   static CRITICAL_SECTION cs_thread_walk = { };
 
@@ -1583,13 +1604,10 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
       SK_WalkModules (cbNeeded, hProc, working_set->modules, when);
     }
 
-    CreateThread (nullptr, 0, [](LPVOID user) -> DWORD
+    SK_Thread_Create ([](LPVOID user) -> DWORD
     {
       SetCurrentThreadDescription (L"[SK] DLL Enumeration Thread");
-
-      SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_LOWEST);
-
-      SleepEx (1UL, FALSE);
+      SetThreadPriority           (GetCurrentThread (), THREAD_PRIORITY_LOWEST);
 
       static volatile LONG                walking  =  0;
       while (InterlockedCompareExchange (&walking, 1, 0))
@@ -1669,7 +1687,7 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
       SK_Thread_CloseSelf ();
 
       return 0;
-    }, (LPVOID)working_set, 0x00, nullptr);
+    }, (LPVOID)working_set);
   }
 }
 

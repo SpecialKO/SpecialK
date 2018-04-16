@@ -1728,11 +1728,11 @@ NtUserGetKeyboardState_Detour (PBYTE lpKeyState)
   if (bRet)
   {
     if (SK_ImGui_WantKeyboardCapture ())
-      memset (&lpKeyState [7], 0, 247);
+      RtlZeroMemory (&lpKeyState [7], 247);
 
     // Some games use this API for mouse buttons, for reasons that are beyond me...
     if (SK_ImGui_WantMouseCapture ())
-      memset (  lpKeyState,    0, 7);
+      RtlZeroMemory (lpKeyState, 7);
   }
 
   return bRet;

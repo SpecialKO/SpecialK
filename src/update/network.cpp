@@ -601,12 +601,7 @@ DownloadDialogCallback (
 
       get->hTaskDlg = hWnd;
 
-      CreateThread ( nullptr,
-                         0,
-                           DownloadThread,
-                             (LPVOID)get,
-                               0x00,
-                                 nullptr );
+      SK_Thread_Create ( DownloadThread, (LPVOID)get );
     }
 
     else if (wParam == IDCANCEL)
@@ -1258,12 +1253,7 @@ SK_UpdateSoftware1 (const wchar_t*, bool force)
 
           InterlockedExchangeAcquire ( &__SK_UpdateStatus, 0 );
 
-          CreateThread ( nullptr,
-                             0,
-                               UpdateDlg_Thread,
-                                 GetActiveWindow (),
-                                   0x00,
-                                     nullptr );
+          SK_Thread_Create ( UpdateDlg_Thread, GetActiveWindow () );
 
           LONG status = 0;
 

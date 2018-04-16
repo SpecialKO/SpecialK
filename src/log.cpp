@@ -171,10 +171,7 @@ SK_FlushLog (iSK_Logger* pLog)
       const_cast         <         LPVOID *> (
         reinterpret_cast <volatile LPVOID *>   (&hFlushThread)
                                              ),
-        (HANDLE)
-        CreateThread ( nullptr, 0x0,
-                           SK_Log_AsyncFlushThreadPump, nullptr,
-                                  0x0,                  nullptr )
+        SK_Thread_CreateEx ( SK_Log_AsyncFlushThreadPump )
     );
   }
 

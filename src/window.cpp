@@ -1555,7 +1555,7 @@ SK_CenterWindowAtMouse (BOOL remember_pos)
   static volatile LONG               __busy = FALSE;
   if (! InterlockedCompareExchange (&__busy, TRUE, FALSE))
   {
-    CreateThread ( nullptr, 0,
+    SK_Thread_Create (
     [](LPVOID user) ->
     DWORD
     {
@@ -1615,8 +1615,7 @@ SK_CenterWindowAtMouse (BOOL remember_pos)
 
       return 0;
        // Don't dereference this, it's actually a boolean
-    }, reinterpret_cast <LPVOID> (static_cast <uintptr_t> (remember_pos)),
-    0x0, nullptr );
+    }, reinterpret_cast <LPVOID> (static_cast <uintptr_t> (remember_pos)));
   }
 }
 
@@ -2610,7 +2609,7 @@ SK_Window_RepositionIfNeeded (void)
   static volatile LONG               __busy = FALSE;
   if (! InterlockedCompareExchange (&__busy, TRUE, FALSE))
   {
-    CreateThread (nullptr, 0,
+    SK_Thread_Create (
     [](LPVOID) ->
     DWORD
     {
@@ -2644,7 +2643,7 @@ SK_Window_RepositionIfNeeded (void)
       SK_Thread_CloseSelf ();
 
       return 0;
-    }, nullptr, 0x00, nullptr);
+    });
   }
 }
 
@@ -4723,8 +4722,8 @@ SK_InstallWindowHook (HWND hWnd)
   //game_window.SetClassLongPtr  = SetClassLongPtrW_Original;
 
     game_window.DefWindowProc    = (DefWindowProc_pfn)
-      GetProcAddress ( GetModuleHandle (L"user32"),
-                         "DefWindowProcW" );
+      GetProcAddress ( GetModuleHandle (L"NtDll.dll"),
+                         "NtdllDefWindowProc_W" );
     game_window.CallWindowProc   = (CallWindowProc_pfn)
       GetProcAddress ( GetModuleHandle (L"user32"),
                          "CallWindowProcW" );
@@ -4740,8 +4739,8 @@ SK_InstallWindowHook (HWND hWnd)
     game_window.SetWindowLongPtr = SetWindowLongPtrA_Original;
   //game_window.SetClassLongPtr  = SetClassLongPtrA_Original;
     game_window.DefWindowProc    = reinterpret_cast <DefWindowProc_pfn>
-      ( GetProcAddress ( GetModuleHandle (L"user32"),
-                          "DefWindowProcA" )
+      ( GetProcAddress ( GetModuleHandle (L"NtDll.dll"),
+                          "NtdllDefWindowProc_A" )
       );
     game_window.CallWindowProc   = reinterpret_cast <CallWindowProc_pfn>
       ( GetProcAddress ( GetModuleHandle (L"user32"),

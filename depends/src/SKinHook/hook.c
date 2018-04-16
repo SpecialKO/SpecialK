@@ -646,7 +646,7 @@ FreezeEx (PFROZEN_THREADS pThreads, UINT pos, UINT action, UINT idx)
                        FALSE,
                          pThread->tid );
 
-      if (hThread != NULL)
+      if ( hThread != NULL && hThread != INVALID_HANDLE_VALUE )
       {
         pThread->suspensions = 0;
         pThread->runstate    = 2; // Unknown
@@ -692,8 +692,8 @@ FreezeEx (PFROZEN_THREADS pThreads, UINT pos, UINT action, UINT idx)
           } while (pThread->suspensions == 0);
 
           ProcessThreadIPsEx (hThread, pos, action, idx);
-          CloseHandle        (hThread);
         }
+        CloseHandle          (hThread);
       }
     }
   }
@@ -728,7 +728,7 @@ Unfreeze (PFROZEN_THREADS pThreads)
                          FALSE,
                            pThread->tid );
 
-        if (hThread != NULL)
+        if ( hThread != NULL && hThread != INVALID_HANDLE_VALUE )
         {
           for (j = 0; j < pThread->suspensions; ++j)
             ResumeThread (hThread);

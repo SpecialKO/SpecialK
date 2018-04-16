@@ -24,6 +24,15 @@
 #include <SpecialK/config.h>
 #include <SpecialK/thread.h>
 
+//
+// Technically this has all been changed to Fiber Local Storage, but it is
+//   effectively the same thing up until you switch a thread to a fiber,
+//    which Special K never does.
+//
+//  FLS is supposed to be a more portable solution, and should be the
+//    preferred storage for injecting code into threads SK didn't create.
+//
+
 #include <concurrent_unordered_map.h>
 Concurrency::concurrent_unordered_map <DWORD, SK_TlsRecord> tls_map;
 
@@ -43,7 +52,7 @@ SK_GetTLS (bool initialize)
   if ( dwTlsIdx != TLS_OUT_OF_INDEXES )
   {
     lpvData =
-      TlsGetValue (dwTlsIdx);
+      FlsGetValue (dwTlsIdx);
 
     if (lpvData == nullptr)
     {
@@ -56,7 +65,7 @@ SK_GetTLS (bool initialize)
             SK_LocalAlloc (LPTR, sizeof (SK_TLS) * SK_TLS::stack::max)
         );
 
-        if (! TlsSetValue (dwTlsIdx, lpvData))
+        if (! FlsSetValue (dwTlsIdx, lpvData))
         {
           LocalFree (lpvData);
                      lpvData = nullptr;
@@ -114,7 +123,7 @@ SK_CleanupTLS (void)
                   freed, GetCurrentThreadId () ), L"TLS Memory" );
 #endif
 
-    if (TlsSetValue (tls_slot.dwTlsIdx, nullptr))
+    if (FlsSetValue (tls_slot.dwTlsIdx, nullptr))
     {
       SK_LocalFree (tls_slot.lpvData);
 
@@ -128,6 +137,9 @@ SK_CleanupTLS (void)
 
 #include <cassert>
 
+SK_TLS __SK_TLS_SAFE_no_idx   = { };
+SK_TLS __SK_TLS_SAFE_low_addr = { };
+
 SK_TLS*
 __stdcall
 SK_TLS_Bottom (void)
@@ -137,22 +149,33 @@ SK_TLS_Bottom (void)
 
   assert (tls_slot.dwTlsIdx != TLS_OUT_OF_INDEXES);
 
-  if (tls_slot.dwTlsIdx == TLS_OUT_OF_INDEXES)
+  if (tls_slot.dwTlsIdx == TLS_OUT_OF_INDEXES || tls_slot.lpvData == nullptr)
   {
+  //SleepEx (10000UL, FALSE);
+
     // This whole situation is bad, but try to limp along and keep the software
     //   running in rare edge cases.
-    static SK_TLS safety_net;
-    return       &safety_net;
+    return &__SK_TLS_SAFE_no_idx;
   }
+
 
   SK_TLS* pTLS =
     static_cast <SK_TLS *> (tls_slot.lpvData);
 
+
+  // Yet another way TLS / FLS can be messed up; just assume that addresses
+  //   below 4 MiB are the result of a stack overflow or uninitialized memory.
+  if ((intptr_t)pTLS < (1024UL * 1024UL * 16UL))
+  {
+    return &__SK_TLS_SAFE_low_addr;
+  }
+
+
   ULONG frame = SK_GetFramesDrawn ();
 
-  if (pTLS->debug.last_frame == (frame - 1))
+  //if (frame > 0 && pTLS->debug.last_frame == (frame - 1))
   {
-    if ((! pTLS->debug.mapped) && frame > 1)
+    if ((! pTLS->debug.mapped))// && frame > 1)
     {
       if (! tls_map.count (pTLS->debug.tid))
       {

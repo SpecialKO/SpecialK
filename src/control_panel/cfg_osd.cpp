@@ -63,8 +63,12 @@ SK::ControlPanel::OSD::DrawVideoCaptureOptions (void)
 
       // Automated recovery in case changing this setting blows stuff up.
       //
-      CreateThread (nullptr, 0, [](LPVOID toggle) -> DWORD
+      SK_Thread_Create ( [](LPVOID toggle) -> DWORD
       {
+        SetCurrentThreadDescription (                 L"[SK] Video Capture OSD Failsafe" );
+        SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_TIME_CRITICAL );
+        SetThreadPriorityBoost      ( SK_GetCurrentThread (), TRUE                          );
+
         toggle_state_s* pToggle = (toggle_state_s *)toggle;
 
         SleepEx (pToggle->time_to_wait, FALSE);
@@ -78,10 +82,11 @@ SK::ControlPanel::OSD::DrawVideoCaptureOptions (void)
 
         InterlockedExchange (&pToggle->testing, FALSE);
 
-        SK_Thread_CloseSelf ();
+        SK_Thread_CloseSelf (   );
+        ExitThread          (0x0);
 
         return 0;
-      }, (LPVOID)&osd_toggle, 0x00, nullptr);
+      }, (LPVOID)&osd_toggle );
     }
   }
 

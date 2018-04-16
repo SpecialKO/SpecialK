@@ -58,6 +58,8 @@ static HANDLE hPollEvent     = nullptr;
 static HANDLE hShutdownEvent = nullptr;
 static HANDLE hPollThread    = nullptr;
 
+static std::vector <NvU32> gpu_ids;
+
 DWORD
 __stdcall
 SK_GPUPollingThread (LPVOID user)
@@ -129,7 +131,6 @@ SK_GPUPollingThread (LPVOID user)
       NV_GPU_DYNAMIC_PSTATES_INFO_EX psinfoex;
       psinfoex.version = NV_GPU_DYNAMIC_PSTATES_INFO_EX_VER;
 
-      static std::vector <NvU32> gpu_ids;
       static bool init = false;
 
       if (! init)
@@ -184,15 +185,31 @@ SK_GPUPollingThread (LPVOID user)
 
         static bool has_thermal = true;
 
+
         NV_GPU_THERMAL_SETTINGS thermal = { };
         thermal.version = NV_GPU_THERMAL_SETTINGS_VER;
 
-        status = ( NvAPI_GPU_GetThermalSettings == nullptr ||
-                   (! has_thermal) )                        ?
-                                                NVAPI_ERROR :
-                 NvAPI_GPU_GetThermalSettings (gpu,
-                                               NVAPI_THERMAL_TARGET_ALL,
-                                               &thermal);
+
+        // This is needed to fix some problems with Mirilis Action injecting itself
+        //   and immediately breaking NvAPI.
+        if (has_thermal)
+        {
+          __try {
+            status = ( NvAPI_GPU_GetThermalSettings == nullptr ||
+                       (! has_thermal) )                        ?
+                                                    NVAPI_ERROR :
+                     NvAPI_GPU_GetThermalSettings (gpu,
+                                                   NVAPI_THERMAL_TARGET_ALL,
+                                                   &thermal);
+          }
+
+          __except (EXCEPTION_EXECUTE_HANDLER)
+          {
+            has_thermal = false;
+          }
+        }
+
+        if (! has_thermal) status = NVAPI_ERROR;
 
 
         if (status == NVAPI_OK)
@@ -216,6 +233,7 @@ SK_GPUPollingThread (LPVOID user)
         }
 
         else has_thermal = false;
+
 
 
         NvU32 pcie_lanes = 0;
@@ -548,8 +566,7 @@ SK_PollGPU (void)
   {
     hShutdownEvent = CreateEvent    (nullptr, FALSE, FALSE, nullptr);
     hPollEvent     = CreateEvent    (nullptr, TRUE,  FALSE, nullptr);
-    hPollThread    = (HANDLE)
-                     CreateThread (nullptr, 0, SK_GPUPollingThread, nullptr, 0x00, nullptr);
+    hPollThread    = SK_Thread_CreateEx ( SK_GPUPollingThread );
   }
 
   SYSTEMTIME     update_time;

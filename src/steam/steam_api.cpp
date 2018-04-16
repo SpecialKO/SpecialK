@@ -750,53 +750,6 @@ SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
     case UserStatsReceived_t::k_iCallback:
       steam_log.Log ( L" * (%-28s) Installed User Stats Receipt Callback",
                         caller.c_str () );
-
-//      if (config.steam.block_stat_callback)
-//      {
-//        steam_log.Log (L" ### Callback Blacklisted ###");
-//        LeaveCriticalSection (&callback_cs);
-//        return;
-//      }
-//
-//      //
-//      // Many games shutdown SteamAPI on an async operation I/O failure;
-//      //   reading friend achievement stats will fail-fast thanks to Valve
-//      //     not implementing a query for friends who have a specific AppID
-//      //       in their library.
-//      //
-//      //   Most friends will have no achievements for the current game,
-//      //     so hook the game's callback procedure and filter out failure
-//      //       events that we generated much to the game's surprise :)
-//      //
-//      else if (SK_ValidatePointer (pCallback) && config.steam.filter_stat_callback)
-//      {
-//#ifdef _WIN64
-//        void** vftable = *reinterpret_cast <void ***> (&pCallback);
-//
-//        if (SK_ValidatePointer (vftable [3]))
-//        {
-//          SK_CreateFuncHook (      L"Callback Redirect",
-//                                     vftable [3],
-//                                     SteamAPI_UserStatsReceived_Detour,
-//            static_cast_p2p <void> (&SteamAPI_UserStatsReceived_Original) );
-//          SK_EnableHook (            vftable [3]);
-//
-//          steam_log.Log ( L" ### Callback Redirected (APPLYING FILTER:  Remove "
-//                               L"Third-Party CSteamID / AppID Achievements) ###" );
-//        }
-//#else
-//        /*
-//        SK_CreateFuncHook ( L"Callback Redirect",
-//                              vftable [4],
-//                              SteamAPI_UserStatsReceived_Detour,
-//     static_cast_p2p <void> (&SteamAPI_UserStatsReceived_Original) );
-//        SK_EnableHook (vftable [4]);
-//
-//        steam_log.Log ( L" ### Callback Redirected (APPLYING FILTER:  Remove "
-//                             L"Third-Party CSteamID / AppID Achievements) ###" );
-//        */
-//#endif
-      //}
       UserStatsReceived_callbacks [pCallback] = true;
       break;
     case UserStatsStored_t::k_iCallback:
@@ -870,7 +823,9 @@ SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
     } break;
   }
 
-  SteamAPI_RegisterCallback_Original (pCallback, iCallback);
+  // We will dispatch this callback to all registered interfaces ourself.
+  if (iCallback != UserStatsReceived_t::k_iCallback)
+    SteamAPI_RegisterCallback_Original (pCallback, iCallback);
 
   LeaveCriticalSection (&callback_cs);
 }
@@ -1635,6 +1590,12 @@ public:
       if ( pParam->m_steamIDUser.GetAccountID () ==
            user->GetSteamID ().GetAccountID   () )
       {
+        for ( auto it : UserStatsReceived_callbacks )
+        {
+          if (it.second)
+            ((class CCallbackBase *)it.first)->Run (pParam);
+        }
+
         pullStats ();
 
         if (config.steam.achievements.pull_global_stats && (! has_global_data))
@@ -3000,15 +2961,15 @@ void
 S_CALLTYPE
 SteamAPI_RunCallbacks_Detour (void)
 {
-  if (friends_done == ReadAcquire64 (&SK_SteamAPI_CallbackRunCount - 10) &&
-       11           < ReadAcquire64 (&SK_SteamAPI_CallbackRunCount) )
-  {
-    for ( auto it : UserStatsReceived_callbacks )
-    {
-      if (it.second)
-        SteamAPI_RegisterCallback_Original ((class CCallbackBase *)it.first, UserStatsReceived_t::k_iCallback);
-    }
-  }
+  //if (friends_done == ReadAcquire64 (&SK_SteamAPI_CallbackRunCount - 10) &&
+  //     11           < ReadAcquire64 (&SK_SteamAPI_CallbackRunCount) )
+  //{
+  //  for ( auto it : UserStatsReceived_callbacks )
+  //  {
+  //    if (it.second)
+  //      SteamAPI_RegisterCallback_Original ((class CCallbackBase *)it.first, UserStatsReceived_t::k_iCallback);
+  //  }
+  //}
 
   //if (ReadAcquire (&__SK_DLL_Ending))
   //{
@@ -3145,11 +3106,11 @@ void SK::SteamAPI::Pump (void)
   if (steam_ctx.UserStats ())
   {
     if (SteamAPI_RunCallbacks_Original != nullptr)
-      SteamAPI_RunCallbacks_Detour ();
+        SteamAPI_RunCallbacks_Detour ();
   }
 }
 
-HANDLE hSteamPump = nullptr;
+volatile HANDLE hSteamPump = nullptr;
 
 DWORD
 WINAPI
@@ -3157,7 +3118,9 @@ SteamAPI_PumpThread (LPVOID user)
 {
   if (SK_GetCurrentGameID () == SK_GAME_ID::FinalFantasyXV)
   {
-    CloseHandle ((HANDLE)InterlockedExchangePointer (&hSteamPump, nullptr));
+    InterlockedExchangePointer ((void **)&hSteamPump, nullptr);
+
+    SK_Thread_CloseSelf ();
 
     return 0;
   }
@@ -3218,7 +3181,9 @@ SteamAPI_PumpThread (LPVOID user)
     }
   }
 
-  CloseHandle ((HANDLE)InterlockedExchangePointer (&hSteamPump, nullptr));
+  InterlockedExchangePointer ((void **)&hSteamPump, nullptr);
+
+  SK_Thread_CloseSelf ();
 
   return 0;
 
@@ -3227,7 +3192,7 @@ SteamAPI_PumpThread (LPVOID user)
 void
 SK_Steam_StartPump (bool force)
 {
-  if (ReadPointerAcquire (&hSteamPump) != nullptr)
+  if (ReadPointerAcquire ((void **)&hSteamPump) != nullptr)
     return;
 
   if (config.steam.auto_pump_callbacks || force)
@@ -3235,13 +3200,9 @@ SK_Steam_StartPump (bool force)
     LPVOID start_params =
       force ? (LPVOID)1 : nullptr;
 
-    InterlockedCompareExchangePointer ( &hSteamPump, (HANDLE)
-                            CreateThread ( nullptr,
-                                               0,
-                                                 SteamAPI_PumpThread,
-                                                   start_params,
-                                                     0x00,
-                                                       nullptr ), nullptr
+    InterlockedCompareExchangePointer ( (void **)&hSteamPump, (HANDLE)
+                       SK_Thread_CreateEx ( SteamAPI_PumpThread, nullptr,
+                                              start_params ), nullptr
                         );
   }
 }
@@ -3251,7 +3212,7 @@ SK_Steam_KillPump (void)
 {
   CHandle hOriginal (
     reinterpret_cast <HANDLE>
-      (InterlockedExchangePointer (&hSteamPump, nullptr))
+      (InterlockedExchangePointer ((void **)&hSteamPump, nullptr))
   );
 
   if (hOriginal != nullptr)
@@ -3637,8 +3598,8 @@ SK_Steam_ScrubRedistributables (int& total_files, bool erase)
     params.total_files = total_files;
     params.erase       = erase;
 
-    HANDLE hScrub = (HANDLE)
-    CreateThread (nullptr, 0, [](LPVOID) ->
+    HANDLE hScrub =
+    SK_Thread_CreateEx ([](LPVOID) ->
     DWORD
     {
       DWORD dwStart = timeGetTime ();
@@ -3699,15 +3660,15 @@ SK_Steam_ScrubRedistributables (int& total_files, bool erase)
                     L"SteamBloat" );
       }
 
-         params.total_files = files;
-       InterlockedExchange64 (&size, liSize.QuadPart);
+      params.total_files = files;
+      InterlockedExchange64 (&size, liSize.QuadPart);
 
       InterlockedExchangePointer ((void **)&hThread, INVALID_HANDLE_VALUE);
 
       SK_Thread_CloseSelf ();
 
       return 0;
-    }, nullptr, 0x00, nullptr);
+    });
 
     InterlockedExchangePointer ((void **)&hThread, hScrub);
   }
@@ -3884,9 +3845,8 @@ SteamAPI_Shutdown_Detour (void)
   SK_Steam_KillPump            ();
   LeaveCriticalSection         (&init_cs);
 
-  steam_ctx.Shutdown           ();
 
-  CreateThread (nullptr, 0,
+  SK_Thread_Create (
     [](LPVOID) ->
     DWORD
     {
@@ -3894,27 +3854,38 @@ SteamAPI_Shutdown_Detour (void)
 
       for (int i = 0; i < 100; i++)
       {
+        SleepEx (1L, FALSE);
+
         if (ReadAcquire (&__SK_DLL_Ending))
         {
+          steam_ctx.Shutdown  ();
           SK_Thread_CloseSelf ();
 
           return 0;
         }
       }
 
-      SleepEx (100UL, FALSE);
-
       // Start back up again :)
       //
       //  >> Stupid hack for The Witcher 3
       //
       if (SteamAPI_RunCallbacks_Original != nullptr)
-        SteamAPI_RunCallbacks_Detour ();
+      {
+        InterlockedExchangePointer ((void **)&hSteamPump, SK_TLS_Bottom ()->debug.handle);
+
+        while (true)
+        {
+          SK::SteamAPI::Pump ();
+
+          SleepEx (125, FALSE);
+        }
+      }
 
       SK_Thread_CloseSelf ();
 
       return 0;
-    }, nullptr, 0x00, nullptr);
+    }
+  );
 }
 
 bool
@@ -4155,7 +4126,7 @@ SK_HookSteamAPI (void)
          (! SK_RecursiveFileSearch (SK_GetHostPath (), L"SteamNative.dll").empty  ())
        )
     {
-      CreateThread (nullptr, 0, SteamAPI_Delay_Init, nullptr, 0x00, nullptr);
+      SK_Thread_Create (SteamAPI_Delay_Init);
     }
 
     InterlockedIncrement (&__SteamAPI_hook);
@@ -4202,11 +4173,11 @@ SK_SteamAPI_InitManagers (void)
 
     if (stats != nullptr && ((! user_manager) || (! steam_achievements)))
     {
-      for ( auto it : UserStatsReceived_callbacks )
-      {
-        if (it.second)
-          SteamAPI_UnregisterCallback_Original ((class CCallbackBase *)it.first);
-      }
+      //for ( auto it : UserStatsReceived_callbacks )
+      //{
+      //  if (it.second)
+      //    SteamAPI_UnregisterCallback_Original ((class CCallbackBase *)it.first);
+      //}
 
       has_global_data = false;
       next_friend     = 0;
@@ -4874,7 +4845,7 @@ SK_SteamAPIContext::OnFileDetailsDone ( FileDetailsResult_t* pParam,
   //   the result immediately... so do not destroy the game's performance
   //     by blocking at startup!
   //
-  CreateThread (nullptr, 0, [](LPVOID user) ->
+  SK_Thread_Create  ([](LPVOID user) ->
     DWORD
     {
       SetCurrentThreadDescription (L"[SK] Steam File Validation Thread");
@@ -5004,56 +4975,11 @@ SK_SteamAPIContext::OnFileDetailsDone ( FileDetailsResult_t* pParam,
       SK_Thread_CloseSelf ();
 
       return 0;
-    }, pCopy,
-    0x00,
-  nullptr );
+    }, pCopy
+  );
 
   get_file_details.Cancel ();
 }
-
-
-//
-// Detoured to filter out async call failure events that the game isn't expecting and
-//   may respond by shutting SteamAPI down if received.
-//
-extern "C"
-void
-__fastcall
-SteamAPI_UserStatsReceived_Detour ( CCallbackBase* This, UserStatsReceived_t* pParam )
-{
-  if (config.system.log_level > 2)
-  {
-    dll_log.Log (L"Result: %li - User: %llx, Game: %llu  [Callback: %lu]", pParam->m_eResult,
-      pParam->m_steamIDUser.ConvertToUint64 (), pParam->m_nGameID, pParam->k_iCallback );
-  }
-
-#ifdef _WIN64
-  if (          pParam->m_steamIDUser       != steam_ctx.User  ()->GetSteamID () ||
-       CGameID (pParam->m_nGameID).AppID () != steam_ctx.Utils ()->GetAppID   () )
-  {
-    // Default Filter:  Remove Everything not This Game or This User
-    //
-    //                    If a game ever queries data for other users, this policy must change
-    return;
-  }
-#else
-  static CSteamID last_user;
-
-  // This message only means that data has been received, not
-  //   what that data is... so we can spoof the receipt of the player's
-  //     data over and over if need be.
-  if (pParam->m_steamIDUser != SK::SteamAPI::player)
-  {
-    pParam->m_nGameID     = 0;
-    pParam->m_steamIDUser = last_user;
-  }
-  else
-    last_user = pParam->m_steamIDUser;
-#endif
-
-  SteamAPI_UserStatsReceived_Original (This, pParam);
-}
-
 
 
 // Fallback to Win32 API if the Steam overlay is not functioning.

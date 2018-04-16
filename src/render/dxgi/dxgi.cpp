@@ -1019,12 +1019,7 @@ SK_DXGI_BeginHooking (void)
   {
 #if 1
     //HANDLE hHookInitDXGI =
-      CreateThread ( nullptr,
-                         0,
-                           HookDXGI,
-                             nullptr,
-                               0x00,
-                                 nullptr );
+      SK_Thread_Create ( HookDXGI );
 #else
     HookDXGI (nullptr);
 #endif
@@ -3882,6 +3877,11 @@ DXGISwap_ResizeBuffers_Override ( IDXGISwapChain *This,
   if (dxgi_caps.present.waitable && config.render.framerate.swapchain_wait > 0)
     return S_OK;
 
+  void
+  __stdcall
+  SK_D3D11_ResetTexCache (void);
+
+  SK_D3D11_ResetTexCache   ();
   SK_CEGUI_QueueResetD3D11 (); // Prior to the next present, reset the UI
 
 
@@ -6568,13 +6568,17 @@ HookDXGI (LPVOID user)
   // "Normal" games don't change render APIs mid-game; Talos does, but it's
   //   not normal :)
   if (SK_GetFramesDrawn ())
+  {
+    SK_Thread_CloseSelf ();
     return 0;
+  }
 
 
   UNREFERENCED_PARAMETER (user);
 
   if (! config.apis.dxgi.d3d11.hook)
   {
+    SK_Thread_CloseSelf ();
     return 0;
   }
 
@@ -6599,6 +6603,7 @@ HookDXGI (LPVOID user)
 
   if (__SK_bypass || ReadAcquire (&__dxgi_ready) || SK_TLS_Bottom ()->d3d11.ctx_init_thread)
   {
+    SK_Thread_CloseSelf ();
     return 0;
   }
 
@@ -6745,6 +6750,8 @@ HookDXGI (LPVOID user)
 
   SK_Thread_SpinUntilAtomicMin (&__hooked, 2);
 
+  SK_Thread_CloseSelf ();
+
   return 0;
 }
 
@@ -6863,14 +6870,10 @@ SK::DXGI::StartBudgetThread ( IDXGIAdapter** ppAdapter )
 
 
       budget_thread.handle =
-        (HANDLE)
-        CreateThread
-          ( nullptr,
-              0,
-                BudgetThread,
-                  (LPVOID)&budget_thread,
-                    0x00,
-                      nullptr );
+        SK_Thread_CreateEx
+          ( BudgetThread,
+              nullptr,
+                (LPVOID)&budget_thread );
 
 
       SK_Thread_SpinUntilFlagged (&budget_thread.ready);

@@ -653,13 +653,10 @@ SK::D3D9::TextureWorkerThread::TextureWorkerThread (SK::D3D9::TextureThreadPool*
   control_.shutdown =
     CreateEvent (nullptr, FALSE, FALSE, nullptr);
 
-  thread_ =
-    (HANDLE)CreateThread ( nullptr,
-                               0,
-                                 ThreadProc,
-                                   this,
-                                     0,
-                                       &thread_id_ );
+  thread_id_ = 
+    GetThreadId ( ( thread_ =
+                      SK_Thread_CreateEx ( ThreadProc,  nullptr,
+                                           this ) ) );
 }
 
 SK::D3D9::TextureWorkerThread::~TextureWorkerThread (void)
@@ -3738,12 +3735,7 @@ SK::D3D9::TextureThreadPool::postJob (TexLoadRequest* job)
   if (! spool_thread_)
   {
     spool_thread_ =
-      (HANDLE)CreateThread ( nullptr,
-                                 0,
-                                   Spooler,
-                                     this,
-                                       0x00,
-                                         nullptr );
+      SK_Thread_CreateEx ( Spooler, nullptr, this );
   }
 
   // Don't let the game free this while we are working on it...

@@ -260,13 +260,13 @@ SK_NNK2_InitPlugin (void)
   SK_NNK2_ReduceShimmer->load (SK_NNK2_FixTextureShimmer);
 
 
-  CreateThread (nullptr, 0x0, [](LPVOID) -> DWORD
+  SK_Thread_Create ([](LPVOID) -> DWORD
   {
     // Fix for window-management issues in windowed mode
-    while (SK_GetFramesDrawn () < 8)
-    {
-      SleepEx (16UL, TRUE);
-    }
+    //while (SK_GetFramesDrawn () < 8)
+    //{
+    //  SleepEx (16UL, TRUE);
+    //}
 
     if (SK_NNK2_target_fps != 0.0f)
     {
@@ -286,7 +286,7 @@ SK_NNK2_InitPlugin (void)
     SK_Thread_CloseSelf ();
 
     return 0;
-  }, nullptr, 0x00, nullptr);
+  });
 
 
     SK_CreateFuncHook (       L"ID3D11Device::CreateSamplerState",

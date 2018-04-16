@@ -406,45 +406,6 @@ NvAPI_Disp_GetHdrCapabilities_Override ( NvU32                displayId,
                pHdrCapabilities->isTraditionalSdrGammaSupported ? L"Yes" : L"No" );
 
 
-  if (config.render.dxgi.spoof_hdr)
-  {
-    pHdrCapabilities->isTraditionalHdrGammaSupported = 1;
-    pHdrCapabilities->isTraditionalSdrGammaSupported = 1;
-    pHdrCapabilities->isEdrSupported                 = 1;
-    pHdrCapabilities->isST2084EotfSupported          = 1;
-
-    pHdrCapabilities->driverExpandDefaultHdrParameters = 0;
-    pHdrCapabilities->static_metadata_descriptor_id    = NV_STATIC_METADATA_TYPE_1;
-
-    pHdrCapabilities->display_data.desired_content_max_luminance               = 300;//1499;
-    pHdrCapabilities->display_data.desired_content_min_luminance               = 1;
-    pHdrCapabilities->display_data.desired_content_max_frame_average_luminance = 200;
-
-    pHdrCapabilities->display_data.displayPrimary_x0 = (NvU16)( 0.659680f * 0xC350 );
-    pHdrCapabilities->display_data.displayPrimary_y0 = (NvU16)( 0.340344f * 0xC350 );
-
-    pHdrCapabilities->display_data.displayPrimary_x1 = (NvU16)( 0.244641f * 0xC350 );
-    pHdrCapabilities->display_data.displayPrimary_y1 = (NvU16)( 0.670422f * 0xC350 );
-
-    pHdrCapabilities->display_data.displayPrimary_x2 = (NvU16)( 0.130383f * 0xC350 );
-    pHdrCapabilities->display_data.displayPrimary_y2 = (NvU16)( 0.040539f * 0xC350 );
-
-    pHdrCapabilities->display_data.displayWhitePoint_x = (NvU16)( 0.313000f * 0xC350 );
-    pHdrCapabilities->display_data.displayWhitePoint_y = (NvU16)( 0.329602f * 0xC350 );
-
-    pHDRCtl->devcaps.BitsPerColor          = 10;
-    pHDRCtl->devcaps.RedPrimary   [0]      = 0.659680f; pHDRCtl->devcaps.RedPrimary   [1] = 0.340344f;
-    pHDRCtl->devcaps.GreenPrimary [0]      = 0.244641f; pHDRCtl->devcaps.GreenPrimary [1] = 0.670422f;
-    pHDRCtl->devcaps.BluePrimary  [0]      = 0.130383f; pHDRCtl->devcaps.BluePrimary  [1] = 0.040539f;
-    pHDRCtl->devcaps.WhitePoint   [0]      = 0.313000f; pHDRCtl->devcaps.WhitePoint   [1] = 0.329602f;
-    pHDRCtl->devcaps.ColorSpace            = DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020;
-    pHDRCtl->devcaps.MinLuminance          =    1.000000f;
-    pHDRCtl->devcaps.MaxLuminance          = 300.0f;//1499.000000f;
-    pHDRCtl->devcaps.MaxFullFrameLuminance =  250.0f;//.000000f;
-
-    return NVAPI_OK;
-  }
-
   if (ret == NVAPI_OK)
   {
   //pHDRCtl->devcaps.BitsPerColor          = 10;
@@ -501,58 +462,6 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
     SK_HDR_GetControl ();
 
 
-  if (config.render.dxgi.spoof_hdr && pHdrColorData->hdrMode != NV_HDR_MODE_OFF)
-  {
-    if (pHdrColorData->mastering_display_data.max_display_mastering_luminance == 0)
-      pHdrColorData->mastering_display_data.max_display_mastering_luminance = 1499;
-    if (pHdrColorData->mastering_display_data.min_display_mastering_luminance == 0)
-      pHdrColorData->mastering_display_data.min_display_mastering_luminance = 1;
-
-    //pHdrColorData->hdrMode = NV_HDR_MODE_UHDA_PASSTHROUGH;
-
-    if (pHdrColorData->cmd == NV_HDR_CMD_GET)
-    {
-      pHdrColorData->mastering_display_data.max_content_light_level         = pHDRCtl->meta.MaxContentLightLevel;
-      pHdrColorData->mastering_display_data.max_frame_average_light_level   = pHDRCtl->meta.MaxFrameAverageLightLevel;
-      pHdrColorData->mastering_display_data.min_display_mastering_luminance = pHDRCtl->meta.MinMasteringLuminance / 10000.0f;
-      pHdrColorData->mastering_display_data.max_display_mastering_luminance = pHDRCtl->meta.MaxMasteringLuminance / 10000.0f;
-    }
-
-    pHdrColorData->mastering_display_data.displayPrimary_x0 = (NvU16)( 0.659680f * 0xC350 );
-    pHdrColorData->mastering_display_data.displayPrimary_y0 = (NvU16)( 0.340344f * 0xC350 );
-
-    pHdrColorData->mastering_display_data.displayPrimary_x1 = (NvU16)( 0.244641f * 0xC350 );
-    pHdrColorData->mastering_display_data.displayPrimary_y1 = (NvU16)( 0.670422f * 0xC350 );
-
-    pHdrColorData->mastering_display_data.displayPrimary_x2 = (NvU16)( 0.130383f * 0xC350 );
-    pHdrColorData->mastering_display_data.displayPrimary_y2 = (NvU16)( 0.040539f * 0xC350 );
-
-    pHdrColorData->mastering_display_data.displayWhitePoint_x = (NvU16)( 0.313000f * 0xC350 );
-    pHdrColorData->mastering_display_data.displayWhitePoint_y = (NvU16)( 0.329602f * 0xC350 );
-
-    pHDRCtl->devcaps.BitsPerColor          = 10;
-    pHDRCtl->devcaps.RedPrimary   [0]      = 0.659680f; pHDRCtl->devcaps.RedPrimary   [1] = 0.340344f;
-    pHDRCtl->devcaps.GreenPrimary [0]      = 0.244641f; pHDRCtl->devcaps.GreenPrimary [1] = 0.670422f;
-    pHDRCtl->devcaps.BluePrimary  [0]      = 0.130383f; pHDRCtl->devcaps.BluePrimary  [1] = 0.040539f;
-    pHDRCtl->devcaps.WhitePoint   [0]      = 0.313000f; pHDRCtl->devcaps.WhitePoint   [1] = 0.329602f;
-    pHDRCtl->devcaps.ColorSpace            = DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020;
-    pHDRCtl->devcaps.MinLuminance          =    1.000000f;
-    pHDRCtl->devcaps.MaxLuminance          = 1499.000000f;
-    pHDRCtl->devcaps.MaxFullFrameLuminance =  799.000000f;
-
-    pHDRCtl->meta.MaxContentLightLevel      = pHdrColorData->mastering_display_data.max_content_light_level;
-    pHDRCtl->meta.MaxFrameAverageLightLevel = pHdrColorData->mastering_display_data.max_frame_average_light_level;
-    pHDRCtl->meta.MinMasteringLuminance     = pHdrColorData->mastering_display_data.min_display_mastering_luminance * 10000.0f;
-    pHDRCtl->meta.MaxMasteringLuminance     = pHdrColorData->mastering_display_data.max_display_mastering_luminance * 10000.0f;
-
-
-    if (pHdrColorData->cmd == NV_HDR_CMD_SET)
-      pHDRCtl->meta._AdjustmentCount++;
-
-    return NVAPI_OK;
-  }
-
-
   if (pHdrColorData->cmd == NV_HDR_CMD_SET)
   {
     if (! pHDRCtl->overrides.MaxContentLightLevel)
@@ -605,11 +514,6 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
 
   pHDRCtl->meta._AdjustmentCount++;
 
-  if (config.render.dxgi.spoof_hdr)
-  {
-    pHdrColorData->static_metadata_descriptor_id = NV_STATIC_METADATA_TYPE_1;
-    return NVAPI_OK;
-  }
 
   NvAPI_Status ret =
     NvAPI_Disp_HdrColorControl_Original ( displayId, pHdrColorData );

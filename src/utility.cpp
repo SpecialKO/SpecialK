@@ -1822,8 +1822,8 @@ SK_GetHostApp (void)
     {
       lstrcpynW (
         host_proc.wszApp,
-          wszLastSep + 1,
-            MAX_PATH * 2 - 1
+          CharNextW (wszLastSep),
+            lstrlenW (wszLastSep)
       );
     }
 
@@ -1832,7 +1832,7 @@ SK_GetHostApp (void)
       lstrcpynW (
         host_proc.wszApp,
           wszProcessName,
-            MAX_PATH * 2 - 1
+            lstrlenW (wszProcessName)
       );
     }
 
@@ -2676,32 +2676,32 @@ SK_DeferCommands (const char** szCommands, int count)
   if (! InterlockedCompareExchangePointer (&hCommandThread, (LPVOID)1, nullptr))
   {     InterlockedExchangePointer        ((void **)&hCommandThread,
 
-    (HANDLE)
-    CreateThread   ( nullptr, 0x00,
-    [](LPVOID) ->
-    DWORD
-    {
-      SetCurrentThreadDescription (                      L"[SK] Async Command Processor" );
-      SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_IDLE         );
-
-      while (! ReadAcquire (&__SK_DLL_Ending))
+    SK_Thread_CreateEx (
+      [](LPVOID) ->
+      DWORD
       {
-        if (WaitForSingleObjectEx (hNewCmds, INFINITE, TRUE) == WAIT_OBJECT_0)
-        {
-          std::string cmd = "";
+        SetCurrentThreadDescription (                      L"[SK] Async Command Processor" );
+        SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_IDLE         );
 
-          while (cmds.try_pop (cmd))
+        while (! ReadAcquire (&__SK_DLL_Ending))
+        {
+          if (WaitForSingleObjectEx (hNewCmds, INFINITE, TRUE) == WAIT_OBJECT_0)
           {
-            SK_GetCommandProcessor ()->ProcessCommandLine (cmd.c_str ());
+            std::string cmd = "";
+
+            while (cmds.try_pop (cmd))
+            {
+              SK_GetCommandProcessor ()->ProcessCommandLine (cmd.c_str ());
+            }
           }
         }
+
+        CloseHandle (hNewCmds);
+        SK_Thread_CloseSelf ();
+
+        return 0;
       }
-
-      CloseHandle (hNewCmds);
-      SK_Thread_CloseSelf ();
-
-      return 0;
-    }, nullptr, 0x00, nullptr ) );
+    ) );
   }
 };
 

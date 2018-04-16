@@ -143,31 +143,26 @@ SetCurrentThreadDescription (_In_ PCWSTR lpThreadDescription)
     wcstombs (szDesc, lpThreadDescription, 255);
 
 
-    const THREADNAME_INFO info =
-     { 4096, szDesc, (DWORD)-1, 0x0 };
-
-    const DWORD argc = sizeof (info) /
-                       sizeof (ULONG_PTR);
-
-    __try
+    if (SK_IsDebuggerPresent ())
     {
+      const THREADNAME_INFO info =
+      { 4096, szDesc, (DWORD)-1, 0x0 };
+
+      const DWORD argc = sizeof (info) /
+                         sizeof (ULONG_PTR);
+
       __try
       {
-        static EXCEPTION_RECORD ExceptionRecord;
+        constexpr int SK_EXCEPTION_CONTINUABLE = 0x0;
 
-        ExceptionRecord.ExceptionAddress         = &SetThreadDescription;
-        ExceptionRecord.ExceptionCode            = MAGIC_THREAD_EXCEPTION;
-        ExceptionRecord.ExceptionFlags           = 0;
-        ExceptionRecord.NumberParameters         = argc;
-        ExceptionRecord.ExceptionInformation [0] = reinterpret_cast <const ULONG_PTR>(&info);
-
-        if (RtlRaiseException_Original != nullptr)
-          RtlRaiseException_Original (&ExceptionRecord);
+        RaiseException ( MAGIC_THREAD_EXCEPTION,
+                           SK_EXCEPTION_CONTINUABLE,
+                             argc,
+                               reinterpret_cast <const ULONG_PTR *>(&info) );
       }
-
-      __except (EXCEPTION_CONTINUE_SEARCH) { }
+      __except (EXCEPTION_EXECUTE_HANDLER) { }
     }
-    __except   (EXCEPTION_EXECUTE_HANDLER) { }
+
 
     // Windows 7 / 8 can go no further, they will have to be happy with the
     //   TLS-backed name or a debugger must catch the exception above.
@@ -346,4 +341,103 @@ SetThreadAffinityMask_Detour (
   }
 
   return dwRet;
+}
+
+
+
+
+
+struct SK_ThreadBaseParams {
+  LPTHREAD_START_ROUTINE lpStartFunc;
+  const wchar_t*         lpThreadName;
+  LPVOID                 lpUserParams;
+  HANDLE                 hHandleToStuffInternally;
+};
+
+DWORD
+WINAPI
+SKX_ThreadThunk ( LPVOID lpUserPassThrough )
+{
+  SK_ThreadBaseParams *pStartParams =
+ (SK_ThreadBaseParams *)lpUserPassThrough;
+
+  while (pStartParams->hHandleToStuffInternally == INVALID_HANDLE_VALUE)
+    SleepEx (0, TRUE);
+
+  SK_TLS* pTLS =
+    SK_TLS_Bottom ();
+
+  if (pTLS)
+  {
+    pTLS->debug.handle = pStartParams->hHandleToStuffInternally;
+    pTLS->debug.tid    = GetCurrentThreadId ();
+  }
+
+  LocalFree ((HLOCAL)pStartParams);
+
+  DWORD dwRet =
+    pStartParams->lpStartFunc (pStartParams->lpUserParams);
+
+  return dwRet;
+}
+
+extern "C"
+HANDLE
+WINAPI
+SK_Thread_CreateEx ( LPTHREAD_START_ROUTINE lpStartFunc,
+                     const wchar_t*       /*lpThreadName*/,
+                     LPVOID                 lpUserParams )
+{
+  SK_ThreadBaseParams *params =
+ (SK_ThreadBaseParams *)LocalAlloc ( 0x0, sizeof (SK_ThreadBaseParams) );
+
+  *params = {
+    lpStartFunc,  nullptr,
+    lpUserParams, INVALID_HANDLE_VALUE
+  };
+
+  DWORD dwTid = 0;
+
+  params->hHandleToStuffInternally =
+    CreateThread ( nullptr, 0,
+                     SKX_ThreadThunk,
+                       (LPVOID)params,
+                         0x0, &dwTid );
+
+  return params->hHandleToStuffInternally;
+}
+
+extern "C"
+void
+WINAPI
+SK_Thread_Create (LPTHREAD_START_ROUTINE lpStartFunc, LPVOID lpUserParams)
+{
+  SK_Thread_CreateEx ( lpStartFunc, nullptr, lpUserParams );
+}
+
+
+
+
+
+
+extern "C"
+bool
+WINAPI
+SK_Thread_CloseSelf (void)
+{
+  SK_TLS* pTLS =
+    SK_TLS_Bottom ();
+
+  HANDLE hCopyAndSwapHandle = INVALID_HANDLE_VALUE;
+
+  std::swap (pTLS->debug.handle, hCopyAndSwapHandle);
+
+  if (! CloseHandle (hCopyAndSwapHandle))
+  {
+    std::swap (pTLS->debug.handle, hCopyAndSwapHandle);
+
+    return false;
+  }
+
+  return true;
 }

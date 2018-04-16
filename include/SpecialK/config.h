@@ -303,7 +303,7 @@ struct sk_config_t
       bool    allow_tearing      = false;
       bool    safe_fullscreen    = false;
       bool    enhanced_depth     = false;
-      bool    deferred_isolation =  true;
+      bool    deferred_isolation = false;
       int     msaa_samples       =    -1;
       bool    present_test_skip  = false;
       bool    spoof_hdr          = false;

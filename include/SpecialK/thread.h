@@ -189,28 +189,17 @@ SK_Thread_SpinUntilAtomicMin (volatile LONG* pVar, LONG count, LONG _SpinMax = 7
 }
 
 
-__forceinline
-static bool
-SK_Thread_CloseSelf (void)
-{
-  HANDLE hRealHandle = INVALID_HANDLE_VALUE;
+extern "C" HANDLE WINAPI
+SK_Thread_CreateEx ( LPTHREAD_START_ROUTINE lpStartFunc,
+                     LPCWSTR                lpThreadName = nullptr,
+                     LPVOID                 lpUserParams = nullptr );
 
-  if ( DuplicateHandle ( SK_GetCurrentProcess (),
-                         SK_GetCurrentThread  (),
-                         SK_GetCurrentProcess (),
-                           &hRealHandle,
-                             0,
-                               FALSE,
-                                 DUPLICATE_CLOSE_SOURCE |
-                                 DUPLICATE_SAME_ACCESS ) )
-  {
-    CloseHandle (hRealHandle);
+extern "C" void WINAPI
+SK_Thread_Create   ( LPTHREAD_START_ROUTINE lpStartFunc,
+                     LPVOID                 lpUserParams = nullptr );
 
-    return true;
-  }
-
-  return false;
-}
+extern "C" bool WINAPI
+SK_Thread_CloseSelf (void);
 
 
 

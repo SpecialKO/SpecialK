@@ -1,6 +1,32 @@
+0.9.18:
+
+ + More work on MinHook stability / performance -- planning a few pull requests!
+   ----------------------------------------------------------------------------
+
+ + Fixed D3D11 texture cache (missing descriptors) in Elex when trees become
+    unbalanced; fullscreen mode transition in this and other games is safer now.
+ + Fixed Steam achievement server->client callbacks in Star Ocean 4 and The Witcher 3
+ + Turned D3D11 deferred isolation off by default since most games do not need it
+ 
+ + Added real-time stack traces for all running threads to the thread debugger
+ + Rewrote debug symbol loading code for better multi-threaded performance
+ + Changed Thread-Local Storage to Fiber-Local Storage for UWP compliance
+
+ + Added validation of NtLdr DLL paths
+    >> Detects AppCompat shims that makes games behave unpredictably
+
+ + Fixed NvAPI issues in some third-party (vidcap) software that could break
+     hardware monitoring (fan RPM in particular).
+ 
+ =====
+  *** Fixed CBT Hook Teardown Broadcast -- it was not running in the 64-bit
+        builds and caused many WER faults when upgrading Special K. ***
+ =====
+
+
 0.9.17:
 
- + Finsihed re-writing MinHook's injection core to use MUCH more efficient thread
+ + Finished re-writing MinHook's injection core to use MUCH more efficient thread
      suspend / resume.
 
   >> Boot up in some applications is 2-3x faster now and that is 2-3x less time for
@@ -51,7 +77,7 @@
    >> In theory I could now start using D3DCompiler_47.dll, but I'll stick
         with _43 until I need the more advanced features for shader modding.
 
-
+  
 0.9.13:
 
  (.3): Added disk read/write info to thread tfooltip

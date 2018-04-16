@@ -501,15 +501,15 @@ public:
   // file information
   virtual bool                        FileExists                ( const char *pchFile ) override
    {
-     if (SK_Steam_IsCloudFileBlacklisted (pchFile))
-       return false;
+    // if (SK_Steam_IsCloudFileBlacklisted (pchFile))
+    //   return false;
      
      return pRealStorage->FileExists (pchFile);
    }
   virtual bool                        FilePersisted             ( const char *pchFile ) override
    {
-     if (SK_Steam_IsCloudFileBlacklisted (pchFile))
-       return false;
+     //if (SK_Steam_IsCloudFileBlacklisted (pchFile))
+     //  return false;
 
      return pRealStorage->FilePersisted (pchFile);
    }

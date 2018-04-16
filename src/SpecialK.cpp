@@ -112,9 +112,9 @@ std::unordered_map <DLL_ROLE, SK_DLL_Bootstrapper>
 skWin32Module skModuleRegistry::HostApp;
 skWin32Module skModuleRegistry::Self;
 
-HMODULE
-__stdcall
-SK_GetDLL (void)
+  HMODULE
+  __stdcall
+  SK_GetDLL (void)
 {
   return __SK_hModSelf;
 }
@@ -174,6 +174,8 @@ DllMain ( HMODULE hModule,
       auto EarlyOut =
       [&](BOOL bRet = TRUE)
       {
+        InterlockedExchange (&__SK_DLL_Attached, TRUE);
+
         if ( (! bRet) ||
              (! ( has_local_dll ||
                   SK_GetHostAppUtil ().isInjectionTool () ) ) )
@@ -187,7 +189,7 @@ DllMain ( HMODULE hModule,
 
             // We're not using TLS for anything, so we don't need thread
             //  attach/detach events.
-            if (TlsFree (tls_slot.dwTlsIdx) || (! GetLastError ()))
+            if (FlsFree (tls_slot.dwTlsIdx) || (! GetLastError ()))
             {
               tls_slot.dwTlsIdx = TLS_OUT_OF_INDEXES;
             }
@@ -205,7 +207,7 @@ DllMain ( HMODULE hModule,
         return TRUE;
       };
 
-      InterlockedExchange (&__SK_TLS_INDEX, TlsAlloc ());
+      InterlockedExchange (&__SK_TLS_INDEX, FlsAlloc (nullptr));
 
 
       // We use SKIM for injection and rundll32 for various tricks involving restarting
@@ -281,14 +283,15 @@ DllMain ( HMODULE hModule,
 
       if (ReadAcquire (&__SK_DLL_Attached))
       {
-        SK_Detach (SK_GetDLLRole ());
+        if (! SK_GetHostAppUtil ().isInjectionTool ())
+          SK_Detach (SK_GetDLLRole ());
 
         auto tls_slot =
           SK_GetTLS ();
 
         if (tls_slot.dwTlsIdx != TLS_OUT_OF_INDEXES)
         {
-          TlsFree (tls_slot.dwTlsIdx);
+          FlsFree (tls_slot.dwTlsIdx);
         }
       }
 
@@ -390,7 +393,7 @@ SK_DontInject (void)
 
   if (idx_to_free != TLS_OUT_OF_INDEXES)
   {
-    TlsFree (idx_to_free);
+    FlsFree (idx_to_free);
   }
 
   SK_SetDLLRole       (DLL_ROLE::INVALID);
@@ -496,16 +499,6 @@ SK_EstablishDllRole (skWin32Module&& module)
   SK_SetDLLRole (DLL_ROLE::INVALID);
 
 
-#ifndef _WIN64
-  static bool has_dgvoodoo =
-    GetFileAttributesW (
-      SK_FormatStringW ( LR"(%ws\PlugIns\ThirdParty\dgVoodoo\d3dimm.dll)",
-                          std::wstring ( SK_GetDocumentsDir () + LR"(\My Mods\SpecialK)" ).c_str ()
-                       ).c_str ()
-    ) != INVALID_FILE_ATTRIBUTES;
-#endif
-
-
 #include <SpecialK/injection/blacklist.h>
 
   //// If Blacklisted, Bail-Out
@@ -515,6 +508,15 @@ SK_EstablishDllRole (skWin32Module&& module)
   
   if (__blacklist.count (wszAppNameLower)) return false;
 
+
+#ifndef _WIN64
+  static bool has_dgvoodoo =
+    GetFileAttributesW (
+      SK_FormatStringW ( LR"(%ws\PlugIns\ThirdParty\dgVoodoo\d3dimm.dll)",
+                          std::wstring ( SK_GetDocumentsDir () + LR"(\My Mods\SpecialK)" ).c_str ()
+                       ).c_str ()
+    ) != INVALID_FILE_ATTRIBUTES;
+#endif
 
   const wchar_t* wszSelfTitledDLL =
     static_cast <const std::wstring &> (module).c_str ();
@@ -536,7 +538,7 @@ SK_EstablishDllRole (skWin32Module&& module)
          SK_IsDLLSpecialK (L"d3d11.dll")    ||
          SK_IsDLLSpecialK (L"OpenGL32.dll") ||
          SK_IsDLLSpecialK (L"ddraw.dll")    ||
-         SK_IsDLLSpecialK (L"d3d8.dll")        )
+         SK_IsDLLSpecialK (L"d3d8.dll"))
     {
       SK_MessageBox ( L"Please limit Special K to one (1) "
                        "of the following: d3d8.dll, d3d9.dll,"

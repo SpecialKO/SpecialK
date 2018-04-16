@@ -2249,7 +2249,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
         case SK_GAME_ID::GalGun_Double_Peace:
         case SK_GAME_ID::DuckTalesRemastered:
         {
-          CreateThread (nullptr, 0, [](LPVOID) ->
+          SK_Thread_Create ([](LPVOID) ->
           DWORD
           {
             void
@@ -2260,14 +2260,14 @@ SK_LoadConfigEx (std::wstring name, bool create)
             SK_Thread_CloseSelf ();
 
             return 0;
-          }, nullptr, 0x00, nullptr);
+          });
         } break;
 
 
         case SK_GAME_ID::YS_Seven:
         {
-          CreateThread (nullptr, 0, [ ] (LPVOID) ->
-                        DWORD
+          SK_Thread_Create ([] (LPVOID) ->
+          DWORD
           {
             void
               SK_ResHack_PatchGame2 (uint32_t w, uint32_t h);
@@ -2277,13 +2277,13 @@ SK_LoadConfigEx (std::wstring name, bool create)
             SK_Thread_CloseSelf ();
 
             return 0;
-          }, nullptr, 0x00, nullptr);
+          });
         } break;
 
 
         case SK_GAME_ID::AKIBAs_Trip:
         {
-          CreateThread (nullptr, 0, [](LPVOID) ->
+          SK_Thread_Create ([](LPVOID) ->
           DWORD
           {
             void
@@ -2294,7 +2294,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
             SK_Thread_CloseSelf ();
 
             return 0;
-          }, nullptr, 0x00, nullptr);
+          });
         } break;
       }
     }

@@ -327,6 +327,8 @@ WMI_CLEANUP:
 
   InterlockedExchange (&COM::base.wmi.init, 0);
 
+  SK_Thread_CloseSelf ();
+
   return 0;
 }
 
@@ -334,7 +336,14 @@ extern "C"
 bool
 SK_WMI_Init (void)
 {
-  SK_Modules.LoadLibrary (L"ole32.dll");
+  wchar_t* wszCOMBase  = L"combase.dll";
+  HMODULE  hModCOMBase = SK_Modules.LoadLibrary (wszCOMBase);
+
+  if (hModCOMBase == nullptr)
+  {
+    wszCOMBase  = L"ole32.dll";
+    hModCOMBase = SK_Modules.LoadLibrary (wszCOMBase);
+  }
 
 #if 0
   CoCreateInstance_Original =
@@ -342,12 +351,12 @@ SK_WMI_Init (void)
   CoCreateInstanceEx_Original =
     (CoCreateInstanceEx_pfn)GetProcAddress (GetModuleHandleW (L"ole32.dll"), "CoCreateInstanceEx");
 #else
-  SK_CreateDLLHook2 (      L"ole32.dll",
+  SK_CreateDLLHook2 (      wszCOMBase,
                             "CoCreateInstance",
                              CoCreateInstance_Detour,
     static_cast_p2p <void> (&CoCreateInstance_Original) );
 
-  SK_CreateDLLHook2 (      L"ole32.dll",
+  SK_CreateDLLHook2 (      wszCOMBase,
                             "CoCreateInstanceEx",
                              CoCreateInstanceEx_Detour,
     static_cast_p2p <void> (&CoCreateInstanceEx_Original) );
@@ -371,21 +380,20 @@ SK_WMI_Init (void)
 
     InterlockedExchangePointer (&COM::base.wmi.hServerThread,
       (HANDLE)
-        CreateThread ( nullptr, 0,
-              [](LPVOID) ->
-              DWORD
-              {
-                SK_Thread_SetCurrentPriority (THREAD_PRIORITY_ABOVE_NORMAL);
+        SK_Thread_CreateEx (
+            [](LPVOID) ->
+            DWORD
+            {
+              SK_Thread_SetCurrentPriority (THREAD_PRIORITY_ABOVE_NORMAL);
 
-                SK_AutoCOMInit auto_com;
+              SK_AutoCOMInit auto_com;
 
-                SK_COM_InitSecurity ();
+              SK_COM_InitSecurity ();
 
-                return
-                  SK_WMI_ServerThread (nullptr);
-              },
-            nullptr,
-          0x00, 
+              return
+                SK_WMI_ServerThread (nullptr);
+            },
+          nullptr,
         nullptr
       )
     );

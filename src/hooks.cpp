@@ -639,7 +639,8 @@ SK_CreateDLLHook ( const wchar_t  *pwszModule, const char  *pszProcName,
     hMod = SK_Modules.LoadLibrary (pwszModule);
 
     if (hMod != skModuleRegistry::INVALID_MODULE)
-      GetModuleHandleExW (GET_MODULE_HANDLE_EX_FLAG_PIN, pwszModule, &hMod);
+      GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_PIN |
+                           GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, (wchar_t *)hMod, &hMod );
   }
 
   void      *pFuncAddr = nullptr;
@@ -743,6 +744,60 @@ SK_CreateDLLHook ( const wchar_t  *pwszModule, const char  *pszProcName,
   return status;
 }
 
+
+typedef struct _UNICODE_STRING
+{
+  WORD           Length;
+  WORD           MaximumLength;
+  WORD          *Buffer;
+} UNICODE_STRING, *PUNICODE_STRING;
+
+
+typedef struct _LDR_DATA_TABLE_ENTRY
+{
+  LIST_ENTRY     InLoadOrderLinks;
+  LIST_ENTRY     InMemoryOrderLinks;
+  LIST_ENTRY     InInitializationOrderLinks;
+  PVOID          DllBase;
+  PVOID          EntryPoint;
+  ULONG          SizeOfImage;
+  UNICODE_STRING FullDllName;
+  UNICODE_STRING BaseDllName;
+  ULONG          Flags;
+  WORD           LoadCount;
+  WORD           TlsIndex;
+
+  union
+  {
+    LIST_ENTRY   HashLinks;
+    struct
+    {
+      PVOID      SectionPointer;
+      ULONG      CheckSum;
+    };
+  };
+
+  union
+  {
+    ULONG        TimeDateStamp;
+    PVOID        LoadedImports;
+  };
+
+  _ACTIVATION_CONTEXT
+                *EntryPointActivationContext;
+  PVOID          PatchInformation;
+  LIST_ENTRY     ForwarderLinks;
+  LIST_ENTRY     ServiceTagLinks;
+  LIST_ENTRY     StaticLinks;
+} LDR_DATA_TABLE_ENTRY, *PLDR_DATA_TABLE_ENTRY;
+
+BOOL
+WINAPI
+SK_Module_IsProcAddrLocal ( HMODULE  hModExpected,
+                             LPCSTR  lpProcName,
+                            FARPROC  lpProcAddr,
+              PLDR_DATA_TABLE_ENTRY *ppldrEntry = nullptr );
+
 MH_STATUS
 __stdcall
 SK_CreateDLLHook2 ( const wchar_t  *pwszModule, const char  *pszProcName,
@@ -761,7 +816,8 @@ SK_CreateDLLHook2 ( const wchar_t  *pwszModule, const char  *pszProcName,
     hMod = SK_Modules.LoadLibrary (pwszModule);
 
     if (hMod != skModuleRegistry::INVALID_MODULE)
-      GetModuleHandleExW (GET_MODULE_HANDLE_EX_FLAG_PIN, pwszModule, &hMod);
+      GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_PIN |
+                           GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, (wchar_t *)hMod, &hMod );
   }
 
   void      *pFuncAddr = nullptr;
@@ -774,6 +830,8 @@ SK_CreateDLLHook2 ( const wchar_t  *pwszModule, const char  *pszProcName,
   {
     pFuncAddr =
       SK_GetProcAddress (pwszModule, pszProcName);
+
+    SK_Module_IsProcAddrLocal ( hMod, pszProcName, (FARPROC)pFuncAddr );
 
     status =
       MH_CreateHook ( pFuncAddr,
@@ -883,7 +941,8 @@ SK_CreateDLLHook3 ( const wchar_t  *pwszModule, const char  *pszProcName,
     hMod = SK_Modules.LoadLibrary (pwszModule);
 
     if (hMod != skModuleRegistry::INVALID_MODULE)
-      GetModuleHandleExW (GET_MODULE_HANDLE_EX_FLAG_PIN, pwszModule, &hMod);
+      GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_PIN |
+                           GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, (wchar_t *)hMod, &hMod );
   }
 
   void      *pFuncAddr = nullptr;

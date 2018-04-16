@@ -71,7 +71,7 @@ extern "C"
 SK_InjectionRecord_s __SK_InjectionHistory [MAX_INJECTED_PROC_HISTORY] = { };
 
 #pragma data_seg (".SK_Hooks")
-  __declspec (dllexport)          HANDLE hShutdownEvent = INVALID_HANDLE_VALUE; // Event to signal unloading injected DLL instances
+  __declspec (dllexport)          HANDLE hShutdownEvent = 0; // Event to signal unloading injected DLL instances
   __declspec (dllexport)          DWORD  dwHookPID      =                  0UL; // Process that owns the CBT hook
   __declspec (dllexport) volatile HHOOK  hHookCBT       =              nullptr; // CBT hook
   __declspec (dllexport)          BOOL   bAdmin         =                FALSE; // Is SKIM64 able to inject into admin apps?
@@ -126,13 +126,13 @@ static LONG local_record = 0;
 void
 SK_Inject_InitShutdownEvent (void)
 {
-  if (hShutdownEvent == nullptr)
+  if (hShutdownEvent == 0)
   {
     bAdmin           = SK_IsAdmin ();
 
     SECURITY_ATTRIBUTES sattr  = { };
     sattr.nLength              = sizeof SECURITY_ATTRIBUTES;
-    sattr.bInheritHandle       = TRUE;
+    sattr.bInheritHandle       = FALSE;
     sattr.lpSecurityDescriptor = nullptr;
 
     dwHookPID      = GetCurrentProcessId ();
@@ -194,6 +194,8 @@ SK_Inject_ValidateProcesses (void)
 
 extern bool SK_Debug_IsCrashing (void);
 
+static HMODULE hModHookInstance = nullptr;
+
 void
 SK_Inject_ReleaseProcess (void)
 {
@@ -222,6 +224,8 @@ SK_Inject_ReleaseProcess (void)
   // ...
   // ...
   // ...
+
+  FreeLibrary (hModHookInstance);
 }
 
 void
@@ -261,9 +265,6 @@ SK_Inject_AcquireProcess (void)
 
       PathStripPath (wszName);
       wcsncpy (&__SK_InjectionHistory_name [local_record * MAX_PATH], wszName, MAX_PATH - 1);
-
-
-      static HMODULE hModHookInstance = nullptr;
 
       // Hold a reference so that removing the CBT hook doesn't crash the software
       GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
@@ -312,13 +313,13 @@ SKX_WaitForCBTHookShutdown (void)
     BOOL success =
       DuplicateHandle ( hHookOwner, hShutdownEvent,
                         SK_GetCurrentProcess (), &hShutdown.m_h,
-                        0x00, TRUE, DUPLICATE_SAME_ACCESS );
+                        0x00, FALSE, DUPLICATE_SAME_ACCESS );
 
     if ( ! ( success &&
              hShutdown != INVALID_HANDLE_VALUE ) )
     {
       hShutdown.m_h =
-        OpenEvent ( SYNCHRONIZE, TRUE,
+        OpenEvent ( SYNCHRONIZE, FALSE,
           SK_RunLHIfBitness ( 32, LR"(Global\SpecialK32_Reset)",
                                   LR"(Global\SpecialK64_Reset)" ) );
     }
@@ -326,7 +327,10 @@ SKX_WaitForCBTHookShutdown (void)
     if ( hShutdown != INVALID_HANDLE_VALUE && (! SK_IsHostAppSKIM ()) )
     {
       SetThreadPriority      ( SK_GetCurrentThread (),
-                               THREAD_PRIORITY_LOWEST );
+                               THREAD_PRIORITY_ABOVE_NORMAL );
+      SetThreadPriorityBoost ( SK_GetCurrentThread (),
+                               TRUE                         );
+      SetCurrentThreadDescription (L"[SK] CBT Hook Teardown Broadcast Receiver");
 
 #ifdef NOT_SANE_SCHEDULING
       for (int i = 0; i < 16; i++)
@@ -376,27 +380,12 @@ CBTProc ( _In_ int    nCode,
                                   (LPCWSTR)&CBTProc,
                                     &hModThis ) )
        {
-         if ( SK_IsHostAppSKIM () )
+         if (! SK_IsHostAppSKIM ())
          {
-           GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
-                                 (LPCWSTR)&CBTProc,
-                                   &hModThis );
+           InterlockedIncrement        (&injected_procs);
+           SKX_WaitForCBTHookShutdown  (               );
+           InterlockedDecrement        (&injected_procs);
          }
-
-         InterlockedIncrement          (&injected_procs);
-         InterlockedIncrement          (&hooked);
-         SKX_WaitForCBTHookShutdown    (               );
-         InterlockedDecrement          (&injected_procs);
-
-         if ( SK_IsHostAppSKIM () )
-         {
-           FreeLibraryAndExitThread (hModThis, 0x0);
-         }
-       }
-
-       else
-       {
-         InterlockedIncrement          (&hooked);
        }
 
        SK_Thread_CloseSelf             (               );
@@ -405,7 +394,7 @@ CBTProc ( _In_ int    nCode,
      }, nullptr, 0x0, nullptr);
   }
 
-  SK_Thread_SpinUntilAtomicMin (&hooked, 2);
+//SK_Thread_SpinUntilAtomicMin (&hooked, 2);
 
   return NtUserCallNextHookEx (0, nCode, wParam, lParam);
 }
@@ -445,6 +434,9 @@ SKX_InstallCBTHook (void)
   {
     SK_Inject_InitShutdownEvent ();
 
+    if (SK_IsHostAppSKIM ())
+      InterlockedIncrement (&injected_procs);
+
     // Shell hooks don't work very well, they run into problems with
     //   hooking XInput -- CBT is more reliable, but slower.
     InterlockedExchangePointer ( (PVOID *)&hHookCBT,
@@ -459,20 +451,24 @@ __stdcall
 SKX_RemoveCBTHook (void)
 {
 START_OVER:
-  if (hShutdownEvent > 0)
+  if ((intptr_t)hShutdownEvent > 0)
   {
     SignalObjectAndWait ( hShutdownEvent,
-                          hShutdownEvent, 5, TRUE );
+                          hShutdownEvent, 5, FALSE );
   }
 
   HHOOK hHookOrig = SKX_GetCBTHook ();
 
   if (UnhookWindowsHookEx (hHookOrig))
   {
+    if (SK_IsHostAppSKIM ())
+    {
+      InterlockedDecrement (&injected_procs);
+    }
+
     RtlSecureZeroMemory (whitelist_patterns, sizeof (whitelist_patterns));
                          whitelist_count = 0;
 
-    InterlockedExchange        (&injected_procs,        0);
     InterlockedExchange        (&__SK_HookContextOwner, FALSE);
     InterlockedExchangePointer ( reinterpret_cast <LPVOID *> (
                                        const_cast < HHOOK *> (&hHookCBT)
@@ -486,10 +482,10 @@ START_OVER:
       goto START_OVER;
   }
 
-  if (hShutdownEvent > 0)
+  if ((intptr_t)hShutdownEvent > 0)
   {
-    CloseHandle (hShutdownEvent);
-                 hShutdownEvent = nullptr;
+    if (CloseHandle (hShutdownEvent))
+                     hShutdownEvent = 0;
   }
 
   dwHookPID = 0x0;
@@ -535,7 +531,7 @@ RunDLL_InjectionManager ( HWND  hwnd,        HINSTANCE hInst,
         fclose  (fPID);
 
         HANDLE hThread =
-          CreateThread ( nullptr, 0,
+          SK_Thread_CreateEx (
            [](LPVOID user) ->
              DWORD
                {
@@ -552,10 +548,8 @@ RunDLL_InjectionManager ( HWND  hwnd,        HINSTANCE hInst,
                  }
 
                  return 0;
-               },
-               UIntToPtr (nCmdShow),
-             0x00,
-           nullptr
+               }, nullptr,
+             UIntToPtr (nCmdShow)
           );
 
         // Closes itself

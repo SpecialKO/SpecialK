@@ -296,7 +296,7 @@ struct resample_dispatch_s
 
       InterlockedIncrement (&active_workers);
 
-      CreateThread ( nullptr, 0, [](LPVOID) ->
+      SK_Thread_Create ( [](LPVOID) ->
       DWORD
       {
         SetCurrentThreadDescription (L"[SK] D3D11 Texture Resampling Thread");
@@ -352,9 +352,7 @@ struct resample_dispatch_s
         InterlockedDecrement (&SK_D3D11_TextureResampler.active_workers);
 
         return 0;
-      }, nullptr,
-           0x00,
-             nullptr );
+      } );
 
       return true;
     }
@@ -1229,7 +1227,7 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
 
   if (swap_chain_desc != nullptr)
   {
-   wchar_t wszMSAA [128] = { };
+    wchar_t wszMSAA [128] = { };
 
     _swprintf ( wszMSAA, swap_chain_desc->SampleDesc.Count > 1 ?
                            L"%u Samples" :
@@ -6187,8 +6185,8 @@ SK_D3D11_TexCacheCheckpoint (void)
                        (config.mem.reserve / 100.0f)
       )                      : 0;
 
-    SK_D3D11_need_tex_reset = false;
     SK_D3D11_Textures.reset ();
+    SK_D3D11_need_tex_reset = false;
   }
 
   else
@@ -6206,6 +6204,12 @@ SK_D3D11_TexCacheCheckpoint (void)
 void
 SK_D3D11_TexMgr::reset (void)
 {
+  if (IUnknown_AddRef_Original == nullptr || IUnknown_Release_Original == nullptr)
+    return;
+
+  if (SK_GetFramesDrawn () < 1)
+    return;
+
   uint32_t count  = 0;
   int64_t  purged = 0;
 
@@ -6276,89 +6280,108 @@ SK_D3D11_TexMgr::reset (void)
        [&]( const SK_D3D11_TexMgr::tex2D_descriptor_s* const a,
             const SK_D3D11_TexMgr::tex2D_descriptor_s* const b )
       {
-        return (b->load_time * 10 + b->last_used / 10 + b->hits * 100) <
-               (a->load_time * 10 + a->last_used / 10 + a->hits * 100);
-      }
-    );
+        if ( (a != nullptr) && (b != nullptr) )
+          return (b->load_time * 10 + b->last_used / 10 + b->hits * 100) <
+                 (a->load_time * 10 + a->last_used / 10 + a->hits * 100);
+
+      else if ( a == nullptr )
+        return false;
+
+      return true;
+    }
+              );
   }
 
 
-  const uint32_t max_count =
-    cache_opts.max_evict;
+ const uint32_t max_count =
+   cache_opts.max_evict;
+ 
+ 
+ for ( const auto& desc : textures )
+ {
+   auto mem_size =
+     static_cast <int64_t> (desc->mem_size) >> 10ULL;
+ 
+   if (desc->texture != nullptr && cleared.count (desc->texture) == 0)
+   {
+     int refs =
+       IUnknown_AddRef_Original  (desc->texture) - 1;
+       IUnknown_Release_Original (desc->texture);
+ 
+     if (refs <= 1)
+     {
+       // Avoid double-freeing if the hash map somehow contains the same texture multiple times
+       cleared.emplace (desc->texture);
 
+       if (refs == 1)
+       {
+         SK_D3D11_RemoveTexFromCache (desc->texture);
+         IUnknown_Release_Original   (desc->texture);
+       }
 
-  for ( const auto& desc : textures )
-  {
-    auto mem_size =
-      static_cast <int64_t> (desc->mem_size) >> 10ULL;
+       else
+       {
+         SK_LOG0 ( ( L"Unexpected reference count for texture with crc32=%08x; refs=%lu, expectd=1 -- removing from cache and praying...",
+                       desc->crc32c, refs ),
+                    L"DX11TexMgr" );
 
-    if (desc->texture != nullptr && cleared.count (desc->texture) == 0)
-    {
-      int refs =
-        IUnknown_AddRef_Original  (desc->texture) - 1;
-        IUnknown_Release_Original (desc->texture);
+         SK_D3D11_RemoveTexFromCache (desc->texture);
+       }
 
-      if (refs == 1)
-      {
-        // This will trigger RemoveTexFromCache (...)
-        desc->texture->Release ();
-
-        // Avoid double-freeing if the hash map somehow contains the same texture multiple times
-        cleared.emplace (desc->texture);
-
-        count++;
-        purged += mem_size;
-
-        if ( (! (SK_D3D11_need_tex_reset) ) )
-        {
-          if ((// Have we over-freed? If so, stop when the minimum number of evicted textures is reached
-               (AggregateSize_2D >> 20ULL) <= (uint32_t)cache_opts.min_size &&
-                                     count >=           cache_opts.min_evict )
-
-               // An arbitrary purge request was issued
-                                                                                                ||
-              (SK_D3D11_amount_to_purge     >            0                   &&
-               SK_D3D11_amount_to_purge     <=           purged              &&
-                                      count >=           cache_opts.min_evict ) ||
-
-               // Have we evicted as many textures as we can in one pass?
-                                      count >=           max_count )
-          {
-            SK_D3D11_amount_to_purge =
-              std::max (0, SK_D3D11_amount_to_purge);
-
-            break;
-          }
-        }
-      }
-    }
-  }
-
-  if (count > 0)
-  {
-    SK_LOG0 ( ( L"Texture Cache Purge:  Eliminated %.2f MiB of texture data across %lu textures (max. evict per-pass: %lu).",
-                  static_cast <float> (purged) / 1024.0f,
-                                       count,
-                                       cache_opts.max_evict ),
-                L"DX11TexMgr" );
-
-    if ((AggregateSize_2D >> 20ULL) >= static_cast <uint64_t> (cache_opts.max_size))
-    {
-      SK_LOG0 ( ( L" >> Texture cache remains %.2f MiB over-budget; will schedule future passes until resolved.",
-                    static_cast <float> ( AggregateSize_2D ) / (1024.0f * 1024.0f) -
-                    static_cast <float> (cache_opts.max_size) ),
-                  L"DX11TexMgr" );
-    }
-
-    if (Entries_2D >= cache_opts.max_entries)
-    {
-      SK_LOG0 ( ( L" >> Texture cache remains %lu entries over-filled; will schedule future passes until resolved.",
-                    Entries_2D - cache_opts.max_entries ),
-                  L"DX11TexMgr" );
-    }
-
-    InterlockedExchange (&live_textures_dirty, TRUE);
-  }
+ 
+       count++;
+       purged += mem_size;
+ 
+       if ( (! (SK_D3D11_need_tex_reset) ) )
+       {
+         if ((// Have we over-freed? If so, stop when the minimum number of evicted textures is reached
+              (AggregateSize_2D >> 20ULL) <= (uint32_t)cache_opts.min_size &&
+                                    count >=           cache_opts.min_evict )
+       
+              // An arbitrary purge request was issued
+                                                                                               ||
+             (SK_D3D11_amount_to_purge     >            0                   &&
+              SK_D3D11_amount_to_purge     <=           purged              &&
+                                     count >=           cache_opts.min_evict ) ||
+       
+              // Have we evicted as many textures as we can in one pass?
+                                     count >=           max_count )
+         {
+           SK_D3D11_amount_to_purge =
+             std::max (0, SK_D3D11_amount_to_purge);
+       
+           break;
+         }
+       }
+     }
+   }
+ }
+ 
+ if (count > 0)
+ {
+   SK_LOG0 ( ( L"Texture Cache Purge:  Eliminated %.2f MiB of texture data across %lu textures (max. evict per-pass: %lu).",
+                 static_cast <float> (purged) / 1024.0f,
+                                      count,
+                                      cache_opts.max_evict ),
+               L"DX11TexMgr" );
+ 
+   if ((AggregateSize_2D >> 20ULL) >= static_cast <uint64_t> (cache_opts.max_size))
+   {
+     SK_LOG0 ( ( L" >> Texture cache remains %.2f MiB over-budget; will schedule future passes until resolved.",
+                   static_cast <float> ( AggregateSize_2D ) / (1024.0f * 1024.0f) -
+                   static_cast <float> (cache_opts.max_size) ),
+                 L"DX11TexMgr" );
+   }
+ 
+   if (Entries_2D >= cache_opts.max_entries)
+   {
+     SK_LOG0 ( ( L" >> Texture cache remains %lu entries over-filled; will schedule future passes until resolved.",
+                   Entries_2D - cache_opts.max_entries ),
+                 L"DX11TexMgr" );
+   }
+ 
+   InterlockedExchange (&live_textures_dirty, TRUE);
+ }
 }
 
 ID3D11Texture2D*
@@ -6550,7 +6573,7 @@ SK_D3D11_TexMgr::refTexture2D ( ID3D11Texture2D*      pTex,
     InterlockedIncrement (&init);
   }
 
-  SK_Thread_SpinUntilAtomicMin (&init, 2);
+//SK_Thread_SpinUntilAtomicMin (&init, 2);
 
 
   if (SK_D3D11_TestRefCountHooks (pTex))

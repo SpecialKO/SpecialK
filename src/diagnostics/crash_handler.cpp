@@ -232,15 +232,13 @@ CrashHandler::Init (void)
 
   if (! InterlockedCompareExchange (&init, TRUE, FALSE))
   {
-    CreateThread (nullptr, 0,
-    [](LPVOID) ->
-      DWORD
+    SK_Thread_Create (
+      [](LPVOID) ->
+        DWORD
         {
           SetCurrentThreadDescription (         L"[SK] Crash Handler Init");
           SetThreadPriority           (
                         SK_GetCurrentThread (), THREAD_PRIORITY_LOWEST    );
-
-          std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
           HRSRC   default_sound =
             FindResource (SK_GetDLL (), MAKEINTRESOURCE (IDR_CRASH), L"WAVE");
@@ -271,9 +269,7 @@ CrashHandler::Init (void)
           SK_Thread_CloseSelf ();
 
           return 0;
-        }, nullptr,
-        0x00,
-      nullptr
+        }
     );
   }
 }
@@ -366,8 +362,6 @@ LONG
 WINAPI
 SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 {
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
-
   // Sadly, if this ever happens, there's no way to report the problem, so just
   //   terminate with exit code = -1.
   if ( ReadAcquire (&__SK_DLL_Ending)   != 0 ||
@@ -974,8 +968,6 @@ SK_GetSymbolNameFromModuleAddr ( HMODULE hMod,   uintptr_t addr,
 
   if (! dbghelp_callers.count (hMod))
   {
-    std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
-
     MODULEINFO mod_info = { };
 
     GetModuleInformation (
@@ -1090,7 +1082,7 @@ SK_BypassSteamCrashHandler (void)
       SK_RunLHIfBitness (64, L"steam_api64.dll",
                              L"steam_api.dll");
 
-    //if (SK_File_GetSize (wszSteamDLL) > 0)
+    if (SK_File_GetSize (wszSteamDLL) > 0)
     {
       if (SK_Modules.LoadLibraryLL (wszSteamDLL))
       {
@@ -1115,31 +1107,10 @@ SK_BypassSteamCrashHandler (void)
 void
 CrashHandler::InitSyms (void)
 {
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
-
   static volatile LONG               init = 0L;
   if (! InterlockedCompareExchange (&init, 1, 0))
   {
-    HRSRC   default_sound =
-      FindResource (SK_GetDLL (), MAKEINTRESOURCE (IDR_CRASH), L"WAVE");
-
-    if (default_sound != nullptr)
-    {
-      crash_sound.ref   =
-        LoadResource (SK_GetDLL (), default_sound);
-
-      if (crash_sound.ref != nullptr)
-      {
-        crash_sound.buf =
-          reinterpret_cast <uint8_t *> (LockResource (crash_sound.ref));
-      }
-    }
-
-    if (config.system.handle_crashes)
-    {
-      if (! config.steam.silent)
-        SK_BypassSteamCrashHandler ();
-    }
+  //std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
     SymCleanup (SK_GetCurrentProcess ());
 
@@ -1151,5 +1122,13 @@ CrashHandler::InitSyms (void)
     SK_SymSetOpts ();
 
     SymRefreshModuleList (SK_GetCurrentProcess ());
+
+    Init ();
+
+    //if (config.system.handle_crashes)
+    //{
+    //  if (! config.steam.silent)
+    //    SK_BypassSteamCrashHandler ();
+    //}
   }
 }

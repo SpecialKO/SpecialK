@@ -899,11 +899,7 @@ SK_BypassInject (void)
   __bypass.disable =
     (GetFileAttributesW (__bypass.wszBlacklist) != INVALID_FILE_ATTRIBUTES);
 
-  CreateThread ( nullptr,
-                   0,
-                     SK_Bypass_CRT, nullptr,
-                       0x00,
-                         nullptr );
+  SK_Thread_Create ( SK_Bypass_CRT, nullptr );
 
   return
     std::make_pair (suspended_tids, __bypass.disable);
@@ -961,7 +957,7 @@ SK_COMPAT_FixNahimicDeadlock (void)
                                   __uuidof (IAudioClient),
                                     nullptr, nullptr, &aOp );
   
-  if (GetModuleHandle (L"NahimicDevProps.dll"))
+  if (GetModuleHandle (L"Nahimic2DevProps.dll"))
     return S_OK;
 
   return S_FALSE;

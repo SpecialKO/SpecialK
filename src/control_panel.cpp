@@ -550,7 +550,7 @@ SK_ImGui_ControlPanelTitle (void)
 void
 SK_ImGui_AdjustCursor (void)
 {
-  CreateThread ( nullptr, 0,
+  SK_Thread_Create (
     [](LPVOID)->
     DWORD
     {
@@ -562,7 +562,7 @@ SK_ImGui_AdjustCursor (void)
       SK_Thread_CloseSelf ();
 
       return 0;
-    }, nullptr, 0x00, nullptr );
+    });
 }
 
 bool reset_frame_history = true;
@@ -2033,7 +2033,7 @@ SK_ImGui_ControlPanel (void)
               ImGui::SameLine       ();
               ImGui::PushStyleColor (ImGuiCol_Text, ImColor(0.75f, 0.75f, 0.75f, 1.0f));
               ImGui::Text           ("will cause framerate instability...");
-              ImGui::PopStyleColor  (4);
+              ImGui::PopStyleColor (4);
               ImGui::Separator      ( );
               ImGui::Text           ("Recomputes clock phase if a single frame takes longer than <1.0 + tolerance> x <target_ms> to complete");
               ImGui::BulletText     ("Adjust this if your set limit is fighting with VSYNC (frequent frametime graph oscillations).");

@@ -587,6 +587,294 @@ ProcessInformation ( PDWORD    pdData,
 
 #include <SpecialK/log.h>
 
+#define _IMAGEHLP_SOURCE_
+#include <dbghelp.h>
+
+#ifdef _WIN64
+#define SK_StackWalk          StackWalk64
+#define SK_SymLoadModule      SymLoadModule64
+#define SK_SymUnloadModule    SymUnloadModule64
+#define SK_SymGetModuleBase   SymGetModuleBase64
+#define SK_SymGetLineFromAddr SymGetLineFromAddr64
+#else
+#define SK_StackWalk          StackWalk
+#define SK_SymLoadModule      SymLoadModule
+#define SK_SymUnloadModule    SymUnloadModule
+#define SK_SymGetModuleBase   SymGetModuleBase
+#define SK_SymGetLineFromAddr SymGetLineFromAddr
+#endif
+
+void
+SK_ImGui_ThreadCallstack (HANDLE hThread, LARGE_INTEGER userTime, LARGE_INTEGER kernelTime)
+{
+  static LARGE_INTEGER lastUser   { 0, 0 },
+                       lastKernel { 0, 0 };
+  static DWORD         lastThreadId  = 0;
+  static CONTEXT       last_ctx      = { };
+  static bool           new_ctx      = false;
+
+  static std::set <int> special_lines;
+
+  HMODULE hModSource               = nullptr;
+  char    szModName [MAX_PATH + 2] = { };
+  HANDLE  hProc                    = SK_GetCurrentProcess ();
+
+  CONTEXT thread_ctx              = {             };
+          thread_ctx.ContextFlags = CONTEXT_CONTROL;
+
+  GetThreadContext (hThread, &thread_ctx);
+
+#ifdef _WIN64
+  DWORD64  ip       = thread_ctx.Rip;
+  DWORD64  BaseAddr = 0;
+
+  STACKFRAME64 stackframe = { };
+               stackframe.AddrStack.Offset = thread_ctx.Rsp;
+               stackframe.AddrFrame.Offset = thread_ctx.Rbp;
+#else
+  DWORD    ip       = thread_ctx.Eip;
+  DWORD    BaseAddr = 0;
+
+  STACKFRAME   stackframe = { };
+               stackframe.AddrStack.Offset = thread_ctx.Esp;
+               stackframe.AddrFrame.Offset = thread_ctx.Ebp;
+#endif
+
+  stackframe.AddrPC.Mode   = AddrModeFlat;
+  stackframe.AddrPC.Offset = ip;
+
+  stackframe.AddrStack.Mode = AddrModeFlat;
+  stackframe.AddrFrame.Mode = AddrModeFlat;
+
+  std::string top_func = "";
+
+  static std::vector <std::string> file_names;
+  static std::vector <std::string> symbol_names;
+  static std::vector <std::string> code_lines;
+
+  BOOL ret = TRUE;
+
+  static int lines = 0;
+  static int width0 = 0, width1 = 0;
+
+  //ImGui::PushStyleColor  (ImGuiCol_Border, ImColor::HSV ( 0.19f, 0.86f, 0.93f));
+  //ImGui::BeginChild      ( "Thread_StackTrace",   ImVec2 ( width0 + width1 + 15.0f, lines * ImGui::GetItemsLineHeightWithSpacing () ),
+  //                           ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders |
+  //                           ImGuiWindowFlags_NoInputs         | ImGuiWindowFlags_NoScrollbar |
+  //                           ImGuiWindowFlags_NoNavInputs      | ImGuiWindowFlags_NoNavFocus );
+  //ImGui::BeginGroup ( );
+  //ImGui::Columns    (2);
+  //
+  //ImGui::SetColumnOffset (0, 0.0f);
+  //ImGui::SetColumnOffset (1, width0 + 15.0f);
+  //ImGui::SetColumnOffset (2, width1 + width0 + 30.0f);
+  //
+  SK_TLS* pTLS =
+    SK_TLS_Bottom ();
+
+  lines  = 0;
+  width0 = 0, width1 = 0;
+
+  if (
+#ifndef _WIN64
+       last_ctx.Eip        != thread_ctx.Eip || 
+#else
+       last_ctx.Rip        != thread_ctx.Rip || 
+#endif
+     /*lastUser.QuadPart   != userTime.QuadPart   || 
+       lastKernel.QuadPart != kernelTime.QuadPart || */
+       lastThreadId        != GetThreadId (hThread) )
+  {
+    last_ctx            = thread_ctx;
+    lastUser.QuadPart   = userTime.QuadPart;
+    lastKernel.QuadPart = kernelTime.QuadPart;
+    lastThreadId        = GetThreadId (hThread);
+
+    new_ctx = true;
+
+    file_names.clear   ();
+    symbol_names.clear ();
+    code_lines.clear   ();
+
+    do
+    {
+      ip = stackframe.AddrPC.Offset;
+
+      if ( GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+                               GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+                reinterpret_cast <LPCWSTR> (ip),
+                                   &hModSource ) )
+      {
+        GetModuleFileNameA (hModSource, szModName, MAX_PATH);
+      }
+
+      MODULEINFO mod_info = { };
+
+      GetModuleInformation (
+        hProc, hModSource, &mod_info, sizeof (mod_info)
+      );
+
+#ifdef _WIN64
+      BaseAddr = (DWORD64)mod_info.lpBaseOfDll;
+#else
+      BaseAddr = (DWORD)  mod_info.lpBaseOfDll;
+#endif
+
+      char*     szDupName = pTLS->scratch_memory.cmd.alloc (strlen (szModName) + 1);
+        strcpy (szDupName, szModName);
+      char* pszShortName = szDupName;
+
+      PathStripPathA (pszShortName);
+
+
+      SK_SymLoadModule ( hProc,
+                           nullptr,
+                            pszShortName,
+                              nullptr,
+                                BaseAddr,
+                                  mod_info.SizeOfImage );
+
+      SYMBOL_INFO_PACKAGE sip = { };
+
+      sip.si.SizeOfStruct = sizeof SYMBOL_INFO;
+      sip.si.MaxNameLen   = sizeof sip.name;
+
+      DWORD64 Displacement = 0;
+
+      if ( SymFromAddr ( hProc,
+               static_cast <DWORD64> (ip),
+                             &Displacement,
+                               &sip.si ) )
+      {
+        DWORD Disp = 0x00UL;
+
+#ifdef _WIN64
+        IMAGEHLP_LINE64 ihl              = {                    };
+                        ihl.SizeOfStruct = sizeof IMAGEHLP_LINE64;
+#else
+        IMAGEHLP_LINE   ihl              = {                  };
+                        ihl.SizeOfStruct = sizeof IMAGEHLP_LINE;
+#endif
+        BOOL bFileAndLine =
+          SK_SymGetLineFromAddr ( hProc, ip, &Disp, &ihl );
+
+        file_names.emplace_back   (pszShortName);
+        symbol_names.emplace_back (sip.si.Name);
+
+        if (bFileAndLine)
+        {
+          code_lines.emplace_back (
+            SK_FormatString ( "<%hs:%lu>",
+                                ihl.FileName,
+                                  ihl.LineNumber )
+          );
+        }
+
+        else
+        {
+          code_lines.emplace_back ("");
+        }
+
+        if (top_func == "")
+          top_func = sip.si.Name;
+
+        ++lines;
+      }
+
+      ret =
+        SK_StackWalk ( SK_RunLHIfBitness ( 32, IMAGE_FILE_MACHINE_I386,
+                                               IMAGE_FILE_MACHINE_AMD64 ),
+                         hProc,
+                           hThread,
+                             &stackframe,
+                               &thread_ctx,
+                                 nullptr, nullptr,
+                                   nullptr, nullptr );
+    } while (ret == TRUE);
+  }
+
+
+  if (file_names.size ( ) > 2)
+  {
+    extern HMODULE __stdcall SK_GetDLL (void);
+
+    static std::string self_ansi =
+      SK_WideCharToUTF8 (SK_GetModuleName (SK_Modules.Self));
+    static std::string host_ansi =
+      SK_WideCharToUTF8 (SK_GetModuleName (SK_Modules.HostApp));
+
+
+    ImGui::PushStyleColor (ImGuiCol_Text,   ImColor::HSV (0.15f, 0.95f, 0.99f));
+    ImGui::PushStyleColor (ImGuiCol_Border, ImColor::HSV (0.15f, 0.95f, 0.99f));
+    ImGui::Separator      (  );
+    ImGui::PopStyleColor  (02);
+
+    ImGui::TreePush       ("");
+    ImGui::BeginGroup     (  );
+
+    if (new_ctx) special_lines.clear ();
+
+    unsigned int idx = 0;
+
+    for ( const auto& it : file_names )
+    {
+      if (idx++ == 0 || idx == file_names.size ()) continue;
+
+      ImColor color (0.75f, 0.75f, 0.75f, 1.0f);
+
+      if (! _stricmp (it.c_str (), self_ansi.c_str ()))
+      {
+        if (new_ctx) special_lines.emplace (idx);
+        color = ImColor::HSV (0.244444, 0.85f, 1.0f);
+      }
+
+      else if (! _stricmp (it.c_str (), host_ansi.c_str ()))
+      {
+        if (new_ctx) special_lines.emplace (idx);
+        color = ImColor (1.0f, 0.729412f, 0.3411764f);
+      }
+
+      ImGui::TextColored (color, "%hs", it.c_str ());
+    }
+    ImGui::EndGroup   (); ImGui::SameLine ();
+
+
+    ImGui::BeginGroup ();
+    idx = 0;
+    for ( auto& it : symbol_names )
+    {
+      if (idx++ == 0 || idx == symbol_names.size ()) continue;
+
+      ImColor color (0.95f, 0.95f, 0.95f, 1.0f);
+
+      if (special_lines.count (idx))
+        color = ImColor::HSV (0.527778f, 0.85f, 1.0f);
+
+      ImGui::TextColored (color, "%hs", it.c_str ());
+    }
+    ImGui::EndGroup   (); ImGui::SameLine ();
+
+
+    ImGui::BeginGroup ();
+    idx = 0;
+    for ( auto& it : code_lines )
+    {
+      if (idx++ == 0 || idx == code_lines.size ()) continue;
+
+      ImColor color (1.0f, 1.0f, 1.0f, 1.0f);
+
+      if (special_lines.count (idx))
+        color = ImColor::HSV (0.1f, 0.85f, 1.0f);
+
+      ImGui::TextColored (color, "%hs", it.c_str ());
+    }
+    ImGui::EndGroup   ();
+    ImGui::TreePop    ();
+  }
+
+  new_ctx = false;
+}
+
 class SKWG_Thread_Profiler : public SK_Widget
 {
 public:
@@ -730,7 +1018,8 @@ public:
     if (! ImGui::GetFont ()) return;
 
 
-    bool drew_tooltip = false;
+           bool drew_tooltip   = false;
+    static bool show_callstack = false;
 
     auto ThreadMemTooltip = [&](DWORD dwSelectedTid) ->
     void
@@ -848,20 +1137,24 @@ public:
           ImGui::EndGroup   ();
         }
 
-        //if (SKWG_Threads [dwSelectedTid]->thread_state != ThreadState::Running)
-        //{
-        //  ImGui::Separator  ();
-        //
-        //  ImGui::BeginGroup ();
-        //  ImGui::Text       ("Thread State:");
-        //  ImGui::EndGroup   ();
-        //
-        //  ImGui::SameLine   ();
-        //
-        //  ImGui::BeginGroup ();
-        //  ImGui::Text       ("\t%i", (LONG)SKWG_Threads [dwSelectedTid]->thread_state);
-        //  ImGui::EndGroup   ();
-        //}
+        if (show_callstack)
+        {
+          CHandle hThreadStack (
+            OpenThread ( THREAD_ALL_ACCESS, false, dwSelectedTid )
+          );
+
+          if (hThreadStack.m_h != INVALID_HANDLE_VALUE)
+          {
+            FILETIME ftCreate, ftUser,
+                     ftKernel, ftExit;
+
+            GetThreadTimes           ( hThreadStack, &ftCreate, &ftExit, &ftKernel, &ftUser );
+            SK_ImGui_ThreadCallstack ( hThreadStack, LARGE_INTEGER {       ftUser.dwLowDateTime,
+                                                                     (LONG)ftUser.dwHighDateTime   },
+                                                     LARGE_INTEGER {       ftKernel.dwLowDateTime,
+                                                                     (LONG)ftKernel.dwHighDateTime } );
+          }
+        }
 
         ImGui::EndTooltip   ();
       }
@@ -889,6 +1182,11 @@ public:
     ImGui::SameLine ();
     if (ImGui::Button ("Reset Performance Counters"))
       clear_counters = true;
+    ImGui::SameLine ();
+
+    ImGui::Checkbox ("Show Callstack Analysis", &show_callstack);
+
+    if (ImGui::IsItemHovered ()) ImGui::SetTooltip ("This feature is experimental and may cause hitching while debug symbols are loaded.");
 
     ImGui::Separator ();
 
@@ -949,7 +1247,7 @@ public:
               hRecoveryEvent  =
               CreateEvent  (nullptr, FALSE, TRUE, nullptr);
               hThreadRecovery =
-              CreateThread (nullptr, 0, [](LPVOID user) -> DWORD
+              SK_Thread_CreateEx ([](LPVOID user) -> DWORD
               {
                 SetCurrentThreadDescription  (L"[SK] Thread Profiler Watchdog Timer");
                 SK_Thread_SetCurrentPriority (THREAD_PRIORITY_LOWEST);
@@ -988,7 +1286,8 @@ public:
                 SK_Thread_CloseSelf ();
 
                 return 0;
-              }, (LPVOID)&params, 0x00, nullptr);
+              }, nullptr,
+        (LPVOID)&params);
             }
 
             else if (hRecoveryEvent != INVALID_HANDLE_VALUE)
@@ -1196,14 +1495,33 @@ public:
     ImGui::BeginGroup ();
     for ( auto& it : SKWG_Ordered_Threads )
     {
-      it.second->hThread =
-        OpenThread (THREAD_ALL_ACCESS, FALSE, it.second->dwTid);
+      if (! it.second->exited)
+      {
+        it.second->hThread =
+          OpenThread ( THREAD_ALL_ACCESS, FALSE, it.second->dwTid );
+      }
 
       if (! IsThreadNonIdle (*it.second)) continue;
 
-      HANDLE hThread = it.second->hThread;
+      DWORD  dwErrorCode = 0;
 
-      if (! GetExitCodeThread (hThread, &dwExitCode)) dwExitCode = 0;
+      if (! it.second->exited)
+      {
+        if (! GetExitCodeThread (it.second->hThread, &dwExitCode))
+        {
+          dwErrorCode = GetLastError ();
+
+          if (dwErrorCode != ERROR_INVALID_HANDLE)
+              dwExitCode   = STILL_ACTIVE;
+
+          else
+          {
+             it.second->hThread =         0;
+             dwExitCode         = (DWORD)-1;
+          }
+        }
+      } else { dwExitCode =  0; }
+
 
       if (SKWG_Threads [it.second->dwTid]->wait_reason == WaitReason::Suspended)
         ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.85f, 0.95f, 0.99f));
@@ -1236,7 +1554,11 @@ public:
 
       ImGui::PopStyleColor ();
 
-      if (ImGui::IsItemHovered ()) ThreadMemTooltip (it.second->dwTid);
+      if (ImGui::IsItemHovered ())
+      { if ( ! dwErrorCode ) ThreadMemTooltip (it.second->dwTid);
+        else                 ImGui::SetTooltip ("Error Code: %lu", dwErrorCode);
+      }
+
     }
     ImGui::EndGroup   (); ImGui::SameLine ();
 
@@ -1246,83 +1568,78 @@ public:
     {
       if (! IsThreadNonIdle (*it.second)) continue;
 
-      it.second->name        = SK_Thread_GetName       (it.second->dwTid);
-      it.second->self_titled = SK_Thread_HasCustomName (it.second->dwTid);
+      if (! it.second->self_titled)
+      {
+        it.second->name        = SK_Thread_GetName       (it.second->dwTid);
+        it.second->self_titled = SK_Thread_HasCustomName (it.second->dwTid);
+      }
 
       if (it.second->self_titled)
         ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.572222, 0.63f, 0.95f));
       else
         ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.472222, 0.23f, 0.91f));
 
-      if ((! it.second->name.empty ()) && wcslen (it.second->name.c_str ()))
-        ImGui::Text (u8R"(%ws)", it.second->name.c_str ());
+      if (it.second->name.length () > 1)
+        ImGui::Text ("%ws", it.second->name.c_str ());
       else
       {
         NTSTATUS  ntStatus;
-        HANDLE    hDupHandle;
         DWORD_PTR pdwStartAddress; 
 
         static NtQueryInformationThread_pfn NtQueryInformationThread =
           (NtQueryInformationThread_pfn)GetProcAddress ( GetModuleHandle (L"NtDll.dll"),
                                                            "NtQueryInformationThread" );
-        HANDLE hCurrentProc =
-          GetCurrentProcess ();
 
         HANDLE hThread = it.second->hThread;
 
-        if (DuplicateHandle (hCurrentProc, hThread,
-                              hCurrentProc, &hDupHandle,
-                                THREAD_QUERY_INFORMATION, FALSE, 0 ) )
+        ntStatus =
+          NtQueryInformationThread (  hThread, ThreadQuerySetWin32StartAddress,
+                                     &pdwStartAddress, sizeof (DWORD), NULL );
+
+        char  thread_name [512] = { };
+        char  szSymbol    [256] = { };
+        ULONG ulLen             = 191;
+
+        SK::Diagnostics::CrashHandler::InitSyms ();
+
+        ULONG
+        SK_GetSymbolNameFromModuleAddr ( HMODULE hMod,   uintptr_t addr,
+                                         char*   pszOut, ULONG     ulLen );
+
+        ulLen = SK_GetSymbolNameFromModuleAddr (
+                SK_GetModuleFromAddr ((LPCVOID)pdwStartAddress),
+        reinterpret_cast <uintptr_t> ((LPCVOID)pdwStartAddress),
+                      szSymbol,
+                        ulLen );
+
+        if (ulLen > 0)
         {
-          ntStatus =
-            NtQueryInformationThread (  hDupHandle, ThreadQuerySetWin32StartAddress,
-                                       &pdwStartAddress, sizeof (DWORD), NULL );
+          sprintf ( thread_name, "%s+%s",
+                   SK_WideCharToUTF8 (SK_GetCallerName ((LPCVOID)pdwStartAddress)).c_str ( ),
+                                                           szSymbol );
+        }
 
-          char    thread_name [512] = { };
-          char    szSymbol    [256] = { };
-          ULONG   ulLen             = 191;
+        else {
+          sprintf ( thread_name, "%s",
+                      SK_WideCharToUTF8 (SK_GetCallerName ((LPCVOID)pdwStartAddress)).c_str () );
+        }
 
-          SK::Diagnostics::CrashHandler::InitSyms ();
+        SK_TLS* pTLS =
+          SK_TLS_BottomEx (it.second->dwTid);
 
-          ULONG
-          SK_GetSymbolNameFromModuleAddr ( HMODULE hMod,   uintptr_t addr,
-                                           char*   pszOut, ULONG     ulLen );
+        if (pTLS != nullptr)
+          wcsncpy (pTLS->debug.name, SK_UTF8ToWideChar (thread_name).c_str (), 255);
 
-          ulLen = SK_GetSymbolNameFromModuleAddr (
-                  SK_GetModuleFromAddr ((LPCVOID)pdwStartAddress),
-          reinterpret_cast <uintptr_t> ((LPCVOID)pdwStartAddress),
-                        szSymbol,
-                          ulLen );
+        {
+          extern concurrency::concurrent_unordered_map <DWORD, std::wstring> _SK_ThreadNames;
 
-          if (ulLen > 0)
+          if (! _SK_ThreadNames.count (it.second->dwTid))
           {
-            sprintf ( thread_name, "%s+%s",
-                     SK_WideCharToUTF8 (SK_GetCallerName ((LPCVOID)pdwStartAddress)).c_str ( ),
-                                                             szSymbol );
+            _SK_ThreadNames [it.second->dwTid] =
+              std::move (SK_UTF8ToWideChar (thread_name));
+
+            it.second->name = std::move (SK_UTF8ToWideChar (thread_name));
           }
-
-          else {
-            sprintf ( thread_name, "%s",
-                        SK_WideCharToUTF8 (SK_GetCallerName ((LPCVOID)pdwStartAddress)).c_str () );
-          }
-
-          SK_TLS* pTLS =
-            SK_TLS_BottomEx (it.second->dwTid);
-
-          if (pTLS != nullptr)
-            wcsncpy (pTLS->debug.name, SK_UTF8ToWideChar (thread_name).c_str ( ), 255);
-
-          {
-            extern concurrency::concurrent_unordered_map <DWORD, std::wstring> _SK_ThreadNames;
-
-            if (! _SK_ThreadNames.count (it.second->dwTid))
-            {
-              _SK_ThreadNames [it.second->dwTid] =
-                std::move (SK_UTF8ToWideChar (thread_name));
-            }
-          }
-
-          CloseHandle (hDupHandle);
         }
 
         ImGui::Text ("");
@@ -1342,15 +1659,23 @@ public:
 
       HANDLE hThread = it.second->hThread;
 
-      PROCESSOR_NUMBER pnum = { };
+      PROCESSOR_NUMBER                     pnum = { };
       GetThreadIdealProcessorEx (hThread, &pnum);
 
       UINT i = 
         ( pnum.Group + pnum.Number );
 
-      ImGui::TextColored ( ImColor::HSV ( (float)( i       + 1 ) /
-                                          (float)( uMaxCPU + 1 ), 0.5f, 1.0f ),
-                             "CPU %lu", i );
+      if (! it.second->exited)
+      {
+        ImGui::TextColored ( ImColor::HSV ( (float)( i       + 1 ) /
+                                            (float)( uMaxCPU + 1 ), 0.5f, 1.0f ),
+                               "CPU %lu", i );
+      }
+
+      else
+      {
+        ImGui::TextColored ( ImColor (0.85f, 0.85f, 0.85f), "-" );
+      }
 
       if (ImGui::IsItemHovered ()) ThreadMemTooltip (it.second->dwTid);
 
@@ -1607,7 +1932,8 @@ public:
 
     for (auto& it : SKWG_Ordered_Threads)
     {
-      if (it.second->hThread != INVALID_HANDLE_VALUE)
+      if ( it.second->hThread != 0 &&
+           it.second->hThread != INVALID_HANDLE_VALUE )
       {
         CloseHandle (it.second->hThread);
                      it.second->hThread = INVALID_HANDLE_VALUE;

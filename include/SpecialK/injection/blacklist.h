@@ -97,6 +97,9 @@ std::unordered_set <std::wstring> __blacklist = {
   L"dwm.exe",
   L"launchtm.exe",
 
+  L"iastoricon.exe",
+  L"powershelltoolsprocesshost.exe",
+
   L"synchost.exe",
   L"settingsynchost.exe",
   L"applicationframehost.exe",
