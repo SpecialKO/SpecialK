@@ -194,19 +194,19 @@ SK_GPUPollingThread (LPVOID user)
         //   and immediately breaking NvAPI.
         if (has_thermal)
         {
-          __try {
+          //__try {
             status = ( NvAPI_GPU_GetThermalSettings == nullptr ||
                        (! has_thermal) )                        ?
                                                     NVAPI_ERROR :
                      NvAPI_GPU_GetThermalSettings (gpu,
                                                    NVAPI_THERMAL_TARGET_ALL,
                                                    &thermal);
-          }
-
-          __except (EXCEPTION_EXECUTE_HANDLER)
-          {
-            has_thermal = false;
-          }
+          //}
+          //
+          //__except (EXCEPTION_EXECUTE_HANDLER)
+          //{
+          //  has_thermal = false;
+          //}
         }
 
         if (! has_thermal) status = NVAPI_ERROR;

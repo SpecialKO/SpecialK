@@ -360,11 +360,13 @@ void ImDrawList::PrimReserve(int idx_count, int vtx_count)
     draw_cmd.ElemCount += idx_count;
 
     int vtx_buffer_size = VtxBuffer.Size;
-    VtxBuffer.resize(vtx_buffer_size + vtx_count);
+    if (VtxBuffer.size () < vtx_buffer_size + vtx_count && vtx_count > 0)
+        VtxBuffer.resize (  vtx_buffer_size + vtx_count);
     _VtxWritePtr = VtxBuffer.Data + vtx_buffer_size;
 
     int idx_buffer_size = IdxBuffer.Size;
-    IdxBuffer.resize(idx_buffer_size + idx_count);
+    if (IdxBuffer.size () < idx_buffer_size + idx_count && idx_count > 0)
+        IdxBuffer.resize (  idx_buffer_size + idx_count);
     _IdxWritePtr = IdxBuffer.Data + idx_buffer_size;
 }
 
@@ -1508,8 +1510,7 @@ void ImFontAtlas::RenderCustomTexData(int pass, void* p_rects)
     if (pass == 0)
     {
         // Request rectangles
-        stbrp_rect r;
-        memset(&r, 0, sizeof(r));
+        stbrp_rect r = { };
         r.w = (TEX_DATA_W*2)+1;
         r.h = TEX_DATA_H+1;
         rects.push_back(r);

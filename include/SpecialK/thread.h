@@ -157,7 +157,7 @@ private:
 
 __forceinline
 static void
-SK_Thread_SpinUntilFlagged (volatile LONG* pFlag, LONG _SpinMax = 750L)
+SK_Thread_SpinUntilFlagged (volatile LONG* pFlag, LONG _SpinMax = 75L)
 {
   while (! ReadAcquire (pFlag))
   {
@@ -174,7 +174,7 @@ SK_Thread_SpinUntilFlagged (volatile LONG* pFlag, LONG _SpinMax = 750L)
 
 __forceinline
 static void
-SK_Thread_SpinUntilAtomicMin (volatile LONG* pVar, LONG count, LONG _SpinMax = 750L)
+SK_Thread_SpinUntilAtomicMin (volatile LONG* pVar, LONG count, LONG _SpinMax = 75L)
 {
   while (ReadAcquire (pVar) < count)
   {

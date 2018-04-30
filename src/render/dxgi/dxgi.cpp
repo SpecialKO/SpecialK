@@ -3887,7 +3887,10 @@ DXGISwap_ResizeBuffers_Override ( IDXGISwapChain *This,
 
   if (       config.render.framerate.buffer_count != -1           &&
        (UINT)config.render.framerate.buffer_count !=  BufferCount &&
-       BufferCount                          !=  0 )
+       BufferCount                                !=  0           &&
+
+           config.render.framerate.buffer_count   >   0           && 
+           config.render.framerate.buffer_count   <   16 )
   {
     BufferCount = config.render.framerate.buffer_count;
     dll_log.Log (L"[   DXGI   ]  >> Buffer Count Override: %lu buffers", BufferCount);
@@ -4428,7 +4431,10 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).c_str (),
 
       if (       config.render.framerate.buffer_count != -1                  &&
            (UINT)config.render.framerate.buffer_count !=  pDesc->BufferCount &&
-           pDesc->BufferCount                         !=  0 )
+           pDesc->BufferCount                         !=  0                  &&
+
+           config.render.framerate.buffer_count       >   0                  && 
+           config.render.framerate.buffer_count       <   16 )
       {
         pDesc->BufferCount = config.render.framerate.buffer_count;
         dll_log.Log (L"[   DXGI   ]  >> Buffer Count Override: %lu buffers", pDesc->BufferCount);
@@ -5383,7 +5389,7 @@ STDMETHODCALLTYPE EnumAdapters_Common (IDXGIFactory       *This,
 
         if (pAdapter1 != nullptr)
         {
-          DXGI_VIRTUAL_HOOK (&pAdapter1, 10, "(*pAdapter1)->GetDesc1",
+          DXGI_VIRTUAL_HOOK (&pAdapter1.p, 10, "(*pAdapter1)->GetDesc1",
             GetDesc1_Override, GetDesc1_Original, GetDesc1_pfn);
         }
       }

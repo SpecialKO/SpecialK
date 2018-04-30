@@ -99,6 +99,7 @@ std::unordered_set <std::wstring> __blacklist = {
 
   L"iastoricon.exe",
   L"powershelltoolsprocesshost.exe",
+  L"ara.exe" // Norton bloatware that trolls the system tray until removed
 
   L"synchost.exe",
   L"settingsynchost.exe",

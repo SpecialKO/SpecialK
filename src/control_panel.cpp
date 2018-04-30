@@ -245,38 +245,65 @@ namespace SK_ImGui
   //   the rest of the ImGui API.
   bool BatteryMeter (void)
   {
-    if (! SK::SteamAPI::AppID ())
-      return false;
+    static bool has_battery = true;
 
-    ISteamUtils* utils =
-      SK_SteamAPI_Utils ();
+    SYSTEM_POWER_STATUS sps = { };
 
-    if (utils)
+    if (has_battery)
     {
-      const uint8_t battery_level =
-        utils->GetCurrentBatteryPower ();
-      
-      if (battery_level != 255) // 255 = Running on AC
+      if (GetSystemPowerStatus (&sps))
       {
-        const float battery_ratio = (float)battery_level/100.0f;
+        has_battery   = (sps.BatteryFlag & 128) == 0;
+        bool charging = (sps.BatteryFlag & 8  ) == 8;
 
-        static char szBatteryLevel [128] = { };
-        snprintf (szBatteryLevel, 127, "%hhu%% Battery Charge Remaining", battery_level);
+        uint8_t battery_level =
+          sps.ACLineStatus != 1 ?
+            sps.BatteryLifePercent :
+              charging ? 100 + sps.BatteryLifePercent :
+                         ( (sps.BatteryFlag & 2) ||
+                           (sps.BatteryFlag & 4) ) ? sps.BatteryLifePercent
+                                                   : 255;
 
-        ImGui::PushStyleColor (ImGuiCol_PlotHistogram,  ImColor::HSV (battery_ratio * 0.278f, 0.88f, 0.666f));
-        ImGui::PushStyleColor (ImGuiCol_Text,           ImColor (255, 255, 255));
-        ImGui::PushStyleColor (ImGuiCol_FrameBg,        ImColor ( 0.3f,  0.3f,  0.3f, 0.7f));
-        ImGui::PushStyleColor (ImGuiCol_FrameBgHovered, ImColor ( 0.6f,  0.6f,  0.6f, 0.8f));
-        ImGui::PushStyleColor (ImGuiCol_FrameBgActive,  ImColor ( 0.9f,  0.9f,  0.9f, 0.9f));
+        if (battery_level < 255) // 255 = Running on AC (not charging)
+        {
+          if (battery_level  > 100)
+              battery_level -= 100;
 
-        ImGui::ProgressBar ( battery_ratio,
-                               ImVec2 (-1, 0),
-                                 szBatteryLevel );
+          const float battery_ratio = (float)battery_level/100.0f;
 
-        ImGui::PopStyleColor  (5);
+          static char szBatteryLevel [128] = { };
 
-        return true;
+          if (sps.BatteryLifeTime != -1)
+            snprintf (szBatteryLevel, 127, "%hhu%% Battery Remaining\t\t[%lu Minutes]",
+                      battery_level, sps.BatteryLifeTime / 60);
+          else if (charging)
+            snprintf (szBatteryLevel, 127, "%hhu%% Battery Charged",   battery_level);
+          else
+            snprintf (szBatteryLevel, 127, "%hhu%% Battery Remaining", battery_level);
+
+          float luminance =
+            charging ?
+                0.166f + (0.5f + (sin ((float)(current_time % 2000) / 2000.0f)) * 0.5f) / 2.0f :
+                0.666f;
+
+          ImGui::PushStyleColor (ImGuiCol_PlotHistogram,  ImColor::HSV (battery_ratio * 0.278f, 0.88f, luminance));
+          ImGui::PushStyleColor (ImGuiCol_Text,           ImColor (255, 255, 255));
+          ImGui::PushStyleColor (ImGuiCol_FrameBg,        ImColor ( 0.3f,  0.3f,  0.3f, 0.7f));
+          ImGui::PushStyleColor (ImGuiCol_FrameBgHovered, ImColor ( 0.6f,  0.6f,  0.6f, 0.8f));
+          ImGui::PushStyleColor (ImGuiCol_FrameBgActive,  ImColor ( 0.9f,  0.9f,  0.9f, 0.9f));
+
+          ImGui::ProgressBar ( battery_ratio,
+                                 ImVec2 (-1, 0),
+                                   szBatteryLevel );
+
+          ImGui::PopStyleColor  (5);
+
+          return true;
+        }
       }
+
+      else
+        has_battery = false;
     }
 
     return false;
@@ -2254,6 +2281,8 @@ SK_ImGui_ControlPanel (void)
 
   SK::ControlPanel::PlugIns::Draw ();
   SK::ControlPanel::Steam::Draw   ();
+
+  SK_ImGui::BatteryMeter ();
 
   ImVec2 pos  = ImGui::GetWindowPos  ();
   ImVec2 size = ImGui::GetWindowSize ();

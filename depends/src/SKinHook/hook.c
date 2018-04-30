@@ -192,6 +192,7 @@ typedef struct _FROZEN_THREADS
   UINT          capacity; // Size of allocated data heap, items
   UINT          size;     // Actual number of data items
   DWORD         priority; // Original thread priority
+  DWORD_PTR     affinity; // Original thread affinity
 } FROZEN_THREADS, *PFROZEN_THREADS;
 
 //-------------------------------------------------------------------------
@@ -626,7 +627,8 @@ FreezeEx (PFROZEN_THREADS pThreads, UINT pos, UINT action, UINT idx)
   pThreads->pItems   = NULL;
   pThreads->capacity = 0;
   pThreads->size     = 0;
-  pThreads->priority = GetThreadPriority (hThreadSelf);
+  pThreads->priority = GetThreadPriority     (hThreadSelf);
+  pThreads->affinity = SetThreadAffinityMask (hThreadSelf, 0);
 
   SetThreadPriority (hThreadSelf, THREAD_PRIORITY_TIME_CRITICAL);
 
@@ -646,11 +648,14 @@ FreezeEx (PFROZEN_THREADS pThreads, UINT pos, UINT action, UINT idx)
                        FALSE,
                          pThread->tid );
 
-      if ( hThread != NULL && hThread != INVALID_HANDLE_VALUE )
-      {
-        pThread->suspensions = 0;
-        pThread->runstate    = 2; // Unknown
+      if (pThread->tid == GetCurrentThreadId ())
+        continue;
 
+      pThread->suspensions = 0;
+      pThread->runstate    = 2; // Unknown
+
+      while ( hThread != NULL && hThread != INVALID_HANDLE_VALUE && pThread->suspensions == 0)
+      {
         DWORD                            dwExitCode = 0;
         if (GetExitCodeThread (hThread, &dwExitCode))
         {
@@ -691,10 +696,11 @@ FreezeEx (PFROZEN_THREADS pThreads, UINT pos, UINT action, UINT idx)
           //if (dwErr != NO_ERROR) OutputDebugStringA ("dwErr != NO_ERROR");//assert (dwErr == NO_ERROR);
           } while (pThread->suspensions == 0);
 
-          ProcessThreadIPsEx (hThread, pos, action, idx);
+          if (pThread->suspensions != 0)
+            ProcessThreadIPsEx (hThread, pos, action, idx);
         }
-        CloseHandle          (hThread);
       }
+      CloseHandle              (hThread);
     }
   }
 }
@@ -741,7 +747,8 @@ Unfreeze (PFROZEN_THREADS pThreads)
     HeapFree (g_hHeap, 0, pThreads->pItems);
   }
 
-  SetThreadPriority (GetCurrentThread (), pThreads->priority);
+  SetThreadAffinityMask (GetCurrentThread (), pThreads->affinity);
+  SetThreadPriority     (GetCurrentThread (), pThreads->priority);
 }
 
 //-------------------------------------------------------------------------

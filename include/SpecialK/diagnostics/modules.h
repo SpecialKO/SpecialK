@@ -308,7 +308,7 @@ public:
     };
 
     // We're not fooling anyone, third-party software can see this!
-    assert (LoadLibraryW_Original != nullptr);
+    ///assert (LoadLibraryW_Original != nullptr);
 
     if (hMod != INVALID_MODULE)
       _RegisterLibrary (hMod, wszLibrary);

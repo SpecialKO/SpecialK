@@ -694,6 +694,7 @@ enum class SK_GAME_ID
   NiNoKuni2,                    // Nino2.exe
   FarCry5,                      // FarCry5.exe
   ChronoTrigger,                // Chrono Trigger.exe
+  Ys_Eight,                     // ys8.exe
   UNKNOWN_GAME               = 0xffff
 };
 

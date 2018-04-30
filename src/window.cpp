@@ -4634,7 +4634,8 @@ SK_InstallWindowHook (HWND hWnd)
 
     if (win32u_test [0].used)
     {
-      SK_CreateUser32Hook (      "NtUserPeekMessage",
+      SK_CreateDLLHook2 (      L"Win32U.dll",
+                                 "NtUserPeekMessage",
                                   NtUserPeekMessage_Detour,
          static_cast_p2p <void> (&NtUserPeekMessage_Original) );
     }
@@ -4658,11 +4659,13 @@ SK_InstallWindowHook (HWND hWnd)
     //
     if (win32u_test [0].used)
     {
-      SK_CreateUser32Hook (      "NtUserGetMessage",
+      SK_CreateDLLHook2 (       L"Win32U.dll",
+                                 "NtUserGetMessage",
                                   NtUserGetMessage_Detour,
          static_cast_p2p <void> (&NtUserGetMessage_Original) );
 
-      SK_CreateUser32Hook (      "NtUserDispatchMessage",
+      SK_CreateDLLHook2 (       L"Win32U.dll",
+                                 "NtUserDispatchMessage",
                                   NtUserDispatchMessage_Detour,
          static_cast_p2p <void> (&NtUserDispatchMessage_Original) );
     }

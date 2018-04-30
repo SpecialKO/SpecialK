@@ -126,7 +126,7 @@ extern INT SK_ImGui_ActivationKeys [256];
 #define SK_RAWINPUT_READ(type)  SK_RawInput_Backend.markRead  (type);
 #define SK_RAWINPUT_WRITE(type) SK_RawInput_Backend.markWrite (type);
 
-SK_Thread_HybridSpinlock raw_input_lock (9000);
+SK_Thread_HybridSpinlock raw_input_lock (13);
 
 UINT
 WINAPI

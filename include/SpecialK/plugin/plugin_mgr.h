@@ -90,6 +90,9 @@ HRESULT __stdcall
 
 void
 SK_SOM_InitPlugin (void);
+
+void
+SK_YS8_InitPlugin (void);
 #endif
 
 #endif /* __SK__Plugin__Manager_H__ */

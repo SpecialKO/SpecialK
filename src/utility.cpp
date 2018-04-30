@@ -592,22 +592,142 @@ SK_MakePrettyAddress (LPCVOID addr, DWORD /*dwFlags*/)
 }
 
 
+
+
+struct SK_MemScan_Params__v0
+{
+  enum Privilege
+  {
+    Allowed    = true,
+    Disallowed = false,
+    DontCare   = (DWORD_PTR)-1
+  };
+
+  struct
+  {
+    Privilege execute = DontCare;
+    Privilege read    = Allowed;
+    Privilege write   = DontCare;
+  } privileges;
+
+  enum MemType
+  {
+    ImageCode  = SEC_IMAGE,
+    FileData   = SEC_FILE,
+    HeapMemory = SEC_COMMIT
+  } mem_type;
+
+  bool testPrivs (MEMORY_BASIC_INFORMATION& mi)
+  {
+    if (mi.AllocationProtect == 0)
+      return false;
+
+    bool valid = true;
+
+
+    if (privileges.execute != DontCare)
+    {
+      bool exec_matches = true;
+
+      switch (mi.Protect)
+      {
+        case PAGE_EXECUTE:
+        case PAGE_EXECUTE_READ:
+        case PAGE_EXECUTE_READWRITE:
+        case PAGE_EXECUTE_WRITECOPY:
+          if (privileges.execute != Allowed)
+            exec_matches = false;
+          break;
+
+        default:
+          if (privileges.execute == Disallowed)
+            exec_matches = false;
+          break;
+      }
+
+      valid &= exec_matches;
+    }
+
+
+    if (privileges.read != DontCare)
+    {
+      bool read_matches = true;
+
+      switch (mi.Protect)
+      {
+        case PAGE_READONLY:
+        case PAGE_READWRITE:
+        case PAGE_EXECUTE_READ:
+        case PAGE_EXECUTE_READWRITE:
+        case PAGE_EXECUTE_WRITECOPY:
+          if (privileges.read != Allowed)
+            read_matches = false;
+          break;
+
+        default:
+          if (privileges.read == Disallowed)
+            read_matches = false;
+          break;
+      }
+
+      valid &= read_matches;
+    }
+
+
+    if (privileges.write != DontCare)
+    {
+      bool write_matches = true;
+
+      switch (mi.Protect)
+      {
+        case PAGE_READWRITE:
+        case PAGE_WRITECOPY:
+        case PAGE_EXECUTE_READWRITE:
+        case PAGE_EXECUTE_WRITECOPY:
+          if (privileges.write != Allowed)
+            write_matches = false;
+          break;
+
+        default:
+          if (privileges.write == Disallowed)
+            write_matches = false;
+          break;
+      }
+
+      valid &= write_matches;
+    }
+
+    return valid;
+  }
+};
+
+
 bool
 SK_ValidatePointer (LPCVOID addr)
 {
   MEMORY_BASIC_INFORMATION minfo = { };
 
+  bool bFail = true;
+
   if (VirtualQuery (addr, &minfo, sizeof minfo))
   {
-    if (! (minfo.Protect & PAGE_NOACCESS))
-      return true;
+    bFail = false;
+
+    if ((minfo.AllocationProtect == 0 ) ||
+      (  minfo.Protect & PAGE_NOACCESS)   )
+    {
+      bFail = true;
+    }
   }
 
-  SK_LOG0 ( ( L"Address Validation for addr. %s FAILED!",
-                SK_MakePrettyAddress (addr).c_str () ),
-              L" SK Debug " );
+  if (bFail)
+  {
+    SK_LOG0 ( ( L"Address Validation for addr. %s FAILED!",
+                  SK_MakePrettyAddress (addr).c_str () ),
+                L" SK Debug " );
+  }
 
-  return false;
+  return (! bFail);
 }
 
 bool
@@ -617,14 +737,15 @@ SK_IsAddressExecutable (LPCVOID addr)
 
   if (VirtualQuery (addr, &minfo, sizeof minfo))
   {
-    if (! (minfo.Protect & PAGE_NOACCESS))
+    if (SK_ValidatePointer (addr))
     {
-      if ( (minfo.Protect & ( PAGE_EXECUTE           |
-                              PAGE_EXECUTE_READ      |
-                              PAGE_EXECUTE_READWRITE |
-                              PAGE_EXECUTE_WRITECOPY   )
-           )
-         )
+      static SK_MemScan_Params__v0 test_exec;
+
+      SK_RunOnce(
+        test_exec.privileges.execute = SK_MemScan_Params__v0::Allowed
+      );
+
+      if (test_exec.testPrivs (minfo))
       {
         return true;
       }
@@ -1325,17 +1446,24 @@ SK_Scan (const void* pattern, size_t len, const void* mask)
   return SK_ScanAligned (pattern, len, mask);
 }
 
+
 void*
 __stdcall
-SK_ScanAlignedEx2 (const void* pattern, size_t len, const void* mask, void* after, int align, uint8_t* base_addr)
+SKX_ScanAlignedEx ( const void* pattern, size_t len,   const void* mask,
+                          void* after,   int    align,    uint8_t* base_addr,
+
+                          SK_MemScan_Params__v0 params =
+                          SK_MemScan_Params__v0 ()       )
 {
-  MEMORY_BASIC_INFORMATION minfo;
+  MEMORY_BASIC_INFORMATION minfo = { };
   VirtualQuery (base_addr, &minfo, sizeof minfo);
 
   //
-  // VMProtect kills this, so let's do something else...
+  // Valid Win32 software have valid NT headers even after relocation ...
   //
-#ifdef VMPROTECT_IS_NOT_A_FACTOR
+  //   VMProtect is not valid software and should think about what it has done!
+  //
+#ifdef VMPROTECT_ANTI_FUDGE
   IMAGE_DOS_HEADER* pDOS =
     (IMAGE_DOS_HEADER *)minfo.AllocationBase;
   IMAGE_NT_HEADERS* pNT  =
@@ -1343,7 +1471,7 @@ SK_ScanAlignedEx2 (const void* pattern, size_t len, const void* mask, void* afte
 
   uint8_t* end_addr = base_addr + pNT->OptionalHeader.SizeOfImage;
 #else
-           base_addr = static_cast <uint8_t *> (minfo.BaseAddress);//AllocationBase;
+           base_addr = static_cast <uint8_t *> (minfo.BaseAddress);
   uint8_t* end_addr  = static_cast <uint8_t *> (minfo.BaseAddress) + minfo.RegionSize;
 
   ///if (base_addr != (uint8_t *)0x400000)
@@ -1419,6 +1547,15 @@ uint8_t* const PAGE_WALK_LIMIT = (base_addr + static_cast <uintptr_t>(1ULL << 36
   uint8_t* it    = begin;
   size_t   idx   = 0;
 
+  static MODULEINFO mi_sk = {};
+
+  SK_RunOnce (
+    GetModuleInformation ( SK_GetCurrentProcess (),
+      SK_GetDLL (),
+              &mi_sk,
+       sizeof MODULEINFO )
+  );
+
   while (it < end_addr)
   {
     VirtualQuery (it, &minfo, sizeof minfo);
@@ -1431,9 +1568,21 @@ uint8_t* const PAGE_WALK_LIMIT = (base_addr + static_cast <uintptr_t>(1ULL << 36
     uint8_t* next_rgn =
      (uint8_t *)minfo.BaseAddress + minfo.RegionSize;
 
-    if ( (! (minfo.Type    & MEM_IMAGE))  ||
-         (! (minfo.State   & MEM_COMMIT)) ||
-             minfo.Protect & PAGE_NOACCESS )
+    if ( (! (minfo.Type     & MEM_IMAGE))   ||
+         (! (minfo.State    & MEM_COMMIT))  ||
+             minfo.Protect  & PAGE_NOACCESS ||
+             minfo.Protect == 0             ||
+           ( ! params.testPrivs (minfo) )   ||
+
+        // It is not a good idea to scan Special K's DLL, since in many cases the pattern
+        //   we are scanning for becomes a part of the DLL and makes an exhaustive search
+        //     even more exhausting.
+        //
+        //  * If scanning a Special K DLL is needed, see Kaldaien and we can probably
+        //      come up with a more robust solution.
+        //
+             ( minfo.BaseAddress >=            mi_sk.lpBaseOfDll &&
+               it                <= (uint8_t *)mi_sk.lpBaseOfDll + mi_sk.SizeOfImage ) )
     {
       it    = next_rgn;
       idx   = 0;
@@ -1446,16 +1595,29 @@ uint8_t* const PAGE_WALK_LIMIT = (base_addr + static_cast <uintptr_t>(1ULL << 36
     if (next_rgn >= end_addr)
       break;
 
-    while (it < next_rgn)
+    while (it <= next_rgn)
     {
       uint8_t* scan_addr = it;
 
-      bool match = (*scan_addr == static_cast <const uint8_t *> (pattern) [idx]);
+      uint8_t test_val = static_cast <const uint8_t *> (pattern)[idx];
+      uint8_t mask_val = 0x0;
 
-      // For portions we do not care about... treat them
-      //   as matching.
-      if (mask != nullptr && (! static_cast <const uint8_t *> (mask) [idx]))
-        match = true;
+      bool match = (*scan_addr == test_val);
+
+      if (mask != nullptr)
+      {
+        mask_val = static_cast <const uint8_t *> (mask)[idx];
+
+        // Treat portions we do not care about (mask [idx] == 0) as wildcards.
+        if (! mask_val)
+          match = true;
+
+        else if (match)
+        {
+          // The more complicated case, where the mask is an actual mask :)
+          match = (test_val & mask_val);
+        }
+      }
 
       if (match)
       {
@@ -1501,12 +1663,34 @@ uint8_t* const PAGE_WALK_LIMIT = (base_addr + static_cast <uintptr_t>(1ULL << 36
 
 void*
 __stdcall
+SK_ScanAlignedEx2 ( const void* pattern, size_t len,   const void* mask,
+                          void* after,   int    align,    uint8_t* base_addr)
+{
+  return SKX_ScanAlignedEx ( pattern, len, mask, after, align, base_addr );
+}
+
+void*
+__stdcall
+SKX_ScanAlignedExec (const void* pattern, size_t len, const void* mask, void* after, int align)
+{
+  auto* base_addr =
+    reinterpret_cast <uint8_t *> (GetModuleHandle (nullptr));
+
+  SK_MemScan_Params__v0 params;
+                        params.privileges.execute =
+                    SK_MemScan_Params__v0::Allowed;
+
+  return SKX_ScanAlignedEx (pattern, len, mask, after, align, base_addr, params);
+}
+
+void*
+__stdcall
 SK_ScanAlignedEx (const void* pattern, size_t len, const void* mask, void* after, int align)
 {
   auto* base_addr =
     reinterpret_cast <uint8_t *> (GetModuleHandle (nullptr));
 
-  return SK_ScanAlignedEx2 (pattern, len, mask, after, align, base_addr);
+  return SKX_ScanAlignedEx (pattern, len, mask, after, align, base_addr);
 }
 
 void*
@@ -1531,8 +1715,8 @@ SK_InjectMemory ( LPVOID  base_addr,
     if ( VirtualProtect ( base_addr,   data_size,
                           permissions, &dwOld )   )
     {
-      if (old_data != nullptr) memcpy (old_data, base_addr, data_size);
-                               memcpy (base_addr, new_data, data_size);
+      if (old_data != nullptr) RtlCopyMemory (old_data, base_addr, data_size);
+                               RtlCopyMemory (base_addr, new_data, data_size);
 
       VirtualProtect ( base_addr, data_size,
                        dwOld,     &dwOld );

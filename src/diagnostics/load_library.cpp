@@ -617,17 +617,6 @@ FreeLibrary_Detour (HMODULE hLibModule)
 HMODULE
 LoadLibrary_Marshal (LPVOID lpRet, LPCWSTR lpFileName, const wchar_t* wszSourceFunc)
 {
-  if ( SK_RunLHIfBitness (64, StrStrIW (lpFileName, L"SpecialK64"),
-                              StrStrIW (lpFileName, L"SpecialK32")) )
-  {
-    HMODULE hModRet = 0;
-
-    GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
-                         (LPCWSTR)SK_GetDLL (), &hModRet );
-
-    return hModRet;
-  }
-
   if (lpFileName == nullptr)
     return nullptr;
 
@@ -649,7 +638,7 @@ LoadLibrary_Marshal (LPVOID lpRet, LPCWSTR lpFileName, const wchar_t* wszSourceF
                              &hModEarly );
   }
 
-    __except ( (GetExceptionCode () == EXCEPTION_INVALID_HANDLE) ?
+  __except ( (GetExceptionCode () == EXCEPTION_INVALID_HANDLE) ?
                          EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH  )
   {
     SetLastError (0);
@@ -773,17 +762,6 @@ LoadPackagedLibrary_Detour (LPCWSTR lpLibFileName, DWORD Reserved)
 HMODULE
 LoadLibraryEx_Marshal (LPVOID lpRet, LPCWSTR lpFileName, HANDLE hFile, DWORD dwFlags, const wchar_t* wszSourceFunc)
 {
-  if ( SK_RunLHIfBitness (64, StrStrIW (lpFileName, L"SpecialK64"),
-                              StrStrIW (lpFileName, L"SpecialK32")) )
-  {
-    HMODULE hModRet = 0;
-
-    GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
-                         (LPCWSTR)SK_GetDLL (), &hModRet );
-
-    return hModRet;
-  }
-
   if (lpFileName == nullptr)
     return nullptr;
 
@@ -1608,6 +1586,8 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
     {
       SetCurrentThreadDescription (L"[SK] DLL Enumeration Thread");
       SetThreadPriority           (GetCurrentThread (), THREAD_PRIORITY_LOWEST);
+
+      WaitForInit ();
 
       static volatile LONG                walking  =  0;
       while (InterlockedCompareExchange (&walking, 1, 0))

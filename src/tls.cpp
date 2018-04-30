@@ -137,6 +137,8 @@ SK_CleanupTLS (void)
 
 #include <cassert>
 
+extern volatile LONG __SK_DLL_Attached;
+
 SK_TLS __SK_TLS_SAFE_no_idx   = { };
 SK_TLS __SK_TLS_SAFE_low_addr = { };
 
@@ -147,7 +149,8 @@ SK_TLS_Bottom (void)
   auto tls_slot =
     SK_GetTLS ();
 
-  assert (tls_slot.dwTlsIdx != TLS_OUT_OF_INDEXES);
+  assert ( (! ReadAcquire (&__SK_DLL_Attached)) ||
+              tls_slot.dwTlsIdx != TLS_OUT_OF_INDEXES );
 
   if (tls_slot.dwTlsIdx == TLS_OUT_OF_INDEXES || tls_slot.lpvData == nullptr)
   {
@@ -163,33 +166,22 @@ SK_TLS_Bottom (void)
     static_cast <SK_TLS *> (tls_slot.lpvData);
 
 
-  // Yet another way TLS / FLS can be messed up; just assume that addresses
-  //   below 4 MiB are the result of a stack overflow or uninitialized memory.
-  if ((intptr_t)pTLS < (1024UL * 1024UL * 16UL))
-  {
-    return &__SK_TLS_SAFE_low_addr;
-  }
-
-
   ULONG frame = SK_GetFramesDrawn ();
 
-  //if (frame > 0 && pTLS->debug.last_frame == (frame - 1))
+  if (! pTLS->debug.mapped)
   {
-    if ((! pTLS->debug.mapped))// && frame > 1)
+    if (! tls_map.count (pTLS->debug.tid))
     {
-      if (! tls_map.count (pTLS->debug.tid))
-      {
-        pTLS->debug.mapped = true;
+      pTLS->debug.mapped = true;
 
-        InterlockedIncrement (&_SK_IgnoreTLSAlloc);
+      InterlockedIncrement (&_SK_IgnoreTLSAlloc);
 
-        tls_map.insert (
-          std::make_pair ( pTLS->debug.tid,
-                             SK_TlsRecord { pTLS->debug.tls_idx, pTLS } )
-        );
+      tls_map.insert (
+        std::make_pair ( pTLS->debug.tid,
+                           SK_TlsRecord { pTLS->debug.tls_idx, pTLS } )
+      );
 
-        InterlockedDecrement (&_SK_IgnoreTLSAlloc);
-      }
+      InterlockedDecrement (&_SK_IgnoreTLSAlloc);
     }
   }
 

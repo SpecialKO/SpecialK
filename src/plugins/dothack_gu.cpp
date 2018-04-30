@@ -72,8 +72,6 @@ static SK_ReShade_SetResolutionScale_pfn SK_ReShade_SetResolutionScale = nullptr
 using SK_PlugIn_ControlPanelWidget_pfn = void (__stdcall         *)(void);
 static SK_PlugIn_ControlPanelWidget_pfn SK_PlugIn_ControlPanelWidget_Original = nullptr;
 
-uint64_t SK_DGPU_MipmapCacheSize = 0ULL;
-
 struct SK_DGPU_ScreenFlare_Inst {
   struct
   {
@@ -332,6 +330,8 @@ SK_DGPU_ControlPanel (void)
     }
 
 
+    extern uint64_t SK_D3D11_MipmapCacheSize;
+
     extern LONG SK_D3D11_Resampler_GetActiveJobCount  (void);
     extern LONG SK_D3D11_Resampler_GetWaitingJobCount (void);
   //extern LONG SK_D3D11_Resampler_GetRetiredCount    (void);
@@ -421,12 +421,12 @@ SK_DGPU_ControlPanel (void)
           lstrcatW (wszPath, SK_GetHostApp ());
           lstrcatW (wszPath, L"/");
 
-          SK_DGPU_MipmapCacheSize -= SK_DeleteTemporaryFiles (wszPath, L"*.dds");
-          SK_DGPU_MipmapCacheSize  = 0;
+          SK_D3D11_MipmapCacheSize -= SK_DeleteTemporaryFiles (wszPath, L"*.dds");
+          SK_D3D11_MipmapCacheSize  = 0;
         }
 
         ImGui::SameLine ();
-        ImGui::Text     ("Current Cache Size: %.2f MiB", (double)SK_DGPU_MipmapCacheSize / (1024.0 * 1024.0));
+        ImGui::Text     ("Current Cache Size: %.2f MiB", (double)SK_D3D11_MipmapCacheSize / (1024.0 * 1024.0));
         ImGui::EndGroup ();
 
         if (changed)

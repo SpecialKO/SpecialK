@@ -253,7 +253,13 @@ SK_FFXV_SetupThreadPriorities (void)
   static int iters = 0;
 
   if (sk_ffxv_swapchain.hThread == 0)
-      sk_ffxv_swapchain.setup (OpenThread ( THREAD_ALL_ACCESS, FALSE, GetCurrentThreadId () ) );
+  {
+    CHandle hThread (
+      OpenThread ( THREAD_ALL_ACCESS, FALSE, GetCurrentThreadId () )
+    );
+
+    sk_ffxv_swapchain.setup (hThread.m_h);
+  }
 
   else  if ((iters++ % 120) == 0)
   {

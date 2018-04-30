@@ -115,8 +115,8 @@ SK_Inject_GetRecord (int idx)
            __SK_InjectionHistory [idx].process.eject   = __SK_InjectionHistory_eject  [idx];
            __SK_InjectionHistory [idx].process.crashed = __SK_InjectionHistory_crash  [idx];
            
-           __SK_InjectionHistory [idx].render.api     = __SK_InjectionHistory_api    [idx];
-           __SK_InjectionHistory [idx].render.frames  = __SK_InjectionHistory_frames [idx];
+           __SK_InjectionHistory [idx].render.api      = __SK_InjectionHistory_api    [idx];
+           __SK_InjectionHistory [idx].render.frames   = __SK_InjectionHistory_frames [idx];
 
   return &__SK_InjectionHistory [idx];
 }
@@ -136,10 +136,24 @@ SK_Inject_InitShutdownEvent (void)
     sattr.lpSecurityDescriptor = nullptr;
 
     dwHookPID      = GetCurrentProcessId ();
-    hShutdownEvent = 
-      CreateEventW ( &sattr, TRUE, FALSE,
-        SK_RunLHIfBitness ( 32, LR"(Global\SpecialK32_Reset)",
-                                LR"(Global\SpecialK64_Reset)" ) );
+
+    //// Reuse the event if it exists already
+    hShutdownEvent = OpenEventW ( SYNCHRONIZE | EVENT_MODIFY_STATE, FALSE,
+          SK_RunLHIfBitness ( 32, LR"(Global\SpecialK32_Reset)",
+                                  LR"(Global\SpecialK64_Reset)" ) );
+    
+    if (hShutdownEvent <= 0)
+    {
+      hShutdownEvent = 
+        CreateEventW ( &sattr, TRUE, FALSE,
+          SK_RunLHIfBitness ( 32, LR"(Global\SpecialK32_Reset)",
+                                  LR"(Global\SpecialK64_Reset)" ) );
+    }
+    
+    else
+    {
+      ResetEvent ( hShutdownEvent );
+    }
   }
 }
 
@@ -303,48 +317,21 @@ SKX_GetCBTHook (void)
 void
 SKX_WaitForCBTHookShutdown (void)
 {
-  CHandle hShutdown  ( INVALID_HANDLE_VALUE );
   CHandle hHookOwner (
     OpenProcess ( PROCESS_DUP_HANDLE, FALSE, dwHookPID )
   );
+  CHandle hShutdown ( INVALID_HANDLE_VALUE );
 
-  if (hHookOwner != nullptr && dwHookPID != GetCurrentProcessId ())
-  {
-    BOOL success =
-      DuplicateHandle ( hHookOwner, hShutdownEvent,
-                        SK_GetCurrentProcess (), &hShutdown.m_h,
-                        0x00, FALSE, DUPLICATE_SAME_ACCESS );
+  DuplicateHandle ( hHookOwner,            hShutdownEvent,
+                    GetCurrentProcess (), &hShutdown.m_h,
+                    0,       FALSE, DUPLICATE_SAME_ACCESS );
 
-    if ( ! ( success &&
-             hShutdown != INVALID_HANDLE_VALUE ) )
-    {
-      hShutdown.m_h =
-        OpenEvent ( SYNCHRONIZE, FALSE,
-          SK_RunLHIfBitness ( 32, LR"(Global\SpecialK32_Reset)",
-                                  LR"(Global\SpecialK64_Reset)" ) );
-    }
+  SetThreadPriority           ( SK_GetCurrentThread (),
+                                THREAD_PRIORITY_NORMAL );
+  SetCurrentThreadDescription (L"[SK] CBT Hook Teardown Broadcast Receiver");
 
-    if ( hShutdown != INVALID_HANDLE_VALUE && (! SK_IsHostAppSKIM ()) )
-    {
-      SetThreadPriority      ( SK_GetCurrentThread (),
-                               THREAD_PRIORITY_ABOVE_NORMAL );
-      SetThreadPriorityBoost ( SK_GetCurrentThread (),
-                               TRUE                         );
-      SetCurrentThreadDescription (L"[SK] CBT Hook Teardown Broadcast Receiver");
-
-#ifdef NOT_SANE_SCHEDULING
-      for (int i = 0; i < 16; i++)
-        if (WaitForSingleObject (hShutdown, 25UL) == WAIT_OBJECT_0) break;
-#else
-      DWORD dwWaitState = 0;
-
-      do {
-        dwWaitState =
-          WaitForSingleObjectEx (hShutdown, INFINITE, TRUE);
-      } while (dwWaitState != WAIT_OBJECT_0);
-#endif
-    }
-  }
+  if (hShutdown > 0)
+    WaitForSingleObjectEx (hShutdown, INFINITE, TRUE);
 }
 
 LRESULT
@@ -353,50 +340,69 @@ CBTProc ( _In_ int    nCode,
           _In_ WPARAM wParam,
           _In_ LPARAM lParam )
 {
-  static LONG hooked = FALSE;
+  static volatile LONG hooked = FALSE;
 
   if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
   {
-    NtUserCallNextHookEx =
-      (NtUserCallNextHookEx_pfn)GetProcAddress (
-        LoadLibraryW (L"Win32u.dll"), "NtUserCallNextHookEx"
-      );
-
-    if (! NtUserCallNextHookEx)
+    __try
     {
-      NtUserCallNextHookEx =
-        (NtUserCallNextHookEx_pfn)GetProcAddress (
-          LoadLibraryW (L"User32.dll"), "CallNextHookEx"
-        );
+      SK_Thread_Create (
+      [ ](LPVOID) -> DWORD
+       {
+         __try {
+           HMODULE hModThis;
+           
+           if ( GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+                                    GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+                                      (LPCWSTR)&CBTProc,
+                                        &hModThis ) )
+           {
+             InterlockedIncrement (&hooked);
+
+             InterlockedIncrement        (&injected_procs);
+             SKX_WaitForCBTHookShutdown  (               );
+             InterlockedDecrement        (&injected_procs);
+
+             SK_Thread_CloseSelf         (               );
+
+             return 0;
+           }
+
+           else
+             InterlockedIncrement (&hooked);
+
+           SK_Thread_CloseSelf           (               );
+         }
+
+         __except (EXCEPTION_EXECUTE_HANDLER)
+         {
+         }
+
+         return 0;
+       });
     }
 
-    CreateThread (nullptr, 0,
-    [ ](LPVOID) -> DWORD
-     {
-       HMODULE hModThis;
-
-       if ( GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
-                                GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-                                  (LPCWSTR)&CBTProc,
-                                    &hModThis ) )
-       {
-         if (! SK_IsHostAppSKIM ())
-         {
-           InterlockedIncrement        (&injected_procs);
-           SKX_WaitForCBTHookShutdown  (               );
-           InterlockedDecrement        (&injected_procs);
-         }
-       }
-
-       SK_Thread_CloseSelf             (               );
-
-       return 0;
-     }, nullptr, 0x0, nullptr);
+    __except (EXCEPTION_EXECUTE_HANDLER)
+    {
+    }
   }
 
-//SK_Thread_SpinUntilAtomicMin (&hooked, 2);
+  __try
+  {
+    if (nCode < 0)
+    {
+      return
+        CallNextHookEx (0, nCode, wParam, lParam);
+    }
 
-  return NtUserCallNextHookEx (0, nCode, wParam, lParam);
+    CallNextHookEx (0, nCode, wParam, lParam);
+  }
+
+  __except (EXCEPTION_EXECUTE_HANDLER)
+  {
+  }
+
+  return 0;
 }
 
 BOOL
@@ -434,7 +440,7 @@ SKX_InstallCBTHook (void)
   {
     SK_Inject_InitShutdownEvent ();
 
-    if (SK_IsHostAppSKIM ())
+    if (SK_GetHostAppUtil ().isInjectionTool ())
       InterlockedIncrement (&injected_procs);
 
     // Shell hooks don't work very well, they run into problems with
@@ -450,43 +456,64 @@ void
 __stdcall
 SKX_RemoveCBTHook (void)
 {
-START_OVER:
-  if ((intptr_t)hShutdownEvent > 0)
+  if (SK_GetHostAppUtil ().isInjectionTool ())
   {
-    SignalObjectAndWait ( hShutdownEvent,
-                          hShutdownEvent, 5, FALSE );
+    InterlockedDecrement (&injected_procs);
   }
 
   HHOOK hHookOrig = SKX_GetCBTHook ();
 
-  if (UnhookWindowsHookEx (hHookOrig))
-  {
-    if (SK_IsHostAppSKIM ())
-    {
-      InterlockedDecrement (&injected_procs);
-    }
 
-    RtlSecureZeroMemory (whitelist_patterns, sizeof (whitelist_patterns));
+START_OVER:
+  if ((intptr_t)hShutdownEvent > 0)
+  {
+    SetEvent (hShutdownEvent);
+
+    int spins = 0;
+
+    while (ReadAcquire (&injected_procs) > 0 && spins++ < 13)
+      ;
+
+    if (spins == 13)
+    {
+      if (SetEvent (hShutdownEvent))
+          SleepEx  (5, FALSE);
+    }
+  }
+
+
+  if (hHookOrig != 0 && UnhookWindowsHookEx (hHookOrig))
+  {
                          whitelist_count = 0;
+    RtlSecureZeroMemory (whitelist_patterns, sizeof (whitelist_patterns));
 
     InterlockedExchange        (&__SK_HookContextOwner, FALSE);
     InterlockedExchangePointer ( reinterpret_cast <LPVOID *> (
                                        const_cast < HHOOK *> (&hHookCBT)
                                  ), nullptr );
+
+    hHookOrig = 0;
   }
+
 
   if ( ReadPointerAcquire ((PVOID *)&hHookCBT) != nullptr ||
        ReadAcquire        (         &injected_procs) > 0     )
   {
-    if (! SK_GetHostAppUtil ().isInjectionTool ())
-      goto START_OVER;
+    static int retries = 0;
+
+    if ((intptr_t)hShutdownEvent > 0)
+    {
+      if (SK_GetHostAppUtil ().isInjectionTool () && retries++ < 5)
+        goto START_OVER;
+    }
   }
 
-  if ((intptr_t)hShutdownEvent > 0)
-  {
-    if (CloseHandle (hShutdownEvent))
-                     hShutdownEvent = 0;
-  }
+
+  //if ((intptr_t)hShutdownEvent > 0)
+  //{
+  //  if (CloseHandle (hShutdownEvent))
+  //                   hShutdownEvent = 0;
+  //}
 
   dwHookPID = 0x0;
 }

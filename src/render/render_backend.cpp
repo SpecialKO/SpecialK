@@ -137,8 +137,6 @@ SK_BootD3D9 (void)
   if (SK_GetFramesDrawn ())
     return;
 
-  __HrLoadAllImportsForDll ("D3DCOMPILER_47.dll");
-
   SK_TLS *pTLS =
     SK_TLS_Bottom ();
 
@@ -322,8 +320,6 @@ SK_BootDXGI (void)
   //   not normal :)
   if (SK_GetFramesDrawn ())
     return;
-
-  __HrLoadAllImportsForDll ("D3DCOMPILER_47.dll");
 
 
   SK_DXGI_QuickHook ();

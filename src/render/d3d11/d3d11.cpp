@@ -71,15 +71,15 @@ static DWORD         dwFrameTime = SK::ControlPanel::current_time; // For effect
 //   references prior to a buffer resize
 std::vector <IUnknown *> temp_resources;
 
-SK_Thread_HybridSpinlock cs_shader      (0xcafe);
-SK_Thread_HybridSpinlock cs_shader_vs   (0x6000);
-SK_Thread_HybridSpinlock cs_shader_ps   (0x8000);
-SK_Thread_HybridSpinlock cs_shader_gs   (0x4000);
-SK_Thread_HybridSpinlock cs_shader_hs   (0x3000);
-SK_Thread_HybridSpinlock cs_shader_ds   (0x3000);
-SK_Thread_HybridSpinlock cs_shader_cs   (0x9000);
-SK_Thread_HybridSpinlock cs_mmio        (0x7f7f);
-SK_Thread_HybridSpinlock cs_render_view (0xdddd);
+SK_Thread_HybridSpinlock cs_shader      (0xca);
+SK_Thread_HybridSpinlock cs_shader_vs   (0x60);
+SK_Thread_HybridSpinlock cs_shader_ps   (0x80);
+SK_Thread_HybridSpinlock cs_shader_gs   (0x40);
+SK_Thread_HybridSpinlock cs_shader_hs   (0x30);
+SK_Thread_HybridSpinlock cs_shader_ds   (0x30);
+SK_Thread_HybridSpinlock cs_shader_cs   (0x90);
+SK_Thread_HybridSpinlock cs_mmio        (0x7f);
+SK_Thread_HybridSpinlock cs_render_view (0xdd);
 
 CRITICAL_SECTION tex_cs     = { };
 CRITICAL_SECTION hash_cs    = { };
@@ -283,40 +283,139 @@ struct resample_job_s {
   int64_t                start_time;
 };
 
+static HANDLE hResampleWork = INVALID_HANDLE_VALUE;
+static std::vector <ULONG_PTR> logical_proc_siblings;
+
 struct resample_dispatch_s
 {
+  void delayInit (void)
+  {
+    hResampleWork =
+      CreateEventW (nullptr, FALSE, FALSE, nullptr);
+
+    DWORD dwNeededBytes = 0;
+
+    if (! GetLogicalProcessorInformation (nullptr, &dwNeededBytes))
+    {
+      if (GetLastError () == ERROR_INSUFFICIENT_BUFFER)
+      {
+        SYSTEM_LOGICAL_PROCESSOR_INFORMATION   *pLogProcInfo =
+         (SYSTEM_LOGICAL_PROCESSOR_INFORMATION *)
+            new uint8_t [dwNeededBytes] { };
+
+        DWORD dwOffset = 0;
+
+        if (GetLogicalProcessorInformation (pLogProcInfo, &dwNeededBytes))
+        {
+          PSYSTEM_LOGICAL_PROCESSOR_INFORMATION lpi =
+            pLogProcInfo;
+
+          while (dwOffset + sizeof (SYSTEM_LOGICAL_PROCESSOR_INFORMATION) <= dwNeededBytes)
+          {
+            switch (lpi->Relationship) 
+            {
+              case RelationProcessorCore:
+              {
+                //auto CountSetBits = [](ULONG_PTR bitMask) -> DWORD
+                //{
+                //  DWORD     LSHIFT      = sizeof (ULONG_PTR) * 8 - 1;
+                //  DWORD     bitSetCount = 0;
+                //  ULONG_PTR bitTest = (ULONG_PTR)1 << LSHIFT;    
+                //  DWORD     i;
+                //
+                //  for (i = 0; i <= LSHIFT; ++i)
+                //  {
+                //    bitSetCount += ((bitMask & bitTest) ? 1 : 0);
+                //    bitTest /= 2;
+                //  }
+                //
+                //  return bitSetCount;
+                //};
+                //
+                //logical_cores += CountSetBits (lpi->ProcessorMask);
+
+#ifdef _WIN64
+                // Don't want to bother with server hardware! No gaming machine needs this many cores (2018)
+                assert (lpi->ProcessorMask & 0xFFFFFFFF00000000 == 0);
+#endif
+                logical_proc_siblings.push_back (lpi->ProcessorMask);
+              } break;
+
+              default:
+                break;
+            }
+
+            dwOffset += sizeof SYSTEM_LOGICAL_PROCESSOR_INFORMATION;
+            lpi++;
+          }
+        }
+
+        delete [] pLogProcInfo;
+      }
+    }
+
+    max_workers = logical_proc_siblings.size () - 1;
+  }
+
   bool postJob (resample_job_s& job)
   {
+    SK_RunOnce (delayInit ());
+
     job.start_time = SK_QueryPerf ().QuadPart;
 
-    if (ReadAcquire (&active_workers) < max_workers)
+    InterlockedIncrement (&SK_D3D11_TextureResampler.stats.textures_waiting);
+    waiting_textures.push (job);
+
+    if (InterlockedIncrement (&active_workers) <= max_workers)
     {
-      InterlockedIncrement (&SK_D3D11_TextureResampler.stats.textures_waiting);
-      waiting_textures.push (job);
-
-      InterlockedIncrement (&active_workers);
-
       SK_Thread_Create ( [](LPVOID) ->
       DWORD
       {
+        static volatile LONG thread_num = 0;
+
+        SetThreadAffinityMask (
+          GetCurrentThread (),
+            logical_proc_siblings [InterlockedIncrement (&thread_num)]
+        );
+
         SetCurrentThreadDescription (L"[SK] D3D11 Texture Resampling Thread");
 
         SetThreadPriority ( SK_GetCurrentThread (),
-                            THREAD_PRIORITY_BELOW_NORMAL |
-                            THREAD_MODE_BACKGROUND_BEGIN );
+                            THREAD_PRIORITY_BELOW_NORMAL );
 
         SK_TLS_Bottom ()->texture_management.injection_thread = true;
         SK_TLS_Bottom ()->imgui.drawing                       = true;
 
-        while (! SK_D3D11_TextureResampler.waiting_textures.empty ())
+        do
         {
-          InterlockedDecrement (&SK_D3D11_TextureResampler.stats.textures_waiting);
-          InterlockedIncrement (&SK_D3D11_TextureResampler.stats.textures_resampling);
+          if (WaitForSingleObjectEx (hResampleWork, 500UL, TRUE) != WAIT_OBJECT_0)
+          {
+            SetThreadPriority ( SK_GetCurrentThread (),
+                                THREAD_PRIORITY_IDLE );
+
+            SetThreadPriorityBoost ( SK_GetCurrentThread (),
+                                     FALSE );
+
+            WaitForSingleObject (hResampleWork, INFINITE);
+          }
+
 
           resample_job_s job;
 
           if (SK_D3D11_TextureResampler.waiting_textures.try_pop (job))
           {
+            InterlockedDecrement (&SK_D3D11_TextureResampler.stats.textures_waiting);
+            InterlockedIncrement (&SK_D3D11_TextureResampler.stats.textures_resampling);
+
+            SetThreadPriority ( SK_GetCurrentThread (),
+                                THREAD_PRIORITY_HIGHEST );
+
+            SetThreadPriorityBoost ( SK_GetCurrentThread (),
+                                     TRUE );
+
+            SetThreadPriority ( SK_GetCurrentThread (),
+                                THREAD_MODE_BACKGROUND_BEGIN );
+
             DirectX::ScratchImage* pNewImg = nullptr;
 
             HRESULT
@@ -332,20 +431,23 @@ struct resample_dispatch_s
                                                  job.texture,
                                                 &pNewImg );
 
+            SetThreadPriority ( SK_GetCurrentThread (),
+                                THREAD_MODE_BACKGROUND_END );
+
+            SetThreadPriorityBoost ( SK_GetCurrentThread (),
+                                     FALSE );
+
             delete job.data;
                    job.data = pNewImg;
 
             SK_D3D11_TextureResampler.finished_textures.push (job);
 
             InterlockedDecrement (&SK_D3D11_TextureResampler.stats.textures_resampling);
-          }
 
-          else
-          {
-            InterlockedDecrement (&SK_D3D11_TextureResampler.stats.textures_resampling);
-            break;
+            SetThreadPriority ( SK_GetCurrentThread (),
+                                THREAD_PRIORITY_LOWEST );
           }
-        }
+        } while (true);
 
         SK_Thread_CloseSelf ();
 
@@ -354,21 +456,42 @@ struct resample_dispatch_s
         return 0;
       } );
 
+      SetEvent (hResampleWork);
+
       return true;
     }
 
-    InterlockedIncrement (&SK_D3D11_TextureResampler.stats.textures_waiting);
-    waiting_textures.push (job);
+    SetEvent (hResampleWork);
+
     return false;
   };
 
   bool processFinished (ID3D11Device* pDev, ID3D11DeviceContext* pDevCtx)
   {
-    const size_t MAX_TEXTURE_UPLOADS_PER_FRAME   = finished_textures.unsafe_size () / 2 + 1;
-    const int    MAX_UPLOAD_TIME_PER_FRAME_IN_MS = 10;
+    size_t MAX_TEXTURE_UPLOADS_PER_FRAME;
+    int    MAX_UPLOAD_TIME_PER_FRAME_IN_MS;
+
+    extern int SK_D3D11_TexStreamPriority;
+
+    switch  (SK_D3D11_TexStreamPriority)
+    {
+      case 0:
+        MAX_UPLOAD_TIME_PER_FRAME_IN_MS = 3UL;
+        MAX_TEXTURE_UPLOADS_PER_FRAME   = ReadAcquire (&SK_D3D11_TextureResampler.stats.textures_waiting) / 7 + 1;
+        break;
+      case 1:
+      default:
+        MAX_UPLOAD_TIME_PER_FRAME_IN_MS = 13UL;
+        MAX_TEXTURE_UPLOADS_PER_FRAME   = ReadAcquire (&SK_D3D11_TextureResampler.stats.textures_waiting) / 4 + 1;
+        break;
+      case 2:
+        MAX_UPLOAD_TIME_PER_FRAME_IN_MS = 27UL;
+        MAX_TEXTURE_UPLOADS_PER_FRAME   = ReadAcquire (&SK_D3D11_TextureResampler.stats.textures_waiting) / 2 + 1;
+    }
+
 
     size_t uploaded    = 0;
-    DWORD  dwStartTime = SK::ControlPanel::current_time;
+    DWORD  dwStartTime = timeGetTime ();
 
     SK_ScopedBool auto_bool_tex (&SK_TLS_Bottom ()->texture_management.injection_thread);
     SK_ScopedBool auto_bool_mem (&SK_TLS_Bottom ()->imgui.drawing);
@@ -401,7 +524,7 @@ struct resample_dispatch_s
 
             if (SUCCEEDED (ret))
             {
-              pDevCtx->CopyResource (finished.texture, pTempTex);
+              D3D11_CopyResource_Original (pDevCtx, finished.texture, pTempTex);
 
               uploaded++;
 
@@ -430,7 +553,7 @@ struct resample_dispatch_s
           if (uploaded >= MAX_TEXTURE_UPLOADS_PER_FRAME)
             break;
 
-          if (SK::ControlPanel::current_time > dwStartTime + MAX_UPLOAD_TIME_PER_FRAME_IN_MS)
+          if (timeGetTime () > dwStartTime + MAX_UPLOAD_TIME_PER_FRAME_IN_MS)
             break;
         }
 
@@ -446,6 +569,11 @@ struct resample_dispatch_s
   };
 
   struct stats_s {
+    ~stats_s (void)
+    {
+      CloseHandle (hResampleWork);
+    }
+
     volatile LONG textures_resampled    = 0L;
     volatile LONG textures_compressed   = 0L;
     volatile LONG textures_decompressed = 0L;
@@ -458,7 +586,7 @@ struct resample_dispatch_s
     volatile LONG error_count           = 0L;
   } stats;
 
-           LONG max_workers    = 3;
+           LONG max_workers    = 4;
   volatile LONG active_workers = 0;
 
   concurrency::concurrent_queue <resample_job_s> waiting_textures;
@@ -766,8 +894,6 @@ IUnknown_Release (IUnknown* This)
         if (count < 2)
           SK_LOG0 ( ( L"Unexpected reference count: %lu", count ), L"DX11TexMgr" );
 
-        IUnknown_Release_Original (pTex);
-
         if (count == 3)
         {
           return pTex->Release ();
@@ -779,15 +905,18 @@ IUnknown_Release (IUnknown* This)
   return IUnknown_Release_Original (This);
 }
 
+
 __declspec (noinline)
 ULONG
 WINAPI
 IUnknown_AddRef (IUnknown* This)
 {
-  SK_TLS* pTLS =
+ SK_TLS* pTLS =
     SK_TLS_Bottom ();
 
-  if (This == pTLS->texture_management.refcount_obj)
+  bool refcount_test = ( This == pTLS->texture_management.refcount_obj );
+
+  if (refcount_test)
     pTLS->texture_management.refcount_test++;
 
   if (! SK_D3D11_IsTexInjectThread ())
@@ -805,7 +934,7 @@ IUnknown_AddRef (IUnknown* This)
       if (SK_D3D11_TextureIsCached (pTex))
         SK_D3D11_UseTexture (pTex);
 
-      IUnknown_Release_Original (This);
+      IUnknown_Release_Original (pTex);
     }
   }
 
@@ -2552,7 +2681,7 @@ enum class sk_shader_class {
 };
 
 
-__forceinline
+__declspec (noinline)
 HRESULT
 SK_D3D11_CreateShader_Impl (
   _In_            ID3D11Device         *This,
@@ -4433,19 +4562,14 @@ D3D11_CopyResource_Override (
   _In_ ID3D11Resource      *pDstResource,
   _In_ ID3D11Resource      *pSrcResource )
 {
-  bool early_out = false;
-
   // UB: If it's happening, pretend we never saw this...
   if (pDstResource == nullptr || pSrcResource == nullptr)
   {
-    early_out = true;
+    return;
   }
 
-  else
-    early_out = ( (! config.render.dxgi.deferred_isolation)    &&
-                     This->GetType () == D3D11_DEVICE_CONTEXT_DEFERRED );
-
-  if (early_out)
+  if ( (! config.render.dxgi.deferred_isolation)    &&
+                       This->GetType () == D3D11_DEVICE_CONTEXT_DEFERRED )
   {
     return
       D3D11_CopyResource_Original ( This,
@@ -4596,19 +4720,14 @@ D3D11_CopySubresourceRegion_Override (
   _In_           UINT                 SrcSubresource,
   _In_opt_ const D3D11_BOX           *pSrcBox )
 {
-  bool early_out = false;
-
   // UB: If it's happening, pretend we never saw this...
   if (pDstResource == nullptr || pSrcResource == nullptr)
   {
-    early_out = true;
+    return;
   }
 
-  else
-    early_out = ( (! config.render.dxgi.deferred_isolation)    &&
-                     This->GetType () == D3D11_DEVICE_CONTEXT_DEFERRED );
-
-  if (early_out)
+  if ( (! config.render.dxgi.deferred_isolation)    &&
+                     This->GetType () == D3D11_DEVICE_CONTEXT_DEFERRED )
   {
     return
       D3D11_CopySubresourceRegion_Original ( This, pDstResource, DstSubresource,
@@ -5940,6 +6059,8 @@ void
 __stdcall
 SK_D3D11_ResetTexCache (void)
 {
+  return;
+
   SK_D3D11_need_tex_reset = true;
   SK_D3D11_Textures.reset ();
 }
@@ -5985,7 +6106,7 @@ SK_D3D11_TexCacheCheckpoint (void)
 
     DWORD dwNow = timeGetTime ();
 
-    const int MAX_TEXTURES_PER_PASS = 175UL;
+    const int MAX_TEXTURES_PER_PASS = 192UL;
 
     static int cur_tex = 0;
 
@@ -6007,9 +6128,9 @@ SK_D3D11_TexCacheCheckpoint (void)
       static LONG64 size_shared = 0ULL;
       static LONG64 size_disk   = 0ULL;
 
-      static std::vector <IUnknown *>                           residency_tests   (MAX_TEXTURES_PER_PASS + 2);
-      static std::vector <SK_D3D11_TexMgr::tex2D_descriptor_s*> residency_descs   (MAX_TEXTURES_PER_PASS + 2);
-      static std::vector <DXGI_RESIDENCY>                       residency_results (MAX_TEXTURES_PER_PASS + 2);
+      static std::array <IUnknown *,                           MAX_TEXTURES_PER_PASS + 2> residency_tests;
+      static std::array <SK_D3D11_TexMgr::tex2D_descriptor_s*, MAX_TEXTURES_PER_PASS + 2> residency_descs;
+      static std::array <DXGI_RESIDENCY, MAX_TEXTURES_PER_PASS + 2> residency_results;
 
       int record_count = 0;
 
@@ -6018,8 +6139,8 @@ SK_D3D11_TexCacheCheckpoint (void)
       auto desc =
         residency_descs.begin ();
 
-      int start_idx = cur_tex;
-      int idx       = 0;
+               int start_idx = cur_tex;
+      unsigned int idx       = 0;
 
       size_t max_size = SK_D3D11_Textures.Textures_2D.size ();
 
@@ -6059,6 +6180,10 @@ SK_D3D11_TexCacheCheckpoint (void)
 
       for ( auto it : residency_results )
       {
+        // Handle uninit. and corrupted texture entries
+        if (it < DXGI_RESIDENCY_FULLY_RESIDENT || it > DXGI_RESIDENCY_EVICTED_TO_DISK)
+          continue;
+
         if (it != DXGI_RESIDENCY_FULLY_RESIDENT)
         {
           SK_LOG1 ( (L"Texture %x is non-resident, last use: %lu <Residence: %lu>",  (*desc)->crc32c, (*desc)->last_used, it),
@@ -6186,7 +6311,6 @@ SK_D3D11_TexCacheCheckpoint (void)
       )                      : 0;
 
     SK_D3D11_Textures.reset ();
-    SK_D3D11_need_tex_reset = false;
   }
 
   else
@@ -6210,12 +6334,15 @@ SK_D3D11_TexMgr::reset (void)
   if (SK_GetFramesDrawn () < 1)
     return;
 
+
   uint32_t count  = 0;
   int64_t  purged = 0;
 
 
   bool must_free =
     SK_D3D11_need_tex_reset;
+
+  SK_D3D11_need_tex_reset = false;
 
 
   LONGLONG time_now = SK_QueryPerf ().QuadPart;
@@ -6231,125 +6358,128 @@ SK_D3D11_TexMgr::reset (void)
 
     const float overfill_factor = 1.05f;
 
+    bool no_work = true;
+
+
     if ( (uint32_t)AggregateSize_2D >> 20ULL > ( (uint32_t)       cache_opts.max_size +
                                                 ((uint32_t)(float)cache_opts.max_size * overfill_factor)) )
-      must_free = true;
+      no_work = false;
 
     if ( SK_D3D11_Textures.Entries_2D > (LONG)       cache_opts.max_entries +
                                         (LONG)(float)cache_opts.max_entries * overfill_factor )
-      must_free = true;
+      no_work = false;
 
     if ( SK_D3D11_amount_to_purge > 0 )
-      must_free = true;
+      no_work = false;
+
+    if (no_work) return;
   }
 
-  if (! must_free)
-    return;
+
+  must_free = false;
 
 
-  LastPurge_2D.store (time_now);
-
-  std::set    <ID3D11Texture2D *>                     cleared;
+  std::set    <ID3D11Texture2D *>                     cleared;// (cache_opts.max_evict);
   std::vector <SK_D3D11_TexMgr::tex2D_descriptor_s *> textures;
 
-  textures.reserve (cache_opts.max_evict);
+  int potential = 0;
   {
+    SK_AutoCriticalSection critical (&cache_cs);
     {
-      SK_AutoCriticalSection critical (&cache_cs);
+      textures.reserve  (Textures_2D.size ());
 
       for ( auto& desc : Textures_2D )
       {
         if (desc.second.texture == nullptr || desc.second.crc32c == 0x00)
           continue;
 
-        bool can_free = true;
+        bool can_free = must_free;
 
-        if (! SK_D3D11_need_tex_reset)
+        if (! must_free)
           can_free = (IUnknown_AddRef_Original (desc.second.texture) <= 2);
 
         if (can_free)
-          textures.emplace_back (&desc.second);
+        {
+          ++potential;
+            textures.emplace_back (&desc.second);
+        }
 
-        if (! SK_D3D11_need_tex_reset)
+        if (! must_free)
           IUnknown_Release_Original (desc.second.texture);
       }
     }
 
-    std::sort ( textures.begin (),
-                  textures.end (),
-       [&]( const SK_D3D11_TexMgr::tex2D_descriptor_s* const a,
-            const SK_D3D11_TexMgr::tex2D_descriptor_s* const b )
-      {
-        if ( (a != nullptr) && (b != nullptr) )
+    if (potential > 0)
+    {
+      std::sort ( textures.begin (),
+                    textures.end (),
+         [&]( const SK_D3D11_TexMgr::tex2D_descriptor_s* const a,
+              const SK_D3D11_TexMgr::tex2D_descriptor_s* const b )
+        {
           return (b->load_time * 10 + b->last_used / 10 + b->hits * 100) <
                  (a->load_time * 10 + a->last_used / 10 + a->hits * 100);
-
-      else if ( a == nullptr )
-        return false;
-
-      return true;
+        }
+      );
     }
-              );
   }
 
+  if (potential == 0)
+    return;
 
- const uint32_t max_count =
+  dll_log.Log (L"Reset potential = %lu / %lu", potential, textures.size ());
+
+  const uint32_t max_count =
    cache_opts.max_evict;
  
- 
- for ( const auto& desc : textures )
- {
-   auto mem_size =
+  SK_AutoCriticalSection critical (&cache_cs);
+
+  for ( const auto& desc : textures )
+  {
+    auto mem_size =
      static_cast <int64_t> (desc->mem_size) >> 10ULL;
  
    if (desc->texture != nullptr && cleared.count (desc->texture) == 0)
    {
      int refs =
-       IUnknown_AddRef_Original  (desc->texture) - 1;
-       IUnknown_Release_Original (desc->texture);
+       desc->texture->AddRef  () - 1;
+       desc->texture->Release ();
  
-     if (refs <= 1)
+     if (refs <= 1 || must_free)
      {
        // Avoid double-freeing if the hash map somehow contains the same texture multiple times
        cleared.emplace (desc->texture);
 
-       if (refs == 1)
+       if (must_free && refs != 1 && refs != 2)
        {
-         SK_D3D11_RemoveTexFromCache (desc->texture);
-         IUnknown_Release_Original   (desc->texture);
-       }
-
-       else
-       {
-         SK_LOG0 ( ( L"Unexpected reference count for texture with crc32=%08x; refs=%lu, expectd=1 -- removing from cache and praying...",
+         SK_LOG0 ( ( L"Unexpected reference count for texture with crc32=%08x; refs=%lu, expected=1 -- removing from cache and praying...",
                        desc->crc32c, refs ),
                     L"DX11TexMgr" );
-
-         SK_D3D11_RemoveTexFromCache (desc->texture);
        }
 
+       SK_D3D11_RemoveTexFromCache (desc->texture);
+         IUnknown_Release_Original (desc->texture);
  
        count++;
        purged += mem_size;
  
-       if ( (! (SK_D3D11_need_tex_reset) ) )
+       if ( ! must_free )
        {
          if ((// Have we over-freed? If so, stop when the minimum number of evicted textures is reached
               (AggregateSize_2D >> 20ULL) <= (uint32_t)cache_opts.min_size &&
                                     count >=           cache_opts.min_evict )
-       
+         
               // An arbitrary purge request was issued
                                                                                                ||
              (SK_D3D11_amount_to_purge     >            0                   &&
               SK_D3D11_amount_to_purge     <=           purged              &&
                                      count >=           cache_opts.min_evict ) ||
-       
+         
               // Have we evicted as many textures as we can in one pass?
                                      count >=           max_count )
          {
            SK_D3D11_amount_to_purge =
              std::max (0, SK_D3D11_amount_to_purge);
-       
+         
            break;
          }
        }
@@ -6357,6 +6487,8 @@ SK_D3D11_TexMgr::reset (void)
    }
  }
  
+ LastPurge_2D.store (time_now);
+
  if (count > 0)
  {
    SK_LOG0 ( ( L"Texture Cache Purge:  Eliminated %.2f MiB of texture data across %lu textures (max. evict per-pass: %lu).",
@@ -6500,6 +6632,8 @@ bool
 __stdcall
 SK_D3D11_RemoveTexFromCache (ID3D11Texture2D* pTex, bool blacklist)
 {
+  SK_AutoCriticalSection critical (&cache_cs);
+
   if (! SK_D3D11_TextureIsCached (pTex))
     return false;
 
@@ -6573,7 +6707,7 @@ SK_D3D11_TexMgr::refTexture2D ( ID3D11Texture2D*      pTex,
     InterlockedIncrement (&init);
   }
 
-//SK_Thread_SpinUntilAtomicMin (&init, 2);
+  SK_Thread_SpinUntilAtomicMin (&init, 2);
 
 
   if (SK_D3D11_TestRefCountHooks (pTex))
@@ -7102,6 +7236,9 @@ SK_D3D11_TexHashToName (uint32_t top_crc32, uint32_t hash)
   return ret;
 }
 
+
+uint64_t SK_D3D11_MipmapCacheSize;
+
 void
 SK_D3D11_RecursiveEnumAndAddTex ( std::wstring   directory, unsigned int& files,
                                   LARGE_INTEGER& liSize,    wchar_t*      wszPattern )
@@ -7201,9 +7338,9 @@ SK_D3D11_RecursiveEnumAndAddTex ( std::wstring   directory, unsigned int& files,
 
           else
           {
-            extern uint64_t SK_DGPU_MipmapCacheSize;
-                            SK_DGPU_MipmapCacheSize += fsize.QuadPart;
-                            SK_D3D11_EnumeratedMipmapCache.emplace (wszPath, top_crc32);
+            SK_D3D11_MipmapCacheSize;
+            SK_D3D11_MipmapCacheSize += fsize.QuadPart;
+            SK_D3D11_EnumeratedMipmapCache.emplace (wszPath, top_crc32);
           }
         }
       }
@@ -8052,7 +8189,8 @@ SK_D3D11_MipmapCacheTexture2DEx ( const DirectX::ScratchImage&   img,
     DirectX::TexMetadata meta =
       img.GetMetadata ();
 
-    meta.format = SK_D3D11_MakeTypedFormat (meta.format);
+    meta.format    = SK_D3D11_MakeTypedFormat (meta.format);
+    meta.mipLevels = 1;
 
     ret =
       DirectX::Decompress (orig_img, 1, meta, DXGI_FORMAT_UNKNOWN, decompressed);
@@ -8067,13 +8205,19 @@ SK_D3D11_MipmapCacheTexture2DEx ( const DirectX::ScratchImage&   img,
 
       if (SUCCEEDED (ret))
       {
-        if ((! config.textures.d3d11.uncompressed_mips) && (! SK_D3D11_IsFormatBC6Or7 (meta.format)))
+        if ((! config.textures.d3d11.uncompressed_mips))// && (! SK_D3D11_IsFormatBC6Or7 (meta.format)))
         {
           auto* compressed_mips =
             new DirectX::ScratchImage;
 
           DirectX::TexMetadata mipmap_meta =
             mipmaps->GetMetadata ();
+
+          //
+          // Required speedup since BC7 is _slow_
+          //
+          if (mipmap_meta.format == DXGI_FORMAT_BC7_UNORM)
+              mipmap_meta.format = DXGI_FORMAT_BC5_UNORM;
 
           mipmap_meta.format           =
             SK_D3D11_MakeTypedFormat (mipmap_meta.format);
@@ -8140,10 +8284,10 @@ SK_D3D11_MipmapCacheTexture2DEx ( const DirectX::ScratchImage&   img,
     else if (mipmaps != nullptr)
       delete mipmaps;
 
-    if (config.textures.d3d11.cache_gen_mips)
+    if (config.textures.d3d11.cache_gen_mips)// || SK_D3D11_IsTexInjectThread ())
     {
-      extern uint64_t SK_DGPU_MipmapCacheSize;
-                      SK_DGPU_MipmapCacheSize += size;
+      extern uint64_t SK_D3D11_MipmapCacheSize;
+                      SK_D3D11_MipmapCacheSize += size;
 
       SK_D3D11_AddDumped  (crc32c, crc32c);
       SK_D3D11_AddTexHash (wszOutName, crc32c, 0);
@@ -8736,6 +8880,9 @@ D3D11Dev_CreateShaderResourceView_Override (
           newFormat =
             cache_desc.desc.Format;
 
+          newMipLevels =
+            pDescOrig->Texture2D.MipLevels;
+
           if (pDescOrig->Format != newFormat)// && SK_DXGI_FormatToStr (pDescOrig->Format) != L"UNKNOWN")
           {
             if (SK_D3D11_IsFormatSRGB (pDescOrig->Format))
@@ -8768,8 +8915,12 @@ D3D11Dev_CreateShaderResourceView_Override (
           auto descCopy = *pDescOrig;
 
           descCopy.Format                    = newFormat;
-          descCopy.Texture2D.MipLevels       = (UINT)-1;
-          descCopy.Texture2D.MostDetailedMip = tex_desc.MipLevels;
+
+          if (newMipLevels != pDescOrig->Texture2D.MipLevels)
+          {
+            descCopy.Texture2D.MipLevels       = (UINT)-1;
+            descCopy.Texture2D.MostDetailedMip =        0;
+          }
 
           //if (newMipLevels > 0 && ( pDesc->Format == DXGI_FORMAT_BC3_UNORM || pDesc->Format == DXGI_FORMAT_BC3_UNORM_SRGB || pDesc->Format == DXGI_FORMAT_BC3_TYPELESS ||
           //                          pDesc->Format == DXGI_FORMAT_BC2_UNORM || pDesc->Format == DXGI_FORMAT_BC2_UNORM_SRGB || pDesc->Format == DXGI_FORMAT_BC2_TYPELESS ))
@@ -8800,9 +8951,6 @@ D3D11Dev_CreateShaderResourceView_Override (
           }
         }
       }
-
-      //if (desc.Texture2D.MipLevels > 128)
-      //    desc.Texture2D.MipLevels = 1;
     }
 
     pDesc = &desc;
@@ -8943,50 +9091,29 @@ D3D11_PSSetSamplers_Override
   _In_     UINT                       NumSamplers,
   _In_opt_ ID3D11SamplerState *const *ppSamplers )
 {
-#if 0
-  if (ppSamplers != nullptr)
+  if (ppSamplers != nullptr && (ID3D11Device *)SK_GetCurrentRenderBackend ().device.p != nullptr)
   {
-    if (SK_D3D11_Hacks.hq_volumetric)
+    ID3D11SamplerState** pSamplerCopy =
+      (ID3D11SamplerState **)SK_TLS_Bottom ()->scratch_memory.cmd.alloc (sizeof (ID3D11SamplerState  *) * 4096);
+
+    for ( int i = 0 ; i < NumSamplers ; i++ )
     {
-      if (StartSlot == 0 && NumSamplers == 2)
+      pSamplerCopy [i] = ppSamplers [i];
+
+      if (ppSamplers [i] != nullptr)
       {
-        if (SK_D3D11_Shaders.pixel.current == 0xfcdb65ad)
-        {
-          static CComPtr <ID3D11SamplerState> pSampler = nullptr;
+        D3D11_SAMPLER_DESC        new_desc = { };
+        ppSamplers [i]->GetDesc (&new_desc);
 
-          if (pSampler == nullptr)
-          {
-            D3D11_SAMPLER_DESC new_desc;
-
-            new_desc.AddressU        = D3D11_TEXTURE_ADDRESS_MIRROR;
-            new_desc.AddressV        = D3D11_TEXTURE_ADDRESS_MIRROR;
-            new_desc.AddressW        = D3D11_TEXTURE_ADDRESS_MIRROR;
-            new_desc.BorderColor [0] = 0.0f; new_desc.BorderColor [1] = 0.0f;
-            new_desc.BorderColor [2] = 0.0f; new_desc.BorderColor [3] = 0.0f;
-            new_desc.ComparisonFunc  = D3D11_COMPARISON_NEVER;
-            new_desc.Filter          = D3D11_FILTER_ANISOTROPIC;
-            new_desc.MaxAnisotropy   = 16;
-            new_desc.MaxLOD          =  3.402823466e+38F;
-            new_desc.MinLOD          = -3.402823466e+38F;
-            new_desc.MipLODBias      = 0;
-
-            D3D11Dev_CreateSamplerState_Original ( (ID3D11Device *)SK_GetCurrentRenderBackend ().device,
-                                                     &new_desc,
-                                                       &pSampler );
-          }
-
-          else
-          {
-            static ID3D11SamplerState* override_samplers [2] = { pSampler,
-                                                                 pSampler };
-
-            return D3D11_PSSetSamplers_Original (This, StartSlot, NumSamplers, override_samplers);
-          }
-        }
+        ((ID3D11Device *)SK_GetCurrentRenderBackend ().device.p)->CreateSamplerState (
+                                                 &new_desc,
+                                                   &pSamplerCopy [i] );
       }
     }
+
+    return
+      D3D11_PSSetSamplers_Original (This, StartSlot, NumSamplers, pSamplerCopy);
   }
-#endif
 
   D3D11_PSSetSamplers_Original (This, StartSlot, NumSamplers, ppSamplers);
 }
@@ -9021,49 +9148,52 @@ D3D11Dev_CreateSamplerState_Override
     }
   }
 
-  if (config.textures.d3d11.generate_mips && new_desc.Filter <= D3D11_FILTER_ANISOTROPIC)
+  if (SK_GetCurrentGameID () != SK_GAME_ID::Ys_Eight)
   {
-    if (new_desc.Filter != D3D11_FILTER_MIN_MAG_MIP_POINT)
+    if (config.textures.d3d11.generate_mips && new_desc.Filter <= D3D11_FILTER_ANISOTROPIC)
     {
-      new_desc.Filter        = D3D11_FILTER_ANISOTROPIC;
+      if (new_desc.Filter != D3D11_FILTER_MIN_MAG_MIP_POINT)
+      {
+        new_desc.Filter        = D3D11_FILTER_ANISOTROPIC;
+        new_desc.MaxAnisotropy = 16;
+    
+        if (new_desc.MipLODBias < 0.0f)
+          new_desc.MipLODBias   = 0.0f;
+    
+        new_desc.MinLOD        = 0.0f;
+        new_desc.MaxLOD        = D3D11_FLOAT32_MAX;
+      }
+    
+      HRESULT hr =
+        D3D11Dev_CreateSamplerState_Original (This, &new_desc, ppSamplerState);
+    
+      if (SUCCEEDED (hr))
+        return hr;
+    }
+    
+    if ( config.textures.d3d11.generate_mips                          &&
+          ( ( new_desc.Filter > D3D11_FILTER_ANISOTROPIC &&
+              new_desc.Filter <= D3D11_FILTER_COMPARISON_ANISOTROPIC) ||
+            new_desc.ComparisonFunc != D3D11_COMPARISON_NEVER ) )
+    {
+      new_desc.Filter        = D3D11_FILTER_COMPARISON_ANISOTROPIC;
       new_desc.MaxAnisotropy = 16;
-
-      if (new_desc.MipLODBias < 0.0f)
-        new_desc.MipLODBias   = 0.0f;
-
+    
+      new_desc.MipLODBias    = 0.0f;
       new_desc.MinLOD        = 0.0f;
       new_desc.MaxLOD        = D3D11_FLOAT32_MAX;
+    
+      SK_LOG0 ( ( L"Changing shadow filter from '%x' to '%x'",
+                    pSamplerDesc->Filter,
+                      new_desc.Filter ),
+                  L" TexCache " );
+    
+      HRESULT hr =
+        D3D11Dev_CreateSamplerState_Original (This, &new_desc, ppSamplerState);
+    
+      if (SUCCEEDED (hr))
+        return hr;
     }
-
-    HRESULT hr =
-      D3D11Dev_CreateSamplerState_Original (This, &new_desc, ppSamplerState);
-
-    if (SUCCEEDED (hr))
-      return hr;
-  }
-
-  if ( config.textures.d3d11.generate_mips                          &&
-        ( ( new_desc.Filter > D3D11_FILTER_ANISOTROPIC &&
-            new_desc.Filter <= D3D11_FILTER_COMPARISON_ANISOTROPIC) ||
-          new_desc.ComparisonFunc != D3D11_COMPARISON_NEVER ) )
-  {
-    new_desc.Filter        = D3D11_FILTER_COMPARISON_ANISOTROPIC;
-    new_desc.MaxAnisotropy = 16;
-
-    new_desc.MipLODBias    = 0.0f;
-    new_desc.MinLOD        = 0.0f;
-    new_desc.MaxLOD        = D3D11_FLOAT32_MAX;
-
-    SK_LOG0 ( ( L"Changing shadow filter from '%x' to '%x'",
-                  pSamplerDesc->Filter,
-                    new_desc.Filter ),
-                L" TexCache " );
-
-    HRESULT hr =
-      D3D11Dev_CreateSamplerState_Original (This, &new_desc, ppSamplerState);
-
-    if (SUCCEEDED (hr))
-      return hr;
   }
 
   return D3D11Dev_CreateSamplerState_Original (This, pSamplerDesc, ppSamplerState);
@@ -9417,21 +9547,9 @@ D3D11Dev_CreateTexture2D_Impl (
     return lods;
   };
 
-  if ( config.textures.d3d11.generate_mips && cacheable && pDesc->MipLevels == 1 )
+  if ( config.textures.d3d11.generate_mips && cacheable && ( pDesc->MipLevels != CalcMipmapLODs (pDesc->Width, pDesc->Height) ) )
   {
     gen_mips = true;
-  }
-
-
-  // Video planes; don't cache them.
-  //
-  if ( cacheable &&
-       ( pDesc->Format    == DXGI_FORMAT_R8_UNORM || pDesc->Format == DXGI_FORMAT_R8_TYPELESS )
-    &&   pDesc->MipLevels == 1
-    && ( pDesc->Width     == 1920 || pDesc->Width == 960 ) )
-  {
-    cacheable = false;
-    gen_mips  = false;
   }
 
 
@@ -9546,7 +9664,7 @@ D3D11Dev_CreateTexture2D_Impl (
 
   if (cacheable)
   {
-    if (D3DX11CreateTextureFromFileW != nullptr && SK_D3D11_res_root.length ())
+    if (SK_D3D11_res_root.length ())
     {
       wchar_t   wszTex [MAX_PATH * 2] = { };
       wcsncpy ( wszTex,
@@ -9558,11 +9676,11 @@ D3D11Dev_CreateTexture2D_Impl (
       {
 #define D3DX11_DEFAULT static_cast <UINT> (-1)
 
-        D3DX11_IMAGE_INFO      img_info   = {   };
-        D3DX11_IMAGE_LOAD_INFO load_info  = {   };
+        SK_ScopedBool auto_tex_inject (&pTLS->texture_management.injection_thread);
+        SK_ScopedBool auto_draw       (&pTLS->imgui.drawing);
 
-        SK_ScopedBool auto_bool (&pTLS->texture_management.injection_thread);
-                                  pTLS->texture_management.injection_thread = true;
+        pTLS->texture_management.injection_thread = true;
+        pTLS->imgui.drawing                       = true;
 
         HRESULT hr = E_UNEXPECTED;
 
@@ -9571,80 +9689,65 @@ D3D11Dev_CreateTexture2D_Impl (
         if (pDesc->Usage == D3D11_USAGE_IMMUTABLE)
           pDesc->Usage    = D3D11_USAGE_DEFAULT;
 
-        if (SUCCEEDED ((hr = SK_D3DX11_SAFE_GetImageInfoFromFileW (wszTex, &img_info))))
+        DirectX::TexMetadata mdata;
+
+        if (SUCCEEDED (DirectX::GetMetadataFromDDSFile (wszTex, 0, mdata)))
         {
-          load_info.BindFlags      = pDesc->BindFlags;
-          load_info.CpuAccessFlags = pDesc->CPUAccessFlags;
-          load_info.Depth          = img_info.Depth;
-          load_info.Filter         = D3DX11_DEFAULT;
-          load_info.FirstMipLevel  = 0;
+          DirectX::ScratchImage img;
 
-          if (config.textures.d3d11.injection_keeps_fmt)
-            load_info.Format       = pDesc->Format;
-          else
-            load_info.Format       = img_info.Format;
-
-          load_info.Height         = img_info.Height;
-          load_info.MipFilter      = D3DX11_DEFAULT;
-          load_info.MipLevels      = img_info.MipLevels;
-          load_info.MiscFlags      = img_info.MiscFlags;
-          load_info.pSrcInfo       = &img_info;
-          load_info.Usage          = pDesc->Usage;
-          load_info.Width          = img_info.Width;
-
-          hr =
-            SK_D3DX11_SAFE_CreateTextureFromFileW (
-                             This, wszTex,
-                               &load_info,
-reinterpret_cast <ID3D11Resource **> (ppTexture2D)
-            );
-
-          if (SUCCEEDED (hr))
+          if (SUCCEEDED (DirectX::LoadFromDDSFile (wszTex, 0, &mdata, img)))
           {
-            LARGE_INTEGER load_end =
-              SK_QueryPerf ();
-
-            D3D11_TEXTURE2D_DESC orig_desc = *pDesc;
-
-            pDesc->BindFlags      = load_info.BindFlags;
-            pDesc->CPUAccessFlags = load_info.CpuAccessFlags;
-            pDesc->ArraySize      = load_info.Depth;
-            pDesc->Format         = load_info.Format;
-            pDesc->Height         = load_info.Height;
-            pDesc->MipLevels      = load_info.MipLevels;
-            pDesc->MiscFlags      = load_info.MiscFlags;
-            pDesc->Usage          = load_info.Usage;
-            pDesc->Width          = load_info.Width;
-
-            if (pDesc->Usage == D3D11_USAGE_IMMUTABLE)
+            if (SUCCEEDED (DirectX::CreateTexture ((ID3D11Device *)SK_Render_GetDevice (), img.GetImages (), img.GetImageCount (), mdata, 
+                                  reinterpret_cast <ID3D11Resource **> (ppTexture2D))))
             {
-              pDesc->Usage    = D3D11_USAGE_DEFAULT;
-              orig_desc.Usage = D3D11_USAGE_DEFAULT;
+              LARGE_INTEGER load_end =
+                SK_QueryPerf ();
+
+              D3D11_TEXTURE2D_DESC orig_desc = *pDesc;
+              D3D11_TEXTURE2D_DESC new_desc  = {    };
+
+              (*ppTexture2D)->GetDesc (&new_desc);
+
+              pDesc->BindFlags      = new_desc.BindFlags;
+              pDesc->CPUAccessFlags = new_desc.CPUAccessFlags;
+              pDesc->ArraySize      = new_desc.ArraySize;
+              pDesc->Format         = new_desc.Format;
+              pDesc->Height         = new_desc.Height;
+              pDesc->MipLevels      = new_desc.MipLevels;
+              pDesc->MiscFlags      = new_desc.MiscFlags;
+              pDesc->Usage          = new_desc.Usage;
+              pDesc->Width          = new_desc.Width;
+
+              if (pDesc->Usage == D3D11_USAGE_IMMUTABLE)
+              {
+                pDesc->Usage    = D3D11_USAGE_DEFAULT;
+                orig_desc.Usage = D3D11_USAGE_DEFAULT;
+              }
+
+              size =
+                SK_D3D11_ComputeTextureSize (pDesc);
+
+            SK_AutoCriticalSection critical (&cache_cs);
+
+              SK_D3D11_Textures.refTexture2D (
+                *ppTexture2D,
+                  pDesc,
+                    cache_tag,
+                      size,
+                        load_end.QuadPart - load_start.QuadPart,
+                          top_crc32,
+                            wszTex,
+                              &orig_desc );
+
+              SK_D3D11_Textures.Textures_2D [*ppTexture2D].injected = true;
+
+              return ( ( hr = S_OK ) );
             }
-
-            size =
-              SK_D3D11_ComputeTextureSize (pDesc);
-
-          //SK_AutoCriticalSection critical (&cache_cs);
-
-            SK_D3D11_Textures.refTexture2D (
-              *ppTexture2D,
-                pDesc,
-                  cache_tag,
-                    size,
-                      load_end.QuadPart - load_start.QuadPart,
-                        top_crc32,
-                          wszTex,
-                            &orig_desc );
-
-            SK_D3D11_Textures.Textures_2D [*ppTexture2D].injected = true;
-
-            return hr;
           }
-        }
 
-        SK_LOG0 ( (L"*** Texture '%s' is corrupted (HRESULT=%x), skipping!", wszTex, hr),
-                   L"DX11TexMgr" );
+          SK_LOG0 ( (L"*** Texture '%s' is corrupted (HRESULT=%x), skipping!", wszTex, hr),
+                     L"DX11TexMgr" );
+        }
       }
     }
   }
@@ -9867,7 +9970,7 @@ reinterpret_cast <ID3D11Resource **> (ppTexture2D)
 
   if ( SUCCEEDED (ret) && cacheable )
   {
-  //SK_AutoCriticalSection critical (&cache_cs);
+    SK_AutoCriticalSection critical (&cache_cs);
 
     if (! SK_D3D11_Textures.Blacklist_2D [orig_desc.MipLevels].count (checksum))
     {
@@ -10275,12 +10378,12 @@ SK_D3D11_InitTextures (void)
     if (SK_GetCurrentGameID () == SK_GAME_ID::FinalFantasyX_X2)
       SK_D3D11_inject_textures_ffx = true;
 
-    InitializeCriticalSectionAndSpinCount (&preload_cs, 0x010);
-    InitializeCriticalSectionAndSpinCount (&dump_cs,    0x020);
-    InitializeCriticalSectionAndSpinCount (&inject_cs,  0x100);
-    InitializeCriticalSectionAndSpinCount (&hash_cs,    0x400);
-    InitializeCriticalSectionAndSpinCount (&cache_cs,   0x8000);
-    InitializeCriticalSectionAndSpinCount (&tex_cs,     0xFFFF);
+    InitializeCriticalSectionAndSpinCount (&preload_cs, 0x01);
+    InitializeCriticalSectionAndSpinCount (&dump_cs,    0x02);
+    InitializeCriticalSectionAndSpinCount (&inject_cs,  0x10);
+    InitializeCriticalSectionAndSpinCount (&hash_cs,    0x40);
+    InitializeCriticalSectionAndSpinCount (&cache_cs,   0x80);
+    InitializeCriticalSectionAndSpinCount (&tex_cs,     0xFF);
 
     cache_opts.max_entries       = config.textures.cache.max_entries;
     cache_opts.min_entries       = config.textures.cache.min_entries;
@@ -12289,6 +12392,19 @@ SK_LiveTextureView (bool& can_scroll)
             {
               SK_D3D11_DeleteDumpedTexture (entry.crc32c);
             }
+          }
+
+          ImGui::SameLine ();
+
+          if (ImGui::Button ("  Generate Mipmaps  ###GenerateMipmaps"))
+          {
+            SK_ScopedBool auto_bool (&SK_TLS_Bottom ()->texture_management.injection_thread);
+            SK_TLS_Bottom ()->texture_management.injection_thread = true;
+
+            HRESULT
+            __stdcall
+            SK_D3D11_MipmapCacheTexture2D ( _In_ ID3D11Texture2D* pTex, uint32_t crc32c );
+            SK_D3D11_MipmapCacheTexture2D (pTex, entry.crc32c);
           }
         }
 

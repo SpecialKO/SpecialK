@@ -125,11 +125,6 @@ typedef NTSTATUS (NTAPI *LdrFindEntryForAddress_pfn)(
   LDR_DATA_TABLE_ENTRY **ppLdrData
 );
 
-static LdrFindEntryForAddress_pfn LdrFindEntryForAddress =
-      (LdrFindEntryForAddress_pfn)
-  GetProcAddress ( GetModuleHandleW (L"NtDll.dll"),
-                                      "LdrFindEntryForAddress" );
-
 BOOL
 WINAPI
 SK_Module_IsProcAddrLocal ( HMODULE  hModExpected,
@@ -137,6 +132,15 @@ SK_Module_IsProcAddrLocal ( HMODULE  hModExpected,
                             FARPROC  lpProcAddr,
               PLDR_DATA_TABLE_ENTRY *ppldrEntry = nullptr )
 {
+  static LdrFindEntryForAddress_pfn LdrFindEntryForAddress =
+        (LdrFindEntryForAddress_pfn)
+      GetProcAddress ( GetModuleHandleW (L"NtDll.dll"),
+                                          "LdrFindEntryForAddress" );
+
+  // Indeterminate, so ... I guess no?
+  if (! LdrFindEntryForAddress)
+    return FALSE;
+
   PLDR_DATA_TABLE_ENTRY pLdrEntry;
 
   if (NT_SUCCESS (LdrFindEntryForAddress ((HMODULE)lpProcAddr, &pLdrEntry)))
@@ -167,6 +171,9 @@ SK_Module_IsProcAddrLocal ( HMODULE  hModExpected,
   return FALSE;
 }
 
+
+#include <SpecialK/ansel.h>
+
 FARPROC
 WINAPI
 GetProcAddress_Detour (
@@ -175,13 +182,52 @@ GetProcAddress_Detour (
 )
 {
   // Ignore ordinals for this (Disable Nahimic) test
-  if ((uintptr_t)lpProcName > 16UL * 1024UL * 1024UL)
+  if ((uintptr_t)lpProcName > 65535UL)
   {
     if (! lstrcmpA (lpProcName, "NoHotPatch"))
     {
       static     DWORD NoHotPatch = 0x1;
       return (FARPROC)&NoHotPatch;
     }
+
+
+    //if (! lstrcmpA (lpProcName, "AnselEnableCheck"))
+    //{
+    //  static FARPROC pLast = nullptr;
+    //
+    //  if (pLast) return pLast;
+    //
+    //  FARPROC pProc =
+    //    GetProcAddress_Original (hModule, lpProcName);
+    //
+    //  if (pProc != nullptr)
+    //  {
+    //    pLast = pProc;
+    //    SK_NvCamera_ApplyHook__AnselEnableCheck (hModule, lpProcName);
+    //    return pLast;
+    //  }
+    //
+    //  return pProc;
+    //}
+
+    //if (! lstrcmpA (lpProcName, "isAnselAvailable"))
+    //{
+    //  static FARPROC pLast = nullptr;
+    //
+    //  if (pLast) return pLast;
+    //
+    //  FARPROC pProc =
+    //    GetProcAddress_Original (hModule, lpProcName);
+    //
+    //  if (pProc != nullptr)
+    //  {
+    //    pLast = pProc;
+    //    SK_AnselSDK_ApplyHook__isAnselAvailable (hModule, lpProcName);
+    //    return pLast;
+    //  }
+    //
+    //  return pProc;
+    //}
 
 
     if (config.system.log_level > 1)
@@ -216,14 +262,14 @@ GetProcAddress_Detour (
     ///  return original_addr;
     ///}
 
-    if (config.system.log_level > 0)
+    // We need to filter this event because the Steam overlay goes berserk at startup
+    //   trying to get a different proc. addr for Ordinal 100 (XInputGetStateEx).
+    //
+    if (config.system.log_level > 0 && dll_log.lines > 15)
     {
-      //HMODULE hModCaller =
-      //  SK_GetCallingDLL ();
-    
       if (hModCaller != SK_GetDLL ())
       {
-        SK_LOG1 ( ( LR"(GetProcAddress ([%ws], {Ordinal: %lu})  -  %s)", 
+        SK_LOG3 ( ( LR"(GetProcAddress ([%ws], {Ordinal: %lu})  -  %ws)", 
                            SK_GetModuleFullName (hModule).c_str (),
                         ((uintptr_t)lpProcName & 0xFFFFU), SK_SummarizeCaller ().c_str () ),
                     L"DLL_Loader" );
@@ -280,11 +326,11 @@ GetProcAddress_Detour (
   ///}
 
 
-  if (config.system.log_level > 0)
+  if (config.system.log_level > 0 && dll_log.lines > 15)
   {  
     if (hModCaller != SK_GetDLL ())
     {
-      SK_LOG1 ( ( LR"(GetProcAddress ([%ws], "%hs")  -  %s)", 
+      SK_LOG3 ( ( LR"(GetProcAddress ([%ws], "%hs")  -  %ws)", 
                          SK_GetModuleFullName (hModule).c_str (),
                       lpProcName, SK_SummarizeCaller ().c_str () ),
                   L"DLL_Loader" );
@@ -691,9 +737,7 @@ NtCreateThreadEx_Detour (
     Suspicious = TRUE;
   }
 
-  CreateFlags &= ~THREAD_CREATE_FLAGS_SKIP_THREAD_ATTACH;
-
-
+  ////CreateFlags &= ~THREAD_CREATE_FLAGS_SKIP_THREAD_ATTACH;
 
   //BOOL suspended = CreateFlags  & THREAD_CREATE_FLAGS_CREATE_SUSPENDED;
                  //CreateFlags |= THREAD_CREATE_FLAGS_CREATE_SUSPENDED;
@@ -752,9 +796,8 @@ IsDebuggerPresent_Detour (void)
                     GetCurrentThreadId () ),
                   L"AntiAntiDbg");
 
-      //SuspendThread   (SK_GetCurrentThread ());
-      TerminateThread (SK_GetCurrentThread (), 0x00);
-      killed_ffxv    = SK_Thread_CloseSelf ();
+      _endthreadex ( 0x0 );
+      killed_ffxv = true;
     }
   }
 
@@ -798,8 +841,11 @@ DebugBreak_Detour (void)
 
 #include <SpecialK/parameter.h>
 
-using RtlRaiseException_pfn = void (WINAPI *)(_In_ PEXCEPTION_RECORD ExceptionRecord);
-extern "C" RtlRaiseException_pfn RtlRaiseException_Original = nullptr;
+using RaiseException_pfn = void (WINAPI *)(      DWORD      dwExceptionCode,
+      DWORD      dwExceptionFlags,
+      DWORD      nNumberOfArguments,
+const ULONG_PTR *lpArguments);
+extern "C" RaiseException_pfn RaiseException_Original = nullptr;
 
 #include <unordered_set>
 
@@ -817,38 +863,76 @@ struct SK_FFXV_Thread
          sk_ffxv_vsync,
          sk_ffxv_async_run;
 
+
 constexpr static DWORD MAGIC_THREAD_EXCEPTION = 0x406D1388;
+
+
+bool
+WINAPI
+SK_Exception_HandleCxx (
+      DWORD      dwExceptionCode,
+      DWORD      dwExceptionFlags,
+      DWORD      nNumberOfArguments,
+const ULONG_PTR *lpArguments         )
+{
+  if (SK_IsDebuggerPresent ())
+  {
+    try {
+      RaiseException_Original (
+        dwExceptionCode,
+        dwExceptionFlags,
+        nNumberOfArguments,
+        lpArguments         );
+    }
+
+    catch (_com_error& com_err)
+    {
+       _bstr_t bstrSource      (com_err.Source      ());
+       _bstr_t bstrDescription (com_err.Description ());
+
+      SK_LOG0 ( ( L" >> Code: %08lx  <%s>  -  [Source: %s,  Desc: \"%s\"]",
+                    com_err.Error        (),
+                    com_err.ErrorMessage (),
+                    (LPCWSTR)bstrSource, (LPCWSTR)bstrDescription ),
+                  L"  COMErr  " );
+    }
+    return true;
+  }
+
+  return false;
+}
+
 
 extern "C"
 void
 WINAPI
 SK_SEHCompatibleRaiseException (
-  _In_       PEXCEPTION_RECORD ExceptionRecord)
+      DWORD      dwExceptionCode,
+      DWORD      dwExceptionFlags,
+      DWORD      nNumberOfArguments,
+const ULONG_PTR *lpArguments         )
 {
-  __try {
-    __try {
-      return
-        RtlRaiseException_Original ( ExceptionRecord );
+  if (dwExceptionCode == 0xe06d7363)
+  {
+    if (! SK_Exception_HandleCxx ( dwExceptionCode,    dwExceptionFlags,
+                                   nNumberOfArguments, lpArguments       ) )
+    {
+      /// ...
+  
     }
-
-    __except ( EXCEPTION_CONTINUE_SEARCH  ) { }
   }
-
-  __finally { }
+  
+  RaiseException_Original ( dwExceptionCode,    dwExceptionFlags,
+                            nNumberOfArguments, lpArguments       );
 }
 
-// Detoured so we can get thread names
-__declspec (noinline)
-void
-NTAPI
-RtlRaiseException_Detour (
-  _In_       PEXCEPTION_RECORD ExceptionRecord )
+bool
+SK_Exception_HandleThreadName (
+      DWORD      dwExceptionCode,
+      DWORD      dwExceptionFlags,
+      DWORD      nNumberOfArguments,
+const ULONG_PTR *lpArguments         )
 {
-        DWORD      dwExceptionCode    = ExceptionRecord->ExceptionCode;
-      //DWORD      dwExceptionFlags   = ExceptionRecord->ExceptionFlags;
-      //DWORD      nNumberOfArguments = ExceptionRecord->NumberParameters;
-  const ULONG_PTR *lpArguments        = ExceptionRecord->ExceptionInformation;
-
   if (dwExceptionCode == MAGIC_THREAD_EXCEPTION)
   {
     #pragma pack(push,8)
@@ -912,15 +996,83 @@ RtlRaiseException_Detour (
       }
     }
 
-    return;
+    return true;
   }
 
-  SK_TLS* pTlsThis =
-    SK_TLS_Bottom ();
+  return false;
+}
 
-  if (pTlsThis) InterlockedIncrement (&pTlsThis->debug.exceptions);
 
-  SK_SEHCompatibleRaiseException (ExceptionRecord);
+// SEH compatible, but not 100% thread-safe (uses Fiber-Local Storage)
+const wchar_t*
+SK_SEH_CompatibleCallerName (LPCVOID lpAddr)
+{
+  return SK_GetModuleFullNameFromAddr (lpAddr).c_str ();
+}
+
+// Detoured so we can get thread names
+void
+WINAPI
+RaiseException_Detour (
+      DWORD      dwExceptionCode,
+      DWORD      dwExceptionFlags,
+      DWORD      nNumberOfArguments,
+const ULONG_PTR *lpArguments         )
+{
+  __try {
+    if (SK_Exception_HandleThreadName (dwExceptionCode, dwExceptionFlags, nNumberOfArguments, lpArguments))
+      return;
+
+    SK_TLS* pTlsThis =
+      SK_TLS_Bottom ();
+    
+    if (pTlsThis) InterlockedIncrement (&pTlsThis->debug.exceptions);
+
+    auto SK_ExceptionFlagsToStr = [](DWORD dwFlags) -> const char*
+    {
+      if (dwFlags & EXCEPTION_NONCONTINUABLE)  return "Non-Continuable";
+      if (dwFlags & EXCEPTION_UNWINDING)       return "Unwind In Progress";
+      if (dwFlags & EXCEPTION_EXIT_UNWIND)     return "Exit Unwind In Progress";
+      if (dwFlags & EXCEPTION_STACK_INVALID)   return "Misaligned or Overflowed Stack";
+      if (dwFlags & EXCEPTION_NESTED_CALL)     return "Nested Exception Handler";
+      if (dwFlags & EXCEPTION_TARGET_UNWIND)   return "Target Unwind In Progress";
+      if (dwFlags & EXCEPTION_COLLIDED_UNWIND) return "Collided Exception Handler";
+                                               return "Unknown";
+    };
+    
+    SK_LOG0 ( ( L"Exception Code: %x  - Flags: (%hs) -  Arg Count: %u   [ Calling Module:  %s ]",
+                                        dwExceptionCode,
+                SK_ExceptionFlagsToStr (dwExceptionFlags),
+                                        nNumberOfArguments,
+          SK_SEH_CompatibleCallerName (_ReturnAddress ())    ),
+                L"SEH-Except"
+            );
+
+    char szSymbol [512] = { };
+
+    SK_GetSymbolNameFromModuleAddr ( SK_GetCallingDLL (),
+                            (uintptr_t)_ReturnAddress (),
+                                     szSymbol, 511 );
+
+    SK_LOG0 ( ( L"  >> Best-Guess For Source of Exception:  %hs", szSymbol ),
+                L"SEH-Except"
+            );
+  }
+  __except (EXCEPTION_EXECUTE_HANDLER)
+  {
+  }
+  
+  //if (SK_IsDebuggerPresent ())
+  //  __debugbreak ();
+
+  __try {
+    SK_SEHCompatibleRaiseException (
+      dwExceptionCode,
+      dwExceptionFlags,
+      nNumberOfArguments,
+      lpArguments
+    );
+  } __except (EXCEPTION_CONTINUE_SEARCH) { };
 }
 
 
@@ -980,10 +1132,10 @@ static_cast_p2p <void> (&GetCommandLineA_Original) );
                             ResetEvent_Detour,
    static_cast_p2p <void> (&ResetEvent_Original) );
 
-  SK_CreateDLLHook2 (      L"NtDll.dll",
-                           "RtlRaiseException",
-                            RtlRaiseException_Detour,
-   static_cast_p2p <void> (&RtlRaiseException_Original) );
+  SK_CreateDLLHook2 (      L"kernel32",
+                           "RaiseException",
+                            RaiseException_Detour,
+   static_cast_p2p <void> (&RaiseException_Original) );
 
   SK_CreateDLLHook2 (      L"NtDll.dll",
                            "NtCreateThreadEx",

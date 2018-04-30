@@ -149,6 +149,8 @@ SK_Log_AsyncFlushThreadPump (LPVOID)
 BOOL
 SK_FlushLog (iSK_Logger* pLog)
 {
+  // Perf. counter; made obsolete by SK's built-in
+  //  thread profiler and per-thread file I/O stats.
 #ifdef _DEBUG
   static volatile LONG   flush_reqs  (0);
 #endif
@@ -159,13 +161,16 @@ SK_FlushLog (iSK_Logger* pLog)
   if ( INVALID_HANDLE_VALUE ==
          InterlockedCompareExchangePointer (
            &hFlushThread,
-             reinterpret_cast <PVOID> (1),
+             reinterpret_cast <PVOID> (-1),
                INVALID_HANDLE_VALUE
          )
      )
   {
     hFlushReq =
-      CreateEvent ( nullptr, TRUE, TRUE, LR"(Local\SK_LogFlush)" );
+      CreateEvent ( nullptr, TRUE, TRUE,
+        SK_FormatStringW ( LR"(Local\SK_LogFlush_pid%x)",
+                      GetCurrentThreadId () ).c_str ()
+                  );
 
     InterlockedExchangePointer (
       const_cast         <         LPVOID *> (
@@ -174,6 +179,9 @@ SK_FlushLog (iSK_Logger* pLog)
         SK_Thread_CreateEx ( SK_Log_AsyncFlushThreadPump )
     );
   }
+
+  while ((intptr_t)hFlushReq <= 0)
+    SleepEx (1, TRUE);
 
   if ( (! flush_set.count ( pLog )) ||
           flush_set       [ pLog ] == false )
@@ -290,7 +298,7 @@ iSK_Logger::init ( const wchar_t* const wszFileName,
   silent = false;
 
   BOOL bRet = InitializeCriticalSectionAndSpinCount (&log_mutex, 400);
-   lockless = false;//true;
+   lockless = true;
 
   if ((! bRet) || (fLog == nullptr))
   {
@@ -476,7 +484,7 @@ SK_SummarizeCaller (LPVOID lpReturnAddr)
   ULONG   ulLen            = 191;
     
   ulLen = SK_GetSymbolNameFromModuleAddr (
-            SK_GetCallingDLL (),
+              SK_GetCallingDLL (lpReturnAddr),
   reinterpret_cast <uintptr_t> (lpReturnAddr),
                 szSymbol,
                   ulLen );

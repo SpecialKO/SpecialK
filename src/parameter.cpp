@@ -31,14 +31,26 @@ sk::iParameter::load (void)
 {
   if (ini != nullptr)
   {
-    iSK_INISection& section =
-      ini->get_section (ini_section.c_str ());
+    const wchar_t*  sec_name =
+      ini_section.c_str ();
 
-    if (section.contains_key (ini_key.c_str ()))
+    if (ini->contains_section (sec_name))
     {
-      set_value_str (section.get_value (ini_key.c_str ()));
+      iSK_INISection& section =
+        ini->get_section (sec_name);
+  
+      if (section.contains_key (ini_key.c_str ()))
+      {
+        std::wstring& new_value =
+          section.get_value (ini_key.c_str ());
 
-      return true;
+        if (! new_value.empty ())
+        {
+          set_value_str (new_value);
+
+          return true;
+        }
+      }
     }
   }
 

@@ -65,22 +65,29 @@ Nino2.agsInit+2B21E1 - 77 BD                 - ja Nino2.agsInit+2B21A0
 
 
 
-struct
+struct mem_addr_s
 {
-  const char* pattern;
-  size_t      pattern_len;
+  const char*    pattern;
+  const char*    pattern_mask;
+  size_t         pattern_len;
 
-  size_t      rep_size;
-  ptrdiff_t   rep_off;
+  size_t         rep_size;
+  ptrdiff_t      rep_off;
 
-  bool        enabled;
-  void*       scanned_addr;
+  bool           enabled;
+  void*          scanned_addr;
+
+  std::vector<BYTE> orig_bytes;
+
+  const wchar_t* desc;
 
   void scan (void)
   {
     if (! scanned_addr)
     {
-      scanned_addr = SK_ScanAlignedEx (pattern, pattern_len, nullptr);
+      scanned_addr = SK_ScanAlignedEx (pattern, pattern_len, pattern_mask);
+
+      dll_log.Log (L"Scanned address for: %s: %p", desc, scanned_addr);
     }
   }
 
@@ -96,7 +103,7 @@ struct
 
       if (rep_size == 8)
       {
-        InterlockedExchange64 ((volatile LONG64*)((intptr_t)scanned_addr + rep_off), *(LONG64 *)pattern);
+        InterlockedExchange64 ((volatile LONG64*)((intptr_t)scanned_addr + rep_off), *(__int64 *)orig_bytes.data ());
       }
 
       else if (rep_size == 2)
@@ -120,6 +127,13 @@ struct
 
       VirtualProtect ((void*)((intptr_t)scanned_addr + rep_off), rep_size, PAGE_EXECUTE_READWRITE, &dwProtect);
 
+      orig_bytes.clear ();
+
+      for ( int i = 0; i < rep_size; i++ )
+      {
+        orig_bytes.push_back (*(uint8_t *)((uintptr_t)scanned_addr + rep_off + i));
+      }
+
       if (rep_size == 8)
       {
         InterlockedExchange64 ((volatile LONG64*)((intptr_t)scanned_addr + rep_off), *(LONG64 *)"\x90\x90\x90\x90\x90\x90\x90\x90");
@@ -135,11 +149,11 @@ struct
       enabled = false;
     }
   }
-} instn__write_dt_input  { "\xF3\x0F\x11\x35\x7F\xD9\x85\x00",     8,  8, 0,  true,  nullptr },
-  instn__write_dt_render { "\xF3\x0F\x11\x3D\x73\xD9\x85\x00",     8,  8, 0,  true,  nullptr },
-  instn__limit_branch    { "\x66\x0F\x2F\xF8\x77\xBD\x48\x2B\xCA", 9,  2, 4,  true,  nullptr };
+};
 
-
+////E8  06  E0  16  00     F3  0F  11  35     F2  76  86  00     F3     0F  11  3D     E6  76  86  00     E8 91AF9FFF
+//"\xE8\x00\x00\x00\x00" "\xF3\x0F\x11\x35" "\x00\x00\x00\x00" "\xF3" "\x0F\x11\x3D" "\x00\x00\x00\x00" "\xE8"
+//"\xE8\x00\x00\x00\x00" "\xF3\x0F\x11\x35" "\x00\x00\x00\x00" "\xF3" "\x0F\x11\x3D" "\x00\x00\x00\x00" "\xE8"
 
 sk::ParameterFloat* SK_NNK2_VirtualFPS    = nullptr;
 sk::ParameterBool*  SK_NNK2_ReduceShimmer = nullptr;
@@ -147,7 +161,7 @@ sk::ParameterBool*  SK_NNK2_ReduceShimmer = nullptr;
 static float SK_NNK2_target_fps = 0.0f;
 
 
-#define NNS_VERSION_NUM L"0.1.0"
+#define NNS_VERSION_NUM L"0.2.0"
 #define NNS_VERSION_STR L"Ni no Stutter v " NNS_VERSION_NUM
 
 
@@ -228,6 +242,12 @@ SK_NNK2_CreateSamplerState
     _D3D11Dev_CreateSamplerState_Original (This, pSamplerDesc, ppSamplerState);
 }
 
+mem_addr_s instn__write_dt_input  = { };
+mem_addr_s instn__write_dt_render = { };
+mem_addr_s instn__limit_branch    = { };
+
+
+#define TIMESTEP_BASE_ADDR 0x11F1470
 
 void
 SK_NNK2_InitPlugin (void)
@@ -262,22 +282,57 @@ SK_NNK2_InitPlugin (void)
 
   SK_Thread_Create ([](LPVOID) -> DWORD
   {
+    instn__write_dt_input =
+        { "\xF3\x0F\x11\x35"     "\x00\x00\x00\x00"
+          "\xF3\x0F\x11\x3D",
+      //----------------------------------------------//
+          "\xF3\x0F\x11\x35"     "\x00\x00\x00\x00"
+          "\xF3\x0F\x11\x3D",
+                 12, 8, 0,    true, nullptr,
+
+        { }, L"write_dt_input" };
+
+
+
+    instn__write_dt_render =
+        { "\xF3\x0F\x11\x3D"     "\x73\xD9\x85\x00"  "\xE8", 
+      //----------------------------------------------//
+         "\xF3\x0F\x11\x3D"      "\x00\x00\x00\x00"  "\xE8",
+                 9,  8, 0,    true, nullptr,
+
+          { }, L"write_dt_render" };
+
+    instn__limit_branch =
+        { "\x66\x0F\x2F\xF8\x77\xBD\x48\x2B\xCA",    nullptr,
+                 9,  2, 4,    true, nullptr,
+
+          { }, L"limit_branch"    };
+
+
     // Fix for window-management issues in windowed mode
-    //while (SK_GetFramesDrawn () < 8)
-    //{
-    //  SleepEx (16UL, TRUE);
-    //}
+    while (SK_GetFramesDrawn () < 8)
+    {
+      SleepEx (16UL, TRUE);
+    }
+
+
+    instn__write_dt_render.scan ();
+    instn__write_dt_input.scan  ();
+
 
     if (SK_NNK2_target_fps != 0.0f)
     {
       config.window.background_render = true;
 
-      instn__write_dt_input.disable  ();
       instn__write_dt_render.disable ();
+      instn__write_dt_input.disable  ();
       instn__limit_branch.disable    ();
 
-      static float* pfdTr = (float *)((uint8_t *)GetModuleHandle (nullptr) + 0x11DA454);
-      static float* pfdTi = (float *)((uint8_t *)GetModuleHandle (nullptr) + 0x11DA450);
+      float* pfBase =
+        (float *)((uintptr_t)GetModuleHandle (nullptr) + TIMESTEP_BASE_ADDR);
+
+      static float* pfdTi = pfBase;
+      static float* pfdTr = pfBase+1;
 
       *pfdTr = ( 1.0f / SK_NNK2_target_fps );
       *pfdTi = ( 1.0f / SK_NNK2_target_fps );
@@ -301,8 +356,8 @@ SK_NNK2_InitPlugin (void)
 bool
 SK_NNK2_PlugInCfg (void)
 {
-  static float* pfdTr = (float *)((uint8_t *)GetModuleHandle (nullptr) + 0x11DA454);
-  static float* pfdTi = (float *)((uint8_t *)GetModuleHandle (nullptr) + 0x11DA450);
+  static float* pfdTi = (float *)((uint8_t *)GetModuleHandle (nullptr) +  TIMESTEP_BASE_ADDR);
+  static float* pfdTr = pfdTi + 1;
 
   if (ImGui::CollapsingHeader (u8"Ni no Kuni™ II Revenant Kingdom", ImGuiTreeNodeFlags_DefaultOpen))
   {

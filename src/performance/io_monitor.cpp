@@ -216,7 +216,7 @@ SK_MonitorCPU (LPVOID user_param)
 
   while (cpu.lID != 0)
   {
-    if (MsgWaitForMultipleObjects (1, const_cast <const HANDLE *> (&cpu.hShutdownSignal), FALSE, ( DWORD (update * 1000.0) ), QS_ALLEVENTS) == WAIT_OBJECT_0)
+    if (MsgWaitForMultipleObjectsEx (1, const_cast <const HANDLE *> (&cpu.hShutdownSignal), ( DWORD (update * 1000.0) ), QS_ALLEVENTS, 0x0) == WAIT_OBJECT_0)
       break;
 
     // Only poll WMI while the data view is visible

@@ -364,11 +364,10 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 {
   // Sadly, if this ever happens, there's no way to report the problem, so just
   //   terminate with exit code = -1.
-  if ( ReadAcquire (&__SK_DLL_Ending)   != 0 ||
-       ReadAcquire (&__SK_DLL_Attached) == 0 )
+  if ( ReadAcquire (&__SK_DLL_Ending) != 0 )
   {
-    abort ();
-  //TerminateProcess (GetCurrentProcess (), (UINT)-1);
+    FatalAppExitW ( 0, L"Special K has trapped a non-continuable exception and must exit.\r\n"
+                       L"\tLook for a crash log in logs/crash/<timestamp>/*.log" );
   }
 
   bool scaleform = false;
@@ -386,12 +385,6 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 
   using IsDebuggerPresent_pfn = BOOL (WINAPI *)(void);
   extern IsDebuggerPresent_pfn IsDebuggerPresent_Original;
-
-  //if ( ExceptionInfo->ExceptionRecord->ExceptionCode == EXCEPTION_BREAKPOINT &&
-  //     (   IsDebuggerPresent_Original != nullptr &&
-  //      (! IsDebuggerPresent_Original () ) ) )
-  //  return EXCEPTION_CONTINUE_EXECUTION;
-
 
   switch (ExceptionInfo->ExceptionRecord->ExceptionCode)
   {
@@ -607,6 +600,16 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
                   ExceptionInfo->ContextRecord->R15 );
   crash_log.Log ( L"[ GP Flags ]       EFlags:  0x%08x",
                   ExceptionInfo->ContextRecord->EFlags );
+
+  crash_log.Log ( L"[ DebugReg ]       dr0:     0x%012llx      dr1:      0x%012llx",
+                  ExceptionInfo->ContextRecord->Dr0,
+                  ExceptionInfo->ContextRecord->Dr1 );
+  crash_log.Log ( L"[ DebugReg ]       dr2:     0x%012llx      dr3:      0x%012llx",
+                  ExceptionInfo->ContextRecord->Dr2,
+                  ExceptionInfo->ContextRecord->Dr3 );
+  crash_log.Log ( L"[ DebugReg ]       dr6:     0x%012llx      dr7:      0x%012llx",
+                  ExceptionInfo->ContextRecord->Dr6,
+                  ExceptionInfo->ContextRecord->Dr7 );
 #endif
 
   crash_log.Log (

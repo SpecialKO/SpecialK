@@ -1222,6 +1222,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
   games.emplace ( L"Nino2.exe",                              SK_GAME_ID::NiNoKuni2                    );
   games.emplace ( L"FarCry5.exe",                            SK_GAME_ID::FarCry5                      );
   games.emplace ( L"Chrono Trigger.exe",                     SK_GAME_ID::ChronoTrigger                );
+  games.emplace ( L"ys8.exe",                                SK_GAME_ID::Ys_Eight                     );
 
   //
   // Application Compatibility Overrides
@@ -1589,6 +1590,11 @@ SK_LoadConfigEx (std::wstring name, bool create)
         break;
 
       case SK_GAME_ID::ChronoTrigger:
+        break;
+
+      case SK_GAME_ID::Ys_Eight:
+        config.textures.d3d11.uncompressed_mips = true;
+        config.textures.d3d11.cache_gen_mips    = false;
         break;
     }
   }

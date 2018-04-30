@@ -373,10 +373,10 @@ SKX_ThreadThunk ( LPVOID lpUserPassThrough )
     pTLS->debug.tid    = GetCurrentThreadId ();
   }
 
-  LocalFree ((HLOCAL)pStartParams);
-
   DWORD dwRet =
     pStartParams->lpStartFunc (pStartParams->lpUserParams);
+
+  LocalFree ((HLOCAL)pStartParams);
 
   return dwRet;
 }
@@ -396,15 +396,14 @@ SK_Thread_CreateEx ( LPTHREAD_START_ROUTINE lpStartFunc,
     lpUserParams, INVALID_HANDLE_VALUE
   };
 
-  DWORD dwTid = 0;
-
-  params->hHandleToStuffInternally =
+  DWORD  dwTid = 0;
+  HANDLE hRet  =
     CreateThread ( nullptr, 0,
                      SKX_ThreadThunk,
                        (LPVOID)params,
                          0x0, &dwTid );
 
-  return params->hHandleToStuffInternally;
+  return ( (params->hHandleToStuffInternally = hRet) );
 }
 
 extern "C"

@@ -4436,6 +4436,17 @@ D3D9CreateDevice_Override ( IDirect3D9*            This,
                             D3DPRESENT_PARAMETERS* pPresentationParameters,
                             IDirect3DDevice9**     ppReturnedDeviceInterface )
 {
+  if (StrStrIW (SK_GetCallerName ().c_str (), L"action_"))
+  {
+    return D3D9_CreateDevice_Original ( This, Adapter,
+                                                  DeviceType,
+                                                    hFocusWindow,
+                                                      BehaviorFlags,
+                                                        pPresentationParameters,
+                                                          ppReturnedDeviceInterface );
+  }
+
+
   if (SK_TLS_Bottom ()->d3d9.ctx_init_thread)
   {
     return

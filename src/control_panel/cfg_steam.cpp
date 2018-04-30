@@ -632,8 +632,6 @@ SK::ControlPanel::Steam::Draw (void)
       ImGui::TreePop       ( );
     }
 
-    SK_ImGui::BatteryMeter ();
-
     ImGui::Columns    ( 1 );
     ImGui::Separator  (   );
 
@@ -668,6 +666,16 @@ SK::ControlPanel::Steam::Draw (void)
       SK_SteamAPI_SetOverlayState (pause);
     }
 
+    auto SteamCallbackThrottleSubMenu = [&](void) ->
+    void
+    {
+      int rate = ReadAcquire (&SK_SteamAPI_CallbackRateLimit);
+      
+      if (ImGui::SliderInt ("Limit SteamAPI Rate", &rate, -1, 240))
+          InterlockedExchange (&SK_SteamAPI_CallbackRateLimit, rate);
+    };
+
+
     bool right_clicked = SK_ImGui_IsItemRightClicked ();
 
     if (SK::SteamAPI::IsOverlayAware ())
@@ -696,11 +704,14 @@ SK::ControlPanel::Steam::Draw (void)
         {
           SK::SteamAPI::SetOverlayState (config.steam.reuse_overlay_pause);
         }
+
+        SteamCallbackThrottleSubMenu ();
+
         ImGui::EndPopup     ();
       }
     }
 
-    if (right_clicked)
+    else if (right_clicked)
     {
       ImGui::OpenPopup         ("SteamCallbackRateMenu");
       ImGui::SetNextWindowSize (ImVec2 (-1.0f, -1.0f), ImGuiSetCond_Always);
@@ -708,10 +719,7 @@ SK::ControlPanel::Steam::Draw (void)
 
     if (ImGui::BeginPopup ("SteamCallbackRateMenu"))
     {                     
-      int rate = ReadAcquire (&SK_SteamAPI_CallbackRateLimit);
-
-      if (ImGui::SliderInt ("Limit SteamAPI Rate", &rate, -1, 240))
-          InterlockedExchange (&SK_SteamAPI_CallbackRateLimit, rate);
+      SteamCallbackThrottleSubMenu ();
 
       ImGui::EndPopup     ();
     }

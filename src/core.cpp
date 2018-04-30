@@ -502,6 +502,10 @@ SK_InitCore (std::wstring, void* callback)
       SK_SOM_InitPlugin ();
       break;
 
+    case SK_GAME_ID::Ys_Eight:
+      SK_YS8_InitPlugin ();
+      break;
+
     case SK_GAME_ID::DragonBallFighterZ:
       wchar_t      wszPath       [MAX_PATH * 2] = { };
       wchar_t      wszWorkingDir [MAX_PATH * 2] = { };
@@ -570,6 +574,8 @@ WaitForInit (void)
           SK_UnpackD3DShaderCompiler ();
         }
       }
+
+      __HrLoadAllImportsForDll ("D3DCOMPILER_47.dll");
 
       InterlockedExchange (&dwInitThreadId, 0);
 
@@ -812,7 +818,7 @@ DllThread (LPVOID user)
   InterlockedExchange (&dwInitThreadId, GetCurrentThreadId ());
 
   SetCurrentThreadDescription (                 L"[SK] Primary Initialization Thread" );
-  SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_TIME_CRITICAL );
+  SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_HIGHEST       );
   SetThreadPriorityBoost      ( SK_GetCurrentThread (), TRUE                          );
 
   auto* params =
@@ -1086,6 +1092,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
                             "RtlQueryPerformanceCounter" )
     );
 
+
   __SK_BootedCore = backend;
 
   // Before loading any config files, test the game's environment variables
@@ -1184,18 +1191,32 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
   else
   {
-    SetThreadPriority (SK_GetCurrentThread (), THREAD_PRIORITY_ABOVE_NORMAL);
-    SetThreadPriorityBoost ( SK_GetCurrentThread (), FALSE                 );
+    SK_Thread_Create ([](LPVOID) -> DWORD
+    {
+      SetCurrentThreadDescription (                         L"[SK] Init Cleanup Thread" );
+      SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_HIGHEST     );
+      SetThreadPriorityBoost      ( SK_GetCurrentThread (), TRUE                        );
 
-    wchar_t   log_fname [MAX_PATH + 2] = { };
-    swprintf (log_fname, L"logs/%s.log", SK_IsInjected () ? L"SpecialK" : backend);
+      WaitForInit         ();
 
-    dll_log.init (log_fname, L"wS+,ccs=UTF-8");
-    dll_log.Log  ( L"%s.log created\t\t(Special K  %s,  %hs)",
-                     SK_IsInjected () ? L"SpecialK" :
-                                        backend,
-                                                      SK_VER_STR,
-                                        __DATE__ );
+      if (GetModuleHandle (L"dinput8.dll"))
+        SK_Input_HookDI8  ();
+
+      if (GetModuleHandle (L"dinput.dll"))
+        SK_Input_HookDI7  ();
+
+      SK_Input_Init       ();
+      SK_ApplyQueuedHooks ();
+
+      // Setup the compatibility backend, which monitors loaded libraries,
+      //   blacklists bad DLLs and detects render APIs...
+      SK_EnumLoadedModules (SK_ModuleEnum::PostLoad);
+
+      SK_Thread_CloseSelf ();
+
+      return 0;
+    });
+
 
     bool blacklist =
       SK_IsInjected () &&
@@ -1209,8 +1230,23 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     {
       init_mutex->unlock ();
 
-      return false;
+      return TRUE;
     }
+
+
+    SetThreadPriority      ( SK_GetCurrentThread (), THREAD_PRIORITY_ABOVE_NORMAL );
+    SetThreadPriorityBoost ( SK_GetCurrentThread (), FALSE                        );
+
+    wchar_t   log_fname [MAX_PATH + 2] = { };
+    swprintf (log_fname, L"logs/%s.log", SK_IsInjected () ? L"SpecialK" : backend);
+
+    dll_log.init (log_fname, L"wS+,ccs=UTF-8");
+    dll_log.Log  ( L"%s.log created\t\t(Special K  %s,  %hs)",
+                     SK_IsInjected () ? L"SpecialK" :
+                                        backend,
+                                                      SK_VER_STR,
+                                        __DATE__ );
+
 
     init_.start_time = SK_QueryPerf ();
 
@@ -1498,33 +1534,6 @@ BACKEND_INIT:
     {
       SK_Steam_LoadOverlayEarly ();
     }
-
-
-    SK_Thread_Create ([](LPVOID) -> DWORD
-    {
-      SetCurrentThreadDescription (                          L"[SK] Init Cleanup Thread" );
-      SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_BELOW_NORMAL );
-      SetThreadPriorityBoost      ( SK_GetCurrentThread (), TRUE                         );
-
-      WaitForInit         ();
-
-      if (GetModuleHandle (L"dinput8.dll"))
-        SK_Input_HookDI8  ();
-
-      if (GetModuleHandle (L"dinput.dll"))
-        SK_Input_HookDI7  ();
-
-      SK_Input_Init       ();
-      SK_ApplyQueuedHooks ();
-
-      // Setup the compatibility backend, which monitors loaded libraries,
-      //   blacklists bad DLLs and detects render APIs...
-      SK_EnumLoadedModules (SK_ModuleEnum::PostLoad);
-
-      SK_Thread_CloseSelf ();
-
-      return 0;
-    });
 
 
     InterlockedExchangePointer (

@@ -1057,12 +1057,12 @@ SK_CreateUser32Hook ( const char  *pszProcName,
   char    proc_name   [128] = { };
   wchar_t module_name [128] = L"Win32U.DLL";
 
-  if (win32u_test [0].used)
-  {
-    strncpy (proc_name, pszProcName, 127);
-  }
-
-  else
+  ///if (win32u_test [0].used)
+  ///{
+  ///  strncpy (proc_name, pszProcName, 127);
+  ///}
+  ///
+  ///else
   {
     wcscpy (module_name, L"user32");
 

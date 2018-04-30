@@ -171,41 +171,15 @@ DllMain ( HMODULE hModule,
         return FALSE;
 
 
+      SetErrorMode ( SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX );
+
+
       auto EarlyOut =
       [&](BOOL bRet = TRUE)
       {
-        InterlockedExchange (&__SK_DLL_Attached, TRUE);
-
-        if ( (! bRet) ||
-             (! ( has_local_dll ||
-                  SK_GetHostAppUtil ().isInjectionTool () ) ) )
-        {
-          auto tls_slot =
-            SK_GetTLS ();
-
-          if (tls_slot.dwTlsIdx != TLS_OUT_OF_INDEXES)
-          {
-            SK_CleanupTLS ();
-
-            // We're not using TLS for anything, so we don't need thread
-            //  attach/detach events.
-            if (FlsFree (tls_slot.dwTlsIdx) || (! GetLastError ()))
-            {
-              tls_slot.dwTlsIdx = TLS_OUT_OF_INDEXES;
-            }
-          }
-
-          if (tls_slot.dwTlsIdx == TLS_OUT_OF_INDEXES)
-          {
-            InterlockedExchange (&__SK_TLS_INDEX, TLS_OUT_OF_INDEXES);
-
-            if (DisableThreadLibraryCalls (hModule))
-              InterlockedExchange (&__SK_DLL_Attached, 0);
-          }
-        }
-
         return TRUE;
       };
+
 
       InterlockedExchange (&__SK_TLS_INDEX, FlsAlloc (nullptr));
 
@@ -285,14 +259,14 @@ DllMain ( HMODULE hModule,
       {
         if (! SK_GetHostAppUtil ().isInjectionTool ())
           SK_Detach (SK_GetDLLRole ());
+      }
 
-        auto tls_slot =
-          SK_GetTLS ();
+      auto tls_slot =
+        SK_GetTLS ();
 
-        if (tls_slot.dwTlsIdx != TLS_OUT_OF_INDEXES)
-        {
-          FlsFree (tls_slot.dwTlsIdx);
-        }
+      if (tls_slot.dwTlsIdx != TLS_OUT_OF_INDEXES)
+      {
+        FlsFree (tls_slot.dwTlsIdx);
       }
 
 #ifdef _DEBUG
@@ -309,19 +283,14 @@ DllMain ( HMODULE hModule,
     {
       if (ReadAcquire (&__SK_DLL_Attached))
       {
+        SetThreadErrorMode (SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX, nullptr);
+
         InterlockedIncrement (&__SK_Threads_Attached);
 
         SK_TlsRecord tls_rec =
           SK_GetTLS (true);
 
-        extern Concurrency::concurrent_unordered_map <DWORD, SK_TlsRecord> tls_map;
-
-        ((SK_TLS *)tls_rec.lpvData)->debug.mapped = true;
-
-        tls_map.insert (
-          std::make_pair ( ((SK_TLS *)tls_rec.lpvData)->debug.tid,
-                             std::move (tls_rec) )
-        );
+        SK_TLS_Bottom ()->debug.mapped = true;
       }
     }
     break;
@@ -506,7 +475,7 @@ SK_EstablishDllRole (skWin32Module&& module)
   lstrcpynW      (wszAppNameLower, SK_GetHostApp (), MAX_PATH);
   CharLowerBuffW (wszAppNameLower,                   MAX_PATH);
   
-  if (__blacklist.count (wszAppNameLower)) return false;
+  if (__blacklist.count (wszAppNameLower)) return FALSE;
 
 
 #ifndef _WIN64
@@ -522,7 +491,7 @@ SK_EstablishDllRole (skWin32Module&& module)
     static_cast <const std::wstring &> (module).c_str ();
 
   const wchar_t* wszShort =
-    SK_Path_wcsrchr ( wszSelfTitledDLL, *LR"(\)" ) + 1;
+    CharNextW ( SK_Path_wcsrchr ( wszSelfTitledDLL, *LR"(\)" ) );
 
   // The DLL path was _already_ in non-fully-qualified form... oops?
   if (wszShort == static_cast <const wchar_t *>(nullptr) + 1)
