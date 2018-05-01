@@ -363,11 +363,10 @@ WINAPI
 SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 {
   // Sadly, if this ever happens, there's no way to report the problem, so just
-  //   terminate with exit code = -1.
+  //   terminate with exit code = -666.
   if ( ReadAcquire (&__SK_DLL_Ending) != 0 )
   {
-    FatalAppExitW ( 0, L"Special K has trapped a non-continuable exception and must exit.\r\n"
-                       L"\tLook for a crash log in logs/crash/<timestamp>/*.log" );
+    FatalExit ( -666 );
   }
 
   bool scaleform = false;

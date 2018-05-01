@@ -1,20 +1,21 @@
 0.9.19:
  
- + Replaced SteamAPI battery monitoring with actual Win32 API cde, and now indicate
-     when a laptop battery is charging or discharging and howmuch runtime is left in
+ + Replaced SteamAPI battery monitoring with actual Win32 API code, and now indicate
+     when a laptop battery is charging or discharging and how much runtime is left in
        the framepacing widget.
 
  + Fixed various issues with SpecialK.DENY files and local / global injection
-     co-existence (Ctrl + Shift compat menu works much better).
+     co-existence (Ctrl + Shift compat. menu works much better).
 
- + Improved support for BC7 texxture dumping and injection
+ + Improved support for BC7 texture dumping and injection
  + Added mipmap generation for Ys VIII
  + Added shadowmap resolution boost for Ys VIII
  + Fixed Ni no Kuni 2 memory patterns for anti-stutter mod
- + Added x64 DebugRegister listinng to crash handler
+ + Added x64 DebugRegister listing to crash handler
  + Added bypass for broken Win32MiniDumpInit in Steam's latest DRM wrapper;
      ( affects 32-bit games only. )
  + Added preliminary Ansel overlay activation detection / prevention
+
 
 
 0.9.18:

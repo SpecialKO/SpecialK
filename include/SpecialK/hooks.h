@@ -44,9 +44,12 @@ struct sk_hook_target_s
   LPVOID    addr;                       // [ Absolute Addr. ]
   ptrdiff_t offset;                     // Relative to parent module's base addr.
 
+  DWORD     image_size;                 // The correct DLL image size
+
+
 #ifdef _XSTRING_
   std::wstring serialize_ini   (void);
-  bool         deserialize_ini (const std::wstring& serial_data);
+  DWORD        deserialize_ini (const std::wstring& serial_data);
 #endif
 };
 
@@ -64,7 +67,7 @@ struct sk_hook_cache_record_s
 };
 
 #define SK_HookCacheEntry(entry) sk_hook_cache_record_s entry ## = \
-  { {#entry, L"", nullptr, 0ULL},                                  \
+  { {#entry, L"", nullptr, 0ULL, 0UL},                             \
      nullptr,                                                      \
      nullptr,                                                      \
      false,                                                        \
@@ -77,7 +80,8 @@ struct sk_hook_cache_record_s
 #define SK_HookCacheEntryLocal(entry,dll,new_target,bounce_pad)\
   sk_hook_cache_record_s LocalHook_##entry ## =                \
   { {#entry, (dll), GlobalHook_##entry##.target.addr,          \
-                    GlobalHook_##entry##.target.offset},       \
+                    GlobalHook_##entry##.target.offset,        \
+                    GlobalHook_##entry##.target.image_size},   \
      (LPVOID)  (new_target),                                   \
      (LPVOID *)(bounce_pad),                                   \
      false,                                                    \

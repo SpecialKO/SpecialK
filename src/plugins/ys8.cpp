@@ -421,6 +421,13 @@ SK_YS8_CreateSamplerState (
       {
         new_desc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
       }
+
+      if ( new_desc.ComparisonFunc > D3D11_COMPARISON_NEVER &&
+           new_desc.ComparisonFunc < D3D11_COMPARISON_ALWAYS )
+      {
+        new_desc.Filter = anisotropic_filter ? D3D11_FILTER_COMPARISON_ANISOTROPIC :
+                                               D3D11_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
+      }
       
       pSamplerDesc = &new_desc;
     }

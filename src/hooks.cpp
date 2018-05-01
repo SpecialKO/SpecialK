@@ -50,7 +50,7 @@ sk_hook_target_s::serialize_ini (void)
     SK_FormatStringW ( L"%s?%x", module_path, offset );
 }
 
-bool
+DWORD
 sk_hook_target_s::deserialize_ini (const std::wstring& serial_data)
 {
   wchar_t wszPath [MAX_PATH + 2] = { };
@@ -69,19 +69,26 @@ sk_hook_target_s::deserialize_ini (const std::wstring& serial_data)
       SK_Modules.LoadLibraryLL (wszPath);
   }
 
-  if (SK_LoadLibrary_PinModule <wchar_t> (wszPath))
+  MODULEINFO mod_info = { };
+
+  if ( GetModuleInformation ( GetCurrentProcess (),
+                                hModLib, &mod_info,
+                                  sizeof MODULEINFO ) )
   {
-    wcscpy (module_path, wszPath);
+    if (SK_LoadLibrary_PinModule <wchar_t> (wszPath))
+    {
+      wcscpy (module_path, wszPath);
 
-    addr =
-      (LPVOID)((uintptr_t)hModLib + offset);
+      addr =
+        (LPVOID)((uintptr_t)hModLib + offset);
 
-    return true;
+      return mod_info.SizeOfImage;
+    }
   }
 
   addr = 0;
 
-  return false;
+  return 0;
 }
 
 bool
@@ -98,10 +105,21 @@ SK_Hook_PredictTarget (       sk_hook_cache_record_s &cache,
 
   if (hook_cfg.contains_key (wide_symbol.c_str ()))
   {
-    return
+    DWORD dwSize =
       cache.target.deserialize_ini (
         hook_cfg.get_value (wide_symbol.c_str ())
       );
+
+    if ( hook_cfg.contains_key (cache.target.module_path) &&
+           dwSize ==
+             _wtoi ( hook_cfg.get_value (
+                                cache.target.module_path
+                                        ).c_str () 
+                   )
+       )
+    {
+      return true;
+    }
   }
 
   return false;
@@ -143,6 +161,15 @@ SK_Hook_ResolveTarget ( sk_hook_cache_record_s &cache )
     wcsncpy ( cache.target.module_path, 
                 SK_GetModuleFullNameFromAddr (cache.target.addr).c_str (),
                   MAX_PATH );
+
+    MODULEINFO mod_info = { };
+
+    if ( GetModuleInformation ( GetCurrentProcess (),
+                                  hModBase, &mod_info,
+                                    sizeof MODULEINFO ) )
+    {
+      cache.target.image_size = mod_info.SizeOfImage;
+    }
   }
 
   else
@@ -188,6 +215,18 @@ SK_Hook_CacheTarget (       sk_hook_cache_record_s &cache,
       {
         hook_cfg.add_key_value ( wide_symbol.c_str  (),
                                    serialized.c_str () );
+      }
+
+      if (hook_cfg.contains_key (cache.target.module_path))
+      {
+        hook_cfg.get_value (cache.target.module_path) =
+           std::to_wstring (cache.target.image_size);
+      }
+
+      else
+      {
+        hook_cfg.add_key_value ( cache.target.module_path,
+                                   std::to_wstring (cache.target.image_size).c_str () );
       }
     }
 
