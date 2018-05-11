@@ -36,7 +36,8 @@ static ID3D11InputLayout*       g_pInputLayout          = nullptr;
 static ID3D11Buffer*            g_pVertexConstantBuffer = nullptr;
 static ID3D10Blob *             g_pPixelShaderBlob      = nullptr;
 static ID3D11PixelShader*       g_pPixelShader          = nullptr;
-static ID3D11SamplerState*      g_pFontSampler          = nullptr;
+static ID3D11SamplerState*      g_pFontSampler_clamp    = nullptr;
+static ID3D11SamplerState*      g_pFontSampler_wrap     = nullptr;
 static ID3D11ShaderResourceView*g_pFontTextureView      = nullptr;
 static ID3D11RasterizerState*   g_pRasterizerState      = nullptr;
 static ID3D11BlendState*        g_pBlendState           = nullptr;
@@ -319,7 +320,7 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
 
 
   pDevCtx->PSSetShader            (g_pPixelShader, nullptr, 0);
-  pDevCtx->PSSetSamplers          (0, 1, &g_pFontSampler);
+  pDevCtx->PSSetSamplers          (0, 1, &g_pFontSampler_clamp);
 
   // Setup render state
   const float blend_factor [4] = { 0.f, 0.f,
@@ -415,7 +416,7 @@ ImGui_ImplDX11_CreateFontsTexture (void)
     desc.ArraySize        = 1;
     desc.Format           = DXGI_FORMAT_R8G8B8A8_UNORM;
     desc.SampleDesc.Count = 1;
-    desc.Usage            = D3D11_USAGE_DEFAULT;
+    desc.Usage            = D3D11_USAGE_IMMUTABLE;
     desc.BindFlags        = D3D11_BIND_SHADER_RESOURCE;
     desc.CPUAccessFlags   = 0;
 
@@ -450,18 +451,31 @@ ImGui_ImplDX11_CreateFontsTexture (void)
     D3D11_SAMPLER_DESC desc = { };
 
     desc.Filter         = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-    desc.AddressU       = D3D11_TEXTURE_ADDRESS_CLAMP;    //WRAP
-    desc.AddressV       = D3D11_TEXTURE_ADDRESS_CLAMP;    //WRAP
-    desc.AddressW       = D3D11_TEXTURE_ADDRESS_CLAMP;    //WRAP
+    desc.AddressU       = D3D11_TEXTURE_ADDRESS_WRAP;
+    desc.AddressV       = D3D11_TEXTURE_ADDRESS_WRAP;
+    desc.AddressW       = D3D11_TEXTURE_ADDRESS_WRAP;
     desc.MipLODBias     = 0.f;
     desc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
     desc.MinLOD         = 0.f;
     desc.MaxLOD         = 0.f;
 
-    pDev->CreateSamplerState (&desc, &g_pFontSampler);
-  }
+    pDev->CreateSamplerState (&desc, &g_pFontSampler_clamp);
+    pTLS->d3d11.uiSampler_clamp =     g_pFontSampler_clamp;
 
-  pTLS->texture_management.injection_thread = false;
+    desc = { };
+
+    desc.Filter         = D3D11_FILTER_ANISOTROPIC;
+    desc.AddressU       = D3D11_TEXTURE_ADDRESS_MIRROR;
+    desc.AddressV       = D3D11_TEXTURE_ADDRESS_MIRROR;
+    desc.AddressW       = D3D11_TEXTURE_ADDRESS_MIRROR;
+    desc.MipLODBias     = 0.f;
+    desc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+    desc.MinLOD         = 0.f;
+    desc.MaxLOD         = 0.f;
+
+    pDev->CreateSamplerState (&desc, &g_pFontSampler_wrap);
+    pTLS->d3d11.uiSampler_wrap =      g_pFontSampler_wrap;
+  }
 }
 
 bool
@@ -475,7 +489,7 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
   // Do not dump ImGui font textures
   pTLS->imgui.drawing = true;
 
-  if (g_pFontSampler)
+  if (g_pFontSampler_clamp)
     ImGui_ImplDX11_InvalidateDeviceObjects ();
 
   SK_RenderBackend& rb =
@@ -716,9 +730,6 @@ ImGui_ImplDX11_InvalidateDeviceObjects (void)
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
 
-  //if (! g_pd3dDevice)
-  //  return;
-
   SK_ScopedBool auto_bool (&pTLS->imgui.drawing);
 
   // Do not dump ImGui font textures
@@ -726,10 +737,11 @@ ImGui_ImplDX11_InvalidateDeviceObjects (void)
 
   SK_ImGui_ResetExternal ();
 
-  if (g_pFontSampler)          { g_pFontSampler->Release     ();     g_pFontSampler = nullptr; }
-  if (g_pFontTextureView)      { g_pFontTextureView->Release (); g_pFontTextureView = nullptr; ImGui::GetIO ().Fonts->TexID = nullptr; }
-  if (g_pIB)                   { g_pIB->Release              ();              g_pIB = nullptr; }
-  if (g_pVB)                   { g_pVB->Release              ();              g_pVB = nullptr; }
+  if (g_pFontSampler_clamp)    { g_pFontSampler_clamp->Release (); g_pFontSampler_clamp = nullptr; }
+  if (g_pFontSampler_wrap)     { g_pFontSampler_wrap->Release  (); g_pFontSampler_wrap  = nullptr; }
+  if (g_pFontTextureView)      { g_pFontTextureView->Release   (); g_pFontTextureView   = nullptr;  ImGui::GetIO ().Fonts->TexID = nullptr; }
+  if (g_pIB)                   { g_pIB->Release                ();              g_pIB   = nullptr; }
+  if (g_pVB)                   { g_pVB->Release                ();              g_pVB   = nullptr; }
 
   if (g_pBlendState)           { g_pBlendState->Release           ();           g_pBlendState = nullptr; }
   if (g_pDepthStencilState)    { g_pDepthStencilState->Release    ();    g_pDepthStencilState = nullptr; }
@@ -740,6 +752,9 @@ ImGui_ImplDX11_InvalidateDeviceObjects (void)
   if (g_pInputLayout)          { g_pInputLayout->Release          ();          g_pInputLayout = nullptr; }
   if (g_pVertexShader)         { g_pVertexShader->Release         ();         g_pVertexShader = nullptr; }
   if (g_pVertexShaderBlob)     { g_pVertexShaderBlob->Release     ();     g_pVertexShaderBlob = nullptr; }
+
+  pTLS->d3d11.uiSampler_clamp = nullptr;
+  pTLS->d3d11.uiSampler_wrap  = nullptr;
 }
 
 bool
@@ -825,7 +840,7 @@ ImGui_ImplDX11_NewFrame (void)
   if (! SK_GetCurrentRenderBackend ().device)
     return;
 
-  if (! g_pFontSampler)
+  if (! g_pFontSampler_clamp)
     ImGui_ImplDX11_CreateDeviceObjects ();
   
   ImGuiIO& io (ImGui::GetIO ());
