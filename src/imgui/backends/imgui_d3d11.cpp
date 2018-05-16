@@ -93,17 +93,11 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
     return;
 
 
-  CComPtr                      <IDXGISwapChain>   pSwapChain = nullptr;
-  rb.swapchain->QueryInterface <IDXGISwapChain> (&pSwapChain);
+  CComQIPtr <IDXGISwapChain>               pSwapChain (rb.swapchain);
+  CComQIPtr <ID3D11Device>                 pDevice    (rb.device);
+  CComQIPtr <ID3D11DeviceContext>          pDevCtx    (rb.d3d11.immediate_ctx);
 
-  CComPtr                   <ID3D11Device>   pDevice = nullptr;
-  rb.device->QueryInterface <ID3D11Device> (&pDevice);
-
-  CComPtr                                <ID3D11DeviceContext>   pDevCtx = nullptr;
-  rb.d3d11.immediate_ctx->QueryInterface <ID3D11DeviceContext> (&pDevCtx);
-
-
-  CComPtr <ID3D11Texture2D>                pBackBuffer = nullptr;
+  CComPtr   <ID3D11Texture2D>              pBackBuffer = nullptr;
   pSwapChain->GetBuffer (0, IID_PPV_ARGS (&pBackBuffer));
 
   D3D11_TEXTURE2D_DESC   backbuffer_desc = { };
@@ -114,7 +108,6 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
 
   io.DisplayFramebufferScale.x = static_cast <float> (backbuffer_desc.Width);
   io.DisplayFramebufferScale.y = static_cast <float> (backbuffer_desc.Height);
-
 
   // Create and grow vertex/index buffers if needed
   if ((! g_pVB) || g_VertexBufferSize < draw_data->TotalVtxCount)
@@ -204,18 +197,31 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
       }
     }
 
-    memcpy (vtx_dst, cmd_list->VtxBuffer.Data, cmd_list->VtxBuffer.Size * sizeof (ImDrawVert));
     memcpy (idx_dst, cmd_list->IdxBuffer.Data, cmd_list->IdxBuffer.Size * sizeof (ImDrawIdx));
+    memcpy (vtx_dst, cmd_list->VtxBuffer.Data, cmd_list->VtxBuffer.Size * sizeof (ImDrawVert));
 
     vtx_dst += cmd_list->VtxBuffer.Size;
     idx_dst += cmd_list->IdxBuffer.Size;
   }
 
-  pDevCtx->Unmap (g_pVB, 0);
   pDevCtx->Unmap (g_pIB, 0);
+  pDevCtx->Unmap (g_pVB, 0);
 
   // Setup orthographic projection matrix into our constant buffer
   {
+    float L = 0.0f;
+    float R = ImGui::GetIO ().DisplaySize.x;
+    float B = ImGui::GetIO ().DisplaySize.y;
+    float T = 0.0f;
+
+    alignas (__m128d) float mvp [4][4] =
+    {
+      { 2.0f/(R-L),   0.0f,           0.0f,       0.0f },
+      { 0.0f,         2.0f/(T-B),     0.0f,       0.0f },
+      { 0.0f,         0.0f,           0.5f,       0.0f },
+      { (R+L)/(L-R),  (T+B)/(B-T),    0.5f,       1.0f },
+    };
+
     D3D11_MAPPED_SUBRESOURCE mapped_resource;
 
     if (pDevCtx->Map (g_pVertexConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped_resource) != S_OK)
@@ -223,19 +229,6 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
 
     auto* constant_buffer =
       static_cast <VERTEX_CONSTANT_BUFFER *> (mapped_resource.pData);
-
-    float L = 0.0f;
-    float R = ImGui::GetIO ().DisplaySize.x;
-    float B = ImGui::GetIO ().DisplaySize.y;
-    float T = 0.0f;
-
-    float mvp [4][4] =
-    {
-      { 2.0f/(R-L),   0.0f,           0.0f,       0.0f },
-      { 0.0f,         2.0f/(T-B),     0.0f,       0.0f },
-      { 0.0f,         0.0f,           0.5f,       0.0f },
-      { (R+L)/(L-R),  (T+B)/(B-T),    0.5f,       1.0f },
-    };
 
     memcpy         (&constant_buffer->mvp, mvp, sizeof (mvp));
     pDevCtx->Unmap (g_pVertexConstantBuffer, 0);
@@ -314,6 +307,10 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
                                              DXGI_FORMAT_R32_UINT,
                                                0 );
   pDevCtx->IASetPrimitiveTopology (D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+  pDevCtx->GSSetShader            (nullptr, nullptr, 0);
+  pDevCtx->HSSetShader            (nullptr, nullptr, 0);
+  pDevCtx->DSSetShader            (nullptr, nullptr, 0);
 
   pDevCtx->VSSetShader            (g_pVertexShader, nullptr, 0);
   pDevCtx->VSSetConstantBuffers   (0, 1, &g_pVertexConstantBuffer);

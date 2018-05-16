@@ -14,6 +14,7 @@
 //-------------------------------------------------------------------------------------
 
 #include "directxtexp.h"
+#include "../../../include/SpecialK/tls.h"
 
 #include "filters.h"
 
@@ -658,7 +659,7 @@ namespace
         size_t height = mipChain.GetMetadata().height;
 
         // Allocate temporary space (2 scanlines)
-        ScopedAlignedArrayXMVECTOR scanline(reinterpret_cast<XMVECTOR*>(_aligned_malloc((sizeof(XMVECTOR)*width * 2), 16)));
+        ScopedAlignedArrayXMVECTOR scanline(reinterpret_cast<XMVECTOR*>(SK_TLS_Bottom ()->dxtex.alignedAlloc (16, (sizeof(XMVECTOR)*width * 2))));
         if (!scanline)
             return E_OUTOFMEMORY;
 
@@ -745,7 +746,7 @@ namespace
             return E_FAIL;
 
         // Allocate temporary space (3 scanlines)
-        ScopedAlignedArrayXMVECTOR scanline(reinterpret_cast<XMVECTOR*>(_aligned_malloc((sizeof(XMVECTOR)*width * 3), 16)));
+        ScopedAlignedArrayXMVECTOR scanline(reinterpret_cast<XMVECTOR*>(SK_TLS_Bottom ()->dxtex.alignedAlloc (16, (sizeof(XMVECTOR)*width * 3))));
         if (!scanline)
             return E_OUTOFMEMORY;
 
@@ -836,7 +837,7 @@ namespace
         size_t height = mipChain.GetMetadata().height;
 
         // Allocate temporary space (3 scanlines, plus X and Y filters)
-        ScopedAlignedArrayXMVECTOR scanline(reinterpret_cast<XMVECTOR*>(_aligned_malloc((sizeof(XMVECTOR)*width * 3), 16)));
+        ScopedAlignedArrayXMVECTOR scanline(reinterpret_cast<XMVECTOR*>(SK_TLS_Bottom ()->dxtex.alignedAlloc (16, (sizeof(XMVECTOR)*width * 3))));
         if (!scanline)
             return E_OUTOFMEMORY;
 
@@ -947,7 +948,7 @@ namespace
         size_t height = mipChain.GetMetadata().height;
 
         // Allocate temporary space (5 scanlines, plus X and Y filters)
-        ScopedAlignedArrayXMVECTOR scanline(reinterpret_cast<XMVECTOR*>(_aligned_malloc((sizeof(XMVECTOR)*width * 5), 16)));
+        ScopedAlignedArrayXMVECTOR scanline(reinterpret_cast<XMVECTOR*>(SK_TLS_Bottom ()->dxtex.alignedAlloc (16, (sizeof(XMVECTOR)*width * 5))));
         if (!scanline)
             return E_OUTOFMEMORY;
 
@@ -1135,7 +1136,7 @@ namespace
         size_t height = mipChain.GetMetadata().height;
 
         // Allocate initial temporary space (1 scanline, accumulation rows, plus X and Y filters)
-        ScopedAlignedArrayXMVECTOR scanline(reinterpret_cast<XMVECTOR*>(_aligned_malloc(sizeof(XMVECTOR) * width, 16)));
+        ScopedAlignedArrayXMVECTOR scanline(reinterpret_cast<XMVECTOR*>(SK_TLS_Bottom ()->dxtex.alignedAlloc (16, (sizeof(XMVECTOR)*width))));
         if (!scanline)
             return E_OUTOFMEMORY;
 
@@ -1224,7 +1225,7 @@ namespace
                         }
                         else
                         {
-                            rowAcc->scanline.reset(reinterpret_cast<XMVECTOR*>(_aligned_malloc(sizeof(XMVECTOR) * nwidth, 16)));
+                            rowAcc->scanline.reset(reinterpret_cast<XMVECTOR*>(SK_TLS_Bottom ()->dxtex.alignedAlloc (16, sizeof(XMVECTOR) * nwidth)));
                             if (!rowAcc->scanline)
                                 return E_OUTOFMEMORY;
                         }

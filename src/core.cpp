@@ -271,6 +271,8 @@ SK_StartPerfMonThreads (void)
         SK_Thread_CreateEx ( pThunk )
       );
 
+      SK_RunOnce (SK_WMI_Init ());
+
       if (ReadPointerAcquire (phThread) != INVALID_HANDLE_VALUE)
       {
         dll_log.LogEx (false, L"tid=0x%04x\n",
@@ -1092,21 +1094,21 @@ SK_StartupCore (const wchar_t* backend, void* callback)
                             "RtlQueryPerformanceCounter" )
     );
 
-
   __SK_BootedCore = backend;
 
   // Before loading any config files, test the game's environment variables
   //  to determine if the Steam client has given us the AppID without having
   //    to initialize SteamAPI first.
-  SK_Steam_GetAppID_NoAPI      ();
+  SK_Steam_GetAppID_NoAPI ();
 
   static SetProcessDEPPolicy_pfn _SetProcessDEPPolicy =
     (SetProcessDEPPolicy_pfn)
       GetProcAddress ( GetModuleHandleW (L"kernel32"),
-                         "SetProcessDEPPolicy" );
+                              "SetProcessDEPPolicy" );
 
   // Disable DEP for stupid Windows 7 machines
-  if (_SetProcessDEPPolicy != nullptr) _SetProcessDEPPolicy (0);
+  if (_SetProcessDEPPolicy  != nullptr)
+      _SetProcessDEPPolicy (0);
 
 
 
@@ -1234,8 +1236,8 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     }
 
 
-    SetThreadPriority      ( SK_GetCurrentThread (), THREAD_PRIORITY_ABOVE_NORMAL );
-    SetThreadPriorityBoost ( SK_GetCurrentThread (), FALSE                        );
+    SetThreadPriority      ( SK_GetCurrentThread (), THREAD_PRIORITY_HIGHEST );
+    SetThreadPriorityBoost (SK_GetCurrentThread ( ), FALSE);
 
     wchar_t   log_fname [MAX_PATH + 2] = { };
     swprintf (log_fname, L"logs/%s.log", SK_IsInjected () ? L"SpecialK" : backend);
@@ -1254,6 +1256,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     SK_MinHook_Init           ();
     SK_Thread_InitDebugExtras ();
 
+
     // Don't let Steam prevent me from attaching a debugger at startup
     game_debug.init                  (L"logs/game_output.log", L"w");
     game_debug.lockless = true;
@@ -1265,7 +1268,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     SK_NvAPI_PreInitHDR (void);
 
     SK_NvAPI_PreInitHDR    ();
-    SK_WMI_Init            ();
     SK_InitCompatBlacklist ();
 
     // Do this from the startup thread [these functions queue, but don't apply]
@@ -1538,7 +1540,7 @@ BACKEND_INIT:
 
     InterlockedExchangePointer (
       const_cast <void **> (&hInitThread),
-        SK_Thread_CreateEx ( DllThread, nullptr,
+      SK_Thread_CreateEx ( DllThread, nullptr,
                                &init_ )
     ); // Avoid the temptation to wait on this thread
   }
@@ -1896,6 +1898,10 @@ static volatile LONG CEGUI_Init = FALSE;
 void
 SetupCEGUI (SK_RenderAPI& LastKnownAPI)
 {
+#ifdef _DEBUG
+return;
+#endif
+
   if ( (SK_GetCurrentRenderBackend ().api != SK_RenderAPI::Reserved) &&
         SK_GetCurrentRenderBackend ().api == LastKnownAPI            &&
        ( (! InterlockedCompareExchange (&CEGUI_Init, TRUE, FALSE)) ) )
@@ -1979,8 +1985,8 @@ SetupCEGUI (SK_RenderAPI& LastKnownAPI)
         GetProcAddress ( GetModuleHandle (L"kernel32"),
                            "SetDefaultDllDirectories" );
 
-    const char *locale_orig =
-      _strdup (setlocale (LC_ALL, NULL));
+    CHeapPtr <char> locale_orig (
+      _strdup (setlocale (LC_ALL, NULL)));
                setlocale (LC_ALL, "C");
 
     if ( k32_AddDllDirectory          && k32_RemoveDllDirectory &&
@@ -2090,7 +2096,6 @@ SetupCEGUI (SK_RenderAPI& LastKnownAPI)
     }
 
     setlocale (LC_ALL, locale_orig);
-    free      ((void *)locale_orig);
 
 
     // If we got this far and CEGUI's not enabled, it's because something went horribly wrong.

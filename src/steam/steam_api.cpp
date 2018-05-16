@@ -5868,8 +5868,10 @@ SK_SteamAPIContext::ReleaseThreadPipe (void)
 bool
 SK_SteamAPIContext::ReleaseThreadUser (void)
 {
-  HSteamUser& user = SK_TLS_Bottom ()->steam.client_user;
-  HSteamPipe& pipe = SK_TLS_Bottom ()->steam.client_pipe;
+  SK_TLS* pTLS =SK_TLS_Bottom ();
+
+  HSteamUser& user = pTLS->steam.client_user;
+  HSteamPipe& pipe = pTLS->steam.client_pipe;
 
   if (user != 0 && client_ != nullptr)
   {

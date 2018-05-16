@@ -111,7 +111,7 @@ SK_Hook_PredictTarget (       sk_hook_cache_record_s &cache,
       );
 
     if ( hook_cfg.contains_key (cache.target.module_path) &&
-           dwSize ==
+           (int)dwSize ==
              _wtoi ( hook_cfg.get_value (
                                 cache.target.module_path
                                         ).c_str () 

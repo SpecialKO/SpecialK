@@ -14,6 +14,7 @@
 //-------------------------------------------------------------------------------------
 
 #include "directxtexp.h"
+#include "../../../include/SpecialK/tls.h"
 
 using namespace DirectX;
 using namespace DirectX::PackedVector;
@@ -4452,7 +4453,7 @@ namespace
         if (filter & TEX_FILTER_DITHER_DIFFUSION)
         {
             // Error diffusion dithering (aka Floyd-Steinberg dithering)
-            ScopedAlignedArrayXMVECTOR scanline(reinterpret_cast<XMVECTOR*>(_aligned_malloc((sizeof(XMVECTOR)*(width * 2 + 2)), 16)));
+            ScopedAlignedArrayXMVECTOR scanline(reinterpret_cast<XMVECTOR*>(SK_TLS_Bottom ()->dxtex.alignedAlloc (16, (sizeof(XMVECTOR)*(width * 2 + 2)))));
             if (!scanline)
                 return E_OUTOFMEMORY;
 
@@ -4475,7 +4476,7 @@ namespace
         }
         else
         {
-            ScopedAlignedArrayXMVECTOR scanline(reinterpret_cast<XMVECTOR*>(_aligned_malloc((sizeof(XMVECTOR)*width), 16)));
+            ScopedAlignedArrayXMVECTOR scanline(reinterpret_cast<XMVECTOR*>(SK_TLS_Bottom ()->dxtex.alignedAlloc (16, (sizeof(XMVECTOR)*width))));
             if (!scanline)
                 return E_OUTOFMEMORY;
 

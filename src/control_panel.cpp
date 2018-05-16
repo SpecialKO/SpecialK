@@ -87,6 +87,7 @@ using namespace SK::ControlPanel;
 
 SK_RenderAPI                 SK::ControlPanel::render_api;
 unsigned long                SK::ControlPanel::current_time;
+uint64_t                     SK::ControlPanel::current_tick; // Perf Counter
 SK::ControlPanel::font_cfg_s SK::ControlPanel::font;
 
 
@@ -2411,6 +2412,7 @@ SK_ImGui_StageNextFrame (void)
                           ImGui::GetStyle ().ItemInnerSpacing.y;
   }
 
+  current_tick = SK_QueryPerf ().QuadPart;
   current_time = timeGetTime ();
 
   bool d3d9  = false;
@@ -2688,6 +2690,18 @@ SK_ImGui_StageNextFrame (void)
 
       float extra_lines = 0.0f;
 
+
+      extern LONG SK_D3D11_Resampler_GetActiveJobCount  (void);
+      extern LONG SK_D3D11_Resampler_GetWaitingJobCount (void);
+      extern LONG SK_D3D11_Resampler_GetErrorCount      (void);
+
+      LONG jobs = SK_D3D11_Resampler_GetActiveJobCount () + SK_D3D11_Resampler_GetWaitingJobCount ();
+
+      static DWORD dwLastActive = 0;
+
+      if (jobs != 0 || dwLastActive > timeGetTime () - 500)
+        extra_lines++;
+
       if (config.textures.cache.residency_managemnt)
       {
         if (ReadAcquire (&SK_D3D11_TexCacheResidency.count.InVRAM)   > 0) extra_lines++;
@@ -2700,6 +2714,32 @@ SK_ImGui_StageNextFrame (void)
       ImGui::Begin            ("###Widget_TexCacheD3D11", nullptr, ImGuiWindowFlags_NoTitleBar         | ImGuiWindowFlags_NoResize         |
                                                                    ImGuiWindowFlags_NoScrollbar        | ImGuiWindowFlags_AlwaysAutoResize |
                                                                    ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus );
+
+
+      if (jobs != 0 || dwLastActive > timeGetTime ( ) - 500)
+      {
+        if (jobs > 0)
+          dwLastActive = timeGetTime ();
+
+        if (jobs > 0)
+          ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * (SK_D3D11_Resampler_GetActiveJobCount ()) / (float)jobs), 0.15f, 1.0f));
+        else
+          ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * (timeGetTime () - dwLastActive) / 500.0f), 1.0f, 0.8f));
+
+        ImGui::SameLine       ();
+        if (SK_D3D11_Resampler_GetErrorCount ())
+          ImGui::Text         ("       Textures ReSampling (%li / %li) { Error Count: %li }",
+                                 SK_D3D11_Resampler_GetActiveJobCount (),
+                                   jobs,
+                                 SK_D3D11_Resampler_GetErrorCount     ()
+                              );
+        else
+          ImGui::Text         ("       Textures ReSampling (%li / %li)",
+                                 SK_D3D11_Resampler_GetActiveJobCount (),
+                                   jobs );
+        ImGui::PopStyleColor  ();
+      }
+
 
       SK_ImGui_DrawTexCache_Chart ();
 

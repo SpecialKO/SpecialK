@@ -84,7 +84,7 @@ SK_SymSetOpts (void)
 //   used primarily for prognostics in the global injector.
 bool __SK_Crashed = false;
 
-bool SK_Debug_IsCrashing (void) { return __SK_Crashed; }
+bool SK_Debug_IsCrashing (void) { __try { return __SK_Crashed; } __except (EXCEPTION_EXECUTE_HANDLER) { return true; } }
 
 
 struct sk_crash_sound_s {

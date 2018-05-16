@@ -1227,6 +1227,8 @@ public:
         bool suspended =
           SKWG_Threads [dwSelectedTid]->wait_reason == WaitReason::Suspended;
 
+        if (GetCurrentThreadId () != GetThreadId (hSelectedThread) )
+        {
         if ( ImGui::Button ( suspended ?  "Resume this Thread" :
                                           "Suspend this Thread" ) )
         {
@@ -1303,6 +1305,7 @@ public:
           {
             ResumeThread (hSelectedThread);
           }
+        }
         }
 
         SYSTEM_INFO     sysinfo = { };
@@ -1540,8 +1543,7 @@ public:
         ImGui::PushStyleColor    (ImGuiCol_Text, ImColor::HSV (0.5f, 0.99f, 0.999f));
 
         // We sure as hell cannot suspend the thread that's drawing the UI! :)
-        if ( GetCurrentThreadId () != it.second->dwTid && 
-             dwExitCode            == STILL_ACTIVE )
+        if ( dwExitCode            == STILL_ACTIVE )
         {
           ImGui::OpenPopup ("ThreadInspectPopup");
         }

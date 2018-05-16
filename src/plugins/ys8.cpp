@@ -48,7 +48,7 @@
 
 #include <cinttypes>
 
-#define YS8_VERSION_NUM L"0.7.1"
+#define YS8_VERSION_NUM L"0.8.0"
 #define YS8_VERSION_STR L"Ys8 Fixin' Stuff v " YS8_VERSION_NUM
 
 volatile LONG __YS8_init = FALSE;
@@ -104,12 +104,25 @@ struct ys8_cfg_s
     sk::ParameterStringW* pixel_style = nullptr;
   } style;
 
+  struct postproc_s
+  {
+    sk::ParameterBool*  override_postproc = nullptr;
+    sk::ParameterFloat* contrast          = nullptr;
+    sk::ParameterFloat* vignette          = nullptr;
+    sk::ParameterFloat* sharpness         = nullptr;
+  } postproc;
+
   struct performance_s
   {
     sk::ParameterBool* manage_clean_memory    = nullptr;
     sk::ParameterBool* aggressive_memory_mgmt = nullptr;
   } performance;
 } ys8_config;
+
+
+#include <concurrent_vector.h>
+extern concurrency::concurrent_vector <d3d11_shader_tracking_s::cbuffer_override_s> __SK_D3D11_PixelShader_CBuffer_Overrides;
+d3d11_shader_tracking_s::cbuffer_override_s* SK_YS8_CB_Override;
 
 
 
@@ -144,47 +157,6 @@ int ys8_dirty_buckets  = 8;
 
 static bool ManageCleanMemory    = true;
 static bool CatchAllMemoryFaults = false;
-
-static bool DisableSwitchToThread = false;
-static bool IgnoreYield           = false;
-
-#define NT_SUCCESS(Status) ((NTSTATUS)(Status) >= 0)
-#define STATUS_SUCCESS     0
-
-using NtYieldExecton_pfn = NTSTATUS (NTAPI *)(void);
-using SwitchToThread_pfn = BOOL     (WINAPI*)(void);
-
-NtYieldExecton_pfn NtYieldExecution_Original = nullptr;
-SwitchToThread_pfn SwitchToThread_Original   = nullptr;
-
-NTSTATUS
-NTAPI
-SK_YS8_NtYieldExecution (void)
-{
-  if (IgnoreYield)
-  {
-    SleepEx (2, TRUE);
-    return STATUS_SUCCESS;
-  }
-
-  return
-    NtYieldExecution_Original ();
-}
-
-BOOL
-WINAPI
-SK_YS8_SwitchToThread (void)
-{
-  if (GetThreadPriority (GetCurrentThread ()) < THREAD_PRIORITY_HIGHEST)
-    SleepEx (2, TRUE);
-
-  else if (! DisableSwitchToThread)
-    return SwitchToThread_Original ();
-
-  return TRUE;
-}
-
-
 
 
 static int   max_anisotropy            = 4;
@@ -568,9 +540,6 @@ SK_YS8_ControlPanel (void)
   if (ImGui::CollapsingHeader ("Ys VIII Lacrimosa of Dana", ImGuiTreeNodeFlags_DefaultOpen))
   {
     ImGui::TreePush ("");
-
-    //ImGui::Checkbox  ("Disable NtYieldExexcution ()", &IgnoreYield);           ImGui::SameLine ();
-    //ImGui::Checkbox  ("Disable SwitchToThread ()",    &DisableSwitchToThread);
 
     ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.40f, 0.40f, 0.45f));
     ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.45f, 0.45f, 0.80f));
@@ -1200,6 +1169,39 @@ SK_YS8_ControlPanel (void)
       ImGui::TreePop       ( );
     }
 
+    if (ImGui::CollapsingHeader ("Post-Processing###SK_YS8_POSTPROC"))
+    {
+      ImGui::TreePush ("");
+
+      ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.68f, 0.02f, 0.45f));
+      ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.72f, 0.07f, 0.80f));
+      ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.78f, 0.14f, 0.80f));
+
+      changed |= ImGui::Checkbox ("Manual Override", &SK_YS8_CB_Override->Enable);
+
+      if (SK_YS8_CB_Override->Enable)
+      {
+        ImGui::TreePush    ("");
+        ImGui::BeginGroup  ();
+        changed |= ImGui::SliderFloat ("Contrast",    SK_YS8_CB_Override->Values,     0.0f, 1.0f);
+        changed |= ImGui::SliderFloat ("Vignette",   &SK_YS8_CB_Override->Values [1], 0.0f, 1.0f);
+        changed |= ImGui::SliderFloat ("Sharpness",  &SK_YS8_CB_Override->Values [3], 0.0f, 3.0f);
+        ImGui::EndGroup    ();
+        ImGui::TreePop     ();
+      }
+
+      if (changed)
+      {
+        ys8_config.postproc.override_postproc->store (SK_YS8_CB_Override->Enable);
+        ys8_config.postproc.contrast->store          (SK_YS8_CB_Override->Values [0]);
+        ys8_config.postproc.vignette->store          (SK_YS8_CB_Override->Values [1]);
+        ys8_config.postproc.sharpness->store         (SK_YS8_CB_Override->Values [3]);
+      }
+
+      ImGui::PopStyleColor (3);
+      ImGui::TreePop       ( );
+    }
+
     ImGui::PopStyleColor (3);
     ImGui::TreePop       ( );
   }
@@ -1243,37 +1245,6 @@ SK_YS8_RSSetViewports (
       {
           vps [i].Width  *= __SK_YS8_ShadowScale;
           vps [i].Height *= __SK_YS8_ShadowScale;
-      }
-
-      else
-      {
-        //if (vps [i].Width == 4096.0f && vps [i].Height == 2160.0f && vps [i].MaxDepth == vps [i].MinDepth == 1.0f)
-        //{
-        //  vps [i].Width = 3840.0f; vps  [i].Height  = 2160.0f; vps [i].MaxDepth = 1.0f; vps [i].MinDepth = 0.0f;
-        //}
-        //
-        ////else if (vps [i].Width == 4096.0f && vps [i].Height == 1800.0f)
-        ////{
-        ////  vps [i].Width = 3840.0f; vps  [i].Height  = 2160.0f;
-        ////}
-        //
-        //else if (vps [i].Width == 3200.0f && vps [i].Height == 1800.0f)
-        //{
-        //  vps [i].Width = 3840.0f; vps  [i].Height  = 2160.0f;
-        //}
-        //
-        //else if (vps [i].Width == 1600.0f && vps [i].Height == 1080.0f)
-        //{
-        //  vps [i].Width = 1920.0f; vps  [i].Height  = 1080.0f;
-        //}
-        //
-        ////else if (vps [i].Width == 2048.0f && vps [i].Height == 1080.0f)
-        ////{
-        ////  vps [i].Width = 1920.0f; vps  [i].Height = 1080.0f;
-        ////}
-        //
-        //else
-        //  dll_log.Log (L"Viewport: W:%f/H:%f, TopLeft: %f, TopRight: %f :: %f/%F", vps [i].Width, vps [i].Height, vps [i].TopLeftX, vps [i].TopLeftY, vps [i].MinDepth, vps [i].MaxDepth);
       }
     }
 
@@ -1378,7 +1349,7 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
 
   if (SUCCEEDED (hr))
   {
-    if (ManageCleanMemory && pResource)
+    if (ManageCleanMemory && pResource && Subresource == 0)
     {
       if (MapType != D3D11_MAP_READ)
       {
@@ -1462,9 +1433,6 @@ SK_YS8_CopyResource (
       
       else if (desc.Width == 1024 && desc.Height == 64)
       {
-        LONG64 llSize =
-          SK_D3D11_BytesPerPixel (desc.Format) * desc.Width * desc.Height;
-
         if ((! ys8_dirty_resources.count (pSrcResource)) || ys8_dirty_resources [pSrcResource] == FALSE)
         {
           InterlockedIncrement (&iCopyOpsSkipped);
@@ -1602,7 +1570,6 @@ SK_YS8_CreateTexture2D (
   _In_opt_  const D3D11_SUBRESOURCE_DATA *pInitialData,
   _Out_opt_       ID3D11Texture2D        **ppTexture2D)
 {
-  bool wide_tex   = false;
   bool shadow_tex = false;
 
   if (ppTexture2D == nullptr || pDesc == nullptr)
@@ -1616,7 +1583,7 @@ SK_YS8_CreateTexture2D (
   bool depth_format =
     pDesc->Format == DXGI_FORMAT_R24G8_TYPELESS    ||
     pDesc->Format == DXGI_FORMAT_R32G8X24_TYPELESS ||
-    pDesc->Format == DXGI_FORMAT_B8G8R8X8_UNORM;
+    pDesc->Format == DXGI_FORMAT_B8G8R8X8_UNORM    || (pDesc->BindFlags & D3D11_BIND_DEPTH_STENCIL);
 
   bool composite_format = (
     pDesc->Format == DXGI_FORMAT_B8G8R8A8_UNORM
@@ -1624,11 +1591,30 @@ SK_YS8_CreateTexture2D (
 
   if ( pInitialData == nullptr )
   {
+    //if (pDesc->Width == 4096 && pDesc->Height == 2160)
+    //{
+    //  newDesc.Width  = 3840;
+    //  newDesc.Height = 2160;
+    //}
+    //
+    //else if (pDesc->Width == 2048 && pDesc->Height == 1080)
+    //{
+    //  newDesc.Width  = 1920;
+    //  newDesc.Height = 1080;
+    //}
+    //
+    //else if (pDesc->Width == 2048 && pDesc->Height == 720)
+    //{
+    //  newDesc.Width  = 1280;  
+    //  newDesc.Height = 720;
+    //}
+    
+
     //extern std::wstring
     //__stdcall
     //SK_DXGI_FormatToStr (DXGI_FORMAT fmt);
     //
-    //if (pDesc->BindFlags & D3D11_BIND_RENDER_TARGET) dll_log.Log (L"YS8: %lux%lu - Bind Flags: %s, CPU Usage: %x, Format: %s",
+    //dll_log.Log (L"YS8: %lux%lu - Bind Flags: %s, CPU Usage: %x, Format: %s",
     //                                                               pDesc->Width, pDesc->Height,
     //                    SK_D3D11_DescribeBindFlags ((D3D11_BIND_FLAG)pDesc->BindFlags).c_str (),
     //                                                                 pDesc->CPUAccessFlags,
@@ -1730,24 +1716,14 @@ SK_YS8_InitPlugin (void)
 
 
 
-  //SK_CreateDLLHook2 (               L"kernel32",
-  //                                   "CreateFileA",
-  //                             SK_YS8_CreateFileA,
-  //           static_cast_p2p <void> (&CreateFileA_Original) );
-  //SK_CreateDLLHook2 (               L"kernel32",
-  //                                   "CreateFileW",
-  //                             SK_YS8_CreateFileW,
-  //           static_cast_p2p <void> (&CreateFileW_Original) );
-
-  //SK_CreateDLLHook2 (               L"kernel32",
-  //                                   "SwitchToThread",
-  //                             SK_YS8_SwitchToThread,
-  //           static_cast_p2p <void> (&SwitchToThread_Original) );
-  //
-  //SK_CreateDLLHook2 (               L"NtDll",
-  //                                   "NtYieldExecution",
-  //                             SK_YS8_NtYieldExecution,
-  //           static_cast_p2p <void> (&NtYieldExecution_Original) );
+  SK_CreateDLLHook2 (               L"kernel32",
+                                     "CreateFileA",
+                               SK_YS8_CreateFileA,
+             static_cast_p2p <void> (&CreateFileA_Original) );
+  SK_CreateDLLHook2 (               L"kernel32",
+                                     "CreateFileW",
+                               SK_YS8_CreateFileW,
+             static_cast_p2p <void> (&CreateFileW_Original) );
 
   
   ys8_config.shadows.scale =
@@ -1778,7 +1754,7 @@ SK_YS8_InitPlugin (void)
 
   bool aa = true;
 
-  if (! SK_IsInjected ())
+  //if (! SK_IsInjected ())
   {
     if (! _wcsicmp (style.c_str (), L"Retro"))
     {
@@ -1885,6 +1861,50 @@ SK_YS8_InitPlugin (void)
 
   ys8_config.performance.aggressive_memory_mgmt->load (CatchAllMemoryFaults);
 
+
+
+  ys8_config.postproc.override_postproc = 
+      dynamic_cast <sk::ParameterBool *>
+        (ys8_config.factory.create_parameter <bool> (L"Override post-processing"));
+
+  ys8_config.postproc.contrast =
+      dynamic_cast <sk::ParameterFloat *>
+        (ys8_config.factory.create_parameter <float> (L"Contrast"));
+
+  ys8_config.postproc.sharpness =
+      dynamic_cast <sk::ParameterFloat *>
+        (ys8_config.factory.create_parameter <float> (L"Sharpness"));
+
+  ys8_config.postproc.vignette =
+      dynamic_cast <sk::ParameterFloat *>
+        (ys8_config.factory.create_parameter <float> (L"Vignette"));
+
+
+  ys8_config.postproc.override_postproc->register_to_ini ( SK_GetDLLConfig (),
+                                                             L"Ys8.PostProcess",
+                                                               L"Override" );
+
+  ys8_config.postproc.contrast->register_to_ini ( SK_GetDLLConfig (),
+                                                    L"Ys8.PostProcess",
+                                                      L"Contrast" );
+  ys8_config.postproc.vignette->register_to_ini ( SK_GetDLLConfig (),
+                                                    L"Ys8.PostProcess",
+                                                      L"Vignette" );
+  ys8_config.postproc.sharpness->register_to_ini ( SK_GetDLLConfig (),
+                                                     L"Ys8.PostProcess",
+                                                       L"Sharpness" );
+
+
+  __SK_D3D11_PixelShader_CBuffer_Overrides.push_back (
+    { 0x05da09bd, 0UL, nullptr, 48, false, 0, 0, 48, { 0.0f } }
+  );
+
+  SK_YS8_CB_Override = &__SK_D3D11_PixelShader_CBuffer_Overrides.back ();
+
+  ys8_config.postproc.override_postproc->load (SK_YS8_CB_Override->Enable);
+  ys8_config.postproc.contrast->load          (SK_YS8_CB_Override->Values [0]);
+  ys8_config.postproc.vignette->load          (SK_YS8_CB_Override->Values [1]);
+  ys8_config.postproc.sharpness->load         (SK_YS8_CB_Override->Values [3]);
 
   SK_ApplyQueuedHooks ();
 

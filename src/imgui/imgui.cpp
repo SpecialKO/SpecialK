@@ -888,8 +888,8 @@ ImGuiIO::ImGuiIO()
 
     // User functions
     RenderDrawListsFn = NULL;
-    MemAllocFn = malloc;
-    MemFreeFn = free;
+    MemAllocFn = _aligned_malloc;
+    MemFreeFn = _aligned_free;
     GetClipboardTextFn = GetClipboardTextFn_DefaultImpl;   // Platform dependent default implementations
     SetClipboardTextFn = SetClipboardTextFn_DefaultImpl;
     ClipboardUserData = NULL;
@@ -2316,7 +2316,7 @@ float ImGui::CalcWrapWidthForPos(const ImVec2& pos, float wrap_pos_x)
 void* ImGui::MemAlloc(size_t sz)
 {
     GImGui->IO.MetricsAllocs++;
-    return GImGui->IO.MemAllocFn(sz);
+    return GImGui->IO.MemAllocFn(sz, 16);
 }
 
 void ImGui::MemFree(void* ptr)
@@ -2360,10 +2360,11 @@ void ImGui::SetCurrentContext(ImGuiContext* ctx)
 ImGuiContext* ImGui::CreateContext(void* (*malloc_fn)(size_t), void (*free_fn)(void*))
 {
     if (!malloc_fn) malloc_fn = malloc;
-    ImGuiContext* ctx = (ImGuiContext*)malloc_fn(sizeof(ImGuiContext));
+
+    ImGuiContext* ctx = (ImGuiContext*)_aligned_malloc(sizeof(ImGuiContext),16);//(ImGuiContext*)malloc_fn(sizeof(ImGuiContext));
     IM_PLACEMENT_NEW(ctx) ImGuiContext();
-    ctx->IO.MemAllocFn = malloc_fn;
-    ctx->IO.MemFreeFn = free_fn ? free_fn : free;
+    ctx->IO.MemAllocFn = _aligned_malloc;//malloc_fn;
+    ctx->IO.MemFreeFn = /*free_fn ? free_fn :*/ _aligned_free;
     return ctx;
 }
 

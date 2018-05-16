@@ -230,6 +230,9 @@ auto wcrlen =
 iSK_INISection
 Process_Section (wchar_t* name, wchar_t* start, wchar_t* end)
 {
+  SK_TLS* pTLS =
+    SK_TLS_Bottom ();
+
   iSK_INISection section (name);
 
   const wchar_t* penultimate = CharPrevW (start, end);
@@ -240,7 +243,7 @@ Process_Section (wchar_t* name, wchar_t* start, wchar_t* end)
     if (k < penultimate && *k == L'=')
     {
       auto*    key_str =
-        SK_TLS_Bottom ()->scratch_memory.ini.key.alloc
+                    pTLS->scratch_memory.ini.key.alloc
                                      (k - key + 1, true);
       size_t   key_len =          wcrlen (key, k);
       wcsncpy (key_str,                   key, key_len);
@@ -266,11 +269,10 @@ Process_Section (wchar_t* name, wchar_t* start, wchar_t* end)
           }
 
           auto*    val_str =
-            SK_TLS_Bottom ()->scratch_memory.ini.val.alloc
-                                         (l - value + 1, true);
-          size_t   val_len = wcrlen          (value, l);
-          wcsncpy (val_str,                   value, val_len);
-
+            pTLS->scratch_memory.ini.val.alloc (l - value + 1, true);
+          size_t   val_len = wcrlen                (value, l);
+                             wcsncpy (val_str,      value, val_len);
+          
           section.add_key_value (key_str, val_str);
 
           l = end + 1;
@@ -285,6 +287,9 @@ Process_Section (wchar_t* name, wchar_t* start, wchar_t* end)
 bool
 Import_Section (iSK_INISection& section, wchar_t* start, wchar_t* end)
 {
+  SK_TLS* pTLS =
+    SK_TLS_Bottom  ();
+
   const wchar_t* penultimate = CharPrevW (start, end);
         wchar_t* key         = start;
 
@@ -293,7 +298,7 @@ Import_Section (iSK_INISection& section, wchar_t* start, wchar_t* end)
     if (k < penultimate && *k == L'=')
     {
       auto*    key_str =
-        SK_TLS_Bottom ()->scratch_memory.ini.key.alloc
+                    pTLS->scratch_memory.ini.key.alloc
                                      (k - key + 1, true);
       size_t   key_len =          wcrlen (key, k);
       wcsncpy (key_str,                   key, key_len);
@@ -319,7 +324,7 @@ Import_Section (iSK_INISection& section, wchar_t* start, wchar_t* end)
           }
 
           auto*    val_str =
-            SK_TLS_Bottom ()->scratch_memory.ini.val.alloc
+                        pTLS->scratch_memory.ini.val.alloc
                                          (l - value + 1, true);
           size_t   val_len = wcrlen          (value, l);
           wcsncpy (val_str,                   value, val_len);
@@ -351,6 +356,9 @@ void
 __stdcall
 iSK_INI::parse (void)
 {
+  SK_TLS* pTLS =
+    SK_TLS_Bottom ();
+
   if (wszData != nullptr)
   {
     int len =
@@ -432,7 +440,7 @@ iSK_INI::parse (void)
       if (begin != nullptr && end != nullptr && begin < end)
       {
         auto*    sec_name =
-          SK_TLS_Bottom ()->scratch_memory.ini.sec.alloc
+                      pTLS->scratch_memory.ini.sec.alloc
                               (end - begin + 2, true);
         size_t   sec_len  = wcrlen  (begin, end);
         wcsncpy (sec_name,           begin, sec_len);
@@ -484,6 +492,9 @@ void
 __stdcall
 iSK_INI::import (const wchar_t* import_data)
 {
+  SK_TLS* pTLS =
+    SK_TLS_Bottom ();
+
   wchar_t* wszImport = _wcsdup (import_data);
 
   if (wszImport != nullptr)
@@ -567,7 +578,7 @@ iSK_INI::import (const wchar_t* import_data)
       if (begin != nullptr && end != nullptr)
       {
         auto*    sec_name =
-          SK_TLS_Bottom ()->scratch_memory.ini.sec.alloc
+                         pTLS->scratch_memory.ini.sec.alloc
                                         (end - begin + 2, true);
         size_t   sec_len  = wcrlen            (begin, end);
         wcsncpy (sec_name,                     begin, sec_len);

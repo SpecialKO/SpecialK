@@ -37,7 +37,7 @@ using namespace SK::ControlPanel;
 bool
 SK::ControlPanel::Compatibility::Draw (void)
 {
-  if ( ImGui::CollapsingHeader ("Compatibility Settings") )
+  if ( ImGui::CollapsingHeader ("Compatibility Settings###SK_CPL") )
   {
     SK_RenderBackend& rb =
       SK_GetCurrentRenderBackend ();
@@ -269,6 +269,11 @@ SK::ControlPanel::Compatibility::Draw (void)
         ImGui::BulletText   ("Third-Party Software May Deadlock Game at Startup if Enabled");
         ImGui::EndTooltip   ();
       }
+
+      ImGui::Checkbox ("Log File Reads", &config.file_io.trace_reads);
+
+      if (ImGui::IsItemHovered ())
+        ImGui::SetTooltip ("Traces file read activity and reports it in logs/file_read.log");
 
       ImGui::SliderInt ("Log Level",                      &config.system.log_level, 0, 5);
 

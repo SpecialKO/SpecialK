@@ -2099,7 +2099,7 @@ SK_TextOverlayManager::OnVarChange (SK_IVariable* var, void* val)
     *static_cast <bool *> (var->getValuePointer ()) = *static_cast <bool *> (val);
 
     if (*static_cast <bool *> (val))
-      SK_StartPerfMonThreads ();
+      SK_StartPerfMonThreads ( );
 
     return true;
   }

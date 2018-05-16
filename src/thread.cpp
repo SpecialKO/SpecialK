@@ -30,6 +30,7 @@
 #include <SpecialK/hooks.h>
 #include <SpecialK/config.h>
 
+#include <SpecialK/diagnostics/memory.h>
 #include <SpecialK/diagnostics/debug_utils.h>
 
 #include <string>
@@ -376,10 +377,12 @@ SKX_ThreadThunk ( LPVOID lpUserPassThrough )
   DWORD dwRet =
     pStartParams->lpStartFunc (pStartParams->lpUserParams);
 
-  LocalFree ((HLOCAL)pStartParams);
+  if (LocalFree_Original != nullptr)
+    LocalFree_Original ((HLOCAL)pStartParams);
 
   return dwRet;
 }
+
 
 extern "C"
 HANDLE
@@ -388,20 +391,34 @@ SK_Thread_CreateEx ( LPTHREAD_START_ROUTINE lpStartFunc,
                      const wchar_t*       /*lpThreadName*/,
                      LPVOID                 lpUserParams )
 {
-  SK_ThreadBaseParams *params =
- (SK_ThreadBaseParams *)LocalAlloc ( 0x0, sizeof (SK_ThreadBaseParams) );
+  SK_ThreadBaseParams *params;
+
+  if (LocalAlloc_Original != nullptr)
+    params = (SK_ThreadBaseParams *)LocalAlloc_Original ( 0x0, sizeof (SK_ThreadBaseParams) );
+  else
+   params = (SK_ThreadBaseParams *)LocalAlloc           ( 0x0, sizeof (SK_ThreadBaseParams) );
 
   *params = {
     lpStartFunc,  nullptr,
     lpUserParams, INVALID_HANDLE_VALUE
   };
 
+#if 1
+  unsigned int dwTid = 0;
+  HANDLE hRet  =
+    (HANDLE)_beginthreadex ( nullptr, 0,
+    //CreateThread ( nullptr, 0,  
+                     (_beginthreadex_proc_type)SKX_ThreadThunk,
+                       (LPVOID)params,
+                         0x0, &dwTid );
+#else
   DWORD  dwTid = 0;
   HANDLE hRet  =
     CreateThread ( nullptr, 0,
                      SKX_ThreadThunk,
                        (LPVOID)params,
                          0x0, &dwTid );
+#endif
 
   return ( (params->hHandleToStuffInternally = hRet) );
 }
@@ -411,7 +428,7 @@ void
 WINAPI
 SK_Thread_Create (LPTHREAD_START_ROUTINE lpStartFunc, LPVOID lpUserParams)
 {
-  SK_Thread_CreateEx ( lpStartFunc, nullptr, lpUserParams );
+  SK_Thread_CreateEx (lpStartFunc, nullptr, lpUserParams);
 }
 
 

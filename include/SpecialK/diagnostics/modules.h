@@ -24,6 +24,10 @@
 
 #include <SpecialK/diagnostics/load_library.h>
 
+#include <SpecialK/thread.h>
+#include <SpecialK/core.h>
+#include <mutex>
+
 enum class SK_ModuleEnum {
   PreLoad    = 0x0,
   PostLoad   = 0x1,
@@ -223,6 +227,8 @@ private:
   // Don't forget to free anything you find!
   HMODULE _FindLibraryByName (const wchar_t *wszLibrary)
   {
+    std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*loader_lock);
+
     const auto& it =
       _known_module_names.find ( std::wstring (wszLibrary) );
 
@@ -237,6 +243,8 @@ private:
 
   bool _RegisterLibrary (HMODULE hMod, const wchar_t *wszLibrary)
   {
+    std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*loader_lock);
+
     MODULEINFO mod_info = { };
 
     //BOOL bHasValidInfo =
@@ -255,6 +263,8 @@ private:
   // Returns INVALID_MODULE if no more references exist
   HMODULE _ReleaseLibrary (skWin32Module& library)
   {
+    std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*loader_lock);
+
     assert (library != INVALID_MODULE);
 
     if (library.Release () == 0)

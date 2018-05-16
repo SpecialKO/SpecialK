@@ -941,12 +941,15 @@ SK_Input_HookXInput1_4 (void)
 
   //std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (xinput_ctx.spinlock [0]);
 
+  SK_TLS* pTLS =
+   SK_TLS_Bottom ();
+
   static volatile LONG hooked = FALSE;
 
   if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
   {
     if (ReadPointerAcquire ((LPVOID *)&xinput_ctx.primary_hook) == nullptr)
-      SK_TLS_Bottom ()->input_core.ctx_init_thread = TRUE;
+      pTLS->input_core.ctx_init_thread = TRUE;
 
     SK_XInputContext::instance_s* pCtx =
       &xinput_ctx.XInput1_4;
@@ -971,7 +974,7 @@ SK_Input_HookXInput1_4 (void)
     InterlockedIncrement (&hooked);
   }
 
-  if (! SK_TLS_Bottom ()->input_core.ctx_init_thread)
+  if (! pTLS->input_core.ctx_init_thread)
     SK_Thread_SpinUntilAtomicMin (&hooked, 2);
 }
 
@@ -985,10 +988,13 @@ SK_Input_HookXInput1_3 (void)
 
   static volatile LONG hooked = FALSE;
 
+
+  SK_TLS* pTLS = SK_TLS_Bottom ();
+
   if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
   {
     if (ReadPointerAcquire ((LPVOID *)&xinput_ctx.primary_hook) == nullptr)
-      SK_TLS_Bottom ()->input_core.ctx_init_thread = TRUE;
+      pTLS->input_core.ctx_init_thread = TRUE;
 
     SK_XInputContext::instance_s* pCtx =
       &xinput_ctx.XInput1_3;
@@ -1013,7 +1019,7 @@ SK_Input_HookXInput1_3 (void)
     InterlockedIncrement (&hooked);
   }
 
-  if (!SK_TLS_Bottom ()->input_core.ctx_init_thread)
+  if (!pTLS->input_core.ctx_init_thread)
     SK_Thread_SpinUntilAtomicMin (&hooked, 2);
 }
 
@@ -1027,10 +1033,13 @@ SK_Input_HookXInput9_1_0 (void)
 
   static volatile LONG hooked = FALSE;
 
+  SK_TLS *pTLS =
+    SK_TLS_Bottom ();
+
   if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
   {
     if (ReadPointerAcquire ((LPVOID *)&xinput_ctx.primary_hook) == nullptr)
-      SK_TLS_Bottom ()->input_core.ctx_init_thread = TRUE;
+      pTLS->input_core.ctx_init_thread = TRUE;
 
     SK_XInputContext::instance_s* pCtx =
       &xinput_ctx.XInput9_1_0;
@@ -1054,7 +1063,7 @@ SK_Input_HookXInput9_1_0 (void)
     InterlockedIncrement (&hooked);
   }
 
-  if (! SK_TLS_Bottom ()->input_core.ctx_init_thread)
+  if (! pTLS->input_core.ctx_init_thread)
     SK_Thread_SpinUntilAtomicMin (&hooked, 2);
 }
 

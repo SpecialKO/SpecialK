@@ -815,7 +815,8 @@ struct ImGuiIO
 
     // Optional: override memory allocations. MemFreeFn() may be called with a NULL pointer.
     // (default to posix malloc/free)
-    void*       (*MemAllocFn)(size_t sz);
+    //void*       (*MemAllocFn)(size_t sz);
+    void*       (*MemAllocFn)(size_t sz, size_t alignment);
     void        (*MemFreeFn)(void* ptr);
 
     // Optional: notify OS Input Method Editor of the screen position of your cursor for text input position (e.g. when using Japanese/Chinese IME in Windows)

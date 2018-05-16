@@ -1,13 +1,5 @@
 const
 std::unordered_set <std::wstring> __blacklist = {
-  L"steam.exe",
-  L"gameoverlayui.exe",
-  L"streaming_client.exe",
-  L"steamerrorreporter.exe",
-  L"steamerrorreporter64.exe",
-  L"steamservice.exe",
-  L"steam_monitor.exe",
-  L"steamwebhelper.exe",
   L"html5app_steam.exe",
   L"wow_helper.exe",
   L"uninstall.exe",
@@ -16,7 +8,6 @@ std::unordered_set <std::wstring> __blacklist = {
   L"crashreporter.exe",
   L"supporttool.exe",
   L"crashsender1400.exe",
-  L"werfault.exe",
   L"firaxisbugreporter.exe",
   
   L"dxsetup.exe",
@@ -70,40 +61,14 @@ std::unordered_set <std::wstring> __blacklist = {
   L"vhui.exe",
   L"activationui.exe",
   L"zossteamstarter.exe",
-  L"notepad.exe",
-  L"mspaint.exe",
-  L"7zfm.exe",
-  L"winrar.exe",
   L"eac.exe",
+  L"devenv.exe",
   L"vcpkgsrv.exe",
-  L"dllhost.exe",
-  L"git.exe",
-  L"link.exe",
-  L"cl.exe",
-  L"rc.exe",
-  L"conhost.exe",
-  L"gamebarpresencewriter.exe",
-  L"oawrapper.exe",
-  L"nvoawrappercache.exe",
-  L"perfwatson2.exe",
   
   L"gameserver.exe",// Sacred   game server
   L"s2gs.exe",      // Sacred 2 game server
   
-  L"sihost.exe",
-  L"chrome.exe",
-  L"explorer.exe",
-  L"browser_broker.exe",
-  L"dwm.exe",
   L"launchtm.exe",
-
-  L"iastoricon.exe",
-  L"powershelltoolsprocesshost.exe",
-  L"ara.exe" // Norton bloatware that trolls the system tray until removed
-
-  L"synchost.exe",
-  L"settingsynchost.exe",
-  L"applicationframehost.exe",
   
   L"ds3t.exe",
   L"tzt.exe"

@@ -85,7 +85,7 @@ std::wstring   SK_GetFontsDir               (void);
 std::wstring   SK_GetRTSSInstallDir         (void);
 bool
 __stdcall      SK_CreateDirectories         (const wchar_t* wszPath);
-size_t         SK_DeleteTemporaryFiles      (const wchar_t* wszPath    = SK_GetHostPath (),
+uint64_t       SK_DeleteTemporaryFiles      (const wchar_t* wszPath    = SK_GetHostPath (),
                                              const wchar_t* wszPattern = L"SKI*.tmp");
 std::wstring   SK_EvalEnvironmentVars       (const wchar_t* wszEvaluateMe);
 bool           SK_GetUserProfileDir         (wchar_t*       buf, uint32_t* pdwLen);

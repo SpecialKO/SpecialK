@@ -2466,6 +2466,9 @@ SK_HookGL (void)
   static volatile LONG
     SK_GL_initialized = FALSE;
 
+  SK_TLS* pTLS =
+   SK_TLS_Bottom ();
+
   if (! InterlockedCompareExchange (&SK_GL_initialized, TRUE, FALSE))
   {
     const wchar_t* wszBackendDLL (L"OpenGL32.dll");
@@ -2490,7 +2493,7 @@ SK_HookGL (void)
       wgl_swap_multiple_buffers =
         (wglSwapMultipleBuffers_pfn)GetProcAddress (local_gl, "wglSwapMultipleBuffers");
 
-      SK_TLS_Bottom ()->gl.ctx_init_thread = true;
+      pTLS->gl.ctx_init_thread = true;
     }
 
     dll_log.Log (L"[ OpenGL32 ] Additional OpenGL Initialization");
@@ -2538,7 +2541,7 @@ SK_HookGL (void)
       SK_GL_HOOK(wglGetCurrentContext);
     //SK_GL_HOOK(wglGetCurrentDC);
 
-      SK_TLS_Bottom ()->gl.ctx_init_thread = true;
+      pTLS->gl.ctx_init_thread = true;
 
       if (SK_GetDLLRole () == DLL_ROLE::OpenGL)
       {
@@ -2922,7 +2925,7 @@ SK_HookGL (void)
        static_cast_p2p <void> (&gdi_swap_buffers) );
 
 
-    SK_TLS_Bottom ()->gl.ctx_init_thread = false;
+    pTLS->gl.ctx_init_thread = false;
 
     SK_ApplyQueuedHooks ();
 
@@ -3000,8 +3003,10 @@ SK_GL_GetCurrentDC (void)
 
   hwnd = WindowFromDC (hdc);
 
-  SK_TLS_Bottom ()->gl.current_hwnd = hwnd;
-  SK_TLS_Bottom ()->gl.current_hdc  = hdc;
+  SK_TLS* pTLS = SK_TLS_Bottom ();
+
+  pTLS->gl.current_hwnd = hwnd;
+  pTLS->gl.current_hdc  = hdc;
 
   return hdc;
 }

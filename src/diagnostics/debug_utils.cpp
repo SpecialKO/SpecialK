@@ -132,10 +132,12 @@ SK_Module_IsProcAddrLocal ( HMODULE  hModExpected,
                             FARPROC  lpProcAddr,
               PLDR_DATA_TABLE_ENTRY *ppldrEntry = nullptr )
 {
+  if (! GetProcAddress_Original) return TRUE;
+
   static LdrFindEntryForAddress_pfn LdrFindEntryForAddress =
         (LdrFindEntryForAddress_pfn)
-      GetProcAddress ( GetModuleHandleW (L"NtDll.dll"),
-                                          "LdrFindEntryForAddress" );
+      GetProcAddress_Original ( GetModuleHandleW (L"NtDll.dll"),
+                                                   "LdrFindEntryForAddress" );
 
   // Indeterminate, so ... I guess no?
   if (! LdrFindEntryForAddress)
@@ -173,6 +175,7 @@ SK_Module_IsProcAddrLocal ( HMODULE  hModExpected,
 
 
 #include <SpecialK/ansel.h>
+#include <concurrent_unordered_map.h>
 
 FARPROC
 WINAPI
@@ -181,6 +184,49 @@ GetProcAddress_Detour (
   _In_ LPCSTR  lpProcName
 )
 {
+  //static Concurrency::concurrent_unordered_map <HMODULE, std::unordered_map <std::string, FARPROC>> procs    (4);
+  //static Concurrency::concurrent_unordered_map <HMODULE, std::unordered_map <uint16_t,    FARPROC>> ordinals (4);
+  //
+  //if (((uint16_t)(uintptr_t)lpProcName & 0xFFFF) > 65536)
+  //{
+  //  if (procs.count (hModule))
+  //  {
+  //    if (     procs [hModule].count (lpProcName))
+  //      return procs [hModule]       [lpProcName];
+  //  }
+  //
+  //  FARPROC proc =
+  //    GetProcAddress_Original (hModule, lpProcName);
+  //
+  //  if (proc != nullptr)
+  //  {
+  //    procs [hModule][lpProcName] = proc;
+  //  }
+  //
+  //  return proc;
+  //}
+  //
+  //
+  //else if ((uint16_t)((uintptr_t)lpProcName & 0xFFFF) <= 65535)
+  //{
+  //  if (ordinals.count (hModule))
+  //  {
+  //    if (     ordinals [hModule].count ((uint16_t)((uintptr_t)lpProcName & 0xFFFF)))
+  //      return ordinals [hModule]       [(uint16_t)((uintptr_t)lpProcName & 0xFFFF)];
+  //  }
+  //
+  //  FARPROC proc =
+  //    GetProcAddress_Original (hModule, lpProcName);
+  //
+  //  if (proc != nullptr)
+  //  {
+  //    ordinals [hModule][(uint16_t)((uintptr_t)lpProcName & 0xFFFF)] = proc;
+  //  }
+  //
+  //  return proc;
+  //}
+
+
   // Ignore ordinals for this (Disable Nahimic) test
   if ((uintptr_t)lpProcName > 65535UL)
   {
@@ -757,7 +803,7 @@ NtCreateThreadEx_Detour (
     if (! _SK_ThreadNames.count (tid))
     {
       _SK_ThreadNames [tid] =
-        std::move (SK_UTF8ToWideChar (thread_name));
+        SK_UTF8ToWideChar (thread_name);
 
       //wcsncpy (SK_TLS_BottomEx (tid)->debug.name, SK_UTF8ToWideChar (thread_name).c_str (), 255);
     }
@@ -805,9 +851,9 @@ IsDebuggerPresent_Detour (void)
   std::wstring caller_name =
     SK_GetModuleFullName (SK_GetCallingDLL ());
 
-  if ( StrStrIW (caller_name.c_str  (), L"appticket") ||
-       StrStrIW (caller_name.c_str  (), L"steam")     ||
-       StrStrIW (caller_name.c_str  (), L"_s") )
+  if ( StrStrIW (caller_name.c_str (), L"appticket") ||
+       StrStrIW (caller_name.c_str (), L"steam")     ||
+       StrStrIW (caller_name.c_str (), L"_s") )
   {
     return FALSE;
   }
@@ -873,29 +919,41 @@ SK_Exception_HandleCxx (
       DWORD      dwExceptionCode,
       DWORD      dwExceptionFlags,
       DWORD      nNumberOfArguments,
-const ULONG_PTR *lpArguments         )
+const ULONG_PTR *lpArguments,
+      bool       pointOfOriginWas_CxxThrowException = false )
 {
-  if (SK_IsDebuggerPresent ())
+  if ( SK_IsDebuggerPresent () || pointOfOriginWas_CxxThrowException )
   {
     try {
-      RaiseException_Original (
-        dwExceptionCode,
-        dwExceptionFlags,
-        nNumberOfArguments,
-        lpArguments         );
+      try {
+        RaiseException_Original (
+          dwExceptionCode,
+          dwExceptionFlags,
+          nNumberOfArguments,
+          lpArguments         );
+      }
+
+      catch (_com_error& com_err)
+      {
+         _bstr_t bstrSource      (com_err.Source      ());
+         _bstr_t bstrDescription (com_err.Description ());
+
+        SK_LOG0 ( ( L" >> Code: %08lx  <%s>  -  [Source: %s,  Desc: \"%s\"]",
+                      com_err.Error        (),
+                      com_err.ErrorMessage (),
+                      (LPCWSTR)bstrSource, (LPCWSTR)bstrDescription ),
+                    L"  COMErr  " );
+
+        throw;
+      }
     }
 
-    catch (_com_error& com_err)
+    catch (...)
     {
-       _bstr_t bstrSource      (com_err.Source      ());
-       _bstr_t bstrDescription (com_err.Description ());
-
-      SK_LOG0 ( ( L" >> Code: %08lx  <%s>  -  [Source: %s,  Desc: \"%s\"]",
-                    com_err.Error        (),
-                    com_err.ErrorMessage (),
-                    (LPCWSTR)bstrSource, (LPCWSTR)bstrDescription ),
-                  L"  COMErr  " );
+      if  (! pointOfOriginWas_CxxThrowException)
+        throw;
     }
+
     return true;
   }
 
@@ -912,15 +970,15 @@ SK_SEHCompatibleRaiseException (
       DWORD      nNumberOfArguments,
 const ULONG_PTR *lpArguments         )
 {
-  if (dwExceptionCode == 0xe06d7363)
-  {
-    if (! SK_Exception_HandleCxx ( dwExceptionCode,    dwExceptionFlags,
-                                   nNumberOfArguments, lpArguments       ) )
-    {
-      /// ...
-  
-    }
-  }
+  //if (dwExceptionCode == 0xe06d7363)
+  //{
+  //  if (! SK_Exception_HandleCxx ( dwExceptionCode,    dwExceptionFlags,
+  //                                 nNumberOfArguments, lpArguments       ) )
+  //  {
+  //    /// ...
+  //
+  //  }
+  //}
   
   RaiseException_Original ( dwExceptionCode,    dwExceptionFlags,
                             nNumberOfArguments, lpArguments       );
@@ -929,8 +987,8 @@ const ULONG_PTR *lpArguments         )
 bool
 SK_Exception_HandleThreadName (
       DWORD      dwExceptionCode,
-      DWORD      dwExceptionFlags,
-      DWORD      nNumberOfArguments,
+      DWORD      /*dwExceptionFlags*/,
+      DWORD      /*nNumberOfArguments*/,
 const ULONG_PTR *lpArguments         )
 {
   if (dwExceptionCode == MAGIC_THREAD_EXCEPTION)
@@ -1020,11 +1078,11 @@ RaiseException_Detour (
 const ULONG_PTR *lpArguments         )
 {
   __try {
-    if (SK_Exception_HandleThreadName (dwExceptionCode, dwExceptionFlags, nNumberOfArguments, lpArguments))
-      return;
-
     SK_TLS* pTlsThis =
       SK_TLS_Bottom ();
+
+    if (SK_Exception_HandleThreadName (dwExceptionCode, dwExceptionFlags, nNumberOfArguments, lpArguments))
+      return;
     
     if (pTlsThis) InterlockedIncrement (&pTlsThis->debug.exceptions);
 
@@ -1065,14 +1123,12 @@ const ULONG_PTR *lpArguments         )
   //if (SK_IsDebuggerPresent ())
   //  __debugbreak ();
 
-  __try {
-    SK_SEHCompatibleRaiseException (
+  RaiseException_Original (
       dwExceptionCode,
       dwExceptionFlags,
       nNumberOfArguments,
       lpArguments
     );
-  } __except (EXCEPTION_CONTINUE_SEARCH) { };
 }
 
 

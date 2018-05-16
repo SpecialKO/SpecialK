@@ -130,6 +130,12 @@ struct {
 
 struct {
   struct {
+    sk::ParameterBool*    trace_reads;
+  } file_io;
+} reverse_engineering;
+
+struct {
+  struct {
     sk::ParameterFloat*   duration;
   } version_banner;
 
@@ -882,6 +888,9 @@ SK_LoadConfigEx (std::wstring name, bool create)
     ConfigEntry (imgui.disable_alpha,                    L"Disable Alpha Transparency (reduce flicker)",               dll_ini,         L"ImGui.Render",          L"DisableAlpha"),
     ConfigEntry (imgui.antialias_lines,                  L"Reduce Aliasing on (but dim) Line Edges",                   dll_ini,         L"ImGui.Render",          L"AntialiasLines"),
     ConfigEntry (imgui.antialias_contours,               L"Reduce Aliasing on (but widen) Window Borders",             dll_ini,         L"ImGui.Render",          L"AntialiasContours"),
+
+
+    ConfigEntry (reverse_engineering.file_io.trace_reads,L"Log file read activity to logs/file_read.log",              dll_ini,         L"FileIO.Trace",          L"LogReads"),
 
 
     // The one odd-ball Steam achievement setting that can be specified per-game
@@ -2075,6 +2084,9 @@ SK_LoadConfigEx (std::wstring name, bool create)
                   &config.window.res.override.y );
   }
 
+
+  reverse_engineering.file_io.trace_reads->load (config.file_io.trace_reads);
+
   steam.achievements.play_sound->load         (config.steam.achievements.play_sound);
   steam.achievements.sound_file->load         (config.steam.achievements.sound_file);
   steam.achievements.take_screenshot->load    (config.steam.achievements.take_screenshot);
@@ -2287,6 +2299,17 @@ SK_LoadConfigEx (std::wstring name, bool create)
         } break;
 
 
+        case SK_GAME_ID::Ys_Eight:
+        {
+          //void
+          //SK_ResHack_PatchGame3 (uint32_t w, uint32_t h);
+          //
+          //SK_ResHack_PatchGame3 (3200, 1800);
+          //SK_ResHack_PatchGame3 (1920, 1080);
+          //SK_ResHack_PatchGame3 (3840, 2160);
+        } break;
+
+
         case SK_GAME_ID::AKIBAs_Trip:
         {
           SK_Thread_Create ([](LPVOID) ->
@@ -2379,6 +2402,68 @@ SK_ResHack_PatchGame ( uint32_t width,
   }
 }
 
+
+void
+SK_ResHack_PatchGame3 ( uint32_t width,
+                        uint32_t height )
+{
+  static unsigned int replacements = 0;
+
+        char orig [] = "\xC7\x05\x00\x00\x00\x00"
+                       "\x00\x00\x00\x00"
+                       "\xC7\x05\x00\x00\x00\x00"
+                       "\x00\x00\x00\x00";
+
+  const char* mask = "\xFF\xFF\x00\x00\x00\x00"
+                     "\xFF\xFF\xFF\xFF"
+                     "\xFF\xFF\x00\x00\x00\x00"
+                     "\xFF\xFF\xFF\xFF";
+
+  *(uint32_t *)((uint8_t *)(orig +  6)) = width;
+  *(uint32_t *)((uint8_t *)(orig + 16)) = height;
+
+  auto* pOut = reinterpret_cast <uint8_t *> (nullptr);
+
+  for (int i = 0 ; i < 5; i++)
+  {
+    pOut =
+      static_cast <uint8_t *> (
+        SK_ScanAlignedEx (orig, 20, mask, pOut, 1)
+      );
+
+    if (pOut != nullptr)
+    {
+      uint8_t data [20] = { };
+
+      memcpy (data, pOut, 20);
+
+      *(uint32_t *)((uint8_t *)(data +  6)) = static_cast <uint32_t> (config.window.res.override.x);
+      *(uint32_t *)((uint8_t *)(data + 16)) = static_cast <uint32_t> (config.window.res.override.y);
+
+      if ( SK_InjectMemory ( pOut,
+                               data,
+                                 20,
+                                   PAGE_EXECUTE_READWRITE )
+         )
+      {
+        ++replacements;
+      }
+
+      pOut += 20;
+    }
+
+    if (pOut == nullptr)
+    {
+      dll_log.Log ( L"[Resolution] ** %lu Resolution Replacements Made  ==>  "
+                                      L"( %lux%lu --> %lux%lu )",
+                      replacements,
+                        width, height,
+                          config.window.res.override.x, config.window.res.override.y );
+      break;
+    }
+  }
+}
+
 void
 SK_ResHack_PatchGame2 ( uint32_t width,
                         uint32_t height )
@@ -2423,7 +2508,7 @@ SK_ResHack_PatchGame2 ( uint32_t width,
 
     if (pOut == nullptr)
     {
-      dll_log.Log ( L"[AkibasHACK] ** %lu Resolution Replacements Made  ==>  "
+      dll_log.Log ( L"[Resolution] ** %lu Resolution Replacements Made  ==>  "
                                       L"( %lux%lu --> %lux%lu )",
                       replacements,
                         width, height,
@@ -2785,6 +2870,15 @@ SK_SaveConfig ( std::wstring name,
 
   texture.res_root->store                      (config.textures.d3d11.res_root);
   texture.dump_on_load->store                  (config.textures.dump_on_load);
+
+
+  // Keep this setting hidden (not to be sneaky; but to prevent overwhelming users with
+  //   extremely esoteric options -- this is needed for a lot of settings =P)
+  if (! config.file_io.trace_reads)
+    dll_ini->remove_section (L"FileIO.Trace");
+  else
+    reverse_engineering.file_io.trace_reads->store (config.file_io.trace_reads);
+
 
   steam.achievements.sound_file->store         (config.steam.achievements.sound_file);
   steam.achievements.play_sound->store         (config.steam.achievements.play_sound);

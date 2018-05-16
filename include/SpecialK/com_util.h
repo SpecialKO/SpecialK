@@ -78,7 +78,7 @@ namespace COM {
       IWbemLocator*    pWbemLocator    = nullptr;
       BSTR             bstrNameSpace   = nullptr;
 
-      HANDLE           hServerThread   = INVALID_HANDLE_VALUE;
+      HANDLE           hServerThread = INVALID_HANDLE_VALUE;
       HANDLE           hShutdownServer = nullptr;
 
       void Lock         (void);

@@ -222,7 +222,7 @@ SK_WMI_ServerThread (LPVOID lpUser)
 
   HRESULT hr;
 
-  if (FAILED (hr = CoCreateInstance_Original (
+  if (FAILED (hr = CoCreateInstance (
                      CLSID_WbemLocator, 
                      nullptr,
                      CLSCTX_INPROC_SERVER,

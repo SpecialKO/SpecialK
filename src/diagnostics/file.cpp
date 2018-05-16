@@ -19,10 +19,49 @@
  *
 **/
 
+#include <SpecialK/log.h>
 #include <SpecialK/TLS.h>
 #include <SpecialK/hooks.h>
+#include <SpecialK/config.h>
 #include <SpecialK/utility.h>
 #include <SpecialK/diagnostics/file.h>
+
+#include <memory>
+
+BOOL
+SK_File_GetNameFromHandle ( HANDLE   hFile,
+                            wchar_t *pwszFileName,
+                       const DWORD   uiMaxLen )
+{
+  *pwszFileName = L'\0';
+
+  wchar_t* ptrcFni =
+    (wchar_t *)
+      SK_TLS_Bottom ()->scratch_memory.cmd.alloc (
+        sizeof (wchar_t) * _MAX_PATH + sizeof FILE_NAME_INFO
+      );
+
+  FILE_NAME_INFO *pFni =
+    reinterpret_cast <FILE_NAME_INFO *>(ptrcFni);
+
+  BOOL success =
+    GetFileInformationByHandleEx ( hFile, 
+                                     FileNameInfo,
+                                       pFni,
+                                         sizeof FILE_NAME_INFO +
+                            (_MAX_PATH * sizeof (wchar_t)) );
+
+  if (success) {
+    wcsncpy_s ( pwszFileName,
+                  std::min (uiMaxLen,
+                    (pFni->FileNameLength / (DWORD)sizeof pFni->FileName [0]) + 1),
+                     pFni->FileName,
+                       _TRUNCATE );
+  }
+
+  return success;
+}
+
 
 NtReadFile_pfn  NtReadFile_Original  = nullptr;
 NtWriteFile_pfn NtWriteFile_Original = nullptr;
@@ -44,11 +83,48 @@ NtReadFile_Detour (
   _In_opt_ PULONG           Key )
 {
   NTSTATUS ntStatus =
-    NtReadFile_Original (FileHandle, Event, ApcRoutine, ApcContext, IoStatusBlock, Buffer, Length, ByteOffset, Key);
+    NtReadFile_Original ( FileHandle, Event, ApcRoutine, ApcContext,
+                            IoStatusBlock,
+                              Buffer, Length, ByteOffset,
+                                Key );
 
   if (NT_SUCCESS (ntStatus))
   {
-    InterlockedAdd64 (&SK_TLS_Bottom ()->disk.bytes_read, Length);
+    SK_TLS *pTLS =
+      SK_TLS_Bottom ();
+
+    InterlockedAdd64 (&pTLS->disk.bytes_read, Length);
+
+    if (config.file_io.trace_reads)
+    {
+      static iSK_Logger file_log =
+        *SK_CreateLog (LR"(logs\file_reads.log)");
+
+      SK_RunOnce ( file_log.lockless = true );
+
+      //if (pTLS->disk.last_file_read != FileHandle)
+      {   pTLS->disk.last_file_read  = FileHandle;
+        wchar_t                                wszFileName [MAX_PATH] = { L'\0' };
+        SK_File_GetNameFromHandle (FileHandle, wszFileName, MAX_PATH);
+
+
+        if (ByteOffset != nullptr)
+        {
+          file_log.Log ( L"[tid=%4x]   File Read:  '%100ws'  <%#8lu bytes @+%-8llu>",
+            GetCurrentThreadId (),
+              wszFileName, Length, *ByteOffset
+          );
+        }
+
+        else
+        {
+          file_log.Log ( L"[tid=%4x]   File Read:  '%100ws'  <%#8lu bytes>",
+            GetCurrentThreadId (),
+              wszFileName, Length
+          );
+        }
+      }
+    }
   }
 
   return ntStatus;
@@ -68,15 +144,52 @@ NtWriteFile_Detour (
   PULONG           Key )
 {
   NTSTATUS ntStatus =
-    NtWriteFile_Original (FileHandle, Event, ApcRoutine, ApcContext, IoStatusBlock, Buffer, Length, ByteOffset, Key);
+    NtWriteFile_Original ( FileHandle, Event, ApcRoutine, ApcContext,
+                             IoStatusBlock,
+                               Buffer, Length, ByteOffset,
+                                 Key );
 
   if (NT_SUCCESS (ntStatus))
   {
-    InterlockedAdd64 (&SK_TLS_Bottom ()->disk.bytes_written, Length);
+    SK_TLS *pTLS =
+      SK_TLS_Bottom ();
+
+    InterlockedAdd64 (&pTLS->disk.bytes_written, Length);
+
+    if (config.file_io.trace_writes)
+    {
+      static iSK_Logger file_log =
+        *SK_CreateLog (LR"(logs\file_writes.log)");
+
+      SK_RunOnce ( file_log.lockless = true );
+
+      if (pTLS->disk.last_file_written != FileHandle)
+      {   pTLS->disk.last_file_written  = FileHandle;
+        wchar_t                                wszFileName [MAX_PATH] = { L'\0' };
+        SK_File_GetNameFromHandle (FileHandle, wszFileName, MAX_PATH);
+
+        if (ByteOffset != nullptr)
+        {
+          file_log.Log ( L"[tid=%4x]   File Write:  '%100ws'  <%#8lu bytes @+%-8llu>",
+            GetCurrentThreadId (),
+              wszFileName, Length, *ByteOffset
+          );
+        }
+
+        else
+        {
+          file_log.Log ( L"[tid=%4x]   File Write:  '%100ws'  <%#8lu bytes>",
+            GetCurrentThreadId (),
+              wszFileName, Length
+          );
+        }
+      }
+    }
   }
 
   return ntStatus;
 }
+
 
 void
 SK_File_InitHooks (void)

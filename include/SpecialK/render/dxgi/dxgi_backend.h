@@ -460,8 +460,9 @@ public:
                                   size_t                mem_size,
                                   uint64_t              load_time,
                                   uint32_t              crc32c,
-                                  std::wstring          fileName  = L"",
-                            const D3D11_TEXTURE2D_DESC *pOrigDesc = nullptr );
+                                  std::wstring          fileName   = L"",
+                            const D3D11_TEXTURE2D_DESC *pOrigDesc  = nullptr,
+                         _In_opt_ HMODULE               hModCaller = (HMODULE)(intptr_t)-1 );
 
   void             reset         (void);
   bool             purgeTextures (size_t size_to_free, int* pCount, size_t* pFreed);
@@ -918,6 +919,22 @@ struct d3d11_shader_tracking_s
   std::set    <ID3D11ShaderResourceView *> set_of_views;
   std::vector <ID3D11ShaderResourceView *> used_views;
 
+
+  struct cbuffer_override_s {
+    uint32_t      parent;
+    LONG          LastFrame; // For Map overwrite Optimization
+    ID3D11Buffer* LastBuffer;
+    size_t        BufferSize; // Parent buffer's size
+    bool          Enable;
+    int           Slot;
+    int           StartAddr;
+    int           Size;
+    float         Values [16];
+  };
+
+  std::vector <cbuffer_override_s> overrides;
+
+
   IUnknown*                         shader_obj     = nullptr;
 
 
@@ -1301,5 +1318,10 @@ SK_HookDXGI (void);
 
 int  SK_D3D11_PurgeHookAddressCache  (void);
 void SK_D3D11_UpdateHookAddressCache (void);
+
+const wchar_t* SK_D3D11_DescribeUsage     (D3D11_USAGE              usage);
+const wchar_t* SK_D3D11_DescribeFilter    (D3D11_FILTER             filter);
+std::wstring   SK_D3D11_DescribeMiscFlags (D3D11_RESOURCE_MISC_FLAG flags);
+std::wstring   SK_D3D11_DescribeBindFlags (D3D11_BIND_FLAG          flags);
 
 #endif /* __SK__DXGI_BACKEND_H__ */

@@ -369,6 +369,11 @@ struct sk_config_t
   } textures;
 
   struct {
+    bool trace_reads              = false;
+    bool trace_writes             = false;
+  } file_io;
+
+  struct {
     struct {
       std::wstring
               compatibility     = L"0x00000000";

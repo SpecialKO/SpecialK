@@ -1168,7 +1168,6 @@ Sleep_Detour (DWORD dwMilliseconds)
 }
 
 extern volatile LONG SK_BypassResult;
-
 BOOL
 WINAPI
 QueryPerformanceCounter_Detour (_Out_ LARGE_INTEGER *lpPerformanceCount)

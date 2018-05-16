@@ -1,5 +1,37 @@
+0.9.20:
+
+ + Added D3D11 Constant Buffer injection for Vertex/Pixel/Geometry/Hull/Domain shaders
+  >> Allows the manipulation of a game's material system in real-time in the mod tools
+
+  @ Compute Shader injection is disabled in this release for stability, it will be
+      enabled in a future release.
+
+ + Fixed Geometry Shader state leak in D3D11 UI render code for certain games
+
+ + Bundled a new build of custom ReShade with improved support for games that render
+     into different format / resolution rendertargets than they use for their swapcahain
+
+ + Improved support for D3D11 texture resampling (mipmap generation, on-the-fly compression)
+     incuding HyperThreading optimization.
+
+ + Altered ImGui vertex processing code to align dynamic memory allocation to a 16-byte
+     boundary for improved performance in games that use heavy CPU-side transform.
+
+  -------------------------
+
+    D3D11 Constant Buffer injection is still experimental and will improve over time,
+      it is almost identical in function to the D3D9 feature but D3D11 has significantly
+        more complicated memory management requirements that make optimization harder.
+
+    Altering vertex shader material state is not recommended due to the number of
+      draw calls made and vertex instancing, focus most experimentation on pixel shaders
+
+
+
 0.9.19:
- 
+
+ (.1): Fixed hook address cache invalidation if Windows updates a system DLL
+
  + Replaced SteamAPI battery monitoring with actual Win32 API code, and now indicate
      when a laptop battery is charging or discharging and how much runtime is left in
        the framepacing widget.

@@ -54,7 +54,7 @@ SK_WideCharToUTF8 (std::wstring in)
   int len = WideCharToMultiByte ( CP_UTF8, 0x00, in.c_str (), -1, nullptr, 0, nullptr, FALSE );
 
   std::string out;
-              out.resize (len);
+              out.resize (len * 2);
 
   WideCharToMultiByte           ( CP_UTF8, 0x00, in.c_str (), static_cast <int> (in.length ()), const_cast <char *> (out.data ()), len, nullptr, FALSE );
 
@@ -67,7 +67,7 @@ SK_UTF8ToWideChar (std::string in)
   int len = MultiByteToWideChar ( CP_UTF8, 0x00, in.c_str (), -1, nullptr, 0 );
 
   std::wstring out;
-               out.resize (len);
+               out.resize (len * 2);
 
   MultiByteToWideChar           ( CP_UTF8, 0x00, in.c_str (), static_cast <int> (in.length ()), const_cast <wchar_t *> (out.data ()), len );
 
@@ -879,20 +879,11 @@ HMODULE
 SK_GetCallingDLL (LPCVOID pReturn)
 {
   HMODULE hCallingMod = nullptr;
-//   SK_TLS* pTLS        =
-//     SK_TLS_Bottom ();
-
-  //if (pTLS->known_modules.contains (pReturn, &hCallingMod))
-  //{
-  //  return hCallingMod;
-  //}
 
   GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT |
                       GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
                         static_cast <const wchar_t *> (pReturn),
                           &hCallingMod );
-
-  //pTLS->known_modules.insert (pReturn, hCallingMod);
 
   return hCallingMod;
 }
@@ -1252,21 +1243,31 @@ SK_Path_wcsstr (const wchar_t* wszStr, const wchar_t* wszSubStr)
 #include <Winver.h>
 static HMODULE hModVersion = nullptr;
 
+__forceinline
+bool 
+SK_Import_VersionDLL (void)
+{
+  if (hModVersion == nullptr)
+      hModVersion = SK_Modules.LoadLibrary (L"version.dll");
+
+  return hModVersion != nullptr;
+}
+
 BOOL
 WINAPI
 SK_VerQueryValueW (
-  _In_ LPCVOID pBlock,
-  _In_ LPCWSTR lpSubBlock,
-  _Outptr_result_buffer_ (_Inexpressible_ ("buffer can be PWSTR or DWORD*")) LPVOID * lplpBuffer,
-  _Out_ PUINT  puLen )
+  _In_                                                                       LPCVOID pBlock,
+  _In_                                                                       LPCWSTR lpSubBlock,
+  _Outptr_result_buffer_ (_Inexpressible_ ("buffer can be PWSTR or DWORD*")) LPVOID* lplpBuffer,
+  _Out_                                                                       PUINT  puLen )
 {
-  if (hModVersion == nullptr) hModVersion = SK_Modules.LoadLibrary (L"version.dll");
+  SK_Import_VersionDLL ();
 
   using VerQueryValueW_pfn = BOOL (WINAPI *)(
-    _In_ LPCVOID pBlock,
-    _In_ LPCWSTR lpSubBlock,
-    _Outptr_result_buffer_ (_Inexpressible_ ("buffer can be PWSTR or DWORD*")) LPVOID * lplpBuffer,
-    _Out_ PUINT  puLen);
+    _In_                                                                      LPCVOID  pBlock,
+    _In_                                                                      LPCWSTR  lpSubBlock,
+    _Outptr_result_buffer_ (_Inexpressible_ ("buffer can be PWSTR or DWORD*")) LPVOID* lplpBuffer,
+    _Out_                                                                       PUINT  puLen );
 
   static auto imp_VerQueryValueW =
     (VerQueryValueW_pfn)
@@ -1283,7 +1284,7 @@ SK_GetFileVersionInfoExW (_In_                      DWORD   dwFlags,
                           _In_                      DWORD   dwLen,
                           _Out_writes_bytes_(dwLen) LPVOID  lpData)
 {
-  if (hModVersion == nullptr) hModVersion = SK_Modules.LoadLibrary (L"version.dll");
+  SK_Import_VersionDLL ();
 
   using GetFileVersionInfoExW_pfn = BOOL (WINAPI *)(
     _In_                      DWORD   dwFlags,
@@ -1301,6 +1302,28 @@ SK_GetFileVersionInfoExW (_In_                      DWORD   dwFlags,
                                      dwHandle, dwLen, lpData );
 }
 
+DWORD
+WINAPI
+SK_GetFileVersionInfoSizeExW ( _In_  DWORD   dwFlags,
+                               _In_  LPCWSTR lpwstrFilename,
+                               _Out_ LPDWORD lpdwHandle )
+{
+  SK_Import_VersionDLL ();
+
+  using GetFileVersionInfoSizeExW_pfn = DWORD (WINAPI *)(
+    _In_  DWORD   dwFlags,
+    _In_  LPCWSTR lpwstrFilename,
+    _Out_ LPDWORD lpdwHandle
+  );
+
+  static auto imp_GetFileVersionInfoSizeExW =
+    (GetFileVersionInfoSizeExW_pfn)
+       GetProcAddress (hModVersion, "GetFileVersionInfoSizeExW");
+
+  return imp_GetFileVersionInfoSizeExW ( dwFlags, lpwstrFilename,
+                                         lpdwHandle );
+}
+
 bool
 __stdcall
 SK_IsDLLSpecialK (const wchar_t* wszName)
@@ -1308,7 +1331,12 @@ SK_IsDLLSpecialK (const wchar_t* wszName)
   UINT     cbTranslatedBytes = 0,
            cbProductBytes    = 0;
 
-  uint8_t  cbData     [4096] = { };
+  DWORD    dwHandle          = 0,
+           dwSize            =
+    SK_GetFileVersionInfoSizeExW (FILE_VER_GET_NEUTRAL, wszName, &dwHandle);
+
+  uint8_t *cbData =
+    (uint8_t *)SK_TLS_Bottom ()->scratch_memory.cmd.alloc (dwSize);
 
   wchar_t* wszProduct        = nullptr; // Will point somewhere in cbData
 
@@ -1328,7 +1356,7 @@ SK_IsDLLSpecialK (const wchar_t* wszName)
                                FILE_VER_GET_PREFETCHED,
                                  wszFullyQualifiedName,
                                    0x00,
-                                     4096,
+                                     dwSize,
                                        cbData );
 
   if (! bRet) return false;
@@ -1365,7 +1393,12 @@ SK_GetDLLVersionStr (const wchar_t* wszName)
            cbProductBytes    = 0,
            cbVersionBytes    = 0;
 
-  uint8_t  cbData     [4096] = { };
+  DWORD    dwHandle          = 0,
+           dwSize            =
+    SK_GetFileVersionInfoSizeExW (FILE_VER_GET_NEUTRAL, wszName, &dwHandle);
+
+  uint8_t *cbData =
+    (uint8_t *)SK_TLS_Bottom ()->scratch_memory.cmd.alloc (dwSize);
 
   wchar_t* wszFileDescrip = nullptr; // Will point somewhere in cbData
   wchar_t* wszFileVersion = nullptr; // "
@@ -1380,7 +1413,7 @@ SK_GetDLLVersionStr (const wchar_t* wszName)
                                FILE_VER_GET_PREFETCHED,
                                  wszName,
                                    0x00,
-                                     4096,
+                                     dwSize,
                                        cbData );
 
   if (! bRet) return L"N/A";
@@ -2126,7 +2159,7 @@ SK_GetSystemDirectory (void)
 
 
 
-size_t
+uint64_t
 SK_DeleteTemporaryFiles (const wchar_t* wszPath, const wchar_t* wszPattern)
 {
   WIN32_FIND_DATA fd     = {      };
@@ -2160,7 +2193,12 @@ SK_DeleteTemporaryFiles (const wchar_t* wszPath, const wchar_t* wszPattern)
         lstrcatW (wszFullPath, fd.cFileName);
 
         if (DeleteFileW (wszFullPath))
+        {
           ++files;
+
+          liSize.QuadPart += LARGE_INTEGER {       fd.nFileSizeLow,
+                                             (LONG)fd.nFileSizeHigh }.QuadPart;
+        }
       }
     } while (FindNextFileW (hFind, &fd) != 0);
 
@@ -2169,7 +2207,7 @@ SK_DeleteTemporaryFiles (const wchar_t* wszPath, const wchar_t* wszPattern)
     FindClose (hFind);
   }
 
-  return files;
+  return (uint64_t)liSize.QuadPart;
 }
 
 

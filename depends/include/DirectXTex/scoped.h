@@ -18,7 +18,7 @@
 #include <malloc.h>
 
 //---------------------------------------------------------------------------------
-struct aligned_deleter { void operator()(void* p) { _aligned_free(p); } };
+struct aligned_deleter { void operator()(void* p) { /*_aligned_free(p);*/ } };
 
 typedef std::unique_ptr<float[], aligned_deleter> ScopedAlignedArrayFloat;
 

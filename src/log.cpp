@@ -64,7 +64,7 @@ SK_Timestamp (wchar_t* const out)
     }
     else
     {
-      FILETIME                              ftLogTime;
+      FILETIME                             ftLogTime;
       _k32GetSystemTimePreciseAsFileTime (&ftLogTime);
       FileTimeToSystemTime (&ftLogTime,
                             &stLogTime);
@@ -169,7 +169,7 @@ SK_FlushLog (iSK_Logger* pLog)
     hFlushReq =
       CreateEvent ( nullptr, TRUE, TRUE,
         SK_FormatStringW ( LR"(Local\SK_LogFlush_pid%x)",
-                      GetCurrentThreadId () ).c_str ()
+                      GetCurrentProcessId () ).c_str ()
                   );
 
     InterlockedExchangePointer (

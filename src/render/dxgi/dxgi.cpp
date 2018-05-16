@@ -1509,24 +1509,6 @@ struct SK_D3D11_Stateblock_Lite : StateBlockDataStore
   }
 };
 
-// The struct is implemented here, so that's where we allocate it.
-SK_D3D11_Stateblock_Lite*
-SK_D3D11_AllocStateBlock (size_t& size)
-{
-  size =
-    sizeof ( SK_D3D11_Stateblock_Lite );
-  return new SK_D3D11_Stateblock_Lite { };
-}
-
-void
-SK_D3D11_FreeStateBlock (SK_D3D11_Stateblock_Lite* sb)
-{
-  if (sb != nullptr)
-    delete sb;
-}
-
-
-
 struct D3DX11_STATE_BLOCK
 {
   ID3D11VertexShader*        VS;
@@ -2118,6 +2100,24 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
       sb->Predication->Release ();
 }
 
+// The struct is implemented here, so that's where we allocate it.
+SK_D3D11_Stateblock_Lite*
+SK_D3D11_AllocStateBlock (size_t& size)
+{
+  size =
+    sizeof ( SK_D3D11_Stateblock_Lite );
+  return new SK_D3D11_Stateblock_Lite { };
+}
+
+void
+SK_D3D11_FreeStateBlock (SK_D3D11_Stateblock_Lite* sb)
+{
+  if (sb != nullptr)
+    delete sb;
+}
+
+
+
 
 void
 SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
@@ -2133,8 +2133,13 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 
   InterlockedIncrement (&__osd_frames_drawn);
 
-  SK_ScopedBool auto_bool (&SK_TLS_Bottom ()->imgui.drawing);
-                            SK_TLS_Bottom ()->imgui.drawing = true;
+  SK_TLS* pTLS =
+    SK_TLS_Bottom ();
+
+  SK_ScopedBool auto_bool0 (&pTLS->imgui.drawing);
+  SK_ScopedBool auto_bool1 (&pTLS->texture_management.injection_thread);
+                             pTLS->imgui.drawing                       = TRUE;
+                             pTLS->texture_management.injection_thread = TRUE;
 
 
   if (InterlockedCompareExchange (&__gui_reset, FALSE, TRUE))
@@ -2287,7 +2292,7 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
     {
       // Uses TLS to reduce dynamic memory pressure as much as possible
       auto* sb =
-        SK_TLS_Bottom ()->d3d11.getStateBlock ();
+        pTLS->d3d11.getStateBlock ();
 
       RtlZeroMemory ( sb,
                         sizeof (SK_D3D11_Stateblock_Lite) );
@@ -3903,6 +3908,8 @@ DXGISwap_ResizeBuffers_Override ( IDXGISwapChain *This,
   }
 
 
+  //if (SK_GetCurrentGameID () == SK_GAME_ID::Ys_Eight)
+  //  NewFormat = DXGI_FORMAT_B8G8R8A8_UNORM;
 
 
   if (! config.window.res.override.isZero ())
@@ -4015,8 +4022,6 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
     return S_OK;
 
   {
-    std::lock_guard <SK_Thread_CriticalSection> auto_lock (cs_mmio);
-
     SK_D3D11_EndFrame        ();
     SK_CEGUI_QueueResetD3D11 (); // Prior to the next present, reset the UI
   }
@@ -4132,6 +4137,10 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
 
     new_new_params.Width   =  std::max ( max_x , min_x );
     new_new_params.Height  =  std::max ( max_y , min_y );
+
+
+    //if (SK_GetCurrentGameID () == SK_GAME_ID::Ys_Eight)
+    //  new_new_params.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
 
 
 
@@ -4427,6 +4436,8 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).c_str (),
 
       if (SK_GetCurrentGameID () == SK_GAME_ID::DotHackGU)
         pDesc->BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+      //if (SK_GetCurrentGameID () == SK_GAME_ID::Ys_Eight)
+      //  pDesc->BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
 
 
       if (       config.render.framerate.buffer_count != -1                  &&
@@ -6607,7 +6618,9 @@ HookDXGI (LPVOID user)
     // TODO: Handle situation where CreateDXGIFactory is unloadable
   }
 
-  if (__SK_bypass || ReadAcquire (&__dxgi_ready) || SK_TLS_Bottom ()->d3d11.ctx_init_thread)
+  SK_TLS *pTLS = SK_TLS_Bottom ();
+
+  if (__SK_bypass || ReadAcquire (&__dxgi_ready) || pTLS->d3d11.ctx_init_thread)
   {
     SK_Thread_CloseSelf ();
     return 0;
@@ -6618,7 +6631,7 @@ HookDXGI (LPVOID user)
 
   if (! InterlockedCompareExchange (&__hooked, TRUE, FALSE))
   {
-    SK_TLS_Bottom ()->d3d11.ctx_init_thread = true;
+    pTLS->d3d11.ctx_init_thread = true;
 
     SK_AutoCOMInit auto_com;
 
@@ -7448,7 +7461,7 @@ SK::DXGI::ShutdownBudgetThread ( void )
                              L"       Max Usage:         %05llu MiB\n",
                                mem_stats [i].max_usage  >> 20ULL );
 
-        /*
+        /*  
         SK_BLogEx (params, true, L"       Min Reserve:       %05u MiB\n",
         mem_stats [i].min_reserve >> 20ULL);
         SK_BLogEx (params, true, L"       Max Reserve:       %05u MiB\n",

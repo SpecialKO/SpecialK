@@ -26,11 +26,17 @@
 #include <Windows.h>
 #include <algorithm>
 
+struct ID3D11Buffer;
+struct ID3D11SamplerState;
 struct ID3D11DeviceContext;
 struct ID3D11RasterizerState;
 struct ID3D11DepthStencilState;
 struct ID3D11DepthStencilView;
 struct ID3D11ShaderResourceView;
+
+#ifndef _D3D11_CONSTANTS
+#define	D3D11_COMMONSHADER_CONSTANT_BUFFER_HW_SLOT_COUNT	( 15 )
+#endif
 
 #include <unordered_map>
 
@@ -46,7 +52,6 @@ public:
 
   void* pResolved = nullptr;
 };
-
 
 enum SK_TLS_STACK_MASK
 {
@@ -281,6 +286,13 @@ public:
   SK_D3D11_Stateblock_Lite* stateBlock            = nullptr;
   size_t                    stateBlockSize        = 0;
 
+  // Sampler to share between ImGui and CEGUI
+  ID3D11SamplerState*       uiSampler_clamp       = nullptr;
+  ID3D11SamplerState*       uiSampler_wrap        = nullptr;
+
+  ID3D11Buffer*             pOriginalCBuffers [6][D3D11_COMMONSHADER_CONSTANT_BUFFER_HW_SLOT_COUNT]
+                                                  = { };
+
   SK_D3D11_Stateblock_Lite* getStateBlock (void);
 
   size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload);
@@ -292,6 +304,34 @@ public:
   HGLRC current_hglrc = 0;
   HDC   current_hdc   = 0;
   HWND  current_hwnd  = 0;
+};
+
+
+
+class SK_DXTex_ThreadContext : public SK_TLS_DynamicContext
+{
+public:
+  // Generally SK already 16-byte aligns most things for SIMD -- DXTex
+  //   coincidentally NEEDS said alignment, so let's make this explicit.
+  uint8_t* alignedAlloc (size_t alignment, size_t elems);
+  bool     tryTrim      (void);
+  void     moveAlloc    (void);
+
+  size_t Cleanup (SK_TLS_CleanupReason_e);
+
+private:
+  uint8_t* buffer  = nullptr;
+  size_t   reserve = 0UL;
+//size_t   slack   = 0UL;
+
+  // We'll compact the address space occasionally otherwise texture
+  //   processing can destroy a 32-bit game's ability to function.
+  DWORD last_realloc = 0,
+        last_trim    = 0;
+
+  // Once every (idle) thirty-seconds, compact DXTex's scratch space
+  static const DWORD  _TimeBetweenTrims =  30000UL;
+  static const SIZE_T _SlackSpace       = (8192UL << 10UL); // 8 MiB per-thread
 };
 
 
@@ -405,8 +445,11 @@ public:
 class SK_Disk_ThreadContext
 {
 public:
-  volatile LONG64 bytes_read    = 0ULL;
-  volatile LONG64 bytes_written = 0ULL;
+  volatile LONG64 bytes_read        = 0ULL;
+  volatile LONG64 bytes_written     = 0ULL;
+
+           HANDLE last_file_read    = INVALID_HANDLE_VALUE;
+           HANDLE last_file_written = INVALID_HANDLE_VALUE;
 };
 
 class SK_Net_ThreadContext
@@ -439,6 +482,10 @@ public:
   SK_D3D9_ThreadContext     d3d9;
   SK_D3D11_ThreadContext    d3d11;
   SK_GL_ThreadContext       gl;
+
+  // Scratch memory pool for DXTex to reduce its tendency to fragment the
+  //   the address space up while batching multiple format conversion jobs.
+  SK_DXTex_ThreadContext    dxtex;
 
   SK_DInput7_ThreadContext  dinput7;
   SK_DInput8_ThreadContext  dinput8;

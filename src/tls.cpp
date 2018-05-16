@@ -247,7 +247,6 @@ SK_ModuleAddrMap::insert (LPCVOID pAddr, HMODULE hMod)
   (*pResolved_) [pAddr] = hMod;
 }
 
-
 #include <SpecialK/render/d3d9/d3d9_backend.h>
 #include <SpecialK/steam_api.h>
 
@@ -573,6 +572,94 @@ SK_D3D11_ThreadContext::Cleanup (SK_TLS_CleanupReason_e /*reason*/)
 }
 
 
+
+uint8_t*
+SK_DXTex_ThreadContext::alignedAlloc (size_t alignment, size_t elems)
+{
+  assert (alignment == 16);
+
+  bool new_alloc = true;
+
+  if (buffer == nullptr)
+  {
+    buffer =
+      (uint8_t *)_aligned_malloc (elems, alignment);
+  }
+
+  else
+  {
+    if (reserve < elems)
+    {
+      dll_log.Log (L"Growing tid %x's DXTex memory pool from %lu to %lu",
+                   GetCurrentThreadId (), reserve, elems);
+
+      _aligned_free (buffer);
+                     buffer = (uint8_t *)_aligned_malloc (elems, alignment);
+                     reserve= elems;
+    }
+
+    else
+      new_alloc = false;
+  }
+
+  if (new_alloc)
+  {
+    last_realloc = timeGetTime ();
+    last_trim    = last_realloc;
+  }
+
+  return buffer;
+}
+
+void
+SK_DXTex_ThreadContext::moveAlloc (void)
+{
+  last_realloc = timeGetTime ();
+  last_trim    = last_realloc;
+
+  reserve = 0;
+  buffer  = nullptr;
+}
+
+bool
+SK_DXTex_ThreadContext::tryTrim (void)
+{
+  if (        reserve > _SlackSpace &&
+       timeGetTime () - last_trim   >= _TimeBetweenTrims )
+  {
+    dll_log.Log (L"Trimming tid %x's DXTex memory pool from %lu to %lu",
+                 GetCurrentThreadId (), reserve, _SlackSpace);
+
+    _aligned_realloc (buffer,  _SlackSpace, 16);
+                   reserve   = _SlackSpace;
+                   last_trim = timeGetTime ();
+
+    return true;
+  }
+
+  return false;
+}
+
+size_t
+SK_DXTex_ThreadContext::Cleanup (SK_TLS_CleanupReason_e /*reason*/)
+{
+  size_t freed = 0;
+
+  if (buffer != nullptr)
+  {
+    _aligned_free (buffer);
+
+    freed += reserve;
+             reserve = 0;
+  }
+
+  return freed;
+}
+
+
+
+
+
 size_t
 SK_TLS::Cleanup (SK_TLS_CleanupReason_e reason)
 {
@@ -586,6 +673,7 @@ SK_TLS::Cleanup (SK_TLS_CleanupReason_e reason)
   freed += local_scratch. Cleanup (reason);
   freed += steam         .Cleanup (reason);
   freed += d3d11         .Cleanup (reason);
+  freed += dxtex         .Cleanup (reason);
 
 
   if (known_modules.pResolved != nullptr)

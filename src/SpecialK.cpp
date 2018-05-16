@@ -68,9 +68,11 @@ bool has_local_dll = false;
 
 skModuleRegistry SK_Modules;
 
+SK_Thread_HybridSpinlock  static_loader (512);
+SK_Thread_HybridSpinlock* loader_lock  = &static_loader;
+
 SK_Thread_HybridSpinlock* init_mutex   = nullptr;
 SK_Thread_HybridSpinlock* budget_mutex = nullptr;
-SK_Thread_HybridSpinlock* loader_lock  = nullptr;
 SK_Thread_HybridSpinlock* wmi_cs       = nullptr;
 SK_Thread_HybridSpinlock* cs_dbghelp   = nullptr;
 
@@ -150,6 +152,52 @@ typedef LRESULT (NTAPI *NtUserCallNextHookEx_pfn)(
 
 extern NtUserCallNextHookEx_pfn NtUserCallNextHookEx;
 
+
+// If the process doesn't have integrity to manipulate the UI, we have no
+//   real interest in it and can eliminate tons of compat. issues by bailing
+//     out now!
+BOOL
+SK_KeepAway (void)
+{
+  BOOL   bNotAUserInteractiveApplication = TRUE;
+
+  DWORD  dwIntegrityAlloc =  0;
+  DWORD  dwIntegrityLevel = -1;
+  HANDLE hToken;
+
+  if (OpenProcessToken (GetCurrentProcess (), TOKEN_QUERY, &hToken))
+  {
+    if (! GetTokenInformation (hToken, TokenIntegrityLevel, nullptr,
+                               0, &dwIntegrityAlloc))
+    {
+      if (GetLastError () == ERROR_INSUFFICIENT_BUFFER)
+      {
+        PTOKEN_MANDATORY_LABEL pLocalIntegrityBuf =
+          (PTOKEN_MANDATORY_LABEL)LocalAlloc (0x0, dwIntegrityAlloc);
+
+        if (pLocalIntegrityBuf != nullptr)
+        {
+          if (GetTokenInformation (hToken, TokenIntegrityLevel, pLocalIntegrityBuf,
+                                   dwIntegrityAlloc, &dwIntegrityAlloc))
+          {
+            dwIntegrityLevel = *GetSidSubAuthority (pLocalIntegrityBuf->Label.Sid, 
+              (DWORD)(UCHAR)(*GetSidSubAuthorityCount (pLocalIntegrityBuf->Label.Sid) - 1));
+
+            bNotAUserInteractiveApplication =
+              ( dwIntegrityLevel < ( SECURITY_MANDATORY_MEDIUM_RID /*+ 0x10*/ ) );
+          }
+
+          LocalFree (pLocalIntegrityBuf);
+        }
+      }
+    }
+
+    CloseHandle (hToken);
+  }
+
+  return bNotAUserInteractiveApplication;
+}
+
 //=========================================================================
 BOOL
 APIENTRY
@@ -171,28 +219,31 @@ DllMain ( HMODULE hModule,
         return FALSE;
 
 
-      SetErrorMode ( SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX );
-
-
       auto EarlyOut =
-      [&](BOOL bRet = TRUE)
+      [&](BOOL /*bRet = TRUE*/)
       {
         return TRUE;
       };
 
 
-      InterlockedExchange (&__SK_TLS_INDEX, FlsAlloc (nullptr));
-
-
       // We use SKIM for injection and rundll32 for various tricks involving restarting
       //   the currently running game; neither needs or even wants this DLL fully
       //     initialized!
-      if (SK_GetHostAppUtil  ().isInjectionTool ())
+      if (SK_GetHostAppUtil ().isInjectionTool ())
       {
         SK_EstablishRootPath ();
 
         return EarlyOut (TRUE);
       }
+
+
+      // Keep this DLL out of anything that doesn't handle User Interfaces,
+      //   everyone will be much happier that way =P
+      if (SK_KeepAway ())
+        return FALSE;
+
+
+      InterlockedExchange (&__SK_TLS_INDEX, FlsAlloc (nullptr));
 
 
       SK_Thread_ScopedPriority prio_boost (THREAD_PRIORITY_HIGHEST);
@@ -283,14 +334,12 @@ DllMain ( HMODULE hModule,
     {
       if (ReadAcquire (&__SK_DLL_Attached))
       {
-        SetThreadErrorMode (SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX, nullptr);
-
         InterlockedIncrement (&__SK_Threads_Attached);
 
         SK_TlsRecord tls_rec =
           SK_GetTLS (true);
 
-        SK_TLS_Bottom ()->debug.mapped = true;
+        //SK_TLS_Bottom ()->debug.mapped = true;
       }
     }
     break;
@@ -466,16 +515,6 @@ __stdcall
 SK_EstablishDllRole (skWin32Module&& module)
 {
   SK_SetDLLRole (DLL_ROLE::INVALID);
-
-
-#include <SpecialK/injection/blacklist.h>
-
-  //// If Blacklisted, Bail-Out
-  wchar_t         wszAppNameLower                   [MAX_PATH + 2] = { };
-  lstrcpynW      (wszAppNameLower, SK_GetHostApp (), MAX_PATH);
-  CharLowerBuffW (wszAppNameLower,                   MAX_PATH);
-  
-  if (__blacklist.count (wszAppNameLower)) return FALSE;
 
 
 #ifndef _WIN64
@@ -876,7 +915,6 @@ SK_Attach (DLL_ROLE role)
 
       budget_mutex = new SK_Thread_HybridSpinlock (  400);
       init_mutex   = new SK_Thread_HybridSpinlock ( 5000);
-      loader_lock  = new SK_Thread_HybridSpinlock ( 6536);
       wmi_cs       = new SK_Thread_HybridSpinlock (  128);
       cs_dbghelp   = new SK_Thread_HybridSpinlock (65536);
 
@@ -895,8 +933,7 @@ SK_Attach (DLL_ROLE role)
 
 
       SK_CleanupMutex (&budget_mutex); SK_CleanupMutex (&init_mutex);
-      SK_CleanupMutex (&loader_lock);  SK_CleanupMutex (&cs_dbghelp);
-      SK_CleanupMutex (&wmi_cs);
+      SK_CleanupMutex (&cs_dbghelp);   SK_CleanupMutex (&wmi_cs);
     }
   }
 
@@ -926,8 +963,7 @@ SK_Detach (DLL_ROLE role)
          __SK_DLL_Bootstraps.at    (role).shutdown () )
     {
       SK_CleanupMutex (&budget_mutex); SK_CleanupMutex (&init_mutex);
-      SK_CleanupMutex (&loader_lock);  SK_CleanupMutex (&cs_dbghelp);
-      SK_CleanupMutex (&wmi_cs);
+      SK_CleanupMutex (&cs_dbghelp);   SK_CleanupMutex (&wmi_cs);
 
       return TRUE;
     }

@@ -71,7 +71,6 @@ extern "C"
 SK_InjectionRecord_s __SK_InjectionHistory [MAX_INJECTED_PROC_HISTORY] = { };
 
 #pragma data_seg (".SK_Hooks")
-  __declspec (dllexport)          HANDLE hShutdownEvent = 0; // Event to signal unloading injected DLL instances
   __declspec (dllexport)          DWORD  dwHookPID      =                  0UL; // Process that owns the CBT hook
   __declspec (dllexport) volatile HHOOK  hHookCBT       =              nullptr; // CBT hook
   __declspec (dllexport)          BOOL   bAdmin         =                FALSE; // Is SKIM64 able to inject into admin apps?
@@ -126,7 +125,7 @@ static LONG local_record = 0;
 void
 SK_Inject_InitShutdownEvent (void)
 {
-  if (hShutdownEvent == 0)
+  if (dwHookPID == 0)
   {
     bAdmin           = SK_IsAdmin ();
 
@@ -135,25 +134,7 @@ SK_Inject_InitShutdownEvent (void)
     sattr.bInheritHandle       = FALSE;
     sattr.lpSecurityDescriptor = nullptr;
 
-    dwHookPID      = GetCurrentProcessId ();
-
-    //// Reuse the event if it exists already
-    hShutdownEvent = OpenEventW ( SYNCHRONIZE | EVENT_MODIFY_STATE, FALSE,
-          SK_RunLHIfBitness ( 32, LR"(Global\SpecialK32_Reset)",
-                                  LR"(Global\SpecialK64_Reset)" ) );
-    
-    if (hShutdownEvent <= 0)
-    {
-      hShutdownEvent = 
-        CreateEventW ( &sattr, TRUE, FALSE,
-          SK_RunLHIfBitness ( 32, LR"(Global\SpecialK32_Reset)",
-                                  LR"(Global\SpecialK64_Reset)" ) );
-    }
-    
-    else
-    {
-      ResetEvent ( hShutdownEvent );
-    }
+    dwHookPID          = GetCurrentProcessId ();
   }
 }
 
@@ -208,7 +189,7 @@ SK_Inject_ValidateProcesses (void)
 
 extern bool SK_Debug_IsCrashing (void);
 
-static HMODULE hModHookInstance = nullptr;
+HMODULE hModHookInstance = nullptr;
 
 void
 SK_Inject_ReleaseProcess (void)
@@ -239,7 +220,7 @@ SK_Inject_ReleaseProcess (void)
   // ...
   // ...
 
-  FreeLibrary (hModHookInstance);
+  //FreeLibrary (hModHookInstance);
 }
 
 void
@@ -281,7 +262,8 @@ SK_Inject_AcquireProcess (void)
       wcsncpy (&__SK_InjectionHistory_name [local_record * MAX_PATH], wszName, MAX_PATH - 1);
 
       // Hold a reference so that removing the CBT hook doesn't crash the software
-      GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
+      GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+                          GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
                             (LPCWSTR)&SK_Inject_AcquireProcess,
                                &hModHookInstance );
 
@@ -314,95 +296,23 @@ SKX_GetCBTHook (void)
     );
 }
 
-void
-SKX_WaitForCBTHookShutdown (void)
-{
-  CHandle hHookOwner (
-    OpenProcess ( PROCESS_DUP_HANDLE, FALSE, dwHookPID )
-  );
-  CHandle hShutdown ( INVALID_HANDLE_VALUE );
-
-  DuplicateHandle ( hHookOwner,            hShutdownEvent,
-                    GetCurrentProcess (), &hShutdown.m_h,
-                    0,       FALSE, DUPLICATE_SAME_ACCESS );
-
-  SetThreadPriority           ( SK_GetCurrentThread (),
-                                THREAD_PRIORITY_NORMAL );
-  SetCurrentThreadDescription (L"[SK] CBT Hook Teardown Broadcast Receiver");
-
-  if (hShutdown > 0)
-    WaitForSingleObjectEx (hShutdown, INFINITE, TRUE);
-}
-
 LRESULT
 CALLBACK
 CBTProc ( _In_ int    nCode,
           _In_ WPARAM wParam,
           _In_ LPARAM lParam )
 {
-  static volatile LONG hooked = FALSE;
-
-  if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
+  if (nCode < 0)
   {
-    __try
-    {
-      SK_Thread_Create (
-      [ ](LPVOID) -> DWORD
-       {
-         __try {
-           HMODULE hModThis;
-           
-           if ( GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
-                                    GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-                                      (LPCWSTR)&CBTProc,
-                                        &hModThis ) )
-           {
-             InterlockedIncrement (&hooked);
+    LRESULT lRet =
+      CallNextHookEx (0, nCode, wParam, lParam);
 
-             InterlockedIncrement        (&injected_procs);
-             SKX_WaitForCBTHookShutdown  (               );
-             InterlockedDecrement        (&injected_procs);
+    // ...
 
-             SK_Thread_CloseSelf         (               );
-
-             return 0;
-           }
-
-           else
-             InterlockedIncrement (&hooked);
-
-           SK_Thread_CloseSelf           (               );
-         }
-
-         __except (EXCEPTION_EXECUTE_HANDLER)
-         {
-         }
-
-         return 0;
-       });
-    }
-
-    __except (EXCEPTION_EXECUTE_HANDLER)
-    {
-    }
+    return lRet;
   }
 
-  __try
-  {
-    if (nCode < 0)
-    {
-      return
-        CallNextHookEx (0, nCode, wParam, lParam);
-    }
-
-    CallNextHookEx (0, nCode, wParam, lParam);
-  }
-
-  __except (EXCEPTION_EXECUTE_HANDLER)
-  {
-  }
-
-  return 0;
+  return CallNextHookEx (0, nCode, wParam, lParam);
 }
 
 BOOL
@@ -463,25 +373,6 @@ SKX_RemoveCBTHook (void)
 
   HHOOK hHookOrig = SKX_GetCBTHook ();
 
-
-START_OVER:
-  if ((intptr_t)hShutdownEvent > 0)
-  {
-    SetEvent (hShutdownEvent);
-
-    int spins = 0;
-
-    while (ReadAcquire (&injected_procs) > 0 && spins++ < 13)
-      ;
-
-    if (spins == 13)
-    {
-      if (SetEvent (hShutdownEvent))
-          SleepEx  (5, FALSE);
-    }
-  }
-
-
   if (hHookOrig != 0 && UnhookWindowsHookEx (hHookOrig))
   {
                          whitelist_count = 0;
@@ -494,26 +385,6 @@ START_OVER:
 
     hHookOrig = 0;
   }
-
-
-  if ( ReadPointerAcquire ((PVOID *)&hHookCBT) != nullptr ||
-       ReadAcquire        (         &injected_procs) > 0     )
-  {
-    static int retries = 0;
-
-    if ((intptr_t)hShutdownEvent > 0)
-    {
-      if (SK_GetHostAppUtil ().isInjectionTool () && retries++ < 5)
-        goto START_OVER;
-    }
-  }
-
-
-  //if ((intptr_t)hShutdownEvent > 0)
-  //{
-  //  if (CloseHandle (hShutdownEvent))
-  //                   hShutdownEvent = 0;
-  //}
 
   dwHookPID = 0x0;
 }
@@ -562,8 +433,6 @@ RunDLL_InjectionManager ( HWND  hwnd,        HINSTANCE hInst,
            [](LPVOID user) ->
              DWORD
                {
-                 SKX_WaitForCBTHookShutdown ();
-
                  while ( ReadAcquire (&__SK_DLL_Attached) || SK_GetHostAppUtil ().isInjectionTool () )
                    SleepEx (5UL, TRUE);
 
@@ -633,6 +502,9 @@ SK_Inject_EnableCentralizedConfig (void)
 
   SK_EstablishRootPath ();
 
+  if (! ReadAcquire (&__SK_DLL_Attached))
+    return;
+
   switch (SK_GetCurrentRenderBackend ().api)
   {
     case SK_RenderAPI::D3D9:
@@ -673,10 +545,10 @@ SK_Inject_EnableCentralizedConfig (void)
 bool
 SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE role)
 {
-  wchar_t wszIn  [MAX_PATH * 2] = { };
+  wchar_t   wszIn  [MAX_PATH * 2] = { };
   lstrcatW (wszIn, SK_GetModuleFullName (SK_GetDLL ()).c_str ());
 
-  wchar_t wszOut [MAX_PATH * 2] = { };
+  wchar_t   wszOut [MAX_PATH * 2] = { };
   lstrcatW (wszOut, SK_GetHostPath ());
 
   switch (role)

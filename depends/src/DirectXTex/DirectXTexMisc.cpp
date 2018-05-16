@@ -14,6 +14,7 @@
 //-------------------------------------------------------------------------------------
 
 #include "directxtexp.h"
+#include "../../../include/SpecialK/tls.h"
 
 using namespace DirectX;
 
@@ -37,7 +38,7 @@ namespace
 
         const size_t width = image1.width;
 
-        ScopedAlignedArrayXMVECTOR scanline(reinterpret_cast<XMVECTOR*>(_aligned_malloc((sizeof(XMVECTOR)*width) * 2, 16)));
+        ScopedAlignedArrayXMVECTOR scanline(reinterpret_cast<XMVECTOR*>(SK_TLS_Bottom ()->dxtex.alignedAlloc (16, (sizeof(XMVECTOR)*width * 2))));
         if (!scanline)
             return E_OUTOFMEMORY;
 
@@ -182,7 +183,7 @@ namespace
 
         const size_t width = image.width;
 
-        ScopedAlignedArrayXMVECTOR scanline(reinterpret_cast<XMVECTOR*>(_aligned_malloc((sizeof(XMVECTOR)*width), 16)));
+        ScopedAlignedArrayXMVECTOR scanline(reinterpret_cast<XMVECTOR*>(SK_TLS_Bottom ()->dxtex.alignedAlloc (16, (sizeof(XMVECTOR)*width))));
         if (!scanline)
             return E_OUTOFMEMORY;
 
@@ -220,7 +221,7 @@ namespace
 
         const size_t width = srcImage.width;
 
-        ScopedAlignedArrayXMVECTOR scanlines(reinterpret_cast<XMVECTOR*>(_aligned_malloc((sizeof(XMVECTOR)*width*2), 16)));
+        ScopedAlignedArrayXMVECTOR scanlines(reinterpret_cast<XMVECTOR*>(SK_TLS_Bottom ()->dxtex.alignedAlloc (16, (sizeof(XMVECTOR)*width * 2))));
         if (!scanlines)
             return E_OUTOFMEMORY;
 
@@ -345,7 +346,7 @@ HRESULT DirectX::CopyRectangle(
 
     uint8_t* pDest = dstImage.pixels + (yOffset * dstImage.rowPitch) + (xOffset * dbpp);
 
-    ScopedAlignedArrayXMVECTOR scanline(reinterpret_cast<XMVECTOR*>(_aligned_malloc((sizeof(XMVECTOR)*srcRect.w), 16)));
+    ScopedAlignedArrayXMVECTOR scanline(reinterpret_cast<XMVECTOR*>(SK_TLS_Bottom ()->dxtex.alignedAlloc (16, (sizeof(XMVECTOR)*srcRect.w))));
     if (!scanline)
         return E_OUTOFMEMORY;
 

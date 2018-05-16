@@ -14,6 +14,7 @@
 //-------------------------------------------------------------------------------------
 
 #include "directxtexp.h"
+#include "../../../include/SpecialK/tls.h"
 
 namespace DirectX
 {
@@ -262,6 +263,8 @@ ScratchImage& ScratchImage::operator= (ScratchImage&& moveFrom)
 //-------------------------------------------------------------------------------------
 // Methods
 //-------------------------------------------------------------------------------------
+#include "../../../include/SpecialK/tls.h"
+
 _Use_decl_annotations_
 HRESULT ScratchImage::Initialize(const TexMetadata& mdata, DWORD flags)
 {
@@ -331,7 +334,7 @@ HRESULT ScratchImage::Initialize(const TexMetadata& mdata, DWORD flags)
     m_nimages = nimages;
     memset(m_image, 0, sizeof(Image) * nimages);
 
-    m_memory = reinterpret_cast<uint8_t*>(_aligned_malloc(pixelSize, 16));
+    m_memory = reinterpret_cast<uint8_t*>(_aligned_malloc (std::max (((size_t)2048 << 10UL), pixelSize), 16));
     if (!m_memory)
     {
         Release();
@@ -397,7 +400,7 @@ HRESULT ScratchImage::Initialize2D(DXGI_FORMAT fmt, size_t width, size_t height,
     m_nimages = nimages;
     memset(m_image, 0, sizeof(Image) * nimages);
 
-    m_memory = reinterpret_cast<uint8_t*>(_aligned_malloc(pixelSize, 16));
+    m_memory = reinterpret_cast<uint8_t*>(_aligned_malloc (std::max (((size_t)2048 << 10UL), pixelSize), 16));
     if (!m_memory)
     {
         Release();
@@ -449,7 +452,7 @@ HRESULT ScratchImage::Initialize3D(DXGI_FORMAT fmt, size_t width, size_t height,
     m_nimages = nimages;
     memset(m_image, 0, sizeof(Image) * nimages);
 
-    m_memory = reinterpret_cast<uint8_t*>(_aligned_malloc(pixelSize, 16));
+    m_memory = reinterpret_cast<uint8_t*>(_aligned_malloc (std::max (((size_t)2048 << 10UL), pixelSize), 16));
     if (!m_memory)
     {
         Release();
@@ -764,7 +767,7 @@ bool ScratchImage::IsAlphaAllOpaque() const
     }
     else
     {
-        ScopedAlignedArrayXMVECTOR scanline(reinterpret_cast<XMVECTOR*>(_aligned_malloc((sizeof(XMVECTOR)*m_metadata.width), 16)));
+        ScopedAlignedArrayXMVECTOR scanline(reinterpret_cast<XMVECTOR*>(SK_TLS_Bottom ()->dxtex.alignedAlloc (16, (sizeof(XMVECTOR)*m_metadata.width))));
         if (!scanline)
             return false;
 
