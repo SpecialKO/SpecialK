@@ -205,6 +205,7 @@ public:
   SK_TLS_ScratchMemory (void) = default;
 
   SK_TLS_HeapDataStore <char> cmd;
+  SK_TLS_HeapDataStore <char> sym_resolve;
   SK_TLS_HeapDataStore <char> eula;
 
   struct
@@ -373,6 +374,13 @@ public:
     DWORD time             = 0;
     ULONG frame            = 0;
   } last_tested_prio;
+
+  struct
+  {
+    DWORD    code          = NO_ERROR;
+    FILETIME last_time     = { };
+    LPVOID   call_site     = nullptr;
+  } error_state;
 };
 
 class SK_ImGui_ThreadContext : public SK_TLS_DynamicContext

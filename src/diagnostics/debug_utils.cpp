@@ -67,6 +67,10 @@ OutputDebugStringW_pfn OutputDebugStringW_Original = nullptr;
 void
 SK_SymSetOpts (void);
 
+typedef void (WINAPI *SetLastError_pfn)(_In_ DWORD dwErrCode);
+                      SetLastError_pfn
+                      SetLastError_Original = nullptr;
+
 typedef FARPROC (WINAPI *GetProcAddress_pfn)(HMODULE,LPCSTR);
                          GetProcAddress_pfn
                          GetProcAddress_Original = nullptr;
@@ -176,6 +180,30 @@ SK_Module_IsProcAddrLocal ( HMODULE  hModExpected,
 
 #include <SpecialK/ansel.h>
 #include <concurrent_unordered_map.h>
+
+void
+WINAPI
+SetLastError_Detour (
+  _In_ DWORD dwErrCode
+)
+{
+  if (dwErrCode != NO_ERROR)
+  {
+    if (_ReturnAddress () != SetLastError_Detour)
+    {
+      SK_TLS* pTLS = SK_TLS_Bottom ();
+
+      if (pTLS != nullptr)
+      {
+        pTLS->win32.error_state.call_site = _ReturnAddress ();
+        pTLS->win32.error_state.code      = dwErrCode;
+        GetSystemTimeAsFileTime (&pTLS->win32.error_state.last_time);
+      }
+    }
+  }
+
+  SetLastError_Original (dwErrCode);
+}
 
 FARPROC
 WINAPI
@@ -1213,6 +1241,11 @@ static_cast_p2p <void> (&GetCommandLineA_Original) );
                              GetProcAddress_Detour,
     static_cast_p2p <void> (&GetProcAddress_Original) );
 
+  SK_CreateDLLHook2 (      L"kernel32",
+                            "SetLastError",
+                             SetLastError_Detour,
+    static_cast_p2p <void> (&SetLastError_Original) );
+
   SK_Memory_InitHooks  ();
   SK_File_InitHooks    ();
   SK_Network_InitHooks ();
@@ -1652,7 +1685,8 @@ SAFE_SymFromAddr (
   __try {
     return Trampoline (hProcess, Address, Displacement, Symbol);
   }
-  __except (EXCEPTION_EXECUTE_HANDLER) { return FALSE; }
+  __except ( (GetExceptionCode () & EXCEPTION_NONCONTINUABLE) ? EXCEPTION_EXECUTE_HANDLER :
+                                                                EXCEPTION_CONTINUE_SEARCH ) { return FALSE; }
 }
 
 BOOL

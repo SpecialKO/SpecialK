@@ -366,7 +366,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
   //   terminate with exit code = -666.
   if ( ReadAcquire (&__SK_DLL_Ending) != 0 )
   {
-    FatalExit ( -666 );
+    ExitProcess (0x0);
   }
 
   bool scaleform = false;

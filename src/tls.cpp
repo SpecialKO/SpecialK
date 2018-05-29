@@ -140,7 +140,6 @@ SK_CleanupTLS (void)
 extern volatile LONG __SK_DLL_Attached;
 
 SK_TLS __SK_TLS_SAFE_no_idx   = { };
-SK_TLS __SK_TLS_SAFE_low_addr = { };
 
 SK_TLS*
 __stdcall
@@ -328,8 +327,9 @@ SK_TLS_ScratchMemory::Cleanup (SK_TLS_CleanupReason_e /*reason*/)
 {
   size_t freed = 0UL;
 
-  freed += cmd.reclaim                      ();
-  freed += eula.reclaim                     ();
+  freed += cmd.reclaim         ();
+  freed += sym_resolve.reclaim ();
+  freed += eula.reclaim        ();
 
   for ( auto* segment : { &ini.key, &ini.val, &ini.sec } )
     freed += segment->reclaim ();

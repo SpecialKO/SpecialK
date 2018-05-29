@@ -604,6 +604,118 @@ ProcessInformation ( PDWORD    pdData,
 #define SK_SymGetLineFromAddr SymGetLineFromAddr
 #endif
 
+const char*
+SKX_DEBUG_FastSymName (LPCVOID ret_addr)
+{
+  HMODULE hModSource               = nullptr;
+  char    szModName [MAX_PATH + 2] = { };
+  HANDLE  hProc                    = SK_GetCurrentProcess ();
+
+  static std::string symbol_name = "";
+
+#ifdef _WIN64
+  static DWORD64 last_ip = 0;
+
+  DWORD64  ip       (reinterpret_cast <DWORD64> (ret_addr));
+  DWORD64  BaseAddr = 0;
+#else
+  static DWORD last_ip = 0;
+
+  DWORD    ip       (reinterpret_cast <DWORD> (ret_addr));
+  DWORD    BaseAddr = 0;
+#endif
+
+  BOOL ret = TRUE;
+
+  SK_TLS* pTLS =
+    SK_TLS_Bottom ();
+
+  if (last_ip != ip)
+  {
+    last_ip = ip;
+
+    if ( GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+                             GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+              reinterpret_cast <LPCWSTR> (ip),
+                                 &hModSource ) )
+    {
+      GetModuleFileNameA (hModSource, szModName, MAX_PATH);
+    }
+
+    MODULEINFO mod_info = { };
+
+    GetModuleInformation (
+      hProc, hModSource, &mod_info, sizeof (mod_info)
+    );
+
+#ifdef _WIN64
+    BaseAddr = (DWORD64)mod_info.lpBaseOfDll;
+#else
+    BaseAddr = (DWORD)  mod_info.lpBaseOfDll;
+#endif
+
+    char*     szDupName = pTLS->scratch_memory.sym_resolve.alloc (strlen (szModName) + 1);
+      strcpy (szDupName, szModName);
+    char* pszShortName = szDupName;
+
+    PathStripPathA (pszShortName);
+
+
+    SK_SymLoadModule ( hProc,
+                         nullptr,
+                          pszShortName,
+                            nullptr,
+                              BaseAddr,
+                                mod_info.SizeOfImage );
+
+    SYMBOL_INFO_PACKAGE sip = { };
+
+    sip.si.SizeOfStruct = sizeof SYMBOL_INFO;
+    sip.si.MaxNameLen   = sizeof sip.name;
+
+    DWORD64 Displacement = 0;
+
+    if ( SymFromAddr ( hProc,
+             static_cast <DWORD64> (ip),
+                           &Displacement,
+                             &sip.si ) )
+    {
+      DWORD Disp = 0x00UL;
+
+#ifdef _WIN64
+      IMAGEHLP_LINE64 ihl              = {                    };
+                      ihl.SizeOfStruct = sizeof IMAGEHLP_LINE64;
+#else
+      IMAGEHLP_LINE   ihl              = {                  };
+                      ihl.SizeOfStruct = sizeof IMAGEHLP_LINE;
+#endif
+      BOOL bFileAndLine =
+        SK_SymGetLineFromAddr ( hProc, ip, &Disp, &ihl );
+
+      if (bFileAndLine)
+      {
+        symbol_name =
+          SK_FormatString ( "[%hs] %hs <%hs:%lu>",
+                              pszShortName, sip.si.Name, ihl.FileName,ihl.LineNumber );
+      }
+
+      else
+      {
+        symbol_name =
+          SK_FormatString ( "[%hs] %hs",
+                              pszShortName, sip.si.Name );
+      }
+    }
+
+    else
+    {
+      symbol_name = SK_WideCharToUTF8 (SK_MakePrettyAddress (ret_addr));
+    }
+  }
+
+  return symbol_name.data ();
+}
+
 void
 SK_ImGui_ThreadCallstack (HANDLE hThread, LARGE_INTEGER userTime, LARGE_INTEGER kernelTime)
 {
@@ -1134,6 +1246,27 @@ public:
 
           ImGui::BeginGroup ();
           ImGui::Text       ("\t%i", exceptions);
+          ImGui::EndGroup   ();
+        }
+
+        if (pTLS->win32.error_state.code != NO_ERROR)
+        {
+          ImGui::Separator  ();
+
+          ImGui::BeginGroup ();
+          ImGui::Text       ("Win32 Error Code:");
+          ImGui::EndGroup   ();
+
+          ImGui::SameLine   ();
+
+          _com_error err (pTLS->win32.error_state.code & 0xFFFF);
+
+          ImGui::BeginGroup ();
+          ImGui::Text       ("\t0x%04x (%ws)", (pTLS->win32.error_state.code & 0xFFFF), err.ErrorMessage ());
+          ImGui::EndGroup   ();
+
+          ImGui::BeginGroup ();
+          ImGui::Text       ("\t\t%hs", SKX_DEBUG_FastSymName (pTLS->win32.error_state.call_site));
           ImGui::EndGroup   ();
         }
 
