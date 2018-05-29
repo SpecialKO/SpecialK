@@ -164,7 +164,10 @@ struct show_eula_s {
 
 #include <map>
 #include <unordered_set>
+#include <unordered_map>
 #include <d3d11.h>
+
+extern std::unordered_map <BYTE, std::wstring> virtKeyCodeToHumanKeyName;
 
 #include <ImGui/imgui_internal.h>
 
@@ -2636,10 +2639,10 @@ SK_ImGui_StageNextFrame (void)
     ImGui::Spacing ();
 
     ImGui::TextUnformatted (                                  "Press");                            ImGui::SameLine ();
-    ImGui::TextColored     ( ImColor::HSV (.16f, 1.f, 1.f),  R"('%s%s%s')",
-                                            "Ctrl + ",
-                                            "Shift + ",
-                                            "Backspace" );                                         ImGui::SameLine ();
+    ImGui::TextColored     ( ImColor::HSV (.16f, 1.f, 1.f),  R"('%ws + %ws + %ws')",
+                                            virtKeyCodeToHumanKeyName [VK_CONTROL].c_str (),
+                                            virtKeyCodeToHumanKeyName [VK_SHIFT].c_str   (),
+                                            virtKeyCodeToHumanKeyName [VK_BACK].c_str    () );     ImGui::SameLine ();
     ImGui::TextUnformatted (                                  ", ");                               ImGui::SameLine ();
     ImGui::TextColored     ( ImColor::HSV (.16f, 1.f, 1.f),  R"('Select + Start' (PlayStation))"); ImGui::SameLine ();
     ImGui::TextUnformatted (                                  "or ");                              ImGui::SameLine ();

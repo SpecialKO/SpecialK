@@ -5177,10 +5177,10 @@ SK_D3D11_ClearResidualDrawState (void)
 
       pDevCtx->OMSetRenderTargets (OMRenderTargetCount, &pRTV [0], pTLS->d3d11.pDSVOrig);
 
-      //for (int i = 0; i < OMRenderTargetCount; i++)
-      //{
-      //  if (pRTV [i] != 0) pRTV [i]->Release ();
-      //}
+      for (int i = 0; i < OMRenderTargetCount; i++)
+      {
+        if (pRTV [i] != 0) pRTV [i]->Release ();
+      }
 
       pTLS->d3d11.pDSVOrig = nullptr;
     }
@@ -5230,10 +5230,13 @@ SK_D3D11_ClearResidualDrawState (void)
   }
 
 
-  for (int i = 0; i < 6; i++)
+  for (int i = 0; i < 5; i++)
   {
     if (pTLS->d3d11.pOriginalCBuffers [i][0] != nullptr)
     {
+      if ((intptr_t)pTLS->d3d11.pOriginalCBuffers [i][0] == -1)
+        pTLS->d3d11.pOriginalCBuffers [i][0] = nullptr;
+
       CComQIPtr <ID3D11DeviceContext> pDevCtx (
         pTLS->d3d11.pDevCtx
       );
@@ -5250,13 +5253,10 @@ SK_D3D11_ClearResidualDrawState (void)
           pDevCtx->GSSetConstantBuffers (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &pTLS->d3d11.pOriginalCBuffers [i][0]);
           break;
         case 3:
-          pDevCtx->DSSetConstantBuffers (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &pTLS->d3d11.pOriginalCBuffers [i][0]);
-          break;
-        case 4:
           pDevCtx->HSSetConstantBuffers (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &pTLS->d3d11.pOriginalCBuffers [i][0]);
           break;
-        case 5:
-          pDevCtx->CSSetConstantBuffers (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &pTLS->d3d11.pOriginalCBuffers [i][0]);
+        case 4:
+          pDevCtx->DSSetConstantBuffers (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &pTLS->d3d11.pOriginalCBuffers [i][0]);
           break;
       }
 
@@ -5276,9 +5276,8 @@ SK_D3D11_ClearResidualDrawState (void)
 void
 SK_D3D11_PostDraw (void)
 {
-  if ( SK_GetCurrentRenderBackend ().d3d11.immediate_ctx == nullptr ||
-       SK_GetCurrentRenderBackend ().device              == nullptr ||
-       SK_GetCurrentRenderBackend ().swapchain           == nullptr ) return;
+  //if ( SK_GetCurrentRenderBackend ().device              == nullptr ||
+  //     SK_GetCurrentRenderBackend ().swapchain           == nullptr ) return;
 
   SK_D3D11_ClearResidualDrawState ();
 }
@@ -5433,6 +5432,8 @@ protected:
   ID3D11DeviceContext* _ctx;
 };
 
+bool __SKX_ComputeAntiStall = true;
+
 #include <concurrent_vector.h>
 concurrency::concurrent_vector <d3d11_shader_tracking_s::cbuffer_override_s> __SK_D3D11_PixelShader_CBuffer_Overrides;
 
@@ -5452,7 +5453,6 @@ SK_D3D11_DrawHandler (ID3D11DeviceContext* pDevCtx)
   // ImGui gets to pass-through without invoking the hook
   if (pTLS->imgui.drawing)
     return false;
-
 
   SK_ScopedBool auto_bool (&pTLS->imgui.drawing);
                             pTLS->imgui.drawing = true;
@@ -5484,206 +5484,6 @@ SK_D3D11_DrawHandler (ID3D11DeviceContext* pDevCtx)
   uint32_t current_gs = HashFromCtx (&SK_D3D11_Shaders.geometry.current.shader, pDevCtx);
   uint32_t current_hs = HashFromCtx (&SK_D3D11_Shaders.hull.current.shader,     pDevCtx);
   uint32_t current_ds = HashFromCtx (&SK_D3D11_Shaders.domain.current.shader,   pDevCtx);
-
-  uint32_t current_shaders [5] = {
-    current_vs, current_ps,
-    current_gs,
-    current_hs, current_ds
-  };
-
-
-
- auto GetShaderTracker =
-    [](const sk_shader_class& type) ->
-      d3d11_shader_tracking_s*
-      {
-        switch (type)
-        {
-          case sk_shader_class::Vertex:   return &SK_D3D11_Shaders.vertex.tracked;
-          case sk_shader_class::Pixel:    return &SK_D3D11_Shaders.pixel.tracked;
-          case sk_shader_class::Geometry: return &SK_D3D11_Shaders.geometry.tracked;
-          case sk_shader_class::Hull:     return &SK_D3D11_Shaders.hull.tracked;
-          case sk_shader_class::Domain:   return &SK_D3D11_Shaders.domain.tracked;
-          case sk_shader_class::Compute:  return &SK_D3D11_Shaders.compute.tracked;
-        }
-
-        assert (false);
-
-        return nullptr;
-      };
-
-  for (int i = 0; i < 5; i++)
-  {
-    UINT used_slots [D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT] = { };
-
-    d3d11_shader_tracking_s*
-      tracker = GetShaderTracker ((sk_shader_class)(1 << i));
-
-    std::vector <d3d11_shader_tracking_s::cbuffer_override_s> overrides;
-
-    if (tracker->crc32c == current_shaders [i])
-    {
-      for ( auto& ovr : tracker->overrides )
-      {
-        if (ovr.Enable)
-        {
-          if (ovr.Slot >= 0 && ovr.Slot < 16)
-                   used_slots [ovr.Slot] = ovr.BufferSize;
-
-          overrides.push_back (ovr);
-        }
-      }
-    }
-
-
-    if ((1 << i) == (int)sk_shader_class::Pixel)
-    {
-      for ( auto& ovr : __SK_D3D11_PixelShader_CBuffer_Overrides )
-      {
-        if (ovr.parent == current_ps && ovr.Enable)
-        {
-          overrides.push_back (ovr);
-        }
-      }
-    }
-
-
-    if (! overrides.empty ())
-    {
-      ID3D11Buffer* pConstantBuffers [D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT] = { };
-      ID3D11Buffer* pConstantCopies  [D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT] = { };
-
-      auto _GetConstantBuffers = [&](int i, ID3D11Buffer** ppConstantBuffers) ->
-      void
-      {
-        switch (i)
-        { case 0:
-            pDevCtx->VSGetConstantBuffers (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, ppConstantBuffers);
-            break;
-          case 1:
-            pDevCtx->PSGetConstantBuffers (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, ppConstantBuffers);
-            break;
-          case 2:
-            pDevCtx->GSGetConstantBuffers (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, ppConstantBuffers);
-            break;
-          case 3:
-            pDevCtx->HSGetConstantBuffers (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, ppConstantBuffers);
-            break;
-          case 4:
-            pDevCtx->DSGetConstantBuffers (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, ppConstantBuffers);
-            break;
-        }
-      };
-
-      auto _SetConstantBuffers = [&](int i, ID3D11Buffer** ppConstantBuffers) ->
-      void
-      {
-        switch (i)
-        { case 0:
-            pDevCtx->VSSetConstantBuffers (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, ppConstantBuffers);
-            break;
-          case 1:
-            pDevCtx->PSSetConstantBuffers (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, ppConstantBuffers);
-            break;
-          case 2:
-            pDevCtx->GSSetConstantBuffers (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, ppConstantBuffers);
-            break;
-          case 3:
-            pDevCtx->HSSetConstantBuffers (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, ppConstantBuffers);
-            break;
-          case 4:
-            pDevCtx->DSSetConstantBuffers (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, ppConstantBuffers);
-            break;
-        }
-      };
-
-      _GetConstantBuffers (i, pConstantBuffers);
-
-      if (pConstantBuffers [0] != nullptr)
-      {
-        _SetConstantBuffers (i, pConstantCopies);
-
-        for (int j = 0 ; j < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT ; j++)
-        {
-          pTLS->d3d11.pOriginalCBuffers [i][j] = pConstantBuffers [j];
-
-              pConstantCopies  [j]  = nullptr;
-          if (pConstantBuffers [j] == nullptr && (! used_slots [j])) continue;
-
-          D3D11_BUFFER_DESC                   buff_desc = { };
-
-          if (pConstantBuffers [j])
-              pConstantBuffers [j]->GetDesc (&buff_desc);
-
-          else
-          {
-            buff_desc.ByteWidth    = used_slots [j];
-          }
-
-          buff_desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-          buff_desc.Usage          = D3D11_USAGE_DYNAMIC;
-          buff_desc.BindFlags      = D3D11_BIND_CONSTANT_BUFFER;
-
-          CComPtr <ID3D11Device>            pDev;
-          pConstantBuffers [j]->GetDevice (&pDev);
-
-          LONG                     frame_num  = SK_GetFramesDrawn ();
-          D3D11_MAP                map_type   = D3D11_MAP_WRITE_DISCARD;
-          D3D11_MAPPED_SUBRESOURCE mapped_sub = { };
-          HRESULT                  hrMap      = E_FAIL;
-
-          if (SUCCEEDED (pDev->CreateBuffer
-                                         (&buff_desc, nullptr, &pConstantCopies [j])))
-          {
-            //pDevCtx->CopySubresourceRegion ( pConstantCopy,   0, ovr.StartAddr, 0, 0,
-            //                                 pConstantBuffer, 0, &src );
-            if (pConstantBuffers [j] != nullptr)
-            {
-              pDevCtx->CopyResource (pConstantCopies [j], pConstantBuffers [j]);
-            }
-
-            hrMap = pDevCtx->Map ( pConstantCopies [j], 0,
-                                     map_type, 0x0,
-                                       &mapped_sub );
-          }
-
-          if (SUCCEEDED (hrMap))
-          {
-            for ( auto& ovr : overrides )
-            {
-              if ( ovr.Slot == j && mapped_sub.pData != nullptr )
-              {
-                ovr.LastBuffer = pConstantCopies [j];
-                ovr.LastFrame  = frame_num;
-                void*   pBase  = ((uint8_t *)mapped_sub.pData + ovr.StartAddr);
-
-                memcpy (pBase, ovr.Values, ovr.Size);
-              }
-            }
-
-            pDevCtx->Unmap (pConstantCopies [j], 0);
-          }
-
-          else if (pConstantCopies [j] != nullptr)
-          {
-            pConstantCopies [j]->Release ();
-            pConstantCopies [j] = nullptr;
-          }
-        }
-
-        _SetConstantBuffers (i, pConstantCopies);
-
-        for (int k = 0; k < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; k++)
-        {
-          if (pConstantCopies [k] != nullptr)
-          {
-            pConstantCopies [k]->Release ();
-            pConstantCopies [k] = nullptr;
-          }
-        }
-      }
-    }
-  }
 
 
   auto TriggerReShade_Before = [&]
@@ -6002,13 +5802,251 @@ SK_D3D11_DrawHandler (ID3D11DeviceContext* pDevCtx)
     }
   }
 
+  uint32_t current_shaders [5] = {
+    current_vs, current_ps,
+    current_gs,
+    current_hs, current_ds
+  };
+
+
+
+ auto GetShaderTracker =
+    [](const sk_shader_class& type) ->
+      d3d11_shader_tracking_s*
+      {
+        switch (type)
+        {
+          case sk_shader_class::Vertex:   return &SK_D3D11_Shaders.vertex.tracked;
+          case sk_shader_class::Pixel:    return &SK_D3D11_Shaders.pixel.tracked;
+          case sk_shader_class::Geometry: return &SK_D3D11_Shaders.geometry.tracked;
+          case sk_shader_class::Hull:     return &SK_D3D11_Shaders.hull.tracked;
+          case sk_shader_class::Domain:   return &SK_D3D11_Shaders.domain.tracked;
+        }
+
+        assert (false);
+
+        return nullptr;
+      };
+
+  UINT used_slots [D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT] = { };
+
+  d3d11_shader_tracking_s*
+    tracker = &SK_D3D11_Shaders.compute.tracked;
+
+  std::vector <d3d11_shader_tracking_s::cbuffer_override_s> overrides;
+
+  for (int i = 0; i < 5; i++)
+  {
+    UINT used_slots [D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT] = { };
+
+    d3d11_shader_tracking_s*
+      tracker = GetShaderTracker ((sk_shader_class)(1 << i));
+
+    std::vector <d3d11_shader_tracking_s::cbuffer_override_s> overrides;
+
+    if (tracker->crc32c == current_shaders [i])
+    {
+      for ( auto& ovr : tracker->overrides )
+      {
+        if (ovr.Enable && ovr.parent == tracker->crc32c)
+        {
+          if (ovr.Slot >= 0 && ovr.Slot < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT)
+          {
+                   used_slots [ovr.Slot] = ovr.BufferSize;
+            overrides.push_back (ovr);
+          }
+        }
+      }
+    }
+
+    if ((1 << i) == (int)sk_shader_class::Pixel)
+    {
+      for ( auto& ovr : __SK_D3D11_PixelShader_CBuffer_Overrides )
+      {
+        if (ovr.parent == current_ps && ovr.Enable)
+        {
+          if (ovr.Slot >= 0 && ovr.Slot < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT)
+          {
+                   used_slots [ovr.Slot] = ovr.BufferSize;
+            overrides.push_back (ovr);
+          }
+        }
+      }
+    }
+
+    if (! overrides.empty ())
+    {
+      ID3D11Buffer* pConstantBuffers [D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT] = { };
+      ID3D11Buffer* pConstantCopies  [D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT] = { };
+
+      auto _GetConstantBuffers = [&](int i, ID3D11Buffer** ppConstantBuffers) ->
+      void
+      {
+        switch (i)
+        { case 0:
+            pDevCtx->VSGetConstantBuffers (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, ppConstantBuffers);
+            break;
+          case 1:
+            pDevCtx->PSGetConstantBuffers (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, ppConstantBuffers);
+            break;
+          case 2:
+            pDevCtx->GSGetConstantBuffers (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, ppConstantBuffers);
+            break;
+          case 3:
+            pDevCtx->HSGetConstantBuffers (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, ppConstantBuffers);
+            break;
+          case 4:
+            pDevCtx->DSGetConstantBuffers (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, ppConstantBuffers);
+            break;
+        }
+      };
+
+      auto _SetConstantBuffers = [&](int i, ID3D11Buffer** ppConstantBuffers) ->
+      void
+      {
+        switch (i)
+        { case 0:
+            pDevCtx->VSSetConstantBuffers (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, ppConstantBuffers);
+            break;
+          case 1:
+            pDevCtx->PSSetConstantBuffers (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, ppConstantBuffers);
+            break;
+          case 2:
+            pDevCtx->GSSetConstantBuffers (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, ppConstantBuffers);
+            break;
+          case 3:
+            pDevCtx->HSSetConstantBuffers (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, ppConstantBuffers);
+            break;
+          case 4:
+            pDevCtx->DSSetConstantBuffers (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, ppConstantBuffers);
+            break;
+        }
+      };
+
+      _GetConstantBuffers (i, pConstantBuffers);
+      _SetConstantBuffers (i, pConstantCopies);
+
+      for (int j = 0 ; j < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT ; j++)
+      {
+        pTLS->d3d11.pOriginalCBuffers [i][j] = pConstantBuffers [j];
+
+        if (j == 0 && pConstantBuffers [j] == nullptr) pTLS->d3d11.pOriginalCBuffers [i][j] = (ID3D11Buffer *)(intptr_t)-1;
+
+            pConstantCopies  [j]  = nullptr;
+        if (pConstantBuffers [j] == nullptr && (! used_slots [j])) continue;
+
+        D3D11_BUFFER_DESC                   buff_desc  = { };
+
+        if (pConstantBuffers [j])
+            pConstantBuffers [j]->GetDesc (&buff_desc);
+
+        buff_desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+        buff_desc.Usage          = D3D11_USAGE_DYNAMIC;
+        buff_desc.BindFlags      = D3D11_BIND_CONSTANT_BUFFER;
+
+        CComPtr <ID3D11Device> pDev;
+        pDevCtx->GetDevice   (&pDev);
+
+        LONG                     frame_num  = SK_GetFramesDrawn ();
+        D3D11_MAP                map_type   = D3D11_MAP_WRITE_DISCARD;
+        D3D11_MAPPED_SUBRESOURCE mapped_sub = { };
+        HRESULT                  hrMap      = E_FAIL;
+
+        bool used       = false;
+        UINT start_addr = buff_desc.ByteWidth-1;
+        UINT end_addr   = 0;
+
+        for ( auto& ovr : overrides )
+        {
+          if ( ovr.Slot == j && ovr.Enable )
+          {
+            if (ovr.StartAddr < start_addr)
+              start_addr = ovr.StartAddr;
+
+            if (ovr.Size + ovr.StartAddr > end_addr)
+              end_addr   = ovr.Size + ovr.StartAddr;
+
+            used = true;
+          }
+        }
+
+        if (used)
+        {
+          if (SUCCEEDED (pDev->CreateBuffer
+                                         (&buff_desc, nullptr, &pConstantCopies [j])))
+          {
+            if (pConstantBuffers [j] != nullptr)
+            {
+              if (__SKX_ComputeAntiStall)
+              {
+                D3D11_BOX src = { };
+
+                src.left   = 0;
+                src.right  = buff_desc.ByteWidth;
+                src.top    = 0;
+                src.bottom = 1;
+                src.front  = 0;
+                src.back   = 1;
+
+                pDevCtx->CopySubresourceRegion ( pConstantCopies  [j], 0, 0, 0, 0,
+                                                 pConstantBuffers [j], 0, &src );
+              }
+
+              else
+              {
+                pDevCtx->CopyResource ( pConstantCopies [j], pConstantBuffers [j] );
+              }
+            }
+
+            hrMap = pDevCtx->Map ( pConstantCopies [j], 0,
+                                     map_type, 0x0,
+                                       &mapped_sub );
+          }
+
+          if (SUCCEEDED (hrMap))
+          {
+            for ( auto& ovr : overrides )
+            {
+              if ( ovr.Slot == j && mapped_sub.pData != nullptr )
+              {
+                ovr.LastBuffer = pConstantCopies [j];
+                ovr.LastFrame  = frame_num;
+                void*   pBase  = ((uint8_t *)mapped_sub.pData + ovr.StartAddr);
+
+                memcpy (pBase, ovr.Values, ovr.Size);
+              }
+            }
+
+            pDevCtx->Unmap (pConstantCopies [j], 0);
+          }
+
+          else if (pConstantCopies [j] != nullptr)
+          {
+            dll_log.Log (L"Failure To Copy Resource");
+            pConstantCopies [j]->Release ();
+            pConstantCopies [j] = nullptr;
+          }
+        }
+      }
+
+      _SetConstantBuffers (i, pConstantCopies);
+
+      for (int k = 0; k < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; k++)
+      {
+        if (pConstantCopies [k] != nullptr)
+        {
+          pConstantCopies [k]->Release ();
+          pConstantCopies [k] = nullptr;
+        }
+      }
+    }
+  }
+
+
   SK_ExecuteReShadeOnReturn easy_reshade (pDevCtx);
 
   return false;
 }
-
-
-bool __SKX_ComputeAntiStall = true;
 
 void
 SK_D3D11_PostDispatch (ID3D11DeviceContext* pDevCtx)
@@ -6020,9 +6058,10 @@ SK_D3D11_PostDispatch (ID3D11DeviceContext* pDevCtx)
 
     if (pTLS->d3d11.pOriginalCBuffers [5][0] != nullptr)
     {
-      CComQIPtr <ID3D11DeviceContext> pDevCtx (
-        pTLS->d3d11.pDevCtx
-       );
+      if ((intptr_t)pTLS->d3d11.pOriginalCBuffers [5][0] == -1)
+      {
+        pTLS->d3d11.pOriginalCBuffers [5][0] = nullptr;
+      }
 
       pDevCtx->CSSetConstantBuffers (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &pTLS->d3d11.pOriginalCBuffers [5][0]);
 
@@ -6064,9 +6103,6 @@ SK_D3D11_DispatchHandler (ID3D11DeviceContext* pDevCtx)
     if (SK_D3D11_Shaders.compute.tracked.active) { SK_D3D11_Shaders.compute.tracked.use (nullptr); }
   }
 
-  d3d11_shader_tracking_s*
-    tracker = &SK_D3D11_Shaders.compute.tracked;
-
   SK_TLS *pTLS =
     SK_TLS_Bottom ();
 
@@ -6076,14 +6112,157 @@ SK_D3D11_DispatchHandler (ID3D11DeviceContext* pDevCtx)
   bool highlight_shader =
     (dwFrameTime % tracked_shader_blink_duration > tracked_shader_blink_duration / 2);
 
-  if (SK_D3D11_Shaders.compute.tracked.highlight_draws && highlight_shader) return true;
-  if (SK_D3D11_Shaders.compute.tracked.cancel_draws)                        return true;
 
-  UINT used_slots [D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT] = { };
+  uint32_t current_cs = SK_D3D11_Shaders.compute.current.shader [pDevCtx];
 
-  std::vector <d3d11_shader_tracking_s::cbuffer_override_s> overrides;
+  if (SK_D3D11_Shaders.compute.blacklist.count (current_cs)) return true;
 
-  if (SK_D3D11_Shaders.compute.blacklist.count (SK_D3D11_Shaders.compute.current.shader [pDevCtx])) return true;
+  d3d11_shader_tracking_s*
+    tracker = &SK_D3D11_Shaders.compute.tracked;
+
+  if (tracker->crc32c == current_cs)
+  {
+    if (SK_D3D11_Shaders.compute.tracked.highlight_draws && highlight_shader) return true;
+    if (SK_D3D11_Shaders.compute.tracked.cancel_draws)                        return true;
+
+    std::vector <d3d11_shader_tracking_s::cbuffer_override_s> overrides;
+    UINT used_slots [D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT] = { };
+
+    for ( auto& ovr : tracker->overrides )
+    {
+      if (ovr.Enable && ovr.parent == tracker->crc32c)
+      {
+        if (ovr.Slot >= 0 && ovr.Slot < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT)
+        {
+                 used_slots [ovr.Slot] = ovr.BufferSize;
+          overrides.push_back (ovr);
+        }
+      }
+    }
+
+    if (! overrides.empty ())
+    {
+      ID3D11Buffer* pConstantBuffers [D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT] = { };
+      ID3D11Buffer* pConstantCopies  [D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT] = { };
+
+      pDevCtx->CSGetConstantBuffers (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, pConstantBuffers);
+      pDevCtx->CSSetConstantBuffers (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, pConstantCopies);
+
+      for (int j = 0 ; j < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT ; j++)
+      {
+        pTLS->d3d11.pOriginalCBuffers [5][j] = pConstantBuffers [j];
+
+        if (j == 0 && pConstantBuffers [j] == nullptr) pTLS->d3d11.pOriginalCBuffers [5][j] = (ID3D11Buffer *)(intptr_t)-1;
+
+            pConstantCopies  [j]  = nullptr;
+        if (pConstantBuffers [j] == nullptr && (! used_slots [j])) continue;
+
+        D3D11_BUFFER_DESC                   buff_desc  = { };
+
+        if (pConstantBuffers [j])
+            pConstantBuffers [j]->GetDesc (&buff_desc);
+
+        buff_desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+        buff_desc.Usage          = D3D11_USAGE_DYNAMIC;
+        buff_desc.BindFlags      = D3D11_BIND_CONSTANT_BUFFER;
+
+        CComPtr <ID3D11Device> pDev;
+        pDevCtx->GetDevice   (&pDev);
+
+        LONG                     frame_num  = SK_GetFramesDrawn ();
+        D3D11_MAP                map_type   = D3D11_MAP_WRITE_DISCARD;
+        D3D11_MAPPED_SUBRESOURCE mapped_sub = { };
+        HRESULT                  hrMap      = E_FAIL;
+
+        bool used       = false;
+        UINT start_addr = buff_desc.ByteWidth-1;
+        UINT end_addr   = 0;
+
+        for ( auto& ovr : overrides )
+        {
+          if ( ovr.Slot == j && ovr.Enable )
+          {
+            if (ovr.StartAddr < start_addr)
+              start_addr = ovr.StartAddr;
+
+            if (ovr.Size + ovr.StartAddr > end_addr)
+              end_addr   = ovr.Size + ovr.StartAddr;
+
+            used = true;
+          }
+        }
+
+        if (used)
+        {
+          if (SUCCEEDED (pDev->CreateBuffer
+                                         (&buff_desc, nullptr, &pConstantCopies [j])))
+          {
+            if (pConstantBuffers [j] != nullptr)
+            {
+              if (__SKX_ComputeAntiStall)
+              {
+                D3D11_BOX src = { };
+
+                src.left   = 0;
+                src.right  = buff_desc.ByteWidth;
+                src.top    = 0;
+                src.bottom = 1;
+                src.front  = 0;
+                src.back   = 1;
+
+                pDevCtx->CopySubresourceRegion ( pConstantCopies  [j], 0, 0, 0, 0,
+                                                 pConstantBuffers [j], 0, &src );
+              }
+
+              else
+              {
+                pDevCtx->CopyResource ( pConstantCopies [j], pConstantBuffers [j] );
+              }
+            }
+
+            hrMap = pDevCtx->Map ( pConstantCopies [j], 0,
+                                     map_type, 0x0,
+                                       &mapped_sub );
+          }
+
+          if (SUCCEEDED (hrMap))
+          {
+            for ( auto& ovr : overrides )
+            {
+              if ( ovr.Slot == j && mapped_sub.pData != nullptr )
+              {
+                ovr.LastBuffer = pConstantCopies [j];
+                ovr.LastFrame  = frame_num;
+                void*   pBase  = ((uint8_t *)mapped_sub.pData + ovr.StartAddr);
+
+                memcpy (pBase, ovr.Values, ovr.Size);
+              }
+            }
+
+            pDevCtx->Unmap (pConstantCopies [j], 0);
+          }
+
+          else if (pConstantCopies [j] != nullptr)
+          {
+            dll_log.Log (L"Failure To Copy Resource");
+            pConstantCopies [j]->Release ();
+            pConstantCopies [j] = nullptr;
+          }
+        }
+      }
+
+      pDevCtx->CSSetConstantBuffers (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, pConstantCopies);
+
+      for (int k = 0; k < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; k++)
+      {
+        if (pConstantCopies [k] != nullptr)
+        {
+          pConstantCopies [k]->Release ();
+          pConstantCopies [k] = nullptr;
+        }
+      }
+    }
+  }
 
   return false;
 }
@@ -8358,7 +8537,6 @@ crc32_tex (  _In_      const D3D11_TEXTURE2D_DESC   *__restrict pDesc,
           (scanlength * height);
 
         checksum = safe_crc32c ( checksum,
-                                   // Who gave the damn language lawyers so much power?!
                                    static_cast <const uint8_t *> (
                                      static_const_cast <const void *, const char *> (pData)
                                    ),
@@ -12531,6 +12709,10 @@ static size_t debug_tex_id = 0x0;
 static size_t tex_dbg_idx  = 0;
 
 #include <SpecialK/steam_api.h>
+#include <unordered_map>
+
+extern std::unordered_map <BYTE, std::wstring> virtKeyCodeToHumanKeyName;
+
 
 void
 SK_LiveTextureView (bool& can_scroll)
@@ -12845,8 +13027,8 @@ SK_LiveTextureView (bool& can_scroll)
       ImGui::BeginTooltip ();
       ImGui::TextColored  (ImVec4 (0.9f, 0.6f, 0.2f, 1.0f), "");
       ImGui::Separator    ();
-      ImGui::BulletText   ("Press [ to select the previous texture from this list");
-      ImGui::BulletText   ("Press ] to select the next texture from this list");
+      ImGui::BulletText   ("Press %ws to select the previous texture from this list", virtKeyCodeToHumanKeyName [VK_OEM_4].c_str ());
+      ImGui::BulletText   ("Press %ws to select the next texture from this list",     virtKeyCodeToHumanKeyName [VK_OEM_6].c_str ());
       ImGui::EndTooltip   ();
     }
 
@@ -13725,8 +13907,7 @@ SK_D3D11_UnloadShaderState (std::wstring name)
 
 
 void
-EnumConstantBuffer ( d3d11_shader_tracking_s*&             tracker,
-                     ID3D11ShaderReflectionConstantBuffer* pConstantBuffer,
+EnumConstantBuffer ( ID3D11ShaderReflectionConstantBuffer* pConstantBuffer,
                      shader_disasm_s::constant_buffer&     cbuffer )
 {
   if (! pConstantBuffer)
@@ -13792,6 +13973,8 @@ EnumConstantBuffer ( d3d11_shader_tracking_s*&             tracker,
 
               mem_var.var_desc.StartOffset = var.var_desc.StartOffset + mem_var.type_desc.Offset;
               mem_var.name                 = pVar->GetType ()->GetMemberTypeName (k);
+
+              dll_log.Log  (L"%hs.%hs <%lu> {%lu}", this_struct.second.c_str (), mem_var.name.c_str (), mem_var.var_desc.StartOffset, mem_var.var_desc.Size);
 
               this_struct.first.emplace_back (mem_var);
             }
@@ -14448,8 +14631,8 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
       ImGui::BeginTooltip ();
       ImGui::TextColored  (ImVec4 (0.9f, 0.6f, 0.2f, 1.0f), "You can cancel all render passes using the selected %s shader to disable an effect", szShaderWord);
       ImGui::Separator    ();
-      ImGui::BulletText   ("Press [ while the mouse is hovering this list to select the previous shader");
-      ImGui::BulletText   ("Press ] while the mouse is hovering this list to select the next shader");
+      ImGui::BulletText   ("Press %ws while the mouse is hovering this list to select the previous shader", virtKeyCodeToHumanKeyName [VK_OEM_4].c_str ());
+      ImGui::BulletText   ("Press %ws while the mouse is hovering this list to select the next shader",     virtKeyCodeToHumanKeyName [VK_OEM_6].c_str ());
       ImGui::EndTooltip   ();
     }
 
@@ -14733,17 +14916,17 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 
         if (szDisasm && strlen (szDisasm))
         {
-          comments_end = strstr (szDisasm,          "\nvs");
+          comments_end = strstr (szDisasm,          "\nvs_");
           if (! comments_end)
-            comments_end      =                strstr (szDisasm,          "\nps");
+            comments_end      =                strstr (szDisasm,          "\nps_");
           if (! comments_end)
-            comments_end      =                strstr (szDisasm,          "\ngs");
+            comments_end      =                strstr (szDisasm,          "\ngs_");
           if (! comments_end)
-            comments_end      =                strstr (szDisasm,          "\nhs");
+            comments_end      =                strstr (szDisasm,          "\nhs_");
           if (! comments_end)
-            comments_end      =                strstr (szDisasm,          "\nds");
+            comments_end      =                strstr (szDisasm,          "\nds_");
           if (! comments_end)
-            comments_end      =                strstr (szDisasm,          "\ncs");
+            comments_end      =                strstr (szDisasm,          "\ncs_");
           char* footer_begins = comments_end ? strstr (comments_end + 1, "\n//") : nullptr;
 
           if (comments_end)  *comments_end  = '\0'; else (comments_end  = "  ");
@@ -14762,22 +14945,22 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 
             if (SUCCEEDED (pReflect->GetDesc (&desc)))
             {
-              for (UINT i = 0; i < desc.ConstantBuffers; i++)
+              for (UINT i = 0; i < desc.BoundResources; i++)
               {
-                ID3D11ShaderReflectionConstantBuffer* pReflectedCBuffer =
-                  pReflect->GetConstantBufferByIndex (i);
-          
-                if (pReflectedCBuffer)
-                {
-                  D3D11_SHADER_BUFFER_DESC buffer_desc = { };
-          
-                  if (SUCCEEDED (pReflectedCBuffer->GetDesc (&buffer_desc)))
-                  {
-                    if (buffer_desc.Type == D3D_CT_CBUFFER)
-                    {
-                      D3D11_SHADER_INPUT_BIND_DESC bind_desc = { };
+                D3D11_SHADER_INPUT_BIND_DESC bind_desc = { };
 
-                      if (SUCCEEDED (pReflect->GetResourceBindingDescByName (buffer_desc.Name, &bind_desc)))
+                if (SUCCEEDED (pReflect->GetResourceBindingDesc (i, &bind_desc)))
+                {
+                  if (bind_desc.Type == D3D_SIT_CBUFFER)
+                  {
+                    ID3D11ShaderReflectionConstantBuffer* pReflectedCBuffer =
+                      pReflect->GetConstantBufferByName (bind_desc.Name);
+
+                    if (pReflectedCBuffer != nullptr)
+                    {
+                      D3D11_SHADER_BUFFER_DESC buffer_desc = { };
+          
+                      if (SUCCEEDED (pReflectedCBuffer->GetDesc (&buffer_desc)))
                       {
                         shader_disasm_s::constant_buffer cbuffer = { };
 
@@ -14785,7 +14968,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
                         cbuffer.size = buffer_desc.Size;
                         cbuffer.Slot = bind_desc.BindPoint;
 
-                        EnumConstantBuffer (tracker, pReflectedCBuffer, cbuffer);
+                        EnumConstantBuffer (pReflectedCBuffer, cbuffer);
 
                         (*disassembly) [ReadAcquire ((volatile LONG *)&tracker->crc32c)].cbuffers.emplace_back (cbuffer);
                       }
@@ -15117,7 +15300,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
                 ImGui::PushID    (k);
 
                 int val = it2.type_desc.Type == D3D_SVT_UINT8 ? (int)((uint8_t *)override_inst.Values) [k] :
-                                                                                 override_inst.Values  [k];
+                                                                    ((uint32_t *)override_inst.Values) [k];
 
                 if (ImGui::InputIntN (it2.name.c_str (), &val, 1, 0x0))
                 {
@@ -16219,8 +16402,8 @@ SK_D3D11_ShaderModDlg (void)
               ImGui::BeginTooltip ();
               ImGui::TextColored  (ImVec4 (0.9f, 0.6f, 0.2f, 1.0f), "You can view the output of individual render passes");
               ImGui::Separator    ();
-              ImGui::BulletText   ("Press [ while the mouse is hovering this list to select the previous output");
-              ImGui::BulletText   ("Press ] while the mouse is hovering this list to select the next output");
+              ImGui::BulletText   ("Press %ws while the mouse is hovering this list to select the previous output", virtKeyCodeToHumanKeyName [VK_OEM_4].c_str ());
+              ImGui::BulletText   ("Press %ws while the mouse is hovering this list to select the next output",     virtKeyCodeToHumanKeyName [VK_OEM_6].c_str ());
               ImGui::EndTooltip   ();
             }
 

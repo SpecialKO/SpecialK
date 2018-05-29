@@ -2193,6 +2193,8 @@ SK_BeginBufferSwap (void)
                 extern float target_fps;
                              target_fps = config.render.framerate.target_fps;
       SK::Framerate::GetLimiter ()->init (config.render.framerate.target_fps);
+
+      SetThreadAffinityMask (GetCurrentThread (), (DWORD_PTR)-1);
     } break;
 
 

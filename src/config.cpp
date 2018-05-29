@@ -600,7 +600,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
 // TODO:  Covert this to a template
 #define ConfigEntry(param,descrip,ini,sec,key) {   \
   reinterpret_cast <sk::iParameter **> (&(param)), \
-  std::type_index (         typeid ((param))),     \
+  std::type_index (              typeid ((param))),\
                     (descrip),  (ini),             \
                     (sec),      (key)              \
 }
