@@ -504,7 +504,7 @@ struct ImGuiContext
     float                   FramerateSecPerFrameAccum;
     int                     CaptureMouseNextFrame;              // explicit capture via CaptureInputs() sets those flags
     int                     CaptureKeyboardNextFrame;
-    char                    TempBuffer[1024*3+1];               // temporary text buffer
+    char                    TempBuffer[1024*64+1];              // temporary text buffer
 
     ImGuiContext()
     {
