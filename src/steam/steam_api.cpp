@@ -2957,6 +2957,8 @@ SK_Steam_ShouldThrottleCallbacks (void)
   return false;
 }
 
+extern SK_Thread_HybridSpinlock* steam_mutex;
+
 void
 S_CALLTYPE
 SteamAPI_RunCallbacks_Detour (void)
@@ -2977,9 +2979,7 @@ SteamAPI_RunCallbacks_Detour (void)
   //  return;
   //}
 
-
   static bool failure = false;
-
 
   SK_TLS* pTLS = SK_TLS_Bottom ();
 
@@ -2988,6 +2988,8 @@ SteamAPI_RunCallbacks_Detour (void)
 
   if (SK_Steam_ShouldThrottleCallbacks ())
     return;
+
+  steam_mutex->lock ();
 
   if ((! failure) && (( ReadAcquire64 (&SK_SteamAPI_CallbackRunCount) == 0LL || steam_achievements == nullptr )))
   {
@@ -3072,6 +3074,8 @@ SteamAPI_RunCallbacks_Detour (void)
       failure = true;
     }
   }
+
+  steam_mutex->unlock ();
 }
 
 

@@ -75,6 +75,7 @@ SK_Thread_HybridSpinlock* init_mutex   = nullptr;
 SK_Thread_HybridSpinlock* budget_mutex = nullptr;
 SK_Thread_HybridSpinlock* wmi_cs       = nullptr;
 SK_Thread_HybridSpinlock* cs_dbghelp   = nullptr;
+SK_Thread_HybridSpinlock* steam_mutex  = nullptr;
 
 volatile          long __SK_DLL_Ending       = FALSE;
 volatile          long __SK_DLL_Attached     = FALSE;
@@ -915,6 +916,7 @@ SK_Attach (DLL_ROLE role)
 
       budget_mutex = new SK_Thread_HybridSpinlock (  400);
       init_mutex   = new SK_Thread_HybridSpinlock ( 5000);
+      steam_mutex  = new SK_Thread_HybridSpinlock (   32);
       wmi_cs       = new SK_Thread_HybridSpinlock (  128);
       cs_dbghelp   = new SK_Thread_HybridSpinlock (65536);
 
@@ -934,6 +936,7 @@ SK_Attach (DLL_ROLE role)
 
       SK_CleanupMutex (&budget_mutex); SK_CleanupMutex (&init_mutex);
       SK_CleanupMutex (&cs_dbghelp);   SK_CleanupMutex (&wmi_cs);
+      SK_CleanupMutex (&steam_mutex);
     }
   }
 
@@ -964,6 +967,7 @@ SK_Detach (DLL_ROLE role)
     {
       SK_CleanupMutex (&budget_mutex); SK_CleanupMutex (&init_mutex);
       SK_CleanupMutex (&cs_dbghelp);   SK_CleanupMutex (&wmi_cs);
+      SK_CleanupMutex (&steam_mutex);
 
       return TRUE;
     }

@@ -1,5 +1,9 @@
 0.9.20:
 
+ (.1): Added proper (keyboard layout-aware) tooltips for prev/next texture
+         list in D3D11 render mod toolkit.
+
+
  + Added D3D11 Constant Buffer injection for Vertex/Pixel/Geometry/Hull/Domain shaders
   >> Allows the manipulation of a game's material system in real-time in the mod tools
 
