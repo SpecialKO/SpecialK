@@ -75,6 +75,11 @@ public:
     LeaveCriticalSection (cs_);
   }
 
+  bool try_lock (void)
+  {
+    return TryEnterCriticalSection (cs_);
+  }
+
 protected:
   CRITICAL_SECTION* cs_;
 };

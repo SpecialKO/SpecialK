@@ -571,7 +571,7 @@ extern float SK_ImGui_PulseNav_Strength;
 
         ImGui::SameLine ();
 
-        ImGui::Checkbox    ("Favor DirectInput over XInput", &config.input.gamepad.native_ps4);
+        ImGui::Checkbox    ("Use DirectInput instead of XInput", &config.input.gamepad.native_ps4);
 
         if (expanded)
         {

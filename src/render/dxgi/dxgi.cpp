@@ -7536,8 +7536,6 @@ SK_DXGI_QuickHook (void)
          state.hooks_loaded.from_game_ini   > 0 ||
          SK_D3D11_QuickHooked () )
     {
-      SK_D3D11_Init       ();
-      SK_ApplyQueuedHooks ();
     }
   
     else
@@ -7550,6 +7548,9 @@ SK_DXGI_QuickHook (void)
 
     InterlockedIncrement (&quick_hooked);
   }
+
+  SK_D3D11_Init       ();
+  SK_ApplyQueuedHooks ();
 
   SK_Thread_SpinUntilAtomicMin (&quick_hooked, 2);
 }

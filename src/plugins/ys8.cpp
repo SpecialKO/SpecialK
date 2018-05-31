@@ -1896,7 +1896,7 @@ SK_YS8_InitPlugin (void)
 
 
   __SK_D3D11_PixelShader_CBuffer_Overrides.push_back (
-    { 0x05da09bd, 0UL, nullptr, 48, false, 0, 0, 48, { 0.0f } }
+    { 0x05da09bd, 48, false, 0, 0, 48, { 0.0f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f } }
   );
 
   SK_YS8_CB_Override = &__SK_D3D11_PixelShader_CBuffer_Overrides.back ();

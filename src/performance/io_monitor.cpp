@@ -1311,11 +1311,28 @@ SK_MonitorProcess (LPVOID user)
 
   IWbemClassObject *pClassObj = nullptr;
 
+  DWORD   dwProcessSize = MAX_PATH * 2;
+  wchar_t wszProcessName [MAX_PATH * 2 + 1] = { };
+
+  GetModuleFileNameW (0, wszProcessName, dwProcessSize);
+
+  wchar_t* pwszShortName = wcsrchr (wszProcessName, L'\\') + 1;
+  wchar_t* pwszTruncName = wcsrchr (pwszShortName,  L'.');
+
+  if (pwszTruncName != nullptr)
+    *pwszTruncName = L'\0';
+
   wchar_t      wszInstance [256] = { };
   _snwprintf ( wszInstance,
                 255,
-                  L"Win32_PerfFormattedData_PerfProc_Process.IDProcess='%lu'",
-                    GetCurrentProcessId () );
+                  L"Win32_PerfFormattedData_PerfProc_Process.Name='%ws'",
+                    pwszShortName );
+
+  //wchar_t      wszInstance [256] = { };
+  //_snwprintf ( wszInstance,
+  //              255,
+  //                L"Win32_PerfFormattedData_PerfProc_Process.IDProcess=%lu",
+  //                  GetCurrentProcessId () );
 
   if (FAILED (hr = proc.pConfig->AddObjectByPath (
                      COM::base.wmi.pNameSpace,

@@ -121,7 +121,7 @@ SKX_Steam_PollGamepad (void)
 {
   static DWORD dwPacket = 0;
   static ULONG last_frame =
-    SK_GetFramesDrawn ();
+    -1;
          ULONG num_frames =
     SK_GetFramesDrawn ();
 
@@ -172,11 +172,25 @@ bool
 S_CALLTYPE
 ISteamController_Init_Detour (ISteamController *This)
 {
+  if (! ISteamController_Init_Original)
+  {
+    bool
+    SK_Steam_HookController (void);
+  
+    if (! ( SK_Steam_HookController () && ISteamController_Init_Original != nullptr) )
+    {
+      return false;
+    }
+  }
+
+
   bool bRet =
     ISteamController_Init_Original (This);
 
   if (bRet != false)
   {
+    steam_input.pipe = This;
+
     SKX_Steam_PollGamepad ();
   }
 
@@ -187,9 +201,9 @@ void
 S_CALLTYPE
 ISteamController_RunFrame_Detour (ISteamController *This)
 {
-  SKX_Steam_PollGamepad ();
-
   steam_input.pipe = This;
+
+  SKX_Steam_PollGamepad ();
 
   return ISteamController_RunFrame_Original (This);
 }
@@ -585,6 +599,9 @@ SK_Steam_GetDLLPath (void);
 bool
 SK_Steam_HookController (void)
 {
+  if (ISteamController_Init_Original != nullptr)
+    return true;
+
   std::wstring steam_dll =
     SK_Steam_GetDLLPath ();
 
@@ -614,7 +631,16 @@ SK_Steam_HookController (void)
                                ISteamController_GetDigitalActionData_Detour,
       static_cast_p2p <void> (&ISteamController_GetDigitalActionData_Original) );
 
+    SK_ApplyQueuedHooks ();
+
     return true;
+  }
+
+  else
+  {
+    SK_LOG0 ( ( L"SteamAPI DLL ('%s') does not export SteamAPI_ISteamController_GetAnalogActionData;"
+                L"disabling SK SteamInput support.", steam_dll.c_str () ),
+               L"SteamInput" );
   }
 
   return false;

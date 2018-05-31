@@ -214,6 +214,14 @@ DWORD
 WINAPI
 SK_WMI_ServerThread (LPVOID lpUser)
 {
+  if (ReadAcquire (&COM::base.wmi.init))
+  {
+    SK_Thread_CloseSelf ();
+
+    return 0;
+  }
+
+
   SetCurrentThreadDescription (L"[SK] WMI Server Thread");
 
   SK_AutoCOMInit auto_com;
@@ -239,7 +247,8 @@ SK_WMI_ServerThread (LPVOID lpUser)
   }
 
   // Connect to the desired namespace.
-  COM::base.wmi.bstrNameSpace = SysAllocString (L"\\\\.\\Root\\CIMv2");
+  COM::base.wmi.bstrNameSpace = SysAllocString (LR"(root\CIMV2)");
+
   if (COM::base.wmi.bstrNameSpace == nullptr)
   {
     SK_LOG0 ( ( L"Out of Memory (%s:%d)",
@@ -269,14 +278,9 @@ SK_WMI_ServerThread (LPVOID lpUser)
     goto WMI_CLEANUP;
   }
 
-  IUnknown* pUnk = nullptr;
-
-  if (FAILED (COM::base.wmi.pNameSpace->QueryInterface (IID_IUnknown, (void **)&pUnk)))
-    goto WMI_CLEANUP;
-
   // Set the proxy so that impersonation of the client occurs.
   if (FAILED (hr = CoSetProxyBlanket (
-                     pUnk,
+                     COM::base.wmi.pNameSpace,
                      RPC_C_AUTHN_WINNT,
                      RPC_C_AUTHZ_NONE,
                      nullptr,
@@ -290,27 +294,23 @@ SK_WMI_ServerThread (LPVOID lpUser)
     SK_LOG0 ( ( L"Failure to set proxy impersonation (%s:%d) -- %s",
                   __FILEW__, __LINE__, _com_error (hr).ErrorMessage () ),
                 L" WMI Wbem " );
-
-    pUnk->Release ();
     goto WMI_CLEANUP;
   }
 
-  pUnk->Release ();
+  SK_Thread_SetCurrentPriority (THREAD_PRIORITY_IDLE);
 
   InterlockedExchange (&COM::base.wmi.init, 1);
 
-  SK_Thread_SetCurrentPriority (THREAD_PRIORITY_IDLE);
-
   // Keep the thread alive indefinitely so that the WMI stuff continues running
-  while ( MsgWaitForMultipleObjects ( 1, &COM::base.wmi.hShutdownServer,
-                                      FALSE, INFINITE, QS_ALLEVENTS ) != WAIT_OBJECT_0 )
+  while ( WaitForSingleObject ( COM::base.wmi.hShutdownServer,
+                                  INFINITE ) != WAIT_OBJECT_0 )
     ;
 
 WMI_CLEANUP:
-  if (COM::base.wmi.bstrNameSpace != nullptr)
+  if (COM::base.wmi.pNameSpace != nullptr)
   {
-    SysFreeString (COM::base.wmi.bstrNameSpace);
-    COM::base.wmi.bstrNameSpace       = nullptr;
+    COM::base.wmi.pNameSpace->Release ();
+    COM::base.wmi.pNameSpace   = nullptr;
   }
 
   if (COM::base.wmi.pWbemLocator != nullptr)
@@ -319,10 +319,10 @@ WMI_CLEANUP:
     COM::base.wmi.pWbemLocator   = nullptr;
   }
 
-  if (COM::base.wmi.pNameSpace != nullptr)
+  if (COM::base.wmi.bstrNameSpace != nullptr)
   {
-    COM::base.wmi.pNameSpace->Release ();
-    COM::base.wmi.pNameSpace   = nullptr;
+    SysFreeString (COM::base.wmi.bstrNameSpace);
+    COM::base.wmi.bstrNameSpace = nullptr;
   }
 
   InterlockedExchange (&COM::base.wmi.init, 0);

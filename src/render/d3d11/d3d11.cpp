@@ -5743,7 +5743,8 @@ SK_D3D11_DrawHandler (ID3D11DeviceContext* pDevCtx)
 
   if (on_top)
   {
-    CComQIPtr <ID3D11Device> pDev (SK_GetCurrentRenderBackend ().device);
+    CComPtr <ID3D11Device> pDev = nullptr;
+    pDevCtx->GetDevice   (&pDev);
 
     if (pDev != nullptr)
     {
@@ -5777,7 +5778,8 @@ SK_D3D11_DrawHandler (ID3D11DeviceContext* pDevCtx)
 
   if (wireframe)
   {
-    CComQIPtr <ID3D11Device> pDev (SK_GetCurrentRenderBackend ().device);
+    CComPtr <ID3D11Device> pDev = nullptr;
+    pDevCtx->GetDevice   (&pDev);
 
     if (pDev != nullptr)
     {
@@ -6009,8 +6011,6 @@ SK_D3D11_DrawHandler (ID3D11DeviceContext* pDevCtx)
             {
               if ( ovr.Slot == j && mapped_sub.pData != nullptr )
               {
-                ovr.LastBuffer = pConstantCopies [j];
-                ovr.LastFrame  = frame_num;
                 void*   pBase  = ((uint8_t *)mapped_sub.pData + ovr.StartAddr);
 
                 memcpy (pBase, ovr.Values, ovr.Size);
@@ -6231,8 +6231,6 @@ SK_D3D11_DispatchHandler (ID3D11DeviceContext* pDevCtx)
             {
               if ( ovr.Slot == j && mapped_sub.pData != nullptr )
               {
-                ovr.LastBuffer = pConstantCopies [j];
-                ovr.LastFrame  = frame_num;
                 void*   pBase  = ((uint8_t *)mapped_sub.pData + ovr.StartAddr);
 
                 memcpy (pBase, ovr.Values, ovr.Size);
@@ -15254,7 +15252,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 
         if (tracker->overrides.size () < ++min_size)
         {
-          tracker->overrides.push_back ( { tracker->crc32c, 0UL, nullptr, it.size,
+          tracker->overrides.push_back ( { tracker->crc32c, it.size,
                                              false, (int)it.Slot,
                                                    (int)it2.var_desc.StartOffset,
                                                    (int)it2.var_desc.Size, { 0.0f, 0.0f, 0.0f, 0.0f,
@@ -17754,7 +17752,7 @@ SK_D3D11_QuickHook (void)
          state.hooks_loaded.from_game_ini   > 0 )
     {
       // For early loading UnX
-      SK_D3D11_InitTextures ();
+      ///SK_D3D11_InitTextures ();
 
       quick_hooked = true;
     }

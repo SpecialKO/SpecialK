@@ -922,8 +922,6 @@ struct d3d11_shader_tracking_s
 
   struct cbuffer_override_s {
     uint32_t      parent;
-    LONG          LastFrame; // For Map overwrite Optimization
-    ID3D11Buffer* LastBuffer;
     size_t        BufferSize; // Parent buffer's size
     bool          Enable;
     int           Slot;

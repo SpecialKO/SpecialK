@@ -915,10 +915,10 @@ SK_Attach (DLL_ROLE role)
 
 
       budget_mutex = new SK_Thread_HybridSpinlock (  400);
-      init_mutex   = new SK_Thread_HybridSpinlock ( 5000);
-      steam_mutex  = new SK_Thread_HybridSpinlock (   32);
-      wmi_cs       = new SK_Thread_HybridSpinlock (  128);
-      cs_dbghelp   = new SK_Thread_HybridSpinlock (65536);
+      init_mutex   = new SK_Thread_HybridSpinlock ( 2500);
+      steam_mutex  = new SK_Thread_HybridSpinlock (    3);
+      wmi_cs       = new SK_Thread_HybridSpinlock ( 1280);
+      cs_dbghelp   = new SK_Thread_HybridSpinlock (16384);
 
 
       _time64 (&__SK_DLL_AttachTime);

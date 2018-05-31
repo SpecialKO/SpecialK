@@ -1,5 +1,8 @@
 0.9.20:
 
+ (.2): Fixed WMI Memory Perfmon not using the correct PID
+ (.2): Added experimental SteamAPI callback thread-sync avoidance for AC:Origins
+ (.2): Fixed SteamController issues in Nioh
  (.1): Added proper (keyboard layout-aware) tooltips for prev/next texture
          list in D3D11 render mod toolkit.
 

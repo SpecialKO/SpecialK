@@ -2986,10 +2986,20 @@ SteamAPI_RunCallbacks_Detour (void)
   if (pTLS != nullptr) InterlockedIncrement64 (&pTLS->steam.callback_count);
 
 
-  if (SK_Steam_ShouldThrottleCallbacks ())
-    return;
 
-  steam_mutex->lock ();
+  if (! steam_mutex->try_lock ())
+  {
+    return;
+  }
+
+
+  if (SK_Steam_ShouldThrottleCallbacks ())
+  {
+    steam_mutex->unlock ();
+
+    return;
+  }
+
 
   if ((! failure) && (( ReadAcquire64 (&SK_SteamAPI_CallbackRunCount) == 0LL || steam_achievements == nullptr )))
   {
