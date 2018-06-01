@@ -50,6 +50,9 @@ struct denuvo_file_s
 extern std::vector <denuvo_file_s> denuvo_files;
 
 
+ extern void SKX_Steam_ScreenshotMgr_Reinit (void);
+
+
 bool
 SK::ControlPanel::Steam::Draw (void)
 {
@@ -370,6 +373,24 @@ SK::ControlPanel::Steam::Draw (void)
         }
       }
 
+
+      if (ImGui::CollapsingHeader ("Screenshots"))
+      {
+        ImGui::TreePush ("");
+
+        if (ImGui::Checkbox ("Enable Smart Capture Mode", &config.steam.screenshots.enable_hook))
+        {
+           SKX_Steam_ScreenshotMgr_Reinit ();
+        }
+
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::SetTooltip ( "In D3D11 games with typical framebuffer formats, this eliminates "
+                              "hitching during screenshot capture." );
+        }
+
+        ImGui::TreePop ();
+      }
 
       if (app_has_cloud_storage && ImGui::CollapsingHeader ("Cloud Storage"))
       {

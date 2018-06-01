@@ -856,6 +856,7 @@ struct SK_D3D11_ShaderDesc
 
 struct SK_DisjointTimerQueryD3D11
 {
+  // Always issue this from the immediate context
 
   volatile ID3D11Query* async  = nullptr;
   volatile LONG         active = false;
@@ -865,8 +866,12 @@ struct SK_DisjointTimerQueryD3D11
 
 struct SK_TimerQueryD3D11
 {
-  volatile ID3D11Query* async  = nullptr;
-  volatile LONG         active = FALSE;
+  volatile ID3D11Query*         async   = nullptr;
+  volatile LONG                 active  = FALSE;
+
+  // Required per-query to support timing the execution of commands batched
+  //   using deferred render contexts.
+  volatile ID3D11DeviceContext* dev_ctx = nullptr;
 
   UINT64 last_results = { };
 };
@@ -878,6 +883,37 @@ struct d3d11_shader_tracking_s
     //active    = false;
 
     num_draws = 0;
+
+    if ( set_of_views.empty () &&
+         used_views.empty   () &&
+         classes.empty      () )
+    {
+      return;
+    }
+
+    auto shader_class_crit_sec = [&](void)
+    {
+      extern SK_Thread_HybridSpinlock cs_shader_vs, cs_shader_ps,
+                                      cs_shader_gs,
+                                      cs_shader_hs, cs_shader_ds,
+                                      cs_shader_cs;
+
+      switch (type_)
+      {
+        default:
+        //assert (false);
+          return &cs_shader_vs;
+
+        case SK_D3D11_ShaderType::Vertex:   return &cs_shader_vs;
+        case SK_D3D11_ShaderType::Pixel:    return &cs_shader_ps;
+        case SK_D3D11_ShaderType::Geometry: return &cs_shader_gs;
+        case SK_D3D11_ShaderType::Hull:     return &cs_shader_hs;
+        case SK_D3D11_ShaderType::Domain:   return &cs_shader_ds;
+        case SK_D3D11_ShaderType::Compute:  return &cs_shader_cs;
+      }
+    };
+
+    std::lock_guard <SK_Thread_CriticalSection> auto_lock_gs (*shader_class_crit_sec ());
 
     for ( auto it : set_of_views )
       it->Release ();
@@ -924,9 +960,9 @@ struct d3d11_shader_tracking_s
     uint32_t      parent;
     size_t        BufferSize; // Parent buffer's size
     bool          Enable;
-    int           Slot;
-    int           StartAddr;
-    int           Size;
+    uint32_t      Slot;
+    uint32_t      StartAddr;
+    uint32_t      Size;
     float         Values [16];
   };
 

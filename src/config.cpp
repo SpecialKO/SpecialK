@@ -223,6 +223,12 @@ struct {
   {
     sk::ParameterInt*     throttle;
   } callbacks;
+
+  struct
+  {
+    // Will evolve over time, only supports D3D11 right now.
+    sk::ParameterBool*    smart_capture;
+  } screenshots;
 } steam;
 
 struct {
@@ -924,6 +930,8 @@ SK_LoadConfigEx (std::wstring name, bool create)
                                                          L" application start",                                        dll_ini,         L"Steam.Social",          L"OnlineStatus"),
     ConfigEntry (steam.system.dll_path,                  L"Path to a known-working SteamAPI dll for this game.",       dll_ini,         L"Steam.System",          L"SteamPipeDLL"),
     ConfigEntry (steam.callbacks.throttle,               L"-1=Unlimited, 0-oo=Upper bound limit to SteaAPI rate",      dll_ini,         L"Steam.System",          L"CallbackThrottle"),
+
+    ConfigEntry (steam.screenshots.smart_capture,        L"Enhanced screenshot speed and HUD options; D3D11-only.",    dll_ini,         L"Steam.Screenshots",     L"EnableSmartCapture"),
 
     // Swashbucklers pay attention
     //////////////////////////////////////////////////////////////////////////
@@ -2162,6 +2170,9 @@ SK_LoadConfigEx (std::wstring name, bool create)
                                       throttle );
   }
 
+  steam.screenshots.smart_capture->load    (config.steam.screenshots.enable_hook);
+
+
   // Setup sane initial values
   config.steam.dll_path = SK_RunLHIfBitness ( 64, L"steam_api64.dll",
                                                   L"steam_api.dll" );
@@ -2926,6 +2937,8 @@ SK_SaveConfig ( std::wstring name,
 
   steam.log.silent->store                   (config.steam.silent);
   steam.drm.spoof_BLoggedOn->store          (config.steam.spoof_BLoggedOn);
+
+  steam.screenshots.smart_capture->store    (config.steam.screenshots.enable_hook);
 
   silent->store                             (config.system.silent);
   log_level->store                          (config.system.log_level);

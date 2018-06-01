@@ -532,6 +532,164 @@ SK_Steam_PreHookCore (void)
 #include <CEGUI/CEGUI.h>
 #include <CEGUI/System.h>
 
+class SK_Steam_ScreenshotManager
+{
+public:
+  enum class ScreenshotStatus
+  {
+    Success = 0,
+    Fail    = 1,
+
+    _Types
+  };
+
+  static constexpr UINT _StatusTypes = (UINT)ScreenshotStatus::_Types;
+
+
+  SK_Steam_ScreenshotManager (void) :
+       request ( this, &SK_Steam_ScreenshotManager::OnScreenshotRequest ),
+       ready   ( this, &SK_Steam_ScreenshotManager::OnScreenshotReady )
+  {
+    init ();
+  }
+
+  ~SK_Steam_ScreenshotManager (void)
+  {
+    for ( int i = 0 ; i < _StatusTypes ; ++i )
+    {
+      if (hSigReady [i] != INVALID_HANDLE_VALUE)
+      {
+        SetEvent (hSigReady [i]);
+
+        CloseHandle (hSigReady [i]);
+                     hSigReady [i] = INVALID_HANDLE_VALUE;
+      }
+    }
+  }
+
+
+  STEAM_CALLBACK ( SK_Steam_ScreenshotManager,
+                   OnScreenshotRequest,
+                   ScreenshotRequested_t,
+                   request )
+  {
+    UNREFERENCED_PARAMETER (pParam);
+
+    if ( (int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D11 )
+    {
+      // Avoid any exotic pixel formats for now -- 8-bit RGB(A) only
+      if (SK_GetCurrentRenderBackend ().framebuffer_flags == 0x00)
+      {
+        extern bool
+        SK_D3D11_CaptureSteamScreenshot (void);
+        SK_D3D11_CaptureSteamScreenshot ();
+
+        return;
+      }
+    }
+
+    // This feature is not supported,  so go back to normal screenshots.
+    request.Unregister ();
+
+    steam_ctx.Screenshots ()->HookScreenshots   (false);
+    steam_ctx.Screenshots ()->TriggerScreenshot (     );
+  }
+
+  STEAM_CALLBACK ( SK_Steam_ScreenshotManager,
+                   OnScreenshotReady,
+                   ScreenshotReady_t,
+                   ready )
+  {
+    screenshots_handled.insert (
+      std::make_pair ( pParam->m_hLocal,
+                       pParam->m_eResult )
+    );
+
+    if (pParam->m_eResult == k_EResultOK)
+      SetEvent (hSigReady [(UINT)ScreenshotStatus::Success]);
+
+    else
+    {
+      steam_log.Log ( L"Screenshot Import/Write Failure for handle '%x'; EResult=%x",
+                        pParam->m_hLocal, pParam->m_eResult );
+
+      SetEvent (hSigReady [(UINT)ScreenshotStatus::Fail]);
+    }
+  }
+
+
+  ScreenshotStatus
+  WaitOnScreenshot (ScreenshotHandle handle, DWORD dwTimeoutMs = 2500UL)
+  {
+    DWORD dwStatus =
+      MsgWaitForMultipleObjects (_StatusTypes, hSigReady, FALSE, dwTimeoutMs, 0x0);
+
+    if (dwStatus >= WAIT_OBJECT_0)
+    {
+      UINT     type  = dwStatus - WAIT_OBJECT_0;
+      assert ( type <= _StatusTypes );
+
+      auto iter = screenshots_handled.find (handle);
+
+      if (iter != screenshots_handled.end ())
+      {
+        if (iter->second == k_EResultOK)
+          return ScreenshotStatus::Success;
+        else
+          return ScreenshotStatus::Fail;
+      }
+
+      // This signal wasn't for us, so restore it...
+      else
+        SetEvent (hSigReady [type]);
+    }
+
+    // Unknown?!
+    assert (false);
+
+    return ScreenshotStatus::Fail;
+  }
+
+
+  void init (void)
+  {
+    if (config.steam.screenshots.enable_hook && steam_ctx.Screenshots ())
+    {
+      steam_ctx.Screenshots ()->HookScreenshots (config.steam.screenshots.enable_hook);
+
+      
+      for ( int i = 0 ; i < _StatusTypes ; ++i )
+      {
+        if (hSigReady [i] == INVALID_HANDLE_VALUE)
+        {
+          hSigReady [i] =
+            CreateEventW (nullptr, FALSE, FALSE, nullptr);
+        }
+      }
+    }
+  }
+
+
+protected:
+  concurrency::concurrent_unordered_map <ScreenshotHandle, EResult> screenshots_handled;
+
+  HANDLE hSigReady [_StatusTypes] { INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE };
+
+
+private:
+} *screenshot_manager = nullptr;
+
+
+void SKX_Steam_ScreenshotMgr_Reinit (void)
+{
+  if (screenshot_manager != nullptr)
+  {
+    screenshot_manager->init ();
+  }
+}
+
+
+
 class SK_Steam_OverlayManager
 {
 public:
@@ -4182,6 +4340,9 @@ SK_SteamAPI_InitManagers (void)
 {
   if (! InterlockedCompareExchange (&SK_SteamAPI_ManagersInitialized, 1, 0))
   {
+    if (steam_ctx.Screenshots () && (! screenshot_manager))
+      screenshot_manager = new SK_Steam_ScreenshotManager ();
+
     ISteamUserStats* stats =
       steam_ctx.UserStats ();
 
@@ -4242,6 +4403,12 @@ SK_SteamAPI_DestroyManagers (void)
     {
       delete user_manager;
              user_manager = nullptr;
+    }
+
+    if (screenshot_manager != nullptr)
+    {
+      delete screenshot_manager;
+             screenshot_manager = nullptr;
     }
   }
 }
@@ -4527,6 +4694,26 @@ SK_SteamAPI_AddScreenshotToLibrary (const char *pchFilename, const char *pchThum
 {
   if (steam_ctx.Screenshots ())
     steam_ctx.Screenshots ()->AddScreenshotToLibrary (pchFilename, pchThumbnailFilename, nWidth, nHeight);
+}
+
+ScreenshotHandle
+WINAPI
+SK_SteamAPI_AddScreenshotToLibraryEx (const char *pchFilename, const char *pchThumbnailFilename, int nWidth, int nHeight, bool Wait = false)
+{
+  if (steam_ctx.Screenshots ())
+  {
+    ScreenshotHandle handle =
+      steam_ctx.Screenshots ()->AddScreenshotToLibrary (pchFilename, pchThumbnailFilename, nWidth, nHeight);
+
+    if (Wait)
+    {
+      screenshot_manager->WaitOnScreenshot ( handle );
+    }
+
+    return handle;
+  }
+
+  return 0;
 }
 
 void

@@ -2594,6 +2594,10 @@ SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
     SK_D3D11_UpdateRenderStats (This);
     SK_D3D12_UpdateRenderStats (This);
 
+    // Attempt to finish any queued screenshots
+    extern void SK_D3D11_ProcessScreenshots (void);
+    SK_D3D11_ProcessScreenshots ();
+
     // Establish the API used this frame (and handle possible translation layers)
     //
     switch (SK_GetDLLRole ())
@@ -2919,6 +2923,10 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
     // Start / End / Readback Pipeline Stats
     SK_D3D11_UpdateRenderStats (This);
     SK_D3D12_UpdateRenderStats (This);
+
+    // Attempt to finish any queued screenshots
+    extern void SK_D3D11_ProcessScreenshots (void);
+    SK_D3D11_ProcessScreenshots ();
 
     // Establish the API used this frame (and handle possible translation layers)
     //

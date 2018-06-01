@@ -241,14 +241,18 @@ struct sk_config_t
     std::wstring
             dll_path             = L"";
 
-    struct callback_cache_s
-    {
+    struct callback_cache_s {
       HMODULE
             module               = nullptr;
       uintptr_t
             offset               = 0;
       void* resolved             = nullptr;
     } cached_overlay_callback;
+
+    struct screenshot_handler_s {
+      bool    enable_hook        = true;
+      bool    png_compress       = true;
+    } screenshots;
   } steam;
 
 

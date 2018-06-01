@@ -28,7 +28,7 @@ public:
   virtual EUniverse            GetConnectedUniverse           (void)                            override
    { return pRealUtils->GetConnectedUniverse           ();                                              }
   virtual uint32               GetServerRealTime              (void)                            override
-   { steam_log.Log (L"[!] ISteamUtils::GetServerRealTime (...)");
+   { //steam_log.Log (L"[!] ISteamUtils::GetServerRealTime (...)");
      return pRealUtils->GetServerRealTime              ();                                              }
 
   virtual const char*          GetIPCountry                   (void)                            override

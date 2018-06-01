@@ -99,8 +99,8 @@ int            SK_MessageBox                (std::wstring caption,
 
 time_t         SK_Win32_FILETIME_to_time_t  (FILETIME const& ft);
 
-std::string    SK_WideCharToUTF8            (std::wstring in);
-std::wstring   SK_UTF8ToWideChar            (std::string  in);
+std::string    SK_WideCharToUTF8            (const std::wstring& in);
+std::wstring   SK_UTF8ToWideChar            (const std::string&  in);
 
 std::string
 __cdecl        SK_FormatString              (char    const* const _Format, ...);
