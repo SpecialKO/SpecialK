@@ -36,6 +36,14 @@
 
 namespace SK
 {
+  enum class ScreenshotStage
+  {
+    BeforeGameHUD = 0,    // Requires a game profile indicating trigger shader
+    BeforeOSD     = 1,    // Before SK draws its OSD
+
+    EndOfFrame    = 0xff  // Generally captures all add-on overlays (including the Steam overlay)
+  };
+
   namespace SteamAPI
   {
     void Init     (bool preload);
@@ -52,7 +60,7 @@ namespace SK
 
     float __stdcall PercentOfAchievementsUnlocked (void);
 
-    bool  __stdcall TakeScreenshot   (void);
+    bool  __stdcall TakeScreenshot   (ScreenshotStage when = ScreenshotStage::EndOfFrame);
 
 
     uint32_t    AppID        (void);
@@ -153,6 +161,7 @@ struct SK_SteamAchievement
     int possible; // Number of friends who may be able to unlock
   } friends_;
   
+  // Raw pixel data (RGB8) for achievement icons
   struct
   {
     uint8_t*  achieved;
@@ -173,6 +182,74 @@ struct SK_SteamAchievement
   bool        unlocked_;
   __time32_t  time_;
 };
+
+
+
+#include <concurrent_unordered_map.h>
+
+class SK_Steam_ScreenshotManager
+{
+public:
+  enum class ScreenshotStatus
+  {
+    Success = 0,
+    Fail    = 1,
+
+    _Types
+  };
+
+  static constexpr UINT _StatusTypes = (UINT)ScreenshotStatus::_Types;
+
+
+  struct screenshot_repository_s {
+    LARGE_INTEGER liSize;
+    unsigned int  files;
+  };
+
+
+  SK_Steam_ScreenshotManager (void) :
+       request ( this, &SK_Steam_ScreenshotManager::OnScreenshotRequest ),
+       ready   ( this, &SK_Steam_ScreenshotManager::OnScreenshotReady )
+  {
+    init ();
+  }
+
+  ~SK_Steam_ScreenshotManager (void);
+
+
+  STEAM_CALLBACK ( SK_Steam_ScreenshotManager,
+                   SK_Steam_ScreenshotManager::OnScreenshotRequest,
+                   ScreenshotRequested_t,
+                   request );
+
+  STEAM_CALLBACK ( SK_Steam_ScreenshotManager,
+                   SK_Steam_ScreenshotManager::OnScreenshotReady,
+                   ScreenshotReady_t,
+                   ready );
+
+  ScreenshotStatus
+  WaitOnScreenshot (ScreenshotHandle handle, DWORD dwTimeoutMs = 2500UL);
+
+  void init (void);
+
+  const wchar_t*
+  getExternalScreenshotPath (void);
+
+  screenshot_repository_s&
+  getExternalScreenshotRepository (bool refresh = false);
+
+
+protected:
+  concurrency::concurrent_unordered_map <ScreenshotHandle, EResult> screenshots_handled;
+
+  HANDLE hSigReady [_StatusTypes] { INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE };
+
+
+  screenshot_repository_s external_screenshots;
+
+private:
+} extern *screenshot_manager;
+
 
 
 
@@ -468,10 +545,16 @@ void
 SK_Steam_LoadUnlockSound (const wchar_t* wszUnlockSound);
 
 
+// Returns the size of all redistributable files wasting disk space across all Steam Libraries
+//
+//   May optionally be used to erase the files since they are not needed after a game is installed.
 uint64_t
 SK_Steam_ScrubRedistributables (int& total_files, bool erase = false);
 
 
+// Certain Steam Overlay functionality requires a connection;
+//
+//   This function bypasses SteamAPI and can establish a Seam client connection
 bool
 SK_Steam_ConnectUserIfNeeded (CSteamID user);
 

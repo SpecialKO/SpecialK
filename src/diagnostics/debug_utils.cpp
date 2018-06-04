@@ -49,6 +49,9 @@
 
 iSK_Logger game_debug;
 
+const wchar_t*
+SK_SEH_CompatibleCallerName (LPCVOID lpAddr);
+
 extern SK_Thread_HybridSpinlock* cs_dbghelp;
 
 typedef LPWSTR (WINAPI *GetCommandLineW_pfn)(void);
@@ -570,36 +573,41 @@ void
 WINAPI
 OutputDebugStringA_Detour (LPCSTR lpOutputString)
 {
-  // fprintf is stupid, but lpOutputString already contains a newline and
-  //   fputs would just add another one...
-  game_debug.LogEx (true,   L"%-24ws:  %hs", SK_GetCallerName ().c_str (),
-                                             lpOutputString);
-  fwprintf         (stdout, L"%hs",          lpOutputString);
+  __try {
+    // fprintf is stupid, but lpOutputString already contains a newline and
+    //   fputs would just add another one...
+    game_debug.LogEx (true,   L"%-72ws:  %hs", SK_SEH_CompatibleCallerName (_ReturnAddress ()),
+                                               lpOutputString);
+    fwprintf         (stdout, L"%hs",          lpOutputString);
+    
+    if (! strstr (lpOutputString, "\n"))
+      game_debug.LogEx (false, L"\n");
+    
+    OutputDebugStringA_Original (lpOutputString);
+  }
 
-  if (! strstr (lpOutputString, "\n"))
-    game_debug.LogEx (false, L"\n");
-
-  // NVIDIA's drivers do something weird, we cannot call the trampoline and
-  //   must bail-out, or the NVIDIA streaming service will crash the game!~
-  //
-//OutputDebugStringA_Original (lpOutputString);
+  __except (EXCEPTION_EXECUTE_HANDLER) {
+  };
 }
 
 void
 WINAPI
 OutputDebugStringW_Detour (LPCWSTR lpOutputString)
 {
-  game_debug.LogEx (true,   L"%-24ws:  %ws", SK_GetCallerName ().c_str (),
-                                             lpOutputString);
-  fwprintf         (stdout, L"%ws",          lpOutputString);
+  __try
+  {
+    game_debug.LogEx (true,   L"%-72ws:  %ws", SK_SEH_CompatibleCallerName (_ReturnAddress ()),
+                                               lpOutputString);
+    fwprintf         (stdout, L"%ws",          lpOutputString);
 
-  if (! wcsstr (lpOutputString, L"\n"))
-    game_debug.LogEx (false, L"\n");
+    if (! wcsstr (lpOutputString, L"\n"))
+      game_debug.LogEx (false, L"\n");
 
-  // NVIDIA's drivers do something weird, we cannot call the trampoline and
-  //   must bail-out, or the NVIDIA streaming service will crash the game!~
-  //
-//OutputDebugStringW_Original (lpOutputString);
+    OutputDebugStringW_Original (lpOutputString);
+  }
+
+  __except (EXCEPTION_EXECUTE_HANDLER) {
+  };
 }
 
 
@@ -1088,6 +1096,9 @@ const ULONG_PTR *lpArguments         )
   return false;
 }
 
+
+
+//;WINMM.dll;AVRT.dll;secur32.dll;USERENV.dll
 
 // SEH compatible, but not 100% thread-safe (uses Fiber-Local Storage)
 const wchar_t*

@@ -49,7 +49,7 @@ SK_MessageBox (std::wstring caption, std::wstring title, uint32_t flags)
 }
 
 std::string
-SK_WideCharToUTF8 (std::wstring in)
+SK_WideCharToUTF8 (const std::wstring& in)
 {
   int len = WideCharToMultiByte ( CP_UTF8, 0x00, in.c_str (), -1, nullptr, 0, nullptr, FALSE );
 
@@ -62,7 +62,7 @@ SK_WideCharToUTF8 (std::wstring in)
 }
 
 std::wstring
-SK_UTF8ToWideChar (std::string in)
+SK_UTF8ToWideChar (const std::string& in)
 {
   int len = MultiByteToWideChar ( CP_UTF8, 0x00, in.c_str (), -1, nullptr, 0 );
 
@@ -861,12 +861,6 @@ SK_SelfDestruct (void)
     SK_Detach (DLL_ROLE role);
 
     SK_Detach (SK_GetDLLRole ());
-
-    using  TerminateProcess_pfn = BOOL (WINAPI *)(HANDLE hProcess, UINT uExitCode);
-
-    ( (TerminateProcess_pfn)GetProcAddress ( GetModuleHandle ( L"kernel32" ),
-                                               "TerminateProcess" )
-    )(SK_GetCurrentProcess (), 0x00);
   }
 }
 

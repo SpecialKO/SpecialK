@@ -108,19 +108,19 @@ SK_Okami_LoadConfig (void)
     SK_D3D11_AddTexHash (L"no_grain.dds", 0xced133fb, 0x00);
   }
 
-  if (SK_IsInjected ())
-  {
-    SK_CreateDLLHook2 (                      L"main.dll",
-                                              "?resizeBackBuffers@WindowControl@m2@@QEAA_NII_N@Z",
-                      SK_Okami_m2_WindowControl_resizeBackBuffers_Detour,
-      static_cast_p2p <void> (&m2_WindowControl_resizeBackBuffers_Original) );
-    SK_CreateDLLHook2 (                      L"main.dll",
-                                              "?resizeRenderBuffers@WindowControl@m2@@QEAA_NGG_N@Z",
-                      SK_Okami_m2_WindowControl_resizeRenderBuffers_Detour,
-      static_cast_p2p <void> (&m2_WindowControl_resizeRenderBuffers_Original) );
-
-    SK_ApplyQueuedHooks ( );
-  }
+  ////if (SK_IsInjected ())
+  ////{
+  ////  SK_CreateDLLHook2 (                      L"main.dll",
+  ////                                            "?resizeBackBuffers@WindowControl@m2@@QEAA_NII_N@Z",
+  ////                    SK_Okami_m2_WindowControl_resizeBackBuffers_Detour,
+  ////    static_cast_p2p <void> (&m2_WindowControl_resizeBackBuffers_Original) );
+  ////  SK_CreateDLLHook2 (                      L"main.dll",
+  ////                                            "?resizeRenderBuffers@WindowControl@m2@@QEAA_NGG_N@Z",
+  ////                    SK_Okami_m2_WindowControl_resizeRenderBuffers_Detour,
+  ////    static_cast_p2p <void> (&m2_WindowControl_resizeRenderBuffers_Original) );
+  ////
+  ////  SK_ApplyQueuedHooks ( );
+  ////}
 }
 
 void

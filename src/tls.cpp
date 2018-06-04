@@ -137,8 +137,6 @@ SK_CleanupTLS (void)
 
 #include <cassert>
 
-extern volatile LONG __SK_DLL_Attached;
-
 SK_TLS __SK_TLS_SAFE_no_idx   = { };
 
 SK_TLS*
@@ -148,13 +146,13 @@ SK_TLS_Bottom (void)
   auto tls_slot =
     SK_GetTLS ();
 
+  extern volatile LONG __SK_DLL_Attached;
+
   assert ( (! ReadAcquire (&__SK_DLL_Attached)) ||
               tls_slot.dwTlsIdx != TLS_OUT_OF_INDEXES );
 
   if (tls_slot.dwTlsIdx == TLS_OUT_OF_INDEXES || tls_slot.lpvData == nullptr)
   {
-  //SleepEx (10000UL, FALSE);
-
     // This whole situation is bad, but try to limp along and keep the software
     //   running in rare edge cases.
     return &__SK_TLS_SAFE_no_idx;
@@ -167,12 +165,12 @@ SK_TLS_Bottom (void)
 
   ULONG frame = SK_GetFramesDrawn ();
 
-  if (! pTLS->debug.mapped)
+  if ((! pTLS->debug.mapped) && frame > 0)
   {
+    pTLS->debug.mapped = true;
+
     if (! tls_map.count (pTLS->debug.tid))
     {
-      pTLS->debug.mapped = true;
-
       InterlockedIncrement (&_SK_IgnoreTLSAlloc);
 
       tls_map.insert (

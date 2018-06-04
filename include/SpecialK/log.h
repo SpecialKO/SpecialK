@@ -196,6 +196,7 @@ interface iSK_Logger : public IUnknown
   STDMETHOD_ (void, Log)  (THIS_ _In_z_ _Printf_format_string_
                                  wchar_t const* const _Format,
                                                       ... );
+  [[deprecated]]
   STDMETHOD_ (void, Log)  (THIS_ _In_z_ _Printf_format_string_
                                  char const* const    _Format,
                                                       ... );

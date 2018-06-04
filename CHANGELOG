@@ -1,3 +1,28 @@
+0.9.21:
+
+ + New "Smart Capture" Mode for Steam Screenshots
+ ================================================
+
+  + High-performance screenshot capture code that does not cause games to hitch
+
+   *) Compress lossless .PNG screenshots with or without Special K's OSD
+
+    >> Steam cannot store .PNG screenshots, so any lossless screenshots are stored
+         separately and you can manage these files using SK's control panel.
+
+   *) Set the default Steam screenshot behavior to show/hide SK's OSD
+   *) Take HUDless screenshots in D3D11 games (not finished)
+   *) Compresses the JPG image imported to Steam using a slightly more advanced
+        compressor for better image quality.
+
+  ** All of these features are orders of magnitude faster than the Steam overlay's
+       built-in screenshot code is! Use them all and still get better performance :P
+
+    ---------------
+  @ Current support is limited to D3D11 with no on-screen MSAA, sRGB or HDR framebuffers
+    ---------------
+
+ 
 0.9.20:
 
  (.2): Fixed WMI Memory Perfmon not using the correct PID

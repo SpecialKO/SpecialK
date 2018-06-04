@@ -671,10 +671,6 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
 
 DWORD dwRenderThread = 0x0000;
 
-// For DXGI compliance, do not mix-and-match factory types
-bool SK_DXGI_use_factory1 = false;
-bool SK_DXGI_factory_init = false;
-
 extern void  __stdcall SK_D3D11_TexCacheCheckpoint (void);
 extern void  __stdcall SK_D3D11_UpdateRenderStats  (IDXGISwapChain* pSwapChain);
                                                    
@@ -2168,7 +2164,8 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 
     SK_InstallWindowHook (desc.OutputWindow);
 
-    ResetCEGUI_D3D11     (This);
+    if (GetModuleHandle (L"CEGUIDirect3D11Renderer-0.dll"))
+      ResetCEGUI_D3D11  (This);
   }
 
 
@@ -2185,7 +2182,9 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
                   L"Releasing resources..." ),
                   L"   DXGI   " );
 
-      ResetCEGUI_D3D11        (This);
+
+      if (GetModuleHandle (L"CEGUIDirect3D11Renderer-0.dll"))
+        ResetCEGUI_D3D11      (This);
       SK_DXGI_UpdateSwapChain (This);
 
       return;
@@ -2288,6 +2287,22 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
       } break;
     }
 
+    DXGI_SWAP_CHAIN_DESC swapDesc = { };
+
+    This->GetDesc (&swapDesc);
+
+    if ( tex2d_desc.SampleDesc.Count > 1 ||
+         swapDesc.SampleDesc.Count   > 1 )
+    {
+      rb.framebuffer_flags |= SK_FRAMEBUFFER_FLAG_MSAA;
+    }
+
+    else
+    {
+      rb.framebuffer_flags &= ~SK_FRAMEBUFFER_FLAG_MSAA;
+    }
+
+
     if (SUCCEEDED (hr))
     {
       // Uses TLS to reduce dynamic memory pressure as much as possible
@@ -2355,6 +2370,12 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
       }
 
       sb->apply (pImmediateContext);
+
+
+      // Queue-up Post-SK OSD Screenshots
+      extern void SK_D3D11_ProcessScreenshotQueue (int stage);
+                  SK_D3D11_ProcessScreenshotQueue (2);
+
 
       //
       // Update G-Sync; doing this here prevents trying to do this on frames where
@@ -2594,9 +2615,11 @@ SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
     SK_D3D11_UpdateRenderStats (This);
     SK_D3D12_UpdateRenderStats (This);
 
-    // Attempt to finish any queued screenshots
-    extern void SK_D3D11_ProcessScreenshots (void);
-    SK_D3D11_ProcessScreenshots ();
+
+    // Queue-up Pre-SK OSD Screenshots
+    extern void SK_D3D11_ProcessScreenshotQueue (int stage);
+                SK_D3D11_ProcessScreenshotQueue (1);
+
 
     // Establish the API used this frame (and handle possible translation layers)
     //
@@ -2924,9 +2947,12 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
     SK_D3D11_UpdateRenderStats (This);
     SK_D3D12_UpdateRenderStats (This);
 
-    // Attempt to finish any queued screenshots
-    extern void SK_D3D11_ProcessScreenshots (void);
-    SK_D3D11_ProcessScreenshots ();
+
+ 
+    // Queue-up Pre-SK OSD Screenshots
+    extern void SK_D3D11_ProcessScreenshotQueue (int stage);
+                SK_D3D11_ProcessScreenshotQueue (1);
+
 
     // Establish the API used this frame (and handle possible translation layers)
     //
@@ -5183,11 +5209,16 @@ SK_DXGI_AdapterOverride ( IDXGIAdapter**   ppAdapter,
 
   if (FAILED (res))
   {
-    if (SK_DXGI_use_factory1)
-      res = CreateDXGIFactory1_Import (__uuidof (IDXGIFactory1), static_cast_p2p <void> (&pFactory));
+    if (CreateDXGIFactory2_Import != nullptr)
+      res = CreateDXGIFactory2 (0x0, __uuidof (IDXGIFactory1), static_cast_p2p <void> (&pFactory));
+
+    else if (CreateDXGIFactory1_Import != nullptr)
+      res = CreateDXGIFactory1 (     __uuidof (IDXGIFactory),  static_cast_p2p <void> (&pFactory));
+
     else
-      res = CreateDXGIFactory_Import  (__uuidof (IDXGIFactory),  static_cast_p2p <void> (&pFactory));
+      res = CreateDXGIFactory  (     __uuidof (IDXGIFactory),  static_cast_p2p <void> (&pFactory));
   }
+
 
   if (SUCCEEDED (res))
   {
@@ -5609,8 +5640,12 @@ STDMETHODCALLTYPE CreateDXGIFactory (REFIID   riid,
                                _Out_ void   **ppFactory)
 {
   // For DXGI compliance, do not mix-and-match
-  if (SK_DXGI_use_factory1)
+  if (CreateDXGIFactory2_Import != nullptr)
+    return CreateDXGIFactory2 (0x0, riid, ppFactory);
+
+  else if (CreateDXGIFactory1_Import != nullptr)
     return CreateDXGIFactory1 (riid, ppFactory);
+
 
   std::wstring iname = SK_GetDXGIFactoryInterfaceEx  (riid);
   int          iver  = SK_GetDXGIFactoryInterfaceVer (riid);
@@ -5627,8 +5662,6 @@ STDMETHODCALLTYPE CreateDXGIFactory (REFIID   riid,
                 WaitForInitDXGI ();
   }
 
-  SK_DXGI_factory_init = true;
-
   HRESULT ret;
   DXGI_CALL (ret, CreateDXGIFactory_Import (riid, ppFactory));
 
@@ -5640,10 +5673,8 @@ STDMETHODCALLTYPE CreateDXGIFactory1 (REFIID   riid,
                                 _Out_ void   **ppFactory)
 {
   // For DXGI compliance, do not mix-and-match
-  if ((! SK_DXGI_use_factory1) && (SK_DXGI_factory_init))
-    return CreateDXGIFactory (riid, ppFactory);
-
-  SK_DXGI_use_factory1 = true;
+  if (CreateDXGIFactory2_Import != nullptr)
+    return CreateDXGIFactory2 (0x0, riid, ppFactory);
 
   std::wstring iname = SK_GetDXGIFactoryInterfaceEx  (riid);
   int          iver  = SK_GetDXGIFactoryInterfaceVer (riid);
@@ -5659,8 +5690,6 @@ STDMETHODCALLTYPE CreateDXGIFactory1 (REFIID   riid,
     SK_RunOnce (SK_BootDXGI ());
                 WaitForInitDXGI ();
   }
-
-  SK_DXGI_factory_init = true;
 
   // Windows Vista does not have this function -- wrap it with CreateDXGIFactory
   if (CreateDXGIFactory1_Import == nullptr)
@@ -5679,8 +5708,6 @@ STDMETHODCALLTYPE CreateDXGIFactory2 (UINT     Flags,
                                       REFIID   riid,
                                 _Out_ void   **ppFactory)
 {
-  SK_DXGI_use_factory1 = true;
-
   std::wstring iname = SK_GetDXGIFactoryInterfaceEx  (riid);
   int          iver  = SK_GetDXGIFactoryInterfaceVer (riid);
 
@@ -5695,8 +5722,6 @@ STDMETHODCALLTYPE CreateDXGIFactory2 (UINT     Flags,
     SK_RunOnce (SK_BootDXGI ());
                 WaitForInitDXGI ();
   }
-
-  SK_DXGI_factory_init = true;
 
   // Windows 7 does not have this function -- wrap it with CreateDXGIFactory1
   if (CreateDXGIFactory2_Import == nullptr)
@@ -5887,12 +5912,6 @@ SK_HookDXGI (void)
     }
 
   //SK_ApplyQueuedHooks ();
-
-    if (CreateDXGIFactory1_Import != nullptr)
-    {
-      SK_DXGI_use_factory1 = true;
-      SK_DXGI_factory_init = true;
-    }
 
     SK_D3D11_InitTextures ();
     SK_D3D11_Init         ();
@@ -6649,9 +6668,10 @@ HookDXGI (LPVOID user)
 
     D3D_FEATURE_LEVEL             levels [] = { D3D_FEATURE_LEVEL_11_0 };
 
-    D3D_FEATURE_LEVEL             featureLevel;
-    CComPtr <ID3D11Device>        pDevice           = nullptr;
-    CComPtr <ID3D11DeviceContext> pImmediateContext = nullptr;
+    D3D_FEATURE_LEVEL              featureLevel;
+    ID3D11Device                  *pDevice           = nullptr;
+    ID3D11DeviceContext           *pImmediateContext = nullptr;
+    ID3D11DeviceContext           *pDeferredContext  = nullptr;
 
     // DXGI stuff is ready at this point, we'll hook the swapchain stuff
     //   after this call.
@@ -6699,10 +6719,43 @@ HookDXGI (LPVOID user)
                       &desc, &pSwapChain,
                         &pDevice,
                           &featureLevel,
-                            &pImmediateContext );
+                            (ID3D11DeviceContext **)&pImmediateContext );
 
-    d3d11_hook_ctx.ppDevice           = &pDevice.p;
-    d3d11_hook_ctx.ppImmediateContext = &pImmediateContext.p;
+
+    CComQIPtr <ID3D11Device1> pDevice1 (pDevice);
+
+    if (pDevice1 != nullptr)
+    {
+      pDevice->Release ();
+
+      CComQIPtr <ID3D11Device2> pDevice2 (pDevice1);
+
+      if (pDevice2 != nullptr)
+      {
+                  pDevice1.Release ();
+        pImmediateContext->Release ();
+
+        pDevice2->GetImmediateContext2   (      (ID3D11DeviceContext2 **)&pImmediateContext);
+        pDevice2->CreateDeferredContext2 (0x00, (ID3D11DeviceContext2 **)&pDeferredContext);
+
+        pDevice = pDevice2;
+        pDevice->AddRef ();
+      }
+
+      else
+      {
+        pImmediateContext->Release ();
+
+        pDevice1->GetImmediateContext1   (      (ID3D11DeviceContext1 **)&pImmediateContext);
+        pDevice1->CreateDeferredContext1 (0x00, (ID3D11DeviceContext1 **)&pDeferredContext);
+
+        pDevice = pDevice1;
+        pDevice->AddRef ();
+      }
+    }
+
+    d3d11_hook_ctx.ppDevice           = &pDevice;
+    d3d11_hook_ctx.ppImmediateContext = &pImmediateContext;
 
     CComQIPtr <IDXGIDevice>  pDevDXGI = nullptr;
     CComPtr   <IDXGIAdapter> pAdapter = nullptr;
@@ -6713,21 +6766,14 @@ HookDXGI (LPVOID user)
          SUCCEEDED (pDevDXGI->GetAdapter                  (&pAdapter)) &&
          SUCCEEDED (pAdapter->GetParent     (IID_PPV_ARGS (&pFactory))) )
     {
-      CComPtr <ID3D11DeviceContext> pDevCtx = nullptr;
-      CComPtr <ID3D11Device>        pDev    = pDevice;
-
       if (config.render.dxgi.deferred_isolation)
       {
-        pImmediateContext->GetDevice (&pDev.p);
-
-        pDev->CreateDeferredContext (0x00,  &pDevCtx.p);
-        d3d11_hook_ctx.ppImmediateContext = &pDevCtx.p;
+        d3d11_hook_ctx.ppImmediateContext = &pDeferredContext;
       }
 
       else
       {
-        pDev->GetImmediateContext (&pDevCtx.p);
-        d3d11_hook_ctx.ppImmediateContext = (ID3D11DeviceContext **)&pDevCtx.p;
+        d3d11_hook_ctx.ppImmediateContext = (ID3D11DeviceContext **)&pImmediateContext;
       }
 
       HookD3D11             (&d3d11_hook_ctx);
@@ -7370,15 +7416,15 @@ SK::DXGI::StartBudgetThread_NoAdapter (void)
   if (hDXGI)
   {
     static auto
-      CreateDXGIFactory =
-        (CreateDXGIFactory_pfn) GetProcAddress ( hDXGI,
-                                                   "CreateDXGIFactory" );
+      CreateDXGIFactory2 =
+        (CreateDXGIFactory2_pfn) GetProcAddress ( hDXGI,
+                                                   "CreateDXGIFactory2" );
     CComPtr <IDXGIFactory> factory = nullptr;
     CComPtr <IDXGIAdapter> adapter = nullptr;
 
     // Only spawn the DXGI 1.4 budget thread if ... DXGI 1.4 is implemented.
     if ( SUCCEEDED (
-           CreateDXGIFactory ( IID_PPV_ARGS (&factory) )
+           CreateDXGIFactory2 ( 0x0, IID_PPV_ARGS (&factory) )
          )
        )
     {

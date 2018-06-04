@@ -46,6 +46,7 @@
 #include <SpecialK/core.h>
 #include <SpecialK/log.h>
 #include <SpecialK/ini.h>
+#include <SpecialK/tls.h>
 #include <SpecialK/utility.h>
 #include <SpecialK/thread.h>
 #include <SpecialK/steam_api.h>
@@ -299,6 +300,9 @@ SK_LoadLibrary_IsPinnable (const _T* pStr)
     ////   cause TLS-related problems if left unchecked... just leave
     ////     the damn thing loaded permanently!
     SK_TEXT ("d3dcompiler_"),
+
+
+    SK_TEXT ("imagehlp"), SK_TEXT ("version.dll")
   };
 
   for (auto it : pinnable_libs)
@@ -444,7 +448,7 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
 
       SK_StripUserNameFromPathA (szFileName);
 
-      dll_log.Log ( "[DLL Loader]   ( %-28ws ) loaded '%#116hs' <%14hs> { '%21hs' }",
+      dll_log.Log ( L"[DLL Loader]   ( %-28ws ) loaded '%#116hs' <%14hs> { '%21hs' }",
                       wszModName,
                         szFileName,
                           lpFunction,
@@ -630,7 +634,7 @@ LoadLibrary_Marshal (LPVOID lpRet, LPCWSTR lpFileName, const wchar_t* wszSourceF
   if (StrStrW (compliant_path, L"/"))
   {
                     compliant_path =
-        (wchar_t *)alloca ((wcslen (lpFileName) + 1) * sizeof (wchar_t));
+        (wchar_t *)SK_TLS_Bottom ()->scratch_memory.cmd.alloc ((wcslen (lpFileName) + 1) * sizeof (wchar_t));
             wcscpy (compliant_path, lpFileName);
     SK_FixSlashesW (compliant_path);
   }
@@ -717,7 +721,7 @@ LoadPackagedLibrary_Detour (LPCWSTR lpLibFileName, DWORD Reserved)
   HMODULE hModEarly = nullptr;
 
   wchar_t*        compliant_path =
-      (wchar_t *)alloca ((wcslen (lpLibFileName) + 1) * sizeof (wchar_t));
+        (wchar_t *)SK_TLS_Bottom ()->scratch_memory.cmd.alloc ((wcslen (lpLibFileName) + 1) * sizeof (wchar_t));
           wcscpy (compliant_path, lpLibFileName);
   SK_FixSlashesW (compliant_path);
   lpLibFileName = compliant_path;
@@ -765,7 +769,7 @@ LoadLibraryEx_Marshal (LPVOID lpRet, LPCWSTR lpFileName, HANDLE hFile, DWORD dwF
   if (StrStrW (lpFileName, L"/"))
   {
                     compliant_path =
-        (wchar_t *)alloca ((wcslen (lpFileName)+1) * sizeof (wchar_t));
+        (wchar_t *)SK_TLS_Bottom ()->scratch_memory.cmd.alloc ((wcslen (lpFileName)+1) * sizeof (wchar_t));
             wcscpy (compliant_path, lpFileName);
     SK_FixSlashesW (compliant_path);
   }
@@ -1250,6 +1254,10 @@ SK_ThreadWalkModules (enum_working_set_s* pWorkingSet)
                                       wszModName,
                                         pLogger );
 
+
+        if (SK_LoadLibrary_IsPinnable (wszModName))
+             SK_LoadLibrary_PinModule (wszModName);
+
         __SEH_Compliant_EmplaceModule (pWorkingSet_, i);
       }
     }
@@ -1380,6 +1388,9 @@ SK_WalkModules (int cbNeeded, HANDLE /*hProc*/, HMODULE* hMods, SK_ModuleEnum wh
                                   wszModName,
                                     MAX_PATH ) )
       {
+        if (SK_LoadLibrary_IsPinnable (wszModName))
+             SK_LoadLibrary_PinModule (wszModName);
+
         if (! rehook)
         {
           if ( (! third_party_dlls.overlays.rtss_hooks) &&
@@ -1575,13 +1586,17 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
       SetCurrentThreadDescription (L"[SK] DLL Enumeration Thread");
       SetThreadPriority           (GetCurrentThread (), THREAD_PRIORITY_LOWEST);
 
-      WaitForInit ();
-
       static volatile LONG                walking  =  0;
       while (InterlockedCompareExchange (&walking, 1, 0))
       {
-        SleepEx (20UL, FALSE);
+        static LONG start = timeGetTime ();
+
+        MsgWaitForMultipleObjectsEx ( 0, nullptr, 20UL, MWMO_ALERTABLE, 0x0 );
+
+        if (timeGetTime () - start > 125UL) break;
       }
+
+      WaitForInit ();
 
       auto CleanupLog =
       [](iSK_Logger*& pLogger) ->
@@ -1624,7 +1639,7 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
 
       if ( when != SK_ModuleEnum::PreLoad )
         SK_WalkModules     (pWorkingSet->count * sizeof (HMODULE), pWorkingSet->proc, pWorkingSet->modules, pWorkingSet->when);
-
+      
       SK_ThreadWalkModules (pWorkingSet);
 
       if ( when != SK_ModuleEnum::PreLoad && pLogger != nullptr )

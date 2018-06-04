@@ -30,6 +30,7 @@
 #include <tlhelp32.h>
 #include <limits.h>
 #include <assert.h>
+#include <intsafe.h>
 
 #include "../../include/MinHook/MinHook.h"
 #include "buffer.h"
@@ -192,6 +193,7 @@ typedef struct _FROZEN_THREADS
   UINT          capacity; // Size of allocated data heap, items
   UINT          size;     // Actual number of data items
   DWORD         priority; // Original thread priority
+  BOOL          boost;    // Original thread boost (wildly misnamed API!)
   DWORD_PTR     affinity; // Original thread affinity
 } FROZEN_THREADS, *PFROZEN_THREADS;
 
@@ -243,7 +245,7 @@ EnterSpinLock (VOID)
         ;
     else
     {
-      SleepEx (0, TRUE);
+      MsgWaitForMultipleObjectsEx ( 0, NULL, 1, MWMO_ALERTABLE, 0x0 );
     }
 
     spinCount++;
@@ -628,9 +630,15 @@ FreezeEx (PFROZEN_THREADS pThreads, UINT pos, UINT action, UINT idx)
   pThreads->capacity = 0;
   pThreads->size     = 0;
   pThreads->priority = GetThreadPriority     (hThreadSelf);
-  pThreads->affinity = SetThreadAffinityMask (hThreadSelf, 0);
+  pThreads->affinity = SetThreadAffinityMask (hThreadSelf, 0x0);
 
-  SetThreadPriority (hThreadSelf, THREAD_PRIORITY_TIME_CRITICAL);
+  SetThreadAffinityMask  (hThreadSelf, DWORD_PTR_MAX);
+  SetThreadPriority      (hThreadSelf, THREAD_PRIORITY_HIGHEST);
+
+  if (! GetThreadPriorityBoost (hThreadSelf, &pThreads->boost))
+                                              pThreads->boost = -1;
+  else  SetThreadPriorityBoost (hThreadSelf, TRUE);
+                                           
 
   EnumerateThreads (pThreads);
 
@@ -747,8 +755,11 @@ Unfreeze (PFROZEN_THREADS pThreads)
     HeapFree (g_hHeap, 0, pThreads->pItems);
   }
 
-  SetThreadAffinityMask (GetCurrentThread (), pThreads->affinity);
-  SetThreadPriority     (GetCurrentThread (), pThreads->priority);
+  if (pThreads->boost != -1)
+    SetThreadPriorityBoost (GetCurrentThread (), pThreads->boost);
+
+  SetThreadAffinityMask    (GetCurrentThread (), pThreads->affinity);
+  SetThreadPriority        (GetCurrentThread (), pThreads->priority);
 }
 
 //-------------------------------------------------------------------------

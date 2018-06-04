@@ -355,9 +355,6 @@ extern iSK_Logger budget_log;
 extern iSK_Logger game_debug;
 extern iSK_Logger tex_log;
 
-extern volatile LONG __SK_DLL_Ending;
-extern volatile LONG __SK_DLL_Attached;
-
 LONG
 WINAPI
 SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
@@ -366,7 +363,9 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
   //   terminate with exit code = -666.
   if ( ReadAcquire (&__SK_DLL_Ending) != 0 )
   {
-    ExitProcess (0x0);
+    SK_SelfDestruct  (                         );
+    TerminateProcess (GetCurrentProcess (), 0x0);
+    ExitProcess      (                      0x0);
   }
 
   bool scaleform = false;

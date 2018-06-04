@@ -638,7 +638,7 @@ SK_Steam_HookController (void)
 
   else
   {
-    SK_LOG0 ( ( L"SteamAPI DLL ('%s') does not export SteamAPI_ISteamController_GetAnalogActionData;"
+    SK_LOG0 ( ( L"SteamAPI DLL ('%s') does not export SteamAPI_ISteamController_GetAnalogActionData; "
                 L"disabling SK SteamInput support.", steam_dll.c_str () ),
                L"SteamInput" );
   }

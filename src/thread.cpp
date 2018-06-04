@@ -140,7 +140,9 @@ SetCurrentThreadDescription (_In_ PCWSTR lpThreadDescription)
     _SK_ThreadNames [dwTid] = lpThreadDescription;
 
 
-    char      szDesc [256] = { };
+    char      szDesc [256];
+             *szDesc = '\0';
+
     wcstombs (szDesc, lpThreadDescription, 255);
 
 

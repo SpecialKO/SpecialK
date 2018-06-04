@@ -625,8 +625,6 @@ SKX_DEBUG_FastSymName (LPCVOID ret_addr)
   DWORD    BaseAddr = 0;
 #endif
 
-  BOOL ret = TRUE;
-
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
 
@@ -764,28 +762,11 @@ SK_ImGui_ThreadCallstack (HANDLE hThread, LARGE_INTEGER userTime, LARGE_INTEGER 
   static std::vector <std::string> symbol_names;
   static std::vector <std::string> code_lines;
 
-  BOOL ret = TRUE;
-
+  BOOL       ret   = TRUE;
   static int lines = 0;
-  static int width0 = 0, width1 = 0;
 
-  //ImGui::PushStyleColor  (ImGuiCol_Border, ImColor::HSV ( 0.19f, 0.86f, 0.93f));
-  //ImGui::BeginChild      ( "Thread_StackTrace",   ImVec2 ( width0 + width1 + 15.0f, lines * ImGui::GetItemsLineHeightWithSpacing () ),
-  //                           ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders |
-  //                           ImGuiWindowFlags_NoInputs         | ImGuiWindowFlags_NoScrollbar |
-  //                           ImGuiWindowFlags_NoNavInputs      | ImGuiWindowFlags_NoNavFocus );
-  //ImGui::BeginGroup ( );
-  //ImGui::Columns    (2);
-  //
-  //ImGui::SetColumnOffset (0, 0.0f);
-  //ImGui::SetColumnOffset (1, width0 + 15.0f);
-  //ImGui::SetColumnOffset (2, width1 + width0 + 30.0f);
-  //
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
-
-  lines  = 0;
-  width0 = 0, width1 = 0;
 
   if (
 #ifndef _WIN64

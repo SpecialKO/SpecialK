@@ -389,6 +389,7 @@ iSK_Logger::Log   ( _In_z_ _Printf_format_string_
 }
 
 void
+[[deprecated]]
 iSK_Logger::Log   ( _In_z_ _Printf_format_string_
                     char const* const _Format,
                                       ... )

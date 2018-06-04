@@ -302,8 +302,8 @@ SK_WMI_ServerThread (LPVOID lpUser)
   InterlockedExchange (&COM::base.wmi.init, 1);
 
   // Keep the thread alive indefinitely so that the WMI stuff continues running
-  while ( WaitForSingleObject ( COM::base.wmi.hShutdownServer,
-                                  INFINITE ) != WAIT_OBJECT_0 )
+  while ( MsgWaitForMultipleObjects ( 1, &COM::base.wmi.hShutdownServer,
+                                      FALSE, INFINITE, QS_ALLEVENTS ) != WAIT_OBJECT_0 )
     ;
 
 WMI_CLEANUP:

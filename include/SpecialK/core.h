@@ -154,4 +154,9 @@ SK_EstablishRootPath (void);
 void __stdcall SK_StartPerfMonThreads (void);
 
 
+extern volatile LONG __SK_DLL_Ending;
+extern volatile LONG __SK_DLL_Attached;
+
+
+
 #endif /* __SK__CORE_H__ */

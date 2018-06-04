@@ -482,6 +482,10 @@ SK_CreateFuncHook ( const wchar_t  *pwszFuncName,
                           void     *pDetour,
                           void    **ppOriginal )
 {
+  if (ReadAcquire (&__SK_DLL_Ending) || (! ReadAcquire (&__SK_DLL_Attached)))
+    return MH_ERROR_DISABLED;
+
+
   MH_STATUS status =
     MH_CreateHook ( pTarget,
                       pDetour,
@@ -522,6 +526,10 @@ SK_CreateFuncHookEx ( const wchar_t *pwszFuncName,
                             void   **ppOriginal,
                             UINT     idx )
 {
+  if (ReadAcquire (&__SK_DLL_Ending) || (! ReadAcquire (&__SK_DLL_Attached)))
+    return MH_ERROR_DISABLED;
+
+
   MH_STATUS status =
     MH_CreateHookEx ( pTarget,
                         pDetour,
@@ -666,6 +674,10 @@ SK_CreateDLLHook ( const wchar_t  *pwszModule, const char  *pszProcName,
                          void     *pDetour,          void **ppOriginal,
                          void    **ppFuncAddr )
 {
+  if (ReadAcquire (&__SK_DLL_Ending) || (! ReadAcquire (&__SK_DLL_Attached)))
+    return MH_ERROR_DISABLED;
+
+
   HMODULE hMod = nullptr;
 
   if (! GetModuleHandleExW (GET_MODULE_HANDLE_EX_FLAG_PIN, pwszModule, &hMod))
@@ -843,6 +855,10 @@ SK_CreateDLLHook2 ( const wchar_t  *pwszModule, const char  *pszProcName,
                           void     *pDetour,          void **ppOriginal,
                           void    **ppFuncAddr )
 {
+  if (ReadAcquire (&__SK_DLL_Ending) || (! ReadAcquire (&__SK_DLL_Attached)))
+    return MH_ERROR_DISABLED;
+
+
   HMODULE hMod = nullptr;
 
   if (! GetModuleHandleExW (GET_MODULE_HANDLE_EX_FLAG_PIN, pwszModule, &hMod))
@@ -968,6 +984,10 @@ SK_CreateDLLHook3 ( const wchar_t  *pwszModule, const char  *pszProcName,
                           void     *pDetour,          void **ppOriginal,
                           void    **ppFuncAddr )
 {
+  if (ReadAcquire (&__SK_DLL_Ending) || (! ReadAcquire (&__SK_DLL_Attached)))
+    return MH_ERROR_DISABLED;
+
+
   HMODULE hMod = nullptr;
 
   if (! GetModuleHandleExW (GET_MODULE_HANDLE_EX_FLAG_PIN, pwszModule, &hMod))
@@ -1076,6 +1096,10 @@ SK_CreateUser32Hook ( const char  *pszProcName,
                          void     *pDetour,          void **ppOriginal,
                          void    **ppFuncAddr )
 {
+  if (ReadAcquire (&__SK_DLL_Ending) || (! ReadAcquire (&__SK_DLL_Attached)))
+    return MH_ERROR_DISABLED;
+
+
   // Win32u is faster on systems that dispatch system calls through it
   //
   static sk_import_test_s win32u_test [] = { { "win32u.dll", false } };
@@ -1124,6 +1148,10 @@ SK_CreateVFTableHook ( const wchar_t  *pwszFuncName,
                              void     *pDetour,
                              void    **ppOriginal )
 {
+  if (ReadAcquire (&__SK_DLL_Ending) || (! ReadAcquire (&__SK_DLL_Attached)))
+    return MH_ERROR_DISABLED;
+
+
   MH_STATUS status =
     SK_CreateFuncHook (
       pwszFuncName,
@@ -1157,6 +1185,10 @@ SK_CreateVFTableHookEx ( const wchar_t  *pwszFuncName,
                                void    **ppOriginal, 
                                UINT      idx )
 {
+  if (ReadAcquire (&__SK_DLL_Ending) || (! ReadAcquire (&__SK_DLL_Attached)))
+    return MH_ERROR_DISABLED;
+
+
   MH_STATUS status =
     SK_CreateFuncHookEx (
       pwszFuncName,
@@ -1191,6 +1223,10 @@ SK_CreateVFTableHook2 ( const wchar_t  *pwszFuncName,
                               void     *pDetour,
                               void    **ppOriginal )
 {
+  if (ReadAcquire (&__SK_DLL_Ending) || (! ReadAcquire (&__SK_DLL_Attached)))
+    return MH_ERROR_DISABLED;
+
+
   MH_STATUS status =
     SK_CreateFuncHook (
       pwszFuncName,
@@ -1224,6 +1260,10 @@ SK_CreateVFTableHook3 ( const wchar_t  *pwszFuncName,
                               void     *pDetour,
                               void    **ppOriginal )
 {
+  if (ReadAcquire (&__SK_DLL_Ending) || (! ReadAcquire (&__SK_DLL_Attached)))
+    return MH_ERROR_DISABLED;
+
+
   MH_STATUS status =
     SK_CreateFuncHook (
       pwszFuncName,
@@ -1259,6 +1299,10 @@ MH_STATUS
 __stdcall
 SK_ApplyQueuedHooks (void)
 {
+  if (ReadAcquire (&__SK_DLL_Ending) || (! ReadAcquire (&__SK_DLL_Attached)))
+    return MH_ERROR_DISABLED;
+
+
 #ifdef _DEBUG
   SK_LOG_CALL (" Min Hook ");
 #else
@@ -1287,6 +1331,10 @@ MH_STATUS
 __stdcall
 SK_EnableHook (void *pTarget)
 {
+  if (ReadAcquire (&__SK_DLL_Ending) || (! ReadAcquire (&__SK_DLL_Attached)))
+    return MH_ERROR_DISABLED;
+
+
   MH_STATUS status =
     MH_EnableHook (pTarget);
 
@@ -1312,6 +1360,10 @@ MH_STATUS
 __stdcall
 SK_EnableHookEx (void *pTarget, UINT idx)
 {
+  if (ReadAcquire (&__SK_DLL_Ending) || (! ReadAcquire (&__SK_DLL_Attached)))
+    return MH_ERROR_DISABLED;
+
+
   MH_STATUS status =
     MH_EnableHookEx (pTarget, idx);
 
@@ -1338,6 +1390,10 @@ MH_STATUS
 __stdcall
 SK_DisableHook (void *pTarget)
 {
+  if (ReadAcquire (&__SK_DLL_Ending) || (! ReadAcquire (&__SK_DLL_Attached)))
+    return MH_ERROR_DISABLED;
+
+
   MH_STATUS status =
     MH_DisableHook (pTarget);
 
@@ -1363,6 +1419,10 @@ MH_STATUS
 __stdcall
 SK_RemoveHook (void *pTarget)
 {
+  if (ReadAcquire (&__SK_DLL_Ending) || (! ReadAcquire (&__SK_DLL_Attached)))
+    return MH_ERROR_DISABLED;
+
+
   MH_STATUS status =
     MH_RemoveHook (pTarget);
 
@@ -1380,6 +1440,10 @@ MH_STATUS
 __stdcall
 SK_MinHook_Init (void)
 {
+  if (ReadAcquire (&__SK_DLL_Ending) || (! ReadAcquire (&__SK_DLL_Attached)))
+    return MH_ERROR_DISABLED;
+
+
   MH_STATUS status;
 
   if ((status = MH_Initialize ()) != MH_OK)
@@ -1398,6 +1462,10 @@ MH_STATUS
 __stdcall
 SK_MinHook_UnInit (void)
 {
+  if (! ReadAcquire (&__SK_DLL_Attached))
+    return MH_ERROR_NOT_INITIALIZED;
+
+
   MH_STATUS status;
 
   if ((status = MH_Uninitialize ()) != MH_OK)

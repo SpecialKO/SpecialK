@@ -101,7 +101,6 @@ SK_InjectionRecord_s __SK_InjectionHistory [MAX_INJECTED_PROC_HISTORY] = { };
 };
 
 
-extern volatile LONG  __SK_DLL_Attached;
 extern volatile LONG  __SK_HookContextOwner;
 
 

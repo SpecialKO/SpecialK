@@ -74,7 +74,7 @@ SK_CPU_GetLogicalCorePairs (void)
 
 #if defined (_WIN64) && defined (_DEBUG)
               // Don't want to bother with server hardware! No gaming machine needs this many cores (2018)
-              assert ((lpi->ProcessorMask & 0xFFFFFFFF00000000) == 0);
+              ////assert ((lpi->ProcessorMask & 0xFFFFFFFF00000000) == 0);
 #endif
               logical_proc_siblings.push_back (lpi->ProcessorMask);
             } break;

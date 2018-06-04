@@ -129,7 +129,7 @@ struct mem_addr_s
 
       orig_bytes.clear ();
 
-      for ( int i = 0; i < rep_size; i++ )
+      for ( UINT i = 0; i < rep_size; i++ )
       {
         orig_bytes.push_back (*(uint8_t *)((uintptr_t)scanned_addr + rep_off + i));
       }

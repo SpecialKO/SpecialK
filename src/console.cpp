@@ -160,7 +160,10 @@ SK_PluginKeyPress (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode)
   Alt = ImGui::GetIO ().KeyAlt;
 
 
-  SK_ImGui_Widgets.DispatchKeybinds (Control, Shift, Alt, vkCode);
+  if (! SK_ImGui_Widgets.DispatchKeybinds (Control, Shift, Alt, vkCode))
+  {
+
+  }
 
 
   auto masked =
@@ -193,7 +196,7 @@ SK_ImGui_KeyPress (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode)
 
   UNREFERENCED_PARAMETER (Alt);
 
-SHORT SK_ImGui_ToggleKeys [4] = {
+  static const SHORT SK_ImGui_ToggleKeys [4] = {
     VK_BACK,              //Primary button (backspace)
   
     // Modifier Keys
@@ -201,7 +204,7 @@ SHORT SK_ImGui_ToggleKeys [4] = {
     0
   };
 
-  if ( vkCode == SK_ImGui_ToggleKeys [0] &&
+  if ( vkCode  == SK_ImGui_ToggleKeys [0] &&
        Control && Shift )
   {
     extern void SK_ImGui_Toggle (void);
@@ -216,12 +219,53 @@ SHORT SK_ImGui_ToggleKeys [4] = {
 
 extern SHORT SK_ImGui_ToggleKeys [4];
 
+bool
+SK_ImGui_ProcessKeyPress (BYTE& vkCode)
+{
+  bool&  visible = SK_Console::getInstance ()->visible;
+  BYTE*  keys_   = SK_Console::getInstance ()->keys_;
+
+  bool new_press =
+   keys_ [vkCode] != 0x81;
+
+  keys_ [vkCode] = 0x81;
+
+  if (new_press)
+  {
+    // First give ImGui a chance to process this
+    if (SK_ImGui_KeyPress (keys_ [VK_CONTROL], keys_ [VK_SHIFT], keys_ [VK_MENU], vkCode))
+    {
+      // Then give any plug-ins a chance
+      SK_PluginKeyPress   (keys_ [VK_CONTROL], keys_ [VK_SHIFT], keys_ [VK_MENU], vkCode);
+
+
+      // Finally, toggle the command console
+      if ( SK_MakeKeyMask (vkCode, keys_ [VK_CONTROL], keys_ [VK_SHIFT], keys_ [VK_MENU]) ==
+           SK_MakeKeyMask (VK_TAB, 1, 1, 0) )
+      {
+        visible = ! visible;
+
+        // This will pause/unpause the game
+        SK::SteamAPI::SetOverlayState (visible);
+
+        return 1;
+      }
+    }
+
+    else
+      return 1;
+  }
+
+  return 0;
+};
+
 int
 SK_HandleConsoleKey (bool keyDown, BYTE vkCode, LPARAM lParam)
 {
-  bool&                          visible        = SK_Console::getInstance ()->visible;
+  bool&  visible = SK_Console::getInstance ()->visible;
+  BYTE*  keys_   = SK_Console::getInstance ()->keys_;
+
   char*                          text           = SK_Console::getInstance ()->text;
-  BYTE*                          keys_          = SK_Console::getInstance ()->keys_;
   SK_Console::command_history_t& commands       = SK_Console::getInstance ()->commands;
   bool&                          command_issued = SK_Console::getInstance ()->command_issued;
   std::string&                   result_str     = SK_Console::getInstance ()->result_str;
@@ -231,54 +275,12 @@ SK_HandleConsoleKey (bool keyDown, BYTE vkCode, LPARAM lParam)
   //    state, allowing algorithms to use 0 to mean "don't care."
   keys_ [0] = TRUE;
 
-
-
-  // Short-hand Lambda for make/break input processing
-  auto ProcessKeyPress = [&](BYTE vkCode) ->
-  bool
-  {
-    bool new_press =
-     keys_ [vkCode] != 0x81;
-
-    keys_ [vkCode] = 0x81;
-
-    if (new_press)
-    {
-      // First give ImGui a chance to process this
-      if (SK_ImGui_KeyPress (keys_ [VK_CONTROL], keys_ [VK_SHIFT], keys_ [VK_MENU], vkCode))
-      {
-        // Then give any plug-ins a chance
-        SK_PluginKeyPress   (keys_ [VK_CONTROL], keys_ [VK_SHIFT], keys_ [VK_MENU], vkCode);
-
-
-        // Finally, toggle the command console
-        if ( SK_MakeKeyMask (vkCode, keys_ [VK_CONTROL], keys_ [VK_SHIFT], keys_ [VK_MENU]) ==
-             SK_MakeKeyMask (VK_TAB, 1, 1, 0) )
-        {
-          visible = ! visible;
-
-          // This will pause/unpause the game
-          SK::SteamAPI::SetOverlayState (visible);
-
-          return 1;
-        }
-      }
-
-      else
-        return 1;
-    }
-
-    return 0;
-  };
-
-
-
   if (! SK_IsSteamOverlayActive ())
   {
     // Proprietary HACKJOB:  lParam = MAXDWORD indicates a make/break event, not meant for text input
     if (lParam == MAXDWORD && keyDown)
     {
-      return (! ProcessKeyPress (vkCode));
+      return (! SK_ImGui_ProcessKeyPress (vkCode));
     }
 
 
@@ -397,7 +399,7 @@ SK_HandleConsoleKey (bool keyDown, BYTE vkCode, LPARAM lParam)
     else if (keyDown)
     {
       // First trigger an event if this is a make/break
-      if (ProcessKeyPress (vkCode))
+      if (SK_ImGui_ProcessKeyPress (vkCode))
         return 0;
 
       // If not, use the key press for text input

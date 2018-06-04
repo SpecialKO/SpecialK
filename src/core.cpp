@@ -256,6 +256,10 @@ void
 __stdcall
 SK_StartPerfMonThreads (void)
 {
+  // Handle edge-case that might re-spawn WMI threads during de-init.
+  if (ReadAcquire (&__SK_DLL_Ending))
+    return;
+
   auto SpawnMonitorThread =
   []( volatile HANDLE                 *phThread,
       const    wchar_t                *wszName,
@@ -1176,10 +1180,9 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   init_.backend  = backend;
   init_.callback = callback;
 
-
-  init_mutex->lock ();
-
   SK_SetBackend (backend);
+
+  bool blacklist = false;
 
   // Injection Compatibility Menu
   if ( (! __SK_bypass) && (GetAsyncKeyState (VK_SHIFT  ) & 0x8000) != 0 &&
@@ -1220,71 +1223,57 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     });
 
 
-    bool blacklist =
+    blacklist =
       SK_IsInjected () &&
       (GetFileAttributesW (SK_GetBlacklistFilename ()) != INVALID_FILE_ATTRIBUTES);
 
-    //
-    // Internal blacklist, the user will have the ability to setup their
-    //   own later...
-    //
-    if ( blacklist )
+    if (! blacklist)
     {
-      init_mutex->unlock ();
+      wchar_t   log_fname [MAX_PATH + 2] = { };
+      swprintf (log_fname, L"logs/%s.log", SK_IsInjected () ? L"SpecialK" : backend);
 
-      return TRUE;
+      dll_log.init (log_fname, L"wS+,ccs=UTF-8");
+      dll_log.Log  ( L"%s.log created\t\t(Special K  %s,  %hs)",
+                       SK_IsInjected () ? L"SpecialK" :
+                                          backend,
+                                                        SK_VER_STR,
+                                          __DATE__ );
+
+
+      init_.start_time = SK_QueryPerf ();
+
+
+      SK_MinHook_Init           ();
+      SK_Thread_InitDebugExtras ();
+
+
+      // Don't let Steam prevent me from attaching a debugger at startup
+      game_debug.init                  (L"logs/game_output.log", L"w");
+      game_debug.lockless = true;
+      SK::Diagnostics::Debugger::Allow ();
+
+      SK::Diagnostics::CrashHandler::InitSyms ();
+
+      void
+      SK_NvAPI_PreInitHDR (void);
+
+      SK_NvAPI_PreInitHDR    ();
+      SK_InitCompatBlacklist ();
+
+      // Do this from the startup thread [these functions queue, but don't apply]
+      SK_HookWinAPI       ();
+      SK_Input_PreInit    (); // Hook only symbols in user32 and kernel32z
+
+      // For the global injector, when not started by SKIM, check its version
+      if ( (SK_IsInjected () && (! SK_IsSuperSpecialK ())) )
+        SK_Thread_Create ( CheckVersionThread );
     }
-
-
-    SetThreadPriority      ( SK_GetCurrentThread (), THREAD_PRIORITY_HIGHEST );
-    SetThreadPriorityBoost (SK_GetCurrentThread ( ), FALSE);
-
-    wchar_t   log_fname [MAX_PATH + 2] = { };
-    swprintf (log_fname, L"logs/%s.log", SK_IsInjected () ? L"SpecialK" : backend);
-
-    dll_log.init (log_fname, L"wS+,ccs=UTF-8");
-    dll_log.Log  ( L"%s.log created\t\t(Special K  %s,  %hs)",
-                     SK_IsInjected () ? L"SpecialK" :
-                                        backend,
-                                                      SK_VER_STR,
-                                        __DATE__ );
-
-
-    init_.start_time = SK_QueryPerf ();
-
-
-    SK_MinHook_Init           ();
-    SK_Thread_InitDebugExtras ();
-
-
-    // Don't let Steam prevent me from attaching a debugger at startup
-    game_debug.init                  (L"logs/game_output.log", L"w");
-    game_debug.lockless = true;
-    SK::Diagnostics::Debugger::Allow ();
-
-    SK::Diagnostics::CrashHandler::InitSyms ();
-
-    void
-    SK_NvAPI_PreInitHDR (void);
-
-    SK_NvAPI_PreInitHDR    ();
-    SK_InitCompatBlacklist ();
-
-    // Do this from the startup thread [these functions queue, but don't apply]
-    SK_HookWinAPI       ();
-    SK_Input_PreInit    (); // Hook only symbols in user32 and kernel32z
-
-    // For the global injector, when not started by SKIM, check its version
-    if ( (SK_IsInjected () && (! SK_IsSuperSpecialK ())) )
-      SK_Thread_Create ( CheckVersionThread );
   }
 
 
 
-  if (skim)
+  if (skim || blacklist)
   {
-    init_mutex->unlock ();
-
     return TRUE;
   }
 
@@ -1544,8 +1533,6 @@ BACKEND_INIT:
                                &init_ )
     ); // Avoid the temptation to wait on this thread
   }
-
-  init_mutex->unlock ();
 
   return true;
 }

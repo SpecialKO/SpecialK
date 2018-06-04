@@ -58,7 +58,7 @@ SK_ImGui_LoadFonts (void)
     ImFontConfig font_cfg = { };
     font_cfg.MergeMode    = true;
 
-    auto LoadFont = [](std::string filename, float point_size, const ImWchar* glyph_range, ImFontConfig* cfg = nullptr)
+    auto LoadFont = [](const std::string& filename, float point_size, const ImWchar* glyph_range, ImFontConfig* cfg = nullptr)
     {
       char szFullPath [ MAX_PATH * 2 + 1 ] = { };
 

@@ -27,6 +27,7 @@
 #include <SpecialK/core.h>
 #include <SpecialK/config.h>
 #include <SpecialK/utility.h>
+#include <SpecialK/parameter.h>
 
 #include <SpecialK/steam_api.h>
 
@@ -48,10 +49,6 @@ struct denuvo_file_s
 };
 
 extern std::vector <denuvo_file_s> denuvo_files;
-
-
- extern void SKX_Steam_ScreenshotMgr_Reinit (void);
-
 
 bool
 SK::ControlPanel::Steam::Draw (void)
@@ -378,15 +375,117 @@ SK::ControlPanel::Steam::Draw (void)
       {
         ImGui::TreePush ("");
 
+        ImGui::BeginGroup ();
         if (ImGui::Checkbox ("Enable Smart Capture Mode", &config.steam.screenshots.enable_hook))
         {
-           SKX_Steam_ScreenshotMgr_Reinit ();
+          if (screenshot_manager != nullptr)
+          {
+            screenshot_manager->init ();
+          }
         }
 
         if (ImGui::IsItemHovered ())
         {
           ImGui::SetTooltip ( "In D3D11 games with typical framebuffer formats, this eliminates "
                               "hitching during screenshot capture." );
+        }
+
+        bool png_changed = false;
+
+        if (config.steam.screenshots.enable_hook)
+        {
+          ImGui::Checkbox ("Include Special K OSD in Screenshots", &config.steam.screenshots.show_osd_by_default);
+
+          png_changed =
+          ImGui::Checkbox ("Keep Lossless .PNG Screenshots",       &config.steam.screenshots.png_compress       );
+        }
+
+        if ( ( screenshot_manager != nullptr &&
+               screenshot_manager->getExternalScreenshotRepository ().files > 0 ) )
+        {
+          SK_Steam_ScreenshotManager::screenshot_repository_s& repo =
+            screenshot_manager->getExternalScreenshotRepository (png_changed);
+
+          ImGui::BeginGroup (  );
+          ImGui::TreePush   ("");
+          ImGui::Text ( "%lu files using %ws",
+                          repo.files,
+                            SK_File_SizeToString (repo.liSize.QuadPart).c_str  ()
+                      );
+
+          if (ImGui::IsItemHovered ())
+          {
+            ImGui::SetTooltip ( "Steam does not support .png screenshots, so "
+                                "SK maintains its own storage for lossless screenshots." );
+          }
+
+          ImGui::SameLine ();
+
+          if (ImGui::Button ("Browse"))
+          {
+            ShellExecuteW ( GetActiveWindow (),
+              L"explore",
+                screenshot_manager->getExternalScreenshotPath (),
+                  nullptr, nullptr,
+                        SW_NORMAL
+            );
+          }
+
+          ImGui::TreePop  ();
+          ImGui::EndGroup ();
+        }
+
+        ImGui::EndGroup ();
+
+        if (config.steam.screenshots.enable_hook)
+        {
+          auto Keybinding = [] (SK_Keybind* binding, sk::ParameterStringW* param) ->
+          auto
+          {
+            std::string label  = SK_WideCharToUTF8 (binding->human_readable) + "###";
+                        label += binding->bind_name;
+
+            if (ImGui::Selectable (label.c_str (), false))
+            {
+              ImGui::OpenPopup (binding->bind_name);
+            }
+
+            std::wstring original_binding = binding->human_readable;
+
+            SK_ImGui_KeybindDialog (binding);
+
+            if (original_binding != binding->human_readable)
+            {
+              param->store (binding->human_readable);
+
+              return true;
+            }
+
+            return false;
+          };
+
+          static std::set <SK_ConfigSerializedKeybind *>
+            keybinds = {
+              &config.steam.screenshots.game_hud_free_keybind,
+              &config.steam.screenshots.sk_osd_free_keybind,
+              &config.steam.screenshots.sk_osd_insertion_keybind
+            };
+
+          ImGui::SameLine   ();
+          ImGui::BeginGroup ();
+          for ( auto& keybind : keybinds )
+          {
+            ImGui::Text          ( "%s:  ",
+                                     keybind->bind_name );
+          }
+          ImGui::EndGroup   ();
+          ImGui::SameLine   ();
+          ImGui::BeginGroup ();
+          for ( auto& keybind : keybinds )
+          {
+            Keybinding ( keybind, keybind->param );
+          }
+          ImGui::EndGroup   ();
         }
 
         ImGui::TreePop ();

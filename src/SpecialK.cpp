@@ -163,7 +163,7 @@ SK_KeepAway (void)
   BOOL   bNotAUserInteractiveApplication = TRUE;
 
   DWORD  dwIntegrityAlloc =  0;
-  DWORD  dwIntegrityLevel = -1;
+  DWORD  dwIntegrityLevel = std::numeric_limits <DWORD>::max ();
   HANDLE hToken;
 
   if (OpenProcessToken (GetCurrentProcess (), TOKEN_QUERY, &hToken))
@@ -195,6 +195,15 @@ SK_KeepAway (void)
 
     CloseHandle (hToken);
   }
+
+
+  if (! bNotAUserInteractiveApplication)
+  {
+    #include <SpecialK/injection/blacklist.h>
+
+    if (__blacklist.count (SK_GetHostApp ())) return TRUE;
+  }
+
 
   return bNotAUserInteractiveApplication;
 }
@@ -241,14 +250,10 @@ DllMain ( HMODULE hModule,
       // Keep this DLL out of anything that doesn't handle User Interfaces,
       //   everyone will be much happier that way =P
       if (SK_KeepAway ())
-        return FALSE;
+        return TRUE;
 
 
       InterlockedExchange (&__SK_TLS_INDEX, FlsAlloc (nullptr));
-
-
-      SK_Thread_ScopedPriority prio_boost (THREAD_PRIORITY_HIGHEST);
-
 
 
       // We reserve the right to deny attaching the DLL, this will generally

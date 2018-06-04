@@ -1,5 +1,8 @@
 const
 std::unordered_set <std::wstring> __blacklist = {
+  L"steamwebhelper.exe",
+  L"streaming_client.exe",
+  L"Seam.exe",
   L"html5app_steam.exe",
   L"wow_helper.exe",
   L"uninstall.exe",

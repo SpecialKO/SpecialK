@@ -438,10 +438,6 @@ SK_Widget::draw_base (void)
   ImGui::GetFont ()->Scale = fScale;
 }
 
-extern __declspec (dllexport) void
-__stdcall
-SK_ImGui_KeybindDialog (SK_Keybind* keybind);
-
 void
 SK_Widget::save (iSK_INI* /*ini*/)
 {
@@ -649,6 +645,7 @@ SK_Widget::load (iSK_INI*)
   OnConfig (ConfigEvent::LoadComplete);
 }
 
+#include <SpecialK/steam_api.h>
 
 #define SK_MakeKeyMask(vKey,ctrl,shift,alt) \
   static_cast <UINT>((vKey) | (((ctrl) != 0) <<  9) |   \
@@ -673,6 +670,30 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds (BOOL Control, BOOL Shift, BOOL Alt, B
     if (widget && uiMaskedKeyCode == widget->getToggleKey ().masked_code)
     {
       widget->setVisible (! widget->isVisible ());
+
+      return TRUE;
+    }
+  }
+
+  //
+  // TEMP HACK: Screenshots
+  //
+  static const std::set < SK_ConfigSerializedKeybind * > screenshot_keys = {
+    &config.steam.screenshots.game_hud_free_keybind,
+    &config.steam.screenshots.sk_osd_free_keybind,
+    &config.steam.screenshots.sk_osd_insertion_keybind
+  };
+
+  for ( auto& keybind : screenshot_keys )
+  {
+    if ( uiMaskedKeyCode == keybind->masked_code )
+    {
+      if      ( keybind == &config.steam.screenshots.game_hud_free_keybind    ) ;
+
+      else if ( keybind == &config.steam.screenshots.sk_osd_free_keybind      )
+        SK::SteamAPI::TakeScreenshot (SK::ScreenshotStage::BeforeOSD);
+      else if ( keybind == &config.steam.screenshots.sk_osd_insertion_keybind )
+        SK::SteamAPI::TakeScreenshot (SK::ScreenshotStage::EndOfFrame);
 
       return TRUE;
     }

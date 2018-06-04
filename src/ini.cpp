@@ -81,12 +81,14 @@ iSK_INI::iSK_INI (const wchar_t* filename)
 
   wcscpy (wszName, filename);
 
-  TRY_FILE_IO (_wfsopen (filename, L"rbS", _SH_DENYNO), filename, fINI);
+  SK_StripTrailingSlashesW (wszName);
+
+  TRY_FILE_IO (_wfsopen (wszName, L"rbS", _SH_DENYNO), wszName, fINI);
 
   if (fINI != nullptr)
   {
     auto size =
-      static_cast <long> (SK_File_GetSize (filename));
+      static_cast <long> (SK_File_GetSize (wszName));
 
     wszData = new wchar_t [size + 3] { };
     alloc   = wszData;
@@ -1050,9 +1052,13 @@ iSK_INI::import_file (const wchar_t* fname)
 
       if (! converted_size)
       {
-        dll_log.Log ( L"[INI Parser] Could not convert UTF-8 / ANSI Encoded "
-                      L".ini file ('%s') to UTF-16, aborting!",
-                        wszImportName.m_pData );
+        if (real_size > 0)
+        {
+          dll_log.Log ( L"[INI Parser] Could not convert UTF-8 / ANSI Encoded "
+                        L".ini file ('%s') to UTF-16, aborting!",
+                          wszImportName.m_pData );
+        }
+
         wszImportData = nullptr;
 
         delete [] string;

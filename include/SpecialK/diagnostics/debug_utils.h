@@ -66,4 +66,41 @@ std::wstring SK_Thread_GetName (HANDLE hThread);
 
 #define SK_ASSERT_NOT_DLLMAIN_THREAD() assert (! SK_TLS_Bottom ()->debug.in_DllMain);
 
+// https://gist.github.com/TheWisp/26097ee941ce099be33cfe3095df74a6
+//
+#include <functional>
+
+template <class F>
+struct DebuggableLambda : F
+{
+  template <class F2>
+
+  DebuggableLambda ( F2&& func, const wchar_t* file, int line) :
+    F (std::forward <F2> (func) ),
+                    file (file)  ,
+                    line (line)     {
+  }
+
+  using F::operator ();
+
+  const wchar_t *file;
+        int      line;
+};
+
+template <class F>
+auto MakeDebuggableLambda (F&& func, const wchar_t* file, int line) ->
+DebuggableLambda <typename std::remove_reference <F>::type>
+{
+  return { std::forward <F> (func), file, line };
+}
+
+#define  ENABLE_DEBUG_LAMBDA
+
+#ifdef   ENABLE_DEBUG_LAMBDA
+# define SK_DEBUG_LAMBDA(F) \
+  MakeDebuggableLambda (F, __FILEW__, __LINE__)
+# else
+# define SK_DEBUGGABLE_LAMBDA(F) F
+#endif
+
 #endif /* __SK__DEBUG_UTILS_H__ */

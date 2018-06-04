@@ -5519,10 +5519,15 @@ SK_COMPAT_SafeCallProc (sk_window_s* pWin, HWND hWnd_, UINT Msg, WPARAM wParam, 
   __try {
     return pWin->CallProc (hWnd_, Msg, wParam, lParam);
   }
-  __except (EXCEPTION_EXECUTE_HANDLER)
+
+  __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION )  ?
+                       EXCEPTION_EXECUTE_HANDLER :
+                       EXCEPTION_CONTINUE_SEARCH )
   {
-    return 1;
+    return 0;
   }
+
+   return 1;
 }
 
 #include <SpecialK/tls.h>

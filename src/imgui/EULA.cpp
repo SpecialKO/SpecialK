@@ -329,7 +329,7 @@ SK_ImGui_DrawEULA (LPVOID reserved)
     {
       ImGui::BeginTooltip ();
 
-      ImGui::TextColored (ImColor (255,255,255), "Read the Yellow Text");
+      ImGui::TextColored (ImColor (255,255,255), "Corrupted Steamworks Platform Files Encountered");
       ImGui::Separator   (  );
       ImGui::BulletText  ("Unable to validate your license because your steam_api(64).dll is invalid.");
       ImGui::TreePush    ("");

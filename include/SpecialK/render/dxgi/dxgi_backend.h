@@ -927,6 +927,12 @@ struct d3d11_shader_tracking_s
 
     classes.clear ();
 
+    if ( pre_hud_rtv != nullptr)
+    {
+         pre_hud_rtv->Release ();
+         pre_hud_rtv = nullptr;
+    }
+
     //used_textures.clear ();
 
     //for (int i = 0; i < 16; i++)
@@ -941,13 +947,19 @@ struct d3d11_shader_tracking_s
                     UINT                        NumClassInstances );
   void deactivate (void);
 
-  std::atomic_uint32_t          crc32c          =  0x00;
-  std::atomic_bool              cancel_draws    = false;
-  std::atomic_bool              highlight_draws = false;
-  std::atomic_bool              wireframe       = false;
-  std::atomic_bool              on_top          =  true;
-  std::atomic_bool              active          = false;
-  std::atomic_ulong             num_draws       =     0;
+  std::atomic_uint32_t    crc32c           =  0x00;
+  std::atomic_bool        cancel_draws     = false;
+  std::atomic_bool        highlight_draws  = false;
+  std::atomic_bool        wireframe        = false;
+  std::atomic_bool        on_top           =  true;
+  std::atomic_bool        active           = false;
+  std::atomic_ulong       num_draws        =     0;
+
+
+  std::atomic_bool        pre_hud_source   =   false;
+  std::atomic_long        pre_hud_rt_slot  =      -1;
+  std::atomic_long        pre_hud_srv_slot =      -1;
+  ID3D11RenderTargetView* pre_hud_rtv      = nullptr;
 
   // The slot used has meaning, but I think we can ignore it for now...
   //std::unordered_map <UINT, ID3D11ShaderResourceView *> used_views;

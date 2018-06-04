@@ -35,6 +35,45 @@ SK_GetVersionStr (void);
 
 extern struct sk_dxgi_hook_cache_s SK_DXGI_HookCache;
 
+
+struct SK_Keybind
+{
+  const char*  bind_name;
+  std::wstring human_readable;
+
+  struct {
+    BOOL ctrl,
+         shift,
+         alt;
+  };
+
+  SHORT vKey;
+
+  UINT  masked_code; // For fast comparison
+
+  void parse  (void);
+  void update (void);
+};
+
+namespace sk
+{
+  class ParameterStringW;
+};
+
+// Adds a parameter to store and retrieve the keybind in an INI / XML file
+struct SK_ConfigSerializedKeybind : public SK_Keybind
+{
+  SK_ConfigSerializedKeybind (SK_Keybind&& bind, const wchar_t* cfg_name) :
+    SK_Keybind (bind)
+  {
+    wcscpy (short_name, cfg_name);
+  }
+
+  wchar_t               short_name [32] = L"Uninitialized";
+  sk::ParameterStringW* param           = nullptr;
+};
+
+
 struct sk_config_t
 {
   struct {
@@ -250,8 +289,33 @@ struct sk_config_t
     } cached_overlay_callback;
 
     struct screenshot_handler_s {
-      bool    enable_hook        = true;
-      bool    png_compress       = true;
+      bool    enable_hook         = true;
+      bool    png_compress        = true;
+      bool    show_osd_by_default = true;     
+
+      SK_ConfigSerializedKeybind
+              game_hud_free_keybind = {
+        SK_Keybind {
+          "Take Screenshot without Game's HUD", L"Num -",
+           false, false, false, VK_OEM_MINUS
+        }, L"HUDFree"
+      };
+
+      SK_ConfigSerializedKeybind
+              sk_osd_free_keybind = {
+        SK_Keybind {
+          "Take Screenshot without Special K's OSD", L"F8",
+           true, true, false, VK_F8
+        }, L"WithoutOSD"
+      };
+
+      SK_ConfigSerializedKeybind
+              sk_osd_insertion_keybind = {
+        SK_Keybind {
+          "Take Screenshot and insert Special K's OSD", L"Ctrl+Shift+F8",
+           false, false, true, VK_F8
+        }, L"InsertOSD"
+      };
     } screenshots;
   } steam;
 
@@ -579,27 +643,6 @@ struct sk_config_t
   } system;
 } extern config;
 
-
-struct SK_Keybind
-{
-  const char*  bind_name;
-  std::wstring human_readable;
-
-  struct {
-    BOOL ctrl,
-         shift,
-         alt;
-  };
-
-  SHORT vKey;
-
-  UINT  masked_code; // For fast comparison
-
-  void parse  (void);
-  void update (void);
-};
-
-
 struct SK_KeyCommand
 {
   std::wstring command;  
@@ -717,5 +760,10 @@ SK_GetNaiveConfigPath (void);
 
 extern const wchar_t*
 SK_GetFullyQualifiedApp (void);
+
+
+extern __declspec (dllexport) void
+__stdcall
+SK_ImGui_KeybindDialog (SK_Keybind* keybind);
 
 #endif __SK__CONFIG_H__

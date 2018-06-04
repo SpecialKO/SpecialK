@@ -1746,8 +1746,9 @@ SK_ImGui_ControlPanel (void)
 
       if (refresh_rate != 0.0f)
       {
-        snprintf ( szResolution, 63, "%s @ %4.1f Hz",
-                                       szResolution, refresh_rate );
+        strcat ( szResolution,
+                   SK_FormatString (" @ %4.1f Hz", refresh_rate).c_str ()
+               );
       }
 
       if (ImGui::MenuItem (" Fullscreen Resolution", szResolution))
@@ -2778,7 +2779,11 @@ SK_ImGui_StageNextFrame (void)
       ImGui::SameLine    (); ImGui::Spacing (); ImGui::SameLine ();
 
       if (ImGui::Button  ("Okay"))
-        ExitProcess (0x00);
+      {
+        SK_SelfDestruct  ();
+        TerminateProcess (GetCurrentProcess (), 0x0);
+        ExitProcess      (                      0x0);
+      }
 
       //ImGui::PushItemWidth (ImGui::GetWindowContentRegionWidth () * 0.33f); ImGui::SameLine (); ImGui::SameLine (); ImGui::PopItemWidth ();
 

@@ -206,6 +206,88 @@ extern "C" SteamAPI_GetSteamInstallPath_pfn   SteamAPI_GetSteamInstallPath      
 LPVOID pfnSteamInternal_CreateInterface = nullptr;
 
 
+
+auto _ConstructPath =
+[&](auto&& path_base, const wchar_t* path_end)
+ {
+   std::array <wchar_t, MAX_PATH * 2 + 1>
+                 path { };
+   PathCombineW (path.data (), path_base.data (), path_end);
+   return        path;
+ };
+
+
+// Returns the value of files as it was when called
+unsigned int
+SK_Steam_RecursiveFileScrub ( std::wstring   directory, unsigned int& files,
+                              LARGE_INTEGER& liSize,    wchar_t*      wszPattern,
+                                                        wchar_t*      wszAntiPattern, // Exact match only
+                              bool           erase = false )
+{
+  unsigned int    files_start = files;
+  WIN32_FIND_DATA fd          = {   };
+  HANDLE          hFind       =
+    FindFirstFileW (_ConstructPath (directory, wszPattern).data (), &fd);
+
+  if (hFind != INVALID_HANDLE_VALUE)
+  {
+    do
+    {
+      // Leave installscript.vdf behind
+      //
+      if (              wszAntiPattern != nullptr &&
+           (! _wcsicmp (wszAntiPattern, fd.cFileName)) )
+      {
+        continue;
+      }
+
+      if (          (fd.dwFileAttributes  & FILE_ATTRIBUTE_DIRECTORY) &&
+          (_wcsicmp (fd.cFileName, L"." )                != 0)        &&
+          (_wcsicmp (fd.cFileName, L"..")                != 0)        &&
+          (_wcsicmp (fd.cFileName, L"Steamworks Shared") != 0) )
+      {
+        // Detect empty directories
+        //
+        unsigned int before =
+          SK_Steam_RecursiveFileScrub ( _ConstructPath (directory, fd.cFileName).data (),
+                                          files,
+                                            liSize,
+                                              wszPattern,
+                                                wszAntiPattern,
+                                                  erase );
+
+        // Directory is empty; remove it if the user wants
+        //
+        if (files == before && erase)
+        {
+          RemoveDirectoryW (_ConstructPath (directory, fd.cFileName).data ());
+        }
+      }
+
+      else if ( (fd.dwFileAttributes ^ FILE_ATTRIBUTE_DIRECTORY) & 
+                                       FILE_ATTRIBUTE_DIRECTORY    )
+      {
+        if (! erase)
+        {
+          ++files;
+          liSize.QuadPart +=
+            LARGE_INTEGER {                     fd.nFileSizeLow,
+                            static_cast <LONG> (fd.nFileSizeHigh) }.QuadPart;
+        }
+
+        else
+        {
+          DeleteFileW (_ConstructPath (directory, fd.cFileName).data ());
+        }
+      }
+    } while (FindNextFile (hFind, &fd));
+
+    FindClose (hFind);
+  }
+
+  return files_start;
+}
+
 std::wstring
 _SK_RecursiveFileSearch ( const wchar_t* wszDir,
                           const wchar_t* wszFile )
@@ -532,162 +614,196 @@ SK_Steam_PreHookCore (void)
 #include <CEGUI/CEGUI.h>
 #include <CEGUI/System.h>
 
-class SK_Steam_ScreenshotManager
+extern bool
+SK_D3D11_CaptureSteamScreenshot (SK::ScreenshotStage when);
+
+extern bool
+SK_D3D9_CaptureSteamScreenshot  (SK::ScreenshotStage when);
+
+SK_Steam_ScreenshotManager::~SK_Steam_ScreenshotManager (void)
 {
-public:
-  enum class ScreenshotStatus
+  for ( int i = 0 ; i < _StatusTypes ; ++i )
   {
-    Success = 0,
-    Fail    = 1,
-
-    _Types
-  };
-
-  static constexpr UINT _StatusTypes = (UINT)ScreenshotStatus::_Types;
-
-
-  SK_Steam_ScreenshotManager (void) :
-       request ( this, &SK_Steam_ScreenshotManager::OnScreenshotRequest ),
-       ready   ( this, &SK_Steam_ScreenshotManager::OnScreenshotReady )
-  {
-    init ();
-  }
-
-  ~SK_Steam_ScreenshotManager (void)
-  {
-    for ( int i = 0 ; i < _StatusTypes ; ++i )
+    if (hSigReady [i] != INVALID_HANDLE_VALUE)
     {
-      if (hSigReady [i] != INVALID_HANDLE_VALUE)
-      {
-        SetEvent (hSigReady [i]);
+      SetEvent (hSigReady [i]);
 
-        CloseHandle (hSigReady [i]);
-                     hSigReady [i] = INVALID_HANDLE_VALUE;
-      }
+      CloseHandle (hSigReady [i]);
+                   hSigReady [i] = INVALID_HANDLE_VALUE;
     }
-  }
-
-
-  STEAM_CALLBACK ( SK_Steam_ScreenshotManager,
-                   OnScreenshotRequest,
-                   ScreenshotRequested_t,
-                   request )
-  {
-    UNREFERENCED_PARAMETER (pParam);
-
-    if ( (int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D11 )
-    {
-      // Avoid any exotic pixel formats for now -- 8-bit RGB(A) only
-      if (SK_GetCurrentRenderBackend ().framebuffer_flags == 0x00)
-      {
-        extern bool
-        SK_D3D11_CaptureSteamScreenshot (void);
-        SK_D3D11_CaptureSteamScreenshot ();
-
-        return;
-      }
-    }
-
-    // This feature is not supported,  so go back to normal screenshots.
-    request.Unregister ();
-
-    steam_ctx.Screenshots ()->HookScreenshots   (false);
-    steam_ctx.Screenshots ()->TriggerScreenshot (     );
-  }
-
-  STEAM_CALLBACK ( SK_Steam_ScreenshotManager,
-                   OnScreenshotReady,
-                   ScreenshotReady_t,
-                   ready )
-  {
-    screenshots_handled.insert (
-      std::make_pair ( pParam->m_hLocal,
-                       pParam->m_eResult )
-    );
-
-    if (pParam->m_eResult == k_EResultOK)
-      SetEvent (hSigReady [(UINT)ScreenshotStatus::Success]);
-
-    else
-    {
-      steam_log.Log ( L"Screenshot Import/Write Failure for handle '%x'; EResult=%x",
-                        pParam->m_hLocal, pParam->m_eResult );
-
-      SetEvent (hSigReady [(UINT)ScreenshotStatus::Fail]);
-    }
-  }
-
-
-  ScreenshotStatus
-  WaitOnScreenshot (ScreenshotHandle handle, DWORD dwTimeoutMs = 2500UL)
-  {
-    DWORD dwStatus =
-      MsgWaitForMultipleObjects (_StatusTypes, hSigReady, FALSE, dwTimeoutMs, 0x0);
-
-    if (dwStatus >= WAIT_OBJECT_0)
-    {
-      UINT     type  = dwStatus - WAIT_OBJECT_0;
-      assert ( type <= _StatusTypes );
-
-      auto iter = screenshots_handled.find (handle);
-
-      if (iter != screenshots_handled.end ())
-      {
-        if (iter->second == k_EResultOK)
-          return ScreenshotStatus::Success;
-        else
-          return ScreenshotStatus::Fail;
-      }
-
-      // This signal wasn't for us, so restore it...
-      else
-        SetEvent (hSigReady [type]);
-    }
-
-    // Unknown?!
-    assert (false);
-
-    return ScreenshotStatus::Fail;
-  }
-
-
-  void init (void)
-  {
-    if (config.steam.screenshots.enable_hook && steam_ctx.Screenshots ())
-    {
-      steam_ctx.Screenshots ()->HookScreenshots (config.steam.screenshots.enable_hook);
-
-      
-      for ( int i = 0 ; i < _StatusTypes ; ++i )
-      {
-        if (hSigReady [i] == INVALID_HANDLE_VALUE)
-        {
-          hSigReady [i] =
-            CreateEventW (nullptr, FALSE, FALSE, nullptr);
-        }
-      }
-    }
-  }
-
-
-protected:
-  concurrency::concurrent_unordered_map <ScreenshotHandle, EResult> screenshots_handled;
-
-  HANDLE hSigReady [_StatusTypes] { INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE };
-
-
-private:
-} *screenshot_manager = nullptr;
-
-
-void SKX_Steam_ScreenshotMgr_Reinit (void)
-{
-  if (screenshot_manager != nullptr)
-  {
-    screenshot_manager->init ();
   }
 }
 
+
+void
+SK_Steam_ScreenshotManager::OnScreenshotRequest ( ScreenshotRequested_t *pParam )
+{
+  UNREFERENCED_PARAMETER (pParam);
+
+  if ( (int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D11 )
+  {
+    // Avoid any exotic pixel formats for now -- 8-bit RGB(A) only
+    if (SK_GetCurrentRenderBackend ().framebuffer_flags == 0x00)
+    {
+      SK_D3D11_CaptureSteamScreenshot ( config.steam.screenshots.show_osd_by_default ?
+                                          SK::ScreenshotStage::EndOfFrame : 
+                                          SK::ScreenshotStage::BeforeOSD );
+
+      return;
+    }
+  }
+
+  //else if ( (int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9 )
+  //{
+  //  // Avoid any exotic pixel formats for now -- 8-bit RGB(A) only
+  //  //if (SK_GetCurrentRenderBackend ().framebuffer_flags == 0x00)
+  //  {
+  //    SK_D3D9_CaptureSteamScreenshot ( config.steam.screenshots.show_osd_by_default ?
+  //                                        SK::ScreenshotStage::EndOfFrame : 
+  //                                        SK::ScreenshotStage::BeforeOSD );
+  //
+  //    return;
+  //  }
+  //}
+  //
+  // This feature is not supported,  so go back to normal screenshots.
+  request.Unregister ();
+
+  steam_ctx.Screenshots ()->HookScreenshots   (false);
+  steam_ctx.Screenshots ()->TriggerScreenshot (     );
+}
+
+void
+SK_Steam_ScreenshotManager::OnScreenshotReady ( ScreenshotReady_t *pParam )
+{
+  screenshots_handled.insert (
+    std::make_pair ( pParam->m_hLocal,
+                     pParam->m_eResult )
+  );
+
+  if (pParam->m_eResult == k_EResultOK)
+    SetEvent (hSigReady [(UINT)ScreenshotStatus::Success]);
+
+  else
+  {
+    steam_log.Log ( L"Screenshot Import/Write Failure for handle '%x'; EResult=%x",
+                      pParam->m_hLocal, pParam->m_eResult );
+
+    SetEvent (hSigReady [(UINT)ScreenshotStatus::Fail]);
+  }
+}
+
+
+SK_Steam_ScreenshotManager::ScreenshotStatus
+SK_Steam_ScreenshotManager::WaitOnScreenshot ( ScreenshotHandle handle,
+                                               DWORD            dwTimeoutMs )
+{
+  DWORD dwStatus =
+    MsgWaitForMultipleObjects (_StatusTypes, hSigReady, FALSE, dwTimeoutMs, 0x0);
+
+  if (dwStatus >= WAIT_OBJECT_0 && dwStatus < MAXIMUM_WAIT_OBJECTS)
+  {
+    UINT type = ( dwStatus - WAIT_OBJECT_0 );
+    auto iter = screenshots_handled.find (handle);
+
+    if (iter != screenshots_handled.end ())
+    {
+      if (iter->second == k_EResultOK)
+        return ScreenshotStatus::Success;
+      else
+        return ScreenshotStatus::Fail;
+    }
+
+    // This signal wasn't for us, so restore it...
+    else
+      SetEvent (hSigReady [type]);
+  }
+
+  // Unknown?!
+  assert (false);
+
+  return ScreenshotStatus::Fail;
+}
+
+void
+SK_Steam_ScreenshotManager::init (void)
+{
+  getExternalScreenshotRepository (true);
+
+  if (config.steam.screenshots.enable_hook && steam_ctx.Screenshots ())
+  {
+    steam_ctx.Screenshots ()->HookScreenshots (config.steam.screenshots.enable_hook);
+    
+    for ( int i = 0 ; i < _StatusTypes ; ++i )
+    {
+      if (hSigReady [i] == INVALID_HANDLE_VALUE)
+      {
+        hSigReady [i] =
+          CreateEventW (nullptr, FALSE, FALSE, nullptr);
+      }
+    }
+  }
+}
+
+const wchar_t*
+SK_Steam_ScreenshotManager::
+getExternalScreenshotPath (void)
+{
+  static wchar_t wszAbsolutePathToScreenshots [ MAX_PATH * 2 + 1 ] = { };
+
+  if (*wszAbsolutePathToScreenshots != L'\0')
+    return wszAbsolutePathToScreenshots;
+
+  wcsncpy      ( wszAbsolutePathToScreenshots, SK_GetConfigPath (), MAX_PATH * 2);
+  PathAppendW  ( wszAbsolutePathToScreenshots, L"Screenshots" );
+
+  return         wszAbsolutePathToScreenshots;
+}
+
+SK_Steam_ScreenshotManager::screenshot_repository_s&
+SK_Steam_ScreenshotManager::getExternalScreenshotRepository (bool refresh)
+{
+  static bool init = false;
+
+  if (refresh || (! init))
+  {
+    external_screenshots.files           = 0;
+    external_screenshots.liSize.QuadPart = 0ULL;
+
+    WIN32_FIND_DATA fd        = {   };
+    std::wstring    directory = getExternalScreenshotPath ();
+    HANDLE          hFind     =
+      FindFirstFileW   (_ConstructPath (directory, L"*").data (), &fd);
+
+    if (hFind != INVALID_HANDLE_VALUE)
+    {
+      do
+      {
+        if (          (fd.dwFileAttributes  & FILE_ATTRIBUTE_DIRECTORY) &&
+            (_wcsicmp (fd.cFileName, L"." )                != 0)        &&
+            (_wcsicmp (fd.cFileName, L"..")                != 0) )
+        {
+          SK_Steam_RecursiveFileScrub ( _ConstructPath   (
+                                          _ConstructPath ( directory, fd.cFileName ),
+                                                             L""
+                                                         ).data (),
+                                          external_screenshots.files,
+                                          external_screenshots.liSize,
+                                            L"*", L"SK_SteamScreenshotImport.jpg",
+                                              false );
+        }
+      } while (FindNextFile (hFind, &fd));
+
+      FindClose (hFind);
+
+      init = true;
+    }
+  }
+
+  return external_screenshots;
+}
+
+SK_Steam_ScreenshotManager *screenshot_manager = nullptr;
 
 
 class SK_Steam_OverlayManager
@@ -2059,7 +2175,7 @@ public:
         // If the user wants a screenshot, but no popups (why?!), this is when
         //   the screenshot needs to be taken.
         if ( config.steam.achievements.take_screenshot &&
-          (! config.steam.achievements.popup.show) )
+          (! ( config.steam.achievements.popup.show    && config.cegui.enable ) ) )
         {
           SK::SteamAPI::TakeScreenshot ();
         }
@@ -2332,8 +2448,8 @@ public:
 
                 // Popup is in the final location, so now is when screenshots
                 //   need to be taken.
-                if (config.steam.achievements.take_screenshot && take_screenshot && it->achievement->unlocked_)
-                  SK::SteamAPI::TakeScreenshot ();
+                if (config.steam.achievements.take_screenshot && take_screenshot)// && it->achievement->unlocked_)
+                  SK::SteamAPI::TakeScreenshot (SK::ScreenshotStage::EndOfFrame);
 
                 win->show        ();
                 win->setPosition (win_pos);
@@ -3121,21 +3237,9 @@ void
 S_CALLTYPE
 SteamAPI_RunCallbacks_Detour (void)
 {
-  //if (friends_done == ReadAcquire64 (&SK_SteamAPI_CallbackRunCount - 10) &&
-  //     11           < ReadAcquire64 (&SK_SteamAPI_CallbackRunCount) )
-  //{
-  //  for ( auto it : UserStatsReceived_callbacks )
-  //  {
-  //    if (it.second)
-  //      SteamAPI_RegisterCallback_Original ((class CCallbackBase *)it.first, UserStatsReceived_t::k_iCallback);
-  //  }
-  //}
+  if (ReadAcquire (&__SK_DLL_Ending))
+    return;
 
-  //if (ReadAcquire (&__SK_DLL_Ending))
-  //{
-  //  SteamAPI_RunCallbacks_Original ();
-  //  return;
-  //}
 
   static bool failure = false;
 
@@ -3667,87 +3771,6 @@ SK_UseManifestToGetAppName (uint32_t appid)
   return "";
 }
 
-auto _ConstructPath =
-[&](auto&& path_base, const wchar_t* path_end)
- {
-   std::array <wchar_t, MAX_PATH * 2 + 1>
-                 path { };
-   PathCombineW (path.data (), path_base.data (), path_end);
-   return        path;
- };
-
-
-// Returns the value of files as it was when called
-unsigned int
-SK_Steam_RecursiveFileScrub ( std::wstring   directory, unsigned int& files,
-                              LARGE_INTEGER& liSize,    wchar_t*      wszPattern,
-                                                        wchar_t*      wszAntiPattern, // Exact match only
-                              bool           erase = false )
-{
-  unsigned int    files_start = files;
-  WIN32_FIND_DATA fd          = {   };
-  HANDLE          hFind       =
-    FindFirstFileW (_ConstructPath (directory, wszPattern).data (), &fd);
-
-  if (hFind != INVALID_HANDLE_VALUE)
-  {
-    do
-    {
-      // Leave installscript.vdf behind
-      //
-      if (              wszAntiPattern != nullptr &&
-           (! _wcsicmp (wszAntiPattern, fd.cFileName)) )
-      {
-        continue;
-      }
-
-      if (          (fd.dwFileAttributes  & FILE_ATTRIBUTE_DIRECTORY) &&
-          (_wcsicmp (fd.cFileName, L"." )                != 0)        &&
-          (_wcsicmp (fd.cFileName, L"..")                != 0)        &&
-          (_wcsicmp (fd.cFileName, L"Steamworks Shared") != 0) )
-      {
-        // Detect empty directories
-        //
-        unsigned int before =
-          SK_Steam_RecursiveFileScrub ( _ConstructPath (directory, fd.cFileName).data (),
-                                          files,
-                                            liSize,
-                                              wszPattern,
-                                                wszAntiPattern,
-                                                  erase );
-
-        // Directory is empty; remove it if the user wants
-        //
-        if (files == before && erase)
-        {
-          RemoveDirectoryW (_ConstructPath (directory, fd.cFileName).data ());
-        }
-      }
-
-      else if ( (fd.dwFileAttributes ^ FILE_ATTRIBUTE_DIRECTORY) & 
-                                       FILE_ATTRIBUTE_DIRECTORY    )
-      {
-        if (! erase)
-        {
-          ++files;
-          liSize.QuadPart +=
-            LARGE_INTEGER {                     fd.nFileSizeLow,
-                            static_cast <LONG> (fd.nFileSizeHigh) }.QuadPart;
-        }
-
-        else
-        {
-          DeleteFileW (_ConstructPath (directory, fd.cFileName).data ());
-        }
-      }
-    } while (FindNextFile (hFind, &fd));
-
-    FindClose (hFind);
-  }
-
-  return files_start;
-}
-
 uint64_t
 SK_Steam_ScrubRedistributables (int& total_files, bool erase)
 {
@@ -3941,7 +3964,7 @@ SK::SteamAPI::GetOverlayState (bool real)
 
 bool
 __stdcall
-SK::SteamAPI::TakeScreenshot (void)
+SK::SteamAPI::TakeScreenshot (SK::ScreenshotStage when)
 {
   ISteamScreenshots* pScreenshots =
     steam_ctx.Screenshots ();
@@ -3949,8 +3972,43 @@ SK::SteamAPI::TakeScreenshot (void)
   if (pScreenshots != nullptr)
   {
     steam_log.LogEx (true, L"  >> Triggering Screenshot: ");
+
+    if (config.steam.screenshots.enable_hook)
+    {
+      if ( (int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D11 )
+      {
+        // Avoid any exotic pixel formats for now -- 8-bit RGB(A) only
+        if (SK_GetCurrentRenderBackend ().framebuffer_flags == 0x00)
+        {
+          SK_D3D11_CaptureSteamScreenshot (when);
+
+          steam_log.LogEx ( false, L"Stage=%x (SK_SmartCapture)\n",
+                              (int)when );
+          return true;
+        }
+      }
+
+      //else if ( (int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9 )
+      //{
+      //  // Avoid any exotic pixel formats for now -- 8-bit RGB(A) only
+      //  //if (SK_GetCurrentRenderBackend ().framebuffer_flags == 0x00)
+      //  {
+      //    SK_D3D9_CaptureSteamScreenshot ( when );
+      //
+      //
+      //    steam_log.LogEx ( false, L"Stage=%x (SK_SmartCapture)\n",
+      //                        (int)when );
+      //    return true;
+      //  }
+      //}
+    }
+
     pScreenshots->TriggerScreenshot ();
-    steam_log.LogEx (false, L"done!\n");
+    steam_log.LogEx (false, L"EndOfFrame (Steam Overlay)\n");
+
+    if ( when != SK::ScreenshotStage::EndOfFrame )
+      steam_log.Log (L" >> WARNINNG: Smart Capture disabled or unsupported; screenshot taken at end-of-frame.");
+
     return true;
   }
 
@@ -4018,46 +4076,50 @@ SteamAPI_Shutdown_Detour (void)
   LeaveCriticalSection         (&init_cs);
 
 
-  SK_Thread_Create (
-    [](LPVOID) ->
-    DWORD
-    {
-      SetCurrentThreadDescription (L"[SK] SteamAPI Restart Thread");
-
-      for (int i = 0; i < 100; i++)
+  if (! ReadAcquire (&__SK_DLL_Ending))
+  {
+    SK_Thread_Create (
+      [](LPVOID) ->
+      DWORD
       {
-        SleepEx (1L, FALSE);
+        SetCurrentThreadDescription (L"[SK] SteamAPI Restart Thread");
 
-        if (ReadAcquire (&__SK_DLL_Ending))
+        for (int i = 0; i < 100; i++)
         {
-          steam_ctx.Shutdown  ();
-          SK_Thread_CloseSelf ();
+          SleepEx (1L, FALSE);
 
-          return 0;
+          if (ReadAcquire (&__SK_DLL_Ending))
+          {
+            steam_ctx.Shutdown  ();
+
+            SK_Thread_CloseSelf ();
+
+            return 0;
+          }
         }
-      }
 
-      // Start back up again :)
-      //
-      //  >> Stupid hack for The Witcher 3
-      //
-      if (SteamAPI_RunCallbacks_Original != nullptr)
-      {
-        InterlockedExchangePointer ((void **)&hSteamPump, SK_TLS_Bottom ()->debug.handle);
-
-        while (true)
+        // Start back up again :)
+        //
+        //  >> Stupid hack for The Witcher 3
+        //
+        if (SteamAPI_RunCallbacks_Original != nullptr)
         {
-          SK::SteamAPI::Pump ();
+          InterlockedExchangePointer ((void **)&hSteamPump, SK_TLS_Bottom ()->debug.handle);
 
-          SleepEx (125, FALSE);
+          while (! ReadAcquire (&__SK_DLL_Ending))
+          {
+            SK::SteamAPI::Pump ();
+
+            MsgWaitForMultipleObjectsEx ( 0, nullptr, 125, MWMO_ALERTABLE, 0x0 );
+          }
         }
+
+        SK_Thread_CloseSelf ();
+
+        return 0;
       }
-
-      SK_Thread_CloseSelf ();
-
-      return 0;
-    }
-  );
+    );
+  };
 }
 
 bool
@@ -5030,68 +5092,131 @@ SK_Steam_PiratesAhoy2 (void)
   return SK_Steam_PiratesAhoy ();
 }
 
+
+
+static HANDLE hSigNewSteamFileDetails {
+  INVALID_HANDLE_VALUE
+};
+
+#include <concurrent_priority_queue.h>
+
 void
 SK_SteamAPIContext::OnFileDetailsDone ( FileDetailsResult_t* pParam,
                                         bool                 bFailed )
 {
+  struct _HashWorkComparitor {
+    bool operator () ( const FileDetailsResult_t& lh,
+                       const FileDetailsResult_t& rh ) const {
+      return ( rh.m_ulFileSize > lh.m_ulFileSize );
+    }
+  };
+
+  typedef
+    concurrency::concurrent_priority_queue <
+      FileDetailsResult_t,
+        _HashWorkComparitor
+  > hash_job_prio_queue_s;
+
+
+
   pParam->m_eResult =
     bFailed ? k_EResultFileNotFound :
               pParam->m_eResult;
 
-  auto *pCopy =
-    new FileDetailsResult_t (*pParam);
+
+  static hash_job_prio_queue_s
+    waiting_hash_jobs;
+    waiting_hash_jobs.push ( *pParam );
+
+
+  if ( InterlockedCompareExchangePointer ( &hSigNewSteamFileDetails, nullptr, INVALID_HANDLE_VALUE) ==
+                                                                              INVALID_HANDLE_VALUE )
+  {
+    InterlockedExchangePointer ( (void **)&hSigNewSteamFileDetails,
+                                   CreateEventW ( nullptr, FALSE, true, nullptr ) );
 
   //
   // Hashing Denuvo games can take a very long time, and we do not need
   //   the result immediately... so do not destroy the game's performance
   //     by blocking at startup!
   //
-  SK_Thread_Create  ([](LPVOID user) ->
+  SK_Thread_Create ([](LPVOID user) ->
     DWORD
     {
       SetCurrentThreadDescription (L"[SK] Steam File Validation Thread");
 
-      // We don't need these results anytime soon, get them when we get them...
-      SetThreadPriority ( GetCurrentThread (), THREAD_MODE_BACKGROUND_BEGIN |
-                                               THREAD_PRIORITY_IDLE );
 
-      FileDetailsResult_t *pParam =
-        (FileDetailsResult_t *)user;
+      hash_job_prio_queue_s* prio_queue =
+        (hash_job_prio_queue_s *)user;
 
-      auto HandleResult =
-        [&](const wchar_t* wszFileName)
+
+      while ( MsgWaitForMultipleObjectsEx ( 1, &hSigNewSteamFileDetails,
+                                              666UL, QS_ALLEVENTS,
+                                                MWMO_ALERTABLE
+                                          )                == WAIT_OBJECT_0
+            )
+      {
+
+        if ( ReadAcquire (&__SK_DLL_Ending) ||
+               validation_pass == SK_Steam_FileSigPass_e::Done
+        ) break;
+
+
+        FileDetailsResult_t result;
         {
-          SK_SHA1_Hash SHA1;
-               memcpy (SHA1.hash, pParam->m_FileSHA, 20);
-
-          switch (pParam->m_eResult)
+          while ( (! prio_queue->empty   (        ) ) &&
+                  (! prio_queue->try_pop ( result ) ) )
           {
-            case k_EResultOK:
-            {    
-              uint64_t size =
-                SK_File_GetSize (wszFileName);
+            MsgWaitForMultipleObjectsEx ( 1, &hSigNewSteamFileDetails,
+                                            133UL, 0x0, MWMO_ALERTABLE );
+          }
+        }
+        FileDetailsResult_t* pParam = &result;
+
+
+        auto HandleResult =
+         [&]( const wchar_t* wszFileName )
+          {
+            SK_SHA1_Hash SHA1;
+                 memcpy (SHA1.hash, pParam->m_FileSHA, 20);
+
+            switch (pParam->m_eResult)
+            {
+              case k_EResultOK:
+              {    
+                uint64_t size =
+                  SK_File_GetSize (wszFileName);
     
-              SK_SHA1_Hash file_hash =
-                SK_File_GetSHA1 (wszFileName);
+                SK_SHA1_Hash file_hash =
+                  SK_File_GetSHA1 (wszFileName);
     
-              char            szSHA1 [21] = { };
-              SHA1.toCString (szSHA1);
+                char            szSHA1 [21] = { };
+                SHA1.toCString (szSHA1);
     
-              if (size == pParam->m_ulFileSize && file_hash == SHA1)
-              {
-                steam_log.Log ( L"> SteamAPI Application File Verification:  "
-                                L" Match  ( File: %ws,\n"
+                if (size == pParam->m_ulFileSize && file_hash == SHA1)
+                {
+                  steam_log.Log ( L"> SteamAPI Application File Verification:  "
+                                  L" Match  ( File: %ws,\n"
     L"                                                                              SHA1: %20hs,\n"
     L"                                                                              Size: %lu bytes )",
                                   SK_StripUserNameFromPathW (std::wstring (wszFileName).data ()),
                                     szSHA1, pParam->m_ulFileSize );
-              }
+                }
     
-              else if (size != 0)
-              {
-                if (size != pParam->m_ulFileSize)
+                else if (size != 0)
                 {
-                  steam_log.Log ( L"> SteamAPI SteamAPI File Verification:     "
+                  if (size != pParam->m_ulFileSize)
+                  {
+                    steam_log.Log ( L"> SteamAPI SteamAPI File Verification:     "
+                                    L" Size Mismatch ( File: %ws,\n"
+    L"                                                                              Expected SHA1: %20hs,\n"
+    L"                                                                              Expected Size: %lu bytes,\n"
+    L"                                                                                Actual Size: %lu bytes )",
+                                    SK_StripUserNameFromPathW (std::wstring (wszFileName).data ()),
+                                      szSHA1,
+                                       pParam->m_ulFileSize, size );
+    
+                    dll_log.Log ( L"> SteamAPI SteamAPI File Verification:     "
                                   L" Size Mismatch ( File: %ws,\n"
     L"                                                                              Expected SHA1: %20hs,\n"
     L"                                                                              Expected Size: %lu bytes,\n"
@@ -5099,23 +5224,23 @@ SK_SteamAPIContext::OnFileDetailsDone ( FileDetailsResult_t* pParam,
                                     SK_StripUserNameFromPathW (std::wstring (wszFileName).data ()),
                                       szSHA1,
                                        pParam->m_ulFileSize, size );
+                  }
     
-                  dll_log.Log ( L"> SteamAPI SteamAPI File Verification:     "
-                                L" Size Mismatch ( File: %ws,\n"
+                  else if (file_hash != SHA1)
+                  {
+                    char                 szFileSHA1 [21] = { };
+                    file_hash.toCString (szFileSHA1);
+    
+                    steam_log.Log ( L"> SteamAPI SteamAPI File Verification:     "
+                                    L" SHA1 Mismatch ( File: %ws,\n"
     L"                                                                              Expected SHA1: %20hs,\n"
-    L"                                                                              Expected Size: %lu bytes,\n"
-    L"                                                                                Actual Size: %lu bytes )",
+    L"                                                                                Actual SHA1: %20hs,\n"
+    L"                                                                                       Size: %lu bytes )",
                                     SK_StripUserNameFromPathW (std::wstring (wszFileName).data ()),
-                                      szSHA1,
-                                       pParam->m_ulFileSize, size );
-                }
+                                      szSHA1, szFileSHA1,
+                                       pParam->m_ulFileSize );
     
-                else if (file_hash != SHA1)
-                {
-                  char                 szFileSHA1 [21] = { };
-                  file_hash.toCString (szFileSHA1);
-    
-                  steam_log.Log ( L"> SteamAPI SteamAPI File Verification:     "
+                    dll_log.Log ( L"> SteamAPI SteamAPI File Verification:     "
                                   L" SHA1 Mismatch ( File: %ws,\n"
     L"                                                                              Expected SHA1: %20hs,\n"
     L"                                                                                Actual SHA1: %20hs,\n"
@@ -5123,61 +5248,67 @@ SK_SteamAPIContext::OnFileDetailsDone ( FileDetailsResult_t* pParam,
                                     SK_StripUserNameFromPathW (std::wstring (wszFileName).data ()),
                                       szSHA1, szFileSHA1,
                                        pParam->m_ulFileSize );
+                  }
     
-                  dll_log.Log ( L"> SteamAPI SteamAPI File Verification:     "
-                                L" SHA1 Mismatch ( File: %ws,\n"
-    L"                                                                              Expected SHA1: %20hs,\n"
-    L"                                                                                Actual SHA1: %20hs,\n"
-    L"                                                                                       Size: %lu bytes )",
-                                    SK_StripUserNameFromPathW (std::wstring (wszFileName).data ()),
-                                      szSHA1, szFileSHA1,
-                                       pParam->m_ulFileSize );
+                  if (validation_pass == SK_Steam_FileSigPass_e::SteamAPI)
+                  {
+                    verdict |= ~( k_ECheckFileSignatureInvalidSignature );
+                    decided  =    true;
+                  }
                 }
+              } break;
     
-                if (validation_pass == SK_Steam_FileSigPass_e::SteamAPI)
-                {
-                  verdict |= ~( k_ECheckFileSignatureInvalidSignature );
-                  decided  =    true;
-                }
-              }
+              default:
+              {
+                steam_log.Log ( L"> SteamAPI File Verification:                "
+                                L" UNKNOWN STATUS (%lu) :: '%ws'",
+                                  pParam->m_eResult,
+                                    SK_StripUserNameFromPathW (std::wstring (wszFileName).data ()) );
+              } break;
+            }
+          };
+
+        // We don't need these results anytime soon, get them when we get them...
+        SetThreadPriority      ( GetCurrentThread (), THREAD_MODE_BACKGROUND_BEGIN );
+        SetThreadPriority      ( GetCurrentThread (), THREAD_PRIORITY_IDLE         );
+        SetThreadPriorityBoost ( GetCurrentThread (), TRUE                         );
+        {
+          switch (validation_pass)
+          {
+            case SK_Steam_FileSigPass_e::Executable:
+            {
+              HandleResult (SK_UTF8ToWideChar (check_file).c_str ());
+    
+              validation_pass = SK_Steam_FileSigPass_e::SteamAPI;
+              InterlockedExchange (&hAsyncSigCheck, 0);
             } break;
     
-            default:
+            case SK_Steam_FileSigPass_e::SteamAPI:
             {
-              steam_log.Log ( L"> SteamAPI File Verification:                "
-                              L" UNKNOWN STATUS (%lu) :: '%ws'",
-                                pParam->m_eResult,
-                                  SK_StripUserNameFromPathW (std::wstring (wszFileName).data ()) );
+              HandleResult (SK_UTF8ToWideChar (check_file).c_str ());
+    
+              validation_pass = SK_Steam_FileSigPass_e::Done;
+              InterlockedExchange (&hAsyncSigCheck, 0);
             } break;
           }
-        };
-
-      switch (validation_pass)
-      {
-        case SK_Steam_FileSigPass_e::Executable:
-        {
-          HandleResult (SK_UTF8ToWideChar (check_file).c_str ());
-    
-          validation_pass = SK_Steam_FileSigPass_e::SteamAPI;
-          InterlockedExchange (&hAsyncSigCheck, 0);
-        } break;
-    
-        case SK_Steam_FileSigPass_e::SteamAPI:
-        {
-          HandleResult (SK_UTF8ToWideChar (check_file).c_str ());
-    
-          validation_pass = SK_Steam_FileSigPass_e::Done;
-          InterlockedExchange (&hAsyncSigCheck, 0);
-        } break;
+        }
+        SetThreadPriorityBoost ( GetCurrentThread (), FALSE                        );
+        SetThreadPriority      ( GetCurrentThread (), THREAD_MODE_BACKGROUND_END   );
+        SetThreadPriority      ( GetCurrentThread (), THREAD_PRIORITY_BELOW_NORMAL );
       }
 
-      delete pParam;
 
       SK_Thread_CloseSelf ();
 
+      CloseHandle (hSigNewSteamFileDetails);
+                   hSigNewSteamFileDetails = INVALID_HANDLE_VALUE;
+
       return 0;
-    }, pCopy
-  );
+    }, (void *)&waiting_hash_jobs);
+  }
+
+  else SetEvent (hSigNewSteamFileDetails);
+
 
   get_file_details.Cancel ();
 }
@@ -5265,6 +5396,7 @@ SAFE_GetISteamMusic (ISteamClient* pClient, HSteamUser hSteamuser, HSteamPipe hS
     if (SK_IsAddressExecutable ((*(void ***)*&pClient)[24]))
       return pClient->GetISteamMusic (hSteamuser, hSteamPipe, pchVersion);
   }
+
   __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION )  ?
                        EXCEPTION_EXECUTE_HANDLER :
                        EXCEPTION_CONTINUE_SEARCH ) {
@@ -5280,6 +5412,7 @@ SAFE_GetISteamController (ISteamClient* pClient, HSteamUser hSteamuser, HSteamPi
     if (SK_IsAddressExecutable ((*(void ***)*&pClient)[21]))
       return pClient->GetISteamController (hSteamuser, hSteamPipe, pchVersion);
   }
+
   __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION )  ?
                        EXCEPTION_EXECUTE_HANDLER :
                        EXCEPTION_CONTINUE_SEARCH ) {
@@ -5311,8 +5444,8 @@ void
 __cdecl
 SK_SteamAPI_DebugText (int nSeverity, const char *pchDebugText)
 {
-  steam_log.Log (" [SteamAPI] Severity: %d - '%hs'",
-    nSeverity, pchDebugText);
+  steam_log.Log ( L" [SteamAPI] Severity: %d - '%hs'",
+                    nSeverity, pchDebugText );
 }
 
 bool

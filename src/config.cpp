@@ -80,6 +80,26 @@ SK_GetCurrentGameID (void)
 }
 
 
+auto LoadKeybind =
+  [](SK_ConfigSerializedKeybind* binding) ->
+    auto
+    {
+      auto ret =
+        binding->param;
+
+      if (! static_cast <sk::iParameter *> (ret)->load ())
+      {
+        binding->parse ();
+        ret->store     (binding->human_readable);
+      }
+
+      binding->human_readable = ret->get_value ();
+      binding->parse ();
+
+      return ret;
+    };
+
+
 struct {
   struct {
     sk::ParameterBool*    show;
@@ -228,6 +248,8 @@ struct {
   {
     // Will evolve over time, only supports D3D11 right now.
     sk::ParameterBool*    smart_capture;
+    sk::ParameterBool*    include_osd_default;
+    sk::ParameterBool*    keep_png_copy;
   } screenshots;
 } steam;
 
@@ -602,6 +624,18 @@ SK_LoadConfigEx (std::wstring name, bool create)
     macro_ini       =
       SK_CreateINI (macro_config.c_str ());
 
+auto DeclKeybind =
+  [](SK_ConfigSerializedKeybind* binding, iSK_INI* ini, const wchar_t* sec) ->
+    auto
+    {
+      auto* ret =
+       dynamic_cast <sk::ParameterStringW *>
+        (g_ParameterFactory.create_parameter <std::wstring> (L"DESCRIPTION HERE"));
+
+      ret->register_to_ini ( ini, sec, binding->short_name );
+
+      return ret;
+    };
 
 // TODO:  Covert this to a template
 #define ConfigEntry(param,descrip,ini,sec,key) {   \
@@ -609,6 +643,13 @@ SK_LoadConfigEx (std::wstring name, bool create)
   std::type_index (              typeid ((param))),\
                     (descrip),  (ini),             \
                     (sec),      (key)              \
+}
+
+#define Keybind(bind,descrip,ini,sec) {             \
+  reinterpret_cast <sk::iParameter **>  ((bind)),   \
+  std::type_index (              typeid ((bind))),  \
+                    (descrip),  (ini),              \
+                    (sec),      ((bind)->short_name)\
 }
 
   //
@@ -931,7 +972,20 @@ SK_LoadConfigEx (std::wstring name, bool create)
     ConfigEntry (steam.system.dll_path,                  L"Path to a known-working SteamAPI dll for this game.",       dll_ini,         L"Steam.System",          L"SteamPipeDLL"),
     ConfigEntry (steam.callbacks.throttle,               L"-1=Unlimited, 0-oo=Upper bound limit to SteaAPI rate",      dll_ini,         L"Steam.System",          L"CallbackThrottle"),
 
+    // This option is per-game, since it has potential compatibility issues...
     ConfigEntry (steam.screenshots.smart_capture,        L"Enhanced screenshot speed and HUD options; D3D11-only.",    dll_ini,         L"Steam.Screenshots",     L"EnableSmartCapture"),
+
+    // These are all system-wide for all Steam games
+    ConfigEntry (steam.screenshots.include_osd_default,  L"Should a screenshot triggered BY Steam include SK's OSD?",  achievement_ini, L"Steam.Screenshots",     L"DefaultKeybindCapturesOSD"),
+    ConfigEntry (steam.screenshots.keep_png_copy,        L"Keep a .PNG compressed copy of each screenshot?",           achievement_ini, L"Steam.Screenshots",     L"KeepLosslessPNG"),
+
+    Keybind     (&config.steam.screenshots.game_hud_free_keybind,
+                                                         L"Take a screenshot without the HUD",                         achievement_ini, L"Steam.Screenshots"),
+    Keybind     (&config.steam.screenshots.sk_osd_free_keybind,
+                                                         L"Take a screenshot without SK's OSD",                        achievement_ini, L"Steam.Screenshots"),
+    Keybind     (&config.steam.screenshots.sk_osd_insertion_keybind,
+                                                         L"Take a screenshot and insert SK's OSD",                     achievement_ini, L"Steam.Screenshots"),
+
 
     // Swashbucklers pay attention
     //////////////////////////////////////////////////////////////////////////
@@ -988,6 +1042,14 @@ SK_LoadConfigEx (std::wstring name, bool create)
     {
       *decl.parameter_ =
         SK_CreateINIParameter <sk::ParameterVec2f> (decl.description_, decl.ini_, decl.section_, decl.key_);
+
+      continue;
+    }
+
+    if ( decl.type_ == std::type_index ( typeid ( SK_ConfigSerializedKeybind* ) ) )
+    {
+      ((SK_ConfigSerializedKeybind *)decl.parameter_)->param =
+        DeclKeybind ( (SK_ConfigSerializedKeybind *)decl.parameter_, decl.ini_, decl.section_ );
 
       continue;
     }
@@ -1767,10 +1829,6 @@ SK_LoadConfigEx (std::wstring name, bool create)
     {
       //if (config.render.dxgi.allow_tearing) config.render.framerate.flip_discard = true;
     }
-
-    extern bool SK_DXGI_use_factory1;
-    if (config.render.framerate.flip_discard)
-      SK_DXGI_use_factory1 = true;
   }
 
   render.dxgi.adapter_override->load (config.render.dxgi.adapter_override);
@@ -2170,7 +2228,13 @@ SK_LoadConfigEx (std::wstring name, bool create)
                                       throttle );
   }
 
-  steam.screenshots.smart_capture->load    (config.steam.screenshots.enable_hook);
+  steam.screenshots.smart_capture->load       (config.steam.screenshots.enable_hook);
+  steam.screenshots.include_osd_default->load (config.steam.screenshots.show_osd_by_default);
+  steam.screenshots.keep_png_copy->load       (config.steam.screenshots.png_compress);
+
+  LoadKeybind (&config.steam.screenshots.game_hud_free_keybind);
+  LoadKeybind (&config.steam.screenshots.sk_osd_free_keybind);
+  LoadKeybind (&config.steam.screenshots.sk_osd_insertion_keybind);
 
 
   // Setup sane initial values
@@ -2939,6 +3003,9 @@ SK_SaveConfig ( std::wstring name,
   steam.drm.spoof_BLoggedOn->store          (config.steam.spoof_BLoggedOn);
 
   steam.screenshots.smart_capture->store    (config.steam.screenshots.enable_hook);
+  steam.screenshots.include_osd_default->
+                                   store    (config.steam.screenshots.show_osd_by_default);
+  steam.screenshots.keep_png_copy->store    (config.steam.screenshots.png_compress);
 
   silent->store                             (config.system.silent);
   log_level->store                          (config.system.log_level);
