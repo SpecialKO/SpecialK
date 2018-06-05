@@ -1,4 +1,10 @@
-#if 0
+#include <SpecialK/render/d3d11/d3d11_interfaces.h>
+#include <SpecialK/render/d3d11/d3d11_3.h>
+
+#include <atlbase.h>
+
+extern volatile LONG __SKX_ComputeAntiStall;
+
 class SK_IWrapD3D11DeviceContext : public ID3D11DeviceContext
 {
 public:
@@ -591,7 +597,10 @@ public:
           _In_  ID3D11CommandList *pCommandList,
           BOOL RestoreContextState) override
         {
-          return pReal->ExecuteCommandList (pCommandList, RestoreContextState);
+          if (ReadAcquire (&__SKX_ComputeAntiStall) != 0)
+            RestoreContextState = FALSE;
+
+          pReal->ExecuteCommandList (pCommandList, RestoreContextState);
         }
         
         virtual void STDMETHODCALLTYPE HSSetShaderResources (
@@ -1166,6 +1175,9 @@ public:
           /* [annotation] */
           _Out_opt_  ID3D11CommandList **ppCommandList) override
         {
+          if (ReadAcquire (&__SKX_ComputeAntiStall) != 0)
+            RestoreDeferredContextState = FALSE;
+
           return pReal->FinishCommandList (RestoreDeferredContextState, ppCommandList);
         }
 
@@ -1174,4 +1186,3 @@ private:
   volatile LONG        refs_ = 1;
   ID3D11DeviceContext* pReal;
 };
-#endif

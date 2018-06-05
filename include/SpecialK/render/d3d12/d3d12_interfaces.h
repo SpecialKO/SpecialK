@@ -166,7 +166,6 @@ typedef interface ID3D12Device ID3D12Device;
 #include "oaidl.h"
 #include "ocidl.h"
 #include "dxgi.h"
-#include "d3dcommon.h"
 
 #ifdef __cplusplus
 extern "C"{

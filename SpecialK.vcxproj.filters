@@ -618,6 +618,18 @@
     <ClInclude Include="depends\include\steamapi\steamuniverse.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\SpecialK\render\d3d11\d3d11_interfaces.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\render\d3d11\d3d11_3.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\render\d3d11\d3d11_4.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\render\dxgi\dxgi1_5.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stdafx.cpp">
@@ -860,9 +872,6 @@
     <ClCompile Include="src\tls.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\render\d3d9\d3d9_texmgr.cpp">
-      <Filter>Source Files\Backends\Render\D3D9</Filter>
-    </ClCompile>
     <ClCompile Include="src\injection\injection.cpp">
       <Filter>Source Files\Backends\Injection</Filter>
     </ClCompile>
@@ -964,6 +973,9 @@
     </ClCompile>
     <ClCompile Include="src\diagnostics\cpu.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\d3d9\d3d9_texmgr.cpp">
+      <Filter>Source Files\Backends\Render\D3D9</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

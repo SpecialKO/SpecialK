@@ -253,7 +253,24 @@ ImGui_DX11Startup ( IDXGISwapChain* pSwapChain )
     //assert (pD3D11Dev.IsEqualObject (rb.device) ||
     //                                 rb.device == nullptr);
 
-    pD3D11Dev->GetImmediateContext (&pImmediateContext);
+    // ------------
+    CComQIPtr <ID3D11Device>        pTestDev0 (rb.device);
+    CComPtr   <ID3D11Device>        pTestDev1 = nullptr;
+    CComQIPtr <ID3D11DeviceContext> pDevCtx   (rb.d3d11.immediate_ctx);
+
+    if (pDevCtx != nullptr)
+    {
+      pDevCtx->GetDevice (&pTestDev1);
+
+      if (pTestDev0.IsEqualObject (pTestDev1))
+      {
+        pImmediateContext = pDevCtx;
+      }
+    }
+    // -----------
+
+    if (! pImmediateContext)
+      pD3D11Dev->GetImmediateContext (&pImmediateContext);
 
     //assert (pImmediateContext.IsEqualObject (rb.d3d11.immediate_ctx) ||
     //                                         rb.d3d11.immediate_ctx == nullptr);
@@ -6592,6 +6609,8 @@ SK_DXGI_HookFactory (IDXGIFactory* pFactory)
 
 #include <mmsystem.h>
 #include <d3d11_2.h>
+#include <SPecialK/render/d3d11/d3d11_3.h>
+#include <SPecialK/render/d3d11/d3d11_4.h>
 #include <SpecialK/com_util.h>
 
 void
@@ -6735,11 +6754,59 @@ HookDXGI (LPVOID user)
                   pDevice1.Release ();
         pImmediateContext->Release ();
 
-        pDevice2->GetImmediateContext2   (      (ID3D11DeviceContext2 **)&pImmediateContext);
-        pDevice2->CreateDeferredContext2 (0x00, (ID3D11DeviceContext2 **)&pDeferredContext);
+        CComQIPtr <ID3D11Device3> pDevice3 (pDevice2);
 
-        pDevice = pDevice2;
-        pDevice->AddRef ();
+        if (pDevice3 != nullptr)
+        {
+          pDevice2.Release ();
+
+          CComQIPtr <ID3D11Device4> pDevice4 (pDevice3);
+
+          if (pDevice4 != nullptr)
+          {
+            pDevice3.Release ();
+
+            CComQIPtr <ID3D11Device5> pDevice5 (pDevice4);
+
+            if (pDevice5 != nullptr)
+            {
+              pDevice4.Release ();
+
+              pDevice5->GetImmediateContext3   (      (ID3D11DeviceContext3 **)&pImmediateContext);
+              pDevice5->CreateDeferredContext3 (0x00, (ID3D11DeviceContext3 **)&pDeferredContext);
+
+              pDevice = pDevice5;
+              pDevice->AddRef ();
+            }
+
+            else
+            {
+              pDevice4->GetImmediateContext3   (      (ID3D11DeviceContext3 **)&pImmediateContext);
+              pDevice4->CreateDeferredContext3 (0x00, (ID3D11DeviceContext3 **)&pDeferredContext);
+
+              pDevice = pDevice4;
+              pDevice->AddRef ();
+            }
+          }
+
+          else
+          {
+            pDevice3->GetImmediateContext3   (      (ID3D11DeviceContext3 **)&pImmediateContext);
+            pDevice3->CreateDeferredContext3 (0x00, (ID3D11DeviceContext3 **)&pDeferredContext);
+
+            pDevice = pDevice3;
+            pDevice->AddRef ();
+          }
+        }
+
+        else
+        {
+          pDevice2->GetImmediateContext2   (      (ID3D11DeviceContext2 **)&pImmediateContext);
+          pDevice2->CreateDeferredContext2 (0x00, (ID3D11DeviceContext2 **)&pDeferredContext);
+
+          pDevice = pDevice2;
+          pDevice->AddRef ();
+        }
       }
 
       else

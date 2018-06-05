@@ -210,7 +210,7 @@ extern "C" __declspec (dllexport) FARPROC D3DPerformance_SetMarker              
 
 
 
-bool __SKX_ComputeAntiStall = true;
+volatile LONG __SKX_ComputeAntiStall = 1;
 
 
 INT
@@ -2343,10 +2343,12 @@ d3d11_shader_tracking_s::activate ( ID3D11DeviceContext        *pDevContext,
   }
 
 
-  bool is_active = active;
+  bool is_active = active.get (pDevContext);
 
-  if ((! is_active) && active.compare_exchange_weak (is_active, true))
+  if ((! is_active))
   {
+    active.set (pDevContext, true);
+
     switch (type_)
     {
       case SK_D3D11_ShaderType::Vertex:
@@ -2375,8 +2377,8 @@ d3d11_shader_tracking_s::activate ( ID3D11DeviceContext        *pDevContext,
 
 
   // Figure out the proper way to deal with this later...
-  if (pDevContext->GetType () == D3D11_DEVICE_CONTEXT_DEFERRED)
-    return;
+  ///if (pDevContext->GetType () == D3D11_DEVICE_CONTEXT_DEFERRED)
+  ///  return;
 
 
   CComPtr <ID3D11Device>        dev     = nullptr;
@@ -2385,9 +2387,11 @@ d3d11_shader_tracking_s::activate ( ID3D11DeviceContext        *pDevContext,
   SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
-  if ( rb.device != nullptr                       && rb.d3d11.immediate_ctx != nullptr &&
-       SUCCEEDED (rb.device->QueryInterface              <ID3D11Device>        (&dev)) &&
-       SUCCEEDED (rb.d3d11.immediate_ctx->QueryInterface <ID3D11DeviceContext> (&dev_ctx)) )
+  if ( rb.device != nullptr                       && rb.d3d11.immediate_ctx != nullptr     &&
+       SUCCEEDED (rb.device->QueryInterface              <ID3D11Device>        (&dev))     &&
+       SUCCEEDED (rb.d3d11.immediate_ctx->QueryInterface <ID3D11DeviceContext> (&dev_ctx)) &&
+       pDevContext != nullptr                                                              &&
+       pDevContext->GetType () != D3D11_DEVICE_CONTEXT_DEFERRED )
   {
     if (ReadPointerAcquire ((void **)&disjoint_query.async) == nullptr && timers.empty ())
     {
@@ -2426,48 +2430,67 @@ d3d11_shader_tracking_s::activate ( ID3D11DeviceContext        *pDevContext,
 }
 
 void
-d3d11_shader_tracking_s::deactivate (void)
+d3d11_shader_tracking_s::deactivate (ID3D11DeviceContext* pDevCtx)
 {
-  bool is_active = active;
+  SK_RenderBackend& rb =
+    SK_GetCurrentRenderBackend ();
 
-  if (is_active && active.compare_exchange_weak (is_active, false))
+  bool is_active = active.get (pDevCtx);
+
+  if (is_active)
   {
-    //switch (type_)
-    //{
-    //  case SK_D3D11_ShaderType::Vertex:
-    //    SK_D3D11_Shaders.vertex.current   = 0x0;
-    //    break;
-    //  case SK_D3D11_ShaderType::Pixel:
-    //    SK_D3D11_Shaders.pixel.current    = 0x0;
-    //    break;
-    //  case SK_D3D11_ShaderType::Geometry:
-    //    SK_D3D11_Shaders.geometry.current = 0x0;
-    //    break;
-    //  case SK_D3D11_ShaderType::Domain:
-    //    SK_D3D11_Shaders.domain.current   = 0x0;
-    //    break;
-    //  case SK_D3D11_ShaderType::Hull:
-    //    SK_D3D11_Shaders.hull.current     = 0x0;
-    //    break;
-    //  case SK_D3D11_ShaderType::Compute:
-    //    SK_D3D11_Shaders.compute.current  = 0x0;
-    //    break;
-    //}
+    active.set (pDevCtx, false);
+
+    bool end_of_frame = false;
+
+    if (pDevCtx == nullptr)
+    {
+      end_of_frame = true;
+      pDevCtx      = (ID3D11DeviceContext *)rb.d3d11.immediate_ctx.p;
+    }
+
+    switch (type_)
+    {
+      case SK_D3D11_ShaderType::Vertex:
+        SK_D3D11_Shaders.vertex.current.shader [pDevCtx]   = 0x0;
+        break;
+      case SK_D3D11_ShaderType::Pixel:
+        SK_D3D11_Shaders.pixel.current.shader [pDevCtx]    = 0x0;
+        break;
+      case SK_D3D11_ShaderType::Geometry:
+        SK_D3D11_Shaders.geometry.current.shader [pDevCtx] = 0x0;
+        break;
+      case SK_D3D11_ShaderType::Domain:
+        SK_D3D11_Shaders.domain.current.shader [pDevCtx]   = 0x0;
+        break;
+      case SK_D3D11_ShaderType::Hull:
+        SK_D3D11_Shaders.hull.current.shader [pDevCtx]     = 0x0;
+        break;
+      case SK_D3D11_ShaderType::Compute:
+        SK_D3D11_Shaders.compute.current.shader [pDevCtx]  = 0x0;
+        break;
+    }
+
+    if(end_of_frame) return;
   }
 
   else
     return;
 
 
+  // Figure out the proper way to deal with this later...
+  ///if (pDevContext->GetType () == D3D11_DEVICE_CONTEXT_DEFERRED)
+  ///  return;
+
+
   CComPtr <ID3D11Device>        dev     = nullptr;
   CComPtr <ID3D11DeviceContext> dev_ctx = nullptr;
-
-  SK_RenderBackend& rb =
-    SK_GetCurrentRenderBackend ();
 
   if ( rb.device != nullptr                           && rb.d3d11.immediate_ctx != nullptr &&
        SUCCEEDED (rb.device->QueryInterface              <ID3D11Device>        (&dev))     &&
        SUCCEEDED (rb.d3d11.immediate_ctx->QueryInterface <ID3D11DeviceContext> (&dev_ctx)) && 
+       pDevCtx != nullptr                                                                  &&
+       pDevCtx->GetType () == D3D11_DEVICE_CONTEXT_IMMEDIATE                               &&
 
          ReadAcquire (&disjoint_query.active) )
   {
@@ -3364,7 +3387,7 @@ SK_D3D11_SetShader_Impl ( ID3D11DeviceContext* pDevCtx, IUnknown* pShader, sk_sh
   // ImGui gets to pass-through without invoking the hook
   if (SK_TLS_Bottom ()->imgui.drawing || (! SK_D3D11_EnableTracking))
   {
-    pShaderRepo->tracked.deactivate ();
+    pShaderRepo->tracked.deactivate (pDevCtx);
   
     return Finish ();
   }
@@ -3398,7 +3421,7 @@ SK_D3D11_SetShader_Impl ( ID3D11DeviceContext* pDevCtx, IUnknown* pShader, sk_sh
     }
   }
 
-  pShaderRepo->tracked.deactivate ();
+  pShaderRepo->tracked.deactivate (pDevCtx);
 
   return Finish ();
 }
@@ -3818,7 +3841,7 @@ D3D11_VSSetShaderResources_Override (
       SK_D3D11_Shaders.vertex.tracked;
 
     uint32_t shader_crc32c = tracked.crc32c.load ();
-    bool     active        = tracked.active.load ();
+    bool     active        = tracked.active.get (This);
 
     for (UINT i = 0; i < NumViews; i++)
     {
@@ -3874,9 +3897,9 @@ D3D11_PSSetShaderResources_Override (
       SK_D3D11_Shaders.pixel.tracked;
 
     uint32_t shader_crc32c = tracked.crc32c.load ();
-    bool     active        = tracked.active.load ();
+    bool     active        = tracked.active.get (This);
 
-  if (! __SKX_ComputeAntiStall)
+  if (! ReadAcquire (&__SKX_ComputeAntiStall))
   {
     for (UINT i = 0; i < NumViews; i++)
     {
@@ -3948,7 +3971,7 @@ D3D11_GSSetShaderResources_Override (
       SK_D3D11_Shaders.geometry.tracked;
 
     uint32_t shader_crc32c = tracked.crc32c.load ();
-    bool     active        = tracked.active.load ();
+    bool     active        = tracked.active.get (This);
 
     for (UINT i = 0; i < NumViews; i++)
     {
@@ -4004,7 +4027,7 @@ D3D11_HSSetShaderResources_Override (
       SK_D3D11_Shaders.hull.tracked;
 
     uint32_t shader_crc32c = tracked.crc32c.load ();
-    bool     active        = tracked.active.load ();
+    bool     active        = tracked.active.get (This);
 
     for (UINT i = 0; i < NumViews; i++)
     {
@@ -4060,7 +4083,7 @@ D3D11_DSSetShaderResources_Override (
       SK_D3D11_Shaders.domain.tracked;
 
     uint32_t shader_crc32c = tracked.crc32c.load ();
-    bool     active        = tracked.active.load ();
+    bool     active        = tracked.active.get (This);
 
     for (UINT i = 0; i < NumViews; i++)
     {
@@ -4116,7 +4139,7 @@ D3D11_CSSetShaderResources_Override (
       SK_D3D11_Shaders.compute.tracked;
 
     uint32_t shader_crc32c = tracked.crc32c.load ();
-    bool     active        = tracked.active.load ();
+    bool     active        = tracked.active.get (This);
 
     for (UINT i = 0; i < NumViews; i++)
     {
@@ -5640,12 +5663,12 @@ SK_D3D11_DrawHandler (ID3D11DeviceContext* pDevCtx)
     }
   });
 
-  for (int i = 0; i < 5; i++) { if (GetTracker (i)->active) GetTracker (i)->use (nullptr); }
+  for (int i = 0; i < 5; i++) { if (GetTracker (i)->active.get (pDevCtx)) GetTracker (i)->use (nullptr); }
   for (int i = 0; i < 5; i++)
   {
     auto *pTracker = GetTracker (i);
 
-    if (pTracker->active)
+    if (pTracker->active.get (pDevCtx))
     {
       if (pTracker->cancel_draws) return true;
 
@@ -6041,7 +6064,7 @@ SK_D3D11_DrawHandler (ID3D11DeviceContext* pDevCtx)
           {
             if (pConstantBuffers [j] != nullptr)
             {
-              if (__SKX_ComputeAntiStall)
+              if (ReadAcquire (&__SKX_ComputeAntiStall))
               {
                 D3D11_BOX src = { };
 
@@ -6106,7 +6129,7 @@ SK_D3D11_DrawHandler (ID3D11DeviceContext* pDevCtx)
 void
 SK_D3D11_PostDispatch (ID3D11DeviceContext* pDevCtx)
 {
-  if (SK_D3D11_Shaders.compute.tracked.active)
+  if (SK_D3D11_Shaders.compute.tracked.active.get (pDevCtx))
   {
     SK_TLS *pTLS =
       SK_TLS_Bottom ();
@@ -6155,7 +6178,7 @@ SK_D3D11_DispatchHandler (ID3D11DeviceContext* pDevCtx)
         tracked_rtv.ref_cs.insert (SK_D3D11_Shaders.compute.current.shader [pDevCtx]);
     }
 
-    if (SK_D3D11_Shaders.compute.tracked.active) { SK_D3D11_Shaders.compute.tracked.use (nullptr); }
+    if (SK_D3D11_Shaders.compute.tracked.active.get (pDevCtx)) { SK_D3D11_Shaders.compute.tracked.use (nullptr); }
   }
 
   SK_TLS *pTLS =
@@ -6253,7 +6276,7 @@ SK_D3D11_DispatchHandler (ID3D11DeviceContext* pDevCtx)
           {
             if (pConstantBuffers [j] != nullptr)
             {
-              if (__SKX_ComputeAntiStall)
+              if (ReadAcquire (&__SKX_ComputeAntiStall))
               {
                 D3D11_BOX src = { };
 
@@ -10378,8 +10401,23 @@ D3D11Dev_CreateTexture2D_Impl (
   }
 
 
-  ID3D11DeviceContext*        pDevCtx;
-  This->GetImmediateContext (&pDevCtx);
+  // ------------
+  SK_RenderBackend& rb = SK_GetCurrentRenderBackend ();
+
+  CComPtr   <ID3D11Device>        pTestDev (This);
+  CComQIPtr <ID3D11DeviceContext> pDevCtx  (rb.d3d11.immediate_ctx);
+
+  if (pDevCtx != nullptr)
+  {
+    pDevCtx->GetDevice (&pTestDev);
+    if (! pTestDev.IsEqualObject (This))
+    {
+      This->GetImmediateContext (&pDevCtx);
+    }
+  }
+  // -----------
+
+
 
   SK_D3D11_TextureResampler.processFinished (This, pDevCtx);
 
@@ -12053,6 +12091,9 @@ SK_D3D11_HookDevCtx (sk_hook_d3d11_t *pHooks)
 }
 
 
+#include <d3d11.h>
+#include <../src/render/d3d11/d3d11_dev_ctx.cpp>
+
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
@@ -12065,16 +12106,28 @@ D3D11Dev_CreateDeferredContext_Override (
 
   if (ppDeferredContext != nullptr)
   {
+    static Concurrency::concurrent_unordered_map
+      <        ID3D11DeviceContext *,
+        SK_IWrapD3D11DeviceContext * > wrapped_contexts;
+
     ID3D11DeviceContext* pTemp = nullptr;
     HRESULT              hr    =
       D3D11Dev_CreateDeferredContext_Original (This, ContextFlags, &pTemp);
 
     if (SUCCEEDED (hr))
     {
-      sk_hook_d3d11_t       hook_ctx { nullptr, &pTemp };
-      SK_D3D11_HookDevCtx (&hook_ctx);
+      ////sk_hook_d3d11_t       hook_ctx { nullptr, &pTemp };
+      ////SK_D3D11_HookDevCtx (&hook_ctx);
 
-      //*ppDeferredContext = new SK_IWrapD3D11DeviceContext (pTemp);
+      *ppDeferredContext = new SK_IWrapD3D11DeviceContext (pTemp);
+
+      if (wrapped_contexts.count (pTemp) == 0)
+        wrapped_contexts [pTemp] = new SK_IWrapD3D11DeviceContext (pTemp);
+      
+      *ppDeferredContext =
+        dynamic_cast <ID3D11DeviceContext *> (wrapped_contexts [pTemp]);
+      
+      return hr;
     }
 
     *ppDeferredContext = pTemp;
@@ -12086,6 +12139,8 @@ D3D11Dev_CreateDeferredContext_Override (
     return D3D11Dev_CreateDeferredContext_Original (This, ContextFlags, nullptr);
 }
 
+#include <concurrent_unordered_map.h>
+
 _declspec (noinline)
 void
 STDMETHODCALLTYPE
@@ -12093,22 +12148,28 @@ D3D11Dev_GetImmediateContext_Override (
   _In_            ID3D11Device         *This,
   _Out_           ID3D11DeviceContext **ppImmediateContext )
 {
-  //static std::unordered_map <        ID3D11DeviceContext *,
-  //                            SK_IWrapD3D11DeviceContext * > wrapped_contexts;
+  if (config.system.log_level > 1)
+  {
+    DXGI_LOG_CALL_0 (L"ID3D11Device::GetImmediateContext");
+  }
+
+  static Concurrency::concurrent_unordered_map
+    <        ID3D11DeviceContext *,
+      SK_IWrapD3D11DeviceContext * > wrapped_contexts;
 
   ID3D11DeviceContext* pCtx = nullptr;
 
   D3D11Dev_GetImmediateContext_Original (This, &pCtx);
 
-  sk_hook_d3d11_t       hook_ctx { nullptr, &pCtx };
-  SK_D3D11_HookDevCtx (&hook_ctx);
+  ///sk_hook_d3d11_t       hook_ctx { nullptr, &pCtx };
+  ///SK_D3D11_HookDevCtx (&hook_ctx);
 
-  //if (wrapped_contexts.count (pCtx) == 0)
-  //  wrapped_contexts [pCtx] = new SK_IWrapD3D11DeviceContext (pCtx);
-  //
-  //*ppImmediateContext =
-  //  dynamic_cast <ID3D11DeviceContext *> (wrapped_contexts [pCtx]);
-  *ppImmediateContext = pCtx;
+  if (wrapped_contexts.count (pCtx) == 0)
+    wrapped_contexts [pCtx] = new SK_IWrapD3D11DeviceContext (pCtx);
+  
+  *ppImmediateContext =
+    dynamic_cast <ID3D11DeviceContext *> (wrapped_contexts [pCtx]);
+//*ppImmediateContext = pCtx;
 }
 
 
@@ -12282,17 +12343,17 @@ HookD3D11 (LPVOID user)
                                 D3D11Dev_CreateSamplerState_Original,
                                 D3D11Dev_CreateSamplerState_pfn );
 
-    //DXGI_VIRTUAL_HOOK ( pHooks->ppDevice,     27,
-    //                      "ID3D11Device::CreateDeferredContext",
-    //                            D3D11Dev_CreateDeferredContext_Override,
-    //                            D3D11Dev_CreateDeferredContext_Original,
-    //                            D3D11Dev_CreateDeferredContext_pfn );
-    //
-    //DXGI_VIRTUAL_HOOK ( pHooks->ppDevice,     40,
-    //                      "ID3D11Device::GetImmediateContext",
-    //                            D3D11Dev_GetImmediateContext_Override,
-    //                            D3D11Dev_GetImmediateContext_Original,
-    //                            D3D11Dev_GetImmediateContext_pfn );
+    DXGI_VIRTUAL_HOOK ( pHooks->ppDevice,     27,
+                          "ID3D11Device::CreateDeferredContext",
+                                D3D11Dev_CreateDeferredContext_Override,
+                                D3D11Dev_CreateDeferredContext_Original,
+                                D3D11Dev_CreateDeferredContext_pfn );
+
+    DXGI_VIRTUAL_HOOK ( pHooks->ppDevice,     40,
+                          "ID3D11Device::GetImmediateContext",
+                                D3D11Dev_GetImmediateContext_Override,
+                                D3D11Dev_GetImmediateContext_Original,
+                                D3D11Dev_GetImmediateContext_pfn );
 
 #if 1
     SK_D3D11_HookDevCtx (pHooks);
@@ -15384,9 +15445,11 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 
     else
     {
-      if (ImGui::Checkbox ("Use ComputeShader Anti-Stall For Buffer Injection", &__SKX_ComputeAntiStall))
+      bool antistall = (ReadAcquire (&__SKX_ComputeAntiStall) != 0);
+
+      if (ImGui::Checkbox ("Use ComputeShader Anti-Stall For Buffer Injection", &antistall))
       {
-        //
+        InterlockedExchange (&__SKX_ComputeAntiStall, antistall ? 1 : 0);
       }
     }
 
@@ -15785,6 +15848,9 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 void
 SK_D3D11_EndFrame (void)
 {
+  SK_RenderBackend& rb =
+    SK_GetCurrentRenderBackend ();
+
   std::lock_guard <SK_Thread_CriticalSection> auto_lock (cs_render_view);
 
   dwFrameTime = SK::ControlPanel::current_time;
@@ -15807,12 +15873,12 @@ SK_D3D11_EndFrame (void)
     it.second = false;
 
 
-  SK_D3D11_Shaders.vertex.tracked.deactivate   ();
-  SK_D3D11_Shaders.pixel.tracked.deactivate    ();
-  SK_D3D11_Shaders.geometry.tracked.deactivate ();
-  SK_D3D11_Shaders.hull.tracked.deactivate     ();
-  SK_D3D11_Shaders.domain.tracked.deactivate   ();
-  SK_D3D11_Shaders.compute.tracked.deactivate  ();
+  SK_D3D11_Shaders.vertex.tracked.deactivate   ( nullptr );
+  SK_D3D11_Shaders.pixel.tracked.deactivate    ( nullptr );
+  SK_D3D11_Shaders.geometry.tracked.deactivate ( nullptr );
+  SK_D3D11_Shaders.hull.tracked.deactivate     ( nullptr );
+  SK_D3D11_Shaders.domain.tracked.deactivate   ( nullptr );
+  SK_D3D11_Shaders.compute.tracked.deactivate  ( nullptr );
 
   for ( auto&& it : SK_D3D11_Shaders.vertex.current.views   ) { for (auto&& it2 : it.second ) it2 = nullptr; }
   for ( auto&& it : SK_D3D11_Shaders.pixel.current.views    ) { for (auto&& it2 : it.second ) it2 = nullptr; }
@@ -15833,9 +15899,6 @@ SK_D3D11_EndFrame (void)
 
   CComPtr <ID3D11Device>        pDev    = nullptr;
   CComPtr <ID3D11DeviceContext> pDevCtx = nullptr;
-
-  SK_RenderBackend& rb =
-    SK_GetCurrentRenderBackend ();
 
   if (            rb.device                                         &&
        SUCCEEDED (rb.device->QueryInterface <ID3D11Device> (&pDev)) &&
@@ -17868,6 +17931,8 @@ SK_D3D11_GetCommands (void)
 #define SK_D3D11_Commands SK_D3D11_GetCommands ()
 
 
+#include <SpecialK/render/d3d11/d3d11_3.h>
+
 //SK_ICommand
 //{
 //  virtual SK_ICommandResult execute (const char* szArgs) = 0;
@@ -17913,7 +17978,24 @@ public:
 
     if (pDev.p != nullptr)
     {
-      pDev->GetImmediateContext (&pImmediateCtx);
+      SK_RenderBackend& rb =
+        SK_GetCurrentRenderBackend ();
+
+      if (! ( pDev.IsEqualObject (rb.device) &&
+                                  rb.d3d11.immediate_ctx != nullptr )
+         )
+      {
+        pDev->GetImmediateContext (&pImmediateCtx);
+      }
+      else
+        pImmediateCtx = rb.d3d11.immediate_ctx;
+
+      CComQIPtr <ID3D11DeviceContext3>
+          pImmediateCtx3 (pImmediateCtx);
+      if (pImmediateCtx3 != nullptr)
+      {
+        pImmediateCtx = pImmediateCtx3;
+      }
 
       D3D11_QUERY_DESC fence_query_desc =
       {
@@ -17978,6 +18060,11 @@ public:
                 pImmediateCtx->ResolveSubresource ( pStagingBackbufferCopy, 0,
                                                     pBackbufferSurface,     0,
                                                     framebuffer.NativeFormat );
+              }
+
+              if (pImmediateCtx3 != nullptr)
+              {
+                pImmediateCtx3->Flush1 (D3D11_CONTEXT_TYPE_COPY, nullptr);
               }
 
               pImmediateCtx->End          (pPixelBufferFence);

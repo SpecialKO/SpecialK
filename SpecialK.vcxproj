@@ -682,8 +682,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DataExecutionPrevention>true</DataExecutionPrevention>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;comctl32.dll;wininet.dll;ole32.dll;OLEAUT32.dll;userenv.dll</DelayLoadDLLs>
+      <DataExecutionPrevention>false</DataExecutionPrevention>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;comctl32.dll;wininet.dll;ole32.dll;PSAPI.DLL</DelayLoadDLLs>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
@@ -1504,9 +1504,9 @@ Exit 0</Command>
       <AssemblyDebug>true</AssemblyDebug>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
-      <DataExecutionPrevention>true</DataExecutionPrevention>
+      <DataExecutionPrevention>false</DataExecutionPrevention>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;comctl32.dll;wininet.dll;ole32.dll;OLEAUT32.dll;userenv.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;comctl32.dll;wininet.dll;ole32.dll;PSAPI.DLL</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
       <EntryPointSymbol>
@@ -2381,6 +2381,9 @@ Exit 0</Command>
     <ClInclude Include="include\SpecialK\config.h" />
     <ClInclude Include="include\SpecialK\console.h" />
     <ClInclude Include="include\SpecialK\core.h" />
+    <ClInclude Include="include\SpecialK\render\d3d11\d3d11_3.h" />
+    <ClInclude Include="include\SpecialK\render\d3d11\d3d11_4.h" />
+    <ClInclude Include="include\SpecialK\render\d3d11\d3d11_interfaces.h" />
     <ClInclude Include="include\SpecialK\render\d3d12\d3d12_interfaces.h" />
     <ClInclude Include="include\SpecialK\render\d3d8\d3d8_backend.h" />
     <ClInclude Include="include\SpecialK\render\d3d9\d3d9_texmgr.h" />
@@ -2389,6 +2392,7 @@ Exit 0</Command>
     <ClInclude Include="include\SpecialK\diagnostics\compatibility.h" />
     <ClInclude Include="include\SpecialK\diagnostics\crash_handler.h" />
     <ClInclude Include="include\SpecialK\diagnostics\debug_utils.h" />
+    <ClInclude Include="include\SpecialK\render\dxgi\dxgi1_5.h" />
     <ClInclude Include="include\SpecialK\render\dxgi\dxgi_backend.h" />
     <ClInclude Include="include\SpecialK\render\dxgi\dxgi_hdr.h" />
     <ClInclude Include="include\SpecialK\render\dxgi\dxgi_interfaces.h" />

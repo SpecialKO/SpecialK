@@ -945,14 +945,52 @@ struct d3d11_shader_tracking_s
   void activate   ( ID3D11DeviceContext        *pDevContext,
                     ID3D11ClassInstance *const *ppClassInstances,
                     UINT                        NumClassInstances );
-  void deactivate (void);
+  void deactivate ( ID3D11DeviceContext        *pDevContext );
 
   std::atomic_uint32_t    crc32c           =  0x00;
   std::atomic_bool        cancel_draws     = false;
   std::atomic_bool        highlight_draws  = false;
   std::atomic_bool        wireframe        = false;
   std::atomic_bool        on_top           =  true;
-  std::atomic_bool        active           = false;
+
+  struct
+  {
+    concurrency::concurrent_unordered_map <ID3D11DeviceContext *, bool>
+      contexts;
+
+    // Only examine the hash map when at least one context is active,
+    //   or we will kill performance!
+    volatile LONG
+      active_count = 0L; 
+
+    bool get (ID3D11DeviceContext* pDevCtx)
+    {
+      if (ReadAcquire (&active_count) > 0)
+      {
+        return contexts [pDevCtx];
+      }
+
+      return false;
+    }
+
+    void set (ID3D11DeviceContext* pDevCtx, bool active)
+    {
+      if (ReadAcquire (&active_count) > 0 || active == true)
+      {
+        auto it = contexts.find (pDevCtx);
+
+        if (it == contexts.end () || it->second != active)
+        {
+               if (active) InterlockedIncrement (&active_count);
+          else if (ReadAcquire (&active_count) > 0)
+                           InterlockedDecrement (&active_count);
+
+          contexts [pDevCtx] = active;
+        }
+      }
+    }
+  } active;
+
   std::atomic_ulong       num_draws        =     0;
 
 
