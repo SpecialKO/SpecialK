@@ -683,7 +683,7 @@
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
       <DataExecutionPrevention>false</DataExecutionPrevention>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;comctl32.dll;wininet.dll;ole32.dll;PSAPI.DLL</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;comctl32.dll;wininet.dll</DelayLoadDLLs>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
@@ -706,7 +706,7 @@
       <ForceSymbolReferences>
       </ForceSymbolReferences>
       <Profile>true</Profile>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
       <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
       <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
       <TurnOffAssemblyGeneration>true</TurnOffAssemblyGeneration>
@@ -1506,7 +1506,7 @@ Exit 0</Command>
       <MapExports>false</MapExports>
       <DataExecutionPrevention>false</DataExecutionPrevention>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;comctl32.dll;wininet.dll;ole32.dll;PSAPI.DLL</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;comctl32.dll;wininet.dll</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
       <EntryPointSymbol>
@@ -1528,7 +1528,7 @@ Exit 0</Command>
       <ForceSymbolReferences>
       </ForceSymbolReferences>
       <Profile>true</Profile>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
       <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
       <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
       <TurnOffAssemblyGeneration>true</TurnOffAssemblyGeneration>

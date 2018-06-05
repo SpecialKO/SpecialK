@@ -40,6 +40,7 @@ extern volatile LONG _SK_IgnoreTLSAlloc;
 
 volatile long __SK_TLS_INDEX = TLS_OUT_OF_INDEXES;
 
+__forceinline
 SK_TlsRecord
 SK_GetTLS (bool initialize)
 {

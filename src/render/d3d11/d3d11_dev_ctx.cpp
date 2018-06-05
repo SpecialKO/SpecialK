@@ -5,6 +5,9 @@
 
 extern volatile LONG __SKX_ComputeAntiStall;
 
+extern void
+SK_D3D11_ResetContextState (ID3D11DeviceContext* pDevCtx);
+
 class SK_IWrapD3D11DeviceContext : public ID3D11DeviceContext
 {
 public:
@@ -14,7 +17,18 @@ public:
                                  dev_ctx->Release ();
   };
 
-  virtual HRESULT STDMETHODCALLTYPE QueryInterface (REFIID riid,_COM_Outptr_ void __RPC_FAR *__RPC_FAR *ppvObject) override {
+  virtual HRESULT STDMETHODCALLTYPE QueryInterface (REFIID riid,_COM_Outptr_ void __RPC_FAR *__RPC_FAR *ppvObject) override
+  {
+    if ( IsEqualGUID (riid, IID_IUnwrappedD3D11DeviceContext) )
+    {
+    //assert (ppvObject != nullptr);
+      *ppvObject = pReal;
+
+      pReal->AddRef ();
+
+      return S_OK;
+    }
+
     return pReal->QueryInterface (riid, ppvObject);
   };
 
@@ -597,10 +611,12 @@ public:
           _In_  ID3D11CommandList *pCommandList,
           BOOL RestoreContextState) override
         {
-          if (ReadAcquire (&__SKX_ComputeAntiStall) != 0)
-            RestoreContextState = FALSE;
-
           pReal->ExecuteCommandList (pCommandList, RestoreContextState);
+
+          if (! RestoreContextState)
+          {
+            SK_D3D11_ResetContextState (pReal);
+          }
         }
         
         virtual void STDMETHODCALLTYPE HSSetShaderResources (
@@ -1152,7 +1168,9 @@ public:
         
         virtual void STDMETHODCALLTYPE ClearState (void) override
         {
-          return pReal->ClearState ();
+          pReal->ClearState ();
+
+          SK_D3D11_ResetContextState (pReal);
         }
         
         virtual void STDMETHODCALLTYPE Flush (void) override
@@ -1175,10 +1193,17 @@ public:
           /* [annotation] */
           _Out_opt_  ID3D11CommandList **ppCommandList) override
         {
-          if (ReadAcquire (&__SKX_ComputeAntiStall) != 0)
-            RestoreDeferredContextState = FALSE;
+          HRESULT hr =
+            pReal->FinishCommandList (RestoreDeferredContextState, ppCommandList);
 
-          return pReal->FinishCommandList (RestoreDeferredContextState, ppCommandList);
+          //  Lord the documentation is contradictory ; assume that theway it is written,
+          //    some kind of reset always happens. Even when "Restore" means Clear (WTF?)
+          if (SUCCEEDED (hr) && (! RestoreDeferredContextState))
+          {
+            SK_D3D11_ResetContextState (pReal);
+          }
+
+          return hr;
         }
 
 protected:

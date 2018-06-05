@@ -250,7 +250,7 @@ DllMain ( HMODULE hModule,
       // Keep this DLL out of anything that doesn't handle User Interfaces,
       //   everyone will be much happier that way =P
       if (SK_KeepAway ())
-        return TRUE;
+        return FALSE;
 
 
       InterlockedExchange (&__SK_TLS_INDEX, FlsAlloc (nullptr));

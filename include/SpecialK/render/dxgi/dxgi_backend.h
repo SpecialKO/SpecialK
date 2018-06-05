@@ -1075,6 +1075,12 @@ struct d3d11_shader_tracking_s
     SK_D3D11_ShaderType type_;
 };
 
+
+static const int SK_D3D11_MAX_DEV_CONTEXTS = 64;
+
+LONG
+SK_D3D11_GetDeviceContextHandle (ID3D11DeviceContext *pCtx);
+
 struct SK_D3D11_KnownShaders
 {
   typedef std::unordered_map <uint32_t, std::unordered_set <uint32_t>> conditional_blacklist_t;
@@ -1121,10 +1127,10 @@ struct SK_D3D11_KnownShaders
     d3d11_shader_tracking_s                              tracked;
 
     struct {
-      concurrency::concurrent_unordered_map < ID3D11DeviceContext*, uint32_t>      shader;
-      concurrency::concurrent_unordered_map < ID3D11DeviceContext*,
-                           std::array 
-                             <ID3D11ShaderResourceView *, 128>> views;
+      std::array < uint32_t, SK_D3D11_MAX_DEV_CONTEXTS > shader;
+      std::array < std::array <
+                     ID3D11ShaderResourceView *, SK_D3D11_MAX_DEV_CONTEXTS >,
+                              128 > views;
     } current;
 
     volatile LONG                                        changes_last_frame = 0;
@@ -1132,10 +1138,8 @@ struct SK_D3D11_KnownShaders
     SK_D3D11_ShaderType type_;
   };
 
-  static concurrency::concurrent_unordered_map <
-    ID3D11DeviceContext *,
-    bool
-  > reshade_triggered;
+  
+  static std::array <bool, SK_D3D11_MAX_DEV_CONTEXTS> reshade_triggered;
 
   ShaderRegistry <ID3D11PixelShader>    pixel; 
   ShaderRegistry <ID3D11VertexShader>   vertex;

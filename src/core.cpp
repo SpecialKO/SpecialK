@@ -239,19 +239,6 @@ SK_SetConfigPath (const wchar_t* path)
   lstrcpynW (SKX_GetNaiveConfigPath (), path, MAX_PATH);
 }
 
-
-volatile LONG SK_RenderBackend::frames_drawn = 0;
-
-__declspec (noinline)
-ULONG
-__stdcall
-SK_GetFramesDrawn (void)
-{
-  return
-    static_cast <ULONG> (ReadNoFence (&SK_RenderBackend::frames_drawn));
-}
-
-
 void
 __stdcall
 SK_StartPerfMonThreads (void)

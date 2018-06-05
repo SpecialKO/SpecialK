@@ -47,6 +47,9 @@
 
 
 
+volatile LONG SK_RenderBackend::frames_drawn = 0;
+
+
 class SK_AutoDC
 {
 public:
@@ -853,4 +856,27 @@ SK_Render_GetAPIName (SK_RenderAPI api)
               L"  FIXME!  " );
 
   return L"Unknown API";
+}
+
+
+
+
+
+
+sk_hwnd_cache_s::sk_hwnd_cache_s (HWND wnd)
+{
+  if (hwnd != wnd || last_changed == 0UL)
+  {
+    hwnd      = wnd;
+    owner.tid =
+      GetWindowThreadProcessId (hwnd, &owner.pid);
+
+    RealGetWindowClassW        (hwnd, class_name, 127);
+    InternalGetWindowText      (hwnd, title,      127);
+
+    unicode = IsWindowUnicode  (hwnd);
+    parent  = GetParent        (hwnd);
+
+    last_changed = SK_GetFramesDrawn ();
+  }
 }

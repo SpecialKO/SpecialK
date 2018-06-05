@@ -551,7 +551,7 @@ SK_DGPU_DrawHandler (ID3D11DeviceContext* pDevCtx)
        SK_DGPU_ScreenFlare_Global.override )
   {
     uint32_t current_pixel_shader = 
-      SK_D3D11_Shaders.pixel.current.shader [pDevCtx];
+      SK_D3D11_Shaders.pixel.current.shader [SK_D3D11_GetDeviceContextHandle (pDevCtx)];
 
     const uint32_t PS_GLOBAL_FLARE = 0xD18AEDF1;  // Has position, but we're not going to bother with that.
     const uint32_t PS_LOCAL_FLARE  = 0xBDCAA539;  // No position, just one constant color screwing up the whole screen!

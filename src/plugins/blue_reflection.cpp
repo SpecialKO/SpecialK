@@ -155,8 +155,8 @@ float fBiasMultipliers [3][4] = { { 1.3000f, 1.1000f, 1.0000f, 0.6800f },
                                   { 2.1000f, 1.3400f, 1.0910f, 1.3483f },
                                   { 1.1500f, 1.2600f, 1.0000f, 0.9300f } };
 
-std::unordered_map <ID3D11DeviceContext *, std::map <ID3D11Resource *, D3D11_MAPPED_SUBRESOURCE>> mapped_shafts;
-std::unordered_map <ID3D11DeviceContext *, std::map <ID3D11Resource *, D3D11_MAPPED_SUBRESOURCE>> mapped_shadows;
+std::array <std::map <ID3D11Resource *, D3D11_MAPPED_SUBRESOURCE>, SK_D3D11_MAX_DEV_CONTEXTS> mapped_shafts;
+std::array <std::map <ID3D11Resource *, D3D11_MAPPED_SUBRESOURCE>, SK_D3D11_MAX_DEV_CONTEXTS> mapped_shadows;
 
 bool  dump_bias       = false;
 float min_shadow_bias = 0.0f;
@@ -181,6 +181,8 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
 
   if (SUCCEEDED (hr))
   {
+    int dev_idx = SK_D3D11_GetDeviceContextHandle (This);
+
     if (pMappedResource != &desc)
       desc = *pMappedResource;
 
@@ -197,12 +199,12 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
 
       if (buffer_desc.ByteWidth == sizeof (light_shaft_s) + 8)
       {
-        mapped_shafts [This].emplace (std::make_pair (pResource, *pMappedResource));
+        mapped_shafts [dev_idx].emplace (std::make_pair (pResource, *pMappedResource));
       }
 
       if (buffer_desc.ByteWidth == 16)
       {
-        mapped_shadows [This].emplace (std::make_pair (pResource, *pMappedResource));
+        mapped_shadows [dev_idx].emplace (std::make_pair (pResource, *pMappedResource));
       }
     }
   }
@@ -224,10 +226,12 @@ SK_IT_Unmap (
 
   if (rDim == D3D11_RESOURCE_DIMENSION_BUFFER)
   {
-    if (mapped_shafts [This].count (pResource))
+    int dev_idx = SK_D3D11_GetDeviceContextHandle (This);
+
+    if (mapped_shafts [dev_idx].count (pResource))
     {
       auto * pShaft =
-     (light_shaft_s *)mapped_shafts [This][pResource].pData;
+     (light_shaft_s *)mapped_shafts [dev_idx][pResource].pData;
 
       if (! pShaft)
         return;
@@ -246,15 +250,15 @@ SK_IT_Unmap (
         shaft = *pShaft;
       }
 
-      mapped_shafts [This].erase (pResource);
+      mapped_shafts [dev_idx].erase (pResource);
     }
 
-    else if (mapped_shadows [This].count (pResource))
+    else if (mapped_shadows [dev_idx].count (pResource))
     {
-      if (SK_D3D11_Shaders.pixel.current.shader [This] == 0x2117b8e3)
+      if (SK_D3D11_Shaders.pixel.current.shader [dev_idx] == 0x2117b8e3)
       {
         auto* pShadow =
-          static_cast <float *> (mapped_shadows [This][pResource].pData);
+          static_cast <float *> (mapped_shadows [dev_idx][pResource].pData);
 
         if (dump_bias)
         {
@@ -296,7 +300,7 @@ SK_IT_Unmap (
           pShadow [1] = min_shadow_bias / pShadow [3];
       }
 
-      mapped_shadows [This].erase (pResource);
+      mapped_shadows [dev_idx].erase (pResource);
     }
   }
 

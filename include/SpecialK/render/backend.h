@@ -30,10 +30,6 @@
 
 #include <cstdint>
 
-ULONG
-__stdcall
-SK_GetFramesDrawn (void);
-
 enum class SK_RenderAPI
 {
   Reserved  = 0x0001,
@@ -121,23 +117,7 @@ struct sk_hwnd_cache_s
   ULONG   last_changed     = 0UL;
 
 
-  sk_hwnd_cache_s (HWND wnd)
-  {
-    if (hwnd != wnd || last_changed == 0UL)
-    {
-      hwnd      = wnd;
-      owner.tid =
-        GetWindowThreadProcessId (hwnd, &owner.pid);
-
-      RealGetWindowClassW        (hwnd, class_name, 127);
-      InternalGetWindowText      (hwnd, title,      127);
-
-      unicode = IsWindowUnicode  (hwnd);
-      parent  = GetParent        (hwnd);
-
-      last_changed = SK_GetFramesDrawn ();
-    }
-  }
+  sk_hwnd_cache_s (HWND wnd);
 
   operator const HWND& (void) const { return hwnd; };
 };
@@ -251,5 +231,16 @@ SK_COM_ValidateRelease (IUnknown** ppObj);
 
 const wchar_t*
 SK_Render_GetAPIName (SK_RenderAPI api);
+
+
+__forceinline
+ULONG
+__stdcall
+SK_GetFramesDrawn (void)
+{
+  return
+    static_cast <ULONG> (ReadNoFence (&SK_RenderBackend::frames_drawn));
+}
+
 
 #endif /* __SK__RENDER_BACKEND__H__ */
