@@ -19,9 +19,92 @@
  *
 **/
 
-#include <SpecialK/diagnostics/cpu.h>
-
 #include <Windows.h>
+
+#include <SpecialK/diagnostics/cpu.h>
+#include <SpecialK/utility.h>
+#include <SpecialK/hooks.h>
+
+typedef void (WINAPI *GetSystemInfo_pfn)(LPSYSTEM_INFO);
+                      GetSystemInfo_pfn
+                      GetSystemInfo_Original = nullptr;
+
+typedef BOOL (WINAPI *GetLogicalProcessorInformation_pfn)(PSYSTEM_LOGICAL_PROCESSOR_INFORMATION,PDWORD);
+                      GetLogicalProcessorInformation_pfn
+                      GetLogicalProcessorInformation_Original = nullptr;
+BOOL
+WINAPI
+GetLogicalProcessorInformation_Detour (
+    _Out_writes_bytes_to_opt_ (*ReturnedLength, *ReturnedLength) PSYSTEM_LOGICAL_PROCESSOR_INFORMATION Buffer,
+    _Inout_                                                      PDWORD                                ReturnedLength )
+{
+  if (Buffer == nullptr)
+  {
+    return
+      GetLogicalProcessorInformation_Original ( Buffer, ReturnedLength );
+  }
+
+  BOOL bRet = 
+    GetLogicalProcessorInformation_Original ( Buffer, ReturnedLength );
+
+  if (bRet)
+  {
+    PSYSTEM_LOGICAL_PROCESSOR_INFORMATION lpi =
+      Buffer;
+
+    int mask = 1;
+
+    DWORD dwOffset = 0;
+
+    while (dwOffset + sizeof (SYSTEM_LOGICAL_PROCESSOR_INFORMATION) <= *ReturnedLength)
+    {
+      switch (lpi->Relationship) 
+      {
+        case RelationProcessorCore:
+        {
+          lpi->ProcessorMask = ( mask <<= 1 ) | ( mask <<= 1 ) | ( mask <<= 1 ) | ( mask <<= 1 );
+        } break;
+
+        default:
+          break;
+      }
+
+      dwOffset += sizeof SYSTEM_LOGICAL_PROCESSOR_INFORMATION;
+      lpi++;
+    }
+  }
+  
+  return bRet;
+}
+
+void
+WINAPI
+GetSystemInfo_Detour (
+  _Out_ LPSYSTEM_INFO lpSystemInfo )
+{
+  GetSystemInfo_Original (lpSystemInfo);
+
+  lpSystemInfo->dwActiveProcessorMask = 0xff;
+  lpSystemInfo->dwNumberOfProcessors  = 16;
+}
+
+
+void
+SK_CPU_InstallHooks (void)
+{
+  //SK_CreateDLLHook2 (      L"Kernel32",
+  //                          "GetLogicalProcessorInformation",
+  //                           GetLogicalProcessorInformation_Detour,
+  //  static_cast_p2p <void> (&GetLogicalProcessorInformation_Original) );
+  //
+  //SK_CreateDLLHook2 (      L"Kernel32",
+  //                          "GetSystemInfo",
+  //                           GetSystemInfo_Detour,
+  //  static_cast_p2p <void> (&GetSystemInfo_Original) );
+  //
+  //SK_ApplyQueuedHooks ();
+}
+
 
 const std::vector <uintptr_t>&
 SK_CPU_GetLogicalCorePairs (void)
@@ -33,7 +116,7 @@ SK_CPU_GetLogicalCorePairs (void)
 
   DWORD dwNeededBytes = 0;
 
-  if (! GetLogicalProcessorInformation (nullptr, &dwNeededBytes))
+  if (! GetLogicalProcessorInformation_Original (nullptr, &dwNeededBytes))
   {
     if (GetLastError () == ERROR_INSUFFICIENT_BUFFER)
     {
@@ -43,7 +126,7 @@ SK_CPU_GetLogicalCorePairs (void)
 
       DWORD dwOffset = 0;
 
-      if (GetLogicalProcessorInformation (pLogProcInfo, &dwNeededBytes))
+      if (GetLogicalProcessorInformation_Original (pLogProcInfo, &dwNeededBytes))
       {
         PSYSTEM_LOGICAL_PROCESSOR_INFORMATION lpi =
           pLogProcInfo;

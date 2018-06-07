@@ -257,6 +257,129 @@ enum class sk_shader_class {
 };
 
 void
+SK_D3D11_MergeCommandLists ( ID3D11DeviceContext *pSurrogate,
+                             ID3D11DeviceContext *pMerge )
+{
+  auto _GetRegistry =
+  [&]( SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>** ppShaderDomain ,
+       sk_shader_class                                    type )
+  {
+    switch (type)
+    {
+      default:
+      case sk_shader_class::Vertex:
+        *ppShaderDomain = reinterpret_cast <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown> *> (
+                           &SK_D3D11_Shaders.vertex
+                          );
+         break;
+      case sk_shader_class::Pixel:
+        *ppShaderDomain = reinterpret_cast <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown> *> (
+                           &SK_D3D11_Shaders.pixel
+                          );
+         break;
+      case sk_shader_class::Geometry:
+        *ppShaderDomain = reinterpret_cast <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown> *> (
+                           &SK_D3D11_Shaders.geometry
+                          );
+         break;
+      case sk_shader_class::Domain:
+        *ppShaderDomain = reinterpret_cast <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown> *> (
+                           &SK_D3D11_Shaders.domain
+                          );
+         break;
+      case sk_shader_class::Hull:
+        *ppShaderDomain = reinterpret_cast <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown> *> (
+                           &SK_D3D11_Shaders.hull
+                          );
+         break;
+      case sk_shader_class::Compute:
+        *ppShaderDomain = reinterpret_cast <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown> *> (
+                           &SK_D3D11_Shaders.compute
+                          );
+         break;
+    }
+
+    return *ppShaderDomain;
+  };
+
+  SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>* pShaderRepoIn  = nullptr;
+  SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>* pShaderRepoOut = nullptr;
+
+  UINT dev_ctx_in  =
+    SK_D3D11_GetDeviceContextHandle (pSurrogate),
+       dev_ctx_out =
+    SK_D3D11_GetDeviceContextHandle (pMerge);
+
+  _GetRegistry ( &pShaderRepoIn,  sk_shader_class::Vertex   );
+  _GetRegistry ( &pShaderRepoOut, sk_shader_class::Vertex   )->current.shader [dev_ctx_out] = 
+                                                pShaderRepoIn->current.shader [dev_ctx_in];
+                                                pShaderRepoIn->current.shader [dev_ctx_in]  = 0x0;
+    memcpy     (  pShaderRepoIn->current.views      [dev_ctx_in].data  (),
+                  pShaderRepoOut->current.views     [dev_ctx_out].data (),
+                    128 * sizeof (ptrdiff_t) );
+                  pShaderRepoIn->tracked.deactivate (pSurrogate);
+    ZeroMemory (  pShaderRepoIn->current.views      [dev_ctx_in].data  (),
+                    128 * sizeof (ptrdiff_t) );
+
+  _GetRegistry ( &pShaderRepoIn,  sk_shader_class::Pixel    );
+  _GetRegistry ( &pShaderRepoOut, sk_shader_class::Pixel    )->current.shader [dev_ctx_out] = 
+                                                pShaderRepoIn->current.shader [dev_ctx_in];
+                                                pShaderRepoIn->current.shader [dev_ctx_in]  = 0x0;
+    memcpy     (  pShaderRepoIn->current.views      [dev_ctx_in].data  (),
+                  pShaderRepoOut->current.views     [dev_ctx_out].data (),
+                    128 * sizeof (ptrdiff_t) );
+                  pShaderRepoIn->tracked.deactivate (pSurrogate);
+    ZeroMemory (  pShaderRepoIn->current.views      [dev_ctx_in].data  (),
+                    128 * sizeof (ptrdiff_t) );
+
+  _GetRegistry ( &pShaderRepoIn,  sk_shader_class::Geometry   );
+  _GetRegistry ( &pShaderRepoOut, sk_shader_class::Geometry   )->current.shader [dev_ctx_out] = 
+                                                  pShaderRepoIn->current.shader [dev_ctx_in];
+                                                  pShaderRepoIn->current.shader [dev_ctx_in]  = 0x0;
+    memcpy     (  pShaderRepoIn->current.views      [dev_ctx_in].data  (),
+                  pShaderRepoOut->current.views     [dev_ctx_out].data (),
+                    128 * sizeof (ptrdiff_t) );
+                  pShaderRepoIn->tracked.deactivate (pSurrogate);
+    ZeroMemory (  pShaderRepoIn->current.views      [dev_ctx_in].data  () ,
+                    128 * sizeof (ptrdiff_t) );
+
+
+  _GetRegistry ( &pShaderRepoIn,  sk_shader_class::Hull   );
+  _GetRegistry ( &pShaderRepoOut, sk_shader_class::Hull   )->current.shader [dev_ctx_out] = 
+                                               pShaderRepoIn->current.shader [dev_ctx_in];
+                                               pShaderRepoIn->current.shader [dev_ctx_in] = 0x0;
+    memcpy     (  pShaderRepoIn->current.views      [dev_ctx_in].data  (),
+                  pShaderRepoOut->current.views     [dev_ctx_out].data (),
+                    128 * sizeof (ptrdiff_t) );
+                  pShaderRepoIn->tracked.deactivate (pSurrogate);
+    ZeroMemory (  pShaderRepoIn->current.views      [dev_ctx_in].data  (),
+                    128 * sizeof (ptrdiff_t) );
+
+
+  _GetRegistry ( &pShaderRepoIn,  sk_shader_class::Domain   );
+  _GetRegistry ( &pShaderRepoOut, sk_shader_class::Domain   )->current.shader [dev_ctx_out] = 
+                                                pShaderRepoIn->current.shader [dev_ctx_in];
+                                                pShaderRepoIn->current.shader [dev_ctx_in] = 0x0;
+    memcpy     (  pShaderRepoIn->current.views      [dev_ctx_in].data  (),
+                  pShaderRepoOut->current.views     [dev_ctx_out].data (),
+                    128 * sizeof (ptrdiff_t) );
+                  pShaderRepoIn->tracked.deactivate (pSurrogate);
+    ZeroMemory (  pShaderRepoIn->current.views      [dev_ctx_in].data  (),
+                    128 * sizeof (ptrdiff_t) );
+
+  _GetRegistry ( &pShaderRepoIn,  sk_shader_class::Compute   );
+  _GetRegistry ( &pShaderRepoOut, sk_shader_class::Compute   )->current.shader [dev_ctx_out] = 
+                                                 pShaderRepoIn->current.shader [dev_ctx_in];
+                                                 pShaderRepoIn->current.shader [dev_ctx_in]  = 0x0;
+    memcpy     (  pShaderRepoIn->current.views      [dev_ctx_in].data  (),
+                  pShaderRepoOut->current.views     [dev_ctx_out].data (),
+                    128 * sizeof (ptrdiff_t) );
+                  pShaderRepoIn->tracked.deactivate (pSurrogate);
+    ZeroMemory (  pShaderRepoIn->current.views      [dev_ctx_in].data  (),
+                    128 * sizeof (ptrdiff_t) );
+}
+
+void
 SK_D3D11_ResetContextState (ID3D11DeviceContext* pDevCtx)
 {
   auto _GetRegistry =
@@ -12270,17 +12393,16 @@ D3D11Dev_CreateDeferredContext_Override (
 
     if (SUCCEEDED (hr))
     {
-      ////sk_hook_d3d11_t       hook_ctx { nullptr, &pTemp };
-      ////SK_D3D11_HookDevCtx (&hook_ctx);
-
-      *ppDeferredContext = new SK_IWrapD3D11DeviceContext (pTemp);
-
       if (wrapped_contexts.count (pTemp) == 0)
         wrapped_contexts [pTemp] = new SK_IWrapD3D11DeviceContext (pTemp);
       
       *ppDeferredContext =
         dynamic_cast <ID3D11DeviceContext *> (wrapped_contexts [pTemp]);
-      
+
+
+      //sk_hook_d3d11_t       hook_ctx { nullptr, &pTemp };
+      //SK_D3D11_HookDevCtx (&hook_ctx);
+
       return hr;
     }
 
@@ -12315,8 +12437,8 @@ D3D11Dev_GetImmediateContext_Override (
 
   D3D11Dev_GetImmediateContext_Original (This, &pCtx);
 
-  ///sk_hook_d3d11_t       hook_ctx { nullptr, &pCtx };
-  ///SK_D3D11_HookDevCtx (&hook_ctx);
+  //sk_hook_d3d11_t       hook_ctx { nullptr, &pCtx };
+  //SK_D3D11_HookDevCtx (&hook_ctx);
 
   if (wrapped_contexts.count (pCtx) == 0)
     wrapped_contexts [pCtx] = new SK_IWrapD3D11DeviceContext (pCtx);

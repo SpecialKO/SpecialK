@@ -2,11 +2,22 @@
 #include <SpecialK/render/d3d11/d3d11_3.h>
 
 #include <atlbase.h>
+#include <comdef.h>
 
 extern volatile LONG __SKX_ComputeAntiStall;
 
 extern void
 SK_D3D11_ResetContextState (ID3D11DeviceContext* pDevCtx);
+
+extern void
+SK_D3D11_MergeCommandLists ( ID3D11DeviceContext *pSurrogate,
+                             ID3D11DeviceContext *pMerge );
+
+// THe device context a command list was built using
+const GUID SKID_D3D11DeviceContextOrigin =
+// {5C5298CA-0F9D-5022-A19D-A2E69792AE03}
+  { 0x5c5298ca, 0xf9d,  0x5022, { 0xa1, 0x9d, 0xa2, 0xe6, 0x97, 0x92, 0xae, 0x3 } };
+
 
 class SK_IWrapD3D11DeviceContext : public ID3D11DeviceContext
 {
@@ -611,7 +622,23 @@ public:
           _In_  ID3D11CommandList *pCommandList,
           BOOL RestoreContextState) override
         {
-          pReal->ExecuteCommandList (pCommandList, RestoreContextState);
+          CComPtr <ID3D11DeviceContext> pBuildContext;
+          UINT                          size = 0;
+
+          if ( SUCCEEDED ( pCommandList->GetPrivateData (
+                             SKID_D3D11DeviceContextOrigin,
+                               &size, &pBuildContext )
+                         )    &&    (! pBuildContext.IsEqualObject (this) )
+             )
+          {
+               SK_D3D11_MergeCommandLists ( pBuildContext,        this    );
+            pBuildContext->SetPrivateData ( SKID_D3D11DeviceContextOrigin,
+                                              sizeof (ptrdiff_t), nullptr );
+
+          }
+
+          pReal->ExecuteCommandList  (pCommandList, RestoreContextState);
+          SK_D3D11_ResetContextState (pBuildContext);
 
           if (! RestoreContextState)
           {
@@ -1198,7 +1225,15 @@ public:
 
           //  Lord the documentation is contradictory ; assume that theway it is written,
           //    some kind of reset always happens. Even when "Restore" means Clear (WTF?)
-          if (SUCCEEDED (hr) && (! RestoreDeferredContextState))
+          if (SUCCEEDED (hr) && (ppCommandList != nullptr))// && (! RestoreDeferredContextState))
+          {
+            (*ppCommandList)->SetPrivateData ( SKID_D3D11DeviceContextOrigin,
+                                               sizeof (ptrdiff_t), this );
+
+            //SK_D3D11_ResetContextState (pReal);
+          }
+
+          else
           {
             SK_D3D11_ResetContextState (pReal);
           }
