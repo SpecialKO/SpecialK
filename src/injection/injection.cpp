@@ -918,7 +918,8 @@ SK_Inject_Stop (void)
 
   //SK_ExitRemoteProcess (L"SKIM64.exe", 0x00);
 
-  if (GetFileAttributes (L"SKIM64.exe") == INVALID_FILE_ATTRIBUTES)
+  //if (GetFileAttributes (L"SKIM64.exe") == INVALID_FILE_ATTRIBUTES)
+  if (true)
   {
     PathAppendW   ( wszWOW64, L"rundll32.exe");
     ShellExecuteA ( nullptr,
@@ -953,6 +954,16 @@ SK_Inject_Stop (void)
       SleepEx              ( 333UL, FALSE);
       SK_ExitRemoteProcess ( L"SKIM64.exe", 0x00);
     }
+
+    PathAppendW   ( wszWOW64, L"rundll32.exe");
+    ShellExecuteA ( nullptr,
+                      "open", SK_WideCharToUTF8 (wszWOW64).c_str (),
+                      "SpecialK32.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE );
+
+    PathAppendW   ( wszSys32, L"rundll32.exe");
+    ShellExecuteA ( nullptr,
+                      "open", SK_WideCharToUTF8 (wszSys32).c_str (),
+                      "SpecialK64.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE );
   }
 
   SetCurrentDirectoryW (wszCurrentDir);

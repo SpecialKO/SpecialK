@@ -1323,6 +1323,12 @@ SK_UpdateSoftware1 (const wchar_t*, bool force)
     }
   }
 
+  else if (install_ini.contains_section (L"Update.User"))
+  {
+    install_ini.get_section (L"Update.User").remove_key (L"Reminder");
+    install_ini.write       (SK_Version_GetInstallIniPath ().c_str ());
+  }
+
   return S_FALSE;
 }
 

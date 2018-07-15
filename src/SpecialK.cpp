@@ -25,6 +25,7 @@
 #include <Shlwapi.h>
 #include <process.h>
 
+#include <SpecialK/diagnostics/memory.h>
 #include <SpecialK/diagnostics/modules.h>
 #include <SpecialK/diagnostics/debug_utils.h>
 #include <SpecialK/diagnostics/load_library.h>
@@ -153,6 +154,13 @@ typedef LRESULT (NTAPI *NtUserCallNextHookEx_pfn)(
 
 extern NtUserCallNextHookEx_pfn NtUserCallNextHookEx;
 
+#include <cwctype>
+
+extern PSID
+SK_Win32_GetTokenSid (_TOKEN_INFORMATION_CLASS tic);
+
+extern PSID
+SK_Win32_ReleaseTokenSid (PSID pSid);
 
 // If the process doesn't have integrity to manipulate the UI, we have no
 //   real interest in it and can eliminate tons of compat. issues by bailing
@@ -160,52 +168,48 @@ extern NtUserCallNextHookEx_pfn NtUserCallNextHookEx;
 BOOL
 SK_KeepAway (void)
 {
-  BOOL   bNotAUserInteractiveApplication = TRUE;
+  ///BOOL  bNotAUserInteractiveApplication = FALSE;
+  ///DWORD dwIntegrityLevel                = std::numeric_limits <DWORD>::max ();
+  ///
+  ///PSID pSid =
+  ///  SK_Win32_GetTokenSid (TokenIntegrityLevel);
+  ///
+  ///if (pSid != nullptr)
+  ///{
+  ///  dwIntegrityLevel = *GetSidSubAuthority      (pSid,
+  ///      (DWORD)(UCHAR)(*GetSidSubAuthorityCount (pSid) - 1));
+  ///
+  ///  bNotAUserInteractiveApplication =
+  ///    ( dwIntegrityLevel < ( SECURITY_MANDATORY_MEDIUM_RID /*+ 0x10*/ ) );
+  ///
+  ///  SK_Win32_ReleaseTokenSid (pSid);
+  ///}
+  ///
+  ///if (bNotAUserInteractiveApplication)
+  ///  return TRUE;
 
-  DWORD  dwIntegrityAlloc =  0;
-  DWORD  dwIntegrityLevel = std::numeric_limits <DWORD>::max ();
-  HANDLE hToken;
+  // If user-interactive, check against an internal blacklist
+  #include <SpecialK/injection/blacklist.h>
+  
+  wchar_t* wszHostApp =
+    (wchar_t *)SK_LocalAlloc ( LMEM_ZEROINIT, 256 * sizeof (wchar_t) );
 
-  if (OpenProcessToken (GetCurrentProcess (), TOKEN_QUERY, &hToken))
+  if     ( wszHostApp == nullptr ) return true;
+  wcsncpy (wszHostApp, SK_GetHostApp (), 255);
+
+  wchar_t *pwsz = wszHostApp;
+  while ( *pwsz != L'\0' )
   {
-    if (! GetTokenInformation (hToken, TokenIntegrityLevel, nullptr,
-                               0, &dwIntegrityAlloc))
-    {
-      if (GetLastError () == ERROR_INSUFFICIENT_BUFFER)
-      {
-        PTOKEN_MANDATORY_LABEL pLocalIntegrityBuf =
-          (PTOKEN_MANDATORY_LABEL)LocalAlloc (0x0, dwIntegrityAlloc);
-
-        if (pLocalIntegrityBuf != nullptr)
-        {
-          if (GetTokenInformation (hToken, TokenIntegrityLevel, pLocalIntegrityBuf,
-                                   dwIntegrityAlloc, &dwIntegrityAlloc))
-          {
-            dwIntegrityLevel = *GetSidSubAuthority (pLocalIntegrityBuf->Label.Sid, 
-              (DWORD)(UCHAR)(*GetSidSubAuthorityCount (pLocalIntegrityBuf->Label.Sid) - 1));
-
-            bNotAUserInteractiveApplication =
-              ( dwIntegrityLevel < ( SECURITY_MANDATORY_MEDIUM_RID /*+ 0x10*/ ) );
-          }
-
-          LocalFree (pLocalIntegrityBuf);
-        }
-      }
-    }
-
-    CloseHandle (hToken);
+     *pwsz = std::towlower (*pwsz),
+    ++pwsz;
   }
 
+  bool blacklisted =
+    __blacklist.count (wszHostApp) > 0;
 
-  if (! bNotAUserInteractiveApplication)
-  {
-    #include <SpecialK/injection/blacklist.h>
+  SK_LocalFree ( wszHostApp );
 
-    if (__blacklist.count (SK_GetHostApp ())) return TRUE;
-  }
-
-
-  return bNotAUserInteractiveApplication;
+  return blacklisted;
 }
 
 //=========================================================================
@@ -226,7 +230,7 @@ DllMain ( HMODULE hModule,
         skModuleRegistry::Self  = hModule;
 
       else
-        return FALSE;
+        return TRUE;
 
 
       auto EarlyOut =
@@ -250,7 +254,7 @@ DllMain ( HMODULE hModule,
       // Keep this DLL out of anything that doesn't handle User Interfaces,
       //   everyone will be much happier that way =P
       if (SK_KeepAway ())
-        return FALSE;
+        return TRUE;
 
 
       InterlockedExchange (&__SK_TLS_INDEX, FlsAlloc (nullptr));
@@ -314,6 +318,8 @@ DllMain ( HMODULE hModule,
 
       if (ReadAcquire (&__SK_DLL_Attached))
       {
+        SK_Memory_RemoveHooks ();
+
         if (! SK_GetHostAppUtil ().isInjectionTool ())
           SK_Detach (SK_GetDLLRole ());
       }
@@ -345,7 +351,7 @@ DllMain ( HMODULE hModule,
         SK_TlsRecord tls_rec =
           SK_GetTLS (true);
 
-        //SK_TLS_Bottom ()->debug.mapped = true;
+        SK_TLS_Bottom ()->debug.mapped = true;
       }
     }
     break;
@@ -706,7 +712,7 @@ SK_EstablishDllRole (skWin32Module&& module)
       //  It is trivial to use SteamAPI without linking to the DLL, so
       //    this is not the final test to determine Steam compatibility.
       //
-      sk_import_test_s steam_tests [] =
+      static sk_import_test_s steam_tests [] =
       {
         { SK_RunLHIfBitness ( 64, "steam_api64.dll",
                                   "steam_api.dll"    ), false },

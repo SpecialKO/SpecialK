@@ -22,6 +22,8 @@
 #include <SpecialK/ini.h>
 #include <SpecialK/parameter.h>
 
+// TODO: Rename this timer or something more sensible :)
+#include <SpecialK/framerate.h>
 #include <SpecialK/utility.h>
 #include <SpecialK/log.h>
 
@@ -273,15 +275,16 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
               L"Reminder"
         );
 
-        ((sk::iParameter *)remind_time)->load ();
+        int64_t remind = 0LL;
 
-        if (uliNow.QuadPart >= static_cast <uint64_t> (remind_time->get_value ()))
+        if (           remind_time->load (remind) &&
+             (LONGLONG)uliNow.QuadPart >= remind )
         {
           need_remind = true;
-
-          user_prefs.remove_key (L"Reminder");
-          install_ini.write (SK_Version_GetInstallIniPath ().c_str ());
         }
+
+        user_prefs.remove_key (L"Reminder");
+        install_ini.write (install_ini.get_filename ());
 
         delete remind_time;
       }
@@ -323,7 +326,7 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
 
     if (hVersionConfig != INVALID_HANDLE_VALUE)
     {
-      FILETIME ftModify;
+      FILETIME ftModify = { };
 
       if (GetFileTime (hVersionConfig, nullptr, nullptr, &ftModify))
       {
@@ -332,10 +335,24 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
         uliModify.LowPart  = ftModify.dwLowDateTime;
         uliModify.HighPart = ftModify.dwHighDateTime;
 
+        LONGLONG age = 
+          ( uliNow.QuadPart - uliModify.QuadPart );
+
         // Check Version:  User Preference (default=6h)
-        if ((uliNow.QuadPart - uliModify.QuadPart) < update_freq)
+        if ((int64_t)age < (int64_t)update_freq)
         {
-          should_fetch = false;
+          if (! need_remind)
+            should_fetch = false;
+
+          need_remind  = false;
+          has_remind   = false;
+        }
+
+        else
+        {
+          SK_LOG0 ( (L"repository.ini file is older (%lli seconds) than update frequency (%lli seconds)",
+                     age / 10000000LL, update_freq / 10000000), L"AutoUpdate" );
+          should_fetch = true;
         }
       }
     }
@@ -404,6 +421,9 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
 
   ULONG ulTimeout = 5000UL;
   bool  bRet      = FALSE;
+
+  LARGE_INTEGER liStartTime =
+    SK_CurrentPerf ();
 
   InternetSetOptionW ( hInetGitHub, INTERNET_OPTION_RECEIVE_TIMEOUT, &ulTimeout, sizeof ULONG );
 
@@ -522,8 +542,21 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
 
     else
     {
-      SK_LOG0 ( (L"Fetched %lu bytes from %s", dwTotal, wszRemoteRepoURL ),
-                 L"AutoUpdate" );
+      double seconds =
+        SK_DeltaPerfMS (liStartTime.QuadPart, 1.0) / 1000.0;
+
+      SK_LOG0 ( (L"Fetched %ws from [%ws] in %4.1f seconds (%ws/sec)",
+                 SK_File_SizeToString (
+                   static_cast <uint64_t> (dwTotal)
+                 ).c_str (), wszRemoteRepoURL, seconds,
+                 SK_File_SizeToString (
+                   static_cast <uint64_t> (
+                     static_cast < double>  (dwTotal) /
+                                            seconds
+                                          )
+                 ).c_str ()
+                ), L"AutoUpdate"
+              );
     }
   }
 
@@ -535,7 +568,7 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
 
   InternetCloseHandle (hInetGitHubOpen);
   InternetCloseHandle (hInetGitHub);
-  InternetCloseHandle (hInetRoot);
+  InternetCloseHandle (hInetRoot) ;
 
   last_result.product = wszProduct;
   last_result.ret     = bRet;
