@@ -119,9 +119,8 @@ STEAMINPUT_STATE::getNextActive (void)
 void
 SKX_Steam_PollGamepad (void)
 {
-  static DWORD dwPacket = 0;
-  static ULONG last_frame =
-    -1;
+  static DWORD dwPacket   = 0;
+  static ULONG last_frame = (ULONG)-1;
          ULONG num_frames =
     SK_GetFramesDrawn ();
 
@@ -631,7 +630,8 @@ SK_Steam_HookController (void)
                                ISteamController_GetDigitalActionData_Detour,
       static_cast_p2p <void> (&ISteamController_GetDigitalActionData_Original) );
 
-    SK_ApplyQueuedHooks ();
+    if (SK_GetFramesDrawn   () > 1)
+        SK_ApplyQueuedHooks ();
 
     return true;
   }

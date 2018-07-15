@@ -152,20 +152,24 @@ SK::ControlPanel::Steam::Draw (void)
 
           ImGui::Checkbox ("Play Sound ", &config.steam.achievements.play_sound);
 
-          if (config.steam.achievements.play_sound) {
+          if (config.steam.achievements.play_sound)
+          {
             ImGui::SameLine ();
             
             int i = 0;
             
             if (! _wcsicmp (config.steam.achievements.sound_file.c_str (), L"xbox"))
               i = 1;
-            else
+            else if (! _wcsicmp (config.steam.achievements.sound_file.c_str (), L"psn"))
               i = 0;
+            else
+              i = 2;
             
-            if (ImGui::Combo ("", &i, "PlayStation Network\0Xbox Live\0\0", 2))
+            if (ImGui::Combo ("", &i, "PlayStation Network\0Xbox Live\0Dream Theater\0\0", 3))
             {
-              if (i == 0) config.steam.achievements.sound_file = L"psn";
-                     else config.steam.achievements.sound_file = L"xbox";
+              if      (i == 0) config.steam.achievements.sound_file = L"psn";
+              else if (i == 1) config.steam.achievements.sound_file = L"xbox";
+              else             config.steam.achievements.sound_file = L"dream_theater";
             
               SK_Steam_LoadUnlockSound (config.steam.achievements.sound_file.c_str ());
             }

@@ -115,15 +115,15 @@ public:
                                                          pRealController (pController) {
   };
 
-  virtual bool Init (void) override
+  bool Init (void) override
   {
     return ISteamController_Init_Detour (pRealController);
   } // 0
-  virtual bool Shutdown (void) override
+  bool Shutdown (void) override
   {
     return pRealController->Shutdown ();
   } // 1
-  virtual void RunFrame (void) override
+  void RunFrame (void) override
   {
     ISteamController_RunFrame_Detour (pRealController);
   } // 2
@@ -131,21 +131,21 @@ public:
 // Enumerate currently connected controllers
 // handlesOut should point to a STEAM_CONTROLLER_MAX_COUNT sized array of ControllerHandle_t handles
 // Returns the number of handles written to handlesOut
-  virtual int GetConnectedControllers (ControllerHandle_t *handlesOut) override
+  int GetConnectedControllers (ControllerHandle_t *handlesOut) override
   {
     return pRealController->GetConnectedControllers (handlesOut);
   } // 3
 
   // Invokes the Steam overlay and brings up the binding screen
   // Returns false is overlay is disabled / unavailable, or the user is not in Big Picture mode
-  virtual bool ShowBindingPanel (ControllerHandle_t controllerHandle) override
+  bool ShowBindingPanel (ControllerHandle_t controllerHandle) override
   {
     return pRealController->ShowBindingPanel (controllerHandle);
   } // 4
 
   // ACTION SETS
   // Lookup the handle for an Action Set. Best to do this once on startup, and store the handles for all future API calls.
-  virtual ControllerActionSetHandle_t GetActionSetHandle (const char *pszActionSetName) override
+  ControllerActionSetHandle_t GetActionSetHandle (const char *pszActionSetName) override
   {
     return pRealController->GetActionSetHandle (pszActionSetName);
   } // 5
@@ -153,63 +153,63 @@ public:
   // Reconfigure the controller to use the specified action set (ie 'Menu', 'Walk' or 'Drive')
   // This is cheap, and can be safely called repeatedly. It's often easier to repeatedly call it in
   // your state loops, instead of trying to place it in all of your state transitions.
-  virtual void ActivateActionSet (ControllerHandle_t controllerHandle, ControllerActionSetHandle_t actionSetHandle) override
+  void ActivateActionSet (ControllerHandle_t controllerHandle, ControllerActionSetHandle_t actionSetHandle) override
   {
     SKX_Steam_PollGamepad ();
 
     return pRealController->ActivateActionSet (controllerHandle, actionSetHandle);
   } // 6
-  virtual ControllerActionSetHandle_t GetCurrentActionSet (ControllerHandle_t controllerHandle) override
+  ControllerActionSetHandle_t GetCurrentActionSet (ControllerHandle_t controllerHandle) override
   {
     return pRealController->GetCurrentActionSet (controllerHandle);
   } // 7
 
   // ACTIONS
   // Lookup the handle for a digital action. Best to do this once on startup, and store the handles for all future API calls.
-  virtual ControllerDigitalActionHandle_t GetDigitalActionHandle (const char *pszActionName) override
+  ControllerDigitalActionHandle_t GetDigitalActionHandle (const char *pszActionName) override
   {
     return pRealController->GetDigitalActionHandle (pszActionName);
   } // 8
 
   // Returns the current state of the supplied digital game action
-  virtual ControllerDigitalActionData_t GetDigitalActionData (ControllerHandle_t controllerHandle, ControllerDigitalActionHandle_t digitalActionHandle) override
+  ControllerDigitalActionData_t GetDigitalActionData (ControllerHandle_t controllerHandle, ControllerDigitalActionHandle_t digitalActionHandle) override
   {
     return ISteamController_GetDigitalActionData_Detour (pRealController, controllerHandle, digitalActionHandle);
   } // 9
 
   // Get the origin(s) for a digital action within an action set. Returns the number of origins supplied in originsOut. Use this to display the appropriate on-screen prompt for the action.
   // originsOut should point to a STEAM_CONTROLLER_MAX_ORIGINS sized array of EControllerActionOrigin handles
-  virtual int GetDigitalActionOrigins (ControllerHandle_t controllerHandle, ControllerActionSetHandle_t actionSetHandle, ControllerDigitalActionHandle_t digitalActionHandle, EControllerActionOrigin *originsOut) override
+  int GetDigitalActionOrigins (ControllerHandle_t controllerHandle, ControllerActionSetHandle_t actionSetHandle, ControllerDigitalActionHandle_t digitalActionHandle, EControllerActionOrigin *originsOut) override
   {
     return pRealController->GetDigitalActionOrigins (controllerHandle, actionSetHandle, digitalActionHandle, originsOut);
   } // 10
 
   // Lookup the handle for an analog action. Best to do this once on startup, and store the handles for all future API calls.
-  virtual ControllerAnalogActionHandle_t GetAnalogActionHandle (const char *pszActionName) override
+  ControllerAnalogActionHandle_t GetAnalogActionHandle (const char *pszActionName) override
   {
     return pRealController->GetAnalogActionHandle (pszActionName);
   } // 11
 
   // Returns the current state of these supplied analog game action
-  virtual ControllerAnalogActionData_t GetAnalogActionData (ControllerHandle_t controllerHandle, ControllerAnalogActionHandle_t analogActionHandle) override
+  ControllerAnalogActionData_t GetAnalogActionData (ControllerHandle_t controllerHandle, ControllerAnalogActionHandle_t analogActionHandle) override
   {
     return ISteamController_GetAnalogActionData_Detour (pRealController, controllerHandle, analogActionHandle);
   } // 12
 
   // Get the origin(s) for an analog action within an action set. Returns the number of origins supplied in originsOut. Use this to display the appropriate on-screen prompt for the action.
   // originsOut should point to a STEAM_CONTROLLER_MAX_ORIGINS sized array of EControllerActionOrigin handles
-  virtual int GetAnalogActionOrigins (ControllerHandle_t controllerHandle, ControllerActionSetHandle_t actionSetHandle, ControllerAnalogActionHandle_t analogActionHandle, EControllerActionOrigin *originsOut) override
+  int GetAnalogActionOrigins (ControllerHandle_t controllerHandle, ControllerActionSetHandle_t actionSetHandle, ControllerAnalogActionHandle_t analogActionHandle, EControllerActionOrigin *originsOut) override
   {
     return pRealController->GetAnalogActionOrigins (controllerHandle, actionSetHandle, analogActionHandle, originsOut);
   } // 13
 
-  virtual void StopAnalogActionMomentum (ControllerHandle_t controllerHandle, ControllerAnalogActionHandle_t eAction) override
+  void StopAnalogActionMomentum (ControllerHandle_t controllerHandle, ControllerAnalogActionHandle_t eAction) override
   {
     return pRealController->StopAnalogActionMomentum (controllerHandle, eAction);
   } // 14
 
   // Trigger a haptic pulse on a controller
-  virtual void TriggerHapticPulse (ControllerHandle_t controllerHandle, ESteamControllerPad eTargetPad, unsigned short usDurationMicroSec) override
+  void TriggerHapticPulse (ControllerHandle_t controllerHandle, ESteamControllerPad eTargetPad, unsigned short usDurationMicroSec) override
   {
     ControllerIndex_t slot =
       std::max (0ui32, ControllerIndex (controllerHandle));
@@ -226,7 +226,7 @@ public:
 
   // Trigger a pulse with a duty cycle of usDurationMicroSec / usOffMicroSec, unRepeat times.
   // nFlags is currently unused and reserved for future use.
-  virtual void TriggerRepeatedHapticPulse (ControllerHandle_t controllerHandle, ESteamControllerPad eTargetPad, unsigned short usDurationMicroSec, unsigned short usOffMicroSec, unsigned short unRepeat, unsigned int nFlags) override
+  void TriggerRepeatedHapticPulse (ControllerHandle_t controllerHandle, ESteamControllerPad eTargetPad, unsigned short usDurationMicroSec, unsigned short usOffMicroSec, unsigned short unRepeat, unsigned int nFlags) override
   {
     ControllerIndex_t slot =
       std::max (0ui32, ControllerIndex (controllerHandle));
@@ -242,7 +242,7 @@ public:
   } // 16
 
   // Trigger a vibration event on supported controllers.  
-  virtual void TriggerVibration (ControllerHandle_t controllerHandle, unsigned short usLeftSpeed, unsigned short usRightSpeed) override
+  void TriggerVibration (ControllerHandle_t controllerHandle, unsigned short usLeftSpeed, unsigned short usRightSpeed) override
   {
     ControllerIndex_t slot =
       std::max (0ui32, ControllerIndex (controllerHandle));
@@ -258,48 +258,48 @@ public:
   } // 17
 
   // Set the controller LED color on supported controllers.  
-  virtual void SetLEDColor (ControllerHandle_t controllerHandle, uint8 nColorR, uint8 nColorG, uint8 nColorB, unsigned int nFlags) override
+  void SetLEDColor (ControllerHandle_t controllerHandle, uint8 nColorR, uint8 nColorG, uint8 nColorB, unsigned int nFlags) override
   {
     pRealController->SetLEDColor (controllerHandle, nColorR, nColorG, nColorB, nFlags);
   } // 18
 
   // Returns the associated gamepad index for the specified controller, if emulating a gamepad
-  virtual int GetGamepadIndexForController (ControllerHandle_t ulControllerHandle) override
+  int GetGamepadIndexForController (ControllerHandle_t ulControllerHandle) override
   {
     return pRealController->GetGamepadIndexForController (ulControllerHandle);
   } // 19
 
   // Returns the associated controller handle for the specified emulated gamepad
-  virtual ControllerHandle_t GetControllerForGamepadIndex (int nIndex) override
+  ControllerHandle_t GetControllerForGamepadIndex (int nIndex) override
   {
     return pRealController->GetControllerForGamepadIndex (nIndex);
   } // 20
 
   // Returns raw motion data from the specified controller
-  virtual ControllerMotionData_t GetMotionData (ControllerHandle_t controllerHandle) override
+  ControllerMotionData_t GetMotionData (ControllerHandle_t controllerHandle) override
   {
     return pRealController->GetMotionData (controllerHandle);
   } // 21
 
   // Attempt to display origins of given action in the controller HUD, for the currently active action set
   // Returns false is overlay is disabled / unavailable, or the user is not in Big Picture mode
-  virtual bool ShowDigitalActionOrigins (ControllerHandle_t controllerHandle, ControllerDigitalActionHandle_t digitalActionHandle, float flScale, float flXPosition, float flYPosition) override
+  bool ShowDigitalActionOrigins (ControllerHandle_t controllerHandle, ControllerDigitalActionHandle_t digitalActionHandle, float flScale, float flXPosition, float flYPosition) override
   {
     return pRealController->ShowDigitalActionOrigins (controllerHandle, digitalActionHandle, flScale, flXPosition, flYPosition);
   } // 22
-  virtual bool ShowAnalogActionOrigins (ControllerHandle_t controllerHandle, ControllerAnalogActionHandle_t analogActionHandle, float flScale, float flXPosition, float flYPosition) override
+  bool ShowAnalogActionOrigins (ControllerHandle_t controllerHandle, ControllerAnalogActionHandle_t analogActionHandle, float flScale, float flXPosition, float flYPosition) override
   {
     return pRealController->ShowAnalogActionOrigins (controllerHandle, analogActionHandle, flScale, flXPosition, flYPosition);
   } // 23
 
   // Returns a localized string (from Steam's language setting) for the specified origin
-  virtual const char *GetStringForActionOrigin (EControllerActionOrigin eOrigin) override
+  const char *GetStringForActionOrigin (EControllerActionOrigin eOrigin) override
   {
     return pRealController->GetStringForActionOrigin (eOrigin);
   } // 24
 
   // Get a local path to art for on-screen glyph for a particular origin 
-  virtual const char *GetGlyphForActionOrigin (EControllerActionOrigin eOrigin) override
+  const char *GetGlyphForActionOrigin (EControllerActionOrigin eOrigin) override
   {
     return pRealController->GetGlyphForActionOrigin (eOrigin);
   } // 25

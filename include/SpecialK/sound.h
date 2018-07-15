@@ -158,7 +158,7 @@ public:
   const char* getName (void) { return app_name_.c_str (); };
 
   // IUnknown
-  virtual HRESULT
+  HRESULT
   STDMETHODCALLTYPE
   QueryInterface (REFIID riid, void **ppv) override
   {    
@@ -183,12 +183,12 @@ public:
     return S_OK;
   }
   
-  virtual ULONG STDMETHODCALLTYPE AddRef (void) override
+  ULONG STDMETHODCALLTYPE AddRef (void) override
   {
     return InterlockedIncrement (&refs_);
   }
    
-  virtual ULONG STDMETHODCALLTYPE Release (void) override
+  ULONG STDMETHODCALLTYPE Release (void) override
   {
     ULONG ulRef = InterlockedDecrement (&refs_);
 
@@ -200,7 +200,7 @@ public:
     return ulRef;
   }
 
-  virtual HRESULT
+  HRESULT
   STDMETHODCALLTYPE
   OnDisplayNameChanged (PCWSTR NewDisplayName, LPCGUID EventContext) override {
     UNREFERENCED_PARAMETER (NewDisplayName);
@@ -209,7 +209,7 @@ public:
     return S_OK;
   };
         
-  virtual HRESULT
+  HRESULT
   STDMETHODCALLTYPE
   OnIconPathChanged (LPCWSTR NewIconPath, LPCGUID EventContext) override {
     UNREFERENCED_PARAMETER (NewIconPath);
@@ -218,7 +218,7 @@ public:
     return S_OK;
   };
         
-  virtual HRESULT
+  HRESULT
   STDMETHODCALLTYPE
   OnSimpleVolumeChanged (float NewVolume, BOOL NewMute, LPCGUID EventContext) override {
     UNREFERENCED_PARAMETER (NewVolume);
@@ -228,7 +228,7 @@ public:
     return S_OK;
   };
       
-  virtual HRESULT
+  HRESULT
   STDMETHODCALLTYPE
   OnChannelVolumeChanged (DWORD ChannelCount, float NewChannelVolumeArray[  ], DWORD ChangedChannel, LPCGUID EventContext) override {
     // TODO
@@ -240,7 +240,7 @@ public:
     return S_OK;
   };
       
-  virtual HRESULT
+  HRESULT
   STDMETHODCALLTYPE
   OnGroupingParamChanged (LPCGUID NewGroupingParam, LPCGUID EventContext) override {
     UNREFERENCED_PARAMETER (NewGroupingParam);
@@ -249,11 +249,11 @@ public:
     return S_OK;
   }
 
-  virtual HRESULT
+  HRESULT
   STDMETHODCALLTYPE
   OnStateChanged (AudioSessionState NewState) override;
         
-  virtual HRESULT
+  HRESULT
   STDMETHODCALLTYPE
   OnSessionDisconnected (AudioSessionDisconnectReason DisconnectReason) override;
 

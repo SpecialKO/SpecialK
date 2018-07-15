@@ -263,9 +263,19 @@ public:
 	// then files on disk should not be used until callback received. If item is not subscribed to, it will be cached for some time.
 	// If bHighPriority is set, any other item download will be suspended and this item downloaded ASAP.
 	virtual bool DownloadItem( PublishedFileId_t nPublishedFileID, bool bHighPriority ) = 0;
+
+  // END VERSION 007
+
+  virtual bool BInitWorkshopForGameServer (DepotId_t unWorkshopDepotID, const char *pszFolder) = 0;
+  virtual void SuspendDownloads (bool bSuspend) = 0;
+  virtual SteamAPICall_t StartPlaytimeTracking (PublishedFileId_t *pvecPublishedFileID, uint32 unNumPublishedFileIDs) = 0;
+  virtual SteamAPICall_t StopPlaytimeTracking (PublishedFileId_t *pvecPublishedFileID, uint32 unNumPublishedFileIDs) = 0;
+  virtual SteamAPICall_t StopPlaytimeTrackingForAllItems (void) = 0;
+  virtual SteamAPICall_t AddDependency (PublishedFileId_t nParentPublishedFileID, PublishedFileId_t nChildPublishedFileID) = 0;
+  virtual SteamAPICall_t RemoveDependency (PublishedFileId_t nParentPublishedFileID, PublishedFileId_t nChildPublishedFileID) = 0;
 };
 
-#define STEAMUGC_INTERFACE_VERSION "STEAMUGC_INTERFACE_VERSION007"
+#define STEAMUGC_INTERFACE_VERSION "STEAMUGC_INTERFACE_VERSION010"
 
 //-----------------------------------------------------------------------------
 // Purpose: Callback for querying UGC

@@ -4773,8 +4773,8 @@ SK_InstallWindowHook (HWND hWnd)
     bool has_raw_mouse = false;
     UINT count         = 0;
 
-                   GetRegisteredRawInputDevices_Original (nullptr, &count, sizeof RAWINPUTDEVICE);
     DWORD dwLast = GetLastError                          ();
+                   GetRegisteredRawInputDevices_Original (nullptr, &count, sizeof RAWINPUTDEVICE);
 
     if (count > 0)
     {
@@ -4799,8 +4799,6 @@ SK_InstallWindowHook (HWND hWnd)
       }
     }
 
-    SetLastError (dwLast);
-
     // If no pointing device is setup, go ahead and register our own mouse;
     //   it won't interfere with the game's operation until the ImGui overlay
     //     requires a mouse... at which point third-party software will flip out :)
@@ -4815,6 +4813,8 @@ SK_InstallWindowHook (HWND hWnd)
 
       RegisterRawInputDevices_Original (&rid, 1, sizeof RAWINPUTDEVICE);
     }
+
+    SetLastError (dwLast);
 
     SK_GetCurrentRenderBackend ().windows.setFocus  (hWnd);
     SK_GetCurrentRenderBackend ().windows.setDevice (
@@ -5516,6 +5516,9 @@ sk_window_s::CallProc (
 LRESULT
 SK_COMPAT_SafeCallProc (sk_window_s* pWin, HWND hWnd_, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
+  if (pWin == nullptr)
+    return 1;
+
   __try {
     return pWin->CallProc (hWnd_, Msg, wParam, lParam);
   }
@@ -5524,10 +5527,8 @@ SK_COMPAT_SafeCallProc (sk_window_s* pWin, HWND hWnd_, UINT Msg, WPARAM wParam, 
                        EXCEPTION_EXECUTE_HANDLER :
                        EXCEPTION_CONTINUE_SEARCH )
   {
-    return 0;
+    return 1;
   }
-
-   return 1;
 }
 
 #include <SpecialK/tls.h>

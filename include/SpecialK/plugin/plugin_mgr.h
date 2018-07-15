@@ -95,6 +95,17 @@ void
 SK_YS8_InitPlugin (void);
 #endif
 
+enum class SK_PlugIn_Type
+{
+  ThirdParty  = 1,
+  Custom      = 2,
+  Unspecified = 0x0fffffff
+};
+
+const wchar_t*
+SK_GetPlugInDirectory ( SK_PlugIn_Type =
+                        SK_PlugIn_Type::Unspecified );
+
 #endif /* __SK__Plugin__Manager_H__ */
 
 

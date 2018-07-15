@@ -82,7 +82,7 @@ SK_GPUPollingThread (LPVOID user)
     static int iters = 0;
 
     if ((iters++ % 13) == 0)
-      SleepEx (0, FALSE);
+      SleepEx (1, FALSE);
 
     else if ((iters % 9) != 0)
       SwitchToThread ();
@@ -296,7 +296,7 @@ SK_GPUPollingThread (LPVOID user)
         }
 
 
-        SwitchToThreadMinPageFaults ();
+      //SwitchToThreadMinPageFaults ();
 
         NV_GPU_CLOCK_FREQUENCIES freq           = {                          };
                                  freq.version   = NV_GPU_CLOCK_FREQUENCIES_VER;
@@ -453,7 +453,7 @@ SK_GPUPollingThread (LPVOID user)
 
         else has_pstates = false;
 
-        SwitchToThreadMinPageFaults ();
+      //SwitchToThreadMinPageFaults ();
       }
     }
 
@@ -511,7 +511,7 @@ SK_GPUPollingThread (LPVOID user)
     }
 
     gpu_stats = gpu_stats_buffers [ReadAcquire (&current_gpu_stat)];
-    ResetEvent (hPollEvent);
+  //ResetEvent (hPollEvent);
   }
 
   hPollThread = nullptr;
@@ -565,7 +565,7 @@ SK_PollGPU (void)
   if (! InterlockedCompareExchange (&init, TRUE, FALSE))
   {
     hShutdownEvent = CreateEvent    (nullptr, FALSE, FALSE, nullptr);
-    hPollEvent     = CreateEvent    (nullptr, TRUE,  FALSE, nullptr);
+    hPollEvent     = CreateEvent    (nullptr, FALSE, TRUE,  nullptr);
     hPollThread    = SK_Thread_CreateEx ( SK_GPUPollingThread );
   }
 

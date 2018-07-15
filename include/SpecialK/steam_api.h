@@ -242,7 +242,7 @@ public:
 protected:
   concurrency::concurrent_unordered_map <ScreenshotHandle, EResult> screenshots_handled;
 
-  HANDLE hSigReady [_StatusTypes] { INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE };
+  HANDLE hSigReady [_StatusTypes] = { INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE };
 
 
   screenshot_repository_s external_screenshots;
@@ -435,6 +435,8 @@ public:
   ISteamMusic*         Music                (void) { return music_;              }
   ISteamRemoteStorage* RemoteStorage        (void) { return remote_storage_;     }
   int                  RemoteStorageVersion (void) { return remote_storage_ver_; }
+  ISteamUGC*           UGC                  (void) { return ugc_;                }
+  int                  UGCVersion           (void) { return ugc_ver_;            }
 
   SK_IVariable*      popup_origin   = nullptr;
   SK_IVariable*      notify_corner  = nullptr;
@@ -477,7 +479,9 @@ private:
   ISteamController*    controller_     = nullptr;
   ISteamMusic*         music_          = nullptr;
   ISteamRemoteStorage* remote_storage_ = nullptr;
+  ISteamUGC*           ugc_            = nullptr;
 
+  int                  ugc_ver_            = 0;
   int                  user_ver_           = 0;
   int                  utils_ver_          = 0;
   int                  remote_storage_ver_ = 0;

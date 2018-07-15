@@ -492,8 +492,8 @@ SK_InstallOSD (void)
 }
 
 
-extern SK::Framerate::Stats frame_history;
-extern SK::Framerate::Stats frame_history2;
+extern SK::Framerate::Stats* frame_history;
+extern SK::Framerate::Stats* frame_history2;
 
 #include <SpecialK/command.h>
 
@@ -622,13 +622,13 @@ SK_DrawOSD (void)
 
   if (config.fps.show)
   {
-    double mean    = frame_history.calcMean     ();
-    double sd      = frame_history.calcSqStdDev (mean);
-    double min     = frame_history.calcMin      ();
-    double max     = frame_history.calcMax      ();
-    int    hitches = frame_history.calcHitches  (1.2, mean);
+    double mean    = frame_history->calcMean     ();
+    double sd      = frame_history->calcSqStdDev (mean);
+    double min     = frame_history->calcMin      ();
+    double max     = frame_history->calcMax      ();
+    int    hitches = frame_history->calcHitches  (1.2, mean);
 
-    double effective_mean = frame_history2.calcMean  ();
+    double effective_mean = frame_history2->calcMean  ();
 
     static double fps           = 0.0;
     static DWORD  last_fps_time = timeGetTime ();
@@ -655,7 +655,7 @@ SK_DrawOSD (void)
       bool has_cpu_frametime = 
         SK::Framerate::GetLimiter ()->get_limit () > 0.0 &&
                                    (! isTalesOfZestiria) &&
-                  frame_history2.calcNumSamples () >   0;
+                 frame_history2->calcNumSamples () >   0;
 
       if (! gsync)
       {
@@ -1366,7 +1366,7 @@ static_cast <double> (                         gpu_stats.gpus [i].loads_percent.
 BOOL
 __stdcall
 SK_UpdateOSD (LPCSTR lpText, LPVOID pMapAddr, LPCSTR lpAppName)
-{
+ {
   UNREFERENCED_PARAMETER (pMapAddr);
 
   if (! ReadAcquire (&osd_init))
@@ -1759,37 +1759,49 @@ SK_TextOverlay::update (const char* szText)
     if (y < 0.0f)
       y = renderer_->getDisplaySize ().d_height + y - (num_lines * spacing) + 1.0f;
 
+    CEGUI::String cegui_line (line != nullptr ? line : "");
+
     while (line != nullptr)
     {
       // Fast-path: Skip blank lines
       if (*line != '\0')
       {
-        CEGUI::String cegui_line (line);
+        size_t line_len =
+          strlen (line);
 
-        try {
-        // First the shadow
-        //
-        font_.cegui->drawText (
-          *geometry_,
-            cegui_line,
-              CEGUI::Vector2f (x + 1.0f, y + baseline + 1.0f),
-                nullptr,
-                  shadow,
-                    0.0f,
-                      font_.scale,
-                      font_.scale );
+        if (cegui_line.capacity () < line_len)
+          cegui_line.resize (line_len * 2);
 
-        // Then the foreground
-        //
-        font_.cegui->drawText (
-          *geometry_,
-            cegui_line,
-              CEGUI::Vector2f (x, y + baseline),
-                nullptr,
-                  foreground,
-                    0.0f,
-                      font_.scale,
-                      font_.scale );
+        try
+        {
+          cegui_line.replace (
+            cegui_line.begin (),
+              cegui_line.end (),
+                line
+          );
+          // First the shadow
+          //
+          font_.cegui->drawText (
+            *geometry_,
+              cegui_line,
+                CEGUI::Vector2f (x + 1.0f, y + baseline + 1.0f),
+                  nullptr,
+                    shadow,
+                      0.0f,
+                        font_.scale,
+                        font_.scale );
+
+          // Then the foreground
+          //
+          font_.cegui->drawText (
+            *geometry_,
+              cegui_line,
+                CEGUI::Vector2f (x, y + baseline),
+                  nullptr,
+                    foreground,
+                      0.0f,
+                        font_.scale,
+                        font_.scale );
         } catch (...) { };
       }
 

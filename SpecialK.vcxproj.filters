@@ -187,9 +187,6 @@
     <Filter Include="Source Files\Backends\Render\D3D8">
       <UniqueIdentifier>{09f216f3-b598-4a6a-aee1-587fd9d42d27}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Backends\Render\DDraw">
-      <UniqueIdentifier>{be4259a8-6e13-4821-8e15-b86ff8a6a7ad}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\ImGui\Widgets">
       <UniqueIdentifier>{be88cd54-d9ff-4a27-b993-c86dcdb61189}</UniqueIdentifier>
     </Filter>
@@ -202,8 +199,20 @@
     <Filter Include="Source Files\Steam\Wrapper">
       <UniqueIdentifier>{b68a55ad-9318-4278-8ca3-36d75f0cf5fd}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\OSD\Stats">
+    <Filter Include="Source Files\Control Panel">
+      <UniqueIdentifier>{d4c169c2-1d29-434c-aeb1-f506299a9b73}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Stats">
       <UniqueIdentifier>{3875728f-4125-4054-8f97-91f239a011e9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ImGui\Backends">
+      <UniqueIdentifier>{ad396826-c477-4a64-abd3-b701ff898f4b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Backends\Render\DDraw">
+      <UniqueIdentifier>{be4259a8-6e13-4821-8e15-b86ff8a6a7ad}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Backends\Render\DXGI\D3D11">
+      <UniqueIdentifier>{cd668061-d1a5-4e3e-8f77-436f770fac97}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -247,9 +256,6 @@
       <Filter>Header Files\Core</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\resource.h">
-      <Filter>Header Files\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SpecialK\stdafx.h">
       <Filter>Header Files\Core</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\targetver.h">
@@ -330,9 +336,6 @@
     <ClInclude Include="include\imgui\backends\imgui_d3d11.h">
       <Filter>Header Files\ImGui</Filter>
     </ClInclude>
-    <ClInclude Include="resource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\imgui\backends\imgui_gl3.h">
       <Filter>Header Files\ImGui</Filter>
     </ClInclude>
@@ -399,15 +402,6 @@
     <ClInclude Include="include\SpecialK\com_util.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\SpecialK\render\dxgi\dxgi_swapchain.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SpecialK\render\d3d9\d3d9_swapchain.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SpecialK\render\d3d9\d3d9_device.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\SpecialK\render\dxgi\dxgi_backend.h">
       <Filter>Header Files\Backends\Render\DXGI</Filter>
     </ClInclude>
@@ -453,19 +447,7 @@
     <ClInclude Include="include\SpecialK\control_panel\osd.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\SpecialK\control_panel\d3d9.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SpecialK\control_panel\d3d11.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\SpecialK\control_panel\opengl.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SpecialK\control_panel\steam.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SpecialK\control_panel\input.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\control_panel\sound.h">
@@ -483,158 +465,176 @@
     <ClInclude Include="include\SpecialK\injection\blacklist.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\SpecialK\diagnostics\load_library.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\SpecialK\diagnostics\modules.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\SpecialK\diagnostics\memory.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SpecialK\diagnostics\file.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SpecialK\diagnostics\network.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SpecialK\render\dxgi\dxgi_hdr.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SpecialK\ansel.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SpecialK\diagnostics\cpu.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="include\SpecialK\diagnostics\load_library.h">
+      <Filter>Header Files\Diagnostics</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteamapplist.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteamapps.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteamappticket.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteamclient.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteamcontroller.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteamfriends.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteamgamecoordinator.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteamgameserver.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteamgameserverstats.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteamhtmlsurface.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteamhttp.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteaminventory.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteammasterserverupdater.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteammatchmaking.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteammusic.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteammusicremote.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteamnetworking.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteamparentalsettings.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteamps3overlayrenderer.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteamremotestorage.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteamscreenshots.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteamugc.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteamunifiedmessages.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteamuser.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteamuserstats.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteamutils.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteamvideo.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\matchmakingtypes.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Steam</Filter>
     </ClInclude>
-    <ClInclude Include="depends\include\steamapi\steam_api.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="include\SpecialK\control_panel\d3d9.h">
+      <Filter>Header Files\Backends\Render\D3D9</Filter>
     </ClInclude>
-    <ClInclude Include="depends\include\steamapi\steam_api_flat.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="include\SpecialK\render\d3d9\d3d9_device.h">
+      <Filter>Header Files\Backends\Render\D3D9</Filter>
     </ClInclude>
-    <ClInclude Include="depends\include\steamapi\steam_gameserver.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="include\SpecialK\render\d3d9\d3d9_swapchain.h">
+      <Filter>Header Files\Backends\Render\D3D9</Filter>
     </ClInclude>
-    <ClInclude Include="depends\include\steamapi\steamclientpublic.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\steamapi\steamencryptedappticket.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\steamapi\steamhttpenums.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\steamapi\steamps3params.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\steamapi\steamtypes.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\steamapi\steamuniverse.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SpecialK\render\d3d11\d3d11_interfaces.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="include\SpecialK\control_panel\d3d11.h">
+      <Filter>Header Files\Backends\Render\DXGI</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\render\d3d11\d3d11_3.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Backends\Render\DXGI</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\render\d3d11\d3d11_4.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Backends\Render\DXGI</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\render\d3d11\d3d11_interfaces.h">
+      <Filter>Header Files\Backends\Render\DXGI</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\render\dxgi\dxgi1_5.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Backends\Render\DXGI</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\render\dxgi\dxgi_swapchain.h">
+      <Filter>Header Files\Backends\Render\DXGI</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\render\dxgi\dxgi_hdr.h">
+      <Filter>Header Files\Backends\Render\DXGI</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\steamapi\steamuniverse.h">
+      <Filter>Header Files\Steam</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\steamapi\steam_api.h">
+      <Filter>Header Files\Steam</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\steamapi\steam_api_flat.h">
+      <Filter>Header Files\Steam</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\steamapi\steam_gameserver.h">
+      <Filter>Header Files\Steam</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\steamapi\steamclientpublic.h">
+      <Filter>Header Files\Steam</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\steamapi\steamencryptedappticket.h">
+      <Filter>Header Files\Steam</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\steamapi\steamhttpenums.h">
+      <Filter>Header Files\Steam</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\steamapi\steamps3params.h">
+      <Filter>Header Files\Steam</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\steamapi\steamtypes.h">
+      <Filter>Header Files\Steam</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\control_panel\steam.h">
+      <Filter>Header Files\Steam</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\ansel.h">
+      <Filter>Header Files\Backends</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\diagnostics\memory.h">
+      <Filter>Header Files\Stats</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\diagnostics\network.h">
+      <Filter>Header Files\Stats</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\diagnostics\cpu.h">
+      <Filter>Header Files\Stats</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\diagnostics\file.h">
+      <Filter>Header Files\Stats</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\control_panel\input.h">
+      <Filter>Header Files\Config</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\stdafx.cpp">
-      <Filter>Source Files\Core</Filter>
-    </ClCompile>
     <ClCompile Include="src\core.cpp">
       <Filter>Source Files\Core</Filter>
     </ClCompile>
@@ -642,10 +642,10 @@
       <Filter>Source Files\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\adl.cpp">
-      <Filter>Source Files\OSD\Stats</Filter>
+      <Filter>Source Files\Stats</Filter>
     </ClCompile>
     <ClCompile Include="src\nvapi.cpp">
-      <Filter>Source Files\OSD\Stats</Filter>
+      <Filter>Source Files\Stats</Filter>
     </ClCompile>
     <ClCompile Include="src\SpecialK.cpp">
       <Filter>Source Files\Core</Filter>
@@ -785,47 +785,8 @@
     <ClCompile Include="src\input\steam.cpp">
       <Filter>Source Files\Backends\Input\Steam</Filter>
     </ClCompile>
-    <ClCompile Include="src\widgets\denuvo.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\plugins\reshade.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\plugins\blue_reflection.cpp">
       <Filter>Source Files\Plugins</Filter>
-    </ClCompile>
-    <ClCompile Include="src\plugins\dothack_gu.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\plugins\lego_marvel2.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\sha1.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\plugins\okami.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\input\dinput7.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\hash.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\crc32.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\com_util.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\render\dxgi\dxgi_swapchain.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\render\d3d9\d3d9_swapchain.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\render\d3d9\d3d9_device.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\render\d3d9\d3d9.cpp">
       <Filter>Source Files\Backends\Render\D3D9</Filter>
@@ -843,10 +804,10 @@
       <Filter>Source Files\Steam</Filter>
     </ClCompile>
     <ClCompile Include="src\performance\io_monitor.cpp">
-      <Filter>Source Files\OSD\Stats</Filter>
+      <Filter>Source Files\Stats</Filter>
     </ClCompile>
     <ClCompile Include="src\performance\gpu_monitor.cpp">
-      <Filter>Source Files\OSD\Stats</Filter>
+      <Filter>Source Files\Stats</Filter>
     </ClCompile>
     <ClCompile Include="src\render\render_backend.cpp">
       <Filter>Source Files\Backends\Render</Filter>
@@ -857,20 +818,11 @@
     <ClCompile Include="src\render\d3d8\d3d8.cpp">
       <Filter>Source Files\Backends\Render\D3D8</Filter>
     </ClCompile>
-    <ClCompile Include="src\render\d3d11\d3d11_dev_ctx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\render\d3d11\d3d11.cpp">
-      <Filter>Source Files\Backends\Render\DXGI</Filter>
-    </ClCompile>
     <ClCompile Include="src\render\ddraw\ddraw.cpp">
       <Filter>Source Files\Backends\Render\DDraw</Filter>
     </ClCompile>
     <ClCompile Include="src\render\d3d12\d3d12.cpp">
       <Filter>Source Files\Backends\Render\DXGI</Filter>
-    </ClCompile>
-    <ClCompile Include="src\tls.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\injection\injection.cpp">
       <Filter>Source Files\Backends\Injection</Filter>
@@ -878,104 +830,155 @@
     <ClCompile Include="src\hooks.cpp">
       <Filter>Source Files\Utility</Filter>
     </ClCompile>
-    <ClCompile Include="src\control_panel\cfg_d3d9.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\control_panel\cfg_osd.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\control_panel\cfg_d3d11.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\control_panel\cfg_opengl.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\control_panel\cfg_steam.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\control_panel\cfg_input.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\control_panel\cfg_window.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\control_panel\cfg_compatibility.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\control_panel\cfg_plugins.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\control_panel\cfg_sound.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\plugins\unclassified.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\control_panel.cpp">
-      <Filter>Source Files\ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="src\thread.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\plugins\secret_of_mana.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\diagnostics\load_library.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\plugins\ninokuni2.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\widgets\threads.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\diagnostics\memory.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\diagnostics\file.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\diagnostics\net.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\widgets\hdr.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\imgui\backends\imgui_d3d9.cpp">
-      <Filter>Source Files\ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="src\imgui\backends\imgui_d3d11.cpp">
-      <Filter>Source Files\ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="src\imgui\backends\imgui_gl3.cpp">
-      <Filter>Source Files\ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="src\imgui\backends\imgui_vk.cpp">
-      <Filter>Source Files\ImGui</Filter>
-    </ClCompile>
     <ClCompile Include="src\imgui\EULA.cpp">
       <Filter>Source Files\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="src\imgui\imgui.cpp">
       <Filter>Source Files\ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="src\imgui\imgui_demo.cpp">
-      <Filter>Source Files\ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="src\imgui\imgui_draw.cpp">
-      <Filter>Source Files\ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ansel.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\plugins\ys8.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\diagnostics\cpu.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\render\d3d9\d3d9_texmgr.cpp">
       <Filter>Source Files\Backends\Render\D3D9</Filter>
+    </ClCompile>
+    <ClCompile Include="src\control_panel\cfg_compatibility.cpp">
+      <Filter>Source Files\Control Panel</Filter>
+    </ClCompile>
+    <ClCompile Include="src\control_panel\cfg_d3d9.cpp">
+      <Filter>Source Files\Control Panel</Filter>
+    </ClCompile>
+    <ClCompile Include="src\control_panel\cfg_d3d11.cpp">
+      <Filter>Source Files\Control Panel</Filter>
+    </ClCompile>
+    <ClCompile Include="src\control_panel\cfg_input.cpp">
+      <Filter>Source Files\Control Panel</Filter>
+    </ClCompile>
+    <ClCompile Include="src\control_panel\cfg_opengl.cpp">
+      <Filter>Source Files\Control Panel</Filter>
+    </ClCompile>
+    <ClCompile Include="src\control_panel\cfg_osd.cpp">
+      <Filter>Source Files\Control Panel</Filter>
+    </ClCompile>
+    <ClCompile Include="src\control_panel\cfg_plugins.cpp">
+      <Filter>Source Files\Control Panel</Filter>
+    </ClCompile>
+    <ClCompile Include="src\control_panel\cfg_sound.cpp">
+      <Filter>Source Files\Control Panel</Filter>
+    </ClCompile>
+    <ClCompile Include="src\control_panel\cfg_steam.cpp">
+      <Filter>Source Files\Control Panel</Filter>
+    </ClCompile>
+    <ClCompile Include="src\control_panel\cfg_window.cpp">
+      <Filter>Source Files\Control Panel</Filter>
+    </ClCompile>
+    <ClCompile Include="src\plugins\lego_marvel2.cpp">
+      <Filter>Source Files\Plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="src\plugins\ninokuni2.cpp">
+      <Filter>Source Files\Plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="src\plugins\unclassified.cpp">
+      <Filter>Source Files\Plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="src\plugins\ys8.cpp">
+      <Filter>Source Files\Plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="src\plugins\okami.cpp">
+      <Filter>Source Files\Plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="src\plugins\secret_of_mana.cpp">
+      <Filter>Source Files\Plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="src\plugins\reshade.cpp">
+      <Filter>Source Files\Plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="src\plugins\dothack_gu.cpp">
+      <Filter>Source Files\Plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="src\widgets\threads.cpp">
+      <Filter>Source Files\Widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="src\diagnostics\net.cpp">
+      <Filter>Source Files\Diagnostics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\diagnostics\load_library.cpp">
+      <Filter>Source Files\Diagnostics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ansel.cpp">
+      <Filter>Source Files\Backends\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\d3d9\d3d9_swapchain.cpp">
+      <Filter>Source Files\Backends\Render\D3D9</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\d3d9\d3d9_device.cpp">
+      <Filter>Source Files\Backends\Render\D3D9</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\dxgi\dxgi_swapchain.cpp">
+      <Filter>Source Files\Backends\Render\DXGI</Filter>
+    </ClCompile>
+    <ClCompile Include="src\steam\ugc.cpp">
+      <Filter>Source Files\Steam\Wrapper</Filter>
+    </ClCompile>
+    <ClCompile Include="src\input\dinput7.cpp">
+      <Filter>Source Files\Backends\Input\DirectInput</Filter>
+    </ClCompile>
+    <ClCompile Include="src\sha1.cpp">
+      <Filter>Source Files\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="src\crc32.cpp">
+      <Filter>Source Files\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="src\diagnostics\file.cpp">
+      <Filter>Source Files\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hash.cpp">
+      <Filter>Source Files\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="src\diagnostics\cpu.cpp">
+      <Filter>Source Files\Stats</Filter>
+    </ClCompile>
+    <ClCompile Include="src\com_util.cpp">
+      <Filter>Source Files\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tls.cpp">
+      <Filter>Source Files\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\widgets\denuvo.cpp">
+      <Filter>Source Files\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="src\widgets\hdr.cpp">
+      <Filter>Source Files\Widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="src\imgui\backends\imgui_d3d9.cpp">
+      <Filter>Source Files\ImGui\Backends</Filter>
+    </ClCompile>
+    <ClCompile Include="src\imgui\backends\imgui_d3d11.cpp">
+      <Filter>Source Files\ImGui\Backends</Filter>
+    </ClCompile>
+    <ClCompile Include="src\imgui\imgui_demo.cpp">
+      <Filter>Source Files\ImGui\Backends</Filter>
+    </ClCompile>
+    <ClCompile Include="src\imgui\imgui_draw.cpp">
+      <Filter>Source Files\ImGui\Backends</Filter>
+    </ClCompile>
+    <ClCompile Include="src\imgui\backends\imgui_gl3.cpp">
+      <Filter>Source Files\ImGui\Backends</Filter>
+    </ClCompile>
+    <ClCompile Include="src\imgui\backends\imgui_vk.cpp">
+      <Filter>Source Files\ImGui\Backends</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\d3d11\d3d11_dev_ctx.cpp">
+      <Filter>Source Files\Backends\Render\DXGI\D3D11</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\d3d11\d3d11.cpp">
+      <Filter>Source Files\Backends\Render\DXGI\D3D11</Filter>
+    </ClCompile>
+    <ClCompile Include="src\diagnostics\memory.cpp">
+      <Filter>Source Files\Diagnostics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\control_panel.cpp">
+      <Filter>Source Files\Control Panel</Filter>
+    </ClCompile>
+    <ClCompile Include="src\thread.cpp">
+      <Filter>Source Files\Diagnostics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1045,9 +1048,6 @@
     <None Include="installer.dll">
       <Filter>Libraries</Filter>
     </None>
-    <None Include="installer64.dll">
-      <Filter>Libraries</Filter>
-    </None>
     <None Include="version.ini">
       <Filter>Update Server</Filter>
     </None>
@@ -1063,8 +1063,6 @@
     <None Include="CHANGELOG" />
     <None Include="README.md" />
     <None Include="TODO" />
-    <None Include="resource\packages\CEGUI32.7z" />
-    <None Include="resource\packages\CEGUI64.7z" />
     <None Include="include\SpecialK\commands\mem.inl">
       <Filter>Header Files</Filter>
     </None>
@@ -1072,20 +1070,41 @@
       <Filter>Header Files</Filter>
     </None>
     <None Include="include\imgui\imgui_user.inl">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\ImGui</Filter>
     </None>
-    <None Include="resource\packages\D3DX9_43_32.7z" />
-    <None Include="resource\packages\D3DX9_43_64.7z" />
-    <None Include="resource\packages\D3DX11_43_32.7z" />
-    <None Include="resource\packages\D3DX11_43_64.7z" />
-    <None Include="resource\packages\D3DCompiler_47_32.7z" />
-    <None Include="resource\packages\D3DCompiler_47_64.7z" />
+    <None Include="resource\packages\CEGUI32.7z">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="resource\packages\CEGUI64.7z">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="resource\packages\D3DCompiler_47_32.7z">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="resource\packages\D3DCompiler_47_64.7z">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="resource\packages\D3DX9_43_32.7z">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="resource\packages\D3DX9_43_64.7z">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="resource\packages\D3DX11_43_32.7z">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="resource\packages\D3DX11_43_64.7z">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="resource\packages\FC5_EasyAntiCheat_x64.7z">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="installer64.dll">
+      <Filter>Libraries\64-bit</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource\Resource.rc">
-      <Filter>Resource Files</Filter>
-    </ResourceCompile>
-    <ResourceCompile Include="SpecialK.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>
@@ -1100,6 +1119,9 @@
       <Filter>Resource Files</Filter>
     </Media>
     <Media Include="resource\xbox.wav">
+      <Filter>Resource Files</Filter>
+    </Media>
+    <Media Include="resource\dream_theater.wav">
       <Filter>Resource Files</Filter>
     </Media>
   </ItemGroup>
@@ -1164,12 +1186,6 @@
     <Library Include="depends\lib\DirectXTex\Win32\DirectXTex.lib">
       <Filter>Libraries</Filter>
     </Library>
-    <Library Include="depends\lib\MinHook\Win32\libMinHook.lib">
-      <Filter>Libraries</Filter>
-    </Library>
-    <Library Include="depends\lib\MinHook\x64\libMinHook64.lib">
-      <Filter>Libraries</Filter>
-    </Library>
     <Library Include="depends\lib\steamapi\x64\steam_api64.lib">
       <Filter>Libraries\64-bit</Filter>
     </Library>
@@ -1182,10 +1198,24 @@
     <Library Include="depends\lib\nvapi\Win32\nvapi.lib">
       <Filter>Libraries\32-bit</Filter>
     </Library>
-    <Library Include="depends\lib\lzma\Win32\libzma.lib" />
-    <Library Include="depends\lib\lzma\x64\libzma.lib" />
-    <Library Include="depends\lib\glew\x64\glew.lib" />
-    <Library Include="depends\lib\glew\Win32\glew.lib" />
+    <Library Include="depends\lib\glew\Win32\glew.lib">
+      <Filter>Libraries</Filter>
+    </Library>
+    <Library Include="depends\lib\glew\x64\glew.lib">
+      <Filter>Libraries</Filter>
+    </Library>
+    <Library Include="depends\lib\lzma\Win32\libzma.lib">
+      <Filter>Libraries</Filter>
+    </Library>
+    <Library Include="depends\lib\lzma\x64\libzma.lib">
+      <Filter>Libraries</Filter>
+    </Library>
+    <Library Include="depends\lib\MinHook\x64\libMinHook64.lib">
+      <Filter>Libraries\64-bit</Filter>
+    </Library>
+    <Library Include="depends\lib\MinHook\Win32\libMinHook.lib">
+      <Filter>Libraries\32-bit</Filter>
+    </Library>
   </ItemGroup>
   <ItemGroup>
     <Text Include="LICENSE.txt" />

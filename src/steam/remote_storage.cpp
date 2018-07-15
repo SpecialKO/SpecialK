@@ -28,52 +28,52 @@ public:
   //
 
   // file operations
-  virtual bool                        FileWrite                 ( const char                   *pchFile,
-                                                                  const void                   *pvData,
-                                                                        int32                   cubData                ) override
+  bool                        FileWrite                 ( const char                   *pchFile,
+                                                          const void                   *pvData,
+                                                                int32                   cubData                ) override
    { return pRealStorage->FileWrite (pchFile, pvData, cubData);                                                                  }
-  virtual int32                       FileRead                  ( const char                   *pchFile,
-                                                                        void                   *pvData,
-                                                                        int32                   cubDataToRead          ) override
+  int32                       FileRead                  ( const char                   *pchFile,
+                                                                void                   *pvData,
+                                                                int32                   cubDataToRead          ) override
    { return pRealStorage->FileRead (pchFile, pvData, cubDataToRead);                                                             }
-  virtual bool                        FileForget                ( const char                   *pchFile                ) override
+  bool                        FileForget                ( const char                   *pchFile                ) override
    { return pRealStorage->FileForget (pchFile);                                                                                  }
-  virtual bool                        FileDelete                ( const char                   *pchFile                ) override
+  bool                        FileDelete                ( const char                   *pchFile                ) override
    { return pRealStorage->FileDelete (pchFile);                                                                                  }
-  virtual SteamAPICall_t              FileShare                 ( const char                   *pchFile                ) override
+  SteamAPICall_t              FileShare                 ( const char                   *pchFile                ) override
    { return pRealStorage->FileShare  (pchFile);                                                                                  }
-  virtual bool                        SetSyncPlatforms          ( const char                   *pchFile,
-                                                                        ERemoteStoragePlatform  eRemoteStoragePlatform ) override
+  bool                        SetSyncPlatforms          ( const char                   *pchFile,
+                                                                ERemoteStoragePlatform  eRemoteStoragePlatform ) override
    { return pRealStorage->SetSyncPlatforms (pchFile, eRemoteStoragePlatform);                                                    }
 
   // file operations that cause network IO
-  virtual UGCFileWriteStreamHandle_t  FileWriteStreamOpen       ( const char                       *pchFile      ) override
+  UGCFileWriteStreamHandle_t  FileWriteStreamOpen       ( const char                       *pchFile      ) override
    { return pRealStorage->FileWriteStreamOpen (pchFile);                                                                   }
-  virtual bool                        FileWriteStreamWriteChunk (       UGCFileWriteStreamHandle_t  writeHandle,
-                                                                  const void                       *pvData,
-                                                                        int32                       cubData      ) override
+  bool                        FileWriteStreamWriteChunk (       UGCFileWriteStreamHandle_t  writeHandle,
+                                                          const void                       *pvData,
+                                                                int32                       cubData      ) override
    { return pRealStorage->FileWriteStreamWriteChunk (writeHandle, pvData, cubData);                                        }
-  virtual bool                        FileWriteStreamClose      (       UGCFileWriteStreamHandle_t  writeHandle  ) override
+  bool                        FileWriteStreamClose      (       UGCFileWriteStreamHandle_t  writeHandle  ) override
    { return pRealStorage->FileWriteStreamClose (writeHandle);                                                              }
-  virtual bool                        FileWriteStreamCancel     (       UGCFileWriteStreamHandle_t  writeHandle  ) override
+  bool                        FileWriteStreamCancel     (       UGCFileWriteStreamHandle_t  writeHandle  ) override
    { return pRealStorage->FileWriteStreamCancel (writeHandle);                                                             }
 
   // file information
-  virtual bool                        FileExists                ( const char *pchFile ) override
+  bool                        FileExists                ( const char *pchFile ) override
    { return pRealStorage->FileExists (pchFile);                                                 }
-  virtual bool                        FilePersisted             ( const char *pchFile ) override
+  bool                        FilePersisted             ( const char *pchFile ) override
    { return pRealStorage->FilePersisted (pchFile);                                              }
-  virtual int32                       GetFileSize               ( const char *pchFile ) override
+  int32                       GetFileSize               ( const char *pchFile ) override
    { return pRealStorage->GetFileSize (pchFile);                                                }
-  virtual int64                       GetFileTimestamp          ( const char *pchFile ) override
+  int64                       GetFileTimestamp          ( const char *pchFile ) override
    { return pRealStorage->GetFileTimestamp (pchFile);                                           }
-  virtual ERemoteStoragePlatform      GetSyncPlatforms          ( const char *pchFile ) override
+  ERemoteStoragePlatform      GetSyncPlatforms          ( const char *pchFile ) override
    { return pRealStorage->GetSyncPlatforms (pchFile);                                           }
 
   // iteration
-  virtual int32                       GetFileCount              ( void                     ) override
+  int32                       GetFileCount              ( void                     ) override
    { return pRealStorage->GetFileCount ();                                                           }
-  virtual const char*                 GetFileNameAndSize        ( int    iFile,
+  const char*                 GetFileNameAndSize        ( int    iFile,
                                                                   int32 *pnFileSizeInBytes ) override
    {
      const char* pszRet =
@@ -86,14 +86,14 @@ public:
    }
 
   // configuration management
-  virtual bool                        GetQuota                  ( int32 *pnTotalBytes,
-                                                                  int32 *puAvailableBytes  ) override
+  bool                        GetQuota                  ( int32 *pnTotalBytes,
+                                                          int32 *puAvailableBytes  ) override
    { return pRealStorage->GetQuota (pnTotalBytes, puAvailableBytes);                                 }
-  virtual bool                        IsCloudEnabledForAccount  ( void                     ) override
+  bool                        IsCloudEnabledForAccount  ( void                     ) override
    { return pRealStorage->IsCloudEnabledForAccount ();                                               }
-  virtual bool                        IsCloudEnabledForApp      ( void                     ) override
+  bool                        IsCloudEnabledForApp      ( void                     ) override
    { return pRealStorage->IsCloudEnabledForApp ();                                                   }
-  virtual void                        SetCloudEnabledForApp     ( bool   bEnabled          ) override
+  void                        SetCloudEnabledForApp     ( bool   bEnabled          ) override
    { return pRealStorage->SetCloudEnabledForApp (bEnabled);                                          }
 
   // user generated content
@@ -101,23 +101,26 @@ public:
   // Downloads a UGC file.  A priority value of 0 will download the file immediately,
   // otherwise it will wait to download the file until all downloads with a lower priority
   // value are completed.  Downloads with equal priority will occur simultaneously.
-  virtual SteamAPICall_t              UGCDownload               ( UGCHandle_t hContent,
-                                                                  uint32      unPriority       ) override
-   { return pRealStorage->UGCDownload (hContent, unPriority);                                            }
+  SteamAPICall_t              UGCDownload               ( UGCHandle_t hContent,
+                                                          uint32      unPriority       ) override
+   {
+     steam_log.Log (L"ISteamRemoteStorage::UGCDownload (...)");
+
+     return pRealStorage->UGCDownload (hContent, unPriority);                                            }
 
   // Gets the amount of data downloaded so far for a piece of content. pnBytesExpected can be 0 if function returns false
   // or if the transfer hasn't started yet, so be careful to check for that before dividing to get a percentage
-  virtual bool                        GetUGCDownloadProgress    ( UGCHandle_t  hContent,
-                                                                  int32       *pnBytesDownloaded,
-                                                                  int32       *pnBytesExpected ) override
+  bool                        GetUGCDownloadProgress    ( UGCHandle_t  hContent,
+                                                          int32       *pnBytesDownloaded,
+                                                          int32       *pnBytesExpected ) override
    { return pRealStorage->GetUGCDownloadProgress (hContent, pnBytesDownloaded, pnBytesExpected);         }
 
   // Gets metadata for a file after it has been downloaded. This is the same metadata given in the RemoteStorageDownloadUGCResult_t call result
-  virtual bool                        GetUGCDetails             ( UGCHandle_t   hContent,
-                                                                  AppId_t      *pnAppID,
-                                                                  char        **ppchName,
-                                                                  int32        *pnFileSizeInBytes,
-                                                     OUT_STRUCT() CSteamID     *pSteamIDOwner  ) override
+  bool                        GetUGCDetails             ( UGCHandle_t   hContent,
+                                                          AppId_t      *pnAppID,
+                                                          char        **ppchName,
+                                                          int32        *pnFileSizeInBytes,
+                                             OUT_STRUCT() CSteamID     *pSteamIDOwner  ) override
    { return pRealStorage->GetUGCDetails (hContent, pnAppID, ppchName, pnFileSizeInBytes, pSteamIDOwner); }
 
   // After download, gets the content of the file.  
@@ -126,117 +129,132 @@ public:
   // enough memory for each chunk).  Once the last byte is read, the file is implicitly closed and further calls to UGCRead will fail
   // unless UGCDownload is called again.
   // For especially large files (anything over 100MB) it is a requirement that the file is read in chunks.
-  virtual int32	                      UGCRead                   ( UGCHandle_t     hContent,
-                                                                  void           *pvData,
-                                                                  int32           cubDataToRead,
-                                                                  uint32          cOffset,
-                                                                  EUGCReadAction  eAction ) override
+  int32	                      UGCRead                   ( UGCHandle_t     hContent,
+                                                          void           *pvData,
+                                                          int32           cubDataToRead,
+                                                          uint32          cOffset,
+                                                          EUGCReadAction  eAction ) override
    { return pRealStorage->UGCRead (hContent, pvData, cubDataToRead, cOffset, eAction);              }
 
   // Functions to iterate through UGC that has finished downloading but has not yet been read via UGCRead()
-  virtual int32	                      GetCachedUGCCount         ( void                    ) override
-   { return pRealStorage->GetCachedUGCCount  ();                                                    }
-  virtual	UGCHandle_t                 GetCachedUGCHandle        ( int32 iCachedContent    ) override
+  int32	                      GetCachedUGCCount         ( void                    ) override
+   {
+     steam_log.Log (L"ISteamRemoteStorage::GetCachedUGCCount (...)");
+
+     return pRealStorage->GetCachedUGCCount ();                                                     }
+  UGCHandle_t                 GetCachedUGCHandle        ( int32 iCachedContent    ) override
    { return pRealStorage->GetCachedUGCHandle (iCachedContent);                                      }
 
   // publishing UGC
-  virtual SteamAPICall_t              PublishWorkshopFile              ( const char                                  *pchFile,
-                                                                         const char                                  *pchPreviewFile,
-                                                                               AppId_t                                nConsumerAppId,
-                                                                         const char                                  *pchTitle,
-                                                                         const char                                  *pchDescription,
-                                                                               ERemoteStoragePublishedFileVisibility  eVisibility,
-                                                                               SteamParamStringArray_t               *pTags,
-                                                                               EWorkshopFileType                      eWorkshopFileType ) override
+  SteamAPICall_t              PublishWorkshopFile              ( const char                                  *pchFile,
+                                                                 const char                                  *pchPreviewFile,
+                                                                       AppId_t                                nConsumerAppId,
+                                                                 const char                                  *pchTitle,
+                                                                 const char                                  *pchDescription,
+                                                                       ERemoteStoragePublishedFileVisibility  eVisibility,
+                                                                       SteamParamStringArray_t               *pTags,
+                                                                       EWorkshopFileType                      eWorkshopFileType ) override
    { return pRealStorage->PublishWorkshopFile ( pchFile, pchPreviewFile, nConsumerAppId,
                                                   pchTitle, pchDescription, eVisibility, pTags, eWorkshopFileType );                              }
 
-  virtual PublishedFileUpdateHandle_t CreatePublishedFileUpdateRequest (       PublishedFileId_t                      unPublishedFileId ) override
+  PublishedFileUpdateHandle_t CreatePublishedFileUpdateRequest (       PublishedFileId_t                      unPublishedFileId ) override
    { return pRealStorage->CreatePublishedFileUpdateRequest (unPublishedFileId);                                                                   }
-  virtual bool                        UpdatePublishedFileFile          (       PublishedFileUpdateHandle_t            updateHandle,
-                                                                         const char                                  *pchFile           ) override
+  bool                        UpdatePublishedFileFile          (       PublishedFileUpdateHandle_t            updateHandle,
+                                                                 const char                                  *pchFile           ) override
    { return pRealStorage->UpdatePublishedFileFile        (updateHandle, pchFile);                                                                 }
-  virtual bool                        UpdatePublishedFilePreviewFile   (       PublishedFileUpdateHandle_t            updateHandle,
-                                                                         const char                                  *pchPreviewFile    ) override
+   bool                        UpdatePublishedFilePreviewFile   (       PublishedFileUpdateHandle_t            updateHandle,
+                                                                  const char                                  *pchPreviewFile    ) override
    { return pRealStorage->UpdatePublishedFilePreviewFile (updateHandle, pchPreviewFile);                                                          }
-  virtual bool                        UpdatePublishedFileTitle         (       PublishedFileUpdateHandle_t            updateHandle,
-                                                                         const char                                  *pchTitle          ) override
+  bool                        UpdatePublishedFileTitle         (       PublishedFileUpdateHandle_t            updateHandle,
+                                                                 const char                                  *pchTitle          ) override
    { return pRealStorage->UpdatePublishedFileTitle       (updateHandle, pchTitle);                                                                }
-  virtual bool                        UpdatePublishedFileDescription   (       PublishedFileUpdateHandle_t            updateHandle,
-                                                                         const char                                  *pchDescription    ) override
+  bool                        UpdatePublishedFileDescription   (       PublishedFileUpdateHandle_t            updateHandle,
+                                                                 const char                                  *pchDescription    ) override
    { return pRealStorage->UpdatePublishedFileDescription (updateHandle, pchDescription);                                                          }
-  virtual bool                        UpdatePublishedFileVisibility    (       PublishedFileUpdateHandle_t            updateHandle,
-                                                                               ERemoteStoragePublishedFileVisibility  eVisibility       ) override
+  bool                        UpdatePublishedFileVisibility    (       PublishedFileUpdateHandle_t            updateHandle,
+                                                                       ERemoteStoragePublishedFileVisibility  eVisibility       ) override
    { return pRealStorage->UpdatePublishedFileVisibility  (updateHandle, eVisibility);                                                             }
-  virtual bool                        UpdatePublishedFileTags          (       PublishedFileUpdateHandle_t            updateHandle,
-                                                                               SteamParamStringArray_t               *pTags             ) override
+  bool                        UpdatePublishedFileTags          (       PublishedFileUpdateHandle_t            updateHandle,
+                                                                       SteamParamStringArray_t               *pTags             ) override
    { return pRealStorage->UpdatePublishedFileTags        (updateHandle, pTags);                                                                   }
-  virtual SteamAPICall_t              CommitPublishedFileUpdate        (       PublishedFileUpdateHandle_t            updateHandle      ) override
+  SteamAPICall_t              CommitPublishedFileUpdate        (       PublishedFileUpdateHandle_t            updateHandle      ) override
    { return pRealStorage->CommitPublishedFileUpdate      (updateHandle);                                                                          }
 
   // Gets published file details for the given publishedfileid.  If unMaxSecondsOld is greater than 0,
   // cached data may be returned, depending on how long ago it was cached.  A value of 0 will force a refresh.
   // A value of k_WorkshopForceLoadPublishedFileDetailsFromCache will use cached data if it exists, no matter how old it is.
-  virtual SteamAPICall_t              GetPublishedFileDetails                 (       PublishedFileId_t                      unPublishedFileId,
-                                                                                      uint32                                 unMaxSecondsOld      ) override
+  SteamAPICall_t              GetPublishedFileDetails                 (       PublishedFileId_t                      unPublishedFileId,
+                                                                              uint32                                 unMaxSecondsOld      ) override
    { return pRealStorage->GetPublishedFileDetails      (unPublishedFileId, unMaxSecondsOld);                                                                }
-  virtual SteamAPICall_t              DeletePublishedFile                     (       PublishedFileId_t                      unPublishedFileId    ) override
+  SteamAPICall_t              DeletePublishedFile                     (       PublishedFileId_t                      unPublishedFileId    ) override
    { return pRealStorage->DeletePublishedFile          (unPublishedFileId);                                                                                 }
   // enumerate the files that the current user published with this app
-  virtual SteamAPICall_t              EnumerateUserPublishedFiles             (       uint32                                 unStartIndex         ) override
-   { return pRealStorage->EnumerateUserPublishedFiles  (unStartIndex);                                                                                      }
-  virtual SteamAPICall_t              SubscribePublishedFile                  (       PublishedFileId_t                      unPublishedFileId    ) override
+  SteamAPICall_t              EnumerateUserPublishedFiles             (       uint32                                 unStartIndex         ) override
+   {
+    steam_log.Log (L"ISteamRemoteStorage::EnumeratePublishedFiles (...)");
+
+     return pRealStorage->EnumerateUserPublishedFiles  (unStartIndex);                                                                                      }
+  SteamAPICall_t              SubscribePublishedFile                  (       PublishedFileId_t                      unPublishedFileId    ) override
    { return pRealStorage->SubscribePublishedFile       (unPublishedFileId);                                                                                 }
-  virtual SteamAPICall_t              EnumerateUserSubscribedFiles            (       uint32                                 unStartIndex         ) override
-   { return pRealStorage->EnumerateUserSubscribedFiles (unStartIndex);                                                                                      }
-  virtual SteamAPICall_t              UnsubscribePublishedFile                (       PublishedFileId_t                      unPublishedFileId    ) override
+  SteamAPICall_t              EnumerateUserSubscribedFiles            (       uint32                                 unStartIndex         ) override
+   {
+     steam_log.Log (L"ISteamRemoteStorage::EnumerateSubscribedFiles (...)");
+
+     return pRealStorage->EnumerateUserSubscribedFiles (unStartIndex);                                                                                      }
+  SteamAPICall_t              UnsubscribePublishedFile                (       PublishedFileId_t                      unPublishedFileId    ) override
    { return pRealStorage->UnsubscribePublishedFile     (unPublishedFileId);                                                                                 }
-  virtual bool                        UpdatePublishedFileSetChangeDescription (       PublishedFileUpdateHandle_t            updateHandle,
-                                                                                const char                                  *pchChangeDescription ) override
+  bool                        UpdatePublishedFileSetChangeDescription (       PublishedFileUpdateHandle_t            updateHandle,
+                                                                        const char                                  *pchChangeDescription ) override
    { return pRealStorage->UpdatePublishedFileSetChangeDescription (updateHandle, pchChangeDescription);                                                     }
-  virtual SteamAPICall_t              GetPublishedItemVoteDetails             (       PublishedFileId_t                      unPublishedFileId    ) override
+  SteamAPICall_t              GetPublishedItemVoteDetails             (       PublishedFileId_t                      unPublishedFileId    ) override
    { return pRealStorage->GetPublishedItemVoteDetails (unPublishedFileId);                                                                                  }
-  virtual SteamAPICall_t              UpdateUserPublishedItemVote             (       PublishedFileId_t                      unPublishedFileId,
-                                                                                      bool                                   bVoteUp              ) override
+  SteamAPICall_t              UpdateUserPublishedItemVote             (       PublishedFileId_t                      unPublishedFileId,
+                                                                              bool                                   bVoteUp              ) override
    { return pRealStorage->UpdateUserPublishedItemVote (unPublishedFileId, bVoteUp);                                                                         }
-  virtual SteamAPICall_t              GetUserPublishedItemVoteDetails         (       PublishedFileId_t                      unPublishedFileId    ) override
+  SteamAPICall_t              GetUserPublishedItemVoteDetails         (       PublishedFileId_t                      unPublishedFileId    ) override
    { return pRealStorage->GetUserPublishedItemVoteDetails (unPublishedFileId);                                                                              }
-  virtual SteamAPICall_t              EnumerateUserSharedWorkshopFiles        (       CSteamID                               steamId,
-                                                                                      uint32                                 unStartIndex,
-                                                                                      SteamParamStringArray_t               *pRequiredTags,
-                                                                                      SteamParamStringArray_t               *pExcludedTags        ) override
+  SteamAPICall_t              EnumerateUserSharedWorkshopFiles        (       CSteamID                               steamId,
+                                                                              uint32                                 unStartIndex,
+                                                                              SteamParamStringArray_t               *pRequiredTags,
+                                                                              SteamParamStringArray_t               *pExcludedTags        ) override
    { return pRealStorage->EnumerateUserSharedWorkshopFiles (steamId, unStartIndex, pRequiredTags, pExcludedTags);                                           }
-  virtual SteamAPICall_t              PublishVideo                            (       EWorkshopVideoProvider                 eVideoProvider,
-                                                                                const char                                  *pchVideoAccount,
-                                                                                const char                                  *pchVideoIdentifier,
-                                                                                const char                                  *pchPreviewFile,
-                                                                                      AppId_t                                nConsumerAppId,
-                                                                                const char                                  *pchTitle,
-                                                                                const char                                  *pchDescription,
-                                                                                      ERemoteStoragePublishedFileVisibility  eVisibility,
-                                                                                      SteamParamStringArray_t               *pTags                ) override
+  SteamAPICall_t              PublishVideo                            (       EWorkshopVideoProvider                 eVideoProvider,
+                                                                        const char                                  *pchVideoAccount,
+                                                                        const char                                  *pchVideoIdentifier,
+                                                                        const char                                  *pchPreviewFile,
+                                                                              AppId_t                                nConsumerAppId,
+                                                                        const char                                  *pchTitle,
+                                                                        const char                                  *pchDescription,
+                                                                              ERemoteStoragePublishedFileVisibility  eVisibility,
+                                                                              SteamParamStringArray_t               *pTags                ) override
    { return pRealStorage->PublishVideo ( eVideoProvider, pchVideoAccount, pchVideoIdentifier,
                                            pchPreviewFile, nConsumerAppId, pchTitle, pchDescription,
                                              eVisibility, pTags );                                                                                          }
-  virtual SteamAPICall_t              SetUserPublishedFileAction              (       PublishedFileId_t                      unPublishedFileId,
-                                                                                      EWorkshopFileAction                    eAction              ) override
+  SteamAPICall_t              SetUserPublishedFileAction              (       PublishedFileId_t                      unPublishedFileId,
+                                                                              EWorkshopFileAction                    eAction              ) override
    { return pRealStorage->SetUserPublishedFileAction (unPublishedFileId, eAction);                                                                          }
-  virtual SteamAPICall_t              EnumeratePublishedFilesByUserAction     (       EWorkshopFileAction                    eAction,
-                                                                                      uint32                                 unStartIndex         ) override
-   { return pRealStorage->EnumeratePublishedFilesByUserAction (eAction, unStartIndex);                                                                      }
+  SteamAPICall_t              EnumeratePublishedFilesByUserAction     (       EWorkshopFileAction                    eAction,
+                                                                              uint32                                 unStartIndex         ) override
+   {
+     steam_log.Log (L"ISteamRemoteStorage::EnumeratePublishedFilesByUserAction (...)");
+
+     return pRealStorage->EnumeratePublishedFilesByUserAction (eAction, unStartIndex);                                                                      }
 
   // this method enumerates the public view of workshop files
-  virtual SteamAPICall_t              EnumeratePublishedWorkshopFiles         (       EWorkshopEnumerationType               eEnumerationType,
-                                                                                      uint32                                 unStartIndex,
-                                                                                      uint32                                 unCount,
-                                                                                      uint32                                 unDays,
-                                                                                      SteamParamStringArray_t               *pTags,
-                                                                                      SteamParamStringArray_t               *pUserTags            ) override
-   { return pRealStorage->EnumeratePublishedWorkshopFiles ( eEnumerationType, unStartIndex, unCount, unDays, pTags, pUserTags );                            }
+  SteamAPICall_t              EnumeratePublishedWorkshopFiles         (       EWorkshopEnumerationType               eEnumerationType,
+                                                                              uint32                                 unStartIndex,
+                                                                              uint32                                 unCount,
+                                                                              uint32                                 unDays,
+                                                                              SteamParamStringArray_t               *pTags,
+                                                                              SteamParamStringArray_t               *pUserTags            ) override
+   { 
+     steam_log.Log (L"ISteamRemoteStorage::EnumeratePublishedWorkshopFiles (...)");
 
-  virtual SteamAPICall_t              UGCDownloadToLocation                   (       UGCHandle_t                            hContent,
-                                                                                const char                                  *pchLocation,
-                                                                                      uint32                                 unPriority           ) override
+     return pRealStorage->EnumeratePublishedWorkshopFiles (eEnumerationType, unStartIndex, unCount, unDays, pTags, pUserTags);                               }
+
+  SteamAPICall_t              UGCDownloadToLocation                   (       UGCHandle_t                            hContent,
+                                                                        const char                                  *pchLocation,
+                                                                              uint32                                 unPriority           ) override
    { return pRealStorage->UGCDownloadToLocation (hContent, pchLocation, unPriority);                                                                        }
 
 private:
@@ -409,56 +427,67 @@ public:
   //
 
   // file operations
-  virtual bool                        FileWrite                 ( const char                   *pchFile,
-                                                                  const void                   *pvData,
-                                                                        int32                   cubData                ) override
+  bool                        FileWrite                 ( const char                   *pchFile,
+                                                          const void                   *pvData,
+                                                                int32                   cubData                ) override
    {
-     if (SK_Steam_IsCloudFileBlacklisted (pchFile))
-       return true;
+     //if (SK_SteamUser_BLoggedOn () == SK_SteamUser_LoggedOn_e::Online)
+     //{
+      if (SK_Steam_IsCloudFileBlacklisted (pchFile))
+        return true;
 
-     return pRealStorage->FileWrite (pchFile, pvData, cubData);
+      return pRealStorage->FileWrite (pchFile, pvData, cubData);
+     //}
+
+     //return false;
    }
-  virtual int32                       FileRead                  ( const char                   *pchFile,
-                                                                        void                   *pvData,
-                                                                        int32                   cubDataToRead          ) override
+  int32                       FileRead                  ( const char                   *pchFile,
+                                                                void                   *pvData,
+                                                                int32                   cubDataToRead          ) override
    { return pRealStorage->FileRead (pchFile, pvData, cubDataToRead);                                                             }
 
-  virtual SteamAPICall_t              FileWriteAsync            ( const char                   *pchFile,
-                                                                  const void                   *pvData,
-                                                                        uint32                  cubData                ) override
+  SteamAPICall_t              FileWriteAsync            ( const char                   *pchFile,
+                                                          const void                   *pvData,
+                                                                uint32                  cubData                ) override
    { return pRealStorage->FileWriteAsync (pchFile, pvData, cubData);                                                             }
-  virtual SteamAPICall_t              FileReadAsync             ( const char                   *pchFile,
-                                                                        uint32                  nOffset,
-                                                                        uint32                  cubToRead              ) override
+  SteamAPICall_t              FileReadAsync             ( const char                   *pchFile,
+                                                                uint32                  nOffset,
+                                                                uint32                  cubToRead              ) override
    { return pRealStorage->FileReadAsync (pchFile, nOffset, cubToRead);                                                           }
-  virtual bool                        FileReadAsyncComplete     (       SteamAPICall_t          hReadCall,
-                                                                        void                   *pvBuffer,
-                                                                        uint32                  cubToRead              ) override
+  bool                        FileReadAsyncComplete     (       SteamAPICall_t          hReadCall,
+                                                                void                   *pvBuffer,
+                                                                uint32                  cubToRead              ) override
    { return pRealStorage->FileReadAsyncComplete (hReadCall, pvBuffer, cubToRead);                                                }
 
-  virtual bool                        FileForget                ( const char                   *pchFile                ) override
+  bool                        FileForget                ( const char                   *pchFile                ) override
    {
      if (SK_Steam_IsCloudFileBlacklisted (pchFile))
        return true;
 
-     return pRealStorage->FileForget (pchFile);
+     //if (SK_SteamUser_BLoggedOn () == SK_SteamUser_LoggedOn_e::Online)
+       return pRealStorage->FileForget (pchFile);
+
+     //return true;
    }
-  virtual bool                        FileDelete                ( const char                   *pchFile                ) override
+  bool                        FileDelete                ( const char                   *pchFile                ) override
    {
      if (SK_Steam_IsCloudFileBlacklisted (pchFile))
         return true;
 
-     return pRealStorage->FileDelete (pchFile);
+     //if (SK_SteamUser_BLoggedOn () == SK_SteamUser_LoggedOn_e::Online)
+       return pRealStorage->FileDelete (pchFile);
+
+     //return true;
    }
-  virtual SteamAPICall_t              FileShare                 ( const char                   *pchFile                ) override
+  SteamAPICall_t              FileShare                 ( const char                   *pchFile                ) override
    {
      if (SK_Steam_IsCloudFileBlacklisted (pchFile))
         return 0;
    
      return pRealStorage->FileShare (pchFile);
    }
-  virtual bool                        SetSyncPlatforms          ( const char                   *pchFile,
-                                                                        ERemoteStoragePlatform  eRemoteStoragePlatform ) override
+  bool                        SetSyncPlatforms          ( const char                   *pchFile,
+                                                                ERemoteStoragePlatform  eRemoteStoragePlatform ) override
    {
      if (SK_Steam_IsCloudFileBlacklisted (pchFile))
        return true;
@@ -467,65 +496,82 @@ public:
    }
 
   // file operations that cause network IO
-  virtual UGCFileWriteStreamHandle_t  FileWriteStreamOpen       ( const char                       *pchFile      ) override
+  UGCFileWriteStreamHandle_t  FileWriteStreamOpen       ( const char                       *pchFile      ) override
    {
       if (SK_Steam_IsCloudFileBlacklisted (pchFile))
         return SK_STEAM_INVALID_UGC_FILE;
    
      return pRealStorage->FileWriteStreamOpen (pchFile);
    }
-  virtual bool                        FileWriteStreamWriteChunk (       UGCFileWriteStreamHandle_t  writeHandle,
-                                                                  const void                       *pvData,
-                                                                        int32                       cubData      ) override
+  bool                        FileWriteStreamWriteChunk (       UGCFileWriteStreamHandle_t  writeHandle,
+                                                          const void                       *pvData,
+                                                                int32                       cubData      ) override
    {
      if (writeHandle == SK_STEAM_INVALID_UGC_FILE)
        return true;
    
      return pRealStorage->FileWriteStreamWriteChunk (writeHandle, pvData, cubData);
    }
-  virtual bool                        FileWriteStreamClose      (       UGCFileWriteStreamHandle_t  writeHandle  ) override
+  bool                        FileWriteStreamClose      (       UGCFileWriteStreamHandle_t  writeHandle  ) override
    {
      if (writeHandle == SK_STEAM_INVALID_UGC_FILE)
        return true;
-   
+
      return pRealStorage->FileWriteStreamClose (writeHandle);
    }
-  virtual bool                        FileWriteStreamCancel     (       UGCFileWriteStreamHandle_t  writeHandle  ) override
+  bool                        FileWriteStreamCancel     (       UGCFileWriteStreamHandle_t  writeHandle  ) override
    {
      if (writeHandle == SK_STEAM_INVALID_UGC_FILE)
        return true;
-   
+
      return pRealStorage->FileWriteStreamCancel (writeHandle);
    }
 
   // file information
-  virtual bool                        FileExists                ( const char *pchFile ) override
+  bool                        FileExists                ( const char *pchFile ) override
    {
-    // if (SK_Steam_IsCloudFileBlacklisted (pchFile))
-    //   return false;
-     
-     return pRealStorage->FileExists (pchFile);
+   //steam_log.Log (L"ISteamRemoteStorage::FileExists (%hs)", pchFile);
+
+     //if (SK_SteamUser_BLoggedOn () == SK_SteamUser_LoggedOn_e::Online)
+     //{
+      // if (SK_Steam_IsCloudFileBlacklisted (pchFile))
+      //   return false;
+
+       return pRealStorage->FileExists (pchFile);
+     //}
+     //
+     //return false;
    }
-  virtual bool                        FilePersisted             ( const char *pchFile ) override
+  bool                        FilePersisted             ( const char *pchFile ) override
    {
      //if (SK_Steam_IsCloudFileBlacklisted (pchFile))
      //  return false;
 
      return pRealStorage->FilePersisted (pchFile);
    }
-  virtual int32                       GetFileSize               ( const char *pchFile ) override
+  int32                       GetFileSize               ( const char *pchFile ) override
    { return pRealStorage->GetFileSize (pchFile);                                                }
-  virtual int64                       GetFileTimestamp          ( const char *pchFile ) override
+  int64                       GetFileTimestamp          ( const char *pchFile ) override
    { return pRealStorage->GetFileTimestamp (pchFile);                                           }
-  virtual ERemoteStoragePlatform      GetSyncPlatforms          ( const char *pchFile ) override
+  ERemoteStoragePlatform      GetSyncPlatforms          ( const char *pchFile ) override
    { return pRealStorage->GetSyncPlatforms (pchFile);                                           }
 
   // iteration
-  virtual int32                       GetFileCount              ( void                     ) override
-   { return pRealStorage->GetFileCount ();                                                           }
-  virtual const char*                 GetFileNameAndSize        ( int    iFile,
-                                                                  int32 *pnFileSizeInBytes ) override
+  int32                       GetFileCount              ( void                     ) override
    {
+   //steam_log.Log (L"ISteamRemoteStorage::GetFileCount ()");
+
+     //if (SK_SteamUser_BLoggedOn () == SK_SteamUser_LoggedOn_e::Online)
+      return pRealStorage->GetFileCount ();
+
+     //return 0;
+  }
+   const char*                 GetFileNameAndSize        ( int    iFile,
+                                                           int32 *pnFileSizeInBytes ) override
+   {
+     //if (SK_SteamUser_BLoggedOn () != SK_SteamUser_LoggedOn_e::Online)
+       //return "";
+
      const char* pszRet =
        pRealStorage->GetFileNameAndSize (iFile, pnFileSizeInBytes);
 
@@ -539,14 +585,15 @@ public:
    }
 
   // configuration management
-  virtual bool                        GetQuota                  ( uint64 *pnTotalBytes,
-                                                                  uint64 *puAvailableBytes ) override
-   { return pRealStorage->GetQuota (pnTotalBytes, puAvailableBytes);                                 }
-  virtual bool                        IsCloudEnabledForAccount  ( void                     ) override
+  bool                        GetQuota                  ( uint64 *pnTotalBytes,
+                                                          uint64 *puAvailableBytes ) override
+   {
+     return pRealStorage->GetQuota (pnTotalBytes, puAvailableBytes);                                 }
+  bool                        IsCloudEnabledForAccount  ( void                     ) override
    { return pRealStorage->IsCloudEnabledForAccount ();                                               }
-  virtual bool                        IsCloudEnabledForApp      ( void                     ) override
+  bool                        IsCloudEnabledForApp      ( void                     ) override
    { return pRealStorage->IsCloudEnabledForApp ();                                                   }
-  virtual void                        SetCloudEnabledForApp     ( bool   bEnabled          ) override
+  void                        SetCloudEnabledForApp     ( bool   bEnabled          ) override
    { return pRealStorage->SetCloudEnabledForApp (bEnabled);                                          }
 
   // user generated content
@@ -554,23 +601,23 @@ public:
   // Downloads a UGC file.  A priority value of 0 will download the file immediately,
   // otherwise it will wait to download the file until all downloads with a lower priority
   // value are completed.  Downloads with equal priority will occur simultaneously.
-  virtual SteamAPICall_t              UGCDownload               ( UGCHandle_t hContent,
-                                                                  uint32      unPriority       ) override
+  SteamAPICall_t              UGCDownload               ( UGCHandle_t hContent,
+                                                          uint32      unPriority       ) override
    { return pRealStorage->UGCDownload (hContent, unPriority);                                            }
 
   // Gets the amount of data downloaded so far for a piece of content. pnBytesExpected can be 0 if function returns false
   // or if the transfer hasn't started yet, so be careful to check for that before dividing to get a percentage
-  virtual bool                        GetUGCDownloadProgress    ( UGCHandle_t  hContent,
-                                                                  int32       *pnBytesDownloaded,
-                                                                  int32       *pnBytesExpected ) override
+  bool                        GetUGCDownloadProgress    ( UGCHandle_t  hContent,
+                                                          int32       *pnBytesDownloaded,
+                                                          int32       *pnBytesExpected ) override
    { return pRealStorage->GetUGCDownloadProgress (hContent, pnBytesDownloaded, pnBytesExpected);         }
 
   // Gets metadata for a file after it has been downloaded. This is the same metadata given in the RemoteStorageDownloadUGCResult_t call result
-  virtual bool                        GetUGCDetails             ( UGCHandle_t   hContent,
-                                                                  AppId_t      *pnAppID,
-                                                                  char        **ppchName,
-                                                                  int32        *pnFileSizeInBytes,
-                                                     OUT_STRUCT() CSteamID     *pSteamIDOwner  ) override
+  bool                        GetUGCDetails             ( UGCHandle_t   hContent,
+                                                          AppId_t      *pnAppID,
+                                                          char        **ppchName,
+                                                          int32        *pnFileSizeInBytes,
+                                             OUT_STRUCT() CSteamID     *pSteamIDOwner  ) override
    { return pRealStorage->GetUGCDetails (hContent, pnAppID, ppchName, pnFileSizeInBytes, pSteamIDOwner); }
 
   // After download, gets the content of the file.  
@@ -579,117 +626,133 @@ public:
   // enough memory for each chunk).  Once the last byte is read, the file is implicitly closed and further calls to UGCRead will fail
   // unless UGCDownload is called again.
   // For especially large files (anything over 100MB) it is a requirement that the file is read in chunks.
-  virtual int32	                      UGCRead                   ( UGCHandle_t     hContent,
-                                                                  void           *pvData,
-                                                                  int32           cubDataToRead,
-                                                                  uint32          cOffset,
-                                                                  EUGCReadAction  eAction ) override
+  int32	                      UGCRead                   ( UGCHandle_t     hContent,
+                                                          void           *pvData,
+                                                          int32           cubDataToRead,
+                                                          uint32          cOffset,
+                                                          EUGCReadAction  eAction ) override
    { return pRealStorage->UGCRead (hContent, pvData, cubDataToRead, cOffset, eAction);              }
 
   // Functions to iterate through UGC that has finished downloading but has not yet been read via UGCRead()
-  virtual int32	                      GetCachedUGCCount         ( void                    ) override
-   { return pRealStorage->GetCachedUGCCount  ();                                                    }
-  virtual	UGCHandle_t                 GetCachedUGCHandle        ( int32 iCachedContent    ) override
+  int32	                      GetCachedUGCCount         ( void                    ) override
+   { 
+     steam_log.Log (L"ISteamRemoteStorage::GetCachedUGCCount ()");
+
+     return pRealStorage->GetCachedUGCCount  ();                                                    }
+  UGCHandle_t                 GetCachedUGCHandle        ( int32 iCachedContent    ) override
    { return pRealStorage->GetCachedUGCHandle (iCachedContent);                                      }
 
   // publishing UGC
-  virtual SteamAPICall_t              PublishWorkshopFile              ( const char                                  *pchFile,
-                                                                         const char                                  *pchPreviewFile,
-                                                                               AppId_t                                nConsumerAppId,
-                                                                         const char                                  *pchTitle,
-                                                                         const char                                  *pchDescription,
-                                                                               ERemoteStoragePublishedFileVisibility  eVisibility,
-                                                                               SteamParamStringArray_t               *pTags,
-                                                                               EWorkshopFileType                      eWorkshopFileType ) override
+  SteamAPICall_t              PublishWorkshopFile              ( const char                                  *pchFile,
+                                                                 const char                                  *pchPreviewFile,
+                                                                       AppId_t                                nConsumerAppId,
+                                                                 const char                                  *pchTitle,
+                                                                 const char                                  *pchDescription,
+                                                                       ERemoteStoragePublishedFileVisibility  eVisibility,
+                                                                       SteamParamStringArray_t               *pTags,
+                                                                       EWorkshopFileType                      eWorkshopFileType ) override
    { return pRealStorage->PublishWorkshopFile ( pchFile, pchPreviewFile, nConsumerAppId,
                                                   pchTitle, pchDescription, eVisibility, pTags, eWorkshopFileType );                              }
 
-  virtual PublishedFileUpdateHandle_t CreatePublishedFileUpdateRequest (       PublishedFileId_t                      unPublishedFileId ) override
+  PublishedFileUpdateHandle_t CreatePublishedFileUpdateRequest (       PublishedFileId_t                      unPublishedFileId ) override
    { return pRealStorage->CreatePublishedFileUpdateRequest (unPublishedFileId);                                                                   }
-  virtual bool                        UpdatePublishedFileFile          (       PublishedFileUpdateHandle_t            updateHandle,
-                                                                         const char                                  *pchFile           ) override
+  bool                        UpdatePublishedFileFile          (       PublishedFileUpdateHandle_t            updateHandle,
+                                                                 const char                                  *pchFile           ) override
    { return pRealStorage->UpdatePublishedFileFile        (updateHandle, pchFile);                                                                 }
-  virtual bool                        UpdatePublishedFilePreviewFile   (       PublishedFileUpdateHandle_t            updateHandle,
-                                                                         const char                                  *pchPreviewFile    ) override
+  bool                        UpdatePublishedFilePreviewFile   (       PublishedFileUpdateHandle_t            updateHandle,
+                                                                 const char                                  *pchPreviewFile    ) override
    { return pRealStorage->UpdatePublishedFilePreviewFile (updateHandle, pchPreviewFile);                                                          }
-  virtual bool                        UpdatePublishedFileTitle         (       PublishedFileUpdateHandle_t            updateHandle,
-                                                                         const char                                  *pchTitle          ) override
+  bool                        UpdatePublishedFileTitle         (       PublishedFileUpdateHandle_t            updateHandle,
+                                                                 const char                                  *pchTitle          ) override
    { return pRealStorage->UpdatePublishedFileTitle       (updateHandle, pchTitle);                                                                }
-  virtual bool                        UpdatePublishedFileDescription   (       PublishedFileUpdateHandle_t            updateHandle,
-                                                                         const char                                  *pchDescription    ) override
+  bool                        UpdatePublishedFileDescription   (       PublishedFileUpdateHandle_t            updateHandle,
+                                                                 const char                                  *pchDescription    ) override
    { return pRealStorage->UpdatePublishedFileDescription (updateHandle, pchDescription);                                                          }
-  virtual bool                        UpdatePublishedFileVisibility    (       PublishedFileUpdateHandle_t            updateHandle,
-                                                                               ERemoteStoragePublishedFileVisibility  eVisibility       ) override
+  bool                        UpdatePublishedFileVisibility    (       PublishedFileUpdateHandle_t            updateHandle,
+                                                                       ERemoteStoragePublishedFileVisibility  eVisibility       ) override
    { return pRealStorage->UpdatePublishedFileVisibility  (updateHandle, eVisibility);                                                             }
-  virtual bool                        UpdatePublishedFileTags          (       PublishedFileUpdateHandle_t            updateHandle,
-                                                                               SteamParamStringArray_t               *pTags             ) override
+  bool                        UpdatePublishedFileTags          (       PublishedFileUpdateHandle_t            updateHandle,
+                                                                       SteamParamStringArray_t               *pTags             ) override
    { return pRealStorage->UpdatePublishedFileTags        (updateHandle, pTags);                                                                   }
-  virtual SteamAPICall_t              CommitPublishedFileUpdate        (       PublishedFileUpdateHandle_t            updateHandle      ) override
+  SteamAPICall_t              CommitPublishedFileUpdate        (       PublishedFileUpdateHandle_t            updateHandle      ) override
    { return pRealStorage->CommitPublishedFileUpdate      (updateHandle);                                                                          }
 
   // Gets published file details for the given publishedfileid.  If unMaxSecondsOld is greater than 0,
   // cached data may be returned, depending on how long ago it was cached.  A value of 0 will force a refresh.
   // A value of k_WorkshopForceLoadPublishedFileDetailsFromCache will use cached data if it exists, no matter how old it is.
-  virtual SteamAPICall_t              GetPublishedFileDetails                 (       PublishedFileId_t                      unPublishedFileId,
-                                                                                      uint32                                 unMaxSecondsOld      ) override
+  SteamAPICall_t              GetPublishedFileDetails                 (       PublishedFileId_t                      unPublishedFileId,
+                                                                              uint32                                 unMaxSecondsOld      ) override
    { return pRealStorage->GetPublishedFileDetails      (unPublishedFileId, unMaxSecondsOld);                                                                }
-  virtual SteamAPICall_t              DeletePublishedFile                     (       PublishedFileId_t                      unPublishedFileId    ) override
+  SteamAPICall_t              DeletePublishedFile                     (       PublishedFileId_t                      unPublishedFileId    ) override
    { return pRealStorage->DeletePublishedFile          (unPublishedFileId);                                                                                 }
+
   // enumerate the files that the current user published with this app
-  virtual SteamAPICall_t              EnumerateUserPublishedFiles             (       uint32                                 unStartIndex         ) override
-   { return pRealStorage->EnumerateUserPublishedFiles  (unStartIndex);                                                                                      }
-  virtual SteamAPICall_t              SubscribePublishedFile                  (       PublishedFileId_t                      unPublishedFileId    ) override
+  SteamAPICall_t              EnumerateUserPublishedFiles             (       uint32                                 unStartIndex         ) override
+   { steam_log.Log (L"ISteamRemoteStorage::EnumerateUserPublishedFiles ()");
+
+     return pRealStorage->EnumerateUserPublishedFiles  (unStartIndex);                                                                                      }
+  SteamAPICall_t              SubscribePublishedFile                  (       PublishedFileId_t                      unPublishedFileId    ) override
    { return pRealStorage->SubscribePublishedFile       (unPublishedFileId);                                                                                 }
-  virtual SteamAPICall_t              EnumerateUserSubscribedFiles            (       uint32                                 unStartIndex         ) override
-   { return pRealStorage->EnumerateUserSubscribedFiles (unStartIndex);                                                                                      }
-  virtual SteamAPICall_t              UnsubscribePublishedFile                (       PublishedFileId_t                      unPublishedFileId    ) override
+  SteamAPICall_t              EnumerateUserSubscribedFiles            (       uint32                                 unStartIndex         ) override
+   { steam_log.Log (L"ISteamRemoteStorage::EnumerateUserSubscribedFiles ()");
+
+     return pRealStorage->EnumerateUserSubscribedFiles (unStartIndex);                                                                                      }
+  SteamAPICall_t              UnsubscribePublishedFile                (       PublishedFileId_t                      unPublishedFileId    ) override
    { return pRealStorage->UnsubscribePublishedFile     (unPublishedFileId);                                                                                 }
-  virtual bool                        UpdatePublishedFileSetChangeDescription (       PublishedFileUpdateHandle_t            updateHandle,
-                                                                                const char                                  *pchChangeDescription ) override
+  bool                        UpdatePublishedFileSetChangeDescription (       PublishedFileUpdateHandle_t            updateHandle,
+                                                                        const char                                  *pchChangeDescription ) override
    { return pRealStorage->UpdatePublishedFileSetChangeDescription (updateHandle, pchChangeDescription);                                                     }
-  virtual SteamAPICall_t              GetPublishedItemVoteDetails             (       PublishedFileId_t                      unPublishedFileId    ) override
+  SteamAPICall_t              GetPublishedItemVoteDetails             (       PublishedFileId_t                      unPublishedFileId    ) override
    { return pRealStorage->GetPublishedItemVoteDetails (unPublishedFileId);                                                                                  }
-  virtual SteamAPICall_t              UpdateUserPublishedItemVote             (       PublishedFileId_t                      unPublishedFileId,
-                                                                                      bool                                   bVoteUp              ) override
+  SteamAPICall_t              UpdateUserPublishedItemVote             (       PublishedFileId_t                      unPublishedFileId,
+                                                                              bool                                   bVoteUp              ) override
    { return pRealStorage->UpdateUserPublishedItemVote (unPublishedFileId, bVoteUp);                                                                         }
-  virtual SteamAPICall_t              GetUserPublishedItemVoteDetails         (       PublishedFileId_t                      unPublishedFileId    ) override
+  SteamAPICall_t              GetUserPublishedItemVoteDetails         (       PublishedFileId_t                      unPublishedFileId    ) override
    { return pRealStorage->GetUserPublishedItemVoteDetails (unPublishedFileId);                                                                              }
-  virtual SteamAPICall_t              EnumerateUserSharedWorkshopFiles        (       CSteamID                               steamId,
-                                                                                      uint32                                 unStartIndex,
-                                                                                      SteamParamStringArray_t               *pRequiredTags,
-                                                                                      SteamParamStringArray_t               *pExcludedTags        ) override
-   { return pRealStorage->EnumerateUserSharedWorkshopFiles (steamId, unStartIndex, pRequiredTags, pExcludedTags);                                           }
-  virtual SteamAPICall_t              PublishVideo                            (       EWorkshopVideoProvider                 eVideoProvider,
-                                                                                const char                                  *pchVideoAccount,
-                                                                                const char                                  *pchVideoIdentifier,
-                                                                                const char                                  *pchPreviewFile,
-                                                                                      AppId_t                                nConsumerAppId,
-                                                                                const char                                  *pchTitle,
-                                                                                const char                                  *pchDescription,
-                                                                                      ERemoteStoragePublishedFileVisibility  eVisibility,
-                                                                                      SteamParamStringArray_t               *pTags                ) override
+  SteamAPICall_t              EnumerateUserSharedWorkshopFiles        (       CSteamID                               steamId,
+                                                                              uint32                                 unStartIndex,
+                                                                              SteamParamStringArray_t               *pRequiredTags,
+                                                                              SteamParamStringArray_t               *pExcludedTags        ) override
+   {
+     steam_log.Log (L"ISteamRemoteStorage::EnumerateUserSharedWorkshopFiles ()");
+
+     return pRealStorage->EnumerateUserSharedWorkshopFiles (steamId, unStartIndex, pRequiredTags, pExcludedTags);                                           }
+  SteamAPICall_t              PublishVideo                            (       EWorkshopVideoProvider                 eVideoProvider,
+                                                                        const char                                  *pchVideoAccount,
+                                                                        const char                                  *pchVideoIdentifier,
+                                                                        const char                                  *pchPreviewFile,
+                                                                              AppId_t                                nConsumerAppId,
+                                                                        const char                                  *pchTitle,
+                                                                        const char                                  *pchDescription,
+                                                                              ERemoteStoragePublishedFileVisibility  eVisibility,
+                                                                              SteamParamStringArray_t               *pTags                ) override
    { return pRealStorage->PublishVideo ( eVideoProvider, pchVideoAccount, pchVideoIdentifier,
                                            pchPreviewFile, nConsumerAppId, pchTitle, pchDescription,
                                              eVisibility, pTags );                                                                                          }
-  virtual SteamAPICall_t              SetUserPublishedFileAction              (       PublishedFileId_t                      unPublishedFileId,
-                                                                                      EWorkshopFileAction                    eAction              ) override
+  SteamAPICall_t              SetUserPublishedFileAction              (       PublishedFileId_t                      unPublishedFileId,
+                                                                              EWorkshopFileAction                    eAction              ) override
    { return pRealStorage->SetUserPublishedFileAction (unPublishedFileId, eAction);                                                                          }
-  virtual SteamAPICall_t              EnumeratePublishedFilesByUserAction     (       EWorkshopFileAction                    eAction,
-                                                                                      uint32                                 unStartIndex         ) override
-   { return pRealStorage->EnumeratePublishedFilesByUserAction (eAction, unStartIndex);                                                                      }
+  SteamAPICall_t              EnumeratePublishedFilesByUserAction     (       EWorkshopFileAction                    eAction,
+                                                                              uint32                                 unStartIndex         ) override
+   { steam_log.Log (L"ISteamRemoteStorage::EnumeratePublishedFilesByUserAction ()");
+
+    return pRealStorage->EnumeratePublishedFilesByUserAction (eAction, unStartIndex);                                                                      }
 
   // this method enumerates the public view of workshop files
-  virtual SteamAPICall_t              EnumeratePublishedWorkshopFiles         (       EWorkshopEnumerationType               eEnumerationType,
-                                                                                      uint32                                 unStartIndex,
-                                                                                      uint32                                 unCount,
-                                                                                      uint32                                 unDays,
-                                                                                      SteamParamStringArray_t               *pTags,
-                                                                                      SteamParamStringArray_t               *pUserTags            ) override
-   { return pRealStorage->EnumeratePublishedWorkshopFiles ( eEnumerationType, unStartIndex, unCount, unDays, pTags, pUserTags );                            }
+  SteamAPICall_t              EnumeratePublishedWorkshopFiles         (       EWorkshopEnumerationType               eEnumerationType,
+                                                                              uint32                                 unStartIndex,
+                                                                              uint32                                 unCount,
+                                                                              uint32                                 unDays,
+                                                                              SteamParamStringArray_t               *pTags,
+                                                                              SteamParamStringArray_t               *pUserTags            ) override
+   {
+     steam_log.Log (L"ISteamRemoteStorage::EnumeratePublishedWorkshopFiles ()");
 
-  virtual SteamAPICall_t              UGCDownloadToLocation                   (       UGCHandle_t                            hContent,
-                                                                                const char                                  *pchLocation,
-                                                                                      uint32                                 unPriority           ) override
+     return pRealStorage->EnumeratePublishedWorkshopFiles ( eEnumerationType, unStartIndex, unCount, unDays, pTags, pUserTags );                            }
+
+  SteamAPICall_t              UGCDownloadToLocation                   (       UGCHandle_t                            hContent,
+                                                                        const char                                  *pchLocation,
+                                                                              uint32                                 unPriority           ) override
    { return pRealStorage->UGCDownloadToLocation (hContent, pchLocation, unPriority);                                                                        }
 
 private:
@@ -856,6 +919,9 @@ SteamRemoteStorage_Detour (void)
                       __FUNCTION__ )
   );
 
+#ifndef DANGEROUS_INTERFACE_ALIASING
+  return SteamRemoteStorage_Original ();
+#else
   if (steam_ctx.RemoteStorageVersion () == 12)
   {
     ISteamRemoteStorage* pRemoteStorage =
@@ -897,4 +963,5 @@ SteamRemoteStorage_Detour (void)
   }
 
   return SteamRemoteStorage_Original ();
+#endif
 }

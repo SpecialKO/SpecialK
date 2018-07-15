@@ -298,6 +298,10 @@ SteamUtils_Detour (void)
                       __FUNCTION__ )
   );
 
+#ifndef DANGEROUS_INTERFACE_ALIASING
+  return SteamUtils_Original ();
+#else
+
   if (steam_ctx.UtilsVersion () >= 5 && steam_ctx.UtilsVersion () <= 9)
   {
     ISteamUtils* pUtils =
@@ -321,4 +325,5 @@ SteamUtils_Detour (void)
   }
 
   return SteamUtils_Original ();
+#endif
 }

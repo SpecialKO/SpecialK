@@ -18,6 +18,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ReShade_Shim", "..\ReShade_Shim\ReShade_Shim.vcxproj", "{BA616EFC-F8D5-4C47-B43B-C42AFBD9F43B}"
 EndProject
 Global
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|AVX2 = Debug|AVX2
 		Debug|VS2017 (x64) = Debug|VS2017 (x64)
@@ -254,9 +257,7 @@ Global
 		{F142A341-5EE0-442D-A15F-98AE9B48DBAE}.Rel_Debug|x86.Deploy.0 = Debug|Win32
 		{F142A341-5EE0-442D-A15F-98AE9B48DBAE}.Release|AVX2.ActiveCfg = Release|x64
 		{F142A341-5EE0-442D-A15F-98AE9B48DBAE}.Release|VS2017 (x64).ActiveCfg = Release|x64
-		{F142A341-5EE0-442D-A15F-98AE9B48DBAE}.Release|VS2017 (x64).Build.0 = Release|x64
 		{F142A341-5EE0-442D-A15F-98AE9B48DBAE}.Release|VS2017 (x86).ActiveCfg = Release|Win32
-		{F142A341-5EE0-442D-A15F-98AE9B48DBAE}.Release|VS2017 (x86).Build.0 = Release|Win32
 		{F142A341-5EE0-442D-A15F-98AE9B48DBAE}.Release|x64.ActiveCfg = Release|x64
 		{F142A341-5EE0-442D-A15F-98AE9B48DBAE}.Release|x64.Build.0 = Release|x64
 		{F142A341-5EE0-442D-A15F-98AE9B48DBAE}.Release|x86.ActiveCfg = Release|Win32
@@ -369,7 +370,6 @@ Global
 		{371B9FA9-4C90-4AC6-A123-ACED756D6C77}.Release|AVX2.ActiveCfg = Release|x64
 		{371B9FA9-4C90-4AC6-A123-ACED756D6C77}.Release|VS2017 (x64).ActiveCfg = Release|x64
 		{371B9FA9-4C90-4AC6-A123-ACED756D6C77}.Release|VS2017 (x86).ActiveCfg = Release|Win32
-		{371B9FA9-4C90-4AC6-A123-ACED756D6C77}.Release|VS2017 (x86).Build.0 = Release|Win32
 		{371B9FA9-4C90-4AC6-A123-ACED756D6C77}.Release|x64.ActiveCfg = Release|x64
 		{371B9FA9-4C90-4AC6-A123-ACED756D6C77}.Release|x64.Build.0 = Release|x64
 		{371B9FA9-4C90-4AC6-A123-ACED756D6C77}.Release|x86.ActiveCfg = Release|Win32
@@ -476,7 +476,6 @@ Global
 		{63D8FE45-68D6-4AD5-9807-DDC7A6B63037}.Release|AVX2.ActiveCfg = Release|x64
 		{63D8FE45-68D6-4AD5-9807-DDC7A6B63037}.Release|VS2017 (x64).ActiveCfg = Release|x64
 		{63D8FE45-68D6-4AD5-9807-DDC7A6B63037}.Release|VS2017 (x86).ActiveCfg = Release|Win32
-		{63D8FE45-68D6-4AD5-9807-DDC7A6B63037}.Release|VS2017 (x86).Build.0 = Release|Win32
 		{63D8FE45-68D6-4AD5-9807-DDC7A6B63037}.Release|x64.ActiveCfg = Release|x64
 		{63D8FE45-68D6-4AD5-9807-DDC7A6B63037}.Release|x64.Build.0 = Release|x64
 		{63D8FE45-68D6-4AD5-9807-DDC7A6B63037}.Release|x86.ActiveCfg = Release|Win32
@@ -627,6 +626,12 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {21CF21BF-49F5-4F39-8B07-B3F55895F534}
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
 	EndGlobalSection
 	GlobalSection(Performance) = preSolution
 		HasPerformanceSessions = true

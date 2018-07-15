@@ -450,3 +450,32 @@ SK_SO4_PlugInCfg (void)
 
   return true;
 }
+
+
+volatile LONG SK_POE2_SkippedCopies      = 0L;
+         bool SK_POE2_NopSubresourceCopy = false;
+
+bool
+SK_POE2_PlugInCfg (void)
+{
+  if (ImGui::CollapsingHeader ("Pillars of Eternity II: Deadfire", ImGuiTreeNodeFlags_DefaultOpen))
+  {
+    ImGui::TreePush ("");
+
+    ImGui::Checkbox ("Disable Memory Copies to Staging Resources", &SK_POE2_NopSubresourceCopy);
+
+    int skipped = ReadAcquire (&SK_POE2_SkippedCopies);
+
+    if (skipped > 0)
+    {
+      ImGui::SameLine ();
+      ImGui::Text     ("\t%lu Copy Operations Skipped", skipped);
+    }
+
+    ImGui::TreePop  ();
+
+    return false;
+  }
+
+  return true;
+}

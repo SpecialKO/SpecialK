@@ -56,10 +56,18 @@ SK_SteamWrapper_WrappedClient_GetISteamRemoteStorage ( ISteamClient *This,
                                                        HSteamPipe    hSteamPipe,
                                                        const char   *pchVersion );
 
+extern
+ISteamUGC*
+SK_SteamWrapper_WrappedClient_GetISteamUGC ( ISteamClient *This,
+                                             HSteamUser    hSteamuser,
+                                             HSteamPipe    hSteamPipe,
+                                             const char   *pchVersion );
+
 #define WRAP_CONTROLLER
 #define WRAP_STORAGE
 #define WRAP_USER
 #define WRAP_UTILS
+//#define WRAP_UGC
 
 class IWrapSteamClient : public ISteamClient
 {
@@ -168,7 +176,15 @@ public:
 
 
   virtual ISteamUGC                *GetISteamUGC                 (HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char *pchVersion) override {
-    return pRealClient->GetISteamUGC                (hSteamUser, hSteamPipe, pchVersion);                                                        } // 26
+#ifdef WRAP_UGC
+    return SK_SteamWrapper_WrappedClient_GetISteamUGC ( pRealClient,
+                                                          hSteamUser,
+                                                            hSteamPipe,
+                                                              pchVersion );
+#else
+    return pRealClient->GetISteamUGC                (hSteamUser, hSteamPipe, pchVersion);
+#endif
+  } // 26
   virtual ISteamAppList            *GetISteamAppList             (HSteamUser hSteamUser, HSteamPipe hSteamPipe, const char *pchVersion) override {
     return pRealClient->GetISteamAppList            (hSteamUser, hSteamPipe, pchVersion);                                                        } // 27
   virtual ISteamMusic              *GetISteamMusic               (HSteamUser hSteamuser, HSteamPipe hSteamPipe, const char *pchVersion) override {

@@ -2,7 +2,7 @@ const
 std::unordered_set <std::wstring> __blacklist = {
   L"steamwebhelper.exe",
   L"streaming_client.exe",
-  L"Seam.exe",
+  L"steam.exe",
   L"html5app_steam.exe",
   L"wow_helper.exe",
   L"uninstall.exe",
@@ -67,12 +67,46 @@ std::unordered_set <std::wstring> __blacklist = {
   L"eac.exe",
   L"devenv.exe",
   L"vcpkgsrv.exe",
+
+  L"nvcontainer.exe",
+  L"nvdisplay.container.exe",
   
   L"gameserver.exe",// Sacred   game server
   L"s2gs.exe",      // Sacred 2 game server
   
   L"launchtm.exe",
-  
-  L"ds3t.exe",
-  L"tzt.exe"
+
+  L"activate.exe",
+  L"clmpsvc.exe",
+  L"clmshardwaretranscode.exe",
+  L"clupdater.exe",
+
+  L"olrstatecheck.exe",
+  L"olrsubmission.exe",
+
+  L"pdvdlp.exe",
+
+  L"powerdvd.exe",
+  L"powerdvdmovie.exe",
+  L"powerdvd_help.exe",
+  L"powerdvd17agent.exe",
+  L"powerdvd17ml.exe",
+  L"powerdvd17movie.exe",
+
+  L"ism2.exe",
+  L"chrome.exe",
+  L"perfwatson2.exe",
+
+  L"browser_broker.exe",
+  L"microsoftedge.exe",
+  L"microsoftedgecp.exe",
+
+  L"shellexperiencehost.exe",
+
+  L"conhost.exe", L"svchost.exe",
+
+  L"explorer.exe",
+  L"scriptedsandbox.exe",
+  L"scriptedsandbox64.exe",
+  L"nvidia web helper.exe",
 };

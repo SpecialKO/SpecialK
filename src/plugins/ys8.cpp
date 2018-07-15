@@ -857,7 +857,8 @@ SK_YS8_ControlPanel (void)
         LONG64 llTotalBytes = ReadAcquire64 (&llBytesSkipped) + ReadAcquire64 (&llBytesCopied);
 
         ImGui::PushStyleColor (ImGuiCol_PlotHistogram,  ImColor::HSV ((float)std::min ((long double)1.0, (long double)ReadAcquire64 (&llBytesSkipped) / (long double)(llTotalBytes)) * 0.278f, 0.88f, 0.333f));
-        ImGui::ProgressBar ((long double)ReadAcquire64 (&llBytesSkipped) / (long double)(llTotalBytes), ImVec2 (-1,0),
+        ImGui::ProgressBar ( (long double)ReadAcquire64 (&llBytesSkipped) /
+                             (long double)(llTotalBytes), ImVec2 (-1,0),
           SK_FormatString ("%ws out of %ws were avoided\t\t\t\tDirty Hash (%ws :: Load=%4.2f)", SK_File_SizeToString (ReadAcquire64 (&llBytesSkipped)).c_str (),
                                                                                                 SK_File_SizeToString (llTotalBytes).c_str (),
                                                                                                 SK_File_SizeToString (ys8_dirty_resources.size () * (sizeof (uintptr_t) + sizeof (bool))).c_str (),

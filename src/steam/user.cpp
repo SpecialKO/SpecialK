@@ -346,6 +346,9 @@ SteamUser_Detour (void)
                       __FUNCTION__ )
   );
 
+#ifndef DANGEROUS_INTERFACE_ALIASING
+  return SteamUser_Original ( );
+#else
   ISteamUser* pUser =
     static_cast <ISteamUser *> ( SteamUser_Original () );
 
@@ -364,4 +367,5 @@ SteamUser_Detour (void)
   }
 
   return nullptr;
+#endif
 }
