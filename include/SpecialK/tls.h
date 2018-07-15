@@ -25,6 +25,8 @@
 
 #include <Windows.h>
 #include <algorithm>
+//#include <SpecialK/com_util.h>
+//#include <SpecialK/log.h>
 
 struct ID3D11Buffer;
 struct ID3D11SamplerState;
@@ -52,6 +54,11 @@ public:
 
   void* pResolved = nullptr;
 };
+
+void SK_TLS_LogLeak ( wchar_t* wszFunc,
+                      wchar_t* wszFile,
+                      int      line,
+                      size_t   size );
 
 enum SK_TLS_STACK_MASK
 {
@@ -103,7 +110,7 @@ public:
         len = 0;
     }
 
-    if (zero_fill)
+    if (zero_fill && data != nullptr)
       RtlZeroMemory (data, needed * sizeof (_T));
 
     return data;
@@ -111,15 +118,26 @@ public:
 
   size_t reclaim (void)
   {
-    if (data != nullptr)
+    if (len > 0)
     {
-      _aligned_free (data);
-                     data = nullptr;
+      if (data != nullptr)
+      {
+        size_t freed = len;
+                 len = 0;
 
-      size_t freed = len;
-                     len = 0;
+        _aligned_free (data);
+                       data = nullptr;
 
-      return freed * sizeof (_T);
+        return freed * sizeof (_T);
+      }
+
+      else
+      {
+        SK_TLS_LogLeak ( __FUNCTIONW__, __FILEW__, __LINE__, len );
+
+               len = 0;
+        return len;
+      }
     }
 
     return 0;
@@ -170,15 +188,26 @@ public:
 
   size_t reclaim (void)
   {
-    if (data != nullptr)
+    if (len > 0)
     {
-      SK_LocalFree (data);
-                    data = nullptr;
+      if (data != nullptr)
+      {
+        SK_LocalFree (data);
+                      data = nullptr;
 
-      size_t freed = len;
-                     len = 0;
+        size_t freed = len;
+                       len = 0;
 
-      return freed * sizeof (_T);
+        return freed * sizeof (_T);
+      }
+
+      else
+      {
+        SK_TLS_LogLeak ( __FUNCTIONW__, __FILEW__, __LINE__, len );
+
+               len = 0;
+        return len;
+      }
     }
 
     return 0;
@@ -207,6 +236,7 @@ public:
   SK_TLS_HeapDataStore <char> cmd;
   SK_TLS_HeapDataStore <char> sym_resolve;
   SK_TLS_HeapDataStore <char> eula;
+  SK_TLS_HeapDataStore <char> cpu_info;
 
   struct
   {
@@ -245,6 +275,32 @@ public:
   {
     LPVOID   storage = nullptr;
     uint32_t size    = 0;
+
+    uint32_t reclaim (void)
+    {
+      if (size > 0)
+      {
+        if (storage != nullptr)
+        {
+          _aligned_free (storage);
+
+          const uint32_t orig_size = size;
+                              size = 0;
+
+          return orig_size;
+        }
+
+        else
+        {
+          SK_TLS_LogLeak ( __FUNCTIONW__, __FILEW__, __LINE__, size );
+
+                 size = 0;
+          return size;
+        }
+      }
+
+      return 0;
+    }
   } stack_scratch;
 
   void* allocStackScratchStorage   (size_t size);
@@ -481,36 +537,36 @@ public:
 class SK_TLS
 {
 public:
-  SK_ModuleAddrMap          known_modules;
-  SK_TLS_ScratchMemory      scratch_memory;
-  SK_TLS_ScratchMemoryLocal local_scratch; // Takes memory from LocalAlloc
+  SK_ModuleAddrMap          known_modules  = { };
+  SK_TLS_ScratchMemory      scratch_memory = { };
+  SK_TLS_ScratchMemoryLocal local_scratch  = { }; // Takes memory from LocalAlloc
 
-  SK_DDraw_ThreadContext    ddraw;
-  SK_D3D8_ThreadContext     d3d8;
-  SK_D3D9_ThreadContext     d3d9;
-  SK_D3D11_ThreadContext    d3d11;
-  SK_GL_ThreadContext       gl;
+  SK_DDraw_ThreadContext    ddraw = { };
+  SK_D3D8_ThreadContext     d3d8  = { };
+  SK_D3D9_ThreadContext     d3d9  = { };
+  SK_D3D11_ThreadContext    d3d11 = { };
+  SK_GL_ThreadContext       gl    = { };
 
   // Scratch memory pool for DXTex to reduce its tendency to fragment the
   //   the address space up while batching multiple format conversion jobs.
-  SK_DXTex_ThreadContext    dxtex;
+  SK_DXTex_ThreadContext    dxtex   = { };
 
-  SK_DInput7_ThreadContext  dinput7;
-  SK_DInput8_ThreadContext  dinput8;
+  SK_DInput7_ThreadContext  dinput7 = { };
+  SK_DInput8_ThreadContext  dinput8 = { };
 
-  SK_ImGui_ThreadContext    imgui;
-  SK_Input_ThreadContext    input_core;
-  SK_RawInput_ThreadContext raw_input;
-  SK_Win32_ThreadContext    win32;
+  SK_ImGui_ThreadContext    imgui      = { };
+  SK_Input_ThreadContext    input_core = { };
+  SK_RawInput_ThreadContext raw_input  = { };
+  SK_Win32_ThreadContext    win32      = { };
 
-  SK_OSD_ThreadContext      osd;
-  SK_Steam_ThreadContext    steam;
+  SK_OSD_ThreadContext      osd   = { };
+  SK_Steam_ThreadContext    steam = { };
 
-  SK_Sched_ThreadContext    scheduler;
+  SK_Sched_ThreadContext    scheduler = { };
 
-  SK_Memory_ThreadContext   memory;
-  SK_Disk_ThreadContext     disk;
-  SK_Net_ThreadContext      net;
+  SK_Memory_ThreadContext   memory = { };
+  SK_Disk_ThreadContext     disk   = { };
+  SK_Net_ThreadContext      net    = { };
 
   // All stack frames except for bottom
   //   have meaningless values for these,
@@ -548,18 +604,19 @@ public:
   } texture_management;
 
 
-  struct stack
-  {
-                 int current = 0;
-    static const int max     = 2;
-  } stack;
+  // Pending removal
+  //struct stack
+  //{
+  //               int current = 0;
+  //  static const int max     = 1;
+  //} stack;
 
   size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload);
 };
 
 extern volatile LONG __SK_TLS_INDEX;
 
-SK_TLS* __stdcall SK_TLS_Get      (void); // Alias: SK_TLS_Top
+//SK_TLS* __stdcall SK_TLS_Get      (void); // Alias: SK_TLS_Top
 SK_TLS* __stdcall SK_TLS_Bottom   (void);
 SK_TLS* __stdcall SK_TLS_BottomEx (DWORD dwTid);
 
@@ -581,3 +638,66 @@ private:
   BOOL* pBool_;
   BOOL  bOrig_;
 };
+
+
+
+
+extern volatile LONG _SK_IgnoreTLSAlloc;
+
+__forceinline
+SK_TlsRecord
+SK_GetTLS (bool initialize)
+{
+  DWORD dwTlsIdx =
+    ReadAcquire (&__SK_TLS_INDEX);
+
+  LPVOID lpvData =
+    nullptr;
+
+  if ( dwTlsIdx != TLS_OUT_OF_INDEXES )
+  {
+    lpvData =
+      FlsGetValue (dwTlsIdx);
+
+    if (lpvData == nullptr)
+    {
+      InterlockedIncrement (&_SK_IgnoreTLSAlloc);
+
+      if (GetLastError () == ERROR_SUCCESS)
+      {
+        lpvData =
+          SK_LocalAlloc (LPTR, sizeof (SK_TLS));
+
+        if (! FlsSetValue (dwTlsIdx, lpvData))
+        {
+          SK_LocalFree (lpvData);
+                        lpvData = nullptr;
+        }
+
+        else initialize = true;
+      }
+
+      InterlockedDecrement (&_SK_IgnoreTLSAlloc);
+    }
+
+    if (lpvData != nullptr && initialize)
+    {
+      InterlockedIncrement (&_SK_IgnoreTLSAlloc);
+
+      SK_TLS* pTLS =
+        static_cast <SK_TLS *> (lpvData);
+
+      *pTLS = SK_TLS::SK_TLS ();
+
+      pTLS->debug.tls_idx = dwTlsIdx;
+
+      InterlockedDecrement (&_SK_IgnoreTLSAlloc);
+    }
+  }
+
+  else
+    dwTlsIdx = TLS_OUT_OF_INDEXES;
+
+  return
+    { dwTlsIdx, lpvData };
+}

@@ -97,6 +97,9 @@ int            SK_MessageBox                (std::wstring caption,
                                              std::wstring title,
                                              uint32_t     flags);
 
+LPVOID         SK_Win32_GetTokenInfo        (_TOKEN_INFORMATION_CLASS tic);
+LPVOID         SK_Win32_ReleaseTokenInfo    (LPVOID                   lpTokenBuf);
+
 time_t         SK_Win32_FILETIME_to_time_t  (FILETIME const& ft);
 
 std::string    SK_WideCharToUTF8            (const std::wstring& in);
@@ -125,6 +128,7 @@ std::wstring   SK_File_SizeToString         (uint64_t       size,      SK_UNITS 
 std::wstring   SK_File_SizeToStringF        (uint64_t       size,      int            width,
                                              int            precision, SK_UNITS       unit = Auto);
 bool           SK_File_IsDirectory          (const wchar_t* wszPath);
+bool           SK_File_CanUserWriteToPath   (const wchar_t* wszPath);
 
 std::wstring   SK_SYS_GetInstallPath        (void);
 
@@ -163,6 +167,8 @@ const wchar_t*
 const wchar_t* SK_DescribeHRESULT           (HRESULT hr);
 
 void           SK_DeferCommand              (const char* szCommand);
+
+void           SK_GetSystemInfo             (LPSYSTEM_INFO lpSystemInfo);
 
 
 

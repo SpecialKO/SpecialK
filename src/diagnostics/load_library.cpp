@@ -278,6 +278,7 @@ SK_LoadLibrary_IsPinnable (const _T* pStr)
     SK_TEXT ("OpenCL"),    SK_TEXT ("CEGUI"),
     SK_TEXT ("perfos"),    SK_TEXT ("avrt"),
 
+    SK_TEXT ("MMDevApi"),
     SK_TEXT ("AUDIOSES"),  SK_TEXT ("HID"),
 
     SK_TEXT ("d3dx"),      SK_TEXT ("dsound"),
@@ -995,7 +996,9 @@ SK_ReHookLoadLibrary (void)
 
   if (calls++ > 0)
   {
+#ifdef SK_AGGRESSIVE_HOOKS
     SK_ApplyQueuedHooks ();
+#endif
   }
 
   SK_UnlockDllLoader ();
@@ -1459,7 +1462,9 @@ SK_WalkModules (int cbNeeded, HANDLE /*hProc*/, HMODULE* hMods, SK_ModuleEnum wh
 
   if (rehook || new_hooks || when == SK_ModuleEnum::PostLoad)
   {
+#ifdef SK_AGGRESSIVE_HOOKS
     SK_ApplyQueuedHooks ();
+#endif
   }
 }
 
@@ -1481,17 +1486,27 @@ SK_PrintUnloadedDLLs (iSK_Logger* pLogger)
     _Out_ PVOID  *EventTrace
   );
 
-  HMODULE hModNtDLL =
-    LoadLibraryW (L"ntdll.dll");
+  static HMODULE hModNtDLL =
+    SK_Modules.LoadLibraryLL (L"ntdll.dll");
 
-  auto RtlGetUnloadEventTraceEx =
+  static auto RtlGetUnloadEventTraceEx =
     (RtlGetUnloadEventTraceEx_pfn)GetProcAddress (hModNtDLL, "RtlGetUnloadEventTraceEx");
+
+    if (RtlGetUnloadEventTraceEx == nullptr)
+      return;
 
   PULONG element_size  = nullptr,
          element_count = nullptr;
-  PVOID trace_log      = nullptr;
+  PVOID trace_log = nullptr;
 
   RtlGetUnloadEventTraceEx (&element_size, &element_count, &trace_log);
+
+  if ( reinterpret_cast <uintptr_t> (element_size)  == 0 ||
+       reinterpret_cast <uintptr_t> (element_count) == 0 ||
+       reinterpret_cast <uintptr_t> (trace_log)     == 0    )
+  {
+    return;
+  }
 
   RTL_UNLOAD_EVENT_TRACE* pTraceEntry =
     *(RTL_UNLOAD_EVENT_TRACE **)trace_log;
@@ -2679,7 +2694,9 @@ SK_ReHookLoadLibrary (void)
 
   if (calls++ > 0)
   {
+#ifdef SK_AGGRESSIVE_HOOKS
     SK_ApplyQueuedHooks ();
+#endif
   }
 
   SK_UnlockDllLoader ();
@@ -3138,7 +3155,9 @@ SK_WalkModules (int cbNeeded, HANDLE /*hProc*/, HMODULE* hMods, SK_ModuleEnum wh
 
   if (rehook || new_hooks || when == SK_ModuleEnum::PostLoad)
   {
+#ifdef SK_AGGRESSIVE_HOOKS
     SK_ApplyQueuedHooks ();
+#endif
   }
 }
 

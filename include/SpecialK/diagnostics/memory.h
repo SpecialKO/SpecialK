@@ -27,6 +27,9 @@
 void
 SK_Memory_InitHooks (void);
 
+void
+SK_Memory_RemoveHooks (void);
+
 typedef HGLOBAL (WINAPI *GlobalAlloc_pfn)(
   _In_ UINT   uFlags,
   _In_ SIZE_T dwBytes
@@ -81,5 +84,23 @@ typedef BOOL (WINAPI *HeapFree_pfn)(
 
   extern RtlAllocateHeap_pfn RtlAllocaeHeap_Original;
   extern HeapFree_pfn        HeapFree_Original;
+
+
+
+BOOL
+WINAPI
+SK_VirtualFree           (
+  _In_ LPVOID lpAddress,
+  _In_ SIZE_T dwSize,
+  _In_ DWORD  dwFreeType );
+
+LPVOID
+WINAPI
+SK_VirtualAlloc (
+  _In_opt_ LPVOID lpAddress,
+  _In_     SIZE_T dwSize,
+  _In_     DWORD  flAllocationType,
+  _In_     DWORD  flProtect);
+
 
 #endif /* __SK__MEMORY_H__ */

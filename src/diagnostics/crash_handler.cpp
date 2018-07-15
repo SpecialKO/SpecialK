@@ -70,13 +70,18 @@
 #define SK_SymGetLineFromAddr SymGetLineFromAddr
 #endif
 
+extern const wchar_t*
+__stdcall
+SK_GetDebugSymbolPath (void);
+
 void
 SK_SymSetOpts (void)
 {
-  SymSetOptions ( SYMOPT_CASE_INSENSITIVE  | SYMOPT_LOAD_LINES        |
-                  SYMOPT_NO_PROMPTS        | SYMOPT_UNDNAME           |
-                  SYMOPT_DEFERRED_LOADS    | SYMOPT_FAVOR_COMPRESSED  |
-                  SYMOPT_FAIL_CRITICAL_ERRORS );
+  SymSetSearchPathW ( GetCurrentProcess (), SK_GetDebugSymbolPath () );
+  SymSetOptions     ( SYMOPT_LOAD_LINES           | SYMOPT_NO_PROMPTS        |
+                      SYMOPT_UNDNAME              | SYMOPT_DEFERRED_LOADS    |
+                      SYMOPT_OMAP_FIND_NEAREST    | SYMOPT_FAVOR_COMPRESSED  |
+                      SYMOPT_FAIL_CRITICAL_ERRORS | SYMOPT_NO_UNQUALIFIED_LOADS);
 }
 
 

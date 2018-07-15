@@ -214,6 +214,16 @@ SK_CreateDLLHook3 ( const wchar_t  *pwszModule, const char  *pszProcName,
 
 MH_STATUS
 __stdcall
+SK_DisableDLLHook ( const wchar_t *pwszModule,
+	                const char    *pszProcName );
+MH_STATUS
+__stdcall
+SK_QueueDisableDLLHook ( const wchar_t *pwszModule,
+	                     const char    *pszProcName );
+
+
+MH_STATUS
+__stdcall
 SK_CreateUser32Hook ( const char  *pszProcName,
                          void     *pDetour,          void **ppOriginal,
                          void    **ppFuncAddr

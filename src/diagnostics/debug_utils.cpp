@@ -210,11 +210,22 @@ SetLastError_Detour (
 
 FARPROC
 WINAPI
-GetProcAddress_Detour (
+GetProcAddress_Detour     (
   _In_ HMODULE hModule,
-  _In_ LPCSTR  lpProcName
-)
+  _In_ LPCSTR  lpProcName )
 {
+  if (    ReadAcquire (&__SK_DLL_Ending  ) ||
+       (! ReadAcquire (&__SK_DLL_Attached)  )
+     )
+  {
+    // How did we manage to invoke the hook if the
+    //   trampoline to call the original code is borked?!
+    if (GetProcAddress_Original == nullptr)
+      return nullptr;
+    else
+      return GetProcAddress_Original ( hModule, lpProcName );
+  }
+
   //static Concurrency::concurrent_unordered_map <HMODULE, std::unordered_map <std::string, FARPROC>> procs    (4);
   //static Concurrency::concurrent_unordered_map <HMODULE, std::unordered_map <uint16_t,    FARPROC>> ordinals (4);
   //
@@ -261,7 +272,7 @@ GetProcAddress_Detour (
   // Ignore ordinals for this (Disable Nahimic) test
   if ((uintptr_t)lpProcName > 65535UL)
   {
-    if (! lstrcmpA (lpProcName, "NoHotPatch"))
+    if (! lstrcmpiA (lpProcName, "NoHotPatch"))
     {
       static     DWORD NoHotPatch = 0x1;
       return (FARPROC)&NoHotPatch;
@@ -562,7 +573,11 @@ GetCommandLineA_Detour (void)
   //lstrcatA (szFakeOut, "\"");
   //
   //if (_stricmp (szFakeOut, GetCommandLineA_Original ()))
-  //  dll_log.Log (L"GetCommandLineA () ==> %hs", GetCommandLineA_Original ());
+#ifdef _DEBUG
+  SK_RunOnce (
+    dll_log.Log (L"GetCommandLineA () ==> %hs", GetCommandLineA_Original ())
+  );
+#endif
 
   return GetCommandLineA_Original ();
 }
@@ -573,41 +588,37 @@ void
 WINAPI
 OutputDebugStringA_Detour (LPCSTR lpOutputString)
 {
-  __try {
-    // fprintf is stupid, but lpOutputString already contains a newline and
-    //   fputs would just add another one...
-    game_debug.LogEx (true,   L"%-72ws:  %hs", SK_SEH_CompatibleCallerName (_ReturnAddress ()),
-                                               lpOutputString);
-    fwprintf         (stdout, L"%hs",          lpOutputString);
-    
-    if (! strstr (lpOutputString, "\n"))
-      game_debug.LogEx (false, L"\n");
-    
-    OutputDebugStringA_Original (lpOutputString);
-  }
+  // fprintf is stupid, but lpOutputString already contains a newline and
+  //   fputs would just add another one...
 
-  __except (EXCEPTION_EXECUTE_HANDLER) {
-  };
+  wchar_t  wszModule [MAX_PATH] = { };
+  wcsncpy (wszModule, SK_GetModuleFullNameFromAddr (_ReturnAddress ()).c_str (),
+                      MAX_PATH - 1);
+
+  game_debug.LogEx (true,   L"%-72ws:  %hs", wszModule, lpOutputString);
+//fwprintf         (stdout, L"%hs",          lpOutputString);
+  
+  if (! strstr (lpOutputString, "\n"))
+    game_debug.LogEx (false, L"\n");
+  
+  OutputDebugStringA_Original (lpOutputString);
 }
 
 void
 WINAPI
 OutputDebugStringW_Detour (LPCWSTR lpOutputString)
 {
-  __try
-  {
-    game_debug.LogEx (true,   L"%-72ws:  %ws", SK_SEH_CompatibleCallerName (_ReturnAddress ()),
-                                               lpOutputString);
-    fwprintf         (stdout, L"%ws",          lpOutputString);
+  wchar_t  wszModule [MAX_PATH] = { };
+  wcsncpy (wszModule, SK_GetModuleFullNameFromAddr (_ReturnAddress ()).c_str (),
+                      MAX_PATH - 1);
 
-    if (! wcsstr (lpOutputString, L"\n"))
-      game_debug.LogEx (false, L"\n");
+  game_debug.LogEx (true,   L"%-72ws:  %ws", wszModule, lpOutputString);
+//fwprintf         (stdout, L"%ws",                     lpOutputString);
 
-    OutputDebugStringW_Original (lpOutputString);
-  }
+  if (! wcsstr (lpOutputString, L"\n"))
+    game_debug.LogEx (false, L"\n");
 
-  __except (EXCEPTION_EXECUTE_HANDLER) {
-  };
+  OutputDebugStringW_Original (lpOutputString);
 }
 
 
@@ -1261,7 +1272,9 @@ static_cast_p2p <void> (&GetCommandLineA_Original) );
   SK_File_InitHooks    ();
   SK_Network_InitHooks ();
 
+#ifdef SK_AGGRESSIVE_HOOKS
   SK_ApplyQueuedHooks ();
+#endif
 
   return bAllow;
 }
@@ -1847,4 +1860,29 @@ SymLoadModule64 (
   }
 
   return TRUE;
+}
+
+typedef BOOL (IMAGEAPI *SymSetSearchPathW_pfn)(HANDLE,PCWSTR);
+
+BOOL
+IMAGEAPI
+SymSetSearchPathW (
+    _In_     HANDLE hProcess,
+    _In_opt_ PCWSTR SearchPath )
+{
+  using SymSetSearchPathW_pfn = BOOL (IMAGEAPI *)( _In_     HANDLE hProcess,
+                                                   _In_opt_ PCWSTR SearchPath );
+
+  static auto SymSetSearchPathW_Imp =
+    (SymSetSearchPathW_pfn)
+      GetProcAddress ( SK_Debug_LoadHelper (), "SymSetSearchPathW" );
+
+  if (SymSetSearchPathW_Imp != nullptr)
+  {
+  //std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+
+    return SymSetSearchPathW_Imp (hProcess, SearchPath);
+  }
+
+  return FALSE;
 }

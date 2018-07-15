@@ -24,6 +24,9 @@
 
 #include <SpecialK/SpecialK.h>
 
+class  SK_TLS;
+extern SK_TLS* __stdcall SK_TLS_Bottom (void);
+
 #undef COM_NO_WINDOWS_H
 #include <Windows.h>
 
@@ -103,7 +106,8 @@ extern "C" {
 #endif
 
       void     __stdcall SK_BeginBufferSwap (void);
-      HRESULT  __stdcall SK_EndBufferSwap   (HRESULT hr, IUnknown* device = nullptr);
+      HRESULT  __stdcall SK_EndBufferSwap   (HRESULT hr, IUnknown* device = nullptr,
+                                             SK_TLS *pTLS = SK_TLS_Bottom () );
 
       HMODULE  __stdcall SK_GetDLL          (void);
       DLL_ROLE __stdcall SK_GetDLLRole      (void);

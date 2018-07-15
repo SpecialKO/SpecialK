@@ -540,8 +540,8 @@ ProcessInformation ( PDWORD    pdData,
   DWORD                        dData = 0;
   NTSTATUS                        ns = STATUS_INVALID_PARAMETER;
 
-  if (pTLS->local_scratch.NtQuerySystemInformation.len < 4096)
-    pTLS->local_scratch.NtQuerySystemInformation.alloc (4096, true);
+  if (pTLS->local_scratch.NtQuerySystemInformation.len  < 4096)
+      pTLS->local_scratch.NtQuerySystemInformation.alloc (4096, true);
 
   void* pspi = nullptr;
 
@@ -1278,9 +1278,12 @@ public:
     static DWORD dwSelectedTid = 0;
     static UINT  uMaxCPU       = 0;
 
-    static bool show_exited_threads = false;
-    static bool hide_inactive       = true;
-    static bool reset_stats         = true;
+    static bool   show_exited_threads = false;
+    static bool   hide_inactive       = true;
+    static bool   reset_stats         = true;
+
+    static size_t rebalance_idx       = 0;
+    static bool   rebalance           = false;
 
     bool clear_counters = false;
 
@@ -1297,6 +1300,17 @@ public:
     if (ImGui::Button ("Reset Performance Counters"))
       clear_counters = true;
     ImGui::SameLine ();
+
+    if (! rebalance)
+    {
+      if (ImGui::Button ("Rebalance Threads"))
+      {
+        rebalance_idx = 0;
+        rebalance     = true;
+      }
+
+      ImGui::SameLine ();
+    }
 
     ImGui::Checkbox ("Show Callstack Analysis", &show_callstack);
 
@@ -1422,13 +1436,13 @@ public:
         }
         }
 
-        SYSTEM_INFO     sysinfo = { };
-        GetSystemInfo (&sysinfo);
+        SYSTEM_INFO        sysinfo = { };
+        SK_GetSystemInfo (&sysinfo);
 
         SK_TLS* pTLS =
           SK_TLS_BottomEx (dwSelectedTid);
 
-        if (sysinfo.dwNumberOfProcessors > 1 &&  pTLS != nullptr)
+        if (sysinfo.dwNumberOfProcessors > 1 && pTLS != nullptr)
         {
           ImGui::Separator ();
 
@@ -1439,11 +1453,8 @@ public:
             bool affinity =
               (pTLS->scheduler.affinity_mask & (Processor0 << j)) != 0;
 
-            PROCESSOR_NUMBER pnum = { };
-            GetThreadIdealProcessorEx (hSelectedThread, &pnum);
-
-            UINT i = 
-              ( pnum.Group + pnum.Number );
+            UINT i =
+              SetThreadIdealProcessor (hSelectedThread, MAXIMUM_PROCESSORS);
 
             bool ideal = (i == j);
 
@@ -1680,6 +1691,99 @@ public:
 
 
     ImGui::BeginGroup ( );
+
+    static std::vector <SKWG_Thread_Entry *> rebalance_list;
+
+    if (rebalance && rebalance_list.empty ())
+    {
+      for ( auto& it : SKWG_Ordered_Threads )
+      {
+        SK_TLS* pTLS =
+          SK_TLS_BottomEx (it.second->dwTid);
+
+        if ((! pTLS)) continue;
+
+        rebalance_list.push_back (it.second);
+      }
+
+      std::sort ( rebalance_list.begin (), rebalance_list.end (),
+           [](SKWG_Thread_Entry *lh, SKWG_Thread_Entry *rh) ->
+           bool
+           {
+             LARGE_INTEGER lil = { (DWORD)lh->runtimes.user.dwLowDateTime,
+                                    (LONG)lh->runtimes.user.dwHighDateTime },
+                           lir = { (DWORD)rh->runtimes.user.dwLowDateTime,
+                                    (LONG)rh->runtimes.user.dwHighDateTime };
+
+             return lil.QuadPart < lir.QuadPart;
+           }
+      );
+    }
+
+    if (rebalance)
+    {
+      size_t idx = 0;
+
+      for ( auto& it : rebalance_list )
+      {
+        if (rebalance_idx == idx)
+        {
+          SK_TLS* pTLS =
+            SK_TLS_BottomEx (it->dwTid);
+
+          DWORD pnum = 
+          SetThreadIdealProcessor (it->hThread, MAXIMUM_PROCESSORS);
+
+          if ( pnum != (DWORD)-1 && dwExitCode == STILL_ACTIVE )
+          {
+            static SYSTEM_INFO
+                sysinfo = { };
+            if (sysinfo.dwNumberOfProcessors == 0)
+            {
+              SK_GetSystemInfo (&sysinfo);
+            }
+
+            static DWORD ideal = 0;
+
+            DWORD_PTR dwMask =
+              pTLS->scheduler.affinity_mask;
+
+            if (pnum != ideal && ( (dwMask >> pnum)  & 0x1)
+                              && ( (dwMask >> ideal) & 0x1))
+            {
+              if ( SetThreadIdealProcessor ( it->hThread, ideal ) != -1 )
+                pnum = ideal;
+            }
+
+            if (pnum == ideal || (! ((dwMask >> ideal) & 0x1)))
+            {
+              if (pnum == ideal)
+                rebalance_idx++;
+
+              ideal++;
+
+              if (ideal >= sysinfo.dwNumberOfProcessors)
+                ideal = 0;
+            }
+          }
+
+          else ++rebalance_idx;
+        }
+
+        // No more rebalancing to do!
+        if ( rebalance &&
+             rebalance_idx >= rebalance_list.size () )
+        {
+          rebalance = false;
+        }
+
+        ++idx;
+      }
+
+      if (! rebalance) rebalance_list.clear ();
+    }
+
+
     for ( auto& it : SKWG_Ordered_Threads )
     {
       if (! IsThreadNonIdle (*it.second)) continue;
@@ -1773,13 +1877,11 @@ public:
     {
       if (! IsThreadNonIdle (*it.second)) continue;
 
-      HANDLE hThread = it.second->hThread;
+      UINT i =
+        SetThreadIdealProcessor (it.second->hThread, MAXIMUM_PROCESSORS);
 
-      PROCESSOR_NUMBER                     pnum = { };
-      GetThreadIdealProcessorEx (hThread, &pnum);
-
-      UINT i = 
-        ( pnum.Group + pnum.Number );
+      if (i == (UINT)-1)
+        i = 0;
 
       if (! it.second->exited)
       {

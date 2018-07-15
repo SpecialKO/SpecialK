@@ -380,7 +380,7 @@ SKX_ThreadThunk ( LPVOID lpUserPassThrough )
     pStartParams->lpStartFunc (pStartParams->lpUserParams);
 
   if (LocalFree_Original != nullptr)
-    LocalFree_Original ((HLOCAL)pStartParams);
+      LocalFree_Original ((HLOCAL)pStartParams);
 
   return dwRet;
 }

@@ -111,20 +111,11 @@ RtlAllocateHeap_Detour (
   _In_ DWORD  dwFlags,
   _In_ SIZE_T dwBytes )
 {
-  bool bZero = false;
-  if (dwFlags & HEAP_ZERO_MEMORY)
-  {
-    bZero    = true;
-    dwFlags &= ~HEAP_ZERO_MEMORY;
-  }
-
   LPVOID lpRet =
     RtlAllocateHeap_Original (hHeap, dwFlags, dwBytes);
 
   if (lpRet != nullptr)
   {
-    if (bZero) RtlZeroMemory (lpRet, dwBytes);
-
     if (ReadAcquire (&_SK_IgnoreTLSAlloc) == 0)
     {
       SK_TLS* pTLS = 
@@ -166,6 +157,21 @@ VirtualAlloc_Detour (
 }
 
 
+LPVOID
+WINAPI
+SK_VirtualAlloc (
+  _In_opt_ LPVOID lpAddress,
+  _In_     SIZE_T dwSize,
+  _In_     DWORD  flAllocationType,
+  _In_     DWORD  flProtect)
+{
+  if ( VirtualAlloc_Original != nullptr )
+    return VirtualAlloc_Original (lpAddress, dwSize, flAllocationType, flProtect);
+
+  return VirtualAlloc (lpAddress, dwSize, flAllocationType, flProtect);
+}
+
+
 HGLOBAL
 WINAPI
 GlobalFree_Detour   (
@@ -191,6 +197,19 @@ LocalFree_Detour   (
   _In_ HLOCAL hMem )
 {
   return LocalFree_Original (hMem);
+}
+
+BOOL
+WINAPI
+SK_VirtualFree           (
+  _In_ LPVOID lpAddress,
+  _In_ SIZE_T dwSize,
+  _In_ DWORD  dwFreeType )
+{
+  if (VirtualFree_Original != nullptr)
+    return VirtualFree_Original (lpAddress, dwSize, dwFreeType);
+
+  return VirtualFree (lpAddress, dwSize, dwFreeType);
 }
 
 BOOL
@@ -272,4 +291,43 @@ SK_Memory_InitHooks (void)
                             "HeapFree",
                              HeapFree_Detour,
     static_cast_p2p <void> (&HeapFree_Original) );
+}
+
+void
+SK_Memory_RemoveHooks (void)
+{
+  SK_QueueDisableDLLHook ( L"kernel32",
+  	                        "LocalAlloc" );
+
+  SK_QueueDisableDLLHook ( L"kernel32",
+  	                        "GlobalAlloc" );
+
+  SK_QueueDisableDLLHook ( L"kernel32",
+                            "VirtualAlloc" );
+
+  SK_QueueDisableDLLHook ( L"NtDll.dll",
+  	                        "RtlAllocateHeap" );
+
+  SK_QueueDisableDLLHook ( L"kernel32",
+                            "LocalFree" );
+  
+  SK_QueueDisableDLLHook ( L"kernel32",
+                            "GlobalFree" );
+  
+  SK_QueueDisableDLLHook ( L"kernel32",
+                            "VirtualFree" );
+  
+  SK_QueueDisableDLLHook ( L"kernel32",
+  	                         "HeapFree" );
+
+  LocalAlloc_Original      = nullptr;
+  GlobalAlloc_Original     = nullptr;
+  VirtualAlloc_Original    = nullptr;
+  RtlAllocateHeap_Original = nullptr;
+  LocalFree_Original       = nullptr;
+  GlobalFree_Original      = nullptr;
+  VirtualFree_Original     = nullptr;
+  HeapFree_Original        = nullptr;
+
+  SK_ApplyQueuedHooks ();
 }

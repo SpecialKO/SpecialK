@@ -36,73 +36,7 @@
 #include <concurrent_unordered_map.h>
 Concurrency::concurrent_unordered_map <DWORD, SK_TlsRecord> tls_map;
 
-extern volatile LONG _SK_IgnoreTLSAlloc;
-
 volatile long __SK_TLS_INDEX = TLS_OUT_OF_INDEXES;
-
-__forceinline
-SK_TlsRecord
-SK_GetTLS (bool initialize)
-{
-  DWORD dwTlsIdx =
-    ReadAcquire (&__SK_TLS_INDEX);
-
-  LPVOID lpvData =
-    nullptr;
-
-  if ( dwTlsIdx != TLS_OUT_OF_INDEXES )
-  {
-    lpvData =
-      FlsGetValue (dwTlsIdx);
-
-    if (lpvData == nullptr)
-    {
-      InterlockedIncrement (&_SK_IgnoreTLSAlloc);
-
-      if (GetLastError () == ERROR_SUCCESS)
-      {
-        lpvData =
-          static_cast <LPVOID> (
-            SK_LocalAlloc (LPTR, sizeof (SK_TLS) * SK_TLS::stack::max)
-        );
-
-        if (! FlsSetValue (dwTlsIdx, lpvData))
-        {
-          LocalFree (lpvData);
-                     lpvData = nullptr;
-        }
-
-        else initialize = true;
-      }
-
-      InterlockedDecrement (&_SK_IgnoreTLSAlloc);
-    }
-
-    if (lpvData != nullptr && initialize)
-    {
-      InterlockedIncrement (&_SK_IgnoreTLSAlloc);
-
-      SK_TLS* pTLS =
-        static_cast <SK_TLS *> (lpvData);
-
-      *pTLS = SK_TLS::SK_TLS ();
-
-      pTLS->debug.tls_idx = dwTlsIdx;
-
-      // Stack semantics are deprecated and will be removed soon
-      pTLS->stack.current = 0;
-
-      InterlockedDecrement (&_SK_IgnoreTLSAlloc);
-    }
-  }
-
-  else
-    dwTlsIdx = TLS_OUT_OF_INDEXES;
-
-  return
-    { dwTlsIdx, lpvData };
-}
-
 
 void
 SK_CleanupTLS (void)
@@ -112,6 +46,23 @@ SK_CleanupTLS (void)
 
   if (tls_slot.lpvData != nullptr)
   {
+    SK_TLS* pTLS =
+      (SK_TLS *)tls_slot.lpvData;
+
+    const DWORD dwTid =
+      pTLS->debug.tid;
+
+    if (pTLS->debug.mapped)
+    {
+      pTLS->debug.mapped = false;
+
+      if (tls_map.count (dwTid))
+      {
+        tls_map [dwTid].lpvData  = nullptr;
+        tls_map [dwTid].dwTlsIdx = TLS_OUT_OF_INDEXES;
+      }
+    }
+
 #ifdef _DEBUG
     size_t freed =
 #endif
@@ -127,9 +78,6 @@ SK_CleanupTLS (void)
     if (FlsSetValue (tls_slot.dwTlsIdx, nullptr))
     {
       SK_LocalFree (tls_slot.lpvData);
-
-      tls_map      [GetCurrentThreadId ()].lpvData  = nullptr;
-      tls_map      [GetCurrentThreadId ()].dwTlsIdx = TLS_OUT_OF_INDEXES;
     }
   }
 }
@@ -137,6 +85,16 @@ SK_CleanupTLS (void)
 
 
 #include <cassert>
+
+
+void
+SK_TLS_LogLeak (wchar_t* wszFunc, wchar_t* wszFile, int line, size_t size)
+{
+  SK_LOG0 ( ( L"TLS Memory Leak - [%s] < %s:%lu > - (%lu Bytes)",
+             wszFunc, wszFile,
+             line, (uint32_t)size ),
+           L"SK TLS Mem" );
+}
 
 SK_TLS __SK_TLS_SAFE_no_idx   = { };
 
@@ -163,10 +121,7 @@ SK_TLS_Bottom (void)
   SK_TLS* pTLS =
     static_cast <SK_TLS *> (tls_slot.lpvData);
 
-
-  ULONG frame = SK_GetFramesDrawn ();
-
-  if ((! pTLS->debug.mapped) && frame > 0)
+  if (! pTLS->debug.mapped)
   {
     pTLS->debug.mapped = true;
 
@@ -183,7 +138,7 @@ SK_TLS_Bottom (void)
     }
   }
 
-  pTLS->debug.last_frame = frame;
+  pTLS->debug.last_frame = SK_GetFramesDrawn ();
 
   return
     pTLS;
@@ -251,10 +206,11 @@ SK_ModuleAddrMap::insert (LPCVOID pAddr, HMODULE hMod)
 void*
 SK_ImGui_ThreadContext::allocPolylineStorage (size_t needed)
 {
-  if (polyline_capacity < needed)
+  if (polyline_capacity < needed || polyline_storage == nullptr)
   {
-    _aligned_free (polyline_storage);
-                   polyline_storage = _aligned_malloc (needed, 16);
+    if (polyline_storage != nullptr && polyline_capacity > 0)
+      _aligned_free (polyline_storage);
+                     polyline_storage = _aligned_malloc (needed, 16);
 
     if (polyline_storage != nullptr)
       polyline_capacity = needed;
@@ -268,10 +224,11 @@ SK_ImGui_ThreadContext::allocPolylineStorage (size_t needed)
 char*
 SK_OSD_ThreadContext::allocText (size_t needed)
 {
-  if (text_capacity < needed)
+  if (text_capacity < needed || text == nullptr)
   {
-    _aligned_free (text);
-                   text =
+    if (text != nullptr && text_capacity > 0)
+      _aligned_free (text);
+                     text =
     (char *)_aligned_malloc (needed, 16);
 
     if (text != nullptr)
@@ -287,10 +244,11 @@ SK_OSD_ThreadContext::allocText (size_t needed)
 uint8_t*
 SK_RawInput_ThreadContext::allocData (size_t needed)
 {
-  if (capacity < needed)
+  if (capacity < needed || data == nullptr)
   {
-    _aligned_free (data);
-                   data =
+    if (data != nullptr && capacity > 0)
+      _aligned_free (data);
+                     data =
       (uint8_t *)_aligned_malloc (needed, 16);
 
     if (data != nullptr)
@@ -305,10 +263,12 @@ SK_RawInput_ThreadContext::allocData (size_t needed)
 RAWINPUTDEVICE*
 SK_RawInput_ThreadContext::allocateDevices (size_t needed)
 {
-  if (num_devices < needed)
+  if (num_devices < needed || devices == nullptr)
   {
-    _aligned_free (devices);
-                   devices =
+    if (             devices != nullptr &&
+                 num_devices > 0           )
+      _aligned_free (devices);
+                     devices =
     (RAWINPUTDEVICE *)_aligned_malloc (needed * sizeof (RAWINPUTDEVICE), 16);
 
     if (devices != nullptr)
@@ -329,6 +289,7 @@ SK_TLS_ScratchMemory::Cleanup (SK_TLS_CleanupReason_e /*reason*/)
   freed += cmd.reclaim         ();
   freed += sym_resolve.reclaim ();
   freed += eula.reclaim        ();
+  freed += cpu_info.reclaim    ();
 
   for ( auto* segment : { &ini.key, &ini.val, &ini.sec } )
     freed += segment->reclaim ();
@@ -351,14 +312,23 @@ SK_ImGui_ThreadContext::Cleanup (SK_TLS_CleanupReason_e /*reason*/)
 {
   size_t freed = 0;
 
-  if (polyline_storage != nullptr)
+  if (polyline_capacity > 0)
   {
-    freed += polyline_capacity;
+    if (polyline_storage != nullptr)
+    {
+      freed += polyline_capacity;
 
-    _aligned_free (polyline_storage);
-                   polyline_storage = nullptr;
+      _aligned_free (polyline_storage);
+                     polyline_storage = nullptr;
 
-             polyline_capacity = 0;
+               polyline_capacity = 0;
+    }
+
+    else
+    {
+      SK_TLS_LogLeak (__FUNCTIONW__, __FILEW__, __LINE__, polyline_capacity);
+      polyline_capacity = 0;
+    }
   }
 
   return freed;
@@ -369,14 +339,23 @@ SK_OSD_ThreadContext::Cleanup (SK_TLS_CleanupReason_e /*reason*/)
 {
   size_t freed = 0;
 
-  if (text != nullptr)
+  if (text_capacity > 0)
   {
-    freed += text_capacity;
+    if (text != nullptr)
+    {
+      freed += text_capacity;
 
-    _aligned_free (text);
-                   text = nullptr;
+      _aligned_free (text);
+                     text = nullptr;
 
-          text_capacity = 0;
+            text_capacity = 0;
+    }
+
+    else if (text_capacity > 0)
+    {
+      SK_TLS_LogLeak (__FUNCTIONW__, __FILEW__, __LINE__, text_capacity);
+                                                          text_capacity = 0;
+    }
   }
 
   return freed;
@@ -387,24 +366,42 @@ SK_RawInput_ThreadContext::Cleanup (SK_TLS_CleanupReason_e /*reason*/)
 {
   size_t freed = 0;
 
-  if (data != nullptr)
+  if (capacity > 0)
   {
-    freed += capacity;
+    if (data != nullptr)
+    {
+      freed += capacity;
 
-    _aligned_free (data);
-                   data = nullptr;
+      _aligned_free (data);
+                     data = nullptr;
 
-          capacity = 0;
+            capacity = 0;
+    }
+
+    else
+    {
+      SK_TLS_LogLeak (__FUNCTIONW__, __FILEW__, __LINE__, capacity);
+                                                          capacity = 0;
+    }
   }
 
-  if (devices != nullptr)
+  if (num_devices > 0)
   {
-    freed += num_devices * sizeof (RAWINPUTDEVICE);
+    if (devices != nullptr)
+    {
+      freed += num_devices * sizeof (RAWINPUTDEVICE);
 
-    _aligned_free (devices);
-                   devices = nullptr;
+      _aligned_free (devices);
+                     devices = nullptr;
 
-          num_devices = 0;
+            num_devices = 0;
+    }
+
+    else
+    {
+      SK_TLS_LogLeak (__FUNCTIONW__, __FILEW__, __LINE__, num_devices * sizeof (RAWINPUTDEVICE));
+      num_devices = 0;
+    }
   }
 
   return freed;
@@ -490,6 +487,7 @@ SK_D3D9_ThreadContext::allocStackScratchStorage (size_t size)
   {
     stack_scratch.storage =
                          _aligned_malloc (size, 16);
+           stack_scratch.size = (uint32_t)size;
     RtlZeroMemory (stack_scratch.storage, size);
   }
 
@@ -497,11 +495,12 @@ SK_D3D9_ThreadContext::allocStackScratchStorage (size_t size)
   {
     if (stack_scratch.size < size)
     {
-      _aligned_free (stack_scratch.storage);
-                     stack_scratch.storage = _aligned_malloc (size, 16);
-                     stack_scratch.size    =        (uint32_t)size ;
-
-      RtlZeroMemory (stack_scratch.storage, size);
+      if (             stack_scratch.storage != nullptr &&
+                       stack_scratch.size > 0              )
+        _aligned_free (stack_scratch.storage);
+                       stack_scratch.storage = _aligned_malloc (size, 16);
+                       stack_scratch.size    =        (uint32_t)size ;
+        RtlZeroMemory (stack_scratch.storage, size);
     }
   }
 
@@ -513,13 +512,22 @@ SK_D3D9_ThreadContext::Cleanup (SK_TLS_CleanupReason_e /*reason*/)
 {
   size_t freed = 0;
 
-  if (stack_scratch.storage != nullptr)
+  if (stack_scratch.size > 0)
   {
-    _aligned_free (stack_scratch.storage);
-                   stack_scratch.storage = nullptr;
+    if (stack_scratch.storage != nullptr)
+    {
+      _aligned_free (stack_scratch.storage);
+                     stack_scratch.storage = nullptr;
 
-    freed += stack_scratch.size;
-             stack_scratch.size = 0;
+      freed += stack_scratch.size;
+               stack_scratch.size = 0;
+    }
+
+    else
+    {
+      SK_TLS_LogLeak (__FUNCTIONW__, __FILEW__, __LINE__, stack_scratch.size);
+      stack_scratch.size = 0;
+    }
   }
 
   if (temp_fullscreen != nullptr)
@@ -558,13 +566,22 @@ SK_D3D11_ThreadContext::Cleanup (SK_TLS_CleanupReason_e /*reason*/)
 {
   size_t freed = 0;
 
-  if (stateBlock != nullptr)
+  if (stateBlockSize > 0)
   {
-    SK_D3D11_FreeStateBlock (stateBlock);
-                             stateBlock = nullptr;
+    if (stateBlock != nullptr)
+    {
+      SK_D3D11_FreeStateBlock (stateBlock);
+                               stateBlock = nullptr;
 
-    freed += stateBlockSize;
-             stateBlockSize = 0;
+      freed += stateBlockSize;
+               stateBlockSize = 0;
+    }
+
+    else
+    {
+      SK_TLS_LogLeak (__FUNCTIONW__, __FILEW__, __LINE__, stateBlockSize);
+      stateBlockSize = 0;
+    }
   }
 
   return freed;
@@ -583,6 +600,7 @@ SK_DXTex_ThreadContext::alignedAlloc (size_t alignment, size_t elems)
   {
     buffer =
       (uint8_t *)_aligned_malloc (elems, alignment);
+                        reserve = elems;
   }
 
   else
@@ -644,12 +662,21 @@ SK_DXTex_ThreadContext::Cleanup (SK_TLS_CleanupReason_e /*reason*/)
 {
   size_t freed = 0;
 
-  if (buffer != nullptr)
+  if (reserve > 0)
   {
-    _aligned_free (buffer);
+    if (buffer != nullptr)
+    {
+      _aligned_free (buffer);
 
-    freed += reserve;
-             reserve = 0;
+      freed += reserve;
+               reserve = 0;
+    }
+
+    else
+    {
+      SK_TLS_LogLeak (__FUNCTIONW__, __FILEW__, __LINE__, reserve);
+      reserve = 0;
+    }
   }
 
   return freed;

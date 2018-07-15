@@ -163,7 +163,7 @@ public:
   }
 
 
-  LONG AddRef  (void);
+  LONG AddRef  (void) noexcept;
   LONG Release (void);
 
 
@@ -180,10 +180,10 @@ public:
                skWin32Module (hModWin32) );
   }
 
-  operator const HMODULE&       (void) const {
+  operator const HMODULE&       (void) const noexcept {
     return hMod_;
   };
-  operator const _AddressRange& (void) const {
+  operator const _AddressRange& (void) const noexcept {
     return 
       std::make_pair ( base_,
                          reinterpret_cast   <LPVOID>    ( 
@@ -191,7 +191,7 @@ public:
                                                         ) 
                      );
   }
-  operator const std::wstring&  (void) const {
+  operator const std::wstring&  (void) const noexcept {
     return name_;
   }
 
@@ -384,13 +384,13 @@ protected:
 } extern SK_Modules;
 
 
-static const HMODULE& __SK_hModSelf ( skModuleRegistry::Self    );
-static const HMODULE& __SK_hModHost ( skModuleRegistry::HostApp );
+static const HMODULE& __SK_hModSelf = skModuleRegistry::Self;
+static const HMODULE& __SK_hModHost = skModuleRegistry::HostApp;
 
 
 __inline
 LONG
-skWin32Module::AddRef (void)
+skWin32Module::AddRef (void) noexcept
 {
   // This would add an actual reference in Win32, but we should be able to
   //   get away with ONE OS-level reference and our own counter.
@@ -405,7 +405,7 @@ skWin32Module::AddRef (void)
 
 __inline
 LONG
-skWin32Module::Release (void)
+skWin32Module::Release (void) 
 {
   LONG ret =
     InterlockedDecrement (&refs_);

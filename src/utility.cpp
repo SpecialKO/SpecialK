@@ -53,8 +53,7 @@ SK_WideCharToUTF8 (const std::wstring& in)
 {
   int len = WideCharToMultiByte ( CP_UTF8, 0x00, in.c_str (), -1, nullptr, 0, nullptr, FALSE );
 
-  std::string out;
-              out.resize (len * 2);
+  std::string out (len * 2, '\0');
 
   WideCharToMultiByte           ( CP_UTF8, 0x00, in.c_str (), static_cast <int> (in.length ()), const_cast <char *> (out.data ()), len, nullptr, FALSE );
 
@@ -66,8 +65,8 @@ SK_UTF8ToWideChar (const std::string& in)
 {
   int len = MultiByteToWideChar ( CP_UTF8, 0x00, in.c_str (), -1, nullptr, 0 );
 
-  std::wstring out;
-               out.resize (len * 2);
+  std::wstring out 
+    (len * 2, L'\0');
 
   MultiByteToWideChar           ( CP_UTF8, 0x00, in.c_str (), static_cast <int> (in.length ()), const_cast <wchar_t *> (out.data ()), len );
 
@@ -617,7 +616,7 @@ struct SK_MemScan_Params__v0
     HeapMemory = SEC_COMMIT
   } mem_type;
 
-  bool testPrivs (MEMORY_BASIC_INFORMATION& mi)
+  bool testPrivs (const MEMORY_BASIC_INFORMATION& mi)
   {
     if (mi.AllocationProtect == 0)
       return false;
@@ -1327,10 +1326,16 @@ SK_IsDLLSpecialK (const wchar_t* wszName)
 
   DWORD    dwHandle          = 0,
            dwSize            =
-    SK_GetFileVersionInfoSizeExW (FILE_VER_GET_NEUTRAL, wszName, &dwHandle);
+    SK_GetFileVersionInfoSizeExW ( FILE_VER_GET_NEUTRAL,
+                                     wszName, &dwHandle );
+
+  if (dwSize < 1024)
+    return false;
 
   uint8_t *cbData =
-    (uint8_t *)SK_TLS_Bottom ()->scratch_memory.cmd.alloc (dwSize);
+    ReadAcquire (&__SK_DLL_Attached) ?
+      (uint8_t *)SK_TLS_Bottom ()->scratch_memory.cmd.alloc (dwSize) :
+      (uint8_t *)LocalAlloc    (LPTR,                        dwSize);
 
   wchar_t* wszProduct        = nullptr; // Will point somewhere in cbData
 
@@ -1389,10 +1394,16 @@ SK_GetDLLVersionStr (const wchar_t* wszName)
 
   DWORD    dwHandle          = 0,
            dwSize            =
-    SK_GetFileVersionInfoSizeExW (FILE_VER_GET_NEUTRAL, wszName, &dwHandle);
+    SK_GetFileVersionInfoSizeExW ( FILE_VER_GET_NEUTRAL,
+                                     wszName, &dwHandle );
+
+  if (dwSize < 1024)
+    return L"N/A";
 
   uint8_t *cbData =
-    (uint8_t *)SK_TLS_Bottom ()->scratch_memory.cmd.alloc (dwSize);
+    ReadAcquire (&__SK_DLL_Attached) ?
+      (uint8_t *)SK_TLS_Bottom ()->scratch_memory.cmd.alloc (dwSize) :
+      (uint8_t *)LocalAlloc    (LPTR,                        dwSize);
 
   wchar_t* wszFileDescrip = nullptr; // Will point somewhere in cbData
   wchar_t* wszFileVersion = nullptr; // "
@@ -1556,7 +1567,7 @@ uint8_t* const PAGE_WALK_LIMIT = (base_addr + static_cast <uintptr_t>(1ULL << 36
     }
 
     end_addr =
-      static_cast <uint8_t *> (PAGE_WALK_LIMIT);
+      PAGE_WALK_LIMIT;
   }
 
 #if 0
@@ -1652,8 +1663,7 @@ uint8_t* const PAGE_WALK_LIMIT = (base_addr + static_cast <uintptr_t>(1ULL << 36
         {
           if ((reinterpret_cast <uintptr_t> (begin) % align) == 0)
           {
-            return
-              static_cast <void *> (begin);
+            return begin;
           }
 
           else
@@ -1894,6 +1904,12 @@ struct sk_host_process_s {
   wchar_t wszFullName  [MAX_PATH * 2] = { };
   wchar_t wszBlacklist [MAX_PATH * 2] = { };
   wchar_t wszSystemDir [MAX_PATH * 2] = { };
+
+  std::atomic_bool app                = false;
+  std::atomic_bool path               = false;
+  std::atomic_bool full_name          = false;
+  std::atomic_bool blacklist          = false;
+  std::atomic_bool sys_dir            = false;
 } host_proc;
 
 bool __SK_RunDLL_Bypass = false;
@@ -1969,6 +1985,9 @@ SK_PathRemoveExtension (wchar_t* wszInOut)
 const wchar_t*
 SK_GetBlacklistFilename (void)
 {
+  if ( host_proc.blacklist )
+    return host_proc.wszBlacklist;
+
   static volatile
     LONG init = FALSE;
 
@@ -1979,6 +1998,8 @@ SK_GetBlacklistFilename (void)
     lstrcatW (host_proc.wszBlacklist, SK_GetHostApp  ());
 
     SK_PathRemoveExtension (host_proc.wszBlacklist);
+
+    host_proc.blacklist = true;
 
     InterlockedIncrement (&init);
   }
@@ -1991,6 +2012,9 @@ SK_GetBlacklistFilename (void)
 const wchar_t*
 SK_GetHostApp (void)
 {
+  if ( host_proc.app )
+    return host_proc.wszApp;
+
   static volatile
     LONG init = FALSE;
 
@@ -2047,6 +2071,8 @@ SK_GetHostApp (void)
       );
     }
 
+    host_proc.app = true;
+
     InterlockedIncrement (&init);
   }
 
@@ -2058,6 +2084,9 @@ SK_GetHostApp (void)
 const wchar_t*
 SK_GetFullyQualifiedApp (void)
 {
+  if ( host_proc.full_name )
+    return host_proc.wszFullName;
+
   static volatile
     LONG init = FALSE;
 
@@ -2074,6 +2103,8 @@ SK_GetFullyQualifiedApp (void)
           MAX_PATH * 2 - 1
     );
 
+    host_proc.full_name = true;
+
     InterlockedIncrement (&init);
   }
 
@@ -2088,6 +2119,9 @@ SK_GetFullyQualifiedApp (void)
 const wchar_t*
 SK_GetHostPath (void)
 {
+  if ( host_proc.path )
+    return host_proc.wszPath;
+
   static volatile
     LONG init = FALSE;
 
@@ -2111,6 +2145,8 @@ SK_GetHostPath (void)
           MAX_PATH * 2 - 1
     );
 
+    host_proc.path = true;
+
     InterlockedIncrement (&init);
   }
 
@@ -2123,6 +2159,9 @@ SK_GetHostPath (void)
 const wchar_t*
 SK_GetSystemDirectory (void)
 {
+  if ( host_proc.sys_dir )
+    return host_proc.wszSystemDir;
+
   static volatile
     LONG init = FALSE;
 
@@ -2141,6 +2180,8 @@ SK_GetSystemDirectory (void)
     else
       GetSystemDirectory      (host_proc.wszSystemDir, MAX_PATH);
 #endif
+
+    host_proc.sys_dir = true;
 
     InterlockedIncrement (&init);
   }
@@ -2512,7 +2553,7 @@ std::string
 __cdecl
 SK_FormatString (char const* const _Format, ...)
 {
-  int len = 0;
+  intptr_t len = 0;
 
   va_list   _ArgList;
   va_start (_ArgList, _Format);
@@ -2935,7 +2976,6 @@ SK_DeferCommand (const char* szCommand)
 void
 SK_HostAppUtil::init (void)
 {
-  
   SK_RunOnce (SKIM     = (StrStrIW ( SK_GetHostApp (), L"SKIM"     ) != nullptr));
   SK_RunOnce (RunDll32 = (StrStrIW ( SK_GetHostApp (), L"RunDLL32" ) != nullptr));
 }
@@ -3385,4 +3425,68 @@ SK_RecursiveMove ( const wchar_t* wszOrigDir,
   RemoveDirectoryW (wszOrigDir);
 
   return moved;
+}
+
+
+#include <SpecialK/diagnostics/memory.h>
+
+PSID
+SK_Win32_ReleaseTokenSid (PSID pSid)
+{
+  if (pSid == nullptr) return pSid;
+
+  if (SK_LocalFree ((HLOCAL)pSid))
+    return nullptr;
+
+  assert (pSid == nullptr);
+
+  return pSid;
+}
+
+#include <aclapi.h>
+
+PSID
+SK_Win32_GetTokenSid (_TOKEN_INFORMATION_CLASS tic)
+{
+  PSID   pRet        = nullptr;
+  LPVOID pTokenBuf   = nullptr;
+  DWORD  dwAllocSize = 0;
+  HANDLE hToken;
+
+  if (OpenProcessToken (GetCurrentProcess (), TOKEN_QUERY, &hToken))
+  {
+    if (! GetTokenInformation (hToken, tic, nullptr,
+                               0, &dwAllocSize))
+    {
+      if (GetLastError () == ERROR_INSUFFICIENT_BUFFER)
+      {
+        BYTE token_buf [256] = { };
+
+        if (     tic == TokenUser           && dwAllocSize <= 256)
+          pTokenBuf = token_buf;
+        else if (tic == TokenIntegrityLevel && dwAllocSize <= 256)
+          pTokenBuf = token_buf;
+
+        if (pTokenBuf != nullptr)
+        {
+          if (GetTokenInformation (hToken, tic, pTokenBuf,                                                                                                                                                
+                                   dwAllocSize, &dwAllocSize))
+          {
+            DWORD dwSidLen = 
+              GetLengthSid (((SID_AND_ATTRIBUTES *)pTokenBuf)->Sid);
+
+            pRet =
+              SK_LocalAlloc ( LPTR, dwSidLen );
+
+            if (pRet != nullptr)
+              CopySid (dwSidLen, pRet, ((SID_AND_ATTRIBUTES *)pTokenBuf)->Sid);
+          }
+        }
+      }
+    }
+
+    CloseHandle (hToken);
+  }
+
+  return pRet;
 }

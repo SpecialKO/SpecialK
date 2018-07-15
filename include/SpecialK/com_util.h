@@ -22,6 +22,8 @@
 #include <SpecialK/SpecialK.h>
 #include <SpecialK/core.h>
 
+#include <objbase.h>
+
 #include <cstdlib>
 
 SK_INCLUDE_START (COM_UTIL)

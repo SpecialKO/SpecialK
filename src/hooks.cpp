@@ -96,29 +96,32 @@ SK_Hook_PredictTarget (       sk_hook_cache_record_s &cache,
                         const wchar_t                *wszSectionName,
                               iSK_INI                *ini )
 {
-  iSK_INISection& hook_cfg =
-    ini->get_section (wszSectionName);
-
-  std::wstring wide_symbol (
-    SK_UTF8ToWideChar (cache.target.symbol_name)
-  );
-
-  if (hook_cfg.contains_key (wide_symbol.c_str ()))
+  if (ini->contains_section (wszSectionName))
   {
-    DWORD dwSize =
-      cache.target.deserialize_ini (
-        hook_cfg.get_value (wide_symbol.c_str ())
-      );
+    iSK_INISection& hook_cfg =
+      ini->get_section (wszSectionName);
 
-    if ( hook_cfg.contains_key (cache.target.module_path) &&
-           (int)dwSize ==
-             _wtoi ( hook_cfg.get_value (
-                                cache.target.module_path
-                                        ).c_str () 
-                   )
-       )
+    std::wstring wide_symbol (
+      SK_UTF8ToWideChar (cache.target.symbol_name)
+    );
+
+    if (hook_cfg.contains_key (wide_symbol.c_str ()))
     {
-      return true;
+      DWORD dwSize =
+        cache.target.deserialize_ini (
+          hook_cfg.get_value (wide_symbol.c_str ())
+        );
+
+      if ( hook_cfg.contains_key (cache.target.module_path) &&
+             (int)dwSize ==
+               _wtoi ( hook_cfg.get_value (
+                                  cache.target.module_path
+                                          ).c_str () 
+                     )
+         )
+      {
+        return true;
+      }
     }
   }
 
@@ -207,8 +210,11 @@ SK_Hook_CacheTarget (       sk_hook_cache_record_s &cache,
 
       if (hook_cfg.contains_key (wide_symbol.c_str ()))
       {
-        hook_cfg.get_value (wide_symbol.c_str ()) = 
-          serialized;
+        std::wstring& val =
+          hook_cfg.get_value (wide_symbol.c_str ());
+
+        if (val != serialized)
+            val  = serialized;
       }
 
       else
@@ -219,8 +225,17 @@ SK_Hook_CacheTarget (       sk_hook_cache_record_s &cache,
 
       if (hook_cfg.contains_key (cache.target.module_path))
       {
-        hook_cfg.get_value (cache.target.module_path) =
-           std::to_wstring (cache.target.image_size);
+        std::wstring& val =
+          hook_cfg.get_value (cache.target.module_path);
+
+        std::wstring size_str =
+          std::to_wstring (cache.target.image_size);
+
+        if (val != size_str)
+        {
+          ini->remove_section (hook_cfg.name.c_str ());
+          val = size_str;
+        }
       }
 
       else
@@ -228,11 +243,6 @@ SK_Hook_CacheTarget (       sk_hook_cache_record_s &cache,
         hook_cfg.add_key_value ( cache.target.module_path,
                                    std::to_wstring (cache.target.image_size).c_str () );
       }
-    }
-
-    else if (wszSectionName)
-    {
-      SK_Hook_RemoveTarget (cache, wszSectionName, ini);
     }
 
     //if (wszSectionName)
@@ -412,12 +422,11 @@ SK_Hook_IsCacheEnabled ( const wchar_t *wszSecName,
   } pools [] = { { L"Global", &ret.use_cached_addresses.global },
                  { L"Local",  &ret.use_cached_addresses.local  } };
 
-
-  iSK_INISection& cfg_sec = 
-    ini->get_section (wszSecName);
-
   if (ini->contains_section (wszSecName))
   {
+    iSK_INISection& cfg_sec = 
+      ini->get_section (wszSecName);
+
     for ( auto& it : pools )
     {
       std::wstring key_name = 
@@ -442,11 +451,10 @@ SK_Hook_IsCacheEnabled ( const wchar_t *wszSecName,
         cfg_sec.add_key_value ( key_name.c_str (),
                                   *(it.pEnable) ? L"true" :
                                                   L"false" );
-      //ini->write (ini->get_filename ());
+        //ini->write (ini->get_filename ());
       }
     }
   }
-
 
   return ret;
 };
@@ -849,6 +857,36 @@ SK_Module_IsProcAddrLocal ( HMODULE  hModExpected,
                             FARPROC  lpProcAddr,
               PLDR_DATA_TABLE_ENTRY *ppldrEntry = nullptr );
 
+MH_STATUS
+__stdcall
+SK_DisableDLLHook ( const wchar_t *pwszModule,
+	                const char    *pszProcName )
+{
+   LPVOID pFuncAddr =
+      SK_GetProcAddress ( pwszModule,
+		                    pszProcName );
+	
+  if (pFuncAddr == nullptr) return MH_ERROR_FUNCTION_NOT_FOUND;
+	
+  return
+    MH_QueueDisableHook(pFuncAddr);
+}
+
+MH_STATUS
+__stdcall
+SK_QueueDisableDLLHook ( const wchar_t *pwszModule,
+	                     const char    *pszProcName )
+{
+  LPVOID pFuncAddr =
+    SK_GetProcAddress ( pwszModule,
+		                  pszProcName );
+
+  if (pFuncAddr == nullptr) return MH_ERROR_FUNCTION_NOT_FOUND;
+
+  return
+    MH_QueueDisableHook (pFuncAddr);
+}
+	                     
 MH_STATUS
 __stdcall
 SK_CreateDLLHook2 ( const wchar_t  *pwszModule, const char  *pszProcName,
