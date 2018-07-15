@@ -99,9 +99,9 @@ public:
   virtual void draw   (void) { };
 
 
-  void run_base    (void);
-  void draw_base   (void);
-  void config_base (void);
+  virtual void run_base    (void);
+  virtual void draw_base   (void);
+  virtual void config_base (void);
 
 
   SK_Widget& setName         (const char* szName)        { name          = szName;        return *this; }
@@ -159,8 +159,8 @@ protected:
 
   virtual void OnConfig (ConfigEvent event) { UNREFERENCED_PARAMETER (event); };
 
-  void load (iSK_INI* config);
-  void save (iSK_INI* config);
+  virtual void load (iSK_INI* config);
+  virtual void save (iSK_INI* config);
 
   // This will be private when I get the factory setup
   SK_Widget (const char* szName) : name (szName)

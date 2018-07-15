@@ -204,3 +204,62 @@ SK_File_InitHooks (void)
                              NtWriteFile_Detour,
     static_cast_p2p <void> (&NtWriteFile_Original) );
 }
+
+
+
+
+#include <aclapi.h>
+#include <SpecialK/log.h>
+
+PSID
+SK_Win32_GetTokenSid (_TOKEN_INFORMATION_CLASS tic);
+
+PSID
+SK_Win32_ReleaseTokenSid (PSID pSid);
+
+
+bool
+SK_File_CanUserWriteToPath (const wchar_t* wszPath)
+{
+  bool        bWritable = false;
+  PSID pSid    =
+    (PSID)SK_Win32_GetTokenSid (TokenUser);
+
+  if (pSid == nullptr)
+  {
+    return bWritable;
+  }
+
+  PACL                 pDACL = nullptr;
+  PSECURITY_DESCRIPTOR pSD   = nullptr;
+
+  if ( ERROR_SUCCESS ==
+         GetNamedSecurityInfoW ( wszPath,
+                                   SE_FILE_OBJECT, DACL_SECURITY_INFORMATION,
+                                     nullptr,  nullptr,
+                                       &pDACL, nullptr,
+                                         &pSD
+                               )
+     )
+  {
+    ACCESS_MASK access_mask = { };
+    TRUSTEE_W   trustee     = { };
+
+    BuildTrusteeWithSidW (&trustee, pSid);
+
+    if ( ERROR_SUCCESS ==
+           GetEffectiveRightsFromAclW ( pDACL, &trustee, &access_mask )
+       )
+    {
+      bWritable =
+        (access_mask & WRITE_DAC) != 0;
+    }
+
+    //SK_LocalFree ((HLOCAL)pDACL);
+    SK_LocalFree ((HLOCAL)pSD);
+  }
+
+  SK_Win32_ReleaseTokenSid (pSid);
+
+  return bWritable;
+}

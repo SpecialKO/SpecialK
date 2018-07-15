@@ -26,6 +26,13 @@
 
 #include <cstdint>
 #include <cmath>
+#include <forward_list>
+
+template <class T, class U>
+constexpr T narrow_cast(U&& u) noexcept
+{
+  return static_cast<T>(std::forward<U>(u));
+}
 
 namespace SK
 {
@@ -76,8 +83,11 @@ namespace SK
         } time;
 
 
-        void sleep (DWORD dwMilliseconds) { InterlockedIncrement (&attempts);                                     InterlockedAdd (&time.allowed,  (ULONG)dwMilliseconds); }
-        void wake  (DWORD dwMilliseconds) { InterlockedIncrement (&attempts); InterlockedIncrement (&rejections); InterlockedAdd (&time.deprived, (ULONG)dwMilliseconds); }
+        void sleep (DWORD dwMilliseconds) { InterlockedIncrement (&attempts);                                    
+                                            InterlockedAdd       (&time.allowed,  narrow_cast <ULONG> (dwMilliseconds)); }
+        void wake  (DWORD dwMilliseconds) { InterlockedIncrement (&attempts);
+                                            InterlockedIncrement (&rejections);
+                                            InterlockedAdd       (&time.deprived, narrow_cast <ULONG> (dwMilliseconds)); }
       };
 
       SleepStats& getMessagePumpStats  (void) { return message_pump;  }
@@ -88,10 +98,10 @@ namespace SK
     protected:
       SleepStats message_pump, render_thread,
                  micro_sleep,  macro_sleep;
-    } extern events;
+    } extern *events;
 
 
-    static inline EventCounter* GetEvents  (void) { return &events; }
+    static inline EventCounter* GetEvents  (void) { return events; }
                   Limiter*      GetLimiter (void);
 
     class Stats {
@@ -125,7 +135,7 @@ namespace SK
 
         int samples_used = 0;
 
-        for (auto& i : data)
+        for ( const auto& i : data )
         {
           if (i.when.QuadPart >= start.QuadPart)
           {
@@ -134,7 +144,7 @@ namespace SK
           }
         }
 
-        return mean / (double)samples_used;
+        return mean / static_cast <double> (samples_used);
       }
 
       double calcSqStdDev (double mean, double seconds = 1.0);
@@ -145,7 +155,7 @@ namespace SK
 
         int samples_used = 0;
 
-        for (auto& i : data)
+        for ( const auto& i : data )
         {
           if (i.when.QuadPart >= start.QuadPart)
           {
@@ -155,7 +165,7 @@ namespace SK
           }
         }
 
-        return sd / (double)samples_used;
+        return sd / static_cast <double> (samples_used);
       }
 
       double calcMin (double seconds = 1.0);
@@ -164,7 +174,7 @@ namespace SK
       {
         double min = INFINITY;
 
-        for (auto& i : data)
+        for ( const auto& i : data )
         {
           if (i.when.QuadPart >= start.QuadPart)
           {
@@ -182,7 +192,7 @@ namespace SK
       {
         double max = -INFINITY;
 
-        for (auto& i : data)
+        for ( const auto& i : data )
         {
           if (i.when.QuadPart >= start.QuadPart)
           {
@@ -220,7 +230,7 @@ namespace SK
     #else
         bool last_late = false;
 
-        for (auto& i : data)
+        for ( const auto& i : data )
         {
           if (i.when.QuadPart >= start.QuadPart)
           {
@@ -248,7 +258,7 @@ namespace SK
       {
         int samples_used = 0;
 
-        for (auto& i : data)
+        for ( const auto& i : data )
         {
           if (i.when.QuadPart >= start.QuadPart)
           {

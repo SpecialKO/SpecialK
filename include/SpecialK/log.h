@@ -153,7 +153,7 @@ interface iSK_Logger : public IUnknown
   {
   friend interface iSK_Logger;
   public:
-    ~AutoClose (void)
+    ~AutoClose (void) noexcept
     {
       if (log_ != nullptr)
         log_->close ();
@@ -168,15 +168,15 @@ interface iSK_Logger : public IUnknown
     iSK_Logger* log_;
   };
 
-  AutoClose auto_close (void) {
+  AutoClose auto_close (void) noexcept {
     return AutoClose (this);
   }
 
-  iSK_Logger (void) {
+  iSK_Logger (void) noexcept {
     AddRef ();
   }
 
-  virtual ~iSK_Logger (void) {
+  virtual ~iSK_Logger (void) noexcept {
     Release ();
   }
 

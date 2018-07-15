@@ -25,6 +25,13 @@
 #include <SpecialK/performance/io_monitor.h>
 
 #include <SpecialK/control_panel.h>
+#include <SpecialK/utility.h>
+
+#include <powerbase.h>
+#include <WinBase.h>
+#pragma comment (lib, "PowrProf.lib")
+
+#include <SpecialK/tls.h>
 
 extern iSK_INI* osd_ini;
 
@@ -85,6 +92,31 @@ public:
     //ImGui::SameLine   ();
     ImGui::BeginGroup ();
 
+
+	typedef struct _PROCESSOR_POWER_INFORMATION {
+		ULONG Number;
+		ULONG MaxMhz;
+		ULONG CurrentMhz;
+		ULONG MhzLimit;
+		ULONG MaxIdleState;
+		ULONG CurrentIdleState;
+	} PROCESSOR_POWER_INFORMATION, *PPROCESSOR_POWER_INFORMATION;
+
+	SYSTEM_INFO        sinfo = { };
+	SK_GetSystemInfo (&sinfo);
+
+	PPROCESSOR_POWER_INFORMATION pwi =
+		reinterpret_cast <PPROCESSOR_POWER_INFORMATION> (
+			SK_TLS_Bottom ()->scratch_memory.cpu_info.alloc(
+				sizeof (PROCESSOR_POWER_INFORMATION) * sinfo.dwNumberOfProcessors
+			)
+		);
+
+	CallNtPowerInformation ( ProcessorInformation,
+		                       nullptr, 0,
+		                       pwi,     sizeof (PROCESSOR_POWER_INFORMATION) * sinfo.dwNumberOfProcessors
+		                   );
+
     for (unsigned int i = 0; i < cpu_records.size (); i++)
     {
       if (i > 0)
@@ -133,6 +165,51 @@ public:
                                      101.0f,
                                        ImVec2 (
                                          std::max (500.0f, ImGui::GetContentRegionAvailWidth ()), font_size * 4.0f) );
+
+	  bool found = false;
+
+	  auto DrawHeader = [&](int j) -> bool
+	  {
+		if (pwi [j].Number == i)
+		{
+		  found = true;
+
+		  ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.28F, 1.f, 1.f, 1.f));
+		  ImGui::Text           ("%#4lu MHz", pwi [j].CurrentMhz);
+		  ImGui::SameLine       ();
+
+		  ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.12F, .8f, .95f, 1.f));
+		  ImGui::Text           ("/ [%#4lu MHz]", pwi [j].MaxMhz);
+
+		  //ImGui::SameLine (); ImGui::Spacing ();
+		  //ImGui::SameLine (); ImGui::Spacing ();
+		  //
+		  //ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.57194F, 1.0f, .9f, 1.f));
+		  //ImGui::Text           ("Idle: %3lu%%", pwi [j].CurrentIdleState);
+		  //
+		  //ImGui::PopStyleColor (3);
+		  ImGui::PopStyleColor (2);
+
+		  return true;
+		}
+
+		return false;
+	  };
+
+	  for (DWORD j = i ; j < sinfo.dwNumberOfProcessors; j++)
+	  {
+            found = DrawHeader (j);
+        if (found) break;
+      }
+
+	  if (! found)
+	  {
+		for (int j = sinfo.dwNumberOfProcessors - 1; j >= 0; j--)
+		{
+		  if (DrawHeader (j)) break;
+		}
+	  }
+
 
       ImGui::PopStyleColor ();
     }

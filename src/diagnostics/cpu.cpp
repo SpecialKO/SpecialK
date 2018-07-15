@@ -23,6 +23,7 @@
 
 #include <SpecialK/diagnostics/cpu.h>
 #include <SpecialK/utility.h>
+#include <SpecialK/config.h>
 #include <SpecialK/hooks.h>
 
 typedef void (WINAPI *GetSystemInfo_pfn)(LPSYSTEM_INFO);
@@ -32,13 +33,22 @@ typedef void (WINAPI *GetSystemInfo_pfn)(LPSYSTEM_INFO);
 typedef BOOL (WINAPI *GetLogicalProcessorInformation_pfn)(PSYSTEM_LOGICAL_PROCESSOR_INFORMATION,PDWORD);
                       GetLogicalProcessorInformation_pfn
                       GetLogicalProcessorInformation_Original = nullptr;
+
+const std::vector <uintptr_t>&
+SK_CPU_GetLogicalCorePairs (void);
+
+#include <SpecialK/log.h>
+#define __SK_SUBSYSTEM__ "  CPUMgr  "
+
 BOOL
 WINAPI
 GetLogicalProcessorInformation_Detour (
-    _Out_writes_bytes_to_opt_ (*ReturnedLength, *ReturnedLength) PSYSTEM_LOGICAL_PROCESSOR_INFORMATION Buffer,
-    _Inout_                                                      PDWORD                                ReturnedLength )
+    _Out_writes_bytes_to_opt_ (*ReturnedLvength, *ReturnedLength) PSYSTEM_LOGICAL_PROCESSOR_INFORMATION Buffer,
+    _Inout_                                                       PDWORD                                ReturnedLength )
 {
-  if (Buffer == nullptr)
+  SK_LOG_FIRST_CALL
+
+  if (Buffer == nullptr || config.render.framerate.override_num_cpus == -1)
   {
     return
       GetLogicalProcessorInformation_Original ( Buffer, ReturnedLength );
@@ -52,8 +62,6 @@ GetLogicalProcessorInformation_Detour (
     PSYSTEM_LOGICAL_PROCESSOR_INFORMATION lpi =
       Buffer;
 
-    int mask = 1;
-
     DWORD dwOffset = 0;
 
     while (dwOffset + sizeof (SYSTEM_LOGICAL_PROCESSOR_INFORMATION) <= *ReturnedLength)
@@ -62,7 +70,19 @@ GetLogicalProcessorInformation_Detour (
       {
         case RelationProcessorCore:
         {
-          lpi->ProcessorMask = ( mask <<= 1 ) | ( mask <<= 1 ) | ( mask <<= 1 ) | ( mask <<= 1 );
+          static const std::vector <uintptr_t>& pairs =
+            SK_CPU_GetLogicalCorePairs ();
+
+          static const std::set <uintptr_t>& masks =
+            std::set <uintptr_t> ( pairs.cbegin (), pairs.cend () );
+
+          if (pairs.size () != masks.size ())
+          {
+            while (lpi->ProcessorMask >= 2)
+            {
+              lpi->ProcessorMask >>= 1;
+            }
+          }
         } break;
 
         default:
@@ -84,8 +104,18 @@ GetSystemInfo_Detour (
 {
   GetSystemInfo_Original (lpSystemInfo);
 
+  if (config.render.framerate.override_num_cpus == -1)
+    return;
+
   lpSystemInfo->dwActiveProcessorMask = 0xff;
-  lpSystemInfo->dwNumberOfProcessors  = 16;
+  lpSystemInfo->dwNumberOfProcessors  = config.render.framerate.override_num_cpus;
+}
+
+void
+SK_GetSystemInfo (LPSYSTEM_INFO lpSystemInfo)
+{
+  return
+    GetSystemInfo_Original (lpSystemInfo);
 }
 
 
@@ -96,13 +126,15 @@ SK_CPU_InstallHooks (void)
   //                          "GetLogicalProcessorInformation",
   //                           GetLogicalProcessorInformation_Detour,
   //  static_cast_p2p <void> (&GetLogicalProcessorInformation_Original) );
-  //
-  //SK_CreateDLLHook2 (      L"Kernel32",
-  //                          "GetSystemInfo",
-  //                           GetSystemInfo_Detour,
-  //  static_cast_p2p <void> (&GetSystemInfo_Original) );
-  //
-  //SK_ApplyQueuedHooks ();
+  
+  SK_CreateDLLHook2 (      L"Kernel32",
+                            "GetSystemInfo",
+                             GetSystemInfo_Detour,
+    static_cast_p2p <void> (&GetSystemInfo_Original) );
+  
+#ifdef SK_AGGRESSIVE_HOOKS
+  SK_ApplyQueuedHooks ();
+#endif
 }
 
 
@@ -115,6 +147,10 @@ SK_CPU_GetLogicalCorePairs (void)
     return logical_proc_siblings;
 
   DWORD dwNeededBytes = 0;
+
+  // We're not hooking anything, so use the regular import
+  if (! GetLogicalProcessorInformation_Original)
+        GetLogicalProcessorInformation_Original = GetLogicalProcessorInformation;
 
   if (! GetLogicalProcessorInformation_Original (nullptr, &dwNeededBytes))
   {
