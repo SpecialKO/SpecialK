@@ -65,7 +65,7 @@ HookDDraw (LPVOID user);
 __declspec (noinline)
 HRESULT
 __stdcall
-DllCanUnloadNow_Override (void);
+DllCanUnDllCanUnloadNow_Override (void);
 
 typedef void (WINAPI *finish_pfn)(void);
 
@@ -311,16 +311,16 @@ SK_HookDDraw (void)
         )
       );
 
-      if ( MH_OK ==
-             SK_CreateDLLHook2 (      SK_GetModuleFullName (hBackend).c_str (),
-                                       "DllCanUnloadNow",
-                                        DllCanUnloadNow_Override,
-               static_cast_p2p <void> (&DllCanUnloadNow_Import) ) )
-      {
-        dll_log.Log ( L"[   DDraw  ]   DllCanUnloadNow:    %08" PRIxPTR L"h",
-                       (uintptr_t)DllCanUnloadNow_Import );
-        SK_ApplyQueuedHooks ();
-      }
+      //if ( MH_OK ==
+      //       SK_CreateDLLHook2 (      SK_GetModuleFullName (hBackend).c_str (),
+      //                                 "DllCanUnloadNow",
+      //                                  DllCanUnloadNow_Override,
+      //         static_cast_p2p <void> (&DllCanUnloadNow_Import) ) )
+      //{
+      //  dll_log.Log ( L"[   DDraw  ]   DllCanUnloadNow:    %08" PRIxPTR L"h",
+      //                 (uintptr_t)DllCanUnloadNow_Import );
+      //  SK_ApplyQueuedHooks ();
+      //}
 
       LoadSupplementalImports ();
     }
@@ -358,12 +358,12 @@ SK_HookDDraw (void)
              SK_CreateDLLHook2 (      L"ddraw.dll",
                                        "DirectDrawEnumerateExW",
                                         DirectDrawEnumerateExW,
-               static_cast_p2p <void> (&DirectDrawEnumerateExW_Import) ) &&
-           MH_OK ==
-             SK_CreateDLLHook2 (      SK_GetModuleFullName (hBackend).c_str (),
-                                       "DllCanUnloadNow",
-                                        DllCanUnloadNow_Override,
-               static_cast_p2p <void> (&DllCanUnloadNow_Import) )
+               static_cast_p2p <void> (&DirectDrawEnumerateExW_Import) ) //&&
+           //MH_OK ==
+           //  SK_CreateDLLHook2 (      SK_GetModuleFullName (hBackend).c_str (),
+           //                            "DllCanUnloadNow",
+           //                             DllCanUnloadNow_Override,
+           //    static_cast_p2p <void> (&DllCanUnloadNow_Import) )
          )
       {
         if (bProxy)

@@ -924,8 +924,8 @@ SK_GetPerfFreq (void)
 #include <SpecialK/tls.h>
 #include <SpecialK/thread.h>
 
-SK::Framerate::Stats frame_history;
-SK::Framerate::Stats frame_history2;
+SK::Framerate::Stats* frame_history  = nullptr;
+SK::Framerate::Stats* frame_history2 = nullptr;
 
 // Dispatch through the trampoline, rather than hook
 //
@@ -935,7 +935,7 @@ using WaitForVBlank_pfn = HRESULT (STDMETHODCALLTYPE *)(
 extern WaitForVBlank_pfn WaitForVBlank_Original;
 
 
-SK::Framerate::EventCounter SK::Framerate::events;
+SK::Framerate::EventCounter* SK::Framerate::events = nullptr;
 
 LPVOID pfnQueryPerformanceCounter = nullptr;
 LPVOID pfnSleep                   = nullptr;
@@ -1006,7 +1006,7 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds)
     while ((liNow = SK_CurrentPerf ()).QuadPart < liEnd)
     {
       DWORD dwMaxWait =
-        (DWORD)((liEnd - liNow.QuadPart) / liTicksPerMS);
+        narrow_cast <DWORD> ((liEnd - liNow.QuadPart) / liTicksPerMS);
 
       if (dwMaxWait < INT_MAX)
       {
@@ -1100,10 +1100,10 @@ Sleep_Detour (DWORD dwMilliseconds)
               reported = true;
             }
 
-      SK::Framerate::events.getRenderThreadStats ().wake (dwMilliseconds);
+      SK::Framerate::events->getRenderThreadStats ().wake (dwMilliseconds);
 
       if (bGUIThread)
-        SK::Framerate::events.getMessagePumpStats ().wake (dwMilliseconds);
+        SK::Framerate::events->getMessagePumpStats ().wake (dwMilliseconds);
 
       if (dwMilliseconds <= 1)
       {
@@ -1116,7 +1116,7 @@ Sleep_Detour (DWORD dwMilliseconds)
       return;
     }
 
-    SK::Framerate::events.getRenderThreadStats ().sleep  (dwMilliseconds);
+    SK::Framerate::events->getRenderThreadStats ().sleep  (dwMilliseconds);
   }
 
   if (bGUIThread)
@@ -1130,17 +1130,17 @@ Sleep_Detour (DWORD dwMilliseconds)
               reported = true;
             }
 
-      SK::Framerate::events.getMessagePumpStats ().wake   (dwMilliseconds);
+      SK::Framerate::events->getMessagePumpStats ().wake   (dwMilliseconds);
 
       if (bRenderThread)
-        SK::Framerate::events.getMessagePumpStats ().wake (dwMilliseconds);
+        SK::Framerate::events->getMessagePumpStats ().wake (dwMilliseconds);
 
       SK_Thread_WaitWhilePumpingMessages (dwMilliseconds);
 
       return;
     }
 
-    SK::Framerate::events.getMessagePumpStats ().sleep (dwMilliseconds);
+    SK::Framerate::events->getMessagePumpStats ().sleep (dwMilliseconds);
   }
 
   //if (config.framerate.yield_processor && dwMilliseconds == 0)
@@ -1159,7 +1159,7 @@ Sleep_Detour (DWORD dwMilliseconds)
 
   // TODO: Stop this nonsense and make an actual parameter for this...
   //         (min sleep?)
-  if ( static_cast <DWORD> (config.render.framerate.max_delta_time) <=
+  if ( narrow_cast <DWORD> (config.render.framerate.max_delta_time) <=
                             dwMilliseconds
      )
   {
@@ -1199,28 +1199,47 @@ NtSetTimerResolution_pfn   NtSetTimerResolution   = nullptr;
 
 float target_fps = 0.0;
 
+static volatile LONG frames_ahead = 0;
+
 void
 SK::Framerate::Init (void)
 {
-  SK_ICommandProcessor* pCommandProc =
-    SK_GetCommandProcessor ();
+  static SK::Framerate::Stats        _frame_history;
+  static SK::Framerate::Stats        _frame_history2;
+  static SK::Framerate::EventCounter _events;
+  
+  static bool basic_init = false;
 
-  // TEMP HACK BECAUSE THIS ISN'T STORED in D3D9.INI
-  if (GetModuleHandle (L"AgDrag.dll"))
-    config.render.framerate.max_delta_time = 5;
+  if (! basic_init)
+  {
+    basic_init = true;
 
-  if (GetModuleHandle (L"tsfix.dll"))
-    config.render.framerate.max_delta_time = 0;
+    frame_history         = &_frame_history;
+    frame_history2        = &_frame_history2;
+    SK::Framerate::events = &_events;
 
-  pCommandProc->AddVariable ( "WaitForVBLANK",
-          new SK_IVarStub <bool> (&config.render.framerate.wait_for_vblank));
-  pCommandProc->AddVariable ( "MaxDeltaTime",
-          new SK_IVarStub <int> (&config.render.framerate.max_delta_time));
+    SK_ICommandProcessor* pCommandProc =
+      SK_GetCommandProcessor ();
 
-  pCommandProc->AddVariable ( "LimiterTolerance",
-          new SK_IVarStub <float> (&config.render.framerate.limiter_tolerance));
-  pCommandProc->AddVariable ( "TargetFPS",
-          new SK_IVarStub <float> (&target_fps));
+    // TEMP HACK BECAUSE THIS ISN'T STORED in D3D9.INI
+    if (GetModuleHandle (L"AgDrag.dll"))
+      config.render.framerate.max_delta_time = 5;
+
+    if (GetModuleHandle (L"tsfix.dll"))
+      config.render.framerate.max_delta_time = 0;
+
+    pCommandProc->AddVariable ( "WaitForVBLANK",
+            new SK_IVarStub <bool> (&config.render.framerate.wait_for_vblank));
+    pCommandProc->AddVariable ( "MaxDeltaTime",
+            new SK_IVarStub <int> (&config.render.framerate.max_delta_time));
+
+    pCommandProc->AddVariable ( "LimiterTolerance",
+            new SK_IVarStub <float> (&config.render.framerate.limiter_tolerance));
+    pCommandProc->AddVariable ( "TargetFPS",
+            new SK_IVarStub <float> (&target_fps));
+
+    pCommandProc->AddVariable ( "MaxRenderAhead",
+            new SK_IVarStub <int> (&config.render.framerate.max_render_ahead));
 
 #define NO_HOOK_QPC
 #ifndef NO_HOOK_QPC
@@ -1231,46 +1250,47 @@ SK::Framerate::Init (void)
     static_cast_p2p <void> (&pfnQueryPerformanceCounter) );
 #endif
 
-  SK_CreateDLLHook2 (      L"kernel32",
-                            "Sleep",
-                             Sleep_Detour,
-    static_cast_p2p <void> (&Sleep_Original),
-    static_cast_p2p <void> (&pfnSleep) );
+    SK_CreateDLLHook2 (      L"kernel32",
+                              "Sleep",
+                               Sleep_Detour,
+      static_cast_p2p <void> (&Sleep_Original),
+      static_cast_p2p <void> (&pfnSleep) );
 
 #ifdef NO_HOOK_QPC
-    QueryPerformanceCounter_Original =
-      reinterpret_cast <QueryPerformanceCounter_pfn> (
-        GetProcAddress ( GetModuleHandle (L"kernel32"),
-                           "QueryPerformanceCounter" )
-      );
+      QueryPerformanceCounter_Original =
+        reinterpret_cast <QueryPerformanceCounter_pfn> (
+          GetProcAddress ( GetModuleHandle (L"kernel32"),
+                             "QueryPerformanceCounter" )
+        );
 #endif
 
-  if (! config.render.framerate.enable_mmcss)
-  {
-    if (NtDll == nullptr)
+    if (! config.render.framerate.enable_mmcss)
     {
-      NtDll = LoadLibrary (L"ntdll.dll");
-
-      NtQueryTimerResolution =
-        reinterpret_cast <NtQueryTimerResolution_pfn> (
-          GetProcAddress (NtDll, "NtQueryTimerResolution")
-        );
-
-      NtSetTimerResolution =
-        reinterpret_cast <NtSetTimerResolution_pfn> (
-          GetProcAddress (NtDll, "NtSetTimerResolution")
-        );
-
-      if (NtQueryTimerResolution != nullptr &&
-          NtSetTimerResolution   != nullptr)
+      if (NtDll == nullptr)
       {
-        ULONG min, max, cur;
-        NtQueryTimerResolution (&min, &max, &cur);
-        dll_log.Log ( L"[  Timing  ] Kernel resolution.: %f ms",
-                        static_cast <float> (cur * 100)/1000000.0f );
-        NtSetTimerResolution   (max, TRUE,  &cur);
-        dll_log.Log ( L"[  Timing  ] New resolution....: %f ms",
-                        static_cast <float> (cur * 100)/1000000.0f );
+        NtDll = LoadLibrary (L"ntdll.dll");
+
+        NtQueryTimerResolution =
+          reinterpret_cast <NtQueryTimerResolution_pfn> (
+            GetProcAddress (NtDll, "NtQueryTimerResolution")
+          );
+
+        NtSetTimerResolution =
+          reinterpret_cast <NtSetTimerResolution_pfn> (
+            GetProcAddress (NtDll, "NtSetTimerResolution")
+          );
+
+        if (NtQueryTimerResolution != nullptr &&
+            NtSetTimerResolution   != nullptr)
+        {
+          ULONG min, max, cur;
+          NtQueryTimerResolution (&min, &max, &cur);
+          dll_log.Log ( L"[  Timing  ] Kernel resolution.: %f ms",
+                          static_cast <float> (cur * 100)/1000000.0f );
+          NtSetTimerResolution   (max, TRUE,  &cur);
+          dll_log.Log ( L"[  Timing  ] New resolution....: %f ms",
+                          static_cast <float> (cur * 100)/1000000.0f );
+        }
       }
     }
   }
@@ -1422,6 +1442,8 @@ SK::Framerate::Limiter::init (double target)
 
   QueryPerformanceCounter_Original (&start);
 
+  InterlockedExchange (&frames_ahead, 0);
+
   next.QuadPart = 0ULL;
   time.QuadPart = 0ULL;
   last.QuadPart = 0ULL;
@@ -1439,13 +1461,12 @@ SK::Framerate::Limiter::try_wait (void)
     return false;
 
   LARGE_INTEGER next_;
-
   next_.QuadPart =
     static_cast <LONGLONG> (
-      start.QuadPart                               +
-        static_cast <long double> (  frames + 1  ) *
-                                  ( ms  / 1000.0 ) *
-        static_cast <long double> ( freq.QuadPart)
+      start.QuadPart                                +
+      (  static_cast <long double> (frames) + 1.0 ) *
+                                   (ms  / 1000.0L ) *
+         static_cast <long double>  (freq.QuadPart)
     );
 
   QueryPerformanceCounter_Original (&time);
@@ -1479,6 +1500,19 @@ SK::Framerate::Limiter::wait (void)
   frames++;
 
   QueryPerformanceCounter_Original (&time);
+
+
+  bool bNeedWait = time.QuadPart < next.QuadPart;
+
+  if (bNeedWait && ReadAcquire (&frames_ahead) < config.render.framerate.max_render_ahead)
+  {
+    InterlockedIncrement (&frames_ahead);
+    return;
+  }
+
+  else if (bNeedWait && InterlockedCompareExchange (&frames_ahead, 0, 1) > 1)
+                        InterlockedDecrement       (&frames_ahead);
+
 
   // Actual frametime before we forced a delay
   effective_ms =
@@ -1621,7 +1655,7 @@ SK::Framerate::Limiter::wait (void)
             }
 
             else
-              SleepEx                            (dwWaitMS,   FALSE);
+              SleepEx                            (dwWaitMS,   TRUE);
 
             bYielded = true;
           }
@@ -1675,18 +1709,18 @@ SK::Framerate::Tick (double& dt, LARGE_INTEGER& now)
 
   now = SK_CurrentPerf ();
 
-  dt = static_cast  <double> (now.QuadPart - last_frame.QuadPart) /
-        static_cast <double> (SK::Framerate::Stats::freq.QuadPart);
+  dt = static_cast <double> (now.QuadPart -  last_frame.QuadPart) /
+       static_cast <double> (SK::Framerate::Stats::freq.QuadPart);
 
 
   // What the bloody hell?! How do we ever get a dt value near 0?
   if (dt > 0.000001)
-    frame_history.addSample (1000.0 * dt, now);
+    frame_history->addSample (1000.0 * dt, now);
   else // Less than single-precision FP epsilon, toss this frame out
-    frame_history.addSample (INFINITY, now);
+    frame_history->addSample (INFINITY, now);
 
 
-  frame_history2.addSample (SK::Framerate::GetLimiter ()->effective_frametime (), now);
+  frame_history2->addSample (SK::Framerate::GetLimiter ()->effective_frametime (), now);
 
 
   last_frame = now;

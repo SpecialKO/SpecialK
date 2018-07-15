@@ -27,6 +27,7 @@
 #include <SpecialK/render/dxgi/dxgi_interfaces.h>
 #include <SpecialK/utility.h>
 #include <SpecialK/thread.h>
+#include <SpecialK/tls.h>
 #include <concurrent_unordered_map.h>
 #include <concurrent_unordered_set.h>
 
@@ -263,6 +264,11 @@ struct mem_info_t {
   int                          nodes                    = 0;//MAX_GPU_NODES;
 } extern mem_info [NumBuffers];
 
+static const int SK_D3D11_MAX_DEV_CONTEXTS = 64;
+
+LONG
+SK_D3D11_GetDeviceContextHandle (ID3D11DeviceContext *pCtx);
+
 namespace SK
 {
   namespace DXGI
@@ -452,7 +458,8 @@ public:
   ID3D11Texture2D* getTexture2D ( uint32_t              crc32,
                             const D3D11_TEXTURE2D_DESC *pDesc,
                                   size_t               *pMemSize   = nullptr,
-                                  float                *pTimeSaved = nullptr );
+                                  float                *pTimeSaved = nullptr,
+                                  SK_TLS               *pTLS       = SK_TLS_Bottom () );
 
   void             refTexture2D ( ID3D11Texture2D      *pTex,
                             const D3D11_TEXTURE2D_DESC *pDesc,
@@ -462,7 +469,8 @@ public:
                                   uint32_t              crc32c,
                                   std::wstring          fileName   = L"",
                             const D3D11_TEXTURE2D_DESC *pOrigDesc  = nullptr,
-                         _In_opt_ HMODULE               hModCaller = (HMODULE)(intptr_t)-1 );
+                         _In_opt_ HMODULE               hModCaller = (HMODULE)(intptr_t)-1,
+                                  SK_TLS               *pTLS       = SK_TLS_Bottom () );
 
   void             reset         (void);
   bool             purgeTextures (size_t size_to_free, int* pCount, size_t* pFreed);
@@ -955,39 +963,46 @@ struct d3d11_shader_tracking_s
 
   struct
   {
-    concurrency::concurrent_unordered_map <ID3D11DeviceContext *, bool>
-      contexts;
+    std::array < bool, SK_D3D11_MAX_DEV_CONTEXTS+1 > contexts;
 
     // Only examine the hash map when at least one context is active,
     //   or we will kill performance!
     volatile LONG
       active_count = 0L; 
 
-    bool get (ID3D11DeviceContext* pDevCtx)
+    bool get (int dev_idx)
     {
       if (ReadAcquire (&active_count) > 0)
       {
-        return contexts [pDevCtx];
+        return contexts [dev_idx];
       }
 
       return false;
     }
 
-    void set (ID3D11DeviceContext* pDevCtx, bool active)
+    bool get (ID3D11DeviceContext* pDevCtx)
+    {
+      return get (SK_D3D11_GetDeviceContextHandle (pDevCtx));
+    }
+
+    void set (int dev_idx, bool active)
     {
       if (ReadAcquire (&active_count) > 0 || active == true)
       {
-        auto it = contexts.find (pDevCtx);
-
-        if (it == contexts.end () || it->second != active)
+        if (contexts [dev_idx] != active)
         {
                if (active) InterlockedIncrement (&active_count);
           else if (ReadAcquire (&active_count) > 0)
                            InterlockedDecrement (&active_count);
 
-          contexts [pDevCtx] = active;
+          contexts [dev_idx] = active;
         }
       }
+    }
+
+    void set (ID3D11DeviceContext* pDevCtx, bool active)
+    {
+      set (SK_D3D11_GetDeviceContextHandle (pDevCtx), active);
     }
   } active;
 
@@ -1075,12 +1090,6 @@ struct d3d11_shader_tracking_s
     SK_D3D11_ShaderType type_;
 };
 
-
-static const int SK_D3D11_MAX_DEV_CONTEXTS = 64;
-
-LONG
-SK_D3D11_GetDeviceContextHandle (ID3D11DeviceContext *pCtx);
-
 struct SK_D3D11_KnownShaders
 {
   typedef std::unordered_map <uint32_t, std::unordered_set <uint32_t>> conditional_blacklist_t;
@@ -1127,9 +1136,9 @@ struct SK_D3D11_KnownShaders
     d3d11_shader_tracking_s                              tracked;
 
     struct {
-      std::array < uint32_t, SK_D3D11_MAX_DEV_CONTEXTS > shader;
+      std::array < uint32_t, SK_D3D11_MAX_DEV_CONTEXTS+1 > shader;
       std::array < std::array <
-                     ID3D11ShaderResourceView *, SK_D3D11_MAX_DEV_CONTEXTS >,
+                     ID3D11ShaderResourceView *, SK_D3D11_MAX_DEV_CONTEXTS+1 >,
                               128 > views;
     } current;
 
@@ -1139,7 +1148,7 @@ struct SK_D3D11_KnownShaders
   };
 
   
-  static std::array <bool, SK_D3D11_MAX_DEV_CONTEXTS> reshade_triggered;
+  static std::array <bool, SK_D3D11_MAX_DEV_CONTEXTS+1> reshade_triggered;
 
   ShaderRegistry <ID3D11PixelShader>    pixel; 
   ShaderRegistry <ID3D11VertexShader>   vertex;

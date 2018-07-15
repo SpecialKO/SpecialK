@@ -3033,8 +3033,8 @@ SK::D3D9::TextureWorkerThread::ThreadProc (LPVOID user)
     }
   }
 
-  SYSTEM_INFO     sysinfo = { };
-  GetSystemInfo (&sysinfo);
+  SYSTEM_INFO        sysinfo = { };
+  SK_GetSystemInfo (&sysinfo);
 
 
   ULONG thread_num =

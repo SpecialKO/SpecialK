@@ -880,3 +880,10 @@ sk_hwnd_cache_s::sk_hwnd_cache_s (HWND wnd)
     last_changed = SK_GetFramesDrawn ();
   }
 }
+
+ULONG
+__stdcall
+SK_GetFramesDrawn_NonInline (void)
+{
+  return SK_GetFramesDrawn ();
+}

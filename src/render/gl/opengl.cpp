@@ -236,7 +236,7 @@ typedef struct tagPIXELFORMATDESCRIPTOR
                                                                          \
       if (imp_##_Name == nullptr) {                                      \
         dll_log.Log (                                                    \
-          L"[ OpenGL32 ] Unable to locate symbol  %s in OpenGL32.dll",   \
+          L"[ OpenGL32 ] Unable to locate symbol %s in OpenGL32.dll",    \
           L#_Name);                                                      \
         return 0;                                                        \
       }                                                                  \
@@ -258,7 +258,7 @@ typedef struct tagPIXELFORMATDESCRIPTOR
                                                                          \
       if (imp_##_Name == nullptr) {                                      \
         dll_log.Log (                                                    \
-          L"[ OpenGL32 ] Unable to locate symbol  %s in OpenGL32.dll",   \
+          L"[ OpenGL32 ] Unable to locate symbol %s in OpenGL32.dll",    \
           L#_Name);                                                      \
         return;                                                          \
       }                                                                  \
@@ -1254,7 +1254,7 @@ void ResetCEGUI_GL (void)
         cegGL = cegGL_new;
       }
 
-      catch (CEGUI::GenericException& e)
+      catch (CEGUI::Exception& e)
       {
         SK_LOG0 ( (L"CEGUI Exception During OpenGL Bootstrap"),
                    L"   CEGUI  "  );
@@ -2545,7 +2545,8 @@ SK_HookGL (void)
 
       if (SK_GetDLLRole () == DLL_ROLE::OpenGL)
       {
-        SK_ApplyQueuedHooks ();
+        if (SK_GetFramesDrawn () > 1)
+          SK_ApplyQueuedHooks ();
 
         // Load user-defined DLLs (Plug-In)
         SK_RunLHIfBitness (64, SK_LoadPlugIns64 (), SK_LoadPlugIns32 ());
@@ -2927,7 +2928,8 @@ SK_HookGL (void)
 
     pTLS->gl.ctx_init_thread = false;
 
-    SK_ApplyQueuedHooks ();
+    if (SK_GetFramesDrawn () > 1)
+      SK_ApplyQueuedHooks ();
 
     InterlockedExchange  (&__gl_ready, TRUE);
     InterlockedIncrement (&SK_GL_initialized);

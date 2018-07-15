@@ -52,8 +52,16 @@ public:
   {
     if (! ImGui::GetFont ()) return;
 
+    SK_RenderBackend& rb =
+      SK_GetCurrentRenderBackend ();
+
+    if (! (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR))
+      return;
+
     SK_DXGI_HDRControl* pHDRCtl =
       SK_HDR_GetControl ();
+
+    bool sync_metadata = false;
 
     ImGui::Checkbox ("###HDR_Override_MinMasterLevel", &pHDRCtl->overrides.MinMaster); ImGui::SameLine ();
     float fMinMaster = (float)pHDRCtl->meta.MinMasteringLuminance / 10000.0f;
@@ -61,6 +69,7 @@ public:
     {
       if (pHDRCtl->overrides.MinMaster)
       {
+        sync_metadata = true;
         pHDRCtl->meta.MinMasteringLuminance = (UINT)(fMinMaster * 10000);
       }
     }
@@ -71,6 +80,7 @@ public:
     {
       if (pHDRCtl->overrides.MaxMaster)
       {
+        sync_metadata = true;
         pHDRCtl->meta.MaxMasteringLuminance = (UINT)(fMaxMaster * 10000);
       }
     }
@@ -83,6 +93,7 @@ public:
     {
       if (pHDRCtl->overrides.MaxContentLightLevel)
       {
+        sync_metadata = true;
         pHDRCtl->meta.MaxContentLightLevel = (UINT16)fBrightest;
       }
     }
@@ -93,7 +104,22 @@ public:
     {
       if (pHDRCtl->overrides.MaxFrameAverageLightLevel)
       {
+        sync_metadata = true;
         pHDRCtl->meta.MaxFrameAverageLightLevel = (UINT16)fBrightestLastFrame;
+      }
+    }
+
+    if (sync_metadata)
+    {
+      CComQIPtr <IDXGISwapChain4> pSwapChain (rb.swapchain);
+
+      if (pSwapChain != nullptr)
+      {
+        pSwapChain->SetHDRMetaData (
+             DXGI_HDR_METADATA_TYPE_HDR10,
+          sizeof (DXGI_HDR_METADATA_HDR10),
+               nullptr
+        );
       }
     }
 

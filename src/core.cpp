@@ -490,6 +490,84 @@ SK_InitCore (std::wstring, void* callback)
       SK_NNK2_InitPlugin (void);
       SK_NNK2_InitPlugin ();
       break;
+
+    case SK_GAME_ID::FarCry5:
+    {
+      auto _UnpackEasyAntiCheatBypass = [&](void) ->
+      void
+      {
+        HMODULE hModSelf = 
+          SK_GetDLL ();
+      
+        HRSRC res =
+          FindResource ( hModSelf, MAKEINTRESOURCE (IDR_FC5_KILL_ANTI_CHEAT), L"7ZIP" );
+      
+        if (res)
+        {      
+          DWORD   res_size     =
+            SizeofResource ( hModSelf, res );
+      
+          HGLOBAL packed_anticheat =
+            LoadResource   ( hModSelf, res );
+      
+          if (! packed_anticheat) return;
+      
+          const void* const locked =
+            (void *)LockResource (packed_anticheat);
+      
+          if (locked != nullptr)
+          {
+            wchar_t      wszBackup      [MAX_PATH * 2 + 1] = { };
+            wchar_t      wszArchive     [MAX_PATH * 2 + 1] = { };
+            wchar_t      wszDestination [MAX_PATH * 2 + 1] = { };
+      
+            wcscpy (wszDestination, SK_GetHostPath ());
+      
+            if (GetFileAttributesW (wszDestination) == INVALID_FILE_ATTRIBUTES)
+              SK_CreateDirectories (wszDestination);
+      
+            PathAppendW (wszDestination, L"EasyAntiCheat");
+            wcscpy      (wszBackup,      wszDestination);
+            PathAppendW (wszBackup,      L"EasyAntiCheat_x64_orig.dll");
+
+            if (GetFileAttributesW (wszBackup) == INVALID_FILE_ATTRIBUTES)
+            {
+              wchar_t      wszBackupSrc [MAX_PATH * 2 + 1] = { };
+              wcscpy      (wszBackupSrc, wszDestination);
+              PathAppendW (wszBackupSrc, L"EasyAntiCheat_x64.dll");
+              CopyFileW   (wszBackupSrc, wszBackup, TRUE);
+
+              SK_LOG0 ( ( L"Unpacking EasyAntiCheatDefeat for FarCry 5" ),
+                          L"AntiDefeat" );
+
+             wcscpy      (wszArchive, wszDestination);
+             PathAppendW (wszArchive, L"EasyAntiCheatDefeat.7z");
+      
+             FILE* fPackedCompiler =
+               _wfopen   (wszArchive, L"wb");
+      
+             fwrite      (locked, 1, res_size, fPackedCompiler);
+             fclose      (fPackedCompiler);
+      
+             using SK_7Z_DECOMP_PROGRESS_PFN = int (__stdcall *)(int current, int total);
+      
+             extern
+             HRESULT
+             SK_Decompress7zEx ( const wchar_t*            wszArchive,
+                                 const wchar_t*            wszDestination,
+                                 SK_7Z_DECOMP_PROGRESS_PFN callback );
+      
+             SK_Decompress7zEx (wszArchive, wszDestination, nullptr);
+             DeleteFileW       (wszArchive);
+            }
+          }
+      
+          UnlockResource (packed_anticheat);
+        }
+      };
+
+      _UnpackEasyAntiCheatBypass ();
+    } break;
 #else
     case SK_GAME_ID::SecretOfMana:
       SK_SOM_InitPlugin ();
@@ -823,11 +901,63 @@ DllThread (LPVOID user)
 }
 
 
-std::wstring
-SK_RecursiveFileSearch ( const wchar_t* wszDir,
-                         const wchar_t* wszFile )
+enum SK_File_SearchStopCondition {
+  FirstMatchFound,
+  AllMatchesFound,
+  LastMatchFound
+};
+
+std::unordered_set <std::wstring>
+SK_RecursiveFileSearchEx ( const wchar_t* wszDir,
+                           const wchar_t* wszSearchExt,
+       std::unordered_set <std::wstring>& cwsFileNames,
+       std::vector        <
+         std::pair          < std::wstring, bool >
+                          >&&             preferred_dirs = { },
+              SK_File_SearchStopCondition stop_condition = FirstMatchFound )
 {
-  std::wstring found = L"";
+  std::unordered_set <
+    std::wstring
+  > found_set;
+
+  for ( auto& preferred : preferred_dirs )
+  {
+    if ( preferred.second == false )
+    {
+      preferred.second = true;
+
+      DWORD dwAttribs  =
+        GetFileAttributesW (preferred.first.c_str ());
+
+      if (  dwAttribs != INVALID_FILE_ATTRIBUTES &&
+          !(dwAttribs &  FILE_ATTRIBUTE_DIRECTORY) )
+      {
+        found_set.emplace (preferred.first);
+
+        if (stop_condition == FirstMatchFound)
+        {
+          return found_set;
+        }
+      }
+
+      PathRemoveFileSpec (
+        preferred.first.data ()
+      );
+
+      std::unordered_set <std::wstring>&& recursive_finds =
+        SK_RecursiveFileSearchEx ( preferred.first.c_str (), wszSearchExt,
+                                                            cwsFileNames,
+                                                       { }, stop_condition );
+
+      if (! recursive_finds.empty () )
+      {
+        if (stop_condition == FirstMatchFound)
+        {
+          return recursive_finds;
+        }
+      }
+    }
+  }
 
   wchar_t   wszPath [MAX_PATH * 2] = { };
   swprintf (wszPath, LR"(%s\*)", wszDir);
@@ -836,37 +966,160 @@ SK_RecursiveFileSearch ( const wchar_t* wszDir,
   HANDLE          hFind       =
     FindFirstFileW ( wszPath, &fd);
 
-  if (hFind == INVALID_HANDLE_VALUE) { return found; }
+  if (hFind == INVALID_HANDLE_VALUE) { return found_set; }
+
+  std::vector <std::wstring> dirs_to_traverse;
 
   do
   {
-    if ( wcscmp (fd.cFileName, L".")  == 0 ||
-         wcscmp (fd.cFileName, L"..") == 0 )
+    if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
     {
+      if ( *fd.cFileName == L'.' )
+      {
+        const wchar_t* wszNext =
+          CharNextW (fd.cFileName);
+
+        if ( (*wszNext == L'.'  ) || 
+             (*wszNext == L'\0' )    )
+        {
+        //dll_log.Log (L"%ws\\%ws is a special directory", wszDir, fd.cFileName);
+          continue;
+        }
+      }
+
+      dirs_to_traverse.emplace_back (fd.cFileName);
+    }
+
+    wchar_t wszFoundFile      [MAX_PATH] = { };
+    wchar_t wszFoundFileLower [MAX_PATH] = { };
+    wchar_t wszFoundExtension [   16   ] = { };
+
+    if ( _wsplitpath_s (
+           fd.cFileName, nullptr, 0,
+                         nullptr, 0,
+                         wszFoundFile, MAX_PATH,
+                         wszFoundExtension, 16
+                       ) != 0
+       )
+    {
+    //dll_log.Log (L"%ws did not split", fd.cFileName);
       continue;
     }
 
-    if (! _wcsicmp (fd.cFileName, wszFile))
+    if (_wcsicmp (wszFoundExtension, wszSearchExt) != 0)
     {
-      found = wszDir;
-      found += L"\\"; found += wszFile;
-
-      break;
+    //dll_log.Log (L"%ws is wrong extension    { Search Extension: %ws, First File To Check: %ws }",
+    //             wszFoundExtension, wszSearchExt, cwsFileNames.begin ()->c_str () );
+      continue;
     }
 
-    if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-    {
-      wchar_t   wszDescend [MAX_PATH * 2] = { };
-      swprintf (wszDescend, LR"(%s\%s)", wszDir, fd.cFileName);
+    wcscpy (
+      wszFoundFileLower,
+        wszFoundFile
+    );
 
-      found = SK_RecursiveFileSearch (wszDescend, wszFile);
+    wchar_t* pwszFileLower = wszFoundFileLower;
+    while ( *pwszFileLower != L'\0' )
+    {       *pwszFileLower = towlower  (*pwszFileLower);
+             pwszFileLower = CharNextW ( pwszFileLower);
     }
 
-  } while ((found.empty ()) && FindNextFile (hFind, &fd));
+    if (! cwsFileNames.count (wszFoundFileLower))
+    {
+      //dll_log.Log (L"%ws is not contained  { Search Extension: %ws, First File To Check: %ws }",
+      //             wszFoundFileLower, wszSearchExt, cwsFileNames.begin ()->c_str () );
+
+      continue;
+    }
+
+    else
+    {
+      std::wstring found (wszDir);
+                   found += L"\\";
+                   found += wszFoundFile;
+                   found += wszFoundExtension;
+
+      found_set.emplace (found);
+
+      //dll_log.Log (L"Add to Found Set: %s", found.c_str ());
+
+      if (stop_condition == FirstMatchFound)
+      {
+        FindClose (hFind);
+        return found_set;
+      }
+    }
+  } while (FindNextFile (hFind, &fd));
 
   FindClose (hFind);
 
-  return found;
+
+  for ( auto& dir : dirs_to_traverse )
+  {
+    wchar_t   wszDescend [MAX_PATH * 2] = { };
+    swprintf (wszDescend, LR"(%s\%s)", wszDir, dir.c_str () );
+
+    const std::unordered_set <std::wstring>&& recursive_finds =
+      SK_RecursiveFileSearchEx ( wszDescend,  wszSearchExt,
+                                             cwsFileNames,
+                                         { }, stop_condition );
+
+    if (! recursive_finds.empty ())
+    {
+      for ( auto& found_entry : recursive_finds )
+      {
+        found_set.emplace (found_entry);
+
+        if (stop_condition == FirstMatchFound)
+          return found_set;
+      }
+    }
+  }
+
+
+  return found_set;
+}
+
+std::wstring
+SK_RecursiveFileSearch ( const wchar_t* wszDir,
+                         const wchar_t* wszFile )
+{
+  dll_log.Log ( L"Recursive File Search for '%ws', beginning in '%ws'",
+                  SK_StripUserNameFromPathW (std::wstring (wszFile).data ()),
+                  SK_StripUserNameFromPathW (std::wstring (wszDir).data  ()) );
+
+  std::wstring extension (
+    PathFindExtensionW     (wszFile)
+                         ),
+               filename    (wszFile);
+
+  PathRemoveExtensionW (filename.data ());
+  PathFindFileNameW    (filename.data ());
+
+  std::unordered_set <std::wstring> file_pattern = {
+    std::wstring (filename.data ())
+  };
+
+  const std::unordered_set <std::wstring> matches =
+    SK_RecursiveFileSearchEx (
+      wszDir, extension.c_str (),
+        file_pattern, {{wszFile, false}}, FirstMatchFound
+    );
+
+  if (! matches.empty ())
+  {
+    dll_log.Log ( L"Success!  [%ws]",
+                 SK_StripUserNameFromPathW (std::wstring (*matches.begin ()).data ()) );
+  }
+
+  else
+  {
+    dll_log.Log ( L"No Such File Exists",
+                 SK_StripUserNameFromPathW (std::wstring (*matches.begin ()).data ()) );
+  }
+
+  return matches.empty () ?
+    L"" : *matches.begin ();
 }
 
 
@@ -904,25 +1157,39 @@ struct sk_user_profile_s
   wchar_t wszEnvDocs    [MAX_PATH] = { };
 } static user_profile;
 
+const wchar_t*
+__stdcall
+SK_GetDebugSymbolPath (void)
+{
+  static std::wstring dbg_symbols;
+
+  if (! dbg_symbols.empty ()) return dbg_symbols.c_str ();
+
+  wchar_t path [MAX_PATH * 2] = { };
+
+  lstrcpynW ( path,
+                std::wstring ( SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\)" ).c_str (),
+                  MAX_PATH - 1 );
+
+  dbg_symbols = path;
+
+  return dbg_symbols.c_str ();
+}
+
 void
 __stdcall
 SK_EstablishRootPath (void)
 {
-  FILE* fTest = 
-    _wfopen (L"SpecialK.permissions", L"wtc+");
-
-  if (fTest != nullptr)
-  {
-    fclose      (fTest);
-    DeleteFileW (L"SpecialK.permissions");
-  }
+  wchar_t wszConfigPath [MAX_PATH * 2] = { };
+  GetCurrentDirectory   (MAX_PATH, wszConfigPath);
 
   // File permissions don't permit us to store logs in the game's directory,
   //   so implicitly turn on the option to relocate this stuff.
-  if (! fTest) config.system.central_repository = true;
+  if (! SK_File_CanUserWriteToPath (wszConfigPath)) {
+    config.system.central_repository = true;
+  }
 
-
-  wchar_t wszConfigPath [MAX_PATH * 2] = { };
+  ZeroMemory (wszConfigPath, sizeof (wchar_t) * MAX_PATH * 2);
 
   // Store config profiles in a centralized location rather than relative to the game's executable
   //
@@ -1074,6 +1341,8 @@ SK_Steam_GetAppID_NoAPI (void)
   return 0;
 }
 
+extern void SK_CPU_InstallHooks (void);
+
 bool
 __stdcall
 SK_StartupCore (const wchar_t* backend, void* callback)
@@ -1183,33 +1452,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
   else
   {
-    SK_Thread_Create ([](LPVOID) -> DWORD
-    {
-      SetCurrentThreadDescription (                         L"[SK] Init Cleanup Thread" );
-      SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_HIGHEST     );
-      SetThreadPriorityBoost      ( SK_GetCurrentThread (), TRUE                        );
-
-      WaitForInit         ();
-
-      if (GetModuleHandle (L"dinput8.dll"))
-        SK_Input_HookDI8  ();
-
-      if (GetModuleHandle (L"dinput.dll"))
-        SK_Input_HookDI7  ();
-
-      SK_Input_Init       ();
-      SK_ApplyQueuedHooks ();
-
-      // Setup the compatibility backend, which monitors loaded libraries,
-      //   blacklists bad DLLs and detects render APIs...
-      SK_EnumLoadedModules (SK_ModuleEnum::PostLoad);
-
-      SK_Thread_CloseSelf ();
-
-      return 0;
-    });
-
-
     blacklist =
       SK_IsInjected () &&
       (GetFileAttributesW (SK_GetBlacklistFilename ()) != INVALID_FILE_ATTRIBUTES);
@@ -1232,6 +1474,34 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
       SK_MinHook_Init           ();
       SK_Thread_InitDebugExtras ();
+      SK_CPU_InstallHooks       ();
+
+
+      SK_Thread_Create ([](LPVOID) -> DWORD
+      {
+        SetCurrentThreadDescription (                         L"[SK] Init Cleanup Thread" );
+        SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_HIGHEST     );
+        SetThreadPriorityBoost      ( SK_GetCurrentThread (), TRUE                        );
+
+        WaitForInit         ();
+
+        if (GetModuleHandle (L"dinput8.dll"))
+          SK_Input_HookDI8  ();
+
+        if (GetModuleHandle (L"dinput.dll"))
+          SK_Input_HookDI7  ();
+
+        SK_Input_Init       ();
+        SK_ApplyQueuedHooks ();
+
+        // Setup the compatibility backend, which monitors loaded libraries,
+        //   blacklists bad DLLs and detects render APIs...
+        SK_EnumLoadedModules (SK_ModuleEnum::PostLoad);
+
+        SK_Thread_CloseSelf ();
+
+        return 0;
+      });
 
 
       // Don't let Steam prevent me from attaching a debugger at startup
@@ -1481,7 +1751,6 @@ BACKEND_INIT:
   else
     dll_log.silent = false;
 
-
   if (! __SK_bypass)
   {
     bool gl   = false, vulkan = false, d3d9  = false, d3d11 = false,
@@ -1507,12 +1776,10 @@ BACKEND_INIT:
       SK_D3D9_QuickHook ();
     }
 
-
     if (config.steam.preload_overlay)
     {
       SK_Steam_LoadOverlayEarly ();
     }
-
 
     InterlockedExchangePointer (
       const_cast <void **> (&hInitThread),
@@ -2353,7 +2620,7 @@ SK_Input_PollKeyboard (void)
 __declspec (noinline) // lol
 HRESULT
 __stdcall
-SK_EndBufferSwap (HRESULT hr, IUnknown* device)
+SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
 {
   static SK_RenderAPI LastKnownAPI =
          SK_RenderAPI::Reserved;
@@ -2472,8 +2739,8 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device)
       rb.fullscreen_exclusive = false;
 
     // Also clear any resources we were tracking for the shader mod subsystem
-    extern void SK_D3D11_EndFrame (void);
-                SK_D3D11_EndFrame ();
+    extern void SK_D3D11_EndFrame (SK_TLS* pTLS = SK_TLS_Bottom ());
+                SK_D3D11_EndFrame (pTLS);
   }
 
 

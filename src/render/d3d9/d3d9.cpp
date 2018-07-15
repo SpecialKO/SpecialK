@@ -772,7 +772,7 @@ ResetCEGUI_D3D9 (IDirect3DDevice9* pDev)
         );
       }
 
-      catch (CEGUI::GenericException& e)
+      catch (CEGUI::Exception& e)
       {
         SK_LOG0 ( (L"CEGUI Exception During D3D9 Bootstrap"),
                    L"   CEGUI  "  );
@@ -4160,8 +4160,10 @@ SK_D3D9_HookDeviceAndSwapchain (
     num_hooked += SK_D3D9_HookReset   (pDevice);
     num_hooked += SK_D3D9_HookPresent (pDevice);
 
+#ifdef SK_AGGRESSIVE_HOOKS
     if (num_hooked > 0)
       SK_ApplyQueuedHooks ();
+#endif
 
     pDevice->Release ();
 
@@ -8297,7 +8299,9 @@ SK_D3D9_QuickHook (void)
     if ( ( state.hooks_loaded.from_shared_dll +
            state.hooks_loaded.from_game_ini     ) > 0 )
     {
+#ifdef SK_AGGRESSIVE_HOOKS
       SK_ApplyQueuedHooks ();
+#endif
     }
 
     else
@@ -8746,7 +8750,7 @@ SK_D3D9_ProcessScreenshotQueue (int stage = 2)
 
               if (pop_off.getData (&Width, &Height, &pData, &Pitch))
               {
-                HRESULT hr = E_UNEXPECTED;
+                //HRESULT hr = E_UNEXPECTED;
 
 
                 wchar_t      wszAbsolutePathToScreenshot [ MAX_PATH * 2 + 1 ] = { };
@@ -8827,7 +8831,7 @@ SK_D3D9_ProcessScreenshotQueue (int stage = 2)
 
                     ScratchImage thumbnailImage;
                   
-                    Resize ( raw_img, 200, 200 * aspect, TEX_FILTER_TRIANGLE, thumbnailImage );
+                    Resize ( raw_img, 200, (size_t)(200 * aspect), TEX_FILTER_TRIANGLE, thumbnailImage );
                   
                     SaveToWICFile ( *thumbnailImage.GetImages (), WIC_FLAGS_NONE,
                                       GetWICCodec (WIC_CODEC_JPEG),

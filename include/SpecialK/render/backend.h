@@ -66,10 +66,11 @@ public:
 
 enum
 {
-  SK_FRAMEBUFFER_FLAG_SRGB    = 0x1,
-  SK_FRAMEBUFFER_FLAG_FLOAT   = 0x2,
-  SK_FRAMEBUFFER_FLAG_RGB10A2 = 0x4,
-  SK_FRAMEBUFFER_FLAG_MSAA    = 0X8
+  SK_FRAMEBUFFER_FLAG_SRGB    = 0x01,
+  SK_FRAMEBUFFER_FLAG_FLOAT   = 0x02,
+  SK_FRAMEBUFFER_FLAG_RGB10A2 = 0x04,
+  SK_FRAMEBUFFER_FLAG_MSAA    = 0x08,
+  SK_FRAMEBUFFER_FLAG_HDR     = 0x10,
 };
 
 enum reset_stage_e
@@ -119,11 +120,27 @@ struct sk_hwnd_cache_s
 
   sk_hwnd_cache_s (HWND wnd);
 
-  operator const HWND& (void) const { return hwnd; };
+  operator const HWND& (void) const noexcept { return hwnd; };
 };
+
+constexpr
+float
+operator"" _Nits ( long double whitepoint_scalar )
+{
+  return
+    static_cast <float> ( whitepoint_scalar / 80.0f );
+}
 
 #pragma pack(push)
 #pragma pack(8)
+struct SK_ColorSpace {
+  float xr, yr,
+        xg, yg,
+        xb, yb,
+        Xw, Yw, Zw;
+
+  float minY, maxLocalY, maxY;
+};
 class SK_RenderBackend_V2 : public SK_RenderBackend_V1
 {
 public:
@@ -136,6 +153,10 @@ public:
   bool                    fullscreen_exclusive = false;
   uint64_t                framebuffer_flags    = 0x00;
   int                     present_interval     = 0; // Present interval on last call to present
+  float                   ui_luminance         = 325.0_Nits;
+  bool                    ui_srgb              = true;
+  SK_ColorSpace           display_gamut        = { 0.0f }; // EDID
+  SK_ColorSpace           working_gamut        = { 0.0f }; // Metadata range
   static volatile LONG    frames_drawn;
 
   struct window_registry_s
@@ -183,7 +204,7 @@ public:
   //   This is the thread that handles SwapChain Presentation;
   //     nothing else can safely be inferred about this thread.
   //
-  volatile LONG           thread       = 0;
+  volatile LONG           thread       =  0;
   CRITICAL_SECTION        cs_res       = { };
 
 
@@ -239,7 +260,7 @@ __stdcall
 SK_GetFramesDrawn (void)
 {
   return
-    static_cast <ULONG> (ReadNoFence (&SK_RenderBackend::frames_drawn));
+    ULONG { static_cast <ULONG> (ReadNoFence (&SK_RenderBackend::frames_drawn)) };
 }
 
 

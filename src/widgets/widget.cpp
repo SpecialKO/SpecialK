@@ -443,9 +443,9 @@ SK_Widget::save (iSK_INI* /*ini*/)
 {
   OnConfig (ConfigEvent::SaveStart);
 
-  run_base ();
+  //run_base ();
 
-  if (param_visible)
+  if (run_once__)
   {
     param_visible->store      (     visible      );
     param_movable->store      (     movable      );

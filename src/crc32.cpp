@@ -691,25 +691,39 @@ calculate_table_hw (void)
 
 static uint32_t (__cdecl *append_func)(uint32_t, const void*, size_t) = nullptr;
 
+#include <Windows.h>
+
+#include <SpecialK/thread.h>
+
 extern "C"
 void
 __cdecl
 __crc32_init (void)
 {
-  // somebody can call sw version directly, so, precalculate table for this version
-  calculate_table ();
+  static volatile LONG init = -1;
 
-  if (crc32c_hw_available ())
+  if ( InterlockedCompareExchange (&init, 0, -1)
+                                          == -1 )
   {
-    //dll_log.Log (L"[ Checksum ] Using Hardware (SSE 4.2) CRC32C Algorithm");
-    calculate_table_hw ();
-    append_func = crc32c_append_hw;
+    // somebody can call sw version directly, so, precalculate table for this version
+    calculate_table ();
+
+    if (crc32c_hw_available ())
+    {
+      //dll_log.Log (L"[ Checksum ] Using Hardware (SSE 4.2) CRC32C Algorithm");
+      calculate_table_hw ();
+      append_func = crc32c_append_hw;
+    }
+
+    else {
+      //dll_log.Log (L"[ Checksum ] Using Software (Adler Optimized) CRC32C Algorithm");
+      append_func = crc32c_append_sw;
+    }
+
+    InterlockedExchange (&init, 1);
   }
 
-  else {
-    //dll_log.Log (L"[ Checksum ] Using Software (Adler Optimized) CRC32C Algorithm");
-    append_func = crc32c_append_sw;
-  }
+  SK_Thread_SpinUntilFlagged (&init);
 }
 
 extern "C"

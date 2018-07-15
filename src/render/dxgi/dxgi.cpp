@@ -169,7 +169,7 @@ std::vector <sk_hook_cache_record_s *> local_dxgi_records =
 
 extern SK_Thread_HybridSpinlock cs_mmio;
 
-extern void SK_D3D11_EndFrame       (void);
+extern void SK_D3D11_EndFrame       (SK_TLS* pTLS = SK_TLS_Bottom ());
 extern void SK_DXGI_UpdateSwapChain (IDXGISwapChain*);
 
 
@@ -222,10 +222,7 @@ static
 CEGUI::Direct3D11Renderer* cegD3D11 = nullptr;
 #endif
 
-struct sk_hook_d3d11_t {
- ID3D11Device**        ppDevice;
- ID3D11DeviceContext** ppImmediateContext;
-} d3d11_hook_ctx;
+sk_hook_d3d11_t d3d11_hook_ctx;
 
 void SK_DXGI_HookSwapChain (IDXGISwapChain* pSwapChain);
 
@@ -250,18 +247,18 @@ ImGui_DX11Startup ( IDXGISwapChain* pSwapChain )
 
   if ( SUCCEEDED (pSwapChain->GetDevice (IID_PPV_ARGS (&pD3D11Dev))) )
   {
-    //assert (pD3D11Dev.IsEqualObject (rb.device) ||
-    //                                 rb.device == nullptr);
+    assert (pD3D11Dev.IsEqualObject (rb.device) ||
+                                     rb.device == nullptr);
 
     // ------------
     CComQIPtr <ID3D11Device>        pTestDev0 (rb.device);
     CComPtr   <ID3D11Device>        pTestDev1 = nullptr;
     CComQIPtr <ID3D11DeviceContext> pDevCtx   (rb.d3d11.immediate_ctx);
-
+    
     if (pDevCtx != nullptr)
     {
       pDevCtx->GetDevice (&pTestDev1);
-
+    
       if (pTestDev0.IsEqualObject (pTestDev1))
       {
         pImmediateContext = pDevCtx;
@@ -272,8 +269,8 @@ ImGui_DX11Startup ( IDXGISwapChain* pSwapChain )
     if (! pImmediateContext)
       pD3D11Dev->GetImmediateContext (&pImmediateContext);
 
-    //assert (pImmediateContext.IsEqualObject (rb.d3d11.immediate_ctx) ||
-    //                                         rb.d3d11.immediate_ctx == nullptr);
+    assert (pImmediateContext.IsEqualObject (rb.d3d11.immediate_ctx) ||
+                                             rb.d3d11.immediate_ctx == nullptr);
 
     if ( pImmediateContext != nullptr )
     {
@@ -519,7 +516,7 @@ SK_CEGUI_InitBase ()
       window_mgr.loadLayoutFromFile ("Achievements.layout");
   }
 
-  catch (CEGUI::GenericException& e)
+  catch (CEGUI::Exception& e)
   {
     SK_LOG0 ( (L"CEGUI Exception During Core Init"),
                L"   CEGUI  "  );
@@ -637,7 +634,7 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
             );
         }
 
-        catch (CEGUI::GenericException& e)
+        catch (CEGUI::Exception& e)
         {
           SK_LOG0 ( (L"CEGUI Exception During D3D11 Bootstrap"),
                      L"   CEGUI  "  );
@@ -648,7 +645,8 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
                               e.getName    ().c_str (),
                               e.getMessage ().c_str () ),
                      L"   CEGUI  "  );
-
+ 
+          cegD3D11            = nullptr;
           config.cegui.enable = false;
         }
       }
@@ -1416,17 +1414,25 @@ struct StateBlockDataStore {
   UINT                       SampleMask;
   UINT                       StencilRef;
   ID3D11DepthStencilState*   DepthStencilState;
-  ID3D11ShaderResourceView*  PSShaderResource;
+  ID3D11ShaderResourceView*  PSShaderResources [2];
   ID3D11SamplerState*        PSSampler;
   ID3D11PixelShader*         PS;
   ID3D11VertexShader*        VS;
-  UINT                       PSInstancesCount, VSInstancesCount;
+  ID3D11GeometryShader*      GS;
+  ID3D11HullShader*          HS;
+  ID3D11DomainShader*        DS;
+  UINT                       PSInstancesCount, VSInstancesCount, GSInstancesCount,
+                             HSInstancesCount, DSInstancesCount;
   ID3D11ClassInstance       *PSInstances  [D3D11_SHADER_MAX_INTERFACES],
-                            *VSInstances  [D3D11_SHADER_MAX_INTERFACES];
+                            *VSInstances  [D3D11_SHADER_MAX_INTERFACES],
+                            *GSInstances  [D3D11_SHADER_MAX_INTERFACES],
+                            *HSInstances  [D3D11_SHADER_MAX_INTERFACES],
+                            *DSInstances  [D3D11_SHADER_MAX_INTERFACES];
   D3D11_PRIMITIVE_TOPOLOGY   PrimitiveTopology;
   ID3D11Buffer              *IndexBuffer,
                             *VertexBuffer,
-                            *VSConstantBuffer;
+                            *VSConstantBuffer,
+                            *PSConstantBuffer;
   UINT                       IndexBufferOffset, VertexBufferStride,
                              VertexBufferOffset;
   DXGI_FORMAT                IndexBufferFormat;
@@ -1436,10 +1442,18 @@ struct StateBlockDataStore {
   ID3D11RenderTargetView*    RenderTargetView;
 };
 
+extern D3D11_PSSetSamplers_pfn D3D11_PSSetSamplers_Original;
+
 struct SK_D3D11_Stateblock_Lite : StateBlockDataStore
 {
   void capture (ID3D11DeviceContext* pCtx)
   {
+    CComPtr <ID3D11Device> pDev;
+         pCtx->GetDevice (&pDev);
+
+    D3D_FEATURE_LEVEL ft_lvl =
+      pDev->GetFeatureLevel ();
+
     ScissorRectsCount = ViewportsCount =
       D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE;
 
@@ -1449,14 +1463,32 @@ struct SK_D3D11_Stateblock_Lite : StateBlockDataStore
     pCtx->OMGetBlendState        (      &BlendState,         BlendFactor,
                                                             &SampleMask);
     pCtx->OMGetDepthStencilState (      &DepthStencilState, &StencilRef);
-    pCtx->PSGetShaderResources   (0, 1, &PSShaderResource);
+    pCtx->PSGetShaderResources   (0, 2, PSShaderResources);
+    pCtx->PSGetConstantBuffers   (0, 1, &PSConstantBuffer);
     pCtx->PSGetSamplers          (0, 1, &PSSampler);
 
-    PSInstancesCount = VSInstancesCount =
+    PSInstancesCount = VSInstancesCount = GSInstancesCount =
+    HSInstancesCount = DSInstancesCount  =
       D3D11_SHADER_MAX_INTERFACES;
 
     pCtx->PSGetShader            (&PS, PSInstances, &PSInstancesCount);
     pCtx->VSGetShader            (&VS, VSInstances, &VSInstancesCount);
+
+    if (ft_lvl >= D3D_FEATURE_LEVEL_10_0)
+    {
+      pCtx->GSGetShader             (&GS, GSInstances, &GSInstancesCount);
+      GSInstancesCount = calc_count (     GSInstances,  GSInstancesCount);
+    }
+
+    if (ft_lvl >= D3D_FEATURE_LEVEL_11_0)
+    {
+      pCtx->HSGetShader            (&HS, HSInstances, &HSInstancesCount);
+      HSInstancesCount =     calc_count (HSInstances,  HSInstancesCount);
+
+      pCtx->DSGetShader            (&DS, DSInstances, &DSInstancesCount);
+      DSInstancesCount =     calc_count (DSInstances,  DSInstancesCount);
+    }
+
     pCtx->VSGetConstantBuffers   (0, 1, &VSConstantBuffer);
     pCtx->IAGetPrimitiveTopology (      &PrimitiveTopology);
     pCtx->IAGetIndexBuffer       (      &IndexBuffer,  &IndexBufferFormat,
@@ -1472,24 +1504,60 @@ struct SK_D3D11_Stateblock_Lite : StateBlockDataStore
 
   void apply (ID3D11DeviceContext* pCtx)
   {
+    CComPtr <ID3D11Device> pDev;
+         pCtx->GetDevice (&pDev);
+
+    D3D_FEATURE_LEVEL ft_lvl =
+      pDev->GetFeatureLevel ();
+
     pCtx->RSSetScissorRects      (ScissorRectsCount, ScissorRects);
     pCtx->RSSetViewports         (ViewportsCount,    Viewports);
     pCtx->OMSetDepthStencilState (DepthStencilState, StencilRef);
     pCtx->RSSetState             (RS);
     pCtx->PSSetShader            (PS, PSInstances,   PSInstancesCount);
     pCtx->VSSetShader            (VS, VSInstances,   VSInstancesCount);
+    if (ft_lvl >= D3D_FEATURE_LEVEL_10_0)
+      pCtx->GSSetShader          (GS, GSInstances,   GSInstancesCount);
+    if (ft_lvl >= D3D_FEATURE_LEVEL_11_0)
+    {
+      pCtx->HSSetShader          (HS, HSInstances,   HSInstancesCount);
+      pCtx->DSSetShader          (DS, DSInstances,   DSInstancesCount);
+    }
     pCtx->OMSetBlendState        (BlendState,        BlendFactor,
                                                      SampleMask);
     pCtx->IASetIndexBuffer       (IndexBuffer,       IndexBufferFormat,
                                                      IndexBufferOffset);
     pCtx->IASetInputLayout       (InputLayout);
     pCtx->IASetPrimitiveTopology (PrimitiveTopology);
-    pCtx->PSSetShaderResources   (0, 1, &PSShaderResource);
+    pCtx->PSSetShaderResources   (0, 2, PSShaderResources);
+    pCtx->PSSetConstantBuffers   (0, 1, &PSConstantBuffer);
     pCtx->VSSetConstantBuffers   (0, 1, &VSConstantBuffer);
-    pCtx->PSSetSamplers          (0, 1, &PSSampler);
+    D3D11_PSSetSamplers_Original (pCtx, 0, 1, &PSSampler);
     pCtx->IASetVertexBuffers     (0, 1, &VertexBuffer,    &VertexBufferStride,
                                                           &VertexBufferOffset);
     pCtx->OMSetRenderTargets     (1,    &RenderTargetView, DepthStencilView);
+
+    if (RS)                    RS->Release                    ();
+    if (PS)                    PS->Release                    ();
+    if (VS)                    VS->Release                    ();
+    if (ft_lvl >= D3D_FEATURE_LEVEL_10_0 &&
+        GS)                    GS->Release                    ();
+    if (ft_lvl >= D3D_FEATURE_LEVEL_11_0 &&
+        HS)                    HS->Release                    ();
+    if (ft_lvl >= D3D_FEATURE_LEVEL_11_0 &&
+        DS)                    DS->Release                    ();
+    if (PSSampler)             PSSampler->Release             ();
+    if (BlendState)            BlendState->Release            ();
+    if (InputLayout)           InputLayout->Release           ();
+    if (IndexBuffer)           IndexBuffer->Release           ();
+    if (VertexBuffer)          VertexBuffer->Release          ();
+    if (PSShaderResources [0]) PSShaderResources [0]->Release ();
+    if (PSShaderResources [1]) PSShaderResources [1]->Release ();
+    if (VSConstantBuffer)      VSConstantBuffer->Release      ();
+    if (PSConstantBuffer)      PSConstantBuffer->Release      ();
+    if (RenderTargetView)      RenderTargetView->Release      ();
+    if (DepthStencilView)      DepthStencilView->Release      ();
+    if (DepthStencilState)     DepthStencilState->Release     ();
 
     //
     // Now balance the reference counts that D3D added even though we did not want them :P
@@ -1500,24 +1568,34 @@ struct SK_D3D11_Stateblock_Lite : StateBlockDataStore
           VSInstances [i]->Release ();
     }
 
-    if (RS)                RS->Release                ();
-    if (PS)                PS->Release                ();
-    if (VS)                VS->Release                ();
-    if (PSSampler)         PSSampler->Release         ();
-    if (BlendState)        BlendState->Release        ();
-    if (InputLayout)       InputLayout->Release       ();
-    if (IndexBuffer)       IndexBuffer->Release       ();
-    if (VertexBuffer)      VertexBuffer->Release      ();
-    if (PSShaderResource)  PSShaderResource->Release  ();
-    if (VSConstantBuffer)  VSConstantBuffer->Release  ();
-    if (RenderTargetView)  RenderTargetView->Release  ();
-    if (DepthStencilView)  DepthStencilView->Release  ();
-    if (DepthStencilState) DepthStencilState->Release ();
-
     for (UINT i = 0; i < PSInstancesCount; i++)
     {
       if (PSInstances [i])
           PSInstances [i]->Release ();
+    }
+
+    if (ft_lvl >= D3D_FEATURE_LEVEL_10_0)
+    {
+      for (UINT i = 0; i < GSInstancesCount; i++)
+      {
+        if (GSInstances [i])
+            GSInstances [i]->Release ();
+      }
+    }
+
+    if (ft_lvl >= D3D_FEATURE_LEVEL_11_0)
+    {
+      for (UINT i = 0; i < HSInstancesCount; i++)
+      {
+        if (HSInstances [i])
+            HSInstances [i]->Release ();
+      }
+
+      for (UINT i = 0; i < DSInstancesCount; i++)
+      {
+        if (DSInstances [i])
+            DSInstances [i]->Release ();
+      }
     }
   }
 };
@@ -1678,7 +1756,7 @@ void CreateStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
 
   if (ft_lvl >= D3D_FEATURE_LEVEL_10_0)
   {
-    dc->SOGetTargets           (4, sb->SOBuffers);
+    dc->SOGetTargets         (4, sb->SOBuffers);
   }
 
   dc->GetPredication         (&sb->Predication, &sb->PredicationValue);
@@ -1703,7 +1781,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
   for (UINT i = 0; i < sb->VSInterfaceCount; i++)
   {
     if (sb->VSInterfaces [i] != nullptr)
-      sb->VSInterfaces [i]->Release ();
+        sb->VSInterfaces [i]->Release ();
   }
   
   UINT VSSamplerCount =
@@ -1716,7 +1794,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
     for (UINT i = 0; i < VSSamplerCount; i++)
     {
       if (sb->VSSamplers [i] != nullptr)
-        sb->VSSamplers [i]->Release ();
+          sb->VSSamplers [i]->Release ();
     }
   }
   
@@ -1730,7 +1808,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
     for (UINT i = 0; i < VSShaderResourceCount; i++)
     {
       if (sb->VSShaderResources [i] != nullptr)
-        sb->VSShaderResources [i]->Release ();
+          sb->VSShaderResources [i]->Release ();
     }
   }
   
@@ -1744,7 +1822,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
     for (UINT i = 0; i < VSConstantBufferCount; i++)
     {
       if (sb->VSConstantBuffers [i] != nullptr)
-        sb->VSConstantBuffers [i]->Release ();
+          sb->VSConstantBuffers [i]->Release ();
     }
   }
 
@@ -1758,7 +1836,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
     for (UINT i = 0; i < sb->GSInterfaceCount; i++)
     {
       if (sb->GSInterfaces [i] != nullptr)
-        sb->GSInterfaces [i]->Release ();
+          sb->GSInterfaces [i]->Release ();
     }
 
     UINT GSSamplerCount =
@@ -1771,7 +1849,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
       for (UINT i = 0; i < GSSamplerCount; i++)
       {
         if (sb->GSSamplers [i] != nullptr)
-          sb->GSSamplers [i]->Release ();
+            sb->GSSamplers [i]->Release ();
       }
     }
 
@@ -1785,7 +1863,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
       for (UINT i = 0; i < GSShaderResourceCount; i++)
       {
         if (sb->GSShaderResources [i] != nullptr)
-          sb->GSShaderResources [i]->Release ();
+            sb->GSShaderResources [i]->Release ();
       }
     }
 
@@ -1799,7 +1877,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
       for (UINT i = 0; i < GSConstantBufferCount; i++)
       {
         if (sb->GSConstantBuffers [i] != nullptr)
-          sb->GSConstantBuffers [i]->Release ();
+            sb->GSConstantBuffers [i]->Release ();
       }
     }
   }
@@ -1965,7 +2043,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
           sb->PSConstantBuffers [i]->Release ();
     }
   }
-
+   
 
   if (ft_lvl >= D3D_FEATURE_LEVEL_11_0)
   {
@@ -2218,7 +2296,8 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
     CComPtr <ID3DDeviceContextState> pCtxState         = nullptr;
     CComPtr <ID3DDeviceContextState> pCtxStateOrig     = nullptr;
 
-    hr = This->GetBuffer (0, IID_PPV_ARGS (&pBackBuffer));
+    hr =
+      This->GetBuffer (0, IID_PPV_ARGS (&pBackBuffer));
 
     if (FAILED (hr))
     {
@@ -2226,16 +2305,13 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
       return;
     }
 
-    CComPtr <ID3D11DeviceContext>  pImmediateContext  = nullptr;
-    CComPtr <ID3D11DeviceContext1> pImmediateContext1 = nullptr;
-
-    rb.d3d11.immediate_ctx->QueryInterface <ID3D11DeviceContext> (&pImmediateContext);
+    CComQIPtr <ID3D11DeviceContext>  pImmediateContext  (rb.d3d11.immediate_ctx);
+    CComQIPtr <ID3D11DeviceContext1> pImmediateContext1 (pImmediateContext);
 
     if (config.render.dxgi.full_state_cache)
     {
         hr =
-        pImmediateContext->QueryInterface <ID3D11DeviceContext1> (&pImmediateContext1);
-                     pDev->QueryInterface <ID3D11Device1>        (&pDevice1);
+          pDev->QueryInterface <ID3D11Device1> (&pDevice1);
 
         if (FAILED (hr))
         {
@@ -2285,7 +2361,19 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 
         rtdesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 
-        hr = pDev->CreateRenderTargetView (pBackBuffer, &rtdesc, &pRenderTargetView);
+        if ( FAILED ( D3D11Dev_CreateRenderTargetView_Original (
+                        pDev, pBackBuffer,
+                          &rtdesc, &pRenderTargetView          )
+                    )
+           )
+        {
+          hr =
+            D3D11Dev_CreateRenderTargetView_Original (
+              pDev, pBackBuffer,
+                nullptr, &pRenderTargetView          );
+        }
+
+        else { hr = S_OK; }
 
         rb.framebuffer_flags |=   SK_FRAMEBUFFER_FLAG_SRGB;
         rb.framebuffer_flags &= (~SK_FRAMEBUFFER_FLAG_RGB10A2);
@@ -2298,15 +2386,17 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 
       default:
       {
-        hr = pDev->CreateRenderTargetView (pBackBuffer, nullptr, &pRenderTargetView);
+        hr =
+          D3D11Dev_CreateRenderTargetView_Original (
+            pDev, pBackBuffer, nullptr, &pRenderTargetView
+          );
 
         rb.framebuffer_flags &= (~SK_FRAMEBUFFER_FLAG_SRGB);
       } break;
     }
 
     DXGI_SWAP_CHAIN_DESC swapDesc = { };
-
-    This->GetDesc (&swapDesc);
+         This->GetDesc (&swapDesc);
 
     if ( tex2d_desc.SampleDesc.Count > 1 ||
          swapDesc.SampleDesc.Count   > 1 )
@@ -2333,9 +2423,9 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 
       pImmediateContext->OMSetRenderTargets (1, &pRenderTargetView.p, nullptr);
 
-      D3D11_VIEWPORT         vp              = { };
-      D3D11_BLEND_DESC       blend           = { };
-      D3D11_TEXTURE2D_DESC   backbuffer_desc = { };
+      D3D11_VIEWPORT       vp              = { };
+      D3D11_BLEND_DESC     blend           = { };
+      D3D11_TEXTURE2D_DESC backbuffer_desc = { };
 
       pBackBuffer->GetDesc (&backbuffer_desc);
 
@@ -2349,7 +2439,7 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
       blend.RenderTarget [0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 
       if (SUCCEEDED (pDev->CreateBlendState (&blend, &pBlendState)))
-        pImmediateContext->OMSetBlendState (pBlendState, nullptr, 0xffffffff);
+         pImmediateContext->OMSetBlendState (         pBlendState, nullptr, 0xffffffff);
 
       vp.Width    = static_cast <float> (backbuffer_desc.Width);
       vp.Height   = static_cast <float> (backbuffer_desc.Height);
@@ -3993,22 +4083,48 @@ DXGISwap_ResizeBuffers_Override ( IDXGISwapChain *This,
     NewFormat = DXGI_FORMAT_B8G8R8A8_UNORM;
 
 
+  // If forcing flip-model, then force multisampling (of the primary framebuffer) off
+  if (config.render.framerate.flip_discard)
+  {
+    bFlipMode =
+      dxgi_caps.present.flip_sequential;
+
+    // Format overrides must be performed in certain cases (sRGB / 10:10:10:2)
+    switch (NewFormat)
+    {
+      case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
+        NewFormat = DXGI_FORMAT_B8G8R8A8_UNORM;
+        dll_log.Log ( L"[ DXGI 1.2 ]  >> sRGB (B8G8R8A8) Override Required to Enable Flip Model" );
+        break;
+      case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
+        NewFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+        dll_log.Log ( L"[ DXGI 1.2 ]  >> sRGB (R8G8B8A8) Override Required to Enable Flip Model" );
+        break;
+      case DXGI_FORMAT_R10G10B10A2_UNORM:
+      case DXGI_FORMAT_R10G10B10A2_TYPELESS:
+        NewFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+        dll_log.Log ( L"[ DXGI 1.2 ]  >> RGBA 10:10:10:2 Override (to 8:8:8:8) Required to Enable Flip Model" );
+        break;
+    }
+  }
+
+
   HRESULT     ret;
   DXGI_CALL ( ret, ResizeBuffers_Original ( This, BufferCount, Width, Height,
                                               NewFormat, SwapChainFlags ) );
 
-  // Hack for FFX / FFX-2
-  if ( FAILED (ret) &&
-         SK_DXGI_FilterRedundant_ResizeBuffers ( This, BufferCount, Width,
-                                                   Height, NewFormat,
-                                                     SwapChainFlags )
-     )
-  {
-    SK_LOG0 ( (L"[@]      *** Failure is OK; working around resource management bug in Final Fantasy X/X-2." ),
-               __SK_SUBSYSTEM__ );
-
-    ret = S_OK;
-  }
+  //// Hack for FFX / FFX-2
+  //if ( FAILED (ret) &&
+  //       SK_DXGI_FilterRedundant_ResizeBuffers ( This, BufferCount, Width,
+  //                                                 Height, NewFormat,
+  //                                                   SwapChainFlags )
+  //   )
+  //{
+  //  SK_LOG0 ( (L"[@]      *** Failure is OK; working around resource management bug in Final Fantasy X/X-2." ),
+  //             __SK_SUBSYSTEM__ );
+  //
+  //  ret = S_OK;
+  //}
 
 
   if (SUCCEEDED (ret))
@@ -4199,14 +4315,14 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
 
     DXGI_CALL (ret, ResizeTarget_Original (This, pNewNewTargetParameters));
 
-    // Hack for FFX / FFX-2
-    if (FAILED (ret) && SK_DXGI_FilterRedundant_ResizeTarget ( This, pNewTargetParameters ))
-    {
-      SK_LOG0 ( (L"[@]      *** Failure is OK; working around resource management bug in Final Fantasy X/X-2." ),
-                 __SK_SUBSYSTEM__ );
-
-      ret = S_OK;
-    }
+    //// Hack for FFX / FFX-2
+    //if (FAILED (ret) && SK_DXGI_FilterRedundant_ResizeTarget ( This, pNewTargetParameters ))
+    //{
+    //  SK_LOG0 ( (L"[@]      *** Failure is OK; working around resource management bug in Final Fantasy X/X-2." ),
+    //             __SK_SUBSYSTEM__ );
+    //
+    //  ret = S_OK;
+    //}
 
 
     if (SUCCEEDED (ret))
@@ -5109,36 +5225,22 @@ DXGIFactory2_CreateSwapChainForHwnd_Override ( IDXGIFactory2                   *
 
   SK_DXGI_CreateSwapChain_PreInit (nullptr, &new_desc1, hWnd, &new_fullscreen_desc);
 
-  auto CreateSwapChain_Lambchop =
-    [&] (void) ->
-      BOOL
-      {
-        IDXGISwapChain1* pTemp = nullptr;
 
-        DXGI_CALL ( ret, CreateSwapChainForHwnd_Original ( This, pDevice, hWnd, pDesc, pFullscreenDesc,
-                                                             pRestrictToOutput, &pTemp ) );
+  IDXGISwapChain1* pTemp = nullptr;
 
-        if ( SUCCEEDED (ret) )
-        {
-          SK_DXGI_CreateSwapChain1_PostInit (pDevice, hWnd, &new_desc1, &new_fullscreen_desc, &pTemp);
-          SK_DXGI_WrapSwapChain1            (pDevice,                                          pTemp, ppSwapChain);
+  DXGI_CALL ( ret, CreateSwapChainForHwnd_Original ( This, pDevice, hWnd, pDesc, pFullscreenDesc,
+                                                       pRestrictToOutput, &pTemp ) );
 
-          return TRUE;
-        }
-
-        return FALSE;
-      };
-
-
-  if (! CreateSwapChain_Lambchop ())
+  if ( SUCCEEDED (ret) )
   {
-    // Fallback-on-Fail
-    pDesc           = orig_desc1;
-    pFullscreenDesc = orig_fullscreen_desc;
+    SK_DXGI_CreateSwapChain1_PostInit (pDevice, hWnd, &new_desc1, &new_fullscreen_desc, &pTemp);
+    SK_DXGI_WrapSwapChain1            (pDevice,                                          pTemp, ppSwapChain);
 
-    CreateSwapChain_Lambchop ();
+    return ret;
   }
 
+  DXGI_CALL ( ret, CreateSwapChainForHwnd_Original ( This, pDevice, hWnd, orig_desc1/*pDesc*/, orig_fullscreen_desc/*pFullscreenDesc*/,
+                                                       pRestrictToOutput, &pTemp ) );
 
   return ret;
 }
@@ -6035,12 +6137,24 @@ IDXGISwapChain4_SetHDRMetaData ( IDXGISwapChain4*        This,
 {
   SK_LOG_FIRST_CALL
 
+  SK_RenderBackend& rb =
+    SK_GetCurrentRenderBackend ();
+
+  rb.framebuffer_flags &= ~SK_FRAMEBUFFER_FLAG_HDR;
+
   if (Type == DXGI_HDR_METADATA_TYPE_HDR10)
   {
     if (Size == sizeof (DXGI_HDR_METADATA_HDR10))
     {
+      rb.framebuffer_flags |= SK_FRAMEBUFFER_FLAG_HDR;
+
+      static DXGI_HDR_METADATA_HDR10 last_data = { };
+
+      if (pMetaData != nullptr)
+        last_data = *(DXGI_HDR_METADATA_HDR10 *)pMetaData;
+
       DXGI_HDR_METADATA_HDR10* pData =
-        (DXGI_HDR_METADATA_HDR10*)pMetaData;
+        (DXGI_HDR_METADATA_HDR10 *)&last_data;
 
       SK_DXGI_HDRControl* pHDRCtl =
         SK_HDR_GetControl ();
@@ -6066,6 +6180,10 @@ IDXGISwapChain4_SetHDRMetaData ( IDXGISwapChain4*        This,
         pHDRCtl->meta.MaxMasteringLuminance = pData->MaxMasteringLuminance;
       else
         pData->MaxMasteringLuminance = pHDRCtl->meta.MaxMasteringLuminance;
+
+
+      if (pMetaData == nullptr)
+          pMetaData = &last_data;
     }
   }
 
@@ -6168,6 +6286,11 @@ typedef HRESULT (WINAPI *IDXGIOutput6_GetDesc1_pfn)(IDXGIOutput6*, DXGI_OUTPUT_D
                          IDXGIOutput6_GetDesc1_pfn
                          IDXGIOutput6_GetDesc1_Original = nullptr;
 
+#include <SpecialK/../../depends/include/glm/glm.hpp>
+#include <SpecialK/render/backend.h>
+
+extern glm::vec3 SK_Color_XYZ_from_RGB ( const SK_ColorSpace& cs, glm::vec3 RGB );
+
 HRESULT
 WINAPI
 IDXGIOutput6_GetDesc1_Override ( IDXGIOutput6      *This,
@@ -6203,6 +6326,19 @@ IDXGIOutput6_GetDesc1_Override ( IDXGIOutput6      *This,
           pDesc->MinLuminance,     pDesc->MaxLuminance,
           pDesc->MaxFullFrameLuminance )
     );
+
+    SK_RenderBackend& rb =
+      SK_GetCurrentRenderBackend ();
+
+    rb.display_gamut.xr = pDesc->RedPrimary   [0]; rb.display_gamut.yr = pDesc->RedPrimary   [1];
+    rb.display_gamut.xg = pDesc->GreenPrimary [0]; rb.display_gamut.yg = pDesc->GreenPrimary [1];
+    rb.display_gamut.xb = pDesc->BluePrimary  [0]; rb.display_gamut.yb = pDesc->BluePrimary  [1];
+    rb.display_gamut.Xw = pDesc->WhitePoint   [0]; rb.display_gamut.Yw = pDesc->WhitePoint   [1];
+    rb.display_gamut.Zw = 1.0f - rb.display_gamut.Xw - rb.display_gamut.Yw;
+
+    rb.display_gamut.minY      = pDesc->MinLuminance;
+    rb.display_gamut.maxLocalY = pDesc->MaxLuminance;
+    rb.display_gamut.maxY      = pDesc->MaxFullFrameLuminance;
 
     SK_DXGI_HDRControl* pHDRCtl =
       SK_HDR_GetControl ();
@@ -6548,7 +6684,7 @@ SK_DXGI_HookFactory (IDXGIFactory* pFactory)
                                DXGIFactory2_CreateSwapChainForHwnd_Override,
                                             CreateSwapChainForHwnd_Original,
                                             CreateSwapChainForHwnd_pfn );
-
+        
           SK_Hook_TargetFromVFTable (
             LocalHook_IDXGIFactory2_CreateSwapChainForHwnd,
               (void **)&pFactory2.p, 15 );
@@ -6824,9 +6960,9 @@ HookDXGI (LPVOID user)
     d3d11_hook_ctx.ppDevice           = &pDevice;
     d3d11_hook_ctx.ppImmediateContext = &pImmediateContext;
 
-    CComQIPtr <IDXGIDevice>  pDevDXGI = nullptr;
-    CComPtr   <IDXGIAdapter> pAdapter = nullptr;
-    CComPtr   <IDXGIFactory> pFactory = nullptr;
+    CComPtr <IDXGIDevice>  pDevDXGI = nullptr;
+    CComPtr <IDXGIAdapter> pAdapter = nullptr;
+    CComPtr <IDXGIFactory> pFactory = nullptr;
     
     if ( pDevice != nullptr &&
          SUCCEEDED (pDevice->QueryInterface <IDXGIDevice> (&pDevDXGI)) &&
@@ -6836,11 +6972,6 @@ HookDXGI (LPVOID user)
       if (config.render.dxgi.deferred_isolation)
       {
         d3d11_hook_ctx.ppImmediateContext = &pDeferredContext;
-      }
-
-      else
-      {
-        d3d11_hook_ctx.ppImmediateContext = (ID3D11DeviceContext **)&pImmediateContext;
       }
 
       HookD3D11             (&d3d11_hook_ctx);
@@ -6856,7 +6987,9 @@ HookDXGI (LPVOID user)
       if (pSwapChain1 != nullptr)
         SK_DXGI_HookPresent1 (pSwapChain1);
 
+#ifdef SK_AGGRESSIVE_HOOKS
       SK_ApplyQueuedHooks ();
+#endif
 
       extern volatile LONG   SK_D3D11_initialized;
       InterlockedIncrement (&SK_D3D11_initialized);
@@ -7671,7 +7804,9 @@ SK_DXGI_QuickHook (void)
   }
 
   SK_D3D11_Init       ();
+#ifdef SK_AGGRESSIVE_HOOKS
   SK_ApplyQueuedHooks ();
+#endif
 
   SK_Thread_SpinUntilAtomicMin (&quick_hooked, 2);
 }

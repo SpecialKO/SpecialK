@@ -2359,6 +2359,12 @@ void ImGui::SetCurrentContext(ImGuiContext* ctx)
 
 ImGuiContext* ImGui::CreateContext(void* (*malloc_fn)(size_t), void (*free_fn)(void*))
 {
+#ifndef UNREFERENCED_PARAMETER
+#define UNREFERENCED_PARAMETER(P) (P)
+#endif
+
+  UNREFERENCED_PARAMETER (free_fn);
+
     if (!malloc_fn) malloc_fn = malloc;
 
     ImGuiContext* ctx = (ImGuiContext*)_aligned_malloc(sizeof(ImGuiContext),16);//(ImGuiContext*)malloc_fn(sizeof(ImGuiContext));
@@ -10709,7 +10715,7 @@ static void SetClipboardTextFn_DefaultImpl(void*, const char* text)
     ImGuiContext& g = *GImGui;
     g.PrivateClipboard.clear();
     const char* text_end = text + strlen(text);
-    g.PrivateClipboard.resize((size_t)(text_end - text) + 1);
+    g.PrivateClipboard.resize((int)(size_t)(text_end - text) + 1);
     memcpy(&g.PrivateClipboard[0], text, (size_t)(text_end - text));
     g.PrivateClipboard[(int)(text_end - text)] = 0;
 }

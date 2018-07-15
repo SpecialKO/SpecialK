@@ -451,6 +451,7 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
     };
   };
 
+
   //SK_LOG0 ( ( L"NV_HDR_COLOR_DATA Version: %lu", pHdrColorData->version ),
   //            __SK_SUBSYSTEM__ );
   SK_LOG0 ( ( L"<%s> HDR Mode:    %s", pHdrColorData->cmd == NV_HDR_CMD_GET ?
@@ -464,6 +465,15 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
 
   if (pHdrColorData->cmd == NV_HDR_CMD_SET)
   {
+    SK_RenderBackend& rb =
+      SK_GetCurrentRenderBackend ();
+
+    if (pHdrColorData->hdrMode != NV_HDR_MODE_OFF)
+      rb.framebuffer_flags |=  SK_FRAMEBUFFER_FLAG_HDR;
+    else
+      rb.framebuffer_flags &= ~SK_FRAMEBUFFER_FLAG_HDR;
+
+
     if (! pHDRCtl->overrides.MaxContentLightLevel)
       pHDRCtl->meta.MaxContentLightLevel                            = pHdrColorData->mastering_display_data.max_content_light_level;
     else
@@ -607,7 +617,7 @@ SK_NvAPI_PreInitHDR (void)
       MH_QueueEnableHook (NvAPI_QueryInterface (891134500));
       MH_QueueEnableHook (NvAPI_QueryInterface (2230495455));
       
-      SK_ApplyQueuedHooks ();
+      //SK_ApplyQueuedHooks ();
     }
   }
 }
@@ -730,7 +740,9 @@ NVAPI::InitializeLibrary (const wchar_t* wszAppName)
   //                          NvAPI_QueryInterface_Detour,
   // static_cast_p2p <void> (&NvAPI_QueryInterface_Original) );
 
+#ifdef SK_AGGRESSIVE_HOOKS
       SK_ApplyQueuedHooks ();
+#endif
     }
 
     else {

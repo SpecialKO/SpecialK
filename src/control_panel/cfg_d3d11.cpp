@@ -68,22 +68,7 @@ extern bool
 WINAPI
 SK_DXGI_IsTrackingBudget (void);
 
-struct SK_D3D11_TexCacheResidency_s
-{
-  struct
-  {
-    volatile LONG InVRAM   = 0L;
-    volatile LONG Shared   = 0L;
-    volatile LONG PagedOut = 0L;
-  } count;
-
-  struct
-  {
-    volatile LONG64 InVRAM   = 0LL;
-    volatile LONG64 Shared   = 0LL;
-    volatile LONG64 PagedOut = 0LL;
-  } size;
-} SK_D3D11_TexCacheResidency;
+SK_D3D11_TexCacheResidency_s SK_D3D11_TexCacheResidency;
 
 void
 SK_ImGui_DrawTexCache_Chart (void)
@@ -205,7 +190,154 @@ SK_ImGui_DrawTexCache_Chart (void)
 }
 
 
-extern bool SK_D3D11_ShaderModDlg (void);
+#include <SpecialK/../../depends/include/glm/glm.hpp>
+#include <SpecialK/render/backend.h>
+
+glm::vec3
+SK_Color_XYZ_from_RGB ( const SK_ColorSpace& cs, glm::vec3 RGB )
+{
+  float Xr =        cs.xr / cs.yr;
+  float Zr = (1.f - cs.xr - cs.yr) / cs.yr;
+
+  float Xg =        cs.xg / cs.yg;
+  float Zg = (1.f - cs.xg - cs.yg) / cs.yg;
+
+  float Xb =        cs.xb / cs.yb;
+  float Zb = (1.f - cs.xb - cs.yb) / cs.yb;
+
+  float Yr = 1.f;
+  float Yg = 1.f;
+  float Yb = 1.f;
+
+  glm::mat3x3 xyz_primary ( Xr, Xg, Xb,
+                            Yr, Yg, Yb,
+                            Zr, Zg, Zb );
+
+  glm::vec3 S             ( xyz_primary._inverse () *
+                              glm::vec3 (cs.Xw, cs.Yw, cs.Zw) );
+
+  return RGB *
+    glm::mat3x3 ( S.r * Xr, S.g * Xg, S.b * Xb,
+                  S.r * Yr, S.g * Yg, S.b * Yb,
+                  S.r * Zr, S.g * Zg, S.b * Zb );
+}
+
+glm::vec3
+SK_Color_xyY_from_RGB ( const SK_ColorSpace& cs, glm::vec3 RGB )
+{
+  glm::vec3 XYZ =
+    SK_Color_XYZ_from_RGB ( cs, RGB );
+
+  return glm::vec3 ( XYZ.x / (XYZ.x + XYZ.y + XYZ.z),
+                     XYZ.y / (XYZ.x + XYZ.y + XYZ.z),
+                                      XYZ.y );
+}
+
+void
+SK_ImGui_DrawGamut (void)
+{
+  ImVec4 col (0.25f, 0.25f, 0.25f, 0.8f);
+
+  const ImU32 col32 =
+    ImColor (col);
+  
+  ImDrawList* draw_list =
+    ImGui::GetWindowDrawList ();
+  
+  SK_RenderBackend& rb =
+    SK_GetCurrentRenderBackend ();
+
+  ImGuiIO& io =
+    ImGui::GetIO ();
+
+  struct color_triangle_s {
+    std::string name;
+    glm::vec3   r, g,
+                b, w;
+
+    color_triangle_s (const std::string& _name, SK_ColorSpace cs)
+    {
+      name = _name;
+
+      r = SK_Color_xyY_from_RGB (cs, glm::vec3 (1.f, 0.f, 0.f));
+      g = SK_Color_xyY_from_RGB (cs, glm::vec3 (0.f, 1.f, 0.f));
+      b = SK_Color_xyY_from_RGB (cs, glm::vec3 (0.f, 0.f, 1.f));
+      w = SK_Color_xyY_from_RGB (cs, glm::vec3 (1.f, 1.f, 1.f));
+    }
+  };
+
+#define D65 0.3127, 0.329
+
+  auto color_spaces = {
+    color_triangle_s { "DCI-P3",        SK_ColorSpace { 0.68, 0.32,  0.265, 0.69,  0.15, 0.06,
+                                                          D65, 1.0 - 0.3127 - 0.329 } },
+                                        
+    color_triangle_s { "ITU-R BT.709",  SK_ColorSpace { 0.64, 0.33,  0.3, 0.6,  0.15, 0.06,
+                                                          D65, 1.0 } },
+
+    color_triangle_s { "ITU-R BT.2020", SK_ColorSpace { 0.708, 0.292,  0.17, 0.797,  0.131, 0.046,
+                                                          D65, 1.0 - 0.3127 - 0.329 } },
+
+    color_triangle_s { "Adobe RGB",     SK_ColorSpace { 0.64, 0.33,  0.21, 0.71,  0.15, 0.06,
+                                                          D65, 1.0 - 0.3127 - 0.329 } },
+
+    color_triangle_s { "NTSC",          SK_ColorSpace { 0.67, 0.33,  0.21, 0.71,  0.14, 0.08,
+                                                          0.31, 0.316, 1.0 - 0.31 - 0.316 } }
+  };
+  
+  glm::vec3 r (SK_Color_xyY_from_RGB (rb.display_gamut, glm::vec3 (1.f, 0.f, 0.f))),
+            g (SK_Color_xyY_from_RGB (rb.display_gamut, glm::vec3 (0.f, 1.f, 0.f))),
+            b (SK_Color_xyY_from_RGB (rb.display_gamut, glm::vec3 (0.f, 0.f, 1.f)));
+  
+  draw_list->PushClipRectFullScreen (                                   );
+  draw_list->AddTriangleFilled      ( ImVec2 (r.x * io.DisplaySize.x, io.DisplaySize.y - r.y * io.DisplaySize.y),
+                                      ImVec2 (g.x * io.DisplaySize.x, io.DisplaySize.y - g.y * io.DisplaySize.y),
+                                      ImVec2 (b.x * io.DisplaySize.x, io.DisplaySize.y - b.y * io.DisplaySize.y), col32 );
+
+  ImU32 self_outline = ImColor::HSV ( std::min (1.0f, 0.85f + (sin ((float)(current_time % 400) / 400.0f))),
+                                                   0.0f,
+                                                           (float)(0.66f + (current_time % 830) / 830.0f ) );
+
+  float idx                 = 0.0f;
+  float orig_font_size      = io.FontGlobalScale;
+        io.FontGlobalScale *= 3.0f;
+
+  for ( auto& space : color_spaces )
+  {
+    const ImU32 outline_color = 
+      ImColor::HSV ( idx / 5.0f, 0.85f, 0.98f );
+
+    draw_list->AddTriangle            ( ImVec2 (space.r.x * io.DisplaySize.x, io.DisplaySize.y - space.r.y * io.DisplaySize.y),
+                                        ImVec2 (space.g.x * io.DisplaySize.x, io.DisplaySize.y - space.g.y * io.DisplaySize.y),
+                                        ImVec2 (space.b.x * io.DisplaySize.x, io.DisplaySize.y - space.b.y * io.DisplaySize.y), outline_color, 2.5f );
+    idx += 1.0f;
+  }
+
+  draw_list->AddTriangle            ( ImVec2 (r.x * io.DisplaySize.x, io.DisplaySize.y - r.y * io.DisplaySize.y),
+                                      ImVec2 (g.x * io.DisplaySize.x, io.DisplaySize.y - g.y * io.DisplaySize.y),
+                                      ImVec2 (b.x * io.DisplaySize.x, io.DisplaySize.y - b.y * io.DisplaySize.y), self_outline, 9.0f );
+
+  idx = 0.0f;
+  for ( auto& space : color_spaces )
+  {
+    const ImU32 outline_color = 
+      ImColor::HSV ( idx / 5.0f, 0.85f, 0.98f );
+
+    draw_list->AddText ( ImVec2 (space.g.x * io.DisplaySize.x, io.DisplaySize.y - space.g.y * io.DisplaySize.y), outline_color, space.name.c_str () );
+
+    idx += 1.0f;
+  }
+
+  draw_list->AddText ( ImVec2 (g.x * io.DisplaySize.x, io.DisplaySize.y - g.y * io.DisplaySize.y), self_outline, "ASUS ROG SWIFT PG27UQ" );
+
+
+  draw_list->PopClipRect    (              );
+  io.FontGlobalScale = orig_font_size;
+}
+
+#include <SpecialK/tls.h>
+
+extern bool SK_D3D11_ShaderModDlg (SK_TLS *pTLS = SK_TLS_Bottom ());
 
 bool
 SK::ControlPanel::D3D11::Draw (void)
@@ -221,6 +353,13 @@ SK::ControlPanel::D3D11::Draw (void)
     ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.72f, 0.07f, 0.80f));
     ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.78f, 0.14f, 0.80f));
     ImGui::TreePush       ("");
+
+    static bool hdr_bench = false;
+
+    ImGui::Checkbox ("Show HDR Display Benchmark", &hdr_bench);
+
+    if (hdr_bench)
+      SK_ImGui_DrawGamut ();
 
     ////ImGui::Checkbox ("Overlay Compatibility Mode", &SK_DXGI_SlowStateCache);
 
