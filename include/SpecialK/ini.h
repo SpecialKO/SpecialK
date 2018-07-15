@@ -33,11 +33,19 @@ static const GUID IID_SK_INISection =
 
 interface iSK_INISection : public IUnknown
 {
+  friend interface iSK_INI;
+
 public:
   iSK_INISection (void) = default;
 
   iSK_INISection (const wchar_t* section_name) {
-    name = section_name;
+    name   = section_name;
+    parent = nullptr;
+  }
+
+  iSK_INISection (const wchar_t* section_name, iSK_INI* _parent) {
+    name   = section_name;
+    parent = _parent;
   }
 
   /*** IUnknown methods ***/
@@ -56,6 +64,7 @@ public:
   std::wstring                                    name;
   std::unordered_map <std::wstring, std::wstring> keys;
   std::vector        <std::wstring>               ordered_keys;
+  iSK_INI*                                        parent;
 
   ULONG                                           refs = 0;
 };
@@ -66,6 +75,8 @@ static const GUID IID_SK_INI =
 
 interface iSK_INI : public IUnknown
 {
+  friend interface iSK_INISection;
+
   using _TSectionMap =
     const std::unordered_map <std::wstring, iSK_INISection>;
 
@@ -117,7 +128,8 @@ private:
     INI_UTF16BE = 0x04 // Not natively supported, but can be converted
   } encoding_;
 
-  ULONG     refs = 0;
+  ULONG    refs_   = 0;
+  uint32_t crc32c_ = 0; // Skip writing config files that haven't changed
 };
 
 iSK_INI*

@@ -341,6 +341,8 @@ struct sk_config_t
       bool    min_input_latency = true;
       float   sleep_deadline    = 3.3f;
       float   max_sleep_percent = 59.998800f;
+      int     max_render_ahead  =  0;
+      int     override_num_cpus = -1;
     } framerate;
     struct {
       bool    force_d3d9ex      = false;
@@ -747,6 +749,7 @@ enum class SK_GAME_ID
   FarCry5,                      // FarCry5.exe
   ChronoTrigger,                // Chrono Trigger.exe
   Ys_Eight,                     // ys8.exe
+  PillarsOfEternity2,           // PillarsOfEternityII.exe
   UNKNOWN_GAME               = 0xffff
 };
 

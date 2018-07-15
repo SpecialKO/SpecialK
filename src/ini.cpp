@@ -29,6 +29,8 @@
 #include <SpecialK/ini.h>
 #include <SpecialK/tls.h>
 #include <SpecialK/log.h>
+#include <SpecialK/hash.h>
+#include <SpecialK/crc32.h>
 #include <SpecialK/utility.h>
 
 std::wstring
@@ -182,11 +184,6 @@ iSK_INI::iSK_INI (const wchar_t* filename)
     }
 
     parse ();
-
-    // TODO:  Should we keep data in unparsed format?
-//    delete [] alloc;
-//    wszData = nullptr;
-    // Why not? It would make re-parsing safer
   }
 
   else
@@ -488,6 +485,50 @@ iSK_INI::parse (void)
       }
     }
   }
+
+
+
+  if (crc32c_ == 0x0)
+  {
+    std::wstring outbuf = L"";
+                 outbuf.reserve (16384);
+
+    for ( auto& it : ordered_sections )
+    {
+      iSK_INISection& section =
+        get_section (it.c_str ());
+
+      section.parent = this;
+
+      if ( (! section.name.empty         ()) &&
+           (! section.ordered_keys.empty ()) )
+      {
+        outbuf += L"[";
+        outbuf += section.name + L"]\n";
+
+        for ( auto& key_it : section.ordered_keys )
+        {
+          const std::wstring& val =
+            section.get_value (key_it.c_str ());
+
+          outbuf += key_it + L"=";
+          outbuf += val    + L"\n";
+        }
+
+        outbuf += L"\n";
+      }
+    }
+
+    if ((! outbuf.empty ()) && outbuf.back () == L'\n')
+    {
+      // Strip the unnecessary extra newline
+      outbuf.resize (outbuf.size () - 1);
+    }
+
+    crc32c_ =
+      crc32c ( 0x0, outbuf.data   (),
+                    outbuf.length () * sizeof (wchar_t) );
+  }
 }
 
 void
@@ -615,6 +656,8 @@ iSK_INI::import (const wchar_t* import_data)
           iSK_INISection& section =
             get_section  (sec_name);
 
+          section.parent = this;
+
           Import_Section (section, start, finish);
         }
 
@@ -623,6 +666,8 @@ iSK_INI::import (const wchar_t* import_data)
         {
           iSK_INISection section =
             Process_Section (sec_name, start, finish);
+
+          section.parent = this;
 
           sections.insert  (
             std::make_pair  (sec_name, section)
@@ -664,6 +709,12 @@ void
 __stdcall
 iSK_INISection::set_name (const wchar_t* name_)
 {
+  if (parent != nullptr)
+  {
+    if (name != name_)
+      parent->crc32c_ = 0x0;
+  }
+
   name = name_;
 }
 
@@ -678,8 +729,23 @@ void
 __stdcall
 iSK_INISection::add_key_value (const wchar_t* key, const wchar_t* value)
 {
-  keys.emplace              ( std::make_pair (key, value) );
-  ordered_keys.emplace_back (                 key         );
+  if (! keys.count (key))
+  {
+    keys.emplace              ( std::make_pair (key, value) );
+    ordered_keys.emplace_back (                 key         );
+
+    if (parent != nullptr)
+        parent->crc32c_ = 0x0;
+  }
+
+  else
+  {
+    std::wstring old = keys [key];
+          keys [key] = value;
+
+    if (parent != nullptr && old != value)
+        parent->crc32c_ = 0x0;
+  }
 }
 
 bool
@@ -699,10 +765,12 @@ iSK_INI::get_section (const wchar_t* section)
   iSK_INISection& ret =
     sections [section];
 
-  ret.set_name (section);
-
   if (try_emplace)
+  {
+                     ret.parent  =  this;
+                     ret.set_name (section);
     ordered_sections.emplace_back (section);
+  }
 
   return ret;
 }
@@ -735,21 +803,63 @@ iSK_INI::get_section_f ( _In_z_ _Printf_format_string_
   iSK_INISection& ret =
     sections [wszFormatted];
 
-  ret.name = wszFormatted;
-
   if (try_emplace)
+  {
+                        ret.name = wszFormatted;
     ordered_sections.emplace_back (wszFormatted);
+  }
 
   return ret;
 }
-
-
-#include <SpecialK/utility.h>
 
 void
 __stdcall
 iSK_INI::write (const wchar_t* fname)
 {
+  std::wstring outbuf = L"";
+               outbuf.reserve (16384);
+
+  for ( auto& it : ordered_sections )
+  {
+    iSK_INISection& section =
+      get_section (it.c_str ());
+
+    if ( (! section.name.empty         ()) &&
+         (! section.ordered_keys.empty ()) )
+    {
+      outbuf += L"[";
+      outbuf += section.name + L"]\n";
+
+      for ( auto& key_it : section.ordered_keys )
+      {
+        const std::wstring& val =
+          section.get_value (key_it.c_str ());
+
+        outbuf += key_it + L"=";
+        outbuf += val    + L"\n";
+      }
+
+      outbuf += L"\n";
+    }
+  }
+
+  if ((! outbuf.empty ()) && outbuf.back () == L'\n')
+  {
+    // Strip the unnecessary extra newline
+    outbuf.resize (outbuf.size () - 1);
+  }
+
+ 
+  uint32_t new_crc32c =
+    crc32c ( 0x0, outbuf.data   (),
+                  outbuf.length () * sizeof (wchar_t) );
+
+//dll_log.Log (L"%s => Old: %x, New: %x", get_filename ( ), crc32c_, new_crc32c);
+
+  if (new_crc32c == crc32c_)
+    return;
+
+
   SK_CreateDirectories (fname);
 
   FILE*   fOut = nullptr;
@@ -778,65 +888,10 @@ iSK_INI::write (const wchar_t* fname)
     return;
   }
 
-
-
-  // Strip Empty Sections
-  // --------------------
-  //  *** These would cause blank lines to be appended to the end of the INI file
-  //        if we did not do something about them here and now. ***
-  //
-  //std::vector <std::wstring> empty_sections;
-  //
-  //for (auto& it : ordered_sections)
-  //{
-  //  iSK_INISection& section =
-  //    get_section (it.c_str ());
-  //
-  //  if (section.ordered_keys.empty ())
-  //  {
-  //    empty_sections.emplace_back (section.name);
-  //  }
-  //}
-  //
-  //for (auto& it : empty_sections)
-  //  remove_section (it.c_str ());
-
-
-  std::wstring outbuf = L"";
-
-
-  for ( auto& it : ordered_sections )
-  {
-    iSK_INISection& section =
-      get_section (it.c_str ());
-
-    if (    section.name.length        () &&
-         (! section.ordered_keys.empty ()) )
-    {
-      outbuf += L"[";
-      outbuf += section.name + L"]\n";
-
-      for ( auto& key_it : section.ordered_keys )
-      {
-        const std::wstring& val =
-          section.get_value (key_it.c_str ());
-
-        outbuf += key_it + L"=";
-        outbuf += val    + L"\n";
-      }
-
-      outbuf += L"\n";
-    }
-  }
-
-  if (outbuf.length () > 1 && outbuf.back () == L'\n')
-  {
-    // Strip the unnecessary extra newline
-    outbuf.resize (outbuf.size () - 1);
-  }
-
   fputws (outbuf.c_str (), fOut);
   fclose (fOut);
+
+  crc32c_ = new_crc32c;
 }
 
 
@@ -868,14 +923,14 @@ ULONG
 __stdcall
 iSK_INI::AddRef (THIS)
 {
-  return InterlockedIncrement (&refs);
+  return InterlockedIncrement (&refs_);
 }
 
 ULONG
 __stdcall
 iSK_INI::Release (THIS)
 {
-  return InterlockedDecrement (&refs);
+  return InterlockedDecrement (&refs_);
 }
 
 bool
@@ -915,6 +970,9 @@ iSK_INISection::remove_key (const wchar_t* wszKey)
   {
     ordered_keys.erase (it);
     keys.erase         (key_w);
+
+    if (parent != nullptr)
+        parent->crc32c_ = 0x0;
 
     return true;
   }

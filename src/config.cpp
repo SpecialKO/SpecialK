@@ -19,6 +19,7 @@
  *
 **/
 
+#include <SpecialK/resource.h>
 #include <SpecialK/config.h>
 #include <SpecialK/core.h>
 #include <SpecialK/render/dxgi/dxgi_interfaces.h>
@@ -306,10 +307,12 @@ struct {
     sk::ParameterBool*    sleepless_window;
     sk::ParameterBool*    sleepless_render;
     sk::ParameterBool*    enable_mmcss;
+    sk::ParameterInt*     override_cpu_count;
 
     struct
     {
       sk::ParameterBool*  busy_wait;
+      sk::ParameterInt*   render_ahead;
       sk::ParameterBool*  yield_once;
       sk::ParameterBool*  minimize_latency;
       sk::ParameterFloat* sleep_scale;
@@ -851,9 +854,11 @@ auto DeclKeybind =
     ConfigEntry (render.framerate.control.sleep_scale,   L"Ratio of full-frame deadline to longest possible sleep.",   dll_ini,         L"FrameRate.Control",     L"SleepScale"),
     ConfigEntry (render.framerate.control.
                    deadline_transition,                  L"Switch to more accurate timing when deadline approaches.",  dll_ini,         L"FrameRate.Control",     L"DeadlineTransition"),
+    ConfigEntry (render.framerate.control.render_ahead,  L"Maximum number of CPU-side frames to work ahead of GPU.",   dll_ini,         L"FrameRate.Control",     L"MaxRenderAheadFrames"),
 
     ConfigEntry (render.framerate.refresh_rate,          L"Fullscreen Refresh Rate",                                   dll_ini,         L"Render.FrameRate",      L"RefreshRate"),
     ConfigEntry (render.framerate.allow_dwm_tearing,     L"Enable DWM Tearing (Windows 10+)",                          dll_ini,         L"Render.DXGI",           L"AllowTearingInDWM"),
+    ConfigEntry (render.framerate.override_cpu_count,    L"Number of CPU cores to tell the game about",                dll_ini,         L"FrameRate.Control",     L"OverrideCPUCoreCount"),
 
     // OpenGL
     //////////////////////////////////////////////////////////////////////////
@@ -1302,6 +1307,7 @@ auto DeclKeybind =
   games.emplace ( L"FarCry5.exe",                            SK_GAME_ID::FarCry5                      );
   games.emplace ( L"Chrono Trigger.exe",                     SK_GAME_ID::ChronoTrigger                );
   games.emplace ( L"ys8.exe",                                SK_GAME_ID::Ys_Eight                     );
+  games.emplace ( L"PillarsOfEternityII.exe",                SK_GAME_ID::PillarsOfEternity2           );
 
   //
   // Application Compatibility Overrides
@@ -1658,15 +1664,29 @@ auto DeclKeybind =
         config.render.dxgi.deferred_isolation = true;
         break;
 
+      case SK_GAME_ID::PillarsOfEternity2:
+        config.textures.cache.ignore_nonmipped    = true;
+        config.textures.cache.residency_managemnt = false;
+        config.apis.OpenGL.hook                   = false;
+        config.steam.appid                        = 560130;
+        config.steam.auto_pump_callbacks          = true;
+        config.steam.auto_inject                  = true;
+        config.steam.force_load_steamapi          = true;
+        config.steam.dll_path                     = LR"(PillarsOfEternityII_Data\Plugins\steam_api64.dll)";
+        break;
+
       case SK_GAME_ID::DragonBallFighterZ:
-        WinExec ("RED\\Binaries\\Win64\\RED-Win64-Shipping.exe", SW_SHOWNORMAL);
+        WinExec (R"(RED\Binaries\Win64\RED-Win64-Shipping.exe)", SW_SHOWNORMAL);
         exit (0);
         break;
 
+#ifdef _WIN64
       case SK_GAME_ID::FarCry5:
+      {
         // Game shares buggy XInput code with Watch_Dogs2
         config.input.gamepad.xinput.placehold [0] = true;
-        break;
+      } break;
+#endif
 
       case SK_GAME_ID::ChronoTrigger:
         break;
@@ -1785,6 +1805,9 @@ auto DeclKeybind =
                           sleep_scale->load (config.render.framerate.max_sleep_percent);
   render.framerate.control.
                   deadline_transition->load (config.render.framerate.sleep_deadline);
+  render.framerate.control.
+                  render_ahead->load        (config.render.framerate.max_render_ahead);
+  render.framerate.override_cpu_count->load (config.render.framerate.override_num_cpus);
 
 
   // Range-restrict this to prevent the user from destroying performance
@@ -2817,6 +2840,9 @@ SK_SaveConfig ( std::wstring name,
                            sleep_scale->store (config.render.framerate.max_sleep_percent);
   render.framerate.control.
                    deadline_transition->store (config.render.framerate.sleep_deadline);
+  render.framerate.control.
+                   render_ahead->store        (config.render.framerate.max_render_ahead);
+  render.framerate.override_cpu_count->store  (config.render.framerate.override_num_cpus);
 
   if ( SK_IsInjected () || (SK_GetDLLRole () & DLL_ROLE::DInput8) ||
       (SK_GetDLLRole () & DLL_ROLE::D3D9 || SK_GetDLLRole () & DLL_ROLE::DXGI) )
@@ -3038,7 +3064,7 @@ SK_SaveConfig ( std::wstring name,
   strict_compliance->store               (config.system.strict_compliance);
   version->store                         (SK_VER_STR);
 
-  if (! (nvapi_init && sk::NVAPI::nv_hardware))
+  if (! (nvapi_init && sk::NVAPI::nv_hardware) || (! sk::NVAPI::CountSLIGPUs ()))
     dll_ini->remove_section (L"NVIDIA.SLI");
 
 

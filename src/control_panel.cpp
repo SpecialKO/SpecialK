@@ -53,6 +53,7 @@
 
 #include <SpecialK/performance/io_monitor.h>
 #include <SpecialK/plugin/reshade.h>
+#include <SpecialK/plugin/plugin_mgr.h>
 
 #include <concurrent_queue.h>
 
@@ -75,6 +76,8 @@
 #include <SpecialK/control_panel/compatibility.h>
 
 #include <SpecialK/render/dxgi/dxgi_hdr.h>
+
+#include <SpecialK/diagnostics/modules.h>
 
 // Fixed-width font
 #define SK_IMGUI_FIXED_FONT 1
@@ -1122,7 +1125,9 @@ SK_ImGui_ControlPanel (void)
           {
             config.steam.force_load_steamapi = true;
             SK_Steam_KickStart  ();
-            SK_ApplyQueuedHooks ();
+
+            if (SK_GetFramesDrawn () > 1)
+              SK_ApplyQueuedHooks ();
           }
         }
 
@@ -1699,6 +1704,7 @@ SK_ImGui_ControlPanel (void)
     char szResolution [128] = { };
 
     bool sRGB     = rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_SRGB;
+    bool hdr_out  = rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR;
     bool override = false;
 
     RECT client;
@@ -1706,7 +1712,8 @@ SK_ImGui_ControlPanel (void)
 
     if ( static_cast <int> (io.DisplayFramebufferScale.x) != client.right  - client.left ||
          static_cast <int> (io.DisplayFramebufferScale.y) != client.bottom - client.top  ||
-         sRGB )
+         sRGB                                                                            ||
+         hdr_out )
     {
       snprintf ( szResolution, 63, "   %ux%u", 
                    static_cast <UINT> (io.DisplayFramebufferScale.x),
@@ -1714,6 +1721,9 @@ SK_ImGui_ControlPanel (void)
 
       if (sRGB)
         strcat (szResolution, "    (sRGB)");
+
+      if (hdr_out)
+        strcat (szResolution, "     (HDR)");
 
       if (ImGui::MenuItem (" Framebuffer Resolution", szResolution))
       {
@@ -1902,6 +1912,18 @@ SK_ImGui_ControlPanel (void)
     {
       ImGui::TreePush    ("");
 
+      if (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR)
+      {
+        float nits = rb.ui_luminance / 1.0_Nits;
+
+        ImGui::SliderFloat ("###IMGUI_LUMINANCE", &nits, 80.0f, 1000.0f, "HDR White Luminance: %.1f Nits");
+
+        rb.ui_luminance = nits * 1.0_Nits;
+
+        ImGui::SameLine ();
+        ImGui::Checkbox ("Explicit LinearRGB -> sRGB###IMGUI_SRGB", &rb.ui_srgb);
+      }
+
       if (ImGui::SliderFloat ("###IMGUI_SCALE", &config.imgui.scale, 1.0f, 3.0f, "UI Scaling Factor %.2f"))
       {
         // ImGui does not perform strict parameter validation, and values out of range for this can be catastrophic.
@@ -1967,6 +1989,12 @@ SK_ImGui_ControlPanel (void)
         extern bool SK_NNK2_PlugInCfg (void);
                     SK_NNK2_PlugInCfg ();
       } break;
+
+      case SK_GAME_ID::PillarsOfEternity2:
+      {
+        extern bool SK_POE2_PlugInCfg (void);
+                    SK_POE2_PlugInCfg ();
+      }
     };
 #endif
 
@@ -2050,27 +2078,58 @@ SK_ImGui_ControlPanel (void)
 
           if (target_fps > 0.0f)
           {
-            ImGui::SliderFloat ( "Target Framerate Tolerance", &config.render.framerate.limiter_tolerance, 0.925f, 4.0f);
-         
+            if (ImGui::SliderInt   ( "Maximum CPU Render-Ahead",
+                                       &config.render.framerate.max_render_ahead,
+                                         0, 2,
+                                     config.render.framerate.max_render_ahead != 1 ?
+                                       "%.0f Frames" : "%.0f Frame" )
+               )
+            {
+              SK::Framerate::GetLimiter ()->init (
+                SK::Framerate::GetLimiter ()->get_limit ()
+              );
+            }
+
             if (ImGui::IsItemHovered ())
             {
-              ImGui::BeginTooltip   ();
+              ImGui::BeginTooltip   (  );
               ImGui::PushStyleColor (ImGuiCol_Text, ImColor (0.95f, 0.75f, 0.25f, 1.0f));
-              ImGui::Text           ("Controls Framerate Smoothness\n\n");
+              ImGui::Text           ("Controls How Many Frames CPU May Prepare In Advance");
+              ImGui::Separator      (  );
               ImGui::PushStyleColor (ImGuiCol_Text, ImColor (0.75f, 0.75f, 0.75f, 1.0f));
-              ImGui::Text           ("  Lower = Stricter, but setting");
-              ImGui::SameLine       ();
-              ImGui::PushStyleColor (ImGuiCol_Text, ImColor (0.95f, 1.0f, 0.65f, 1.0f));
-              ImGui::Text           ("too low");
-              ImGui::SameLine       ();
-              ImGui::PushStyleColor (ImGuiCol_Text, ImColor(0.75f, 0.75f, 0.75f, 1.0f));
-              ImGui::Text           ("will cause framerate instability...");
-              ImGui::PopStyleColor (4);
-              ImGui::Separator      ( );
-              ImGui::Text           ("Recomputes clock phase if a single frame takes longer than <1.0 + tolerance> x <target_ms> to complete");
-              ImGui::BulletText     ("Adjust this if your set limit is fighting with VSYNC (frequent frametime graph oscillations).");
-              ImGui::EndTooltip     ( );
+              ImGui::Text           ("  Lower = Stricter Adherence to Framerate Limit + Lower Input Latency");
+              ImGui::PopStyleColor  ( 2);
+              ImGui::BulletText     ("0 is reasonable if your GPU consistently draws at or above the target rate");
+              ImGui::TreePush       ("");
+              ImGui::BulletText     ("Consider 1 or 2 to help with stuttering otherwise");
+              ImGui::TreePop        (  );
+              ImGui::EndTooltip     (  );
             }
+            //  ImGui::PushStyleColor (ImGuiCol_Text, ImColor (0.75f, 0.75f, 0.75f, 1.0f));
+            //  ImGui::Text           ("  Lower = Stricter, but setting");
+            //  ImGui::SameLine       ();
+
+            //ImGui::SliderFloat ( "Target Framerate Tolerance", &config.render.framerate.limiter_tolerance, 0.925f, 4.0f);
+            //
+            //if (ImGui::IsItemHovered ())
+            //{
+            //  ImGui::BeginTooltip   ();
+            //  ImGui::PushStyleColor (ImGuiCol_Text, ImColor (0.95f, 0.75f, 0.25f, 1.0f));
+            //  ImGui::Text           ("Controls Framerate Smoothness\n\n");
+            //  ImGui::PushStyleColor (ImGuiCol_Text, ImColor (0.75f, 0.75f, 0.75f, 1.0f));
+            //  ImGui::Text           ("  Lower = Stricter, but setting");
+            //  ImGui::SameLine       ();
+            //  ImGui::PushStyleColor (ImGuiCol_Text, ImColor (0.95f, 1.0f, 0.65f, 1.0f));
+            //  ImGui::Text           ("too low");
+            //  ImGui::SameLine       ();
+            //  ImGui::PushStyleColor (ImGuiCol_Text, ImColor(0.75f, 0.75f, 0.75f, 1.0f));
+            //  ImGui::Text           ("will cause framerate instability...");
+            //  ImGui::PopStyleColor (4);
+            //  ImGui::Separator      ( );
+            //  ImGui::Text           ("Recomputes clock phase if a single frame takes longer than <1.0 + tolerance> x <target_ms> to complete");
+            //  ImGui::BulletText     ("Adjust this if your set limit is fighting with VSYNC (frequent frametime graph oscillations).");
+            //  ImGui::EndTooltip     ( );
+            //}
           }
 
           changed |= ImGui::Checkbox ("Sleepless Render Thread",         &config.render.framerate.sleepless_render  );
@@ -2101,6 +2160,26 @@ SK_ImGui_ControlPanel (void)
                   }
 
           ImGui::Separator ();
+
+          bool spoof = (config.render.framerate.override_num_cpus != -1);
+
+          static SYSTEM_INFO             si = { };
+          SK_RunOnce (SK_GetSystemInfo (&si));
+
+
+          if ( ImGui::Checkbox   ("Spoof CPU Core Count", &spoof) )
+          {
+            config.render.framerate.override_num_cpus =
+              ( spoof ? si.dwNumberOfProcessors : -1 );
+          }
+
+          if (spoof)
+          {
+            ImGui::SameLine  (                                             );
+            ImGui::SliderInt ( "Number of CPUs",
+                              &config.render.framerate.override_num_cpus,
+                              1, si.dwNumberOfProcessors              );
+          }
 
           if (target_fps > 0.0f)
           {
@@ -2358,22 +2437,7 @@ SK_ImGui_InstallOpenCloseCallback (SK_ImGui_OpenCloseCallback_pfn fn, void* user
 #include <SpecialK/tls.h>
 
 
-struct SK_D3D11_TexCacheResidency_s
-{
-  struct
-  {
-    volatile LONG InVRAM;
-    volatile LONG Shared;
-    volatile LONG PagedOut;
-  } count;
-
-  struct
-  {
-    volatile LONG64 InVRAM;
-    volatile LONG64 Shared;
-    volatile LONG64 PagedOut;
-  } size;
-} extern SK_D3D11_TexCacheResidency;
+extern SK_D3D11_TexCacheResidency_s SK_D3D11_TexCacheResidency;
 
 
 static bool keep_open;
