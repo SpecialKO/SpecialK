@@ -1179,8 +1179,32 @@ SK_ImGui_PollGamepad_EndFrame (void)
 
     // This stupid hack prevents the Steam overlay from making the software
     //   think tab is stuck down.
-    for (int i = 8; i < 256; i++)
-      io.KeysDown [i] = (GetAsyncKeyState_Original (i) & 0x8000) != 0;
+    io.KeysDown [0x08]  = (GetAsyncKeyState_Original ( 0x08 ) & 0x8000) != 0;
+    io.KeysDown [0x09]  = (GetAsyncKeyState_Original ( 0x09 ) & 0x8000) != 0;
+    io.KeysDown [0x0C]  = (GetAsyncKeyState_Original ( 0x0C ) & 0x8000) != 0;
+    io.KeysDown [0x0D]  = (GetAsyncKeyState_Original ( 0x0D ) & 0x8000) != 0;
+    for (int i = 0x10; i < 0x16; i++)
+      io.KeysDown [i]  = (GetAsyncKeyState_Original (  i ) & 0x8000) != 0;
+    for (int i = 0x17; i < 0x1A; i++)
+      io.KeysDown [i]  = (GetAsyncKeyState_Original (  i ) & 0x8000) != 0;
+    for (int i = 0x1B; i < 0x3A; i++)
+      io.KeysDown [i]  = (GetAsyncKeyState_Original (  i ) & 0x8000) != 0;
+    for (int i = 0x41; i < 0x5E; i++)
+      io.KeysDown [i]  = (GetAsyncKeyState_Original (  i ) & 0x8000) != 0;
+    for (int i = 0x5F; i < 0x88; i++)
+      io.KeysDown [i]  = (GetAsyncKeyState_Original (  i ) & 0x8000) != 0;
+    for (int i = 0x90; i < 0x97; i++)
+      io.KeysDown [i]  = (GetAsyncKeyState_Original (  i ) & 0x8000) != 0;
+    for (int i = 0xA0; i < 0xB8; i++)
+      io.KeysDown [i]  = (GetAsyncKeyState_Original (  i ) & 0x8000) != 0;
+    for (int i = 0xBA; i < 0xC1; i++)
+      io.KeysDown [i]  = (GetAsyncKeyState_Original (  i ) & 0x8000) != 0;
+    for (int i = 0xDB; i < 0xE0; i++)
+      io.KeysDown [i]  = (GetAsyncKeyState_Original (  i ) & 0x8000) != 0;
+    for (int i = 0xE1; i < 0xE8; i++)
+      io.KeysDown [i]  = (GetAsyncKeyState_Original (  i ) & 0x8000) != 0;
+    for (int i = 0xE9; i < 0xFF; i++)
+      io.KeysDown [i]  = (GetAsyncKeyState_Original (  i ) & 0x8000) != 0;
 
     // Don't cycle window elements when Alt+Tabbing
     if (io.KeyAlt) io.KeysDown [VK_TAB] = false;
@@ -1622,7 +1646,7 @@ ImGui::PlotCEx ( ImGuiPlotType,                               const char* label,
                  float (*values_getter)(void* data, int idx),       void* data,
                  int     values_count,  int   values_offset,  const char* overlay_text,
                  float   scale_min,     float scale_max,           ImVec2 graph_size,
-                 float, float, float,   bool  inverse )
+                 float   min_color,     float max_color,   float,   bool  inverse )
 {
   ImGuiWindow* window =
     GetCurrentWindow ();
@@ -1721,14 +1745,20 @@ ImGui::PlotCEx ( ImGuiPlotType,                               const char* label,
       const ImVec2 tp1 ( t1, 1.0f - ImSaturate ( (v1        - scale_min) /
                                                  (scale_max - scale_min) ) );
 
-      float col_v0 = ( inverse ? scale_max - v0 : v0 );
-      float col_v1 = ( inverse ? scale_max - v1 : v1 );
+      auto _ComputeColor = [&](float v) -> float
+      {
+        float color =
+          ImSaturate ( ( v         - min_color ) /
+                       ( max_color - min_color ) );
+
+        return inverse ? 1.0f - color : color;
+      };
 
       const ImU32 col_base = 
         ImColor::HSV (
-          0.31f - 0.31f * ImLerp ( std::min ( 1.0f, col_v0 / scale_max ),
-                                   std::min ( 1.0f, col_v1 / scale_max ),
-                                   tp0.y ),
+          0.31f - 0.31f * ImLerp ( _ComputeColor (v0),
+                                   _ComputeColor (v1),
+                                                  tp1.y ),
           0.86f,
           0.95f
         );
@@ -1777,7 +1807,7 @@ ImGui::PlotLinesC ( const char*  label,         const float* values,
                     const char*  overlay_text,        float  scale_min,
                                                       float  scale_max,
                           ImVec2 graph_size,          int    stride,
-                          float  saturation,          float  value,
+                          float  min_color_val,       float  max_color_val,
                           float  avg,                 bool   inverse )
 {
   ImGuiPlotArrayGetterData data =
@@ -1788,8 +1818,9 @@ ImGui::PlotLinesC ( const char*  label,         const float* values,
                                                 values_offset,
                 overlay_text,   scale_min, scale_max,
                   graph_size,
-                    saturation, value,     avg,
-                      inverse
+                    min_color_val, max_color_val,
+                      avg,
+                        inverse
           );
 }
 
