@@ -1,3 +1,36 @@
+0.9.23:
+
+   ( D3D11 ReShade and various mod features for D3D11 games may not work
+       correctly starting with 0.9.23, I will work to get that resolved as 
+         quickly as I can )
+
+ + Added CPU clock rate to CPU performance widget; will add core parking and
+     thermal throttling details in a future release for Windows 10 users.
+
+ + Improved recursive file search (SteamAPI DLL location) performance
+ + If SpecialK32.pdb or SpecialK64.pdb are not present in a local install,
+     SK will attempt to load these form Documents\My Mods\SpecialK\...
+ + Sped up Special K boot procedure pretty singificantly
+ + Tweaked inefficient Texture Residency driver queries
+ + Fixed situations where SK would fetch vertsion info from GitHUb multiple times
+ + Fixed sRGB -> RGBA buffer override for Unity games to use flip model
+ + Fixed various inconsistent ANSI / Unicode text issues in Unity (debug log)
+ + Added CPU core spoofing to the framerate limiter for broken Unity games
+
+ + Added HDR luminance control to Special K's OSD so you can see it in an HDR game :P
+
+
+0.9.22:
+
+ + Added render-ahead option to framerate limiter to tradeoff latency vs. rate accuracy
+ + Fixed achievement popup showing up twice in Smart Capture mode
+ + Various D3D11 Deferred Context optimizations
+ + Added button to rebalance thread -> CPU assignment to the Threads widget
+ + Added data options to the GPU widget's config menu
+ + Added Fan RPM to GPU widget
+ + Config files only write to disk if they are changed now
+
+
 0.9.21:
 
  + New "Smart Capture" Mode for Steam Screenshots
