@@ -181,7 +181,7 @@ SK_FlushLog (iSK_Logger* pLog)
   }
 
   while ((intptr_t)hFlushReq <= 0)
-    SleepEx (1, TRUE);
+    SleepEx (1, FALSE);
 
   if ( (! flush_set.count ( pLog )) ||
           flush_set       [ pLog ] == false )

@@ -523,14 +523,37 @@ public:
   volatile LONG64 bytes_received = 0ULL;
 };
 
+
 class SK_Sched_ThreadContext
 {
 public:
-    DWORD         priority      = THREAD_PRIORITY_NORMAL;
+  DWORD         priority      = THREAD_PRIORITY_NORMAL;
   //UINT          ideal_cpu     =             0;
-    DWORD_PTR     affinity_mask = (DWORD_PTR)-1;
-    bool          lock_affinity = false;
-    bool          background_io = false;
+  DWORD_PTR     affinity_mask = (DWORD_PTR)-1;
+  bool          lock_affinity = false;
+  bool          background_io = false;
+
+  volatile
+    LONG          alert_waits   = 0;
+
+  struct wait_record_s {
+    LONG        calls = 0;
+    LONG        time  = 0;
+  };
+
+  std::unordered_map <HANDLE, wait_record_s>*
+    objects_waited;
+
+  struct most_recent_wait_s
+  {
+    HANDLE        handle;
+    LARGE_INTEGER start;
+    LARGE_INTEGER last_wait;
+    LONG          sequence;
+    BOOL          preemptive;
+
+    float getRate (void);
+  } mru_wait;
 };
 
 
@@ -656,13 +679,13 @@ SK_GetTLS (bool initialize)
 
   if ( dwTlsIdx != TLS_OUT_OF_INDEXES )
   {
+    InterlockedIncrement (&_SK_IgnoreTLSAlloc);
+
     lpvData =
       FlsGetValue (dwTlsIdx);
 
     if (lpvData == nullptr)
     {
-      InterlockedIncrement (&_SK_IgnoreTLSAlloc);
-
       if (GetLastError () == ERROR_SUCCESS)
       {
         lpvData =
@@ -676,23 +699,22 @@ SK_GetTLS (bool initialize)
 
         else initialize = true;
       }
-
-      InterlockedDecrement (&_SK_IgnoreTLSAlloc);
     }
 
     if (lpvData != nullptr && initialize)
     {
-      InterlockedIncrement (&_SK_IgnoreTLSAlloc);
-
       SK_TLS* pTLS =
         static_cast <SK_TLS *> (lpvData);
 
-      *pTLS = SK_TLS::SK_TLS ();
+      *pTLS =
+         SK_TLS::SK_TLS ();
+
+      pTLS->scheduler.objects_waited =
+        new (std::unordered_map <HANDLE, SK_Sched_ThreadContext::wait_record_s>);
 
       pTLS->debug.tls_idx = dwTlsIdx;
-
-      InterlockedDecrement (&_SK_IgnoreTLSAlloc);
     }
+    InterlockedDecrement (&_SK_IgnoreTLSAlloc);
   }
 
   else

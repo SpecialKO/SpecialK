@@ -168,25 +168,25 @@ SK_Win32_ReleaseTokenSid (PSID pSid);
 BOOL
 SK_KeepAway (void)
 {
-  ///BOOL  bNotAUserInteractiveApplication = FALSE;
-  ///DWORD dwIntegrityLevel                = std::numeric_limits <DWORD>::max ();
-  ///
-  ///PSID pSid =
-  ///  SK_Win32_GetTokenSid (TokenIntegrityLevel);
-  ///
-  ///if (pSid != nullptr)
-  ///{
-  ///  dwIntegrityLevel = *GetSidSubAuthority      (pSid,
-  ///      (DWORD)(UCHAR)(*GetSidSubAuthorityCount (pSid) - 1));
-  ///
-  ///  bNotAUserInteractiveApplication =
-  ///    ( dwIntegrityLevel < ( SECURITY_MANDATORY_MEDIUM_RID /*+ 0x10*/ ) );
-  ///
-  ///  SK_Win32_ReleaseTokenSid (pSid);
-  ///}
-  ///
-  ///if (bNotAUserInteractiveApplication)
-  ///  return TRUE;
+  BOOL  bNotAUserInteractiveApplication = FALSE;
+  DWORD dwIntegrityLevel                = std::numeric_limits <DWORD>::max ();
+  
+  PSID pSid =
+    SK_Win32_GetTokenSid (TokenIntegrityLevel);
+  
+  if (pSid != nullptr)
+  {
+    dwIntegrityLevel = *GetSidSubAuthority      (pSid,
+        (DWORD)(UCHAR)(*GetSidSubAuthorityCount (pSid) - 1));
+  
+    bNotAUserInteractiveApplication =
+      ( dwIntegrityLevel < ( SECURITY_MANDATORY_MEDIUM_RID /*+ 0x10*/ ) );
+  
+    SK_Win32_ReleaseTokenSid (pSid);
+  }
+  
+  if (bNotAUserInteractiveApplication)
+    return TRUE;
 
   // If user-interactive, check against an internal blacklist
   #include <SpecialK/injection/blacklist.h>

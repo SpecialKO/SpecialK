@@ -24,6 +24,8 @@
 #include <SpecialK/performance/gpu_monitor.h>
 #include <SpecialK/performance/io_monitor.h>
 
+#include <SpecialK/framerate.h>
+
 #include <SpecialK/control_panel.h>
 #include <SpecialK/utility.h>
 
@@ -60,17 +62,31 @@ public:
     }
 
 
-    if (last_update < SK::ControlPanel::current_time - update_freq)
+    if ( last_update           < ( SK::ControlPanel::current_time - update_freq ) &&
+          cpu_stats.num_cpus   > 0 )
     {
-      if (cpu_stats.num_cpus > 0 && cpu_records.empty ())
-        cpu_records.resize (cpu_stats.num_cpus);
+      if ( cpu_stats.num_cpus  > 0 &&
+         ( cpu_records.size () < ( cpu_stats.num_cpus + 1 )
+         )
+         ) { cpu_records.resize  ( cpu_stats.num_cpus + 1 ); }
 
-      for (unsigned int i = 0; i < cpu_records.size (); i++)
+      for (unsigned int i = 1; i < cpu_stats.num_cpus + 1 ; i++)
       {
-        cpu_records [i].addValue (static_cast <float> (cpu_stats.cpus [i].percent_load));
+        cpu_records[i].addValue(
+          static_cast  <float>   (
+                     ReadAcquire ( &cpu_stats.cpus [i-1].percent_load )
+                                 )
+                                 );
       }
 
-      last_update = SK::ControlPanel::current_time;
+      cpu_records [0].addValue   (
+          static_cast  <float>   (
+                     ReadAcquire ( &cpu_stats.cpus [64].percent_load )
+                                 )
+                                 );
+
+      last_update =
+        SK::ControlPanel::current_time;
     }
   }
 
@@ -100,14 +116,15 @@ public:
 		ULONG MhzLimit;
 		ULONG MaxIdleState;
 		ULONG CurrentIdleState;
-	} PROCESSOR_POWER_INFORMATION, *PPROCESSOR_POWER_INFORMATION;
+	} PROCESSOR_POWER_INFORMATION,
+   *PPROCESSOR_POWER_INFORMATION;
 
 	SYSTEM_INFO        sinfo = { };
 	SK_GetSystemInfo (&sinfo);
 
 	PPROCESSOR_POWER_INFORMATION pwi =
-		reinterpret_cast <PPROCESSOR_POWER_INFORMATION> (
-			SK_TLS_Bottom ()->scratch_memory.cpu_info.alloc(
+		reinterpret_cast <PPROCESSOR_POWER_INFORMATION>   (
+			SK_TLS_Bottom ()->scratch_memory.cpu_info.alloc (
 				sizeof (PROCESSOR_POWER_INFORMATION) * sinfo.dwNumberOfProcessors
 			)
 		);
@@ -166,50 +183,57 @@ public:
                                        ImVec2 (
                                          std::max (500.0f, ImGui::GetContentRegionAvailWidth ()), font_size * 4.0f) );
 
-	  bool found = false;
+	    bool found = false;
 
-	  auto DrawHeader = [&](int j) -> bool
-	  {
-		if (pwi [j].Number == i)
-		{
-		  found = true;
+	    auto DrawHeader = [&](int j) -> bool
+	    {
+		    if (pwi [j].Number == i)
+		    {
+		      found = true;
 
-		  ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.28F, 1.f, 1.f, 1.f));
-		  ImGui::Text           ("%#4lu MHz", pwi [j].CurrentMhz);
-		  ImGui::SameLine       ();
+		      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.28F, 1.f, 1.f, 1.f));
+		      ImGui::Text           ("%#4lu MHz", pwi [j].CurrentMhz);
+		      ImGui::SameLine       ();
 
-		  ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.12F, .8f, .95f, 1.f));
-		  ImGui::Text           ("/ [%#4lu MHz]", pwi [j].MaxMhz);
+		      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.12F, .8f, .95f, 1.f));
+		      ImGui::Text           ("/ [%#4lu MHz]", pwi [j].MaxMhz);
 
-		  //ImGui::SameLine (); ImGui::Spacing ();
-		  //ImGui::SameLine (); ImGui::Spacing ();
-		  //
-		  //ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.57194F, 1.0f, .9f, 1.f));
-		  //ImGui::Text           ("Idle: %3lu%%", pwi [j].CurrentIdleState);
-		  //
-		  //ImGui::PopStyleColor (3);
-		  ImGui::PopStyleColor (2);
+          uint64_t parked_since =
+            cpu_stats.cpus [j].parked_since.QuadPart;
 
-		  return true;
-		}
+          if (parked_since > 0)
+          {
+		        ImGui::SameLine (); ImGui::Spacing ();
+            ImGui::SameLine (); ImGui::Spacing (); ImGui::SameLine ();
+		        
+		        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.57194F, 0.534f, .94f, 1.f));
+		        ImGui::Text           ( "Parked For %4.1f Seconds",
+                                      SK_DeltaPerfMS ( parked_since, 1 ) / 1000.0
+                                  );
+          }
+		      
+		      //ImGui::PopStyleColor (3);
+		      ImGui::PopStyleColor (2);
 
-		return false;
-	  };
+		      return true;
+		    }
 
-	  for (DWORD j = i ; j < sinfo.dwNumberOfProcessors; j++)
-	  {
+		  return false;
+	    };
+
+	    for (DWORD j = i ; j < sinfo.dwNumberOfProcessors ; j++)
+	    {
             found = DrawHeader (j);
         if (found) break;
       }
 
-	  if (! found)
-	  {
-		for (int j = sinfo.dwNumberOfProcessors - 1; j >= 0; j--)
-		{
-		  if (DrawHeader (j)) break;
-		}
-	  }
-
+      if (! found)
+      {
+        for (int j = sinfo.dwNumberOfProcessors - 1; j >= 0; j--)
+        {
+          if (DrawHeader (j)) break;
+        }
+      }
 
       ImGui::PopStyleColor ();
     }

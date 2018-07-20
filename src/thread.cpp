@@ -54,6 +54,8 @@ typedef HRESULT (WINAPI *SetThreadDescription_pfn)(HANDLE, PCWSTR);
 
 const DWORD MAGIC_THREAD_EXCEPTION = 0x406D1388;
 
+extern volatile LONG __SK_DLL_Attached;
+
 #include <concurrent_unordered_map.h>
 #include <concurrent_unordered_set.h>
 
@@ -117,37 +119,33 @@ HRESULT
 WINAPI
 SetCurrentThreadDescription (_In_ PCWSTR lpThreadDescription)
 {
-  SK_TLS* pTLS = nullptr;
+  SK_TLS *pTLS       = ReadAcquire (&__SK_DLL_Attached) ?
+    SK_TLS_Bottom () : nullptr;
 
-  if ( SK_GetHostAppUtil ().isInjectionTool () || ((pTLS = SK_TLS_Bottom ()) == nullptr) )
+  DWORD               dwTid  = GetCurrentThreadId ();
+  __make_self_titled (dwTid);
+     _SK_ThreadNames [dwTid] = lpThreadDescription;
+
+  if ( SK_GetHostAppUtil ().isInjectionTool () || (pTLS == nullptr) )
     return S_OK;
-
 
   bool non_empty =
     lstrlenW (lpThreadDescription) != 0;
 
-
-  if (non_empty && pTLS != nullptr)
+  if (non_empty)
   {
-    DWORD dwTid = GetCurrentThreadId ();
-
-    __make_self_titled (dwTid);
-
     // Push this to the TLS datastore so we can get thread names even
     //   when no debugger is attached.
-    wcsncpy (pTLS->debug.name, lpThreadDescription, 255);
-
-    _SK_ThreadNames [dwTid] = lpThreadDescription;
-
-
-    char      szDesc [256];
-             *szDesc = '\0';
-
-    wcstombs (szDesc, lpThreadDescription, 255);
-
+    wcsncpy (
+      pTLS->debug.name, lpThreadDescription, 255
+    );
 
     if (SK_IsDebuggerPresent ())
     {
+      char      szDesc [256];
+               *szDesc = '\0';
+      wcstombs (szDesc, lpThreadDescription, 255);
+
       const THREADNAME_INFO info =
       { 4096, szDesc, (DWORD)-1, 0x0 };
 
@@ -203,21 +201,23 @@ HRESULT
 WINAPI
 GetCurrentThreadDescription (_Out_  PWSTR  *threadDescription)
 {
-  SK_TLS* pTLS =
-    SK_TLS_Bottom ();
+  SK_TLS *pTLS       = ReadAcquire (&__SK_DLL_Attached) ?
+    SK_TLS_Bottom () : nullptr;
 
   // Always use the TLS value if there is one
-  if (wcslen (pTLS->debug.name))
+  if (         pTLS != nullptr   &&
+       wcslen (pTLS->debug.name)    )
   {
     // This is not freed here; the caller is expected to free it!
     *threadDescription =
-      (wchar_t *)LocalAlloc (LPTR, 1024);
+      (wchar_t *)SK_LocalAlloc (LPTR, 1024);
 
-    wcsncpy (*threadDescription, pTLS->debug.name, 255);
+    wcsncpy (
+      *threadDescription, pTLS->debug.name, 255
+    );
 
     return S_OK;
   }
-
 
   // No TLS, no GetThreadDescription (...) -- we are boned :-\
   //
@@ -227,22 +227,20 @@ GetCurrentThreadDescription (_Out_  PWSTR  *threadDescription)
     return E_NOTIMPL;
   }
 
-
-  HRESULT hr          = E_UNEXPECTED;
-  HANDLE  hRealHandle = nullptr;
+  HRESULT  hr         = E_UNEXPECTED;
+  CHandle hRealHandle (   nullptr  );
 
   if ( DuplicateHandle ( SK_GetCurrentProcess (),
                          SK_GetCurrentThread  (),
                          SK_GetCurrentProcess (),
-                           &hRealHandle,
+                           &hRealHandle.m_h,
                              THREAD_ALL_ACCESS,
                                FALSE,
                                  0 ) )
   {
     hr =
-      GetThreadDescription (hRealHandle, threadDescription);
-
-    CloseHandle (hRealHandle);
+      GetThreadDescription ( hRealHandle,
+                               threadDescription );
   }
 
   return hr;
@@ -291,7 +289,8 @@ SK_Thread_SetCurrentPriority (int prio)
 {
   if (SK_Thread_GetCurrentPriority () != prio)
   {
-    return SetThreadPriority (SK_GetCurrentThread (), prio);
+    return
+      SetThreadPriority (SK_GetCurrentThread (), prio);
   }
 
   return FALSE;
@@ -302,7 +301,8 @@ int
 __stdcall
 SK_Thread_GetCurrentPriority (void)
 {
-  return GetThreadPriority (SK_GetCurrentThread ());
+  return
+      GetThreadPriority (SK_GetCurrentThread ());
 }
 
 } /* extern "C" */  
@@ -324,7 +324,8 @@ SetThreadAffinityMask_Detour (
       SK_TLS_BottomEx (dwTid);
 
 
-  if (pTLS != nullptr && pTLS->scheduler.lock_affinity)
+  if ( pTLS != nullptr &&
+       pTLS->scheduler.lock_affinity )
   {
     dwRet =
       pTLS->scheduler.affinity_mask;
@@ -333,14 +334,17 @@ SetThreadAffinityMask_Detour (
   else
   {
     dwRet =
-      SetThreadAffinityMask_Original ( hThread, dwThreadAffinityMask );
+      SetThreadAffinityMask_Original (
+              hThread,
+                dwThreadAffinityMask );
   }
 
 
   if ( pTLS != nullptr && dwRet != 0 &&
     (! pTLS->scheduler.lock_affinity) )
   {
-    pTLS->scheduler.affinity_mask = dwThreadAffinityMask;
+    pTLS->scheduler.affinity_mask =
+      dwThreadAffinityMask;
   }
 
   return dwRet;
@@ -365,12 +369,12 @@ SKX_ThreadThunk ( LPVOID lpUserPassThrough )
  (SK_ThreadBaseParams *)lpUserPassThrough;
 
   while (pStartParams->hHandleToStuffInternally == INVALID_HANDLE_VALUE)
-    SleepEx (0, TRUE);
+    SleepEx (0, FALSE);
 
-  SK_TLS* pTLS =
-    SK_TLS_Bottom ();
+  SK_TLS *pTLS       = ReadAcquire (&__SK_DLL_Attached) ?
+    SK_TLS_Bottom () : nullptr;
 
-  if (pTLS)
+  if (pTLS != nullptr)
   {
     pTLS->debug.handle = pStartParams->hHandleToStuffInternally;
     pTLS->debug.tid    = GetCurrentThreadId ();
@@ -398,29 +402,24 @@ SK_Thread_CreateEx ( LPTHREAD_START_ROUTINE lpStartFunc,
   if (LocalAlloc_Original != nullptr)
     params = (SK_ThreadBaseParams *)LocalAlloc_Original ( 0x0, sizeof (SK_ThreadBaseParams) );
   else
-   params = (SK_ThreadBaseParams *)LocalAlloc           ( 0x0, sizeof (SK_ThreadBaseParams) );
+    params = (SK_ThreadBaseParams *)LocalAlloc          ( 0x0, sizeof (SK_ThreadBaseParams) );
+
+  assert (params != nullptr);
 
   *params = {
     lpStartFunc,  nullptr,
     lpUserParams, INVALID_HANDLE_VALUE
   };
 
-#if 1
   unsigned int dwTid = 0;
+
   HANDLE hRet  =
-    (HANDLE)_beginthreadex ( nullptr, 0,
-    //CreateThread ( nullptr, 0,  
-                     (_beginthreadex_proc_type)SKX_ThreadThunk,
-                       (LPVOID)params,
-                         0x0, &dwTid );
-#else
-  DWORD  dwTid = 0;
-  HANDLE hRet  =
-    CreateThread ( nullptr, 0,
-                     SKX_ThreadThunk,
-                       (LPVOID)params,
-                         0x0, &dwTid );
-#endif
+    reinterpret_cast <HANDLE> (
+      _beginthreadex ( nullptr, 0,
+               (_beginthreadex_proc_type)SKX_ThreadThunk,
+                 (LPVOID)params,
+                   0x0, &dwTid )
+    );
 
   return ( (params->hHandleToStuffInternally = hRet) );
 }
@@ -428,9 +427,12 @@ SK_Thread_CreateEx ( LPTHREAD_START_ROUTINE lpStartFunc,
 extern "C"
 void
 WINAPI
-SK_Thread_Create (LPTHREAD_START_ROUTINE lpStartFunc, LPVOID lpUserParams)
+SK_Thread_Create ( LPTHREAD_START_ROUTINE lpStartFunc,
+                   LPVOID                 lpUserParams )
 {
-  SK_Thread_CreateEx (lpStartFunc, nullptr, lpUserParams);
+  SK_Thread_CreateEx (
+    lpStartFunc, nullptr, lpUserParams
+  );
 }
 
 
@@ -443,19 +445,23 @@ bool
 WINAPI
 SK_Thread_CloseSelf (void)
 {
-  SK_TLS* pTLS =
-    SK_TLS_Bottom ();
+  SK_TLS *pTLS       = ReadAcquire (&__SK_DLL_Attached) ?
+    SK_TLS_Bottom () : nullptr;
 
-  HANDLE hCopyAndSwapHandle = INVALID_HANDLE_VALUE;
+  HANDLE hCopyAndSwapHandle =
+    INVALID_HANDLE_VALUE;
 
-  std::swap (pTLS->debug.handle, hCopyAndSwapHandle);
-
-  if (! CloseHandle (hCopyAndSwapHandle))
+  if (pTLS != nullptr)
   {
-    std::swap (pTLS->debug.handle, hCopyAndSwapHandle);
+    std::swap   (pTLS->debug.handle, hCopyAndSwapHandle);
 
-    return false;
-  }
+    if (! CloseHandle (hCopyAndSwapHandle))
+    {
+      std::swap (pTLS->debug.handle, hCopyAndSwapHandle);
+
+      return false;
+    }
+  } else return false;
 
   return true;
 }

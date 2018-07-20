@@ -1606,7 +1606,7 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
       {
         static LONG start = timeGetTime ();
 
-        MsgWaitForMultipleObjectsEx ( 0, nullptr, 20UL, MWMO_ALERTABLE, 0x0 );
+        MsgWaitForMultipleObjectsEx ( 0, nullptr, 20UL, QS_ALLEVENTS, MWMO_INPUTAVAILABLE );
 
         if (timeGetTime () - start > 125UL) break;
       }

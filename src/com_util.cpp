@@ -435,7 +435,7 @@ SK_WMI_Shutdown (void)
       if (! ReadAcquire (&COM::base.wmi.init))
         break;
 
-      MsgWaitForMultipleObjectsEx (0, nullptr, 16, QS_ALLEVENTS, MWMO_ALERTABLE);
+      MsgWaitForMultipleObjectsEx (0, nullptr, 16, QS_ALLEVENTS, MWMO_INPUTAVAILABLE);
     }
   }
 }

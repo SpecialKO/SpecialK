@@ -1080,35 +1080,35 @@ static_cast <double> (                         gpu_stats.gpus [i].loads_percent.
 
   else
   {
-    OSD_C_PRINTF "\n  Total  : %#3llu%%  -  (Kernel: %#3llu%%   "
-                   "User: %#3llu%%   Interrupt: %#3llu%%)\n",
-          cpu_stats.cpus [0].percent_load,
-            cpu_stats.cpus [0].percent_kernel,
-              cpu_stats.cpus [0].percent_user,
-                cpu_stats.cpus [0].percent_interrupt
+    OSD_C_PRINTF "\n  Total  : %#3lu%%  -  (Kernel: %#3lu%%   "
+                   "User: %#3lu%%   Interrupt: %#3lu%%)\n",
+        ReadNoFence (      &cpu_stats.cpus [64].percent_load     ),
+          ReadNoFence (    &cpu_stats.cpus [64].percent_kernel   ),
+            ReadNoFence (  &cpu_stats.cpus [64].percent_user     ),
+              ReadNoFence (&cpu_stats.cpus [64].percent_interrupt)
     OSD_END
 
     static const int digits = (cpu_stats.num_cpus / 11 > 0 ? 2 : 1);
 
-    for (DWORD i = 1; i < cpu_stats.num_cpus; i++)
+    for (DWORD i = 0; i < cpu_stats.num_cpus; i++)
     {
       if (! config.cpu.simple)
       {
-        OSD_C_PRINTF "  CPU%0*lu%-*s: %#3llu%%  -  (Kernel: %#3llu%%   "
-                     "User: %#3llu%%   Interrupt: %#3llu%%)\n",
-          digits, i-1, 4-digits, "",
-            cpu_stats.cpus [i].percent_load,
-              cpu_stats.cpus [i].percent_kernel,
-                cpu_stats.cpus [i].percent_user,
-                  cpu_stats.cpus [i].percent_interrupt
+        OSD_C_PRINTF "  CPU%0*lu%-*s: %#3lu%%  -  (Kernel: %#3lu%%   "
+                     "User: %#3lu%%   Interrupt: %#3lu%%)\n",
+          digits, i, 4-digits, "",
+            ReadAcquire (      &cpu_stats.cpus [i].percent_load     ),
+              ReadAcquire (    &cpu_stats.cpus [i].percent_kernel   ),
+                ReadAcquire (  &cpu_stats.cpus [i].percent_user     ),
+                  ReadAcquire (&cpu_stats.cpus [i].percent_interrupt)
         OSD_END
       }
 
       else
       {
-        OSD_C_PRINTF "  CPU%0*lu%-*s: %#3llu%%\n",
-          digits, i-1, 4-digits, "",
-            cpu_stats.cpus [i].percent_load
+        OSD_C_PRINTF "  CPU%0*lu%-*s: %#3lu%%\n",
+          digits, i, 4-digits, "",
+            ReadAcquire (&cpu_stats.cpus [i].percent_load)
         OSD_END
       }
     }

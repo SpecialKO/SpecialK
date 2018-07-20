@@ -1263,7 +1263,7 @@ SK_UpdateSoftware1 (const wchar_t*, bool force)
                                                        0 )
                   ) == 0
                 )
-            MsgWaitForMultipleObjectsEx (0, nullptr, 15UL, QS_ALLINPUT, MWMO_ALERTABLE);
+            MsgWaitForMultipleObjectsEx (0, nullptr, 15UL, QS_ALLEVENTS, MWMO_INPUTAVAILABLE);
 
           if ( InterlockedCompareExchange ( &__SK_UpdateStatus, 0, 0 ) == 1 )
           {

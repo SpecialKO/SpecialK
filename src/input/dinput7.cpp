@@ -130,7 +130,7 @@ WINAPI
 WaitForInit_DI7 (void)
 {
   while (! ReadAcquire (&__di7_ready))
-    MsgWaitForMultipleObjectsEx (0, nullptr, 2UL, QS_ALLINPUT, MWMO_ALERTABLE);
+    MsgWaitForMultipleObjectsEx (0, nullptr, 2UL, QS_ALLINPUT, MWMO_INPUTAVAILABLE);
 }
 
 

@@ -92,10 +92,9 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <Optimization>Full</Optimization>
+      <Optimization>MaxSpeed</Optimization>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;STRICT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <MinimalRebuild>true</MinimalRebuild>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>
@@ -105,7 +104,7 @@
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <ExceptionHandling>Async</ExceptionHandling>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <StringPooling>false</StringPooling>
+      <StringPooling>true</StringPooling>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ControlFlowGuard>false</ControlFlowGuard>
@@ -123,10 +122,9 @@
       <TargetEnvironment>X64</TargetEnvironment>
     </Midl>
     <ClCompile>
-      <Optimization>Full</Optimization>
+      <Optimization>MaxSpeed</Optimization>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;STRICT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <MinimalRebuild>true</MinimalRebuild>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
@@ -139,7 +137,7 @@
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <ExceptionHandling>Async</ExceptionHandling>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <StringPooling>false</StringPooling>
+      <StringPooling>true</StringPooling>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ControlFlowGuard>false</ControlFlowGuard>
@@ -154,7 +152,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <Optimization>Full</Optimization>
+      <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;STRICT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -172,7 +170,6 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <ExceptionHandling>Async</ExceptionHandling>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <MinimalRebuild>true</MinimalRebuild>
       <StringPooling>true</StringPooling>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
@@ -184,7 +181,7 @@
       <TargetEnvironment>X64</TargetEnvironment>
     </Midl>
     <ClCompile>
-      <Optimization>Full</Optimization>
+      <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;STRICT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -201,7 +198,6 @@
       <DiagnosticsFormat>Column</DiagnosticsFormat>
       <ExceptionHandling>Async</ExceptionHandling>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <MinimalRebuild>true</MinimalRebuild>
       <StringPooling>true</StringPooling>
       <FloatingPointModel>Fast</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>

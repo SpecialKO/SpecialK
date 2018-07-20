@@ -172,7 +172,7 @@ SK_Thread_SpinUntilFlagged (volatile LONG* pFlag, LONG _SpinMax = 75L)
     if (ReadAcquire (pFlag))
       break;
 
-    MsgWaitForMultipleObjectsEx (0, nullptr, 4UL, QS_ALLINPUT, MWMO_ALERTABLE);
+    MsgWaitForMultipleObjectsEx (0, nullptr, 4UL, QS_ALLINPUT, MWMO_INPUTAVAILABLE);
   }
 }
 
@@ -189,7 +189,7 @@ SK_Thread_SpinUntilAtomicMin (volatile LONG* pVar, LONG count, LONG _SpinMax = 7
     if (ReadAcquire (pVar) >= count)
       break;
 
-    MsgWaitForMultipleObjectsEx (0, nullptr, 4UL, QS_ALLINPUT, MWMO_ALERTABLE);
+    MsgWaitForMultipleObjectsEx (0, nullptr, 4UL, QS_ALLINPUT, MWMO_INPUTAVAILABLE);
   }
 }
 

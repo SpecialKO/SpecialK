@@ -4156,7 +4156,7 @@ SteamAPI_Shutdown_Detour (void)
           {
             SK::SteamAPI::Pump ();
 
-            MsgWaitForMultipleObjectsEx ( 0, nullptr, 125, MWMO_ALERTABLE, 0x0 );
+            MsgWaitForMultipleObjectsEx ( 0, nullptr, 125, QS_ALLEVENTS, MWMO_INPUTAVAILABLE );
           }
         }
 
@@ -5286,8 +5286,7 @@ SK_SteamAPIContext::OnFileDetailsDone ( FileDetailsResult_t* pParam,
 
 
       while ( MsgWaitForMultipleObjectsEx ( 1, &hSigNewSteamFileDetails,
-                                              666UL, QS_ALLEVENTS,
-                                                MWMO_ALERTABLE
+                                              666UL, QS_ALLEVENTS, MWMO_INPUTAVAILABLE
                                           )                == WAIT_OBJECT_0
             )
       {
@@ -5303,7 +5302,7 @@ SK_SteamAPIContext::OnFileDetailsDone ( FileDetailsResult_t* pParam,
                   (! prio_queue->try_pop ( result ) ) )
           {
             MsgWaitForMultipleObjectsEx ( 1, &hSigNewSteamFileDetails,
-                                            133UL, 0x0, MWMO_ALERTABLE );
+                                            133UL, QS_ALLEVENTS, MWMO_INPUTAVAILABLE );
           }
         }
         FileDetailsResult_t* pParam = &result;

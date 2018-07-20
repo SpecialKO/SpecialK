@@ -25,6 +25,7 @@
 #include <SpecialK/performance/memory_monitor.h>
 #include <SpecialK/log.h>
 
+#include <SpecialK/tls.h>
 #include <SpecialK/core.h>
 #include <SpecialK/framerate.h>
 #include <SpecialK/config.h>
@@ -139,367 +140,402 @@ SK_CountIO (io_perf_t& ioc, const double update)
 }
 
 
+typedef enum _CPU_SET_INFORMATION_TYPE { 
+  CpuSetInformation
+} CPU_SET_INFORMATION_TYPE,
+*PCPU_SET_INFORMATION_TYPE;
+
+typedef struct _SYSTEM_CPU_SET_INFORMATION {
+  DWORD                    Size;
+  CPU_SET_INFORMATION_TYPE Type;
+
+  union DataSet {
+    struct Data {
+      DWORD     Id;
+      WORD      Group;
+      BYTE      LogicalProcessorIndex;
+      BYTE      CoreIndex;
+      BYTE      LastLevelCacheIndex;
+      BYTE      NumaNodeIndex;
+      BYTE      EfficiencyClass;
+      union {
+        BYTE    AllFlags;
+        struct {
+          BYTE  Parked                   : 1;
+          BYTE  Allocated                : 1;
+          BYTE  AllocatedToTargetProcess : 1;
+          BYTE  RealTime                 : 1;
+          BYTE  ReservedFlags            : 4;
+        } DUMMYSTRUCTNAME;
+      }   DUMMYUNIONNAME2;
+      union {
+        DWORD   Reserved;
+        BYTE    SchedulingClass;
+      };
+      DWORD64   AllocationTag;
+    } CpuSet;
+  } CpuSet;
+} SYSTEM_CPU_SET_INFORMATION,
+*PSYSTEM_CPU_SET_INFORMATION;
+
+int cpu_perf_t::cpu_stat_s::parked_node_count   = 0;
+int cpu_perf_t::cpu_stat_s::unparked_node_count = 0;
+// Windows 10 Feature
+//
+typedef BOOL (WINAPI *GetSystemCpuSetInformation_pfn)(
+  _Out_opt_  PSYSTEM_CPU_SET_INFORMATION  Information,
+  _In_       ULONG                        BufferLength,
+  _Out_      PULONG                       ReturnedLength,
+  _In_opt_   HANDLE                       Process,
+  _Reserved_ ULONG                        Flags
+);
+
+static
+GetSystemCpuSetInformation_pfn
+GetSystemCpuSetInformation = nullptr;
+
+
+
+#define NT_SUCCESS(Status) ((NTSTATUS)(Status) >= 0)
+#define STATUS_SUCCESS     0
+
+#include <SpecialK/diagnostics/modules.h>
+#include <SpecialK/diagnostics/load_library.h>
+
+typedef enum _SYSTEM_INFORMATION_CLASS {
+  SystemBasicInformation                                = 0,
+  SystemProcessorInformation                            = 1,
+  SystemPerformanceInformation                          = 2,
+  SystemTimeOfDayInformation                            = 3,
+  SystemPathInformation                                 = 4,
+  SystemProcessInformation                              = 5,
+  SystemCallCountInformation                            = 6,
+  SystemDeviceInformation                               = 7,
+  SystemProcessorPerformanceInformation                 = 8,
+  SystemFlagsInformation                                = 9,
+  SystemCallTimeInformation                             = 10,
+  SystemModuleInformation                               = 11,
+  SystemLocksInformation                                = 12,
+  SystemStackTraceInformation                           = 13,
+  SystemPagedPoolInformation                            = 14,
+  SystemNonPagedPoolInformation                         = 15,
+  SystemHandleInformation                               = 16,
+  SystemObjectInformation                               = 17,
+  SystemPageFileInformation                             = 18,
+  SystemVdmInstemulInformation                          = 19,
+  SystemVdmBopInformation                               = 20,
+  SystemFileCacheInformation                            = 21,
+  SystemPoolTagInformation                              = 22,
+  SystemInterruptInformation                            = 23,
+  SystemDpcBehaviorInformation                          = 24,
+  SystemFullMemoryInformation                           = 25,
+  SystemLoadGdiDriverInformation                        = 26,
+  SystemUnloadGdiDriverInformation                      = 27,
+  SystemTimeAdjustmentInformation                       = 28,
+  SystemSummaryMemoryInformation                        = 29,
+  SystemMirrorMemoryInformation                         = 30,
+  SystemPerformanceTraceInformation                     = 31,
+  SystemObsolete0                                       = 32,
+  SystemExceptionInformation                            = 33,
+  SystemCrashDumpStateInformation                       = 34,
+  SystemKernelDebuggerInformation                       = 35,
+  SystemContextSwitchInformation                        = 36,
+  SystemRegistryQuotaInformation                        = 37,
+  SystemExtendedServiceTableInformation                 = 38,
+  SystemPrioritySeparation                              = 39,
+  SystemVerifierAddDriverInformation                    = 40,
+  SystemVerifierRemoveDriverInformation                 = 41,
+  SystemProcessorIdleInformation                        = 42,
+  SystemLegacyDriverInformation                         = 43,
+  SystemCurrentTimeZoneInformation                      = 44,
+  SystemLookasideInformation                            = 45,
+  SystemTimeSlipNotification                            = 46,
+  SystemSessionCreate                                   = 47,
+  SystemSessionDetach                                   = 48,
+  SystemSessionInformation                              = 49,
+  SystemRangeStartInformation                           = 50,
+  SystemVerifierInformation                             = 51,
+  SystemVerifierThunkExtend                             = 52,
+  SystemSessionProcessInformation                       = 53,
+  SystemLoadGdiDriverInSystemSpace                      = 54,
+  SystemNumaProcessorMap                                = 55,
+  SystemPrefetcherInformation                           = 56,
+  SystemExtendedProcessInformation                      = 57,
+  SystemRecommendedSharedDataAlignment                  = 58,
+  SystemComPlusPackage                                  = 59,
+  SystemNumaAvailableMemory                             = 60,
+  SystemProcessorPowerInformation                       = 61,
+  SystemEmulationBasicInformation                       = 62,
+  SystemEmulationProcessorInformation                   = 63,
+  SystemExtendedHandleInformation                       = 64,
+  SystemLostDelayedWriteInformation                     = 65,
+  SystemBigPoolInformation                              = 66,
+  SystemSessionPoolTagInformation                       = 67,
+  SystemSessionMappedViewInformation                    = 68,
+  SystemHotpatchInformation                             = 69,
+  SystemObjectSecurityMode                              = 70,
+  SystemWatchdogTimerHandler                            = 71,
+  SystemWatchdogTimerInformation                        = 72,
+  SystemLogicalProcessorInformation                     = 73,
+  SystemWow64SharedInformationObsolete                  = 74,
+  SystemRegisterFirmwareTableInformationHandler         = 75,
+  SystemFirmwareTableInformation                        = 76,
+  SystemModuleInformationEx                             = 77,
+  SystemVerifierTriageInformation                       = 78,
+  SystemSuperfetchInformation                           = 79,
+  SystemMemoryListInformation                           = 80,
+  SystemFileCacheInformationEx                          = 81,
+  SystemThreadPriorityClientIdInformation               = 82,
+  SystemProcessorIdleCycleTimeInformation               = 83,
+  SystemVerifierCancellationInformation                 = 84,
+  SystemProcessorPowerInformationEx                     = 85,
+  SystemRefTraceInformation                             = 86,
+  SystemSpecialPoolInformation                          = 87,
+  SystemProcessIdInformation                            = 88,
+  SystemErrorPortInformation                            = 89,
+  SystemBootEnvironmentInformation                      = 90,
+  SystemHypervisorInformation                           = 91,
+  SystemVerifierInformationEx                           = 92,
+  SystemTimeZoneInformation                             = 93,
+  SystemImageFileExecutionOptionsInformation            = 94,
+  SystemCoverageInformation                             = 95,
+  SystemPrefetchPatchInformation                        = 96,
+  SystemVerifierFaultsInformation                       = 97,
+  SystemSystemPartitionInformation                      = 98,
+  SystemSystemDiskInformation                           = 99,
+  SystemProcessorPerformanceDistribution                = 100,
+  SystemNumaProximityNodeInformation                    = 101,
+  SystemDynamicTimeZoneInformation                      = 102,
+  SystemCodeIntegrityInformation                        = 103,
+  SystemProcessorMicrocodeUpdateInformation             = 104,
+  SystemProcessorBrandString                            = 105,
+  SystemVirtualAddressInformation                       = 106,
+  SystemLogicalProcessorAndGroupInformation             = 107,
+  SystemProcessorCycleTimeInformation                   = 108,
+  SystemStoreInformation                                = 109,
+  SystemRegistryAppendString                            = 110,
+  SystemAitSamplingValue                                = 111,
+  SystemVhdBootInformation                              = 112,
+  SystemCpuQuotaInformation                             = 113,
+  SystemNativeBasicInformation                          = 114,
+  SystemErrorPortTimeouts                               = 115,
+  SystemLowPriorityIoInformation                        = 116,
+  SystemBootEntropyInformation                          = 117,
+  SystemVerifierCountersInformation                     = 118,
+  SystemPagedPoolInformationEx                          = 119,
+  SystemSystemPtesInformationEx                         = 120,
+  SystemNodeDistanceInformation                         = 121,
+  SystemAcpiAuditInformation                            = 122,
+  SystemBasicPerformanceInformation                     = 123,
+  SystemQueryPerformanceCounterInformation              = 124,
+  SystemSessionBigPoolInformation                       = 125,
+  SystemBootGraphicsInformation                         = 126,
+  SystemScrubPhysicalMemoryInformation                  = 127,
+  SystemBadPageInformation                              = 128,
+  SystemProcessorProfileControlArea                     = 129,
+  SystemCombinePhysicalMemoryInformation                = 130,
+  SystemEntropyInterruptTimingInformation               = 131,
+  SystemConsoleInformation                              = 132,
+  SystemPlatformBinaryInformation                       = 133,
+  SystemThrottleNotificationInformation                 = 134,
+  SystemPolicyInformation                               = 134,
+  SystemHypervisorProcessorCountInformation             = 135,
+  SystemDeviceDataInformation                           = 136,
+  SystemDeviceDataEnumerationInformation                = 137,
+  SystemMemoryTopologyInformation                       = 138,
+  SystemMemoryChannelInformation                        = 139,
+  SystemBootLogoInformation                             = 140,
+  SystemProcessorPerformanceInformationEx               = 141,
+  SystemSpare0                                          = 142,
+  SystemSecureBootPolicyInformation                     = 143,
+  SystemPageFileInformationEx                           = 144,
+  SystemSecureBootInformation                           = 145,
+  SystemEntropyInterruptTimingRawInformation            = 146,
+  SystemPortableWorkspaceEfiLauncherInformation         = 147,
+  SystemFullProcessInformation                          = 148,
+  SystemKernelDebuggerInformationEx                     = 149,
+  SystemBootMetadataInformation                         = 150,
+  SystemSoftRebootInformation                           = 151,
+  SystemElamCertificateInformation                      = 152,
+  SystemOfflineDumpConfigInformation                    = 153,
+  SystemProcessorFeaturesInformation                    = 154,
+  SystemRegistryReconciliationInformation               = 155,
+  SystemEdidInformation                                 = 156,
+  SystemManufacturingInformation                        = 157,
+  SystemEnergyEstimationConfigInformation               = 158,
+  SystemHypervisorDetailInformation                     = 159,
+  SystemProcessorCycleStatsInformation                  = 160,
+  SystemVmGenerationCountInformation                    = 161,
+  SystemTrustedPlatformModuleInformation                = 162,
+  SystemKernelDebuggerFlags                             = 163,
+  SystemCodeIntegrityPolicyInformation                  = 164,
+  SystemIsolatedUserModeInformation                     = 165,
+  SystemHardwareSecurityTestInterfaceResultsInformation = 166,
+  SystemSingleModuleInformation                         = 167,
+  SystemAllowedCpuSetsInformation                       = 168,
+  SystemDmaProtectionInformation                        = 169,
+  SystemInterruptCpuSetsInformation                     = 170,
+  SystemSecureBootPolicyFullInformation                 = 171,
+  SystemCodeIntegrityPolicyFullInformation              = 172,
+  SystemAffinitizedInterruptProcessorInformation        = 173,
+  SystemRootSiloInformation                             = 174,
+  SystemCpuSetInformation                               = 175,
+  SystemCpuSetTagInformation                            = 176,
+  MaxSystemInfoClass                                    = 177,
+} SYSTEM_INFORMATION_CLASS;
+
+typedef NTSTATUS (WINAPI *NtQuerySystemInformation_pfn)(
+  _In_      SYSTEM_INFORMATION_CLASS SystemInformationClass,
+  _Inout_   PVOID                    SystemInformation,
+  _In_      ULONG                    SystemInformationLength,
+  _Out_opt_ PULONG                   ReturnLength
+  );
+
+static NtQuerySystemInformation_pfn
+       NtQuerySystemInformation = nullptr;
+
 DWORD
 WINAPI
 SK_MonitorCPU (LPVOID user_param)
 {
   SK_Thread_SetCurrentPriority (THREAD_PRIORITY_LOWEST);
-  SetCurrentThreadDescription  (L"[SK] WMI CPU Monitoring Thread");
+  SetCurrentThreadDescription  (L"[SK] NtDll CPU Monitoring Thread");
+
+  if (NtQuerySystemInformation == nullptr)
+  {
+    NtQuerySystemInformation =
+      (NtQuerySystemInformation_pfn)
+        SK_GetProcAddress ( L"NtDll.dll",
+                             "NtQuerySystemInformation" );
+  }
+
+  if (GetSystemCpuSetInformation == nullptr)
+  {
+    GetSystemCpuSetInformation =
+      (GetSystemCpuSetInformation_pfn)
+        SK_GetProcAddress ( L"Kernel32.dll",
+                             "GetSystemCpuSetInformation" );
+  }
 
   SetThreadPriorityBoost       (GetCurrentThread (), TRUE);
 
-  SK_WMI_WaitForInit ();
-
-  SK_AutoCOMInit auto_com;
-
   UNREFERENCED_PARAMETER (user_param);
-
-  COM::base.wmi.Lock ();
 
   cpu_perf_t&  cpu    = cpu_stats;
   const double update = config.cpu.interval;
 
-  HRESULT hr;
+  cpu.hShutdownSignal =
+    CreateEvent ( nullptr, FALSE, FALSE, L"CPUMon Shutdown Signal" );
 
-  if (FAILED (hr = CoCreateInstance_Original (
-                     CLSID_WbemRefresher,
-                     nullptr,
-                     CLSCTX_INPROC_SERVER,
-                     IID_IWbemRefresher, 
-                     (void**) &cpu.pRefresher )
-             )
-     )
+  SK_TLS *pTLS =
+        SK_TLS_Bottom ();
+
+  DWORD           dwRet = STATUS_PENDING;
+  SYSTEM_INFO        si = {            };
+  SK_GetSystemInfo (&si);
+
+  cpu.num_cpus =
+    si.dwNumberOfProcessors;
+
+  static ULONG ulAllocatedPerfBytes =
+      cpu.num_cpus * sizeof (SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION);
+
+  while (dwRet != WAIT_OBJECT_0)
   {
-    dll_log.Log (L"[ WMI Wbem ] Failed to create Refresher Instance (%s:%d) [%s]",
-      __FILEW__, __LINE__, _com_error (hr).ErrorMessage ());
-    goto CPU_CLEANUP;
-  }
-
-  if (FAILED (hr = cpu.pRefresher->QueryInterface (
-                        IID_IWbemConfigureRefresher,
-                        (void **)&cpu.pConfig )
-             )
-     )
-  {
-    dll_log.Log (L"[ WMI Wbem ] Failed to Query Refresher Interface (%s:%d) [%s]",
-      __FILEW__, __LINE__, _com_error (hr).ErrorMessage ());
-    goto CPU_CLEANUP;
-  }
-
-  // Add an enumerator to the refresher.
-  if (FAILED (hr = cpu.pConfig->AddEnum (
-                     COM::base.wmi.pNameSpace,
-                     L"Win32_PerfFormattedData_PerfOS_Processor",
-                     0,
-                     nullptr,
-                     &cpu.pEnum,
-                     &cpu.lID )
-             )
-     )
-  {
-    dll_log.Log (L"[ WMI Wbem ] Failed to Add Enumerator (%s:%d) - %s",
-      __FILEW__, __LINE__, _com_error (hr).ErrorMessage ());
-    goto CPU_CLEANUP;
-  }
-
-  cpu.pConfig->Release ();
-  cpu.pConfig = nullptr;
-
-  int iter = 0;
-
-  cpu.dwNumReturned = 0;
-  cpu.dwNumObjects  = 0;
-
-  cpu.hShutdownSignal = CreateEvent (nullptr, FALSE, FALSE, L"CPUMon Shutdown Signal");
-
-  COM::base.wmi.Unlock ();
-
-  while (cpu.lID != 0)
-  {
-    if (MsgWaitForMultipleObjectsEx (1, const_cast <const HANDLE *> (&cpu.hShutdownSignal), ( DWORD (update * 1000.0) ), QS_ALLEVENTS, 0x0) == WAIT_OBJECT_0)
-      break;
+    dwRet = 
+      MsgWaitForMultipleObjectsEx ( 1, const_cast <const HANDLE *> (&cpu.hShutdownSignal),
+                                       ( DWORD (update * 1000.0) ),
+                                         QS_ALLEVENTS, 0x0       );
 
     // Only poll WMI while the data view is visible
     if (! (config.cpu.show || SK_ImGui_Widgets.cpu_monitor->isActive ()))
       continue;
 
-    cpu.dwNumReturned = 0;
+    PSYSTEM_PROCESSOR_PERFORMANCE_INFORMATION pPerformance =
+      (PSYSTEM_PROCESSOR_PERFORMANCE_INFORMATION)
+        pTLS->local_scratch.NtQuerySystemInformation.alloc
+        (
+           (size_t)ulAllocatedPerfBytes,
+                   true
+        );
 
-    COM::base.wmi.Lock ();
-
-    if (FAILED (hr = cpu.pRefresher->Refresh (0L)))
+    if ( NT_SUCCESS (
+           NtQuerySystemInformation ( SystemProcessorPerformanceInformation, pPerformance,
+                                      ulAllocatedPerfBytes,         &ulAllocatedPerfBytes )
+         )
+       )
     {
-      dll_log.Log (L"[ WMI Wbem ] Failed to Refresh CPU (%s:%d) [%s]",
-        __FILEW__, __LINE__, _com_error (hr).ErrorMessage ());
-      goto CPU_CLEANUP;
+      const int count =
+        ( ulAllocatedPerfBytes / sizeof (SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION) );
+
+      PSYSTEM_PROCESSOR_PERFORMANCE_INFORMATION pCPU    =  pPerformance,
+                                                pEndCPU = &pCPU [count];
+
+      assert (count < 64);
+
+      cpu.beginNewAggregate ();
+      {
+        for ( unsigned int i = 0;        pCPU  <=  pEndCPU ;
+                                       ++pCPU ) {
+          cpu.cpus [i++].recordNewData (*pCPU);
+          cpu.addToAggregate         (  *pCPU);  }
+      }
+      cpu.endAggregateTally ();
+
+      cpu.booting  = false;
     }
 
-    hr = cpu.pEnum->GetObjects ( 0L,
-                                 cpu.dwNumObjects,
-                                 cpu.apEnumAccess,
-                                 &cpu.dwNumReturned );
-
-
-    // If the buffer was not big enough,
-    // allocate a bigger buffer and retry.
-    if (hr == WBEM_E_BUFFER_TOO_SMALL 
-        && cpu.dwNumReturned > cpu.dwNumObjects)
+    if (GetSystemCpuSetInformation != nullptr)
     {
-      cpu.apEnumAccess = new IWbemObjectAccess* [cpu.dwNumReturned];
+      static ULONG ulCSIAlloc =
+          ( sizeof (SYSTEM_CPU_SET_INFORMATION) * cpu.num_cpus );
 
-      if (cpu.apEnumAccess == nullptr)
+      PSYSTEM_CPU_SET_INFORMATION pCSI =
+        (PSYSTEM_CPU_SET_INFORMATION)
+          pTLS->local_scratch.NtQuerySystemInformation.alloc
+          (
+             (size_t)ulCSIAlloc,
+                     true
+          );
+
+      if ( GetSystemCpuSetInformation ( pCSI, ulCSIAlloc, &ulCSIAlloc,
+                                          GetCurrentProcess (), 0x0 ) )
       {
-        dll_log.Log (L"[ WMI Wbem ] Out of Memory (%s:%d)",
-          __FILEW__, __LINE__);
-        hr = E_OUTOFMEMORY;
-        goto CPU_CLEANUP;
-      }
+        PSYSTEM_CPU_SET_INFORMATION             pCSIEnd =
+          (PSYSTEM_CPU_SET_INFORMATION)((BYTE *)pCSI    + ulCSIAlloc);
 
-      RtlSecureZeroMemory ( cpu.apEnumAccess,
-                            cpu.dwNumReturned * sizeof(IWbemObjectAccess *) );
+        SYSTEM_CPU_SET_INFORMATION::DataSet* pData =
+          &pCSI->CpuSet;
 
-      cpu.dwNumObjects = cpu.dwNumReturned;
+        while ((uintptr_t) pData < (uintptr_t) pCSIEnd)
+        {
+          int logic_idx =
+            pData->CpuSet.LogicalProcessorIndex;
 
-      if (FAILED (hr = cpu.pEnum->GetObjects ( 0L,
-                                               cpu.dwNumObjects,
-                                               cpu.apEnumAccess,
-                                               &cpu.dwNumReturned )
-                 )
-         )
-      {
-        dll_log.Log (L"[ WMI Wbem ] Failed to get CPU Objects (%s:%d) [%s]",
-          __FILEW__, __LINE__, _com_error (hr).ErrorMessage ());
+          if (               pData->CpuSet.Parked            &&
+               cpu.cpus [logic_idx].parked_since.QuadPart == 0 )
+          {
+            cpu.cpus [logic_idx].parked_since =
+              SK_QueryPerf ();
+          }
+          
+          else if ( (! pData->CpuSet.Parked)                    &&
+                     cpu.cpus [logic_idx].parked_since.QuadPart != 0 )
+          {
+            cpu.cpus [logic_idx].parked_since.QuadPart = 0;
+          }
 
-        goto CPU_CLEANUP;
-      }
-
-      cpu.dwNumReturned = std::min (cpu.dwNumObjects, cpu.dwNumReturned);
-    }
-    else
-    {
-      if (hr != WBEM_S_NO_ERROR)
-      {
-        dll_log.Log (L"[ WMI Wbem ] UNKNOWN ERROR (%s:%d) [%s]",
-          __FILEW__, __LINE__, _com_error (hr).ErrorMessage ());
-        hr = WBEM_E_NOT_FOUND;
-        goto CPU_CLEANUP;
+          *(BYTE **) &pData += pCSI->Size;
+        }
       }
     }
-
-    if (cpu.dwNumReturned < 1 || cpu.apEnumAccess [0] == nullptr)
-    {
-      COM::base.wmi.Unlock ();
-
-      SleepEx (100UL, FALSE);
-
-      continue;
-    }
-
-    // First time through, get the handles.
-    if (iter == 0)
-    {
-      CIMTYPE PercentInterruptTimeType;
-      CIMTYPE PercentPrivilegedTimeType;
-      CIMTYPE PercentUserTimeType;
-      CIMTYPE PercentProcessorTimeType;
-      CIMTYPE PercentIdleTimeType;
-
-      if (FAILED (hr = cpu.apEnumAccess [0]->GetPropertyHandle (
-                            L"PercentInterruptTime",
-                            &PercentInterruptTimeType,
-                            &cpu.lPercentInterruptTimeHandle )
-                 )
-         )
-      {
-        dll_log.Log (L"[ WMI Wbem ] Failed to acquire property handle (%s:%d) [%s]",
-          __FILEW__, __LINE__, _com_error (hr).ErrorMessage ());
-        goto CPU_CLEANUP;
-      }
-
-      if (FAILED (hr = cpu.apEnumAccess [0]->GetPropertyHandle (
-                            L"PercentPrivilegedTime",
-                            &PercentPrivilegedTimeType,
-                            &cpu.lPercentPrivilegedTimeHandle )
-                 )
-         )
-      {
-        dll_log.Log (L"[ WMI Wbem ] Failed to acquire property handle (%s:%d) [%s]",
-          __FILEW__, __LINE__, _com_error (hr).ErrorMessage ());
-        goto CPU_CLEANUP;
-      }
-
-      if (FAILED (hr = cpu.apEnumAccess [0]->GetPropertyHandle (
-                            L"PercentUserTime",
-                            &PercentUserTimeType,
-                            &cpu.lPercentUserTimeHandle )
-                 )
-         )
-      {
-        dll_log.Log (L"[ WMI Wbem ] Failed to acquire property handle (%s:%d) [%s]",
-          __FILEW__, __LINE__, _com_error (hr).ErrorMessage ());
-        goto CPU_CLEANUP;
-      }
-
-      if (FAILED (hr = cpu.apEnumAccess [0]->GetPropertyHandle (
-                            L"PercentProcessorTime",
-                            &PercentProcessorTimeType,
-                            &cpu.lPercentProcessorTimeHandle )
-                 )
-         )
-      {
-        dll_log.Log (L"[ WMI Wbem ] Failed to acquire property handle (%s:%d) [%s]",
-          __FILEW__, __LINE__, _com_error (hr).ErrorMessage ());
-        goto CPU_CLEANUP;
-      }
-
-      if (FAILED (hr = cpu.apEnumAccess [0]->GetPropertyHandle (
-                            L"PercentIdleTime",
-                            &PercentIdleTimeType,
-                            &cpu.lPercentIdleTimeHandle )
-                 )
-         )
-      {
-        dll_log.Log (L"[ WMI Wbem ] Failed to acquire property handle (%s:%d) [%s]",
-          __FILEW__, __LINE__, _com_error (hr).ErrorMessage ());
-        goto CPU_CLEANUP;
-      }
-    }
-
-    for (unsigned int i = 0; i < cpu.dwNumReturned; i++)
-    {
-      uint64_t interrupt;
-      uint64_t kernel;
-      uint64_t user;
-      uint64_t load;
-      uint64_t idle;
-
-      if (cpu.apEnumAccess [i] == nullptr)
-      {
-        dll_log.Log (L"[ WMI Wbem ] CPU apEnumAccess [%lu] = nullptr",  i);
-        goto CPU_CLEANUP;
-      }
-
-      if (FAILED (hr = cpu.apEnumAccess [i]->ReadQWORD (
-                             cpu.lPercentInterruptTimeHandle,
-                             &interrupt )
-                 )
-         )
-      {
-        dll_log.Log (L"[ WMI Wbem ] Failed to read Quad-Word Property (%s:%d) [%s]",
-          __FILEW__, __LINE__, _com_error (hr).ErrorMessage ());
-        goto CPU_CLEANUP;
-      }
-
-      if (FAILED (hr = cpu.apEnumAccess [i]->ReadQWORD (
-                             cpu.lPercentPrivilegedTimeHandle,
-                             &kernel )
-                 )
-         )
-      {
-        dll_log.Log (L"[ WMI Wbem ] Failed to read Quad-Word Property (%s:%d) [%s]",
-          __FILEW__, __LINE__, _com_error (hr).ErrorMessage ());
-        goto CPU_CLEANUP;
-      }
-
-      if (FAILED (hr = cpu.apEnumAccess [i]->ReadQWORD (
-                             cpu.lPercentUserTimeHandle,
-                             &user )
-                 )
-         )
-      {
-        dll_log.Log (L"[ WMI Wbem ] Failed to read Quad-Word Property (%s:%d)",
-          __FILEW__, __LINE__);
-        goto CPU_CLEANUP;
-      }
-
-      if (FAILED (hr = cpu.apEnumAccess [i]->ReadQWORD (
-                             cpu.lPercentProcessorTimeHandle,
-                             &load )
-                 )
-         )
-      {
-        dll_log.Log (L"[ WMI Wbem ] Failed to read Quad-Word Property (%s:%d)",
-          __FILEW__, __LINE__);
-        goto CPU_CLEANUP;
-      }
-
-      if (FAILED (hr = cpu.apEnumAccess [i]->ReadQWORD (
-                             cpu.lPercentIdleTimeHandle,
-                             &idle )
-                 )
-         )
-      {
-        dll_log.Log (L"[ WMI Wbem ] Failed to read Quad-Word Property (%s:%d)",
-          __FILEW__, __LINE__);
-        goto CPU_CLEANUP;
-      }
-
-      cpu.cpus [i].percent_idle   = (cpu.cpus [i].percent_idle   + idle)   / 2;
-      cpu.cpus [i].percent_load   = (cpu.cpus [i].percent_load   + load)   / 2;
-      cpu.cpus [i].percent_user   = (cpu.cpus [i].percent_user   + user)   / 2;
-      cpu.cpus [i].percent_kernel = (cpu.cpus [i].percent_kernel + kernel) / 2;
-      cpu.cpus [i].percent_interrupt
-                                  = ( cpu.cpus [i].percent_interrupt + 
-                                      interrupt ) / 2;
-
-      cpu.cpus [i].update_time = timeGetTime ();
-
-      // Done with the object
-      cpu.apEnumAccess [i]->Release ();
-      cpu.apEnumAccess [i] = nullptr;
-    }
-
-    cpu.num_cpus = cpu.dwNumReturned;
-    cpu.booting  = false;
-
-    ++iter;
-
-    COM::base.wmi.Unlock ();
-  }
-
-  COM::base.wmi.Lock ();
-
-CPU_CLEANUP:
-  //dll_log.Log (L" >> CPU_CLEANUP");
-
-  if (cpu.apEnumAccess != nullptr)
-  {
-    for (unsigned int i = 0; i < cpu.dwNumReturned; i++)
-    {
-      if (cpu.apEnumAccess [i] != nullptr)
-      {
-        cpu.apEnumAccess [i]->Release ();
-        cpu.apEnumAccess [i] = nullptr;
-      }
-    }
-    delete [] cpu.apEnumAccess;
-  }
-
-  if (cpu.pEnum)
-  {
-    cpu.pEnum->Release ();
-    cpu.pEnum = nullptr;
-  }
-
-  if (cpu.pConfig != nullptr)
-  {
-    cpu.pConfig->Release ();
-    cpu.pConfig = nullptr;
-  }
-
-  if (cpu.pRefresher != nullptr)
-  {
-    cpu.pRefresher->Release ();
-    cpu.pRefresher = nullptr;
   }
 
   if (cpu.hShutdownSignal != INVALID_HANDLE_VALUE)
   {
     CloseHandle (cpu.hShutdownSignal);
-    cpu.hShutdownSignal = nullptr;
+                 cpu.hShutdownSignal = INVALID_HANDLE_VALUE;
   }
-
-  COM::base.wmi.Unlock   ();
 
   return 0;
 }

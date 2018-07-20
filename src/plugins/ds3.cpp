@@ -1349,9 +1349,9 @@ SK_DS3_PluginKeyPress ( BOOL Control,
 //    A simple FIFO queue amortized across multiple frames is insufficient and this kludge must stay.
 //
 #define DS3_SendScancode(vk,x,y) {                         DS3_SendScancodeMake  ((vk), (x));                          \
-          CreateThread (nullptr, 0, [](LPVOID) -> DWORD {             SleepEx (66, TRUE);                              \
+          CreateThread (nullptr, 0, [](LPVOID) -> DWORD {             SleepEx (66, FALSE);                             \
                                                            DS3_SendScancodeBreak ((vk), (x));                          \
-                                                           SK_Thread_CloseSelf ();                          \
+                                                           SK_Thread_CloseSelf ();                                     \
                                                                                   return 0; }, nullptr, 0x0, nullptr); \
 };
 

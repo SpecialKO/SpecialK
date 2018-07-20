@@ -1024,6 +1024,206 @@ bool
 fix_sleep_0 = true;
 
 
+float
+SK_Sched_ThreadContext::most_recent_wait_s::getRate (void)
+{
+  if (sequence > 0)
+  {
+    double ms =
+      SK_DeltaPerfMS (
+        SK_CurrentPerf ().QuadPart - (last_wait.QuadPart - start.QuadPart), 1
+      );
+
+    return static_cast <float> ( ms / static_cast <double> (sequence) );
+  }
+
+  // Sequence just started
+  return -1.0f;
+}
+
+typedef
+DWORD (WINAPI *WaitForSingleObjectEx_pfn)(
+  _In_ HANDLE hHandle,
+  _In_ DWORD  dwMilliseconds,
+  _In_ BOOL   bAlertable
+);
+
+WaitForSingleObjectEx_pfn
+WaitForSingleObjectEx_Original = nullptr;
+
+// -------------------
+// This code is largely obsolete, but will rate-limit
+//   Unity's Asynchronous Procedure Calls if they are
+//     ever shown to devestate performance like they
+//       were in PoE2.
+// -------------------
+//
+
+extern volatile LONG SK_POE2_Horses_Held;
+extern volatile LONG SK_POE2_SMT_Assists;
+extern volatile LONG SK_POE2_ThreadBoostsKilled;
+extern          bool SK_POE2_FixUnityEmployment;
+extern          bool SK_POE2_Stage2UnityFix;
+extern          bool SK_POE2_Stage3UnityFix;
+DWORD
+WINAPI
+WaitForSingleObjectEx_Detour (
+  _In_ HANDLE hHandle,
+  _In_ DWORD  dwMilliseconds,
+  _In_ BOOL   bAlertable )
+{
+  SK_TLS *pTLS =
+    SK_TLS_Bottom ();
+
+  if (bAlertable)
+    InterlockedIncrement (&pTLS->scheduler.alert_waits);
+
+  // Consider double-buffering this since the information
+  //   is used almost exclusively by OHTER threads, and
+  //     we have to do a synchronous copy the get at this
+  //       thing without thread A murdering thread B.
+  SK_Sched_ThreadContext::wait_record_s& scheduled_wait =
+    (*pTLS->scheduler.objects_waited) [hHandle];
+
+  scheduled_wait.calls++;
+
+  if (dwMilliseconds == INFINITE)
+    scheduled_wait.time = 0;//+= dwMilliseconds;
+   
+  LARGE_INTEGER liStart =
+    SK_QueryPerf ();
+
+  bool same_as_last_time =
+    ( pTLS->scheduler.mru_wait.handle == hHandle );
+
+      pTLS->scheduler.mru_wait.handle = hHandle;
+
+  auto ret =
+    WaitForSingleObjectEx_Original (
+      hHandle, dwMilliseconds, bAlertable
+    );
+
+  // We're waiting on the same event as last time on this thread
+  if ( same_as_last_time )
+  {
+    pTLS->scheduler.mru_wait.last_wait = liStart;
+    pTLS->scheduler.mru_wait.sequence++;
+  }
+
+  // This thread found actual work and has stopped abusing the kernel
+  //   waiting on the same always-signaled event; it can have its
+  //     normal preemption behavior back  (briefly anyway).
+  else
+  {
+    pTLS->scheduler.mru_wait.start     = liStart;
+    pTLS->scheduler.mru_wait.last_wait = liStart;
+    pTLS->scheduler.mru_wait.sequence  = 0;
+  }   
+
+  if ( ret            == WAIT_OBJECT_0 && SK_POE2_FixUnityEmployment &&
+       dwMilliseconds == INFINITE      && bAlertable == TRUE )
+  {
+    // Not to be confused with the other thing
+    bool hardly_working =
+      (! StrCmpW (pTLS->debug.name, L"Worker Thread"));
+
+    if ( SK_POE2_Stage3UnityFix || hardly_working )
+    {
+      if (pTLS->scheduler.mru_wait.getRate () >= 0.00666f)
+      {
+        // This turns preemption of threads in the same priority level off.
+        //
+        //    * Yes, TRUE means OFF.  Use this wrong and you will hurt
+        //                              performance; just sayin'
+        //
+        if (pTLS->scheduler.mru_wait.preemptive == -1)
+        {
+          GetThreadPriorityBoost ( GetCurrentThread (), 
+                                   &pTLS->scheduler.mru_wait.preemptive );
+        }
+
+        if (pTLS->scheduler.mru_wait.preemptive != TRUE)
+        {
+          SetThreadPriorityBoost ( GetCurrentThread (), TRUE );
+          InterlockedIncrement   (&SK_POE2_ThreadBoostsKilled);
+        }
+
+        //
+        // (Everything below applies to the Unity unemployment office only)
+        //
+        if (hardly_working)
+        {
+          // Unity Worker Threads have special additional considerations to
+          //   make them less of a pain in the ass for the kernel.
+          //
+          LARGE_INTEGER core_sleep_begin =
+            SK_QueryPerf ();
+
+          if (SK_DeltaPerfMS (liStart.QuadPart, 1) < 0.25)
+          {
+            if (SK_POE2_Stage2UnityFix)
+            {
+              // Micro-sleep the core this thread is running on to try
+              //   and salvage its logical (HyperThreaded) partner's
+              //     ability to do work.
+              //
+              while (SK_DeltaPerfMS (core_sleep_begin.QuadPart, 1) < 0.00005)
+              {
+                InterlockedIncrement (&SK_POE2_SMT_Assists);
+
+                // Very brief pause that is good for next to nothing
+                //   aside from voluntarily giving up execution resources
+                //     on this core's superscalar pipe and hoping the
+                //       related Logical Processor can work more
+                //         productively if we get out of the way.
+                //
+                YieldProcessor       (                    );
+                //
+                // ^^^ Literally does nothing, but an even less useful
+                //       nothing if the processor does not support SMT.
+                //
+              }
+            }
+
+            InterlockedIncrement (&SK_POE2_Horses_Held);
+            SwitchToThread       (       );
+          };
+        }
+      }
+      
+      else
+      {
+        if (pTLS->scheduler.mru_wait.preemptive == -1)
+        {
+          GetThreadPriorityBoost ( GetCurrentThread (), 
+                                  &pTLS->scheduler.mru_wait.preemptive );
+        }
+
+        if (pTLS->scheduler.mru_wait.preemptive != FALSE)
+        {
+          SetThreadPriorityBoost (GetCurrentThread (), FALSE);
+          InterlockedIncrement   (&SK_POE2_ThreadBoostsKilled);
+        }
+      }
+    }
+  }
+
+  // They took our jobs!
+  else if (pTLS->scheduler.mru_wait.preemptive != -1)
+  {
+    SetThreadPriorityBoost (
+      GetCurrentThread (),
+        pTLS->scheduler.mru_wait.preemptive );
+
+    // Status Quo restored: Jobs nobody wants are back and have
+    //   zero future relevance and should be ignored if possible.
+    pTLS->scheduler.mru_wait.preemptive = -1;
+  }
+
+  return ret;
+}
+
+
 void
 WINAPI
 Sleep_Detour (DWORD dwMilliseconds)
@@ -1108,7 +1308,7 @@ Sleep_Detour (DWORD dwMilliseconds)
       if (dwMilliseconds <= 1)
       {
         if (SK_TLS_Bottom ()->win32.getThreadPriority () == THREAD_PRIORITY_NORMAL)
-          SleepEx (0, TRUE);
+          SleepEx (0, FALSE);
         else
           YieldProcessor ();
       }
@@ -1255,6 +1455,11 @@ SK::Framerate::Init (void)
                                Sleep_Detour,
       static_cast_p2p <void> (&Sleep_Original),
       static_cast_p2p <void> (&pfnSleep) );
+
+    SK_CreateDLLHook2 (      L"kernel32",
+                              "WaitForSingleObjectEx",
+                               WaitForSingleObjectEx_Detour,
+      static_cast_p2p <void> (&WaitForSingleObjectEx_Original) );
 
 #ifdef NO_HOOK_QPC
       QueryPerformanceCounter_Original =
@@ -1655,7 +1860,7 @@ SK::Framerate::Limiter::wait (void)
             }
 
             else
-              SleepEx                            (dwWaitMS,   TRUE);
+              SleepEx                            (dwWaitMS,   FALSE);
 
             bYielded = true;
           }

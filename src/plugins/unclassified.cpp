@@ -452,8 +452,12 @@ SK_SO4_PlugInCfg (void)
 }
 
 
-volatile LONG SK_POE2_SkippedCopies      = 0L;
-         bool SK_POE2_NopSubresourceCopy = false;
+volatile LONG SK_POE2_Horses_Held        = 0;
+volatile LONG SK_POE2_SMT_Assists        = 0;
+volatile LONG SK_POE2_ThreadBoostsKilled = 0;
+         bool SK_POE2_FixUnityEmployment = true;
+         bool SK_POE2_Stage2UnityFix     = true;
+         bool SK_POE2_Stage3UnityFix     = false;
 
 bool
 SK_POE2_PlugInCfg (void)
@@ -462,16 +466,42 @@ SK_POE2_PlugInCfg (void)
   {
     ImGui::TreePush ("");
 
-    ImGui::Checkbox ("Disable Memory Copies to Staging Resources", &SK_POE2_NopSubresourceCopy);
+    ImGui::Checkbox ("Assign Unity Worker Threads to Labor Union", &SK_POE2_FixUnityEmployment);
 
-    int skipped = ReadAcquire (&SK_POE2_SkippedCopies);
-
-    if (skipped > 0)
+    if (SK_POE2_FixUnityEmployment)
     {
-      ImGui::SameLine ();
-      ImGui::Text     ("\t%lu Copy Operations Skipped", skipped);
-    }
+      ImGui::BeginGroup ();
+      int lvl = SK_POE2_Stage3UnityFix ? 2 :
+                SK_POE2_Stage2UnityFix ? 1 : 0;
 
+      if (
+        ImGui::Combo ( "Scheduling Supervisory Level",
+                       &lvl, "Avoid GPU Thread Starvation\0"
+                             "SMT Thread Custody Mediation\0"
+                             "Apply Unity Rules on All Threads\0" )
+      ) {
+        SK_POE2_Stage3UnityFix = (lvl > 1);
+        SK_POE2_Stage2UnityFix = (lvl > 0);
+      } 
+      ImGui::EndGroup   ();
+
+      ImGui::SameLine   ();
+
+      ImGui::BeginGroup ();
+      ImGui::Text       ("Events Throttled:");
+      ImGui::Text       ("SMT Microsleep Yields:");
+      ImGui::Text       ("Pre-Emption Adjustments:");
+      ImGui::EndGroup   ();
+
+      ImGui::SameLine   ();
+
+      ImGui::BeginGroup ();
+      ImGui::Text       ("%lu", ReadAcquire (&SK_POE2_Horses_Held));
+      ImGui::Text       ("%lu", ReadAcquire (&SK_POE2_SMT_Assists));      
+      ImGui::Text       ("%lu", ReadAcquire (&SK_POE2_ThreadBoostsKilled));
+      ImGui::EndGroup   ();
+    }
+      
     ImGui::TreePop  ();
 
     return false;

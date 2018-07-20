@@ -111,7 +111,7 @@
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
-    <WholeProgramOptimization>false</WholeProgramOptimization>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <SpectreMitigation>false</SpectreMitigation>
   </PropertyGroup>
@@ -183,7 +183,7 @@
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
-    <WholeProgramOptimization>false</WholeProgramOptimization>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <SpectreMitigation>false</SpectreMitigation>
   </PropertyGroup>

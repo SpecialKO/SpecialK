@@ -1037,7 +1037,7 @@ public:
         pProc = (SYSTEM_PROCESS_INFORMATION *)((BYTE *)pProc + pProc->dNext);
       } while (pProc->dNext != 0);
 
-
+        
       if ((DWORD)((uintptr_t)pProc->UniqueProcessId & 0xFFFFFFFFU) == dwPID)
       {
         int threads =
@@ -1401,7 +1401,7 @@ public:
 
                   if (SuspendThread (hThread__) != (DWORD)-1)
                   {
-                    SleepEx (90, TRUE);
+                    SleepEx (90, FALSE);
 
                     if (SK_GetFramesDrawn () <= ((suspend_params_s *)user)->frames)
                     {

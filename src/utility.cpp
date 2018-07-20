@@ -1332,8 +1332,7 @@ SK_IsDLLSpecialK (const wchar_t* wszName)
   if (dwSize < 1024)
     return false;
 
-  uint8_t *cbData =
-    ReadAcquire (&__SK_DLL_Attached) ?
+  uint8_t *cbData = ReadAcquire (&__SK_DLL_Attached) ?
       (uint8_t *)SK_TLS_Bottom ()->scratch_memory.cmd.alloc (dwSize) :
       (uint8_t *)LocalAlloc    (LPTR,                        dwSize);
 
@@ -2563,8 +2562,13 @@ SK_FormatString (char const* const _Format, ...)
   }
   va_end   (_ArgList);
 
+  size_t alloc_size =
+    sizeof (char) * (len + 1);
+
   char* pData =
-    (char *)SK_TLS_Bottom ()->scratch_memory.eula.alloc (len + 1, true);
+    ReadAcquire (&__SK_DLL_Attached) ?
+      (char *)SK_TLS_Bottom ()->scratch_memory.eula.alloc (alloc_size, true) :
+      (char *)SK_LocalAlloc (                        LPTR, alloc_size      );
 
   va_start (_ArgList, _Format);
   {
@@ -2573,7 +2577,8 @@ SK_FormatString (char const* const _Format, ...)
   }
   va_end   (_ArgList);
 
-  return std::move (pData);
+  return
+    std::move (pData);
 }
 
 std::wstring
@@ -2590,8 +2595,12 @@ SK_FormatStringW (wchar_t const* const _Format, ...)
   }
   va_end   (_ArgList);
 
-  wchar_t* pData =
-    (wchar_t *)SK_TLS_Bottom ()->scratch_memory.eula.alloc (sizeof (wchar_t) * (len + 1), true);
+  size_t alloc_size =
+    sizeof (wchar_t) * (len + 1);
+
+  wchar_t* pData = ReadAcquire (&__SK_DLL_Attached) ?
+    (wchar_t *)SK_TLS_Bottom ()->scratch_memory.eula.alloc (alloc_size, true) :
+    (wchar_t *)SK_LocalAlloc (                        LPTR, alloc_size      );
 
   va_start (_ArgList, _Format);
   {
@@ -2600,7 +2609,8 @@ SK_FormatStringW (wchar_t const* const _Format, ...)
   }
   va_end   (_ArgList);
 
-  return std::move (pData);
+  return
+    std::move (pData);
 }
 
 

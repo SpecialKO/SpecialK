@@ -938,7 +938,7 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
 
         if (ret)
         {
-          static auto* pTLS =
+          auto* pTLS =
             SK_TLS_Bottom ();
 
           auto pData = pTLS->raw_input.allocData (size);

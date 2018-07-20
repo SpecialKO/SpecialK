@@ -245,7 +245,7 @@ EnterSpinLock (VOID)
         ;
     else
     {
-      MsgWaitForMultipleObjectsEx ( 0, NULL, 1, MWMO_ALERTABLE, 0x0 );
+      MsgWaitForMultipleObjectsEx ( 0, NULL, 1, QS_ALLEVENTS, MWMO_INPUTAVAILABLE );
     }
 
     spinCount++;

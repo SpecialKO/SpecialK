@@ -4071,7 +4071,7 @@ SK_D3D11_ActivateSRVOnSlot ( UINT                      dev_ctx_handle,
       {
         if ( ++spins > 0x1000 )
         {
-          SleepEx (1, true);
+          SleepEx (1, FALSE);
           spins = 0;
         }
       }
@@ -12708,7 +12708,7 @@ HookD3D11 (LPVOID user)
     }
 
     while (CreateDXGIFactory_Import == nullptr)
-      MsgWaitForMultipleObjectsEx (0, nullptr, 16UL, QS_ALLINPUT, MWMO_ALERTABLE);
+      MsgWaitForMultipleObjectsEx (0, nullptr, 16UL, QS_ALLINPUT, MWMO_INPUTAVAILABLE);
 
     // TODO: Handle situation where CreateDXGIFactory is unloadable
   }
@@ -13504,7 +13504,7 @@ SK_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
     {
       if ( ++spins > 0x1000 )
       {
-        SleepEx (1, true);
+        SleepEx (1, FALSE);
         spins = 0;
       }
     }
@@ -16647,7 +16647,7 @@ SK_D3D11_EndFrame (SK_TLS* pTLS = SK_TLS_Bottom ())
     {
       if ( ++spins > 0x1000 )
       {
-        SleepEx (1, true);
+        SleepEx (1, FALSE);
         spins = 0;
       }
     }

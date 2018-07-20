@@ -619,7 +619,7 @@ WaitForInit (void)
       break;
 
     if ( WAIT_OBJECT_0 ==
-           MsgWaitForMultipleObjectsEx (1, const_cast <HANDLE *>(&hInitThread), 16UL, QS_ALLINPUT, MWMO_ALERTABLE) )
+           MsgWaitForMultipleObjectsEx (1, const_cast <HANDLE *>(&hInitThread), 16UL, QS_ALLINPUT, MWMO_INPUTAVAILABLE) )
       break;
   }
 
@@ -1781,6 +1781,8 @@ BACKEND_INIT:
       SK_Steam_LoadOverlayEarly ();
     }
 
+    SK_ApplyQueuedHooks ();
+
     InterlockedExchangePointer (
       const_cast <void **> (&hInitThread),
       SK_Thread_CreateEx ( DllThread, nullptr,
@@ -2594,7 +2596,7 @@ SK_Input_PollKeyboard (void)
 #if 0
   if (ullNow.QuadPart < last_poll + poll_interval)
   {
-    SleepEx (10, TRUE);
+    SleepEx (10, FALSE);
     last_poll = ullNow.QuadPart;
   }
 #endif

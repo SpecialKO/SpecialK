@@ -433,7 +433,7 @@ RunDLL_InjectionManager ( HWND  hwnd,        HINSTANCE hInst,
              DWORD
                {
                  while ( ReadAcquire (&__SK_DLL_Attached) || SK_GetHostAppUtil ().isInjectionTool () )
-                   SleepEx (5UL, TRUE);
+                   SleepEx (5UL, FALSE);
 
                  SK_Thread_CloseSelf ();
 
@@ -450,7 +450,7 @@ RunDLL_InjectionManager ( HWND  hwnd,        HINSTANCE hInst,
         // Closes itself
         DBG_UNREFERENCED_LOCAL_VARIABLE (hThread);
 
-        SleepEx (INFINITE, TRUE);
+        SleepEx (INFINITE, FALSE);
       }
     }
   }

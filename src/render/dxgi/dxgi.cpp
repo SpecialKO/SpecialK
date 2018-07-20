@@ -2949,7 +2949,7 @@ SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
           MsgWaitForMultipleObjectsEx ( 1,
                                           &hWait.m_h,
                                             config.render.framerate.swapchain_wait,
-                                              QS_ALLEVENTS, MWMO_ALERTABLE );
+                                              QS_ALLEVENTS, MWMO_INPUTAVAILABLE );
         }
       }
     }
@@ -3303,7 +3303,7 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
           MsgWaitForMultipleObjectsEx ( 1,
                                           &hWait.m_h,
                                             config.render.framerate.swapchain_wait,
-                                              QS_ALLEVENTS, MWMO_ALERTABLE );
+                                              QS_ALLEVENTS, MWMO_INPUTAVAILABLE );
         }
       }
     }
@@ -3804,7 +3804,7 @@ SK_DXGI_ValidateSwapChainResize ( IDXGISwapChain* pSwapChain, UINT BufferCount,
   }
 
   while (ReadAcquire (&init) != -1)
-    MsgWaitForMultipleObjectsEx (0, nullptr, 2UL, QS_ALLINPUT, MWMO_ALERTABLE);
+    MsgWaitForMultipleObjectsEx (0, nullptr, 2UL, QS_ALLEVENTS, MWMO_INPUTAVAILABLE);
 
 
   EnterCriticalSection (&cs_resize);
@@ -4902,7 +4902,7 @@ SK_DXGI_CreateSwapChain_PostInit ( _In_  IUnknown              *pDevice,
       MsgWaitForMultipleObjectsEx ( 1,
                                       &hWait.m_h,
                                         config.render.framerate.swapchain_wait,
-                                          QS_ALLEVENTS, MWMO_ALERTABLE );
+                                          QS_ALLEVENTS, MWMO_INPUTAVAILABLE );
     }
   }
 
@@ -6795,7 +6795,7 @@ HookDXGI (LPVOID user)
     }
 
     while (CreateDXGIFactory_Import == nullptr)
-      MsgWaitForMultipleObjectsEx (0, nullptr, 33, QS_ALLINPUT, MWMO_ALERTABLE);
+      MsgWaitForMultipleObjectsEx (0, nullptr, 33, QS_ALLEVENTS, MWMO_INPUTAVAILABLE);
 
     // TODO: Handle situation where CreateDXGIFactory is unloadable
   }

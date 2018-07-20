@@ -108,7 +108,7 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
 
   while (InterlockedCompareExchange (&spinlock, 1, 0) != 0)
   {
-    MsgWaitForMultipleObjectsEx (0, nullptr, 33, QS_ALLEVENTS, MWMO_ALERTABLE);
+    MsgWaitForMultipleObjectsEx (0, nullptr, 33, QS_ALLEVENTS, MWMO_INPUTAVAILABLE);
   }
 
 

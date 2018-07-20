@@ -312,7 +312,7 @@ SK_NNK2_InitPlugin (void)
     // Fix for window-management issues in windowed mode
     while (SK_GetFramesDrawn () < 8)
     {
-      SleepEx (16UL, TRUE);
+      SleepEx (16UL, FALSE);
     }
 
 
