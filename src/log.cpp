@@ -32,7 +32,7 @@
 
 typedef void ( WINAPI *GetSystemTimePreciseAsFileTime_pfn )(
   _Out_ LPFILETIME lpSystemTimeAsFileTime
-  );                    GetSystemTimePreciseAsFileTime_pfn
+  );                   GetSystemTimePreciseAsFileTime_pfn
   _k32GetSystemTimePreciseAsFileTime = nullptr;
 
 WORD
@@ -193,7 +193,7 @@ SK_FlushLog (iSK_Logger* pLog)
   }
 
 
-  return TRUE;
+   return TRUE;
 }
 
 iSK_Logger dll_log, budget_log;

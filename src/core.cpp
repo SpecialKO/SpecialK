@@ -1620,13 +1620,13 @@ SK_StartupCore (const wchar_t* backend, void* callback)
       {
         if (StrStrIW (SK_GetHostPath (), LR"(SteamApps\common)") != nullptr)
         {
-          extern const std::wstring
+          extern const wchar_t*
           SK_Steam_GetDLLPath (void);
 
           // Only do this if the game doesn't have a copy of the DLL lying around somewhere,
           //   because if we init Special K's SteamAPI DLL, the game's will fail to init and
           //     the game won't be happy about that!
-          kick_start = (! SK_Modules.LoadLibrary (SK_Steam_GetDLLPath ().c_str ())) || config.steam.force_load_steamapi;
+          kick_start = (! SK_Modules.LoadLibrary (SK_Steam_GetDLLPath ())) || config.steam.force_load_steamapi;
         }
       }
 

@@ -847,13 +847,13 @@ NtCreateThreadEx_Detour (
     const DWORD tid =
       GetThreadId (*ThreadHandle);
 
-    if (! _SK_ThreadNames.count (tid))
-    {
-      _SK_ThreadNames [tid] =
-        SK_UTF8ToWideChar (thread_name);
-
-      //wcsncpy (SK_TLS_BottomEx (tid)->debug.name, SK_UTF8ToWideChar (thread_name).c_str (), 255);
-    }
+    ////if (! _SK_ThreadNames.count (tid))
+    ////{
+    ////  _SK_ThreadNames [tid] =
+    ////    SK_UTF8ToWideChar (thread_name);
+    ////
+    ////  //wcsncpy (SK_TLS_BottomEx (tid)->debug.name, SK_UTF8ToWideChar (thread_name).c_str (), 255);
+    ////}
 
     if (Suspicious)
     {

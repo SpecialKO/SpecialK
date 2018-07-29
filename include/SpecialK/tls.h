@@ -537,8 +537,10 @@ public:
     LONG          alert_waits   = 0;
 
   struct wait_record_s {
-    LONG        calls = 0;
-    LONG        time  = 0;
+    LONG          calls        = 0;
+    LONG          time         = 0;
+    volatile
+      LONG64      time_blocked = 0;
   };
 
   std::unordered_map <HANDLE, wait_record_s>*

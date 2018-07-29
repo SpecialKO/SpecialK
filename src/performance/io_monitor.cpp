@@ -475,7 +475,7 @@ SK_MonitorCPU (LPVOID user_param)
 
       cpu.beginNewAggregate ();
       {
-        for ( unsigned int i = 0;        pCPU  <=  pEndCPU ;
+        for ( unsigned int i = 0;        pCPU  <  pEndCPU ;
                                        ++pCPU ) {
           cpu.cpus [i++].recordNewData (*pCPU);
           cpu.addToAggregate         (  *pCPU);  }

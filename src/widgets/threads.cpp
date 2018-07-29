@@ -1270,6 +1270,36 @@ public:
           }
         }
 
+        ImGui::Separator ();
+        ImGui::Text      ("Alertable Waits (APC): %lu", ReadAcquire (&pTLS->scheduler.alert_waits));
+        ImGui::TreePush  ("");
+
+        std::map <HANDLE, SK_Sched_ThreadContext::wait_record_s>
+          objects_waited = { pTLS->scheduler.objects_waited->begin (),
+                             pTLS->scheduler.objects_waited->end   () };
+
+        ImGui::BeginGroup ();
+        for ( auto& it : objects_waited )
+        {
+          ImGui::Text ("Wait Object: %x", it.first);
+        }
+        ImGui::EndGroup   ();
+        ImGui::SameLine   ();
+        ImGui::BeginGroup ();
+        for ( auto& it : objects_waited )
+        {
+          ImGui::Text ("Waits Issued: %lu", it.second.calls);
+        }
+        ImGui::EndGroup   ();
+        ImGui::SameLine   ();
+        ImGui::BeginGroup ();
+        for ( auto& it : objects_waited )
+        {
+          ImGui::Text ("Time Spent Waiting: %lu ms", ReadAcquire64 (&it.second.time_blocked));
+        }
+        ImGui::EndGroup   ();
+        ImGui::TreePop    ();
+
         ImGui::EndTooltip   ();
       }
     };
@@ -1606,6 +1636,9 @@ public:
     auto IsThreadNonIdle = [&](SKWG_Thread_Entry& tent) ->
     bool
     {
+      if (tent.hThread == 0 || tent.hThread == INVALID_HANDLE_VALUE)
+        return false;
+
       const DWORD IDLE_PERIOD = 1500UL;
 
       if (tent.exited && (! show_exited_threads))
@@ -2091,9 +2124,8 @@ public:
     {
       if (! IsThreadNonIdle (*it.second)) continue;
 
-      HANDLE hThread = it.second->hThread;
-
-      BOOL bDisableBoost = FALSE;
+      HANDLE hThread       = it.second->hThread;
+      BOOL   bDisableBoost = FALSE;
 
       if (GetThreadPriorityBoost (hThread, &bDisableBoost) && (! bDisableBoost))
       {

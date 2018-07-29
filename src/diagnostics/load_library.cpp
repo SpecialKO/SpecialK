@@ -621,6 +621,7 @@ FreeLibrary_Detour (HMODULE hLibModule)
 }
 
 HMODULE
+WINAPI
 LoadLibrary_Marshal (LPVOID lpRet, LPCWSTR lpFileName, const wchar_t* wszSourceFunc)
 {
   if (lpFileName == nullptr)
@@ -760,6 +761,7 @@ LoadPackagedLibrary_Detour (LPCWSTR lpLibFileName, DWORD Reserved)
 }
 
 HMODULE
+WINAPI
 LoadLibraryEx_Marshal (LPVOID lpRet, LPCWSTR lpFileName, HANDLE hFile, DWORD dwFlags, const wchar_t* wszSourceFunc)
 {
   if (lpFileName == nullptr)

@@ -592,7 +592,7 @@ ISteamController_GetDigitalActionData_Detour ( ISteamController                *
 
 
 
-extern const std::wstring
+extern const wchar_t*
 SK_Steam_GetDLLPath (void);
 
 bool
@@ -601,31 +601,31 @@ SK_Steam_HookController (void)
   if (ISteamController_Init_Original != nullptr)
     return true;
 
-  std::wstring steam_dll =
+  const wchar_t *steam_dll =
     SK_Steam_GetDLLPath ();
 
   if ( GetProcAddress (
-         GetModuleHandleW (steam_dll.c_str ()),
+         GetModuleHandleW (steam_dll),
          "SteamAPI_ISteamController_GetAnalogActionData"
        )
      )
   {
-    SK_CreateDLLHook2 (       steam_dll.c_str (),
+    SK_CreateDLLHook2 (       steam_dll,
                      "SteamAPI_ISteamController_Init",
                                ISteamController_Init_Detour,
       static_cast_p2p <void> (&ISteamController_Init_Original) );
 
-    SK_CreateDLLHook2 (       steam_dll.c_str (),
+    SK_CreateDLLHook2 (       steam_dll,
                      "SteamAPI_ISteamController_RunFrame",
                                ISteamController_RunFrame_Detour,
       static_cast_p2p <void> (&ISteamController_RunFrame_Original) );
 
-    SK_CreateDLLHook2 (       steam_dll.c_str (),
+    SK_CreateDLLHook2 (       steam_dll,
                      "SteamAPI_ISteamController_GetAnalogActionData",
                                ISteamController_GetAnalogActionData_Detour,
       static_cast_p2p <void> (&ISteamController_GetAnalogActionData_Original) );
 
-    SK_CreateDLLHook2 (       steam_dll.c_str (),
+    SK_CreateDLLHook2 (       steam_dll,
                      "SteamAPI_ISteamController_GetDigitalActionData",
                                ISteamController_GetDigitalActionData_Detour,
       static_cast_p2p <void> (&ISteamController_GetDigitalActionData_Original) );
@@ -639,7 +639,7 @@ SK_Steam_HookController (void)
   else
   {
     SK_LOG0 ( ( L"SteamAPI DLL ('%s') does not export SteamAPI_ISteamController_GetAnalogActionData; "
-                L"disabling SK SteamInput support.", steam_dll.c_str () ),
+                L"disabling SK SteamInput support.", steam_dll ),
                L"SteamInput" );
   }
 

@@ -345,4 +345,4 @@ SK_Memory_RemoveHooks (void)
   HeapFree_Original        = nullptr;
 
   SK_ApplyQueuedHooks ();
-}
+} 

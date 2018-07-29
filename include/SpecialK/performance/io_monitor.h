@@ -192,6 +192,9 @@ struct cpu_perf_t : WMI_refresh_thread_t
                              parked_node_count;
 
     LARGE_INTEGER          parked_since                 = { 0 };
+
+    uint32_t               CurrentMhz                   = 0;
+    uint32_t               MaximumMhz                   = 0;
   } cpus [65];
     // Idx 64 holds combined load totals as discussed above
 

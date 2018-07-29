@@ -368,6 +368,11 @@ public:
       return values [(idx + values_offset) % max_samples];
   }
 
+  _T    getLastValue (void)
+  {
+    return last_val;
+  }
+
 
   void addValue (_T val, bool only_if_different = false)
   {

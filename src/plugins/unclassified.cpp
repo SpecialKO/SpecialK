@@ -497,7 +497,7 @@ SK_POE2_PlugInCfg (void)
 
       ImGui::BeginGroup ();
       ImGui::Text       ("%lu", ReadAcquire (&SK_POE2_Horses_Held));
-      ImGui::Text       ("%lu", ReadAcquire (&SK_POE2_SMT_Assists));      
+      ImGui::Text       ("%lu", ReadAcquire (&SK_POE2_SMT_Assists));
       ImGui::Text       ("%lu", ReadAcquire (&SK_POE2_ThreadBoostsKilled));
       ImGui::EndGroup   ();
     }

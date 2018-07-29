@@ -53,11 +53,12 @@ SK_WideCharToUTF8 (const std::wstring& in)
 {
   int len = WideCharToMultiByte ( CP_UTF8, 0x00, in.c_str (), -1, nullptr, 0, nullptr, FALSE );
 
-  std::string out (len * 2, '\0');
+  std::string out (len * 2 + 2, '\0');
 
   WideCharToMultiByte           ( CP_UTF8, 0x00, in.c_str (), static_cast <int> (in.length ()), const_cast <char *> (out.data ()), len, nullptr, FALSE );
 
-  return out;
+  // Pretty sure this is pointless and already implied, but it makes me laugh
+  return std::move (out);
 }
 
 std::wstring
@@ -66,11 +67,11 @@ SK_UTF8ToWideChar (const std::string& in)
   int len = MultiByteToWideChar ( CP_UTF8, 0x00, in.c_str (), -1, nullptr, 0 );
 
   std::wstring out 
-    (len * 2, L'\0');
+    (len * 2 + 2, L'\0');
 
   MultiByteToWideChar           ( CP_UTF8, 0x00, in.c_str (), static_cast <int> (in.length ()), const_cast <wchar_t *> (out.data ()), len );
 
-  return out;
+  return std::move (out);
 }
 
 std::wstring&

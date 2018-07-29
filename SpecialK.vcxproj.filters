@@ -644,9 +644,6 @@
     <ClCompile Include="src\adl.cpp">
       <Filter>Source Files\Stats</Filter>
     </ClCompile>
-    <ClCompile Include="src\nvapi.cpp">
-      <Filter>Source Files\Stats</Filter>
-    </ClCompile>
     <ClCompile Include="src\SpecialK.cpp">
       <Filter>Source Files\Core</Filter>
     </ClCompile>
@@ -666,9 +663,6 @@
       <Filter>Source Files\OSD</Filter>
     </ClCompile>
     <ClCompile Include="src\osd\text.cpp">
-      <Filter>Source Files\OSD</Filter>
-    </ClCompile>
-    <ClCompile Include="src\osd\popup.cpp">
       <Filter>Source Files\OSD</Filter>
     </ClCompile>
     <ClCompile Include="src\plugins\fo4.cpp">
@@ -833,9 +827,6 @@
     <ClCompile Include="src\imgui\EULA.cpp">
       <Filter>Source Files\ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="src\imgui\imgui.cpp">
-      <Filter>Source Files\ImGui</Filter>
-    </ClCompile>
     <ClCompile Include="src\render\d3d9\d3d9_texmgr.cpp">
       <Filter>Source Files\Backends\Render\D3D9</Filter>
     </ClCompile>
@@ -979,6 +970,15 @@
     </ClCompile>
     <ClCompile Include="src\thread.cpp">
       <Filter>Source Files\Diagnostics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\osd\popup.cpp">
+      <Filter>Source Files\Plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nvapi.cpp">
+      <Filter>Source Files\Stats</Filter>
+    </ClCompile>
+    <ClCompile Include="src\imgui\imgui.cpp">
+      <Filter>Source Files\ImGui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

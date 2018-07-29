@@ -1072,6 +1072,11 @@ WaitForSingleObjectEx_Detour (
   _In_ DWORD  dwMilliseconds,
   _In_ BOOL   bAlertable )
 {
+  if (! SK_GetFramesDrawn ())
+    return WaitForSingleObjectEx_Original (
+             hHandle, dwMilliseconds, bAlertable
+           ); 
+
   SK_TLS *pTLS =
     SK_TLS_Bottom ();
 
@@ -1103,6 +1108,12 @@ WaitForSingleObjectEx_Detour (
       hHandle, dwMilliseconds, bAlertable
     );
 
+  InterlockedAdd64 ( &scheduled_wait.time_blocked,
+                       static_cast <uint64_t> (
+                         SK_DeltaPerfMS (liStart.QuadPart, 1)
+                       )
+                   );
+
   // We're waiting on the same event as last time on this thread
   if ( same_as_last_time )
   {
@@ -1129,7 +1140,7 @@ WaitForSingleObjectEx_Detour (
 
     if ( SK_POE2_Stage3UnityFix || hardly_working )
     {
-      if (pTLS->scheduler.mru_wait.getRate () >= 0.00666f)
+      if (pTLS->scheduler.mru_wait.getRate () >= 0.004f)
       {
         // This turns preemption of threads in the same priority level off.
         //
@@ -1159,7 +1170,7 @@ WaitForSingleObjectEx_Detour (
           LARGE_INTEGER core_sleep_begin =
             SK_QueryPerf ();
 
-          if (SK_DeltaPerfMS (liStart.QuadPart, 1) < 0.25)
+          if (SK_DeltaPerfMS (liStart.QuadPart, 1) < 0.05)
           {
             if (SK_POE2_Stage2UnityFix)
             {
@@ -1167,7 +1178,7 @@ WaitForSingleObjectEx_Detour (
               //   and salvage its logical (HyperThreaded) partner's
               //     ability to do work.
               //
-              while (SK_DeltaPerfMS (core_sleep_begin.QuadPart, 1) < 0.00005)
+              while (SK_DeltaPerfMS (core_sleep_begin.QuadPart, 1) < 0.00001)
               {
                 InterlockedIncrement (&SK_POE2_SMT_Assists);
 
@@ -1186,7 +1197,7 @@ WaitForSingleObjectEx_Detour (
             }
 
             InterlockedIncrement (&SK_POE2_Horses_Held);
-            SwitchToThread       (       );
+            SleepEx              (1, FALSE);
           };
         }
       }

@@ -260,7 +260,7 @@ __stdcall
 SK_GetFramesDrawn (void)
 {
   return
-    ULONG { static_cast <ULONG> (ReadNoFence (&SK_RenderBackend::frames_drawn)) };
+    ULONG { static_cast <ULONG> (ReadAcquire (&SK_RenderBackend::frames_drawn)) };
 }
 
 
