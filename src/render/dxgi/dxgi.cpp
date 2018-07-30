@@ -2379,6 +2379,11 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
         rb.framebuffer_flags &= (~SK_FRAMEBUFFER_FLAG_RGB10A2);
       } break;
 
+      case DXGI_FORMAT_R16G16B16A16_FLOAT:
+        rb.framebuffer_flags |= SK_FRAMEBUFFER_FLAG_FLOAT;
+        rb.framebuffer_flags |= SK_FRAMEBUFFER_FLAG_HDR;
+        break;
+
       case DXGI_FORMAT_R10G10B10A2_TYPELESS:
       case DXGI_FORMAT_R10G10B10A2_UNORM:
         rb.framebuffer_flags |= SK_FRAMEBUFFER_FLAG_RGB10A2;
