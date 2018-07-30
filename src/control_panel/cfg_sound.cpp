@@ -385,23 +385,26 @@ SK_ImGui_VolumeManager (void)
         pEndVol->GetVolumeRange       (&min_dB, &max_dB, &incr_dB);
         pEndVol->GetMasterVolumeLevel (&cur_dB);
 
-        if ( ImGui::InputFloat ( "Adjusted Endpoint Volume (dB)", &cur_dB, incr_dB, incr_dB * 5 ) )
+        if (min_dB != max_dB)
         {
-          pEndVol->SetMasterVolumeLevel (std::max (min_dB, std::min (max_dB, cur_dB)), nullptr);
-        }
+          if ( ImGui::InputFloat ( "System-Wide Volume (dB)", &cur_dB, incr_dB, incr_dB * 5 ) )
+          {
+            pEndVol->SetMasterVolumeLevel (std::max (min_dB, std::min (max_dB, cur_dB)), nullptr);
+          }
 
-        if (ImGui::IsItemHovered ())
-        {
-          ImGui::BeginTooltip    ();
-          ImGui::Text            ("Your device supports %06.03f dB - %06.03f dB "
-                                  "in %06.03f dB steps", min_dB, max_dB, incr_dB);
-          ImGui::Separator       ();
-          ImGui::BulletText      ("-dB represents attenuation from reference volume");
-          ImGui::BulletText      ("+dB represents gain (amplification)%s", max_dB > 0.0f ? 
-                                           " " : " - your hardware does not support gain." );
-          ImGui::Separator       ();
-          ImGui::TextUnformatted ("Hold Ctrl for faster +/- adjustment.");
-          ImGui::EndTooltip      ();
+          if (ImGui::IsItemHovered ())
+          {
+            ImGui::BeginTooltip    ();
+            ImGui::Text            ("Your device supports %06.03f dB - %06.03f dB "
+                                    "in %06.03f dB steps", min_dB, max_dB, incr_dB);
+            ImGui::Separator       ();
+            ImGui::BulletText      ("-dB represents attenuation from reference volume");
+            ImGui::BulletText      ("+dB represents gain (amplification)%s", max_dB > 0.0f ? 
+                                             " " : " - your hardware does not support gain." );
+            ImGui::Separator       ();
+            ImGui::TextUnformatted ("Hold Ctrl for faster +/- adjustment.");
+            ImGui::EndTooltip      ();
+          }
         }
       }
 
