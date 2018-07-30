@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -42,7 +42,6 @@
 extern iSK_INI* osd_ini;
 
 ULONG
-WINAPI
 SK_CPU_DeviceNotifyCallback (
   PVOID Context,
   ULONG Type,
@@ -50,6 +49,65 @@ SK_CPU_DeviceNotifyCallback (
 
 class SKWG_CPU_Monitor : public SK_Widget
 {
+public:
+  struct power_scheme_s {
+    GUID uid;
+    char utf8_name [128];
+    char utf8_desc [384];
+  };
+
+  void
+  resolveNameAndDescForPowerScheme (power_scheme_s& scheme)
+  {
+    DWORD   dwRet         = ERROR_NOT_READY;
+    DWORD   dwLen         = 127;
+    wchar_t wszName [128] = { };
+    wchar_t wszDesc [384] = { };
+
+    dwRet =
+      PowerReadFriendlyName ( nullptr,
+                               &scheme.uid,
+                                  nullptr, nullptr,
+                                    (PUCHAR)wszName,
+                                           &dwLen );
+
+    if (dwRet == ERROR_MORE_DATA)
+    {
+      strncpy (scheme.utf8_name, "Too Long <Fix Me>", 127);
+    }
+
+    else if (dwRet == ERROR_SUCCESS)
+    {
+      dwLen = 383;
+      dwRet =
+        PowerReadDescription ( nullptr,
+                                 &scheme.uid,
+                                   nullptr, nullptr,
+                             (PUCHAR)wszDesc,
+                                    &dwLen );
+
+      if (dwRet == ERROR_MORE_DATA)
+      {
+        strncpy (scheme.utf8_desc, "Description Long <Fix Me>", 383);
+      }
+
+      else if (dwRet == ERROR_SUCCESS)
+      {
+        strncpy (
+          scheme.utf8_desc,
+            SK_WideCharToUTF8 (wszDesc).c_str (),
+              383
+        );
+      }
+
+      strncpy (
+        scheme.utf8_name,
+          SK_WideCharToUTF8 (wszName).c_str (),
+            127
+      );
+    }
+  }
+
 public:
   SKWG_CPU_Monitor (void) : SK_Widget ("CPUMonitor")
   {
@@ -63,6 +121,18 @@ public:
     memset (active_scheme.utf8_desc, 0, 256);
 
     InterlockedExchange (&active_scheme.dirty, 0);
+
+    if (active_scheme.notify == INVALID_HANDLE_VALUE)
+    {
+      _DEVICE_NOTIFY_SUBSCRIBE_PARAMETERS dnsp = {
+        SK_CPU_DeviceNotifyCallback, nullptr
+      };
+      
+      PowerSettingRegisterNotification ( &GUID_POWERSCHEME_PERSONALITY,
+                                           DEVICE_NOTIFY_CALLBACK,
+                                             (HANDLE)&dnsp,
+                                               &active_scheme.notify );
+    }
   };
 
   virtual ~SKWG_CPU_Monitor (void)
@@ -79,6 +149,8 @@ public:
         active_scheme.notify = INVALID_HANDLE_VALUE;
       }
     }
+
+    PowerSetActiveScheme (nullptr, &config.cpu.power_scheme_guid_orig);
   }
 
   virtual void run (void) override
@@ -162,18 +234,6 @@ public:
       cpu_clocks.addValue ( avg_clock /
                               static_cast <float> (sinfo.dwNumberOfProcessors) );
 
-      if (active_scheme.notify == INVALID_HANDLE_VALUE)
-      {
-        _DEVICE_NOTIFY_SUBSCRIBE_PARAMETERS dnsp = {
-          SK_CPU_DeviceNotifyCallback, nullptr
-        };
-        
-        PowerSettingRegisterNotification ( &GUID_POWERSCHEME_PERSONALITY,
-                                             DEVICE_NOTIFY_CALLBACK,
-                                               (HANDLE)&dnsp,
-                                                 &active_scheme.notify );
-      }
-
       bool changed =
         ReadAcquire (&active_scheme.dirty) > 0;
 
@@ -184,37 +244,14 @@ public:
         if ( ERROR_SUCCESS == PowerGetActiveScheme ( nullptr,
                                                        &pGUID ) )
         {
+          InterlockedDecrement (&active_scheme.dirty);
+
           active_scheme.uid =
             *pGUID;
 
           SK_LocalFree ((HLOCAL)pGUID);
 
-          DWORD   dwRet         = ERROR_NOT_READY;
-          DWORD   dwLen         = 127;
-          wchar_t wszName [128] = { };
-
-          dwRet =
-            PowerReadFriendlyName ( nullptr,
-                                     &active_scheme.uid,
-                                        nullptr, nullptr,
-                                          (PUCHAR)wszName,
-                                                 &dwLen );
-
-          if (dwRet == ERROR_MORE_DATA)
-          {
-            strncpy (active_scheme.utf8_name, "Too Long <Fix Me>", 127);
-          }
-
-          else if (dwRet == ERROR_SUCCESS)
-          {
-            InterlockedDecrement (&active_scheme.dirty);
-
-            strncpy (
-              active_scheme.utf8_name,
-                SK_WideCharToUTF8 (wszName).c_str (),
-                  127
-            );
-          }
+          resolveNameAndDescForPowerScheme (active_scheme);
         }
       }
     }
@@ -314,15 +351,19 @@ public:
 
             static bool select_scheme = false;
 
-            ImGui::TextUnformatted (active_scheme.utf8_name);
+            select_scheme =
+              ImGui::Selectable (active_scheme.utf8_name);
 
-            select_scheme = ImGui::IsItemClicked ();
+            if (ImGui::IsItemHovered ())
+            {
+              ImGui::SetTooltip (active_scheme.utf8_desc);
+            }
 
             if (select_scheme)
             {
               if (schemes.empty ())
               {
-                int   scheme_idx  = 0;
+                int   scheme_idx  =  0;
                 GUID  scheme_guid = { };
                 DWORD guid_size   = sizeof (GUID);
 
@@ -332,58 +373,10 @@ public:
                       )
                 {
                   power_scheme_s scheme;
-                
-                  scheme.uid = scheme_guid;
+                                 scheme.uid = scheme_guid;
 
-                  DWORD   dwRet         = ERROR_NOT_READY;
-                  DWORD   dwLen         = 127;
-                  wchar_t wszName [128] = { };
-                  wchar_t wszDesc [384] = { };
-
-                  dwRet =
-                    PowerReadFriendlyName ( nullptr,
-                                             &scheme.uid,
-                                                nullptr, nullptr,
-                                                  (PUCHAR)wszName,
-                                                         &dwLen );
-
-                  if (dwRet == ERROR_MORE_DATA)
-                  {
-                    strncpy (scheme.utf8_name, "Too Long <Fix Me>", 127);
-                  }
-
-                  else if (dwRet == ERROR_SUCCESS)
-                  {
-                    strncpy (
-                      scheme.utf8_name,
-                        SK_WideCharToUTF8 (wszName).c_str (),
-                          127
-                    );
-
-                    dwLen = 383;
-                    dwRet =
-                      PowerReadDescription ( nullptr,
-                                               &scheme.uid,
-                                                 nullptr, nullptr,
-                                           (PUCHAR)wszDesc,
-                                                  &dwLen );
-
-                    if (dwRet == ERROR_MORE_DATA)
-                    {
-                      strncpy (scheme.utf8_desc, "Description Long <Fix Me>", 383);
-                    }
-
-                    else if (dwRet == ERROR_SUCCESS)
-                    {
-                      strncpy (
-                        scheme.utf8_desc,
-                          SK_WideCharToUTF8 (wszDesc).c_str (),
-                            383
-                      );
-                    }
-
-                    schemes.emplace_back (scheme);
-                  }
+                  resolveNameAndDescForPowerScheme (scheme);
+                  schemes.emplace_back             (scheme);
 
                   scheme_guid = { };
                   guid_size   = sizeof (GUID);
@@ -408,12 +401,15 @@ public:
               for (auto& it : schemes)
               {
                 bool selected =
-                  IsEqualGUID ( it.uid, active_scheme.uid );
+                  InlineIsEqualGUID ( it.uid, active_scheme.uid );
 
                 ImGui::PushStyleColor  (ImGuiCol_Text, ImColor (1.f, 1.f, 1.f, 1.f));
                 if (ImGui::Selectable  (it.utf8_name, &selected))
                 {
-                  PowerSetActiveScheme     (nullptr, &it.uid);
+                  PowerSetActiveScheme (nullptr, &it.uid);
+
+                  config.cpu.power_scheme_guid =  it.uid;
+
                   end_dialog = true;
                 }
 
@@ -497,12 +493,6 @@ protected:
   const DWORD update_freq        = 666UL;
 
 private:
-  struct power_scheme_s {
-    GUID uid;
-    char utf8_name [128];
-    char utf8_desc [384];
-  };
-
   struct active_scheme_s : power_scheme_s {
     HPOWERNOTIFY  notify;
     volatile LONG dirty;
@@ -515,7 +505,6 @@ private:
 } __cpu_monitor__;
 
 ULONG
-WINAPI
 SK_CPU_DeviceNotifyCallback (
   PVOID Context,
   ULONG Type,
@@ -529,3 +518,23 @@ SK_CPU_DeviceNotifyCallback (
 
   return 1;
 }
+
+/**
+░▓┏──────────┓▓░LVT Thermal Sensor
+░▓┃ APICx330 ┃▓░╰╾╾╾ThermalLvtEntry
+░▓┗──────────┛▓░ 
+
+Reset: 0001_0000h.
+
+  Interrupts for this local vector table are caused by changes
+    in Core::X86::Msr::PStateCurLim [CurPstateLimit] due to
+      SB-RMI or HTC.
+
+  Core::X86::Apic::ThermalLvtEntry_lthree [ 1 : 0 ]
+                                  _core   [ 3 : 0 ]
+                                  _thread [ 1 : 0 ];
+                                  
+░▓┏──────────┓▓░ { Core::X86::Msr::APIC_BAR [
+░▓┃ APICx330 ┃▓░                    ApicBar [ 47 : 12 ]
+░▓┗──────────┛▓░                            ],          000h }
+**/

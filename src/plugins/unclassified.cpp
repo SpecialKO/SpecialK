@@ -455,8 +455,8 @@ SK_SO4_PlugInCfg (void)
 volatile LONG SK_POE2_Horses_Held        = 0;
 volatile LONG SK_POE2_SMT_Assists        = 0;
 volatile LONG SK_POE2_ThreadBoostsKilled = 0;
-         bool SK_POE2_FixUnityEmployment = true;
-         bool SK_POE2_Stage2UnityFix     = true;
+         bool SK_POE2_FixUnityEmployment = false;
+         bool SK_POE2_Stage2UnityFix     = false;
          bool SK_POE2_Stage3UnityFix     = false;
 
 bool
@@ -466,7 +466,8 @@ SK_POE2_PlugInCfg (void)
   {
     ImGui::TreePush ("");
 
-    ImGui::Checkbox ("Assign Unity Worker Threads to Labor Union", &SK_POE2_FixUnityEmployment);
+    ImGui::Checkbox        ("Supervise Unity Worker Thread Scheduling", &SK_POE2_FixUnityEmployment); ImGui::SameLine ();
+    ImGui::TextUnformatted (" (Advanced, not saved)");
 
     if (SK_POE2_FixUnityEmployment)
     {
@@ -501,7 +502,45 @@ SK_POE2_PlugInCfg (void)
       ImGui::Text       ("%lu", ReadAcquire (&SK_POE2_ThreadBoostsKilled));
       ImGui::EndGroup   ();
     }
-      
+
+    ImGui::Separator ();
+
+    static int orig =
+      config.render.framerate.override_num_cpus;
+
+    bool spoof = (config.render.framerate.override_num_cpus != -1);
+
+    static SYSTEM_INFO             si = { };
+    SK_RunOnce (SK_GetSystemInfo (&si));
+
+    if ((! spoof) || static_cast <DWORD> (config.render.framerate.override_num_cpus) > (si.dwNumberOfProcessors / 2))
+    {
+      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.14f, .8f, .9f));
+      ImGui::BulletText     ("It is strongly suggested that you reduce worker threads to 1/2 max. or lower");
+      ImGui::PopStyleColor  ();
+    }
+
+    if ( ImGui::Checkbox   ("Reduce Worker Threads", &spoof) )
+    {
+      config.render.framerate.override_num_cpus =
+        ( spoof ? si.dwNumberOfProcessors : -1 );
+    }
+
+    if (spoof)
+    {
+      ImGui::SameLine  (                                             );
+      ImGui::SliderInt ( "Number of Worker Threads",
+                        &config.render.framerate.override_num_cpus,
+                        1, si.dwNumberOfProcessors              );
+    }
+
+    if (config.render.framerate.override_num_cpus != orig)
+    {
+      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.3f, .8f, .9f));
+      ImGui::BulletText     ("Game Restart Required");
+      ImGui::PopStyleColor  ();
+    }
+
     ImGui::TreePop  ();
 
     return false;

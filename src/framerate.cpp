@@ -1140,7 +1140,7 @@ WaitForSingleObjectEx_Detour (
 
     if ( SK_POE2_Stage3UnityFix || hardly_working )
     {
-      if (pTLS->scheduler.mru_wait.getRate () >= 0.004f)
+      if (pTLS->scheduler.mru_wait.getRate () >= 0.00666f)
       {
         // This turns preemption of threads in the same priority level off.
         //
@@ -1172,13 +1172,16 @@ WaitForSingleObjectEx_Detour (
 
           if (SK_DeltaPerfMS (liStart.QuadPart, 1) < 0.05)
           {
+            InterlockedIncrement (&SK_POE2_Horses_Held);
+            SwitchToThread       ();
+
             if (SK_POE2_Stage2UnityFix)
             {
               // Micro-sleep the core this thread is running on to try
               //   and salvage its logical (HyperThreaded) partner's
               //     ability to do work.
               //
-              while (SK_DeltaPerfMS (core_sleep_begin.QuadPart, 1) < 0.00001)
+              while (SK_DeltaPerfMS (core_sleep_begin.QuadPart, 1) < 0.0000005)
               {
                 InterlockedIncrement (&SK_POE2_SMT_Assists);
 
@@ -1195,9 +1198,6 @@ WaitForSingleObjectEx_Detour (
                 //
               }
             }
-
-            InterlockedIncrement (&SK_POE2_Horses_Held);
-            SleepEx              (1, FALSE);
           };
         }
       }

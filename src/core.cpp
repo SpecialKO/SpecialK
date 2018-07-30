@@ -80,6 +80,7 @@
 #include <delayimp.h>
 #include <ShlObj.h>
 #include <LibLoaderAPI.h>
+#include <powersetting.h>
 
 #pragma warning   (push)
 #pragma warning   (disable: 4091)
@@ -256,13 +257,19 @@ SK_StartPerfMonThreads (void)
     if ( InterlockedCompareExchangePointer (phThread, nullptr, INVALID_HANDLE_VALUE) ==
            INVALID_HANDLE_VALUE )
     {
-      dll_log.LogEx (true, L"[ WMI Perf ] Spawning %ws...  ", wszName);
+      dll_log.LogEx (true, L"[ Perfmon. ] Spawning %ws...  ", wszName);
 
       InterlockedExchangePointer ( (void **)phThread,
         SK_Thread_CreateEx ( pThunk )
       );
 
-      SK_RunOnce (SK_WMI_Init ());
+      // Most WMI stuff will be replaced with NtDll in the future
+      //   -- for now, CPU monitoring is the only thing that has abandomed WMI
+      //
+      if (pThunk != SK_MonitorCPU)
+      {
+        SK_RunOnce (SK_WMI_Init ());
+      }
 
       if (ReadPointerAcquire (phThread) != INVALID_HANDLE_VALUE)
       {
@@ -845,6 +852,27 @@ SK_InitFinishCallback (void)
     SetCurrentThreadDescription (    L"[SK] GPU Vendor Support Library Thread" );
     SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_LOWEST );
     SetThreadPriorityBoost      ( SK_GetCurrentThread (), TRUE                   );
+
+
+    static const GUID  nil_guid = {     };
+                 GUID* pGUID    = nullptr;
+
+    // Make note of the system's original power scheme
+    if ( ERROR_SUCCESS ==
+           PowerGetActiveScheme ( nullptr,
+                                    &pGUID )
+       )
+    {
+      config.cpu.power_scheme_guid_orig = *pGUID;
+
+      SK_LocalFree ((HLOCAL)pGUID);
+    }
+
+    // Apply a powerscheme override if one is set
+    if (! IsEqualGUID (config.cpu.power_scheme_guid, nil_guid))
+    {
+      PowerSetActiveScheme (nullptr, &config.cpu.power_scheme_guid);
+    }
 
     SK_LoadGPUVendorAPIs ();
     SK_Thread_CloseSelf  ();
@@ -1944,8 +1972,8 @@ SK_ShutdownCore (const wchar_t* backend)
     lstrcatW (wszFmtName, wszName);
     lstrcatW (wszFmtName, L"...");
 
-    dll_log.LogEx (true, L"[ WMI Perf ] Shutting down %-30s ", wszFmtName);
-
+    dll_log.LogEx (true, L"[ Perfmon. ] Shutting down %-30s ", wszFmtName);
+                             
     DWORD dwTime = timeGetTime ();
 
     // Signal the thread to shutdown
@@ -1969,6 +1997,8 @@ SK_ShutdownCore (const wchar_t* backend)
 
   if (SK_IsInjected ())
     config_name = L"SpecialK";
+
+  PowerSetActiveScheme (nullptr, &config.cpu.power_scheme_guid_orig);
 
   if (sk::NVAPI::app_name != L"ds3t.exe" && SK_GetFramesDrawn () > 0)
   {

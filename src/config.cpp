@@ -40,6 +40,9 @@
 #include <typeindex>
 
 #include <Shlwapi.h>
+#include <powrprof.h>
+#include <powerbase.h>
+#include <powersetting.h>
 
 #define D3D11_RAISE_FLAG_DRIVER_INTERNAL_ERROR 1
 
@@ -444,6 +447,10 @@ struct {
   sk::ParameterInt*       always_on_top;
   sk::ParameterBool*      disable_screensaver;
 } window;
+
+struct {
+  sk::ParameterStringW*   power_scheme_guid;
+} cpu;
 
 struct {
   sk::ParameterBool*      rehook_loadlibrary;
@@ -943,6 +950,8 @@ auto DeclKeybind =
 
 
     ConfigEntry (reverse_engineering.file_io.trace_reads,L"Log file read activity to logs/file_read.log",              dll_ini,         L"FileIO.Trace",          L"LogReads"),
+
+    ConfigEntry (cpu.power_scheme_guid,                  L"Power Policy (GUID) to Apply At Application Start",         dll_ini,         L"CPU.Power",             L"PowerSchemeGUID"),
 
 
     // The one odd-ball Steam achievement setting that can be specified per-game
@@ -2176,6 +2185,14 @@ auto DeclKeybind =
 
   reverse_engineering.file_io.trace_reads->load (config.file_io.trace_reads);
 
+  std::wstring tmp;
+  cpu.power_scheme_guid->load (tmp);
+
+  if (! tmp.empty ())
+  {
+    CLSIDFromString  (tmp.c_str (), &config.cpu.power_scheme_guid);
+  }
+
   steam.achievements.play_sound->load         (config.steam.achievements.play_sound);
   steam.achievements.sound_file->load         (config.steam.achievements.sound_file);
   steam.achievements.take_screenshot->load    (config.steam.achievements.take_screenshot);
@@ -2979,6 +2996,19 @@ SK_SaveConfig ( std::wstring name,
     dll_ini->remove_section (L"FileIO.Trace");
   else
     reverse_engineering.file_io.trace_reads->store (config.file_io.trace_reads);
+
+
+  static const GUID empty_guid = { };
+
+  if (! IsEqualGUID (config.cpu.power_scheme_guid, empty_guid))
+  {
+                                                   wchar_t wszGuid [40] = { L'\0' };
+    StringFromGUID2 ( config.cpu.power_scheme_guid,        wszGuid, 40);
+                             cpu.power_scheme_guid->store (wszGuid);
+  }
+  else
+    dll_ini->get_section (L"CPU.Power").remove_key (L"PowerSchemeGUID");
+
 
 
   steam.achievements.sound_file->store         (config.steam.achievements.sound_file);

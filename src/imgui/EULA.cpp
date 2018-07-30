@@ -46,7 +46,7 @@ SK_GetLicenseText (SHORT id)
     DWORD   res_size    = SizeofResource ( hMod, res );
     HGLOBAL license_ref = LoadResource   ( hMod, res );
 
-    // There's no forseeable reason this would be NULL, but the Application Verifier won't shutup about it.
+    // There is no forseeable reason this would be NULL, but the Application Verifier will not shutup about it.
     if (! license_ref) return std::string ("");
 
     const char* const locked =
@@ -331,22 +331,16 @@ SK_ImGui_DrawEULA (LPVOID reserved)
 
       ImGui::TextColored (ImColor (255,255,255), "Corrupted Steamworks Platform Files Encountered");
       ImGui::Separator   (  );
-      ImGui::BulletText  ("Unable to validate your license because your steam_api(64).dll is invalid.");
+      ImGui::BulletText  ("Unable to validate important mod files because steam_api(64).dll is invalid.");
       ImGui::TreePush    ("");
       ImGui::BulletText  ("If you think this is in error, re-validate your game through Steam and try again.");
       ImGui::TreePop     (  );
 
       ImGui::BulletText  ("I do not support altered steam_api(64).dll files for stability reasons");
       ImGui::TreePush    ("");
+      ImGui::BulletText  ("You must disable SteamAPI (set [Steam.Log] Silent=true) and please do not waste my time asking for support.");
       ImGui::BulletText  ("Pirates must seek support elsewhere.");
       ImGui::TreePop     (  );
-#if 0
-      ImGui::BulletText  ("You may be able to find a modified version with these terms removed");
-      ImGui::TreePush    ("");
-      ImGui::TextWrapped ("The authors listed above are not responsible for said modified version and will not "
-                          "provide you support no matter how much you make life difficult for them.");
-      ImGui::TreePop     ();
-#endif
 
       ImGui::EndTooltip  ();
     }

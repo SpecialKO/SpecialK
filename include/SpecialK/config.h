@@ -147,6 +147,9 @@ struct sk_config_t
     struct {
       BYTE toggle  [4]    = { VK_CONTROL, VK_SHIFT, 'C', 0 };
     } keys;
+
+    GUID      power_scheme_guid      = { };
+    GUID      power_scheme_guid_orig = { };
   } cpu;
 
 
