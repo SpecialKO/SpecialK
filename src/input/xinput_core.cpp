@@ -1430,9 +1430,16 @@ SK_XInput_PulseController ( INT   iJoyID,
                             float fStrengthLeft,
                             float fStrengthRight )
 {
+  // SANITY:  SteamAPI Controller Handle Recycling Gone Out of Control
+  //            Something needs to be done about Ghost of a Tale, but
+  //              this prevents catastrophe for the time being.
+  //
+  if (iJoyID > 16)
+    return false;
+  
   auto steam_idx =
     static_cast <ControllerIndex_t> (iJoyID);
-
+  
   if ( steam_input.count && ControllerPresent (steam_idx) &&
       (! config.input.gamepad.disable_rumble)                )
   {

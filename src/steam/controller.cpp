@@ -141,6 +141,14 @@ SKX_Steam_PollGamepad (void)
     {
       ControllerIndex_t  idx    =
         static_cast <ControllerIndex_t> (steam_controllers.size ());
+
+      // Sanity for some games such as Ghost of a Tale
+      //
+      //  -- Some grab a new interface every frame, and
+      //       completely catches my poor design off guard.
+      if (idx > 15)
+        continue; // 16 is enough!
+
       ControllerHandle_t handle =
         handles [i];
 

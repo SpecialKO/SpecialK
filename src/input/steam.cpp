@@ -69,44 +69,45 @@ SK_SteamWrapper_WrappedClient_GetISteamController ( ISteamClient *pRealClient,
 {
   steam_log.Log ( L"[Steam Wrap] [!] GetISteamController (%ws)", SK_UTF8ToWideChar (pchVersion).c_str () );
 
-  //if (! lstrcmpA (pchVersion, "SteamController"))
-  //{
-  //  ISteamController0* pController =
-  //    reinterpret_cast <ISteamController0 *> ( pRealClient->GetISteamController (hSteamUser, hSteamPipe, pchVersion) );
-  //
-  //  if (pController != nullptr)
-  //  {
-  //    if (SK_SteamWrapper_remap_controller0.count (pController))
-  //       return dynamic_cast <ISteamController *> (SK_SteamWrapper_remap_controller0 [pController]);
-  //
-  //    else
-  //    {
-  //      SK_SteamWrapper_remap_controller0 [pController] =
-  //              new ISteamControllerFake0 (pController);
-  //
-  //      return dynamic_cast <ISteamController *> (SK_SteamWrapper_remap_controller0 [pController]);
-  //    }
-  //  }
-  //}
+  if (! lstrcmpA (pchVersion, "SteamController"))
+  {
+    return pRealClient->GetISteamController (hSteamUser, hSteamPipe, pchVersion);
+    //ISteamController0* pController =
+    //  reinterpret_cast <ISteamController0 *> ( pRealClient->GetISteamController (hSteamUser, hSteamPipe, pchVersion) );
+    //
+    //if (pController != nullptr)
+    //{
+    //  if (SK_SteamWrapper_remap_controller0.count (pController))
+    //     return dynamic_cast <ISteamController *> (SK_SteamWrapper_remap_controller0 [pController]);
+    //
+    //  else
+    //  {
+    //    SK_SteamWrapper_remap_controller0 [pController] =
+    //            new ISteamControllerFake0 (pController);
+    //
+    //    return dynamic_cast <ISteamController *> (SK_SteamWrapper_remap_controller0 [pController]);
+    //  }
+    //}
+  }
 
   if (! lstrcmpA (pchVersion, "SteamController005"))
   {
-    ///if (SK_IsInjected ())
-    ///{
-    ///  static volatile LONG __init = FALSE;
-    ///
-    ///  if (! InterlockedCompareExchange (&__init, 1, 0))
-    ///  {
-    ///    void** vftable = *(void***)*(&pRealClient);
-    ///
-    ///    SK_CreateVFTableHook (             L"ISteamClient017_GetISteamController",
-    ///                             vftable, 25,
-    ///                             SteamAPI_ISteamClient_GetISteamController_Detour,
-    ///    static_cast_p2p <void> (&SteamAPI_ISteamClient_GetISteamController_Original) );
-    ///
-    ///    SK_EnableHook (vftable [25]);
-    ///  }
-    ///}
+    //if (SK_IsInjected ())
+    //{
+    //  static volatile LONG __init = FALSE;
+    //
+    //  if (! InterlockedCompareExchange (&__init, 1, 0))
+    //  {
+    //    void** vftable = *(void***)*(&pRealClient);
+    //
+    //    SK_CreateVFTableHook (             L"ISteamClient017_GetISteamController",
+    //                             vftable, 25,
+    //                             SteamAPI_ISteamClient_GetISteamController_Detour,
+    //    static_cast_p2p <void> (&SteamAPI_ISteamClient_GetISteamController_Original) );
+    //
+    //    SK_EnableHook (vftable [25]);
+    //  }
+    //}
 
     //else
     {

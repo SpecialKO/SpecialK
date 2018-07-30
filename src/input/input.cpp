@@ -67,6 +67,12 @@ SK_InputUtil_IsHWCursorVisible (void)
 // HIDClass (User mode)
 //
 //////////////////////////////////////////////////////////////
+HidD_GetPreparsedData_pfn  HidD_GetPreparsedData_Original  = nullptr;
+HidD_FreePreparsedData_pfn HidD_FreePreparsedData_Original = nullptr;
+HidD_GetFeature_pfn        HidD_GetFeature_Original        = nullptr;
+HidP_GetData_pfn           HidP_GetData_Original           = nullptr;
+HidP_GetCaps_pfn           HidP_GetCaps_Original           = nullptr;
+
 bool
 SK_HID_FilterPreparsedData (PHIDP_PREPARSED_DATA pData)
 {
@@ -120,9 +126,9 @@ SK_HID_FilterPreparsedData (PHIDP_PREPARSED_DATA pData)
 PHIDP_PREPARSED_DATA* SK_HID_PreparsedDataP = nullptr;
 PHIDP_PREPARSED_DATA  SK_HID_PreparsedData  = nullptr;
 
-BOOLEAN
-_Success_(return)
-__stdcall
+_Must_inspect_result_
+_Success_(return==TRUE)
+BOOLEAN __stdcall
 HidD_GetPreparsedData_Detour (
   _In_  HANDLE                HidDeviceObject,
   _Out_ PHIDP_PREPARSED_DATA *PreparsedData )
@@ -140,7 +146,14 @@ HidD_GetPreparsedData_Detour (
     SK_HID_PreparsedData  = pData;
 
     if (SK_HID_FilterPreparsedData (pData) || config.input.gamepad.disable_ps4_hid)
+    {
+      if (HidD_FreePreparsedData_Original (pData))
+        return FALSE;
+
+      assert (false && L"The Sky is Falling!");
+
       return FALSE;
+    }
 
     *PreparsedData   =  pData;
   }
@@ -150,12 +163,6 @@ HidD_GetPreparsedData_Detour (
   //return FALSE;
   return bRet;
 }
-
-HidD_GetPreparsedData_pfn  HidD_GetPreparsedData_Original  = nullptr;
-HidD_FreePreparsedData_pfn HidD_FreePreparsedData_Original = nullptr;
-HidD_GetFeature_pfn        HidD_GetFeature_Original        = nullptr;
-HidP_GetData_pfn           HidP_GetData_Original           = nullptr;
-HidP_GetCaps_pfn           HidP_GetCaps_Original           = nullptr;
 SetCursor_pfn              SetCursor_Original              = nullptr;
 
 BOOLEAN
