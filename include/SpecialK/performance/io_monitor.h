@@ -98,6 +98,7 @@ struct cpu_perf_t : WMI_refresh_thread_t
     volatile LONG          percent_kernel               = 0;
     volatile LONG          percent_user                 = 0;
     volatile LONG          percent_interrupt            = 0;
+    volatile LONG          joules_consumed              = 0;
 
     SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION
       last_perf_count    = { },

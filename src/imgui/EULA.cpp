@@ -240,6 +240,11 @@ SK_ImGui_DrawEULA (LPVOID reserved)
       ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_MINHOOK).c_str ());
     }
 
+    if (ImGui::CollapsingHeader ("OpenLibSys"))
+    {
+      ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_OPENLIBSYS).c_str ());
+    }
+
     if (config.apis.NvAPI.enable && ImGui::CollapsingHeader ("NvAPI"))
     {
       ImGui::PushFont    (ImGui::GetIO ().Fonts->Fonts [1]); // Fixed-width font

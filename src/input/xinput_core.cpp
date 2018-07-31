@@ -1434,19 +1434,19 @@ SK_XInput_PulseController ( INT   iJoyID,
   //            Something needs to be done about Ghost of a Tale, but
   //              this prevents catastrophe for the time being.
   //
-  if (iJoyID > 16)
+  if (iJoyID > 15)
     return false;
   
-  auto steam_idx =
-    static_cast <ControllerIndex_t> (iJoyID);
-  
-  if ( steam_input.count && ControllerPresent (steam_idx) &&
-      (! config.input.gamepad.disable_rumble)                )
-  {
-    steam_input.pipe->TriggerVibration (
-      steam_input [steam_idx].handle, (WORD)(std::min (0.99999f, fStrengthLeft)  * 65535.0f),
-                                      (WORD)(std::min (0.99999f, fStrengthRight) * 65535.0f)  );
-  }
+  ///auto steam_idx =
+  ///  static_cast <ControllerIndex_t> (iJoyID);
+  ///
+  ///if ( steam_input.count && ControllerPresent (steam_idx) &&
+  ///    (! config.input.gamepad.disable_rumble)                )
+  ///{
+  ///  steam_input.pipe->TriggerVibration (
+  ///    steam_input [steam_idx].handle, (WORD)(std::min (0.99999f, fStrengthLeft)  * 65535.0f),
+  ///                                    (WORD)(std::min (0.99999f, fStrengthRight) * 65535.0f)  );
+  ///}
 
   if (! xinput_enabled)
     return false;

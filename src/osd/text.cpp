@@ -440,6 +440,33 @@ SK_FormatTemperature (int32_t in_temp, SK_UNITS in_unit, SK_UNITS out_unit)
   return wszOut;
 }
 
+std::wstring
+SK_FormatTemperature (float in_temp, SK_UNITS in_unit, SK_UNITS out_unit)
+{
+  float converted;
+  wchar_t wszOut [16] = { };
+
+  if (in_unit == Celsius && out_unit == Fahrenheit)
+  {
+    //converted = in_temp * 2 + 30;
+    converted = (static_cast <float>(in_temp) * (9.0f/5.0f)) + 32.0f;
+    _swprintf (wszOut, L"%#5.1f°F", converted);
+  }
+
+  else if (in_unit == Fahrenheit && out_unit == Celsius)
+  {
+    converted = (static_cast <float>(in_temp) - 32.0f) * (5.0f/9.0f);
+    _swprintf (wszOut, L"%#4.1f°C", converted);
+  }
+
+  else
+  {
+    _swprintf (wszOut, L"%#4.1f°C", in_temp);
+  }
+
+  return wszOut;
+}
+
 std::string external_osd_name;
 
 BOOL

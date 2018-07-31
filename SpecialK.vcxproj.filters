@@ -1102,6 +1102,12 @@
     <None Include="installer64.dll">
       <Filter>Libraries\64-bit</Filter>
     </None>
+    <None Include="resource\packages\WinRing0_32.7z">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="resource\packages\WinRing0_64.7z">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource\Resource.rc">
@@ -1274,6 +1280,9 @@
       <Filter>Resource Files</Filter>
     </Text>
     <Text Include="resource\licenses\zlib.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="resource\licenses\OpenLibSys.txt">
       <Filter>Resource Files</Filter>
     </Text>
   </ItemGroup>

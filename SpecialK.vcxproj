@@ -111,9 +111,9 @@
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <SpectreMitigation>false</SpectreMitigation>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Rel_Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
@@ -183,9 +183,9 @@
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <SpectreMitigation>false</SpectreMitigation>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Rel_Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
@@ -341,7 +341,7 @@
     <IntDir>$(SolutionDir)build\$(Configuration)\Win32\</IntDir>
     <EnableCppCoreCheck>true</EnableCppCoreCheck>
     <EnableExperimentalCppCoreCheck>true</EnableExperimentalCppCoreCheck>
-    <LinkIncremental>true</LinkIncremental>
+    <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Rel_Debug|Win32'">
     <OutDir>C:\Users\amcol\Documents\My Mods\SpecialK\</OutDir>
@@ -436,7 +436,7 @@
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
     <EnableCppCoreCheck>true</EnableCppCoreCheck>
     <EnableExperimentalCppCoreCheck>true</EnableExperimentalCppCoreCheck>
-    <LinkIncremental>true</LinkIncremental>
+    <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Rel_Debug|x64'">
     <TargetName>SpecialK64</TargetName>
@@ -567,6 +567,8 @@
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <Profile>true</Profile>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
+      <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
     </Link>
     <ProjectReference />
     <Manifest>
@@ -643,6 +645,8 @@
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <Profile>true</Profile>
+      <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
+      <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
     </Link>
     <ProjectReference />
     <ResourceCompile>
@@ -697,14 +701,14 @@
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <EnableModules>false</EnableModules>
       <AdditionalOptions> /Zc:implicitNoexcept- %(AdditionalOptions)</AdditionalOptions>
-      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DataExecutionPrevention>false</DataExecutionPrevention>
+      <DataExecutionPrevention>true</DataExecutionPrevention>
       <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;comctl32.dll;wininet.dll</DelayLoadDLLs>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <GenerateMapFile>false</GenerateMapFile>
@@ -719,16 +723,16 @@
       <SectionAlignment>
       </SectionAlignment>
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
-      <OptimizeReferences>true</OptimizeReferences>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <SetChecksum>true</SetChecksum>
       <BaseAddress>
       </BaseAddress>
-      <LinkTimeCodeGeneration>UseFastLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <ForceSymbolReferences>
       </ForceSymbolReferences>
       <Profile>true</Profile>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -829,6 +833,8 @@
       <Profile>true</Profile>
       <IgnoreSpecificDefaultLibraries>msvcrt</IgnoreSpecificDefaultLibraries>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+      <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
+      <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -922,6 +928,8 @@
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <Profile>true</Profile>
+      <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
+      <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1011,6 +1019,8 @@ Exit 0</Command>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <Profile>true</Profile>
+      <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
+      <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1101,6 +1111,8 @@ Exit 0</Command>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <Profile>true</Profile>
+      <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
+      <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1192,6 +1204,8 @@ Exit 0</Command>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <Profile>true</Profile>
+      <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
+      <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1282,6 +1296,8 @@ Exit 0</Command>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <Profile>true</Profile>
+      <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
+      <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1372,6 +1388,8 @@ Exit 0</Command>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <Profile>true</Profile>
+      <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
+      <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1462,6 +1480,8 @@ Exit 0</Command>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <Profile>true</Profile>
+      <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
+      <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1516,7 +1536,7 @@ Exit 0</Command>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <EnableModules>false</EnableModules>
       <AdditionalOptions> /Zc:implicitNoexcept- %(AdditionalOptions)</AdditionalOptions>
-      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -1525,7 +1545,7 @@ Exit 0</Command>
       <AssemblyDebug>true</AssemblyDebug>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
-      <DataExecutionPrevention>false</DataExecutionPrevention>
+      <DataExecutionPrevention>true</DataExecutionPrevention>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
       <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;comctl32.dll;wininet.dll</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
@@ -1540,16 +1560,16 @@ Exit 0</Command>
       <SectionAlignment>
       </SectionAlignment>
       <SetChecksum>true</SetChecksum>
-      <OptimizeReferences>true</OptimizeReferences>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
       <BaseAddress>
       </BaseAddress>
-      <LinkTimeCodeGeneration>UseFastLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <ForceSymbolReferences>
       </ForceSymbolReferences>
       <Profile>true</Profile>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1650,6 +1670,8 @@ Exit 0</Command>
       <Profile>true</Profile>
       <IgnoreSpecificDefaultLibraries>msvcrt</IgnoreSpecificDefaultLibraries>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+      <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
+      <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1741,6 +1763,8 @@ Exit 0</Command>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <Profile>true</Profile>
+      <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
+      <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1828,6 +1852,8 @@ Exit 0</Command>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <Profile>true</Profile>
+      <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
+      <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1915,6 +1941,8 @@ Exit 0</Command>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <Profile>true</Profile>
+      <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
+      <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -2002,6 +2030,8 @@ Exit 0</Command>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <Profile>true</Profile>
+      <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
+      <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -2088,6 +2118,8 @@ Exit 0</Command>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <Profile>true</Profile>
+      <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
+      <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -2176,6 +2208,8 @@ Exit 0</Command>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <Profile>true</Profile>
+      <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
+      <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -2266,6 +2300,8 @@ Exit 0</Command>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <Profile>true</Profile>
+      <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
+      <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -2302,6 +2338,7 @@ Exit 0</Command>
     <Text Include="resource\licenses\Mesa_7_0.txt" />
     <Text Include="resource\licenses\MinHook.txt" />
     <Text Include="resource\licenses\nvapi.txt" />
+    <Text Include="resource\licenses\OpenLibSys.txt" />
     <Text Include="resource\licenses\Overview.txt" />
     <Text Include="resource\licenses\pcre.txt" />
     <Text Include="resource\licenses\pcre_cpp.txt" />
@@ -3832,6 +3869,8 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Installer|Win32'">true</ExcludedFromBuild>
     </None>
+    <None Include="resource\packages\WinRing0_32.7z" />
+    <None Include="resource\packages\WinRing0_64.7z" />
     <None Include="TODO" />
     <None Include="version.ini" />
     <None Include="SpecialK.def" />

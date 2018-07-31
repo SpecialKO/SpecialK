@@ -10,6 +10,7 @@
   ADL           |  2008 - 2013   Advanced Micro Devices, Inc.
   NvAPI         |  2005 - 2010   NVIDIA Corporation.
   MinHook       |  2009 - 2016   Tsuda Kageyu
+  OpenLibSys    |  2007 - 2008   OpenLibSys.org
   FreeType2     |  2000,
                 |  2001 - 2002   Francesco Zappa Nardelli
   FreeType2     |  2000          Computing Research Labs,
