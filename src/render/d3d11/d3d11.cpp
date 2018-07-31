@@ -819,7 +819,7 @@ struct resample_dispatch_s
           {
             SK_Thread_ScopedPriority
               hold_your_horses    (THREAD_PRIORITY_IDLE);
-            WaitForSingleObjectEx (hResampleWork, INFINITE, TRUE);
+            WaitForSingleObjectEx (hResampleWork, INFINITE, FALSE);
           }
         } while (! ReadAcquire (&__SK_DLL_Ending));
 

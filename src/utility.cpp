@@ -2953,7 +2953,7 @@ SK_DeferCommands (const char** szCommands, int count)
 
         while (! ReadAcquire (&__SK_DLL_Ending))
         {
-          if (WaitForSingleObjectEx (hNewCmds, INFINITE, TRUE) == WAIT_OBJECT_0)
+          if (WaitForSingleObjectEx (hNewCmds, INFINITE, FALSE) == WAIT_OBJECT_0)
           {
             std::string cmd = "";
 

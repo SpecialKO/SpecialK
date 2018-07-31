@@ -3069,7 +3069,7 @@ SK::D3D9::TextureWorkerThread::ThreadProc (LPVOID user)
       WaitForMultipleObjectsEx ( 3,
                                  pThread->control_.ops,
                                    FALSE,
-                                     INFINITE, TRUE );
+                                     INFINITE, FALSE );
 
     // New Work Ready
     if (dwWaitStatus == wait.job_start)

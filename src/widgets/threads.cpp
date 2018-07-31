@@ -1414,7 +1414,7 @@ public:
 
                 while (true)
                 {
-                  WaitForSingleObjectEx (hRecoveryEvent, INFINITE, TRUE);
+                  WaitForSingleObjectEx (hRecoveryEvent, INFINITE, FALSE);
 
                   extern volatile LONG __SK_DLL_Ending;
 

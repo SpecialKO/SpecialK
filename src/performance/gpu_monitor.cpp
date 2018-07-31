@@ -110,7 +110,7 @@ SK_GPUPollingThread (LPVOID user)
   while (true)
   {
     DWORD dwWait =
-      WaitForMultipleObjectsEx (2, hEvents, FALSE, INFINITE, TRUE);
+      WaitForMultipleObjectsEx (2, hEvents, FALSE, INFINITE, FALSE);
 
     if (dwWait == WAIT_OBJECT_0 + 1)
       break;

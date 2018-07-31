@@ -135,7 +135,7 @@ SK_Log_AsyncFlushThreadPump (LPVOID)
       }
     }
 
-    WaitForSingleObjectEx (hFlushReq, INFINITE, TRUE);
+    WaitForSingleObjectEx (hFlushReq, INFINITE, FALSE);
     ResetEvent            (hFlushReq);
   }
 

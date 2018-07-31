@@ -1010,8 +1010,8 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds)
 
       if (dwMaxWait < INT_MAX)
       {
-        if (MsgWaitForMultipleObjectsEx (0, nullptr, dwMaxWait, QS_ALLINPUT    | QS_ALLPOSTMESSAGE,
-                                                                MWMO_ALERTABLE | MWMO_INPUTAVAILABLE) == WAIT_OBJECT_0)
+        if (MsgWaitForMultipleObjectsEx (0, nullptr, dwMaxWait, QS_ALLINPUT | QS_ALLPOSTMESSAGE,
+                                                                MWMO_INPUTAVAILABLE) == WAIT_OBJECT_0)
         {
           PeekAndDispatch ();
         }

@@ -88,6 +88,8 @@ struct SK_AMDZenRegistry_s {
   { "AMD Ryzen Threadripper 1900" , +6,  0, +10 }
 };
 
+static int __SK_ZenIdx = 0;
+
 typedef struct
 {
   union {
@@ -158,15 +160,20 @@ SK_CPU_IsZen (void)
 
       if (InitializeOls ())
       {
+        int i = 0;
+
         for ( auto zen : _SK_KnownZen )
         {
           if ( strstr ( InstructionSet::Brand ().c_str (),
                           zen.brandId )
              )
           {
-            is_zen = 1;
+            __SK_ZenIdx = i;
+            is_zen      = 1;
             break;
           }
+
+          i++;
         }
       }
     }
@@ -193,7 +200,7 @@ typedef struct
 } RAPL_POWER_UNIT;
 
 float
-SK_CPU_GetJoulesConsumedTotal (int64_t package)
+SK_CPU_GetJoulesConsumedTotal (DWORD_PTR package)
 {
   if (SK_CPU_IsZen ())
   {
@@ -324,6 +331,206 @@ SK_CPU_GetTemperature_AMDZen (int core)
             ( invScale11BitDbl (sensor) * 206.0 ) - 49.0 :
               invScale11BitDbl (sensor) * 255.0            )
     );
+}
+
+struct {
+  double clocks;
+  int    sources;
+
+  uint64_t getAvg (void) {
+    return sources > 0 ?
+      static_cast <uint64_t> ( clocks / static_cast <double> (sources) ) :
+                     0;
+  }
+} __SK_Ryzen_AverageEffectiveClock;
+
+#define AMD_ZEN_MSR_MPERF       0x000000E7
+#define AMD_ZEN_MSR_APERF       0x000000E8
+
+#define AMD_ZEN_MSR_PSTATE_STATUS 0xC0010293
+#define AMD_ZEN_MSR_PSTATESTAT    0xC0010063
+#define AMD_ZEN_MSR_PSTATEDEF_0   0xC0010064
+#define AMD_ZEN_PSTATE_COUNT      8
+
+struct SK_CPU_AMD_Zen_PState
+{
+  float FID = 0.0f;
+  float DID = 0.0f;
+} static __SK_Zen_PStates [AMD_ZEN_PSTATE_COUNT] = { };
+
+struct SK_CPU_CoreSensors
+{
+  uint32_t cpu_core;
+   int64_t sample_taken;
+
+  double   temperature_C;
+  double   clock_MHz;
+  double   power_W;
+
+  struct accumulator_s {
+    double joules;
+  } accum;
+};
+
+void
+SK_CPU_Zen_PopulatePStates (void)
+{
+  if (__SK_Zen_PStates [0].FID != 0.0f)
+    return;
+
+  for ( int i = 0 ; i < AMD_ZEN_PSTATE_COUNT ; ++i )
+  {
+    DWORD_PTR thread_mask = 1;
+    DWORD     eax,  edx;
+
+    if (RdmsrTx (AMD_ZEN_MSR_PSTATEDEF_0 + i, &eax, &edx, thread_mask))
+    {
+      // [0x10 - 0xFF] => (x25) == < 400 - 6375 >
+      uint8_t _FID = (eax & 0xFF);
+
+      if (_FID < 0x10)
+      {
+        // PStates 3-7 are usually undefined, so this is okay...
+        if (_FID != 0x0)
+          dll_log.Log (L"[  AMDZen  ] Invalid FID (%x) Encountered on CPU - {PState%lu}", _FID, i);
+      }
+      
+      else
+      {
+        __SK_Zen_PStates [i].FID =
+          static_cast <float> (_FID) * (25.0f);
+      }
+
+      uint8_t _DID = (eax >> 8UL) & 0x3F;
+
+      switch (_DID)
+      {
+        case 0:
+          __SK_Zen_PStates [i].DID = 1.0f;// 0.0f; ???
+          break;
+        case 0x8:
+          __SK_Zen_PStates [i].DID = 1.0f;
+          break;
+        case 0x9:
+          __SK_Zen_PStates [i].DID = 1.125f;
+          break;
+        case 0x0A:
+        case 0x0B:
+        case 0x0C:
+        case 0x0D:
+        case 0x0E:
+        case 0x0F:
+        case 0x10:
+        case 0x11:
+        case 0x12:
+        case 0x13:
+        case 0x14:
+        case 0x15:
+        case 0x16:
+        case 0x17:
+        case 0x18:
+        case 0x1A:
+        case 0x1C:
+        case 0x1E:
+        case 0x20:
+        case 0x22:
+        case 0x24:
+        case 0x25:
+        case 0x28:
+        case 0x2A:
+        case 0x2C:
+          __SK_Zen_PStates [i].DID =
+            static_cast <float> (_DID) / 8.0f;
+          break;
+        default:
+          dll_log.Log (L"[  AMDZen  ] Invalid DID (%x) Encountered on CPU - {PState%lu}", _DID, i);
+          break;
+      }
+    }
+  }
+}
+
+SK_CPU_CoreSensors&
+SK_CPU_UpdateCoreSensors (uint32_t core)
+{
+  static
+    std::unordered_map <uint32_t, SK_CPU_CoreSensors> cores;
+
+  if (SK_CPU_IsZen ())
+  {
+    if (__SK_Zen_PStates [0].FID == 0.0f)
+    {
+      SK_CPU_Zen_PopulatePStates ();
+    }
+
+    double time_elapsed_ms =
+      SK_DeltaPerfMS (cores [core].sample_taken, 1.0);
+
+    if (time_elapsed_ms > 666.666667)
+    {
+      DWORD_PTR thread_mask = (1ULL << core);
+      DWORD     eax,  edx;
+
+      //RdmsrTx (AMD_ZEN_MSR_PSTATESTAT, &eax, &edx, thread_mask);
+      //
+      //int PStateIdx = (eax & 0x7);
+      //
+      //P0Freq =
+      //  (uint64_t)((__SK_Zen_PStates [PStateIdx].FID  /
+      //              __SK_Zen_PStates [PStateIdx].DID) /** 200.0f*/) * 1000000ULL;
+
+      RdmsrTx (AMD_ZEN_MSR_PSTATE_STATUS, &eax, &edx, thread_mask);
+
+      int Did = (int)((eax >> 8) & 0x3F);
+      int Fid = (int)( eax       & 0xFF);
+
+      cores [core].clock_MHz =
+        ( static_cast <double> (Fid) /
+          static_cast <double> (Did)  ) * 200.0 * 1000000.0;
+
+      float J =
+        SK_CPU_GetJoulesConsumed (core);
+
+      double joules_used  =
+        (J - cores [core].accum.joules);
+
+      cores [core].accum.joules = J;
+      cores [core].power_W      =
+        ( joules_used / (time_elapsed_ms / 1000.0) );
+
+      cores [core].temperature_C =
+        SK_CPU_GetTemperature_AMDZen (core);
+
+      cores [core].sample_taken =
+        SK_QueryPerf ().QuadPart;
+    }
+
+    return cores [core];
+  }
+
+  static SK_CPU_CoreSensors nil {
+     0UL, 0LL, 0.0, 0.0, 0.0
+  };
+
+  return nil;
+}
+
+int8_t
+SK_CPU_GetPState_AMDZen (uint64_t core)
+{
+  if (SK_CPU_IsZen ())
+  {
+    DWORD_PTR thread_mask = (1ULL << core);
+    DWORD     eax, edx;
+
+    if (RdmsrTx (0xC0010063, &eax, &edx, thread_mask))
+    {
+      return
+        (eax & 0x7);
+    }
+  }
+
+  return -1;
 }
 
 class SKWG_CPU_Monitor : public SK_Widget
@@ -510,8 +717,18 @@ public:
           static_cast <float> (pwi [i].CurrentMhz);
       }
 
-      cpu_clocks.addValue ( avg_clock /
-                              static_cast <float> (sinfo.dwNumberOfProcessors) );
+      if (__SK_Ryzen_AverageEffectiveClock.getAvg () == 0)
+      {
+        cpu_clocks.addValue ( avg_clock /
+                                static_cast <float> (sinfo.dwNumberOfProcessors) );
+      }
+
+      else
+      {
+        cpu_clocks.addValue ( __SK_Ryzen_AverageEffectiveClock.getAvg () / 1000000.0f );
+                              __SK_Ryzen_AverageEffectiveClock.sources = 0;
+                              __SK_Ryzen_AverageEffectiveClock.clocks  = 0;
+      }
 
       bool changed =
         ReadAcquire (&active_scheme.dirty) > 0;
@@ -572,7 +789,22 @@ public:
     };
 
     float fTemp =
-      SK_CPU_GetTemperature_AMDZen (0);
+      static_cast <float> (
+        SK_CPU_UpdateCoreSensors (0).temperature_C
+      );
+
+    extern std::string
+    SK_FormatTemperature (double in_temp, SK_UNITS in_unit, SK_UNITS out_unit);
+
+    static std::string temp;
+
+    temp.assign (
+      SK_FormatTemperature (
+        fTemp,
+          Celsius,
+            config.system.prefer_fahrenheit ? Fahrenheit :
+                                              Celsius )
+    );
 
     static SK_CPUCore_PowerLog package_power;
 
@@ -594,17 +826,17 @@ public:
 
       else
       {
-        float time_elapsed =
-          (float)(SK_DeltaPerfMS (package_power.last_tick.QuadPart, 1) / 1000.0);
+        double time_elapsed_ms =
+          SK_DeltaPerfMS (package_power.last_tick.QuadPart, 1.0);
 
-        if (time_elapsed >= 0.666666f)
+        if (time_elapsed_ms > 666.666667)
         {
           float joules_used =
             (fJoules - package_power.last_joules);
 
           package_power = {
             SK_QueryPerf (), fJoules,
-            joules_used / time_elapsed
+            joules_used / ( (float)time_elapsed_ms / 1000.0f )
           };
         }
       }
@@ -646,8 +878,11 @@ public:
         std::min ( (float)cpu_records [i].getUpdates  (),
                    (float)cpu_records [i].getCapacity () );
 
-      uint64_t parked_since =
-        cpu_stats.cpus [i-1].parked_since.QuadPart;
+      uint64_t parked_since = 0;
+
+      if (i > 0)
+        parked_since =
+          cpu_stats.cpus [i-1].parked_since.QuadPart;
 
       ImGui::PushStyleColor ( ImGuiCol_PlotLines, 
                           ImColor::HSV ( 0.31f - 0.31f *
@@ -682,21 +917,6 @@ public:
 
           if (fTemp != 0.0f)
           {
-            extern std::wstring
-            SK_FormatTemperature (float in_temp, SK_UNITS in_unit, SK_UNITS out_unit);
-
-            static std::string temp;
-
-            temp.assign (
-              SK_WideCharToUTF8 (
-                SK_FormatTemperature (
-                  fTemp,
-                    Celsius,
-                      config.system.prefer_fahrenheit ? Fahrenheit :
-                                                        Celsius )
-              )
-            );
-
             ImGui::SameLine        ();
             ImGui::PushStyleColor  (ImGuiCol_Text, ImColor::HSV (0.67194F, 0.15f, 0.95f, 1.f));
             ImGui::TextUnformatted (u8"ー");
@@ -725,9 +945,6 @@ public:
             ImGui::PushStyleColor  (ImGuiCol_Text, ImColor::HSV (0.3f - (0.3f * (cpu_records [0].getAvg () / 100.0f)), 0.80f, 0.95f, 1.f));
             ImGui::TextUnformatted (u8"〇");
             ImGui::SameLine        ( ); ImGui::Spacing (); ImGui::SameLine ();
-            ImGui::PopStyleColor   (1);
-            ImGui::TextUnformatted ("Power Scheme: ");
-            ImGui::SameLine        ();
             ImGui::PushStyleColor  (ImGuiCol_Text, ImColor::HSV (0.14583f, 0.98f, .97f, 1.f));
 
             static bool select_scheme = false;
@@ -767,7 +984,7 @@ public:
               ImGui::OpenPopup ("Power Scheme Selector");
             }
 
-            ImGui::PopStyleColor   (1);
+            ImGui::PopStyleColor   (2);
 
             if ( ImGui::BeginPopupModal ( "Power Scheme Selector",
                  nullptr,
@@ -815,82 +1032,62 @@ public:
         {
           found = true;
 
+          auto core_sensors =
+            SK_CPU_UpdateCoreSensors (j - 1);
+
       if (parked_since == 0 || (! hide_parked))
       {
           ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.28F, 1.f, 1.f, 1.f));
           ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.28F, 1.f, 1.f, 1.f));
-          ImGui::Text           ("%#4.2f GHz", static_cast <float> (cpu_stats.cpus [j-1].CurrentMhz) / 1000.0f);
-          //ImGui::SameLine       ();
-          //ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.12F, .8f, .95f, 1.f));
-          //ImGui::Text           ("/ [%#4lu MHz]", cpu_stats.cpus [j-1].MaximumMhz);
 
-          if (fTemp != 0.0f)
+          if (core_sensors.clock_MHz == 0.0)
+            ImGui::Text         ("%#4.2f GHz", static_cast <float> (cpu_stats.cpus [j-1].CurrentMhz) / 1000.0f);
+          else
           {
-            extern std::wstring
-            SK_FormatTemperature (float in_temp, SK_UNITS in_unit, SK_UNITS out_unit);
+            __SK_Ryzen_AverageEffectiveClock.clocks += core_sensors.clock_MHz;
+            __SK_Ryzen_AverageEffectiveClock.sources++;
+            ImGui::Text         ("%#4.2f GHz", core_sensors.clock_MHz / 1e+9f);
+          }
 
-            static std::string temp;
-
-            temp.assign (
-              SK_WideCharToUTF8 (
-                SK_FormatTemperature (
-                  fTemp,
-                    Celsius,
-                      config.system.prefer_fahrenheit ? Fahrenheit :
-                                                        Celsius )
-              )
-            );
+          // Not exactly per-core right now, so don't
+          //   go crazy with formatting...
+          if (core_sensors.temperature_C != 0.0)
+          {
+            //extern std::string
+            //SK_FormatTemperature (double in_temp, SK_UNITS in_unit, SK_UNITS out_unit);
+            //
+            //static std::string temp;
+            //
+            //temp.assign (
+            //  SK_FormatTemperature (
+            //    core_sensors.temperature_C,
+            //      Celsius,
+            //        config.system.prefer_fahrenheit ? Fahrenheit :
+            //                                          Celsius )
+            //);
 
             ImGui::SameLine        ();
             ImGui::PushStyleColor  (ImGuiCol_Text, ImColor::HSV (0.67194F, 0.15f, 0.95f, 1.f));
             ImGui::TextUnformatted (u8"ー");
-            ImGui::PushStyleColor  (ImGuiCol_Text, ImColor::HSV (0.3f - (0.3f * std::min (1.0f, ((fTemp / 2.0f) / 100.0f))), 1.f, 1.f, 1.f));
+            ImGui::PushStyleColor  (ImGuiCol_Text, ImColor::HSV (
+              static_cast <float> (0.3 - (0.3 * std::min (1.0, ((core_sensors.temperature_C / 2.0) / 100.0)))),
+                                   1.f, 1.f, 1.f));
             ImGui::SameLine        ();
-            ImGui::Text            ("%s", temp.c_str ());
+            ImGui::TextUnformatted (temp.c_str ());
             ImGui::PopStyleColor   (2);
           }
         }
 
-          static std::unordered_map <uint32_t, SK_CPUCore_PowerLog>
-            core_power_log;
-
-          float J =
-            SK_CPU_GetJoulesConsumed (j - 1);
-
-          if (J != 0.0f)
-          {
-            if (! core_power_log.count (j - 1))
-            {
-              core_power_log [j - 1] = {
-                SK_QueryPerf (), J, 0.0f
-              };
-            }
-
-          if (parked_since == 0 || (! hide_parked))
-          {
-            ImGui::SameLine        ();
-            ImGui::PushStyleColor  (ImGuiCol_Text, ImColor::HSV (0.67194F, 0.15f, 0.95f, 1.f));
-            ImGui::TextUnformatted (u8"ー");
-            ImGui::SameLine        ();
-            ImGui::PushStyleColor  (ImGuiCol_Text, ImColor::HSV (0.13294F, 0.734f, .94f, 1.f));
-            ImGui::Text            ("%5.2f W", core_power_log [j - 1].fresh_value );
-            ImGui::PopStyleColor   (2);
-          }
-
-            float time_elapsed =
-              (float)(SK_DeltaPerfMS (core_power_log [j - 1].last_tick.QuadPart, 1) / 1000.0);
-
-            if (time_elapsed >= 0.666666f)
-            {
-              float joules_used  =
-                (J - core_power_log [j - 1].last_joules);
-
-              core_power_log [j - 1] = {
-                SK_QueryPerf (), J,
-                joules_used / time_elapsed
-              };
-            }
-          }
+        if (core_sensors.power_W != 0.0 && (parked_since == 0 || (! hide_parked)))
+        {
+          ImGui::SameLine        ();
+          ImGui::PushStyleColor  (ImGuiCol_Text, ImColor::HSV (0.67194F, 0.15f, 0.95f, 1.f));
+          ImGui::TextUnformatted (u8"ー");
+          ImGui::SameLine        ();
+          ImGui::PushStyleColor  (ImGuiCol_Text, ImColor::HSV (0.13294F, 0.734f, .94f, 1.f));
+          ImGui::Text            ("%#5.2f W", core_sensors.power_W );
+          ImGui::PopStyleColor   (2);
+        }
 
         if (parked_since == 0 || (! hide_parked))
         {
