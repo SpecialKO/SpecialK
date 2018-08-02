@@ -643,6 +643,10 @@ public:
           _In_  ID3D11CommandList *pCommandList,
           BOOL RestoreContextState) override
         {
+          // Fix for Yakuza0, why the hell is it passing nullptr?!
+          if (pCommandList == nullptr)
+            return pReal->ExecuteCommandList (pCommandList, RestoreContextState);
+
           CComPtr <ID3D11DeviceContext> pBuildContext;
           UINT                          size = 0;
 
