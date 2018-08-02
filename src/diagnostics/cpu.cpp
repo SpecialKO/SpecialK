@@ -114,8 +114,15 @@ GetSystemInfo_Detour (
 void
 SK_GetSystemInfo (LPSYSTEM_INFO lpSystemInfo)
 {
+  if (GetSystemInfo_Original != nullptr)
+  {
+    return
+      GetSystemInfo_Original (lpSystemInfo);
+  }
+
+  // We haven't hooked that function yet, so call the original.
   return
-    GetSystemInfo_Original (lpSystemInfo);
+    GetSystemInfo (lpSystemInfo);
 }
 
 

@@ -319,6 +319,10 @@ public:
   static std::string Vendor (void) { return CPU_Rep.vendor_;        }
   static std::string Brand  (void) { return CPU_Rep.brand_;         }
 
+  static int  Family        (void) { return CPU_Rep.family_;        }
+  static int  Model         (void) { return CPU_Rep.model_;         }
+  static int  Stepping      (void) { return CPU_Rep.stepping_;      }
+
   static bool SSE3          (void) { return CPU_Rep.f_1_ECX_  [ 0]; }
   static bool PCLMULQDQ     (void) { return CPU_Rep.f_1_ECX_  [ 1]; }
   static bool MONITOR       (void) { return CPU_Rep.f_1_ECX_  [ 3]; }
@@ -395,11 +399,13 @@ private:
   class InstructionSet_Internal
   {
   public:
-    InstructionSet_Internal (void) : nIds_     { 0     }, nExIds_   { 0     }, 
-                                     isIntel_  { false }, isAMD_    { false }, 
-                                     f_1_ECX_  { 0     }, f_1_EDX_  { 0     }, 
-                                     f_7_EBX_  { 0     }, f_7_ECX_  { 0     }, 
-                                     f_81_ECX_ { 0     }, f_81_EDX_ { 0     }, 
+    InstructionSet_Internal (void) : nIds_     { 0     }, nExIds_   { 0     },
+                                     isIntel_  { false }, isAMD_    { false },
+                                     f_1_ECX_  { 0     }, f_1_EDX_  { 0     },
+                                     f_7_EBX_  { 0     }, f_7_ECX_  { 0     },
+                                     f_81_ECX_ { 0     }, f_81_EDX_ { 0     },
+                                     family_   { 0     }, model_    { 0     },
+                                     stepping_ { 0     },
                                      data_     {       }, extdata_  {       } 
     {
       //int cpuInfo[4] = {-1};
@@ -429,6 +435,10 @@ private:
 
            if  (vendor_ == "GenuineIntel")  isIntel_ = true;
       else if  (vendor_ == "AuthenticAMD")  isAMD_   = true;
+
+      stepping_ =  data_ [1][0]       & 0x4;
+      model_    = (data_ [1][0] >> 4) & 0x4;
+      family_   = (data_ [1][0] >> 8) & 0x4;
 
       // Load Bitset with Flags for Function 0x00000001
       //
@@ -483,6 +493,9 @@ private:
                              int       nExIds_;
                       std::string      vendor_;
                       std::string      brand_;
+                             int       family_;
+                             int       model_;
+                             int       stepping_;
                              bool      isIntel_;
                              bool      isAMD_;
                       std::bitset <32> f_1_ECX_;

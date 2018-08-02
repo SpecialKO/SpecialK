@@ -108,7 +108,8 @@ WINAPI Rdmsr(
 //	DWORD_PTR threadAffinityMask
 //);
 
-typedef BOOL (WINAPI *RdmsrTx_pfn)(DWORD,PDWORD,PDWORD,DWORD_PTR);
+typedef BOOL (WINAPI *RdmsrTx_pfn)( DWORD index,PDWORD eax,PDWORD edx,
+                                    DWORD_PTR core_mask );
                extern RdmsrTx_pfn
                       RdmsrTx;
 
