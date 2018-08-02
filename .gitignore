@@ -382,3 +382,5 @@ paket-files/
 /build/TZFix/Win32
 *.asm
 *.asm
+/resource/WinRing0x64.dll
+/resource/WinRing0.dll
