@@ -753,6 +753,7 @@ enum class SK_GAME_ID
   ChronoTrigger,                // Chrono Trigger.exe
   Ys_Eight,                     // ys8.exe
   PillarsOfEternity2,           // PillarsOfEternityII.exe
+  Yakuza0,                      // Yakuza0.exe
   UNKNOWN_GAME               = 0xffff
 };
 

@@ -64,7 +64,7 @@ SK_SteamWrapper_WrappedClient_GetISteamUGC ( ISteamClient *This,
                                              const char   *pchVersion );
 
 #define WRAP_CONTROLLER
-#define WRAP_STORAGE
+//#define WRAP_STORAGE
 #define WRAP_USER
 #define WRAP_UTILS
 //#define WRAP_UGC

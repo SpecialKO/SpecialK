@@ -1317,6 +1317,7 @@ auto DeclKeybind =
   games.emplace ( L"Chrono Trigger.exe",                     SK_GAME_ID::ChronoTrigger                );
   games.emplace ( L"ys8.exe",                                SK_GAME_ID::Ys_Eight                     );
   games.emplace ( L"PillarsOfEternityII.exe",                SK_GAME_ID::PillarsOfEternity2           );
+  games.emplace ( L"Yakuza0.exe",                            SK_GAME_ID::Yakuza0                      );
 
   //
   // Application Compatibility Overrides
@@ -1703,6 +1704,12 @@ auto DeclKeybind =
       case SK_GAME_ID::Ys_Eight:
         config.textures.d3d11.uncompressed_mips = true;
         config.textures.d3d11.cache_gen_mips    = false;
+        break;
+
+      case SK_GAME_ID::Yakuza0:
+        // Engine has a problem with its texture management that
+        //   makes texture caching / modding impossible.
+        config.textures.d3d11.cache = false;
         break;
     }
   }

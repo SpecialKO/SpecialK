@@ -598,10 +598,10 @@ SK_Steam_PreHookCore (void)
 
   if (GetProcAddress (GetModuleHandle (wszSteamLib), "SteamRemoteStorage"))
   {
-    SK_CreateDLLHook2 (          wszSteamLib,
-                                  "SteamRemoteStorage",
-                                   SteamRemoteStorage_Detour,
-          static_cast_p2p <void> (&SteamRemoteStorage_Original) );
+    //SK_CreateDLLHook2 (          wszSteamLib,
+    //                              "SteamRemoteStorage",
+    //                               SteamRemoteStorage_Detour,
+    //      static_cast_p2p <void> (&SteamRemoteStorage_Original) );
   }
 
   if (GetProcAddress (GetModuleHandle (wszSteamLib), "SteamUGC"))
@@ -639,10 +639,16 @@ SK_Steam_PreHookCore (void)
                                    SteamAPI_ISteamClient_GetISteamController_Detour,
           static_cast_p2p <void> (&SteamAPI_ISteamClient_GetISteamController_Original) );
     
-    SK_CreateDLLHook2 (          wszSteamLib,
-                                  "SteamAPI_ISteamClient_GetISteamRemoteStorage",
-                                   SteamAPI_ISteamClient_GetISteamRemoteStorage_Detour,
-          static_cast_p2p <void> (&SteamAPI_ISteamClient_GetISteamRemoteStorage_Original) );
+    /* 8/1/18 -- Disabled for Yukuza 0
+       ------
+      
+         Will cause SteamAPI problems at cloud-sync start; hook isn't needed since
+           SK's cloud features still aren't finished.
+    */
+    //SK_CreateDLLHook2 (          wszSteamLib,
+    //                              "SteamAPI_ISteamClient_GetISteamRemoteStorage",
+    //                               SteamAPI_ISteamClient_GetISteamRemoteStorage_Detour,
+    //      static_cast_p2p <void> (&SteamAPI_ISteamClient_GetISteamRemoteStorage_Original) );
 
     SK_CreateDLLHook2 (          wszSteamLib,
                                   "SteamAPI_ISteamClient_GetISteamUGC",

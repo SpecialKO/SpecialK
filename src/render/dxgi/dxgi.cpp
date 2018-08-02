@@ -1532,7 +1532,8 @@ struct SK_D3D11_Stateblock_Lite : StateBlockDataStore
     pCtx->PSSetShaderResources   (0, 2, PSShaderResources);
     pCtx->PSSetConstantBuffers   (0, 1, &PSConstantBuffer);
     pCtx->VSSetConstantBuffers   (0, 1, &VSConstantBuffer);
-    D3D11_PSSetSamplers_Original (pCtx, 0, 1, &PSSampler);
+    pCtx->PSSetSamplers          (0, 1, &PSSampler);
+  //D3D11_PSSetSamplers_Original (pCtx, 0, 1, &PSSampler);
     pCtx->IASetVertexBuffers     (0, 1, &VertexBuffer,    &VertexBufferStride,
                                                           &VertexBufferOffset);
     pCtx->OMSetRenderTargets     (1,    &RenderTargetView, DepthStencilView);
