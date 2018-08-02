@@ -90,12 +90,20 @@ WINAPI IsTsc();
 //-----------------------------------------------------------------------------
 // Rdmsr
 //-----------------------------------------------------------------------------
-BOOL // TRUE: success, FALSE: failure
-WINAPI Rdmsr(
-	DWORD index,					// MSR index
-	PDWORD eax,						// bit  0-31
-	PDWORD edx						// bit 32-63
+//BOOL // TRUE: success, FALSE: failure
+//WINAPI Rdmsr(
+//	DWORD index,					// MSR index
+//	PDWORD eax,						// bit  0-31
+//	PDWORD edx						// bit 32-63
+//);
+typedef BOOL (WINAPI *Rdmsr_pfn)(
+  DWORD index,					// MSR index
+  PDWORD eax,						// bit  0-31
+  PDWORD edx						// bit 32-63
 );
+extern Rdmsr_pfn
+       Rdmsr;
+
 
 //-----------------------------------------------------------------------------
 // RdmsrTx

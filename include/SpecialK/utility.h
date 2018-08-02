@@ -436,9 +436,9 @@ private:
            if  (vendor_ == "GenuineIntel")  isIntel_ = true;
       else if  (vendor_ == "AuthenticAMD")  isAMD_   = true;
 
-      stepping_ =  data_ [1][0]       & 0x4;
-      model_    = (data_ [1][0] >> 4) & 0x4;
-      family_   = (data_ [1][0] >> 8) & 0x4;
+      stepping_ =  data_ [1][0]       & 0xF;
+      model_    = (data_ [1][0] >> 4) & 0xF;
+      family_   = (data_ [1][0] >> 8) & 0xF;
 
       // Load Bitset with Flags for Function 0x00000001
       //

@@ -132,6 +132,7 @@ InitializeOls_pfn       InitializeOls       = nullptr;
 ReadPciConfigDword_pfn  ReadPciConfigDword  = nullptr;
 WritePciConfigDword_pfn WritePciConfigDword = nullptr;
 RdmsrTx_pfn             RdmsrTx             = nullptr;
+Rdmsr_pfn               Rdmsr               = nullptr;
 
 void
 SK_WinRing0_Unpack (void)
@@ -235,10 +236,10 @@ enum SK_CPU_IntelMSR
   IA32_TEMPERATURE_TARGET   = 0x01A2,
 
   RAPL_POWER_UNIT           = 0x0606,
-  PKG_ENERY_STATUS          = 0x0611,
+  PKG_ENERGY_STATUS         = 0x0611,
   DRAM_ENERGY_STATUS        = 0x0619,
-  PP0_ENERY_STATUS          = 0x0639,
-  PP1_ENERY_STATUS          = 0x0641
+  PP0_ENERGY_STATUS         = 0x0639,
+  PP1_ENERGY_STATUS         = 0x0641
 };
 
 struct SK_CPU_CoreSensors
@@ -254,7 +255,7 @@ struct SK_CPU_CoreSensors
     double joules;
   } accum;
 
-  float tjMax;
+  double tjMax;
 };
 
 struct SK_CPU_Package
@@ -264,37 +265,52 @@ struct SK_CPU_Package
     SYSTEM_INFO        sinfo = { };
     SK_GetSystemInfo (&sinfo);
 
-    for ( int i = 0 ; i < sinfo.dwNumberOfProcessors ; i++ )
+    for ( DWORD i = 0 ; i < sinfo.dwNumberOfProcessors ; i++ )
     {
       cores [i].cpu_core = i;
     }
-  }
 
-  void updateSensors (void);
+    pkg_sensor.cpu_core =
+      std::numeric_limits <uint32_t>::max ();
+  }
 
   SK_CPU_IntelMicroarch intel_arch  = SK_CPU_IntelMicroarch::KnownIntelArchs;
   int                   amd_zen_idx = 0;
+
+  struct {
+    double tsc_coeff    = 1.0;
+    double energy_coeff = 1.0;
+  } intel;
+
+  enum SensorFlags {
+    PerPackageThermal = 0x1,
+    PerPackageEnergy  = 0x2,
+    PerCoreThermal    = 0x4,
+    PerCoreEnergy     = 0x8
+  } sensors;
+
+  SK_CPU_CoreSensors pkg_sensor;
 
   std::unordered_map <int, SK_CPU_CoreSensors> cores;
 } static __SK_CPU;
 
 
-float
-SK_CPU_GetIntelTjMax (uint32_t core)
+double
+SK_CPU_GetIntelTjMax (DWORD_PTR core)
 {
   DWORD eax, edx;
 
   if ( RdmsrTx ( SK_CPU_IntelMSR::IA32_TEMPERATURE_TARGET,
                    &eax, &edx,
-                     (1UL << core)
+                     ((DWORD_PTR)1 << core)
                )
      )
   {
     return
-      static_cast <float> ((eax >> 16UL) & 0xFFUL);
+      static_cast <double> ((eax >> 16UL) & 0xFFUL);
   }
 
-  return 100.0f;
+  return 100.0;
 }
 
 bool
@@ -342,9 +358,21 @@ SK_WR0_Init (void)
       (RdmsrTx_pfn)SK_GetProcAddress ( path_to_driver.c_str (),
                                       "RdmsrTx" );
 
+    Rdmsr =
+      (Rdmsr_pfn)SK_GetProcAddress ( path_to_driver.c_str (),
+                                      "Rdmsr" );
+
     if (InitializeOls ()) init =  1;
     else                  init = -1;
   }
+
+  SK_LOG0 ( (L"Installed CPU: %hs",
+                  InstructionSet::Brand  ().c_str () ),
+             L"CPU Driver" );
+  SK_LOG0 ( (L" >> Family: %02xh, Model: %02xh, Stepping: %02xh",
+                  InstructionSet::Family   (), InstructionSet::Model (),
+                  InstructionSet::Stepping () ),
+             L"CPU Driver" );
 
   return
     (init == 1);
@@ -353,12 +381,17 @@ SK_WR0_Init (void)
 SK_CPU_IntelMicroarch
 SK_CPU_GetIntelMicroarch (void)
 {
-  if (! SK_WR0_Init ())
-    __SK_CPU.intel_arch = SK_CPU_IntelMicroarch::NotIntel;
+  auto& cpu =
+    __SK_CPU;
 
-  if (__SK_CPU.intel_arch == SK_CPU_IntelMicroarch::KnownIntelArchs)
+  if (! SK_WR0_Init ())
+    cpu.intel_arch = SK_CPU_IntelMicroarch::NotIntel;
+
+  DWORD eax, edx;
+
+  if (cpu.intel_arch == SK_CPU_IntelMicroarch::KnownIntelArchs)
   {
-    __SK_CPU.intel_arch = SK_CPU_IntelMicroarch::NotIntel;
+    cpu.intel_arch = SK_CPU_IntelMicroarch::NotIntel;
 
     switch (InstructionSet::Family ())
     {
@@ -367,67 +400,67 @@ SK_CPU_GetIntelMicroarch (void)
         switch (InstructionSet::Model ())
         {
           case 0x0F: // Intel Core 2 (65nm)
-            __SK_CPU.intel_arch = SK_CPU_IntelMicroarch::Core;
+            cpu.intel_arch = SK_CPU_IntelMicroarch::Core;
             switch (InstructionSet::Stepping ())
             {
               case 0x06: // B2
-                switch (__SK_CPU.cores.size ())
+                switch (cpu.cores.size ())
                 {
                   case 2:
-                    for ( auto& core : __SK_CPU.cores )
-                      core.second.tjMax = 80.0f + 10.0f;
+                    for ( auto& core : cpu.cores )
+                      core.second.tjMax = 80.0 + 10.0;
                     break;
                   case 4:
-                    for ( auto& core : __SK_CPU.cores )
-                      core.second.tjMax = 90.0f + 10.0f;
+                    for ( auto& core : cpu.cores )
+                      core.second.tjMax = 90.0 + 10.0;
                     break;
                   default:
-                    for ( auto& core : __SK_CPU.cores )
-                      core.second.tjMax = 85.0f + 10.0f;
+                    for ( auto& core : cpu.cores )
+                      core.second.tjMax = 85.0 + 10.0;
                     break;
                 }
-                for ( auto& core : __SK_CPU.cores )
-                  core.second.tjMax = 85.0f + 10.0f;
+                for ( auto& core : cpu.cores )
+                  core.second.tjMax = 85.0 + 10.0;
                 break;
               case 0x0B: // G0
-                for ( auto& core : __SK_CPU.cores )
-                  core.second.tjMax = 90.0f + 10.0f;
+                for ( auto& core : cpu.cores )
+                  core.second.tjMax = 90.0 + 10.0;
                 break;
               case 0x0D: // M0
-                for ( auto& core : __SK_CPU.cores )
-                  core.second.tjMax = 85.0f + 10.0f;
+                for ( auto& core : cpu.cores )
+                  core.second.tjMax = 85.0 + 10.0;
                 break;
               default:
-                for ( auto& core : __SK_CPU.cores )
-                  core.second.tjMax = 85.0f + 10.0f;
+                for ( auto& core : cpu.cores )
+                  core.second.tjMax = 85.0 + 10.0;
                 break;
             }
             break;
 
           case 0x17: // Intel Core 2 (45nm)
-            __SK_CPU.intel_arch = SK_CPU_IntelMicroarch::Core;
-            for ( auto& core : __SK_CPU.cores )
-              core.second.tjMax = 100.0f;
+            cpu.intel_arch = SK_CPU_IntelMicroarch::Core;
+            for ( auto& core : cpu.cores )
+              core.second.tjMax = 100.0;
             break;
 
           case 0x1C: // Intel Atom (45nm)
-            __SK_CPU.intel_arch = SK_CPU_IntelMicroarch::Atom;
+            cpu.intel_arch = SK_CPU_IntelMicroarch::Atom;
 
             switch (InstructionSet::Stepping ())
             {
               case 0x02: // C0
-                for ( auto& core : __SK_CPU.cores )
-                  core.second.tjMax = 90.0f;
+                for ( auto& core : cpu.cores )
+                  core.second.tjMax = 90.0;
                 break;
 
               case 0x0A: // A0, B0
-                for ( auto& core : __SK_CPU.cores )
-                  core.second.tjMax = 100.0f;
+                for ( auto& core : cpu.cores )
+                  core.second.tjMax = 100.0;
                 break;
 
               default:
-                for ( auto& core : __SK_CPU.cores )
-                  core.second.tjMax = 90.0f;
+                for ( auto& core : cpu.cores )
+                  core.second.tjMax = 90.0;
                 break;
             } break;
 
@@ -438,22 +471,22 @@ SK_CPU_GetIntelMicroarch (void)
           case 0x2C: // Intel Core i7 LGA1366 (32nm) 6 Core
           case 0x2E: // Intel Xeon Processor 7500 series (45nm)
           case 0x2F: // Intel Xeon Processor (32nm)
-            __SK_CPU.intel_arch = SK_CPU_IntelMicroarch::Nehalem;
-            for ( auto& core : __SK_CPU.cores ) core.second.tjMax =
+            cpu.intel_arch = SK_CPU_IntelMicroarch::Nehalem;
+            for ( auto& core : cpu.cores ) core.second.tjMax =
               SK_CPU_GetIntelTjMax (core.second.cpu_core);
             break;
 
           case 0x2A: // Intel Core i5, i7 2xxx LGA1155 (32nm)
           case 0x2D: // Next Generation Intel Xeon, i7 3xxx LGA2011 (32nm)
-            __SK_CPU.intel_arch = SK_CPU_IntelMicroarch::SandyBridge;
-            for ( auto& core : __SK_CPU.cores ) core.second.tjMax =
+            cpu.intel_arch = SK_CPU_IntelMicroarch::SandyBridge;
+            for ( auto& core : cpu.cores ) core.second.tjMax =
               SK_CPU_GetIntelTjMax (core.second.cpu_core);
             break;
 
           case 0x3A: // Intel Core i5, i7 3xxx LGA1155 (22nm)
           case 0x3E: // Intel Core i7 4xxx LGA2011 (22nm)
-            __SK_CPU.intel_arch = SK_CPU_IntelMicroarch::IvyBridge;
-            for ( auto& core : __SK_CPU.cores ) core.second.tjMax =
+            cpu.intel_arch = SK_CPU_IntelMicroarch::IvyBridge;
+            for ( auto& core : cpu.cores ) core.second.tjMax =
               SK_CPU_GetIntelTjMax (core.second.cpu_core);
             break;
 
@@ -462,8 +495,8 @@ SK_CPU_GetIntelMicroarch (void)
                      // LGA2011-v3, Haswell-E (22nm)
           case 0x45: // Intel Core i5, i7 4xxxU (22nm)
           case 0x46: 
-            __SK_CPU.intel_arch = SK_CPU_IntelMicroarch::Haswell;
-            for ( auto& core : __SK_CPU.cores ) core.second.tjMax =
+            cpu.intel_arch = SK_CPU_IntelMicroarch::Haswell;
+            for ( auto& core : cpu.cores ) core.second.tjMax =
               SK_CPU_GetIntelTjMax (core.second.cpu_core);
             break;
 
@@ -471,14 +504,14 @@ SK_CPU_GetIntelMicroarch (void)
           case 0x47: // Intel i5, i7 5xxx, Xeon E3-1200 v4 (14nm)
           case 0x4F: // Intel Xeon E5-26xx v4
           case 0x56: // Intel Xeon D-15xx
-            __SK_CPU.intel_arch = SK_CPU_IntelMicroarch::Broadwell;
-            for ( auto& core : __SK_CPU.cores ) core.second.tjMax =
+            cpu.intel_arch = SK_CPU_IntelMicroarch::Broadwell;
+            for ( auto& core : cpu.cores ) core.second.tjMax =
               SK_CPU_GetIntelTjMax (core.second.cpu_core);
             break;
 
           case 0x36: // Intel Atom S1xxx, D2xxx, N2xxx (32nm)
-            __SK_CPU.intel_arch = SK_CPU_IntelMicroarch::Atom;
-            for ( auto& core : __SK_CPU.cores ) core.second.tjMax =
+            cpu.intel_arch = SK_CPU_IntelMicroarch::Atom;
+            for ( auto& core : cpu.cores ) core.second.tjMax =
               SK_CPU_GetIntelTjMax (core.second.cpu_core);
             break;
 
@@ -487,41 +520,42 @@ SK_CPU_GetIntelMicroarch (void)
           case 0x4D: // Intel Atom C2xxx (22nm)
           case 0x5A:
           case 0x5D:
-            __SK_CPU.intel_arch = SK_CPU_IntelMicroarch::Silvermont;
-            for ( auto& core : __SK_CPU.cores ) core.second.tjMax =
+            cpu.intel_arch = SK_CPU_IntelMicroarch::Silvermont;
+            for ( auto& core : cpu.cores ) core.second.tjMax =
               SK_CPU_GetIntelTjMax (core.second.cpu_core);
             break;
 
           case 0x4E:
+          case 0x0E: // Intel Core i7     6xxxx BGA1440 (14nm)
           case 0x5E: // Intel Core i5, i7 6xxxx LGA1151 (14nm)
           case 0x55: // Intel Core i7, i9 7xxxx LGA2066 (14nm)
-            __SK_CPU.intel_arch = SK_CPU_IntelMicroarch::Skylake;
-            for ( auto& core : __SK_CPU.cores ) core.second.tjMax =
+            cpu.intel_arch = SK_CPU_IntelMicroarch::Skylake;
+            for ( auto& core : cpu.cores ) core.second.tjMax =
               SK_CPU_GetIntelTjMax (core.second.cpu_core);
             break;
 
           case 0x4C:
-            __SK_CPU.intel_arch = SK_CPU_IntelMicroarch::Airmont;
-            for ( auto& core : __SK_CPU.cores ) core.second.tjMax =
+            cpu.intel_arch = SK_CPU_IntelMicroarch::Airmont;
+            for ( auto& core : cpu.cores ) core.second.tjMax =
               SK_CPU_GetIntelTjMax (core.second.cpu_core);
             break;
 
           case 0x8E: 
           case 0x9E: // Intel Core i5, i7 7xxxx (14nm)
-            __SK_CPU.intel_arch = SK_CPU_IntelMicroarch::KabyLake;
-            for ( auto& core : __SK_CPU.cores ) core.second.tjMax =
+            cpu.intel_arch = SK_CPU_IntelMicroarch::KabyLake;
+            for ( auto& core : cpu.cores ) core.second.tjMax =
               SK_CPU_GetIntelTjMax (core.second.cpu_core);
             break;
 
           case 0x5C: // Intel Atom processors
-            __SK_CPU.intel_arch = SK_CPU_IntelMicroarch::ApolloLake;
-            for ( auto& core : __SK_CPU.cores ) core.second.tjMax =
+            cpu.intel_arch = SK_CPU_IntelMicroarch::ApolloLake;
+            for ( auto& core : cpu.cores ) core.second.tjMax =
               SK_CPU_GetIntelTjMax (core.second.cpu_core);
             break;
 
           default:
-            __SK_CPU.intel_arch = SK_CPU_IntelMicroarch::UnknownIntel;
-            for ( auto& core : __SK_CPU.cores ) core.second.tjMax =
+            cpu.intel_arch = SK_CPU_IntelMicroarch::UnknownIntel;
+            for ( auto& core : cpu.cores ) core.second.tjMax =
               SK_CPU_GetIntelTjMax (core.second.cpu_core);
             break;
         }
@@ -537,27 +571,83 @@ SK_CPU_GetIntelMicroarch (void)
           case 0x03: // Pentium 4, Celeron D (90nm)
           case 0x04: // Pentium 4, Pentium D, Celeron D (90nm)
           case 0x06: // Pentium 4, Pentium D, Celeron D (65nm)
-            __SK_CPU.intel_arch = SK_CPU_IntelMicroarch::NetBurst;
-            for ( auto& core : __SK_CPU.cores )
-              core.second.tjMax = 100.0f;
+            cpu.intel_arch = SK_CPU_IntelMicroarch::NetBurst;
+            for ( auto& core : cpu.cores )
+              core.second.tjMax = 100.0;
             break;
 
           default:
-            __SK_CPU.intel_arch = SK_CPU_IntelMicroarch::UnknownIntel;
-            for ( auto& core : __SK_CPU.cores )
-              core.second.tjMax = 100.0f;
+            cpu.intel_arch = SK_CPU_IntelMicroarch::UnknownIntel;
+            for ( auto& core : cpu.cores )
+              core.second.tjMax = 100.0;
             break;
         }
       } break;
 
       default:
-        __SK_CPU.intel_arch = SK_CPU_IntelMicroarch::NotIntel;
+        cpu.intel_arch = SK_CPU_IntelMicroarch::UnknownIntel;
         break;
     }
   }
 
+  if (cpu.intel_arch < SK_CPU_IntelMicroarch::KnownIntelArchs)
+  {
+    switch (cpu.intel_arch)
+    {
+      case SK_CPU_IntelMicroarch::NetBurst:
+      case SK_CPU_IntelMicroarch::Atom:
+      case SK_CPU_IntelMicroarch::Core:
+      {
+        if (Rdmsr (IA32_PERF_STATUS, &eax, &edx))
+        {
+          cpu.intel.tsc_coeff =
+            ((edx >> 8) & 0x1f) + 0.5 * ((edx >> 14) & 1);
+        }
+      } break;
+
+      case SK_CPU_IntelMicroarch::Nehalem:
+      case SK_CPU_IntelMicroarch::SandyBridge:
+      case SK_CPU_IntelMicroarch::IvyBridge:
+      case SK_CPU_IntelMicroarch::Haswell: 
+      case SK_CPU_IntelMicroarch::Broadwell:
+      case SK_CPU_IntelMicroarch::Silvermont:
+      case SK_CPU_IntelMicroarch::Skylake:
+      case SK_CPU_IntelMicroarch::Airmont:
+      case SK_CPU_IntelMicroarch::KabyLake:
+      case SK_CPU_IntelMicroarch::ApolloLake:
+      {
+        if (Rdmsr (PLATFORM_INFO, &eax, &edx))
+        {
+          cpu.intel.tsc_coeff =
+            (eax >> 8) & 0xff;
+        }
+      } break;
+
+      default: 
+        cpu.intel.tsc_coeff = 0.0;
+        break;
+    }
+
+    if (Rdmsr (RAPL_POWER_UNIT, &eax, &edx))
+    {
+      switch (cpu.intel_arch)
+      {
+        case SK_CPU_IntelMicroarch::Silvermont:
+        case SK_CPU_IntelMicroarch::Airmont:
+          cpu.intel.energy_coeff =
+            1.0e-6 * static_cast <double> (1 << (int)((eax >> 8) & 0x1F));
+          break;
+
+        default:
+          cpu.intel.energy_coeff =
+            1.0 / static_cast <double> (1 << (int)((eax >> 8) & 0x1F));
+          break;
+      }
+    }
+  }
+
   return
-    __SK_CPU.intel_arch;
+    cpu.intel_arch;
 }
 
 int
@@ -613,15 +703,16 @@ SK_CPU_IsZen (void)
 float
 SK_CPU_GetJoulesConsumedTotal (DWORD_PTR package)
 {
+  UNREFERENCED_PARAMETER (package);
+
   if (SK_CPU_IsZen ())
   {
-    DWORD_PTR package_mask = package;//(1ULL << package);
     DWORD     eax,  edx;
     DWORD     eax2, edx2;
 
     // AMD Model 17h measures this in 15.3 micro-joule increments
-    if (RdmsrTx (0xC001029B, &eax,  &edx,  package_mask))
-    {   RdmsrTx (0xC0010299, &eax2, &edx2, package_mask);
+    if (RdmsrTx (0xC001029B, &eax,  &edx,  std::numeric_limits <DWORD_PTR>::max ()))
+    {   RdmsrTx (0xC0010299, &eax2, &edx2, std::numeric_limits <DWORD_PTR>::max ());
 
       if (((eax2 >> 8UL) & 0x1FUL) != 16UL)
       {
@@ -636,6 +727,24 @@ SK_CPU_GetJoulesConsumedTotal (DWORD_PTR package)
       return
         static_cast <float> (
           static_cast <long double> (eax) / 65359.4771 );
+    }
+  }
+
+  else if (SK_CPU_GetIntelMicroarch () < SK_CPU_IntelMicroarch::KnownIntelArchs)
+  {
+    auto& cpu =
+      __SK_CPU;
+
+    if (cpu.intel.energy_coeff != 0.0)
+    {
+      DWORD eax, edx;
+
+      if (Rdmsr (PKG_ENERGY_STATUS, &eax, &edx))
+      {
+        return 
+          cpu.intel.energy_coeff *
+            static_cast <float> (eax);
+      }
     }
   }
 
@@ -739,88 +848,39 @@ struct {
   }
 } __AverageEffectiveClock;
 
-struct SK_CPU_AMD_Zen_PState
-{
-  float FID = 0.0f;
-  float DID = 0.0f;
-} static __SK_Zen_PStates [AMD_ZEN_PSTATE_COUNT] = { };
-
 void
-SK_CPU_Zen_PopulatePStates (void)
+SK_CPU_UpdatePackageSensors (int package)
 {
-  if (__SK_Zen_PStates [0].FID != 0.0f)
-    return;
+  auto& cpu =
+    __SK_CPU;
 
-  for ( int i = 0 ; i < AMD_ZEN_PSTATE_COUNT ; ++i )
+  double time_elapsed_ms =
+    SK_DeltaPerfMS (cpu.pkg_sensor.sample_taken, 1.0);
+
+  if (time_elapsed_ms < 666.666667)
   {
-    DWORD_PTR thread_mask = 1;
-    DWORD     eax,  edx;
-
-    if (RdmsrTx (AMD_ZEN_MSR_PSTATEDEF_0 + i, &eax, &edx, thread_mask))
-    {
-      // [0x10 - 0xFF] => (x25) == < 400 - 6375 >
-      uint8_t _FID = (eax & 0xFF);
-
-      if (_FID < 0x10)
-      {
-        // PStates 3-7 are usually undefined, so this is okay...
-        if (_FID != 0x0)
-          dll_log.Log (L"[  AMDZen  ] Invalid FID (%x) Encountered on CPU - {PState%lu}", _FID, i);
-      }
-      
-      else
-      {
-        __SK_Zen_PStates [i].FID =
-          static_cast <float> (_FID) * (25.0f);
-      }
-
-      uint8_t _DID = (eax >> 8UL) & 0x3F;
-
-      switch (_DID)
-      {
-        case 0:
-          __SK_Zen_PStates [i].DID = 1.0f;// 0.0f; ???
-          break;
-        case 0x8:
-          __SK_Zen_PStates [i].DID = 1.0f;
-          break;
-        case 0x9:
-          __SK_Zen_PStates [i].DID = 1.125f;
-          break;
-        case 0x0A:
-        case 0x0B:
-        case 0x0C:
-        case 0x0D:
-        case 0x0E:
-        case 0x0F:
-        case 0x10:
-        case 0x11:
-        case 0x12:
-        case 0x13:
-        case 0x14:
-        case 0x15:
-        case 0x16:
-        case 0x17:
-        case 0x18:
-        case 0x1A:
-        case 0x1C:
-        case 0x1E:
-        case 0x20:
-        case 0x22:
-        case 0x24:
-        case 0x25:
-        case 0x28:
-        case 0x2A:
-        case 0x2C:
-          __SK_Zen_PStates [i].DID =
-            static_cast <float> (_DID) / 8.0f;
-          break;
-        default:
-          dll_log.Log (L"[  AMDZen  ] Invalid DID (%x) Encountered on CPU - {PState%lu}", _DID, i);
-          break;
-      }
-    }
+    return;// cpu.pkg_sensor;
   }
+
+  float fJoules =
+    SK_CPU_GetJoulesConsumedTotal (package);
+
+  if (fJoules != 0.0f)
+  {
+    if (time_elapsed_ms > 666.666667)
+    {
+      double joules_used =
+        (fJoules - cpu.pkg_sensor.accum.joules);
+
+      cpu.pkg_sensor.accum.joules =
+        fJoules;
+      cpu.pkg_sensor.power_W      = 
+        joules_used / ( time_elapsed_ms / 1000.0 );
+    };
+  }
+
+  cpu.pkg_sensor.sample_taken =
+    SK_QueryPerf ().QuadPart;
 }
 
 SK_CPU_CoreSensors&
@@ -847,9 +907,9 @@ SK_CPU_UpdateCoreSensors (int core)
            (eax & 0x80000000) != 0 )
     {
       // get the dist from tjMax from bits 22:16
-      float deltaT = static_cast <float> (((eax & 0x007F0000UL) >> 16UL));
-      float tjMax  = cores [core].tjMax;
-      float tSlope = 1.0f;//coreTemperatures[i].Parameters[1].Value;
+      double deltaT = static_cast <double> (((eax & 0x007F0000UL) >> 16UL));
+      double tjMax  = cores [core].tjMax;
+      double tSlope = 1.0;//coreTemperatures[i].Parameters[1].Value;
         cores [core].temperature_C =
           tjMax - tSlope * deltaT;
     }
@@ -858,34 +918,33 @@ SK_CPU_UpdateCoreSensors (int core)
       cores [core].temperature_C = 0.0f;
     }
 
-    //if (Rdmsr(energyStatusMSRs[sensor.Index], out eax, out edx))
-    //  continue;
+    auto& cpu = __SK_CPU;
 
-    float J =
-      SK_CPU_GetJoulesConsumed (core);
+    if (cpu.intel.energy_coeff != 0.0)
+    {
+      float J = 0.0;
 
-    double joules_used  =
-      (J - cores [core].accum.joules);
+      //PP0_ENERGY_STATUS
+      //PP1_ENERGY_STATUS
+      if (Rdmsr (PP1_ENERGY_STATUS, &eax, &edx))
+      {
+        J = cpu.intel.energy_coeff * static_cast <float> (eax);
+      }
 
-    cores [core].accum.joules = J;
-    cores [core].power_W      =
-      ( joules_used / (time_elapsed_ms / 1000.0) );
+      //float J =
+      //  SK_CPU_GetJoulesConsumed (core);
+
+      double joules_used  =
+        (J - cores [core].accum.joules);
+
+      cores [core].accum.joules = J;
+      cores [core].power_W      =
+        ( joules_used / (time_elapsed_ms / 1000.0) );
+    }
   }
 
   else if (SK_CPU_IsZen ())
   {
-    //if (__SK_Zen_PStates [0].FID == 0.0f)
-    //{
-    //  SK_CPU_Zen_PopulatePStates ();
-    //}
-    //RdmsrTx (AMD_ZEN_MSR_PSTATESTAT, &eax, &edx, thread_mask);
-    //
-    //int PStateIdx = (eax & 0x7);
-    //
-    //P0Freq =
-    //  (uint64_t)((__SK_Zen_PStates [PStateIdx].FID  /
-    //              __SK_Zen_PStates [PStateIdx].DID) /** 200.0f*/) * 1000000ULL;
-
     RdmsrTx (AMD_ZEN_MSR_PSTATE_STATUS, &eax, &edx, thread_mask);
 
     int Did = (int)((eax >> 8) & 0x3F);
@@ -1219,39 +1278,7 @@ public:
 
     static SK_CPUCore_PowerLog package_power;
 
-    float fJoules =
-      SK_CPU_GetJoulesConsumedTotal (1);
-
-    if (fJoules != 0.0f)
-    {
-      static bool first = true;
-      if (first)
-      {
-        package_power = {
-          SK_QueryPerf (), fJoules,
-          0.0f
-        };
-
-        first = false;
-      }
-
-      else
-      {
-        double time_elapsed_ms =
-          SK_DeltaPerfMS (package_power.last_tick.QuadPart, 1.0);
-
-        if (time_elapsed_ms > 666.666667)
-        {
-          float joules_used =
-            (fJoules - package_power.last_joules);
-
-          package_power = {
-            SK_QueryPerf (), fJoules,
-            joules_used / ( (float)time_elapsed_ms / 1000.0f )
-          };
-        }
-      }
-    }
+    SK_CPU_UpdatePackageSensors (0);
 
     for (unsigned int i = 0; i < cpu_records.size (); i++)
     {
@@ -1348,6 +1375,9 @@ public:
             ImGui::PopStyleColor   (2);
           }
 
+          float fJoules =
+            SK_CPU_GetJoulesConsumedTotal (0);
+
           if (fJoules != 0.0f)
           {
             ImGui::SameLine        ();
@@ -1355,7 +1385,7 @@ public:
             ImGui::TextUnformatted (u8"ー");
             ImGui::SameLine        ();
             ImGui::PushStyleColor  (ImGuiCol_Text, ImColor::HSV (0.13294F, 0.734f, .94f, 1.f));
-            ImGui::Text            ("%05.2f W", package_power.fresh_value );
+            ImGui::Text            ("%05.2f W", __SK_CPU.pkg_sensor.power_W );
             ImGui::PopStyleColor   (2);
           }
 
