@@ -334,9 +334,8 @@ __stdcall
 SKX_InstallCBTHook (void)
 {
   // Pre-emptively install the driver if permissions permit
-  extern float SK_CPU_GetTemperature_AMDZen (int core);
-  SK_CPU_GetTemperature_AMDZen (0);
-
+  extern bool SK_WR0_Init (void);
+              SK_WR0_Init ();
 
   // Nothing to do here, move along.
   if (SKX_GetCBTHook () != nullptr)
@@ -437,8 +436,8 @@ RunDLL_InjectionManager ( HWND  hwnd,        HINSTANCE hInst,
              DWORD
                {
                  // Pre-emptively install the driver if permissions permit
-                 extern float SK_CPU_GetTemperature_AMDZen (int core);
-                 SK_CPU_GetTemperature_AMDZen (0);
+                 extern bool SK_WR0_Init (void);
+                             SK_WR0_Init ();
 
                  while ( ReadAcquire (&__SK_DLL_Attached) || SK_GetHostAppUtil ().isInjectionTool () )
                    SleepEx (5UL, FALSE);

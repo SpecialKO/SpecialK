@@ -277,17 +277,28 @@ struct SK_CPU_Package
   SK_CPU_IntelMicroarch intel_arch  = SK_CPU_IntelMicroarch::KnownIntelArchs;
   int                   amd_zen_idx = 0;
 
-  struct {
-    double tsc_coeff    = 1.0;
-    double energy_coeff = 1.0;
-  } intel;
-
   enum SensorFlags {
     PerPackageThermal = 0x1,
     PerPackageEnergy  = 0x2,
     PerCoreThermal    = 0x4,
     PerCoreEnergy     = 0x8
   } sensors;
+
+  struct sensor_fudge_s
+  {
+    // Most CPUs measure tiny fractions of a Joule, we need to know
+    //   what that fraction is so we can work-out Wattage.
+    double energy = 1.0;
+
+    struct
+    {
+      double tsc = 1.0;
+    } intel;
+  } coefficients;
+
+  struct {
+    double temperature = 0.0;
+  } offsets;
 
   SK_CPU_CoreSensors pkg_sensor;
 
@@ -600,7 +611,7 @@ SK_CPU_GetIntelMicroarch (void)
       {
         if (Rdmsr (IA32_PERF_STATUS, &eax, &edx))
         {
-          cpu.intel.tsc_coeff =
+          cpu.coefficients.intel.tsc =
             ((edx >> 8) & 0x1f) + 0.5 * ((edx >> 14) & 1);
         }
       } break;
@@ -618,13 +629,13 @@ SK_CPU_GetIntelMicroarch (void)
       {
         if (Rdmsr (PLATFORM_INFO, &eax, &edx))
         {
-          cpu.intel.tsc_coeff =
+          cpu.coefficients.intel.tsc =
             (eax >> 8) & 0xff;
         }
       } break;
 
       default: 
-        cpu.intel.tsc_coeff = 0.0;
+        cpu.coefficients.intel.tsc = 0.0;
         break;
     }
 
@@ -634,12 +645,12 @@ SK_CPU_GetIntelMicroarch (void)
       {
         case SK_CPU_IntelMicroarch::Silvermont:
         case SK_CPU_IntelMicroarch::Airmont:
-          cpu.intel.energy_coeff =
+          cpu.coefficients.energy =
             1.0e-6 * static_cast <double> (1 << (int)((eax >> 8) & 0x1F));
           break;
 
         default:
-          cpu.intel.energy_coeff =
+          cpu.coefficients.energy =
             1.0 / static_cast <double> (1 << (int)((eax >> 8) & 0x1F));
           break;
       }
@@ -650,18 +661,20 @@ SK_CPU_GetIntelMicroarch (void)
     cpu.intel_arch;
 }
 
-int
+bool
 SK_CPU_IsZen (void)
 {
-  static int __SK_ZenIdx =  0;
-  static int is_zen      = -1;
+  static int is_zen = -1;
 
   if (is_zen == -1)
   {
     is_zen = 0;
 
     if (! SK_WR0_Init ())
-      return 0;
+      return false;
+
+    auto& cpu =
+      __SK_CPU;
 
     int i = 0;
 
@@ -671,7 +684,13 @@ SK_CPU_IsZen (void)
                       zen.brandId )
          )
       {
-        __SK_ZenIdx = i;
+        cpu.offsets.temperature =
+          _SK_KnownZen [i].tempOffset;
+
+        // 1.0 / 65359.4771
+        cpu.coefficients.energy =
+          1.5300000005661000002094570000775e-5;
+
         is_zen      = 1;
         break;
       }
@@ -680,7 +699,8 @@ SK_CPU_IsZen (void)
     }
   }
 
-  return ( __SK_ZenIdx );
+  return
+    (is_zen == 1);
 }
 
 //typedef struct
@@ -700,10 +720,13 @@ SK_CPU_IsZen (void)
 //  };
 //} RAPL_POWER_UNIT;
 
-float
+double
 SK_CPU_GetJoulesConsumedTotal (DWORD_PTR package)
 {
   UNREFERENCED_PARAMETER (package);
+
+  auto& cpu =
+    __SK_CPU;
 
   if (SK_CPU_IsZen ())
   {
@@ -726,40 +749,42 @@ SK_CPU_GetJoulesConsumedTotal (DWORD_PTR package)
 
       return
         static_cast <float> (
-          static_cast <long double> (eax) / 65359.4771 );
+          static_cast <long double> (eax) *
+                                     cpu.coefficients.energy
+        );
     }
   }
 
   else if (SK_CPU_GetIntelMicroarch () < SK_CPU_IntelMicroarch::KnownIntelArchs)
   {
-    auto& cpu =
-      __SK_CPU;
-
-    if (cpu.intel.energy_coeff != 0.0)
+    if (cpu.coefficients.energy != 0.0)
     {
       DWORD eax, edx;
 
       if (Rdmsr (PKG_ENERGY_STATUS, &eax, &edx))
       {
         return 
-          cpu.intel.energy_coeff *
-            static_cast <float> (eax);
+          cpu.coefficients.energy *
+            static_cast <double> (eax);
       }
     }
   }
 
-  return 0.0f;
+  return 0.0;
 }
 
-float
+double
 SK_CPU_GetJoulesConsumed (int64_t core)
 {
+  auto& cpu =
+    __SK_CPU;
+
+  DWORD_PTR thread_mask = (1ULL << core);
+  DWORD     eax,  edx,
+            eax2, edx2;
+
   if (SK_CPU_IsZen ())
   {
-    DWORD_PTR thread_mask = (1ULL << core);
-    DWORD     eax,  edx,
-              eax2, edx2;
-
     // AMD Model 17h measures this in 15.3 micro-joule increments
     if (RdmsrTx (0xC001029A, &eax,  &edx,  thread_mask))
     {   RdmsrTx (0xC0010299, &eax2, &edx2, thread_mask);
@@ -775,34 +800,49 @@ SK_CPU_GetJoulesConsumed (int64_t core)
       }
 
       return
-        static_cast <float> (
-          static_cast <long double> (eax) / 65359.4771 );
+        static_cast <double> (
+          static_cast <long double> (eax) *
+                                     cpu.coefficients.energy
+        );
     }
   }
 
-  return 0.0f;
+  else if (SK_CPU_GetIntelMicroarch () < SK_CPU_IntelMicroarch::KnownIntelArchs)
+  {
+    const double div =
+      1.0 / static_cast <double> (cpu.cores.size ());
+
+    if (RdmsrTx (PP1_ENERGY_STATUS, &eax, &edx, thread_mask) && eax != 0)
+    {
+      return static_cast <double> (eax) *
+                                   cpu.coefficients.energy *
+                                   div;
+    }
+
+    else if (RdmsrTx (PP0_ENERGY_STATUS, &eax, &edx, thread_mask) && eax != 0)
+    {
+      return
+        static_cast <double> (eax) *
+                              cpu.coefficients.energy *
+                              div;
+    }
+  }
+
+  return 0.0;
 }
 
-float
+double
 SK_CPU_GetTemperature_AMDZen (int core)
 {
   UNREFERENCED_PARAMETER (core);
 
-  static double temp_offset = -1.0;
-
   if (! SK_CPU_IsZen ())
   {
-    return 0.0f;
+    return 0.0;
   }
 
-  else if (temp_offset == -1.0)
-  {
-    const auto& zen =
-      _SK_KnownZen [SK_CPU_IsZen ()];
-
-    temp_offset =
-      static_cast <double> (zen.tempOffset);
-  }
+  auto& cpu =
+    __SK_CPU;
 
   const unsigned int indexRegister = 0x00059800;
         unsigned int sensor        = 0;
@@ -830,7 +870,7 @@ SK_CPU_GetTemperature_AMDZen (int core)
      };
 
   return
-    static_cast <float> ( temp_offset +
+    static_cast <double> ( cpu.offsets.temperature +
         ( usingNeg49To206C ?
             ( invScale11BitDbl (sensor) * 206.0 ) - 49.0 :
               invScale11BitDbl (sensor) * 255.0            )
@@ -862,18 +902,18 @@ SK_CPU_UpdatePackageSensors (int package)
     return;// cpu.pkg_sensor;
   }
 
-  float fJoules =
+  double J =
     SK_CPU_GetJoulesConsumedTotal (package);
 
-  if (fJoules != 0.0f)
+  if (J != 0.0)
   {
     if (time_elapsed_ms > 666.666667)
     {
       double joules_used =
-        (fJoules - cpu.pkg_sensor.accum.joules);
+        (J - cpu.pkg_sensor.accum.joules);
 
       cpu.pkg_sensor.accum.joules =
-        fJoules;
+        J;
       cpu.pkg_sensor.power_W      = 
         joules_used / ( time_elapsed_ms / 1000.0 );
     };
@@ -915,24 +955,15 @@ SK_CPU_UpdateCoreSensors (int core)
     }
     
     else {
-      cores [core].temperature_C = 0.0f;
+      cores [core].temperature_C = 0.0;
     }
 
     auto& cpu = __SK_CPU;
 
-    if (cpu.intel.energy_coeff != 0.0)
+    if (cpu.coefficients.energy != 0.0)
     {
-      float J = 0.0;
-
-      //PP0_ENERGY_STATUS
-      //PP1_ENERGY_STATUS
-      if (Rdmsr (PP1_ENERGY_STATUS, &eax, &edx))
-      {
-        J = cpu.intel.energy_coeff * static_cast <float> (eax);
-      }
-
-      //float J =
-      //  SK_CPU_GetJoulesConsumed (core);
+      double J =
+        SK_CPU_GetJoulesConsumed (core);
 
       double joules_used  =
         (J - cores [core].accum.joules);
@@ -954,7 +985,7 @@ SK_CPU_UpdateCoreSensors (int core)
       ( static_cast <double> (Fid) /
         static_cast <double> (Did)  ) * 200.0 * 1000000.0;
 
-    float J =
+    double J =
       SK_CPU_GetJoulesConsumed (core);
 
     double joules_used  =
@@ -972,24 +1003,6 @@ SK_CPU_UpdateCoreSensors (int core)
     SK_QueryPerf ().QuadPart;
 
   return cores [core];
-}
-
-int8_t
-SK_CPU_GetPState_AMDZen (uint64_t core)
-{
-  if (SK_CPU_IsZen ())
-  {
-    DWORD_PTR thread_mask = (1ULL << core);
-    DWORD     eax, edx;
-
-    if (RdmsrTx (0xC0010063, &eax, &edx, thread_mask))
-    {
-      return
-        (eax & 0x7);
-    }
-  }
-
-  return -1;
 }
 
 class SKWG_CPU_Monitor : public SK_Widget
@@ -1309,8 +1322,9 @@ public:
         sprintf_s
               ( szAvg,
                   512,
-                    u8"Combined CPU Load:\n\n"
+                    u8"%s\t\t\n\n"
                     u8"          min: %3.0f%%, max: %3.0f%%, avg: %3.0f%%\n",
+                      InstructionSet::Brand ().c_str (),
                       cpu_records [i].getMin (), cpu_records [i].getMax (),
                       cpu_records [i].getAvg () );
       }
@@ -1375,10 +1389,10 @@ public:
             ImGui::PopStyleColor   (2);
           }
 
-          float fJoules =
+          double J =
             SK_CPU_GetJoulesConsumedTotal (0);
 
-          if (fJoules != 0.0f)
+          if (J != 0.0)
           {
             ImGui::SameLine        ();
             ImGui::PushStyleColor  (ImGuiCol_Text, ImColor::HSV (0.67194F, 0.15f, 0.95f, 1.f));
@@ -1513,18 +1527,15 @@ public:
           //   go crazy with formatting...
           if (core_sensors.temperature_C != 0.0)
           {
-            //extern std::string
-            //SK_FormatTemperature (double in_temp, SK_UNITS in_unit, SK_UNITS out_unit);
-            //
-            //static std::string temp;
-            //
-            //temp.assign (
-            //  SK_FormatTemperature (
-            //    core_sensors.temperature_C,
-            //      Celsius,
-            //        config.system.prefer_fahrenheit ? Fahrenheit :
-            //                                          Celsius )
-            //);
+            static std::string core_temp;
+            
+            core_temp.assign (
+              SK_FormatTemperature (
+                core_sensors.temperature_C,
+                  Celsius,
+                    config.system.prefer_fahrenheit ? Fahrenheit :
+                                                      Celsius )
+            );
 
             if (parked_since == 0 || show_parked)
             {
@@ -1535,7 +1546,7 @@ public:
                 static_cast <float> (0.3 - (0.3 * std::min (1.0, ((core_sensors.temperature_C / 2.0) / 100.0)))),
                                      1.f, 1.f, 1.f));
               ImGui::SameLine        ();
-              ImGui::TextUnformatted (temp.c_str ());
+              ImGui::TextUnformatted (core_temp.c_str ());
               ImGui::PopStyleColor   (2);
             }
           }
