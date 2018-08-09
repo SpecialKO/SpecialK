@@ -53,7 +53,7 @@ extern std::vector <denuvo_file_s> denuvo_files;
 bool
 SK::ControlPanel::Steam::Draw (void)
 {
-  ImGuiIO& io =
+  const ImGuiIO& io =
     ImGui::GetIO ();
 
   if (SK::SteamAPI::AppID () != 0)
@@ -70,8 +70,8 @@ SK::ControlPanel::Steam::Draw (void)
       {
         static char szProgress [128] = { };
 
-        float  ratio            = SK::SteamAPI::PercentOfAchievementsUnlocked ();
-        size_t num_achievements = SK_SteamAPI_GetNumPossibleAchievements      ();
+        const float  ratio            = SK::SteamAPI::PercentOfAchievementsUnlocked ();
+        const size_t num_achievements = SK_SteamAPI_GetNumPossibleAchievements      ();
 
         snprintf ( szProgress, 127, "%.2f%% of Achievements Unlocked (%u/%u)",
                      ratio * 100.0f, static_cast <uint32_t> ((ratio * static_cast <float> (num_achievements))),
@@ -83,7 +83,7 @@ SK::ControlPanel::Steam::Draw (void)
                                     szProgress );
         ImGui::PopStyleColor  ();
 
-        int friends =
+        const int friends =
           SK_SteamAPI_GetNumFriends ();
 
         if (friends && ImGui::IsItemHovered ())
@@ -92,7 +92,8 @@ SK::ControlPanel::Steam::Draw (void)
 
         //static int num_records = 0;
 
-          auto max_lines   = static_cast <int> ((io.DisplaySize.y * 0.725f) / (font.size_multiline * 0.9f));
+          const auto max_lines =
+            static_cast <int> ((io.DisplaySize.y * 0.725f) / (font.size_multiline * 0.9f));
           int  cur_line    = 0;
           int  num_records = 0;
 
@@ -106,7 +107,7 @@ SK::ControlPanel::Steam::Draw (void)
             size_t      len     = 0;
             const char* szName  = SK_SteamAPI_GetFriendName (i, &len);
 
-            float       percent =
+            const float percent =
               SK_SteamAPI_GetUnlockedPercentForFriend (i);
 
             if (percent > 0.0f)
@@ -184,7 +185,8 @@ SK::ControlPanel::Steam::Draw (void)
           ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.72f, 0.07f, 0.80f));
           ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.78f, 0.14f, 0.80f));
 
-          bool uncollapsed = ImGui::CollapsingHeader ("Enhanced Popup");
+          const bool uncollapsed =
+            ImGui::CollapsingHeader ("Enhanced Popup");
 
           ImGui::SameLine (); ImGui::Checkbox        ("   Fetch Friend Unlock Stats", &config.steam.achievements.pull_friend_stats);
 
@@ -306,7 +308,7 @@ SK::ControlPanel::Steam::Draw (void)
         ISteamRemoteStorage* pRemote =
           SK_SteamAPI_RemoteStorage ();
 
-        int32_t num_files =
+        const int32_t num_files =
           pRemote->GetFileCount ();
 
         for (int i = 0; i < num_files; i++)
@@ -334,7 +336,7 @@ SK::ControlPanel::Steam::Draw (void)
 
       if (redist_count == -1 || redist_size == UINT64_MAX)
       {
-        uint64_t finished_size =
+        const uint64_t finished_size =
           SK_Steam_ScrubRedistributables (redist_count, false);
 
         if (redist_count != -1)
@@ -347,7 +349,8 @@ SK::ControlPanel::Steam::Draw (void)
         ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.72f, 0.07f, 0.80f));
         ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.78f, 0.14f, 0.80f));
 
-        bool summarize = ImGui::CollapsingHeader ("Wasted Disk Space", ImGuiTreeNodeFlags_DefaultOpen);
+        const bool summarize =
+          ImGui::CollapsingHeader ("Wasted Disk Space", ImGuiTreeNodeFlags_DefaultOpen);
 
         ImGui::PopStyleColor (3);
 
@@ -407,7 +410,7 @@ SK::ControlPanel::Steam::Draw (void)
         if ( ( screenshot_manager != nullptr &&
                screenshot_manager->getExternalScreenshotRepository ().files > 0 ) )
         {
-          SK_Steam_ScreenshotManager::screenshot_repository_s& repo =
+          const SK_Steam_ScreenshotManager::screenshot_repository_s& repo =
             screenshot_manager->getExternalScreenshotRepository (png_changed);
 
           ImGui::BeginGroup (  );
@@ -446,6 +449,9 @@ SK::ControlPanel::Steam::Draw (void)
           auto Keybinding = [] (SK_Keybind* binding, sk::ParameterStringW* param) ->
           auto
           {
+            if (! (binding != nullptr && param != nullptr))
+              return false;
+
             std::string label  = SK_WideCharToUTF8 (binding->human_readable) + "###";
                         label += binding->bind_name;
 
@@ -536,8 +542,8 @@ SK::ControlPanel::Steam::Draw (void)
                 break;
               default:
               {
-                struct tm *t = _localtime64 (&it.timestamp);
-                it.detail    =      asctime (  t);
+                const struct tm *t = _localtime64 (&it.timestamp);
+                      it.detail    =      asctime (  t);
               } break;
             }
           }
@@ -586,7 +592,7 @@ SK::ControlPanel::Steam::Draw (void)
           ImGui::BeginGroup ();
           for ( auto it : denuvo_files )
           {
-            size_t found =
+            const size_t found =
               it.path.find_last_of (L'\\');
 
             ImGui::BeginGroup      ();
@@ -619,7 +625,7 @@ SK::ControlPanel::Steam::Draw (void)
           ImGui::BeginGroup        ();
           for ( auto it : denuvo_files )
           {
-            size_t found =
+            const size_t found =
               it.path.find_last_of (L'\\');
 
             ImGui::PushID (_wtol (&it.path.c_str ()[found + 1]));
@@ -714,7 +720,7 @@ SK::ControlPanel::Steam::Draw (void)
 
         if (config.steam.spoof_BLoggedOn)
         {
-          auto status =
+          const auto status =
             static_cast <int> (SK_SteamUser_BLoggedOn ());
 
           if (status & static_cast <int> (SK_SteamUser_LoggedOn_e::Spoofing))
@@ -800,7 +806,8 @@ SK::ControlPanel::Steam::Draw (void)
     };
 
 
-    bool right_clicked = SK_ImGui_IsItemRightClicked ();
+    const bool right_clicked =
+      SK_ImGui_IsItemRightClicked ();
 
     if (SK::SteamAPI::IsOverlayAware ())
     {
@@ -858,8 +865,8 @@ SK::ControlPanel::Steam::Draw (void)
             SK_SteamAPI_FriendStatPercentage () != 0.0f && 
             config.steam.achievements.pull_friend_stats )
     {
-      float ratio   = SK_SteamAPI_FriendStatPercentage ();
-      int   friends = SK_SteamAPI_GetNumFriends        ();
+      const float ratio   = SK_SteamAPI_FriendStatPercentage ();
+      const int   friends = SK_SteamAPI_GetNumFriends        ();
 
       static char szLabel [512] = { };
 
@@ -910,7 +917,8 @@ SK::ControlPanel::Steam::DrawMenu (void)
 
       else
       {
-        auto logon_state = user_ex->GetLogonState ();
+        const auto logon_state =
+          user_ex->GetLogonState ();
 
         static DWORD dwStartLogOffTime = SK::ControlPanel::current_time;
         static DWORD dwStartLogOnTime  = SK::ControlPanel::current_time;

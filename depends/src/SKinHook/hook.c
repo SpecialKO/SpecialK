@@ -662,7 +662,7 @@ FreezeEx (PFROZEN_THREADS pThreads, UINT pos, UINT action, UINT idx)
       pThread->suspensions = 0;
       pThread->runstate    = 2; // Unknown
 
-      while ( hThread != NULL && hThread != INVALID_HANDLE_VALUE && pThread->suspensions == 0)
+      if ( hThread != NULL && hThread != INVALID_HANDLE_VALUE && pThread->suspensions == 0)
       {
         DWORD                            dwExitCode = 0;
         if (GetExitCodeThread (hThread, &dwExitCode))
@@ -677,7 +677,7 @@ FreezeEx (PFROZEN_THREADS pThreads, UINT pos, UINT action, UINT idx)
 
           do
           {
-            while ((dwRet = SuspendThread (hThread)) != 0xFFFFFFFF)
+            if ((dwRet = SuspendThread (hThread)) != 0xFFFFFFFF)
             {
               ++pThread->suspensions;
 
@@ -685,9 +685,9 @@ FreezeEx (PFROZEN_THREADS pThreads, UINT pos, UINT action, UINT idx)
               if (dwRet > 0)
                 break;
 
-              if (pThread->suspensions == 255)
+              if (pThread->suspensions > 1)
               {
-                OutputDebugStringA ("[MinHook] Too many attempts to suspend a thread!");
+                //OutputDebugStringA ("[MinHook] Too many attempts to suspend a thread!");
                 break;
               }
             }
@@ -893,15 +893,15 @@ MH_Initialize (VOID)
                                       sizeof (FROZEN_THREADS) * INITIAL_THREAD_CAPACITY   + 1 +
                                       16384 * 16, 0 );
 
-    g_NtDll.hHeap = HeapCreate ( 0x0, 4096, 0 );
+    g_NtDll.hHeap = HeapCreate ( 0x0, 1048576, 0 );
 
     if (g_hHeap != NULL && g_NtDll.hHeap != NULL)
     {
       // Initialize the internal function buffer.
       InitializeBuffer ();
 
-      g_NtDll.pSnapshot  = HeapAlloc ( g_NtDll.hHeap, 0x0, 4096 );
-      g_NtDll.dwHeapSize = g_NtDll.pSnapshot != NULL ? 4096 : 0;
+      g_NtDll.pSnapshot  = HeapAlloc ( g_NtDll.hHeap, 0x0, 262144 );
+      g_NtDll.dwHeapSize = g_NtDll.pSnapshot != NULL ? 262144 : 0;
     }
 
     else

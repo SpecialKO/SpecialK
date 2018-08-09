@@ -36,6 +36,9 @@ using namespace SK::ControlPanel;
 bool
 SK_ImGui_SavePlugInPreference (iSK_INI* ini, bool enable, const wchar_t* import_name, const wchar_t* role, int order, const wchar_t* path)
 {
+  if (! ini)
+    return false;
+
   if (! enable)
   {
     ini->remove_section (import_name);
@@ -46,7 +49,7 @@ SK_ImGui_SavePlugInPreference (iSK_INI* ini, bool enable, const wchar_t* import_
 
   else if (GetFileAttributesW (path) != INVALID_FILE_ATTRIBUTES)
   {
-    wchar_t wszImportRecord [4096];
+    wchar_t wszImportRecord [4096] = { };
 
     _swprintf ( wszImportRecord, L"[%s]\n"
 #ifdef _WIN64
@@ -84,6 +87,9 @@ SK_ImGui_PlugInDisclaimer (void)
 bool
 SK_ImGui_PlugInSelector (iSK_INI* ini, std::string name, const wchar_t* path, const wchar_t* import_name, bool& enable, int& order, int default_order = 1)
 {
+  if (! ini)
+    return false;
+
   std::string hash_name  = name + "##PlugIn";
   std::string hash_load  = "Load Order##";
               hash_load += name;
@@ -139,7 +145,7 @@ SK::ControlPanel::PlugIns::Draw (void)
     wchar_t imp_path_reshade_ex [MAX_PATH + 2] = { };
     wchar_t imp_name_reshade_ex [64]           = { };
 
-    wchar_t* wszShimFormat =
+    const wchar_t* wszShimFormat =
       LR"(%s\PlugIns\Unofficial\ReShade\ReShade%u.dll)";
 
 #ifdef _WIN64
@@ -210,7 +216,8 @@ SK::ControlPanel::PlugIns::Draw (void)
       ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.07f, 0.72f, 0.90f, 0.80f));
       ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.14f, 0.78f, 0.87f, 0.80f));
 
-      bool unofficial = ImGui::CollapsingHeader ("Unofficial");
+      const bool unofficial =
+        ImGui::CollapsingHeader ("Unofficial");
 
       ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.247f, .95f, .98f));
       ImGui::SameLine       ();

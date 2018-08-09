@@ -186,9 +186,10 @@ SK_VirtualAlloc (
 HGLOBAL
 WINAPI
 GlobalFree_Detour   (
-  _In_ HGLOBAL hMem )
+  _In_ HGLOBAL hMem ) 
 {
-  return GlobalFree_Original (hMem);
+  return
+    GlobalFree_Original (hMem);
 }
 
 HLOCAL
@@ -205,9 +206,10 @@ SK_LocalFree       (
 HLOCAL
 WINAPI
 LocalFree_Detour   (
-  _In_ HLOCAL hMem )
+  _In_ HLOCAL hMem ) 
 {
-  return LocalFree_Original (hMem);
+  return
+    LocalFree_Original (hMem);
 }
 
 BOOL
@@ -230,7 +232,7 @@ VirtualFree_Detour       (
   _In_ SIZE_T dwSize,
   _In_ DWORD  dwFreeType )
 {
-  BOOL bRet =
+  const BOOL bRet =
     VirtualFree_Original (lpAddress, dwSize, dwFreeType);
 
   if (bRet)
@@ -256,9 +258,10 @@ WINAPI
 HeapFree_Detour (
   _In_ HANDLE hHeap,
   _In_ DWORD  dwFlags,
-  _In_ LPVOID lpMem )
+  _In_ LPVOID lpMem ) 
 {
-  return HeapFree_Original (hHeap, dwFlags, lpMem);
+  return
+    HeapFree_Original (hHeap, dwFlags, lpMem);
 }
 
 

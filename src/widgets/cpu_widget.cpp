@@ -182,11 +182,14 @@ SK_WinRing0_Unpack (void)
       SK_LOG0 ( ( L" >> Archive: %s [Destination: %s]", wszArchive, wszDestination ),
                   L" WinRing0 " );
 
-      FILE* fPackedCompiler =
+      FILE* fPackedDriver =
         _wfopen   (wszArchive, L"wb");
 
-      fwrite      (locked, 1, res_size, fPackedCompiler);
-      fclose      (fPackedCompiler);
+      if (fPackedDriver != nullptr)
+      {
+        fwrite      (locked, 1, res_size, fPackedDriver);
+        fclose      (fPackedDriver);
+      }
 
       using SK_7Z_DECOMP_PROGRESS_PFN = int (__stdcall *)(int current, int total);
 
@@ -277,12 +280,12 @@ struct SK_CPU_Package
   SK_CPU_IntelMicroarch intel_arch  = SK_CPU_IntelMicroarch::KnownIntelArchs;
   int                   amd_zen_idx = 0;
 
-  enum SensorFlags {
-    PerPackageThermal = 0x1,
-    PerPackageEnergy  = 0x2,
-    PerCoreThermal    = 0x4,
-    PerCoreEnergy     = 0x8
-  } sensors;
+  //enum SensorFlags {
+  //  PerPackageThermal = 0x1,
+  //  PerPackageEnergy  = 0x2,
+  //  PerCoreThermal    = 0x4,
+  //  PerCoreEnergy     = 0x8
+  //} sensors;
 
   struct sensor_fudge_s
   {
@@ -389,14 +392,24 @@ SK_WR0_Init (void)
     (init == 1);
 }
 
+bool SK_CPU_IsZen (void);
+
 SK_CPU_IntelMicroarch
 SK_CPU_GetIntelMicroarch (void)
 {
   auto& cpu =
     __SK_CPU;
 
+  if (cpu.intel_arch != SK_CPU_IntelMicroarch::KnownIntelArchs)
+    return cpu.intel_arch;
+
+
   if (! SK_WR0_Init ())
     cpu.intel_arch = SK_CPU_IntelMicroarch::NotIntel;
+
+  if (SK_CPU_IsZen ())
+    cpu.intel_arch = SK_CPU_IntelMicroarch::NotIntel;
+
 
   DWORD eax, edx;
 
@@ -487,6 +500,7 @@ SK_CPU_GetIntelMicroarch (void)
               SK_CPU_GetIntelTjMax (core.second.cpu_core);
             break;
 
+          case 0x0A: // -----
           case 0x2A: // Intel Core i5, i7 2xxx LGA1155 (32nm)
           case 0x2D: // Next Generation Intel Xeon, i7 3xxx LGA2011 (32nm)
             cpu.intel_arch = SK_CPU_IntelMicroarch::SandyBridge;
@@ -601,7 +615,7 @@ SK_CPU_GetIntelMicroarch (void)
     }
   }
 
-  if (cpu.intel_arch < SK_CPU_IntelMicroarch::KnownIntelArchs)
+  if (cpu.intel_arch < SK_CPU_IntelMicroarch::NotIntel)
   {
     switch (cpu.intel_arch)
     {
@@ -755,7 +769,7 @@ SK_CPU_GetJoulesConsumedTotal (DWORD_PTR package)
     }
   }
 
-  else if (SK_CPU_GetIntelMicroarch () < SK_CPU_IntelMicroarch::KnownIntelArchs)
+  else if (SK_CPU_GetIntelMicroarch () < SK_CPU_IntelMicroarch::NotIntel)
   {
     if (cpu.coefficients.energy != 0.0)
     {
@@ -807,7 +821,7 @@ SK_CPU_GetJoulesConsumed (int64_t core)
     }
   }
 
-  else if (SK_CPU_GetIntelMicroarch () < SK_CPU_IntelMicroarch::KnownIntelArchs)
+  else if (SK_CPU_GetIntelMicroarch () < SK_CPU_IntelMicroarch::NotIntel)
   {
     const double div =
       1.0 / static_cast <double> (cpu.cores.size ());
@@ -941,7 +955,32 @@ SK_CPU_UpdateCoreSensors (int core)
   DWORD_PTR thread_mask = (1ULL << core);
   DWORD     eax,  edx;
 
-  if (SK_CPU_GetIntelMicroarch () < SK_CPU_IntelMicroarch::KnownIntelArchs)
+  if (SK_CPU_IsZen ())
+  {
+    RdmsrTx (AMD_ZEN_MSR_PSTATE_STATUS, &eax, &edx, thread_mask);
+
+    int Did = (int)((eax >> 8) & 0x3F);
+    int Fid = (int)( eax       & 0xFF);
+
+    cores [core].clock_MHz =
+      ( static_cast <double> (Fid) /
+       static_cast <double> (Did)  ) * 200.0 * 1000000.0;
+
+    double J =
+      SK_CPU_GetJoulesConsumed (core);
+
+    double joules_used  =
+      (J - cores [core].accum.joules);
+
+    cores [core].accum.joules = J;
+    cores [core].power_W      =
+      ( joules_used / (time_elapsed_ms / 1000.0) );
+
+    cores [core].temperature_C =
+      SK_CPU_GetTemperature_AMDZen (core);
+  }
+
+  else if (SK_CPU_GetIntelMicroarch () < SK_CPU_IntelMicroarch::NotIntel)
   {
     if ( RdmsrTx (SK_CPU_IntelMSR::IA32_THERM_STATUS, &eax, &edx, thread_mask) &&
            (eax & 0x80000000) != 0 )
@@ -974,31 +1013,6 @@ SK_CPU_UpdateCoreSensors (int core)
     }
   }
 
-  else if (SK_CPU_IsZen ())
-  {
-    RdmsrTx (AMD_ZEN_MSR_PSTATE_STATUS, &eax, &edx, thread_mask);
-
-    int Did = (int)((eax >> 8) & 0x3F);
-    int Fid = (int)( eax       & 0xFF);
-
-    cores [core].clock_MHz =
-      ( static_cast <double> (Fid) /
-        static_cast <double> (Did)  ) * 200.0 * 1000000.0;
-
-    double J =
-      SK_CPU_GetJoulesConsumed (core);
-
-    double joules_used  =
-      (J - cores [core].accum.joules);
-
-    cores [core].accum.joules = J;
-    cores [core].power_W      =
-      ( joules_used / (time_elapsed_ms / 1000.0) );
-
-    cores [core].temperature_C =
-      SK_CPU_GetTemperature_AMDZen (core);
-  }
-
   cores [core].sample_taken =
     SK_QueryPerf ().QuadPart;
 
@@ -1020,7 +1034,6 @@ public:
     DWORD   dwRet         = ERROR_NOT_READY;
     DWORD   dwLen         = 127;
     wchar_t wszName [128] = { };
-    wchar_t wszDesc [384] = { };
 
     dwRet =
       PowerReadFriendlyName ( nullptr,
@@ -1036,7 +1049,9 @@ public:
 
     else if (dwRet == ERROR_SUCCESS)
     {
-      dwLen = 383;
+      wchar_t
+      wszDesc [384] = { };
+      dwLen =  383;
       dwRet =
         PowerReadDescription ( nullptr,
                                  &scheme.uid,
@@ -1076,7 +1091,7 @@ public:
     active_scheme.notify   = INVALID_HANDLE_VALUE;
 
     memset (active_scheme.utf8_name, 0, 128);
-    memset (active_scheme.utf8_desc, 0, 256);
+    memset (active_scheme.utf8_desc, 0, 384);
 
     InterlockedExchange (&active_scheme.dirty, 0);
 
@@ -1111,7 +1126,7 @@ public:
     PowerSetActiveScheme (nullptr, &config.cpu.power_scheme_guid_orig);
   }
 
-  virtual void run (void) override
+  void run (void) override
   {
     static bool started = false;
 
@@ -1152,7 +1167,8 @@ public:
                             pwi,     sizeof (PROCESSOR_POWER_INFORMATION) * sinfo.dwNumberOfProcessors
     );
 
-    if ( last_update           < ( SK::ControlPanel::current_time - update_freq ) &&
+    if (                   pwi != nullptr                                         &&
+         last_update           < ( SK::ControlPanel::current_time - update_freq ) &&
           cpu_stats.num_cpus   > 0 )
     {
       if ( cpu_stats.num_cpus  > 0 &&
@@ -1162,15 +1178,18 @@ public:
 
       for (unsigned int i = 1; i < cpu_stats.num_cpus + 1 ; i++)
       {
+        auto& stat_cpu =
+          cpu_stats.cpus [pwi [i-1].Number];
+
         cpu_records [i].addValue(
           static_cast  <float>   (
-                     ReadAcquire ( &cpu_stats.cpus [pwi [i-1].Number].percent_load )
+                     ReadAcquire ( &stat_cpu.percent_load )
                                  )
                                  );
 
-        cpu_stats.cpus [pwi [i-1].Number].CurrentMhz =
+        stat_cpu.CurrentMhz =
           pwi [i-1].CurrentMhz;
-        cpu_stats.cpus [pwi [i-1].Number].MaximumMhz =
+        stat_cpu.MaximumMhz =
           pwi [i-1].MaxMhz;
       }
 
@@ -1230,7 +1249,7 @@ public:
     }
   }
 
-  virtual void draw (void) override
+  void draw (void) override
   {
     if (! ImGui::GetFont ()) return;
 
@@ -1523,28 +1542,39 @@ public:
               ImGui::Text       ("%4.2f GHz", core_sensors.clock_MHz / 1e+9f);
           }
 
-          // Not exactly per-core right now, so don't
-          //   go crazy with formatting...
           if (core_sensors.temperature_C != 0.0)
           {
             static std::string core_temp;
             
-            core_temp.assign (
-              SK_FormatTemperature (
-                core_sensors.temperature_C,
-                  Celsius,
-                    config.system.prefer_fahrenheit ? Fahrenheit :
-                                                      Celsius )
-            );
+            //if (! SK_CPU_IsZen ())
+            //{
+              core_temp.assign (
+                SK_FormatTemperature (
+                  core_sensors.temperature_C,
+                    Celsius,
+                      config.system.prefer_fahrenheit ? Fahrenheit :
+                                                        Celsius )
+              );
+            //}
+
+            //else
+            //{
+            //  core_temp.assign (u8"………");
+            //}
 
             if (parked_since == 0 || show_parked)
             {
               ImGui::SameLine        ();
               ImGui::PushStyleColor  (ImGuiCol_Text, ImColor::HSV (0.67194F, 0.15f, 0.95f, 1.f));
               ImGui::TextUnformatted (u8"ー");
-              ImGui::PushStyleColor  (ImGuiCol_Text, ImColor::HSV (
-                static_cast <float> (0.3 - (0.3 * std::min (1.0, ((core_sensors.temperature_C / 2.0) / 100.0)))),
-                                     1.f, 1.f, 1.f));
+              if (SK_CPU_IsZen ())
+                ImGui::PushStyleColor  (ImGuiCol_Text, ImColor::HSV (
+                  static_cast <float> (0.3 - (0.3 * std::min (1.0, ((core_sensors.temperature_C / 2.0) / 100.0)))),
+                                       0.725f, 0.725f, 1.f));
+              else
+                ImGui::PushStyleColor  (ImGuiCol_Text, ImColor::HSV (
+                  static_cast <float> (0.3 - (0.3 * std::min (1.0, ((core_sensors.temperature_C / 2.0) / 100.0)))),
+                                       1.f, 1.f, 1.f));
               ImGui::SameLine        ();
               ImGui::TextUnformatted (core_temp.c_str ());
               ImGui::PopStyleColor   (2);
@@ -1627,14 +1657,14 @@ protected:
 
 private:
   struct active_scheme_s : power_scheme_s {
-    HPOWERNOTIFY  notify;
-    volatile LONG dirty;
+    HPOWERNOTIFY  notify = INVALID_HANDLE_VALUE;
+    volatile LONG dirty  = FALSE;
   } active_scheme;
 
   DWORD       last_update        = 0UL;
 
-  std::vector <SK_Stat_DataHistory <float, 96>> cpu_records;
-               SK_Stat_DataHistory <float,  3>  cpu_clocks;
+  std::vector <SK_Stat_DataHistory <float, 96>> cpu_records = { };
+               SK_Stat_DataHistory <float,  3>  cpu_clocks  = { };
 } __cpu_monitor__;
 
 ULONG

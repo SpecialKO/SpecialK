@@ -153,7 +153,9 @@ iSK_INI::iSK_INI (const wchar_t* filename)
       delete [] wszData;
 
       int converted_size =
-        MultiByteToWideChar ( CP_UTF8, 0, string, real_size, nullptr, 0 );
+        std::max ( 0,
+                     MultiByteToWideChar ( CP_UTF8, 0, string, real_size, nullptr, 0 )
+                 );
 
       if (! converted_size)
       {
@@ -169,6 +171,7 @@ iSK_INI::iSK_INI (const wchar_t* filename)
 
       wszData =
         new wchar_t [converted_size + 3] { };
+      *wszData = L'\0';
 
       MultiByteToWideChar ( CP_UTF8, 0, string, real_size, wszData, converted_size );
 
@@ -322,11 +325,11 @@ Import_Section (iSK_INISection& section, wchar_t* start, wchar_t* end)
             k = end;
           }
 
-          auto*    val_str =
-                        pTLS->scratch_memory.ini.val.alloc
-                                         (l - value + 1, true);
-          size_t   val_len = wcrlen          (value, l);
-          wcsncpy (val_str,                   value, val_len);
+          auto*      val_str =
+                          pTLS->scratch_memory.ini.val.alloc
+                                   (l - value + 1, true);
+          size_t     val_len = wcrlen  (value, l);
+          wcsncpy_s (val_str, val_len+1,  value, _TRUNCATE);
 
           // Prefer to change an existing value
           if (section.contains_key (key_str))
@@ -438,11 +441,11 @@ iSK_INI::parse (void)
 
       if (begin != nullptr && end != nullptr && begin < end)
       {
-        auto*    sec_name =
-                      pTLS->scratch_memory.ini.sec.alloc
-                              (end - begin + 2, true);
-        size_t   sec_len  = wcrlen  (begin, end);
-        wcsncpy (sec_name,           begin, sec_len);
+        auto*      sec_name =
+                        pTLS->scratch_memory.ini.sec.alloc
+                                 (end - begin + 2, true);
+        size_t     sec_len  =  wcrlen  (begin, end);
+        wcsncpy_s (sec_name, sec_len+1, begin, _TRUNCATE);
 
         wchar_t* start  = CharNextW (CharNextW (end));
         wchar_t* finish = start;
@@ -503,19 +506,19 @@ iSK_INI::parse (void)
       if ( (! section.name.empty         ()) &&
            (! section.ordered_keys.empty ()) )
       {
-        outbuf += L"[";
-        outbuf += section.name + L"]\n";
+        outbuf.append (L"[");
+        outbuf.append (section.name).append (L"]\n");
 
         for ( auto& key_it : section.ordered_keys )
         {
           const std::wstring& val =
             section.get_value (key_it.c_str ());
 
-          outbuf += key_it + L"=";
-          outbuf += val    + L"\n";
+          outbuf.append (key_it).append (L"=");
+          outbuf.append (val).append (L"\n");
         }
 
-        outbuf += L"\n";
+        outbuf.append (L"\n");
       }
     }
 
@@ -862,8 +865,7 @@ iSK_INI::write (const wchar_t* fname)
 
   SK_CreateDirectories (fname);
 
-  FILE*   fOut = nullptr;
-  errno_t ret  = 0;
+  FILE* fOut = nullptr;
 
   switch (encoding_)
   {
@@ -882,7 +884,7 @@ iSK_INI::write (const wchar_t* fname)
       break;
   }
 
-  if (ret != 0 || fOut == nullptr)
+  if (fOut == nullptr)
   {
     //SK_MessageBox (L"ERROR: Cannot open INI file for writing. Is it read-only?", fname, MB_OK | MB_ICONSTOP);
     return;
@@ -1105,7 +1107,7 @@ iSK_INI::import_file (const wchar_t* fname)
 
       delete [] wszImportData;
 
-      int converted_size =
+      unsigned int converted_size =
         MultiByteToWideChar ( CP_UTF8, 0, string, real_size, nullptr, 0 );
 
       if (! converted_size)

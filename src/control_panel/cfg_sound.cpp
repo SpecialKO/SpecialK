@@ -56,7 +56,8 @@ using namespace SK::ControlPanel;
 bool
 SK_ImGui_SelectAudioSessionDlg (void)
 {
-  ImGuiIO& io (ImGui::GetIO ());
+  const ImGuiIO&
+    io (ImGui::GetIO ());
 
   bool changed = false;
 
@@ -79,7 +80,8 @@ SK_ImGui_SelectAudioSessionDlg (void)
 
     for (int i = 0; i < count; i++)
     {
-      ImVec2 size = ImGui::CalcTextSize (pSessions [i]->getName ());
+      const ImVec2 size =
+        ImGui::CalcTextSize (pSessions [i]->getName ());
 
       if (size.x > max_width) max_width = size.x;
     }
@@ -112,7 +114,8 @@ SK_ImGui_SelectAudioSessionDlg (void)
           pSessions [i];
 
         //bool selected     = false;
-        bool drawing_self = (pSession->getProcessId () == GetCurrentProcessId ());
+        const bool drawing_self =
+          (pSession->getProcessId () == GetCurrentProcessId ());
 
         CComPtr <ISimpleAudioVolume> volume_ctl =
           pSession->getSimpleAudioVolume ();
@@ -205,7 +208,8 @@ SK_ImGui_SelectAudioSessionDlg (void)
 void
 SK_ImGui_VolumeManager (void)
 {
-  ImGuiIO& io (ImGui::GetIO ());
+  const ImGuiIO&
+    io (ImGui::GetIO ());
 
   const  float font_size           =             ImGui::GetFont  ()->FontSize                        * io.FontGlobalScale;
   const  float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y + ImGui::GetStyle ().ItemInnerSpacing.y;
@@ -301,7 +305,8 @@ SK_ImGui_VolumeManager (void)
   ImGui::PopStyleColor (3);
 
 
-  bool session_changed = SK_ImGui_SelectAudioSessionDlg ();
+  bool session_changed =
+    SK_ImGui_SelectAudioSessionDlg ();
 
   ImGui::TreePush ("");
 
@@ -325,28 +330,32 @@ SK_ImGui_VolumeManager (void)
 
   else
   {
-    CComPtr <IChannelAudioVolume> pChannelVolume =
-      audio_session->getChannelAudioVolume ();
-    CComPtr <ISimpleAudioVolume>  pVolume        =
-      audio_session->getSimpleAudioVolume ();
-
     UINT channels = 0;
-
-    if (SUCCEEDED (pMeterInfo->GetMeteringChannelCount (&channels)))
+    if ( SUCCEEDED (
+           pMeterInfo->GetMeteringChannelCount (&channels)
+         )
+       )
     {
-      static float channel_peaks_ [32] { };
+      CComPtr <IChannelAudioVolume> pChannelVolume =
+        audio_session->getChannelAudioVolume      ( );
+
+      static float
+        channel_peaks_ [32] = { };
 
       struct
       {
         struct {
-          float inst_min = FLT_MAX;  DWORD dwMinSample = 0;  float disp_min = FLT_MAX;
-          float inst_max = FLT_MIN;  DWORD dwMaxSample = 0;  float disp_max = FLT_MIN;
+          float inst_min = FLT_MAX;  DWORD dwMinSample = 0;
+          float disp_min = FLT_MAX;
+
+          float inst_max = FLT_MIN;  DWORD dwMaxSample = 0;
+          float disp_max = FLT_MIN;
         } vu_peaks;
 
-        float peaks    [120] { };
-        int   current_idx =  0L;
-        DWORD update_time =  0UL;
-      } static history [ 32] { };
+        float peaks    [120] = {   };
+        int   current_idx    =   0L ;
+        DWORD update_time    =  0UL ;
+      } static history [ 32] = {   };
 
       #define VUMETER_TIME 333
 
@@ -367,7 +376,12 @@ SK_ImGui_VolumeManager (void)
         char slider_label [8 ] = { };
       };
 
-      static std::map <int, volume_s> channel_volumes;
+      static
+        std::map <int, volume_s>
+          channel_volumes;
+
+      CComPtr <ISimpleAudioVolume>  pVolume  =
+        audio_session->getSimpleAudioVolume ( );
 
       pVolume->GetMasterVolume (&master_vol);
       pVolume->GetMute         (&master_mute);
@@ -408,8 +422,9 @@ SK_ImGui_VolumeManager (void)
         }
       }
 
-      const char* szMuteButtonTitle = ( master_mute ? "  Unmute  ###MasterMute" :
-                                                      "   Mute   ###MasterMute" );
+      const char* szMuteButtonTitle =
+        ( master_mute ? "  Unmute  ###MasterMute" :
+                        "   Mute   ###MasterMute" );
 
       if (ImGui::Button (szMuteButtonTitle))
       {
@@ -526,8 +541,8 @@ SK_ImGui_VolumeManager (void)
                                                 channel_volumes [i].volume : 1.0f);
             }
 
-            bool  changed     = false;
-            float volume_orig = ch_vol.normalized;
+                  bool  changed     = false;
+            const float volume_orig = ch_vol.normalized;
 
             ImGui::BeginGroup  ();
             ImGui::TextColored (ImVec4 (0.80f, 0.90f, 1.0f,  1.0f), "%-22s", SK_WASAPI_GetChannelName (i));

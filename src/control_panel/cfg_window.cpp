@@ -286,10 +286,9 @@ SK::ControlPanel::Window::Draw (void)
           static bool reset_y_to_zero = false;
 
           if (moved)
+          {
             queue_move = true;
 
-          if (moved)
-          {
             x_pos /= 100.0f;
             y_pos /= 100.0f;
 

@@ -35,7 +35,7 @@ public:
     setDockingPoint (DockAnchor::SouthWest).setClickThrough (false);
   };
 
-  virtual void run (void) override
+  void run (void) override
   {
     static bool first = true;
 
@@ -51,7 +51,7 @@ public:
     }
   }
 
-  virtual void draw (void) override
+  void draw (void) override
   {
     SK_ImGui_VolumeManager ();
   }

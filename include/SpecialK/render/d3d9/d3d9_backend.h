@@ -114,7 +114,8 @@ namespace D3D9 {
 
   struct FrameState
   {
-    void clear (void) { pixel_shaders.clear (); vertex_shaders.clear (); vertex_buffers.dynamic.clear (); vertex_buffers.immutable.clear (); }
+    void clear (void) 
+    { pixel_shaders.clear (); vertex_shaders.clear (); vertex_buffers.dynamic.clear (); vertex_buffers.immutable.clear (); }
   
     std::unordered_set <uint32_t>                 pixel_shaders;
     std::unordered_set <uint32_t>                 vertex_shaders;
@@ -127,7 +128,7 @@ namespace D3D9 {
   
   struct KnownObjects
   {
-    void clear (void) { static_vbs.clear (); dynamic_vbs.clear (); };
+    void clear (void)  { static_vbs.clear (); dynamic_vbs.clear (); };
   
     std::unordered_set <IDirect3DVertexBuffer9 *> static_vbs;
     std::unordered_set <IDirect3DVertexBuffer9 *> dynamic_vbs;
@@ -135,7 +136,7 @@ namespace D3D9 {
   
   struct RenderTargetTracker
   {
-    void clear (void) { pixel_shaders.clear (); vertex_shaders.clear (); active = false; }
+    void clear (void)  { pixel_shaders.clear (); vertex_shaders.clear (); active = false; }
   
     IDirect3DBaseTexture9*        tracking_tex  = nullptr;
   
@@ -147,7 +148,7 @@ namespace D3D9 {
   
   struct ShaderTracker
   {
-    void clear (void)
+    void clear (void) 
     {
       active    = false;
       InterlockedExchange (&num_draws, 0);

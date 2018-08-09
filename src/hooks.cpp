@@ -860,7 +860,7 @@ SK_Module_IsProcAddrLocal ( HMODULE  hModExpected,
 MH_STATUS
 __stdcall
 SK_DisableDLLHook ( const wchar_t *pwszModule,
-	                const char    *pszProcName )
+	                  const char    *pszProcName )
 {
    LPVOID pFuncAddr =
       SK_GetProcAddress ( pwszModule,
@@ -869,13 +869,13 @@ SK_DisableDLLHook ( const wchar_t *pwszModule,
   if (pFuncAddr == nullptr) return MH_ERROR_FUNCTION_NOT_FOUND;
 	
   return
-    MH_QueueDisableHook(pFuncAddr);
+    MH_DisableHook (pFuncAddr);
 }
 
 MH_STATUS
 __stdcall
 SK_QueueDisableDLLHook ( const wchar_t *pwszModule,
-	                     const char    *pszProcName )
+	                       const char    *pszProcName )
 {
   LPVOID pFuncAddr =
     SK_GetProcAddress ( pwszModule,

@@ -1204,7 +1204,7 @@ SK_ImGui_ControlPanel (void)
           char szCurrentBranchMenu [128] = { };
           sprintf (szCurrentBranchMenu, "Current Branch:  (%s)###SelectBranchMenu", current_branch_str);
 
-          if (ImGui::BeginMenu (szCurrentBranchMenu, branches.size () > 1))
+          if (ImGui::BeginMenu (szCurrentBranchMenu))
           {
             for ( auto& it : branches )
             {
@@ -1994,7 +1994,12 @@ SK_ImGui_ControlPanel (void)
       {
         extern bool SK_POE2_PlugInCfg (void);
                     SK_POE2_PlugInCfg ();
-      }
+      } break;
+
+      case SK_GAME_ID::Yakuza0:
+      {
+        SK_Yakuza0_PlugInCfg ();
+      } break;
     };
 #endif
 
@@ -2621,7 +2626,9 @@ SK_ImGui_StageNextFrame (void)
       ImGui::TextUnformatted ("please see the Release Notes, under");                                ImGui::SameLine ();
     }
     else
+    {
       ImGui::TextUnformatted ("  Please see the Release Notes, under");                              ImGui::SameLine ();
+    }
     ImGui::TextColored       (ImColor::HSV (.52f, 1.f, 1.f),  "Help | Release Notes");               ImGui::SameLine ();
     ImGui::TextUnformatted   ("for what passes as documentation for this project.");
 

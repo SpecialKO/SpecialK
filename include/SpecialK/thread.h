@@ -45,7 +45,7 @@ public:
                 SetThreadPriority (hThread, prio);
   }
 
- ~SK_Thread_ScopedPriority (void)
+ ~SK_Thread_ScopedPriority (void) ///
   {
     SetThreadPriority (hThread, orig_prio);
   }
@@ -59,7 +59,7 @@ protected:
 class SK_Thread_CriticalSection
 {
 public:
-  SK_Thread_CriticalSection ( CRITICAL_SECTION* pCS )
+  SK_Thread_CriticalSection ( CRITICAL_SECTION* pCS ) 
   {
     cs_ = pCS;
   };
@@ -93,7 +93,7 @@ public:
     InitializeCriticalSectionAndSpinCount (cs_, spin_count);
   }
 
-  ~SK_Thread_HybridSpinlock (void)
+  ~SK_Thread_HybridSpinlock (void) ///
   {
     DeleteCriticalSection (cs_);
     delete cs_;
@@ -115,12 +115,12 @@ public:
     }
   }
 
-  ~SK_AutoCriticalSection (void)
+  ~SK_AutoCriticalSection (void) ///
   {
     Leave ();
   }
 
-  bool try_result (void)
+  bool try_result (void) 
   {
     return acquired_;
   }

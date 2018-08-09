@@ -149,7 +149,8 @@ ImGui_ImplGL3_RenderDrawLists (ImDrawData* draw_data)
 
     for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
     {
-      const ImDrawCmd* pcmd = &cmd_list->CmdBuffer [cmd_i];
+      const ImDrawCmd* pcmd =
+        &cmd_list->CmdBuffer [cmd_i];
 
       if (pcmd->UserCallback)
       {

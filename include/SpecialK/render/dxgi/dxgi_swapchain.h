@@ -6680,6 +6680,12 @@ struct IWrapDXGISwapChain : IDXGISwapChain4
     CComQIPtr <IDXGISwapChain4> pSwap4 (this);
   }
 
+
+  virtual ~IWrapDXGISwapChain (void)
+  {
+  }
+
+
   IWrapDXGISwapChain            (const IWrapDXGISwapChain &) = delete;
   IWrapDXGISwapChain &operator= (const IWrapDXGISwapChain &) = delete;
 

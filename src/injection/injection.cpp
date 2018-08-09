@@ -85,8 +85,25 @@ SK_InjectionRecord_s __SK_InjectionHistory [MAX_INJECTED_PROC_HISTORY] = { };
   __time64_t   __SK_InjectionHistory_eject  [MAX_INJECTED_PROC_HISTORY]            =  { 0 };
   bool         __SK_InjectionHistory_crash  [MAX_INJECTED_PROC_HISTORY]            =  { 0 };
 
-  SK_RenderAPI __SK_InjectionHistory_api    [MAX_INJECTED_PROC_HISTORY]            =  { SK_RenderAPI::Reserved };
   ULONG64      __SK_InjectionHistory_frames [MAX_INJECTED_PROC_HISTORY]            =  { 0 };
+  SK_RenderAPI __SK_InjectionHistory_api    [MAX_INJECTED_PROC_HISTORY]            =  {
+    SK_RenderAPI::Reserved, SK_RenderAPI::Reserved, SK_RenderAPI::Reserved, SK_RenderAPI::Reserved,
+    SK_RenderAPI::Reserved, SK_RenderAPI::Reserved, SK_RenderAPI::Reserved, SK_RenderAPI::Reserved,
+    SK_RenderAPI::Reserved, SK_RenderAPI::Reserved, SK_RenderAPI::Reserved, SK_RenderAPI::Reserved,
+    SK_RenderAPI::Reserved, SK_RenderAPI::Reserved, SK_RenderAPI::Reserved, SK_RenderAPI::Reserved,
+    SK_RenderAPI::Reserved, SK_RenderAPI::Reserved, SK_RenderAPI::Reserved, SK_RenderAPI::Reserved,
+    SK_RenderAPI::Reserved, SK_RenderAPI::Reserved, SK_RenderAPI::Reserved, SK_RenderAPI::Reserved,
+    SK_RenderAPI::Reserved, SK_RenderAPI::Reserved, SK_RenderAPI::Reserved, SK_RenderAPI::Reserved,
+    SK_RenderAPI::Reserved, SK_RenderAPI::Reserved, SK_RenderAPI::Reserved, SK_RenderAPI::Reserved,
+    SK_RenderAPI::Reserved, SK_RenderAPI::Reserved, SK_RenderAPI::Reserved, SK_RenderAPI::Reserved,
+    SK_RenderAPI::Reserved, SK_RenderAPI::Reserved, SK_RenderAPI::Reserved, SK_RenderAPI::Reserved,
+    SK_RenderAPI::Reserved, SK_RenderAPI::Reserved, SK_RenderAPI::Reserved, SK_RenderAPI::Reserved,
+    SK_RenderAPI::Reserved, SK_RenderAPI::Reserved, SK_RenderAPI::Reserved, SK_RenderAPI::Reserved,
+    SK_RenderAPI::Reserved, SK_RenderAPI::Reserved, SK_RenderAPI::Reserved, SK_RenderAPI::Reserved,
+    SK_RenderAPI::Reserved, SK_RenderAPI::Reserved, SK_RenderAPI::Reserved, SK_RenderAPI::Reserved,
+    SK_RenderAPI::Reserved, SK_RenderAPI::Reserved, SK_RenderAPI::Reserved, SK_RenderAPI::Reserved,
+    SK_RenderAPI::Reserved, SK_RenderAPI::Reserved, SK_RenderAPI::Reserved, SK_RenderAPI::Reserved
+  };
 
   __declspec (dllexport) volatile LONG SK_InjectionRecord_s::count                 =  0L;
   __declspec (dllexport) volatile LONG SK_InjectionRecord_s::rollovers             =  0L;
@@ -500,11 +517,16 @@ SK_Inject_EnableCentralizedConfig (void)
   lstrcatW (wszOut, SK_GetHostPath ());
   lstrcatW (wszOut, LR"(\SpecialK.central)");
 
-  FILE* fOut = _wfopen (wszOut, L"w");
-               fputws (L" ", fOut);
-                     fclose (fOut);
+  FILE* fOut =
+    _wfopen (wszOut, L"w");
 
-  config.system.central_repository = true;
+  if (fOut != nullptr)
+  {
+    fputws (L" ", fOut);
+    fclose (fOut);
+
+    config.system.central_repository = true;
+  }
 
   SK_EstablishRootPath ();
 

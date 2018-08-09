@@ -38,7 +38,7 @@ using namespace SK::ControlPanel;
 bool
 SK::ControlPanel::OSD::DrawVideoCaptureOptions (void)
 {
-  bool bRet =
+  const bool bRet =
     ImGui::Checkbox ("Show OSD in Video Capture", &config.render.osd.draw_in_vidcap);
 
   if (bRet)
@@ -50,7 +50,7 @@ SK::ControlPanel::OSD::DrawVideoCaptureOptions (void)
                bool     original, new_val;
                bool    *dest;
       volatile LONG     testing = FALSE;
-    } static osd_toggle;
+    } static osd_toggle = { };
 
     if (! InterlockedCompareExchange (&osd_toggle.testing, TRUE, FALSE))
     {
@@ -83,7 +83,7 @@ SK::ControlPanel::OSD::DrawVideoCaptureOptions (void)
         InterlockedExchange (&pToggle->testing, FALSE);
 
         SK_Thread_CloseSelf (   );
-        ExitThread          (0x0);
+        _endthreadex        (0x0);
 
         return 0;
       }, (LPVOID)&osd_toggle );
@@ -106,7 +106,7 @@ SK::ControlPanel::OSD::DrawVideoCaptureOptions (void)
 bool
 SK::ControlPanel::OSD::Draw (void)
 {
-  ImGuiIO& io =
+  const ImGuiIO& io =
     ImGui::GetIO ();
 
   if (ImGui::CollapsingHeader ("On Screen Display (OSD)"))

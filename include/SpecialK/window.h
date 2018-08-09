@@ -381,14 +381,14 @@ struct sk_window_s {
     _In_ UINT   Msg,
     _In_ WPARAM wParam,
     _In_ LPARAM lParam
-  );
+  ) ;
 
   LRESULT CallProc (
     _In_ HWND    hWnd_,
     _In_ UINT    Msg,
     _In_ WPARAM  wParam,
     _In_ LPARAM  lParam
-  );
+  ) ;
 
   bool hooked = false;
 };

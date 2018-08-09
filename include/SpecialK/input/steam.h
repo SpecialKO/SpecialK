@@ -17,8 +17,8 @@ extern sk_input_api_context_s SK_Steam_Backend;
 
 typedef uint32_t ControllerIndex_t;
 
-#define INVALID_CONTROLLER_INDEX  std::numeric_limits <ControllerIndex_t>::max () - 1
-#define INVALID_CONTROLLER_HANDLE STEAM_CONTROLLER_HANDLE_ALL_CONTROLLERS         - 1
+#define INVALID_CONTROLLER_INDEX  (std::numeric_limits <ControllerIndex_t>::max () - 1)
+#define INVALID_CONTROLLER_HANDLE (STEAM_CONTROLLER_HANDLE_ALL_CONTROLLERS         - 1)
 
 struct STEAMINPUT_STATE
 {
@@ -111,9 +111,10 @@ ISteamController_GetDigitalActionData_Detour ( ISteamController                *
 class IWrapSteamController : public ISteamController
 {
 public:
-  IWrapSteamController (ISteamController* pController) :
-                                                         pRealController (pController) {
+  IWrapSteamController (ISteamController* pController) : pRealController (pController) {
   };
+
+  virtual ~IWrapSteamController (void) { };
 
   bool Init (void) override
   {
@@ -211,7 +212,7 @@ public:
   // Trigger a haptic pulse on a controller
   void TriggerHapticPulse (ControllerHandle_t controllerHandle, ESteamControllerPad eTargetPad, unsigned short usDurationMicroSec) override
   {
-    ControllerIndex_t slot =
+    const ControllerIndex_t slot =
       std::max (0ui32, ControllerIndex (controllerHandle));
 
     if ( slot != config.input.gamepad.steam.ui_slot ||
@@ -228,7 +229,7 @@ public:
   // nFlags is currently unused and reserved for future use.
   void TriggerRepeatedHapticPulse (ControllerHandle_t controllerHandle, ESteamControllerPad eTargetPad, unsigned short usDurationMicroSec, unsigned short usOffMicroSec, unsigned short unRepeat, unsigned int nFlags) override
   {
-    ControllerIndex_t slot =
+    const ControllerIndex_t slot =
       std::max (0ui32, ControllerIndex (controllerHandle));
 
     if ( slot != config.input.gamepad.steam.ui_slot ||
@@ -244,7 +245,7 @@ public:
   // Trigger a vibration event on supported controllers.  
   void TriggerVibration (ControllerHandle_t controllerHandle, unsigned short usLeftSpeed, unsigned short usRightSpeed) override
   {
-    ControllerIndex_t slot =
+    const ControllerIndex_t slot =
       std::max (0ui32, ControllerIndex (controllerHandle));
 
     if ( slot != config.input.gamepad.steam.ui_slot ||

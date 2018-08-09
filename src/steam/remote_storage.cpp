@@ -404,7 +404,7 @@ class ISteamRemoteStorage014
 		virtual SteamAPICall_t UGCDownloadToLocation( UGCHandle_t hContent, const char *pchLocation, uint32 unPriority ) = 0;
 };
 
-#define SK_STEAM_INVALID_UGC_FILE MAXUINT64-1
+#define SK_STEAM_INVALID_UGC_FILE (MAXUINT64-1)
 
 bool
 SK_Steam_IsCloudFileBlacklisted (const char *pchFile)

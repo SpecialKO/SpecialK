@@ -867,7 +867,7 @@ struct SK_DisjointTimerQueryD3D11
   // Always issue this from the immediate context
 
   volatile ID3D11Query* async  = nullptr;
-  volatile LONG         active = false;
+  volatile LONG         active = FALSE;
 
   D3D11_QUERY_DATA_TIMESTAMP_DISJOINT last_results = { };
 };
@@ -947,7 +947,7 @@ struct d3d11_shader_tracking_s
       //current_textures [i] = 0x00;
   }
 
-  void use (IUnknown* pShader);
+  void use (IUnknown* pShader) ;
 
   // Used for timing queries and interface tracking
   void activate   ( ID3D11DeviceContext        *pDevContext,
@@ -1161,7 +1161,9 @@ struct SK_D3D11_KnownShaders
 using  SK_D3D11_KnownShaders_Singleton = SK_D3D11_KnownShaders&;
 extern SK_D3D11_KnownShaders_Singleton __SK_Singleton_D3D11_Shaders (void);
 
-#define SK_D3D11_Shaders __SK_Singleton_D3D11_Shaders()
+extern SK_D3D11_KnownShaders_Singleton& SK_D3D11_Shader_Lambda (void);
+
+#define SK_D3D11_Shaders SK_D3D11_Shader_Lambda()
 
 
 typedef HRESULT (WINAPI *D3D11CreateDevice_pfn)(
@@ -1416,8 +1418,8 @@ SK_HookDXGI (void);
 int  SK_D3D11_PurgeHookAddressCache  (void);
 void SK_D3D11_UpdateHookAddressCache (void);
 
-const wchar_t* SK_D3D11_DescribeUsage     (D3D11_USAGE              usage);
-const wchar_t* SK_D3D11_DescribeFilter    (D3D11_FILTER             filter);
+const wchar_t* SK_D3D11_DescribeUsage     (D3D11_USAGE              usage)  ;
+const wchar_t* SK_D3D11_DescribeFilter    (D3D11_FILTER             filter) ;
 std::wstring   SK_D3D11_DescribeMiscFlags (D3D11_RESOURCE_MISC_FLAG flags);
 std::wstring   SK_D3D11_DescribeBindFlags (D3D11_BIND_FLAG          flags);
 

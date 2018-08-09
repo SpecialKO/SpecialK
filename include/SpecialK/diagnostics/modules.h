@@ -112,7 +112,7 @@ public:
    using _AddressRange = std::pair <LPVOID, LPVOID>;
 
 
-   skWin32Module (void)                     : hMod_ (Uninitialized),
+   skWin32Module (void)             : hMod_ (Uninitialized),
                                               refs_ (0) { };
 
    skWin32Module ( HMODULE        hModWin32,
@@ -121,7 +121,7 @@ public:
    {
      base_ = info.lpBaseOfDll;
      size_ = info.SizeOfImage;
-     name_ = name;
+     wcsncpy_s (name_, MAX_PATH * 2, name, _TRUNCATE);
 
      AddRef ();
    };
@@ -146,9 +146,9 @@ public:
        std::move (skWin32Module (hModWin32, mod_info, wszName));
    };
 
-  ~skWin32Module (void)
+  ~skWin32Module (void)/// 
   {
-    LONG refs =
+    const LONG refs =
       ReadAcquire (&refs_);
 
     assert ( refs == 0        || refs <= 2              );
@@ -160,10 +160,17 @@ public:
     {
       Release ();
     }
+
+    if (cache_name_ != nullptr)
+    {
+      std::wstring* toDelete = cache_name_;
+                               cache_name_ = nullptr;
+             delete toDelete;
+    }
   }
 
 
-  LONG AddRef  (void) noexcept;
+  LONG AddRef  (void) ;
   LONG Release (void);
 
 
@@ -180,10 +187,10 @@ public:
                skWin32Module (hModWin32) );
   }
 
-  operator const HMODULE&       (void) const noexcept {
+  operator const HMODULE&       (void) const {
     return hMod_;
   };
-  operator const _AddressRange& (void) const noexcept {
+  operator const _AddressRange& (void) const {
     return 
       std::make_pair ( base_,
                          reinterpret_cast   <LPVOID>    ( 
@@ -191,7 +198,12 @@ public:
                                                         ) 
                      );
   }
-  operator const std::wstring&  (void) const noexcept {
+  operator const std::wstring&  (void) {
+    if (cache_name_ != nullptr) return *cache_name_;
+
+    return *(cache_name_ = new std::wstring (name_));
+  }
+  operator const wchar_t*       (void) const {
     return name_;
   }
 
@@ -208,7 +220,8 @@ protected:
            LPVOID       base_  { Unaddressable };
            size_t       size_  { Unallocated   };
   volatile LONG         refs_  { Unreferenced  };
-           std::wstring name_  { Unnamed       };
+           wchar_t      name_ [MAX_PATH * 2 + 1] = { };
+  std::wstring*   cache_name_                    = nullptr;
 };
 
 
@@ -283,8 +296,8 @@ private:
 public:
 
   // Special References that are valid for SK's entire lifetime
-  static skWin32Module HostApp, // The module handle for the thing that loaded SK
-                       Self;    // The module handle for SK
+  static skWin32Module& HostApp (HMODULE hModToSet = skWin32Module::Uninitialized);
+  static skWin32Module& Self    (HMODULE hModToSet = skWin32Module::Uninitialized);
 
 
 public:
@@ -303,6 +316,9 @@ public:
   HMODULE
   LoadLibraryLL (const wchar_t *wszLibrary)
   {
+    if (wszLibrary == nullptr)
+      return INVALID_MODULE;
+
     HMODULE hMod =
       _FindLibraryByName (wszLibrary);
 
@@ -311,8 +327,7 @@ public:
 
     hMod =
     {
-      LoadLibraryW_Original != nullptr ?
-
+      LoadLibraryW_Original != nullptr     ?
         LoadLibraryW_Original (wszLibrary) :
                ::LoadLibraryW (wszLibrary)
     };
@@ -329,6 +344,9 @@ public:
   HMODULE
   LoadLibrary (const wchar_t *wszLibrary)
   {
+    if (wszLibrary == nullptr)
+      return INVALID_MODULE;
+
     HMODULE hMod =
       _FindLibraryByName (wszLibrary);
 
@@ -384,13 +402,12 @@ protected:
 } extern SK_Modules;
 
 
-static const HMODULE& __SK_hModSelf = skModuleRegistry::Self;
-static const HMODULE& __SK_hModHost = skModuleRegistry::HostApp;
-
+#define __SK_hModSelf skModuleRegistry::Self    ()
+#define __SK_hModHost skModuleRegistry::HostApp ()
 
 __inline
 LONG
-skWin32Module::AddRef (void) noexcept
+skWin32Module::AddRef (void) 
 {
   // This would add an actual reference in Win32, but we should be able to
   //   get away with ONE OS-level reference and our own counter.
@@ -407,7 +424,7 @@ __inline
 LONG
 skWin32Module::Release (void) 
 {
-  LONG ret =
+  const LONG ret =
     InterlockedDecrement (&refs_);
 
   if (refs_ == 0)
@@ -417,7 +434,7 @@ skWin32Module::Release (void)
      auto& names ( registrar._known_module_names );
      auto& addrs ( registrar._known_module_bases );
 
-    BOOL really_gone =
+    const BOOL really_gone =
       FreeLibrary (hMod_);
 
     const auto& it =

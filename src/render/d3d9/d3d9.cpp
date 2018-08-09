@@ -760,48 +760,64 @@ ResetCEGUI_D3D9 (IDirect3DDevice9* pDev)
     if (cegD3D9_SB != nullptr) cegD3D9_SB->Release ();
         cegD3D9_SB  = nullptr;
 
-    if (config.cegui.enable && GetModuleHandle (L"CEGUIDirect3D9Renderer-0.dll"))
+    if (config.cegui.enable)
     {
-      const char *locale_orig =
-        _strdup (setlocale (LC_ALL, NULL));
-                 setlocale (LC_ALL, "C");
+      int thread_locale =
+        _configthreadlocale (0);
+        _configthreadlocale (_ENABLE_PER_THREAD_LOCALE);
 
-      try {
-        cegD3D9 = dynamic_cast <CEGUI::Direct3D9Renderer *> (
-          &CEGUI::Direct3D9Renderer::bootstrapSystem (pDev)
-        );
-      }
+      char* szLocale =
+        setlocale (LC_ALL, NULL);
 
-      catch (CEGUI::Exception& e)
+      std::string locale_orig (
+        szLocale != nullptr ? szLocale : ""
+      );
+      
+      if (! locale_orig.empty ())
+        setlocale (LC_ALL, "C");
+
+      if (GetModuleHandle (L"CEGUIDirect3D9Renderer-0.dll"))
       {
-        SK_LOG0 ( (L"CEGUI Exception During D3D9 Bootstrap"),
-                   L"   CEGUI  "  );
-        SK_LOG0 ( (L" >> %hs (%hs:%lu): Exception %hs -- %hs",
-                    e.getFunctionName    ().c_str (),
-                    e.getFileName        ().c_str (),
-                    e.getLine            (),
-                            e.getName    ().c_str (),
-                            e.getMessage ().c_str () ),
-                   L"   CEGUI  "  );
+        try {
+          cegD3D9 = dynamic_cast <CEGUI::Direct3D9Renderer *> (
+            &CEGUI::Direct3D9Renderer::bootstrapSystem (pDev)
+          );
+        }
 
-        config.cegui.enable = false;
+        catch (CEGUI::Exception& e)
+        {
+          SK_LOG0 ( (L"CEGUI Exception During D3D9 Bootstrap"),
+                     L"   CEGUI  "  );
+          SK_LOG0 ( (L" >> %hs (%hs:%lu): Exception %hs -- %hs",
+                      e.getFunctionName    ().c_str (),
+                      e.getFileName        ().c_str (),
+                      e.getLine            (),
+                              e.getName    ().c_str (),
+                              e.getMessage ().c_str () ),
+                     L"   CEGUI  "  );
+
+          config.cegui.enable = false;
+        }
+
+        SK_CEGUI_RelocateLog ();
+
+        if (! locale_orig.empty ())
+          setlocale (LC_ALL, "C");
+
+        SK_CEGUI_InitBase    ();
+
+        SK_PopupManager::getInstance ()->destroyAllPopups       ();
+        SK_TextOverlayManager::getInstance ()->resetAllOverlays (cegD3D9);
       }
 
-      SK_CEGUI_RelocateLog ();
+      if (! locale_orig.empty ())
+        setlocale (LC_ALL, locale_orig.c_str ());
 
-      setlocale (LC_ALL, "C");
-      SK_CEGUI_InitBase    ();
-
-      setlocale (LC_ALL, locale_orig);
-      free      ((void *)locale_orig);
-
-      SK_PopupManager::getInstance ()->destroyAllPopups       ();
-      SK_TextOverlayManager::getInstance ()->resetAllOverlays (cegD3D9);
+      _configthreadlocale (thread_locale);
     }
 
     else
       cegD3D9 = (CEGUI::Direct3D9Renderer *)1;
-
 
     SK_Steam_ClearPopups ();
   }
@@ -2029,7 +2045,7 @@ SK_D3D9_HookPresent (IDirect3DDevice9 *pDev)
       else
         vftable_ = (void **)&pSwapChain.p;
 
-      if (vftable_ != nullptr)
+      if (*vftable_ != nullptr)
       {
         D3D9_INTERCEPT ( vftable_, 3,
                          "IDirect3DSwapChain9::Present",
@@ -3069,8 +3085,6 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
           TexLoadRequest* load_op =
             nullptr;
 
-          wchar_t wszInjectFileName [MAX_PATH] = { L'\0' };
-
           bool remap_stream =
             tex_mgr.injector.isStreaming (pDst->tex_crc32c);
 
@@ -3087,6 +3101,8 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
 
             if (record.method == TexLoadMethod::DontCare)
                 record.method =  TexLoadMethod::Streaming;
+
+            wchar_t wszInjectFileName [MAX_PATH] = { L'\0' };
 
             // If -1, load from disk...
             if (record.archive == -1)
@@ -3311,7 +3327,7 @@ SK_SetPresentParamsD3D9Ex ( IDirect3DDevice9       *pDevice,
 
   CComPtr <IDirect3DDevice9Ex> pDevEx = nullptr;
 
-  if (pparams != nullptr && pDevice != nullptr && ( SUCCEEDED (((IUnknown *)pDevice)->QueryInterface <IDirect3DDevice9Ex> (&pDevEx.p)) && config.render.d3d9.force_d3d9ex ))
+  if (pparams != nullptr && pDevice != nullptr && ( SUCCEEDED (((IUnknown *)pDevice)->QueryInterface <IDirect3DDevice9Ex> (&pDevEx.p))))
   {
     if (config.render.d3d9.force_d3d9ex)
     {
@@ -3602,7 +3618,7 @@ SK_SetPresentParamsD3D9Ex ( IDirect3DDevice9       *pDevice,
                                       //SWP_NOZORDER | SWP_NOSENDCHANGING );
     }
 
-    else if (switch_to_fullscreen && (! pparams->Windowed))
+    else if (switch_to_fullscreen)
     {
       //if ( SetWindowLongPtrW_Original == nullptr ||
       //     GetWindowLongPtrW_Original == nullptr )
@@ -4449,12 +4465,13 @@ D3D9CreateDevice_Override ( IDirect3D9*            This,
 {
   if (StrStrIW (SK_GetCallerName ().c_str (), L"action_"))
   {
-    return D3D9_CreateDevice_Original ( This, Adapter,
-                                                  DeviceType,
-                                                    hFocusWindow,
-                                                      BehaviorFlags,
-                                                        pPresentationParameters,
-                                                          ppReturnedDeviceInterface );
+    return
+      D3D9_CreateDevice_Original ( This, Adapter,
+                                     DeviceType,
+                                       hFocusWindow,
+                                         BehaviorFlags,
+                                           pPresentationParameters,
+                                             ppReturnedDeviceInterface );
   }
 
 
@@ -4482,9 +4499,10 @@ D3D9CreateDevice_Override ( IDirect3D9*            This,
                         SK_SummarizeCaller ().c_str () );
 
 
-  if (! SK_D3D9_IsDummyD3D9Device (pPresentationParameters))
+  if ( pPresentationParameters != nullptr &&
+      (! SK_D3D9_IsDummyD3D9Device (pPresentationParameters) ))
   {
-    if (config.display.force_fullscreen && hFocusWindow)
+    if (config.display.force_fullscreen   &&   hFocusWindow)
       pPresentationParameters->hDeviceWindow = hFocusWindow;
   
   
@@ -4519,7 +4537,8 @@ D3D9CreateDevice_Override ( IDirect3D9*            This,
 
 
   // Ignore video swapchains
-  if (pPresentationParameters->Flags & D3DPRESENTFLAG_VIDEO)
+  if ( pPresentationParameters != nullptr &&
+       pPresentationParameters->Flags     & D3DPRESENTFLAG_VIDEO )
   {
     if (! StrStrIW (SK_GetHostApp (), L"vlc.exe"))
     {
@@ -4608,7 +4627,7 @@ D3D9ExCreateDevice_Override ( IDirect3D9*            This,
                               D3DPRESENT_PARAMETERS* pPresentationParameters,
                               IDirect3DDevice9**     ppReturnedDeviceInterface )
 {
-  if (SK_TLS_Bottom ()->d3d9.ctx_init_thread)
+  if (SK_TLS_Bottom ()->d3d9.ctx_init_thread || pPresentationParameters == nullptr)
   {
     return
       D3D9Ex_CreateDeviceEx_Original ( (IDirect3D9Ex *)This,
@@ -4666,34 +4685,31 @@ D3D9ExCreateDevice_Override ( IDirect3D9*            This,
   //     might help diagnose the problem.
   if (! SUCCEEDED (ret))
   {
-    if (pPresentationParameters != nullptr)
+    dll_log.LogEx (true,
+              L"[   D3D9   ]  SwapChain Settings:   Res=(%ux%u), Format=%04i, "
+                                      L"Count=%lu - "
+                                      L"SwapEffect: 0x%02X, Flags: 0x%04X,"
+                                      L"AutoDepthStencil: %s "
+                                      L"PresentationInterval: %u\n",
+                 pPresentationParameters->BackBufferWidth,
+                 pPresentationParameters->BackBufferHeight,
+                 pPresentationParameters->BackBufferFormat,
+                 pPresentationParameters->BackBufferCount,
+                 pPresentationParameters->SwapEffect,
+                 pPresentationParameters->Flags,
+                 pPresentationParameters->EnableAutoDepthStencil ? L"true" :
+                                                                   L"false",
+                 pPresentationParameters->PresentationInterval);
+
+    if (! pPresentationParameters->Windowed)
     {
       dll_log.LogEx (true,
-                L"[   D3D9   ]  SwapChain Settings:   Res=(%ux%u), Format=%04i, "
-                                        L"Count=%lu - "
-                                        L"SwapEffect: 0x%02X, Flags: 0x%04X,"
-                                        L"AutoDepthStencil: %s "
-                                        L"PresentationInterval: %u\n",
-                   pPresentationParameters->BackBufferWidth,
-                   pPresentationParameters->BackBufferHeight,
-                   pPresentationParameters->BackBufferFormat,
-                   pPresentationParameters->BackBufferCount,
-                   pPresentationParameters->SwapEffect,
-                   pPresentationParameters->Flags,
-                   pPresentationParameters->EnableAutoDepthStencil ? L"true" :
-                                                                     L"false",
-                   pPresentationParameters->PresentationInterval);
-
-      if (! pPresentationParameters->Windowed)
-      {
-        dll_log.LogEx (true,
-                L"[   D3D9   ]  Fullscreen Settings:  Refresh Rate: %u\n",
-                   pPresentationParameters->FullScreen_RefreshRateInHz);
-        dll_log.LogEx (true,
-                L"[   D3D9   ]  Multisample Settings: Type: %X, Quality: %u\n",
-                   pPresentationParameters->MultiSampleType,
-                   pPresentationParameters->MultiSampleQuality);
-      }
+              L"[   D3D9   ]  Fullscreen Settings:  Refresh Rate: %u\n",
+                 pPresentationParameters->FullScreen_RefreshRateInHz);
+      dll_log.LogEx (true,
+              L"[   D3D9   ]  Multisample Settings: Type: %X, Quality: %u\n",
+                 pPresentationParameters->MultiSampleType,
+                 pPresentationParameters->MultiSampleQuality);
     }
 
     return ret;
@@ -5222,7 +5238,7 @@ SK_D3D9_DrawFileList (bool& can_scroll)
           sprintf (szFileName, "%ws", archives [archive_no].c_str ());
         }
 
-        else strncpy (szFileName, "Regular Filesystem", MAX_PATH);
+        else strncpy_s (szFileName, MAX_PATH, "Regular Filesystem", _TRUNCATE);
 
         source.name = szFileName;
 
@@ -5279,8 +5295,8 @@ SK_D3D9_DrawFileList (bool& can_scroll)
   ImGui::PushStyleVar   (ImGuiStyleVar_ChildWindowRounding, 0.0f);
   ImGui::PushStyleColor (ImGuiCol_Border,                   ImVec4 (0.4f, 0.6f, 0.9f, 1.0f));
 
-#define FILE_LIST_WIDTH  font_size * 20
-#define FILE_LIST_HEIGHT font_size * (sources.size () + 3)
+#define FILE_LIST_WIDTH  (font_size * 20)
+#define FILE_LIST_HEIGHT (font_size * (sources.size () + 3))
 
   ImGui::BeginChild ( ImGui::GetID ("Source List"),
                         ImVec2 ( FILE_LIST_WIDTH, FILE_LIST_HEIGHT ),
@@ -5294,8 +5310,11 @@ SK_D3D9_DrawFileList (bool& can_scroll)
     [](int sel) ->
       void
       {
+        auto& source =
+          sources [sel];
+
         ImGui::BeginTooltip ();
-        ImGui::TextColored  (ImVec4 (0.9f, 0.7f, 0.3f, 1.f), "Data Source  (%s)", sources [sel].name.c_str ());
+        ImGui::TextColored  (ImVec4 (0.9f, 0.7f, 0.3f, 1.f), "Data Source  (%s)", source.name.c_str ());
         ImGui::Separator    ();
 
         ImGui::BeginGroup      (    );
@@ -5308,21 +5327,21 @@ SK_D3D9_DrawFileList (bool& can_scroll)
 
         ImGui::BeginGroup      (    );
         ImGui::TextUnformatted ( "" );
-        ImGui::Text            ( "%4lu File%c", sources [sel].blocking.records.size (),
-                                                sources [sel].blocking.records.size () != 1 ? 's' : ' ' );
-        ImGui::Text            ( "%4lu File%c", sources [sel].streaming.records.size (),
-                                                sources [sel].streaming.records.size () != 1 ? 's' : ' ' );
+        ImGui::Text            ( "%4lu File%c", source.blocking.records.size  (),
+                                                source.blocking.records.size  () != 1 ? 's' : ' ' );
+        ImGui::Text            ( "%4lu File%c", source.streaming.records.size (),
+                                                source.streaming.records.size () != 1 ? 's' : ' ' );
         ImGui::EndGroup        (    );
 
         ImGui::SameLine        (    );
 
         ImGui::BeginGroup      (    );
         ImGui::Text            ( "  %#5.2f MiB",
-                                   (double)sources [sel].totalSize () / ( 1024.0 * 1024.0 ) );
+                                   (double)source.totalSize ()   / (1024.0 * 1024.0) );
         ImGui::Text            ( " (%#5.2f MiB)",
-                                   (double)sources [sel].blocking.size / (1024.0 * 1024.0) );
+                                   (double)source.blocking.size  / (1024.0 * 1024.0) );
         ImGui::Text            ( " (%#5.2f MiB)",
-                                   (double)sources [sel].streaming.size / (1024.0 * 1024.0) );
+                                   (double)source.streaming.size / (1024.0 * 1024.0) );
         ImGui::EndGroup        (    );
 
         ImGui::EndTooltip    ();
@@ -6829,7 +6848,8 @@ SK_D3D9_TextureModDlg (void)
 
         D3DSURFACE_DESC desc;
 
-        if (SUCCEEDED (pTex->d3d9_tex->pTexOverride->GetLevelDesc (0, &desc)))
+        if (            pTex->d3d9_tex->pTexOverride != nullptr &&
+             SUCCEEDED (pTex->d3d9_tex->pTexOverride->GetLevelDesc (0, &desc)) )
         {
           bool override_tex = (pTex->d3d9_tex->getDrawTexture () == pTex->d3d9_tex->pTexOverride);
 
@@ -7753,7 +7773,8 @@ SK_D3D9_DumpShader ( const wchar_t* wszPrefix,
   {
     char* szDisasm = _strdup ((const char *)pDisasm->GetBufferPointer ());
 
-    char* comments_end  =                strstr (szDisasm,          "\n ");
+    char* comments_end  =                szDisasm != nullptr ?
+                                         strstr (szDisasm,          "\n ") : nullptr;
     char* footer_begins = comments_end ? strstr (comments_end + 1, "\n\n") : nullptr;
 
     if (comments_end)  *comments_end  = '\0'; else (comments_end  = "  ");
@@ -8200,17 +8221,28 @@ EnumConstant ( SK::D3D9::ShaderTracker           *pShader,
     constant.Elements      = constant_desc.Elements;
 
     if (constant_desc.DefaultValue != nullptr)
-      memcpy (constant.Data, constant_desc.DefaultValue, std::min (static_cast <size_t> (constant_desc.Bytes), sizeof (float) * 4));
+    {
+      memcpy ( constant.Data, constant_desc.DefaultValue,
+                 std::min ( static_cast <size_t> (constant_desc.Bytes), 
+                              sizeof (float) * 4 )
+             );
+    }
+
+    SK::D3D9::ShaderTracker::shader_constant_s
+      struct_constant = { };
 
     for ( UINT j = 0; j < constant_desc.StructMembers; j++ )
     {
       D3DXHANDLE hConstantStruct =
         pConstantTable->GetConstant (hConstant, j);
 
-      SK::D3D9::ShaderTracker::shader_constant_s struct_constant = { };
-
       if (hConstantStruct != nullptr)
-        EnumConstant (pShader, pConstantTable, hConstantStruct, struct_constant, constant.struct_members );
+      {
+        EnumConstant ( pShader, pConstantTable,
+                                hConstantStruct,
+                          struct_constant,
+                                 constant.struct_members );
+      }
     }
 
     list.emplace_back (constant);
@@ -8395,7 +8427,7 @@ SK_D3D9_FormatToDXGI (D3DFORMAT format)
 class SK_D3D9_Screenshot
 {
 public:
-  explicit SK_D3D9_Screenshot (const SK_D3D9_Screenshot& rkMove)
+  explicit SK_D3D9_Screenshot (SK_D3D9_Screenshot&& rkMove)
   {
     pDev                     = rkMove.pDev; 
     pSwapChain               = rkMove.pSwapChain;   
@@ -8408,8 +8440,11 @@ public:
     framebuffer.Height       = rkMove.framebuffer.Height;
     framebuffer.NativeFormat = rkMove.framebuffer.NativeFormat;
 
-    framebuffer.PixelBuffer.Attach (rkMove.framebuffer.PixelBuffer.m_pData);
+    framebuffer.PixelBuffer.Attach (rkMove.framebuffer.PixelBuffer.Detach ());
   }
+
+  SK_D3D9_Screenshot            (const SK_D3D9_Screenshot&) = delete;
+  SK_D3D9_Screenshot &operator= (const SK_D3D9_Screenshot&) = delete;
 
 
   explicit SK_D3D9_Screenshot (const CComQIPtr <IDirect3DDevice9>& pDevice)
@@ -8641,7 +8676,7 @@ struct
   };
 } static enqueued_screenshots { 0, 0, 0 };
 
-static concurrency::concurrent_queue <SK_D3D9_Screenshot> screenshot_queue;
+static concurrency::concurrent_queue <SK_D3D9_Screenshot*> screenshot_queue;
 
 
 bool
@@ -8698,7 +8733,7 @@ SK_D3D9_ProcessScreenshotQueue (int stage = 2)
     if (InterlockedDecrement (&enqueued_screenshots.stages [stage]) >= 0)
     {
       screenshot_queue.push (
-        SK_D3D9_Screenshot (SK_GetCurrentRenderBackend ().device.p)
+        new SK_D3D9_Screenshot (SK_GetCurrentRenderBackend ().device.p)
       );
     }
 
@@ -8725,14 +8760,12 @@ SK_D3D9_ProcessScreenshotQueue (int stage = 2)
         HANDLE hSignal =
           ReadPointerAcquire (&hSignalScreenshot);
 
-        static const SK_D3D9_Screenshot _invalid (nullptr);
-
 
         // Any incomplete captures are pushed onto this queue, and then the pending
         //   queue (once drained) is re-built.
         //
         //  This is faster than iterating a synchronized list in highly multi-threaded engines.
-        static concurrency::concurrent_queue <SK_D3D9_Screenshot> rejected_screenshots;
+        static concurrency::concurrent_queue <SK_D3D9_Screenshot*> rejected_screenshots;
 
 
         while (! ReadAcquire (&__SK_DLL_Ending))
@@ -8741,20 +8774,20 @@ SK_D3D9_ProcessScreenshotQueue (int stage = 2)
 
           while (! screenshot_queue.empty ())
           {
-            SK_D3D9_Screenshot pop_off (_invalid);
+            SK_D3D9_Screenshot* pop_off = nullptr;
 
-            if (screenshot_queue.try_pop (pop_off))
+            if (screenshot_queue.try_pop (pop_off) && pop_off != nullptr)
             {
               UINT     Width, Height, Pitch;
               uint8_t* pData;
 
-              if (pop_off.getData (&Width, &Height, &pData, &Pitch))
+              if (pop_off->getData (&Width, &Height, &pData, &Pitch))
               {
                 //HRESULT hr = E_UNEXPECTED;
 
 
                 wchar_t      wszAbsolutePathToScreenshot [ MAX_PATH * 2 + 1 ] = { };
-                wcsncpy     (wszAbsolutePathToScreenshot, SK_GetConfigPath (), MAX_PATH * 2);
+                wcsncpy_s   (wszAbsolutePathToScreenshot, MAX_PATH, SK_GetConfigPath (), _TRUNCATE);
                 //PathAppendW (wszAbsolutePathToScreenshot, L"SK_SteamScreenshotImport.png");
                 PathAppendW (wszAbsolutePathToScreenshot, L"SK_SteamScreenshotImport.jpg");
 
@@ -8767,7 +8800,7 @@ SK_D3D9_ProcessScreenshotQueue (int stage = 2)
                 //   )
                 //{
                   wchar_t      wszAbsolutePathToThumbnail [ MAX_PATH * 2 + 1 ] = { };
-                  wcsncpy     (wszAbsolutePathToThumbnail, SK_GetConfigPath (), MAX_PATH * 2);
+                  wcsncpy_s   (wszAbsolutePathToThumbnail, MAX_PATH, SK_GetConfigPath (), _TRUNCATE);
                   PathAppendW (wszAbsolutePathToThumbnail, L"SK_SteamThumbnailImport.jpg");
 
                   float aspect = (float)Height /
@@ -8813,7 +8846,7 @@ SK_D3D9_ProcessScreenshotQueue (int stage = 2)
                   using namespace DirectX;
                   
                   DXGI_FORMAT dxgi_format =
-                    SK_D3D9_FormatToDXGI (pop_off.getInternalFormat ());
+                    SK_D3D9_FormatToDXGI (pop_off->getInternalFormat ());
 
                   Image raw_img = { };
                   
@@ -8850,6 +8883,8 @@ SK_D3D9_ProcessScreenshotQueue (int stage = 2)
                   DeleteFileW (wszAbsolutePathToScreenshot);
                   DeleteFileW (wszAbsolutePathToThumbnail);
 
+                  delete pop_off;
+
                   continue;
                 }
               }
@@ -8860,9 +8895,10 @@ SK_D3D9_ProcessScreenshotQueue (int stage = 2)
 
           while (! rejected_screenshots.empty ())
           {
-            SK_D3D9_Screenshot push_back (_invalid);
+            SK_D3D9_Screenshot* push_back = nullptr;
 
-            if (rejected_screenshots.try_pop (push_back))
+            if ( rejected_screenshots.try_pop (push_back) &&
+                                               push_back != nullptr )
             {
               screenshot_queue.push (push_back);
             }

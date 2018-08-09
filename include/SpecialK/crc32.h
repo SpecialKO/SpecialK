@@ -37,13 +37,13 @@ SK_File_GetCRC32C ( const wchar_t* wszFile,
 
 uint32_t
 __cdecl
-crc32       (uint32_t crc, const void *buf, size_t size);
+crc32       (uint32_t crc, _Notnull_ const void *buf, size_t size) ;
 
 // Returns the value of crc if attempting to checksum this memory throws an
 //   access violation exception
 uint32_t
 __cdecl
-safe_crc32c (uint32_t crc, const void *buf, size_t size);
+safe_crc32c (uint32_t crc, _Notnull_ const void *buf, size_t size);
 
 /*
     Computes CRC-32C (Castagnoli) checksum. Uses Intel's CRC32 instruction if it is available.
@@ -55,6 +55,8 @@ crc32c (
     uint32_t    crc,            // Initial CRC value. Typically it's 0.
                                 // You can supply non-trivial initial value here.
                                 // Initial value can be used to chain CRC from multiple buffers.
+
+    _Notnull_
     const void *input,          // Data to be put through the CRC algorithm.
     size_t      length);        // Length of the data in the input buffer.
 
@@ -66,7 +68,7 @@ void __cdecl __crc32_init (void);
 */
 uint32_t
 __cdecl
-crc32c_append_sw (uint32_t crc, const void *input, size_t length);
+crc32c_append_sw (uint32_t crc, const void *input, size_t length) ;
 
 /*
 	Hardware version of CRC-32C (Castagnoli) checksum. Will fail, if CPU does
@@ -74,13 +76,13 @@ crc32c_append_sw (uint32_t crc, const void *input, size_t length);
 */
 uint32_t
 __cdecl
-crc32c_append_hw (uint32_t crc, const void *input, size_t length);
+crc32c_append_hw (uint32_t crc, const void *input, size_t length) ;
 
 /*
 	Checks is hardware version of CRC-32C is available.
 */
 int
 __cdecl
-crc32c_hw_available (void);
+crc32c_hw_available (void) ;
 
 SK_INCLUDE_END (CRC32)

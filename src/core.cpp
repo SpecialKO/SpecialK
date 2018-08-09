@@ -24,6 +24,7 @@
 #include <SpecialK/stdafx.h>
 #include <SpecialK/hooks.h>
 #include <SpecialK/window.h>
+#include <SpecialK/utility.h>
 
 #include <SpecialK/diagnostics/modules.h>
 #include <SpecialK/diagnostics/load_library.h>
@@ -552,9 +553,12 @@ SK_InitCore (std::wstring, void* callback)
       
              FILE* fPackedCompiler =
                _wfopen   (wszArchive, L"wb");
-      
-             fwrite      (locked, 1, res_size, fPackedCompiler);
-             fclose      (fPackedCompiler);
+ 
+             if (fPackedCompiler != nullptr)
+             {
+               fwrite    (locked, 1, res_size, fPackedCompiler);
+               fclose    (fPackedCompiler);
+             }
       
              using SK_7Z_DECOMP_PROGRESS_PFN = int (__stdcall *)(int current, int total);
       
@@ -600,6 +604,116 @@ SK_InitCore (std::wstring, void* callback)
   }
 
   callback_fn (SK_InitFinishCallback);
+}
+
+typedef HRESULT
+(WINAPI *D3DStripShader_pfn) (
+  LPCVOID   pShaderBytecode,
+  SIZE_T    BytecodeLength,
+  UINT      uStripFlags,
+ID3DBlob  **ppStrippedBlob );
+
+D3DStripShader_pfn
+D3DStripShader_40_Original;
+D3DStripShader_pfn
+D3DStripShader_41_Original;
+D3DStripShader_pfn
+D3DStripShader_42_Original;
+D3DStripShader_pfn
+D3DStripShader_43_Original;
+D3DStripShader_pfn
+D3DStripShader_47_Original;
+
+#define __SK_SUBSYSTEM__ L"Shadr Comp"
+
+HRESULT
+WINAPI
+D3DStripShader_40_Detour      (
+  LPCVOID    pShaderBytecode,
+  SIZE_T     BytecodeLength,
+  UINT       uStripFlags,
+  ID3DBlob** ppStrippedBlob   )
+{
+  UNREFERENCED_PARAMETER (pShaderBytecode);
+  UNREFERENCED_PARAMETER (BytecodeLength);
+  UNREFERENCED_PARAMETER (uStripFlags);
+  UNREFERENCED_PARAMETER (ppStrippedBlob);
+
+  SK_LOG_FIRST_CALL
+
+  return S_OK;
+}
+
+HRESULT
+WINAPI
+D3DStripShader_41_Detour      (
+  LPCVOID    pShaderBytecode,
+  SIZE_T     BytecodeLength,
+  UINT       uStripFlags,
+  ID3DBlob** ppStrippedBlob   )
+{
+  UNREFERENCED_PARAMETER (pShaderBytecode);
+  UNREFERENCED_PARAMETER (BytecodeLength);
+  UNREFERENCED_PARAMETER (uStripFlags);
+  UNREFERENCED_PARAMETER (ppStrippedBlob);
+
+  SK_LOG_FIRST_CALL
+
+  return S_OK;
+}
+
+HRESULT
+WINAPI
+D3DStripShader_42_Detour      (
+  LPCVOID    pShaderBytecode,
+  SIZE_T     BytecodeLength,
+  UINT       uStripFlags,
+  ID3DBlob** ppStrippedBlob   )
+{
+  UNREFERENCED_PARAMETER (pShaderBytecode);
+  UNREFERENCED_PARAMETER (BytecodeLength);
+  UNREFERENCED_PARAMETER (uStripFlags);
+  UNREFERENCED_PARAMETER (ppStrippedBlob);
+
+  SK_LOG_FIRST_CALL
+
+  return S_OK;
+}
+
+HRESULT
+WINAPI
+D3DStripShader_43_Detour      (
+  LPCVOID    pShaderBytecode,
+  SIZE_T     BytecodeLength,
+  UINT       uStripFlags,
+  ID3DBlob** ppStrippedBlob   )
+{
+  UNREFERENCED_PARAMETER (pShaderBytecode);
+  UNREFERENCED_PARAMETER (BytecodeLength);
+  UNREFERENCED_PARAMETER (uStripFlags);
+  UNREFERENCED_PARAMETER (ppStrippedBlob);
+
+  SK_LOG_FIRST_CALL
+
+  return S_OK;
+}
+
+HRESULT
+WINAPI
+D3DStripShader_47_Detour     (
+  LPCVOID    pShaderBytecode,
+  SIZE_T     BytecodeLength,
+  UINT       uStripFlags,
+  ID3DBlob** ppStrippedBlob  )
+{
+  UNREFERENCED_PARAMETER (pShaderBytecode);
+  UNREFERENCED_PARAMETER (BytecodeLength);
+  UNREFERENCED_PARAMETER (uStripFlags);
+  UNREFERENCED_PARAMETER (ppStrippedBlob);
+
+  SK_LOG_FIRST_CALL
+
+  return S_OK;
 }
 
 
@@ -653,7 +767,41 @@ WaitForInit (void)
         }
       }
 
-      __HrLoadAllImportsForDll ("D3DCOMPILER_47.dll");
+      struct SK_D3D_AntiStrip {
+        const wchar_t*    wszDll;
+        const    char*    szSymbol;
+               LPVOID    pfnHookFunc;
+                  void** ppfnTrampoline;
+      } static strippers [] =
+      { { L"D3DCOMPILER_47.dll",
+           "D3DStripShader",   D3DStripShader_47_Detour,
+      static_cast_p2p <void> (&D3DStripShader_47_Original) },
+        { L"D3DCOMPILER_43.dll",
+           "D3DStripShader",   D3DStripShader_43_Detour,
+      static_cast_p2p <void> (&D3DStripShader_43_Original) },
+        { L"D3DCOMPILER_42.dll",
+           "D3DStripShader",   D3DStripShader_42_Detour,
+      static_cast_p2p <void> (&D3DStripShader_42_Original) },
+        { L"D3DCOMPILER_41.dll",
+           "D3DStripShader",   D3DStripShader_41_Detour,
+      static_cast_p2p <void> (&D3DStripShader_41_Original) },
+        { L"D3DCOMPILER_40.dll",
+           "D3DStripShader",   D3DStripShader_40_Detour,
+      static_cast_p2p <void> (&D3DStripShader_40_Original) } };
+       
+      if (SUCCEEDED (__HrLoadAllImportsForDll ("D3DCOMPILER_47.dll")))
+      {
+        for ( auto& stripper : strippers )
+        {
+          if (GetModuleHandleW (stripper.wszDll) != nullptr)
+          {
+            SK_CreateDLLHook2 ( stripper.wszDll,
+                                stripper.szSymbol,
+                                stripper.pfnHookFunc,
+                                stripper.ppfnTrampoline );
+          }
+        }
+      }
 
       InterlockedExchange (&dwInitThreadId, 0);
 
@@ -725,8 +873,11 @@ SK_UnpackD3DShaderCompiler (void)
       FILE* fPackedCompiler =
         _wfopen   (wszArchive, L"wb");
 
-      fwrite      (locked, 1, res_size, fPackedCompiler);
-      fclose      (fPackedCompiler);
+      if (fPackedCompiler != nullptr)
+      {
+        fwrite    (locked, 1, res_size, fPackedCompiler);
+        fclose    (fPackedCompiler);
+      }
 
       using SK_7Z_DECOMP_PROGRESS_PFN = int (__stdcall *)(int current, int total);
 
@@ -1189,26 +1340,22 @@ const wchar_t*
 __stdcall
 SK_GetDebugSymbolPath (void)
 {
-  static std::wstring dbg_symbols;
+  static wchar_t wszDbgSymbols [MAX_PATH * 2 + 1] = { };
 
-  if (! dbg_symbols.empty ()) return dbg_symbols.c_str ();
+  if (*wszDbgSymbols != L'\0') return wszDbgSymbols;
 
-  wchar_t path [MAX_PATH * 2] = { };
-
-  lstrcpynW ( path,
+  lstrcpynW ( wszDbgSymbols,
                 std::wstring ( SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\)" ).c_str (),
                   MAX_PATH - 1 );
 
-  dbg_symbols = path;
-
-  return dbg_symbols.c_str ();
+  return wszDbgSymbols;
 }
 
 void
 __stdcall
 SK_EstablishRootPath (void)
 {
-  wchar_t wszConfigPath [MAX_PATH * 2] = { };
+  wchar_t wszConfigPath [MAX_PATH * 2 + 1] = { };
   GetCurrentDirectory   (MAX_PATH, wszConfigPath);
 
   // File permissions don't permit us to store logs in the game's directory,
@@ -1217,7 +1364,7 @@ SK_EstablishRootPath (void)
     config.system.central_repository = true;
   }
 
-  ZeroMemory (wszConfigPath, sizeof (wchar_t) * MAX_PATH * 2);
+  ZeroMemory (wszConfigPath, sizeof (wchar_t) * (MAX_PATH * 2 + 1));
 
   // Store config profiles in a centralized location rather than relative to the game's executable
   //
@@ -1414,38 +1561,38 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   SK_EstablishRootPath ();
   SK_CreateDirectories (SK_GetConfigPath ());
 
-  if (config.system.central_repository)
-  {
-    // Create Symlink for end-user's convenience
-    if ( GetFileAttributes ( ( std::wstring (SK_GetHostPath ()) +
-                               std::wstring (LR"(\SpecialK\)")
-                             ).c_str ()
-                           ) == INVALID_FILE_ATTRIBUTES )
-    {
-      std::wstring link (SK_GetHostPath ());
-                   link += LR"(\SpecialK\)";
-
-      CreateSymbolicLink (
-        link.c_str         (),
-          SK_GetConfigPath (),
-            SYMBOLIC_LINK_FLAG_DIRECTORY
-      );
-    }
-
-    if ( GetFileAttributes ( ( std::wstring (SK_GetConfigPath ()) +
-                               std::wstring (L"Game\\") ).c_str ()
-                           ) == INVALID_FILE_ATTRIBUTES )
-    {
-      std::wstring link (SK_GetConfigPath ());
-                   link += L"Game\\";
-
-      CreateSymbolicLink (
-        link.c_str         (),
-          SK_GetHostPath   (),
-            SYMBOLIC_LINK_FLAG_DIRECTORY
-      );
-    }
-  }
+  ///if (config.system.central_repository)
+  ///{
+  ///  // Create Symlink for end-user's convenience
+  ///  if ( GetFileAttributes ( ( std::wstring (SK_GetHostPath ()) +
+  ///                             std::wstring (LR"(\SpecialK\)")
+  ///                           ).c_str ()
+  ///                         ) == INVALID_FILE_ATTRIBUTES )
+  ///  {
+  ///    std::wstring link (SK_GetHostPath ());
+  ///                 link += LR"(\SpecialK\)";
+  ///
+  ///    CreateSymbolicLink (
+  ///      link.c_str         (),
+  ///        SK_GetConfigPath (),
+  ///          SYMBOLIC_LINK_FLAG_DIRECTORY
+  ///    );
+  ///  }
+  ///
+  ///  ///if ( GetFileAttributes ( ( std::wstring (SK_GetConfigPath ()) +
+  ///  ///                           std::wstring (L"Game\\") ).c_str ()
+  ///  ///                       ) == INVALID_FILE_ATTRIBUTES )
+  ///  ///{
+  ///  ///  std::wstring link (SK_GetConfigPath ());
+  ///  ///               link += L"Game\\";
+  ///  ///
+  ///  ///  CreateSymbolicLink (
+  ///  ///    link.c_str         (),
+  ///  ///      SK_GetHostPath   (),
+  ///  ///        SYMBOLIC_LINK_FLAG_DIRECTORY
+  ///  ///  );
+  ///  ///}
+  ///}
 
   extern bool __SK_RunDLL_Bypass;
 
@@ -1696,10 +1843,10 @@ BACKEND_INIT:
 #endif
 
 
-  wchar_t wszBackendDLL [MAX_PATH + 2] = { };
-  wchar_t wszWorkDir    [MAX_PATH + 2] = { };
+  wchar_t wszBackendDLL [MAX_PATH * 2 + 1] = { };
+  wchar_t wszWorkDir    [MAX_PATH * 2 + 1] = { };
 
-  wcsncpy (wszBackendDLL, SK_GetSystemDirectory (), MAX_PATH);
+  wcsncpy_s (wszBackendDLL, MAX_PATH, SK_GetSystemDirectory (), _TRUNCATE );
 
   GetCurrentDirectoryW (MAX_PATH, wszWorkDir);
        SK_StripUserNameFromPathW (wszWorkDir);
@@ -1738,7 +1885,8 @@ BACKEND_INIT:
     dll_log.LogEx (true, L" Loading default %s.dll: ", backend);
 
   // Pre-Load the original DLL into memory
-  if (dll_name != wszBackendDLL) {
+  if (dll_name != wszBackendDLL)
+  {
                   SK_Modules.LoadLibraryLL (wszBackendDLL);
     backend_dll = SK_Modules.LoadLibraryLL (dll_name);
   }
@@ -1941,7 +2089,7 @@ SK_ShutdownCore (const wchar_t* backend)
   }
 
   SK_AutoClose_Log (game_debug);
-  SK_AutoClose_Log (   dll_log);
+  SK_AutoClose_Log (dll_log);
 
   SK_Console::getInstance ()->End ();
 
@@ -2258,9 +2406,12 @@ return;
         GetProcAddress ( GetModuleHandle (L"kernel32"),
                            "SetDefaultDllDirectories" );
 
-    CHeapPtr <char> locale_orig (
-      _strdup (setlocale (LC_ALL, NULL)));
-               setlocale (LC_ALL, "C");
+    char* szLocale =
+      setlocale (LC_ALL, NULL);
+
+    CHeapPtr <char> locale_orig ( szLocale == nullptr ? szLocale :
+      _strdup (szLocale) );
+    if        (szLocale) setlocale (LC_ALL, "C");
 
     if ( k32_AddDllDirectory          && k32_RemoveDllDirectory &&
          k32_SetDefaultDllDirectories &&
@@ -2368,7 +2519,8 @@ return;
       }
     }
 
-    setlocale (LC_ALL, locale_orig);
+    if (locale_orig != nullptr)
+      setlocale (LC_ALL, locale_orig);
 
 
     // If we got this far and CEGUI's not enabled, it's because something went horribly wrong.
@@ -2399,27 +2551,34 @@ SK_BeginBufferSwap (void)
 {
   static SK_RenderAPI LastKnownAPI = SK_RenderAPI::Reserved;
 
-  assert ( SK_BufferFlinger.dwTid == 0 ||
-           SK_BufferFlinger.dwTid == GetCurrentThreadId () );
+  ///assert ( SK_BufferFlinger.dwTid == 0 ||
+  ///         SK_BufferFlinger.dwTid == GetCurrentThreadId () );
 
-  if ( SK_BufferFlinger.dwTid     == 0      &&
-       config.render.framerate.enable_mmcss &&
-       SK_BufferFlinger.dwTaskIdx == 0 )
+  ///if ( SK_BufferFlinger.dwTid     == 0      &&
+  ///     config.render.framerate.enable_mmcss &&
+  ///     SK_BufferFlinger.dwTaskIdx == 0 )
+  ///{
+  ///  SK_BufferFlinger.dwTid = GetCurrentThreadId ();
+  ///  SK_BufferFlinger.hTask = 
+  ///    AvSetMmMaxThreadCharacteristics ( L"Games",
+  ///                                      L"Window Manager",
+  ///                                        &SK_BufferFlinger.dwTaskIdx );
+  ///}
+  ///
+  ///if ( SK_BufferFlinger.hTask != INVALID_HANDLE_VALUE &&
+  ///     SK_BufferFlinger.dwTid == GetCurrentThreadId   () )
+  ///{
+  ///  AvSetMmThreadPriority ( SK_BufferFlinger.hTask,
+  ///                            AVRT_PRIORITY_HIGH );
+  ///}
+
+
+
+  if (SK_GetCurrentGameID () == SK_GAME_ID::Yakuza0)
   {
-    SK_BufferFlinger.dwTid = GetCurrentThreadId ();
-    SK_BufferFlinger.hTask = 
-      AvSetMmMaxThreadCharacteristics ( L"Games",
-                                        L"Window Manager",
-                                          &SK_BufferFlinger.dwTaskIdx );
+    extern void SK_Yakuza0_BeginFrame (void);
+                SK_Yakuza0_BeginFrame ();
   }
-
-  if ( SK_BufferFlinger.hTask != INVALID_HANDLE_VALUE &&
-       SK_BufferFlinger.dwTid == GetCurrentThreadId   () )
-  {
-    AvSetMmThreadPriority ( SK_BufferFlinger.hTask,
-                              AVRT_PRIORITY_HIGH );
-  }
-
 
 
   ImGuiIO& io =
@@ -2817,12 +2976,12 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
   }
 
 
-  if ( SK_BufferFlinger.hTask != INVALID_HANDLE_VALUE &&
-       SK_BufferFlinger.dwTid == GetCurrentThreadId () )
-  {
-    AvRevertMmThreadCharacteristics ( SK_BufferFlinger.hTask );
-                                      SK_BufferFlinger.dwTid = 0;
-  }
+  ///if ( SK_BufferFlinger.hTask != INVALID_HANDLE_VALUE &&
+  ///     SK_BufferFlinger.dwTid == GetCurrentThreadId () )
+  ///{
+  ///  AvRevertMmThreadCharacteristics ( SK_BufferFlinger.hTask );
+  ///                                    SK_BufferFlinger.dwTid = 0;
+  ///}
 
 
 

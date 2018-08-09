@@ -138,13 +138,11 @@ using finish_pfn = void (WINAPI *)(void);
 HMODULE
 SK_LoadRealGL (void)
 {
-  wchar_t wszBackendDLL [MAX_PATH + 2] = { };
+  wchar_t    wszBackendDLL [MAX_PATH * 2 + 1] = { };
+  wcsncpy_s (wszBackendDLL, MAX_PATH, SK_GetSystemDirectory (), _TRUNCATE);
+  lstrcatW  (wszBackendDLL, L"\\");
 
-
-  wcsncpy  (wszBackendDLL, SK_GetSystemDirectory (), MAX_PATH);
-  lstrcatW (wszBackendDLL, L"\\");
-
-  lstrcatW (wszBackendDLL, L"OpenGL32.dll");
+  lstrcatW  (wszBackendDLL, L"OpenGL32.dll");
 
 
   if (local_gl == nullptr)
@@ -1240,9 +1238,19 @@ void ResetCEGUI_GL (void)
 
       SK_GL_GhettoStateBlock_Capture ();
 
-      const char *locale_orig =
-        _strdup (setlocale (LC_ALL, NULL));
-                 setlocale (LC_ALL, "C");
+      int thread_locale =
+        _configthreadlocale (0);
+        _configthreadlocale (_ENABLE_PER_THREAD_LOCALE);
+
+      char* szLocale =
+        setlocale (LC_ALL, NULL);
+
+      std::string locale_orig (
+        szLocale != nullptr ? szLocale : ""
+      );
+
+      if (! locale_orig.empty ())
+        setlocale (LC_ALL, "C");
 
       try {
         CEGUI::OpenGL3Renderer* cegGL_new = nullptr;
@@ -1274,7 +1282,9 @@ void ResetCEGUI_GL (void)
 
       if (cegGL != nullptr)
       {
-        setlocale (LC_ALL, "C");
+        if (! locale_orig.empty ())
+          setlocale (LC_ALL, "C");
+
         cegGL->enableExtraStateSettings (true);
 
         // Backup GL state
@@ -1287,6 +1297,9 @@ void ResetCEGUI_GL (void)
                   if (ceGL_VAO == 0 || (! glIsVertexArray (ceGL_VAO))) glGenVertexArrays (1, &ceGL_VAO);
 
         glBindVertexArray (ceGL_VAO);
+
+        if (! locale_orig.empty ())if (! locale_orig.empty ())
+          setlocale (LC_ALL, "C");
 
         SK_CEGUI_RelocateLog ();
         SK_CEGUI_InitBase    ();
@@ -1301,8 +1314,10 @@ void ResetCEGUI_GL (void)
         glBindBuffer      (GL_ELEMENT_ARRAY_BUFFER, last_element_array_buffer);
       }
 
-      setlocale (LC_ALL, locale_orig);
-      free      ((void *)locale_orig);
+      if (! locale_orig.empty ())
+        setlocale (LC_ALL, locale_orig.c_str ());
+
+      _configthreadlocale (thread_locale);
 
       glPopAttrib ();
     }
@@ -2476,7 +2491,7 @@ SK_HookGL (void)
     cs_gl_ctx = new SK_Thread_HybridSpinlock (64);
 
     if ( StrStrIW ( static_cast <const std::wstring &> (
-                      skModuleRegistry::Self
+                      skModuleRegistry::Self ()
                     ).c_str (), wszBackendDLL ) )
     {
       SK_Modules.LoadLibrary (L"gdi32.dll");
@@ -2500,7 +2515,7 @@ SK_HookGL (void)
     dll_log.Log (L"[ OpenGL32 ] ================================");
 
     if ( StrStrIW ( static_cast <const std::wstring &> (
-                      skModuleRegistry::Self
+                      skModuleRegistry::Self ()
                     ).c_str (), wszBackendDLL ) )
     {
       // Load user-defined DLLs (Plug-In)
@@ -2955,7 +2970,7 @@ wglShareLists (HGLRC ctx0, HGLRC ctx1)
   BOOL ret =
     wgl_share_lists (ctx0, ctx1);
 
-  if (ret == TRUE)
+  if (ret != FALSE)
   {
     if (__gl_primary_context == nullptr)
       __gl_primary_context = ctx0;

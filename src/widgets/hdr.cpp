@@ -44,11 +44,11 @@ public:
     setAutoFit (true).setDockingPoint (DockAnchor::NorthEast).setClickThrough (false);
   };
 
-  virtual void run (void) override
+  void run (void) override
   {
   }
 
-  virtual void draw (void) override
+  void draw (void) override
   {
     if (! ImGui::GetFont ()) return;
 

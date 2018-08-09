@@ -54,7 +54,7 @@ GetLogicalProcessorInformation_Detour (
       GetLogicalProcessorInformation_Original ( Buffer, ReturnedLength );
   }
 
-  BOOL bRet = 
+  const BOOL bRet = 
     GetLogicalProcessorInformation_Original ( Buffer, ReturnedLength );
 
   if (bRet)

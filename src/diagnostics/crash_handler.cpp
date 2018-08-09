@@ -29,6 +29,8 @@
 #include <SpecialK/thread.h>
 #include <SpecialK/tls.h>
 
+#include <SpecialK/diagnostics/debug_utils.h>
+
 #include <Windows.h>
 #include <intsafe.h>
 #include <Shlwapi.h>
@@ -743,7 +745,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
                              &ctx,
                                nullptr, nullptr,
                                  nullptr, nullptr );
-  } while (ret == TRUE);
+  } while (ret != FALSE);
 
   crash_log.Log (L"-----------------------------------------------------------");
   fflush (crash_log.fLog);
@@ -963,9 +965,6 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
   }
 }
 
-#include <concurrent_unordered_set.h>
-extern concurrency::concurrent_unordered_set <HMODULE> dbghelp_callers;
-
 ULONG
 SK_GetSymbolNameFromModuleAddr ( HMODULE hMod,   uintptr_t addr,
                                  char*   pszOut, ULONG     ulLen )
@@ -1040,7 +1039,7 @@ SK_GetSymbolNameFromModuleAddr ( HMODULE hMod,   uintptr_t addr,
 
 void
 WINAPI
-SK_SymRefreshModuleList ( HANDLE hProc = SK_GetCurrentProcess () )
+SK_SymRefreshModuleList ( HANDLE hProc )
 {
   std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 

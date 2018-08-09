@@ -2790,10 +2790,19 @@ static void NavUpdate()
     if (g.NavMoveRequest && g.NavMoveFromClampedRefRect && g.NavLayer == 0)
     {
         // When we have manually scrolled and NavId is out of bounds, we clamp its bounding box (used for search) to the visible area to restart navigation within visible items
-        ImRect window_rect_rel(g.NavWindow->InnerRect.Min - g.NavWindow->Pos - ImVec2(1,1), g.NavWindow->InnerRect.Max - g.NavWindow->Pos + ImVec2(1,1));
+        ImRect window_rect_rel;
+        
+        // XXX FIXED (Kaldaien) for neglecting to test g.NavWindow
+        if (g.NavWindow != nullptr)
+          window_rect_rel = ImRect ( g.NavWindow->InnerRect.Min - g.NavWindow->Pos - ImVec2 (1, 1),
+                                     g.NavWindow->InnerRect.Max - g.NavWindow->Pos + ImVec2 (1, 1) );
+        else
+          window_rect_rel = ImRect ( ImVec2 (-1, -1),
+                                     ImVec2 ( 1,  1) );
+
         if (!window_rect_rel.Contains(g.NavRefRectRel))
         {
-            float pad = g.NavWindow->CalcFontSize() * 0.5f;
+            float pad = g.NavWindow != nullptr ? g.NavWindow->CalcFontSize() * 0.5f : 0.0f;
             window_rect_rel.Expand(ImVec2(-ImMin(window_rect_rel.GetWidth(), pad), -ImMin(window_rect_rel.GetHeight(), pad))); // Terrible approximation for the intend of starting navigation from first fully visible item
             window_rect_rel.Clip(g.NavRefRectRel);
             g.NavId = 0;
@@ -4918,13 +4927,19 @@ bool ImGui::Begin(const char* name, bool* p_open, const ImVec2& size_on_first_us
         // Position child window
         if (flags & ImGuiWindowFlags_ChildWindow)
         {
-            window->IndexWithinParent = parent_window->DC.ChildWindows.Size;
-            parent_window->DC.ChildWindows.push_back(window);
+            if (parent_window != nullptr)
+            {
+                window->IndexWithinParent = parent_window->DC.ChildWindows.Size;
+                parent_window->DC.ChildWindows.push_back(window);
+            }
         }
         if ((flags & ImGuiWindowFlags_ChildWindow) && !(flags & ImGuiWindowFlags_Popup))
         {
-            window->Pos = window->PosFloat = parent_window->DC.CursorPos;
-            window->Size = window->SizeFull = size_on_first_use; // NB: argument name 'size_on_first_use' misleading here, it's really just 'size' as provided by user passed via BeginChild()->Begin().
+            if (parent_window != nullptr)
+            {
+                window->Pos = window->PosFloat = parent_window->DC.CursorPos;
+                window->Size = window->SizeFull = size_on_first_use; // NB: argument name 'size_on_first_use' misleading here, it's really just 'size' as provided by user passed via BeginChild()->Begin().
+            }
         }
 
         bool window_pos_center = false;

@@ -76,17 +76,19 @@ public:
                      pRealClient (pSteamClient) {
   };
 
-  virtual HSteamPipe CreateSteamPipe     (void)                                               override { return pRealClient->CreateSteamPipe     (          );                } // 0
-  virtual bool       BReleaseSteamPipe   (HSteamPipe   hSteamPipe)                            override { return pRealClient->BReleaseSteamPipe   (hSteamPipe);                } // 1
-  virtual HSteamUser ConnectToGlobalUser (HSteamPipe   hSteamPipe)                            override { return pRealClient->ConnectToGlobalUser (hSteamPipe);                } // 2
-  virtual HSteamUser CreateLocalUser     (HSteamPipe *phSteamPipe, EAccountType eAccountType) override { return pRealClient->CreateLocalUser     (phSteamPipe, eAccountType); } // 3
-  virtual void       ReleaseUser         (HSteamPipe   hSteamPipe, HSteamUser hUser)          override { return pRealClient->ReleaseUser         (hSteamPipe,  hUser);        } // 4
+  virtual ~IWrapSteamClient (void) { };
+
+  HSteamPipe CreateSteamPipe     (void)                                               override { return pRealClient->CreateSteamPipe     (          );                } // 0
+  bool       BReleaseSteamPipe   (HSteamPipe   hSteamPipe)                            override { return pRealClient->BReleaseSteamPipe   (hSteamPipe);                } // 1
+  HSteamUser ConnectToGlobalUser (HSteamPipe   hSteamPipe)                            override { return pRealClient->ConnectToGlobalUser (hSteamPipe);                } // 2
+  HSteamUser CreateLocalUser     (HSteamPipe *phSteamPipe, EAccountType eAccountType) override { return pRealClient->CreateLocalUser     (phSteamPipe, eAccountType); } // 3
+  void       ReleaseUser         (HSteamPipe   hSteamPipe, HSteamUser hUser)          override { return pRealClient->ReleaseUser         (hSteamPipe,  hUser);        } // 4
 
 
 
-  virtual ISteamUser *GetISteamUser      (       HSteamUser  hSteamUser,
-                                                 HSteamPipe  hSteamPipe,
-                                           const char       *pchVersion ) override
+  ISteamUser *GetISteamUser      (       HSteamUser  hSteamUser,
+                                         HSteamPipe  hSteamPipe,
+                                   const char       *pchVersion ) override
   {
 #ifdef WRAP_USER
     return SK_SteamWrapper_WrappedClient_GetISteamUser ( pRealClient,

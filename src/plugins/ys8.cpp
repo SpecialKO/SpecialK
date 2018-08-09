@@ -117,7 +117,7 @@ struct ys8_cfg_s
     sk::ParameterBool* manage_clean_memory    = nullptr;
     sk::ParameterBool* aggressive_memory_mgmt = nullptr;
   } performance;
-} ys8_config;
+} ys8_config = { };
 
 
 #include <concurrent_vector.h>
@@ -242,20 +242,6 @@ Concurrency::concurrent_unordered_map <
   uint32_t, std::pair <FILETIME, ULONG>
 > cache_usage;
 
-void
-SK_Cache_Trim (void)
-{
-}
-
-void
-SK_Cache_StoreMetadata (void)
-{
-}
-
-void
-SK_Cache_LoadMetadata (void)
-{
-}
 
 std::set <uint32_t>
 SK_Cache_VisitMetadata (void *pAlgo)
@@ -273,7 +259,10 @@ SK_YS8_RecursiveFileExport (
                                           const wchar_t *  wszSubDir,
                              std::vector <const wchar_t *> patterns )
 {
-  auto _TryPatterns = [&](const wchar_t* wszFile) ->
+ const
+  auto
+  _TryPatterns =
+  [&](const wchar_t* wszFile) ->
   bool
   {
     for (auto pattern : patterns)
@@ -313,8 +302,9 @@ SK_YS8_RecursiveFileExport (
                             wszRoot, wszSubDir,
                               fd.cFileName );
 
-      size_t size = (size_t)
-        SK_File_GetSize (in_file.c_str ());
+      const size_t size = static_cast <size_t> (
+        SK_File_GetSize (in_file.c_str ())
+      );
 
       FILE*    fIN  =
         _wfopen         (in_file.c_str (), L"rb+");
@@ -364,7 +354,10 @@ SK_YS8_RecursiveFileImport (
 {
   std::pair <INT, uint64_t> work_done { 0, 0ULL };
 
-  auto _TryPatterns = [&](const wchar_t* wszFile) ->
+const
+ auto
+  _TryPatterns =
+  [&](const wchar_t* wszFile) ->
   bool
   {
     for (auto pattern : patterns)
@@ -409,8 +402,9 @@ SK_YS8_RecursiveFileImport (
                             wszRoot, wszSubDir,
                               fd.cFileName );
 
-      size_t size = (size_t)
-        SK_File_GetSize (in_file.c_str ());
+      const size_t size = static_cast <size_t> (
+        SK_File_GetSize (in_file.c_str ())
+      );
 
       if (size > 0)
       {
@@ -454,7 +448,7 @@ SK_YS8_RecursiveFileImport (
       wchar_t   wszDescend [MAX_PATH * 2] = { };
       swprintf (wszDescend, LR"(%s\%s)", wszSubDir, fd.cFileName);
     
-      auto recursive_work =
+      const auto recursive_work =
         SK_YS8_RecursiveFileImport (wszRoot, wszDescend, patterns, backup);
 
       work_done.first  += recursive_work.first;
@@ -552,9 +546,11 @@ SK_YS8_ControlPanel (void)
   //extern LONG SK_D3D11_Resampler_GetRetiredCount    (void);
     extern LONG SK_D3D11_Resampler_GetErrorCount      (void);
 
-    bool tex_manage = ImGui::CollapsingHeader ("Texture Management##Ys8", ImGuiTreeNodeFlags_DefaultOpen);
+    const bool tex_manage =
+      ImGui::CollapsingHeader ("Texture Management##Ys8", ImGuiTreeNodeFlags_DefaultOpen);
 
-    LONG jobs = SK_D3D11_Resampler_GetActiveJobCount () + SK_D3D11_Resampler_GetWaitingJobCount ();
+    const LONG jobs =
+      SK_D3D11_Resampler_GetActiveJobCount () + SK_D3D11_Resampler_GetWaitingJobCount ();
 
     static DWORD dwLastActive = 0;
 
@@ -564,9 +560,27 @@ SK_YS8_ControlPanel (void)
         dwLastActive = timeGetTime ();
 
       if (jobs > 0)
-        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * (SK_D3D11_Resampler_GetActiveJobCount ()) / (float)jobs), 0.15f, 1.0f));
+      {
+        ImGui::PushStyleColor ( ImGuiCol_Text,
+                                  ImColor::HSV ( 0.4f - ( 0.4f * (
+                                                 SK_D3D11_Resampler_GetActiveJobCount ()
+                                                                 ) / 
+                                               static_cast <float> (jobs)
+                                                        ), 0.15f,
+                                                             1.0f
+                                               )
+                              );
+      }
       else
-        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * (timeGetTime () - dwLastActive) / 500.0f), 1.0f, 0.8f));
+      {
+        ImGui::PushStyleColor ( ImGuiCol_Text,
+                                  ImColor::HSV ( 0.4f - ( 0.4f * (timeGetTime () - dwLastActive) /
+                                                          500.0f ),
+                                                   1.0f,
+                                                     0.8f
+                                               )
+                              );
+      }
 
       ImGui::SameLine       ();
       if (SK_D3D11_Resampler_GetErrorCount ())
@@ -717,11 +731,12 @@ SK_YS8_ControlPanel (void)
 
         if (SK_D3D11_MipmapCacheSize > 0)
         {
-          ImGui::ProgressBar ( (float)((long double)ulBytesAvailable.QuadPart /
-                                       (long double)ulBytesTotal.QuadPart),   ImVec2 (-1, 0),
-                     SK_WideCharToUTF8 (
-                       SK_File_SizeToStringF (ulBytesAvailable.QuadPart, 2, 3) + L" Remaining Storage Capacity"
-                     ).c_str ()
+          ImGui::ProgressBar ( static_cast <float> (static_cast <long double> (ulBytesAvailable.QuadPart) /
+                                                    static_cast <long double> (ulBytesTotal.QuadPart)       ),  
+                                 ImVec2 (-1, 0),
+              SK_WideCharToUTF8 (
+                SK_File_SizeToStringF (ulBytesAvailable.QuadPart, 2, 3) + L" Remaining Storage Capacity"
+              ).c_str ()
           );
         }
       }
@@ -854,7 +869,8 @@ SK_YS8_ControlPanel (void)
 
       if (ManageCleanMemory)
       {
-        LONG64 llTotalBytes = ReadAcquire64 (&llBytesSkipped) + ReadAcquire64 (&llBytesCopied);
+        const LONG64 llTotalBytes =
+          ReadAcquire64 (&llBytesSkipped) + ReadAcquire64 (&llBytesCopied);
 
         ImGui::PushStyleColor (ImGuiCol_PlotHistogram,  ImColor::HSV ((float)std::min ((long double)1.0, (long double)ReadAcquire64 (&llBytesSkipped) / (long double)(llTotalBytes)) * 0.278f, 0.88f, 0.333f));
         ImGui::ProgressBar ( (long double)ReadAcquire64 (&llBytesSkipped) /
@@ -953,7 +969,8 @@ SK_YS8_ControlPanel (void)
     }
 
 
-    bool manage_files = ImGui::CollapsingHeader ("File Management");
+    const bool manage_files =
+      ImGui::CollapsingHeader ("File Management");
 
     if (ImGui::IsItemHovered ())
     {
@@ -980,7 +997,9 @@ SK_YS8_ControlPanel (void)
     }
 
 
-    auto _LinkToExportedDataFolder =
+const
+ auto
+  _LinkToExportedDataFolder =
    [&](const wchar_t *wszDir) -> bool
     {
       std::string eval_dir_utf8 (
@@ -1031,7 +1050,9 @@ SK_YS8_ControlPanel (void)
 
     static std::map <std::wstring, int> has_exports;
 
-    auto _SK_YS8_ImportExportUI =
+const
+  auto
+    _SK_YS8_ImportExportUI =
     [&] ( const wchar_t* export_dir, const char* szExportButton,
                                      const char* szImportButton,
           const wchar_t* wszSubdir,
@@ -1059,7 +1080,7 @@ SK_YS8_ControlPanel (void)
 
       if (ImGui::Button (szImportButton))
       {
-        auto work =
+        const auto work =
           SK_YS8_RecursiveFileImport (wszWorkDir, wszSubdir, extensions, backup);
 
         SK_ImGui_Warning (
@@ -1210,8 +1231,8 @@ SK_YS8_ControlPanel (void)
 
 
 
-__forceinline      uint32_t
-SK_NextPowerOfTwo (uint32_t n)
+constexpr          uint32_t
+SK_NextPowerOfTwo (uint32_t n) 
 {
    n--;    n |= n >> 1;
            n |= n >> 2;   n |= n >> 4;
@@ -1293,8 +1314,7 @@ SK_YS8_CreateFileA (
   _In_opt_ LPSECURITY_ATTRIBUTES lpSecurityAttributes,
   _In_     DWORD                 dwCreationDisposition,
   _In_     DWORD                 dwFlagsAndAttributes,
-  _In_opt_ HANDLE                hTemplateFile
-)
+  _In_opt_ HANDLE                hTemplateFile ) 
 {
   dwFlagsAndAttributes &= ~FILE_FLAG_RANDOM_ACCESS;
   dwFlagsAndAttributes |=  FILE_FLAG_SEQUENTIAL_SCAN;
@@ -1309,14 +1329,13 @@ SK_YS8_CreateFileA (
 HANDLE
 WINAPI
 SK_YS8_CreateFileW (
-  _In_     LPWSTR                lpFileName,
+  _In_     LPCWSTR               lpFileName,
   _In_     DWORD                 dwDesiredAccess,
   _In_     DWORD                 dwShareMode,
   _In_opt_ LPSECURITY_ATTRIBUTES lpSecurityAttributes,
   _In_     DWORD                 dwCreationDisposition,
   _In_     DWORD                 dwFlagsAndAttributes,
-  _In_opt_ HANDLE                hTemplateFile
-)
+  _In_opt_ HANDLE                hTemplateFile ) 
 {
   dwFlagsAndAttributes &= ~FILE_FLAG_RANDOM_ACCESS;
   dwFlagsAndAttributes |=  FILE_FLAG_SEQUENTIAL_SCAN;
@@ -1344,7 +1363,7 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
   if (pMappedResource == nullptr)
     pMappedResource = &local_map;
 
-  HRESULT hr =
+  const HRESULT hr =
     _D3D11_Map_Original ( This, pResource, Subresource,
                             MapType, MapFlags, pMappedResource );
 
@@ -1407,7 +1426,7 @@ SK_YS8_CopyResource (
       
       pTex2D->GetDesc (&desc);
 
-      LONG64 llSize =
+      const LONG64 llSize =
         SK_D3D11_BytesPerPixel (desc.Format) * desc.Width * desc.Height;
 
       if (desc.Width == 256 && desc.Height == 128)
@@ -1502,7 +1521,7 @@ WINAPI
 SK_YS8_CreateSamplerState (
   _In_            ID3D11Device        *This,
   _In_      const D3D11_SAMPLER_DESC  *pSamplerDesc,
-  _Out_opt_       ID3D11SamplerState **ppSamplerState )
+  _Out_opt_       ID3D11SamplerState **ppSamplerState ) 
 {
   extern D3D11Dev_CreateSamplerState_pfn D3D11Dev_CreateSamplerState_Original;
 
@@ -1556,7 +1575,7 @@ SK_YS8_CreateShaderResourceView (
   _In_           ID3D11Device                     *This,
   _In_           ID3D11Resource                   *pResource,
   _In_opt_ const D3D11_SHADER_RESOURCE_VIEW_DESC  *pDesc,
-  _Out_opt_      ID3D11ShaderResourceView        **ppSRView )
+  _Out_opt_      ID3D11ShaderResourceView        **ppSRView ) 
 {
   return
     _D3D11Dev_CreateShaderResourceView_Original ( This, pResource, pDesc, ppSRView );
@@ -1581,12 +1600,12 @@ SK_YS8_CreateTexture2D (
 
   D3D11_TEXTURE2D_DESC newDesc (*pDesc);
 
-  bool depth_format =
+  const bool depth_format =
     pDesc->Format == DXGI_FORMAT_R24G8_TYPELESS    ||
     pDesc->Format == DXGI_FORMAT_R32G8X24_TYPELESS ||
     pDesc->Format == DXGI_FORMAT_B8G8R8X8_UNORM    || (pDesc->BindFlags & D3D11_BIND_DEPTH_STENCIL);
 
-  bool composite_format = (
+  const bool composite_format = (
     pDesc->Format == DXGI_FORMAT_B8G8R8A8_UNORM
   );
 
@@ -1645,7 +1664,7 @@ SK_YS8_CreateTexture2D (
   SK_ScopedBool auto_bool (&pTLS->texture_management.injection_thread);
   if (shadow_tex)           pTLS->texture_management.injection_thread = true;
 
-  HRESULT hr =
+  const HRESULT hr =
     _D3D11Dev_CreateTexture2D_Original ( This,
                                   pDesc, pInitialData,
                                          ppTexture2D );

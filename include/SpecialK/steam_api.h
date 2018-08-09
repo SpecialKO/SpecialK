@@ -173,7 +173,7 @@ struct SK_SteamAchievement
     int current;
     int max;
   
-    __forceinline float getPercent (void)
+    __forceinline float getPercent (void) 
     {
       return 100.0f * (float)current / (float)max;
     }
@@ -240,12 +240,12 @@ public:
 
 
 protected:
-  concurrency::concurrent_unordered_map <ScreenshotHandle, EResult> screenshots_handled;
-
-  HANDLE hSigReady [_StatusTypes] = { INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE };
-
-
-  screenshot_repository_s external_screenshots;
+  concurrency::concurrent_unordered_map <ScreenshotHandle, EResult>
+                          screenshots_handled;
+  screenshot_repository_s external_screenshots     = { };
+  HANDLE                  hSigReady [_StatusTypes] = {
+    INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE
+  };
 
 private:
 } extern *screenshot_manager;
@@ -422,21 +422,21 @@ public:
 
   void Shutdown (void);
 
-  ISteamUser*          User                 (void) { return user_;               }
-  int                  UserVersion          (void) { return user_ver_;           }
-  ISteamUser004_Light* UserEx               (void) { return user_ex_;            }
-  ISteamUserStats*     UserStats            (void) { return user_stats_;         }
-  ISteamApps*          Apps                 (void) { return apps_;               }
-  ISteamFriends*       Friends              (void) { return friends_;            }
-  ISteamUtils*         Utils                (void) { return utils_;              }
-  int                  UtilsVersion         (void) { return utils_ver_;          }
-  ISteamScreenshots*   Screenshots          (void) { return screenshots_;        }
-  ISteamController*    Controller           (void) { return controller_;         }
-  ISteamMusic*         Music                (void) { return music_;              }
-  ISteamRemoteStorage* RemoteStorage        (void) { return remote_storage_;     }
-  int                  RemoteStorageVersion (void) { return remote_storage_ver_; }
-  ISteamUGC*           UGC                  (void) { return ugc_;                }
-  int                  UGCVersion           (void) { return ugc_ver_;            }
+  ISteamUser*          User                 (void)  { return user_;               }
+  int                  UserVersion          (void)  { return user_ver_;           }
+  ISteamUser004_Light* UserEx               (void)  { return user_ex_;            }
+  ISteamUserStats*     UserStats            (void)  { return user_stats_;         }
+  ISteamApps*          Apps                 (void)  { return apps_;               }
+  ISteamFriends*       Friends              (void)  { return friends_;            }
+  ISteamUtils*         Utils                (void)  { return utils_;              }
+  int                  UtilsVersion         (void)  { return utils_ver_;          }
+  ISteamScreenshots*   Screenshots          (void)  { return screenshots_;        }
+  ISteamController*    Controller           (void)  { return controller_;         }
+  ISteamMusic*         Music                (void)  { return music_;              }
+  ISteamRemoteStorage* RemoteStorage        (void)  { return remote_storage_;     }
+  int                  RemoteStorageVersion (void)  { return remote_storage_ver_; }
+  ISteamUGC*           UGC                  (void)  { return ugc_;                }
+  int                  UGCVersion           (void)  { return ugc_ver_;            }
 
   SK_IVariable*      popup_origin   = nullptr;
   SK_IVariable*      notify_corner  = nullptr;

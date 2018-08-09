@@ -98,7 +98,7 @@ struct sk_hwnd_cache_s
     struct
     {
       int x, y, refresh;
-    } res;
+    } res { 0, 0, 0 };
 
     DWORD last_checked     = 0UL;
   } devcaps;
@@ -120,7 +120,7 @@ struct sk_hwnd_cache_s
 
   sk_hwnd_cache_s (HWND wnd);
 
-  operator const HWND& (void) const noexcept { return hwnd; };
+  operator const HWND& (void) const  { return hwnd; };
 };
 
 constexpr

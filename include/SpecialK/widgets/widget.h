@@ -104,34 +104,33 @@ public:
   virtual void config_base (void);
 
 
-  SK_Widget& setName         (const char* szName)        { name          = szName;        return *this; }
-  SK_Widget& setScale        (float       fScale)        { scale         = fScale;        return *this; }
+  SK_Widget& setName         (const char* szName)       { name          = szName;        return *this; }
+  SK_Widget& setScale        (float       fScale)       { scale         = fScale;        return *this; }
 //---------------------
-  SK_Widget& setVisible      (bool        bVisible)      { visible       = bVisible;
-                                                           if (visible)
-                                                             setActive (visible);
+  SK_Widget& setVisible      (bool        bVisible)     { visible       = bVisible;
+                                                          if (visible) setActive (visible);
 
-                                                           //if (param_visible != nullptr)
-                                                           //{
-                                                           //  param_visible->store (visible);
-                                                           //}
-                                                                                          return *this; }
-  SK_Widget& setActive       (bool        bActive)       { active        = bActive;       return *this; }
+                                                        //if (param_visible != nullptr)
+                                                        //{
+                                                        //  param_visible->store (visible);
+                                                        //}
+                                                                                         return *this; }
+  SK_Widget& setActive       (bool        bActive)      { active        = bActive;       return *this; }
 //--------------------
-  SK_Widget& setMovable      (bool        bMovable)      { movable       = bMovable;      return *this; }
-  SK_Widget& setResizable    (bool        bResizable)    { resizable     = bResizable;    return *this; }
-  SK_Widget& setAutoFit      (bool        bAutofit)      { autofit       = bAutofit;      return *this; }
-  SK_Widget& setBorder       (bool        bBorder)       { border        = bBorder;       return *this; }
-  SK_Widget& setClickThrough (bool        bClickthrough) { click_through = bClickthrough; return *this; }
-  SK_Widget& setMinSize      (ImVec2&     iv2MinSize)    { min_size      = iv2MinSize;    return *this; }
-  SK_Widget& setMaxSize      (ImVec2&     iv2MaxSize)    { max_size      = iv2MaxSize;    return *this; }
-  SK_Widget& setSize         (ImVec2&     iv2Size)       { size          = iv2Size;       return *this; }
-  SK_Widget& setPos          (ImVec2&     iv2Pos)        { pos           = iv2Pos;
+  SK_Widget& setMovable      (bool        bMovable)     { movable       = bMovable;      return *this; }
+  SK_Widget& setResizable    (bool        bResizable)   { resizable     = bResizable;    return *this; }
+  SK_Widget& setAutoFit      (bool        bAutofit)     { autofit       = bAutofit;      return *this; }
+  SK_Widget& setBorder       (bool        bBorder)      { border        = bBorder;       return *this; }
+  SK_Widget& setClickThrough (bool        bClickthrough){ click_through = bClickthrough; return *this; }
+  SK_Widget& setMinSize      (ImVec2&     iv2MinSize)   { min_size      = iv2MinSize;    return *this; }
+  SK_Widget& setMaxSize      (ImVec2&     iv2MaxSize)   { max_size      = iv2MaxSize;    return *this; }
+  SK_Widget& setSize         (ImVec2&     iv2Size)      { size          = iv2Size;       return *this; }
+  SK_Widget& setPos          (ImVec2&     iv2Pos)       { pos           = iv2Pos;
 
                                                            //if (param_pos) param_pos->store (pos);
 
-                                                                                          return *this; }
-  SK_Widget& setDockingPoint (DockAnchor  dock_anchor)   { docking       = dock_anchor;   return *this; }
+                                                                                         return *this; }
+  SK_Widget& setDockingPoint (DockAnchor  dock_anchor) { docking       = dock_anchor;    return *this; }
 
 
   const std::string& getName         (void) const { return    name;           }
@@ -152,6 +151,8 @@ public:
 
   const SK_Keybind&  getToggleKey    (void) const { return    toggle_key;     }
   const SK_Keybind&  getFocusKey     (void) const { return    focus_key;      }
+
+  virtual ~SK_Widget (void) { };
 
 
 protected:
@@ -305,12 +306,12 @@ LoadWidgetDocking ( SK_Widget::DockAnchor *pdaVal,
 
   ret->register_to_ini ( ini_file, sec_name, key_name );
 
-  if (! ret->load (*(int *)pdaVal))
+  if (! ret->load (*reinterpret_cast <int *> (pdaVal)))
   {
-    ret->store    (*(int *)pdaVal);
+    ret->store    (*reinterpret_cast <int *> (pdaVal));
   }
 
-  *(int *)pdaVal = ret->get_value ();
+  *reinterpret_cast <int *> (pdaVal) = ret->get_value ();
 
   return ret;
 }
@@ -464,12 +465,14 @@ protected:
   }
 
   int                          updates       = 0;
-  std::array <_T, max_samples> values;
+  std::array <_T, max_samples> values        = { };
   int                          values_offset = 0;
   _T                           last_val      = 0;
 
   struct stat_cache_s {
-    _T  min, max, avg;
+    _T  min       = 0,
+        max       = 0,
+        avg       = 0;
     int last_calc = 0;
   } cached_stats;
 };

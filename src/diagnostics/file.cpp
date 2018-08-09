@@ -31,35 +31,44 @@
 BOOL
 SK_File_GetNameFromHandle ( HANDLE   hFile,
                             wchar_t *pwszFileName,
-                       const DWORD   uiMaxLen )
+                      const DWORD    uiMaxLen )
 {
   *pwszFileName = L'\0';
 
   wchar_t* ptrcFni =
-    (wchar_t *)
-      SK_TLS_Bottom ()->scratch_memory.cmd.alloc (
-        sizeof (wchar_t) * _MAX_PATH + sizeof FILE_NAME_INFO
-      );
+    reinterpret_cast <wchar_t *>
+    ( SK_TLS_Bottom ()->scratch_memory.cmd.alloc (
+        sizeof (wchar_t)        *
+       (sizeof (FILE_NAME_INFO) + _MAX_PATH)     )
+    );
 
   FILE_NAME_INFO *pFni =
     reinterpret_cast <FILE_NAME_INFO *>(ptrcFni);
 
-  BOOL success =
+  const BOOL success =
     GetFileInformationByHandleEx ( hFile, 
                                      FileNameInfo,
                                        pFni,
                                          sizeof FILE_NAME_INFO +
                             (_MAX_PATH * sizeof (wchar_t)) );
 
-  if (success) {
-    wcsncpy_s ( pwszFileName,
-                  std::min (uiMaxLen,
-                    (pFni->FileNameLength / (DWORD)sizeof pFni->FileName [0]) + 1),
-                     pFni->FileName,
-                       _TRUNCATE );
+  if (success && pFni != nullptr)
+  {
+    wcsncpy_s (
+      pwszFileName,
+        std::min ( uiMaxLen,
+                   (pFni->FileNameLength /
+      (DWORD)sizeof pFni->FileName [0])  +  2
+                 ), pFni->FileName,
+                      _TRUNCATE
+    );
   }
 
-  return success;
+  else
+    return FALSE;
+
+  return
+    success;
 }
 
 
@@ -82,7 +91,7 @@ NtReadFile_Detour (
   _In_opt_ PLARGE_INTEGER   ByteOffset,
   _In_opt_ PULONG           Key )
 {
-  NTSTATUS ntStatus =
+  const NTSTATUS ntStatus =
     NtReadFile_Original ( FileHandle, Event, ApcRoutine, ApcContext,
                             IoStatusBlock,
                               Buffer, Length, ByteOffset,
@@ -143,7 +152,7 @@ NtWriteFile_Detour (
   PLARGE_INTEGER   ByteOffset,
   PULONG           Key )
 {
-  NTSTATUS ntStatus =
+  const NTSTATUS ntStatus =
     NtWriteFile_Original ( FileHandle, Event, ApcRoutine, ApcContext,
                              IoStatusBlock,
                                Buffer, Length, ByteOffset,

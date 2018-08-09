@@ -41,19 +41,20 @@
 #include <SpecialK/update/version.h>
 #include <SpecialK/update/archive.h>
 
+#include <SpecialK/thread.h>
+
 bool config_files_changed = false;
 
-static ISzAlloc g_Alloc  = { SzAlloc, SzFree };
-static bool     crc_init = false;
+static ISzAlloc      g_Alloc  = { SzAlloc, SzFree };
+static volatile LONG crc_init = 0;
 
 std::vector <sk_file_entry_s>
 SK_Get7ZFileContents (const wchar_t* wszArchive)
 {
-  if (! crc_init)
-  {
-    CrcGenerateTable ();
-    crc_init = true;
-  }
+  if (InterlockedCompareExchange (&crc_init, 1, 0))
+  { CrcGenerateTable     (         );
+    InterlockedIncrement (&crc_init);
+  } SK_Thread_SpinUntilAtomicMin (&crc_init, 2);
 
   CFileInStream arc_stream       = { };
   CLookToRead   look_stream      = { };
@@ -114,67 +115,42 @@ SK_Get7ZFileContents (const wchar_t* wszArchive)
   return files;
 }
 
+#include <set>
+
 HRESULT
 SK_Decompress7z ( const wchar_t*            wszArchive,
                   const wchar_t*            wszOldVersion,
                   bool                      backup,
                   SK_7Z_DECOMP_PROGRESS_PFN callback )
 {
-  if (! crc_init)
-  {
-    CrcGenerateTable ();
-    crc_init = true;
-  }
+  if (InterlockedCompareExchange (&crc_init, 1, 0))
+  { CrcGenerateTable     (         );
+    InterlockedIncrement (&crc_init);
+  } SK_Thread_SpinUntilAtomicMin (&crc_init, 2);
 
 
   // Don't back stuff up if we're installing :P
   if (SK_IsHostAppSKIM ())
     backup = false;
 
-  std::vector <sk_file_entry_s> files =
+  std::vector <sk_file_entry_s> all_files =
     SK_Get7ZFileContents (wszArchive);
 
-  std::vector <sk_file_entry_s> config_files =
-    SK_Get7ZFileContents (wszArchive);
+  std::vector <sk_file_entry_s> reg_files (all_files.size ());
+  std::vector <sk_file_entry_s> cfg_files (all_files.size ());
 
-  for ( auto&& it = config_files.begin (); it != config_files.end (); )
+  for ( auto&& it = all_files.begin (); it != all_files.end (); ++it )
   {
-    if (! wcsstr (it->name.c_str (), L"default_"))
+    if (wcsstr (it->name.c_str (), L"default_"))
     {
-      it = config_files.erase (it);
-      continue;
+      cfg_files.emplace (it);
     }
 
-    ++it;
-  }
-
-  // Now that we have a set of ALL files and a set of config files,
-  //   remove the config files from the other set so that we have
-  //     two disjoint sets of files.
-  auto&& it  = files.begin ();
-  while (it != files.end ())
-  {
-
-    bool matched = false;
-
-    auto  it2  = config_files.begin ();
-    while (it2 != config_files.end  ())
+    else
     {
-      if (it2->fileno == it->fileno)
-      {
-        matched = true;
-
-        it = files.erase (it);
-        break;
-      }
-
-      ++it2;
+      reg_files.emplace (it);
     }
-
-    if (! matched)
-      ++it;
   }
-
 
   CFileInStream arc_stream       = { };
   CLookToRead   look_stream      = { };
@@ -212,7 +188,8 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
     return E_FAIL;
   }
 
-  for (unsigned int i = 0; i < files.size (); i++)
+  int            i = 0;
+  for ( auto& file : reg_files )
   {
     Byte*    out           = nullptr;
     size_t   out_len       = 0;
@@ -220,16 +197,16 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
     size_t   decomp_size   = 0;
 
     dll_log.Log ( L"[AutoUpdate] Extracting file ('%s')",
-                    files [i].name.c_str () );
+                    file.name.c_str () );
 
     if ( SZ_OK !=
-           SzArEx_Extract ( &arc,          &look_stream.s, files [i].fileno,
+           SzArEx_Extract ( &arc,          &look_stream.s, file.fileno,
                             &block_idx,    &out,           &out_len,
                             &offset,       &decomp_size,
                             &thread_alloc, &thread_tmp_alloc ) )
     {
       dll_log.Log ( L"[AutoUpdate] Failed to extract 7-zip file ('%s')",
-                      files [i].name.c_str () );
+                      file.name.c_str () );
 
       File_Close  (&arc_stream.file);
       SzArEx_Free (&arc, &thread_alloc);
@@ -242,7 +219,7 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
 
     wcscpy (wszDestPath, SK_SYS_GetInstallPath ().c_str ());
 
-    lstrcatW (wszDestPath, files [i].name.c_str ());
+    lstrcatW (wszDestPath, file.name.c_str ());
 
     if (GetFileAttributes (wszDestPath) != INVALID_FILE_ATTRIBUTES)
     {
@@ -256,7 +233,7 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
         lstrcatW (wszMovePath, L"\\");
       }
 
-      lstrcatW (wszMovePath, files [i].name.c_str ());
+      lstrcatW (wszMovePath, file.name.c_str ());
 
       // If the archive contains sub-directories, this will create them
       SK_CreateDirectories (wszMovePath);
@@ -321,7 +298,7 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
 
     if (callback != nullptr)
     {
-      callback (i + 1, PtrToUint ((void *)files.size ()));
+      callback (++i, PtrToUint ((void *)reg_files.size ()));
     }
   }
 
@@ -344,7 +321,8 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
     return E_FAIL;
   }
 
-  for (unsigned int i = 0; i < config_files.size (); i++)
+                     i = 0;
+  for ( auto& cfg_file : cfg_files )
   {
     Byte*    out           = nullptr;
     size_t   out_len       = 0;
@@ -352,16 +330,16 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
     size_t   decomp_size   = 0;
 
     dll_log.Log ( L"[AutoUpdate] Extracting config file ('%s')",
-                    config_files [i].name.c_str () );
+                    cfg_file.name.c_str () );
 
     if ( SZ_OK !=
-           SzArEx_Extract ( &arc,          &look_stream.s, config_files [i].fileno,
+           SzArEx_Extract ( &arc,          &look_stream.s, cfg_file.fileno,
                             &block_idx,    &out,           &out_len,
                             &offset,       &decomp_size,
                             &thread_alloc, &thread_tmp_alloc ) )
     {
       dll_log.Log ( L"[AutoUpdate] Failed to extract 7-zip config file ('%s')",
-                      config_files [i].name.c_str () );
+                   cfg_file.name.c_str () );
 
       File_Close  (&arc_stream.file);
       SzArEx_Free (&arc, &thread_alloc);
@@ -378,8 +356,8 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
     wcscpy   (wszDefaultConfig, SK_SYS_GetInstallPath ().c_str ());
     wcscpy   (wszUserConfig,    SK_SYS_GetInstallPath ().c_str ());
 
-    PathAppend (wszDefaultConfig, config_files [i].name.c_str ());
-    PathAppend (wszUserConfig,    config_files [i].name.c_str ());
+    PathAppend (wszDefaultConfig, cfg_file.name.c_str ());
+    PathAppend (wszUserConfig,    cfg_file.name.c_str ());
 
     wchar_t* wszDefault_ = wcsstr (wszUserConfig, L"default_");
 
@@ -464,7 +442,7 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
 
     if (callback != nullptr)
     {
-      callback (i + 1, PtrToUint ((void *)config_files.size ()));
+      callback (++i, PtrToUint ((void *)cfg_files.size ()));
     }
   }
 
@@ -480,11 +458,10 @@ SK_Decompress7zEx ( const wchar_t*            wszArchive,
                     const wchar_t*            wszDestination,
                     SK_7Z_DECOMP_PROGRESS_PFN callback )
 {
-  if (! crc_init)
-  {
-    CrcGenerateTable ();
-    crc_init = true;
-  }
+  if (InterlockedCompareExchange (&crc_init, 1, 0))
+  { CrcGenerateTable     (         );
+    InterlockedIncrement (&crc_init);
+  } SK_Thread_SpinUntilAtomicMin (&crc_init, 2);
 
   std::vector <sk_file_entry_s> files =
     SK_Get7ZFileContents (wszArchive);
@@ -527,6 +504,9 @@ SK_Decompress7zEx ( const wchar_t*            wszArchive,
 
   for (unsigned int i = 0; i < files.size (); i++)
   {
+    auto& file =
+      files [i];
+
     Byte*    out           = nullptr;
     size_t   out_len       = 0;
     size_t   offset        = 0;
@@ -536,13 +516,13 @@ SK_Decompress7zEx ( const wchar_t*            wszArchive,
     //                files [i].name.c_str () );
 
     if ( SZ_OK !=
-           SzArEx_Extract ( &arc,          &look_stream.s, files [i].fileno,
+           SzArEx_Extract ( &arc,          &look_stream.s, file.fileno,
                             &block_idx,    &out,           &out_len,
                             &offset,       &decomp_size,
                             &thread_alloc, &thread_tmp_alloc ) )
     {
       dll_log.Log ( L"[AutoUpdate] Failed to extract 7-zip file ('%s')",
-                      files [i].name.c_str () );
+                      file.name.c_str () );
 
       File_Close  (&arc_stream.file);
       SzArEx_Free (&arc, &thread_alloc);
@@ -553,7 +533,7 @@ SK_Decompress7zEx ( const wchar_t*            wszArchive,
     wchar_t wszDestPath [MAX_PATH] = { };
 
     wcscpy      (wszDestPath, wszDestination);
-    PathAppendW (wszDestPath, files [i].name.c_str ());
+    PathAppendW (wszDestPath, file.name.c_str ());
 
     SK_CreateDirectories (wszDestPath);
 

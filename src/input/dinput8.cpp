@@ -945,7 +945,7 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8       This,
         out->rgdwPOV [3] = std::numeric_limits <DWORD>::max ();
       }
       
-      else if (SUCCEEDED (hr) && game_window.active)
+      else if (SUCCEEDED (hr))
         memcpy (&last_state, out, cbData);
     }
 
@@ -976,7 +976,7 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8       This,
         out->rgdwPOV [3] = std::numeric_limits <DWORD>::max ();
       }
       
-      else if (SUCCEEDED (hr) && game_window.active)
+      else if (SUCCEEDED (hr))
         memcpy (&last_state, out, cbData);
     }
 
@@ -988,10 +988,10 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8       This,
         ( config.input.keyboard.disabled_to_game ||
           SK_ImGui_WantKeyboardCapture ()           );
 
-      if ((disabled_to_game || (! game_window.active)) && lpvData != nullptr)
+      if (disabled_to_game || (! game_window.active))
         RtlZeroMemory (lpvData, cbData);
 
-      if (lpvData != nullptr && game_window.active)
+      if (game_window.active)
       {
         if (hr == S_OK)
           memcpy (SK_Input_GetDI8Keyboard ()->state, lpvData, cbData);
@@ -1012,13 +1012,13 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8       This,
         ( config.input.mouse.disabled_to_game ||
           SK_ImGui_WantMouseCapture ()           );
 
-      if (lpvData != nullptr && game_window.active)
+      if (game_window.active)
       {
         if (hr == S_OK)
           memcpy (&SK_Input_GetDI8Mouse ()->state, lpvData, cbData);
       }
 
-      if (lpvData != nullptr && (disabled_to_game || (! game_window.active)))
+      if (disabled_to_game || (! game_window.active))
       {
         RtlZeroMemory (lpvData, cbData);
       }

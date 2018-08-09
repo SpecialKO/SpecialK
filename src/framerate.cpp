@@ -1131,8 +1131,8 @@ WaitForSingleObjectEx_Detour (
     pTLS->scheduler.mru_wait.sequence  = 0;
   }   
 
-  if ( ret            == WAIT_OBJECT_0 && SK_POE2_FixUnityEmployment &&
-       dwMilliseconds == INFINITE      && bAlertable == TRUE )
+  if ( ret            == WAIT_OBJECT_0 &&   SK_POE2_FixUnityEmployment &&
+       dwMilliseconds == INFINITE      && ( bAlertable != FALSE ) )
   {
     // Not to be confused with the other thing
     bool hardly_working =
@@ -1153,7 +1153,7 @@ WaitForSingleObjectEx_Detour (
                                    &pTLS->scheduler.mru_wait.preemptive );
         }
 
-        if (pTLS->scheduler.mru_wait.preemptive != TRUE)
+        if (pTLS->scheduler.mru_wait.preemptive == FALSE)
         {
           SetThreadPriorityBoost ( GetCurrentThread (), TRUE );
           InterlockedIncrement   (&SK_POE2_ThreadBoostsKilled);
@@ -1524,6 +1524,8 @@ SK::Framerate::Shutdown (void)
 
 SK::Framerate::Limiter::Limiter (double target)
 {
+  effective_ms = 0.0;
+
   init (target);
 }
 
@@ -1660,10 +1662,7 @@ SK::Framerate::Limiter::init (double target)
 
   InterlockedExchange (&frames_ahead, 0);
 
-  next.QuadPart = 0ULL;
   time.QuadPart = 0ULL;
-  last.QuadPart = 0ULL;
-
   last.QuadPart = static_cast <LONGLONG> (start.QuadPart - (ms / 1000.0) * freq.QuadPart);
   next.QuadPart = static_cast <LONGLONG> (start.QuadPart + (ms / 1000.0) * freq.QuadPart);
 }

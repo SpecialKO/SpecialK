@@ -190,7 +190,7 @@ SK_TaskBoxWithConfirmEx ( wchar_t* wszMainInstruction,
   TASKDIALOGCONFIG task_config    = {   };
 
   task_config.cbSize              = sizeof    (task_config);
-  task_config.hInstance           = SK_Modules.HostApp;
+  task_config.hInstance           = SK_Modules.HostApp ();
   task_config.hwndParent          =        nullptr;
   task_config.pszWindowTitle      = L"Special K Compatibility Layer (v " SK_VERSION_STR_W L")";
   task_config.dwCommonButtons     = TDCBF_OK_BUTTON;

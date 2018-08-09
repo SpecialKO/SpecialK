@@ -29,7 +29,7 @@
 #include <forward_list>
 
 template <class T, class U>
-constexpr T narrow_cast(U&& u) noexcept
+constexpr T narrow_cast(U&& u) 
 {
   return static_cast<T>(std::forward<U>(u));
 }
@@ -90,10 +90,10 @@ namespace SK
                                             InterlockedAdd       (&time.deprived, narrow_cast <ULONG> (dwMilliseconds)); }
       };
 
-      SleepStats& getMessagePumpStats  (void) { return message_pump;  }
-      SleepStats& getRenderThreadStats (void) { return render_thread; }
-      SleepStats& getMicroStats        (void) { return micro_sleep;   }
-      SleepStats& getMacroStats        (void) { return macro_sleep;   }
+      SleepStats& getMessagePumpStats  (void)  { return message_pump;  }
+      SleepStats& getRenderThreadStats (void)  { return render_thread; }
+      SleepStats& getMicroStats        (void)  { return micro_sleep;   }
+      SleepStats& getMacroStats        (void)  { return macro_sleep;   }
 
     protected:
       SleepStats message_pump, render_thread,
@@ -101,7 +101,7 @@ namespace SK
     } extern *events;
 
 
-    static inline EventCounter* GetEvents  (void) { return events; }
+    static inline EventCounter* GetEvents  (void)  { return events; }
                   Limiter*      GetLimiter (void);
 
     class Stats {
@@ -119,7 +119,7 @@ namespace SK
       } data [MAX_SAMPLES];
       int    samples       = 0;
 
-      void addSample (double sample, LARGE_INTEGER time)
+      void addSample (double sample, LARGE_INTEGER time) 
       {
         data [samples % MAX_SAMPLES].val  = sample;
         data [samples % MAX_SAMPLES].when = time;
@@ -129,7 +129,7 @@ namespace SK
 
       double calcMean (double seconds = 1.0);
 
-      double calcMean (LARGE_INTEGER start)
+      double calcMean (LARGE_INTEGER start) 
       {
         double mean = 0.0;
 
@@ -149,7 +149,7 @@ namespace SK
 
       double calcSqStdDev (double mean, double seconds = 1.0);
 
-      double calcSqStdDev (double mean, LARGE_INTEGER start)
+      double calcSqStdDev (double mean, LARGE_INTEGER start) 
       {
         double sd = 0.0;
 
@@ -170,7 +170,7 @@ namespace SK
 
       double calcMin (double seconds = 1.0);
 
-      double calcMin (LARGE_INTEGER start)
+      double calcMin (LARGE_INTEGER start) 
       {
         double min = INFINITY;
 
@@ -188,7 +188,7 @@ namespace SK
 
       double calcMax (double seconds = 1.0);
 
-      double calcMax (LARGE_INTEGER start)
+      double calcMax (LARGE_INTEGER start) 
       {
         double max = -INFINITY;
 
@@ -206,7 +206,7 @@ namespace SK
 
       int calcHitches (double tolerance, double mean, double seconds = 1.0);
 
-      int calcHitches (double tolerance, double mean, LARGE_INTEGER start)
+      int calcHitches (double tolerance, double mean, LARGE_INTEGER start) 
       {
         int hitches = 0;
 
@@ -254,7 +254,7 @@ namespace SK
 
       int calcNumSamples (double seconds = 1.0);
 
-      int calcNumSamples (LARGE_INTEGER start)
+      int calcNumSamples (LARGE_INTEGER start) 
       {
         int samples_used = 0;
 

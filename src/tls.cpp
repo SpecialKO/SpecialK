@@ -34,7 +34,17 @@
 //
 
 #include <concurrent_unordered_map.h>
-Concurrency::concurrent_unordered_map <DWORD, SK_TlsRecord> tls_map;
+
+Concurrency::concurrent_unordered_map <DWORD, SK_TlsRecord>&
+SK_TLS_Map (void)
+{
+  static Concurrency::concurrent_unordered_map <DWORD, SK_TlsRecord>
+    __tls_map (8);
+
+  return __tls_map;
+}
+
+#define tls_map SK_TLS_Map()
 
 volatile long __SK_TLS_INDEX = TLS_OUT_OF_INDEXES;
 
@@ -240,6 +250,28 @@ SK_OSD_ThreadContext::allocText (size_t needed)
   return text;
 }
 
+wchar_t*
+SK_Steam_ThreadContext::allocScratchText (size_t needed)
+{
+  if (text_capacity < needed || text == nullptr)
+  {
+    if (text != nullptr && text_capacity > 0)
+      _aligned_free (text);
+
+    text =
+      (wchar_t *)_aligned_malloc (
+        needed * sizeof (wchar_t), 16
+      );
+
+    if (text != nullptr)
+      text_capacity = needed;
+    else
+      text_capacity = 0;
+  }
+
+  return text;
+}
+
 
 uint8_t*
 SK_RawInput_ThreadContext::allocData (size_t needed)
@@ -286,10 +318,11 @@ SK_TLS_ScratchMemory::Cleanup (SK_TLS_CleanupReason_e /*reason*/)
 {
   size_t freed = 0UL;
 
-  freed += cmd.reclaim         ();
-  freed += sym_resolve.reclaim ();
-  freed += eula.reclaim        ();
-  freed += cpu_info.reclaim    ();
+  freed += cmd.reclaim                  ();
+  freed += sym_resolve.reclaim          ();
+  freed += eula.reclaim                 ();
+  freed += cpu_info.reclaim             ();
+  freed += log.formatted_output.reclaim ();
 
   for ( auto* segment : { &ini.key, &ini.val, &ini.sec } )
     freed += segment->reclaim ();
@@ -433,6 +466,14 @@ SK_Steam_ThreadContext::Cleanup (SK_TLS_CleanupReason_e reason)
         client_pipe = 0;
       }
     }
+
+    if (text != nullptr && text_capacity > 0)
+    {
+      freed +=       text_capacity * sizeof (wchar_t);
+                     text_capacity = 0;
+      _aligned_free (text);
+                     text = nullptr;
+    }
   }
 
   return freed;
@@ -474,7 +515,8 @@ SK_D3D9_ThreadContext::allocTempFullscreenStorage (size_t /*dontcare*/)
 {
   if (temp_fullscreen == nullptr)
   {
-    temp_fullscreen = new D3DDISPLAYMODEEX { };
+    temp_fullscreen =
+      _aligned_malloc ( sizeof (D3DDISPLAYMODEEX), 16 );
   }
 
   return temp_fullscreen;
@@ -495,12 +537,15 @@ SK_D3D9_ThreadContext::allocStackScratchStorage (size_t size)
   {
     if (stack_scratch.size < size)
     {
-      if (             stack_scratch.storage != nullptr &&
-                       stack_scratch.size > 0              )
+      if (             stack_scratch.size > 0              )
         _aligned_free (stack_scratch.storage);
                        stack_scratch.storage = _aligned_malloc (size, 16);
-                       stack_scratch.size    =        (uint32_t)size ;
-        RtlZeroMemory (stack_scratch.storage, size);
+
+      if (stack_scratch.storage != nullptr)
+      {
+                       stack_scratch.size = (uint32_t)size;
+        RtlZeroMemory (stack_scratch.storage,         size);
+      } else assert (false);
     }
   }
 
@@ -532,10 +577,10 @@ SK_D3D9_ThreadContext::Cleanup (SK_TLS_CleanupReason_e /*reason*/)
 
   if (temp_fullscreen != nullptr)
   {
-    delete temp_fullscreen;
-           temp_fullscreen = nullptr;
+    _aligned_free (temp_fullscreen);
+                   temp_fullscreen = nullptr;
 
-           freed += sizeof (D3DDISPLAYMODEEX);
+    freed += sizeof (D3DDISPLAYMODEEX);
   }
 
   return freed;
@@ -566,6 +611,16 @@ SK_D3D11_ThreadContext::Cleanup (SK_TLS_CleanupReason_e /*reason*/)
 {
   size_t freed = 0;
 
+  if (screenshot.reserve > 0)
+  {
+    if (screenshot.buffer != nullptr)
+    {
+      _aligned_free (screenshot.buffer);
+            freed += screenshot.reserve;
+                     screenshot.buffer = nullptr;
+    }
+  }
+
   if (stateBlockSize > 0)
   {
     if (stateBlock != nullptr)
@@ -588,6 +643,40 @@ SK_D3D11_ThreadContext::Cleanup (SK_TLS_CleanupReason_e /*reason*/)
 }
 
 
+
+uint8_t*
+SK_D3D11_ThreadContext::allocScreenshotMemory (size_t bytesNeeded)
+{
+  if (screenshot.buffer != nullptr)
+  {
+    if (screenshot.reserve < bytesNeeded)
+    {
+      _aligned_free (screenshot.buffer);
+
+      screenshot.buffer = (uint8_t *)
+        _aligned_malloc (bytesNeeded, 16);
+
+      if (screenshot.buffer != nullptr)
+      {
+        screenshot.reserve = bytesNeeded;
+      }
+    }
+  }
+
+  else
+  {
+    screenshot.buffer = (uint8_t *)
+      _aligned_malloc (bytesNeeded, 16);
+
+    if (screenshot.buffer != nullptr)
+    {
+      screenshot.reserve = bytesNeeded;
+    }
+  }
+
+  return
+    screenshot.buffer;
+}
 
 uint8_t*
 SK_DXTex_ThreadContext::alignedAlloc (size_t alignment, size_t elems)
@@ -647,9 +736,10 @@ SK_DXTex_ThreadContext::tryTrim (void)
     dll_log.Log (L"Trimming tid %x's DXTex memory pool from %lu to %lu",
                  GetCurrentThreadId (), reserve, _SlackSpace);
 
-    _aligned_realloc (buffer,  _SlackSpace, 16);
-                   reserve   = _SlackSpace;
-                   last_trim = timeGetTime ();
+    buffer = static_cast <uint8_t *>              (
+      _aligned_realloc (buffer,  _SlackSpace, 16) );
+                     reserve   = _SlackSpace;
+                     last_trim = timeGetTime ();
 
     return true;
   }
@@ -704,12 +794,15 @@ SK_TLS::Cleanup (SK_TLS_CleanupReason_e reason)
 
   if (known_modules.pResolved != nullptr)
   {
-    freed +=
-      sizeof HMODULE *
-        ((std::unordered_map <LPCVOID, HMODULE> *)known_modules.pResolved)->size () * 2;
+    auto pResolved =
+      static_cast <std::unordered_map <LPCVOID, HMODULE> *>(known_modules.pResolved);
 
-    delete known_modules.pResolved;
-           known_modules.pResolved = nullptr;
+    freed +=
+      ( sizeof HMODULE *
+                  pResolved->size () * 2 );
+
+    delete        pResolved;
+    known_modules.pResolved = nullptr;
   }
 
   // Include the size of the TLS data structure on thread unload

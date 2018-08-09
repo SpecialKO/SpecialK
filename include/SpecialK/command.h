@@ -50,14 +50,14 @@ interface SK_ICommandResult
     status_ = status;
   }
 
-  const char*          getWord     (void) const { return word_.c_str   (); }
-  const char*          getArgs     (void) const { return args_.c_str   (); }
-  const char*          getResult   (void) const { return result_.c_str (); }
+  const char*          getWord     (void) const  { return word_.c_str   (); }
+  const char*          getArgs     (void) const  { return args_.c_str   (); }
+  const char*          getResult   (void) const  { return result_.c_str (); }
 
-  const SK_IVariable*  getVariable (void) const { return var_;    }
-  const SK_ICommand*   getCommand  (void) const { return cmd_;    }
+  const SK_IVariable*  getVariable (void) const  { return var_;    }
+  const SK_ICommand*   getCommand  (void) const  { return cmd_;    }
 
-  int                  getStatus   (void) const { return status_; }
+  int                  getStatus   (void) const  { return status_; }
 
 protected:
 
@@ -72,12 +72,13 @@ private:
 
 interface SK_ICommand
 {
-  virtual SK_ICommandResult execute (const char* szArgs) = 0;
+  virtual  SK_ICommandResult execute (const char* szArgs) = 0;
+  virtual ~SK_ICommand               (      void        ) { };
 
-  virtual const char* getHelp            (void) { return "No Help Available"; }
+  virtual const char* getHelp            (void)  { return "No Help Available"; }
 
-  virtual int         getNumArgs         (void) { return 0; }
-  virtual int         getNumOptionalArgs (void) { return 0; }
+  virtual int         getNumArgs         (void)   { return 0; }
+  virtual int         getNumOptionalArgs (void)  { return 0; }
   virtual int         getNumRequiredArgs (void) {
     return getNumArgs () - getNumOptionalArgs ();
   }

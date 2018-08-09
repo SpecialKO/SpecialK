@@ -140,8 +140,8 @@ SK_LoadImportModule = [&](import_s& import)
 {
   if (config.system.central_repository)
   {
-    wchar_t wszProfilePlugIn [MAX_PATH * 2] = { };
-    wcsncpy (wszProfilePlugIn, SK_GetConfigPath (), MAX_PATH);
+    wchar_t      wszProfilePlugIn [MAX_PATH * 2 + 1] = { };
+    wcsncpy_s   (wszProfilePlugIn, MAX_PATH, SK_GetConfigPath (), _TRUNCATE);
     PathAppendW (wszProfilePlugIn, import.filename->get_value_str ().c_str ());
 
     import.hLibrary = SK_Modules.LoadLibraryLL (

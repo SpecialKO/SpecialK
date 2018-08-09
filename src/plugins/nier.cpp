@@ -923,7 +923,7 @@ SK_FAR_CreateTexture2D (
                         pDesc->Width, pDesc->Height, pDesc->MipLevels ),
                       L"FAR PlugIn" );
 
-          if (far_bloom.width != -1 && (pDesc->Width != 50 && pDesc->Height != 28))
+          if (far_bloom.width != -1)
           {
             // Scale the upper parts of the pyramid fully
             // and lower levels progressively less

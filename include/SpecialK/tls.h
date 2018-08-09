@@ -245,6 +245,11 @@ public:
     SK_TLS_HeapDataStore <wchar_t> sec;
   } ini;
 
+  struct
+  {
+    SK_TLS_HeapDataStore <wchar_t> formatted_output;
+  } log;
+
   size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload);
 };
 
@@ -326,29 +331,39 @@ class SK_D3D11_ThreadContext : public SK_TLS_DynamicContext,
                                public SK_TLS_RenderContext
 {
 public:
-  ID3D11DeviceContext*     pDevCtx                = nullptr;
+  ID3D11DeviceContext*     pDevCtx                 = nullptr;
 
-  ID3D11RasterizerState*   pRasterStateOrig       = nullptr;
-  ID3D11RasterizerState*   pRasterStateNew        = nullptr;
+  ID3D11RasterizerState*   pRasterStateOrig        = nullptr;
+  ID3D11RasterizerState*   pRasterStateNew         = nullptr;
 
-  ID3D11DepthStencilState* pDepthStencilStateOrig = nullptr;
-  ID3D11DepthStencilState* pDepthStencilStateNew  = nullptr;
-  ID3D11DepthStencilView*  pDSVOrig               = nullptr;
+  ID3D11DepthStencilState* pDepthStencilStateOrig  = nullptr;
+  ID3D11DepthStencilState* pDepthStencilStateNew   = nullptr;
+  ID3D11DepthStencilView*  pDSVOrig                = nullptr;
 
-  UINT                     StencilRefOrig         = 0;
-  UINT                     StencilRefNew          = 0;
+  UINT                     StencilRefOrig          = 0;
+  UINT                     StencilRefNew           = 0;
 
-  ID3D11ShaderResourceView* newResourceViews [128];
+  ID3D11ShaderResourceView* newResourceViews [128] = { };
 
-  SK_D3D11_Stateblock_Lite* stateBlock            = nullptr;
-  size_t                    stateBlockSize        = 0;
+  SK_D3D11_Stateblock_Lite* stateBlock             = nullptr;
+  size_t                    stateBlockSize         = 0;
 
   // Sampler to share between ImGui and CEGUI
-  ID3D11SamplerState*       uiSampler_clamp       = nullptr;
-  ID3D11SamplerState*       uiSampler_wrap        = nullptr;
+  ID3D11SamplerState*       uiSampler_clamp        = nullptr;
+  ID3D11SamplerState*       uiSampler_wrap         = nullptr;
 
   ID3D11Buffer*             pOriginalCBuffers [6][D3D11_COMMONSHADER_CONSTANT_BUFFER_HW_SLOT_COUNT]
-                                                  = { };
+                                                   = { };
+
+  // Prevent recursion during hook installation
+  bool                      skip_d3d11_create_device = false;
+
+  struct {
+    uint8_t* buffer  = nullptr;
+    size_t   reserve = 0UL;
+  } screenshot;
+
+  uint8_t* allocScreenshotMemory (size_t bytesNeeded);
 
   SK_D3D11_Stateblock_Lite* getStateBlock (void);
 
@@ -470,6 +485,13 @@ public:
 class SK_Steam_ThreadContext : public SK_TLS_DynamicContext
 {
 public:
+  // Allocates and grows this buffer until a cleanup operation demands
+  //   we shrink it.
+  wchar_t* allocScratchText (size_t needed);
+
+  wchar_t*  text          = nullptr;
+  size_t    text_capacity = 0;
+
   int32_t client_pipe = 0;
   int32_t client_user = 0;
 
@@ -648,13 +670,13 @@ SK_TLS* __stdcall SK_TLS_BottomEx (DWORD dwTid);
 class SK_ScopedBool
 {
 public:
-  SK_ScopedBool (BOOL* pBool)
+  SK_ScopedBool (_Notnull_ BOOL* pBool) noexcept
   {
     pBool_ =  pBool;
     bOrig_ = *pBool;
   }
 
-  ~SK_ScopedBool (void)
+  ~SK_ScopedBool (void) noexcept
   {
     *pBool_ = bOrig_;
   }
@@ -709,7 +731,7 @@ SK_GetTLS (bool initialize)
         static_cast <SK_TLS *> (lpvData);
 
       *pTLS =
-         SK_TLS::SK_TLS ();
+         std::move (SK_TLS::SK_TLS ());
 
       pTLS->scheduler.objects_waited =
         new (std::unordered_map <HANDLE, SK_Sched_ThreadContext::wait_record_s>);

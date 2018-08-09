@@ -1,3 +1,4 @@
+#if 0
 /**
  * This file is part of Special K.
  *
@@ -146,3 +147,4 @@ SK_AnselSDK_ApplyHook__isAnselAvailable (HMODULE hModule, const char* lpProcName
 
   return hook_stat;
 }
+#endif

@@ -32,6 +32,7 @@
 #include <SpecialK/input/steam.h>
 #include <SpecialK/input/xinput.h>
 #include <SpecialK/input/xinput_hotplug.h>
+#include <SpecialK/framerate.h>
 
 #include <string>
 #include <sstream>
@@ -91,7 +92,7 @@ SK_ImGui_CenterCursorOnWindow (void)
 bool
 SK::ControlPanel::Input::Draw (void)
 {
-  bool input_mgmt_open = 
+  const bool input_mgmt_open = 
     ImGui::CollapsingHeader ("Input Management");
 
   if (config.imgui.show_input_apis)
@@ -305,7 +306,8 @@ SK::ControlPanel::Input::Draw (void)
       float seconds = 
         (float)config.input.cursor.timeout  / 1000.0f;
 
-      float val = config.input.cursor.manage ? 1.0f : 0.0f;
+      const float val =
+        config.input.cursor.manage ? 1.0f : 0.0f;
 
       ImGui::PushStyleColor (ImGuiCol_FrameBg,        ImColor ( 0.3f,  0.3f,  0.3f,  val));
       ImGui::PushStyleColor (ImGuiCol_FrameBgHovered, ImColor ( 0.6f,  0.6f,  0.6f,  val));
@@ -390,7 +392,7 @@ SK::ControlPanel::Input::Draw (void)
       connected [2] = SK_XInput_PollController (2);
       connected [3] = SK_XInput_PollController (3);
 
-      int num_steam_controllers =
+      const int num_steam_controllers =
         steam_input.count;
 
       if ( num_steam_controllers == 0 && ( connected [0] || connected [1] ||
@@ -475,7 +477,7 @@ SK::ControlPanel::Input::Draw (void)
       {
         ImGui::Checkbox (szName, &config.input.gamepad.xinput.placehold [dwIndex]);
 
-        SK_XInput_PacketJournal journal =
+        const SK_XInput_PacketJournal journal =
           SK_XInput_GetPacketJournal (dwIndex);
 
         if (ImGui::IsItemHovered ())
@@ -523,20 +525,54 @@ extern float SK_ImGui_PulseNav_Strength;
       ImGui::SliderFloat ("TitlePulseDuration", &SK_ImGui_PulseTitle_Duration, 0.0f, 1000.0f);
 #endif
 
-      auto GamepadDebug = [](UINT idx) ->
+      static LARGE_INTEGER
+        liLastPoll [2] = { };
+      static UINT
+        uiLastErr  [2] = { JOYERR_NOERROR,
+                           JOYERR_NOERROR };
+
+      auto GamepadDebug = [&](UINT idx) ->
       void
       {
+        // Only 2 joysticks (possibly fewer if the driver's b0rked)
+        if ( idx >= joyGetNumDevs () )
+        {
+          return;
+        }
+
+        // Throttle polling on errors => once every 750 ms
+        //
+        //   Proper solution involves watching for a device notification,
+        //     but I don't want to bother with that right now :)
+        if (                  uiLastErr [idx] != JOYERR_NOERROR &&
+             SK_DeltaPerfMS (liLastPoll [idx].QuadPart, 1) < ( idx == 0 ?  6666.6 :
+                                                                          12121.2 ) )
+        {
+          return;
+        }
+
         JOYINFOEX joy_ex   { };
-        JOYCAPSA  joy_caps { };
+        JOYCAPSW  joy_caps { };
 
         joy_ex.dwSize  = sizeof JOYINFOEX;
         joy_ex.dwFlags = JOY_RETURNALL      | JOY_RETURNPOVCTS |
                          JOY_RETURNCENTERED | JOY_USEDEADZONE;
 
-        if (joyGetPosEx    (idx, &joy_ex)                    != JOYERR_NOERROR)
-          return;
+        uiLastErr        [idx] =
+          joyGetDevCapsW (idx, &joy_caps, sizeof JOYCAPSW);
+              liLastPoll [idx] = SK_QueryPerf ();
+        if (   uiLastErr [idx] != JOYERR_NOERROR || joy_caps.wCaps == 0)
+        {
+          if (joy_caps.wCaps == 0)
+            uiLastErr [idx] = JOYERR_NOCANDO;
 
-        if (joyGetDevCapsA (idx, &joy_caps, sizeof JOYCAPSA) != JOYERR_NOERROR || joy_caps.wCaps == 0)
+          return;
+        }
+
+        uiLastErr     [idx] =
+          joyGetPosEx (idx, &joy_ex);
+           liLastPoll [idx] = SK_QueryPerf ();
+        if (uiLastErr [idx] != JOYERR_NOERROR)
           return;
 
         ImGui::PushID (idx);
@@ -560,7 +596,7 @@ extern float SK_ImGui_PulseNav_Strength;
         ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.45f, 0.45f, 0.80f));
         ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.53f, 0.53f, 0.80f));
 
-        bool expanded = ImGui::CollapsingHeader (SK_FormatString ("%s###JOYSTICK_DEBUG_%lu", joy_caps.szPname, idx).c_str ());
+        bool expanded = ImGui::CollapsingHeader (SK_FormatString ("%ws###JOYSTICK_DEBUG_%lu", joy_caps.szPname, idx).c_str ());
 
         ImGui::Combo    ("Gamepad Type", &config.input.gamepad.predefined_layout, "PlayStation 4\0Steam\0\0", 2);
 
@@ -579,7 +615,7 @@ extern float SK_ImGui_PulseNav_Strength;
 
           ImGui::TextUnformatted (buttons.str ().c_str ());
 
-          float angle =
+          const float angle =
             static_cast <float> (joy_ex.dwPOV) / 100.0f;
 
           if (joy_ex.dwPOV != JOY_POVCENTERED)
@@ -592,35 +628,35 @@ extern float SK_ImGui_PulseNav_Strength;
             float       min, max;
             float       now;
           }
-            axes [6] = { { "X-Axis", static_cast <float> (joy_caps.wXmin),
-                                     static_cast <float> (joy_caps.wXmax),
-                                     static_cast <float> (joy_ex.dwXpos) },
+            const axes [6] = { { "X-Axis", static_cast <float> (joy_caps.wXmin),
+                                           static_cast <float> (joy_caps.wXmax),
+                                           static_cast <float> (joy_ex.dwXpos) },
 
-                          { "Y-Axis", static_cast <float> (joy_caps.wYmin), 
-                                      static_cast <float> (joy_caps.wYmax),
-                                      static_cast <float> (joy_ex.dwYpos) },
-
-                          { "Z-Axis", static_cast <float> (joy_caps.wZmin),
-                                      static_cast <float> (joy_caps.wZmax),
-                                      static_cast <float> (joy_ex.dwZpos) },
-
-                          { "R-Axis", static_cast <float> (joy_caps.wRmin),
-                                      static_cast <float> (joy_caps.wRmax),
-                                      static_cast <float> (joy_ex.dwRpos) },
-
-                          { "U-Axis", static_cast <float> (joy_caps.wUmin),
-                                      static_cast <float> (joy_caps.wUmax),
-                                      static_cast <float> (joy_ex.dwUpos) },
-
-                          { "V-Axis", static_cast <float> (joy_caps.wVmin),
-                                      static_cast <float> (joy_caps.wVmax),
-                                      static_cast <float> (joy_ex.dwVpos) } };
+                               { "Y-Axis", static_cast <float> (joy_caps.wYmin), 
+                                           static_cast <float> (joy_caps.wYmax),
+                                           static_cast <float> (joy_ex.dwYpos) },
+                               
+                               { "Z-Axis", static_cast <float> (joy_caps.wZmin),
+                                           static_cast <float> (joy_caps.wZmax),
+                                           static_cast <float> (joy_ex.dwZpos) },
+                               
+                               { "R-Axis", static_cast <float> (joy_caps.wRmin),
+                                           static_cast <float> (joy_caps.wRmax),
+                                           static_cast <float> (joy_ex.dwRpos) },
+                               
+                               { "U-Axis", static_cast <float> (joy_caps.wUmin),
+                                           static_cast <float> (joy_caps.wUmax),
+                                           static_cast <float> (joy_ex.dwUpos) },
+                               
+                               { "V-Axis", static_cast <float> (joy_caps.wVmin),
+                                           static_cast <float> (joy_caps.wVmax),
+                                           static_cast <float> (joy_ex.dwVpos) } };
 
           for (UINT axis = 0; axis < joy_caps.wMaxAxes; axis++)
           {
-            auto  range  = static_cast <float>  (axes [axis].max - axes [axis].min);
-            float center = static_cast <float> ((axes [axis].max + axes [axis].min)) / 2.0f;
-            float rpos   = 0.5f;
+            auto  const range  = static_cast <float>  (axes [axis].max - axes [axis].min);
+            float const center = static_cast <float> ((axes [axis].max + axes [axis].min)) / 2.0f;
+            float       rpos   = 0.5f;
 
             if (static_cast <float> (axes [axis].now) < center)
               rpos = center - (center - axes [axis].now);
@@ -656,21 +692,21 @@ extern float SK_ImGui_PulseNav_Strength;
       ImVec2 deadzone_pos    = ImGui::GetIO ().DisplaySize;
              deadzone_pos.x /= 2.0f;
              deadzone_pos.y /= 2.0f;
-      ImVec2 deadzone_size ( ImGui::GetIO ().DisplaySize.x * float_thresh / 200.0f,
-                             ImGui::GetIO ().DisplaySize.y * float_thresh / 200.0f );
+      const ImVec2 deadzone_size ( ImGui::GetIO ().DisplaySize.x * float_thresh / 200.0f,
+                                   ImGui::GetIO ().DisplaySize.y * float_thresh / 200.0f );
 
-      ImVec2 xy0 ( deadzone_pos.x - deadzone_size.x,
-                   deadzone_pos.y - deadzone_size.y );
-      ImVec2 xy1 ( deadzone_pos.x + deadzone_size.x,
-                   deadzone_pos.y + deadzone_size.y );
+      const ImVec2 xy0 ( deadzone_pos.x - deadzone_size.x,
+                         deadzone_pos.y - deadzone_size.y );
+      const ImVec2 xy1 ( deadzone_pos.x + deadzone_size.x,
+                         deadzone_pos.y + deadzone_size.y );
 
       if ( ( SK_ImGui_Cursor.prefs.no_warp.ui_open ||
              SK_ImGui_Cursor.prefs.no_warp.visible )  && 
            ( deadzone_hovered || ImGui::IsMouseHoveringRect ( xy0, xy1, false ) ) )
       {
-        ImVec4 col = ImColor::HSV ( 0.18f, 
-                                        std::min (1.0f, 0.85f + (sin ((float)(current_time % 400) / 400.0f))),
-                                                             (float)(0.66f + (current_time % 830) / 830.0f ) );
+        const ImVec4 col = ImColor::HSV ( 0.18f, 
+                                std::min (1.0f, 0.85f + (sin ((float)(current_time % 400) / 400.0f))),
+                                                     (float)(0.66f + (current_time % 830) / 830.0f ) );
         const ImU32 col32 =
           ImColor (col);
 
@@ -856,7 +892,8 @@ extern float SK_ImGui_PulseNav_Strength;
       ImGui::TreePop        ();
     }
 
-    bool devices = ImGui::CollapsingHeader ("Enable / Disable Devices");
+    const bool devices =
+      ImGui::CollapsingHeader ("Enable / Disable Devices");
 
     if (devices)
     {
@@ -884,6 +921,9 @@ void
 __stdcall
 SK_ImGui_KeybindDialog (SK_Keybind* keybind)
 {
+  if (! keybind)
+    return;
+
   ImGuiIO& io (ImGui::GetIO ());
 
   const  float font_size = ImGui::GetFont ()->FontSize * io.FontGlobalScale;
@@ -941,6 +981,9 @@ INT
 __stdcall
 SK_ImGui_GamepadComboDialog0 (SK_GamepadCombo_V0* combo)
 {
+  if (!combo)
+    return 0;
+
   ImGuiIO& io (ImGui::GetIO ());
 
   const  float font_size = ImGui::GetFont ()->FontSize * io.FontGlobalScale;
@@ -970,7 +1013,7 @@ SK_ImGui_GamepadComboDialog0 (SK_GamepadCombo_V0* combo)
     {
       if (last_combo != combo)
       {
-        unparsed       = L"";
+        unparsed.clear ();
         last_combo     = combo;
         last_change    = 0;
         last_buttons   = state.Gamepad.wButtons;
@@ -1002,22 +1045,23 @@ SK_ImGui_GamepadComboDialog0 (SK_GamepadCombo_V0* combo)
           }
         }
 
-        unparsed = L"";
+        unparsed.clear ();
 
         while (! buttons.empty ())
         {
-          unparsed += buttons.front ();
-                      buttons.pop   ();
+          unparsed.append (buttons.front ());
+                           buttons.pop   ();
 
           if (! buttons.empty ())
-            unparsed += L"+";
+            unparsed.append (L"+");
         }
 
         last_buttons = state.Gamepad.wButtons;
         last_change  = SK::ControlPanel::current_time;
       }
 
-      else if (last_change > 0 && last_change < SK::ControlPanel::current_time - 1000UL)
+      else if ( last_change >  0 &&
+                last_change < (SK::ControlPanel::current_time - 1000UL) )
       {
         combo->unparsed = unparsed;
 

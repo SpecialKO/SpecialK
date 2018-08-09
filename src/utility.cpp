@@ -58,7 +58,7 @@ SK_WideCharToUTF8 (const std::wstring& in)
   WideCharToMultiByte           ( CP_UTF8, 0x00, in.c_str (), static_cast <int> (in.length ()), const_cast <char *> (out.data ()), len, nullptr, FALSE );
 
   // Pretty sure this is pointless and already implied, but it makes me laugh
-  return std::move (out);
+  return out;
 }
 
 std::wstring
@@ -71,7 +71,7 @@ SK_UTF8ToWideChar (const std::string& in)
 
   MultiByteToWideChar           ( CP_UTF8, 0x00, in.c_str (), static_cast <int> (in.length ()), const_cast <wchar_t *> (out.data ()), len );
 
-  return std::move (out);
+  return out;
 }
 
 std::wstring&
@@ -84,18 +84,60 @@ SK_GetDocumentsDir (void)
   if (! dir.empty ())
     return dir;
 
+  CHandle  hToken (INVALID_HANDLE_VALUE);
+  wchar_t* str    = nullptr;
 
-  CHandle               hToken;
-  CComHeapPtr <wchar_t> str;
+  if (! OpenProcessToken (SK_GetCurrentProcess (), TOKEN_QUERY | TOKEN_IMPERSONATE |
+                                                   TOKEN_READ, &hToken.m_h))
+  {
+    dir = L"(null)";
+    return dir;
+  }
 
-  if (! OpenProcessToken (SK_GetCurrentProcess (), TOKEN_READ, &hToken.m_h))
+  HRESULT hr =
+    SHGetKnownFolderPath (FOLDERID_Documents, 0, hToken, &str);
+
+  dir = (SUCCEEDED (hr) ? str : L"UNKNOWN");
+
+  if (SUCCEEDED (hr))
+  {
+    CoTaskMemFree (str);
+    return dir;
+  }
+
+  return dir;
+}
+
+std::wstring&
+SK_GetRoamingDir (void)
+{
+  // Fast Path  (cached)
+  //
+  static std::wstring dir = L"";
+
+  if (! dir.empty ())
     return dir;
 
-  SHGetKnownFolderPath (FOLDERID_Documents, 0, hToken, &str);
+  CHandle  hToken (INVALID_HANDLE_VALUE);
+  wchar_t* str    = nullptr;
 
-  // Weak; not atomic, but we can worry about it later.
-  if (dir.empty ())
-      dir = std::move (str.m_pData);
+  if (! OpenProcessToken (SK_GetCurrentProcess (), TOKEN_QUERY | TOKEN_IMPERSONATE |
+                                                   TOKEN_READ, &hToken.m_h))
+  {
+    dir = L"(null)";
+    return dir;
+  }
+
+  HRESULT hr =
+    SHGetKnownFolderPath (FOLDERID_RoamingAppData, 0, hToken, &str);
+
+  dir = (SUCCEEDED (hr) ? str : L"UNKNOWN");
+
+  if (SUCCEEDED (hr))
+  {
+    CoTaskMemFree (str);
+    return dir;
+  }
 
   return dir;
 }
@@ -103,15 +145,35 @@ SK_GetDocumentsDir (void)
 std::wstring
 SK_GetFontsDir (void)
 {
-  CHandle               hToken;
-  CComHeapPtr <wchar_t> str;
+  // Fast Path  (cached)
+  //
+  static std::wstring dir = L"";
 
-  if (! OpenProcessToken (SK_GetCurrentProcess (), TOKEN_READ, &hToken.m_h))
-    return L"(null)";
+  if (! dir.empty ())
+    return dir;
 
-  SHGetKnownFolderPath (FOLDERID_Fonts, 0, hToken, &str);
+  CHandle  hToken (INVALID_HANDLE_VALUE);
+  wchar_t* str    = nullptr;
 
-  return std::wstring (str);
+  if (! OpenProcessToken (SK_GetCurrentProcess (), TOKEN_QUERY | TOKEN_IMPERSONATE |
+                                                   TOKEN_READ, &hToken.m_h ) )
+  {
+    dir = L"(null)";
+    return dir;
+  }
+
+  HRESULT hr =
+    SHGetKnownFolderPath (FOLDERID_Fonts, 0, hToken, &str);
+
+  dir = (SUCCEEDED (hr) ? str : L"UNKNOWN");
+
+  if (SUCCEEDED (hr))
+  {
+    CoTaskMemFree (str);
+    return dir;
+  }
+
+  return dir;
 }
 
 bool
@@ -1462,12 +1524,12 @@ SK_GetDLLVersionStr (const wchar_t* wszName)
 
   if (cbProductBytes)
   {
-    ret += wszFileDescrip;
-    ret += L"  ";
+    ret.append (wszFileDescrip);
+    ret.append (L"  ");
   }
 
   if (cbVersionBytes)
-    ret += wszFileVersion;
+    ret.append (wszFileVersion);
 
   return ret;
 }
@@ -2458,9 +2520,9 @@ SK_RestartGame (const wchar_t* wszDLL)
         SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\SpecialK)";
 
 #ifdef _WIN64
-      global_dll += L"64.dll";
+      global_dll.append (L"64.dll");
 #else
-      global_dll += L"32.dll";
+      global_dll.append (L"32.dll");
 #endif
 
                 wcsncpy ( wszFullname, global_dll.c_str (), MAX_PATH );
@@ -2567,9 +2629,12 @@ SK_FormatString (char const* const _Format, ...)
     sizeof (char) * (len + 1);
 
   char* pData =
-    ReadAcquire (&__SK_DLL_Attached) ?
-      (char *)SK_TLS_Bottom ()->scratch_memory.eula.alloc (alloc_size, true) :
-      (char *)SK_LocalAlloc (                        LPTR, alloc_size      );
+    ( ReadAcquire (&__SK_DLL_Attached) ?
+        (char *)SK_TLS_Bottom ()->scratch_memory.eula.alloc (alloc_size, true) :
+        (char *)SK_LocalAlloc (                        LPTR, alloc_size      ) );
+
+  if (! pData)
+    return std::string ();
 
   va_start (_ArgList, _Format);
   {
@@ -2602,6 +2667,9 @@ SK_FormatStringW (wchar_t const* const _Format, ...)
   wchar_t* pData = ReadAcquire (&__SK_DLL_Attached) ?
     (wchar_t *)SK_TLS_Bottom ()->scratch_memory.eula.alloc (alloc_size, true) :
     (wchar_t *)SK_LocalAlloc (                        LPTR, alloc_size      );
+
+  if (! pData)
+    return std::wstring ();
 
   va_start (_ArgList, _Format);
   {
@@ -3407,7 +3475,7 @@ SK_RecursiveMove ( const wchar_t* wszOrigDir,
         else
         {
           std::wstring tmp_dest = SK_GetHostPath ();
-                       tmp_dest += L"\\SKI0.tmp";
+                       tmp_dest.append (LR"(\SKI0.tmp)");
 
           SK_File_MoveNoFail (wszOld, tmp_dest.c_str ());
         }
@@ -3459,10 +3527,11 @@ SK_Win32_ReleaseTokenSid (PSID pSid)
 PSID
 SK_Win32_GetTokenSid (_TOKEN_INFORMATION_CLASS tic)
 {
-  PSID   pRet        = nullptr;
-  LPVOID pTokenBuf   = nullptr;
-  DWORD  dwAllocSize = 0;
-  HANDLE hToken;
+  PSID   pRet            = nullptr;
+  BYTE   token_buf [256] = { };
+  LPVOID pTokenBuf       = nullptr;
+  DWORD  dwAllocSize     = 0;
+  HANDLE hToken          = INVALID_HANDLE_VALUE;
 
   if (OpenProcessToken (GetCurrentProcess (), TOKEN_QUERY, &hToken))
   {
@@ -3471,8 +3540,6 @@ SK_Win32_GetTokenSid (_TOKEN_INFORMATION_CLASS tic)
     {
       if (GetLastError () == ERROR_INSUFFICIENT_BUFFER)
       {
-        BYTE token_buf [256] = { };
-
         if (     tic == TokenUser           && dwAllocSize <= 256)
           pTokenBuf = token_buf;
         else if (tic == TokenIntegrityLevel && dwAllocSize <= 256)

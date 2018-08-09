@@ -395,17 +395,17 @@ SK_Steam_FindInstallPath (uint32_t appid)
         dwSize =
           GetFileSize (hManifest, &dwSizeHigh);
 
-        auto* szManifestData =
-          new char [dwSize + 1] { };
+        auto szManifestData =
+          std::make_unique <char []> (
+            std::size_t (dwSize + 1)
+          );
 
-        if (! szManifestData)
+        if (! szManifestData.get ())
           continue;
-
-        std::unique_ptr <char> manifest_data (szManifestData);
 
         bool bRead =
           ReadFile ( hManifest,
-                       szManifestData,
+                       szManifestData.get (),
                          dwSize,
                            &dwRead,
                              nullptr );
@@ -416,21 +416,20 @@ SK_Steam_FindInstallPath (uint32_t appid)
         }
 
         char* szAppName =
-          StrStrIA (szManifestData, R"("installdir")");
-
-        char szGamePath [513] = { };
+          StrStrIA (szManifestData.get (), R"("installdir")");
 
         if (szAppName != nullptr)
         {
-          // Make sure everything is lowercase
-          memcpy (szAppName, R"("installdir")", 12);
+          char szGamePath [513] = { };
 
+          // Make sure everything is lowercase
+          memcpy ( szAppName, R"("installdir")", 12 );
           sscanf ( szAppName,
-                     R"("installdir" "%512[^"]")",
+                  R"("installdir" "%512[^"]")",
                        szGamePath );
 
           static wchar_t wszFound [MAX_PATH * 2 + 1] = { };
-          wcsncpy       (wszFound, SK_UTF8ToWideChar (szGamePath).c_str (), MAX_PATH * 2);
+          wcsncpy_s     (wszFound, MAX_PATH * 2, SK_UTF8ToWideChar (szGamePath).c_str (), _TRUNCATE);
           return         wszFound;
         }
       }
@@ -453,68 +452,69 @@ SK_Steam_GetDLLPath ( wchar_t* wszDestBuf,
                             L"steam_api.dll"    );
 
   static wchar_t
-    dll_file [MAX_PATH * 2 - 1] = { };
+    dll_file [MAX_PATH * 2 + 1] = { };
 
   // Already have a working DLL
   if (SK_Modules.LoadLibrary (dll_file))
-  {      wcsncpy (wszDestBuf, dll_file, max_size);
+  {
+    wcsncpy_s (wszDestBuf, max_size, dll_file, _TRUNCATE);
     return true;
   }
 
   std::wstring& cfg_path =
     config.steam.dll_path;
 
-  if (                        (!cfg_path.empty ()) &&
-       GetFileAttributesW      (cfg_path.c_str ()) != INVALID_FILE_ATTRIBUTES )
-  { if (SK_Modules.LoadLibrary (cfg_path.c_str ()))
-    { wcsncpy (wszDestBuf,      cfg_path.c_str (), max_size);
-      wcsncpy (dll_file,        cfg_path.c_str (), max_size);
+  if (                               (!cfg_path.empty ()) &&
+       GetFileAttributesW             (cfg_path.c_str ()) != INVALID_FILE_ATTRIBUTES )
+  { if (SK_Modules.LoadLibrary        (cfg_path.c_str ()))
+    { wcsncpy_s (wszDestBuf, max_size, cfg_path.c_str (), _TRUNCATE);
+      wcsncpy_s (dll_file,   max_size, cfg_path.c_str (), _TRUNCATE);
       return true;
     }
   }
 
   cfg_path.resize (0);
 
-  wchar_t      wszExecutablePath                    [MAX_PATH * 2] = { };
-  wcsncpy     (wszExecutablePath, SK_GetHostPath (), MAX_PATH * 2);
+  wchar_t      wszExecutablePath [MAX_PATH * 2 + 1] = { };
+  wcsncpy_s   (wszExecutablePath, MAX_PATH, SK_GetHostPath (), _TRUNCATE);
   PathAppendW (wszExecutablePath, wszSteamLib);
 
   // The simplest case:  * DLL is in the same directory as the executable.
   //
-  if (SK_Modules.LoadLibrary         (wszExecutablePath))
-  {   wcsncpy (dll_file,   wszExecutablePath, max_size);
-      wcsncpy (wszDestBuf, dll_file,          max_size);
+  if (SK_Modules.LoadLibrary           (wszExecutablePath))
+  {   wcsncpy_s (dll_file,   max_size, wszExecutablePath, _TRUNCATE);
+      wcsncpy_s (wszDestBuf, max_size, dll_file,          _TRUNCATE);
       cfg_path.assign     (dll_file);
 
     return true;
   }
 
-  wcsncpy  (wszExecutablePath, SK_GetHostPath (), MAX_PATH * 2);
-  lstrcatW (wszExecutablePath, L".");
+  wcsncpy_s (wszExecutablePath, MAX_PATH, SK_GetHostPath (), _TRUNCATE);
+  lstrcatW  (wszExecutablePath, L".");
 
   // Moonwalk to find the game's absolute root directory, rather than
   //   whatever subdirectory the executable might be in.
-  while (PathRemoveFileSpecW (wszExecutablePath))
-  { if  (StrStrIW            (wszExecutablePath, LR"(SteamApps\common\)"))
-    {    wcsncpy (dll_file,   wszExecutablePath, max_size);
-                   lstrcatW  (wszExecutablePath, L".");
+  while (PathRemoveFileSpecW           (wszExecutablePath))
+  { if  (StrStrIW                      (wszExecutablePath, LR"(SteamApps\common\)"))
+    {    wcsncpy_s (dll_file, max_size, wszExecutablePath, _TRUNCATE);
+                             lstrcatW  (wszExecutablePath, L".");
     } else break;
   }
 
   // Try the DLL we went back to the root of the install dir-tree for first.
   if (                         *dll_file != L'\0')
-  { wcsncpy (wszExecutablePath, dll_file, MAX_PATH * 2); }
+  { wcsncpy_s (wszExecutablePath, MAX_PATH * 2, dll_file, _TRUNCATE); }
 
   // Then get the base install directory from Steam (if we can).
   else if (config.steam.appid != 0)
-  { wcsncpy ( wszExecutablePath,
+  { wcsncpy_s ( wszExecutablePath, MAX_PATH * 2, 
                 SK_Steam_FindInstallPath (config.steam.appid),
-                  MAX_PATH * 2 );
+                  _TRUNCATE );
   }
 
   // Finally, give up and hope the DLL is relative to the executable.
   else
-    wcsncpy (wszExecutablePath, SK_GetHostPath (), MAX_PATH * 2);
+    wcsncpy_s (wszExecutablePath, MAX_PATH * 2, SK_GetHostPath (), _TRUNCATE);
 
   static wchar_t
     wszFullSteamDllPath [MAX_PATH * 2 - 1] = { };
@@ -526,14 +526,12 @@ SK_Steam_GetDLLPath ( wchar_t* wszDestBuf,
                         )
                         );
 
-  wcsncpy ( wszFullSteamDllPath,
-              wcsncpy ( dll_file,
-                          recursed.c_str (),
-                            MAX_PATH * 2  ),
-                            MAX_PATH * 2  );
+    wcsncpy_s (dll_file,             MAX_PATH * 2, recursed.c_str (), _TRUNCATE);
+    wcsncpy_s ( wszFullSteamDllPath, MAX_PATH * 2, dll_file,          _TRUNCATE);
 
-  if (SK_Modules.LoadLibrary     (wszFullSteamDllPath))
-  { wcsncpy         (wszDestBuf,  wszFullSteamDllPath, max_size);
+
+  if (SK_Modules.LoadLibrary              (wszFullSteamDllPath))
+  { wcsncpy_s       (wszDestBuf, max_size, wszFullSteamDllPath, _TRUNCATE);
     cfg_path.assign (wszDestBuf);
     return true;
   }
@@ -756,11 +754,15 @@ SK_Steam_ScreenshotManager::WaitOnScreenshot ( ScreenshotHandle handle,
                                                DWORD            dwTimeoutMs )
 {
   DWORD dwStatus =
-    MsgWaitForMultipleObjects (_StatusTypes, hSigReady, FALSE, dwTimeoutMs, 0x0);
+    MsgWaitForMultipleObjects ( _StatusTypes, hSigReady,
+                                  FALSE, dwTimeoutMs,
+                                    0x0 );
 
-  if (dwStatus >= WAIT_OBJECT_0 && dwStatus < MAXIMUM_WAIT_OBJECTS)
+  if (   dwStatus >=  WAIT_OBJECT_0                         &&
+         dwStatus <  (WAIT_OBJECT_0 + MAXIMUM_WAIT_OBJECTS) &&
+       ( dwStatus  -  WAIT_OBJECT_0 ) < 2 )
   {
-    UINT type = ( dwStatus - WAIT_OBJECT_0 );
+    UINT type = std::min ( 1UL, dwStatus - WAIT_OBJECT_0 );
     auto iter = screenshots_handled.find (handle);
 
     if (iter != screenshots_handled.end ())
@@ -811,7 +813,7 @@ getExternalScreenshotPath (void)
   if (*wszAbsolutePathToScreenshots != L'\0')
     return wszAbsolutePathToScreenshots;
 
-  wcsncpy      ( wszAbsolutePathToScreenshots, SK_GetConfigPath (), MAX_PATH * 2);
+  wcsncpy_s    ( wszAbsolutePathToScreenshots, MAX_PATH * 2, SK_GetConfigPath (), _TRUNCATE);
   PathAppendW  ( wszAbsolutePathToScreenshots, L"Screenshots" );
 
   return         wszAbsolutePathToScreenshots;
@@ -2357,13 +2359,13 @@ public:
         float x_origin, y_origin,
               x_dir,    y_dir;
 
-        CEGUI::Window* first = popups.begin ()->window;
+        CEGUI::Window* first = it->window;
 
         const float win_ht0 = first != nullptr ?
-                                (popups.begin ()->window->getPixelSize ().d_height) :
+                                (it->window->getPixelSize ().d_height) :
                                   0.0f;
         const float win_wd0 = first != nullptr ?
-                                (popups.begin ()->window->getPixelSize ().d_width) :
+                                (it->window->getPixelSize ().d_width) :
                                   0.0f;
 
         const float title_wd =
@@ -2543,8 +2545,7 @@ public:
         if (config.steam.achievements.take_screenshot && take_screenshot > 0)
         {
           // Delay the screenshot so it doesn't show up twice
-          if (take_screenshot > 0)
-              take_screenshot--;
+          --take_screenshot;
 
           if (! take_screenshot)
           {
@@ -2752,7 +2753,9 @@ public:
                   rewind (fWAV);
 
       unlock_sound =
-        new uint8_t [size];
+        static_cast <uint8_t *> (
+          malloc (size)
+        );
 
       if (unlock_sound != nullptr)
         fread  (unlock_sound, size, 1, fWAV);
@@ -3037,8 +3040,8 @@ private:
   std::vector <SK_AchievementPopup> popups;
   int                               lifetime_popups;
 
-  SteamAPICall_t global_request;
-  SteamAPICall_t stats_request;
+  SteamAPICall_t global_request = { };
+  SteamAPICall_t stats_request  = { };
 
   bool           default_loaded = false;
   uint8_t*       unlock_sound   = nullptr;   // A .WAV (PCM) file
@@ -3463,9 +3466,9 @@ SteamAPI_PumpThread (LPVOID user)
 {
   if (SK_GetCurrentGameID () == SK_GAME_ID::FinalFantasyXV)
   {
-    InterlockedExchangePointer ((void **)&hSteamPump, nullptr);
-
     SK_Thread_CloseSelf ();
+
+    InterlockedExchangePointer ((void **)&hSteamPump, nullptr);
 
     return 0;
   }
@@ -3505,13 +3508,14 @@ SteamAPI_PumpThread (LPVOID user)
   //
   if (callback_freq < 3.0)
   {
-    if (SteamAPI_InitSafe_Original ())
+    if ( SteamAPI_InitSafe_Original  != nullptr &&
+         SteamAPI_InitSafe_Original ()             )
     {
       SetThreadPriority (SK_GetCurrentThread (), THREAD_PRIORITY_LOWEST);
 
       steam_log.Log ( L" >> Installing a callback auto-pump at 8 Hz.\n\n");
 
-      while (true)
+      while (! ReadAcquire (&__SK_DLL_Ending))
       {
         SK::SteamAPI::Pump ();
 
@@ -3526,9 +3530,9 @@ SteamAPI_PumpThread (LPVOID user)
     }
   }
 
-  InterlockedExchangePointer ((void **)&hSteamPump, nullptr);
-
   SK_Thread_CloseSelf ();
+  
+  InterlockedExchangePointer ((void **)&hSteamPump, nullptr);
 
   return 0;
 
@@ -3706,13 +3710,14 @@ SK_Steam_GetLibraries (steam_library_t** ppLibraries)
         dwSize =
           GetFileSize (hLibFolders, &dwSizeHigh);
 
-        void* data =
-          new uint8_t [dwSize + 1] { };
+        SK_TLS *pTLS =
+          SK_TLS_Bottom ();
+
+        char* data = (char *)
+          pTLS->steam.allocScratchText (dwSize + 1);
 
         if (data == nullptr)
           return steam_libs;
-
-        std::unique_ptr <uint8_t> _data ((uint8_t *)data);
 
         dwRead = dwSize;
 
@@ -3720,11 +3725,11 @@ SK_Steam_GetLibraries (steam_library_t** ppLibraries)
         {
           for (DWORD i = 0; i < dwSize; i++)
           {
-            if (((const char *)data) [i] == '"' && i < dwSize - 3)
+            if (data [i] == '"' && i < dwSize - 3)
             {
-              if (((const char *)data) [i + 2] == '"')
+              if (data [i + 2] == '"')
                 i += 2;
-              else if (((const char *)data) [i + 3] == '"')
+              else if (data [i + 3] == '"')
                 i += 3;
               else
                 continue;
@@ -3733,16 +3738,22 @@ SK_Steam_GetLibraries (steam_library_t** ppLibraries)
 
               for (DWORD j = i; j < dwSize; j++,i++)
               {
-                if (((char *)data) [j] == '"' && lib_start == nullptr && j < dwSize - 1)
+                if (data [j] == '"' && lib_start == nullptr && j < dwSize - 1)
                 {
-                  lib_start = &((char *)data) [j+1];
+                  lib_start =
+                    &data [j + 1];
                 }
 
-                else if (((char *)data) [j] == '"')
+                else if (data [j] == '"' && lib_start != nullptr)
                 {
-                  ((char *)data) [j] = '\0';
+                  data [j] = '\0';
 
-                  wsprintfW ((wchar_t *)steam_lib_paths [steam_libs++], L"%hs", lib_start);
+                  wsprintfW (
+                    (wchar_t *)steam_lib_paths [steam_libs++],
+                      L"%hs",
+                        lib_start
+                  );
+
                   lib_start = nullptr;
                 }
               }
@@ -3750,11 +3761,13 @@ SK_Steam_GetLibraries (steam_library_t** ppLibraries)
           }
         }
       }
-    }
 
-    // Finally, add the default Steam library
-    lstrcpyW ( (wchar_t *)steam_lib_paths [steam_libs++],
-                 wszSteamPath );
+      // Finally, add the default Steam library
+      wcsncpy_s ( (wchar_t *)steam_lib_paths [steam_libs++],
+                    MAX_PATH * 2,
+                      wszSteamPath,
+                        _TRUNCATE );
+    }
 
     scanned_libs = true;
   }
@@ -3801,17 +3814,19 @@ SK_UseManifestToGetAppName (uint32_t appid)
         dwSize =
           GetFileSize (hManifest, &dwSizeHigh);
 
-        auto* szManifestData =
-          new char [dwSize + 1] { };
+        auto szManifestData =
+          std::make_unique <char []> (
+            std::size_t (dwSize + 1)
+          );
+        auto manifest_data =
+          szManifestData.get ();
 
-        if (! szManifestData)
+        if (! manifest_data)
           continue;
-
-        std::unique_ptr <char> manifest_data (szManifestData);
 
         bool bRead =
           ReadFile ( hManifest,
-                       szManifestData,
+                       manifest_data,
                          dwSize,
                            &dwRead,
                              nullptr );
@@ -3822,7 +3837,7 @@ SK_UseManifestToGetAppName (uint32_t appid)
         }
 
         char* szAppName =
-          StrStrIA (szManifestData, R"("name")");
+          StrStrIA (manifest_data, R"("name")");
 
         char szGameName [513] = { };
 
@@ -4950,6 +4965,9 @@ SK_Steam_LoadOverlayEarly (void)
   const wchar_t* wszSteamPath =
       SK_GetSteamDir ();
 
+  if (wszSteamPath == nullptr)
+    return false;
+
   wchar_t    wszOverlayDLL [MAX_PATH + 2] = { };
   lstrcatW ( wszOverlayDLL, wszSteamPath );
   lstrcatW ( wszOverlayDLL, SK_RunLHIfBitness ( 64, LR"(\GameOverlayRenderer64.dll)",
@@ -6025,7 +6043,7 @@ SK_Steam_KickStart (const wchar_t* wszLibPath)
       wchar_t wszDLLPath [MAX_PATH * 2 + 4] = { };
 
       if (SK_IsInjected ())
-        wcsncpy (wszDLLPath, SK_GetModuleFullName (SK_GetDLL ()).c_str (), MAX_PATH * 2);
+        wcsncpy_s (wszDLLPath, MAX_PATH * 2, SK_GetModuleFullName (SK_GetDLL ()).c_str (), _TRUNCATE);
       else
       {
         _swprintf ( wszDLLPath, LR"(%s\My Mods\SpecialK\SpecialK.dll)",
@@ -6434,7 +6452,8 @@ SK::SteamAPI::GetConfigDir (void)
       return szDir;
   }
 
-  return "";
+  return
+    std::string ();
 }
 
 std::string
@@ -6448,7 +6467,8 @@ SK::SteamAPI::GetDataDir (void)
       return szDir;
   }
 
-  return "";
+  return
+    std::string ();
 }
 
 

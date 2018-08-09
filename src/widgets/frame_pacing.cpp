@@ -45,7 +45,7 @@ public:
     setDockingPoint (DockAnchor::SouthEast).setClickThrough (true).setVisible (false);
   };
 
-  virtual void run (void) override
+  void run (void) override
   {
     if (! ImGui::GetFont ())
       return;
@@ -60,7 +60,7 @@ public:
       ImGui::SetNextWindowSize (new_size, ImGuiSetCond_Always);
   }
 
-  virtual void draw (void) override
+  void draw (void) override
   {
     if (! ImGui::GetFont ())
       return;

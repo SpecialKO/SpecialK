@@ -151,12 +151,12 @@ CoCreateInstanceEx_Detour (
   _In_    DWORD        dwCount,
   _Inout_ MULTI_QI     *pResults )
 {
-  bool device =   (rclsid == CLSID_DirectInputDevice8 || rclsid == CLSID_DirectInputDevice);
-  bool base   = device    ?                     false :
+  const bool device =   (rclsid == CLSID_DirectInputDevice8 || rclsid == CLSID_DirectInputDevice);
+  const bool base   = device    ?                     false :
                   (rclsid == CLSID_DirectInput8       || rclsid == CLSID_DirectInput);
 
-  int version = device ? (rclsid == CLSID_DirectInputDevice8 ? 8 : 7 )
-                       : (rclsid == CLSID_DirectInput8       ? 8 : 7 );
+  const int version = device ? (rclsid == CLSID_DirectInputDevice8 ? 8 : 7 )
+                             : (rclsid == CLSID_DirectInput8       ? 8 : 7 );
 
   if (device || base)
   {

@@ -94,7 +94,7 @@ public:
     cfg->write (cfg->get_filename ());
   }
 
-  virtual void run (void) override
+  void run (void) override
   {
     static bool first_run = true;
 
@@ -276,7 +276,7 @@ public:
     }
   }
 
-  virtual void draw (void) override
+  void draw (void) override
   {
     if (! ImGui::GetFont ()) return;
 

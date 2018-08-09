@@ -22,9 +22,6 @@
     <Filter Include="Libraries">
       <UniqueIdentifier>{6476d756-0c99-46ec-bc6c-4f9695d477e5}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Diagnostics">
-      <UniqueIdentifier>{05b0d4e1-1c73-4c73-b5b0-c2ab8082c6e9}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\DirectXTex">
       <UniqueIdentifier>{53877763-ffe5-4232-9427-f0c56a07fa57}</UniqueIdentifier>
     </Filter>
@@ -57,9 +54,6 @@
     </Filter>
     <Filter Include="Source Files\Config">
       <UniqueIdentifier>{437ec84a-fe34-4fbe-8205-38c72400b648}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\OSD">
-      <UniqueIdentifier>{8fbcdce6-8e2c-4712-9b40-d4085ce8ac67}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\Core">
       <UniqueIdentifier>{ffa43eba-e15f-42a6-94db-48550860d406}</UniqueIdentifier>
@@ -145,9 +139,6 @@
     <Filter Include="Header Files\Backends\Render\DXGI">
       <UniqueIdentifier>{51556ace-0f83-4e7e-86f9-187c3ff300ba}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Backends\Render\D3D9">
-      <UniqueIdentifier>{6edf9f50-6c38-41f8-9392-801c33c99713}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Backends\Input\XInput">
       <UniqueIdentifier>{34308ae9-cbef-4d8c-b596-f740b220f76b}</UniqueIdentifier>
     </Filter>
@@ -214,6 +205,21 @@
     <Filter Include="Source Files\Backends\Render\DXGI\D3D11">
       <UniqueIdentifier>{cd668061-d1a5-4e3e-8f77-436f770fac97}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Control Panel">
+      <UniqueIdentifier>{1d99dc0a-9961-4f90-84bd-cad61eebd693}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\gsl">
+      <UniqueIdentifier>{a32710b7-06e3-44a2-8bb4-13636eb9dc77}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Plugins\OSD">
+      <UniqueIdentifier>{8fbcdce6-8e2c-4712-9b40-d4085ce8ac67}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Backends\Render\DDraw\D3D9">
+      <UniqueIdentifier>{6edf9f50-6c38-41f8-9392-801c33c99713}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\DirectXTex\Diagnostics">
+      <UniqueIdentifier>{05b0d4e1-1c73-4c73-b5b0-c2ab8082c6e9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="depends\DirectXTex\DDS.h">
@@ -265,25 +271,25 @@
       <Filter>Header Files\Core</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\command.h">
-      <Filter>Header Files\OSD</Filter>
+      <Filter>Header Files\Plugins\OSD</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\console.h">
-      <Filter>Header Files\OSD</Filter>
+      <Filter>Header Files\Plugins\OSD</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\osd\popup.h">
-      <Filter>Header Files\OSD</Filter>
+      <Filter>Header Files\Plugins\OSD</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\osd\text.h">
-      <Filter>Header Files\OSD</Filter>
+      <Filter>Header Files\Plugins\OSD</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\diagnostics\compatibility.h">
-      <Filter>Header Files\Diagnostics</Filter>
+      <Filter>Header Files\DirectXTex\Diagnostics</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\diagnostics\crash_handler.h">
-      <Filter>Header Files\Diagnostics</Filter>
+      <Filter>Header Files\DirectXTex\Diagnostics</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\diagnostics\debug_utils.h">
-      <Filter>Header Files\Diagnostics</Filter>
+      <Filter>Header Files\DirectXTex\Diagnostics</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\DLL_VERSION.H">
       <Filter>Header Files\Core</Filter>
@@ -378,27 +384,6 @@
     <ClInclude Include="include\SpecialK\input\steam.h">
       <Filter>Header Files\Backends\Input\Steam</Filter>
     </ClInclude>
-    <ClInclude Include="include\SpecialK\plugin\reshade.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SpecialK\sha1.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SpecialK\input\dinput7_backend.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SpecialK\thread.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SpecialK\crc32.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SpecialK\hash.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SpecialK\SpecialK.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\SpecialK\com_util.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -409,7 +394,7 @@
       <Filter>Header Files\Backends\Render\DXGI</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\render\d3d9\d3d9_backend.h">
-      <Filter>Header Files\Backends\Render\D3D9</Filter>
+      <Filter>Header Files\Backends\Render\DDraw\D3D9</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\render\vk\vulkan_backend.h">
       <Filter>Header Files\Backends\Render\Vulkan</Filter>
@@ -439,37 +424,10 @@
       <Filter>Header Files\Stats</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\render\d3d9\d3d9_texmgr.h">
-      <Filter>Header Files\Backends\Render\D3D9</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SpecialK\control_panel.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SpecialK\control_panel\osd.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SpecialK\control_panel\opengl.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SpecialK\control_panel\sound.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SpecialK\control_panel\compatibility.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SpecialK\control_panel\window.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SpecialK\control_panel\plugins.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SpecialK\injection\blacklist.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SpecialK\diagnostics\modules.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Backends\Render\DDraw\D3D9</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\diagnostics\load_library.h">
-      <Filter>Header Files\Diagnostics</Filter>
+      <Filter>Header Files\DirectXTex\Diagnostics</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteamapplist.h">
       <Filter>Header Files\Steam</Filter>
@@ -556,13 +514,13 @@
       <Filter>Header Files\Steam</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\control_panel\d3d9.h">
-      <Filter>Header Files\Backends\Render\D3D9</Filter>
+      <Filter>Header Files\Backends\Render\DDraw\D3D9</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\render\d3d9\d3d9_device.h">
-      <Filter>Header Files\Backends\Render\D3D9</Filter>
+      <Filter>Header Files\Backends\Render\DDraw\D3D9</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\render\d3d9\d3d9_swapchain.h">
-      <Filter>Header Files\Backends\Render\D3D9</Filter>
+      <Filter>Header Files\Backends\Render\DDraw\D3D9</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\control_panel\d3d11.h">
       <Filter>Header Files\Backends\Render\DXGI</Filter>
@@ -632,6 +590,54 @@
     </ClInclude>
     <ClInclude Include="include\SpecialK\control_panel\input.h">
       <Filter>Header Files\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\control_panel.h">
+      <Filter>Header Files\Control Panel</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\control_panel\compatibility.h">
+      <Filter>Header Files\Control Panel</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\control_panel\plugins.h">
+      <Filter>Header Files\Control Panel</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\plugin\reshade.h">
+      <Filter>Header Files\Control Panel</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\control_panel\osd.h">
+      <Filter>Header Files\Control Panel</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\control_panel\opengl.h">
+      <Filter>Header Files\Control Panel</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\input\dinput7_backend.h">
+      <Filter>Header Files\Backends\Input\DirectInput</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\injection\blacklist.h">
+      <Filter>Header Files\DirectXTex\Diagnostics</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\diagnostics\modules.h">
+      <Filter>Header Files\DirectXTex\Diagnostics</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\sha1.h">
+      <Filter>Header Files\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\hash.h">
+      <Filter>Header Files\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\crc32.h">
+      <Filter>Header Files\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\control_panel\sound.h">
+      <Filter>Header Files\Control Panel</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\thread.h">
+      <Filter>Header Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\SpecialK.h">
+      <Filter>Header Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\control_panel\window.h">
+      <Filter>Header Files\Control Panel</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1063,12 +1069,6 @@
     <None Include="CHANGELOG" />
     <None Include="README.md" />
     <None Include="TODO" />
-    <None Include="include\SpecialK\commands\mem.inl">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="include\SpecialK\commands\update.inl">
-      <Filter>Header Files</Filter>
-    </None>
     <None Include="include\imgui\imgui_user.inl">
       <Filter>Header Files\ImGui</Filter>
     </None>
@@ -1108,6 +1108,19 @@
     <None Include="resource\packages\WinRing0_64.7z">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="include\SpecialK\commands\mem.inl">
+      <Filter>Header Files\Utility</Filter>
+    </None>
+    <None Include="include\SpecialK\commands\update.inl">
+      <Filter>Header Files\Core</Filter>
+    </None>
+    <None Include="include\gsl\gsl">
+      <Filter>Header Files\gsl</Filter>
+    </None>
+    <None Include="include\gsl\gsl_assert">
+      <Filter>Header Files\gsl</Filter>
+    </None>
+    <None Include="SpecialK.ruleset" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource\Resource.rc">

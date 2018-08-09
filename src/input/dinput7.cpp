@@ -870,7 +870,7 @@ IDirectInputDevice7_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE7       This,
     {
       SK_DI7_READ (sk_input_dev_type::Keyboard)
 
-      if (SK_ImGui_WantKeyboardCapture () && lpvData != nullptr)
+      if (SK_ImGui_WantKeyboardCapture ())
         memset (lpvData, 0, cbData);
     }
 

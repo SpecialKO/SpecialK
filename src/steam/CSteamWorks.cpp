@@ -325,7 +325,7 @@ CSteamworks_Delay_Init (LPVOID user)
     if (ReadAcquire (&__SK_Steam_init))
       break;
 
-    if (InitSafe_Detour != nullptr)
+    if (InitSafe_Original != nullptr)
       InitSafe_Detour ();
 
     ++tries;

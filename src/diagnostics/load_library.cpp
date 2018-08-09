@@ -25,7 +25,10 @@
 #include <SpecialK/diagnostics/load_library.h>
 #include <SpecialK/diagnostics/compatibility.h>
 #include <SpecialK/diagnostics/crash_handler.h>
+#include <SpecialK/diagnostics/debug_utils.h>
 #include <process.h>
+
+#include <gsl/gsl>
 
 #pragma warning (disable:4091)
 #define _IMAGEHLP_SOURCE_
@@ -37,7 +40,6 @@
 #include <typeindex>
 
 #include <unordered_set>
-#include <concurrent_unordered_set.h>
 
 #include <cassert>
 
@@ -58,7 +60,13 @@
 
 #include <SpecialK/DLL_VERSION.H>
 
-concurrency::concurrent_unordered_set <HMODULE>dbghelp_callers;
+concurrency::concurrent_unordered_set <HMODULE>&
+SK_DbgHlp_Callers (void)
+{
+  static concurrency::concurrent_unordered_set <HMODULE>_callers;
+  return                                                _callers;
+}
+
 
 #define SK_CHAR(x) (_T)        (constexpr _T      (std::type_index (typeid (_T)) == std::type_index (typeid (wchar_t))) ? (      _T  )(_L(x)) : (      _T  )(x))
 #define SK_TEXT(x) (const _T*) (constexpr LPCVOID (std::type_index (typeid (_T)) == std::type_index (typeid (wchar_t))) ? (const _T *)(_L(x)) : (const _T *)(x))
@@ -337,11 +345,11 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
 #undef lstrcat
 #undef GetModuleHandleEx
 
-  static wchar_t wszDbgHelp [MAX_PATH * 2] = { };
+  static wchar_t wszDbgHelp [MAX_PATH * 2 + 1] = { };
 
   if (! *wszDbgHelp)
   {
-    wcsncpy     (wszDbgHelp, SK_GetSystemDirectory (), MAX_PATH);
+    wcsncpy_s   (wszDbgHelp, MAX_PATH * 2, SK_GetSystemDirectory (), _TRUNCATE);
     PathAppendW (wszDbgHelp, L"dbghelp.dll");
   }
 
@@ -585,9 +593,11 @@ FreeLibrary_Detour (HMODULE hLibModule)
 
   SK_LockDllLoader ();
 
-  std::wstring name = SK_GetModuleName (hLibModule);
+        std::wstring name =
+    SK_GetModuleName (hLibModule);
 
-  BOOL bRet = FreeLibrary_Original (hLibModule);
+  const BOOL         bRet =
+    FreeLibrary_Original (hLibModule);
 
   if ( (! (SK_LoadLibrary_SILENCE)) ||
            SK_GetModuleName (hLibModule).find (L"steam") != std::wstring::npos )
@@ -631,13 +641,17 @@ LoadLibrary_Marshal (LPVOID lpRet, LPCWSTR lpFileName, const wchar_t* wszSourceF
 
   HMODULE hModEarly = nullptr;
 
-  wchar_t*          compliant_path = (wchar_t *)lpFileName;
+  wchar_t*          compliant_path =
+            const_cast <wchar_t *> (lpFileName);
 
-  if (StrStrW (compliant_path, L"/"))
-  {
-                    compliant_path =
-        (wchar_t *)SK_TLS_Bottom ()->scratch_memory.cmd.alloc ((wcslen (lpFileName) + 1) * sizeof (wchar_t));
-            wcscpy (compliant_path, lpFileName);
+  if (     StrStrW (compliant_path, L"/"))
+  {                 compliant_path =
+    reinterpret_cast <wchar_t *> (
+                    SK_TLS_Bottom ()->scratch_memory.cmd.alloc (
+                           (wcslen (lpFileName) + 1) *
+              sizeof (wchar_t), true                           )
+                                 );
+          lstrcatW (compliant_path, lpFileName);
     SK_FixSlashesW (compliant_path);
   }
 
@@ -723,8 +737,12 @@ LoadPackagedLibrary_Detour (LPCWSTR lpLibFileName, DWORD Reserved)
   HMODULE hModEarly = nullptr;
 
   wchar_t*        compliant_path =
-        (wchar_t *)SK_TLS_Bottom ()->scratch_memory.cmd.alloc ((wcslen (lpLibFileName) + 1) * sizeof (wchar_t));
-          wcscpy (compliant_path, lpLibFileName);
+  reinterpret_cast <wchar_t *> (
+                  SK_TLS_Bottom ()->scratch_memory.cmd.alloc (
+                         (wcslen (lpLibFileName) + 1) *
+            sizeof (wchar_t), true                           )
+                               );
+        lstrcatW (compliant_path, lpLibFileName);
   SK_FixSlashesW (compliant_path);
   lpLibFileName = compliant_path;
 
@@ -767,13 +785,17 @@ LoadLibraryEx_Marshal (LPVOID lpRet, LPCWSTR lpFileName, HANDLE hFile, DWORD dwF
   if (lpFileName == nullptr)
     return nullptr;
 
-  wchar_t* compliant_path = (wchar_t *)lpFileName;
+    wchar_t*          compliant_path =
+            const_cast <wchar_t *> (lpFileName);
 
-  if (StrStrW (lpFileName, L"/"))
-  {
-                    compliant_path =
-        (wchar_t *)SK_TLS_Bottom ()->scratch_memory.cmd.alloc ((wcslen (lpFileName)+1) * sizeof (wchar_t));
-            wcscpy (compliant_path, lpFileName);
+  if (     StrStrW (compliant_path, L"/"))
+  {                 compliant_path =
+    reinterpret_cast <wchar_t *> (
+                    SK_TLS_Bottom ()->scratch_memory.cmd.alloc (
+                           (wcslen (lpFileName) + 1) *
+              sizeof (wchar_t), true                           )
+                                 );
+          lstrcatW (compliant_path, lpFileName);
     SK_FixSlashesW (compliant_path);
   }
 
@@ -1143,14 +1165,15 @@ _SK_SummarizeModule ( LPVOID   base_addr,  size_t      mod_size,
                       HMODULE  hMod,       uintptr_t   addr,
                       wchar_t* wszModName, iSK_Logger* pLogger )
 {
-  ULONG ulLen =  0;
+  if (! (pLogger && wszModName))
+    return;
 
 #ifdef _DEBUG
+    ULONG ulLen =  0;
     char  szSymbol [512] = { };
     //~~~ This is too slow and useless
     ulLen = SK_GetSymbolNameFromModuleAddr (hMod, addr, szSymbol, ulLen);
 #else
-  UNREFERENCED_PARAMETER (ulLen);
   UNREFERENCED_PARAMETER (hMod);
   UNREFERENCED_PARAMETER (addr);
 #endif
@@ -1171,8 +1194,8 @@ _SK_SummarizeModule ( LPVOID   base_addr,  size_t      mod_size,
 #endif
   {
     pLogger->Log ( L"[ Module ]  ( %ph + %08i )       %-64hs       %s",
-                    static_cast   <void *>  (base_addr),
-                      static_cast <int32_t> (mod_size),
+                                             base_addr,
+                 gsl::narrow_cast <int32_t> (mod_size),
                         "", SK_StripUserNameFromPathW (wszModName) );
   }
 
@@ -1190,7 +1213,7 @@ void
 SK_ThreadWalkModules (enum_working_set_s* pWorkingSet)
 {
   auto user =
-    static_cast <LPVOID> (pWorkingSet);
+    pWorkingSet;
 
   static volatile LONG    init           = FALSE;
   static CRITICAL_SECTION cs_thread_walk = { };
@@ -1204,13 +1227,16 @@ SK_ThreadWalkModules (enum_working_set_s* pWorkingSet)
   SK_Thread_SpinUntilAtomicMin (&init, 2);
 
 
-  EnterCriticalSection (&cs_thread_walk);
-
   auto* pWorkingSet_ =
     static_cast <enum_working_set_s *> (
-      malloc (sizeof (enum_working_set_s))
+      _aligned_malloc (sizeof (enum_working_set_s), 16)
     );
 
+  if (pWorkingSet_ == nullptr)
+    return;
+
+  EnterCriticalSection (&cs_thread_walk);
+  
   memcpy (pWorkingSet_, user, sizeof (enum_working_set_s));
 
   iSK_Logger* pLogger =
@@ -1244,9 +1270,9 @@ SK_ThreadWalkModules (enum_working_set_s* pWorkingSet)
 
         if (GetModuleInformation (pWorkingSet_->proc, pWorkingSet_->modules [i], &mi, sizeof (MODULEINFO)))
         {
-          entry_pt  = reinterpret_cast <uintptr_t> (mi.EntryPoint);
-          base_addr = reinterpret_cast <uintptr_t> (mi.lpBaseOfDll);
-          mod_size  =                               mi.SizeOfImage;
+          entry_pt  = reinterpret_cast <std::uintptr_t> (mi.EntryPoint);
+          base_addr = reinterpret_cast <std::uintptr_t> (mi.lpBaseOfDll);
+          mod_size  =                                    mi.SizeOfImage;
         }
         else {
           break;
@@ -1280,7 +1306,7 @@ SK_ThreadWalkModules (enum_working_set_s* pWorkingSet)
 
   LeaveCriticalSection (&cs_thread_walk);
 
-  free (pWorkingSet_);
+  _aligned_free (pWorkingSet_);
 }
 
 void
@@ -1382,7 +1408,7 @@ SK_WalkModules (int cbNeeded, HANDLE /*hProc*/, HMODULE* hMods, SK_ModuleEnum wh
   bool rehook    = false;
   bool new_hooks = false;
 
-  for ( int i = 0; i < static_cast <int> (cbNeeded / sizeof (HMODULE)); i++ )
+  for ( int i = 0; i < gsl::narrow_cast <int> (cbNeeded / sizeof (HMODULE)); i++ )
   {
     wchar_t wszModName [MAX_PATH + 2] = { };
 
@@ -1492,7 +1518,9 @@ SK_PrintUnloadedDLLs (iSK_Logger* pLogger)
     SK_Modules.LoadLibraryLL (L"ntdll.dll");
 
   static auto RtlGetUnloadEventTraceEx =
-    (RtlGetUnloadEventTraceEx_pfn)GetProcAddress (hModNtDLL, "RtlGetUnloadEventTraceEx");
+    reinterpret_cast <RtlGetUnloadEventTraceEx_pfn> (
+      GetProcAddress (hModNtDLL, "RtlGetUnloadEventTraceEx")
+    );
 
     if (RtlGetUnloadEventTraceEx == nullptr)
       return;
@@ -1511,10 +1539,10 @@ SK_PrintUnloadedDLLs (iSK_Logger* pLogger)
   }
 
   RTL_UNLOAD_EVENT_TRACE* pTraceEntry =
-    *(RTL_UNLOAD_EVENT_TRACE **)trace_log;
+    *static_cast <RTL_UNLOAD_EVENT_TRACE **>(trace_log);
 
-  ULONG ElementSize  = *element_size;
-  ULONG ElementCount = *element_count;
+        ULONG ElementSize  = *element_size;
+  const ULONG ElementCount = *element_count;
 
   if (ElementCount > 0)
   {
@@ -1561,11 +1589,10 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
   // Begin logging new loads after this
   SK_LoadLibrary_SILENCE = false;
 
-  static iSK_Logger*
-               pLogger  = SK_CreateLog (L"logs/modules.log");
-  DWORD        dwProcID = GetCurrentProcessId ();
-  DWORD        cbNeeded =   0;
-  HANDLE       hProc    =
+  static iSK_Logger* pLogger  = SK_CreateLog (L"logs/modules.log");
+  const DWORD        dwProcID = GetCurrentProcessId ();
+        DWORD        cbNeeded = 0;
+        HANDLE       hProc    =
     // Get a handle to the process.
     OpenProcess ( PROCESS_QUERY_INFORMATION |
                   PROCESS_VM_READ,
@@ -1640,7 +1667,8 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
       auto* pWorkingSet =
         static_cast <enum_working_set_s *> (user);
 
-      SK_ModuleEnum when = pWorkingSet->when;
+      const SK_ModuleEnum when =
+             pWorkingSet->when;
 
       if (pWorkingSet->proc == nullptr && (when != SK_ModuleEnum::PreLoad))
       {
@@ -1694,7 +1722,7 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
 
 void
 __stdcall
-SK_PreInitLoadLibrary (void)
+SK_PreInitLoadLibrary (void) 
 {
   FreeLibrary_Original         = &FreeLibrary;
   LoadLibraryA_Original        = &LoadLibraryA;

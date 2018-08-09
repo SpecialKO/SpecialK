@@ -33,8 +33,8 @@ struct ImVec2
 {
     float x, y;
 
-    ImVec2 (void)               { x = y = 0.0f;   }
-    ImVec2 (float _x, float _y) { x = _x; y = _y; }
+    ImVec2 (void)                { x = y = 0.0f;   }
+    ImVec2 (float _x, float _y)  { x = _x; y = _y; }
 
 #ifdef IM_VEC2_CLASS_EXTRA          // Define constructor and implicit cast operators in imconfig.h to convert back<>forth from your math types and ImVec2.
     IM_VEC2_CLASS_EXTRA
@@ -49,7 +49,7 @@ namespace sk
 class iParameter
 {
 public:
-  iParameter (void) : type_ (std::type_index (typeid (iParameter))) {
+  iParameter (void)  : type_ (std::type_index (typeid (iParameter))) {
     ini        = nullptr;
     //type_      = std::type_index (typeid (iParameter));
   }
@@ -96,14 +96,14 @@ public:
   virtual bool         load          (value_type& ref)  = 0;
 
 protected:
-          value_type   value;
+          value_type   value = { };
        std::type_index type_ = std::type_index (typeid (value_type));
 };
 
 class ParameterInt : public Parameter <int>
 {
 public:
-  ParameterInt (void) {
+  ParameterInt (void)  {
     type_ = std::type_index (typeid (int));
   }
 

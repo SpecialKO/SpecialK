@@ -418,12 +418,12 @@ SK_BootOpenGL (void)
       SK_RunLHIfBitness ( 64, SK_LoadEarlyImports64 (),
                               SK_LoadEarlyImports32 () );
     }
-#endif
 
     SK_HookGL ();
 
     InterlockedIncrement (&__booted);
   }
+#endif
 
   SK_Thread_SpinUntilAtomicMin (&__booted, 2);
 }

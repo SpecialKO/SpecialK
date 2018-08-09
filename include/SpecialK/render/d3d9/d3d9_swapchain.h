@@ -45,10 +45,9 @@ struct __declspec (uuid ("B9F3541C-B2A1-4AFF-804D-2F8E18469B5E")) IWrapDirect3DS
 struct IWrapDirect3DSwapChain9 : IDirect3DSwapChain9Ex
 {
   IWrapDirect3DSwapChain9 ( IWrapDirect3DDevice9 *dev,
-                            IDirect3DSwapChain9  *orig ) :
-                                                           pReal   (orig),
-                                                           d3d9ex_ (false),
-                                                           pDev    (dev)
+                            IDirect3DSwapChain9  *orig )  : pReal   (orig),
+                                                                    d3d9ex_ (false),
+                                                                    pDev    (dev)
   {
                                   orig->AddRef  (),
     InterlockedExchange  (&refs_, orig->Release ());
@@ -57,16 +56,19 @@ struct IWrapDirect3DSwapChain9 : IDirect3DSwapChain9Ex
   }
 
   IWrapDirect3DSwapChain9 ( IWrapDirect3DDevice9  *dev,
-                            IDirect3DSwapChain9Ex *orig ) :
-                                                            pReal   (orig),
-                                                            d3d9ex_ (true),
-                                                            pDev    (dev)
+                            IDirect3DSwapChain9Ex *orig )  : pReal   (orig),
+                                                                     d3d9ex_ (true),
+                                                                     pDev    (dev)
   {
                                   orig->AddRef  (),
     InterlockedExchange  (&refs_, orig->Release ());
 
     InterlockedIncrement (&SK_D3D9_LiveWrappedSwapChains);
     InterlockedIncrement (&SK_D3D9_LiveWrappedSwapChainsEx);
+  }
+
+  virtual ~IWrapDirect3DSwapChain9 (void)
+  {
   }
 
 	IWrapDirect3DSwapChain9            (const IWrapDirect3DSwapChain9 &) = delete;

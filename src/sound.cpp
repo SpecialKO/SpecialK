@@ -386,7 +386,8 @@ SK_WASAPI_GetChannelName (int channel_idx)
 
   static std::unordered_map <int, std::string> channel_names;
 
-  if (! init)
+  // Delay this because of the Steam Overlay
+  if ((! init) && SK_GetFramesDrawn () > 1)
   {
     DWORD dwConfig = 0x00;
 
@@ -532,8 +533,11 @@ SK_WASAPI_GetChannelName (int channel_idx)
   //   the ordinal instead and add that fallback name to the hashmap
   else
   {
-    char szChannelOrdinal [32] = { };
-    snprintf (szChannelOrdinal, 31, "Unknown Channel (%02i)", channel_idx);
+    static char szChannelOrdinal [32] = { };
+    snprintf   (szChannelOrdinal, 31, "Unknown Channel (%02i)", channel_idx);
+
+    if (! init)
+      return szChannelOrdinal;
 
     channel_names.emplace (channel_idx, szChannelOrdinal);
 

@@ -824,15 +824,15 @@ GetRawInputBuffer_Detour (_Out_opt_ PRAWINPUT pData,
         ZeroMemory (pData, *pcbSize);
         const int max_items = (sizeof RAWINPUT / *pcbSize);
               int count     =                            0;
-            auto *pTemp     = (uint8_t *)
+            auto *pTemp     =
                                   new RAWINPUT [max_items];
-        uint8_t *pInput     =                        pTemp;
+        uint8_t *pInput     =             (uint8_t *)pTemp;
            auto *pOutput    =             (uint8_t *)pData;
         UINT     cbSize     =                     *pcbSize;
                   *pcbSize  =                            0;
 
         int       temp_ret  =
-          GetRawInputBuffer_Original ( (RAWINPUT *)pTemp, &cbSize, cbSizeHeader );
+          GetRawInputBuffer_Original ( pTemp, &cbSize, cbSizeHeader );
 
         for (int i = 0; i < temp_ret; i++)
         {

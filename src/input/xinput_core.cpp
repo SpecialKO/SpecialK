@@ -157,6 +157,15 @@ struct SK_XInputContext
   }
 } xinput_ctx;
 
+void
+SK_ApplyQueuedHooksIfInit (void)
+{
+  extern volatile LONG __SK_Init;
+
+  if (ReadAcquire (&__SK_Init) == 1)
+    SK_ApplyQueuedHooks ();
+}
+
 const char*
 SK_XInput_GetPrimaryHookName (void)
 {
@@ -184,7 +193,7 @@ void
 SK_XInput_EstablishPrimaryHook (HMODULE hModCaller, SK_XInputContext::instance_s* pCtx)
 {
   // Calling module (return address) indicates the game made this call
-  if (hModCaller == SK_Modules.HostApp)
+  if (hModCaller == SK_Modules.HostApp ())
     InterlockedExchangePointer ((LPVOID *)&xinput_ctx.primary_hook, pCtx);
 
   // Third-party software polled the controller, it better be using the same
@@ -924,7 +933,7 @@ SK_Input_HookXInputContext (SK_XInputContext::instance_s* pCtx)
        static_cast_p2p <void> (&pCtx->XInputEnable_Original) );
   }
 
-  SK_ApplyQueuedHooks ();
+  SK_ApplyQueuedHooksIfInit ();
 
   if (pCtx->XInputGetState_Target != nullptr)
     memcpy (pCtx->orig_inst, pCtx->XInputGetState_Target,                   6);
@@ -1399,7 +1408,7 @@ SK_XInput_RehookIfNeeded (void)
 
 
 
-  SK_ApplyQueuedHooks ();
+  SK_ApplyQueuedHooksIfInit ();
 
 
   if (pCtx->XInputGetState_Target != nullptr)
@@ -1593,7 +1602,7 @@ SK_XInput_PollController ( INT           iJoyID,
 
 
   if (queued_hooks)
-    SK_ApplyQueuedHooks ();
+    SK_ApplyQueuedHooksIfInit ();
   else
     SK_XInput_RehookIfNeeded ();
 
@@ -1664,7 +1673,7 @@ SK_Input_PreHookXInput (void)
                                          { "XInput1_4.dll",   false },
                                          { "XInput9_1_0.dll", false } };
 
-    SK_TestImports (SK_Modules.HostApp, tests, 3);
+    SK_TestImports (SK_Modules.HostApp (), tests, 3);
 
     if (tests [0].used || tests [1].used || tests [2].used)
     {

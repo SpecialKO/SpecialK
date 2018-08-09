@@ -134,7 +134,7 @@ SK_CreateLog (const wchar_t* const wszName);
 static const GUID IID_SK_Logger = 
 { 0xa4bf1773, 0xcaab, 0x48f3, { 0xad, 0x88, 0xc2, 0xab, 0x5c, 0x23, 0xbd, 0x6f } };
 
-#define SK_AutoClose_Log(log) iSK_Logger::AutoClose closeme_##log = (log).auto_close ();
+#define SK_AutoClose_Log(log) iSK_Logger::AutoClose closeme_##log ((log).auto_close ());
 
 //
 // NOTE: This is a barbaric approach to the problem... we clearly have a
@@ -153,30 +153,34 @@ interface iSK_Logger : public IUnknown
   {
   friend interface iSK_Logger;
   public:
-    ~AutoClose (void) noexcept
+    ~AutoClose (void) 
     {
       if (log_ != nullptr)
+      {
         log_->close ();
-
-      log_ = nullptr;
+        log_ = nullptr;
+      }
     }
+
+    AutoClose (AutoClose &)  = delete;
+    AutoClose (AutoClose &&) = default;
 
   protected:
     AutoClose (iSK_Logger* log) : log_ (log) { }
 
   private:
-    iSK_Logger* log_;
+    iSK_Logger *log_;
   };
 
-  AutoClose auto_close (void) noexcept {
-    return AutoClose (this);
+  AutoClose auto_close (void) {
+    return this;
   }
 
-  iSK_Logger (void) noexcept {
+  iSK_Logger (void) {
     AddRef ();
   }
 
-  virtual ~iSK_Logger (void) noexcept {
+  virtual ~iSK_Logger (void) {
     Release ();
   }
 
@@ -202,7 +206,7 @@ interface iSK_Logger : public IUnknown
                                                       ... );
 
   FILE*            fLog        = nullptr;
-  std::wstring     name        = L"";
+  std::wstring     name;
   bool             silent      = false;
   bool             initialized = false;
   int              lines       =   0;

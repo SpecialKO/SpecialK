@@ -66,6 +66,15 @@ std::wstring SK_Thread_GetName (HANDLE hThread);
 
 #define SK_ASSERT_NOT_DLLMAIN_THREAD() assert (! SK_TLS_Bottom ()->debug.in_DllMain);
 
+
+#include <concurrent_unordered_set.h>
+
+extern concurrency::concurrent_unordered_set <HMODULE>&
+SK_DbgHlp_Callers (void);
+
+#define dbghelp_callers SK_DbgHlp_Callers ()
+
+
 // https://gist.github.com/TheWisp/26097ee941ce099be33cfe3095df74a6
 //
 #include <functional>

@@ -34,7 +34,7 @@ SK_ImGui_IsWindowRightClicked (const ImGuiIO& io = ImGui::GetIO ());
 
 
 void
-SK_Widget::run_base (void)
+SK_Widget::run_base (void) 
 {
   if ((! run_once__ )&& osd_ini)
   {
@@ -173,17 +173,24 @@ SK_Widget_CalcClipRect (SK_Widget* pWidget, bool n, bool s, bool e, bool w, ImVe
 
   if (draw_horz_ruler ^ draw_vert_ruler)
   {
-    ImVec2 horz_pos       = ImVec2 (       e ? io.DisplaySize.x - size.x : size.x, 0.0f );
-    ImVec2 vert_pos       = ImVec2 ( 0.0f, s ? io.DisplaySize.y - size.y : size.y       );
-
     if (draw_vert_ruler)
     {
+      ImVec2 horz_pos =
+        ImVec2 ( (e ? io.DisplaySize.x - size.x 
+                    :                    size.x),
+                   0.0f );
+
       min = ImVec2 ( 0.0f,       0.0f             );
       max = ImVec2 ( horz_pos.x, io.DisplaySize.y );
     }
 
     if (draw_horz_ruler)
     {
+      ImVec2 vert_pos =
+        ImVec2 ( 0.0f, 
+             ( s ? io.DisplaySize.y - size.y :
+                                      size.y   ) );
+
       min = ImVec2 ( 0.0f,             0          );
       max = ImVec2 ( io.DisplaySize.x, vert_pos.y );
     }
@@ -253,19 +260,27 @@ SK_Widget_ProcessDocking (SK_Widget* pWidget, bool n, bool s, bool e, bool w)
 
   if (draw_horz_ruler ^ draw_vert_ruler)
   {
-    ImVec2 horz_pos       = ImVec2 (       e ? io.DisplaySize.x - size.x : size.x, 0.0f );
-    ImVec2 vert_pos       = ImVec2 ( 0.0f, s ? io.DisplaySize.y - size.y : size.y       );
-
     ImVec2 xy0, xy1;
 
     if (draw_vert_ruler)
     {
+      ImVec2 horz_pos =
+        ImVec2 ( (e ? io.DisplaySize.x - size.x :
+                                         size.x   ),
+                   0.0f );
+
       xy0 = ImVec2 ( horz_pos.x, 0.0f             );
       xy1 = ImVec2 ( horz_pos.x, io.DisplaySize.y );
     }
 
     if (draw_horz_ruler)
     {
+      ImVec2 vert_pos =
+        ImVec2 ( 0.0f,
+                ( s ? io.DisplaySize.y - size.y :
+                                         size.y   )
+               );
+
       xy0 = ImVec2 ( 0.0f,             vert_pos.y );
       xy1 = ImVec2 ( io.DisplaySize.x, vert_pos.y );
     }
@@ -288,7 +303,7 @@ SK_Widget_ProcessDocking (SK_Widget* pWidget, bool n, bool s, bool e, bool w)
 }
 
 void
-SK_Widget::draw_base (void)
+SK_Widget::draw_base (void) 
 {
   if (SK_ImGui_Widgets.hide_all)
     return;
@@ -464,7 +479,7 @@ SK_Widget::save (iSK_INI* /*ini*/)
 }
 
 void
-SK_Widget::config_base (void)
+SK_Widget::config_base (void) 
 {
   static bool changed = false;
 
@@ -688,8 +703,14 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds (BOOL Control, BOOL Shift, BOOL Alt, B
   {
     if ( uiMaskedKeyCode == keybind->masked_code )
     {
-      if      ( keybind == &config.steam.screenshots.game_hud_free_keybind    ) ;
-
+      if      ( keybind == &config.steam.screenshots.game_hud_free_keybind    )
+      {
+        if (SK_GetCurrentGameID () == SK_GAME_ID::Yakuza0)
+        {
+          extern void SK_YS0_TriggerHudFreeScreenshot (void);
+                      SK_YS0_TriggerHudFreeScreenshot ();
+        }
+      }
       else if ( keybind == &config.steam.screenshots.sk_osd_free_keybind      )
         SK::SteamAPI::TakeScreenshot (SK::ScreenshotStage::BeforeOSD);
       else if ( keybind == &config.steam.screenshots.sk_osd_insertion_keybind )

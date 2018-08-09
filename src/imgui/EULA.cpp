@@ -47,7 +47,7 @@ SK_GetLicenseText (SHORT id)
     HGLOBAL license_ref = LoadResource   ( hMod, res );
 
     // There is no forseeable reason this would be NULL, but the Application Verifier will not shutup about it.
-    if (! license_ref) return std::string ("");
+    if (! license_ref) return std::string ();
 
     const char* const locked =
       (char *)LockResource (license_ref);
@@ -60,7 +60,7 @@ SK_GetLicenseText (SHORT id)
     }
   }
 
-  return std::string ("");
+  return std::string ();
 }
 
 // PlugIns may hook this to insert additional EULA terms

@@ -66,6 +66,7 @@ __cdecl
 SK_IsSuperSpecialK (void);
 
 enum {
+  STATUS_INVALID   = 0,
   STATUS_UPDATED   = 1,
   STATUS_REMINDER  = 2,
   STATUS_CANCELLED = 4,
@@ -76,8 +77,8 @@ struct sk_internet_get_t {
   wchar_t wszHostName  [INTERNET_MAX_HOST_NAME_LENGTH] = { };
   wchar_t wszHostPath  [INTERNET_MAX_PATH_LENGTH]      = { };
   wchar_t wszLocalPath [MAX_PATH]                      = { };
-  HWND    hTaskDlg;
-  int     status;
+  HWND    hTaskDlg                                     = HWND_DESKTOP;
+  int     status                                       = STATUS_INVALID;
 };
 
 bool    update_dlg_backup = false;
@@ -1100,7 +1101,7 @@ SK_UpdateSoftware1 (const wchar_t*, bool force)
       signed int in_branch; // TODO
       wchar_t    package [128];
     } latest = { 0, { } };
-  } build    = { 0, { }, { 0, { } } };
+  } build    = { 0, { } };
 
   bool empty = false;
 

@@ -25,6 +25,7 @@
 #include <stdio.h>
 #include <Shlwapi.h>
 #include <SpecialK/log.h>
+#include <SpecialK/tls.h>
 #include <SpecialK/core.h>
 #include <SpecialK/config.h>
 #include <SpecialK/utility.h>
@@ -140,6 +141,8 @@ SK_Log_AsyncFlushThreadPump (LPVOID)
   }
 
   CloseHandle (hFlushReq);
+               hFlushReq = 0;
+
   SK_Thread_CloseSelf  ();
 
   return 0;
@@ -180,20 +183,29 @@ SK_FlushLog (iSK_Logger* pLog)
     );
   }
 
-  while ((intptr_t)hFlushReq <= 0)
-    SleepEx (1, FALSE);
+  if (! ReadAcquire (&__SK_DLL_Ending))
+  {
+    while ((intptr_t)hFlushReq <= 0)
+      SleepEx (1, FALSE);
 
-  if ( (! flush_set.count ( pLog )) ||
-          flush_set       [ pLog ] == false )
-  { flush_set             [ pLog ]  = true;
-    SetEvent              ( hFlushReq );
+    if ( (! flush_set.count ( pLog )) ||
+            flush_set       [ pLog ] == false )
+    { flush_set             [ pLog ]  = true;
+      SetEvent              ( hFlushReq );
 #ifdef _DEBUG
-    InterlockedIncrement  (&flush_reqs);
+      InterlockedIncrement  (&flush_reqs);
 #endif
+    }
   }
 
+  else if ( pLog       != nullptr &&
+            pLog->fLog != nullptr    )
+  {
+    _fflush_nolock (pLog->fLog);
+    _flushall      (          );
+  }
 
-   return TRUE;
+  return TRUE;
 }
 
 iSK_Logger dll_log, budget_log;
@@ -321,35 +333,53 @@ iSK_Logger::LogEx ( bool                 _Timestamp,
     return;
 
 
+  wchar_t wszFormattedTime [32] = { };
+
   if (_Timestamp)
   {
     wchar_t                    wszLogTime [32] = { };
     UINT    ms = SK_Timestamp (wszLogTime);
 
-    lock ();
-
-    fwprintf ( fLog,
-                 L"%s%03u: ",  wszLogTime, ms );
+    _swprintf ( wszFormattedTime,
+                  L"%s%03u: ", 
+                    wszLogTime,
+                      ms );
   }
 
-  else
-  {
-    lock ();
-  }
 
 
   va_list   _ArgList;
   va_start (_ArgList, _Format);
+
+  size_t len =
+    _vscwprintf (_Format, _ArgList) + 1 + 32; // 32 extra for timestamp
+                                              
+
+  wchar_t* wszOut =
+    SK_TLS_Bottom ()->scratch_memory.log.formatted_output.alloc (
+      len, true
+    );
+
+  wchar_t *wszAfterStamp =
+    ( _Timestamp ? ( wszOut + wcslen (wszFormattedTime) ) :
+                     wszOut );
+
+  if (_Timestamp)
   {
-    vfwprintf ( fLog, _Format,
-            _ArgList);
+    wcscpy (wszOut, wszFormattedTime);
   }
+
+  _vswprintf (wszAfterStamp, _Format, _ArgList);
   va_end   (_ArgList);
 
-          ++lines;
+  lock   ();
+  //if (! lockless)
+  //  _fwrite_nolock (wszOut, 1, wcslen (wszOut), fLog);
+  //else
+    fputws (wszOut, fLog);
+  unlock ();
 
-  unlock   ();
-
+  ++lines;
 
   SK_FlushLog (this);
 }
@@ -363,27 +393,44 @@ iSK_Logger::Log   ( _In_z_ _Printf_format_string_
     return;
 
 
+  wchar_t              wszFormattedTime [32] = { };
   wchar_t                    wszLogTime [32] = { };
   UINT    ms = SK_Timestamp (wszLogTime);
 
-  lock     ();
-  fwprintf ( fLog,
-               L"%s%03u: ",  wszLogTime, ms );
+  _swprintf ( wszFormattedTime,
+                L"%s%03u: ", 
+                  wszLogTime,
+                    ms );
 
   va_list   _ArgList;
   va_start (_ArgList, _Format);
-  {
-    vfwprintf (
-            fLog,     _Format,
-            _ArgList);
-  }
+
+  size_t len =
+    _vscwprintf (_Format, _ArgList) + 1 +  2  //  2 extra for CrLf
+                                        + 32; // 32 extra for timestamp
+
+  wchar_t* wszOut =
+    SK_TLS_Bottom ()->scratch_memory.log.formatted_output.alloc (
+      len, true
+    );
+
+  wchar_t *wszAfterStamp =
+    wszOut + wcslen (wszFormattedTime);
+    wcscpy  (wszOut, wszFormattedTime);
+
+  _vswprintf (wszAfterStamp, _Format, _ArgList);
   va_end   (_ArgList);
-  fwprintf (fLog, L"\n");
 
-          ++lines;
+  lstrcatW (wszAfterStamp, L"\n");
 
-  unlock   ();
+  lock   ();
+  //if (! lockless)
+  //  _fwrite_nolock (wszOut, 1, wcslen (wszOut), fLog);
+  //else
+    fputws (wszOut, fLog);
+  unlock ();
 
+  ++lines;
 
   SK_FlushLog (this);
 }

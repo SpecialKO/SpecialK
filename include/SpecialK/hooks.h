@@ -114,7 +114,7 @@ static __forceinline
 void
 SK_Hook_TargetFromVFTable ( sk_hook_cache_record_s  &cache,
                             void                   **base,
-                            int                      idx   )
+                            int                      idx   ) 
 {
   cache.active      = true;
   cache.target.addr =
@@ -138,7 +138,7 @@ auto SK_Hook_PushLocalCacheOntoGlobal =
 static
 auto SK_Hook_PullGlobalCacheDownToLocal =
 []( sk_hook_cache_record_s* global,
-    sk_hook_cache_record_s* local   )
+    sk_hook_cache_record_s* local   ) 
 {
   // LOL, right?
   *local = *global;

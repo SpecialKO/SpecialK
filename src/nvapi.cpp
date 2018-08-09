@@ -303,23 +303,29 @@ NVAPI::FindGPUByDXGIName (const wchar_t* wszName)
   wchar_t* wszFixedName = _wcsdup (wszName + 7);
   int      fixed_len    = lstrlenW (wszFixedName);
 
-  // Remove trailing whitespace some NV GPUs inexplicably have in their names
-  for (int i = fixed_len; i > 0; i--) {
-    if (wszFixedName [i - 1] == L' ')
-      wszFixedName [i - 1] = L'\0';
-    else
-      break;
+  if (wszFixedName != nullptr)
+  {
+    // Remove trailing whitespace some NV GPUs inexplicably have in their names
+    for (int i = fixed_len; i > 0; i--) {
+      if (wszFixedName [i - 1] == L' ')
+        wszFixedName [i - 1] = L'\0';
+      else
+        break;
+    }
   }
 
-  while (*adapters->Description != L'\0') {
+  while (*adapters->Description != L'\0')
+  {
     //strstrw (lstrcmpiW () == 0) { // More accurate, but some GPUs have
                                     //   trailing spaces in their names.
                                     // -----
                                     // What the heck?!
 
-    if (wcsstr (adapters->Description, wszFixedName) != nullptr)
+    if (                               wszFixedName  != nullptr &&
+        wcsstr (adapters->Description, wszFixedName) != nullptr)
     {
       free (wszFixedName);
+
       return adapters;
     }
 
@@ -488,12 +494,12 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
     if (! pHDRCtl->overrides.MinMaster)
       pHDRCtl->meta.MinMasteringLuminance = pHdrColorData->mastering_display_data.min_display_mastering_luminance;
     else
-      pHdrColorData->mastering_display_data.min_display_mastering_luminance = pHDRCtl->meta.MinMasteringLuminance;
+      pHdrColorData->mastering_display_data.min_display_mastering_luminance = (NvU16)pHDRCtl->meta.MinMasteringLuminance;
 
     if (! pHDRCtl->overrides.MaxMaster)
       pHDRCtl->meta.MaxMasteringLuminance = pHdrColorData->mastering_display_data.max_display_mastering_luminance;
     else
-      pHdrColorData->mastering_display_data.max_display_mastering_luminance = pHDRCtl->meta.MaxMasteringLuminance;
+      pHdrColorData->mastering_display_data.max_display_mastering_luminance = (NvU16)pHDRCtl->meta.MaxMasteringLuminance;
   }
 
 
@@ -513,12 +519,12 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
     if ((! pHDRCtl->overrides.MinMaster) && (! config.render.dxgi.spoof_hdr))
       pHDRCtl->meta.MinMasteringLuminance = pHdrColorData->mastering_display_data.min_display_mastering_luminance;
     else
-      pHdrColorData->mastering_display_data.min_display_mastering_luminance = pHDRCtl->meta.MinMasteringLuminance;
+      pHdrColorData->mastering_display_data.min_display_mastering_luminance = (NvU16)pHDRCtl->meta.MinMasteringLuminance;
 
     if ((! pHDRCtl->overrides.MaxMaster) && (! config.render.dxgi.spoof_hdr))
       pHDRCtl->meta.MaxMasteringLuminance = pHdrColorData->mastering_display_data.max_display_mastering_luminance;
     else
-      pHdrColorData->mastering_display_data.max_display_mastering_luminance = pHDRCtl->meta.MaxMasteringLuminance;
+      pHdrColorData->mastering_display_data.max_display_mastering_luminance = (NvU16)pHDRCtl->meta.MaxMasteringLuminance;
   }
 
 
@@ -830,8 +836,8 @@ SK_NvAPI_SetAntiAliasingOverride ( const wchar_t** pwszPropertyList )
   unsigned int override    = std::numeric_limits <unsigned int>::max ();
   unsigned int auto_bias   = std::numeric_limits <unsigned int>::max ();
 
-  while (! ( prop.wszName  == nullptr && 
-             prop.wszValue == nullptr ) )
+  while ( prop.wszName  != nullptr && 
+          prop.wszValue != nullptr )
   {
     // ...
 
@@ -934,7 +940,7 @@ SK_NvAPI_SetAntiAliasingOverride ( const wchar_t** pwszPropertyList )
   {
     NVDRS_PROFILE custom_profile = { };
 
-    custom_profile.isPredefined = false;
+    custom_profile.isPredefined  = FALSE;
     lstrcpyW ((wchar_t *)custom_profile.profileName, friendly_name.c_str ());
     custom_profile.version = NVDRS_PROFILE_VER;
 
@@ -961,8 +967,8 @@ SK_NvAPI_SetAntiAliasingOverride ( const wchar_t** pwszPropertyList )
       lstrcpyW ((wchar_t *)app.userFriendlyName, friendly_name.c_str ());
 
       app.version      = NVDRS_APPLICATION_VER;
-      app.isPredefined = false;
-      app.isMetro      = false;
+      app.isPredefined = FALSE;
+      app.isMetro      = FALSE;
 
       NVAPI_CALL2 (DRS_CreateApplication (hSession, hProfile, &app), ret);
       NVAPI_CALL2 (DRS_SaveSettings      (hSession), ret);
@@ -1454,8 +1460,8 @@ sk::NVAPI::SetSLIOverride    (       DLL_ROLE role,
       lstrcpyW ((wchar_t *)app.userFriendlyName, friendly_name.c_str ());
 
       app.version      = NVDRS_APPLICATION_VER;
-      app.isPredefined = false;
-      app.isMetro      = false;
+      app.isPredefined = FALSE;
+      app.isMetro      = FALSE;
 
       NVAPI_CALL2 (DRS_CreateApplication (hSession, hProfile, &app), ret);
       NVAPI_CALL2 (DRS_SaveSettings      (hSession), ret);
@@ -1506,8 +1512,9 @@ sk::NVAPI::SetSLIOverride    (       DLL_ROLE role,
                            MB_OKCANCEL | MB_ICONASTERISK | MB_SETFOREGROUND |
                            MB_TOPMOST );
 
-      if (result == IDCANCEL) {
-        config.nvidia.sli.override = false;
+      if (result == IDCANCEL)
+      {
+        config.nvidia.sli.override = FALSE;
         NVAPI_CALL (DRS_DestroySession (hSession));
         return FALSE;
       }
@@ -1614,9 +1621,12 @@ SK_NvAPI_AddLauncherToProf (void)
   if (ret == NVAPI_EXECUTABLE_NOT_FOUND)
   {
     NVDRS_PROFILE custom_profile = { };
+    custom_profile.isPredefined  = FALSE;
 
-    custom_profile.isPredefined = false;
-    lstrcpyW ((wchar_t *)custom_profile.profileName, friendly_name.c_str ());
+    lstrcpyW (
+      (wchar_t *)custom_profile.profileName,
+                              friendly_name.c_str ()
+    );
     custom_profile.version = NVDRS_PROFILE_VER;
 
     // It's not necessarily wrong if this does not return NVAPI_OK, so don't
@@ -1643,8 +1653,8 @@ SK_NvAPI_AddLauncherToProf (void)
       lstrcpyW ((wchar_t *)app.userFriendlyName, friendly_name.c_str ());
       lstrcpyW ((wchar_t *)app.launcher,         launcher_name.c_str ());
       app.version      = NVDRS_APPLICATION_VER;
-      app.isPredefined = false;
-      app.isMetro      = false;
+      app.isPredefined = FALSE;
+      app.isMetro      = FALSE;
 
       NVAPI_CALL2 (DRS_CreateApplication (hSession, hProfile, &app), ret);
       NVAPI_CALL2 (DRS_SaveSettings      (hSession), ret);
@@ -1657,8 +1667,8 @@ SK_NvAPI_AddLauncherToProf (void)
     lstrcpyW ((wchar_t *)app.userFriendlyName, friendly_name.c_str ());
     lstrcpyW ((wchar_t *)app.launcher,         launcher_name.c_str ());
     app.version      = NVDRS_APPLICATION_VER;
-    app.isPredefined = false;
-    app.isMetro      = false;
+    app.isPredefined = FALSE;
+    app.isMetro      = FALSE;
 
     NVAPI_CALL2 (DRS_CreateApplication (hSession, hProfile, &app), ret);
     NVAPI_CALL2 (DRS_SaveSettings      (hSession), ret);

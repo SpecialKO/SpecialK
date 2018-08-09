@@ -33,6 +33,7 @@
 #include <SpecialK/diagnostics/memory.h>
 #include <SpecialK/diagnostics/debug_utils.h>
 
+#include <strsafe.h>
 #include <string>
 
 
@@ -59,8 +60,22 @@ extern volatile LONG __SK_DLL_Attached;
 #include <concurrent_unordered_map.h>
 #include <concurrent_unordered_set.h>
 
-concurrency::concurrent_unordered_map <DWORD, std::wstring> _SK_ThreadNames;
-concurrency::concurrent_unordered_set <DWORD>               _SK_SelfTitledThreads;
+concurrency::concurrent_unordered_map <DWORD, std::wstring>&
+__SK_GetThreadNames (void)
+{
+  static concurrency::concurrent_unordered_map <DWORD, std::wstring> __ThreadNames;
+  return                                                             __ThreadNames;
+}
+
+concurrency::concurrent_unordered_set <DWORD>&
+__SK_GetSelfTitledThreads (void)
+{
+  static concurrency::concurrent_unordered_set <DWORD> __SelfTitled;
+  return                                               __SelfTitled;
+}
+
+#define _SK_SelfTitledThreads __SK_GetSelfTitledThreads ()
+#define _SK_ThreadNames       __SK_GetThreadNames       ()
 
 // Game has given this thread a custom name, it's special :)
 bool
@@ -75,10 +90,13 @@ SK_Thread_HasCustomName (DWORD dwTid)
 std::wstring
 SK_Thread_GetName (DWORD dwTid)
 {
-  auto it  =
-    _SK_ThreadNames.find (dwTid);
+  auto& names =
+    _SK_ThreadNames;
 
-  if (it != _SK_ThreadNames.end ())
+  auto it  =
+    names.find (dwTid);
+
+  if (it != names.end ())
     return (*it).second;
 
   return L"";
@@ -129,21 +147,28 @@ SetCurrentThreadDescription (_In_ PCWSTR lpThreadDescription)
   if ( SK_GetHostAppUtil ().isInjectionTool () || (pTLS == nullptr) )
     return S_OK;
 
+  size_t len;
+
   bool non_empty =
-    lstrlenW (lpThreadDescription) != 0;
+    SUCCEEDED ( StringCbLengthW (
+                  lpThreadDescription, 255, &len
+                )
+              );
 
   if (non_empty)
   {
     // Push this to the TLS datastore so we can get thread names even
     //   when no debugger is attached.
-    wcsncpy (
-      pTLS->debug.name, lpThreadDescription, 255
+    wcsncpy_s (
+      pTLS->debug.name,
+        std::min (256, (int)len+1),
+          lpThreadDescription,
+            _TRUNCATE
     );
 
     if (SK_IsDebuggerPresent ())
     {
-      char      szDesc [256];
-               *szDesc = '\0';
+      char      szDesc [256] = { };
       wcstombs (szDesc, lpThreadDescription, 255);
 
       const THREADNAME_INFO info =

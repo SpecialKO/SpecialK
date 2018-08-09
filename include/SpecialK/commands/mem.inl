@@ -22,14 +22,15 @@
 #pragma once
 
 #include <SpecialK/command.h>
+#include <cinttypes>
 
 class skMemCmd : public SK_ICommand {
 public:
-  virtual SK_ICommandResult execute (const char* szArgs) override;
+  virtual SK_ICommandResult execute (const char* szArgs)  override;
 
-  virtual int getNumArgs         (void) override { return 2; }
-  virtual int getNumOptionalArgs (void) override { return 1; }
-  virtual int getNumRequiredArgs (void) override {
+  virtual int getNumArgs         (void)  override { return 2; }
+  virtual int getNumOptionalArgs (void)  override { return 1; }
+  virtual int getNumRequiredArgs (void)  override {
     return getNumArgs () - getNumOptionalArgs ();
   }
 
@@ -38,7 +39,7 @@ private:
 };
 
 SK_ICommandResult
-skMemCmd::execute (const char* szArgs)
+skMemCmd::execute (const char* szArgs) 
 {
   if (szArgs == nullptr)
     return SK_ICommandResult ("mem", szArgs);
@@ -47,11 +48,7 @@ skMemCmd::execute (const char* szArgs)
   char      type      =  0;
   char      val [256] = { };
 
-#ifdef _WIN64
-  sscanf (szArgs, "%c %llx %255s", &type, &addr, val);
-#else
-  sscanf (szArgs, "%c %lx %255s", &type, &addr, val);
-#endif
+  sscanf (szArgs, "%c %" PRIXPTR " %255s", &type, &addr, val);
 
   static uint8_t* base_addr = nullptr;
 
@@ -77,7 +74,7 @@ skMemCmd::execute (const char* szArgs)
         DWORD dwOld;
 
         VirtualProtect (reinterpret_cast <LPVOID> (addr), 1, PAGE_EXECUTE_READWRITE, &dwOld);
-          uint8_t out;
+          char out;
           sscanf (val, "%cx", &out);
           *reinterpret_cast <uint8_t *> (addr) = out;
         VirtualProtect (reinterpret_cast <LPVOID> (addr), 1, dwOld, &dwOld);

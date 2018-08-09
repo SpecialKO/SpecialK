@@ -22,6 +22,8 @@
 #include <SpecialK/crc32.h>
 #include <SpecialK/hash.h>
 
+#include <gsl/gsl>
+
 
 extern "C"
 uint32_t
@@ -98,10 +100,10 @@ const InstructionSet::InstructionSet_Internal
 extern "C"
 uint32_t
 __cdecl
-crc32 (uint32_t crc, const void *buf, size_t size)
+crc32 (uint32_t crc, _Notnull_ const void *buf, size_t size) 
 {
   const auto *p =
-       reinterpret_cast <const uint8_t *> (buf);
+       static_cast <const uint8_t *> (buf);
 
   crc = crc ^ ~0U;
 
@@ -157,7 +159,7 @@ static uint32_t short_shifts [ 4][256];
 
 static bool _tableInitialized = false;
 
-extern "C" void __cdecl calculate_table (void);
+extern "C" void __cdecl calculate_table (void) ;
 
 /* Table-driven software version as a fall-back.  This is about 15 times slower
    than using the hardware instructions.  This assumes little-endian integers,
@@ -165,7 +167,7 @@ extern "C" void __cdecl calculate_table (void);
 extern "C"
 uint32_t
 __cdecl
-crc32c_append_sw (uint32_t crci, const void *input, size_t length)
+crc32c_append_sw (uint32_t crci, const void *input, size_t length) 
 {
   auto next =
     static_cast <buffer> (input);
@@ -185,8 +187,8 @@ crc32c_append_sw (uint32_t crci, const void *input, size_t length)
   }
   while (length >= 16)
   {
-             crc ^= *(uint64_t *)next;
-    uint64_t high = *(uint64_t *)(next + 8);
+                   crc ^= *(uint64_t *)next;
+    const uint64_t high = *(uint64_t *)(next + 8);
 
     crc = table[15][ crc         & 0xff]
         ^ table[14][(crc >> 8)   & 0xff]
@@ -249,7 +251,7 @@ crc32c_append_sw (uint32_t crci, const void *input, size_t length)
 static
 inline
 uint32_t
-shift_crc (uint32_t shift_table[][256], uint32_t crc)
+shift_crc ( const uint32_t shift_table[][256], uint32_t crc ) 
 {
   return shift_table [0][ crc        & 0xff]
        ^ shift_table [1][(crc >> 8)  & 0xff]
@@ -261,17 +263,20 @@ shift_crc (uint32_t shift_table[][256], uint32_t crc)
 extern "C"
 uint32_t
 __cdecl
-crc32c_append_hw (uint32_t crc, const void *buf, size_t len)
+crc32c_append_hw (uint32_t crc, const void *buf, size_t len) 
 {
   auto next =
     static_cast <buffer> (buf);
 
-  buffer end;
+  buffer end = { };
+
 #ifdef _M_X64
-  uint64_t crc0, crc1, crc2;      /* need to be 64 bits for crc32q */
+  /* need to be 64 bits for crc32q */
+  uint64_t
 #else
-  uint32_t crc0, crc1, crc2;
+  uint32_t
 #endif
+  crc0 = { }, crc1 = { }, crc2 = { };
 
   /* pre-process the crc */
   crc0 = crc ^ 0xffffffff;
@@ -280,7 +285,7 @@ crc32c_append_hw (uint32_t crc, const void *buf, size_t len)
      to an eight-byte boundary */
   while (len && (reinterpret_cast <uintptr_t> (next) & 7) != 0)
   {
-    crc0 = _mm_crc32_u8 (static_cast <uint32_t> (crc0), *next);
+    crc0 = _mm_crc32_u8 (gsl::narrow <uint32_t> (crc0), *next);
     ++next;
     --len;
   }
@@ -304,8 +309,8 @@ crc32c_append_hw (uint32_t crc, const void *buf, size_t len)
       next += 8;
     } while (next < end);
 
-    crc0 = shift_crc (long_shifts, static_cast <uint32_t> (crc0)) ^ crc1;
-    crc0 = shift_crc (long_shifts, static_cast <uint32_t> (crc0)) ^ crc2;
+    crc0 = shift_crc (long_shifts, gsl::narrow <uint32_t> (crc0)) ^ crc1;
+    crc0 = shift_crc (long_shifts, gsl::narrow <uint32_t> (crc0)) ^ crc2;
 
     next += 2 * LONG_SHIFT;
     len  -= 3 * LONG_SHIFT;
@@ -327,8 +332,8 @@ crc32c_append_hw (uint32_t crc, const void *buf, size_t len)
       next += 8;
     } while (next < end);
 
-    crc0 = shift_crc (short_shifts, static_cast <uint32_t> (crc0)) ^ crc1;
-    crc0 = shift_crc (short_shifts, static_cast <uint32_t> (crc0)) ^ crc2;
+    crc0 = shift_crc (short_shifts, gsl::narrow <uint32_t> (crc0)) ^ crc1;
+    crc0 = shift_crc (short_shifts, gsl::narrow <uint32_t> (crc0)) ^ crc2;
 
     next += 2 * SHORT_SHIFT;
     len  -= 3 * SHORT_SHIFT;
@@ -405,35 +410,35 @@ crc32c_append_hw (uint32_t crc, const void *buf, size_t len)
   /* compute the crc for up to seven trailing bytes */
   while (len)
   {
-    crc0 = _mm_crc32_u8 (static_cast <uint32_t> (crc0), *next);
+    crc0 = _mm_crc32_u8 (gsl::narrow <uint32_t> (crc0), *next);
     ++next;
     --len;
   }
 
   /* return a post-processed crc */
-  return static_cast <uint32_t> (crc0) ^ 0xffffffff;
+  return gsl::narrow <uint32_t> (crc0) ^ 0xffffffff;
 }
 
 extern "C"
 int
 __cdecl
-crc32c_hw_available (void)
+crc32c_hw_available (void) 
 {
-  int info [4];
+  int      info [4];
   __cpuid (info, 1);
-  return (info [2] & (1 << 20)) != 0;
+  return ( info [2] & (1 << 20)) != 0;
 
 }
 
 extern "C"
 void
 __cdecl
-calculate_table (void)
+calculate_table (void) 
 {
   for (int i = 0; i < 256; i++)
   {
     auto res =
-      static_cast <uint32_t> (i);
+      gsl::narrow <uint32_t> (i);
 
     for (auto& t : table)
     {
@@ -450,7 +455,7 @@ calculate_table (void)
 extern "C"
 void
 __cdecl
-calculate_table_hw (void)
+calculate_table_hw (void) 
 {
   for (int i = 0; i < 256; i++) 
   {
@@ -533,7 +538,7 @@ __crc32_init (void)
 extern "C"
 uint32_t
 __cdecl
-crc32c (uint32_t crc, const void *input, size_t length)
+crc32c (uint32_t crc, _Notnull_ const void *input, size_t length)
 {
   if (append_func == nullptr)
     __crc32_init ();

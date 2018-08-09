@@ -942,13 +942,10 @@ SK_DS3_InitPlugin (void)
   {
     ds3_last_addr->store ((int64_t)res_addr);
     ds3_prefs->write     (ds3_prefs_file);
-  }
 
-  void* res_addr_x = res_addr;
-  void* res_addr_y = (uint8_t *)res_addr + 4;
+    void* res_addr_x = res_addr;
+    void* res_addr_y = (uint8_t *)res_addr + 4;
 
-  if (res_addr != nullptr)
-  {
     if (res_x != ds3_cfg.render.sacrifice_x || res_y != ds3_cfg.render.sacrifice_y)
     {
       SK_InjectMemory (res_addr_x, (uint8_t *)&res_x, 4, PAGE_EXECUTE_READWRITE);
@@ -958,7 +955,9 @@ SK_DS3_InitPlugin (void)
                         (float)res_x / (float)res_y );
       dll_log.Log ( L"[Asp. Ratio]   >> Sacrifice Address: %ph", res_addr);
     }
-  } else {
+  } 
+  
+  else {
     dll_log.Log ( L"[Asp. Ratio] >> ERROR: Unable to locate memory address for %lux%lu... <<",
                   *(uint32_t *)res_sig, *((uint32_t *)res_sig+1) );
   }

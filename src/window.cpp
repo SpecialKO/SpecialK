@@ -91,7 +91,7 @@ struct {
   DWORD  sampled  =     0UL;
   bool   cursor   =    true;
 
-  int    init     =   false;
+  int    init     =   FALSE;
   UINT   timer_id = 0x68993;
 } last_mouse;
 
@@ -194,18 +194,18 @@ public:
   std::unordered_set <HWND>       moving_windows;
 
 protected:
-  bool On_WINDOWPOSCHANGING (HWND hWnd, WPARAM& wParam, LPARAM& lParam, LRESULT *pRet);
-  bool On_WINDOWPOSCHANGED  (HWND hWnd, WPARAM& wParam, LPARAM& lParam, LRESULT *pRet);
+  bool On_WINDOWPOSCHANGING (HWND hWnd, const WPARAM& wParam, const LPARAM& lParam, LRESULT *pRet);
+  bool On_WINDOWPOSCHANGED  (HWND hWnd, const WPARAM& wParam, const LPARAM& lParam, LRESULT *pRet);
 
-  bool On_MOUSEACTIVATE     (HWND hWnd, WPARAM& wParam, LPARAM& lParam, LRESULT *pRet);
-  bool On_ACTIVATEAPP       (HWND hWnd, WPARAM& wParam, LPARAM& lParam, LRESULT *pRet);
-  bool On_ACTIVATE          (HWND hWnd, WPARAM& wParam, LPARAM& lParam, LRESULT *pRet);
-  bool On_NCACTIVATE        (HWND hWnd, WPARAM& wParam, LPARAM& lParam, LRESULT *pRet);
+  bool On_MOUSEACTIVATE     (HWND hWnd, const WPARAM& wParam, const LPARAM& lParam, LRESULT *pRet);
+  bool On_ACTIVATEAPP       (HWND hWnd,       WPARAM& wParam,       LPARAM& lParam, LRESULT *pRet);
+  bool On_ACTIVATE          (HWND hWnd, const WPARAM& wParam, const LPARAM& lParam, LRESULT *pRet);
+  bool On_NCACTIVATE        (HWND hWnd,       WPARAM& wParam,       LPARAM& lParam, LRESULT *pRet);
 
-  bool On_MOUSEMOVE         (HWND hWnd, WPARAM& wParam, LPARAM& lParam, LRESULT *pRet);
+  bool On_MOUSEMOVE         (HWND hWnd, const WPARAM& wParam, const LPARAM& lParam, LRESULT *pRet);
 
-  bool On_ENTERSIZEMOVE     (HWND hWnd, WPARAM& wParam, LPARAM& lParam, LRESULT *pRet);
-  bool On_EXITSIZEMOVE      (HWND hWnd, WPARAM& wParam, LPARAM& lParam, LRESULT *pRet);
+  bool On_ENTERSIZEMOVE     (HWND hWnd, const WPARAM& wParam, const LPARAM& lParam, LRESULT *pRet);
+  bool On_EXITSIZEMOVE      (HWND hWnd, const WPARAM& wParam, const LPARAM& lParam, LRESULT *pRet);
 } wm_dispatch;
 
 bool override_window_rects = false;
@@ -561,12 +561,11 @@ public:
       unsigned int x = 65535;
       unsigned int y = 65535;
 
-         char szTemp    [31] = { };
-
       if (val != nullptr)
       {
-        strcat  (szTemp, *static_cast <char **> (val));
-        sscanf  (szTemp, "%ux%u", &x, &y);
+        char    szTemp [31] = { };
+        strcat (szTemp, *static_cast <char **> (val));
+        sscanf (szTemp, "%ux%u", &x, &y);
       }
 
       if ((x > 320 && x < 16384 && y > 240 && y < 16384) || (x == 0 && y == 0))
@@ -597,6 +596,8 @@ public:
 
     return false;
   }
+
+  virtual ~SK_WindowManager (void) { };
 
   SK_WindowManager (void)
   {
@@ -955,7 +956,10 @@ auto ActivateWindow =[&](HWND hWnd, bool active = false)
 };
 
 bool
-window_message_dispatch_s::On_ENTERSIZEMOVE (HWND hWnd, WPARAM&, LPARAM&, LRESULT*)
+window_message_dispatch_s::On_ENTERSIZEMOVE ( HWND     hWnd,
+                                        const WPARAM  &,
+                                        const LPARAM  &,
+                                              LRESULT * )
 {
   ClipCursor (nullptr);
 
@@ -965,7 +969,10 @@ window_message_dispatch_s::On_ENTERSIZEMOVE (HWND hWnd, WPARAM&, LPARAM&, LRESUL
 }
 
 bool
-window_message_dispatch_s::On_EXITSIZEMOVE (HWND hWnd, WPARAM&, LPARAM&, LRESULT*)
+window_message_dispatch_s::On_EXITSIZEMOVE ( HWND     hWnd,
+                                       const WPARAM  &,
+                                       const LPARAM  &,
+                                             LRESULT * )
 {
   if ( moving_windows.count (hWnd) ||
        moving_windows.count (game_window.hWnd) )
@@ -988,7 +995,10 @@ window_message_dispatch_s::On_EXITSIZEMOVE (HWND hWnd, WPARAM&, LPARAM&, LRESULT
 }
 
 bool
-window_message_dispatch_s::On_MOUSEMOVE (HWND, WPARAM&, LPARAM&, LRESULT*)
+window_message_dispatch_s::On_MOUSEMOVE ( HWND,
+                                    const WPARAM  &,
+                                    const LPARAM  &,
+                                          LRESULT * )
 {
   if (! game_window.active)
     GetCursorPos_Original (&game_window.cursor_pos);
@@ -997,7 +1007,10 @@ window_message_dispatch_s::On_MOUSEMOVE (HWND, WPARAM&, LPARAM&, LRESULT*)
 }
 
 bool
-window_message_dispatch_s::On_MOUSEACTIVATE (HWND hWnd, WPARAM& wParam, LPARAM&, LRESULT* pRet)
+window_message_dispatch_s::On_MOUSEACTIVATE ( HWND     hWnd,
+                                        const WPARAM  &wParam,
+                                        const LPARAM  &,
+                                              LRESULT *pRet )
 {
   SK_RenderBackend& rb = SK_GetCurrentRenderBackend ();
 
@@ -1038,7 +1051,10 @@ window_message_dispatch_s::On_MOUSEACTIVATE (HWND hWnd, WPARAM& wParam, LPARAM&,
 
 
 bool
-window_message_dispatch_s::On_NCACTIVATE (HWND hWnd, WPARAM& wParam, LPARAM& lParam, LRESULT*)
+window_message_dispatch_s::On_NCACTIVATE ( HWND     hWnd,
+                                           WPARAM  &wParam,
+                                           LPARAM  &lParam,
+                                           LRESULT * )
 {
   SK_ASSERT_NOT_THREADSAFE ();
 
@@ -1077,7 +1093,10 @@ window_message_dispatch_s::On_NCACTIVATE (HWND hWnd, WPARAM& wParam, LPARAM& lPa
 }
 
 bool
-window_message_dispatch_s::On_ACTIVATEAPP (HWND hWnd, WPARAM& wParam, LPARAM& lParam, LRESULT*)
+window_message_dispatch_s::On_ACTIVATEAPP ( HWND     hWnd,
+                                            WPARAM  &wParam,
+                                            LPARAM  &lParam,
+                                            LRESULT * )
 {
   SK_ASSERT_NOT_THREADSAFE ();
 
@@ -1116,12 +1135,16 @@ window_message_dispatch_s::On_ACTIVATEAPP (HWND hWnd, WPARAM& wParam, LPARAM& lP
 }
 
 bool
-window_message_dispatch_s::On_ACTIVATE (HWND hWnd, WPARAM& wParam, LPARAM& lParam, LRESULT* pRet)
+window_message_dispatch_s::On_ACTIVATE ( HWND     hWnd,
+                                   const WPARAM  &wParam,
+                                   const LPARAM  &lParam,
+                                         LRESULT *pRet )
 {
   const wchar_t* source   = L"UNKKNOWN";
   bool           activate = false;
 
-  bool last_active = active_windows [hWnd];
+  bool last_active =
+    active_windows [hWnd];
 
   switch (LOWORD (wParam))
   {
@@ -1506,8 +1529,7 @@ NtUserClipCursor_Detour (const RECT *lpRect)
   // If the game uses mouse clipping and we are running in borderless,
   //   we need to re-adjust the window coordinates.
   //
-  if ( lpRect != nullptr &&
-       game_window.needsCoordTransform () )
+  if (game_window.needsCoordTransform ())
   {
     POINT top_left     = { std::numeric_limits <LONG>::max (), std::numeric_limits <LONG>::max () };
     POINT bottom_right = { std::numeric_limits <LONG>::min (), std::numeric_limits <LONG>::min () };
@@ -1534,7 +1556,7 @@ NtUserClipCursor_Detour (const RECT *lpRect)
     return ClipCursor_Original (nullptr);
 
 
-  if (game_window.active && (! wm_dispatch.moving_windows.count (game_window.hWnd)) && lpRect != nullptr)
+  if (game_window.active && (! wm_dispatch.moving_windows.count (game_window.hWnd)))
   {
     return ClipCursor_Original (&game_window.cursor_clip);
   }
@@ -3592,7 +3614,10 @@ WINAPI
 ImGui_WndProcHandler (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 bool
-window_message_dispatch_s::On_WINDOWPOSCHANGING (HWND hWnd, WPARAM&, LPARAM& lParam, LRESULT *pRet)
+window_message_dispatch_s::On_WINDOWPOSCHANGING ( HWND     hWnd,
+                                            const WPARAM  &,
+                                            const LPARAM  &lParam,
+                                                  LRESULT *pRet )
 {
   if (hWnd != game_window.hWnd)
     return false;
@@ -3649,9 +3674,6 @@ window_message_dispatch_s::On_WINDOWPOSCHANGING (HWND hWnd, WPARAM&, LPARAM& lPa
 
       GetMonitorInfo (hMonitor, &mi);
 
-      wnd_pos->cx = game_window.game.window.right  - game_window.game.window.left;
-      wnd_pos->cy = game_window.game.window.bottom - game_window.game.window.top;
-
       game_window.actual.window = mi.rcMonitor;
 
       (game_window.actual.window.right  -= game_window.actual.window.left);
@@ -3680,7 +3702,10 @@ window_message_dispatch_s::On_WINDOWPOSCHANGING (HWND hWnd, WPARAM&, LPARAM& lPa
 }
 
 bool
-window_message_dispatch_s::On_WINDOWPOSCHANGED (HWND hWnd, WPARAM&, LPARAM& lParam, LRESULT *pRet)
+window_message_dispatch_s::On_WINDOWPOSCHANGED ( HWND     hWnd,
+                                           const WPARAM  &,
+                                           const LPARAM  &lParam,
+                                                 LRESULT *pRet )
 {
   if (game_window.hWnd != hWnd)
     return false;
@@ -3855,7 +3880,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
                          nullptr );
       }
 
-      last_mouse.init = true;
+      last_mouse.init = TRUE;
     }
 
     bool activation_event =
@@ -3951,6 +3976,12 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     case WM_QUIT:
     case WM_CLOSE:
     {
+      if (SK_GetCurrentGameID () == SK_GAME_ID::Yakuza0)
+      {
+        SK_SelfDestruct  ();
+        TerminateProcess (GetCurrentProcess (), 0x0);
+      }
+
       if (SK_GetCurrentGameID () == SK_GAME_ID::Okami)
       {
         if (config.input.keyboard.catch_alt_f4)
@@ -4816,11 +4847,12 @@ SK_InstallWindowHook (HWND hWnd)
 
     SetLastError (dwLast);
 
-    SK_GetCurrentRenderBackend ().windows.setFocus  (hWnd);
-    SK_GetCurrentRenderBackend ().windows.setDevice (
-      SK_GetCurrentRenderBackend ().windows.device ?
-      game_window.hWnd  : hWnd);
+    SK_RenderBackend& rb =
+      SK_GetCurrentRenderBackend ();
 
+    rb.windows.setFocus  (hWnd);
+    rb.windows.setDevice (rb.windows.device ?
+                           game_window.hWnd : hWnd);
 
     SK_InitWindow (hWnd);
 
@@ -5503,7 +5535,7 @@ sk_window_s::CallProc (
     _In_ HWND    hWnd_,
     _In_ UINT    Msg,
     _In_ WPARAM  wParam,
-    _In_ LPARAM  lParam )
+    _In_ LPARAM  lParam ) 
 {
   // We subclassed the window instead of hooking the game's window proc
   if (! hooked)

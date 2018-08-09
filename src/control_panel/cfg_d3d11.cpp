@@ -153,13 +153,13 @@ SK_ImGui_DrawTexCache_Chart (void)
 
       if (config.textures.cache.residency_managemnt)
       {
-        int fully_resident = ReadAcquire (&SK_D3D11_TexCacheResidency.count.InVRAM);
-        int shared_memory  = ReadAcquire (&SK_D3D11_TexCacheResidency.count.Shared);
-        int on_disk        = ReadAcquire (&SK_D3D11_TexCacheResidency.count.PagedOut);
+        const int fully_resident = ReadAcquire (&SK_D3D11_TexCacheResidency.count.InVRAM);
+        const int shared_memory  = ReadAcquire (&SK_D3D11_TexCacheResidency.count.Shared);
+        const int on_disk        = ReadAcquire (&SK_D3D11_TexCacheResidency.count.PagedOut);
 
-        LONG64 size_vram   = ReadAcquire64 (&SK_D3D11_TexCacheResidency.size.InVRAM);
-        LONG64 size_shared = ReadAcquire64 (&SK_D3D11_TexCacheResidency.size.Shared);
-        LONG64 size_disk   = ReadAcquire64 (&SK_D3D11_TexCacheResidency.size.PagedOut);
+        const LONG64 size_vram   = ReadAcquire64 (&SK_D3D11_TexCacheResidency.size.InVRAM);
+        const LONG64 size_shared = ReadAcquire64 (&SK_D3D11_TexCacheResidency.size.Shared);
+        const LONG64 size_disk   = ReadAcquire64 (&SK_D3D11_TexCacheResidency.size.PagedOut);
 
         ImGui::BeginGroup ();
         if (fully_resident != 0)
@@ -196,18 +196,18 @@ SK_ImGui_DrawTexCache_Chart (void)
 glm::vec3
 SK_Color_XYZ_from_RGB ( const SK_ColorSpace& cs, glm::vec3 RGB )
 {
-  float Xr =        cs.xr / cs.yr;
-  float Zr = (1.f - cs.xr - cs.yr) / cs.yr;
+  const float Xr =        cs.xr / cs.yr;
+  const float Zr = (1.f - cs.xr - cs.yr) / cs.yr;
 
-  float Xg =        cs.xg / cs.yg;
-  float Zg = (1.f - cs.xg - cs.yg) / cs.yg;
+  const float Xg =        cs.xg / cs.yg;
+  const float Zg = (1.f - cs.xg - cs.yg) / cs.yg;
 
-  float Xb =        cs.xb / cs.yb;
-  float Zb = (1.f - cs.xb - cs.yb) / cs.yb;
+  const float Xb =        cs.xb / cs.yb;
+  const float Zb = (1.f - cs.xb - cs.yb) / cs.yb;
 
-  float Yr = 1.f;
-  float Yg = 1.f;
-  float Yb = 1.f;
+  const float Yr = 1.f;
+  const float Yg = 1.f;
+  const float Yb = 1.f;
 
   glm::mat3x3 xyz_primary ( Xr, Xg, Xb,
                             Yr, Yg, Yb,
@@ -236,7 +236,7 @@ SK_Color_xyY_from_RGB ( const SK_ColorSpace& cs, glm::vec3 RGB )
 void
 SK_ImGui_DrawGamut (void)
 {
-  ImVec4 col (0.25f, 0.25f, 0.25f, 0.8f);
+  const ImVec4 col (0.25f, 0.25f, 0.25f, 0.8f);
 
   const ImU32 col32 =
     ImColor (col);
@@ -244,7 +244,7 @@ SK_ImGui_DrawGamut (void)
   ImDrawList* draw_list =
     ImGui::GetWindowDrawList ();
   
-  SK_RenderBackend& rb =
+  const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   ImGuiIO& io =
@@ -285,22 +285,23 @@ SK_ImGui_DrawGamut (void)
                                                           0.31, 0.316, 1.0 - 0.31 - 0.316 } }
   };
   
-  glm::vec3 r (SK_Color_xyY_from_RGB (rb.display_gamut, glm::vec3 (1.f, 0.f, 0.f))),
-            g (SK_Color_xyY_from_RGB (rb.display_gamut, glm::vec3 (0.f, 1.f, 0.f))),
-            b (SK_Color_xyY_from_RGB (rb.display_gamut, glm::vec3 (0.f, 0.f, 1.f)));
+  const glm::vec3 r (SK_Color_xyY_from_RGB (rb.display_gamut, glm::vec3 (1.f, 0.f, 0.f))),
+                  g (SK_Color_xyY_from_RGB (rb.display_gamut, glm::vec3 (0.f, 1.f, 0.f))),
+                  b (SK_Color_xyY_from_RGB (rb.display_gamut, glm::vec3 (0.f, 0.f, 1.f)));
   
   draw_list->PushClipRectFullScreen (                                   );
   draw_list->AddTriangleFilled      ( ImVec2 (r.x * io.DisplaySize.x, io.DisplaySize.y - r.y * io.DisplaySize.y),
                                       ImVec2 (g.x * io.DisplaySize.x, io.DisplaySize.y - g.y * io.DisplaySize.y),
                                       ImVec2 (b.x * io.DisplaySize.x, io.DisplaySize.y - b.y * io.DisplaySize.y), col32 );
 
-  ImU32 self_outline = ImColor::HSV ( std::min (1.0f, 0.85f + (sin ((float)(current_time % 400) / 400.0f))),
-                                                   0.0f,
-                                                           (float)(0.66f + (current_time % 830) / 830.0f ) );
+  const ImU32 self_outline =
+    ImColor::HSV ( std::min (1.0f, 0.85f + (sin ((float)(current_time % 400) / 400.0f))),
+                               0.0f,
+                       (float)(0.66f + (current_time % 830) / 830.0f ) );
 
-  float idx                 = 0.0f;
-  float orig_font_size      = io.FontGlobalScale;
-        io.FontGlobalScale *= 3.0f;
+  float idx                  = 0.0f;
+  const float orig_font_size = io.FontGlobalScale;
+        io.FontGlobalScale  *= 3.0f;
 
   for ( auto& space : color_spaces )
   {
@@ -366,7 +367,7 @@ SK::ControlPanel::D3D11::Draw (void)
     ////if (ImGui::IsItemHovered ())
       ////ImGui::SetTooltip ("Increased compatibility with video capture software")
 
-    bool swapchain =
+    const bool swapchain =
       ImGui::CollapsingHeader ("SwapChain Management");
 
     if (ImGui::IsItemHovered ())
@@ -486,9 +487,10 @@ SK::ControlPanel::D3D11::Draw (void)
         }
       }
 
-      bool changed = (flip         != config.render.framerate.flip_discard      ) ||
-                     (waitable     != config.render.framerate.swapchain_wait > 0) ||
-                     (buffer_count != config.render.framerate.buffer_count      );
+      const bool changed =
+        (flip         != config.render.framerate.flip_discard      ) ||
+        (waitable     != config.render.framerate.swapchain_wait > 0) ||
+        (buffer_count != config.render.framerate.buffer_count      );
 
       if (changed)
       {
@@ -644,7 +646,7 @@ SK::ControlPanel::D3D11::Draw (void)
     static bool enable_resolution_limits = ! ( config.render.dxgi.res.min.isZero () && 
                                                config.render.dxgi.res.max.isZero () );
 
-    bool res_limits =
+    const bool res_limits =
       ImGui::CollapsingHeader ("Resolution Limiting", enable_resolution_limits ? ImGuiTreeNodeFlags_DefaultOpen : 0x00);
 
     if (ImGui::IsItemHovered ())
@@ -709,7 +711,7 @@ SK::ControlPanel::D3D11::Draw (void)
 
     ImGui::SameLine ();
 
-    bool advanced =
+    const bool advanced =
       ImGui::TreeNode ("Advanced (Debug)###Advanced_NVD3D11");
 
     if (advanced)
@@ -742,7 +744,8 @@ SK::ControlPanel::D3D11::Draw (void)
 bool
 SK_D3D11_ShowShaderModDlg (void)
 {
-  return SK::ControlPanel::D3D11::show_shader_mod_dlg;
+  return
+    SK::ControlPanel::D3D11::show_shader_mod_dlg;
 }
 
 
@@ -755,7 +758,7 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
 
     if (SUCCEEDED (pSwapDXGI->GetDesc (&swap_desc)))
     {
-      SK_RenderBackend& rb =
+      const SK_RenderBackend& rb =
         SK_GetCurrentRenderBackend ();
 
       CComQIPtr <ID3D11DeviceContext> pDevCtx =

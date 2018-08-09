@@ -585,7 +585,7 @@ SK_DrawOSD (void)
                             time,
                               127 );
 
-    static HMODULE hModGame = SK_Modules.HostApp;
+    static HMODULE hModGame = SK_Modules.HostApp ();
     static wchar_t wszGameName [MAX_PATH + 1] = { };
 
     if (wszGameName [0] == L'\0')
@@ -1107,8 +1107,8 @@ static_cast <double> (                         gpu_stats.gpus [i].loads_percent.
 
   else
   {
-    OSD_C_PRINTF "\n  Total  : %#3lu%%  -  (Kernel: %#3lu%%   "
-                   "User: %#3lu%%   Interrupt: %#3lu%%)\n",
+    OSD_C_PRINTF "\n  Total  : %#3li%%  -  (Kernel: %#3li%%   "
+                   "User: %#3li%%   Interrupt: %#3li%%)\n",
         ReadNoFence (      &cpu_stats.cpus [64].percent_load     ),
           ReadNoFence (    &cpu_stats.cpus [64].percent_kernel   ),
             ReadNoFence (  &cpu_stats.cpus [64].percent_user     ),
@@ -1121,8 +1121,8 @@ static_cast <double> (                         gpu_stats.gpus [i].loads_percent.
     {
       if (! config.cpu.simple)
       {
-        OSD_C_PRINTF "  CPU%0*lu%-*s: %#3lu%%  -  (Kernel: %#3lu%%   "
-                     "User: %#3lu%%   Interrupt: %#3lu%%)\n",
+        OSD_C_PRINTF "  CPU%0*lu%-*s: %#3li%%  -  (Kernel: %#3li%%   "
+                     "User: %#3li%%   Interrupt: %#3li%%)\n",
           digits, i, 4-digits, "",
             ReadAcquire (      &cpu_stats.cpus [i].percent_load     ),
               ReadAcquire (    &cpu_stats.cpus [i].percent_kernel   ),
@@ -1133,7 +1133,7 @@ static_cast <double> (                         gpu_stats.gpus [i].loads_percent.
 
       else
       {
-        OSD_C_PRINTF "  CPU%0*lu%-*s: %#3lu%%\n",
+        OSD_C_PRINTF "  CPU%0*lu%-*s: %#3li%%\n",
           digits, i, 4-digits, "",
             ReadAcquire (&cpu_stats.cpus [i].percent_load)
         OSD_END
@@ -1383,7 +1383,12 @@ static_cast <double> (                         gpu_stats.gpus [i].loads_percent.
   // Avoid unnecessary MMIO when the user has the OSD turned off
   cleared = (! config.osd.show);
 
+  bool inj_thr = SK_TLS_Bottom ()->texture_management.injection_thread;
+                 SK_TLS_Bottom ()->texture_management.injection_thread = true;
+
   BOOL ret = SK_UpdateOSD (szOSD);
+
+  SK_TLS_Bottom ()->texture_management.injection_thread = inj_thr;
 
   //game_debug.Log (L"%hs", szOSD);
 
@@ -1597,10 +1602,9 @@ SE_Func (CEGUI::Renderer*& pRenderer, SK_TextOverlay& overlay, const CEGUI::Rect
 {
   __try {
     overlay.geometry_ = 
-      &pRenderer->createGeometryBuffer     ();
-    
-    if (overlay.geometry_)
-      overlay.geometry_->setClippingRegion (scrn);
+      &(pRenderer->createGeometryBuffer ());
+
+    overlay.geometry_->setClippingRegion (scrn);
   }
 
   __finally {

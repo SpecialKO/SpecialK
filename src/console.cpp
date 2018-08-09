@@ -55,7 +55,7 @@ SK_Console::SK_Console (void)
 {
   visible        = false;
   command_issued = false;
-  result_str     = "";
+  result_str.clear ();
 
   SecureZeroMemory (text, 4096);
   SecureZeroMemory (keys_, 256);
@@ -80,7 +80,7 @@ SK_Console::Draw (void)
 
   if (visible)
   {
-    output += text;
+    output.append (text);
 
     LARGE_INTEGER now;
     LARGE_INTEGER freq;
@@ -99,19 +99,19 @@ SK_Console::Draw (void)
     }
 
     if (carret)
-      output += "-";
+      output.append ("-");
 
     // Show Command Results
     if (command_issued)
     {
-      output += "\n";
-      output += result_str;
+      output.append ("\n");
+      output.append (result_str);
     }
   }
 
   else
   {
-    output = "";
+    output.clear ();
   }
 
   SK_DrawExternalOSD ("SpecialK Console", output);
@@ -220,7 +220,7 @@ SK_ImGui_KeyPress (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode)
 extern SHORT SK_ImGui_ToggleKeys [4];
 
 bool
-SK_ImGui_ProcessKeyPress (BYTE& vkCode)
+SK_ImGui_ProcessKeyPress (const BYTE& vkCode)
 {
   bool&  visible = SK_Console::getInstance ()->visible;
   BYTE*  keys_   = SK_Console::getInstance ()->keys_;
@@ -338,7 +338,7 @@ SK_HandleConsoleKey (bool keyDown, BYTE vkCode, LPARAM lParam)
         commands.idx++;
 
       // Clamp the index
-      if (commands.idx < 0)
+      if (static_cast <int> (commands.idx) < 0)
         commands.idx = 0;
       else if (commands.idx >= commands.history.size ())
         commands.idx = commands.history.size () - 1;

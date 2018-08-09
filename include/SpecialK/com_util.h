@@ -38,7 +38,7 @@ public:
   {
     _assert_not_dllmain ();
 
-    HRESULT hr =
+    const HRESULT hr =
       CoInitializeEx (nullptr, init_flags_);
 
     if (SUCCEEDED (hr))
@@ -57,7 +57,7 @@ public:
   DWORD getInitFlags (void) { return init_flags_; }
 
 protected:
-  static bool _assert_not_dllmain (void);
+  static bool _assert_not_dllmain (void) ;
 
 private:
   DWORD init_flags_ = COINIT_MULTITHREADED;

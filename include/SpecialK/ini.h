@@ -48,6 +48,8 @@ public:
     parent = _parent;
   }
 
+  virtual ~iSK_INISection (void) { };
+
   /*** IUnknown methods ***/
   STDMETHOD  (       QueryInterface)(THIS_ REFIID riid, void** ppvObj);
   STDMETHOD_ (ULONG, AddRef)        (THIS);
@@ -80,8 +82,8 @@ interface iSK_INI : public IUnknown
   using _TSectionMap =
     const std::unordered_map <std::wstring, iSK_INISection>;
 
-   iSK_INI (const wchar_t* filename);
-  ~iSK_INI (void);
+           iSK_INI (const wchar_t* filename);
+  virtual ~iSK_INI (void);
 
   /*** IUnknown methods ***/
   STDMETHOD  (       QueryInterface)(THIS_ REFIID riid, void** ppvObj);

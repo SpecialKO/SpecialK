@@ -95,7 +95,7 @@ public:
     processor_ = cmd_proc;
   }
 
-  virtual SK_ICommandResult execute (const char* szArgs) override
+  SK_ICommandResult execute (const char* szArgs) override
   {
     /* TODO: Replace with a special tokenizer / parser... */
     FILE* src = fopen (szArgs, "r");
@@ -134,15 +134,15 @@ public:
                                        this );
   }
 
-  virtual int getNumArgs (void) override {
+  int getNumArgs (void) override {
     return 1;
   }
 
-  virtual int getNumOptionalArgs (void) override {
+  int getNumOptionalArgs (void) override {
     return 0;
   }
 
-  virtual const char* getHelp (void) override {
+  const char* getHelp (void) override {
     return "Load and execute a file containing multiple commands "
       "(such as a config file).";
   }
@@ -259,6 +259,8 @@ SK_ICommandProcessor::ProcessCommandLine (const char* szCommandLine)
   if (szCommandLine != nullptr && strlen (szCommandLine))
   {
     char*  command_word     = _strdup (szCommandLine);
+    if ((! command_word)) return
+                    SK_ICommandResult (szCommandLine);
     size_t command_word_len =  strlen (command_word);
 
     char*  command_args     = command_word;
@@ -430,17 +432,20 @@ SK_ICommandProcessor::ProcessCommandLine (const char* szCommandLine)
       var->getValueString (nullptr, &len);
 
       auto* pszNew =
-        SK_TLS_Bottom ()->scratch_memory.cmd.alloc (len + 1, true);
-
-      *(pszNew + len) = '\0';
+        SK_TLS_Bottom ()->scratch_memory.cmd.alloc (
+          len + 1, true
+        );
 
       ++len;
 
       var->getValueString (pszNew, &len);
 
-      SK_ICommandResult ret (cmd_word.c_str (), cmd_args.c_str (), pszNew, true, var, nullptr);
-
-      return ret;
+      return SK_ICommandResult (
+        cmd_word.c_str (),
+        cmd_args.c_str (),
+          pszNew, true,
+            var,  nullptr
+      );
     }
 
     else

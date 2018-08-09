@@ -618,6 +618,13 @@ SK_LoadConfigEx (std::wstring name, bool create)
     dll_ini =
       SK_CreateINI (full_name.c_str ());
 
+    if (! dll_ini)
+    {
+      assert (false && L"Out Of Memory");
+      init = FALSE; return false;
+    }
+
+
     empty   =
       dll_ini->get_sections ().empty ();
 
@@ -1098,8 +1105,12 @@ auto DeclKeybind =
   {
     if ((*sec).first.find (L"Import.") != (*sec).first.npos)
     {
+      const wchar_t* wszNext =
+        wcsstr ((*sec).first.c_str (), L".");
+
       imports [import].name =
-        CharNextW (wcsstr ((*sec).first.c_str (), L"."));
+        wszNext != nullptr    ?
+          CharNextW (wszNext) : L"";
 
       imports [import].filename =
          dynamic_cast <sk::ParameterStringW *>
@@ -1707,14 +1718,19 @@ auto DeclKeybind =
         break;
 
       case SK_GAME_ID::Yakuza0:
-        // Engine has a problem with its texture management that
-        //   makes texture caching / modding impossible.
-        config.textures.d3d11.cache = false;
+        ///// Engine has a problem with its texture management that
+        /////   makes texture caching / modding impossible.
+        config.textures.d3d11.cache               = true;
+        config.textures.cache.allow_unsafe_refs   = true;
+        config.render.dxgi.deferred_isolation     = false;
+        config.textures.cache.residency_managemnt = false;
+        //config.render.dxgi.full_state_cache    = true;
+        //SK_DXGI_FullStateCache                 = config.render.dxgi.full_state_cache;
         break;
     }
   }
 
-  init = true; }
+  init = TRUE; }
 
 
   //
@@ -1875,14 +1891,14 @@ auto DeclKeybind =
   if (((sk::iParameter *)render.dxgi.max_res)->load ())
   {
     swscanf ( render.dxgi.max_res->get_value_str ().c_str (),
-                L"%lux%lu",
+                L"%ux%u",
                 &config.render.dxgi.res.max.x,
                   &config.render.dxgi.res.max.y );
   }
   if (((sk::iParameter *)render.dxgi.min_res)->load ())
   {
     swscanf ( render.dxgi.min_res->get_value_str ().c_str (),
-                L"%lux%lu",
+                L"%ux%u",
                 &config.render.dxgi.res.min.x,
                   &config.render.dxgi.res.min.y );
   }
@@ -1914,80 +1930,62 @@ auto DeclKeybind =
 
   if (((sk::iParameter *)render.dxgi.scaling_mode)->load ())
   {
-    if (! _wcsicmp (
-            render.dxgi.scaling_mode->get_value_str ().c_str (),
-            L"Unspecified"
-          )
-       )
+    std::wstring&& mode =
+      render.dxgi.scaling_mode->get_value_str ();
+
+    if (! _wcsicmp (mode.c_str (), L"Unspecified"))
     {
-      config.render.dxgi.scaling_mode = DXGI_MODE_SCALING_UNSPECIFIED;
+      config.render.dxgi.scaling_mode =
+        DXGI_MODE_SCALING_UNSPECIFIED;
     }
 
-    else if (! _wcsicmp (
-                 render.dxgi.scaling_mode->get_value_str ().c_str (),
-                 L"Centered"
-               )
-            )
+    else if (! _wcsicmp (mode.c_str (), L"Centered"))
     {
-      config.render.dxgi.scaling_mode = DXGI_MODE_SCALING_CENTERED;
+      config.render.dxgi.scaling_mode =
+        DXGI_MODE_SCALING_CENTERED;
     }
 
-    else if (! _wcsicmp (
-                 render.dxgi.scaling_mode->get_value_str ().c_str (),
-                 L"Stretched"
-               )
-            )
+    else if (! _wcsicmp (mode.c_str (), L"Stretched"))
     {
-      config.render.dxgi.scaling_mode = DXGI_MODE_SCALING_STRETCHED;
+      config.render.dxgi.scaling_mode =
+        DXGI_MODE_SCALING_STRETCHED;
     }
   }
 
   if (((sk::iParameter *)render.dxgi.scanline_order)->load ())
   {
-    if (! _wcsicmp (
-            render.dxgi.scanline_order->get_value_str ().c_str (),
-            L"Unspecified"
-          )
-       )
+    std::wstring&& order =
+      render.dxgi.scanline_order->get_value_str ();
+
+    if (! _wcsicmp (order.c_str (), L"Unspecified"))
     {
-      config.render.dxgi.scanline_order = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+      config.render.dxgi.scanline_order =
+        DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
     }
 
-    else if (! _wcsicmp (
-                 render.dxgi.scanline_order->get_value_str ().c_str (),
-                 L"Progressive"
-               )
-            )
+    else if (! _wcsicmp (order.c_str (), L"Progressive"))
     {
-      config.render.dxgi.scanline_order = DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE;
+      config.render.dxgi.scanline_order =
+        DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE;
     }
 
-    else if (! _wcsicmp (
-                 render.dxgi.scanline_order->get_value_str ().c_str (),
-                 L"LowerFieldFirst"
-               )
-            )
+    else if (! _wcsicmp (order.c_str (), L"LowerFieldFirst"))
     {
-      config.render.dxgi.scanline_order = DXGI_MODE_SCANLINE_ORDER_LOWER_FIELD_FIRST;
+      config.render.dxgi.scanline_order =
+        DXGI_MODE_SCANLINE_ORDER_LOWER_FIELD_FIRST;
     }
 
-    else if (! _wcsicmp (
-                 render.dxgi.scanline_order->get_value_str ().c_str (),
-                 L"UpperFieldFirst"
-               )
-            )
+    else if (! _wcsicmp (order.c_str (), L"UpperFieldFirst"))
     {
-      config.render.dxgi.scanline_order = DXGI_MODE_SCANLINE_ORDER_UPPER_FIELD_FIRST;
+      config.render.dxgi.scanline_order =
+        DXGI_MODE_SCANLINE_ORDER_UPPER_FIELD_FIRST;
     }
 
     // If a user specifies Interlaced, default to Lower Field First
-    else if (! _wcsicmp (
-                 render.dxgi.scanline_order->get_value_str ().c_str (),
-                 L"Interlaced"
-               )
-            )
+    else if (! _wcsicmp (order.c_str (), L"Interlaced"))
     {
-      config.render.dxgi.scanline_order = DXGI_MODE_SCANLINE_ORDER_LOWER_FIELD_FIRST;
+      config.render.dxgi.scanline_order =
+        DXGI_MODE_SCANLINE_ORDER_LOWER_FIELD_FIRST;
     }
   }
 
@@ -1995,21 +1993,16 @@ auto DeclKeybind =
 
   if (((sk::iParameter *)render.dxgi.exception_mode)->load ())
   {
-    if (! _wcsicmp (
-            render.dxgi.exception_mode->get_value_str ().c_str (),
-            L"Raise"
-          )
-       )
+    std::wstring&& except_mode =
+      render.dxgi.exception_mode->get_value_str ();
+
+    if (! _wcsicmp (except_mode.c_str (), L"Raise"))
     {
       #define D3D11_RAISE_FLAG_DRIVER_INTERNAL_ERROR 1
       config.render.dxgi.exception_mode = D3D11_RAISE_FLAG_DRIVER_INTERNAL_ERROR;
     }
 
-    else if (! _wcsicmp (
-                 render.dxgi.exception_mode->get_value_str ().c_str (),
-                 L"Ignore"
-               )
-            )
+    else if (! _wcsicmp (except_mode.c_str (), L"Ignore"))
     {
       config.render.dxgi.exception_mode = 0;
     }
@@ -2153,7 +2146,7 @@ auto DeclKeybind =
     else
     {
       config.window.offset.x.percent = 0.0f;
-      swscanf (offset.c_str (), L"%li", &config.window.offset.x.absolute);
+      swscanf (offset.c_str (), L"%i", &config.window.offset.x.absolute);
     }
   }
 
@@ -2169,7 +2162,7 @@ auto DeclKeybind =
     else
     {
       config.window.offset.y.percent = 0.0f;
-      swscanf (offset.c_str (), L"%li", &config.window.offset.y.absolute);
+      swscanf (offset.c_str (), L"%i", &config.window.offset.y.absolute);
     }
   }
 
@@ -2184,7 +2177,7 @@ auto DeclKeybind =
   if (((sk::iParameter *)window.override)->load ())
   {
     swscanf ( window.override->get_value_str ().c_str (),
-                L"%lux%lu",
+                L"%ux%u",
                 &config.window.res.override.x,
                   &config.window.res.override.y );
   }
@@ -3117,9 +3110,9 @@ SK_SaveConfig ( std::wstring name,
 
   SK_ImGui_Widgets.SaveConfig ();
 
-  osd_ini->write         ( osd_ini->get_filename         () );
-  achievement_ini->write ( achievement_ini->get_filename () );
-  macro_ini->write       ( macro_ini->get_filename       () );
+  if (osd_ini)         osd_ini->write         ( osd_ini->get_filename         () );
+  if (achievement_ini) achievement_ini->write ( achievement_ini->get_filename () );
+  if (macro_ini)       macro_ini->write       ( macro_ini->get_filename       () );
 
 
   if (close_config)
@@ -3381,26 +3374,26 @@ SK_AppCache_Manager::loadAppCacheForExe (const wchar_t* wszExe)
               )
     );
 
-    PathRemoveFileSpecW (wszRelPath);
+    PathRemoveFileSpecW ((wchar_t *)wszRelPath);
 
-    std::wstring wstr_appcache
-    (
+    wchar_t wszAppCache [MAX_PATH * 2 + 1] = { };
+
+    wcsncpy (wszAppCache,
       SK_FormatStringW ( LR"(%s\My Mods\SpecialK\Profiles\AppCache\%s\SpecialK.AppCache)",
                            SK_GetDocumentsDir ().c_str (),
-                             wszRelPath.m_pData
-                       )
-    );
+                             (wchar_t *)wszRelPath
+                       ).c_str (), MAX_PATH);
 
     // It may be necessary to write the INI immediately after creating it,
     //   but usually not.
     bool need_to_create =
-      ( GetFileAttributesW (wstr_appcache.c_str ()) == INVALID_FILE_ATTRIBUTES );
+      ( GetFileAttributesW (wszAppCache) == INVALID_FILE_ATTRIBUTES );
 
     if ( need_to_create )
-      SK_CreateDirectories (wstr_appcache.c_str ());
+      SK_CreateDirectories (wszAppCache);
 
     app_cache_db =
-      SK_CreateINI         (wstr_appcache.c_str ());
+      SK_CreateINI         (wszAppCache);
 
     if ( need_to_create )
       app_cache_db->write (app_cache_db->get_filename ());

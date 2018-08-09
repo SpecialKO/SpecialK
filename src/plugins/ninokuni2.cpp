@@ -207,7 +207,7 @@ SK_NNK2_CreateSamplerState
 (
   _In_            ID3D11Device        *This,
   _In_      const D3D11_SAMPLER_DESC  *pSamplerDesc,
-  _Out_opt_       ID3D11SamplerState **ppSamplerState )
+  _Out_opt_       ID3D11SamplerState **ppSamplerState ) 
 {
   D3D11_SAMPLER_DESC new_desc = *pSamplerDesc;
 
@@ -219,7 +219,7 @@ SK_NNK2_CreateSamplerState
       new_desc.MaxAnisotropy = 16;
       new_desc.MipLODBias    = std::fmax (0.0f, new_desc.MipLODBias);
 
-      HRESULT hr =
+      const HRESULT hr =
         _D3D11Dev_CreateSamplerState_Original (This, &new_desc, ppSamplerState);
 
       if (SUCCEEDED (hr))
@@ -230,7 +230,7 @@ SK_NNK2_CreateSamplerState
     {
       new_desc.MaxAnisotropy = 1;
 
-      HRESULT hr =
+      const HRESULT hr =
         _D3D11Dev_CreateSamplerState_Original (This, &new_desc, ppSamplerState);
 
       if (SUCCEEDED (hr))
@@ -329,7 +329,7 @@ SK_NNK2_InitPlugin (void)
       instn__limit_branch.disable    ();
 
       float* pfBase =
-        (float *)((uintptr_t)GetModuleHandle (nullptr) + TIMESTEP_BASE_ADDR);
+        reinterpret_cast <float *>(((uintptr_t)GetModuleHandle (nullptr) + TIMESTEP_BASE_ADDR));
 
       static float* pfdTi = pfBase;
       static float* pfdTr = pfBase+1;

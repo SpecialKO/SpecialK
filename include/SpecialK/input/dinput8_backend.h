@@ -4512,16 +4512,16 @@ using IDirectInputDevice8A_SetCooperativeLevel_pfn = HRESULT (WINAPI *)(
 #include <cstdint>
 
 struct SK_DI8_Keyboard {
-  LPDIRECTINPUTDEVICE8W pDev = nullptr;
-  uint8_t               state [512];
-  DWORD                 coop_level;     // The level the game requested, not necessarily
-                                        //   its current state (changes based on UI).
+  LPDIRECTINPUTDEVICE8W pDev        = nullptr;
+  uint8_t               state [512] = { };
+  DWORD                 coop_level  = 0; // The level the game requested, not necessarily
+                                         //   its current state (changes based on UI).
 };
 
 struct SK_DI8_Mouse {
-  LPDIRECTINPUTDEVICE8W pDev = nullptr;
-  DIMOUSESTATE2         state;
-  DWORD                 coop_level;     // The level the game requested, not necessarily
+  LPDIRECTINPUTDEVICE8W pDev       = nullptr;
+  DIMOUSESTATE2         state      = { };
+  DWORD                 coop_level = 0; // The level the game requested, not necessarily
                                         //   its current state (changes based on UI).
 
   // Weird hack for some touchpads that don't send out mousewheel events in any API

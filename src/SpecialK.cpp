@@ -113,8 +113,35 @@ std::unordered_map <DLL_ROLE, SK_DLL_Bootstrapper>
 
 
 
-skWin32Module skModuleRegistry::HostApp;
-skWin32Module skModuleRegistry::Self;
+skWin32Module&
+skModuleRegistry::HostApp (HMODULE hModToSet)
+{
+  static skWin32Module hModApp;
+
+  if ( hModApp   == skWin32Module::Uninitialized &&
+       hModToSet != skWin32Module::Uninitialized    )
+  {
+    hModApp =
+      std::move (hModToSet);
+  }
+
+  return hModApp;
+}
+
+skWin32Module&
+skModuleRegistry::Self (HMODULE hModToSet)
+{
+  static skWin32Module hModSelf;
+
+  if ( hModSelf  == skWin32Module::Uninitialized &&
+       hModToSet != skWin32Module::Uninitialized    )
+  {
+    hModSelf =
+      std::move (hModToSet);
+  }
+
+  return hModSelf;
+}
 
   HMODULE
   __stdcall
@@ -194,8 +221,8 @@ SK_KeepAway (void)
   wchar_t* wszHostApp =
     (wchar_t *)SK_LocalAlloc ( LMEM_ZEROINIT, 256 * sizeof (wchar_t) );
 
-  if     ( wszHostApp == nullptr ) return true;
-  wcsncpy (wszHostApp, SK_GetHostApp (), 255);
+  if        ( wszHostApp == nullptr ) return true;
+  wcsncpy_s ( wszHostApp, 255, SK_GetHostApp (), _TRUNCATE );
 
   wchar_t *pwsz = wszHostApp;
   while ( *pwsz != L'\0' )
@@ -227,7 +254,7 @@ DllMain ( HMODULE hModule,
     {
       // Try, if assigned already (how?!) do not deadlock the Kernel loader
       if ( __SK_hModSelf       != hModule )
-        skModuleRegistry::Self  = hModule;
+        skModuleRegistry::Self   (hModule);
 
       else
         return TRUE;
@@ -270,8 +297,7 @@ DllMain ( HMODULE hModule,
 
 
 
-      skModuleRegistry::HostApp = GetModuleHandle (nullptr);
-
+      skModuleRegistry::HostApp (GetModuleHandle (nullptr));
 
 
       // Setup unhooked function pointers
@@ -375,23 +401,33 @@ DllMain ( HMODULE hModule,
 HMODULE
 SK_GetLocalModuleHandle (const wchar_t* wszModule)
 {
-  wchar_t   wszLocalModulePath [MAX_PATH * 2] = { };
-  wcsncpy  (wszLocalModulePath, SK_GetHostPath (), MAX_PATH);
+  wchar_t    wszLocalModulePath [MAX_PATH * 2 + 1] = { };
+  wcsncpy_s (wszLocalModulePath, MAX_PATH, SK_GetHostPath (), _TRUNCATE );
   lstrcatW (wszLocalModulePath, LR"(\)");
   lstrcatW (wszLocalModulePath, wszModule);
 
-  return GetModuleHandleW (wszLocalModulePath);
+  return
+    GetModuleHandleW (wszLocalModulePath);
 };
 
 HMODULE
 SK_LoadLocalModule (const wchar_t* wszModule)
 {
-  wchar_t   wszLocalModulePath [MAX_PATH * 2] = { };
-  wcsncpy  (wszLocalModulePath, SK_GetHostPath (), MAX_PATH);
-  lstrcatW (wszLocalModulePath, LR"(\)");
-  lstrcatW (wszLocalModulePath, wszModule);
+  wchar_t    wszLocalModulePath [MAX_PATH * 2] = { };
+  wcsncpy_s (wszLocalModulePath, MAX_PATH, SK_GetHostPath (), _TRUNCATE );
+  lstrcatW  (wszLocalModulePath, LR"(\)");
+  lstrcatW  (wszLocalModulePath, wszModule);
 
-  return LoadLibraryW (wszLocalModulePath);
+  HMODULE hMod =
+    GetModuleHandleW (wszLocalModulePath);
+
+  if (hMod == 0)
+  {
+    return
+      LoadLibraryW (wszLocalModulePath);
+  }
+
+  return hMod;
 };
 
 // If this is the global injector and there is a wrapper version
@@ -926,10 +962,10 @@ SK_Attach (DLL_ROLE role)
 
 
       budget_mutex = new SK_Thread_HybridSpinlock (  400);
-      init_mutex   = new SK_Thread_HybridSpinlock ( 2500);
+      init_mutex   = new SK_Thread_HybridSpinlock (  750);
       steam_mutex  = new SK_Thread_HybridSpinlock (    3);
       wmi_cs       = new SK_Thread_HybridSpinlock ( 1280);
-      cs_dbghelp   = new SK_Thread_HybridSpinlock (16384);
+      cs_dbghelp   = new SK_Thread_HybridSpinlock (  384);
 
 
       _time64 (&__SK_DLL_AttachTime);

@@ -36,9 +36,9 @@ WSARecv_Detour (
   _Out_   LPDWORD lpNumberOfBytesRecvd,
   _Inout_ LPDWORD lpFlags,
   _In_    LPVOID  lpOverlapped,
-  _In_    LPVOID  lpCompletionRoutine )
+  _In_    LPVOID  lpCompletionRoutine ) 
 {
-  int ret =
+  const int ret =
     WSARecv_Original (s, lpBuffers, dwBufferCount, lpNumberOfBytesRecvd, lpFlags, lpOverlapped, lpCompletionRoutine);
 
   if (lpNumberOfBytesRecvd != nullptr)
@@ -66,7 +66,7 @@ WSASend_Detour (
   _In_  LPVOID  lpOverlapped,
   _In_  LPVOID  lpCompletionRoutine )
 {
-  int ret =
+  const int ret =
     WSASend_Original (s, lpBuffers, dwBufferCount, lpNumberOfBytesSent, dwFlags, lpOverlapped, lpCompletionRoutine);
 
   if (lpNumberOfBytesSent != nullptr)

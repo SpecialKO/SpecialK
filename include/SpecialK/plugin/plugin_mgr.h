@@ -84,6 +84,10 @@ HRESULT __stdcall
 
 HRESULT __stdcall
      SK_DGPU_PresentFirstFrame (IDXGISwapChain *, UINT, UINT);
+
+void SK_Yakuza0_PlugInInit (void);
+bool SK_Yakuza0_PlugInCfg  (void);
+
 #else
 HRESULT __stdcall
      SK_SOM_PresentFirstFrame (IDXGISwapChain *, UINT, UINT);

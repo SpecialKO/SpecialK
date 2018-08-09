@@ -75,8 +75,8 @@ public:
   void  setPos    (float  x,     float  y);
   void  getPos    (float& x,     float& y);
 
-  char* getName   (void) { return data_.name; }
-  char* getText   (void) { return data_.text; }
+  char* getName   (void) noexcept { return data_.name; }
+  char* getText   (void) noexcept { return data_.text; }
 
 protected:
    SK_TextOverlay (const char* szAppName);
@@ -134,6 +134,10 @@ public:
   void            resetAllOverlays   (CEGUI::Renderer* renderer);
   float           drawAllOverlays    (float x, float y, bool full = false);
   void            destroyAllOverlays (void);
+
+
+  virtual
+    ~SK_TextOverlayManager (void) { };
 
 protected:
   SK_TextOverlayManager (void);

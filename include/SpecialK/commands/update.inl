@@ -28,11 +28,11 @@
 
 class skUpdateCmd : public SK_ICommand {
 public:
-  virtual SK_ICommandResult execute (const char* szArgs) override;
+  virtual SK_ICommandResult execute (const char* szArgs)  override;
 
-  virtual int getNumArgs         (void) override { return 1; }
-  virtual int getNumOptionalArgs (void) override { return 1; }
-  virtual int getNumRequiredArgs (void) override {
+  virtual int getNumArgs         (void)  override { return 1; }
+  virtual int getNumOptionalArgs (void)  override { return 1; }
+  virtual int getNumRequiredArgs (void)  override {
     return getNumArgs () - getNumOptionalArgs ();
   }
 
@@ -41,7 +41,7 @@ private:
 };
 
 SK_ICommandResult
-skUpdateCmd::execute (const char* szArgs)
+skUpdateCmd::execute (const char* szArgs) 
 {
   if (! strlen (szArgs))
   {

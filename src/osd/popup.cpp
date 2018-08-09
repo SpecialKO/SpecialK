@@ -176,11 +176,10 @@ SK_PopupManager::createPopup (const char* szLayout)
       &CEGUI::System::getDllSingleton ().getDefaultGUIContext ();
   }
 
-  auto* popup =
-    new SK_PopupWindow (szLayout);
+  try {
+    auto* popup =
+      new SK_PopupWindow (szLayout);
 
-  if (popup)
-  {
     if (popup->window_ != nullptr)
     {
       popups_.insert     (std::make_pair (popup, popup->window_));
@@ -199,6 +198,10 @@ SK_PopupManager::createPopup (const char* szLayout)
     }
 
     delete popup;
+  }
+
+  catch (...)
+  {
   }
 
   return nullptr;

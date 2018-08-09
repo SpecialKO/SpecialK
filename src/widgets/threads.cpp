@@ -32,6 +32,14 @@
 
 #include <processthreadsapi.h>
 
+extern concurrency::concurrent_unordered_map <DWORD, std::wstring>&
+__SK_GetThreadNames (void);
+extern concurrency::concurrent_unordered_set <DWORD>&
+__SK_GetSelfTitledThreads (void);
+
+#define _SK_SelfTitledThreads __SK_GetSelfTitledThreads ()
+#define _SK_ThreadNames       __SK_GetThreadNames       ()
+
 #pragma pack(push,8)
 typedef LONG NTSTATUS;
 typedef      NTSTATUS (WINAPI *NtQueryInformationThread_pfn)(HANDLE,/*THREADINFOCLASS*/LONG,DWORD_PTR*,ULONG,PULONG);
@@ -607,9 +615,8 @@ ProcessInformation ( PDWORD    pdData,
 const char*
 SKX_DEBUG_FastSymName (LPCVOID ret_addr)
 {
-  HMODULE hModSource               = nullptr;
-  char    szModName [MAX_PATH + 2] = { };
-  HANDLE  hProc                    = SK_GetCurrentProcess ();
+  HMODULE hModSource = nullptr;
+  HANDLE  hProc      = SK_GetCurrentProcess ();
 
   static std::string symbol_name = "";
 
@@ -632,6 +639,8 @@ SKX_DEBUG_FastSymName (LPCVOID ret_addr)
   {
     last_ip = ip;
 
+    char szModName [MAX_PATH + 2] = { };
+
     if ( GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
                              GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
               reinterpret_cast <LPCWSTR> (ip),
@@ -643,7 +652,8 @@ SKX_DEBUG_FastSymName (LPCVOID ret_addr)
     MODULEINFO mod_info = { };
 
     GetModuleInformation (
-      hProc, hModSource, &mod_info, sizeof (mod_info)
+      hProc, hModSource,
+        &mod_info, sizeof (MODULEINFO)
     );
 
 #ifdef _WIN64
@@ -652,66 +662,78 @@ SKX_DEBUG_FastSymName (LPCVOID ret_addr)
     BaseAddr = (DWORD)  mod_info.lpBaseOfDll;
 #endif
 
-    char*     szDupName = pTLS->scratch_memory.sym_resolve.alloc (strlen (szModName) + 1);
-      strcpy (szDupName, szModName);
-    char* pszShortName = szDupName;
+    char* szDupName =
+      pTLS->scratch_memory.sym_resolve.alloc (
+        strlen (szModName) + 1
+      );
 
-    PathStripPathA (pszShortName);
-
-
-    SK_SymLoadModule ( hProc,
-                         nullptr,
-                          pszShortName,
-                            nullptr,
-                              BaseAddr,
-                                mod_info.SizeOfImage );
-
-    SYMBOL_INFO_PACKAGE sip = { };
-
-    sip.si.SizeOfStruct = sizeof SYMBOL_INFO;
-    sip.si.MaxNameLen   = sizeof sip.name;
-
-    DWORD64 Displacement = 0;
-
-    if ( SymFromAddr ( hProc,
-             static_cast <DWORD64> (ip),
-                           &Displacement,
-                             &sip.si ) )
+    if (szDupName != nullptr)
     {
-      DWORD Disp = 0x00UL;
+      strcpy (szDupName, szModName);
+      char *pszShortName =
+              szDupName;
+
+      PathStripPathA (pszShortName);
+
+
+      SK_SymLoadModule ( hProc,
+                           nullptr,
+                            pszShortName,
+                              nullptr,
+                                BaseAddr,
+                                  mod_info.SizeOfImage );
+
+      SYMBOL_INFO_PACKAGE sip = { };
+
+      sip.si.SizeOfStruct = sizeof SYMBOL_INFO;
+      sip.si.MaxNameLen   = sizeof sip.name;
+
+      DWORD64 Displacement = 0;
+
+      if ( SymFromAddr ( hProc,
+               static_cast <DWORD64> (ip),
+                             &Displacement,
+                               &sip.si ) )
+      {
+        DWORD Disp = 0x00UL;
 
 #ifdef _WIN64
-      IMAGEHLP_LINE64 ihl              = {                    };
-                      ihl.SizeOfStruct = sizeof IMAGEHLP_LINE64;
+        IMAGEHLP_LINE64 ihl              = {                    };
+                        ihl.SizeOfStruct = sizeof IMAGEHLP_LINE64;
 #else
-      IMAGEHLP_LINE   ihl              = {                  };
-                      ihl.SizeOfStruct = sizeof IMAGEHLP_LINE;
+        IMAGEHLP_LINE   ihl              = {                  };
+                        ihl.SizeOfStruct = sizeof IMAGEHLP_LINE;
 #endif
-      BOOL bFileAndLine =
-        SK_SymGetLineFromAddr ( hProc, ip, &Disp, &ihl );
+        BOOL bFileAndLine =
+          SK_SymGetLineFromAddr ( hProc, ip, &Disp, &ihl );
 
-      if (bFileAndLine)
-      {
-        symbol_name =
-          SK_FormatString ( "[%hs] %hs <%hs:%lu>",
-                              pszShortName, sip.si.Name, ihl.FileName,ihl.LineNumber );
+        if (bFileAndLine)
+        {
+          symbol_name =
+            SK_FormatString ( "[%hs] %hs <%hs:%lu>",
+                                pszShortName, sip.si.Name, ihl.FileName,ihl.LineNumber );
+        }
+
+        else
+        {
+          symbol_name =
+            SK_FormatString ( "[%hs] %hs",
+                                pszShortName, sip.si.Name );
+        }
       }
 
       else
       {
         symbol_name =
-          SK_FormatString ( "[%hs] %hs",
-                              pszShortName, sip.si.Name );
+          SK_WideCharToUTF8 (
+            SK_MakePrettyAddress (ret_addr)
+          );
       }
-    }
-
-    else
-    {
-      symbol_name = SK_WideCharToUTF8 (SK_MakePrettyAddress (ret_addr));
     }
   }
 
-  return symbol_name.data ();
+  return
+    symbol_name.data ();
 }
 
 void
@@ -804,7 +826,8 @@ SK_ImGui_ThreadCallstack (HANDLE hThread, LARGE_INTEGER userTime, LARGE_INTEGER 
       MODULEINFO mod_info = { };
 
       GetModuleInformation (
-        hProc, hModSource, &mod_info, sizeof (mod_info)
+        hProc, hModSource,
+          &mod_info, sizeof (MODULEINFO)
       );
 
 #ifdef _WIN64
@@ -813,65 +836,72 @@ SK_ImGui_ThreadCallstack (HANDLE hThread, LARGE_INTEGER userTime, LARGE_INTEGER 
       BaseAddr = (DWORD)  mod_info.lpBaseOfDll;
 #endif
 
-      char*     szDupName = pTLS->scratch_memory.cmd.alloc (strlen (szModName) + 1);
-        strcpy (szDupName, szModName);
-      char* pszShortName = szDupName;
+      char* szDupName =
+        pTLS->scratch_memory.cmd.alloc (
+          strlen (szModName) + 1, true );
 
-      PathStripPathA (pszShortName);
-
-
-      SK_SymLoadModule ( hProc,
-                           nullptr,
-                            pszShortName,
-                              nullptr,
-                                BaseAddr,
-                                  mod_info.SizeOfImage );
-
-      SYMBOL_INFO_PACKAGE sip = { };
-
-      sip.si.SizeOfStruct = sizeof SYMBOL_INFO;
-      sip.si.MaxNameLen   = sizeof sip.name;
-
-      DWORD64 Displacement = 0;
-
-      if ( SymFromAddr ( hProc,
-               static_cast <DWORD64> (ip),
-                             &Displacement,
-                               &sip.si ) )
+      if (szDupName != nullptr)
       {
-        DWORD Disp = 0x00UL;
+        strcpy (szDupName, szModName);
+        char* pszShortName =
+                szDupName;
+
+        PathStripPathA (pszShortName);
+
+
+        SK_SymLoadModule ( hProc,
+                             nullptr,
+                              pszShortName,
+                                nullptr,
+                                  BaseAddr,
+                                    mod_info.SizeOfImage );
+
+        SYMBOL_INFO_PACKAGE sip = { };
+
+        sip.si.SizeOfStruct = sizeof SYMBOL_INFO;
+        sip.si.MaxNameLen   = sizeof sip.name;
+
+        DWORD64 Displacement = 0;
+
+        if ( SymFromAddr ( hProc,
+               static_cast <DWORD64> (ip),
+                          &Displacement,
+                            &sip.si  )  )
+        {
+          DWORD Disp = 0x00UL;
 
 #ifdef _WIN64
-        IMAGEHLP_LINE64 ihl              = {                    };
-                        ihl.SizeOfStruct = sizeof IMAGEHLP_LINE64;
+          IMAGEHLP_LINE64 ihl = {                    };
+          ihl.SizeOfStruct = sizeof IMAGEHLP_LINE64;
 #else
-        IMAGEHLP_LINE   ihl              = {                  };
-                        ihl.SizeOfStruct = sizeof IMAGEHLP_LINE;
+          IMAGEHLP_LINE   ihl = {                  };
+          ihl.SizeOfStruct = sizeof IMAGEHLP_LINE;
 #endif
-        BOOL bFileAndLine =
-          SK_SymGetLineFromAddr ( hProc, ip, &Disp, &ihl );
+          BOOL bFileAndLine =
+            SK_SymGetLineFromAddr (hProc, ip, &Disp, &ihl);
 
-        file_names.emplace_back   (pszShortName);
-        symbol_names.emplace_back (sip.si.Name);
+          file_names.emplace_back   (pszShortName);
+          symbol_names.emplace_back (sip.si.Name);
 
-        if (bFileAndLine)
-        {
-          code_lines.emplace_back (
-            SK_FormatString ( "<%hs:%lu>",
-                                ihl.FileName,
-                                  ihl.LineNumber )
-          );
+          if (bFileAndLine)
+          {
+            code_lines.emplace_back (
+              SK_FormatString ( "<%hs:%lu>",
+                                  ihl.FileName,
+                                    ihl.LineNumber )
+            );
+          }
+
+          else
+          {
+            code_lines.emplace_back ();
+          }
+
+          if (top_func.empty ())
+            top_func = sip.si.Name;
+
+          ++lines;
         }
-
-        else
-        {
-          code_lines.emplace_back ("");
-        }
-
-        if (top_func == "")
-          top_func = sip.si.Name;
-
-        ++lines;
       }
 
       ret =
@@ -883,7 +913,7 @@ SK_ImGui_ThreadCallstack (HANDLE hThread, LARGE_INTEGER userTime, LARGE_INTEGER 
                                &thread_ctx,
                                  nullptr, nullptr,
                                    nullptr, nullptr );
-    } while (ret == TRUE);
+    } while (ret != FALSE);
   }
 
 
@@ -892,9 +922,9 @@ SK_ImGui_ThreadCallstack (HANDLE hThread, LARGE_INTEGER userTime, LARGE_INTEGER 
     extern HMODULE __stdcall SK_GetDLL (void);
 
     static std::string self_ansi =
-      SK_WideCharToUTF8 (SK_GetModuleName (SK_Modules.Self));
+      SK_WideCharToUTF8 (SK_GetModuleName (SK_Modules.Self ()));
     static std::string host_ansi =
-      SK_WideCharToUTF8 (SK_GetModuleName (SK_Modules.HostApp));
+      SK_WideCharToUTF8 (SK_GetModuleName (SK_Modules.HostApp ()));
 
 
     ImGui::PushStyleColor (ImGuiCol_Text,   ImColor::HSV (0.15f, 0.95f, 0.99f));
@@ -978,7 +1008,7 @@ public:
     setAutoFit (true).setDockingPoint (DockAnchor::West).setClickThrough (true);
   };
 
-  virtual void run (void) override
+  void run (void)  override
   {
     SK_RunOnce (
       k32SetThreadInformation =
@@ -1004,9 +1034,10 @@ public:
 
     // Snapshotting is _slow_, so only do it when a thread has been created...
     extern volatile LONG lLastThreadCreate;
-    static          LONG lLastThreadRefresh = 0;
+    static          LONG lLastThreadRefresh = -69;
 
-    LONG last = ReadAcquire (&lLastThreadCreate);
+    LONG last =
+      ReadAcquire (&lLastThreadCreate);
 
     if ((last == lLastThreadRefresh) && (! visible))
     {
@@ -1017,15 +1048,20 @@ public:
 
     ProcessInformation (nullptr, &nts);
 
+    SK_TLS* pTLS =
+      SK_TLS_Bottom ();
+
     PSYSTEM_PROCESS_INFORMATION pInfo =
-      (PSYSTEM_PROCESS_INFORMATION)SK_TLS_Bottom ()->local_scratch.NtQuerySystemInformation.data;
+      reinterpret_cast <PSYSTEM_PROCESS_INFORMATION> (
+        pTLS->local_scratch.NtQuerySystemInformation.data
+      );
   
     if (pInfo != nullptr && nts == STATUS_SUCCESS)
     {
       int i = 0;
 
-      const DWORD dwPID = GetCurrentProcessId ();
-      const DWORD dwTID = GetCurrentThreadId  ();
+      const DWORD dwPID = GetCurrentProcessId (),
+                  dwTID = GetCurrentThreadId  ();
   
       SYSTEM_PROCESS_INFORMATION* pProc = pInfo;
   
@@ -1034,7 +1070,9 @@ public:
         if ((DWORD)((uintptr_t)pProc->UniqueProcessId & 0xFFFFFFFFU) == dwPID)
           break;
 
-        pProc = (SYSTEM_PROCESS_INFORMATION *)((BYTE *)pProc + pProc->dNext);
+        pProc =
+          reinterpret_cast <SYSTEM_PROCESS_INFORMATION *>
+            ((BYTE *)pProc + pProc->dNext);
       } while (pProc->dNext != 0);
 
         
@@ -1048,9 +1086,9 @@ public:
           if ((DWORD)((uintptr_t)pProc->aThreads [i].Cid.UniqueProcess & 0xFFFFFFFFU) != dwPID)
             continue;
 
-          bool new_thread = false;
-
-          DWORD dwLocalTID = (DWORD)((uintptr_t)pProc->aThreads [i].Cid.UniqueThread & 0xFFFFFFFFU);
+          bool  new_thread = false;
+          DWORD dwLocalTID =
+            (DWORD)((uintptr_t)pProc->aThreads [i].Cid.UniqueThread & 0xFFFFFFFFU);
 
           if (! SKWG_Threads.count (dwLocalTID))
           {
@@ -1079,20 +1117,26 @@ public:
           SKWG_Thread_Entry* ptEnt =
             SKWG_Threads [dwLocalTID];
 
-          ptEnt->wait_reason =
-            (WaitReason)pProc->aThreads [i].WaitReason;
-          ptEnt->thread_state =
-            (ThreadState)pProc->aThreads [i].dThreadState;
+          auto& thread =
+            pProc->aThreads [i];
 
-          ptEnt->runtimes.created = pProc->aThreads [i].ftCreateTime;
-          ptEnt->runtimes.kernel  = pProc->aThreads [i].ftKernelTime;
-          ptEnt->runtimes.user    = pProc->aThreads [i].ftUserTime;
+          ptEnt->wait_reason =
+            static_cast <WaitReason> 
+                (thread.WaitReason);
+          ptEnt->thread_state =
+            static_cast <ThreadState>
+                (thread.dThreadState);
+
+          ptEnt->runtimes.created = thread.ftCreateTime;
+          ptEnt->runtimes.kernel  = thread.ftKernelTime;
+          ptEnt->runtimes.user    = thread.ftUserTime;
 
           if (new_thread)
           {
             LARGE_INTEGER liCreate;
-                          liCreate.HighPart = ptEnt->runtimes.created.dwHighDateTime;
-                          liCreate.LowPart  = ptEnt->runtimes.created.dwLowDateTime;
+
+            liCreate.HighPart = ptEnt->runtimes.created.dwHighDateTime;
+            liCreate.LowPart  = ptEnt->runtimes.created.dwLowDateTime;
 
             SKWG_Ordered_Threads [liCreate.QuadPart] =
               ptEnt;
@@ -1106,10 +1150,11 @@ public:
   }
 
 
-  virtual void draw (void) override
+  void draw (void)  override
   {
     if (! ImGui::GetFont ()) return;
 
+    DWORD dwNow = timeGetTime ();
 
            bool drew_tooltip   = false;
     static bool show_callstack = false;
@@ -1120,7 +1165,7 @@ public:
       if (drew_tooltip)
         return;
 
-      drew_tooltip= true;
+      drew_tooltip = true;
 
       SK_TLS* pTLS =
         SK_TLS_BottomEx (dwSelectedTid);
@@ -1421,7 +1466,8 @@ public:
                   if (ReadAcquire (&__SK_DLL_Ending))
                     break;
 
-                  DWORD dwTid = *((suspend_params_s *)user)->pdwTid;
+                  DWORD dwTid =
+                    *((suspend_params_s *)user)->pdwTid;
 
                   CHandle hThread__ (
                     OpenThread ( THREAD_SUSPEND_RESUME,
@@ -1631,18 +1677,27 @@ public:
       ImGui::EndPopup ();
     }
 
-    DWORD dwNow = timeGetTime ();
-
-    auto IsThreadNonIdle = [&](SKWG_Thread_Entry& tent) ->
+    auto IsThreadNonIdle =
+    [&](SKWG_Thread_Entry& tent) ->
     bool
     {
-      if (tent.hThread == 0 || tent.hThread == INVALID_HANDLE_VALUE)
-        return false;
+      if (tent.exited)
+      {
+        if (! show_exited_threads)
+          return false;
+      }
 
-      const DWORD IDLE_PERIOD = 1500UL;
+      else
+      {
+        if ( tent.hThread == 0 ||
+             tent.hThread == INVALID_HANDLE_VALUE )
+        {    tent.exited   = true;                }
+      }
 
       if (tent.exited && (! show_exited_threads))
         return false;
+
+      const DWORD IDLE_PERIOD = 1500UL;
 
       if (! hide_inactive)
         return true;
@@ -1658,8 +1713,17 @@ public:
     {
       if (! it.second->exited)
       {
-        it.second->hThread =
+        HANDLE hThread =
           OpenThread ( THREAD_ALL_ACCESS, FALSE, it.second->dwTid );
+
+        if ( hThread == 0 ||
+             hThread == INVALID_HANDLE_VALUE )
+        {
+          it.second->exited = true;
+        }
+
+        else
+          it.second->hThread = hThread;
       }
 
       if (! IsThreadNonIdle (*it.second)) continue;
@@ -1884,8 +1948,6 @@ public:
           wcsncpy (pTLS->debug.name, SK_UTF8ToWideChar (thread_name).c_str (), 255);
 
         {
-          extern concurrency::concurrent_unordered_map <DWORD, std::wstring> _SK_ThreadNames;
-
           if (! _SK_ThreadNames.count (it.second->dwTid))
           {
             _SK_ThreadNames [it.second->dwTid] =

@@ -357,12 +357,12 @@ struct sk_config_t
         struct {
           unsigned int x        =  0;
           unsigned int y        =  0;
-          bool isZero (void) { return x == 0 && y == 0; };
+          bool isZero (void)  { return x == 0 && y == 0; };
         } min;
         struct {
           unsigned int x        =  0;
           unsigned int y        =  0;
-          bool isZero (void) { return x == 0 && y == 0; };
+          bool isZero (void)  { return x == 0 && y == 0; };
         } max;
       } res;
       int     exception_mode     =    -1; // -1 = Don't Care
@@ -551,9 +551,10 @@ struct sk_config_t
       int   absolute            = 0;
       float percent             = 0.0f;
       } x, y;
-      bool isZero (void) { return x.absolute == 0        && y.absolute == 0        &&
-                                  x.percent  > -0.00001f && x.percent   < 0.00001f &&
-                                  y.percent  > -0.00001f && y.percent   < 0.00001f; }
+      bool isZero (void) 
+            { return x.absolute == 0        && y.absolute == 0        &&
+                     x.percent  > -0.00001f && x.percent   < 0.00001f &&
+                     y.percent  > -0.00001f && y.percent   < 0.00001f; }
     } offset;
     bool    background_render   = false;
     bool    background_mute     = false;
@@ -570,7 +571,7 @@ struct sk_config_t
         unsigned int x          = 0;
         unsigned int y          = 0;
         bool         fix_mouse  = false;
-        bool isZero (void) { return x == 0 && y == 0; };
+        bool isZero (void)  { return x == 0 && y == 0; };
       } override;
     } res;
   } window;

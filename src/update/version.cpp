@@ -615,7 +615,7 @@ SK_Version_GetLatestInfo_V1 (const wchar_t* wszProduct)
       ver_info.package = repo_ini.get_section (wszBranchSection).get_value (L"InstallPackage");
 
       wchar_t wszPackage [128] = { };
-      swscanf (ver_info.package.c_str (), L"%128[^,],%li", wszPackage, &ver_info.build);
+      swscanf (ver_info.package.c_str (), L"%127[^,],%i", wszPackage, &ver_info.build);
 
       ver_info.package = wszPackage;
     }
@@ -648,7 +648,7 @@ SK_Version_GetLocalInfo_V1 (const wchar_t* wszProduct)
     ver_info.package  = install_ini.get_section (L"Version.Local").get_value (L"InstallPackage");
 
     wchar_t wszPackage [128] = { };
-    swscanf (ver_info.package.c_str (), L"%128[^,],%li", wszPackage, &ver_info.build);
+    swscanf (ver_info.package.c_str (), L"%128[^,],%i", wszPackage, &ver_info.build);
 
     ver_info.package = wszPackage;
   }
@@ -711,7 +711,7 @@ SK_Version_GetAvailableBranches (const wchar_t* wszProduct)
       if (StrStrIW (it.first.c_str (), L"Version.") == it.first.c_str ())
       {
         wchar_t wszBranchName [128] = { };
-        swscanf (it.first.c_str (), L"Version.%s", wszBranchName);
+        swscanf (it.first.c_str (), L"Version.%127s", wszBranchName);
 
         branches.push_back (SK_WideCharToUTF8 (wszBranchName));
       }
@@ -898,7 +898,7 @@ SK_Version_GetLatestBranchInfo_V1 (const wchar_t* wszProduct, const char* szBran
             vinfo1.branch  = SK_UTF8ToWideChar (szBranch);
 
             wchar_t wszPackage_ [128] = { };
-            swscanf (vinfo1.package.c_str (), L"%128[^,],%li", wszPackage_, &vinfo1.build);
+            swscanf (vinfo1.package.c_str (), L"%127[^,],%i", wszPackage_, &vinfo1.build);
 
             vinfo1.package = wszPackage_;
 

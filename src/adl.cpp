@@ -50,10 +50,10 @@ void* __stdcall ADL_Main_Memory_Alloc ( int iSize )
 // Optional Memory de-allocation function
 void __stdcall ADL_Main_Memory_Free ( void** lpBuffer )
 {
-  if ( NULL != *lpBuffer )
+  if ( lpBuffer != nullptr && *lpBuffer != nullptr )
   {
     free ( *lpBuffer );
-    *lpBuffer = NULL;
+    *lpBuffer = nullptr;
   }
 }
 

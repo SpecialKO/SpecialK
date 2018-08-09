@@ -422,7 +422,7 @@ SK_DGPU_ControlPanel (void)
           lstrcatW (wszPath, L"/");
 
           SK_D3D11_MipmapCacheSize -= SK_DeleteTemporaryFiles (wszPath, L"*.dds");
-          SK_D3D11_MipmapCacheSize  = 0;
+        //SK_D3D11_MipmapCacheSize  = 0;
         }
 
         ImGui::SameLine ();

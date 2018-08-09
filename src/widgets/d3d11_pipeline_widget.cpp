@@ -43,7 +43,7 @@ public:
     setAutoFit (true).setDockingPoint (DockAnchor::West).setClickThrough (true);
   };
 
-  virtual void run (void) override
+  void run (void)  override
   {
     if (! ( static_cast <int> (SK_GetCurrentRenderBackend ().api) &
             static_cast <int> (SK_RenderAPI::D3D11              ) ) )
@@ -80,7 +80,7 @@ public:
     }
   }
 
-  virtual void draw (void) override
+  void draw (void)  override
   {
     if (! ( static_cast <int> (SK_GetCurrentRenderBackend ().api) &
             static_cast <int> (SK_RenderAPI::D3D11              ) ) )

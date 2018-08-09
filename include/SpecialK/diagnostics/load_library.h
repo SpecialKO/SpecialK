@@ -23,7 +23,7 @@
 #define __SK__LOAD_LIBRARY_H__
 
 void __stdcall SK_InitCompatBlacklist (void);
-void __stdcall SK_PreInitLoadLibrary  (void); // Before we hook load library, just import it
+void __stdcall SK_PreInitLoadLibrary  (void) ; // Before we hook load library, just import it
 
 bool __stdcall SK_ReHookLoadLibrary   (void);
 void __stdcall SK_UnhookLoadLibrary   (void);

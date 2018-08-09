@@ -194,7 +194,7 @@ SHA1Transform (
   /* Wipe variables */
   a = b = c = d = e = 0;
 #ifdef SHA1HANDSOFF
-  memset (block, '\0', sizeof block);
+  RtlSecureZeroMemory (block, sizeof block);
 #endif
 }
 
