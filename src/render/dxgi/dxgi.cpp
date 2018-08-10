@@ -364,16 +364,16 @@ SK_CEGUI_GetSystem (void)
 void
 __SEH_InitParser (CEGUI::XMLParser* parser)
 {
-  //__try
-  //{
+  try
+  {
     if (parser->isPropertyPresent ("SchemaDefaultResourceGroup"))
       parser->setProperty ("SchemaDefaultResourceGroup", "schemas");
-  //}
+  }
 
-  //__except (EXCEPTION_EXECUTE_HANDLER)
-  //{
-  //  config.cegui.enable = false;
-  //}
+  catch (...)
+  {
+    config.cegui.enable = false;
+  }
 }
 
 void
@@ -2275,7 +2275,7 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 
     SK_InstallWindowHook (desc.OutputWindow);
 
-    if (GetModuleHandle (L"CEGUIDirect3D11Renderer-0.dll"))
+    if ((! config.cegui.enable) || GetModuleHandle (L"CEGUIDirect3D11Renderer-0.dll"))
       ResetCEGUI_D3D11  (This);
   }
 
@@ -2294,7 +2294,7 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
                   L"   DXGI   " );
 
 
-      if (GetModuleHandle (L"CEGUIDirect3D11Renderer-0.dll"))
+      if ((! config.cegui.enable) || GetModuleHandle (L"CEGUIDirect3D11Renderer-0.dll"))
         ResetCEGUI_D3D11      (This);
       SK_DXGI_UpdateSwapChain (This);
 
@@ -5787,11 +5787,11 @@ STDMETHODCALLTYPE CreateDXGIFactory (REFIID   riid,
                                _Out_ void   **ppFactory)
 {
   // For DXGI compliance, do not mix-and-match
-  if (CreateDXGIFactory2_Import != nullptr)
-    return CreateDXGIFactory2 (0x0, riid, ppFactory);
-  
-  else if (CreateDXGIFactory1_Import != nullptr)
-    return CreateDXGIFactory1 (riid, ppFactory);
+  //if (CreateDXGIFactory2_Import != nullptr)
+  //  return CreateDXGIFactory2 (0x0, riid, ppFactory);
+  //
+  //else if (CreateDXGIFactory1_Import != nullptr)
+  //  return CreateDXGIFactory1 (riid, ppFactory);
 
 
   std::wstring iname = SK_GetDXGIFactoryInterfaceEx  (riid);
@@ -5805,8 +5805,8 @@ STDMETHODCALLTYPE CreateDXGIFactory (REFIID   riid,
 
   if (CreateDXGIFactory_Import == nullptr)
   {
-    SK_RunOnce (SK_BootDXGI ());
-                WaitForInitDXGI ();
+    SK_RunOnce (SK_BootDXGI ())
+            WaitForInitDXGI ();
   }
 
   HRESULT ret;
@@ -5820,8 +5820,8 @@ STDMETHODCALLTYPE CreateDXGIFactory1 (REFIID   riid,
                                 _Out_ void   **ppFactory)
 {
   ////// For DXGI compliance, do not mix-and-match
-  if (CreateDXGIFactory2_Import != nullptr)
-    return CreateDXGIFactory2 (0x0, riid, ppFactory);
+  //if (CreateDXGIFactory2_Import != nullptr)
+  //  return CreateDXGIFactory2 (0x0, riid, ppFactory);
 
   std::wstring iname = SK_GetDXGIFactoryInterfaceEx  (riid);
   int          iver  = SK_GetDXGIFactoryInterfaceVer (riid);
@@ -5832,10 +5832,10 @@ STDMETHODCALLTYPE CreateDXGIFactory1 (REFIID   riid,
                     L"%s, %08" PRIxPTR L"h",
                       iname.c_str (), (uintptr_t)ppFactory );
 
-  if (CreateDXGIFactory_Import == nullptr)
+  if (CreateDXGIFactory1_Import == nullptr)
   {
     SK_RunOnce (SK_BootDXGI ());
-                WaitForInitDXGI ();
+            WaitForInitDXGI ();
   }
 
   // Windows Vista does not have this function -- wrap it with CreateDXGIFactory
@@ -5864,10 +5864,10 @@ STDMETHODCALLTYPE CreateDXGIFactory2 (UINT     Flags,
                     L"0x%04X, %s, %08" PRIxPTR L"h",
                       Flags, iname.c_str (), (uintptr_t)ppFactory );
 
-  if (CreateDXGIFactory_Import == nullptr)
+  if (CreateDXGIFactory2_Import == nullptr)
   {
-    SK_RunOnce (SK_BootDXGI ());
-                WaitForInitDXGI ();
+    SK_RunOnce (SK_BootDXGI ())
+            WaitForInitDXGI ();
   }
 
   // Windows 7 does not have this function -- wrap it with CreateDXGIFactory1
@@ -5881,6 +5881,101 @@ STDMETHODCALLTYPE CreateDXGIFactory2 (UINT     Flags,
   DXGI_CALL (ret, CreateDXGIFactory2_Import (Flags, riid, ppFactory));
   return     ret;
 }
+
+#if 0
+HRESULT
+WINAPI
+CreateDXGIFactory ( REFIID   riid,
+              _Out_ void   **ppFactory )
+{
+  if (CreateDXGIFactory_Import == nullptr)
+  {
+    SK_RunOnce (SK_BootDXGI ());
+            WaitForInitDXGI ();
+  }
+
+  std::wstring iname = SK_GetDXGIFactoryInterfaceEx  (riid);
+  int          iver  = SK_GetDXGIFactoryInterfaceVer (riid);
+
+  UNREFERENCED_PARAMETER (iver);
+
+  // For DXGI compliance, do not mix-and-match
+  if (CreateDXGIFactory2_Import != nullptr)
+  {
+    DXGI_LOG_CALL_2 ( L"                    CreateDXGIFactory->2     ",
+                      L"%s, 0x00, %08" PRIxPTR L"h",
+                        iname.c_str (), (uintptr_t)ppFactory );
+  }
+  else if (CreateDXGIFactory1_Import != nullptr)
+  {
+    DXGI_LOG_CALL_2 ( L"                    CreateDXGIFactory->1     ",
+                      L"%s, %08" PRIxPTR L"h",
+                        iname.c_str (), (uintptr_t)ppFactory );
+  }
+  else
+  {
+    DXGI_LOG_CALL_2 ( L"                    CreateDXGIFactory        ", 
+                      L"%s, %08" PRIxPTR L"h",
+                        iname.c_str (), (uintptr_t)ppFactory );
+  }
+
+  HRESULT      ret;
+  if      (         CreateDXGIFactory2_Import != nullptr           )
+  { DXGI_CALL (ret, CreateDXGIFactory2_Import (0x0, riid, ppFactory)); }
+  else if (         CreateDXGIFactory1_Import != nullptr      )
+  { DXGI_CALL (ret, CreateDXGIFactory1_Import (riid, ppFactory));      }
+  else
+  { DXGI_CALL (ret, CreateDXGIFactory_Import  (riid, ppFactory));      }
+  return       ret;
+}
+
+HRESULT
+WINAPI
+CreateDXGIFactory1 ( REFIID   riid,
+               _Out_ void   **ppFactory )
+{
+  if (CreateDXGIFactory1_Import == nullptr)
+  {
+    SK_RunOnce (SK_BootDXGI ());
+            WaitForInitDXGI ();
+  }
+
+  std::wstring iname = SK_GetDXGIFactoryInterfaceEx  (riid);
+  int          iver  = SK_GetDXGIFactoryInterfaceVer (riid);
+
+  UNREFERENCED_PARAMETER (iver);
+
+  ////// For DXGI compliance, do not mix-and-match
+  if (CreateDXGIFactory2_Import != nullptr)
+  {
+    DXGI_LOG_CALL_2 ( L"                    CreateDXGIFactory1->2    ",
+                      L"%s, 0x00, %08" PRIxPTR L"h",
+                        iname.c_str (), (uintptr_t)ppFactory );
+  }
+  else
+  {
+    DXGI_LOG_CALL_2 ( L"                    CreateDXGIFactory1       ",
+                      L"%s, %08" PRIxPTR L"h",
+                       iname.c_str (), (uintptr_t) ppFactory );
+  }
+
+  HRESULT      ret;
+
+  // Windows Vista does not have this function -- wrap it with CreateDXGIFactory
+  if (CreateDXGIFactory1_Import == nullptr)
+  {
+    dll_log.Log (L"[   DXGI   ]  >> Falling back to CreateDXGIFactory on Vista...");
+    DXGI_CALL (ret, CreateDXGIFactory_Import  (     riid, ppFactory));
+  }
+
+  if (              CreateDXGIFactory2_Import != nullptr           )
+  { DXGI_CALL (ret, CreateDXGIFactory2_Import (0x0, riid, ppFactory)); }
+  else
+  { DXGI_CALL (ret, CreateDXGIFactory1_Import (     riid, ppFactory)); }
+
+  return       ret;
+}
+#endif
 
 DXGI_STUB (HRESULT, DXGID3D10CreateDevice,
   (HMODULE hModule, IDXGIFactory *pFactory, IDXGIAdapter *pAdapter,
