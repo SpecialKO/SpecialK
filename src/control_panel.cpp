@@ -100,14 +100,6 @@ __declspec (dllexport)
 void
 SK_ImGui_Toggle (void);
 
-using SetCursorPos_pfn = BOOL (WINAPI *)
-(
-  _In_ int X,
-  _In_ int Y
-);
-
-extern SetCursorPos_pfn  SetCursorPos_Original;
-
 extern uint32_t __stdcall SK_Steam_PiratesAhoy (void);
 extern uint32_t __stdcall SK_SteamAPI_AppID    (void);
 
@@ -115,8 +107,6 @@ extern bool     __stdcall SK_FAR_IsPlugIn      (void);
 extern void     __stdcall SK_FAR_ControlPanel  (void);
 
        bool               SK_DXGI_FullStateCache = false;
-
-extern GetCursorInfo_pfn GetCursorInfo_Original;
 
 std::wstring
 SK_NvAPI_GetGPUInfoStr (void);
@@ -590,7 +580,7 @@ SK_ImGui_AdjustCursor (void)
     {
       SetCurrentThreadDescription (L"[SK] Cursor Adjustment Thread");
 
-      ClipCursor_Original (nullptr);
+      SK_ClipCursor (nullptr);
         SK_AdjustWindow   ();        // Restore game's clip cursor behavior
 
       SK_Thread_CloseSelf ();
@@ -1916,12 +1906,15 @@ SK_ImGui_ControlPanel (void)
       {
         float nits = rb.ui_luminance / 1.0_Nits;
 
-        ImGui::SliderFloat ("###IMGUI_LUMINANCE", &nits, 80.0f, 1000.0f, "HDR White Luminance: %.1f Nits");
+        if (ImGui::SliderFloat ("###IMGUI_LUMINANCE", &nits, 80.0f, rb.display_gamut.maxLocalY, "HDR White Luminance: %.1f Nits"))
+        {
+          rb.ui_luminance = nits * 1.0_Nits;
 
-        rb.ui_luminance = nits * 1.0_Nits;
+          SK_SaveConfig ();
+        }
 
-        ImGui::SameLine ();
-        ImGui::Checkbox ("Explicit LinearRGB -> sRGB###IMGUI_SRGB", &rb.ui_srgb);
+        //ImGui::SameLine ();
+        //ImGui::Checkbox ("Explicit LinearRGB -> sRGB###IMGUI_SRGB", &rb.ui_srgb);
       }
 
       if (ImGui::SliderFloat ("###IMGUI_SCALE", &config.imgui.scale, 1.0f, 3.0f, "UI Scaling Factor %.2f"))
@@ -2000,6 +1993,12 @@ SK_ImGui_ControlPanel (void)
       {
         SK_Yakuza0_PlugInCfg ();
       } break;
+
+      case SK_GAME_ID::MonsterHunterWorld:
+      {
+        extern bool SK_MHW_PlugInCfg (void);
+                    SK_MHW_PlugInCfg ();
+      }
     };
 #endif
 
@@ -2892,8 +2891,8 @@ SK_ImGui_StageNextFrame (void)
       SK_ImGui_Cursor.orig_img = GetCursor ();
 
     SK_ImGui_Cursor.LocalToScreen (&screen_pos);
-    SetCursorPos_Original ( screen_pos.x,
-                            screen_pos.y );
+    SK_SetCursorPos ( screen_pos.x,
+                      screen_pos.y );
 
     io.WantCaptureMouse = true;
 
@@ -2976,12 +2975,12 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
     SK_ImGui_Toggle ();
 
 
-  POINT                    orig_pos;
-  GetCursorPos_Original  (&orig_pos);
+  POINT             orig_pos;
+  SK_GetCursorPos (&orig_pos);
 
   SK_ImGui_Cursor.update ();
 
-  SetCursorPos_Original  (orig_pos.x, orig_pos.y);
+  SK_SetCursorPos (orig_pos.x, orig_pos.y);
 
   imgui_finished_frames++;
 
@@ -3053,7 +3052,7 @@ SK_ImGui_Toggle (void)
   if (d3d9 || d3d11 || gl)
   {
     if (SK_ImGui_Active ())
-      GetKeyboardState_Original (__imgui_keybd_state);
+      SK_GetKeyboardState (__imgui_keybd_state);
 
     SK_ImGui_Visible = (! SK_ImGui_Visible);
 

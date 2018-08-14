@@ -292,19 +292,19 @@ SK_StartPerfMonThreads (void)
   // Spawn CPU Refresh Thread
   //
   if (config.cpu.show || SK_ImGui_Widgets.cpu_monitor->isActive ())
-    SpawnMonitorThread (&cpu_stats.hThread, L"CPU Monitor", SK_MonitorCPU);
+    SpawnMonitorThread (&__SK_WMI_CPUStats ().hThread, L"CPU Monitor", SK_MonitorCPU);
 
   //
   // Spawn Process Monitor Thread
   //
   if (config.mem.show)
-    SpawnMonitorThread (&process_stats.hThread,  L"Process Monitor",  SK_MonitorProcess);
+    SpawnMonitorThread (&__SK_WMI_ProcessStats ().hThread,  L"Process Monitor",  SK_MonitorProcess);
 
   if (config.disk.show)
-    SpawnMonitorThread (&disk_stats.hThread,     L"Disk Monitor",     SK_MonitorDisk);
+    SpawnMonitorThread (&__SK_WMI_DiskStats ().hThread,     L"Disk Monitor",     SK_MonitorDisk);
 
   if (config.pagefile.show)
-    SpawnMonitorThread (&pagefile_stats.hThread, L"Pagefile Monitor", SK_MonitorPagefile);
+    SpawnMonitorThread (&__SK_WMI_PagefileStats ().hThread, L"Pagefile Monitor", SK_MonitorPagefile);
 }
 
 
@@ -867,28 +867,31 @@ SK_UnpackD3DShaderCompiler (void)
       wcscpy      (wszArchive, wszDestination);
       PathAppendW (wszArchive, L"D3DCompiler_47.7z");
 
-      SK_LOG0 ( ( L" >> Archive: %s [Destination: %s]", wszArchive,wszDestination ),
-                  L"D3DCompile" );
+      ///SK_LOG0 ( ( L" >> Archive: %s [Destination: %s]", wszArchive,wszDestination ),
+      ///            L"D3DCompile" );
 
       FILE* fPackedCompiler =
         _wfopen   (wszArchive, L"wb");
 
       if (fPackedCompiler != nullptr)
       {
-        fwrite    (locked, 1, res_size, fPackedCompiler);
-        fclose    (fPackedCompiler);
+        fwrite (locked, 1, res_size, fPackedCompiler);
+        fclose (fPackedCompiler);
       }
 
-      using SK_7Z_DECOMP_PROGRESS_PFN = int (__stdcall *)(int current, int total);
+      if (GetFileAttributes (wszArchive) != INVALID_FILE_ATTRIBUTES)
+      {
+        using SK_7Z_DECOMP_PROGRESS_PFN = int (__stdcall *)(int current, int total);
 
-      extern
-      HRESULT
-      SK_Decompress7zEx ( const wchar_t*            wszArchive,
-                          const wchar_t*            wszDestination,
-                          SK_7Z_DECOMP_PROGRESS_PFN callback );
+        extern
+        HRESULT
+        SK_Decompress7zEx ( const wchar_t*            wszArchive,
+                            const wchar_t*            wszDestination,
+                            SK_7Z_DECOMP_PROGRESS_PFN callback );
 
-      SK_Decompress7zEx (wszArchive, wszDestination, nullptr);
-      DeleteFileW       (wszArchive);
+        SK_Decompress7zEx (wszArchive, wszDestination, nullptr);
+        DeleteFileW       (wszArchive);
+      }
     }
 
     UnlockResource (packed_compiler);
@@ -987,7 +990,7 @@ SK_InitFinishCallback (void)
   if (! (SK_GetDLLRole () & DLL_ROLE::DXGI))
     SK::DXGI::StartBudgetThread_NoAdapter ();
 
-  dll_log.LogEx (false, L"----------------------------------------------- -"
+  dll_log.LogEx (false, L"------------------------------------------------"
                         L"-------------------------------------------\n" );
   dll_log.Log   (       L"[ SpecialK ] === Initialization Finished! ===   "
                         L"       (%6.2f ms)",
@@ -1340,15 +1343,35 @@ const wchar_t*
 __stdcall
 SK_GetDebugSymbolPath (void)
 {
-  static wchar_t wszDbgSymbols [MAX_PATH * 2 + 1] = { };
+  static volatile LONG    __init                            = 0;
+  static          wchar_t wszDbgSymbols [MAX_PATH * 16 + 1] = { };
 
-  if (*wszDbgSymbols != L'\0') return wszDbgSymbols;
+  if (ReadAcquire (&__init) == 2)
+    return wszDbgSymbols;
 
-  lstrcpynW ( wszDbgSymbols,
-                std::wstring ( SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\)" ).c_str (),
-                  MAX_PATH - 1 );
+  if (! InterlockedCompareExchange (&__init, 1, 0))
+  {
+    static wchar_t wszCurrentPath [MAX_PATH * 15 + 1] = { };
 
-  return wszDbgSymbols;
+    if (*wszCurrentPath == L'\0')
+    {
+      SymGetSearchPathW (GetCurrentProcess (), wszCurrentPath, MAX_PATH * 15);
+    }
+
+    std::wstring dir (wszCurrentPath); dir += L";";
+                 dir.append (SK_GetDocumentsDir ());
+                 dir.append (LR"(\My Mods\SpecialK\)");
+
+    wcsncpy_s ( wszDbgSymbols,  MAX_PATH * 16,
+                  dir.c_str (), _TRUNCATE );
+
+    InterlockedIncrement (&__init);
+  }
+
+  SK_Thread_SpinUntilAtomicMin (&__init, 2);
+
+  return
+    wszDbgSymbols;
 }
 
 void
@@ -1696,6 +1719,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
       SK_HookWinAPI       ();
       SK_Input_PreInit    (); // Hook only symbols in user32 and kernel32z
 
+
       // For the global injector, when not started by SKIM, check its version
       if ( (SK_IsInjected () && (! SK_IsSuperSpecialK ())) )
         SK_Thread_Create ( CheckVersionThread );
@@ -1785,35 +1809,41 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
     // Lazy-load SteamAPI into a process that doesn't use it; this brings
     //   a number of general-purpose benefits (such as battery charge monitoring).
-    bool kick_start = config.steam.force_load_steamapi;
-
-    if ((! SK_Steam_TestImports (GetModuleHandle (nullptr))))
-    {
-      // Implicitly kick-start anything in SteamApps\common that does not import
-      //   SteamAPI...
-      if ((! kick_start) && config.steam.auto_inject)
-      {
-        if (StrStrIW (SK_GetHostPath (), LR"(SteamApps\common)") != nullptr)
-        {
-          extern const wchar_t*
-          SK_Steam_GetDLLPath (void);
-
-          // Only do this if the game doesn't have a copy of the DLL lying around somewhere,
-          //   because if we init Special K's SteamAPI DLL, the game's will fail to init and
-          //     the game won't be happy about that!
-          kick_start = (! SK_Modules.LoadLibrary (SK_Steam_GetDLLPath ())) || config.steam.force_load_steamapi;
-        }
-      }
-
-      if (kick_start)
-        SK_Steam_KickStart ();
-    }
-
-    SK_Steam_PreHookCore ();
+    ///bool kick_start = config.steam.force_load_steamapi;
+    ///
+    ///if ((! SK_Steam_TestImports (GetModuleHandle (nullptr))))
+    ///{
+    ///  // Implicitly kick-start anything in SteamApps\common that does not import
+    ///  //   SteamAPI...
+    ///  if ((! kick_start) && config.steam.auto_inject)
+    ///  {
+    ///    if (StrStrIW (SK_GetHostPath (), LR"(SteamApps\common)") != nullptr)
+    ///    {
+    ///      extern const wchar_t*
+    ///      SK_Steam_GetDLLPath (void);
+    ///
+    ///      // Only do this if the game doesn't have a copy of the DLL lying around somewhere,
+    ///      //   because if we init Special K's SteamAPI DLL, the game's will fail to init and
+    ///      //     the game won't be happy about that!
+    ///      kick_start = (! SK_Modules.LoadLibrary (SK_Steam_GetDLLPath ())) || config.steam.force_load_steamapi;
+    ///    }
+    ///  }
+    ///
+    ///  if (kick_start)
+    ///    SK_Steam_KickStart ();
+    ///}
+    ///
+    ///SK_Steam_PreHookCore ();
   }
 
   if (__SK_bypass)
     goto BACKEND_INIT;
+
+
+  if (SK_COMPAT_IsFrapsPresent ())
+  {
+    SK_COMPAT_UnloadFraps ();
+  }
 
 
   SK_EnumLoadedModules (SK_ModuleEnum::PreLoad);
@@ -1929,6 +1959,15 @@ BACKEND_INIT:
 
   if (! __SK_bypass)
   {
+    switch (SK_GetCurrentGameID ())
+    {
+      case SK_GAME_ID::MonsterHunterWorld:
+        extern void
+          SK_MHW_PlugInInit (void);
+          SK_MHW_PlugInInit (    );
+        break;
+    }
+
     bool gl   = false, vulkan = false, d3d9  = false, d3d11 = false,
          dxgi = false, d3d8   = false, ddraw = false, glide = false;
 
@@ -1944,12 +1983,12 @@ BACKEND_INIT:
 
     if ((dxgi || d3d11 || d3d8 || ddraw) && config.apis.dxgi.d3d11.hook /*|| config.apis.dxgi.d3d12.hook*/)
     {
-      SK_DXGI_QuickHook ();
+      SK_DXGI_QuickHook   ();
     }
 
     if (d3d9 && (config.apis.d3d9.hook || config.apis.d3d9ex.hook))
     {
-      SK_D3D9_QuickHook ();
+      SK_D3D9_QuickHook   ();
     }
 
     if (config.steam.preload_overlay)
@@ -2136,9 +2175,14 @@ SK_ShutdownCore (const wchar_t* backend)
     dll_log.LogEx (false, L"done! (%4u ms)\n", timeGetTime () - dwTime);
   };
 
-  ShutdownWMIThread (process_stats.hShutdownSignal,  process_stats.hThread,  L"Process Monitor" );
-  ShutdownWMIThread (cpu_stats.hShutdownSignal,      cpu_stats.hThread,      L"CPU Monitor"     );
-  ShutdownWMIThread (disk_stats.hShutdownSignal,     disk_stats.hThread,     L"Disk Monitor"    );
+  auto& process_stats  = __SK_WMI_ProcessStats  ();
+  auto& cpu_stats      = __SK_WMI_CPUStats      ();
+  auto& disk_stats     = __SK_WMI_DiskStats     ();
+  auto& pagefile_stats = __SK_WMI_PagefileStats ();
+
+  ShutdownWMIThread (process_stats.hShutdownSignal,   process_stats.hThread, L"Process Monitor" );
+  ShutdownWMIThread (cpu_stats .hShutdownSignal,          cpu_stats.hThread, L"CPU Monitor"     );
+  ShutdownWMIThread (disk_stats.hShutdownSignal,         disk_stats.hThread, L"Disk Monitor"    );
   ShutdownWMIThread (pagefile_stats.hShutdownSignal, pagefile_stats.hThread, L"Pagefile Monitor");
 
   const wchar_t* config_name = backend;
@@ -2221,6 +2265,9 @@ auto SK_UnpackCEGUI =
 
     if (locked != nullptr)
     {
+      SK_LOG0 ( ( L"Unpacking CEGUI for first-time execution" ),
+                  L"CEGUI-Inst" );
+
       wchar_t      wszArchive     [MAX_PATH * 2 + 1] = { };
       wchar_t      wszDestination [MAX_PATH * 2 + 1] = { };
 
@@ -2236,19 +2283,25 @@ auto SK_UnpackCEGUI =
       FILE* fPackedCEGUI =
         _wfopen   (wszArchive, L"wb");
 
-      fwrite      (locked, 1, res_size, fPackedCEGUI);
-      fclose      (fPackedCEGUI);
+      if (fPackedCEGUI)
+      {
+        fwrite      (locked, 1, res_size, fPackedCEGUI);
+        fclose      (fPackedCEGUI);
+      }
 
-      using SK_7Z_DECOMP_PROGRESS_PFN = int (__stdcall *)(int current, int total);
+      if (GetFileAttributesW (wszArchive) != INVALID_FILE_ATTRIBUTES)
+      {
+        using SK_7Z_DECOMP_PROGRESS_PFN = int (__stdcall *)(int current, int total);
 
-      extern
-      HRESULT
-      SK_Decompress7zEx ( const wchar_t*            wszArchive,
-                          const wchar_t*            wszDestination,
-                          SK_7Z_DECOMP_PROGRESS_PFN callback );
+        extern
+          HRESULT
+          SK_Decompress7zEx (const wchar_t*            wszArchive,
+                             const wchar_t*            wszDestination,
+                             SK_7Z_DECOMP_PROGRESS_PFN callback);
 
-      SK_Decompress7zEx (wszArchive, wszDestination, nullptr);
-      DeleteFileW       (wszArchive);
+        SK_Decompress7zEx (wszArchive, wszDestination, nullptr);
+        DeleteFileW (wszArchive);
+      }
     }
 
     UnlockResource (packed_cegui);
@@ -2327,6 +2380,19 @@ return;
         SK_GetCurrentRenderBackend ().api == LastKnownAPI            &&
        ( (! InterlockedCompareExchange (&CEGUI_Init, TRUE, FALSE)) ) )
   {
+    bool local = false;
+    if (! SK_COMPAT_IsSystemDllInstalled (L"D3DCompiler_43.dll", &local))
+    {
+      if (! local)
+      {
+        config.cegui.enable = false;
+        SK_ImGui_Warning    (L"CEGUI has been disabled due to missing DirectX files.");
+        InterlockedExchange (&CEGUI_Init, TRUE);
+
+        return;
+      }
+    }
+
     InterlockedIncrement (&SK_GetCurrentRenderBackend ().frames_drawn);
 
     // Brutally stupid hack for brutally stupid OS (Windows 7)
@@ -2448,10 +2514,15 @@ return;
             ret    = SUCCEEDED ( __HrLoadAllImportsForDll (szDLL)           );
           }
 
-          __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ) ?
+          __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ||
+                       GetExceptionCode () == 0xc06d007e ) ?
                      EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH )
           {
+            // The magic number 0xc06d007e will come about if the DLL we're trying
+            //   to delayload has some sort of unsatisfied dependency
+            ret = false;
           }
+
           k32_RemoveDllDirectory (cookie);
 
           return ret;
@@ -2574,10 +2645,17 @@ SK_BeginBufferSwap (void)
 
 
 
-  if (SK_GetCurrentGameID () == SK_GAME_ID::Yakuza0)
+  switch (SK_GetCurrentGameID ())
   {
-    extern void SK_Yakuza0_BeginFrame (void);
-                SK_Yakuza0_BeginFrame ();
+    case SK_GAME_ID::Yakuza0:
+      extern void SK_Yakuza0_BeginFrame (void);
+                  SK_Yakuza0_BeginFrame ();
+                  break;
+
+    case SK_GAME_ID::MonsterHunterWorld:
+      extern void SK_MWH_BeginFrame (void);
+                  SK_MWH_BeginFrame ();
+                  break;
   }
 
 

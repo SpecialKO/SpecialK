@@ -137,14 +137,10 @@ HRESULT
 WINAPI
 SetCurrentThreadDescription (_In_ PCWSTR lpThreadDescription)
 {
-  SK_TLS *pTLS       = ReadAcquire (&__SK_DLL_Attached) ?
-    SK_TLS_Bottom () : nullptr;
+  if (lpThreadDescription == nullptr)
+    return E_POINTER;
 
-  DWORD               dwTid  = GetCurrentThreadId ();
-  __make_self_titled (dwTid);
-     _SK_ThreadNames [dwTid] = lpThreadDescription;
-
-  if ( SK_GetHostAppUtil ().isInjectionTool () || (pTLS == nullptr) )
+  if (SK_GetHostAppUtil ().isInjectionTool ())
     return S_OK;
 
   size_t len;
@@ -153,18 +149,28 @@ SetCurrentThreadDescription (_In_ PCWSTR lpThreadDescription)
     SUCCEEDED ( StringCbLengthW (
                   lpThreadDescription, 255, &len
                 )
-              );
+              )                           && len > 0;
 
   if (non_empty)
-  {
-    // Push this to the TLS datastore so we can get thread names even
-    //   when no debugger is attached.
-    wcsncpy_s (
-      pTLS->debug.name,
-        std::min (256, (int)len+1),
-          lpThreadDescription,
-            _TRUNCATE
-    );
+  {  
+    SK_TLS *pTLS       = ReadAcquire (&__SK_DLL_Attached) ?
+      SK_TLS_Bottom () : nullptr;
+
+    DWORD               dwTid  = GetCurrentThreadId ();
+    __make_self_titled (dwTid);
+       _SK_ThreadNames [dwTid] = lpThreadDescription;
+       
+    if (pTLS != nullptr)
+    {
+      // Push this to the TLS datastore so we can get thread names even
+      //   when no debugger is attached.
+      wcsncpy_s (
+        pTLS->debug.name,
+          std::min (256, (int)len+1),
+            lpThreadDescription,
+              _TRUNCATE
+      );
+    }
 
     if (SK_IsDebuggerPresent ())
     {
@@ -237,8 +243,9 @@ GetCurrentThreadDescription (_Out_  PWSTR  *threadDescription)
     *threadDescription =
       (wchar_t *)SK_LocalAlloc (LPTR, 1024);
 
-    wcsncpy (
-      *threadDescription, pTLS->debug.name, 255
+    wcsncpy_s (
+      *threadDescription, 1024,
+        pTLS->debug.name, _TRUNCATE
     );
 
     return S_OK;

@@ -35,6 +35,58 @@
 
 #include <concurrent_unordered_map.h>
 
+__forceinline
+SK_TlsRecord
+SK_GetTLS (bool initialize)
+{
+  DWORD dwTlsIdx =
+    ReadAcquire (&__SK_TLS_INDEX);
+
+  SK_TLS *pTLS =
+    nullptr;
+
+  if ( dwTlsIdx != TLS_OUT_OF_INDEXES )
+  {
+    InterlockedIncrement (&_SK_IgnoreTLSAlloc);
+
+    pTLS = static_cast <SK_TLS *> (
+      FlsGetValue (dwTlsIdx)
+    );
+
+    if (pTLS == nullptr)
+    {
+      if (GetLastError () == ERROR_SUCCESS)
+      {
+        pTLS =
+          new SK_TLS ();
+
+        if (! FlsSetValue (dwTlsIdx, pTLS))
+        {
+          delete pTLS;
+                 pTLS = nullptr;
+        }
+
+        else initialize = true;
+      }
+    }
+
+    if (pTLS != nullptr && initialize)
+    {
+      pTLS->scheduler.objects_waited =
+        new (std::unordered_map <HANDLE, SK_Sched_ThreadContext::wait_record_s>);
+
+      pTLS->debug.tls_idx = dwTlsIdx;
+    }
+    InterlockedDecrement (&_SK_IgnoreTLSAlloc);
+  }
+
+  else
+    dwTlsIdx = TLS_OUT_OF_INDEXES;
+
+  return
+    { dwTlsIdx, pTLS };
+}
+
 Concurrency::concurrent_unordered_map <DWORD, SK_TlsRecord>&
 SK_TLS_Map (void)
 {
@@ -51,13 +103,13 @@ volatile long __SK_TLS_INDEX = TLS_OUT_OF_INDEXES;
 void
 SK_CleanupTLS (void)
 {
-  auto tls_slot =
+  auto&& tls_slot =
     SK_GetTLS ();
 
-  if (tls_slot.lpvData != nullptr)
+  if (tls_slot.pTLS != nullptr)
   {
     SK_TLS* pTLS =
-      (SK_TLS *)tls_slot.lpvData;
+      tls_slot.pTLS;
 
     const DWORD dwTid =
       pTLS->debug.tid;
@@ -68,7 +120,7 @@ SK_CleanupTLS (void)
 
       if (tls_map.count (dwTid))
       {
-        tls_map [dwTid].lpvData  = nullptr;
+        tls_map [dwTid].pTLS     = nullptr;
         tls_map [dwTid].dwTlsIdx = TLS_OUT_OF_INDEXES;
       }
     }
@@ -76,7 +128,7 @@ SK_CleanupTLS (void)
 #ifdef _DEBUG
     size_t freed =
 #endif
-    static_cast <SK_TLS *> (tls_slot.lpvData)->Cleanup (
+    tls_slot.pTLS->Cleanup (
       SK_TLS_CleanupReason_e::Unload
     );
 
@@ -87,7 +139,7 @@ SK_CleanupTLS (void)
 
     if (FlsSetValue (tls_slot.dwTlsIdx, nullptr))
     {
-      SK_LocalFree (tls_slot.lpvData);
+      delete tls_slot.pTLS;
     }
   }
 }
@@ -112,7 +164,7 @@ SK_TLS*
 __stdcall
 SK_TLS_Bottom (void)
 {
-  auto tls_slot =
+  auto&& tls_slot =
     SK_GetTLS ();
 
   extern volatile LONG __SK_DLL_Attached;
@@ -120,7 +172,7 @@ SK_TLS_Bottom (void)
   assert ( (! ReadAcquire (&__SK_DLL_Attached)) ||
               tls_slot.dwTlsIdx != TLS_OUT_OF_INDEXES );
 
-  if (tls_slot.dwTlsIdx == TLS_OUT_OF_INDEXES || tls_slot.lpvData == nullptr)
+  if (tls_slot.dwTlsIdx == TLS_OUT_OF_INDEXES || tls_slot.pTLS == nullptr)
   {
     // This whole situation is bad, but try to limp along and keep the software
     //   running in rare edge cases.
@@ -129,7 +181,7 @@ SK_TLS_Bottom (void)
 
 
   SK_TLS* pTLS =
-    static_cast <SK_TLS *> (tls_slot.lpvData);
+    tls_slot.pTLS;
 
   if (! pTLS->debug.mapped)
   {
@@ -167,7 +219,7 @@ SK_TLS_BottomEx (DWORD dwTid)
     if (tls_slot->second.dwTlsIdx != TLS_OUT_OF_INDEXES)
     {
       return
-        static_cast <SK_TLS *> ( (*tls_slot).second.lpvData );
+        static_cast <SK_TLS *> ( (*tls_slot).second.pTLS );
     }
   }
 
@@ -384,7 +436,7 @@ SK_OSD_ThreadContext::Cleanup (SK_TLS_CleanupReason_e /*reason*/)
             text_capacity = 0;
     }
 
-    else if (text_capacity > 0)
+    else
     {
       SK_TLS_LogLeak (__FUNCTIONW__, __FILEW__, __LINE__, text_capacity);
                                                           text_capacity = 0;
@@ -529,8 +581,13 @@ SK_D3D9_ThreadContext::allocStackScratchStorage (size_t size)
   {
     stack_scratch.storage =
                          _aligned_malloc (size, 16);
-           stack_scratch.size = (uint32_t)size;
-    RtlZeroMemory (stack_scratch.storage, size);
+
+    if (stack_scratch.storage != nullptr)
+    {
+        stack_scratch.size = (uint32_t)size;
+      RtlZeroMemory (
+        stack_scratch.storage, size);
+    }
   }
 
   else

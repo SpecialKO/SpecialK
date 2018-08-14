@@ -143,7 +143,7 @@ SK_WinRing0_Unpack (void)
   HRSRC res =
     FindResource ( hModSelf, MAKEINTRESOURCE (IDR_WINRING0_PACKAGE), L"7ZIP" );
 
-  if (res)
+  if (res && SK_IsAdmin ())
   {
     SK_LOG0 ( ( L"Unpacking WinRing0 Driver because user does not have it in the proper location." ),
                 L" WinRing0 " );
@@ -179,9 +179,6 @@ SK_WinRing0_Unpack (void)
       wcscpy      (wszArchive, wszDestination);
       PathAppendW (wszArchive, L"WinRing0.7z");
 
-      SK_LOG0 ( ( L" >> Archive: %s [Destination: %s]", wszArchive, wszDestination ),
-                  L" WinRing0 " );
-
       FILE* fPackedDriver =
         _wfopen   (wszArchive, L"wb");
 
@@ -191,16 +188,23 @@ SK_WinRing0_Unpack (void)
         fclose      (fPackedDriver);
       }
 
-      using SK_7Z_DECOMP_PROGRESS_PFN = int (__stdcall *)(int current, int total);
+      if (GetFileAttributesW (wszArchive) != INVALID_FILE_ATTRIBUTES)
+      {
+        using SK_7Z_DECOMP_PROGRESS_PFN = int (__stdcall *)(int current, int total);
 
-      extern
-      HRESULT
-      SK_Decompress7zEx ( const wchar_t*            wszArchive,
-                          const wchar_t*            wszDestination,
-                          SK_7Z_DECOMP_PROGRESS_PFN callback );
+        extern
+        HRESULT
+        SK_Decompress7zEx ( const wchar_t*            wszArchive,
+                            const wchar_t*            wszDestination,
+                            SK_7Z_DECOMP_PROGRESS_PFN callback );
 
-      SK_Decompress7zEx (wszArchive, wszDestination, nullptr);
-      DeleteFileW       (wszArchive);
+        SK_Decompress7zEx (wszArchive, wszDestination, nullptr);
+        DeleteFileW       (wszArchive);
+
+        SK_LOG0 ( ( L" >> Archive: %s [Destination: %s]", SK_StripUserNameFromPathW (wszArchive),
+                                                          SK_StripUserNameFromPathW (wszDestination) ),
+                 L" WinRing0 " );
+      }
     }
 
     UnlockResource (packed_winring);
@@ -335,6 +339,8 @@ SK_WR0_Init (void)
   if (init != 0)
     return (init == 1);
 
+  bool install_fail = false;
+
   static std::wstring path_to_driver =
     SK_FormatStringW ( LR"(%ws\Drivers\WinRing0\%s)",
                       std::wstring ( SK_GetDocumentsDir () + LR"(\My Mods\SpecialK)" ).c_str (),
@@ -346,7 +352,19 @@ SK_WR0_Init (void)
 
   if (! has_WinRing0)
   {
-    SK_WinRing0_Unpack ();
+    SK_LOG0 ( ( "Installing WinRing0 Driver" ),
+               L"CPU Driver" );
+    if (SK_IsAdmin ())
+    {
+      SK_WinRing0_Unpack ();
+    }
+    else
+    {
+      install_fail = true;
+      SK_LOG0 ( ( L" >> First-time driver install is not possible; game must be run"
+                  L" as admin." ),
+                 L"CPU Driver" );
+    }
 
     has_WinRing0 =
       GetFileAttributesW (path_to_driver.c_str ()) != INVALID_FILE_ATTRIBUTES;
@@ -378,6 +396,17 @@ SK_WR0_Init (void)
 
     if (InitializeOls ()) init =  1;
     else                  init = -1;
+  }
+  else                    init = -1;
+
+  SK_LOG0 ( ( "WinRing0 driver is: %s", init == 1 ? L"Present" :
+                                                L"Not Present" ),
+             L"CPU Driver" );
+
+  if (init != 1)
+  {
+    SK_LOG0 ( ( L"  >> Detailed stats will be missing from the CPU"
+                L" widget without WinRing0" ), L"CPU Driver" );
   }
 
   SK_LOG0 ( (L"Installed CPU: %hs",
@@ -1167,14 +1196,15 @@ public:
                             pwi,     sizeof (PROCESSOR_POWER_INFORMATION) * sinfo.dwNumberOfProcessors
     );
 
+    static auto& cpu_stats =
+      __SK_WMI_CPUStats ();
+
     if (                   pwi != nullptr                                         &&
          last_update           < ( SK::ControlPanel::current_time - update_freq ) &&
           cpu_stats.num_cpus   > 0 )
     {
-      if ( cpu_stats.num_cpus  > 0 &&
-         ( cpu_records.size () < ( cpu_stats.num_cpus + 1 )
-         )
-         ) { cpu_records.resize  ( cpu_stats.num_cpus + 1 ); }
+      if (   cpu_records.size () < ( cpu_stats.num_cpus + 1 )
+         ) { cpu_records.resize    ( cpu_stats.num_cpus + 1 ); }
 
       for (unsigned int i = 1; i < cpu_stats.num_cpus + 1 ; i++)
       {
@@ -1260,6 +1290,9 @@ public:
     static bool  show_graphs = false;
 
     static int   last_parked_count = 0;
+
+    static auto& cpu_stats =
+      __SK_WMI_CPUStats ();
     
     ImGui::BeginGroup ();
 
@@ -1630,6 +1663,18 @@ public:
       DrawHeader (i);
 
       ImGui::PopStyleColor ();
+    }
+
+    if (! SK_WR0_Init ())
+    {
+      ImGui::PushStyleColor  (ImGuiCol_Text, ImColor::HSV (1.f, 1.f, 1.f));
+      ImGui::Separator       ();
+      ImGui::PushStyleColor  (ImGuiCol_Text, ImColor::HSV (0.075f, 1.0f, 1.0f));
+      ImGui::BulletText      ("WinRing0 Driver Not Installed");
+      ImGui::PopStyleColor   (2);
+
+      if (ImGui::IsItemHovered ())
+        ImGui::SetTooltip ("Refer to the CPU Driver section of Special K's logs for more details.");
     }
 
     ImGui::EndGroup ();

@@ -78,10 +78,10 @@ GetLogicalProcessorInformation_Detour (
 
           if (pairs.size () != masks.size ())
           {
-            while (lpi->ProcessorMask >= 2)
-            {
-              lpi->ProcessorMask >>= 1;
-            }
+            //while (lpi->ProcessorMask >= 2)
+            //{
+            //  lpi->ProcessorMask >>= 1;
+            //}
           }
         } break;
 
@@ -144,6 +144,61 @@ SK_CPU_InstallHooks (void)
 #endif
 }
 
+
+int
+SK_CPU_CountPhysicalCores (void)
+{
+  static std::set <ULONG_PTR> logical_proc_siblings;
+
+  if (! logical_proc_siblings.empty ())
+    return logical_proc_siblings.size ();
+
+  DWORD dwNeededBytes = 0;
+
+  // We're not hooking anything, so use the regular import
+  if (! GetLogicalProcessorInformation_Original)
+        GetLogicalProcessorInformation_Original = GetLogicalProcessorInformation;
+
+  if (! GetLogicalProcessorInformation_Original (nullptr, &dwNeededBytes))
+  {
+    if (GetLastError () == ERROR_INSUFFICIENT_BUFFER)
+    {
+      SYSTEM_LOGICAL_PROCESSOR_INFORMATION   *pLogProcInfo =
+       (SYSTEM_LOGICAL_PROCESSOR_INFORMATION *)
+          new uint8_t [dwNeededBytes] { };
+
+      DWORD dwOffset = 0;
+
+      if (GetLogicalProcessorInformation_Original (pLogProcInfo, &dwNeededBytes))
+      {
+        PSYSTEM_LOGICAL_PROCESSOR_INFORMATION lpi =
+          pLogProcInfo;
+
+        while (dwOffset + sizeof (SYSTEM_LOGICAL_PROCESSOR_INFORMATION) <= dwNeededBytes)
+        {
+          switch (lpi->Relationship) 
+          {
+            case RelationProcessorCore:
+            {
+              logical_proc_siblings.emplace (lpi->ProcessorMask);
+            } break;
+
+            default:
+              break;
+          }
+
+          dwOffset += sizeof SYSTEM_LOGICAL_PROCESSOR_INFORMATION;
+          lpi++;
+        }
+      }
+
+      delete [] pLogProcInfo;
+    }
+  }
+
+  return
+    logical_proc_siblings.size ();
+}
 
 const std::vector <uintptr_t>&
 SK_CPU_GetLogicalCorePairs (void)
