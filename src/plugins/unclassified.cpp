@@ -582,7 +582,7 @@ struct {
   bool  no_ssao       = false;
   bool  no_dof        = false;
 
-  bool  lock_volume   = false;
+  bool  lock_volume   =  true;
   float lock_level    =  1.0f;
   bool  quiet_start   =  true;
   float quiet_level   = 0.10f;
@@ -1104,3 +1104,476 @@ SK_Yakuza0_PlugInCfg (void)
 
   return false;
 }
+
+
+
+volatile LONG __SK_MWH_QueuedShots         = 0;
+volatile LONG __SK_MWH_InitiateHudFreeShot = 0;
+
+void
+SK_TriggerHudFreeScreenshot (void) noexcept
+{
+  extern bool SK_D3D11_EnableTracking;
+              SK_D3D11_EnableTracking = true;
+
+  InterlockedIncrement (&__SK_MWH_QueuedShots);
+}
+
+void
+SK_MWH_BeginFrame (void)
+{
+  if ( ReadAcquire (&__SK_MWH_QueuedShots)          > 0 ||
+       ReadAcquire (&__SK_MWH_InitiateHudFreeShot) != 0    )
+  {
+#define SK_MWH_HUD_VS_CRC32C 0x6f046ebc
+
+    if (InterlockedCompareExchange (&__SK_MWH_InitiateHudFreeShot, -1, 1) == 1)
+    {
+      SK_D3D11_Shaders.vertex.blacklist.emplace (SK_MWH_HUD_VS_CRC32C);
+
+      SK::SteamAPI::TakeScreenshot (SK::ScreenshotStage::BeforeOSD);
+    }
+
+    else if (InterlockedCompareExchange (&__SK_MWH_InitiateHudFreeShot, 0, -1) == -1)
+    {
+      SK_D3D11_Shaders.vertex.blacklist.erase (SK_MWH_HUD_VS_CRC32C);
+    }
+
+    else
+    {
+      InterlockedDecrement (&__SK_MWH_QueuedShots);
+      InterlockedExchange (&__SK_MWH_InitiateHudFreeShot, 1);
+
+      return
+        SK_MWH_BeginFrame ();
+    }
+  }
+}
+
+sk::ParameterBool*  _SK_MHW_JobParity;
+bool  __SK_MHW_JobParity = true;
+sk::ParameterBool*  _SK_MHW_JobParityPhysical;
+bool  __SK_MHW_JobParityPhysical = false;
+
+sk::ParameterBool* _SK_MHW_10BitSwapChain;
+bool __SK_MHW_10BitSwap = false;
+
+sk::ParameterBool* _SK_MHW_16BitSwapChain;
+bool __SK_MHW_16BitSwap = false;
+
+sk::ParameterFloat* _SK_MHW_scRGBLuminance;
+float __SK_MHW_HDR_Luma = 172.0_Nits;
+
+sk::ParameterFloat* _SK_MHW_scRGBGamma;
+float __SK_MHW_HDR_Exp  = 2.116f;
+
+void
+SK_MHW_PlugInInit (void)
+{
+  _SK_MHW_JobParity =
+    dynamic_cast <sk::ParameterBool *> (
+      g_ParameterFactory.create_parameter <bool> (L"Job Parity")
+      );
+
+  _SK_MHW_JobParity->register_to_ini (
+    SK_GetDLLConfig (), L"MonsterHuntersWorld.CPU", L"LimitJobThreads");
+
+  _SK_MHW_JobParity->load  (__SK_MHW_JobParity);
+  _SK_MHW_JobParity->store (__SK_MHW_JobParity);
+
+  _SK_MHW_JobParityPhysical =
+    dynamic_cast <sk::ParameterBool *> (
+      g_ParameterFactory.create_parameter <bool> (L"Job Parity Rule")
+      );
+
+  _SK_MHW_JobParityPhysical->register_to_ini (
+    SK_GetDLLConfig (), L"MonsterHuntersWorld.CPU", L"LimitToPhysicalCores");
+
+  _SK_MHW_JobParityPhysical->load  (__SK_MHW_JobParityPhysical);
+  _SK_MHW_JobParityPhysical->store (__SK_MHW_JobParityPhysical);
+
+  _SK_MHW_10BitSwapChain =
+    dynamic_cast <sk::ParameterBool *> (
+      g_ParameterFactory.create_parameter <bool> (L"10-bit SwapChain")
+    );
+
+  _SK_MHW_10BitSwapChain->register_to_ini (
+    SK_GetDLLConfig (), L"MonsterHuntersWorld.HDR", L"Use10BitSwapChain");
+
+  _SK_MHW_10BitSwapChain->load  (__SK_MHW_10BitSwap);
+  _SK_MHW_10BitSwapChain->store (__SK_MHW_10BitSwap);
+
+  _SK_MHW_16BitSwapChain =
+    dynamic_cast <sk::ParameterBool *> (
+      g_ParameterFactory.create_parameter <bool> (L"16-bit SwapChain")
+    );
+
+  _SK_MHW_16BitSwapChain->register_to_ini (
+    SK_GetDLLConfig (), L"MonsterHuntersWorld.HDR", L"Use16BitSwapChain");
+
+  _SK_MHW_16BitSwapChain->load  (__SK_MHW_16BitSwap);
+  _SK_MHW_16BitSwapChain->store (__SK_MHW_16BitSwap);
+
+
+  _SK_MHW_scRGBLuminance =
+    dynamic_cast <sk::ParameterFloat *> (
+      g_ParameterFactory.create_parameter <float> (L"Luminance")
+    );
+
+  _SK_MHW_scRGBLuminance->register_to_ini (
+    SK_GetDLLConfig (), L"MonsterHuntersWorld.HDR", L"scRGBLuminance");
+
+  _SK_MHW_scRGBLuminance->load  (__SK_MHW_HDR_Luma);
+  _SK_MHW_scRGBLuminance->store (__SK_MHW_HDR_Luma);
+
+  _SK_MHW_scRGBGamma =
+    dynamic_cast <sk::ParameterFloat *> (
+      g_ParameterFactory.create_parameter <float> (L"Gamma")
+    );
+
+  _SK_MHW_scRGBGamma->register_to_ini (
+    SK_GetDLLConfig (), L"MonsterHuntersWorld.HDR", L"scRGBGamma");
+
+  _SK_MHW_scRGBGamma->load  (__SK_MHW_HDR_Exp);
+  _SK_MHW_scRGBGamma->store (__SK_MHW_HDR_Exp);
+}
+
+bool
+SK_MHW_PlugInCfg (void)
+{
+  if (ImGui::CollapsingHeader ("Monster Hunters World", ImGuiTreeNodeFlags_DefaultOpen))
+  {
+    ImGui::TreePush ("");
+
+    static bool parity_orig = __SK_MHW_JobParity;
+
+    if (ImGui::Checkbox ("Limit Job Threads to number of CPU cores", &__SK_MHW_JobParity))
+    {
+      _SK_MHW_JobParity->store (__SK_MHW_JobParity);
+      SK_GetDLLConfig ()->write (SK_GetDLLConfig ()->get_filename ());
+    }
+
+    static bool rule_orig =
+      __SK_MHW_JobParityPhysical;
+
+    if (__SK_MHW_JobParity)
+    {
+      ImGui::SameLine (); ImGui::Spacing ();
+      ImGui::SameLine (); ImGui::Spacing ();
+      ImGui::SameLine (); ImGui::Text ("Limit: ");
+      ImGui::SameLine (); ImGui::Spacing ();
+      ImGui::SameLine ();
+
+      int rule = __SK_MHW_JobParityPhysical ? 1 : 0;
+
+      bool changed =
+        ImGui::RadioButton ("Logical Cores", &rule, 0);
+      ImGui::SameLine ();
+      changed |=
+        ImGui::RadioButton ("Physical Cores", &rule, 1);
+
+      if (changed)
+      {
+        __SK_MHW_JobParityPhysical = (rule == 1);
+        _SK_MHW_JobParityPhysical->store (__SK_MHW_JobParityPhysical);
+        SK_GetDLLConfig ()->write (SK_GetDLLConfig ()->get_filename ());
+      }
+    }
+
+    if (parity_orig != __SK_MHW_JobParity ||
+        rule_orig != __SK_MHW_JobParityPhysical)
+    {
+      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.3f, .8f, .9f));
+      ImGui::BulletText ("Game Restart Required");
+      ImGui::PopStyleColor ();
+    }
+
+    if (ImGui::IsItemHovered ())
+      ImGui::SetTooltip ("Without this option, the game spawns 32 job threads and nobody can get that many running efficiently.");
+
+
+    if (ImGui::CollapsingHeader ("HDR Fix", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+      static bool TenBitSwap_Original     = __SK_MHW_10BitSwap;
+      static bool SixteenBitSwap_Original = __SK_MHW_16BitSwap;
+      
+      static int sel = __SK_MHW_16BitSwap ? 2 :
+                       __SK_MHW_10BitSwap ? 1 : 0;
+
+      if (ImGui::RadioButton ("None", &sel, 0))
+      {
+        __SK_MHW_10BitSwap = false;
+        __SK_MHW_16BitSwap = false;
+
+        _SK_MHW_10BitSwapChain->store (__SK_MHW_10BitSwap);
+        _SK_MHW_16BitSwapChain->store (__SK_MHW_16BitSwap);
+
+        SK_GetDLLConfig ()->write (SK_GetDLLConfig ()->get_filename ());
+      }
+      ImGui::SameLine ();
+
+
+      if (ImGui::RadioButton ("HDR10 (10-bit + Metadata)", &sel, 1))
+      {
+        __SK_MHW_10BitSwap = true;
+
+        if (__SK_MHW_10BitSwap) __SK_MHW_16BitSwap = false;
+
+        _SK_MHW_10BitSwapChain->store (__SK_MHW_10BitSwap);
+        _SK_MHW_16BitSwapChain->store (__SK_MHW_16BitSwap);
+
+        SK_GetDLLConfig ()->write (SK_GetDLLConfig ()->get_filename ());
+      }
+
+      auto& rb =
+        SK_GetCurrentRenderBackend ();
+
+      if (rb.hdr_capable)
+      {
+        ImGui::SameLine ();
+
+        if (ImGui::RadioButton ("scRGB HDR (16-bit)", &sel, 2))
+        {
+          __SK_MHW_16BitSwap = true;
+
+          if (__SK_MHW_16BitSwap) __SK_MHW_10BitSwap = false;
+
+          _SK_MHW_10BitSwapChain->store (__SK_MHW_10BitSwap);
+          _SK_MHW_16BitSwapChain->store (__SK_MHW_16BitSwap);
+
+          SK_GetDLLConfig ()->write (SK_GetDLLConfig ()->get_filename ());
+        }
+
+        if (ImGui::IsItemHovered ())
+          ImGui::SetTooltip ("This is the superior HDR format -- use it ;)");
+      }
+
+      if ( (TenBitSwap_Original     != __SK_MHW_10BitSwap ||
+            SixteenBitSwap_Original != __SK_MHW_16BitSwap) )
+      {
+        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.3f, .8f, .9f));
+        ImGui::BulletText     ("Game Restart Required");
+        ImGui::PopStyleColor  ();
+      }
+
+      if ((__SK_MHW_10BitSwap || __SK_MHW_16BitSwap) && rb.hdr_capable)
+      {
+        CComQIPtr <IDXGISwapChain4> pSwap4 (rb.swapchain);
+
+        if (pSwap4 != nullptr)
+        {
+          DXGI_OUTPUT_DESC1     out_desc = { };
+          DXGI_SWAP_CHAIN_DESC swap_desc = { };
+             pSwap4->GetDesc (&swap_desc);
+
+          if (out_desc.BitsPerColor == 0)
+          {
+            CComPtr <IDXGIOutput> pOutput = nullptr;
+
+            if (SUCCEEDED ((pSwap4->GetContainingOutput (&pOutput.p))))
+            {
+              CComQIPtr <IDXGIOutput6> pOutput6 (pOutput);
+
+              pOutput6->GetDesc1 (&out_desc);
+            }
+
+            else
+            {
+              out_desc.BitsPerColor = 8;
+            }
+          }
+
+          if (out_desc.BitsPerColor >= 10)
+          {
+            //const DisplayChromacities& Chroma = DisplayChromacityList[selectedChroma];
+            DXGI_HDR_METADATA_HDR10 HDR10MetaData = {};
+
+            static int cspace = 1;
+
+            struct DisplayChromacities
+            {
+              float RedX;
+              float RedY;
+              float GreenX;
+              float GreenY;
+              float BlueX;
+              float BlueY;
+              float WhiteX;
+              float WhiteY;
+            } const DisplayChromacityList [] =
+            {
+              { 0.64000f, 0.33000f, 0.30000f, 0.60000f, 0.15000f, 0.06000f, 0.31270f, 0.32900f }, // Display Gamut Rec709 
+              { 0.64000f, 0.33000f, 0.30000f, 0.60000f, 0.15000f, 0.06000f, 0.31270f, 0.32900f }, // Display Gamut Rec709 
+              ///{ 0.70800f, 0.29200f, 0.17000f, 0.79700f, 0.13100f, 0.04600f, 0.31270f, 0.32900f }, // Display Gamut Rec2020
+              //( out_desc.RedPrimary   [0], out_desc.RedPrimary   [1],
+              //out_desc.GreenPrimary [0], out_desc.GreenPrimary [1],
+              //out_desc.BluePrimary  [0], out_desc.BluePrimary  [1],
+              //out_desc.WhitePoint   [0], out_desc.WhitePoint   [1] ),
+              //( out_desc.RedPrimary   [0], out_desc.RedPrimary   [1],
+              //out_desc.GreenPrimary [0], out_desc.GreenPrimary [1],
+              //out_desc.BluePrimary  [0], out_desc.BluePrimary  [1],
+              //out_desc.WhitePoint   [0], out_desc.WhitePoint   [1] ),
+              { out_desc.RedPrimary   [0], out_desc.RedPrimary   [1],
+                out_desc.GreenPrimary [0], out_desc.GreenPrimary [1],
+                out_desc.BluePrimary  [0], out_desc.BluePrimary  [1],
+                out_desc.WhitePoint   [0], out_desc.WhitePoint   [1] }
+            };
+
+            ImGui::TreePush ("");
+
+            bool hdr_gamut_support = false;
+
+            if (swap_desc.BufferDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT)
+            {
+              hdr_gamut_support = true;
+            }
+
+            if ( swap_desc.BufferDesc.Format == DXGI_FORMAT_R10G10B10A2_UNORM )
+            {
+              hdr_gamut_support = true;
+              ImGui::RadioButton ("Rec 709",  &cspace, 0); ImGui::SameLine (); 
+            }
+            else if (cspace == 0) cspace = 1;
+
+            if ( swap_desc.BufferDesc.Format == DXGI_FORMAT_R10G10B10A2_UNORM )
+            {
+              hdr_gamut_support = true;
+              ImGui::RadioButton ("Rec 2020", &cspace, 1); ImGui::SameLine ();
+            }
+            else if (cspace == 1) cspace = 0;
+            ////ImGui::RadioButton ("Native",   &cspace, 2); ImGui::SameLine ();
+
+            if (! (config.render.framerate.swapchain_wait != 0 && swap_desc.BufferDesc.Format == DXGI_FORMAT_R10G10B10A2_UNORM))// hdr_gamut_support)
+            {
+              HDR10MetaData.RedPrimary [0] = static_cast <UINT16> (DisplayChromacityList [cspace].RedX * 50000.0f);
+              HDR10MetaData.RedPrimary [1] = static_cast <UINT16> (DisplayChromacityList [cspace].RedY * 50000.0f);
+
+              HDR10MetaData.GreenPrimary [0] = static_cast <UINT16> (DisplayChromacityList [cspace].GreenX * 50000.0f);
+              HDR10MetaData.GreenPrimary [1] = static_cast <UINT16> (DisplayChromacityList [cspace].GreenY * 50000.0f);
+
+              HDR10MetaData.BluePrimary [0] = static_cast <UINT16> (DisplayChromacityList [cspace].BlueX * 50000.0f);
+              HDR10MetaData.BluePrimary [1] = static_cast <UINT16> (DisplayChromacityList [cspace].BlueY * 50000.0f);
+
+              HDR10MetaData.WhitePoint [0] = static_cast <UINT16> (DisplayChromacityList [cspace].WhiteX * 50000.0f);
+              HDR10MetaData.WhitePoint [1] = static_cast <UINT16> (DisplayChromacityList [cspace].WhiteY * 50000.0f);
+
+              static float fLuma [4] = { out_desc.MaxLuminance, out_desc.MinLuminance,
+                                         2000.0f,               600.0f };
+
+              if (hdr_gamut_support && swap_desc.BufferDesc.Format == DXGI_FORMAT_R10G10B10A2_UNORM)
+                ImGui::InputFloat4 ("Luminance Coefficients", fLuma, 1);
+
+              HDR10MetaData.MaxMasteringLuminance     = static_cast <UINT>   (fLuma [0] * 10000.0f);
+              HDR10MetaData.MinMasteringLuminance     = static_cast <UINT>   (fLuma [1] * 10000.0f);
+              HDR10MetaData.MaxContentLightLevel      = static_cast <UINT16> (fLuma [2]);
+              HDR10MetaData.MaxFrameAverageLightLevel = static_cast <UINT16> (fLuma [3]);
+
+              if (hdr_gamut_support && swap_desc.BufferDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT)
+              {
+                float nits =
+                  __SK_MHW_HDR_Luma / 1.0_Nits;
+
+                
+                if (ImGui::SliderFloat ( "###MHW_LUMINANCE", &nits, 80.0f, rb.display_gamut.maxY,
+                                           "Middle-White Luminance: %.1f Nits" ))
+                {
+                  __SK_MHW_HDR_Luma = nits * 1.0_Nits;
+
+                  _SK_MHW_scRGBLuminance->store (__SK_MHW_HDR_Luma);
+                  SK_GetDLLConfig ()->write (SK_GetDLLConfig ()->get_filename ());
+                }
+
+                ImGui::SameLine ();
+
+                if (ImGui::SliderFloat ("SDR -> HDR Gamma", &__SK_MHW_HDR_Exp, 1.6f, 2.9f))
+                {
+                  _SK_MHW_scRGBGamma->store (__SK_MHW_HDR_Exp);
+                  SK_GetDLLConfig ()->write (SK_GetDLLConfig ()->get_filename ());
+                }
+
+                //ImGui::SameLine ();
+                //ImGui::Checkbox ("Explicit LinearRGB -> sRGB###IMGUI_SRGB", &rb.ui_srgb);
+              }
+
+              if (swap_desc.BufferDesc.Format == DXGI_FORMAT_R10G10B10A2_UNORM && ImGui::Button ("Inject HDR10 Metadata"))
+              {
+                //if (cspace == 2)
+                //  swap_desc.BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+                //else if (cspace == 1)
+                //  swap_desc.BufferDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+                //else
+                //  swap_desc.BufferDesc.Format = DXGI_FORMAT_R10G10B10A2_UNORM;
+
+                pSwap4->SetHDRMetaData (DXGI_HDR_METADATA_TYPE_NONE, 0, nullptr);
+
+                if (swap_desc.BufferDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT)
+                {
+                  pSwap4->SetColorSpace1 (DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709);
+                }
+
+                if      (cspace == 1) pSwap4->SetColorSpace1 (DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020);
+                else if (cspace == 0) pSwap4->SetColorSpace1 (DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709);
+                else                  pSwap4->SetColorSpace1 (DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709);
+
+                if (cspace == 1 || cspace == 0)
+                  pSwap4->SetHDRMetaData (DXGI_HDR_METADATA_TYPE_HDR10, sizeof (HDR10MetaData), &HDR10MetaData);
+              }
+            }
+
+            else
+            {
+              ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.075f, 1.0f, 1.0f));
+              ImGui::BulletText     ("A waitable swapchain is required for HDR10 (D3D11 Settings/SwapChain | {Flip Model + Waitable}");
+              ImGui::PopStyleColor  ();
+            }
+
+            ImGui::TreePop ();
+          }
+        }
+      }
+    }
+
+    ///static int orig =
+    ///  config.render.framerate.override_num_cpus;
+    ///
+    ///bool spoof = (config.render.framerate.override_num_cpus != -1);
+    ///
+    ///static SYSTEM_INFO             si = { };
+    ///SK_RunOnce (SK_GetSystemInfo (&si));
+    ///
+    ///if ((! spoof) || static_cast <DWORD> (config.render.framerate.override_num_cpus) > (si.dwNumberOfProcessors / 2))
+    ///{
+    ///  ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.14f, .8f, .9f));
+    ///  ImGui::BulletText     ("It is strongly suggested that you reduce threads to 1/2 max. or lower");
+    ///  ImGui::PopStyleColor  ();
+    ///}
+    ///
+    ///if ( ImGui::Checkbox   ("Reduce Reported CPU Core Count", &spoof) )
+    ///{
+    ///  config.render.framerate.override_num_cpus =
+    ///    ( spoof ? si.dwNumberOfProcessors : -1 );
+    ///}
+    ///
+    ///if (spoof)
+    ///{
+    ///  ImGui::SameLine  (                                             );
+    ///  ImGui::SliderInt ( "",
+    ///                    &config.render.framerate.override_num_cpus,
+    ///                    1, si.dwNumberOfProcessors              );
+    ///}
+    ///
+    ///if (config.render.framerate.override_num_cpus != orig)
+    ///{
+    ///  ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.3f, .8f, .9f));
+    ///  ImGui::BulletText     ("Game Restart Required");
+    ///  ImGui::PopStyleColor  ();
+    ///}
+
+    ImGui::TreePop ();
+
+    return true;
+  }
+
+  return false;
+}
+

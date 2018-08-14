@@ -285,28 +285,38 @@ SK_GPUPollingThread (LPVOID user)
 
       //SwitchToThreadMinPageFaults ();
 
-        NV_GPU_CLOCK_FREQUENCIES freq           = {                          };
-                                 freq.version   = NV_GPU_CLOCK_FREQUENCIES_VER;
-                                 freq.ClockType = NV_GPU_CLOCK_FREQUENCIES_CURRENT_FREQ;
+        static int amortization0 = 0;
 
-        if (NVAPI_OK == NvAPI_GPU_GetAllClockFrequencies (gpu, &freq))
+        if (amortization0++ % 3 == 0)
         {
-          stats.gpus [i].clocks_kHz.gpu    =
-            freq.domain [NVAPI_GPU_PUBLIC_CLOCK_GRAPHICS].frequency;
-          stats.gpus [i].clocks_kHz.ram    =
-            freq.domain [NVAPI_GPU_PUBLIC_CLOCK_MEMORY].frequency;
-          ////stats.gpus [i].clocks_kHz.shader =
-            ////freq.domain [NVAPI_GPU_PUBLIC_CLOCK_PROCESSOR].frequency;
+          NV_GPU_CLOCK_FREQUENCIES freq           = {                          };
+                                   freq.version   = NV_GPU_CLOCK_FREQUENCIES_VER;
+                                   freq.ClockType = NV_GPU_CLOCK_FREQUENCIES_CURRENT_FREQ;
+
+          if (NVAPI_OK == NvAPI_GPU_GetAllClockFrequencies (gpu, &freq))
+          {
+            stats.gpus [i].clocks_kHz.gpu    =
+              freq.domain [NVAPI_GPU_PUBLIC_CLOCK_GRAPHICS].frequency;
+            stats.gpus [i].clocks_kHz.ram    =
+              freq.domain [NVAPI_GPU_PUBLIC_CLOCK_MEMORY].frequency;
+            ////stats.gpus [i].clocks_kHz.shader =
+              ////freq.domain [NVAPI_GPU_PUBLIC_CLOCK_PROCESSOR].frequency;
+          }
         }
 
-        NvU32 tach = 0;
+        static int amortization1 = 0;
 
-        stats.gpus [i].fans_rpm.supported = false;
-
-        if (NVAPI_OK == NvAPI_GPU_GetTachReading (gpu, &tach))
+        if (amortization1++ % 2 == 0)
         {
-          stats.gpus [i].fans_rpm.gpu       = tach;
-          stats.gpus [i].fans_rpm.supported = true;
+          NvU32 tach = 0;
+
+          stats.gpus [i].fans_rpm.supported = false;
+
+          if (NVAPI_OK == NvAPI_GPU_GetTachReading (gpu, &tach))
+          {
+            stats.gpus [i].fans_rpm.gpu       = tach;
+            stats.gpus [i].fans_rpm.supported = true;
+          }
         }
 
         static int iter = 0;
@@ -440,7 +450,7 @@ SK_GPUPollingThread (LPVOID user)
       }
     }
 
-    else if (ADL_init != ADL_FALSE)
+    else if (ADL_init == ADL_TRUE)
     {
       stats.num_gpus = SK_ADL_CountActiveGPUs ();
 
@@ -492,6 +502,9 @@ SK_GPUPollingThread (LPVOID user)
         stats.gpus [i].fans_rpm.supported = true;
       }
     }
+
+    else
+      break;
 
     gpu_stats = gpu_stats_buffers [ReadAcquire (&current_gpu_stat)];
   //ResetEvent (hPollEvent);

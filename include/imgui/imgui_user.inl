@@ -325,7 +325,9 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
           }
 
           if ( ((RAWINPUT *)pData)->data.mouse.usButtonFlags == RI_MOUSE_WHEEL       )
-            ImGui::GetIO ().MouseWheel += ((short)((RAWINPUT *)pData)->data.mouse.usButtonData);
+            ImGui::GetIO ().MouseWheel += 
+            ((float)(short)((RAWINPUT *)pData)->data.mouse.usButtonData) /
+             (float)WHEEL_DELTA;
         }
       } break;
 
@@ -762,7 +764,9 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
 
 
       case WM_MOUSEWHEEL:
-        io.MouseWheel += GET_WHEEL_DELTA_WPARAM (wParam) > 0 ? +1.0f : -1.0f;
+        io.MouseWheel +=
+          static_cast <float> (GET_WHEEL_DELTA_WPARAM (wParam)) /
+          static_cast <float> (WHEEL_DELTA)                    ;
         return true;
 
       case WM_INPUTLANGCHANGE:
@@ -1169,42 +1173,42 @@ SK_ImGui_PollGamepad_EndFrame (void)
   //   that occur during the next frame without losing any input events.
   if ( SK_IsGameWindowActive () )
   {
-    io.MouseDown [0] = (GetAsyncKeyState_Original (VK_LBUTTON)  & 0x8000) != 0;
-    io.MouseDown [1] = (GetAsyncKeyState_Original (VK_RBUTTON)  & 0x8000) != 0;
-    io.MouseDown [2] = (GetAsyncKeyState_Original (VK_MBUTTON)  & 0x8000) != 0;
-    io.MouseDown [3] = (GetAsyncKeyState_Original (VK_XBUTTON1) & 0x8000) != 0;
-    io.MouseDown [4] = (GetAsyncKeyState_Original (VK_XBUTTON2) & 0x8000) != 0;
+    io.MouseDown [0] = (SK_GetAsyncKeyState (VK_LBUTTON)  & 0x8000) != 0;
+    io.MouseDown [1] = (SK_GetAsyncKeyState (VK_RBUTTON)  & 0x8000) != 0;
+    io.MouseDown [2] = (SK_GetAsyncKeyState (VK_MBUTTON)  & 0x8000) != 0;
+    io.MouseDown [3] = (SK_GetAsyncKeyState (VK_XBUTTON1) & 0x8000) != 0;
+    io.MouseDown [4] = (SK_GetAsyncKeyState (VK_XBUTTON2) & 0x8000) != 0;
 
     if (io.MouseDown [0] || io.MouseDown [1]) SK_ImGui_Cursor.update ();
 
     // This stupid hack prevents the Steam overlay from making the software
     //   think tab is stuck down.
-    io.KeysDown [0x08]  = (GetAsyncKeyState_Original ( 0x08 ) & 0x8000) != 0;
-    io.KeysDown [0x09]  = (GetAsyncKeyState_Original ( 0x09 ) & 0x8000) != 0;
-    io.KeysDown [0x0C]  = (GetAsyncKeyState_Original ( 0x0C ) & 0x8000) != 0;
-    io.KeysDown [0x0D]  = (GetAsyncKeyState_Original ( 0x0D ) & 0x8000) != 0;
+    io.KeysDown [0x08]  = (SK_GetAsyncKeyState ( 0x08 ) & 0x8000) != 0;
+    io.KeysDown [0x09]  = (SK_GetAsyncKeyState ( 0x09 ) & 0x8000) != 0;
+    io.KeysDown [0x0C]  = (SK_GetAsyncKeyState ( 0x0C ) & 0x8000) != 0;
+    io.KeysDown [0x0D]  = (SK_GetAsyncKeyState ( 0x0D ) & 0x8000) != 0;
     for (int i = 0x10; i < 0x16; i++)
-      io.KeysDown [i]  = (GetAsyncKeyState_Original (  i ) & 0x8000) != 0;
+      io.KeysDown [i]  = (SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
     for (int i = 0x17; i < 0x1A; i++)
-      io.KeysDown [i]  = (GetAsyncKeyState_Original (  i ) & 0x8000) != 0;
+      io.KeysDown [i]  = (SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
     for (int i = 0x1B; i < 0x3A; i++)
-      io.KeysDown [i]  = (GetAsyncKeyState_Original (  i ) & 0x8000) != 0;
+      io.KeysDown [i]  = (SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
     for (int i = 0x41; i < 0x5E; i++)
-      io.KeysDown [i]  = (GetAsyncKeyState_Original (  i ) & 0x8000) != 0;
+      io.KeysDown [i]  = (SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
     for (int i = 0x5F; i < 0x88; i++)
-      io.KeysDown [i]  = (GetAsyncKeyState_Original (  i ) & 0x8000) != 0;
+      io.KeysDown [i]  = (SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
     for (int i = 0x90; i < 0x97; i++)
-      io.KeysDown [i]  = (GetAsyncKeyState_Original (  i ) & 0x8000) != 0;
+      io.KeysDown [i]  = (SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
     for (int i = 0xA0; i < 0xB8; i++)
-      io.KeysDown [i]  = (GetAsyncKeyState_Original (  i ) & 0x8000) != 0;
+      io.KeysDown [i]  = (SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
     for (int i = 0xBA; i < 0xC1; i++)
-      io.KeysDown [i]  = (GetAsyncKeyState_Original (  i ) & 0x8000) != 0;
+      io.KeysDown [i]  = (SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
     for (int i = 0xDB; i < 0xE0; i++)
-      io.KeysDown [i]  = (GetAsyncKeyState_Original (  i ) & 0x8000) != 0;
+      io.KeysDown [i]  = (SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
     for (int i = 0xE1; i < 0xE8; i++)
-      io.KeysDown [i]  = (GetAsyncKeyState_Original (  i ) & 0x8000) != 0;
+      io.KeysDown [i]  = (SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
     for (int i = 0xE9; i < 0xFF; i++)
-      io.KeysDown [i]  = (GetAsyncKeyState_Original (  i ) & 0x8000) != 0;
+      io.KeysDown [i]  = (SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
 
     // Don't cycle window elements when Alt+Tabbing
     if (io.KeyAlt) io.KeysDown [VK_TAB] = false;
@@ -1828,6 +1832,8 @@ ImGui::PlotLinesC ( const char*  label,         const float* values,
 #include <imgui/imgui_internal.h>
 #include <SpecialK/control_panel.h>
 
+#include <SpecialK/render/dxgi/dxgi_backend.h>
+
 void
 SK_ImGui_User_NewFrame (void)
 {
@@ -1845,6 +1851,58 @@ SK_ImGui_User_NewFrame (void)
 
   ImGui::NewFrame ();
 
+
+  if (SK_GetCurrentGameID () == SK_GAME_ID::MonsterHunterWorld)
+  {
+    auto& rb =
+      SK_GetCurrentRenderBackend ();
+
+    CComQIPtr <IDXGISwapChain> pSwapChain (rb.swapchain);
+
+    DXGI_SWAP_CHAIN_DESC  desc = {};
+    pSwapChain->GetDesc (&desc);
+
+    extern bool __SK_MHW_16BitSwap;
+    if (desc.BufferDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT)//__SK_MHW_16BitSwap)
+    {
+      extern ID3D11ShaderResourceView*
+        SK_D3D11_GetRawHDRView (bool capture = true);
+
+      ImTextureID pTexture =
+        static_cast <ImTextureID> (SK_D3D11_GetRawHDRView ());
+
+      static bool open = true;
+
+      open = true;
+      ImGui::Begin ("###HDR_Adjust", &open);
+
+      if (pTexture != 0)
+      {
+
+        ImDrawList* draw_list =
+        ImGui::GetWindowDrawList ();
+
+        ImGuiIO& io =
+          ImGui::GetIO ();
+
+        const ImVec2 fb_dims [] = {
+          { 0.0f,             0.0f             },
+          { io.DisplaySize.x, io.DisplaySize.y }
+        };
+
+        draw_list->PushClipRectFullScreen (                            );
+        draw_list->AddImage               ( pTexture,
+                                              fb_dims [0], fb_dims [1],
+                                                ImVec2 (-2, -2),
+                                                ImVec2 ( 2,  2) ); // Will be saturated
+        draw_list->PopClipRect            (                            );
+      }
+      else
+        open = false;
+
+      ImGui::End ();
+    }
+  }
 
   //
   // Idle Cursor Detection  (when UI is visible, but mouse does not require capture)

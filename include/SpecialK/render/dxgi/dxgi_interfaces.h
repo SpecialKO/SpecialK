@@ -12237,7 +12237,7 @@ extern RPC_IF_HANDLE __MIDL_itf_dxgi1_6_0000_0002_v0_0_s_ifspec;
 struct sk_hook_d3d11_t {
  ID3D11Device**        ppDevice;
  ID3D11DeviceContext** ppImmediateContext;
-} extern d3d11_hook_ctx;
+};
 
 struct SK_D3D11_TexCacheResidency_s
 {

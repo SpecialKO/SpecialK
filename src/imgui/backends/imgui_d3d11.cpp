@@ -12,6 +12,7 @@
 #include <SpecialK/render/dxgi/dxgi_backend.h>
 #include <SpecialK/framerate.h>
 #include <SpecialK/config.h>
+#include <SpecialK/log.h>
 
 // DirectX
 #include <d3d11.h>
@@ -50,6 +51,45 @@ static UINT                     g_frameBufferHeight     = 0UL;
 
 static int                      g_VertexBufferSize      = 5000,
                                 g_IndexBufferSize       = 10000;
+
+
+ID3D11ShaderResourceView*
+SK_D3D11_GetRawHDRView ( bool capture )
+{
+  if (capture && g_pHDRCompositeView != nullptr)
+  {
+    SK_RenderBackend& rb =
+      SK_GetCurrentRenderBackend ();
+
+    CComPtr   <ID3D11Resource>      pSrc, pDst;
+    CComQIPtr <IDXGISwapChain>      pSwapChain (rb.swapchain);
+    CComQIPtr <ID3D11DeviceContext> pDevCtx    (rb.d3d11.immediate_ctx);
+
+    g_pHDRCompositeView->GetResource (&pDst.p);
+
+    if ( SUCCEEDED (
+           pSwapChain->GetBuffer    (
+             0,
+               IID_ID3D11Texture2D,
+                 (void **) &pSrc.p  )
+                   )
+       )
+    {
+      pDevCtx->CopyResource (pDst, pSrc);
+
+      return
+        g_pHDRCompositeView;
+    }
+
+    // Uh oh, user wanted an update but it was not possible
+    //   now they get nothing!
+    return nullptr;
+  }
+
+  return
+    g_pHDRCompositeView;
+}
+
 
 struct VERTEX_CONSTANT_BUFFER
 {
@@ -233,8 +273,8 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
   // Setup orthographic projection matrix into our constant buffer
   {
     float L = 0.0f;
-    float R = ImGui::GetIO ().DisplaySize.x;
-    float B = ImGui::GetIO ().DisplaySize.y;
+    float R = io.DisplaySize.x;
+    float B = io.DisplaySize.y;
     float T = 0.0f;
 
     alignas (__m128d) float mvp [4][4] =
@@ -261,15 +301,18 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
     if (! hdr_display)
     {
       constant_buffer->luminance_scale [0] = 1.0f; constant_buffer->luminance_scale [1] = 1.0f;
-      constant_buffer->luminance_scale [2] = 1.0f; constant_buffer->luminance_scale [3] = 1.0f;
+      constant_buffer->luminance_scale [2] = 0.0f; constant_buffer->luminance_scale [3] = 0.0f;
     }
 
     else
     {
+      extern float __SK_MHW_HDR_Luma;
+      extern float __SK_MHW_HDR_Exp;
+
       constant_buffer->luminance_scale [0] = rb.ui_luminance;
-      constant_buffer->luminance_scale [1] = rb.ui_luminance;
-      constant_buffer->luminance_scale [2] = rb.ui_luminance;
-      constant_buffer->luminance_scale [3] = rb.ui_srgb ? 2.2f : 1.0f;
+      constant_buffer->luminance_scale [1] = rb.ui_srgb ? 2.2f : 1.0f;
+      constant_buffer->luminance_scale [2] = __SK_MHW_HDR_Luma;
+      constant_buffer->luminance_scale [3] = __SK_MHW_HDR_Exp;
     }
 
     pDevCtx->Unmap (g_pVertexConstantBuffer, 0);
@@ -382,11 +425,10 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
     pSwapChain->GetBuffer            (0, IID_ID3D11Texture2D, (void **)&pSrc.p);
 
     pDevCtx->CopyResource           (pDst, pSrc);
-    pDevCtx->OMSetBlendState        (nullptr,     blend_factor, 0xffffffff);
+  //pDevCtx->OMSetBlendState        (nullptr,     blend_factor, 0xffffffff);
     pDevCtx->PSSetShaderResources   (1, 1, &g_pHDRCompositeView);
   }
-  else
-    pDevCtx->OMSetBlendState      (g_pBlendState, blend_factor, 0xffffffff);
+  pDevCtx->OMSetBlendState        (g_pBlendState, blend_factor, 0xffffffff);
 
   pDevCtx->OMSetDepthStencilState (g_pDepthStencilState,        0);
   pDevCtx->RSSetState             (g_pRasterizerState);
@@ -513,7 +555,7 @@ ImGui_ImplDX11_CreateFontsTexture (void)
       desc.ArraySize        = 1;
       desc.Format           = swapDesc.BufferDesc.Format;
       desc.SampleDesc.Count = 1; // Will probably regret this if HDR ever procreates with MSAA
-      desc.Usage            = D3D11_USAGE_DYNAMIC;
+      desc.Usage            = D3D11_USAGE_DEFAULT;
       desc.BindFlags        = D3D11_BIND_SHADER_RESOURCE;
       desc.CPUAccessFlags   = 0;
 
@@ -538,10 +580,10 @@ ImGui_ImplDX11_CreateFontsTexture (void)
   {
     D3D11_SAMPLER_DESC desc = { };
 
-    desc.Filter         = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-    desc.AddressU       = D3D11_TEXTURE_ADDRESS_WRAP;
-    desc.AddressV       = D3D11_TEXTURE_ADDRESS_WRAP;
-    desc.AddressW       = D3D11_TEXTURE_ADDRESS_WRAP;
+    desc.Filter         = D3D11_FILTER_MIN_MAG_MIP_POINT;
+    desc.AddressU       = D3D11_TEXTURE_ADDRESS_CLAMP;
+    desc.AddressV       = D3D11_TEXTURE_ADDRESS_CLAMP;
+    desc.AddressW       = D3D11_TEXTURE_ADDRESS_CLAMP;
     desc.MipLODBias     = 0.f;
     desc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
     desc.MinLOD         = 0.f;
@@ -615,6 +657,7 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
         float4 pos : SV_POSITION;                                             \
         float4 col : COLOR0;                                                  \
         float2 uv  : TEXCOORD0;                                               \
+        float2 uv2 : TEXCOORD1;                                               \
       };                                                                      \
                                                                               \
       PS_INPUT main (VS_INPUT input)                                          \
@@ -623,13 +666,28 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
                                                                               \
         output.pos          = mul ( ProjectionMatrix,                         \
                                       float4 (input.pos.xy, 0.f, 1.f) );      \
-        float4 linear_color = pow ( input.col, float4 (Luminance.www, 1.f)) * \
-                                                 Luminance;                   \
-        output.col          = float4 ( linear_color.xyz, input.col.w );       \
-        output.uv           = input.uv;                                       \
+        float4 linear_color = pow ( input.col, float4 (Luminance.ggg, 1.f)) * \
+                                                 Luminance.rrrr;              \
+                                                                              \
+        output.uv           = saturate (input.uv);                            \
+                                                                              \
+        if ( Luminance.w > 0.f && Luminance.z > 0.f &&                        \
+                             abs (input.uv.x) > 1.f )                         \
+        {                                                                     \
+          output.col        = float4 (1.f, 1.f, 1.f, 1.f);                    \
+          output.uv2        = float2 (Luminance.z, Luminance.w);              \
+        }                                                                     \
+                                                                              \
+        else                                                                  \
+        {                                                                     \
+          output.col        = float4 ( linear_color.rgb, input.col.a );       \
+          output.uv2        = float2 (0.f, 0.f);                              \
+        }                                                                     \
                                                                               \
         return output;                                                        \
       }";
+
+    CComPtr <ID3D10Blob> blob_msg_vtx;
 
     D3DCompile ( vertexShader,
                    strlen (vertexShader),
@@ -637,7 +695,21 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
                        "main", "vs_4_0",
                          0, 0,
                            &g_pVertexShaderBlob,
-                             nullptr );
+                             &blob_msg_vtx );
+
+    if (blob_msg_vtx != nullptr && blob_msg_vtx->GetBufferSize ())
+    {
+      std::string err;
+
+      err.reserve (blob_msg_vtx->GetBufferSize ());
+      err = (
+           (char *)blob_msg_vtx->GetBufferPointer ());
+
+      if (! err.empty ())
+      {
+        dll_log.LogEx (true, L"ImGui D3D11 Vertex Shader: %hs", err.c_str ());
+      }
+    }
 
     // NB: Pass ID3D10Blob* pErrorBlob to D3DCompile() to get error showing in
     //       (const char*)pErrorBlob->GetBufferPointer(). Make sure to Release() the blob!
@@ -695,6 +767,7 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
         float4 pos : SV_POSITION;                                      \
         float4 col : COLOR0;                                           \
         float2 uv  : TEXCOORD0;                                        \
+        float2 uv2 : TEXCOORD1;                                        \
       };                                                               \
                                                                        \
       cbuffer viewportDims : register (b0)                             \
@@ -709,21 +782,39 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
                                                                        \
       float4 main (PS_INPUT input) : SV_Target                         \
       {                                                                \
-        float4 out_col = input.col *                                   \
-                           texture0.Sample (sampler0, input.uv);       \
+        float4 out_col =                                               \
+          texture0.Sample (sampler0, input.uv);                        \
                                                                        \
         if (viewport.z > 0.f)                                          \
         {                                                              \
           float4 under_color =                                         \
             hdrUnderlay.Sample (sampler0, input.pos.xy / viewport.zw); \
                                                                        \
-          return float4 ( out_col.rgb * out_col.a +                    \
-                            under_color.rgb * (1.f - out_col.a),       \
-                              saturate (out_col.a) );                  \
+          if (input.uv2.x > 0.0f && input.uv2.y > 0.0f)                \
+          {                                                            \
+            out_col =                                                  \
+              pow (out_col, float4 (input.uv2.yyy, 1.0f)) *            \
+                input.uv2.xxxx;                                        \
+            out_col.a = 1.0f;                                          \
+          }                                                            \
+                                                                       \
+          else                                                         \
+          {                                                            \
+            out_col *= float4 (input.col.xyz, 1.0f);                   \
+            out_col.a = saturate (input.col.a * out_col.a);            \
+          }                                                            \
+                                                                       \
+          return                                                       \
+            float4 ( out_col.rgb * out_col.a +                         \
+                       under_color.rgb * (1.f - out_col.a),            \
+                         saturate (out_col.a) );                       \
         }                                                              \
                                                                        \
-        return out_col;                                                \
+        return                                                         \
+          ( input.col * out_col );                                     \
       }";
+
+    CComPtr <ID3D10Blob> blob_msg_pix;
 
     D3DCompile ( pixelShader,
                    strlen (pixelShader),
@@ -731,7 +822,21 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
                        "main", "ps_4_0",
                          0, 0,
                            &g_pPixelShaderBlob,
-                             nullptr );
+                             &blob_msg_pix );
+
+    if (blob_msg_pix != nullptr && blob_msg_pix->GetBufferSize ())
+    {
+      std::string err;
+
+      err.reserve (blob_msg_pix->GetBufferSize    ());
+      err = (
+           (char *)blob_msg_pix->GetBufferPointer ());
+
+      if (! err.empty ())
+      {
+        dll_log.LogEx (true, L"ImGui D3D11 Pixel Shader:  %hs", err.c_str ());
+      }
+    }
 
     // NB: Pass ID3D10Blob* pErrorBlob to D3DCompile() to get error showing in 
     //       (const char*)pErrorBlob->GetBufferPointer(). Make sure to Release() the blob!
@@ -741,7 +846,7 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
     if ( pDev->CreatePixelShader ( static_cast <DWORD *> (g_pPixelShaderBlob->GetBufferPointer ()),
                                      g_pPixelShaderBlob->GetBufferSize (),
                                        nullptr,
-                                         &g_pPixelShader ) != S_OK )
+                                         &g_pPixelShader ) != S_OK ) 
     {
       return false;
     }

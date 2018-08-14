@@ -467,10 +467,10 @@ public:
                                   size_t                mem_size,
                                   uint64_t              load_time,
                                   uint32_t              crc32c,
-                                  std::wstring          fileName   = L"",
+                            const wchar_t              *fileName   = L"",
                             const D3D11_TEXTURE2D_DESC *pOrigDesc  = nullptr,
                          _In_opt_ HMODULE               hModCaller = (HMODULE)(intptr_t)-1,
-                                  SK_TLS               *pTLS       = SK_TLS_Bottom () );
+                         _In_opt_ SK_TLS               *pTLS       = SK_TLS_Bottom () );
 
   void             reset         (void);
   bool             purgeTextures (size_t size_to_free, int* pCount, size_t* pFreed);
@@ -901,23 +901,23 @@ struct d3d11_shader_tracking_s
 
     auto shader_class_crit_sec = [&](void)
     {
-      extern SK_Thread_HybridSpinlock cs_shader_vs, cs_shader_ps,
-                                      cs_shader_gs,
-                                      cs_shader_hs, cs_shader_ds,
-                                      cs_shader_cs;
+      extern SK_Thread_HybridSpinlock *cs_shader_vs, *cs_shader_ps,
+                                      *cs_shader_gs,
+                                      *cs_shader_hs, *cs_shader_ds,
+                                      *cs_shader_cs;
 
       switch (type_)
       {
         default:
         //assert (false);
-          return &cs_shader_vs;
+          return cs_shader_vs;
 
-        case SK_D3D11_ShaderType::Vertex:   return &cs_shader_vs;
-        case SK_D3D11_ShaderType::Pixel:    return &cs_shader_ps;
-        case SK_D3D11_ShaderType::Geometry: return &cs_shader_gs;
-        case SK_D3D11_ShaderType::Hull:     return &cs_shader_hs;
-        case SK_D3D11_ShaderType::Domain:   return &cs_shader_ds;
-        case SK_D3D11_ShaderType::Compute:  return &cs_shader_cs;
+        case SK_D3D11_ShaderType::Vertex:   return cs_shader_vs;
+        case SK_D3D11_ShaderType::Pixel:    return cs_shader_ps;
+        case SK_D3D11_ShaderType::Geometry: return cs_shader_gs;
+        case SK_D3D11_ShaderType::Hull:     return cs_shader_hs;
+        case SK_D3D11_ShaderType::Domain:   return cs_shader_ds;
+        case SK_D3D11_ShaderType::Compute:  return cs_shader_cs;
       }
     };
 

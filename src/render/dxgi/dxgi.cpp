@@ -32,6 +32,8 @@
 #include <SpecialK/render/backend.h>
 #include <SpecialK/window.h>
 
+#include <SpecialK/diagnostics/compatibility.h>
+
 #include <comdef.h>
 #include <atlbase.h>
 
@@ -169,8 +171,9 @@ std::vector <sk_hook_cache_record_s *> local_dxgi_records =
 
 extern SK_Thread_HybridSpinlock cs_mmio;
 
-extern void SK_D3D11_EndFrame       (SK_TLS* pTLS = SK_TLS_Bottom ());
-extern void SK_DXGI_UpdateSwapChain (IDXGISwapChain*);
+extern void SK_D3D11_ProcessScreenshotQueue (int stage);
+extern void SK_D3D11_EndFrame               (SK_TLS* pTLS = SK_TLS_Bottom ());
+extern void SK_DXGI_UpdateSwapChain         (IDXGISwapChain*);
 
 
 #include <CEGUI/CEGUI.h>
@@ -221,8 +224,6 @@ _SKC_MakeCEGUILib ("CEGUISTBImageCodec")
 static
 CEGUI::Direct3D11Renderer* cegD3D11 = nullptr;
 #endif
-
-sk_hook_d3d11_t d3d11_hook_ctx;
 
 void SK_DXGI_HookSwapChain (IDXGISwapChain* pSwapChain);
 
@@ -703,7 +704,7 @@ DWORD dwRenderThread = 0x0000;
 extern void  __stdcall SK_D3D11_TexCacheCheckpoint (void);
 extern void  __stdcall SK_D3D11_UpdateRenderStats  (IDXGISwapChain* pSwapChain);
                                                    
-extern void  __stdcall SK_D3D12_UpdateRenderStats  (IDXGISwapChain* pSwapChain);
+////extern void  __stdcall SK_D3D12_UpdateRenderStats  (IDXGISwapChain* pSwapChain);
 
 extern BOOL __stdcall SK_NvAPI_SetFramerateLimit   (uint32_t        limit);
 extern void __stdcall SK_NvAPI_SetAppFriendlyName  (const wchar_t*  wszFriendlyName);
@@ -1782,12 +1783,6 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
             CComPtr <ID3D11Device> pDev = nullptr;
                    dc->GetDevice (&pDev);
   const D3D_FEATURE_LEVEL ft_lvl = pDev->GetFeatureLevel ();
-
-  UINT minus_one [D3D11_PS_CS_UAV_REGISTER_COUNT] =
-    { std::numeric_limits <UINT>::max (), std::numeric_limits <UINT>::max (),
-      std::numeric_limits <UINT>::max (), std::numeric_limits <UINT>::max (),
-      std::numeric_limits <UINT>::max (), std::numeric_limits <UINT>::max (),
-      std::numeric_limits <UINT>::max (), std::numeric_limits <UINT>::max () };
   
   dc->VSSetShader            (sb->VS, sb->VSInterfaces, sb->VSInterfaceCount);
 
@@ -2115,6 +2110,12 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
       }
     }
 
+    UINT minus_one [D3D11_PS_CS_UAV_REGISTER_COUNT] =
+    { std::numeric_limits <UINT>::max (), std::numeric_limits <UINT>::max (),
+      std::numeric_limits <UINT>::max (), std::numeric_limits <UINT>::max (),
+      std::numeric_limits <UINT>::max (), std::numeric_limits <UINT>::max (),
+      std::numeric_limits <UINT>::max (), std::numeric_limits <UINT>::max () };
+
     dc->CSSetUnorderedAccessViews (0, D3D11_PS_CS_UAV_REGISTER_COUNT, sb->CSUnorderedAccessViews, minus_one);
 
     for (auto& CSUnorderedAccessView : sb->CSUnorderedAccessViews)
@@ -2179,17 +2180,17 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
       sb->RSRasterizerState->Release ();
 
   if (ft_lvl >= D3D_FEATURE_LEVEL_10_0)
-  {
-    UINT SOBuffersOffsets [4] = {   }; /* (sizeof(sb->SOBuffers) / sizeof(sb->SOBuffers[0])) * 0,
-                                          (sizeof(sb->SOBuffers) / sizeof(sb->SOBuffers[0])) * 1, 
-                                          (sizeof(sb->SOBuffers) / sizeof(sb->SOBuffers[0])) * 2, 
-                                          (sizeof(sb->SOBuffers) / sizeof(sb->SOBuffers[0])) * 3 };*/
-  
+  {  
     UINT SOBufferCount =
       calc_count (sb->SOBuffers, 4);
   
     if (SOBufferCount)
     {
+      UINT SOBuffersOffsets [4] = {   }; /* (sizeof(sb->SOBuffers) / sizeof(sb->SOBuffers[0])) * 0,
+                                      (sizeof(sb->SOBuffers) / sizeof(sb->SOBuffers[0])) * 1, 
+                                      (sizeof(sb->SOBuffers) / sizeof(sb->SOBuffers[0])) * 2, 
+                                      (sizeof(sb->SOBuffers) / sizeof(sb->SOBuffers[0])) * 3 };*/
+
       dc->SOSetTargets (SOBufferCount, sb->SOBuffers, SOBuffersOffsets);
   
       for (UINT i = 0; i < SOBufferCount; i++)
@@ -2501,8 +2502,7 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 
 
       // Queue-up Post-SK OSD Screenshots
-      extern void SK_D3D11_ProcessScreenshotQueue (int stage);
-                  SK_D3D11_ProcessScreenshotQueue (2);
+      SK_D3D11_ProcessScreenshotQueue (2);
 
 
       //
@@ -2741,12 +2741,11 @@ SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
   {
     // Start / End / Readback Pipeline Stats
     SK_D3D11_UpdateRenderStats (This);
-    SK_D3D12_UpdateRenderStats (This);
+////SK_D3D12_UpdateRenderStats (This);
 
 
     // Queue-up Pre-SK OSD Screenshots
-    extern void SK_D3D11_ProcessScreenshotQueue (int stage);
-                SK_D3D11_ProcessScreenshotQueue (1);
+    SK_D3D11_ProcessScreenshotQueue (1);
 
 
     // Establish the API used this frame (and handle possible translation layers)
@@ -2979,7 +2978,11 @@ SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
       HRESULT ret =
         SK_EndBufferSwap (hr, pDev);
 
-      SK_D3D11_TexCacheCheckpoint ();
+      if (SUCCEEDED (ret))
+      {
+        SK_D3D11_ProcessScreenshotQueue (3);
+        SK_D3D11_TexCacheCheckpoint     ( );
+      }
 
       return ret;
     }
@@ -3072,13 +3075,12 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
   {
     // Start / End / Readback Pipeline Stats
     SK_D3D11_UpdateRenderStats (This);
-    SK_D3D12_UpdateRenderStats (This);
+////SK_D3D12_UpdateRenderStats (This);
 
 
  
-    // Queue-up Pre-SK OSD Screenshots
-    extern void SK_D3D11_ProcessScreenshotQueue (int stage);
-                SK_D3D11_ProcessScreenshotQueue (1);
+    // Queue-up Pre-SK OSD Screenshots    
+    SK_D3D11_ProcessScreenshotQueue (1);
 
 
     // Establish the API used this frame (and handle possible translation layers)
@@ -3330,7 +3332,11 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
       HRESULT ret =
         SK_EndBufferSwap (hr, pDev);
   
-      SK_D3D11_TexCacheCheckpoint ();
+      if (SUCCEEDED (ret))
+      {
+        SK_D3D11_ProcessScreenshotQueue (3);
+        SK_D3D11_TexCacheCheckpoint     ( );
+      }
   
       return ret;
     }
@@ -4069,10 +4075,6 @@ DXGISwap_ResizeBuffers_Override ( IDXGISwapChain *This,
   }
 
 
-  //if (SK_GetCurrentGameID () == SK_GAME_ID::Ys_Eight)
-  //  NewFormat = DXGI_FORMAT_B8G8R8A8_UNORM;
-
-
   if (! config.window.res.override.isZero ())
   {
     Width  = config.window.res.override.x;
@@ -4125,6 +4127,23 @@ DXGISwap_ResizeBuffers_Override ( IDXGISwapChain *This,
         NewFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
         dll_log.Log ( L"[ DXGI 1.2 ]  >> RGBA 10:10:10:2 Override (to 8:8:8:8) Required to Enable Flip Model" );
         break;
+    }
+  }
+
+
+  
+  if (SK_GetCurrentGameID () == SK_GAME_ID::MonsterHunterWorld)
+  {
+    extern bool __SK_MHW_10BitSwap;
+    extern bool __SK_MHW_16BitSwap;
+    if         (__SK_MHW_10BitSwap)
+    {
+      NewFormat = DXGI_FORMAT_R10G10B10A2_UNORM;
+    }
+
+    if         (__SK_MHW_16BitSwap)
+    {
+      NewFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
     }
   }
 
@@ -4307,7 +4326,7 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
       SK_DXGI_BorderCompensation (new_new_params.Width, new_new_params.Height);
     }
 
-    const DXGI_MODE_DESC* pNewNewTargetParameters =
+    DXGI_MODE_DESC* pNewNewTargetParameters =
       &new_new_params;
 
 
@@ -4328,6 +4347,22 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
 
     //if (SK_GetCurrentGameID () == SK_GAME_ID::Ys_Eight)
     //  new_new_params.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+
+
+    if (SK_GetCurrentGameID () == SK_GAME_ID::MonsterHunterWorld)
+    {
+      extern bool __SK_MHW_10BitSwap;
+      extern bool __SK_MHW_16BitSwap;
+      if         (__SK_MHW_10BitSwap)
+      {
+        pNewNewTargetParameters->Format = DXGI_FORMAT_R10G10B10A2_UNORM;
+      }
+
+      if         (__SK_MHW_16BitSwap)
+      {
+        pNewNewTargetParameters->Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+      }
+    }
 
 
 
@@ -4763,6 +4798,23 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).c_str (),
                 L" DXGI 1.2 " );
 
 
+
+    if (SK_GetCurrentGameID () == SK_GAME_ID::MonsterHunterWorld)
+    {
+      extern bool __SK_MHW_10BitSwap;
+      extern bool __SK_MHW_16BitSwap;
+      if         (__SK_MHW_10BitSwap)
+      {
+        pDesc->BufferDesc.Format = DXGI_FORMAT_R10G10B10A2_UNORM;
+      }
+      if         (__SK_MHW_16BitSwap)
+      {
+        pDesc->BufferDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+      }
+    }
+
+
+
     // Clamp the buffer dimensions if the user has a min/max resolution preference
     const UINT max_x = config.render.dxgi.res.max.x < pDesc->BufferDesc.Width  ? config.render.dxgi.res.max.x : pDesc->BufferDesc.Width,
                min_x = config.render.dxgi.res.min.x > pDesc->BufferDesc.Width  ? config.render.dxgi.res.min.x : pDesc->BufferDesc.Width,
@@ -4889,7 +4941,6 @@ SK_DXGI_CreateSwapChain_PostInit ( _In_  IUnknown              *pDevice,
       dwRenderThread = GetCurrentThreadId ();
     }
   }
-
 
 
   SK_CEGUI_QueueResetD3D11 ();
@@ -6023,10 +6074,10 @@ SK_HookDXGI (void)
 
   if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
   {
-#ifdef _WIN64
-    if (! config.apis.dxgi.d3d11.hook)
-      config.apis.dxgi.d3d12.hook = false;
-#endif
+////#ifdef _WIN64
+////    if (! config.apis.dxgi.d3d11.hook)
+////      config.apis.dxgi.d3d12.hook = false;
+////#endif
 
     // Serves as both D3D11 and DXGI
     bool d3d11 =
@@ -6158,8 +6209,8 @@ SK_HookDXGI (void)
     SK_D3D11_InitTextures ();
     SK_D3D11_Init         ();
 
-    if (GetModuleHandle (L"d3d12.dll"))
-      SK_D3D12_Init       ();
+    ////if (GetModuleHandle (L"d3d12.dll"))
+    ////  SK_D3D12_Init       ();
 
     SK_ICommandProcessor* pCommandProc =
       SK_GetCommandProcessor ();
@@ -6269,8 +6320,6 @@ IDXGISwapChain4_SetHDRMetaData ( IDXGISwapChain4*        This,
   {
     if (Size == sizeof (DXGI_HDR_METADATA_HDR10))
     {
-      rb.framebuffer_flags |= SK_FRAMEBUFFER_FLAG_HDR;
-
       static DXGI_HDR_METADATA_HDR10 last_data = { };
 
       if (pMetaData != nullptr)
@@ -6319,6 +6368,14 @@ IDXGISwapChain4_SetHDRMetaData ( IDXGISwapChain4*        This,
   {
     if (config.render.dxgi.spoof_hdr)
       return S_OK;
+  }
+
+  else if (Type == DXGI_HDR_METADATA_TYPE_HDR10)
+  {
+    if (Size == sizeof (DXGI_HDR_METADATA_HDR10))
+    {
+      rb.framebuffer_flags |= SK_FRAMEBUFFER_FLAG_HDR;
+    }
   }
 
   return hr;
@@ -6480,6 +6537,13 @@ IDXGIOutput6_GetDesc1_Override ( IDXGIOutput6      *This,
 
       if (SpoofColorSpace != DXGI_COLOR_SPACE_RESERVED)
         pDesc->ColorSpace = SpoofColorSpace;
+    }
+
+    if ( pDesc->ColorSpace   == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020 ||
+         pDesc->ColorSpace   == DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709    &&
+         pDesc->BitsPerColor >= 10 )
+    {
+      rb.hdr_capable = true;
     }
 
     pHDRCtl->devcaps.BitsPerColor = pDesc->BitsPerColor;
@@ -6923,7 +6987,8 @@ HookDXGI (LPVOID user)
     // TODO: Handle situation where CreateDXGIFactory is unloadable
   }
 
-  SK_TLS *pTLS = SK_TLS_Bottom ();
+  SK_TLS *pTLS =
+    SK_TLS_Bottom ();
 
   if (__SK_bypass || ReadAcquire (&__dxgi_ready) || pTLS->d3d11.ctx_init_thread)
   {
@@ -6974,6 +7039,8 @@ HookDXGI (LPVOID user)
 
     extern LPVOID pfnD3D11CreateDeviceAndSwapChain;
 
+    SK_COMPAT_UnloadFraps ();
+
     if ((SK_GetDLLRole () & DLL_ROLE::DXGI) || (SK_GetDLLRole () & DLL_ROLE::DInput8))
     {
       // PlugIns need to be loaded AFTER we've hooked the device creation functions
@@ -6991,12 +7058,11 @@ HookDXGI (LPVOID user)
             nullptr,
               0x0,
                 levels,
-                  1,
-                    D3D11_SDK_VERSION,
-                      &desc, &pSwapChain,
-                        &pDevice,
-                          &featureLevel,
-                            (ID3D11DeviceContext **)&pImmediateContext );
+                  _ARRAYSIZE(levels),
+                    D3D11_SDK_VERSION, &desc, &pSwapChain,
+                      &pDevice,
+                        &featureLevel,
+                          (ID3D11DeviceContext **)&pImmediateContext );
 
     CComQIPtr <ID3D11Device1> pDevice1 (pDevice);
     
@@ -7078,6 +7144,8 @@ HookDXGI (LPVOID user)
       }
     }
 
+    sk_hook_d3d11_t d3d11_hook_ctx;
+
     d3d11_hook_ctx.ppDevice           = &pDevice;
     d3d11_hook_ctx.ppImmediateContext = &pImmediateContext;
 
@@ -7098,7 +7166,8 @@ HookDXGI (LPVOID user)
 
       HookD3D11             (&d3d11_hook_ctx);
       SK_DXGI_HookFactory   (pFactory);
-      SK_DXGI_HookSwapChain (pSwapChain.p);
+    //if (SUCCEEDED (pFactory->CreateSwapChain (pDevice, &desc, &pSwapChain)))
+        SK_DXGI_HookSwapChain (pSwapChain.p);
 
       // This won't catch Present1 (...), but no games use that
       //   and we can deal with it later if it happens.
@@ -7116,9 +7185,9 @@ HookDXGI (LPVOID user)
 
       if (config.apis.dxgi.d3d11.hook) SK_D3D11_EnableHooks ();
         
-#ifdef _WIN64
-      if (config.apis.dxgi.d3d12.hook) SK_D3D12_EnableHooks ();
-#endif
+/////#ifdef _WIN64
+/////      if (config.apis.dxgi.d3d12.hook) SK_D3D12_EnableHooks ();
+/////#endif
 
       InterlockedExchange (&__dxgi_ready, TRUE);
     }
@@ -7182,9 +7251,9 @@ SK::DXGI::Shutdown (void)
 
   if (config.apis.dxgi.d3d11.hook) SK_D3D11_Shutdown ();
 
-#ifdef _WIN64
-  if (config.apis.dxgi.d3d12.hook) SK_D3D12_Shutdown ();
-#endif
+////#ifdef _WIN64
+////  if (config.apis.dxgi.d3d12.hook) SK_D3D12_Shutdown ();
+////#endif
 
   if (StrStrIW (SK_GetBackend (), L"d3d11"))
     return SK_ShutdownCore (L"d3d11");

@@ -622,8 +622,6 @@ SK_NvAPI_PreInitHDR (void)
   
       MH_QueueEnableHook (NvAPI_QueryInterface (891134500));
       MH_QueueEnableHook (NvAPI_QueryInterface (2230495455));
-      
-      //SK_ApplyQueuedHooks ();
     }
   }
 }

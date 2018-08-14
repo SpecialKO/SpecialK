@@ -155,6 +155,7 @@ public:
   int                     present_interval     = 0; // Present interval on last call to present
   float                   ui_luminance         = 325.0_Nits;
   bool                    ui_srgb              = true;
+  bool                    hdr_capable          = false;
   SK_ColorSpace           display_gamut        = { 0.0f }; // EDID
   SK_ColorSpace           working_gamut        = { 0.0f }; // Metadata range
   static volatile LONG    frames_drawn;
