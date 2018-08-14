@@ -411,4 +411,112 @@ SK_Window_HasBorder (HWND hWnd = game_window.hWnd);
 bool
 SK_Window_IsFullscreen (HWND hWnd = game_window.hWnd);
 
+
+
+BOOL
+WINAPI
+SK_ClipCursor (const RECT *lpRect);
+
+BOOL
+WINAPI
+SK_GetCursorPos (LPPOINT lpPoint);
+
+BOOL
+WINAPI
+SK_GetCursorInfo (PCURSORINFO pci);
+
+BOOL
+WINAPI
+SK_SetCursorPos (int X, int Y);
+
+UINT
+WINAPI
+SK_SendInput (UINT nInputs, LPINPUT pInputs, int cbSize);
+
+BOOL
+WINAPI
+SK_SetWindowPos ( HWND hWnd,
+                  HWND hWndInsertAfter,
+                  int  X,
+                  int  Y,
+                  int  cx,
+                  int  cy,
+                  UINT uFlags );
+
+BOOL
+WINAPI
+SK_GetWindowRect (HWND hWnd, LPRECT rect);
+
+BOOL
+WINAPI
+SK_GetClientRect (HWND hWnd, LPRECT rect);
+
+
+LONG
+WINAPI
+SK_GetWindowLongA  (
+  _In_ HWND hWnd,
+  _In_ int  nIndex );
+
+LONG_PTR
+WINAPI
+SK_GetWindowLongPtrA   (
+  _In_ HWND     hWnd,
+  _In_ int      nIndex );
+
+LONG
+WINAPI
+SK_SetWindowLongA     (
+  _In_ HWND hWnd,
+  _In_ int  nIndex,
+  _In_ LONG dwNewLong );
+
+LONG_PTR
+WINAPI
+SK_SetWindowLongPtrA      (
+  _In_ HWND     hWnd,
+  _In_ int      nIndex,
+  _In_ LONG_PTR dwNewLong );
+
+LONG
+WINAPI
+SK_GetWindowLongW  (
+  _In_ HWND hWnd,
+  _In_ int  nIndex );
+
+LONG_PTR
+WINAPI
+SK_GetWindowLongPtrW   (
+  _In_ HWND     hWnd,
+  _In_ int      nIndex );
+
+LONG
+WINAPI
+SK_SetWindowLongW     (
+  _In_ HWND hWnd,
+  _In_ int  nIndex,
+  _In_ LONG dwNewLong );
+
+LONG_PTR
+WINAPI
+SK_SetWindowLongPtrW      (
+  _In_ HWND     hWnd,
+  _In_ int      nIndex,
+  _In_ LONG_PTR dwNewLong );
+
+BOOL
+WINAPI
+SK_AdjustWindowRect (
+  _Inout_ LPRECT lpRect,
+  _In_    DWORD  dwStyle,
+  _In_    BOOL   bMenu );
+
+BOOL
+WINAPI
+SK_AdjustWindowRectEx (
+  _Inout_ LPRECT lpRect,
+  _In_    DWORD  dwStyle,
+  _In_    BOOL   bMenu,
+  _In_    DWORD  dwExStyle );
+
 #endif /* __SK__WINDOW_H__ */

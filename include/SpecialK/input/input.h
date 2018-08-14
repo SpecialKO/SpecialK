@@ -45,6 +45,9 @@ void SK_Input_PreHookXInput   (void);
 void SK_Input_Init (void);
 
 
+SHORT WINAPI SK_GetAsyncKeyState (int vKey);
+
+
 struct sk_imgui_cursor_s
 {
   HCURSOR orig_img   =      nullptr;
@@ -363,5 +366,36 @@ extern GetRegisteredRawInputDevices_pfn GetRegisteredRawInputDevices_Original;
 extern LONG  SK_RawInput_MouseX;
 extern LONG  SK_RawInput_MouseY;
 extern POINT SK_RawInput_Mouse;
+
+
+UINT
+WINAPI
+SK_GetRawInputData ( HRAWINPUT hRawInput,
+                     UINT      uiCommand,
+                     LPVOID    pData,
+                     PUINT     pcbSize,
+                     UINT      cbSizeHeader );
+
+UINT
+WINAPI
+SK_GetRegisteredRawInputDevices ( PRAWINPUTDEVICE pRawInputDevices,
+                                  PUINT           puiNumDevices,
+                                  UINT            cbSize );
+
+BOOL
+WINAPI
+SK_RegisterRawInputDevices ( PCRAWINPUTDEVICE pRawInputDevices,
+                             UINT             uiNumDevices,
+                             UINT             cbSize );
+
+
+
+HCURSOR
+WINAPI
+SK_SetCursor (_In_opt_ HCURSOR hCursor);
+
+SHORT WINAPI SK_GetKeyState      (int   nVirtKey);
+BOOL  WINAPI SK_GetKeyboardState (PBYTE lpKeyState);
+
 
 #endif /* __SK__INPUT_H__ */

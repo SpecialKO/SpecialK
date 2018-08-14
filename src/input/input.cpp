@@ -50,7 +50,7 @@ SK_InputUtil_IsHWCursorVisible (void)
   CURSORINFO cursor_info        = { };
              cursor_info.cbSize = sizeof (CURSORINFO);
 
-  GetCursorInfo_Original (&cursor_info);
+  SK_GetCursorInfo (&cursor_info);
 
   return (cursor_info.flags & CURSOR_SHOWING);
 }
@@ -363,14 +363,14 @@ SK_RawInput_GetMice (bool* pDifferent = nullptr)
         it.dwFlags   &= ~(RIDEV_NOLEGACY | RIDEV_APPKEYS | RIDEV_REMOVE);
         it.dwFlags   &= ~RIDEV_CAPTUREMOUSE;
         it.hwndTarget = hWnd;
-        RegisterRawInputDevices_Original ( &it, 1, sizeof RAWINPUTDEVICE );
+        SK_RegisterRawInputDevices ( &it, 1, sizeof RAWINPUTDEVICE );
       }
 
       else
       {
         different  |= (it.dwFlags & RIDEV_NOLEGACY) == 0;
         it.dwFlags |= RIDEV_NOLEGACY;
-        RegisterRawInputDevices_Original ( &it, 1, sizeof RAWINPUTDEVICE );
+        SK_RegisterRawInputDevices ( &it, 1, sizeof RAWINPUTDEVICE );
       }
 
       overrides.emplace_back (it);
@@ -468,7 +468,7 @@ SK_RawInput_EnableLegacyMouse (bool enable)
 
 //    dll_log.Log (L"%lu mice are now legacy...", mice.size ());
 
-    RegisterRawInputDevices_Original (
+    SK_RegisterRawInputDevices (
       device_override.data (),
         static_cast <UINT> (device_override.size ()),
           sizeof RAWINPUTDEVICE
@@ -488,7 +488,7 @@ SK_RawInput_RestoreLegacyMouse (void)
   {
     raw_overrides.mouse.active = false;
 
-    RegisterRawInputDevices_Original (
+    SK_RegisterRawInputDevices (
       raw_devices.data (),
         static_cast <UINT> (raw_devices.size ()),
           sizeof RAWINPUTDEVICE
@@ -515,7 +515,7 @@ SK_RawInput_EnableLegacyKeyboard (bool enable)
     for (auto& it : raw_gamepads) device_override.push_back (it);
     for (auto& it : raw_mice)     device_override.push_back (it);
 
-    RegisterRawInputDevices_Original (
+    SK_RegisterRawInputDevices (
       device_override.data (),
         static_cast <UINT> (device_override.size ()),
           sizeof RAWINPUTDEVICE
@@ -535,7 +535,7 @@ SK_RawInput_RestoreLegacyKeyboard (void)
   {
     raw_overrides.keyboard.active = false;
 
-    RegisterRawInputDevices_Original (
+    SK_RegisterRawInputDevices (
       raw_devices.data (),
         static_cast <UINT> (raw_devices.size ()),
           sizeof RAWINPUTDEVICE
@@ -614,9 +614,9 @@ SK_RawInput_PopulateDeviceList (void)
   UINT            uiNumDevices = 0;
 
   UINT ret =
-    GetRegisteredRawInputDevices_Original ( pDevices,
-                                              &uiNumDevices,
-                                                sizeof RAWINPUTDEVICE );
+    SK_GetRegisteredRawInputDevices ( pDevices,
+                                        &uiNumDevices,
+                                          sizeof RAWINPUTDEVICE );
 
   assert (ret == -1);
 
@@ -626,9 +626,9 @@ SK_RawInput_PopulateDeviceList (void)
   {
     pDevices = SK_TLS_Bottom ()->raw_input.allocateDevices (uiNumDevices + 1);
 
-    GetRegisteredRawInputDevices_Original ( pDevices,
-                                              &uiNumDevices,
-                                                sizeof RAWINPUTDEVICE );
+    SK_GetRegisteredRawInputDevices ( pDevices,
+                                     &uiNumDevices,
+                                       sizeof RAWINPUTDEVICE );
 
     raw_devices.clear ();
 
@@ -709,9 +709,9 @@ NtUserRegisterRawInputDevices_Detour (
                L" RawInput " );
 
     return
-      RegisterRawInputDevices_Original ( pRawInputDevices,
-                                           uiNumDevices,
-                                             cbSize );
+      SK_RegisterRawInputDevices ( pRawInputDevices,
+                                  uiNumDevices,
+                                    cbSize );
   }
 
   raw_devices.clear ();
@@ -777,9 +777,9 @@ NtUserRegisterRawInputDevices_Detour (
 
   BOOL bRet =
     pDevices != nullptr ?
-      RegisterRawInputDevices_Original ( actual_device_list.data   (),
-                       static_cast <UINT> (actual_device_list.size () ),
-                                             cbSize ) :
+      SK_RegisterRawInputDevices ( actual_device_list.data   (),
+               static_cast <UINT> (actual_device_list.size () ),
+                                     cbSize ) :
                 FALSE;
 
   return bRet;
@@ -788,6 +788,45 @@ NtUserRegisterRawInputDevices_Detour (
 RegisterRawInputDevices_pfn RegisterRawInputDevices_Original = nullptr;
 GetRawInputData_pfn         GetRawInputData_Original         = nullptr;
 GetRawInputBuffer_pfn       GetRawInputBuffer_Original       = nullptr;
+
+
+UINT
+WINAPI
+SK_GetRawInputData (HRAWINPUT hRawInput,
+                    UINT      uiCommand,
+                    LPVOID    pData,
+                    PUINT     pcbSize,
+                    UINT      cbSizeHeader)
+{
+  if (GetRawInputData_Original != nullptr)
+    return GetRawInputData_Original (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader);
+
+  return GetRawInputData (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader);
+}
+
+UINT
+WINAPI
+SK_GetRegisteredRawInputDevices (PRAWINPUTDEVICE pRawInputDevices,
+                                 PUINT           puiNumDevices,
+                                 UINT            cbSize)
+{
+  if (GetRegisteredRawInputDevices_Original != nullptr)
+    return GetRegisteredRawInputDevices_Original (pRawInputDevices, puiNumDevices, cbSize);
+
+  return GetRegisteredRawInputDevices (pRawInputDevices, puiNumDevices, cbSize);
+}
+
+BOOL
+WINAPI
+SK_RegisterRawInputDevices (PCRAWINPUTDEVICE pRawInputDevices,
+                            UINT             uiNumDevices,
+                            UINT             cbSize)
+{
+  if (RegisterRawInputDevices_Original != nullptr)
+    return RegisterRawInputDevices_Original (pRawInputDevices, uiNumDevices, cbSize);
+
+  return RegisterRawInputDevices (pRawInputDevices, uiNumDevices, cbSize);
+}
 
 //
 // This function has never once been encountered after debugging > 100 games,
@@ -1067,13 +1106,13 @@ ImGuiCursor_Impl (void)
   CURSORINFO ci = { };
   ci.cbSize     = sizeof CURSORINFO;
 
-  GetCursorInfo_Original (&ci);
+  SK_GetCursorInfo (&ci);
 
   //
   // Hardware Cursor
   //
   if (config.input.ui.use_hw_cursor)
-    SetCursor_Original (ImGui_DesiredCursor ());
+    SK_SetCursor (ImGui_DesiredCursor ());
 
   if ( config.input.ui.use_hw_cursor && (ci.flags & CURSOR_SHOWING) )
   {
@@ -1087,7 +1126,7 @@ ImGuiCursor_Impl (void)
   {
     if (SK_ImGui_IsMouseRelevant ())
     {
-      SetCursor_Original (nullptr);
+      SK_SetCursor (nullptr);
       ImGui::GetIO ().MouseDrawCursor = (! SK_ImGui_Cursor.idle);
     }
   }
@@ -1107,8 +1146,8 @@ sk_imgui_cursor_s::showSystemCursor (bool system)
 
   if (system)
   {
-    SetCursor_Original     (SK_ImGui_Cursor.orig_img);
-    GetCursorInfo_Original (&cursor_info);
+    SK_SetCursor     (SK_ImGui_Cursor.orig_img);
+    SK_GetCursorInfo (&cursor_info);
 
     if ((! SK_ImGui_IsMouseRelevant ()) || (cursor_info.flags & CURSOR_SHOWING))
       ImGui::GetIO ().MouseDrawCursor = false;
@@ -1128,7 +1167,7 @@ sk_imgui_cursor_s::activateWindow (bool active)
   CURSORINFO ci = { };
   ci.cbSize     = sizeof ci;
 
-  GetCursorInfo_Original (&ci);
+  SK_GetCursorInfo (&ci);
 
   if (active)
   {
@@ -1140,7 +1179,7 @@ sk_imgui_cursor_s::activateWindow (bool active)
       }
 
       else if (SK_ImGui_Cursor.orig_img)
-        SetCursor_Original (SK_ImGui_Cursor.orig_img);
+        SK_SetCursor (SK_ImGui_Cursor.orig_img);
     }
   }
 }
@@ -1215,7 +1254,7 @@ SK_ImGui_WantMouseCaptureEx (DWORD dwReasonMask)
 {
   bool imgui_capture = false;
 
-  if (SK_ImGui_IsMouseRelevant () && game_window.active && GetForegroundWindow () == game_window.hWnd)
+  if (SK_ImGui_IsMouseRelevant () && game_window.active)// && GetForegroundWindow () == game_window.hWnd)
   {
     ImGuiIO& io =
       ImGui::GetIO ();
@@ -1274,7 +1313,7 @@ ImGui_ToggleCursor (void)
     SK_ImGui_CenterCursorOnWindow ();
 
     // Save original cursor position
-    GetCursorPos_Original         (&SK_ImGui_Cursor.pos);
+    SK_GetCursorPos               (&SK_ImGui_Cursor.pos);
     SK_ImGui_Cursor.ScreenToLocal (&SK_ImGui_Cursor.pos);
 
     ImGui::GetIO ().WantCaptureMouse = true;
@@ -1291,8 +1330,8 @@ ImGui_ToggleCursor (void)
 
       POINT screen = SK_ImGui_Cursor.orig_pos;
       SK_ImGui_Cursor.LocalToScreen (&screen);
-      SetCursorPos_Original ( screen.x,
-                              screen.y );
+      SK_SetCursorPos ( screen.x,
+                        screen.y );
     }
 
     ImGui::GetIO ().WantCaptureMouse = false;
@@ -1353,6 +1392,17 @@ GetMouseMovePointsEx_Detour(
 
 HCURSOR
 WINAPI
+SK_SetCursor (
+  _In_opt_ HCURSOR hCursor)
+{
+  if (SetCursor_Original != nullptr)
+    return SetCursor_Original (hCursor);
+
+  return SetCursor (hCursor);
+}
+
+HCURSOR
+WINAPI
 NtUserSetCursor_Detour (
   _In_opt_ HCURSOR hCursor )
 {
@@ -1361,9 +1411,9 @@ NtUserSetCursor_Detour (
   SK_ImGui_Cursor.orig_img = hCursor;
 
   if (! SK_ImGui_IsMouseRelevant ())
-    return SetCursor_Original (hCursor);
+    return SK_SetCursor (hCursor);
   else if (! (ImGui::GetIO ().WantCaptureMouse || hCursor == nullptr))
-    return SetCursor_Original (hCursor);
+    return SK_SetCursor (hCursor);
 
   return GetGameCursor ();
 }
@@ -1375,7 +1425,7 @@ NtUserGetCursorInfo_Detour (PCURSORINFO pci)
   SK_LOG_FIRST_CALL
 
   POINT   pt        = pci->ptScreenPos;
-  BOOL    ret       = GetCursorInfo_Original (pci);
+  BOOL    ret       = SK_GetCursorInfo (pci);
 
 
   struct state_backup
@@ -1488,7 +1538,7 @@ GetCursorPos_Detour (LPPOINT lpPoint)
   }
 
 
-  BOOL bRet = GetCursorPos_Original (lpPoint);
+  BOOL bRet = SK_GetCursorPos (lpPoint);
 
   if (bRet)
   {
@@ -1503,16 +1553,19 @@ GetCursorPos_Detour (LPPOINT lpPoint)
 
   if (SK_GetCurrentGameID () == SK_GAME_ID::StarOcean4 && GetActiveWindow () == SK_GetGameWindow () && SK_GetCallingDLL () == GetModuleHandle (nullptr))
   {
+    const auto& io =
+      ImGui::GetIO ();
+
     static ULONG last_frame = SK_GetFramesDrawn ();
     static POINT last_pos   = *lpPoint;
 
     POINT new_pos = *lpPoint;
 
-    new_pos.x = (LONG)(ImGui::GetIO ().DisplayFramebufferScale.x * 0.5f);
-    new_pos.y = (LONG)(ImGui::GetIO ().DisplayFramebufferScale.y * 0.5f);
+    new_pos.x = (LONG)(io.DisplayFramebufferScale.x * 0.5f);
+    new_pos.y = (LONG)(io.DisplayFramebufferScale.y * 0.5f);
 
-    float ndc_x = 2.0f * (((float)(lpPoint->x - last_pos.x) + new_pos.x) / ImGui::GetIO ().DisplayFramebufferScale.x) - 1.0f;
-    float ndc_y = 2.0f * (((float)(lpPoint->y - last_pos.y) + new_pos.y) / ImGui::GetIO ().DisplayFramebufferScale.y) - 1.0f;
+    float ndc_x = 2.0f * (((float)(lpPoint->x - last_pos.x) + new_pos.x) / io.DisplayFramebufferScale.x) - 1.0f;
+    float ndc_y = 2.0f * (((float)(lpPoint->y - last_pos.y) + new_pos.y) / io.DisplayFramebufferScale.y) - 1.0f;
 
     bool new_frame = false;
 
@@ -1523,17 +1576,17 @@ GetCursorPos_Detour (LPPOINT lpPoint)
       new_frame  = true;
     }
 
-    lpPoint->x = (LONG)((ndc_x * SK_SO4_MouseScale * ImGui::GetIO ().DisplayFramebufferScale.x + ImGui::GetIO ().DisplayFramebufferScale.x) / 2.0f);
-    lpPoint->y = (LONG)((ndc_y * SK_SO4_MouseScale * ImGui::GetIO ().DisplayFramebufferScale.y + ImGui::GetIO ().DisplayFramebufferScale.y) / 2.0f);
+    lpPoint->x = (LONG)((ndc_x * SK_SO4_MouseScale * io.DisplayFramebufferScale.x + io.DisplayFramebufferScale.x) / 2.0f);
+    lpPoint->y = (LONG)((ndc_y * SK_SO4_MouseScale * io.DisplayFramebufferScale.y + io.DisplayFramebufferScale.y) / 2.0f);
 
     static int calls = 0;
 
     POINT get_pos; // 4 pixel cushion to avoid showing the cursor
-    if (new_frame && ( (calls++ % 8) == 0 || ( GetCursorPos_Original (&get_pos) && (get_pos.x <= 4 || get_pos.x >= (ImGui::GetIO ().DisplayFramebufferScale.x - 4) ||
-                                                                                    get_pos.y <= 4 || get_pos.y >= (ImGui::GetIO ().DisplayFramebufferScale.y - 4)) ) ))
+    if (new_frame && ( (calls++ % 8) == 0 || ( SK_GetCursorPos (&get_pos) && (get_pos.x <= 4 || get_pos.x >= (io.DisplayFramebufferScale.x - 4) ||
+                                                                              get_pos.y <= 4 || get_pos.y >= (io.DisplayFramebufferScale.y - 4)) ) ))
     {
       last_pos = new_pos;
-      SetCursorPos_Original (new_pos.x, new_pos.y);
+      SK_SetCursorPos (new_pos.x, new_pos.y);
       lpPoint->x = new_pos.x;
       lpPoint->y = new_pos.y;
     }
@@ -1573,7 +1626,7 @@ SetCursorPos_Detour (_In_ int x, _In_ int y)
 
   else if (! SK_ImGui_WantMouseCapture ())
   {
-    return SetCursorPos_Original (x, y);
+    return SK_SetCursorPos (x, y);
   }
 
   return TRUE;
@@ -1596,7 +1649,7 @@ NtUserSendInput_Detour (
     return 0;
   }
 
-  return SendInput_Original (nInputs, pInputs, cbSize);
+  return SK_SendInput (nInputs, pInputs, cbSize);
 }
 
 keybd_event_pfn keybd_event_Original = nullptr;
@@ -1651,11 +1704,21 @@ GetKeyboardState_pfn        GetKeyboardState_Original        = nullptr;
 
 SHORT
 WINAPI
+SK_GetAsyncKeyState (int vKey)
+{
+  if (GetAsyncKeyState_Original != nullptr)
+    return GetAsyncKeyState_Original (vKey);
+
+  return GetAsyncKeyState (vKey);
+}
+
+SHORT
+WINAPI
 NtUserGetAsyncKeyState_Detour (_In_ int vKey)
 {
   SK_LOG_FIRST_CALL
 
-#define SK_ConsumeVKey(vKey) { GetAsyncKeyState_Original(vKey); return 0; }
+#define SK_ConsumeVKey(vKey) { SK_GetAsyncKeyState(vKey); return 0; }
 
   // Block keyboard input to the game while the console is active
   if (SK_Console::getInstance ()->isVisible ())
@@ -1682,7 +1745,18 @@ NtUserGetAsyncKeyState_Detour (_In_ int vKey)
       SK_ConsumeVKey (vKey);
   }
 
-  return GetAsyncKeyState_Original (vKey);
+  return
+    SK_GetAsyncKeyState (vKey);
+}
+
+SHORT
+WINAPI
+SK_GetKeyState (_In_ int nVirtKey)
+{
+  if (GetKeyState_Original != nullptr)
+    return GetKeyState_Original (nVirtKey);
+
+  return GetKeyState (nVirtKey);
 }
 
 SHORT
@@ -1691,7 +1765,7 @@ NtUserGetKeyState_Detour (_In_ int nVirtKey)
 {
   SK_LOG_FIRST_CALL
 
-#define SK_ConsumeVirtKey(nVirtKey) { GetKeyState_Original (nVirtKey); return 0; }
+#define SK_ConsumeVirtKey(nVirtKey) { SK_GetKeyState (nVirtKey); return 0; }
 
   // Block keyboard input to the game while the console is active
   if (SK_Console::getInstance ()->isVisible ())
@@ -1718,10 +1792,20 @@ NtUserGetKeyState_Detour (_In_ int nVirtKey)
       SK_ConsumeVirtKey (nVirtKey);
   }
 
-  return GetKeyState_Original (nVirtKey);
+  return SK_GetKeyState (nVirtKey);
 }
 
 //typedef BOOL (WINAPI *SetKeyboardState_pfn)(PBYTE lpKeyState); // TODO
+
+BOOL
+WINAPI
+SK_GetKeyboardState (PBYTE lpKeyState)
+{
+  if (GetKeyboardState_Original != nullptr)
+    return GetKeyboardState_Original (lpKeyState);
+
+  return GetKeyboardState (lpKeyState);
+}
 
 BOOL
 WINAPI
@@ -1730,7 +1814,7 @@ NtUserGetKeyboardState_Detour (PBYTE lpKeyState)
   SK_LOG_FIRST_CALL
 
   BOOL bRet =
-    GetKeyboardState_Original (lpKeyState);
+    SK_GetKeyboardState (lpKeyState);
 
   if (bRet)
   {
@@ -1766,11 +1850,15 @@ SK_ImGui_HandlesMessage (LPMSG lpMsg, bool, bool)
   {
     case WM_SYSCOMMAND:
     {
-      if (lpMsg->hwnd == game_window.hWnd)
+    //if (lpMsg->hwnd == game_window.hWnd)
       {
         // Disable ALT application menu
-        if ((lpMsg->wParam & 0xfff0) == SC_KEYMENU && lpMsg->lParam == 0)
-          handled = true;
+        ////if ((lpMsg->wParam & 0xfff0) == SC_KEYMENU && lpMsg->lParam == 0)
+        ////  handled = true;
+        ////
+        ////// Disable Alt+Space
+        ////if (lpMsg->wParam == SC_KEYMENU)
+        ////  handled = true;
       }
     } break;
 

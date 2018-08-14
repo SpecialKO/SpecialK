@@ -257,18 +257,18 @@ public:
         {
           if (! config.window.unconfine_cursor)
           {
-            ClipCursor_Original (&game_window.cursor_clip);
-            SK_AdjustWindow     ();
+            SK_ClipCursor   (&game_window.cursor_clip);
+            SK_AdjustWindow ();
           }
 
           else
-            ClipCursor_Original (nullptr);
+            SK_ClipCursor (nullptr);
         }
 
         else
         {
-          GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
-          ClipCursor_Original    (&game_window.actual.window);
+          SK_GetWindowRect (game_window.hWnd, &game_window.actual.window);
+          SK_ClipCursor    (&game_window.actual.window);
         }
       }
 
@@ -283,18 +283,18 @@ public:
           *static_cast <bool *> (val);
 
         if (config.window.unconfine_cursor)
-          ClipCursor_Original (nullptr);
+          SK_ClipCursor (nullptr);
 
         else if (config.window.confine_cursor)
         {
-          GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
-          ClipCursor_Original    (&game_window.actual.window);
+          SK_GetWindowRect (game_window.hWnd, &game_window.actual.window);
+          SK_ClipCursor    (&game_window.actual.window);
         }
 
         else
         {
-          ClipCursor_Original    (&game_window.cursor_clip);
-          SK_AdjustWindow        ();
+          SK_ClipCursor   (&game_window.cursor_clip);
+          SK_AdjustWindow ();
         }
       }
 
@@ -371,7 +371,7 @@ public:
 
                    RECT client            = { };
 
-            GetClientRect_Original (game_window.hWnd, &client);
+            SK_GetClientRect (game_window.hWnd, &client);
 
             HMONITOR hMonitor =
               MonitorFromWindow ( game_window.hWnd,
@@ -384,8 +384,8 @@ public:
             if ( (client.right  - client.left != mi.rcMonitor.right  - mi.rcMonitor.left ) &&
                  (client.bottom - client.top  != mi.rcMonitor.bottom - mi.rcMonitor.top  ) )
             {
-              GetClientRect_Original (game_window.hWnd, &last_known_client);
-              GetWindowRect_Original (game_window.hWnd, &last_known_window);
+              SK_GetClientRect (game_window.hWnd, &last_known_client);
+              SK_GetWindowRect (game_window.hWnd, &last_known_window);
             }
 
             unsigned int orig_x = config.window.res.override.x,
@@ -417,12 +417,12 @@ public:
                   RECT clip =
                     game_window.actual.window;
 
-                  ClipCursor_Original (&clip);
+                  SK_ClipCursor (&clip);
                 }
               }
 
               else
-                ClipCursor_Original (nullptr);
+                SK_ClipCursor (nullptr);
             }
 
             // Go Fullscreen (Stretch Window to Fill)
@@ -897,7 +897,7 @@ auto ActivateWindow =[&](HWND hWnd, bool active = false)
       }
 
       if (! wm_dispatch.moving_windows.count (game_window.hWnd))
-        ClipCursor_Original (&game_window.cursor_clip);
+        SK_ClipCursor (&game_window.cursor_clip);
     }
   }
 
@@ -911,7 +911,7 @@ auto ActivateWindow =[&](HWND hWnd, bool active = false)
       while (ShowCursor (TRUE) < 0)
         ;
 
-      ClipCursor_Original (nullptr);
+      SK_ClipCursor (nullptr);
     }
   }
 
@@ -927,8 +927,8 @@ auto ActivateWindow =[&](HWND hWnd, bool active = false)
       {
         ////// XXX: Is this really necessary? State should be consistent unless we missed
         //////        an event --- Write unit test?
-        GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
-        ClipCursor_Original    (&game_window.actual.window);
+        SK_GetWindowRect (game_window.hWnd, &game_window.actual.window);
+        SK_ClipCursor    (&game_window.actual.window);
       }
     }
 
@@ -937,7 +937,7 @@ auto ActivateWindow =[&](HWND hWnd, bool active = false)
       SK_LOG4 ( ( L"Unconfining Mouse Cursor" ),
                   L"Window Mgr" );
 
-      ClipCursor_Original (nullptr);
+      SK_ClipCursor (nullptr);
     }
   }
 
@@ -946,7 +946,7 @@ auto ActivateWindow =[&](HWND hWnd, bool active = false)
     SK_LOG4 ( ( L"Unconfining Mouse Cursor" ),
                 L"Window Mgr" );
 
-    ClipCursor_Original (nullptr);
+    SK_ClipCursor (nullptr);
   }
 
   if (state_changed && hWnd == game_window.hWnd)
@@ -985,10 +985,10 @@ window_message_dispatch_s::On_EXITSIZEMOVE ( HWND     hWnd,
     SK_AdjustWindow ();
 
     if (config.window.unconfine_cursor)
-      ClipCursor_Original (nullptr);
+      SK_ClipCursor (nullptr);
 
     if (config.window.confine_cursor)
-      ClipCursor_Original (&game_window.actual.window);
+      SK_ClipCursor (&game_window.actual.window);
   }
 
   return false;
@@ -1001,7 +1001,7 @@ window_message_dispatch_s::On_MOUSEMOVE ( HWND,
                                           LRESULT * )
 {
   if (! game_window.active)
-    GetCursorPos_Original (&game_window.cursor_pos);
+    SK_GetCursorPos (&game_window.cursor_pos);
 
   return false;
 }
@@ -1205,7 +1205,7 @@ SK_Input_ClassifyRawInput (HRAWINPUT lParam, bool& mouse, bool& keyboard, bool& 
   UINT     size = sizeof RAWINPUT;
 
   int      ret  =
-    GetRawInputData_Original ((HRAWINPUT)lParam, RID_HEADER, &data, &size, sizeof (RAWINPUTHEADER) );
+    SK_GetRawInputData ((HRAWINPUT)lParam, RID_HEADER, &data, &size, sizeof (RAWINPUTHEADER) );
 
   if (ret)
   {
@@ -1264,14 +1264,14 @@ SK_EnumWindows (HWND hWnd, LPARAM lParam)
       switch (IsWindowUnicode (hWnd))
       {
         case TRUE:
-          dwStyle   = GetWindowLongW_Original (hWnd, GWL_STYLE);
-          dwStyleEx = GetWindowLongW_Original (hWnd, GWL_EXSTYLE);
+          dwStyle   = SK_GetWindowLongW (hWnd, GWL_STYLE);
+          dwStyleEx = SK_GetWindowLongW (hWnd, GWL_EXSTYLE);
           break;
 
         default:
         case FALSE:
-          dwStyle   = GetWindowLongA_Original (hWnd, GWL_STYLE);
-          dwStyleEx = GetWindowLongA_Original (hWnd, GWL_EXSTYLE);
+          dwStyle   = SK_GetWindowLongA (hWnd, GWL_STYLE);
+          dwStyleEx = SK_GetWindowLongA (hWnd, GWL_EXSTYLE);
           break;
       }
 
@@ -1468,8 +1468,8 @@ SK_ExpandSmallClipCursor (RECT *lpRect)
 
   RECT client, window;
 
-  GetClientRect_Original (SK_GetGameWindow (), &client);
-  GetWindowRect_Original (SK_GetGameWindow (), &window);
+  SK_GetClientRect (SK_GetGameWindow (), &client);
+  SK_GetWindowRect (SK_GetGameWindow (), &window);
 
   if (        (lpRect->right  - lpRect->left) <
        0.75f * (window.right  -  window.left) ||
@@ -1508,15 +1508,15 @@ NtUserClipCursor_Detour (const RECT *lpRect)
       if (game_window.active)
       {
         return
-          ClipCursor_Original ( config.window.unconfine_cursor ? nullptr :
-                                  &game_window.actual.window );
+          SK_ClipCursor ( config.window.unconfine_cursor ? nullptr :
+                          &game_window.actual.window );
       }
     }
 
     game_window.cursor_clip = *lpRect;
   }
   else
-    return ClipCursor_Original (nullptr);
+    return SK_ClipCursor (nullptr);
 
 
   // Don't let the game unclip the cursor, but DO remember the
@@ -1553,17 +1553,17 @@ NtUserClipCursor_Detour (const RECT *lpRect)
 
   // Prevent the game from clipping the cursor
   if (config.window.unconfine_cursor)
-    return ClipCursor_Original (nullptr);
+    return SK_ClipCursor (nullptr);
 
 
   if (game_window.active && (! wm_dispatch.moving_windows.count (game_window.hWnd)))
   {
-    return ClipCursor_Original (&game_window.cursor_clip);
+    return SK_ClipCursor (&game_window.cursor_clip);
   }
 
   else
   {
-    return ClipCursor_Original (nullptr);
+    return SK_ClipCursor (nullptr);
   }
 }
 
@@ -1586,8 +1586,7 @@ SK_CenterWindowAtMouse (BOOL remember_pos)
       BOOL  remember_pos = (user != nullptr);
       POINT mouse        = { 0, 0 };
 
-      if (GetCursorPos_Original != nullptr)
-        GetCursorPos_Original (&mouse);
+      SK_GetCursorPos (&mouse);
 
       struct {
         struct {
@@ -1643,6 +1642,22 @@ SK_CenterWindowAtMouse (BOOL remember_pos)
 
 BOOL
 WINAPI
+SK_MoveWindow (
+  _In_ HWND hWnd,
+  _In_ int  X,
+  _In_ int  Y,
+  _In_ int  nWidth,
+  _In_ int  nHeight,
+  _In_ BOOL bRedraw )
+{
+  if (MoveWindow_Original != nullptr)
+    return MoveWindow_Original (hWnd, X, Y, nWidth, nHeight, bRedraw);
+
+  return MoveWindow (hWnd, X, Y, nWidth, nHeight, bRedraw);
+}
+
+BOOL
+WINAPI
 NtUserMoveWindow_Detour(
     _In_ HWND hWnd,
     _In_ int  X,
@@ -1653,10 +1668,22 @@ NtUserMoveWindow_Detour(
 {
   SK_LOG_FIRST_CALL
 
-  return MoveWindow_Original ( hWnd,
-                                 X, Y,
-                                   nWidth, nHeight,
-                                     bRedraw );
+  return SK_MoveWindow ( hWnd,
+                           X, Y,
+                             nWidth, nHeight,
+                               bRedraw );
+}
+
+BOOL
+WINAPI
+SK_SetWindowPlacement (
+  _In_       HWND             hWnd,
+  _In_ const WINDOWPLACEMENT *lpwndpl)
+{
+  if (SetWindowPlacement_Original != nullptr)
+    return SetWindowPlacement_Original (hWnd, lpwndpl);
+
+  return SetWindowPlacement (hWnd, lpwndpl);
 }
 
 BOOL
@@ -1667,7 +1694,8 @@ SetWindowPlacement_Detour(
 {
   SK_WINDOW_LOG_CALL_UNTESTED ();
 
-  return SetWindowPlacement_Original ( hWnd, lpwndpl );
+  return
+    SK_SetWindowPlacement ( hWnd, lpwndpl );
 }
 
 BOOL
@@ -1697,12 +1725,32 @@ NtUserSetWindowPos_Detour(
 
 
   BOOL bRet =
-    SetWindowPos_Original ( hWnd, hWndInsertAfter,
-                              X, Y,
-                                cx, cy,
-                                  uFlags );
+    SK_SetWindowPos ( hWnd, hWndInsertAfter,
+                        X, Y,
+                          cx, cy,
+                            uFlags );
 
   return bRet;
+}
+
+BOOL
+WINAPI
+SK_GetWindowRect (HWND hWnd, LPRECT rect)
+{
+  if (GetWindowRect_Original != nullptr)
+    return GetWindowRect_Original (hWnd, rect);
+
+  return GetWindowRect (hWnd, rect);
+}
+
+BOOL
+WINAPI
+SK_GetClientRect (HWND hWnd, LPRECT rect)
+{
+  if (GetClientRect_Original != nullptr)
+    return GetClientRect_Original (hWnd, rect);
+
+  return GetClientRect (hWnd, rect);
 }
 
 static
@@ -1740,7 +1788,7 @@ GetClientRect_Detour (
   }
 
   else {
-    return GetClientRect_Original (hWnd, lpRect);
+    return SK_GetClientRect (hWnd, lpRect);
   }
 }
 
@@ -1780,18 +1828,8 @@ GetWindowRect_Detour (
   }
 
   else {
-    return GetWindowRect_Original (hWnd, lpRect);
+    return SK_GetWindowRect (hWnd, lpRect);
   }
-}
-
-BOOL
-WINAPI
-SK_GetWindowRect (HWND hWnd, LPRECT rect)
-{
-  if (GetWindowRect_Original != nullptr)
-    return GetWindowRect_Original (hWnd, rect);
-
-  return GetWindowRect (hWnd, rect);
 }
 
 BOOL
@@ -1814,8 +1852,8 @@ BOOL
 WINAPI
 SK_IsRectFullscreen (_In_ LPRECT lpRect)
 {
-  int virtual_x = GetSystemMetrics_Original (SM_CXVIRTUALSCREEN);
-  int virtual_y = GetSystemMetrics_Original (SM_CYVIRTUALSCREEN);
+  int virtual_x = SK_GetSystemMetrics (SM_CXVIRTUALSCREEN);
+  int virtual_y = SK_GetSystemMetrics (SM_CYVIRTUALSCREEN);
 
   return ( lpRect->left  == 0         && lpRect->top    == 0 &&
            lpRect->right == virtual_x && lpRect->bottom == virtual_y );
@@ -1828,6 +1866,19 @@ SK_IsClipRectFinite (_In_ LPRECT lpRect)
   return (! ( SK_IsRectZero       (lpRect) ||
               SK_IsRectInfinite   (lpRect) ||
               SK_IsRectFullscreen (lpRect) ) );
+}
+
+BOOL
+WINAPI
+SK_AdjustWindowRect (
+  _Inout_ LPRECT lpRect,
+  _In_    DWORD  dwStyle,
+  _In_    BOOL   bMenu )
+{
+  if (AdjustWindowRect_Original != nullptr)
+    return AdjustWindowRect_Original (lpRect, dwStyle, bMenu);
+
+  return AdjustWindowRect (lpRect, dwStyle, bMenu);
 }
 
 BOOL
@@ -1872,11 +1923,26 @@ AdjustWindowRect_Detour (
     return TRUE;
   }
 
-  return AdjustWindowRect_Original (lpRect, dwStyle, bMenu);
+  return
+    SK_AdjustWindowRect (lpRect, dwStyle, bMenu);
 }
 
 void SK_SetWindowStyle   (DWORD_PTR dwStyle_ptr,   SetWindowLongPtr_pfn pDispatchFunc = nullptr);
 void SK_SetWindowStyleEx (DWORD_PTR dwStyleEx_ptr, SetWindowLongPtr_pfn pDispatchFunc = nullptr);
+
+BOOL
+WINAPI
+SK_AdjustWindowRectEx (
+  _Inout_ LPRECT lpRect,
+  _In_    DWORD  dwStyle,
+  _In_    BOOL   bMenu,
+  _In_    DWORD  dwExStyle )
+{
+  if (AdjustWindowRectEx_Original != nullptr)
+    return AdjustWindowRectEx_Original (lpRect, dwStyle, bMenu, dwExStyle);
+
+  return AdjustWindowRectEx (lpRect, dwStyle, bMenu, dwExStyle);
+}
 
 BOOL
 WINAPI
@@ -1922,7 +1988,8 @@ AdjustWindowRectEx_Detour (
     return TRUE;
   }
 
-  return AdjustWindowRectEx_Original (lpRect, dwStyle, bMenu, dwExStyle);
+  return
+    SK_AdjustWindowRectEx (lpRect, dwStyle, bMenu, dwExStyle);
 }
 
 // Convenience function since there are so damn many
@@ -2019,6 +2086,19 @@ SetWindowLong_Marshall (
   return pOrigFunc (hWnd, nIndex, dwNewLong);
 }
 
+LONG
+WINAPI
+SK_SetWindowLongA (
+  _In_ HWND hWnd,
+  _In_ int  nIndex,
+  _In_ LONG dwNewLong )
+{
+  if (SetWindowLongA_Original != nullptr)
+    return SetWindowLongA_Original (hWnd, nIndex, dwNewLong);
+
+  return SetWindowLongA (hWnd, nIndex, dwNewLong);
+}
+
 DECLSPEC_NOINLINE
 LONG
 WINAPI
@@ -2031,11 +2111,24 @@ SetWindowLongA_Detour (
   SK_LOG_FIRST_CALL
 
   return SetWindowLong_Marshall (
-    SetWindowLongA_Original,
+    SK_SetWindowLongA,
       hWnd,
         nIndex,
           dwNewLong
   );
+}
+
+LONG
+WINAPI
+SK_SetWindowLongW (
+  _In_ HWND hWnd,
+  _In_ int  nIndex,
+  _In_ LONG dwNewLong )
+{
+  if (SetWindowLongW_Original != nullptr)
+    return SetWindowLongW_Original (hWnd, nIndex, dwNewLong);
+
+  return SetWindowLongW (hWnd, nIndex, dwNewLong);
 }
 
 DECLSPEC_NOINLINE
@@ -2050,7 +2143,7 @@ SetWindowLongW_Detour (
   SK_LOG_FIRST_CALL
 
   return SetWindowLong_Marshall (
-    SetWindowLongW_Original,
+    SK_SetWindowLongW,
       hWnd,
         nIndex,
           dwNewLong
@@ -2155,6 +2248,18 @@ GetWindowLong_Marshall (
   return pOrigFunc (hWnd, nIndex);
 }
 
+LONG
+WINAPI
+SK_GetWindowLongA (
+  _In_ HWND hWnd,
+  _In_ int  nIndex)
+{
+  if (GetWindowLongA_Original != nullptr)
+    return GetWindowLongA_Original (hWnd, nIndex);
+
+  return GetWindowLongA (hWnd, nIndex);
+}
+
 DECLSPEC_NOINLINE
 LONG
 WINAPI
@@ -2166,10 +2271,22 @@ GetWindowLongA_Detour (
   SK_LOG_FIRST_CALL
 
   return GetWindowLong_Marshall (
-    GetWindowLongA_Original,
+    SK_GetWindowLongA,
       hWnd,
         nIndex
   );
+}
+
+LONG
+WINAPI
+SK_GetWindowLongW (
+  _In_ HWND hWnd,
+  _In_ int  nIndex)
+{
+  if (GetWindowLongW_Original != nullptr)
+    return GetWindowLongW_Original (hWnd, nIndex);
+
+  return GetWindowLongW (hWnd, nIndex);
 }
 
 DECLSPEC_NOINLINE
@@ -2183,7 +2300,7 @@ GetWindowLongW_Detour (
   SK_LOG_FIRST_CALL
 
   return GetWindowLong_Marshall (
-    GetWindowLongW_Original,
+    SK_GetWindowLongW,
       hWnd,
         nIndex
   );
@@ -2284,6 +2401,19 @@ SetWindowLongPtr_Marshall (
   return pOrigFunc (hWnd, nIndex, dwNewLong);
 }
 
+LONG_PTR
+WINAPI
+SK_SetWindowLongPtrA (
+  _In_ HWND     hWnd,
+  _In_ int      nIndex,
+  _In_ LONG_PTR dwNewLong )
+{
+  if (SetWindowLongPtrA_Original != nullptr)
+    return SetWindowLongPtrA_Original (hWnd, nIndex, dwNewLong);
+
+  return SetWindowLongPtrA (hWnd, nIndex, dwNewLong);
+}
+
 DECLSPEC_NOINLINE
 LONG_PTR
 WINAPI
@@ -2296,11 +2426,24 @@ SetWindowLongPtrA_Detour (
   SK_LOG_FIRST_CALL
 
   return SetWindowLongPtr_Marshall (
-    SetWindowLongPtrA_Original,
+    SK_SetWindowLongPtrA,
       hWnd,
         nIndex,
           dwNewLong
   );
+}
+
+LONG_PTR
+WINAPI
+SK_SetWindowLongPtrW (
+  _In_ HWND     hWnd,
+  _In_ int      nIndex,
+  _In_ LONG_PTR dwNewLong )
+{
+  if (SetWindowLongPtrW_Original != nullptr)
+    return SetWindowLongPtrW_Original (hWnd, nIndex, dwNewLong);
+
+  return SetWindowLongPtrW (hWnd, nIndex, dwNewLong);
 }
 
 DECLSPEC_NOINLINE
@@ -2315,7 +2458,7 @@ SetWindowLongPtrW_Detour (
   SK_LOG_FIRST_CALL
 
   return SetWindowLongPtr_Marshall (
-    SetWindowLongPtrW_Original,
+    SK_SetWindowLongPtrW,
       hWnd,
         nIndex,
           dwNewLong
@@ -2347,6 +2490,18 @@ GetWindowLongPtr_Marshall (
   return pOrigFunc (hWnd, nIndex);
 }
 
+LONG_PTR
+WINAPI
+SK_GetWindowLongPtrA (
+  _In_ HWND     hWnd,
+  _In_ int      nIndex   )
+{
+  if (GetWindowLongPtrA_Original != nullptr)
+    return GetWindowLongPtrA_Original (hWnd, nIndex);
+
+  return GetWindowLongPtrA (hWnd, nIndex);
+}
+
 DECLSPEC_NOINLINE
 LONG_PTR
 WINAPI
@@ -2358,10 +2513,22 @@ GetWindowLongPtrA_Detour (
   SK_LOG_FIRST_CALL
 
   return GetWindowLongPtr_Marshall (
-    GetWindowLongPtrA_Original,
+    SK_GetWindowLongPtrA,
       hWnd,
         nIndex
   );
+}
+
+LONG_PTR
+WINAPI
+SK_GetWindowLongPtrW   (
+  _In_ HWND     hWnd,
+  _In_ int      nIndex )
+{
+  if (GetWindowLongPtrW_Original != nullptr)
+    return GetWindowLongPtrW_Original (hWnd, nIndex);
+
+  return GetWindowLongPtrW (hWnd, nIndex);
 }
 
 DECLSPEC_NOINLINE
@@ -2375,7 +2542,7 @@ GetWindowLongPtrW_Detour (
   SK_LOG_FIRST_CALL
 
   return GetWindowLongPtr_Marshall (
-    GetWindowLongPtrW_Original,
+    SK_GetWindowLongPtrW,
       hWnd,
         nIndex
   );
@@ -2448,7 +2615,7 @@ SK_ComputeClientSize (void)
   RECT ret =
     game_window.actual.client;
 
-  GetClientRect_Original ( game_window.hWnd, &ret );
+  SK_GetClientRect ( game_window.hWnd, &ret );
 
   ret = { 0, 0,
             ret.right    - ret.left,
@@ -2463,8 +2630,8 @@ SK_ComputeClientOrigin (void)
   RECT window = { },
        client = { };
 
-  GetWindowRect_Original ( game_window.hWnd, &window );
-  GetClientRect_Original ( game_window.hWnd, &client );
+  SK_GetWindowRect ( game_window.hWnd, &window );
+  SK_GetClientRect ( game_window.hWnd, &client );
 
   return POINT { window.left  + client.left,
                    window.top + client.top };
@@ -2510,7 +2677,7 @@ SK_Window_HasBorder (HWND hWnd)
 {
   return
     SK_WindowManager::StyleHasBorder (
-      GetWindowLongW_Original ( hWnd, GWL_STYLE )
+      SK_GetWindowLongW ( hWnd, GWL_STYLE )
   );
 }
 
@@ -2521,8 +2688,8 @@ SK_Window_IsFullscreen (HWND hWnd)
     MonitorFromWindow ( hWnd,
                           MONITOR_DEFAULTTONEAREST );
 
-  RECT                           rc_window = { };
-  GetWindowRect_Original (hWnd, &rc_window);
+  RECT                     rc_window = { };
+  SK_GetWindowRect (hWnd, &rc_window);
 
   auto ResolutionMatches = [](RECT& rect, HMONITOR hMonitor) ->
   bool
@@ -2580,7 +2747,7 @@ SK_AdjustBorder (void)
   RECT orig_client =
     { };
 
-  GetClientRect_Original (game_window.hWnd, &orig_client);
+  SK_GetClientRect (game_window.hWnd, &orig_client);
 
   RECT new_client =
     SK_ComputeClientSize ();
@@ -2593,10 +2760,10 @@ SK_AdjustBorder (void)
   SK_SetWindowStyle   ( game_window.actual.style    );
   SK_SetWindowStyleEx ( game_window.actual.style_ex );
 
-  if ( AdjustWindowRectEx_Original ( &new_window,
-                                       static_cast <DWORD>     (game_window.actual.style),
-                                         FALSE,
-                                           static_cast <DWORD> (game_window.actual.style_ex)
+  if ( SK_AdjustWindowRectEx ( &new_window,
+                                 static_cast <DWORD>     (game_window.actual.style),
+                                   FALSE,
+                                     static_cast <DWORD> (game_window.actual.style_ex)
                                    )
      )
   {
@@ -2605,13 +2772,13 @@ SK_AdjustBorder (void)
     int origin_x = had_border ? origin.x + orig_client.left : origin.x;
     int origin_y = had_border ? origin.y + orig_client.top  : origin.y;
 
-    SetWindowPos_Original ( game_window.hWnd,
-                    HWND_TOP,
-                      origin_x, origin_y,
-                        new_window.right - new_window.left,
-                        new_window.bottom - new_window.top,
-                          SWP_NOZORDER     | SWP_NOREPOSITION   |
-                          SWP_FRAMECHANGED | SWP_NOSENDCHANGING | SWP_SHOWWINDOW  );
+    SK_SetWindowPos ( game_window.hWnd,
+                      HWND_TOP,
+                        origin_x, origin_y,
+                          new_window.right - new_window.left,
+                          new_window.bottom - new_window.top,
+                            SWP_NOZORDER     | SWP_NOREPOSITION   |
+                            SWP_FRAMECHANGED | SWP_NOSENDCHANGING | SWP_SHOWWINDOW  );
 
     GetWindowRect (game_window.hWnd, &game_window.actual.window);
     GetClientRect (game_window.hWnd, &game_window.actual.client);
@@ -2637,16 +2804,13 @@ SK_Window_RepositionIfNeeded (void)
     {
       SetCurrentThreadDescription (L"[SK] Window Reposition Thread");
 
-      while (! ReadPointerAcquire ((void **)&GetWindowLongPtrW_Original))
-        SleepEx (33UL, FALSE);
-
       GetWindowRect (game_window.hWnd, &game_window.actual.window);
       GetClientRect (game_window.hWnd, &game_window.actual.client);
 
       ////
       ////// Force a sane set of window styles initially
-      SK_RunOnce (SK_SetWindowStyle   ( GetWindowLongPtrW_Original (game_window.hWnd, GWL_STYLE)   ));
-      SK_RunOnce (SK_SetWindowStyleEx ( GetWindowLongPtrW_Original (game_window.hWnd, GWL_EXSTYLE) ));
+      SK_RunOnce (SK_SetWindowStyle   ( SK_GetWindowLongPtrW (game_window.hWnd, GWL_STYLE)   ));
+      SK_RunOnce (SK_SetWindowStyleEx ( SK_GetWindowLongPtrW (game_window.hWnd, GWL_EXSTYLE) ));
 
       if (config.window.borderless)
       {
@@ -2697,14 +2861,14 @@ SK_AdjustWindow (void)
     SK_LOG4 ( (L" > SK_AdjustWindow (Fullscreen)"),
               L"Window Mgr" );
 
-    SetWindowPos_Original ( game_window.hWnd,
-                              HWND_TOP,
-                                mi.rcMonitor.left,
-                                mi.rcMonitor.top,
-                                  mi.rcMonitor.right  - mi.rcMonitor.left,
-                                  mi.rcMonitor.bottom - mi.rcMonitor.top,
-                                    SWP_NOSENDCHANGING | SWP_NOZORDER |
-                                    SWP_NOREPOSITION   | SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW );
+    SK_SetWindowPos ( game_window.hWnd,
+                        HWND_TOP,
+                          mi.rcMonitor.left,
+                          mi.rcMonitor.top,
+                            mi.rcMonitor.right  - mi.rcMonitor.left,
+                            mi.rcMonitor.bottom - mi.rcMonitor.top,
+                              SWP_NOSENDCHANGING | SWP_NOZORDER |
+                              SWP_NOREPOSITION   | SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW );
 
     SK_LOG1 ( ( L"FULLSCREEN => {Left: %li, Top: %li} - (WxH: %lix%li)",
                   mi.rcMonitor.left, mi.rcMonitor.top,
@@ -2725,7 +2889,7 @@ SK_AdjustWindow (void)
     // Adjust the desktop resolution to make room for window decorations
     //   if the game window were maximized.
     if (! config.window.borderless) {
-      AdjustWindowRect_Original (
+      SK_AdjustWindowRect (
         &mi.rcWork,
           static_cast <LONG> (game_window.actual.style),
             FALSE
@@ -2761,8 +2925,8 @@ SK_AdjustWindow (void)
       RECT client_before =
         game_window.game.client;
 
-      GetClientRect_Original (game_window.hWnd, &game_window.game.client);
-      GetWindowRect_Original (game_window.hWnd, &game_window.game.window);
+      SK_GetClientRect (game_window.hWnd, &game_window.game.client);
+      SK_GetWindowRect (game_window.hWnd, &game_window.game.window);
 
       render_width  = game_window.game.client.right  - game_window.game.client.left;
       render_height = game_window.game.client.bottom - game_window.game.client.top;
@@ -2883,7 +3047,7 @@ SK_AdjustWindow (void)
     if ( (full_height < mon_height ) ||
          (full_width  < mon_width  ) )
     {
-      AdjustWindowRect_Original (
+      SK_AdjustWindowRect (
         &game_window.actual.window,
           static_cast <LONG> (game_window.actual.style),
             FALSE
@@ -2935,23 +3099,23 @@ SK_AdjustWindow (void)
     if (game_window.actual.window.right  - game_window.actual.window.left > 0 &&
         game_window.actual.window.bottom - game_window.actual.window.top  > 0 )
     {
-      SetWindowPos_Original ( game_window.hWnd,
-                                HWND_TOP,
-                                  game_window.actual.window.left,
-                                  game_window.actual.window.top,
-                                    game_window.actual.window.right  - game_window.actual.window.left,
-                                    game_window.actual.window.bottom - game_window.actual.window.top,
-                                      SWP_NOSENDCHANGING | SWP_NOZORDER   |
-                                      SWP_NOREPOSITION   | SWP_SHOWWINDOW |
-                            (nomove ? SWP_NOMOVE : 0x00) |
-                            (nosize ? SWP_NOSIZE : 0x00) );
+      SK_SetWindowPos ( game_window.hWnd,
+                          HWND_TOP,
+                            game_window.actual.window.left,
+                            game_window.actual.window.top,
+                              game_window.actual.window.right  - game_window.actual.window.left,
+                              game_window.actual.window.bottom - game_window.actual.window.top,
+                                SWP_NOSENDCHANGING | SWP_NOZORDER   |
+                                SWP_NOREPOSITION   | SWP_SHOWWINDOW |
+                                  (nomove ? SWP_NOMOVE : 0x00) |
+                                  (nosize ? SWP_NOSIZE : 0x00) );
     }
 
-    GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
-    GetClientRect_Original (game_window.hWnd, &game_window.actual.client);
+    SK_GetWindowRect (game_window.hWnd, &game_window.actual.window);
+    SK_GetClientRect (game_window.hWnd, &game_window.actual.client);
 
-    GetWindowRect_Original (game_window.hWnd, &game_window.game.window);
-    GetClientRect_Original (game_window.hWnd, &game_window.game.client);
+    SK_GetWindowRect (game_window.hWnd, &game_window.game.window);
+    SK_GetClientRect (game_window.hWnd, &game_window.game.client);
 
 
 
@@ -3051,15 +3215,15 @@ SK_AdjustWindow (void)
       DescribeClipRect (L"OUT ", &clip);
 
       if (! wm_dispatch.moving_windows.count (game_window.hWnd))
-        ClipCursor_Original (&clip);
+        SK_ClipCursor (&clip);
       else
-        ClipCursor_Original (nullptr);
+        SK_ClipCursor (nullptr);
     }
   }
 
   // Unconfine Cursor
   else
-    ClipCursor_Original (nullptr);
+    SK_ClipCursor (nullptr);
 }
 
 static int
@@ -3068,7 +3232,7 @@ GetSystemMetrics_Detour (_In_ int nIndex)
 {
   SK_LOG_FIRST_CALL
 
-  int nRet = GetSystemMetrics_Original (nIndex);
+  int nRet = SK_GetSystemMetrics (nIndex);
 
   SK_LOG4 ( ( L"GetSystemMetrics (%4li) : %-5li - %s",
                 nIndex, nRet,
@@ -3123,9 +3287,13 @@ int
 WINAPI
 SK_GetSystemMetrics (_In_ int nIndex)
 {
-  SK_LOG_FIRST_CALL
+  if (GetSystemMetrics_Original != nullptr)
+    return GetSystemMetrics_Original (nIndex);
 
-  return GetSystemMetrics_Original (nIndex);
+  return
+    GetSystemMetrics (nIndex);
+
+  //SK_LOG_FIRST_CALL
 }
 
 
@@ -3503,19 +3671,30 @@ GetForegroundWindow_pfn GetForegroundWindow_Original = nullptr;
 
 HWND
 WINAPI
+SK_GetForegroundWindow (void)
+{
+  if (GetForegroundWindow_Original != nullptr)
+    return GetForegroundWindow_Original ();
+
+  return
+    GetForegroundWindow ();
+}
+
+HWND
+WINAPI
 NtUserGetForegroundWindow_Detour (void)
 {
   SK_LOG_FIRST_CALL
 
   if (config.window.background_render && config.window.treat_fg_as_active)
   {
-    if ( GetForegroundWindow_Original () != game_window.hWnd &&
-                     SK_GetCallingDLL () == GetModuleHandle (nullptr) )
+    if ( SK_GetForegroundWindow () != game_window.hWnd &&
+               SK_GetCallingDLL () == GetModuleHandle (nullptr) )
       return game_window.hWnd;
   }
 
   return
-    GetForegroundWindow_Original ();
+    SK_GetForegroundWindow ();
 }
 
 
@@ -3557,8 +3736,10 @@ SK_RealizeForegroundWindow (HWND hWndForeground)
     GetWindowInfo (hWndOrig, &wi);
 
     // We only need to do this for fullscreen exclusive mode
-    if ( wi.cxWindowBorders == wi.cyWindowBorders ==
-         wi.rcClient.left   == wi.rcClient.bottom == 0 )
+    if ( static_cast <LONG> (wi.cxWindowBorders) == static_cast <LONG> (wi.cyWindowBorders) &&
+         static_cast <LONG> (wi.rcClient.left)   == static_cast <LONG> (wi.rcClient.bottom) &&
+         static_cast <LONG> (wi.cxWindowBorders) == static_cast <LONG> (wi.rcClient.bottom) &&
+         static_cast <LONG> (wi.cxWindowBorders) == 0L )
     {
       
       SetWindowPos ( hWndOrig, HWND_DESKTOP, 0, 0, 0, 0,
@@ -3733,7 +3914,7 @@ window_message_dispatch_s::On_WINDOWPOSCHANGED ( HWND     hWnd,
          temp_override = true;
     RECT client        = {  };
 
-    GetClientRect_Original (game_window.hWnd, &client);
+    SK_GetClientRect (game_window.hWnd, &client);
 
     config.window.res.override.x = client.right  - client.left;
     config.window.res.override.y = client.bottom - client.top;
@@ -3768,9 +3949,9 @@ window_message_dispatch_s::On_WINDOWPOSCHANGED ( HWND     hWnd,
   game_window.game.window = game_window.actual.window;
 
   if (config.window.confine_cursor && (! moving_windows.count (hWnd)))
-    ClipCursor_Original (&game_window.actual.window);
+    SK_ClipCursor (&game_window.actual.window);
   else if (config.window.unconfine_cursor)
-    ClipCursor_Original (nullptr);
+    SK_ClipCursor (nullptr);
 
   // Filter this message
   if (config.window.borderless && config.window.fullscreen)
@@ -3959,10 +4140,10 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     game_window.actual.style = game_window.GetWindowLongPtr (game_window.hWnd, GWL_STYLE);
     game_window.unicode      =              IsWindowUnicode (game_window.hWnd)   != FALSE;
 
-    GetWindowRect_Original (game_window.hWnd, &game_window.game.window  );
-    GetClientRect_Original (game_window.hWnd, &game_window.game.client  );
-    GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
-    GetClientRect_Original (game_window.hWnd, &game_window.actual.client);
+    SK_GetWindowRect (game_window.hWnd, &game_window.game.window  );
+    SK_GetClientRect (game_window.hWnd, &game_window.game.client  );
+    SK_GetWindowRect (game_window.hWnd, &game_window.actual.window);
+    SK_GetClientRect (game_window.hWnd, &game_window.actual.client);
 
     SK_InitWindow (hWnd, false);
   }
@@ -4243,8 +4424,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       auto wnd_pos =
         reinterpret_cast <LPWINDOWPOS> (lParam);
 
-      GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
-      GetClientRect_Original (game_window.hWnd, &game_window.actual.client);
+      SK_GetWindowRect (game_window.hWnd, &game_window.actual.window);
+      SK_GetClientRect (game_window.hWnd, &game_window.actual.client);
 
       //game_window.game.client = game_window.actual.client;
       //game_window.game.window = game_window.actual.window;
@@ -4271,7 +4452,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
                temp_override = true;
           RECT client        = {  };
 
-          GetClientRect_Original (game_window.hWnd, &client);
+          SK_GetClientRect (game_window.hWnd, &client);
 
           config.window.res.override.x = client.right  - client.left;
           config.window.res.override.y = client.bottom - client.top;
@@ -4293,10 +4474,10 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
         }
 
         if (config.window.unconfine_cursor)
-          ClipCursor_Original (nullptr);
+          SK_ClipCursor (nullptr);
 
         else if (config.window.confine_cursor)
-          ClipCursor_Original (&game_window.actual.window);
+          SK_ClipCursor (&game_window.actual.window);
       }
 
       // Filter this message
@@ -4311,13 +4492,13 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
     case WM_MOVE:
     {
-      GetWindowRect_Original (game_window.hWnd, &game_window.actual.window);
-      GetClientRect_Original (game_window.hWnd, &game_window.actual.client);
+      SK_GetWindowRect (game_window.hWnd, &game_window.actual.window);
+      SK_GetClientRect (game_window.hWnd, &game_window.actual.client);
 
       if (config.window.confine_cursor)
-        ClipCursor_Original (&game_window.actual.window);
+        SK_ClipCursor (&game_window.actual.window);
       else if (config.window.unconfine_cursor)
-        ClipCursor_Original (nullptr);
+        SK_ClipCursor (nullptr);
 
 
       // Filter this message
@@ -4329,7 +4510,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       case WM_SIZING:
       case WM_MOVING:
         if (config.window.unconfine_cursor)
-          ClipCursor_Original (nullptr);
+          SK_ClipCursor (nullptr);
 
         // Filter this message
         if (config.window.borderless && config.window.fullscreen)
@@ -4365,7 +4546,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
     case WM_MOUSEMOVE:
       if (! game_window.active)
-        GetCursorPos_Original (&game_window.cursor_pos);
+        SK_GetCursorPos (&game_window.cursor_pos);
       break;
 
     case WM_INPUT:
@@ -4425,7 +4606,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
       recursive_wheel    = true;
 
-      SendInput_Original (1, &input, sizeof INPUT);
+      SK_SendInput (1, &input, sizeof INPUT);
     }
   }
 
@@ -4554,13 +4735,13 @@ SK_Window_SetTopMost (bool bTop, bool bBringToTop)
     hWndOrder  =  HWND_NOTOPMOST;
   }
 
-  SetWindowLongFn       ( game_window.hWnd, GWL_EXSTYLE, (LONG)dwStyleEx );
-  SetWindowPos_Original ( game_window.hWnd,
-                            hWndOrder,
-                              0, 0, 0, 0,
-                                SWP_NOACTIVATE | SWP_NOMOVE         |
-                                SWP_NOSIZE     | SWP_NOSENDCHANGING |
-                                SWP_ASYNCWINDOWPOS );
+  SetWindowLongFn ( game_window.hWnd, GWL_EXSTYLE, (LONG)dwStyleEx );
+  SK_SetWindowPos ( game_window.hWnd,
+                      hWndOrder,
+                        0, 0, 0, 0,
+                          SWP_NOACTIVATE | SWP_NOMOVE         |
+                          SWP_NOSIZE     | SWP_NOSENDCHANGING |
+                          SWP_ASYNCWINDOWPOS );
 
   if (bBringToTop)
     BringWindowToTop (game_window.hWnd);
@@ -4575,13 +4756,13 @@ SK_InitWindow (HWND hWnd, bool fullscreen_exclusive)
   }
 
 
-  GetWindowRect_Original (hWnd, &game_window.game.window);
-  GetClientRect_Original (hWnd, &game_window.game.client);
+  SK_GetWindowRect (hWnd, &game_window.game.window);
+  SK_GetClientRect (hWnd, &game_window.game.client);
 
-  GetWindowRect_Original (hWnd, &game_window.actual.window);
-  GetClientRect_Original (hWnd, &game_window.actual.client);
+  SK_GetWindowRect (hWnd, &game_window.actual.window);
+  SK_GetClientRect (hWnd, &game_window.actual.client);
 
-  GetCursorPos_Original  (      &game_window.cursor_pos);
+  SK_GetCursorPos  (      &game_window.cursor_pos);
 
 
 
@@ -4605,10 +4786,13 @@ SK_InitWindow (HWND hWnd, bool fullscreen_exclusive)
   game_window.game.style_ex = game_window.actual.style_ex;
 
 
-  SK_GetCurrentRenderBackend ().windows.setFocus  (hWnd);
-  SK_GetCurrentRenderBackend ().windows.setDevice (
-    SK_GetCurrentRenderBackend ().windows.device ?
-    SK_GetCurrentRenderBackend ().windows.device : hWnd);
+  auto& windows =
+    SK_GetCurrentRenderBackend ().windows;
+
+  windows.setFocus  (hWnd);
+  windows.setDevice (
+    windows.device ?
+    windows.device : hWnd);
 
 
   if (! fullscreen_exclusive)
@@ -4745,14 +4929,15 @@ SK_InstallWindowHook (HWND hWnd)
 
   game_window.unicode = IsWindowUnicode (hWnd) != FALSE;
 
+
   if (game_window.unicode)
   {
-    game_window.GetWindowLongPtr = SK_RunLHIfBitness ( 64, GetWindowLongPtrW_Original,
-                  reinterpret_cast <GetWindowLongPtr_pfn> (GetWindowLongW_Original)    );
+    game_window.GetWindowLongPtr = SK_RunLHIfBitness ( 64, SK_GetWindowLongPtrW,
+                  reinterpret_cast <GetWindowLongPtr_pfn> (SK_GetWindowLongW)    );
   //game_window.GetClassLongPtr  = SK_RunLHIfBitness ( 64, GetClassLongPtrW_Original,
   //                   static_cast <GetClassLongPtr_pfn>  (GetClassLongW_Original)     );
 
-    game_window.SetWindowLongPtr = SetWindowLongPtrW_Original;
+    game_window.SetWindowLongPtr = SK_SetWindowLongPtrW;
   //game_window.SetClassLongPtr  = SetClassLongPtrW_Original;
 
     game_window.DefWindowProc    = (DefWindowProc_pfn)
@@ -4765,12 +4950,12 @@ SK_InstallWindowHook (HWND hWnd)
 
   else
   {
-    game_window.GetWindowLongPtr = SK_RunLHIfBitness ( 64, GetWindowLongPtrA_Original,
-                  reinterpret_cast <GetWindowLongPtr_pfn> (GetWindowLongA_Original)    );
+    game_window.GetWindowLongPtr = SK_RunLHIfBitness ( 64, SK_GetWindowLongPtrA,
+                  reinterpret_cast <GetWindowLongPtr_pfn> (SK_GetWindowLongA)    );
   //game_window.GetClassLongPtr  = SK_RunLHIfBitness ( 64, GetClassLongPtrA_Original,
   //                   static_cast <GetClassLongPtr_pfn>  (GetClassLongA_Original)     );
 
-    game_window.SetWindowLongPtr = SetWindowLongPtrA_Original;
+    game_window.SetWindowLongPtr = SK_SetWindowLongPtrA;
   //game_window.SetClassLongPtr  = SetClassLongPtrA_Original;
     game_window.DefWindowProc    = reinterpret_cast <DefWindowProc_pfn>
       ( GetProcAddress ( GetModuleHandle (L"NtDll.dll"),
@@ -4799,22 +4984,22 @@ SK_InstallWindowHook (HWND hWnd)
        SK_MakeWindowHook (class_proc, wnd_proc, hWnd);
 
 
-  if (game_window.WndProc_Original != nullptr)
+  if ( game_window.WndProc_Original          != nullptr )
   {
     bool has_raw_mouse = false;
     UINT count         = 0;
 
-    DWORD dwLast = GetLastError                          ();
-                   GetRegisteredRawInputDevices_Original (nullptr, &count, sizeof RAWINPUTDEVICE);
+    DWORD dwLast = GetLastError                    ();
+                   SK_GetRegisteredRawInputDevices (nullptr, &count, sizeof RAWINPUTDEVICE);
 
     if (count > 0)
     {
       auto* pDevs =
         SK_TLS_Bottom ()->raw_input.allocateDevices (count + 1);
 
-      GetRegisteredRawInputDevices_Original ( pDevs,
-                                                &count,
-                                                  sizeof RAWINPUTDEVICE );
+      SK_GetRegisteredRawInputDevices ( pDevs,
+                                          &count,
+                                            sizeof RAWINPUTDEVICE );
 
       for (UINT i = 0 ; i < count ; i++)
       {
@@ -4842,7 +5027,7 @@ SK_InstallWindowHook (HWND hWnd)
       rid.dwFlags     = RIDEV_INPUTSINK |
                         RIDEV_DEVNOTIFY;
 
-      RegisterRawInputDevices_Original (&rid, 1, sizeof RAWINPUTDEVICE);
+      SK_RegisterRawInputDevices (&rid, 1, sizeof RAWINPUTDEVICE);
     }
 
     SetLastError (dwLast);
@@ -4928,11 +5113,13 @@ SK_MakeWindowHook (WNDPROC class_proc, WNDPROC wnd_proc, HWND hWnd)
   else if (SK_GetModuleFromAddr (class_proc) != INVALID_HANDLE_VALUE)      target_proc = class_proc;
   else                                                                     target_proc = wnd_proc;
 
+
   // In case we cannot hook the target, try the other...
   alt_proc = ( target_proc == class_proc ? wnd_proc :
                                            class_proc );
 
-  bool hook_func = true;
+  bool hook_func = (! config.window.dont_hook_wndproc);
+
 
   if (hook_func)
   {
@@ -5001,11 +5188,11 @@ SK_MakeWindowHook (WNDPROC class_proc, WNDPROC wnd_proc, HWND hWnd)
     {
       //game_window.SetWindowLongPtr ( hWnd,
       game_window.unicode ?
-        SetWindowLongPtrW_Original ( hWnd,
-                                         GWLP_WNDPROC,
+        SK_SetWindowLongPtrW ( hWnd,
+                                 GWLP_WNDPROC,
               reinterpret_cast <LONG_PTR> (SK_DetourWindowProc) ) :
-        SetWindowLongPtrA_Original ( hWnd,
-                                         GWLP_WNDPROC,
+        SK_SetWindowLongPtrA ( hWnd,
+                                 GWLP_WNDPROC,
               reinterpret_cast <LONG_PTR> (SK_DetourWindowProc) );
     }
 
@@ -5607,3 +5794,101 @@ SK_DWM_EnableMMCSS (BOOL enable)
 
   return hr;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+BOOL
+WINAPI
+SK_ClipCursor (const RECT *lpRect)
+{
+  if (ClipCursor_Original != nullptr)
+    return ClipCursor_Original (lpRect);
+
+  return ClipCursor (lpRect);
+}
+
+BOOL
+WINAPI
+SK_GetCursorPos (LPPOINT lpPoint)
+{
+  if (GetCursorPos_Original != nullptr)
+    return GetCursorPos_Original (lpPoint);
+
+  return GetCursorPos (lpPoint);
+}
+
+BOOL
+WINAPI
+SK_GetCursorInfo (PCURSORINFO pci)
+{
+  if (GetCursorInfo_Original != nullptr)
+    return GetCursorInfo_Original (pci);
+
+  return GetCursorInfo (pci);
+}
+
+BOOL
+WINAPI
+SK_SetCursorPos (int X, int Y)
+{
+  if (SetCursorPos_Original != nullptr)
+    return SetCursorPos_Original (X, Y);
+
+  return SetCursorPos (X, Y);
+}
+
+UINT
+WINAPI
+SK_SendInput (UINT nInputs, LPINPUT pInputs, int cbSize)
+{
+  if (SendInput_Original != nullptr)
+    return SendInput_Original (nInputs, pInputs, cbSize);
+
+  return SendInput (nInputs, pInputs, cbSize);
+}
+
+BOOL
+WINAPI
+SK_SetWindowPos ( HWND hWnd,
+                  HWND hWndInsertAfter,
+                  int  X,
+                  int  Y,
+                  int  cx,
+                  int  cy,
+                  UINT uFlags )
+{
+  if (SetWindowPos_Original != nullptr)
+    return SetWindowPos_Original (hWnd, hWndInsertAfter, X, Y, cx, cy, uFlags);
+
+  return SetWindowPos (hWnd, hWndInsertAfter, X, Y, cx, cy, uFlags);
+}
+
+
+//SetWindowPlacement_pfn SetWindowPlacement_Original = nullptr;
+//MoveWindow_pfn         MoveWindow_Original         = nullptr;
+//SetWindowLong_pfn      SetWindowLongW_Original     = nullptr;
+//SetWindowLong_pfn      SetWindowLongA_Original     = nullptr;
+//GetWindowLong_pfn      GetWindowLongW_Original     = nullptr;
+//GetWindowLong_pfn      GetWindowLongA_Original     = nullptr;
+//SetWindowLongPtr_pfn   SetWindowLongPtrW_Original  = nullptr;
+//SetWindowLongPtr_pfn   SetWindowLongPtrA_Original  = nullptr;
+//GetWindowLongPtr_pfn   GetWindowLongPtrW_Original  = nullptr;
+//GetWindowLongPtr_pfn   GetWindowLongPtrA_Original  = nullptr;
+//AdjustWindowRect_pfn   AdjustWindowRect_Original   = nullptr;
+//AdjustWindowRectEx_pfn AdjustWindowRectEx_Original = nullptr;
+//
+//GetSystemMetrics_pfn   GetSystemMetrics_Original   = nullptr;
+//
+//GetWindowRect_pfn      GetWindowRect_Original      = nullptr;
+//GetClientRect_pfn      GetClientRect_Original      = nullptr;
