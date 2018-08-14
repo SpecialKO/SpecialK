@@ -31,6 +31,7 @@
 #include <limits.h>
 #include <assert.h>
 #include <intsafe.h>
+#include <WinUser.h>
 
 #include "../../include/MinHook/MinHook.h"
 #include "buffer.h"
@@ -245,7 +246,7 @@ EnterSpinLock (VOID)
         ;
     else
     {
-      MsgWaitForMultipleObjectsEx ( 0, NULL, 1, QS_ALLEVENTS, MWMO_INPUTAVAILABLE );
+      SleepEx ( 1, FALSE );
     }
 
     spinCount++;
@@ -624,7 +625,8 @@ static
 VOID
 FreezeEx (PFROZEN_THREADS pThreads, UINT pos, UINT action, UINT idx)
 {
-  HANDLE hThreadSelf = GetCurrentThread ();
+  HANDLE hThreadSelf =
+    GetCurrentThread ();
 
   pThreads->pItems   = NULL;
   pThreads->capacity = 0;
@@ -637,10 +639,110 @@ FreezeEx (PFROZEN_THREADS pThreads, UINT pos, UINT action, UINT idx)
 
   if (! GetThreadPriorityBoost (hThreadSelf, &pThreads->boost))
                                               pThreads->boost = -1;
-  else  SetThreadPriorityBoost (hThreadSelf, TRUE);
+  else  SetThreadPriorityBoost (hThreadSelf, FALSE);
                                            
 
   EnumerateThreads (pThreads);
+
+  // Prevent deadlocks with other hook software that might
+  //   be in the process of suspending stuff.
+  //
+  if (pThreads->pItems != NULL)
+  {
+    SIZE_T spinCount = 0;
+
+    UINT i = 0, frozen, running;
+
+          float frozen_ratio     = 0.0f; 
+    const float frozen_threshold = 0.01666f;
+
+    DWORD dwSelfThreadId =
+      GetCurrentThreadId ();
+
+    do {
+      if (spinCount != 0)
+      {
+        wchar_t wszOutput [256];
+               *wszOutput = L'\0';
+
+        wsprintf (wszOutput, L"MinHook: Deep Freeze: Ratio=%f [%f/%f] { Spins: %u }",
+                  frozen_ratio, (float)frozen, (float)running, spinCount);
+
+        OutputDebugStringW (wszOutput);
+      }
+
+      frozen  = 0;
+      running = 0;
+
+      if ((spinCount % 7) == 0)
+        SleepEx (1, FALSE);
+
+      if (spinCount >= 28)
+        break;
+
+      for (i = 0; i < pThreads->size; ++i)
+      {
+        PTHREAD_ENTRY pThread =
+          &pThreads->pItems [i];
+
+        if (pThread->tid == dwSelfThreadId)
+          continue;
+
+        HANDLE hThread =
+          OpenThread ( THREAD_ACCESS,
+                         FALSE,
+                           pThread->tid );
+
+        if (hThread != 0)
+        {
+          DWORD dwExitCode = 0;
+          DWORD  dwSuspend =
+            SuspendThread (hThread);
+
+          if (GetExitCodeThread (hThread, &dwExitCode))
+          {
+            if (dwExitCode == STILL_ACTIVE)
+            {
+              ++running;
+
+              if (dwSuspend < MAXIMUM_SUSPEND_COUNT)
+              {
+                 if (dwSuspend > 0)
+                {
+                  ++frozen;
+                }
+              }
+            }
+          }
+
+          else
+          {
+            ++running;
+
+            if (dwSuspend != (DWORD) -1)
+            {
+              if (dwSuspend > 0)
+              {
+                ++frozen;
+              }
+            }
+          }
+
+          if (dwSuspend != (DWORD)-1)
+            ResumeThread (hThread);
+
+          CloseHandle (hThread);
+        }
+      }
+
+      frozen_ratio = (float)frozen /
+                     (float)running;
+
+      spinCount++;
+    } while ( frozen_ratio > frozen_threshold &&
+              frozen       > 1 );
+  }
+
 
   if (pThreads->pItems != NULL)
   {
@@ -656,18 +758,22 @@ FreezeEx (PFROZEN_THREADS pThreads, UINT pos, UINT action, UINT idx)
                        FALSE,
                          pThread->tid );
 
-      if (pThread->tid == GetCurrentThreadId ())
-        continue;
-
       pThread->suspensions = 0;
       pThread->runstate    = 2; // Unknown
 
-      if ( hThread != NULL && hThread != INVALID_HANDLE_VALUE && pThread->suspensions == 0)
+      if (hThread != NULL)
       {
+        if ( pThread->tid          == GetCurrentThreadId () ||
+             GetThreadId (hThread) != pThread->tid             )
+        {
+          continue;
+        }
+
         DWORD                            dwExitCode = 0;
         if (GetExitCodeThread (hThread, &dwExitCode))
         {
-          pThread->runstate = ( dwExitCode == STILL_ACTIVE ? 1 : 0 );
+          pThread->runstate =
+            ( dwExitCode == STILL_ACTIVE ? 1 : 0 );
         }
 
         if (pThread->runstate == 1)
@@ -675,40 +781,48 @@ FreezeEx (PFROZEN_THREADS pThreads, UINT pos, UINT action, UINT idx)
           DWORD dwRet,
                 dwErr = GetLastError ();
 
+          int tries = 0;
+#define   MAX_TRIES 16
+
           do
           {
-            if ((dwRet = SuspendThread (hThread)) != 0xFFFFFFFF)
+            ++tries;
+
+            if ( (dwRet = SuspendThread (hThread)) != (DWORD)-1 )
             {
               ++pThread->suspensions;
 
               // Thread is suspended, we can stop now
-              if (dwRet > 0)
+              if (dwRet < MAXIMUM_SUSPEND_COUNT)
                 break;
 
-              if (pThread->suspensions > 1)
+              --pThread->suspensions;
+            }
+
+            else
+            {
+              dwErr =
+                GetLastError ();
+
+              if ( dwErr == ERROR_THREAD_NOT_IN_PROCESS ||
+                   dwErr == ERROR_THREAD_WAS_SUSPENDED )
               {
-                //OutputDebugStringA ("[MinHook] Too many attempts to suspend a thread!");
+                pThread->runstate = 0;
                 break;
               }
             }
-
-            dwErr =
-              GetLastError ();
-
-            if ( dwErr == ERROR_THREAD_NOT_IN_PROCESS ||
-                 dwErr == ERROR_THREAD_WAS_SUSPENDED )
-            {
-              break;
-            }
-
           //if (dwErr != NO_ERROR) OutputDebugStringA ("dwErr != NO_ERROR");//assert (dwErr == NO_ERROR);
-          } while (pThread->suspensions == 0);
+          } while ( pThread->suspensions == 0 &&
+                    tries < MAX_TRIES );
 
-          if (pThread->suspensions != 0)
+          if ( pThread->runstate    != 0 &&
+               pThread->suspensions != 0    )
+          {
             ProcessThreadIPsEx (hThread, pos, action, idx);
+          }
         }
+        CloseHandle            (hThread);
       }
-      CloseHandle              (hThread);
     }
   }
 }
@@ -734,18 +848,24 @@ Unfreeze (PFROZEN_THREADS pThreads)
       PTHREAD_ENTRY pThread =
         &pThreads->pItems [i];
 
-      if ( pThread->runstate   == 1 &&
+      if ( pThread->runstate   == 1 ||
            pThread->suspensions > 0 )
       {
         HANDLE hThread =
-          OpenThread ( THREAD_SUSPEND_RESUME,
+          OpenThread ( THREAD_SUSPEND_RESUME |
+                       THREAD_QUERY_LIMITED_INFORMATION,
                          FALSE,
                            pThread->tid );
 
-        if ( hThread != NULL && hThread != INVALID_HANDLE_VALUE )
+        if ( hThread != NULL )
         {
-          for (j = 0; j < pThread->suspensions; ++j)
-            ResumeThread (hThread);
+          DWORD                                dwExit;
+          if ( (! GetExitCodeThread (hThread, &dwExit)) || 
+                                               dwExit == STILL_ACTIVE )
+          {
+            for (j = 0; j < pThread->suspensions; ++j)
+              ResumeThread (hThread);
+          }
 
           CloseHandle (hThread);
         }
@@ -825,7 +945,8 @@ static
 MH_STATUS
 EnableHookLL (UINT pos, BOOL enable)
 {
-  return EnableHookLLEx (pos, enable, 0);
+  return
+    EnableHookLLEx (pos, enable, 0);
 }
 
 //-------------------------------------------------------------------------
@@ -875,7 +996,8 @@ static
 MH_STATUS
 EnableAllHooksLL (BOOL enable)
 {
-  return EnableAllHooksLLEx (enable, 0);
+  return
+    EnableAllHooksLLEx (enable, 0);
 }
 
 //-------------------------------------------------------------------------
@@ -927,11 +1049,14 @@ MH_Uninitialize (VOID)
 {
   MH_STATUS status = MH_OK;
 
+  EnterSpinLock ();
+
   if (g_hHeap != NULL)
   {
     for (int i = 0; i < 4; i++)
     {
-      status = EnableAllHooksLLEx (FALSE, i);
+      status =
+        EnableAllHooksLLEx (FALSE, i);
 
       if (status == MH_OK)
       {
@@ -958,10 +1083,13 @@ MH_Uninitialize (VOID)
                         g_NtDll.hHeap = NULL;
                         g_hHeap       = NULL;
   }
+
   else
   {
     status = MH_ERROR_NOT_INITIALIZED;
   }
+
+  LeaveSpinLock ();
 
   return status;
 }
@@ -1145,13 +1273,16 @@ EnableHookEx (LPVOID pTarget, BOOL enable, UINT idx)
   {
     if (pTarget == MH_ALL_HOOKS)
     {
-      status = EnableAllHooksLLEx (enable, idx);
+      status =
+        EnableAllHooksLLEx (enable, idx);
     }
+
     else
     {
-      FROZEN_THREADS threads;
+      FROZEN_THREADS threads = { 0 };
 
-      UINT pos = FindHookEntryEx (pTarget, idx);
+      UINT pos =
+        FindHookEntryEx (pTarget, idx);
 
       if (pos != INVALID_HOOK_POS)
       {
@@ -1159,24 +1290,28 @@ EnableHookEx (LPVOID pTarget, BOOL enable, UINT idx)
         {
           FreezeEx (&threads, pos, ACTION_ENABLE, idx);
 
-          status = EnableHookLLEx (pos, enable, idx);
+          status =
+            EnableHookLLEx (pos, enable, idx);
 
           Unfreeze (&threads);
         }
         else
         {
-          status = enable ? MH_ERROR_ENABLED : MH_ERROR_DISABLED;
+          status = enable ? MH_ERROR_ENABLED :
+                            MH_ERROR_DISABLED;
         }
       }
+
       else
       {
         status = MH_ERROR_NOT_CREATED;
       }
     }
   }
+
   else
   {
-      status = MH_ERROR_NOT_INITIALIZED;
+    status = MH_ERROR_NOT_INITIALIZED;
   }
 
   LeaveSpinLock ();
@@ -1346,6 +1481,7 @@ MH_ApplyQueuedEx (UINT idx)
       Unfreeze (&threads);
     }
   }
+
   else
   {
     status = MH_ERROR_NOT_INITIALIZED;

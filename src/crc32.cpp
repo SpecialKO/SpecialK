@@ -276,7 +276,7 @@ crc32c_append_hw (uint32_t crc, const void *buf, size_t len)
 #else
   uint32_t
 #endif
-  crc0 = { }, crc1 = { }, crc2 = { };
+  crc0, crc1, crc2;
 
   /* pre-process the crc */
   crc0 = crc ^ 0xffffffff;

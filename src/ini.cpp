@@ -472,11 +472,11 @@ iSK_INI::parse (void)
         const iSK_INISection& section =
           Process_Section (sec_name, start, finish);
 
-        sections.insert (
+        sections.emplace (
           std::make_pair (sec_name, section)
         );
 
-        ordered_sections.push_back (sec_name);
+        ordered_sections.emplace_back (sec_name);
 
         if (eof)
           break;
@@ -672,11 +672,11 @@ iSK_INI::import (const wchar_t* import_data)
 
           section.parent = this;
 
-          sections.insert  (
+          sections.emplace  (
             std::make_pair  (sec_name, section)
           );
 
-          ordered_sections.push_back (sec_name);
+          ordered_sections.emplace_back (sec_name);
         }
 
         if (eof)
@@ -725,7 +725,8 @@ bool
 __stdcall
 iSK_INISection::contains_key (const wchar_t* key)
 {
-  return keys.count (key) > 0;
+  return
+    keys.count (key) > 0;
 }
 
 void
@@ -743,11 +744,17 @@ iSK_INISection::add_key_value (const wchar_t* key, const wchar_t* value)
 
   else
   {
-    std::wstring old = keys [key];
-          keys [key] = value;
-
-    if (parent != nullptr && old != value)
+    if (parent != nullptr)
+    {
+      if (! keys.at (key)._Equal (value))
+      {
         parent->crc32c_ = 0x0;
+        keys.at (key).assign (value);
+      }
+    }
+
+    else
+      keys.at (key).assign (value);
   }
 }
 

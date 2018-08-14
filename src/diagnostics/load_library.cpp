@@ -742,9 +742,13 @@ LoadPackagedLibrary_Detour (LPCWSTR lpLibFileName, DWORD Reserved)
                          (wcslen (lpLibFileName) + 1) *
             sizeof (wchar_t), true                           )
                                );
+  if (            compliant_path != nullptr)   {
         lstrcatW (compliant_path, lpLibFileName);
-  SK_FixSlashesW (compliant_path);
-  lpLibFileName = compliant_path;
+  SK_FixSlashesW (compliant_path);             } else 
+                  compliant_path =
+                       (wchar_t *)lpLibFileName;
+
+  lpLibFileName = compliant_path;              
 
   __try {
     GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, lpLibFileName, &hModEarly );
@@ -782,6 +786,8 @@ HMODULE
 WINAPI
 LoadLibraryEx_Marshal (LPVOID lpRet, LPCWSTR lpFileName, HANDLE hFile, DWORD dwFlags, const wchar_t* wszSourceFunc)
 {
+  //dwFlags &= ~LOAD_WITH_ALTERED_SEARCH_PATH;
+
   if (lpFileName == nullptr)
     return nullptr;
 
@@ -795,8 +801,11 @@ LoadLibraryEx_Marshal (LPVOID lpRet, LPCWSTR lpFileName, HANDLE hFile, DWORD dwF
                            (wcslen (lpFileName) + 1) *
               sizeof (wchar_t), true                           )
                                  );
+    if (            compliant_path != nullptr)   {
           lstrcatW (compliant_path, lpFileName);
-    SK_FixSlashesW (compliant_path);
+    SK_FixSlashesW (compliant_path);             } else 
+                    compliant_path =
+                         (wchar_t *)lpFileName;
   }
 
   SK_LockDllLoader ();
@@ -1463,11 +1472,31 @@ SK_WalkModules (int cbNeeded, HANDLE /*hProc*/, HMODULE* hMods, SK_ModuleEnum wh
             BOOL
             SK_Steam_PreHookCore (void);
 
-            if (SK_Steam_PreHookCore ())
-              new_hooks = true;
+            if (SK_GetCurrentGameID () != SK_GAME_ID::MonsterHunterWorld)
+            {
+              if (SK_Steam_PreHookCore ())
+                new_hooks = true;
+              
+              if (SK_HookSteamAPI () > 0)
+                new_hooks = true;
+            }
 
-            if (SK_HookSteamAPI () > 0)
-              new_hooks = true;
+            else
+            {
+              static volatile LONG __init = 0;
+
+              if (! InterlockedCompareExchange (&__init, TRUE, FALSE))
+              {
+                SK_Thread_Create ([](LPVOID) -> DWORD
+                {
+                  SK_HookSteamAPI ();
+
+                  SK_Thread_CloseSelf ();
+
+                  return 0;
+                });
+              }
+            }
           }
         }
       }

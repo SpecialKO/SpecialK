@@ -4,9 +4,6 @@
     <ClCompile Include="..\..\..\src\SKinHook\buffer.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\SKinHook\hook.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\src\SKinHook\trampoline.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -15,6 +12,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\src\SKinHook\hde\hde32.c">
       <Filter>HDE\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\SKinHook\hook.c">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -160,9 +160,9 @@ struct SK_XInputContext
 void
 SK_ApplyQueuedHooksIfInit (void)
 {
-  extern volatile LONG __SK_Init;
-
-  if (ReadAcquire (&__SK_Init) == 1)
+  //extern volatile LONG __SK_Init;
+  //
+  //if (ReadAcquire (&__SK_Init) == 1)
     SK_ApplyQueuedHooks ();
 }
 

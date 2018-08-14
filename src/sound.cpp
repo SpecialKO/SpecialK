@@ -527,7 +527,7 @@ SK_WASAPI_GetChannelName (int channel_idx)
   }
 
   if (channel_names.count (channel_idx))
-    return channel_names [channel_idx].c_str ();
+     return channel_names [channel_idx].c_str ();
 
   // We couldn't use the Speaker Config to get a name, so just return
   //   the ordinal instead and add that fallback name to the hashmap
@@ -584,17 +584,20 @@ SK_WASAPI_AudioSession::OnSessionDisconnected (AudioSessionDisconnectReason Disc
 IAudioEndpointVolume*
 SK_WASAPI_AudioSession::getEndpointVolume (void)
 {
-  return parent_->endpoint_vol_;
+  return
+    parent_->endpoint_vol_;
 }
 
 IAudioLoudness*
 SK_WASAPI_AudioSession::getLoudness (void)
 {
-  return parent_->loudness_;
+  return
+    parent_->loudness_;
 }
 
 IAudioAutoGainControl*
 SK_WASAPI_AudioSession::getAutoGainControl (void)
 {
-  return parent_->auto_gain_;
+  return
+    parent_->auto_gain_;
 }

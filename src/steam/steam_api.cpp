@@ -72,9 +72,9 @@ volatile LONG     SK_SteamAPI_CallbackRateLimit   = -1L;
 volatile LONG             __SK_Steam_init = FALSE;
 volatile LONG             __SteamAPI_hook = FALSE;
 
-         CRITICAL_SECTION callback_cs     = { };
-         CRITICAL_SECTION init_cs         = { };
-         CRITICAL_SECTION popup_cs        = { };
+extern SK_Thread_HybridSpinlock* steam_callback_cs;
+extern SK_Thread_HybridSpinlock* steam_popup_cs;
+extern SK_Thread_HybridSpinlock* steam_init_cs;
 
 #include <time.h>
 
@@ -1063,7 +1063,7 @@ SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
   std::wstring caller =
     SK_GetCallerName ();
 
-  EnterCriticalSection (&callback_cs);
+  steam_callback_cs->lock ();
 
   switch (iCallback)
   {
@@ -1160,7 +1160,7 @@ SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
   if (iCallback != UserStatsReceived_t::k_iCallback)
     SteamAPI_RegisterCallback_Original (pCallback, iCallback);
 
-  LeaveCriticalSection (&callback_cs);
+  steam_callback_cs->unlock ();
 }
 
 void
@@ -1193,7 +1193,7 @@ SteamAPI_UnregisterCallback_Detour (class CCallbackBase *pCallback)
   std::wstring caller =
     SK_GetCallerName ();
 
-  EnterCriticalSection (&callback_cs);
+  steam_callback_cs->lock ();
 
   int iCallback = pCallback->GetICallback ();
 
@@ -1299,7 +1299,7 @@ SteamAPI_UnregisterCallback_Detour (class CCallbackBase *pCallback)
 
   SteamAPI_UnregisterCallback_Original (pCallback);
 
-  LeaveCriticalSection (&callback_cs);
+  steam_callback_cs->unlock ();
 }
 
 const char*
@@ -1673,8 +1673,8 @@ SK_Steam_RarityToName (float percent)
 }
 
 bool           has_global_data  = false;
-ULONG          next_friend      = 0UL;
-ULONG          friend_count     = 0UL;
+LONG           next_friend      = 0;
+LONG           friend_count     = 0;
 SteamAPICall_t friend_query     = 0;
 LONGLONG       friends_done     = 0;
 
@@ -1815,7 +1815,7 @@ public:
       friends->GetFriendCount (k_EFriendFlagImmediate);
 
     // OFFLINE MODE
-    if (friend_count == UINT32_MAX || friend_count > 8192)
+    if (friend_count <= 0 || friend_count > 8192)
       friend_count = 0;
 
     else {
@@ -1946,13 +1946,14 @@ public:
           friend_count =
             friends->GetFriendCount (k_EFriendFlagImmediate);
 
-          friend_stats.resize       (friend_count);
-          friend_sid_to_idx.reserve (friend_count);
-
-          if (friend_count > 0 && friend_count != MAXUINT32)
+          // May be -1 in offline mode
+          if (friend_count > 0)
           {
+            friend_stats.resize       (friend_count);
+            friend_sid_to_idx.reserve (friend_count);
+
             // Enumerate all known friends immediately
-            for (unsigned int i = 0 ; i < friend_count; i++)
+            for (int i = 0 ; i < friend_count; i++)
             {
               CSteamID sid ( friends->GetFriendByIndex ( i,
                                                            k_EFriendFlagImmediate
@@ -2274,7 +2275,7 @@ public:
       if ( pSys                 != nullptr &&
            pSys->getRenderer () != nullptr )
       {
-        EnterCriticalSection (&popup_cs);
+        steam_popup_cs->lock ();
 
         try
         {
@@ -2292,24 +2293,24 @@ public:
         {
         }
 
-        LeaveCriticalSection (&popup_cs);
+        steam_popup_cs->unlock ();
       }
     }
   }
 
   void clearPopups (void)
   {
-    EnterCriticalSection (&popup_cs);
+    steam_popup_cs->lock ();
 
     if (popups.empty ())
     {
-      LeaveCriticalSection (&popup_cs);
+      steam_popup_cs->unlock ();
       return;
     }
 
     popups.clear ();
 
-    LeaveCriticalSection (&popup_cs);
+    steam_popup_cs->unlock ();
   }
 
   int drawPopups (void)
@@ -2319,11 +2320,11 @@ public:
 
     int drawn = 0;
 
-    EnterCriticalSection (&popup_cs);
+    steam_popup_cs->lock ();
 
     if (popups.empty ())
     {
-      LeaveCriticalSection (&popup_cs);
+      steam_popup_cs->unlock ();
       return drawn;
     }
 
@@ -2560,7 +2561,7 @@ public:
       catch (...) {}
     }
     //SK_PopupManager::getInstance ()->unlockPopups ();
-    LeaveCriticalSection (&popup_cs);
+    steam_popup_cs->unlock ();
 
     return drawn;
   }
@@ -2695,9 +2696,9 @@ public:
          psn  = false,
          dt   = false;
 
-    wchar_t wszFileName [MAX_PATH + 2] = { };
+    wchar_t wszFileName [MAX_PATH * 2 + 1] = { };
 
-    if (! wcslen (wszUnlockSound))
+    if (*wszUnlockSound == L'\0')
     {
       iSK_INI achievement_ini (
         std::wstring (
@@ -2721,7 +2722,9 @@ public:
 
       if (achievement_ini.contains_section (L"Steam.Achievements"))
       {
-        iSK_INISection& sec = achievement_ini.get_section (L"Steam.Achievements");
+        iSK_INISection& sec =
+          achievement_ini.get_section (L"Steam.Achievements");
+
         if (sec.contains_key (L"SoundFile"))
           wcscpy (wszFileName, sec.get_value (L"SoundFile").c_str ());
       }
@@ -2739,9 +2742,11 @@ public:
     else if ((! _wcsicmp (wszFileName, L"dream_theater")))
       dt   = true;
 
-    FILE* fWAV = _wfopen (wszFileName, L"rb");
+    FILE *fWAV = nullptr;
 
-    if ((! psn) && (! xbox) && fWAV != nullptr)
+    if ( (!  psn) &&
+         (! xbox) && 
+         (!   dt) && (fWAV = _wfopen (wszFileName, L"rb")) != nullptr )
     {
       SK_StripUserNameFromPathW (wszFileName);
 
@@ -2999,7 +3004,7 @@ protected:
     {
       std::string app_name = SK::SteamAPI::AppName ();
 
-      if (strlen (app_name.c_str ()))
+      if (! app_name.empty ())
       {
         achv_popup->setText (
           (const CEGUI::utf8 *)app_name.c_str ()
@@ -3479,6 +3484,9 @@ SteamAPI_PumpThread (LPVOID user)
   bool   start_immediately = (user != nullptr);
   double callback_freq     =  0.0;
 
+  if (SK_GetCurrentGameID () == SK_GAME_ID::MonsterHunterWorld)
+    start_immediately = true;
+
   if (! start_immediately)
   {
     // Wait 5 seconds, then begin a timing investigation
@@ -3839,10 +3847,10 @@ SK_UseManifestToGetAppName (uint32_t appid)
         char* szAppName =
           StrStrIA (manifest_data, R"("name")");
 
-        char szGameName [513] = { };
-
         if (szAppName != nullptr)
         {
+          char szGameName [513] = { };
+
           // Make sure everything is lowercase
           memcpy (szAppName, R"("name")", 6);
 
@@ -4026,7 +4034,7 @@ SK::SteamAPI::SetOverlayState (bool active)
   if (config.steam.silent)
     return;
 
-  EnterCriticalSection (&callback_cs);
+  steam_callback_cs->lock ();
 
   for ( auto& it : overlay_activation_callbacks )
   {
@@ -4039,7 +4047,7 @@ SK::SteamAPI::SetOverlayState (bool active)
                                              );
   }
 
-  LeaveCriticalSection (&callback_cs);
+  steam_callback_cs->unlock ();
 }
 
 bool
@@ -4114,7 +4122,7 @@ SteamAPI_InitSafe_Detour (void)
   if (ReadAcquire (&__SK_Steam_init))
     return SteamAPI_InitSafe_Original ();
 
-  EnterCriticalSection (&init_cs);
+  steam_init_cs->lock ();
 
   static int init_tries = -1;
 
@@ -4146,11 +4154,11 @@ SteamAPI_InitSafe_Detour (void)
       SK_Steam_StartPump (config.steam.force_load_steamapi);
     }
 
-    LeaveCriticalSection (&init_cs);
+    steam_init_cs->unlock ();
     return true;
   }
 
-  LeaveCriticalSection (&init_cs);
+  steam_init_cs->unlock ();
   return false;
 }
 
@@ -4160,9 +4168,9 @@ SteamAPI_Shutdown_Detour (void)
 {
   steam_log.Log (L" *** Game called SteamAPI_Shutdown (...)");
 
-  EnterCriticalSection         (&init_cs);
-  SK_Steam_KillPump            ();
-  LeaveCriticalSection         (&init_cs);
+  steam_init_cs->lock   ();
+  SK_Steam_KillPump     ();
+  steam_init_cs->unlock ();
 
 
   if (! ReadAcquire (&__SK_DLL_Ending))
@@ -4234,13 +4242,13 @@ SteamAPI_Init_Detour (void)
 {
   bool bRet = false;
 
-  EnterCriticalSection (&init_cs);
+  steam_init_cs->lock ();
 
   // In case we already initialized stuff...
   if (ReadAcquire (&__SK_Steam_init))
   {
     bRet = SK_SAFE_SteamAPI_Init ();
-    LeaveCriticalSection  (&init_cs);
+    steam_init_cs->unlock ();
     return bRet;
   }
 
@@ -4322,7 +4330,7 @@ SteamAPI_Init_Detour (void)
     }
   }
 
-  LeaveCriticalSection (&init_cs);
+  steam_init_cs->unlock ();
 
   return bRet;
 }
@@ -4354,10 +4362,6 @@ SK_Steam_InitCommandConsoleVariables (void)
 {
   steam_log.init (L"logs/steam_api.log", L"wt+,ccs=UTF-8");
   steam_log.silent = config.steam.silent;
-
-  InitializeCriticalSectionAndSpinCount (&callback_cs, 1024UL);
-  InitializeCriticalSectionAndSpinCount (&popup_cs,    4096UL);
-  InitializeCriticalSectionAndSpinCount (&init_cs,     1024UL);
 
   SK_ICommandProcessor* cmd =
     SK_GetCommandProcessor ();
@@ -4872,7 +4876,7 @@ SK_Steam_TestImports (HMODULE hMod)
   const wchar_t* steam_dll_str =
     SK_Steam_GetDLLPath ();
 
-  if (wcslen (steam_dll_str) == 0 || StrStrIW (steam_dll_str, L"SpecialK"))
+  if (*steam_dll_str == L'\0' || StrStrIW (steam_dll_str, L"SpecialK"))
     config.steam.force_load_steamapi = true;
 
   sk_import_test_s steam_api [] = { { SK_RunLHIfBitness ( 64, "steam_api64.dll",

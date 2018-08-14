@@ -347,12 +347,12 @@ iSK_Logger::LogEx ( bool                 _Timestamp,
   }
 
 
-
   va_list   _ArgList;
   va_start (_ArgList, _Format);
-
   size_t len =
-    _vscwprintf (_Format, _ArgList) + 1 + 32; // 32 extra for timestamp
+    _vscwprintf (      _Format, 
+            _ArgList) + 1 + 32; // 32 extra for timestamp
+  va_end   (_ArgList);
                                               
 
   wchar_t* wszOut =
@@ -360,17 +360,21 @@ iSK_Logger::LogEx ( bool                 _Timestamp,
       len, true
     );
 
+  if (! wszOut)
+    return;
+
+
   wchar_t *wszAfterStamp =
     ( _Timestamp ? ( wszOut + wcslen (wszFormattedTime) ) :
                      wszOut );
-
   if (_Timestamp)
   {
     wcscpy (wszOut, wszFormattedTime);
   }
 
+  va_start   (_ArgList,      _Format);
   _vswprintf (wszAfterStamp, _Format, _ArgList);
-  va_end   (_ArgList);
+  va_end     (_ArgList);
 
   lock   ();
   //if (! lockless)
@@ -406,19 +410,28 @@ iSK_Logger::Log   ( _In_z_ _Printf_format_string_
   va_start (_ArgList, _Format);
 
   size_t len =
-    _vscwprintf (_Format, _ArgList) + 1 +  2  //  2 extra for CrLf
-                                        + 32; // 32 extra for timestamp
+    _vscwprintf (     _Format,
+            _ArgList) + 1 +  2  //  2 extra for CrLf
+                         + 32; // 32 extra for timestamp
+  va_end   (_ArgList);
+
 
   wchar_t* wszOut =
     SK_TLS_Bottom ()->scratch_memory.log.formatted_output.alloc (
       len, true
     );
 
+  if (! wszOut)
+    return;
+
+
   wchar_t *wszAfterStamp =
     wszOut + wcslen (wszFormattedTime);
     wcscpy  (wszOut, wszFormattedTime);
 
-  _vswprintf (wszAfterStamp, _Format, _ArgList);
+  va_start (_ArgList,        _Format);
+  _vswprintf (wszAfterStamp, _Format,
+            _ArgList);
   va_end   (_ArgList);
 
   lstrcatW (wszAfterStamp, L"\n");

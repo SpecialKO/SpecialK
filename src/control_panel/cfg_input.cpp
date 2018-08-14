@@ -47,12 +47,12 @@ using namespace SK::ControlPanel;
 void SK_ImGui_UpdateCursor (void)
 {
   POINT orig_pos;
-  GetCursorPos_Original (&orig_pos);
-  SetCursorPos_Original (0, 0);
+  SK_GetCursorPos (&orig_pos);
+  SK_SetCursorPos (0, 0);
 
   SK_ImGui_Cursor.update ();
 
-  SetCursorPos_Original (orig_pos.x, orig_pos.y);
+  SK_SetCursorPos (orig_pos.x, orig_pos.y);
 }
 
 extern ImVec2 SK_ImGui_LastWindowCenter;
@@ -74,7 +74,7 @@ SK_ImGui_CenterCursorAtPos (ImVec2 center = SK_ImGui_LastWindowCenter)
     SK_ImGui_Cursor.orig_img = GetCursor ();
 
   SK_ImGui_Cursor.LocalToScreen (&screen_pos);
-  SetCursorPos_Original         ( screen_pos.x,
+  SK_SetCursorPos               ( screen_pos.x,
                                   screen_pos.y );
 
   io.WantCaptureMouse = true;

@@ -44,8 +44,7 @@
 #include <SpecialK/command.h>
 #include <SpecialK/utility.h>
 
-extern CRITICAL_SECTION callback_cs;
-extern CRITICAL_SECTION init_cs;
+extern SK_Thread_HybridSpinlock* steam_init_cs;
 
 volatile ULONG __CSteamworks_hook = FALSE;
 
@@ -258,12 +257,12 @@ bool
 S_CALLTYPE
 InitSafe_Detour (void)
 {
-  EnterCriticalSection (&init_cs);
+  steam_init_cs->lock ();
 
   // In case we already initialized stuff...
   if (ReadAcquire (&__SK_Steam_init))
   {
-    LeaveCriticalSection (&init_cs);
+    steam_init_cs->unlock ();
     return true;
   }
 
@@ -294,12 +293,12 @@ InitSafe_Detour (void)
 
       SK_Steam_StartPump ();
 
-      LeaveCriticalSection (&init_cs);
+      steam_init_cs->unlock ();
       return true;
     }
   }
 
-  LeaveCriticalSection (&init_cs);
+  steam_init_cs->unlock ();
   return false;
 }
 
@@ -345,11 +344,11 @@ SK_HookCSteamworks (void)
 
   bool has_steamapi = false;
 
-  EnterCriticalSection (&init_cs);
+  steam_init_cs->lock ();
   if ( InterlockedCompareExchange (&__CSteamworks_hook, TRUE, FALSE) ||
        InterlockedCompareExchange (&__SteamAPI_hook,    FALSE, FALSE) )
   {
-    LeaveCriticalSection (&init_cs);
+    steam_init_cs->unlock ();
     return;
   }
 
@@ -457,5 +456,5 @@ SK_HookCSteamworks (void)
     }
   }
 
-  LeaveCriticalSection (&init_cs);
+  steam_init_cs->unlock ();
 }

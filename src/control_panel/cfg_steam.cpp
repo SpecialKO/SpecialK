@@ -157,22 +157,33 @@ SK::ControlPanel::Steam::Draw (void)
           {
             ImGui::SameLine ();
             
+            static const std::unordered_map <std::wstring, int> sound_map
+            {  { L"psn", 0 }, { L"xbox", 1 }, { L"dream_theater", 2 }  };
+
+            static const std::unordered_map <int, std::wstring> sound_map_rev
+            {  { 0, L"psn" }, { 1, L"xbox" }, { 2, L"dream_theater" }  };
+
             int i = 0;
             
-            if (! _wcsicmp (config.steam.achievements.sound_file.c_str (), L"xbox"))
-              i = 1;
-            else if (! _wcsicmp (config.steam.achievements.sound_file.c_str (), L"psn"))
-              i = 0;
-            else
-              i = 2;
+            try                                    { i =
+              sound_map.at (config.steam.achievements.sound_file); }
+            catch ( const std::out_of_range& ) { 
+              if (config.steam.achievements.sound_file.empty ())
+              { i = 0; } else { i = 3; }
+            }
             
-            if (ImGui::Combo ("", &i, "PlayStation Network\0Xbox Live\0Dream Theater\0\0", 3))
+            if (ImGui::Combo ("", &i, "PlayStation Network\0Xbox Live\0Dream Theater\0Custom\0\0", 4))
             {
-              if      (i == 0) config.steam.achievements.sound_file = L"psn";
-              else if (i == 1) config.steam.achievements.sound_file = L"xbox";
-              else             config.steam.achievements.sound_file = L"dream_theater";
-            
-              SK_Steam_LoadUnlockSound (config.steam.achievements.sound_file.c_str ());
+              try {
+                config.steam.achievements.sound_file =
+                  sound_map_rev.at (i);
+
+                SK_Steam_LoadUnlockSound (
+                  config.steam.achievements.sound_file.c_str ()
+                );
+              }
+
+              catch ( const std::out_of_range& ) {}
             }
           }
 
@@ -713,30 +724,30 @@ SK::ControlPanel::Steam::Draw (void)
       bool valid = (! config.steam.silent);
 
       valid = valid && (! SK_Steam_PiratesAhoy ());
-
+      
       if (valid)
       {
         bool publisher_is_stupid = false;
-
+      
         if (config.steam.spoof_BLoggedOn)
         {
           const auto status =
             static_cast <int> (SK_SteamUser_BLoggedOn ());
-
+      
           if (status & static_cast <int> (SK_SteamUser_LoggedOn_e::Spoofing))
           {
             publisher_is_stupid = true;
-
+      
             ImGui::PushStyleColor (ImGuiCol_TextDisabled,  ImColor::HSV (0.074f, 1.f, 1.f));
             ImGui::MenuItem       ("This game's publisher may consider you a pirate! :(", "", nullptr, false);
             ImGui::PopStyleColor  ();
           }
         }
-
+      
         if (! publisher_is_stupid)
           ImGui::MenuItem ("I am not a pirate!", "", &valid, false);
       }
-
+      
       else
       {
         ImGui::MenuItem (u8"I am probably a pirate moron™", "", &valid, false);

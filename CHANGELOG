@@ -1,3 +1,28 @@
+ + Removed Inject Metadata button from scRGB mode
+ + Set range of HDR luminance sliders to monitor's reported capabilities
+ + Added HDR luminance setting persistence for ImGui
+ + Added tooltip on CPU widget if WinRing0 is not installed
+ + Added June 2010 DX Redistributable Check _BEFORE_ loading CEGUI
+
+  + Added RenderTarget details to the Live RT View in D3D11 Mod Tools;
+
+    * Also added support for displaying rendertargets that don't have
+        Shader Resource bind flags (i.e. the swapchain backbuffer)
+
+  + Added CPU driver for AMD Zen and (most) Intel chips Pentium 4 or newer
+   >> Run SKIM64 as admin once to install this driver
+   >> Use the CPU widget to see these stats
+
+   + Added powerscheme options, stored per-game, to control the Windows
+       Power management engine -- you can setup a per-game preference by
+         clicking the scheme name in the CPU widget.
+
+ + Changed the formatting of crash logs
+ + Fixed mousewheel scroll behavior in ImGui
+ + Added HUDless screenshots to Monster Hunters World and Yakuza 0
+ + Fixed several issues witrh "Smart Capture" screenshots in D3D11
+
+
 0.9.23:
 
    ( D3D11 ReShade and various mod features for D3D11 games may not work

@@ -81,11 +81,13 @@ enum SK_TLS_CleanupReason_e
 };
 
 
+class SK_TLS;
+
 // Low-level construct, encapsulates a TLS slot's kernel index
 //   and a pointer to any allocated storage.
 struct SK_TlsRecord {
-  DWORD  dwTlsIdx;
-  LPVOID lpvData;
+  DWORD   dwTlsIdx;
+  SK_TLS *pTLS;
 };
 
 SK_TlsRecord SK_GetTLS     (bool initialize = false);
@@ -104,7 +106,9 @@ public:
         _aligned_free (data);
 
       len  = std::max (len, needed);
-      data = (_T *)_aligned_malloc (len * sizeof (_T), 16);
+      data = static_cast <_T *> (
+        _aligned_malloc (len * sizeof (_T), 16)
+      );
 
       if (data == nullptr)
         len = 0;
@@ -174,7 +178,9 @@ public:
         SK_LocalFree ((HLOCAL)data);
 
       len  = std::max (len, needed);
-      data = (_T *)SK_LocalAlloc (LMEM_FIXED, len * sizeof (_T));
+      data = static_cast <_T *>(
+        SK_LocalAlloc (LMEM_FIXED, len * sizeof (_T))
+      );
 
       if (data == nullptr)
         len = 0;
@@ -630,7 +636,7 @@ public:
     DWORD            tls_idx       =     0;
     HANDLE           handle        = INVALID_HANDLE_VALUE;
     DWORD            tid           = GetCurrentThreadId ();
-    ULONG            last_frame    = (ULONG)-1;
+    ULONG            last_frame    = static_cast <ULONG>(-1);
     bool             mapped        = false;
     volatile LONG    exceptions    =     0;
   } debug;
@@ -690,60 +696,3 @@ private:
 
 
 extern volatile LONG _SK_IgnoreTLSAlloc;
-
-__forceinline
-SK_TlsRecord
-SK_GetTLS (bool initialize)
-{
-  DWORD dwTlsIdx =
-    ReadAcquire (&__SK_TLS_INDEX);
-
-  LPVOID lpvData =
-    nullptr;
-
-  if ( dwTlsIdx != TLS_OUT_OF_INDEXES )
-  {
-    InterlockedIncrement (&_SK_IgnoreTLSAlloc);
-
-    lpvData =
-      FlsGetValue (dwTlsIdx);
-
-    if (lpvData == nullptr)
-    {
-      if (GetLastError () == ERROR_SUCCESS)
-      {
-        lpvData =
-          SK_LocalAlloc (LPTR, sizeof (SK_TLS));
-
-        if (! FlsSetValue (dwTlsIdx, lpvData))
-        {
-          SK_LocalFree (lpvData);
-                        lpvData = nullptr;
-        }
-
-        else initialize = true;
-      }
-    }
-
-    if (lpvData != nullptr && initialize)
-    {
-      SK_TLS* pTLS =
-        static_cast <SK_TLS *> (lpvData);
-
-      *pTLS =
-         std::move (SK_TLS::SK_TLS ());
-
-      pTLS->scheduler.objects_waited =
-        new (std::unordered_map <HANDLE, SK_Sched_ThreadContext::wait_record_s>);
-
-      pTLS->debug.tls_idx = dwTlsIdx;
-    }
-    InterlockedDecrement (&_SK_IgnoreTLSAlloc);
-  }
-
-  else
-    dwTlsIdx = TLS_OUT_OF_INDEXES;
-
-  return
-    { dwTlsIdx, lpvData };
-}

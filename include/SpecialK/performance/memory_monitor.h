@@ -68,15 +68,12 @@ struct process_stats_t : WMI_refresh_instance_thread_t
   } tasks;
 };
 
-extern process_stats_t process_stats;
-
 DWORD
 WINAPI
 SK_MonitorProcess (LPVOID user);
 
 
-        process_stats_t& __SK_WMI_ProcessStats (void);
-#define process_stats    __SK_WMI_ProcessStats ()
+process_stats_t& __SK_WMI_ProcessStats (void);
 
 
 #endif /* __SK__MEMORY_MONITOR_H__ */

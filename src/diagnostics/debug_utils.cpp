@@ -85,6 +85,11 @@ typedef FARPROC (WINAPI *GetProcAddress_pfn)(HMODULE,LPCSTR);
 #define STATUS_SUCCESS     0
 
 
+                         typedef BOOL (WINAPI *SetThreadPriority_pfn)(HANDLE, int);
+                      SetThreadPriority_pfn
+                      SetThreadPriority_Original = nullptr;
+
+
 #if 0
 typedef struct _LDR_DATA_TABLE_ENTRY
 {
@@ -256,7 +261,7 @@ GetProcAddress_Detour     (
   //  }
   //
   //  FARPROC proc =
-  //    GetProcAddress_Original (hModule, lpProcName);
+    //    GetProcAddress_Original (hModule, lpProcName);
   //
   //  if (proc != nullptr)
   //  {
@@ -596,7 +601,7 @@ OutputDebugStringA_Detour (LPCSTR lpOutputString)
   game_debug.LogEx (true,   L"%-72ws:  %hs", wszModule, lpOutputString);
 //fwprintf         (stdout, L"%hs",          lpOutputString);
   
-  if (! strstr (lpOutputString, "\n"))
+  if (! strchr (lpOutputString, '\n'))
     game_debug.LogEx (false, L"\n");
   
   OutputDebugStringA_Original (lpOutputString);
@@ -613,7 +618,7 @@ OutputDebugStringW_Detour (LPCWSTR lpOutputString)
   game_debug.LogEx (true,   L"%-72ws:  %ws", wszModule, lpOutputString);
 //fwprintf         (stdout, L"%ws",                     lpOutputString);
 
-  if (! wcsstr (lpOutputString, L"\n"))
+  if (! wcschr (lpOutputString, L'\n'))
     game_debug.LogEx (false, L"\n");
 
   OutputDebugStringW_Original (lpOutputString);
@@ -1085,7 +1090,7 @@ const ULONG_PTR *lpArguments         )
                 info->szName,
                    255, &len)
                 )                        &&
-                          len  > 0       &&
+                         len   > 0       &&
                 info->dwFlags == 0       &&
                 info->dwType  == 4096;
 
@@ -1133,6 +1138,72 @@ const ULONG_PTR *lpArguments         )
           else if ((! sk_ffxv_async_run.hThread) && StrStrIA (info->szName, "AsyncFile.Run"))
           {
             sk_ffxv_async_run.setup (hThread);
+          }
+        }
+      }
+
+      if (SK_GetCurrentGameID () == SK_GAME_ID::MonsterHunterWorld)
+      {
+        if (info->szName != 0)
+        {
+          HANDLE hThread =
+            OpenThread ( THREAD_ALL_ACCESS,
+                           FALSE,
+                             info->dwThreadID );
+
+          if (hThread != 0)
+          {
+            if (StrStrA (info->szName, "Intecept"))
+            {
+              SetThreadPriority      (hThread, THREAD_PRIORITY_HIGHEST);
+              SetThreadPriorityBoost (hThread, TRUE);
+            }
+
+            else if (StrStrA (info->szName, "Loader"))
+            {
+              SetThreadPriority      (hThread, THREAD_PRIORITY_ABOVE_NORMAL);
+              SetThreadPriorityBoost (hThread, FALSE);
+            }
+
+            else if (StrStrA (info->szName, "Rendering Thread"))
+            {
+              SetThreadPriority      (hThread, THREAD_PRIORITY_HIGHEST);
+              SetThreadPriorityBoost (hThread, TRUE);
+            }
+
+            else if (StrStrA (info->szName, "Job Thread"))
+            {
+              static int idx = 0;
+
+              SYSTEM_INFO        si = {};
+              SK_GetSystemInfo (&si);
+
+              sscanf (info->szName, "Job Thread - %i", &idx);
+
+              extern bool __SK_MHW_JobParity;
+              extern bool __SK_MHW_JobParityPhysical;
+
+              if (__SK_MHW_JobParity)
+              {
+                extern int
+                SK_CPU_CountPhysicalCores (void);
+
+                int max_procs = si.dwNumberOfProcessors;
+
+                if (__SK_MHW_JobParityPhysical == true)
+                {
+                  max_procs =
+                    SK_CPU_CountPhysicalCores ();
+                }
+
+                if (idx > max_procs)
+                {
+                  TerminateThread (hThread, 0);
+                }
+              }
+            }
+
+            CloseHandle (hThread);
           }
         }
       }
@@ -1240,9 +1311,20 @@ const ULONG_PTR *lpArguments         )
   //  __debugbreak ();
 
   RaiseException_Original (
-    dwExceptionCode, dwExceptionFlags,
-      nNumberOfArguments, lpArguments
-    );
+      dwExceptionCode, dwExceptionFlags,
+        nNumberOfArguments, lpArguments
+      );
+}
+
+BOOL
+WINAPI SetThreadPriority_Detour ( HANDLE hThread,
+                                  int    nPriority )
+{
+  if (hThread == nullptr)
+    hThread = GetCurrentThread ();
+
+  return
+    SetThreadPriority_Original (hThread, nPriority);
 }
 
 
@@ -1274,10 +1356,10 @@ SK::Diagnostics::Debugger::Allow (bool bAllow)
                              ExitProcess_Detour,
     static_cast_p2p <void> (&ExitProcess_Original) );
 
-  SK_CreateDLLHook2 (      L"kernel32",
-                            "DebugBreak",
-                             DebugBreak_Detour,
-    static_cast_p2p <void> (&DebugBreak_Original) );
+  ///SK_CreateDLLHook2 (      L"kernel32",
+  ///                          "DebugBreak",
+  ///                           DebugBreak_Detour,
+  ///  static_cast_p2p <void> (&DebugBreak_Original) );
 
     ///SK_CreateDLLHook2 (      L"NtDlll",
     ///                        "DbgBreakPoint",
@@ -1302,15 +1384,24 @@ static_cast_p2p <void> (&GetCommandLineW_Original) );
                          GetCommandLineA_Detour,
 static_cast_p2p <void> (&GetCommandLineA_Original) );
 
-  SK_CreateDLLHook2 (      L"kernel32",
-                           "ResetEvent",
-                            ResetEvent_Detour,
-   static_cast_p2p <void> (&ResetEvent_Original) );
+  SK_CreateDLLHook2 (  L"kernel32",
+                        "ResetEvent",
+                         ResetEvent_Detour,
+static_cast_p2p <void> (&ResetEvent_Original) );
 
+    SK_CreateDLLHook2 (   L"kernel32",
+                           "SetThreadPriority",
+                            SetThreadPriority_Detour,
+   static_cast_p2p <void> (&SetThreadPriority_Original) );
+
+#if 1
   SK_CreateDLLHook2 (      L"kernel32",
                            "RaiseException",
                             RaiseException_Detour,
    static_cast_p2p <void> (&RaiseException_Original) );
+#else
+  RaiseException_Original = (RaiseException_pfn)SK_GetProcAddress (L"kernel32", "RaiseException");
+#endif
 
   SK_CreateDLLHook2 (      L"NtDll.dll",
                            "NtCreateThreadEx",
@@ -1802,7 +1893,7 @@ SymFromAddr (
 
   if (SymFromAddr_Imp != nullptr)
   {
-  //std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+    std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
     SK_SymSetOpts ();
 
@@ -1979,6 +2070,33 @@ SymSetSearchPathW (
   //std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
     return SymSetSearchPathW_Imp (hProcess, SearchPath);
+  }
+
+  return FALSE;
+}
+
+typedef BOOL (IMAGEAPI *SymGetSearchPathW_pfn)(HANDLE,PWSTR,DWORD);
+
+BOOL
+IMAGEAPI
+SymGetSearchPathW (
+    _In_      HANDLE hProcess,
+    _Out_opt_ PWSTR  SearchPath,
+    _In_      DWORD  SearchPathLength)
+{
+  using SymGetSearchPathW_pfn = BOOL (IMAGEAPI *)( _In_  HANDLE hProcess,
+                                                   _Out_ PWSTR  SearchPath,
+                                                   _In_  DWORD  SearchPathLength );
+
+  static auto SymGetSearchPathW_Imp =
+    (SymGetSearchPathW_pfn)
+      GetProcAddress ( SK_Debug_LoadHelper (), "SymGetSearchPathW" );
+
+  if (SymGetSearchPathW_Imp != nullptr)
+  {
+  //std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+
+    return SymGetSearchPathW_Imp (hProcess, SearchPath, SearchPathLength);
   }
 
   return FALSE;

@@ -77,33 +77,47 @@ SK_UTF8ToWideChar (const std::string& in)
 std::wstring&
 SK_GetDocumentsDir (void)
 {
+  static volatile LONG __init = 0;
+
   // Fast Path  (cached)
   //
   static std::wstring dir = L"";
 
-  if (! dir.empty ())
-    return dir;
-
-  CHandle  hToken (INVALID_HANDLE_VALUE);
-  wchar_t* str    = nullptr;
-
-  if (! OpenProcessToken (SK_GetCurrentProcess (), TOKEN_QUERY | TOKEN_IMPERSONATE |
-                                                   TOKEN_READ, &hToken.m_h))
+  if (ReadAcquire (&__init) == 2)
   {
-    dir = L"(null)";
-    return dir;
+    if (! dir.empty ())
+      return dir;
   }
 
-  HRESULT hr =
-    SHGetKnownFolderPath (FOLDERID_Documents, 0, hToken, &str);
-
-  dir = (SUCCEEDED (hr) ? str : L"UNKNOWN");
-
-  if (SUCCEEDED (hr))
+  if (! InterlockedCompareExchange (&__init, 1, 0))
   {
-    CoTaskMemFree (str);
-    return dir;
+    CHandle  hToken (INVALID_HANDLE_VALUE);
+    wchar_t* str    = nullptr;
+
+    if (! OpenProcessToken (SK_GetCurrentProcess (), TOKEN_QUERY | TOKEN_IMPERSONATE |
+                                                     TOKEN_READ, &hToken.m_h))
+    {
+      dir = L"(null)";
+
+      InterlockedIncrement (&__init);
+      return dir;
+    }
+
+    HRESULT hr =
+      SHGetKnownFolderPath (FOLDERID_Documents, 0, hToken, &str);
+
+    dir = (SUCCEEDED (hr) ? str : L"UNKNOWN");
+
+    if (SUCCEEDED (hr))
+    {
+      InterlockedIncrement (&__init);
+
+      CoTaskMemFree (str);
+      return dir;
+    }
   }
+
+  SK_Thread_SpinUntilAtomicMin (&__init, 2);
 
   return dir;
 }
@@ -145,32 +159,46 @@ SK_GetRoamingDir (void)
 std::wstring
 SK_GetFontsDir (void)
 {
+  static volatile LONG __init = 0;
+
   // Fast Path  (cached)
   //
   static std::wstring dir = L"";
 
-  if (! dir.empty ())
-    return dir;
-
-  CHandle  hToken (INVALID_HANDLE_VALUE);
-  wchar_t* str    = nullptr;
-
-  if (! OpenProcessToken (SK_GetCurrentProcess (), TOKEN_QUERY | TOKEN_IMPERSONATE |
-                                                   TOKEN_READ, &hToken.m_h ) )
+  if (ReadAcquire (&__init) == 2)
   {
-    dir = L"(null)";
-    return dir;
+    if (! dir.empty ())
+      return dir;
   }
 
-  HRESULT hr =
-    SHGetKnownFolderPath (FOLDERID_Fonts, 0, hToken, &str);
-
-  dir = (SUCCEEDED (hr) ? str : L"UNKNOWN");
-
-  if (SUCCEEDED (hr))
+  if (! InterlockedCompareExchange (&__init, 1, 0))
   {
-    CoTaskMemFree (str);
-    return dir;
+    CHandle  hToken (INVALID_HANDLE_VALUE);
+    wchar_t* str    = nullptr;
+
+    if (! OpenProcessToken (SK_GetCurrentProcess (), TOKEN_QUERY | TOKEN_IMPERSONATE |
+                                                     TOKEN_READ, &hToken.m_h ) )
+    {
+      dir = L"(null)";
+
+      InterlockedIncrement (&__init);
+
+      return dir;
+    }
+
+    HRESULT hr =
+      SHGetKnownFolderPath (FOLDERID_Fonts, 0, hToken, &str);
+
+    dir = (SUCCEEDED (hr) ? str : L"UNKNOWN");
+
+    if (SUCCEEDED (hr))
+    {
+      CoTaskMemFree (str);
+
+      InterlockedIncrement (&__init);
+
+      return dir;
+    }
   }
 
   return dir;
@@ -228,23 +256,48 @@ SK_GetUserProfileDir (wchar_t* buf, uint32_t* pdwLen)
 
 bool
 __stdcall
-SK_CreateDirectories ( const wchar_t* wszPath )
+SK_CreateDirectoriesEx ( const wchar_t* wszPath, bool strip_filespec )
 {
+    wchar_t   wszDirPath [MAX_PATH * 2 + 1] = { };
+  wcsncpy_s ( wszDirPath, MAX_PATH * 2,
+                wszPath,   _TRUNCATE );
+
+  wchar_t* wszTest =         wszDirPath;
+  size_t   len     = wcslen (wszDirPath);
+  for (int i = 0; i <   (len-1); i++)
+  {
+    wszTest =
+      CharNextW (wszTest);
+  }
+
+  if ( *wszTest == L'\\' ||
+       *wszTest == L'/'     )
+  {
+    strip_filespec = false;
+  }
+
+  if (strip_filespec)
+  {
+    PathRemoveFileSpecW (wszDirPath);
+    lstrcatW (wszDirPath, LR"(\)");
+  }
+
   // If the final path already exists, well... there's no work to be done, so
   //   don't do that crazy loop of crap below and just abort early !
-  if (GetFileAttributesW (wszPath) != INVALID_FILE_ATTRIBUTES)
+  if (GetFileAttributesW (wszDirPath) != INVALID_FILE_ATTRIBUTES)
     return true;
 
 
-  CHeapPtr <wchar_t>
-           wszSubDir         (_wcsdup (wszPath));
+  wchar_t     wszSubDir [MAX_PATH * 2 + 1] = { };
+  wcsncpy_s ( wszSubDir, MAX_PATH * 2,
+                wszDirPath, _TRUNCATE );
 
   wchar_t* iter;
   wchar_t* wszLastSlash     = wcsrchr (wszSubDir, L'/');
   wchar_t* wszLastBackslash = wcsrchr (wszSubDir, L'\\');
 
   if (wszLastSlash > wszLastBackslash)
-    *wszLastSlash = L'\0';
+    *wszLastSlash     = L'\0';
   else if (wszLastBackslash != nullptr)
     *wszLastBackslash = L'\0';
   else
@@ -256,7 +309,7 @@ SK_CreateDirectories ( const wchar_t* wszPath )
     {
       *iter = L'\0';
 
-      if (GetFileAttributes (wszPath) == INVALID_FILE_ATTRIBUTES)
+      if (GetFileAttributes (wszDirPath) == INVALID_FILE_ATTRIBUTES)
         CreateDirectoryW (wszSubDir, nullptr);
 
       *iter = L'\\';
@@ -264,28 +317,30 @@ SK_CreateDirectories ( const wchar_t* wszPath )
   }
 
   // The final subdirectory (FULL PATH)
-  if (GetFileAttributes (wszPath) == INVALID_FILE_ATTRIBUTES)
+  if (GetFileAttributes (wszDirPath) == INVALID_FILE_ATTRIBUTES)
     CreateDirectoryW (wszSubDir, nullptr);
 
   return true;
 }
 
+bool
+__stdcall
+SK_CreateDirectories ( const wchar_t* wszPath )
+{
+  return
+    SK_CreateDirectoriesEx (wszPath, false);// true);
+}
+
 std::wstring
 SK_EvalEnvironmentVars (const wchar_t* wszEvaluateMe)
 {
-  CHeapPtr <wchar_t> wszEvaluated;
-  wszEvaluated.Allocate (MAX_PATH + 2);
-
-  if (wszEvaluated == nullptr)
-    return L"OUT_OF_MEMORY";
+  wchar_t wszEvaluated [MAX_PATH * 2 + 1];
 
   ExpandEnvironmentStringsW ( wszEvaluateMe,
                                 wszEvaluated,
-                                  MAX_PATH + 2 );
+                                  MAX_PATH * 2 );
 
-  std::wstring ret_str (wszEvaluated);
-
-  return ret_str;
+  return wszEvaluated;
 }
 
 #include <string>
@@ -450,19 +505,22 @@ SK_File_ApplyAttribMask (std::wstring file, DWORD dwAttribMask, bool clear)
   else
     dwAttribMask = ( dwFileMask |  dwAttribMask );
 
-  return SK_File_SetAttribs (file, dwAttribMask);
+  return
+    SK_File_SetAttribs (file, dwAttribMask);
 }
 
 BOOL
 SK_File_SetHidden (std::wstring file, bool hide)
 {
-  return SK_File_ApplyAttribMask (file, FILE_ATTRIBUTE_HIDDEN, (! hide));
+  return
+    SK_File_ApplyAttribMask (file, FILE_ATTRIBUTE_HIDDEN, (! hide));
 }
 
 BOOL
 SK_File_SetTemporary (std::wstring file, bool temp)
 {
-  return SK_File_ApplyAttribMask (file, FILE_ATTRIBUTE_TEMPORARY, (! temp));
+  return
+    SK_File_ApplyAttribMask (file, FILE_ATTRIBUTE_TEMPORARY, (! temp));
 }
 
 
@@ -1004,7 +1062,7 @@ SK_SuspendAllOtherThreads (void)
 }
 
 std::queue <DWORD>
-SK_SuspendAllThreadsExcept (std::set <DWORD> exempt_tids)
+SK_SuspendAllThreadsExcept (std::set <DWORD>& exempt_tids)
 {
   std::queue <DWORD> threads;
 

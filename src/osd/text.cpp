@@ -1100,6 +1100,9 @@ static_cast <double> (                         gpu_stats.gpus [i].loads_percent.
     }
   }
 
+  static auto& cpu_stats =
+    __SK_WMI_CPUStats ();
+
   if (cpu_stats.booting)
   {
     OSD_C_PRINTF "\n  Starting CPU Monitor...\n" OSD_END
@@ -1107,27 +1110,30 @@ static_cast <double> (                         gpu_stats.gpus [i].loads_percent.
 
   else
   {
+    auto& cpus     = cpu_stats.cpus;
+    auto& num_cpus = cpu_stats.num_cpus;
+
     OSD_C_PRINTF "\n  Total  : %#3li%%  -  (Kernel: %#3li%%   "
                    "User: %#3li%%   Interrupt: %#3li%%)\n",
-        ReadNoFence (      &cpu_stats.cpus [64].percent_load     ),
-          ReadNoFence (    &cpu_stats.cpus [64].percent_kernel   ),
-            ReadNoFence (  &cpu_stats.cpus [64].percent_user     ),
-              ReadNoFence (&cpu_stats.cpus [64].percent_interrupt)
+        ReadNoFence (      &cpus [64].percent_load     ),
+          ReadNoFence (    &cpus [64].percent_kernel   ),
+            ReadNoFence (  &cpus [64].percent_user     ),
+              ReadNoFence (&cpus [64].percent_interrupt)
     OSD_END
 
-    static const int digits = (cpu_stats.num_cpus / 11 > 0 ? 2 : 1);
+    static const int digits = (num_cpus / 11 > 0 ? 2 : 1);
 
-    for (DWORD i = 0; i < cpu_stats.num_cpus; i++)
+    for (DWORD i = 0; i < num_cpus; i++)
     {
       if (! config.cpu.simple)
       {
         OSD_C_PRINTF "  CPU%0*lu%-*s: %#3li%%  -  (Kernel: %#3li%%   "
                      "User: %#3li%%   Interrupt: %#3li%%)\n",
           digits, i, 4-digits, "",
-            ReadAcquire (      &cpu_stats.cpus [i].percent_load     ),
-              ReadAcquire (    &cpu_stats.cpus [i].percent_kernel   ),
-                ReadAcquire (  &cpu_stats.cpus [i].percent_user     ),
-                  ReadAcquire (&cpu_stats.cpus [i].percent_interrupt)
+            ReadAcquire (      &cpus [i].percent_load     ),
+              ReadAcquire (    &cpus [i].percent_kernel   ),
+                ReadAcquire (  &cpus [i].percent_user     ),
+                  ReadAcquire (&cpus [i].percent_interrupt)
         OSD_END
       }
 
@@ -1135,7 +1141,7 @@ static_cast <double> (                         gpu_stats.gpus [i].loads_percent.
       {
         OSD_C_PRINTF "  CPU%0*lu%-*s: %#3li%%\n",
           digits, i, 4-digits, "",
-            ReadAcquire (&cpu_stats.cpus [i].percent_load)
+            ReadAcquire (&cpus [i].percent_load)
         OSD_END
       }
     }
@@ -1235,6 +1241,9 @@ static_cast <double> (                         gpu_stats.gpus [i].loads_percent.
 
   OSD_M_PRINTF "\n" OSD_END
 
+  static auto& process_stats =
+    __SK_WMI_ProcessStats ();
+
   if (process_stats.booting)
   {
     OSD_M_PRINTF "  Starting Memory Monitor...\n" OSD_END
@@ -1242,12 +1251,15 @@ static_cast <double> (                         gpu_stats.gpus [i].loads_percent.
 
   else
   {
+    auto& memory =
+      process_stats.memory;
+
     std::wstring working_set =
-      SK_File_SizeToString (process_stats.memory.working_set,   MiB);
+      SK_File_SizeToString (memory.working_set,   MiB);
     std::wstring commit =
-      SK_File_SizeToString (process_stats.memory.private_bytes, MiB);
+      SK_File_SizeToString (memory.private_bytes, MiB);
     std::wstring virtual_size =
-      SK_File_SizeToString (process_stats.memory.virtual_bytes, MiB);
+      SK_File_SizeToString (memory.virtual_bytes, MiB);
 
     OSD_M_PRINTF "  Working Set: %ws,  Committed: %ws,  Address Space: %ws\n",
       working_set.c_str  (),
@@ -1256,11 +1268,11 @@ static_cast <double> (                         gpu_stats.gpus [i].loads_percent.
     OSD_END
 
     std::wstring working_set_peak =
-      SK_File_SizeToString (process_stats.memory.working_set_peak,     MiB);
+      SK_File_SizeToString (memory.working_set_peak,     MiB);
     std::wstring commit_peak =
-      SK_File_SizeToString (process_stats.memory.page_file_bytes_peak, MiB);
+      SK_File_SizeToString (memory.page_file_bytes_peak, MiB);
     std::wstring virtual_peak =
-      SK_File_SizeToString (process_stats.memory.virtual_bytes_peak,   MiB);
+      SK_File_SizeToString (memory.virtual_bytes_peak,   MiB);
 
     OSD_M_PRINTF "        *Peak: %ws,      *Peak: %ws,          *Peak: %ws\n",
       working_set_peak.c_str (),
@@ -1283,6 +1295,9 @@ static_cast <double> (                         gpu_stats.gpus [i].loads_percent.
   }
 
   extern int gpu_prio;
+
+  static auto& disk_stats =
+    __SK_WMI_DiskStats ();
 
   if (disk_stats.booting)
   {
@@ -1353,6 +1368,9 @@ static_cast <double> (                         gpu_stats.gpus [i].loads_percent.
   }
 #endif
 
+  static auto& pagefile_stats =
+    __SK_WMI_PagefileStats ();
+
   if (pagefile_stats.booting)
   {
     OSD_P_PRINTF "\n  Starting Pagefile Monitor...\n" OSD_END
@@ -1383,12 +1401,15 @@ static_cast <double> (                         gpu_stats.gpus [i].loads_percent.
   // Avoid unnecessary MMIO when the user has the OSD turned off
   cleared = (! config.osd.show);
 
-  bool inj_thr = SK_TLS_Bottom ()->texture_management.injection_thread;
-                 SK_TLS_Bottom ()->texture_management.injection_thread = true;
+  SK_TLS* pTLS =
+    SK_TLS_Bottom ();
+
+  bool inj_thr = pTLS->texture_management.injection_thread;
+                 pTLS->texture_management.injection_thread = true;
 
   BOOL ret = SK_UpdateOSD (szOSD);
 
-  SK_TLS_Bottom ()->texture_management.injection_thread = inj_thr;
+  pTLS->texture_management.injection_thread = inj_thr;
 
   //game_debug.Log (L"%hs", szOSD);
 

@@ -72,18 +72,21 @@ skModuleRegistry SK_Modules;
 SK_Thread_HybridSpinlock  static_loader (512);
 SK_Thread_HybridSpinlock* loader_lock  = &static_loader;
 
-SK_Thread_HybridSpinlock* init_mutex   = nullptr;
-SK_Thread_HybridSpinlock* budget_mutex = nullptr;
-SK_Thread_HybridSpinlock* wmi_cs       = nullptr;
-SK_Thread_HybridSpinlock* cs_dbghelp   = nullptr;
-SK_Thread_HybridSpinlock* steam_mutex  = nullptr;
+SK_Thread_HybridSpinlock* init_mutex        = nullptr;
+SK_Thread_HybridSpinlock* budget_mutex      = nullptr;
+SK_Thread_HybridSpinlock* wmi_cs            = nullptr;
+SK_Thread_HybridSpinlock* cs_dbghelp        = nullptr;
+SK_Thread_HybridSpinlock* steam_mutex       = nullptr;
+SK_Thread_HybridSpinlock* steam_callback_cs = nullptr; 
+SK_Thread_HybridSpinlock* steam_popup_cs    = nullptr; 
+SK_Thread_HybridSpinlock* steam_init_cs     = nullptr;
 
 volatile          long __SK_DLL_Ending       = FALSE;
 volatile          long __SK_DLL_Attached     = FALSE;
             __time64_t __SK_DLL_AttachTime   = 0ULL;
 volatile unsigned long __SK_Threads_Attached = 0UL;
 volatile unsigned long __SK_DLL_Refs         = 0UL;
-volatile          long __SK_HookContextOwner = false;
+volatile          long __SK_HookContextOwner = FALSE;
 
 class SK_DLL_Bootstrapper
 {
@@ -960,12 +963,21 @@ SK_Attach (DLL_ROLE role)
         return SK_DontInject ();
       }
 
+      if (GetFileAttributesW (L"SpecialK.WaitForDebugger") != INVALID_FILE_ATTRIBUTES)
+      {
+        while (! SK_IsDebuggerPresent ())
+          SleepEx (500, FALSE);
+      }
 
       budget_mutex = new SK_Thread_HybridSpinlock (  400);
       init_mutex   = new SK_Thread_HybridSpinlock (  750);
       steam_mutex  = new SK_Thread_HybridSpinlock (    3);
       wmi_cs       = new SK_Thread_HybridSpinlock ( 1280);
       cs_dbghelp   = new SK_Thread_HybridSpinlock (  384);
+
+      steam_callback_cs = new SK_Thread_HybridSpinlock (256UL);
+      steam_popup_cs    = new SK_Thread_HybridSpinlock (512UL);
+      steam_init_cs     = new SK_Thread_HybridSpinlock (128UL);
 
 
       _time64 (&__SK_DLL_AttachTime);
@@ -984,6 +996,9 @@ SK_Attach (DLL_ROLE role)
       SK_CleanupMutex (&budget_mutex); SK_CleanupMutex (&init_mutex);
       SK_CleanupMutex (&cs_dbghelp);   SK_CleanupMutex (&wmi_cs);
       SK_CleanupMutex (&steam_mutex);
+
+      SK_CleanupMutex (&steam_callback_cs); SK_CleanupMutex (&steam_popup_cs);
+      SK_CleanupMutex (&steam_init_cs);
     }
   }
 
@@ -1015,6 +1030,9 @@ SK_Detach (DLL_ROLE role)
       SK_CleanupMutex (&budget_mutex); SK_CleanupMutex (&init_mutex);
       SK_CleanupMutex (&cs_dbghelp);   SK_CleanupMutex (&wmi_cs);
       SK_CleanupMutex (&steam_mutex);
+
+      SK_CleanupMutex (&steam_callback_cs); SK_CleanupMutex (&steam_popup_cs);
+      SK_CleanupMutex (&steam_init_cs);
 
       return TRUE;
     }

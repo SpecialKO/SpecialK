@@ -350,8 +350,6 @@ SK_Widget::draw_base (void)
     flags |= ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize;
 
 
-  static  std::unordered_set <SK_Widget *> last_state_was_config;
-
   // Modal State:  Config
   if (state__ == 1)
   {
@@ -709,6 +707,12 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds (BOOL Control, BOOL Shift, BOOL Alt, B
         {
           extern void SK_YS0_TriggerHudFreeScreenshot (void);
                       SK_YS0_TriggerHudFreeScreenshot ();
+        }
+
+        else
+        {
+          extern void SK_TriggerHudFreeScreenshot (void) noexcept;
+                      SK_TriggerHudFreeScreenshot ();
         }
       }
       else if ( keybind == &config.steam.screenshots.sk_osd_free_keybind      )

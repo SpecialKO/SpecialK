@@ -805,11 +805,12 @@ SK_Bypass_CRT (LPVOID)
 
     if (nButtonPressed == BUTTON_RESET_CONFIG)
     {
-      std::wstring fname = dll_ini->get_filename ();
+      std::wstring fname =
+        dll_ini->get_filename ();
 
       delete dll_ini;
 
-      SK_DeleteConfig (fname.c_str ());
+      SK_DeleteConfig (fname);
       SK_DeleteConfig (wszConfigName);
 
       // Hard-code known plug-in config files -- bad (lack of) design.
@@ -860,16 +861,15 @@ SK_Bypass_CRT (LPVOID)
     }
   }
 
-  //if (nButtonPressed != TDCBF_OK_BUTTON)
-  {
-    if (! temp_dll.length ())
-      SK_RestartGame (nullptr);
-    else
-      SK_RestartGame (temp_dll.c_str ());
+  if (! temp_dll.length ())
+    SK_RestartGame (nullptr);
+  else
+    SK_RestartGame (temp_dll.c_str ());
 
-    ExitProcess (0);
-  }
+  SK_Thread_CloseSelf ();
 
+  ExitProcess (0);
+  
   // The old system to try and restart the bootstrapping process
   //   is impractical, restarting the game works better.
   //
@@ -881,9 +881,6 @@ SK_Bypass_CRT (LPVOID)
   ///  SK_EnumLoadedModules (SK_ModuleEnum::PostLoad);
   ///  SK_ResumeThreads     (suspended_tids);
   ///}
-
-
-  SK_Thread_CloseSelf ();
 
   return 0;
 }
@@ -990,3 +987,39 @@ SK_COMPAT_IsSystemDllInstalled (wchar_t* wszDll, bool* locally)
 
   return GetFileAttributesW (wszSystemDir) != INVALID_FILE_ATTRIBUTES;
 };
+
+
+void
+SK_COMPAT_UnloadFraps (void)
+{
+#ifdef _WIN64
+  if (GetModuleHandle (L"fraps64.dll"))
+  {
+    UnhookWindowsHookEx ((HHOOK) SK_GetProcAddress (L"fraps64.dll", "FrapsProcCBT"));
+    FreeLibrary (GetModuleHandle (L"fraps64.dll"));
+  }
+#else
+  if (GetModuleHandle (L"fraps.dll"))
+  {
+    UnhookWindowsHookEx ((HHOOK) SK_GetProcAddress (L"fraps.dll", "FrapsProcCBT"));
+    FreeLibrary (GetModuleHandle (L"fraps.dll"));
+  }
+#endif
+}
+
+#include <SpecialK/control_panel.h>
+bool
+SK_COMPAT_IsFrapsPresent (void)
+{
+#ifdef _WIN64
+  if (GetModuleHandle (L"fraps64.dll") != nullptr)
+#else
+  if (GetModuleHandle (L"fraps.dll") != nullptr)
+#endif
+  {
+    SK_ImGui_Warning (L"FRAPS has been detected, expect weird things to happen until you uninstall it.");
+    return true;
+  }
+
+  return false;
+}

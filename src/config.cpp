@@ -347,6 +347,7 @@ struct {
   } d3d9;
   struct {
     sk::ParameterBool*    draw_in_vidcap;
+    sk::ParameterFloat*   hdr_luminance;
   } osd;
 } render;
 
@@ -446,6 +447,7 @@ struct {
   sk::ParameterBool*      fix_mouse_coords;
   sk::ParameterInt*       always_on_top;
   sk::ParameterBool*      disable_screensaver;
+  sk::ParameterBool*      dont_hook_wndproc;
 } window;
 
 struct {
@@ -792,6 +794,7 @@ auto DeclKeybind =
     ConfigEntry (window.fix_mouse_coords,                L"Re-Compute Mouse Coordinates for Resized Windows",          dll_ini,         L"Window.System",         L"FixMouseCoords"),
     ConfigEntry (window.always_on_top,                   L"Prevent (0) or Force (1) a game's window Always-On-Top",    dll_ini,         L"Window.System",         L"AlwaysOnTop"),
     ConfigEntry (window.disable_screensaver,             L"Prevent the Windows Screensaver from activating",           dll_ini,         L"Window.System",         L"DisableScreensaver"),
+    ConfigEntry (window.dont_hook_wndproc,               L"Disable WndProc / ClassProc hooks (wrap instead of hook)",  dll_ini,         L"Window.System",         L"DontHookWndProc"),
 
     // Compatibility
     //////////////////////////////////////////////////////////////////////////
@@ -844,6 +847,7 @@ auto DeclKeybind =
     
     ConfigEntry (display.force_fullscreen,               L"Force Fullscreen Mode",                                     dll_ini,         L"Display.Output",        L"ForceFullscreen"),
     ConfigEntry (display.force_windowed,                 L"Force Windowed Mode",                                       dll_ini,         L"Display.Output",        L"ForceWindowed"),
+    ConfigEntry (render.osd.hdr_luminance,               L"OSD's Luminance (cd.m^-2) in HDR games",                    dll_ini,         L"Render.OSD",            L"HDRLuminance"),
 
 
     // Framerate Limiter
@@ -876,6 +880,7 @@ auto DeclKeybind =
 
     // OpenGL
     //////////////////////////////////////////////////////////////////////////
+
     ConfigEntry (render.osd.draw_in_vidcap,              L"Changes hook order in order to allow recording the OSD.",   dll_ini,         L"Render.OSD",            L"ShowInVideoCapture"),
 
     // D3D9
@@ -1106,7 +1111,7 @@ auto DeclKeybind =
     if ((*sec).first.find (L"Import.") != (*sec).first.npos)
     {
       const wchar_t* wszNext =
-        wcsstr ((*sec).first.c_str (), L".");
+        wcschr ((*sec).first.c_str (), L'.');
 
       imports [import].name =
         wszNext != nullptr    ?
@@ -1329,6 +1334,7 @@ auto DeclKeybind =
   games.emplace ( L"ys8.exe",                                SK_GAME_ID::Ys_Eight                     );
   games.emplace ( L"PillarsOfEternityII.exe",                SK_GAME_ID::PillarsOfEternity2           );
   games.emplace ( L"Yakuza0.exe",                            SK_GAME_ID::Yakuza0                      );
+  games.emplace ( L"MonsterHunterWorld.exe",                 SK_GAME_ID::MonsterHunterWorld           );
 
   //
   // Application Compatibility Overrides
@@ -1724,9 +1730,26 @@ auto DeclKeybind =
         config.textures.cache.allow_unsafe_refs   = true;
         config.render.dxgi.deferred_isolation     = false;
         config.textures.cache.residency_managemnt = false;
-        //config.render.dxgi.full_state_cache    = true;
+        config.cegui.enable                       = false; // Off by default
         //SK_DXGI_FullStateCache                 = config.render.dxgi.full_state_cache;
         break;
+
+      case SK_GAME_ID::MonsterHunterWorld:
+      {
+        // This game has multiple windows, we can't hook the wndproc
+        config.window.dont_hook_wndproc  = true;
+        config.steam.force_load_steamapi = true;
+        config.steam.auto_inject         = true;
+        config.steam.auto_pump_callbacks = true;
+        config.steam.dll_path            = L"kaldaien_api64.dll";
+
+        if (GetFileAttributes (L"kaldaien_api64.dll") == INVALID_FILE_ATTRIBUTES)
+        {
+          CopyFileW ( L"steam_api64.dll",
+                      L"kaldaien_api64.dll",
+                        TRUE );
+        }
+      } break;
     }
   }
 
@@ -1848,6 +1871,9 @@ auto DeclKeybind =
 
 
   render.osd.draw_in_vidcap->load           (config.render.osd. draw_in_vidcap);
+  render.osd.hdr_luminance->load            (config.render.osd.hdr_luminance);
+
+  SK_GetCurrentRenderBackend ().ui_luminance = config.render.osd.hdr_luminance;
 
   // D3D9/11
   //
@@ -2136,7 +2162,7 @@ auto DeclKeybind =
 
   if (window.offset.x->load (offset))
   {
-    if (wcsstr (offset.c_str (), L"%"))
+    if (offset.find (L'%') != std::wstring::npos)
     {
       config.window.offset.x.absolute = 0;
       swscanf (offset.c_str (), L"%f%%", &config.window.offset.x.percent);
@@ -2152,7 +2178,7 @@ auto DeclKeybind =
 
   if (window.offset.y->load (offset))
   {
-    if (wcsstr (offset.c_str (), L"%"))
+    if (offset.find (L'%') != std::wstring::npos)
     {
       config.window.offset.y.absolute = 0;
       swscanf (offset.c_str (), L"%f%%", &config.window.offset.y.percent);
@@ -2173,6 +2199,7 @@ auto DeclKeybind =
   window.fix_mouse_coords->load    (config.window.res.override.fix_mouse);
   window.always_on_top->load       (config.window.always_on_top);
   window.disable_screensaver->load (config.window.disable_screensaver);
+  window.dont_hook_wndproc->load   (config.window.dont_hook_wndproc);
 
   if (((sk::iParameter *)window.override)->load ())
   {
@@ -2277,9 +2304,12 @@ auto DeclKeybind =
   LoadKeybind (&config.steam.screenshots.sk_osd_insertion_keybind);
 
 
-  // Setup sane initial values
-  config.steam.dll_path = SK_RunLHIfBitness ( 64, L"steam_api64.dll",
-                                                  L"steam_api.dll" );
+  if (SK_GetCurrentGameID () != SK_GAME_ID::MonsterHunterWorld)
+  {
+    // Setup sane initial values
+    config.steam.dll_path = SK_RunLHIfBitness ( 64, L"steam_api64.dll",
+                                                    L"steam_api.dll" );
+  }
 
   steam.system.dll_path->load              (config.steam.dll_path);
 
@@ -2638,8 +2668,8 @@ SK_DeleteConfig (std::wstring name)
 {
   wchar_t wszFullName [ MAX_PATH + 2 ] = { };
 
-  if ( name.find (L"/" ) == name.npos &&
-       name.find (L"\\") == name.npos )
+  if ( name.find (L'/' ) == name.npos &&
+       name.find (L'\\') == name.npos )
     lstrcatW (wszFullName, SK_GetConfigPath ());
 
   lstrcatW (wszFullName,   name.c_str ());
@@ -2829,6 +2859,7 @@ SK_SaveConfig ( std::wstring name,
   window.fix_mouse_coords->store          (config.window.res.override.fix_mouse);
   window.always_on_top->store             (config.window.always_on_top);
   window.disable_screensaver->store       (config.window.disable_screensaver);
+  window.dont_hook_wndproc->store         (config.window.dont_hook_wndproc);
 
   wchar_t wszFormattedRes [64] = { };
 
@@ -2985,6 +3016,9 @@ SK_SaveConfig ( std::wstring name,
   }
 
   render.osd.draw_in_vidcap->store             (config.render.osd.draw_in_vidcap);
+
+  config.render.osd.hdr_luminance =  SK_GetCurrentRenderBackend ().ui_luminance;
+  render.osd.hdr_luminance->store              (config.render.osd.hdr_luminance);
 
   texture.res_root->store                      (config.textures.d3d11.res_root);
   texture.dump_on_load->store                  (config.textures.dump_on_load);
@@ -3166,7 +3200,7 @@ std::unordered_map <BYTE, std::wstring> virtKeyCodeToHumanKeyName;
 void
 SK_Keybind::update (void)
 {
-  human_readable = L"";
+  human_readable.clear ();
 
   std::wstring key_name = virtKeyCodeToHumanKeyName [(BYTE)(vKey & 0xFF)];
 
@@ -3246,15 +3280,16 @@ SK_Keybind::parse (void)
         default:
         {
           unsigned int scanCode =
-            ( MapVirtualKey (i, 0) & 0xFF );
-
-                        BYTE buf [256] = { };
+            ( MapVirtualKey (i, 0) & 0xFF );;
           unsigned short int temp      =  0;
 
           bool asc = (i <= 32);
 
           if (! asc && i != VK_DIVIDE)
+          {
+                                     BYTE buf [256] = { };
              asc = ToAscii ( i, scanCode, buf, &temp, 1 );
+          }
 
           scanCode            <<= 16;
           scanCode   |= ( 0x1 <<  25  );
@@ -3378,7 +3413,7 @@ SK_AppCache_Manager::loadAppCacheForExe (const wchar_t* wszExe)
 
     wchar_t wszAppCache [MAX_PATH * 2 + 1] = { };
 
-    wcsncpy (wszAppCache,
+    wcsncpy_s (wszAppCache, MAX_PATH * 2,
       SK_FormatStringW ( LR"(%s\My Mods\SpecialK\Profiles\AppCache\%s\SpecialK.AppCache)",
                            SK_GetDocumentsDir ().c_str (),
                              (wchar_t *)wszRelPath
@@ -3560,7 +3595,7 @@ SK_AppCache_Manager::getConfigPathForAppID (uint32_t uiAppID) const
   // Non-trivial name = custom path, remove the old-style <program.exe>
   if (! name.empty ())
   {
-    std::wstring original_dir (path.c_str ());
+    std::wstring original_dir (path);
 
     size_t       pos                     = 0;
     std::wstring host_app (SK_GetHostApp ());
@@ -3600,7 +3635,7 @@ SK_AppCache_Manager::getConfigPathForAppID (uint32_t uiAppID) const
                      name.end ()
                );
 
-    for (auto it = name.rbegin (); it != name.rend (); it++)
+    for (auto it = name.rbegin (); it != name.rend (); ++it)
     {
       if (*it == L' ') *it = L'\0';
       else                   break;
@@ -3616,7 +3651,7 @@ SK_AppCache_Manager::getConfigPathForAppID (uint32_t uiAppID) const
     SK_StripTrailingSlashesW (path.data ());
 
     if (recursing)
-      return path.c_str ();
+      return path;
 
     DWORD dwAttribs = 
       GetFileAttributesW (original_dir.c_str ());
@@ -3646,7 +3681,8 @@ SK_AppCache_Manager::getConfigPathForAppID (uint32_t uiAppID) const
     }
   }
 
-  return path.c_str ();
+  return
+    path;
 }
 
 bool

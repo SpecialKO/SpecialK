@@ -3551,12 +3551,9 @@ SK_SetPresentParamsD3D9Ex ( IDirect3DDevice9       *pDevice,
       }
     }
 
-
-    extern GetClientRect_pfn    GetClientRect_Original;
-
-           RECT                 client = {        };
-    GetClientRect_Original ( pparams->hDeviceWindow,
-                               &client );
+           RECT        client = {        };
+    SK_GetClientRect ( pparams->hDeviceWindow,
+                      &client );
 
 
     //  Non-Zero Values for Backbuffer Width / Height

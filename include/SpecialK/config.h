@@ -384,6 +384,7 @@ struct sk_config_t
     struct {
       // Required by default for compatibility with Mirillis Action!
       bool    draw_in_vidcap     = true;
+      float   hdr_luminance      = 400.0f;
       ULONG _last_vidcap_frame   = 0;
       ULONG _last_normal_frame   = 0;
     } osd;
@@ -566,6 +567,7 @@ struct sk_config_t
     int     always_on_top       = 0;
     bool    disable_screensaver = false;
     bool    treat_fg_as_active  = false; // Compat. hack for NiNoKuni 2
+    bool    dont_hook_wndproc   = false;
     struct {
       struct {
         unsigned int x          = 0;
@@ -755,6 +757,7 @@ enum class SK_GAME_ID
   Ys_Eight,                     // ys8.exe
   PillarsOfEternity2,           // PillarsOfEternityII.exe
   Yakuza0,                      // Yakuza0.exe
+  MonsterHunterWorld,           // MonsterHunterWorld.exe
   UNKNOWN_GAME               = 0xffff
 };
 

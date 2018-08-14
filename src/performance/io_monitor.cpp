@@ -421,7 +421,7 @@ SK_MonitorCPU (LPVOID user_param)
 
   UNREFERENCED_PARAMETER (user_param);
 
-  cpu_perf_t&  cpu    = cpu_stats;
+  cpu_perf_t&  cpu    = __SK_WMI_CPUStats ();
   const double update = config.cpu.interval;
 
   cpu.hShutdownSignal =
@@ -560,7 +560,7 @@ SK_MonitorDisk (LPVOID user)
 
   //Win32_PerfFormattedData_PerfDisk_LogicalDisk
 
-  disk_perf_t&  disk  = disk_stats;
+  auto&         disk  = __SK_WMI_DiskStats ();
   const double update = config.disk.interval;
 
   HRESULT hr;
@@ -614,9 +614,9 @@ SK_MonitorDisk (LPVOID user)
 
   COM::base.wmi.Unlock ();
 
-  while (disk_stats.lID != 0)
+  while (disk.lID != 0)
   {
-    if (MsgWaitForMultipleObjects (1, const_cast <const HANDLE *> (&disk_stats.hShutdownSignal), FALSE, ( DWORD (update * 1000.0) ), QS_ALLEVENTS) == WAIT_OBJECT_0)
+    if (MsgWaitForMultipleObjects (1, const_cast <const HANDLE *> (&disk.hShutdownSignal), FALSE, ( DWORD (update * 1000.0) ), QS_ALLEVENTS) == WAIT_OBJECT_0)
       break;
 
     // Only poll WMI while the data view is visible
@@ -979,7 +979,7 @@ SK_MonitorPagefile (LPVOID user)
 
   COM::base.wmi.Lock ();
 
-  pagefile_perf_t&  pagefile = pagefile_stats;
+  pagefile_perf_t&  pagefile = __SK_WMI_PagefileStats ();
 
                     pagefile.dwNumReturned = 0;
                     pagefile.dwNumObjects  = 0;
@@ -1312,8 +1312,9 @@ SK_MonitorProcess (LPVOID user)
 
   COM::base.wmi.Lock ();
 
-  process_stats_t& proc   = process_stats;
-  const double     update = config.mem.interval;
+  auto&            process_stats = __SK_WMI_ProcessStats ();
+  process_stats_t& proc          = process_stats;
+  const double     update        = config.mem.interval;
 
   HRESULT hr;
 

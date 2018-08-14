@@ -79,6 +79,8 @@ SK_GetDebugSymbolPath (void);
 void
 SK_SymSetOpts (void)
 {
+  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+
   SymSetSearchPathW ( GetCurrentProcess (), SK_GetDebugSymbolPath () );
   SymSetOptions     ( SYMOPT_LOAD_LINES           | SYMOPT_NO_PROMPTS        |
                       SYMOPT_UNDNAME              | SYMOPT_DEFERRED_LOADS    |
@@ -370,9 +372,17 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
   //   terminate with exit code = -666.
   if ( ReadAcquire (&__SK_DLL_Ending) != 0 )
   {
-    SK_SelfDestruct  (                         );
-    TerminateProcess (GetCurrentProcess (), 0x0);
-    ExitProcess      (                      0x0);
+    if (SK_IsDebuggerPresent ())
+    {
+      __debugbreak ();
+    }
+
+    else
+    {
+      SK_SelfDestruct  (                         );
+      TerminateProcess (GetCurrentProcess (), 0x0);
+      ExitProcess      (                      0x0);
+    }
   }
 
   bool scaleform = false;
@@ -385,11 +395,15 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
   CONTEXT&          last_ctx    = pTLS->debug.last_ctx;
   EXCEPTION_RECORD& last_exc    = pTLS->debug.last_exc;
 
-  std::wstring desc;
+  const wchar_t* desc = L"";
 
 
-  using IsDebuggerPresent_pfn = BOOL (WINAPI *)(void);
-  extern IsDebuggerPresent_pfn IsDebuggerPresent_Original;
+  //if ( (ExceptionInfo->ExceptionRecord->ExceptionFlags & EXCEPTION_NONCONTINUABLE) &&
+  //     SK_IsDebuggerPresent () )
+  //{
+  //  __debugbreak ();
+  //}
+
 
   switch (ExceptionInfo->ExceptionRecord->ExceptionCode)
   {
@@ -532,97 +546,120 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 #endif
     SK_SymGetModuleBase ( hProc, ip );
 
-  char* szDupName    = _strdup (szModName);
-  char* pszShortName = szDupName;
+  char       szDupName [MAX_PATH * 2 + 1] = { };
+  strncpy_s (szDupName, MAX_PATH * 2, szModName, _TRUNCATE);
+  char* pszShortName =
+             szDupName;
 
   PathStripPathA (pszShortName);
 
-  crash_log.Log (L"-----------------------------------------------------------");
-  crash_log.Log (L"[! Except !] %s", desc.c_str ());
-  crash_log.Log (L"-----------------------------------------------------------");
+  std::wstring log_entry;
+  log_entry.reserve (16384);
+
+  #define log_entry_format log_entry.append (SK_FormatStringW
+
+  crash_log.Log   (L"\n\tUnhandled Top-Level Exception (%x):\n",
+                   ExceptionInfo->ExceptionRecord->ExceptionCode);
+
+  log_entry.append (L"-----------------------------------------------------------\n");
+  log_entry_format (L"[! Except !] %s\n", desc));
+  log_entry.append (L"-----------------------------------------------------------\n");
 
   wchar_t* wszThreadDescription = nullptr;
 
   if (SUCCEEDED (GetCurrentThreadDescription (&wszThreadDescription)))
   {
-    if (wcslen (wszThreadDescription))
-      crash_log.Log (LR"([  Thread  ]  ~ Name.....: "%ws")", wszThreadDescription);
-                                                  LocalFree (wszThreadDescription);
+    if (         wszThreadDescription != nullptr &&
+         wcslen (wszThreadDescription)              )
+    {
+      log_entry_format ( L"[  Thread  ]  ~ Name.....: \"%s\"\n",
+                           wszThreadDescription));
+                LocalFree (wszThreadDescription);
+    }
   }
 
-  crash_log.Log (L"[ FaultMod ]  # File.....: '%hs'",  szModName);
+  log_entry_format (L"[ FaultMod ]  # File.....: '%hs'\n",  szModName));
 #ifndef _WIN64
-  crash_log.Log (L"[ FaultMod ]  * EIP Addr.: %hs+%08Xh", pszShortName, ip-BaseAddr);
+  log_entry_format (L"[ FaultMod ]  * EIP Addr.: %hs+%08Xh\n", pszShortName, ip-BaseAddr));
 
-  crash_log.Log ( L"[StackFrame] <-> Eip=%08xh, Esp=%08xh, Ebp=%08xh",
-                  ip,
-                    ExceptionInfo->ContextRecord->Esp,
-                      ExceptionInfo->ContextRecord->Ebp );
-  crash_log.Log ( L"[StackFrame] >-< Esi=%08xh, Edi=%08xh",
-                  ExceptionInfo->ContextRecord->Esi,
-                    ExceptionInfo->ContextRecord->Edi );
+  log_entry_format ( L"[StackFrame] <-> Eip=%08xh, Esp=%08xh, Ebp=%08xh\n",
+                       ip,
+                         ExceptionInfo->ContextRecord->Esp,
+                           ExceptionInfo->ContextRecord->Ebp ));
+  log_entry_format ( L"[StackFrame] >-< Esi=%08xh, Edi=%08xh\n",
+                       ExceptionInfo->ContextRecord->Esi,
+                         ExceptionInfo->ContextRecord->Edi ));
 
-  crash_log.Log ( L"[  GP Reg  ]       eax:     0x%08x",
-                  ExceptionInfo->ContextRecord->Eax );
-  crash_log.Log ( L"[  GP Reg  ]       ebx:     0x%08x",
-                  ExceptionInfo->ContextRecord->Ebx );
-  crash_log.Log ( L"[  GP Reg  ]       ecx:     0x%08x",
-                  ExceptionInfo->ContextRecord->Ecx );
-  crash_log.Log ( L"[  GP Reg  ]       edx:     0x%08x",
-                  ExceptionInfo->ContextRecord->Edx );
-  crash_log.Log ( L"[ GP Flags ]       EFlags:  0x%08x",
-                  ExceptionInfo->ContextRecord->EFlags );
+  log_entry_format ( L"[  GP Reg  ]   eax:    0x%08x    ebx:    0x%08x\n",
+                     ExceptionInfo->ContextRecord->Eax,
+                     ExceptionInfo->ContextRecord->Ebx ));
+  log_entry_format ( L"[  GP Reg  ]   ecx:    0x%08x    edx:    0x%08x\n",
+                     ExceptionInfo->ContextRecord->Ecx,
+                     ExceptionInfo->ContextRecord->Edx ));
+  log_entry_format ( L"[ GP Flags ]   EFlags: 0x%08x\n",
+                     ExceptionInfo->ContextRecord->EFlags ));
 #else
-  crash_log.Log (L"[ FaultMod ]  * RIP Addr.: %hs+%ph", pszShortName, (LPVOID)((uintptr_t)ip-(uintptr_t)BaseAddr));
+  log_entry_format ( L"[ FaultMod ]  * RIP Addr.: %hs+%ph\n",
+                       pszShortName, (LPVOID)((uintptr_t)ip-(uintptr_t)BaseAddr)));
 
-  crash_log.Log ( L"[StackFrame] <-> Rip=%012llxh, Rsp=%012llxh, Rbp=%012llxh",
-                  ip,
-                    ExceptionInfo->ContextRecord->Rsp,
-                      ExceptionInfo->ContextRecord->Rbp );
-  crash_log.Log ( L"[StackFrame] >-< Rsi=%012llxh, Rdi=%012llxh",
-                  ExceptionInfo->ContextRecord->Rsi,
-                    ExceptionInfo->ContextRecord->Rdi );
+  log_entry_format ( L"[StackFrame] <-> Rip=%012llxh, Rsp=%012llxh, Rbp=%012llxh\n",
+                     ip,
+                       ExceptionInfo->ContextRecord->Rsp,
+                         ExceptionInfo->ContextRecord->Rbp ));
+  log_entry_format ( L"[StackFrame] >-< Rsi=%012llxh, Rdi=%012llxh\n",
+                     ExceptionInfo->ContextRecord->Rsi,
+                       ExceptionInfo->ContextRecord->Rdi ));
 
-  crash_log.Log ( L"[  GP Reg  ]       rax:     0x%012llx",
-                  ExceptionInfo->ContextRecord->Rax );
-  crash_log.Log ( L"[  GP Reg  ]       rbx:     0x%012llx",
-                  ExceptionInfo->ContextRecord->Rbx );
-  crash_log.Log ( L"[  GP Reg  ]       rcx:     0x%012llx",
-                  ExceptionInfo->ContextRecord->Rcx );
-  crash_log.Log ( L"[  GP Reg  ]       rdx:     0x%012llx",
-                  ExceptionInfo->ContextRecord->Rdx );
-  crash_log.Log ( L"[  GP Reg  ]        r8:     0x%012llx       r9:      0x%012llx",
-                  ExceptionInfo->ContextRecord->R8,
-                  ExceptionInfo->ContextRecord->R9 );
-  crash_log.Log ( L"[  GP Reg  ]       r10:     0x%012llx      r11:      0x%012llx",
-                  ExceptionInfo->ContextRecord->R10,
-                  ExceptionInfo->ContextRecord->R11 );
-  crash_log.Log ( L"[  GP Reg  ]       r12:     0x%012llx      r13:      0x%012llx",
-                  ExceptionInfo->ContextRecord->R12,
-                  ExceptionInfo->ContextRecord->R13 );
-  crash_log.Log ( L"[  GP Reg  ]       r14:     0x%012llx      r15:      0x%012llx",
-                  ExceptionInfo->ContextRecord->R14,
-                  ExceptionInfo->ContextRecord->R15 );
-  crash_log.Log ( L"[ GP Flags ]       EFlags:  0x%08x",
-                  ExceptionInfo->ContextRecord->EFlags );
+  log_entry_format ( L"[  GP Reg  ]   rax:    0x%012llx    rbx:    0x%012llx\n",
+                     ExceptionInfo->ContextRecord->Rax,
+                     ExceptionInfo->ContextRecord->Rbx ));
+  log_entry_format ( L"[  GP Reg  ]   rcx:    0x%012llx    rdx:    0x%012llx\n",
+                     ExceptionInfo->ContextRecord->Rcx,
+                     ExceptionInfo->ContextRecord->Rdx ));
+  log_entry_format ( L"[  GP Reg  ]   r8:     0x%012llx    r9:     0x%012llx\n",
+                     ExceptionInfo->ContextRecord->R8,
+                     ExceptionInfo->ContextRecord->R9 ));
+  log_entry_format ( L"[  GP Reg  ]   r10:    0x%012llx    r11:    0x%012llx\n",
+                     ExceptionInfo->ContextRecord->R10,
+                     ExceptionInfo->ContextRecord->R11 ));
+  log_entry_format ( L"[  GP Reg  ]   r12:    0x%012llx    r13:    0x%012llx\n",
+                     ExceptionInfo->ContextRecord->R12,
+                     ExceptionInfo->ContextRecord->R13 ));
+  log_entry_format ( L"[  GP Reg  ]   r14:    0x%012llx    r15:    0x%012llx\n",
+                     ExceptionInfo->ContextRecord->R14,
+                     ExceptionInfo->ContextRecord->R15 ));
+  log_entry_format ( L"[ GP Flags ]   EFlags: 0x%08x\n",
+                  ExceptionInfo->ContextRecord->EFlags ));
 
-  crash_log.Log ( L"[ DebugReg ]       dr0:     0x%012llx      dr1:      0x%012llx",
-                  ExceptionInfo->ContextRecord->Dr0,
-                  ExceptionInfo->ContextRecord->Dr1 );
-  crash_log.Log ( L"[ DebugReg ]       dr2:     0x%012llx      dr3:      0x%012llx",
-                  ExceptionInfo->ContextRecord->Dr2,
-                  ExceptionInfo->ContextRecord->Dr3 );
-  crash_log.Log ( L"[ DebugReg ]       dr6:     0x%012llx      dr7:      0x%012llx",
-                  ExceptionInfo->ContextRecord->Dr6,
-                  ExceptionInfo->ContextRecord->Dr7 );
+  if ( ExceptionInfo->ContextRecord->Dr0 != 0x0 ||
+       ExceptionInfo->ContextRecord->Dr1 != 0x0 )
+  {
+    log_entry_format ( L"[ DebugReg ]   dr0:    0x%012llx    dr1:    0x%012llx\n",
+                    ExceptionInfo->ContextRecord->Dr0,
+                    ExceptionInfo->ContextRecord->Dr1 ));
+  }
+
+  if ( ExceptionInfo->ContextRecord->Dr2 != 0x0 ||
+       ExceptionInfo->ContextRecord->Dr3 != 0x0 )
+  {
+    log_entry_format ( L"[ DebugReg ]   dr2:    0x%012llx    dr3:    0x%012llx\n",
+                    ExceptionInfo->ContextRecord->Dr2,
+                    ExceptionInfo->ContextRecord->Dr3 ));
+  }
+
+  if ( ExceptionInfo->ContextRecord->Dr6 != 0x0 ||
+       ExceptionInfo->ContextRecord->Dr7 != 0x0 )
+  {
+    log_entry_format ( L"[ DebugReg ]   dr6:    0x%012llx    dr7:    0x%012llx\n",
+                    ExceptionInfo->ContextRecord->Dr6,
+                    ExceptionInfo->ContextRecord->Dr7 ));
+  }
 #endif
 
-  crash_log.Log (
-    L"-----------------------------------------------------------");
+  log_entry.append (
+    L"-----------------------------------------------------------\n");
 
 //SK_SymUnloadModule (hProc, BaseAddr);
-
-  free (szDupName);
 
   CONTEXT ctx (*ExceptionInfo->ContextRecord);
 
@@ -644,9 +681,56 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
   stackframe.AddrFrame.Mode = AddrModeFlat;
 
 
-  std::string top_func = "";
+  //char szTopFunc [512] = { };
 
   BOOL ret = TRUE;
+
+  
+  size_t max_symbol_len = 0,
+         max_module_len = 0,
+         max_file_len   = 0;
+
+  struct stack_entry_s {
+    stack_entry_s ( char* szShortName, char* szSymbolName,
+                    char* szFileName,  int   uiLineNum )
+    {
+      strncpy_s ( short_mod_name, 64,
+                  szShortName,    _TRUNCATE );
+      strncpy_s ( symbol_name,    512,
+                  szSymbolName,   _TRUNCATE );
+      strncpy_s ( file_name,      MAX_PATH,
+                  szFileName,     _TRUNCATE );
+
+      mod_len  = strlen (short_mod_name);
+      sym_len  = strlen (symbol_name);
+      file_len = strlen (file_name);
+
+      line_number = uiLineNum;
+    }
+
+    stack_entry_s ( char* szShortName, char* szSymbolName )
+    {
+      strncpy_s ( short_mod_name, 64,
+                  szShortName,    _TRUNCATE );
+      strncpy_s ( symbol_name,    512,
+                  szSymbolName,   _TRUNCATE );
+
+      mod_len  = strlen (short_mod_name);
+      sym_len  = strlen (symbol_name);
+
+     *file_name   = '\0';
+      file_len    = 0;
+      line_number = 0;
+    }
+
+    char     short_mod_name [64];           size_t mod_len;
+    char     symbol_name    [512];          size_t sym_len;
+    char     file_name      [MAX_PATH + 1]; size_t file_len;
+    unsigned line_number;
+  };
+
+  std::vector <stack_entry_s> stack_entries;
+  stack_entries.reserve (16);
 
   do
   {
@@ -672,7 +756,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
     BaseAddr = (DWORD)  mod_info.lpBaseOfDll;
 #endif
 
-    szDupName    = _strdup (szModName);
+    strncpy_s     (szDupName, MAX_PATH * 2, szModName, _TRUNCATE);
     pszShortName = szDupName;
 
     PathStripPathA (pszShortName);
@@ -709,29 +793,57 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
       BOOL bFileAndLine =
         SK_SymGetLineFromAddr ( hProc, ip, &Disp, &ihl );
 
+      auto AddStackEntry =
+        [&](void) -> void
+      {
+        stack_entries.emplace_back (
+          stack_entry_s (
+            pszShortName, sip.si.Name
+          )
+        );
+
+        max_symbol_len =
+          std::max (stack_entries.back ().sym_len, max_symbol_len);
+        max_module_len =
+          std::max (stack_entries.back ().mod_len, max_module_len);
+      };
+
+      auto AddStackEntryWithFileAndLine =
+      [&](void) -> void
+      {
+        stack_entries.emplace_back (
+          stack_entry_s (
+            pszShortName, sip.si.Name,
+              ihl.FileName, ihl.LineNumber
+          )
+        );
+
+        max_symbol_len =
+          std::max (stack_entries.back ().sym_len, max_symbol_len);
+        max_module_len =
+          std::max (stack_entries.back ().mod_len, max_module_len);
+        max_file_len =
+          std::max (stack_entries.back ().file_len, max_file_len);
+      };
+
       if (bFileAndLine)
       {
-        crash_log.Log ( L"[-(Source)-] [!] {%24hs} %#64hs  <%hs:%lu> ",
-                        pszShortName,
-                          sip.si.Name,
-                            ihl.FileName,
-                              ihl.LineNumber );
+        AddStackEntryWithFileAndLine ();
       }
 
       else
       {
-        crash_log.Log ( L"[--(Name)--] [!] {%24hs}  %#64hs",
-                        pszShortName,
-                          sip.si.Name );
+        AddStackEntry ();
       }
 
       if (StrStrIA (sip.si.Name, "Scaleform"))
         scaleform = true;
 
-      if (top_func == "")
-        top_func = sip.si.Name;
-
-      free (szDupName);
+      //if (*szTopFunc == '\0')
+      //{
+      //  strncpy_s ( szTopFunc,     512,
+      //                sip.si.Name, _TRUNCATE );
+      //}
     }
 
   //SK_SymUnloadModule (hProc, BaseAddr);
@@ -747,7 +859,31 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
                                  nullptr, nullptr );
   } while (ret != FALSE);
 
-  crash_log.Log (L"-----------------------------------------------------------");
+  for (auto& stack_entry : stack_entries)
+  {
+    if (stack_entry.line_number == 0)
+    {
+      log_entry_format ( L" %*hs >  %#*hs\n",
+                           max_module_len,
+                           stack_entry.short_mod_name,
+                             max_symbol_len,
+                             stack_entry.symbol_name ));
+    }
+
+    else
+    {
+      log_entry_format
+              ( L" %*hs >  %#*hs  <%*hs:%lu>\n",
+               max_module_len,   stack_entry.short_mod_name,
+                 max_symbol_len, stack_entry.symbol_name,
+                    max_file_len, stack_entry.file_name,
+                      stack_entry.line_number ));
+    }
+  }
+
+  log_entry.append (L"-----------------------------------------------------------\n\n");
+  crash_log.LogEx  (false, L"%ws", log_entry.c_str ());
+
   fflush (crash_log.fLog);
 
 
@@ -757,7 +893,9 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
                         ( !memcmp (&last_exc, ExceptionInfo->ExceptionRecord, sizeof EXCEPTION_RECORD) );
   const bool non_continue = ExceptionInfo->ExceptionRecord->ExceptionFlags & EXCEPTION_NONCONTINUABLE;
 
-  if ( (repeated || non_continue) && (! scaleform) && desc.length () )
+  if ( (repeated || non_continue) && (! scaleform)
+                                  && wcslen (desc) /*&&
+      (ExceptionInfo->ExceptionRecord->ExceptionCode != EXCEPTION_BREAKPOINT)*/ )
   {
     if (! config.system.handle_crashes)
       TerminateProcess (SK_GetCurrentProcess (), 0xdeadbeef);
@@ -795,7 +933,8 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
                       time (&now);
       localtime_s (&now_tm, &now);
 
-      const wchar_t* wszTimestamp = L"%m-%d-%Y__%H'%M'%S\\";
+      static const wchar_t* wszTimestamp =
+        L"%m-%d-%Y__%H'%M'%S\\";
 
       wcsftime (wszTime, MAX_PATH, wszTimestamp, &now_tm);
       lstrcatW (wszOutDir, wszTime);
@@ -953,7 +1092,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 
 
   if ( ExceptionInfo->ExceptionRecord->ExceptionFlags == 0 ||
-       (! desc.length ())
+       (! wcslen (desc))
      )
   {
     return EXCEPTION_CONTINUE_EXECUTION;
@@ -1115,7 +1254,7 @@ CrashHandler::InitSyms (void)
   static volatile LONG               init = 0L;
   if (! InterlockedCompareExchange (&init, 1, 0))
   {
-  //std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+    std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
     SymCleanup (SK_GetCurrentProcess ());
 
@@ -1130,10 +1269,10 @@ CrashHandler::InitSyms (void)
 
     Init ();
 
-    //if (config.system.handle_crashes)
-    //{
-    //  if (! config.steam.silent)
-    //    SK_BypassSteamCrashHandler ();
-    //}
+    ///if (config.system.handle_crashes)
+    ///{
+    ///  if (! config.steam.silent)
+    ///    SK_BypassSteamCrashHandler ();
+    ///}
   }
 }

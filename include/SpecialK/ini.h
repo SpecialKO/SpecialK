@@ -38,14 +38,13 @@ interface iSK_INISection : public IUnknown
 public:
   iSK_INISection (void) = default;
 
-  iSK_INISection (const wchar_t* section_name) {
-    name   = section_name;
-    parent = nullptr;
+  iSK_INISection (const wchar_t* section_name) : name   (section_name),
+                                                 parent (nullptr) {
   }
 
-  iSK_INISection (const wchar_t* section_name, iSK_INI* _parent) {
-    name   = section_name;
-    parent = _parent;
+  iSK_INISection ( const wchar_t* section_name,
+                         iSK_INI* _parent)     : name   (section_name),
+                                                 parent (_parent) {
   }
 
   virtual ~iSK_INISection (void) { };

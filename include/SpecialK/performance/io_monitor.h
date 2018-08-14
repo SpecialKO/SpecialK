@@ -300,8 +300,4 @@ cpu_perf_t&      __SK_WMI_CPUStats      (void);
 disk_perf_t&     __SK_WMI_DiskStats     (void);
 pagefile_perf_t& __SK_WMI_PagefileStats (void);
 
-#define cpu_stats      __SK_WMI_CPUStats      ()
-#define disk_stats     __SK_WMI_DiskStats     ()
-#define pagefile_stats __SK_WMI_PagefileStats ()
-
 #endif /* __ SK__IO_MONITOR_H__ */

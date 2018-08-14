@@ -1298,7 +1298,7 @@ void ResetCEGUI_GL (void)
 
         glBindVertexArray (ceGL_VAO);
 
-        if (! locale_orig.empty ())if (! locale_orig.empty ())
+        if (! locale_orig.empty ())
           setlocale (LC_ALL, "C");
 
         SK_CEGUI_RelocateLog ();

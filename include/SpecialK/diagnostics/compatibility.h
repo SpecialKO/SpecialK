@@ -33,4 +33,8 @@ HRESULT SK_COMPAT_FixNahimicDeadlock (void);
 
 bool SK_COMPAT_IsSystemDllInstalled (wchar_t* wszDll, bool* locally = nullptr);
 
+
+bool SK_COMPAT_IsFrapsPresent (void);
+void SK_COMPAT_UnloadFraps    (void);
+
   #endif /* __SK_COMPATIBILITY_H__ */

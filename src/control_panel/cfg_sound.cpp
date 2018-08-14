@@ -205,6 +205,79 @@ SK_ImGui_SelectAudioSessionDlg (void)
   return changed;
 }
 
+class SK_MMDev_AudioEndpointVolumeCallback :
+       public IAudioEndpointVolumeCallback
+{
+volatile LONG _cRef = 0;
+
+public:
+  SK_MMDev_AudioEndpointVolumeCallback (void)
+  {
+    InterlockedExchange (&_cRef, 1);
+  } 
+
+  ~SK_MMDev_AudioEndpointVolumeCallback (void)
+  {
+  }
+
+  ULONG STDMETHODCALLTYPE AddRef (void)
+  {
+    return
+      InterlockedIncrement (&_cRef);
+  }
+
+  ULONG STDMETHODCALLTYPE Release (void)
+  {
+    ULONG ulRef = 
+      InterlockedDecrement (&_cRef);
+
+    if (0 == ulRef)
+    {
+      delete this;
+    }
+
+    return ulRef;
+  }
+
+  HRESULT STDMETHODCALLTYPE QueryInterface ( REFIID   riid,
+                                             VOID   **ppvInterface )
+  {
+    if (IID_IUnknown == riid)
+    {
+      AddRef ();
+
+      *ppvInterface =
+        static_cast <IUnknown *> (this);
+    }
+
+    else if ( __uuidof (IAudioEndpointVolumeCallback) == riid )
+    {
+      AddRef ();
+
+      *ppvInterface =
+        static_cast <IAudioEndpointVolumeCallback *> (this);
+    }
+
+    else
+    {
+      *ppvInterface = nullptr;
+
+      return
+        E_NOINTERFACE;
+    }
+
+    return S_OK;
+  }
+
+  HRESULT STDMETHODCALLTYPE OnNotify (PAUDIO_VOLUME_NOTIFICATION_DATA pNotify)
+  {
+    if (pNotify == NULL)
+      return E_INVALIDARG;
+
+    return S_OK;
+  }
+} volume_mgr;
+
 void
 SK_ImGui_VolumeManager (void)
 {
@@ -293,7 +366,6 @@ SK_ImGui_VolumeManager (void)
         if (pMusic->BIsPlaying ()) pMusic->PlayNext ();
       }
 
-
       keybd_event_Original (VK_MEDIA_NEXT_TRACK, 0, KEYEVENTF_EXTENDEDKEY,                   0);
       keybd_event_Original (VK_MEDIA_NEXT_TRACK, 0, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
     }
@@ -310,6 +382,10 @@ SK_ImGui_VolumeManager (void)
 
   ImGui::TreePush ("");
 
+  // TODO : Use notification
+  static DWORD dwLastTest = 0;
+  static UINT  channels   = 0;
+
   if (audio_session == nullptr)
   {
     int count;
@@ -322,19 +398,36 @@ SK_ImGui_VolumeManager (void)
     {
       if (ppSessions [i]->getProcessId () == GetCurrentProcessId ())
       {
+        dwLastTest    = 0;
+        channels      = 0;
         audio_session = ppSessions [i];
         break;
       }
     }
   }
 
-  else
+  if (audio_session != nullptr)
   {
-    UINT channels = 0;
-    if ( SUCCEEDED (
-           pMeterInfo->GetMeteringChannelCount (&channels)
-         )
-       )
+    if (pMeterInfo == nullptr)
+        pMeterInfo = sessions.getMeterInfo ();
+
+    if ( ( (dwLastTest + 45000)  <
+              SK::ControlPanel::current_time  ) )
+    {
+      if ( FAILED  (
+             pMeterInfo->GetMeteringChannelCount (
+                                   &channels     )
+                   )
+         ) channels = 0;
+
+      if (channels != 0)
+      {
+        dwLastTest =
+          SK::ControlPanel::current_time;
+      }
+    }
+
+    if (channels != 0)
     {
       CComPtr <IChannelAudioVolume> pChannelVolume =
         audio_session->getChannelAudioVolume      ( );
@@ -529,7 +622,11 @@ SK_ImGui_VolumeManager (void)
             snprintf (channel_volumes [i].slider_label, 7, "##vol%u",      i);
           }
 
-          if (pChannelVolume && SUCCEEDED (pChannelVolume->GetChannelVolume (i, &channel_volumes [i].volume)))
+          if (             pChannelVolume != nullptr   && 
+               SUCCEEDED ( pChannelVolume->GetChannelVolume (
+                            i,  &channel_volumes [i].volume )
+                         )
+             )
           {
             volume_s& ch_vol =
               channel_volumes [i];

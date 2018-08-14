@@ -169,7 +169,7 @@ SK_PluginKeyPress (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode)
   auto masked =
     SK_MakeKeyMask (vkCode, Control, Shift, Alt);
 
-  if (SK_KeyboardMacros.count (masked))
+  if (SK_KeyboardMacros.find (masked) != SK_KeyboardMacros.end ())
   {
     auto range =
       SK_KeyboardMacros.equal_range (masked);
@@ -408,7 +408,7 @@ SK_HandleConsoleKey (bool keyDown, BYTE vkCode, LPARAM lParam)
       // Don't print the tab character, it's pretty useless.
       if ( visible && vkCode != VK_TAB )
       {
-        keys_ [VK_CAPITAL] = GetKeyState_Original (VK_CAPITAL) & 0xFFUL;
+        keys_ [VK_CAPITAL] = SK_GetKeyState (VK_CAPITAL) & 0xFFUL;
 
         unsigned char key_str [2];
                       key_str [1] = '\0';
