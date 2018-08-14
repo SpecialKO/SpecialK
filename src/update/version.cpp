@@ -410,7 +410,7 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
     swprintf ( wszRemoteRepoURL,
                  L"/Kaldaien/%s/0.8.x/version.ini",
                    wszProduct );
-  else if (wcsstr (wszProduct, L"/"))
+  else if (wcschr (wszProduct, L'/'))
     swprintf ( wszRemoteRepoURL,
                  L"/Kaldaien/%s/version.ini",
                    wszProduct );

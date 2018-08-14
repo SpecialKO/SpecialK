@@ -51,7 +51,7 @@ static volatile LONG crc_init = 0;
 std::vector <sk_file_entry_s>
 SK_Get7ZFileContents (const wchar_t* wszArchive)
 {
-  if (InterlockedCompareExchange (&crc_init, 1, 0))
+  if (! InterlockedCompareExchange (&crc_init, 1, 0))
   { CrcGenerateTable     (         );
     InterlockedIncrement (&crc_init);
   } SK_Thread_SpinUntilAtomicMin (&crc_init, 2);
@@ -104,7 +104,7 @@ SK_Get7ZFileContents (const wchar_t* wszArchive)
       if (*wszEntry == L'\\')
         pwszEntry++;
 
-      files.push_back (sk_file_entry_s { i, fileSize, pwszEntry });
+      files.emplace_back (sk_file_entry_s { i, fileSize, pwszEntry });
     }
 
     File_Close  (&arc_stream.file);
@@ -123,7 +123,7 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
                   bool                      backup,
                   SK_7Z_DECOMP_PROGRESS_PFN callback )
 {
-  if (InterlockedCompareExchange (&crc_init, 1, 0))
+  if (! InterlockedCompareExchange (&crc_init, 1, 0))
   { CrcGenerateTable     (         );
     InterlockedIncrement (&crc_init);
   } SK_Thread_SpinUntilAtomicMin (&crc_init, 2);
@@ -188,6 +188,9 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
     return E_FAIL;
   }
 
+  const size_t old_ver_len   = wszOldVersion != nullptr ?
+    lstrlenW (wszOldVersion) : 0;
+
   int            i = 0;
   for ( auto& file : reg_files )
   {
@@ -225,9 +228,9 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
     {
       wcscpy (wszMovePath, SK_SYS_GetVersionPath ().c_str ());
 
-      if (           wszOldVersion != nullptr &&
-           lstrlenW (wszOldVersion)           &&
-           backup )
+      if ( wszOldVersion != nullptr &&
+              old_ver_len           &&
+                   backup )
       {
         lstrcatW (wszMovePath, wszOldVersion);
         lstrcatW (wszMovePath, L"\\");
@@ -238,9 +241,9 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
       // If the archive contains sub-directories, this will create them
       SK_CreateDirectories (wszMovePath);
 
-      if (              wszOldVersion == nullptr ||
-           (! lstrlenW (wszOldVersion))          ||
-           (! backup) )
+      if ( wszOldVersion == nullptr ||
+           (! old_ver_len)          ||
+           (! backup)      )
       {
         lstrcatW (wszMovePath, L".old");
       }
@@ -359,14 +362,15 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
     PathAppend (wszDefaultConfig, cfg_file.name.c_str ());
     PathAppend (wszUserConfig,    cfg_file.name.c_str ());
 
-    wchar_t* wszDefault_ = wcsstr (wszUserConfig, L"default_");
+    wchar_t* wszDefault_ =
+      wcsstr (wszUserConfig, L"default_");
 
     if (wszDefault_ != nullptr)
     {
       *wszDefault_ = L'\0';
 
       wchar_t* wsz_ =
-        wcsstr ( wszDefault_+1, L"_" );
+        wcschr ( wszDefault_+1, L'_' );
 
       if (wsz_ != nullptr)
       {
@@ -458,7 +462,7 @@ SK_Decompress7zEx ( const wchar_t*            wszArchive,
                     const wchar_t*            wszDestination,
                     SK_7Z_DECOMP_PROGRESS_PFN callback )
 {
-  if (InterlockedCompareExchange (&crc_init, 1, 0))
+  if (! InterlockedCompareExchange (&crc_init, 1, 0))
   { CrcGenerateTable     (         );
     InterlockedIncrement (&crc_init);
   } SK_Thread_SpinUntilAtomicMin (&crc_init, 2);
@@ -494,8 +498,8 @@ SK_Decompress7zEx ( const wchar_t*            wszArchive,
                          &thread_alloc,
                            &thread_tmp_alloc ) != SZ_OK )
   {
-    //dll_log.Log ( L"[AutoUpdate]  ** Cannot open archive file: %s",
-    //                wszArchive );
+    dll_log.Log ( L"[7ZIP-Unpak]  ** Cannot open archive file: %s",
+                    wszArchive );
 
     SzArEx_Free (&arc, &thread_alloc);
 
@@ -512,8 +516,8 @@ SK_Decompress7zEx ( const wchar_t*            wszArchive,
     size_t   offset        = 0;
     size_t   decomp_size   = 0;
 
-    //dll_log.Log ( L"[AutoUpdate] Extracting file ('%s')",
-    //                files [i].name.c_str () );
+    dll_log.Log ( L"[7ZIP-Unpak] Extracting file ('%s')",
+                    files [i].name.c_str () );
 
     if ( SZ_OK !=
            SzArEx_Extract ( &arc,          &look_stream.s, file.fileno,
@@ -521,7 +525,7 @@ SK_Decompress7zEx ( const wchar_t*            wszArchive,
                             &offset,       &decomp_size,
                             &thread_alloc, &thread_tmp_alloc ) )
     {
-      dll_log.Log ( L"[AutoUpdate] Failed to extract 7-zip file ('%s')",
+      dll_log.Log ( L"[7ZIP-Unpak] Failed to extract 7-zip file ('%s')",
                       file.name.c_str () );
 
       File_Close  (&arc_stream.file);
@@ -530,7 +534,7 @@ SK_Decompress7zEx ( const wchar_t*            wszArchive,
       return E_FAIL;
     }
 
-    wchar_t wszDestPath [MAX_PATH] = { };
+    wchar_t wszDestPath [MAX_PATH * 2 + 1] = { };
 
     wcscpy      (wszDestPath, wszDestination);
     PathAppendW (wszDestPath, file.name.c_str ());
@@ -562,8 +566,8 @@ SK_Decompress7zEx ( const wchar_t*            wszArchive,
 
     else
     {
-      //dll_log.Log ( L"[AutoUpdate] Failed to open file: '%s'",
-                      //wszDestPath );
+      dll_log.Log ( L"[7ZIP-Unpak] Failed to open file: '%s'",
+                      wszDestPath );
 
       File_Close  (&arc_stream.file);
       SzArEx_Free (&arc, &thread_alloc);
