@@ -33,6 +33,9 @@ SK_File_GetNameFromHandle ( HANDLE   hFile,
                             wchar_t *pwszFileName,
                       const DWORD    uiMaxLen )
 {
+  if (uiMaxLen == 0)
+    return FALSE;
+
   *pwszFileName = L'\0';
 
   wchar_t* ptrcFni =

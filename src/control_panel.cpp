@@ -879,7 +879,7 @@ SK_ImGui_DrawGraph_FramePacing (void)
 
   sprintf_s
         ( szAvg,
-            512,
+            511,
               u8"Avg milliseconds per-frame: %6.3f  (Target: %6.3f)\n"
               u8"    Extreme frame times:     %6.3f min, %6.3f max\n\n\n\n"
               u8"Variation:  %8.5f ms        %.1f FPS  ±  %3.1f frames",
@@ -2522,6 +2522,63 @@ SK_ImGui_StageNextFrame (void)
   }
 
   ImGuiIO& io (ImGui::GetIO ());
+
+  if (SK_GetCurrentGameID () == SK_GAME_ID::MonsterHunterWorld)
+  {
+    CComQIPtr <IDXGISwapChain> pSwapChain (rb.swapchain);
+
+    DXGI_SWAP_CHAIN_DESC  desc = {};
+    pSwapChain->GetDesc (&desc);
+
+    if (desc.BufferDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT)
+    {
+      extern ID3D11ShaderResourceView*
+        SK_D3D11_GetRawHDRView (bool capture = true);
+
+      ImTextureID pTexture =
+        static_cast <ImTextureID> (SK_D3D11_GetRawHDRView (false));
+
+      if (pTexture != 0)
+      {
+        const ImVec2 fb_dims [] = {
+          { 0.0f,             0.0f             },
+          { io.DisplaySize.x, io.DisplaySize.y }
+        };
+
+        static bool open = true;
+
+        ImGui::PushStyleVar (ImGuiStyleVar_WindowPadding,  ImVec2 (0.0f, 0.0f));
+        ImGui::PushStyleVar (ImGuiStyleVar_WindowMinSize,  fb_dims [1]);
+        ImGui::PushStyleVar (ImGuiStyleVar_FramePadding,   ImVec2 (0.0f, 0.0f));
+        ImGui::PushStyleVar (ImGuiStyleVar_FrameRounding,  0.0f);
+        ImGui::PushStyleVar (ImGuiStyleVar_ItemSpacing,    ImVec2 (0.0f, 0.0f));
+        ImGui::PushStyleVar (ImGuiStyleVar_WindowRounding, 0.0f);
+
+        ImGui::SetNextWindowPos  (fb_dims [0], ImGuiSetCond_Always);
+        ImGui::SetNextWindowSize (fb_dims [1], ImGuiSetCond_Always);
+
+        ImGui::Begin ("##HDR_Overlay", &open, ImGuiWindowFlags_NoTitleBar            | ImGuiWindowFlags_NoInputs         |
+                                              ImGuiWindowFlags_NoScrollbar           | ImGuiWindowFlags_AlwaysAutoResize |
+                                              ImGuiWindowFlags_NoFocusOnAppearing    | ImGuiWindowFlags_NoNavFocus       |
+                                              ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavInputs);
+
+        ImGui::Image ( pTexture, fb_dims [1],
+                         ImVec2 (-2, -2),
+                         ImVec2 ( 2,  2) ); // Will be saturated
+        ImGui::End ();
+
+        ImGui::PopStyleVar (6);
+      }
+    }
+  }
+
+  extern volatile LONG __SK_ScreenShot_CapturingHUDless;
+  if (ReadAcquire (&__SK_ScreenShot_CapturingHUDless))
+  {
+    imgui_staged = false;
+    return;
+  }
+
 
 
   //

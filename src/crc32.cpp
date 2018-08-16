@@ -509,10 +509,10 @@ void
 __cdecl
 __crc32_init (void)
 {
-  static volatile LONG init = -1;
+  static volatile LONG __init = 0;
 
-  if ( InterlockedCompareExchange (&init, 0, -1)
-                                          == -1 )
+  if ( InterlockedCompareExchange (&__init, 1, 0)
+                                            == 0 )
   {
     // somebody can call sw version directly, so, precalculate table for this version
     calculate_table ();
@@ -529,10 +529,10 @@ __crc32_init (void)
       append_func = crc32c_append_sw;
     }
 
-    InterlockedExchange (&init, 1);
+    InterlockedIncrement (&__init);
   }
 
-  SK_Thread_SpinUntilFlagged (&init);
+  SK_Thread_SpinUntilAtomicMin (&__init, 2);
 }
 
 extern "C"

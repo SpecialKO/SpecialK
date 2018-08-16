@@ -2610,10 +2610,12 @@ return;
 
 
 struct {
-  DWORD  dwTid     = 0;
-  DWORD  dwTaskIdx = 0;                    // MMCSS Task Idx
-  HANDLE hTask     = INVALID_HANDLE_VALUE; // MMCSS Priority Boost Handle
+  DWORD  dwTid = 0;
 } SK_BufferFlinger;
+
+extern SK_MMCS_TaskEntry*
+SK_MMCS_GetTaskForThreadIDEx ( DWORD dwTid,       const char* name,
+                               const char* task1, const char* task2 );
 
 __declspec (noinline)
 void
@@ -2622,27 +2624,24 @@ SK_BeginBufferSwap (void)
 {
   static SK_RenderAPI LastKnownAPI = SK_RenderAPI::Reserved;
 
-  ///assert ( SK_BufferFlinger.dwTid == 0 ||
-  ///         SK_BufferFlinger.dwTid == GetCurrentThreadId () );
+  assert ( SK_BufferFlinger.dwTid == 0 ||
+           SK_BufferFlinger.dwTid == GetCurrentThreadId () );
 
-  ///if ( SK_BufferFlinger.dwTid     == 0      &&
-  ///     config.render.framerate.enable_mmcss &&
-  ///     SK_BufferFlinger.dwTaskIdx == 0 )
-  ///{
-  ///  SK_BufferFlinger.dwTid = GetCurrentThreadId ();
-  ///  SK_BufferFlinger.hTask = 
-  ///    AvSetMmMaxThreadCharacteristics ( L"Games",
-  ///                                      L"Window Manager",
-  ///                                        &SK_BufferFlinger.dwTaskIdx );
-  ///}
-  ///
-  ///if ( SK_BufferFlinger.hTask != INVALID_HANDLE_VALUE &&
-  ///     SK_BufferFlinger.dwTid == GetCurrentThreadId   () )
-  ///{
-  ///  AvSetMmThreadPriority ( SK_BufferFlinger.hTask,
-  ///                            AVRT_PRIORITY_HIGH );
-  ///}
+  if (config.render.framerate.enable_mmcss && SK_BufferFlinger.dwTid == 0)
+  {
+    auto* task =
+      SK_MMCS_GetTaskForThreadIDEx ( GetCurrentThreadId (),
+                                       "[SK] Primary Render Thread",
+                                         "Games",
+                                         "Window Manager" );
 
+     if ( task        != nullptr            &&
+          task->dwTid == GetCurrentThreadId () )
+     {
+       AvSetMmThreadPriority ( task->hTask,
+                                 AVRT_PRIORITY_CRITICAL );
+    }
+  }
 
 
   switch (SK_GetCurrentGameID ())
@@ -2653,8 +2652,8 @@ SK_BeginBufferSwap (void)
                   break;
 
     case SK_GAME_ID::MonsterHunterWorld:
-      extern void SK_MWH_BeginFrame (void);
-                  SK_MWH_BeginFrame ();
+      extern void SK_MHW_BeginFrame (void);
+                  SK_MHW_BeginFrame ();
                   break;
   }
 
@@ -3013,6 +3012,15 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
   }
 
 
+  switch (SK_GetCurrentGameID ())
+  {
+    case SK_GAME_ID::MonsterHunterWorld:
+      extern void SK_MHW_EndFrame (void);
+                  SK_MHW_EndFrame ();
+      break;
+  }
+
+
   LastKnownAPI = config.apis.last_known =
     rb.api;
 
@@ -3052,15 +3060,6 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
   {
     config.cegui.frames_drawn++;
   }
-
-
-  ///if ( SK_BufferFlinger.hTask != INVALID_HANDLE_VALUE &&
-  ///     SK_BufferFlinger.dwTid == GetCurrentThreadId () )
-  ///{
-  ///  AvRevertMmThreadCharacteristics ( SK_BufferFlinger.hTask );
-  ///                                    SK_BufferFlinger.dwTid = 0;
-  ///}
-
 
 
   if (SK_GetCurrentGameID () == SK_GAME_ID::FinalFantasyXV)

@@ -1107,8 +1107,10 @@ SK_Yakuza0_PlugInCfg (void)
 
 
 
-volatile LONG __SK_MWH_QueuedShots         = 0;
-volatile LONG __SK_MWH_InitiateHudFreeShot = 0;
+volatile LONG __SK_MHW_QueuedShots         = 0;
+volatile LONG __SK_MHW_InitiateHudFreeShot = 0;
+
+volatile LONG __SK_ScreenShot_CapturingHUDless = 0;
 
 void
 SK_TriggerHudFreeScreenshot (void) noexcept
@@ -1116,37 +1118,62 @@ SK_TriggerHudFreeScreenshot (void) noexcept
   extern bool SK_D3D11_EnableTracking;
               SK_D3D11_EnableTracking = true;
 
-  InterlockedIncrement (&__SK_MWH_QueuedShots);
+  InterlockedIncrement (&__SK_MHW_QueuedShots);
+}
+
+#include <SpecialK\widgets\widget.h>
+
+void
+SK_MHW_BeginFrame (void)
+{
+  if ( ReadAcquire (&__SK_MHW_QueuedShots)          > 0 ||
+       ReadAcquire (&__SK_MHW_InitiateHudFreeShot) != 0    )
+  {
+    InterlockedExchange (&__SK_ScreenShot_CapturingHUDless, 1);
+
+#define SK_MHW_HUD_VS0_CRC32C  0x6f046ebc // General 2D HUD
+#define SK_MHW_HUD_VS1_CRC32C  0x711c9eeb // The HUD cursor particles
+
+    if (InterlockedCompareExchange (&__SK_MHW_InitiateHudFreeShot, -2, 1) == 1)
+    {
+      static auto& shaders =
+        SK_D3D11_Shaders;
+
+      shaders.vertex.blacklist.emplace (SK_MHW_HUD_VS0_CRC32C);
+      shaders.vertex.blacklist.emplace (SK_MHW_HUD_VS1_CRC32C);
+    }
+
+    // 1-frame Delay for SDR->HDR Upconversion
+    else if (InterlockedCompareExchange (&__SK_MHW_InitiateHudFreeShot, -1, -2) == -2)
+    {
+      SK::SteamAPI::TakeScreenshot (SK::ScreenshotStage::EndOfFrame);
+    }
+
+    else if (! ReadAcquire (&__SK_MHW_InitiateHudFreeShot))
+    {
+      InterlockedDecrement (&__SK_MHW_QueuedShots);
+      InterlockedExchange  (&__SK_MHW_InitiateHudFreeShot, 1);
+
+      return
+        SK_MHW_BeginFrame ();
+    }
+
+    return;
+  }
+
+  InterlockedExchange (&__SK_ScreenShot_CapturingHUDless, 0);
 }
 
 void
-SK_MWH_BeginFrame (void)
+SK_MHW_EndFrame (void)
 {
-  if ( ReadAcquire (&__SK_MWH_QueuedShots)          > 0 ||
-       ReadAcquire (&__SK_MWH_InitiateHudFreeShot) != 0    )
+  if (InterlockedCompareExchange (&__SK_MHW_InitiateHudFreeShot, 0, -1) == -1)
   {
-#define SK_MWH_HUD_VS_CRC32C 0x6f046ebc
+    static auto& shaders =
+      SK_D3D11_Shaders;
 
-    if (InterlockedCompareExchange (&__SK_MWH_InitiateHudFreeShot, -1, 1) == 1)
-    {
-      SK_D3D11_Shaders.vertex.blacklist.emplace (SK_MWH_HUD_VS_CRC32C);
-
-      SK::SteamAPI::TakeScreenshot (SK::ScreenshotStage::BeforeOSD);
-    }
-
-    else if (InterlockedCompareExchange (&__SK_MWH_InitiateHudFreeShot, 0, -1) == -1)
-    {
-      SK_D3D11_Shaders.vertex.blacklist.erase (SK_MWH_HUD_VS_CRC32C);
-    }
-
-    else
-    {
-      InterlockedDecrement (&__SK_MWH_QueuedShots);
-      InterlockedExchange (&__SK_MWH_InitiateHudFreeShot, 1);
-
-      return
-        SK_MWH_BeginFrame ();
-    }
+    shaders.vertex.blacklist.erase (SK_MHW_HUD_VS1_CRC32C);
+    shaders.vertex.blacklist.erase (SK_MHW_HUD_VS0_CRC32C);
   }
 }
 
@@ -1170,6 +1197,8 @@ float __SK_MHW_HDR_Exp  = 2.116f;
 void
 SK_MHW_PlugInInit (void)
 {
+  config.render.framerate.enable_mmcss = false;
+
   _SK_MHW_JobParity =
     dynamic_cast <sk::ParameterBool *> (
       g_ParameterFactory.create_parameter <bool> (L"Job Parity")
@@ -1241,7 +1270,7 @@ SK_MHW_PlugInInit (void)
 bool
 SK_MHW_PlugInCfg (void)
 {
-  if (ImGui::CollapsingHeader ("Monster Hunters World", ImGuiTreeNodeFlags_DefaultOpen))
+  if (ImGui::CollapsingHeader ("MONSTER HUNTER: WORLD", ImGuiTreeNodeFlags_DefaultOpen))
   {
     ImGui::TreePush ("");
 

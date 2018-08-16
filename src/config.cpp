@@ -255,6 +255,11 @@ struct {
     sk::ParameterBool*    include_osd_default;
     sk::ParameterBool*    keep_png_copy;
   } screenshots;
+
+  struct
+  {
+    sk::ParameterFloat*   hdr_luminance;
+  } overlay;
 } steam;
 
 struct {
@@ -478,8 +483,9 @@ struct {
 } apis;
 
 bool
-SK_LoadConfig (std::wstring name) {
-  return SK_LoadConfigEx (name);
+SK_LoadConfig (const std::wstring& name) {
+  return
+    SK_LoadConfigEx (name);
 }
 
 extern volatile LONG SK_SteamAPI_CallbackRateLimit;
@@ -1002,6 +1008,7 @@ auto DeclKeybind =
     ConfigEntry (steam.screenshots.smart_capture,        L"Enhanced screenshot speed and HUD options; D3D11-only.",    dll_ini,         L"Steam.Screenshots",     L"EnableSmartCapture"),
 
     // These are all system-wide for all Steam games
+    ConfigEntry (steam.overlay.hdr_luminance,            L"Make the Steam Overlay visible in HDR mode!",               achievement_ini, L"Steam.Overlay",         L"Luminance_scRGB"),
     ConfigEntry (steam.screenshots.include_osd_default,  L"Should a screenshot triggered BY Steam include SK's OSD?",  achievement_ini, L"Steam.Screenshots",     L"DefaultKeybindCapturesOSD"),
     ConfigEntry (steam.screenshots.keep_png_copy,        L"Keep a .PNG compressed copy of each screenshot?",           achievement_ini, L"Steam.Screenshots",     L"KeepLosslessPNG"),
 
@@ -2295,6 +2302,7 @@ auto DeclKeybind =
                                       throttle );
   }
 
+  steam.overlay.hdr_luminance->load           (config.steam.overlay_hdr_luminance);
   steam.screenshots.smart_capture->load       (config.steam.screenshots.enable_hook);
   steam.screenshots.include_osd_default->load (config.steam.screenshots.show_osd_by_default);
   steam.screenshots.keep_png_copy->load       (config.steam.screenshots.png_compress);
@@ -3091,6 +3099,8 @@ SK_SaveConfig ( std::wstring name,
 
   steam.log.silent->store                   (config.steam.silent);
   steam.drm.spoof_BLoggedOn->store          (config.steam.spoof_BLoggedOn);
+
+  steam.overlay.hdr_luminance->store        (config.steam.overlay_hdr_luminance);
 
   steam.screenshots.smart_capture->store    (config.steam.screenshots.enable_hook);
   steam.screenshots.include_osd_default->

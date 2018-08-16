@@ -1450,12 +1450,12 @@ SK_IsDLLSpecialK (const wchar_t* wszName)
     SK_GetFileVersionInfoSizeExW ( FILE_VER_GET_NEUTRAL,
                                      wszName, &dwHandle );
 
-  if (dwSize < 1024)
+  if (dwSize < 128)
     return false;
 
   uint8_t *cbData = ReadAcquire (&__SK_DLL_Attached) ?
-      (uint8_t *)SK_TLS_Bottom ()->scratch_memory.cmd.alloc (dwSize) :
-      (uint8_t *)LocalAlloc    (LPTR,                        dwSize);
+      (uint8_t *)SK_TLS_Bottom ()->scratch_memory.cmd.alloc (dwSize + 1, true) :
+      (uint8_t *)SK_LocalAlloc (LPTR,                        dwSize + 1);
 
   wchar_t* wszProduct        = nullptr; // Will point somewhere in cbData
 
@@ -1486,12 +1486,11 @@ SK_IsDLLSpecialK (const wchar_t* wszName)
                                        &cbTranslatedBytes ) && cbTranslatedBytes &&
                                                                lpTranslate )
   {
-    wchar_t wszPropName [64] = { };
-
-    wsprintfW ( wszPropName,
-                  LR"(\StringFileInfo\%04x%04x\ProductName)",
-                    lpTranslate   [0].wLanguage,
-                      lpTranslate [0].wCodePage );
+    wchar_t      wszPropName [64] = { };
+    _snwprintf ( wszPropName, 64,
+                   LR"(\StringFileInfo\%04x%04x\ProductName)",
+                     lpTranslate   [0].wLanguage,
+                       lpTranslate [0].wCodePage );
 
     SK_VerQueryValueW ( cbData,
                           wszPropName,
@@ -1517,13 +1516,13 @@ SK_GetDLLVersionStr (const wchar_t* wszName)
     SK_GetFileVersionInfoSizeExW ( FILE_VER_GET_NEUTRAL,
                                      wszName, &dwHandle );
 
-  if (dwSize < 1024)
+  if (dwSize < 128)
     return L"N/A";
 
   uint8_t *cbData =
     ReadAcquire (&__SK_DLL_Attached) ?
-      (uint8_t *)SK_TLS_Bottom ()->scratch_memory.cmd.alloc (dwSize) :
-      (uint8_t *)LocalAlloc    (LPTR,                        dwSize);
+      (uint8_t *)SK_TLS_Bottom ()->scratch_memory.cmd.alloc (dwSize + 1, true) :
+      (uint8_t *)SK_LocalAlloc (LPTR,                        dwSize + 1);
 
   wchar_t* wszFileDescrip = nullptr; // Will point somewhere in cbData
   wchar_t* wszFileVersion = nullptr; // "
@@ -1541,7 +1540,8 @@ SK_GetDLLVersionStr (const wchar_t* wszName)
                                      dwSize,
                                        cbData );
 
-  if (! bRet) return L"N/A";
+  if (! bRet)
+    return L"N/A";
 
   if ( SK_VerQueryValueW ( cbData,
                              TEXT ("\\VarFileInfo\\Translation"),
@@ -1551,7 +1551,7 @@ SK_GetDLLVersionStr (const wchar_t* wszName)
   {
     wchar_t wszPropName [64] = { };
 
-    wsprintfW ( wszPropName,
+    _snwprintf ( wszPropName, 64,
                   LR"(\StringFileInfo\%04x%04x\FileDescription)",
                     lpTranslate   [0].wLanguage,
                       lpTranslate [0].wCodePage );
@@ -1561,10 +1561,10 @@ SK_GetDLLVersionStr (const wchar_t* wszName)
               static_cast_p2p <void> (&wszFileDescrip),
                                       &cbProductBytes );
 
-    wsprintfW ( wszPropName,
-                  LR"(\StringFileInfo\%04x%04x\FileVersion)",
-                    lpTranslate   [0].wLanguage,
-                      lpTranslate [0].wCodePage );
+    _snwprintf ( wszPropName, 64,
+                   LR"(\StringFileInfo\%04x%04x\FileVersion)",
+                     lpTranslate   [0].wLanguage,
+                       lpTranslate [0].wCodePage );
 
     SK_VerQueryValueW ( cbData,
                           wszPropName,
@@ -2679,12 +2679,12 @@ SK_FormatString (char const* const _Format, ...)
   va_start (_ArgList, _Format);
   {
     len =
-      vsnprintf ( nullptr, 0, _Format, _ArgList );
+      vsnprintf ( nullptr, 0, _Format, _ArgList ) + 1;
   }
   va_end   (_ArgList);
 
   size_t alloc_size =
-    sizeof (char) * (len + 1);
+    sizeof (char) * (len + 2);
 
   char* pData =
     ( ReadAcquire (&__SK_DLL_Attached) ?
@@ -2697,7 +2697,7 @@ SK_FormatString (char const* const _Format, ...)
   va_start (_ArgList, _Format);
   {
     len =
-      vsprintf ( pData, _Format, _ArgList );
+      vsnprintf ( pData, len + 1, _Format, _ArgList );
   }
   va_end   (_ArgList);
 
@@ -2715,12 +2715,12 @@ SK_FormatStringW (wchar_t const* const _Format, ...)
   va_start (_ArgList, _Format);
   {
     len =
-      _vsnwprintf ( nullptr, 0, _Format, _ArgList );
+      _vsnwprintf ( nullptr, 0, _Format, _ArgList ) + 1;
   }
   va_end   (_ArgList);
 
   size_t alloc_size =
-    sizeof (wchar_t) * (len + 1);
+    sizeof (wchar_t) * (len + 2);
 
   wchar_t* pData = ReadAcquire (&__SK_DLL_Attached) ?
     (wchar_t *)SK_TLS_Bottom ()->scratch_memory.eula.alloc (alloc_size, true) :
@@ -2732,7 +2732,7 @@ SK_FormatStringW (wchar_t const* const _Format, ...)
   va_start (_ArgList, _Format);
   {
     len =
-      _vswprintf ( (wchar_t *)pData, _Format, _ArgList );
+      _vsnwprintf ( (wchar_t *)pData, len + 1, _Format, _ArgList );
   }
   va_end   (_ArgList);
 
@@ -2756,19 +2756,33 @@ SK_StripTrailingSlashesW (wchar_t* wszInOut)
     }
   };
   
-  std::wstring wstr (wszInOut);
+  std::wstring wstr (
+    std::move (wszInOut)
+  );
+
+  if (wstr.empty ())
+    return;
   
   wstr.erase ( std::unique ( wstr.begin (),
                              wstr.end   (), test_slashes () ),
                  wstr.end () );
 
-  wcscpy (wszInOut, wstr.c_str ());
+  if (wstr.empty ())
+    *wszInOut = L'\0';
+  else
+    wcsncpy_s ( wszInOut, wstr.length () + 1,
+                          wstr.c_str  (), _TRUNCATE );
 }
 
 void
 SK_FixSlashesW (wchar_t* wszInOut)
 { 
-  std::wstring wstr ( wszInOut );
+  std::wstring wstr ( 
+    std::move (wszInOut)
+  );
+
+  if (wstr.empty ())
+    return;
 
   for ( auto&& it : wstr )
   {
@@ -2776,7 +2790,8 @@ SK_FixSlashesW (wchar_t* wszInOut)
       it = L'\\';
   }
 
-  wcscpy (wszInOut, wstr.c_str ());
+  wcsncpy_s ( wszInOut, wstr.length () + 1,
+                        wstr.c_str  (), _TRUNCATE );
 }
 
 void
@@ -2794,19 +2809,33 @@ SK_StripTrailingSlashesA (char* szInOut)
     }
   };
   
-  std::string str (szInOut);
+  std::string str (
+    std::move (szInOut)
+  );
+
+  if (str.empty ())
+    return;
   
   str.erase ( std::unique ( str.begin (),
                             str.end   (), test_slashes () ),
                 str.end () );
 
-  strcpy (szInOut, str.c_str ());
+  if (str.empty ())
+    *szInOut = '\0';
+  else
+    strncpy_s ( szInOut, str.length () + 1,
+                         str.c_str  (), _TRUNCATE );
 }
 
 void
 SK_FixSlashesA (char* szInOut)
 { 
-  std::string str (szInOut);
+  std::string str (
+    std::move (szInOut)
+  );
+
+  if (str.empty ())
+    return;
 
   for ( auto&& it : str )
   {
@@ -2814,7 +2843,8 @@ SK_FixSlashesA (char* szInOut)
       it = '\\';
   }
 
-  strcpy (szInOut, str.c_str ());
+  strncpy_s (szInOut, str.length () + 1,
+                      str.c_str  (), _TRUNCATE);
 }
 
 
@@ -2868,8 +2898,8 @@ SK_StripUserNameFromPathA (char* szInOut)
     else
       PathStripPathW (wszUserProfile);
 
-    strncpy ( szUserProfile,
-                SK_WideCharToUTF8 (wszUserProfile).c_str (), len );
+    strncpy_s ( szUserProfile, MAX_PATH + 2,
+                  SK_WideCharToUTF8 (wszUserProfile).c_str (), _TRUNCATE );
   }
 
   if (*szUserName == '\0')
@@ -3106,7 +3136,8 @@ SK_DeferCommands (const char** szCommands, int count)
 void
 SK_DeferCommand (const char* szCommand)
 {
-  return SK_DeferCommands (&szCommand, 1);
+  return
+    SK_DeferCommands (&szCommand, 1);
 };
 
 

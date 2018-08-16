@@ -169,7 +169,7 @@ SK_Thread_SpinUntilFlagged (volatile LONG* pFlag, LONG _SpinMax = 75L)
     for (int i = 0; i < _SpinMax && (! ReadAcquire (pFlag)); i++)
       ;
 
-    if (ReadAcquire (pFlag))
+    if (ReadAcquire (pFlag) == 1)
       break;
 
     MsgWaitForMultipleObjectsEx (0, nullptr, 4UL, QS_ALLINPUT, MWMO_INPUTAVAILABLE);
@@ -239,6 +239,18 @@ extern "C" HRESULT WINAPI GetCurrentThreadDescription (_Out_  PWSTR  *threadDesc
 extern "C" bool SK_Thread_InitDebugExtras (void);
 
 extern "C" SetThreadAffinityMask_pfn SetThreadAffinityMask_Original;
+
+
+struct SK_MMCS_TaskEntry {
+  DWORD       dwTid     = 0;
+  DWORD       dwTaskIdx = 0;                    // MMCSS Task Idx
+  HANDLE      hTask     = INVALID_HANDLE_VALUE; // MMCSS Priority Boost Handle
+  char        name [64] = { };
+} static nul_task_ref;
+
+extern
+SK_MMCS_TaskEntry*
+SK_MMCS_GetTaskForThreadID (DWORD dwTid, const char* name);
 
 
 #endif /* __SK__THREAD_H__ */

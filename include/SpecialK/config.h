@@ -273,6 +273,7 @@ struct sk_config_t
     bool    preload_overlay      = false; // For input processing, this is important
     bool    show_playtime        = true;  // In the control panel title
     bool    force_load_steamapi  = false; // Load steam_api{64}.dll even in games
+    float   overlay_hdr_luminance= 4.375f; // 350 nits
                                           //   that do not use it
     bool    spoof_BLoggedOn      = false;
     bool    overlay_hides_sk_osd = true;
@@ -384,7 +385,7 @@ struct sk_config_t
     struct {
       // Required by default for compatibility with Mirillis Action!
       bool    draw_in_vidcap     = true;
-      float   hdr_luminance      = 400.0f;
+      float   hdr_luminance      = 4.375f; // 350 nits
       ULONG _last_vidcap_frame   = 0;
       ULONG _last_normal_frame   = 0;
     } osd;
@@ -658,11 +659,11 @@ struct SK_KeyCommand
 };
 
 
-bool SK_LoadConfigEx (std::wstring name, bool create = true);
-bool SK_LoadConfig   (std::wstring name         = L"dxgi");
-bool SK_DeleteConfig (std::wstring name         = L"dxgi");
-void SK_SaveConfig   (std::wstring name         = L"dxgi",
-                      bool         close_config = false);
+bool SK_LoadConfigEx (      std::wstring  name, bool create = true);
+bool SK_LoadConfig   (const std::wstring& name              = L"dxgi");
+bool SK_DeleteConfig (      std::wstring  name              = L"dxgi");
+void SK_SaveConfig   (      std::wstring  name              = L"dxgi",
+                      bool                close_config      = false);
 
 //
 // Sort of a nasty hack until I come up with a way for plug-ins to

@@ -222,15 +222,17 @@ SK_KeepAway (void)
   #include <SpecialK/injection/blacklist.h>
   
   wchar_t* wszHostApp =
-    (wchar_t *)SK_LocalAlloc ( LMEM_ZEROINIT, 256 * sizeof (wchar_t) );
+    (wchar_t *)SK_LocalAlloc ( LMEM_ZEROINIT, MAX_PATH * sizeof (wchar_t) );
 
   if        ( wszHostApp == nullptr ) return true;
-  wcsncpy_s ( wszHostApp, 255, SK_GetHostApp (), _TRUNCATE );
+  wcsncpy_s ( wszHostApp, MAX_PATH, SK_GetHostApp (), _TRUNCATE );
 
   wchar_t *pwsz = wszHostApp;
   while ( *pwsz != L'\0' )
   {
-     *pwsz = std::towlower (*pwsz),
+     *pwsz =
+       std::towlower (*pwsz),
+
     ++pwsz;
   }
 

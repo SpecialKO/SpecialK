@@ -447,6 +447,9 @@ bool
 SK_Steam_GetDLLPath ( wchar_t* wszDestBuf,
                       size_t   max_size = MAX_PATH * 2 )
 {
+  if (max_size == 0)
+    return false;
+
   constexpr wchar_t* wszSteamLib =
     SK_RunLHIfBitness ( 64, L"steam_api64.dll",
                             L"steam_api.dll"    );
@@ -698,7 +701,7 @@ SK_Steam_ScreenshotManager::OnScreenshotRequest ( ScreenshotRequested_t *pParam 
   if ( (int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D11 )
   {
     // Avoid any exotic pixel formats for now -- 8-bit RGB(A) only
-    if (SK_GetCurrentRenderBackend ().framebuffer_flags == 0x00)
+    //if (SK_GetCurrentRenderBackend ().framebuffer_flags == 0x00)
     {
       SK_D3D11_CaptureSteamScreenshot ( config.steam.screenshots.show_osd_by_default ?
                                           SK::ScreenshotStage::EndOfFrame : 
@@ -4074,7 +4077,7 @@ SK::SteamAPI::TakeScreenshot (SK::ScreenshotStage when)
       if ( (int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D11 )
       {
         // Avoid any exotic pixel formats for now -- 8-bit RGB(A) only
-        if (SK_GetCurrentRenderBackend ().framebuffer_flags == 0x00)
+        //if (SK_GetCurrentRenderBackend ().framebuffer_flags == 0x00)
         {
           SK_D3D11_CaptureSteamScreenshot (when);
 

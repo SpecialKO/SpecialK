@@ -308,6 +308,10 @@ SK_Widget::draw_base (void)
   if (SK_ImGui_Widgets.hide_all)
     return;
 
+  //extern volatile LONG __SK_ScreenShot_CapturingHUDless;
+  //if (ReadAcquire (&__SK_ScreenShot_CapturingHUDless))
+  //    return;
+
   if (! ImGui::GetFont ())
     return;
 
@@ -380,7 +384,7 @@ SK_Widget::draw_base (void)
        e = static_cast <int> (docking) & static_cast <int> (DockAnchor::East),
        w = static_cast <int> (docking) & static_cast <int> (DockAnchor::West);
 
-  ImGui::Begin           ( SK_FormatString ("###Widget_%s", name.c_str ()).c_str (),
+  ImGui::Begin           ( SK_FormatString ("##Widget_%s", name.c_str ()).c_str (),
                              nullptr,
                                flags );
 

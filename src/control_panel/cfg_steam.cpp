@@ -197,7 +197,7 @@ SK::ControlPanel::Steam::Draw (void)
           ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.78f, 0.14f, 0.80f));
 
           const bool uncollapsed =
-            ImGui::CollapsingHeader ("Enhanced Popup");
+            ImGui::CollapsingHeader ("Enhanced Popup", ImGuiTreeNodeFlags_AllowOverlapMode);
 
           ImGui::SameLine (); ImGui::Checkbox        ("   Fetch Friend Unlock Stats", &config.steam.achievements.pull_friend_stats);
 
@@ -386,6 +386,27 @@ SK::ControlPanel::Steam::Draw (void)
 
           ImGui::TreePop  ();
         }
+      }
+
+
+      const auto& rb =
+        SK_GetCurrentRenderBackend ();
+
+      if (rb.hdr_capable && ImGui::CollapsingHeader ("HDR Overlay", ImGuiTreeNodeFlags_DefaultOpen))
+      {
+        ImGui::TreePush ("");
+
+        float nits =
+          config.steam.overlay_hdr_luminance / 1.0_Nits;
+
+        if (ImGui::SliderFloat ( "###STEAM_LUMINANCE", &nits, 80.0f, rb.display_gamut.maxLocalY,
+                                 "Paper White Luminance: %.1f Nits"))
+        {
+          config.steam.overlay_hdr_luminance = nits * 1.0_Nits;
+
+          SK_SaveConfig ();
+        }
+        ImGui::TreePop  ();
       }
 
 

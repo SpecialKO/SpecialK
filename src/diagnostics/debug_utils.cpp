@@ -31,6 +31,8 @@
 #include <SpecialK/utility.h>
 #include <SpecialK/thread.h>
 
+#include <avrt.h>
+
 #include <Windows.h>
 #include <Winternl.h>
 #include <strsafe.h>
@@ -1149,26 +1151,61 @@ const ULONG_PTR *lpArguments         )
           HANDLE hThread =
             OpenThread ( THREAD_ALL_ACCESS,
                            FALSE,
-                             info->dwThreadID );
-
+                             dwTid );
           if (hThread != 0)
           {
+            extern SK_MMCS_TaskEntry*
+              SK_MMCS_GetTaskForThreadID (DWORD dwTid, const char* name);
+
             if (StrStrA (info->szName, "Intecept"))
             {
+              SK_MMCS_TaskEntry* task_me =
+                ( config.render.framerate.enable_mmcss ?
+                    SK_MMCS_GetTaskForThreadID (dwTid, info->szName) :
+                    nullptr );
+
               SetThreadPriority      (hThread, THREAD_PRIORITY_HIGHEST);
               SetThreadPriorityBoost (hThread, TRUE);
+
+              if (task_me != nullptr)
+              {
+                AvSetMmThreadPriority ( task_me->hTask,
+                                          AVRT_PRIORITY_HIGH );
+              }
             }
 
             else if (StrStrA (info->szName, "Loader"))
             {
+              SK_MMCS_TaskEntry* task_me =
+                ( config.render.framerate.enable_mmcss ?
+                    SK_MMCS_GetTaskForThreadID (dwTid, info->szName) :
+                    nullptr );
+
               SetThreadPriority      (hThread, THREAD_PRIORITY_ABOVE_NORMAL);
               SetThreadPriorityBoost (hThread, FALSE);
+
+              if (task_me != nullptr)
+              {
+                AvSetMmThreadPriority ( task_me->hTask,
+                                          AVRT_PRIORITY_NORMAL );
+              }
             }
 
             else if (StrStrA (info->szName, "Rendering Thread"))
             {
+              SK_MMCS_TaskEntry* task_me =
+                ( config.render.framerate.enable_mmcss ?
+                    SK_MMCS_GetTaskForThreadID (dwTid, info->szName) :
+                    nullptr );
+
               SetThreadPriority      (hThread, THREAD_PRIORITY_HIGHEST);
               SetThreadPriorityBoost (hThread, TRUE);
+
+              if (task_me != nullptr)
+              {
+                AvSetMmThreadPriority ( task_me->hTask,
+                                          AVRT_PRIORITY_HIGH );
+              }
             }
 
             else if (StrStrA (info->szName, "Job Thread"))
@@ -1178,10 +1215,13 @@ const ULONG_PTR *lpArguments         )
               SYSTEM_INFO        si = {};
               SK_GetSystemInfo (&si);
 
-              sscanf (info->szName, "Job Thread - %i", &idx);
+              if (StrStrA (info->szName, "Job Thread") == info->szName)
+                sscanf (info->szName, "Job Thread - %i", &idx);
 
               extern bool __SK_MHW_JobParity;
               extern bool __SK_MHW_JobParityPhysical;
+
+              bool killed = false;
 
               if (__SK_MHW_JobParity)
               {
@@ -1198,8 +1238,26 @@ const ULONG_PTR *lpArguments         )
 
                 if (idx > max_procs)
                 {
+                  killed = true;
                   TerminateThread (hThread, 0);
                 }
+              }
+
+              if (! killed)
+              {
+                //SetThreadPriority      (hThread, THREAD_PRIORITY_ABOVE_NORMAL);
+                //SetThreadPriorityBoost (hThread, TRUE);
+                //
+                //SK_MMCS_TaskEntry* task_me =
+                //  ( config.render.framerate.enable_mmcss ?
+                //      SK_MMCS_GetTaskForThreadID (GetThreadId (hThread), info->szName) :
+                //      nullptr );
+                //
+                //if (task_me != nullptr)
+                //{
+                //  AvSetMmThreadPriority ( task_me->hTask,
+                //                            AVRT_PRIORITY_NORMAL );
+                //}
               }
             }
 

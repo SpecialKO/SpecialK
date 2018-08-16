@@ -27,10 +27,13 @@
 #endif
 #endif
 
+#include <SpecialK/log.h>
+
 // Define assertion handler.
 #ifndef IM_ASSERT
 #include <cassert>
-#define IM_ASSERT(_EXPR)    assert(_EXPR)
+#define IM_ASSERT(_EXPR) { assert(_EXPR); }
+//#define IM_ASSERT(_EXPR)    { if (!(_EXPR)) { dll_log.Log (L"ImGui Assertion Failed %s:%u (%hs)", __FILEW__, __LINE__, #_EXPR); __debugbreak (); } }
 #endif
 
 // Some compilers support applying printf-style warnings to user functions.

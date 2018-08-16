@@ -32,11 +32,15 @@ static HWND                     g_hWnd                  = nullptr;
 static ID3D11Buffer*            g_pVB                   = nullptr;
 static ID3D11Buffer*            g_pIB                   = nullptr;
 static ID3D10Blob *             g_pVertexShaderBlob     = nullptr;
+static ID3D10Blob *             g_pVertexShaderBlob2    = nullptr;
 static ID3D11VertexShader*      g_pVertexShader         = nullptr;
+static ID3D11VertexShader*      g_pVertexShaderSteamHDR = nullptr;
+static ID3D11PixelShader*       g_pPixelShaderSteamHDR  = nullptr;
 static ID3D11InputLayout*       g_pInputLayout          = nullptr;
 static ID3D11Buffer*            g_pVertexConstantBuffer = nullptr;
 static ID3D11Buffer*            g_pPixelConstantBuffer  = nullptr;
 static ID3D10Blob *             g_pPixelShaderBlob      = nullptr;
+static ID3D10Blob *             g_pPixelShaderBlob2     = nullptr;
 static ID3D11PixelShader*       g_pPixelShader          = nullptr;
 static ID3D11SamplerState*      g_pFontSampler_clamp    = nullptr;
 static ID3D11SamplerState*      g_pFontSampler_wrap     = nullptr;
@@ -98,6 +102,7 @@ struct VERTEX_CONSTANT_BUFFER
   // scRGB allows values > 1.0, sRGB (SDR) simply clamps them
   float luminance_scale [4]; // For HDR displays,    1.0 = 80 Nits
                              // For SDR displays, >= 1.0 = 80 Nits
+  float steam_luminance [4];
 };
 
 
@@ -302,6 +307,7 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
     {
       constant_buffer->luminance_scale [0] = 1.0f; constant_buffer->luminance_scale [1] = 1.0f;
       constant_buffer->luminance_scale [2] = 0.0f; constant_buffer->luminance_scale [3] = 0.0f;
+      constant_buffer->steam_luminance [0] = 1.0f; constant_buffer->steam_luminance [1] = 1.0f;
     }
 
     else
@@ -313,6 +319,8 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
       constant_buffer->luminance_scale [1] = rb.ui_srgb ? 2.2f : 1.0f;
       constant_buffer->luminance_scale [2] = __SK_MHW_HDR_Luma;
       constant_buffer->luminance_scale [3] = __SK_MHW_HDR_Exp;
+      constant_buffer->steam_luminance [0] = config.steam.overlay_hdr_luminance;
+      constant_buffer->steam_luminance [1] = rb.ui_srgb ? 2.2f : 1.0f;
     }
 
     pDevCtx->Unmap (g_pVertexConstantBuffer, 0);
@@ -608,6 +616,73 @@ ImGui_ImplDX11_CreateFontsTexture (void)
   }
 }
 
+HRESULT
+SK_D3D11_InjectSteamHDR ( _In_ ID3D11DeviceContext *pDevCtx,
+                          _In_ UINT                 VertexCount,
+                          _In_ UINT                 StartVertexLocation,
+                          _In_ D3D11_Draw_pfn       pfnD3D11Draw )
+{
+  if ( g_pVertexShaderSteamHDR != nullptr &&
+       g_pVertexConstantBuffer != nullptr &&
+       g_pPixelShaderSteamHDR  != nullptr    )
+  {
+    // Seriously, D3D, WTF? Let me first query the number of these and then decide
+    //   whether I want to dedicate TLS or heap memory to this task.
+    UINT NumStackDestroyingInstances_ProbablyZero0 = 0,
+         NumStackDestroyingInstances_ProbablyZero1 = 0;
+
+    ID3D11ClassInstance *GiantListThatDestroysTheStack0 [253] = { };
+    ID3D11ClassInstance *GiantListThatDestroysTheStack1 [253] = { };
+
+    CComPtr <ID3D11PixelShader>  pOrigPixShader;
+    CComPtr <ID3D11VertexShader> pOrigVtxShader;
+    CComPtr <ID3D11Buffer>       pOrigVtxCB;
+
+    pDevCtx->VSGetShader          ( &pOrigVtxShader.p,
+                                     GiantListThatDestroysTheStack0,
+                                   &NumStackDestroyingInstances_ProbablyZero0 );
+    pDevCtx->PSGetShader          ( &pOrigPixShader.p,
+                                   GiantListThatDestroysTheStack1,
+                                   &NumStackDestroyingInstances_ProbablyZero1 );
+
+    pDevCtx->VSGetConstantBuffers ( 0, 1, &pOrigVtxCB.p );
+    pDevCtx->VSSetShader          ( g_pVertexShaderSteamHDR, 
+                                      nullptr, 0 );
+    pDevCtx->PSSetShader          ( g_pPixelShaderSteamHDR,
+                                      nullptr, 0 );
+    pDevCtx->VSSetConstantBuffers ( 0, 1,
+                                    &g_pVertexConstantBuffer );
+    pfnD3D11Draw ( pDevCtx, VertexCount, StartVertexLocation );
+    pDevCtx->VSSetConstantBuffers (0, 1, &pOrigVtxCB.p);
+
+    pDevCtx->PSSetShader ( pOrigPixShader,
+                           GiantListThatDestroysTheStack1,
+                           NumStackDestroyingInstances_ProbablyZero1 );
+
+    pDevCtx->VSSetShader ( pOrigVtxShader,
+                           GiantListThatDestroysTheStack0,
+                           NumStackDestroyingInstances_ProbablyZero0 );
+
+    for ( UINT i = 0 ; i < NumStackDestroyingInstances_ProbablyZero0 ; ++i )
+    {
+      if (GiantListThatDestroysTheStack0 [i] != nullptr)
+          GiantListThatDestroysTheStack0 [i]->Release ();
+    }
+
+    for ( UINT j = 0 ; j < NumStackDestroyingInstances_ProbablyZero1 ; ++j )
+    {
+      if (GiantListThatDestroysTheStack1 [j] != nullptr)
+          GiantListThatDestroysTheStack1 [j]->Release ();
+    }
+
+    return
+      S_OK;
+  }
+
+  return
+    E_NOT_VALID_STATE;
+}
+
 bool
 ImGui_ImplDX11_CreateDeviceObjects (void)
 {
@@ -639,10 +714,12 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
   // Create the vertex shader
   {
     static const char* vertexShader =
-      "cbuffer vertexBuffer : register (b0)                                   \
+     "#pragma warning ( disable : 3571 )\n                                    \
+      cbuffer vertexBuffer : register (b0)                                    \
       {                                                                       \
         float4x4 ProjectionMatrix;                                            \
         float4   Luminance;                                                   \
+        float4   SteamLuminance;                                              \
       };                                                                      \
                                                                               \
       struct VS_INPUT                                                         \
@@ -658,6 +735,7 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
         float4 col : COLOR0;                                                  \
         float2 uv  : TEXCOORD0;                                               \
         float2 uv2 : TEXCOORD1;                                               \
+        float2 uv3 : TEXCOORD2;                                               \
       };                                                                      \
                                                                               \
       PS_INPUT main (VS_INPUT input)                                          \
@@ -666,8 +744,6 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
                                                                               \
         output.pos          = mul ( ProjectionMatrix,                         \
                                       float4 (input.pos.xy, 0.f, 1.f) );      \
-        float4 linear_color = pow ( input.col, float4 (Luminance.ggg, 1.f)) * \
-                                                 Luminance.rrrr;              \
                                                                               \
         output.uv           = saturate (input.uv);                            \
                                                                               \
@@ -675,13 +751,15 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
                              abs (input.uv.x) > 1.f )                         \
         {                                                                     \
           output.col        = float4 (1.f, 1.f, 1.f, 1.f);                    \
-          output.uv2        = float2 (Luminance.z, Luminance.w);              \
+          output.uv2        = Luminance.zw;                                   \
+          output.uv3        =          float2 (0.f, 0.f);                     \
         }                                                                     \
                                                                               \
         else                                                                  \
         {                                                                     \
-          output.col        = float4 ( linear_color.rgb, input.col.a );       \
+          output.col        = input.col;                                      \
           output.uv2        = float2 (0.f, 0.f);                              \
+          output.uv3        = Luminance.xy;                                   \
         }                                                                     \
                                                                               \
         return output;                                                        \
@@ -721,6 +799,77 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
                                         nullptr,
                                           &g_pVertexShader ) != S_OK )
       return false;
+
+
+    static const char* vertexShaderSteamHDR =
+   "#pragma warning ( disable : 3571 )\n                    \
+    cbuffer vertexBuffer : register (b0)                    \
+    {                                                       \
+      float4x4 ProjectionMatrix;                            \
+      float4   Luminance;                                   \
+      float4   SteamLuminance;                              \
+    };                                                      \
+                                                            \
+    struct VS_INPUT                                         \
+    {                                                       \
+      float4 pos : POSITION;                                \
+      float4 col : COLOR;                                   \
+      float2 uv  : TEXCOORD;                                \
+    };                                                      \
+                                                            \
+    struct PS_INPUT                                         \
+    {                                                       \
+      float4 pos : SV_POSITION;                             \
+      float4 col : COLOR;                                   \
+      float2 uv  : TEXCOORD0;                               \
+      float2 uv2 : TEXCOORD1;                               \
+    };                                                      \
+                                                            \
+    PS_INPUT main (VS_INPUT input)                          \
+    {                                                       \
+      PS_INPUT output;                                      \
+                                                            \
+      output.pos = input.pos;                               \
+      output.col = input.col;                               \
+      output.uv  = input.uv;                                \
+      output.uv2 = SteamLuminance.xy;                       \
+                                                            \
+      return output;                                        \
+    }";
+
+    D3DCompile ( vertexShaderSteamHDR,
+                   strlen (vertexShaderSteamHDR),
+                     nullptr, nullptr, nullptr,
+                       "main", "vs_4_0",
+                         0, 0,
+                           &g_pVertexShaderBlob2,
+                             &blob_msg_vtx );
+
+    if (blob_msg_vtx != nullptr && blob_msg_vtx->GetBufferSize ())
+    {
+      std::string err;
+
+      err.reserve (blob_msg_vtx->GetBufferSize ());
+      err = (
+           (char *)blob_msg_vtx->GetBufferPointer ());
+
+      if (! err.empty ())
+      {
+        dll_log.LogEx (true, L"Steam HDR D3D11 Vertex Shader: %hs", err.c_str ());
+      }
+    }
+
+    // NB: Pass ID3D10Blob* pErrorBlob to D3DCompile() to get error showing in
+    //       (const char*)pErrorBlob->GetBufferPointer(). Make sure to Release() the blob!
+    if (g_pVertexShaderBlob2 == nullptr)
+      return false;
+
+    if ( pDev->CreateVertexShader ( static_cast <DWORD *> (g_pVertexShaderBlob2->GetBufferPointer ()),
+                                      g_pVertexShaderBlob2->GetBufferSize (),
+                                        nullptr,
+                                          &g_pVertexShaderSteamHDR ) != S_OK )
+      return false;
+
 
     // Create the input layout
     D3D11_INPUT_ELEMENT_DESC local_layout [] = {
@@ -762,12 +911,14 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
   // Create the pixel shader
   {
     static const char* pixelShader =
-      "struct PS_INPUT                                                 \
+     "#pragma warning ( disable : 3571 )\n                             \
+      struct PS_INPUT                                                  \
       {                                                                \
         float4 pos : SV_POSITION;                                      \
         float4 col : COLOR0;                                           \
         float2 uv  : TEXCOORD0;                                        \
         float2 uv2 : TEXCOORD1;                                        \
+        float2 uv3 : TEXCOORD2;                                        \
       };                                                               \
                                                                        \
       cbuffer viewportDims : register (b0)                             \
@@ -793,21 +944,23 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
           if (input.uv2.x > 0.0f && input.uv2.y > 0.0f)                \
           {                                                            \
             out_col =                                                  \
-              pow (out_col, float4 (input.uv2.yyy, 1.0f)) *            \
+              pow (abs (out_col), float4 (input.uv2.yyy, 1.0f)) *      \
                 input.uv2.xxxx;                                        \
             out_col.a = 1.0f;                                          \
           }                                                            \
                                                                        \
           else                                                         \
           {                                                            \
-            out_col *= float4 (input.col.xyz, 1.0f);                   \
-            out_col.a = saturate (input.col.a * out_col.a);            \
+            out_col =                                                  \
+              pow (abs (input.col * out_col), float4 (input.uv3.yyy, 1.0f)) *      \
+                                              float4 (input.uv3.xxx, 1.0f);        \
+            out_col *= float4 (out_col.aaa, 1.f);                      \
           }                                                            \
                                                                        \
           return                                                       \
-            float4 ( out_col.rgb * out_col.a +                         \
+            float4 ( out_col.rgb  +                                    \
                        under_color.rgb * (1.f - out_col.a),            \
-                         saturate (out_col.a) );                       \
+                         out_col.a );                                  \
         }                                                              \
                                                                        \
         return                                                         \
@@ -850,6 +1003,68 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
     {
       return false;
     }
+
+
+
+    ///////
+    static const char* pixelShaderSteamHDR =
+   "#pragma warning ( disable : 3571 )\n                         \
+    struct PS_INPUT                                              \
+    {                                                            \
+      float4 pos : SV_POSITION;                                  \
+      float4 col : COLOR;                                        \
+      float2 uv  : TEXCOORD0;                                    \
+      float2 uv2 : TEXCOORD1;                                    \
+    };                                                           \
+                                                                 \
+    sampler   PS_QUAD_Sampler   : register (s0);                 \
+    Texture2D PS_QUAD_Texture2D : register (t0);                 \
+                                                                 \
+    float4 main (PS_INPUT input) : SV_Target                     \
+    {                                                            \
+      float4 gamma_exp  = float4 (input.uv2.yyy, 1.f);           \
+      float4 linear_mul = float4 (input.uv2.xxx, 1.f);           \
+                                                                 \
+      float4 out_col =                                           \
+        PS_QUAD_Texture2D.Sample (PS_QUAD_Sampler, input.uv);    \
+                                                                 \
+      out_col =                                                  \
+        pow (abs (input.col * out_col), gamma_exp) * linear_mul; \
+                                                                 \
+      return                                                     \
+        float4 (out_col.rgb, saturate (out_col.a));              \
+    }";
+
+    D3DCompile ( pixelShaderSteamHDR,
+                   strlen (pixelShaderSteamHDR),
+                     nullptr, nullptr, nullptr,
+                       "main", "ps_4_0",
+                         0, 0,
+                           &g_pPixelShaderBlob2,
+                             &blob_msg_pix );
+
+    if (blob_msg_pix != nullptr && blob_msg_pix->GetBufferSize ())
+    {
+      std::string err;
+
+      err.reserve (blob_msg_pix->GetBufferSize ());
+      err = (
+           (char *)blob_msg_pix->GetBufferPointer ());
+
+      if (! err.empty ())
+      {
+        dll_log.LogEx (true, L"Steam HDR D3D11 Pixel Shader: %hs", err.c_str ());
+      }
+    }
+
+    if (g_pPixelShaderBlob2 == nullptr)
+      return false;
+
+    if ( pDev->CreatePixelShader ( static_cast <DWORD *> (g_pPixelShaderBlob2->GetBufferPointer ()),
+                                     g_pPixelShaderBlob2->GetBufferSize (),
+                                       nullptr,
+                                         &g_pPixelShaderSteamHDR ) != S_OK )
+      return false;
   }
 
   // Create the blending setup
@@ -976,12 +1191,16 @@ ImGui_ImplDX11_InvalidateDeviceObjects (void)
   if (g_pDepthStencilState)    { g_pDepthStencilState->Release    ();    g_pDepthStencilState = nullptr; }
   if (g_pRasterizerState)      { g_pRasterizerState->Release      ();      g_pRasterizerState = nullptr; }
   if (g_pPixelShader)          { g_pPixelShader->Release          ();          g_pPixelShader = nullptr; }
+  if (g_pPixelShaderSteamHDR)  { g_pPixelShaderSteamHDR->Release  (); g_pPixelShaderSteamHDR  = nullptr; }
   if (g_pPixelShaderBlob)      { g_pPixelShaderBlob->Release      ();      g_pPixelShaderBlob = nullptr; }
+  if (g_pPixelShaderBlob2)     { g_pPixelShaderBlob2->Release     ();     g_pPixelShaderBlob2 = nullptr; }
   if (g_pVertexConstantBuffer) { g_pVertexConstantBuffer->Release (); g_pVertexConstantBuffer = nullptr; }
   if (g_pPixelConstantBuffer)  { g_pPixelConstantBuffer->Release  (); g_pPixelConstantBuffer  = nullptr; }
   if (g_pInputLayout)          { g_pInputLayout->Release          ();          g_pInputLayout = nullptr; }
   if (g_pVertexShader)         { g_pVertexShader->Release         ();         g_pVertexShader = nullptr; }
+  if (g_pVertexShaderSteamHDR) { g_pVertexShaderSteamHDR->Release (); g_pVertexShaderSteamHDR = nullptr; }
   if (g_pVertexShaderBlob)     { g_pVertexShaderBlob->Release     ();     g_pVertexShaderBlob = nullptr; }
+  if (g_pVertexShaderBlob2)    { g_pVertexShaderBlob2->Release    ();    g_pVertexShaderBlob2 = nullptr; }
 
   pTLS->d3d11.uiSampler_clamp = nullptr;
   pTLS->d3d11.uiSampler_wrap  = nullptr;

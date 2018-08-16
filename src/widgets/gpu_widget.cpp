@@ -308,7 +308,7 @@ public:
     {
       sprintf_s
         ( szAvg,
-            512,
+            511,
               u8"GPU%lu Load %%:\n\n\n"
               u8"          min: %3.0f%%, max: %3.0f%%, avg: %4.1f%%\n",
                 0,
@@ -336,7 +336,7 @@ public:
     {
       sprintf_s
         ( szAvg,
-            512,
+            511,
               u8"GPU%lu Temp (°C):\n\n\n"
               u8"          min: %3.0f°, max: %3.0f°, avg: %4.1f°\n",
                 0,
@@ -368,7 +368,7 @@ public:
     {
       sprintf_s
         ( szAvg,
-            512,
+            511,
               u8"GPU%lu Fan Speed (RPM):\n\n\n"
               u8"          min: %3.0f, max: %3.0f, avg: %4.1f\n",
                 0,
@@ -401,7 +401,7 @@ public:
     {
       sprintf_s
         ( szAvg,
-            512,
+            511,
               u8"GPU%lu Core Clock (GHz):\n\n\n"
               u8"          min: %4.2f, max: %4.2f, avg: %5.3f\n",
                 0,
@@ -436,7 +436,7 @@ public:
     {
       sprintf_s
         ( szAvg,
-            512,
+            511,
               u8"GPU%lu VRAM Clock (GHz):\n\n\n"
               u8"          min: %4.2f, max: %4.2f, avg: %5.3f\n",
                 0,
@@ -476,7 +476,7 @@ public:
     {
       sprintf_s
         ( szAvg,
-            512,
+            511,
               u8"GPU%lu VRAM Usage (MiB):\n\n\n"
               u8"          min: %6.1f, max: %6.1f, avg: %6.1f\n",
                 0,

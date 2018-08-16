@@ -1,3 +1,5 @@
+ + Fixed CEGUI so that it renders to an HDR target (text OSD works again)
+ + Added HDR Luminance control for the Steam overlay
  + Removed Inject Metadata button from scRGB mode
  + Set range of HDR luminance sliders to monitor's reported capabilities
  + Added HDR luminance setting persistence for ImGui

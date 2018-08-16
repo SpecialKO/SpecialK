@@ -104,7 +104,7 @@ public:
 
       sprintf_s
         ( szAvg,
-            512,
+            511,
               u8"Vertex Invocations:\n\n\n"
               u8"          min: %ws Invocations,   max: %ws Invocations,   avg: %ws Invocations\n",
                   SK_CountToString   (static_cast <uint64_t> (pipeline.vertex.verts_invoked.getMin ())).c_str   (),
@@ -132,7 +132,7 @@ public:
 
       sprintf_s
         ( szAvg,
-            512,
+            511,
               u8"Vertices Input:\n\n\n"
               u8"          min: %ws Vertices,   max: %ws Vertices,   avg: %ws Vertices\n",
                   SK_CountToString     (static_cast <uint64_t> (pipeline.vertex.verts_input.getMin ())).c_str (),
@@ -160,7 +160,7 @@ public:
 
       sprintf_s
         ( szAvg,
-            512,
+            511,
               u8"Primitives Assembled:\n\n\n"
               u8"          min: %ws Triangles,   max: %ws Triangles,   avg: %ws Triangles\n",
                   SK_CountToString     (static_cast <uint64_t> (pipeline.vertex.prims_input.getMin ())).c_str (),
@@ -194,7 +194,7 @@ public:
 
       sprintf_s
         ( szAvg,
-            512,
+            511,
               u8"Raster Fill Rate:\n\n\n"
               u8"          min: %5.1f%%,   max: %5.1f%%,   avg: %5.1f%%\n",
                 pipeline.raster.fill_ratio.getMin   (), pipeline.raster.fill_ratio.getMax (),
@@ -226,9 +226,9 @@ public:
                                  );
 
 
-                      sprintf_s
+      sprintf_s
         ( szAvg,
-            512,
+            511,
               u8"Pixels Shaded:\n\n\n"
               u8"          min: %ws Pixels,   max: %ws Pixels,   avg: %ws Pixels\n",
                 SK_CountToString     (static_cast <uint64_t> (pipeline.raster.pixels_filled.getMin ())).c_str (),
@@ -262,7 +262,7 @@ public:
 
       sprintf_s
         ( szAvg,
-            512,
+            511,
               u8"Compute Shader Invocations:\n\n\n"
               u8"          min: %ws Compels,   max: %ws Compels,   avg: %ws Compels\n",
                 SK_CountToString     (static_cast <uint64_t> (pipeline.compute.dispatches.getMin ())).c_str (),

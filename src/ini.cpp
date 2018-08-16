@@ -67,6 +67,8 @@ dll_log.Log (L"[ SpecialK ] %ws", ErrorMessage (GetLastError (), #x, (y), __LINE
 
 iSK_INI::iSK_INI (const wchar_t* filename)
 {
+  assert (filename != nullptr);
+
   encoding_ = INI_UTF8;
 
   if (wcsstr (filename, L"Version"))
@@ -79,9 +81,7 @@ iSK_INI::iSK_INI (const wchar_t* filename)
   wchar_t* alloc = nullptr;
 
   wszName =
-    new wchar_t [wcslen (filename) + 2] { };
-
-  wcscpy (wszName, filename);
+    _wcsdup (filename);
 
   SK_StripTrailingSlashesW (wszName);
 
@@ -201,7 +201,7 @@ iSK_INI::~iSK_INI (void)
   {
     if (wszName != nullptr)
     {
-      delete [] wszName;
+      free (wszName);
       wszName = nullptr;
     }
 
@@ -733,10 +733,12 @@ void
 __stdcall
 iSK_INISection::add_key_value (const wchar_t* key, const wchar_t* value)
 {
-  if (! keys.count (key))
+  auto add =
+    keys.emplace (std::make_pair (key, value));
+  
+  if (add.second)
   {
-    keys.emplace              ( std::make_pair (key, value) );
-    ordered_keys.emplace_back (                 key         );
+    ordered_keys.emplace_back (key);
 
     if (parent != nullptr)
         parent->crc32c_ = 0x0;
@@ -744,17 +746,18 @@ iSK_INISection::add_key_value (const wchar_t* key, const wchar_t* value)
 
   else
   {
-    if (parent != nullptr)
+    std::wstring val_wstr (value);
+
+    if (! add.first->second._Equal (val_wstr))
     {
-      if (! keys.at (key)._Equal (value))
+      if (parent != nullptr)
       {
         parent->crc32c_ = 0x0;
-        keys.at (key).assign (value);
       }
-    }
 
-    else
-      keys.at (key).assign (value);
+      add.first->second =
+        std::move (val_wstr);
+    }
   }
 }
 
@@ -762,7 +765,8 @@ bool
 __stdcall
 iSK_INI::contains_section (const wchar_t* section)
 {
-  return sections.count (section) > 0;
+  return
+    sections.count (section) > 0;
 }
 
 iSK_INISection&

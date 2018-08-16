@@ -241,7 +241,7 @@ GetCurrentThreadDescription (_Out_  PWSTR  *threadDescription)
   {
     // This is not freed here; the caller is expected to free it!
     *threadDescription =
-      (wchar_t *)SK_LocalAlloc (LPTR, 1024);
+      (wchar_t *)SK_LocalAlloc (LPTR, sizeof (wchar_t) * 1024);
 
     wcsncpy_s (
       *threadDescription, 1024,
@@ -431,10 +431,10 @@ SK_Thread_CreateEx ( LPTHREAD_START_ROUTINE lpStartFunc,
 {
   SK_ThreadBaseParams *params;
 
-  if (LocalAlloc_Original != nullptr)
-    params = (SK_ThreadBaseParams *)LocalAlloc_Original ( 0x0, sizeof (SK_ThreadBaseParams) );
-  else
-    params = (SK_ThreadBaseParams *)LocalAlloc          ( 0x0, sizeof (SK_ThreadBaseParams) );
+  params =
+    static_cast <SK_ThreadBaseParams *> (
+      SK_LocalAlloc ( LPTR, sizeof (SK_ThreadBaseParams) )
+    );
 
   assert (params != nullptr);
 
@@ -453,7 +453,8 @@ SK_Thread_CreateEx ( LPTHREAD_START_ROUTINE lpStartFunc,
                    0x0, &dwTid )
     );
 
-  return ( (params->hHandleToStuffInternally = hRet) );
+  return
+    ( (params->hHandleToStuffInternally = hRet) );
 }
 
 extern "C"
@@ -496,4 +497,84 @@ SK_Thread_CloseSelf (void)
   } else return false;
 
   return true;
+}
+
+
+
+
+#include <concurrent_unordered_map.h>
+#include <avrt.h>
+
+static
+concurrency::concurrent_unordered_map <DWORD, SK_MMCS_TaskEntry *>&
+SK_MMCS_GetTaskMap (void)
+{
+  static
+    concurrency::concurrent_unordered_map <DWORD, SK_MMCS_TaskEntry *> task_map;
+
+  return
+    task_map;
+}
+
+std::vector <SK_MMCS_TaskEntry *>
+SK_MMCS_GetTasks (void)
+{
+  const auto& task_map =
+    SK_MMCS_GetTaskMap ();
+
+  std::vector <SK_MMCS_TaskEntry *> tasks;
+
+  for ( auto& task : task_map )
+    tasks.push_back (task.second);
+
+  return
+    tasks;
+}
+
+SK_MMCS_TaskEntry*
+SK_MMCS_GetTaskForThreadIDEx ( DWORD dwTid, const char* name,
+                                            const char* task1,
+                                            const char* task2 )
+{
+   auto& task_map =
+    SK_MMCS_GetTaskMap ();
+
+  SK_MMCS_TaskEntry* task_me =
+    nullptr;
+
+  try {
+    task_me =
+      task_map.at (dwTid);
+  }
+
+  catch ( const std::out_of_range& )
+  {
+    SK_MMCS_TaskEntry* new_entry =
+      new SK_MMCS_TaskEntry {
+        dwTid, 0, INVALID_HANDLE_VALUE, ""
+      };
+
+    strncpy_s ( new_entry->name,       63,
+                name,           _TRUNCATE );
+
+    new_entry->hTask =
+      AvSetMmMaxThreadCharacteristicsA ( task1, task2,
+                                           &new_entry->dwTaskIdx );
+
+      task_map [dwTid] = new_entry;
+    task_me =
+      task_map [dwTid];
+  }
+
+  return
+    task_me;
+}
+
+SK_MMCS_TaskEntry*
+SK_MMCS_GetTaskForThreadID (DWORD dwTid, const char* name)
+{
+  return
+    SK_MMCS_GetTaskForThreadIDEx ( dwTid, name,
+                                     "Games",
+                                     "Playback" );
 }

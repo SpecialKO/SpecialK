@@ -1283,11 +1283,11 @@ public:
   {
     if (! ImGui::GetFont ()) return;
 
-    const  float font_size   = ImGui::GetFont ()->FontSize;
-    static char  szAvg [512] = { };
-    static bool  detailed    = true;
-    static bool  show_parked = true;
-    static bool  show_graphs = false;
+    const  float font_size    = ImGui::GetFont ()->FontSize;
+    static char  szAvg [1024] = { };
+    static bool  detailed     = true;
+    static bool  show_parked  = true;
+    static bool  show_graphs  = false;
 
     static int   last_parked_count = 0;
 
@@ -1361,7 +1361,7 @@ public:
 
         sprintf_s
               ( szAvg,
-                  512,
+                  511,
                     u8"CPU%lu:\n\n"
                     u8"          min: %3.0f%%, max: %3.0f%%, avg: %3.0f%%\n",
                       i-1,
@@ -1373,7 +1373,7 @@ public:
       {
         sprintf_s
               ( szAvg,
-                  512,
+                  511,
                     u8"%s\t\t\n\n"
                     u8"          min: %3.0f%%, max: %3.0f%%, avg: %3.0f%%\n",
                       InstructionSet::Brand ().c_str (),
@@ -1383,7 +1383,7 @@ public:
 
       char szName [128] = { };
 
-      sprintf (szName, "###CPU_%u", i-1);
+      sprintf_s (szName, 127, "###CPU_%u", i-1);
 
       float samples = 
         std::min ( (float)cpu_records [i].getUpdates  (),
@@ -1417,6 +1417,8 @@ public:
                             );
         }
       }
+
+      ImGui::PopStyleColor ();
 
       bool found = false;
   
@@ -1614,6 +1616,8 @@ public:
             }
           }
 
+          ImGui::PopStyleColor (2);
+
           if (core_sensors.power_W != 0.0 && (parked_since == 0 || show_parked))
           {
             ImGui::SameLine        (      );
@@ -1652,8 +1656,6 @@ public:
             }
           }
 
-          ImGui::PopStyleColor ();
-
           return true;
         }
 
@@ -1661,8 +1663,6 @@ public:
       };
       
       DrawHeader (i);
-
-      ImGui::PopStyleColor ();
     }
 
     if (! SK_WR0_Init ())

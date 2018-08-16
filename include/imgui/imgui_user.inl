@@ -1852,58 +1852,6 @@ SK_ImGui_User_NewFrame (void)
   ImGui::NewFrame ();
 
 
-  if (SK_GetCurrentGameID () == SK_GAME_ID::MonsterHunterWorld)
-  {
-    auto& rb =
-      SK_GetCurrentRenderBackend ();
-
-    CComQIPtr <IDXGISwapChain> pSwapChain (rb.swapchain);
-
-    DXGI_SWAP_CHAIN_DESC  desc = {};
-    pSwapChain->GetDesc (&desc);
-
-    extern bool __SK_MHW_16BitSwap;
-    if (desc.BufferDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT)//__SK_MHW_16BitSwap)
-    {
-      extern ID3D11ShaderResourceView*
-        SK_D3D11_GetRawHDRView (bool capture = true);
-
-      ImTextureID pTexture =
-        static_cast <ImTextureID> (SK_D3D11_GetRawHDRView ());
-
-      static bool open = true;
-
-      open = true;
-      ImGui::Begin ("###HDR_Adjust", &open);
-
-      if (pTexture != 0)
-      {
-
-        ImDrawList* draw_list =
-        ImGui::GetWindowDrawList ();
-
-        ImGuiIO& io =
-          ImGui::GetIO ();
-
-        const ImVec2 fb_dims [] = {
-          { 0.0f,             0.0f             },
-          { io.DisplaySize.x, io.DisplaySize.y }
-        };
-
-        draw_list->PushClipRectFullScreen (                            );
-        draw_list->AddImage               ( pTexture,
-                                              fb_dims [0], fb_dims [1],
-                                                ImVec2 (-2, -2),
-                                                ImVec2 ( 2,  2) ); // Will be saturated
-        draw_list->PopClipRect            (                            );
-      }
-      else
-        open = false;
-
-      ImGui::End ();
-    }
-  }
-
   //
   // Idle Cursor Detection  (when UI is visible, but mouse does not require capture)
   //

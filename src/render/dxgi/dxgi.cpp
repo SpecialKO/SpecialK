@@ -2366,6 +2366,11 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 
     pBackBuffer->GetDesc (&tex2d_desc);
 
+    rb.framebuffer_flags &= (~SK_FRAMEBUFFER_FLAG_FLOAT);
+    rb.framebuffer_flags &= (~SK_FRAMEBUFFER_FLAG_RGB10A2);
+    rb.framebuffer_flags &= (~SK_FRAMEBUFFER_FLAG_SRGB);
+    rb.framebuffer_flags &= (~SK_FRAMEBUFFER_FLAG_HDR);
+
     // sRGB Correction for UIs
     switch (tex2d_desc.Format)
     {
@@ -2392,18 +2397,22 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 
         else { hr = S_OK; }
 
-        rb.framebuffer_flags |=   SK_FRAMEBUFFER_FLAG_SRGB;
-        rb.framebuffer_flags &= (~SK_FRAMEBUFFER_FLAG_RGB10A2);
+        rb.framebuffer_flags |= SK_FRAMEBUFFER_FLAG_SRGB;
       } break;
 
       case DXGI_FORMAT_R16G16B16A16_FLOAT:
         rb.framebuffer_flags |= SK_FRAMEBUFFER_FLAG_FLOAT;
         rb.framebuffer_flags |= SK_FRAMEBUFFER_FLAG_HDR;
+
+        hr =
+          pDev->CreateRenderTargetView (
+            pBackBuffer, nullptr, &pRenderTargetView
+          );
         break;
 
       case DXGI_FORMAT_R10G10B10A2_TYPELESS:
       case DXGI_FORMAT_R10G10B10A2_UNORM:
-        rb.framebuffer_flags |= SK_FRAMEBUFFER_FLAG_RGB10A2;
+        rb.framebuffer_flags |=  SK_FRAMEBUFFER_FLAG_RGB10A2;
         // Deliberately fall-through to default
 
       default:
@@ -2412,8 +2421,6 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
           pDev->CreateRenderTargetView (
             pBackBuffer, nullptr, &pRenderTargetView
           );
-
-        rb.framebuffer_flags &= (~SK_FRAMEBUFFER_FLAG_SRGB);
       } break;
     }
 
@@ -2470,6 +2477,20 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
       vp.TopLeftX = 0.0f;
       vp.TopLeftY = 0.0f;
 
+      auto DrawSteamPopups = [&](void) ->
+      void
+      {
+        if (SK_Steam_DrawOSD ())
+        {
+          if ((uintptr_t)cegD3D11 > 1)
+          {
+                  cegD3D11->beginRendering ();
+            CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
+                  cegD3D11->endRendering   ();
+          }
+        }
+      };
+
       pImmediateContext->RSSetViewports (1, &vp);
       {
         if ((uintptr_t)cegD3D11 > 1)
@@ -2478,6 +2499,17 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
           SK_TextOverlayManager::getInstance ()->drawAllOverlays     (0.0f, 0.0f);
               CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
                       cegD3D11->endRendering ();
+
+          if (rb.hdr_capable)
+          {
+            DrawSteamPopups ();
+
+            extern ID3D11ShaderResourceView*
+              SK_D3D11_GetRawHDRView ( bool capture = true );
+
+            CComPtr <ID3D11ShaderResourceView> pRawHDR =
+              SK_D3D11_GetRawHDRView (                     );
+          }
         }
 
         // XXX: TODO (Full startup isn't necessary, just update framebuffer dimensions).
@@ -2487,14 +2519,9 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
                        SK_ImGui_DrawFrame (       0x00,          nullptr );
         }
 
-        if (SK_Steam_DrawOSD ())
+        if (! rb.hdr_capable)
         {
-          if ((uintptr_t)cegD3D11 > 1)
-          {
-                  cegD3D11->beginRendering ();
-            CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
-                  cegD3D11->endRendering   ();
-          }
+          DrawSteamPopups ();
         }
       }
 

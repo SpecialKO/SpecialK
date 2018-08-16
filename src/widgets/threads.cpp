@@ -31,6 +31,7 @@
 #include  <concurrent_unordered_map.h>
 
 #include <processthreadsapi.h>
+#include <avrt.h>
 
 extern concurrency::concurrent_unordered_map <DWORD, std::wstring>&
 __SK_GetThreadNames (void);
@@ -1394,6 +1395,33 @@ public:
     ImGui::Separator ();
 
     ImGui::EndGroup ();
+
+    extern std::vector <SK_MMCS_TaskEntry*>
+    SK_MMCS_GetTasks (void);
+
+    const auto& tasks =
+      SK_MMCS_GetTasks ();
+
+    ImGui::BeginGroup ();
+    for ( auto& task : tasks )
+    {
+      ImGui::Text (" * MMCS Task:  %s ", task->name );
+    } ImGui::EndGroup ();
+    ImGui::SameLine   ();
+    ImGui::BeginGroup ();
+    for ( auto& task : tasks )
+    {
+      ULONG responsiveness = 0UL;
+
+      if ( AvQuerySystemResponsiveness ( task->hTask,
+                                             &responsiveness ) )
+      { ImGui::Text (" Responsiveness: %lu",  responsiveness); }
+
+      else
+      { ImGui::TextUnformatted (" Responsiveness: <Invalid>"); }
+    } ImGui::EndGroup ();
+
+    ImGui::Separator  ();
 
     ImGui::BeginGroup ();
   //ImGui::BeginChildFrame (ImGui::GetID ("Thread_List2"), ImVec2 (0,0), ImGuiWindowFlags_NavFlattened | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_HorizontalScrollbar);
