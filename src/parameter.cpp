@@ -19,8 +19,6 @@
  *
 **/
 
-#include <Windows.h>
-
 #include <SpecialK/parameter.h>
 #include <SpecialK/utility.h>
 #include <SpecialK/ini.h>
@@ -67,17 +65,10 @@ sk::iParameter::store (void)
     iSK_INISection& section =
       ini->get_section (ini_section.c_str ());
 
-    if (section.contains_key (ini_key.c_str ()))
-    {
-      section.get_value (ini_key.c_str ()) = get_value_str ();
-      ret = true;
-    }
+    section.add_key_value ( ini_key.c_str (),
+                            get_value_str ().c_str () );
 
-    // Add this key/value if it doesn't already exist.
-    else {
-      section.add_key_value (ini_key.c_str (), get_value_str ().c_str ());
-      ret = true;// +1;
-    }
+    ret = true;
   }
 
   return ret;
@@ -87,10 +78,11 @@ sk::iParameter::store (void)
 std::wstring
 sk::ParameterInt::get_value_str (void)
 {
-  wchar_t str [32];
+  wchar_t str [32] = { };
   _itow (value, str, 10);
 
-  return std::wstring (str);
+  return
+    str;
 }
 
 int
@@ -107,9 +99,15 @@ sk::ParameterInt::set_value (int val)
 
 
 void
-sk::ParameterInt::set_value_str (std::wstring str)
+sk::ParameterInt::set_value_str (const wchar_t *str)
 {
-  value = _wtoi (str.c_str ());
+  value = _wtoi (str);
+}
+
+void
+sk::ParameterInt::set_value_str (std::wstring& str)
+{
+  set_value_str (str.c_str ());
 }
 
 
@@ -121,10 +119,16 @@ sk::ParameterInt::store (int val)
 }
 
 void
-sk::ParameterInt::store_str (std::wstring str)
+sk::ParameterInt::store_str (const wchar_t *str)
 {
   set_value_str  (str);
   iParameter::store ();
+}
+
+void
+sk::ParameterInt::store_str (std::wstring& str)
+{
+  store_str (str.c_str ());
 }
 
 bool
@@ -143,10 +147,11 @@ sk::ParameterInt::load (int& ref)
 std::wstring
 sk::ParameterInt64::get_value_str (void)
 {
-  wchar_t str [32];
+  wchar_t str [32] = { };
   _i64tow (value, str, 10);
 
-  return std::wstring (str);
+  return
+    str;
 }
 
 int64_t
@@ -163,9 +168,15 @@ sk::ParameterInt64::set_value (int64_t val)
 
 
 void
-sk::ParameterInt64::set_value_str (std::wstring str)
+sk::ParameterInt64::set_value_str (const wchar_t* str)
 {
-  value = _wtoll (str.c_str ());
+  value = _wtoll (str);
+}
+
+void
+sk::ParameterInt64::set_value_str (std::wstring& str)
+{
+  set_value_str (str.c_str ());
 }
 
 
@@ -177,10 +188,16 @@ sk::ParameterInt64::store (int64_t val)
 }
 
 void
-sk::ParameterInt64::store_str (std::wstring str)
+sk::ParameterInt64::store_str (const wchar_t *str)
 {
   set_value_str  (str);
   iParameter::store ();
+}
+
+void
+sk::ParameterInt64::store_str (std::wstring& str)
+{
+  store_str (str.c_str ());
 }
 
 bool
@@ -241,7 +258,63 @@ sk::ParameterBool::set_value (bool val)
 
 
 void
-sk::ParameterBool::set_value_str (std::wstring str)
+sk::ParameterBool::set_value_str (const wchar_t *str)
+{
+  size_t len = wcslen (str);
+
+  type = TrueFalse;
+
+  switch (len)
+  {
+    case 1:
+      type = ZeroNonZero;
+
+      if (str [0] == L'1')
+        value = true;
+      break;
+
+    case 2:
+      if ( towlower (str [0]) == L'o' &&
+           towlower (str [1]) == L'n' ) {
+        type  = OnOff;
+        value = true;
+      } else if ( towlower (str [0]) == L'n' &&
+                  towlower (str [1]) == L'o' ) {
+        type  = YesNo;
+        value = false;
+      }
+      break;
+
+    case 3:
+      if ( towlower (str [0]) == L'y' &&
+           towlower (str [1]) == L'e' &&
+           towlower (str [2]) == L's' ) {
+        type  = YesNo;
+        value = true;
+      } else if ( towlower (str [0]) == L'o' &&
+                  towlower (str [1]) == L'f' &&
+                  towlower (str [2]) == L'f' ) {
+        type  = OnOff;
+        value = false;
+      }
+      break;
+
+    case 4:
+      if ( towlower (str [0]) == L't' &&
+           towlower (str [1]) == L'r' &&
+           towlower (str [2]) == L'u' &&
+           towlower (str [3]) == L'e' )
+        value = true;
+      break;
+
+    default:
+      value = false;
+      break;
+  }
+}
+
+void
+sk::ParameterBool::set_value_str (std::wstring& str)
 {
   size_t len = str.length ();
 
@@ -304,10 +377,16 @@ sk::ParameterBool::store (bool val)
 }
 
 void
-sk::ParameterBool::store_str (std::wstring str)
+sk::ParameterBool::store_str (const wchar_t *str)
 {
   set_value_str  (str);
   iParameter::store ();
+}
+
+void
+sk::ParameterBool::store_str (std::wstring& str)
+{
+  store_str (str.c_str ());
 }
 
 bool
@@ -332,7 +411,8 @@ sk::ParameterFloat::get_value_str (void)
 
   SK_RemoveTrailingDecimalZeros (val_str);
 
-  return std::wstring (val_str);
+  return 
+    val_str;
 }
 
 float
@@ -347,11 +427,19 @@ sk::ParameterFloat::set_value (float val)
   value = val;
 }
 
+void
+sk::ParameterFloat::set_value_str (const wchar_t *str)
+{
+  value =
+    static_cast <float> (
+      wcstod (str, nullptr)
+    );
+}
 
 void
-sk::ParameterFloat::set_value_str (std::wstring str)
+sk::ParameterFloat::set_value_str (std::wstring& str)
 {
-  value = (float)wcstod (str.c_str (), nullptr);
+  set_value_str (str.c_str ());
 }
 
 
@@ -363,10 +451,16 @@ sk::ParameterFloat::store (float val)
 }
 
 void
-sk::ParameterFloat::store_str (std::wstring str)
+sk::ParameterFloat::store_str (const wchar_t *str)
 {
   set_value_str  (str);
   iParameter::store ();
+}
+
+void
+sk::ParameterFloat::store_str (std::wstring& str)
+{
+  store_str (str.c_str ());
 }
 
 bool
@@ -394,6 +488,18 @@ sk::ParameterStringW::get_value (void)
   return value;
 }
 
+std::wstring&
+sk::ParameterStringW::get_value_ref (void)
+{
+  return value;
+}
+
+void
+sk::ParameterStringW::set_value (const wchar_t* val)
+{
+  value = val;
+}
+
 void
 sk::ParameterStringW::set_value (std::wstring val)
 {
@@ -402,7 +508,13 @@ sk::ParameterStringW::set_value (std::wstring val)
 
 
 void
-sk::ParameterStringW::set_value_str (std::wstring str)
+sk::ParameterStringW::set_value_str (const wchar_t *str)
+{
+  value = str;
+}
+
+void
+sk::ParameterStringW::set_value_str (std::wstring& str)
 {
   value = str;
 }
@@ -415,10 +527,16 @@ sk::ParameterStringW::store (std::wstring val)
 }
 
 void
-sk::ParameterStringW::store_str (std::wstring str)
+sk::ParameterStringW::store_str (const wchar_t *str)
 {
   set_value_str  (str);
   iParameter::store ();
+}
+
+void
+sk::ParameterStringW::store_str (std::wstring& str)
+{
+  store_str (str.c_str ());
 }
 
 bool
@@ -463,9 +581,15 @@ sk::ParameterVec2f::set_value (ImVec2 val)
 }
 
 void
-sk::ParameterVec2f::set_value_str (std::wstring str)
+sk::ParameterVec2f::set_value_str (const wchar_t *str)
 {
-  swscanf (str.data (), L"(%f,%f)", &value.x, &value.y);
+  swscanf (str, L"(%f,%f)", &value.x, &value.y);
+}
+
+void
+sk::ParameterVec2f::set_value_str (std::wstring& str)
+{
+  set_value_str (str.c_str ());
 }
 
 void
@@ -476,10 +600,17 @@ sk::ParameterVec2f::store (ImVec2 val)
 }
 
 void
-sk::ParameterVec2f::store_str (std::wstring str)
+sk::ParameterVec2f::store_str (const wchar_t *str)
 {
+  store_str      (str);
   set_value_str  (str);
   iParameter::store ();
+}
+
+void
+sk::ParameterVec2f::store_str (std::wstring& str)
+{
+  store_str (str.c_str ());
 }
 
 bool
@@ -524,7 +655,9 @@ sk::ParameterFactory::create_parameter <int64_t> (const wchar_t* name)
 {
   UNREFERENCED_PARAMETER (name);
 
-  iParameter* param = new ParameterInt64 ();
+  iParameter*       param =
+    new ParameterInt64 ();
+
   params.push_back (param);
 
   return param;
@@ -536,7 +669,9 @@ sk::ParameterFactory::create_parameter <bool> (const wchar_t* name)
 {
   UNREFERENCED_PARAMETER (name);
 
-  iParameter* param = new ParameterBool ();
+  iParameter* param =
+    new ParameterBool ();
+
   params.push_back (param);
 
   return param;
@@ -560,7 +695,9 @@ sk::ParameterFactory::create_parameter <std::wstring> (const wchar_t* name)
 {
   UNREFERENCED_PARAMETER (name);
 
-  iParameter* param = new ParameterStringW ();
+  iParameter* param =
+    new ParameterStringW ();
+
   params.push_back (param);
 
   return param;
@@ -572,7 +709,9 @@ sk::ParameterFactory::create_parameter <ImVec2> (const wchar_t* name)
 {
   UNREFERENCED_PARAMETER (name);
 
-  iParameter* param = new ParameterVec2f ();
+  iParameter* param =
+    new ParameterVec2f ();
+
   params.push_back (param);
 
   return param;

@@ -21,6 +21,9 @@
 #ifndef __SK__INI_H__
 #define __SK__INI_H__
 
+struct IUnknown;
+#include <Unknwnbase.h>
+
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -110,6 +113,8 @@ private:
 
   wchar_t*  wszName = nullptr;
   wchar_t*  wszData = nullptr;
+  wchar_t*     data = nullptr; // The original allocation base
+       //  (wszData may be offset against a Byte Order Marker)
 
   std::unordered_map <
     std::wstring, iSK_INISection

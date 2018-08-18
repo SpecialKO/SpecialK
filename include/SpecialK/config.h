@@ -21,6 +21,9 @@
 #ifndef __SK__CONFIG_H__
 #define __SK__CONFIG_H__
 
+struct IUnknown;
+#include <Unknwnbase.h>
+
 #include <Windows.h>
 #include <string>
 #include <set>
@@ -216,7 +219,7 @@ struct sk_config_t
       struct {
         std::string file   = "";
         float       size   = 7.0f;
-      } chinese,  cyrillic, default,
+      } chinese,  cyrillic, default_font,
         japanese, korean;
     } font;
 

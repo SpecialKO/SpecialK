@@ -22,6 +22,9 @@
 #ifndef __SK__UTILITY_H__
 #define __SK__UTILITY_H__
 
+struct IUnknown;
+#include <Unknwnbase.h>
+
 #include <intrin.h>
 #include <Windows.h>
 #include <ini.h>
@@ -32,7 +35,9 @@
 #include <mutex>
 
 #include <SpecialK/SpecialK.h>
+#include <SpecialK/core.h>
 #include <SpecialK/sha1.h>
+#include <SpecialK/diagnostics/debug_utils.h>
 
 using HANDLE = void *;
 
@@ -115,14 +120,14 @@ void           SK_StripTrailingSlashesA     (char    *szInOut);
 void           SK_FixSlashesW               (wchar_t *wszInOut);
 void           SK_FixSlashesA               (char    *szInOut);
 
-void           SK_File_SetNormalAttribs     (std::wstring   file);
+void           SK_File_SetNormalAttribs     (const wchar_t* file);
 void           SK_File_MoveNoFail           (const wchar_t* wszOld,    const wchar_t* wszNew);
-void           SK_File_FullCopy             (std::wstring   from,      std::wstring   to);
-BOOL           SK_File_SetAttribs           (std::wstring   file,      DWORD          dwAttribs);
-BOOL           SK_File_ApplyAttribMask      (std::wstring   file,      DWORD          dwAttribMask,
+void           SK_File_FullCopy             (const wchar_t* from,      const wchar_t* to);
+BOOL           SK_File_SetAttribs           (const wchar_t* file,      DWORD          dwAttribs);
+BOOL           SK_File_ApplyAttribMask      (const wchar_t* file,      DWORD          dwAttribMask,
                                              bool           clear = false);
-BOOL           SK_File_SetHidden            (std::wstring   file,      bool           hidden);
-BOOL           SK_File_SetTemporary         (std::wstring   file,      bool           temp);
+BOOL           SK_File_SetHidden            (const wchar_t* file,      bool           hidden);
+BOOL           SK_File_SetTemporary         (const wchar_t* file,      bool           temp);
 uint64_t       SK_File_GetSize              (const wchar_t* wszFile);
 std::wstring   SK_File_SizeToString         (uint64_t       size,      SK_UNITS       unit = Auto);
 std::wstring   SK_File_SizeToStringF        (uint64_t       size,      int            width,
@@ -162,7 +167,7 @@ std::wstring
 
 const wchar_t*
         __stdcall
-               SK_GetCanonicalDLLForRole    (enum DLL_ROLE role);
+               SK_GetCanonicalDLLForRole    (DLL_ROLE role);
 
 const wchar_t* SK_DescribeHRESULT           (HRESULT hr);
 
@@ -193,6 +198,18 @@ SK_GetBitness (void)
                                                                         SK_LOG1 ( (L"    <*> %s", SK_SummarizeCaller ().c_str ()), __SK_SUBSYSTEM__); called = true; } }
 
 
+#define SK_ReleaseAssertEx(_expr,_msg,_file,_line)            \
+{                                                             \
+  if (! (_expr))                                              \
+  {                                                           \
+    SK_LOG0 ( ( L"Critical Assertion Failure: '%ws' (%ws:%u)",\
+                  (_msg), (_file), (_line)                    \
+              ),L" SpecialK ");                               \
+    if (SK_IsDebuggerPresent ()) __debugbreak ();             \
+  }                                                           \
+}
+#define SK_ReleaseAssert(expr) SK_ReleaseAssertEx ( (expr),L#expr,     \
+                                                    __FILEW__,__LINE__ )
 
 
 std::queue <DWORD>

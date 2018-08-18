@@ -81,7 +81,7 @@ SK_GetDocumentsDir (void)
 
   // Fast Path  (cached)
   //
-  static std::wstring dir = L"";
+  static std::wstring dir (L"");
 
   if (ReadAcquire (&__init) == 2)
   {
@@ -94,10 +94,13 @@ SK_GetDocumentsDir (void)
     CHandle  hToken (INVALID_HANDLE_VALUE);
     wchar_t* str    = nullptr;
 
-    if (! OpenProcessToken (SK_GetCurrentProcess (), TOKEN_QUERY | TOKEN_IMPERSONATE |
-                                                     TOKEN_READ, &hToken.m_h))
+    if (! OpenProcessToken (
+            SK_GetCurrentProcess (), TOKEN_QUERY | TOKEN_IMPERSONATE |
+                                     TOKEN_READ, &hToken.m_h )
+       )
     {
-      dir = L"(null)";
+      dir
+        = std::move (L"(null)");
 
       InterlockedIncrement (&__init);
       return dir;
@@ -106,8 +109,8 @@ SK_GetDocumentsDir (void)
     HRESULT hr =
       SHGetKnownFolderPath (FOLDERID_Documents, 0, hToken, &str);
 
-    dir = (SUCCEEDED (hr) ? str : L"UNKNOWN");
-
+    dir =
+      ( SUCCEEDED (hr) ? str : std::move (L"UNKNOWN") );
     if (SUCCEEDED (hr))
     {
       InterlockedIncrement (&__init);
@@ -115,6 +118,12 @@ SK_GetDocumentsDir (void)
       CoTaskMemFree (str);
       return dir;
     }
+
+    SK_LOG0 ( ( L"ERROR: Could not get User's Documents Directory!  [HRESULT=%x]",
+                  hr ),
+                L" SpecialK " );
+
+    InterlockedIncrement (&__init);
   }
 
   SK_Thread_SpinUntilAtomicMin (&__init, 2);
@@ -127,7 +136,7 @@ SK_GetRoamingDir (void)
 {
   // Fast Path  (cached)
   //
-  static std::wstring dir = L"";
+  static std::wstring dir (L"");
 
   if (! dir.empty ())
     return dir;
@@ -138,14 +147,14 @@ SK_GetRoamingDir (void)
   if (! OpenProcessToken (SK_GetCurrentProcess (), TOKEN_QUERY | TOKEN_IMPERSONATE |
                                                    TOKEN_READ, &hToken.m_h))
   {
-    dir = L"(null)";
+    dir = std::move (L"(null)");
     return dir;
   }
 
   HRESULT hr =
     SHGetKnownFolderPath (FOLDERID_RoamingAppData, 0, hToken, &str);
 
-  dir = (SUCCEEDED (hr) ? str : L"UNKNOWN");
+  dir = (SUCCEEDED (hr) ? str : std::move (L"UNKNOWN"));
 
   if (SUCCEEDED (hr))
   {
@@ -163,7 +172,7 @@ SK_GetFontsDir (void)
 
   // Fast Path  (cached)
   //
-  static std::wstring dir = L"";
+  static std::wstring dir (L"");
 
   if (ReadAcquire (&__init) == 2)
   {
@@ -179,7 +188,7 @@ SK_GetFontsDir (void)
     if (! OpenProcessToken (SK_GetCurrentProcess (), TOKEN_QUERY | TOKEN_IMPERSONATE |
                                                      TOKEN_READ, &hToken.m_h ) )
     {
-      dir = L"(null)";
+      dir = std::move (L"(null)");
 
       InterlockedIncrement (&__init);
 
@@ -189,7 +198,7 @@ SK_GetFontsDir (void)
     HRESULT hr =
       SHGetKnownFolderPath (FOLDERID_Fonts, 0, hToken, &str);
 
-    dir = (SUCCEEDED (hr) ? str : L"UNKNOWN");
+    dir = (SUCCEEDED (hr) ? str : std::move (L"UNKNOWN"));
 
     if (SUCCEEDED (hr))
     {
@@ -264,7 +273,8 @@ SK_CreateDirectoriesEx ( const wchar_t* wszPath, bool strip_filespec )
 
   wchar_t* wszTest =         wszDirPath;
   size_t   len     = wcslen (wszDirPath);
-  for (int i = 0; i <   (len-1); i++)
+  for (size_t 
+            i = 0; i <   len; i++)
   {
     wszTest =
       CharNextW (wszTest);
@@ -279,7 +289,7 @@ SK_CreateDirectoriesEx ( const wchar_t* wszPath, bool strip_filespec )
   if (strip_filespec)
   {
     PathRemoveFileSpecW (wszDirPath);
-    lstrcatW (wszDirPath, LR"(\)");
+    lstrcatW            (wszDirPath, LR"(\)");
   }
 
   // If the final path already exists, well... there's no work to be done, so
@@ -303,7 +313,9 @@ SK_CreateDirectoriesEx ( const wchar_t* wszPath, bool strip_filespec )
   else
     return false;
 
-  for (iter = wszSubDir; *iter != L'\0'; iter = CharNextW (iter))
+  for ( iter  = wszSubDir;
+       *iter != L'\0'; 
+        iter  = CharNextW (iter) )
   {
     if (*iter == L'\\' || *iter == L'/')
     {
@@ -334,13 +346,17 @@ SK_CreateDirectories ( const wchar_t* wszPath )
 std::wstring
 SK_EvalEnvironmentVars (const wchar_t* wszEvaluateMe)
 {
-  wchar_t wszEvaluated [MAX_PATH * 2 + 1];
+  if (! wszEvaluateMe)
+    return std::wstring ();
+
+  wchar_t wszEvaluated [MAX_PATH * 2 + 1] = { };
 
   ExpandEnvironmentStringsW ( wszEvaluateMe,
                                 wszEvaluated,
                                   MAX_PATH * 2 );
 
-  return wszEvaluated;
+  return
+    wszEvaluated;
 }
 
 #include <string>
@@ -449,26 +465,27 @@ SK_File_MoveNoFail ( const wchar_t* wszOld, const wchar_t* wszNew )
 
 // Copies a file preserving file times
 void
-SK_File_FullCopy (std::wstring from, std::wstring to)
+SK_File_FullCopy ( const wchar_t* from,
+                   const wchar_t* to )
 {
   // Strip Read-Only
   SK_File_SetNormalAttribs (to);
 
-  DeleteFile (to.c_str   ());
-  CopyFile   (from.c_str (), to.c_str (), FALSE);
+  DeleteFile (      to);
+  CopyFile   (from, to, FALSE);
 
   WIN32_FIND_DATA FromFileData;
   HANDLE          hFrom =
-    FindFirstFile (from.c_str (), &FromFileData);
+    FindFirstFile (from, &FromFileData);
 
   CHandle hTo (
-    CreateFile ( to.c_str (),
+    CreateFile ( to,
                    GENERIC_READ      | GENERIC_WRITE,
                      FILE_SHARE_READ | FILE_SHARE_WRITE |
                                        FILE_SHARE_DELETE,
                        nullptr,
                          OPEN_EXISTING,
-                           GetFileAttributes (to.c_str ()),
+                           GetFileAttributes (to),
                              nullptr )
   );
 
@@ -485,19 +502,22 @@ SK_File_FullCopy (std::wstring from, std::wstring to)
 //BOOL TakeOwnership (LPTSTR lpszOwnFile);
 
 BOOL
-SK_File_SetAttribs (std::wstring file, DWORD dwAttribs)
+SK_File_SetAttribs ( const wchar_t *file,
+                             DWORD  dwAttribs )
 {
   return
     SetFileAttributesW (
-      file.c_str (),
-         dwAttribs );
+      file,
+        dwAttribs );
 }
 
 BOOL
-SK_File_ApplyAttribMask (std::wstring file, DWORD dwAttribMask, bool clear)
+SK_File_ApplyAttribMask ( const wchar_t *file,
+                                  DWORD  dwAttribMask,
+                                   bool  clear )
 {
   DWORD dwFileMask =
-    GetFileAttributesW (file.c_str ());
+    GetFileAttributesW (file);
 
   if (clear)
     dwAttribMask = ( dwFileMask & ~dwAttribMask );
@@ -510,14 +530,14 @@ SK_File_ApplyAttribMask (std::wstring file, DWORD dwAttribMask, bool clear)
 }
 
 BOOL
-SK_File_SetHidden (std::wstring file, bool hide)
+SK_File_SetHidden (const wchar_t *file, bool hide)
 {
   return
     SK_File_ApplyAttribMask (file, FILE_ATTRIBUTE_HIDDEN, (! hide));
 }
 
 BOOL
-SK_File_SetTemporary (std::wstring file, bool temp)
+SK_File_SetTemporary (const wchar_t *file, bool temp)
 {
   return
     SK_File_ApplyAttribMask (file, FILE_ATTRIBUTE_TEMPORARY, (! temp));
@@ -525,7 +545,7 @@ SK_File_SetTemporary (std::wstring file, bool temp)
 
 
 void
-SK_File_SetNormalAttribs (std::wstring file)
+SK_File_SetNormalAttribs (const wchar_t *file)
 {
   SK_File_SetAttribs (file, FILE_ATTRIBUTE_NORMAL);
 }
@@ -685,7 +705,8 @@ SK_GetModuleNameFromAddr (LPCVOID addr)
   if (hModOut != INVALID_HANDLE_VALUE)
     return SK_GetModuleName (hModOut);
 
-  return L"#Invalid.dll#";
+  return
+    std::move (L"#Invalid.dll#");
 }
 
 std::wstring
@@ -697,7 +718,8 @@ SK_GetModuleFullNameFromAddr (LPCVOID addr)
   if (hModOut != INVALID_HANDLE_VALUE)
     return SK_GetModuleFullName (hModOut);
 
-  return L"#Extremely#Invalid.dll#";
+  return
+    std::move (L"#Extremely#Invalid.dll#");
 }
 
 std::wstring
@@ -2175,20 +2197,14 @@ SK_GetHostApp (void)
 
     if ( wszLastSep != nullptr )
     {
-      lstrcpynW (
-        host_proc.wszApp,
-          CharNextW (wszLastSep),
-            lstrlenW (wszLastSep)
-      );
+      wcsncpy_s ( host_proc.wszApp,         MAX_PATH * 2,
+                    CharNextW (wszLastSep), _TRUNCATE  );
     }
 
     else
     {
-      lstrcpynW (
-        host_proc.wszApp,
-          wszProcessName,
-            lstrlenW (wszProcessName)
-      );
+      wcsncpy_s ( host_proc.wszApp, MAX_PATH * 2,
+                    wszProcessName, _TRUNCATE );
     }
 
     host_proc.app = true;
@@ -2217,11 +2233,8 @@ SK_GetFullyQualifiedApp (void)
 
     GetModuleFileNameW ( 0, wszProcessName, dwProcessSize );
 
-    lstrcpynW (
-      host_proc.wszFullName,
-        wszProcessName,
-          MAX_PATH * 2 - 1
-    );
+    wcsncpy_s ( host_proc.wszFullName, MAX_PATH * 2,
+                  wszProcessName,       _TRUNCATE );
 
     host_proc.full_name = true;
 
@@ -2247,8 +2260,9 @@ SK_GetHostPath (void)
 
   if (! InterlockedCompareExchange (&init, TRUE, FALSE))
   {
-    wchar_t    wszProcessName [ MAX_PATH * 2 + 1 ] = { };
-    lstrcpynW (wszProcessName, SK_GetFullyQualifiedApp (), MAX_PATH * 2);
+    wchar_t     wszProcessName [ MAX_PATH * 2 + 1 ] = { };
+    wcsncpy_s ( wszProcessName,  MAX_PATH * 2,
+                  SK_GetFullyQualifiedApp (), _TRUNCATE );
 
     wchar_t* wszSepBack = wcsrchr (wszProcessName, L'\\');
     wchar_t* wszSepFwd  = wcsrchr (wszProcessName, L'/');
@@ -2259,11 +2273,9 @@ SK_GetHostPath (void)
     if (wszLastSep != nullptr)
        *wszLastSep  = L'\0';
 
-    lstrcpynW (
-      host_proc.wszPath,
-        wszProcessName,
-          MAX_PATH * 2 - 1
-    );
+    wcsncpy_s (
+      host_proc.wszPath, MAX_PATH * 2,
+        wszProcessName,  _TRUNCATE  );
 
     host_proc.path = true;
 
@@ -2322,7 +2334,7 @@ SK_DeleteTemporaryFiles (const wchar_t* wszPath, const wchar_t* wszPattern)
   size_t          files  =   0UL;
   LARGE_INTEGER   liSize = { 0ULL };
 
-  wchar_t wszFindPattern [MAX_PATH * 2] = { };
+  wchar_t wszFindPattern [MAX_PATH * 2 + 1] = { };
 
   lstrcatW (wszFindPattern, wszPath);
   lstrcatW (wszFindPattern, L"\\");
@@ -2548,13 +2560,14 @@ SK_RestartGame (const wchar_t* wszDLL)
   wchar_t wszShortPath [MAX_PATH + 2] = { };
   wchar_t wszFullname  [MAX_PATH + 2] = { };
 
-  wcsncpy ( wszFullname, wszDLL != nullptr ?
-                         wszDLL :
-                           SK_GetModuleFullName ( SK_GetDLL ()).c_str (),
-                                                    MAX_PATH );
+  wcsncpy_s ( wszFullname, MAX_PATH,
+              wszDLL != nullptr ?
+              wszDLL :
+              SK_GetModuleFullName ( SK_GetDLL ()).c_str (),
+                          _TRUNCATE );
 
   SK_Generate8Dot3 (wszFullname);
-  wcscpy           (wszShortPath, wszFullname);
+  wcsncpy_s        (wszShortPath, MAX_PATH, wszFullname, _TRUNCATE);
  
   if (SK_FileHasSpaces (wszFullname))
     GetShortPathName   (wszFullname, wszShortPath, MAX_PATH  );
@@ -2702,7 +2715,7 @@ SK_FormatString (char const* const _Format, ...)
   va_end   (_ArgList);
 
   return
-    std::move (pData);
+    pData;
 }
 
 std::wstring
@@ -2737,114 +2750,188 @@ SK_FormatStringW (wchar_t const* const _Format, ...)
   va_end   (_ArgList);
 
   return
-    std::move (pData);
+    pData;
 }
 
 
+//void
+//SK_StripTrailingSlashesW_ (wchar_t* wszInOut)
+//{
+//  struct test_slashes
+//  {
+//    bool operator () (wchar_t a, wchar_t b) const
+//    {
+//      auto IsSlash = [](wchar_t a) -> bool {
+//        return (a == L'\\' || a == L'/');
+//      };
+//
+//      return IsSlash (a) && IsSlash (b);
+//    }
+//  };
+//
+//  std::wstring wstr (
+//    wszInOut
+//  );
+//
+//  if (wstr.empty ())
+//    return;
+//
+//  wstr.erase ( std::unique ( wstr.begin (),
+//              wstr.end   (), test_slashes () ),
+//              wstr.end () );
+//
+//  if (wstr.empty ())
+//    *wszInOut = L'\0';
+//  else
+//    wcsncpy_s ( wszInOut, wstr.length () + 1,
+//                wstr.c_str  (), _TRUNCATE  );
+//}
+
+//
+// In-place version of the old code that had to
+//   make a copy of the string and then copy-back
+//
 void
 SK_StripTrailingSlashesW (wchar_t* wszInOut)
 {
-  struct test_slashes
-  {
-    bool operator () (wchar_t a, wchar_t b) const
-    {
-      auto IsSlash = [](wchar_t a) -> bool {
-        return (a == L'\\' || a == L'/');
-      };
+  //wchar_t* wszValidate = wcsdup (wszInOut);
 
-      return IsSlash (a) && IsSlash (b);
-    }
+  auto IsSlash = [](wchar_t a) -> bool {
+    return (a == L'\\' || a == L'/');
   };
-  
-  std::wstring wstr (
-    std::move (wszInOut)
-  );
 
-  if (wstr.empty ())
-    return;
-  
-  wstr.erase ( std::unique ( wstr.begin (),
-                             wstr.end   (), test_slashes () ),
-                 wstr.end () );
+  wchar_t* wszNextUnique = CharNextW (wszInOut);
+  wchar_t* wszNext       = wszInOut;
 
-  if (wstr.empty ())
-    *wszInOut = L'\0';
-  else
-    wcsncpy_s ( wszInOut, wstr.length () + 1,
-                          wstr.c_str  (), _TRUNCATE );
+  while (*wszNext != L'\0')
+  {
+    if (*wszNextUnique == L'\0')
+    {
+      *CharNextW (wszNext) = L'\0';
+      break;
+    }
+
+    if (IsSlash (*wszNext))
+    {
+      if (IsSlash (*wszNextUnique))
+      {
+        wszNextUnique =
+          CharNextW (wszNextUnique);
+
+        continue;
+      }
+    }
+
+    wszNext = CharNextW (wszNext);
+   *wszNext = *wszNextUnique;
+    wszNextUnique =
+      CharNextW (wszNextUnique);
+  }
+
+
+  //extern void
+  //  SK_StripTrailingSlashesW (wchar_t* wszInOut);
+  //
+  //wchar_t xxx [] = LR"(\\//\/\asda.\\/fasd/ads\d///\asdz/\\/)";
+  //wchar_t yyy [] = LR"(a\\)";
+  //wchar_t zzz [] = LR"(\\a)";
+  //wchar_t yzy [] = LR"(\a/)";
+  //wchar_t zzy [] = LR"(\/a)"; 
+  //
+  //SK_StripTrailingSlashesW (xxx);
+  //SK_StripTrailingSlashesW (yyy);
+  //SK_StripTrailingSlashesW (zzz);
+  //SK_StripTrailingSlashesW (yzy);
+  //SK_StripTrailingSlashesW (zzy);      //extern void
+      //  SK_StripTrailingSlashesW (wchar_t* wszInOut);
+      //
+      //wchar_t xxx [] = LR"(\\//\/\asda.\\/fasd/ads\d///\asdz/\\/)";
+      //wchar_t yyy [] = LR"(a\\)";
+      //wchar_t zzz [] = LR"(\\a)";
+      //wchar_t yzy [] = LR"(\a/)";
+      //wchar_t zzy [] = LR"(\/a)"; 
+      //
+      //SK_StripTrailingSlashesW (xxx);
+      //SK_StripTrailingSlashesW (yyy);
+      //SK_StripTrailingSlashesW (zzz);
+      //SK_StripTrailingSlashesW (yzy);
+      //SK_StripTrailingSlashesW (zzy);
+
+  //SK_StripTrailingSlashesW_ (wszValidate);
+  //
+  //SK_ReleaseAssert (! wcscmp (wszValidate, wszInOut))
+  //
+  //dll_log.Log (L"'%ws' and '%ws' are the same", wszValidate, wszInOut);
 }
 
 void
 SK_FixSlashesW (wchar_t* wszInOut)
-{ 
-  std::wstring wstr ( 
-    std::move (wszInOut)
-  );
-
-  if (wstr.empty ())
+{
+  if (wszInOut == nullptr)
     return;
 
-  for ( auto&& it : wstr )
+  wchar_t* pwszInOut  = wszInOut;
+  while ( *pwszInOut != L'\0' )
   {
-    if (it == L'/')
-      it = L'\\';
-  }
+    if (*pwszInOut == L'/')
+        *pwszInOut = L'\\';
 
-  wcsncpy_s ( wszInOut, wstr.length () + 1,
-                        wstr.c_str  (), _TRUNCATE );
+    pwszInOut =
+      CharNextW (pwszInOut);
+  }
 }
 
 void
 SK_StripTrailingSlashesA (char* szInOut)
 {
-  struct test_slashes
-  {
-    bool operator () (char a, char b) const
-    {
-      auto IsSlash = [](char a) -> bool {
-        return (a == '\\' || a == '/');
-      };
-
-      return IsSlash (a) && IsSlash (b);
-    }
+  auto IsSlash = [](char a) -> bool {
+    return (a == '\\' || a == '/');
   };
-  
-  std::string str (
-    std::move (szInOut)
-  );
 
-  if (str.empty ())
-    return;
-  
-  str.erase ( std::unique ( str.begin (),
-                            str.end   (), test_slashes () ),
-                str.end () );
+  char* szNextUnique = szInOut + 1;
+  char* szNext       = szInOut;
 
-  if (str.empty ())
-    *szInOut = '\0';
-  else
-    strncpy_s ( szInOut, str.length () + 1,
-                         str.c_str  (), _TRUNCATE );
+  while (*szNext != '\0')
+  {
+    if (*szNextUnique == '\0')
+    {
+      *CharNextA (szNext) = '\0';
+      break;
+    }
+
+    if (IsSlash (*szNext))
+    {
+      if (IsSlash (*szNextUnique))
+      {
+        szNextUnique =
+          CharNextA (szNextUnique);
+
+        continue;
+      }
+    }
+
+    ++szNext;
+     *szNext = *szNextUnique;
+                szNextUnique =
+     CharNextA (szNextUnique);
+  }
 }
 
 void
 SK_FixSlashesA (char* szInOut)
-{ 
-  std::string str (
-    std::move (szInOut)
-  );
-
-  if (str.empty ())
+{
+  if (szInOut == nullptr)
     return;
 
-  for ( auto&& it : str )
+  char*   pszInOut  = szInOut;
+  while (*pszInOut != '\0')
   {
-    if (it == '/')
-      it = '\\';
-  }
+    if (*pszInOut == '/')
+        *pszInOut = '\\';
 
-  strncpy_s (szInOut, str.length () + 1,
-                      str.c_str  (), _TRUNCATE);
+    pszInOut =
+      CharNextA (pszInOut);
+  }
 }
 
 

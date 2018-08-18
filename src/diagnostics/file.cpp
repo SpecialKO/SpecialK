@@ -105,6 +105,8 @@ NtReadFile_Detour (
     SK_TLS *pTLS =
       SK_TLS_Bottom ();
 
+    if (! pTLS) return ntStatus;
+
     InterlockedAdd64 (&pTLS->disk.bytes_read, Length);
 
     if (config.file_io.trace_reads)
@@ -166,6 +168,8 @@ NtWriteFile_Detour (
     SK_TLS *pTLS =
       SK_TLS_Bottom ();
 
+    if (! pTLS) return ntStatus;
+
     InterlockedAdd64 (&pTLS->disk.bytes_written, Length);
 
     if (config.file_io.trace_writes)
@@ -210,7 +214,7 @@ SK_File_InitHooks (void)
                             "ZwReadFile",
                              NtReadFile_Detour,
     static_cast_p2p <void> (&NtReadFile_Original) );
-
+  
   SK_CreateDLLHook2 (      L"NtDll.dll",
                             "ZwWriteFile",
                              NtWriteFile_Detour,
