@@ -95,6 +95,8 @@ DownloadThread (LPVOID user)
 {
   SetCurrentThreadDescription (L"[SK] HTTP Download Thread");
 
+  ULONG ulTimeout = 2500UL;
+
   auto* get =
     static_cast <sk_internet_get_t *> (user);
 
@@ -143,8 +145,10 @@ DownloadThread (LPVOID user)
 
   SetProgress (0, 0);
 
-
-  HINTERNET hInetRoot =
+  PCWSTR rgpszAcceptTypes [] = { L"*/*", nullptr };
+  HINTERNET hInetHTTPGetReq  = 0,
+            hInetHost        = 0,
+  hInetRoot                  =
     InternetOpen (
       L"Special K Auto-Update",
         INTERNET_OPEN_TYPE_DIRECT,
@@ -157,7 +161,7 @@ DownloadThread (LPVOID user)
 
   DWORD dwInetCtx;
 
-  HINTERNET hInetHost =
+  hInetHost =
     InternetConnect ( hInetRoot,
                         get->wszHostName,
                           INTERNET_DEFAULT_HTTP_PORT,
@@ -172,9 +176,7 @@ DownloadThread (LPVOID user)
     goto CLEANUP;
   }
 
-  PCWSTR rgpszAcceptTypes [] = { L"*/*", nullptr };
-
-  HINTERNET hInetHTTPGetReq =
+  hInetHTTPGetReq =
     HttpOpenRequest ( hInetHost,
                         nullptr,
                           get->wszHostPath,
@@ -189,7 +191,6 @@ DownloadThread (LPVOID user)
 
   // Wait 2500 msecs for a dead connection, then give up
   //
-  ULONG ulTimeout = 2500UL;
   InternetSetOptionW ( hInetHTTPGetReq, INTERNET_OPTION_RECEIVE_TIMEOUT,
                          &ulTimeout,      sizeof ULONG );
 
@@ -693,8 +694,8 @@ Update_DlgProc (
 
       uint64_t fsize = SK_File_GetSize (update_dlg_file);
 
-      std::vector <sk_file_entry_s> files =
-        SK_Get7ZFileContents (update_dlg_file);
+      std::vector <sk_file_entry_s> files;
+      SK_Get7ZFileContents (update_dlg_file, files);
 
       wchar_t wszDownloadSize [32] = { },
               wszBackupSize   [32] = { };

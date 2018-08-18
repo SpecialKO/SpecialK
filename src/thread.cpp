@@ -81,7 +81,11 @@ __SK_GetSelfTitledThreads (void)
 bool
 SK_Thread_HasCustomName (DWORD dwTid)
 {
-  if (_SK_SelfTitledThreads.count (dwTid) != 0)
+  static auto&
+    SelfTitled =
+      _SK_SelfTitledThreads;
+
+  if (SelfTitled.count (dwTid) != 0)
     return true;
 
   return false;
@@ -90,7 +94,7 @@ SK_Thread_HasCustomName (DWORD dwTid)
 std::wstring
 SK_Thread_GetName (DWORD dwTid)
 {
-  auto& names =
+  static auto& names =
     _SK_ThreadNames;
 
   auto it  =
@@ -99,7 +103,8 @@ SK_Thread_GetName (DWORD dwTid)
   if (it != names.end ())
     return (*it).second;
 
-  return L"";
+  return
+    std::wstring ();
 }
 
 std::wstring
@@ -127,7 +132,11 @@ GetThreadDescription_pfn GetThreadDescription = &GetThreadDescription_NOP;
 void
 __make_self_titled (DWORD dwTid)
 {
-  _SK_SelfTitledThreads.insert (dwTid);
+  static auto&
+    SelfTitled =
+      _SK_SelfTitledThreads;
+  
+  SelfTitled.insert (dwTid);
 }
 
 using RtlRaiseException_pfn = void (WINAPI *)(_In_ PEXCEPTION_RECORD ExceptionRecord);
@@ -137,6 +146,10 @@ HRESULT
 WINAPI
 SetCurrentThreadDescription (_In_ PCWSTR lpThreadDescription)
 {
+  auto&
+    ThreadNames =
+      _SK_ThreadNames;
+
   if (lpThreadDescription == nullptr)
     return E_POINTER;
 
@@ -158,7 +171,7 @@ SetCurrentThreadDescription (_In_ PCWSTR lpThreadDescription)
 
     DWORD               dwTid  = GetCurrentThreadId ();
     __make_self_titled (dwTid);
-       _SK_ThreadNames [dwTid] = lpThreadDescription;
+           ThreadNames [dwTid] = lpThreadDescription;
        
     if (pTLS != nullptr)
     {
@@ -536,18 +549,15 @@ SK_MMCS_GetTaskForThreadIDEx ( DWORD dwTid, const char* name,
                                             const char* task1,
                                             const char* task2 )
 {
-   auto& task_map =
-    SK_MMCS_GetTaskMap ();
+  auto& task_map =
+   SK_MMCS_GetTaskMap ();
 
   SK_MMCS_TaskEntry* task_me =
     nullptr;
 
-  try {
-    task_me =
-      task_map.at (dwTid);
-  }
-
-  catch ( const std::out_of_range& )
+  if (task_map.count (dwTid))
+    task_me = task_map.at (dwTid);
+  else
   {
     SK_MMCS_TaskEntry* new_entry =
       new SK_MMCS_TaskEntry {
@@ -573,6 +583,7 @@ SK_MMCS_GetTaskForThreadIDEx ( DWORD dwTid, const char* name,
 SK_MMCS_TaskEntry*
 SK_MMCS_GetTaskForThreadID (DWORD dwTid, const char* name)
 {
+  return nullptr;
   return
     SK_MMCS_GetTaskForThreadIDEx ( dwTid, name,
                                      "Games",

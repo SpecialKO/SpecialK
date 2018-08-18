@@ -23,8 +23,12 @@
 // Useless warning:  'typedef ': ignored on left of '' when no variable is declared
 #pragma warning (disable: 4091)
 
+struct IUnknown;
+#include <Unknwnbase.h>
+
 #include <Windows.h>
 #include <algorithm>
+#include <cassert>
 //#include <SpecialK/com_util.h>
 //#include <SpecialK/log.h>
 
@@ -42,8 +46,6 @@ struct ID3D11ShaderResourceView;
 
 #include <unordered_map>
 
-extern volatile LONG __SK_TLS_INDEX;
-
 class SK_ModuleAddrMap
 {
 public:
@@ -55,10 +57,10 @@ public:
   void* pResolved = nullptr;
 };
 
-void SK_TLS_LogLeak ( wchar_t* wszFunc,
-                      wchar_t* wszFile,
-                      int      line,
-                      size_t   size );
+void SK_TLS_LogLeak ( const wchar_t* wszFunc,
+                      const wchar_t* wszFile,
+                            int      line,
+                            size_t   size );
 
 enum SK_TLS_STACK_MASK
 {
@@ -90,8 +92,9 @@ struct SK_TlsRecord {
   SK_TLS *pTLS;
 };
 
-SK_TlsRecord SK_GetTLS     (bool initialize = false);
-void         SK_CleanupTLS (void);
+extern
+SK_TlsRecord* SK_GetTLS     (SK_TLS** ppTLS);
+void          SK_CleanupTLS (void);
 
 
 template <typename _T>
@@ -177,16 +180,23 @@ public:
       if (data != nullptr)
         SK_LocalFree ((HLOCAL)data);
 
+      const UINT
+        uFlags =
+          ( zero_fill ?
+                 LPTR : LMEM_FIXED );
+
       len  = std::max (len, needed);
       data = static_cast <_T *>(
-        SK_LocalAlloc (LMEM_FIXED, len * sizeof (_T))
+        SK_LocalAlloc (uFlags, len * sizeof (_T))
       );
 
       if (data == nullptr)
         len = 0;
     }
 
-    if (zero_fill)
+    // This allocation was a NOP, but it is still
+    //   expected that we return a zero-filled buffer
+    else if (zero_fill)
       RtlZeroMemory (data, needed * sizeof (_T));
 
     return data;
@@ -215,6 +225,8 @@ public:
         return len;
       }
     }
+
+    else assert (data == nullptr);
 
     return 0;
   }
@@ -309,6 +321,8 @@ public:
           return size;
         }
       }
+
+      else assert (storage == nullptr);
 
       return 0;
     }
@@ -561,8 +575,10 @@ public:
   bool          lock_affinity = false;
   bool          background_io = false;
 
+  int           sleep0_count  = 0;
+
   volatile
-    LONG          alert_waits   = 0;
+    LONG          alert_waits = 0;
 
   struct wait_record_s {
     LONG          calls        = 0;
@@ -590,6 +606,15 @@ public:
 class SK_TLS
 {
 public:
+  SK_TLS                    (LONG idx) {
+    context_record.dwTlsIdx = idx;
+    context_record.pTLS     = this;
+
+    debug.tls_idx = idx;
+  }
+
+  SK_TlsRecord              context_record = { };
+
   SK_ModuleAddrMap          known_modules  = { };
   SK_TLS_ScratchMemory      scratch_memory = { };
   SK_TLS_ScratchMemoryLocal local_scratch  = { }; // Takes memory from LocalAlloc
@@ -667,11 +692,9 @@ public:
   size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload);
 };
 
-extern volatile LONG __SK_TLS_INDEX;
-
-//SK_TLS* __stdcall SK_TLS_Get      (void); // Alias: SK_TLS_Top
-SK_TLS* __stdcall SK_TLS_Bottom   (void);
-SK_TLS* __stdcall SK_TLS_BottomEx (DWORD dwTid);
+//SK_TLS* __cdecl SK_TLS_Get      (void); // Alias: SK_TLS_Top
+extern SK_TLS* SK_TLS_Bottom   (void);
+extern SK_TLS* SK_TLS_BottomEx (DWORD dwTid);
 
 class SK_ScopedBool
 {
@@ -691,8 +714,5 @@ private:
   BOOL* pBool_;
   BOOL  bOrig_;
 };
-
-
-
 
 extern volatile LONG _SK_IgnoreTLSAlloc;

@@ -1316,6 +1316,7 @@ public:
           }
         }
 
+#if 0
         ImGui::Separator ();
         ImGui::Text      ("Alertable Waits (APC): %lu", ReadAcquire (&pTLS->scheduler.alert_waits));
         ImGui::TreePush  ("");
@@ -1345,6 +1346,7 @@ public:
         }
         ImGui::EndGroup   ();
         ImGui::TreePop    ();
+#endif
 
         ImGui::EndTooltip   ();
       }
@@ -1826,7 +1828,7 @@ public:
         SK_TLS* pTLS =
           SK_TLS_BottomEx (it.second->dwTid);
 
-        if ((! pTLS)) continue;
+        if (! pTLS) continue;
 
         rebalance_list.push_back (it.second);
       }
@@ -1855,6 +1857,9 @@ public:
         {
           SK_TLS* pTLS =
             SK_TLS_BottomEx (it->dwTid);
+
+          if (! pTLS)
+            continue;
 
           DWORD pnum = 
           SetThreadIdealProcessor (it->hThread, MAXIMUM_PROCESSORS);
@@ -1979,9 +1984,10 @@ public:
           if (! _SK_ThreadNames.count (it.second->dwTid))
           {
             _SK_ThreadNames [it.second->dwTid] =
-              std::move (SK_UTF8ToWideChar (thread_name));
+              SK_UTF8ToWideChar (thread_name);
 
-            it.second->name = std::move (SK_UTF8ToWideChar (thread_name));
+            it.second->name =
+              SK_UTF8ToWideChar (thread_name);
           }
         }
 

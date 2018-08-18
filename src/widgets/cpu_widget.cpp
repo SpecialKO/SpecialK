@@ -1359,7 +1359,7 @@ public:
         if (! (detailed || temporary_detailed))
           continue;
 
-        sprintf_s
+        snprintf
               ( szAvg,
                   511,
                     u8"CPU%lu:\n\n"
@@ -1371,7 +1371,7 @@ public:
 
       else
       {
-        sprintf_s
+        snprintf
               ( szAvg,
                   511,
                     u8"%s\t\t\n\n"
@@ -1383,7 +1383,7 @@ public:
 
       char szName [128] = { };
 
-      sprintf_s (szName, 127, "###CPU_%u", i-1);
+      snprintf (szName, 127, "###CPU_%u", i-1);
 
       float samples = 
         std::min ( (float)cpu_records [i].getUpdates  (),

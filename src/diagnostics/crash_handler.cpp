@@ -818,12 +818,15 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
           )
         );
 
+        auto& entry =
+          stack_entries.back ();
+
         max_symbol_len =
-          std::max (stack_entries.back ().sym_len, max_symbol_len);
+          std::max (entry.sym_len, max_symbol_len);
         max_module_len =
-          std::max (stack_entries.back ().mod_len, max_module_len);
+          std::max (entry.mod_len, max_module_len);
         max_file_len =
-          std::max (stack_entries.back ().file_len, max_file_len);
+          std::max (entry.file_len, max_file_len);
       };
 
       if (bFileAndLine)

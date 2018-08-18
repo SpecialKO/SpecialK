@@ -22,6 +22,9 @@
 #ifndef __SK__RENDER_BACKEND_H__
 #define __SK__RENDER_BACKEND_H__
 
+struct IUnknown;
+#include <Unknwnbase.h>
+
 #include <Windows.h>
 #include <../depends/include/nvapi/nvapi_lite_common.h>
 

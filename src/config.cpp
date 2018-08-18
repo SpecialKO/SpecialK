@@ -78,6 +78,8 @@ SK_GetCurrentGameID (void)
       if ( StrStrIW ( SK_GetHostApp (), L"ffxv" ) )
         current_game = SK_GAME_ID::FinalFantasyXV;
     }
+
+    current_game =  SK_GAME_ID::MonsterHunterWorld;
   }
 
   return current_game;
@@ -568,10 +570,8 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
   full_name =
   {
-    std::move (
-      SK_FormatStringW   ( L"%s%s.ini",
-        SK_GetConfigPath (), name.c_str ()
-      )
+    SK_FormatStringW   ( L"%s%s.ini",
+      SK_GetConfigPath (), name.c_str ()
     )
   };
 
@@ -585,10 +585,8 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
   custom_name =
   {
-    std::move (
-      SK_FormatStringW ( L"%scustom_%s.ini",
-        SK_GetConfigPath (), undecorated_name.c_str ()
-      )
+    SK_FormatStringW ( L"%scustom_%s.ini",
+      SK_GetConfigPath (), undecorated_name.c_str ()
     )
   };
 
@@ -604,7 +602,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
   if (last_try != name)
   {
     init     = FALSE;
-    last_try = name;
+    last_try = std::move (name);
   }
 
 
@@ -2390,8 +2388,8 @@ auto DeclKeybind =
 
 
 
-  config.imgui.font.default.file  = "arial.ttf";
-  config.imgui.font.default.size  = 18.0f;
+  config.imgui.font.default_font.file  = "arial.ttf";
+  config.imgui.font.default_font.size  = 18.0f;
 
   config.imgui.font.japanese.file = "msgothic.ttc";
   config.imgui.font.japanese.size = 18.0f;
@@ -3138,7 +3136,7 @@ SK_SaveConfig ( std::wstring name,
   strict_compliance->store               (config.system.strict_compliance);
   version->store                         (SK_VER_STR);
 
-  if (! (nvapi_init && sk::NVAPI::nv_hardware) || (! sk::NVAPI::CountSLIGPUs ()))
+  if (dll_ini != nullptr && (! (nvapi_init && sk::NVAPI::nv_hardware) || (! sk::NVAPI::CountSLIGPUs ())))
     dll_ini->remove_section (L"NVIDIA.SLI");
 
 
@@ -3149,8 +3147,9 @@ SK_SaveConfig ( std::wstring name,
   lstrcatW (wszFullName,       name.c_str ());
   lstrcatW (wszFullName,             L".ini");
 
-  dll_ini->write ( wszFullName );
-    ;
+
+  if (dll_ini != nullptr)
+      dll_ini->write ( wszFullName );
 
   SK_ImGui_Widgets.SaveConfig ();
 

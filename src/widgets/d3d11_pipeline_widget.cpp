@@ -102,7 +102,7 @@ public:
                       max_invoke = static_cast<uint64_t>(static_cast <float> (max_invoke) * 0.8888f);
                       max_invoke = std::max (max_invoke, static_cast <uint64_t> (pipeline.vertex.verts_invoked.getMax ()));
 
-      sprintf_s
+      snprintf
         ( szAvg,
             511,
               u8"Vertex Invocations:\n\n\n"
@@ -130,7 +130,7 @@ public:
                       max_verts = static_cast<uint64_t>(static_cast <float> (max_verts) * 0.8888f);
                       max_verts = std::max (max_verts, static_cast <uint64_t> (pipeline.vertex.verts_input.getMax ()));
 
-      sprintf_s
+      snprintf
         ( szAvg,
             511,
               u8"Vertices Input:\n\n\n"
@@ -158,7 +158,7 @@ public:
                       max_prims = static_cast<uint64_t>(static_cast <float>    (max_prims) * 0.8888f);
                       max_prims = std::max (max_prims,  static_cast <uint64_t> (pipeline.vertex.prims_input.getMax ()));
 
-      sprintf_s
+      snprintf
         ( szAvg,
             511,
               u8"Primitives Assembled:\n\n\n"
@@ -192,7 +192,7 @@ public:
       //                     (float)stats.CInvocations ),
       //                 SK_CountToString (stats.CInvocations).c_str () );
 
-      sprintf_s
+      snprintf
         ( szAvg,
             511,
               u8"Raster Fill Rate:\n\n\n"
@@ -226,7 +226,7 @@ public:
                                  );
 
 
-      sprintf_s
+      snprintf
         ( szAvg,
             511,
               u8"Pixels Shaded:\n\n\n"
@@ -260,7 +260,7 @@ public:
                                          static_cast <uint64_t> (pipeline.compute.dispatches.getMax ())
                                      );
 
-      sprintf_s
+      snprintf
         ( szAvg,
             511,
               u8"Compute Shader Invocations:\n\n\n"

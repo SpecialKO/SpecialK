@@ -19,8 +19,6 @@
  *
 **/
 
-#include <Windows.h>
-
 #include <SpecialK/log.h>
 #include <SpecialK/utility.h>
 #include <SpecialK/core.h>
@@ -48,8 +46,9 @@ bool config_files_changed = false;
 static ISzAlloc      g_Alloc  = { SzAlloc, SzFree };
 static volatile LONG crc_init = 0;
 
-std::vector <sk_file_entry_s>
-SK_Get7ZFileContents (const wchar_t* wszArchive)
+void
+SK_Get7ZFileContents (                 const wchar_t* wszArchive,
+                       std::vector <sk_file_entry_s>& entries     )
 {
   if (! InterlockedCompareExchange (&crc_init, 1, 0))
   { CrcGenerateTable     (         );
@@ -73,11 +72,9 @@ SK_Get7ZFileContents (const wchar_t* wszArchive)
   thread_tmp_alloc.Alloc = SzAllocTemp;
   thread_tmp_alloc.Free  = SzFreeTemp;
 
-  std::vector <sk_file_entry_s> files;
-
-  if (InFile_OpenW (&arc_stream.file, wszArchive))
+  if (SZ_OK != InFile_OpenW (&arc_stream.file, wszArchive))
   {
-    return files;
+    return;
   }
 
   CSzArEx       arc = { };
@@ -89,30 +86,31 @@ SK_Get7ZFileContents (const wchar_t* wszArchive)
                            &thread_tmp_alloc ) == SZ_OK )
   {
     uint32_t i;
-    wchar_t  wszEntry [MAX_PATH] = { };
+    wchar_t  wszEntry [MAX_PATH * 2 + 1] = { };
 
     for (i = 0; i < arc.NumFiles; i++)
     {
       if (SzArEx_IsDir (&arc, i))
         continue;
 
+      RtlZeroMemory (wszEntry, (MAX_PATH * 2 + 1) * sizeof (wchar_t));
       SzArEx_GetFileNameUtf16 (&arc, i, (UInt16 *)wszEntry);
 
       uint64_t fileSize  = SzArEx_GetFileSize (&arc, i);
       wchar_t* pwszEntry = wszEntry;
 
       if (*wszEntry == L'\\')
-        pwszEntry++;
+        pwszEntry = CharNextW (pwszEntry);
 
-      files.emplace_back (sk_file_entry_s { i, fileSize, pwszEntry });
+      entries.emplace_back (
+        sk_file_entry_s { i, fileSize, pwszEntry }
+      );
     }
 
     File_Close  (&arc_stream.file);
   }
 
   SzArEx_Free (&arc, &thread_alloc);
-
-  return files;
 }
 
 #include <set>
@@ -133,8 +131,8 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
   if (SK_IsHostAppSKIM ())
     backup = false;
 
-  std::vector <sk_file_entry_s> all_files =
-    SK_Get7ZFileContents (wszArchive);
+  std::vector <sk_file_entry_s>     all_files;
+  SK_Get7ZFileContents (wszArchive, all_files);
 
   std::vector <sk_file_entry_s> reg_files (all_files.size ());
   std::vector <sk_file_entry_s> cfg_files (all_files.size ());
@@ -217,16 +215,17 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
       return E_FAIL;
     }
 
-    wchar_t wszDestPath [MAX_PATH] = { };
-    wchar_t wszMovePath [MAX_PATH] = { };
+    wchar_t wszDestPath [MAX_PATH * 2 + 1] = { };
+    wchar_t wszMovePath [MAX_PATH * 2 + 1] = { };
 
-    wcscpy (wszDestPath, SK_SYS_GetInstallPath ().c_str ());
-
-    lstrcatW (wszDestPath, file.name.c_str ());
+    wcsncpy_s ( wszDestPath, MAX_PATH * 2,
+                  SK_SYS_GetInstallPath ().c_str (), _TRUNCATE );
+    lstrcatW  ( wszDestPath,     file.name.c_str () );
 
     if (GetFileAttributes (wszDestPath) != INVALID_FILE_ATTRIBUTES)
     {
-      wcscpy (wszMovePath, SK_SYS_GetVersionPath ().c_str ());
+      wcsncpy_s ( wszMovePath, MAX_PATH * 2,
+                    SK_SYS_GetVersionPath ().c_str (), _TRUNCATE );
 
       if ( wszOldVersion != nullptr &&
               old_ver_len           &&
@@ -236,7 +235,7 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
         lstrcatW (wszMovePath, L"\\");
       }
 
-      lstrcatW (wszMovePath, file.name.c_str ());
+      lstrcatW (  wszMovePath, file.name.c_str ());
 
       // If the archive contains sub-directories, this will create them
       SK_CreateDirectories (wszMovePath);
@@ -467,8 +466,8 @@ SK_Decompress7zEx ( const wchar_t*            wszArchive,
     InterlockedIncrement (&crc_init);
   } SK_Thread_SpinUntilAtomicMin (&crc_init, 2);
 
-  std::vector <sk_file_entry_s> files =
-    SK_Get7ZFileContents (wszArchive);
+  std::vector <sk_file_entry_s>     files;
+  SK_Get7ZFileContents (wszArchive, files);
 
   CFileInStream arc_stream       = { };
   CLookToRead   look_stream      = { };
@@ -536,8 +535,9 @@ SK_Decompress7zEx ( const wchar_t*            wszArchive,
 
     wchar_t wszDestPath [MAX_PATH * 2 + 1] = { };
 
-    wcscpy      (wszDestPath, wszDestination);
-    PathAppendW (wszDestPath, file.name.c_str ());
+    wcsncpy_s   ( wszDestPath, MAX_PATH * 2,
+                  wszDestination, _TRUNCATE) ;
+    PathAppendW ( wszDestPath, file.name.c_str () );
 
     SK_CreateDirectories (wszDestPath);
 

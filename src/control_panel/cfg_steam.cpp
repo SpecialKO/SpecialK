@@ -157,33 +157,33 @@ SK::ControlPanel::Steam::Draw (void)
           {
             ImGui::SameLine ();
             
-            static const std::unordered_map <std::wstring, int> sound_map
+            static std::unordered_map <std::wstring, int> sound_map
             {  { L"psn", 0 }, { L"xbox", 1 }, { L"dream_theater", 2 }  };
 
-            static const std::unordered_map <int, std::wstring> sound_map_rev
+            static std::unordered_map <int, std::wstring> sound_map_rev
             {  { 0, L"psn" }, { 1, L"xbox" }, { 2, L"dream_theater" }  };
 
             int i = 0;
             
-            try                                    { i =
-              sound_map.at (config.steam.achievements.sound_file); }
-            catch ( const std::out_of_range& ) { 
-              if (config.steam.achievements.sound_file.empty ())
-              { i = 0; } else { i = 3; }
+            auto it =
+              sound_map.find (config.steam.achievements.sound_file);
+
+            if (it != sound_map.end ())
+            {
+              if (! config.steam.achievements.sound_file.empty ())
+                i = it->second;
+              else
+                i = 3;
             }
             
-            if (ImGui::Combo ("", &i, "PlayStation Network\0Xbox Live\0Dream Theater\0Custom\0\0", 4))
+            if (ImGui::Combo ("###AchievementSound", &i, "PlayStation Network\0Xbox Live\0Dream Theater\0Custom\0\0", 4))
             {
-              try {
-                config.steam.achievements.sound_file =
-                  sound_map_rev.at (i);
+              config.steam.achievements.sound_file =
+                sound_map_rev [i];
 
-                SK_Steam_LoadUnlockSound (
-                  config.steam.achievements.sound_file.c_str ()
-                );
-              }
-
-              catch ( const std::out_of_range& ) {}
+              SK_Steam_LoadUnlockSound (
+                config.steam.achievements.sound_file.c_str ()
+              );
             }
           }
 
@@ -392,7 +392,8 @@ SK::ControlPanel::Steam::Draw (void)
       const auto& rb =
         SK_GetCurrentRenderBackend ();
 
-      if (rb.hdr_capable && ImGui::CollapsingHeader ("HDR Overlay", ImGuiTreeNodeFlags_DefaultOpen))
+      if ( rb.hdr_capable && (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR) &&
+            ImGui::CollapsingHeader ("HDR Overlay", ImGuiTreeNodeFlags_DefaultOpen))
       {
         ImGui::TreePush ("");
 
@@ -804,7 +805,7 @@ SK::ControlPanel::Steam::Draw (void)
       static char szNumber       [16] = { };
       static char szPrettyNumber [32] = { };
 
-      const NUMBERFMTA fmt = { 0, 0, 3, ".", ",", 0 };
+      const NUMBERFMTA fmt = { 0, 0, 3, (char *)".", (char *)",", 0 };
 
       snprintf (szNumber, 15, "%li", SK::SteamAPI::GetNumPlayers ());
 

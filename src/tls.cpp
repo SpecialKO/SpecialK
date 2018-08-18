@@ -23,6 +23,7 @@
 #include <SpecialK/log.h>
 #include <SpecialK/config.h>
 #include <SpecialK/thread.h>
+#include <SpecialK/utility.h>
 
 //
 // Technically this has all been changed to Fiber Local Storage, but it is
@@ -35,100 +36,98 @@
 
 #include <concurrent_unordered_map.h>
 
-__forceinline
-SK_TlsRecord
-SK_GetTLS (bool initialize)
+DWORD __SK_TLS_INDEX =
+  TLS_OUT_OF_INDEXES;
+
+SK_TlsRecord*
+SK_GetTLS (SK_TLS** ppTLS)
 {
-  DWORD dwTlsIdx =
-    ReadAcquire (&__SK_TLS_INDEX);
+  auto& pTLS =
+    *ppTLS;
 
-  SK_TLS *pTLS =
-    nullptr;
-
-  if ( dwTlsIdx != TLS_OUT_OF_INDEXES )
-  {
-    InterlockedIncrement (&_SK_IgnoreTLSAlloc);
-
-    pTLS = static_cast <SK_TLS *> (
-      FlsGetValue (dwTlsIdx)
+  pTLS =
+    static_cast <SK_TLS *> (
+      FlsGetValue (__SK_TLS_INDEX)
     );
 
-    if (pTLS == nullptr)
+  if (pTLS == nullptr)
+  {
+#ifdef _DEBUG
+    if (GetLastError () == ERROR_SUCCESS)
     {
-      if (GetLastError () == ERROR_SUCCESS)
+#endif
+      InterlockedIncrement (&_SK_IgnoreTLSAlloc);
+
+      pTLS =
+        new SK_TLS (__SK_TLS_INDEX);
+
+      InterlockedDecrement (&_SK_IgnoreTLSAlloc);
+
+      ////pTLS->scheduler.objects_waited =
+      ////  new (std::unordered_map <HANDLE, SK_Sched_ThreadContext::wait_record_s>);
+
+      SK_ReleaseAssert (pTLS != nullptr);
+
+      if ( ! FlsSetValue ( pTLS->context_record.dwTlsIdx,
+                           pTLS ) 
+         ) 
       {
-        pTLS =
-          new SK_TLS ();
-
-        if (! FlsSetValue (dwTlsIdx, pTLS))
-        {
-          delete pTLS;
-                 pTLS = nullptr;
-        }
-
-        else initialize = true;
+        delete pTLS;
+        return nullptr;
       }
+#ifdef _DEBUG
     }
-
-    if (pTLS != nullptr && initialize)
-    {
-      pTLS->scheduler.objects_waited =
-        new (std::unordered_map <HANDLE, SK_Sched_ThreadContext::wait_record_s>);
-
-      pTLS->debug.tls_idx = dwTlsIdx;
-    }
-    InterlockedDecrement (&_SK_IgnoreTLSAlloc);
+#endif
   }
 
-  else
-    dwTlsIdx = TLS_OUT_OF_INDEXES;
-
   return
-    { dwTlsIdx, pTLS };
+    &pTLS->context_record;
 }
 
-Concurrency::concurrent_unordered_map <DWORD, SK_TlsRecord>&
+Concurrency::concurrent_unordered_map <DWORD, SK_TlsRecord *>
+__tls_map (128);
+
+Concurrency::concurrent_unordered_map <DWORD, SK_TlsRecord *>&
 SK_TLS_Map (void)
 {
-  static Concurrency::concurrent_unordered_map <DWORD, SK_TlsRecord>
-    __tls_map (8);
-
-  return __tls_map;
+  return
+    __tls_map;
 }
-
-#define tls_map SK_TLS_Map()
-
-volatile long __SK_TLS_INDEX = TLS_OUT_OF_INDEXES;
 
 void
 SK_CleanupTLS (void)
 {
-  auto&& tls_slot =
-    SK_GetTLS ();
+  SK_TLS* pTLS;
+  auto    pTLSRecord =
+    SK_GetTLS (&pTLS);
 
-  if (tls_slot.pTLS != nullptr)
-  {
-    SK_TLS* pTLS =
-      tls_slot.pTLS;
+  if (pTLSRecord == nullptr)
+    return;
 
-    const DWORD dwTid =
-      pTLS->debug.tid;
+   const DWORD dwTid =
+     pTLS->debug.tid;
 
-    if (pTLS->debug.mapped)
-    {
-      pTLS->debug.mapped = false;
+   if (pTLS->debug.mapped)
+   {
+     pTLS->debug.mapped = false;
 
-      if (tls_map.count (dwTid))
-      {
-        tls_map [dwTid].pTLS     = nullptr;
-        tls_map [dwTid].dwTlsIdx = TLS_OUT_OF_INDEXES;
-      }
-    }
+     static auto& tls_map =
+         SK_TLS_Map ();
+
+     if (tls_map.count (dwTid))
+     {
+       auto& mapped =
+         tls_map [dwTid];
+       
+       mapped->pTLS     = nullptr;
+       mapped->dwTlsIdx = TLS_OUT_OF_INDEXES;
+     }
+   }
 
 #ifdef _DEBUG
     size_t freed =
 #endif
-    tls_slot.pTLS->Cleanup (
+    pTLS->Cleanup (
       SK_TLS_CleanupReason_e::Unload
     );
 
@@ -137,20 +136,22 @@ SK_CleanupTLS (void)
                   freed, GetCurrentThreadId () ), L"TLS Memory" );
 #endif
 
-    if (FlsSetValue (tls_slot.dwTlsIdx, nullptr))
-    {
-      delete tls_slot.pTLS;
-    }
-  }
+  FlsSetValue ( pTLSRecord->dwTlsIdx,
+                nullptr               );
+
+  delete
+    pTLS;
 }
 
 
 
-#include <cassert>
 
 
 void
-SK_TLS_LogLeak (wchar_t* wszFunc, wchar_t* wszFile, int line, size_t size)
+SK_TLS_LogLeak ( const wchar_t* wszFunc,
+                 const wchar_t* wszFile,
+                           int line,
+                        size_t size )
 {
   SK_LOG0 ( ( L"TLS Memory Leak - [%s] < %s:%lu > - (%lu Bytes)",
              wszFunc, wszFile,
@@ -158,70 +159,75 @@ SK_TLS_LogLeak (wchar_t* wszFunc, wchar_t* wszFile, int line, size_t size)
            L"SK TLS Mem" );
 }
 
-SK_TLS __SK_TLS_SAFE_no_idx   = { };
-
 SK_TLS*
-__stdcall
 SK_TLS_Bottom (void)
 {
-  auto&& tls_slot =
-    SK_GetTLS ();
+  InterlockedIncrement (&_SK_IgnoreTLSAlloc);
 
-  extern volatile LONG __SK_DLL_Attached;
+  SK_TLS *pTLS;
+  auto    pTLSRecord =
+    SK_GetTLS (&pTLS);
 
-  assert ( (! ReadAcquire (&__SK_DLL_Attached)) ||
-              tls_slot.dwTlsIdx != TLS_OUT_OF_INDEXES );
+  //extern volatile LONG __SK_DLL_Attached;
+  //
+  //SK_ReleaseAssert ( (! ReadAcquire (&__SK_DLL_Attached)) ||
+  //                      tls_slot.dwTlsIdx != TLS_OUT_OF_INDEXES );
 
-  if (tls_slot.dwTlsIdx == TLS_OUT_OF_INDEXES || tls_slot.pTLS == nullptr)
+#ifdef _DEBUG
+  if ( tls_slot.dwTlsIdx == TLS_OUT_OF_INDEXES ||
+       tls_slot.pTLS     == nullptr )
   {
-    // This whole situation is bad, but try to limp along and keep the software
-    //   running in rare edge cases.
-    return &__SK_TLS_SAFE_no_idx;
+    return nullptr;
   }
+#endif
 
-
-  SK_TLS* pTLS =
-    tls_slot.pTLS;
-
-  if (! pTLS->debug.mapped)
+  if (! pTLSRecord->pTLS->debug.mapped)
   {
-    pTLS->debug.mapped = true;
+    auto& tls_map =
+      SK_TLS_Map ();
 
-    if (! tls_map.count (pTLS->debug.tid))
+    try
     {
-      InterlockedIncrement (&_SK_IgnoreTLSAlloc);
+      tls_map [pTLS->debug.tid] =
+        &pTLS->context_record;
 
-      tls_map.insert (
-        std::make_pair ( pTLS->debug.tid,
-                           SK_TlsRecord { pTLS->debug.tls_idx, pTLS } )
-      );
-
-      InterlockedDecrement (&_SK_IgnoreTLSAlloc);
+      pTLS->debug.mapped = true;
     }
+
+    catch (...) {}
   }
 
-  pTLS->debug.last_frame = SK_GetFramesDrawn ();
+  InterlockedDecrement (&_SK_IgnoreTLSAlloc);
+
+  //SK_ReleaseAssert (pTLS != nullptr)
 
   return
     pTLS;
 }
 
+_On_failure_ (_Ret_maybenull_)
 SK_TLS*
-__stdcall
 SK_TLS_BottomEx (DWORD dwTid)
 {
-  auto tls_slot =
+  static const auto& tls_map =
+    SK_TLS_Map ();
+
+  const auto tls_slot =
     tls_map.find (dwTid);
 
   if (tls_slot != tls_map.end ())
   {
     // If out-of-indexes, then the thread was probably destroyed
-    if (tls_slot->second.dwTlsIdx != TLS_OUT_OF_INDEXES)
+    if (tls_slot->second->dwTlsIdx == __SK_TLS_INDEX)
     {
       return
-        static_cast <SK_TLS *> ( (*tls_slot).second.pTLS );
+        static_cast <SK_TLS *> (
+          tls_slot->second->pTLS
+        );
     }
   }
+
+  //SK_ReleaseAssert (tls_slot != tls_map.end ())
 
   return nullptr;
 }
@@ -602,7 +608,7 @@ SK_D3D9_ThreadContext::allocStackScratchStorage (size_t size)
       {
                        stack_scratch.size = (uint32_t)size;
         RtlZeroMemory (stack_scratch.storage,         size);
-      } else assert (false);
+      } else SK_ReleaseAssert (false)
     }
   }
 
@@ -738,7 +744,7 @@ SK_D3D11_ThreadContext::allocScreenshotMemory (size_t bytesNeeded)
 uint8_t*
 SK_DXTex_ThreadContext::alignedAlloc (size_t alignment, size_t elems)
 {
-  assert (alignment == 16);
+  SK_ReleaseAssert (alignment == 16)
 
   bool new_alloc = true;
 

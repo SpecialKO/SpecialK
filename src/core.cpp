@@ -188,10 +188,11 @@ const wchar_t*
 __stdcall
 SK_SetBackend (const wchar_t* wszBackend)
 {
+  wcsncpy_s ( SKX_GetBackend (), 128,
+                wszBackend,      _TRUNCATE );
+
   return
-    lstrcpynW ( SKX_GetBackend (),
-                  wszBackend,
-                    127 );
+    SKX_GetBackend ();
 }
 
 wchar_t*
@@ -238,7 +239,8 @@ void
 __stdcall
 SK_SetConfigPath (const wchar_t* path)
 {
-  lstrcpynW (SKX_GetNaiveConfigPath (), path, MAX_PATH);
+  wcsncpy_s ( SKX_GetNaiveConfigPath (), MAX_PATH,
+                path,                    _TRUNCATE );
 }
 
 void
@@ -1313,11 +1315,11 @@ SK_HasGlobalInjector (void)
 
   if (last_test == 0)
   {
-    wchar_t wszBasePath [MAX_PATH * 2 - 1] = { };
+    wchar_t wszBasePath [MAX_PATH * 2 + 1] = { };
 
-    wcsncpy ( wszBasePath,
-                std::wstring ( SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\)" ).c_str (),
-                  MAX_PATH - 1 );
+    wcsncpy_s ( wszBasePath, MAX_PATH * 2,
+                  std::wstring ( SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\)" ).c_str (),
+                    _TRUNCATE );
 
     lstrcatW (wszBasePath, SK_RunLHIfBitness ( 64, L"SpecialK64.dll",
                                                    L"SpecialK32.dll" ));
@@ -1397,9 +1399,8 @@ SK_EstablishRootPath (void)
   {
     if (! SK_IsSuperSpecialK ())
     {
-      lstrcpynW ( SKX_GetRootPath (),
-                    std::wstring ( SK_GetDocumentsDir () + LR"(\My Mods\SpecialK)" ).c_str (),
-                      MAX_PATH - 1 );
+      _swprintf ( SKX_GetRootPath (), LR"(%s\My Mods\SpecialK)",
+                  SK_GetDocumentsDir ().c_str () );
     }
 
     else
@@ -1407,9 +1408,10 @@ SK_EstablishRootPath (void)
       GetCurrentDirectory (MAX_PATH, SKX_GetRootPath ());
     }
 
-    lstrcpynW (wszConfigPath, SKX_GetRootPath (), MAX_PATH);
-    lstrcatW  (wszConfigPath, LR"(\Profiles\)");
-    lstrcatW  (wszConfigPath, SK_GetHostApp  ());
+    wcsncpy_s ( wszConfigPath,      MAX_PATH * 2,
+                SKX_GetRootPath (), _TRUNCATE  );
+    lstrcatW  ( wszConfigPath, LR"(\Profiles\)");
+    lstrcatW  ( wszConfigPath, SK_GetHostApp  ());
   }
 
 
@@ -1419,7 +1421,8 @@ SK_EstablishRootPath (void)
   {
     if (! SK_IsSuperSpecialK ())
     {
-      lstrcpynW (SKX_GetRootPath (), SK_GetHostPath (), MAX_PATH);
+      wcsncpy_s ( SKX_GetRootPath (), MAX_PATH,
+                  SK_GetHostPath  (), _TRUNCATE );
     }
 
     else
@@ -1427,7 +1430,8 @@ SK_EstablishRootPath (void)
       GetCurrentDirectory (MAX_PATH, SKX_GetRootPath ());
     }
 
-    lstrcpynW (wszConfigPath, SKX_GetRootPath (), MAX_PATH);
+    wcsncpy_s ( wszConfigPath,      MAX_PATH,
+                SKX_GetRootPath (), _TRUNCATE );
   }
 
 
@@ -1574,8 +1578,10 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   //
   //   Stupid hack, if the application is running with a different working-directory than
   //     the executable -- compensate!
-  if ( GetFileAttributes ( ( std::wstring (SK_GetHostPath ()) +
-                             std::wstring (L"\\SpecialK.central") ).c_str () ) != INVALID_FILE_ATTRIBUTES )
+  wchar_t    wszCentralPathVFile [MAX_PATH * 2 + 1] = { };
+  _swprintf (wszCentralPathVFile, LR"(%ws\SpecialK.central)", SK_GetHostPath ());
+
+  if ( GetFileAttributes (wszCentralPathVFile) != INVALID_FILE_ATTRIBUTES )
     config.system.central_repository = true;
 
   if (SK_IsInjected ())
@@ -1656,8 +1662,8 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
     if (! blacklist)
     {
-      wchar_t   log_fname [MAX_PATH + 2] = { };
-      swprintf (log_fname, L"logs/%s.log", SK_IsInjected () ? L"SpecialK" : backend);
+       wchar_t   log_fname [MAX_PATH + 2] = { };
+      _swprintf (log_fname, L"logs/%s.log", SK_IsInjected () ? L"SpecialK" : backend);
 
       dll_log.init (log_fname, L"wS+,ccs=UTF-8");
       dll_log.Log  ( L"%s.log created\t\t(Special K  %s,  %hs)",
@@ -2125,6 +2131,12 @@ SK_ShutdownCore (const wchar_t* backend)
     case SK_GAME_ID::DisgaeaPC:
       ChangeDisplaySettingsA_Original (nullptr, CDS_RESET);
       break;
+
+    case SK_GAME_ID::MonsterHunterWorld:
+    {
+      extern void SK_MHW_PlugIn_Shutdown (void);
+                  SK_MHW_PlugIn_Shutdown ();
+    } break;
   }
 
   SK_AutoClose_Log (game_debug);
@@ -2148,7 +2160,7 @@ SK_ShutdownCore (const wchar_t* backend)
   auto ShutdownWMIThread =
   []( volatile HANDLE&  hSignal,
       volatile HANDLE&  hThread,
-               wchar_t* wszName )
+        const wchar_t* wszName )
   {
     if ( ReadPointerAcquire (&hSignal) == INVALID_HANDLE_VALUE &&
          ReadPointerAcquire (&hThread) == INVALID_HANDLE_VALUE )
@@ -2413,7 +2425,7 @@ return;
 
     wchar_t wszCEGUIModPath [MAX_PATH]        = { };
     wchar_t wszCEGUITestDLL [MAX_PATH]        = { };
-    wchar_t wszEnvPath      [ MAX_PATH + 32 ] = { };
+    wchar_t wszEnvPath      [ MAX_PATH + 64 ] = { };
 
     const wchar_t* wszArch = SK_RunLHIfBitness ( 64, L"x64",
                                                      L"Win32" );
@@ -2432,6 +2444,8 @@ return;
 
     if (GetFileAttributes (wszCEGUIModPath) == INVALID_FILE_ATTRIBUTES)
     {
+      // Disable CEGUI if unpack fails
+      SK_SaveConfig  ();
       SK_UnpackCEGUI ();
     }
 
@@ -2472,11 +2486,15 @@ return;
         GetProcAddress ( GetModuleHandle (L"kernel32"),
                            "SetDefaultDllDirectories" );
 
+    int thread_locale =
+      _configthreadlocale (0);
+      _configthreadlocale (_ENABLE_PER_THREAD_LOCALE);
+
     char* szLocale =
       setlocale (LC_ALL, NULL);
 
     CHeapPtr <char> locale_orig ( szLocale == nullptr ? szLocale :
-      _strdup (szLocale) );
+                                               _strdup (szLocale) );
     if        (szLocale) setlocale (LC_ALL, "C");
 
     if ( k32_AddDllDirectory          && k32_RemoveDllDirectory &&
@@ -2592,6 +2610,7 @@ return;
 
     if (locale_orig != nullptr)
       setlocale (LC_ALL, locale_orig);
+    _configthreadlocale (thread_locale);
 
 
     // If we got this far and CEGUI's not enabled, it's because something went horribly wrong.
@@ -2609,9 +2628,9 @@ return;
 }
 
 
-struct {
-  DWORD  dwTid = 0;
-} SK_BufferFlinger;
+//struct {
+//  DWORD  dwTid = 0;
+//} SK_BufferFlinger;
 
 extern SK_MMCS_TaskEntry*
 SK_MMCS_GetTaskForThreadIDEx ( DWORD dwTid,       const char* name,
@@ -2624,24 +2643,24 @@ SK_BeginBufferSwap (void)
 {
   static SK_RenderAPI LastKnownAPI = SK_RenderAPI::Reserved;
 
-  assert ( SK_BufferFlinger.dwTid == 0 ||
-           SK_BufferFlinger.dwTid == GetCurrentThreadId () );
+  //assert ( SK_BufferFlinger.dwTid == 0 ||
+  //         SK_BufferFlinger.dwTid == GetCurrentThreadId () );
 
-  if (config.render.framerate.enable_mmcss && SK_BufferFlinger.dwTid == 0)
-  {
-    auto* task =
-      SK_MMCS_GetTaskForThreadIDEx ( GetCurrentThreadId (),
-                                       "[SK] Primary Render Thread",
-                                         "Games",
-                                         "Window Manager" );
-
-     if ( task        != nullptr            &&
-          task->dwTid == GetCurrentThreadId () )
-     {
-       AvSetMmThreadPriority ( task->hTask,
-                                 AVRT_PRIORITY_CRITICAL );
-    }
-  }
+  //if (config.render.framerate.enable_mmcss && SK_BufferFlinger.dwTid == 0)
+  //{
+  //  auto* task =
+  //    SK_MMCS_GetTaskForThreadIDEx ( GetCurrentThreadId (),
+  //                                     "[SK] Primary Render Thread",
+  //                                       "Games",
+  //                                       "Window Manager" );
+  //
+  //   if ( task        != nullptr            &&
+  //        task->dwTid == GetCurrentThreadId () )
+  //   {
+  //     AvSetMmThreadPriority ( task->hTask,
+  //                               AVRT_PRIORITY_CRITICAL );
+  //  }
+  //}
 
 
   switch (SK_GetCurrentGameID ())

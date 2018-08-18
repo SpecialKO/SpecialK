@@ -19,6 +19,8 @@
  *
 **/
 
+struct IUnknown;
+#include <Unknwnbase.h>
 #include <Windows.h>
 
 #include <SpecialK/diagnostics/cpu.h>
@@ -145,7 +147,7 @@ SK_CPU_InstallHooks (void)
 }
 
 
-int
+size_t
 SK_CPU_CountPhysicalCores (void)
 {
   static std::set <ULONG_PTR> logical_proc_siblings;

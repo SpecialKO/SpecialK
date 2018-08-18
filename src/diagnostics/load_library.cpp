@@ -20,6 +20,9 @@
  *
 **/
 
+struct IUnknown;
+#include <Unknwnbase.h>
+
 #include <Windows.h>
 #include <SpecialK/diagnostics/modules.h>
 #include <SpecialK/diagnostics/load_library.h>
@@ -68,8 +71,8 @@ SK_DbgHlp_Callers (void)
 }
 
 
-#define SK_CHAR(x) (_T)        (constexpr _T      (std::type_index (typeid (_T)) == std::type_index (typeid (wchar_t))) ? (      _T  )(_L(x)) : (      _T  )(x))
-#define SK_TEXT(x) (const _T*) (constexpr LPCVOID (std::type_index (typeid (_T)) == std::type_index (typeid (wchar_t))) ? (const _T *)(_L(x)) : (const _T *)(x))
+#define SK_CHAR(x) (_T)        (_T      (std::type_index (typeid (_T)) == std::type_index (typeid (wchar_t))) ? (      _T  )(_L(x)) : (      _T  )(x))
+#define SK_TEXT(x) (const _T*) (LPCVOID (std::type_index (typeid (_T)) == std::type_index (typeid (wchar_t))) ? (const _T *)(_L(x)) : (const _T *)(x))
 
 using StrStrI_pfn            = PSTR    (__stdcall *)(LPCVOID lpFirst,   LPCVOID lpSearch);
 using PathRemoveFileSpec_pfn = BOOL    (__stdcall *)(LPVOID  lpPath);
@@ -191,17 +194,17 @@ BlacklistLibrary (const _T* lpFileName)
 
   static StrStrI_pfn            StrStrI =
     (StrStrI_pfn)
-      constexpr LPCVOID ( std::type_index (typeid (_T)) == std::type_index (typeid (wchar_t)) ? (StrStrI_pfn)           &StrStrIW           :
+                LPCVOID ( std::type_index (typeid (_T)) == std::type_index (typeid (wchar_t)) ? (StrStrI_pfn)           &StrStrIW           :
                                                                                                 (StrStrI_pfn)           &StrStrIA           );
 
   static GetModuleHandleEx_pfn  GetModuleHandleEx =
     (GetModuleHandleEx_pfn)
-      constexpr LPCVOID ( std::type_index (typeid (_T)) == std::type_index (typeid (wchar_t)) ? (GetModuleHandleEx_pfn) &GetModuleHandleExW :
+                LPCVOID ( std::type_index (typeid (_T)) == std::type_index (typeid (wchar_t)) ? (GetModuleHandleEx_pfn) &GetModuleHandleExW :
                                                                                                 (GetModuleHandleEx_pfn) &GetModuleHandleExA );
 
   static LoadLibrary_pfn  LoadLibrary =
     (LoadLibrary_pfn)
-      constexpr LPCVOID ( std::type_index (typeid (_T)) == std::type_index (typeid (wchar_t)) ? (LoadLibrary_pfn) &LoadLibraryW_Detour :
+                LPCVOID ( std::type_index (typeid (_T)) == std::type_index (typeid (wchar_t)) ? (LoadLibrary_pfn) &LoadLibraryW_Detour :
                                                                                                 (LoadLibrary_pfn) &LoadLibraryA_Detour );
 
   if (config.compatibility.disable_nv_bloat)
@@ -255,7 +258,7 @@ SK_LoadLibrary_PinModule (const _T* pStr)
 
   static GetModuleHandleEx_pfn  GetModuleHandleEx =
     (GetModuleHandleEx_pfn)
-      constexpr LPCVOID ( typeid (_T) == typeid (wchar_t) ? (GetModuleHandleEx_pfn) &GetModuleHandleExW :
+                LPCVOID ( typeid (_T) == typeid (wchar_t) ? (GetModuleHandleEx_pfn) &GetModuleHandleExW :
                                                             (GetModuleHandleEx_pfn) &GetModuleHandleExA );
 
   HMODULE hModDontCare;
@@ -279,7 +282,7 @@ SK_LoadLibrary_IsPinnable (const _T* pStr)
 
   static StrStrI_pfn            StrStrI =
     (StrStrI_pfn)
-      constexpr LPCVOID ( typeid (_T) == typeid (wchar_t) ? (StrStrI_pfn) &StrStrIW :
+                LPCVOID ( typeid (_T) == typeid (wchar_t) ? (StrStrI_pfn) &StrStrIW :
                                                             (StrStrI_pfn) &StrStrIA );
   static std::vector <const _T*> pinnable_libs =
   {
@@ -398,32 +401,32 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
 
   static StrStrI_pfn            StrStrI =
     (StrStrI_pfn)
-      constexpr LPCVOID ( typeid (_T) == typeid (wchar_t) ? (StrStrI_pfn)           &StrStrIW            :
+                LPCVOID ( typeid (_T) == typeid (wchar_t) ? (StrStrI_pfn)           &StrStrIW            :
                                                             (StrStrI_pfn)           &StrStrIA            );
 
   static PathRemoveFileSpec_pfn PathRemoveFileSpec =
     (PathRemoveFileSpec_pfn)
-      constexpr LPCVOID ( typeid (_T) == typeid (wchar_t) ? (PathRemoveFileSpec_pfn)&PathRemoveFileSpecW :
+                LPCVOID ( typeid (_T) == typeid (wchar_t) ? (PathRemoveFileSpec_pfn)&PathRemoveFileSpecW :
                                                             (PathRemoveFileSpec_pfn)&PathRemoveFileSpecA );
 
   static LoadLibrary_pfn        LoadLibrary =
     (LoadLibrary_pfn)
-      constexpr LPCVOID ( typeid (_T) == typeid (wchar_t) ? (LoadLibrary_pfn)       &LoadLibraryW        :
+                LPCVOID ( typeid (_T) == typeid (wchar_t) ? (LoadLibrary_pfn)       &LoadLibraryW        :
                                                             (LoadLibrary_pfn)       &LoadLibraryA        );
 
   static strncpy_pfn            strncpy_ =
     (strncpy_pfn)
-      constexpr LPCVOID ( typeid (_T) == typeid (wchar_t) ? (strncpy_pfn)           &wcsncpy             :
+                LPCVOID ( typeid (_T) == typeid (wchar_t) ? (strncpy_pfn)           &wcsncpy             :
                                                             (strncpy_pfn)           &strncpy             );
 
   static lstrcat_pfn            lstrcat =
     (lstrcat_pfn)
-      constexpr LPCVOID ( typeid (_T) == typeid (wchar_t) ? (lstrcat_pfn)           &lstrcatW            :
+                LPCVOID ( typeid (_T) == typeid (wchar_t) ? (lstrcat_pfn)           &lstrcatW            :
                                                             (lstrcat_pfn)           &lstrcatA            );
 
   static GetModuleHandleEx_pfn  GetModuleHandleEx =
     (GetModuleHandleEx_pfn)
-      constexpr LPCVOID ( typeid (_T) == typeid (wchar_t) ? (GetModuleHandleEx_pfn) &GetModuleHandleExW  :
+                LPCVOID ( typeid (_T) == typeid (wchar_t) ? (GetModuleHandleEx_pfn) &GetModuleHandleExW  :
                                                             (GetModuleHandleEx_pfn) &GetModuleHandleExA  );
 
   // It's impossible to log this if we're loading the DLL necessary to log this...
@@ -432,8 +435,10 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
     return;
   }
 
-  wchar_t  wszModName [MAX_PATH] = { };
-  wcsncpy (wszModName, SK_GetModuleName (hCallingMod).c_str (), MAX_PATH);
+  wchar_t     wszModName [MAX_PATH * 2 + 1] = { };
+  wcsncpy_s ( wszModName, MAX_PATH * 2,
+             SK_GetModuleName (hCallingMod).c_str (),
+                          _TRUNCATE) ;
 
   if ((! SK_LoadLibrary_SILENCE) && GetModuleHandle (wszDbgHelp))
   {
@@ -447,13 +452,13 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
                             szSymbol,
                               ulLen );
 
-    if (constexpr (typeid (_T) == typeid (char)))
+    if (typeid (_T) == typeid (char))
     {
       char szFileName [MAX_PATH * 2 + 1] = { };
 
-      lstrcpynA ( szFileName,
+      strncpy_s ( szFileName, MAX_PATH,
                     reinterpret_cast <const char *> (lpFileName),
-                      MAX_PATH );
+                              _TRUNCATE );
 
       SK_StripUserNameFromPathA (szFileName);
 
@@ -466,11 +471,10 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
 
     else
     {
-      wchar_t wszFileName [MAX_PATH * 2 + 1] = { };
-
-      lstrcpynW ( wszFileName,
-                    reinterpret_cast <const wchar_t *> (lpFileName),
-                      MAX_PATH );
+      wchar_t     wszFileName [MAX_PATH * 2 + 1] = { };
+      wcsncpy_s ( wszFileName, MAX_PATH * 2,
+                  reinterpret_cast <const wchar_t *> (lpFileName),
+                              _TRUNCATE );
 
       SK_StripUserNameFromPathW (wszFileName);
 
@@ -581,6 +585,20 @@ BOOL
 WINAPI
 FreeLibrary_Detour (HMODULE hLibModule)
 {
+#ifdef _WIN64
+  if (true)
+  //if ( SK_GetCallingDLL () == GetModuleHandle (L"gameoverlayrenderer64.dll") )
+#else
+  if ( SK_GetCallingDLL () == GetModuleHandle (L"gameoverlayrenderer.dll") )
+#endif
+  {
+    // Steam unsafely loads DLLs that are holding onto
+    //   Critical Sections, so the safest thing to do
+    //     is never let it do that!
+    return TRUE;
+  }
+
+
   LPVOID pAddr = _ReturnAddress ();
 
   if (ReadAcquire (&__SK_DLL_Ending) == TRUE)
@@ -1017,15 +1035,13 @@ SK_ReHookLoadLibrary (void)
   // Steamclient64.dll leaks heap memory when unloaded,
   //   to prevent this from showing up during debug sessions,
   //     don't hook this function :)
-#if 0
-   SK_CreateDLLHook2 (      L"kernel32",
-                             "FreeLibrary",
-                              FreeLibrary_Detour,
-     static_cast_p2p <void> (&FreeLibrary_Original),
-                            &_loader_hooks.FreeLibrary_target );
-
-  MH_QueueEnableHook (_loader_hooks.FreeLibrary_target);
-#endif
+  //// SK_CreateDLLHook2 (      L"kernel32",
+  ////                           "FreeLibrary",
+  ////                            FreeLibrary_Detour,
+  ////   static_cast_p2p <void> (&FreeLibrary_Original),
+  ////                          &_loader_hooks.FreeLibrary_target );
+  ////
+  ////MH_QueueEnableHook (_loader_hooks.FreeLibrary_target);
 
   if (calls++ > 0)
   {

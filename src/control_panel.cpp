@@ -343,9 +343,12 @@ SK_ImGui_PopNav (void)
     return;
   }
 
-  nav_usable   = SK_ImGui_NavStack.top ().nav_usable;
-  io.NavActive = SK_ImGui_NavStack.top ().io_NavActive;
-  io.NavUsable = SK_ImGui_NavStack.top ().io_NavUsable;
+  auto& stack_top =
+    SK_ImGui_NavStack.top ();
+
+  nav_usable   = stack_top.nav_usable;
+  io.NavActive = stack_top.io_NavActive;
+  io.NavUsable = stack_top.io_NavUsable;
   
   SK_ImGui_NavStack.pop ();
 }
@@ -877,7 +880,7 @@ SK_ImGui_DrawGraph_FramePacing (void)
   }
 
 
-  sprintf_s
+  snprintf
         ( szAvg,
             511,
               u8"Avg milliseconds per-frame: %6.3f  (Target: %6.3f)\n"
@@ -2572,7 +2575,8 @@ SK_ImGui_StageNextFrame (void)
     }
   }
 
-  extern volatile LONG __SK_ScreenShot_CapturingHUDless;
+  extern volatile
+               LONG __SK_ScreenShot_CapturingHUDless;
   if (ReadAcquire (&__SK_ScreenShot_CapturingHUDless))
   {
     imgui_staged = false;
@@ -3002,8 +3006,9 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
   {
     d3d9 = true;
 
-    CComQIPtr <IDirect3DDevice9> pDev =
-      SK_GetCurrentRenderBackend ().device;
+    CComQIPtr <IDirect3DDevice9> pDev (
+      SK_GetCurrentRenderBackend ().device
+    );
 
     if ( SUCCEEDED (
            pDev->BeginScene ()

@@ -53,6 +53,18 @@
 #include <SpecialK/diagnostics/modules.h>
 #include <SpecialK/diagnostics/load_library.h>
 
+#include <concurrent_unordered_map.h>
+#include <concurrent_unordered_set.h>
+#include <SpecialK/diagnostics/crash_handler.h>
+
+extern concurrency::concurrent_unordered_map <DWORD, std::wstring>&
+__SK_GetThreadNames (void);
+extern concurrency::concurrent_unordered_set <DWORD>&
+__SK_GetSelfTitledThreads (void);
+
+#define _SK_SelfTitledThreads __SK_GetSelfTitledThreads ()
+#define _SK_ThreadNames       __SK_GetThreadNames       ()
+
 iSK_Logger game_debug;
 
 const wchar_t*
@@ -613,9 +625,9 @@ void
 WINAPI
 OutputDebugStringW_Detour (LPCWSTR lpOutputString)
 {
-  wchar_t  wszModule [MAX_PATH] = { };
-  wcsncpy (wszModule, SK_GetModuleFullNameFromAddr (_ReturnAddress ()).c_str (),
-                      MAX_PATH - 1);
+  wchar_t    wszModule [MAX_PATH * 2 + 1] = { };
+  wcsncpy_s (wszModule, MAX_PATH * 2, SK_GetModuleFullNameFromAddr (_ReturnAddress ()).c_str (),
+                        _TRUNCATE);
 
   game_debug.LogEx (true,   L"%-72ws:  %ws", wszModule, lpOutputString);
 //fwprintf         (stdout, L"%ws",                     lpOutputString);
@@ -703,18 +715,6 @@ NtSetInformationThread_Detour (
 
 
 volatile LONG lLastThreadCreate = 0;
-
-#include <concurrent_unordered_map.h>
-#include <concurrent_unordered_set.h>
-#include <SpecialK/diagnostics/crash_handler.h>
-
-extern concurrency::concurrent_unordered_map <DWORD, std::wstring>&
-__SK_GetThreadNames (void);
-extern concurrency::concurrent_unordered_set <DWORD>&
-__SK_GetSelfTitledThreads (void);
-
-#define _SK_SelfTitledThreads __SK_GetSelfTitledThreads ()
-#define _SK_ThreadNames       __SK_GetThreadNames       ()
 
 NTSTATUS
 NTAPI
@@ -822,24 +822,23 @@ NtCreateThreadEx_Detour (
 
   BOOL Suspicious = FALSE;
 
-  if ( CreateFlags & THREAD_CREATE_FLAGS_HIDE_FROM_DEBUGGER )
-  {
-    CreateFlags &= ~THREAD_CREATE_FLAGS_HIDE_FROM_DEBUGGER;
+  if ( CreateFlags &   THREAD_CREATE_FLAGS_HIDE_FROM_DEBUGGER )
+  {    CreateFlags &= ~THREAD_CREATE_FLAGS_HIDE_FROM_DEBUGGER;
 
     if (config.system.log_level > 1)
       CreateFlags |= THREAD_CREATE_FLAGS_CREATE_SUSPENDED;
 
-    //SK_LOG0 ( ( L"Tried to begin a debugger-hidden thread; punish it by starting visible and suspended!",
-    //              GetThreadId (*ThreadHandle) ),
-    //            L"DieAntiDbg" );
+    SK_LOG0 ( ( L"Tried to begin a debugger-hidden thread; punish it by starting visible and suspended!",
+                  GetThreadId (*ThreadHandle) ),
+                L"DieAntiDbg" );
 
     Suspicious = TRUE;
   }
 
-  ////CreateFlags &= ~THREAD_CREATE_FLAGS_SKIP_THREAD_ATTACH;
+  CreateFlags &= ~THREAD_CREATE_FLAGS_SKIP_THREAD_ATTACH;
 
-  //BOOL suspended = CreateFlags  & THREAD_CREATE_FLAGS_CREATE_SUSPENDED;
-                 //CreateFlags |= THREAD_CREATE_FLAGS_CREATE_SUSPENDED;
+  BOOL suspended = CreateFlags  & THREAD_CREATE_FLAGS_CREATE_SUSPENDED;
+                   CreateFlags |= THREAD_CREATE_FLAGS_CREATE_SUSPENDED;
 
   NTSTATUS ret =
     NtCreateThreadEx_Original ( ThreadHandle, DesiredAccess, ObjectAttributes,
@@ -853,10 +852,19 @@ NtCreateThreadEx_Detour (
     const DWORD tid =
       GetThreadId (*ThreadHandle);
 
-    if (! _SK_ThreadNames.count (tid))
+    static auto& ThreadNames =
+      _SK_ThreadNames;
+
+    if (! ThreadNames.count (tid))
     {
-      _SK_ThreadNames [tid] =
-        SK_UTF8ToWideChar (thread_name);
+      std::wstring thr_name (
+        SK_UTF8ToWideChar   (
+          thread_name       )
+      );
+
+      ThreadNames.insert (
+          std::make_pair ( tid, thr_name )
+                         );
     
       SK_TLS* pTLS =
         SK_TLS_BottomEx (tid);
@@ -864,21 +872,25 @@ NtCreateThreadEx_Detour (
       if (pTLS != nullptr)
       {
         wcsncpy_s (
-          SK_TLS_BottomEx (tid)->debug.name,
-            256,
-              SK_UTF8ToWideChar (thread_name).c_str (), _TRUNCATE
+          pTLS->debug.name,  256,
+          thr_name.c_str (), _TRUNCATE
         );
       }
     }
 
     if (Suspicious)
     {
-      SK_LOG0 ( ( L">>tid=%x", GetThreadId (*ThreadHandle) ),
-                  L"DieAntiDbg" );
+      if (SK_IsDebuggerPresent ())
+      {
+        __debugbreak ();
+
+        SK_LOG0 ((L">>tid=%x", GetThreadId (*ThreadHandle)),
+                 L"DieAntiDbg");
+      }
     }
 
-    //if (! suspended)
-    //  ResumeThread (*ThreadHandle);
+    if (! suspended)
+      ResumeThread (*ThreadHandle);
   }
 
   return ret;
@@ -1098,11 +1110,14 @@ const ULONG_PTR *lpArguments         )
 
     if (non_empty)
     {
+      static auto& ThreadNames = _SK_ThreadNames;
+      static auto& SelfTitled  = _SK_SelfTitledThreads;
+
       DWORD dwTid  =  ( info->dwThreadID != -1 ?
                         info->dwThreadID :
                         GetCurrentThreadId () );
 
-      _SK_SelfTitledThreads.insert (dwTid);
+      SelfTitled.insert (dwTid);
 
       // Push this to the TLS datastore so we can get thread names even
       //   when no debugger is attached.
@@ -1123,8 +1138,8 @@ const ULONG_PTR *lpArguments         )
                 _TRUNCATE );
       }
 
-      _SK_ThreadNames [dwTid] =
-        wide_name;
+      ThreadNames [dwTid] =
+        std::move (wide_name);
 
       if (SK_GetCurrentGameID () == SK_GAME_ID::FinalFantasyXV)
       {
@@ -1148,6 +1163,7 @@ const ULONG_PTR *lpArguments         )
       {
         if (info->szName != 0)
         {
+          bool   killed  = false;
           HANDLE hThread =
             OpenThread ( THREAD_ALL_ACCESS,
                            FALSE,
@@ -1165,7 +1181,7 @@ const ULONG_PTR *lpArguments         )
                     nullptr );
 
               SetThreadPriority      (hThread, THREAD_PRIORITY_HIGHEST);
-              SetThreadPriorityBoost (hThread, TRUE);
+              SetThreadPriorityBoost (hThread, FALSE);
 
               if (task_me != nullptr)
               {
@@ -1198,8 +1214,8 @@ const ULONG_PTR *lpArguments         )
                     SK_MMCS_GetTaskForThreadID (dwTid, info->szName) :
                     nullptr );
 
-              SetThreadPriority      (hThread, THREAD_PRIORITY_HIGHEST);
-              SetThreadPriorityBoost (hThread, TRUE);
+              SetThreadPriority      (hThread, THREAD_PRIORITY_ABOVE_NORMAL);
+              SetThreadPriorityBoost (hThread, FALSE);
 
               if (task_me != nullptr)
               {
@@ -1221,14 +1237,12 @@ const ULONG_PTR *lpArguments         )
               extern bool __SK_MHW_JobParity;
               extern bool __SK_MHW_JobParityPhysical;
 
-              bool killed = false;
-
               if (__SK_MHW_JobParity)
               {
-                extern int
+                extern size_t
                 SK_CPU_CountPhysicalCores (void);
 
-                int max_procs = si.dwNumberOfProcessors;
+                size_t max_procs = si.dwNumberOfProcessors;
 
                 if (__SK_MHW_JobParityPhysical == true)
                 {
@@ -1236,17 +1250,17 @@ const ULONG_PTR *lpArguments         )
                     SK_CPU_CountPhysicalCores ();
                 }
 
-                if (idx > max_procs)
+                if ((size_t)idx > max_procs)
                 {
                   killed = true;
-                  TerminateThread (hThread, 0);
+                  extern void
+                    SK_MHW_SuspendThread (HANDLE);
+                    SK_MHW_SuspendThread (hThread);
                 }
               }
 
               if (! killed)
               {
-                //SetThreadPriority      (hThread, THREAD_PRIORITY_ABOVE_NORMAL);
-                //SetThreadPriorityBoost (hThread, TRUE);
                 //
                 //SK_MMCS_TaskEntry* task_me =
                 //  ( config.render.framerate.enable_mmcss ?
@@ -1261,7 +1275,16 @@ const ULONG_PTR *lpArguments         )
               }
             }
 
-            CloseHandle (hThread);
+            if (! killed)
+              CloseHandle (hThread);
+
+            else
+            {
+              extern void SK_MHW_PlugIn_Shutdown ();
+                          SK_MHW_PlugIn_Shutdown ();
+
+              CloseHandle (hThread);
+            }
           }
         }
       }
@@ -1365,13 +1388,13 @@ const ULONG_PTR *lpArguments         )
   {
   }
   
-  //if (SK_IsDebuggerPresent ())
-  //  __debugbreak ();
+  if (SK_IsDebuggerPresent ())
+    __debugbreak ();
 
   RaiseException_Original (
-      dwExceptionCode, dwExceptionFlags,
-        nNumberOfArguments, lpArguments
-      );
+    dwExceptionCode, dwExceptionFlags,
+    nNumberOfArguments, lpArguments
+  );
 }
 
 BOOL
@@ -1399,15 +1422,52 @@ SK::Diagnostics::Debugger::Allow (bool bAllow)
 
   spoof_debugger = bAllow;
 
-  SK_CreateDLLHook2 (      L"kernel32",
+#if 0
+  if (SK_GetProcAddress (L"KernelBase", "OutputDebugStringA"))
+  {
+      SK_CreateDLLHook2 (  L"KernelBase",
+                            "OutputDebugStringW",
+                             OutputDebugStringW_Detour,
+    static_cast_p2p <void> (&OutputDebugStringW_Original) );
+
+        SK_CreateDLLHook2 ( L"KernelBase",
+                             "OutputDebugStringA",
+                              OutputDebugStringA_Detour,
+     static_cast_p2p <void> (&OutputDebugStringA_Original) );
+
+#if 1
+    SK_CreateDLLHook2 (     L"KernelBase",
+                             "RaiseException",
+                              RaiseException_Detour,
+     static_cast_p2p <void> (&RaiseException_Original) );
+#else
+  RaiseException_Original = (RaiseException_pfn)SK_GetProcAddress (L"KerneBase", "RaiseException");
+#endif
+  }
+
+  else
+#else
+  {
+      SK_CreateDLLHook2 (  L"kernel32",
                             "OutputDebugStringA",
                              OutputDebugStringA_Detour,
     static_cast_p2p <void> (&OutputDebugStringA_Original) );
 
-  SK_CreateDLLHook2 (      L"kernel32",
-                            "OutputDebugStringW",
-                             OutputDebugStringW_Detour,
-    static_cast_p2p <void> (&OutputDebugStringW_Original) );
+        SK_CreateDLLHook2 ( L"kernel32",
+                             "OutputDebugStringW",
+                              OutputDebugStringW_Detour,
+     static_cast_p2p <void> (&OutputDebugStringW_Original) );
+
+#if 1
+       SK_CreateDLLHook2 ( L"Kernel32",
+                            "RaiseException",
+                             RaiseException_Detour,
+     static_cast_p2p <void> (&RaiseException_Original) );
+#else
+  RaiseException_Original = (RaiseException_pfn)SK_GetProcAddress (L"kernel32", "RaiseException");
+#endif
+  }
+#endif
 
   SK_CreateDLLHook2 (      L"kernel32",
                             "ExitProcess",
@@ -1451,15 +1511,6 @@ static_cast_p2p <void> (&ResetEvent_Original) );
                            "SetThreadPriority",
                             SetThreadPriority_Detour,
    static_cast_p2p <void> (&SetThreadPriority_Original) );
-
-#if 1
-  SK_CreateDLLHook2 (      L"kernel32",
-                           "RaiseException",
-                            RaiseException_Detour,
-   static_cast_p2p <void> (&RaiseException_Original) );
-#else
-  RaiseException_Original = (RaiseException_pfn)SK_GetProcAddress (L"kernel32", "RaiseException");
-#endif
 
   SK_CreateDLLHook2 (      L"NtDll.dll",
                            "NtCreateThreadEx",

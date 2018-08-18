@@ -20,8 +20,6 @@
  *
 **/
 
-#include <Windows.h>
-
 #include <SpecialK/framerate.h>
 #include <SpecialK/render/backend.h>
 
@@ -905,8 +903,6 @@ SK_GetPerfFreq (void)
  *
 **/
 
-#include <Windows.h>
-
 #include <SpecialK/framerate.h>
 #include <SpecialK/render/backend.h>
 
@@ -1235,28 +1231,69 @@ WaitForSingleObjectEx_Detour (
 }
 
 
+typedef BOOL (WINAPI *SwitchToThread_pfn)(void);
+                      SwitchToThread_pfn
+                      SwitchToThread_Original = nullptr;
+
+BOOL
+WINAPI
+SwitchToThread_Detour (void)
+{
+  static bool is_mwh =
+    ( SK_GetCurrentGameID () == SK_GAME_ID::MonsterHunterWorld );
+
+  if (! is_mwh)
+  {
+    return
+      SwitchToThread_Original ();
+  }
+
+  extern bool
+      __SK_MHW_KillAntiDebug;
+  if (__SK_MHW_KillAntiDebug)
+  {
+    static int   last_sleep  = 0;
+    static ULONG last_frame  = SK_GetFramesDrawn ();
+
+    if (         last_frame != SK_GetFramesDrawn ())
+                 last_sleep  = 0;
+
+    SleepEx   (last_sleep++, FALSE);
+
+    if        (last_sleep > 3)
+               last_sleep = 0;
+
+               last_frame = SK_GetFramesDrawn ();
+
+    return TRUE;
+  }
+
+  return
+    SwitchToThread_Original ();
+}
+
+
 void
 WINAPI
 Sleep_Detour (DWORD dwMilliseconds)
 {
-  // SteamAPI has some unusual logic that will fail if a call to Sleep (...)
-  //   is skipped -- if the user wants to replace or eliminate sleep from the
-  //     render / window thread for better frame pacing, we have to wait for
-  //       Steam first!
-  if (SK_GetFramesDrawn () < 90)
-    return Sleep_Original (dwMilliseconds);
-
   //if (dwMilliseconds == 0) { dll_log.Log (L"Sleep (0) from thread with priority=%lu", GetThreadPriority (GetCurrentThread ())); }
   if (dwMilliseconds == 0 && fix_sleep_0)
   {
-    static int Switches = 0;
+    int Switches =
+      ++SK_TLS_Bottom ()->scheduler.sleep0_count;
 
-    if ((Switches++ % 127) != 0)
+    if ((Switches % 63) == 0)
     {
       SwitchToThread ();
-
-      return;
     }
+
+    else
+    {
+      SleepEx (0, FALSE);
+    }
+
+    return;
   }
 
   //
@@ -1352,20 +1389,6 @@ Sleep_Detour (DWORD dwMilliseconds)
     }
 
     SK::Framerate::events->getMessagePumpStats ().sleep (dwMilliseconds);
-  }
-
-  //if (config.framerate.yield_processor && dwMilliseconds == 0)
-  if (dwMilliseconds == 0)
-  {
-    YieldProcessor ( );
-    static LONG sleep0_count = 0;
-
-    if ((sleep0_count++ % 64) != 0)
-      Sleep_Original (0);
-    else
-      SwitchToThread ( );
-
-    return;
   }
 
   // TODO: Stop this nonsense and make an actual parameter for this...
@@ -1467,10 +1490,15 @@ SK::Framerate::Init (void)
       static_cast_p2p <void> (&Sleep_Original),
       static_cast_p2p <void> (&pfnSleep) );
 
-    SK_CreateDLLHook2 (      L"kernel32",
-                              "WaitForSingleObjectEx",
-                               WaitForSingleObjectEx_Detour,
-      static_cast_p2p <void> (&WaitForSingleObjectEx_Original) );
+        SK_CreateDLLHook2 (  L"KernelBase.dll",
+                              "SwitchToThread",
+                               SwitchToThread_Detour,
+      static_cast_p2p <void> (&SwitchToThread_Original) );
+
+    ////SK_CreateDLLHook2 (      L"kernel32",
+    ////                          "WaitForSingleObjectEx",
+    ////                           WaitForSingleObjectEx_Detour,
+    ////  static_cast_p2p <void> (&WaitForSingleObjectEx_Original) );
 
 #ifdef NO_HOOK_QPC
       QueryPerformanceCounter_Original =

@@ -306,7 +306,7 @@ public:
 
     if (gpu_load_prefs.enable)
     {
-      sprintf_s
+      snprintf
         ( szAvg,
             511,
               u8"GPU%lu Load %%:\n\n\n"
@@ -334,7 +334,7 @@ public:
 
     if (gpu_temp_prefs.enable)
     {
-      sprintf_s
+      snprintf
         ( szAvg,
             511,
               u8"GPU%lu Temp (°C):\n\n\n"
@@ -366,7 +366,7 @@ public:
 
     if (fan_rpm.getMin () > 0.0f && gpu_fan_prefs.enable)
     {
-      sprintf_s
+      snprintf
         ( szAvg,
             511,
               u8"GPU%lu Fan Speed (RPM):\n\n\n"
@@ -399,7 +399,7 @@ public:
 
     if (core_clock_prefs.enable)
     {
-      sprintf_s
+      snprintf
         ( szAvg,
             511,
               u8"GPU%lu Core Clock (GHz):\n\n\n"
@@ -434,7 +434,7 @@ public:
 
     if (vram_clock_prefs.enable)
     {
-      sprintf_s
+      snprintf
         ( szAvg,
             511,
               u8"GPU%lu VRAM Clock (GHz):\n\n\n"
@@ -474,7 +474,7 @@ public:
 
     if (vram_used_prefs.enable)
     {
-      sprintf_s
+      snprintf
         ( szAvg,
             511,
               u8"GPU%lu VRAM Usage (MiB):\n\n\n"

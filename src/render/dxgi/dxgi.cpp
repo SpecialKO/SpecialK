@@ -2225,6 +2225,8 @@ SK_D3D11_FreeStateBlock (SK_D3D11_Stateblock_Lite* sb)
 }
 
 
+extern bool
+SK_Screenshot_IsCapturingHUDless (void);
 
 
 void
@@ -2493,23 +2495,34 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 
       pImmediateContext->RSSetViewports (1, &vp);
       {
+        bool hudless  =
+          SK_Screenshot_IsCapturingHUDless (),
+
+             hdr_mode =
+              ( rb.hdr_capable &&
+               (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR) );
+
         if ((uintptr_t)cegD3D11 > 1)
         {
-                    cegD3D11->beginRendering ();
-          SK_TextOverlayManager::getInstance ()->drawAllOverlays     (0.0f, 0.0f);
-              CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
-                      cegD3D11->endRendering ();
-
-          if (rb.hdr_capable)
+          if (! SK_Screenshot_IsCapturingHUDless ())
           {
+                      cegD3D11->beginRendering ();
+            SK_TextOverlayManager::getInstance ()->drawAllOverlays     (0.0f, 0.0f);
+                CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
+                        cegD3D11->endRendering ();
+          }
+        }
+
+        if (hdr_mode)
+        {
+          if (! hudless)
             DrawSteamPopups ();
 
-            extern ID3D11ShaderResourceView*
-              SK_D3D11_GetRawHDRView ( bool capture = true );
+          extern ID3D11ShaderResourceView*
+            SK_D3D11_GetRawHDRView ( bool capture = true );
 
-            CComPtr <ID3D11ShaderResourceView> pRawHDR =
-              SK_D3D11_GetRawHDRView (                     );
-          }
+          CComPtr <ID3D11ShaderResourceView> pRawHDR =
+            SK_D3D11_GetRawHDRView (                     );
         }
 
         // XXX: TODO (Full startup isn't necessary, just update framebuffer dimensions).
@@ -2519,7 +2532,7 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
                        SK_ImGui_DrawFrame (       0x00,          nullptr );
         }
 
-        if (! rb.hdr_capable)
+        if (! (hdr_mode && hudless))
         {
           DrawSteamPopups ();
         }
@@ -3473,7 +3486,8 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
             pNumModes,
               pDesc );
 
-  DXGI_MODE_DESC* pDescLocal = nullptr;
+  DXGI_MODE_DESC*
+    pDescLocal = nullptr;
 
   if (pDesc == nullptr && SUCCEEDED (hr))
   {
@@ -4944,17 +4958,20 @@ SK_DXGI_CreateSwapChain_PostInit ( _In_  IUnknown              *pDevice,
     if ( dwRenderThread == 0x00 ||
          dwRenderThread == GetCurrentThreadId () )
     {
-      if ( SK_GetCurrentRenderBackend ().windows.device != nullptr &&
-           pDesc->OutputWindow                          != nullptr &&
-           pDesc->OutputWindow                          != SK_GetCurrentRenderBackend ().windows.device )
+      auto& windows =
+        SK_GetCurrentRenderBackend ().windows;
+
+      if (      windows.device != nullptr &&
+           pDesc->OutputWindow != nullptr &&
+           pDesc->OutputWindow != windows.device )
       {
         dll_log.Log (L"[   DXGI   ] Game created a new window?!");
       }
 
       SK_InstallWindowHook (pDesc->OutputWindow);
 
-      SK_GetCurrentRenderBackend ().windows.setDevice (pDesc->OutputWindow);
-      SK_GetCurrentRenderBackend ().windows.setFocus  (pDesc->OutputWindow);
+      windows.setDevice (pDesc->OutputWindow);
+      windows.setFocus  (pDesc->OutputWindow);
     }
 
     if (ppSwapChain != nullptr)
@@ -7805,8 +7822,7 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
     }
 
                ( params->event != 0 ) ?
-    ResetEvent ( params->event )      :
-                         (void)0;
+    ResetEvent ( params->event )      : 0;
 
     mem_info [0].buffer =
                  buffer;

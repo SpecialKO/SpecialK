@@ -761,8 +761,7 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
       const SK_RenderBackend& rb =
         SK_GetCurrentRenderBackend ();
 
-      CComQIPtr <ID3D11DeviceContext> pDevCtx =
-        rb.d3d11.immediate_ctx;
+      CComQIPtr <ID3D11DeviceContext> pDevCtx (rb.d3d11.immediate_ctx);
 
       // This limits us to D3D11 for now, but who cares -- D3D10 sucks and D3D12 can't be drawn to yet :)
       if (! pDevCtx)

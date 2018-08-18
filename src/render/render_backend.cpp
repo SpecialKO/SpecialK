@@ -19,8 +19,6 @@
  *
 **/
 
-#include <d3d9.h>
-
 #include <SpecialK/render/backend.h>
 #include <SpecialK/render/dxgi/dxgi_backend.h>
 #include <SpecialK/render/d3d9/d3d9_backend.h>

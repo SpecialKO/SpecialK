@@ -21,6 +21,8 @@
 
 #define __SK_SUBSYSTEM__ L"  D3D 11  "
 
+struct IUnknown;
+#include <Unknwnbase.h>
 #include <Windows.h>
 
 #include <SpecialK/diagnostics/cpu.h>
@@ -269,7 +271,7 @@ SK_D3D11_ShouldTrackRenderOp ( ID3D11DeviceContext* pDevCtx,
   if ((! config.render.dxgi.deferred_isolation) && pDevCtx->GetType () == D3D11_DEVICE_CONTEXT_DEFERRED)
     return false;
 
-  const SK_RenderBackend& rb =
+  static const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   if ( rb.d3d11.immediate_ctx == nullptr ||
@@ -1402,8 +1404,6 @@ IUnknown_AddRef (IUnknown* This)
 
     if (SUCCEEDED (This->QueryInterface <ID3D11Texture2D> (&pTex)))
     {
-      pTLS->texture_management.injection_thread = false;
-
       if (SK_D3D11_TextureIsCached (pTex))
         SK_D3D11_UseTexture (pTex);
 
@@ -1634,6 +1634,9 @@ void
 SK_D3D11_SetDevice ( ID3D11Device           **ppDevice,
                      D3D_FEATURE_LEVEL        FeatureLevel )
 {
+  static SK_RenderBackend_V2& rb =
+    SK_GetCurrentRenderBackend ();
+
   if ( ppDevice != nullptr )
   {
     if ( *ppDevice != g_pD3D11Dev )
@@ -1649,7 +1652,8 @@ SK_D3D11_SetDevice ( ID3D11Device           **ppDevice,
       //   interface - it's just for tracking purposes.
       g_pD3D11Dev = *ppDevice;
 
-      SK_GetCurrentRenderBackend ().api = SK_RenderAPI::D3D11;
+      rb.api =
+        SK_RenderAPI::D3D11;
     }
 
     if (config.render.dxgi.exception_mode != -1)
@@ -2485,13 +2489,13 @@ d3d11_shader_tracking_s::activate ( ID3D11DeviceContext        *pDevContext,
 
   CComPtr <ID3D11Device> dev = nullptr;
 
-  SK_RenderBackend& rb =
+  static SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   if ( pDevContext          != nullptr                             &&
                   rb.device != nullptr                             &&
        SUCCEEDED (rb.device->QueryInterface <ID3D11Device> (&dev)) &&
-                  rb.device.IsEqualObject                  ( dev) )
+                  rb.device.IsEqualObject                  ( dev.p) )
   {
     if (ReadPointerAcquire ((void **)&disjoint_query.async) == nullptr && timers.empty ())
     {
@@ -2535,7 +2539,7 @@ d3d11_shader_tracking_s::activate ( ID3D11DeviceContext        *pDevContext,
 void
 d3d11_shader_tracking_s::deactivate (ID3D11DeviceContext* pDevCtx)
 {
-  SK_RenderBackend& rb =
+  static SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   const UINT dev_idx =
@@ -3850,8 +3854,8 @@ SK_D3D11_GetShaderStages (void)
 
 struct SK_D3D11_ContextResources
 {
-  std::set <ID3D11Texture2D *> used_textures;
-  std::set <IUnknown        *> temp_resources;
+  std::unordered_set <ID3D11Texture2D *> used_textures;
+  std::unordered_set <IUnknown        *> temp_resources;
 
   volatile LONG                writing_ = 0;
   UINT                         ctx_id_  = 0;
@@ -4508,7 +4512,8 @@ D3D11_UpdateSubresource1_Override (
   SK_TLS *pTLS = nullptr;
 
   // UB: If it's happening, pretend we never saw this...
-  if (pDstResource == nullptr || pSrcData == nullptr)
+  if ( pDstResource == nullptr ||
+       pSrcData     == nullptr    )
   {
     early_out = true;
   }
@@ -4565,7 +4570,7 @@ D3D11_UpdateSubresource1_Override (
 
       if (pCachedTex != nullptr)
       {
-        CComQIPtr <ID3D11Resource> pCachedResource = pCachedTex;
+        CComQIPtr <ID3D11Resource> pCachedResource (pCachedTex);
 
         D3D11_CopyResource_Original (This, pDstResource, pCachedResource);
 
@@ -4729,7 +4734,7 @@ const uint32_t cache_tag    =
 
       if (pCachedTex != nullptr)
       {
-        CComQIPtr <ID3D11Resource> pCachedResource = pCachedTex;
+        CComQIPtr <ID3D11Resource> pCachedResource (pCachedTex);
 
         D3D11_CopyResource_Original (This, pDstResource, pCachedResource);
 
@@ -5821,9 +5826,13 @@ static bool live_rt_view = true;
 bool
 SK_D3D11_DrawHandler (ID3D11DeviceContext* pDevCtx, SK_TLS* pTLS = nullptr)
 {
-  if ( SK_GetCurrentRenderBackend ().d3d11.immediate_ctx == nullptr ||
-       SK_GetCurrentRenderBackend ().device              == nullptr ||
-       SK_GetCurrentRenderBackend ().swapchain           == nullptr )
+  static const
+    SK_RenderBackend& rb =
+      SK_GetCurrentRenderBackend ();
+
+  if ( rb.d3d11.immediate_ctx == nullptr ||
+       rb.device              == nullptr ||
+       rb.swapchain           == nullptr )
   {
     return false;
   }
@@ -6035,7 +6044,8 @@ const
   if (current_hs != 0x00 && (! hull.blacklist.empty     ()) && hull.blacklist.count     (current_hs)) return true;
   if (current_ds != 0x00 && (! domain.blacklist.empty   ()) && domain.blacklist.count   (current_ds)) return true;
 
-  static auto& Textures_2D = SK_D3D11_Textures.Textures_2D;
+  static auto& Textures_2D =
+    SK_D3D11_Textures.Textures_2D;
 
   /*if ( SK_D3D11_Shaders.vertex.blacklist_if_texture.size   () ||
        SK_D3D11_Shaders.pixel.blacklist_if_texture.size    () ||
@@ -6758,11 +6768,16 @@ D3D11_Draw_Override (
 {
   SK_LOG_FIRST_CALL
 
-  auto& rb =
+  static const auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  if (rb.hdr_capable)
+  // Render-state tracking needs to be forced-on for the
+  //   Steam Overlay HDR fix to work.
+  if ( rb.hdr_capable &&
+      (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR) )
+  {
     SK_D3D11_EnableTracking = true;
+    }
 
   SK_TLS *pTLS = nullptr;
 
@@ -7437,7 +7452,7 @@ SK_D3D11_TexCacheCheckpoint (void)
   SK_D3D11_TexMgr& textures =
     SK_D3D11_Textures;
 
-  auto& rb =
+  static const auto& rb =
     SK_GetCurrentRenderBackend ();
 
   static auto& Entries_2D  = textures.Entries_2D;
@@ -8181,7 +8196,7 @@ SK_D3D11_TexMgr::refTexture2D ( ID3D11Texture2D*      pTex,
   desc2d.crc32c     =  crc32c;
   desc2d.last_used  =  SK_QueryPerf      ().QuadPart;
   desc2d.last_frame =  SK_GetFramesDrawn ();
-  desc2d.file_name  =  std::move (fileName);
+  desc2d.file_name  = fileName;
 
 
   if (desc2d.orig_desc.MipLevels >= 18)
@@ -9363,7 +9378,7 @@ SK_D3D11_DumpTexture2D ( _In_ ID3D11Texture2D* pTex, uint32_t crc32c )
   CComPtr <ID3D11Device>        pDev    = nullptr;
   CComPtr <ID3D11DeviceContext> pDevCtx = nullptr;
 
-  const SK_RenderBackend& rb =
+  static const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   if ( SUCCEEDED (rb.device->QueryInterface              <ID3D11Device>        (&pDev))  &&
@@ -9579,13 +9594,21 @@ SK_D3D11_MipmapCacheTexture2DEx ( const DirectX::ScratchImage&   img,
   const bool compressed =
     SK_D3D11_IsFormatCompressed (img.GetMetadata ().format);
 
-  auto* mipmaps =
-    new DirectX::ScratchImage;
+  DirectX::ScratchImage* mipmaps = nullptr;
+
+  try {
+    mipmaps =
+   
+      new DirectX::ScratchImage;
+  }
+  catch (...)
+  {
+  }
 
   HRESULT ret  = E_FAIL;
   size_t  size = 0;
 
-  if (compressed)
+  if (mipmaps && compressed)
   {
           DirectX::ScratchImage decompressed;
     const DirectX::Image*       orig_img =
@@ -9676,7 +9699,8 @@ SK_D3D11_MipmapCacheTexture2DEx ( const DirectX::ScratchImage&   img,
       if (SUCCEEDED (DirectX::SaveToDDSFile ( mipmaps->GetImages (), mipmaps->GetImageCount (),
                                               meta,                  0x00, wszOutName ) ) )
       {
-        size = mipmaps->GetPixelsSize ();
+        size =
+          mipmaps->GetPixelsSize ();
       }
     }
   }
@@ -9713,7 +9737,7 @@ SK_D3D11_MipmapCacheTexture2D ( _In_ ID3D11Texture2D* pTex, uint32_t crc32c, SK_
   CComPtr <ID3D11Device>        pDev    = nullptr;
   CComPtr <ID3D11DeviceContext> pDevCtx = nullptr;
 
-  const SK_RenderBackend& rb =
+  static const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   if ( SUCCEEDED (rb.device->QueryInterface              <ID3D11Device>        (&pDev))  &&
@@ -10315,7 +10339,8 @@ D3D11Dev_CreateShaderResourceView_Override (
   
         if (override)
         {
-          auto descCopy = *pDesc;
+          auto descCopy =
+            *pDesc;
   
           descCopy.Format                    = newFormat;
   
@@ -10374,16 +10399,16 @@ D3D11Dev_CreateDepthStencilView_Override (
              pTex->GetDesc (&tex_desc);
 
         auto descCopy =
-          std::make_unique <D3D11_DEPTH_STENCIL_VIEW_DESC> (*pDesc);
+          *pDesc;
 
         if ( SK_D3D11_OverrideDepthStencil (newFormat) )
         {
-          descCopy.get ()->Format = newFormat;
+          descCopy.Format = newFormat;
 
           hr = 
             D3D11Dev_CreateDepthStencilView_Original (
               This, pResource,
-                descCopy.get (),
+                &descCopy,
                   ppDepthStencilView
             );
         }
@@ -10430,16 +10455,16 @@ D3D11Dev_CreateUnorderedAccessView_Override (
         if ( SK_D3D11_OverrideDepthStencil (newFormat) )
           override = true;
 
-        auto descCopy =
-          std::make_unique <D3D11_UNORDERED_ACCESS_VIEW_DESC> (*pDesc);
-
         if (override)
         {
-          descCopy.get ()->Format = newFormat;
+          auto descCopy =
+            *pDesc;
+
+          descCopy.Format = newFormat;
 
           const HRESULT hr = 
             D3D11Dev_CreateUnorderedAccessView_Original ( This, pResource,
-                                                            descCopy.get (), ppUAView );
+                                                            &descCopy, ppUAView );
 
           if (SUCCEEDED (hr))
             return hr;
@@ -10750,6 +10775,10 @@ HRESULT
 SK_D3D11_ReloadTexture ( ID3D11Texture2D* pTex,
                          SK_TLS*          pTLS = SK_TLS_Bottom () )
 {
+  static const
+    SK_RenderBackend& rb =
+      SK_GetCurrentRenderBackend ();
+
   HRESULT hr =
     E_UNEXPECTED;
 
@@ -10811,7 +10840,7 @@ SK_D3D11_ReloadTexture ( ID3D11Texture2D* pTex,
 		DirectX::ScratchImage scratch;
 
         CComPtr   <ID3D11Texture2D> pInjTex = nullptr;
-        CComQIPtr <ID3D11Device>    pDev (SK_GetCurrentRenderBackend ().device);
+        CComQIPtr <ID3D11Device>    pDev (rb.device);
 
         hr =
 		  DirectX::LoadFromDDSFile (fname.c_str (), 0x0, &mdata, scratch);
@@ -10824,7 +10853,7 @@ SK_D3D11_ReloadTexture ( ID3D11Texture2D* pTex,
 			 )
 		  {
 			CComQIPtr <ID3D11DeviceContext> pDevCtx (
-			  SK_GetCurrentRenderBackend ().d3d11.immediate_ctx
+			  rb.d3d11.immediate_ctx
 			);
 
 			pDevCtx->CopyResource (pTex, pInjTex);
@@ -10877,7 +10906,7 @@ SK_D3D11_TexNameFromChecksum (uint32_t top_crc32, uint32_t checksum, uint32_t ff
   wchar_t wszTex [MAX_PATH * 2 + 1] = { };
   
   static std::wstring res_root (SK_D3D11_res_root);
-  static std::wstring eval     (std::move (SK_EvalEnvironmentVars (res_root.c_str ())));
+  static std::wstring eval     (SK_EvalEnvironmentVars (res_root.c_str ()));
 
   wcsncpy_s ( wszTex,          MAX_PATH * 2,
                 eval.c_str (), _TRUNCATE );
@@ -10886,7 +10915,7 @@ SK_D3D11_TexNameFromChecksum (uint32_t top_crc32, uint32_t checksum, uint32_t ff
 
   static bool ffx = GetModuleHandle (L"unx.dll") != nullptr;
 
-  if (SK_D3D11_inject_textures_ffx && (! (hash_name = std::move (SK_D3D11_TexHashToName (ffx_crc32, 0x00))).empty ()))
+  if (SK_D3D11_inject_textures_ffx && (! (hash_name = SK_D3D11_TexHashToName (ffx_crc32, 0x00)).empty ()))
   {
     SK_LOG4 ( ( L"Caching texture with crc32: %x", ffx_crc32 ),
                 L" Tex Hash " );
@@ -10894,8 +10923,8 @@ SK_D3D11_TexNameFromChecksum (uint32_t top_crc32, uint32_t checksum, uint32_t ff
     PathAppendW (wszTex, hash_name.c_str ());
   }
 
-  else if (! ( (hash_name = std::move (SK_D3D11_TexHashToName (top_crc32, checksum))).empty () &&
-               (hash_name = std::move (SK_D3D11_TexHashToName (top_crc32, 0x00))    ).empty () ) )
+  else if (! ( (hash_name = SK_D3D11_TexHashToName (top_crc32, checksum)).empty () &&
+               (hash_name = SK_D3D11_TexHashToName (top_crc32, 0x00)    ).empty () ) )
   {
     SK_LOG4 ( ( L"Caching texture with crc32c: %x  (%s) [%s]", top_crc32, hash_name.c_str (), wszTex ),
                 L" Tex Hash " );
@@ -10976,7 +11005,7 @@ D3D11Dev_CreateTexture2D_Impl (
 
 
   // ------------
-  const auto& rb =
+  static const auto& rb =
     SK_GetCurrentRenderBackend ();
 
   CComPtr   <ID3D11Device>        pTestDev (This);
@@ -11126,7 +11155,7 @@ D3D11Dev_CreateTexture2D_Impl (
     ////                pDesc->MipLevels, pDesc->MiscFlags, pDesc->CPUAccessFlags, pDesc->SampleDesc.Count, pDesc->ArraySize );
   }
 
-  CComQIPtr <ID3D11Device> pDev (SK_GetCurrentRenderBackend ().device);
+  CComQIPtr <ID3D11Device> pDev (rb.device);
 
   //
   // Filter out any noise coming from overlays / video capture software
@@ -11672,9 +11701,8 @@ D3D11Dev_CreateTexture2D_Override (
       );
   }
 
-  const D3D11_TEXTURE2D_DESC* pDescOrig = pDesc;
-
-  auto descCopy = *pDescOrig;
+  const D3D11_TEXTURE2D_DESC* pDescOrig =  pDesc;
+                         auto descCopy  = *pDescOrig;
 
   const HRESULT hr =
     D3D11Dev_CreateTexture2D_Impl (
@@ -11682,7 +11710,14 @@ D3D11Dev_CreateTexture2D_Override (
             ppTexture2D, _ReturnAddress ()
     );
 
-  *const_cast <D3D11_TEXTURE2D_DESC *> ( pDesc ) = descCopy;
+  if (SUCCEEDED (hr))
+  {
+    __try {
+      *const_cast <D3D11_TEXTURE2D_DESC *> ( pDesc ) = descCopy;
+    }
+    __except (EXCEPTION_EXECUTE_HANDLER)
+    { }
+
 
   //if (pDesc && pDesc->Usage == D3D11_USAGE_STAGING)
   //{
@@ -11691,6 +11726,7 @@ D3D11Dev_CreateTexture2D_Override (
   //                  SK_DXGI_FormatToStr          (pDesc->Format).c_str (),
   //                         pDesc->CPUAccessFlags, pDesc->MiscFlags );
   //}
+  }
 
   return hr;
 }
@@ -11706,7 +11742,7 @@ SK_D3D11_UpdateRenderStatsEx (const IDXGISwapChain* pSwapChain)
   CComPtr <ID3D11Device>        pDev    = nullptr;
   CComPtr <ID3D11DeviceContext> pDevCtx = nullptr;
 
-  const SK_RenderBackend& rb =
+  static const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   if (rb.device == nullptr || rb.d3d11.immediate_ctx == nullptr || rb.swapchain == nullptr)
@@ -13230,6 +13266,9 @@ auto ShaderMenu =
 const std::set          <ID3D11ShaderResourceView *>& set_of_resources,
       uint32_t                                                   shader )
 {
+  static SK_RenderBackend& rb =
+    SK_GetCurrentRenderBackend ();
+
   if (blacklist.count (shader))
   {
     if (ImGui::MenuItem ("Enable Shader"))
@@ -13341,7 +13380,7 @@ const std::set          <ID3D11ShaderResourceView *>& set_of_resources,
           srv_desc.Texture2D.MipLevels       = (UINT)-1;
           srv_desc.Texture2D.MostDetailedMip =        desc.MipLevels;
 
-          if (convert_typeless && SUCCEEDED (((ID3D11Device *)(SK_GetCurrentRenderBackend ().device.p))->CreateShaderResourceView (pRes, &srv_desc, &pSRV2)))
+          if (convert_typeless && SUCCEEDED (((ID3D11Device *)(rb.device.p))->CreateShaderResourceView (pRes, &srv_desc, &pSRV2)))
           {
             temp_resources.emplace_back (pSRV2);
 
@@ -13489,6 +13528,9 @@ void
 SK_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
 {
   ImGuiIO& io (ImGui::GetIO ());
+
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
 
   std::lock_guard <SK_Thread_CriticalSection> auto_lock (*cs_render_view);
 
@@ -13986,7 +14028,7 @@ SK_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
       srv_desc.Texture2D.MipLevels       = (UINT)-1;
       srv_desc.Texture2D.MostDetailedMip =        tex_desc.MipLevels;
 
-      CComQIPtr <ID3D11Device> pDev (SK_GetCurrentRenderBackend ().device);
+      CComQIPtr <ID3D11Device> pDev (rb.device);
 
       if (pDev != nullptr)
       {
@@ -15429,7 +15471,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
               ID3D11ShaderResourceView*       pSRV     = nullptr;
               D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc = { };
 
-              const SK_RenderBackend& rb =
+              static const SK_RenderBackend& rb =
                 SK_GetCurrentRenderBackend ();
 
               CComQIPtr <ID3D11Device> pDev (rb.device);
@@ -16609,7 +16651,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 void
 SK_D3D11_EndFrame (SK_TLS* pTLS = SK_TLS_Bottom ())
 {
-  const SK_RenderBackend& rb =
+  static const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   static auto& shaders =
@@ -16948,6 +16990,9 @@ SK_D3D11_EndFrame (SK_TLS* pTLS = SK_TLS_Bottom ())
 bool
 SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
 {
+  static const SK_RenderBackend_V2& rb =
+    SK_GetCurrentRenderBackend ();
+
   static
   std::unordered_map < sk_shader_class, std::tuple < std::pair <ImGuiCol, ImColor>,
                                                      std::pair <ImGuiCol, ImColor>,
@@ -17395,7 +17440,7 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
               srv_desc.Texture2D.MipLevels       = desc.Texture2D.MipSlice + 1;
               srv_desc.Texture2D.MostDetailedMip = desc.Texture2D.MipSlice;
 
-              CComQIPtr <ID3D11Device> pDev (SK_GetCurrentRenderBackend ().device);
+              CComQIPtr <ID3D11Device> pDev (rb.device);
 
               if (pDev != nullptr)
               {
@@ -17656,9 +17701,6 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
                              SK_D3D11_MakeTypedFormat (rtv_desc.Format) != rtv_desc.Format                   ||
                                                        rtv_desc.Format  != desc.Format)
               {
-                SK_RenderBackend_V2& rb =
-                  SK_GetCurrentRenderBackend ();
-
                 CComQIPtr <ID3D11Device> pDev (rb.device);
 
                 desc2.BindFlags |= D3D11_BIND_SHADER_RESOURCE;
@@ -17675,14 +17717,14 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
               }
 
               ID3D11ShaderResourceView*       pSRV     = nullptr;
-              D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc = { };
+              //D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc = { };
+              //
+              //srv_desc.ViewDimension             = D3D11_SRV_DIMENSION_TEXTURE2D;
+              //srv_desc.Format                    = SK_D3D11_MakeTypedFormat (rtv_desc.Format);
+              //srv_desc.Texture2D.MipLevels       = (UINT)-1;
+              //srv_desc.Texture2D.MostDetailedMip =  0;
 
-              srv_desc.ViewDimension             = D3D11_SRV_DIMENSION_TEXTURE2D;
-              srv_desc.Format                    = SK_D3D11_MakeTypedFormat (rtv_desc.Format);
-              srv_desc.Texture2D.MipLevels       = (UINT)-1;
-              srv_desc.Texture2D.MostDetailedMip =  0;
-
-              CComQIPtr <ID3D11Device> pDev (SK_GetCurrentRenderBackend ().device);
+              CComQIPtr <ID3D11Device> pDev (rb.device);
 
               if (pDev != nullptr)
               {
@@ -17694,7 +17736,7 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
                 const size_t bottom_list = row0 + row1 + row2 + row3;
 
                 const bool success =
-                  SUCCEEDED (pDev->CreateShaderResourceView (pTex2 != nullptr ? pTex2 : pTex, &srv_desc, &pSRV));
+                  SUCCEEDED (pDev->CreateShaderResourceView (pTex2 != nullptr ? pTex2 : pTex, nullptr, &pSRV));
   
                 const float content_avail_y = ImGui::GetWindowContentRegionMax ().y - ImGui::GetWindowContentRegionMin ().y;
                 const float content_avail_x = ImGui::GetWindowContentRegionMax ().x - ImGui::GetWindowContentRegionMin ().x;
@@ -18889,7 +18931,7 @@ public:
 
     if (pDev.p != nullptr)
     {
-      SK_RenderBackend& rb =
+      static const SK_RenderBackend& rb =
         SK_GetCurrentRenderBackend ();
 
       if (! ( pDev.IsEqualObject (rb.device) &&
@@ -18920,8 +18962,8 @@ public:
                      )
          )
       {
-        if ( SUCCEEDED ( SK_GetCurrentRenderBackend ().swapchain.QueryInterface (
-                           &pSwapChain                                          )
+        if ( SUCCEEDED ( rb.swapchain.QueryInterface (
+                           &pSwapChain               )
                        )
            )
         {
@@ -19180,15 +19222,15 @@ public:
               } break;
 
               
-              ////case DXGI_FORMAT_R16G16B16A16_FLOAT:
-              ////{
-              ////  for ( UINT j  = 6              ;
-              ////             j < PackedDstPitch  ;
-              ////             j += 8 )
-              ////  {          (glm::detail::half &)
-              ////      (pDst [j])  =
-              ////       glm::detail::half (1.0f); }
-              ////} break;
+              case DXGI_FORMAT_R16G16B16A16_FLOAT:
+              {
+                for ( UINT j  = 6              ;
+                           j < PackedDstPitch  ;
+                           j += 8 )
+                {          (glm::detail::half &)
+                    (pDst [j])  =
+                     glm::detail::half (1.0f); }
+              } break;
             }
 
             pSrc += finished_copy.RowPitch;
@@ -19316,12 +19358,36 @@ concurrency::concurrent_queue <SK_D3D11_Screenshot *> screenshot_queue;
 concurrency::concurrent_queue <SK_D3D11_Screenshot *> screenshot_write_queue;
 
 
+bool
+SK_Screenshot_IsCapturingHUDless (void)
+{
+  extern volatile
+               LONG __SK_ScreenShot_CapturingHUDless;
+  if (ReadAcquire (&__SK_ScreenShot_CapturingHUDless))
+  {
+    return true;
+  }
+
+  if ( ReadAcquire (&enqueued_screenshots.pre_game_hud) ||
+       ReadAcquire (&enqueued_screenshots.without_sk_osd) )
+  {
+    return true;
+  }
+
+  return false;
+}
+
+
+
 
 bool
 SK_D3D11_CaptureSteamScreenshot  ( SK::ScreenshotStage when =
                                    SK::ScreenshotStage::EndOfFrame )
 {
-  if ( (int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D11 )
+  static const SK_RenderBackend_V2& rb =
+    SK_GetCurrentRenderBackend ();
+
+  if ( (int)rb.api & (int)SK_RenderAPI::D3D11 )
   {
     static const
       std::map <SK::ScreenshotStage, int>
@@ -19368,9 +19434,12 @@ SK_D3D11_ProcessScreenshotQueueEx ( int  stage = 2,
                                     bool wait  = false,
                                     bool purge = false )
 {
+  static SK_RenderBackend& rb =
+    SK_GetCurrentRenderBackend ();
+
   const int __MaxStage = 2;
 
-  assert ( stage >= 0 &
+  assert ( stage >= 0 &&
            stage <= ( __MaxStage + 1 ) );
 
   if ( stage < 0 ||
@@ -19409,7 +19478,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( int  stage = 2,
         {    // --
           screenshot_queue.push (
             new SK_D3D11_Screenshot (
-              SK_GetCurrentRenderBackend ().device.p
+              rb.device.p
             )
           );
         }
@@ -19452,8 +19521,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( int  stage = 2,
     SK_Thread_CreateEx ([](LPVOID) -> DWORD
     {
       SetCurrentThreadDescription (          L"[SK] D3D11 Screenshot Write Thread" );
-      SetThreadPriority           ( SK_GetCurrentThread (), THREAD_MODE_BACKGROUND_BEGIN );
-      SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_IDLE         );
+      SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_NORMAL );
 
       HANDLE hSignal0 =
         ReadPointerAcquire (&hSignalScreenshot);
@@ -19478,8 +19546,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( int  stage = 2,
           purge_and_run =
             ( dwWait == ( WAIT_OBJECT_0 + 1 ) );
 
-        if (purge_and_run)
-          SetThreadPriority ( SK_GetCurrentThread (), THREAD_MODE_BACKGROUND_END );
+        static std::vector <SK_D3D11_Screenshot*> to_write;
 
         while (! screenshot_write_queue.empty ())
         {
@@ -19493,6 +19560,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( int  stage = 2,
               continue;
             }
 
+            to_write.emplace_back (pop_off);
 
             SK_D3D11_Screenshot::framebuffer_s* pFrameData =
               pop_off->getFinishedData ();
@@ -19527,17 +19595,6 @@ SK_D3D11_ProcessScreenshotQueueEx ( int  stage = 2,
 
               PathAppendW          (wszAbsolutePathToScreenshot, L"SK_SteamScreenshotImport.jpg");
               SK_CreateDirectories (wszAbsolutePathToScreenshot);
-              
-              time_t screenshot_time;
-
-              wchar_t       wszAbsolutePathToLossless [ MAX_PATH * 2 + 1 ] = { };
-              wcsncpy_s   ( wszAbsolutePathToLossless,  MAX_PATH * 2, 
-                              screenshot_manager->getExternalScreenshotPath (),
-                                _TRUNCATE );
-
-              PathAppendW ( wszAbsolutePathToLossless,
-                SK_FormatStringW ( L"Lossless\\%lu.png",
-                            time (&screenshot_time) ).c_str () );
 
               if ( SUCCEEDED (
                 SaveToWICFile ( raw_img, WIC_FLAGS_NONE,
@@ -19546,22 +19603,6 @@ SK_D3D11_ProcessScreenshotQueueEx ( int  stage = 2,
                              )
                  )
               {
-                if (config.steam.screenshots.png_compress)
-                {
-                  SK_CreateDirectories (wszAbsolutePathToLossless);
-
-                  if ( SUCCEEDED (
-                        SaveToWICFile ( raw_img, WIC_FLAGS_NONE,
-                                          GetWICCodec (WIC_CODEC_PNG),
-                                            wszAbsolutePathToLossless )
-                       )
-                     )
-                  {
-                    // Refresh
-                    screenshot_manager->getExternalScreenshotRepository (true);
-                  }
-                }
-
                 wchar_t       wszAbsolutePathToThumbnail [ MAX_PATH * 2 + 1 ] = { };
                 wcsncpy_s   ( wszAbsolutePathToThumbnail,  MAX_PATH * 2,
                                 screenshot_manager->getExternalScreenshotPath (),
@@ -19605,8 +19646,11 @@ SK_D3D11_ProcessScreenshotQueueEx ( int  stage = 2,
                 DeleteFileW (wszAbsolutePathToThumbnail);
               }
 
-              delete pop_off;
-                     pop_off = nullptr;
+              if (! config.steam.screenshots.png_compress)
+              {
+                delete pop_off;
+                       pop_off = nullptr;
+              }
             }
           }
         }
@@ -19617,12 +19661,107 @@ SK_D3D11_ProcessScreenshotQueueEx ( int  stage = 2,
 
           if (purge_and_run)
           {
-            SetThreadPriority ( SK_GetCurrentThread (), THREAD_MODE_BACKGROUND_BEGIN );
-            SetThreadPriority ( SK_GetCurrentThread (), THREAD_PRIORITY_IDLE         );
+            SetThreadPriority ( SK_GetCurrentThread (), THREAD_PRIORITY_NORMAL );
           }
 
           ResetEvent (hSignal1); // Abort no longer needed
           SetEvent   (hSignal2); // Abort is complete
+        }
+
+        if (config.steam.screenshots.png_compress)
+        {
+          while ( ! to_write.empty () )
+          {
+            auto& it =
+              to_write.back ();
+
+            if (it == nullptr)
+            {
+              to_write.pop_back ();
+              continue;
+            }
+
+            to_write.pop_back ();
+
+            SK_D3D11_Screenshot::framebuffer_s* fb_copy =
+              new SK_D3D11_Screenshot::framebuffer_s ();
+
+            SK_D3D11_Screenshot::framebuffer_s& fb_orig =
+              *it->getFinishedData ();
+
+            fb_copy->Height       = fb_orig.Height;
+            fb_copy->Width        = fb_orig.Width;
+            fb_copy->NativeFormat = fb_orig.NativeFormat;
+            fb_copy->PBufferSize  = fb_orig.PBufferSize;
+
+            fb_copy->PixelBuffer.Attach (
+               fb_orig.PixelBuffer.Detach ()
+            );
+
+            delete it;
+
+            SK_Thread_Create ([](LPVOID pUser)->DWORD
+            {
+              SetThreadPriority ( SK_GetCurrentThread (), THREAD_MODE_BACKGROUND_BEGIN );
+              SetThreadPriority ( SK_GetCurrentThread (), THREAD_PRIORITY_IDLE         );
+
+              SK_D3D11_Screenshot::framebuffer_s*
+                pFrameData =
+                  static_cast <SK_D3D11_Screenshot::framebuffer_s *>(pUser);
+
+              time_t screenshot_time;
+
+              wchar_t       wszAbsolutePathToLossless [ MAX_PATH * 2 + 1 ] = { };
+              wcsncpy_s   ( wszAbsolutePathToLossless,  MAX_PATH * 2, 
+                              screenshot_manager->getExternalScreenshotPath (),
+                                _TRUNCATE );
+
+              PathAppendW ( wszAbsolutePathToLossless,
+                SK_FormatStringW ( L"Lossless\\%lu.png",
+                            time (&screenshot_time) ).c_str () );
+
+              // Why's it on the wait-queue if it's not finished?!
+              assert (pFrameData != nullptr);
+
+              if (pFrameData != nullptr)
+              {
+                using namespace DirectX;
+
+                Image raw_img = { };
+
+                ComputePitch ( pFrameData->NativeFormat,
+                                 pFrameData->Width,
+                                 pFrameData->Height,
+                                   raw_img.rowPitch,
+                                   raw_img.slicePitch
+                );
+
+                raw_img.format = pFrameData->NativeFormat;
+                raw_img.width  = pFrameData->Width;
+                raw_img.height = pFrameData->Height;
+                raw_img.pixels = pFrameData->PixelBuffer.m_pData;
+
+                SK_CreateDirectories (wszAbsolutePathToLossless);
+
+                if ( SUCCEEDED (
+                       SaveToWICFile (raw_img, WIC_FLAGS_NONE,
+                                  GetWICCodec (WIC_CODEC_PNG),
+                                       wszAbsolutePathToLossless)
+                               )
+                   )
+                {
+                  // Refresh
+                  screenshot_manager->getExternalScreenshotRepository (true);
+                }
+              }
+
+              delete pFrameData;
+
+              SK_Thread_CloseSelf ();
+
+              return 0;
+            }, (LPVOID)fb_copy );
+          }
         }
       } while (! ReadAcquire (&__SK_DLL_Ending));
 
@@ -21880,7 +22019,7 @@ public:
 
         if (pCachedTex != nullptr)
         {
-          CComQIPtr <ID3D11Resource> pCachedResource = pCachedTex;
+          CComQIPtr <ID3D11Resource> pCachedResource (pCachedTex);
 
           pReal->CopyResource (pDstResource, pCachedResource);
 
@@ -23245,6 +23384,9 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
  _Out_opt_                            D3D_FEATURE_LEVEL     *pFeatureLevel,
  _Out_opt_                            ID3D11DeviceContext  **ppImmediateContext)
 {
+  static SK_RenderBackend_V2& rb =
+    SK_GetCurrentRenderBackend ();
+
   // Even if the game doesn't care about the feature level, we do.
   D3D_FEATURE_LEVEL ret_level  = D3D_FEATURE_LEVEL_11_1;
   ID3D11Device*     ret_device = nullptr;
@@ -23423,7 +23565,7 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
     if (! dummy_window)
     {
       auto& windows =
-        SK_GetCurrentRenderBackend ().windows;
+        rb.windows;
 
       windows.setDevice (swap_chain_desc->OutputWindow);
 

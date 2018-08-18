@@ -24,6 +24,9 @@
 
 #define __D3DX11TEX_H__
 
+struct IUnknown;
+#include <Unknwnbase.h>
+
 #include <SpecialK/render/dxgi/dxgi_interfaces.h>
 #include <SpecialK/utility.h>
 #include <SpecialK/thread.h>
