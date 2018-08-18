@@ -1,3 +1,9 @@
+0.9.24.x:
+
+ + Changed MHW plug-in to write-out all config values on first load
+ + Fixed Constant Buffer for alt. tonemaps writing to wrong memory addr.
+ + Fixed the INI parameter names in MHW plug-in
+ + Added alternative tonemap options to MHW
  + Fixed CEGUI so that it renders to an HDR target (text OSD works again)
  + Added HDR Luminance control for the Steam overlay
  + Removed Inject Metadata button from scRGB mode
@@ -22,7 +28,7 @@
  + Changed the formatting of crash logs
  + Fixed mousewheel scroll behavior in ImGui
  + Added HUDless screenshots to Monster Hunters World and Yakuza 0
- + Fixed several issues witrh "Smart Capture" screenshots in D3D11
+ + Fixed several issues with "Smart Capture" screenshots in D3D11
 
 
 0.9.23:

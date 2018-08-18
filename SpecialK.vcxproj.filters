@@ -67,9 +67,6 @@
     <Filter Include="Header Files\Steam">
       <UniqueIdentifier>{102f0d86-c8ed-40c2-9302-187b733bc17b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="DLL Export Definitions">
-      <UniqueIdentifier>{5b9c5ae0-a6ca-41ed-bf90-f9485960db1e}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Install Components">
       <UniqueIdentifier>{2ee2bf9c-5aa5-4a03-84d9-3b3062390142}</UniqueIdentifier>
     </Filter>
@@ -160,9 +157,6 @@
     <Filter Include="Source Files\Backends\Injection">
       <UniqueIdentifier>{569bbbef-5600-47af-81d4-83c0349fc042}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Update">
-      <UniqueIdentifier>{6c5c0f3e-6b89-4600-993c-db87d90083cc}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Plugins">
       <UniqueIdentifier>{ebca487d-f1cf-40ca-9c0a-cbca2889bb5c}</UniqueIdentifier>
     </Filter>
@@ -216,6 +210,12 @@
     </Filter>
     <Filter Include="Header Files\DirectXTex\Diagnostics">
       <UniqueIdentifier>{05b0d4e1-1c73-4c73-b5b0-c2ab8082c6e9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Utility\Update">
+      <UniqueIdentifier>{6c5c0f3e-6b89-4600-993c-db87d90083cc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Config\DLL Export Definitions">
+      <UniqueIdentifier>{5b9c5ae0-a6ca-41ed-bf90-f9485960db1e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -360,9 +360,6 @@
     <ClInclude Include="include\SpecialK\plugin\plugin_mgr.h">
       <Filter>Header Files\Plugins</Filter>
     </ClInclude>
-    <ClInclude Include="include\SpecialK\input\dinput8_backend.h">
-      <Filter>Header Files\Backends\Input\DirectInput</Filter>
-    </ClInclude>
     <ClInclude Include="include\SpecialK\widgets\widget.h">
       <Filter>Header Files\ImGui\Widgets</Filter>
     </ClInclude>
@@ -370,13 +367,13 @@
       <Filter>Header Files\Plugins</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\update\archive.h">
-      <Filter>Header Files\Update</Filter>
+      <Filter>Header Files\Utility\Update</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\update\network.h">
-      <Filter>Header Files\Update</Filter>
+      <Filter>Header Files\Utility\Update</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\update\version.h">
-      <Filter>Header Files\Update</Filter>
+      <Filter>Header Files\Utility\Update</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\input\steam.h">
       <Filter>Header Files\Backends\Input\Steam</Filter>
@@ -636,6 +633,9 @@
     <ClInclude Include="include\SpecialK\control_panel\window.h">
       <Filter>Header Files\Control Panel</Filter>
     </ClInclude>
+    <ClInclude Include="include\SpecialK\input\dinput8_backend.h">
+      <Filter>Header Files\Backends\Input\DirectInput</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core.cpp">
@@ -697,9 +697,6 @@
     </ClCompile>
     <ClCompile Include="src\sound.cpp">
       <Filter>Source Files\Utility</Filter>
-    </ClCompile>
-    <ClCompile Include="src\window.cpp">
-      <Filter>Source Files\Backends</Filter>
     </ClCompile>
     <ClCompile Include="src\plugins\ds3.cpp">
       <Filter>Source Files\Plugins</Filter>
@@ -980,14 +977,14 @@
     <ClCompile Include="src\imgui\imgui.cpp">
       <Filter>Source Files\ImGui</Filter>
     </ClCompile>
+    <ClCompile Include="src\window.cpp">
+      <Filter>Source Files\Config</Filter>
+    </ClCompile>
     <ClCompile Include="src\input\input.cpp">
-      <Filter>Source Files\Backends\Render\D3D8</Filter>
+      <Filter>Source Files\Backends\Input</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="SpecialK.def">
-      <Filter>DLL Export Definitions</Filter>
-    </None>
     <None Include="depends\lib\CEGUI\x64\CEGUIBase-0.exp">
       <Filter>Libraries</Filter>
     </None>
@@ -1118,6 +1115,9 @@
       <Filter>Header Files\gsl</Filter>
     </None>
     <None Include="SpecialK.ruleset" />
+    <None Include="SpecialK.def">
+      <Filter>Header Files\Config</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource\Resource.rc">
