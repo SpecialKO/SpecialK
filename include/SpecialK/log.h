@@ -21,6 +21,9 @@
 #ifndef __SK__LOG_H__
 #define __SK__LOG_H__
 
+struct IUnknown;
+#include <Unknwnbase.h>
+
 #include <intrin.h>
 #include <Unknwn.h>
 

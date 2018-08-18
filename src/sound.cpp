@@ -19,6 +19,9 @@
  *
 **/
 
+struct IUnknown;
+#include <Unknwnbase.h>
+
 #include <Mmdeviceapi.h>
 #include <audiopolicy.h>
 #include <endpointvolume.h>

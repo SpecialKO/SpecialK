@@ -22,6 +22,9 @@
 #ifndef __SK__INPUT_H__
 #define __SK__INPUT_H__
 
+struct IUnknown;
+#include <Unknwnbase.h>
+
 #include <Windows.h>
 #include <cstdint>
 

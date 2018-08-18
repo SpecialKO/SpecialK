@@ -22,6 +22,8 @@
   #ifndef __SK__FILE_H__
   #define __SK__FILE_H__
 
+struct IUnknown;
+#include <Unknwnbase.h>
 #include <minwindef.h>
 
 void

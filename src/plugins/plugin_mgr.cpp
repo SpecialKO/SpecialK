@@ -40,7 +40,7 @@ void
 __stdcall
 SK_SetPluginName (std::wstring name)
 {
-  plugin_name = name;
+  plugin_name = std::move (name);
   isPlugin    = true;
 }
 

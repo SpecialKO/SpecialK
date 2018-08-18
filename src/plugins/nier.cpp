@@ -1772,7 +1772,7 @@ SK_FAR_InitPlugin (void)
 
 
     auto LoadKeybind =
-      [](SK_Keybind* binding, wchar_t* ini_name) ->
+      [](SK_Keybind* binding, const wchar_t* ini_name) ->
         auto
         {
           auto* ret =

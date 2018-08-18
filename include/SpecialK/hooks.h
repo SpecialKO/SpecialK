@@ -22,6 +22,9 @@
 #ifndef __SK__HOOKS_H__
 #define __SK__HOOKS_H__
 
+struct IUnknown;
+#include <Unknwnbase.h>
+
 #undef COM_NO_WINDOWS_H
 #include <WinDef.h>
 #include <MinHook/MinHook.h>

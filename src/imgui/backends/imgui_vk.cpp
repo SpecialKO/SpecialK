@@ -1,3 +1,6 @@
+struct IUnknown;
+#include <Unknwnbase.h>
+
 #include <Windows.h>
 #include <imgui/imgui.h>
 

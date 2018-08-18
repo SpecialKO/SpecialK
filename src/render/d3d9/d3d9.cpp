@@ -3317,11 +3317,11 @@ SK_SetPresentParamsD3D9Ex ( IDirect3DDevice9       *pDevice,
     dll_log.Log (L"Using wrapper for SetPresentParams!");
 #endif
     // Filter out devices used only for video playback
-    if ( SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D9   || 
-         SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D9Ex ||
-         SK_GetCurrentRenderBackend ().api == SK_RenderAPI::Reserved )
+    if ( rb.api == SK_RenderAPI::D3D9   || 
+         rb.api == SK_RenderAPI::D3D9Ex ||
+         rb.api == SK_RenderAPI::Reserved )
     {
-      SK_GetCurrentRenderBackend ().device = (pWrappedDevice)->pReal;
+      rb.device = (pWrappedDevice)->pReal;
     }
   }
 
@@ -3370,23 +3370,25 @@ SK_SetPresentParamsD3D9Ex ( IDirect3DDevice9       *pDevice,
     if (pDevice != nullptr)
       pDevice->GetCreationParameters (&dcparams);
 
+    auto& windows =
+      rb.windows;
 
     if (game_window.hWnd == nullptr || (! IsWindow (game_window.hWnd)))
     {
       if (dcparams.hFocusWindow)
-        SK_GetCurrentRenderBackend ().windows.setFocus (dcparams.hFocusWindow);
+        windows.setFocus (dcparams.hFocusWindow);
       else if (pparams->hDeviceWindow)
-        SK_GetCurrentRenderBackend ().windows.setFocus (pparams->hDeviceWindow);
+        windows.setFocus (pparams->hDeviceWindow);
     }
 
-    if (SK_GetCurrentRenderBackend ().windows.device == nullptr || (! IsWindow (SK_GetCurrentRenderBackend ().windows.device)))
+    if (windows.device == nullptr || (! IsWindow (windows.device)))
     {
-      SK_GetCurrentRenderBackend ().windows.setDevice (
-        pparams->hDeviceWindow   != nullptr ?
-          pparams->hDeviceWindow :
-            SK_GetCurrentRenderBackend ().windows.device != nullptr?
-              SK_GetCurrentRenderBackend ().windows.device :
-                SK_GetCurrentRenderBackend ().windows.focus );
+      windows.setDevice (
+        pparams->hDeviceWindow     != nullptr ?
+          pparams->hDeviceWindow   :
+            (HWND)windows.device   != nullptr?
+              (HWND)windows.device :
+                (HWND)windows.focus );
     }
 
 
@@ -3399,9 +3401,9 @@ SK_SetPresentParamsD3D9Ex ( IDirect3DDevice9       *pDevice,
                                         request_mode_change       == mode_change_request_e::Windowed   );
 
 
-    if (switch_to_fullscreen && SK_GetCurrentRenderBackend ().windows.device )
+    if (switch_to_fullscreen && windows.device )
     {
-      pparams->hDeviceWindow = SK_GetCurrentRenderBackend ().windows.device;
+      pparams->hDeviceWindow = windows.device;
 
       HMONITOR hMonitor =
         MonitorFromWindow ( game_window.hWnd,
@@ -7774,8 +7776,8 @@ SK_D3D9_DumpShader ( const wchar_t* wszPrefix,
                                          strstr (szDisasm,          "\n ") : nullptr;
     char* footer_begins = comments_end ? strstr (comments_end + 1, "\n\n") : nullptr;
 
-    if (comments_end)  *comments_end  = '\0'; else (comments_end  = "  ");
-    if (footer_begins) *footer_begins = '\0'; else (footer_begins = "  ");
+    if (comments_end)  *comments_end  = '\0'; else (comments_end  = (char *)"  ");
+    if (footer_begins) *footer_begins = '\0'; else (footer_begins = (char *)"  ");
 
     if (! _wcsicmp (wszPrefix, L"ps"))
     {

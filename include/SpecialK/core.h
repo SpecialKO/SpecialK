@@ -22,10 +22,13 @@
 #ifndef __SK__CORE_H__
 #define __SK__CORE_H__
 
+struct IUnknown;
+#include <Unknwnbase.h>
+
 #include <SpecialK/SpecialK.h>
 
-class  SK_TLS;
-extern SK_TLS* __stdcall SK_TLS_Bottom (void);
+class           SK_TLS;
+extern __inline SK_TLS* SK_TLS_Bottom (void);
 
 #undef COM_NO_WINDOWS_H
 #include <Windows.h>

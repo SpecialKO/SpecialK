@@ -26,6 +26,9 @@
 #ifndef __SK__SPECIALK_H__
 #define __SK__SPECIALK_H__
 
+struct IUnknown;
+#include <Unknwnbase.h>
+
 #ifndef SK_STATIC_LIB
 # ifdef SK_BUILD_DLL
 #  define SK_PUBLIC_API _declspec (dllexport) __stdcall 

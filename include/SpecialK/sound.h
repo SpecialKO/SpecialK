@@ -317,11 +317,8 @@ public:
     else
       return;
 
-    CComPtr <IAudioMeterInformation> pMeterInfo =
-      SK_WASAPI_GetAudioMeterInfo ();
-
     meter_info_ =
-      std::move (pMeterInfo);
+      SK_WASAPI_GetAudioMeterInfo ();
 
     if (meter_info_ != nullptr && (! sessions_.empty ()))
       return;

@@ -23,6 +23,9 @@
 
 #define __DINPUT_INCLUDED__
 
+struct IUnknown;
+#include <Unknwnbase.h>
+
 namespace SK
 {
   namespace DI8

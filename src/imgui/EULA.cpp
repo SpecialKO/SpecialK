@@ -21,8 +21,6 @@
 
 #pragma once
 
-#include <Windows.h>
-
 #include <SpecialK/core.h>
 #include <SpecialK/config.h>
 #include <SpecialK/resource.h>

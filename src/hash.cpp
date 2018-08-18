@@ -19,6 +19,9 @@
  *
 **/
 
+struct IUnknown;
+#include <Unknwnbase.h>
+
 #include <cstdint>
 #include <Windows.h>
 #include <atlbase.h>

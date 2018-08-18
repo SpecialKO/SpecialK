@@ -19,6 +19,9 @@
  *
 **/
 
+struct IUnknown;
+#include <Unknwnbase.h>
+
 #include <Windows.h>
 #include <comdef.h>
 #include <shlwapi.h>
@@ -875,58 +878,78 @@ SK_LoadLazyImports32 (void)
 }
 
 void
+SK_LogLastErr (void)
+{
+  _com_error err (HRESULT_FROM_WIN32 (GetLastError ()));
+  
+  dll_log.LogEx ( false,
+                    L"failed: 0x%04X (%s)!\n",
+                      err.WCode (),
+                        err.ErrorMessage ()
+                );
+}
+
+bool
+_IsRoleSame ( const std::wstring& role,
+              const std::wstring& test )
+{
+  return
+    role._Equal (test);
+}
+
+void
 SK_UnloadImports (void)
 {
-  // Unload in reverse order, because that's safer :)
-  for (int i = SK_MAX_IMPORTS - 1; i >= 0; i--)
-  {
-    // We use the sign-bit for error codes, so... negative
-    //   modules need to be ignored.
-    //
-    //  ** No module should be loaded at an address that high anyway
-    //       (in 32-bit code it's kernel-reserved memory)
-    //
-    if ((intptr_t)imports [i].hLibrary > 0)
+  __try {
+    // Unload in reverse order, because that's safer :)
+    for (int i = SK_MAX_IMPORTS - 1; i >= 0; i--)
     {
-      DWORD dwTime = timeGetTime ();
-
-      if (imports [i].role->get_value () == SK_IMPORT_ROLE_PLUGIN)
+      // We use the sign-bit for error codes, so... negative
+      //   modules need to be ignored.
+      //
+      //  ** No module should be loaded at an address that high anyway
+      //       (in 32-bit code it's kernel-reserved memory)
+      //
+      if ((intptr_t)imports [i].hLibrary > 0)
       {
-        auto SKPlugIn_Shutdown =
-          reinterpret_cast <SKPlugIn_Shutdown_pfn> (
-            GetProcAddress ( imports [i].hLibrary,
-                               "SKPlugIn_Shutdown" )
-          );
+        DWORD dwTime =
+          timeGetTime ();
 
-        if (SKPlugIn_Shutdown != nullptr)
-          SKPlugIn_Shutdown (nullptr);
-      }
+        if (_IsRoleSame (imports [i].role->get_value_ref (), SK_IMPORT_ROLE_PLUGIN))
+        {
+          auto SKPlugIn_Shutdown =
+            reinterpret_cast <SKPlugIn_Shutdown_pfn> (
+              GetProcAddress ( imports [i].hLibrary,
+                                 "SKPlugIn_Shutdown" )
+            );
+          
+          if (SKPlugIn_Shutdown != nullptr)
+              SKPlugIn_Shutdown   (nullptr);
+        }
 
-      dll_log.Log ( L"[ SpecialK ] Unloading Custom Import %s...",
-                    imports [i].filename->get_value_str ().c_str () );
+        ///dll_log.Log ( L"[ SpecialK ] Unloading Custom Import %s...",
+        ///              imports [i].filename->get_value_str ().c_str () );
 
-      // The shim will free the plug-in for us
-      if ( (imports [i].hShim != nullptr && FreeLibrary_Original (imports [i].hShim) ) ||
-                                            FreeLibrary_Original (imports [i].hLibrary) )
-      {
-        dll_log.LogEx ( false,
-                        L"-------------------------[ Free Lib ]                "
-                        L"                           success! (%4u ms)\n",
-                          timeGetTime ( ) - dwTime );
-      }
-
-      else
-      {
-        _com_error err (HRESULT_FROM_WIN32 (GetLastError ()));
-
-        dll_log.LogEx ( false,
-                          L"failed: 0x%04X (%s)!\n",
-                            err.WCode (),
-                              err.ErrorMessage ()
-                      );
+        // The shim will free the plug-in for us
+        if ( (imports [i].hShim != nullptr && FreeLibrary (imports [i].hShim) ) ||
+                                              FreeLibrary (imports [i].hLibrary) )
+        {
+          dll_log.LogEx ( false,
+                          L"-------------------------[ Free Lib ]                "
+                          L"                           success! (%4u ms)\n",
+                            timeGetTime ( ) - dwTime );
+        }
+        
+        else
+        {
+          SK_LogLastErr ();
+        }
       }
     }
   }
+
+  __except (EXCEPTION_EXECUTE_HANDLER)
+  { }
 }
 
 

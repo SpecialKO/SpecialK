@@ -22,6 +22,9 @@
 #ifndef __SK__CONTROL_PANEL_H__
 #define __SK__CONTROL_PANEL_H__
 
+struct IUnknown;
+#include <Unknwnbase.h>
+
 #include <SpecialK/render/backend.h>
 
 #include <imgui/imgui.h>

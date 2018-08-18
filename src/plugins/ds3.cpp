@@ -1,5 +1,8 @@
 #include <string>
 
+struct IUnknown;
+#include <Unknwnbase.h>
+
 #include <Windows.h>
 #include <SpecialK/ini.h>
 #include <SpecialK/parameter.h>

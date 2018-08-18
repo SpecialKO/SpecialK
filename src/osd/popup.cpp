@@ -19,6 +19,8 @@
  *
 **/
 
+struct IUnknown;
+#include <Unknwnbase.h>
 #include <Windows.h>
 
 #undef min

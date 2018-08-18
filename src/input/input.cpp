@@ -1328,10 +1328,16 @@ ImGui_ToggleCursor (void)
     {
       //ClipCursor_Original   (&SK_ImGui_Cursor.clip_rect);
 
-      POINT screen = SK_ImGui_Cursor.orig_pos;
-      SK_ImGui_Cursor.LocalToScreen (&screen);
-      SK_SetCursorPos ( screen.x,
-                        screen.y );
+      static POINT last_pos =
+        SK_ImGui_Cursor.orig_pos;
+
+      if (memcmp (&last_pos, &SK_ImGui_Cursor.orig_pos, sizeof (POINT)))
+      {
+        POINT screen = SK_ImGui_Cursor.orig_pos;
+        SK_ImGui_Cursor.LocalToScreen (&screen);
+        SK_SetCursorPos ( screen.x,
+                          screen.y );
+      }
     }
 
     ImGui::GetIO ().WantCaptureMouse = false;

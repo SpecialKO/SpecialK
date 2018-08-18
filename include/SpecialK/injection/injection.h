@@ -22,6 +22,9 @@
 #ifndef __SK__INJECTION_H__
 #define __SK__INJECTION_H__
 
+struct IUnknown;
+#include <Unknwnbase.h>
+
 #include <SpecialK/window.h>
 #include <SpecialK/core.h>
 #include <SpecialK/render/backend.h>

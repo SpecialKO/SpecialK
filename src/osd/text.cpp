@@ -1405,7 +1405,7 @@ static_cast <double> (                         gpu_stats.gpus [i].loads_percent.
     SK_TLS_Bottom ();
 
   bool inj_thr = pTLS->texture_management.injection_thread;
-                 pTLS->texture_management.injection_thread = true;
+  pTLS->texture_management.injection_thread = true;
 
   BOOL ret = SK_UpdateOSD (szOSD);
 
@@ -1609,8 +1609,10 @@ SK_TextOverlay::reset (CEGUI::Renderer* pRenderer)
       SE_Func (pRenderer, *this, scrn);
     }
 
-    catch (SE_Exception/* e*/)
+    catch (SE_Exception& e)
     {
+      UNREFERENCED_PARAMETER (e);
+
       if (geometry_ == nullptr)
         SK_TextOverlayManager::getInstance ()->removeTextOverlay (getName ());
       // CEGUI has known issues that I don't want to fix by recompiling
@@ -1647,8 +1649,8 @@ char*
 strtok_ex (char* str, char* seps)
 {
   static char *tpos,
-              *tkn,
-              *pos = nullptr;
+    *tkn,
+    *pos = nullptr;
   static char savech;
 
   if (str != nullptr)

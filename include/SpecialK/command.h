@@ -22,7 +22,8 @@
 #ifndef __SK__COMMAND_H__
 #define __SK__COMMAND_H__
 
-#include <Unknwn.h>
+struct IUnknown;
+#include <Unknwnbase.h>
 
 #include <unordered_map>
 

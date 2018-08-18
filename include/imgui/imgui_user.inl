@@ -90,8 +90,8 @@ SK_ImGui_LoadFonts (void)
     };
 
     if (! LoadFont (
-            config.imgui.font.default.file,
-              config.imgui.font.default.size,
+            config.imgui.font.default_font.file,
+              config.imgui.font.default_font.size,
                 SK_ImGui_GetGlyphRangesDefaultEx () ) )
     {
 

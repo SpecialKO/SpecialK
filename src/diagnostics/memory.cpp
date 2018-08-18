@@ -122,8 +122,8 @@ RtlAllocateHeap_Detour (
 
   if (lpRet != nullptr)
   {
-    if (ReadAcquire (&__SK_DLL_Attached)  &&
-        ReadAcquire (&_SK_IgnoreTLSAlloc) == 0)
+    if ( ReadAcquire (&__SK_DLL_Attached)  &&
+         ReadAcquire (&_SK_IgnoreTLSAlloc) == 0 )
     {
       SK_TLS* pTLS = 
         SK_TLS_Bottom ();

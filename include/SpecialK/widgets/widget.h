@@ -22,6 +22,9 @@
 #ifndef __SK__WIDGET_H__
 #define __SK__WIDGET_H__
 
+struct IUnknown;
+#include <Unknwnbase.h>
+
 #include <imgui/imgui.h>
 #include <input/input.h>
 #include <SpecialK/config.h>

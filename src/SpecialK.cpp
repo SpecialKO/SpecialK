@@ -84,9 +84,11 @@ SK_Thread_HybridSpinlock* steam_init_cs     = nullptr;
 volatile          long __SK_DLL_Ending       = FALSE;
 volatile          long __SK_DLL_Attached     = FALSE;
             __time64_t __SK_DLL_AttachTime   = 0ULL;
-volatile unsigned long __SK_Threads_Attached = 0UL;
-volatile unsigned long __SK_DLL_Refs         = 0UL;
+volatile          LONG __SK_Threads_Attached = 0UL;
+volatile          LONG __SK_DLL_Refs         = 0UL;
 volatile          long __SK_HookContextOwner = FALSE;
+
+extern           DWORD __SK_TLS_INDEX;
 
 class SK_DLL_Bootstrapper
 {
@@ -125,7 +127,7 @@ skModuleRegistry::HostApp (HMODULE hModToSet)
        hModToSet != skWin32Module::Uninitialized    )
   {
     hModApp =
-      std::move (hModToSet);
+      hModToSet;
   }
 
   return hModApp;
@@ -140,7 +142,7 @@ skModuleRegistry::Self (HMODULE hModToSet)
        hModToSet != skWin32Module::Uninitialized    )
   {
     hModSelf =
-      std::move (hModToSet);
+      hModToSet;
   }
 
   return hModSelf;
@@ -289,7 +291,8 @@ DllMain ( HMODULE hModule,
         return TRUE;
 
 
-      InterlockedExchange (&__SK_TLS_INDEX, FlsAlloc (nullptr));
+      __SK_TLS_INDEX =
+        FlsAlloc (nullptr);
 
 
       // We reserve the right to deny attaching the DLL, this will generally
@@ -355,12 +358,13 @@ DllMain ( HMODULE hModule,
           SK_Detach (SK_GetDLLRole ());
       }
 
-      auto tls_slot =
-        SK_GetTLS ();
+      SK_TLS *pTLS;
+      auto    tls_slot =
+        SK_GetTLS (&pTLS);
 
-      if (tls_slot.dwTlsIdx != TLS_OUT_OF_INDEXES)
+      if (tls_slot->dwTlsIdx == __SK_TLS_INDEX)
       {
-        FlsFree (tls_slot.dwTlsIdx);
+        FlsFree (tls_slot->dwTlsIdx);
       }
 
 #ifdef _DEBUG
@@ -379,10 +383,11 @@ DllMain ( HMODULE hModule,
       {
         InterlockedIncrement (&__SK_Threads_Attached);
 
-        SK_TlsRecord tls_rec =
-          SK_GetTLS (true);
+        SK_TLS *pTLS =
+          SK_TLS_Bottom ();
 
-        SK_TLS_Bottom ()->debug.mapped = true;
+        if (pTLS != nullptr)
+          pTLS->debug.mapped = true;
       }
     }
     break;
@@ -459,8 +464,7 @@ SK_DontInject (void)
   has_local_dll = true;
 
   LONG idx_to_free =
-    InterlockedExchange ( &__SK_TLS_INDEX,
-                            TLS_OUT_OF_INDEXES );
+    __SK_TLS_INDEX;
 
   if (idx_to_free != TLS_OUT_OF_INDEXES)
   {
@@ -960,9 +964,11 @@ SK_Attach (DLL_ROLE role)
       const auto& bootstrap =
         __SK_DLL_Bootstraps.at (role);
 
-      if (SK_IsInjected () && SK_TryLocalWrapperFirst (bootstrap.wrapper_dlls))
+      if ( SK_IsInjected           () &&
+           SK_TryLocalWrapperFirst (bootstrap.wrapper_dlls))
       {
-        return SK_DontInject ();
+        return
+          SK_DontInject ();
       }
 
       if (GetFileAttributesW (L"SpecialK.WaitForDebugger") != INVALID_FILE_ATTRIBUTES)
@@ -971,29 +977,31 @@ SK_Attach (DLL_ROLE role)
           SleepEx (500, FALSE);
       }
 
-      budget_mutex = new SK_Thread_HybridSpinlock (  400);
-      init_mutex   = new SK_Thread_HybridSpinlock (  750);
-      steam_mutex  = new SK_Thread_HybridSpinlock (    3);
-      wmi_cs       = new SK_Thread_HybridSpinlock ( 1280);
-      cs_dbghelp   = new SK_Thread_HybridSpinlock (  384);
+      try {
+        budget_mutex = new SK_Thread_HybridSpinlock (  400);
+        init_mutex   = new SK_Thread_HybridSpinlock (  750);
+        steam_mutex  = new SK_Thread_HybridSpinlock (    3);
+        wmi_cs       = new SK_Thread_HybridSpinlock ( 1280);
+        cs_dbghelp   = new SK_Thread_HybridSpinlock (  384);
 
-      steam_callback_cs = new SK_Thread_HybridSpinlock (256UL);
-      steam_popup_cs    = new SK_Thread_HybridSpinlock (512UL);
-      steam_init_cs     = new SK_Thread_HybridSpinlock (128UL);
+        steam_callback_cs = new SK_Thread_HybridSpinlock (256UL);
+        steam_popup_cs    = new SK_Thread_HybridSpinlock (512UL);
+        steam_init_cs     = new SK_Thread_HybridSpinlock (128UL);
 
+        _time64 (&__SK_DLL_AttachTime);
 
-      _time64 (&__SK_DLL_AttachTime);
+        InterlockedCompareExchange (
+          &__SK_DLL_Attached,
+            bootstrap.start (),
+              TRUE );
 
-      InterlockedCompareExchange (
-        &__SK_DLL_Attached,
-          bootstrap.start (),
-            TRUE );
-
-      if (ReadAcquire (&__SK_DLL_Attached))
-      {
-        return TRUE;
+        if (ReadAcquire (&__SK_DLL_Attached))
+        {
+          return TRUE;
+        }
       }
 
+      catch (...) {}
 
       SK_CleanupMutex (&budget_mutex); SK_CleanupMutex (&init_mutex);
       SK_CleanupMutex (&cs_dbghelp);   SK_CleanupMutex (&wmi_cs);

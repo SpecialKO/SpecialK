@@ -21,7 +21,9 @@
 
 #pragma warning (disable: 4996)
 
-#include <Windows.h>
+struct IUnknown;
+#include <Unknwnbase.h>
+
 #include <stdio.h>
 #include <Shlwapi.h>
 #include <SpecialK/log.h>
@@ -77,11 +79,11 @@ SK_Timestamp (wchar_t* const out)
     GetLocalTime (&stLogTime);
   }
 
-  wchar_t date [16] = { };
-  wchar_t time [16] = { };
+  wchar_t date [32] = { };
+  wchar_t time [32] = { };
 
-  GetDateFormat (LOCALE_INVARIANT, DATE_SHORTDATE,    &stLogTime, nullptr, date, 15);
-  GetTimeFormat (LOCALE_INVARIANT, TIME_NOTIMEMARKER, &stLogTime, nullptr, time, 15);
+  GetDateFormat (LOCALE_INVARIANT, DATE_SHORTDATE,    &stLogTime, nullptr, date, 31);
+  GetTimeFormat (LOCALE_INVARIANT, TIME_NOTIMEMARKER, &stLogTime, nullptr, time, 31);
 
   out [0] = L'\0';
 
@@ -355,13 +357,35 @@ iSK_Logger::LogEx ( bool                 _Timestamp,
   va_end   (_ArgList);
                                               
 
+  SK_TLS *pTLS = nullptr;
+
+  extern volatile
+               LONG __SK_Threads_Attached;
+  if (ReadAcquire (&__SK_Threads_Attached) > 0)
+  {
+    pTLS =
+      SK_TLS_Bottom ();
+  }
+
   wchar_t* wszOut =
-    SK_TLS_Bottom ()->scratch_memory.log.formatted_output.alloc (
+    pTLS != nullptr ?
+    pTLS->scratch_memory.log.formatted_output.alloc (
       len, true
-    );
+    )    : nullptr;
+
+  if (! wszOut)
+  {
+    wszOut =
+      static_cast <wchar_t *> (
+        _alloca ( len *
+           sizeof (wchar_t)
+        )
+      );
+  }
 
   if (! wszOut)
     return;
+
 
 
   wchar_t *wszAfterStamp =
@@ -411,15 +435,36 @@ iSK_Logger::Log   ( _In_z_ _Printf_format_string_
 
   size_t len =
     _vscwprintf (     _Format,
-            _ArgList) + 1 +  2  //  2 extra for CrLf
+            _ArgList) + 1 + 2  //  2 extra for CrLf
                          + 32; // 32 extra for timestamp
   va_end   (_ArgList);
 
 
+  SK_TLS *pTLS = nullptr;
+
+  extern volatile
+               LONG __SK_Threads_Attached;
+  if (ReadAcquire (&__SK_Threads_Attached) > 0)
+  {
+    pTLS =
+      SK_TLS_Bottom ();
+  }
+
   wchar_t* wszOut =
-    SK_TLS_Bottom ()->scratch_memory.log.formatted_output.alloc (
+    pTLS != nullptr ?
+    pTLS->scratch_memory.log.formatted_output.alloc (
       len, true
-    );
+    )    : nullptr;
+
+  if (! wszOut)
+  {
+    wszOut =
+      static_cast <wchar_t *> (
+        _alloca ( len *
+           sizeof (wchar_t)
+        )
+      );
+  }
 
   if (! wszOut)
     return;

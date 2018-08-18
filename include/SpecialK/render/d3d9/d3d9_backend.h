@@ -24,6 +24,9 @@
 
 #undef D3D_DISABLE_9EX
 
+struct IUnknown;
+#include <Unknwnbase.h>
+
 #include <Windows.h>
 #include <d3d9.h>
 #include <d3dx9shader.h>

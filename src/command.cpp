@@ -19,8 +19,6 @@
  *
 **/
 
-#include <memory>
-
 #include <SpecialK/command.h>
 #include <SpecialK/utility.h>
 #include <SpecialK/thread.h>

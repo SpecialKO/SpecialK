@@ -22,6 +22,9 @@
 #ifndef __SK__OSD_TEXT_H__
 #define __SK__OSD_TEXT_H__
 
+struct IUnknown;
+#include <Unknwnbase.h>
+
 #include <Windows.h>
 #include <stdint.h>
 #include <string>

@@ -336,7 +336,8 @@ extern "C"
 bool
 SK_WMI_Init (void)
 {
-  wchar_t* wszCOMBase  = L"combase.dll";
+  const wchar_t*
+           wszCOMBase  = L"combase.dll";
   HMODULE  hModCOMBase = SK_Modules.LoadLibrary (wszCOMBase);
 
   if (hModCOMBase == nullptr)

@@ -19,8 +19,6 @@
  *
 **/
 
-#include <Windows.h>
-
 #define __SK_SUBSYSTEM__ L" DInput 8 "
 
 #include <SpecialK/input/dinput8_backend.h>

@@ -19,6 +19,9 @@
  *
 **/
 
+struct IUnknown;
+#include <Unknwnbase.h>
+
 #include <SpecialK/SpecialK.h>
 #include <SpecialK/core.h>
 

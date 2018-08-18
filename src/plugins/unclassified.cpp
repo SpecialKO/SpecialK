@@ -9,6 +9,8 @@
 #include <SpecialK/render/d3d9/d3d9_backend.h>
 #include <SpecialK/render/dxgi/dxgi_backend.h>
 
+extern bool SK_D3D11_EnableTracking;
+
 bool
 SK_GalGun_PlugInCfg (void)
 {
@@ -280,8 +282,6 @@ SK_FFXV_PlugInCfg (void)
 
     static bool ignis_vision = false;
     static bool hair_club    = false;
-
-    extern bool SK_D3D11_EnableTracking;
 
     if (ignis_vision || hair_club)
       SK_D3D11_EnableTracking = true;
@@ -1194,82 +1194,419 @@ float __SK_MHW_HDR_Luma = 172.0_Nits;
 sk::ParameterFloat* _SK_MHW_scRGBGamma;
 float __SK_MHW_HDR_Exp  = 2.116f;
 
+sk::ParameterBool* _SK_MHW_KillAntiDebug;
+bool __SK_MHW_KillAntiDebug = true;
+
+sk::ParameterInt*   _SK_MHW_AlternateTonemap;
+
+#include <concurrent_vector.h>
+extern concurrency::concurrent_vector <d3d11_shader_tracking_s::cbuffer_override_s> __SK_D3D11_PixelShader_CBuffer_Overrides;
+d3d11_shader_tracking_s::cbuffer_override_s* SK_MHW_CB_Override;
+
+sk::iParameter*
+_CreateConfigParameter ( std::type_index type,
+                         const wchar_t*  wszSection,
+                         const wchar_t*  wszKey,
+                                  void*  pBackingStore,
+                         const wchar_t*  wszDescription    = L"No Description",
+                         const wchar_t*  wszOldSectionName = nullptr,
+                         const wchar_t*  wszOldKeyName     = nullptr )
+{
+  enum class _ParameterType
+  {
+    Bool, Int, Float
+  };
+
+  static const
+    std::unordered_map < std::type_index, _ParameterType >
+      __type_map =
+      {
+        { std::type_index (typeid (bool)),  _ParameterType::Bool  },
+        { std::type_index (typeid (int)),   _ParameterType::Int   },
+        { std::type_index (typeid (float)), _ParameterType::Float },
+      };
+
+  static const
+    std::unordered_map < std::type_index, std::type_index >
+      __type_reflector =
+      {
+        { std::type_index (typeid (bool)              ),
+          std::type_index (typeid (sk::ParameterBool) ) },
+        { std::type_index (typeid (int)               ),
+          std::type_index (typeid (sk::ParameterInt)  ) },
+        { std::type_index (typeid (float)             ),
+          std::type_index (typeid (sk::ParameterFloat)) }
+      };
+
+
+  sk::iParameter* pParam = nullptr;
+
+  if (      __type_map.count (type))
+  {
+    const auto
+      specialization =
+             __type_map.at (type);
+
+    auto
+      _TryLoadParam = [&](void) ->
+      bool
+      {
+        switch (specialization)
+        {
+          case _ParameterType::Bool:
+          {
+            return
+              dynamic_cast <sk::ParameterBool *> (
+                pParam
+                )->load (*static_cast <bool *> (pBackingStore));
+          } break;
+
+          case _ParameterType::Int:
+          {
+            return
+              dynamic_cast <sk::ParameterInt *> (
+                pParam
+                )->load (*static_cast <int *> (pBackingStore));
+          } break;
+
+          case _ParameterType::Float:
+          {
+            return
+              dynamic_cast <sk::ParameterFloat *> (
+                pParam
+                )->load (*static_cast <float *> (pBackingStore));
+          } break;
+        }
+
+        return false;
+      };
+
+    auto
+      _StoreParam = [&](void) ->
+      void
+      {
+        switch (specialization)
+        {
+          case _ParameterType::Bool:
+          {
+            dynamic_cast <sk::ParameterBool *> (
+              pParam
+            )->store (*static_cast <bool *> (pBackingStore));
+          } break;
+
+          case _ParameterType::Int:
+          {
+            dynamic_cast <sk::ParameterInt *> (
+              pParam
+            )->store (*static_cast <int *> (pBackingStore));
+          } break;
+
+          case _ParameterType::Float:
+          {
+            dynamic_cast <sk::ParameterFloat *> (
+              pParam
+            )->store (*static_cast <float *> (pBackingStore));
+          } break;
+        }
+      };
+
+
+    switch (specialization)
+    {
+      case _ParameterType::Bool:
+      {
+        pParam =
+          g_ParameterFactory.create_parameter <bool>  (wszDescription);
+      } break;
+
+      case _ParameterType::Int:
+      {
+        pParam =
+          g_ParameterFactory.create_parameter <int>   (wszDescription);
+      } break;
+
+      case _ParameterType::Float:
+      {
+        pParam =
+          g_ParameterFactory.create_parameter <float> (wszDescription);
+      } break;
+    }
+
+
+    if (pParam != nullptr)
+    {
+      iSK_INI* pINI =
+        SK_GetDLLConfig ();
+
+      pParam->register_to_ini (
+        pINI, wszSection, wszKey
+      );
+
+      if (! _TryLoadParam ())
+      {
+        if ( wszOldSectionName != nullptr ||
+             wszOldKeyName     != nullptr )
+        {
+          const wchar_t* wszAltSection = ( wszOldSectionName ?
+                                           wszOldSectionName : wszSection );
+          const wchar_t* wszAltKey     = ( wszOldKeyName     ?
+                                           wszOldKeyName     : wszKey     );
+
+          pParam->register_to_ini (
+            pINI, wszAltSection, wszAltKey
+          );
+
+          _TryLoadParam ();
+
+          pParam->register_to_ini (
+            pINI, wszSection, wszKey
+          );
+        }
+      }
+
+      _StoreParam ();
+    }
+  }
+
+  return pParam;
+}
+
+
+sk::ParameterFloat*
+_CreateConfigParameterFloat ( const wchar_t* wszSection,
+                              const wchar_t* wszKey,
+                                      float& backingStore,
+                              const wchar_t* wszDescription    = L"No Description",
+                              const wchar_t* wszOldSectionName = nullptr,
+                              const wchar_t* wszOldKeyName     = nullptr )
+{
+  return
+    dynamic_cast <sk::ParameterFloat *> (
+      _CreateConfigParameter ( std::type_index (
+                                 typeid (float)
+                                ),
+                                wszSection,        wszKey,
+                               &backingStore,      wszDescription,
+                                wszOldSectionName, wszOldKeyName )
+    );
+}
+
+sk::ParameterBool*
+_CreateConfigParameterBool ( const wchar_t* wszSection,
+                             const wchar_t* wszKey,
+                                      bool& backingStore,
+                             const wchar_t* wszDescription    = L"No Description",
+                             const wchar_t* wszOldSectionName = nullptr,
+                             const wchar_t* wszOldKeyName     = nullptr )
+{
+  return
+    dynamic_cast <sk::ParameterBool *> (
+      _CreateConfigParameter ( std::type_index (
+                                 typeid (bool)
+                                ),
+                                wszSection,        wszKey,
+                               &backingStore,      wszDescription,
+                                wszOldSectionName, wszOldKeyName )
+    );
+}
+
+sk::ParameterInt*
+_CreateConfigParameterInt  ( const wchar_t* wszSection,
+                             const wchar_t* wszKey,
+                                       int& backingStore,
+                             const wchar_t* wszDescription    = L"No Description",
+                             const wchar_t* wszOldSectionName = nullptr,
+                             const wchar_t* wszOldKeyName     = nullptr )
+{
+  return
+    dynamic_cast <sk::ParameterInt *> (
+      _CreateConfigParameter ( std::type_index (
+                                 typeid (int)
+                                ),
+                                wszSection,        wszKey,
+                               &backingStore,      wszDescription,
+                                wszOldSectionName, wszOldKeyName )
+    );
+}
+
 void
 SK_MHW_PlugInInit (void)
 {
   config.render.framerate.enable_mmcss = false;
 
+#define SK_MHW_CPU_SECTION     L"MonsterHunterWorld.CPU"
+#define SK_MHW_CPU_SECTION_OLD L"MonsterHuntersWorld.CPU"
+
   _SK_MHW_JobParity =
-    dynamic_cast <sk::ParameterBool *> (
-      g_ParameterFactory.create_parameter <bool> (L"Job Parity")
-      );
-
-  _SK_MHW_JobParity->register_to_ini (
-    SK_GetDLLConfig (), L"MonsterHuntersWorld.CPU", L"LimitJobThreads");
-
-  _SK_MHW_JobParity->load  (__SK_MHW_JobParity);
-  _SK_MHW_JobParity->store (__SK_MHW_JobParity);
-
+    _CreateConfigParameterBool ( SK_MHW_CPU_SECTION,
+                                 L"LimitJobThreads",      __SK_MHW_JobParity,
+                                                          L"Job Parity",
+                                SK_MHW_CPU_SECTION_OLD );
   _SK_MHW_JobParityPhysical =
-    dynamic_cast <sk::ParameterBool *> (
-      g_ParameterFactory.create_parameter <bool> (L"Job Parity Rule")
-      );
+    _CreateConfigParameterBool ( SK_MHW_CPU_SECTION,
+                                 L"LimitToPhysicalCores", __SK_MHW_JobParityPhysical,
+                                                          L"Job Parity (Physical)",
+                                SK_MHW_CPU_SECTION_OLD );
 
-  _SK_MHW_JobParityPhysical->register_to_ini (
-    SK_GetDLLConfig (), L"MonsterHuntersWorld.CPU", L"LimitToPhysicalCores");
-
-  _SK_MHW_JobParityPhysical->load  (__SK_MHW_JobParityPhysical);
-  _SK_MHW_JobParityPhysical->store (__SK_MHW_JobParityPhysical);
+#define SK_MHW_HDR_SECTION     L"MonsterHunterWorld.HDR"
+#define SK_MHW_HDR_SECTION_OLD L"MonsterHuntersWorld.HDR"
 
   _SK_MHW_10BitSwapChain =
-    dynamic_cast <sk::ParameterBool *> (
-      g_ParameterFactory.create_parameter <bool> (L"10-bit SwapChain")
-    );
-
-  _SK_MHW_10BitSwapChain->register_to_ini (
-    SK_GetDLLConfig (), L"MonsterHuntersWorld.HDR", L"Use10BitSwapChain");
-
-  _SK_MHW_10BitSwapChain->load  (__SK_MHW_10BitSwap);
-  _SK_MHW_10BitSwapChain->store (__SK_MHW_10BitSwap);
-
+    _CreateConfigParameterBool ( SK_MHW_HDR_SECTION,
+                                 L"Use10BitSwapChain",  __SK_MHW_10BitSwap,
+                                                        L"10-bit SwapChain",
+                                 SK_MHW_HDR_SECTION_OLD );
   _SK_MHW_16BitSwapChain =
-    dynamic_cast <sk::ParameterBool *> (
-      g_ParameterFactory.create_parameter <bool> (L"16-bit SwapChain")
-    );
-
-  _SK_MHW_16BitSwapChain->register_to_ini (
-    SK_GetDLLConfig (), L"MonsterHuntersWorld.HDR", L"Use16BitSwapChain");
-
-  _SK_MHW_16BitSwapChain->load  (__SK_MHW_16BitSwap);
-  _SK_MHW_16BitSwapChain->store (__SK_MHW_16BitSwap);
-
+    _CreateConfigParameterBool ( SK_MHW_HDR_SECTION,
+                                 L"Use16BitSwapChain",  __SK_MHW_16BitSwap,
+                                                        L"16-bit SwapChain",
+                                 SK_MHW_HDR_SECTION_OLD );
 
   _SK_MHW_scRGBLuminance =
-    dynamic_cast <sk::ParameterFloat *> (
-      g_ParameterFactory.create_parameter <float> (L"Luminance")
-    );
-
-  _SK_MHW_scRGBLuminance->register_to_ini (
-    SK_GetDLLConfig (), L"MonsterHuntersWorld.HDR", L"scRGBLuminance");
-
-  _SK_MHW_scRGBLuminance->load  (__SK_MHW_HDR_Luma);
-  _SK_MHW_scRGBLuminance->store (__SK_MHW_HDR_Luma);
-
+    _CreateConfigParameterFloat ( SK_MHW_HDR_SECTION,
+                                  L"scRGBLuminance",  __SK_MHW_HDR_Luma,
+                                                      L"scRGB Luminance",
+                                  SK_MHW_HDR_SECTION_OLD );
   _SK_MHW_scRGBGamma =
-    dynamic_cast <sk::ParameterFloat *> (
-      g_ParameterFactory.create_parameter <float> (L"Gamma")
-    );
+    _CreateConfigParameterFloat ( SK_MHW_HDR_SECTION,
+                                  L"scRGBGamma",      __SK_MHW_HDR_Exp,
+                                                      L"scRGB Gamma",
+                                  SK_MHW_HDR_SECTION_OLD );
 
-  _SK_MHW_scRGBGamma->register_to_ini (
-    SK_GetDLLConfig (), L"MonsterHuntersWorld.HDR", L"scRGBGamma");
 
-  _SK_MHW_scRGBGamma->load  (__SK_MHW_HDR_Exp);
-  _SK_MHW_scRGBGamma->store (__SK_MHW_HDR_Exp);
+  __SK_D3D11_PixelShader_CBuffer_Overrides.push_back
+  (
+/*
+ * 0: Hash,    1: CBuffer Size
+ * 2: Enable?, 3: Binding Slot,
+ * 4: Offset,  5: Value List Size (in bytes),
+ * 6: Value List
+ */
+    { 0x08cc13a6, 52,
+      false,      3,
+      0,          4,
+      { 0.0f }
+    }
+  );
+
+
+  SK_MHW_CB_Override =
+    &__SK_D3D11_PixelShader_CBuffer_Overrides.back ();
+
+  *(reinterpret_cast <UINT *> (SK_MHW_CB_Override->Values)) =
+         static_cast <UINT  > (-1);
+
+  int* pCBufferOverrideVal =
+    reinterpret_cast <int *> (SK_MHW_CB_Override->Values);
+
+  _SK_MHW_AlternateTonemap =
+    _CreateConfigParameterInt ( SK_MHW_HDR_SECTION,
+                                L"AlternateTonemap", *pCBufferOverrideVal,
+                                                     L"Tonemap Type",
+                                SK_MHW_HDR_SECTION_OLD );
+
+  if (*(reinterpret_cast <int *> (SK_MHW_CB_Override->Values)) > -1)
+  {
+    SK_MHW_CB_Override->Enable = true;
+  }
+
+  else
+    SK_MHW_CB_Override->Enable = false;
+
+  if (SK_MHW_CB_Override->Enable)
+    SK_D3D11_EnableTracking    = true;
+
+
+
+  _SK_MHW_KillAntiDebug =
+    _CreateConfigParameterBool ( SK_MHW_CPU_SECTION,
+                                 L"KillAntiDebugCode",    __SK_MHW_KillAntiDebug,
+                                                          L"Anti-Debug Kill Switch",
+                                 SK_MHW_CPU_SECTION_OLD );
+
+
+  iSK_INI* pINI =
+    SK_GetDLLConfig ();
+
+  pINI->remove_section (SK_MHW_CPU_SECTION_OLD);
+  pINI->remove_section (SK_MHW_HDR_SECTION_OLD);
+
+  pINI->write (pINI->get_filename ());
+}
+
+
+void
+SK_MHW_ThreadStartStop (HANDLE hThread, int op = 0)
+{
+  static concurrency::concurrent_unordered_set <HANDLE>
+    stopped_threads;
+
+  if (op == 0)
+  {
+    if (! stopped_threads.count (hThread))
+    {
+      stopped_threads.insert (hThread);
+      SuspendThread          (hThread);
+    }
+  }
+
+  if (op == 1)
+  {
+    if (stopped_threads.count (hThread))
+    {
+      std::unordered_set <HANDLE> stopped_copy {
+        stopped_threads.begin (), stopped_threads.end ()
+      };
+
+      stopped_threads.clear ();
+
+      for (auto& it : stopped_threads)
+      {
+        if (it != hThread)
+          stopped_threads.insert (hThread);
+
+        else
+          ResumeThread (hThread);
+      }
+    }
+  }
+
+  if (op == 2)
+  {
+    std::unordered_set <HANDLE> stopped_copy {
+      stopped_threads.begin (), stopped_threads.end ()
+    };
+
+    stopped_threads.clear ();
+
+    for (auto& it : stopped_copy)
+    {
+      TerminateThread (it, 0x0);
+      //ResumeThread (it);
+    }
+  }
+}
+
+extern void
+SK_MHW_SuspendThread (HANDLE hThread)
+{
+  SK_MHW_ThreadStartStop (hThread, 0);
+}
+
+void
+SK_MHW_PlugIn_Shutdown (void)
+{
+  // Resume all stopped threads prior
+  //   to shutting down
+  SK_MHW_ThreadStartStop (0, 2);
 }
 
 bool
 SK_MHW_PlugInCfg (void)
 {
+  iSK_INI* pINI =
+    SK_GetDLLConfig ();
+
   if (ImGui::CollapsingHeader ("MONSTER HUNTER: WORLD", ImGuiTreeNodeFlags_DefaultOpen))
   {
     ImGui::TreePush ("");
@@ -1279,7 +1616,7 @@ SK_MHW_PlugInCfg (void)
     if (ImGui::Checkbox ("Limit Job Threads to number of CPU cores", &__SK_MHW_JobParity))
     {
       _SK_MHW_JobParity->store (__SK_MHW_JobParity);
-      SK_GetDLLConfig ()->write (SK_GetDLLConfig ()->get_filename ());
+      pINI->write (pINI->get_filename ());
     }
 
     static bool rule_orig =
@@ -1305,7 +1642,7 @@ SK_MHW_PlugInCfg (void)
       {
         __SK_MHW_JobParityPhysical = (rule == 1);
         _SK_MHW_JobParityPhysical->store (__SK_MHW_JobParityPhysical);
-        SK_GetDLLConfig ()->write (SK_GetDLLConfig ()->get_filename ());
+        pINI->write (pINI->get_filename ());
       }
     }
 
@@ -1319,6 +1656,15 @@ SK_MHW_PlugInCfg (void)
 
     if (ImGui::IsItemHovered ())
       ImGui::SetTooltip ("Without this option, the game spawns 32 job threads and nobody can get that many running efficiently.");
+
+    if (ImGui::Checkbox ("Anti-Debug Killswitch", &__SK_MHW_KillAntiDebug))
+    {
+      _SK_MHW_KillAntiDebug->store (__SK_MHW_KillAntiDebug);
+      pINI->write (pINI->get_filename ());
+    }
+
+    if (ImGui::IsItemHovered ())
+      ImGui::SetTooltip ("Eliminate the kernel bottleneck Capcom added to prevent debugging.");
 
 
     if (ImGui::CollapsingHeader ("HDR Fix", ImGuiTreeNodeFlags_DefaultOpen))
@@ -1337,7 +1683,7 @@ SK_MHW_PlugInCfg (void)
         _SK_MHW_10BitSwapChain->store (__SK_MHW_10BitSwap);
         _SK_MHW_16BitSwapChain->store (__SK_MHW_16BitSwap);
 
-        SK_GetDLLConfig ()->write (SK_GetDLLConfig ()->get_filename ());
+        pINI->write (pINI->get_filename ());
       }
       ImGui::SameLine ();
 
@@ -1351,7 +1697,7 @@ SK_MHW_PlugInCfg (void)
         _SK_MHW_10BitSwapChain->store (__SK_MHW_10BitSwap);
         _SK_MHW_16BitSwapChain->store (__SK_MHW_16BitSwap);
 
-        SK_GetDLLConfig ()->write (SK_GetDLLConfig ()->get_filename ());
+        pINI->write (pINI->get_filename ());
       }
 
       auto& rb =
@@ -1370,7 +1716,7 @@ SK_MHW_PlugInCfg (void)
           _SK_MHW_10BitSwapChain->store (__SK_MHW_10BitSwap);
           _SK_MHW_16BitSwapChain->store (__SK_MHW_16BitSwap);
 
-          SK_GetDLLConfig ()->write (SK_GetDLLConfig ()->get_filename ());
+          pINI->write (pINI->get_filename ());
         }
 
         if (ImGui::IsItemHovered ())
@@ -1509,7 +1855,7 @@ SK_MHW_PlugInCfg (void)
                   __SK_MHW_HDR_Luma = nits * 1.0_Nits;
 
                   _SK_MHW_scRGBLuminance->store (__SK_MHW_HDR_Luma);
-                  SK_GetDLLConfig ()->write (SK_GetDLLConfig ()->get_filename ());
+                  pINI->write (pINI->get_filename ());
                 }
 
                 ImGui::SameLine ();
@@ -1517,7 +1863,7 @@ SK_MHW_PlugInCfg (void)
                 if (ImGui::SliderFloat ("SDR -> HDR Gamma", &__SK_MHW_HDR_Exp, 1.6f, 2.9f))
                 {
                   _SK_MHW_scRGBGamma->store (__SK_MHW_HDR_Exp);
-                  SK_GetDLLConfig ()->write (SK_GetDLLConfig ()->get_filename ());
+                  pINI->write (pINI->get_filename ());
                 }
 
                 //ImGui::SameLine ();
@@ -1560,6 +1906,53 @@ SK_MHW_PlugInCfg (void)
           }
         }
       }
+
+      ImGui::Separator (  );
+      ImGui::TreePush  ("");
+
+      ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.68f, 0.02f, 0.45f));
+      ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.72f, 0.07f, 0.80f));
+      ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.78f, 0.14f, 0.80f));
+
+      bool changed =
+        ImGui::Checkbox ("Enable Alternate Tonemap", &SK_MHW_CB_Override->Enable);
+
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::SetTooltip ("You can significantly improve the washed out image by using an alternate tonemap.");
+      }
+
+      if (SK_MHW_CB_Override->Enable)
+      {
+        SK_D3D11_EnableTracking = true;
+
+        if (*(int *)(SK_MHW_CB_Override->Values) < 0)
+        {
+           *(int *)(SK_MHW_CB_Override->Values) =
+  1 + abs (*(int *)SK_MHW_CB_Override->Values);
+        }
+
+        ImGui::SameLine    ();
+        ImGui::BeginGroup  ();
+        changed |=
+          ImGui::SliderInt ("Tonemap Type##SK_MHW_TONEMAP", (int *)SK_MHW_CB_Override->Values, 0, 8);
+        ImGui::EndGroup    ();
+      }
+
+      if (changed)
+      {
+        int tonemap =
+          ( SK_MHW_CB_Override->Enable ?        abs (*(int *)SK_MHW_CB_Override->Values)
+                                       : (-1) - abs (*(int *)SK_MHW_CB_Override->Values) );
+
+         if (SK_MHW_CB_Override->Enable) SK_D3D11_EnableTracking = true;
+          
+        _SK_MHW_AlternateTonemap->store (tonemap);
+        pINI->write (pINI->get_filename ());
+      }
+
+      ImGui::PopStyleColor (3);
+      ImGui::TreePop       ( );
     }
 
     ///static int orig =

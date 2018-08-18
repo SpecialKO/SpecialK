@@ -18,6 +18,8 @@
 *   If not, see <http://www.gnu.org/licenses/>.
 *
 **/
+struct IUnknown;
+#include <Unknwnbase.h>
 
 #ifndef _WIN64
 

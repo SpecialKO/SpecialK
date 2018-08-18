@@ -19,6 +19,9 @@
  *
 **/
 
+struct IUnknown;
+#include <Unknwnbase.h>
+
 #include <Windows.h>
 
 #include <Commctrl.h>
@@ -962,7 +965,7 @@ SK_COMPAT_FixNahimicDeadlock (void)
 
 
 bool
-SK_COMPAT_IsSystemDllInstalled (wchar_t* wszDll, bool* locally)
+SK_COMPAT_IsSystemDllInstalled (const wchar_t* wszDll, bool* locally)
 {
   if (GetFileAttributesW (wszDll) != INVALID_FILE_ATTRIBUTES)
   {

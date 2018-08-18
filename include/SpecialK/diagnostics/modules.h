@@ -212,7 +212,8 @@ public:
   static constexpr LONG     Unreferenced  =  0;
   static constexpr LPVOID   Unaddressable =  0;
   static constexpr size_t   Unallocated   =  0;
-  static constexpr wchar_t* Unnamed       = L"";
+  static constexpr const wchar_t* 
+                      const Unnamed       = L"";
 
 
 protected:
@@ -384,7 +385,7 @@ public:
   HMODULE
   FreeLibrary (skWin32Module&& module)
   {
-                    assert (module > 0);
+                    assert ((HMODULE)module != 0);
     return _ReleaseLibrary (module);
   }
 

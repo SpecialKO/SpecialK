@@ -19,7 +19,6 @@
  *
 **/
 
-#include <d3d9.h>
 
 #include <SpecialK/render/d3d9/d3d9_backend.h>
 #include <SpecialK/render/d3d9/d3d9_texmgr.h>
@@ -32,6 +31,7 @@
 #include <SpecialK/core.h>
 #include <process.h>
 
+#include <d3d9.h>
 #include <cstdint>
 #include <algorithm>
 

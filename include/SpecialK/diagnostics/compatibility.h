@@ -31,7 +31,7 @@ typedef long HRESULT;
 
 HRESULT SK_COMPAT_FixNahimicDeadlock (void);
 
-bool SK_COMPAT_IsSystemDllInstalled (wchar_t* wszDll, bool* locally = nullptr);
+bool SK_COMPAT_IsSystemDllInstalled (const wchar_t* wszDll, bool* locally = nullptr);
 
 
 bool SK_COMPAT_IsFrapsPresent (void);

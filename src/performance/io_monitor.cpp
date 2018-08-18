@@ -558,6 +558,8 @@ SK_MonitorDisk (LPVOID user)
 
   COM::base.wmi.Lock ();
 
+  int iter = 0;
+
   //Win32_PerfFormattedData_PerfDisk_LogicalDisk
 
   auto&         disk  = __SK_WMI_DiskStats ();
@@ -604,8 +606,6 @@ SK_MonitorDisk (LPVOID user)
 
   disk.pConfig->Release ();
   disk.pConfig = nullptr;
-
-  int iter = 0;
 
   disk.dwNumReturned = 0;
   disk.dwNumObjects  = 0;
@@ -975,6 +975,8 @@ SK_MonitorPagefile (LPVOID user)
 
   SK_AutoCOMInit auto_com;
 
+  int iter = 0;
+
   UNREFERENCED_PARAMETER (user);
 
   COM::base.wmi.Lock ();
@@ -1028,8 +1030,6 @@ SK_MonitorPagefile (LPVOID user)
 
   pagefile.pConfig->Release ();
   pagefile.pConfig = nullptr;
-
-  int iter = 0;
 
   pagefile.hShutdownSignal = CreateEvent (nullptr, FALSE, FALSE, L"Pagefile Monitor Shutdown Signal");
 
@@ -1308,6 +1308,9 @@ SK_MonitorProcess (LPVOID user)
 
   SK_AutoCOMInit auto_com;
 
+  int               iter      = 0;
+  IWbemClassObject *pClassObj = nullptr;
+
   UNREFERENCED_PARAMETER (user);
 
   COM::base.wmi.Lock ();
@@ -1317,36 +1320,6 @@ SK_MonitorProcess (LPVOID user)
   const double     update        = config.mem.interval;
 
   HRESULT hr;
-
-  if (FAILED (hr = CoCreateInstance_Original (
-                     CLSID_WbemRefresher,
-                     nullptr,
-                     CLSCTX_INPROC_SERVER,
-                     IID_IWbemRefresher,
-                     (void**) &proc.pRefresher )
-             )
-     )
-  {
-    SK_LOG0 ( ( L"Failed to create Refresher Instance (%s:%d) -- (hr=%x; %s)",
-                  __FILEW__, __LINE__, hr, _com_error (hr).ErrorMessage () ),
-                L" WMI Wbem " );
-    goto PROC_CLEANUP;
-  }
-
-  if (FAILED (hr = proc.pRefresher->QueryInterface (
-                     IID_IWbemConfigureRefresher,
-                     (void **)&proc.pConfig )
-             )
-     )
-  {
-    SK_LOG0 ( ( L" Failed to Query Refresher Interface (%s:%d) -- (hr=%x; %s)",
-                  __FILEW__, __LINE__, hr, _com_error (hr).ErrorMessage () ),
-                L" WMI Wbem " );
-
-    goto PROC_CLEANUP;
-  }
-
-  IWbemClassObject *pClassObj = nullptr;
 
   DWORD   dwProcessSize = MAX_PATH * 2;
   wchar_t wszProcessName [MAX_PATH * 2 + 1] = { };
@@ -1360,6 +1333,35 @@ SK_MonitorProcess (LPVOID user)
     *pwszTruncName = L'\0';
 
   wchar_t      wszInstance [256] = { };
+
+  if (FAILED (hr = CoCreateInstance_Original (
+                     CLSID_WbemRefresher,
+                     nullptr,
+                     CLSCTX_INPROC_SERVER,
+                     IID_IWbemRefresher,
+                     (void**) &proc.pRefresher )
+             ) || proc.pRefresher == nullptr
+     )
+  {
+    SK_LOG0 ( ( L"Failed to create Refresher Instance (%s:%d) -- (hr=%x; %s)",
+                  __FILEW__, __LINE__, hr, _com_error (hr).ErrorMessage () ),
+                L" WMI Wbem " );
+    goto PROC_CLEANUP;
+  }
+
+  if (FAILED (hr = proc.pRefresher->QueryInterface (
+                     IID_IWbemConfigureRefresher,
+                     (void **)&proc.pConfig )
+             ) || proc.pConfig == nullptr
+     )
+  {
+    SK_LOG0 ( ( L" Failed to Query Refresher Interface (%s:%d) -- (hr=%x; %s)",
+                  __FILEW__, __LINE__, hr, _com_error (hr).ErrorMessage () ),
+                L" WMI Wbem " );
+
+    goto PROC_CLEANUP;
+  }
+
   _snwprintf ( wszInstance,
                 255,
                   L"Win32_PerfFormattedData_PerfProc_Process.Name='%ws'",
@@ -1378,7 +1380,7 @@ SK_MonitorProcess (LPVOID user)
                      nullptr,
                      &pClassObj,
                      nullptr )
-             )
+             ) || pClassObj == nullptr
      )
   {
     SK_LOG0 ( ( L" Failed to AddObjectByPath (%s:%d) -- (hr=%x; %s)",
@@ -1390,7 +1392,7 @@ SK_MonitorProcess (LPVOID user)
 
   if (FAILED (hr = pClassObj->QueryInterface ( IID_IWbemObjectAccess,
                                                (void **)(&proc.pAccess ) )
-             )
+             ) || proc.pAccess == nullptr
      )
   {
     SK_LOG0 ( ( L" Failed to Query WbemObjectAccess Interface (%s:%d) -- (hr=%x; %s)",
@@ -1481,8 +1483,6 @@ SK_MonitorProcess (LPVOID user)
 
   proc.pConfig->Release ();
   proc.pConfig = nullptr;
-
-  int iter = 0;
 
   proc.lID = 1;
 

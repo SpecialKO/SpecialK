@@ -22,12 +22,16 @@
 #ifndef __SK__NVAPI_H__
 #define __SK__NVAPI_H__
 
+struct IUnknown;
+#include <Unknwnbase.h>
+
 #include <nvapi/nvapi.h>
 #include <Windows.h>
 
 #include <string>
 
-enum   DLL_ROLE;
+#include <SpecialK/core.h>
+
 struct DXGI_ADAPTER_DESC;
 
 #ifdef __cplusplus

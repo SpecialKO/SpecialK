@@ -22,6 +22,9 @@
 #ifndef __SK__DEBUG_UTILS_H__
 #define __SK__DEBUG_UTILS_H__
 
+struct IUnknown;
+#include <Unknwnbase.h>
+
 #include <Windows.h>
 #include <SpecialK/tls.h>
 

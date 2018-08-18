@@ -21,6 +21,9 @@
 #ifndef __SK__STEAM_API_H__
 #define __SK__STEAM_API_H__
 
+struct IUnknown;
+#include <Unknwnbase.h>
+
 #include <Windows.h>
 
 #include <cstdint>
@@ -218,12 +221,12 @@ public:
 
 
   STEAM_CALLBACK ( SK_Steam_ScreenshotManager,
-                   SK_Steam_ScreenshotManager::OnScreenshotRequest,
+                   OnScreenshotRequest,
                    ScreenshotRequested_t,
                    request );
 
   STEAM_CALLBACK ( SK_Steam_ScreenshotManager,
-                   SK_Steam_ScreenshotManager::OnScreenshotReady,
+                   OnScreenshotReady,
                    ScreenshotReady_t,
                    ready );
 

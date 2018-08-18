@@ -19,7 +19,8 @@
  *
 **/
 
-#include <Windows.h>
+struct IUnknown;
+#include <Unknwnbase.h>
 
 #include <string>
 #include <cinttypes>
@@ -731,11 +732,20 @@ SK_CreateDLLHook ( const wchar_t  *pwszModule, const char  *pszProcName,
     //   Uninitialized pointers will tend to be reported as ordinals; almost no
     //     modern game is going to be throwing around DLL ordinals...
     //
-    const uintptr_t        ordinal = reinterpret_cast <uintptr_t> (pszProcName);
-    std::string proc_name (ordinal > 65535 ?                       pszProcName  :
-                            SK_FormatString ("Ordinal%u", ordinal).c_str ());
+    const   uintptr_t         ordinal = reinterpret_cast <uintptr_t> (pszProcName);
+    char    szProcName [         128] = { };
+    wchar_t wszModName [MAX_PATH + 2] = { };
 
-    std::wstring mod_name (SK_StripUserNameFromPathW (std::wstring (pwszModule).data ()));
+    if (ordinal > 65535)
+      strncpy_s (  szProcName, 128,
+                  pszProcName, _TRUNCATE );
+    else
+      snprintf  ( szProcName, 127, "Ordinal%u",
+                    static_cast <WORD> ( ordinal & 0xFFFFU ) );
+
+    wcsncpy_s                 ( wszModName, MAX_PATH + 2,
+                                pwszModule, _TRUNCATE );
+    SK_StripUserNameFromPathW ( wszModName );
 
 
     if (status == MH_ERROR_ALREADY_CREATED)
@@ -748,8 +758,8 @@ SK_CreateDLLHook ( const wchar_t  *pwszModule, const char  *pszProcName,
 
         SK_LOG_MINHOOK ( status,
                            L"WARNING: Hook Already Exists for: '%hs' in '%s'!",
-                             proc_name.c_str  (),
-                               mod_name.c_str () );
+                             szProcName,
+                               wszModName );
 
         return status;
       }
@@ -757,7 +767,7 @@ SK_CreateDLLHook ( const wchar_t  *pwszModule, const char  *pszProcName,
       else if (MH_OK == (status = MH_RemoveHook (pFuncAddr)))
       {
         dll_log.Log ( L"[HookEngine] Removing Corrupted Hook for '%hs'... software "
-                      L"is probably going to explode!", proc_name.c_str () );
+                      L"is probably going to explode!", szProcName );
 
         return SK_CreateDLLHook (pwszModule, pszProcName, pDetour, ppOriginal, ppFuncAddr);
       }
@@ -767,18 +777,18 @@ SK_CreateDLLHook ( const wchar_t  *pwszModule, const char  *pszProcName,
         SK_LOG_MINHOOK ( status,
                            L"Failed to Uninstall Hook for '%hs' "
                            L"[Address: %04ph]! ",
-                             proc_name.c_str (),
-                              mod_name.c_str () );
+                             szProcName,
+                              wszModName );
       }
     }
 
     SK_LOG_MINHOOK ( status,
                        L"Failed to Install Hook for: '%hs' in '%s'!",
-                        proc_name.c_str  (),
-                          mod_name.c_str () );
+                        szProcName,
+                          wszModName );
 
     if (ppFuncAddr != nullptr)
-      *ppFuncAddr = nullptr;
+       *ppFuncAddr  = nullptr;
   }
 
   else
@@ -944,11 +954,20 @@ SK_CreateDLLHook2 ( const wchar_t  *pwszModule, const char  *pszProcName,
     //   Uninitialized pointers will tend to be reported as ordinals; almost no
     //     modern game is going to be throwing around DLL ordinals...
     //
-    const uintptr_t        ordinal = reinterpret_cast <uintptr_t> (pszProcName);
-    std::string proc_name (ordinal > 65535 ?                       pszProcName  :
-                            SK_FormatString ("Ordinal%u", ordinal).c_str ());
+    const   uintptr_t         ordinal = reinterpret_cast <uintptr_t> (pszProcName);
+    char    szProcName [         128] = { };
+    wchar_t wszModName [MAX_PATH + 2] = { };
 
-    std::wstring mod_name (SK_StripUserNameFromPathW (std::wstring (pwszModule).data ()));
+    if (ordinal > 65535)
+      strncpy_s (  szProcName, 128,
+                  pszProcName, _TRUNCATE );
+    else
+      snprintf  ( szProcName, 127, "Ordinal%u",
+                    static_cast <WORD> ( ordinal & 0xFFFFU ) );
+
+    wcsncpy_s                 ( wszModName, MAX_PATH + 2,
+                                pwszModule, _TRUNCATE );
+    SK_StripUserNameFromPathW ( wszModName );
 
 
     if (status == MH_ERROR_ALREADY_CREATED)
@@ -961,8 +980,8 @@ SK_CreateDLLHook2 ( const wchar_t  *pwszModule, const char  *pszProcName,
 
         SK_LOG_MINHOOK ( status,
                            L"WARNING: Hook Already Exists for: '%hs' in '%s'!",
-                             proc_name.c_str  (),
-                               mod_name.c_str () );
+                             szProcName,
+                               wszModName );
 
         return status;
       }
@@ -970,7 +989,7 @@ SK_CreateDLLHook2 ( const wchar_t  *pwszModule, const char  *pszProcName,
       else if (MH_OK == (status = MH_RemoveHook (pFuncAddr)))
       {
         dll_log.Log ( L"[HookEngine] Removing Corrupted Hook for '%hs'... software "
-                      L"is probably going to explode!", proc_name.c_str () );
+                      L"is probably going to explode!", szProcName );
 
         return SK_CreateDLLHook2 (pwszModule, pszProcName, pDetour, ppOriginal, ppFuncAddr);
       }
@@ -980,15 +999,15 @@ SK_CreateDLLHook2 ( const wchar_t  *pwszModule, const char  *pszProcName,
         SK_LOG_MINHOOK ( status,
                            L"Failed to Uninstall Hook for '%hs' "
                            L"[Address: %04ph]! ",
-                             proc_name.c_str (),
+                             szProcName,
                                pFuncAddr );
       }
     }
 
     SK_LOG_MINHOOK ( status,
                        L"Failed to Install Hook for: '%hs' in '%s'!",
-                         proc_name.c_str  (),
-                           mod_name.c_str () );
+                         szProcName,
+                           wszModName );
 
     if (ppFuncAddr != nullptr)
        *ppFuncAddr  = nullptr;
@@ -1070,11 +1089,20 @@ SK_CreateDLLHook3 ( const wchar_t  *pwszModule, const char  *pszProcName,
     //   Uninitialized pointers will tend to be reported as ordinals; almost no
     //     modern game is going to be throwing around DLL ordinals...
     //
-    uintptr_t              ordinal = reinterpret_cast <uintptr_t> (pszProcName);
-    std::string proc_name (ordinal > 65535 ?                       pszProcName  :
-                            SK_FormatString ("Ordinal%u", ordinal).c_str ());
+    const   uintptr_t         ordinal = reinterpret_cast <uintptr_t> (pszProcName);
+    char    szProcName [         128] = { };
+    wchar_t wszModName [MAX_PATH + 2] = { };
 
-    std::wstring mod_name (SK_StripUserNameFromPathW (std::wstring (pwszModule).data ()));
+    if (ordinal > 65535)
+      strncpy_s (  szProcName, 128,
+                  pszProcName, _TRUNCATE );
+    else
+      snprintf  ( szProcName, 127, "Ordinal%u",
+                    static_cast <WORD> ( ordinal & 0xFFFFU ) );
+
+    wcsncpy_s                 ( wszModName, MAX_PATH + 2,
+                                pwszModule, _TRUNCATE );
+    SK_StripUserNameFromPathW ( wszModName );
 
 
     // Silently ignore this problem
@@ -1096,8 +1124,8 @@ SK_CreateDLLHook3 ( const wchar_t  *pwszModule, const char  *pszProcName,
 
         SK_LOG_MINHOOK ( status,
                            L"WARNING: Hook Already Exists for: '%hs' in '%s'!",
-                             proc_name.c_str  (),
-                               mod_name.c_str () );
+                             szProcName,
+                               wszModName );
 
         return status;
       }
@@ -1105,8 +1133,8 @@ SK_CreateDLLHook3 ( const wchar_t  *pwszModule, const char  *pszProcName,
 
     SK_LOG_MINHOOK ( status,
                        L"Failed to Install Hook for: '%hs' in '%s'!",
-                         proc_name.c_str  (),
-                           mod_name.c_str () );
+                         szProcName,
+                           wszModName );
   }
 
   else
@@ -1168,12 +1196,13 @@ SK_CreateUser32Hook ( const char  *pszProcName,
     wcscpy (module_name, L"user32");
 
     if (StrStrIA (pszProcName, "NtUser"))
-      strncpy (proc_name, pszProcName + 6, 127);
+      strncpy_s (proc_name, 128, pszProcName + 6, _TRUNCATE);
     else
-      strncpy (proc_name, pszProcName, 127);
+      strncpy_s (proc_name, 128, pszProcName,     _TRUNCATE);
   }
 
-  return SK_CreateDLLHook2 (module_name, proc_name, pDetour, ppOriginal, ppFuncAddr);
+  return
+    SK_CreateDLLHook2 (module_name, proc_name, pDetour, ppOriginal, ppFuncAddr);
 }
 
 

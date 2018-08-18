@@ -19,6 +19,9 @@
  *
 **/
 
+struct IUnknown;
+#include <Unknwnbase.h>
+
 typedef void* LPDIRECTDRAW;
 typedef void* LPDDENUMCALLBACK;
 typedef void* LPDDENUMCALLBACKEX;
@@ -503,7 +506,6 @@ HookDDraw (LPVOID user)
 }
 #else
 #include <Windows.h>
-#include <combaseapi.h>
 __declspec (noinline)
 HRESULT
 WINAPI

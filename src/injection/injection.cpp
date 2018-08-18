@@ -423,8 +423,8 @@ SKX_IsHookingCBT (void)
 //   or visa versa.
 void
 CALLBACK
-RunDLL_InjectionManager ( HWND  hwnd,        HINSTANCE hInst,
-                          LPSTR lpszCmdLine, int       nCmdShow )
+RunDLL_InjectionManager ( HWND   hwnd,        HINSTANCE hInst,
+                          LPCSTR lpszCmdLine, int       nCmdShow )
 {
   UNREFERENCED_PARAMETER (hInst);
   UNREFERENCED_PARAMETER (hwnd);

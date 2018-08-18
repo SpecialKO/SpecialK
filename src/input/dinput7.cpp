@@ -19,7 +19,8 @@
  *
 **/
 
-#include <Windows.h>
+struct IUnknown;
+#include <Unknwnbase.h>
 
 #define __SK_SUBSYSTEM__ L" DInput 7 "
 

@@ -19,6 +19,9 @@
  *
 **/
 
+struct IUnknown;
+#include <Unknwnbase.h>
+#include <d3d9.h>
 #include <d3d11.h>
 
 #include <SpecialK/nvapi.h>

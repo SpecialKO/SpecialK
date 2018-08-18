@@ -22,6 +22,9 @@
 #ifndef __SK__NETWORK_H__
 #define __SK__NETWORK_H__
 
+struct IUnknown;
+#include <Unknwnbase.h>
+
 #ifndef _WINSOCKAPI_
 #include <ws2def.h>
 #endif

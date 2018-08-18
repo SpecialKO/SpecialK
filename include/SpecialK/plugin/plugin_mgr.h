@@ -21,6 +21,9 @@
 #ifndef __SK__Plugin__Manager_H__
 #define __SK__Plugin__Manager_H__
 
+struct IUnknown;
+#include <Unknwnbase.h>
+
 #include <string>
 
 extern bool isArkhamKnight;

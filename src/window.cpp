@@ -19,6 +19,8 @@
  *
 **/
 
+struct IUnknown;
+#include <Unknwnbase.h>
 #include <Windows.h>
 #include <SpecialK/window.h>
 
@@ -4792,7 +4794,7 @@ SK_InitWindow (HWND hWnd, bool fullscreen_exclusive)
   windows.setFocus  (hWnd);
   windows.setDevice (
     windows.device ?
-    windows.device : hWnd);
+    (HWND)windows.device : hWnd);
 
 
   if (! fullscreen_exclusive)
@@ -5308,7 +5310,8 @@ ChangeDisplaySettingsA_Detour (
 {
   SK_LOG_FIRST_CALL
 
-  return ChangeDisplaySettingsExA_Detour (nullptr, lpDevMode, nullptr, dwFlags, nullptr);
+  return
+    ChangeDisplaySettingsExA_Detour (nullptr, lpDevMode, nullptr, dwFlags, nullptr);
 }
 
 LONG
@@ -5360,7 +5363,8 @@ ChangeDisplaySettingsW_Detour (
 {
   SK_LOG_FIRST_CALL
 
-    return ChangeDisplaySettingsExW_Detour (nullptr, lpDevMode, nullptr, dwFlags, nullptr);
+  return
+    ChangeDisplaySettingsExW_Detour (nullptr, lpDevMode, nullptr, dwFlags, nullptr);
 }
 
 
@@ -5621,6 +5625,8 @@ SK_HookWinAPI (void)
       (EnumDisplaySettingsW_pfn) GetProcAddress (
                           GetModuleHandle (L"user32"),
                                              "EnumDisplaySettingsW" );
+
+    SK_ApplyQueuedHooks ();
 
     InterlockedIncrement (&hooked);
   }

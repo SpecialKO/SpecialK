@@ -19,6 +19,11 @@
  *
 **/
 
+struct IUnknonwn;
+
+#include <Unknwnbase.h>
+#include <combaseapi.h>
+
 #include <SpecialK/adl.h>
 #include <SpecialK/log.h>
 
