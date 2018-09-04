@@ -262,3 +262,281 @@ SK_GetPlugInDirectory ( SK_PlugIn_Type type )
     }
   }
 #endif
+
+
+
+#include <SpecialK/parameter.h>
+#include <SpecialK/config.h>
+#include <SpecialK/ini.h>
+#include <SpecialK/control_panel.h>
+#include <SpecialK/render/dxgi/dxgi_backend.h>
+
+extern sk::ParameterFactory g_ParameterFactory;
+
+sk::iParameter*
+_CreateConfigParameter ( std::type_index type,
+                         const wchar_t*  wszSection,
+                         const wchar_t*  wszKey,
+                                  void*  pBackingStore,
+                         const wchar_t*  wszDescription,
+                         const wchar_t*  wszOldSectionName,
+                         const wchar_t*  wszOldKeyName )
+{
+  enum class _ParameterType
+  {
+    Bool, Int, Float, StringW
+  };
+
+  static const
+    std::unordered_map < std::type_index, _ParameterType >
+      __type_map =
+      {
+        { std::type_index (typeid (bool)),         _ParameterType::Bool    },
+        { std::type_index (typeid (int)),          _ParameterType::Int     },
+        { std::type_index (typeid (float)),        _ParameterType::Float   },
+        { std::type_index (typeid (std::wstring)), _ParameterType::StringW },
+      };
+
+  static const
+    std::unordered_map < std::type_index, std::type_index >
+      __type_reflector =
+      {
+        { std::type_index (typeid (bool)              ),
+          std::type_index (typeid (sk::ParameterBool) )   },
+        { std::type_index (typeid (int)               ),
+          std::type_index (typeid (sk::ParameterInt)  )   },
+        { std::type_index (typeid (float)             ),
+          std::type_index (typeid (sk::ParameterFloat))   },
+        { std::type_index (typeid (std::wstring)      ),
+          std::type_index (typeid (sk::ParameterStringW)) }
+      };
+
+
+  sk::iParameter* pParam = nullptr;
+
+  if (      __type_map.count (type))
+  {
+    const auto
+      specialization =
+             __type_map.at (type);
+
+    auto
+      _TryLoadParam = [&](void) ->
+      bool
+      {
+        switch (specialization)
+        {
+          case _ParameterType::Bool:
+          {
+            return
+              dynamic_cast <sk::ParameterBool *> (
+                pParam
+                )->load (*static_cast <bool *> (pBackingStore));
+          } break;
+
+          case _ParameterType::Int:
+          {
+            return
+              dynamic_cast <sk::ParameterInt *> (
+                pParam
+                )->load (*static_cast <int *> (pBackingStore));
+          } break;
+
+          case _ParameterType::Float:
+          {
+            return
+              dynamic_cast <sk::ParameterFloat *> (
+                pParam
+                )->load (*static_cast <float *> (pBackingStore));
+          } break;
+
+          case _ParameterType::StringW:
+          {
+            return
+              dynamic_cast <sk::ParameterStringW *> (
+                pParam
+                )->load (*static_cast <std::wstring *> (pBackingStore));
+          } break;
+        }
+
+        return false;
+      };
+
+    auto
+      _StoreParam = [&](void) ->
+      void
+      {
+        switch (specialization)
+        {
+          case _ParameterType::Bool:
+          {
+            dynamic_cast <sk::ParameterBool *> (
+              pParam
+            )->store (*static_cast <bool *> (pBackingStore));
+          } break;
+
+          case _ParameterType::Int:
+          {
+            dynamic_cast <sk::ParameterInt *> (
+              pParam
+            )->store (*static_cast <int *> (pBackingStore));
+          } break;
+
+          case _ParameterType::Float:
+          {
+            dynamic_cast <sk::ParameterFloat *> (
+              pParam
+            )->store (*static_cast <float *> (pBackingStore));
+          } break;
+
+          case _ParameterType::StringW:
+          {
+            dynamic_cast <sk::ParameterStringW *> (
+              pParam
+            )->store (*static_cast <std::wstring*> (pBackingStore));
+          } break;
+        }
+      };
+
+
+    switch (specialization)
+    {
+      case _ParameterType::Bool:
+      {
+        pParam =
+          g_ParameterFactory.create_parameter <bool>  (wszDescription);
+      } break;
+
+      case _ParameterType::Int:
+      {
+        pParam =
+          g_ParameterFactory.create_parameter <int>   (wszDescription);
+      } break;
+
+      case _ParameterType::Float:
+      {
+        pParam =
+          g_ParameterFactory.create_parameter <float> (wszDescription);
+      } break;
+
+      case _ParameterType::StringW:
+      {
+        pParam =
+          g_ParameterFactory.create_parameter <std::wstring> (wszDescription);
+      } break;
+    }
+
+    if (pParam != nullptr)
+    {
+      iSK_INI* pINI =
+        SK_GetDLLConfig ();
+
+      pParam->register_to_ini (
+        pINI, wszSection, wszKey
+      );
+
+      if (! _TryLoadParam ())
+      {
+        if ( wszOldSectionName != nullptr ||
+             wszOldKeyName     != nullptr )
+        {
+          const wchar_t* wszAltSection = ( wszOldSectionName ?
+                                           wszOldSectionName : wszSection );
+          const wchar_t* wszAltKey     = ( wszOldKeyName     ?
+                                           wszOldKeyName     : wszKey     );
+
+          pParam->register_to_ini (
+            pINI, wszAltSection, wszAltKey
+          );
+
+          _TryLoadParam ();
+
+          pParam->register_to_ini (
+            pINI, wszSection, wszKey
+          );
+        }
+      }
+
+      _StoreParam ();
+    }
+  }
+
+  return pParam;
+}
+
+
+sk::ParameterFloat*
+_CreateConfigParameterFloat ( const wchar_t* wszSection,
+                              const wchar_t* wszKey,
+                                      float& backingStore,
+                              const wchar_t* wszDescription,
+                              const wchar_t* wszOldSectionName,
+                              const wchar_t* wszOldKeyName )
+{
+  return
+    dynamic_cast <sk::ParameterFloat *> (
+      _CreateConfigParameter ( std::type_index (
+                                 typeid (float)
+                                ),
+                                wszSection,        wszKey,
+                               &backingStore,      wszDescription,
+                                wszOldSectionName, wszOldKeyName )
+    );
+}
+
+sk::ParameterBool*
+_CreateConfigParameterBool ( const wchar_t* wszSection,
+                             const wchar_t* wszKey,
+                                      bool& backingStore,
+                             const wchar_t* wszDescription,
+                             const wchar_t* wszOldSectionName,
+                             const wchar_t* wszOldKeyName )
+{
+  return
+    dynamic_cast <sk::ParameterBool *> (
+      _CreateConfigParameter ( std::type_index (
+                                 typeid (bool)
+                                ),
+                                wszSection,        wszKey,
+                               &backingStore,      wszDescription,
+                                wszOldSectionName, wszOldKeyName )
+    );
+}
+
+sk::ParameterInt*
+_CreateConfigParameterInt  ( const wchar_t* wszSection,
+                             const wchar_t* wszKey,
+                                       int& backingStore,
+                             const wchar_t* wszDescription,
+                             const wchar_t* wszOldSectionName,
+                             const wchar_t* wszOldKeyName )
+{
+  return
+    dynamic_cast <sk::ParameterInt *> (
+      _CreateConfigParameter ( std::type_index (
+                                 typeid (int)
+                                ),
+                                wszSection,        wszKey,
+                               &backingStore,      wszDescription,
+                                wszOldSectionName, wszOldKeyName )
+    );
+}
+
+sk::ParameterStringW*
+_CreateConfigParameterStringW ( const wchar_t* wszSection,
+                                const wchar_t* wszKey,
+                                 std::wstring& backingStore,
+                                const wchar_t* wszDescription,
+                                const wchar_t* wszOldSectionName,
+                                const wchar_t* wszOldKeyName )
+{
+  return
+    dynamic_cast <sk::ParameterStringW *> (
+      _CreateConfigParameter ( std::type_index (
+                                  typeid (std::wstring)
+                                ),
+                                wszSection,        wszKey,
+                               &backingStore,      wszDescription,
+                                wszOldSectionName, wszOldKeyName )
+    );
+}

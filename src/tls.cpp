@@ -58,8 +58,13 @@ SK_GetTLS (SK_TLS** ppTLS)
 #endif
       InterlockedIncrement (&_SK_IgnoreTLSAlloc);
 
-      pTLS =
-        new SK_TLS (__SK_TLS_INDEX);
+      try {
+        pTLS =
+          new SK_TLS (__SK_TLS_INDEX);
+      }
+
+      catch (...)
+      { pTLS = nullptr; }
 
       InterlockedDecrement (&_SK_IgnoreTLSAlloc);
 
@@ -69,7 +74,7 @@ SK_GetTLS (SK_TLS** ppTLS)
       SK_ReleaseAssert (pTLS != nullptr);
 
       if ( ! FlsSetValue ( pTLS->context_record.dwTlsIdx,
-                           pTLS ) 
+                           pTLS )
          ) 
       {
         delete pTLS;
@@ -101,23 +106,22 @@ SK_CleanupTLS (void)
   auto    pTLSRecord =
     SK_GetTLS (&pTLS);
 
-  if (pTLSRecord == nullptr)
+  if ( pTLSRecord == nullptr || (! pTLS) )
     return;
 
    const DWORD dwTid =
      pTLS->debug.tid;
 
    if (pTLS->debug.mapped)
-   {
-     pTLS->debug.mapped = false;
+   {   pTLS->debug.mapped = false;
 
      static auto& tls_map =
-         SK_TLS_Map ();
+       SK_TLS_Map ();
 
      if (tls_map.count (dwTid))
      {
        auto& mapped =
-         tls_map [dwTid];
+         tls_map.at (dwTid);
        
        mapped->pTLS     = nullptr;
        mapped->dwTlsIdx = TLS_OUT_OF_INDEXES;
@@ -173,13 +177,13 @@ SK_TLS_Bottom (void)
   //SK_ReleaseAssert ( (! ReadAcquire (&__SK_DLL_Attached)) ||
   //                      tls_slot.dwTlsIdx != TLS_OUT_OF_INDEXES );
 
-#ifdef _DEBUG
-  if ( tls_slot.dwTlsIdx == TLS_OUT_OF_INDEXES ||
-       tls_slot.pTLS     == nullptr )
-  {
-    return nullptr;
-  }
-#endif
+////#ifdef _DEBUG
+////  if ( tls_slot.dwTlsIdx == TLS_OUT_OF_INDEXES ||
+////       tls_slot.pTLS     == nullptr )
+////  {
+////    return nullptr;
+////  }
+////#endif
 
   if (! pTLSRecord->pTLS->debug.mapped)
   {
@@ -209,16 +213,17 @@ _On_failure_ (_Ret_maybenull_)
 SK_TLS*
 SK_TLS_BottomEx (DWORD dwTid)
 {
-  static const auto& tls_map =
+  const auto& tls_map =
     SK_TLS_Map ();
 
   const auto tls_slot =
     tls_map.find (dwTid);
 
-  if (tls_slot != tls_map.end ())
+  if (tls_slot != tls_map.cend ())
   {
     // If out-of-indexes, then the thread was probably destroyed
-    if (tls_slot->second->dwTlsIdx == __SK_TLS_INDEX)
+    if ( tls_slot->second != nullptr &&
+         tls_slot->second->dwTlsIdx  == __SK_TLS_INDEX )
     {
       return
         static_cast <SK_TLS *> (

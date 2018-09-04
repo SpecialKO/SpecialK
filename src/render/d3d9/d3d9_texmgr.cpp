@@ -1451,6 +1451,10 @@ SK::D3D9::TextureManager::loadQueuedTextures (void)
 uint32_t
 safe_crc32c (uint32_t seed, const void* pData, size_t size)
 {
+  // Current limit == 48 GiB
+  if (size > (1024ULL * 1024ULL * 1024ULL * 48) || pData == nullptr)
+    return seed;
+
   __try
   {
     if (TOS)

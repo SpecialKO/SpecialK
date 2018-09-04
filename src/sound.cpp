@@ -38,22 +38,23 @@ IAudioMeterInformation*
 __stdcall
 SK_WASAPI_GetAudioMeterInfo (void)
 {
-  CComPtr <IMMDeviceEnumerator> pDevEnum = nullptr;
+  CComPtr <IMMDeviceEnumerator> pDevEnum   = nullptr;
+  CComPtr <IMMDevice>           pDevice    = nullptr;
+
+  IAudioMeterInformation*       pMeterInfo = nullptr;
+
 
   if ( FAILED (
          pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator))
               ) || pDevEnum == nullptr
      ) return nullptr;
 
-  CComPtr <IMMDevice> pDevice = nullptr;
   if ( FAILED (
          pDevEnum->GetDefaultAudioEndpoint ( eRender,
                                                eConsole,
                                                  &pDevice )
               ) || pDevice == nullptr
      ) return nullptr;
-
-  IAudioMeterInformation* pMeterInfo = nullptr;
 
   HRESULT hr = pDevice->Activate ( __uuidof (IAudioMeterInformation),
                                      CLSCTX_ALL,
@@ -71,7 +72,8 @@ IAudioMeterInformation*
 __stdcall
 SK_GetAudioMeterInfo (void)
 {
-  return SK_WASAPI_GetAudioMeterInfo ();
+  return
+    SK_WASAPI_GetAudioMeterInfo ();
 }
 
 void
@@ -88,18 +90,16 @@ SK_WASAPI_GetAudioSessionProcs (size_t* count, DWORD* procs)
     *count    = 0;
   }
 
-  CComPtr <IMMDeviceEnumerator> pDevEnum;
+  CComPtr <IMMDevice>               pDevice;
+  CComPtr <IMMDeviceEnumerator>     pDevEnum;
+  CComPtr <IAudioSessionEnumerator> pSessionEnum;
+  CComPtr <IAudioSessionManager2>   pSessionMgr2;
+  CComPtr <IAudioSessionControl>    pSessionCtl;
+  CComPtr <IAudioSessionControl2>   pSessionCtl2;
+
   if (FAILED ((pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)))))
     return;
 
-  // Most game audio a user will not want to hear while a game is in the
-  //   background will pass through eConsole.
-  //
-  //   eCommunication will be headset stuff and that's something a user is not
-  //     going to appreciate having muted :) Consider overloading this function
-  //       to allow independent control.
-  //
-  CComPtr <IMMDevice> pDevice;
   if ( FAILED (
          pDevEnum->GetDefaultAudioEndpoint ( eRender,
                                                eConsole,
@@ -107,7 +107,6 @@ SK_WASAPI_GetAudioSessionProcs (size_t* count, DWORD* procs)
               )
      ) return;
 
-  CComPtr <IAudioSessionManager2> pSessionMgr2;
   if (FAILED (pDevice->Activate (
                 __uuidof (IAudioSessionManager2),
                   CLSCTX_ALL,
@@ -117,7 +116,6 @@ SK_WASAPI_GetAudioSessionProcs (size_t* count, DWORD* procs)
          )
      ) return;
 
-  CComPtr <IAudioSessionEnumerator> pSessionEnum;
   if (FAILED (pSessionMgr2->GetSessionEnumerator (&pSessionEnum)))
     return;
 
@@ -126,15 +124,12 @@ SK_WASAPI_GetAudioSessionProcs (size_t* count, DWORD* procs)
   if (FAILED (pSessionEnum->GetCount (&num_sessions)))
     return;
 
-  for (int pass = 0; pass < 2; pass++) // First Pass:  Top-level windows
-                                       // Second Pass:  Everything else
-  for (int i = 0; i < num_sessions; i++)
+  for (int pass = 0; pass < 2;            pass++) // First Pass:   Top-level windows
+  for (int i    = 0;    i < num_sessions; i++   ) // Second Pass:  Everything else
   {
-    CComPtr <IAudioSessionControl> pSessionCtl;
     if (FAILED (pSessionEnum->GetSession (i, &pSessionCtl)))
       continue;
 
-    CComPtr <IAudioSessionControl2> pSessionCtl2;
     if (FAILED (pSessionCtl->QueryInterface (IID_PPV_ARGS (&pSessionCtl2))))
       continue;
 
@@ -146,7 +141,7 @@ SK_WASAPI_GetAudioSessionProcs (size_t* count, DWORD* procs)
 
 if (SUCCEEDED (pSessionCtl2->GetState (&state)) && state == AudioSessionStateActive)
     {
-      if ( unique_procs.count (dwProcess) == 0 && ( max_count == 0 || *count < max_count ) )
+      if ( unique_procs.count (dwProcess) == 0  && ( max_count == 0 || *count < max_count ) )
       {
         if ((pass == 1 || SK_FindRootWindow (dwProcess).root != nullptr) || dwProcess == 0)
         {
@@ -161,7 +156,7 @@ if (SUCCEEDED (pSessionCtl2->GetState (&state)) && state == AudioSessionStateAct
           wchar_t* wszDisplayName = nullptr;
           if (SUCCEEDED (pSessionCtl2->GetSessionIdentifier (&wszDisplayName)))
           {
-            dll_log.Log (L"Name: %ws", wszDisplayName);
+            dll_log.Log   (L"Name: %ws", wszDisplayName);
             CoTaskMemFree (wszDisplayName);
           }
 
@@ -175,28 +170,26 @@ if (SUCCEEDED (pSessionCtl2->GetState (&state)) && state == AudioSessionStateAct
 
 IAudioSessionControl*
 __stdcall
-SK_WASAPI_GetAudioSessionControl (DWORD proc_id = GetCurrentProcessId ())
+SK_WASAPI_GetAudioSessionControl ( EDataFlow data_flow     = eRender,
+                                   ERole     endpoint_role = eConsole,
+                                   DWORD     proc_id       = GetCurrentProcessId () )
 {
-  CComPtr <IMMDeviceEnumerator> pDevEnum;
+  CComPtr <IMMDevice>               pDevice;
+  CComPtr <IMMDeviceEnumerator>     pDevEnum;
+  CComPtr <IAudioSessionEnumerator> pSessionEnum;
+  CComPtr <IAudioSessionManager2>   pSessionMgr2;
+  CComPtr <IAudioSessionControl2>   pSessionCtl2;
+
   if (FAILED ((pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)))))
     return nullptr;
 
-  // Most game audio a user will not want to hear while a game is in the
-  //   background will pass through eConsole.
-  //
-  //   eCommunication will be headset stuff and that's something a user is not
-  //     going to appreciate having muted :) Consider overloading this function
-  //       to allow independent control.
-  //
-  CComPtr <IMMDevice> pDevice;
   if ( FAILED (
-         pDevEnum->GetDefaultAudioEndpoint ( eRender,
-                                               eConsole,
+         pDevEnum->GetDefaultAudioEndpoint ( data_flow,
+                                               endpoint_role,
                                                  &pDevice )
               )
      ) return nullptr;
 
-  CComPtr <IAudioSessionManager2> pSessionMgr2;
   if (FAILED (pDevice->Activate (
                 __uuidof (IAudioSessionManager2),
                   CLSCTX_ALL,
@@ -206,7 +199,6 @@ SK_WASAPI_GetAudioSessionControl (DWORD proc_id = GetCurrentProcessId ())
          )
      ) return nullptr;
 
-  CComPtr <IAudioSessionEnumerator> pSessionEnum;
   if (FAILED (pSessionMgr2->GetSessionEnumerator (&pSessionEnum)))
     return nullptr;
 
@@ -218,17 +210,17 @@ SK_WASAPI_GetAudioSessionControl (DWORD proc_id = GetCurrentProcessId ())
   for (int i = 0; i < num_sessions; i++)
   {
     IAudioSessionControl *pSessionCtl;
+       AudioSessionState  state;
+
     if (FAILED (pSessionEnum->GetSession (i, &pSessionCtl)))
       continue;
 
-    AudioSessionState state;
     if (FAILED (pSessionCtl->GetState (&state)) || state != AudioSessionStateActive)
     {
       pSessionCtl->Release ();
       continue;
     }
 
-    CComPtr <IAudioSessionControl2> pSessionCtl2;
     if (FAILED (pSessionCtl->QueryInterface (IID_PPV_ARGS (&pSessionCtl2))))
     {
       pSessionCtl->Release ();
@@ -236,6 +228,7 @@ SK_WASAPI_GetAudioSessionControl (DWORD proc_id = GetCurrentProcessId ())
     }
 
     DWORD dwProcess = 0;
+
     if (FAILED (pSessionCtl2->GetProcessId (&dwProcess)))
     {
       pSessionCtl->Release ();
@@ -257,7 +250,7 @@ __stdcall
 SK_WASAPI_GetChannelVolumeControl (DWORD proc_id)
 {
   CComPtr <IAudioSessionControl> pSessionCtl =
-    SK_WASAPI_GetAudioSessionControl (proc_id);
+    SK_WASAPI_GetAudioSessionControl (eRender, eConsole, proc_id);
 
   if (pSessionCtl != nullptr)
   {
@@ -275,7 +268,7 @@ __stdcall
 SK_WASAPI_GetVolumeControl (DWORD proc_id)
 {
   CComPtr <IAudioSessionControl> pSessionCtl =
-    SK_WASAPI_GetAudioSessionControl (proc_id);
+    SK_WASAPI_GetAudioSessionControl (eRender, eConsole, proc_id);
 
   if (pSessionCtl != nullptr)
   {

@@ -7,7 +7,7 @@
 ;      in the future.
 ;
 
-STACKSIZE 4194304,2097152
+STACKSIZE 16777216,8388608
 
 ;LIBRARY "d3d9"
 

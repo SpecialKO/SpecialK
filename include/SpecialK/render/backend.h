@@ -25,6 +25,8 @@
 struct IUnknown;
 #include <Unknwnbase.h>
 
+#include <d3d11.h>
+
 #include <Windows.h>
 #include <../depends/include/nvapi/nvapi_lite_common.h>
 
@@ -161,6 +163,17 @@ public:
   bool                    hdr_capable          = false;
   SK_ColorSpace           display_gamut        = { 0.0f }; // EDID
   SK_ColorSpace           working_gamut        = { 0.0f }; // Metadata range
+
+  struct                 {
+    struct sub_event     {
+      LARGE_INTEGER time;
+    } submit,
+      begin_overlays, 
+      begin_cegui,   end_cegui,
+      begin_imgui,   end_imgui,
+      begin_texmgmt, end_texmgmt;
+  } present_staging;
+
   static volatile LONG    frames_drawn;
 
   struct window_registry_s
@@ -182,12 +195,11 @@ public:
     HWND getDevice (void);
   } windows;
 
-
   // TODO: Proper abstraction
   struct d3d11_s
   {
     //MIDL_INTERFACE ("c0bfa96c-e089-44fb-8eaf-26f8796190da")     
-    CComPtr <IUnknown>    immediate_ctx        = nullptr;
+    CComPtr <ID3D11DeviceContext> immediate_ctx = nullptr;
   } d3d11;
 
 

@@ -10,9 +10,17 @@
 
 unsigned int hde64_disasm(const void *code, hde64s *hs)
 {
-    uint8_t x, c, *p = (uint8_t *)code, cflags, opcode, pref = 0;
-    uint8_t *ht = hde64_table, m_mod, m_reg, m_rm, disp_size = 0;
-    uint8_t op64 = 0;
+    uint8_t  x      = 0,
+             c      = 0,
+            *p      = (uint8_t *)code,
+             cflags = 0,
+             opcode = 0,
+             pref   = 0;
+
+    uint8_t *ht = hde64_table,
+                  m_mod = 0, m_reg     = 0,
+                  m_rm  = 0, disp_size = 0;
+    uint8_t        op64 = 0;
 
     // Avoid using memset to reduce the footprint.
 #ifndef _MSC_VER

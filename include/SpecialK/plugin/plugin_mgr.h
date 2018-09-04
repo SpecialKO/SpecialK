@@ -113,6 +113,46 @@ const wchar_t*
 SK_GetPlugInDirectory ( SK_PlugIn_Type =
                         SK_PlugIn_Type::Unspecified );
 
+
+
+#include <SpecialK/parameter.h>
+#include <SpecialK/config.h>
+#include <SpecialK/ini.h>
+
+
+sk::iParameter*
+_CreateConfigParameter ( std::type_index type,
+                         const wchar_t*  wszSection,
+                         const wchar_t*  wszKey,
+                                  void*  pBackingStore,
+                         const wchar_t*  wszDescription    = L"No Description",
+                         const wchar_t*  wszOldSectionName = nullptr,
+                         const wchar_t*  wszOldKeyName     = nullptr );
+
+sk::ParameterFloat*
+_CreateConfigParameterFloat ( const wchar_t* wszSection,
+                              const wchar_t* wszKey,
+                                      float& backingStore,
+                              const wchar_t* wszDescription    = L"No Description",
+                              const wchar_t* wszOldSectionName = nullptr,
+                              const wchar_t* wszOldKeyName     = nullptr );
+
+sk::ParameterBool*
+_CreateConfigParameterBool ( const wchar_t* wszSection,
+                             const wchar_t* wszKey,
+                             bool& backingStore,
+                             const wchar_t* wszDescription    = L"No Description",
+                             const wchar_t* wszOldSectionName = nullptr,
+                             const wchar_t* wszOldKeyName     = nullptr );
+
+sk::ParameterInt*
+_CreateConfigParameterInt  ( const wchar_t* wszSection,
+                             const wchar_t* wszKey,
+                             int& backingStore,
+                             const wchar_t* wszDescription    = L"No Description",
+                             const wchar_t* wszOldSectionName = nullptr,
+                             const wchar_t* wszOldKeyName     = nullptr );
+
 #endif /* __SK__Plugin__Manager_H__ */
 
 

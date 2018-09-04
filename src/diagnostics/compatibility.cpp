@@ -48,6 +48,8 @@ struct IUnknown;
 
 volatile LONG __SK_TaskDialogActive = FALSE;
 
+HWND WINAPI SK_GetForegroundWindow (void);
+
 HRESULT
 CALLBACK
 TaskDialogCallback (
@@ -63,8 +65,8 @@ TaskDialogCallback (
 
   if (uNotification == TDN_TIMER)
   {
-    if (GetForegroundWindow () != hWnd &&
-        GetFocus            () != hWnd)
+    if (SK_GetForegroundWindow () != hWnd &&
+           GetFocus            () != hWnd)
     {
       SK_RealizeForegroundWindow (hWnd);
     }
@@ -907,7 +909,6 @@ SK_BypassInject (void)
 
 
 
-
 void
 SK_COMPAT_FixUpFullscreen_DXGI (bool Fullscreen)
 {
@@ -916,8 +917,8 @@ SK_COMPAT_FixUpFullscreen_DXGI (bool Fullscreen)
     if (SK_GetCurrentGameID () == SK_GAME_ID::WorldOfFinalFantasy)
     {
       ShowCursor  (TRUE);
-      ShowWindow  ( GetForegroundWindow (), SW_HIDE );
-      MessageBox  ( GetForegroundWindow (),
+      ShowWindow  ( SK_GetForegroundWindow (), SW_HIDE );
+      MessageBox  ( SK_GetForegroundWindow (),
                       L"Please re-configure this game to run in windowed mode",
                         L"Special K Conflict",
                           MB_OK        | MB_SETFOREGROUND |

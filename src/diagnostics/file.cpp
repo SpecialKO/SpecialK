@@ -19,6 +19,8 @@
  *
 **/
 
+struct IUnknown;
+
 #include <SpecialK/log.h>
 #include <SpecialK/TLS.h>
 #include <SpecialK/hooks.h>
@@ -40,9 +42,9 @@ SK_File_GetNameFromHandle ( HANDLE   hFile,
 
   wchar_t* ptrcFni =
     reinterpret_cast <wchar_t *>
-    ( SK_TLS_Bottom ()->scratch_memory.cmd.alloc (
+    ( SK_TLS_Bottom ()->scratch_memory.cmd.alloc   (
         sizeof (wchar_t)        *
-       (sizeof (FILE_NAME_INFO) + _MAX_PATH)     )
+       (sizeof (FILE_NAME_INFO) + _MAX_PATH), true )
     );
 
   FILE_NAME_INFO *pFni =
@@ -61,7 +63,7 @@ SK_File_GetNameFromHandle ( HANDLE   hFile,
       pwszFileName,
         std::min ( uiMaxLen,
                    (pFni->FileNameLength /
-      (DWORD)sizeof pFni->FileName [0])  +  2
+      (DWORD)sizeof pFni->FileName [0])  + 1
                  ), pFni->FileName,
                       _TRUNCATE
     );
@@ -210,6 +212,12 @@ NtWriteFile_Detour (
 void
 SK_File_InitHooks (void)
 {
+  if (! ( config.threads.enable_file_io_trace ||
+          config.file_io.trace_reads          || 
+          config.file_io.trace_writes            ))
+  return;
+
+
   SK_CreateDLLHook2 (      L"NtDll.dll",
                             "ZwReadFile",
                              NtReadFile_Detour,

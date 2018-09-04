@@ -294,12 +294,15 @@ Process_Section ( iSK_INISection  &kSection,
                          wchar_t  *end,
                          SK_TLS  **ppTLS      = nullptr )
 {
+  SK_TLS *pTLS = nullptr;
+
   if (   ppTLS != nullptr &&
        (*ppTLS == nullptr)   )
-  {     *ppTLS  = SK_TLS_Bottom ();  }
+  {     *ppTLS  = SK_TLS_Bottom ();  
+          pTLS  = *ppTLS;           }
 
-  SK_TLS *pTLS =
-    *ppTLS;
+  if (pTLS == nullptr)
+      pTLS = SK_TLS_Bottom ();
 
   auto& section = kSection;
 
@@ -364,12 +367,15 @@ Import_Section ( iSK_INISection  &section,
                         wchar_t  *end,
                          SK_TLS **ppTLS = nullptr )
 {
+  SK_TLS *pTLS = nullptr;
+
   if (   ppTLS != nullptr &&
        (*ppTLS == nullptr)   )
-  {     *ppTLS  = SK_TLS_Bottom ();  }
+  {     *ppTLS  = SK_TLS_Bottom ();  
+          pTLS  = *ppTLS;           }
 
-  SK_TLS *pTLS =
-    *ppTLS;
+  if (pTLS == nullptr)
+      pTLS = SK_TLS_Bottom ();
 
 
   const wchar_t* penultimate = CharPrevW (start, end);

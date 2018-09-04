@@ -223,7 +223,7 @@ struct SK_Input_Duration
 };
 
 struct SK_Input_KeyBinding
-{
+{ 
   struct key_s
   {
     SK_Input_Duration   duration   = {    };

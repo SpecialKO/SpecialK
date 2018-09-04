@@ -60,12 +60,7 @@
 #define LoadLibrary int x = __stdcall;
 #define FreeLibrary int x = __stdcall;
 
-bool has_local_dll = false;
-
-
-
-#include <concurrent_unordered_map.h>
-
+static bool _HasLocalDll = false;
 
 skModuleRegistry SK_Modules;
 
@@ -155,20 +150,6 @@ skModuleRegistry::Self (HMODULE hModToSet)
   return __SK_hModSelf;
 }
 
-BOOL
-__stdcall
-SK_Attach (DLL_ROLE role);
-
-BOOL
-__stdcall
-SK_Detach (DLL_ROLE role);
-
-BOOL
-__stdcall
-SK_EstablishDllRole (skWin32Module&& module);
-
-
-
 typedef HHOOK (NTAPI *NtUserSetWindowsHookEx_pfn)(
           HINSTANCE hMod,
      const wchar_t* UnsafeModuleName,
@@ -187,12 +168,6 @@ typedef LRESULT (NTAPI *NtUserCallNextHookEx_pfn)(
 extern NtUserCallNextHookEx_pfn NtUserCallNextHookEx;
 
 #include <cwctype>
-
-extern PSID
-SK_Win32_GetTokenSid (_TOKEN_INFORMATION_CLASS tic);
-
-extern PSID
-SK_Win32_ReleaseTokenSid (PSID pSid);
 
 // If the process doesn't have integrity to manipulate the UI, we have no
 //   real interest in it and can eliminate tons of compat. issues by bailing
@@ -362,12 +337,13 @@ DllMain ( HMODULE hModule,
       auto    tls_slot =
         SK_GetTLS (&pTLS);
 
-      if (tls_slot->dwTlsIdx == __SK_TLS_INDEX)
+      if ( tls_slot != nullptr &&
+           tls_slot->dwTlsIdx  == __SK_TLS_INDEX )
       {
         FlsFree (tls_slot->dwTlsIdx);
       }
 
-#ifdef _DEBUG
+#ifdef DEBUG
       else {
       //Sanity FAILURE: Attempt to detach something that was not properly attached?!
         dll_log.Log (L"[ SpecialK ]  ** SANITY CHECK FAILED: DLL was never attached !! **");
@@ -461,7 +437,7 @@ SK_TryLocalWrapperFirst (const std::set <std::wstring>& dlls)
 BOOL
 SK_DontInject (void)
 {
-  has_local_dll = true;
+  _HasLocalDll = true;
 
   LONG idx_to_free =
     __SK_TLS_INDEX;
@@ -644,12 +620,11 @@ SK_EstablishDllRole (skWin32Module&& module)
   //
   else if ( SK_Path_wcsstr (wszShort, L"SpecialK") )
   {
-    SK_IsInjected (true); // SET the injected state
-
-    config.system.central_repository = true;
-
+             // SET the injected state
+             SK_IsInjected (true);
     bool explicit_inject = false;
 
+    config.system.central_repository = true;
 
     wchar_t wszD3D9  [MAX_PATH + 2] = { };
     wchar_t wszDXGI  [MAX_PATH + 2] = { };
@@ -952,6 +927,10 @@ SK_CleanupMutex (SK_Thread_HybridSpinlock** ppMutex)
   }
 };
 
+extern "C" {
+  void __cdecl
+  __crc32_init (void);
+}
 
 BOOL
 __stdcall
@@ -989,6 +968,8 @@ SK_Attach (DLL_ROLE role)
         steam_init_cs     = new SK_Thread_HybridSpinlock (128UL);
 
         _time64 (&__SK_DLL_AttachTime);
+
+        __crc32_init ();
 
         InterlockedCompareExchange (
           &__SK_DLL_Attached,

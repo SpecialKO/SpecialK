@@ -181,71 +181,7 @@ using GetModuleHandleExA_pfn = BOOL (WINAPI*)(
 template <typename _T>
 BOOL
 __stdcall
-BlacklistLibrary (const _T* lpFileName)
-{
-#pragma push_macro ("StrStrI")
-#pragma push_macro ("GetModuleHandleEx")
-#pragma push_macro ("LoadLibrary")
-
-#pragma push_macro ("StrStrI")
-#undef StrStrI
-#undef GetModuleHandleEx
-#undef LoadLibrary
-
-  static StrStrI_pfn            StrStrI =
-    (StrStrI_pfn)
-                LPCVOID ( std::type_index (typeid (_T)) == std::type_index (typeid (wchar_t)) ? (StrStrI_pfn)           &StrStrIW           :
-                                                                                                (StrStrI_pfn)           &StrStrIA           );
-
-  static GetModuleHandleEx_pfn  GetModuleHandleEx =
-    (GetModuleHandleEx_pfn)
-                LPCVOID ( std::type_index (typeid (_T)) == std::type_index (typeid (wchar_t)) ? (GetModuleHandleEx_pfn) &GetModuleHandleExW :
-                                                                                                (GetModuleHandleEx_pfn) &GetModuleHandleExA );
-
-  static LoadLibrary_pfn  LoadLibrary =
-    (LoadLibrary_pfn)
-                LPCVOID ( std::type_index (typeid (_T)) == std::type_index (typeid (wchar_t)) ? (LoadLibrary_pfn) &LoadLibraryW_Detour :
-                                                                                                (LoadLibrary_pfn) &LoadLibraryA_Detour );
-
-  if (config.compatibility.disable_nv_bloat)
-  {
-    static bool init = false;
-
-    static std::vector < const _T* >
-                nv_blacklist;
-
-    if (! init)
-    {
-      nv_blacklist.emplace_back (SK_TEXT("rxgamepadinput.dll"));
-      nv_blacklist.emplace_back (SK_TEXT("rxcore.dll"));
-      nv_blacklist.emplace_back (SK_TEXT("nvinject.dll"));
-      nv_blacklist.emplace_back (SK_TEXT("rxinput.dll"));
-      nv_blacklist.emplace_back (SK_TEXT("nvspcap"));
-      nv_blacklist.emplace_back (SK_TEXT("nvSCPAPI"));
-      init = true;
-    }
-
-    for ( auto&& it : nv_blacklist )
-    {
-      if (StrStrI (lpFileName, it))
-      {
-        HMODULE hModNV;
-
-        if (GetModuleHandleEx (GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, it, &hModNV))
-          FreeLibrary_Original (hModNV);
-
-        return TRUE;
-      }
-    }
-  }
-
-  return FALSE;
-
-#pragma pop_macro ("StrStrI")
-#pragma pop_macro ("GetModuleHandleEx")
-#pragma pop_macro ("LoadLibrary")
-}
-
+BlacklistLibrary (const _T* lpFileName);
 
 template <typename _T>
 BOOL
@@ -648,6 +584,14 @@ FreeLibrary_Detour (HMODULE hLibModule)
   return bRet;
 }
 
+void
+SKX_SummarizeCaller ( LPVOID  lpRet,
+                     wchar_t *wszSummary )
+{
+  wcsncpy_s ( wszSummary,                          128,
+              SK_SummarizeCaller (lpRet).c_str (), _TRUNCATE );
+}
+
 HMODULE
 WINAPI
 LoadLibrary_Marshal (LPVOID lpRet, LPCWSTR lpFileName, const wchar_t* wszSourceFunc)
@@ -695,14 +639,18 @@ LoadLibrary_Marshal (LPVOID lpRet, LPCWSTR lpFileName, const wchar_t* wszSourceF
 
   HMODULE hMod = hModEarly;
 
-  __try                                  { hMod = LoadLibraryW_Original (compliant_path); }
+  __try      { hMod = LoadLibraryW_Original (compliant_path); }
   __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION )  ?
                        EXCEPTION_EXECUTE_HANDLER :
                        EXCEPTION_CONTINUE_SEARCH )
   {
+    wchar_t                     caller [128] = { };
+    SKX_SummarizeCaller (lpRet, caller);
+
     dll_log.Log ( L"[DLL Loader]  ** Crash Prevented **  DLL raised an exception during"
-                  L" %s ('%hs')!",
-                    wszSourceFunc, compliant_path );
+                  L" %s ('%ws')!  -  %s",
+                    wszSourceFunc, compliant_path,
+                    caller );
   }
 
 
@@ -1218,13 +1166,19 @@ _SK_SummarizeModule ( LPVOID   base_addr,  size_t      mod_size,
   else
 #endif
   {
-    pLogger->Log ( L"[ Module ]  ( %ph + %08i )       %-64hs       %s",
+    wchar_t     wszModNameCopy [MAX_PATH + 1] = { };
+    wcsncpy_s ( wszModNameCopy, MAX_PATH,
+                wszModName,     _TRUNCATE );
+
+    pLogger->Log ( L"[ Module ]  ( %ph + %08i )                        "
+                   L"                                                  "
+                   L"  %s",
                                              base_addr,
                  gsl::narrow_cast <int32_t> (mod_size),
-                        "", SK_StripUserNameFromPathW (wszModName) );
+                        SK_StripUserNameFromPathW (wszModNameCopy) );
   }
 
-  if (ver_str != L"  ")
+  if (ver_str.length () > 3)
   {
     pLogger->LogEx ( true,
       L"[File Ver]    %s\n",
@@ -1682,7 +1636,7 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
 
         MsgWaitForMultipleObjectsEx ( 0, nullptr, 20UL, QS_ALLEVENTS, MWMO_INPUTAVAILABLE );
 
-        if (timeGetTime () - start > 125UL) break;
+        //if (timeGetTime () - start > 125UL) break;
       }
 
       WaitForInit ();
@@ -1775,6 +1729,76 @@ SK_PreInitLoadLibrary (void)
   LoadLibraryExA_Original      = &LoadLibraryExA;
   LoadLibraryExW_Original      = &LoadLibraryExW;
   LoadPackagedLibrary_Original = nullptr; // Windows 8 feature
+}
+
+
+
+template <typename _T>
+BOOL
+__stdcall
+BlacklistLibrary (const _T* lpFileName)
+{
+#pragma push_macro ("StrStrI")
+#pragma push_macro ("GetModuleHandleEx")
+#pragma push_macro ("LoadLibrary")
+
+#pragma push_macro ("StrStrI")
+#undef StrStrI
+#undef GetModuleHandleEx
+#undef LoadLibrary
+
+  static StrStrI_pfn            StrStrI =
+    (StrStrI_pfn)
+                LPCVOID ( std::type_index (typeid (_T)) == std::type_index (typeid (wchar_t)) ? (StrStrI_pfn)           &StrStrIW           :
+                                                                                                (StrStrI_pfn)           &StrStrIA           );
+
+  static GetModuleHandleEx_pfn  GetModuleHandleEx =
+    (GetModuleHandleEx_pfn)
+                LPCVOID ( std::type_index (typeid (_T)) == std::type_index (typeid (wchar_t)) ? (GetModuleHandleEx_pfn) &GetModuleHandleExW :
+                                                                                                (GetModuleHandleEx_pfn) &GetModuleHandleExA );
+
+  static LoadLibrary_pfn  LoadLibrary =
+    (LoadLibrary_pfn)
+                LPCVOID ( std::type_index (typeid (_T)) == std::type_index (typeid (wchar_t)) ? (LoadLibrary_pfn) &LoadLibraryW_Detour :
+                                                                                                (LoadLibrary_pfn) &LoadLibraryA_Detour );
+
+  if (config.compatibility.disable_nv_bloat)
+  {
+    static bool init = false;
+
+    static std::vector < const _T* >
+                nv_blacklist;
+
+    if (! init)
+    {
+      nv_blacklist.emplace_back (SK_TEXT("rxgamepadinput.dll"));
+      nv_blacklist.emplace_back (SK_TEXT("rxcore.dll"));
+      nv_blacklist.emplace_back (SK_TEXT("nvinject.dll"));
+      nv_blacklist.emplace_back (SK_TEXT("rxinput.dll"));
+      nv_blacklist.emplace_back (SK_TEXT("nvspcap"));
+      nv_blacklist.emplace_back (SK_TEXT("nvSCPAPI"));
+      init = true;
+    }
+
+    for ( auto&& it : nv_blacklist )
+    {
+      if (StrStrI (lpFileName, it))
+      {
+        HMODULE hModNV;
+
+        if (GetModuleHandleEx (GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, it, &hModNV))
+          FreeLibrary_Original (hModNV);
+
+        return TRUE;
+      }
+    }
+  }
+
+  return FALSE;
+
+#pragma pop_macro ("StrStrI")
+#pragma pop_macro ("GetModuleHandleEx")
+#pragma pop_macro ("LoadLibrary")
 }
 #else
 /**

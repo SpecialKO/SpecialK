@@ -175,7 +175,8 @@ void           SK_DeferCommand              (const char* szCommand);
 
 void           SK_GetSystemInfo             (LPSYSTEM_INFO lpSystemInfo);
 
-
+PSID SK_Win32_GetTokenSid     (_TOKEN_INFORMATION_CLASS tic );
+PSID SK_Win32_ReleaseTokenSid (PSID                     pSid);
 
 constexpr uint8_t
 __stdcall

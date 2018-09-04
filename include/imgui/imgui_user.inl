@@ -3,6 +3,9 @@
 #include <mmsystem.h>
 #include <Windows.h>
 
+volatile LONG
+  __SK_KeyMessageCount = 0;
+
 IMGUI_API
 bool SK_ImGui_Visible = false;
 
@@ -220,6 +223,8 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
 
           case RIM_TYPEKEYBOARD:
           {
+            InterlockedIncrement (&__SK_KeyMessageCount);
+
             if (((! self) && (! already_processed)) && uiCommand == RID_INPUT )
               SK_RAWINPUT_READ (sk_input_dev_type::Keyboard)
 
@@ -777,6 +782,8 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
       case WM_KEYDOWN:
       case WM_SYSKEYDOWN:
       {
+        InterlockedIncrement (&__SK_KeyMessageCount);
+
         BYTE  vkCode   = LOWORD (wParam) & 0xFF;
         BYTE  scanCode = HIWORD (lParam) & 0x7F;
 
@@ -858,6 +865,8 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
       case WM_KEYUP:
       case WM_SYSKEYUP:
       {
+        InterlockedIncrement (&__SK_KeyMessageCount);
+
         BYTE vkCode = LOWORD (wParam) & 0xFF;
 
         if (vkCode & 0xF8) // Valid Keys:  8 - 255
@@ -922,6 +931,8 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
 
       case WM_CHAR:
       {
+        InterlockedIncrement (&__SK_KeyMessageCount);
+
         // You can also use ToAscii()+GetKeyboardState() to retrieve characters.
         if ((wParam & 0xff) > 7 && wParam < 0x10000)
         {
@@ -1120,6 +1131,9 @@ bool
 WINAPI
 SK_ImGui_ToggleEx (bool& toggle_ui, bool& toggle_nav)
 {
+  // XXX: HACK for Monster Hunter: World
+  game_window.active = true;
+
   if (toggle_ui)
     SK_ImGui_Toggle ();
   
@@ -1171,44 +1185,54 @@ SK_ImGui_PollGamepad_EndFrame (void)
 
   // Reset Mouse / Keyboard State so that we can process all state transitions
   //   that occur during the next frame without losing any input events.
-  if ( SK_IsGameWindowActive () )
+  if ( SK_IsGameWindowActive () /*&& GetFocus        () == game_window.hWnd &&
+                                   GetActiveWindow () == game_window.hWnd */)
   {
+    static LONG  last_key_msg_cnt = 0;
+
     io.MouseDown [0] = (SK_GetAsyncKeyState (VK_LBUTTON)  & 0x8000) != 0;
     io.MouseDown [1] = (SK_GetAsyncKeyState (VK_RBUTTON)  & 0x8000) != 0;
     io.MouseDown [2] = (SK_GetAsyncKeyState (VK_MBUTTON)  & 0x8000) != 0;
     io.MouseDown [3] = (SK_GetAsyncKeyState (VK_XBUTTON1) & 0x8000) != 0;
     io.MouseDown [4] = (SK_GetAsyncKeyState (VK_XBUTTON2) & 0x8000) != 0;
 
-    if (io.MouseDown [0] || io.MouseDown [1]) SK_ImGui_Cursor.update ();
+    if ( io.MouseDown [0] ||
+         io.MouseDown [1]  ) SK_ImGui_Cursor.update ();
 
-    // This stupid hack prevents the Steam overlay from making the software
-    //   think tab is stuck down.
-    io.KeysDown [0x08]  = (SK_GetAsyncKeyState ( 0x08 ) & 0x8000) != 0;
-    io.KeysDown [0x09]  = (SK_GetAsyncKeyState ( 0x09 ) & 0x8000) != 0;
-    io.KeysDown [0x0C]  = (SK_GetAsyncKeyState ( 0x0C ) & 0x8000) != 0;
-    io.KeysDown [0x0D]  = (SK_GetAsyncKeyState ( 0x0D ) & 0x8000) != 0;
-    for (int i = 0x10; i < 0x16; i++)
-      io.KeysDown [i]  = (SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
-    for (int i = 0x17; i < 0x1A; i++)
-      io.KeysDown [i]  = (SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
-    for (int i = 0x1B; i < 0x3A; i++)
-      io.KeysDown [i]  = (SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
-    for (int i = 0x41; i < 0x5E; i++)
-      io.KeysDown [i]  = (SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
-    for (int i = 0x5F; i < 0x88; i++)
-      io.KeysDown [i]  = (SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
-    for (int i = 0x90; i < 0x97; i++)
-      io.KeysDown [i]  = (SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
-    for (int i = 0xA0; i < 0xB8; i++)
-      io.KeysDown [i]  = (SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
-    for (int i = 0xBA; i < 0xC1; i++)
-      io.KeysDown [i]  = (SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
-    for (int i = 0xDB; i < 0xE0; i++)
-      io.KeysDown [i]  = (SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
-    for (int i = 0xE1; i < 0xE8; i++)
-      io.KeysDown [i]  = (SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
-    for (int i = 0xE9; i < 0xFF; i++)
-      io.KeysDown [i]  = (SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
+    if (last_key_msg_cnt != ReadAcquire (&__SK_KeyMessageCount))
+    {
+      last_key_msg_cnt =
+        ReadAcquire (&__SK_KeyMessageCount);
+
+      // This stupid hack prevents the Steam overlay from making the software
+      //   think tab is stuck down.
+      io.KeysDown [0x08]  = (SK_GetAsyncKeyState ( 0x08 ) & 0x8000) != 0;
+      io.KeysDown [0x09]  = (SK_GetAsyncKeyState ( 0x09 ) & 0x8000) != 0;
+      io.KeysDown [0x0C]  = (SK_GetAsyncKeyState ( 0x0C ) & 0x8000) != 0;
+      io.KeysDown [0x0D]  = (SK_GetAsyncKeyState ( 0x0D ) & 0x8000) != 0;
+      for (int i = 0x10; i < 0x16; i++)
+        io.KeysDown [i]  = (SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
+      for (int i = 0x17; i < 0x1A; i++)
+        io.KeysDown [i]  = (SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
+      for (int i = 0x1B; i < 0x3A; i++)
+        io.KeysDown [i]  = (SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
+      for (int i = 0x41; i < 0x5E; i++)
+        io.KeysDown [i]  = (SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
+      for (int i = 0x5F; i < 0x88; i++)
+        io.KeysDown [i]  = (SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
+      for (int i = 0x90; i < 0x97; i++)
+        io.KeysDown [i]  = (SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
+      for (int i = 0xA0; i < 0xB8; i++)
+        io.KeysDown [i]  = (SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
+      for (int i = 0xBA; i < 0xC1; i++)
+        io.KeysDown [i]  = (SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
+      for (int i = 0xDB; i < 0xE0; i++)
+        io.KeysDown [i]  = (SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
+      for (int i = 0xE1; i < 0xE8; i++)
+        io.KeysDown [i]  = (SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
+      for (int i = 0xE9; i < 0xFF; i++)
+        io.KeysDown [i]  = (SK_GetAsyncKeyState (  i ) & 0x8000) != 0;
+    }
 
     // Don't cycle window elements when Alt+Tabbing
     if (io.KeyAlt) io.KeysDown [VK_TAB] = false;

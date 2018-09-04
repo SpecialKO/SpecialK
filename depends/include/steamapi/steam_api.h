@@ -181,6 +181,16 @@ protected:
   friend class CCallbackMgr;
 };
 
+class CCallbackBase;
+
+using SteamAPI_RegisterCallResult_pfn   = void (S_CALLTYPE *)
+    (class CCallbackBase *pCallback, SteamAPICall_t hAPICall );
+using SteamAPI_UnregisterCallResult_pfn = void (S_CALLTYPE *)
+    (class CCallbackBase *pCallback, SteamAPICall_t hAPICall );
+
+extern "C" SteamAPI_RegisterCallResult_pfn    SteamAPI_RegisterCallResult;
+extern "C" SteamAPI_UnregisterCallResult_pfn  SteamAPI_UnregisterCallResult;
+
 
 //-----------------------------------------------------------------------------
 // Purpose: maps a steam async call result to a class member function
@@ -203,14 +213,22 @@ public:
   void Set( SteamAPICall_t hAPICall, T *p, func_t func )
   {
     if ( m_hAPICall )
-      SteamAPI_UnregisterCallResult( this, m_hAPICall );
+    {
+      if (SteamAPI_UnregisterCallResult != nullptr)
+          SteamAPI_UnregisterCallResult( this, m_hAPICall );
+    }
 
     m_hAPICall = hAPICall;
     m_pObj = p;
     m_Func = func;
 
     if ( hAPICall )
-      SteamAPI_RegisterCallResult( this, hAPICall );
+    {
+      if (SteamAPI_RegisterCallResult != nullptr)
+      {
+        SteamAPI_RegisterCallResult( this, hAPICall );
+      }
+    }
   }
 
   bool IsActive() const
@@ -222,7 +240,9 @@ public:
   {
     if ( m_hAPICall != k_uAPICallInvalid )
     {
-      SteamAPI_UnregisterCallResult( this, m_hAPICall );
+      if (SteamAPI_UnregisterCallResult != nullptr)
+          SteamAPI_UnregisterCallResult( this, m_hAPICall );
+
       m_hAPICall = k_uAPICallInvalid;
     }
     
@@ -258,7 +278,13 @@ private:
   func_t m_Func;
 };
 
+using SteamAPI_RegisterCallback_pfn      = void (S_CALLTYPE *)
+    (class CCallbackBase *pCallback, int iCallback);
+using SteamAPI_UnregisterCallback_pfn    = void (S_CALLTYPE *)
+    (class CCallbackBase *pCallback);
 
+extern "C" SteamAPI_RegisterCallback_pfn      SteamAPI_RegisterCallback_Original;
+extern "C" SteamAPI_UnregisterCallback_pfn    SteamAPI_UnregisterCallback_Original;
 
 //-----------------------------------------------------------------------------
 // Purpose: maps a steam callback to a class member function
@@ -305,14 +331,21 @@ public:
     }
     m_pObj = pObj;
     m_Func = func;
+    if (SteamAPI_RegisterCallback_Original != nullptr)
+    {
+      SteamAPI_RegisterCallback_Original (this, P::k_iCallback );
+    }
     // SteamAPI_RegisterCallback sets k_ECallbackFlagsRegistered
-    SteamAPI_RegisterCallback( this, P::k_iCallback );
   }
 
   void Unregister()
   {
     // SteamAPI_UnregisterCallback removes k_ECallbackFlagsRegistered
-    SteamAPI_UnregisterCallback( this );
+    if (SteamAPI_UnregisterCallback_Original != nullptr)
+    {
+      SteamAPI_UnregisterCallback_Original (this);
+    }
+  //SteamAPI_UnregisterCallback( this );
   }
 
   void SetGameserverFlag() { m_nCallbackFlags |= k_ECallbackFlagsGameServer; }

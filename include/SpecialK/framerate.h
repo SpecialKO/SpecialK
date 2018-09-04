@@ -61,10 +61,22 @@ namespace SK
 
       double effective_frametime (void);
 
+      int32_t suspend (void) { return ++limit_behavior; }
+      int32_t resume  (void) { return --limit_behavior; }
+
     private:
       double        ms, fps, effective_ms;
       LARGE_INTEGER start, last, next, time, freq;
       uint32_t      frames;
+
+#define LIMIT_APPLY     0
+#define LIMIT_UNDEFLOW  (limit_behavvior < 0)
+#define LIMIT_SUSPENDED (limit_behavivor > 0)
+
+      // 0 = Limiter runs, < 0 = Reference Counting Bug (dumbass)
+      //                   > 0 = Temporarily Ignore Limits
+       int32_t      limit_behavior =
+                    LIMIT_APPLY;
     };
 
     using EventCounter = class EventCounter_V1;
@@ -274,20 +286,23 @@ namespace SK
   };
 };
 
-using Sleep_pfn                   = void (WINAPI *)(      DWORD          dwMilliseconds);
 using QueryPerformanceCounter_pfn = BOOL (WINAPI *)(_Out_ LARGE_INTEGER *lpPerformanceCount);
 
-extern Sleep_pfn                   Sleep_Original;
-extern QueryPerformanceCounter_pfn QueryPerformanceCounter_Original;
+BOOL
+WINAPI
+SK_QueryPerformanceCounter (_Out_ LARGE_INTEGER *lpPerformanceCount);
+
+using  Sleep_pfn                   = void (WINAPI *)(      DWORD          dwMilliseconds);
+extern Sleep_pfn Sleep_Original;
 
 extern LARGE_INTEGER& SK_GetPerfFreq (void);
 extern LARGE_INTEGER  SK_QueryPerf   (void);
 
 static auto SK_CurrentPerf =
  []{
-     LARGE_INTEGER                      time;
-     QueryPerformanceCounter_Original (&time);
-     return                             time;
+     LARGE_INTEGER                time;
+     SK_QueryPerformanceCounter (&time);
+     return                       time;
    };
 
 static auto SK_DeltaPerf =
@@ -309,6 +324,5 @@ static auto SK_DeltaPerfMS =
        1000.0 * (double)(SK_DeltaPerf (delta, freq).QuadPart) /
                 (double)SK_GetPerfFreq           ().QuadPart;
    };
-
 
 #endif /* __SK__FRAMERATE_H__ */

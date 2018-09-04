@@ -78,6 +78,10 @@ GetCommandLineW_pfn     GetCommandLineW_Original   = nullptr;
 typedef LPSTR (WINAPI *GetCommandLineA_pfn)(void);
 GetCommandLineA_pfn    GetCommandLineA_Original   = nullptr;
 
+typedef NTSTATUS (*NtTerminateProcess_pfn)(HANDLE, NTSTATUS);
+                   NtTerminateProcess_pfn
+                   NtTerminateProcess_Original     = nullptr;
+
 TerminateProcess_pfn
                        TerminateProcess_Original   = nullptr;
 ExitProcess_pfn        ExitProcess_Original        = nullptr;
@@ -296,6 +300,25 @@ GetProcAddress_Detour     (
     }
 
 
+    ///if (! lstrcmpiA (lpProcName, "RaiseException"))
+    ///{
+    ///  extern
+    ///    void
+    ///    WINAPI
+    ///    RaiseException_Trap (
+    ///      DWORD      dwExceptionCode,
+    ///      DWORD      dwExceptionFlags,
+    ///      DWORD      nNumberOfArguments,
+    ///      const ULONG_PTR *lpArguments);
+    ///
+    ///  //if (SK_GetCallingDLL () == SK_Modules.HostApp ())
+    ///  {
+    ///    return
+    ///      reinterpret_cast <FARPROC> (RaiseException_Trap);
+    ///  }
+    ///}
+
+
     //if (! lstrcmpA (lpProcName, "AnselEnableCheck"))
     //{
     //  static FARPROC pLast = nullptr;
@@ -474,6 +497,34 @@ SK_TerminateParentProcess (UINT uExitCode)
   }
 }
 
+BOOL
+__stdcall
+SK_TerminateProcess (UINT uExitCode)
+{
+  bool abnormal_dll_state =
+    ( ReadAcquire (&__SK_DLL_Attached) == 0 ||
+      ReadAcquire (&__SK_DLL_Ending)   != 0  );
+
+  if (!abnormal_dll_state)
+  {
+    if (NtTerminateProcess_Original != nullptr)
+    {
+      return (
+        NtTerminateProcess_Original (GetCurrentProcess (), 0)
+        ) == STATUS_SUCCESS;
+    }
+
+    else if (TerminateProcess_Original != nullptr)
+    {
+      return
+        TerminateProcess_Original (GetCurrentProcess (), uExitCode);
+    }
+  }
+
+  return
+    TerminateProcess (GetCurrentProcess (), uExitCode);
+}
+
 using ResetEvent_pfn = BOOL (WINAPI *)(
   _In_ HANDLE hEvent
 );
@@ -497,21 +548,102 @@ ResetEvent_Detour (
 }
 
 
+NTSTATUS
+NtTerminateProcess_Detour ( HANDLE   ProcessHandle,
+                            NTSTATUS ExitStatus )
+{
+  bool abnormal_dll_state =
+    ( ReadAcquire (&__SK_DLL_Attached) == 0 ||
+      ReadAcquire (&__SK_DLL_Ending)   != 0  );
+
+  if (!abnormal_dll_state)
+  {
+    HANDLE hTarget;
+    DuplicateHandle ( GetCurrentProcess (), GetCurrentProcess (),
+                      GetCurrentProcess (),                       &hTarget,
+                      PROCESS_ALL_ACCESS, FALSE, 0x0 );
+
+    CHandle hSelf (hTarget);
+
+    if (GetProcessId (ProcessHandle) == GetProcessId (hSelf))
+    {
+      dll_log.Log ( L" *** BLOCKED NtTerminateProcess (...) ***\t -- %s",
+                   SK_SummarizeCaller ().c_str () );
+
+#define STATUS_INFO_LENGTH_MISMATCH   ((NTSTATUS)0xC0000004L)
+#define STATUS_BUFFER_TOO_SMALL       ((NTSTATUS)0xC0000023L)
+#define STATUS_PROCESS_IS_TERMINATING ((NTSTATUS)0xC000010AL)
+
+      return
+        STATUS_PROCESS_IS_TERMINATING;
+    }
+  }
+
+  return
+    NtTerminateProcess_Original (ProcessHandle, ExitStatus);
+}
+
+typedef MMRESULT (WINAPI *joyGetDevCapsW_pfn)(UINT_PTR, LPJOYCAPSW, UINT);
+                          joyGetDevCapsW_pfn
+                          joyGetDevCapsW_Original = nullptr;
+
+MMRESULT
+joyGetDevCapsW_Detour ( UINT_PTR   uJoyID,
+                        LPJOYCAPSW pjc,
+                        UINT       cbjc
+)
+{
+  __try {
+    return
+      joyGetDevCapsW_Original ( uJoyID, pjc, cbjc );
+  }
+
+  __except (EXCEPTION_EXECUTE_HANDLER)
+  {
+    dll_log.Log (L" *** Prevented crash due to Steam's HID wrapper and disconnected devices.");
+
+    extern void
+    SK_ImGui_Warning (const wchar_t* wszMessage);
+
+    SK_RunOnce (
+      SK_ImGui_Warning (L"The Steam HID (gamepad) wrapper would have just crashed the game! :(")
+    );
+
+    return MMSYSERR_NODRIVER;
+  }
+}
+
+
 BOOL
 WINAPI
 TerminateProcess_Detour (HANDLE hProcess, UINT uExitCode)
 {
-  UNREFERENCED_PARAMETER (uExitCode);
+  bool abnormal_dll_state =
+    ( ReadAcquire (&__SK_DLL_Attached) == 0 ||
+      ReadAcquire (&__SK_DLL_Ending)   != 0  );
 
-  if (hProcess == GetCurrentProcess ())
+  if (! abnormal_dll_state)
   {
-    OutputDebugString ( L" *** BLOCKED TerminateProcess (...) ***\n\t" );
-    OutputDebugString ( SK_GetCallerName ().c_str () );
+    UNREFERENCED_PARAMETER (uExitCode);
 
-    return FALSE;
+                                                            HANDLE hTarget;
+    DuplicateHandle ( GetCurrentProcess (), GetCurrentProcess (),
+                      GetCurrentProcess (),                       &hTarget,
+                        PROCESS_ALL_ACCESS, FALSE, 0x0 );
+
+    CHandle hSelf (hTarget);
+
+    if (GetProcessId (hProcess) == GetProcessId (hSelf))
+    {
+      dll_log.Log ( L" *** BLOCKED TerminateProcess (...) ***\t -- %s",
+                      SK_SummarizeCaller ().c_str () );
+
+      return FALSE;
+    }
   }
 
-  return TerminateProcess_Original (hProcess, uExitCode);
+  return
+    TerminateProcess_Original (hProcess, uExitCode);
 }
 
 void
@@ -1329,6 +1461,25 @@ SK_SEH_CompatibleCallerName (LPCVOID lpAddr, wchar_t *wszDllFullName)
   return false;
 }
 
+void
+WINAPI
+RaiseException_Trap (
+  DWORD      dwExceptionCode,
+  DWORD      dwExceptionFlags,
+  DWORD      nNumberOfArguments,
+  const ULONG_PTR *lpArguments         )
+{
+  SK_TLS* pTlsThis =
+    SK_TLS_Bottom ();
+
+  if (SK_Exception_HandleThreadName (dwExceptionCode, dwExceptionFlags, nNumberOfArguments, lpArguments))
+    return;
+
+  if (pTlsThis) InterlockedIncrement (&pTlsThis->debug.exceptions);
+
+  return;
+}
+
 // Detoured so we can get thread names
 void
 WINAPI
@@ -1421,6 +1572,21 @@ SK::Diagnostics::Debugger::Allow (bool bAllow)
     static_cast_p2p <void> (&IsDebuggerPresent_Original) );
 
   spoof_debugger = bAllow;
+
+  SK_CreateDLLHook2 (       L"kernel32",
+                             "TerminateProcess",
+                              TerminateProcess_Detour,
+     static_cast_p2p <void> (&TerminateProcess_Original) );
+
+    SK_CreateDLLHook2 (     L"NtDll",
+                             "NtTerminateProcess",
+                              NtTerminateProcess_Detour,
+     static_cast_p2p <void> (&NtTerminateProcess_Original) );
+
+    SK_CreateDLLHook2 (     L"winmmbase",
+                             "joyGetDevCapsW",
+                              joyGetDevCapsW_Detour,
+     static_cast_p2p <void> (&joyGetDevCapsW_Original) );
 
 #if 0
   if (SK_GetProcAddress (L"KernelBase", "OutputDebugStringA"))
@@ -1560,11 +1726,6 @@ SK::Diagnostics::Debugger::SpawnConsole (void)
     _wfreopen (L"CONIN$",  L"r", stdin);
     _wfreopen (L"CONOUT$", L"w", stdout);
     _wfreopen (L"CONOUT$", L"w", stderr);
-
-    SK_CreateDLLHook2 (      L"kernel32",
-                              "TerminateProcess",
-                               TerminateProcess_Detour,
-      static_cast_p2p <void> (&TerminateProcess_Original) );
   }
 }
 
@@ -2002,11 +2163,14 @@ SymFromAddr (
 
   if (SymFromAddr_Imp != nullptr)
   {
-    std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+    if (cs_dbghelp != nullptr && (ReadAcquire (&__SK_DLL_Attached) && (! ReadAcquire (&__SK_DLL_Ending))))
+    {
+      std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
-    SK_SymSetOpts ();
+      SK_SymSetOpts ();
 
-    return SAFE_SymFromAddr (hProcess, Address, Displacement, Symbol, SymFromAddr_Imp);
+      return SAFE_SymFromAddr (hProcess, Address, Displacement, Symbol, SymFromAddr_Imp);
+    }
   }
 
   return FALSE;
@@ -2074,22 +2238,25 @@ SymLoadModule (
 
     if (SymLoadModule_Imp != nullptr)
     {
-      SK_SymSetOpts ();
-
-      BOOL bRet;
-
-      std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
-
-      if (! _SK_DbgHelp_LoadedModules__32.count (hMod))
-        bRet = ( SymLoadModule_Imp ( hProcess, hFile, ImageName, ModuleName, BaseOfDll, SizeOfDll ) != 0 );
-      else
-        return TRUE;
-
-      if (bRet)
+      if (cs_dbghelp != nullptr && (ReadAcquire (&__SK_DLL_Attached) && (! ReadAcquire (&__SK_DLL_Ending))))
       {
-        _SK_DbgHelp_LoadedModules__32.insert (hMod);
+        std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
-        return TRUE;
+        SK_SymSetOpts ();
+
+        BOOL bRet;
+
+        if (! _SK_DbgHelp_LoadedModules__32.count (hMod))
+          bRet = ( SymLoadModule_Imp ( hProcess, hFile, ImageName, ModuleName, BaseOfDll, SizeOfDll ) != 0 );
+        else
+          return TRUE;
+
+        if (bRet)
+        {
+          _SK_DbgHelp_LoadedModules__32.insert (hMod);
+
+          return TRUE;
+        }
       }
     }
 
@@ -2134,22 +2301,34 @@ SymLoadModule64 (
 
     if (SymLoadModule64_Imp != nullptr)
     {
-      SK_SymSetOpts ();
-    
-      BOOL bRet;
-
-      std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
-
-      if (! _SK_DbgHelp_LoadedModules__64.count (hMod))
-        bRet = ( SymLoadModule64_Imp ( hProcess, hFile, ImageName, ModuleName, BaseOfDll, SizeOfDll ) != 0 );
-      else
-        return TRUE;
-
-      if (bRet)
+      if (cs_dbghelp != nullptr && (ReadAcquire (&__SK_DLL_Attached) && (! ReadAcquire (&__SK_DLL_Ending))))
       {
-        _SK_DbgHelp_LoadedModules__64.insert (hMod);
+        std::lock_guard <SK_Thread_HybridSpinlock>
+          auto_lock (*cs_dbghelp);
 
-        return TRUE;
+        SK_SymSetOpts ();
+
+        BOOL bRet;
+
+        if (! _SK_DbgHelp_LoadedModules__64.count (hMod))
+        {
+          bRet = ( 0 != SymLoadModule64_Imp ( hProcess,
+                                              hFile,    ImageName,
+                                                        ModuleName,
+                                                                    BaseOfDll,
+                                                                    SizeOfDll  )
+                 );
+        }
+
+        else
+          return TRUE;
+
+        if (bRet)
+        {
+          _SK_DbgHelp_LoadedModules__64.insert (hMod);
+
+          return TRUE;
+        }
       }
     }
 

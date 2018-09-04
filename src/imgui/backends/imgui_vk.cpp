@@ -938,7 +938,7 @@ ImGui_ImplVulkan_Init (ImGui_ImplVulkan_Init_Data* init_data)
     if (! QueryPerformanceFrequency ((LARGE_INTEGER *)&g_TicksPerSecond))
       return false;
 
-    if (! QueryPerformanceCounter_Original ((LARGE_INTEGER *)&g_Time))
+    if (! SK_QueryPerformanceCounter ((LARGE_INTEGER *)&g_Time))
       return false;
 
     first = false;
@@ -1050,7 +1050,7 @@ ImGui_ImplVulkan_NewFrame (void)
   // Setup time step
   INT64 current_time;
 
-  QueryPerformanceCounter_Original ((LARGE_INTEGER *)&current_time);
+  SK_QueryPerformanceCounter ((LARGE_INTEGER *)&current_time);
 
   io.DeltaTime = (float)(current_time - g_Time) / g_TicksPerSecond;
   g_Time       =         current_time;

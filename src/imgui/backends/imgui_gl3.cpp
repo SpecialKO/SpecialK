@@ -400,10 +400,10 @@ ImGui_ImplGL3_Init (void)
   static bool first = true;
 
   if (first) {
-    if (! QueryPerformanceFrequency        (reinterpret_cast <LARGE_INTEGER *> (&g_TicksPerSecond)))
+    if (! QueryPerformanceFrequency  (reinterpret_cast <LARGE_INTEGER *> (&g_TicksPerSecond)))
       return false;
 
-    if (! QueryPerformanceCounter_Original (reinterpret_cast <LARGE_INTEGER *> (&g_Time)))
+    if (! SK_QueryPerformanceCounter (reinterpret_cast <LARGE_INTEGER *> (&g_Time)))
       return false;
 
     first = false;
@@ -499,7 +499,7 @@ ImGui_ImplGL3_NewFrame (void)
   // Setup time step
   INT64 current_time;
 
-  QueryPerformanceCounter_Original (
+  SK_QueryPerformanceCounter (
     reinterpret_cast <LARGE_INTEGER *> (&current_time)
   );
 

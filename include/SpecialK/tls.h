@@ -561,8 +561,8 @@ public:
 class SK_Net_ThreadContext
 {
 public:
-  volatile LONG64 bytes_sent     = 0ULL;
-  volatile LONG64 bytes_received = 0ULL;
+  volatile LONG64 bytes_sent     = 0LL;
+  volatile LONG64 bytes_received = 0LL;
 };
 
 
@@ -575,16 +575,18 @@ public:
   bool          lock_affinity = false;
   bool          background_io = false;
 
-  int           sleep0_count  = 0;
+  ULONG         sleep0_count  = 0UL;
+  ULONG         last_frame    = 0UL;
+  ULONG         switch_count  = 0UL;
 
   volatile
-    LONG          alert_waits = 0;
+    LONG          alert_waits = 0L;
 
   struct wait_record_s {
-    LONG          calls        = 0;
-    LONG          time         = 0;
+    LONG          calls        = 0L;
+    LONG          time         = 0L;
     volatile
-      LONG64      time_blocked = 0;
+      LONG64      time_blocked = 0LL;
   };
 
   std::unordered_map <HANDLE, wait_record_s>*
@@ -655,15 +657,15 @@ public:
   {
     CONTEXT          last_ctx      = {   };
     EXCEPTION_RECORD last_exc      = {   };
-    bool             last_chance   = false;
-    bool             in_DllMain    = false;
     wchar_t          name    [256] = {   };
-    DWORD            tls_idx       =     0;
     HANDLE           handle        = INVALID_HANDLE_VALUE;
+    DWORD            tls_idx       =     0;
     DWORD            tid           = GetCurrentThreadId ();
     ULONG            last_frame    = static_cast <ULONG>(-1);
-    bool             mapped        = false;
     volatile LONG    exceptions    =     0;
+    bool             mapped        = false;
+    bool             last_chance   = false;
+    bool             in_DllMain    = false;
   } debug;
 
   struct tex_mgmt_s
@@ -675,10 +677,9 @@ public:
       uint32_t data_age      = 0;
     } streaming_memory;
 
-    BOOL injection_thread    = FALSE;
-
-    IUnknown* refcount_obj   = nullptr; // Object to expect a reference count change on
-    LONG      refcount_test  = 0;       // Used to validate 3rd party D3D texture wrappers
+    IUnknown* refcount_obj     = nullptr; // Object to expect a reference count change on
+    LONG      refcount_test    = 0;       // Used to validate 3rd party D3D texture wrappers
+    BOOL      injection_thread = false;
   } texture_management;
 
 

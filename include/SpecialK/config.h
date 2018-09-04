@@ -84,32 +84,35 @@ struct sk_config_t
   } version_banner;
 
   struct {
-    bool   show           = true;
     LONG   format         = LOCALE_USER_DEFAULT;
 
     struct {
       BYTE toggle [4]     = { VK_CONTROL, VK_SHIFT, 'T', 0 };
     } keys;
+
+    bool   show           = true;
   } time;
 
   struct {
-    bool   show           = false;
     float  reserve        = 0.0f;// Unused / Unlimited
     float  interval       = 0.25f;
 
     struct {
       BYTE toggle [4]     = { VK_CONTROL, VK_SHIFT, 'M', 0 };
     } keys;
+
+    bool   show           = false;
   } mem;
 
 
   struct {
-    bool   show           = false;
     float  interval       = 0.25f; // 250 msecs (4 Hz)
 
     struct {
       BYTE toggle [4]     = { VK_CONTROL, VK_SHIFT, 'I', 0 };
     } keys;
+
+    bool   show           = false;
   } io;
 
 
@@ -123,8 +126,6 @@ struct sk_config_t
 
 
   struct {
-    bool   show           = false;
-
     int    red            = MAXDWORD32;
     int    green          = MAXDWORD32;
     int    blue           = MAXDWORD32;
@@ -139,20 +140,22 @@ struct sk_config_t
     } keys;
 
     bool   remember_state = false;
+    bool   show           = false;
   } osd;
 
 
   struct {
-    bool   show           = false;
+    GUID      power_scheme_guid      = { };
+    GUID      power_scheme_guid_orig = { };
+    
     float  interval       = 0.33333333f;
+
     bool   simple         = true;
+    bool   show           = false;
 
     struct {
       BYTE toggle  [4]    = { VK_CONTROL, VK_SHIFT, 'C', 0 };
     } keys;
-
-    GUID      power_scheme_guid      = { };
-    GUID      power_scheme_guid_orig = { };
   } cpu;
 
 
@@ -234,9 +237,17 @@ struct sk_config_t
 
 
   struct {
+    struct callback_cache_s {
+      HMODULE
+        module               = nullptr;
+      uintptr_t
+        offset               = 0;
+      void* resolved         = nullptr;
+    } cached_overlay_callback;
+
     struct {
-      bool    pull_friend_stats   = true;
-      bool    pull_global_stats   = true;
+      std::wstring
+        sound_file          = L"";
 
       struct {
         bool  show                = true;
@@ -247,53 +258,45 @@ struct sk_config_t
         float inset               = 0.005f;
       } popup;
 
-      std::wstring
-              sound_file          = L"";
       bool    take_screenshot     = false;
       bool    play_sound          = true;
+      bool    pull_friend_stats   = true;
+      bool    pull_global_stats   = true;
     } achievements;
 
     struct {
       std::set <std::string> blacklist;
     } cloud;
 
+    std::wstring
+            dll_path             = L"";
+
+    int     appid                = 0;
     int     notify_corner        = 4; // 0=Top-Left,
                                       // 1=Top-Right,
                                       // 2=Bottom-Left,
                                       // 3=Bottom-Right,
                                       // 4=Don't Care
-
-    bool    silent               = false;
-
+    int     online_status        =   -1;  // Force a certain online status at all times
     int     init_delay           = 0UL; // Disable to prevent crashing in many games
-    bool    auto_pump_callbacks  = true;
-    bool    block_stat_callback  = false;
-    bool    filter_stat_callback = false;
     int     callback_throttle    = -1;
 
-    int     appid                = 0;
+    float   overlay_hdr_luminance= 4.375f; // 350 nits
+                                           //   that do not use it
+
+    bool    silent               = false;
     bool    preload_client       = false;
     bool    preload_overlay      = false; // For input processing, this is important
     bool    show_playtime        = true;  // In the control panel title
     bool    force_load_steamapi  = false; // Load steam_api{64}.dll even in games
-    float   overlay_hdr_luminance= 4.375f; // 350 nits
-                                          //   that do not use it
+    bool    auto_pump_callbacks  = true;
+    bool    block_stat_callback  = false;
+    bool    filter_stat_callback = false;
     bool    spoof_BLoggedOn      = false;
     bool    overlay_hides_sk_osd = true;
     bool    reuse_overlay_pause  = true;  // Use Steam's overlay pause mode for our own
                                           //   control panel
     bool    auto_inject          = true;  // Control implicit steam_api.dll bootstrapping
-    int     online_status        =   -1;  // Force a certain online status at all times
-    std::wstring
-            dll_path             = L"";
-
-    struct callback_cache_s {
-      HMODULE
-            module               = nullptr;
-      uintptr_t
-            offset               = 0;
-      void* resolved             = nullptr;
-    } cached_overlay_callback;
 
     struct screenshot_handler_s {
       bool    enable_hook         = true;
@@ -331,14 +334,18 @@ struct sk_config_t
     struct {
       float   target_fps        =  0.0f;
       float   limiter_tolerance =  1.666f;
+      float   sleep_deadline    = 3.3f;
+      float   max_sleep_percent = 59.998800f;
+      int     max_render_ahead  =  0;
+      int     override_num_cpus = -1;
       int     pre_render_limit  = -1;
       int     present_interval  = -1;
       int     buffer_count      = -1;
-      int     max_delta_time    =  0; // Bad old setting; needs to be phased out
-      bool    flip_discard      = false;
+      int     max_delta_time    =  0; // Bad old setting; needs to be phased 
       int     swapchain_wait    =  0;
       int     refresh_rate      = -1;
       int     pin_render_thread = -1;
+      bool    flip_discard      = false;
       bool    wait_for_vblank   = false;
       bool    sleepless_render  = false;
       bool    sleepless_window  = false;
@@ -346,10 +353,6 @@ struct sk_config_t
       bool    busy_wait_limiter = true;
       bool    yield_once        = true;
       bool    min_input_latency = true;
-      float   sleep_deadline    = 3.3f;
-      float   max_sleep_percent = 59.998800f;
-      int     max_render_ahead  =  0;
-      int     override_num_cpus = -1;
     } framerate;
     struct {
       bool    force_d3d9ex      = false;
@@ -372,6 +375,7 @@ struct sk_config_t
       int     exception_mode     =    -1; // -1 = Don't Care
       int     scaling_mode       =    -1; // -1 = Don't Care
       int     scanline_order     =    -1; // -1 = Don't Care
+      int     msaa_samples       =    -1;
       // DXGI 1.1 (Ignored for now)
       int     rotation           =    -1; // -1 = Don't Care
       bool    test_present       = false;
@@ -381,16 +385,16 @@ struct sk_config_t
       bool    safe_fullscreen    = false;
       bool    enhanced_depth     = false;
       bool    deferred_isolation = false;
-      int     msaa_samples       =    -1;
       bool    present_test_skip  = false;
       bool    spoof_hdr          = false;
     } dxgi;
+
     struct {
-      // Required by default for compatibility with Mirillis Action!
-      bool    draw_in_vidcap     = true;
-      float   hdr_luminance      = 4.375f; // 350 nits
       ULONG _last_vidcap_frame   = 0;
       ULONG _last_normal_frame   = 0;
+      float   hdr_luminance      = 4.375f; // 350 nits
+      // Required by default for compatibility with Mirillis Action!
+      bool    draw_in_vidcap     = true;
     } osd;
 
     // OSD Render Stats (D3D11 Only Right Now)
@@ -401,20 +405,20 @@ struct sk_config_t
   } render;
 
   struct {
-    bool      force_fullscreen    = false;
-    bool      force_windowed      = false;
     int       monitor_idx         =    -1; // TODO
     float     refresh_rate        =  0.0f; // TODO
+    bool      force_fullscreen    = false;
+    bool      force_windowed      = false;
   } display;
 
   struct {
     struct {
+      std::wstring
+        res_root                  = L"SK_Res";
       bool    precise_hash        = false;
       bool    dump                = false;
       bool    inject              = true;
       bool    cache               = true;
-      std::wstring
-              res_root            = L"SK_Res";
       bool    highlight_debug     = true;
       bool    injection_keeps_fmt = false;
       bool    generate_mips       = false;
@@ -486,6 +490,7 @@ struct sk_config_t
     } ui;
 
     struct {
+      int     predefined_layout = 1;    //0 = PS4, 1 = Steam, 2 = Xbox
       bool    disabled_to_game  = false;
       bool    disable_ps4_hid   = false;
       bool    rehook_xinput     = false;
@@ -496,7 +501,6 @@ struct sk_config_t
       bool    hook_hid          = true;
       bool    hook_xinput       = true; // Kind of important ;)
       bool    native_ps4        = false;
-      int     predefined_layout = 1;    //0 = PS4, 1 = Steam, 2 = Xbox
 
       struct {
         unsigned
@@ -519,6 +523,16 @@ struct sk_config_t
     } keyboard;
 
     struct {
+      //
+      // Uses APIs such as DirectInput or RawInput that only send relative motion events
+      //   to derive the virtual position of the cursor, since the game hijacks the
+      //     physical position.
+      //
+      //   >> Ideally we want absolute cursor position every frame for the UI, but
+      //        that's not always possible. <<
+      //
+      float   antiwarp_deadzone = 2.5f;
+
       // Translate WM_MOUSEWHEEL messages into actual events that will trigger
       //   other mouse APIs such as DirectInput and RawInput.
       //
@@ -528,19 +542,15 @@ struct sk_config_t
       bool    fix_synaptics       = false;
       // If absolute cursor position is stuck (i.e. Dreamfall Chapters) use this
       bool    add_relative_motion = true;
-//
-// Uses APIs such as DirectInput or RawInput that only send relative motion events
-//   to derive the virtual position of the cursor, since the game hijacks the
-//     physical position.
-//
-//   >> Ideally we want absolute cursor position every frame for the UI, but
-//        that's not always possible. <<
-//
-      float   antiwarp_deadzone = 2.5f;
       bool    disabled_to_game  = false;
     } mouse;
   } input;
 
+  struct {
+    bool    enable_mem_alloc_trace = false;
+    bool    enable_file_io_trace   = false;
+  } threads;
+  
   struct {
     struct {
       bool  use_static_addresses = false;
@@ -561,6 +571,7 @@ struct sk_config_t
                      x.percent  > -0.00001f && x.percent   < 0.00001f &&
                      y.percent  > -0.00001f && y.percent   < 0.00001f; }
     } offset;
+    int     always_on_top       = 0;
     bool    background_render   = false;
     bool    background_mute     = false;
     bool    confine_cursor      = false;
@@ -568,7 +579,6 @@ struct sk_config_t
     bool    persistent_drag     = false;
     bool    drag_lock           = false; // NOT SAVED IN INI
     bool    fullscreen          = false;
-    int     always_on_top       = 0;
     bool    disable_screensaver = false;
     bool    treat_fg_as_active  = false; // Compat. hack for NiNoKuni 2
     bool    dont_hook_wndproc   = false;
@@ -634,31 +644,31 @@ struct sk_config_t
   } apis;
 
   struct {
-    bool    silent              = false;
-    int     log_level           = 0;
-    bool    handle_crashes      = true;
-    bool    prefer_fahrenheit   = false;
-    bool    display_debug_out   = false;
-    bool    game_output         = true;
-    bool    central_repository  = false;
-    bool    ignore_rtss_delay   = false;
     std::wstring
             version             = SK_VER_STR;
-    bool    trace_load_library  = true;
-    bool    strict_compliance   = false;
+    int     log_level           = 0;
     float   global_inject_delay = 0.0f;
 #ifdef _DEBUG
     bool    trace_create_thread = true;
 #else
     bool    trace_create_thread = false;
 #endif
+    bool    trace_load_library  = true;
+    bool    strict_compliance   = false;
+    bool    silent              = false;
+    bool    handle_crashes      = true;
+    bool    prefer_fahrenheit   = false;
+    bool    display_debug_out   = false;
+    bool    game_output         = true;
+    bool    central_repository  = false;
+    bool    ignore_rtss_delay   = false;
   } system;
 } extern config;
 
 struct SK_KeyCommand
 {
-  std::wstring command;  
   SK_Keybind   binding;
+  std::wstring command;  
 };
 
 
@@ -762,6 +772,8 @@ enum class SK_GAME_ID
   PillarsOfEternity2,           // PillarsOfEternityII.exe
   Yakuza0,                      // Yakuza0.exe
   MonsterHunterWorld,           // MonsterHunterWorld.exe
+  Shenmue,                      // Shenmue.exe
+  DragonQuestXI,                // DRAGON QUEST XI.exe
   UNKNOWN_GAME               = 0xffff
 };
 

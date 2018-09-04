@@ -21,6 +21,7 @@
 
 #include <SpecialK/TLS.h>
 #include <SpecialK/hooks.h>
+#include <SpecialK/config.h>
 #include <SpecialK/utility.h>
 #include <SpecialK/diagnostics/memory.h>
 
@@ -269,6 +270,9 @@ HeapFree_Detour (
 void
 SK_Memory_InitHooks (void)
 {
+  if (! config.threads.enable_mem_alloc_trace)
+    return;
+
   SK_CreateDLLHook2 (      L"kernel32",
                             "LocalAlloc",
                              LocalAlloc_Detour,

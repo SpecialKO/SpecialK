@@ -165,9 +165,9 @@ SK_CPU_CountPhysicalCores (void)
   {
     if (GetLastError () == ERROR_INSUFFICIENT_BUFFER)
     {
-      SYSTEM_LOGICAL_PROCESSOR_INFORMATION   *pLogProcInfo =
+        SYSTEM_LOGICAL_PROCESSOR_INFORMATION *pLogProcInfo =
        (SYSTEM_LOGICAL_PROCESSOR_INFORMATION *)
-          new uint8_t [dwNeededBytes] { };
+                new uint8_t [dwNeededBytes] { };
 
       DWORD dwOffset = 0;
 
@@ -220,9 +220,9 @@ SK_CPU_GetLogicalCorePairs (void)
   {
     if (GetLastError () == ERROR_INSUFFICIENT_BUFFER)
     {
-      SYSTEM_LOGICAL_PROCESSOR_INFORMATION   *pLogProcInfo =
+        SYSTEM_LOGICAL_PROCESSOR_INFORMATION *pLogProcInfo =
        (SYSTEM_LOGICAL_PROCESSOR_INFORMATION *)
-          new uint8_t [dwNeededBytes] { };
+                              new uint8_t [dwNeededBytes] { };
 
       DWORD dwOffset = 0;
 

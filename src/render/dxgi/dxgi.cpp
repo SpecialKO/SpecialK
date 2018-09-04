@@ -2606,6 +2606,9 @@ SK_DXGI_BorderCompensation (UINT& x, UINT& y)
 #endif
 }
 
+volatile LONG
+__SK_SHENMUE_EarlyPresent = 0;
+
 HRESULT
 STDMETHODCALLTYPE
 SK_DXGI_Present ( IDXGISwapChain *This,
@@ -2613,6 +2616,16 @@ SK_DXGI_Present ( IDXGISwapChain *This,
                   UINT            Flags )
 {
   HRESULT hr = S_OK;
+
+  if (ReadAcquire (&__SK_SHENMUE_EarlyPresent) == 1)
+  {
+    InterlockedExchange (&__SK_SHENMUE_EarlyPresent, 0);
+    return hr;
+  }
+  if (ReadAcquire (&__SK_SHENMUE_EarlyPresent) == 2)
+  { 
+    InterlockedExchange (&__SK_SHENMUE_EarlyPresent, 1);
+  }
 
   __try                                {
     hr = Present_Original (This, SyncInterval, Flags);
@@ -2967,7 +2980,7 @@ SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
           S_OK;
 
     const bool can_present =
-      ( SUCCEEDED (hr) || hr == DXGI_STATUS_OCCLUDED );
+      ( SUCCEEDED (hr) && hr != DXGI_STATUS_OCCLUDED );
 
     if (can_present)
     {
@@ -2985,7 +2998,7 @@ SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
                         SUCCEEDED (hr) ? L"Success" :
                                          L"Fail" );
 
-      if (FAILED (hr) && hr == DXGI_ERROR_DEVICE_REMOVED)
+      if (hr == DXGI_ERROR_DEVICE_REMOVED)
       {
         if (pDev != nullptr)
         {
@@ -3067,12 +3080,14 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
   {
     if (Source == SK_DXGI_PresentSource::Hook)
     {
-      return DXGISwapChain_Present ( This,
-                                       SyncInterval,
-                                         Flags );
+      return
+        DXGISwapChain_Present ( This,
+                                  SyncInterval, 
+                                    Flags );
     }
 
-    return This->Present (SyncInterval, Flags);
+    return
+      This->Present (SyncInterval, Flags);
   };
 
 
@@ -3142,7 +3157,10 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
 
     HRESULT hr = E_FAIL;
 
-    CComPtr <ID3D11Device> pDev = nullptr;
+    // ReShade (official) has broken reference counting, so ...
+    //   just let a reference leak. It sucks, but people like ReShade.
+    //CComPtr <ID3D11Device> pDev = nullptr;
+    ID3D11Device* pDev = nullptr;
     This->GetDevice (IID_PPV_ARGS (&pDev));
 
     if (pDev && first_frame)
@@ -3248,7 +3266,7 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
            SUCCEEDED (pDevDXGI->GetAdapter               (&pAdapter)) &&
            SUCCEEDED (pAdapter->GetParent  (IID_PPV_ARGS (&pFactory))) )
       {
-        SK_GetCurrentRenderBackend ().device    = pDev.p;
+        SK_GetCurrentRenderBackend ().device    = pDev;
         SK_GetCurrentRenderBackend ().swapchain = This;
   
         //if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status)
@@ -3299,7 +3317,7 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
            S_OK;
   
     const bool can_present =
-      SUCCEEDED (hr) || hr == DXGI_STATUS_OCCLUDED;
+      SUCCEEDED (hr) && hr != DXGI_STATUS_OCCLUDED;
   
     if (! bFlipMode)
     {
@@ -3317,7 +3335,7 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
                           SUCCEEDED (hr) ? L"Success" :
                                            L"Fail" );
   
-        if (FAILED (hr) && hr == DXGI_ERROR_DEVICE_REMOVED)
+        if (hr == DXGI_ERROR_DEVICE_REMOVED)
         {
           if (pDev != nullptr)
           {
@@ -4188,6 +4206,21 @@ DXGISwap_ResizeBuffers_Override ( IDXGISwapChain *This,
     }
   }
 
+  else if (SK_GetCurrentGameID () == SK_GAME_ID::DragonQuestXI)
+  {
+    extern bool __SK_DQXI_10BitSwap;
+    extern bool __SK_DQXI_16BitSwap;
+    if         (__SK_DQXI_10BitSwap)
+    {
+      NewFormat = DXGI_FORMAT_R10G10B10A2_UNORM;
+    }
+
+    if         (__SK_DQXI_16BitSwap)
+    {
+      NewFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
+    }
+  }
+
 
   HRESULT     ret;
   DXGI_CALL ( ret, ResizeBuffers_Original ( This, BufferCount, Width, Height,
@@ -4400,6 +4433,21 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
       }
 
       if         (__SK_MHW_16BitSwap)
+      {
+        pNewNewTargetParameters->Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+      }
+    }
+
+    else if (SK_GetCurrentGameID () == SK_GAME_ID::DragonQuestXI)
+    {
+      extern bool __SK_DQXI_10BitSwap;
+      extern bool __SK_DQXI_16BitSwap;
+      if         (__SK_DQXI_10BitSwap)
+      {
+        pNewNewTargetParameters->Format = DXGI_FORMAT_R10G10B10A2_UNORM;
+      }
+
+      if         (__SK_DQXI_16BitSwap)
       {
         pNewNewTargetParameters->Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
       }
@@ -4849,6 +4897,20 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).c_str (),
         pDesc->BufferDesc.Format = DXGI_FORMAT_R10G10B10A2_UNORM;
       }
       if         (__SK_MHW_16BitSwap)
+      {
+        pDesc->BufferDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+      }
+    }
+
+    else if (SK_GetCurrentGameID () == SK_GAME_ID::DragonQuestXI)
+    {
+      extern bool __SK_DQXI_10BitSwap;
+      extern bool __SK_DQXI_16BitSwap;
+      if         (__SK_DQXI_10BitSwap)
+      {
+        pDesc->BufferDesc.Format = DXGI_FORMAT_R10G10B10A2_UNORM;
+      }
+      if         (__SK_DQXI_16BitSwap)
       {
         pDesc->BufferDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
       }
@@ -6467,18 +6529,34 @@ HRESULT
 WINAPI
 IDXGISwapChain3_CheckColorSpaceSupport_Override ( IDXGISwapChain3       *This,
                                                   DXGI_COLOR_SPACE_TYPE  ColorSpace,
-                                                  UINT                  *pColorSpaceSupported)
+                                                  UINT                  *pColorSpaceSupported )
 {
-  SK_LOG0 ( ( "[!] IDXGISwapChain3::CheckColorSpaceSupport (%s)",
-                DXGIColorSpaceToStr (ColorSpace) ),
-              L"   DXGI   " );
+  //SK_LOG0 ( ( "[!] IDXGISwapChain3::CheckColorSpaceSupport (%s) ",
+  //              DXGIColorSpaceToStr (ColorSpace) ),
+  //            L"   DXGI   " );
+  //
+  //if ( (INT)ColorSpace < DXGI_COLOR_SPACE_CUSTOM || 
+  //          ColorSpace > DXGI_COLOR_SPACE_YCBCR_STUDIO_G24_TOPLEFT_P2020 )
+  //{
+  //    SK_LOG0 ( ( L" >>> CRITICAL WARNING: Faulty software that does not handle HDR correctly < %s > "
+  //                L"is trying to query support for a non-existent colorspace (idx: %u) !!",
+  //                  SK_SummarizeCaller ().c_str (),
+  //                  ColorSpace  ),
+  //                L"HesDeadJim" );
+  //}
 
   HRESULT hr =
-    IDXGISwapChain3_CheckColorSpaceSupport_Original (This, ColorSpace, pColorSpaceSupported);
+    IDXGISwapChain3_CheckColorSpaceSupport_Original (
+      This,
+        ColorSpace,
+          pColorSpaceSupported
+    );
 
   if (config.render.dxgi.spoof_hdr)
   {
-    *pColorSpaceSupported = DXGI_SWAP_CHAIN_COLOR_SPACE_SUPPORT_FLAG_PRESENT;
+    *pColorSpaceSupported =
+      DXGI_SWAP_CHAIN_COLOR_SPACE_SUPPORT_FLAG_PRESENT;
+
     return S_OK;
   }
 
@@ -6583,8 +6661,9 @@ IDXGIOutput6_GetDesc1_Override ( IDXGIOutput6      *This,
         pDesc->ColorSpace = SpoofColorSpace;
     }
 
-    if ( pDesc->ColorSpace   == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020 ||
-         pDesc->ColorSpace   == DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709    &&
+    if ( (pDesc->ColorSpace   == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020 ||
+          pDesc->ColorSpace   == DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709     )
+               &&
          pDesc->BitsPerColor >= 10 )
     {
       rb.hdr_capable = true;
@@ -6734,7 +6813,7 @@ SK_DXGI_HookSwapChain (IDXGISwapChain* pSwapChain)
 
     // 40 SetHDRMetaData
 
-    CComQIPtr <IDXGISwapChain4> pSwapChain3 (pSwapChain);
+    CComQIPtr <IDXGISwapChain3> pSwapChain3 (pSwapChain);
 
     if ( pSwapChain3                                 != nullptr &&
      IDXGISwapChain3_CheckColorSpaceSupport_Original == nullptr )
@@ -6986,7 +7065,7 @@ SK_DXGI_InitHooksBeforePlugIn (void)
   extern int SK_Import_GetNumberOfPlugIns (void);
 
   if (SK_Import_GetNumberOfPlugIns () > 0)
-    SK_ApplyQueuedHooks ();
+      SK_ApplyQueuedHooks ();
 }
 
 DWORD
@@ -7322,11 +7401,11 @@ mem_info_t       mem_info  [NumBuffers]    = { };
 struct budget_thread_params_t
 {
            IDXGIAdapter3 *pAdapter = nullptr;
-           DWORD          tid      = 0UL;
            HANDLE         handle   = INVALID_HANDLE_VALUE;
-           DWORD          cookie   = 0UL;
            HANDLE         event    = INVALID_HANDLE_VALUE;
            HANDLE         shutdown = INVALID_HANDLE_VALUE;
+           DWORD          tid      = 0UL;
+           DWORD          cookie   = 0UL;
   volatile LONG           ready    = FALSE;
 } budget_thread;
 
@@ -8006,6 +8085,11 @@ SK_DXGI_QuickHook (void)
     return;
 
   if (config.steam.preload_overlay)
+    return;
+
+  extern BOOL
+      __SK_DisableQuickHook;
+  if (__SK_DisableQuickHook)
     return;
 
 

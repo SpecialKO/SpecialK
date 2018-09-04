@@ -9,6 +9,8 @@
 #include <SpecialK/render/d3d9/d3d9_backend.h>
 #include <SpecialK/render/dxgi/dxgi_backend.h>
 
+#include <SpecialK/parameter.h>
+
 extern bool SK_D3D11_EnableTracking;
 
 bool
@@ -127,7 +129,6 @@ static const int priority_levels [] =
   { THREAD_PRIORITY_NORMAL,  THREAD_PRIORITY_ABOVE_NORMAL,
     THREAD_PRIORITY_HIGHEST, THREAD_PRIORITY_TIME_CRITICAL };
 
-#include <SpecialK/parameter.h>
 #include <unordered_set>
 
 struct SK_FFXV_Thread
@@ -551,1451 +552,369 @@ SK_POE2_PlugInCfg (void)
   return true;
 }
 
-volatile LONG __SK_Y0_InitiateHudFreeShot = 0;
-volatile LONG __SK_Y0_QueuedShots         = 0;
+volatile LONG __SK_SHENMUE_FinishedButNotPresented = 0;
+volatile LONG __SK_SHENMUE_FullAspectCutscenes     = 0;
+         bool  bSK_SHENMUE_FullAspectCutscenes     = true;
 
-void
-SK_YS0_TriggerHudFreeScreenshot (void) noexcept
-{
-  InterlockedIncrement (&__SK_Y0_QueuedShots);
-}
 
-sk::ParameterBool* _SK_Y0_NoFPBlur;
-sk::ParameterBool* _SK_Y0_NoSSAO;
-sk::ParameterBool* _SK_Y0_NoDOF;
+#include <SpecialK/plugin/plugin_mgr.h>
 
-sk::ParameterBool*  _SK_Y0_LockVolume;
-sk::ParameterFloat* _SK_Y0_LockLevel;
-sk::ParameterBool*  _SK_Y0_QuietStart;
-sk::ParameterFloat* _SK_Y0_QuietLevel;
+sk::ParameterBool*    _SK_SM_FullAspectCutscenes;
+sk::ParameterStringW* _SK_SM_FullAspectToggle;
 
-sk::ParameterBool* _SK_Y0_FixAniso;
-sk::ParameterBool* _SK_Y0_ClampLODBias;
-sk::ParameterInt*  _SK_Y0_ForceAniso;
+sk::ParameterFloat*   _SK_SM_ClockFuzz;
+sk::ParameterBool*    _SK_SM_BypassLimiter;
 
-sk::ParameterInt*   _SK_Y0_SaveAnywhere;
-iSK_INI*            _SK_Y0_Settings;
+extern volatile
+LONG SK_D3D11_DrawTrackingReqs;
 
-struct {
-  int   save_anywhere =     0;
-  bool  no_fp_blur    = false;
-  bool  no_ssao       = false;
-  bool  no_dof        = false;
+extern float __SK_SHENMUE_ClockFuzz;
 
-  bool  lock_volume   =  true;
-  float lock_level    =  1.0f;
-  bool  quiet_start   =  true;
-  float quiet_level   = 0.10f;
-  int   __quiet_mode  = false;
-} _SK_Y0_Cfg;
-
-bool __SK_Y0_FixShadowAniso  = false;
-bool __SK_Y0_FixAniso        =  true;
-bool __SK_Y0_ClampLODBias    =  true;
-int  __SK_Y0_ForceAnisoLevel =     0;
-bool __SK_Y0_FilterUpdate    = false; 
-
-// The two pixel shaders are for the foreground DepthOfField effect
-#define SK_Y0_DOF_PS0_CRC32C 0x10d88ce3
-#define SK_Y0_DOF_PS1_CRC32C 0x419dcbfc
-#define SK_Y0_DOF_VS_CRC32C  0x0f5fefc2
-
-#include <SpecialK/sound.h>
-
-void
-SK_Yakuza0_BeginFrame (void)
-{
-  if ( ReadAcquire (&__SK_Y0_QueuedShots)          > 0 ||
-       ReadAcquire (&__SK_Y0_InitiateHudFreeShot) != 0    )
+struct shenmue_limit_ctrl_s {
+public:
+  bool
+    initialize (LPVOID lpQueryAddr)
   {
-#define SK_Y0_HUD_PS_CRC32C 0x2e24510d
-
-    if (InterlockedCompareExchange (&__SK_Y0_InitiateHudFreeShot, -1, 1) == 1)
+    if (lpQueryAddr != nullptr)
     {
-      SK_D3D11_Shaders.pixel.blacklist.emplace (SK_Y0_HUD_PS_CRC32C);
+      if ( SK_IsAddressExecutable (lpQueryAddr) &&
+           SK_GetModuleFromAddr   (lpQueryAddr) ==
+           SK_Modules.HostApp     (           )    )
+      {
+        qpc_loop_addr =
+           lpQueryAddr;
 
-      SK::SteamAPI::TakeScreenshot (SK::ScreenshotStage::BeforeOSD);
+        if ( branch_addr == nullptr )
+        {
+          branch_addr =
+            SK_ScanAlignedEx ( "\x7C\xEE", 2, nullptr, (void *)qpc_loop_addr );
+
+          // Damn, we couldn't find the loop control code
+          if (branch_addr == nullptr)
+              branch_addr = (LPVOID)-1;
+        }
+
+        if (want_bypass)
+          toggle ();
+
+        return true;
+      }
     }
 
-    else if (InterlockedCompareExchange (&__SK_Y0_InitiateHudFreeShot, 0, -1) == -1)
-    {
-      SK_D3D11_Shaders.pixel.blacklist.erase (SK_Y0_HUD_PS_CRC32C);
-    }
-
-    else
-    {
-      InterlockedDecrement (&__SK_Y0_QueuedShots);
-      InterlockedExchange  (&__SK_Y0_InitiateHudFreeShot, 1);
-      
-      return
-        SK_Yakuza0_BeginFrame ();
-    }
+    return false;
   }
 
-
-  static bool done = false;
-
-  if (_SK_Y0_Cfg.quiet_start && (! done))
+  bool
+    toggle (void)
   {
-    _SK_Y0_Cfg.__quiet_mode = true;
-
-    static CComPtr <ISimpleAudioVolume> pVolume =
-      SK_WASAPI_GetVolumeControl (GetCurrentProcessId ());
-
-    if (pVolume == nullptr)
-        pVolume  = SK_WASAPI_GetVolumeControl (GetCurrentProcessId ());
-
-    static float fOrigVol    = 0.0;
-
-    if (pVolume != nullptr && fOrigVol == 0.0f)
-        pVolume->GetMasterVolume (&fOrigVol);
-
-    static DWORD dwStartTime = timeGetTime ();
-
-    if (timeGetTime () < (dwStartTime + 20000UL))
+    if (qpc_loop_addr != nullptr)
     {
-      if (pVolume != nullptr)
-          pVolume->SetMasterVolume (_SK_Y0_Cfg.quiet_level, nullptr);
+      if (reinterpret_cast <intptr_t> (branch_addr) > 0)
+      {
+        DWORD dwOldProt = (DWORD)-1;
+
+        VirtualProtect ( branch_addr,                     2,
+                         PAGE_EXECUTE_READWRITE, &dwOldProt );
+
+        if (enabled)
+        {
+          memcpy ( branch_addr,
+                     "\x90\x90", 2 );
+        }
+
+        else
+        {
+          memcpy ( branch_addr,
+                     orig_instns, 2 );
+        }
+
+        enabled = (! enabled);
+
+        VirtualProtect ( branch_addr,          2,
+                         dwOldProt,   &dwOldProt );
+      }
     }
 
-    else
-    {
-      if (pVolume != nullptr)
-          pVolume->SetMasterVolume (fOrigVol, nullptr);
-
-      _SK_Y0_Cfg.__quiet_mode = false;
-      done = true;
-    }
+    return enabled;
   }
 
-  else if (_SK_Y0_Cfg.lock_volume)
-  {
-    static CComPtr <ISimpleAudioVolume> pVolume =
-      SK_WASAPI_GetVolumeControl (GetCurrentProcessId ());
+//protected:
+  // ---------------------------------------
 
-    if (pVolume != nullptr)
-        pVolume->SetMasterVolume (_SK_Y0_Cfg.lock_level, nullptr);
-  }
-}
+  LPVOID  branch_addr      =        nullptr;
+  uint8_t orig_instns  [2] = { 0x7C, 0xEE };
+  bool    enabled          =           true;
 
-void
-SK_Yakuza0_PlugInInit (void)
-{
-  extern std::wstring&
-    SK_GetRoamingDir (void);
-
-  std::wstring game_settings =
-    SK_GetRoamingDir ();
-
-  game_settings += LR"(\Sega\Yakuza0\settings.ini)";
-
-  _SK_Y0_Settings =
-    SK_CreateINI (game_settings.c_str ());
-
-  _SK_Y0_SaveAnywhere =
-    dynamic_cast <sk::ParameterInt *> (
-      g_ParameterFactory.create_parameter <int> (L"Save Anywhere")
-    );
-
-  _SK_Y0_SaveAnywhere->register_to_ini (_SK_Y0_Settings, L"General", L"SaveAnywhere");
-  _SK_Y0_SaveAnywhere->load            (_SK_Y0_Cfg.save_anywhere);
-
-  _SK_Y0_NoFPBlur =
-    dynamic_cast <sk::ParameterBool *> (
-      g_ParameterFactory.create_parameter <bool> (L"No First-Person Blur")
-    );
-
-  _SK_Y0_NoSSAO =
-    dynamic_cast <sk::ParameterBool *> (
-      g_ParameterFactory.create_parameter <bool> (L"No SSAO")
-    );
-
-  _SK_Y0_NoDOF =
-    dynamic_cast <sk::ParameterBool *> (
-      g_ParameterFactory.create_parameter <bool> (L"No Depth of Field")
-    );
-
-  _SK_Y0_NoFPBlur->register_to_ini (
-    SK_GetDLLConfig (), L"Yakuza0.Shaders", L"DisableFirstPersonBlur"
-  );
-
-  _SK_Y0_NoSSAO->register_to_ini (
-    SK_GetDLLConfig (), L"Yakuza0.Shaders", L"DisableSSAO"
-  );
-
-  _SK_Y0_NoDOF->register_to_ini (
-    SK_GetDLLConfig (), L"Yakuza0.Shaders", L"DisableDOF"
-  );
+  // The first return addr. we encounter in our
+  //   QPC hook for a call originating on the render
+  //     thread is within jumping distance of the
+  //       evil busy-loop causing framerate problems.
+  LPCVOID qpc_loop_addr    =        nullptr;
 
 
-  _SK_Y0_FixAniso = 
-    dynamic_cast <sk::ParameterBool *> (
-      g_ParameterFactory.create_parameter <bool> (L"Fix Anisotropy")
-    );
-  _SK_Y0_ClampLODBias = 
-    dynamic_cast <sk::ParameterBool *> (
-      g_ParameterFactory.create_parameter <bool> (L"Clamp Negative LOD Bias")
-    );
-  _SK_Y0_ForceAniso = 
-    dynamic_cast <sk::ParameterInt *> (
-      g_ParameterFactory.create_parameter <int> (L"Force Anisotropic Filtering")
-    );
 
-  _SK_Y0_FixAniso->register_to_ini (
-    SK_GetDLLConfig (), L"Yakuza0.Textures", L"TrilinearToAniso"
-  );
-  _SK_Y0_ClampLODBias->register_to_ini (
-    SK_GetDLLConfig (), L"Yakuza0.Textures", L"ClampLODBias"
-  );
-  _SK_Y0_ForceAniso->register_to_ini (
-    SK_GetDLLConfig (), L"Yakuza0.Textures", L"ForceAnisoLevel"
-  );
-
-
-  _SK_Y0_QuietStart =
-    dynamic_cast <sk::ParameterBool *> (
-      g_ParameterFactory.create_parameter <bool> (L"Quieter Start")
-    );
-  _SK_Y0_LockVolume =
-    dynamic_cast <sk::ParameterBool *> (
-      g_ParameterFactory.create_parameter <bool> (L"Prevent Volume Changes")
-    );
-
-  _SK_Y0_LockLevel =
-    dynamic_cast <sk::ParameterFloat *> (
-      g_ParameterFactory.create_parameter <float> (L"Volume Lock Level")
-    );
-  _SK_Y0_QuietLevel =
-    dynamic_cast <sk::ParameterFloat *> (
-      g_ParameterFactory.create_parameter <float> (L"Volume Start Level")
-    );
-
-  _SK_Y0_QuietStart->register_to_ini (
-    SK_GetDLLConfig (), L"Yakuza0.Sound", L"QuietStart"
-  );
-  _SK_Y0_QuietLevel->register_to_ini (
-    SK_GetDLLConfig (), L"Yakuza0.Sound", L"QuietLevel"
-  );
-  _SK_Y0_LockVolume->register_to_ini (
-    SK_GetDLLConfig (), L"Yakuza0.Sound", L"LockVolume"
-  );
-  _SK_Y0_LockLevel->register_to_ini (
-    SK_GetDLLConfig (), L"Yakuza0.Sound", L"LockLevel"
-  );
-
-  _SK_Y0_NoDOF->load    (_SK_Y0_Cfg.no_dof);
-  _SK_Y0_NoSSAO->load   (_SK_Y0_Cfg.no_ssao);
-  _SK_Y0_NoFPBlur->load (_SK_Y0_Cfg.no_fp_blur);
-
-  _SK_Y0_QuietStart->load (_SK_Y0_Cfg.quiet_start);
-  _SK_Y0_QuietLevel->load (_SK_Y0_Cfg.quiet_level);
-  _SK_Y0_LockVolume->load (_SK_Y0_Cfg.lock_volume);
-  _SK_Y0_LockLevel->load  (_SK_Y0_Cfg.lock_level);
-
-  _SK_Y0_ForceAniso->load   (__SK_Y0_ForceAnisoLevel);
-  _SK_Y0_FixAniso->load     (__SK_Y0_FixAniso);
-  _SK_Y0_ClampLODBias->load (__SK_Y0_ClampLODBias);
-
-  extern bool SK_D3D11_EnableTracking;
-
-  if ( _SK_Y0_Cfg.no_fp_blur ||
-       _SK_Y0_Cfg.no_dof     ||
-       _SK_Y0_Cfg.no_ssao       ) SK_D3D11_EnableTracking = true;
-
-  if (_SK_Y0_Cfg.no_ssao)
-  { SK_D3D11_Shaders.vertex.blacklist.emplace (0x97837269);
-    SK_D3D11_Shaders.vertex.blacklist.emplace (0x7cc07f78);
-    SK_D3D11_Shaders.vertex.blacklist.emplace (0xe5d4a297);
-    SK_D3D11_Shaders.pixel.blacklist.emplace  (0x4d2973a3); 
-    SK_D3D11_Shaders.pixel.blacklist.emplace  (0x0ed648e1);
-    SK_D3D11_Shaders.pixel.blacklist.emplace  (0x170885b9);
-    SK_D3D11_Shaders.pixel.blacklist.emplace  (0x4d2973a3);
-    SK_D3D11_Shaders.pixel.blacklist.emplace  (0x5256777a);
-    SK_D3D11_Shaders.pixel.blacklist.emplace  (0x69b8ef91); }
-
-  if (_SK_Y0_Cfg.no_dof)
-  { SK_D3D11_Shaders.vertex.blacklist.emplace (SK_Y0_DOF_VS_CRC32C);
-    SK_D3D11_Shaders.pixel.blacklist.emplace  (SK_Y0_DOF_PS0_CRC32C);
-    SK_D3D11_Shaders.pixel.blacklist.emplace  (SK_Y0_DOF_PS1_CRC32C); }
-
-  if (_SK_Y0_Cfg.no_fp_blur)
-  { SK_D3D11_Shaders.vertex.blacklist.emplace (0xb008686a); 
-    SK_D3D11_Shaders.pixel.blacklist.emplace  (0x1c599fa7); }
-}
-
-bool __SK_Y0_1024_512 = true;
-bool __SK_Y0_1024_768 = true;
-bool __SK_Y0_960_540  = true;
+  // It takes a few frames to locate the limiter's
+  //   inner-loop -- but the config file's preference
+  //     needs to be respected.
+  //
+  //  * So ... once we find the addr. -> Install Bypass?
+  //
+  bool    want_bypass      = true;
+} SK_Shenmue_Limiter;
 
 bool
-SK_Yakuza0_PlugInCfg (void)
-{
-  if (ImGui::CollapsingHeader ("Yakuza 0", ImGuiTreeNodeFlags_DefaultOpen))
-  {
-    ImGui::TreePush ("");
-
-    bool changed = false;
-
-    static bool ssao_changed = false;
-
-    ImGui::BeginGroup ();
-    changed |= ImGui::Checkbox ("Disable First-Person Blur", &_SK_Y0_Cfg.no_fp_blur);
-    changed |= ImGui::Checkbox ("Disable Depth of Field",    &_SK_Y0_Cfg.no_dof);
-    changed |= ImGui::Checkbox ("Disable Ambient Occlusion", &_SK_Y0_Cfg.no_ssao);
-    ImGui::EndGroup ();
-
-    ImGui::SameLine ();
-
-    ImGui::BeginGroup ();
-
-    static CComPtr <ISimpleAudioVolume> pVolume =
-      SK_WASAPI_GetVolumeControl (GetCurrentProcessId ());
-
-    bool sound_changed = false;
-
-    if (! _SK_Y0_Cfg.__quiet_mode)
-    {
-      sound_changed |=
-        ImGui::Checkbox ("Lock Volume", &_SK_Y0_Cfg.lock_volume);
-
-      if (_SK_Y0_Cfg.lock_volume)
-      {
-        ImGui::SameLine ();
-
-        if (ImGui::IsItemHovered ())
-          ImGui::SetTooltip ("The game occasionally fudges with volume, but you lock it down.");
-
-        if (ImGui::SliderFloat ("Master Volume Control", &_SK_Y0_Cfg.lock_level, 0.0, 1.0, ""))
-        {
-          if (_SK_Y0_Cfg.lock_volume)
-          {
-            sound_changed = true;
-          }
-
-          pVolume->SetMasterVolume (_SK_Y0_Cfg.lock_level, nullptr);
-        }
-        ImGui::SameLine ();
-        ImGui::TextColored ( ImColor::HSV ( 0.15f, 0.9f,
-                              0.5f + _SK_Y0_Cfg.lock_level * 0.5f),
-                                     "(%03.1f%%)  ",
-                                       _SK_Y0_Cfg.lock_level * 100.0f );
-      }
-    }
-
-    sound_changed |= ImGui::Checkbox ("Quiet Start Mode", &_SK_Y0_Cfg.quiet_start);
-
-    if (_SK_Y0_Cfg.quiet_start)
-    {
-      ImGui::SameLine ();
-      sound_changed |=
-        ImGui::SliderFloat ("Intro Volume Level", &_SK_Y0_Cfg.quiet_level, 0.0, 1.0, "");
-      ImGui::SameLine ();
-      ImGui::TextColored ( ImColor::HSV ( 0.3f, 0.9f,
-                             1.0f - _SK_Y0_Cfg.quiet_level * 0.5f),
-                               "(%03.1f%%)  ",
-                                 _SK_Y0_Cfg.quiet_level * 100.0f );
-    }
-
-    if (sound_changed)
-    {
-      _SK_Y0_QuietStart->store (_SK_Y0_Cfg.quiet_start);
-      _SK_Y0_QuietLevel->store (_SK_Y0_Cfg.quiet_level);
-      _SK_Y0_LockVolume->store (_SK_Y0_Cfg.lock_volume);
-      _SK_Y0_LockLevel->store  (_SK_Y0_Cfg.lock_level);
-    }
-
-    ImGui::EndGroup   ();
-
-    if (config.steam.screenshots.enable_hook)
-    {
-      ImGui::PushID    ("Y0_Screenshots");
-      ImGui::Separator ();
-
-      auto Keybinding = [] (SK_Keybind* binding, sk::ParameterStringW* param) ->
-      auto
-      {
-        std::string label  = SK_WideCharToUTF8 (binding->human_readable) + "###";
-                    label += binding->bind_name;
-
-        if (ImGui::Selectable (label.c_str (), false))
-        {
-          ImGui::OpenPopup (binding->bind_name);
-        }
-
-        std::wstring original_binding = binding->human_readable;
-
-        SK_ImGui_KeybindDialog (binding);
-
-        if (original_binding != binding->human_readable)
-        {
-          param->store (binding->human_readable);
-
-          SK_SaveConfig ();
-
-          return true;
-        }
-
-        return false;
-      };
-
-      static std::set <SK_ConfigSerializedKeybind *>
-        keybinds = {
-          &config.steam.screenshots.game_hud_free_keybind
-        };
-
-      ImGui::SameLine   ();
-      ImGui::BeginGroup ();
-      for ( auto& keybind : keybinds )
-      {
-        ImGui::Text          ( "%s:  ",
-                                 keybind->bind_name );
-      }
-      ImGui::EndGroup   ();
-      ImGui::SameLine   ();
-      ImGui::BeginGroup ();
-      for ( auto& keybind : keybinds )
-      {
-        Keybinding ( keybind, keybind->param );
-      }
-      ImGui::EndGroup   ();
-
-      bool png_changed = false;
-
-      if (config.steam.screenshots.enable_hook)
-      {
-        png_changed =
-          ImGui::Checkbox ( "Keep Lossless .PNG Screenshots",
-                              &config.steam.screenshots.png_compress      );
-      }
-
-      if ( ( screenshot_manager != nullptr &&
-             screenshot_manager->getExternalScreenshotRepository ().files > 0 ) )
-      {
-        ImGui::SameLine ();
-
-        const SK_Steam_ScreenshotManager::screenshot_repository_s& repo =
-          screenshot_manager->getExternalScreenshotRepository (png_changed);
-
-        ImGui::BeginGroup (  );
-        ImGui::TreePush   ("");
-        ImGui::Text ( "%lu files using %ws",
-                        repo.files,
-                          SK_File_SizeToString (repo.liSize.QuadPart).c_str  ()
-                    );
-
-        if (ImGui::IsItemHovered ())
-        {
-          ImGui::SetTooltip ( "Steam does not support .png screenshots, so "
-                              "SK maintains its own storage for lossless screenshots." );
-        }
-
-        ImGui::SameLine ();
-
-        if (ImGui::Button ("Browse"))
-        {
-          ShellExecuteW ( GetActiveWindow (),
-            L"explore",
-              screenshot_manager->getExternalScreenshotPath (),
-                nullptr, nullptr,
-                      SW_NORMAL
-          );
-        }
-
-        ImGui::TreePop  ();
-        ImGui::EndGroup ();
-      }
-      ImGui::PopID      ();
-    }
-
-    ImGui::Separator ();
-
-    if (ImGui::CollapsingHeader ("Texture Settings"))
-    {
-      static bool tex_changed = false;
-    
-      ImGui::TreePush ("");
-    
-      bool new_change = false;
-    
-      new_change |= ImGui::Checkbox  ("Fix Anisotropic Filtering", &__SK_Y0_FixAniso);
-      new_change |= ImGui::Checkbox  ("Clamp LOD Bias",            &__SK_Y0_ClampLODBias);
-      new_change |= ImGui::SliderInt ("Force Anisotropic Level",   &__SK_Y0_ForceAnisoLevel, 0, 16);
-    
-      if (new_change)
-      {
-        tex_changed |= new_change;
-    
-        _SK_Y0_FixAniso->store     (__SK_Y0_FixAniso);
-        _SK_Y0_ClampLODBias->store (__SK_Y0_ClampLODBias);
-        _SK_Y0_ForceAniso->store   (__SK_Y0_ForceAnisoLevel);
-        SK_GetDLLConfig ()->write  (SK_GetDLLConfig ()->get_filename ());
-      }
-    
-      if (tex_changed)
-      {
-        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.3f, .8f, .9f));
-        ImGui::BulletText     ("Restart Game");
-        ImGui::PopStyleColor  ();
-      }
-      ImGui::TreePop ();
-    }
-
-    if (changed)
-    {
-      // SSAO
-      if (_SK_Y0_Cfg.no_ssao)
-      { SK_D3D11_Shaders.vertex.blacklist.emplace (0x97837269);
-        SK_D3D11_Shaders.vertex.blacklist.emplace (0x7cc07f78);
-        SK_D3D11_Shaders.vertex.blacklist.emplace (0xe5d4a297);
-        SK_D3D11_Shaders.pixel.blacklist.emplace  (0x4d2973a3); 
-        SK_D3D11_Shaders.pixel.blacklist.emplace  (0x0ed648e1);
-        SK_D3D11_Shaders.pixel.blacklist.emplace  (0x170885b9);
-        SK_D3D11_Shaders.pixel.blacklist.emplace  (0x4d2973a3);
-        SK_D3D11_Shaders.pixel.blacklist.emplace  (0x5256777a);
-        SK_D3D11_Shaders.pixel.blacklist.emplace  (0x69b8ef91); }
-      else
-      { SK_D3D11_Shaders.vertex.blacklist.erase   (0x97837269);
-        SK_D3D11_Shaders.vertex.blacklist.erase   (0x7cc07f78);
-        SK_D3D11_Shaders.vertex.blacklist.erase   (0xe5d4a297);
-        SK_D3D11_Shaders.pixel.blacklist.erase    (0x4d2973a3); 
-        SK_D3D11_Shaders.pixel.blacklist.erase    (0x0ed648e1);
-        SK_D3D11_Shaders.pixel.blacklist.erase    (0x170885b9);
-        SK_D3D11_Shaders.pixel.blacklist.erase    (0x4d2973a3);
-        SK_D3D11_Shaders.pixel.blacklist.erase    (0x5256777a);
-        SK_D3D11_Shaders.pixel.blacklist.erase    (0x69b8ef91); }
-
-      // DOF
-      if (_SK_Y0_Cfg.no_dof)
-      { SK_D3D11_Shaders.vertex.blacklist.emplace (SK_Y0_DOF_VS_CRC32C);
-        SK_D3D11_Shaders.pixel.blacklist.emplace  (SK_Y0_DOF_PS0_CRC32C);
-        SK_D3D11_Shaders.pixel.blacklist.emplace  (SK_Y0_DOF_PS1_CRC32C);
-      }
-      else
-      { SK_D3D11_Shaders.vertex.blacklist.erase   (SK_Y0_DOF_VS_CRC32C);
-        SK_D3D11_Shaders.pixel.blacklist.erase    (SK_Y0_DOF_PS0_CRC32C);
-        SK_D3D11_Shaders.pixel.blacklist.erase    (SK_Y0_DOF_PS1_CRC32C);
-      }
-
-      // First Person Blur
-      if (_SK_Y0_Cfg.no_fp_blur)
-      { SK_D3D11_Shaders.vertex.blacklist.emplace (0xb008686a); 
-        SK_D3D11_Shaders.pixel.blacklist.emplace  (0x1c599fa7); }
-      else
-      { SK_D3D11_Shaders.vertex.blacklist.erase   (0xb008686a); 
-        SK_D3D11_Shaders.pixel.blacklist.erase    (0x1c599fa7); }
-
-      _SK_Y0_NoDOF->store    (_SK_Y0_Cfg.no_dof);
-      _SK_Y0_NoSSAO->store   (_SK_Y0_Cfg.no_ssao);
-      _SK_Y0_NoFPBlur->store (_SK_Y0_Cfg.no_fp_blur);
-
-      SK_GetDLLConfig ()->write (SK_GetDLLConfig ()->get_filename ());
-
-      extern bool SK_D3D11_EnableTracking;
-
-      if ( _SK_Y0_Cfg.no_fp_blur ||
-           _SK_Y0_Cfg.no_dof     ||
-           _SK_Y0_Cfg.no_ssao       ) SK_D3D11_EnableTracking = true;
-
-      return true;
-    }
-
-    ImGui::TreePop ();
-  }
-
-  return false;
-}
-
-
-
-volatile LONG __SK_MHW_QueuedShots         = 0;
-volatile LONG __SK_MHW_InitiateHudFreeShot = 0;
-
-volatile LONG __SK_ScreenShot_CapturingHUDless = 0;
-
-void
-SK_TriggerHudFreeScreenshot (void) noexcept
-{
-  extern bool SK_D3D11_EnableTracking;
-              SK_D3D11_EnableTracking = true;
-
-  InterlockedIncrement (&__SK_MHW_QueuedShots);
-}
-
-#include <SpecialK\widgets\widget.h>
-
-void
-SK_MHW_BeginFrame (void)
-{
-  if ( ReadAcquire (&__SK_MHW_QueuedShots)          > 0 ||
-       ReadAcquire (&__SK_MHW_InitiateHudFreeShot) != 0    )
-  {
-    InterlockedExchange (&__SK_ScreenShot_CapturingHUDless, 1);
-
-#define SK_MHW_HUD_VS0_CRC32C  0x6f046ebc // General 2D HUD
-#define SK_MHW_HUD_VS1_CRC32C  0x711c9eeb // The HUD cursor particles
-
-    if (InterlockedCompareExchange (&__SK_MHW_InitiateHudFreeShot, -2, 1) == 1)
-    {
-      static auto& shaders =
-        SK_D3D11_Shaders;
-
-      shaders.vertex.blacklist.emplace (SK_MHW_HUD_VS0_CRC32C);
-      shaders.vertex.blacklist.emplace (SK_MHW_HUD_VS1_CRC32C);
-    }
-
-    // 1-frame Delay for SDR->HDR Upconversion
-    else if (InterlockedCompareExchange (&__SK_MHW_InitiateHudFreeShot, -1, -2) == -2)
-    {
-      SK::SteamAPI::TakeScreenshot (SK::ScreenshotStage::EndOfFrame);
-    }
-
-    else if (! ReadAcquire (&__SK_MHW_InitiateHudFreeShot))
-    {
-      InterlockedDecrement (&__SK_MHW_QueuedShots);
-      InterlockedExchange  (&__SK_MHW_InitiateHudFreeShot, 1);
-
-      return
-        SK_MHW_BeginFrame ();
-    }
-
-    return;
-  }
-
-  InterlockedExchange (&__SK_ScreenShot_CapturingHUDless, 0);
-}
-
-void
-SK_MHW_EndFrame (void)
-{
-  if (InterlockedCompareExchange (&__SK_MHW_InitiateHudFreeShot, 0, -1) == -1)
-  {
-    static auto& shaders =
-      SK_D3D11_Shaders;
-
-    shaders.vertex.blacklist.erase (SK_MHW_HUD_VS1_CRC32C);
-    shaders.vertex.blacklist.erase (SK_MHW_HUD_VS0_CRC32C);
-  }
-}
-
-sk::ParameterBool*  _SK_MHW_JobParity;
-bool  __SK_MHW_JobParity = true;
-sk::ParameterBool*  _SK_MHW_JobParityPhysical;
-bool  __SK_MHW_JobParityPhysical = false;
-
-sk::ParameterBool* _SK_MHW_10BitSwapChain;
-bool __SK_MHW_10BitSwap = false;
-
-sk::ParameterBool* _SK_MHW_16BitSwapChain;
-bool __SK_MHW_16BitSwap = false;
-
-sk::ParameterFloat* _SK_MHW_scRGBLuminance;
-float __SK_MHW_HDR_Luma = 172.0_Nits;
-
-sk::ParameterFloat* _SK_MHW_scRGBGamma;
-float __SK_MHW_HDR_Exp  = 2.116f;
-
-sk::ParameterBool* _SK_MHW_KillAntiDebug;
-bool __SK_MHW_KillAntiDebug = true;
-
-sk::ParameterInt*   _SK_MHW_AlternateTonemap;
-
-#include <concurrent_vector.h>
-extern concurrency::concurrent_vector <d3d11_shader_tracking_s::cbuffer_override_s> __SK_D3D11_PixelShader_CBuffer_Overrides;
-d3d11_shader_tracking_s::cbuffer_override_s* SK_MHW_CB_Override;
-
-sk::iParameter*
-_CreateConfigParameter ( std::type_index type,
-                         const wchar_t*  wszSection,
-                         const wchar_t*  wszKey,
-                                  void*  pBackingStore,
-                         const wchar_t*  wszDescription    = L"No Description",
-                         const wchar_t*  wszOldSectionName = nullptr,
-                         const wchar_t*  wszOldKeyName     = nullptr )
-{
-  enum class _ParameterType
-  {
-    Bool, Int, Float
-  };
-
-  static const
-    std::unordered_map < std::type_index, _ParameterType >
-      __type_map =
-      {
-        { std::type_index (typeid (bool)),  _ParameterType::Bool  },
-        { std::type_index (typeid (int)),   _ParameterType::Int   },
-        { std::type_index (typeid (float)), _ParameterType::Float },
-      };
-
-  static const
-    std::unordered_map < std::type_index, std::type_index >
-      __type_reflector =
-      {
-        { std::type_index (typeid (bool)              ),
-          std::type_index (typeid (sk::ParameterBool) ) },
-        { std::type_index (typeid (int)               ),
-          std::type_index (typeid (sk::ParameterInt)  ) },
-        { std::type_index (typeid (float)             ),
-          std::type_index (typeid (sk::ParameterFloat)) }
-      };
-
-
-  sk::iParameter* pParam = nullptr;
-
-  if (      __type_map.count (type))
-  {
-    const auto
-      specialization =
-             __type_map.at (type);
-
-    auto
-      _TryLoadParam = [&](void) ->
-      bool
-      {
-        switch (specialization)
-        {
-          case _ParameterType::Bool:
-          {
-            return
-              dynamic_cast <sk::ParameterBool *> (
-                pParam
-                )->load (*static_cast <bool *> (pBackingStore));
-          } break;
-
-          case _ParameterType::Int:
-          {
-            return
-              dynamic_cast <sk::ParameterInt *> (
-                pParam
-                )->load (*static_cast <int *> (pBackingStore));
-          } break;
-
-          case _ParameterType::Float:
-          {
-            return
-              dynamic_cast <sk::ParameterFloat *> (
-                pParam
-                )->load (*static_cast <float *> (pBackingStore));
-          } break;
-        }
-
-        return false;
-      };
-
-    auto
-      _StoreParam = [&](void) ->
-      void
-      {
-        switch (specialization)
-        {
-          case _ParameterType::Bool:
-          {
-            dynamic_cast <sk::ParameterBool *> (
-              pParam
-            )->store (*static_cast <bool *> (pBackingStore));
-          } break;
-
-          case _ParameterType::Int:
-          {
-            dynamic_cast <sk::ParameterInt *> (
-              pParam
-            )->store (*static_cast <int *> (pBackingStore));
-          } break;
-
-          case _ParameterType::Float:
-          {
-            dynamic_cast <sk::ParameterFloat *> (
-              pParam
-            )->store (*static_cast <float *> (pBackingStore));
-          } break;
-        }
-      };
-
-
-    switch (specialization)
-    {
-      case _ParameterType::Bool:
-      {
-        pParam =
-          g_ParameterFactory.create_parameter <bool>  (wszDescription);
-      } break;
-
-      case _ParameterType::Int:
-      {
-        pParam =
-          g_ParameterFactory.create_parameter <int>   (wszDescription);
-      } break;
-
-      case _ParameterType::Float:
-      {
-        pParam =
-          g_ParameterFactory.create_parameter <float> (wszDescription);
-      } break;
-    }
-
-
-    if (pParam != nullptr)
-    {
-      iSK_INI* pINI =
-        SK_GetDLLConfig ();
-
-      pParam->register_to_ini (
-        pINI, wszSection, wszKey
-      );
-
-      if (! _TryLoadParam ())
-      {
-        if ( wszOldSectionName != nullptr ||
-             wszOldKeyName     != nullptr )
-        {
-          const wchar_t* wszAltSection = ( wszOldSectionName ?
-                                           wszOldSectionName : wszSection );
-          const wchar_t* wszAltKey     = ( wszOldKeyName     ?
-                                           wszOldKeyName     : wszKey     );
-
-          pParam->register_to_ini (
-            pINI, wszAltSection, wszAltKey
-          );
-
-          _TryLoadParam ();
-
-          pParam->register_to_ini (
-            pINI, wszSection, wszKey
-          );
-        }
-      }
-
-      _StoreParam ();
-    }
-  }
-
-  return pParam;
-}
-
-
-sk::ParameterFloat*
-_CreateConfigParameterFloat ( const wchar_t* wszSection,
-                              const wchar_t* wszKey,
-                                      float& backingStore,
-                              const wchar_t* wszDescription    = L"No Description",
-                              const wchar_t* wszOldSectionName = nullptr,
-                              const wchar_t* wszOldKeyName     = nullptr )
+SK_Shenmue_IsLimiterBypassed (void)
 {
   return
-    dynamic_cast <sk::ParameterFloat *> (
-      _CreateConfigParameter ( std::type_index (
-                                 typeid (float)
-                                ),
-                                wszSection,        wszKey,
-                               &backingStore,      wszDescription,
-                                wszOldSectionName, wszOldKeyName )
-    );
+    ( SK_Shenmue_Limiter.enabled == false );
 }
 
-sk::ParameterBool*
-_CreateConfigParameterBool ( const wchar_t* wszSection,
-                             const wchar_t* wszKey,
-                                      bool& backingStore,
-                             const wchar_t* wszDescription    = L"No Description",
-                             const wchar_t* wszOldSectionName = nullptr,
-                             const wchar_t* wszOldKeyName     = nullptr )
+bool
+SK_Shenmue_InitLimiterOverride (LPVOID pQPCRetAddr)
 {
   return
-    dynamic_cast <sk::ParameterBool *> (
-      _CreateConfigParameter ( std::type_index (
-                                 typeid (bool)
-                                ),
-                                wszSection,        wszKey,
-                               &backingStore,      wszDescription,
-                                wszOldSectionName, wszOldKeyName )
-    );
+    SK_Shenmue_Limiter.initialize (pQPCRetAddr);
 }
 
-sk::ParameterInt*
-_CreateConfigParameterInt  ( const wchar_t* wszSection,
-                             const wchar_t* wszKey,
-                                       int& backingStore,
-                             const wchar_t* wszDescription    = L"No Description",
-                             const wchar_t* wszOldSectionName = nullptr,
-                             const wchar_t* wszOldKeyName     = nullptr )
-{
-  return
-    dynamic_cast <sk::ParameterInt *> (
-      _CreateConfigParameter ( std::type_index (
-                                 typeid (int)
-                                ),
-                                wszSection,        wszKey,
-                               &backingStore,      wszDescription,
-                                wszOldSectionName, wszOldKeyName )
-    );
-}
+#include <command.h>
+
+SK_IVariable *pVarWideCutscenes;
+SK_IVariable *pVarBypassLimiter;
 
 void
-SK_MHW_PlugInInit (void)
+SK_SM_PlugInInit (void)
 {
-  config.render.framerate.enable_mmcss = false;
+       if (! _wcsicmp (SK_GetHostApp (), L"Shenmue.exe"))
+    __SK_SHENMUE_ClockFuzz = 20.0f;
+  else if (! _wcsicmp (SK_GetHostApp (), L"Shenmue2.exe"))
+    __SK_SHENMUE_ClockFuzz = 166.0f;
 
-#define SK_MHW_CPU_SECTION     L"MonsterHunterWorld.CPU"
-#define SK_MHW_CPU_SECTION_OLD L"MonsterHuntersWorld.CPU"
+  _SK_SM_FullAspectCutscenes =
+    _CreateConfigParameterBool  ( L"Shenmue.Misc",
+                                  L"FullAspectCutscenes", bSK_SHENMUE_FullAspectCutscenes,
+                                  L"Enable Full Aspect Ratio Cutscenes" );
 
-  _SK_MHW_JobParity =
-    _CreateConfigParameterBool ( SK_MHW_CPU_SECTION,
-                                 L"LimitJobThreads",      __SK_MHW_JobParity,
-                                                          L"Job Parity",
-                                SK_MHW_CPU_SECTION_OLD );
-  _SK_MHW_JobParityPhysical =
-    _CreateConfigParameterBool ( SK_MHW_CPU_SECTION,
-                                 L"LimitToPhysicalCores", __SK_MHW_JobParityPhysical,
-                                                          L"Job Parity (Physical)",
-                                SK_MHW_CPU_SECTION_OLD );
+  _SK_SM_ClockFuzz =
+    _CreateConfigParameterFloat ( L"Shenmue.Misc",
+                                  L"ClockFuzz", __SK_SHENMUE_ClockFuzz,
+                                  L"Framerate Limiter Variance" );
 
-#define SK_MHW_HDR_SECTION     L"MonsterHunterWorld.HDR"
-#define SK_MHW_HDR_SECTION_OLD L"MonsterHuntersWorld.HDR"
+  _SK_SM_BypassLimiter =
+    _CreateConfigParameterBool  ( L"Shenmue.Misc",
+                                  L"BypassFrameLimiter", SK_Shenmue_Limiter.want_bypass,
+                                  L"Die you evil hellspawn!" );
 
-  _SK_MHW_10BitSwapChain =
-    _CreateConfigParameterBool ( SK_MHW_HDR_SECTION,
-                                 L"Use10BitSwapChain",  __SK_MHW_10BitSwap,
-                                                        L"10-bit SwapChain",
-                                 SK_MHW_HDR_SECTION_OLD );
-  _SK_MHW_16BitSwapChain =
-    _CreateConfigParameterBool ( SK_MHW_HDR_SECTION,
-                                 L"Use16BitSwapChain",  __SK_MHW_16BitSwap,
-                                                        L"16-bit SwapChain",
-                                 SK_MHW_HDR_SECTION_OLD );
-
-  _SK_MHW_scRGBLuminance =
-    _CreateConfigParameterFloat ( SK_MHW_HDR_SECTION,
-                                  L"scRGBLuminance",  __SK_MHW_HDR_Luma,
-                                                      L"scRGB Luminance",
-                                  SK_MHW_HDR_SECTION_OLD );
-  _SK_MHW_scRGBGamma =
-    _CreateConfigParameterFloat ( SK_MHW_HDR_SECTION,
-                                  L"scRGBGamma",      __SK_MHW_HDR_Exp,
-                                                      L"scRGB Gamma",
-                                  SK_MHW_HDR_SECTION_OLD );
-
-
-  __SK_D3D11_PixelShader_CBuffer_Overrides.push_back
-  (
-/*
- * 0: Hash,    1: CBuffer Size
- * 2: Enable?, 3: Binding Slot,
- * 4: Offset,  5: Value List Size (in bytes),
- * 6: Value List
- */
-    { 0x08cc13a6, 52,
-      false,      3,
-      0,          4,
-      { 0.0f }
-    }
-  );
-
-
-  SK_MHW_CB_Override =
-    &__SK_D3D11_PixelShader_CBuffer_Overrides.back ();
-
-  *(reinterpret_cast <UINT *> (SK_MHW_CB_Override->Values)) =
-         static_cast <UINT  > (-1);
-
-  int* pCBufferOverrideVal =
-    reinterpret_cast <int *> (SK_MHW_CB_Override->Values);
-
-  _SK_MHW_AlternateTonemap =
-    _CreateConfigParameterInt ( SK_MHW_HDR_SECTION,
-                                L"AlternateTonemap", *pCBufferOverrideVal,
-                                                     L"Tonemap Type",
-                                SK_MHW_HDR_SECTION_OLD );
-
-  if (*(reinterpret_cast <int *> (SK_MHW_CB_Override->Values)) > -1)
+  if (bSK_SHENMUE_FullAspectCutscenes)
   {
-    SK_MHW_CB_Override->Enable = true;
+    InterlockedExchange  (&__SK_SHENMUE_FullAspectCutscenes, 1);
+    InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
   }
 
   else
-    SK_MHW_CB_Override->Enable = false;
-
-  if (SK_MHW_CB_Override->Enable)
-    SK_D3D11_EnableTracking    = true;
-
-
-
-  _SK_MHW_KillAntiDebug =
-    _CreateConfigParameterBool ( SK_MHW_CPU_SECTION,
-                                 L"KillAntiDebugCode",    __SK_MHW_KillAntiDebug,
-                                                          L"Anti-Debug Kill Switch",
-                                 SK_MHW_CPU_SECTION_OLD );
-
-
-  iSK_INI* pINI =
-    SK_GetDLLConfig ();
-
-  pINI->remove_section (SK_MHW_CPU_SECTION_OLD);
-  pINI->remove_section (SK_MHW_HDR_SECTION_OLD);
-
-  pINI->write (pINI->get_filename ());
-}
-
-
-void
-SK_MHW_ThreadStartStop (HANDLE hThread, int op = 0)
-{
-  static concurrency::concurrent_unordered_set <HANDLE>
-    stopped_threads;
-
-  if (op == 0)
   {
-    if (! stopped_threads.count (hThread))
-    {
-      stopped_threads.insert (hThread);
-      SuspendThread          (hThread);
-    }
+    InterlockedExchange (&__SK_SHENMUE_FullAspectCutscenes, 0);
   }
 
-  if (op == 1)
+
+  SK_GetCommandProcessor ()->AddVariable ( "Shenmue.ClockFuzz",
+                                             new SK_IVarStub <float> ((float *)&__SK_SHENMUE_ClockFuzz));
+
+  class listen : public SK_IVariableListener
   {
-    if (stopped_threads.count (hThread))
+  public:
+    bool OnVarChange (SK_IVariable* var, void* val = nullptr) override
     {
-      std::unordered_set <HANDLE> stopped_copy {
-        stopped_threads.begin (), stopped_threads.end ()
-      };
-
-      stopped_threads.clear ();
-
-      for (auto& it : stopped_threads)
+      if (var == pVarWideCutscenes)
       {
-        if (it != hThread)
-          stopped_threads.insert (hThread);
-
-        else
-          ResumeThread (hThread);
-      }
-    }
-  }
-
-  if (op == 2)
-  {
-    std::unordered_set <HANDLE> stopped_copy {
-      stopped_threads.begin (), stopped_threads.end ()
-    };
-
-    stopped_threads.clear ();
-
-    for (auto& it : stopped_copy)
-    {
-      TerminateThread (it, 0x0);
-      //ResumeThread (it);
-    }
-  }
-}
-
-extern void
-SK_MHW_SuspendThread (HANDLE hThread)
-{
-  SK_MHW_ThreadStartStop (hThread, 0);
-}
-
-void
-SK_MHW_PlugIn_Shutdown (void)
-{
-  // Resume all stopped threads prior
-  //   to shutting down
-  SK_MHW_ThreadStartStop (0, 2);
-}
-
-bool
-SK_MHW_PlugInCfg (void)
-{
-  iSK_INI* pINI =
-    SK_GetDLLConfig ();
-
-  if (ImGui::CollapsingHeader ("MONSTER HUNTER: WORLD", ImGuiTreeNodeFlags_DefaultOpen))
-  {
-    ImGui::TreePush ("");
-
-    static bool parity_orig = __SK_MHW_JobParity;
-
-    if (ImGui::Checkbox ("Limit Job Threads to number of CPU cores", &__SK_MHW_JobParity))
-    {
-      _SK_MHW_JobParity->store (__SK_MHW_JobParity);
-      pINI->write (pINI->get_filename ());
-    }
-
-    static bool rule_orig =
-      __SK_MHW_JobParityPhysical;
-
-    if (__SK_MHW_JobParity)
-    {
-      ImGui::SameLine (); ImGui::Spacing ();
-      ImGui::SameLine (); ImGui::Spacing ();
-      ImGui::SameLine (); ImGui::Text ("Limit: ");
-      ImGui::SameLine (); ImGui::Spacing ();
-      ImGui::SameLine ();
-
-      int rule = __SK_MHW_JobParityPhysical ? 1 : 0;
-
-      bool changed =
-        ImGui::RadioButton ("Logical Cores", &rule, 0);
-      ImGui::SameLine ();
-      changed |=
-        ImGui::RadioButton ("Physical Cores", &rule, 1);
-
-      if (changed)
-      {
-        __SK_MHW_JobParityPhysical = (rule == 1);
-        _SK_MHW_JobParityPhysical->store (__SK_MHW_JobParityPhysical);
-        pINI->write (pINI->get_filename ());
-      }
-    }
-
-    if (parity_orig != __SK_MHW_JobParity ||
-        rule_orig != __SK_MHW_JobParityPhysical)
-    {
-      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.3f, .8f, .9f));
-      ImGui::BulletText ("Game Restart Required");
-      ImGui::PopStyleColor ();
-    }
-
-    if (ImGui::IsItemHovered ())
-      ImGui::SetTooltip ("Without this option, the game spawns 32 job threads and nobody can get that many running efficiently.");
-
-    if (ImGui::Checkbox ("Anti-Debug Killswitch", &__SK_MHW_KillAntiDebug))
-    {
-      _SK_MHW_KillAntiDebug->store (__SK_MHW_KillAntiDebug);
-      pINI->write (pINI->get_filename ());
-    }
-
-    if (ImGui::IsItemHovered ())
-      ImGui::SetTooltip ("Eliminate the kernel bottleneck Capcom added to prevent debugging.");
-
-
-    if (ImGui::CollapsingHeader ("HDR Fix", ImGuiTreeNodeFlags_DefaultOpen))
-    {
-      static bool TenBitSwap_Original     = __SK_MHW_10BitSwap;
-      static bool SixteenBitSwap_Original = __SK_MHW_16BitSwap;
-      
-      static int sel = __SK_MHW_16BitSwap ? 2 :
-                       __SK_MHW_10BitSwap ? 1 : 0;
-
-      if (ImGui::RadioButton ("None", &sel, 0))
-      {
-        __SK_MHW_10BitSwap = false;
-        __SK_MHW_16BitSwap = false;
-
-        _SK_MHW_10BitSwapChain->store (__SK_MHW_10BitSwap);
-        _SK_MHW_16BitSwapChain->store (__SK_MHW_16BitSwap);
-
-        pINI->write (pINI->get_filename ());
-      }
-      ImGui::SameLine ();
-
-
-      if (ImGui::RadioButton ("HDR10 (10-bit + Metadata)", &sel, 1))
-      {
-        __SK_MHW_10BitSwap = true;
-
-        if (__SK_MHW_10BitSwap) __SK_MHW_16BitSwap = false;
-
-        _SK_MHW_10BitSwapChain->store (__SK_MHW_10BitSwap);
-        _SK_MHW_16BitSwapChain->store (__SK_MHW_16BitSwap);
-
-        pINI->write (pINI->get_filename ());
-      }
-
-      auto& rb =
-        SK_GetCurrentRenderBackend ();
-
-      if (rb.hdr_capable)
-      {
-        ImGui::SameLine ();
-
-        if (ImGui::RadioButton ("scRGB HDR (16-bit)", &sel, 2))
+        if (val != nullptr)
         {
-          __SK_MHW_16BitSwap = true;
+          InterlockedExchange (&__SK_SHENMUE_FullAspectCutscenes, *(bool *) val != 0 ? 1 : 0);
 
-          if (__SK_MHW_16BitSwap) __SK_MHW_10BitSwap = false;
-
-          _SK_MHW_10BitSwapChain->store (__SK_MHW_10BitSwap);
-          _SK_MHW_16BitSwapChain->store (__SK_MHW_16BitSwap);
-
-          pINI->write (pINI->get_filename ());
-        }
-
-        if (ImGui::IsItemHovered ())
-          ImGui::SetTooltip ("This is the superior HDR format -- use it ;)");
-      }
-
-      if ( (TenBitSwap_Original     != __SK_MHW_10BitSwap ||
-            SixteenBitSwap_Original != __SK_MHW_16BitSwap) )
-      {
-        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.3f, .8f, .9f));
-        ImGui::BulletText     ("Game Restart Required");
-        ImGui::PopStyleColor  ();
-      }
-
-      if ((__SK_MHW_10BitSwap || __SK_MHW_16BitSwap) && rb.hdr_capable)
-      {
-        CComQIPtr <IDXGISwapChain4> pSwap4 (rb.swapchain);
-
-        if (pSwap4 != nullptr)
-        {
-          DXGI_OUTPUT_DESC1     out_desc = { };
-          DXGI_SWAP_CHAIN_DESC swap_desc = { };
-             pSwap4->GetDesc (&swap_desc);
-
-          if (out_desc.BitsPerColor == 0)
+          if (ReadAcquire (&__SK_SHENMUE_FullAspectCutscenes))
           {
-            CComPtr <IDXGIOutput> pOutput = nullptr;
-
-            if (SUCCEEDED ((pSwap4->GetContainingOutput (&pOutput.p))))
-            {
-              CComQIPtr <IDXGIOutput6> pOutput6 (pOutput);
-
-              pOutput6->GetDesc1 (&out_desc);
-            }
-
-            else
-            {
-              out_desc.BitsPerColor = 8;
-            }
+            InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
           }
+          else
+            InterlockedDecrement (&SK_D3D11_DrawTrackingReqs);
+        }
+      }
 
-          if (out_desc.BitsPerColor >= 10)
+      if (var == pVarBypassLimiter)
+      {
+        if (val != nullptr)
+        {
+          SK_Shenmue_Limiter.want_bypass = *(bool *)val;
+
+          if (SK_Shenmue_Limiter.enabled ==
+              SK_Shenmue_Limiter.want_bypass)
           {
-            //const DisplayChromacities& Chroma = DisplayChromacityList[selectedChroma];
-            DXGI_HDR_METADATA_HDR10 HDR10MetaData = {};
-
-            static int cspace = 1;
-
-            struct DisplayChromacities
-            {
-              float RedX;
-              float RedY;
-              float GreenX;
-              float GreenY;
-              float BlueX;
-              float BlueY;
-              float WhiteX;
-              float WhiteY;
-            } const DisplayChromacityList [] =
-            {
-              { 0.64000f, 0.33000f, 0.30000f, 0.60000f, 0.15000f, 0.06000f, 0.31270f, 0.32900f }, // Display Gamut Rec709 
-              { 0.64000f, 0.33000f, 0.30000f, 0.60000f, 0.15000f, 0.06000f, 0.31270f, 0.32900f }, // Display Gamut Rec709 
-              ///{ 0.70800f, 0.29200f, 0.17000f, 0.79700f, 0.13100f, 0.04600f, 0.31270f, 0.32900f }, // Display Gamut Rec2020
-              //( out_desc.RedPrimary   [0], out_desc.RedPrimary   [1],
-              //out_desc.GreenPrimary [0], out_desc.GreenPrimary [1],
-              //out_desc.BluePrimary  [0], out_desc.BluePrimary  [1],
-              //out_desc.WhitePoint   [0], out_desc.WhitePoint   [1] ),
-              //( out_desc.RedPrimary   [0], out_desc.RedPrimary   [1],
-              //out_desc.GreenPrimary [0], out_desc.GreenPrimary [1],
-              //out_desc.BluePrimary  [0], out_desc.BluePrimary  [1],
-              //out_desc.WhitePoint   [0], out_desc.WhitePoint   [1] ),
-              { out_desc.RedPrimary   [0], out_desc.RedPrimary   [1],
-                out_desc.GreenPrimary [0], out_desc.GreenPrimary [1],
-                out_desc.BluePrimary  [0], out_desc.BluePrimary  [1],
-                out_desc.WhitePoint   [0], out_desc.WhitePoint   [1] }
-            };
-
-            ImGui::TreePush ("");
-
-            bool hdr_gamut_support = false;
-
-            if (swap_desc.BufferDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT)
-            {
-              hdr_gamut_support = true;
-            }
-
-            if ( swap_desc.BufferDesc.Format == DXGI_FORMAT_R10G10B10A2_UNORM )
-            {
-              hdr_gamut_support = true;
-              ImGui::RadioButton ("Rec 709",  &cspace, 0); ImGui::SameLine (); 
-            }
-            else if (cspace == 0) cspace = 1;
-
-            if ( swap_desc.BufferDesc.Format == DXGI_FORMAT_R10G10B10A2_UNORM )
-            {
-              hdr_gamut_support = true;
-              ImGui::RadioButton ("Rec 2020", &cspace, 1); ImGui::SameLine ();
-            }
-            else if (cspace == 1) cspace = 0;
-            ////ImGui::RadioButton ("Native",   &cspace, 2); ImGui::SameLine ();
-
-            if (! (config.render.framerate.swapchain_wait != 0 && swap_desc.BufferDesc.Format == DXGI_FORMAT_R10G10B10A2_UNORM))// hdr_gamut_support)
-            {
-              HDR10MetaData.RedPrimary [0] = static_cast <UINT16> (DisplayChromacityList [cspace].RedX * 50000.0f);
-              HDR10MetaData.RedPrimary [1] = static_cast <UINT16> (DisplayChromacityList [cspace].RedY * 50000.0f);
-
-              HDR10MetaData.GreenPrimary [0] = static_cast <UINT16> (DisplayChromacityList [cspace].GreenX * 50000.0f);
-              HDR10MetaData.GreenPrimary [1] = static_cast <UINT16> (DisplayChromacityList [cspace].GreenY * 50000.0f);
-
-              HDR10MetaData.BluePrimary [0] = static_cast <UINT16> (DisplayChromacityList [cspace].BlueX * 50000.0f);
-              HDR10MetaData.BluePrimary [1] = static_cast <UINT16> (DisplayChromacityList [cspace].BlueY * 50000.0f);
-
-              HDR10MetaData.WhitePoint [0] = static_cast <UINT16> (DisplayChromacityList [cspace].WhiteX * 50000.0f);
-              HDR10MetaData.WhitePoint [1] = static_cast <UINT16> (DisplayChromacityList [cspace].WhiteY * 50000.0f);
-
-              static float fLuma [4] = { out_desc.MaxLuminance, out_desc.MinLuminance,
-                                         2000.0f,               600.0f };
-
-              if (hdr_gamut_support && swap_desc.BufferDesc.Format == DXGI_FORMAT_R10G10B10A2_UNORM)
-                ImGui::InputFloat4 ("Luminance Coefficients", fLuma, 1);
-
-              HDR10MetaData.MaxMasteringLuminance     = static_cast <UINT>   (fLuma [0] * 10000.0f);
-              HDR10MetaData.MinMasteringLuminance     = static_cast <UINT>   (fLuma [1] * 10000.0f);
-              HDR10MetaData.MaxContentLightLevel      = static_cast <UINT16> (fLuma [2]);
-              HDR10MetaData.MaxFrameAverageLightLevel = static_cast <UINT16> (fLuma [3]);
-
-              if (hdr_gamut_support && swap_desc.BufferDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT)
-              {
-                float nits =
-                  __SK_MHW_HDR_Luma / 1.0_Nits;
-
-                
-                if (ImGui::SliderFloat ( "###MHW_LUMINANCE", &nits, 80.0f, rb.display_gamut.maxY,
-                                           "Middle-White Luminance: %.1f Nits" ))
-                {
-                  __SK_MHW_HDR_Luma = nits * 1.0_Nits;
-
-                  _SK_MHW_scRGBLuminance->store (__SK_MHW_HDR_Luma);
-                  pINI->write (pINI->get_filename ());
-                }
-
-                ImGui::SameLine ();
-
-                if (ImGui::SliderFloat ("SDR -> HDR Gamma", &__SK_MHW_HDR_Exp, 1.6f, 2.9f))
-                {
-                  _SK_MHW_scRGBGamma->store (__SK_MHW_HDR_Exp);
-                  pINI->write (pINI->get_filename ());
-                }
-
-                //ImGui::SameLine ();
-                //ImGui::Checkbox ("Explicit LinearRGB -> sRGB###IMGUI_SRGB", &rb.ui_srgb);
-              }
-
-              if (swap_desc.BufferDesc.Format == DXGI_FORMAT_R10G10B10A2_UNORM && ImGui::Button ("Inject HDR10 Metadata"))
-              {
-                //if (cspace == 2)
-                //  swap_desc.BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
-                //else if (cspace == 1)
-                //  swap_desc.BufferDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-                //else
-                //  swap_desc.BufferDesc.Format = DXGI_FORMAT_R10G10B10A2_UNORM;
-
-                pSwap4->SetHDRMetaData (DXGI_HDR_METADATA_TYPE_NONE, 0, nullptr);
-
-                if (swap_desc.BufferDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT)
-                {
-                  pSwap4->SetColorSpace1 (DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709);
-                }
-
-                if      (cspace == 1) pSwap4->SetColorSpace1 (DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020);
-                else if (cspace == 0) pSwap4->SetColorSpace1 (DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709);
-                else                  pSwap4->SetColorSpace1 (DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709);
-
-                if (cspace == 1 || cspace == 0)
-                  pSwap4->SetHDRMetaData (DXGI_HDR_METADATA_TYPE_HDR10, sizeof (HDR10MetaData), &HDR10MetaData);
-              }
-            }
-
-            else
-            {
-              ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.075f, 1.0f, 1.0f));
-              ImGui::BulletText     ("A waitable swapchain is required for HDR10 (D3D11 Settings/SwapChain | {Flip Model + Waitable}");
-              ImGui::PopStyleColor  ();
-            }
-
-            ImGui::TreePop ();
+            SK_Shenmue_Limiter.toggle ();
           }
         }
       }
 
-      ImGui::Separator (  );
-      ImGui::TreePush  ("");
-
-      ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.68f, 0.02f, 0.45f));
-      ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.72f, 0.07f, 0.80f));
-      ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.78f, 0.14f, 0.80f));
-
-      bool changed =
-        ImGui::Checkbox ("Enable Alternate Tonemap", &SK_MHW_CB_Override->Enable);
-
-      if (ImGui::IsItemHovered ())
-      {
-        ImGui::SetTooltip ("You can significantly improve the washed out image by using an alternate tonemap.");
-      }
-
-      if (SK_MHW_CB_Override->Enable)
-      {
-        SK_D3D11_EnableTracking = true;
-
-        if (*(int *)(SK_MHW_CB_Override->Values) < 0)
-        {
-           *(int *)(SK_MHW_CB_Override->Values) =
-  1 + abs (*(int *)SK_MHW_CB_Override->Values);
-        }
-
-        ImGui::SameLine    ();
-        ImGui::BeginGroup  ();
-        changed |=
-          ImGui::SliderInt ("Tonemap Type##SK_MHW_TONEMAP", (int *)SK_MHW_CB_Override->Values, 0, 8);
-        ImGui::EndGroup    ();
-      }
-
-      if (changed)
-      {
-        int tonemap =
-          ( SK_MHW_CB_Override->Enable ?        abs (*(int *)SK_MHW_CB_Override->Values)
-                                       : (-1) - abs (*(int *)SK_MHW_CB_Override->Values) );
-
-         if (SK_MHW_CB_Override->Enable) SK_D3D11_EnableTracking = true;
-          
-        _SK_MHW_AlternateTonemap->store (tonemap);
-        pINI->write (pINI->get_filename ());
-      }
-
-      ImGui::PopStyleColor (3);
-      ImGui::TreePop       ( );
+      return true;
     }
+  } static stay_a_while_and_listen;
 
-    ///static int orig =
-    ///  config.render.framerate.override_num_cpus;
-    ///
-    ///bool spoof = (config.render.framerate.override_num_cpus != -1);
-    ///
-    ///static SYSTEM_INFO             si = { };
-    ///SK_RunOnce (SK_GetSystemInfo (&si));
-    ///
-    ///if ((! spoof) || static_cast <DWORD> (config.render.framerate.override_num_cpus) > (si.dwNumberOfProcessors / 2))
-    ///{
-    ///  ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.14f, .8f, .9f));
-    ///  ImGui::BulletText     ("It is strongly suggested that you reduce threads to 1/2 max. or lower");
-    ///  ImGui::PopStyleColor  ();
-    ///}
-    ///
-    ///if ( ImGui::Checkbox   ("Reduce Reported CPU Core Count", &spoof) )
-    ///{
-    ///  config.render.framerate.override_num_cpus =
-    ///    ( spoof ? si.dwNumberOfProcessors : -1 );
-    ///}
-    ///
-    ///if (spoof)
-    ///{
-    ///  ImGui::SameLine  (                                             );
-    ///  ImGui::SliderInt ( "",
-    ///                    &config.render.framerate.override_num_cpus,
-    ///                    1, si.dwNumberOfProcessors              );
-    ///}
-    ///
-    ///if (config.render.framerate.override_num_cpus != orig)
-    ///{
-    ///  ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.3f, .8f, .9f));
-    ///  ImGui::BulletText     ("Game Restart Required");
-    ///  ImGui::PopStyleColor  ();
-    ///}
 
-    ImGui::TreePop ();
+  pVarWideCutscenes =
+    new SK_IVarStub <bool> (
+      (bool *)&__SK_SHENMUE_FullAspectCutscenes,
+              &stay_a_while_and_listen
+    );
+
+  pVarBypassLimiter =
+    new SK_IVarStub <bool> (
+      (bool *)&SK_Shenmue_Limiter.want_bypass,
+              &stay_a_while_and_listen
+    );
+
+  SK_GetCommandProcessor ()->AddVariable ("Shenmue.NoCrops",       pVarWideCutscenes);
+  SK_GetCommandProcessor ()->AddVariable ("Shenmue.BypassLimiter", pVarBypassLimiter);
+             
+
+  if (SK_Shenmue_Limiter.want_bypass)
+  {
+    if (config.render.framerate.target_fps == 0)
+      SK_GetCommandProcessor ()->ProcessCommandLine ("TargetFPS 30.0");
+  
+    else
+    {
+      SK_GetCommandProcessor ()->ProcessCommandFormatted (
+        "TargetFPS %f", config.render.framerate.target_fps
+      );
+    }
+  }
+}
+
+auto Keybinding = [] (SK_Keybind* binding, sk::ParameterStringW* param) ->
+auto
+{
+  std::string label  = SK_WideCharToUTF8 (binding->human_readable) + "###";
+  label += binding->bind_name;
+
+  if (ImGui::Selectable (label.c_str (), false))
+  {
+    ImGui::OpenPopup (binding->bind_name);
+  }
+
+  std::wstring original_binding = binding->human_readable;
+
+  SK_ImGui_KeybindDialog (binding);
+
+  if (original_binding != binding->human_readable)
+  {
+    param->store (binding->human_readable);
+
+    SK_SaveConfig ();
 
     return true;
   }
 
   return false;
-}
+};
 
+bool
+SK_SM_PlugInCfg (void)
+{
+  if (ImGui::CollapsingHeader ("Shenmue I & II", ImGuiTreeNodeFlags_DefaultOpen))
+  {
+    ImGui::TreePush ("");
+
+    if (SK_GetCurrentGameID () == SK_GAME_ID::Shenmue)
+    {
+      bSK_SHENMUE_FullAspectCutscenes =
+        ( ReadAcquire (&__SK_SHENMUE_FullAspectCutscenes) != 0 );
+
+      bool changed =
+        ImGui::Checkbox ( "Enable 16:9 Aspect Ratio Cutscenes",
+                          &bSK_SHENMUE_FullAspectCutscenes );
+
+      //ImGui::SameLine ();
+
+      static std::set <SK_ConfigSerializedKeybind *>
+        keybinds = {
+        &config.steam.screenshots.game_hud_free_keybind
+      };
+
+      ////ImGui::SameLine   ();
+      ////ImGui::BeginGroup ();
+      ////for ( auto& keybind : keybinds )
+      ////{
+      ////  ImGui::Text          ( "%s:  ",
+      ////                        keybind->bind_name );
+      ////}
+      ////ImGui::EndGroup   ();
+      ////ImGui::SameLine   ();
+      ////ImGui::BeginGroup ();
+      ////for ( auto& keybind : keybinds )
+      ////{
+      ////  Keybinding ( keybind, keybind->param );
+      ////}
+      ////ImGui::EndGroup   ();
+
+      if (SK_Shenmue_Limiter.branch_addr != nullptr)
+      {
+        bool bypass =
+          (! SK_Shenmue_Limiter.enabled);
+
+        bool want_change =
+          ImGui::Checkbox ( "Complete Framerate Limit Bypass###SHENMUE_FPS_BYPASS",
+                           &bypass );
+
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::SetTooltip ( "Limiter Branch Addr. location %ph",
+                                SK_Shenmue_Limiter.branch_addr );
+        }
+
+        if (want_change)
+        {
+          SK_Shenmue_Limiter.toggle ();
+
+          SK_Shenmue_Limiter.want_bypass =
+            (! SK_Shenmue_Limiter.enabled);
+
+          changed = true;
+        }
+      }
+
+      if (SK_Shenmue_Limiter.enabled)
+      {
+        changed |=
+          ImGui::SliderFloat ( "30 FPS Clock Fuzzing",
+                                 &__SK_SHENMUE_ClockFuzz, -20.f, 200.f );
+
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::SetTooltip ( "Ancient Chinese Secret Technique for Pacifying "
+                              "Uncooperative Framerate Limiters" );
+        }
+      }
+
+      if (changed)
+      {
+        _SK_SM_BypassLimiter->store      ((! SK_Shenmue_Limiter.enabled));
+        _SK_SM_FullAspectCutscenes->store ( bSK_SHENMUE_FullAspectCutscenes);
+        _SK_SM_ClockFuzz->store          ( __SK_SHENMUE_ClockFuzz);
+
+        SK_GetDLLConfig   ()->write (
+          SK_GetDLLConfig ()->get_filename ()
+        );
+
+        if (bSK_SHENMUE_FullAspectCutscenes)
+          InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
+        else
+          InterlockedDecrement (&SK_D3D11_DrawTrackingReqs);
+
+        InterlockedExchange ( &__SK_SHENMUE_FullAspectCutscenes,
+                                bSK_SHENMUE_FullAspectCutscenes ? 1L : 0L );
+      }
+    }
+
+    ImGui::TreePop  (  );
+  }
+
+  return true;
+}

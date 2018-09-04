@@ -110,3 +110,10 @@ std::unordered_set <std::wstring> __blacklist = {
   L"scriptedsandbox64.exe",
   L"nvidia web helper.exe",
 };
+
+//// DLL must go in, but not be initialized...
+//const
+//std::unordered_set <std::wstring> __blacklist_stage2 = {
+//  // Shenmue
+//  L"SteamLauncher.exe"
+//};

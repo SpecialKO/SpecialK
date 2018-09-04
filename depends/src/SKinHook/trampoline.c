@@ -27,6 +27,7 @@
  */
 
 #include <windows.h>
+#include <assert.h>
 
 #ifndef ARRAYSIZE
     #define ARRAYSIZE(A) (sizeof(A)/sizeof((A)[0]))
@@ -278,7 +279,8 @@ BOOL CreateTrampolineFunction(PTRAMPOLINE ct)
 #else
         __movsb((LPBYTE)ct->pTrampoline + newPos, pCopySrc, copySize);
 #endif
-        newPos += copySize;
+        assert     (copySize <    255 );
+        newPos += ( copySize & 0xFFUL );
         oldPos += hs.len;
     }
     while (!finished);

@@ -530,16 +530,6 @@ BOOL
 __stdcall
 SK_DrawOSD (void)
 {
-  LARGE_INTEGER now;
-  double        dt;
-
-  //
-  // This really does not belong here -- this is where the framerate limiter
-  //   is implemented, it is only here because it also computes frametime
-  //     statistics.
-  //
-  SK::Framerate::Tick (dt, now);
-
   static bool cleared = false;
 
   if ((! ReadAcquire (&osd_init)))
@@ -1755,8 +1745,10 @@ SK_TextOverlay::update (const char* szText)
             *text = '\0';
     strncat (text, data_.text, 32767);
 
+    char token [2] = "\n";
+
     int   num_lines    = SK_CountLines (text);
-    char* line         = strtok_ex     (text, "\n");
+    char* line         = strtok_ex     (text, token);
 
     bool  has_tokens   = (num_lines > 0);
 
@@ -1779,8 +1771,10 @@ SK_TextOverlay::update (const char* szText)
           longest_line = std::max (extent, longest_line);
         }
 
+        char token [2] = "\n";
+
         if (has_tokens)
-          line = strtok_ex (nullptr, "\n");
+          line = strtok_ex (nullptr, token);
         else
           line = nullptr;
       }
@@ -1794,7 +1788,7 @@ SK_TextOverlay::update (const char* szText)
       if (! has_tokens)
         line = text;
       else
-        line = strtok_ex (text, "\n");
+        line = strtok_ex (text, token);
     }
 
     CEGUI::System::getDllSingleton ().getDefaultGUIContext ().removeGeometryBuffer (CEGUI::RQ_UNDERLAY, *geometry_);
@@ -1861,8 +1855,10 @@ SK_TextOverlay::update (const char* szText)
 
       baseline += spacing;
 
+      char token [2] = "\n";
+
       if (has_tokens)
-        line = strtok_ex (nullptr, "\n");
+        line = strtok_ex (nullptr, token);
       else
         line = nullptr;
     }

@@ -4133,8 +4133,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
     DWORD dwFocus, dwForeground;
 
-    GetWindowThreadProcessId (GetFocus            (), &dwFocus);
-    GetWindowThreadProcessId (GetForegroundWindow (), &dwForeground);
+    GetWindowThreadProcessId (   GetFocus            (), &dwFocus);
+    GetWindowThreadProcessId (SK_GetForegroundWindow (), &dwForeground);
 
     game_window.active       = ( dwFocus      == GetCurrentProcessId () ||
                                  dwForeground == GetCurrentProcessId () );
@@ -4161,8 +4161,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     {
       if (SK_GetCurrentGameID () == SK_GAME_ID::Yakuza0)
       {
-        SK_SelfDestruct  ();
-        TerminateProcess (GetCurrentProcess (), 0x0);
+        SK_SelfDestruct     (   );
+        SK_TerminateProcess (0x0);
       }
 
       if (SK_GetCurrentGameID () == SK_GAME_ID::Okami)
@@ -4246,7 +4246,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       //SK_GetCurrentRenderBackend ().fullscreen_exclusive = false;
       }
 
-      if (GetForegroundWindow () == hWnd) ActivateWindow (hWnd, true);
+      
+      if (GetFocus ()/*SK_GetForegroundWindow () */== hWnd) ActivateWindow (hWnd, true);
     } break;
 
     // Allow the game to run in the background
@@ -4316,7 +4317,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
                   TRUE,
                     reinterpret_cast <LPARAM> (hWnd) );
 
-            return DefWindowProcW (hWnd, uMsg, wParam, lParam);;
+            return
+              DefWindowProcW (hWnd, uMsg, wParam, lParam);
           }
 
           SK_GetCurrentRenderBackend ().fullscreen_exclusive = false;
@@ -4376,8 +4378,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
         if (! activate)
           SK_GetCurrentRenderBackend ().fullscreen_exclusive = false;
 
-        if ( GetForegroundWindow () == game_window.hWnd ||
-             GetFocus            () == game_window.hWnd ) ActivateWindow (game_window.hWnd, true);
+        if ( SK_GetForegroundWindow () == game_window.hWnd ||
+                GetFocus            () == game_window.hWnd ) ActivateWindow (game_window.hWnd, true);
       }
     } break;
 
@@ -5081,7 +5083,16 @@ bool
 __stdcall
 SK_IsGameWindowActive (void)
 {
-  return game_window.active;
+  ///DWORD dwProcId;
+  ///
+  ///if (GetWindowThreadProcessId (GetActiveWindow (), &dwProcId))
+  ///{
+  ///  if (dwProcId != GetCurrentProcessId ())
+  ///    return false;
+  ///}
+
+  return
+    game_window.active;
 }
 
 
@@ -5171,37 +5182,67 @@ SK_MakeWindowHook (WNDPROC class_proc, WNDPROC wnd_proc, HWND hWnd)
 
   if ((! hook_func) || game_window.WndProc_Original == nullptr)
   {
+    target_proc = wnd_proc;
+
     dll_log.Log ( L"[Window Mgr]  >> Hooking was impossible; installing new "
-                  L"window procedure instead (this may be undone "
-                  L"by other software)." );
+                 L"%s procedure instead (this may be undone "
+                 L"by other software).", target_proc == class_proc ?
+                 L"Class" : L"Window"   );
 
     game_window.WndProc_Original =
       static_cast <WNDPROC> (target_proc);
-
+    
     if (target_proc == class_proc)
     {
-      if (game_window.unicode)
-        SetClassLongPtrW ( hWnd, GCLP_WNDPROC, (LONG_PTR)SK_DetourWindowProc );
-      else
-        SetClassLongPtrA ( hWnd, GCLP_WNDPROC, (LONG_PTR)SK_DetourWindowProc );
-    }
+      SK_Thread_Create ([](LPVOID hWnd)->DWORD
+      {
+        SleepEx (1UL, FALSE);
+    
+        if (game_window.unicode)
+          SetClassLongPtrW ( (HWND)hWnd, GCLP_WNDPROC, (LONG_PTR)SK_DetourWindowProc );
+        else
+          SetClassLongPtrA ( (HWND)hWnd, GCLP_WNDPROC, (LONG_PTR)SK_DetourWindowProc );
+    
+        game_window.hooked = false;
 
+        game_window.hWnd   = (HWND)hWnd;
+        game_window.active = true;
+    
+        SK_Thread_CloseSelf ();
+    
+        return 0;
+      }, hWnd);
+    }
+    
     else
     {
-      //game_window.SetWindowLongPtr ( hWnd,
-      game_window.unicode ?
-        SK_SetWindowLongPtrW ( hWnd,
-                                 GWLP_WNDPROC,
-              reinterpret_cast <LONG_PTR> (SK_DetourWindowProc) ) :
-        SK_SetWindowLongPtrA ( hWnd,
-                                 GWLP_WNDPROC,
-              reinterpret_cast <LONG_PTR> (SK_DetourWindowProc) );
-    }
+      SK_Thread_Create ([](LPVOID hWnd)->DWORD
+      {
+        SleepEx (1UL, FALSE);
+    
+        //game_window.SetWindowLongPtr ( hWnd,
+        game_window.unicode ?
+          SK_SetWindowLongPtrW ( (HWND)hWnd,
+                                   GWLP_WNDPROC,
+                                   reinterpret_cast <LONG_PTR> (SK_DetourWindowProc) ) :
+          SK_SetWindowLongPtrA ( (HWND)hWnd,
+                                   GWLP_WNDPROC,
+                                   reinterpret_cast <LONG_PTR> (SK_DetourWindowProc) );
+    
+        game_window.hooked = false;
 
-    game_window.hooked = false;
+        game_window.hWnd   = (HWND)hWnd;
+        game_window.active = true;
+    
+        SK_Thread_CloseSelf ();
+    
+        return 0;
+      }, hWnd);
+    }
   }
 
-
+  game_window.hWnd   = hWnd;
+  game_window.active = true;
 
   // Kiss of death for sane window management
   if (! _wcsicmp (wszClassName, L"UnityWndClass"))

@@ -220,7 +220,7 @@ extern "C" {
     MH_STATUS WINAPI SH_HookTarget (UINT   hook_idx,                       LPVOID *ppTarget);
 
     MH_STATUS WINAPI SH_IntrospectEx ( LPVOID  pTarget,    SH_INTROSPECT_ID type,
-                                       LPVOID *ppResult,   UINT             idx      );
+                                       LPVOID *ppzResult,   UINT             idx      );
     MH_STATUS WINAPI SH_HookCountEx  ( PUINT   pHookCount, UINT             Idx      );
     MH_STATUS WINAPI SH_HookTargetEx ( UINT    hook_idx,   LPVOID          *ppTarget,
                                        UINT    idx                                   );

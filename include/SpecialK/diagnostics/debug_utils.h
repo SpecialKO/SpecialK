@@ -45,6 +45,8 @@ namespace SK
 void WINAPI SK_SymRefreshModuleList (HANDLE hProc = GetCurrentProcess ());
 BOOL WINAPI SK_IsDebuggerPresent    (void);
 
+BOOL __stdcall SK_TerminateProcess (UINT uExitCode);
+
 using TerminateProcess_pfn   = BOOL (WINAPI *)(HANDLE hProcess, UINT uExitCode);
 using ExitProcess_pfn        = void (WINAPI *)(UINT   uExitCode);
 

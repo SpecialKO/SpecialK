@@ -78,8 +78,6 @@ SK_GetCurrentGameID (void)
       if ( StrStrIW ( SK_GetHostApp (), L"ffxv" ) )
         current_game = SK_GAME_ID::FinalFantasyXV;
     }
-
-    current_game =  SK_GAME_ID::MonsterHunterWorld;
   }
 
   return current_game;
@@ -438,6 +436,11 @@ struct {
 } input;
 
 struct {
+  sk::ParameterBool*      enable_mem_alloc_trace;
+  sk::ParameterBool*      enable_file_io_trace;
+} threads;
+
+struct {
   sk::ParameterBool*      borderless;
   sk::ParameterBool*      center;
   struct {
@@ -780,6 +783,10 @@ auto DeclKeybind =
 
     ConfigEntry (input.gamepad.steam.ui_slot,            L"Steam Controller that owns the config UI",                  dll_ini,         L"Input.Steam",           L"UISlot"),
 
+    // Thread Monitoring
+    //////////////////////////////////////////////////////////////////////////
+    ConfigEntry (threads.enable_mem_alloc_trace,         L"Trace per-Thread Memory Allocation in Threads Widget",      dll_ini,         L"Threads.Analyze",       L"MemoryAllocation"),
+    ConfigEntry (threads.enable_file_io_trace,           L"Trace per-Thread File I/O Activity in Threads Widget",      dll_ini,         L"Threads.Analyze",       L"FileActivity"),
 
     // Window Management
     //////////////////////////////////////////////////////////////////////////
@@ -1340,6 +1347,11 @@ auto DeclKeybind =
   games.emplace ( L"PillarsOfEternityII.exe",                SK_GAME_ID::PillarsOfEternity2           );
   games.emplace ( L"Yakuza0.exe",                            SK_GAME_ID::Yakuza0                      );
   games.emplace ( L"MonsterHunterWorld.exe",                 SK_GAME_ID::MonsterHunterWorld           );
+  games.emplace ( L"Shenmue.exe",                            SK_GAME_ID::Shenmue                      );
+  games.emplace ( L"Shenmue2.exe",                           SK_GAME_ID::Shenmue                      );
+  games.emplace ( L"SteamLauncher.exe",                      SK_GAME_ID::Shenmue                      ); // Bad idea
+  games.emplace ( L"GlimpseGame.exe",                        SK_GAME_ID::MonsterHunterWorld           );
+  games.emplace ( L"DRAGON QUEST XI.exe",                    SK_GAME_ID::DragonQuestXI                );
 
   //
   // Application Compatibility Overrides
@@ -1739,14 +1751,42 @@ auto DeclKeybind =
         //SK_DXGI_FullStateCache                 = config.render.dxgi.full_state_cache;
         break;
 
+      case SK_GAME_ID::Shenmue:
+        config.textures.d3d11.generate_mips       = true;
+        config.textures.d3d11.uncompressed_mips   = true;
+        config.textures.d3d11.cache_gen_mips      = true;
+        config.render.framerate.target_fps        = 30.0f;
+        config.render.framerate.busy_wait_limiter = false;
+        config.render.framerate.yield_once        = true;
+        break;
+
       case SK_GAME_ID::MonsterHunterWorld:
       {
         // This game has multiple windows, we can't hook the wndproc
         config.window.dont_hook_wndproc  = true;
+      //config.system.display_debug_out  = true;
         config.steam.force_load_steamapi = true;
         config.steam.auto_inject         = true;
         config.steam.auto_pump_callbacks = true;
-        config.steam.dll_path            = L"kaldaien_api64.dll";
+        config.steam.dll_path = L"kaldaien_api64.dll";
+        config.render.framerate.limiter_tolerance
+                                         = 0.925f;
+        // Normally I would turn this on by default, but I replaced
+        //   the game's stupid SwitchToThread (...) nightmare with
+        //     a functional Win32 message pump.
+        //
+        //  --> This framerate limiter feature isn't needed.
+        //
+        config.render.framerate.min_input_latency = false;
+
+        // Prevent hitching
+        config.input.gamepad.xinput.placehold [0] = true;
+        config.input.gamepad.xinput.placehold [1] = true;
+        config.input.gamepad.xinput.placehold [2] = true;
+        config.input.gamepad.xinput.placehold [3] = true;
+
+        extern BOOL __SK_DisableQuickHook;
+                    __SK_DisableQuickHook = TRUE;
 
         if (GetFileAttributes (L"kaldaien_api64.dll") == INVALID_FILE_ATTRIBUTES)
         {
@@ -2156,6 +2196,10 @@ auto DeclKeybind =
 
   input.gamepad.xinput.ui_slot->load ((int &)config.input.gamepad.xinput.ui_slot);
   input.gamepad.steam.ui_slot->load  ((int &)config.input.gamepad.steam.ui_slot);
+
+
+  threads.enable_mem_alloc_trace->load (config.threads.enable_mem_alloc_trace);
+  threads.enable_file_io_trace->load   (config.threads.enable_file_io_trace);
 
   window.borderless->load        (config.window.borderless);
 
@@ -2814,6 +2858,9 @@ SK_SaveConfig ( std::wstring name,
 
   input.gamepad.xinput.assignment->store     (xinput_assign);
   input.gamepad.disable_rumble->store        (config.input.gamepad.disable_rumble);
+
+  threads.enable_mem_alloc_trace->store      (config.threads.enable_mem_alloc_trace);
+  threads.enable_file_io_trace->store        (config.threads.enable_file_io_trace);
 
   window.borderless->store                   (config.window.borderless);
   window.center->store                       (config.window.center);
@@ -3606,11 +3653,12 @@ SK_AppCache_Manager::getConfigPathForAppID (uint32_t uiAppID) const
   {
     std::wstring original_dir (path);
 
-    size_t       pos                     = 0;
-    std::wstring host_app (SK_GetHostApp ());
-
-    if ((pos = path.find (SK_GetHostApp (), pos)) != std::wstring::npos)
+    size_t pos = 0;
+    if (  (pos = path.find (SK_GetHostApp (), pos)) != std::wstring::npos)
+    {
+      std::wstring       host_app (SK_GetHostApp ());
       path.replace (pos, host_app.length (), L"\0");
+    }
 
     name.erase ( std::remove_if ( name.begin (),
                                   name.end   (),

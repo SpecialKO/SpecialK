@@ -265,7 +265,7 @@ SK_Steam_RecursiveFileScrub ( std::wstring  directory,  unsigned int& files,
       }
 
       if (          (fd.dwFileAttributes  & FILE_ATTRIBUTE_DIRECTORY) &&
-        (_wcsicmp (fd.cFileName, L"." )                != 0)        &&
+        (  _wcsicmp (fd.cFileName, L"." )                != 0)        &&
           (_wcsicmp (fd.cFileName, L"..")                != 0)        &&
           (_wcsicmp (fd.cFileName, L"Steamworks Shared") != 0) )
       {
@@ -294,7 +294,7 @@ SK_Steam_RecursiveFileScrub ( std::wstring  directory,  unsigned int& files,
         {
           ++files;
           liSize.QuadPart +=
-            LARGE_INTEGER {                     fd.nFileSizeLow,
+            LARGE_INTEGER {     fd.nFileSizeLow,
             static_cast <LONG> (fd.nFileSizeHigh) }.QuadPart;
         }
 
@@ -381,12 +381,13 @@ SK_Steam_FindInstallPath (uint32_t appid)
 
       CHandle hManifest (
         CreateFileW ( wszManifest,
-        GENERIC_READ,
-        FILE_SHARE_READ | FILE_SHARE_WRITE,
-        nullptr,
-        OPEN_EXISTING,
-        GetFileAttributesW (wszManifest),
-        nullptr )
+                      GENERIC_READ,
+                        FILE_SHARE_READ |
+                        FILE_SHARE_WRITE,
+                          nullptr,
+                          OPEN_EXISTING,
+                            GetFileAttributesW (wszManifest),
+                              nullptr )
       );
 
       if (hManifest != INVALID_HANDLE_VALUE)
@@ -733,6 +734,19 @@ SK_Steam_ScreenshotManager::OnScreenshotRequest ( ScreenshotRequested_t *pParam 
 }
 
 void
+SK_Steam_CatastropicScreenshotFail (void)
+{
+  extern void SK_ImGui_Warning            (const wchar_t* wszMessage);
+
+  SK_RunOnce (
+    SK_ImGui_Warning (L"Something went catastrophically wrong attempting to take a Smart Steam Screenshot -- DISABLING FEATURE.")
+  );
+
+  steam_ctx.Screenshots ()->HookScreenshots   (false);
+  steam_ctx.Screenshots ()->TriggerScreenshot (     );
+}
+
+void
 SK_Steam_ScreenshotManager::OnScreenshotReady ( ScreenshotReady_t *pParam )
 {
   screenshots_handled.insert (
@@ -762,8 +776,8 @@ SK_Steam_ScreenshotManager::WaitOnScreenshot ( ScreenshotHandle handle,
                                FALSE, dwTimeoutMs,
                                0x0 );
 
-  if (   dwStatus >=  WAIT_OBJECT_0                         &&
-      dwStatus <  (WAIT_OBJECT_0 + MAXIMUM_WAIT_OBJECTS) &&
+  if (  dwStatus >=  WAIT_OBJECT_0                         &&
+        dwStatus <  (WAIT_OBJECT_0 + MAXIMUM_WAIT_OBJECTS) &&
       ( dwStatus  -  WAIT_OBJECT_0 ) < 2 )
   {
     UINT type = std::min ( 1UL, dwStatus - WAIT_OBJECT_0 );
@@ -812,12 +826,14 @@ const wchar_t*
 SK_Steam_ScreenshotManager::
 getExternalScreenshotPath (void)
 {
-  static wchar_t wszAbsolutePathToScreenshots [ MAX_PATH * 2 + 1 ] = { };
+  static wchar_t
+    wszAbsolutePathToScreenshots [ MAX_PATH * 2 + 1 ] = { };
 
   if (*wszAbsolutePathToScreenshots != L'\0')
     return wszAbsolutePathToScreenshots;
 
-  wcsncpy_s    ( wszAbsolutePathToScreenshots, MAX_PATH * 2, SK_GetConfigPath (), _TRUNCATE);
+  wcsncpy_s    ( wszAbsolutePathToScreenshots, MAX_PATH * 2,
+                 SK_GetConfigPath (),          _TRUNCATE      );
   PathAppendW  ( wszAbsolutePathToScreenshots, L"Screenshots" );
 
   return         wszAbsolutePathToScreenshots;
@@ -843,17 +859,16 @@ SK_Steam_ScreenshotManager::getExternalScreenshotRepository (bool refresh)
       do
       {
         if (          (fd.dwFileAttributes  & FILE_ATTRIBUTE_DIRECTORY) &&
-          (_wcsicmp (fd.cFileName, L"." )                != 0)        &&
+          (  _wcsicmp (fd.cFileName, L"." )                != 0)        &&
             (_wcsicmp (fd.cFileName, L"..")                != 0) )
         {
           SK_Steam_RecursiveFileScrub ( _ConstructPath   (
-            _ConstructPath ( directory, fd.cFileName ),
-            L""
-          ).data (),
-            external_screenshots.files,
-            external_screenshots.liSize,
-            L"*", L"SK_SteamScreenshotImport.jpg",
-            false );
+                                          _ConstructPath ( directory, fd.cFileName ),
+                                          L""            ).data (),
+            external_screenshots.files, external_screenshots.liSize,
+            L"*",                       L"SK_SteamScreenshotImport.jpg",
+            false
+          );
         }
       } while (FindNextFile (hFind, &fd));
 
@@ -947,10 +962,20 @@ public:
     }
 
 
+    bool wasActive = active_;
+
     active_ = (pParam->m_bActive != 0);
+
+    if (wasActive != active_)
+    {
+      if (active_) SK::Framerate::GetLimiter ()->suspend ();
+      else         SK::Framerate::GetLimiter ()->resume  ();
+    }
   }
 
-  bool isActive (void) const { return active_; }
+  bool isActive (void) const {
+    return active_;
+  }
 
 private:
   bool cursor_visible_; // Cursor visible prior to activation?
@@ -1067,7 +1092,8 @@ SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
   std::wstring caller =
     SK_GetCallerName ();
 
-  steam_callback_cs->lock ();
+  if (steam_callback_cs != nullptr)
+      steam_callback_cs->lock ();
 
   switch (iCallback)
   {
@@ -1164,7 +1190,8 @@ SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
   if (iCallback != UserStatsReceived_t::k_iCallback)
     SteamAPI_RegisterCallback_Original (pCallback, iCallback);
 
-  steam_callback_cs->unlock ();
+  if (steam_callback_cs != nullptr)
+      steam_callback_cs->unlock ();
 }
 
 void
@@ -1197,7 +1224,8 @@ SteamAPI_UnregisterCallback_Detour (class CCallbackBase *pCallback)
   std::wstring caller =
     SK_GetCallerName ();
 
-  steam_callback_cs->lock ();
+  if (steam_callback_cs != nullptr)
+      steam_callback_cs->lock ();
 
   int iCallback = pCallback->GetICallback ();
 
@@ -1303,7 +1331,8 @@ SteamAPI_UnregisterCallback_Detour (class CCallbackBase *pCallback)
 
   SteamAPI_UnregisterCallback_Original (pCallback);
 
-  steam_callback_cs->unlock ();
+  if (steam_callback_cs != nullptr)
+      steam_callback_cs->unlock ();
 }
 
 const char*
@@ -2279,7 +2308,8 @@ public:
       if ( pSys                 != nullptr &&
           pSys->getRenderer () != nullptr )
       {
-        steam_popup_cs->lock ();
+        if (steam_popup_cs != nullptr)
+            steam_popup_cs->lock ();
 
         try
         {
@@ -2297,24 +2327,28 @@ public:
         {
         }
 
-        steam_popup_cs->unlock ();
+        if (steam_popup_cs != nullptr)
+            steam_popup_cs->unlock ();
       }
     }
   }
 
   void clearPopups (void)
   {
-    steam_popup_cs->lock ();
+    if (steam_popup_cs != nullptr)
+        steam_popup_cs->lock ();
 
     if (popups.empty ())
     {
-      steam_popup_cs->unlock ();
+      if (steam_popup_cs != nullptr)
+          steam_popup_cs->unlock ();
       return;
     }
 
     popups.clear ();
 
-    steam_popup_cs->unlock ();
+    if (steam_popup_cs != nullptr)
+        steam_popup_cs->unlock ();
   }
 
   int drawPopups (void)
@@ -2324,11 +2358,13 @@ public:
 
     int drawn = 0;
 
-    steam_popup_cs->lock ();
+    if (steam_popup_cs != nullptr)
+        steam_popup_cs->lock ();
 
     if (popups.empty ())
     {
-      steam_popup_cs->unlock ();
+      if (steam_popup_cs != nullptr)
+          steam_popup_cs->unlock ();
       return drawn;
     }
 
@@ -2565,7 +2601,8 @@ public:
       catch (...) {}
     }
     //SK_PopupManager::getInstance ()->unlockPopups ();
-    steam_popup_cs->unlock ();
+    if (steam_popup_cs != nullptr)
+        steam_popup_cs->unlock ();
 
     return drawn;
   }
@@ -4044,7 +4081,8 @@ SK::SteamAPI::SetOverlayState (bool active)
   if (config.steam.silent)
     return;
 
-  steam_callback_cs->lock ();
+  if (steam_callback_cs != nullptr)
+      steam_callback_cs->lock ();
 
   for ( auto& it : overlay_activation_callbacks )
   {
@@ -4057,7 +4095,8 @@ SK::SteamAPI::SetOverlayState (bool active)
     );
   }
 
-  steam_callback_cs->unlock ();
+  if (steam_callback_cs != nullptr)
+      steam_callback_cs->unlock ();
 }
 
 bool
@@ -4132,7 +4171,8 @@ SteamAPI_InitSafe_Detour (void)
   if (ReadAcquire (&__SK_Steam_init))
     return SteamAPI_InitSafe_Original ();
 
-  steam_init_cs->lock ();
+  if (steam_init_cs != nullptr)
+      steam_init_cs->lock ();
 
   static int init_tries = -1;
 
@@ -4164,11 +4204,13 @@ SteamAPI_InitSafe_Detour (void)
       SK_Steam_StartPump (config.steam.force_load_steamapi);
     }
 
-    steam_init_cs->unlock ();
+    if (steam_init_cs != nullptr)
+        steam_init_cs->unlock ();
     return true;
   }
 
-  steam_init_cs->unlock ();
+  if (steam_init_cs != nullptr)
+      steam_init_cs->unlock ();
   return false;
 }
 
@@ -4178,9 +4220,13 @@ SteamAPI_Shutdown_Detour (void)
 {
   steam_log.Log (L" *** Game called SteamAPI_Shutdown (...)");
 
-  steam_init_cs->lock   ();
+  if (steam_init_cs != nullptr)
+      steam_init_cs->lock   ();
+
   SK_Steam_KillPump     ();
-  steam_init_cs->unlock ();
+
+  if (steam_init_cs != nullptr)
+      steam_init_cs->unlock ();
 
 
   if (! ReadAcquire (&__SK_DLL_Ending))
@@ -4252,13 +4298,17 @@ SteamAPI_Init_Detour (void)
 {
   bool bRet = false;
 
-  steam_init_cs->lock ();
+  if (steam_init_cs != nullptr)
+      steam_init_cs->lock ();
 
   // In case we already initialized stuff...
   if (ReadAcquire (&__SK_Steam_init))
   {
     bRet = SK_SAFE_SteamAPI_Init ();
-    steam_init_cs->unlock ();
+
+    if (steam_init_cs != nullptr)
+        steam_init_cs->unlock ();
+
     return bRet;
   }
 
@@ -4340,7 +4390,8 @@ SteamAPI_Init_Detour (void)
     }
   }
 
-  steam_init_cs->unlock ();
+  if (steam_init_cs != nullptr)
+      steam_init_cs->unlock ();
 
   return bRet;
 }
@@ -5180,15 +5231,18 @@ enum class SK_Steam_FileSigPass_e
 };
 
 static SK_Steam_FileSigPass_e
-validation_pass (SK_Steam_FileSigPass_e::Executable);
+  validation_pass (
+       SK_Steam_FileSigPass_e::Executable
+  );
 
 uint32_t
 __stdcall
 SK_Steam_PiratesAhoy (void)
 {
   //   Older versions of SteamAPI may not support the necessary interface version
-  if ( steam_ctx.Apps () != nullptr &&
-      validation_pass   != SK_Steam_FileSigPass_e::Done  ) 
+  if ( steam_ctx.Utils () != nullptr &&
+       steam_ctx.Apps  () != nullptr &&
+       validation_pass    != SK_Steam_FileSigPass_e::Done )
   {
     DepotId_t depots [16] = { };
 
@@ -5260,7 +5314,7 @@ SK_Steam_PiratesAhoy (void)
   if (steam_ctx.User () != nullptr)
   {
     if ( steam_ctx.User ()->GetSteamID ().ConvertToUint64 () == 18295873490452480 << 4 ||
-        steam_ctx.User ()->GetSteamID ().ConvertToUint64 () == 25520399320093309  * 3 )
+         steam_ctx.User ()->GetSteamID ().ConvertToUint64 () == 25520399320093309  * 3 )
       verdict = 0x1;
   }
 
@@ -5337,8 +5391,11 @@ SK_SteamAPIContext::OnFileDetailsDone ( FileDetailsResult_t* pParam,
     SK_Thread_Create ([](LPVOID user) ->
                       DWORD
     {
+      // We don't need these results anytime soon, get them when we get them...
       SetCurrentThreadDescription (L"[SK] Steam File Validation Thread");
-
+      SetThreadPriority           ( GetCurrentThread (), THREAD_MODE_BACKGROUND_BEGIN );
+      SetThreadPriority           ( GetCurrentThread (), THREAD_PRIORITY_IDLE         );
+      SetThreadPriorityBoost      ( GetCurrentThread (), TRUE                         );
 
       hash_job_prio_queue_s* prio_queue =
         (hash_job_prio_queue_s *)user;
@@ -5461,35 +5518,25 @@ SK_SteamAPIContext::OnFileDetailsDone ( FileDetailsResult_t* pParam,
           }
         };
 
-        // We don't need these results anytime soon, get them when we get them...
-        SetThreadPriority      ( GetCurrentThread (), THREAD_MODE_BACKGROUND_BEGIN );
-        SetThreadPriority      ( GetCurrentThread (), THREAD_PRIORITY_IDLE         );
-        SetThreadPriorityBoost ( GetCurrentThread (), TRUE                         );
+        switch (validation_pass)
         {
-          switch (validation_pass)
+          case SK_Steam_FileSigPass_e::Executable:
           {
-            case SK_Steam_FileSigPass_e::Executable:
-            {
-              HandleResult (SK_UTF8ToWideChar (check_file).c_str ());
+            HandleResult (SK_UTF8ToWideChar (check_file).c_str ());
 
-              validation_pass = SK_Steam_FileSigPass_e::SteamAPI;
-              InterlockedExchange (&hAsyncSigCheck, 0);
-            } break;
+            validation_pass = SK_Steam_FileSigPass_e::SteamAPI;
+            InterlockedExchange (&hAsyncSigCheck, 0);
+          } break;
 
-            case SK_Steam_FileSigPass_e::SteamAPI:
-            {
-              HandleResult (SK_UTF8ToWideChar (check_file).c_str ());
+          case SK_Steam_FileSigPass_e::SteamAPI:
+          {
+            HandleResult (SK_UTF8ToWideChar (check_file).c_str ());
 
-              validation_pass = SK_Steam_FileSigPass_e::Done;
-              InterlockedExchange (&hAsyncSigCheck, 0);
-            } break;
-          }
+            validation_pass = SK_Steam_FileSigPass_e::Done;
+            InterlockedExchange (&hAsyncSigCheck, 0);
+          } break;
         }
-        SetThreadPriorityBoost ( GetCurrentThread (), FALSE                        );
-        SetThreadPriority      ( GetCurrentThread (), THREAD_MODE_BACKGROUND_END   );
-        SetThreadPriority      ( GetCurrentThread (), THREAD_PRIORITY_BELOW_NORMAL );
       }
-
 
       SK_Thread_CloseSelf ();
 

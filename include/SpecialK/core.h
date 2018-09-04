@@ -26,6 +26,7 @@ struct IUnknown;
 #include <Unknwnbase.h>
 
 #include <SpecialK/SpecialK.h>
+#include <SpecialK/diagnostics/modules.h>
 
 class           SK_TLS;
 extern __inline SK_TLS* SK_TLS_Bottom (void);
@@ -80,6 +81,11 @@ extern "C++" SK_Thread_HybridSpinlock* cs_dbghelp;
 extern "C++" SK_Thread_HybridSpinlock* init_mutex;
 #endif
 
+class skWin32Module;
+
+BOOL __stdcall SK_Attach              ( DLL_ROLE        role   );
+BOOL __stdcall SK_Detach              ( DLL_ROLE        role   );
+BOOL __stdcall SK_EstablishDllRole    ( skWin32Module&& module );
 
 extern HMODULE                  backend_dll;
 
@@ -96,7 +102,7 @@ extern BOOL                     nvapi_init;
 // We have some really sneaky overlays that manage to call some of our
 //   exported functions before the DLL's even attached -- make them wait,
 //     so we don't crash and burn!
-void WaitForInit (void);
+void           WaitForInit     (void);
 
 void __stdcall SK_InitCore     (const wchar_t* backend, void* callback);
 bool __stdcall SK_StartupCore  (const wchar_t* backend, void* callback);
@@ -119,51 +125,25 @@ extern "C" {
 };
 #endif
 
-void
-__stdcall
-SK_SetConfigPath (const wchar_t* path);
+void           __stdcall SK_SetConfigPath (const wchar_t* path);
+const wchar_t* __stdcall SK_GetConfigPath (void);
 
-const wchar_t*
-__stdcall
-SK_GetConfigPath (void);
+const wchar_t* __stdcall SK_GetBackend        (void);
+void           __cdecl   SK_SetDLLRole        (DLL_ROLE role);
+bool           __cdecl   SK_IsHostAppSKIM     (void);
+bool           __stdcall SK_IsInjected        (bool set = false);
+bool           __stdcall SK_HasGlobalInjector (void);
 
-void
-__cdecl
-SK_SetDLLRole (DLL_ROLE role);
-
-const wchar_t*
-__stdcall
-SK_GetBackend (void);
-
-bool
-__cdecl
-SK_IsHostAppSKIM (void);
-
-bool
-__stdcall
-SK_IsInjected (bool set = false);
-
-bool
-__stdcall
-SK_HasGlobalInjector (void);
-
-HWND
-SK_Win32_CreateDummyWindow (void);
 
 // Pass nullptr to cleanup ALL windows; for internal use only.
-void
-SK_Win32_CleanupDummyWindow (HWND hWnd = nullptr);
+void SK_Win32_CleanupDummyWindow (HWND hWnd = nullptr);
+HWND SK_Win32_CreateDummyWindow  (void               );
 
-void
-__stdcall
-SK_EstablishRootPath (void);
-
+void __stdcall SK_EstablishRootPath   (void);
 void __stdcall SK_StartPerfMonThreads (void);
 
 
 extern volatile LONG __SK_DLL_Ending;
 extern volatile LONG __SK_DLL_Attached;
-
-
 
 #endif /* __SK__CORE_H__ */

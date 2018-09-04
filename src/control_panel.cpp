@@ -2001,7 +2001,19 @@ SK_ImGui_ControlPanel (void)
       {
         extern bool SK_MHW_PlugInCfg (void);
                     SK_MHW_PlugInCfg ();
-      }
+      } break;
+
+      case SK_GAME_ID::DragonQuestXI:
+      {
+        extern bool SK_DQXI_PlugInCfg (void);
+                    SK_DQXI_PlugInCfg ();
+      } break;
+
+      case SK_GAME_ID::Shenmue:
+      {
+        extern bool SK_SM_PlugInCfg (void);
+                    SK_SM_PlugInCfg ();
+      } break;
     };
 #endif
 
@@ -2022,7 +2034,6 @@ SK_ImGui_ControlPanel (void)
       {
         static bool advanced = false;
                bool changed  = false;
-
 
         // Don't apply this number if it's < 10; that does very undesirable things
         float target_orig = target_fps;
@@ -2085,58 +2096,58 @@ SK_ImGui_ControlPanel (void)
 
           if (target_fps > 0.0f)
           {
-            if (ImGui::SliderInt   ( "Maximum CPU Render-Ahead",
-                                       &config.render.framerate.max_render_ahead,
-                                         0, 2,
-                                     config.render.framerate.max_render_ahead != 1 ?
-                                       "%.0f Frames" : "%.0f Frame" )
-               )
-            {
-              SK::Framerate::GetLimiter ()->init (
-                SK::Framerate::GetLimiter ()->get_limit ()
-              );
-            }
-
-            if (ImGui::IsItemHovered ())
-            {
-              ImGui::BeginTooltip   (  );
-              ImGui::PushStyleColor (ImGuiCol_Text, ImColor (0.95f, 0.75f, 0.25f, 1.0f));
-              ImGui::Text           ("Controls How Many Frames CPU May Prepare In Advance");
-              ImGui::Separator      (  );
-              ImGui::PushStyleColor (ImGuiCol_Text, ImColor (0.75f, 0.75f, 0.75f, 1.0f));
-              ImGui::Text           ("  Lower = Stricter Adherence to Framerate Limit + Lower Input Latency");
-              ImGui::PopStyleColor  ( 2);
-              ImGui::BulletText     ("0 is reasonable if your GPU consistently draws at or above the target rate");
-              ImGui::TreePush       ("");
-              ImGui::BulletText     ("Consider 1 or 2 to help with stuttering otherwise");
-              ImGui::TreePop        (  );
-              ImGui::EndTooltip     (  );
-            }
-            //  ImGui::PushStyleColor (ImGuiCol_Text, ImColor (0.75f, 0.75f, 0.75f, 1.0f));
-            //  ImGui::Text           ("  Lower = Stricter, but setting");
-            //  ImGui::SameLine       ();
-
-            //ImGui::SliderFloat ( "Target Framerate Tolerance", &config.render.framerate.limiter_tolerance, 0.925f, 4.0f);
+            //if (ImGui::SliderInt   ( "Maximum CPU Render-Ahead",
+            //                           &config.render.framerate.max_render_ahead,
+            //                             0, 2,
+            //                         config.render.framerate.max_render_ahead != 1 ?
+            //                           "%.0f Frames" : "%.0f Frame" )
+            //   )
+            //{
+            //  SK::Framerate::GetLimiter ()->init (
+            //    SK::Framerate::GetLimiter ()->get_limit ()
+            //  );
+            //}
             //
             //if (ImGui::IsItemHovered ())
             //{
-            //  ImGui::BeginTooltip   ();
+            //  ImGui::BeginTooltip   (  );
             //  ImGui::PushStyleColor (ImGuiCol_Text, ImColor (0.95f, 0.75f, 0.25f, 1.0f));
-            //  ImGui::Text           ("Controls Framerate Smoothness\n\n");
+            //  ImGui::Text           ("Controls How Many Frames CPU May Prepare In Advance");
+            //  ImGui::Separator      (  );
+            //  ImGui::PushStyleColor (ImGuiCol_Text, ImColor (0.75f, 0.75f, 0.75f, 1.0f));
+            //  ImGui::Text           ("  Lower = Stricter Adherence to Framerate Limit + Lower Input Latency");
+            //  ImGui::PopStyleColor  ( 2);
+            //  ImGui::BulletText     ("0 is reasonable if your GPU consistently draws at or above the target rate");
+            //  ImGui::TreePush       ("");
+            //  ImGui::BulletText     ("Consider 1 or 2 to help with stuttering otherwise");
+            //  ImGui::TreePop        (  );
+            //  ImGui::EndTooltip     (  );
+            //}
             //  ImGui::PushStyleColor (ImGuiCol_Text, ImColor (0.75f, 0.75f, 0.75f, 1.0f));
             //  ImGui::Text           ("  Lower = Stricter, but setting");
             //  ImGui::SameLine       ();
-            //  ImGui::PushStyleColor (ImGuiCol_Text, ImColor (0.95f, 1.0f, 0.65f, 1.0f));
-            //  ImGui::Text           ("too low");
-            //  ImGui::SameLine       ();
-            //  ImGui::PushStyleColor (ImGuiCol_Text, ImColor(0.75f, 0.75f, 0.75f, 1.0f));
-            //  ImGui::Text           ("will cause framerate instability...");
-            //  ImGui::PopStyleColor (4);
-            //  ImGui::Separator      ( );
-            //  ImGui::Text           ("Recomputes clock phase if a single frame takes longer than <1.0 + tolerance> x <target_ms> to complete");
-            //  ImGui::BulletText     ("Adjust this if your set limit is fighting with VSYNC (frequent frametime graph oscillations).");
-            //  ImGui::EndTooltip     ( );
-            //}
+
+            ImGui::SliderFloat ( "Target Framerate Tolerance", &config.render.framerate.limiter_tolerance, 0.925f, 4.0f);
+            
+            if (ImGui::IsItemHovered ())
+            {
+              ImGui::BeginTooltip   ();
+              ImGui::PushStyleColor (ImGuiCol_Text, ImColor (0.95f, 0.75f, 0.25f, 1.0f));
+              ImGui::Text           ("Controls Framerate Smoothness\n\n");
+              ImGui::PushStyleColor (ImGuiCol_Text, ImColor (0.75f, 0.75f, 0.75f, 1.0f));
+              ImGui::Text           ("  Lower = Stricter, but setting");
+              ImGui::SameLine       ();
+              ImGui::PushStyleColor (ImGuiCol_Text, ImColor (0.95f, 1.0f, 0.65f, 1.0f));
+              ImGui::Text           ("too low");
+              ImGui::SameLine       ();
+              ImGui::PushStyleColor (ImGuiCol_Text, ImColor(0.75f, 0.75f, 0.75f, 1.0f));
+              ImGui::Text           ("will cause framerate instability...");
+              ImGui::PopStyleColor (4);
+              ImGui::Separator      ( );
+              ImGui::Text           ("Recomputes clock phase if a single frame takes longer than <1.0 + tolerance> x <target_ms> to complete");
+              ImGui::BulletText     ("Adjust this if your set limit is fighting with VSYNC (frequent frametime graph oscillations).");
+              ImGui::EndTooltip     ( );
+            }
           }
 
           changed |= ImGui::Checkbox ("Sleepless Render Thread",         &config.render.framerate.sleepless_render  );
@@ -2524,11 +2535,17 @@ SK_ImGui_StageNextFrame (void)
     return;
   }
 
-  ImGuiIO& io (ImGui::GetIO ());
+  ImGuiIO& io (
+    ImGui::GetIO ()
+  );
 
-  if (SK_GetCurrentGameID () == SK_GAME_ID::MonsterHunterWorld)
+  // TODO: Generalize this!
+  if ( SK_GetCurrentGameID () == SK_GAME_ID::MonsterHunterWorld ||
+       SK_GetCurrentGameID () == SK_GAME_ID::DragonQuestXI )
   {
-    CComQIPtr <IDXGISwapChain> pSwapChain (rb.swapchain);
+    CComQIPtr <IDXGISwapChain> pSwapChain (
+      rb.swapchain
+    );
 
     DXGI_SWAP_CHAIN_DESC  desc = {};
     pSwapChain->GetDesc (&desc);
@@ -2911,9 +2928,9 @@ SK_ImGui_StageNextFrame (void)
 
       if (ImGui::Button  ("Okay"))
       {
-        SK_SelfDestruct  ();
-        TerminateProcess (GetCurrentProcess (), 0x0);
-        ExitProcess      (                      0x0);
+        SK_SelfDestruct     (   );
+        SK_TerminateProcess (0x0);
+        ExitProcess         (0x0);
       }
 
       //ImGui::PushItemWidth (ImGui::GetWindowContentRegionWidth () * 0.33f); ImGui::SameLine (); ImGui::SameLine (); ImGui::PopItemWidth ();
@@ -3067,6 +3084,9 @@ __declspec (dllexport)
 void
 SK_ImGui_Toggle (void)
 {
+  // XXX: HACK for Monster Hunter: World
+  game_window.active = true;
+
   ImGuiIO& io (ImGui::GetIO ());
 
   static ULONG last_frame = 0;

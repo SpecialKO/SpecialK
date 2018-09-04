@@ -444,7 +444,7 @@ ProcessThreadIPsEx ( HANDLE hThread, UINT pos, UINT action,
   for (; pos < count; ++pos)
   {
     PHOOK_ENTRY pHook = &g_hooks [idx].pItems [pos];
-    BOOL        enable;
+    BOOL        enable = FALSE;
     DWORD_PTR   ip;
 
     switch (action)
@@ -620,6 +620,8 @@ EnumerateThreads (PFROZEN_THREADS pThreads)
   }
 }
 
+#include <corecrt_wstdio.h>
+
 //-------------------------------------------------------------------------
 static
 VOID
@@ -651,7 +653,7 @@ FreezeEx (PFROZEN_THREADS pThreads, UINT pos, UINT action, UINT idx)
   {
     SIZE_T spinCount = 0;
 
-    UINT i = 0, frozen, running;
+    UINT i = 0, frozen = 0, running = 0;
 
           float frozen_ratio     = 0.0f; 
     const float frozen_threshold = 0.01666f;
@@ -665,8 +667,13 @@ FreezeEx (PFROZEN_THREADS pThreads, UINT pos, UINT action, UINT idx)
         wchar_t wszOutput [256];
                *wszOutput = L'\0';
 
-        wsprintf (wszOutput, L"MinHook: Deep Freeze: Ratio=%f [%f/%f] { Spins: %u }",
-                  frozen_ratio, (float)frozen, (float)running, spinCount);
+#ifdef _WIN64
+        _swprintf (wszOutput, L"MinHook: Deep Freeze: Ratio=%f [%f/%f] { Spins: %I64u }",
+                   frozen_ratio, (float)frozen, (float)running, spinCount);
+#else
+        _swprintf (wszOutput, L"MinHook: Deep Freeze: Ratio=%f [%f/%f] { Spins: %Iu }",
+                   frozen_ratio, (float)frozen, (float)running, spinCount);
+#endif
 
         OutputDebugStringW (wszOutput);
       }
@@ -677,7 +684,7 @@ FreezeEx (PFROZEN_THREADS pThreads, UINT pos, UINT action, UINT idx)
       if ((spinCount % 7) == 0)
         SleepEx (1, FALSE);
 
-      if (spinCount >= 28)
+      if (spinCount >= 56)
         break;
 
       for (i = 0; i < pThreads->size; ++i)
@@ -885,7 +892,7 @@ Unfreeze (PFROZEN_THREADS pThreads)
 //-------------------------------------------------------------------------
 static
 MH_STATUS
-EnableHookLLEx (UINT pos, BOOL enable, UINT idx)
+EnableHookLLEx (UINT pos, UINT8 enable, UINT idx)
 {
   PHOOK_ENTRY pHook        = &g_hooks [idx].pItems [pos];
   DWORD       oldProtect;
@@ -946,7 +953,8 @@ MH_STATUS
 EnableHookLL (UINT pos, BOOL enable)
 {
   return
-    EnableHookLLEx (pos, enable, 0);
+    EnableHookLLEx (pos, enable != FALSE ?
+                              1 : 0, 0   );
 }
 
 //-------------------------------------------------------------------------
@@ -972,14 +980,15 @@ EnableAllHooksLLEx (BOOL enable, UINT idx)
     FROZEN_THREADS threads;
 
     FreezeEx ( &threads, ALL_HOOKS_POS,
-                enable ? ACTION_ENABLE :
-                         ACTION_DISABLE, idx );
+           enable != 0 ? (UINT)ACTION_ENABLE :
+                         (UINT)ACTION_DISABLE, idx );
 
     for (i = first; i < g_hooks [idx].size; ++i)
     {
       if (g_hooks [idx].pItems [i].isEnabled != enable)
       {
-        status = EnableHookLLEx (i, enable, idx);
+        status = EnableHookLLEx (i, enable != FALSE ? 
+                                         1 : 0, idx );
 
         if (status != MH_OK)
           break;
@@ -1134,7 +1143,7 @@ MH_CreateHookEx ( LPVOID   pTarget,   LPVOID pDetour,
               pHook->pDetour     = ct.pDetour;
 #endif
               pHook->pTrampoline = ct.pTrampoline;
-              pHook->patchAbove  = ct.patchAbove;
+              pHook->patchAbove  = ct.patchAbove != FALSE ? 1 : 0;
               pHook->isEnabled   = FALSE;
               pHook->queueEnable = FALSE;
               pHook->nIP         = ct.nIP;
@@ -1291,7 +1300,7 @@ EnableHookEx (LPVOID pTarget, BOOL enable, UINT idx)
           FreezeEx (&threads, pos, ACTION_ENABLE, idx);
 
           status =
-            EnableHookLLEx (pos, enable, idx);
+            EnableHookLLEx (pos, enable != 0 ? 1 : 0, idx);
 
           Unfreeze (&threads);
         }
@@ -1371,14 +1380,16 @@ QueueHookEx (LPVOID pTarget, BOOL queueEnable, UINT idx)
     {
       UINT i;
       for (i = 0; i < g_hooks [idx].size; ++i)
-        g_hooks [idx].pItems [i].queueEnable = queueEnable;
+        g_hooks [idx].pItems [i].queueEnable =
+                        (UINT8)(queueEnable != 0 ? 1 : 0);
     }
     else
     {
       UINT pos = FindHookEntryEx (pTarget, idx);
       if (pos != INVALID_HOOK_POS)
       {
-        g_hooks [idx].pItems [pos].queueEnable = queueEnable;
+        g_hooks [idx].pItems [pos].queueEnable =
+                           (UINT8)(queueEnable != 0 ? 1 : 0);
       }
       else
       {
@@ -1514,6 +1525,8 @@ MH_CreateHookApiEx2 (
     LPVOID  *ppOriginal, LPVOID *ppTarget,
     UINT      idx )
 {
+  UNREFERENCED_PARAMETER (idx);
+
   HMODULE hModule;
   LPVOID  pTarget;
 

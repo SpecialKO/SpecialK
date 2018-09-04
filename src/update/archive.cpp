@@ -137,7 +137,9 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
   std::vector <sk_file_entry_s> reg_files (all_files.size ());
   std::vector <sk_file_entry_s> cfg_files (all_files.size ());
 
-  for ( auto&& it = all_files.begin (); it != all_files.end (); ++it )
+  for ( auto&& it  = all_files.begin ();
+               it != all_files.end   ();
+             ++it )
   {
     if (wcsstr (it->name.c_str (), L"default_"))
     {
@@ -215,8 +217,8 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
       return E_FAIL;
     }
 
-    wchar_t wszDestPath [MAX_PATH * 2 + 1] = { };
-    wchar_t wszMovePath [MAX_PATH * 2 + 1] = { };
+    wchar_t wszDestPath     [MAX_PATH * 2 + 1] = { };
+    wchar_t wszMovePath     [MAX_PATH * 2 + 1] = { };
 
     wcsncpy_s ( wszDestPath, MAX_PATH * 2,
                   SK_SYS_GetInstallPath ().c_str (), _TRUNCATE );
@@ -355,8 +357,10 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
     wchar_t wszUserConfig    [MAX_PATH + 2] = { }; // Currently Deployed
     wchar_t wszOldConfig     [MAX_PATH + 2] = { }; // Backed-Up User Cfg
 
-    wcscpy   (wszDefaultConfig, SK_SYS_GetInstallPath ().c_str ());
-    wcscpy   (wszUserConfig,    SK_SYS_GetInstallPath ().c_str ());
+    wcsncpy_s ( wszDefaultConfig,                   MAX_PATH,
+                SK_SYS_GetInstallPath ().c_str (), _TRUNCATE );
+    wcsncpy_s ( wszUserConfig,                      MAX_PATH,
+                SK_SYS_GetInstallPath ().c_str (), _TRUNCATE );
 
     PathAppend (wszDefaultConfig, cfg_file.name.c_str ());
     PathAppend (wszUserConfig,    cfg_file.name.c_str ());
@@ -533,9 +537,8 @@ SK_Decompress7zEx ( const wchar_t*            wszArchive,
       return E_FAIL;
     }
 
-    wchar_t wszDestPath [MAX_PATH * 2 + 1] = { };
-
-    wcsncpy_s   ( wszDestPath, MAX_PATH * 2,
+    wchar_t       wszDestPath     [MAX_PATH * 2 + 1] = { };
+    wcsncpy_s   ( wszDestPath,     MAX_PATH * 2,
                   wszDestination, _TRUNCATE) ;
     PathAppendW ( wszDestPath, file.name.c_str () );
 

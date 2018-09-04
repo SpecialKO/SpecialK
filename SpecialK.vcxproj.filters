@@ -34,12 +34,6 @@
     <Filter Include="Libraries\32-bit">
       <UniqueIdentifier>{1e45d49a-394f-4a90-9e05-01d4e9eb122b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Libraries\64-bit">
-      <UniqueIdentifier>{f24af793-8b2e-4853-96dc-0d0fb7754f2f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Plugins">
-      <UniqueIdentifier>{a28dbd7c-faa6-49fb-a3f1-1f61813370e6}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\OSD">
       <UniqueIdentifier>{71d75f35-e2d8-4f4e-bd93-ce5bd9c9edf9}</UniqueIdentifier>
     </Filter>
@@ -48,9 +42,6 @@
     </Filter>
     <Filter Include="Header Files\Utility">
       <UniqueIdentifier>{62e65d77-0345-4c92-8a5c-8d7f951b04fc}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Utility">
-      <UniqueIdentifier>{b251c702-f9f1-46fa-b52e-ce0f44f96563}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\Config">
       <UniqueIdentifier>{437ec84a-fe34-4fbe-8205-38c72400b648}</UniqueIdentifier>
@@ -85,9 +76,6 @@
     <Filter Include="Header Files\stb">
       <UniqueIdentifier>{fe26823d-cc7b-4371-99fc-33ea554633c7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Backends\Input">
-      <UniqueIdentifier>{254711e3-28ff-4fbd-8175-fa18b5b6a352}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Backends\Input">
       <UniqueIdentifier>{72c67e28-e403-4857-b012-3e8c3d5987cd}</UniqueIdentifier>
     </Filter>
@@ -105,21 +93,6 @@
     </Filter>
     <Filter Include="Source Files\Backends\Render\Vulkan">
       <UniqueIdentifier>{b3e55d30-eb61-4133-9051-ecef8c9b2ba3}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Backends\Input\XInput">
-      <UniqueIdentifier>{16541fb7-8a2b-4314-887b-7b2f6fb14460}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Backends\Input\HID">
-      <UniqueIdentifier>{9e3f4015-6b36-4bfd-b248-98f9ecc51663}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Backends\Input\DirectInput">
-      <UniqueIdentifier>{0745912d-ee2d-464e-af70-a696b08bb85a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Backends\Input\RawInput">
-      <UniqueIdentifier>{7255c8a8-67ce-4ca2-b845-fa7a2139307d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Backends\Input\WinMM">
-      <UniqueIdentifier>{1a89460b-1056-41e2-8e1b-7ec8c75ae883}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\Backends\Render">
       <UniqueIdentifier>{bc556da4-4ff6-493c-a3d7-61a032c53c16}</UniqueIdentifier>
@@ -166,17 +139,11 @@
     <Filter Include="Header Files\Backends\Render\DDraw">
       <UniqueIdentifier>{10611ec8-047b-4de6-879f-aaf611ca1087}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Backends\Render\D3D8">
-      <UniqueIdentifier>{09f216f3-b598-4a6a-aee1-587fd9d42d27}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\ImGui\Widgets">
       <UniqueIdentifier>{be88cd54-d9ff-4a27-b993-c86dcdb61189}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\Widgets">
       <UniqueIdentifier>{e7c10313-1c67-4aaa-b5bd-c1a3f7ff608f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Backends\Input\Steam">
-      <UniqueIdentifier>{7ccfea9f-6e79-4034-a8ff-03925a9c532f}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\Steam\Wrapper">
       <UniqueIdentifier>{b68a55ad-9318-4278-8ca3-36d75f0cf5fd}</UniqueIdentifier>
@@ -208,14 +175,44 @@
     <Filter Include="Header Files\Backends\Render\DDraw\D3D9">
       <UniqueIdentifier>{6edf9f50-6c38-41f8-9392-801c33c99713}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\DirectXTex\Diagnostics">
-      <UniqueIdentifier>{05b0d4e1-1c73-4c73-b5b0-c2ab8082c6e9}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Utility\Update">
-      <UniqueIdentifier>{6c5c0f3e-6b89-4600-993c-db87d90083cc}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Config\DLL Export Definitions">
       <UniqueIdentifier>{5b9c5ae0-a6ca-41ed-bf90-f9485960db1e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Backends\Render\D3D8">
+      <UniqueIdentifier>{09f216f3-b598-4a6a-aee1-587fd9d42d27}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Update">
+      <UniqueIdentifier>{6c5c0f3e-6b89-4600-993c-db87d90083cc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Backends\Input">
+      <UniqueIdentifier>{254711e3-28ff-4fbd-8175-fa18b5b6a352}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Backends\Input\XInput">
+      <UniqueIdentifier>{16541fb7-8a2b-4314-887b-7b2f6fb14460}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Backends\Input\HID">
+      <UniqueIdentifier>{9e3f4015-6b36-4bfd-b248-98f9ecc51663}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Backends\Input\DirectInput">
+      <UniqueIdentifier>{0745912d-ee2d-464e-af70-a696b08bb85a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Backends\Input\RawInput">
+      <UniqueIdentifier>{7255c8a8-67ce-4ca2-b845-fa7a2139307d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Backends\Input\WinMM">
+      <UniqueIdentifier>{1a89460b-1056-41e2-8e1b-7ec8c75ae883}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Backends\Input\Steam">
+      <UniqueIdentifier>{7ccfea9f-6e79-4034-a8ff-03925a9c532f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Plugins">
+      <UniqueIdentifier>{a28dbd7c-faa6-49fb-a3f1-1f61813370e6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Utility">
+      <UniqueIdentifier>{b251c702-f9f1-46fa-b52e-ce0f44f96563}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Diagnostics">
+      <UniqueIdentifier>{05b0d4e1-1c73-4c73-b5b0-c2ab8082c6e9}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -280,13 +277,13 @@
       <Filter>Header Files\Plugins\OSD</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\diagnostics\compatibility.h">
-      <Filter>Header Files\DirectXTex\Diagnostics</Filter>
+      <Filter>Header Files\Diagnostics</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\diagnostics\crash_handler.h">
-      <Filter>Header Files\DirectXTex\Diagnostics</Filter>
+      <Filter>Header Files\Diagnostics</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\diagnostics\debug_utils.h">
-      <Filter>Header Files\DirectXTex\Diagnostics</Filter>
+      <Filter>Header Files\Diagnostics</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\DLL_VERSION.H">
       <Filter>Header Files\Core</Filter>
@@ -367,19 +364,16 @@
       <Filter>Header Files\Plugins</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\update\archive.h">
-      <Filter>Header Files\Utility\Update</Filter>
+      <Filter>Header Files\Update</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\update\network.h">
-      <Filter>Header Files\Utility\Update</Filter>
+      <Filter>Header Files\Update</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\update\version.h">
-      <Filter>Header Files\Utility\Update</Filter>
+      <Filter>Header Files\Update</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\input\steam.h">
       <Filter>Header Files\Backends\Input\Steam</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SpecialK\com_util.h">
-      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\render\dxgi\dxgi_backend.h">
       <Filter>Header Files\Backends\Render\DXGI</Filter>
@@ -421,7 +415,7 @@
       <Filter>Header Files\Backends\Render\DDraw\D3D9</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\diagnostics\load_library.h">
-      <Filter>Header Files\DirectXTex\Diagnostics</Filter>
+      <Filter>Header Files\Diagnostics</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteamapplist.h">
       <Filter>Header Files\Steam</Filter>
@@ -607,10 +601,10 @@
       <Filter>Header Files\Backends\Input\DirectInput</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\injection\blacklist.h">
-      <Filter>Header Files\DirectXTex\Diagnostics</Filter>
+      <Filter>Header Files\Diagnostics</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\diagnostics\modules.h">
-      <Filter>Header Files\DirectXTex\Diagnostics</Filter>
+      <Filter>Header Files\Diagnostics</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\sha1.h">
       <Filter>Header Files\Utility</Filter>
@@ -635,6 +629,9 @@
     </ClInclude>
     <ClInclude Include="include\SpecialK\input\dinput8_backend.h">
       <Filter>Header Files\Backends\Input\DirectInput</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\com_util.h">
+      <Filter>Header Files\Utility</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -977,77 +974,23 @@
     <ClCompile Include="src\imgui\imgui.cpp">
       <Filter>Source Files\ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="src\window.cpp">
-      <Filter>Source Files\Config</Filter>
-    </ClCompile>
     <ClCompile Include="src\input\input.cpp">
       <Filter>Source Files\Backends\Input</Filter>
     </ClCompile>
+    <ClCompile Include="monster_hunter_world.cpp">
+      <Filter>Source Files\Plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="src\plugins\yakuza0.cpp">
+      <Filter>Source Files\Plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="src\window.cpp">
+      <Filter>Source Files\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="PlugIns\dragon_quest_xi.cpp">
+      <Filter>Source Files\Plugins</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="depends\lib\CEGUI\x64\CEGUIBase-0.exp">
-      <Filter>Libraries</Filter>
-    </None>
-    <None Include="depends\lib\CEGUI\Win32\CEGUIBase-0.exp">
-      <Filter>Libraries</Filter>
-    </None>
-    <None Include="depends\lib\CEGUI\Win32\CEGUICommonDialogs-0.exp">
-      <Filter>Libraries</Filter>
-    </None>
-    <None Include="depends\lib\CEGUI\x64\CEGUICommonDialogs-0.exp">
-      <Filter>Libraries</Filter>
-    </None>
-    <None Include="depends\lib\CEGUI\x64\CEGUICoreWindowRendererSet.exp">
-      <Filter>Libraries</Filter>
-    </None>
-    <None Include="depends\lib\CEGUI\Win32\CEGUICoreWindowRendererSet.exp">
-      <Filter>Libraries</Filter>
-    </None>
-    <None Include="depends\lib\CEGUI\Win32\CEGUIDirect3D9Renderer-0.exp">
-      <Filter>Libraries</Filter>
-    </None>
-    <None Include="depends\lib\CEGUI\x64\CEGUIDirect3D9Renderer-0.exp">
-      <Filter>Libraries</Filter>
-    </None>
-    <None Include="depends\lib\CEGUI\x64\CEGUIDirect3D10Renderer-0.exp">
-      <Filter>Libraries</Filter>
-    </None>
-    <None Include="depends\lib\CEGUI\Win32\CEGUIDirect3D10Renderer-0.exp">
-      <Filter>Libraries</Filter>
-    </None>
-    <None Include="depends\lib\CEGUI\Win32\CEGUIDirect3D11Renderer-0.exp">
-      <Filter>Libraries</Filter>
-    </None>
-    <None Include="depends\lib\CEGUI\x64\CEGUIDirect3D11Renderer-0.exp">
-      <Filter>Libraries</Filter>
-    </None>
-    <None Include="depends\lib\CEGUI\Win32\CEGUIOpenGLRenderer-0.exp">
-      <Filter>Libraries</Filter>
-    </None>
-    <None Include="depends\lib\CEGUI\x64\CEGUIOpenGLRenderer-0.exp">
-      <Filter>Libraries</Filter>
-    </None>
-    <None Include="depends\lib\CEGUI\x64\CEGUIRapidXMLParser.exp">
-      <Filter>Libraries</Filter>
-    </None>
-    <None Include="depends\lib\CEGUI\Win32\CEGUIRapidXMLParser.exp">
-      <Filter>Libraries</Filter>
-    </None>
-    <None Include="depends\lib\CEGUI\x64\CEGUISTBImageCodec.exp">
-      <Filter>Libraries</Filter>
-    </None>
-    <None Include="depends\lib\CEGUI\Win32\CEGUISTBImageCodec.exp">
-      <Filter>Libraries</Filter>
-    </None>
-    <None Include="depends\lib\DirectXTex\Win32\DirectXTex.pdb">
-      <Filter>Libraries</Filter>
-    </None>
-    <None Include="depends\lib\DirectXTex\x64\DirectXTex.pdb">
-      <Filter>Libraries</Filter>
-    </None>
-    <None Include="installer.dll">
-      <Filter>Libraries</Filter>
-    </None>
     <None Include="version.ini">
       <Filter>Update Server</Filter>
     </None>
@@ -1093,9 +1036,6 @@
     <None Include="resource\packages\FC5_EasyAntiCheat_x64.7z">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="installer64.dll">
-      <Filter>Libraries\64-bit</Filter>
-    </None>
     <None Include="resource\packages\WinRing0_32.7z">
       <Filter>Resource Files</Filter>
     </None>
@@ -1118,6 +1058,28 @@
     <None Include="SpecialK.def">
       <Filter>Header Files\Config</Filter>
     </None>
+    <None Include="depends\lib\CEGUI\Win32\CEGUIBase-0.exp" />
+    <None Include="depends\lib\CEGUI\Win32\CEGUICommonDialogs-0.exp" />
+    <None Include="depends\lib\CEGUI\Win32\CEGUICoreWindowRendererSet.exp" />
+    <None Include="depends\lib\CEGUI\Win32\CEGUIDirect3D10Renderer-0.exp" />
+    <None Include="depends\lib\CEGUI\Win32\CEGUIDirect3D11Renderer-0.exp" />
+    <None Include="depends\lib\CEGUI\Win32\CEGUIDirect3D9Renderer-0.exp" />
+    <None Include="depends\lib\CEGUI\Win32\CEGUIOpenGLRenderer-0.exp" />
+    <None Include="depends\lib\CEGUI\Win32\CEGUIRapidXMLParser.exp" />
+    <None Include="depends\lib\CEGUI\Win32\CEGUISTBImageCodec.exp" />
+    <None Include="depends\lib\CEGUI\x64\CEGUIBase-0.exp" />
+    <None Include="depends\lib\CEGUI\x64\CEGUICommonDialogs-0.exp" />
+    <None Include="depends\lib\CEGUI\x64\CEGUICoreWindowRendererSet.exp" />
+    <None Include="depends\lib\CEGUI\x64\CEGUIDirect3D10Renderer-0.exp" />
+    <None Include="depends\lib\CEGUI\x64\CEGUIDirect3D11Renderer-0.exp" />
+    <None Include="depends\lib\CEGUI\x64\CEGUIDirect3D9Renderer-0.exp" />
+    <None Include="depends\lib\CEGUI\x64\CEGUIOpenGLRenderer-0.exp" />
+    <None Include="depends\lib\CEGUI\x64\CEGUIRapidXMLParser.exp" />
+    <None Include="depends\lib\CEGUI\x64\CEGUISTBImageCodec.exp" />
+    <None Include="depends\lib\DirectXTex\Win32\DirectXTex.pdb" />
+    <None Include="depends\lib\DirectXTex\x64\DirectXTex.pdb" />
+    <None Include="installer.dll" />
+    <None Include="installer64.dll" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource\Resource.rc">
@@ -1140,98 +1102,6 @@
     <Media Include="resource\dream_theater.wav">
       <Filter>Resource Files</Filter>
     </Media>
-  </ItemGroup>
-  <ItemGroup>
-    <Library Include="depends\lib\CEGUI\x64\CEGUIBase-0.lib">
-      <Filter>Libraries</Filter>
-    </Library>
-    <Library Include="depends\lib\CEGUI\Win32\CEGUIBase-0.lib">
-      <Filter>Libraries</Filter>
-    </Library>
-    <Library Include="depends\lib\CEGUI\Win32\CEGUICommonDialogs-0.lib">
-      <Filter>Libraries</Filter>
-    </Library>
-    <Library Include="depends\lib\CEGUI\x64\CEGUICommonDialogs-0.lib">
-      <Filter>Libraries</Filter>
-    </Library>
-    <Library Include="depends\lib\CEGUI\Win32\CEGUICoreWindowRendererSet.lib">
-      <Filter>Libraries</Filter>
-    </Library>
-    <Library Include="depends\lib\CEGUI\x64\CEGUICoreWindowRendererSet.lib">
-      <Filter>Libraries</Filter>
-    </Library>
-    <Library Include="depends\lib\CEGUI\Win32\CEGUIDirect3D9Renderer-0.lib">
-      <Filter>Libraries</Filter>
-    </Library>
-    <Library Include="depends\lib\CEGUI\x64\CEGUIDirect3D9Renderer-0.lib">
-      <Filter>Libraries</Filter>
-    </Library>
-    <Library Include="depends\lib\CEGUI\Win32\CEGUIDirect3D10Renderer-0.lib">
-      <Filter>Libraries</Filter>
-    </Library>
-    <Library Include="depends\lib\CEGUI\x64\CEGUIDirect3D10Renderer-0.lib">
-      <Filter>Libraries</Filter>
-    </Library>
-    <Library Include="depends\lib\CEGUI\Win32\CEGUIDirect3D11Renderer-0.lib">
-      <Filter>Libraries</Filter>
-    </Library>
-    <Library Include="depends\lib\CEGUI\x64\CEGUIDirect3D11Renderer-0.lib">
-      <Filter>Libraries</Filter>
-    </Library>
-    <Library Include="depends\lib\CEGUI\x64\CEGUIOpenGLRenderer-0.lib">
-      <Filter>Libraries</Filter>
-    </Library>
-    <Library Include="depends\lib\CEGUI\Win32\CEGUIOpenGLRenderer-0.lib">
-      <Filter>Libraries</Filter>
-    </Library>
-    <Library Include="depends\lib\CEGUI\Win32\CEGUIRapidXMLParser.lib">
-      <Filter>Libraries</Filter>
-    </Library>
-    <Library Include="depends\lib\CEGUI\x64\CEGUIRapidXMLParser.lib">
-      <Filter>Libraries</Filter>
-    </Library>
-    <Library Include="depends\lib\CEGUI\Win32\CEGUISTBImageCodec.lib">
-      <Filter>Libraries</Filter>
-    </Library>
-    <Library Include="depends\lib\CEGUI\x64\CEGUISTBImageCodec.lib">
-      <Filter>Libraries</Filter>
-    </Library>
-    <Library Include="depends\lib\DirectXTex\x64\DirectXTex.lib">
-      <Filter>Libraries</Filter>
-    </Library>
-    <Library Include="depends\lib\DirectXTex\Win32\DirectXTex.lib">
-      <Filter>Libraries</Filter>
-    </Library>
-    <Library Include="depends\lib\steamapi\x64\steam_api64.lib">
-      <Filter>Libraries\64-bit</Filter>
-    </Library>
-    <Library Include="depends\lib\nvapi\x64\nvapi64.lib">
-      <Filter>Libraries\64-bit</Filter>
-    </Library>
-    <Library Include="depends\lib\steamapi\Win32\steam_api.lib">
-      <Filter>Libraries\32-bit</Filter>
-    </Library>
-    <Library Include="depends\lib\nvapi\Win32\nvapi.lib">
-      <Filter>Libraries\32-bit</Filter>
-    </Library>
-    <Library Include="depends\lib\glew\Win32\glew.lib">
-      <Filter>Libraries</Filter>
-    </Library>
-    <Library Include="depends\lib\glew\x64\glew.lib">
-      <Filter>Libraries</Filter>
-    </Library>
-    <Library Include="depends\lib\lzma\Win32\libzma.lib">
-      <Filter>Libraries</Filter>
-    </Library>
-    <Library Include="depends\lib\lzma\x64\libzma.lib">
-      <Filter>Libraries</Filter>
-    </Library>
-    <Library Include="depends\lib\MinHook\x64\libMinHook64.lib">
-      <Filter>Libraries\64-bit</Filter>
-    </Library>
-    <Library Include="depends\lib\MinHook\Win32\libMinHook.lib">
-      <Filter>Libraries\32-bit</Filter>
-    </Library>
   </ItemGroup>
   <ItemGroup>
     <Text Include="LICENSE.txt" />
@@ -1295,5 +1165,37 @@
     <Text Include="resource\licenses\OpenLibSys.txt">
       <Filter>Resource Files</Filter>
     </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="depends\lib\CEGUI\Win32\CEGUIBase-0.lib" />
+    <Library Include="depends\lib\CEGUI\Win32\CEGUICommonDialogs-0.lib" />
+    <Library Include="depends\lib\CEGUI\Win32\CEGUICoreWindowRendererSet.lib" />
+    <Library Include="depends\lib\CEGUI\Win32\CEGUIDirect3D10Renderer-0.lib" />
+    <Library Include="depends\lib\CEGUI\Win32\CEGUIDirect3D11Renderer-0.lib" />
+    <Library Include="depends\lib\CEGUI\Win32\CEGUIDirect3D9Renderer-0.lib" />
+    <Library Include="depends\lib\CEGUI\Win32\CEGUIOpenGLRenderer-0.lib" />
+    <Library Include="depends\lib\CEGUI\Win32\CEGUIRapidXMLParser.lib" />
+    <Library Include="depends\lib\CEGUI\Win32\CEGUISTBImageCodec.lib" />
+    <Library Include="depends\lib\CEGUI\x64\CEGUIBase-0.lib" />
+    <Library Include="depends\lib\CEGUI\x64\CEGUICommonDialogs-0.lib" />
+    <Library Include="depends\lib\CEGUI\x64\CEGUICoreWindowRendererSet.lib" />
+    <Library Include="depends\lib\CEGUI\x64\CEGUIDirect3D10Renderer-0.lib" />
+    <Library Include="depends\lib\CEGUI\x64\CEGUIDirect3D11Renderer-0.lib" />
+    <Library Include="depends\lib\CEGUI\x64\CEGUIDirect3D9Renderer-0.lib" />
+    <Library Include="depends\lib\CEGUI\x64\CEGUIOpenGLRenderer-0.lib" />
+    <Library Include="depends\lib\CEGUI\x64\CEGUIRapidXMLParser.lib" />
+    <Library Include="depends\lib\CEGUI\x64\CEGUISTBImageCodec.lib" />
+    <Library Include="depends\lib\DirectXTex\Win32\DirectXTex.lib" />
+    <Library Include="depends\lib\DirectXTex\x64\DirectXTex.lib" />
+    <Library Include="depends\lib\glew\Win32\glew.lib" />
+    <Library Include="depends\lib\glew\x64\glew.lib" />
+    <Library Include="depends\lib\lzma\Win32\libzma.lib" />
+    <Library Include="depends\lib\lzma\x64\libzma.lib" />
+    <Library Include="depends\lib\MinHook\Win32\libMinHook.lib" />
+    <Library Include="depends\lib\MinHook\x64\libMinHook64.lib" />
+    <Library Include="depends\lib\nvapi\Win32\nvapi.lib" />
+    <Library Include="depends\lib\nvapi\x64\nvapi64.lib" />
+    <Library Include="depends\lib\steamapi\Win32\steam_api.lib" />
+    <Library Include="depends\lib\steamapi\x64\steam_api64.lib" />
   </ItemGroup>
 </Project>

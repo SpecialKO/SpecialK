@@ -82,7 +82,7 @@ interface iSK_INI : public IUnknown
   friend interface iSK_INISection;
 
   using _TSectionMap =
-    const std::unordered_map <std::wstring, iSK_INISection>;
+    std::unordered_map <std::wstring, iSK_INISection>;
 
            iSK_INI (const wchar_t* filename);
   virtual ~iSK_INI (void);

@@ -265,8 +265,21 @@ uint32_t
 __cdecl
 crc32c_append_hw (uint32_t crc, const void *buf, size_t len) 
 {
+  if (buf == nullptr || len < 1)
+    return crc;
+
   auto next =
     static_cast <buffer> (buf);
+
+  ////MEMORY_BASIC_INFORMATION mi = { };
+  ////
+  ////size_t size =
+  ////  VirtualQuery (buf, &mi, len);
+  ////
+  ////if ( size < len || (mi.Protect & PAGE_NOACCESS) ||
+  ////                   (mi.State  != MEM_COMMIT)    ||
+  ////                   (mi.AllocationProtect == PAGE_NOACCESS) )
+  ////  return crc;
 
   buffer end = { };
 
@@ -501,50 +514,69 @@ calculate_table_hw (void)
 static uint32_t (__cdecl *append_func)(uint32_t, const void*, size_t) = nullptr;
 
 #include <Windows.h>
-
 #include <SpecialK/thread.h>
 
+volatile LONG
+  __crc32c_init = 0;
+
 extern "C"
-void
-__cdecl
+void __cdecl
 __crc32_init (void)
 {
-  static volatile LONG __init = 0;
+  typedef
+    uint32_t (__cdecl *appendfunc_pfn)(       uint32_t,
+                                        const void      *,
+                                              size_t      );
+                       appendfunc_pfn pfnToSet = nullptr;
 
-  if ( InterlockedCompareExchange (&__init, 1, 0)
-                                            == 0 )
+  if ( InterlockedCompareExchange (&__crc32c_init, 1, 0)
+                                                         == 0 )
   {
-    // somebody can call sw version directly, so, precalculate table for this version
-    calculate_table ();
-
     if (crc32c_hw_available ())
     {
       //dll_log.Log (L"[ Checksum ] Using Hardware (SSE 4.2) CRC32C Algorithm");
       calculate_table_hw ();
-      append_func = crc32c_append_hw;
+
+      pfnToSet =
+        crc32c_append_hw;
     }
 
-    else {
+    else
+    {
+      calculate_table ();
+
       //dll_log.Log (L"[ Checksum ] Using Software (Adler Optimized) CRC32C Algorithm");
-      append_func = crc32c_append_sw;
+      pfnToSet =
+        crc32c_append_sw;
     }
 
-    InterlockedIncrement (&__init);
+    append_func =
+      pfnToSet;
+
+    InterlockedIncrement (&__crc32c_init);
   }
 
-  SK_Thread_SpinUntilAtomicMin (&__init, 2);
+  SK_Thread_SpinUntilAtomicMin (&__crc32c_init, 2);
 }
 
 extern "C"
-uint32_t
-__cdecl
-crc32c (uint32_t crc, _Notnull_ const void *input, size_t length)
+uint32_t __cdecl
+crc32c (        uint32_t crc,
+_Notnull_ const void    *input,
+                size_t   length )
 {
   if (append_func == nullptr)
+  {
     __crc32_init ();
+  }
 
-  if (input != nullptr && length > 0 && append_func != nullptr)
-    return append_func (crc, input, length);
+  if ( input       != nullptr &&
+       length      >  0       &&
+       append_func != nullptr )
+  {
+    return
+      append_func (crc, input, length);
+  }
 
   return crc;
 }

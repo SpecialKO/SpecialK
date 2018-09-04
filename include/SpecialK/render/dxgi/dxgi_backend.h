@@ -429,23 +429,23 @@ public:
 
     //TexRefs_2D.reserve       (8192);
     //Textures_2D.reserve      (8192);
-    HashMap_2D [ 1].reserve  ( 128); // Only      1x1
-    HashMap_2D [ 2].reserve  ( 256); // Up to     2x2
-    HashMap_2D [ 3].reserve  ( 256); // Up to     4x4
-    HashMap_2D [ 4].reserve  ( 256); // Up to     8x8
-    HashMap_2D [ 5].reserve  ( 512); // Up to    16x16
-    HashMap_2D [ 6].reserve  ( 256); // Up to    32x32
-    HashMap_2D [ 7].reserve  ( 128); // Up to    64x64
-    HashMap_2D [ 8].reserve  ( 128); // Up to   128x128
-    HashMap_2D [ 9].reserve  ( 640); // Up to   256x256
-    HashMap_2D [10].reserve  (1024); // Up to   512x512
-    HashMap_2D [11].reserve  (2048); // Up to  1024x1024
-    HashMap_2D [12].reserve  (2048); // Up to  2048x2048
-    HashMap_2D [13].reserve  ( 512); // Up to  4096x4096
-    HashMap_2D [14].reserve  (   8); // Up to  8192x8192
-    HashMap_2D [15].reserve  (   4); // Up to 16384x16384
-    HashMap_2D [16].reserve  (   2); // Up to 32768x32768
-    HashMap_2D [17].reserve  (   1); // Up to 65536x65536
+    HashMap_2D [ 1].reserve  ( 256); // Only      1x1
+    HashMap_2D [ 2].reserve  ( 512); // Up to     2x2
+    HashMap_2D [ 3].reserve  ( 512); // Up to     4x4
+    HashMap_2D [ 4].reserve  ( 512); // Up to     8x8
+    HashMap_2D [ 5].reserve  (1024); // Up to    16x16
+    HashMap_2D [ 6].reserve  ( 512); // Up to    32x32
+    HashMap_2D [ 7].reserve  ( 256); // Up to    64x64
+    HashMap_2D [ 8].reserve  ( 256); // Up to   128x128
+    HashMap_2D [ 9].reserve  (1280); // Up to   256x256
+    HashMap_2D [10].reserve  (2048); // Up to   512x512
+    HashMap_2D [11].reserve  (4096); // Up to  1024x1024
+    HashMap_2D [12].reserve  (4096); // Up to  2048x2048
+    HashMap_2D [13].reserve  (1024); // Up to  4096x4096
+    HashMap_2D [14].reserve  (  16); // Up to  8192x8192
+    HashMap_2D [15].reserve  (   8); // Up to 16384x16384
+    HashMap_2D [16].reserve  (   4); // Up to 32768x32768
+    HashMap_2D [17].reserve  (   2); // Up to 65536x65536
 
     AggregateSize_2D  = 0ULL;
     RedundantData_2D  = 0ULL;
@@ -499,7 +499,7 @@ public:
   struct lod_hash_table_s
   {
     lod_hash_table_s (void) {
-      InitializeCriticalSectionAndSpinCount (&mutex, 600);
+      InitializeCriticalSectionAndSpinCount (&mutex, 120);
     }
 
     ~lod_hash_table_s (void)
@@ -1139,10 +1139,8 @@ struct SK_D3D11_KnownShaders
     d3d11_shader_tracking_s                              tracked;
 
     struct {
-      std::array < uint32_t, SK_D3D11_MAX_DEV_CONTEXTS+1 > shader;
-      std::array < std::array <
-                     ID3D11ShaderResourceView *, SK_D3D11_MAX_DEV_CONTEXTS+1 >,
-                              128 > views;
+      uint32_t                  shader [SK_D3D11_MAX_DEV_CONTEXTS+1];
+      ID3D11ShaderResourceView* views  [SK_D3D11_MAX_DEV_CONTEXTS+1][128];
     } current;
 
     volatile LONG                                        changes_last_frame = 0;
@@ -1151,7 +1149,8 @@ struct SK_D3D11_KnownShaders
   };
 
   
-  static std::array <bool, SK_D3D11_MAX_DEV_CONTEXTS+1> reshade_triggered;
+  //static std::array <bool, SK_D3D11_MAX_DEV_CONTEXTS+1> reshade_triggered;
+  static bool reshade_triggered;
 
   ShaderRegistry <ID3D11PixelShader>    pixel; 
   ShaderRegistry <ID3D11VertexShader>   vertex;

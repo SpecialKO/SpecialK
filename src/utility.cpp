@@ -29,10 +29,7 @@
 #include <SpecialK/diagnostics/modules.h>
 
 #include <userenv.h>
-#pragma comment (lib, "userenv.lib")
-
 #include <Shlobj.h>
-#pragma comment (lib, "shell32.lib")
 
 #include <process.h>
 #include <tlhelp32.h>
@@ -1384,7 +1381,7 @@ bool
 SK_Import_VersionDLL (void)
 {
   if (hModVersion == nullptr)
-      hModVersion = SK_Modules.LoadLibrary (L"version.dll");
+      hModVersion = SK_Modules.LoadLibraryLL (L"Version.dll");//Api-ms-win-core-version-l1-1-0.dll");
 
   return hModVersion != nullptr;
 }
@@ -1467,17 +1464,25 @@ SK_IsDLLSpecialK (const wchar_t* wszName)
   UINT     cbTranslatedBytes = 0,
            cbProductBytes    = 0;
 
-  DWORD    dwHandle          = 0,
-           dwSize            =
+  DWORD    dwHandle          = 0;
+  DWORD    dwSize            =
     SK_GetFileVersionInfoSizeExW ( FILE_VER_GET_NEUTRAL,
                                      wszName, &dwHandle );
 
   if (dwSize < 128)
     return false;
 
-  uint8_t *cbData = ReadAcquire (&__SK_DLL_Attached) ?
-      (uint8_t *)SK_TLS_Bottom ()->scratch_memory.cmd.alloc (dwSize + 1, true) :
-      (uint8_t *)SK_LocalAlloc (LPTR,                        dwSize + 1);
+  (++dwSize) *=
+    sizeof (wchar_t);
+
+  SK_TLS *pTLS = 
+    ReadAcquire (&__SK_DLL_Attached) ?
+      SK_TLS_Bottom () : nullptr;
+
+  uint8_t *cbData =
+    (pTLS != nullptr) ?
+      (uint8_t *)pTLS->scratch_memory.cmd.alloc (dwSize + 1, true) :
+      (uint8_t *)SK_LocalAlloc (LPTR,            dwSize + 1);
 
   wchar_t* wszProduct        = nullptr; // Will point somewhere in cbData
 
@@ -1533,18 +1538,25 @@ SK_GetDLLVersionStr (const wchar_t* wszName)
            cbProductBytes    = 0,
            cbVersionBytes    = 0;
 
-  DWORD    dwHandle          = 0,
-           dwSize            =
+  DWORD    dwHandle          = 0;
+  DWORD    dwSize            =
     SK_GetFileVersionInfoSizeExW ( FILE_VER_GET_NEUTRAL,
                                      wszName, &dwHandle );
 
   if (dwSize < 128)
     return L"N/A";
 
-  uint8_t *cbData =
+  (++dwSize) *=
+    sizeof (wchar_t);
+
+  SK_TLS *pTLS = 
     ReadAcquire (&__SK_DLL_Attached) ?
-      (uint8_t *)SK_TLS_Bottom ()->scratch_memory.cmd.alloc (dwSize + 1, true) :
-      (uint8_t *)SK_LocalAlloc (LPTR,                        dwSize + 1);
+      SK_TLS_Bottom () : nullptr;
+
+  uint8_t *cbData =
+    (pTLS != nullptr) ?
+      (uint8_t *)pTLS->scratch_memory.cmd.alloc (dwSize + 1, true) :
+      (uint8_t *)SK_LocalAlloc (LPTR,            dwSize + 1);
 
   wchar_t* wszFileDescrip = nullptr; // Will point somewhere in cbData
   wchar_t* wszFileVersion = nullptr; // "
@@ -2144,11 +2156,10 @@ SK_GetBlacklistFilename (void)
     host_proc.blacklist = true;
 
     InterlockedIncrement (&init);
-  }
+  } SK_Thread_SpinUntilAtomicMin (&init, 2);
 
-  SK_Thread_SpinUntilAtomicMin (&init, 2);
-
-  return host_proc.wszBlacklist;
+  return
+    host_proc.wszBlacklist;
 }
 
 const wchar_t*
@@ -2210,11 +2221,10 @@ SK_GetHostApp (void)
     host_proc.app = true;
 
     InterlockedIncrement (&init);
-  }
+  } SK_Thread_SpinUntilAtomicMin (&init, 2);
 
-  SK_Thread_SpinUntilAtomicMin (&init, 2);
-
-  return host_proc.wszApp;
+  return
+    host_proc.wszApp;
 }
 
 const wchar_t*
@@ -2239,11 +2249,10 @@ SK_GetFullyQualifiedApp (void)
     host_proc.full_name = true;
 
     InterlockedIncrement (&init);
-  }
+  } SK_Thread_SpinUntilAtomicMin (&init, 2);
 
-  SK_Thread_SpinUntilAtomicMin (&init, 2);
-
-  return host_proc.wszFullName;
+  return
+    host_proc.wszFullName;
 }
 
 // NOT the working directory, this is the directory that
@@ -2280,11 +2289,10 @@ SK_GetHostPath (void)
     host_proc.path = true;
 
     InterlockedIncrement (&init);
-  }
+  } SK_Thread_SpinUntilAtomicMin (&init, 2);
 
-  SK_Thread_SpinUntilAtomicMin (&init, 2);
-
-  return host_proc.wszPath;
+  return
+    host_proc.wszPath;
 }
 
 
@@ -2316,11 +2324,10 @@ SK_GetSystemDirectory (void)
     host_proc.sys_dir = true;
 
     InterlockedIncrement (&init);
-  }
+  } SK_Thread_SpinUntilAtomicMin (&init, 2);
 
-  SK_Thread_SpinUntilAtomicMin (&init, 2);
-
-  return host_proc.wszSystemDir;
+  return
+    host_proc.wszSystemDir;
 }
 
 
@@ -2628,7 +2635,7 @@ SK_RestartGame (const wchar_t* wszDLL)
     CloseHandle (pinfo.hProcess);
   }
 
-  TerminateProcess (SK_GetCurrentProcess (), 0x00);
+  SK_TerminateProcess (0x00);
 }
 
 void
@@ -2677,7 +2684,7 @@ SK_ElevateToAdmin (void)
   CloseHandle (pinfo.hThread);
   CloseHandle (pinfo.hProcess);
 
-  TerminateProcess    (SK_GetCurrentProcess (), 0x00);
+  SK_TerminateProcess (0x00);
 }
 
 #include <memory>
@@ -2948,7 +2955,8 @@ SK_GetUserNameExA (
   _Out_writes_to_opt_(*nSize,*nSize) LPSTR                 lpNameBuffer,
   _Inout_                            PULONG                nSize )
 {
-  return GetUserNameExA (NameFormat, lpNameBuffer, nSize);
+  return
+    GetUserNameExA (NameFormat, lpNameBuffer, nSize);
 }
 
 _Success_(return != 0)
@@ -2959,26 +2967,28 @@ SK_GetUserNameExW (
     _Out_writes_to_opt_(*nSize,*nSize) LPWSTR               lpNameBuffer,
     _Inout_                            PULONG               nSize )
 {
-  return GetUserNameExW (NameFormat, lpNameBuffer, nSize);
+  return
+    GetUserNameExW (NameFormat, lpNameBuffer, nSize);
 }
 
 // Doesn't need to be this complicated; it's a string function, might as well optimize it.
 
+static char     szUserName        [MAX_PATH + 2] = { };
+static char     szUserNameDisplay [MAX_PATH + 2] = { };
+static char     szUserProfile     [MAX_PATH + 2] = { }; // Most likely to match
+static wchar_t wszUserName        [MAX_PATH + 2] = { };
+static wchar_t wszUserNameDisplay [MAX_PATH + 2] = { };
+static wchar_t wszUserProfile     [MAX_PATH + 2] = { }; // Most likely to match
+
 char*
 SK_StripUserNameFromPathA (char* szInOut)
 {
-  static char szUserName        [MAX_PATH + 2] = { };
-  static char szUserNameDisplay [MAX_PATH + 2] = { };
-  static char szUserProfile     [MAX_PATH + 2] = { }; // Most likely to match
-
   //static volatile LONG               calls  =  0;
   //if (InterlockedCompareExchange   (&calls, 1, 0))
   //    SK_Thread_SpinUntilAtomicMin (&calls, 2);
 
   if (*szUserProfile == '\0')
   {
-    wchar_t wszUserProfile [MAX_PATH + 2] = { };
-
                                         uint32_t len = MAX_PATH;
     if (! SK_GetUserProfileDir (wszUserProfile, &len))
       *wszUserProfile = L'?'; // Invalid filesystem char
@@ -3068,10 +3078,6 @@ SK_StripUserNameFromPathA (char* szInOut)
 wchar_t*
 SK_StripUserNameFromPathW (wchar_t* wszInOut)
 {
-  static wchar_t wszUserName        [MAX_PATH + 2] = { };
-  static wchar_t wszUserNameDisplay [MAX_PATH + 2] = { };
-  static wchar_t wszUserProfile     [MAX_PATH + 2] = { }; // Most likely to match
-
 //  static volatile LONG               calls  =  0;
 //  if (InterlockedCompareExchange   (&calls, 1, 0))
 //      SK_Thread_SpinUntilAtomicMin (&calls, 2);

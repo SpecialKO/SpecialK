@@ -378,7 +378,7 @@ ImGui_ImplDX9_Init ( void*                  hwnd,
   if (! QueryPerformanceFrequency        (reinterpret_cast <LARGE_INTEGER *> (&g_TicksPerSecond)))
     return false;
 
-  if (! QueryPerformanceCounter_Original (reinterpret_cast <LARGE_INTEGER *> (&g_Time)))
+  if (! SK_QueryPerformanceCounter (reinterpret_cast <LARGE_INTEGER *> (&g_Time)))
     return false;
 
   ImGuiIO& io (ImGui::GetIO ());
@@ -644,7 +644,7 @@ ImGui_ImplDX9_NewFrame (void)
   // Setup time step
   INT64 current_time;
 
-  QueryPerformanceCounter_Original (
+  SK_QueryPerformanceCounter (
     reinterpret_cast <LARGE_INTEGER *> (&current_time)
   );
 

@@ -43,6 +43,8 @@ SK_EnumLoadedModules (SK_ModuleEnum when = SK_ModuleEnum::PreLoad);
 #include <cassert>
 #include <unordered_map>
 
+extern SK_Thread_HybridSpinlock* loader_lock;
+
 #ifdef __cplusplus
 extern "C" {
 #endif

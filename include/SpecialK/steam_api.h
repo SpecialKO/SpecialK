@@ -44,7 +44,7 @@ namespace SK
     BeforeGameHUD = 0,    // Requires a game profile indicating trigger shader
     BeforeOSD     = 1,    // Before SK draws its OSD
 
-    EndOfFrame    = 0xff  // Generally captures all add-on overlays (including the Steam overlay)
+    EndOfFrame    = 2, ///0xff  // Generally captures all add-on overlays (including the Steam overlay)
   };
 
   namespace SteamAPI

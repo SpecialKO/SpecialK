@@ -19,9 +19,8 @@
  *
 **/
 
-#include <imgui/imgui.h>
-
 #include <SpecialK/config.h>
+#include <imgui/imgui.h>
 
 #include <SpecialK/control_panel.h>
 #include <SpecialK/control_panel/d3d11.h>
@@ -34,6 +33,15 @@
 #include <SpecialK/command.h>
 
 #include <SpecialK/nvapi.h>
+
+
+extern bool SK_D3D11_EnableTracking;
+extern bool SK_D3D11_EnableMMIOTracking;
+extern volatile
+       LONG SK_D3D11_DrawTrackingReqs;
+extern volatile
+       LONG SK_D3D11_CBufferTrackingReqs;
+
 
 using namespace SK::ControlPanel;
 
@@ -340,6 +348,19 @@ SK_ImGui_DrawGamut (void)
 
 extern bool SK_D3D11_ShaderModDlg (SK_TLS *pTLS = SK_TLS_Bottom ());
 
+using SK_ReShade_OnDrawD3D11_pfn =
+void (__stdcall *)(void*, ID3D11DeviceContext*, unsigned int);
+
+struct SK_RESHADE_CALLBACK_DRAW
+{
+  SK_ReShade_OnDrawD3D11_pfn fn   = nullptr;
+  void*                      data = nullptr;
+  __forceinline void call (ID3D11DeviceContext*, unsigned int, SK_TLS*) { }
+};
+
+extern
+SK_RESHADE_CALLBACK_DRAW SK_ReShade_DrawCallback;
+
 bool
 SK::ControlPanel::D3D11::Draw (void)
 {
@@ -350,6 +371,62 @@ SK::ControlPanel::D3D11::Draw (void)
   if ( static_cast <int> (render_api) & static_cast <int> (SK_RenderAPI::D3D11) &&
        ImGui::CollapsingHeader ("Direct3D 11 Settings", ImGuiTreeNodeFlags_DefaultOpen) )
   {
+    ImGui::SameLine ();
+    ImGui::TextUnformatted ("     Tracking:  ");
+
+    ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.173f, 0.428f, 0.96f));
+    ImGui::SameLine (); 
+
+    if (SK_D3D11_EnableTracking)
+      ImGui::TextUnformatted ("( ALL State/Ops --> [Mod Tools Window Active] )");
+
+    else
+    {
+      char* szThreadLocalStr =
+        static_cast <char *> (
+          SK_TLS_Bottom ()->scratch_memory.cmd.alloc (
+                        256,   true                  )
+                             );
+
+      bool tracking = false;
+
+      if ( ReadAcquire (&SK_D3D11_DrawTrackingReqs) > 0 ||
+           SK_ReShade_DrawCallback.fn != nullptr  )
+      {
+        tracking = true;
+
+        if (ReadAcquire (&SK_D3D11_DrawTrackingReqs) == 0)
+          lstrcatA (szThreadLocalStr,   "  Draw Calls  ( ReShade Trigger ) ");
+
+        else
+        {
+          if (SK_ReShade_DrawCallback.fn != nullptr)
+            lstrcatA (szThreadLocalStr, "  Draw Calls  ( Generic & ReShade Trigger ) ");
+          else
+            lstrcatA (szThreadLocalStr, "  Draw Calls  ( Generic ) ");
+        }
+      }
+
+      if (ReadAcquire (&SK_D3D11_CBufferTrackingReqs) > 0)
+      {
+        tracking = true;
+        lstrcatA (szThreadLocalStr, "  Constant Buffers ");
+      }
+
+      if (SK_D3D11_EnableMMIOTracking)
+      {
+        tracking = true;
+        lstrcatA (szThreadLocalStr, "  Memory-Mapped I/O ");
+      }
+
+      if (SK_ReShade_DrawCallback.fn != nullptr)
+      {
+      }
+
+      ImGui::TextUnformatted (tracking ? szThreadLocalStr : " ");
+    }
+    ImGui::PopStyleColor ();
+
     ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.68f, 0.02f, 0.45f));
     ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.72f, 0.07f, 0.80f));
     ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.78f, 0.14f, 0.80f));
@@ -758,10 +835,11 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
 
     if (SUCCEEDED (pSwapDXGI->GetDesc (&swap_desc)))
     {
-      const SK_RenderBackend& rb =
+      SK_RenderBackend& rb =
         SK_GetCurrentRenderBackend ();
 
-      CComQIPtr <ID3D11DeviceContext> pDevCtx (rb.d3d11.immediate_ctx);
+      CComPtr <ID3D11DeviceContext>   pDevCtx;
+      rb.d3d11.immediate_ctx.CopyTo (&pDevCtx.p);
 
       // This limits us to D3D11 for now, but who cares -- D3D10 sucks and D3D12 can't be drawn to yet :)
       if (! pDevCtx)

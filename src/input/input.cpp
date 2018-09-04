@@ -1187,6 +1187,8 @@ sk_imgui_cursor_s::activateWindow (bool active)
 
 
 
+HWND WINAPI SK_GetForegroundWindow (void);
+
 HCURSOR game_cursor = nullptr;
 
 bool
@@ -1203,7 +1205,7 @@ SK_ImGui_WantKeyboardCapture (void)
   if (config.input.keyboard.disabled_to_game)
     imgui_capture = true;
 
-  return imgui_capture && game_window.active && GetForegroundWindow () == game_window.hWnd;
+  return imgui_capture && game_window.active && SK_GetForegroundWindow () == game_window.hWnd;
 }
 
 bool
@@ -1214,7 +1216,7 @@ SK_ImGui_WantTextCapture (void)
   ImGuiIO& io =
     ImGui::GetIO ();
 
-  if (io.WantTextInput && game_window.active && GetForegroundWindow () == game_window.hWnd)
+  if (io.WantTextInput && game_window.active && SK_GetForegroundWindow () == game_window.hWnd)
     imgui_capture = true;
 
   return imgui_capture;

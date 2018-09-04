@@ -79,7 +79,7 @@ SK_GetDebugSymbolPath (void);
 void
 SK_SymSetOpts (void)
 {
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+  ////std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
   SymSetSearchPathW ( GetCurrentProcess (), SK_GetDebugSymbolPath () );
   SymSetOptions     ( SYMOPT_LOAD_LINES           | SYMOPT_NO_PROMPTS        |
@@ -901,7 +901,9 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
       (ExceptionInfo->ExceptionRecord->ExceptionCode != EXCEPTION_BREAKPOINT)*/ )
   {
     if (! config.system.handle_crashes)
-      TerminateProcess (SK_GetCurrentProcess (), 0xdeadbeef);
+    {
+      SK_TerminateProcess (0xdeadbeef);
+    }
 
     last_chance = true;
 

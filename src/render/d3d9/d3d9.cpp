@@ -3039,9 +3039,9 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
     auto* pDst = dynamic_cast <ISKTextureD3D9 *> (pDestinationTexture);
 
     extern
-    LARGE_INTEGER                      liLastReset;
-    LARGE_INTEGER                      liNow;
-    QueryPerformanceCounter_Original (&liNow);
+    LARGE_INTEGER                liLastReset;
+    LARGE_INTEGER                liNow;
+    SK_QueryPerformanceCounter (&liNow);
 
                                                                       // Rudimentary protection against video textures
     if (((ISKTextureD3D9 *)pDestinationTexture)->tex_crc32c == 0x0)
@@ -8315,6 +8315,11 @@ SK_D3D9_QuickHook (void)
     return;
 
   if (config.steam.preload_overlay)
+    return;
+
+    extern BOOL
+      __SK_DisableQuickHook;
+  if (__SK_DisableQuickHook)
     return;
 
 

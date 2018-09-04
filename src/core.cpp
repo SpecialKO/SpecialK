@@ -1353,19 +1353,109 @@ SK_GetDebugSymbolPath (void)
 
   if (! InterlockedCompareExchange (&__init, 1, 0))
   {
-    static wchar_t wszCurrentPath [MAX_PATH * 15 + 1] = { };
-
-    if (*wszCurrentPath == L'\0')
+    if (! crash_log.initialized)
     {
-      SymGetSearchPathW (GetCurrentProcess (), wszCurrentPath, MAX_PATH * 15);
+      crash_log.flush_freq = 0;
+      crash_log.lockless   = true;
+      crash_log.init       (L"logs/crash.log", L"wt+,ccs=UTF-8");
     }
 
-    std::wstring dir (wszCurrentPath); dir += L";";
-                 dir.append (SK_GetDocumentsDir ());
-                 dir.append (LR"(\My Mods\SpecialK\)");
 
-    wcsncpy_s ( wszDbgSymbols,  MAX_PATH * 16,
-                  dir.c_str (), _TRUNCATE );
+    std::wstring symbol_file =
+      SK_GetModuleName (SK_Modules.Self ());
+
+    wchar_t wszSelfName [MAX_PATH * 2 + 1] = { };
+    wcsncpy_s ( wszSelfName,           MAX_PATH * 2,
+                 symbol_file.c_str (), _TRUNCATE );
+
+    PathRemoveExtensionW (wszSelfName);
+    lstrcatW             (wszSelfName, L".pdb");
+
+    bool generic_symbols =
+      ( INVALID_FILE_ATTRIBUTES !=
+          GetFileAttributesW ( SK_RunLHIfBitness ( 64, L"SpecialK64.pdb",
+                                                       L"SpecialK32.pdb" ) )
+      );
+
+    if (generic_symbols)
+    {
+      symbol_file =
+        SK_RunLHIfBitness ( 64, L"SpecialK64.pdb",
+                                L"SpecialK32.pdb" );
+    }
+
+    else
+    {
+      symbol_file = wszSelfName;
+    }
+
+    // Not the correct way of validating the existence of this DLL's symbol file,
+    //   but it is good enough for now ...
+    if ( (! generic_symbols) &&
+         INVALID_FILE_ATTRIBUTES == GetFileAttributesW (wszSelfName) )
+    {
+      static wchar_t wszCurrentPath [MAX_PATH * 15 + 1] = { };
+
+      if (*wszCurrentPath == L'\0')
+      {
+        SymGetSearchPathW (GetCurrentProcess (), wszCurrentPath, MAX_PATH * 15);
+      }
+
+      std::wstring dir (wszCurrentPath); dir += L";";
+                   dir.append (SK_GetDocumentsDir ());
+                   dir.append (LR"(\My Mods\SpecialK\)");
+
+      wcsncpy_s ( wszDbgSymbols,  MAX_PATH * 16,
+                    dir.c_str (), _TRUNCATE );
+
+      symbol_file = SK_GetDocumentsDir ();
+      symbol_file.append (LR"(\My Mods\SpecialK\SpecialK)");
+      symbol_file.append (
+        SK_RunLHIfBitness ( 64, L"64.pdb",
+                                L"32.pdb"
+                          )
+                         );
+    }
+
+    else
+    {
+      static wchar_t                           wszCurrentPath [MAX_PATH * 15 + 1] = { };
+      SymGetSearchPathW (GetCurrentProcess (), wszCurrentPath, MAX_PATH * 15);
+
+      wcsncpy_s ( wszDbgSymbols,  MAX_PATH * 16,
+                  wszCurrentPath, _TRUNCATE );
+    }
+
+
+    // Strip the username from the logged pat h
+    static wchar_t wszDbgSymbolsEx  [MAX_PATH * 16 + 1] = { };
+       wcsncpy_s ( wszDbgSymbolsEx,  MAX_PATH * 16,
+                      wszDbgSymbols, _TRUNCATE );
+
+    SK_StripUserNameFromPathW (wszDbgSymbolsEx);
+    crash_log.Log (L"DebugHelper Symbol Search Path......: %ws", wszDbgSymbolsEx);
+
+
+    if (GetFileAttributesW (symbol_file.c_str ()) != INVALID_FILE_ATTRIBUTES)
+    {
+      std::wstring stripped (symbol_file);
+
+      stripped =
+        SK_StripUserNameFromPathW ((wchar_t *)stripped.c_str ());
+
+      crash_log.Log (L"Special K Debug Symbols Loaded From.: %ws", stripped.c_str ());
+    }
+
+    else
+    {
+      std::wstring stripped (symbol_file);
+
+      stripped =
+        SK_StripUserNameFromPathW ((wchar_t *)stripped.c_str ());
+
+      crash_log.Log ( L"Unable to load Special K Debug Symbols ('%ws'), crash log will not be accurate.",
+                                 stripped.c_str () );
+    }
 
     InterlockedIncrement (&__init);
   }
@@ -1545,17 +1635,12 @@ SK_Steam_GetAppID_NoAPI (void)
 
 extern void SK_CPU_InstallHooks (void);
 
+BOOL __SK_DisableQuickHook = FALSE;
+
 bool
 __stdcall
 SK_StartupCore (const wchar_t* backend, void* callback)
 {
-  QueryPerformanceCounter_Original =
-    reinterpret_cast <QueryPerformanceCounter_pfn> (
-      GetProcAddress (
-        GetModuleHandle ( L"NtDll.dll"),
-                            "RtlQueryPerformanceCounter" )
-    );
-
   __SK_BootedCore = backend;
 
   // Before loading any config files, test the game's environment variables
@@ -1689,6 +1774,10 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
         WaitForInit         ();
 
+        //SK_HookWinAPI       ();
+        //SK_Input_PreInit    (); // Hook only symbols in user32 and kernel32z
+
+
         if (GetModuleHandle (L"dinput8.dll"))
           SK_Input_HookDI8  ();
 
@@ -1721,7 +1810,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
       SK_NvAPI_PreInitHDR    ();
       SK_InitCompatBlacklist ();
 
-      // Do this from the startup thread [these functions queue, but don't apply]
+      //// Do this from the startup thread [these functions queue, but don't apply]
       SK_HookWinAPI       ();
       SK_Input_PreInit    (); // Hook only symbols in user32 and kernel32z
 
@@ -1971,6 +2060,18 @@ BACKEND_INIT:
         extern void
           SK_MHW_PlugInInit (void);
           SK_MHW_PlugInInit (    );
+        break;
+
+      case SK_GAME_ID::DragonQuestXI:
+        extern void
+          SK_DQXI_PlugInInit (void);
+          SK_DQXI_PlugInInit (    );
+        break;
+
+      case SK_GAME_ID::Shenmue:
+        extern void
+        SK_SM_PlugInInit (void);
+        SK_SM_PlugInInit (    );
         break;
     }
 
@@ -2641,6 +2742,12 @@ void
 __stdcall
 SK_BeginBufferSwap (void)
 {
+  auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  rb.present_staging.begin_overlays.time =
+    SK_QueryPerf ();
+
   static SK_RenderAPI LastKnownAPI = SK_RenderAPI::Reserved;
 
   //assert ( SK_BufferFlinger.dwTid == 0 ||
@@ -2673,6 +2780,11 @@ SK_BeginBufferSwap (void)
     case SK_GAME_ID::MonsterHunterWorld:
       extern void SK_MHW_BeginFrame (void);
                   SK_MHW_BeginFrame ();
+                  break;
+
+    case SK_GAME_ID::DragonQuestXI:
+      extern void SK_DQXI_BeginFrame (void);
+                  SK_DQXI_BeginFrame ();
                   break;
   }
 
@@ -2729,6 +2841,7 @@ SK_BeginBufferSwap (void)
     // Grace period frame, just ignore it
     //
     case 1:
+    case 2:
       break;
 
 
@@ -2758,6 +2871,8 @@ SK_BeginBufferSwap (void)
   }
 
 
+  rb.present_staging.begin_cegui.time =
+    SK_QueryPerf ();
 
   if (config.cegui.enable)
   {
@@ -2772,6 +2887,9 @@ SK_BeginBufferSwap (void)
       }
     }
   }
+
+  rb.present_staging.end_cegui.time =
+    SK_QueryPerf ();
 
 
   static HMODULE hModTBFix = GetModuleHandle (L"tbfix.dll");
@@ -2803,6 +2921,10 @@ SK_BeginBufferSwap (void)
 
   LastKnownAPI =
     SK_GetCurrentRenderBackend ().api;
+
+
+  rb.present_staging.submit.time =
+    SK_QueryPerf ();
 }
 
 
@@ -3033,9 +3155,19 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
 
   switch (SK_GetCurrentGameID ())
   {
+    case SK_GAME_ID::DragonQuestXI:
+      extern void SK_DQXI_EndFrame (void);
+                  SK_DQXI_EndFrame ();
+      break;
+
     case SK_GAME_ID::MonsterHunterWorld:
       extern void SK_MHW_EndFrame (void);
                   SK_MHW_EndFrame ();
+      break;
+
+    case SK_GAME_ID::Shenmue:
+      extern volatile LONG __SK_SHENMUE_FinishedButNotPresented;
+      InterlockedExchange (&__SK_SHENMUE_FinishedButNotPresented, 0L);
       break;
   }
 
@@ -3062,19 +3194,6 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
     }
   }
 
-
-  static HMODULE hModTZFix = GetModuleHandle (L"tzfix.dll");
-  static HMODULE hModTBFix = GetModuleHandle (L"tbfix.dll");
-
-  //
-  // TZFix has its own limiter
-  //
-  if (! (hModTZFix || hModTBFix))
-  {
-    SK::Framerate::GetLimiter ()->wait ();
-  }
-
-
   if (config.cegui.enable && ReadAcquire (&CEGUI_Init))
   {
     config.cegui.frames_drawn++;
@@ -3088,6 +3207,22 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
   }
 
   SK_StartPerfMonThreads ();
+
+  static HMODULE hModTZFix = GetModuleHandle (L"tzfix.dll");
+  static HMODULE hModTBFix = GetModuleHandle (L"tbfix.dll");
+
+
+  LARGE_INTEGER            now;
+  double               dt;
+  SK::Framerate::Tick (dt, now);
+
+  //
+  // TZFix has its own limiter
+  //
+  if (! (hModTZFix || hModTBFix))
+  {
+    SK::Framerate::GetLimiter ()->wait ();
+  }
 
   return hr;
 }
@@ -3141,3 +3276,6 @@ RunDLL_RestartGame ( HWND  hwnd,        HINSTANCE hInst,
 
 
 SK_ImGui_WidgetRegistry SK_ImGui_Widgets;
+
+
+#pragma comment (lib, R"(C:\Users\amcol\source\repos\SpecialK\depends\lib\DirectXTex\x64\DirectXTex.lib)")

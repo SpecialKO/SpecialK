@@ -312,13 +312,29 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
 
     else
     {
-      extern float __SK_MHW_HDR_Luma;
-      extern float __SK_MHW_HDR_Exp;
+      extern float __SK_MHW_HDR_Luma; extern float __SK_DQXI_HDR_Luma;
+      extern float __SK_MHW_HDR_Exp;  extern float __SK_DQXI_HDR_Exp;
+
+      float luma = 0.0f,
+            exp  = 0.0f;
+
+      switch (SK_GetCurrentGameID ())
+      {
+        case SK_GAME_ID::MonsterHunterWorld:
+          luma = __SK_MHW_HDR_Luma;
+          exp  = __SK_MHW_HDR_Exp;
+          break;
+
+        case SK_GAME_ID::DragonQuestXI:
+          luma = __SK_DQXI_HDR_Luma;
+          exp  = __SK_DQXI_HDR_Exp;
+          break;
+      }
 
       constant_buffer->luminance_scale [0] = rb.ui_luminance;
       constant_buffer->luminance_scale [1] = rb.ui_srgb ? 2.2f : 1.0f;
-      constant_buffer->luminance_scale [2] = __SK_MHW_HDR_Luma;
-      constant_buffer->luminance_scale [3] = __SK_MHW_HDR_Exp;
+      constant_buffer->luminance_scale [2] = luma;
+      constant_buffer->luminance_scale [3] = exp;
       constant_buffer->steam_luminance [0] = config.steam.overlay_hdr_luminance;
       constant_buffer->steam_luminance [1] = rb.ui_srgb ? 2.2f : 1.0f;
     }
@@ -1215,10 +1231,10 @@ ImGui_ImplDX11_Init ( IDXGISwapChain* pSwapChain,
 
   if (first)
   {
-    if (! QueryPerformanceFrequency        (reinterpret_cast <LARGE_INTEGER *> (&g_TicksPerSecond)))
+    if (! QueryPerformanceFrequency  (reinterpret_cast <LARGE_INTEGER *> (&g_TicksPerSecond)))
       return false;
 
-    if (! QueryPerformanceCounter_Original (reinterpret_cast <LARGE_INTEGER *> (&g_Time)))
+    if (! SK_QueryPerformanceCounter (reinterpret_cast <LARGE_INTEGER *> (&g_Time)))
       return false;
 
     first = false;
@@ -1302,7 +1318,7 @@ ImGui_ImplDX11_NewFrame (void)
   // Setup time step
   INT64 current_time;
 
-  QueryPerformanceCounter_Original (
+  SK_QueryPerformanceCounter (
     reinterpret_cast <LARGE_INTEGER *> (&current_time)
   );
 

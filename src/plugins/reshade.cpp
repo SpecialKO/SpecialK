@@ -36,7 +36,7 @@ SK_ReShade_GetDLL (void)
   {
     if (imports [i].hLibrary != nullptr)
     {
-      if (StrStrIW (imports [i].filename->get_value ().c_str (), L"ReShade"))
+      if (StrStrIW (imports [i].filename->get_value_ref ().c_str (), L"ReShade"))
       {
         typedef HMODULE (__stdcall *SK_SHIM_GetReShade_pfn)(void);
 

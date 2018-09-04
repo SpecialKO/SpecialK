@@ -903,8 +903,11 @@ SK_CreateDLLHook2 ( const wchar_t  *pwszModule, const char  *pszProcName,
                           void     *pDetour,          void **ppOriginal,
                           void    **ppFuncAddr )
 {
-  if (ReadAcquire (&__SK_DLL_Ending) || (! ReadAcquire (&__SK_DLL_Attached)))
+  if (   ReadAcquire (&__SK_DLL_Ending) ||
+      (! ReadAcquire (&__SK_DLL_Attached)) )
+  {
     return MH_ERROR_DISABLED;
+  }
 
 
   HMODULE hMod = nullptr;
