@@ -1804,10 +1804,10 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
       SK::Diagnostics::CrashHandler::InitSyms ();
 
-      void
-      SK_NvAPI_PreInitHDR (void);
-
-      SK_NvAPI_PreInitHDR    ();
+    //void
+    //SK_NvAPI_PreInitHDR (void);
+    //
+    //SK_NvAPI_PreInitHDR    ();
       SK_InitCompatBlacklist ();
 
       //// Do this from the startup thread [these functions queue, but don't apply]

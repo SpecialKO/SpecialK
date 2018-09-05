@@ -1751,6 +1751,14 @@ auto DeclKeybind =
         //SK_DXGI_FullStateCache                 = config.render.dxgi.full_state_cache;
         break;
 
+      case SK_GAME_ID::DragonQuestXI:
+        config.apis.d3d9.hook       = false;
+        config.apis.d3d9ex.hook     = false;
+        config.apis.OpenGL.hook     = false;
+        config.apis.Vulkan.hook     = false;
+        config.apis.dxgi.d3d12.hook = false;
+        break;
+
       case SK_GAME_ID::Shenmue:
         config.textures.d3d11.generate_mips       = true;
         config.textures.d3d11.uncompressed_mips   = true;

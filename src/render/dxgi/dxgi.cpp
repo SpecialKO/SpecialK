@@ -4226,6 +4226,15 @@ DXGISwap_ResizeBuffers_Override ( IDXGISwapChain *This,
   DXGI_CALL ( ret, ResizeBuffers_Original ( This, BufferCount, Width, Height,
                                               NewFormat, SwapChainFlags ) );
 
+  static bool bDQXI =
+    SK_GetCurrentGameID () == SK_GAME_ID::DragonQuestXI;
+
+  if (FAILED (ret) && bDQXI)
+  {
+    dll_log.Log (L"Ignoring failure, game cannot be allowed to crash for this stupid reason!");
+    return S_OK;
+  }
+
   //// Hack for FFX / FFX-2
   //if ( FAILED (ret) &&
   //       SK_DXGI_FilterRedundant_ResizeBuffers ( This, BufferCount, Width,

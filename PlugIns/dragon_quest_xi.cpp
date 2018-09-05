@@ -46,24 +46,39 @@ volatile LONG __SK_ScreenShot_CapturingHUDless;
 
 #include <SpecialK\widgets\widget.h>
 
+
+static
+std::unordered_set <uint32_t>
+  __SK_DQXI_UI_Vtx_Shaders =
+  {
+    0x6f046ebc, 0x711c9eeb
+  };
+
+static
+std::unordered_set <uint32_t>
+  __SK_DQXI_UI_Pix_Shaders =
+  {
+    0x0fbd3754, 0x26c739a9,
+    0x7dc782b6, 0xd95be234
+  };
+
 void
 SK_DQXI_BeginFrame (void)
 {
   if ( ReadAcquire (&__SK_DQXI_QueuedShots)          > 0 ||
        ReadAcquire (&__SK_DQXI_InitiateHudFreeShot) != 0    )
   {
-    InterlockedExchange (&__SK_ScreenShot_CapturingHUDless, 1);
-
-#define SK_DQXI_HUD_VS0_CRC32C  0x6f046ebc // General 2D HUD
-#define SK_DQXI_HUD_VS1_CRC32C  0x711c9eeb // The HUD cursor particles
-
+        InterlockedExchange        (&__SK_ScreenShot_CapturingHUDless, 1);
     if (InterlockedCompareExchange (&__SK_DQXI_InitiateHudFreeShot, -2, 1) == 1)
     {
       static auto& shaders =
         SK_D3D11_Shaders;
 
-      shaders.vertex.blacklist.emplace (SK_DQXI_HUD_VS0_CRC32C);
-      shaders.vertex.blacklist.emplace (SK_DQXI_HUD_VS1_CRC32C);
+      for ( auto& it : __SK_DQXI_UI_Vtx_Shaders )
+      {  shaders.vertex.blacklist.emplace (it); }
+
+      for ( auto& it : __SK_DQXI_UI_Pix_Shaders )
+      {  shaders.pixel.blacklist.emplace (it);  }
     }
 
     // 1-frame Delay for SDR->HDR Upconversion
@@ -96,8 +111,11 @@ SK_DQXI_EndFrame (void)
     static auto& shaders =
       SK_D3D11_Shaders;
 
-    //shaders.vertex.blacklist.erase (SK_DQXI_HUD_VS1_CRC32C);
-    //shaders.vertex.blacklist.erase (SK_DQXI_HUD_VS0_CRC32C);
+    for ( auto& it : __SK_DQXI_UI_Vtx_Shaders )
+    {  shaders.vertex.blacklist.erase (it); }
+
+    for ( auto& it : __SK_DQXI_UI_Pix_Shaders )
+    {  shaders.pixel.blacklist.erase (it);  }
   }
 }
 
@@ -108,11 +126,11 @@ bool __SK_DQXI_10BitSwap = false;
 sk::ParameterBool* _SK_DQXI_16BitSwapChain;
 bool __SK_DQXI_16BitSwap = false;
 
-sk::ParameterFloat* _SK_DQXI_scRGBLuminance;
 float __SK_DQXI_HDR_Luma = 172.0_Nits;
-
-sk::ParameterFloat* _SK_DQXI_scRGBGamma;
 float __SK_DQXI_HDR_Exp  = 2.116f;
+
+sk::ParameterInt* _SK_DQXI_ActiveHDRPreset;
+int __SK_DQXI_HDRPreset = 0;
 
 #include <concurrent_vector.h>
 extern concurrency::concurrent_vector <d3d11_shader_tracking_s::cbuffer_override_s> __SK_D3D11_PixelShader_CBuffer_Overrides;
@@ -120,12 +138,163 @@ d3d11_shader_tracking_s::cbuffer_override_s* SK_DQXI_CB_Override;
 
 #include <SpecialK/plugin/plugin_mgr.h>
 
+#define SK_DQXI_HDR_SECTION     L"DragonQuestXI.HDR"
+
+#include <SpecialK/ini.h>
+#include <SpecialK/config.h>
+
+auto DeclKeybind =
+[](SK_ConfigSerializedKeybind* binding, iSK_INI* ini, const wchar_t* sec) ->
+auto
+{
+  auto* ret =
+    dynamic_cast <sk::ParameterStringW *>
+    (g_ParameterFactory.create_parameter <std::wstring> (L"DESCRIPTION HERE"));
+
+  ret->register_to_ini ( ini, sec, binding->short_name );
+
+  return ret;
+};
+
+
+#define MAX_HDR_PRESETS 4
+
+struct SK_HDR_Preset_s {
+  const char*  preset_name;
+  int          preset_idx;
+
+  float        peak_white_nits;
+  float        eotf;
+
+  std::wstring annotation = L"";
+
+  sk::ParameterFloat*   cfg_nits    = nullptr;
+  sk::ParameterFloat*   cfg_eotf    = nullptr;
+  sk::ParameterStringW* cfg_notes   = nullptr;
+
+  SK_ConfigSerializedKeybind
+    preset_activate = {
+      SK_Keybind {
+        preset_name, L"",
+          false, true, true, '0'
+      }, L"Activate"
+    };
+
+  int activate (void)
+  {
+    __SK_DQXI_HDRPreset =
+      preset_idx;
+
+    __SK_DQXI_HDR_Luma = peak_white_nits;
+    __SK_DQXI_HDR_Exp  = eotf;
+
+    if (_SK_DQXI_ActiveHDRPreset != nullptr)
+    {   _SK_DQXI_ActiveHDRPreset->store (preset_idx);
+
+      SK_GetDLLConfig   ()->write (
+        SK_GetDLLConfig ()->get_filename ()
+                                  );
+    }
+
+    return preset_idx;
+  }
+
+  void setup (void)
+  {
+    if (cfg_nits == nullptr)
+    {
+      //preset_activate =
+      //  std::move (
+      //    SK_ConfigSerializedKeybind {
+      //      SK_Keybind {
+      //        preset_name, L"",
+      //          false, true, true, '0'
+      //      }, L"Activate"
+      //    }
+      //  );
+
+      cfg_nits =
+        _CreateConfigParameterFloat ( SK_DQXI_HDR_SECTION,
+                   SK_FormatStringW (L"scRGBLuminance_[%lu]", preset_idx).c_str (),
+                    peak_white_nits, L"scRGB Luminance" );
+      cfg_eotf =
+        _CreateConfigParameterFloat ( SK_DQXI_HDR_SECTION,
+                   SK_FormatStringW (L"scRGBGamma_[%lu]",     preset_idx).c_str (),
+                               eotf, L"scRGB Gamma" );
+
+      wcsncpy_s ( preset_activate.short_name,                           32,
+        SK_FormatStringW (L"Activate%lu", preset_idx).c_str (), _TRUNCATE );
+
+      preset_activate.param =
+        DeclKeybind (&preset_activate, SK_GetDLLConfig (), L"HDR.Presets");
+
+      if (! preset_activate.param->load (preset_activate.human_readable))
+      {
+        preset_activate.human_readable =
+          SK_FormatStringW (L"Alt+Shift+%lu", preset_idx);
+      }
+
+      preset_activate.parse ();
+      preset_activate.param->store (preset_activate.human_readable);
+
+      SK_GetDLLConfig   ()->write (
+        SK_GetDLLConfig ()->get_filename ()
+                                  );
+    }
+  }
+} static
+hdr_presets [4] = { { "HDR Preset 0", 0, 172.0_Nits, 2.116f, L"F1" },
+                    { "HDR Preset 1", 1, 172.0_Nits, 2.116f, L"F2" },
+                    { "HDR Preset 2", 2, 172.0_Nits, 2.116f, L"F3" },
+                    { "HDR Preset 3", 3, 172.0_Nits, 2.116f, L"F4" } };
+
+
+typedef void (CALLBACK *SK_PluginKeyPress_pfn)(BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode);
+                        SK_PluginKeyPress_pfn
+                        SK_PluginKeyPress_Original = nullptr;
+
+void
+CALLBACK
+SK_DQXI_PluginKeyPress (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode)
+{
+#define SK_MakeKeyMask(vKey,ctrl,shift,alt) \
+  static_cast <UINT>((vKey) | (((ctrl) != 0) <<  9) |   \
+                              (((shift)!= 0) << 10) |   \
+                              (((alt)  != 0) << 11))
+
+  for ( auto& it : hdr_presets )
+  {
+    if ( it.preset_activate.masked_code ==
+           SK_MakeKeyMask ( vkCode,
+                            Control != 0 ? 1 : 0,
+                            Shift   != 0 ? 1 : 0,
+                            Alt     != 0 ? 1 : 0 ) )
+    {
+      it.activate ();
+      return;
+    }     
+  }
+
+  return
+    SK_PluginKeyPress_Original (
+      Control, Shift, Alt, vkCode
+    );
+}
+
 void
 SK_DQXI_PlugInInit (void)
 {
-  config.render.framerate.enable_mmcss = false;
+  hdr_presets [0].setup (); hdr_presets [1].setup ();
+  hdr_presets [2].setup (); hdr_presets [3].setup ();
 
-#define SK_DQXI_HDR_SECTION     L"DragonQuestXI.HDR"
+  extern void WINAPI SK_PluginKeyPress (BOOL,BOOL,BOOL,BYTE);
+  SK_CreateFuncHook (      L"SK_PluginKeyPress",
+                             SK_PluginKeyPress,
+                        SK_DQXI_PluginKeyPress,
+    static_cast_p2p <void> (&SK_PluginKeyPress_Original) );
+  SK_EnableHook        (     SK_PluginKeyPress           );
+
+  config.render.framerate.enable_mmcss = false;
 
   _SK_DQXI_10BitSwapChain =
     _CreateConfigParameterBool ( SK_DQXI_HDR_SECTION,
@@ -136,26 +305,55 @@ SK_DQXI_PlugInInit (void)
                                 L"Use16BitSwapChain",  __SK_DQXI_16BitSwap,
                                 L"16-bit SwapChain" );
 
-  _SK_DQXI_scRGBLuminance =
-    _CreateConfigParameterFloat ( SK_DQXI_HDR_SECTION,
-                                 L"scRGBLuminance",  __SK_DQXI_HDR_Luma,
-                                 L"scRGB Luminance" );
-  _SK_DQXI_scRGBGamma =
-    _CreateConfigParameterFloat ( SK_DQXI_HDR_SECTION,
-                                 L"scRGBGamma",      __SK_DQXI_HDR_Exp,
-                                 L"scRGB Gamma"     );
+  _SK_DQXI_ActiveHDRPreset =
+    _CreateConfigParameterInt ( SK_DQXI_HDR_SECTION,
+                                L"Preset",           __SK_DQXI_HDRPreset,
+                                L"Light Adaptation Preset" );
 
-  //if (SK_MHW_CB_Override->Enable)
-  //{
-  //  InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
-  //  InterlockedIncrement (&SK_D3D11_CBufferTrackingReqs);
-  //}
+  if ( __SK_DQXI_HDRPreset < 0 ||
+       __SK_DQXI_HDRPreset >= MAX_HDR_PRESETS )
+  {
+    __SK_DQXI_HDRPreset = 0;
+  }
+
+  hdr_presets [__SK_DQXI_HDRPreset].activate ();
 
   iSK_INI* pINI =
     SK_GetDLLConfig ();
 
   pINI->write (pINI->get_filename ());
 }
+
+static auto
+Keybinding = [] (SK_Keybind* binding, sk::ParameterStringW* param) ->
+auto
+{
+  std::string label =
+    SK_WideCharToUTF8 (binding->human_readable) + "###";
+
+  label += binding->bind_name;
+
+  if (ImGui::Selectable (label.c_str (), false))
+  {
+    ImGui::OpenPopup (binding->bind_name);
+  }
+
+  std::wstring original_binding =
+    binding->human_readable;
+
+  SK_ImGui_KeybindDialog (binding);
+
+  if (original_binding != binding->human_readable)
+  {
+    param->store (binding->human_readable);
+
+    SK_SaveConfig ();
+
+    return true;
+  }
+
+  return false;
+};
 
 bool
 SK_DQXI_PlugInCfg (void)
@@ -171,25 +369,116 @@ SK_DQXI_PlugInCfg (void)
   {
     ImGui::TreePush ("");
 
-    if (ImGui::CollapsingHeader ("HDR Retrofit", ImGuiTreeNodeFlags_DefaultOpen))
+    if (config.steam.screenshots.enable_hook)
     {
-      static bool TenBitSwap_Original     = __SK_DQXI_10BitSwap;
-      static bool SixteenBitSwap_Original = __SK_DQXI_16BitSwap;
+      ImGui::PushID    ("DQXI_Screenshots");
+      ImGui::Separator ();
 
-      static int sel = __SK_DQXI_16BitSwap ? 2 :
-                       __SK_DQXI_10BitSwap ? 1 : 0;
+      static std::set <SK_ConfigSerializedKeybind *>
+        keybinds = {
+        &config.steam.screenshots.game_hud_free_keybind
+      };
 
-      if (ImGui::RadioButton ("None", &sel, 0))
+      ImGui::SameLine   ();
+      ImGui::BeginGroup ();
+      for ( auto& keybind : keybinds )
       {
-        __SK_DQXI_10BitSwap = false;
-        __SK_DQXI_16BitSwap = false;
+        ImGui::Text          ( "%s:  ",
+                              keybind->bind_name );
+      }
+      ImGui::EndGroup   ();
+      ImGui::SameLine   ();
+      ImGui::BeginGroup ();
+      for ( auto& keybind : keybinds )
+      {
+        Keybinding ( keybind, keybind->param );
+      }
+      ImGui::EndGroup   ();
 
-        _SK_DQXI_10BitSwapChain->store (__SK_DQXI_10BitSwap);
-        _SK_DQXI_16BitSwapChain->store (__SK_DQXI_16BitSwap);
+      bool png_changed = false;
 
-        pINI->write (pINI->get_filename ());
+      if (config.steam.screenshots.enable_hook)
+      {
+        png_changed =
+          ImGui::Checkbox ( "Keep Lossless .PNG Screenshots",
+                           &config.steam.screenshots.png_compress      );
       }
 
+      if ( ( screenshot_manager != nullptr &&
+          screenshot_manager->getExternalScreenshotRepository ().files > 0 ) )
+      {
+        ImGui::SameLine ();
+
+        const SK_Steam_ScreenshotManager::screenshot_repository_s& repo =
+          screenshot_manager->getExternalScreenshotRepository (png_changed);
+
+        ImGui::BeginGroup (  );
+        ImGui::TreePush   ("");
+        ImGui::Text ( "%lu files using %ws",
+                     repo.files,
+                     SK_File_SizeToString (repo.liSize.QuadPart).c_str  ()
+        );
+
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::SetTooltip ( "Steam does not support .png screenshots, so "
+                             "SK maintains its own storage for lossless screenshots." );
+        }
+
+        ImGui::SameLine ();
+
+        if (ImGui::Button ("Browse"))
+        {
+          ShellExecuteW ( GetActiveWindow (),
+                           L"explore",
+                             screenshot_manager->getExternalScreenshotPath (),
+                               nullptr, nullptr,
+                                 SW_NORMAL
+          );
+        }
+
+        ImGui::TreePop  ();
+        ImGui::EndGroup ();
+      }
+      ImGui::PopID      ();
+    }
+
+    bool bRetro =
+      ImGui::CollapsingHeader ("HDR Retrofit", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowOverlapMode);
+
+    static bool TenBitSwap_Original     = __SK_DQXI_10BitSwap;
+    static bool SixteenBitSwap_Original = __SK_DQXI_16BitSwap;
+
+    static int sel = __SK_DQXI_16BitSwap ? 2 :
+      __SK_DQXI_10BitSwap ? 1 : 0;
+
+        ImGui::SameLine ();
+    if (ImGui::RadioButton ("None", &sel, 0))
+    {
+      __SK_DQXI_10BitSwap = false;
+      __SK_DQXI_16BitSwap = false;
+
+      _SK_DQXI_10BitSwapChain->store (__SK_DQXI_10BitSwap);
+      _SK_DQXI_16BitSwapChain->store (__SK_DQXI_16BitSwap);
+
+      pINI->write (pINI->get_filename ());
+    }
+
+        ImGui::SameLine ();
+    if (ImGui::RadioButton ("scRGB HDR (16-bit)", &sel, 2))
+    {
+      __SK_DQXI_16BitSwap = true;
+
+      if (__SK_DQXI_16BitSwap) __SK_DQXI_10BitSwap = false;
+
+      _SK_DQXI_10BitSwapChain->store (__SK_DQXI_10BitSwap);
+      _SK_DQXI_16BitSwapChain->store (__SK_DQXI_16BitSwap);
+
+      pINI->write (pINI->get_filename ());
+    }
+
+    if (bRetro)
+    {
       ////if (ImGui::RadioButton ("HDR10 (10-bit + Metadata)", &sel, 1))
       ////{
       ////  __SK_MHW_10BitSwap = true;
@@ -207,18 +496,20 @@ SK_DQXI_PlugInCfg (void)
 
       if (rb.hdr_capable)
       {
-        ImGui::SameLine ();
-
-        if (ImGui::RadioButton ("scRGB HDR (16-bit)", &sel, 2))
+        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.23f, 0.86f, 1.f));
+        ImGui::Text ("NOTE: ");
+        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f, 0.28f, 0.94f)); ImGui::SameLine ();
+        ImGui::Text ("This is far from a final Magic-HDR solution!");
+        ImGui::PopStyleColor  (2);
+        
+        if (ImGui::IsItemHovered ())
         {
-          __SK_DQXI_16BitSwap = true;
-
-          if (__SK_DQXI_16BitSwap) __SK_DQXI_10BitSwap = false;
-
-          _SK_DQXI_10BitSwapChain->store (__SK_DQXI_10BitSwap);
-          _SK_DQXI_16BitSwapChain->store (__SK_DQXI_16BitSwap);
-
-          pINI->write (pINI->get_filename ());
+          ImGui::BeginTooltip ();
+          ImGui::Text         (" Future Work");
+          ImGui::Separator    ();
+          ImGui::BulletText   ("Automagic Dark and Light Adaptation are VERY Important and VERY Absent :P");
+          ImGui::BulletText   ("Separable HUD luminance (especially weapon cross-hairs) also must be implemented");
+          ImGui::EndTooltip   ();
         }
       }
 
@@ -348,16 +639,22 @@ SK_DQXI_PlugInCfg (void)
 
               if (hdr_gamut_support && swap_desc.BufferDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT)
               {
+                ImGui::Separator ();
+
                 float nits =
                   __SK_DQXI_HDR_Luma / 1.0_Nits;
-
 
                 if (ImGui::SliderFloat ( "###DQXI_LUMINANCE", &nits, 80.0f, rb.display_gamut.maxLocalY,
                     "Peak White Luminance: %.1f Nits" ))
                 {
                   __SK_DQXI_HDR_Luma = nits * 1.0_Nits;
 
-                  _SK_DQXI_scRGBLuminance->store (__SK_DQXI_HDR_Luma);
+                  auto& preset =
+                    hdr_presets [__SK_DQXI_HDRPreset];
+
+                  preset.peak_white_nits =
+                    nits * 1.0_Nits;
+                  preset.cfg_nits->store (preset.peak_white_nits);
 
                   pINI->write (pINI->get_filename ());
                 }
@@ -366,9 +663,61 @@ SK_DQXI_PlugInCfg (void)
 
                 if (ImGui::SliderFloat ("SDR -> HDR Gamma", &__SK_DQXI_HDR_Exp, 1.6f, 2.9f))
                 {
-                  _SK_DQXI_scRGBGamma->store (__SK_DQXI_HDR_Exp);
+                  auto& preset =
+                    hdr_presets [__SK_DQXI_HDRPreset];
+
+                  preset.eotf =
+                    __SK_DQXI_HDR_Exp;
+                  preset.cfg_eotf->store (preset.eotf);
+
                   pINI->write (pINI->get_filename ());
                 }
+
+                ImGui::BeginGroup ();
+                for ( int i = 0 ; i < MAX_HDR_PRESETS ; i++ )
+                {
+                  bool selected =
+                    (__SK_DQXI_HDRPreset == i);
+
+                  if (ImGui::Selectable ( hdr_presets [i].preset_name, &selected, ImGuiSelectableFlags_SpanAllColumns ))
+                  {
+                    hdr_presets [i].activate ();
+                  }
+                }
+                ImGui::EndGroup   ();
+                ImGui::SameLine   (); ImGui::Spacing ();
+                ImGui::SameLine   (); ImGui::Spacing ();
+                ImGui::SameLine   (); ImGui::Spacing (); ImGui::SameLine (); 
+                ImGui::BeginGroup ();
+                for ( int i = 0 ; i < MAX_HDR_PRESETS ; i++ )
+                {
+                  ImGui::Text ( "Peak White: %5.1f Nits",
+                                hdr_presets [i].peak_white_nits / 1.0_Nits );
+                }
+                ImGui::EndGroup   ();
+                ImGui::SameLine   (); ImGui::Spacing ();
+                ImGui::SameLine   (); ImGui::Spacing ();
+                ImGui::SameLine   (); ImGui::Spacing (); ImGui::SameLine ();
+                ImGui::BeginGroup ();
+                for ( int i = 0 ; i < MAX_HDR_PRESETS ; i++ )
+                {
+                  ImGui::Text ( "Power-Law EOTF: %3.1f",
+                                  hdr_presets [i].eotf );
+                }
+                ImGui::EndGroup   ();
+                ImGui::SameLine   (); ImGui::Spacing ();
+                ImGui::SameLine   (); ImGui::Spacing ();
+                ImGui::SameLine   (); ImGui::Spacing ();
+                ImGui::SameLine   (); ImGui::Spacing ();
+                ImGui::SameLine   (); ImGui::Spacing ();
+                ImGui::SameLine   (); ImGui::Spacing (); ImGui::SameLine (); 
+                ImGui::BeginGroup ();
+                for ( int i = 0 ; i < MAX_HDR_PRESETS ; i++ )
+                {
+                  Keybinding ( &hdr_presets [i].preset_activate,
+                              (&hdr_presets [i].preset_activate)->param );
+                }
+                ImGui::EndGroup   ();
 
                 //ImGui::SameLine ();
                 //ImGui::Checkbox ("Explicit LinearRGB -> sRGB###IMGUI_SRGB", &rb.ui_srgb);
@@ -420,42 +769,6 @@ SK_DQXI_PlugInCfg (void)
       ImGui::PopStyleColor (3);
       ImGui::TreePop       ( );
     }
-
-    ///static int orig =
-    ///  config.render.framerate.override_num_cpus;
-    ///
-    ///bool spoof = (config.render.framerate.override_num_cpus != -1);
-    ///
-    ///static SYSTEM_INFO             si = { };
-    ///SK_RunOnce (SK_GetSystemInfo (&si));
-    ///
-    ///if ((! spoof) || static_cast <DWORD> (config.render.framerate.override_num_cpus) > (si.dwNumberOfProcessors / 2))
-    ///{
-    ///  ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.14f, .8f, .9f));
-    ///  ImGui::BulletText     ("It is strongly suggested that you reduce threads to 1/2 max. or lower");
-    ///  ImGui::PopStyleColor  ();
-    ///}
-    ///
-    ///if ( ImGui::Checkbox   ("Reduce Reported CPU Core Count", &spoof) )
-    ///{
-    ///  config.render.framerate.override_num_cpus =
-    ///    ( spoof ? si.dwNumberOfProcessors : -1 );
-    ///}
-    ///
-    ///if (spoof)
-    ///{
-    ///  ImGui::SameLine  (                                             );
-    ///  ImGui::SliderInt ( "",
-    ///                    &config.render.framerate.override_num_cpus,
-    ///                    1, si.dwNumberOfProcessors              );
-    ///}
-    ///
-    ///if (config.render.framerate.override_num_cpus != orig)
-    ///{
-    ///  ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.3f, .8f, .9f));
-    ///  ImGui::BulletText     ("Game Restart Required");
-    ///  ImGui::PopStyleColor  ();
-    ///}
 
     ImGui::TreePop ();
 
