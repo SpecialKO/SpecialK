@@ -54,6 +54,7 @@ LPVOID pfnSleep                   = nullptr;
 
 Sleep_pfn                   Sleep_Original                   = nullptr;
 QueryPerformanceCounter_pfn QueryPerformanceCounter_Original = nullptr;
+QueryPerformanceCounter_pfn RtlQueryPerformanceCounter       = nullptr;
 
 LARGE_INTEGER
 SK_QueryPerf ()
@@ -554,13 +555,13 @@ BOOL
 WINAPI
 SK_QueryPerformanceCounter (_Out_ LARGE_INTEGER *lpPerformanceCount)
 {
-  //if (NtQueryPerformanceCounter == nullptr)
-  //{
-  //  NtQueryPerformanceCounter =
-  //    (NtQueryPerformanceCounter_pfn)
-  //      SK_GetProcAddress ( L"ntdll.dll",
-  //                           "NtQueryPerformanceCounter" );
-  //}
+  if (NtQueryPerformanceCounter == nullptr)
+  {
+    NtQueryPerformanceCounter =
+      (NtQueryPerformanceCounter_pfn)
+        SK_GetProcAddress ( L"ntdll.dll",
+                             "NtQueryPerformanceCounter" );
+  }
 
 #define STATUS_SUCCESS 0x0
 
@@ -586,6 +587,7 @@ SK_QueryPerformanceCounter (_Out_ LARGE_INTEGER *lpPerformanceCount)
 
 extern bool SK_Shenmue_IsLimiterBypassed   (void              );
 extern bool SK_Shenmue_InitLimiterOverride (LPVOID pQPCRetAddr);
+extern bool SK_Shenmue_UseNtDllQPC;
 
 BOOL
 WINAPI
@@ -598,6 +600,7 @@ QueryPerformanceCounter_Detour (_Out_ LARGE_INTEGER *lpPerformanceCount)
   } static
       shenmue_clock {
         SK_GetCurrentGameID () == SK_GAME_ID::Shenmue,
+      //SK_GetCurrentGameID () == SK_GAME_ID::DragonQuestXI,
         false
       };
 
@@ -686,19 +689,44 @@ QueryPerformanceCounter_Detour (_Out_ LARGE_INTEGER *lpPerformanceCount)
                              "NtQueryPerformanceCounter" );
   }
   
-  if (NtQueryPerformanceCounter != nullptr)
+  if (SK_Shenmue_UseNtDllQPC && NtQueryPerformanceCounter != nullptr)
   {
-  
+    static LARGE_INTEGER
+      last_query = { };
+
 #define STATUS_SUCCESS 0x0
   
-    return
+    BOOL ret =
     ( STATUS_SUCCESS ==
         NtQueryPerformanceCounter (lpPerformanceCount, nullptr)
     );
+
+    if (ret && lpPerformanceCount != nullptr)
+    {
+      if ( lpPerformanceCount->QuadPart <=
+                    last_query.QuadPart    ) {
+        ++(lpPerformanceCount->QuadPart);    }
+
+               last_query.QuadPart =
+      lpPerformanceCount->QuadPart;
+
+      return ret;
+    }
+  }
+
+  if (RtlQueryPerformanceCounter == nullptr)
+  {
+    RtlQueryPerformanceCounter =
+      (QueryPerformanceCounter_pfn)
+        SK_GetProcAddress ( L"Ntdll.dll",
+                             "RtlQueryPerformanceCounter" );
   }
 
   return
-    QueryPerformanceCounter_Original (lpPerformanceCount);
+    RtlQueryPerformanceCounter (lpPerformanceCount);
+
+  //return
+  //  QueryPerformanceCounter_Original (lpPerformanceCount);
 }
 
 using NTSTATUS = _Return_type_success_(return >= 0) LONG;

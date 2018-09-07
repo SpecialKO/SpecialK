@@ -200,6 +200,7 @@ public:
   {
     //MIDL_INTERFACE ("c0bfa96c-e089-44fb-8eaf-26f8796190da")     
     CComPtr <ID3D11DeviceContext> immediate_ctx = nullptr;
+    CComPtr <ID3D11DeviceContext> deferred_ctx  = nullptr;
   } d3d11;
 
 

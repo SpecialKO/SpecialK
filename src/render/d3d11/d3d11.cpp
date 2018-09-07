@@ -696,15 +696,52 @@ SK_D3D11_GetDeviceContextHandle ( ID3D11DeviceContext *pDevCtx )
   // Polymorphic weirdness - thank you IUnknown promoting to anything it wants
   ////CComQIPtr <ID3D11DeviceContext> pTestCtx (pDevCtx);
 
+  const int RESOLVE_MAX = 32;
+
+  static std::pair <ID3D11DeviceContext*, LONG>
+    last_resolve [RESOLVE_MAX];
+  static volatile LONG
+         resolve_idx = 0;
+
+  auto early_out =
+    last_resolve [ReadAcquire (&resolve_idx)];
+
+  if (early_out.first == pDevCtx)
+    return early_out.second;
+
+
+  auto _CacheResolution =
+    [&](LONG idx, ID3D11DeviceContext* pCtx, LONG handle) ->
+    void
+    {
+      early_out =
+        std::make_pair (pCtx, handle);
+
+      std::swap (last_resolve [idx], early_out);
+
+      InterlockedExchange (&resolve_idx, idx);
+    };
+
+
   if (pDevCtx == nullptr) return SK_D3D11_MAX_DEV_CONTEXTS;
 
 
   UINT size   = sizeof (LONG);
   LONG handle = 0;
 
+  
+  LONG idx =
+    ReadAcquire (&resolve_idx) + 1;
+
+  if (idx >= RESOLVE_MAX)
+    idx = 0;
+
+
   if ( SUCCEEDED ( pDevCtx->GetPrivateData ( SKID_D3D11DeviceContextHandle, &size,
                                              &handle ) ) )
   {
+    _CacheResolution (idx, pDevCtx, handle);
+
     return handle;
   }
 
@@ -723,12 +760,16 @@ SK_D3D11_GetDeviceContextHandle ( ID3D11DeviceContext *pDevCtx )
   {
     InterlockedIncrement (&SK_D3D11_NumberOfSeenContexts);
 
+    _CacheResolution (idx, pDevCtx, *new_handle);
+
     return *new_handle;
   }
 
   else delete new_handle;
 
   assert (handle < SK_D3D11_MAX_DEV_CONTEXTS);
+
+  _CacheResolution (idx, pDevCtx, handle);
 
   return handle;
 }
@@ -6099,6 +6140,9 @@ SK_D3D11_DrawCallFilter (int elem_cnt, int vtx_cnt, uint32_t vtx_shader)
 {
   UNREFERENCED_PARAMETER (elem_cnt);
 
+  if (SK_D3D11_BlacklistDrawcalls.empty ())
+    return false;
+
   const auto& matches =
     SK_D3D11_BlacklistDrawcalls.equal_range (vtx_shader);
 
@@ -6121,7 +6165,7 @@ SK_D3D11_DrawCallFilter (int elem_cnt, int vtx_cnt, uint32_t vtx_shader)
 }
 
 bool
-SK_D3D11_DrawHandler (ID3D11DeviceContext* pDevCtx, SK_TLS* pTLS = nullptr)
+SK_D3D11_DrawHandler (ID3D11DeviceContext* pDevCtx, SK_TLS* pTLS = nullptr, INT d_idx = -1)
 {
   static const
     SK_RenderBackend& rb =
@@ -6171,8 +6215,8 @@ SK_D3D11_DrawHandler (ID3D11DeviceContext* pDevCtx, SK_TLS* pTLS = nullptr)
   static auto& domain   = shaders.domain;
 
 
-  UINT dev_idx =
-    SK_D3D11_GetDeviceContextHandle (pDevCtx);
+  UINT dev_idx =                ( d_idx == -1 ?
+    SK_D3D11_GetDeviceContextHandle (pDevCtx) : (UINT)d_idx );
 
   uint32_t current_vs = vertex.current.shader   [dev_idx];
   uint32_t current_ps = pixel.current.shader    [dev_idx];
@@ -6286,11 +6330,11 @@ const
     }
   }
 
-  if (vertex.blacklist.count   (current_vs)) return true;
-  if (pixel.blacklist.count    (current_ps)) return true;
-  if (geometry.blacklist.count (current_gs)) return true;
-  if (hull.blacklist.count     (current_hs)) return true;
-  if (domain.blacklist.count   (current_ds)) return true;
+  if ((! vertex.blacklist.empty   ()) && vertex.blacklist.count   (current_vs)) return true;
+  if ((! pixel.blacklist.empty    ()) && pixel.blacklist.count    (current_ps)) return true;
+  if ((! geometry.blacklist.empty ()) && geometry.blacklist.count (current_gs)) return true;
+  if ((! hull.blacklist.empty     ()) && hull.blacklist.count     (current_hs)) return true;
+  if ((! domain.blacklist.empty   ()) && domain.blacklist.count   (current_ds)) return true;
 
   static auto& Textures_2D =
     SK_D3D11_Textures.Textures_2D;
@@ -6392,11 +6436,11 @@ const
 
   if (! on_top)
   {
-         if (vertex.on_top.count   (current_vs)) on_top = true;
-    else if (pixel.on_top.count    (current_ps)) on_top = true;
-    else if (geometry.on_top.count (current_gs)) on_top = true;
-    else if (hull.on_top.count     (current_hs)) on_top = true;
-    else if (domain.on_top.count   (current_ds)) on_top = true;
+         if ((! vertex.on_top.empty   ()) && vertex.on_top.count   (current_vs)) on_top = true;
+    else if ((! pixel.on_top.empty    ()) && pixel.on_top.count    (current_ps)) on_top = true;
+    else if ((! geometry.on_top.empty ()) && geometry.on_top.count (current_gs)) on_top = true;
+    else if ((! hull.on_top.empty     ()) && hull.on_top.count     (current_hs)) on_top = true;
+    else if ((! domain.on_top.empty   ()) && domain.on_top.count   (current_ds)) on_top = true;
   }
 
   if (on_top)
@@ -6430,11 +6474,11 @@ const
 
   if (! wireframe)
   {
-    if (     vertex.wireframe.count   (current_vs)) wireframe = true;
-    else if (pixel.wireframe.count    (current_ps)) wireframe = true;
-    else if (geometry.wireframe.count (current_gs)) wireframe = true;
-    else if (hull.wireframe.count     (current_hs)) wireframe = true;
-    else if (domain.wireframe.count   (current_ds)) wireframe = true;
+    if (     (! vertex.wireframe.empty   ()) && vertex.wireframe.count   (current_vs)) wireframe = true;
+    else if ((! pixel.wireframe.empty    ()) && pixel.wireframe.count    (current_ps)) wireframe = true;
+    else if ((! geometry.wireframe.empty ()) && geometry.wireframe.count (current_gs)) wireframe = true;
+    else if ((! hull.wireframe.empty     ()) && hull.wireframe.count     (current_hs)) wireframe = true;
+    else if ((! domain.wireframe.empty   ()) && domain.wireframe.count   (current_ds)) wireframe = true;
   }
 
   if (wireframe)
@@ -6993,10 +7037,14 @@ D3D11_DrawIndexed_Override (
 
   SK_TLS *pTLS = nullptr;
 
+  INT d_idx = -1;
+
   if (ReadAcquire (&SK_D3D11_DrawTrackingReqs) > 0)
   {
     UINT dev_idx =
       SK_D3D11_GetDeviceContextHandle (This);
+
+    d_idx = dev_idx;
 
     if (SK_D3D11_DrawCallFilter ( IndexCount, IndexCount,
                   SK_D3D11_Shaders.vertex.current.shader [dev_idx]) )
@@ -7013,7 +7061,7 @@ D3D11_DrawIndexed_Override (
                                        BaseVertexLocation );
   }
 
-  if (SK_D3D11_DrawHandler (This, pTLS))
+  if (SK_D3D11_DrawHandler (This, pTLS, d_idx))
     return;
 
   if (! (This->GetType () == D3D11_DEVICE_CONTEXT_DEFERRED && (! config.render.dxgi.deferred_isolation)))
@@ -7042,10 +7090,14 @@ D3D11_Draw_Override (
 
   SK_TLS *pTLS = nullptr;
 
+  INT d_idx = -1;
+
   if (ReadAcquire (&SK_D3D11_DrawTrackingReqs) > 0)
   {
     UINT dev_idx =
       SK_D3D11_GetDeviceContextHandle (This);
+
+    d_idx = dev_idx;
 
     if (SK_D3D11_DrawCallFilter ( 0, VertexCount,
                     SK_D3D11_Shaders.vertex.current.shader [dev_idx]) )
@@ -7060,8 +7112,8 @@ D3D11_Draw_Override (
   if ( rb.hdr_capable &&
       (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR) )
   {
-    UINT dev_idx =
-      SK_D3D11_GetDeviceContextHandle (This);
+    UINT dev_idx = ( d_idx != -1 ? d_idx :
+                       SK_D3D11_GetDeviceContextHandle (This) );
 
 #define STEAM_OVERLAY_VS_CRC32C 0xf48cf597
 
@@ -7095,7 +7147,7 @@ D3D11_Draw_Override (
                                 StartVertexLocation );
   }
 
-  if (SK_D3D11_DrawHandler (This, pTLS))
+  if (SK_D3D11_DrawHandler (This, pTLS, d_idx))
     return;
 
   if (! (This->GetType () == D3D11_DEVICE_CONTEXT_DEFERRED && (! config.render.dxgi.deferred_isolation)))
@@ -10968,7 +11020,8 @@ D3D11Dev_CreateSamplerState_Override
 {
   D3D11_SAMPLER_DESC new_desc = *pSamplerDesc;
 
-  if (SK_GetCurrentGameID () == SK_GAME_ID::Shenmue)
+  if (SK_GetCurrentGameID () == SK_GAME_ID::Shenmue ||
+      SK_GetCurrentGameID () == SK_GAME_ID::DragonQuestXI)
   {
     config.textures.d3d11.uncompressed_mips = true;
     config.textures.d3d11.cache_gen_mips    = true;
@@ -21180,7 +21233,8 @@ public:
     SK_LOG_FIRST_CALL
 
     static bool bIsShenmue = 
-      ( SK_GetCurrentGameID () == SK_GAME_ID::Shenmue );
+      ( SK_GetCurrentGameID () == SK_GAME_ID::Shenmue ||
+        SK_GetCurrentGameID () == SK_GAME_ID::DragonQuestXI );
 
     switch (SK_GetCurrentGameID ())
     {
@@ -21199,7 +21253,7 @@ public:
       }
 
       extern volatile LONG __SK_SHENMUE_FullAspectCutscenes;
-      if (bIsShenmue && ReadAcquire (&__SK_SHENMUE_FullAspectCutscenes))
+      if (bIsShenmue)// && ReadAcquire (&__SK_SHENMUE_FullAspectCutscenes))
       {
         if (IndexCount == 30 && (StartIndexLocation != 24))
         {

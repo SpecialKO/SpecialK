@@ -712,6 +712,7 @@ SK_RenderBackend_V2::releaseOwnedResources (void)
     ////swapchain           = SK_COM_ValidateRelease (&swapchain);
     ////device              = SK_COM_ValidateRelease (&device);
 
+    d3d11.deferred_ctx  = nullptr;
     d3d11.immediate_ctx = nullptr;
     swapchain           = nullptr;
     device              = nullptr;

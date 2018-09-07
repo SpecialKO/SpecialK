@@ -126,11 +126,17 @@ bool __SK_DQXI_10BitSwap = false;
 sk::ParameterBool* _SK_DQXI_16BitSwapChain;
 bool __SK_DQXI_16BitSwap = false;
 
-float __SK_DQXI_HDR_Luma = 172.0_Nits;
-float __SK_DQXI_HDR_Exp  = 2.116f;
+float __SK_DQXI_HDR_Luma = 300.0_Nits;
+float __SK_DQXI_HDR_Exp  = 1.0f;
 
 sk::ParameterInt* _SK_DQXI_ActiveHDRPreset;
 int __SK_DQXI_HDRPreset = 0;
+
+sk::ParameterBool* _SK_DQXI_IgnoreExitKeys;
+bool __SK_DQXI_IgnoreExit = true;
+
+sk::ParameterBool* _SK_DQXI_AliasArrowsAndWASD;
+bool __SK_DQXI_AliasArrowsAndWASD = true;
 
 #include <concurrent_vector.h>
 extern concurrency::concurrent_vector <d3d11_shader_tracking_s::cbuffer_override_s> __SK_D3D11_PixelShader_CBuffer_Overrides;
@@ -139,6 +145,7 @@ d3d11_shader_tracking_s::cbuffer_override_s* SK_DQXI_CB_Override;
 #include <SpecialK/plugin/plugin_mgr.h>
 
 #define SK_DQXI_HDR_SECTION     L"DragonQuestXI.HDR"
+#define SK_DQXI_MISC_SECTION    L"DragonQuestXI.Misc"
 
 #include <SpecialK/ini.h>
 #include <SpecialK/config.h>
@@ -243,10 +250,19 @@ struct SK_HDR_Preset_s {
     }
   }
 } static
-hdr_presets [4] = { { "HDR Preset 0", 0, 172.0_Nits, 2.116f, L"F1" },
-                    { "HDR Preset 1", 1, 172.0_Nits, 2.116f, L"F2" },
-                    { "HDR Preset 2", 2, 172.0_Nits, 2.116f, L"F3" },
-                    { "HDR Preset 3", 3, 172.0_Nits, 2.116f, L"F4" } };
+hdr_presets [4] = { { "HDR Preset 0", 0, 300.0_Nits, 1.0f, L"F1" },
+                    { "HDR Preset 1", 1, 300.0_Nits, 1.0f, L"F2" },
+                    { "HDR Preset 2", 2, 300.0_Nits, 1.0f, L"F3" },
+                    { "HDR Preset 3", 3, 300.0_Nits, 1.0f, L"F4" } };
+
+
+SK_ConfigSerializedKeybind
+  escape_keybind = {
+    SK_Keybind {
+      "Remap Escape Key", L"Backspace",
+        false, false, false, VK_BACK
+    }, L"RemapEscape"
+  };
 
 
 typedef void (CALLBACK *SK_PluginKeyPress_pfn)(BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode);
@@ -281,6 +297,114 @@ SK_DQXI_PluginKeyPress (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode)
     );
 }
 
+extern bool
+SK_ImGui_HandlesMessage (LPMSG lpMsg, bool, bool);
+
+typedef bool (*SK_WindowMessageFilter_pfn)(LPMSG, bool, bool);
+               SK_WindowMessageFilter_pfn
+               SK_WindowMessageFilter = nullptr;
+
+#include <SpecialK/window.h>
+
+bool
+SK_DQXI_WindowMessageFilter (LPMSG lpMsg, bool bReserved0, bool bReserved1)
+{
+  switch (lpMsg->message)
+  {
+    case WM_KEYDOWN:
+    case WM_KEYUP:
+    case WM_SYSKEYDOWN:
+    case WM_SYSKEYUP:
+    {
+      bool key_release = ( lpMsg->message == WM_KEYUP ||
+                           lpMsg->message == WM_SYSKEYUP );
+
+      if (__SK_DQXI_AliasArrowsAndWASD)
+      {
+        BYTE vKey        = 0;
+
+        switch (lpMsg->wParam)
+        {
+          case 'W':
+            vKey = VK_UP;
+            break;
+          case 'A':
+            vKey = VK_LEFT;
+            break;
+          case 'S':
+            vKey = VK_DOWN;
+            break;
+          case 'D':
+            vKey = VK_RIGHT;
+            break;
+
+          case VK_UP:
+            vKey = 'W';
+            break;
+          case VK_LEFT:
+            vKey = 'A';
+            break;
+          case VK_DOWN:
+            vKey = 'S';
+            break;
+          case VK_RIGHT:
+            vKey = 'D';
+            break;
+        }
+
+        if (vKey != 0)
+        {
+          if (! key_release)
+          {
+            game_window.WndProc_Original (lpMsg->hwnd, WM_KEYDOWN, vKey, lpMsg->lParam);
+          //keybd_event_Original (vKey, 0, 0x0,             0);
+          }
+
+          else
+          {
+            game_window.WndProc_Original (lpMsg->hwnd, WM_KEYUP, vKey, lpMsg->lParam);
+          //keybd_event_Original (vKey, 0, KEYEVENTF_KEYUP, 0);
+          }
+        }
+      }
+
+      if (__SK_DQXI_IgnoreExit)
+      {
+        if ( lpMsg->wParam == VK_ESCAPE ||
+             lpMsg->wParam == VK_F4        )
+        {
+          if (lpMsg->wParam == VK_ESCAPE)
+          {
+            SK_WindowMessageFilter (lpMsg, bReserved0, bReserved1);
+
+            if (! key_release)
+            {
+              keybd_event_Original ((BYTE)escape_keybind.vKey, 0, 0x0,             0);
+            }
+
+            else
+            {
+              keybd_event_Original ((BYTE)escape_keybind.vKey, 0, KEYEVENTF_KEYUP, 0);
+            }
+
+            return true;
+          }
+
+          else
+          {
+            SK_WindowMessageFilter (lpMsg, bReserved0, bReserved1);
+
+            return true;
+          }
+        }
+      }
+    }
+  }
+
+  return
+    SK_WindowMessageFilter (lpMsg, bReserved0, bReserved1);
+}
+
 void
 SK_DQXI_PlugInInit (void)
 {
@@ -292,7 +416,29 @@ SK_DQXI_PlugInInit (void)
                              SK_PluginKeyPress,
                         SK_DQXI_PluginKeyPress,
     static_cast_p2p <void> (&SK_PluginKeyPress_Original) );
-  SK_EnableHook        (     SK_PluginKeyPress           );
+  MH_QueueEnableHook   (     SK_PluginKeyPress           );
+
+    SK_CreateFuncHook (      L"SK_ImGui_HandlesMessage",
+                               SK_ImGui_HandlesMessage,
+                                 SK_DQXI_WindowMessageFilter,
+             static_cast_p2p <void> (&SK_WindowMessageFilter) );
+  MH_QueueEnableHook   (        SK_ImGui_HandlesMessage       );
+  SK_ApplyQueuedHooks  ();
+
+  escape_keybind.param =
+    DeclKeybind (&escape_keybind, SK_GetDLLConfig (), SK_DQXI_MISC_SECTION);
+
+  if (! escape_keybind.param->load (escape_keybind.human_readable))
+  {
+    escape_keybind.human_readable = L"Backspace";
+  }
+
+  escape_keybind.parse ();
+  escape_keybind.param->store (escape_keybind.human_readable);
+
+  SK_GetDLLConfig   ()->write (
+    SK_GetDLLConfig ()->get_filename ()
+  );
 
   config.render.framerate.enable_mmcss = false;
 
@@ -309,6 +455,16 @@ SK_DQXI_PlugInInit (void)
     _CreateConfigParameterInt ( SK_DQXI_HDR_SECTION,
                                 L"Preset",           __SK_DQXI_HDRPreset,
                                 L"Light Adaptation Preset" );
+
+  _SK_DQXI_IgnoreExitKeys =
+    _CreateConfigParameterBool ( SK_DQXI_MISC_SECTION,
+                                L"DisableExitKeys",  __SK_DQXI_IgnoreExit,
+                                L"Prevent Exit Confirmations" );
+
+  _SK_DQXI_AliasArrowsAndWASD =
+    _CreateConfigParameterBool ( SK_DQXI_MISC_SECTION,
+                                L"AliasArrowsAndWASD", __SK_DQXI_AliasArrowsAndWASD,
+                                L"Allow Arrow Keys and WASD to serve the same function" );
 
   if ( __SK_DQXI_HDRPreset < 0 ||
        __SK_DQXI_HDRPreset >= MAX_HDR_PRESETS )
@@ -368,6 +524,19 @@ SK_DQXI_PlugInCfg (void)
      )
   {
     ImGui::TreePush ("");
+
+                                 extern bool SK_Shenmue_UseNtDllQPC;
+    ImGui::Checkbox ("Use user-mode timer", &SK_Shenmue_UseNtDllQPC);
+
+    if (ImGui::IsItemHovered ())
+    {
+      ImGui::BeginTooltip    ();
+      ImGui::TextUnformatted ("Optimization strategy for Shenmue I & II");
+      ImGui::Separator       ();
+      ImGui::BulletText      ("The option is included in this game because the feature needs more rigorous testing.");
+      ImGui::BulletText      ("I do not expect any performance gains/losses but possibly weird timing glitches.");
+      ImGui::EndTooltip      ();
+    }
 
     if (config.steam.screenshots.enable_hook)
     {
@@ -441,6 +610,47 @@ SK_DQXI_PlugInCfg (void)
         ImGui::EndGroup ();
       }
       ImGui::PopID      ();
+    }
+
+        if (ImGui::CollapsingHeader ("Input Processing", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+      ImGui::TreePush ("");
+
+      if (ImGui::Checkbox ("Remap Escape Key", &__SK_DQXI_IgnoreExit))
+      {
+        _SK_DQXI_IgnoreExitKeys->store (__SK_DQXI_IgnoreExit);
+      }
+
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::BeginTooltip ();
+        ImGui::Text         ("Disables the windows dialog asking you to exit");
+        ImGui::Separator    ();
+        ImGui::BulletText   ("You can still fast-exit using Alt+F4");
+        ImGui::BulletText   ("Special K's Alt+F4 confirmation is presented in-game!");
+        ImGui::EndTooltip   ();
+      }
+
+      if (__SK_DQXI_IgnoreExit)
+      {
+        ImGui::SameLine (); ImGui::Spacing ();
+        ImGui::SameLine (); ImGui::Spacing ();
+        ImGui::SameLine (); ImGui::Spacing ();
+        ImGui::SameLine (); 
+        ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (0.66f, 0.66f, 0.66f, 1.f));
+        ImGui::TextUnformatted("Remapped Key: ");
+        ImGui::PopStyleColor  ();
+        ImGui::SameLine       (); 
+        Keybinding ( &escape_keybind,
+                    (&escape_keybind)->param );
+      }
+
+      if (ImGui::Checkbox ("Alias WASD and Arrow Keys", &__SK_DQXI_AliasArrowsAndWASD))
+      {
+        _SK_DQXI_AliasArrowsAndWASD->store (__SK_DQXI_AliasArrowsAndWASD);
+      }
+
+      ImGui::TreePop ();
     }
 
     bool bRetro =
@@ -661,7 +871,7 @@ SK_DQXI_PlugInCfg (void)
 
                 ImGui::SameLine ();
 
-                if (ImGui::SliderFloat ("SDR -> HDR Gamma", &__SK_DQXI_HDR_Exp, 1.6f, 2.9f))
+                if (ImGui::SliderFloat ("SDR -> HDR Gamma", &__SK_DQXI_HDR_Exp, 1.0f, 2.4f))
                 {
                   auto& preset =
                     hdr_presets [__SK_DQXI_HDRPreset];

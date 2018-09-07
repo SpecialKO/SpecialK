@@ -4,8 +4,8 @@
 #define SK_MAJOR 0
 #define SK_MINOR 9
 #define SK_BUILD 25
-#define SK_REV_N 0
-#define SK_REV   0
+#define SK_REV_N 2
+#define SK_REV   2
 
 
 

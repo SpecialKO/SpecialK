@@ -1752,11 +1752,15 @@ auto DeclKeybind =
         break;
 
       case SK_GAME_ID::DragonQuestXI:
-        config.apis.d3d9.hook       = false;
-        config.apis.d3d9ex.hook     = false;
-        config.apis.OpenGL.hook     = false;
-        config.apis.Vulkan.hook     = false;
-        config.apis.dxgi.d3d12.hook = false;
+        config.apis.d3d9.hook                     = false;
+        config.apis.d3d9ex.hook                   = false;
+        config.apis.OpenGL.hook                   = false;
+        config.apis.Vulkan.hook                   = false;
+        config.apis.dxgi.d3d12.hook               = false;
+        config.render.framerate.min_input_latency = false;
+        config.render.framerate.enable_mmcss      = true;
+        config.render.framerate.busy_wait_limiter = false;
+        config.render.framerate.yield_once        = true;
         break;
 
       case SK_GAME_ID::Shenmue:

@@ -253,4 +253,41 @@ SK_MMCS_TaskEntry*
 SK_MMCS_GetTaskForThreadID (DWORD dwTid, const char* name);
 
 
+#include <winnt.h>
+
+static
+__forceinline
+DWORD
+SK_GetCurrentThreadId (void)
+{
+  return ((DWORD *)NtCurrentTeb ()) [
+#ifdef _WIN64
+    18
+#else
+     9
+#endif
+  ];
+}
+
+class          SK_TLS;
+extern DWORD __SK_TLS_INDEX;
+
+static
+__forceinline
+SK_TLS*
+SK_FAST_GetTLS (void)
+{
+  if (__SK_TLS_INDEX == TLS_OUT_OF_INDEXES)
+    return nullptr;
+
+  return *(SK_TLS **)((uintptr_t *)NtCurrentTeb ()) [
+#ifdef _WIN64
+    0x290 + __SK_TLS_INDEX
+#else
+    0x384 + __SK_TLS_INDEX
+#endif
+  ];
+}
+
+
 #endif /* __SK__THREAD_H__ */

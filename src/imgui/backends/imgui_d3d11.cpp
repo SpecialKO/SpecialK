@@ -48,6 +48,7 @@ static ID3D11ShaderResourceView*g_pFontTextureView      = nullptr;
 static ID3D11ShaderResourceView*g_pHDRCompositeView     = nullptr;
 static ID3D11RasterizerState*   g_pRasterizerState      = nullptr;
 static ID3D11BlendState*        g_pBlendState           = nullptr;
+static ID3D11BlendState*        g_pHDRUIBlendState      = nullptr;
 static ID3D11DepthStencilState* g_pDepthStencilState    = nullptr;
 
 static UINT                     g_frameBufferWidth      = 0UL;
@@ -322,7 +323,7 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
       {
         case SK_GAME_ID::MonsterHunterWorld:
           luma = __SK_MHW_HDR_Luma;
-          exp  = __SK_MHW_HDR_Exp;
+          exp  = __SK_MHW_HDR_Exp-1.0f;
           break;
 
         case SK_GAME_ID::DragonQuestXI:
@@ -439,7 +440,7 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
 
   // Setup render state
   const float blend_factor [4] = { 0.f, 0.f,
-                                   0.f, 0.f };
+                                   0.f, 1.f };
 
   if ( (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR) && g_pHDRCompositeView != nullptr )
   {
@@ -449,11 +450,11 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
     pSwapChain->GetBuffer            (0, IID_ID3D11Texture2D, (void **)&pSrc.p);
 
     pDevCtx->CopyResource           (pDst, pSrc);
-  //pDevCtx->OMSetBlendState        (nullptr,     blend_factor, 0xffffffff);
+    pDevCtx->OMSetBlendState        (g_pHDRUIBlendState, blend_factor, 0xffffffff);
     pDevCtx->PSSetShaderResources   (1, 1, &g_pHDRCompositeView);
   }
+  else
   pDevCtx->OMSetBlendState        (g_pBlendState, blend_factor, 0xffffffff);
-
   pDevCtx->OMSetDepthStencilState (g_pDepthStencilState,        0);
   pDevCtx->RSSetState             (g_pRasterizerState);
 
@@ -946,6 +947,67 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
                                                                        \
       Texture2D texture0    : register (t0);                           \
       Texture2D hdrUnderlay : register (t1);                           \
+\
+float3 ApplyREC2084Curve(float3 L, float maxLuminance)\
+{\
+	float m1 = 2610.0 / 4096.0 / 4;\
+	float m2 = 2523.0 / 4096.0 * 128;\
+	float c1 = 3424.0 / 4096.0;\
+	float c2 = 2413.0 / 4096.0 * 32;\
+	float c3 = 2392.0 / 4096.0 * 32;\
+  \
+	/* L = FD / 10000, so if FD == 10000, then L = 1.*/\
+	/* so to scale max luminance, we want to multiply by maxLuminance / 10000*/\
+  \
+	float maxLightScale = maxLuminance / 10000.0f;\
+	L *= maxLightScale;\
+  \
+	float3 Lp = pow(L, m1);\
+  \
+	return pow((c1 + c2 * Lp) / (1 + c3 * Lp), m2);\
+}\
+\
+float3 REC709toREC2020(float3 RGB709)\
+{\
+	static const float3x3 ConvMat =\
+	{\
+		0.627402, 0.329292, 0.043306,\
+		0.069095, 0.919544, 0.011360,\
+		0.016394, 0.088028, 0.895578\
+	};\
+\
+	return mul(ConvMat, RGB709);\
+}\
+\
+float3 ApplyREC709Curve(float3 x)\
+{\
+	return x < 0.0181 ? 4.5 * x : 1.0993 * pow(x, 0.45) - 0.0993;\
+}\
+\
+float3 ApplySRGBCurve(float3 x)\
+{\
+	/* Approximately pow(x, 1.0 / 2.2) */\
+	return x < 0.0031308 ? 12.92 * x : 1.055 * pow(x, 1.0 / 2.4) - 0.055;\
+}\
+\
+float ApplySRGBCurve(float x)\
+{\
+	/* Approximately pow(x, 1.0 / 2.2)*/\
+	return x < 0.0031308 ? 12.92 * x : 1.055 * pow(x, 1.0 / 2.4) - 0.055;\
+}\
+\
+float3 RemoveSRGBCurve(float3 x)\
+{\
+	/* Approximately pow(x, 2.2)*/\
+	return x < 0.04045 ? x / 12.92 : pow((x + 0.055) / 1.055, 2.4);\
+}\
+\
+static const float tenThousand = 10000.0f;\
+\
+float Luminance(float3 linearColor)\
+{\
+	return 0.2126 * linearColor.r + 0.7152 * linearColor.g + 0.0722 * linearColor.b;\
+}\
                                                                        \
       float4 main (PS_INPUT input) : SV_Target                         \
       {                                                                \
@@ -957,12 +1019,18 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
           float4 under_color =                                         \
             hdrUnderlay.Sample (sampler0, input.pos.xy / viewport.zw); \
                                                                        \
+          float blend_alpha =                                          \
+            saturate (input.col.a * out_col.a);                        \
+                                                                       \
           if (input.uv2.x > 0.0f && input.uv2.y > 0.0f)                \
           {                                                            \
+            out_col.rgb = RemoveSRGBCurve   (out_col.rgb);             \
             out_col =                                                  \
               pow (abs (out_col), float4 (input.uv2.yyy, 1.0f)) *      \
                 input.uv2.xxxx;                                        \
-            out_col.a = 1.0f;                                          \
+            /*out_col.rgb = ApplyREC2084Curve (out_col.rgb, input.uv2.x);*/\
+            out_col.a   = 1.0f;                                        \
+            blend_alpha = 1.0f;                                        \
           }                                                            \
                                                                        \
           else                                                         \
@@ -974,9 +1042,9 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
           }                                                            \
                                                                        \
           return                                                       \
-            float4 ( out_col.rgb  +                                    \
-                       under_color.rgb * (1.f - out_col.a),            \
-                         out_col.a );                                  \
+            float4 (  ( (input.col.rgb * out_col.rgb)) -               \
+               (1.0f - blend_alpha) * float4 (under_color.rgb, 1.0f),  \
+                       blend_alpha);                                   \
         }                                                              \
                                                                        \
         return                                                         \
@@ -1036,6 +1104,13 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
     sampler   PS_QUAD_Sampler   : register (s0);                 \
     Texture2D PS_QUAD_Texture2D : register (t0);                 \
                                                                  \
+    float3 RemoveSRGBCurve(float3 x)                             \
+    {                                                            \
+    	/* Approximately pow(x, 2.2)*/                             \
+    	return x < 0.04045 ? x / 12.92 :                           \
+                      pow((x + 0.055) / 1.055, 2.4);             \
+    }                                                            \
+                                                                 \
     float4 main (PS_INPUT input) : SV_Target                     \
     {                                                            \
       float4 gamma_exp  = float4 (input.uv2.yyy, 1.f);           \
@@ -1045,7 +1120,7 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
         PS_QUAD_Texture2D.Sample (PS_QUAD_Sampler, input.uv);    \
                                                                  \
       out_col =                                                  \
-        pow (abs (input.col * out_col), gamma_exp) * linear_mul; \
+        float4 (RemoveSRGBCurve (input.col.rgb * out_col.rgb), input.col.a * out_col.a) * linear_mul; \
                                                                  \
       return                                                     \
         float4 (out_col.rgb, saturate (out_col.a));              \
@@ -1098,6 +1173,10 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
     desc.RenderTarget [0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 
     pDev->CreateBlendState (&desc, &g_pBlendState);
+
+    desc.RenderTarget [0].BlendEnable           =  true;
+
+    pDev->CreateBlendState (&desc, &g_pHDRUIBlendState);
   }
 
   // Create the rasterizer state
@@ -1204,6 +1283,7 @@ ImGui_ImplDX11_InvalidateDeviceObjects (void)
   if (g_pVB)                   { g_pVB->Release                ();              g_pVB   = nullptr; }
 
   if (g_pBlendState)           { g_pBlendState->Release           ();           g_pBlendState = nullptr; }
+  if (g_pHDRUIBlendState)      { g_pHDRUIBlendState->Release      ();      g_pHDRUIBlendState = nullptr; }
   if (g_pDepthStencilState)    { g_pDepthStencilState->Release    ();    g_pDepthStencilState = nullptr; }
   if (g_pRasterizerState)      { g_pRasterizerState->Release      ();      g_pRasterizerState = nullptr; }
   if (g_pPixelShader)          { g_pPixelShader->Release          ();          g_pPixelShader = nullptr; }

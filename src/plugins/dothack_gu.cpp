@@ -541,12 +541,12 @@ SK_DGPU_PresentFirstFrame (IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT F
 
 #include <SpecialK/tls.h>
 
- extern bool   SK_D3D11_DrawHandler     (ID3D11DeviceContext* pDevCtx, SK_TLS* pTLS);
-typedef bool (*SK_D3D11_DrawHandler_pfn)(ID3D11DeviceContext* pDevCtx, SK_TLS* pTLS);
+ extern bool   SK_D3D11_DrawHandler     (ID3D11DeviceContext* pDevCtx, SK_TLS* pTLS, INT);
+typedef bool (*SK_D3D11_DrawHandler_pfn)(ID3D11DeviceContext* pDevCtx, SK_TLS* pTLS, INT);
                SK_D3D11_DrawHandler_pfn SK_D3D11_DrawHandler_Original = nullptr;
 
 bool
-SK_DGPU_DrawHandler (ID3D11DeviceContext* pDevCtx, SK_TLS* pTLS)
+SK_DGPU_DrawHandler (ID3D11DeviceContext* pDevCtx, SK_TLS* pTLS, INT d_idx)
 {
   if ( SK_DGPU_ScreenFlare_Local.override || 
        SK_DGPU_ScreenFlare_Global.override )
@@ -565,7 +565,7 @@ SK_DGPU_DrawHandler (ID3D11DeviceContext* pDevCtx, SK_TLS* pTLS)
   }
 
 
-  return SK_D3D11_DrawHandler_Original (pDevCtx, pTLS);
+  return SK_D3D11_DrawHandler_Original (pDevCtx, pTLS, d_idx);
 }
 
 

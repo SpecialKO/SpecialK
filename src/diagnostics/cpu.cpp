@@ -277,3 +277,56 @@ SK_CPU_GetLogicalCorePairs (void)
 
   return logical_proc_siblings;
 }
+
+auto CountSetBits = [](ULONG_PTR bitMask) -> DWORD
+{
+  DWORD     LSHIFT      = sizeof (ULONG_PTR) * 8 - 1;
+  DWORD     bitSetCount = 0;
+  ULONG_PTR bitTest = (ULONG_PTR)1 << LSHIFT;    
+  DWORD     i;
+
+  for (i = 0; i <= LSHIFT; ++i)
+  {
+    bitSetCount += ((bitMask & bitTest) ? 1 : 0);
+    bitTest /= 2;
+  }
+
+  return bitSetCount;
+};
+
+
+size_t
+SK_CPU_CountLogicalCores (void)
+{
+  static size_t
+    logical_cores = 0;
+  static BOOL
+    has_logical_processors = 2;
+
+  if (has_logical_processors == 2)
+  {
+    auto& pairs =
+      SK_CPU_GetLogicalCorePairs ();
+
+    for ( auto& it : pairs )
+    {
+      int cores_in_set =
+        CountSetBits (it);
+
+      if (cores_in_set > 1)
+      {
+        has_logical_processors = TRUE;
+        logical_cores += cores_in_set;
+      }
+    }
+
+    if (has_logical_processors == 2)
+    {
+      logical_cores          = 0;
+      has_logical_processors = FALSE;
+    }
+  }
+
+  if (has_logical_processors) return logical_cores;
+  else                        return 0;
+}

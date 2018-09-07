@@ -350,9 +350,23 @@ SK_MHW_PlugInCfg (void)
 
       int rule = __SK_MHW_JobParityPhysical ? 1 : 0;
 
-      bool changed =
-        ImGui::RadioButton ("Logical Cores", &rule, 0);
-      ImGui::SameLine ();
+      bool changed = false;
+
+      extern size_t
+      SK_CPU_CountLogicalCores (void);
+
+      static bool has_logical_processors =
+        SK_CPU_CountLogicalCores () > 0;
+
+      if (has_logical_processors)
+      {
+        changed |=
+          ImGui::RadioButton ("Logical Cores", &rule, 0);
+        ImGui::SameLine ();
+      }
+      else
+        rule = 1;
+
       changed |=
         ImGui::RadioButton ("Physical Cores", &rule, 1);
 
@@ -364,8 +378,8 @@ SK_MHW_PlugInCfg (void)
       }
     }
 
-    if (parity_orig != __SK_MHW_JobParity ||
-        rule_orig != __SK_MHW_JobParityPhysical)
+    if ( parity_orig != __SK_MHW_JobParity ||
+         rule_orig   != __SK_MHW_JobParityPhysical )
     {
       ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.3f, .8f, .9f));
       ImGui::BulletText ("Game Restart Required");

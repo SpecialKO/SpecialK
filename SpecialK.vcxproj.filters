@@ -199,9 +199,6 @@
     <Filter Include="Source Files\Backends\Input\RawInput">
       <UniqueIdentifier>{7255c8a8-67ce-4ca2-b845-fa7a2139307d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Backends\Input\WinMM">
-      <UniqueIdentifier>{1a89460b-1056-41e2-8e1b-7ec8c75ae883}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Backends\Input\Steam">
       <UniqueIdentifier>{7ccfea9f-6e79-4034-a8ff-03925a9c532f}</UniqueIdentifier>
     </Filter>
@@ -213,6 +210,9 @@
     </Filter>
     <Filter Include="Header Files\Diagnostics">
       <UniqueIdentifier>{05b0d4e1-1c73-4c73-b5b0-c2ab8082c6e9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Backends\Input\XInput\WinMM">
+      <UniqueIdentifier>{1a89460b-1056-41e2-8e1b-7ec8c75ae883}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

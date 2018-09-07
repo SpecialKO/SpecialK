@@ -166,6 +166,38 @@ SK_TLS_LogLeak ( const wchar_t* wszFunc,
 SK_TLS*
 SK_TLS_Bottom (void)
 {
+  const int RESOLVE_MAX = 32;
+
+  static std::pair <DWORD, SK_TLS*> last_resolve [RESOLVE_MAX];
+  static volatile LONG              resolve_idx = 0;
+
+  auto early_out =
+    last_resolve [ReadAcquire (&resolve_idx)];
+
+  const DWORD
+    dwTid = SK_GetCurrentThreadId ();
+
+  assert (dwTid == GetCurrentThreadId ());
+
+  if (early_out.first == dwTid)
+  {
+    return early_out.second;
+  }
+
+
+  auto _CacheResolution =
+    [&](LONG idx, SK_TLS* pTLS) ->
+    void
+    {
+      early_out =
+        std::make_pair (pTLS->debug.tid, pTLS);
+
+      std::swap (last_resolve [idx], early_out);
+
+      InterlockedExchange (&resolve_idx, idx);
+    };
+
+
   InterlockedIncrement (&_SK_IgnoreTLSAlloc);
 
   SK_TLS *pTLS;
@@ -204,6 +236,14 @@ SK_TLS_Bottom (void)
   InterlockedDecrement (&_SK_IgnoreTLSAlloc);
 
   //SK_ReleaseAssert (pTLS != nullptr)
+
+  LONG idx =
+    ReadAcquire (&resolve_idx) + 1;
+
+  if (idx >= RESOLVE_MAX)
+    idx = 0;
+
+  _CacheResolution (idx, pTLS);
 
   return
     pTLS;

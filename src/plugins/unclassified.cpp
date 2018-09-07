@@ -553,7 +553,7 @@ SK_POE2_PlugInCfg (void)
 }
 
 volatile LONG __SK_SHENMUE_FinishedButNotPresented = 0;
-volatile LONG __SK_SHENMUE_FullAspectCutscenes     = 0;
+volatile LONG __SK_SHENMUE_FullAspectCutscenes     = 1;
          bool  bSK_SHENMUE_FullAspectCutscenes     = true;
 
 
@@ -564,6 +564,8 @@ sk::ParameterStringW* _SK_SM_FullAspectToggle;
 
 sk::ParameterFloat*   _SK_SM_ClockFuzz;
 sk::ParameterBool*    _SK_SM_BypassLimiter;
+
+bool SK_Shenmue_UseNtDllQPC = false;
 
 extern volatile
 LONG SK_D3D11_DrawTrackingReqs;
@@ -867,6 +869,12 @@ SK_SM_PlugInCfg (void)
         {
           ImGui::SetTooltip ( "Limiter Branch Addr. location %ph",
                                 SK_Shenmue_Limiter.branch_addr );
+        }
+
+        if (bypass)
+        {
+          ImGui::SameLine ();
+          ImGui::Checkbox ("Use user-mode timer", &SK_Shenmue_UseNtDllQPC);
         }
 
         if (want_change)

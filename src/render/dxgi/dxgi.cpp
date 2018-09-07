@@ -1395,6 +1395,11 @@ SK_DXGI_UpdateSwapChain (IDXGISwapChain* This)
 
     pDev->GetImmediateContext ((ID3D11DeviceContext **)&pDevCtx);
     rb.d3d11.immediate_ctx = pDevCtx;
+
+    //if (rb.d3d11.deferred_ctx != nullptr)
+    //    rb.d3d11.deferred_ctx.Release ();
+    //
+    //pDev->CreateDeferredContext (0x0, &rb.d3d11.deferred_ctx);
   }
 }
 

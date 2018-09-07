@@ -2064,6 +2064,9 @@ BACKEND_INIT:
 
       case SK_GAME_ID::DragonQuestXI:
         extern void
+          SK_SM_PlugInInit (void);
+          SK_SM_PlugInInit (    );
+        extern void
           SK_DQXI_PlugInInit (void);
           SK_DQXI_PlugInInit (    );
         break;
