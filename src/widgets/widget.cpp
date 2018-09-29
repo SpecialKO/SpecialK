@@ -676,21 +676,41 @@ static auto widgets =
     SK_ImGui_Widgets.hdr_control
   };
 
+extern
+BOOL
+CALLBACK
+SK_HDR_KeyPress ( BOOL Control,
+                  BOOL Shift,
+                  BOOL Alt,
+                  BYTE vkCode );
+
 BOOL
 SK_ImGui_WidgetRegistry::DispatchKeybinds (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode)
 {
+  BOOL dispatched = FALSE;
+
   auto uiMaskedKeyCode =
     SK_MakeKeyMask (vkCode, Control, Shift, Alt);
 
   for (auto widget : widgets)
   {
-    if (widget && uiMaskedKeyCode == widget->getToggleKey ().masked_code)
+    if (                    widget &&
+         uiMaskedKeyCode == widget->getToggleKey ().masked_code
+       )
     {
       widget->setVisible (! widget->isVisible ());
 
-      return TRUE;
+      dispatched = TRUE;
     }
   }
+
+  if ( SK_HDR_KeyPress ( Control, Shift,
+                         Alt,     vkCode )
+     )
+  {
+    dispatched = TRUE;
+  }
+
 
   //
   // TEMP HACK: Screenshots
@@ -701,11 +721,23 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds (BOOL Control, BOOL Shift, BOOL Alt, B
     &config.steam.screenshots.sk_osd_insertion_keybind
   };
 
+  if ( uiMaskedKeyCode ==
+         SK_MakeKeyMask ( 'H', false, true,
+                                      true )
+     )
+  {
+    extern LONG SK_D3D11_ToggleGameHUD (void);
+                SK_D3D11_ToggleGameHUD (    );
+
+    dispatched = TRUE;
+  }
+
+
   for ( auto& keybind : screenshot_keys )
   {
     if ( uiMaskedKeyCode == keybind->masked_code )
     {
-      if      ( keybind == &config.steam.screenshots.game_hud_free_keybind    )
+      if       ( keybind == &config.steam.screenshots.game_hud_free_keybind    )
       {
         if (SK_GetCurrentGameID () == SK_GAME_ID::Yakuza0)
         {
@@ -724,11 +756,12 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds (BOOL Control, BOOL Shift, BOOL Alt, B
       else if ( keybind == &config.steam.screenshots.sk_osd_insertion_keybind )
         SK::SteamAPI::TakeScreenshot (SK::ScreenshotStage::EndOfFrame);
 
-      return TRUE;
+      dispatched = TRUE;
     }
   }
 
-  return FALSE;
+  return
+    dispatched;
 }
 
 BOOL

@@ -223,6 +223,7 @@ public:
   bool             lock   (void) { if (! lockless) { EnterCriticalSection (&log_mutex); return true; } return false; }
   bool             unlock (void) { if (! lockless) { LeaveCriticalSection (&log_mutex); return true; } return false; }
   bool             lockless    = true;
+  volatile LONG    relocated   = FALSE;
 };
 
 extern iSK_Logger dll_log;

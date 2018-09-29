@@ -72,6 +72,25 @@
 #include <SpecialK/plugin/plugin_mgr.h>
 
 #include <imgui/backends/imgui_d3d11.h>
+#include <imgui/backends/imgui_d3d12.h>
+
+
+typedef
+HRESULT (WINAPI *D3D11On12CreateDevice_pfn)(_In_ IUnknown*             pDevice,
+                                                 UINT                  Flags,
+           _In_reads_opt_( FeatureLevels ) CONST D3D_FEATURE_LEVEL*    pFeatureLevels,
+                                                 UINT                  FeatureLevels,
+                     _In_reads_opt_( NumQueues ) IUnknown* CONST*      ppCommandQueues,
+                                                 UINT                  NumQueues,
+                                                 UINT                  NodeMask,
+                                _COM_Outptr_opt_ ID3D11Device**        ppDevice,
+                                _COM_Outptr_opt_ ID3D11DeviceContext** ppImmediateContext,
+                                _Out_opt_        D3D_FEATURE_LEVEL*    pChosenFeatureLevel );
+
+D3D11On12CreateDevice_pfn
+D3D11On12CreateDevice = nullptr;
+
+
 
 
 CreateSwapChain_pfn               CreateSwapChain_Original               = nullptr;
@@ -233,12 +252,1020 @@ ImGui_DX11Shutdown ( void )
   ImGui_ImplDX11_Shutdown ();
 }
 
+void
+ImGui_DX12Shutdown ( void )
+{
+  ImGui_ImplDX12_Shutdown ();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+struct FrameContext
+{
+    ID3D12CommandAllocator* CommandAllocator;
+    UINT64                  FenceValue;
+};
+
+// Data
+static int const                    NUM_FRAMES_IN_FLIGHT = 3;
+static FrameContext                 g_frameContext[NUM_FRAMES_IN_FLIGHT] = {};
+static UINT                         g_frameIndex = 0;
+static int const                    NUM_BACK_BUFFERS = 3;
+static ID3D12Device*                g_pd3dDevice = NULL;
+static ID3D12DescriptorHeap*        g_pd3dRtvDescHeap = NULL;
+static ID3D12DescriptorHeap*        g_pd3dSrvDescHeap = NULL;
+static ID3D12CommandQueue*          g_pd3dCommandQueue = NULL;
+static ID3D12GraphicsCommandList*   g_pd3dCommandList = NULL;
+static ID3D12Fence*                 g_fence = NULL;
+static HANDLE                       g_fenceEvent = NULL;
+static UINT64                       g_fenceLastSignaledValue = 0;
+static IDXGISwapChain3*             g_pSwapChain = NULL;
+static HANDLE                       g_hSwapChainWaitableObject = NULL;
+static ID3D12Resource*              g_mainRenderTargetResource[NUM_BACK_BUFFERS] = {};
+static D3D12_CPU_DESCRIPTOR_HANDLE  g_mainRenderTargetDescriptor[NUM_BACK_BUFFERS] = {};
+
+
+void CreateRenderTarget()
+{
+    ID3D12Resource* pBackBuffer;
+
+    for (UINT i = 0; i < NUM_BACK_BUFFERS; i++)
+    {
+        g_pSwapChain->GetBuffer              (i, IID_PPV_ARGS(&pBackBuffer));
+        g_pd3dDevice->CreateRenderTargetView (pBackBuffer, NULL, g_mainRenderTargetDescriptor[i]);
+
+        g_mainRenderTargetResource [i] =
+          pBackBuffer;
+    }
+}
+
+void WaitForLastSubmittedFrame()
+{
+    FrameContext* frameCtxt = &g_frameContext[g_frameIndex % NUM_FRAMES_IN_FLIGHT];
+
+    UINT64 fenceValue = frameCtxt->FenceValue;
+
+    if (fenceValue == 0)
+        return; // No fence was signaled
+
+    frameCtxt->FenceValue = 0;
+
+    if (g_fence->GetCompletedValue() >= fenceValue)
+        return;
+
+    g_fence->SetEventOnCompletion(fenceValue, g_fenceEvent);
+    WaitForSingleObject(g_fenceEvent, INFINITE);
+}
+
+
+
+FrameContext* WaitForNextFrameResources()
+{
+    UINT nextFrameIndex = g_frameIndex + 1;
+
+    g_frameIndex = nextFrameIndex;
+
+    HANDLE waitableObjects[] = { g_hSwapChainWaitableObject, NULL };
+    DWORD numWaitableObjects = 1;
+
+    FrameContext* frameCtxt = &g_frameContext[nextFrameIndex % NUM_FRAMES_IN_FLIGHT];
+    UINT64 fenceValue = frameCtxt->FenceValue;
+
+    if (fenceValue != 0) // means no fence was signaled
+    {
+        frameCtxt->FenceValue = 0;
+        g_fence->SetEventOnCompletion(fenceValue, g_fenceEvent);
+        waitableObjects[1] = g_fenceEvent;
+
+        numWaitableObjects = 2;
+    }
+
+    WaitForMultipleObjects(numWaitableObjects, waitableObjects, TRUE, INFINITE);
+
+    return frameCtxt;
+}
+
+
+
+void ResizeSwapChain(HWND hWnd, int width, int height)
+{
+    DXGI_SWAP_CHAIN_DESC1 sd;
+
+    g_pSwapChain->GetDesc1(&sd);
+    sd.Width  = width;
+    sd.Height = height;
+
+    IDXGIFactory4* dxgiFactory = NULL;
+    g_pSwapChain->GetParent(IID_PPV_ARGS(&dxgiFactory));
+    g_pSwapChain->Release();
+
+    CloseHandle(g_hSwapChainWaitableObject);
+
+    IDXGISwapChain1* swapChain1 = NULL;
+    dxgiFactory->CreateSwapChainForHwnd(g_pd3dCommandQueue, hWnd, &sd, NULL, NULL, &swapChain1);
+
+    swapChain1->QueryInterface(IID_PPV_ARGS(&g_pSwapChain));
+    swapChain1->Release();
+
+    dxgiFactory->Release();
+    
+    g_pSwapChain->SetMaximumFrameLatency(NUM_BACK_BUFFERS);
+    
+    g_hSwapChainWaitableObject = g_pSwapChain->GetFrameLatencyWaitableObject();
+
+    assert(g_hSwapChainWaitableObject != NULL);
+}
+
+
+
+void CleanupRenderTarget (void)
+{
+  WaitForLastSubmittedFrame();
+
+  for (UINT i = 0; i < NUM_BACK_BUFFERS; i++)
+    if (g_mainRenderTargetResource [i])
+    {
+      g_mainRenderTargetResource [i]->Release ();
+      g_mainRenderTargetResource [i] = NULL; 
+    }
+}
+
+HRESULT
+CreateDeviceD3DEx ( ID3D12Device* pDev12, IDXGISwapChain* pSwapChain )
+{
+  g_pd3dDevice =                    pDev12;
+  g_pSwapChain = (IDXGISwapChain3 *)pSwapChain;
+
+  D3D12_DESCRIPTOR_HEAP_DESC desc = {};
+  desc.Type           = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+  desc.NumDescriptors = NUM_BACK_BUFFERS;
+  desc.Flags          = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+  desc.NodeMask       = 1;
+
+  if (pDev12->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&g_pd3dRtvDescHeap)) != S_OK)
+      return E_FAIL;
+
+  SIZE_T rtvDescriptorSize =
+    pDev12->GetDescriptorHandleIncrementSize (D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+
+  D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle =
+    g_pd3dRtvDescHeap->GetCPUDescriptorHandleForHeapStart ();
+
+  for (UINT i = 0; i < NUM_BACK_BUFFERS; i++) 
+  {
+      g_mainRenderTargetDescriptor[i] = rtvHandle;
+
+      rtvHandle.ptr += rtvDescriptorSize;
+  }
+
+  {
+      D3D12_DESCRIPTOR_HEAP_DESC desc = {};
+  
+      desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+      desc.NumDescriptors = 1;
+      desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+  
+      if (pDev12->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&g_pd3dSrvDescHeap)) != S_OK)
+          return E_FAIL;
+  }
+  
+  {
+      D3D12_COMMAND_QUEUE_DESC desc = {};
+  
+      desc.Type     = D3D12_COMMAND_LIST_TYPE_DIRECT;
+      desc.Flags    = D3D12_COMMAND_QUEUE_FLAG_NONE;
+      desc.NodeMask = 1;
+  
+      if (pDev12->CreateCommandQueue(&desc, IID_PPV_ARGS(&g_pd3dCommandQueue)) != S_OK)
+          return E_FAIL;
+  }
+  
+  for (UINT i = 0; i < NUM_FRAMES_IN_FLIGHT; i++)
+  {
+    if (pDev12->CreateCommandAllocator (D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS (&g_frameContext [i].CommandAllocator)) != S_OK)
+      return E_FAIL;
+  }
+  
+  if (pDev12->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, g_frameContext[0].CommandAllocator, NULL, IID_PPV_ARGS(&g_pd3dCommandList)) != S_OK ||
+      g_pd3dCommandList->Close() != S_OK)
+  {
+      return E_FAIL;
+  }
+  
+  if (pDev12->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&g_fence)) != S_OK)
+      return E_FAIL;
+  
+  g_fenceEvent =
+    CreateEvent(NULL, FALSE, FALSE, NULL);
+  
+  if (g_fenceEvent == NULL)
+      return E_FAIL;
+  {
+    g_pSwapChain->SetMaximumFrameLatency (NUM_BACK_BUFFERS);
+    g_hSwapChainWaitableObject = g_pSwapChain->GetFrameLatencyWaitableObject ();
+  }
+  
+  CreateRenderTarget ();
+
+  return S_OK;
+}
+
+HRESULT
+CreateDeviceD3D(HWND hWnd)
+{
+    // Setup swap chain
+    DXGI_SWAP_CHAIN_DESC1 sd;
+    {
+        ZeroMemory(&sd, sizeof(sd));
+
+        sd.BufferCount = NUM_BACK_BUFFERS;
+        sd.Width = 0;
+        sd.Height = 0;
+        sd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+        sd.Flags = DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
+        sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+        sd.SampleDesc.Count = 1;
+        sd.SampleDesc.Quality = 0;
+        sd.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+        sd.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
+        sd.Scaling = DXGI_SCALING_STRETCH;
+        sd.Stereo = FALSE;
+    }
+
+    //if (DX12_ENABLE_DEBUG_LAYER)
+    //{
+    //    ID3D12Debug* dx12Debug = NULL;
+    //
+    //    if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&dx12Debug))))
+    //    {
+    //        dx12Debug->EnableDebugLayer();
+    //        dx12Debug->Release();
+    //    }
+    //}
+
+
+    ////LoadLibraryW_Original (L"C:\\Windows\\System32\\d3d12.dll");
+
+    LoadLibraryW (L"C:\\Windows\\System32\\d3d12.dll");
+
+    PFN_D3D12_CREATE_DEVICE
+    D3D12CreateDevice =
+      (PFN_D3D12_CREATE_DEVICE)
+        SK_GetProcAddress ( L"d3d12.dll",
+                             "D3D12CreateDevice"
+                          );
+
+    typedef HRESULT (WINAPI* PFN_D3D12_CREATE_DEVICE)( _In_opt_ IUnknown*, 
+                                                      D3D_FEATURE_LEVEL, 
+                                                      _In_ REFIID, _COM_Outptr_opt_ void** );
+
+    D3D_FEATURE_LEVEL featureLevel = D3D_FEATURE_LEVEL_11_0;
+    if (D3D12CreateDevice(NULL, featureLevel, IID_PPV_ARGS(&g_pd3dDevice)) != S_OK)
+        return E_FAIL;
+    {
+        D3D12_DESCRIPTOR_HEAP_DESC desc = {};
+        desc.Type           = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+        desc.NumDescriptors = NUM_BACK_BUFFERS;
+        desc.Flags          = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+        desc.NodeMask       = 1;
+
+        if (g_pd3dDevice->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&g_pd3dRtvDescHeap)) != S_OK)
+            return E_FAIL;
+
+        SIZE_T rtvDescriptorSize = g_pd3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+        D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = g_pd3dRtvDescHeap->GetCPUDescriptorHandleForHeapStart();
+        for (UINT i = 0; i < NUM_BACK_BUFFERS; i++) 
+        {
+            g_mainRenderTargetDescriptor[i] = rtvHandle;
+
+            rtvHandle.ptr += rtvDescriptorSize;
+        }
+    }
+
+    {
+        D3D12_DESCRIPTOR_HEAP_DESC desc = {};
+
+        desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+        desc.NumDescriptors = 1;
+        desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+
+        if (g_pd3dDevice->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&g_pd3dSrvDescHeap)) != S_OK)
+            return E_FAIL;
+    }
+
+    {
+        D3D12_COMMAND_QUEUE_DESC desc = {};
+
+        desc.Type     = D3D12_COMMAND_LIST_TYPE_DIRECT;
+        desc.Flags    = D3D12_COMMAND_QUEUE_FLAG_NONE;
+        desc.NodeMask = 1;
+
+        if (g_pd3dDevice->CreateCommandQueue(&desc, IID_PPV_ARGS(&g_pd3dCommandQueue)) != S_OK)
+            return E_FAIL;
+    }
+
+    for (UINT i = 0; i < NUM_FRAMES_IN_FLIGHT; i++)
+    {
+      if (g_pd3dDevice->CreateCommandAllocator (D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS (&g_frameContext [i].CommandAllocator)) != S_OK)
+        return E_FAIL;
+    }
+    
+    if (g_pd3dDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, g_frameContext[0].CommandAllocator, NULL, IID_PPV_ARGS(&g_pd3dCommandList)) != S_OK ||
+        g_pd3dCommandList->Close() != S_OK)
+    {
+        return E_FAIL;
+    }
+
+    if (g_pd3dDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&g_fence)) != S_OK)
+        return E_FAIL;
+
+    g_fenceEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+    if (g_fenceEvent == NULL)
+        return E_FAIL;
+    {
+        IDXGIFactory4* dxgiFactory = NULL;
+        IDXGISwapChain1* swapChain1 = NULL;
+
+        if (CreateDXGIFactory1 (IID_PPV_ARGS (&dxgiFactory)) != S_OK ||
+            dxgiFactory->CreateSwapChainForHwnd (g_pd3dCommandQueue, hWnd, &sd, NULL, NULL, &swapChain1) != S_OK ||
+            swapChain1->QueryInterface (IID_PPV_ARGS (&g_pSwapChain)) != S_OK)
+        {
+          return E_FAIL;
+        }
+
+        swapChain1->Release();
+        dxgiFactory->Release();
+
+        g_pSwapChain->SetMaximumFrameLatency(NUM_BACK_BUFFERS);
+        g_hSwapChainWaitableObject = g_pSwapChain->GetFrameLatencyWaitableObject();
+    }
+
+    CreateRenderTarget();
+
+    return S_OK;
+}
+
+
+
+void CleanupDeviceD3D()
+{
+    CleanupRenderTarget();
+
+    if (g_pSwapChain) { g_pSwapChain->Release(); g_pSwapChain = NULL; }
+    if (g_hSwapChainWaitableObject != NULL) { CloseHandle(g_hSwapChainWaitableObject); }
+
+    for (UINT i = 0; i < NUM_FRAMES_IN_FLIGHT; i++)
+    {
+      if (g_frameContext[i].CommandAllocator) { g_frameContext[i].CommandAllocator->Release(); g_frameContext[i].CommandAllocator = NULL; }
+      if (g_pd3dCommandQueue) { g_pd3dCommandQueue->Release(); g_pd3dCommandQueue = NULL; }
+
+      if (g_pd3dCommandList) { g_pd3dCommandList->Release(); g_pd3dCommandList = NULL; }
+
+      if (g_pd3dRtvDescHeap) { g_pd3dRtvDescHeap->Release(); g_pd3dRtvDescHeap = NULL; }
+
+      if (g_pd3dSrvDescHeap) { g_pd3dSrvDescHeap->Release(); g_pd3dSrvDescHeap = NULL; }
+
+      if (g_fence) { g_fence->Release(); g_fence = NULL; }
+
+      if (g_fenceEvent) { CloseHandle(g_fenceEvent); g_fenceEvent = NULL; }
+
+      if (g_pd3dDevice) { g_pd3dDevice->Release(); g_pd3dDevice = NULL; }
+    }
+  }
+
+
+
+// dear imgui: Platform Binding for Windows (standard windows API for 32 and 64 bits applications)
+// This needs to be used along with a Renderer (e.g. DirectX11, OpenGL3, Vulkan..)
+
+// Implemented features:
+//  [X] Platform: Clipboard support (for Win32 this is actually part of core imgui)
+//  [X] Platform: Mouse cursor shape and visibility. Disable with 'io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange'.
+//  [X] Platform: Keyboard arrays indexed using VK_* Virtual Key Codes, e.g. ImGui::IsKeyPressed(VK_SPACE).
+
+//#include "imgui.h"
+//#include "imgui_impl_win32.h"
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <windows.h>
+#include <tchar.h>
+
+// CHANGELOG
+// (minor and older changes stripped away, please see git history for details)
+//  2018-06-29: Inputs: Added support for the ImGuiMouseCursor_Hand cursor.
+//  2018-06-10: Inputs: Fixed handling of mouse wheel messages to support fine position messages (typically sent by track-pads).
+//  2018-06-08: Misc: Extracted imgui_impl_win32.cpp/.h away from the old combined DX9/DX10/DX11/DX12 examples.
+//  2018-03-20: Misc: Setup io.BackendFlags ImGuiBackendFlags_HasMouseCursors and ImGuiBackendFlags_HasSetMousePos flags + honor ImGuiConfigFlags_NoMouseCursorChange flag.
+//  2018-02-20: Inputs: Added support for mouse cursors (ImGui::GetMouseCursor() value and WM_SETCURSOR message handling).
+//  2018-02-06: Inputs: Added mapping for ImGuiKey_Space.
+//  2018-02-06: Inputs: Honoring the io.WantSetMousePos by repositioning the mouse (when using navigation and ImGuiConfigFlags_NavMoveMouse is set).
+//  2018-02-06: Misc: Removed call to ImGui::Shutdown() which is not available from 1.60 WIP, user needs to call CreateContext/DestroyContext themselves.
+//  2018-01-20: Inputs: Added Horizontal Mouse Wheel support.
+//  2018-01-08: Inputs: Added mapping for ImGuiKey_Insert.
+//  2018-01-05: Inputs: Added WM_LBUTTONDBLCLK double-click handlers for window classes with the CS_DBLCLKS flag.
+//  2017-10-23: Inputs: Added WM_SYSKEYDOWN / WM_SYSKEYUP handlers so e.g. the VK_MENU key can be read.
+//  2017-10-23: Inputs: Using Win32 ::SetCapture/::GetCapture() to retrieve mouse positions outside the client area when dragging. 
+//  2016-11-12: Inputs: Only call Win32 ::SetCursor(NULL) when io.MouseDrawCursor is set.
+
+// Win32 Data
+static HWND                 g_hWnd = 0;
+static INT64                g_Time = 0;
+static INT64                g_TicksPerSecond = 0;
+//static ImGuiMouseCursor     g_LastMouseCursor = ImGuiMouseCursor_COUNT;
+
+// Functions
+bool    ImGui_ImplWin32_Init(void* hwnd)
+{
+    if (!::QueryPerformanceFrequency((LARGE_INTEGER *)&g_TicksPerSecond))
+        return false;
+    if (!::QueryPerformanceCounter((LARGE_INTEGER *)&g_Time))
+        return false;
+
+    // Setup back-end capabilities flags
+    g_hWnd = (HWND)hwnd;
+    ImGuiIO& io = ImGui::GetIO();
+  //io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;         // We can honor GetMouseCursor() values (optional)
+  //io.BackendFlags |= ImGuiBackendFlags_HasSetMousePos;          // We can honor io.WantSetMousePos requests (optional, rarely used)
+    io.ImeWindowHandle = hwnd;
+
+    // Keyboard mapping. ImGui will use those indices to peek into the io.KeysDown[] array that we will update during the application lifetime.
+    io.KeyMap[ImGuiKey_Tab] = VK_TAB;
+    io.KeyMap[ImGuiKey_LeftArrow] = VK_LEFT;
+    io.KeyMap[ImGuiKey_RightArrow] = VK_RIGHT;
+    io.KeyMap[ImGuiKey_UpArrow] = VK_UP;
+    io.KeyMap[ImGuiKey_DownArrow] = VK_DOWN;
+    io.KeyMap[ImGuiKey_PageUp] = VK_PRIOR;
+    io.KeyMap[ImGuiKey_PageDown] = VK_NEXT;
+    io.KeyMap[ImGuiKey_Home] = VK_HOME;
+    io.KeyMap[ImGuiKey_End] = VK_END;
+  //io.KeyMap[ImGuiKey_Insert] = VK_INSERT;
+    io.KeyMap[ImGuiKey_Delete] = VK_DELETE;
+    io.KeyMap[ImGuiKey_Backspace] = VK_BACK;
+//    io.KeyMap[ImGuiKey_Space] = VK_SPACE;
+    io.KeyMap[ImGuiKey_Enter] = VK_RETURN;
+    io.KeyMap[ImGuiKey_Escape] = VK_ESCAPE;
+    io.KeyMap[ImGuiKey_A] = 'A';
+    io.KeyMap[ImGuiKey_C] = 'C';
+    io.KeyMap[ImGuiKey_V] = 'V';
+    io.KeyMap[ImGuiKey_X] = 'X';
+    io.KeyMap[ImGuiKey_Y] = 'Y';
+    io.KeyMap[ImGuiKey_Z] = 'Z';
+
+    return true;
+}
+
+void    ImGui_ImplWin32_Shutdown()
+{
+    g_hWnd = (HWND)0;
+}
+
+static bool ImGui_ImplWin32_UpdateMouseCursor()
+{
+    ImGuiIO& io = ImGui::GetIO();
+    //if (io.ConfigFlags & ImGuiConfigFlags_NoMouseCursorChange)
+    //    return false;
+
+    ImGuiMouseCursor imgui_cursor = ImGui::GetMouseCursor();
+    if (imgui_cursor == ImGuiMouseCursor_None || io.MouseDrawCursor)
+    {
+        // Hide OS mouse cursor if imgui is drawing it or if it wants no cursor
+        ::SetCursor(NULL);
+    }
+    else
+    {
+        // Show OS mouse cursor
+        LPTSTR win32_cursor = IDC_ARROW;
+        switch (imgui_cursor)
+        {
+        case ImGuiMouseCursor_Arrow:        win32_cursor = IDC_ARROW; break;
+        case ImGuiMouseCursor_TextInput:    win32_cursor = IDC_IBEAM; break;
+      //case ImGuiMouseCursor_ResizeAll:    win32_cursor = IDC_SIZEALL; break;
+        case ImGuiMouseCursor_ResizeEW:     win32_cursor = IDC_SIZEWE; break;
+        case ImGuiMouseCursor_ResizeNS:     win32_cursor = IDC_SIZENS; break;
+        case ImGuiMouseCursor_ResizeNESW:   win32_cursor = IDC_SIZENESW; break;
+        case ImGuiMouseCursor_ResizeNWSE:   win32_cursor = IDC_SIZENWSE; break;
+      //case ImGuiMouseCursor_Hand:         win32_cursor = IDC_HAND; break;
+        }
+        ::SetCursor(::LoadCursor(NULL, win32_cursor));
+    }
+    return true;
+}
+
+static void ImGui_ImplWin32_UpdateMousePos()
+{
+    ImGuiIO& io = ImGui::GetIO();
+
+    // Set OS mouse position if requested (rarely used, only when ImGuiConfigFlags_NavEnableSetMousePos is enabled by user)
+    ////if (io.WantSetMousePos)
+    ////{
+    ////    POINT pos = { (int)io.MousePos.x, (int)io.MousePos.y };
+    ////    ::ClientToScreen(g_hWnd, &pos);
+    ////    ::SetCursorPos(pos.x, pos.y);
+    ////}
+
+    // Set mouse position
+    io.MousePos = ImVec2(-FLT_MAX, -FLT_MAX);
+    POINT pos;
+    if (::GetActiveWindow() == g_hWnd && ::GetCursorPos(&pos))
+        if (::ScreenToClient(g_hWnd, &pos))
+            io.MousePos = ImVec2((float)pos.x, (float)pos.y);
+}
+
+void    ImGui_ImplWin32_NewFrame()
+{
+    ImGuiIO& io = ImGui::GetIO();
+
+    // Setup display size (every frame to accommodate for window resizing)
+    RECT rect;
+    ::GetClientRect(g_hWnd, &rect);
+    io.DisplaySize = ImVec2((float)(rect.right - rect.left), (float)(rect.bottom - rect.top));
+
+    // Setup time step
+    INT64 current_time;
+    ::QueryPerformanceCounter((LARGE_INTEGER *)&current_time);
+    io.DeltaTime = (float)(current_time - g_Time) / g_TicksPerSecond;
+    g_Time = current_time;
+
+    // Read keyboard modifiers inputs
+    io.KeyCtrl = (::GetKeyState(VK_CONTROL) & 0x8000) != 0;
+    io.KeyShift = (::GetKeyState(VK_SHIFT) & 0x8000) != 0;
+    io.KeyAlt = (::GetKeyState(VK_MENU) & 0x8000) != 0;
+    io.KeySuper = false;
+    // io.KeysDown[], io.MousePos, io.MouseDown[], io.MouseWheel: filled by the WndProc handler below.
+
+    // Update OS mouse position
+    ImGui_ImplWin32_UpdateMousePos();
+
+    // Update OS mouse cursor with the cursor requested by imgui
+    ImGuiMouseCursor mouse_cursor = io.MouseDrawCursor ? ImGuiMouseCursor_None : ImGui::GetMouseCursor();
+    ////if (g_LastMouseCursor != mouse_cursor)
+    ////{
+    ////    g_LastMouseCursor = mouse_cursor;
+    ////    ImGui_ImplWin32_UpdateMouseCursor();
+    ////}
+}
+
+// Allow compilation with old Windows SDK. MinGW doesn't have default _WIN32_WINNT/WINVER versions.
+#ifndef WM_MOUSEHWHEEL
+#define WM_MOUSEHWHEEL 0x020E
+#endif
+
+// Process Win32 mouse/keyboard inputs. 
+// You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
+// - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application.
+// - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application.
+// Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
+// PS: In this Win32 handler, we use the capture API (GetCapture/SetCapture/ReleaseCapture) to be able to read mouse coordinations when dragging mouse outside of our window bounds.
+// PS: We treat DBLCLK messages as regular mouse down messages, so this code will work on windows classes that have the CS_DBLCLKS flag set. Our own example app code doesn't set this flag.
+LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+    if (ImGui::GetCurrentContext() == NULL)
+        return 0;
+
+    ImGuiIO& io = ImGui::GetIO();
+    switch (msg)
+    {
+    case WM_LBUTTONDOWN: case WM_LBUTTONDBLCLK:
+    case WM_RBUTTONDOWN: case WM_RBUTTONDBLCLK:
+    case WM_MBUTTONDOWN: case WM_MBUTTONDBLCLK:
+    {
+        int button = 0;
+        if (msg == WM_LBUTTONDOWN || msg == WM_LBUTTONDBLCLK) button = 0;
+        if (msg == WM_RBUTTONDOWN || msg == WM_RBUTTONDBLCLK) button = 1;
+        if (msg == WM_MBUTTONDOWN || msg == WM_MBUTTONDBLCLK) button = 2;
+        //if (!ImGui::IsAnyMouseDown() && ::GetCapture() == NULL)
+        //    ::SetCapture(hwnd);
+        io.MouseDown[button] = true;
+        return 0;
+    }
+    case WM_LBUTTONUP:
+    case WM_RBUTTONUP:
+    case WM_MBUTTONUP:
+    {
+        int button = 0;
+        if (msg == WM_LBUTTONUP) button = 0;
+        if (msg == WM_RBUTTONUP) button = 1;
+        if (msg == WM_MBUTTONUP) button = 2;
+        io.MouseDown[button] = false;
+        //if (!ImGui::IsAnyMouseDown() && ::GetCapture() == hwnd)
+        //    ::ReleaseCapture();
+        return 0;
+    }
+    case WM_MOUSEWHEEL:
+        io.MouseWheel += (float)GET_WHEEL_DELTA_WPARAM(wParam) / (float)WHEEL_DELTA;
+        return 0;
+    case WM_MOUSEHWHEEL:
+        //io.MouseWheelH += (float)GET_WHEEL_DELTA_WPARAM(wParam) / (float)WHEEL_DELTA;
+        return 0;
+    case WM_KEYDOWN:
+    case WM_SYSKEYDOWN:
+        if (wParam < 256)
+            io.KeysDown[wParam] = 1;
+        return 0;
+    case WM_KEYUP:
+    case WM_SYSKEYUP:
+        if (wParam < 256)
+            io.KeysDown[wParam] = 0;
+        return 0;
+    case WM_CHAR:
+        // You can also use ToAscii()+GetKeyboardState() to retrieve characters.
+        if (wParam > 0 && wParam < 0x10000)
+            io.AddInputCharacter((unsigned short)wParam);
+        return 0;
+    case WM_SETCURSOR:
+        if (LOWORD(lParam) == HTCLIENT && ImGui_ImplWin32_UpdateMouseCursor())
+            return 1;
+        return 0;
+    }
+    return 0;
+}
+
+
+//extern LRESULT
+//WINAPI
+//ImGui_WndProcHandler (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+  if (ImGui_ImplWin32_WndProcHandler (hWnd, msg, wParam, lParam))
+      return true;
+    //if (ImGui_WndProcHandler(hWnd, msg, wParam, lParam))
+    //    return true;
+
+    switch (msg)
+    {
+    case WM_SIZE:
+        if (g_pd3dDevice != NULL && wParam != SIZE_MINIMIZED)
+        {
+            ImGui_ImplDX12_InvalidateDeviceObjects();
+            CleanupRenderTarget();
+            ResizeSwapChain(hWnd, (UINT)LOWORD(lParam), (UINT)HIWORD(lParam));
+            CreateRenderTarget();
+            ImGui_ImplDX12_CreateDeviceObjects();
+        }
+        return 0;
+
+    case WM_SYSCOMMAND:
+        if ((wParam & 0xfff0) == SC_KEYMENU) // Disable ALT application menu
+            return 0;
+        break;
+
+    case WM_DESTROY:
+        PostQuitMessage(0);
+        return 0;
+    }
+
+    return 0;// DefWindowProc (hWnd, msg, wParam, lParam);
+}
+
+using finish_pfn = void (WINAPI *)(void);
+void
+WINAPI
+dxgi_init_callback (finish_pfn finish);
+
+//#pragma comment (lib,"d3d12.lib")
+
+__declspec (dllexport)
+void
+CALLBACK
+RunDLL_D3D12Test ( HWND   hwnd,        HINSTANCE hInst,
+                   LPCSTR lpszCmdLine, int       nCmdShow )
+{ 
+    // Create application window
+
+    WNDCLASSEX wc = { sizeof(WNDCLASSEX), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(NULL), NULL, NULL, NULL, NULL, _T("ImGui Example"), NULL };
+    
+    RegisterClassEx(&wc);
+
+    hwnd = CreateWindow(_T("ImGui Example"), _T("Dear ImGui DirectX12 Example"), WS_OVERLAPPEDWINDOW, 100, 100, 1280, 800, NULL, NULL, hInst, NULL);
+
+
+
+    // Initialize Direct3D
+    if (CreateDeviceD3D(hwnd) < 0)
+    {
+        CleanupDeviceD3D();
+        UnregisterClass(_T("ImGui Example"), wc.hInstance);
+
+        return;
+    }
+
+
+
+    // Show the window
+    ShowWindow(hwnd, SW_SHOWDEFAULT);
+    UpdateWindow(hwnd);
+
+    // Setup Dear ImGui binding
+  //IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
+
+
+
+  //ImGui_ImplWin32_Init(hwnd);
+    ImGui_ImplDX12_Init(g_pd3dDevice, NUM_FRAMES_IN_FLIGHT, 
+        DXGI_FORMAT_R8G8B8A8_UNORM,
+        g_pd3dSrvDescHeap->GetCPUDescriptorHandleForHeapStart(), 
+        g_pd3dSrvDescHeap->GetGPUDescriptorHandleForHeapStart());
+
+
+
+    // Setup style
+    //ImGui::StyleColorsDark();
+    //ImGui::StyleColorsClassic();
+
+
+
+    // Load Fonts
+    // - If no fonts are loaded, dear imgui will use the default font. You can also load multiple fonts and use ImGui::PushFont()/PopFont() to select them. 
+    // - AddFontFromFileTTF() will return the ImFont* so you can store it if you need to select the font among multiple. 
+    // - If the file cannot be loaded, the function will return NULL. Please handle those errors in your application (e.g. use an assertion, or display an error and quit).
+    // - The fonts will be rasterized at a given size (w/ oversampling) and stored into a texture when calling ImFontAtlas::Build()/GetTexDataAsXXXX(), which ImGui_ImplXXXX_NewFrame below will call.
+    // - Read 'misc/fonts/README.txt' for more instructions and details.
+    // - Remember that in C/C++ if you want to include a backslash \ in a string literal you need to write a double backslash \\ !
+    //io.Fonts->AddFontDefault();
+    //io.Fonts->AddFontFromFileTTF("../../misc/fonts/Roboto-Medium.ttf", 16.0f);
+    //io.Fonts->AddFontFromFileTTF("../../misc/fonts/Cousine-Regular.ttf", 15.0f);
+    //io.Fonts->AddFontFromFileTTF("../../misc/fonts/DroidSans.ttf", 16.0f);
+    //io.Fonts->AddFontFromFileTTF("../../misc/fonts/ProggyTiny.ttf", 10.0f);
+    //ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesJapanese());
+    //IM_ASSERT(font != NULL);
+
+    bool show_demo_window = true;
+    bool show_another_window = false;
+
+    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+
+    // Main loop
+    MSG msg;
+
+    ZeroMemory(&msg, sizeof(msg));
+
+    while (msg.message != WM_QUIT)
+    {
+        // Poll and handle messages (inputs, window resize, etc.)
+        // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
+        // - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application.
+        // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application.
+        // Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
+        if (PeekMessage(&msg, NULL, 0U, 0U, PM_REMOVE))
+        {
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
+            continue;
+        }
+
+        // Start the Dear ImGui frame
+        ImGui_ImplDX12_NewFrame();
+      //ImGui_ImplWin32_NewFrame();
+
+        ImGui::NewFrame();
+
+        // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
+        //if (show_demo_window)
+        //    ImGui::ShowDemoWindow(&show_demo_window);
+
+        // 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
+        {
+            static float f = 0.0f;
+            static int counter = 0;
+
+            ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+
+            ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
+            ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
+            ImGui::Checkbox("Another Window", &show_another_window);
+
+            ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f    
+            ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
+
+            if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
+                counter++;
+
+            ImGui::SameLine();
+            ImGui::Text("counter = %d", counter);
+
+            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+
+            ImGui::End();
+        }
+
+
+
+        // 3. Show another simple window.
+        if (show_another_window)
+        {
+            ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+            ImGui::Text("Hello from another window!");
+
+            if (ImGui::Button("Close Me"))
+                show_another_window = false;
+
+            ImGui::End();
+        }
+
+
+
+        // Rendering
+        FrameContext* frameCtxt = WaitForNextFrameResources();
+        UINT backBufferIdx = g_pSwapChain->GetCurrentBackBufferIndex();
+        frameCtxt->CommandAllocator->Reset();
+
+        D3D12_RESOURCE_BARRIER barrier = {};
+
+        barrier.Type                   = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+        barrier.Flags                  = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+        barrier.Transition.pResource   = g_mainRenderTargetResource[backBufferIdx];
+        barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+        barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
+        barrier.Transition.StateAfter  = D3D12_RESOURCE_STATE_RENDER_TARGET;
+
+        g_pd3dCommandList->Reset(frameCtxt->CommandAllocator, NULL);
+        g_pd3dCommandList->ResourceBarrier(1, &barrier);
+        g_pd3dCommandList->ClearRenderTargetView(g_mainRenderTargetDescriptor[backBufferIdx], (float*)&clear_color, 0, NULL);
+        g_pd3dCommandList->OMSetRenderTargets(1, &g_mainRenderTargetDescriptor[backBufferIdx], FALSE, NULL);
+        g_pd3dCommandList->SetDescriptorHeaps(1, &g_pd3dSrvDescHeap);
+
+        ImGui::Render();
+
+        ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), g_pd3dCommandList);
+        barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+        barrier.Transition.StateAfter  = D3D12_RESOURCE_STATE_PRESENT;
+        g_pd3dCommandList->ResourceBarrier(1, &barrier);
+        g_pd3dCommandList->Close();
+
+        g_pd3dCommandQueue->ExecuteCommandLists(1, (ID3D12CommandList* const*)&g_pd3dCommandList);
+
+        g_pSwapChain->Present(1, 0); // Present with vsync
+        //g_pSwapChain->Present(0, 0); // Present without vsync
+
+        UINT64 fenceValue = g_fenceLastSignaledValue + 1;
+        g_pd3dCommandQueue->Signal(g_fence, fenceValue);
+        g_fenceLastSignaledValue = fenceValue;
+        frameCtxt->FenceValue = fenceValue;
+    }
+
+    WaitForLastSubmittedFrame();
+    ImGui_ImplDX12_Shutdown();
+  //ImGui_ImplWin32_Shutdown();
+////ImGui::DestroyContext();
+
+    CleanupDeviceD3D();
+    DestroyWindow(hwnd);
+////UnregisterClass(_T("ImGui Example"), wc.hInstance);
+
+    return;
+}
+
 bool
-ImGui_DX11Startup ( IDXGISwapChain* pSwapChain )
+ImGui_DX12Startup (IDXGISwapChain* pSwapChain);
+
+void ResetUI_D3D12 (IDXGISwapChain* This)
 {
   SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
+  assert (rb.swapchain == nullptr || This == rb.swapchain || rb.swapchain.IsEqualObject (This));
+
+  CComPtr <ID3D12Device>       pDev       = nullptr;
+  CComPtr <ID3D12CommandQueue> pSwapQueue = nullptr;
+
+  
+
+  if (SUCCEEDED (This->GetDevice (IID_PPV_ARGS (&pDev))))
+  {
+    assert (rb.device == nullptr || pDev.IsEqualObject (rb.device));
+
+    rb.releaseOwnedResources (    );
+    SK_DXGI_UpdateSwapChain  (This);
+  }
+
+
+  // D3D12
+  ////if (rb.swapchain == nullptr || rb.device == nullptr)
+  ////  return;
+
+
+
+  static bool init = false;
+
+  if (init)
+  {
+    rb.releaseOwnedResources ();
+    ImGui_DX12Shutdown       ();
+
+    init = false;
+  }
+
+  else
+  {
+    assert (rb.device != nullptr);
+
+    if (rb.device == nullptr)
+      SK_DXGI_UpdateSwapChain (This);
+    ImGui_DX12Startup         (This);
+
+    init = true;
+  }
+}
+
+bool
+ImGui_DX12Startup ( IDXGISwapChain* pSwapChain )
+{
+  SK_RenderBackend& rb =
+    SK_GetCurrentRenderBackend ();
+
+  CComPtr <ID3D12Device>       pD3D12Dev       = nullptr;
+  CComPtr <ID3D12CommandQueue> pD3D12SwapQueue = nullptr;
+
+  assert (pSwapChain == rb.swapchain ||
+                        rb.swapchain.IsEqualObject (pSwapChain));
+
+  if ( SUCCEEDED (pSwapChain->GetDevice (IID_PPV_ARGS (&pD3D12Dev))) )
+  {
+    assert (pD3D12Dev.IsEqualObject (rb.device) ||
+                                     rb.device == nullptr);
+
+    DXGI_SWAP_CHAIN_DESC swap_desc = { };
+      if (! (( rb.device    == nullptr || rb.device.IsEqualObject    (pD3D12Dev)  ) ||
+             ( rb.swapchain == nullptr || rb.swapchain.IsEqualObject (pSwapChain) )) )
+      {
+        if (SUCCEEDED (pSwapChain->GetDesc (&swap_desc)))
+        {
+          if (swap_desc.OutputWindow != nullptr)
+          {
+            if (rb.windows.focus.hwnd != swap_desc.OutputWindow)
+                rb.windows.setFocus (swap_desc.OutputWindow);
+
+            if (rb.windows.device.hwnd == nullptr)
+                rb.windows.setDevice (swap_desc.OutputWindow);
+          }
+        }
+      }
+
+      HRESULT
+        CreateDeviceD3DEx (ID3D12Device* pDev12, IDXGISwapChain* pSwapChain);
+
+      HRESULT hr =
+        CreateDeviceD3DEx ( pD3D12Dev, pSwapChain );
+
+      bool worked = false;
+
+      if (SUCCEEDED (hr))
+      {
+        worked =
+          ImGui_ImplDX12_Init ( pD3D12Dev, 2,
+                                  swap_desc.BufferDesc.Format,
+                                    g_pd3dSrvDescHeap->GetCPUDescriptorHandleForHeapStart (), 
+                                    g_pd3dSrvDescHeap->GetGPUDescriptorHandleForHeapStart () );
+      }
+
+      return worked;
+    }
+
+  return false;
+}
+
+bool
+ImGui_DX11Startup ( IDXGISwapChain* pSwapChain )
+{
+  auto& rb =
+    SK_GetCurrentRenderBackend ();
 
   CComPtr <ID3D11Device>        pD3D11Dev         = nullptr;
   CComPtr <ID3D11DeviceContext> pImmediateContext = nullptr;
@@ -246,29 +1273,107 @@ ImGui_DX11Startup ( IDXGISwapChain* pSwapChain )
   //assert (pSwapChain == rb.swapchain ||
   //                      rb.swapchain.IsEqualObject (pSwapChain));
 
-  if ( SUCCEEDED (pSwapChain->GetDevice (IID_PPV_ARGS (&pD3D11Dev))) )
+  if (rb.api == SK_RenderAPI::D3D11On12)
+  {
+    CComQIPtr <IDXGISwapChain3> pSwap3 (pSwapChain);
+
+                      UINT currentBuffer = 0;
+    if (pSwap3 != nullptr) currentBuffer = pSwap3->GetCurrentBackBufferIndex ();
+
+    rb.d3d11.interop.buffer_idx =
+      currentBuffer;
+
+    D3D11_RESOURCE_FLAGS d3d11_flags           = { };
+		                     d3d11_flags.BindFlags = D3D11_BIND_RENDER_TARGET;
+
+    CComPtr <ID3D12Resource> pBackBuffer_D3D12;
+
+    pSwapChain->GetBuffer ( currentBuffer,
+                              __uuidof (ID3D12Resource),
+                                (void **)&pBackBuffer_D3D12 );
+
+    HRESULT hrWrapAndSlap = rb.d3d11.wrapper_dev->
+      CreateWrappedResource
+      (
+        pBackBuffer_D3D12.p,
+
+        &d3d11_flags,
+
+        D3D12_RESOURCE_STATE_RENDER_TARGET,
+        D3D12_RESOURCE_STATE_RENDER_TARGET,
+
+        __uuidof (ID3D11Texture2D),
+        (void **)&rb.d3d11.interop.backbuffer_tex2D
+      );
+
+    if (FAILED (hrWrapAndSlap))
+    {
+      dll_log.Log (L"FAILED To Wrap And Slap the Backbuffer!");
+    }
+
+	  D3D11_TEXTURE2D_DESC          texDesc = { };
+    D3D11_RENDER_TARGET_VIEW_DESC rtvDesc = { };
+
+    rb.d3d11.interop.backbuffer_tex2D->GetDesc (&texDesc);
+
+	  rtvDesc.ViewDimension      = D3D11_RTV_DIMENSION_TEXTURE2D;
+	  rtvDesc.Format             = texDesc.Format;
+	  rtvDesc.Texture2D.MipSlice = 0;
+
+    CComQIPtr <ID3D11Device> pDev (rb.device);
+
+    if (pDev == nullptr)
+      rb.d3d11.wrapper_dev->QueryInterface <ID3D11Device> (&pDev.p);
+
+    if (pDev == nullptr)
+      return false;
+
+    pDev->CreateRenderTargetView (
+                 rb.d3d11.interop.backbuffer_tex2D,
+      &rtvDesc, &rb.d3d11.interop.backbuffer_rtv
+    );
+
+    DXGI_SWAP_CHAIN_DESC swap_desc = { };
+
+    if (SUCCEEDED (pSwapChain->GetDesc (&swap_desc)))
+    {
+      if (swap_desc.OutputWindow != nullptr)
+      {
+        if (rb.windows.focus.hwnd != swap_desc.OutputWindow)
+          rb.windows.setFocus (swap_desc.OutputWindow);
+
+        if (rb.windows.device.hwnd == nullptr)
+          rb.windows.setDevice (swap_desc.OutputWindow);
+      }
+    }
+
+    return
+      ImGui_ImplDX11_Init (pSwapChain, pD3D11Dev, pImmediateContext);
+  }
+
+  else if ( SUCCEEDED (pSwapChain->GetDevice (IID_PPV_ARGS (&pD3D11Dev))) )
   {
     assert (pD3D11Dev.IsEqualObject (rb.device) ||
                                      rb.device == nullptr);
 
     // ------------
-    CComQIPtr <ID3D11Device>        pTestDev0 (rb.device);
-    CComPtr   <ID3D11Device>        pTestDev1 = nullptr;
-    CComQIPtr <ID3D11DeviceContext> pDevCtx   (rb.d3d11.immediate_ctx);
-    
-    if (pDevCtx != nullptr)
-    {
-      pDevCtx->GetDevice (&pTestDev1);
-    
-      if (pTestDev0.IsEqualObject (pTestDev1))
-      {
-        pImmediateContext = pDevCtx;
-      }
-    }
+    //CComQIPtr <ID3D11Device>        pTestDev0 (rb.device);
+    //CComPtr   <ID3D11Device>        pTestDev1 = nullptr;
+    //CComQIPtr <ID3D11DeviceContext> pDevCtx   (rb.d3d11.immediate_ctx);
+    //
+    //if (pDevCtx != nullptr)
+    //{
+    //  pDevCtx->GetDevice (&pTestDev1);
+    //
+    //  if (pTestDev0.IsEqualObject (pTestDev1))
+    //  {
+    //    if (pImmediateContext != pDevCtx)
+    //        pImmediateContext  = pDevCtx;
+    //  }
+    //}
     // -----------
 
-    if (! pImmediateContext)
-      pD3D11Dev->GetImmediateContext (&pImmediateContext);
+    pD3D11Dev->GetImmediateContext (&pImmediateContext);
 
     assert (pImmediateContext.IsEqualObject (rb.d3d11.immediate_ctx) ||
                                              rb.d3d11.immediate_ctx == nullptr);
@@ -285,10 +1390,10 @@ ImGui_DX11Startup ( IDXGISwapChain* pSwapChain )
           if (swap_desc.OutputWindow != nullptr)
           {
             if (rb.windows.focus.hwnd != swap_desc.OutputWindow)
-              rb.windows.setFocus (swap_desc.OutputWindow);
+                rb.windows.setFocus (swap_desc.OutputWindow);
 
             if (rb.windows.device.hwnd == nullptr)
-              rb.windows.setDevice (swap_desc.OutputWindow);
+                rb.windows.setDevice (swap_desc.OutputWindow);
           }
         }
       }
@@ -535,6 +1640,38 @@ SK_CEGUI_InitBase ()
   SK_Steam_ClearPopups ();
 }
 
+DXGI_FORMAT
+SK_DXGI_PickHDRFormat (DXGI_FORMAT fmt_orig)
+{
+  bool TenBitSwap     = false;
+  bool SixteenBitSwap = false;
+
+  if (SK_GetCurrentGameID () == SK_GAME_ID::MonsterHunterWorld)
+  {
+    extern bool      __SK_MHW_10BitSwap;
+    TenBitSwap     = __SK_MHW_10BitSwap;
+
+    extern bool      __SK_MHW_16BitSwap;
+    SixteenBitSwap = __SK_MHW_16BitSwap;
+  }
+
+  //else if (SK_GetCurrentGameID () == SK_GAME_ID::DragonQuestXI)
+  else
+  {
+    extern bool      __SK_HDR_10BitSwap;
+    TenBitSwap     = __SK_HDR_10BitSwap;
+
+    extern bool      __SK_HDR_16BitSwap;
+    SixteenBitSwap = __SK_HDR_16BitSwap;
+  }
+
+  if      (SixteenBitSwap) return DXGI_FORMAT_R16G16B16A16_FLOAT;
+  else if (TenBitSwap)     return DXGI_FORMAT_R10G10B10A2_UNORM;
+
+  return
+    fmt_orig;
+}
+
 void ResetCEGUI_D3D11 (IDXGISwapChain* This)
 {
   void
@@ -559,10 +1696,22 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
     SK_DXGI_UpdateSwapChain  (This);
   }
 
+  else if (rb.api == SK_RenderAPI::D3D11On12)
+  {
+    rb.releaseOwnedResources (    );
+    SK_DXGI_UpdateSwapChain  (This);
+  }
+
+
+  // D3D12
+  ////if (rb.swapchain == nullptr || rb.device == nullptr)
+  ////  return;
+
+
 
   if (cegD3D11 != nullptr)
   {
-    if ((uintptr_t)cegD3D11 > 1)
+    if ((uintptr_t)cegD3D11 > 1     && rb.api != SK_RenderAPI::D3D11On12)
     {
       SK_TextOverlayManager::getInstance ()->destroyAllOverlays ();
       SK_PopupManager::getInstance ()->destroyAllPopups         ();
@@ -570,7 +1719,7 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
 
     rb.releaseOwnedResources ();
 
-    if ((uintptr_t)cegD3D11 > 1)
+    if ((uintptr_t)cegD3D11 > 1     && rb.api != SK_RenderAPI::D3D11On12)
     {
       CEGUI::WindowManager::getDllSingleton ().cleanDeadPool ();
 
@@ -581,6 +1730,15 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
 
     // XXX: TODO (Full shutdown isn't necessary, just invalidate)
     ImGui_DX11Shutdown ();
+  }
+
+
+  else if (rb.api == SK_RenderAPI::D3D11On12)
+  {
+    cegD3D11 =
+      reinterpret_cast <CEGUI::Direct3D11Renderer *> (1);
+
+    ImGui_DX11Startup (This);
   }
 
   else
@@ -601,7 +1759,12 @@ void ResetCEGUI_D3D11 (IDXGISwapChain* This)
 
     pDevCtx->RSGetViewports (&num_vp, &vp_orig);
 
-    if ( SUCCEEDED (This->GetBuffer (0, IID_PPV_ARGS (&pBackBuffer))) )
+    CComQIPtr <IDXGISwapChain3> pSwap3 (This);
+
+                      UINT currentBuffer = 0;
+    if (pSwap3 != nullptr) currentBuffer = pSwap3->GetCurrentBackBufferIndex ();
+
+    if ( SUCCEEDED (This->GetBuffer (currentBuffer, IID_PPV_ARGS (&pBackBuffer))) )
     {
       D3D11_VIEWPORT                    vp = { };
       D3D11_TEXTURE2D_DESC backbuffer_desc = { };
@@ -1376,31 +2539,551 @@ SK_CEGUI_QueueResetD3D11 (void)
   InterlockedExchange (&__gui_reset, TRUE);
 }
 
+typedef HRESULT (WINAPI *IDXGISwapChain3_CheckColorSpaceSupport_pfn)(IDXGISwapChain3*, DXGI_COLOR_SPACE_TYPE, UINT*);
+                         IDXGISwapChain3_CheckColorSpaceSupport_pfn
+                         IDXGISwapChain3_CheckColorSpaceSupport_Original =nullptr;
 
+typedef HRESULT (WINAPI *IDXGISwapChain3_SetColorSpace1_pfn)        (IDXGISwapChain3*, DXGI_COLOR_SPACE_TYPE);
+                         IDXGISwapChain3_SetColorSpace1_pfn
+                         IDXGISwapChain3_SetColorSpace1_Original = nullptr;
+
+typedef HRESULT (WINAPI *IDXGISwapChain4_SetHDRMetaData_pfn)(IDXGISwapChain4*, DXGI_HDR_METADATA_TYPE, UINT, void*);
+                         IDXGISwapChain4_SetHDRMetaData_pfn
+                         IDXGISwapChain4_SetHDRMetaData_Original = nullptr;
+
+#include <SpecialK/render/dxgi/dxgi_hdr.h>
+#include <SpecialK/nvapi.h>
+
+const uint8_t
+  edid_v1_header [] =
+    { 0x00, 0xff, 0xff, 0xff,
+      0xff, 0xff, 0xff, 0x00 };
+
+const uint8_t
+  edid_v1_descriptor_flag [] =
+    { 0x00, 0x00 };
+
+const wchar_t*
+DXGIColorSpaceToStr (DXGI_COLOR_SPACE_TYPE space);
+
+
+
+#define EDID_LENGTH                        0x80
+#define EDID_HEADER                        0x00
+#define EDID_HEADER_END                    0x07
+
+#define ID_MANUFACTURER_NAME               0x08
+#define ID_MANUFACTURER_NAME_END           0x09
+
+#define EDID_STRUCT_VERSION                0x12
+#define EDID_STRUCT_REVISION               0x13
+
+#define UNKNOWN_DESCRIPTOR           (uint8_t)1
+#define DETAILED_TIMING_BLOCK        (uint8_t)2
+#define DESCRIPTOR_DATA                       5
+
+#define DETAILED_TIMING_DESCRIPTIONS_START 0x36
+#define DETAILED_TIMING_DESCRIPTION_SIZE     18
+#define NUM_DETAILED_TIMING_DESCRIPTIONS      4
+
+const uint8_t MONITOR_NAME                = 0xfc;
+
+std::string edid_name;
+
+static uint8_t
+blockType (uint8_t* block)
+{
+  if (  block [0] == 0 &&
+        block [1] == 0 &&
+        block [2] == 0 &&
+        block [3] != 0 &&
+        block [4] == 0    )
+  {
+    if (block [3] >= (uint8_t) 0xFA)
+    {
+      return
+        block [3];
+    }
+  }
+
+  return
+    UNKNOWN_DESCRIPTOR;
+}
+
+static char*
+SK_EDID_GetMonitorNameFromBlock ( uint8_t const* block )
+{
+  static char name [13] = { }; 
+  unsigned    i;
+
+  if (name [0] != '\0')
+    return name;
+
+  uint8_t const* ptr =
+    block + DESCRIPTOR_DATA;
+
+  for (i = 0; i < 13; ++i, ++ptr)
+  {
+    if (*ptr == 0xa)
+    {
+      name [i] = '\0';
+
+      return
+        name;
+    }
+
+    name [i] = *ptr;
+  }
+
+  return name;
+}
+
+static bool 
+SK_EDID_Parse (uint8_t *edid, size_t length)
+{
+  unsigned int i;
+  uint8_t*     block;
+  uint8_t      checksum = 0;
+
+  for (i = 0; i < length; ++i)
+    checksum += edid [i];
+
+  // Bad checksum, fail EDID
+  if (checksum != 0)
+  {
+    dll_log.Log (L"SK_EDID_Parse (...): Checksum fail");
+    return false;
+  }
+
+  if ( memcmp ( (const char*)edid          + EDID_HEADER,
+                (const char*)edid_v1_header, EDID_HEADER_END + 1 ) )
+
+  {
+    dll_log.Log (L"SK_EDID_Parse (...): Not V1 Header");
+
+    // Not a V1 header
+    return false;
+  }
+
+  // Monitor name and timings 
+  block = 
+    &edid [DETAILED_TIMING_DESCRIPTIONS_START];
+
+  uint8_t *end =
+    &edid [length - 1];
+
+#if 0
+  int byte_idx = 0; 
+
+  while (block < end)
+  {
+    dll_log.Log (L"Byte %lu : %u", byte_idx++, (uint32_t) (*block));
+    ++block;
+  }
+#endif
+
+  while (block < end)
+  {
+    uint8_t type =
+      blockType (block);
+
+    switch (type)
+    {
+      case DETAILED_TIMING_BLOCK:
+        block += DETAILED_TIMING_DESCRIPTION_SIZE;
+        break;
+
+      case UNKNOWN_DESCRIPTOR:
+        ++block;
+        break;
+
+      case MONITOR_NAME:
+      {
+        uint8_t vendorString [5] = { };
+
+        vendorString [0] =  (edid [8] >> 2   & 31)
+                                             + 64;
+        vendorString [1] = ((edid [8]  & 3) << 3) |
+                            (edid [9] >> 5)  + 64;
+        vendorString [2] =  (edid [9]  & 31) + 64;
+
+        if ( vendorString [0] == 'A' &&
+             vendorString [1] == 'U' &&
+             vendorString [2] == 'S' )
+        {
+          vendorString [1] = 'S'; vendorString [2] = 'U';
+          vendorString [3] = 'S'; vendorString [4] = '\0';
+        }
+
+        edid_name = (const char *)vendorString;
+        edid_name += " ";
+        edid_name +=
+          SK_EDID_GetMonitorNameFromBlock (block);
+
+        bool one_pt_4 =
+          ((((unsigned) edid [10]) & 0xffU) == 4);
+        
+#define EDID_LOG2(x) {                              \
+          if (one_pt_4) SK_LOG2 (x, L" EDID 1.4 "); \
+          else          SK_LOG2 (x, L" EDID 1.3 "); }
+
+        EDID_LOG2 ( ( L"SK_EDID_Parse (...): [ Name: %hs ]",
+                      edid_name.c_str () ) );
+
+        wsprintf ( SK_GetCurrentRenderBackend ().display_name,
+                      L"%hs", edid_name.c_str () );
+
+      //dll_log.Log (L"EDID Name: %hs", edid_name.c_str ());
+
+      block += DETAILED_TIMING_DESCRIPTION_SIZE;
+    } break;
+
+    default:
+      ++block;
+      break;
+    }
+  }
+
+  return true;
+}
+
+//#include "../depends/include/nvapi/nvapi_lite_common.h"
+
+
+#pragma comment (lib, "SetupAPI.lib")
+
+#include <setupapi.h>
+#include <devguid.h>
+#include <regstr.h>
+
+static
+const GUID
+      GUID_CLASS_MONITOR =
+    { 0x4d36e96e, 0xe325, 0x11ce, 0xbf, 0xc1, 0x08, 0x00, 0x2b, 0xe1, 0x03, 0x18 };
+
+std::wstring
+SK_GetKeyPathFromHKEY (HKEY& key)
+{
+#define STATUS_SUCCESS          ((NTSTATUS)0x00000000L)
+#define STATUS_BUFFER_TOO_SMALL ((NTSTATUS)0xC0000023L)
+
+  std::wstring keyPath;
+  
+  if (key != nullptr)
+  {
+    typedef DWORD (__stdcall *NtQueryKey_pfn)(
+                       HANDLE KeyHandle,
+                       int    KeyInformationClass, 
+                       PVOID  KeyInformation, 
+                       ULONG  Length, 
+                       PULONG ResultLength );
+                                               
+    static
+      NtQueryKey_pfn      NtQueryKey =
+      reinterpret_cast <NtQueryKey_pfn> (
+        SK_GetProcAddress ( L"ntdll.dll",
+                             "NtQueryKey" ) );
+
+    if (NtQueryKey != nullptr)
+    {
+      DWORD size   = 0;
+      DWORD result = 0;
+
+      result =
+        NtQueryKey (key, 3, 0, 0, &size);
+
+      if (result == STATUS_BUFFER_TOO_SMALL)
+      {
+        size += 2;
+
+        wchar_t* buffer =
+          new (std::nothrow) wchar_t [size / sizeof (wchar_t)];
+
+        if (buffer != nullptr)
+        {
+          result =
+            NtQueryKey (key, 3, buffer, size, &size);
+
+          if (result == STATUS_SUCCESS)
+          {
+            buffer [size / sizeof (wchar_t)] = L'\0';
+
+            keyPath =
+              std::wstring (buffer + 2);
+          }
+
+          delete [] buffer;
+        }
+      }
+    }
+  }
+
+  return
+    keyPath;
+}
+
+
+void
+SK_DXGI_UpdateColorSpace (IDXGISwapChain3* This)
+{
+  if (This != nullptr)
+  {
+    auto& rb =
+      SK_GetCurrentRenderBackend ();
+
+    CComPtr <IDXGIOutput> pOutput = nullptr;
+
+    if (SUCCEEDED (This->GetContainingOutput (&pOutput)))
+    {
+      CComQIPtr <IDXGIOutput6> pOut6 (pOutput);
+
+      if (pOut6 != nullptr)
+      {
+        DXGI_OUTPUT_DESC1 outDesc1 = { };
+        pOut6->GetDesc1 (&outDesc1);
+
+        // SDR (sRGB)
+        if (outDesc1.ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709)
+        {
+          rb.setHDRCapable (false);
+        }
+
+        else if (outDesc1.ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020     ||
+                 outDesc1.ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709        ||
+                 outDesc1.ColorSpace == DXGI_COLOR_SPACE_YCBCR_FULL_G22_NONE_P709_X601 || 
+                 outDesc1.ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P2020)
+        {
+          rb.setHDRCapable (true);
+        }
+
+        else
+        {
+          rb.setHDRCapable (true);
+
+          SK_LOG0 ( ( L"Unexpected IDXGIOutput6 ColorSpace: %s",
+                        DXGIColorSpaceToStr (outDesc1.ColorSpace) ),
+                      L"   DXGI   ");
+        }
+
+        rb.scanout.bpc             = outDesc1.BitsPerColor;
+        rb.scanout.dxgi_colorspace = outDesc1.ColorSpace;
+
+        if (! edid_name.empty ())
+        {
+          wsprintf ( rb.display_name,
+                       LR"(%hs)",
+                         edid_name.c_str () );
+        }
+
+        else if (*rb.display_name == L'\0')
+        {
+          HDEVINFO devInfo =
+            SetupDiGetClassDevsEx ( &GUID_CLASS_MONITOR,
+                                      nullptr, nullptr,
+                                        DIGCF_PRESENT,
+                                          nullptr, nullptr, nullptr );
+
+          if (devInfo != nullptr)
+          {
+            for ( ULONG i = 0 ; ERROR_NO_MORE_ITEMS != GetLastError (); ++i )
+            {
+              SP_DEVINFO_DATA devInfoData = { };
+
+              devInfoData.cbSize = sizeof (devInfoData);
+
+              if ( SetupDiEnumDeviceInfo ( devInfo,
+                                             i,
+                                               &devInfoData )
+                 )
+              {
+                HKEY hDevRegKey =
+                  SetupDiOpenDevRegKey ( devInfo,
+                                        &devInfoData,
+                                           DICS_FLAG_GLOBAL, 0,
+                                             DIREG_DEV,      KEY_READ );
+
+
+                if ((! hDevRegKey) || (hDevRegKey == INVALID_HANDLE_VALUE))
+                  continue;
+
+                //std::wstring fullRegistryKey =
+                //  SK_GetKeyPathFromHKEY (hDevRegKey);
+
+                uint8_t EDID_Data [256] = { };
+                wchar_t valueName [512] = { };
+                DWORD   valueLen        =  511;
+                DWORD   edid_size       =  sizeof (EDID_Data);
+
+                for ( LONG j         = 0,
+                           retValue  = ERROR_SUCCESS;
+                           retValue != ERROR_NO_MORE_ITEMS;
+                                     ++j )
+                {
+                  *valueName = L'\0';
+
+                  DWORD dwType;
+
+                  retValue =
+                    RegEnumValue ( hDevRegKey, j, valueName,
+                                   &valueLen,  nullptr,
+                                     &dwType,  EDID_Data,
+                                       &edid_size );
+
+                  if ( retValue != ERROR_SUCCESS  ||
+                       wcscmp (valueName, L"EDID")  )
+                    continue;
+
+                  if (! wcscmp (valueName, L"EDID"))
+                  {
+                    if ( SK_EDID_Parse ( EDID_Data,
+                                           edid_size )
+                       )
+                    {
+                      break;
+                    }
+                  }
+                }
+
+                RegCloseKey (hDevRegKey);
+              }
+            }
+          }
+
+          *rb.display_name = L'\0';
+
+           //@TODO - ELSE: Test support for various HDR colorspaces.
+
+          DISPLAY_DEVICEW        disp_desc = { };
+          disp_desc.cb = sizeof (disp_desc);
+
+          UINT devIdx = 0;
+
+          swscanf ( outDesc1.DeviceName,
+                      LR"(\\.\DISPLAY%ui)",
+                        &devIdx );
+
+          if (devIdx != 0)
+              devIdx --;
+
+          if (EnumDisplayDevices (nullptr, devIdx, &disp_desc, 0))
+          {
+            std::wstring wszDevName (
+              disp_desc.DeviceName
+            );
+
+            int mon_idx = 0;
+
+            if (EnumDisplayDevices (wszDevName.c_str (), mon_idx, &disp_desc, 0))
+            {
+              wsprintf ( rb.display_name, edid_name.empty () ?
+                                            LR"(%ws (%ws))" :
+                                              L"%hs",
+                           edid_name.empty () ? 
+                             disp_desc.DeviceString :
+                    SK_UTF8ToWideChar (edid_name).c_str (),
+                               disp_desc.DeviceName );
+            }
+          }
+        }
+      }
+
+      if (rb.scanout.colorspace_override != DXGI_COLOR_SPACE_CUSTOM)
+      {
+        CComQIPtr <IDXGISwapChain3> pSwap3 (This);
+
+        if ( pSwap3 != nullptr &&
+             SUCCEEDED (
+            //IDXGISwapChain3_SetColorSpace1_Original ( pSwap3, 
+               pSwap3->SetColorSpace1 (
+                 rb.scanout.colorspace_override
+               )
+             )
+           )
+        { 
+          rb.scanout.dxgi_colorspace =
+            rb.scanout.colorspace_override;
+        }
+      }
+    }
+  }
+}
 
 void
 SK_DXGI_UpdateSwapChain (IDXGISwapChain* This)
 {
+  SK_RenderBackend& rb =
+    SK_GetCurrentRenderBackend ();
+
   CComPtr <ID3D11Device> pDev = nullptr;
 
   if ( SUCCEEDED (This->GetDevice (IID_PPV_ARGS (&pDev))) )
   {
-    SK_RenderBackend& rb =
-      SK_GetCurrentRenderBackend ();
+    // These operations are not atomic / cache coherent in
+    //   ReShade (bug!!), so to avoid prematurely freeing
+    //     this stuff don't release and re-acquire a
+    //       reference to the same object.
 
-    rb.device    = pDev.p;
-    rb.swapchain = This;
+    if (rb.device != pDev.p)
+        rb.device  = pDev.p;
+
+    if (rb.swapchain != This)
+        rb.swapchain  = This;
 
     CComPtr <ID3D11DeviceContext> pDevCtx = nullptr;
-
-    pDev->GetImmediateContext ((ID3D11DeviceContext **)&pDevCtx);
-    rb.d3d11.immediate_ctx = pDevCtx;
+    pDev->GetImmediateContext (
+         (ID3D11DeviceContext **)&pDevCtx);
+    rb.d3d11.immediate_ctx    =   pDevCtx;
+    rb.d3d11.deferred_ctx     =   nullptr;
+    pDev->CreateDeferredContext (0x0, &rb.d3d11.deferred_ctx.p);
 
     //if (rb.d3d11.deferred_ctx != nullptr)
     //    rb.d3d11.deferred_ctx.Release ();
     //
     //pDev->CreateDeferredContext (0x0, &rb.d3d11.deferred_ctx);
   }
+
+  else {
+    assert (rb.device.p != nullptr);
+
+    ////if (rb.device != pDev.p)
+    ////    rb.device  = pDev.p;
+
+    if (rb.swapchain != This)
+        rb.swapchain  = This;
+
+    dll_log.Log (L"UpdateSwapChain FAIL :: No D3D11 Device [ Actually: %ph ]", rb.device.p);
+  }
+
+
+  // D3D12
+  //CComPtr <ID3D12CommandQueue> pSwapQueue = nullptr;
+  //if (SUCCEEDED (This->GetDevice (IID_PPV_ARGS (&pSwapQueue))))
+  ////{
+  ////  CComPtr <ID3D12Device> pDev12 = nullptr;
+  ////
+  ////  if ( SUCCEEDED (This->GetDevice (IID_PPV_ARGS (&pDev12))) )
+  ////  {
+  ////    // These operations are not atomic / cache coherent in
+  ////    //   ReShade (bug!!), so to avoid prematurely freeing
+  ////    //     this stuff don't release and re-acquire a
+  ////    //       reference to the same object.
+  ////
+  ////    if (rb.device != pDev12.p)
+  ////        rb.device  = pDev12.p;
+  ////
+  ////    if (rb.swapchain != This)
+  ////        rb.swapchain  = This;
+  ////  }
+  ////}
+
+
+
+  
+  CComQIPtr <IDXGISwapChain3>
+      pSwap3 (This);
+  if (pSwap3 != nullptr) SK_DXGI_UpdateColorSpace (
+      pSwap3
+  );
 }
 
 
@@ -1620,6 +3303,30 @@ struct SK_D3D11_Stateblock_Lite : StateBlockDataStore
     }
   }
 };
+
+SK_D3D11_Stateblock_Lite*
+SK_D3D11_CreateAndCaptureStateBlock (ID3D11DeviceContext* pImmediateContext)
+{
+  ///// Uses TLS to reduce dynamic memory pressure as much as possible
+  ///auto* sb =
+    //SK_TLS_Bottom ()->d3d11.getStateBlock ();
+  SK_D3D11_Stateblock_Lite* sb = new SK_D3D11_Stateblock_Lite ();
+
+  RtlZeroMemory ( sb,
+                  sizeof (SK_D3D11_Stateblock_Lite) );
+
+  sb->capture (pImmediateContext);
+
+  return sb;
+}
+
+void
+SK_D3D11_ReleaseAndApplyStateBlock ( SK_D3D11_Stateblock_Lite* pBlock,
+                                    ID3D11DeviceContext*      pDevCtx )
+{
+  pBlock->apply (pDevCtx);
+  delete pBlock;
+}
 
 struct D3DX11_STATE_BLOCK
 {
@@ -2320,13 +4027,32 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
     CComPtr <ID3DDeviceContextState> pCtxState         = nullptr;
     CComPtr <ID3DDeviceContextState> pCtxStateOrig     = nullptr;
 
+    CComQIPtr <IDXGISwapChain3> pSwap3 (This);
+
+                      UINT currentBuffer = 0;
+    if (pSwap3 != nullptr) currentBuffer = pSwap3->GetCurrentBackBufferIndex ();
+
     hr =
-      This->GetBuffer (0, IID_PPV_ARGS (&pBackBuffer));
+      This->GetBuffer (currentBuffer, IID_PPV_ARGS (&pBackBuffer));
 
     if (FAILED (hr))
     {
-      SK_LOG_ONCE (L"[   DXGI   ]  *** Back buffer unavailable! ***");
-      return;
+      if (rb.api != SK_RenderAPI::D3D11On12)
+      {
+        SK_LOG_ONCE (L"[   DXGI   ]  *** Back buffer unavailable! ***");
+        return;
+      }
+
+      else
+      {
+        if (ImGui_DX11Startup ((IDXGISwapChain *)rb.swapchain.p))
+          pBackBuffer = rb.d3d11.interop.backbuffer_tex2D;
+        else
+        {
+          dll_log.Log (L"Skip a frame maybe?");
+          return;
+        }
+      }
     }
 
     CComQIPtr <ID3D11DeviceContext>  pImmediateContext  (rb.d3d11.immediate_ctx);
@@ -2409,7 +4135,11 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 
       case DXGI_FORMAT_R16G16B16A16_FLOAT:
         rb.framebuffer_flags |= SK_FRAMEBUFFER_FLAG_FLOAT;
-        rb.framebuffer_flags |= SK_FRAMEBUFFER_FLAG_HDR;
+
+        if (rb.isHDRCapable ())
+        {
+          rb.framebuffer_flags |= SK_FRAMEBUFFER_FLAG_HDR;
+        }
 
         hr =
           pDev->CreateRenderTargetView (
@@ -2451,20 +4181,20 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
       // Uses TLS to reduce dynamic memory pressure as much as possible
       auto* sb =
         pTLS->d3d11.getStateBlock ();
-
+      
       RtlZeroMemory ( sb,
                         sizeof (SK_D3D11_Stateblock_Lite) );
-
+      
       sb->capture (pImmediateContext);
-
+      
       pImmediateContext->OMSetRenderTargets (1, &pRenderTargetView.p, nullptr);
-
+      
       D3D11_VIEWPORT       vp              = { };
       D3D11_BLEND_DESC     blend           = { };
       D3D11_TEXTURE2D_DESC backbuffer_desc = { };
-
+      
       pBackBuffer->GetDesc (&backbuffer_desc);
-
+      
       blend.RenderTarget [0].BlendEnable           = TRUE;
       blend.RenderTarget [0].SrcBlend              = D3D11_BLEND_ONE;
       blend.RenderTarget [0].DestBlend             = D3D11_BLEND_INV_SRC_ALPHA;
@@ -2473,17 +4203,17 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
       blend.RenderTarget [0].DestBlendAlpha        = D3D11_BLEND_INV_SRC_ALPHA;
       blend.RenderTarget [0].BlendOpAlpha          = D3D11_BLEND_OP_ADD;
       blend.RenderTarget [0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-
+      
       if (SUCCEEDED (pDev->CreateBlendState (&blend, &pBlendState)))
          pImmediateContext->OMSetBlendState (         pBlendState, nullptr, 0xffffffff);
-
+      
       vp.Width    = static_cast <float> (backbuffer_desc.Width);
       vp.Height   = static_cast <float> (backbuffer_desc.Height);
       vp.MinDepth = 0.0f;
       vp.MaxDepth = 1.0f;
       vp.TopLeftX = 0.0f;
       vp.TopLeftY = 0.0f;
-
+      
       auto DrawSteamPopups = [&](void) ->
       void
       {
@@ -2497,16 +4227,16 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
           }
         }
       };
-
+      
       pImmediateContext->RSSetViewports (1, &vp);
       {
         bool hudless  =
           SK_Screenshot_IsCapturingHUDless (),
-
+      
              hdr_mode =
-              ( rb.hdr_capable &&
+              ( rb.isHDRCapable () &&
                (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR) );
-
+      
         if ((uintptr_t)cegD3D11 > 1)
         {
           if (! SK_Screenshot_IsCapturingHUDless ())
@@ -2517,17 +4247,17 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
                         cegD3D11->endRendering ();
           }
         }
-
+      
         if (hdr_mode)
         {
-          if (! hudless)
+          //if (! hudless)
+          //{
             DrawSteamPopups ();
-
-          extern ID3D11ShaderResourceView*
-            SK_D3D11_GetRawHDRView ( bool capture = true );
-
-          CComPtr <ID3D11ShaderResourceView> pRawHDR =
-            SK_D3D11_GetRawHDRView (                     );
+      
+            // Last-ditch effort to get the HDR post-process done before the UI.
+            void SK_HDR_SnapshotSwapchain (void);
+                 SK_HDR_SnapshotSwapchain (    );
+          //}
         }
 
         // XXX: TODO (Full startup isn't necessary, just update framebuffer dimensions).
@@ -2537,12 +4267,12 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
                        SK_ImGui_DrawFrame (       0x00,          nullptr );
         }
 
-        if (! (hdr_mode && hudless))
+        if ((! hdr_mode) && hudless)
         {
           DrawSteamPopups ();
         }
       }
-
+      
       sb->apply (pImmediateContext);
 
 
@@ -2558,7 +4288,7 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
       {
         CComPtr <IDXGISurface> pBackBufferSurf = nullptr;
 
-        if (SUCCEEDED (This->GetBuffer (0, IID_PPV_ARGS (&pBackBufferSurf))))
+        if (SUCCEEDED (This->GetBuffer (currentBuffer, IID_PPV_ARGS (&pBackBufferSurf))))
           NvAPI_D3D_GetObjectHandleForResource (pDev, pBackBufferSurf, &rb.surface);
 
         rb.gsync_state.update ();
@@ -2570,6 +4300,268 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
   extern bool SK_DXGI_FullStateCache;
   config.render.dxgi.full_state_cache = SK_DXGI_FullStateCache;
 }
+
+
+
+void
+SK_UI_DrawD3D12 (IDXGISwapChain* This)
+{
+  dll_log.Log (L"DX12Startup");
+
+  if (ReadAcquire (&__SK_DLL_Ending) != 0)
+    return;
+
+
+  SK_RenderBackend& rb =
+    SK_GetCurrentRenderBackend ();
+
+  CComPtr <ID3D12Device> pDev = nullptr;
+
+  InterlockedIncrement (&__osd_frames_drawn);
+
+  SK_TLS* pTLS =
+    SK_TLS_Bottom ();
+
+  SK_ScopedBool auto_bool0 (&pTLS->imgui.drawing);
+  SK_ScopedBool auto_bool1 (&pTLS->texture_management.injection_thread);
+                             pTLS->imgui.drawing                       = TRUE;
+                             pTLS->texture_management.injection_thread = TRUE;
+
+
+  if (InterlockedCompareExchange (&__gui_reset, FALSE, TRUE))
+  {
+    rb.releaseOwnedResources ();
+
+    DXGI_SWAP_CHAIN_DESC desc;
+    This->GetDesc      (&desc);
+
+    SK_InstallWindowHook (desc.OutputWindow);
+
+    ResetUI_D3D12        (This);
+  }
+
+
+  else if ( rb.device != nullptr && 
+ SUCCEEDED (rb.device->QueryInterface <ID3D12Device> (&pDev)) )
+  {
+    assert (rb.device.IsEqualObject (pDev));
+
+    // If the swapchain or device changed, bail-out and wait until the next frame for
+    //   things to normalize.
+    if ((! rb.device.IsEqualObject (pDev)) || rb.swapchain == nullptr)
+    {
+      SK_LOG0 ( ( L" D3D12 Device or Primary SwapChain Changed => "
+                  L"Releasing resources..." ),
+                  L"   DXGI   " );
+    
+    
+      ResetUI_D3D12           (This);
+      SK_DXGI_UpdateSwapChain (This);
+    
+      return;
+    }
+
+    //HRESULT hr;
+
+    ///CComPtr <ID3D12Device>           pDevice           = nullptr;
+    ///
+    ///hr =
+    ///  This->GetBuffer ( 0,
+    ///                      IID_PPV_ARGS (&pBackBuffer)
+    ///                  );
+    ///
+    ///if (FAILED (hr))
+    ///{
+    ///  SK_LOG_ONCE (L"[   DXGI   ]  *** Back buffer unavailable! ***");
+    ///  return;
+    ///}
+    ///
+    /////CComQIPtr <ID3D12DeviceContext>  pImmediateContext  (rb.d3d11.immediate_ctx);
+    /////CComQIPtr <ID3D12DeviceContext1> pImmediateContext1 (pImmediateContext);
+    ///
+    ///D3D12_TEXTURE2D_DESC          tex2d_desc = { };
+    ///D3D12_RENDER_TARGET_VIEW_DESC rtdesc     = { };
+    ///
+    ///pBackBuffer->GetDesc (&tex2d_desc);
+    ///
+    ///rb.framebuffer_flags &= (~SK_FRAMEBUFFER_FLAG_FLOAT);
+    ///rb.framebuffer_flags &= (~SK_FRAMEBUFFER_FLAG_RGB10A2);
+    ///rb.framebuffer_flags &= (~SK_FRAMEBUFFER_FLAG_SRGB);
+    ///rb.framebuffer_flags &= (~SK_FRAMEBUFFER_FLAG_HDR);
+    ///
+    ///// sRGB Correction for UIs
+    ///switch (tex2d_desc.Format)
+    ///{
+    ///  case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
+    ///  case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
+    ///  {
+    ///    rtdesc.Format        = tex2d_desc.Format == DXGI_FORMAT_R8G8B8A8_UNORM_SRGB ?
+    ///                                                  DXGI_FORMAT_R8G8B8A8_UNORM :
+    ///                                                  DXGI_FORMAT_B8G8R8A8_UNORM;
+    ///
+    ///    rtdesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+    ///
+    ///    if ( FAILED ( pDev->CreateRenderTargetView    (
+    ///                    pBackBuffer,
+    ///                      &rtdesc, &pRenderTargetView )
+    ///                )
+    ///       )
+    ///    {
+    ///      hr =
+    ///        pDev->CreateRenderTargetView    (
+    ///          pBackBuffer,
+    ///            nullptr, &pRenderTargetView );
+    ///    }
+    ///
+    ///    else { hr = S_OK; }
+    ///
+    ///    rb.framebuffer_flags |= SK_FRAMEBUFFER_FLAG_SRGB;
+    ///  } break;
+    ///
+    ///  case DXGI_FORMAT_R16G16B16A16_FLOAT:
+    ///    rb.framebuffer_flags |= SK_FRAMEBUFFER_FLAG_FLOAT;
+    ///
+    ///    if (rb.isHDRCapable ())
+    ///    {
+    ///      rb.framebuffer_flags |= SK_FRAMEBUFFER_FLAG_HDR;
+    ///    }
+    ///
+    ///    hr =
+    ///      pDev->CreateRenderTargetView (
+    ///        pBackBuffer, nullptr, &pRenderTargetView
+    ///      );
+    ///    break;
+    ///
+    ///  case DXGI_FORMAT_R10G10B10A2_TYPELESS:
+    ///  case DXGI_FORMAT_R10G10B10A2_UNORM:
+    ///    rb.framebuffer_flags |=  SK_FRAMEBUFFER_FLAG_RGB10A2;
+    ///    // Deliberately fall-through to default
+    ///
+    ///  default:
+    ///  {
+    ///    hr =
+    ///      pDev->CreateRenderTargetView (
+    ///        pBackBuffer, nullptr, &pRenderTargetView
+    ///      );
+    ///  } break;
+    ///}
+    ///
+    ///DXGI_SWAP_CHAIN_DESC swapDesc = { };
+    ///     This->GetDesc (&swapDesc);
+    ///
+    ///if ( tex2d_desc.SampleDesc.Count > 1 ||
+    ///       swapDesc.SampleDesc.Count > 1 )
+    ///{
+    ///  rb.framebuffer_flags |= SK_FRAMEBUFFER_FLAG_MSAA;
+    ///}
+    ///
+    ///else
+    ///{
+    ///  rb.framebuffer_flags &= ~SK_FRAMEBUFFER_FLAG_MSAA;
+    ///}
+    ///
+    ///
+    ///if (SUCCEEDED (hr))
+    ///{
+    ///  ///// Uses TLS to reduce dynamic memory pressure as much as possible
+    ///  ///auto* sb =
+    ///  ///  pTLS->d3d12.getStateBlock ();
+    ///  ///
+    ///  ///RtlZeroMemory ( sb,
+    ///  ///                  sizeof (SK_D3D11_Stateblock_Lite) );
+    ///
+    /////sb->capture (pImmediateContext);
+    ///
+    ///  ////pImmediateContext->OMSetRenderTargets (1, &pRenderTargetView.p, nullptr);
+    ///  ////
+    ///  ////D3D11_VIEWPORT       vp              = { };
+    ///  ////D3D11_BLEND_DESC     blend           = { };
+    ///  ////D3D11_TEXTURE2D_DESC backbuffer_desc = { };
+    ///  ////
+    ///  ////pBackBuffer->GetDesc (&backbuffer_desc);
+    ///  ////
+    ///  ////blend.RenderTarget [0].BlendEnable           = TRUE;
+    ///  ////blend.RenderTarget [0].SrcBlend              = D3D11_BLEND_ONE;
+    ///  ////blend.RenderTarget [0].DestBlend             = D3D11_BLEND_INV_SRC_ALPHA;
+    ///  ////blend.RenderTarget [0].BlendOp               = D3D11_BLEND_OP_ADD;
+    ///  ////blend.RenderTarget [0].SrcBlendAlpha         = D3D11_BLEND_ONE;
+    ///  ////blend.RenderTarget [0].DestBlendAlpha        = D3D11_BLEND_INV_SRC_ALPHA;
+    ///  ////blend.RenderTarget [0].BlendOpAlpha          = D3D11_BLEND_OP_ADD;
+    ///  ////blend.RenderTarget [0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+    ///  ////
+    ///  ////if (SUCCEEDED (pDev->CreateBlendState (&blend, &pBlendState)))
+    ///  ////   pImmediateContext->OMSetBlendState (         pBlendState, nullptr, 0xffffffff);
+    ///  ////
+    ///  ////vp.Width    = static_cast <float> (backbuffer_desc.Width);
+    ///  ////vp.Height   = static_cast <float> (backbuffer_desc.Height);
+    ///  ////vp.MinDepth = 0.0f;
+    ///  ////vp.MaxDepth = 1.0f;
+    ///  ////vp.TopLeftX = 0.0f;
+    ///  ////vp.TopLeftY = 0.0f;
+    ///
+    /// //pImmediateContext->RSSetViewports (1, &vp);
+    ///  {
+    ///    bool hudless  =
+    ///      SK_Screenshot_IsCapturingHUDless (),
+    ///
+    ///         hdr_mode =
+    ///          ( rb.isHDRCapable () &&
+    ///           (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR) );
+    ///
+    ///    if (! SK_Screenshot_IsCapturingHUDless ())
+    ///    {
+    ///    }
+    ///
+    ///    if (hdr_mode)
+    ///    {
+    ///      if (! hudless)
+    ///      {
+    ///        ////// Last-ditch effort to get the HDR post-process done before the UI.
+    ///        ////void SK_HDR_SnapshotSwapchain (void);
+    ///        ////     SK_HDR_SnapshotSwapchain (    );
+    ///      }
+    ///    }
+
+        // XXX: TODO (Full startup isn't necessary, just update framebuffer dimensions).
+        if (ImGui_DX12Startup             ( This                         ))
+        {
+          extern DWORD SK_ImGui_DrawFrame ( DWORD dwFlags, void* user    );
+                       SK_ImGui_DrawFrame (       0x00,          nullptr );
+        }
+
+        ///if (! (hdr_mode && hudless))
+        ///{
+        ///  //DrawSteamPopups ();
+        ///}
+      //}
+
+    //sb->apply (pImmediateContext);
+
+
+      // Queue-up Post-SK OSD Screenshots
+    //SK_D3D12_ProcessScreenshotQueue (2);
+
+
+      //
+      // Update G-Sync; doing this here prevents trying to do this on frames where
+      //   the swapchain was resized, which would deadlock the software.
+      //
+      if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status)
+      {
+        CComPtr   <IDXGISurface>    pBackBufferSurf = nullptr;
+        CComQIPtr <IDXGISwapChain3> pSwap3 (This);
+
+                          UINT currentBuffer = 0;
+        if (pSwap3 != nullptr) currentBuffer = pSwap3->GetCurrentBackBufferIndex ();
+
+        if (SUCCEEDED (This->GetBuffer (currentBuffer, IID_PPV_ARGS (&pBackBufferSurf))))
+          NvAPI_D3D_GetObjectHandleForResource (pDev, pBackBufferSurf, &rb.surface);
+
+        rb.gsync_state.update ();
+      }
+    }
+}
+
 
 void
 SK_DXGI_BorderCompensation (UINT& x, UINT& y)
@@ -2806,20 +4798,30 @@ SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
     SK_D3D11_ProcessScreenshotQueue (1);
 
 
-    // Establish the API used this frame (and handle possible translation layers)
-    //
-    switch (SK_GetDLLRole ())
+    auto& rb =
+      SK_GetCurrentRenderBackend ();
+
+    if (rb.api != SK_RenderAPI::D3D11On12)
     {
-      case DLL_ROLE::D3D8:
-        SK_GetCurrentRenderBackend ().api = SK_RenderAPI::D3D8On11;
-        break;
-      case DLL_ROLE::DDraw:
-        SK_GetCurrentRenderBackend ().api = SK_RenderAPI::DDrawOn11;
-        break;
-      default:
-        SK_GetCurrentRenderBackend ().api = SK_RenderAPI::D3D11;
-        break;
+      // Establish the API used this frame (and handle possible translation layers)
+      //
+      switch (SK_GetDLLRole ())
+      {
+        case DLL_ROLE::D3D8:
+          SK_GetCurrentRenderBackend ().api = SK_RenderAPI::D3D8On11;
+          break;
+        case DLL_ROLE::DDraw:
+          SK_GetCurrentRenderBackend ().api = SK_RenderAPI::DDrawOn11;
+          break;
+        default:
+          SK_GetCurrentRenderBackend ().api = SK_RenderAPI::D3D11;
+          break;
+        case DLL_ROLE::D3D12:
+          SK_GetCurrentRenderBackend ().api = SK_RenderAPI::D3D12;
+          break;
+      }
     }
+
 
     SK_BeginBufferSwap ();
 
@@ -2930,9 +4932,10 @@ SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
       if ( SUCCEEDED (pDev->QueryInterface <IDXGIDevice> (&pDevDXGI)) &&
            SUCCEEDED (pDevDXGI->GetAdapter               (&pAdapter)) &&
            SUCCEEDED (pAdapter->GetParent  (IID_PPV_ARGS (&pFactory))) )
-      {
-        SK_GetCurrentRenderBackend ().device    = pDev.p;
-        SK_GetCurrentRenderBackend ().swapchain = This;
+      { 
+        if (rb.api != SK_RenderAPI::D3D11On12) rb.device = pDev.p;
+
+        rb.swapchain = This;
 
         //if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status)
         //  NvAPI_D3D_GetObjectHandleForResource (pDev, This, &SK_GetCurrentRenderBackend ().surface);
@@ -2989,7 +4992,10 @@ SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
 
     if (can_present)
     {
-      SK_CEGUI_DrawD3D11 (This);
+      if (rb.api != SK_RenderAPI::D3D12)
+        SK_CEGUI_DrawD3D11 (This);
+      else
+        SK_UI_DrawD3D12    (This);
 
       hr =
         Present1 (interval, flags, pPresentParameters);
@@ -3079,6 +5085,9 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
                          PresentSwapChain_pfn   DXGISwapChain_Present,
                          SK_DXGI_PresentSource  Source)
 {
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
   auto Present = [&](UINT                    SyncInterval,
                      UINT                    Flags) ->
   HRESULT
@@ -3107,7 +5116,8 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
     if ( (Flags & DXGI_PRESENT_TEST) && config.render.dxgi.present_test_skip )
      return S_OK;
 
-   return Present (SyncInterval, Flags);
+   return
+     Present (SyncInterval, Flags);
   }
 
   DXGI_SWAP_CHAIN_DESC desc = { };
@@ -3115,7 +5125,8 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
 
   if (! SK_DXGI_TestSwapChainCreationFlags (desc.Flags))
   {
-    return Present (SyncInterval, Flags);
+    return
+      Present (SyncInterval, Flags);
   }
 
 
@@ -3137,8 +5148,6 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
     SK_D3D11_UpdateRenderStats (This);
 ////SK_D3D12_UpdateRenderStats (This);
 
-
- 
     // Queue-up Pre-SK OSD Screenshots    
     SK_D3D11_ProcessScreenshotQueue (1);
 
@@ -3148,27 +5157,30 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
     switch (SK_GetDLLRole ())
     {
       case DLL_ROLE::D3D8:
-        SK_GetCurrentRenderBackend ().api = SK_RenderAPI::D3D8On11;
+        rb.api = SK_RenderAPI::D3D8On11;
         break;
       case DLL_ROLE::DDraw:
-        SK_GetCurrentRenderBackend ().api = SK_RenderAPI::DDrawOn11;
+        rb.api = SK_RenderAPI::DDrawOn11;
         break;
       default:
-        SK_GetCurrentRenderBackend ().api = SK_RenderAPI::D3D11;
+        rb.api = SK_RenderAPI::D3D11;
         break;
     }
 
-    SK_BeginBufferSwap ();
-
     HRESULT hr = E_FAIL;
 
-    // ReShade (official) has broken reference counting, so ...
-    //   just let a reference leak. It sucks, but people like ReShade.
-    //CComPtr <ID3D11Device> pDev = nullptr;
-    ID3D11Device* pDev = nullptr;
-    This->GetDevice (IID_PPV_ARGS (&pDev));
+    CComPtr <ID3D12Device>                       pDev12 = nullptr;
+    CComPtr <ID3D11Device>                       pDev   = nullptr;
 
-    if (pDev && first_frame)
+    This->GetDevice (IID_ID3D11Device,        (void **)&pDev.p  );
+    This->GetDevice (__uuidof (ID3D12Device), (void **)&pDev12.p);
+
+    if (pDev12.p != nullptr) rb.api = SK_RenderAPI::D3D11On12;
+
+
+    SK_BeginBufferSwap ();
+
+    if ((pDev || pDev12) && first_frame)
     {
       int hooked = 0;
 
@@ -3263,16 +5275,17 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
 #endif
 
       // TODO: Clean this code up
-      CComPtr <IDXGIDevice>  pDevDXGI = nullptr;
-      CComPtr <IDXGIAdapter> pAdapter = nullptr;
-      CComPtr <IDXGIFactory> pFactory = nullptr;
+      CComQIPtr <IDXGIDevice>  pDevDXGI = (pDev.p);
+      CComPtr   <IDXGIAdapter> pAdapter = nullptr;
+      CComPtr   <IDXGIFactory> pFactory = nullptr;
   
-      if ( SUCCEEDED (pDev->QueryInterface <IDXGIDevice> (&pDevDXGI)) &&
+      if ( pDevDXGI != nullptr                                        &&
            SUCCEEDED (pDevDXGI->GetAdapter               (&pAdapter)) &&
            SUCCEEDED (pAdapter->GetParent  (IID_PPV_ARGS (&pFactory))) )
       {
-        SK_GetCurrentRenderBackend ().device    = pDev;
-        SK_GetCurrentRenderBackend ().swapchain = This;
+        if (rb.api != SK_RenderAPI::D3D11On12) rb.device = pDev.p;
+
+        rb.swapchain = This;
   
         //if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status)
         //  NvAPI_D3D_GetObjectHandleForResource (pDev, This, &SK_GetCurrentRenderBackend ().surface);
@@ -3328,7 +5341,11 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
     {
       if (can_present)
       {
-             SK_CEGUI_DrawD3D11 (This);
+        if (rb.api != SK_RenderAPI::D3D12)
+          SK_CEGUI_DrawD3D11 (This);
+        else
+          SK_UI_DrawD3D12    (This);
+
         hr = Present            (interval, flags);
       }
   
@@ -3363,15 +5380,22 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
       {
         if (can_present)
         {
-               SK_CEGUI_DrawD3D11 (This);
+          if (rb.api != SK_RenderAPI::D3D12)
+            SK_CEGUI_DrawD3D11 (This);
+          else
+            SK_UI_DrawD3D12    (This);
+
           hr = Present            (interval, flags);
         }
       }
 
       else
       {
-        // Fallback for something that will probably only ever happen on Windows 7.
-        hr = Present (interval, Flags);
+        // Fallback for something that will probably only
+        //   ever happen on Windows 7 and Windows 7 will no doubt
+        //     do what it is supposed to do -- the wrong way.
+        hr =
+          Present (interval, Flags);
       }
     }
 
@@ -3764,6 +5788,19 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
                       Fullscreen ? L"{ Fullscreen }" :
                                    L"{ Windowed }",   (uintptr_t)pTarget );
 
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  if (rb.scanout.colorspace_override != DXGI_COLOR_SPACE_CUSTOM)
+  {
+    CComQIPtr <IDXGISwapChain3>
+        pSwap3 (This);
+    if (pSwap3 != nullptr)
+    {
+      SK_DXGI_UpdateColorSpace (pSwap3);
+    }
+  }
+
   SK_CEGUI_QueueResetD3D11 ();
 
 
@@ -4084,6 +6121,19 @@ DXGISwap_ResizeBuffers_Override ( IDXGISwapChain *This,
                              _In_ DXGI_FORMAT     NewFormat,
                              _In_ UINT            SwapChainFlags )
 {
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  if (rb.scanout.colorspace_override != DXGI_COLOR_SPACE_CUSTOM)
+  {
+    CComQIPtr <IDXGISwapChain3>
+        pSwap3 (This);
+    if (pSwap3 != nullptr)
+    {
+      SK_DXGI_UpdateColorSpace (pSwap3);
+    }
+  }
+
   //if (SK_DXGI_FilterRedundant_ResizeBuffers ( This, BufferCount, Width,
   //                                              Height, NewFormat,
   //                                                SwapChainFlags )
@@ -4194,38 +6244,8 @@ DXGISwap_ResizeBuffers_Override ( IDXGISwapChain *This,
     }
   }
 
-
-  
-  if (SK_GetCurrentGameID () == SK_GAME_ID::MonsterHunterWorld)
-  {
-    extern bool __SK_MHW_10BitSwap;
-    extern bool __SK_MHW_16BitSwap;
-    if         (__SK_MHW_10BitSwap)
-    {
-      NewFormat = DXGI_FORMAT_R10G10B10A2_UNORM;
-    }
-
-    if         (__SK_MHW_16BitSwap)
-    {
-      NewFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
-    }
-  }
-
-  else if (SK_GetCurrentGameID () == SK_GAME_ID::DragonQuestXI)
-  {
-    extern bool __SK_DQXI_10BitSwap;
-    extern bool __SK_DQXI_16BitSwap;
-    if         (__SK_DQXI_10BitSwap)
-    {
-      NewFormat = DXGI_FORMAT_R10G10B10A2_UNORM;
-    }
-
-    if         (__SK_DQXI_16BitSwap)
-    {
-      NewFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
-    }
-  }
-
+  NewFormat =
+    SK_DXGI_PickHDRFormat (NewFormat);
 
   HRESULT     ret;
   DXGI_CALL ( ret, ResizeBuffers_Original ( This, BufferCount, Width, Height,
@@ -4312,8 +6332,23 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
                       _In_ const DXGI_MODE_DESC *pNewTargetParameters )
 {
   // Can't do this if waitable
-  if (dxgi_caps.present.waitable && config.render.framerate.swapchain_wait > 0)
+  if ( dxgi_caps.present.waitable &&
+       config.render.framerate.swapchain_wait > 0 )
     return S_OK;
+
+  auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  if (rb.scanout.colorspace_override != DXGI_COLOR_SPACE_CUSTOM)
+  {
+    CComQIPtr <IDXGISwapChain3>
+        pSwap3 (This);
+    if (pSwap3 != nullptr)
+    {
+      SK_DXGI_UpdateColorSpace (pSwap3);
+    }
+  }
+
 
   {
     SK_D3D11_EndFrame        ();
@@ -4436,38 +6471,9 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
     //if (SK_GetCurrentGameID () == SK_GAME_ID::Ys_Eight)
     //  new_new_params.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
 
-
-    if (SK_GetCurrentGameID () == SK_GAME_ID::MonsterHunterWorld)
-    {
-      extern bool __SK_MHW_10BitSwap;
-      extern bool __SK_MHW_16BitSwap;
-      if         (__SK_MHW_10BitSwap)
-      {
-        pNewNewTargetParameters->Format = DXGI_FORMAT_R10G10B10A2_UNORM;
-      }
-
-      if         (__SK_MHW_16BitSwap)
-      {
-        pNewNewTargetParameters->Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-      }
-    }
-
-    else if (SK_GetCurrentGameID () == SK_GAME_ID::DragonQuestXI)
-    {
-      extern bool __SK_DQXI_10BitSwap;
-      extern bool __SK_DQXI_16BitSwap;
-      if         (__SK_DQXI_10BitSwap)
-      {
-        pNewNewTargetParameters->Format = DXGI_FORMAT_R10G10B10A2_UNORM;
-      }
-
-      if         (__SK_DQXI_16BitSwap)
-      {
-        pNewNewTargetParameters->Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-      }
-    }
-
-
+    
+    pNewNewTargetParameters->Format =
+      SK_DXGI_PickHDRFormat (pNewNewTargetParameters->Format);
 
     //SK_DXGI_ValidateSwapChainResize (This, 0, pNewNewTargetParameters->Width, pNewNewTargetParameters->Height, pNewNewTargetParameters->Format);
 
@@ -4646,7 +6652,7 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).c_str (),
             L"<Unknown>" :
             pDesc->SwapEffect   == 3 ?
               L"Flip Sequential" :
-              pDesc->SwapEffect == 4 ?
+              pDesc->SwapEffect == 4 ? 
                 L"Flip Discard" :
                 L"<Unknown>" );
 
@@ -4901,35 +6907,8 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).c_str (),
                 L" DXGI 1.2 " );
 
 
-
-    if (SK_GetCurrentGameID () == SK_GAME_ID::MonsterHunterWorld)
-    {
-      extern bool __SK_MHW_10BitSwap;
-      extern bool __SK_MHW_16BitSwap;
-      if         (__SK_MHW_10BitSwap)
-      {
-        pDesc->BufferDesc.Format = DXGI_FORMAT_R10G10B10A2_UNORM;
-      }
-      if         (__SK_MHW_16BitSwap)
-      {
-        pDesc->BufferDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-      }
-    }
-
-    else if (SK_GetCurrentGameID () == SK_GAME_ID::DragonQuestXI)
-    {
-      extern bool __SK_DQXI_10BitSwap;
-      extern bool __SK_DQXI_16BitSwap;
-      if         (__SK_DQXI_10BitSwap)
-      {
-        pDesc->BufferDesc.Format = DXGI_FORMAT_R10G10B10A2_UNORM;
-      }
-      if         (__SK_DQXI_16BitSwap)
-      {
-        pDesc->BufferDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-      }
-    }
-
+    pDesc->BufferDesc.Format =
+      SK_DXGI_PickHDRFormat (pDesc->BufferDesc.Format);
 
 
     // Clamp the buffer dimensions if the user has a min/max resolution preference
@@ -5170,7 +7149,9 @@ SK_DXGI_WrapSwapChain ( IUnknown        *pDevice,
   pSwapChain->GetDesc (&desc);
 
   CComQIPtr <ID3D11Device> pDev11 (pDevice);
-  if (pDev11 != nullptr && SK_DXGI_IsSwapChainReal (desc))
+
+  if (              pDev11 != nullptr &&
+       SK_DXGI_IsSwapChainReal (desc)    )
   {
     *ppDest =
       new IWrapDXGISwapChain ((ID3D11Device *)pDevice, pSwapChain);
@@ -5179,19 +7160,78 @@ SK_DXGI_WrapSwapChain ( IUnknown        *pDevice,
                  (uintptr_t)pSwapChain ),
                L"   DXGI   " );
 
-    return (IWrapDXGISwapChain *)*ppDest;
+    return
+      (IWrapDXGISwapChain *)*ppDest;
   }
 
   else
   {
     if (pDev11 == nullptr)
-      SK_LOG0 ( ("non-D3D11 SwapChain created"), L"   DXGI   ");
+    {
+      auto& rb =
+        SK_GetCurrentRenderBackend ();
+
+      ID3D12CommandQueue* pQueue = nullptr;
+      pDevice->QueryInterface <ID3D12CommandQueue> (&pQueue);
+
+      if (pQueue != nullptr)// && (rb.api != SK_RenderAPI::D3D11On12))
+      {
+        CComPtr <ID3D12Device> pDev12;
+
+        if (SUCCEEDED (pQueue->GetDevice (__uuidof (ID3D12Device), (void **)&pDev12)))
+        {
+
+          SK_LOG0 ( ("Game's using D3D12 -- stuff's about to get weird! [7063]"), L"   DXGI   ");
+
+          rb.api =
+            SK_RenderAPI::D3D11On12;
+
+                ID3D12CommandQueue* commandQueue     =   pQueue;
+          const ID3D12CommandQueue* commandQueues [] = { commandQueue };
+
+          if (D3D11On12CreateDevice == nullptr)
+          {
+            D3D11On12CreateDevice =
+              (D3D11On12CreateDevice_pfn)
+              SK_GetProcAddress ( L"d3d11.dll",
+                                   "D3D11On12CreateDevice" );
+          }
+
+          HRESULT hr = D3D11On12CreateDevice == nullptr ? E_NOTIMPL :
+            D3D11On12CreateDevice ( pDev12,  D3D11_CREATE_DEVICE_BGRA_SUPPORT,
+                                    nullptr, 0,
+                                 (IUnknown **)commandQueues,
+                                    _countof (commandQueues), 0,
+                             (ID3D11Device **)&rb.device.p,
+                                              &rb.d3d11.immediate_ctx.p,
+                                                nullptr );
+
+          if (SUCCEEDED (hr))
+          {
+            rb.device->QueryInterface <ID3D11On12Device> (&rb.d3d11.wrapper_dev);
+
+            *ppDest =
+              new IWrapDXGISwapChain ((ID3D11Device *)rb.device.p, pSwapChain);
+
+            dll_log.Log (L"Boom!");
+
+            return
+              (IWrapDXGISwapChain *)*ppDest;
+          }
+        }
+      }
+
+      else
+        SK_LOG0 ( ("non-D3D11/12 SwapChain created"), L"   DXGI   ");
+    }
 
     *ppDest = pSwapChain;
   }
 
   return nullptr;
 }
+
+ID3D11Texture2D* __SK_D3D11on12_WrappedBackBuffer;
 
 IWrapDXGISwapChain*
 SK_DXGI_WrapSwapChain1 ( IUnknown         *pDevice,
@@ -5217,7 +7257,63 @@ SK_DXGI_WrapSwapChain1 ( IUnknown         *pDevice,
   else
   {
     if (pDev11 == nullptr)
-      SK_LOG0 ( ("non-D3D11 SwapChain created"), L"   DXGI   ");
+    {
+      auto& rb =
+        SK_GetCurrentRenderBackend ();
+
+      ID3D12CommandQueue*                            pQueue = nullptr;
+      pDevice->QueryInterface <ID3D12CommandQueue> (&pQueue);
+
+      if (pQueue != nullptr)
+      {
+        CComPtr <ID3D12Device> pDev12;
+
+        if (SUCCEEDED (pQueue->GetDevice (__uuidof (ID3D12Device), (void **)&pDev12)))
+        {
+
+          SK_LOG0 ( ("Game's using D3D12 -- stuff's about to get weird! [7151]"), L"   DXGI   ");
+
+          rb.api =
+            SK_RenderAPI::D3D11On12;
+
+                ID3D12CommandQueue* commandQueue     =         pQueue;
+          const ID3D12CommandQueue* commandQueues [] = { commandQueue };
+
+          if (D3D11On12CreateDevice == nullptr)
+          {
+            D3D11On12CreateDevice =
+              (D3D11On12CreateDevice_pfn)
+              SK_GetProcAddress ( L"d3d11.dll",
+                                   "D3D11On12CreateDevice" );
+          }
+
+          HRESULT hr = D3D11On12CreateDevice == nullptr ? E_NOTIMPL :
+            D3D11On12CreateDevice ( pDev12,  D3D11_CREATE_DEVICE_BGRA_SUPPORT,
+                                    nullptr, 0,
+                                 (IUnknown **)commandQueues,
+                                    _countof (commandQueues), 0,
+                             (ID3D11Device **)&rb.device.p,
+                                              &rb.d3d11.immediate_ctx.p,
+                                                nullptr );
+
+          if (SUCCEEDED (hr))
+          {
+            rb.device->QueryInterface <ID3D11On12Device> (&rb.d3d11.wrapper_dev);
+
+            *ppDest =
+              new IWrapDXGISwapChain ((ID3D11Device *)rb.device.p, pSwapChain);
+
+            dll_log.Log (L"Boom2!");
+
+            return
+              (IWrapDXGISwapChain *)*ppDest;
+          }
+        }
+      }
+
+      else
+        SK_LOG0 ( ("non-D3D11/12 SwapChain created"), L"   DXGI   ");
+    }
 
     *ppDest = pSwapChain;
   }
@@ -6361,7 +8457,7 @@ dxgi_init_callback (finish_pfn finish)
   if (! SK_IsHostAppSKIM ())
   {
     SK_BootDXGI     ();
-    WaitForInitDXGI ();
+    //WaitForInitDXGI ();
   }
 
   __HrLoadAllImportsForDll ("d3dx11_43.dll");
@@ -6406,21 +8502,7 @@ SK_DXGI_HookPresentBase (IDXGISwapChain* pSwapChain)
   }
 }
 
-typedef HRESULT (WINAPI *IDXGISwapChain3_CheckColorSpaceSupport_pfn)(IDXGISwapChain3*, DXGI_COLOR_SPACE_TYPE, UINT*);
-                         IDXGISwapChain3_CheckColorSpaceSupport_pfn
-                         IDXGISwapChain3_CheckColorSpaceSupport_Original =nullptr;
-
-typedef HRESULT (WINAPI *IDXGISwapChain3_SetColorSpace1_pfn)        (IDXGISwapChain3*, DXGI_COLOR_SPACE_TYPE);
-                         IDXGISwapChain3_SetColorSpace1_pfn
-                         IDXGISwapChain3_SetColorSpace1_Original = nullptr;
-
-typedef HRESULT (WINAPI *IDXGISwapChain4_SetHDRMetaData_pfn)(IDXGISwapChain4*, DXGI_HDR_METADATA_TYPE, UINT, void*);
-                         IDXGISwapChain4_SetHDRMetaData_pfn
-                         IDXGISwapChain4_SetHDRMetaData_Original = nullptr;
-
-#include <SpecialK/render/dxgi/dxgi_hdr.h>
-
-extern SK_DXGI_HDRControl* SK_HDR_GetControl (void);
+//extern SK_DXGI_HDRControl* SK_HDR_GetControl (void);
 
 HRESULT
 WINAPI
@@ -6436,53 +8518,53 @@ IDXGISwapChain4_SetHDRMetaData ( IDXGISwapChain4*        This,
 
   rb.framebuffer_flags &= ~SK_FRAMEBUFFER_FLAG_HDR;
 
-  if (Type == DXGI_HDR_METADATA_TYPE_HDR10)
-  {
-    if (Size == sizeof (DXGI_HDR_METADATA_HDR10))
-    {
-      static DXGI_HDR_METADATA_HDR10 last_data = { };
-
-      if (pMetaData != nullptr)
-        last_data = *(DXGI_HDR_METADATA_HDR10 *)pMetaData;
-
-      DXGI_HDR_METADATA_HDR10* pData =
-        (DXGI_HDR_METADATA_HDR10 *)&last_data;
-
-      SK_DXGI_HDRControl* pHDRCtl =
-        SK_HDR_GetControl ();
-
-
-      if (! pHDRCtl->overrides.MaxContentLightLevel)
-        pHDRCtl->meta.MaxContentLightLevel = pData->MaxContentLightLevel;
-      else
-        pData->MaxContentLightLevel = pHDRCtl->meta.MaxContentLightLevel;
-
-      if (! pHDRCtl->overrides.MaxFrameAverageLightLevel)
-        pHDRCtl->meta.MaxFrameAverageLightLevel = pData->MaxFrameAverageLightLevel;
-      else
-        pData->MaxFrameAverageLightLevel = pHDRCtl->meta.MaxFrameAverageLightLevel;
-
-
-      if (! pHDRCtl->overrides.MinMaster)
-        pHDRCtl->meta.MinMasteringLuminance = pData->MinMasteringLuminance;
-      else
-        pData->MinMasteringLuminance = pHDRCtl->meta.MinMasteringLuminance;
-
-      if (! pHDRCtl->overrides.MaxMaster)
-        pHDRCtl->meta.MaxMasteringLuminance = pData->MaxMasteringLuminance;
-      else
-        pData->MaxMasteringLuminance = pHDRCtl->meta.MaxMasteringLuminance;
-
-
-      if (pMetaData == nullptr)
-          pMetaData = &last_data;
-    }
-  }
+  //////if (Type == DXGI_HDR_METADATA_TYPE_HDR10)
+  //////{
+  //////  if (Size == sizeof (DXGI_HDR_METADATA_HDR10))
+  //////  {
+  //////    static DXGI_HDR_METADATA_HDR10 last_data = { };
+  //////
+  //////    if (pMetaData != nullptr)
+  //////      last_data = *(DXGI_HDR_METADATA_HDR10 *)pMetaData;
+  //////
+  //////    DXGI_HDR_METADATA_HDR10* pData =
+  //////      (DXGI_HDR_METADATA_HDR10 *)&last_data;
+  //////
+  //////    SK_DXGI_HDRControl* pHDRCtl =
+  //////      SK_HDR_GetControl ();
+  //////
+  //////
+  //////    if (! pHDRCtl->overrides.MaxContentLightLevel)
+  //////      pHDRCtl->meta.MaxContentLightLevel = pData->MaxContentLightLevel;
+  //////    else
+  //////      pData->MaxContentLightLevel = pHDRCtl->meta.MaxContentLightLevel;
+  //////
+  //////    if (! pHDRCtl->overrides.MaxFrameAverageLightLevel)
+  //////      pHDRCtl->meta.MaxFrameAverageLightLevel = pData->MaxFrameAverageLightLevel;
+  //////    else
+  //////      pData->MaxFrameAverageLightLevel = pHDRCtl->meta.MaxFrameAverageLightLevel;
+  //////
+  //////
+  //////    if (! pHDRCtl->overrides.MinMaster)
+  //////      pHDRCtl->meta.MinMasteringLuminance = pData->MinMasteringLuminance;
+  //////    else
+  //////      pData->MinMasteringLuminance = pHDRCtl->meta.MinMasteringLuminance;
+  //////
+  //////    if (! pHDRCtl->overrides.MaxMaster)
+  //////      pHDRCtl->meta.MaxMasteringLuminance = pData->MaxMasteringLuminance;
+  //////    else
+  //////      pData->MaxMasteringLuminance = pHDRCtl->meta.MaxMasteringLuminance;
+  //////
+  //////
+  //////    if (pMetaData == nullptr)
+  //////        pMetaData = &last_data;
+  //////  }
+  //////}
 
   HRESULT hr =
     IDXGISwapChain4_SetHDRMetaData_Original (This, Type, Size, pMetaData);
 
-  SK_HDR_GetControl ()->meta._AdjustmentCount++;
+  //SK_HDR_GetControl ()->meta._AdjustmentCount++;
 
   if (FAILED (hr))
   {
@@ -6502,40 +8584,40 @@ IDXGISwapChain4_SetHDRMetaData ( IDXGISwapChain4*        This,
 }
 
 
-  auto DXGIColorSpaceToStr = [](DXGI_COLOR_SPACE_TYPE space) ->
-  const wchar_t*
+const wchar_t*
+DXGIColorSpaceToStr (DXGI_COLOR_SPACE_TYPE space)
+{
+  switch (space)
   {
-    switch (space)
-    {
-      case DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709:           return L"DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709";
-      case DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709:           return L"DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709";
-      case DXGI_COLOR_SPACE_RGB_STUDIO_G22_NONE_P709:         return L"DXGI_COLOR_SPACE_RGB_STUDIO_G22_NONE_P709";
-      case DXGI_COLOR_SPACE_RGB_STUDIO_G22_NONE_P2020:        return L"DXGI_COLOR_SPACE_RGB_STUDIO_G22_NONE_P2020";
-      case DXGI_COLOR_SPACE_RESERVED:                         return L"DXGI_COLOR_SPACE_RESERVED";
-      case DXGI_COLOR_SPACE_YCBCR_FULL_G22_NONE_P709_X601:    return L"DXGI_COLOR_SPACE_YCBCR_FULL_G22_NONE_P709_X601";
-      case DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P601:       return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P601";
-      case DXGI_COLOR_SPACE_YCBCR_FULL_G22_LEFT_P601:         return L"DXGI_COLOR_SPACE_YCBCR_FULL_G22_LEFT_P601";
-      case DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P709:       return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P709";
-      case DXGI_COLOR_SPACE_YCBCR_FULL_G22_LEFT_P709:         return L"DXGI_COLOR_SPACE_YCBCR_FULL_G22_LEFT_P709";
-      case DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P2020:      return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P2020";
-      case DXGI_COLOR_SPACE_YCBCR_FULL_G22_LEFT_P2020:        return L"DXGI_COLOR_SPACE_YCBCR_FULL_G22_LEFT_P2020";
-      case DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020:        return L"DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020";
-      case DXGI_COLOR_SPACE_YCBCR_STUDIO_G2084_LEFT_P2020:    return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_G2084_LEFT_P2020";
-      case DXGI_COLOR_SPACE_RGB_STUDIO_G2084_NONE_P2020:      return L"DXGI_COLOR_SPACE_RGB_STUDIO_G2084_NONE_P2020";
-      case DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_TOPLEFT_P2020:   return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_TOPLEFT_P2020";
-      case DXGI_COLOR_SPACE_YCBCR_STUDIO_G2084_TOPLEFT_P2020: return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_G2084_TOPLEFT_P2020";
-      case DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P2020:          return L"DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P2020";
-      case DXGI_COLOR_SPACE_YCBCR_STUDIO_GHLG_TOPLEFT_P2020:  return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_GHLG_TOPLEFT_P2020";
-      case DXGI_COLOR_SPACE_YCBCR_FULL_GHLG_TOPLEFT_P2020:    return L"DXGI_COLOR_SPACE_YCBCR_FULL_GHLG_TOPLEFT_P2020";
-      case DXGI_COLOR_SPACE_RGB_STUDIO_G24_NONE_P709:         return L"DXGI_COLOR_SPACE_RGB_STUDIO_G24_NONE_P709";
-      case DXGI_COLOR_SPACE_RGB_STUDIO_G24_NONE_P2020:        return L"DXGI_COLOR_SPACE_RGB_STUDIO_G24_NONE_P2020";
-      case DXGI_COLOR_SPACE_YCBCR_STUDIO_G24_LEFT_P709:       return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_G24_LEFT_P709";
-      case DXGI_COLOR_SPACE_YCBCR_STUDIO_G24_LEFT_P2020:      return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_G24_LEFT_P2020";
-      case DXGI_COLOR_SPACE_YCBCR_STUDIO_G24_TOPLEFT_P2020:   return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_G24_TOPLEFT_P2020";
-      case DXGI_COLOR_SPACE_CUSTOM:                           return L"DXGI_COLOR_SPACE_CUSTOM";
-                                                     default: return L"Unknown?!";
-    };
+    case DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709:           return L"DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709";
+    case DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709:           return L"DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709";
+    case DXGI_COLOR_SPACE_RGB_STUDIO_G22_NONE_P709:         return L"DXGI_COLOR_SPACE_RGB_STUDIO_G22_NONE_P709";
+    case DXGI_COLOR_SPACE_RGB_STUDIO_G22_NONE_P2020:        return L"DXGI_COLOR_SPACE_RGB_STUDIO_G22_NONE_P2020";
+    case DXGI_COLOR_SPACE_RESERVED:                         return L"DXGI_COLOR_SPACE_RESERVED";
+    case DXGI_COLOR_SPACE_YCBCR_FULL_G22_NONE_P709_X601:    return L"DXGI_COLOR_SPACE_YCBCR_FULL_G22_NONE_P709_X601";
+    case DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P601:       return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P601";
+    case DXGI_COLOR_SPACE_YCBCR_FULL_G22_LEFT_P601:         return L"DXGI_COLOR_SPACE_YCBCR_FULL_G22_LEFT_P601";
+    case DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P709:       return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P709";
+    case DXGI_COLOR_SPACE_YCBCR_FULL_G22_LEFT_P709:         return L"DXGI_COLOR_SPACE_YCBCR_FULL_G22_LEFT_P709";
+    case DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P2020:      return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P2020";
+    case DXGI_COLOR_SPACE_YCBCR_FULL_G22_LEFT_P2020:        return L"DXGI_COLOR_SPACE_YCBCR_FULL_G22_LEFT_P2020";
+    case DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020:        return L"DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020";
+    case DXGI_COLOR_SPACE_YCBCR_STUDIO_G2084_LEFT_P2020:    return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_G2084_LEFT_P2020";
+    case DXGI_COLOR_SPACE_RGB_STUDIO_G2084_NONE_P2020:      return L"DXGI_COLOR_SPACE_RGB_STUDIO_G2084_NONE_P2020";
+    case DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_TOPLEFT_P2020:   return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_TOPLEFT_P2020";
+    case DXGI_COLOR_SPACE_YCBCR_STUDIO_G2084_TOPLEFT_P2020: return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_G2084_TOPLEFT_P2020";
+    case DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P2020:          return L"DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P2020";
+    case DXGI_COLOR_SPACE_YCBCR_STUDIO_GHLG_TOPLEFT_P2020:  return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_GHLG_TOPLEFT_P2020";
+    case DXGI_COLOR_SPACE_YCBCR_FULL_GHLG_TOPLEFT_P2020:    return L"DXGI_COLOR_SPACE_YCBCR_FULL_GHLG_TOPLEFT_P2020";
+    case DXGI_COLOR_SPACE_RGB_STUDIO_G24_NONE_P709:         return L"DXGI_COLOR_SPACE_RGB_STUDIO_G24_NONE_P709";
+    case DXGI_COLOR_SPACE_RGB_STUDIO_G24_NONE_P2020:        return L"DXGI_COLOR_SPACE_RGB_STUDIO_G24_NONE_P2020";
+    case DXGI_COLOR_SPACE_YCBCR_STUDIO_G24_LEFT_P709:       return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_G24_LEFT_P709";
+    case DXGI_COLOR_SPACE_YCBCR_STUDIO_G24_LEFT_P2020:      return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_G24_LEFT_P2020";
+    case DXGI_COLOR_SPACE_YCBCR_STUDIO_G24_TOPLEFT_P2020:   return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_G24_TOPLEFT_P2020";
+    case DXGI_COLOR_SPACE_CUSTOM:                           return L"DXGI_COLOR_SPACE_CUSTOM";
+                                                   default: return L"Unknown?!";
   };
+};
 
 DXGI_COLOR_SPACE_TYPE SpoofColorSpace = DXGI_COLOR_SPACE_RESERVED;
 
@@ -6587,12 +8669,77 @@ IDXGISwapChain3_SetColorSpace1_Override         ( IDXGISwapChain3       *This,
               L"   DXGI   " );
 
   HRESULT hr =
-    IDXGISwapChain3_SetColorSpace1_Original (This, ColorSpace);
+    E_NOT_SET;
 
-  if (config.render.dxgi.spoof_hdr)
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  if ( rb.scanout.colorspace_override != DXGI_COLOR_SPACE_CUSTOM &&
+                           ColorSpace != rb.scanout.colorspace_override )
   {
-    SpoofColorSpace = ColorSpace;
-    return S_OK;
+    SK_LOG0 ((L"Overriding Original Color Space: '%s' with '%s'",
+             DXGIColorSpaceToStr (ColorSpace),
+             DXGIColorSpaceToStr ((DXGI_COLOR_SPACE_TYPE) rb.scanout.colorspace_override)),
+             L"   DXGI   ");
+
+    ColorSpace = (DXGI_COLOR_SPACE_TYPE)rb.scanout.colorspace_override;
+  }
+
+  hr =
+    IDXGISwapChain3_SetColorSpace1_Original (
+      This, ColorSpace
+    );
+
+  CComPtr   <IDXGIOutput>     pOutput = nullptr;
+  This->GetContainingOutput (&pOutput);
+  CComQIPtr <IDXGIOutput6>
+                   pOutput6 (pOutput);
+
+  if (pOutput6 != nullptr)
+  {
+    DXGI_OUTPUT_DESC1    out_desc1 = { };
+    pOutput6->GetDesc1 (&out_desc1);
+
+    ////dll_log.Log ( L"HR=%x, Containing Output \"%s\" is %s to the Desktop",
+    ////             hr, rb.display_name,
+    ////             out_desc1.AttachedToDesktop ? L"attached" :
+    ////             L"not attached" );
+
+    rb.scanout.dwm_colorspace =
+      out_desc1.ColorSpace;
+  }
+
+  if (SUCCEEDED (hr))
+  {
+    DXGI_SWAP_CHAIN_FULLSCREEN_DESC full_desc = { };
+          This->GetFullscreenDesc (&full_desc);
+
+    if (full_desc.Windowed)
+    {
+      rb.scanout.dxgi_colorspace =
+        rb.scanout.dwm_colorspace;
+    }
+
+    else
+      rb.scanout.dxgi_colorspace = ColorSpace;
+  }
+
+  else
+  {
+    if (pOutput6 != nullptr)
+    {
+      DXGI_OUTPUT_DESC1    out_desc1 = { };
+      pOutput6->GetDesc1 (&out_desc1);
+
+      dll_log.Log ( L"HR=%x, Containing Output \"%s\" is %s to the Desktop"
+                    L"\t\t[ColorSpace May be Wrong]",
+                      hr, rb.display_name,
+                      out_desc1.AttachedToDesktop ? L"attached" :
+                                                    L"not attached" );
+
+      rb.scanout.dxgi_colorspace =
+        out_desc1.ColorSpace;
+    }
   }
 
   return hr;
@@ -6656,52 +8803,51 @@ IDXGIOutput6_GetDesc1_Override ( IDXGIOutput6      *This,
     rb.display_gamut.maxLocalY = pDesc->MaxLuminance;
     rb.display_gamut.maxY      = pDesc->MaxFullFrameLuminance;
 
-    SK_DXGI_HDRControl* pHDRCtl =
-      SK_HDR_GetControl ();
-
-    if (config.render.dxgi.spoof_hdr)
-    {
-      pDesc->BitsPerColor          = 10;
-      pDesc->RedPrimary   [0]      = 0.659680f; pDesc->RedPrimary   [1] = 0.340344f;
-      pDesc->GreenPrimary [0]      = 0.244641f; pDesc->GreenPrimary [1] = 0.670422f;
-      pDesc->BluePrimary  [0]      = 0.130383f; pDesc->BluePrimary  [1] = 0.040539f;
-      pDesc->WhitePoint   [0]      = 0.313000f; pDesc->WhitePoint   [1] = 0.329602f;
-      pDesc->ColorSpace            = DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020;
-      pDesc->MinLuminance          =   1.00000f;
-      pDesc->MaxLuminance          = 300.000000f;
-      pDesc->MaxFullFrameLuminance = 250.000000f;
-
-      if (SpoofColorSpace != DXGI_COLOR_SPACE_RESERVED)
-        pDesc->ColorSpace = SpoofColorSpace;
-    }
+    ////////SK_DXGI_HDRControl* pHDRCtl =
+    ////////  SK_HDR_GetControl ();
+    ////////
+    ////////if (config.render.dxgi.spoof_hdr)
+    ////////{
+    ////////  pDesc->BitsPerColor          = 10;
+    ////////  pDesc->RedPrimary   [0]      = 0.659680f; pDesc->RedPrimary   [1] = 0.340344f;
+    ////////  pDesc->GreenPrimary [0]      = 0.244641f; pDesc->GreenPrimary [1] = 0.670422f;
+    ////////  pDesc->BluePrimary  [0]      = 0.130383f; pDesc->BluePrimary  [1] = 0.040539f;
+    ////////  pDesc->WhitePoint   [0]      = 0.313000f; pDesc->WhitePoint   [1] = 0.329602f;
+    ////////  pDesc->ColorSpace            = DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020;
+    ////////  pDesc->MinLuminance          =   1.00000f;
+    ////////  pDesc->MaxLuminance          = 300.000000f;
+    ////////  pDesc->MaxFullFrameLuminance = 250.000000f;
+    ////////
+    ////////  if (SpoofColorSpace != DXGI_COLOR_SPACE_RESERVED)
+    ////////    pDesc->ColorSpace = SpoofColorSpace;
+    ////////}
 
     if ( (pDesc->ColorSpace   == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020 ||
-          pDesc->ColorSpace   == DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709     )
-               &&
-         pDesc->BitsPerColor >= 10 )
+          pDesc->ColorSpace   == DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709     ) )
+    ///if (pDesc->ColorSpace != DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709)
     {
-      rb.hdr_capable = true;
+      rb.setHDRCapable (true);
     }
 
-    pHDRCtl->devcaps.BitsPerColor = pDesc->BitsPerColor;
-    pHDRCtl->devcaps.ColorSpace   = pDesc->ColorSpace;
-
-    pHDRCtl->devcaps.BluePrimary  [0] = pDesc->BluePrimary  [0];
-    pHDRCtl->devcaps.BluePrimary  [1] = pDesc->BluePrimary  [1];
-
-    pHDRCtl->devcaps.RedPrimary   [0] = pDesc->RedPrimary   [0];
-    pHDRCtl->devcaps.RedPrimary   [1] = pDesc->RedPrimary   [1];
-
-    pHDRCtl->devcaps.GreenPrimary [0] = pDesc->GreenPrimary [0];
-    pHDRCtl->devcaps.GreenPrimary [1] = pDesc->GreenPrimary [1];
-
-    pHDRCtl->devcaps.WhitePoint   [0] = pDesc->WhitePoint   [0];
-    pHDRCtl->devcaps.WhitePoint   [1] = pDesc->WhitePoint   [1];
-
-    pHDRCtl->devcaps.MinLuminance = pDesc->MinLuminance;
-    pHDRCtl->devcaps.MaxLuminance = pDesc->MaxLuminance;
-
-    pHDRCtl->devcaps.MaxFullFrameLuminance = pDesc->MaxFullFrameLuminance;
+    ////////pHDRCtl->devcaps.BitsPerColor = pDesc->BitsPerColor;
+    ////////pHDRCtl->devcaps.ColorSpace   = pDesc->ColorSpace;
+    ////////
+    ////////pHDRCtl->devcaps.BluePrimary  [0] = pDesc->BluePrimary  [0];
+    ////////pHDRCtl->devcaps.BluePrimary  [1] = pDesc->BluePrimary  [1];
+    ////////
+    ////////pHDRCtl->devcaps.RedPrimary   [0] = pDesc->RedPrimary   [0];
+    ////////pHDRCtl->devcaps.RedPrimary   [1] = pDesc->RedPrimary   [1];
+    ////////
+    ////////pHDRCtl->devcaps.GreenPrimary [0] = pDesc->GreenPrimary [0];
+    ////////pHDRCtl->devcaps.GreenPrimary [1] = pDesc->GreenPrimary [1];
+    ////////
+    ////////pHDRCtl->devcaps.WhitePoint   [0] = pDesc->WhitePoint   [0];
+    ////////pHDRCtl->devcaps.WhitePoint   [1] = pDesc->WhitePoint   [1];
+    ////////
+    ////////pHDRCtl->devcaps.MinLuminance = pDesc->MinLuminance;
+    ////////pHDRCtl->devcaps.MaxLuminance = pDesc->MaxLuminance;
+    ////////
+    ////////pHDRCtl->devcaps.MaxFullFrameLuminance = pDesc->MaxFullFrameLuminance;
 
     if (config.render.dxgi.spoof_hdr)
       return S_OK;
@@ -7188,6 +9334,9 @@ HookDXGI (LPVOID user)
                               SK_LoadPlugIns32 () );
     }
 
+    if (D3D11CreateDeviceAndSwapChain_Import == nullptr)
+      return 0;
+
     hr =
       D3D11CreateDeviceAndSwapChain_Import (
         nullptr,
@@ -7382,7 +9531,11 @@ SK::DXGI::Shutdown (void)
 
     SK_D3D11_PurgeHookAddressCache ();
 
-    SK_GetDLLConfig ()->write (SK_GetDLLConfig ()->get_filename ());
+    iSK_INI* ini =
+      SK_GetDLLConfig ();
+
+    if (ini != nullptr)
+      ini->write (ini->get_filename ());
   }
 
 
@@ -8135,10 +10288,13 @@ SK_DXGI_QuickHook (void)
     InterlockedIncrement (&quick_hooked);
   }
 
-  SK_D3D11_Init       ();
+  //if (GetModuleHandle (L"d3d11.dll") != nullptr)
+  //{
+  //  SK_D3D11_Init       ();
 #ifdef SK_AGGRESSIVE_HOOKS
-  SK_ApplyQueuedHooks ();
+    //SK_ApplyQueuedHooks ();
 #endif
 
-  SK_Thread_SpinUntilAtomicMin (&quick_hooked, 2);
+  //  SK_Thread_SpinUntilAtomicMin (&quick_hooked, 2);
+  //}
 }

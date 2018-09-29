@@ -23,6 +23,7 @@
 #include <imgui/backends/imgui_gl3.h>
 #include <imgui/backends/imgui_d3d9.h>
 #include <imgui/backends/imgui_d3d11.h>
+#include <imgui/backends/imgui_d3d12.h>
 
 #include <SpecialK/render/backend.h>
 
@@ -67,6 +68,7 @@
 #include <SpecialK/control_panel/osd.h>
 #include <SpecialK/control_panel/d3d9.h>
 #include <SpecialK/control_panel/d3d11.h>
+//#include <SpecialK/control_panel/d3d12.h>
 #include <SpecialK/control_panel/opengl.h>
 #include <SpecialK/control_panel/steam.h>
 #include <SpecialK/control_panel/input.h>
@@ -719,7 +721,8 @@ DisplayModeMenu (bool windowed)
   }
 
 
-  if (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D11))
+  if ( static_cast <int> (rb.api) &
+       static_cast <int> (SK_RenderAPI::D3D11) )
   {
     if (mode == DISPLAY_MODE_FULLSCREEN)
     {
@@ -1697,7 +1700,8 @@ SK_ImGui_ControlPanel (void)
     char szResolution [128] = { };
 
     bool sRGB     = rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_SRGB;
-    bool hdr_out  = rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR;
+    bool hdr_out  = rb.isHDRCapable ()  &&
+                   (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR);
     bool override = false;
 
     RECT client;
@@ -1727,7 +1731,7 @@ SK_ImGui_ControlPanel (void)
       }
     }
 
-    snprintf ( szResolution, 63, "   %lix%li", 
+    snprintf ( szResolution, 63, "   %lix%li",
                                    client.right - client.left,
                                      client.bottom - client.top );
 
@@ -1905,11 +1909,16 @@ SK_ImGui_ControlPanel (void)
     {
       ImGui::TreePush    ("");
 
+      extern bool __SK_ImGui_D3D11_DrawDeferred;
+
+      ImGui::Checkbox ( "Use D3D11 Deferred ImGui CmdList Execution",
+                          &__SK_ImGui_D3D11_DrawDeferred );
+
       if (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR)
       {
         float nits = rb.ui_luminance / 1.0_Nits;
 
-        if (ImGui::SliderFloat ("###IMGUI_LUMINANCE", &nits, 80.0f, rb.display_gamut.maxLocalY, "HDR White Luminance: %.1f Nits"))
+        if (ImGui::SliderFloat ("###IMGUI_LUMINANCE", &nits, 80.0f, rb.display_gamut.maxLocalY, u8"Paper White Luminance: %.1f cd/m²"))
         {
           rb.ui_luminance = nits * 1.0_Nits;
 
@@ -2359,10 +2368,12 @@ SK_ImGui_ControlPanel (void)
         SK_ImGui_Widgets.d3d11_pipeline->setVisible (pipeline).setActive (pipeline);
       }
 
-      SK_DXGI_HDRControl* pHDRCtl =
-        SK_HDR_GetControl ();
-
-      if (pHDRCtl->meta._AdjustmentCount > 0)
+      ////SK_DXGI_HDRControl* pHDRCtl =
+      ////  SK_HDR_GetControl ();
+      ////
+      ////if (pHDRCtl->meta._AdjustmentCount > 0)
+      ////{
+      if (rb.isHDRCapable ())
       {
         ImGui::SameLine ();
         if (ImGui::Checkbox ("HDR Display", &hdr))
@@ -2503,6 +2514,7 @@ SK_ImGui_StageNextFrame (void)
 
   bool d3d9  = false;
   bool d3d11 = false;
+  bool d3d12 = false;
   bool gl    = false;
 
   SK_RenderBackend& rb =
@@ -2525,8 +2537,15 @@ SK_ImGui_StageNextFrame (void)
   else if (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D11))
   {
     d3d11 = true;
-
+  
     ImGui_ImplDX11_NewFrame ();
+  }
+  
+  else if (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D12))
+  {
+    d3d12 = true;
+
+    ImGui_ImplDX12_NewFrame ();
   }
 
   else
@@ -2550,44 +2569,83 @@ SK_ImGui_StageNextFrame (void)
     DXGI_SWAP_CHAIN_DESC  desc = {};
     pSwapChain->GetDesc (&desc);
 
-    if (desc.BufferDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT)
+    // scRGB
+    if ( rb.isHDRCapable ()   &&
+        (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR)
+                              &&
+        desc.BufferDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT)
     {
       extern ID3D11ShaderResourceView*
         SK_D3D11_GetRawHDRView (bool capture = true);
 
-      ImTextureID pTexture =
-        static_cast <ImTextureID> (SK_D3D11_GetRawHDRView (false));
-
-      if (pTexture != 0)
+      //ImTextureID pTexture =
+      //  static_cast <ImTextureID> (SK_D3D11_GetRawHDRView (false));
+      //
+      //if (pTexture != 0)
       {
-        const ImVec2 fb_dims [] = {
-          { 0.0f,             0.0f             },
-          { io.DisplaySize.x, io.DisplaySize.y }
-        };
-
-        static bool open = true;
-
-        ImGui::PushStyleVar (ImGuiStyleVar_WindowPadding,  ImVec2 (0.0f, 0.0f));
-        ImGui::PushStyleVar (ImGuiStyleVar_WindowMinSize,  fb_dims [1]);
-        ImGui::PushStyleVar (ImGuiStyleVar_FramePadding,   ImVec2 (0.0f, 0.0f));
-        ImGui::PushStyleVar (ImGuiStyleVar_FrameRounding,  0.0f);
-        ImGui::PushStyleVar (ImGuiStyleVar_ItemSpacing,    ImVec2 (0.0f, 0.0f));
-        ImGui::PushStyleVar (ImGuiStyleVar_WindowRounding, 0.0f);
-
-        ImGui::SetNextWindowPos  (fb_dims [0], ImGuiSetCond_Always);
-        ImGui::SetNextWindowSize (fb_dims [1], ImGuiSetCond_Always);
-
-        ImGui::Begin ("##HDR_Overlay", &open, ImGuiWindowFlags_NoTitleBar            | ImGuiWindowFlags_NoInputs         |
-                                              ImGuiWindowFlags_NoScrollbar           | ImGuiWindowFlags_AlwaysAutoResize |
-                                              ImGuiWindowFlags_NoFocusOnAppearing    | ImGuiWindowFlags_NoNavFocus       |
-                                              ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavInputs);
-
-        ImGui::Image ( pTexture, fb_dims [1],
-                         ImVec2 (-2, -2),
-                         ImVec2 ( 2,  2) ); // Will be saturated
-        ImGui::End ();
-
-        ImGui::PopStyleVar (6);
+        ////const ImVec2 fb_dims [] = {
+        ////  { 0.0f,             0.0f             },
+        ////  { io.DisplaySize.x, io.DisplaySize.y }
+        ////};
+        ////
+        ////static bool open = true;
+        ////
+        ////ImGui::PushStyleVar (ImGuiStyleVar_WindowPadding,  ImVec2 (0.0f, 0.0f));
+        ////ImGui::PushStyleVar (ImGuiStyleVar_WindowMinSize,  fb_dims [1]);
+        ////ImGui::PushStyleVar (ImGuiStyleVar_FramePadding,   ImVec2 (0.0f, 0.0f));
+        ////ImGui::PushStyleVar (ImGuiStyleVar_FrameRounding,  0.0f);
+        ////ImGui::PushStyleVar (ImGuiStyleVar_ItemSpacing,    ImVec2 (0.0f, 0.0f));
+        ////ImGui::PushStyleVar (ImGuiStyleVar_WindowRounding, 0.0f);
+        ////
+        ////ImGui::SetNextWindowPos  (fb_dims [0], ImGuiSetCond_Always);
+        ////ImGui::SetNextWindowSize (fb_dims [1], ImGuiSetCond_Always);
+        ////
+        ////ImGui::Begin ("##HDR_Overlay", &open, ImGuiWindowFlags_NoTitleBar            | ImGuiWindowFlags_NoInputs         |
+        ////                                      ImGuiWindowFlags_NoScrollbar           | ImGuiWindowFlags_AlwaysAutoResize |
+        ////                                      ImGuiWindowFlags_NoFocusOnAppearing    | ImGuiWindowFlags_NoNavFocus       |
+        ////                                      ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavInputs);
+        ////
+        ////ImGui::Image ( pTexture, fb_dims [1],
+        ////                 ImVec2 (-2, -2),
+        ////                 ImVec2 ( 2,  2) ); // Will be saturated
+        ////ImGui::End ();
+        ////
+        ////ImGui::PopStyleVar (6);
+        ////
+        ////
+        ////
+        ////extern ID3D11ShaderResourceView*
+        ////SK_D3D11_GetHDRHUDTexture (void);
+        ////
+        ////ImTextureID pHUDTexture =
+        ////  static_cast <ImTextureID> (SK_D3D11_GetHDRHUDTexture ());
+        ////
+        ////if (pHUDTexture != 0)
+        ////{
+        ////  static bool open = true;
+        ////
+        ////  ImGui::PushStyleVar (ImGuiStyleVar_WindowPadding,  ImVec2 (0.0f, 0.0f));
+        ////  ImGui::PushStyleVar (ImGuiStyleVar_WindowMinSize,  fb_dims [1]);
+        ////  ImGui::PushStyleVar (ImGuiStyleVar_FramePadding,   ImVec2 (0.0f, 0.0f));
+        ////  ImGui::PushStyleVar (ImGuiStyleVar_FrameRounding,  0.0f);
+        ////  ImGui::PushStyleVar (ImGuiStyleVar_ItemSpacing,    ImVec2 (0.0f, 0.0f));
+        ////  ImGui::PushStyleVar (ImGuiStyleVar_WindowRounding, 0.0f);
+        ////
+        ////  ImGui::SetNextWindowPos  (fb_dims [0], ImGuiSetCond_Always);
+        ////  ImGui::SetNextWindowSize (fb_dims [1], ImGuiSetCond_Always);
+        ////
+        ////  ImGui::Begin ("##HDR_HUD_Overlay", &open, ImGuiWindowFlags_NoTitleBar            | ImGuiWindowFlags_NoInputs         |
+        ////                                            ImGuiWindowFlags_NoScrollbar           | ImGuiWindowFlags_AlwaysAutoResize |
+        ////                                            ImGuiWindowFlags_NoFocusOnAppearing    | ImGuiWindowFlags_NoNavFocus       |
+        ////                                            ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavInputs);
+        ////
+        ////  ImGui::Image ( pHUDTexture, fb_dims [1],
+        ////                   ImVec2 (-2, -2),
+        ////                   ImVec2 ( 2,  2) ); // Will be saturated
+        ////  ImGui::End ();
+        ////
+        ////  ImGui::PopStyleVar (6);
+        ////}
       }
     }
   }
@@ -3007,6 +3065,7 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
 
   bool d3d9  = false;
   bool d3d11 = false;
+  bool d3d12 = false;
   bool gl    = false;
 
   SK_RenderBackend& rb =
@@ -3040,6 +3099,13 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
   else if (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D11))
   {
     d3d11 = true;
+
+    ImGui::Render ();
+  }
+
+  else if (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D12))
+  {
+    d3d12 = true;
 
     ImGui::Render ();
   }
@@ -3100,6 +3166,7 @@ SK_ImGui_Toggle (void)
   static DWORD dwLastTime   = 0x00;
 
   bool d3d11 = false;
+  bool d3d12 = false;
   bool d3d9  = false;
   bool gl    = false;
 
@@ -3131,7 +3198,7 @@ SK_ImGui_Toggle (void)
     return false;
   };
 
-  if (d3d9 || d3d11 || gl)
+  if (d3d9 || d3d11 || d3d12 || gl)
   {
     if (SK_ImGui_Active ())
       SK_GetKeyboardState (__imgui_keybd_state);

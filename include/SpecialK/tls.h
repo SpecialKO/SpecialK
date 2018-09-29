@@ -39,6 +39,8 @@ struct ID3D11RasterizerState;
 struct ID3D11DepthStencilState;
 struct ID3D11DepthStencilView;
 struct ID3D11ShaderResourceView;
+struct ID3D11RenderTargetView;
+struct ID3D11BlendState;
 
 #ifndef _D3D11_CONSTANTS
 #define	D3D11_COMMONSHADER_CONSTANT_BUFFER_HW_SLOT_COUNT	( 15 )
@@ -359,6 +361,12 @@ public:
   ID3D11DepthStencilState* pDepthStencilStateOrig  = nullptr;
   ID3D11DepthStencilState* pDepthStencilStateNew   = nullptr;
   ID3D11DepthStencilView*  pDSVOrig                = nullptr;
+
+  ID3D11RenderTargetView*  pRTVOrig                = nullptr;
+
+  ID3D11BlendState*        pOrigBlendState         = nullptr;
+  UINT                     uiOrigBlendMask         = 0x0;
+  FLOAT                    fOrigBlendFactors [4]   = { 0.0f, 0.0f, 0.0f, 0.0f };
 
   UINT                     StencilRefOrig          = 0;
   UINT                     StencilRefNew           = 0;

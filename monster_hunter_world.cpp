@@ -130,7 +130,7 @@ sk::ParameterFloat* _SK_MHW_scRGBLuminance;
 float __SK_MHW_HDR_Luma = 172.0_Nits;
 
 sk::ParameterFloat* _SK_MHW_scRGBGamma;
-float __SK_MHW_HDR_Exp  = 2.116f;
+float __SK_MHW_HDR_Exp  = 1.0f;
 
 sk::ParameterBool* _SK_MHW_KillAntiDebug;
 bool __SK_MHW_KillAntiDebug  = true;
@@ -241,6 +241,13 @@ SK_MHW_PlugInInit (void)
                                  L"KillAntiDebugCode",    __SK_MHW_KillAntiDebug,
                                                           L"Anti-Debug Kill Switch",
                                  SK_MHW_CPU_SECTION_OLD );
+
+
+  if (__SK_MHW_16BitSwap)
+  {
+    SK_GetCurrentRenderBackend ().scanout.colorspace_override =
+      DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709;
+  }
 
 
   iSK_INI* pINI =
@@ -598,7 +605,7 @@ SK_MHW_PlugInCfg (void)
 
                 ImGui::SameLine ();
 
-                if (ImGui::SliderFloat ("SDR -> HDR Gamma", &__SK_MHW_HDR_Exp, 1.6f, 2.9f))
+                if (ImGui::SliderFloat ("SDR -> HDR Gamma", &__SK_MHW_HDR_Exp, 1.0f, 2.5f))
                 {
                   _SK_MHW_scRGBGamma->store (__SK_MHW_HDR_Exp);
                   pINI->write (pINI->get_filename ());

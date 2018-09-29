@@ -25,6 +25,7 @@
 #include <SpecialK/hooks.h>
 #include <SpecialK/window.h>
 #include <SpecialK/utility.h>
+#include <SpecialK/widgets/widget.h>
 
 #include <SpecialK/diagnostics/modules.h>
 #include <SpecialK/diagnostics/load_library.h>
@@ -51,6 +52,7 @@
 
 #include <SpecialK/render/backend.h>
 #include <SpecialK/render/dxgi/dxgi_backend.h>
+#include <SpecialK/render/dxgi/dxgi_swapchain.h>
 #include <SpecialK/render/d3d9/d3d9_backend.h>
 #include <SpecialK/render/gl/opengl_backend.h>
 #include <SpecialK/render/vk/vulkan_backend.h>
@@ -1362,7 +1364,7 @@ SK_GetDebugSymbolPath (void)
 
 
     std::wstring symbol_file =
-      SK_GetModuleName (SK_Modules.Self ());
+      SK_GetModuleFullName (SK_Modules.Self ());
 
     wchar_t wszSelfName [MAX_PATH * 2 + 1] = { };
     wcsncpy_s ( wszSelfName,           MAX_PATH * 2,
@@ -1456,6 +1458,11 @@ SK_GetDebugSymbolPath (void)
       crash_log.Log ( L"Unable to load Special K Debug Symbols ('%ws'), crash log will not be accurate.",
                                  stripped.c_str () );
     }
+
+    wcsncpy_s ( wszDbgSymbols,        MAX_PATH * 15,
+                symbol_file.c_str (), _TRUNCATE );
+
+    PathRemoveFileSpec (wszDbgSymbols);
 
     InterlockedIncrement (&__init);
   }
@@ -2064,9 +2071,6 @@ BACKEND_INIT:
 
       case SK_GAME_ID::DragonQuestXI:
         extern void
-          SK_SM_PlugInInit (void);
-          SK_SM_PlugInInit (    );
-        extern void
           SK_DQXI_PlugInInit (void);
           SK_DQXI_PlugInInit (    );
         break;
@@ -2077,6 +2081,8 @@ BACKEND_INIT:
         SK_SM_PlugInInit (    );
         break;
     }
+
+    SK_ImGui_Widgets.hdr_control->run ();
 
     bool gl   = false, vulkan = false, d3d9  = false, d3d11 = false,
          dxgi = false, d3d8   = false, ddraw = false, glide = false;
@@ -2877,16 +2883,19 @@ SK_BeginBufferSwap (void)
   rb.present_staging.begin_cegui.time =
     SK_QueryPerf ();
 
-  if (config.cegui.enable)
+  if (rb.api != SK_RenderAPI::D3D12)
   {
-    SetupCEGUI (LastKnownAPI);
-
-    if (config.cegui.frames_drawn > 0)
+    if (config.cegui.enable)
     {
-      if (! SK::SteamAPI::GetOverlayState (true))
+      SetupCEGUI (LastKnownAPI);
+
+      if (config.cegui.frames_drawn > 0)
       {
-        SK_DrawOSD     ();
-        SK_DrawConsole ();
+        if (! SK::SteamAPI::GetOverlayState (true))
+        {
+          SK_DrawOSD     ();
+          SK_DrawConsole ();
+        }
       }
     }
   }
@@ -3056,6 +3065,7 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
     CComPtr <IDirect3DDevice9>   pDev9   = nullptr;
     CComPtr <IDirect3DDevice9Ex> pDev9Ex = nullptr;
     CComPtr <ID3D11Device>       pDev11  = nullptr;
+    CComPtr <ID3D12Device>       pDev12  = nullptr;
 
     if (SUCCEEDED (device->QueryInterface <IDirect3DDevice9Ex> (&pDev9Ex)))
     {
@@ -3070,6 +3080,12 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
     {
                rb.api  = SK_RenderAPI::D3D9;
       wcsncpy (rb.name, L"D3D9  ", 8);
+    }
+
+    else if (SUCCEEDED (device->QueryInterface <ID3D12Device> (&pDev12)))
+    {
+      rb.api  = SK_RenderAPI::D3D12;
+      wcsncpy (rb.name, L"D3D12 ", 8);
     }
 
     else if (SUCCEEDED (device->QueryInterface <ID3D11Device> (&pDev11)))
@@ -3091,7 +3107,7 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
 
       CComPtr <IUnknown> pTest = nullptr;
 
-      if (SUCCEEDED (       device->QueryInterface (IID_ID3D11Device5, (void **)&pTest))) {
+      if (       SUCCEEDED (device->QueryInterface (IID_ID3D11Device5, (void **)&pTest))) {
         wcsncpy (rb.name, L"D3D11.4", 8); // Creators Update
       } else if (SUCCEEDED (device->QueryInterface (IID_ID3D11Device4, (void **)&pTest))) {
         wcsncpy (rb.name, L"D3D11.4", 8);
@@ -3153,6 +3169,29 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
     // Also clear any resources we were tracking for the shader mod subsystem
     extern void SK_D3D11_EndFrame (SK_TLS* pTLS = SK_TLS_Bottom ());
                 SK_D3D11_EndFrame (pTLS);
+  }
+
+  if ( static_cast <int> (rb.api)  &
+       static_cast <int> (SK_RenderAPI::D3D12) )
+  {
+        BOOL fullscreen = FALSE;
+
+    CComPtr                          <IDXGISwapChain>   pSwapChain = nullptr;
+    if (rb.swapchain)
+        rb.swapchain->QueryInterface <IDXGISwapChain> (&pSwapChain);
+
+    if ( pSwapChain &&
+           SUCCEEDED (pSwapChain->GetFullscreenState (&fullscreen, nullptr)) )
+    {
+      rb.fullscreen_exclusive =               fullscreen;
+    }
+
+    else
+      rb.fullscreen_exclusive = false;
+
+    // Also clear any resources we were tracking for the shader mod subsystem
+    extern void SK_D3D12_EndFrame (SK_TLS* pTLS = SK_TLS_Bottom ());
+                SK_D3D12_EndFrame (pTLS);
   }
 
 

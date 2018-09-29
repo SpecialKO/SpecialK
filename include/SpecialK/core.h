@@ -46,6 +46,7 @@ enum DLL_ROLE
   Vulkan     = 0x008,
   D3D11      = 0x010, // Explicitly d3d11.dll
   D3D11_CASE = 0x011, // For use in switch statements
+  D3D12      = 0x020, // Explicitly d3d12.dll
 
   DInput8    = 0x100,
 

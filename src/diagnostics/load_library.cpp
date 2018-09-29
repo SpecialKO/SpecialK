@@ -250,7 +250,8 @@ SK_LoadLibrary_IsPinnable (const _T* pStr)
     SK_TEXT ("d3dcompiler_"),
 
 
-    SK_TEXT ("imagehlp"), SK_TEXT ("version.dll")
+    SK_TEXT ("imagehlp"), SK_TEXT ("version.dll"),
+    SK_TEXT ("dbghelp")
   };
 
   for (auto it : pinnable_libs)
@@ -1514,7 +1515,7 @@ SK_PrintUnloadedDLLs (iSK_Logger* pLogger)
   );
 
   static HMODULE hModNtDLL =
-    SK_Modules.LoadLibraryLL (L"ntdll.dll");
+    GetModuleHandleW (L"NtDll.dll");//SK_Modules.LoadLibraryLL (L"ntdll.dll");
 
   static auto RtlGetUnloadEventTraceEx =
     reinterpret_cast <RtlGetUnloadEventTraceEx_pfn> (
@@ -1723,6 +1724,12 @@ void
 __stdcall
 SK_PreInitLoadLibrary (void) 
 {
+  HMODULE SK_Debug_LoadHelper (void);
+          SK_Debug_LoadHelper (    );
+
+  void SK_SymSetOpts (void);
+       SK_SymSetOpts (    );
+
   FreeLibrary_Original         = &FreeLibrary;
   LoadLibraryA_Original        = &LoadLibraryA;
   LoadLibraryW_Original        = &LoadLibraryW;

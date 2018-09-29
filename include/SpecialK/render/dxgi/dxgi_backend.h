@@ -475,8 +475,13 @@ public:
                          _In_opt_ HMODULE               hModCaller = (HMODULE)(intptr_t)-1,
                          _In_opt_ SK_TLS               *pTLS       = SK_TLS_Bottom () );
 
-  void             reset         (void);
-  bool             purgeTextures (size_t size_to_free, int* pCount, size_t* pFreed);
+  // Some texture upload paths (i.e. CopyResource or UpdateSubresoure)
+  //   result in cache hits where no new object is created; call this to
+  //     indicate a cache hit, but leave the reference count alone.
+  LONG            recordCacheHit ( ID3D11Texture2D      *pTex );
+
+  void           reset           (void);
+  bool           purgeTextures   (size_t size_to_free, int* pCount, size_t* pFreed);
 
   struct tex2D_descriptor_s {
     volatile LONG         hits       = 0L;
@@ -1127,6 +1132,7 @@ struct SK_D3D11_KnownShaders
 
     std::unordered_set <uint32_t>                        on_top;
     std::unordered_set <uint32_t>                        rewind;
+    std::unordered_set <uint32_t>                        hud;
 
     std::unordered_map <uint32_t, std::wstring>          names;
 
@@ -1408,6 +1414,11 @@ void  __stdcall SK_D3D11_UpdateRenderStats  (IDXGISwapChain*      pSwapChain);
 
 BOOL SK_DXGI_SupportsTearing  (void);
 void SK_CEGUI_QueueResetD3D11 (void);
+
+
+
+void SK_D3D11_AssociateVShaderWithHUD (uint32_t crc32, bool set = true);
+void SK_D3D11_AssociatePShaderWithHUD (uint32_t crc32, bool set = true);
 
 DWORD
 __stdcall

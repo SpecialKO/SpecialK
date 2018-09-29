@@ -214,6 +214,9 @@
     <Filter Include="Source Files\Backends\Input\XInput\WinMM">
       <UniqueIdentifier>{1a89460b-1056-41e2-8e1b-7ec8c75ae883}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Backends\Render\HDR">
+      <UniqueIdentifier>{e6230cbd-a442-439f-bce0-e5ce28092c92}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="depends\DirectXTex\DDS.h">
@@ -633,6 +636,9 @@
     <ClInclude Include="include\SpecialK\com_util.h">
       <Filter>Header Files\Utility</Filter>
     </ClInclude>
+    <ClInclude Include="include\imgui\backends\imgui_d3d12.h">
+      <Filter>Header Files\ImGui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core.cpp">
@@ -896,9 +902,6 @@
     <ClCompile Include="src\render\d3d9\d3d9_device.cpp">
       <Filter>Source Files\Backends\Render\D3D9</Filter>
     </ClCompile>
-    <ClCompile Include="src\render\dxgi\dxgi_swapchain.cpp">
-      <Filter>Source Files\Backends\Render\DXGI</Filter>
-    </ClCompile>
     <ClCompile Include="src\steam\ugc.cpp">
       <Filter>Source Files\Steam\Wrapper</Filter>
     </ClCompile>
@@ -986,8 +989,14 @@
     <ClCompile Include="src\window.cpp">
       <Filter>Source Files\Core</Filter>
     </ClCompile>
-    <ClCompile Include="PlugIns\dragon_quest_xi.cpp">
+    <ClCompile Include="src\imgui\backends\imgui_d3d12.cpp">
+      <Filter>Source Files\ImGui\Backends</Filter>
+    </ClCompile>
+    <ClCompile Include="src\plugins\dragon_quest_xi.cpp">
       <Filter>Source Files\Plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\dxgi\dxgi_swapchain.cpp">
+      <Filter>Source Files\Backends\Render\DXGI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

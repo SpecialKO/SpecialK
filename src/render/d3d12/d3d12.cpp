@@ -44,19 +44,13 @@ D3D12CreateDevice_pfn D3D12CreateDevice_Import = nullptr;
 
 HMODULE               SK::DXGI::hModD3D12      = nullptr;
 
-IUnknown*             g_pD3D12Dev              = nullptr;
-
-volatile
-LONG                  __d3d12_hooked           = FALSE;
-volatile
-LONG                  __d3d12_ready            = FALSE;
+volatile LONG         __d3d12_hooked           = FALSE;
+volatile LONG         __d3d12_ready            = FALSE;
 
 void
 WaitForInitD3D12 (void)
 {
-  return;
-
-//SK_Thread_SpinUntilFlagged (&__d3d12_ready);
+  SK_Thread_SpinUntilFlagged (&__d3d12_ready);
 }
 
 namespace SK
@@ -126,8 +120,8 @@ D3D12CreateDevice_Detour (
 
     if ( ppDevice != nullptr )
     {
-      if ( *ppDevice != g_pD3D12Dev )
-      {
+      //if ( *ppDevice != g_pD3D12Dev )
+      //{
         // TODO: This isn't the right way to get the feature level
         dll_log.Log ( L"[  D3D 12  ] >> Device = %ph (Feature Level:%s)",
                         *ppDevice,
@@ -136,9 +130,9 @@ D3D12CreateDevice_Detour (
                                                      ).c_str ()
                     );
 
-        g_pD3D12Dev =
-          (IUnknown *)*ppDevice;
-      }
+        //g_pD3D12Dev =
+        //  (IUnknown *)*ppDevice;
+      //}
     }
   }
 
@@ -166,6 +160,8 @@ SK_D3D12_Init (void)
                             &pfnD3D12CreateDevice )
        )
     {
+      InterlockedIncrement (&__d3d12_ready);
+
       return true;
     }
   }
@@ -187,6 +183,8 @@ SK_D3D12_EnableHooks (void)
 {
   if (pfnD3D12CreateDevice != nullptr)
     SK_EnableHook (pfnD3D12CreateDevice);
+
+  InterlockedIncrement (&__d3d12_hooked);
 }
 
 unsigned int
@@ -197,7 +195,6 @@ HookD3D12 (LPVOID user)
 #ifndef _WIN64
   return 0;
 #else
-  config.apis.dxgi.d3d12.hook = false;
 
   if (! config.apis.dxgi.d3d12.hook)
     return 0;
@@ -288,7 +285,7 @@ HookD3D12 (LPVOID user)
 
   else {
     // Disable this on future runs, because the DLL is not present
-    config.apis.dxgi.d3d12.hook = false;
+    //config.apis.dxgi.d3d12.hook = false;
   }
 
   return 0;

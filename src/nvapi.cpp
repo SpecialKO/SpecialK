@@ -383,8 +383,8 @@ NvAPI_Disp_GetHdrCapabilities_Override ( NvU32                displayId,
   NvAPI_Status ret =
     NvAPI_Disp_GetHdrCapabilities_Original ( displayId, pHdrCapabilities );
 
-  SK_DXGI_HDRControl* pHDRCtl =
-    SK_HDR_GetControl ();
+  ////SK_DXGI_HDRControl* pHDRCtl =
+  ////  SK_HDR_GetControl ();
 
 
     dll_log.LogEx ( true,
@@ -418,22 +418,22 @@ NvAPI_Disp_GetHdrCapabilities_Override ( NvU32                displayId,
   if (ret == NVAPI_OK)
   {
   //pHDRCtl->devcaps.BitsPerColor          = 10;
-    pHDRCtl->devcaps.RedPrimary   [0]      = ((float)pHdrCapabilities->display_data.displayPrimary_x0) / (float)0xC350;
-    pHDRCtl->devcaps.RedPrimary   [1]      = ((float)pHdrCapabilities->display_data.displayPrimary_y0) / (float)0xC350;
-
-    pHDRCtl->devcaps.GreenPrimary [0]      = ((float)pHdrCapabilities->display_data.displayPrimary_x1) / (float)0xC350;
-    pHDRCtl->devcaps.GreenPrimary [1]      = ((float)pHdrCapabilities->display_data.displayPrimary_y1) / (float)0xC350;
-
-    pHDRCtl->devcaps.BluePrimary  [0]      = ((float)pHdrCapabilities->display_data.displayPrimary_x2) / (float)0xC350;
-    pHDRCtl->devcaps.BluePrimary  [1]      = ((float)pHdrCapabilities->display_data.displayPrimary_y2) / (float)0xC350;
-
-    pHDRCtl->devcaps.WhitePoint   [0]      = ((float)pHdrCapabilities->display_data.displayWhitePoint_x) / (float)0xC350;
-    pHDRCtl->devcaps.WhitePoint   [1]      = ((float)pHdrCapabilities->display_data.displayWhitePoint_y) / (float)0xC350;
-
-  //pHDRCtl->devcaps.ColorSpace            = DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020;
-    pHDRCtl->devcaps.MinLuminance          = (float)pHdrCapabilities->display_data.desired_content_min_luminance;
-    pHDRCtl->devcaps.MaxLuminance          = (float)pHdrCapabilities->display_data.desired_content_max_luminance;
-    pHDRCtl->devcaps.MaxFullFrameLuminance = (float)pHdrCapabilities->display_data.desired_content_max_frame_average_luminance;
+    //pHDRCtl->devcaps.RedPrimary   [0]      = ((float)pHdrCapabilities->display_data.displayPrimary_x0) / (float)0xC350;
+    //pHDRCtl->devcaps.RedPrimary   [1]      = ((float)pHdrCapabilities->display_data.displayPrimary_y0) / (float)0xC350;
+    //
+    //pHDRCtl->devcaps.GreenPrimary [0]      = ((float)pHdrCapabilities->display_data.displayPrimary_x1) / (float)0xC350;
+    //pHDRCtl->devcaps.GreenPrimary [1]      = ((float)pHdrCapabilities->display_data.displayPrimary_y1) / (float)0xC350;
+    //
+    //pHDRCtl->devcaps.BluePrimary  [0]      = ((float)pHdrCapabilities->display_data.displayPrimary_x2) / (float)0xC350;
+    //pHDRCtl->devcaps.BluePrimary  [1]      = ((float)pHdrCapabilities->display_data.displayPrimary_y2) / (float)0xC350;
+    //
+    //pHDRCtl->devcaps.WhitePoint   [0]      = ((float)pHdrCapabilities->display_data.displayWhitePoint_x) / (float)0xC350;
+    //pHDRCtl->devcaps.WhitePoint   [1]      = ((float)pHdrCapabilities->display_data.displayWhitePoint_y) / (float)0xC350;
+    //
+  ////pHDRCtl->devcaps.ColorSpace            = DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020;
+    //pHDRCtl->devcaps.MinLuminance          = (float)pHdrCapabilities->display_data.desired_content_min_luminance;
+    //pHDRCtl->devcaps.MaxLuminance          = (float)pHdrCapabilities->display_data.desired_content_max_luminance;
+    //pHDRCtl->devcaps.MaxFullFrameLuminance = (float)pHdrCapabilities->display_data.desired_content_max_frame_average_luminance;
   }
 
   return ret;
@@ -468,8 +468,8 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
                                        HDRModeToStr (pHdrColorData->hdrMode) ),
               __SK_SUBSYSTEM__ );
 
-  SK_DXGI_HDRControl* pHDRCtl =
-    SK_HDR_GetControl ();
+  //SK_DXGI_HDRControl* pHDRCtl =
+  //  SK_HDR_GetControl ();
 
 
   if (pHdrColorData->cmd == NV_HDR_CMD_SET)
@@ -483,55 +483,55 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
       rb.framebuffer_flags &= ~SK_FRAMEBUFFER_FLAG_HDR;
 
 
-    if (! pHDRCtl->overrides.MaxContentLightLevel)
-      pHDRCtl->meta.MaxContentLightLevel                            = pHdrColorData->mastering_display_data.max_content_light_level;
-    else
-      pHdrColorData->mastering_display_data.max_content_light_level = pHDRCtl->meta.MaxContentLightLevel;
-
-    if (! pHDRCtl->overrides.MaxFrameAverageLightLevel)
-      pHDRCtl->meta.MaxFrameAverageLightLevel                             = pHdrColorData->mastering_display_data.max_frame_average_light_level;
-    else
-      pHdrColorData->mastering_display_data.max_frame_average_light_level = pHDRCtl->meta.MaxFrameAverageLightLevel;
-
-
-    if (! pHDRCtl->overrides.MinMaster)
-      pHDRCtl->meta.MinMasteringLuminance = pHdrColorData->mastering_display_data.min_display_mastering_luminance;
-    else
-      pHdrColorData->mastering_display_data.min_display_mastering_luminance = (NvU16)pHDRCtl->meta.MinMasteringLuminance;
-
-    if (! pHDRCtl->overrides.MaxMaster)
-      pHDRCtl->meta.MaxMasteringLuminance = pHdrColorData->mastering_display_data.max_display_mastering_luminance;
-    else
-      pHdrColorData->mastering_display_data.max_display_mastering_luminance = (NvU16)pHDRCtl->meta.MaxMasteringLuminance;
+    ////if (! pHDRCtl->overrides.MaxContentLightLevel)
+    ////  pHDRCtl->meta.MaxContentLightLevel                            = pHdrColorData->mastering_display_data.max_content_light_level;
+    ////else
+    ////  pHdrColorData->mastering_display_data.max_content_light_level = pHDRCtl->meta.MaxContentLightLevel;
+    ////
+    ////if (! pHDRCtl->overrides.MaxFrameAverageLightLevel)
+    ////  pHDRCtl->meta.MaxFrameAverageLightLevel                             = pHdrColorData->mastering_display_data.max_frame_average_light_level;
+    ////else
+    ////  pHdrColorData->mastering_display_data.max_frame_average_light_level = pHDRCtl->meta.MaxFrameAverageLightLevel;
+    ////
+    ////
+    ////if (! pHDRCtl->overrides.MinMaster)
+    ////  pHDRCtl->meta.MinMasteringLuminance = pHdrColorData->mastering_display_data.min_display_mastering_luminance;
+    ////else
+    ////  pHdrColorData->mastering_display_data.min_display_mastering_luminance = (NvU16)pHDRCtl->meta.MinMasteringLuminance;
+    ////
+    ////if (! pHDRCtl->overrides.MaxMaster)
+    ////  pHDRCtl->meta.MaxMasteringLuminance = pHdrColorData->mastering_display_data.max_display_mastering_luminance;
+    ////else
+    ////  pHdrColorData->mastering_display_data.max_display_mastering_luminance = (NvU16)pHDRCtl->meta.MaxMasteringLuminance;
   }
 
 
   if (pHdrColorData->cmd == NV_HDR_CMD_GET)
   {
-    if ((! pHDRCtl->overrides.MaxContentLightLevel) && (! config.render.dxgi.spoof_hdr))
-      pHDRCtl->meta.MaxContentLightLevel                            = pHdrColorData->mastering_display_data.max_content_light_level;
-    else
-      pHdrColorData->mastering_display_data.max_content_light_level = pHDRCtl->meta.MaxContentLightLevel;
+    ////if ((! pHDRCtl->overrides.MaxContentLightLevel) && (! config.render.dxgi.spoof_hdr))
+    ////  pHDRCtl->meta.MaxContentLightLevel                            = pHdrColorData->mastering_display_data.max_content_light_level;
+    ////else
+    ////  pHdrColorData->mastering_display_data.max_content_light_level = pHDRCtl->meta.MaxContentLightLevel;
+    ////
+    ////if ((! pHDRCtl->overrides.MaxFrameAverageLightLevel) && (! config.render.dxgi.spoof_hdr))
+    ////  pHDRCtl->meta.MaxFrameAverageLightLevel                             = pHdrColorData->mastering_display_data.max_frame_average_light_level;
+    ////else
+    ////  pHdrColorData->mastering_display_data.max_frame_average_light_level = pHDRCtl->meta.MaxFrameAverageLightLevel;
 
-    if ((! pHDRCtl->overrides.MaxFrameAverageLightLevel) && (! config.render.dxgi.spoof_hdr))
-      pHDRCtl->meta.MaxFrameAverageLightLevel                             = pHdrColorData->mastering_display_data.max_frame_average_light_level;
-    else
-      pHdrColorData->mastering_display_data.max_frame_average_light_level = pHDRCtl->meta.MaxFrameAverageLightLevel;
 
-
-    if ((! pHDRCtl->overrides.MinMaster) && (! config.render.dxgi.spoof_hdr))
-      pHDRCtl->meta.MinMasteringLuminance = pHdrColorData->mastering_display_data.min_display_mastering_luminance;
-    else
-      pHdrColorData->mastering_display_data.min_display_mastering_luminance = (NvU16)pHDRCtl->meta.MinMasteringLuminance;
-
-    if ((! pHDRCtl->overrides.MaxMaster) && (! config.render.dxgi.spoof_hdr))
-      pHDRCtl->meta.MaxMasteringLuminance = pHdrColorData->mastering_display_data.max_display_mastering_luminance;
-    else
-      pHdrColorData->mastering_display_data.max_display_mastering_luminance = (NvU16)pHDRCtl->meta.MaxMasteringLuminance;
+    /////////if ((! pHDRCtl->overrides.MinMaster) && (! config.render.dxgi.spoof_hdr))
+    /////////  pHDRCtl->meta.MinMasteringLuminance = pHdrColorData->mastering_display_data.min_display_mastering_luminance;
+    /////////else
+    /////////  pHdrColorData->mastering_display_data.min_display_mastering_luminance = (NvU16)pHDRCtl->meta.MinMasteringLuminance;
+    /////////
+    /////////if ((! pHDRCtl->overrides.MaxMaster) && (! config.render.dxgi.spoof_hdr))
+    /////////  pHDRCtl->meta.MaxMasteringLuminance = pHdrColorData->mastering_display_data.max_display_mastering_luminance;
+    /////////else
+    /////////  pHdrColorData->mastering_display_data.max_display_mastering_luminance = (NvU16)pHDRCtl->meta.MaxMasteringLuminance;
   }
 
 
-  pHDRCtl->meta._AdjustmentCount++;
+  ////pHDRCtl->meta._AdjustmentCount++;
 
 
   NvAPI_Status ret =

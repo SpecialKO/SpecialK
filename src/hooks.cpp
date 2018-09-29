@@ -97,6 +97,9 @@ SK_Hook_PredictTarget (       sk_hook_cache_record_s &cache,
                         const wchar_t                *wszSectionName,
                               iSK_INI                *ini )
 {
+  if (ini == nullptr)
+    return false;
+
   if (ini->contains_section (wszSectionName))
   {
     iSK_INISection& hook_cfg =
@@ -134,6 +137,9 @@ SK_Hook_RemoveTarget (       sk_hook_cache_record_s &cache,
                        const wchar_t                *wszSectionName,
                              iSK_INI                *ini )
 {
+  if (ini == nullptr)
+    return;
+
   if (ini->contains_section (wszSectionName))
   {
     iSK_INISection& hook_cfg =
@@ -187,6 +193,10 @@ SK_Hook_CacheTarget (       sk_hook_cache_record_s &cache,
                       const wchar_t                *wszSectionName,
                             iSK_INI                *ini )
 {
+  if (ini == nullptr)
+    return;
+
+
   SK_Hook_ResolveTarget (cache);
 
   if (cache.target.offset != 0)
@@ -282,6 +292,10 @@ SK_Hook_PreCacheModule ( const wchar_t                                *wszModule
                                std::vector <sk_hook_cache_record_s *> &global_cache,
                                iSK_INI                                *ini )
 {
+  if (ini == nullptr)
+    return {};
+
+
   extern bool __SK_bypass;
           if (__SK_bypass) return sk_hook_cache_enablement_s { };
 
@@ -415,6 +429,10 @@ sk_hook_cache_enablement_s
 SK_Hook_IsCacheEnabled ( const wchar_t *wszSecName,
                                iSK_INI *ini         )
 {
+  if (ini == nullptr)
+    return {};
+
+
   sk_hook_cache_enablement_s ret;
 
   struct cache_pool_s {

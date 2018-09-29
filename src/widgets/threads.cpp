@@ -1986,8 +1986,7 @@ public:
             _SK_ThreadNames [it.second->dwTid] =
               SK_UTF8ToWideChar (thread_name);
 
-            it.second->name =
-              SK_UTF8ToWideChar (thread_name);
+            it.second->name = _SK_ThreadNames [it.second->dwTid];
           }
         }
 

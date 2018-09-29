@@ -1350,7 +1350,6 @@ auto DeclKeybind =
   games.emplace ( L"Shenmue.exe",                            SK_GAME_ID::Shenmue                      );
   games.emplace ( L"Shenmue2.exe",                           SK_GAME_ID::Shenmue                      );
   games.emplace ( L"SteamLauncher.exe",                      SK_GAME_ID::Shenmue                      ); // Bad idea
-  games.emplace ( L"GlimpseGame.exe",                        SK_GAME_ID::MonsterHunterWorld           );
   games.emplace ( L"DRAGON QUEST XI.exe",                    SK_GAME_ID::DragonQuestXI                );
 
   //
@@ -1740,6 +1739,7 @@ auto DeclKeybind =
         config.textures.d3d11.cache_gen_mips    = false;
         break;
 
+#ifdef _WIN64
       case SK_GAME_ID::Yakuza0:
         ///// Engine has a problem with its texture management that
         /////   makes texture caching / modding impossible.
@@ -1807,6 +1807,7 @@ auto DeclKeybind =
                         TRUE );
         }
       } break;
+#endif
     }
   }
 

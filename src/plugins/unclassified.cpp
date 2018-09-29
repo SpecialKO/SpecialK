@@ -565,7 +565,7 @@ sk::ParameterStringW* _SK_SM_FullAspectToggle;
 sk::ParameterFloat*   _SK_SM_ClockFuzz;
 sk::ParameterBool*    _SK_SM_BypassLimiter;
 
-bool SK_Shenmue_UseNtDllQPC = false;
+bool SK_Shenmue_UseNtDllQPC = true;
 
 extern volatile
 LONG SK_D3D11_DrawTrackingReqs;
@@ -874,7 +874,7 @@ SK_SM_PlugInCfg (void)
         if (bypass)
         {
           ImGui::SameLine ();
-          ImGui::Checkbox ("Use user-mode timer", &SK_Shenmue_UseNtDllQPC);
+          ImGui::Checkbox ("Use  -mode timer", &SK_Shenmue_UseNtDllQPC);
         }
 
         if (want_change)

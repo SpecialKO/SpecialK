@@ -21,9 +21,12 @@
 
 #define __SK_SUBSYSTEM__ L"  D3D 11  "
 
+#define _WIN7_PLATFORM_UPDATE
+
 struct IUnknown;
 #include <Unknwnbase.h>
 #include <Windows.h>
+#include <Wincodec.h>
 
 #include <SpecialK/diagnostics/cpu.h>
 #include <SpecialK/diagnostics/modules.h>
@@ -242,20 +245,66 @@ SK_D3D11_IsFormatBC6Or7 (DXGI_FORMAT fmt)
            fmt <= DXGI_FORMAT_BC7_UNORM_SRGB   );
 }
 
+
+extern float __SK_HDR_HorizCoverage;
+extern float __SK_HDR_VertCoverage;
+
+
 BOOL
 __stdcall
 SK_D3D11_IsFormatCompressed (DXGI_FORMAT fmt) 
 {
-  if ( (fmt >= DXGI_FORMAT_BC1_TYPELESS  &&
-        fmt <= DXGI_FORMAT_BC5_SNORM)    ||
-       (fmt >= DXGI_FORMAT_BC6H_TYPELESS &&
-        fmt <= DXGI_FORMAT_BC7_UNORM_SRGB) )
+  switch (fmt)
   {
-    return true;
+    case DXGI_FORMAT_BC1_TYPELESS:
+    case DXGI_FORMAT_BC1_UNORM:
+    case DXGI_FORMAT_BC1_UNORM_SRGB:
+    case DXGI_FORMAT_BC2_TYPELESS:
+    case DXGI_FORMAT_BC2_UNORM:
+    case DXGI_FORMAT_BC2_UNORM_SRGB:
+    case DXGI_FORMAT_BC3_TYPELESS:
+    case DXGI_FORMAT_BC3_UNORM:
+    case DXGI_FORMAT_BC3_UNORM_SRGB:
+    case DXGI_FORMAT_BC4_TYPELESS:
+    case DXGI_FORMAT_BC4_UNORM:
+    case DXGI_FORMAT_BC4_SNORM:
+    case DXGI_FORMAT_BC5_TYPELESS:
+    case DXGI_FORMAT_BC5_UNORM:
+    case DXGI_FORMAT_BC5_SNORM:
+    case DXGI_FORMAT_BC6H_TYPELESS:
+    case DXGI_FORMAT_BC6H_UF16:
+    case DXGI_FORMAT_BC6H_SF16:
+    case DXGI_FORMAT_BC7_TYPELESS:
+    case DXGI_FORMAT_BC7_UNORM:
+    case DXGI_FORMAT_BC7_UNORM_SRGB:
+      return true;
+
+    default:
+      return false;
+  }
+}
+
+static
+inline UINT
+CalcMipmapLODs (UINT width, UINT height)
+{
+  UINT lods = 1U;
+
+  while ((width > 1U) || (height > 1U))
+  {
+    if (width  > 1U) width  >>= 1UL;
+    if (height > 1U) height >>= 1UL;
+
+    ++lods;
   }
 
-  return false;
-}
+  return lods;
+};
+
+
+extern bool __SK_HDR_10BitSwap;
+extern bool __SK_HDR_16BitSwap;
+
 
 #include <SpecialK/control_panel/d3d11.h>
 
@@ -271,7 +320,7 @@ bool
 SK_D3D11_ShouldTrackSetShaderResources ( ID3D11DeviceContext* pDevCtx,
                                          SK_TLS**             ppTLS = nullptr )
 {
-  UNREFERENCED_PARAMETER (pDevCtx), UNREFERENCED_PARAMETER (ppTLS);
+  UNREFERENCED_PARAMETER (pDevCtx); UNREFERENCED_PARAMETER (ppTLS);
 
   if (! SK::ControlPanel::D3D11::show_shader_mod_dlg)
     return false;
@@ -284,7 +333,7 @@ bool
 SK_D3D11_ShouldTrackMMIO ( ID3D11DeviceContext* pDevCtx,
                            SK_TLS**             ppTLS = nullptr )
 {
-  UNREFERENCED_PARAMETER (pDevCtx), UNREFERENCED_PARAMETER (ppTLS);
+  UNREFERENCED_PARAMETER (pDevCtx); UNREFERENCED_PARAMETER (ppTLS);
 
   if (! SK::ControlPanel::D3D11::show_shader_mod_dlg)
     return false;
@@ -1307,13 +1356,14 @@ calc_count (_T** arr, UINT max_count)
   return max_count;
 }
 
-_declspec (noinline)
+__declspec (noinline)
 uint32_t
 __cdecl
 crc32_tex (  _In_      const D3D11_TEXTURE2D_DESC   *__restrict pDesc,
              _In_      const D3D11_SUBRESOURCE_DATA *__restrict pInitialData,
              _Out_opt_       size_t                 *__restrict pSize,
-             _Out_opt_       uint32_t               *__restrict pLOD0_CRC32 );
+             _Out_opt_       uint32_t               *__restrict pLOD0_CRC32,
+             _In_opt_        bool                               bAllLODs = true );
 
 struct reshade_coeffs_s {
   int indexed                    = 1;
@@ -1538,7 +1588,28 @@ IUnknown_Release (IUnknown* This)
 
     LONG count =
       IUnknown_AddRef_Original  (pTex);
-    IUnknown_Release_Original (pTex);
+      IUnknown_Release_Original (pTex);
+
+
+    static bool __yk0 = 
+      ( SK_GetCurrentGameID () == SK_GAME_ID::Yakuza0 );
+
+    if (__yk0)
+    {
+      if (count <= 1)
+      {
+        if (count > 0)
+        {
+          if (SK_D3D11_RemoveTexFromCache (pTex))
+          {
+            IUnknown_Release_Original (pTex);
+          }
+        }
+
+        return 0;
+      }
+    }
+
 
     // If count is == 0, something's screwy
     if (pTex != nullptr && count <= 2)
@@ -1553,7 +1624,8 @@ IUnknown_Release (IUnknown* This)
     }
   }
 
-  return IUnknown_Release_Original (This);
+  return
+    IUnknown_Release_Original (This);
 }
 
 __declspec (noinline)
@@ -2080,6 +2152,8 @@ D3D11_GSGetShader_pfn                               D3D11_GSGetShader_Original  
 D3D11_HSGetShader_pfn                               D3D11_HSGetShader_Original                               = nullptr;
 D3D11_DSGetShader_pfn                               D3D11_DSGetShader_Original                               = nullptr;
 D3D11_CSGetShader_pfn                               D3D11_CSGetShader_Original                               = nullptr;
+
+D3D11_GetData_pfn                                   D3D11_GetData_Original                                   = nullptr;
 
 D3D11_CopyResource_pfn                              D3D11_CopyResource_Original                              = nullptr;
 D3D11_CopySubresourceRegion_pfn                     D3D11_CopySubresourceRegion_Original                     = nullptr;
@@ -2658,55 +2732,53 @@ d3d11_shader_tracking_s::activate ( ID3D11DeviceContext        *pDevContext,
 
 
   // Timing is very difficult on deferred contexts; will finish later (years?)
-  if ( pDevContext != nullptr && pDevContext->GetType () == D3D11_DEVICE_CONTEXT_DEFERRED )
+  if ( pDevContext != nullptr  &&
+       pDevContext->GetType () == D3D11_DEVICE_CONTEXT_DEFERRED )
     return;
 
-
-  CComPtr <ID3D11Device> dev = nullptr;
 
   static SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
-  if ( pDevContext          != nullptr                             &&
-                  rb.device != nullptr                             &&
-       SUCCEEDED (rb.device->QueryInterface <ID3D11Device> (&dev)) &&
-                  rb.device.IsEqualObject                  ( dev.p) )
+  CComQIPtr <ID3D11Device> dev (rb.device);
+
+  if (! dev)
+    return;
+
+  if (ReadPointerAcquire ((void **)&disjoint_query.async) == nullptr && timers.empty ())
   {
-    if (ReadPointerAcquire ((void **)&disjoint_query.async) == nullptr && timers.empty ())
+    D3D11_QUERY_DESC query_desc {
+      D3D11_QUERY_TIMESTAMP_DISJOINT, 0x00
+    };
+
+    ID3D11Query* pQuery = nullptr;
+    if (SUCCEEDED (dev->CreateQuery (&query_desc, &pQuery)))
     {
-      D3D11_QUERY_DESC query_desc {
-        D3D11_QUERY_TIMESTAMP_DISJOINT, 0x00
-      };
+      CComPtr <ID3D11DeviceContext> pImmediateContext;
+      dev->GetImmediateContext    (&pImmediateContext);
 
-      ID3D11Query* pQuery = nullptr;
-      if (SUCCEEDED (dev->CreateQuery (&query_desc, &pQuery)))
-      {
-        CComPtr <ID3D11DeviceContext> pImmediateContext;
-        dev->GetImmediateContext    (&pImmediateContext);
-
-        InterlockedExchangePointer ((void **)&disjoint_query.async, pQuery);
-        pImmediateContext->Begin                                   (pQuery);
-        InterlockedExchange (&disjoint_query.active, TRUE);
-      }
+      InterlockedExchangePointer ((void **)&disjoint_query.async, pQuery);
+      pImmediateContext->Begin                                   (pQuery);
+      InterlockedExchange (&disjoint_query.active, TRUE);
     }
+  }
 
-    if (ReadAcquire (&disjoint_query.active))
+  if (ReadAcquire (&disjoint_query.active))
+  {
+    // Start a new query
+    D3D11_QUERY_DESC query_desc {
+      D3D11_QUERY_TIMESTAMP, 0x00
+    };
+
+    duration_s duration;
+
+    ID3D11Query* pQuery = nullptr;
+    if (SUCCEEDED (dev->CreateQuery (&query_desc, &pQuery)))
     {
-      // Start a new query
-      D3D11_QUERY_DESC query_desc {
-        D3D11_QUERY_TIMESTAMP, 0x00
-      };
-
-      duration_s duration;
-
-      ID3D11Query* pQuery = nullptr;
-      if (SUCCEEDED (dev->CreateQuery (&query_desc, &pQuery)))
-      {
-        InterlockedExchangePointer ((void **)&duration.start.dev_ctx, pDevContext);
-        InterlockedExchangePointer ((void **)&duration.start.async,   pQuery);
-        pDevContext->End                                             (pQuery);
-        timers.emplace_back (duration);
-      }
+      InterlockedExchangePointer ((void **)&duration.start.dev_ctx, pDevContext);
+      InterlockedExchangePointer ((void **)&duration.start.async,   pQuery);
+      pDevContext->End                                             (pQuery);
+      timers.emplace_back (duration);
     }
   }
 }
@@ -2772,14 +2844,9 @@ d3d11_shader_tracking_s::deactivate (ID3D11DeviceContext* pDevCtx)
     return;
 
 
-  CComPtr <ID3D11Device> dev = nullptr;
+  CComQIPtr <ID3D11Device> dev (rb.device);
 
-  if ( pDevCtx              != nullptr                             &&
-                  rb.device != nullptr                             &&
-       SUCCEEDED (rb.device->QueryInterface <ID3D11Device> (&dev)) &&
-                  rb.device.IsEqualObject                  ( dev)  &&
-
-         ReadAcquire (&disjoint_query.active) )
+  if (dev != nullptr && ReadAcquire (&disjoint_query.active))
   {
     D3D11_QUERY_DESC query_desc {
       D3D11_QUERY_TIMESTAMP, 0x00
@@ -3641,7 +3708,7 @@ SK_D3D11_SetShader_Impl ( ID3D11DeviceContext* pDevCtx, IUnknown* pShader, sk_sh
 
   bool implicit_track = false;
 
-  if ( rb.hdr_capable &&
+  if ( rb.isHDRCapable ()  &&
       (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR) )
   {
     if ( type == sk_shader_class::Vertex ||
@@ -3788,6 +3855,87 @@ SK_D3D11_SetShader_Impl ( ID3D11DeviceContext* pDevCtx, IUnknown* pShader, sk_sh
   return Finish ();
 }
 
+__declspec (noinline)
+HRESULT
+STDMETHODCALLTYPE
+D3D11_GetData_Override (
+ _In_  ID3D11DeviceContext *This,
+ _In_  ID3D11Asynchronous  *pAsync,
+ _Out_writes_bytes_opt_   ( DataSize )
+       void                *pData,
+ _In_  UINT                 DataSize,
+ _In_  UINT                 GetDataFlags )
+{
+  HRESULT hr =
+    D3D11_GetData_Original (
+    This,    pAsync,
+      pData, DataSize,
+          GetDataFlags     );
+  
+    //dll_log.Log (L"Query Type: %lu, Misc Flags: %x - Result: %x, Value: %llu", qDesc.Query,
+    //             qDesc.MiscFlags, hr, *(uint64_t *)pData);
+  
+  return hr;
+  //dll_log.Log (L"Query - Size: %lu", DataSize);
+
+  ///if (pCounter)
+  ///{
+  ///  dll_log.Log (L"Counter - Size: %lu", DataSize);
+  ///}
+  auto isDataReady =
+   [&](void)
+     -> bool
+        {
+          HRESULT hr =
+            D3D11_GetData_Original (
+              This, pAsync,
+                    nullptr, 0,
+                             GetDataFlags |
+                             D3D11_ASYNC_GETDATA_DONOTFLUSH
+                                   );
+          return
+            ( SUCCEEDED (hr) &&
+                         hr  != S_FALSE );
+        };
+
+
+  auto finishGetData =
+   [&](void)
+     -> HRESULT
+        {
+          return
+            D3D11_GetData_Original (
+              This,    pAsync,
+                pData, DataSize,
+                    GetDataFlags
+                                   );
+        };
+  
+  extern bool
+         __SK_DQXI_MakeAsyncObjectsGreatAgain;
+  if ((! __SK_DQXI_MakeAsyncObjectsGreatAgain) ||
+       (pData == nullptr && DataSize == 0)     ||
+                           isDataReady ())
+  {
+    return
+      finishGetData ();
+  }
+  
+  int spins = 0;
+  
+  do
+  {
+    YieldProcessor ();
+  
+    if (++spins > 3)
+    {
+      break;
+    }
+  } while (! isDataReady ());
+
+  return
+    finishGetData ();
+}
 
 __declspec (noinline)
 void
@@ -4695,7 +4843,7 @@ SK_D3D11_IsStagingCacheable ( D3D11_RESOURCE_DIMENSION  rdim,
 
       const SK_D3D11_TEXTURE2D_DESC desc (tex_desc);
 
-      if (desc.Usage != D3D11_USAGE_STAGING || desc.CPUAccessFlags & D3D11_CPU_ACCESS_WRITE)//desc.Width != 1920 && desc.Height != 1080)
+      if (desc.Usage != D3D11_USAGE_STAGING || (desc.CPUAccessFlags & D3D11_CPU_ACCESS_WRITE))
       {
         if (pTLS == nullptr)
             pTLS = SK_TLS_Bottom ();
@@ -4797,7 +4945,7 @@ D3D11_UpdateSubresource1_Override (
       uint32_t top_crc32c   = 0x0;
 
       uint32_t checksum     =
-        crc32_tex   (&desc, &srd, &size, &top_crc32c);
+        crc32_tex   (&desc, &srd, &size, &top_crc32c, false);
 
       const uint32_t cache_tag    =
         safe_crc32c (top_crc32c, (uint8_t *)(&desc), sizeof D3D11_TEXTURE2D_DESC);
@@ -4898,6 +5046,23 @@ D3D11_UpdateSubresource1_Override (
                                                  SrcDepthPitch, CopyFlags );
 }
 
+
+#include <SpecialK/utility.h>
+
+bool         SK_D3D11_need_tex_reset      = false;
+bool         SK_D3D11_try_tex_reset       = false; // Don't need, but would be beneficial to try
+int32_t      SK_D3D11_amount_to_purge     = 0L;
+
+bool         SK_D3D11_dump_textures       = false;// true;
+bool         SK_D3D11_inject_textures_ffx = false;
+bool         SK_D3D11_inject_textures     = false;
+bool         SK_D3D11_cache_textures      = false;
+bool         SK_D3D11_mark_textures       = false;
+std::wstring SK_D3D11_res_root            = L"SK_Res";
+
+std::wstring
+SK_D3D11_TexNameFromChecksum (uint32_t top_crc32, uint32_t checksum, uint32_t ffx_crc32 = 0x00);
+
 __declspec (noinline)
 void
 STDMETHODCALLTYPE
@@ -4910,7 +5075,8 @@ D3D11_UpdateSubresource_Override (
   _In_           UINT                 SrcRowPitch,
   _In_           UINT                 SrcDepthPitch)
 {
-  bool early_out = false;
+  bool early_out =
+    ( This->GetType () == D3D11_DEVICE_CONTEXT_DEFERRED );
 
   SK_TLS *pTLS = nullptr;
 
@@ -4920,14 +5086,36 @@ D3D11_UpdateSubresource_Override (
     early_out = true;
   }
 
-  else
-    early_out = (! SK_D3D11_ShouldTrackRenderOp (This, &pTLS));
+  // Partial updates are of little interest.
+  if ( DstSubresource != 0 )
+  {
+    early_out = true;
+  }
+
+  if ( pDstBox != nullptr && ( pDstBox->left  >= pDstBox->right  ||
+                               pDstBox->top   >= pDstBox->bottom ||
+                               pDstBox->front >= pDstBox->back )    )
+  {
+    early_out = true;
+  }
+
+  static const bool __sk_dqxi =
+    ( SK_GetCurrentGameID () == SK_GAME_ID::DragonQuestXI );
+
+  ////else
+  ////early_out |= (! SK_D3D11_ShouldTrackRenderOp (This, &pTLS));
+  pTLS = SK_TLS_Bottom ();
+
+  if (pTLS->imgui.drawing || pTLS->texture_management.injection_thread)
+    early_out = true;
+
 
   if (early_out)
   {
-    return D3D11_UpdateSubresource_Original ( This, pDstResource, DstSubresource,
-                                                pDstBox, pSrcData, SrcRowPitch,
-                                                  SrcDepthPitch );
+    return
+      D3D11_UpdateSubresource_Original ( This, pDstResource, DstSubresource,
+                                           pDstBox, pSrcData, SrcRowPitch,
+                                             SrcDepthPitch );
   }
 
   //if (SK_GetCurrentGameID() == SK_GAME_ID::Ys_Eight)
@@ -4942,7 +5130,8 @@ D3D11_UpdateSubresource_Override (
   D3D11_RESOURCE_DIMENSION rdim = D3D11_RESOURCE_DIMENSION_UNKNOWN;
   pDstResource->GetType  (&rdim);
 
-  if (SK_D3D11_IsStagingCacheable (rdim, pDstResource) && DstSubresource == 0)
+  if ( ((__sk_dqxi && rdim == D3D11_RESOURCE_DIMENSION_TEXTURE2D) ||
+           SK_D3D11_IsStagingCacheable (rdim, pDstResource)) && DstSubresource == 0 )
   {
     static auto& textures =
       SK_D3D11_Textures;
@@ -4954,6 +5143,25 @@ D3D11_UpdateSubresource_Override (
       D3D11_TEXTURE2D_DESC desc = { };
            pTex->GetDesc (&desc);
 
+      /// DQ XI Temp Hack
+      /// ---------------
+      if (__sk_dqxi)
+      {
+        const bool skip =
+          ( desc.Usage == D3D11_USAGE_STAGING ||
+            desc.Usage == D3D11_USAGE_DYNAMIC ||
+            (! SK_D3D11_IsFormatCompressed (desc.Format)) );
+
+        if (skip)
+        {
+          return
+            D3D11_UpdateSubresource_Original ( This, pDstResource, DstSubresource,
+                                                 pDstBox, pSrcData, SrcRowPitch,
+                                                   SrcDepthPitch );
+        }
+      }
+
+
       D3D11_SUBRESOURCE_DATA srd = { };
 
       srd.pSysMem           = pSrcData;
@@ -4964,10 +5172,29 @@ D3D11_UpdateSubresource_Override (
       uint32_t top_crc32c   = 0x0;
 
       uint32_t checksum     =
-        crc32_tex   (&desc, &srd, &size, &top_crc32c);
+        crc32_tex   (&desc, &srd, &size, &top_crc32c, false);
+
+      auto _StripTransientProperties =
+        [](D3D11_TEXTURE2D_DESC& desc) ->
+           D3D11_TEXTURE2D_DESC
+        {
+          D3D11_TEXTURE2D_DESC
+            stripped_desc = desc;
+
+          stripped_desc.Format         = DirectX::MakeTypeless (desc.Format);
+          stripped_desc.BindFlags      =              0xdeadc0de;
+          stripped_desc.Usage          = (D3D11_USAGE)0xdeadc0de;
+          stripped_desc.CPUAccessFlags =              0xdeadc0de;
+          stripped_desc.MiscFlags      =              0xdeadc0de;
+
+          return stripped_desc;
+        };
+
+      auto transient_desc =
+        _StripTransientProperties (desc);
 
 const uint32_t cache_tag    =
-        safe_crc32c (top_crc32c, (uint8_t *)(&desc), sizeof D3D11_TEXTURE2D_DESC);
+        safe_crc32c (top_crc32c, (uint8_t *)(&transient_desc), sizeof D3D11_TEXTURE2D_DESC);
 
       const auto start      = SK_QueryPerf ().QuadPart;
 
@@ -4978,27 +5205,40 @@ const uint32_t cache_tag    =
       {
         CComQIPtr <ID3D11Resource> pCachedResource (pCachedTex);
 
-        D3D11_CopyResource_Original (This, pDstResource, pCachedResource);
+        if (! pCachedTex.IsEqualObject (pTex))
+        {
+          D3D11_CopyResource_Original (This, pDstResource, pCachedResource);
 
-        SK_LOG1 ( ( L"Texture Cache Hit (Slow Path): (%lux%lu) -- %x",
-                      desc.Width, desc.Height, top_crc32c ),
-                    L"DX11TexMgr" );
+          SK_LOG1 ( ( L"Texture Cache Hit (Slow Path): (%lux%lu) -- %x",
+                        desc.Width, desc.Height, top_crc32c ),
+                      L"DX11TexMgr" );
+        }
+
+        else
+        {
+          SK_LOG0 ( ( L"Texture Cache Redundancy: (%lux%lu) -- %x",
+                          desc.Width, desc.Height, top_crc32c ),
+                        L"DX11TexMgr" );
+        }
+
+        textures.recordCacheHit (pCachedTex);
 
         return;
       }
 
       else
       {
-        if (SK_D3D11_TextureIsCached (pTex))
-        {
-          SK_LOG0 ( (L"Cached texture was updated (UpdateSubresource)... removing from cache! - <%s>",
-                         SK_GetCallerName ().c_str ()), L"DX11TexMgr" );
-          SK_D3D11_RemoveTexFromCache (pTex, true);
-        }
+        ///if (SK_D3D11_TextureIsCached (pTex))
+        ///{
+        ///  SK_LOG0 ( (L"Cached texture was updated (UpdateSubresource)... removing from cache! - <%s>",
+        ///                 SK_GetCallerName ().c_str ()), L"DX11TexMgr" );
+        ///  SK_D3D11_RemoveTexFromCache (pTex, true);
+        ///}
 
         D3D11_UpdateSubresource_Original ( This, pDstResource, DstSubresource,
                                              pDstBox, pSrcData, SrcRowPitch,
                                                SrcDepthPitch );
+
         const auto end     = SK_QueryPerf ().QuadPart;
               auto elapsed = end - start;
 
@@ -5019,8 +5259,10 @@ const uint32_t cache_tag    =
           return;
         }
 
-        else
+        else if (desc.Usage == D3D11_USAGE_DEFAULT)
         {
+        //-------------------
+
           bool cacheable = ( desc.MiscFlags <= 4 &&
                              desc.Width      > 0 && 
                              desc.Height     > 0 &&
@@ -5028,15 +5270,8 @@ const uint32_t cache_tag    =
                            //((desc.ArraySize  % 6 == 0) && (desc.MiscFlags & D3D11_RESOURCE_MISC_TEXTURECUBE))
                            );
 
-          bool compressed = false;
-
-          if ( (desc.Format >= DXGI_FORMAT_BC1_TYPELESS  &&
-                desc.Format <= DXGI_FORMAT_BC5_SNORM)    ||
-               (desc.Format >= DXGI_FORMAT_BC6H_TYPELESS &&
-                desc.Format <= DXGI_FORMAT_BC7_UNORM_SRGB) )
-          {
-            compressed = true;
-          }
+          bool compressed =
+            SK_D3D11_IsFormatCompressed (desc.Format);
 
           // If this isn't an injectable texture, then filter out non-mipmapped
           //   textures.
@@ -5045,6 +5280,105 @@ const uint32_t cache_tag    =
 
           if (cacheable)
           {
+            bool injected = false;
+
+            // -----------------------------
+            if (SK_D3D11_res_root.length ())
+            {
+              wchar_t   wszTex [MAX_PATH * 2] = { };
+              wcsncpy ( wszTex,
+                        SK_D3D11_TexNameFromChecksum (top_crc32c, checksum, 0x0).c_str (),
+                        MAX_PATH );
+
+              if (                  *wszTex  != L'\0' &&
+                  GetFileAttributes (wszTex) != INVALID_FILE_ATTRIBUTES )
+              {
+#define D3DX11_DEFAULT static_cast <UINT> (-1)
+
+                if (pTLS == nullptr)
+                  pTLS = SK_TLS_Bottom ();
+
+                SK_ScopedBool auto_tex_inject (&pTLS->texture_management.injection_thread);
+                SK_ScopedBool auto_draw       (&pTLS->imgui.drawing);
+
+                pTLS->texture_management.injection_thread = true;
+                pTLS->imgui.drawing                       = true;
+
+                HRESULT hr = E_UNEXPECTED;
+
+                DirectX::TexMetadata mdata;
+
+                if (SUCCEEDED ((hr = DirectX::GetMetadataFromDDSFile (wszTex, 0, mdata))))
+                {
+                  if ( ( DirectX::MakeTypeless      (mdata.format) != DirectX::MakeTypeless      (desc.Format) &&
+                         DirectX::MakeTypelessUNORM (mdata.format) != DirectX::MakeTypelessUNORM (desc.Format) &&
+                         DirectX::MakeTypelessFLOAT (mdata.format) != DirectX::MakeTypelessFLOAT (desc.Format) &&
+                         DirectX::MakeSRGB          (mdata.format) != DirectX::MakeSRGB          (desc.Format) )
+                      || mdata.width  != desc.Width
+                      || mdata.height != desc.Height )
+                  {
+                    SK_LOG0 ( ( L"Texture injection for texture '%x' failed due to format / size mismatch.",
+                                  top_crc32c ), L"DX11TexMgr" );
+                  }
+
+                  else
+                  {
+                    DirectX::ScratchImage img;
+
+                    if (SUCCEEDED ((hr = DirectX::LoadFromDDSFile (wszTex, 0, &mdata, img))))
+                    {
+                      CComPtr <ID3D11Texture2D> pSurrogateTexture2D = nullptr;
+                      CComPtr <ID3D11Device>    pDevCtx             = nullptr;
+
+                      This->GetDevice (&pDevCtx.p);
+
+                      if (SUCCEEDED ((hr = DirectX::CreateTexture (pDevCtx,
+                                             img.GetImages     (),
+                                             img.GetImageCount (), mdata, 
+                                             reinterpret_cast <ID3D11Resource **> (&pSurrogateTexture2D.p))))
+                         )
+                      {
+                        const LARGE_INTEGER load_end =
+                          SK_QueryPerf ();
+
+                        D3D11_CopyResource_Original (
+                          This, pDstResource,
+                                pSurrogateTexture2D
+                        );
+
+                        pTex  =  nullptr;
+                        pTex.Attach (
+                          reinterpret_cast <ID3D11Texture2D *> (pDstResource)
+                        );
+
+                        injected = true;
+                      }
+
+                      else
+                      {
+                        SK_LOG0 ( (L"*** Texture '%s' failed DirectX::CreateTexture (...) -- (HRESULT=%s), skipping!", 
+                                 SK_StripUserNameFromPathW (wszTex), _com_error (hr).ErrorMessage () ),
+                                 L"DX11TexMgr" );
+                      }
+                    }
+                    else
+                    {
+                      SK_LOG0 ( (L"*** Texture '%s' failed DirectX::LoadFromDDSFile (...) -- (HRESULT=%s), skipping!", 
+                               SK_StripUserNameFromPathW (wszTex), _com_error (hr).ErrorMessage () ),
+                               L"DX11TexMgr" );
+                    }
+                  }
+                }
+
+                else
+                {
+                  SK_LOG0 ( (L"*** Texture '%s' failed DirectX::GetMetadataFromDDSFile (...) -- (HRESULT=%s), skipping!", 
+                           SK_StripUserNameFromPathW (wszTex), _com_error (hr).ErrorMessage () ),
+                           L"DX11TexMgr" );
+                }
+              }
+            }
+
             SK_LOG1 ( ( L"New Cacheable Texture: (%lux%lu) -- %x",
                           desc.Width, desc.Height, top_crc32c ),
                         L"DX11TexMgr" );
@@ -5053,6 +5387,9 @@ const uint32_t cache_tag    =
             textures.refTexture2D (pTex, &desc, cache_tag, size, elapsed, top_crc32c,
                                      L"", nullptr, (HMODULE)(intptr_t)-1/*SK_GetCallingDLL ()*/, pTLS);
 
+            if (injected)
+              textures.Textures_2D [pTex].injected = true;
+
             return;
           }
         }
@@ -5060,9 +5397,10 @@ const uint32_t cache_tag    =
     }
   }
 
-  return D3D11_UpdateSubresource_Original ( This, pDstResource, DstSubresource,
-                                              pDstBox, pSrcData, SrcRowPitch,
-                                                SrcDepthPitch );
+  return
+    D3D11_UpdateSubresource_Original ( This, pDstResource, DstSubresource,
+                                         pDstBox, pSrcData, SrcRowPitch,
+                                           SrcDepthPitch );
 }
 
 const GUID SKID_D3D11Texture2D_DISCARD =
@@ -5080,16 +5418,9 @@ D3D11Dev_Map_Override (
    _In_ UINT                      MapFlags,
 _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
 {
-  D3D11_MAPPED_SUBRESOURCE local_map = { };
-
-  if (pMappedResource == nullptr)
-    pMappedResource = &local_map;
-
-
   const HRESULT hr =
     D3D11_Map_Original ( This, pResource, Subresource,
                            MapType, MapFlags, pMappedResource );
-
 
   // UB: If it's happening, pretend we never saw this...
   if (pResource == nullptr)
@@ -5177,7 +5508,7 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
               SK_D3D11_RemoveTexFromCache (pTex, true);
             }
 
-            else
+            else if (pMappedResource != nullptr)
             {
               auto&& map_ctx = mapped_resources [This];
 
@@ -5766,6 +6097,34 @@ D3D11_CopySubresourceRegion_Override (
 void
 SK_D3D11_ClearResidualDrawState (SK_TLS* pTLS = SK_TLS_Bottom ())
 {
+  if (pTLS->d3d11.pOrigBlendState != nullptr)
+  {
+    CComQIPtr <ID3D11DeviceContext> pDevCtx (
+      pTLS->d3d11.pDevCtx
+    );
+
+    pDevCtx->OMSetBlendState ( pTLS->d3d11.pOrigBlendState,
+                               pTLS->d3d11.fOrigBlendFactors,
+                               pTLS->d3d11.uiOrigBlendMask );
+
+    pTLS->d3d11.pOrigBlendState->Release ();
+    pTLS->d3d11.pOrigBlendState = nullptr;
+  }
+
+  if (pTLS->d3d11.pRTVOrig != nullptr)
+  {
+    CComQIPtr <ID3D11DeviceContext> pDevCtx (
+      pTLS->d3d11.pDevCtx
+    );
+
+    if (pDevCtx != nullptr)
+    {
+      pDevCtx->OMSetRenderTargets (1, &pTLS->d3d11.pRTVOrig, nullptr);
+                                     //pTLS->d3d11.pRTVOrig->Release ();
+                                       pTLS->d3d11.pRTVOrig = nullptr;
+    }
+  }
+
   if (pTLS->d3d11.pDSVOrig != nullptr)
   {
     CComQIPtr <ID3D11DeviceContext> pDevCtx (
@@ -6128,6 +6487,8 @@ SK_SEH_Guarded_memcpy (
 
 #include <concurrent_vector.h>
 #include <array>
+
+concurrency::concurrent_vector <d3d11_shader_tracking_s::cbuffer_override_s> __SK_D3D11_VertexShader_CBuffer_Overrides;
 concurrency::concurrent_vector <d3d11_shader_tracking_s::cbuffer_override_s> __SK_D3D11_PixelShader_CBuffer_Overrides;
 
 bool SK_D3D11_KnownShaders::reshade_triggered;
@@ -6163,6 +6524,8 @@ SK_D3D11_DrawCallFilter (int elem_cnt, int vtx_cnt, uint32_t vtx_shader)
 
   return false;
 }
+
+ID3D11ShaderResourceView* g_pRawHDR = nullptr;
 
 bool
 SK_D3D11_DrawHandler (ID3D11DeviceContext* pDevCtx, SK_TLS* pTLS = nullptr, INT d_idx = -1)
@@ -6223,6 +6586,69 @@ SK_D3D11_DrawHandler (ID3D11DeviceContext* pDevCtx, SK_TLS* pTLS = nullptr, INT 
   uint32_t current_gs = geometry.current.shader [dev_idx];
   uint32_t current_hs = hull.current.shader     [dev_idx];
   uint32_t current_ds = domain.current.shader   [dev_idx];
+
+
+
+  //if (current_vs == 0x9b2090af)
+  //{
+  //  //CB0[19]
+  //  //CB1[ 3]
+  //  ID3D11Buffer* ConstantBuffers [2] = { nullptr, nullptr };
+  //  pDevCtx->VSGetConstantBuffers (0, 2, ConstantBuffers);
+  //
+  //  ID3D11Buffer* CB0 = ConstantBuffers [0];
+  //  ID3D11Buffer* CB1 = ConstantBuffers [1];
+  //
+  //  D3D11_BUFFER_DESC desc0, desc1;
+  //
+  //  CB0->GetDesc (&desc0);
+  //  CB1->GetDesc (&desc1);
+  //
+  //  size_t size0 = desc0.ByteWidth;
+  //  size_t size1 = desc1.ByteWidth;
+  //
+  //  CComPtr <ID3D11Device> pDev;
+  //    pDevCtx->GetDevice (&pDev);
+  //
+  //  desc0.Usage          = D3D11_USAGE_STAGING;
+  //  desc0.CPUAccessFlags = D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE;
+  //
+  //  CComPtr <ID3D11Buffer> CB0_Copy;
+  //  pDev->CreateBuffer (&desc0, nullptr, &CB0_Copy);
+  //
+  //  desc1.Usage          = D3D11_USAGE_STAGING;
+  //  desc1.CPUAccessFlags = D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE;
+  //
+  //  CComPtr <ID3D11Buffer> CB1_Copy;
+  //  pDev->CreateBuffer (&desc1, nullptr, &CB1_Copy);
+  //
+  //  pDevCtx->CopyResource (CB0_Copy, CB0);
+  //  pDevCtx->CopyResource (CB1_Copy, CB1);
+  //  
+  //  
+  //  D3D11_MAPPED_SUBRESOURCE mappedCB0 = { };
+  //  D3D11_MAPPED_SUBRESOURCE mappedCB1 = { };
+  //
+  //  pDevCtx->Map   (CB0_Copy, 0, D3D11_MAP_READ, 0x0, &mappedCB0);
+  //         float *pfCB0 = (float *)mappedCB0.pData;
+  //  for (int i = 0; i < (size0 / sizeof (float)); i++)
+  //  {
+  //    dll_log.Log (L"CB0[%i]=%f", i, (*pfCB0));
+  //    pfCB0++;
+  //  }
+  //  pDevCtx->Unmap (CB0_Copy, 0);
+  //  
+  //  pDevCtx->Map   (CB1_Copy, 0, D3D11_MAP_READ, 0x0, &mappedCB1);
+  //         float *pfCB1 = (float *)mappedCB1.pData;
+  //  for (int i = 0; i < (size1 / sizeof (float)); i++)
+  //  {
+  //    dll_log.Log (L"CB1[%i]=%f", i, (*pfCB1));
+  //    pfCB1++;
+  //  }
+  //  pDevCtx->Unmap (CB1_Copy, 0);
+  //
+  //  CB0->Release (); CB1->Release ();
+  //}
 
   
   //if (SK_GetCurrentGameID () == SK_GAME_ID::Yakuza0)
@@ -6329,6 +6755,20 @@ const
       }
     }
   }
+
+
+  bool
+  SK_D3D11_ShouldSkipHUD (void);
+
+  if (SK_D3D11_ShouldSkipHUD ())
+  {
+    if ((!   vertex.hud.empty ()) &&   vertex.hud.count (current_vs)) return true;
+    if ((!    pixel.hud.empty ()) &&    pixel.hud.count (current_ps)) return true;
+    if ((! geometry.hud.empty ()) && geometry.hud.count (current_gs)) return true;
+    if ((!     hull.hud.empty ()) &&     hull.hud.count (current_hs)) return true;
+    if ((!   domain.hud.empty ()) &&   domain.hud.count (current_ds)) return true;
+  }
+
 
   if ((! vertex.blacklist.empty   ()) && vertex.blacklist.count   (current_vs)) return true;
   if ((! pixel.blacklist.empty    ()) && pixel.blacklist.count    (current_ps)) return true;
@@ -6547,6 +6987,20 @@ const
       for ( auto& ovr : __SK_D3D11_PixelShader_CBuffer_Overrides )
       {
         if (ovr.parent == current_ps && ovr.Enable)
+        {
+          if (ovr.Slot >= 0 && ovr.Slot < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT)
+          {
+            overrides [num_overrides++] = &ovr;
+          }
+        }
+      }
+    }
+
+    if ((1 << i) == (int)sk_shader_class::Vertex && (! __SK_D3D11_VertexShader_CBuffer_Overrides.empty ()) )
+    {
+      for ( auto& ovr : __SK_D3D11_VertexShader_CBuffer_Overrides )
+      {
+        if (ovr.parent == current_vs && ovr.Enable)
         {
           if (ovr.Slot >= 0 && ovr.Slot < D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT)
           {
@@ -7109,7 +7563,7 @@ D3D11_Draw_Override (
 
   // Render-state tracking needs to be forced-on for the
   //   Steam Overlay HDR fix to work.
-  if ( rb.hdr_capable &&
+  if ( rb.isHDRCapable ()  &&
       (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR) )
   {
     UINT dev_idx = ( d_idx != -1 ? d_idx :
@@ -7730,18 +8184,6 @@ SK_D3D11_SummarizeTexCache (void)
   return std::move (szOut);
 }
 
-#include <SpecialK/utility.h>
-
-bool         SK_D3D11_need_tex_reset      = false;
-bool         SK_D3D11_try_tex_reset       = false; // Don't need, but would be beneficial to try
-int32_t      SK_D3D11_amount_to_purge     = 0L;
-
-bool         SK_D3D11_dump_textures       = false;// true;
-bool         SK_D3D11_inject_textures_ffx = false;
-bool         SK_D3D11_inject_textures     = false;
-bool         SK_D3D11_cache_textures      = false;
-bool         SK_D3D11_mark_textures       = false;
-std::wstring SK_D3D11_res_root            = L"SK_Res";
 
 bool
 SK_D3D11_TexMgr::isTexture2D (uint32_t crc32, const D3D11_TEXTURE2D_DESC *pDesc)
@@ -7775,9 +8217,6 @@ void
 __stdcall
 SK_D3D11_TexCacheCheckpoint (void)
 {
-  IDXGIDevice  *pDXGIDev = nullptr;
-  ID3D11Device *pDevice  = nullptr;
-
   static SK_D3D11_TexMgr& textures =
     SK_D3D11_Textures;
 
@@ -7788,11 +8227,12 @@ SK_D3D11_TexCacheCheckpoint (void)
   static auto& Evicted_2D  = textures.Evicted_2D;
   static auto& Textures_2D = textures.Textures_2D;
 
-  if (rb.device != nullptr)
-      rb.device->QueryInterface <ID3D11Device> (&pDevice);
+  CComQIPtr <ID3D11Device> pDevice  (rb.device);
+  CComQIPtr <IDXGIDevice>  pDXGIDev (pDevice.p);
 
-  if ( pDevice && config.textures.cache.residency_managemnt && 
-       SUCCEEDED (pDevice->QueryInterface <IDXGIDevice>  (&pDXGIDev)) )
+  if ( config.textures.cache.residency_managemnt &&
+       pDevice                                   &&
+       pDXGIDev )
   {
     static DWORD dwLastEvict = 0;
     static DWORD dwLastTest  = 0;
@@ -7954,9 +8394,6 @@ SK_D3D11_TexCacheCheckpoint (void)
       }
     }
   }
-
-  if (pDXGIDev) pDXGIDev->Release ();
-  if (pDevice)  pDevice->Release  ();
 
 
 
@@ -8227,6 +8664,38 @@ SK_D3D11_TexMgr::reset (void)
  
    InterlockedExchange (&live_textures_dirty, TRUE);
  }
+}
+
+LONG
+SK_D3D11_TexMgr::recordCacheHit ( ID3D11Texture2D *pTex )
+{
+  static auto& textures =
+    SK_D3D11_Textures;
+
+  const auto& tex2D =
+    textures.Textures_2D.find (pTex);
+
+  if ( tex2D                != textures.Textures_2D.cend () &&
+       tex2D->second.crc32c != 0x00 )
+  {
+    auto& desc2d =
+      tex2D->second;
+
+    SK_TLS *pTLS =
+      SK_TLS_Bottom ();
+
+    // Don't record cache hits caused by the shader mod interface
+    if (! pTLS->imgui.drawing)
+    {
+      desc2d.last_used =
+        SK_QueryPerf ().QuadPart;
+
+      return
+        InterlockedIncrement (&desc2d.hits);
+    }
+  }
+
+  return 0;
 }
 
 ID3D11Texture2D*
@@ -8649,7 +9118,10 @@ SK_D3D11_PopulateResourceList (bool refresh)
 
             if (StrStrIW (fd.cFileName, L"Uncompressed_"))
             {
-              if (StrStrIW (StrStrIW (fd.cFileName, L"_") + 1, L"_"))
+              wchar_t *wszFound =
+                StrStrIW (fd.cFileName, L"_");
+
+              if (wszFound && StrStrIW (wszFound + 1, L"_"))
               {
                 swscanf ( fd.cFileName,
                             L"Uncompressed_%08X_%08X.dds",
@@ -8667,24 +9139,29 @@ SK_D3D11_PopulateResourceList (bool refresh)
             }
 
             else
-            {
-              if (StrStrIW (StrStrIW (fd.cFileName, L"_") + 1, L"_"))
+            { if (StrStrIW (fd.cFileName, L"_"))
               {
-                swscanf ( fd.cFileName,
-                            L"Compressed_%08X_%08X.dds",
-                              &top_crc32,
-                                &checksum );
-              }
+                wchar_t* wszFound =
+                  StrStrIW (fd.cFileName, L"_");
 
-              else
-              {
-                swscanf ( fd.cFileName,
-                            L"Compressed_%08X.dds",
-                              &top_crc32 );
-                checksum = 0x00;
-              }
+                if (wszFound != nullptr && StrStrIW (wszFound + 1, L"_"))
+                {
+                  swscanf ( fd.cFileName,
+                              L"Compressed_%08X_%08X.dds",
+                                &top_crc32,
+                                  &checksum );
+                }
+                  
+                else
+                {
+                  swscanf ( fd.cFileName,
+                              L"Compressed_%08X.dds",
+                                &top_crc32 );
+                  checksum = 0x00;
+                }
 
-              compressed = true;
+                compressed = true;
+              }
             }
 
             ++files;
@@ -8697,7 +9174,7 @@ SK_D3D11_PopulateResourceList (bool refresh)
             liSize.QuadPart += fsize.QuadPart;
 
             if (compressed)
-              liCompressed.QuadPart += fsize.QuadPart;
+              liCompressed.QuadPart   += fsize.QuadPart;
             else
               liUncompressed.QuadPart += fsize.QuadPart;
 
@@ -9385,13 +9862,63 @@ SK_DXGI_FormatToStr (DXGI_FORMAT fmt)
   }
 }
 
+uint32_t
+safe_crc32c_ex (uint32_t seed, const void* pData, size_t size, bool* failed)
+{
+  *failed = false;
+
+  // Current limit == 48 GiB
+  if (size > (1024ULL * 1024ULL * 1024ULL * 48) || pData == nullptr)
+  {
+    SK_LOG0 ( ( L"Hash Fail: Data is too large (%zu) or invalid pointer (%p).",
+                  size, pData ),
+                L"DX11TexMgr");
+
+    *failed = true;
+
+    return seed;
+  }
+
+  __try
+  {
+    return crc32c (seed, pData, size);
+  }
+
+  __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ) ? 
+             EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH )
+  {
+    *failed = true;
+
+    return 0x00;
+  }
+}
+
+__declspec (noinline)
+void
+SK_D3D11_DescribeTexFailure (const D3D11_TEXTURE2D_DESC   *__restrict pDesc)
+{
+  SK_LOG0 ( (L"Texture Hash Fail: Access Violation [Tex: %lux%lu : %lu LODs :: Array Size %lu"
+             L"Format: %s, Usage: %s, CPUAccess: %x, BindFlags: %s, Misc Flags: %s]",
+                           pDesc->Width,  pDesc->Height,
+                       pDesc->MipLevels,  pDesc->ArraySize,
+              SK_DXGI_FormatToStr        (pDesc->Format).c_str (),
+              SK_D3D11_DescribeUsage     (pDesc->Usage),
+                                          pDesc->CPUAccessFlags,
+              SK_D3D11_DescribeBindFlags (
+           static_cast <D3D11_BIND_FLAG> (pDesc->BindFlags)).c_str (),
+              SK_D3D11_DescribeMiscFlags (
+  static_cast <D3D11_RESOURCE_MISC_FLAG> (pDesc->MiscFlags)).c_str ()),
+              L"DX11TexMgr" );
+}
+
 __declspec (noinline)
 uint32_t
 __cdecl
 crc32_tex (  _In_      const D3D11_TEXTURE2D_DESC   *__restrict pDesc,
              _In_      const D3D11_SUBRESOURCE_DATA *__restrict pInitialData,
              _Out_opt_       size_t                 *__restrict pSize,
-             _Out_opt_       uint32_t               *__restrict pLOD0_CRC32 )
+             _Out_opt_       uint32_t               *__restrict pLOD0_CRC32,
+             _In_opt_        bool                               bAllLODs /*= true */)
 {
   if (pLOD0_CRC32 != nullptr)
     *pLOD0_CRC32 = 0ui32;
@@ -9423,10 +9950,37 @@ crc32_tex (  _In_      const D3D11_TEXTURE2D_DESC   *__restrict pDesc,
   const bool     compressed =
     SK_D3D11_IsFormatCompressed (pDesc->Format);
 
-  const int bpp = ( (pDesc->Format >= DXGI_FORMAT_BC1_TYPELESS &&
-                     pDesc->Format <= DXGI_FORMAT_BC1_UNORM_SRGB) ||
-                    (pDesc->Format >= DXGI_FORMAT_BC4_TYPELESS &&
-                     pDesc->Format <= DXGI_FORMAT_BC4_SNORM) ) ? 0 : 1;
+  int bpp = 0;
+
+  switch (pDesc->Format)
+  {
+    case DXGI_FORMAT_BC1_TYPELESS:
+    case DXGI_FORMAT_BC1_UNORM:
+    case DXGI_FORMAT_BC1_UNORM_SRGB:
+    case DXGI_FORMAT_BC4_TYPELESS:
+    case DXGI_FORMAT_BC4_UNORM:
+    case DXGI_FORMAT_BC4_SNORM:
+      bpp = 0;
+      break;
+
+    case DXGI_FORMAT_BC2_TYPELESS:
+    case DXGI_FORMAT_BC2_UNORM:
+    case DXGI_FORMAT_BC2_UNORM_SRGB:
+    case DXGI_FORMAT_BC3_TYPELESS:
+    case DXGI_FORMAT_BC3_UNORM:
+    case DXGI_FORMAT_BC3_UNORM_SRGB:
+    case DXGI_FORMAT_BC5_TYPELESS:
+    case DXGI_FORMAT_BC5_UNORM:
+    case DXGI_FORMAT_BC5_SNORM:
+    case DXGI_FORMAT_BC6H_TYPELESS:
+    case DXGI_FORMAT_BC6H_UF16:
+    case DXGI_FORMAT_BC6H_SF16:
+    case DXGI_FORMAT_BC7_TYPELESS:
+    case DXGI_FORMAT_BC7_UNORM:
+    case DXGI_FORMAT_BC7_UNORM_SRGB:
+      bpp = 1;
+      break;
+  }
 
   unsigned int width  = pDesc->Width;
   unsigned int height = pDesc->Height;
@@ -9437,6 +9991,9 @@ crc32_tex (  _In_      const D3D11_TEXTURE2D_DESC   *__restrict pDesc,
   {
     for (unsigned int i = 0; i < pDesc->MipLevels; i++)
     {
+      if (i > 0 && (!bAllLODs))
+        break;
+        
       auto* pData    =
         static_cast  <char *> (
           const_cast <void *> (pInitialData [i].pSysMem)
@@ -9467,6 +10024,7 @@ crc32_tex (  _In_      const D3D11_TEXTURE2D_DESC   *__restrict pDesc,
           size += static_cast <size_t> (stride * (height / 4)) + (height % 4);
           SK_LOG0 ( ( L"Access Violation while Hashing Texture: %x", checksum ),
                       L" Tex Hash " );
+          return 0;
         }
       }
 
@@ -9476,12 +10034,22 @@ crc32_tex (  _In_      const D3D11_TEXTURE2D_DESC   *__restrict pDesc,
         //  the lines we are "scanning" actually represent 4 rows of image data.
         for (unsigned int j = 0; j < height; j += 4)
         {
+          bool failed = false;
+
           const uint32_t row_checksum =
-            safe_crc32c (checksum, (const uint8_t *)(pData), stride);
+            safe_crc32c_ex (checksum, (const uint8_t *)(pData), stride, &failed);
 
           if (row_checksum != 0x00)
             checksum = row_checksum;
 
+          if (failed)
+          {
+            SK_D3D11_DescribeTexFailure (pDesc);
+
+            return 0;
+          }
+
+          
           // Respect the engine's reported stride, while making sure to
           //   only read the 4x4 blocks that have legal data. Any padding
           //     the engine uses will not be included in our hash since the
@@ -9504,6 +10072,9 @@ crc32_tex (  _In_      const D3D11_TEXTURE2D_DESC   *__restrict pDesc,
   {
     for (unsigned int i = 0; i < pDesc->MipLevels; i++)
     {
+      if (i > 0 && (! bAllLODs))
+        break;
+
       auto* pData      =
         static_const_cast <char *, void *> (pInitialData [i].pSysMem);
 
@@ -9517,23 +10088,33 @@ crc32_tex (  _In_      const D3D11_TEXTURE2D_DESC   *__restrict pDesc,
         const unsigned int lod_size =
           (scanlength * height);
 
-        checksum = safe_crc32c ( checksum,
-                                   static_cast <const uint8_t *> (
-                                     static_const_cast <const void *, const char *> (pData)
-                                   ),
-                                  lod_size );
+        bool failed = false;
+
+        checksum = safe_crc32c_ex ( checksum,
+                                     static_cast <const uint8_t *> (
+                                       static_const_cast <const void *, const char *> (pData)
+                                     ),
+                                    lod_size, &failed );
         size    += lod_size;
+
+        if (failed)
+          return 0;
       }
 
       else if (pDesc->Usage != D3D11_USAGE_STAGING)
       {
         for (unsigned int j = 0; j < height; j++)
         {
+          bool failed = false;
+
           const uint32_t row_checksum =
-            safe_crc32c (checksum, (const uint8_t *)(pData), scanlength);
+            safe_crc32c_ex (checksum, (const uint8_t *)(pData), scanlength, &failed);
 
           if (row_checksum != 0x00)
             checksum = row_checksum;
+
+          if (failed)
+            return 0;
 
           pData += pInitialData [i].SysMemPitch;
           size  += scanlength;
@@ -9733,14 +10314,14 @@ HRESULT
 __stdcall
 SK_D3D11_DumpTexture2D ( _In_ ID3D11Texture2D* pTex, uint32_t crc32c )
 {
-  CComPtr <ID3D11Device>        pDev    = nullptr;
-  CComPtr <ID3D11DeviceContext> pDevCtx = nullptr;
-
-  static const SK_RenderBackend& rb =
+  static const auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  if ( SUCCEEDED (rb.device->QueryInterface              <ID3D11Device>        (&pDev))  &&
-       SUCCEEDED (rb.d3d11.immediate_ctx->QueryInterface <ID3D11DeviceContext> (&pDevCtx)) )
+  CComQIPtr <ID3D11Device>        pDev    (rb.device);
+  CComQIPtr <ID3D11DeviceContext> pDevCtx (rb.d3d11.immediate_ctx);
+
+  if ( pDev    != nullptr &&
+       pDevCtx != nullptr )
   {
     DirectX::ScratchImage img;
 
@@ -10094,16 +10675,14 @@ HRESULT
 __stdcall
 SK_D3D11_MipmapCacheTexture2D ( _In_ ID3D11Texture2D* pTex, uint32_t crc32c, SK_TLS* pTLS = SK_TLS_Bottom () )
 {
-  CComPtr <ID3D11Device>        pDev    = nullptr;
-  CComPtr <ID3D11DeviceContext> pDevCtx = nullptr;
-
-  const SK_RenderBackend& rb =
+  static const auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  pDev    = rb.device;
-  pDevCtx = rb.d3d11.immediate_ctx;
+  CComQIPtr <ID3D11Device>        pDev    (rb.device);
+  CComQIPtr <ID3D11DeviceContext> pDevCtx (rb.d3d11.immediate_ctx);
 
-  if (pDev != nullptr && pDevCtx != nullptr)
+  if ( pDev    != nullptr &&
+       pDevCtx != nullptr    )
   {
     DirectX::ScratchImage img;
 
@@ -10195,6 +10774,14 @@ SK_D3D11_DumpTexture2D (  _In_ const D3D11_TEXTURE2D_DESC   *pDesc,
                                 pDesc->MipLevels,
                                   pDesc->ArraySize), L"DX11TexDmp" );
 
+   DXGI_FORMAT newFormat = pDesc->Format;
+  if (DirectX::IsTypeless (pDesc->Format))
+  { if   (pDesc->Format == DirectX::MakeTypelessUNORM (pDesc->Format))
+    { if (pDesc->Format == DirectX::MakeTypelessFLOAT (pDesc->Format))
+      {        newFormat = DirectX::MakeSRGB          (pDesc->Format); }
+         else{ newFormat = DirectX::MakeTypelessFLOAT (pDesc->Format); } }
+         else{ newFormat = DirectX::MakeTypelessUNORM (pDesc->Format); } }
+
   SK_D3D11_AddDumped (top_crc32, checksum);
 
   DirectX::TexMetadata mdata;
@@ -10207,7 +10794,7 @@ SK_D3D11_DumpTexture2D (  _In_ const D3D11_TEXTURE2D_DESC   *pDesc,
   mdata.miscFlags  = (pDesc->MiscFlags & D3D11_RESOURCE_MISC_TEXTURECUBE) ? 
                                             DirectX::TEX_MISC_TEXTURECUBE : 0;
   mdata.miscFlags2 = 0;
-  mdata.format     = pDesc->Format;
+  mdata.format     = newFormat;
   mdata.dimension  = DirectX::TEX_DIMENSION_TEXTURE2D;
 
   DirectX::ScratchImage image;
@@ -10354,7 +10941,8 @@ SK_D3D11_DumpTexture2D (  _In_ const D3D11_TEXTURE2D_DESC   *pDesc,
 
       if (SUCCEEDED (hr))
       {
-        textures.dumped_texture_bytes += SK_File_GetSize (wszOutName);
+        textures.dumped_texture_bytes +=
+          SK_File_GetSize (wszOutName);
       }
     }
   }
@@ -10727,9 +11315,23 @@ D3D11Dev_CreateShaderResourceView_Override (
             descCopy.Texture2D.MostDetailedMip =                     0;
           }
   
-          const HRESULT hr =
-            D3D11Dev_CreateShaderResourceView_Original ( This, pResource,
-                                                         &descCopy, ppSRView );
+          HRESULT hr =
+            DXGI_ERROR_INVALID_CALL;
+
+          try {
+            hr =
+              D3D11Dev_CreateShaderResourceView_Original (
+                This,        pResource,
+                  &descCopy, ppSRView                    );
+          }
+
+          catch ( const _com_error& eCOM )
+          {
+            SK_LOG0 ( ( L"!! COM Error During "
+                        L"CreateShaderResourceView (...) - '%s'",
+                          eCOM.ErrorMessage ()
+                      ),L"   DXGI   " );
+          }
   
           if (SUCCEEDED (hr))
           {
@@ -11020,8 +11622,7 @@ D3D11Dev_CreateSamplerState_Override
 {
   D3D11_SAMPLER_DESC new_desc = *pSamplerDesc;
 
-  if (SK_GetCurrentGameID () == SK_GAME_ID::Shenmue ||
-      SK_GetCurrentGameID () == SK_GAME_ID::DragonQuestXI)
+  if (SK_GetCurrentGameID () == SK_GAME_ID::Shenmue)
   {
     config.textures.d3d11.uncompressed_mips = true;
     config.textures.d3d11.cache_gen_mips    = true;
@@ -11217,9 +11818,6 @@ SK_D3DX11_SAFE_CreateTextureFromFileW ( ID3D11Device*           pDevice,   LPCWS
 }
 
 
-std::wstring
-SK_D3D11_TexNameFromChecksum (uint32_t top_crc32, uint32_t checksum, uint32_t ffx_crc32 = 0x00);
-
 HRESULT
 SK_D3D11_ReloadTexture ( ID3D11Texture2D* pTex,
                          SK_TLS*          pTLS = SK_TLS_Bottom () )
@@ -11255,21 +11853,19 @@ SK_D3D11_ReloadTexture ( ID3D11Texture2D* pTex,
     {
 #define D3DX11_DEFAULT static_cast <UINT> (-1)
 
-      D3DX11_IMAGE_INFO      img_info   = {   };
-      D3DX11_IMAGE_LOAD_INFO load_info  = {   };
+      D3DX11_IMAGE_INFO      img_info  = { };
+      D3DX11_IMAGE_LOAD_INFO load_info = { };
 
-      const LARGE_INTEGER load_start =
+      const LARGE_INTEGER   load_start =
         SK_QueryPerf ();
 
 	  DirectX::TexMetadata mdata;
-
 	  
       if ( SUCCEEDED (
 		    ( hr = DirectX::GetMetadataFromDDSFile ( fname.c_str (),
-				                                       0x0,
-				                                         mdata )
-	        )        )
-		 )
+				                                         0x0,    mdata )
+	      )            )
+		     )
       {
         load_info.BindFlags      = texDesc2D.desc.BindFlags;
         load_info.CpuAccessFlags = texDesc2D.desc.CPUAccessFlags;
@@ -11289,7 +11885,7 @@ SK_D3D11_ReloadTexture ( ID3D11Texture2D* pTex,
         load_info.Usage          = D3D11_USAGE_DEFAULT;
         load_info.Width          = texDesc2D.desc.Width;
 
-		DirectX::ScratchImage scratch;
+		    DirectX::ScratchImage scratch;
 
         CComPtr   <ID3D11Texture2D> pInjTex = nullptr;
         CComQIPtr <ID3D11Device>    pDev (rb.device);
@@ -11313,7 +11909,8 @@ SK_D3D11_ReloadTexture ( ID3D11Texture2D* pTex,
 			      const LARGE_INTEGER load_end =
 			        SK_QueryPerf ();
 
-			      textures.Textures_2D [pTex].load_time = (load_end.QuadPart - load_start.QuadPart);
+			      textures.Textures_2D [pTex].load_time =
+                (load_end.QuadPart - load_start.QuadPart);
 
 			      return S_OK;
 		      }
@@ -11325,7 +11922,8 @@ SK_D3D11_ReloadTexture ( ID3D11Texture2D* pTex,
   SK_LOG0 ( ( L" >> Texture Reload Failure (HRESULT: %x)", hr),
               L"DX11TexMgr" );
 
-  return E_FAIL;
+  return
+    E_FAIL;
 }
 
 
@@ -11463,62 +12061,21 @@ D3D11Dev_CreateTexture2D_Impl (
 
 
   //// ------------
-  auto& rb =
+  static const auto& rb =
     SK_GetCurrentRenderBackend ();
   
-  CComPtr <ID3D11Device>        pTestDev (This);
-  CComPtr <ID3D11DeviceContext> pDevCtx  (rb.d3d11.immediate_ctx);
-  
-  if (pDevCtx != nullptr)
+  CComQIPtr <ID3D11Device>        pDev    (This);
+  CComQIPtr <ID3D11DeviceContext> pDevCtx (rb.d3d11.immediate_ctx);
+
+  if (! (pDev && pDevCtx))
   {
-    pDevCtx->GetDevice (&pTestDev);
-    if (! pTestDev.IsEqualObject (This))
-    {
-      This->GetImmediateContext (&pDevCtx);
-    }
-  }
-  
-  else
-  {
+    assert (false);
+
     return
       D3D11Dev_CreateTexture2D_Original ( This,            pDesc,
                                          pInitialData, ppTexture2D );
   }
   //// -----------
-
-
-  if (SK_GetCurrentGameID () == SK_GAME_ID::Yakuza0)
-  {
-    if (pDesc->Usage != D3D11_USAGE_IMMUTABLE && ( (pDesc->BindFlags & D3D11_BIND_RENDER_TARGET) ||
-                                                   (pDesc->BindFlags & D3D11_BIND_DEPTH_STENCIL) ) )
-    {
-      //if (pDesc->Width == 512 && pDesc->Height == 512)
-      //{
-      //  dll_log.Log (L"Texture: (%lu x %lu) { Usage: %s, Format: %s }", pDesc->Width, pDesc->Height, SK_D3D11_DescribeUsage (pDesc->Usage), SK_DXGI_FormatToStr (pDesc->Format).c_str ());
-      //  pDesc->Width = 1024; pDesc->Height = 1024;
-      //}
-      //if (__SK_Y0_1024_512 && pDesc->Width == 1024 && pDesc->Height == 512)
-      //{
-      ////
-      //  pDesc->Width  = static_cast <UINT> (3840.0 / 1.5);
-      //  pDesc->Height = static_cast <UINT> (2160.0 / 1.5);
-      //}
-      //
-      ////if (__SK_Y0_1024_768 && pDesc->Width == 1024 && pDesc->Height == 768)
-      ////{
-      //////dll_log.Log (L"Texture: 1024x768 { Usage: %s, Format: %s )", SK_D3D11_DescribeUsage (pDesc->Usage), SK_DXGI_FormatToStr (pDesc->Format).c_str ());
-      ////  pDesc->Width  = static_cast <UINT> (3840.0 / 1.5);
-      ////  pDesc->Height = static_cast <UINT> (2160.0 / 1.5);
-      ////}
-      //
-      //if (__SK_Y0_960_540 && pDesc->Width == 960 && pDesc->Height == 540)
-      //{
-      ////dll_log.Log (L"Texture: 960x540 { Usage: %s, Format: %s )", SK_D3D11_DescribeUsage (pDesc->Usage), SK_DXGI_FormatToStr (pDesc->Format).c_str ());
-      //  pDesc->Width  = 3840 / 2;
-      //  pDesc->Height = 2160 / 2;
-      //}
-    }
-  }
 
   SK_D3D11_TextureResampler.processFinished (This, pDevCtx, pTLS);
 
@@ -11576,44 +12133,14 @@ D3D11Dev_CreateTexture2D_Impl (
                                                    //   They will be handled through a
                                                    //     different codepath.
 
-  if (SK_GetCurrentGameID () == SK_GAME_ID::Yakuza0)
+  static const bool __sk_yk0 =
+    (SK_GetCurrentGameID () == SK_GAME_ID::Yakuza0);
+
+  if (__sk_yk0)
   {
     if (pDesc->Usage != D3D11_USAGE_IMMUTABLE)
       cacheable = false;
-
-    //else if (pDesc->MipLevels == 1)
-    //{
-    //  cacheable = false;
-    //  //if (SK_D3D11_IsFormatCompressed (pDesc->Format))
-    //  //{
-    //  //  //cacheable = false;
-    //  //  if (pDesc->Width  > 32 ||
-    //  //      pDesc->Height > 32   )
-    //  //  //if (pDesc->Width == 1024 && pDesc->Height == 512)
-    //  //  {
-    //  //    cacheable = false;
-    //  //
-    //  //    dll_log.Log ( L"Reject (Compressed, Width || Height > 128) : (%lu x %lu) : MiscFlags: %x, CPUAccessFlags: %x, SampleDesc.Count: %lu, ArraySize: %lu",
-    //  //                 pDesc->Width, pDesc->Height, pDesc->MiscFlags, pDesc->CPUAccessFlags, pDesc->SampleDesc.Count, pDesc->ArraySize );
-    //  //  }
-    //  //}
-    //  //else
-    //  //{
-    //  //  if (pDesc->Width < 256 || pDesc->Height < 256)
-    //  //  {
-    //  //    dll_log.Log ( L"Reject (Uncompressed, Width || Height < 32) : (%lu x %lu) : MiscFlags: %x, CPUAccessFlags: %x, SampleDesc.Count: %lu, ArraySize: %lu",
-    //  //                 pDesc->Width, pDesc->Height, pDesc->MiscFlags, pDesc->CPUAccessFlags, pDesc->SampleDesc.Count, pDesc->ArraySize );
-    //  //
-    //  //    cacheable = false;
-    //  //  }
-    //  //}
-    //}
-
-    ////dll_log.Log ( L"MipLevels: %lu, MiscFlags: %x, CPUAccessFlags: %x, SampleDesc.Count: %lu, ArraySize: %lu",
-    ////                pDesc->MipLevels, pDesc->MiscFlags, pDesc->CPUAccessFlags, pDesc->SampleDesc.Count, pDesc->ArraySize );
   }
-
-  CComQIPtr <ID3D11Device> pDev (rb.device);
 
   //
   // Filter out any noise coming from overlays / video capture software
@@ -11631,21 +12158,6 @@ D3D11Dev_CreateTexture2D_Impl (
   }
 
   bool gen_mips = false;
-
-  auto CalcMipmapLODs = [](UINT width, UINT height)
-  {
-    UINT lods = 1U;
-
-    while ((width > 1U) || (height > 1U))
-    {
-      if (width  > 1U) width  >>= 1UL;
-      if (height > 1U) height >>= 1UL;
-
-      ++lods;
-    }
-
-    return lods;
-  };
 
   if ( config.textures.d3d11.generate_mips && cacheable && ( pDesc->MipLevels != CalcMipmapLODs (pDesc->Width, pDesc->Height) ) )
   {
@@ -11915,7 +12427,7 @@ D3D11Dev_CreateTexture2D_Impl (
     // We will return this, but when it is returned, it will be missing mipmaps
     //   until the resample job (scheduled onto a worker thread) finishes.
     //
-    //   Minimum latency is 1 frame before the texture is complete.
+    //   Minimum latency is 1 frame before the texture is `.
     //
     CComPtr <ID3D11Texture2D>     pFinalTex = nullptr;
 
@@ -12206,58 +12718,54 @@ SK_D3D11_UpdateRenderStatsEx (const IDXGISwapChain* pSwapChain)
   if (! (pSwapChain))
     return;
 
-  CComPtr <ID3D11Device>        pDev    = nullptr;
-  CComPtr <ID3D11DeviceContext> pDevCtx = nullptr;
-
-  static const SK_RenderBackend& rb =
+  static const auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  if (rb.device == nullptr || rb.d3d11.immediate_ctx == nullptr || rb.swapchain == nullptr)
+  CComQIPtr <ID3D11Device>        pDev    (rb.device);
+  CComQIPtr <ID3D11DeviceContext> pDevCtx (rb.d3d11.immediate_ctx);
+
+  if (! (pDev && pDevCtx && rb.swapchain))
     return;
 
-  if ( SUCCEEDED (rb.device->QueryInterface              <ID3D11Device>        (&pDev))  &&
-       SUCCEEDED (rb.d3d11.immediate_ctx->QueryInterface <ID3D11DeviceContext> (&pDevCtx)) )
+  SK::DXGI::PipelineStatsD3D11& pipeline_stats =
+    SK::DXGI::pipeline_stats_d3d11;
+
+  if (ReadPointerAcquire ((volatile PVOID *)&pipeline_stats.query.async) != nullptr)
   {
-    SK::DXGI::PipelineStatsD3D11& pipeline_stats =
-      SK::DXGI::pipeline_stats_d3d11;
-
-    if (ReadPointerAcquire ((volatile PVOID *)&pipeline_stats.query.async) != nullptr)
+    if (ReadAcquire (&pipeline_stats.query.active))
     {
-      if (ReadAcquire (&pipeline_stats.query.active))
-      {
-        pDevCtx->End ((ID3D11Asynchronous *)ReadPointerAcquire ((volatile PVOID *)&pipeline_stats.query.async));
-        InterlockedExchange (&pipeline_stats.query.active, FALSE);
-      }
-
-      else
-      {
-        const HRESULT hr =
-          pDevCtx->GetData ( (ID3D11Asynchronous *)ReadPointerAcquire ((volatile PVOID *)&pipeline_stats.query.async),
-                              &pipeline_stats.last_results,
-                                sizeof D3D11_QUERY_DATA_PIPELINE_STATISTICS,
-                                  0x0 );
-        if (hr == S_OK)
-        {
-          ((ID3D11Asynchronous *)ReadPointerAcquire ((volatile PVOID *)&pipeline_stats.query.async))->Release ();
-                         InterlockedExchangePointer ((void **)         &pipeline_stats.query.async, nullptr);
-        }
-      }
+      pDevCtx->End ((ID3D11Asynchronous *)ReadPointerAcquire ((volatile PVOID *)&pipeline_stats.query.async));
+      InterlockedExchange (&pipeline_stats.query.active, FALSE);
     }
 
     else
     {
-      D3D11_QUERY_DESC query_desc
-        {  D3D11_QUERY_PIPELINE_STATISTICS,
-           0x00                             };
-
-      ID3D11Query* pQuery = nullptr;
-
-      if (SUCCEEDED (pDev->CreateQuery (&query_desc, &pQuery)))
+      const HRESULT hr =
+        pDevCtx->GetData ( (ID3D11Asynchronous *)ReadPointerAcquire ((volatile PVOID *)&pipeline_stats.query.async),
+                            &pipeline_stats.last_results,
+                              sizeof D3D11_QUERY_DATA_PIPELINE_STATISTICS,
+                                0x0 );
+      if (hr == S_OK)
       {
-        InterlockedExchangePointer ((void **)&pipeline_stats.query.async,  pQuery);
-        pDevCtx->Begin             (                                       pQuery);
-        InterlockedExchange        (         &pipeline_stats.query.active, TRUE);
+        ((ID3D11Asynchronous *)ReadPointerAcquire ((volatile PVOID *)&pipeline_stats.query.async))->Release ();
+                       InterlockedExchangePointer ((void **)         &pipeline_stats.query.async, nullptr);
       }
+    }
+  }
+
+  else
+  {
+    D3D11_QUERY_DESC query_desc
+      {  D3D11_QUERY_PIPELINE_STATISTICS,
+         0x00                             };
+
+    ID3D11Query* pQuery = nullptr;
+
+    if (SUCCEEDED (pDev->CreateQuery (&query_desc, &pQuery)))
+    {
+      InterlockedExchangePointer ((void **)&pipeline_stats.query.async,  pQuery);
+      pDevCtx->Begin             (                                       pQuery);
+      InterlockedExchange        (         &pipeline_stats.query.active, TRUE);
     }
   }
 }
@@ -13078,6 +13586,12 @@ SK_D3D11_HookDevCtx (sk_hook_d3d11_t *pHooks)
                                           D3D11_VSSetShaderResources_Original,
                                           D3D11_VSSetShaderResources_pfn );
 
+    DXGI_VIRTUAL_HOOK ( pHooks->ppImmediateContext, 29,
+                          "ID3D11DeviceContext::GetData",
+                                          D3D11_GetData_Override,
+                                          D3D11_GetData_Original,
+                                          D3D11_GetData_pfn );
+
     DXGI_VIRTUAL_HOOK ( pHooks->ppImmediateContext,   31,
                           "ID3D11DeviceContext::GSSetShaderResources",
                                           D3D11_GSSetShaderResources_Override,
@@ -13661,6 +14175,59 @@ auto IsSkipped = [&](sk_shader_class shader_class, uint32_t crc32c)
   return blacklisted;
 };
 
+auto IsHud = [&](sk_shader_class shader_class, uint32_t crc32c)
+{
+  static auto& shaders =
+    SK_D3D11_Shaders;
+
+  d3d11_shader_tracking_s* tracker = nullptr;
+  bool                     hud     = false;
+
+  switch (shader_class)
+  {
+    case sk_shader_class::Vertex:
+    {
+      tracker = &shaders.vertex.tracked;
+      hud     =  shaders.vertex.hud.count (crc32c) != 0;
+    } break;
+
+    case sk_shader_class::Pixel:
+    {
+      tracker = &shaders.pixel.tracked;
+      hud     =  shaders.pixel.hud.count (crc32c) != 0;
+    } break;
+
+    case sk_shader_class::Geometry:
+    {
+      tracker = &shaders.geometry.tracked;
+      hud     =  shaders.geometry.hud.count (crc32c) != 0;
+    } break;
+
+    case sk_shader_class::Hull:
+    {
+      tracker = &shaders.hull.tracked;
+      hud     =  shaders.hull.hud.count (crc32c) != 0;
+    } break;
+
+    case sk_shader_class::Domain:
+    {
+      tracker = &shaders.domain.tracked;
+      hud     =  shaders.domain.hud.count (crc32c) != 0;
+    } break;
+
+    case sk_shader_class::Compute:
+    {
+      tracker = &shaders.compute.tracked;
+      hud     =  shaders.compute.hud.count (crc32c) != 0;
+    } break;
+
+    default:
+      return false;
+  }
+
+  return hud;
+};
+
 struct shader_disasm_s {
   std::string       header = "";
   std::string       code   = "";
@@ -13783,70 +14350,17 @@ const std::set          <ID3D11ShaderResourceView *>& set_of_resources,
 
           ID3D11ShaderResourceView* pSRV2 = nullptr;
 
-          // Typeless compressed types need to assume a type, or they won't render :P
-          switch (srv_desc.Format)
+          DXGI_FORMAT orig_fmt =
+            srv_desc.Format;
+
+          srv_desc.Format =
+            DirectX::MakeTypelessFLOAT (orig_fmt);
+          
+          if (srv_desc.Format == orig_fmt)
           {
-            case DXGI_FORMAT_BC1_TYPELESS:
-              srv_desc.Format = DXGI_FORMAT_BC1_UNORM;
-              break;
-            case DXGI_FORMAT_BC2_TYPELESS:
-              srv_desc.Format = DXGI_FORMAT_BC2_UNORM;
-              break;
-            case DXGI_FORMAT_BC3_TYPELESS:
-              srv_desc.Format = DXGI_FORMAT_BC3_UNORM;
-              break;
-            case DXGI_FORMAT_BC4_TYPELESS:
-              srv_desc.Format = DXGI_FORMAT_BC4_UNORM;
-              break;
-            case DXGI_FORMAT_BC5_TYPELESS:
-              srv_desc.Format = DXGI_FORMAT_BC5_UNORM;
-              break;
-            case DXGI_FORMAT_BC6H_TYPELESS:
-              srv_desc.Format = DXGI_FORMAT_BC6H_SF16;
-              break;
-            case DXGI_FORMAT_BC7_TYPELESS:
-              srv_desc.Format = DXGI_FORMAT_BC7_UNORM;
-              break;
-
-            case DXGI_FORMAT_B8G8R8A8_TYPELESS:
-              srv_desc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
-              break;
-            case DXGI_FORMAT_R8G8B8A8_TYPELESS:
-              srv_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-              break;
-
-
-            case DXGI_FORMAT_R8_TYPELESS:
-              srv_desc.Format = DXGI_FORMAT_R8_UNORM;
-              break;
-            case DXGI_FORMAT_R8G8_TYPELESS:
-              srv_desc.Format = DXGI_FORMAT_R8G8_UNORM;
-              break;
-
-            case DXGI_FORMAT_R16_TYPELESS:
-              srv_desc.Format = DXGI_FORMAT_R16_UNORM;
-              break;
-            case DXGI_FORMAT_R16G16_TYPELESS:
-              srv_desc.Format = DXGI_FORMAT_R16G16_UNORM;
-              break;
-            case DXGI_FORMAT_R16G16B16A16_TYPELESS:
-              srv_desc.Format = DXGI_FORMAT_R16G16B16A16_UNORM;
-              break;
-
-            case DXGI_FORMAT_R32_TYPELESS:
-              srv_desc.Format = DXGI_FORMAT_R32_FLOAT;
-              break;
-            case DXGI_FORMAT_R32G32_TYPELESS:
-              srv_desc.Format = DXGI_FORMAT_R32G32_FLOAT;
-              break;
-            case DXGI_FORMAT_R32G32B32_TYPELESS:
-              srv_desc.Format = DXGI_FORMAT_R32G32B32_FLOAT;
-              break;
-            case DXGI_FORMAT_R32G32B32A32_TYPELESS:
-              srv_desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-              break;
-          };
-
+            srv_desc.Format =
+              DirectX::MakeTypelessUNORM (orig_fmt);
+          }
           srv_desc.Texture2D.MipLevels       = (UINT)-1;
           srv_desc.Texture2D.MostDetailedMip =        desc.MipLevels;
 
@@ -13953,7 +14467,7 @@ const std::set          <ID3D11ShaderResourceView *>& set_of_resources,
 
       if (pTex2D != nullptr)
       {
-        if (textures.Textures_2D.count  (pTex2D) && textures.Textures_2D  [pTex2D].crc32c != 0x0)
+        if (textures.Textures_2D.count  (pTex2D) && textures.Textures_2D [pTex2D].crc32c != 0x0)
         {
           crc32c = textures.Textures_2D [pTex2D].crc32c;
         }
@@ -14022,6 +14536,7 @@ SK_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
     bool                 injected  = false;
     D3D11_TEXTURE2D_DESC desc      = { };
     D3D11_TEXTURE2D_DESC orig_desc = { };
+    BOOL                 mipmapped =  -1; // We must calculate this
     ID3D11Texture2D*     pTex      = nullptr;
     size_t               size      = 0;
   };                              
@@ -14394,7 +14909,7 @@ SK_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
 
   if (debug_tex_id != 0x00 && texture_map.count ((uint32_t)debug_tex_id))
   {
-    const list_entry_s& entry =
+    list_entry_s& entry =
       texture_map [(uint32_t)debug_tex_id];
 
     D3D11_TEXTURE2D_DESC tex_desc  = entry.orig_desc;
@@ -14402,7 +14917,10 @@ SK_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
     float                load_time = 0.0f;
 
     CComPtr <ID3D11Texture2D> pTex =
-      textures.getTexture2D ((uint32_t)entry.tag, &tex_desc, &tex_size, &load_time, pTLS);
+      textures.getTexture2D ( (uint32_t)entry.tag,
+                                              &tex_desc,
+                                              &tex_size,
+                                              &load_time, pTLS );
 
     const bool staged = false;
 
@@ -14612,17 +15130,31 @@ SK_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
             }
           }
 
-          ImGui::SameLine ();
+          if (entry.mipmapped == -1)
+          {   entry.mipmapped  = ( CalcMipmapLODs ( entry.desc.Width,
+                                                    entry.desc.Height ) == entry.desc.MipLevels )
+                               ? TRUE : FALSE;
+          }
 
-          if (ImGui::Button ("  Generate Mipmaps  ###GenerateMipmaps"))
+          if (entry.mipmapped == FALSE)
           {
-            SK_ScopedBool auto_bool (&pTLS->texture_management.injection_thread);
-                                      pTLS->texture_management.injection_thread = true;
+            ImGui::SameLine ();
 
-            HRESULT
-            __stdcall
-            SK_D3D11_MipmapCacheTexture2D ( _In_ ID3D11Texture2D* pTex, uint32_t crc32c, SK_TLS* pTLS );
-            SK_D3D11_MipmapCacheTexture2D (pTex, entry.crc32c, pTLS);
+            if (ImGui::Button ("  Generate Mipmaps  ###GenerateMipmaps"))
+            {
+              SK_ScopedBool auto_bool (&pTLS->texture_management.injection_thread);
+                                        pTLS->texture_management.injection_thread = true;
+
+              HRESULT
+              __stdcall
+              SK_D3D11_MipmapCacheTexture2D ( _In_ ID3D11Texture2D* pTex, uint32_t crc32c, SK_TLS* pTLS );
+
+
+              if (SUCCEEDED (SK_D3D11_MipmapCacheTexture2D (pTex, entry.crc32c, pTLS)))
+              {
+                entry.mipmapped = TRUE;
+              }
+            }
           }
         }
 
@@ -14855,6 +15387,14 @@ auto SkipColorCycle =
                                                                 floor ( (dwFrameTime % 500) / 500.0f) ), 1.0f) );
 };
 
+auto HudColorCycle =
+[ ]
+{
+  return ImColor::HSV ( 0.0f, 0.0f,                             
+                                std::min ( static_cast <float>(0.333 +  (dwFrameTime % 500) / 500.0f -
+                                                                floor ( (dwFrameTime % 500) / 500.0f) ), 1.0f) );
+};
+
 void
 SK_D3D11_ClearShaderState (void) 
 {
@@ -14895,6 +15435,7 @@ SK_D3D11_ClearShaderState (void)
     record->on_top.clear                 ();
     record->trigger_reshade.before.clear ();
     record->trigger_reshade.after.clear  ();
+  //record->hud.clear                    ();
   }
 };
 
@@ -14942,6 +15483,7 @@ SK_D3D11_LoadShaderStateEx (std::wstring name, bool clear)
     std::map <uint32_t, std::set <uint32_t> > disable_if_texture;
     std::set <uint32_t>                       trigger_reshade_before;
     std::set <uint32_t>                       trigger_reshade_after;
+    std::set <uint32_t>                       hud_shader;
   } draw_states [7];
 
   auto shader_class_idx = [](const std::wstring& name)
@@ -14981,7 +15523,7 @@ SK_D3D11_LoadShaderStateEx (std::wstring name, bool clear)
 
         while (wszTok)
         {
-          if (! _wcsicmp (wszTok, L"Wireframe"))
+          if (!      _wcsicmp (wszTok, L"Wireframe"))
             draw_states [shader_class].wireframe.emplace (shader);
           else if (! _wcsicmp (wszTok, L"OnTop"))
             draw_states [shader_class].on_top.emplace (shader);
@@ -15003,6 +15545,10 @@ SK_D3D11_LoadShaderStateEx (std::wstring name, bool clear)
             swscanf (wszTok, L"DisableIfTexture=%x", &crc32c);
 
             draw_states [shader_class].disable_if_texture [shader].insert (crc32c);
+          }
+          else if (! _wcsicmp (wszTok, L"HUD"))
+          {
+            draw_states [shader_class].hud_shader.emplace (shader);
           }
 
           wszTok =
@@ -15069,6 +15615,9 @@ SK_D3D11_LoadShaderStateEx (std::wstring name, bool clear)
           it.second.end ()
       );
     }
+
+    shader_record ()->hud.insert ( draw_states [i].hud_shader.begin (),
+                                   draw_states [i].hud_shader.end   () );
   }
 
 
@@ -15131,6 +15680,7 @@ SK_D3D11_UnloadShaderState (std::wstring name)
     std::map <uint32_t, std::set <uint32_t> > disable_if_texture;
     std::set <uint32_t>                       trigger_reshade_before;
     std::set <uint32_t>                       trigger_reshade_after;
+    std::set <uint32_t>                       hud_shader;
   } draw_states [7];
 
   auto shader_class_idx = [](const std::wstring& name)
@@ -15193,6 +15743,10 @@ SK_D3D11_UnloadShaderState (std::wstring name)
 
             draw_states [shader_class].disable_if_texture [shader].emplace (crc32c);
           }
+          else if (! _wcsicmp (wszTok, L"HUD"))
+          {
+            draw_states [shader_class].hud_shader.emplace (shader);
+          }
 
           wszTok =
             std::wcstok (nullptr, L",", &wszBuf);
@@ -15241,14 +15795,10 @@ SK_D3D11_UnloadShaderState (std::wstring name)
       shader_record ()->on_top.erase (it);
 
     for (auto it : draw_states [i].trigger_reshade_before)
-    {
       shader_record ()->trigger_reshade.before.erase (it);
-    }
 
     for (auto it : draw_states [i].trigger_reshade_after)
-    {
       shader_record ()->trigger_reshade.after.erase (it);
-    }
 
     for ( auto it : draw_states [i].disable_if_texture )
     {
@@ -15257,6 +15807,9 @@ SK_D3D11_UnloadShaderState (std::wstring name)
         shader_record ()->blacklist_if_texture [it.first].erase (it2);
       }
     }
+
+    for (auto it : draw_states [i].hud_shader)
+      shader_record ()->hud.erase (it);
   }
 
 
@@ -15486,6 +16039,11 @@ SK_D3D11_StoreShaderState (void)
       if (record->trigger_reshade.after.count (it))
       {
         states.emplace (L"TriggerReShadeAfter");
+      }
+
+      if (record->hud.count (it))
+      {
+        states.emplace (L"HUD");
       }
 
       if (! states.empty ())
@@ -16006,14 +16564,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
                 desc.Format = SK_D3D11_MakeTypedFormat (desc.Format);
                 pDev->CreateTexture2D (&desc, nullptr, &pTex2);
 
-                CComPtr <ID3D11DeviceContext> pDevCtx = nullptr;
-
-                if (            rb.device                                         &&
-                     SUCCEEDED (rb.device->QueryInterface <ID3D11Device> (&pDev)) &&
-                                rb.d3d11.immediate_ctx != nullptr )
-                {
-                  rb.d3d11.immediate_ctx->QueryInterface <ID3D11DeviceContext> (&pDevCtx);
-                }
+                CComQIPtr <ID3D11DeviceContext> pDevCtx (rb.d3d11.immediate_ctx);
 
                 if (pDevCtx.p != nullptr)
                     pDevCtx->ResolveSubresource (pTex2, 0, pTex, 0, desc.Format);
@@ -16218,7 +16769,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
     //   we need to increment to get an unfiltered list item.
     if (dir != 0)
     {
-      if (list->sel == 0)                       // Can't go lower
+      if (list->sel == 0)                      // Can't go lower
         dir = std::max (0, dir);
       if (list->sel >= shader_set.size () - 1) // Can't go higher
         dir = std::min (0, dir);
@@ -16301,9 +16852,14 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
         ImGui::PushStyleColor (ImGuiCol_Text, SkipColorCycle ());
       }
 
+      else if (IsHud       (shader_type, it.first))
+      {
+        ImGui::PushStyleColor (ImGuiCol_Text, HudColorCycle ());
+      }
+
       else if (IsOnTop     (shader_type, it.first))
       {
-       ImGui::PushStyleColor (ImGuiCol_Text, OnTopColorCycle ());
+        ImGui::PushStyleColor (ImGuiCol_Text, OnTopColorCycle ());
       }
 
       else if (IsWireframe (shader_type, it.first))
@@ -16598,6 +17154,10 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
   static bool on_top_dummy = false;
   bool&       on_top       = on_top_dummy;
 
+  // For the life of me, I don't remember why the code works this way :P
+  static bool hud_dummy = false;
+  bool&       hud       = hud_dummy;
+
 
 
   SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>* pShader = nullptr;
@@ -16701,6 +17261,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
     {
       wireframe = pShader->wireframe.count (tracker->crc32c);
       on_top    = pShader->on_top.count    (tracker->crc32c);
+      hud       = pShader->hud.count       (tracker->crc32c);
 
       const bool wire = wireframe;
 
@@ -16732,6 +17293,22 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
       }
 
       if (top)
+        ImGui::PopStyleColor ();
+
+      const bool hud_shader = hud;
+
+      if (hud_shader)
+        ImGui::PushStyleColor (ImGuiCol_Text, HudColorCycle ());
+
+      if (ImGui::Checkbox ("Shader Belongs to HUD", &hud))
+      {
+        if (hud)
+          pShader->hud.emplace (tracker->crc32c);
+        else
+          pShader->hud.erase   (tracker->crc32c);
+      }
+
+      if (hud_shader)
         ImGui::PopStyleColor ();
     }
     else
@@ -17168,10 +17745,37 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 #include <SpecialK/plugin/plugin_mgr.h>
 
 void
+SK_D3D12_EndFrame (SK_TLS* pTLS = SK_TLS_Bottom ())
+{
+  UNREFERENCED_PARAMETER (pTLS);
+  // TODO?
+}
+
+#include <SpecialK/render/dxgi/dxgi_swapchain.h>
+
+void
 SK_D3D11_EndFrame (SK_TLS* pTLS = SK_TLS_Bottom ())
 {
-  static const SK_RenderBackend& rb =
+  static SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
+
+  if (rb.api == SK_RenderAPI::D3D11On12)
+  {
+    ID3D11On12Device* pDev =
+      rb.d3d11.wrapper_dev;
+
+    if (pDev)
+    {
+      pDev->ReleaseWrappedResources (nullptr, 0);
+
+      if (rb.d3d11.immediate_ctx)
+        rb.d3d11.immediate_ctx->Flush ();
+    }
+
+    rb.d3d11.interop.backbuffer_tex2D = nullptr;
+    rb.d3d11.interop.backbuffer_rtv   = nullptr;
+  }
+
 
   static auto& shaders =
     SK_D3D11_Shaders;
@@ -17245,22 +17849,13 @@ SK_D3D11_EndFrame (SK_TLS* pTLS = SK_TLS_Bottom ())
   //   each tracked shader's timing
   static bool disjoint_done = false;
 
-  CComPtr <ID3D11Device>        pDev    = nullptr;
-  CComPtr <ID3D11DeviceContext> pDevCtx = nullptr;
+  CComQIPtr <ID3D11Device>        pDev    (rb.device);
+  CComQIPtr <ID3D11DeviceContext> pDevCtx (rb.d3d11.immediate_ctx);
 
-  if (            rb.device                                         &&
-       SUCCEEDED (rb.device->QueryInterface <ID3D11Device> (&pDev)) &&
-                  rb.d3d11.immediate_ctx != nullptr )
-  {
-    rb.d3d11.immediate_ctx->QueryInterface <ID3D11DeviceContext> (&pDevCtx);
-  }
-
-  else
+  if (! (pDevCtx && pDev))
     return;
 
-
-  if (! pDevCtx)
-    disjoint_done = true;
+  disjoint_done = true;
 
   // End the Query and probe results (when the pipeline has drained)
   if (pDevCtx && (! disjoint_done) && ReadPointerAcquire ((volatile PVOID *)&d3d11_shader_tracking_s::disjoint_query.async))
@@ -18039,6 +18634,9 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
           ULONG frames_active;
         };
 
+        ULONG frames_drawn =
+          SK_GetFramesDrawn ();
+
         static std::unordered_map <ID3D11RenderTargetView *, lifetime> render_lifetime;
         static std::vector        <ID3D11RenderTargetView *>           render_textures;
 
@@ -18075,18 +18673,18 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
               {
                 if (! render_lifetime.count (it))
                 {
-                  lifetime life;
-
-                  life.frames_active = 1;
-                  life.last_frame    = SK_GetFramesDrawn ();
-
                   render_textures.push_back (it);
-                  render_lifetime.emplace   (std::make_pair (it, life));
+                  render_lifetime.emplace   ( std::make_pair (it,
+                                                lifetime { frames_drawn, 1 }) );
                 }
 
-                else {
-                  render_lifetime [it].frames_active++;
-                  render_lifetime [it].last_frame = SK_GetFramesDrawn ();
+                else
+                {
+                  auto& lifetime =
+                    render_lifetime [it];
+                  
+                  lifetime.frames_active++;
+                  lifetime.last_frame = frames_drawn;
                 }
 
                 live_textures.emplace (it);
@@ -18096,15 +18694,19 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
         }
 
         const ULONG      zombie_threshold = 120;
-        static ULONG last_zombie_pass      = SK_GetFramesDrawn ();
+        static ULONG last_zombie_pass     = frames_drawn;
 
-        if (last_zombie_pass < SK_GetFramesDrawn () - zombie_threshold / 2)
+        if (last_zombie_pass < frames_drawn - zombie_threshold / 2)
         {
           bool newly_dead = false;
 
-          for (auto it : render_textures)
+          const auto time_to_live =
+            frames_drawn - zombie_threshold;
+
+          for (auto& it : render_textures)
           {
-            if (render_lifetime [it].last_frame < SK_GetFramesDrawn () - zombie_threshold)
+            if ( render_lifetime.count (it) &&
+                       render_lifetime [it].last_frame < time_to_live )
             {
               render_lifetime.erase (it);
               newly_dead = true;
@@ -18116,10 +18718,10 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
             render_textures.clear ();
 
             for (auto& it : render_lifetime)
-              render_textures.push_back (it.first);
+              render_textures.emplace_back (it.first);
           }
 
-          last_zombie_pass = SK_GetFramesDrawn ();
+          last_zombie_pass = frames_drawn;
         }
 
 
@@ -18136,18 +18738,19 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
             []( ID3D11RenderTargetView *a,
                 ID3D11RenderTargetView *b )
             {
-              return (uintptr_t)a < (uintptr_t)b;
+              return (uintptr_t)a <
+                     (uintptr_t)b ;
             }
           );
 
+          static char
+            szDesc [48] = { };
 
-          for ( auto it : render_textures )
+          for ( auto& it : render_textures )
           {
-            static char szDesc [48] = { };
-
             sprintf (szDesc, "%07" PRIxPTR "###rtv_%p", (uintptr_t)it, it);
 
-            list_contents.emplace_back (szDesc);
+            list_contents.push_back (szDesc);
   
             if ((uintptr_t)it == last_sel_ptr)
             {
@@ -18340,7 +18943,7 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
                 pDev->CreateTexture2D (&desc2, nullptr, &pTex2);
 
                 CComPtr <ID3D11DeviceContext> pDevCtx;
-                pDev->GetImmediateContext (&pDevCtx);
+                pDev->GetImmediateContext   (&pDevCtx);
 
                 pDevCtx->ResolveSubresource (pTex2, 0, pTex, 0, desc2.Format);
               }
@@ -19573,8 +20176,9 @@ public:
         pImmediateCtx = rb.d3d11.immediate_ctx;
 
       CComQIPtr <ID3D11DeviceContext3>
-        pImmediateCtx3 (pImmediateCtx);
-      if (pImmediateCtx3 != nullptr)
+           pImmediateCtx3 (pImmediateCtx);
+      if ( pImmediateCtx3 != nullptr &&
+           pImmediateCtx3 != pImmediateCtx )
       {
         pImmediateCtx = pImmediateCtx3;
       }
@@ -19586,24 +20190,24 @@ public:
       };
 
       if ( SUCCEEDED ( pDev->CreateQuery ( &fence_query_desc,
-          &pPixelBufferFence
-          )
-          )
-          )
+                                           &pPixelBufferFence
+                                         )
+                     )
+         )
       {
         if ( SUCCEEDED ( rb.swapchain.QueryInterface (
-          &pSwapChain               )
-          )
+                           &pSwapChain               )
+                       )
           )
         {
           ulCommandIssuedOnFrame = SK_GetFramesDrawn ();
 
           if ( SUCCEEDED ( pSwapChain->GetBuffer ( 0,
-              __uuidof (ID3D11Texture2D),
-              (void **)&pBackbufferSurface.p
-              )
-              )
-              )
+                             __uuidof (ID3D11Texture2D),
+                               (void **)&pBackbufferSurface.p
+                                                 )
+                         )
+             )
           {
             D3D11_TEXTURE2D_DESC          backbuffer_desc = { };
             pBackbufferSurface->GetDesc (&backbuffer_desc);
@@ -19629,7 +20233,7 @@ public:
               pDev->CreateTexture2D (
                 &staging_desc, nullptr,
                   &pStagingBackbufferCopy )
-                        )
+                           )
                )
             {
               if (backbuffer_desc.SampleDesc.Count == 1)
@@ -19835,6 +20439,15 @@ public:
 
         if ( framebuffer.PixelBuffer.m_pData != nullptr )
         {
+          static const glm::mat3x3 from709to2020 (
+            glm::vec3 ( 0.6274040f, 0.3292820f, 0.0433136f ),
+            glm::vec3 ( 0.0690970f, 0.9195400f, 0.0113612f ),
+            glm::vec3 ( 0.0163916f, 0.0880132f, 0.8955950f )
+          );
+
+          static const glm::mat3x3 from2020to709 =
+            from709to2020._inverse ();
+
           *pWidth  = framebuffer.Width;
           *pHeight = framebuffer.Height;
 
@@ -19868,6 +20481,44 @@ public:
               
               case DXGI_FORMAT_R16G16B16A16_FLOAT:
               {
+#if 0
+                for ( UINT j  = 0              ;
+                           j < PackedDstPitch  ;
+                           j += 8 )
+                { glm::detail::half r ((glm::detail::half &)(pDst [j])),
+                                    g ((glm::detail::half &)(pDst [j+2])),
+                                    b ((glm::detail::half &)(pDst [j+4]));
+
+                  float red   = r.toFloat ();
+                  float green = g.toFloat ();
+                  float blue  = b.toFloat ();
+
+                  red =
+                    glm::pow (glm::max (glm::pow (glm::abs (red), 1.0f / 78.84375f) - 0.8359375f, 0.0f) / (18.8515625f - 18.6875f) * glm::pow (glm::abs (red), 1.0f / 78.84375f), 1.0f / 0.1593017578f);
+                  green =
+                    glm::pow (glm::max (glm::pow (glm::abs (green), 1.0f / 78.84375f) - 0.8359375f, 0.0f) / (18.8515625f - 18.6875f) * glm::pow (glm::abs (green), 1.0f / 78.84375f), 1.0f / 0.1593017578f);
+                  blue =
+                    glm::pow (glm::max (glm::pow (glm::abs (blue), 1.0f / 78.84375f) - 0.8359375f, 0.0f) / (18.8515625f - 18.6875f) * glm::pow (glm::abs (blue), 1.0f / 78.84375f), 1.0f / 0.1593017578f);
+
+                  glm::vec3 color (red, green, blue);
+
+                  color = from2020to709 * color;
+
+                  red   = color.r;
+                  green = color.g;
+                  blue  = color.b;
+
+                  (glm::detail::half &)
+                    (pDst [j]) = glm::detail::half   (glm::pow (red   * 80.0_Nits, 2.2f));
+
+                  (glm::detail::half &)
+                    (pDst [j+2]) = glm::detail::half (glm::pow (green * 80.0_Nits, 2.2f));
+
+                  (glm::detail::half &)
+                    (pDst [j+4]) = glm::detail::half (glm::pow (blue  * 80.0_Nits, 2.2f));
+                }
+#endif
+
                 for ( UINT j  = 6              ;
                            j < PackedDstPitch  ;
                            j += 8 )
@@ -19998,9 +20649,25 @@ struct
   };
 } enqueued_screenshots { 0, 0, 0 };
 
+bool
+SK_Screenshot_IsCapturing (void)
+{
+  if ( ReadAcquire (&enqueued_screenshots.stages [0]) > 0 ||
+       ReadAcquire (&enqueued_screenshots.stages [1]) > 0 ||
+       ReadAcquire (&enqueued_screenshots.stages [2]) > 0   )
+  {
+    return true;
+  }
+
+  return false;
+}
+
 concurrency::concurrent_queue <SK_D3D11_Screenshot *> screenshot_queue;
 concurrency::concurrent_queue <SK_D3D11_Screenshot *> screenshot_write_queue;
 
+
+static volatile LONG
+  __SK_HUD_YesOrNo = 1L;
 
 bool
 SK_Screenshot_IsCapturingHUDless (void)
@@ -20021,6 +20688,57 @@ SK_Screenshot_IsCapturingHUDless (void)
   return false;
 }
 
+
+bool
+SK_D3D11_ShouldSkipHUD (void)
+{
+  if ( SK_Screenshot_IsCapturingHUDless () ||
+       ReadAcquire     (&__SK_HUD_YesOrNo) <= 0 )
+    return true;
+
+  return false;
+}
+
+LONG
+SK_D3D11_ShowGameHUD (void)
+{
+  InterlockedDecrement (&SK_D3D11_DrawTrackingReqs);
+
+  return
+    InterlockedIncrement (&__SK_HUD_YesOrNo);
+}
+
+LONG
+SK_D3D11_HideGameHUD (void)
+{
+  InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
+
+  return
+    InterlockedDecrement (&__SK_HUD_YesOrNo);
+}
+
+LONG
+SK_D3D11_ToggleGameHUD (void)
+{
+  static volatile LONG last_state =
+    (ReadAcquire (&__SK_HUD_YesOrNo) > 0);
+
+  if (last_state)
+  {
+    SK_D3D11_HideGameHUD ();
+
+    return
+      InterlockedDecrement (&last_state);
+  }
+
+  else
+  {
+    SK_D3D11_ShowGameHUD ();
+
+    return
+      InterlockedIncrement (&last_state);
+  }
+}
 
 
 
@@ -20250,9 +20968,169 @@ SK_D3D11_ProcessScreenshotQueueEx ( int  stage = 2,
               PathAppendW          (wszAbsolutePathToScreenshot, L"SK_SteamScreenshotImport.jpg");
               SK_CreateDirectories (wszAbsolutePathToScreenshot);
 
+              ScratchImage         un_srgb;
+              DirectX::TexMetadata meta;
+
+              meta.width     = raw_img.width;
+              meta.height    = raw_img.height;
+              meta.depth     = 1;
+              meta.format    = raw_img.format;
+              meta.dimension = TEX_DIMENSION_TEXTURE2D;
+              meta.arraySize = 1;
+              meta.mipLevels = 1;
+              meta.SetAlphaMode (TEX_ALPHA_MODE_OPAQUE);
+
+              un_srgb.Initialize          (meta);
+              un_srgb.InitializeFromImage (raw_img);
+
+              ScratchImage un_scrgb;
+              un_scrgb.Initialize         (meta);
+
+              static const XMVECTORF32 c_MaxNitsFor2084 =
+                { 10000.0f, 10000.0f, 10000.0f, 1.f };
+
+              static const XMMATRIX c_from2020to709 =
+              {
+                { 1.6604910f,  -0.1245505f, -0.0181508f, 0.f },
+                { -0.5876411f,  1.1328999f, -0.1005789f, 0.f },
+                { -0.0728499f, -0.0083494f,  1.1187297f, 0.f },
+                { 0.f,          0.f,         0.f,        1.f }
+              };
+
+              static const XMMATRIX c_from709to2020 =
+              {
+                { 0.6274040f, 0.0690970f, 0.0163916f, 0.f },
+                { 0.3292820f, 0.9195400f, 0.0880132f, 0.f },
+                { 0.0433136f, 0.0113612f, 0.8955950f, 0.f },
+                { 0.f,        0.f,        0.f,        1.f }
+              };
+
+              static const XMMATRIX c_fromP3to2020 =
+              {
+                { 0.753845f, 0.0457456f, -0.00121055f, 0.f },
+                { 0.198593f, 0.941777f,   0.0176041f,  0.f },
+                { 0.047562f, 0.0124772f,  0.983607f,   0.f },
+                { 0.f,       0.f,         0.f,         1.f }
+              };
+
+              HRESULT hr = S_OK;
+#if 0
+                TransformImage ( un_srgb.GetImages     (),
+                                 un_srgb.GetImageCount (),
+                                 un_srgb.GetMetadata   (),
+                  [&](XMVECTOR* outPixels, const XMVECTOR* inPixels, size_t width, size_t y)
+                {
+                  UNREFERENCED_PARAMETER(y);
+
+                  for (size_t j = 0; j < width; ++j)
+                  {
+                    XMVECTOR value  = inPixels [j];
+                    XMVECTOR nvalue = XMVector3Transform (value, c_from709to2020);
+                              value = XMVectorSelect     (value, nvalue, g_XMSelect1110);
+
+#if 0
+#if 0
+                        value.m128_f32 [0] = ( value.m128_f32 [0] < 0.04045f ) ? 
+                                               value.m128_f32 [0] / 12.92f     :
+                                         pow ((value.m128_f32 [0] + 0.055f) / 1.055f, 2.4f);
+                        value.m128_f32 [1] = ( value.m128_f32 [1] < 0.04045f ) ? 
+                                               value.m128_f32 [1] / 12.92f     :
+                                         pow ((value.m128_f32 [1] + 0.055f) / 1.055f, 2.4f);
+                        value.m128_f32 [2] = ( value.m128_f32 [2] < 0.04045f ) ? 
+                                               value.m128_f32 [2] / 12.92f     :
+                                         pow ((value.m128_f32 [2] + 0.055f) / 1.055f, 2.4f);
+#else
+                        value.m128_f32 [0] = ( value.m128_f32 [0] < 0.0031308f ) ? 
+                                               value.m128_f32 [0] * 12.92f      :
+                                 1.055f * pow (value.m128_f32 [0], 1.0f / 2.4f) - 0.055f;
+                        value.m128_f32 [1] = ( value.m128_f32 [1] < 0.0031308f ) ? 
+                                               value.m128_f32 [1] * 12.92f      :
+                                 1.055f * pow (value.m128_f32 [1], 1.0f / 2.4f) - 0.055f;
+                        value.m128_f32 [2] = ( value.m128_f32 [2] < 0.0031308f ) ? 
+                                               value.m128_f32 [2] * 12.92f      :
+                                 1.055f * pow (value.m128_f32 [2], 1.0f / 2.4f) - 0.055f;
+#endif
+#endif
+
+                    outPixels [j]   =                     value;
+                  }
+                }, un_scrgb);
+
+                std::swap (un_scrgb, un_srgb);
+#endif
+
+                XMVECTOR maxLum = XMVectorZero ();
+
+                hr =
+                  EvaluateImage ( un_srgb.GetImages     (),
+                                  un_srgb.GetImageCount (),
+                                  un_srgb.GetMetadata   (),
+                  [&](const XMVECTOR* pixels, size_t width, size_t y)
+                  {
+                    UNREFERENCED_PARAMETER(y);
+
+                    for (size_t j = 0; j < width; ++j)
+                    {
+                      static const XMVECTORF32 s_luminance =
+                        { 0.3f, 0.59f, 0.11f, 0.f };
+
+                      XMVECTOR v = *pixels++;
+                               v = XMVector3Dot (v, s_luminance);
+
+                      maxLum =
+                        XMVectorMax (v, maxLum);
+                    }
+                  });
+
+                  maxLum =
+                    XMVectorMultiply (maxLum, maxLum);
+
+                  hr =
+                    TransformImage ( un_srgb.GetImages     (),
+                                     un_srgb.GetImageCount (),
+                                     un_srgb.GetMetadata   (),
+                    [&](XMVECTOR* outPixels, const XMVECTOR* inPixels, size_t width, size_t y)
+                    {
+                      UNREFERENCED_PARAMETER(y);
+
+                      for (size_t j = 0; j < width; ++j)
+                      {
+                        XMVECTOR value = inPixels [j];
+                        XMVECTOR scale =
+                          XMVectorDivide (
+                            XMVectorAdd (
+                              g_XMOne,
+                                XMVectorDivide (
+                                  value,
+                                    maxLum
+                                )
+                            ),
+                            XMVectorAdd ( g_XMOne,
+                                            value
+                                        )
+                          );
+
+                        XMVECTOR nvalue =
+                          XMVectorMultiply (value, scale);
+                                  value =
+                          XMVectorSelect   (value, nvalue, g_XMSelect1110);
+                        outPixels [j]   =   value;
+                      }
+                    }, un_scrgb);
+
+              std::swap (un_srgb, un_scrgb);
+
+              Convert ( *un_srgb.GetImages (),
+                          DXGI_FORMAT_R8G8B8A8_UNORM,
+                            TEX_FILTER_DITHER_DIFFUSION |
+                            TEX_FILTER_SEPARATE_ALPHA   |
+                            TEX_FILTER_FORCE_NON_WIC,
+                              TEX_THRESHOLD_DEFAULT,
+                                un_scrgb );
+
               if ( SUCCEEDED (
-                SaveToWICFile ( raw_img, WIC_FLAGS_NONE,
-                                   GetWICCodec (WIC_CODEC_JPEG),
+                SaveToWICFile ( *un_scrgb.GetImages (), WIC_FLAGS_IGNORE_SRGB,
+                                   GetWICCodec         (WIC_CODEC_JPEG),
                                     wszAbsolutePathToScreenshot )
                              )
                  )
@@ -20269,11 +21147,14 @@ SK_D3D11_ProcessScreenshotQueueEx ( int  stage = 2,
 
                 ScratchImage thumbnailImage;
 
-                Resize ( raw_img, 200, static_cast <size_t> (200 * aspect),
-                           TEX_FILTER_TRIANGLE, thumbnailImage );
+                Resize ( *un_scrgb.GetImages (), 200,
+                           static_cast <size_t> (200 * aspect),
+                            TEX_FILTER_DITHER_DIFFUSION | TEX_FILTER_FORCE_WIC |
+                            TEX_FILTER_SEPARATE_ALPHA   | TEX_FILTER_TRIANGLE,
+                              thumbnailImage );
 
-                SaveToWICFile ( *thumbnailImage.GetImages (), WIC_FLAGS_NONE,
-                                  GetWICCodec (WIC_CODEC_JPEG),
+                SaveToWICFile ( *thumbnailImage.GetImages (), WIC_FLAGS_DITHER,
+                                  GetWICCodec                (WIC_CODEC_JPEG),
                                     wszAbsolutePathToThumbnail );
 
                 std::string ss_path (
@@ -20402,9 +21283,22 @@ SK_D3D11_ProcessScreenshotQueueEx ( int  stage = 2,
                                   screenshot_manager->getExternalScreenshotPath (),
                                     _TRUNCATE );
 
-                  PathAppendW ( wszAbsolutePathToLossless,
-                    SK_FormatStringW ( L"Lossless\\%lu.png",
-                                time (&screenshot_time) ).c_str () );
+                  bool hdr =
+                    SK_GetCurrentRenderBackend ().isHDRCapable ();
+
+                  if (hdr)
+                  {
+                    PathAppendW ( wszAbsolutePathToLossless,
+                      SK_FormatStringW ( L"HDR\\%lu.jxr",
+                                  time (&screenshot_time) ).c_str () );
+                  }
+
+                  else
+                  {
+                    PathAppendW ( wszAbsolutePathToLossless,
+                      SK_FormatStringW ( L"Lossless\\%lu.png",
+                                  time (&screenshot_time) ).c_str () );
+                  }
 
                   // Why's it on the wait-queue if it's not finished?!
                   assert (pFrameData != nullptr);
@@ -20429,10 +21323,27 @@ SK_D3D11_ProcessScreenshotQueueEx ( int  stage = 2,
 
                     SK_CreateDirectories (wszAbsolutePathToLossless);
 
+                    ScratchImage         un_srgb;
+                    DirectX::TexMetadata meta;
+
+                    meta.width     = raw_img.width;
+                    meta.height    = raw_img.height;
+                    meta.depth     = 1;
+                    meta.format    = raw_img.format;
+                    meta.dimension = TEX_DIMENSION_TEXTURE2D;
+                    meta.arraySize = 1;
+                    meta.mipLevels = 1;
+                    meta.SetAlphaMode (TEX_ALPHA_MODE_OPAQUE);
+
+                    un_srgb.Initialize          (meta);
+                    un_srgb.InitializeFromImage (raw_img);
+
                     if ( SUCCEEDED (
-                           SaveToWICFile (raw_img, WIC_FLAGS_NONE,
-                                      GetWICCodec (WIC_CODEC_PNG),
-                                           wszAbsolutePathToLossless)
+                           SaveToWICFile (*un_srgb.GetImages (), WIC_FLAGS_DITHER,
+                                      GetWICCodec (hdr ? WIC_CODEC_WMP :
+                                                         WIC_CODEC_PNG),
+                                           wszAbsolutePathToLossless,
+                                             &GUID_WICPixelFormat64bppRGBAHalf)
                                    )
                        )
                     {
@@ -20734,7 +21645,7 @@ SK_D3D11_UpdateHookAddressCache (void)
     {
       ( *it_global )->target.addr = nullptr;
       ( *it_global )->hits        = 0;
-      ( *it_global )->active      = false;
+      ( *it_global )->active      = false; 
     }
 
     it_global++, it_local++;
@@ -21090,11 +22001,8 @@ public:
   }
 
   void STDMETHODCALLTYPE VSSetConstantBuffers (
-
     _In_range_ (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT - 1)  UINT StartSlot,
-
     _In_range_ (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT - StartSlot)  UINT NumBuffers,
-
     _In_reads_opt_ (NumBuffers)  ID3D11Buffer *const *ppConstantBuffers) override
   {
     return pReal->VSSetConstantBuffers (StartSlot, NumBuffers, ppConstantBuffers);
@@ -21305,7 +22213,7 @@ public:
               if ( (numViews == 1 && ( vps [i].Width  == io.DisplaySize.x    ||
                                        vps [i].Height == io.DisplaySize.y )  ||
                     ((UINT)vps [i].TopLeftX == (2 * (io.DisplaySize.x / 16)) ||
-                     (UINT)vps [i].TopLeftX == (    (io.DisplaySize.x / 16)))))
+                     (UINT)vps [i].TopLeftX ==      (io.DisplaySize.x / 16))))
               {
                 if (numRects >= 1 && rects [0].right  == 16384 &&
                                      rects [0].bottom == 16384 )
@@ -21419,12 +22327,6 @@ public:
     _In_  UINT MapFlags,
     _Out_  D3D11_MAPPED_SUBRESOURCE *pMappedResource) override
   {
-    D3D11_MAPPED_SUBRESOURCE local_map = { };
-
-    if (pMappedResource == nullptr)
-      pMappedResource = &local_map;
-
-
     const HRESULT hr =
       pReal->Map ( pResource, Subresource,
                      MapType, MapFlags, pMappedResource );
@@ -21513,7 +22415,7 @@ public:
                 SK_D3D11_RemoveTexFromCache (pTex, true);
               }
 
-              else
+              else if (pMappedResource != nullptr)
               {
                 auto&& map_ctx = mapped_resources [pReal];
 
@@ -21893,7 +22795,8 @@ public:
       }
     }
 
-    return pReal->VSSetShaderResources (StartSlot, NumViews, newResourceViews);
+    return
+      pReal->VSSetShaderResources (StartSlot, NumViews, newResourceViews);
   }
   
 
@@ -21906,37 +22809,30 @@ public:
     return pReal->VSSetSamplers (StartSlot, NumSamplers, ppSamplers);
   }
   
-  void STDMETHODCALLTYPE Begin( 
- 
+  void STDMETHODCALLTYPE Begin ( 
       _In_  ID3D11Asynchronous *pAsync) override
   {
     return pReal->Begin (pAsync);
   }
   
   void STDMETHODCALLTYPE End( 
- 
       _In_  ID3D11Asynchronous *pAsync) override
   {
     return pReal->End (pAsync);
   }
   
   HRESULT STDMETHODCALLTYPE GetData( 
- 
       _In_  ID3D11Asynchronous *pAsync,
- 
       _Out_writes_bytes_opt_( DataSize )  void *pData,
- 
       _In_  UINT DataSize,
- 
       _In_  UINT GetDataFlags) override
   {
-    return pReal->GetData (pAsync, pData, DataSize, GetDataFlags);
+    return
+      pReal->GetData (pAsync, pData, DataSize, GetDataFlags);
   };
   
   void STDMETHODCALLTYPE SetPredication( 
- 
       _In_opt_  ID3D11Predicate *pPredicate,
- 
       _In_  BOOL PredicateValue) override
   {
     return pReal->SetPredication (pPredicate, PredicateValue);
@@ -22790,12 +23686,12 @@ public:
   }
   
   void STDMETHODCALLTYPE UpdateSubresource (
-    _In_  ID3D11Resource *pDstResource,
-    _In_  UINT DstSubresource,
-    _In_opt_  const D3D11_BOX *pDstBox,
-    _In_  const void *pSrcData,
-    _In_  UINT SrcRowPitch,
-    _In_  UINT SrcDepthPitch) override
+    _In_            ID3D11Resource *pDstResource,
+    _In_            UINT            DstSubresource,
+    _In_opt_  const D3D11_BOX      *pDstBox,
+    _In_      const void           *pSrcData,
+    _In_            UINT            SrcRowPitch,
+    _In_            UINT            SrcDepthPitch) override
   {
     bool early_out = false;
 
@@ -24584,3 +25480,683 @@ SK_D3D11_Shader_Lambda (void)
 
   return shaders;
 };
+
+
+
+
+
+
+
+
+
+static std::string
+  _SpecialNowhere;
+
+struct SK_HDR_FIXUP
+{
+  ID3D11Buffer*             mainSceneCBuffer = nullptr;
+  ID3D11Buffer*                   hudCBuffer = nullptr;
+  ID3D11Buffer*            colorSpaceCBuffer = nullptr;
+                                  
+  ID3D11SamplerState*              pSampler0 = nullptr;
+                                   
+  ID3D11ShaderResourceView*         pMainSrv = nullptr;
+  ID3D11ShaderResourceView*          pHUDSrv = nullptr;
+                                     
+  ID3D11RenderTargetView*           pMainRtv = nullptr;
+  ID3D11RenderTargetView*            pHUDRtv = nullptr;
+                                    
+  ID3D11RasterizerState*        pRasterState = nullptr;
+  ID3D11DepthStencilState*          pDSState = nullptr;
+                                  
+  ID3D11BlendState*             pBlendState0 = nullptr;
+  ID3D11BlendState*             pBlendState1 = nullptr;
+
+
+
+#pragma pack (push)
+#pragma pack (4)
+  struct HDR_COLORSPACE_PARAMS
+  {
+    uint32_t visualFunc     [4]  = { 0, 0, 0, 0 };
+
+    uint32_t uiColorSpaceIn      =   0;
+    uint32_t uiColorSpaceOut     =   0;
+
+    //uint32_t padding        [2]  = { 0, 0 };
+    //float    more_padding   [3]  = { 0.f, 0.f, 0.f };
+
+    BOOL     bUseSMPTE2084       =  FALSE;
+    float    sdrLuminance_NonStd = 300.0_Nits;
+  };
+
+  //const int x = sizeof (HDR_COLORSPACE_PARAMS);
+
+  struct HDR_LUMINANCE
+  {
+    // scRGB allows values > 1.0, sRGB (SDR) simply clamps them
+    float luminance_scale [4]; // For HDR displays,    1.0 = 80 Nits
+                               // For SDR displays, >= 1.0 = 80 Nits
+
+    // (x,y): Main Scene  <Linear Scale, Gamma Exponent>
+    //  z   : HUD          Linear Scale {Gamma is Implicitly 1/2.2}
+    //  w   : Always 1.0
+  };
+#pragma pack (pop)
+
+
+  //static ID3D11InputLayout*       g_pInputLayout          = nullptr;
+
+  template <typename _ShaderType> 
+  struct ShaderBase
+  {
+    _ShaderType *shader           = nullptr;
+    ID3D10Blob  *amorphousTheBlob = nullptr;
+
+    /////
+    bool compileShaderString ( const char*    szShaderString,
+                               const wchar_t* wszShaderName,
+                               const char*    szEntryPoint,
+                               const char*    szShaderModel,
+                                     bool     recompile =
+                                                false,
+                                 std::string& error_log =
+                                                _SpecialNowhere )
+    {
+      UNREFERENCED_PARAMETER (recompile);
+      UNREFERENCED_PARAMETER (error_log);
+
+      CComPtr <ID3D10Blob>
+        amorphousTheMessenger;
+
+      HRESULT hr =
+        D3DCompile ( szShaderString,
+                       strlen (szShaderString),
+                         nullptr, nullptr, nullptr,
+                           szEntryPoint, szShaderModel,
+                             0, 0,
+                               &amorphousTheBlob,
+                                 &amorphousTheMessenger );
+
+      if (FAILED (hr))
+      {
+        if ( amorphousTheMessenger != nullptr     &&
+             amorphousTheMessenger->GetBufferSize () > 0 )
+        {
+          std::string err;
+                      err.reserve (
+                        amorphousTheMessenger->GetBufferSize ()
+                      );
+          err = (
+            (char *)amorphousTheMessenger->GetBufferPointer ());
+
+          if (! err.empty ())
+          {
+            dll_log.LogEx ( true,
+                              L"SK D3D11 Shader (SM=%hs) [%ws]: %hs",
+                                szShaderModel, wszShaderName,
+                                  err.c_str ()
+                          );
+          }
+        }
+
+        return false;
+      }
+
+      HRESULT hrCompile =
+        DXGI_ERROR_NOT_CURRENTLY_AVAILABLE;
+
+      CComQIPtr <ID3D11Device> pDev (
+        SK_GetCurrentRenderBackend ( ).device
+                                    );
+
+      if ( std::type_index ( typeid (    _ShaderType   ) ) ==
+           std::type_index ( typeid (ID3D11VertexShader) ) )
+      {
+        hrCompile =
+          pDev->CreateVertexShader (
+             static_cast <DWORD *> ( amorphousTheBlob->GetBufferPointer () ),
+                                     amorphousTheBlob->GetBufferSize    (),
+                                       nullptr,
+             reinterpret_cast <ID3D11VertexShader **>(&shader)
+                                   );
+      }
+
+      else if ( std::type_index ( typeid (   _ShaderType   ) ) ==
+                std::type_index ( typeid (ID3D11PixelShader) ) )
+      {
+        hrCompile =
+          pDev->CreatePixelShader  (
+             static_cast <DWORD *> ( amorphousTheBlob->GetBufferPointer () ),
+                                     amorphousTheBlob->GetBufferSize    (),
+                                       nullptr,
+             reinterpret_cast <ID3D11PixelShader **>(&shader)
+                                   );
+      }
+
+      else
+      {
+#pragma warning (push)
+#pragma warning (disable: 4130) // No @#$% sherlock
+        SK_ReleaseAssert ("WTF?!" == nullptr)
+#pragma warning (pop)
+      }
+
+      return
+        SUCCEEDED (hrCompile);
+    }
+
+    bool compileShaderFile ( const wchar_t* wszShaderFile,
+                             const    char* szEntryPoint,
+                             const    char* szShaderModel,
+                                      bool  recompile =
+                                              false,
+                               std::string& error_log =
+                                              _SpecialNowhere )
+    {
+      std::wstring wstr_file =
+        wszShaderFile;
+
+      SK_StripUserNameFromPathW (
+        wstr_file.data ()
+      );
+
+      if ( GetFileAttributesW (wszShaderFile) == INVALID_FILE_ATTRIBUTES )
+      {
+        SK_LOG0 ( ( L"Shader Compile Failed: File '%ws' Is Not Valid!",
+                      wstr_file.c_str ()
+                  ),L"D3DCompile" );
+
+        return false;
+      }
+
+      FILE* fShader =
+        _wfsopen ( wszShaderFile, L"rtS",
+                     _SH_DENYNO );
+
+      if (fShader != nullptr)
+      {
+        size_t size =
+          SK_File_GetSize (wszShaderFile);
+
+        CHeapPtr <char> data;
+                        data.AllocateBytes (size + 32);
+
+        SecureZeroMemory (data.m_pData, size + 32);
+
+        fread ( data.m_pData,
+                           1, size + 2,
+                              fShader );
+
+        fclose (fShader);
+
+        const bool result =
+          compileShaderString ( data.m_pData, wstr_file.c_str (),
+                                  szEntryPoint, szShaderModel,
+                                    recompile,  error_log );
+
+        return result;
+      }
+
+      SK_LOG0 ( (L"Cannot Compile Shader Because of Filesystem Issues"),
+                 L"D3DCompile" );
+
+      return  false;
+    }
+
+    void releaseResources (void)
+    {
+      if (shader           != nullptr) {           shader->Release (); shader           = nullptr; }
+      if (amorphousTheBlob != nullptr) { amorphousTheBlob->Release (); amorphousTheBlob = nullptr; }
+    }
+  };
+  
+  enum SK_HDR_Type {
+    HDR10       = 0x010,
+    HDR10Plus   = 0x011,
+    DolbyVision = 0x020,
+
+    scRGB       = 0x100, // Not a real signal / data standard,
+                         //   but a real useful colorspace even so.
+  } __SK_HDR_Type;
+
+ DXGI_FORMAT
+ SK_HDR_GetPreferredDXGIFormat (void)
+ {
+   if (__SK_HDR_10BitSwap)
+     __SK_HDR_Type = HDR10;
+   else
+     __SK_HDR_Type = scRGB;
+
+   if (     __SK_HDR_Type == scRGB)
+     return DXGI_FORMAT_R16G16B16A16_FLOAT;
+
+   else if (__SK_HDR_Type &  HDR10)
+     return DXGI_FORMAT_R10G10B10A2_UNORM;
+
+   else
+   {
+     dll_log.Log (L"Unknown HDR Format, using R10G10B10A2 (HDR10-ish)");
+     return DXGI_FORMAT_R10G10B10A2_UNORM;
+   }
+ }
+
+  ShaderBase <ID3D11PixelShader>  PixelShader_HDR10;
+  ShaderBase <ID3D11PixelShader>  PixelShader_scRGB;
+  ShaderBase <ID3D11VertexShader> VertexShaderHDR_Util;
+
+  void releaseResources (void)
+  {
+    if (mainSceneCBuffer  != nullptr)  { mainSceneCBuffer->Release  ();   mainSceneCBuffer = nullptr; }
+    if (hudCBuffer        != nullptr)  { hudCBuffer->Release        ();         hudCBuffer = nullptr; }
+    if (colorSpaceCBuffer != nullptr)  { colorSpaceCBuffer->Release ();  colorSpaceCBuffer = nullptr; }
+                                                                             
+    if (pSampler0         != nullptr)  { pSampler0->Release         ();          pSampler0 = nullptr; }
+                                                                              
+    if (pMainSrv          != nullptr)  { pMainSrv->Release          ();           pMainSrv = nullptr; }
+    if (pHUDSrv           != nullptr)  { pHUDSrv->Release           ();            pHUDSrv = nullptr; }
+                                                                               
+    if (pMainRtv          != nullptr)  { pMainRtv->Release          ();           pMainRtv = nullptr; }
+    if (pHUDRtv           != nullptr)  { pHUDRtv->Release           ();            pHUDRtv = nullptr; }
+                                                                             
+    if (pRasterState      != nullptr)  { pRasterState->Release      ();       pRasterState = nullptr; }
+    if (pDSState          != nullptr)  { pDSState->Release          ();           pDSState = nullptr; }
+                                                                             
+    if (pBlendState0      != nullptr)  { pBlendState0->Release      ();       pBlendState0 = nullptr; }
+    if (pBlendState1      != nullptr)  { pBlendState1->Release      ();       pBlendState1 = nullptr; }
+
+    PixelShader_HDR10.releaseResources    ();
+    PixelShader_scRGB.releaseResources    ();
+    VertexShaderHDR_Util.releaseResources ();
+  }
+
+  bool
+  recompileShaders (void)
+  {
+    std::wstring debug_shader_dir = SK_GetConfigPath ();
+                 debug_shader_dir +=
+            LR"(SK_Res\Debug\shaders\)";
+ 
+    bool   ret =
+    PixelShader_scRGB.compileShaderFile   (
+      std::wstring (debug_shader_dir  +
+      LR"(HDR\scRGB\Rec709_Linear_16bit-fp.hlsl)").c_str (),
+        "main",  "ps_5_0", true );
+
+    ret &=
+      PixelShader_HDR10.compileShaderFile  (
+        std::wstring (debug_shader_dir  +
+        LR"(HDR\HDR10\Rec2020_PQ_10bit-fixed.hlsl)").c_str (),
+        "main", "ps_5_0", true );
+
+    ret &=
+      VertexShaderHDR_Util.compileShaderFile  (
+        std::wstring (debug_shader_dir  +
+          LR"(HDR\vs_colorutil.hlsl)").c_str (),
+          "main", "vs_5_0", true );
+
+    return ret;
+  }
+
+  void
+  reloadResources (void)
+  {
+    if (mainSceneCBuffer  != nullptr) { mainSceneCBuffer->Release  ();   mainSceneCBuffer = nullptr; }
+    if (colorSpaceCBuffer != nullptr) { colorSpaceCBuffer->Release ();  colorSpaceCBuffer = nullptr; }
+    ////if (hudCBuffer       == nullptr)  { hudCBuffer->Release       ();        hudCBuffer = nullptr; }
+
+    if (pSampler0        != nullptr)  { pSampler0->Release        ();         pSampler0 = nullptr; }
+
+    if (pMainSrv         != nullptr)  { pMainSrv->Release         ();          pMainSrv = nullptr; }
+    if (pHUDSrv          != nullptr)  { pHUDSrv->Release          ();           pHUDSrv = nullptr; }
+
+    if (pMainRtv         != nullptr)  { pMainRtv->Release         ();          pMainRtv = nullptr; }
+    if (pHUDRtv          != nullptr)  { pHUDRtv->Release          ();           pHUDRtv = nullptr; }
+
+    if (pRasterState     != nullptr)  { pRasterState->Release     ();      pRasterState = nullptr; }
+    if (pDSState         != nullptr)  { pDSState->Release         ();          pDSState = nullptr; }
+
+    if (pBlendState0     != nullptr)  { pBlendState0->Release     ();      pBlendState0 = nullptr; }
+    if (pBlendState1     != nullptr)  { pBlendState1->Release     ();      pBlendState1 = nullptr; }
+
+    static auto& rb =
+      SK_GetCurrentRenderBackend ();
+
+    CComQIPtr <IDXGISwapChain>      pSwapChain (rb.swapchain);
+    CComQIPtr <ID3D11Device>        pDev       (rb.device);
+    CComQIPtr <ID3D11DeviceContext> pDevCtx    (rb.d3d11.immediate_ctx);
+
+    if (pDev != nullptr)
+    {
+      recompileShaders ();
+
+      D3D11_BUFFER_DESC desc = { };
+
+      desc.ByteWidth         = sizeof (HDR_LUMINANCE);
+      desc.Usage             = D3D11_USAGE_DYNAMIC;
+      desc.BindFlags         = D3D11_BIND_CONSTANT_BUFFER;
+      desc.CPUAccessFlags    = D3D11_CPU_ACCESS_WRITE;
+      desc.MiscFlags         = 0;
+
+      pDev->CreateBuffer (&desc, nullptr, &mainSceneCBuffer);
+
+      desc.ByteWidth         = sizeof (HDR_COLORSPACE_PARAMS);
+      desc.Usage             = D3D11_USAGE_DYNAMIC;
+      desc.BindFlags         = D3D11_BIND_CONSTANT_BUFFER;
+      desc.CPUAccessFlags    = D3D11_CPU_ACCESS_WRITE;
+      desc.MiscFlags         = 0;
+
+      pDev->CreateBuffer (&desc, nullptr, &colorSpaceCBuffer);
+    }
+
+    if ( hdr_base.pMainSrv == nullptr &&
+                pSwapChain != nullptr )
+    {
+      DXGI_SWAP_CHAIN_DESC swapDesc = { };
+      D3D11_TEXTURE2D_DESC desc     = { };
+
+      pSwapChain->GetDesc (&swapDesc);
+
+      desc.Width            = swapDesc.BufferDesc.Width;
+      desc.Height           = swapDesc.BufferDesc.Height;
+      desc.MipLevels        = 1;
+      desc.ArraySize        = 1;
+      desc.Format           = SK_HDR_GetPreferredDXGIFormat ();
+      desc.SampleDesc.Count = 1; // Will probably regret this if HDR ever procreates with MSAA
+      desc.Usage            = D3D11_USAGE_DEFAULT;
+      desc.BindFlags        = D3D11_BIND_SHADER_RESOURCE;
+      desc.CPUAccessFlags   = 0;
+
+      CComPtr <ID3D11Texture2D> pHDRTexture = nullptr;
+
+      pDev->CreateTexture2D          (&desc,       nullptr, &pHDRTexture.p);
+      pDev->CreateShaderResourceView (pHDRTexture, nullptr, &hdr_base.pMainSrv);
+
+      desc = { };
+      desc.Usage               = D3D11_USAGE_DEFAULT;
+      desc.BindFlags           = D3D11_BIND_RENDER_TARGET |
+                                 D3D11_BIND_SHADER_RESOURCE;
+      desc.ArraySize           = 1;
+      desc.CPUAccessFlags      = 0;
+
+      desc.Format              = SK_HDR_GetPreferredDXGIFormat ();
+      desc.Width               = swapDesc.BufferDesc.Width;
+      desc.Height              = swapDesc.BufferDesc.Height;
+      desc.MipLevels           = 1;
+      desc.SampleDesc.Count    = 1;
+      desc.SampleDesc.Quality  = 0;
+
+      CComPtr <ID3D11Texture2D> pHDRHUDTexture = nullptr;
+
+      if (SUCCEEDED (pDev->CreateTexture2D (&desc, nullptr, &pHDRHUDTexture.p)))
+      {
+      //dll_log.Log (L"Creating RTV and SRV for HUD");
+
+        D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = { };
+        D3D11_RENDER_TARGET_VIEW_DESC   rtvDesc = { };
+
+        srvDesc.ViewDimension             = D3D11_SRV_DIMENSION_TEXTURE2D;
+        srvDesc.Format                    = SK_HDR_GetPreferredDXGIFormat ();
+        srvDesc.Texture2D.MipLevels       = desc.MipLevels;
+        srvDesc.Texture2D.MostDetailedMip = 0;
+
+        rtvDesc.ViewDimension             = D3D11_RTV_DIMENSION_TEXTURE2D;
+        rtvDesc.Texture2D.MipSlice        = 0;
+
+        pDev->CreateRenderTargetView   (pHDRHUDTexture, &rtvDesc, &hdr_base.pHUDRtv);
+        pDev->CreateShaderResourceView (pHDRHUDTexture, &srvDesc, &hdr_base.pHUDSrv);
+      }
+    }
+  }
+} hdr_base;
+
+
+int   __SK_HDR_input_gamut   = 0;
+int   __SK_HDR_output_gamut  = 0;
+int   __SK_HDR_visualization = 0;
+float __SK_HDR_user_sdr_Y    = 300.0f;
+
+
+void
+SK_HDR_ReleaseResources (void)
+{
+  hdr_base.releaseResources ();
+}
+
+void
+SK_HDR_InitResources (void)
+{
+  hdr_base.reloadResources ();
+}
+
+void
+SK_HDR_SnapshotSwapchain (void)
+{
+  static LONG lLastFrame =
+    SK_GetFramesDrawn () - 1;
+
+  LONG lThisFrame = SK_GetFramesDrawn ();
+  if  (lThisFrame == lLastFrame) { return; }
+  else                           { lLastFrame = lThisFrame; }
+
+  if ( hdr_base.VertexShaderHDR_Util.shader == nullptr ||
+       hdr_base.PixelShader_scRGB.shader    == nullptr ||
+       hdr_base.PixelShader_HDR10.shader    == nullptr )
+  {
+    hdr_base.reloadResources ();
+  }
+
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  CComQIPtr <IDXGISwapChain>      pSwapChain (rb.swapchain);
+  CComQIPtr <ID3D11Device>        pDev       (rb.device);
+  CComQIPtr <ID3D11DeviceContext> pDevCtx    (rb.d3d11.immediate_ctx);
+
+  CComPtr <ID3D11Resource> pSrc = nullptr;
+  CComPtr <ID3D11Resource> pDst = nullptr;
+
+  if (pSwapChain != nullptr)
+  {
+    if ( SUCCEEDED (
+           pSwapChain->GetBuffer    (
+             0,
+               IID_ID3D11Texture2D,
+                 (void **) &pSrc.p  )
+                   )
+       )
+    {
+      hdr_base.pMainSrv->GetResource (&pDst.p);
+                pDevCtx->CopyResource (pDst, pSrc);
+    }
+  }
+
+  if ( hdr_base.VertexShaderHDR_Util.shader != nullptr &&
+       hdr_base.PixelShader_scRGB.shader    != nullptr &&
+       hdr_base.PixelShader_HDR10.shader    != nullptr    )
+  {
+    D3D11_MAPPED_SUBRESOURCE mapped_resource = { };
+
+    if ( pDevCtx->Map ( hdr_base.mainSceneCBuffer,
+                          0, D3D11_MAP_WRITE_DISCARD, 0,
+                             &mapped_resource ) != S_OK )
+    {
+      return;
+    }
+
+    auto* constant_buffer =
+      static_cast <SK_HDR_FIXUP::HDR_LUMINANCE *> (mapped_resource.pData);
+
+    bool hdr_display =
+      (rb.isHDRCapable () && (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR));
+
+    if (! hdr_display)
+    {
+      constant_buffer->luminance_scale [0] = 1.0f; constant_buffer->luminance_scale [1] = 1.0f;
+      constant_buffer->luminance_scale [2] = 0.0f; constant_buffer->luminance_scale [3] = 0.0f;
+    }
+
+    else
+    {
+      extern float __SK_MHW_HDR_Luma; extern float __SK_HDR_Luma;
+      extern float __SK_MHW_HDR_Exp;  extern float __SK_HDR_Exp;
+
+      float luma = 0.0f,
+        exp  = 0.0f;
+
+      switch (SK_GetCurrentGameID ())
+      {
+        case SK_GAME_ID::MonsterHunterWorld:
+          luma = __SK_MHW_HDR_Luma;
+          exp  = __SK_MHW_HDR_Exp;
+          break;
+
+        case SK_GAME_ID::DragonQuestXI:
+        default:
+          luma = __SK_HDR_Luma;
+          exp  = __SK_HDR_Exp;
+          break;
+      }
+
+      constant_buffer->luminance_scale [0] = luma;// rb.ui_luminance;
+      constant_buffer->luminance_scale [1] = exp; // rb.ui_srgb ? 2.2f : 1.0f;
+      constant_buffer->luminance_scale [2] = (__SK_HDR_HorizCoverage / 100.0f) * 2.0f - 1.0f;
+      constant_buffer->luminance_scale [3] = (__SK_HDR_VertCoverage  / 100.0f) * 2.0f - 1.0f;
+    }
+
+    pDevCtx->Unmap (hdr_base.mainSceneCBuffer, 0);
+
+
+    if ( pDevCtx->Map ( hdr_base.colorSpaceCBuffer,
+                          0, D3D11_MAP_WRITE_DISCARD, 0,
+                            &mapped_resource ) != S_OK )
+    {
+      return;
+    }
+
+    auto* cbuffer_cspace =
+      static_cast <SK_HDR_FIXUP::HDR_COLORSPACE_PARAMS *> (mapped_resource.pData);
+
+    if (! hdr_display)
+    {
+      *cbuffer_cspace = { };
+    }
+
+    else
+    {
+      cbuffer_cspace->uiColorSpaceIn      =   __SK_HDR_input_gamut;
+      cbuffer_cspace->uiColorSpaceOut     =   __SK_HDR_output_gamut;
+      cbuffer_cspace->sdrLuminance_NonStd =   __SK_HDR_user_sdr_Y * 1.0_Nits;
+
+      cbuffer_cspace->visualFunc [0] = (uint32_t)__SK_HDR_visualization;
+      cbuffer_cspace->visualFunc [1] = (uint32_t)__SK_HDR_visualization;
+      cbuffer_cspace->visualFunc [2] = (uint32_t)__SK_HDR_visualization;
+      cbuffer_cspace->visualFunc [3] = (uint32_t)__SK_HDR_visualization;
+    }
+
+    pDevCtx->Unmap (hdr_base.colorSpaceCBuffer, 0);
+
+    SK_D3D11_Stateblock_Lite*
+    SK_D3D11_CreateAndCaptureStateBlock (ID3D11DeviceContext* pImmediateContext);
+
+    void
+    SK_D3D11_ReleaseAndApplyStateBlock ( SK_D3D11_Stateblock_Lite* pBlock,
+                                         ID3D11DeviceContext*      pDevCtx );
+
+    SK_D3D11_Stateblock_Lite* pStateBlock =
+      SK_D3D11_CreateAndCaptureStateBlock (pDevCtx);
+
+    D3D11_PRIMITIVE_TOPOLOGY     OrigPrimTop;
+    CComPtr <ID3D11VertexShader> pVS_Orig;
+    CComPtr <ID3D11PixelShader>  pPS_Orig;
+    CComPtr <ID3D11BlendState>   pBlendState_Orig;
+                            UINT uiOrigBlendMask;
+                           FLOAT fOrigBlendFactors [4] = { };
+    CComPtr <ID3D11Buffer>       pConstantBufferVS_Orig;
+    CComPtr <ID3D11Buffer>       pConstantBufferPS_Orig;
+
+    pDevCtx->VSGetConstantBuffers (0,                   1,        &pConstantBufferVS_Orig.p);
+    pDevCtx->PSGetConstantBuffers (0,                   1,        &pConstantBufferPS_Orig.p);
+    pDevCtx->OMGetBlendState      (&pBlendState_Orig.p, fOrigBlendFactors, &uiOrigBlendMask);
+    pDevCtx->VSGetShader          (&pVS_Orig.p,         nullptr,                    nullptr);
+    pDevCtx->PSGetShader          (&pPS_Orig.p,         nullptr,                    nullptr);
+
+    ID3D11ShaderResourceView* pOrigResources [2] = { };
+    ID3D11ShaderResourceView* pResources     [2] = {
+      hdr_base.pMainSrv,    hdr_base.pHUDSrv     };
+
+    pDevCtx->PSGetShaderResources (0, 2, pOrigResources);
+
+    pDevCtx->IAGetPrimitiveTopology (&OrigPrimTop);
+    pDevCtx->IASetPrimitiveTopology (D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+
+    static const FLOAT                      fBlendFactor [4] =
+                                      { 0.0f, 0.0f, 0.0f, 0.0f };
+    pDevCtx->OMSetBlendState      (nullptr, fBlendFactor,           0xFFFFFFFF);
+    pDevCtx->VSSetConstantBuffers (0,            1, &hdr_base.mainSceneCBuffer);
+
+    pDevCtx->VSSetShader          (hdr_base.VertexShaderHDR_Util.shader, nullptr, 0);
+    pDevCtx->PSSetConstantBuffers (0,            1, &hdr_base.colorSpaceCBuffer);
+
+    if ( rb.scanout.dwm_colorspace  ==
+         rb.scanout.dxgi_colorspace || 
+         rb.scanout.dxgi_colorspace != DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709 )
+    {
+      pDevCtx->PSSetShader          (hdr_base.PixelShader_HDR10.shader, nullptr, 0);
+    }
+
+    else
+    {
+      pDevCtx->PSSetShader          (hdr_base.PixelShader_scRGB.shader, nullptr, 0);
+    }
+
+    pDevCtx->PSSetShaderResources (0,                                 2, pResources);
+
+    D3D11_RENDER_TARGET_VIEW_DESC rtdesc
+      = { };
+
+    rtdesc.Format        = DXGI_FORMAT_R16G16B16A16_FLOAT;
+    rtdesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+
+    CComPtr <ID3D11RenderTargetView> pRenderTargetView = nullptr;
+
+    pDev->CreateRenderTargetView (pSrc, &rtdesc, &pRenderTargetView);
+    pDevCtx->OMSetRenderTargets  ( 1,
+                                     &pRenderTargetView.p,
+                                       nullptr );
+
+    pDevCtx->Draw (4, 0);
+
+    pDevCtx->PSSetShaderResources (0,                2,                 pOrigResources);
+                                 if (pOrigResources [0] != nullptr)     pOrigResources [0]->Release ();
+                                 if (pOrigResources [1] != nullptr)     pOrigResources [1]->Release ();
+
+    pDevCtx->IASetPrimitiveTopology (OrigPrimTop);
+    pDevCtx->PSSetShader            (pPS_Orig,         nullptr,           0);
+    pDevCtx->VSSetShader            (pVS_Orig,         nullptr,           0);
+    pDevCtx->VSSetConstantBuffers   (0,                1,                 &pConstantBufferVS_Orig.p);
+    pDevCtx->PSSetConstantBuffers   (0,                1,                 &pConstantBufferPS_Orig.p);
+    pDevCtx->OMSetBlendState        (pBlendState_Orig, fOrigBlendFactors, uiOrigBlendMask);
+
+    SK_D3D11_ReleaseAndApplyStateBlock (pStateBlock, pDevCtx);
+  }
+}
+
+void
+SK_HDR_CombineSceneWithHUD (void)
+{
+}
+
+bool
+SK_HDR_RecompileShaders (void)
+{
+  return
+    hdr_base.recompileShaders ();
+}
+
+ID3D11ShaderResourceView*
+SK_HDR_GetUnderlayResourceView (void)
+{
+  return
+    hdr_base.pMainSrv;
+}

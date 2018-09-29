@@ -2,10 +2,10 @@
 
 
 #define SK_MAJOR 0
-#define SK_MINOR 9
-#define SK_BUILD 25
-#define SK_REV_N 2
-#define SK_REV   2
+#define SK_MINOR 10
+#define SK_BUILD 0
+#define SK_REV_N 1
+#define SK_REV   XDR
 
 
 

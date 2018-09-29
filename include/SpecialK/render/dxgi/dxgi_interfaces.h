@@ -7825,9 +7825,15 @@ typedef HRESULT (STDMETHODCALLTYPE *D3D11Dev_CreateComputeShader_pfn)(ID3D11Devi
                                                       _In_opt_        ID3D11ClassLinkage   *pClassLinkage,
                                                       _Out_opt_       ID3D11ComputeShader **ppComputeShader);
 
-
 struct ID3D11DeviceContext;
 struct ID3D11ClassInstance;
+struct ID3D11Asynchronous;
+
+typedef HRESULT (STDMETHODCALLTYPE *D3D11_GetData_pfn)(ID3D11DeviceContext      *This,
+                                                       _In_  ID3D11Asynchronous *pAsync,
+                                     _Out_writes_bytes_opt_ (DataSize)     void *pData,
+                                                       _In_  UINT                DataSize,
+                                                       _In_  UINT                GetDataFlags);
 
 typedef void (STDMETHODCALLTYPE *D3D11_VSSetShader_pfn)(ID3D11DeviceContext        *This,
                                                _In_opt_ ID3D11VertexShader         *pVertexShader,
@@ -12255,5 +12261,6 @@ struct SK_D3D11_TexCacheResidency_s
     volatile LONG64 PagedOut = 0;
   } size;
 } extern SK_D3D11_TexCacheResidency;
+
 
 #endif /* __SK__DXGI_INTERFACES_H__ */

@@ -392,7 +392,7 @@ SK::ControlPanel::Steam::Draw (void)
       const auto& rb =
         SK_GetCurrentRenderBackend ();
 
-      if ( rb.hdr_capable && (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR) &&
+      if ( rb.isHDRCapable () && (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR) &&
             ImGui::CollapsingHeader ("HDR Overlay", ImGuiTreeNodeFlags_DefaultOpen))
       {
         ImGui::TreePush ("");
@@ -401,7 +401,7 @@ SK::ControlPanel::Steam::Draw (void)
           config.steam.overlay_hdr_luminance / 1.0_Nits;
 
         if (ImGui::SliderFloat ( "###STEAM_LUMINANCE", &nits, 80.0f, rb.display_gamut.maxLocalY,
-                                 "Paper White Luminance: %.1f Nits"))
+                               u8"Paper White Luminance: %.1f cd/m²"))
         {
           config.steam.overlay_hdr_luminance = nits * 1.0_Nits;
 

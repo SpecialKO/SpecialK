@@ -701,9 +701,26 @@ SK_COM_ValidateRelease (IUnknown** ppObj)
   return *ppObj;
 }
 
+__declspec (noinline)
+void
+SK_RenderBackend_V2::setHDRCapable (bool set)
+{
+  hdr_capable = set;
+}
+
+__declspec (noinline)
+bool
+SK_RenderBackend_V2::isHDRCapable (void) const
+{
+  return
+    hdr_capable;
+}
+
 void
 SK_RenderBackend_V2::releaseOwnedResources (void)
 {
+  dll_log.Log (L"Releasing Owned Resources");
+
   SK_AutoCriticalSection auto_cs (&cs_res);
 
   //if (device != nullptr && swapchain != nullptr && d3d11.immediate_ctx != nullptr)
@@ -711,6 +728,11 @@ SK_RenderBackend_V2::releaseOwnedResources (void)
     ////d3d11.immediate_ctx = SK_COM_ValidateRelease (&d3d11.immediate_ctx);
     ////swapchain           = SK_COM_ValidateRelease (&swapchain);
     ////device              = SK_COM_ValidateRelease (&device);
+
+    dll_log.Log (L"API: %x", api);
+
+    d3d11.interop.backbuffer_rtv   = nullptr;
+    d3d11.interop.backbuffer_tex2D = nullptr;
 
     d3d11.deferred_ctx  = nullptr;
     d3d11.immediate_ctx = nullptr;

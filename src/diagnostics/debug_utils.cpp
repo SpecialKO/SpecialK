@@ -1566,6 +1566,10 @@ SK::Diagnostics::Debugger::Allow (bool bAllow)
   if (SK_IsHostAppSKIM ())
     return true;
 
+  static volatile LONG __init = 0;
+
+  if (! InterlockedCompareExchange (&__init, 1, 0))
+  {
   SK_CreateDLLHook2 (      L"kernel32",
                             "IsDebuggerPresent",
                              IsDebuggerPresent_Detour,
@@ -1628,7 +1632,7 @@ SK::Diagnostics::Debugger::Allow (bool bAllow)
        SK_CreateDLLHook2 ( L"Kernel32",
                             "RaiseException",
                              RaiseException_Detour,
-     static_cast_p2p <void> (&RaiseException_Original) );
+    static_cast_p2p <void> (&RaiseException_Original) );
 #else
   RaiseException_Original = (RaiseException_pfn)SK_GetProcAddress (L"kernel32", "RaiseException");
 #endif
@@ -1707,9 +1711,13 @@ static_cast_p2p <void> (&ResetEvent_Original) );
   SK_File_InitHooks    ();
   SK_Network_InitHooks ();
 
-#ifdef SK_AGGRESSIVE_HOOKS
+//#ifdef SK_AGGRESSIVE_HOOKS
   SK_ApplyQueuedHooks ();
-#endif
+//#endif
+  InterlockedIncrement (&__init);
+  }
+
+  SK_Thread_SpinUntilAtomicMin (&__init, 2);
 
   return bAllow;
 }
@@ -1763,19 +1771,27 @@ SK_Debug_LoadHelper (void)
 {
 //std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
-  static HMODULE
-       hModDbgHelp  = nullptr;
-  if ( hModDbgHelp != nullptr )
-    return hModDbgHelp;
+  static          HMODULE hModDbgHelp  = nullptr;
+  static volatile LONG    __init       = 0;
 
-  wchar_t wszSystemDbgHelp [MAX_PATH * 2 + 1] = { };
+  if (! InterlockedCompareExchange (&__init, 1, 0))
+  {
+    wchar_t wszSystemDbgHelp [MAX_PATH * 2 + 1] = { };
 
-  GetSystemDirectory ( wszSystemDbgHelp, MAX_PATH * 2   );
-  PathAppendW        ( wszSystemDbgHelp, L"dbghelp.dll" );
+    GetSystemDirectory ( wszSystemDbgHelp, MAX_PATH * 2   );
+    PathAppendW        ( wszSystemDbgHelp, L"dbghelp.dll" );
 
-  return (
-    hModDbgHelp = SK_Modules.LoadLibraryLL (wszSystemDbgHelp)
-  );
+    hModDbgHelp =
+      SK_Modules.LoadLibrary (wszSystemDbgHelp);
+
+    InterlockedIncrement (&__init);
+  }
+
+  SK_Thread_SpinUntilAtomicMin (&__init, 2);
+
+  SK_ReleaseAssert (hModDbgHelp != nullptr)
+
+  return hModDbgHelp;
 }
 
 BOOL

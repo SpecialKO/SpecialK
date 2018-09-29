@@ -417,7 +417,23 @@ HRESULT STDMETHODCALLTYPE IWrapDXGISwapChain::SetColorSpace1(DXGI_COLOR_SPACE_TY
 {
 	assert(ver_ >= 3);
 
-	return static_cast<IDXGISwapChain3 *>(pReal)->SetColorSpace1(ColorSpace);
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  if (rb.scanout.colorspace_override != DXGI_COLOR_SPACE_CUSTOM)
+  {
+    ColorSpace = rb.scanout.colorspace_override;
+  }
+
+	HRESULT hr =
+    static_cast <IDXGISwapChain3 *>(pReal)->SetColorSpace1 (ColorSpace);
+
+  if (SUCCEEDED (hr))
+  {
+    rb.scanout.dxgi_colorspace = ColorSpace;
+  }
+
+  return hr;
 }
 HRESULT STDMETHODCALLTYPE IWrapDXGISwapChain::ResizeBuffers1 (UINT BufferCount, UINT Width, UINT Height, DXGI_FORMAT Format, UINT SwapChainFlags, const UINT *pCreationNodeMask, IUnknown *const *ppPresentQueue)
 {
@@ -459,37 +475,37 @@ HRESULT STDMETHODCALLTYPE IWrapDXGISwapChain::SetHDRMetaData(DXGI_HDR_METADATA_T
       DXGI_HDR_METADATA_HDR10* pData =
         (DXGI_HDR_METADATA_HDR10*)pMetaData;
 
-      SK_DXGI_HDRControl* pHDRCtl =
-        SK_HDR_GetControl ();
-
-
-      if (! pHDRCtl->overrides.MaxContentLightLevel)
-        pHDRCtl->meta.MaxContentLightLevel = pData->MaxContentLightLevel;
-      else
-        pData->MaxContentLightLevel = pHDRCtl->meta.MaxContentLightLevel;
-
-      if (! pHDRCtl->overrides.MaxFrameAverageLightLevel)
-        pHDRCtl->meta.MaxFrameAverageLightLevel = pData->MaxFrameAverageLightLevel;
-      else
-        pData->MaxFrameAverageLightLevel = pHDRCtl->meta.MaxFrameAverageLightLevel;
-
-
-      if (! pHDRCtl->overrides.MinMaster)
-        pHDRCtl->meta.MinMasteringLuminance = pData->MinMasteringLuminance;
-      else
-        pData->MinMasteringLuminance = pHDRCtl->meta.MinMasteringLuminance;
-
-      if (! pHDRCtl->overrides.MaxMaster)
-        pHDRCtl->meta.MaxMasteringLuminance = pData->MaxMasteringLuminance;
-      else
-        pData->MaxMasteringLuminance = pHDRCtl->meta.MaxMasteringLuminance;
+      ////////SK_DXGI_HDRControl* pHDRCtl =
+      ////////  SK_HDR_GetControl ();
+      ////////
+      ////////
+      ////////if (! pHDRCtl->overrides.MaxContentLightLevel)
+      ////////  pHDRCtl->meta.MaxContentLightLevel = pData->MaxContentLightLevel;
+      ////////else
+      ////////  pData->MaxContentLightLevel = pHDRCtl->meta.MaxContentLightLevel;
+      ////////
+      ////////if (! pHDRCtl->overrides.MaxFrameAverageLightLevel)
+      ////////  pHDRCtl->meta.MaxFrameAverageLightLevel = pData->MaxFrameAverageLightLevel;
+      ////////else
+      ////////  pData->MaxFrameAverageLightLevel = pHDRCtl->meta.MaxFrameAverageLightLevel;
+      ////////
+      ////////
+      ////////if (! pHDRCtl->overrides.MinMaster)
+      ////////  pHDRCtl->meta.MinMasteringLuminance = pData->MinMasteringLuminance;
+      ////////else
+      ////////  pData->MinMasteringLuminance = pHDRCtl->meta.MinMasteringLuminance;
+      ////////
+      ////////if (! pHDRCtl->overrides.MaxMaster)
+      ////////  pHDRCtl->meta.MaxMasteringLuminance = pData->MaxMasteringLuminance;
+      ////////else
+      ////////  pData->MaxMasteringLuminance = pHDRCtl->meta.MaxMasteringLuminance;
     }
   }
 
 	const HRESULT hr =
     static_cast<IDXGISwapChain4 *>(pReal)->SetHDRMetaData(Type,Size,pMetaData);
 
-  SK_HDR_GetControl ()->meta._AdjustmentCount++;
+  ////////SK_HDR_GetControl ()->meta._AdjustmentCount++;
 
   if (FAILED (hr))
   {

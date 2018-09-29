@@ -1025,22 +1025,33 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
             {
               ++files;
 
-              if (log_file != nullptr && log_file->fLog)
+              if ( log_file       != nullptr &&
+                   log_file->fLog != nullptr &&
+                   log_file       != &crash_log )
               {
-                log_file->lockless = false;
-                fflush (log_file->fLog);
-                log_file->lock   ();
-                fclose (log_file->fLog);
+                if (! InterlockedCompareExchange (&log_file->relocated, 1, 0))
+                {
+                  log_file->lockless = false;
+                  fflush (log_file->fLog);
+                  log_file->lock ();
+                  fclose (log_file->fLog);
+                }
+                else
+                  SK_Thread_SpinUntilAtomicMin (&log_file->relocated, 2);
               }
 
               SK_File_FullCopy         (wszOrigPath, wszDestPath);
               SK_File_SetNormalAttribs (wszDestPath);
 
-              if (log_file != nullptr && log_file->fLog && log_file != &crash_log)
+              if ( log_file != nullptr &&
+                   log_file->fLog      &&
+                   log_file != &crash_log )
               {
                 log_file->name = wszDestPath;
                 log_file->fLog = _wfopen (log_file->name.c_str (), L"a");
                 log_file->unlock ();
+
+                InterlockedIncrement (&log_file->relocated);
               }
             }
           }

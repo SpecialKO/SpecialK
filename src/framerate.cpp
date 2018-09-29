@@ -420,6 +420,10 @@ void
 WINAPI
 Sleep_Detour (DWORD dwMilliseconds)
 {
+  if (   ReadAcquire (&__SK_DLL_Ending  ) ||
+      (! ReadAcquire (&__SK_DLL_Attached) ) )
+    return;
+
   //if (dwMilliseconds == 0) { dll_log.Log (L"Sleep (0) from thread with priority=%lu", GetThreadPriority (GetCurrentThread ())); }
   ////if (dwMilliseconds == 0 && fix_sleep_0)
   ////{
@@ -681,52 +685,52 @@ QueryPerformanceCounter_Detour (_Out_ LARGE_INTEGER *lpPerformanceCount)
   }
 
 
-  if (NtQueryPerformanceCounter == nullptr)
-  {
-    NtQueryPerformanceCounter =
-      (NtQueryPerformanceCounter_pfn)
-        SK_GetProcAddress ( L"ntdll.dll",
-                             "NtQueryPerformanceCounter" );
-  }
-  
-  if (SK_Shenmue_UseNtDllQPC && NtQueryPerformanceCounter != nullptr)
-  {
-    static LARGE_INTEGER
-      last_query = { };
-
+  //if (NtQueryPerformanceCounter == nullptr)
+  //{
+  //  NtQueryPerformanceCounter =
+  //    (NtQueryPerformanceCounter_pfn)
+  //      SK_GetProcAddress ( L"ntdll.dll",
+  //                           "NtQueryPerformanceCounter" );
+  //}
+  //
+  //if (SK_Shenmue_UseNtDllQPC && NtQueryPerformanceCounter != nullptr)
+  //{
+  //  static LARGE_INTEGER
+  //    last_query = { };
+  //
 #define STATUS_SUCCESS 0x0
   
-    BOOL ret =
-    ( STATUS_SUCCESS ==
-        NtQueryPerformanceCounter (lpPerformanceCount, nullptr)
-    );
+    //BOOL ret =
+    //( STATUS_SUCCESS ==
+    //    NtQueryPerformanceCounter (lpPerformanceCount, nullptr)
+    //);
 
-    if (ret && lpPerformanceCount != nullptr)
-    {
-      if ( lpPerformanceCount->QuadPart <=
-                    last_query.QuadPart    ) {
-        ++(lpPerformanceCount->QuadPart);    }
+    //if (ret && lpPerformanceCount != nullptr)
+    //{
+    //  if ( lpPerformanceCount->QuadPart <=
+    //                last_query.QuadPart    ) {
+    //    ++(lpPerformanceCount->QuadPart);    }
+    //
+    //           last_query.QuadPart =
+    //  lpPerformanceCount->QuadPart;
+    //
+    //  return ret;
+    //}
+  //}
 
-               last_query.QuadPart =
-      lpPerformanceCount->QuadPart;
-
-      return ret;
-    }
-  }
-
-  if (RtlQueryPerformanceCounter == nullptr)
-  {
-    RtlQueryPerformanceCounter =
-      (QueryPerformanceCounter_pfn)
-        SK_GetProcAddress ( L"Ntdll.dll",
-                             "RtlQueryPerformanceCounter" );
-  }
+  //if (RtlQueryPerformanceCounter == nullptr)
+  //{
+  //  RtlQueryPerformanceCounter =
+  //    (QueryPerformanceCounter_pfn)
+  //      SK_GetProcAddress ( L"Ntdll.dll",
+  //                           "RtlQueryPerformanceCounter" );
+  //}
+  //
+  //return
+  //  RtlQueryPerformanceCounter (lpPerformanceCount);
 
   return
-    RtlQueryPerformanceCounter (lpPerformanceCount);
-
-  //return
-  //  QueryPerformanceCounter_Original (lpPerformanceCount);
+    QueryPerformanceCounter_Original (lpPerformanceCount);
 }
 
 using NTSTATUS = _Return_type_success_(return >= 0) LONG;
@@ -1089,28 +1093,6 @@ SK::Framerate::Limiter::wait (void)
     1000.0 * ( static_cast <double> (time.QuadPart - last.QuadPart) /
                static_cast <double> (freq.QuadPart)                 );
 
-
-  long double to_next =
-    (long double)(time.QuadPart - next.QuadPart) /
-    (long double) freq.QuadPart;
-
-  to_next /= 0.7853f;
-
-  LARGE_INTEGER liDelay;
-                liDelay.QuadPart =
-    (LONGLONG)(to_next * 10000000);
-
-  // Create an unnamed waitable timer.
-  static HANDLE hLimitTimer =
-    CreateWaitableTimer (NULL, FALSE, NULL);
-
-  if ( SetWaitableTimer ( hLimitTimer, &liDelay,
-                            0, NULL, NULL, 0 ) )
-  {
-    WaitForSingleObject (hLimitTimer, INFINITE);
-  }
-
-
   if ( static_cast <double> (time.QuadPart - next.QuadPart) /
        static_cast <double> (freq.QuadPart)                 /
                             ( ms / 1000.0 )                 >
@@ -1160,6 +1142,41 @@ SK::Framerate::Limiter::wait (void)
                                 (  ms / 1000.0 ) *
       static_cast <long double> ( freq.QuadPart)
     );
+
+  
+  long double to_next_in_secs =
+    ( static_cast <long double> (next.QuadPart - SK_QueryPerf ().QuadPart) /
+      static_cast <long double> (freq.QuadPart                           ) );
+
+  LARGE_INTEGER liDelay;
+                liDelay.QuadPart =
+                  static_cast <LONGLONG> (
+                    to_next_in_secs * 1000.0 * (0.9f)
+                  );
+
+  //dll_log.Log (L"Wait MS: %f", to_next_in_secs * 1000.0 );
+
+  // Create an unnamed waitable timer.
+  static HANDLE hLimitTimer =
+    CreateWaitableTimer (NULL, FALSE, NULL);
+
+  if ( liDelay.QuadPart > 0)
+  {
+    liDelay.QuadPart = -liDelay.QuadPart;
+
+    if ( SetWaitableTimer ( hLimitTimer, &liDelay,
+                              0, NULL, NULL, 0 ) )
+    {
+    //dll_log.Log (L"SetWaitiable");
+      DWORD dwOrigPrio =
+        GetThreadPriority (GetCurrentThread ()                         );
+        SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_HIGHEST);
+      WaitForSingleObject (hLimitTimer,         INFINITE               );
+        SetThreadPriority (GetCurrentThread (), dwOrigPrio             );
+      //dll_log.Log (L"SetWaitiable - WAKE ");
+    }
+  }
+
 
   if (next.QuadPart > 0ULL)
   {

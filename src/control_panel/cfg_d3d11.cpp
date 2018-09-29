@@ -34,6 +34,9 @@
 
 #include <SpecialK/nvapi.h>
 
+const wchar_t*
+DXGIColorSpaceToStr (DXGI_COLOR_SPACE_TYPE space);
+
 
 extern bool SK_D3D11_EnableTracking;
 extern bool SK_D3D11_EnableMMIOTracking;
@@ -337,7 +340,10 @@ SK_ImGui_DrawGamut (void)
     idx += 1.0f;
   }
 
-  draw_list->AddText ( ImVec2 (g.x * io.DisplaySize.x, io.DisplaySize.y - g.y * io.DisplaySize.y), self_outline, "ASUS ROG SWIFT PG27UQ" );
+  static char szName [64] = { };
+  sprintf    (szName, "%ws", rb.display_name);
+
+  draw_list->AddText ( ImVec2 (g.x * io.DisplaySize.x, io.DisplaySize.y - g.y * io.DisplaySize.y), self_outline, szName );
 
 
   draw_list->PopClipRect    (              );
@@ -390,7 +396,8 @@ SK::ControlPanel::D3D11::Draw (void)
 
       bool tracking = false;
 
-      if ( ReadAcquire (&SK_D3D11_DrawTrackingReqs) > 0 ||
+      if (           szThreadLocalStr != nullptr &&
+           ReadAcquire (&SK_D3D11_DrawTrackingReqs) > 0 ||
            SK_ReShade_DrawCallback.fn != nullptr  )
       {
         tracking = true;
@@ -869,6 +876,13 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
       ImGui::TextUnformatted ("MSAA Samples:");
       if (swap_desc.Flags != 0)
       ImGui::TextUnformatted ("Flags:");
+      if (rb.isHDRCapable ())
+      {
+        ImGui::Separator  ();
+        ImGui::Text ("Display Device:   ");
+        ImGui::Text ("HDR Color Space:  ");
+        ImGui::Text ("Output Bit Depth: ");
+      }
       ImGui::PopStyleColor   ();
       ImGui::EndGroup        ();
 
@@ -904,6 +918,28 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
       ImGui::Text            ("%u",                                         swap_desc.SampleDesc.Count);
       if (swap_desc.Flags != 0)
         ImGui::Text          ("%ws",        SK_DXGI_DescribeSwapChainFlags (static_cast <DXGI_SWAP_CHAIN_FLAG> (swap_desc.Flags)).c_str ());
+      if (rb.isHDRCapable ())
+      {
+        bool _fullscreen = true;
+
+        CComQIPtr <IDXGISwapChain4> pSwap3 (pSwapDXGI);
+        if (pSwap3 != nullptr)
+        {
+          DXGI_SWAP_CHAIN_FULLSCREEN_DESC full_desc = { };
+              pSwap3->GetFullscreenDesc (&full_desc);
+
+          _fullscreen =
+            (! full_desc.Windowed);
+        }
+
+        ImGui::Separator  ();
+        ImGui::Text   ("%ws", rb.display_name);
+        if (_fullscreen)
+          ImGui::Text ("%ws",                DXGIColorSpaceToStr ((DXGI_COLOR_SPACE_TYPE)rb.scanout.dxgi_colorspace));
+        else
+          ImGui::Text ("%ws (DWM Assigned)", DXGIColorSpaceToStr ((DXGI_COLOR_SPACE_TYPE)rb.scanout.dwm_colorspace));
+        ImGui::Text   ("%lu", rb.scanout.bpc);
+      }
       ImGui::PopStyleColor   ();
       ImGui::EndGroup        ();
       ImGui::EndTooltip      ();

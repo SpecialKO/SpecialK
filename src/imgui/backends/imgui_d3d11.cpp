@@ -21,6 +21,9 @@
 #include <atlbase.h>
 #include <Windows.h>
 
+bool __SK_ImGui_D3D11_DrawDeferred = true;
+bool running_on_12                 = false;
+
 extern void
 SK_ImGui_User_NewFrame (void);
 
@@ -45,10 +48,8 @@ static ID3D11PixelShader*       g_pPixelShader          = nullptr;
 static ID3D11SamplerState*      g_pFontSampler_clamp    = nullptr;
 static ID3D11SamplerState*      g_pFontSampler_wrap     = nullptr;
 static ID3D11ShaderResourceView*g_pFontTextureView      = nullptr;
-static ID3D11ShaderResourceView*g_pHDRCompositeView     = nullptr;
 static ID3D11RasterizerState*   g_pRasterizerState      = nullptr;
 static ID3D11BlendState*        g_pBlendState           = nullptr;
-static ID3D11BlendState*        g_pHDRUIBlendState      = nullptr;
 static ID3D11DepthStencilState* g_pDepthStencilState    = nullptr;
 
 static UINT                     g_frameBufferWidth      = 0UL;
@@ -58,41 +59,52 @@ static int                      g_VertexBufferSize      = 5000,
                                 g_IndexBufferSize       = 10000;
 
 
-ID3D11ShaderResourceView*
-SK_D3D11_GetRawHDRView ( bool capture )
+static void
+ImGui_ImplDX11_CreateFontsTexture (void);
+
+ID3D11RenderTargetView*
+SK_D3D11_GetHDRHUDView (void)
 {
-  if (capture && g_pHDRCompositeView != nullptr)
-  {
-    SK_RenderBackend& rb =
-      SK_GetCurrentRenderBackend ();
+  //if (g_pHDRHUDView == nullptr)
+  //{
+  //  bool
+  //  ImGui_ImplDX11_CreateDeviceObjects (void);
+  //  ImGui_ImplDX11_CreateDeviceObjects ();
+  //}
+  //
+  //if (g_pHDRHUDView != nullptr)
+  //{
+  //  SK_RenderBackend& rb =
+  //    SK_GetCurrentRenderBackend ();
+  //
+  //  return g_pHDRHUDView;
+  //}
+  //
+  //SK_ReleaseAssert (false)
 
-    CComPtr   <ID3D11Resource>      pSrc, pDst;
-    CComQIPtr <IDXGISwapChain>      pSwapChain (rb.swapchain);
-    CComQIPtr <ID3D11DeviceContext> pDevCtx    (rb.d3d11.immediate_ctx);
+  // Uh oh, user wanted an update but it was not possible
+  //   now they get nothing!
+  return nullptr;
+}
 
-    g_pHDRCompositeView->GetResource (&pDst.p);
+extern ID3D11ShaderResourceView*
+SK_D3D11_GetHDRHUDTexture (void)
+{
+  //if (g_pHDRHUDTexView == nullptr)
+  //{
+  //  bool
+  //  ImGui_ImplDX11_CreateDeviceObjects (void);
+  //  ImGui_ImplDX11_CreateDeviceObjects ();
+  //}
+  //
+  //if (g_pHDRHUDTexView != nullptr)
+  //{
+  //  return g_pHDRHUDTexView;
+  //}
+  //
+  //SK_ReleaseAssert (false)
 
-    if ( SUCCEEDED (
-           pSwapChain->GetBuffer    (
-             0,
-               IID_ID3D11Texture2D,
-                 (void **) &pSrc.p  )
-                   )
-       )
-    {
-      pDevCtx->CopyResource (pDst, pSrc);
-
-      return
-        g_pHDRCompositeView;
-    }
-
-    // Uh oh, user wanted an update but it was not possible
-    //   now they get nothing!
-    return nullptr;
-  }
-
-  return
-    g_pHDRCompositeView;
+  return nullptr;
 }
 
 
@@ -146,6 +158,7 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
   SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
+
   if (! rb.swapchain)
     return;
 
@@ -155,6 +168,9 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
   if (! rb.d3d11.immediate_ctx)
     return;
 
+  if (! rb.d3d11.deferred_ctx)
+    return;
+
   if (! g_pVertexConstantBuffer)
     return;
 
@@ -162,12 +178,24 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
     return;
 
 
-  CComQIPtr <IDXGISwapChain>               pSwapChain (rb.swapchain);
-  CComQIPtr <ID3D11Device>                 pDevice    (rb.device);
-  CComQIPtr <ID3D11DeviceContext>          pDevCtx    (rb.d3d11.immediate_ctx);
+  CComQIPtr <IDXGISwapChain>      pSwapChain (rb.swapchain);
+  CComQIPtr <IDXGISwapChain3>     pSwap3     (pSwapChain);
+  CComQIPtr <ID3D11Device>        pDevice    (rb.device);
 
-  CComPtr   <ID3D11Texture2D>              pBackBuffer = nullptr;
-  pSwapChain->GetBuffer (0, IID_PPV_ARGS (&pBackBuffer));
+  CComQIPtr <ID3D11DeviceContext> pDevCtx    ( __SK_ImGui_D3D11_DrawDeferred ? rb.d3d11.deferred_ctx :
+                                                                               rb.d3d11.immediate_ctx );
+
+  CComPtr   <ID3D11Texture2D>     pBackBuffer = nullptr;
+
+                    UINT currentBuffer = 0;
+  if (pSwap3 != nullptr) currentBuffer = pSwap3->GetCurrentBackBufferIndex ();
+
+  
+  if (rb.d3d11.interop.backbuffer_tex2D != nullptr)
+    pBackBuffer = rb.d3d11.interop.backbuffer_tex2D;
+  else
+    pSwapChain->GetBuffer (currentBuffer, IID_PPV_ARGS (&pBackBuffer));
+
 
   D3D11_TEXTURE2D_DESC   backbuffer_desc = { };
   pBackBuffer->GetDesc (&backbuffer_desc);
@@ -302,7 +330,7 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
     memcpy         (&constant_buffer->mvp, mvp, sizeof (mvp));
 
     bool hdr_display =
-      (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR);
+      (rb.isHDRCapable () && (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR));
 
     if (! hdr_display)
     {
@@ -313,8 +341,8 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
 
     else
     {
-      extern float __SK_MHW_HDR_Luma; extern float __SK_DQXI_HDR_Luma;
-      extern float __SK_MHW_HDR_Exp;  extern float __SK_DQXI_HDR_Exp;
+      extern float __SK_MHW_HDR_Luma; extern float __SK_HDR_Luma;
+      extern float __SK_MHW_HDR_Exp;  extern float __SK_HDR_Exp;
 
       float luma = 0.0f,
             exp  = 0.0f;
@@ -323,25 +351,32 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
       {
         case SK_GAME_ID::MonsterHunterWorld:
           luma = __SK_MHW_HDR_Luma;
-          exp  = __SK_MHW_HDR_Exp-1.0f;
+          exp  = __SK_MHW_HDR_Exp;
           break;
 
-        case SK_GAME_ID::DragonQuestXI:
-          luma = __SK_DQXI_HDR_Luma;
-          exp  = __SK_DQXI_HDR_Exp;
+        default:
+          luma = __SK_HDR_Luma;
+          exp  = __SK_HDR_Exp;
           break;
       }
 
-      constant_buffer->luminance_scale [0] = rb.ui_luminance;
-      constant_buffer->luminance_scale [1] = rb.ui_srgb ? 2.2f : 1.0f;
-      constant_buffer->luminance_scale [2] = luma;
-      constant_buffer->luminance_scale [3] = exp;
-      constant_buffer->steam_luminance [0] = config.steam.overlay_hdr_luminance;
-      constant_buffer->steam_luminance [1] = rb.ui_srgb ? 2.2f : 1.0f;
+      SK_RenderBackend::scan_out_s::SK_HDR_TRANSFER_FUNC eotf =
+        rb.scanout.getEOTF ();
+
+      bool bEOTF_is_PQ =
+        (eotf == SK_RenderBackend::scan_out_s::SMPTE_2084);
+
+      constant_buffer->luminance_scale [0] = ( bEOTF_is_PQ ? 1.0f :  rb.ui_luminance );
+      constant_buffer->luminance_scale [1] = ( bEOTF_is_PQ ? 1.0f : (rb.ui_srgb ? 2.2f :
+                                                                                  1.0f));
+      constant_buffer->luminance_scale [2] = ( bEOTF_is_PQ ? 1.0f : luma );
+      constant_buffer->luminance_scale [3] = ( bEOTF_is_PQ ? 1.0f : exp  );
+      constant_buffer->steam_luminance [0] = ( bEOTF_is_PQ ? 1.0f : config.steam.overlay_hdr_luminance );
+      constant_buffer->steam_luminance [1] = ( bEOTF_is_PQ ? 1.0f : (rb.ui_srgb ? 2.2f :
+                                                                                  1.0f));
     }
 
     pDevCtx->Unmap (g_pVertexConstantBuffer, 0);
-
 
     if (pDevCtx->Map (g_pPixelConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped_resource) != S_OK)
       return;
@@ -442,18 +477,6 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
   const float blend_factor [4] = { 0.f, 0.f,
                                    0.f, 1.f };
 
-  if ( (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR) && g_pHDRCompositeView != nullptr )
-  {
-    CComPtr <ID3D11Resource> pSrc, pDst;
-
-    g_pHDRCompositeView->GetResource (                                 &pDst.p);
-    pSwapChain->GetBuffer            (0, IID_ID3D11Texture2D, (void **)&pSrc.p);
-
-    pDevCtx->CopyResource           (pDst, pSrc);
-    pDevCtx->OMSetBlendState        (g_pHDRUIBlendState, blend_factor, 0xffffffff);
-    pDevCtx->PSSetShaderResources   (1, 1, &g_pHDRCompositeView);
-  }
-  else
   pDevCtx->OMSetBlendState        (g_pBlendState, blend_factor, 0xffffffff);
   pDevCtx->OMSetDepthStencilState (g_pDepthStencilState,        0);
   pDevCtx->RSSetState             (g_pRasterizerState);
@@ -482,7 +505,17 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
           static_cast <LONG> (pcmd->ClipRect.z), static_cast <LONG> (pcmd->ClipRect.w)
         };
 
-        pDevCtx->PSSetShaderResources (0, 1, (ID3D11ShaderResourceView **)&pcmd->TextureId);
+        extern ID3D11ShaderResourceView*
+          SK_HDR_GetUnderlayResourceView (void);
+
+        ID3D11ShaderResourceView* views [2] =
+        { 
+           *(ID3D11ShaderResourceView **)&pcmd->TextureId,
+           SK_HDR_GetUnderlayResourceView ()
+        };
+
+        pDevCtx->PSSetSamplers        (0, 1, &pTLS->d3d11.uiSampler_wrap);
+        pDevCtx->PSSetShaderResources (0, 2, views);
         pDevCtx->RSSetScissorRects    (1, &r);
 
         pDevCtx->DrawIndexed (pcmd->ElemCount, idx_offset, vtx_offset);
@@ -491,7 +524,31 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
       idx_offset += pcmd->ElemCount;
     }
 
+    // Last-ditch effort to get the HDR post-process done before the UI.
+    void SK_HDR_SnapshotSwapchain (void);
+    SK_HDR_SnapshotSwapchain      (    );
+
     vtx_offset += cmd_list->VtxBuffer.Size;
+  }
+
+
+  if (__SK_ImGui_D3D11_DrawDeferred)
+  {
+    CComPtr <ID3D11CommandList> pCmdList = nullptr;
+
+    if ( SUCCEEDED (
+           pDevCtx->FinishCommandList ( TRUE,
+                                          &pCmdList.p )
+                   )
+       )
+    {
+      rb.d3d11.immediate_ctx->ExecuteCommandList (
+        pCmdList.p, TRUE
+      );
+    }
+
+    else
+      pDevCtx->Flush ();
   }
 }
 
@@ -566,35 +623,6 @@ ImGui_ImplDX11_CreateFontsTexture (void)
     srvDesc.Texture2D.MostDetailedMip = 0;
 
     pDev->CreateShaderResourceView (pFontTexture, &srvDesc, &g_pFontTextureView);
-
-    if (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR)
-    {
-      CComQIPtr <IDXGISwapChain> pSwapChain (rb.swapchain);
-
-      DXGI_SWAP_CHAIN_DESC  swapDesc = { };
-      pSwapChain->GetDesc (&swapDesc);
-
-      desc.Width            = swapDesc.BufferDesc.Width;
-      desc.Height           = swapDesc.BufferDesc.Height;
-      desc.MipLevels        = 1;
-      desc.ArraySize        = 1;
-      desc.Format           = swapDesc.BufferDesc.Format;
-      desc.SampleDesc.Count = 1; // Will probably regret this if HDR ever procreates with MSAA
-      desc.Usage            = D3D11_USAGE_DEFAULT;
-      desc.BindFlags        = D3D11_BIND_SHADER_RESOURCE;
-      desc.CPUAccessFlags   = 0;
-
-      CComPtr <ID3D11Texture2D> pHDRTexture = nullptr;
-
-      pDev->CreateTexture2D          (&desc,       nullptr, &pHDRTexture.p);
-      pDev->CreateShaderResourceView (pHDRTexture, nullptr, &g_pHDRCompositeView);
-    }
-
-    else if (g_pHDRCompositeView != nullptr)
-    {
-      g_pHDRCompositeView->Release ();
-      g_pHDRCompositeView = nullptr;
-    }
   }
 
   // Store our identifier
@@ -731,55 +759,44 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
   // Create the vertex shader
   {
     static const char* vertexShader =
-     "#pragma warning ( disable : 3571 )\n                                    \
-      cbuffer vertexBuffer : register (b0)                                    \
-      {                                                                       \
-        float4x4 ProjectionMatrix;                                            \
-        float4   Luminance;                                                   \
-        float4   SteamLuminance;                                              \
-      };                                                                      \
-                                                                              \
-      struct VS_INPUT                                                         \
-      {                                                                       \
-        float2 pos : POSITION;                                                \
-        float4 col : COLOR0;                                                  \
-        float2 uv  : TEXCOORD0;                                               \
-      };                                                                      \
-                                                                              \
-      struct PS_INPUT                                                         \
-      {                                                                       \
-        float4 pos : SV_POSITION;                                             \
-        float4 col : COLOR0;                                                  \
-        float2 uv  : TEXCOORD0;                                               \
-        float2 uv2 : TEXCOORD1;                                               \
-        float2 uv3 : TEXCOORD2;                                               \
-      };                                                                      \
-                                                                              \
-      PS_INPUT main (VS_INPUT input)                                          \
-      {                                                                       \
-        PS_INPUT output;                                                      \
-                                                                              \
-        output.pos          = mul ( ProjectionMatrix,                         \
-                                      float4 (input.pos.xy, 0.f, 1.f) );      \
-                                                                              \
-        output.uv           = saturate (input.uv);                            \
-                                                                              \
-        if ( Luminance.w > 0.f && Luminance.z > 0.f &&                        \
-                             abs (input.uv.x) > 1.f )                         \
-        {                                                                     \
-          output.col        = float4 (1.f, 1.f, 1.f, 1.f);                    \
-          output.uv2        = Luminance.zw;                                   \
-          output.uv3        =          float2 (0.f, 0.f);                     \
-        }                                                                     \
-                                                                              \
-        else                                                                  \
-        {                                                                     \
-          output.col        = input.col;                                      \
-          output.uv2        = float2 (0.f, 0.f);                              \
-          output.uv3        = Luminance.xy;                                   \
-        }                                                                     \
-                                                                              \
-        return output;                                                        \
+     "#pragma warning ( disable : 3571 )\n                        \
+      cbuffer vertexBuffer : register (b0)                        \
+      {                                                           \
+        float4x4 ProjectionMatrix;                                \
+        float4   Luminance;                                       \
+        float4   SteamLuminance;                                  \
+      };                                                          \
+                                                                  \
+      struct VS_INPUT                                             \
+      {                                                           \
+        float2 pos : POSITION;                                    \
+        float4 col : COLOR0;                                      \
+        float2 uv  : TEXCOORD0;                                   \
+      };                                                          \
+                                                                  \
+      struct PS_INPUT                                             \
+      {                                                           \
+        float4 pos : SV_POSITION;                                 \
+        float4 col : COLOR0;                                      \
+        float2 uv  : TEXCOORD0;                                   \
+        float2 uv2 : TEXCOORD1;                                   \
+        float2 uv3 : TEXCOORD2;                                   \
+      };                                                          \
+                                                                  \
+      PS_INPUT main (VS_INPUT input)                              \
+      {                                                           \
+        PS_INPUT output;                                          \
+                                                                  \
+        output.pos  = mul ( ProjectionMatrix,                     \
+                              float4 (input.pos.xy, 0.f, 1.f) );  \
+                                                                  \
+        output.uv  = saturate (input.uv);                         \
+                                                                  \
+        output.col = input.col;                                   \
+        output.uv2 = float2 (0.f, 0.f);                           \
+        output.uv3 = Luminance.xy;                                \
+                                                                  \
+        return output;                                            \
       }";
 
     CComPtr <ID3D10Blob> blob_msg_vtx;
@@ -928,127 +945,96 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
   // Create the pixel shader
   {
     static const char* pixelShader =
-     "#pragma warning ( disable : 3571 )\n                             \
-      struct PS_INPUT                                                  \
-      {                                                                \
-        float4 pos : SV_POSITION;                                      \
-        float4 col : COLOR0;                                           \
-        float2 uv  : TEXCOORD0;                                        \
-        float2 uv2 : TEXCOORD1;                                        \
-        float2 uv3 : TEXCOORD2;                                        \
-      };                                                               \
-                                                                       \
-      cbuffer viewportDims : register (b0)                             \
-      {                                                                \
-        float4 viewport;                                               \
-      };                                                               \
-                                                                       \
-      sampler   sampler0    : register (s0);                           \
-                                                                       \
-      Texture2D texture0    : register (t0);                           \
-      Texture2D hdrUnderlay : register (t1);                           \
-\
-float3 ApplyREC2084Curve(float3 L, float maxLuminance)\
-{\
-	float m1 = 2610.0 / 4096.0 / 4;\
-	float m2 = 2523.0 / 4096.0 * 128;\
-	float c1 = 3424.0 / 4096.0;\
-	float c2 = 2413.0 / 4096.0 * 32;\
-	float c3 = 2392.0 / 4096.0 * 32;\
-  \
-	/* L = FD / 10000, so if FD == 10000, then L = 1.*/\
-	/* so to scale max luminance, we want to multiply by maxLuminance / 10000*/\
-  \
-	float maxLightScale = maxLuminance / 10000.0f;\
-	L *= maxLightScale;\
-  \
-	float3 Lp = pow(L, m1);\
-  \
-	return pow((c1 + c2 * Lp) / (1 + c3 * Lp), m2);\
-}\
-\
-float3 REC709toREC2020(float3 RGB709)\
-{\
-	static const float3x3 ConvMat =\
-	{\
-		0.627402, 0.329292, 0.043306,\
-		0.069095, 0.919544, 0.011360,\
-		0.016394, 0.088028, 0.895578\
-	};\
-\
-	return mul(ConvMat, RGB709);\
-}\
-\
-float3 ApplyREC709Curve(float3 x)\
-{\
-	return x < 0.0181 ? 4.5 * x : 1.0993 * pow(x, 0.45) - 0.0993;\
-}\
-\
-float3 ApplySRGBCurve(float3 x)\
-{\
-	/* Approximately pow(x, 1.0 / 2.2) */\
-	return x < 0.0031308 ? 12.92 * x : 1.055 * pow(x, 1.0 / 2.4) - 0.055;\
-}\
-\
-float ApplySRGBCurve(float x)\
-{\
-	/* Approximately pow(x, 1.0 / 2.2)*/\
-	return x < 0.0031308 ? 12.92 * x : 1.055 * pow(x, 1.0 / 2.4) - 0.055;\
-}\
-\
-float3 RemoveSRGBCurve(float3 x)\
-{\
-	/* Approximately pow(x, 2.2)*/\
-	return x < 0.04045 ? x / 12.92 : pow((x + 0.055) / 1.055, 2.4);\
-}\
-\
-static const float tenThousand = 10000.0f;\
-\
-float Luminance(float3 linearColor)\
-{\
-	return 0.2126 * linearColor.r + 0.7152 * linearColor.g + 0.0722 * linearColor.b;\
-}\
-                                                                       \
-      float4 main (PS_INPUT input) : SV_Target                         \
-      {                                                                \
-        float4 out_col =                                               \
-          texture0.Sample (sampler0, input.uv);                        \
-                                                                       \
-        if (viewport.z > 0.f)                                          \
-        {                                                              \
-          float4 under_color =                                         \
-            hdrUnderlay.Sample (sampler0, input.pos.xy / viewport.zw); \
-                                                                       \
-          float blend_alpha =                                          \
-            saturate (input.col.a * out_col.a);                        \
-                                                                       \
-          if (input.uv2.x > 0.0f && input.uv2.y > 0.0f)                \
-          {                                                            \
-            out_col.rgb = RemoveSRGBCurve   (out_col.rgb);             \
-            out_col =                                                  \
-              pow (abs (out_col), float4 (input.uv2.yyy, 1.0f)) *      \
-                input.uv2.xxxx;                                        \
-            /*out_col.rgb = ApplyREC2084Curve (out_col.rgb, input.uv2.x);*/\
-            out_col.a   = 1.0f;                                        \
-            blend_alpha = 1.0f;                                        \
-          }                                                            \
-                                                                       \
-          else                                                         \
-          {                                                            \
-            out_col =                                                  \
-              pow (abs (input.col * out_col), float4 (input.uv3.yyy, 1.0f)) *      \
-                                              float4 (input.uv3.xxx, 1.0f);        \
-            out_col *= float4 (out_col.aaa, 1.f);                      \
-          }                                                            \
-                                                                       \
-          return                                                       \
-            float4 (  ( (input.col.rgb * out_col.rgb)) -               \
-               (1.0f - blend_alpha) * float4 (under_color.rgb, 1.0f),  \
-                       blend_alpha);                                   \
-        }                                                              \
-                                                                       \
-        return                                                         \
-          ( input.col * out_col );                                     \
+     "#pragma warning ( disable : 3571 )\n                                    \
+      struct PS_INPUT                                                         \
+      {                                                                       \
+        float4 pos : SV_POSITION;                                             \
+        float4 col : COLOR0;                                                  \
+        float2 uv  : TEXCOORD0;                                               \
+        float2 uv2 : TEXCOORD1;                                               \
+        float2 uv3 : TEXCOORD2;                                               \
+      };                                                                      \
+                                                                              \
+      cbuffer viewportDims : register (b0)                                    \
+      {                                                                       \
+        float4 viewport;                                                      \
+      };                                                                      \
+                                                                              \
+      sampler   sampler0    : register (s0);                                  \
+                                                                              \
+      Texture2D texture0    : register (t0);                                  \
+      Texture2D hdrUnderlay : register (t1);                                  \
+      Texture2D hdrHUD      : register (t2);                                  \
+                                                                              \
+      float3 RemoveSRGBCurve (float3 x)                                       \
+      {                                                                       \
+      	/* Approximately pow(x, 2.2)*/                                        \
+      	return x < 0.04045 ? x / 12.92 : pow((x + 0.055) / 1.055, 2.4);       \
+      }                                                                       \
+                                                                              \
+      float3 ApplyREC709Curve (float3 x)                                      \
+      {                                                                       \
+      	return x < 0.0181 ? 4.5 * x : 1.0993 * pow(x, 0.45) - 0.0993;         \
+      }                                                                       \
+      float Luma (float3 color)                                               \
+      {                                                                       \
+        return                                                                \
+          dot (color, float3 (0.299f, 0.587f, 0.114f));                       \
+      }                                                                       \
+                                                                              \
+      float4 main (PS_INPUT input) : SV_Target                                \
+      {                                                                       \
+        float4 out_col =                                                      \
+          texture0.Sample (sampler0, input.uv);                               \
+                                                                              \
+        if (viewport.z > 0.f)                                                 \
+        {                                                                     \
+          float4 under_color;                                                 \
+                                                                              \
+          float blend_alpha =                                                 \
+            saturate (input.col.a * out_col.a);                               \
+                                                                              \
+          if (abs (blend_alpha) < 0.001f) blend_alpha = 0.0f;                 \
+          if (abs (blend_alpha) > 0.999f) blend_alpha = 1.0f;                 \
+                                                                              \
+          float4 hud = float4 (0.0f, 0.0f, 0.0f, 0.0f);                       \
+                                                                              \
+          if (input.uv2.x > 0.0f && input.uv2.y > 0.0f)                       \
+          {                                                                   \
+            hud = hdrHUD.Sample (sampler0, input.uv);                         \
+            hud.rbg     = RemoveSRGBCurve (hud.rgb);                          \
+            hud.rgb    *= ( input.uv3.xxx );                                  \
+            out_col.rgb = RemoveSRGBCurve (out_col.rgb);                      \
+            out_col =                                                         \
+              pow (abs (out_col), float4 (input.uv2.yyy, 1.0f)) *             \
+                input.uv2.xxxx;                                               \
+            out_col.a   = 1.0f;                                               \
+            blend_alpha = 1.0f;                                               \
+            under_color = float4 (0.0f, 0.0f, 0.0f, 0.0f);                    \
+          }                                                                   \
+                                                                              \
+          else                                                                \
+          {                                                                   \
+            under_color =                                                     \
+              float4 (hdrUnderlay.Sample (sampler0, input.pos.xy/             \
+                                                     viewport.zw).rgb, 1.0f); \
+            under_color.rgb =                                                 \
+              RemoveSRGBCurve (under_color.rgb/(under_color.rgb+(1.666f*      \
+                               (2.0f-blend_alpha))));                         \
+            out_col =                                                         \
+              pow (abs (input.col * out_col), float4 (input.uv3.yyy, 1.0f)) * \
+                                              float4 (input.uv3.xxx, 1.0f);   \
+            out_col.rgb *= blend_alpha;                                       \
+          }                                                                   \
+                                                                              \
+          return                                                              \
+            float4 (                         out_col.rgb +                    \
+                  (1.0f - blend_alpha) * under_color.rgb * 0.666f,            \
+                          blend_alpha);                                       \
+        }                                                                     \
+                                                                              \
+        return                                                                \
+          ( input.col * out_col );                                            \
       }";
 
     CComPtr <ID3D10Blob> blob_msg_pix;
@@ -1120,7 +1106,9 @@ float Luminance(float3 linearColor)\
         PS_QUAD_Texture2D.Sample (PS_QUAD_Sampler, input.uv);    \
                                                                  \
       out_col =                                                  \
-        float4 (RemoveSRGBCurve (input.col.rgb * out_col.rgb), input.col.a * out_col.a) * linear_mul; \
+        float4 (RemoveSRGBCurve (input.col.rgb * out_col.rgb),   \
+                                 input.col.a   * out_col.a)  *   \
+                                                     linear_mul; \
                                                                  \
       return                                                     \
         float4 (out_col.rgb, saturate (out_col.a));              \
@@ -1174,9 +1162,14 @@ float Luminance(float3 linearColor)\
 
     pDev->CreateBlendState (&desc, &g_pBlendState);
 
-    desc.RenderTarget [0].BlendEnable           =  true;
-
-    pDev->CreateBlendState (&desc, &g_pHDRUIBlendState);
+    //desc.RenderTarget [0].BlendEnable           = true;
+    //desc.RenderTarget [0].SrcBlend              = D3D11_BLEND_ONE;
+    //desc.RenderTarget [0].DestBlend             = D3D11_BLEND_ONE;
+    //desc.RenderTarget [0].BlendOp               = D3D11_BLEND_OP_ADD;
+    //desc.RenderTarget [0].SrcBlendAlpha         = D3D11_BLEND_ONE;
+    //desc.RenderTarget [0].DestBlendAlpha        = D3D11_BLEND_ONE;
+    //desc.RenderTarget [0].BlendOpAlpha          = D3D11_BLEND_OP_ADD;
+    //desc.IndependentBlendEnable                 = true;
   }
 
   // Create the rasterizer state
@@ -1278,12 +1271,10 @@ ImGui_ImplDX11_InvalidateDeviceObjects (void)
   if (g_pFontSampler_clamp)    { g_pFontSampler_clamp->Release (); g_pFontSampler_clamp = nullptr; }
   if (g_pFontSampler_wrap)     { g_pFontSampler_wrap->Release  (); g_pFontSampler_wrap  = nullptr; }
   if (g_pFontTextureView)      { g_pFontTextureView->Release   (); g_pFontTextureView   = nullptr;  ImGui::GetIO ().Fonts->TexID = nullptr; }
-  if (g_pHDRCompositeView)     { g_pHDRCompositeView->Release  (); g_pHDRCompositeView  = nullptr; }
   if (g_pIB)                   { g_pIB->Release                ();              g_pIB   = nullptr; }
   if (g_pVB)                   { g_pVB->Release                ();              g_pVB   = nullptr; }
 
   if (g_pBlendState)           { g_pBlendState->Release           ();           g_pBlendState = nullptr; }
-  if (g_pHDRUIBlendState)      { g_pHDRUIBlendState->Release      ();      g_pHDRUIBlendState = nullptr; }
   if (g_pDepthStencilState)    { g_pDepthStencilState->Release    ();    g_pDepthStencilState = nullptr; }
   if (g_pRasterizerState)      { g_pRasterizerState->Release      ();      g_pRasterizerState = nullptr; }
   if (g_pPixelShader)          { g_pPixelShader->Release          ();          g_pPixelShader = nullptr; }

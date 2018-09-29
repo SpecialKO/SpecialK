@@ -23,7 +23,7 @@ namespace DirectX
     extern bool _IsAlphaAllOpaqueBC(_In_ const Image& cImage);
 }
 
-using namespace DirectX;
+using namespace DirectX; 
 
 //-------------------------------------------------------------------------------------
 // Determines number of image array entries and pixel size

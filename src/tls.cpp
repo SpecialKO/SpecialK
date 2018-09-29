@@ -217,7 +217,7 @@ SK_TLS_Bottom (void)
 ////  }
 ////#endif
 
-  if (! pTLSRecord->pTLS->debug.mapped)
+  if ((pTLSRecord != nullptr) && (! pTLSRecord->pTLS->debug.mapped))
   {
     auto& tls_map =
       SK_TLS_Map ();

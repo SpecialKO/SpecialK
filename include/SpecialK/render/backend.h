@@ -23,6 +23,7 @@
 #define __SK__RENDER_BACKEND_H__
 
 struct IUnknown;
+#include <SpecialK/render/dxgi/dxgi_swapchain.h>
 #include <Unknwnbase.h>
 
 #include <d3d11.h>
@@ -164,6 +165,61 @@ public:
   SK_ColorSpace           display_gamut        = { 0.0f }; // EDID
   SK_ColorSpace           working_gamut        = { 0.0f }; // Metadata range
 
+  struct scan_out_s {
+    int                   bpc                  = 8;
+    DXGI_COLOR_SPACE_TYPE colorspace_override  = DXGI_COLOR_SPACE_CUSTOM;
+    DXGI_COLOR_SPACE_TYPE dxgi_colorspace      = DXGI_COLOR_SPACE_CUSTOM;
+    DXGI_COLOR_SPACE_TYPE dwm_colorspace       = DXGI_COLOR_SPACE_CUSTOM;
+
+    enum SK_HDR_TRANSFER_FUNC
+    {
+      sRGB,        // ~= Power-Law: 2.2
+                   
+      scRGB,       // Linear, but source material is generally sRGB
+                   //  >> And you have to undo that transformation!
+
+      G19,         //   Power-Law: 1.9
+      G20,         //   Power-Law: 2.0
+      G22,         //   Power-Law: 2.2
+      G24,         //   Power-Law: 2.4
+
+      Linear=scRGB,// Alias for scRGB  (Power-Law: 1.0 = Linear!)
+
+      SMPTE_2084,  // Perceptual Quantization
+      HYBRID_LOG,  // TODO
+      NONE
+    };
+
+    SK_HDR_TRANSFER_FUNC
+      getEOTF (void)
+      {
+        switch (dxgi_colorspace)
+        {
+          case DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709:
+            return Linear;
+          case DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709:
+            return sRGB;
+          case DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P2020:
+          case DXGI_COLOR_SPACE_RGB_STUDIO_G22_NONE_P2020:
+            return G22;
+          case DXGI_COLOR_SPACE_RGB_STUDIO_G2084_NONE_P2020:
+          case DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020:
+            return SMPTE_2084;
+          // Pretty much only used by film
+          case DXGI_COLOR_SPACE_RGB_STUDIO_G24_NONE_P709:
+          case DXGI_COLOR_SPACE_RGB_STUDIO_G24_NONE_P2020:
+            return G24;
+        }
+
+        return NONE;
+      }
+  } scanout;
+
+  wchar_t                 display_name [128]   = { };
+
+  bool isHDRCapable  (void    ) const;
+  void setHDRCapable (bool set);
+
   struct                 {
     struct sub_event     {
       LARGE_INTEGER time;
@@ -201,6 +257,14 @@ public:
     //MIDL_INTERFACE ("c0bfa96c-e089-44fb-8eaf-26f8796190da")     
     CComPtr <ID3D11DeviceContext> immediate_ctx = nullptr;
     CComPtr <ID3D11DeviceContext> deferred_ctx  = nullptr;
+    CComPtr <ID3D11On12Device>    wrapper_dev   = nullptr;
+
+    struct {
+      UINT                             buffer_idx;
+      CComPtr <ID3D11Texture2D>        backbuffer_tex2D;
+      CComPtr <ID3D11RenderTargetView> backbuffer_rtv;
+    } interop;
+    
   } d3d11;
 
 

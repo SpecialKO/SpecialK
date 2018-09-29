@@ -1381,7 +1381,8 @@ bool
 SK_Import_VersionDLL (void)
 {
   if (hModVersion == nullptr)
-      hModVersion = SK_Modules.LoadLibraryLL (L"Version.dll");//Api-ms-win-core-version-l1-1-0.dll");
+    hModVersion = GetModuleHandle (L"Version.dll");
+      //hModVersion = SK_Modules.LoadLibraryLL (L"Version.dll");//Api-ms-win-core-version-l1-1-0.dll");
 
   return hModVersion != nullptr;
 }
@@ -1406,7 +1407,7 @@ SK_VerQueryValueW (
     (VerQueryValueW_pfn)
        GetProcAddress (hModVersion, "VerQueryValueW");
 
-  return imp_VerQueryValueW ( pBlock, lpSubBlock, lplpBuffer, puLen );
+  return VerQueryValueW ( pBlock, lpSubBlock, lplpBuffer, puLen );
 }
 
 BOOL

@@ -567,6 +567,30 @@ ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
                                   WPARAM wParam,
                                   LPARAM lParam )
 {
+  // Handle this message, but don't remove it.
+  if (msg == WM_DISPLAYCHANGE)
+  {
+    SK_LOG0 ( (L"Handling WM_DISPLAYCHANGE"), L"Window Mgr");
+
+    auto& rb =
+      SK_GetCurrentRenderBackend ();
+
+    if ( ((int)rb.api & (int)SK_RenderAPI::D3D11) ||
+         ((int)rb.api & (int)SK_RenderAPI::D3D12 ))
+    {
+      extern void
+      SK_DXGI_UpdateSwapChain (IDXGISwapChain*);
+
+      CComQIPtr <IDXGISwapChain> pSwap (rb.swapchain);
+
+      if (pSwap != nullptr)
+      {
+        SK_DXGI_UpdateSwapChain (pSwap);
+      }
+    }
+  }
+
+
   if (msg == WM_DEVICECHANGE)
   {
     switch (wParam)
