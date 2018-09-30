@@ -17759,22 +17759,22 @@ SK_D3D11_EndFrame (SK_TLS* pTLS = SK_TLS_Bottom ())
   static SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
-  if (rb.api == SK_RenderAPI::D3D11On12)
-  {
-    ID3D11On12Device* pDev =
-      rb.d3d11.wrapper_dev;
-
-    if (pDev)
-    {
-      pDev->ReleaseWrappedResources (nullptr, 0);
-
-      if (rb.d3d11.immediate_ctx)
-        rb.d3d11.immediate_ctx->Flush ();
-    }
-
-    rb.d3d11.interop.backbuffer_tex2D = nullptr;
-    rb.d3d11.interop.backbuffer_rtv   = nullptr;
-  }
+  ///if (rb.api == SK_RenderAPI::D3D11On12)
+  ///{
+  ///  ID3D11On12Device* pDev =
+  ///    rb.d3d11.wrapper_dev;
+  ///
+  ///  if (pDev)
+  ///  {
+  ///    pDev->ReleaseWrappedResources (nullptr, 0);
+  ///
+  ///    if (rb.d3d11.immediate_ctx)
+  ///      rb.d3d11.immediate_ctx->Flush ();
+  ///  }
+  ///
+  ///  rb.d3d11.interop.backbuffer_tex2D = nullptr;
+  ///  rb.d3d11.interop.backbuffer_rtv   = nullptr;
+  ///}
 
 
   static auto& shaders =
@@ -25554,6 +25554,37 @@ struct SK_HDR_FIXUP
     ID3D10Blob  *amorphousTheBlob = nullptr;
 
     /////
+    bool loadPreBuiltShader ( ID3D11Device* pDev, const BYTE pByteCode [] )
+    {
+      HRESULT hrCompile =
+        E_NOTIMPL;
+
+      if ( std::type_index ( typeid (    _ShaderType   ) ) ==
+           std::type_index ( typeid (ID3D11VertexShader) ) )
+      {
+        hrCompile =
+          pDev->CreateVertexShader (
+                    pByteCode,
+            sizeof (pByteCode), nullptr,
+            reinterpret_cast <ID3D11VertexShader **>(&shader)
+          );
+      }
+
+      else if ( std::type_index ( typeid (   _ShaderType   ) ) ==
+                std::type_index ( typeid (ID3D11PixelShader) ) )
+      {
+        hrCompile =
+          pDev->CreatePixelShader (
+                    pByteCode,
+            sizeof (pByteCode), nullptr,
+            reinterpret_cast <ID3D11PixelShader **>(&shader)
+          );
+      }
+
+      return
+        SUCCEEDED (hrCompile);
+    }
+
     bool compileShaderString ( const char*    szShaderString,
                                const wchar_t* wszShaderName,
                                const char*    szEntryPoint,
@@ -25784,16 +25815,46 @@ struct SK_HDR_FIXUP
         "main",  "ps_5_0", true );
 
     ret &=
-      PixelShader_HDR10.compileShaderFile  (
+      PixelShader_HDR10.compileShaderFile (
         std::wstring (debug_shader_dir  +
         LR"(HDR\HDR10\Rec2020_PQ_10bit-fixed.hlsl)").c_str (),
         "main", "ps_5_0", true );
 
     ret &=
-      VertexShaderHDR_Util.compileShaderFile  (
+      VertexShaderHDR_Util.compileShaderFile (
         std::wstring (debug_shader_dir  +
           LR"(HDR\vs_colorutil.hlsl)").c_str (),
           "main", "vs_5_0", true );
+
+
+    if (! ret)
+    {
+      static auto& rb =
+        SK_GetCurrentRenderBackend ();
+
+      CComQIPtr <ID3D11Device> pDev (rb.device);
+
+      if (PixelShader_scRGB.shader == nullptr)
+      {
+#include <shaders/Rec709_Linear_16bit-fp.h>
+        ret &=
+          PixelShader_scRGB.loadPreBuiltShader (pDev, g_main);
+      }
+
+      if (PixelShader_HDR10.shader == nullptr)
+      {
+#include <shaders/Rec2020_PQ_10bit-fixed.h>
+        ret &=
+          PixelShader_HDR10.loadPreBuiltShader (pDev, g_main);
+      }
+
+      if (VertexShaderHDR_Util.shader == nullptr)
+      {
+#include <shaders/vs_colorutil.h>
+        ret &=
+          VertexShaderHDR_Util.loadPreBuiltShader (pDev, g_main);
+      }
+    }
 
     return ret;
   }
@@ -25948,6 +26009,9 @@ SK_HDR_SnapshotSwapchain (void)
 
   static auto& rb =
     SK_GetCurrentRenderBackend ();
+
+  ///if (rb.api == SK_RenderAPI::D3D11On12)
+  ///  return;
 
   CComQIPtr <IDXGISwapChain>      pSwapChain (rb.swapchain);
   CComQIPtr <ID3D11Device>        pDev       (rb.device);

@@ -82,6 +82,9 @@ auto
 };
 
 
+void SK_ImGui_DrawGamut (void);
+
+
 sk::ParameterBool* _SK_HDR_10BitSwapChain;
 sk::ParameterBool* _SK_HDR_16BitSwapChain;
 sk::ParameterInt*  _SK_HDR_ActivePreset;
@@ -392,6 +395,41 @@ public:
     ////bool bRetro =
     ////  true && ImGui::CollapsingHeader ("HDR Retrofit", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowOverlapMode);
 
+    if ( rb.isHDRCapable () && (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR) &&
+         ImGui::CollapsingHeader ("HDR Overlays",  ImGuiTreeNodeFlags_DefaultOpen))
+    {
+      ImGui::TreePush ("");
+
+      float imgui_nits =
+        rb.ui_luminance / 1.0_Nits;
+
+      if ( ImGui::SliderFloat ( "Special K Luminance###IMGUI_LUMINANCE",
+                                 &imgui_nits,
+                                  80.0f, rb.display_gamut.maxLocalY,
+                                u8"%.1f cd/m²"))
+      {
+        rb.ui_luminance =
+             imgui_nits * 1.0_Nits;
+
+        SK_SaveConfig ();
+      }
+
+      float steam_nits =
+        config.steam.overlay_hdr_luminance / 1.0_Nits;
+
+      if ( ImGui::SliderFloat ( "Steam Overlay Luminance###STEAM_LUMINANCE",
+                                 &steam_nits,
+                                  80.0f, rb.display_gamut.maxLocalY,
+                                u8"%.1f cd/m²"))
+      {
+        config.steam.overlay_hdr_luminance =
+                                steam_nits * 1.0_Nits;
+
+        SK_SaveConfig ();
+      }
+
+      ImGui::TreePop  ();
+    }
 
     static bool TenBitSwap_Original     = __SK_HDR_10BitSwap;
     static bool SixteenBitSwap_Original = __SK_HDR_16BitSwap;
@@ -420,10 +458,8 @@ public:
       //DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709
     }
 
-    else
+    else if ( rb.isHDRCapable () && ImGui::CollapsingHeader ("HDR Adjust", ImGuiTreeNodeFlags_DefaultOpen) )
     {
-      ImGui::SameLine ();
-
       if (ImGui::RadioButton ("None", &sel, 0))
       {
         __SK_HDR_10BitSwap = false;
@@ -783,6 +819,7 @@ public:
           extern float __SK_HDR_user_sdr_Y;
 
           ImGui::BeginGroup  ();
+          ImGui::BeginGroup  ();
           ImGui::Combo       ("Source ColorSpace##SK_HDR_GAMUT_IN",  &__SK_HDR_input_gamut,  "Unaltered\0Rec. 709\0DCI-P3\0Rec. 2020\0CIE XYZ\0\0");
           ImGui::Combo       ("Output ColorSpace##SK_HDR_GAMUT_OUT", &__SK_HDR_output_gamut, "Unaltered\0Rec. 709\0DCI-P3\0Rec. 2020\0CIE XYZ\0\0");
           ImGui::EndGroup    ();
@@ -812,6 +849,13 @@ public:
           //ImGui::SameLine    ();
 
           ImGui::Combo       ("HDR Visualization##SK_HDR_VIZ",  &__SK_HDR_visualization, "None\0SDR=Monochrome//HDR=FalseColors\0\0");
+          ImGui::EndGroup    ();
+          ImGui::EndGroup    ();
+
+          ImGui::SameLine    ();
+
+          ImGui::BeginGroup  ();
+          SK_ImGui_DrawGamut ();
           ImGui::EndGroup    ();
 
 
@@ -876,3 +920,221 @@ protected:
 
 private:
 } __dxgi_hdr__;
+
+
+
+
+#include <SpecialK/../../depends/include/glm/glm.hpp>
+#include <SpecialK/render/backend.h>
+
+glm::highp_vec3
+SK_Color_XYZ_from_RGB ( const SK_ColorSpace& cs, glm::highp_vec3 RGB )
+{
+  const double Xr =       cs.xr / cs.yr;
+  const double Zr = (1. - cs.xr - cs.yr) / cs.yr;
+
+  const double Xg =       cs.xg / cs.yg;
+  const double Zg = (1. - cs.xg - cs.yg) / cs.yg;
+
+  const double Xb =       cs.xb / cs.yb;
+  const double Zb = (1. - cs.xb - cs.yb) / cs.yb;
+
+  const double Yr = 1.;
+  const double Yg = 1.;
+  const double Yb = 1.;
+
+  glm::highp_mat3x3 xyz_primary ( Xr, Xg, Xb,
+                                  Yr, Yg, Yb,
+                                  Zr, Zg, Zb );
+
+  glm::highp_vec3 S       ( xyz_primary._inverse () *
+                              glm::highp_vec3 (cs.Xw, cs.Yw, cs.Zw) );
+
+  return RGB *
+    glm::highp_mat3x3 ( S.r * Xr, S.g * Xg, S.b * Xb,
+                        S.r * Yr, S.g * Yg, S.b * Yb,
+                        S.r * Zr, S.g * Zg, S.b * Zb );
+}
+
+glm::highp_vec3
+SK_Color_xyY_from_RGB ( const SK_ColorSpace& cs, glm::highp_vec3 RGB )
+{
+  glm::highp_vec3 XYZ =
+    SK_Color_XYZ_from_RGB ( cs, RGB );
+
+  return
+    glm::highp_vec3 ( XYZ.x / (XYZ.x + XYZ.y + XYZ.z),
+                      XYZ.y / (XYZ.x + XYZ.y + XYZ.z),
+                                       XYZ.y );
+}
+
+void
+SK_ImGui_DrawGamut (void)
+{
+  const ImVec4 col (0.25f, 0.25f, 0.25f, 0.8f);
+
+  const ImU32 col32 =
+    ImColor (col);
+  
+  ImDrawList* draw_list =
+    ImGui::GetWindowDrawList ();
+  
+  const SK_RenderBackend& rb =
+    SK_GetCurrentRenderBackend ();
+
+  struct color_triangle_s {
+    std::string     name;
+    glm::highp_vec3 r, g,
+                    b, w;
+    bool            show;
+
+    double          _area = 0.0;
+
+    color_triangle_s (const std::string& _name, SK_ColorSpace cs)
+    {
+      name = _name;
+
+      r = SK_Color_xyY_from_RGB (cs, glm::highp_vec3 (1., 0., 0.));
+      g = SK_Color_xyY_from_RGB (cs, glm::highp_vec3 (0., 1., 0.));
+      b = SK_Color_xyY_from_RGB (cs, glm::highp_vec3 (0., 0., 1.));
+      w = SK_Color_xyY_from_RGB (cs, glm::highp_vec3 (1., 1., 1.));
+
+      double r_x = sqrt (r.x * r.x);  double r_y = sqrt (r.y * r.y);
+      double g_x = sqrt (g.x * g.x);  double g_y = sqrt (g.y * g.y);
+      double b_x = sqrt (b.x * b.x);  double b_y = sqrt (b.y * b.y);
+
+      double A =
+        fabs (r_x*(b_y-g_y) + g_x*(b_y-r_y) + b_x*(r_y-g_y));
+      
+      _area = A;
+
+      dll_log.Log (L"Area %hs = %f", name.c_str (), A);
+
+      show = true;
+    }
+
+    double area (void) const
+    {
+      return _area;
+    }
+
+    double coverage (const color_triangle_s& target) const
+    {
+      return
+        100.0 * ( area () / target.area () );
+    }
+  };
+
+#define D65 0.3127, 0.329
+
+  static
+    color_triangle_s
+      color_spaces [] =
+      {
+        color_triangle_s ( "DCI-P3",        SK_ColorSpace { 0.68, 0.32,  0.265, 0.69,  0.15, 0.06,
+                                                              D65, 1.0 - 0.3127 - 0.329 } ),
+                                            
+        color_triangle_s ( "ITU-R BT.709",  SK_ColorSpace { 0.64, 0.33,  0.3, 0.6,  0.15, 0.06,
+                                                              D65, 1.0 } ),
+
+        color_triangle_s ( "ITU-R BT.2020", SK_ColorSpace { 0.708, 0.292,  0.17, 0.797,  0.131, 0.046,
+                                                              D65, 1.0 - 0.3127 - 0.329 } ),
+
+        color_triangle_s ( "Adobe RGB",     SK_ColorSpace { 0.64, 0.33,  0.21, 0.71,  0.15, 0.06,
+                                                              D65, 1.0 - 0.3127 - 0.329 } ),
+
+        color_triangle_s { "NTSC",          SK_ColorSpace { 0.67, 0.33,  0.21, 0.71,  0.14, 0.08,
+                                                              0.31, 0.316, 1.0 - 0.31 - 0.316 } }
+      };
+  
+  static const
+    glm::vec3 r (SK_Color_xyY_from_RGB (rb.display_gamut, glm::highp_vec3 (1.f, 0.f, 0.f))),
+              g (SK_Color_xyY_from_RGB (rb.display_gamut, glm::highp_vec3 (0.f, 1.f, 0.f))),
+              b (SK_Color_xyY_from_RGB (rb.display_gamut, glm::highp_vec3 (0.f, 0.f, 1.f)));
+
+  static const color_triangle_s
+    _NativeGamut ( "NativeGamut", rb.display_gamut );
+
+  auto current_time =
+    SK::ControlPanel::current_time;
+
+  ImGui::Spacing    (); ImGui::SameLine ();
+  ImGui::Spacing    (); ImGui::SameLine ();
+  ImGui::Spacing    (); ImGui::SameLine ();
+
+  ImGui::BeginGroup ();
+
+  const ImColor self_outline_v4 =
+    ImColor::HSV ( std::min (1.0f, 0.85f + (sin ((float)(current_time % 400) / 400.0f))),
+                             0.0f,
+                     (float)(0.66f + (current_time % 830) / 830.0f ) );
+
+  const ImU32 self_outline =
+    self_outline_v4;
+
+  ImGui::TextColored (self_outline_v4, "%ws", rb.display_name);
+  ImGui::Separator   ();
+
+  float idx = 0.0f;
+  ImGui::BeginGroup ();
+  for ( auto& space : color_spaces )
+  {
+    ImGui::Text ("%5.2f%%", _NativeGamut.coverage (space));
+  }
+  ImGui::EndGroup   ();
+  ImGui::SameLine   ();
+  ImGui::BeginGroup ();
+  for ( auto& space : color_spaces )
+  {
+    ImGui::PushID         ((int)idx);
+    ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV ( idx / 5.0f, 0.85f, 0.98f ));
+    ImGui::Checkbox       (space.name.c_str (), &space.show);
+    ImGui::PopStyleColor  ();
+    ImGui::PopID          ();
+
+    idx += 1.0f;
+  }
+  ImGui::EndGroup ();
+
+  ImGui::SameLine ();
+
+  ImVec2 pos =
+    ImGui::GetCursorScreenPos ();
+  ImVec2 size =
+    ImGui::GetContentRegionAvail ();
+
+  float X0     = pos.x;
+  float Y0     = pos.y;
+  float width  = size.x;
+  float height = size.y;
+
+  draw_list->PushClipRect ( ImVec2 (X0,         Y0),
+                            ImVec2 (X0 + width, Y0 + height) );
+
+  draw_list->AddTriangleFilled ( ImVec2 (X0 + r.x * width, Y0 + (height - r.y * height)),
+                                 ImVec2 (X0 + g.x * width, Y0 + (height - g.y * height)),
+                                 ImVec2 (X0 + b.x * width, Y0 + (height - b.y * height)), col32 );
+  idx = 0.0f;
+
+  for ( auto& space : color_spaces )
+  {
+    if (space.show)
+    {
+      const ImU32 outline_color = 
+        ImColor::HSV ( idx / 5.0f, 0.85f, 0.98f );
+
+      draw_list->AddTriangle ( ImVec2 (X0 + (float)space.r.x * width, Y0 + (height - (float)space.r.y * height)),
+                               ImVec2 (X0 + (float)space.g.x * width, Y0 + (height - (float)space.g.y * height)),
+                               ImVec2 (X0 + (float)space.b.x * width, Y0 + (height - (float)space.b.y * height)), outline_color, 1.05f );
+    }
+
+    idx += 1.0f;
+  }
+
+  draw_list->AddTriangle ( ImVec2 (X0 + (float)r.x * width, Y0 + (height - (float)r.y * height)),
+                           ImVec2 (X0 + (float)g.x * width, Y0 + (height - (float)g.y * height)),
+                           ImVec2 (X0 + (float)b.x * width, Y0 + (height - (float)b.y * height)), self_outline, 2.1f );
+
+  draw_list->PopClipRect ();
+         ImGui::EndGroup ();
+}

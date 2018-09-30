@@ -217,6 +217,12 @@
     <Filter Include="Source Files\Backends\Render\HDR">
       <UniqueIdentifier>{e6230cbd-a442-439f-bce0-e5ce28092c92}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource Files\Shaders">
+      <UniqueIdentifier>{edc86cb2-5721-4cae-ba0a-b9be5cf37d5b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Shaders\HDR">
+      <UniqueIdentifier>{ff3a579f-6b54-4b41-be2b-40f55a33d374}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="depends\DirectXTex\DDS.h">
@@ -980,9 +986,6 @@
     <ClCompile Include="src\input\input.cpp">
       <Filter>Source Files\Backends\Input</Filter>
     </ClCompile>
-    <ClCompile Include="monster_hunter_world.cpp">
-      <Filter>Source Files\Plugins</Filter>
-    </ClCompile>
     <ClCompile Include="src\plugins\yakuza0.cpp">
       <Filter>Source Files\Plugins</Filter>
     </ClCompile>
@@ -997,6 +1000,9 @@
     </ClCompile>
     <ClCompile Include="src\render\dxgi\dxgi_swapchain.cpp">
       <Filter>Source Files\Backends\Render\DXGI</Filter>
+    </ClCompile>
+    <ClCompile Include="src\plugins\monster_hunter_world.cpp">
+      <Filter>Source Files\Plugins</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1206,5 +1212,19 @@
     <Library Include="depends\lib\nvapi\x64\nvapi64.lib" />
     <Library Include="depends\lib\steamapi\Win32\steam_api.lib" />
     <Library Include="depends\lib\steamapi\x64\steam_api64.lib" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="resource\shaders\HDR\scRGB\Rec709_Linear_16bit-fp.hlsl">
+      <Filter>Resource Files\Shaders\HDR</Filter>
+    </FxCompile>
+    <FxCompile Include="resource\shaders\HDR\HDR10\Rec2020_PQ_10bit-fixed.hlsl">
+      <Filter>Resource Files\Shaders\HDR</Filter>
+    </FxCompile>
+    <FxCompile Include="resource\shaders\HDR\vs_colorutil.hlsl">
+      <Filter>Resource Files\Shaders\HDR</Filter>
+    </FxCompile>
+    <FxCompile Include="resource\shaders\cs_histogram.hlsl">
+      <Filter>Resource Files\Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

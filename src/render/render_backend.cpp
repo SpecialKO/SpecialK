@@ -325,11 +325,11 @@ SK_BootDXGI (void)
 
   SK_DXGI_QuickHook ();
 
-  while (backend_dll == nullptr)
-  {
-    dll_log.Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (dxgi.dll) -- tid=%x ***", GetCurrentThreadId ());
-    SleepEx (100UL, FALSE);
-  }
+  ////while (backend_dll == nullptr)
+  ////{
+  ////  dll_log.Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (dxgi.dll) -- tid=%x ***", GetCurrentThreadId ());
+  ////  SleepEx (100UL, FALSE);
+  ////}
 
   // Establish the minimal set of APIs necessary to work as dxgi.dll
   if (SK_GetDLLRole () == DLL_ROLE::DXGI)
@@ -731,13 +731,32 @@ SK_RenderBackend_V2::releaseOwnedResources (void)
 
     dll_log.Log (L"API: %x", api);
 
+    // D3D11On12 (PHASING OUT)
     d3d11.interop.backbuffer_rtv   = nullptr;
     d3d11.interop.backbuffer_tex2D = nullptr;
 
     d3d11.deferred_ctx  = nullptr;
     d3d11.immediate_ctx = nullptr;
-    swapchain           = nullptr;
-    device              = nullptr;
+
+    auto& rb =
+      SK_GetCurrentRenderBackend ();
+
+    extern ID3D12DescriptorHeap* g_pd3dSrvDescHeap;
+
+    if (g_pd3dSrvDescHeap != nullptr)
+    {
+      extern void ImGui_ImplDX12_Shutdown (void);
+                  ImGui_ImplDX12_Shutdown (    );
+
+      g_pd3dSrvDescHeap->Release ();
+      g_pd3dSrvDescHeap = nullptr;
+    }
+
+    if (rb.api != SK_RenderAPI::D3D11On12)
+    {
+      swapchain         = nullptr;
+      device            = nullptr;
+    }
   }
 }
 

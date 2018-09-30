@@ -1914,21 +1914,6 @@ SK_ImGui_ControlPanel (void)
       ImGui::Checkbox ( "Use D3D11 Deferred ImGui CmdList Execution",
                           &__SK_ImGui_D3D11_DrawDeferred );
 
-      if (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR)
-      {
-        float nits = rb.ui_luminance / 1.0_Nits;
-
-        if (ImGui::SliderFloat ("###IMGUI_LUMINANCE", &nits, 80.0f, rb.display_gamut.maxLocalY, u8"Paper White Luminance: %.1f cd/m²"))
-        {
-          rb.ui_luminance = nits * 1.0_Nits;
-
-          SK_SaveConfig ();
-        }
-
-        //ImGui::SameLine ();
-        //ImGui::Checkbox ("Explicit LinearRGB -> sRGB###IMGUI_SRGB", &rb.ui_srgb);
-      }
-
       if (ImGui::SliderFloat ("###IMGUI_SCALE", &config.imgui.scale, 1.0f, 3.0f, "UI Scaling Factor %.2f"))
       {
         // ImGui does not perform strict parameter validation, and values out of range for this can be catastrophic.
@@ -2559,8 +2544,8 @@ SK_ImGui_StageNextFrame (void)
   );
 
   // TODO: Generalize this!
-  if ( SK_GetCurrentGameID () == SK_GAME_ID::MonsterHunterWorld ||
-       SK_GetCurrentGameID () == SK_GAME_ID::DragonQuestXI )
+  //if ( SK_GetCurrentGameID () == SK_GAME_ID::MonsterHunterWorld ||
+  //     SK_GetCurrentGameID () == SK_GAME_ID::DragonQuestXI )
   {
     CComQIPtr <IDXGISwapChain> pSwapChain (
       rb.swapchain
@@ -2575,8 +2560,8 @@ SK_ImGui_StageNextFrame (void)
                               &&
         desc.BufferDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT)
     {
-      extern ID3D11ShaderResourceView*
-        SK_D3D11_GetRawHDRView (bool capture = true);
+      //extern ID3D11ShaderResourceView*
+      //  SK_D3D11_GetRawHDRView (bool capture = true);
 
       //ImTextureID pTexture =
       //  static_cast <ImTextureID> (SK_D3D11_GetRawHDRView (false));
@@ -3106,7 +3091,7 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
   else if (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D12))
   {
     d3d12 = true;
-
+      
     ImGui::Render ();
   }
 

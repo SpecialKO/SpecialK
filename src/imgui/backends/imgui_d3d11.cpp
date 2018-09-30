@@ -590,6 +590,11 @@ ImGui_ImplDX11_CreateFontsTexture (void)
 
   CComQIPtr <ID3D11Device> pDev (rb.device);
 
+  ///if (rb.api == SK_RenderAPI::D3D11On12)
+  ///{
+  ///  rb.d3d11.wrapper_dev->QueryInterface <ID3D11Device> (&pDev.p);
+  ///}
+
   // Upload texture to graphics system
   {
     D3D11_TEXTURE2D_DESC desc
@@ -739,22 +744,32 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
   // Do not dump ImGui font textures
   pTLS->imgui.drawing = true;
 
-  if (g_pFontSampler_clamp)
-    ImGui_ImplDX11_InvalidateDeviceObjects ();
+  ImGui_ImplDX11_InvalidateDeviceObjects ();
 
   SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
-  if (! rb.device)
-    return false;
-
-  if (! rb.d3d11.immediate_ctx)
-    return false;
-
-  if (! rb.swapchain)
-    return false;
-
   CComQIPtr <ID3D11Device> pDev (rb.device);
+
+  ///if (rb.api != SK_RenderAPI::D3D11On12)
+  ///{
+    if (! rb.device)
+      return false;
+
+    if (! rb.d3d11.immediate_ctx)
+      return false;
+
+    if (! rb.swapchain)
+      return false;
+  ///}
+
+  ///if (rb.api == SK_RenderAPI::D3D11On12)
+  ///{
+  ///  rb.d3d11.wrapper_dev->QueryInterface <ID3D11Device> (&pDev.p);
+  ///  
+  ///                              rb.d3d11.immediate_ctx = nullptr;
+  ///  pDev->GetImmediateContext (&rb.d3d11.immediate_ctx.p);
+  ///}
 
   // Create the vertex shader
   {
@@ -1347,7 +1362,8 @@ ImGui_ImplDX11_Init ( IDXGISwapChain* pSwapChain,
   io.RenderDrawListsFn = ImGui_ImplDX11_RenderDrawLists;
   io.ImeWindowHandle   = g_hWnd;
 
-  return SK_GetCurrentRenderBackend ().device != nullptr;
+  return
+    SK_GetCurrentRenderBackend ().device != nullptr;
 }
 
 void

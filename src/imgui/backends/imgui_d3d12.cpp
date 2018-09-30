@@ -9386,9 +9386,11 @@ ImGui_ImplDX12_CreateFontsTexture (void)
       pTexture;
   }
 
+#if 0
   // Store our identifier
   static_assert (sizeof(ImTextureID) >= sizeof(g_hFontSrvGpuDescHandle.ptr), \
                  "Can't pack descriptor handle into TexID, 32-bit not supported yet.");
+#endif
 
   io.Fonts->TexID =
     (ImTextureID)g_hFontSrvGpuDescHandle.ptr;
@@ -9728,6 +9730,9 @@ ImGui_ImplDX12_NewFrame (void)
 {
   if (! g_pPipelineState)
     ImGui_ImplDX12_CreateDeviceObjects ();
+
+  if (g_pd3dDevice == nullptr || g_hFontSrvCpuDescHandle.ptr == 0 || g_hFontSrvGpuDescHandle.ptr == 0)
+    return;
 
   SK_ImGui_User_NewFrame ();
 }

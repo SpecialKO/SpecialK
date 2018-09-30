@@ -28,6 +28,8 @@ uint computeBucketIdxFromRGB (float3 rgb)
   float logY =
     transformRGBtoLogY (rgb);
 
+  float luminance = 1.0f;
+
   return uint (
     float (NUM_HISTOGRAM_BINS) *
       saturate ( (luminance    - minLuminance) /
@@ -35,10 +37,10 @@ uint computeBucketIdxFromRGB (float3 rgb)
   );
 }
 
-groupshared uint localHistogram [NUM_HISTOGRAM_BINS];
-
-  Buffer localHistogramIn;
-RWBuffer localHistogramOut;
-
-  Buffer globalHistogramIn;
-RWBuffer globalHistogramOut;
+//groupshared uint localHistogram [NUM_HISTOGRAM_BINS];
+//
+//  Buffer localHistogramIn;
+//RWBuffer localHistogramOut;
+//
+//  Buffer globalHistogramIn;
+//RWBuffer globalHistogramOut;
