@@ -926,3 +926,91 @@ SK_SM_PlugInCfg (void)
 
   return true;
 }
+
+
+extern bool  __SK_MHW_KillAntiDebug;
+extern float __SK_Thread_RebalanceEveryNSeconds;
+
+sk::ParameterBool*  _SK_ACO_AlternateTaskScheduling;
+sk::ParameterFloat* _SK_ACO_AutoRebalanceInterval;
+
+void
+SK_ACO_PlugInInit (void)
+{
+  _SK_ACO_AlternateTaskScheduling =
+    _CreateConfigParameterBool  ( L"AssassinsCreed.Threads",
+                                  L"AltTaskSchedule", __SK_MHW_KillAntiDebug,
+                                  L"Make Task Threads More Cooperative" );
+
+  _SK_ACO_AutoRebalanceInterval =
+    _CreateConfigParameterFloat ( L"AssassinsCreed.Threads",
+                                  L"AutoRebalanceInterval", __SK_Thread_RebalanceEveryNSeconds,
+                                  L"Periodically Rebalance Task Threads" );
+
+  SK_SaveConfig ();
+}
+
+bool
+SK_ACO_PlugInCfg (void)
+{
+  if (ImGui::CollapsingHeader ("Assassin's Creed Odyssey / Origins", ImGuiTreeNodeFlags_DefaultOpen))
+  {
+    ImGui::TreePush ("");
+
+    bool changed = false;
+
+    if (ImGui::Checkbox ("Alternate Task Scheduling", &__SK_MHW_KillAntiDebug))
+    {
+      changed = true;
+      _SK_ACO_AlternateTaskScheduling->store (__SK_MHW_KillAntiDebug);
+    }
+
+    if (ImGui::IsItemHovered ())
+    {
+      ImGui::BeginTooltip    ();
+      ImGui::TextUnformatted ("Causes task threads to yield CPU time to other threads more often");
+      ImGui::Separator       ();
+      ImGui::BulletText      ("The task threads are not switching to other threads cooperatively and that produces high CPU load on lower-end systems.");
+      ImGui::BulletText      ("Try both on/off, I cannot give one-answer-fits-all advice about this setting.");
+      ImGui::EndTooltip      ();
+    }
+
+    ImGui::PushStyleColor  (ImGuiCol_Text, ImColor::HSV (0.18f, 0.85f, 0.95f));
+    ImGui::TextUnformatted ("Thread Rebalancing is CRITICAL for AMD Ryzen CPUs");
+    ImGui::PopStyleColor   ();
+
+    if (ImGui::IsItemHovered ())
+    {
+      ImGui::BeginTooltip    ();
+      ImGui::TextUnformatted ("Ryzen CPUs need this because of a scheduler bug in Windows that tries to run all threads on a single CPU core.");
+      ImGui::Separator       ();
+      ImGui::BulletText      ("Other CPU brands and models may see marginal improvements by enabling auto-rebalance.");
+      ImGui::EndTooltip      ();
+    }
+
+    extern void SK_ImGui_RebalanceThreadButton (void);
+                SK_ImGui_RebalanceThreadButton (    );
+
+    if (ImGui::IsItemHovered ())
+      ImGui::SetTooltip ("Redistribute CPU core assignment based on CPU usage history.");
+
+    ImGui::SameLine ();
+
+    
+    if (ImGui::SliderFloat ("Re-Balance Interval", &__SK_Thread_RebalanceEveryNSeconds, 0.0f, 60.0f, "%.3f Seconds"))
+    {
+      changed = true;
+      _SK_ACO_AutoRebalanceInterval->store (__SK_Thread_RebalanceEveryNSeconds);
+    }
+
+    if (ImGui::IsItemHovered ())
+      ImGui::SetTooltip ("0=Disabled, anything else periodically redistributes threads for optimal CPU utilization.");
+
+    if (changed)
+      SK_SaveConfig ();
+
+    ImGui::TreePop  (  );
+  }
+
+  return true;
+}

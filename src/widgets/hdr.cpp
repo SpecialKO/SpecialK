@@ -93,7 +93,7 @@ sk::ParameterBool* _SK_HDR_FullRange;
 bool __SK_HDR_10BitSwap = false;
 bool __SK_HDR_16BitSwap = false;
 
-float __SK_HDR_Luma      = 300.0_Nits;
+float __SK_HDR_Luma      = 80.0_Nits;//300.0_Nits;
 float __SK_HDR_Exp       = 1.0f;
 int   __SK_HDR_Preset    = 0;
 bool  __SK_HDR_FullRange = false;
@@ -177,7 +177,7 @@ struct SK_HDR_Preset_s {
       if (! preset_activate.param->load (preset_activate.human_readable))
       {
         preset_activate.human_readable =
-          SK_FormatStringW (L"F%lu", preset_idx);
+          SK_FormatStringW (L"F%lu", preset_idx + 1); // F0 isn't a key :P
       }
 
       preset_activate.parse ();
@@ -245,6 +245,31 @@ public:
   void run (void) override
   {
     static bool first = true;
+
+    auto& rb =
+      SK_GetCurrentRenderBackend ();
+
+    if ( __SK_HDR_10BitSwap ||
+         __SK_HDR_16BitSwap )
+    {
+      if (__SK_HDR_16BitSwap)
+      {
+        rb.scanout.colorspace_override =
+          DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709;
+      }
+
+      CComQIPtr <IDXGISwapChain3> pSwap3 (
+        rb.swapchain.p
+      );
+
+      if (pSwap3 != nullptr)
+      {
+        SK_RunOnce (pSwap3->SetColorSpace1 (
+          (DXGI_COLOR_SPACE_TYPE)
+          rb.scanout.colorspace_override )
+        );
+      }
+    }
 
     if (first) first = false;
     else return;
@@ -419,11 +444,25 @@ public:
 
       if ( ImGui::SliderFloat ( "Steam Overlay Luminance###STEAM_LUMINANCE",
                                  &steam_nits,
-                                  80.0f, rb.display_gamut.maxLocalY,
+                                  80.0f, rb.display_gamut.maxY,
                                 u8"%.1f cd/m²"))
       {
         config.steam.overlay_hdr_luminance =
                                 steam_nits * 1.0_Nits;
+
+        SK_SaveConfig ();
+      }
+
+      float uplay_nits =
+        config.uplay.overlay_luminance / 1.0_Nits;
+
+      if ( ImGui::SliderFloat ( "uPlay Overlay Luminance###UPLAY_LUMINANCE",
+                                 &uplay_nits,
+                                  80.0f, rb.display_gamut.maxY,
+                                u8"%.1f cd/m²"))
+      {
+        config.uplay.overlay_luminance =
+                                uplay_nits * 1.0_Nits;
 
         SK_SaveConfig ();
       }
@@ -471,28 +510,6 @@ public:
         dll_ini->write (dll_ini->get_filename ());
       }
 
-      if ( __SK_HDR_10BitSwap ||
-           __SK_HDR_16BitSwap )
-      {
-        if (__SK_HDR_16BitSwap)
-        {
-          rb.scanout.colorspace_override =
-            DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709;
-        }
-
-        CComQIPtr <IDXGISwapChain3> pSwap3 (
-          rb.swapchain.p
-        );
-
-        if (pSwap3 != nullptr)
-        {
-          SK_RunOnce (pSwap3->SetColorSpace1 (
-            (DXGI_COLOR_SPACE_TYPE)
-            rb.scanout.colorspace_override )
-          );
-        }
-      }
-
       ImGui::SameLine ();
 
       if (ImGui::RadioButton ("scRGB HDR (16-bit)", &sel, 2))
@@ -533,11 +550,11 @@ public:
         }
       }
 
-      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.23f, 0.86f, 1.f));
-      ImGui::Text ("NOTE: ");
-      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f, 0.28f, 0.94f)); ImGui::SameLine ();
-      ImGui::Text ("This is pure magic"); if (ImGui::IsItemHovered ()) ImGui::SetTooltip ("Essence of Pirate reasoning is required; harvesting takes time and quite possibly your sanity.");
-      ImGui::PopStyleColor  (2);
+      //ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.23f, 0.86f, 1.f));
+      //ImGui::Text ("NOTE: ");
+      //ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f, 0.28f, 0.94f)); ImGui::SameLine ();
+      //ImGui::Text ("This is pure magic"); if (ImGui::IsItemHovered ()) ImGui::SetTooltip ("Essence of Pirate reasoning is required; harvesting takes time and quite possibly your sanity.");
+      //ImGui::PopStyleColor  (2);
       
       ////if (ImGui::IsItemHovered ())
       ////{
@@ -1007,8 +1024,6 @@ SK_ImGui_DrawGamut (void)
         fabs (r_x*(b_y-g_y) + g_x*(b_y-r_y) + b_x*(r_y-g_y));
       
       _area = A;
-
-      dll_log.Log (L"Area %hs = %f", name.c_str (), A);
 
       show = true;
     }
