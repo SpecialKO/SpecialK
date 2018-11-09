@@ -982,7 +982,10 @@ struct d3d11_shader_tracking_s
     {
       if (ReadAcquire (&active_count) > 0)
       {
-        return contexts [dev_idx];
+        assert (dev_idx < SK_D3D11_MAX_DEV_CONTEXTS);
+
+        if (dev_idx <= SK_D3D11_MAX_DEV_CONTEXTS)
+          return contexts [dev_idx];
       }
 
       return false;
@@ -995,22 +998,30 @@ struct d3d11_shader_tracking_s
 
     void set (int dev_idx, bool active)
     {
+      assert (dev_idx < SK_D3D11_MAX_DEV_CONTEXTS);
+
       if (ReadAcquire (&active_count) > 0 || active == true)
       {
-        if (contexts [dev_idx] != active)
+        if (dev_idx <= SK_D3D11_MAX_DEV_CONTEXTS)
         {
-               if (active) InterlockedIncrement (&active_count);
-          else if (ReadAcquire (&active_count) > 0)
-                           InterlockedDecrement (&active_count);
+          if (contexts [dev_idx] != active)
+          {
+                 if (active) InterlockedIncrement (&active_count);
+            else if (ReadAcquire (&active_count) > 0)
+                             InterlockedDecrement (&active_count);
 
-          contexts [dev_idx] = active;
+            contexts [dev_idx] = active;
+          }
         }
       }
     }
 
     void set (ID3D11DeviceContext* pDevCtx, bool active)
     {
-      set (SK_D3D11_GetDeviceContextHandle (pDevCtx), active);
+      set (
+        SK_D3D11_GetDeviceContextHandle (pDevCtx),
+          active
+      );
     }
   } active;
 
@@ -1127,19 +1138,54 @@ struct SK_D3D11_KnownShaders
     std::unordered_map <_T*, uint32_t>                   rev;
     std::unordered_map <uint32_t, SK_D3D11_ShaderDesc>   descs;
 
-    std::unordered_set <uint32_t>                        wireframe;
-    std::unordered_set <uint32_t>                        blacklist;
+    std::unordered_map <uint32_t, LONG>                  wireframe;
+    std::unordered_map <uint32_t, LONG>                  blacklist;
 
-    std::unordered_set <uint32_t>                        on_top;
-    std::unordered_set <uint32_t>                        rewind;
-    std::unordered_set <uint32_t>                        hud;
+    std::unordered_map <uint32_t, LONG>                  on_top;
+    std::unordered_map <uint32_t, LONG>                  rewind;
+    std::unordered_map <uint32_t, LONG>                  hud;
 
     std::unordered_map <uint32_t, std::wstring>          names;
 
     struct {
-      std::unordered_set <uint32_t> before;
-      std::unordered_set <uint32_t> after;
+      std::unordered_map <uint32_t, LONG> before;
+      std::unordered_map <uint32_t, LONG> after;
     } trigger_reshade;
+
+    bool addTrackingRef ( std::unordered_map <uint32_t, LONG>& state,
+                                              uint32_t         crc32c )
+    {
+      if (state.count (crc32c))
+      {
+        state [crc32c]++;
+
+        return false;
+      }
+
+      state [crc32c]++;
+
+      return true;
+    }
+
+    bool releaseTrackingRef (std::unordered_map <uint32_t, LONG>& state,
+                                                 uint32_t         crc32c )
+    {
+      if (state.count (crc32c))
+      {
+        state [crc32c]--;
+
+        if (state [crc32c] <= 0)
+        {
+          state.erase (crc32c);
+
+          return true;
+        }
+
+        return false;
+      }
+
+      return true;
+    }
 
     conditional_blacklist_t                              blacklist_if_texture;
     d3d11_shader_tracking_s                              tracked;
@@ -1419,6 +1465,24 @@ void SK_CEGUI_QueueResetD3D11 (void);
 
 void SK_D3D11_AssociateVShaderWithHUD (uint32_t crc32, bool set = true);
 void SK_D3D11_AssociatePShaderWithHUD (uint32_t crc32, bool set = true);
+
+
+#define SK_D3D11_DeclHUDShader(crc32c,type) \
+  SK_D3D11_RegisterHUDShader ((crc32c), std::type_index (typeid (type)));
+
+bool
+SK_D3D11_RegisterHUDShader (        uint32_t  bytecode_crc32c,
+                             std::type_index _T =
+                             std::type_index  (
+                                       typeid ( ID3D11VertexShader )
+                                              ),
+                                        bool  remove = false       );
+bool
+SK_D3D11_UnRegisterHUDShader ( uint32_t         bytecode_crc32c,
+                               std::type_index _T =
+                               std::type_index  (
+                                         typeid ( ID3D11VertexShader )
+                                                )                    );
 
 DWORD
 __stdcall

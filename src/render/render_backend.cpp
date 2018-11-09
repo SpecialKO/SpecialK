@@ -19,6 +19,8 @@
  *
 **/
 
+#define __SK_SUBSYSTEM__ L"RenderBase"
+
 #include <SpecialK/render/backend.h>
 #include <SpecialK/render/dxgi/dxgi_backend.h>
 #include <SpecialK/render/d3d9/d3d9_backend.h>
@@ -144,11 +146,11 @@ SK_BootD3D9 (void)
   if (pTLS->d3d9.ctx_init_thread)
     return;
 
-  while (backend_dll == nullptr)
-  {
-    dll_log.Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (d3d9.dll) -- tid=%x ***", GetCurrentThreadId ());
-    SleepEx (100UL, FALSE);
-  }
+  ///while (backend_dll == nullptr)
+  ///{
+  ///  dll_log.Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (d3d9.dll) -- tid=%x ***", GetCurrentThreadId ());
+  ///  SleepEx (100UL, FALSE);
+  ///}
 
   SK_D3D9_QuickHook ();
 
@@ -388,11 +390,11 @@ SK_BootOpenGL (void)
   //  return;
 
 
-  while (backend_dll == nullptr)
-  {
-    dll_log.Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (OpenGL32.dll) -- tid=%x ***", GetCurrentThreadId ());
-    SleepEx (100UL, FALSE);
-  }
+  //while (backend_dll == nullptr)
+  //{
+  //  dll_log.Log (L"[API Detect]  *** Delaying VERY EARLY DLL Usage (OpenGL32.dll) -- tid=%x ***", GetCurrentThreadId ());
+  //  SleepEx (100UL, FALSE);
+  //}
 
   // Establish the minimal set of APIs necessary to work as OpenGL32.dll
   if (SK_GetDLLRole () == DLL_ROLE::OpenGL)
@@ -461,23 +463,31 @@ SK_RenderBackend_V2::gsync_s::update (void)
     SK_GetCurrentRenderBackend ();
 
 
-  if ( rb.device    == nullptr ||
-       rb.swapchain == nullptr ||
-       rb.surface   == nullptr )
+  if ( rb.device        == nullptr ||
+       rb.swapchain     == nullptr ||
+       rb.surface.nvapi == 0 )
   {
+    if (rb.surface.d3d9 != nullptr) rb.surface.d3d9->Release ();
+    if (rb.surface.dxgi != nullptr) rb.surface.dxgi->Release ();
+
+    rb.surface.d3d9 = nullptr;
+    rb.surface.dxgi = nullptr;
+
     last_checked = SK::ControlPanel::current_time;
     active       = false;
+
     return;
   }
+
 
 
   if ( last_checked < SK::ControlPanel::current_time - 500UL )
   {
     bool success = false;
 
-    if (NVAPI_OK    == NvAPI_D3D_IsGSyncCapable (rb.device, rb.surface, &capable))
+    if (NVAPI_OK    == NvAPI_D3D_IsGSyncCapable (rb.device, rb.surface.nvapi, &capable))
     {
-      if ( NVAPI_OK == NvAPI_D3D_IsGSyncActive (rb.device, rb.surface, &active))
+      if ( NVAPI_OK == NvAPI_D3D_IsGSyncActive  (rb.device, rb.surface.nvapi, &active))
       {
         last_checked = SK::ControlPanel::current_time;
         success      = true;
@@ -507,7 +517,7 @@ SK_RenderBackend_V2::gsync_s::update (void)
     // DO NOT hold onto this. NVAPI does not explain how NVDX handles work, but
     //   we can generally assume their lifetime is only as long as the D3D resource
     //     they identify.
-    rb.surface = nullptr;
+    rb.surface.nvapi = nullptr;
   }
 }
 
@@ -710,8 +720,11 @@ SK_RenderBackend_V2::setHDRCapable (bool set)
 
 __declspec (noinline)
 bool
-SK_RenderBackend_V2::isHDRCapable (void) const
+SK_RenderBackend_V2::isHDRCapable (void)
 {
+  if (driver_based_hdr)
+    hdr_capable = true;
+
   return
     hdr_capable;
 }
@@ -719,7 +732,8 @@ SK_RenderBackend_V2::isHDRCapable (void) const
 void
 SK_RenderBackend_V2::releaseOwnedResources (void)
 {
-  dll_log.Log (L"Releasing Owned Resources");
+  SK_LOG1 ( ( L"Releasing Owned Resources" ),
+            __SK_SUBSYSTEM__ );
 
   SK_AutoCriticalSection auto_cs (&cs_res);
 
@@ -729,7 +743,8 @@ SK_RenderBackend_V2::releaseOwnedResources (void)
     ////swapchain           = SK_COM_ValidateRelease (&swapchain);
     ////device              = SK_COM_ValidateRelease (&device);
 
-    dll_log.Log (L"API: %x", api);
+    SK_LOG1 ( ( L"API: %x", api ),
+              __SK_SUBSYSTEM__ );
 
     // D3D11On12 (PHASING OUT)
     d3d11.interop.backbuffer_rtv   = nullptr;
@@ -757,6 +772,20 @@ SK_RenderBackend_V2::releaseOwnedResources (void)
       swapchain         = nullptr;
       device            = nullptr;
     }
+  }
+
+  if (surface.d3d9 != nullptr)
+  {
+    surface.d3d9->Release ();
+    surface.d3d9  = nullptr;
+    surface.nvapi = 0;
+  }
+
+  if (surface.dxgi != nullptr)
+  {
+    surface.dxgi->Release ();
+    surface.dxgi  = nullptr;
+    surface.nvapi = 0;
   }
 }
 

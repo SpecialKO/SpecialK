@@ -364,7 +364,7 @@ NVAPI::GetDriverVersion (NvU32* pVer)
 
 #include <SpecialK/render/dxgi/dxgi_hdr.h>
 
-#define __SK_SUBSYSTEM__ L"  NvAPI   "
+#define __SK_SUBSYSTEM__ L"  Nv API  "
 
 NvAPI_Status
 __cdecl
@@ -373,12 +373,12 @@ NvAPI_Disp_GetHdrCapabilities_Override ( NvU32                displayId,
 {
   SK_LOG_FIRST_CALL
 
-  //SK_LOG0 ( ( L"NV_HDR_CAPABILITIES Version: %lu", pHdrCapabilities->version ),
-  //            __SK_SUBSYSTEM__ );
-  //SK_LOG0 ( ( L" >> Wants Driver to Expand Default HDR Params: %s",
-  //              pHdrCapabilities->driverExpandDefaultHdrParameters ? L"Yes" :
-  //                                                                   L"No" ),
-  //            __SK_SUBSYSTEM__ );
+  SK_LOG0 ( ( L"NV_HDR_CAPABILITIES Version: %lu", pHdrCapabilities->version ),
+              __SK_SUBSYSTEM__ );
+  SK_LOG0 ( ( L" >> Wants Driver to Expand Default HDR Params: %s",
+                pHdrCapabilities->driverExpandDefaultHdrParameters ? L"Yes" :
+                                                                     L"No" ),
+              __SK_SUBSYSTEM__ );
 
   NvAPI_Status ret =
     NvAPI_Disp_GetHdrCapabilities_Original ( displayId, pHdrCapabilities );
@@ -386,6 +386,16 @@ NvAPI_Disp_GetHdrCapabilities_Override ( NvU32                displayId,
   ////SK_DXGI_HDRControl* pHDRCtl =
   ////  SK_HDR_GetControl ();
 
+
+    if ( pHdrCapabilities->isST2084EotfSupported ||
+         pHdrCapabilities->isTraditionalHdrGammaSupported )
+    {
+      auto& rb =
+        SK_GetCurrentRenderBackend ();
+
+      rb.driver_based_hdr = true;
+          rb.setHDRCapable (true);
+    }
 
     dll_log.LogEx ( true,
       L"[ HDR Caps ]\n"
@@ -444,6 +454,9 @@ __cdecl
 NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
                                       NV_HDR_COLOR_DATA *pHdrColorData )
 {
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
   SK_LOG_FIRST_CALL
 
   auto HDRModeToStr = [](NV_HDR_MODE mode) ->
@@ -471,71 +484,135 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
   //SK_DXGI_HDRControl* pHDRCtl =
   //  SK_HDR_GetControl ();
 
+  auto _LogGameRequestedValues = [&](void) ->
+  void
+  {
+    SK_LOG0 ( ( L"HDR:  Max Master Luma: %7.1f, Min Master Luma: %7.5f",
+      static_cast <float> (pHdrColorData->mastering_display_data.max_display_mastering_luminance),
+      static_cast <float> (
+        static_cast <float> 
+                          (pHdrColorData->mastering_display_data.min_display_mastering_luminance) * 0.0001f
+                          )
+              ), __SK_SUBSYSTEM__ );
+  
+    SK_LOG0 ( ( L"HDR:  Max Avg. Luma: %7.1f, Max Luma: %7.1f",
+      static_cast <float> (pHdrColorData->mastering_display_data.max_frame_average_light_level),
+      static_cast <float> (pHdrColorData->mastering_display_data.max_content_light_level)
+              ), __SK_SUBSYSTEM__ );
+  };
+
+  auto _Push_NvAPI_HDR_Metadata_to_DXGI_Backend = [&](void) ->
+  void
+  {
+    rb.working_gamut.maxY =
+      pHdrColorData->mastering_display_data.max_display_mastering_luminance * 0.00001f;
+    rb.working_gamut.minY =
+     pHdrColorData->mastering_display_data.min_display_mastering_luminance  *  0.0001f;
+
+    rb.working_gamut.maxLocalY =
+      pHdrColorData->mastering_display_data.max_frame_average_light_level   * 0.00001f;
+
+    rb.working_gamut.xr = (float)pHdrColorData->mastering_display_data.displayPrimary_x0 /
+                          (float)50000.0f;
+    rb.working_gamut.xg = (float)pHdrColorData->mastering_display_data.displayPrimary_x1 /
+                          (float)50000.0f;
+    rb.working_gamut.xb = (float)pHdrColorData->mastering_display_data.displayPrimary_x2 /
+                          (float)50000.0f;
+
+    rb.working_gamut.yr = (float)pHdrColorData->mastering_display_data.displayPrimary_y0 /
+                          (float)50000.0f;
+    rb.working_gamut.yg = (float)pHdrColorData->mastering_display_data.displayPrimary_y1 /
+                          (float)50000.0f;
+    rb.working_gamut.yb = (float)pHdrColorData->mastering_display_data.displayPrimary_y2 /
+                          (float)50000.0f;
+
+    rb.working_gamut.Xw = (float)pHdrColorData->mastering_display_data.displayWhitePoint_x /
+                          (float)50000.0f;
+    rb.working_gamut.Yw = (float)pHdrColorData->mastering_display_data.displayWhitePoint_y /
+                          (float)50000.0f;
+    rb.working_gamut.Zw = 1.0f;
+  };
 
   if (pHdrColorData->cmd == NV_HDR_CMD_SET)
   {
-    SK_RenderBackend& rb =
-      SK_GetCurrentRenderBackend ();
+    _LogGameRequestedValues ();
 
-    if (pHdrColorData->hdrMode != NV_HDR_MODE_OFF)
-      rb.framebuffer_flags |=  SK_FRAMEBUFFER_FLAG_HDR;
+    extern bool __SK_HDR_10BitSwap;
+    extern bool __SK_HDR_16BitSwap;
+
+    if (pHdrColorData->hdrMode == NV_HDR_MODE_OFF)
+    {         rb.driver_based_hdr   = false;     }
+
+    if ( __SK_HDR_10BitSwap == false &&
+         __SK_HDR_16BitSwap == false )
+    {
+      if (pHdrColorData->hdrMode == NV_HDR_MODE_OFF)
+      {
+        rb.framebuffer_flags &= ~SK_FRAMEBUFFER_FLAG_HDR;
+      }
+    }
+
     else
-      rb.framebuffer_flags &= ~SK_FRAMEBUFFER_FLAG_HDR;
+    {
+      pHdrColorData->mastering_display_data.max_display_mastering_luminance =
+        rb.display_gamut.maxY > 65535.0f ? 0xFFFF :
+        rb.display_gamut.maxY <     1.0f ? 0x0001 :
+                  static_cast <uint16_t> (rb.display_gamut.maxY);
+      pHdrColorData->mastering_display_data.min_display_mastering_luminance =
+        (rb.display_gamut.minY <     1.0f) ? 0x0001 :
+        (rb.display_gamut.minY > 6.55350f) ? 0xFFFF :
+                    static_cast <uint16_t> (rb.display_gamut.minY / 0.0001f);
 
+      pHdrColorData->mastering_display_data.max_frame_average_light_level =
+        rb.display_gamut.maxLocalY > 65535.0f ? 0xFFFF :
+        rb.display_gamut.maxLocalY <     1.0f ? 0x0001 :
+                       static_cast <uint16_t> (rb.display_gamut.maxLocalY);
+      pHdrColorData->mastering_display_data.max_content_light_level =
+        rb.display_gamut.maxY > 65535.0f ? 0xFFFF :
+        rb.display_gamut.maxY <     1.0f ? 0x0001 :
+                  static_cast <uint16_t> (rb.display_gamut.maxY);
 
-    ////if (! pHDRCtl->overrides.MaxContentLightLevel)
-    ////  pHDRCtl->meta.MaxContentLightLevel                            = pHdrColorData->mastering_display_data.max_content_light_level;
-    ////else
-    ////  pHdrColorData->mastering_display_data.max_content_light_level = pHDRCtl->meta.MaxContentLightLevel;
-    ////
-    ////if (! pHDRCtl->overrides.MaxFrameAverageLightLevel)
-    ////  pHDRCtl->meta.MaxFrameAverageLightLevel                             = pHdrColorData->mastering_display_data.max_frame_average_light_level;
-    ////else
-    ////  pHdrColorData->mastering_display_data.max_frame_average_light_level = pHDRCtl->meta.MaxFrameAverageLightLevel;
-    ////
-    ////
-    ////if (! pHDRCtl->overrides.MinMaster)
-    ////  pHDRCtl->meta.MinMasteringLuminance = pHdrColorData->mastering_display_data.min_display_mastering_luminance;
-    ////else
-    ////  pHdrColorData->mastering_display_data.min_display_mastering_luminance = (NvU16)pHDRCtl->meta.MinMasteringLuminance;
-    ////
-    ////if (! pHDRCtl->overrides.MaxMaster)
-    ////  pHDRCtl->meta.MaxMasteringLuminance = pHdrColorData->mastering_display_data.max_display_mastering_luminance;
-    ////else
-    ////  pHdrColorData->mastering_display_data.max_display_mastering_luminance = (NvU16)pHDRCtl->meta.MaxMasteringLuminance;
+    //pHdrColorData->hdrMode = NV_HDR_MODE_EDR;
+      pHdrColorData->static_metadata_descriptor_id =
+                               NV_STATIC_METADATA_TYPE_1;
+      pHdrColorData->version = NV_HDR_COLOR_DATA_VER;
+
+      NvAPI_Status ret =
+        NvAPI_Disp_HdrColorControl_Original ( displayId, pHdrColorData );
+
+      if (NVAPI_OK == ret)
+      {
+        if (pHdrColorData->hdrMode != NV_HDR_MODE_OFF)
+        {
+          rb.driver_based_hdr   = true;
+          rb.framebuffer_flags |=  SK_FRAMEBUFFER_FLAG_HDR;
+        }
+
+        _Push_NvAPI_HDR_Metadata_to_DXGI_Backend ();
+      }
+
+      return ret;
+    }
   }
-
 
   if (pHdrColorData->cmd == NV_HDR_CMD_GET)
   {
-    ////if ((! pHDRCtl->overrides.MaxContentLightLevel) && (! config.render.dxgi.spoof_hdr))
-    ////  pHDRCtl->meta.MaxContentLightLevel                            = pHdrColorData->mastering_display_data.max_content_light_level;
-    ////else
-    ////  pHdrColorData->mastering_display_data.max_content_light_level = pHDRCtl->meta.MaxContentLightLevel;
-    ////
-    ////if ((! pHDRCtl->overrides.MaxFrameAverageLightLevel) && (! config.render.dxgi.spoof_hdr))
-    ////  pHDRCtl->meta.MaxFrameAverageLightLevel                             = pHdrColorData->mastering_display_data.max_frame_average_light_level;
-    ////else
-    ////  pHdrColorData->mastering_display_data.max_frame_average_light_level = pHDRCtl->meta.MaxFrameAverageLightLevel;
-
-
-    /////////if ((! pHDRCtl->overrides.MinMaster) && (! config.render.dxgi.spoof_hdr))
-    /////////  pHDRCtl->meta.MinMasteringLuminance = pHdrColorData->mastering_display_data.min_display_mastering_luminance;
-    /////////else
-    /////////  pHdrColorData->mastering_display_data.min_display_mastering_luminance = (NvU16)pHDRCtl->meta.MinMasteringLuminance;
-    /////////
-    /////////if ((! pHDRCtl->overrides.MaxMaster) && (! config.render.dxgi.spoof_hdr))
-    /////////  pHDRCtl->meta.MaxMasteringLuminance = pHdrColorData->mastering_display_data.max_display_mastering_luminance;
-    /////////else
-    /////////  pHdrColorData->mastering_display_data.max_display_mastering_luminance = (NvU16)pHDRCtl->meta.MaxMasteringLuminance;
   }
-
 
   ////pHDRCtl->meta._AdjustmentCount++;
 
-
   NvAPI_Status ret =
     NvAPI_Disp_HdrColorControl_Original ( displayId, pHdrColorData );
+
+  if (pHdrColorData->cmd == NV_HDR_CMD_GET)
+  {
+    _LogGameRequestedValues ();
+
+    if (ret == NVAPI_OK)
+    {
+      _Push_NvAPI_HDR_Metadata_to_DXGI_Backend ();
+    }
+  }
 
   return ret;
 }
@@ -594,13 +671,13 @@ SK_NvAPI_PreInitHDR (void)
   {
 #ifdef _WIN64
     HMODULE hLib =
-      LoadLibraryW (L"nvapi64.dll");
+      SK_Modules.LoadLibraryLL (L"nvapi64.dll");
 
     if (hLib)
       GetModuleHandleEx (GET_MODULE_HANDLE_EX_FLAG_PIN, L"nvapi64.dll", &hLib);
 #else
     HMODULE hLib =
-      LoadLibraryW (L"nvapi.dll");
+      SK_Modules.LoadLibraryLL (L"nvapi.dll");
 
     if (hLib)
       GetModuleHandleEx (GET_MODULE_HANDLE_EX_FLAG_PIN, L"nvapi.dll",   &hLib);
@@ -740,6 +817,21 @@ NVAPI::InitializeLibrary (const wchar_t* wszAppName)
   
         MH_QueueEnableHook (NvAPI_QueryInterface (891134500));
         MH_QueueEnableHook (NvAPI_QueryInterface (2230495455));
+      }
+
+
+      if (nv_hardware && NvAPI_Disp_GetHdrCapabilities_Original != nullptr)
+      {
+        NV_HDR_CAPABILITIES hdr_caps         = { };
+        hdr_caps.version = NV_HDR_CAPABILITIES_VER;
+
+        NvU32 DefaultOutputId = 0;
+
+        if ( NVAPI_OK ==
+               NvAPI_GetAssociatedDisplayOutputId (NVAPI_DEFAULT_HANDLE, &DefaultOutputId) )
+        {
+          NvAPI_Disp_GetHdrCapabilities_Override ( DefaultOutputId, &hdr_caps );
+        }
       }
 
   //    SK_CreateDLLHook2 ( L"nvapi64.dll",
@@ -1141,9 +1233,9 @@ SK_NvAPI_SetAntiAliasingOverride ( const wchar_t** pwszPropertyList )
   {
 #if 0
 #ifndef _WIN64
-    HMODULE hLib = LoadLibraryW_Original (L"nvapi.dll");
+    HMODULE hLib = SK_Modules.LoadLibraryLL (L"nvapi.dll");
 #else
-    HMODULE hLib = LoadLibraryW_Original (L"nvapi64.dll");
+    HMODULE hLib = SK_Modules.LoadLibraryLL (L"nvapi64.dll");
 #endif
 #define __NvAPI_RestartDisplayDriver                      0xB4B26B65
     typedef void* (*NvAPI_QueryInterface_pfn)(unsigned int offset);
@@ -1297,9 +1389,9 @@ SK_NvAPI_SetFramerateLimit (uint32_t limit)
 
   if (! already_set) {
 #ifdef WIN32
-    HMODULE hLib = LoadLibraryW_Original (L"nvapi.dll");
+    HMODULE hLib = SK_Modules.LoadLibraryLL (L"nvapi.dll");
 #else
-    HMODULE hLib = LoadLibraryW+_Original (L"nvapi64.dll");
+    HMODULE hLib = SK_Modules.LoadLibraryLL (L"nvapi64.dll");
 #endif
 #define __NvAPI_RestartDisplayDriver                      0xB4B26B65
     typedef void* (*NvAPI_QueryInterface_pfn)(unsigned int offset);

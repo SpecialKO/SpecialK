@@ -147,6 +147,10 @@ struct SK_ColorSpace {
 
   float minY, maxLocalY, maxY;
 };
+
+interface IDirect3DSurface9;
+interface IDXGISurface;
+
 class SK_RenderBackend_V2 : public SK_RenderBackend_V1
 {
 public:
@@ -155,13 +159,19 @@ public:
 
   CComPtr <IUnknown>      device               = nullptr;
   CComPtr <IUnknown>      swapchain            = nullptr;
-  NVDX_ObjectHandle       surface              = nullptr;
+  // Different views of the same resource (API interop)
+  struct {
+    IDirect3DSurface9*    d3d9                 = nullptr;
+    IDXGISurface*         dxgi                 = nullptr;
+    NVDX_ObjectHandle     nvapi                = nullptr;
+  } surface;
   bool                    fullscreen_exclusive = false;
   uint64_t                framebuffer_flags    = 0x00;
   int                     present_interval     = 0; // Present interval on last call to present
   float                   ui_luminance         = 325.0_Nits;
   bool                    ui_srgb              = true;
   bool                    hdr_capable          = false;
+  bool                    driver_based_hdr     = false;
   SK_ColorSpace           display_gamut        = { 0.0f }; // EDID
   SK_ColorSpace           working_gamut        = { 0.0f }; // Metadata range
 
@@ -217,7 +227,7 @@ public:
 
   wchar_t                 display_name [128]   = { };
 
-  bool isHDRCapable  (void    ) const;
+  bool isHDRCapable  (void    );
   void setHDRCapable (bool set);
 
   struct                 {
