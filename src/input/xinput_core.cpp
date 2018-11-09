@@ -138,10 +138,10 @@ struct SK_XInputContext
                        dwUserIndex ),
                     L"  Input   " );
 
-          extern void
-          SK_ImGui_Warning (const wchar_t* wszMessage);
-
-          SK_ImGui_Warning (L"Problematic XInput software detected (infinite haptic feedback loop), please restart the Steam client.");
+          ////extern void
+          ////SK_ImGui_Warning (const wchar_t* wszMessage);
+          ////
+          ////SK_ImGui_Warning (L"Problematic XInput software detected (infinite haptic feedback loop), please restart the Steam client.");
         }
 
         return true;
@@ -199,7 +199,7 @@ SK_XInput_EstablishPrimaryHook (HMODULE hModCaller, SK_XInputContext::instance_s
   // Third-party software polled the controller, it better be using the same
   //   interface version as the game is or a lot of input emulation software
   //     will not work correctly.
-  else if (pCtx != ReadPointerAcquire ((volatile LPVOID*)&xinput_ctx.primary_hook) && 
+  else if (pCtx != ReadPointerAcquire ((volatile LPVOID*)&xinput_ctx.primary_hook) &&
                    ReadPointerAcquire ((volatile LPVOID*)&xinput_ctx.primary_hook) != nullptr)
   {
     std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (xinput_ctx.cs_hook [0]);
@@ -885,7 +885,7 @@ SK_Input_HookXInputContext (SK_XInputContext::instance_s* pCtx)
   pCtx->XInputSetState_Target =
     SK_GetProcAddress ( pCtx->wszModuleName,
                                    "XInputSetState" );
-  
+
   SK_CreateDLLHook2 (         pCtx->wszModuleName,
                                    "XInputSetState",
                               pCtx->XInputSetState_Detour,
@@ -977,18 +977,22 @@ SK_Input_HookXInput1_4 (void)
                 L"  Input   " );
 
     pCtx->wszModuleName                      = L"XInput1_4.dll";
-    pCtx->hMod                               = GetModuleHandle (pCtx->wszModuleName);
-    pCtx->XInputEnable_Detour                = XInputEnable1_4_Detour;
-    pCtx->XInputGetState_Detour              = XInputGetState1_4_Detour;
-    pCtx->XInputGetStateEx_Detour            = XInputGetStateEx1_4_Detour;
-    pCtx->XInputGetCapabilities_Detour       = XInputGetCapabilities1_4_Detour;
-    pCtx->XInputSetState_Detour              = XInputSetState1_4_Detour;
-    pCtx->XInputGetBatteryInformation_Detour = XInputGetBatteryInformation1_4_Detour;
+    pCtx->hMod                               = SK_Modules.LoadLibraryLL (pCtx->wszModuleName);
 
-    SK_Input_HookXInputContext (pCtx);
+    if (SK_Modules.isValid (pCtx->hMod))
+    {
+      pCtx->XInputEnable_Detour                = XInputEnable1_4_Detour;
+      pCtx->XInputGetState_Detour              = XInputGetState1_4_Detour;
+      pCtx->XInputGetStateEx_Detour            = XInputGetStateEx1_4_Detour;
+      pCtx->XInputGetCapabilities_Detour       = XInputGetCapabilities1_4_Detour;
+      pCtx->XInputSetState_Detour              = XInputSetState1_4_Detour;
+      pCtx->XInputGetBatteryInformation_Detour = XInputGetBatteryInformation1_4_Detour;
 
-    if (ReadPointerAcquire ((LPVOID *)&xinput_ctx.primary_hook) == nullptr)
-      InterlockedExchangePointer ((LPVOID *)&xinput_ctx.primary_hook, &xinput_ctx.XInput1_4);
+      SK_Input_HookXInputContext (pCtx);
+
+      if (ReadPointerAcquire ((LPVOID *)&xinput_ctx.primary_hook) == nullptr)
+        InterlockedExchangePointer ((LPVOID *)&xinput_ctx.primary_hook, &xinput_ctx.XInput1_4);
+    }
 
     InterlockedIncrement (&hooked);
   }
@@ -1017,21 +1021,25 @@ SK_Input_HookXInput1_3 (void)
       &xinput_ctx.XInput1_3;
 
     SK_LOG0 ( ( L"  >> Hooking XInput 1.3" ),
-                L"   Input  " );
+                L"  Input   " );
 
     pCtx->wszModuleName                      = L"XInput1_3.dll";
-    pCtx->hMod                               = GetModuleHandle (pCtx->wszModuleName);
-    pCtx->XInputEnable_Detour                = XInputEnable1_3_Detour;
-    pCtx->XInputGetState_Detour              = XInputGetState1_3_Detour;
-    pCtx->XInputGetStateEx_Detour            = XInputGetStateEx1_3_Detour;
-    pCtx->XInputGetCapabilities_Detour       = XInputGetCapabilities1_3_Detour;
-    pCtx->XInputSetState_Detour              = XInputSetState1_3_Detour;
-    pCtx->XInputGetBatteryInformation_Detour = XInputGetBatteryInformation1_3_Detour;
+    pCtx->hMod                               = SK_Modules.LoadLibraryLL (pCtx->wszModuleName);
 
-    SK_Input_HookXInputContext (pCtx);
+    if (SK_Modules.isValid (pCtx->hMod))
+    {
+      pCtx->XInputEnable_Detour                = XInputEnable1_3_Detour;
+      pCtx->XInputGetState_Detour              = XInputGetState1_3_Detour;
+      pCtx->XInputGetStateEx_Detour            = XInputGetStateEx1_3_Detour;
+      pCtx->XInputGetCapabilities_Detour       = XInputGetCapabilities1_3_Detour;
+      pCtx->XInputSetState_Detour              = XInputSetState1_3_Detour;
+      pCtx->XInputGetBatteryInformation_Detour = XInputGetBatteryInformation1_3_Detour;
 
-    if (ReadPointerAcquire ((LPVOID *)&xinput_ctx.primary_hook) == nullptr)
-      InterlockedExchangePointer ((LPVOID *)&xinput_ctx.primary_hook, &xinput_ctx.XInput1_3);
+      SK_Input_HookXInputContext (pCtx);
+
+      if (ReadPointerAcquire ((LPVOID *)&xinput_ctx.primary_hook) == nullptr)
+        InterlockedExchangePointer ((LPVOID *)&xinput_ctx.primary_hook, &xinput_ctx.XInput1_3);
+    }
 
     InterlockedIncrement (&hooked);
   }
@@ -1063,17 +1071,21 @@ SK_Input_HookXInput9_1_0 (void)
                 L"  Input   " );
 
     pCtx->wszModuleName                      = L"XInput9_1_0.dll";
-    pCtx->hMod                               = GetModuleHandle (pCtx->wszModuleName);
-    pCtx->XInputGetState_Detour              = XInputGetState9_1_0_Detour;
-    pCtx->XInputGetStateEx_Detour            = nullptr; // Not supported
-    pCtx->XInputGetCapabilities_Detour       = XInputGetCapabilities9_1_0_Detour;
-    pCtx->XInputSetState_Detour              = XInputSetState9_1_0_Detour;
-    pCtx->XInputGetBatteryInformation_Detour = nullptr; // Not supported
+    pCtx->hMod                               = SK_Modules.LoadLibraryLL (pCtx->wszModuleName);
 
-    SK_Input_HookXInputContext (pCtx);
+    if (SK_Modules.isValid (pCtx->hMod))
+    {
+      pCtx->XInputGetState_Detour              = XInputGetState9_1_0_Detour;
+      pCtx->XInputGetStateEx_Detour            = nullptr; // Not supported
+      pCtx->XInputGetCapabilities_Detour       = XInputGetCapabilities9_1_0_Detour;
+      pCtx->XInputSetState_Detour              = XInputSetState9_1_0_Detour;
+      pCtx->XInputGetBatteryInformation_Detour = nullptr; // Not supported
 
-    if (ReadPointerAcquire ((LPVOID *)&xinput_ctx.primary_hook) == nullptr)
-      InterlockedExchangePointer ((LPVOID *)&xinput_ctx.primary_hook, &xinput_ctx.XInput9_1_0);
+      SK_Input_HookXInputContext (pCtx);
+
+      if (ReadPointerAcquire ((LPVOID *)&xinput_ctx.primary_hook) == nullptr)
+        InterlockedExchangePointer ((LPVOID *)&xinput_ctx.primary_hook, &xinput_ctx.XInput9_1_0);
+    }
 
     InterlockedIncrement (&hooked);
   }
@@ -1107,7 +1119,7 @@ SK_XInput_RehookIfNeeded (void)
   std::lock_guard <SK_Thread_HybridSpinlock> auto_lock3 (xinput_ctx.cs_hook [3]);
 
 
-  MH_STATUS ret = 
+  MH_STATUS ret =
     MH_QueueEnableHook (pCtx->XInputGetState_Target);
 
 
@@ -1179,7 +1191,7 @@ SK_XInput_RehookIfNeeded (void)
         SK_LOG0 ( ( L" Re-hooked XInput (Set) using '%s'...",
                        pCtx->wszModuleName ),
                     L"Input Mgr." );
-  
+
         if (pCtx->hMod == xinput_ctx.XInput1_3.hMod)
           xinput_ctx.XInput1_3 = *pCtx;
         if (pCtx->hMod == xinput_ctx.XInput1_4.hMod)
@@ -1187,7 +1199,7 @@ SK_XInput_RehookIfNeeded (void)
         if (pCtx->hMod == xinput_ctx.XInput9_1_0.hMod)
           xinput_ctx.XInput9_1_0 = *pCtx;
       }
-  
+
       else
       {
         SK_LOG0 ( ( L" Failed to re-hook XInput (Set) using '%s'...",
@@ -1195,7 +1207,7 @@ SK_XInput_RehookIfNeeded (void)
             L"Input Mgr." );
       }
     }
-  
+
     else
     {
       SK_LOG0 ( ( L" Failed to remove XInput (Set) hook from '%s'...",
@@ -1310,9 +1322,9 @@ SK_XInput_RehookIfNeeded (void)
   // XInput9_1_0 won't have this, so skip it.
   if (pCtx->XInputGetStateEx_Target != nullptr)
   {
-    ret = 
+    ret =
       MH_QueueEnableHook (pCtx->XInputGetStateEx_Target);
-  
+
     // Test for modified hooks
     if ( ( ret != MH_OK && ret != MH_ERROR_ENABLED ) ||
                    ( pCtx->XInputGetStateEx_Target != nullptr &&
@@ -1332,13 +1344,13 @@ SK_XInput_RehookIfNeeded (void)
           SK_LOG0 ( ( L" Re-hooked XInput (Ex) using '%s'...",
                          pCtx->wszModuleName ),
                       L"Input Mgr." );
-  
+
           if (pCtx->hMod == xinput_ctx.XInput1_3.hMod)
             xinput_ctx.XInput1_3 = *pCtx;
           if (pCtx->hMod == xinput_ctx.XInput1_4.hMod)
             xinput_ctx.XInput1_4 = *pCtx;
         }
-  
+
         else
         {
           SK_LOG0 ( ( L" Failed to re-hook XInput (Ex) using '%s'...",
@@ -1346,7 +1358,7 @@ SK_XInput_RehookIfNeeded (void)
               L"Input Mgr." );
         }
       }
-  
+
       else
       {
         SK_LOG0 ( ( L" Failed to remove XInput (Ex) hook from '%s'...",
@@ -1445,7 +1457,7 @@ SK_XInput_PulseController ( INT   iJoyID,
   //
   if (iJoyID > 15)
     return false;
-  
+
   ///auto steam_idx =
   ///  static_cast <ControllerIndex_t> (iJoyID);
   ///
@@ -1564,7 +1576,7 @@ SK_XInput_PollController ( INT           iJoyID,
       HMODULE hModXInput1_3 =
         SK_Modules.LoadLibraryLL (L"XInput1_3.dll");
 
-      if (hModXInput1_3 != nullptr)
+      if (SK_Modules.isValid (hModXInput1_3))
       {
         pCtx->XInputGetState_Original =
           (XInputGetState_pfn)
@@ -1580,14 +1592,20 @@ SK_XInput_PollController ( INT           iJoyID,
   //   in its import table and also not caught by our LoadLibrary hook
   if (first_frame)
   {
-    if (GetModuleHandle (L"XInput1_3.dll"))
-      SK_Input_HookXInput1_3 ();
+    if ( SK_Modules.isValid       (
+         SK_Modules.LoadLibraryLL (L"XInput1_3.dll")
+                                  )
+       ) SK_Input_HookXInput1_3 ();
 
-    if (GetModuleHandle (L"XInput1_4.dll"))
-      SK_Input_HookXInput1_4 ();
+    if ( SK_Modules.isValid       (
+         SK_Modules.LoadLibraryLL (L"XInput1_4.dll")
+                                  )
+       ) SK_Input_HookXInput1_4 ();
 
-    if (GetModuleHandle (L"XInput9_1_0.dll"))
-      SK_Input_HookXInput9_1_0 ();
+    if ( SK_Modules.isValid       (
+         SK_Modules.LoadLibraryLL (L"XInput9_1_0.dll")
+                                  )
+       ) SK_Input_HookXInput9_1_0 ();
 
     first_frame  = false;
     queued_hooks = true;
@@ -1684,13 +1702,13 @@ SK_Input_PreHookXInput (void)
       if (tests [2].used) SK_Input_HookXInput9_1_0 ();
     }
 
-    if (GetModuleHandle (L"XInput1_3.dll"))
+    if (SK_Modules.isValid (SK_Modules.LoadLibraryLL (L"XInput1_3.dll")))
       SK_Input_HookXInput1_3 ();
 
-    if (GetModuleHandle (L"XInput1_4.dll"))
+    if (SK_Modules.isValid (SK_Modules.LoadLibraryLL (L"XInput1_4.dll")))
       SK_Input_HookXInput1_4 ();
-    
-    if (GetModuleHandle (L"XInput9_1_0.dll"))
+
+    if (SK_Modules.isValid (SK_Modules.LoadLibraryLL (L"XInput9_1_0.dll")))
       SK_Input_HookXInput9_1_0 ();
   }
 }

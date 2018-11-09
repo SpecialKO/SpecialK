@@ -580,7 +580,7 @@ SK_PollGPU (void)
 
   if (dt > config.gpu.interval)
   {
-    if (WaitForSingleObject (hPollEvent, 0) == WAIT_TIMEOUT)
+    if (SK_WaitForSingleObject (hPollEvent, 0) == WAIT_TIMEOUT)
     {
       gpu_stats_buffers [0].last_update.QuadPart = update_ul.QuadPart;
 

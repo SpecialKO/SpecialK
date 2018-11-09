@@ -76,12 +76,17 @@ SK_File_GetNameFromHandle ( HANDLE   hFile,
     success;
 }
 
+extern volatile LONG __SK_Init;
+
 
 NtReadFile_pfn  NtReadFile_Original  = nullptr;
 NtWriteFile_pfn NtWriteFile_Original = nullptr;
 
 #define NT_SUCCESS(Status)                      ((NTSTATUS)(Status) >= 0)
 #define STATUS_SUCCESS                          0
+
+iSK_Logger *read_log  = nullptr;
+iSK_Logger *write_log = nullptr;
 
 NTSTATUS
 WINAPI
@@ -113,20 +118,32 @@ NtReadFile_Detour (
 
     if (config.file_io.trace_reads)
     {
-      static iSK_Logger file_log =
-        *SK_CreateLog (LR"(logs\file_reads.log)");
+      if (pTLS->disk.ignore_reads)
+        return ntStatus;
 
-      SK_RunOnce ( file_log.lockless = true );
+      auto& file_log =
+        *read_log;
 
-      //if (pTLS->disk.last_file_read != FileHandle)
+      if (pTLS->disk.last_file_read != FileHandle)
       {   pTLS->disk.last_file_read  = FileHandle;
         wchar_t                                wszFileName [MAX_PATH] = { L'\0' };
         SK_File_GetNameFromHandle (FileHandle, wszFileName, MAX_PATH);
 
+        if (config.file_io.ignore_reads.entire_thread.count (wszFileName))
+          pTLS->disk.ignore_reads = TRUE;
+
+        else if (config.file_io.ignore_reads.single_file.count (wszFileName))
+          return ntStatus;
+
+        else if (StrStrIW (wszFileName, LR"(\client_TOBII)") != nullptr)
+        {
+          pTLS->disk.ignore_reads  = TRUE;
+          pTLS->disk.ignore_writes = TRUE;
+        }
 
         if (ByteOffset != nullptr)
         {
-          file_log.Log ( L"[tid=%4x]   File Read:  '%100ws'  <%#8lu bytes @+%-8llu>",
+          file_log.Log ( L"[tid=%4x]   File Read:  '%130ws'  <%#8lu bytes @+%-8llu>",
             GetCurrentThreadId (),
               wszFileName, Length, *ByteOffset
           );
@@ -134,7 +151,7 @@ NtReadFile_Detour (
 
         else
         {
-          file_log.Log ( L"[tid=%4x]   File Read:  '%100ws'  <%#8lu bytes>",
+          file_log.Log ( L"[tid=%4x]   File Read:  '%130ws'  <%#8lu bytes>",
             GetCurrentThreadId (),
               wszFileName, Length
           );
@@ -176,19 +193,29 @@ NtWriteFile_Detour (
 
     if (config.file_io.trace_writes)
     {
-      static iSK_Logger file_log =
-        *SK_CreateLog (LR"(logs\file_writes.log)");
+      if (pTLS->disk.ignore_writes)
+        return ntStatus;
 
-      SK_RunOnce ( file_log.lockless = true );
+      auto& file_log =
+        *write_log;
 
       if (pTLS->disk.last_file_written != FileHandle)
       {   pTLS->disk.last_file_written  = FileHandle;
         wchar_t                                wszFileName [MAX_PATH] = { L'\0' };
         SK_File_GetNameFromHandle (FileHandle, wszFileName, MAX_PATH);
 
+        if (StrStrIW (wszFileName, L"file_writes.log"))
+          return ntStatus;
+
+        if (config.file_io.ignore_writes.entire_thread.count (wszFileName))
+          pTLS->disk.ignore_writes = TRUE;
+
+        else if (config.file_io.ignore_writes.single_file.count (wszFileName))
+          return ntStatus;
+
         if (ByteOffset != nullptr)
         {
-          file_log.Log ( L"[tid=%4x]   File Write:  '%100ws'  <%#8lu bytes @+%-8llu>",
+          file_log.Log ( L"[tid=%4x]   File Write:  '%130ws'  <%#8lu bytes @+%-8llu>",
             GetCurrentThreadId (),
               wszFileName, Length, *ByteOffset
           );
@@ -196,7 +223,7 @@ NtWriteFile_Detour (
 
         else
         {
-          file_log.Log ( L"[tid=%4x]   File Write:  '%100ws'  <%#8lu bytes>",
+          file_log.Log ( L"[tid=%4x]   File Write:  '%130ws'  <%#8lu bytes>",
             GetCurrentThreadId (),
               wszFileName, Length
           );

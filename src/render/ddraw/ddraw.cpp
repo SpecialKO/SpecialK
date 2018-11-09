@@ -143,12 +143,12 @@ DirectDrawCreate (_In_  GUID         FAR *lpGUID,
                       SK_SummarizeCaller ().c_str () );
 
   HRESULT hr = E_NOTIMPL;
-  
+
   if (DirectDrawCreate_Import)
   {
     hr = DirectDrawCreate_Import (lpGUID, lplpDD, pUnkOuter);
   }
-  
+
   return hr;
 }
 
@@ -172,12 +172,12 @@ DirectDrawCreateEx (_In_  GUID         FAR *lpGUID,
                       SK_SummarizeCaller ().c_str () );
 
   HRESULT hr = E_NOTIMPL;
-  
+
   if (DirectDrawCreateEx_Import)
   {
     hr = DirectDrawCreateEx_Import (lpGUID, lplpDD, iid, pUnkOuter);
   }
-  
+
   return hr;
 }
 
@@ -191,12 +191,12 @@ DirectDrawEnumerateA (_In_ LPDDENUMCALLBACK lpCallback,
   WaitForInit       ();
 
   HRESULT hr = E_NOTIMPL;
-  
+
   if (DirectDrawEnumerateA_Import)
   {
     hr = DirectDrawEnumerateA_Import (lpCallback, lpContext);
   }
-  
+
   return hr;
 }
 
@@ -210,12 +210,12 @@ DirectDrawEnumerateW (_In_ LPDDENUMCALLBACK lpCallback,
   WaitForInit       ();
 
   HRESULT hr = E_NOTIMPL;
-  
+
   if (DirectDrawEnumerateW_Import)
   {
     hr = DirectDrawEnumerateW_Import (lpCallback, lpContext);
   }
-  
+
   return hr;
 }
 
@@ -230,12 +230,12 @@ DirectDrawEnumerateExA (_In_ LPDDENUMCALLBACKEX lpCallback,
   WaitForInit       ();
 
   HRESULT hr = E_NOTIMPL;
-  
+
   if (DirectDrawEnumerateExA_Import)
   {
     hr = DirectDrawEnumerateExA_Import (lpCallback, lpContext, dwFlags);
   }
-  
+
   return hr;
 }
 
@@ -250,11 +250,11 @@ DirectDrawEnumerateExW (_In_ LPDDENUMCALLBACKEX lpCallback,
   WaitForInit       ();
 
   HRESULT hr = E_NOTIMPL;
-  
+
   if (DirectDrawEnumerateExW_Import) {
     hr = DirectDrawEnumerateExW_Import (lpCallback, lpContext, dwFlags);
   }
-  
+
   return hr;
 }
 
@@ -268,9 +268,9 @@ SK_HookDDraw (void)
   {
     SK_TLS_Bottom ()->ddraw.ctx_init_thread = true;
 
-    HMODULE hBackend = 
+    HMODULE hBackend =
       (SK_GetDLLRole () & DLL_ROLE::DDraw) ? backend_dll :
-                                     GetModuleHandle (L"ddraw.dll");
+                                     SK_GetModuleHandle (L"ddraw.dll");
 
     auto LoadSupplementalImports =
     [&]
@@ -281,7 +281,7 @@ SK_HookDDraw (void)
         );
       (DirectDrawEnumerateW_Import) =  \
         reinterpret_cast <DirectDrawEnumerate_pfn> (
-          GetProcAddress (hBackend, "DirectDrawEnumerateW") 
+          GetProcAddress (hBackend, "DirectDrawEnumerateW")
         );
 
       (DirectDrawEnumerateExA_Import) =  \
@@ -330,7 +330,7 @@ SK_HookDDraw (void)
 
     else
     {
-      bool bProxy = GetModuleHandle (L"ddraw.dll") != hBackend;
+      bool bProxy = SK_GetModuleHandle (L"ddraw.dll") != hBackend;
 
       if ( MH_OK ==
              SK_CreateDLLHook2 (      L"ddraw.dll",
@@ -434,14 +434,14 @@ SK::DDraw::Startup (void)
   wsprintf (wszImmediateMode, L"%s\\PlugIns\\ThirdParty\\dgVoodoo\\d3dimm.dll", std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK").c_str ());
 
   dgvoodoo_d3dimm               = new import_s ();
-  dgvoodoo_d3dimm->hLibrary     = LoadLibraryW (wszImmediateMode);
+  dgvoodoo_d3dimm->hLibrary     = SK_Modules.LoadLibraryW (wszImmediateMode);
   dgvoodoo_d3dimm->name         = L"API Support Plug-In";
   dgvoodoo_d3dimm->product_desc = SK_GetDLLVersionStr (SK_GetModuleFullName (dgvoodoo_d3dimm->hLibrary).c_str ());
 
   wsprintf (wszImmediateMode, L"%s\\PlugIns\\ThirdParty\\dgVoodoo\\d3d8.dll", std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK").c_str ());
-  
+
   dgvoodoo_d3d8               = new import_s ();
-  dgvoodoo_d3d8->hLibrary     = LoadLibraryW (wszImmediateMode);
+  dgvoodoo_d3d8->hLibrary     = SK_Modules.LoadLibraryW (wszImmediateMode);
   dgvoodoo_d3d8->name         = L"API Support Plug-In";
   dgvoodoo_d3d8->product_desc = SK_GetDLLVersionStr (SK_GetModuleFullName (dgvoodoo_d3d8->hLibrary).c_str ());
 
@@ -496,9 +496,9 @@ HookDDraw (LPVOID user)
   }
 
   //Direct3DCreate8_Import (0x0800);
-  
+
   InterlockedExchange (&__ddraw_ready, TRUE);
-  
+
   if (! (SK_GetDLLRole () & DLL_ROLE::DXGI))
     SK::DXGI::StartBudgetThread_NoAdapter ();
 

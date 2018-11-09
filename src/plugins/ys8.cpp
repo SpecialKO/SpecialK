@@ -246,6 +246,7 @@ Concurrency::concurrent_unordered_map <
 std::set <uint32_t>
 SK_Cache_VisitMetadata (void *pAlgo)
 {
+  DBG_UNREFERENCED_PARAMETER (pAlgo);
   return std::set <uint32_t> { 0ui32 };
 }
 

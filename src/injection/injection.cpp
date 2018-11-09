@@ -26,6 +26,7 @@
 #include <SpecialK/render/dxgi/dxgi_backend.h>
 #include <SpecialK/render/d3d9/d3d9_backend.h>
 #include <SpecialK/render/backend.h>
+#include <SpecialK/diagnostics/modules.h>
 #include <SpecialK/framerate.h>
 #include <SpecialK/hooks.h>
 #include <SpecialK/ini.h>
@@ -71,6 +72,7 @@ extern "C"
 SK_InjectionRecord_s __SK_InjectionHistory [MAX_INJECTED_PROC_HISTORY] = { };
 
 #pragma data_seg (".SK_Hooks")
+//__declspec (dllexport)          HANDLE hShutdownSignal= INVALID_HANDLE_VALUE;
   __declspec (dllexport)          DWORD  dwHookPID      =                  0UL; // Process that owns the CBT hook
   __declspec (dllexport) volatile HHOOK  hHookCBT       =              nullptr; // CBT hook
   __declspec (dllexport)          BOOL   bAdmin         =                FALSE; // Is SKIM64 able to inject into admin apps?
@@ -79,13 +81,13 @@ SK_InjectionRecord_s __SK_InjectionHistory [MAX_INJECTED_PROC_HISTORY] = { };
   __declspec (dllexport) LONG               g_sHookedPIDs [MAX_INJECTED_PROCS]     = { 0 };
 
 
-  wchar_t      __SK_InjectionHistory_name   [MAX_INJECTED_PROC_HISTORY * MAX_PATH] =  { 0 };
-  DWORD        __SK_InjectionHistory_ids    [MAX_INJECTED_PROC_HISTORY]            =  { 0 };
-  __time64_t   __SK_InjectionHistory_inject [MAX_INJECTED_PROC_HISTORY]            =  { 0 };
-  __time64_t   __SK_InjectionHistory_eject  [MAX_INJECTED_PROC_HISTORY]            =  { 0 };
-  bool         __SK_InjectionHistory_crash  [MAX_INJECTED_PROC_HISTORY]            =  { 0 };
+  wchar_t      __SK_InjectionHistory_name   [MAX_INJECTED_PROC_HISTORY * MAX_PATH] =  {   0   };
+  DWORD        __SK_InjectionHistory_ids    [MAX_INJECTED_PROC_HISTORY]            =  {   0   };
+  __time64_t   __SK_InjectionHistory_inject [MAX_INJECTED_PROC_HISTORY]            =  {   0   };
+  __time64_t   __SK_InjectionHistory_eject  [MAX_INJECTED_PROC_HISTORY]            =  {   0   };
+  bool         __SK_InjectionHistory_crash  [MAX_INJECTED_PROC_HISTORY]            =  { false };
 
-  ULONG64      __SK_InjectionHistory_frames [MAX_INJECTED_PROC_HISTORY]            =  { 0 };
+  ULONG64      __SK_InjectionHistory_frames [MAX_INJECTED_PROC_HISTORY]            =  {   0   };
   SK_RenderAPI __SK_InjectionHistory_api    [MAX_INJECTED_PROC_HISTORY]            =  {
     SK_RenderAPI::Reserved, SK_RenderAPI::Reserved, SK_RenderAPI::Reserved, SK_RenderAPI::Reserved,
     SK_RenderAPI::Reserved, SK_RenderAPI::Reserved, SK_RenderAPI::Reserved, SK_RenderAPI::Reserved,
@@ -129,7 +131,7 @@ SK_Inject_GetRecord (int idx)
            __SK_InjectionHistory [idx].process.inject  = __SK_InjectionHistory_inject [idx];
            __SK_InjectionHistory [idx].process.eject   = __SK_InjectionHistory_eject  [idx];
            __SK_InjectionHistory [idx].process.crashed = __SK_InjectionHistory_crash  [idx];
-           
+
            __SK_InjectionHistory [idx].render.api      = __SK_InjectionHistory_api    [idx];
            __SK_InjectionHistory [idx].render.frames   = __SK_InjectionHistory_frames [idx];
 
@@ -151,6 +153,11 @@ SK_Inject_InitShutdownEvent (void)
     sattr.lpSecurityDescriptor = nullptr;
 
     dwHookPID          = GetCurrentProcessId ();
+
+    //hShutdownSignal =
+    //  CreateEvent ( nullptr, FALSE, FALSE,
+    //                SK_RunLHIfBitness ( 32, LR"(Local\SK_Injection_Terminate32)",
+    //                                        LR"(Local\SK_Injection_Terminate64)") );
   }
 }
 
@@ -182,7 +189,7 @@ SK_Inject_ValidateProcesses (void)
   for (volatile LONG& hooked_pid : g_sHookedPIDs)
   {
     CHandle hProc (
-      OpenProcess ( PROCESS_QUERY_INFORMATION, FALSE, 
+      OpenProcess ( PROCESS_QUERY_INFORMATION, FALSE,
                       ReadAcquire (&hooked_pid) )
                   );
 
@@ -312,6 +319,12 @@ SKX_GetCBTHook (void)
     );
 }
 
+
+#define HSHELL_MONITORCHANGED         16
+#define HSHELL_HIGHBIT            0x8000
+#define HSHELL_FLASH              (HSHELL_REDRAW|HSHELL_HIGHBIT)
+#define HSHELL_RUDEAPPACTIVATED   (HSHELL_WINDOWACTIVATED|HSHELL_HIGHBIT)
+
 LRESULT
 CALLBACK
 CBTProc ( _In_ int    nCode,
@@ -321,14 +334,25 @@ CBTProc ( _In_ int    nCode,
   if (nCode < 0)
   {
     LRESULT lRet =
-      CallNextHookEx (0, nCode, wParam, lParam);
+      CallNextHookEx (nullptr, nCode, wParam, lParam);
 
     // ...
 
     return lRet;
   }
 
-  return CallNextHookEx (0, nCode, wParam, lParam);
+  //if ( nCode == HSHELL_TASKMAN            || nCode == HSHELL_ACTIVATESHELLWINDOW || nCode == HSHELL_RUDEAPPACTIVATED ||
+  //     nCode == HSHELL_FLASH              || nCode == HSHELL_ACCESSIBILITYSTATE  || nCode == HSHELL_LANGUAGE         ||
+  //     nCode == HSHELL_MONITORCHANGED )
+  //{
+  //  return FALSE;
+  //}
+
+  return
+    CallNextHookEx (
+      SKX_GetCBTHook (),
+        nCode, wParam, lParam
+    );
 }
 
 BOOL
@@ -342,7 +366,7 @@ SK_TerminatePID ( DWORD dwProcessId, UINT uExitCode )
     return FALSE;
 
   return
-    TerminateProcess ( hProcess, uExitCode );
+    SK_TerminateProcess ( hProcess, uExitCode );
 }
 
 
@@ -390,9 +414,11 @@ SKX_RemoveCBTHook (void)
     InterlockedDecrement (&injected_procs);
   }
 
-  HHOOK hHookOrig = SKX_GetCBTHook ();
+  HHOOK hHookOrig =
+    SKX_GetCBTHook ();
 
-  if (hHookOrig != 0 && UnhookWindowsHookEx (hHookOrig))
+  if (  hHookOrig != nullptr &&
+          UnhookWindowsHookEx (hHookOrig) )
   {
                          whitelist_count = 0;
     RtlSecureZeroMemory (whitelist_patterns, sizeof (whitelist_patterns));
@@ -402,10 +428,21 @@ SKX_RemoveCBTHook (void)
                                        const_cast < HHOOK *> (&hHookCBT)
                                  ), nullptr );
 
-    hHookOrig = 0;
+    hHookOrig = nullptr;
   }
 
   dwHookPID = 0x0;
+
+  //HANDLE
+  //  hShutdownCopy =
+  //    CreateEvent ( nullptr, FALSE, FALSE,
+  //                    SK_RunLHIfBitness ( 32, LR"(Local\SK_Injection_Terminate32)",
+  //                                            LR"(Local\SK_Injection_Terminate64)") );
+  //if (hShutdownCopy != INVALID_HANDLE_VALUE)
+  //{
+  //  SetEvent    (hShutdownCopy);
+  //  CloseHandle (hShutdownCopy);
+  //}
 }
 
 bool
@@ -457,13 +494,18 @@ RunDLL_InjectionManager ( HWND   hwnd,        HINSTANCE hInst,
                              SK_WR0_Init ();
 
                  while ( ReadAcquire (&__SK_DLL_Attached) || SK_GetHostAppUtil ().isInjectionTool () )
-                   SleepEx (5UL, FALSE);
+                 {
+                   SleepEx (750UL, FALSE);
+                   //SK_WaitForSingleObject (hShutdownSignal, INFINITE);
+                   //           CloseHandle (hShutdownSignal);
+                   //                        hShutdownSignal = INVALID_HANDLE_VALUE;
+                 }
 
                  SK_Thread_CloseSelf ();
 
                  if (PtrToInt (user) != -128)
                  {
-                   ExitProcess (0x00);
+                   SK_ExitProcess (0x00);
                  }
 
                  return 0;
@@ -505,7 +547,7 @@ RunDLL_InjectionManager ( HWND   hwnd,        HINSTANCE hInst,
   }
 
   if (nCmdShow != -128)
-   ExitProcess (0x00);
+   SK_ExitProcess (0x00);
 }
 
 
@@ -624,7 +666,7 @@ SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE role)
   //extern volatile LONG   SK_bypass_dialog_active;
   //InterlockedIncrement (&SK_bypass_dialog_active);
   //
-  //int mb_ret = 
+  //int mb_ret =
   //       SK_MessageBox ( L"Link the Installed Wrapper to the Global DLL?\r\n"
   //                       L"\r\n"
   //                       L"Linked installs allow you to update wrapped games the same way "
@@ -768,7 +810,7 @@ SK_Inject_SwitchToRenderWrapper (void)
   //extern volatile LONG   SK_bypass_dialog_active;
   //InterlockedIncrement (&SK_bypass_dialog_active);
   //
-  //int mb_ret = 
+  //int mb_ret =
   //       SK_MessageBox ( L"Link the Installed Wrapper to the Global DLL?\r\n"
   //                       L"\r\n"
   //                       L"Linked installs allow you to update wrapped games the same way "

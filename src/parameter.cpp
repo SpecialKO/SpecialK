@@ -36,7 +36,7 @@ sk::iParameter::load (void)
     {
       iSK_INISection& section =
         ini->get_section (sec_name);
-  
+
       if (section.contains_key (ini_key.c_str ()))
       {
         std::wstring& new_value =
@@ -134,7 +134,7 @@ sk::ParameterInt::store_str (std::wstring& str)
 bool
 sk::ParameterInt::load (int& ref)
 {
-  bool bRet = 
+  bool bRet =
     iParameter::load ();
 
   if (bRet)
@@ -203,7 +203,7 @@ sk::ParameterInt64::store_str (std::wstring& str)
 bool
 sk::ParameterInt64::load (int64_t& ref)
 {
-  bool bRet = 
+  bool bRet =
     iParameter::load ();
 
   if (bRet)
@@ -392,7 +392,7 @@ sk::ParameterBool::store_str (std::wstring& str)
 bool
 sk::ParameterBool::load (bool& ref)
 {
-  bool bRet = 
+  bool bRet =
     iParameter::load ();
 
   if (bRet)
@@ -406,12 +406,12 @@ sk::ParameterBool::load (bool& ref)
 std::wstring
 sk::ParameterFloat::get_value_str (void)
 {
-  wchar_t val_str [16];
+  wchar_t val_str [325] = { };
   swprintf (val_str, L"%f", value);
 
   SK_RemoveTrailingDecimalZeros (val_str);
 
-  return 
+  return
     val_str;
 }
 
@@ -466,7 +466,7 @@ sk::ParameterFloat::store_str (std::wstring& str)
 bool
 sk::ParameterFloat::load (float& ref)
 {
-  bool bRet = 
+  bool bRet =
     iParameter::load ();
 
   if (bRet)
@@ -542,7 +542,7 @@ sk::ParameterStringW::store_str (std::wstring& str)
 bool
 sk::ParameterStringW::load (std::wstring& ref)
 {
-  bool bRet = 
+  bool bRet =
     iParameter::load ();
 
   if (bRet)
@@ -556,8 +556,8 @@ sk::ParameterStringW::load (std::wstring& ref)
 std::wstring
 sk::ParameterVec2f::get_value_str (void)
 {
-  wchar_t x_str [16] = { };
-  wchar_t y_str [16] = { };
+  wchar_t x_str [325] = { };
+  wchar_t y_str [325] = { };
 
   swprintf (x_str, L"%f", value.x);
   swprintf (y_str, L"%f", value.y);
@@ -616,7 +616,7 @@ sk::ParameterVec2f::store_str (std::wstring& str)
 bool
 sk::ParameterVec2f::load (ImVec2& ref)
 {
-  bool bRet = 
+  bool bRet =
     iParameter::load ();
 
   if (bRet)

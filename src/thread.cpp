@@ -63,15 +63,19 @@ extern volatile LONG __SK_DLL_Attached;
 concurrency::concurrent_unordered_map <DWORD, std::wstring>&
 __SK_GetThreadNames (void)
 {
-  static concurrency::concurrent_unordered_map <DWORD, std::wstring> __ThreadNames;
-  return                                                             __ThreadNames;
+  static concurrency::concurrent_unordered_map <DWORD, std::wstring> __ThreadNames (32);
+
+  return
+    __ThreadNames;
 }
 
 concurrency::concurrent_unordered_set <DWORD>&
 __SK_GetSelfTitledThreads (void)
 {
-  static concurrency::concurrent_unordered_set <DWORD> __SelfTitled;
-  return                                               __SelfTitled;
+  static concurrency::concurrent_unordered_set <DWORD>                __SelfTitled (32);
+
+  return
+    __SelfTitled;
 }
 
 #define _SK_SelfTitledThreads __SK_GetSelfTitledThreads ()
@@ -135,7 +139,7 @@ __make_self_titled (DWORD dwTid)
   static auto&
     SelfTitled =
       _SK_SelfTitledThreads;
-  
+
   SelfTitled.insert (dwTid);
 }
 
@@ -165,14 +169,14 @@ SetCurrentThreadDescription (_In_ PCWSTR lpThreadDescription)
               )                           && len > 0;
 
   if (non_empty)
-  {  
+  {
     SK_TLS *pTLS       = ReadAcquire (&__SK_DLL_Attached) ?
       SK_TLS_Bottom () : nullptr;
 
     DWORD               dwTid  = GetCurrentThreadId ();
     __make_self_titled (dwTid);
            ThreadNames [dwTid] = lpThreadDescription;
-       
+
     if (pTLS != nullptr)
     {
       // Push this to the TLS datastore so we can get thread names even
@@ -303,12 +307,12 @@ SK_Thread_InitDebugExtras (void)
     //
     SetThreadDescription =
       (SetThreadDescription_pfn)
-        GetProcAddress ( GetModuleHandle (L"kernel32"),
-                                           "SetThreadDescription" );
+        GetProcAddress ( SK_Modules.getLibrary (L"kernel32", true, true),
+                                                 "SetThreadDescription" );
     GetThreadDescription =
       (GetThreadDescription_pfn)
-        GetProcAddress ( GetModuleHandle (L"kernel32"),
-                                           "GetThreadDescription" );
+      GetProcAddress ( SK_Modules.getLibrary (L"kernel32", true, true),
+                                               "GetThreadDescription" );
 
     if (SetThreadDescription == nullptr)
       SetThreadDescription = &SetThreadDescription_NOP;
@@ -319,7 +323,8 @@ SK_Thread_InitDebugExtras (void)
     InterlockedIncrement (&run_once);
   }
 
-  SK_Thread_SpinUntilAtomicMin (&run_once, 2);
+  else
+    SK_Thread_SpinUntilAtomicMin (&run_once, 2);
 
   if (GetThreadDescription != &GetThreadDescription_NOP)
     return true;
@@ -347,10 +352,10 @@ __stdcall
 SK_Thread_GetCurrentPriority (void)
 {
   return
-      GetThreadPriority (SK_GetCurrentThread ());
+    GetThreadPriority (SK_GetCurrentThread ());
 }
 
-} /* extern "C" */  
+} /* extern "C" */
 
 
 extern "C" SetThreadAffinityMask_pfn SetThreadAffinityMask_Original = nullptr;
@@ -529,6 +534,16 @@ SK_MMCS_GetTaskMap (void)
     task_map;
 }
 
+size_t
+SK_MMCS_GetTaskCount (void)
+{
+  const auto& task_map =
+    SK_MMCS_GetTaskMap ();
+
+  return
+    task_map.size ();
+}
+
 std::vector <SK_MMCS_TaskEntry *>
 SK_MMCS_GetTasks (void)
 {
@@ -561,15 +576,26 @@ SK_MMCS_GetTaskForThreadIDEx ( DWORD dwTid, const char* name,
   {
     SK_MMCS_TaskEntry* new_entry =
       new SK_MMCS_TaskEntry {
-        dwTid, 0, INVALID_HANDLE_VALUE, ""
+        dwTid, 0, INVALID_HANDLE_VALUE, 0, AVRT_PRIORITY_NORMAL, "", "", ""
       };
 
     strncpy_s ( new_entry->name,       63,
                 name,           _TRUNCATE );
 
+    strncpy_s ( new_entry->task0,      63,
+                task1,          _TRUNCATE );
+    strncpy_s ( new_entry->task1,      63,
+                task2,          _TRUNCATE );
+
     new_entry->hTask =
       AvSetMmMaxThreadCharacteristicsA ( task1, task2,
                                            &new_entry->dwTaskIdx );
+
+    SK_TLS* pTLS =
+      SK_TLS_Bottom ();
+
+    pTLS->scheduler.mmcs_task =
+      new_entry;
 
       task_map [dwTid] = new_entry;
     task_me =
@@ -583,9 +609,20 @@ SK_MMCS_GetTaskForThreadIDEx ( DWORD dwTid, const char* name,
 SK_MMCS_TaskEntry*
 SK_MMCS_GetTaskForThreadID (DWORD dwTid, const char* name)
 {
-  return nullptr;
   return
     SK_MMCS_GetTaskForThreadIDEx ( dwTid, name,
                                      "Games",
                                      "Playback" );
+}
+
+
+
+DWORD
+SK_GetRenderThreadID (void)
+{
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  return
+    ReadAcquire (&rb.thread);
 }

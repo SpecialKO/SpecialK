@@ -48,23 +48,24 @@ ULONG
 SK_CPU_DeviceNotifyCallback (
   PVOID Context,
   ULONG Type,
-  PVOID Setting );
+  PVOID Setting
+);
 
 #define PCI_CONFIG_ADDR(bus, dev, fn) \
-	( 0x80000000 | ((bus) << 16) |      \
+  ( 0x80000000 | ((bus) << 16) |      \
                  ((dev) << 11) |      \
                  ( (fn) << 8)   )
 
 #define VENDOR_INTEL "GenuineIntel"
-#define VENDOR_AMD	 "AuthenticAMD"
+#define VENDOR_AMD   "AuthenticAMD"
 
-#define CRC_INTEL	   0x75a2ba39
-#define CRC_AMD 	   0x3485bbd3
+#define CRC_INTEL    0x75a2ba39
+#define CRC_AMD      0x3485bbd3
 
 struct SK_AMDZenRegistry_s {
   const char  *brandId;
   unsigned int Boost, XFR;
-  unsigned int tempOffset;	/* Source: Linux/k10temp.c */
+  unsigned int tempOffset;  /* Source: Linux/k10temp.c */
 } static  _SK_KnownZen [] = {
   { VENDOR_AMD,            0,  0,   0 },
   { "AMD Ryzen 3 1200",   +3, +1,   0 },
@@ -106,20 +107,20 @@ typedef struct
   union {
     unsigned int val;
     unsigned int
-      Reserved1	       :  1-0,
-      SensorTrip	     :  2-1,  // 1 if temp. sensor trip occurs & was enabled
+      Reserved1        :  1-0,
+      SensorTrip       :  2-1,  // 1 if temp. sensor trip occurs & was enabled
       SensorCoreSelect :  3-2,  // 0b: CPU1 Therm Sensor. 1b: CPU0 Therm Sensor
-      Sensor0Trip	     :  4-3,  // 1 if trip @ CPU0 (single), or @ CPU1 (dual)
-      Sensor1Trip	     :  5-4,  // 1 if sensor trip occurs @ CPU0 (dual core)
+      Sensor0Trip      :  4-3,  // 1 if trip @ CPU0 (single), or @ CPU1 (dual)
+      Sensor1Trip      :  5-4,  // 1 if sensor trip occurs @ CPU0 (dual core)
       SensorTripEnable :  6-5,  // a THERMTRIP High event causes a PLL shutdown
-      SelectSensorCPU	 :  7-6,  // 0b: CPU[0,1] Sensor 0. 1b: CPU[0,1] Sensor 1
-      Reserved2	       :  8-7,
-      DiodeOffset	     : 14-8,  // offset should be added to the external temp.
-      Reserved3	       : 16-14,
-      CurrentTemp	     : 24-16, // 00h = -49C , 01h = -48C ... ffh = 206C 
-      TjOffset	       : 29-24, // Tcontrol = CurTmp - TjOffset * 2 - 49
-      Reserved4	       : 31-29,
-      SwThermTrip	     : 32-31; // diagnostic bit, for testing purposes only.
+      SelectSensorCPU  :  7-6,  // 0b: CPU[0,1] Sensor 0. 1b: CPU[0,1] Sensor 1
+      Reserved2        :  8-7,
+      DiodeOffset      : 14-8,  // offset should be added to the external temp.
+      Reserved3        : 16-14,
+      CurrentTemp      : 24-16, // 00h = -49C , 01h = -48C ... ffh = 206C 
+      TjOffset         : 29-24, // Tcontrol = CurTmp - TjOffset * 2 - 49
+      Reserved4        : 31-29,
+      SwThermTrip      : 32-31; // diagnostic bit, for testing purposes only.
   };
 } THERMTRIP_STATUS;
 
@@ -758,8 +759,8 @@ SK_CPU_IsZen (void)
 //      Reserved2        :   8 - 4,
 //      ESU_EnergyUnits  :  13 - 8,
 //      Reserved1        :  16 - 13,
-//      TU_TimeUnits	   :  20 - 16,
-//      Reserved0	       :  64 - 20;
+//      TU_TimeUnits     :  20 - 16,
+//      Reserved0        :  64 - 20;
 //  };
 //} RAPL_POWER_UNIT;
 

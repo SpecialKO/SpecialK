@@ -319,28 +319,28 @@ void
 SK_Memory_RemoveHooks (void)
 {
   SK_QueueDisableDLLHook ( L"kernel32",
-  	                        "LocalAlloc" );
+                            "LocalAlloc" );
 
   SK_QueueDisableDLLHook ( L"kernel32",
-  	                        "GlobalAlloc" );
+                            "GlobalAlloc" );
 
   SK_QueueDisableDLLHook ( L"kernel32",
                             "VirtualAlloc" );
 
   SK_QueueDisableDLLHook ( L"NtDll.dll",
-  	                        "RtlAllocateHeap" );
+                            "RtlAllocateHeap" );
 
   SK_QueueDisableDLLHook ( L"kernel32",
                             "LocalFree" );
-  
+
   SK_QueueDisableDLLHook ( L"kernel32",
                             "GlobalFree" );
-  
+
   SK_QueueDisableDLLHook ( L"kernel32",
                             "VirtualFree" );
-  
+
   SK_QueueDisableDLLHook ( L"kernel32",
-  	                         "HeapFree" );
+                            "HeapFree" );
 
   LocalAlloc_Original      = nullptr;
   GlobalAlloc_Original     = nullptr;

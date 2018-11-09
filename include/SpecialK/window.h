@@ -400,7 +400,11 @@ struct window_t {
   HWND  root;
 };
 
-BOOL SK_Win32_IsGUIThread (void);
+class SK_TLS;
+
+BOOL
+SK_Win32_IsGUIThread ( DWORD    dwTid = GetCurrentThreadId (),
+                       SK_TLS **ppTLS = nullptr );
 
 window_t
 SK_FindRootWindow (DWORD proc_id);

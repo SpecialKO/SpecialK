@@ -76,7 +76,6 @@ enum DLL_ROLE
 
 extern "C++" SK_Thread_HybridSpinlock* init_mutex;
 extern "C++" SK_Thread_HybridSpinlock* budget_mutex;
-extern "C++" SK_Thread_HybridSpinlock* loader_lock;
 extern "C++" SK_Thread_HybridSpinlock* wmi_cs;
 extern "C++" SK_Thread_HybridSpinlock* cs_dbghelp;
 extern "C++" SK_Thread_HybridSpinlock* init_mutex;

@@ -57,7 +57,8 @@ ErrorMessage (errno_t        err,
              L"%hs\n\n  File: %s\n\n"
              L"\t>> %s <<",
                line_no,
-                 file_name,
+  SK_StripUserNameFromPathA         (
+    std::string (file_name).data () ),
                    function_name,
                      args,
                        ini_name,
@@ -112,7 +113,7 @@ iSK_INI::iSK_INI (const wchar_t* filename)
 
     SK_ReleaseAssert (wszData != nullptr)
 
-    if (! wszData) 
+    if (! wszData)
     {
       fclose (fINI);
       return;
@@ -298,7 +299,7 @@ Process_Section ( iSK_INISection  &kSection,
 
   if (   ppTLS != nullptr &&
        (*ppTLS == nullptr)   )
-  {     *ppTLS  = SK_TLS_Bottom ();  
+  {     *ppTLS  = SK_TLS_Bottom ();
           pTLS  = *ppTLS;           }
 
   if (pTLS == nullptr)
@@ -317,7 +318,7 @@ Process_Section ( iSK_INISection  &kSection,
       size_t     key_len =        wcrlen (key, k);
         auto*    key_str =
                  pTLS->scratch_memory.ini.key.alloc
-                                      (   key_len + 1, true);
+                                      (   key_len + 2, true);
       wcsncpy_s (key_str,                 key_len + 1,
                                           key, _TRUNCATE);
 
@@ -344,7 +345,7 @@ Process_Section ( iSK_INISection  &kSection,
           size_t     val_len =        wcrlen (value, l);
             auto*    val_str =
                      pTLS->scratch_memory.ini.val.alloc
-                                          (   val_len + 1, true);
+                                          (   val_len + 2, true);
           wcsncpy_s (val_str,                 val_len + 1,
                                               value, _TRUNCATE);
 
@@ -371,7 +372,7 @@ Import_Section ( iSK_INISection  &section,
 
   if (   ppTLS != nullptr &&
        (*ppTLS == nullptr)   )
-  {     *ppTLS  = SK_TLS_Bottom ();  
+  {     *ppTLS  = SK_TLS_Bottom ();
           pTLS  = *ppTLS;           }
 
   if (pTLS == nullptr)
@@ -388,7 +389,7 @@ Import_Section ( iSK_INISection  &section,
       size_t     key_len =        wcrlen (key, k);
         auto*    key_str =
                  pTLS->scratch_memory.ini.key.alloc
-                                      (   key_len + 1, true);
+                                      (   key_len + 2, true);
       wcsncpy_s (key_str,                 key_len + 1,
                                           key, _TRUNCATE);
 
@@ -415,7 +416,7 @@ Import_Section ( iSK_INISection  &section,
           size_t     val_len =        wcrlen (value, l);
             auto*    val_str =
                      pTLS->scratch_memory.ini.val.alloc
-                                          (   val_len + 1, true);
+                                          (   val_len + 2, true);
           wcsncpy_s (val_str,                 val_len + 1,
                                               value, _TRUNCATE);
 
@@ -541,7 +542,7 @@ iSK_INI::parse (void)
         size_t   sec_len =        wcrlen (begin, end);
         auto*    sec_name =
                  pTLS->scratch_memory.ini.sec.alloc
-                                      (   sec_len + 1, true);
+                                      (   sec_len + 2, true);
       wcsncpy_s (sec_name,                sec_len + 1,
                                           begin, _TRUNCATE);
 
@@ -731,7 +732,7 @@ iSK_INI::import (const wchar_t* import_data)
         size_t   sec_len =        wcrlen (begin, end);
         auto*    sec_name =
                  pTLS->scratch_memory.ini.sec.alloc
-                                      (   sec_len + 1, true);
+                                      (   sec_len + 2, true);
       wcsncpy_s (sec_name,                sec_len + 1,
                                           begin, _TRUNCATE);
 
@@ -844,7 +845,7 @@ iSK_INISection::add_key_value (const wchar_t* key, const wchar_t* value)
 {
   auto add =
     keys.emplace (std::make_pair (key, value));
-  
+
   if (add.second)
   {
     ordered_keys.emplace_back (key);
@@ -972,7 +973,7 @@ iSK_INI::write (const wchar_t* fname)
     outbuf.resize (outbuf.size () - 1);
   }
 
- 
+
   uint32_t new_crc32c =
     crc32c ( 0x0, outbuf.data   (),
                   outbuf.length () * sizeof (wchar_t) );
@@ -1170,7 +1171,7 @@ iSK_INI::import_file (const wchar_t* fname)
   wcsncpy_s (wszImportName, len + 1,
                          fname, _TRUNCATE);
 
-  TRY_FILE_IO (_wfsopen (fname, L"rbS", _SH_DENYNO), 
+  TRY_FILE_IO (_wfsopen (fname, L"rbS", _SH_DENYNO),
                          fname, fImportINI);
 
   if (fImportINI != nullptr)

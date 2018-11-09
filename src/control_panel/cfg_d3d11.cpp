@@ -247,8 +247,8 @@ SK::ControlPanel::D3D11::Draw (void)
       bool tracking = false;
 
       if (           szThreadLocalStr != nullptr &&
-           ReadAcquire (&SK_D3D11_DrawTrackingReqs) > 0 ||
-           SK_ReShade_DrawCallback.fn != nullptr  )
+          ( ReadAcquire (&SK_D3D11_DrawTrackingReqs) > 0 ||
+            SK_ReShade_DrawCallback.fn != nullptr  )        )
       {
         tracking = true;
 
@@ -676,6 +676,10 @@ SK_D3D11_ShowShaderModDlg (void)
 }
 
 
+extern std::wstring
+SK_DXGI_DescribeSwapChainFlags (DXGI_SWAP_CHAIN_FLAG swap_flags, INT* pLines = nullptr);
+
+
 void
 SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
 {
@@ -695,6 +699,12 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
       if (! pDevCtx)
         return;
 
+      INT          swap_flag_count = 0;
+      std::wstring swap_flags      =
+        SK_DXGI_DescribeSwapChainFlags (
+          static_cast <DXGI_SWAP_CHAIN_FLAG> (swap_desc.Flags),
+                                             &swap_flag_count);
+
       ImGui::BeginTooltip    ();
       ImGui::PushStyleColor  (ImGuiCol_Text, ImColor (0.95f, 0.95f, 0.45f));
       ImGui::TextUnformatted ("Framebuffer and Presentation Setup");
@@ -702,7 +712,7 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
       ImGui::Separator       ();
 
       ImGui::BeginGroup      ();
-      ImGui::PushStyleColor  (ImGuiCol_Text, ImColor (0.785f, 0.785f, 0.785f));
+      ImGui::PushStyleColor  (ImGuiCol_Text, ImColor (0.685f, 0.685f, 0.685f));
       ImGui::TextUnformatted ("Color:");
     //ImGui::TextUnformatted ("Depth/Stencil:");
       ImGui::TextUnformatted ("Resolution:");
@@ -719,6 +729,7 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
       ImGui::TextUnformatted ("MSAA Samples:");
       if (swap_desc.Flags != 0)
       ImGui::TextUnformatted ("Flags:");
+      if (swap_flag_count > 1) { for ( int i = 1; i < swap_flag_count; i++ ) ImGui::TextUnformatted ("\n"); }
       if (rb.isHDRCapable ())
       {
         ImGui::Separator  ();
@@ -760,7 +771,7 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
       if  (swap_desc.SampleDesc.Count > 1)
       ImGui::Text            ("%u",                                         swap_desc.SampleDesc.Count);
       if (swap_desc.Flags != 0)
-        ImGui::Text          ("%ws",        SK_DXGI_DescribeSwapChainFlags (static_cast <DXGI_SWAP_CHAIN_FLAG> (swap_desc.Flags)).c_str ());
+        ImGui::Text          ("%ws",                                        swap_flags.c_str ());
       if (rb.isHDRCapable ())
       {
         bool _fullscreen = true;

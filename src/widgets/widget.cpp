@@ -384,9 +384,97 @@ SK_Widget::draw_base (void)
        e = static_cast <int> (docking) & static_cast <int> (DockAnchor::East),
        w = static_cast <int> (docking) & static_cast <int> (DockAnchor::West);
 
-  ImGui::Begin           ( SK_FormatString ("##Widget_%s", name.c_str ()).c_str (),
-                             nullptr,
-                               flags );
+
+  extern bool    SK_Tobii_WantWidgetGazing (void);
+  extern ImVec2& SK_Tobii_GetGazePosition  (void);
+  ImVec2 vTobiiPos =
+                 SK_Tobii_GetGazePosition  (    );
+
+  float fAlpha =
+    ImGui::GetStyle ().Alpha;
+
+  int pushed_style_vars = 0;
+
+  // Since the Tobii widget is used to configure gazing, it should
+  //   not be subject to gazing.
+  if (this != SK_ImGui_Widgets.tobii)
+  {
+    if (SK_Tobii_WantWidgetGazing ())
+    {
+      ImVec2 vPos =
+        getPos ();
+
+      ImVec2 vSize =
+        getSize ();
+
+      bool bad_data =
+        (    vTobiiPos.x == 0.0f &&
+             vTobiiPos.y == 0.0f    );
+
+      ImVec2 vMousePos =
+        ImGui::GetMousePos ();
+
+      // First test the regular cursor -- if that's hovering the widget,
+      //   it's pretty darn important the widget be bright enough to use.
+      bool outside  =
+        (! ( vMousePos.x <= (vPos.x + vSize.x) && 
+             vMousePos.x >=  vPos.x            &&
+             vMousePos.y <= (vPos.y + vSize.y) &&
+             vMousePos.y >=  vPos.y          )    );
+
+      if (outside)
+      {
+        // Cursor's not hovering, maybe Tobii is?
+        outside =
+          (! ( vTobiiPos.x <= (vPos.x + vSize.x + vSize.x * 0.125f) && 
+               vTobiiPos.x >=  vPos.x -           vSize.x * 0.125f  &&
+               vTobiiPos.y <= (vPos.y + vSize.y + vSize.y * 0.125f) &&
+               vTobiiPos.y >=  vPos.y -           vSize.y * 0.125f)    );
+
+        // Nope, nothing's hovering, so dim this widget
+        if (bad_data || outside)
+        {
+          fAlpha *= 0.125f;
+        }
+      }
+    }
+  }
+
+  else
+  {
+    // Hack because the widget has to be drawn at all times
+    //   in order to support the gazing cursor
+    if (! isVisible ())
+    {
+      ImGui::PushStyleVar (ImGuiStyleVar_FramePadding,        ImVec2 (0.0f, 0.0f));
+      ImGui::PushStyleVar (ImGuiStyleVar_FrameRounding,                     0.0f );
+      ImGui::PushStyleVar (ImGuiStyleVar_WindowMinSize,       ImVec2 (0.0f, 0.0f));
+      ImGui::PushStyleVar (ImGuiStyleVar_WindowPadding,       ImVec2 (0.0f, 0.0f));
+      ImGui::PushStyleVar (ImGuiStyleVar_WindowRounding,                    0.0f );
+      ImGui::PushStyleVar (ImGuiStyleVar_GrabMinSize,                       0.0f );
+      ImGui::PushStyleVar (ImGuiStyleVar_ChildWindowRounding,               0.0f );
+      ImGui::PushStyleVar (ImGuiStyleVar_ItemSpacing,         ImVec2 (0.0f, 0.0f));
+      ImGui::PushStyleVar (ImGuiStyleVar_ItemInnerSpacing,    ImVec2 (0.0f, 0.0f));
+      ImGui::PushStyleVar (ImGuiStyleVar_IndentSpacing,                     0.0f );
+
+      ImGui::SetNextWindowSize (ImVec2 (    0.0f, 0.0f    ),    ImGuiSetCond_Once);
+
+      // No border, because it would be a white dot
+      flags &= ~ImGuiWindowFlags_ShowBorders;
+
+      pushed_style_vars = 10;
+    }
+  }
+
+
+       char  hashed_name [64] = { "##Widget_" };
+  lstrcatA ( hashed_name,
+                    name.c_str () );
+
+
+  ImGui::PushStyleVar (ImGuiStyleVar_Alpha, fAlpha);
+  ImGui::Begin        ( hashed_name,
+                          nullptr, flags );
 
   ImGui::SetWindowFontScale (SK_ImGui_Widgets.scale);
 
@@ -449,7 +537,8 @@ SK_Widget::draw_base (void)
       state__ = 1;
   }
 
-  ImGui::End     ();
+  ImGui::End         ();
+  ImGui::PopStyleVar (pushed_style_vars + 1);
 
   ImGui::PopFont ();
   ImGui::GetFont ()->Scale = fScale;
@@ -673,8 +762,14 @@ static auto widgets =
   { SK_ImGui_Widgets.frame_pacing,   SK_ImGui_Widgets.volume_control,
     SK_ImGui_Widgets.gpu_monitor,    SK_ImGui_Widgets.cpu_monitor,
     SK_ImGui_Widgets.d3d11_pipeline, SK_ImGui_Widgets.thread_profiler,
-    SK_ImGui_Widgets.hdr_control
+    SK_ImGui_Widgets.hdr_control,    SK_ImGui_Widgets.tobii
   };
+
+SK_Widget*
+SK_HDR_GetWidget (void)
+{
+  return SK_ImGui_Widgets.hdr_control;
+}
 
 extern
 BOOL
@@ -694,13 +789,19 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds (BOOL Control, BOOL Shift, BOOL Alt, B
 
   for (auto widget : widgets)
   {
-    if (                    widget &&
-         uiMaskedKeyCode == widget->getToggleKey ().masked_code
-       )
+    if (widget)
     {
-      widget->setVisible (! widget->isVisible ());
+      if (uiMaskedKeyCode == widget->getToggleKey ().masked_code)
+      {
+        widget->setVisible (! widget->isVisible ());
 
-      dispatched = TRUE;
+        dispatched = TRUE;
+      }
+
+      if (widget->keyboard (Control, Shift, Alt, vkCode))
+      {
+        dispatched = TRUE;
+      }
     }
   }
 

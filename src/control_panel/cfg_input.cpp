@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -44,6 +44,14 @@ bool cursor_vis = false;
 using namespace SK::ControlPanel;
 
 
+
+extern std::vector <RAWINPUTDEVICE>
+SK_RawInput_GetMice      (bool* pDifferent = nullptr);
+extern std::vector <RAWINPUTDEVICE>
+SK_RawInput_GetKeyboards (bool* pDifferent = nullptr);
+
+
+
 void SK_ImGui_UpdateCursor (void)
 {
   POINT orig_pos;
@@ -64,14 +72,16 @@ SK_ImGui_CenterCursorAtPos (ImVec2 center = SK_ImGui_LastWindowCenter)
 
   SK_ImGui_Cursor.pos.x = static_cast <LONG> (center.x);
   SK_ImGui_Cursor.pos.y = static_cast <LONG> (center.y);
-  
+
   io.MousePos.x = center.x;
   io.MousePos.y = center.y;
 
   POINT screen_pos = SK_ImGui_Cursor.pos;
 
-  if (GetCursor () != nullptr)
-    SK_ImGui_Cursor.orig_img = GetCursor ();
+  HCURSOR hCur = GetCursor ();
+
+  if (hCur != nullptr)
+    SK_ImGui_Cursor.orig_img = hCur;
 
   SK_ImGui_Cursor.LocalToScreen (&screen_pos);
   SK_SetCursorPos               ( screen_pos.x,
@@ -92,7 +102,7 @@ SK_ImGui_CenterCursorOnWindow (void)
 bool
 SK::ControlPanel::Input::Draw (void)
 {
-  const bool input_mgmt_open = 
+  const bool input_mgmt_open =
     ImGui::CollapsingHeader ("Input Management");
 
   if (config.imgui.show_input_apis)
@@ -299,11 +309,11 @@ SK::ControlPanel::Input::Draw (void)
                                                  &config.input.cursor.keys_activate );
         ImGui::TreePop  ();
       }
- 
+
       ImGui::EndGroup   ();
       ImGui::SameLine   ();
 
-      float seconds = 
+      float seconds =
         (float)config.input.cursor.timeout  / 1000.0f;
 
       const float val =
@@ -603,14 +613,14 @@ extern float SK_ImGui_PulseNav_Strength;
         bool expanded = ImGui::CollapsingHeader (SK_FormatString ("%ws##JOYSTICK_DEBUG", joy_caps.szPname).c_str ());
 
         ImGui::Combo    ("Gamepad Type", &config.input.gamepad.predefined_layout, "PlayStation 4\0Steam\0\0", 2);
-        
+
         if (ImGui::IsItemHovered ())
         {
           ImGui::SetTooltip ("This setting is only used if XInput or DirectInput are not working.");
         }
-        
+
         ImGui::SameLine ();
-        
+
         ImGui::Checkbox    ("Use DirectInput instead of XInput", &config.input.gamepad.native_ps4);
 
         if (expanded)
@@ -623,7 +633,7 @@ extern float SK_ImGui_PulseNav_Strength;
             static_cast <float> (joy_ex.dwPOV) / 100.0f;
 
           if (joy_ex.dwPOV != JOY_POVCENTERED)
-            ImGui::Text (u8" D-Pad:  %4.1f�", angle);
+            ImGui::Text (u8" D-Pad:  %4.1f°", angle);
           else
             ImGui::Text (  " D-Pad:  Centered");
 
@@ -636,22 +646,22 @@ extern float SK_ImGui_PulseNav_Strength;
                                            static_cast <float> (joy_caps.wXmax),
                                            static_cast <float> (joy_ex.dwXpos) },
 
-                               { "Y-Axis", static_cast <float> (joy_caps.wYmin), 
+                               { "Y-Axis", static_cast <float> (joy_caps.wYmin),
                                            static_cast <float> (joy_caps.wYmax),
                                            static_cast <float> (joy_ex.dwYpos) },
-                               
+
                                { "Z-Axis", static_cast <float> (joy_caps.wZmin),
                                            static_cast <float> (joy_caps.wZmax),
                                            static_cast <float> (joy_ex.dwZpos) },
-                               
+
                                { "R-Axis", static_cast <float> (joy_caps.wRmin),
                                            static_cast <float> (joy_caps.wRmax),
                                            static_cast <float> (joy_ex.dwRpos) },
-                               
+
                                { "U-Axis", static_cast <float> (joy_caps.wUmin),
                                            static_cast <float> (joy_caps.wUmax),
                                            static_cast <float> (joy_ex.dwUpos) },
-                               
+
                                { "V-Axis", static_cast <float> (joy_caps.wVmin),
                                            static_cast <float> (joy_caps.wVmax),
                                            static_cast <float> (joy_ex.dwVpos) } };
@@ -685,7 +695,7 @@ extern float SK_ImGui_PulseNav_Strength;
       ImGui::Separator       ( );
 
       static bool winmm =
-        ((uintptr_t)GetModuleHandleW (L"Winmm.dll") > 0);
+        ((uintptr_t)SK_GetModuleHandleW (L"Winmm.dll") > 0);
 
       if (winmm)
       {
@@ -725,10 +735,10 @@ extern float SK_ImGui_PulseNav_Strength;
                          deadzone_pos.y + deadzone_size.y );
 
       if ( ( SK_ImGui_Cursor.prefs.no_warp.ui_open ||
-             SK_ImGui_Cursor.prefs.no_warp.visible )  && 
+             SK_ImGui_Cursor.prefs.no_warp.visible )  &&
            ( deadzone_hovered || ImGui::IsMouseHoveringRect ( xy0, xy1, false ) ) )
       {
-        const ImVec4 col = ImColor::HSV ( 0.18f, 
+        const ImVec4 col = ImColor::HSV ( 0.18f,
                                 std::min (1.0f, 0.85f + (sin ((float)(current_time % 400) / 400.0f))),
                                                      (float)(0.66f + (current_time % 830) / 830.0f ) );
         const ImU32 col32 =
@@ -872,7 +882,7 @@ extern float SK_ImGui_PulseNav_Strength;
       ImGui::EndGroup       ( );
 
       if ( SK_ImGui_Cursor.prefs.no_warp.ui_open ||
-           SK_ImGui_Cursor.prefs.no_warp.visible ) 
+           SK_ImGui_Cursor.prefs.no_warp.visible )
       {
         if ( ImGui::SliderFloat ( "Anti-Warp Deadzone##CursorDeadzone",
                                     &float_thresh, 1.0f, 100.0f, "%4.2f%% of Screen" ) )
@@ -921,13 +931,164 @@ extern float SK_ImGui_PulseNav_Strength;
 
     if (devices)
     {
+      ImGui::TreePush  ("");
+      ImGui::Checkbox  ("Disable Mouse Input to Game",    &config.input.mouse.disabled_to_game);
+      ImGui::SameLine  ();
+      ImGui::Checkbox  ("Disable Keyboard Input to Game", &config.input.keyboard.disabled_to_game);
+      ImGui::SameLine  ();
+      ImGui::Checkbox  ("Disable Gamepad Input to Game",  &config.input.gamepad.disabled_to_game);
+      ImGui::Separator ();
+
+      static std::vector <RAWINPUTDEVICE> keyboards_ = SK_RawInput_GetKeyboards ();
+
+      if (! keyboards_.empty ())
+      {
+        static bool toggle =
+          config.input.keyboard.disabled_to_game;
+
+        if (toggle != config.input.keyboard.disabled_to_game)
+        {
+          toggle =
+            config.input.keyboard.disabled_to_game;
+
+          if (! toggle)
+          {
+            SK_RegisterRawInputDevices (&keyboards_ [0], 1, sizeof RAWINPUTDEVICE);
+          }
+
+          else
+          {
+            RAWINPUTDEVICE alt_x =
+              keyboards_ [0];
+
+            alt_x.usUsage     = HID_USAGE_GENERIC_KEYBOARD;
+            alt_x.usUsagePage = HID_USAGE_PAGE_GENERIC;
+            alt_x.dwFlags     = RIDEV_NOLEGACY | /*RIDEV_INPUTSINK |*/ RIDEV_NOHOTKEYS;
+
+            SK_RegisterRawInputDevices (&alt_x, 1, sizeof RAWINPUTDEVICE);
+          }
+        }
+      }
+
+      auto _EnumDeviceFlags =
+        [](            RAWINPUTDEVICE& device,
+            std::vector <std::string>& flags,
+            std::vector <std::string>& descs  ) ->
+        void
+        {
+          const DWORD& dwFlags =
+                device.dwFlags;
+
+          if (dwFlags & RIDEV_REMOVE)
+          {
+            flags.emplace_back ("RIDEV_REMOVE");
+            descs.emplace_back ("Ignoring Device Class");
+          }
+          if (dwFlags & RIDEV_EXCLUDE)
+          {
+            flags.emplace_back ("RIDEV_EXCLUDE");
+            descs.emplace_back ("");
+          }
+          if (dwFlags & RIDEV_PAGEONLY)
+          {
+            flags.emplace_back ("RIDEV_PAGEONLY");
+            descs.emplace_back ("");
+          }
+          if (dwFlags & RIDEV_NOLEGACY)
+          {
+            flags.emplace_back ("RIDEV_NOLEGACY");
+            descs.emplace_back ("Disabling Win32 Device Messages");
+          }
+          if (dwFlags & RIDEV_INPUTSINK)
+          {
+            flags.emplace_back ("RIDEV_INPUTSINK");
+            descs.emplace_back ("RawInput Delivers Data to non-Foreground Windows");
+          }
+          if (dwFlags & RIDEV_CAPTUREMOUSE)
+          {
+            flags.emplace_back ("RIDEV_CAPTUREMOUSE");
+            descs.emplace_back ("Click-to-Activate Disabled");
+          }
+          if (dwFlags & RIDEV_NOHOTKEYS)
+          {
+            flags.emplace_back ("RIDEV_NOHOTKEYS");
+            descs.emplace_back ("Ignoring Most System-defined Alt+... Hotkeys");
+          }
+          if (dwFlags & RIDEV_APPKEYS)
+          {
+            flags.emplace_back ("RIDEV_APPKEYS");
+            descs.emplace_back ("Application-key Shortcuts are Enabled");
+          }
+          if (dwFlags & RIDEV_EXINPUTSINK)
+          {
+            flags.emplace_back ("RIDEV_EXINPUTSINK");
+            descs.emplace_back ("Receive RawInput Data if Foreground App is Not using RawInput");
+          }
+          if (dwFlags & RIDEV_DEVNOTIFY)
+          {
+            flags.emplace_back ("RIDEV_DEVNOTIFY");
+            descs.emplace_back ("Receive RawInput Data if Foreground App is Not using RawInput");
+          }
+        };
+
+      static std::vector <RAWINPUTDEVICE> mice      = SK_RawInput_GetMice      ();
+      static std::vector <RAWINPUTDEVICE> keyboards = SK_RawInput_GetKeyboards ();
+
+      std::vector <std::vector <std::string>> mouse_flags    (mice.size ());
+      std::vector <std::vector <std::string>> mouse_descs    (mice.size ());
+      std::vector <std::vector <std::string>> keyboard_flags (keyboards.size ());
+      std::vector <std::vector <std::string>> keyboard_descs (keyboards.size ());
+
+      ImGui::Text     ("Raw Input Setup");
       ImGui::TreePush ("");
-      ImGui::Checkbox ("Disable Mouse Input to Game",    &config.input.mouse.disabled_to_game);
-      ImGui::SameLine ();
-      ImGui::Checkbox ("Disable Keyboard Input to Game", &config.input.keyboard.disabled_to_game);
-      ImGui::SameLine ();
-      ImGui::Checkbox ("Disable Gamepad Input to Game",  &config.input.gamepad.disabled_to_game);
-      ImGui::TreePop  ();
+
+      ImGui::BeginGroup (           );
+      ImGui::Text       ("Mice"     );
+      ImGui::Separator  (           );
+
+      int idx = 0;
+      for (          auto& mouse : mice )                {
+        _EnumDeviceFlags ( mouse, mouse_flags [  idx],
+                                  mouse_descs [idx++] ); }
+
+      ImGui::BeginGroup   ();
+      for (  auto& flag_array   : mouse_flags )
+      { for (auto& flag         : flag_array  )
+        { ImGui::TextUnformatted (flag.c_str ());
+      } } ImGui::EndGroup ();
+      ImGui::SameLine     ();
+      ImGui::BeginGroup   ();
+      for (  auto& desc_array   : mouse_descs )
+      { for (auto& desc         : desc_array  )
+        { ImGui::TextUnformatted (desc.c_str ());
+      } } ImGui::EndGroup ();
+      ImGui::EndGroup     (                    );
+      ImGui::SameLine     (                    );
+
+      ImGui::BeginGroup   (                    );
+      ImGui::Text         ("Keyboards"         );
+      ImGui::Separator    (                    );
+
+          idx = 0;
+      for (          auto& keyboard : keyboards )               {
+        _EnumDeviceFlags ( keyboard,  keyboard_flags [  idx],
+                                      keyboard_descs [idx++] ); }
+
+      ImGui::BeginGroup     ();
+      for (  auto& flag_array : keyboard_flags )
+      { for (auto& flag       : flag_array     )
+        { ImGui::TextUnformatted (flag.c_str ());
+      } } ImGui::EndGroup   ();
+      ImGui::SameLine       ();
+      ImGui::BeginGroup     ();
+      for (  auto& desc_array : keyboard_descs )
+      { for (auto& desc       : desc_array     )
+        { ImGui::TextUnformatted (desc.c_str ());
+      } } ImGui::EndGroup   ();
+      ImGui::EndGroup       (                  );
+
+      ImGui::TreePop        ();
+      ImGui::TreePop        ();
     }
 
     ImGui::TreePop       ( );

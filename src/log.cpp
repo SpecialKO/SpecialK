@@ -33,7 +33,7 @@ struct IUnknown;
 #include <SpecialK/utility.h>
 
 
-typedef void ( WINAPI *GetSystemTimePreciseAsFileTime_pfn )(
+using GetSystemTimePreciseAsFileTime_pfn = void ( WINAPI * )(
   _Out_ LPFILETIME lpSystemTimeAsFileTime
   );                   GetSystemTimePreciseAsFileTime_pfn
   _k32GetSystemTimePreciseAsFileTime = nullptr;
@@ -45,9 +45,10 @@ SK_Timestamp (wchar_t* const out)
 
   // Check for Windows 8 / Server 2012
   static bool __hasSystemTimePrecise =
-    ( LOBYTE (LOWORD (GetVersion ( ))) == 6 &&
-     HIBYTE (LOWORD (GetVersion  ( ))) >= 2 ) ||
-    LOBYTE (LOWORD (GetVersion   ( )    > 6));
+    SK_GetProcAddress (L"kernel32", "GetSystemTimePreciseAsFileTime") != nullptr;
+    //( LOBYTE (LOWORD (GetVersion ( ))) == 6   &&
+    //  HIBYTE (LOWORD (GetVersion ( ))) >= 2 ) ||
+    //  LOBYTE (LOWORD (GetVersion ( )    > 6));
 
  // More accurate timestamp is available on Windows 6.2+
   if (__hasSystemTimePrecise)
@@ -56,8 +57,8 @@ SK_Timestamp (wchar_t* const out)
     {
       _k32GetSystemTimePreciseAsFileTime =
         (GetSystemTimePreciseAsFileTime_pfn)
-        GetProcAddress (GetModuleHandle (L"kernel32"),
-                        "GetSystemTimePreciseAsFileTime");
+          SK_GetProcAddress ( L"kernel32",
+                               "GetSystemTimePreciseAsFileTime" );
     }
 
     if (_k32GetSystemTimePreciseAsFileTime == nullptr)
@@ -79,11 +80,11 @@ SK_Timestamp (wchar_t* const out)
     GetLocalTime (&stLogTime);
   }
 
-  wchar_t date [32] = { };
-  wchar_t time [32] = { };
+  wchar_t date [48] = { };
+  wchar_t time [48] = { };
 
-  GetDateFormat (LOCALE_INVARIANT, DATE_SHORTDATE,    &stLogTime, nullptr, date, 31);
-  GetTimeFormat (LOCALE_INVARIANT, TIME_NOTIMEMARKER, &stLogTime, nullptr, time, 31);
+  GetDateFormat (LOCALE_INVARIANT, DATE_SHORTDATE,    &stLogTime, nullptr, date, 47);
+  GetTimeFormat (LOCALE_INVARIANT, TIME_NOTIMEMARKER, &stLogTime, nullptr, time, 47);
 
   out [0] = L'\0';
 
@@ -103,7 +104,7 @@ SK_Timestamp (wchar_t* const out)
 //   and this _is_ technically a set, of sorts... but knowing if an element is
 //     present requires treating it like a map and reading a boolean.
 concurrency::concurrent_unordered_map <iSK_Logger *, bool> flush_set;
-HANDLE                                                     hFlushReq  = 0;
+HANDLE                                                     hFlushReq  = nullptr;
 
 DWORD
 WINAPI
@@ -138,12 +139,12 @@ SK_Log_AsyncFlushThreadPump (LPVOID)
       }
     }
 
-    WaitForSingleObjectEx (hFlushReq, INFINITE, FALSE);
-    ResetEvent            (hFlushReq);
+    SK_WaitForSingleObject (hFlushReq, INFINITE);
+    ResetEvent             (hFlushReq);
   }
 
   CloseHandle (hFlushReq);
-               hFlushReq = 0;
+               hFlushReq = nullptr;
 
   SK_Thread_CloseSelf  ();
 
@@ -335,15 +336,15 @@ iSK_Logger::LogEx ( bool                 _Timestamp,
     return;
 
 
-  wchar_t wszFormattedTime [32] = { };
+  wchar_t wszFormattedTime [48] = { };
 
   if (_Timestamp)
   {
-    wchar_t                    wszLogTime [32] = { };
+    wchar_t                    wszLogTime [48] = { };
     UINT    ms = SK_Timestamp (wszLogTime);
 
     _swprintf ( wszFormattedTime,
-                  L"%s%03u: ", 
+                  L"%s%03u: ",
                     wszLogTime,
                       ms );
   }
@@ -352,10 +353,10 @@ iSK_Logger::LogEx ( bool                 _Timestamp,
   va_list   _ArgList;
   va_start (_ArgList, _Format);
   size_t len =
-    _vscwprintf (      _Format, 
-            _ArgList) + 1 + 32; // 32 extra for timestamp
+    _vscwprintf (      _Format,
+            _ArgList) + 1 + 48 + 2; // 48 extra for timestamp
   va_end   (_ArgList);
-                                              
+
 
   SK_TLS *pTLS = nullptr;
 
@@ -421,12 +422,12 @@ iSK_Logger::Log   ( _In_z_ _Printf_format_string_
     return;
 
 
-  wchar_t              wszFormattedTime [32] = { };
-  wchar_t                    wszLogTime [32] = { };
+  wchar_t              wszFormattedTime [48] = { };
+  wchar_t                    wszLogTime [48] = { };
   UINT    ms = SK_Timestamp (wszLogTime);
 
   _swprintf ( wszFormattedTime,
-                L"%s%03u: ", 
+                L"%s%03u: ",
                   wszLogTime,
                     ms );
 
@@ -436,7 +437,7 @@ iSK_Logger::Log   ( _In_z_ _Printf_format_string_
   size_t len =
     _vscwprintf (     _Format,
             _ArgList) + 1 + 2  //  2 extra for CrLf
-                         + 32; // 32 extra for timestamp
+                         + 48; // 32 extra for timestamp
   va_end   (_ArgList);
 
 
@@ -503,7 +504,7 @@ iSK_Logger::Log   ( _In_z_ _Printf_format_string_
     return;
 
 
-  wchar_t                    wszLogTime [32] = { };
+  wchar_t                    wszLogTime [48] = { };
   UINT    ms = SK_Timestamp (wszLogTime);
 
   lock ();
@@ -588,30 +589,33 @@ SK_SummarizeCaller (LPVOID lpReturnAddr)
   wchar_t wszSummary [256] = { };
   char    szSymbol   [256] = { };
   ULONG   ulLen            = 191;
-    
+
   ulLen = SK_GetSymbolNameFromModuleAddr (
               SK_GetCallingDLL (lpReturnAddr),
   reinterpret_cast <uintptr_t> (lpReturnAddr),
                 szSymbol,
                   ulLen );
 
+  std::wstring caller =
+    SK_GetCallerName (lpReturnAddr);
+
   if (ulLen > 0)
   {
-    _snwprintf ( wszSummary, 255,
+    swprintf_s ( wszSummary, 255,
                    L"[ %-25s <%30hs>, tid=0x%04x ]",
 
-           SK_GetCallerName (lpReturnAddr).c_str (),
+           caller.c_str (),
              szSymbol,
                GetCurrentThreadId                ()
     );
   }
 
   else {
-    _snwprintf ( wszSummary, 255,
+    swprintf_s ( wszSummary, 255,
                    L"[ %-58s, tid=0x%04x ]",
-                              
-           SK_GetCallerName (lpReturnAddr).c_str (),
-               GetCurrentThreadId                ()
+
+           caller.c_str         (),
+             GetCurrentThreadId ()
     );
   }
 

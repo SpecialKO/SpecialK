@@ -36,6 +36,56 @@ struct IUnknown;
 #include <vector>
 #include <concurrent_unordered_map.h>
 
+typedef struct _UNICODE_STRING {
+  USHORT Length;
+  USHORT MaximumLength;
+  PWSTR  Buffer;
+} UNICODE_STRING, *PUNICODE_STRING;
+
+HMODULE
+SK_GetModuleHandleW (PCWSTR lpModuleName)
+{
+  HMODULE hMod = nullptr;
+
+  typedef void (WINAPI *RtlInitUnicodeString_pfn)(
+      PUNICODE_STRING DestinationString,
+      PCWSTR          SourceString
+  );
+
+  typedef NTSTATUS (WINAPI *LdrGetDllHandle_pfn)(
+       ULONG,           ULONG,
+ const UNICODE_STRING*, HMODULE* );
+
+  static RtlInitUnicodeString_pfn
+    RtlInitUnicodeString =
+    (RtlInitUnicodeString_pfn) GetProcAddress (
+                                 LoadLibraryW ( L"NtDll.dll" ),
+                                                  "RtlInitUnicodeString" );
+
+  static LdrGetDllHandle_pfn
+         LdrGetDllHandle =
+        (LdrGetDllHandle_pfn) GetProcAddress (
+                                LoadLibraryW ( L"NtDll.dll" ),
+                                                "LdrGetDllHandle" );
+
+  UNICODE_STRING         ucsModuleName;
+  RtlInitUnicodeString (&ucsModuleName, lpModuleName);
+
+  LdrGetDllHandle (
+    0, 0,
+      &ucsModuleName,
+        &hMod
+  );
+
+  if (hMod != nullptr)
+    return hMod;
+
+  return
+    GetModuleHandleW (lpModuleName);
+}
+
+
+
 #define SK_LOG_MINHOOK(status, msg, ...)      \
   SK_LOG0 ( ( msg LR"( (Status: "%hs"))",     \
               ##__VA_ARGS__,                  \
@@ -51,7 +101,7 @@ sk_hook_target_s::serialize_ini (void)
     SK_FormatStringW ( L"%s?%x", module_path, offset );
 }
 
-DWORD
+std::wstring
 sk_hook_target_s::deserialize_ini (const std::wstring& serial_data)
 {
   wchar_t wszPath [MAX_PATH + 2] = { };
@@ -62,7 +112,7 @@ sk_hook_target_s::deserialize_ini (const std::wstring& serial_data)
                     &offset );
 
   HMODULE hModLib =
-    GetModuleHandle (wszPath);
+    SK_GetModuleHandle (wszPath);
 
   if (hModLib == 0)
   {
@@ -83,13 +133,14 @@ sk_hook_target_s::deserialize_ini (const std::wstring& serial_data)
       addr =
         (LPVOID)((uintptr_t)hModLib + offset);
 
-      return mod_info.SizeOfImage;
+      return
+        SK_GetDLLVersionStr (module_path);
     }
   }
 
   addr = 0;
 
-  return 0;
+  return L"";
 }
 
 bool
@@ -111,17 +162,17 @@ SK_Hook_PredictTarget (       sk_hook_cache_record_s &cache,
 
     if (hook_cfg.contains_key (wide_symbol.c_str ()))
     {
-      DWORD dwSize =
+      std::wstring ver_str =
         cache.target.deserialize_ini (
           hook_cfg.get_value (wide_symbol.c_str ())
         );
 
       if ( hook_cfg.contains_key (cache.target.module_path) &&
-             (int)dwSize ==
-               _wtoi ( hook_cfg.get_value (
-                                  cache.target.module_path
-                                          ).c_str () 
-                     )
+             ver_str._Equal (
+               hook_cfg.get_value (
+                          cache.target.module_path
+                                  )
+                            )
          )
       {
         return true;
@@ -168,7 +219,7 @@ SK_Hook_ResolveTarget ( sk_hook_cache_record_s &cache )
       (uint64_t)cache.target.addr -
       (uint64_t)hModBase;
 
-    wcsncpy ( cache.target.module_path, 
+    wcsncpy ( cache.target.module_path,
                 SK_GetModuleFullNameFromAddr (cache.target.addr).c_str (),
                   MAX_PATH );
 
@@ -234,25 +285,28 @@ SK_Hook_CacheTarget (       sk_hook_cache_record_s &cache,
                                    serialized.c_str () );
       }
 
+      std::wstring ver_str =
+        SK_GetDLLVersionStr (cache.target.module_path);
+
       if (hook_cfg.contains_key (cache.target.module_path))
       {
+        extern std::wstring __stdcall
+        SK_GetDLLVersionStr (const wchar_t* wszName);
+
         std::wstring& val =
           hook_cfg.get_value (cache.target.module_path);
 
-        std::wstring size_str =
-          std::to_wstring (cache.target.image_size);
-
-        if (val != size_str)
+        if (! val._Equal (ver_str))
         {
           ini->remove_section (hook_cfg.name.c_str ());
-          val = size_str;
+          val = ver_str;
         }
       }
 
       else
       {
         hook_cfg.add_key_value ( cache.target.module_path,
-                                   std::to_wstring (cache.target.image_size).c_str () );
+                                   ver_str.c_str () );
       }
     }
 
@@ -410,12 +464,16 @@ SK_Hook_PreCacheModule ( const wchar_t                                *wszModule
             }
           }
         }
+        else
+        {
+          it->active = false;
+        }
       }
     }
   }
 
   // It is the calling function's responsibility to do this.
-  //if ( cache_state.hooks_loaded.from_game_ini + 
+  //if ( cache_state.hooks_loaded.from_game_ini +
   //     cache_state.hooks_loaded.from_shared_dll > 0 )
   //{
   //  SK_ApplyQueuedHooks ();
@@ -443,12 +501,12 @@ SK_Hook_IsCacheEnabled ( const wchar_t *wszSecName,
 
   if (ini->contains_section (wszSecName))
   {
-    iSK_INISection& cfg_sec = 
+    iSK_INISection& cfg_sec =
       ini->get_section (wszSecName);
 
     for ( auto& it : pools )
     {
-      std::wstring key_name = 
+      std::wstring key_name =
         SK_FormatStringW (L"Enable%sCache", it.wszName);
 
       if (cfg_sec.contains_key (key_name.c_str ()))
@@ -589,15 +647,6 @@ SK_CreateFuncHookEx ( const wchar_t *pwszFuncName,
   return status;
 }
 
-
-using K32GetModuleInformation_pfn = BOOL (WINAPI *)(HANDLE, HMODULE, LPMODULEINFO, DWORD);
-
-static K32GetModuleInformation_pfn K32GetModuleInformation =
-  reinterpret_cast <K32GetModuleInformation_pfn> (
-    SK_GetProcAddress ( L"kernel32",
-                          "K32GetModuleInformation" )
-  );
-
 bool
 __stdcall
 SK_ValidateHookAddress ( const wchar_t *wszModuleName,
@@ -620,6 +669,14 @@ SK_ValidateHookAddress ( const wchar_t *wszModuleName,
 
   else
   {
+    using K32GetModuleInformation_pfn = BOOL (WINAPI *)(HANDLE, HMODULE, LPMODULEINFO, DWORD);
+
+    static K32GetModuleInformation_pfn K32GetModuleInformation =
+      reinterpret_cast <K32GetModuleInformation_pfn> (
+        SK_GetProcAddress ( L"kernel32",
+                             "K32GetModuleInformation" )
+        );
+
     known =
       K32GetModuleInformation ( GetCurrentProcess (), hModule,
                                          &mod_info, sizeof MODULEINFO );
@@ -832,14 +889,6 @@ SK_CreateDLLHook ( const wchar_t  *pwszModule, const char  *pszProcName,
 }
 
 
-typedef struct _UNICODE_STRING
-{
-  WORD           Length;
-  WORD           MaximumLength;
-  WORD          *Buffer;
-} UNICODE_STRING, *PUNICODE_STRING;
-
-
 typedef struct _LDR_DATA_TABLE_ENTRY
 {
   LIST_ENTRY     InLoadOrderLinks;
@@ -888,14 +937,14 @@ SK_Module_IsProcAddrLocal ( HMODULE  hModExpected,
 MH_STATUS
 __stdcall
 SK_DisableDLLHook ( const wchar_t *pwszModule,
-	                  const char    *pszProcName )
+                    const char    *pszProcName )
 {
    LPVOID pFuncAddr =
       SK_GetProcAddress ( pwszModule,
-		                    pszProcName );
-	
+                            pszProcName );
+
   if (pFuncAddr == nullptr) return MH_ERROR_FUNCTION_NOT_FOUND;
-	
+
   return
     MH_DisableHook (pFuncAddr);
 }
@@ -903,18 +952,17 @@ SK_DisableDLLHook ( const wchar_t *pwszModule,
 MH_STATUS
 __stdcall
 SK_QueueDisableDLLHook ( const wchar_t *pwszModule,
-	                       const char    *pszProcName )
+                         const char    *pszProcName )
 {
   LPVOID pFuncAddr =
-    SK_GetProcAddress ( pwszModule,
-		                  pszProcName );
+    SK_GetProcAddress ( pwszModule, pszProcName );
 
   if (pFuncAddr == nullptr) return MH_ERROR_FUNCTION_NOT_FOUND;
 
   return
     MH_QueueDisableHook (pFuncAddr);
 }
-	                     
+
 MH_STATUS
 __stdcall
 SK_CreateDLLHook2 ( const wchar_t  *pwszModule, const char  *pszProcName,
@@ -1194,7 +1242,7 @@ SK_CreateUser32Hook ( const char  *pszProcName,
 
   if (! tested)
   {
-    SK_TestImports (GetModuleHandle (L"user32"), win32u_test, sizeof (win32u_test) / sizeof sk_import_test_s);
+    SK_TestImports (SK_GetModuleHandle (L"user32"), win32u_test, sizeof (win32u_test) / sizeof sk_import_test_s);
     tested = true;
 
     if (! win32u_test [0].used)
@@ -1270,7 +1318,7 @@ SK_CreateVFTableHookEx ( const wchar_t  *pwszFuncName,
                                void    **ppVFTable,
                                DWORD     dwOffset,
                                void     *pDetour,
-                               void    **ppOriginal, 
+                               void    **ppOriginal,
                                UINT      idx )
 {
   if (ReadAcquire (&__SK_DLL_Ending) || (! ReadAcquire (&__SK_DLL_Attached)))

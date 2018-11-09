@@ -874,7 +874,7 @@ SK_Bypass_CRT (LPVOID)
   SK_Thread_CloseSelf ();
 
   ExitProcess (0);
-  
+
   // The old system to try and restart the bootstrapping process
   //   is impractical, restarting the game works better.
   //
@@ -953,12 +953,12 @@ HRESULT
 SK_COMPAT_FixNahimicDeadlock (void)
 {
   CComPtr <IActivateAudioInterfaceAsyncOperation> aOp;
-  
+
   ActivateAudioInterfaceAsync ( L"I don't exist",
                                   __uuidof (IAudioClient),
                                     nullptr, nullptr, &aOp );
-  
-  if (GetModuleHandle (L"Nahimic2DevProps.dll"))
+
+  if (SK_GetModuleHandle (L"Nahimic2DevProps.dll"))
     return S_OK;
 
   return S_FALSE;
@@ -997,16 +997,16 @@ void
 SK_COMPAT_UnloadFraps (void)
 {
 #ifdef _WIN64
-  if (GetModuleHandle (L"fraps64.dll"))
+  if (SK_GetModuleHandle (L"fraps64.dll"))
   {
     UnhookWindowsHookEx ((HHOOK) SK_GetProcAddress (L"fraps64.dll", "FrapsProcCBT"));
-    FreeLibrary (GetModuleHandle (L"fraps64.dll"));
+    FreeLibrary (SK_GetModuleHandle (L"fraps64.dll"));
   }
 #else
-  if (GetModuleHandle (L"fraps.dll"))
+  if (SK_GetModuleHandle (L"fraps.dll"))
   {
     UnhookWindowsHookEx ((HHOOK) SK_GetProcAddress (L"fraps.dll", "FrapsProcCBT"));
-    FreeLibrary (GetModuleHandle (L"fraps.dll"));
+    FreeLibrary (SK_GetModuleHandle (L"fraps.dll"));
   }
 #endif
 }
@@ -1016,9 +1016,9 @@ bool
 SK_COMPAT_IsFrapsPresent (void)
 {
 #ifdef _WIN64
-  if (GetModuleHandle (L"fraps64.dll") != nullptr)
+  if (SK_GetModuleHandle (L"fraps64.dll") != nullptr)
 #else
-  if (GetModuleHandle (L"fraps.dll") != nullptr)
+  if (SK_GetModuleHandle (L"fraps.dll") != nullptr)
 #endif
   {
     SK_ImGui_Warning (L"FRAPS has been detected, expect weird things to happen until you uninstall it.");

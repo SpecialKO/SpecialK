@@ -24,9 +24,15 @@
 
 #include <SpecialK/diagnostics/load_library.h>
 
+#include <SpecialK/utility.h>
 #include <SpecialK/thread.h>
 #include <SpecialK/core.h>
 #include <mutex>
+
+
+#define SK_GetModuleHandle SK_GetModuleHandleW
+HMODULE SK_GetModuleHandleW (PCWSTR lpModuleName);
+
 
 enum class SK_ModuleEnum {
   PreLoad    = 0x0,
@@ -42,8 +48,6 @@ SK_EnumLoadedModules (SK_ModuleEnum when = SK_ModuleEnum::PreLoad);
 #include <utility>
 #include <cassert>
 #include <unordered_map>
-
-extern SK_Thread_HybridSpinlock* loader_lock;
 
 #ifdef __cplusplus
 extern "C" {
@@ -108,6 +112,30 @@ GetProcessMemoryInfo
 #endif
 
 
+__inline
+SK_Thread_HybridSpinlock*
+SK_DLL_LoaderLockGuard (void)
+{
+  static SK_Thread_HybridSpinlock  static_loader (512);
+  static SK_Thread_HybridSpinlock* loader_lock;
+
+  static volatile LONG               __init  =  0;
+  if (! InterlockedCompareExchange (&__init, 1, 0))
+  {
+    if (loader_lock == nullptr)
+        loader_lock  = &static_loader;
+
+    InterlockedIncrement (&__init);
+  }
+
+  else
+    SK_Thread_SpinUntilAtomicMin (&__init, 2);
+
+  return
+    loader_lock;
+}
+
+
 class skWin32Module
 {
 public:
@@ -143,12 +171,12 @@ public:
 
      assert (dwNameLen > 0 && dwNameLen <= MAX_PATH);
      assert (bHasValidInfo != FALSE);
-     
+
      *this =
        std::move (skWin32Module (hModWin32, mod_info, wszName));
    };
 
-  ~skWin32Module (void)/// 
+  ~skWin32Module (void)///
   {
     const LONG refs =
       ReadAcquire (&refs_);
@@ -193,11 +221,11 @@ public:
     return hMod_;
   };
   operator const _AddressRange& (void) const {
-    return 
+    return
       std::make_pair ( base_,
-                         reinterpret_cast   <LPVOID>    ( 
+                         reinterpret_cast   <LPVOID>    (
                            reinterpret_cast <uintptr_t>   (base_) + size_
-                                                        ) 
+                                                        )
                      );
   }
   operator const std::wstring&  (void) {
@@ -214,7 +242,7 @@ public:
   static constexpr LONG     Unreferenced  =  0;
   static constexpr LPVOID   Unaddressable =  0;
   static constexpr size_t   Unallocated   =  0;
-  static constexpr const wchar_t* 
+  static constexpr const wchar_t*
                       const Unnamed       = L"";
 
 
@@ -237,13 +265,106 @@ protected:
 class skModuleRegistry
 {
 public:
+  skModuleRegistry (void)
+  {
+    _known_module_bases.reserve (64);
+    _known_module_names.reserve (64);
+    _loaded_libraries.reserve   (64);
+  }
+
   static constexpr HMODULE INVALID_MODULE = nullptr;
+
+  bool
+    isValid (HMODULE hModTest) const
+  {
+    return ( hModTest > 0 //&&
+                       );// hModTest != INVALID_MODULE );
+  }
+
+  HMODULE
+    getLibrary ( const wchar_t *wszLibrary, bool add_ref    = true,
+                                            bool force_load = true )
+  {
+    const bool bEmpty =
+      _known_module_names.empty ();
+
+    if (bEmpty && (! force_load))
+      return INVALID_MODULE;
+
+    HMODULE hMod =
+      bEmpty ? INVALID_MODULE :
+               _FindLibraryByName (wszLibrary);
+
+    bool ref_added = false;
+
+    if (hMod == INVALID_MODULE && force_load)
+    {
+      hMod =
+        LoadLibraryLL (wszLibrary);
+
+      if (hMod != INVALID_MODULE) ref_added = true;
+    }
+
+    if (hMod != INVALID_MODULE)
+    {
+      if (add_ref == false && ref_added == true)
+      {
+        std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (
+          *SK_DLL_LoaderLockGuard ()
+        );
+        _loaded_libraries [hMod].Release ();
+      }
+
+      return hMod;
+    }
+
+    return INVALID_MODULE;
+  }
+
+  HMODULE
+    getLoadedLibrary ( const wchar_t *wszLibrary, bool add_ref = false )
+  {
+    if (_known_module_names.empty ())
+      return INVALID_MODULE;
+
+    HMODULE hMod =
+      _FindLibraryByName (wszLibrary);
+
+    if (hMod == INVALID_MODULE)
+    {
+      hMod =
+        SK_GetModuleHandle (wszLibrary);
+
+      if (hMod != INVALID_MODULE)
+        _RegisterLibrary (hMod, wszLibrary);
+    }
+
+    if (hMod != INVALID_MODULE)
+    {
+      if (add_ref == true)
+      {
+        std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (
+          *SK_DLL_LoaderLockGuard ()
+        );
+        _loaded_libraries [hMod].AddRef ();
+      }
+
+      return hMod;
+    }
+
+    return INVALID_MODULE;
+  }
 
 private:
   // Don't forget to free anything you find!
   HMODULE _FindLibraryByName (const wchar_t *wszLibrary)
   {
-    std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*loader_lock);
+    std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (
+                    *SK_DLL_LoaderLockGuard ()
+    );
+
+    if (_known_module_names.empty ())
+      return INVALID_MODULE;
 
     const auto& it =
       _known_module_names.find ( std::wstring (wszLibrary) );
@@ -259,7 +380,9 @@ private:
 
   bool _RegisterLibrary (HMODULE hMod, const wchar_t *wszLibrary)
   {
-    std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*loader_lock);
+    std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (
+                    *SK_DLL_LoaderLockGuard ()
+    );
 
     MODULEINFO mod_info = { };
 
@@ -279,7 +402,9 @@ private:
   // Returns INVALID_MODULE if no more references exist
   HMODULE _ReleaseLibrary (skWin32Module& library)
   {
-    std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*loader_lock);
+    std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (
+                    *SK_DLL_LoaderLockGuard ()
+    );
 
     assert (library != INVALID_MODULE);
 
@@ -398,7 +523,7 @@ public:
   //   ** It WOULD be nice to support concurrent module name lookups with
   //      out locking, but this is already more complicated than needed.
 protected:
-  std::map            <LPVOID,       HMODULE>        _known_module_bases;
+  std::unordered_map  <LPVOID,       HMODULE>        _known_module_bases;
   std::unordered_map  <std::wstring, HMODULE>        _known_module_names;
 
   std::unordered_map  <HMODULE,      skWin32Module>  _loaded_libraries;
@@ -410,7 +535,7 @@ protected:
 
 __inline
 LONG
-skWin32Module::AddRef (void) 
+skWin32Module::AddRef (void)
 {
   // This would add an actual reference in Win32, but we should be able to
   //   get away with ONE OS-level reference and our own counter.
@@ -425,39 +550,39 @@ skWin32Module::AddRef (void)
 
 __inline
 LONG
-skWin32Module::Release (void) 
+skWin32Module::Release (void)
 {
   const LONG ret =
     InterlockedDecrement (&refs_);
 
-  if (refs_ == 0)
-  {
-    auto&&         registrar = SK_Modules;
-     auto& libs  ( registrar._loaded_libraries   );
-     auto& names ( registrar._known_module_names );
-     auto& addrs ( registrar._known_module_bases );
-
-    const BOOL really_gone =
-      FreeLibrary (hMod_);
-
-    const auto& it =
-      libs.find (hMod_);
-
-    if (   it != libs.cend () )
-    {
-      // All of our references, plus all of the game's references are gone
-      if (really_gone)
-      {
-        // So we have to stop knowing that which is unknowable
-        names.erase (it->second);
-        addrs.erase (it->second);
-      }
-
-      libs.erase (hMod_);
-    }
-
-    delete this;
-  }
+  ///if (refs_ == 0)
+  ///{
+  ///  auto&&         registrar = SK_Modules;
+  ///   auto& libs  ( registrar._loaded_libraries   );
+  ///   auto& names ( registrar._known_module_names );
+  ///   auto& addrs ( registrar._known_module_bases );
+  ///
+  ///  const BOOL really_gone =
+  ///    FreeLibrary (hMod_);
+  ///
+  ///  const auto& it =
+  ///    libs.find (hMod_);
+  ///
+  ///  if (   it != libs.cend () )
+  ///  {
+  ///    // All of our references, plus all of the game's references are gone
+  ///    if (really_gone)
+  ///    {
+  ///      // So we have to stop knowing that which is unknowable
+  ///      names.erase (it->second);
+  ///      addrs.erase (it->second);
+  ///    }
+  ///
+  ///    libs.erase (hMod_);
+  ///  }
+  ///
+  ///  delete this;
+  ///}
 
   return ret;
 }

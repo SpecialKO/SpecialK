@@ -23,6 +23,7 @@
 #include <SpecialK/config.h>
 #include <SpecialK/core.h>
 #include <SpecialK/render/dxgi/dxgi_interfaces.h>
+#include <SpecialK/render/dxgi/dxgi_backend.h>
 #include <SpecialK/parameter.h>
 #include <SpecialK/import.h>
 #include <SpecialK/utility.h>
@@ -155,7 +156,10 @@ struct {
 struct {
   struct {
     sk::ParameterBool*    trace_reads;
-  } file_io;
+    sk::ParameterStringW  ignore_reads;
+    sk::ParameterBool*    trace_writes;
+    sk::ParameterStringW  ignore_writes;
+  } file;
 } reverse_engineering;
 
 struct {
@@ -261,6 +265,13 @@ struct {
     sk::ParameterFloat*   hdr_luminance;
   } overlay;
 } steam;
+
+struct {
+  struct
+  {
+    sk::ParameterFloat*   hdr_luminance;
+  } overlay;
+} uplay;
 
 struct {
   struct {
@@ -507,24 +518,32 @@ SK_GetConfigPathEx (bool reset = false)
   if ((! SK_IsInjected ()) && (! config.system.central_repository))
     return SK_GetNaiveConfigPath ();
 
-  static bool init = false;
+  static volatile LONG init = FALSE;
 
-  if (! init)
+  if (! InterlockedCompareExchange (&init, 1, 0))
   {
+    InterlockedIncrement (&init);
     app_cache_mgr.loadAppCacheForExe         ( SK_GetFullyQualifiedApp () );
-    init = true;
   }
 
-  static std::wstring path =
-    app_cache_mgr.getConfigPathFromAppPath   ( SK_GetFullyQualifiedApp () );
+  else
+    SK_Thread_SpinUntilAtomicMin (&init, 3);
 
-  if (reset)
+  static wchar_t cached_path [MAX_PATH * 2 + 1] = { };
+
+  if (reset || ReadAcquire (&init) == 2)
   {
-    path =
-      app_cache_mgr.getConfigPathFromAppPath ( SK_GetFullyQualifiedApp () );
+    wcscpy ( cached_path,
+               app_cache_mgr.getConfigPathFromAppPath (
+                 SK_GetFullyQualifiedApp ()
+               ).c_str ()
+           );
   }
 
-  return path.c_str ();
+  InterlockedIncrement (&init);
+
+  return
+    cached_path;
 }
 
 __declspec (noinline)
@@ -561,6 +580,14 @@ SK_CreateINIParameter ( const wchar_t *wszDescription,
 bool
 SK_LoadConfigEx (std::wstring name, bool create)
 {
+  if (name.empty ())
+  {
+    if (SK_IsInjected ())
+      name = L"SpecialK";
+    else
+      name = SK_GetBackend ();
+  }
+
   static std::wstring orig_name = name;
 
   if (name.empty ()) name = orig_name;
@@ -709,6 +736,8 @@ auto DeclKeybind =
 
     ConfigEntry (monitoring.SLI.show,                    L"Show SLI Monitoring",                                       osd_ini,         L"Monitor.SLI",           L"Show"),
 
+    ConfigEntry (uplay.overlay.hdr_luminance,            L"Make the uPlay Overlay visible in HDR mode!",               osd_ini,         L"uPlay.Overlay",         L"Luminance_scRGB"),
+
     // Performance Monitoring  (Global Settings)
     //////////////////////////////////////////////////////////////////////////
 
@@ -855,7 +884,7 @@ auto DeclKeybind =
     ConfigEntry (version,                                L"The last version that wrote the config file",               dll_ini,         L"SpecialK.System",       L"Version"),
 
 
-    
+
     ConfigEntry (display.force_fullscreen,               L"Force Fullscreen Mode",                                     dll_ini,         L"Display.Output",        L"ForceFullscreen"),
     ConfigEntry (display.force_windowed,                 L"Force Windowed Mode",                                       dll_ini,         L"Display.Output",        L"ForceWindowed"),
     ConfigEntry (render.osd.hdr_luminance,               L"OSD's Luminance (cd.m^-2) in HDR games",                    dll_ini,         L"Render.OSD",            L"HDRLuminance"),
@@ -972,7 +1001,10 @@ auto DeclKeybind =
     ConfigEntry (imgui.antialias_contours,               L"Reduce Aliasing on (but widen) Window Borders",             dll_ini,         L"ImGui.Render",          L"AntialiasContours"),
 
 
-    ConfigEntry (reverse_engineering.file_io.trace_reads,L"Log file read activity to logs/file_read.log",              dll_ini,         L"FileIO.Trace",          L"LogReads"),
+    ConfigEntry (reverse_engineering.file.trace_reads,   L"Log file read activity to logs/file_read.log",              dll_ini,         L"FileIO.Trace",          L"LogReads"),
+    ConfigEntry (reverse_engineering.file.ignore_reads,  L"Don't log activity for files in this list",                 dll_ini,         L"FileIO.Trace",          L"IgnoreReads"),
+    ConfigEntry (reverse_engineering.file.trace_writes,  L"Log file write activity to logs/file_write.log",            dll_ini,         L"FileIO.Trace",          L"LogWrites"),
+    ConfigEntry (reverse_engineering.file.ignore_writes, L"Don't log activity for files in this list",                 dll_ini,         L"FileIO.Trace",          L"IgnoreWrites"),
 
     ConfigEntry (cpu.power_scheme_guid,                  L"Power Policy (GUID) to Apply At Application Start",         dll_ini,         L"CPU.Power",             L"PowerSchemeGUID"),
 
@@ -1351,6 +1383,10 @@ auto DeclKeybind =
   games.emplace ( L"Shenmue2.exe",                           SK_GAME_ID::Shenmue                      );
   games.emplace ( L"SteamLauncher.exe",                      SK_GAME_ID::Shenmue                      ); // Bad idea
   games.emplace ( L"DRAGON QUEST XI.exe",                    SK_GAME_ID::DragonQuestXI                );
+  games.emplace ( L"ACOdyssey.exe",                          SK_GAME_ID::AssassinsCreed_Odyssey       );
+  games.emplace ( L"ACOrigins.exe",                          SK_GAME_ID::AssassinsCreed_Odyssey       );
+  games.emplace ( L"JustCause3.exe",                         SK_GAME_ID::JustCause3                   );
+  games.emplace ( L"ed8.exe",                                SK_GAME_ID::TrailsOfColdSteel            );
 
   //
   // Application Compatibility Overrides
@@ -1739,6 +1775,13 @@ auto DeclKeybind =
         config.textures.d3d11.cache_gen_mips    = false;
         break;
 
+      case SK_GAME_ID::TrailsOfColdSteel:
+        SK_D3D11_DeclHUDShader (0x497dc49d, ID3D11VertexShader);
+        SK_D3D11_DeclHUDShader (0x671ca0fa, ID3D11VertexShader);
+        SK_D3D11_DeclHUDShader (0x75cf58de, ID3D11VertexShader);
+        break;
+
+
 #ifdef _WIN64
       case SK_GAME_ID::Yakuza0:
         ///// Engine has a problem with its texture management that
@@ -1763,6 +1806,19 @@ auto DeclKeybind =
         config.render.framerate.yield_once        = true;
         break;
 
+      case SK_GAME_ID::AssassinsCreed_Odyssey:
+        config.apis.d3d9.hook                     = false;
+        config.apis.d3d9ex.hook                   = false;
+        config.apis.OpenGL.hook                   = false;
+        config.apis.Vulkan.hook                   = false;
+        config.render.framerate.enable_mmcss      = true;
+        config.textures.cache.residency_managemnt = false;
+        config.render.framerate.busy_wait_limiter = true;
+        config.render.framerate.buffer_count      = 3;
+        config.render.framerate.pre_render_limit  = 4;
+        config.textures.cache.max_size            = 5120;
+        break;
+
       case SK_GAME_ID::Shenmue:
         config.textures.d3d11.generate_mips       = true;
         config.textures.d3d11.uncompressed_mips   = true;
@@ -1771,6 +1827,22 @@ auto DeclKeybind =
         config.render.framerate.busy_wait_limiter = false;
         config.render.framerate.yield_once        = true;
         break;
+
+      case SK_GAME_ID::CallOfCthulhu:
+      {
+        SK_D3D11_DeclHUDShader (0x28c1a0d6, ID3D11PixelShader);
+      } break;
+
+      case SK_GAME_ID::JustCause3:
+      {
+        // This game has multiple windows, we can't hook the wndproc
+        config.window.dont_hook_wndproc   = true;
+        //config.system.display_debug_out = true;
+        config.steam.force_load_steamapi  = true;
+        config.steam.auto_inject          = true;
+        config.steam.auto_pump_callbacks  = true;
+        config.steam.silent               = true;
+      } break;
 
       case SK_GAME_ID::MonsterHunterWorld:
       {
@@ -2103,7 +2175,7 @@ auto DeclKeybind =
   render.dxgi.deferred_isolation->load (config.render.dxgi.deferred_isolation);
   render.dxgi.skip_present_test->load  (config.render.dxgi.present_test_skip);
   render.dxgi.msaa_samples->load       (config.render.dxgi.msaa_samples);
- 
+
 
   texture.d3d11.cache->load        (config.textures.d3d11.cache);
   texture.d3d11.precise_hash->load (config.textures.d3d11.precise_hash);
@@ -2272,7 +2344,69 @@ auto DeclKeybind =
   }
 
 
-  reverse_engineering.file_io.trace_reads->load (config.file_io.trace_reads);
+  reverse_engineering.file.trace_reads->load  (config.file_io.trace_reads);
+  reverse_engineering.file.trace_writes->load (config.file_io.trace_writes);
+
+  if (config.file_io.trace_reads)
+  {
+    extern iSK_Logger *read_log;
+
+    if (read_log == nullptr)
+        read_log = SK_CreateLog (LR"(logs\file_reads.log)");
+  }
+
+  if (config.file_io.trace_writes)
+  {
+    extern iSK_Logger *write_log;
+
+    if (write_log == nullptr)
+        write_log = SK_CreateLog (LR"(logs\file_writes.log)");
+  }
+
+  if (((sk::iParameter *)&reverse_engineering.file.ignore_reads)->load ())
+  {
+    std::unique_ptr <wchar_t> wszCSV (
+      _wcsdup (reverse_engineering.file.ignore_reads.get_value ().c_str ())
+    );
+
+    wchar_t* wszBuf = nullptr;
+    wchar_t* wszTok =
+      std::wcstok (wszCSV.get (), L",", &wszBuf);
+
+    while (wszTok != nullptr)
+    {
+      if (*wszTok != L'>')
+        config.file_io.ignore_reads.single_file.insert   (           wszTok);
+      else
+        config.file_io.ignore_reads.entire_thread.insert (CharNextW (wszTok));
+
+      wszTok =
+        std::wcstok (nullptr, L",", &wszBuf);
+    }
+  }
+
+  if (((sk::iParameter *)&reverse_engineering.file.ignore_writes)->load ())
+  {
+    std::unique_ptr <wchar_t> wszCSV (
+      _wcsdup (reverse_engineering.file.ignore_writes.get_value ().c_str ())
+    );
+
+    wchar_t* wszBuf = nullptr;
+    wchar_t* wszTok =
+      std::wcstok (wszCSV.get (), L",", &wszBuf);
+
+    while (wszTok != nullptr)
+    {
+      if (*wszTok != L'>')
+        config.file_io.ignore_writes.single_file.insert   (           wszTok);
+      else
+        config.file_io.ignore_writes.entire_thread.insert (CharNextW (wszTok));
+
+      wszTok =
+        std::wcstok (nullptr, L",", &wszBuf);
+    }
+  }
+
 
   std::wstring tmp;
   cpu.power_scheme_guid->load (tmp);
@@ -2361,6 +2495,8 @@ auto DeclKeybind =
   steam.screenshots.smart_capture->load       (config.steam.screenshots.enable_hook);
   steam.screenshots.include_osd_default->load (config.steam.screenshots.show_osd_by_default);
   steam.screenshots.keep_png_copy->load       (config.steam.screenshots.png_compress);
+
+  uplay.overlay.hdr_luminance->load           (config.uplay.overlay_luminance);
 
   LoadKeybind (&config.steam.screenshots.game_hud_free_keybind);
   LoadKeybind (&config.steam.screenshots.sk_osd_free_keybind);
@@ -2685,7 +2821,7 @@ SK_ResHack_PatchGame2 ( uint32_t width,
   *(orig + 1) = height;
 
   auto* pOut = reinterpret_cast <uint32_t *> (nullptr);
-    //reinterpret_cast  <uint32_t *> (GetModuleHandle (nullptr));
+    //reinterpret_cast  <uint32_t *> (SK_GetModuleHandle (nullptr));
 
   for (int i = 0 ; i < 5; i++)
   {
@@ -2729,6 +2865,15 @@ SK_ResHack_PatchGame2 ( uint32_t width,
 bool
 SK_DeleteConfig (std::wstring name)
 {
+  if (name.empty ())
+  {
+    if (SK_IsInjected ())
+      name = L"SpecialK";
+    else
+      name = SK_GetBackend ();
+  }
+
+
   wchar_t wszFullName [ MAX_PATH + 2 ] = { };
 
   if ( name.find (L'/' ) == name.npos &&
@@ -2748,6 +2893,14 @@ void
 SK_SaveConfig ( std::wstring name,
                 bool         close_config )
 {
+  if (name.empty ())
+  {
+    if (SK_IsInjected ())
+      name = L"SpecialK";
+    else
+      name = SK_GetBackend ();
+  }
+
   //
   // Shutting down before initialization would be damn near fatal if we didn't catch this! :)
   //
@@ -3092,10 +3245,24 @@ SK_SaveConfig ( std::wstring name,
 
   // Keep this setting hidden (not to be sneaky; but to prevent overwhelming users with
   //   extremely esoteric options -- this is needed for a lot of settings =P)
-  if (! config.file_io.trace_reads)
+  if (! ( config.file_io.trace_reads  || config.file_io.trace_writes ||
+          ( config.file_io.ignore_reads.entire_thread.size  () +
+            config.file_io.ignore_reads.single_file.size    () ) > 0 ||
+          ( config.file_io.ignore_writes.entire_thread.size () +
+            config.file_io.ignore_writes.single_file.size   () ) > 0
+          )
+      )
+  {
     dll_ini->remove_section (L"FileIO.Trace");
+  }
+
   else
-    reverse_engineering.file_io.trace_reads->store (config.file_io.trace_reads);
+  {
+    if (config.file_io.trace_reads)
+      reverse_engineering.file.trace_reads->store (config.file_io.trace_reads);
+    if (config.file_io.trace_writes)
+      reverse_engineering.file.trace_writes->store (config.file_io.trace_writes);
+  }
 
 
   static const GUID empty_guid = { };
@@ -3164,6 +3331,8 @@ SK_SaveConfig ( std::wstring name,
   steam.screenshots.include_osd_default->
                                    store    (config.steam.screenshots.show_osd_by_default);
   steam.screenshots.keep_png_copy->store    (config.steam.screenshots.png_compress);
+
+  uplay.overlay.hdr_luminance->store        (config.uplay.overlay_luminance);
 
   silent->store                             (config.system.silent);
   log_level->store                          (config.system.log_level);
@@ -3723,11 +3892,11 @@ SK_AppCache_Manager::getConfigPathForAppID (uint32_t uiAppID) const
     if (recursing)
       return path;
 
-    DWORD dwAttribs = 
+    DWORD dwAttribs =
       GetFileAttributesW (original_dir.c_str ());
 
     //if ( GetFileAttributesW (path.c_str ()) == INVALID_FILE_ATTRIBUTES &&
-    if (   dwAttribs != INVALID_FILE_ATTRIBUTES && 
+    if (   dwAttribs != INVALID_FILE_ATTRIBUTES &&
          ( dwAttribs & FILE_ATTRIBUTE_DIRECTORY )  )
     {
       UINT

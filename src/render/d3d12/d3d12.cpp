@@ -147,7 +147,7 @@ SK_D3D12_Init (void)
   if (SK::DXGI::hModD3D12 == nullptr)
   {
     SK::DXGI::hModD3D12 =
-      LoadLibraryW_Original (L"d3d12.dll");
+      SK_Modules.LoadLibraryLL (L"d3d12.dll");
   }
 
   if (SK::DXGI::hModD3D12 != nullptr)

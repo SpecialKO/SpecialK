@@ -367,7 +367,7 @@ SK_BootDI7 (void)
       else if (hBackend != nullptr)
       {
         const bool bProxy =
-          ( GetModuleHandle (L"dinput8.dll") != hBackend );
+          ( SK_GetModuleHandle (L"dinput8.dll") != hBackend );
 
         if ( MH_OK ==
                 SK_CreateDLLHook2 (      L"dinput.dll",
@@ -428,7 +428,7 @@ UNREFERENCED_PARAMETER (user);
 
     // OpenGL
     //
-    if (gl || GetModuleHandle (L"OpenGL32.dll"))
+    if (gl || SK_GetModuleHandle (L"OpenGL32.dll"))
       SK_BootOpenGL ();
 
 
@@ -440,17 +440,17 @@ UNREFERENCED_PARAMETER (user);
 
     // D3D9
     //
-    if (d3d9 || GetModuleHandle (L"d3d9.dll"))
+    if (d3d9 || SK_GetModuleHandle (L"d3d9.dll"))
       SK_BootD3D9 ();
 
 
     // D3D11
     //
-    if (d3d11 || GetModuleHandle (L"d3d11.dll"))
+    if (d3d11 || SK_GetModuleHandle (L"d3d11.dll"))
       SK_BootDXGI ();
 
     // Alternate form (or D3D12, but we don't care about that right now)
-    else if (dxgi || GetModuleHandle (L"dxgi.dll"))
+    else if (dxgi || SK_GetModuleHandle (L"dxgi.dll"))
       SK_BootDXGI ();
 
 
@@ -1255,7 +1255,7 @@ SK_Input_HookDI7 (void)
 
   static volatile LONG hooked = FALSE;
 
-  if (GetModuleHandle (L"dinput.dll"))
+  if (SK_GetModuleHandle (L"dinput.dll"))
   {
     if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
     {
@@ -1269,7 +1269,7 @@ SK_Input_HookDI7 (void)
       //  (SK_GetDLLRole () & DLL_ROLE::DInput8) ? backend_dll :
       //                                  GetModuleHandle (L"dinput8.dll");
 
-      if (GetProcAddress (GetModuleHandle (L"dinput.dll"), "DirectInputCreateEx"))
+      if (GetProcAddress (SK_GetModuleHandle (L"dinput.dll"), "DirectInputCreateEx"))
       {
         SK_CreateDLLHook2 (      L"dinput.dll",
                                   "DirectInputCreateEx",
@@ -1287,7 +1287,7 @@ SK_Input_HookDI7 (void)
           static_cast_p2p <void> (&DirectInputCreateW_Import) );
       }
 
-      if (GetModuleHandle (L"dinput8.dll"))
+      if (SK_GetModuleHandle (L"dinput8.dll"))
       {
         SK_Input_HookDI8 ();
       }
@@ -1314,14 +1314,14 @@ SK_Input_PreHookDI7 (void)
 
     SK_TestImports (GetModuleHandle (nullptr), tests, 2);
 
-    if (tests [1].used || GetModuleHandle (L"dinput8.dll"))
+    if (tests [1].used || SK_GetModuleHandle (L"dinput8.dll"))
     {            SK_Modules.LoadLibraryLL (L"dinput8.dll");
 
       if (SK_GetDLLRole () != DLL_ROLE::DInput8)
         SK_Input_PreHookDI8 ();
     }
 
-    if (tests [0].used || GetModuleHandle (L"dinput.dll"))
+    if (tests [0].used || SK_GetModuleHandle (L"dinput.dll"))
    {             SK_Modules.LoadLibraryLL (L"dinput.dll");
 
       //if (SK_GetDLLRole () != DLL_ROLE::DInput7)

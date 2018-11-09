@@ -465,7 +465,7 @@ SK_RenderBackend_V2::gsync_s::update (void)
 
   if ( rb.device        == nullptr ||
        rb.swapchain     == nullptr ||
-       rb.surface.nvapi == 0 )
+       rb.surface.nvapi == nullptr )
   {
     if (rb.surface.d3d9 != nullptr) rb.surface.d3d9->Release ();
     if (rb.surface.dxgi != nullptr) rb.surface.dxgi->Release ();
@@ -722,6 +722,9 @@ __declspec (noinline)
 bool
 SK_RenderBackend_V2::isHDRCapable (void)
 {
+  if (framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR)
+    hdr_capable = true;
+
   if (driver_based_hdr)
     hdr_capable = true;
 
@@ -746,9 +749,9 @@ SK_RenderBackend_V2::releaseOwnedResources (void)
     SK_LOG1 ( ( L"API: %x", api ),
               __SK_SUBSYSTEM__ );
 
-    // D3D11On12 (PHASING OUT)
-    d3d11.interop.backbuffer_rtv   = nullptr;
-    d3d11.interop.backbuffer_tex2D = nullptr;
+    //// D3D11On12 (PHASING OUT)
+    //d3d11.interop.backbuffer_rtv   = nullptr;
+    //d3d11.interop.backbuffer_tex2D = nullptr;
 
     d3d11.deferred_ctx  = nullptr;
     d3d11.immediate_ctx = nullptr;
@@ -778,14 +781,14 @@ SK_RenderBackend_V2::releaseOwnedResources (void)
   {
     surface.d3d9->Release ();
     surface.d3d9  = nullptr;
-    surface.nvapi = 0;
+    surface.nvapi = nullptr;
   }
 
   if (surface.dxgi != nullptr)
   {
     surface.dxgi->Release ();
     surface.dxgi  = nullptr;
-    surface.nvapi = 0;
+    surface.nvapi = nullptr;
   }
 }
 
@@ -850,7 +853,7 @@ SK_RenderBackend_V2::window_registry_s::getFocus (void)
 void
 SK_RenderBackend_V2::window_registry_s::setFocus (HWND hWnd)
 {
-  if (focus.hwnd == nullptr || ( GetActiveWindow () == hWnd && GetFocus () == hWnd && hWnd != 0))
+  if (focus.hwnd == nullptr || ( GetFocus () == hWnd && hWnd != 0 && GetActiveWindow () == hWnd ) )
   {
     focus              = hWnd;
     game_window.hWnd   = hWnd;
@@ -868,7 +871,6 @@ SK_RenderBackend_V2::window_registry_s::setFocus (HWND hWnd)
                  L"GetActiveWindow () != this" : L""  ),
               L"  DEBUG!  ");
   }
-
   if (! IsWindow (device))
   {
     SK_LOG0 ( (L"Treating focus HWND as device HWND because device HWND was invalid."),

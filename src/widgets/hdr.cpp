@@ -30,11 +30,17 @@
 #include <SpecialK/steam_api.h>
 #include <SpecialK/plugin/plugin_mgr.h>
 
+#include <SpecialK/utility/bidirectional_map.h>
+
 #define SK_HDR_SECTION     L"SpecialK.HDR"
 #define SK_MISC_SECTION    L"SpecialK.Misc"
 
 extern iSK_INI*             dll_ini;
 extern sk::ParameterFactory g_ParameterFactory;
+
+
+extern int   __SK_HDR_input_gamut;
+extern int   __SK_HDR_output_gamut;
 
 
 static auto DeclKeybind =
@@ -84,7 +90,6 @@ auto
 
 void SK_ImGui_DrawGamut (void);
 
-
 sk::ParameterBool* _SK_HDR_10BitSwapChain;
 sk::ParameterBool* _SK_HDR_16BitSwapChain;
 sk::ParameterInt*  _SK_HDR_ActivePreset;
@@ -112,11 +117,18 @@ struct SK_HDR_Preset_s {
   float        peak_white_nits;
   float        eotf;
 
+  struct {
+    int in  = 0,
+        out = 0;
+  } colorspace;
+
   std::wstring annotation = L"";
 
-  sk::ParameterFloat*   cfg_nits    = nullptr;
-  sk::ParameterFloat*   cfg_eotf    = nullptr;
-  sk::ParameterStringW* cfg_notes   = nullptr;
+  sk::ParameterFloat*   cfg_nits       = nullptr;
+  sk::ParameterFloat*   cfg_eotf       = nullptr;
+  sk::ParameterStringW* cfg_notes      = nullptr;
+  sk::ParameterInt*     cfg_in_cspace  = nullptr;
+  sk::ParameterInt*     cfg_out_cspace = nullptr;
 
   SK_ConfigSerializedKeybind
     preset_activate = {
@@ -133,6 +145,9 @@ struct SK_HDR_Preset_s {
 
     __SK_HDR_Luma = peak_white_nits;
     __SK_HDR_Exp  = eotf;
+
+    __SK_HDR_input_gamut  = colorspace.in;
+    __SK_HDR_output_gamut = colorspace.out;
 
     if (_SK_HDR_ActivePreset != nullptr)
     {   _SK_HDR_ActivePreset->store (preset_idx);
@@ -168,6 +183,16 @@ struct SK_HDR_Preset_s {
                    SK_FormatStringW (L"scRGBGamma_[%lu]",     preset_idx).c_str (),
                                eotf, L"scRGB Gamma" );
 
+      cfg_in_cspace =
+        _CreateConfigParameterInt ( SK_HDR_SECTION,
+                 SK_FormatStringW (L"InputColorSpace_[%lu]", preset_idx).c_str (),
+                    colorspace.in, L"Input ColorSpace" );
+
+      cfg_out_cspace =
+        _CreateConfigParameterInt ( SK_HDR_SECTION,
+                 SK_FormatStringW (L"OutputColorSpace_[%lu]", preset_idx).c_str (),
+                   colorspace.out, L"Output ColorSpace" );
+
       wcsncpy_s ( preset_activate.short_name,                           32,
         SK_FormatStringW (L"Activate%lu", preset_idx).c_str (), _TRUNCATE );
 
@@ -188,10 +213,10 @@ struct SK_HDR_Preset_s {
                                   );
     }
   }
-} static hdr_presets [4] = { { "HDR Preset 0", 0, 300.0_Nits, 1.0f, L"F1" },
-                             { "HDR Preset 1", 1, 300.0_Nits, 1.0f, L"F2" },
-                             { "HDR Preset 2", 2, 300.0_Nits, 1.0f, L"F3" },
-                             { "HDR Preset 3", 3, 300.0_Nits, 1.0f, L"F4" } };
+} static hdr_presets [4] = { { "HDR Preset 0", 0, 80.0_Nits, 1.0f, 0,0, L"F1" },
+                             { "HDR Preset 1", 1, 80.0_Nits, 1.0f, 0,0, L"F2" },
+                             { "HDR Preset 2", 2, 80.0_Nits, 1.0f, 0,0, L"F3" },
+                             { "HDR Preset 3", 3, 80.0_Nits, 1.0f, 0,0, L"F4" } };
 
 BOOL
 CALLBACK
@@ -244,7 +269,7 @@ public:
 
   void run (void) override
   {
-    static bool first = true;
+    static bool first_widget_run = true;
 
     auto& rb =
       SK_GetCurrentRenderBackend ();
@@ -256,6 +281,12 @@ public:
       {
         rb.scanout.colorspace_override =
           DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709;
+      }
+
+      else
+      {
+        rb.scanout.colorspace_override =
+          DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020;
       }
 
       CComQIPtr <IDXGISwapChain3> pSwap3 (
@@ -271,7 +302,7 @@ public:
       }
     }
 
-    if (first) first = false;
+    if (first_widget_run) first_widget_run = false;
     else return;
 
     hdr_presets [0].setup (); hdr_presets [1].setup ();
@@ -309,7 +340,7 @@ public:
     {
       if (__SK_HDR_10BitSwap)
       {
-        SK_GetCurrentRenderBackend ().scanout.colorspace_override =
+        rb.scanout.colorspace_override =
           DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020;
       }
     }
@@ -320,7 +351,7 @@ public:
       {
         //dll_log.Log (L"Test");
 
-        SK_GetCurrentRenderBackend ().scanout.colorspace_override =
+        rb.scanout.colorspace_override =
           DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709;
       }
     }
@@ -333,6 +364,19 @@ public:
 
     auto& rb =
       SK_GetCurrentRenderBackend ();
+
+
+    static SKTL_BidirectionalHashMap <int, std::wstring>
+      __SK_HDR_ColorSpaceMap =
+      {
+        { 0, L"Unaltered" }, { 1, L"Rec709"  },
+        { 2, L"DCI-P3"    }, { 3, L"Rec2020" },
+        { 4, L"CIE_XYZ"   }
+      };
+
+    static const char* __SK_HDR_ColorSpaceComboStr =
+      "Unaltered\0Rec. 709\0DCI-P3\0Rec. 2020\0CIE XYZ\0\0";
+
 
     if (! rb.isHDRCapable ())
       return;
@@ -507,6 +551,7 @@ public:
         _SK_HDR_10BitSwapChain->store (__SK_HDR_10BitSwap);
         _SK_HDR_16BitSwapChain->store (__SK_HDR_16BitSwap);
 
+
         dll_ini->write (dll_ini->get_filename ());
       }
 
@@ -520,6 +565,15 @@ public:
 
         _SK_HDR_10BitSwapChain->store (__SK_HDR_10BitSwap);
         _SK_HDR_16BitSwapChain->store (__SK_HDR_16BitSwap);
+
+        if (__SK_HDR_16BitSwap)
+        {
+          config.window.borderless               = true;
+          config.window.fullscreen               = true;
+          config.render.framerate.flip_discard   = true;
+          config.render.framerate.buffer_count   = 3;
+          config.render.framerate.swapchain_wait = 66;
+        }
 
         dll_ini->write (dll_ini->get_filename ());
       }
@@ -830,15 +884,50 @@ public:
 
           ImGui::Separator ();
 
-          extern int   __SK_HDR_input_gamut;
-          extern int   __SK_HDR_output_gamut;
           extern int   __SK_HDR_visualization;
           extern float __SK_HDR_user_sdr_Y;
 
           ImGui::BeginGroup  ();
           ImGui::BeginGroup  ();
-          ImGui::Combo       ("Source ColorSpace##SK_HDR_GAMUT_IN",  &__SK_HDR_input_gamut,  "Unaltered\0Rec. 709\0DCI-P3\0Rec. 2020\0CIE XYZ\0\0");
-          ImGui::Combo       ("Output ColorSpace##SK_HDR_GAMUT_OUT", &__SK_HDR_output_gamut, "Unaltered\0Rec. 709\0DCI-P3\0Rec. 2020\0CIE XYZ\0\0");
+
+          auto& preset =
+            hdr_presets [__SK_HDR_Preset];
+
+          if ( ImGui::Combo ( "Source ColorSpace##SK_HDR_GAMUT_IN", 
+                                             &preset.colorspace.in,
+                __SK_HDR_ColorSpaceComboStr)                        )
+          {
+            if (__SK_HDR_ColorSpaceMap.count (preset.colorspace.in))
+            {
+              __SK_HDR_input_gamut     =   preset.colorspace.in;
+              preset.cfg_in_cspace->store (preset.colorspace.in);
+
+              pINI->write (pINI->get_filename ());
+            }
+
+            else
+            {
+              preset.colorspace.in = __SK_HDR_input_gamut;
+            }
+          }
+
+          if ( ImGui::Combo ( "Output ColorSpace##SK_HDR_GAMUT_OUT", 
+                                             &preset.colorspace.out,
+                __SK_HDR_ColorSpaceComboStr )                       )
+          {
+            if (__SK_HDR_ColorSpaceMap.count (preset.colorspace.out))
+            {
+              __SK_HDR_output_gamut     =   preset.colorspace.out;
+              preset.cfg_out_cspace->store (preset.colorspace.out);
+
+              pINI->write (pINI->get_filename ());
+            }
+
+            else
+            {
+              preset.colorspace.out = __SK_HDR_output_gamut;
+            }
+          }
           ImGui::EndGroup    ();
           //ImGui::SameLine    ();
           ImGui::BeginGroup  ();

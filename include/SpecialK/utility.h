@@ -158,6 +158,7 @@ void           SK_LogSymbolName             (LPCVOID addr);
 char*          SK_StripUserNameFromPathA    (   char*  szInOut);
 wchar_t*       SK_StripUserNameFromPathW    (wchar_t* wszInOut);
 
+FARPROC WINAPI SK_GetProcAddress            (      HMODULE  hMod,      const char* szFunc);
 FARPROC WINAPI SK_GetProcAddress            (const wchar_t* wszModule, const char* szFunc);
 
 
@@ -167,7 +168,7 @@ std::wstring
 
 const wchar_t*
         __stdcall
-               SK_GetCanonicalDLLForRole    (DLL_ROLE role);
+               SK_GetCanonicalDLLForRole    (enum DLL_ROLE role);
 
 const wchar_t* SK_DescribeHRESULT           (HRESULT hr);
 
@@ -177,6 +178,17 @@ void           SK_GetSystemInfo             (LPSYSTEM_INFO lpSystemInfo);
 
 PSID SK_Win32_GetTokenSid     (_TOKEN_INFORMATION_CLASS tic );
 PSID SK_Win32_ReleaseTokenSid (PSID                     pSid);
+
+
+
+extern void WINAPI  SK_ExitProcess      (      UINT      uExitCode  );
+extern void WINAPI  SK_ExitThread       (      DWORD     dwExitCode );
+extern BOOL WINAPI  SK_TerminateThread  (      HANDLE    hThread,
+                                               DWORD     dwExitCode );
+extern BOOL WINAPI  SK_TerminateProcess (      HANDLE    hProcess,
+                                               UINT      uExitCode  );
+extern void __cdecl SK__endthreadex     ( _In_ unsigned _ReturnCode );
+
 
 constexpr uint8_t
 __stdcall

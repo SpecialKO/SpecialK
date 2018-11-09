@@ -28,6 +28,7 @@ struct IUnknown;
 
 #include <CEGUI/CEGUI.h>
 #include <SpecialK/config.h>
+#include <SpecialK/utility/bidirectional_map.h>
 
 class SK_PopupWindow {
 friend class SK_PopupManager;
@@ -126,8 +127,9 @@ private:
   static SK_PopupManager* __manager__;
   static CRITICAL_SECTION cs;
 
-  std::map <SK_PopupWindow *, CEGUI::Window  *> popups_;
-  std::map <CEGUI::Window  *, SK_PopupWindow *> popups_rev_;
+  SKTL_BidirectionalHashMap <
+    SK_PopupWindow *, CEGUI::Window  *
+  > popups_ { };
 
   CEGUI::GUIContext*                            gui_ctx_;
 };
@@ -184,8 +186,7 @@ SK_PopupManager::createPopup (const char* szLayout)
 
     if (popup->window_ != nullptr)
     {
-      popups_.insert     (std::make_pair (popup, popup->window_));
-      popups_rev_.insert (std::make_pair (popup->window_, popup));
+      popups_.addKeyValue (popup, popup->window_);
 
       popup->window_->subscribeEvent (
         "DestructStart",//CEGUI::Window::EventDestructionStarted,
@@ -220,8 +221,7 @@ SK_PopupManager::destroyPopup (SK_PopupWindow* popup)
     CEGUI::WindowManager& window_mgr =
       CEGUI::WindowManager::getDllSingleton ();
 
-    popups_.erase     (popups_rev_ [popup->window_]);
-    popups_rev_.erase (popup->window_);
+    popups_.erase (popup->window_);
 
     //popup->window_->hide ();
     window_mgr.destroyWindow (popup->window_);
@@ -260,7 +260,6 @@ SK_PopupManager::destroyAllPopups (void)
   }
 
   popups_.clear     ();
-  popups_rev_.clear ();
 }
 
 #include <SpecialK/log.h>
@@ -271,11 +270,7 @@ SK_PopupManager::OnDestroyPopup (const CEGUI::EventArgs& e)
   auto& win_event =
     (CEGUI::WindowEventArgs &)e;
 
-  if (popups_rev_.count (win_event.window))
-  {
-    popups_.erase     (popups_rev_ [win_event.window]);
-    popups_rev_.erase (win_event.window);
-  }
+  popups_.erase (win_event.window);
 
   return true;
 }

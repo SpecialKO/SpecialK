@@ -1291,7 +1291,7 @@ void ResetCEGUI_GL (void)
         glGetIntegerv (GL_ARRAY_BUFFER_BINDING,         &last_array_buffer);
         glGetIntegerv (GL_ELEMENT_ARRAY_BUFFER_BINDING, &last_element_array_buffer);
         glGetIntegerv (GL_VERTEX_ARRAY_BINDING,         &last_vertex_array);
-        
+
         // Do not touch the default VAO state (assuming the context even has one)
         static GLuint ceGL_VAO = 0;
                   if (ceGL_VAO == 0 || (! glIsVertexArray (ceGL_VAO))) glGenVertexArrays (1, &ceGL_VAO);
@@ -1415,7 +1415,7 @@ wglDeleteContext (HGLRC hglrc)
     {
       it->second = nullptr;
     }
-  
+
     ++it;
   }
 
@@ -1430,7 +1430,7 @@ wglDeleteContext (HGLRC hglrc)
       cegGL->destroySystem ();
       cegGL       = nullptr;
     }
-    
+
     init_ [__gl_primary_context] = false;
            __gl_primary_context  = nullptr;
   }
@@ -1530,11 +1530,11 @@ SK_GL_PushMostStates (void)
 
   for (GLuint i = 0; i < 80; i++)
   {
-  	glActiveTexture (GL_TEXTURE0 + i);
-  	glGetIntegerv (GL_TEXTURE_BINDING_2D, &sb._textures2d [i]);
-  	glGetIntegerv (GL_SAMPLER_BINDING,    &sb._samplers   [i]);
+    glActiveTexture (GL_TEXTURE0 + i);
+    glGetIntegerv (GL_TEXTURE_BINDING_2D, &sb._textures2d [i]);
+    glGetIntegerv (GL_SAMPLER_BINDING,    &sb._samplers   [i]);
   }
-  
+
   glGetIntegerv (GL_VIEWPORT,    sb._viewport);
   glGetIntegerv (GL_SCISSOR_BOX, sb._scissor_box);
 
@@ -1573,12 +1573,12 @@ SK_GL_PushMostStates (void)
   sb._srgb = glIsEnabled (GL_FRAMEBUFFER_SRGB);
 
   glGetBooleanv (GL_COLOR_WRITEMASK, sb._color_mask);
-  
+
   for (GLuint i = 0; i < 8; i++)
   {
-  	GLint                                       drawbuffer = GL_NONE;
-  	glGetIntegerv (GL_DRAW_BUFFER0 + i,        &drawbuffer);
-  	sb._drawbuffers [i] = static_cast <GLenum> (drawbuffer);
+    GLint                                       drawbuffer = GL_NONE;
+    glGetIntegerv (GL_DRAW_BUFFER0 + i,        &drawbuffer);
+    sb._drawbuffers [i] = static_cast <GLenum> (drawbuffer);
   }
 
   glGenVertexArrays (1, &sb._temp_vao);
@@ -1605,14 +1605,14 @@ SK_GL_PopMostStates (void)
     glBindFramebuffer (GL_READ_BUFFER, sb._read_fbo);
   if (sb._draw_fbo != sb._fbo)
     glBindFramebuffer (GL_DRAW_BUFFER, sb._draw_fbo);
-  
+
   for (GLuint i = 0; i < 80; i++)
   {
-  	glActiveTexture (GL_TEXTURE0 + i);
-  	glBindTexture   (GL_TEXTURE_2D, sb._textures2d [i]);
-  	glBindSampler   (i, sb._samplers [i]);
+    glActiveTexture (GL_TEXTURE0 + i);
+    glBindTexture   (GL_TEXTURE_2D, sb._textures2d [i]);
+    glBindSampler   (i, sb._samplers [i]);
   }
-  
+
   glActiveTexture ( sb._active_texture);
   glViewport      ( sb._viewport    [0], sb._viewport [1],
                     sb._viewport    [2], sb._viewport [3] );
@@ -1655,7 +1655,7 @@ SK_GL_PopMostStates (void)
                sb._color_mask [1],
                sb._color_mask [2],
                sb._color_mask [3] );
-  
+
   if (sb._drawbuffers [1] == GL_NONE &&
       sb._drawbuffers [2] == GL_NONE &&
       sb._drawbuffers [3] == GL_NONE &&
@@ -1664,11 +1664,11 @@ SK_GL_PopMostStates (void)
       sb._drawbuffers [6] == GL_NONE &&
       sb._drawbuffers [7] == GL_NONE)
   {
-  	glDrawBuffer (sb._drawbuffers [0]);
+    glDrawBuffer (sb._drawbuffers [0]);
   }
   else
   {
-  	glDrawBuffers (8, sb._drawbuffers);
+    glDrawBuffers (8, sb._drawbuffers);
   }
 
   glDeleteVertexArrays (1, &sb._temp_vao);
@@ -1703,7 +1703,7 @@ SK_Overlay_DrawGL (void)
             static_cast <float> (rect_now.bottom - rect_now.top)
         )
     );
-  
+
     need_resize    = false;
     reset_overlays = true;
   }
@@ -1717,7 +1717,7 @@ SK_Overlay_DrawGL (void)
 
   SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
-  
+
   if (last_srgb_framebuffer)
     rb.framebuffer_flags |= SK_FRAMEBUFFER_FLAG_SRGB;
   else
@@ -1742,7 +1742,7 @@ SK_Overlay_DrawGL (void)
 
 
   if (config.cegui.enable)
-  {    
+  {
     if (cegGL != nullptr)
     {
       cegGL->beginRendering ();
@@ -1752,7 +1752,7 @@ SK_Overlay_DrawGL (void)
           SK_TextOverlayManager::getInstance ( )->resetAllOverlays (cegGL);
           reset_overlays = false;
         }
-  
+
         SK_TextOverlayManager::getInstance ()->drawAllOverlays     (0.0f, 0.0f);
             CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
       }
@@ -1784,7 +1784,7 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
 
-  HGLRC& thread_hglrc = 
+  HGLRC& thread_hglrc =
     pTLS->gl.current_hglrc;
   HDC&   thread_hdc   =
     pTLS->gl.current_hdc;
@@ -1800,14 +1800,14 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
       //   other hook libraries are congruent
       wglMakeCurrent ( (thread_hdc   = SK_GL_GetCurrentDC      ()),
                        (thread_hglrc = SK_GL_GetCurrentContext ()) );
-    
+
       pTLS->gl.current_hwnd =
         WindowFromDC (thread_hdc);
-    
+
       need_init = true;
     }
 
- 
+
     if (thread_hglrc != nullptr)
     {
       bool shared_ctx =
@@ -1860,7 +1860,7 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
   BOOL status = false;
 
 
-  bool compatible_dc = 
+  bool compatible_dc =
     (__gl_primary_context == thread_hglrc);
 
   if (! compatible_dc)
@@ -2499,11 +2499,11 @@ SK_HookGL (void)
 
       wgl_swap_buffers =
         (wglSwapBuffers_pfn)GetProcAddress         (local_gl, "wglSwapBuffers");
-      wgl_make_current =                           
+      wgl_make_current =
         (wglMakeCurrent_pfn)GetProcAddress         (local_gl, "wglMakeCurrent");
-      wgl_share_lists =                            
+      wgl_share_lists =
         (wglShareLists_pfn)GetProcAddress          (local_gl, "wglShareLists");
-      wgl_delete_context =                         
+      wgl_delete_context =
         (wglDeleteContext_pfn)GetProcAddress       (local_gl, "wglDeleteContext");
       wgl_swap_multiple_buffers =
         (wglSwapMultipleBuffers_pfn)GetProcAddress (local_gl, "wglSwapMultipleBuffers");
@@ -2933,7 +2933,7 @@ SK_HookGL (void)
 
     //
     // This will invoke wglSwapBuffers (...); hooking it is useful
-    //   in order to control when the overlay is drawn. 
+    //   in order to control when the overlay is drawn.
     //
     SK_CreateDLLHook2 (       L"gdi32.dll",
                                "SwapBuffers",
@@ -3069,17 +3069,17 @@ SK_GL_GetD3D9ExInteropDevice (void)
 
     if (SUCCEEDED (hr))
     {
-      hwnd = 
+      hwnd =
         SK_Win32_CreateDummyWindow ();
 
       D3DPRESENT_PARAMETERS pparams = { };
-      
+
       pparams.SwapEffect       = D3DSWAPEFFECT_FLIPEX;
       pparams.BackBufferFormat = D3DFMT_UNKNOWN;
       pparams.hDeviceWindow    = hwnd;
       pparams.Windowed         = TRUE;
       pparams.BackBufferCount  = 2;
-      
+
       if ( FAILED ( pD3D9Ex->CreateDeviceEx (
                       D3DADAPTER_DEFAULT,
                         D3DDEVTYPE_HAL,

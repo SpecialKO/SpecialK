@@ -38,13 +38,6 @@ LONG SK_D3D11_CBufferTrackingReqs;
 extern iSK_INI*             dll_ini;
 extern sk::ParameterFactory g_ParameterFactory;
 
-
-volatile LONG __SK_DQXI_QueuedShots         = 0;
-volatile LONG __SK_DQXI_InitiateHudFreeShot = 0;
-
-extern
-volatile LONG __SK_ScreenShot_CapturingHUDless;
-
 #include <SpecialK\widgets\widget.h>
 
 
@@ -191,55 +184,6 @@ std::unordered_set <uint32_t>
 
 bool
 __SK_DQXI_MakeAsyncObjectsGreatAgain = true;
-
-extern LONG
-SK_D3D11_ShowGameHUD (void);
-
-extern LONG
-SK_D3D11_HideGameHUD (void);
-
-void
-SK_DQXI_BeginFrame (void)
-{
-  if ( ReadAcquire (&__SK_DQXI_QueuedShots)          > 0 ||
-       ReadAcquire (&__SK_DQXI_InitiateHudFreeShot) != 0    )
-  {
-        InterlockedExchange        (&__SK_ScreenShot_CapturingHUDless, 1);
-    if (InterlockedCompareExchange (&__SK_DQXI_InitiateHudFreeShot, -2, 1) == 1)
-    {
-      SK_D3D11_HideGameHUD ();
-    }
-
-    // 1-frame Delay for SDR->HDR Upconversion
-    else if (InterlockedCompareExchange (&__SK_DQXI_InitiateHudFreeShot, -1, -2) == -2)
-    {
-      SK::SteamAPI::TakeScreenshot (SK::ScreenshotStage::EndOfFrame);
-      InterlockedDecrement (&SK_D3D11_DrawTrackingReqs);
-    }
-
-    else if (! ReadAcquire (&__SK_DQXI_InitiateHudFreeShot))
-    {
-      InterlockedDecrement (&__SK_DQXI_QueuedShots);
-      InterlockedExchange  (&__SK_DQXI_InitiateHudFreeShot, 1);
-
-      return
-        SK_DQXI_BeginFrame ();
-    }
-
-    return;
-  }
-
-  InterlockedExchange (&__SK_ScreenShot_CapturingHUDless, 0);
-}
-
-void
-SK_DQXI_EndFrame (void)
-{
-  if (InterlockedCompareExchange (&__SK_DQXI_InitiateHudFreeShot, 0, -1) == -1)
-  {
-    SK_D3D11_ShowGameHUD ();
-  }
-}
 
 sk::ParameterBool* _SK_DQXI_IgnoreExitKeys;
 bool __SK_DQXI_IgnoreExit = true;
@@ -431,14 +375,11 @@ SK_DQXI_PlugInInit (void)
 
   //ue4_cfg.init ();
 
-  static auto& shaders =
-    SK_D3D11_Shaders;
+  for (               auto& it : __SK_DQXI_UI_Vtx_Shaders)
+  SK_D3D11_DeclHUDShader   (it,        ID3D11VertexShader);
 
-  for ( auto& it : __SK_DQXI_UI_Vtx_Shaders )
-  {  shaders.vertex.hud.emplace (it); }
-
-  for ( auto& it : __SK_DQXI_UI_Pix_Shaders )
-  {  shaders.pixel.hud.emplace (it);  }
+  for (               auto& it : __SK_DQXI_UI_Pix_Shaders)
+  SK_D3D11_DeclHUDShader   (it,         ID3D11PixelShader);
 }
 
 static auto

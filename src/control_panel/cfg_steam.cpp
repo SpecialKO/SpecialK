@@ -29,6 +29,8 @@
 #include <SpecialK/utility.h>
 #include <SpecialK/parameter.h>
 
+#include <SpecialK/utility/bidirectional_map.h>
+
 #include <SpecialK/steam_api.h>
 
 extern volatile LONG SK_SteamAPI_CallbackRateLimit;
@@ -157,18 +159,15 @@ SK::ControlPanel::Steam::Draw (void)
           {
             ImGui::SameLine ();
             
-            static std::unordered_map <std::wstring, int> sound_map
+            static SKTL_BidirectionalHashMap <std::wstring, int> sound_map
             {  { L"psn", 0 }, { L"xbox", 1 }, { L"dream_theater", 2 }  };
-
-            static std::unordered_map <int, std::wstring> sound_map_rev
-            {  { 0, L"psn" }, { 1, L"xbox" }, { 2, L"dream_theater" }  };
 
             int i = 0;
             
-            auto it =
+            const auto& it =
               sound_map.find (config.steam.achievements.sound_file);
 
-            if (it != sound_map.end ())
+            if (it != sound_map.cend ())
             {
               if (! config.steam.achievements.sound_file.empty ())
                 i = it->second;
@@ -179,7 +178,7 @@ SK::ControlPanel::Steam::Draw (void)
             if (ImGui::Combo ("###AchievementSound", &i, "PlayStation Network\0Xbox Live\0Dream Theater\0Custom\0\0", 4))
             {
               config.steam.achievements.sound_file =
-                sound_map_rev [i];
+                sound_map [i];
 
               SK_Steam_LoadUnlockSound (
                 config.steam.achievements.sound_file.c_str ()

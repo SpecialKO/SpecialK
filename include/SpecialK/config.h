@@ -27,6 +27,7 @@ struct IUnknown;
 #include <Windows.h>
 #include <string>
 #include <set>
+#include <unordered_set>
 
 #include <SpecialK/render/backend.h>
 
@@ -329,6 +330,10 @@ struct sk_config_t
     } screenshots;
   } steam;
 
+  struct {
+    float overlay_luminance     = 4.375f; // 350 nits
+  } uplay;
+
 
   struct {
     struct {
@@ -440,7 +445,7 @@ struct sk_config_t
       bool    allow_staging       = false;
       bool    allow_unsafe_refs   = false; // Allow texture caching even in engines that
                                            //   are not correctly keeping track of resources
-      bool    residency_managemnt = true;
+      bool    residency_managemnt = false;// true;
       bool    vibrate_on_miss     = false;
     } cache;
 
@@ -453,6 +458,13 @@ struct sk_config_t
   struct {
     bool trace_reads              = false;
     bool trace_writes             = false;
+
+    struct ignore_files_s {
+      Concurrency::concurrent_unordered_set <std::wstring> single_file;
+      Concurrency::concurrent_unordered_set <std::wstring> entire_thread;
+    } ignore_reads,
+      ignore_writes;
+
   } file_io;
 
   struct {
@@ -673,9 +685,9 @@ struct SK_KeyCommand
 
 
 bool SK_LoadConfigEx (      std::wstring  name, bool create = true);
-bool SK_LoadConfig   (const std::wstring& name              = L"dxgi");
-bool SK_DeleteConfig (      std::wstring  name              = L"dxgi");
-void SK_SaveConfig   (      std::wstring  name              = L"dxgi",
+bool SK_LoadConfig   (const std::wstring& name              = L"");
+bool SK_DeleteConfig (      std::wstring  name              = L"");
+void SK_SaveConfig   (      std::wstring  name              = L"",
                       bool                close_config      = false);
 
 //
@@ -774,6 +786,10 @@ enum class SK_GAME_ID
   MonsterHunterWorld,           // MonsterHunterWorld.exe
   Shenmue,                      // Shenmue.exe
   DragonQuestXI,                // DRAGON QUEST XI.exe
+  AssassinsCreed_Odyssey,       // ACOdyssey.exe
+  JustCause3,                   // JustCause3.exe
+  CallOfCthulhu,                // CallOfCthulhu.exe
+  TrailsOfColdSteel,            // ed8.exe
   UNKNOWN_GAME               = 0xffff
 };
 

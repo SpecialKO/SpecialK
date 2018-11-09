@@ -39,25 +39,26 @@ struct IUnknown;
 # define  SK_PUBLIC_API __stdcall 
 #endif
 
+#ifdef __cplusplus
+# define     SK_INCLUDE_START(Source) __pragma (once) extern "C" {
+# define SK_INCLUDE_START_CPP(Source) __pragma (once)
 
-#if defined (_MSC_VER) && (_MSC_VER >= 1020)
-# ifdef __cplusplus
-#  define SK_INCLUDE_START(Source) \
-    __pragma (once)                \
-    extern "C" {
-#  define SK_INCLUDE_END(Source)   \
-    };
-# else
-#  define SK_INCLUDE_START(Source) \
-    __pragma (once)
-#  define SK_INCLUDE_END(Source)   \
-    0;
-# endif
+# define     SK_INCLUDE_END(Source)   };
+# define SK_INCLUDE_END_CPP(Source)
 #else
-# define SK_INCLUDE_START(Source) \
-   message ("Newer compiler required.")
-# define SK_INCLUDE_END(Source)   \
-   message ("Newer compiler required.")
+# define     SK_INCLUDE_START(Source) __pragma (once)
+# define SK_INCLUDE_START_CPP(Source) message ("C++ compiler required.")
+
+# define     SK_INCLUDE_END(Source)   0;
+# define SK_INCLUDE_END_CPP(Source)   message ("C++ compiler required.")
+#endif
+
+
+#if (! (defined (_MSC_VER) && (_MSC_VER >= 1020)))
+# define     SK_INCLUDE_START(Source) message ("Newer compiler required.")
+# define SK_INCLUDE_START_CPP(Source) message ("Newer compiler required.")
+# define       SK_INCLUDE_END(Source) message ("Newer compiler required.")
+# define   SK_INCLUDE_END_CPP(Source) message ("Newer compiler required.")
 #endif
 
 #endif /* __SK__SPECIALK_H__ */

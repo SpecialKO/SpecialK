@@ -621,6 +621,7 @@ EnumerateThreads (PFROZEN_THREADS pThreads)
 }
 
 #include <corecrt_wstdio.h>
+#include <stdio.h>
 
 //-------------------------------------------------------------------------
 static
@@ -666,13 +667,14 @@ FreezeEx (PFROZEN_THREADS pThreads, UINT pos, UINT action, UINT idx)
       {
         wchar_t wszOutput [256];
                *wszOutput = L'\0';
+       *(wszOutput + 255) = L'\0';
 
 #ifdef _WIN64
-        _swprintf (wszOutput, L"MinHook: Deep Freeze: Ratio=%f [%f/%f] { Spins: %I64u }",
-                   frozen_ratio, (float)frozen, (float)running, spinCount);
+        swprintf_s (wszOutput, 255, L"MinHook: Deep Freeze: Ratio=%f [%f/%f] { Spins: %I64u }",
+                    frozen_ratio, (float)frozen, (float)running, spinCount);
 #else
-        _swprintf (wszOutput, L"MinHook: Deep Freeze: Ratio=%f [%f/%f] { Spins: %Iu }",
-                   frozen_ratio, (float)frozen, (float)running, spinCount);
+        swprintf_s (wszOutput, 255, L"MinHook: Deep Freeze: Ratio=%f [%f/%f] { Spins: %Iu }",
+                    frozen_ratio, (float)frozen, (float)running, spinCount);
 #endif
 
         OutputDebugStringW (wszOutput);

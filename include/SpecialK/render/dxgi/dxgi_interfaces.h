@@ -22,6 +22,8 @@
 #ifndef __SK__DXGI_INTERFACES_H__
 #define __SK__DXGI_INTERFACES_H__
 
+#include <SpecialK/com_util.h>
+
 /* this ALWAYS GENERATED file contains the definitions for the interfaces */
 
 
@@ -187,11 +189,11 @@ extern "C"{
   /* [local] */ 
 
 //#include <winapifamily.h>
-#define DXGI_CPU_ACCESS_NONE    ( 0 )
-#define DXGI_CPU_ACCESS_DYNAMIC    ( 1 )
-#define DXGI_CPU_ACCESS_READ_WRITE    ( 2 )
-#define DXGI_CPU_ACCESS_SCRATCH    ( 3 )
-#define DXGI_CPU_ACCESS_FIELD        15
+#define DXGI_CPU_ACCESS_NONE                        (  0  )
+#define DXGI_CPU_ACCESS_DYNAMIC                     (  1  )
+#define DXGI_CPU_ACCESS_READ_WRITE                  (  2  )
+#define DXGI_CPU_ACCESS_SCRATCH                     (  3  )
+#define DXGI_CPU_ACCESS_FIELD                          15
 #define DXGI_USAGE_SHADER_INPUT             ( 1L << (0 + 4) )
 #define DXGI_USAGE_RENDER_TARGET_OUTPUT     ( 1L << (1 + 4) )
 #define DXGI_USAGE_BACK_BUFFER              ( 1L << (2 + 4) )
@@ -203,18 +205,18 @@ extern "C"{
 
   typedef struct DXGI_FRAME_STATISTICS
   {
-    UINT PresentCount;
-    UINT PresentRefreshCount;
-    UINT SyncRefreshCount;
+    UINT          PresentCount;
+    UINT          PresentRefreshCount;
+    UINT          SyncRefreshCount;
     LARGE_INTEGER SyncQPCTime;
     LARGE_INTEGER SyncGPUTime;
-  } 	DXGI_FRAME_STATISTICS;
+  }   DXGI_FRAME_STATISTICS;
 
   typedef struct DXGI_MAPPED_RECT
   {
-    INT Pitch;
+    INT   Pitch;
     BYTE *pBits;
-  } 	DXGI_MAPPED_RECT;
+  }   DXGI_MAPPED_RECT;
 
 #ifdef __midl
   typedef struct _LUID
@@ -228,16 +230,16 @@ extern "C"{
 #endif
   typedef struct DXGI_ADAPTER_DESC
   {
-    WCHAR Description[ 128 ];
-    UINT VendorId;
-    UINT DeviceId;
-    UINT SubSysId;
-    UINT Revision;
+    WCHAR  Description [128];
+    UINT   VendorId;
+    UINT   DeviceId;
+    UINT   SubSysId;
+    UINT   Revision;
     SIZE_T DedicatedVideoMemory;
     SIZE_T DedicatedSystemMemory;
     SIZE_T SharedSystemMemory;
-    LUID AdapterLuid;
-  } 	DXGI_ADAPTER_DESC;
+    LUID   AdapterLuid;
+  }   DXGI_ADAPTER_DESC;
 
 #if !defined(HMONITOR_DECLARED) && !defined(HMONITOR) && (WINVER < 0x0500)
 #define HMONITOR_DECLARED
@@ -249,43 +251,39 @@ extern "C"{
 #endif
   typedef struct DXGI_OUTPUT_DESC
   {
-    WCHAR DeviceName[ 32 ];
-    RECT DesktopCoordinates;
-    BOOL AttachedToDesktop;
+    WCHAR              DeviceName [32];
+    RECT               DesktopCoordinates;
+    BOOL               AttachedToDesktop;
     DXGI_MODE_ROTATION Rotation;
-    HMONITOR Monitor;
-  } 	DXGI_OUTPUT_DESC;
+    HMONITOR           Monitor;
+  }   DXGI_OUTPUT_DESC;
 
   typedef struct DXGI_SHARED_RESOURCE
   {
     HANDLE Handle;
-  } 	DXGI_SHARED_RESOURCE;
+  } DXGI_SHARED_RESOURCE;
 
-#define	DXGI_RESOURCE_PRIORITY_MINIMUM	( 0x28000000 )
-
-#define	DXGI_RESOURCE_PRIORITY_LOW	( 0x50000000 )
-
-#define	DXGI_RESOURCE_PRIORITY_NORMAL	( 0x78000000 )
-
-#define	DXGI_RESOURCE_PRIORITY_HIGH	( 0xa0000000 )
-
-#define	DXGI_RESOURCE_PRIORITY_MAXIMUM	( 0xc8000000 )
+#define	DXGI_RESOURCE_PRIORITY_MINIMUM  ( 0x28000000 )
+#define	DXGI_RESOURCE_PRIORITY_LOW      ( 0x50000000 )
+#define	DXGI_RESOURCE_PRIORITY_NORMAL   ( 0x78000000 )
+#define	DXGI_RESOURCE_PRIORITY_HIGH	    ( 0xa0000000 )
+#define	DXGI_RESOURCE_PRIORITY_MAXIMUM  ( 0xc8000000 )
 
   typedef 
   enum DXGI_RESIDENCY
   {
-    DXGI_RESIDENCY_FULLY_RESIDENT	= 1,
-    DXGI_RESIDENCY_RESIDENT_IN_SHARED_MEMORY	= 2,
-    DXGI_RESIDENCY_EVICTED_TO_DISK	= 3
+    DXGI_RESIDENCY_FULLY_RESIDENT	           = 1,
+    DXGI_RESIDENCY_RESIDENT_IN_SHARED_MEMORY = 2,
+    DXGI_RESIDENCY_EVICTED_TO_DISK           = 3
   } 	DXGI_RESIDENCY;
 
   typedef struct DXGI_SURFACE_DESC
   {
-    UINT Width;
-    UINT Height;
-    DXGI_FORMAT Format;
+    UINT             Width;
+    UINT             Height;
+    DXGI_FORMAT      Format;
     DXGI_SAMPLE_DESC SampleDesc;
-  } 	DXGI_SURFACE_DESC;
+  }   DXGI_SURFACE_DESC;
 
   typedef 
   enum DXGI_SWAP_EFFECT
@@ -294,34 +292,34 @@ extern "C"{
     DXGI_SWAP_EFFECT_SEQUENTIAL      = 1,
     DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL = 3,
     DXGI_SWAP_EFFECT_FLIP_DISCARD    = 4
-  }  DXGI_SWAP_EFFECT;
+  }   DXGI_SWAP_EFFECT;
 
   typedef 
   enum DXGI_SWAP_CHAIN_FLAG
   {
-    DXGI_SWAP_CHAIN_FLAG_NONPREROTATED	= 1,
-    DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH	= 2,
-    DXGI_SWAP_CHAIN_FLAG_GDI_COMPATIBLE	= 4,
-    DXGI_SWAP_CHAIN_FLAG_RESTRICTED_CONTENT	= 8,
-    DXGI_SWAP_CHAIN_FLAG_RESTRICT_SHARED_RESOURCE_DRIVER	= 16,
-    DXGI_SWAP_CHAIN_FLAG_DISPLAY_ONLY	= 32,
-    DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT	= 64,
-    DXGI_SWAP_CHAIN_FLAG_FOREGROUND_LAYER	= 128,
-    DXGI_SWAP_CHAIN_FLAG_FULLSCREEN_VIDEO	= 256,
-    DXGI_SWAP_CHAIN_FLAG_YUV_VIDEO	= 512
-  } 	DXGI_SWAP_CHAIN_FLAG;
+    DXGI_SWAP_CHAIN_FLAG_NONPREROTATED                   = 1,
+    DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH               = 2,
+    DXGI_SWAP_CHAIN_FLAG_GDI_COMPATIBLE                  = 4,
+    DXGI_SWAP_CHAIN_FLAG_RESTRICTED_CONTENT              = 8,
+    DXGI_SWAP_CHAIN_FLAG_RESTRICT_SHARED_RESOURCE_DRIVER = 16,
+    DXGI_SWAP_CHAIN_FLAG_DISPLAY_ONLY                    = 32,
+    DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT   = 64,
+    DXGI_SWAP_CHAIN_FLAG_FOREGROUND_LAYER                = 128,
+    DXGI_SWAP_CHAIN_FLAG_FULLSCREEN_VIDEO                = 256,
+    DXGI_SWAP_CHAIN_FLAG_YUV_VIDEO                       = 512
+  }   DXGI_SWAP_CHAIN_FLAG;
 
   typedef struct DXGI_SWAP_CHAIN_DESC
   {
-    DXGI_MODE_DESC BufferDesc;
+    DXGI_MODE_DESC   BufferDesc;
     DXGI_SAMPLE_DESC SampleDesc;
-    DXGI_USAGE BufferUsage;
-    UINT BufferCount;
-    HWND OutputWindow;
-    BOOL Windowed;
+    DXGI_USAGE       BufferUsage;
+    UINT             BufferCount;
+    HWND             OutputWindow;
+    BOOL             Windowed;
     DXGI_SWAP_EFFECT SwapEffect;
-    UINT Flags;
-  } 	DXGI_SWAP_CHAIN_DESC;
+    UINT             Flags;
+  }   DXGI_SWAP_CHAIN_DESC;
 
 
 
@@ -2389,31 +2387,31 @@ extern "C"{
   typedef 
   enum DXGI_ADAPTER_FLAG
   {
-    DXGI_ADAPTER_FLAG_NONE	= 0,
-    DXGI_ADAPTER_FLAG_REMOTE	= 1,
-    DXGI_ADAPTER_FLAG_SOFTWARE	= 2,
+    DXGI_ADAPTER_FLAG_NONE        = 0,
+    DXGI_ADAPTER_FLAG_REMOTE      = 1,
+    DXGI_ADAPTER_FLAG_SOFTWARE    = 2,
     DXGI_ADAPTER_FLAG_FORCE_DWORD	= 0xffffffff
-  } 	DXGI_ADAPTER_FLAG;
+  }   DXGI_ADAPTER_FLAG;
 
   typedef struct DXGI_ADAPTER_DESC1
   {
-    WCHAR Description[ 128 ];
-    UINT VendorId;
-    UINT DeviceId;
-    UINT SubSysId;
-    UINT Revision;
+    WCHAR  Description [128];
+    UINT   VendorId;
+    UINT   DeviceId;
+    UINT   SubSysId;
+    UINT   Revision;
     SIZE_T DedicatedVideoMemory;
     SIZE_T DedicatedSystemMemory;
     SIZE_T SharedSystemMemory;
-    LUID AdapterLuid;
-    UINT Flags;
-  } 	DXGI_ADAPTER_DESC1;
+    LUID   AdapterLuid;
+    UINT   Flags;
+  }   DXGI_ADAPTER_DESC1;
 
   typedef struct DXGI_DISPLAY_COLOR_SPACE
   {
-    FLOAT PrimaryCoordinates[ 8 ][ 2 ];
-    FLOAT WhitePoints[ 16 ][ 2 ];
-  } 	DXGI_DISPLAY_COLOR_SPACE;
+    FLOAT PrimaryCoordinates [ 8][2];
+    FLOAT WhitePoints        [16][2];
+  }   DXGI_DISPLAY_COLOR_SPACE;
 
 
 
@@ -2948,20 +2946,20 @@ extern "C"{
 
 #ifdef __cplusplus
 #endif /*__cplusplus*/
-  DEFINE_GUID(IID_IDXGIObject,0xaec22fb8,0x76f3,0x4639,0x9b,0xe0,0x28,0xeb,0x43,0xa6,0x7a,0x2e);
-  DEFINE_GUID(IID_IDXGIDeviceSubObject,0x3d3e0379,0xf9de,0x4d58,0xbb,0x6c,0x18,0xd6,0x29,0x92,0xf1,0xa6);
-  DEFINE_GUID(IID_IDXGIResource,0x035f3ab4,0x482e,0x4e50,0xb4,0x1f,0x8a,0x7f,0x8b,0xd8,0x96,0x0b);
-  DEFINE_GUID(IID_IDXGIKeyedMutex,0x9d8e1289,0xd7b3,0x465f,0x81,0x26,0x25,0x0e,0x34,0x9a,0xf8,0x5d);
-  DEFINE_GUID(IID_IDXGISurface,0xcafcb56c,0x6ac3,0x4889,0xbf,0x47,0x9e,0x23,0xbb,0xd2,0x60,0xec);
-  DEFINE_GUID(IID_IDXGISurface1,0x4AE63092,0x6327,0x4c1b,0x80,0xAE,0xBF,0xE1,0x2E,0xA3,0x2B,0x86);
-  DEFINE_GUID(IID_IDXGIAdapter,0x2411e7e1,0x12ac,0x4ccf,0xbd,0x14,0x97,0x98,0xe8,0x53,0x4d,0xc0);
-  DEFINE_GUID(IID_IDXGIOutput,0xae02eedb,0xc735,0x4690,0x8d,0x52,0x5a,0x8d,0xc2,0x02,0x13,0xaa);
-  DEFINE_GUID(IID_IDXGISwapChain,0x310d36a0,0xd2e7,0x4c0a,0xaa,0x04,0x6a,0x9d,0x23,0xb8,0x88,0x6a);
-  DEFINE_GUID(IID_IDXGIFactory,0x7b7166ec,0x21c7,0x44ae,0xb2,0x1a,0xc9,0xae,0x32,0x1a,0xe3,0x69);
-  DEFINE_GUID(IID_IDXGIDevice,0x54ec77fa,0x1377,0x44e6,0x8c,0x32,0x88,0xfd,0x5f,0x44,0xc8,0x4c);
-  DEFINE_GUID(IID_IDXGIFactory1,0x770aae78,0xf26f,0x4dba,0xa8,0x29,0x25,0x3c,0x83,0xd1,0xb3,0x87);
-  DEFINE_GUID(IID_IDXGIAdapter1,0x29038f61,0x3839,0x4626,0x91,0xfd,0x08,0x68,0x79,0x01,0x1a,0x05);
-  DEFINE_GUID(IID_IDXGIDevice1,0x77db970f,0x6276,0x48ba,0xba,0x28,0x07,0x01,0x43,0xb4,0x39,0x2c);
+  DEFINE_GUID (IID_IDXGIObject,         0xaec22fb8,0x76f3,0x4639,0x9b,0xe0,0x28,0xeb,0x43,0xa6,0x7a,0x2e);
+  DEFINE_GUID (IID_IDXGIDeviceSubObject,0x3d3e0379,0xf9de,0x4d58,0xbb,0x6c,0x18,0xd6,0x29,0x92,0xf1,0xa6);
+  DEFINE_GUID (IID_IDXGIResource,       0x035f3ab4,0x482e,0x4e50,0xb4,0x1f,0x8a,0x7f,0x8b,0xd8,0x96,0x0b);
+  DEFINE_GUID (IID_IDXGIKeyedMutex,     0x9d8e1289,0xd7b3,0x465f,0x81,0x26,0x25,0x0e,0x34,0x9a,0xf8,0x5d);
+  DEFINE_GUID (IID_IDXGISurface,        0xcafcb56c,0x6ac3,0x4889,0xbf,0x47,0x9e,0x23,0xbb,0xd2,0x60,0xec);
+  DEFINE_GUID (IID_IDXGISurface1,       0x4AE63092,0x6327,0x4c1b,0x80,0xAE,0xBF,0xE1,0x2E,0xA3,0x2B,0x86);
+  DEFINE_GUID (IID_IDXGIAdapter,        0x2411e7e1,0x12ac,0x4ccf,0xbd,0x14,0x97,0x98,0xe8,0x53,0x4d,0xc0);
+  DEFINE_GUID (IID_IDXGIOutput,         0xae02eedb,0xc735,0x4690,0x8d,0x52,0x5a,0x8d,0xc2,0x02,0x13,0xaa);
+  DEFINE_GUID (IID_IDXGISwapChain,      0x310d36a0,0xd2e7,0x4c0a,0xaa,0x04,0x6a,0x9d,0x23,0xb8,0x88,0x6a);
+  DEFINE_GUID (IID_IDXGIFactory,        0x7b7166ec,0x21c7,0x44ae,0xb2,0x1a,0xc9,0xae,0x32,0x1a,0xe3,0x69);
+  DEFINE_GUID (IID_IDXGIDevice,         0x54ec77fa,0x1377,0x44e6,0x8c,0x32,0x88,0xfd,0x5f,0x44,0xc8,0x4c);
+  DEFINE_GUID (IID_IDXGIFactory1,       0x770aae78,0xf26f,0x4dba,0xa8,0x29,0x25,0x3c,0x83,0xd1,0xb3,0x87);
+  DEFINE_GUID (IID_IDXGIAdapter1,       0x29038f61,0x3839,0x4626,0x91,0xfd,0x08,0x68,0x79,0x01,0x1a,0x05);
+  DEFINE_GUID (IID_IDXGIDevice1,        0x77db970f,0x6276,0x48ba,0xba,0x28,0x07,0x01,0x43,0xb4,0x39,0x2c);
 
 
   extern RPC_IF_HANDLE __MIDL_itf_dxgi_0000_0014_v0_0_c_ifspec;
@@ -10025,10 +10023,10 @@ EXTERN_C const IID IID_IDXGIDevice4;
 
 /*#endif*/ /* WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_APP) */
 /*#pragma endregion*/
-DEFINE_GUID(IID_IDXGIOutput5,0x80A07424,0xAB52,0x42EB,0x83,0x3C,0x0C,0x42,0xFD,0x28,0x2D,0x98);
-DEFINE_GUID(IID_IDXGISwapChain4,0x3D585D5A,0xBD4A,0x489E,0xB1,0xF4,0x3D,0xBC,0xB6,0x45,0x2F,0xFB);
-DEFINE_GUID(IID_IDXGIDevice4,0x95B4F95F,0xD8DA,0x4CA4,0x9E,0xE6,0x3B,0x76,0xD5,0x96,0x8A,0x10);
-DEFINE_GUID(IID_IDXGIFactory5,0x7632e1f5,0xee65,0x4dca,0x87,0xfd,0x84,0xcd,0x75,0xf8,0x83,0x8d);
+DEFINE_GUID (IID_IDXGIOutput5,   0x80A07424,0xAB52,0x42EB,0x83,0x3C,0x0C,0x42,0xFD,0x28,0x2D,0x98);
+DEFINE_GUID (IID_IDXGISwapChain4,0x3D585D5A,0xBD4A,0x489E,0xB1,0xF4,0x3D,0xBC,0xB6,0x45,0x2F,0xFB);
+DEFINE_GUID (IID_IDXGIDevice4,   0x95B4F95F,0xD8DA,0x4CA4,0x9E,0xE6,0x3B,0x76,0xD5,0x96,0x8A,0x10);
+DEFINE_GUID (IID_IDXGIFactory5,  0x7632e1f5,0xee65,0x4dca,0x87,0xfd,0x84,0xcd,0x75,0xf8,0x83,0x8d);
 
 
 extern RPC_IF_HANDLE __MIDL_itf_dxgi1_5_0000_0004_v0_0_c_ifspec;
@@ -11584,33 +11582,34 @@ extern "C"{
 /*#if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_APP)*/
 typedef 
 enum DXGI_ADAPTER_FLAG3
-    {
-        DXGI_ADAPTER_FLAG3_NONE	= 0,
-        DXGI_ADAPTER_FLAG3_REMOTE	= 1,
-        DXGI_ADAPTER_FLAG3_SOFTWARE	= 2,
-        DXGI_ADAPTER_FLAG3_ACG_COMPATIBLE	= 4,
-        DXGI_ADAPTER_FLAG3_SUPPORT_MONITORED_FENCES	= 8,
-        DXGI_ADAPTER_FLAG3_SUPPORT_NON_MONITORED_FENCES	= 0x10,
-        DXGI_ADAPTER_FLAG3_KEYED_MUTEX_CONFORMANCE	= 0x20,
-        DXGI_ADAPTER_FLAG3_FORCE_DWORD	= 0xffffffff
-    } 	DXGI_ADAPTER_FLAG3;
+{
+  DXGI_ADAPTER_FLAG3_NONE	                        = 0,
+  DXGI_ADAPTER_FLAG3_REMOTE	                      = 1,
+  DXGI_ADAPTER_FLAG3_SOFTWARE	                    = 2,
+  DXGI_ADAPTER_FLAG3_ACG_COMPATIBLE	              = 4,
+  DXGI_ADAPTER_FLAG3_SUPPORT_MONITORED_FENCES	    = 8,
+  DXGI_ADAPTER_FLAG3_SUPPORT_NON_MONITORED_FENCES	= 0x10,
+  DXGI_ADAPTER_FLAG3_KEYED_MUTEX_CONFORMANCE      = 0x20,
+  DXGI_ADAPTER_FLAG3_FORCE_DWORD                  = 0xffffffff
+}   DXGI_ADAPTER_FLAG3;
 
-DEFINE_ENUM_FLAG_OPERATORS( DXGI_ADAPTER_FLAG3 );
+DEFINE_ENUM_FLAG_OPERATORS (DXGI_ADAPTER_FLAG3);
+
 typedef struct DXGI_ADAPTER_DESC3
-    {
-    WCHAR Description[ 128 ];
-    UINT VendorId;
-    UINT DeviceId;
-    UINT SubSysId;
-    UINT Revision;
-    SIZE_T DedicatedVideoMemory;
-    SIZE_T DedicatedSystemMemory;
-    SIZE_T SharedSystemMemory;
-    LUID AdapterLuid;
-    DXGI_ADAPTER_FLAG3 Flags;
-    DXGI_GRAPHICS_PREEMPTION_GRANULARITY GraphicsPreemptionGranularity;
-    DXGI_COMPUTE_PREEMPTION_GRANULARITY ComputePreemptionGranularity;
-    } 	DXGI_ADAPTER_DESC3;
+{
+  WCHAR                                Description [128];
+  UINT                                 VendorId;
+  UINT                                 DeviceId;
+  UINT                                 SubSysId;
+  UINT                                 Revision;
+  SIZE_T                               DedicatedVideoMemory;
+  SIZE_T                               DedicatedSystemMemory;
+  SIZE_T                               SharedSystemMemory;
+  LUID                                 AdapterLuid;
+  DXGI_ADAPTER_FLAG3                   Flags;
+  DXGI_GRAPHICS_PREEMPTION_GRANULARITY GraphicsPreemptionGranularity;
+  DXGI_COMPUTE_PREEMPTION_GRANULARITY  ComputePreemptionGranularity;
+}   DXGI_ADAPTER_DESC3;
 
 
 
@@ -11854,30 +11853,30 @@ EXTERN_C const IID IID_IDXGIAdapter4;
 /* [local] */ 
 
 typedef struct DXGI_OUTPUT_DESC1
-    {
-    WCHAR DeviceName[ 32 ];
-    RECT DesktopCoordinates;
-    BOOL AttachedToDesktop;
-    DXGI_MODE_ROTATION Rotation;
-    HMONITOR Monitor;
-    UINT BitsPerColor;
-    DXGI_COLOR_SPACE_TYPE ColorSpace;
-    FLOAT RedPrimary[ 2 ];
-    FLOAT GreenPrimary[ 2 ];
-    FLOAT BluePrimary[ 2 ];
-    FLOAT WhitePoint[ 2 ];
-    FLOAT MinLuminance;
-    FLOAT MaxLuminance;
-    FLOAT MaxFullFrameLuminance;
-    } 	DXGI_OUTPUT_DESC1;
+{
+  WCHAR                 DeviceName [32];
+  RECT                  DesktopCoordinates;
+  BOOL                  AttachedToDesktop;
+  DXGI_MODE_ROTATION    Rotation;
+  HMONITOR              Monitor;
+  UINT                  BitsPerColor;
+  DXGI_COLOR_SPACE_TYPE ColorSpace;
+  FLOAT                 RedPrimary  [2];
+  FLOAT                 GreenPrimary[2];
+  FLOAT                 BluePrimary [2];
+  FLOAT                 WhitePoint  [2];
+  FLOAT                 MinLuminance;
+  FLOAT                 MaxLuminance;
+  FLOAT                 MaxFullFrameLuminance;
+}   DXGI_OUTPUT_DESC1;
 
 typedef 
 enum DXGI_HARDWARE_COMPOSITION_SUPPORT_FLAGS
-    {
-        DXGI_HARDWARE_COMPOSITION_SUPPORT_FLAG_FULLSCREEN	= 1,
-        DXGI_HARDWARE_COMPOSITION_SUPPORT_FLAG_WINDOWED	= 2,
-        DXGI_HARDWARE_COMPOSITION_SUPPORT_FLAG_CURSOR_STRETCHED	= 4
-    } 	DXGI_HARDWARE_COMPOSITION_SUPPORT_FLAGS;
+{
+  DXGI_HARDWARE_COMPOSITION_SUPPORT_FLAG_FULLSCREEN	      = 1,
+  DXGI_HARDWARE_COMPOSITION_SUPPORT_FLAG_WINDOWED	        = 2,
+  DXGI_HARDWARE_COMPOSITION_SUPPORT_FLAG_CURSOR_STRETCHED	= 4
+}   DXGI_HARDWARE_COMPOSITION_SUPPORT_FLAGS;
 
 DEFINE_ENUM_FLAG_OPERATORS( DXGI_HARDWARE_COMPOSITION_SUPPORT_FLAGS );
 

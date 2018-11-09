@@ -612,10 +612,13 @@ SK_Steam_HookController (void)
   const wchar_t *steam_dll =
     SK_Steam_GetDLLPath ();
 
-  if ( GetProcAddress (
-         GetModuleHandleW (steam_dll),
+  HMODULE hMod =
+    SK_Modules.getLoadedLibrary (steam_dll, true);
+
+  if ( SK_Modules.isValid (hMod) &&
+           GetProcAddress (hMod,
          "SteamAPI_ISteamController_GetAnalogActionData"
-       )
+                          )
      )
   {
     SK_CreateDLLHook2 (       steam_dll,

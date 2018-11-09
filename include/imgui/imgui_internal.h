@@ -49,6 +49,9 @@ typedef int ImGuiTreeNodeFlags;   // enum ImGuiTreeNodeFlags_
 typedef int ImGuiSliderFlags;     // enum ImGuiSliderFlags_
 typedef int ImGuiItemFlags;       // enum ImGuiItemFlags_
 
+
+class SK_TLS;
+
 //-------------------------------------------------------------------------
 // STB libraries
 //-------------------------------------------------------------------------
@@ -504,6 +507,9 @@ struct ImGuiContext
     float                   FramerateSecPerFrameAccum;
     int                     CaptureMouseNextFrame;              // explicit capture via CaptureInputs() sets those flags
     int                     CaptureKeyboardNextFrame;
+
+    // Custom thread-local ptr for faster memory allocation
+    SK_TLS*                 ThreadContext;
     char                    TempBuffer[1024*64+1];              // temporary text buffer
 
     ImGuiContext()
@@ -799,7 +805,7 @@ namespace ImGui
 
     IMGUI_API void          SetActiveID(ImGuiID id, ImGuiWindow* window);
     IMGUI_API void          SetActiveIDNoNav(ImGuiID id, ImGuiWindow* window);
-	IMGUI_API void          ClearActiveID();
+	  IMGUI_API void          ClearActiveID();
     IMGUI_API void          SetHoveredID(ImGuiID id);
     IMGUI_API void          KeepAliveID(ImGuiID id);
 

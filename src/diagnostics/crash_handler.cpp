@@ -76,9 +76,18 @@ extern const wchar_t*
 __stdcall
 SK_GetDebugSymbolPath (void);
 
+extern volatile LONG __SK_Init;
+
 void
 SK_SymSetOpts (void)
 {
+  SK_Thread_HybridSpinlock* lock =
+    (ReadAcquire (&__SK_Init) != 0) ? cs_dbghelp
+                                    : nullptr;
+
+  if (lock)
+      lock->lock ();
+
   ////std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
   SymSetSearchPathW ( GetCurrentProcess (), SK_GetDebugSymbolPath () );
@@ -86,6 +95,9 @@ SK_SymSetOpts (void)
                       SYMOPT_UNDNAME              | SYMOPT_DEFERRED_LOADS    |
                       SYMOPT_OMAP_FIND_NEAREST    | SYMOPT_FAVOR_COMPRESSED  |
                       SYMOPT_FAIL_CRITICAL_ERRORS | SYMOPT_NO_UNQUALIFIED_LOADS);
+
+  if (lock)
+      lock->unlock ();
 }
 
 
@@ -102,7 +114,7 @@ struct sk_crash_sound_s {
   ISimpleAudioVolume* volume_ctl = nullptr;
 
   bool play (void);
-} static crash_sound;
+} crash_sound;
 
 
 bool
@@ -183,7 +195,10 @@ SetUnhandledExceptionFilter_Detour (_In_opt_ LPTOP_LEVEL_EXCEPTION_FILTER lpTopL
 {
   UNREFERENCED_PARAMETER (lpTopLevelExceptionFilter);
 
-  return SetUnhandledExceptionFilter_Original (SK_TopLevelExceptionFilter);
+  SetUnhandledExceptionFilter_Original (lpTopLevelExceptionFilter);
+
+  return
+    SetUnhandledExceptionFilter_Original (SK_TopLevelExceptionFilter);
 }
 
 
@@ -312,9 +327,9 @@ SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr)
   );
 
 #ifdef _WIN64
-  DWORD64 BaseAddr = (DWORD64)mod_info.lpBaseOfDll;
+  auto BaseAddr = (DWORD64)mod_info.lpBaseOfDll;
 #else
-  DWORD BaseAddr   = (DWORD)  mod_info.lpBaseOfDll;
+  auto BaseAddr   = (DWORD)  mod_info.lpBaseOfDll;
 #endif
 
   char szModName [MAX_PATH + 2] = { };
@@ -379,9 +394,9 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 
     else
     {
-      SK_SelfDestruct  (                         );
-      TerminateProcess (GetCurrentProcess (), 0x0);
-      ExitProcess      (                      0x0);
+      SK_SelfDestruct     (   );
+      SK_TerminateProcess (0x0);
+      SK_ExitProcess      (0x0);
     }
   }
 
@@ -1134,7 +1149,7 @@ SK_GetSymbolNameFromModuleAddr ( HMODULE hMod,   uintptr_t addr,
       GetCurrentProcess (), hMod, &mod_info, sizeof (mod_info)
     );
 
-    DWORD64 BaseAddr =
+    auto  BaseAddr =
       (DWORD64)mod_info.lpBaseOfDll;
 
     char szModName [MAX_PATH + 2] = {  };
@@ -1196,9 +1211,17 @@ void
 WINAPI
 SK_SymRefreshModuleList ( HANDLE hProc )
 {
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+  SK_Thread_HybridSpinlock* lock =
+    (ReadAcquire (&__SK_Init) != 0) ? cs_dbghelp
+                                    : nullptr;
+
+  if (lock)
+      lock->lock ();
 
   SymRefreshModuleList (hProc);
+
+  if (lock)
+      lock->unlock ();
 }
 
 using SteamAPI_SetBreakpadAppID_pfn = void (__cdecl *)( uint32_t unAppID );
@@ -1263,6 +1286,7 @@ SK_BypassSteamCrashHandler (void)
 }
 
 
+extern void SK_DbgHlp_Init (void);
 
 void
 CrashHandler::InitSyms (void)
@@ -1270,7 +1294,12 @@ CrashHandler::InitSyms (void)
   static volatile LONG               init = 0L;
   if (! InterlockedCompareExchange (&init, 1, 0))
   {
-    std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+    SK_Thread_HybridSpinlock* lock =
+      (ReadAcquire (&__SK_Init) != 0) ? cs_dbghelp
+                                      : nullptr;
+
+    if (lock != nullptr)
+        lock->lock ();
 
     SymCleanup (SK_GetCurrentProcess ());
 
@@ -1290,5 +1319,8 @@ CrashHandler::InitSyms (void)
     ///  if (! config.steam.silent)
     ///    SK_BypassSteamCrashHandler ();
     ///}
+
+    if (lock)
+        lock->unlock ();
   }
 }

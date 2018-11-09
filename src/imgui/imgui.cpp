@@ -2817,9 +2817,14 @@ static void NavUpdate()
     //g.OverlayDrawList.AddRect(g.NavScoringRectScreen.Min, g.NavScoringRectScreen.Max, IM_COL32(255,200,0,255)); // [DEBUG]
 }
 
+#include <SpecialK/tls.h>
+
 void ImGui::NewFrame()
 {
     ImGuiContext& g = *GImGui;
+
+    g.ThreadContext =
+      SK_TLS_Bottom ();
 
     // Check user data
     IM_ASSERT(g.IO.DeltaTime >= 0.0f);               // Need a positive DeltaTime (zero is tolerated but will cause some timing issues)

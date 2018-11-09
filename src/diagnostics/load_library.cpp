@@ -63,11 +63,13 @@ struct IUnknown;
 
 #include <SpecialK/DLL_VERSION.H>
 
+concurrency::concurrent_unordered_set <HMODULE> _callers (32);
+
+__declspec (noinline)
 concurrency::concurrent_unordered_set <HMODULE>&
 SK_DbgHlp_Callers (void)
 {
-  static concurrency::concurrent_unordered_set <HMODULE>_callers;
-  return                                                _callers;
+  return                                                 _callers;
 }
 
 
@@ -147,7 +149,7 @@ SK_LockDllLoader (void)
   if (config.system.strict_compliance)
   {
     //bool unlocked = TryEnterCriticalSection (&loader_lock);
-                       loader_lock->lock ();
+                       SK_DLL_LoaderLockGuard ()->lock ();
     //EnterCriticalSection (&loader_lock);
     //loader_lock->lock ();
      ///if (unlocked)
@@ -162,7 +164,7 @@ __stdcall
 SK_UnlockDllLoader (void)
 {
   if (config.system.strict_compliance)
-    loader_lock->unlock ();
+    SK_DLL_LoaderLockGuard ()->unlock ();
 }
 
 
@@ -377,7 +379,7 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
              SK_GetModuleName (hCallingMod).c_str (),
                           _TRUNCATE) ;
 
-  if ((! SK_LoadLibrary_SILENCE) && GetModuleHandle (wszDbgHelp))
+  if ((! SK_LoadLibrary_SILENCE) && SK_GetModuleHandle (wszDbgHelp))
   {
     char  szSymbol [1024] = { };
     ULONG ulLen  =  1023;
@@ -538,7 +540,7 @@ FreeLibrary_Detour (HMODULE hLibModule)
 
   LPVOID pAddr = _ReturnAddress ();
 
-  if (ReadAcquire (&__SK_DLL_Ending) == TRUE)
+  if (ReadAcquire (&__SK_DLL_Ending) != FALSE)
   {
     return FreeLibrary_Original (hLibModule);
   }
@@ -558,7 +560,7 @@ FreeLibrary_Detour (HMODULE hLibModule)
            SK_GetModuleName (hLibModule).find (L"steam") != std::wstring::npos )
   {
     if ( SK_GetModuleName (hLibModule).find (L"steam") != std::wstring::npos ||
-        (bRet && GetModuleHandle (name.c_str ()) == nullptr ) )
+        (bRet && SK_GetModuleHandle (name.c_str ()) == nullptr ) )
     {
       if (config.system.log_level > 2)
       {
@@ -614,8 +616,11 @@ LoadLibrary_Marshal (LPVOID lpRet, LPCWSTR lpFileName, const wchar_t* wszSourceF
                            (wcslen (lpFileName) + 1) *
               sizeof (wchar_t), true                           )
                                  );
-          lstrcatW (compliant_path, lpFileName);
-    SK_FixSlashesW (compliant_path);
+    if (compliant_path != nullptr)
+    {
+            lstrcatW (compliant_path, lpFileName);
+      SK_FixSlashesW (compliant_path);
+    }
   }
 
   __try {
@@ -711,11 +716,11 @@ LoadPackagedLibrary_Detour (LPCWSTR lpLibFileName, DWORD Reserved)
                                );
   if (            compliant_path != nullptr)   {
         lstrcatW (compliant_path, lpLibFileName);
-  SK_FixSlashesW (compliant_path);             } else 
+  SK_FixSlashesW (compliant_path);             } else
                   compliant_path =
                        (wchar_t *)lpLibFileName;
 
-  lpLibFileName = compliant_path;              
+  lpLibFileName = compliant_path;
 
   __try {
     GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, lpLibFileName, &hModEarly );
@@ -770,7 +775,7 @@ LoadLibraryEx_Marshal (LPVOID lpRet, LPCWSTR lpFileName, HANDLE hFile, DWORD dwF
                                  );
     if (            compliant_path != nullptr)   {
           lstrcatW (compliant_path, lpFileName);
-    SK_FixSlashesW (compliant_path);             } else 
+    SK_FixSlashesW (compliant_path);             } else
                     compliant_path =
                          (wchar_t *)lpFileName;
   }
@@ -924,7 +929,7 @@ SK_ReHookLoadLibrary (void)
   MH_QueueEnableHook (_loader_hooks.LoadLibraryW_target);
 
 
-  if (GetProcAddress (GetModuleHandle (L"kernel32"), "LoadPackagedLibrary") != nullptr)
+  if (GetProcAddress (SK_GetModuleHandle (L"kernel32"), "LoadPackagedLibrary") != nullptr)
   {
     if (_loader_hooks.LoadPackagedLibrary_target != nullptr)
     {
@@ -1060,7 +1065,7 @@ __stdcall
 SK_InitCompatBlacklist (void)
 {
   memset (&_loader_hooks, 0, sizeof sk_loader_hooks_t);
-  
+ 
   //SK_CreateDLLHook2 (      L"kernel32",
   //                          "GetModuleHandleA",
   //                           GetModuleHandleA_Detour,
@@ -1108,7 +1113,7 @@ SK_InitCompatBlacklist (void)
   //            &_loader_hooks.GetModuleFileNameW_target );
   //
   //MH_QueueEnableHook (_loader_hooks.GetModuleFileNameW_target);
-  
+ 
   SK_ReHookLoadLibrary ();
 }
 
@@ -1216,7 +1221,7 @@ SK_ThreadWalkModules (enum_working_set_s* pWorkingSet)
     return;
 
   EnterCriticalSection (&cs_thread_walk);
-  
+ 
   memcpy (pWorkingSet_, user, sizeof (enum_working_set_s));
 
   iSK_Logger* pLogger =
@@ -1365,7 +1370,7 @@ SK_BootModule (const wchar_t* wszModName)
          d3d8  = false, ddraw  = false,
          glide = false;
 
-    SK_TestRenderImports (GetModuleHandleW (wszModName), &gl, &vulkan, &d3d9, &dxgi, &d3d11, &d3d8, &ddraw, &glide);
+    SK_TestRenderImports (SK_GetModuleHandleW (wszModName), &gl, &vulkan, &d3d9, &dxgi, &d3d11, &d3d8, &ddraw, &glide);
 
 #ifndef _WIN64
     if (ddraw)
@@ -1443,11 +1448,12 @@ SK_WalkModules (int cbNeeded, HANDLE /*hProc*/, HMODULE* hMods, SK_ModuleEnum wh
             BOOL
             SK_Steam_PreHookCore (void);
 
-            if (SK_GetCurrentGameID () != SK_GAME_ID::MonsterHunterWorld)
+            if ( SK_GetCurrentGameID () != SK_GAME_ID::MonsterHunterWorld &&
+                 SK_GetCurrentGameID () != SK_GAME_ID::JustCause3 )
             {
               if (SK_Steam_PreHookCore ())
                 new_hooks = true;
-              
+
               if (SK_HookSteamAPI () > 0)
                 new_hooks = true;
             }
@@ -1515,7 +1521,7 @@ SK_PrintUnloadedDLLs (iSK_Logger* pLogger)
   );
 
   static HMODULE hModNtDLL =
-    GetModuleHandleW (L"NtDll.dll");//SK_Modules.LoadLibraryLL (L"ntdll.dll");
+    SK_GetModuleHandleW (L"NtDll.dll");//SK_Modules.LoadLibraryLL (L"ntdll.dll");
 
   static auto RtlGetUnloadEventTraceEx =
     reinterpret_cast <RtlGetUnloadEventTraceEx_pfn> (
@@ -1546,7 +1552,7 @@ SK_PrintUnloadedDLLs (iSK_Logger* pLogger)
 
   if (ElementCount > 0)
   {
-    pLogger->LogEx ( false, 
+    pLogger->LogEx ( false,
       L"================================================================== "
       L"(List Unloads) "
       L"==================================================================\n" );
@@ -1684,7 +1690,7 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
 
       if ( when != SK_ModuleEnum::PreLoad )
         SK_WalkModules     (pWorkingSet->count * sizeof (HMODULE), pWorkingSet->proc, pWorkingSet->modules, pWorkingSet->when);
-      
+
       SK_ThreadWalkModules (pWorkingSet);
 
       if ( when != SK_ModuleEnum::PreLoad && pLogger != nullptr )
@@ -1722,10 +1728,10 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
 
 void
 __stdcall
-SK_PreInitLoadLibrary (void) 
+SK_PreInitLoadLibrary (void)
 {
-  HMODULE SK_Debug_LoadHelper (void);
-          SK_Debug_LoadHelper (    );
+  extern void SK_DbgHlp_Init (void);
+              SK_DbgHlp_Init ();
 
   void SK_SymSetOpts (void);
        SK_SymSetOpts (    );
@@ -2379,7 +2385,7 @@ FreeLibrary_Detour (HMODULE hLibModule)
 {
   LPVOID pAddr = _ReturnAddress ();
 
-  if (ReadAcquire (&__SK_DLL_Ending) == TRUE)
+  if (ReadAcquire (&__SK_DLL_Ending) != FALSE)
   {
     return FreeLibrary_Original (hLibModule);
   }
@@ -2866,7 +2872,7 @@ __stdcall
 SK_InitCompatBlacklist (void)
 {
   memset (&_loader_hooks, 0, sizeof sk_loader_hooks_t);
-  
+
   //SK_CreateDLLHook2 (      L"kernel32",
   //                          "GetModuleHandleA",
   //                           GetModuleHandleA_Detour,
@@ -2914,7 +2920,7 @@ SK_InitCompatBlacklist (void)
   //            &_loader_hooks.GetModuleFileNameW_target );
   //
   //MH_QueueEnableHook (_loader_hooks.GetModuleFileNameW_target);
-  
+
   SK_ReHookLoadLibrary ();
 }
 
@@ -3305,7 +3311,7 @@ SK_PrintUnloadedDLLs (iSK_Logger* pLogger)
 
   if (ElementCount > 0)
   {
-    pLogger->LogEx ( false, 
+    pLogger->LogEx ( false,
       L"================================================================== "
       L"(List Unloads) "
       L"==================================================================\n" );

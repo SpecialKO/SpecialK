@@ -540,8 +540,8 @@ SK_Decompress7zEx ( const wchar_t*            wszArchive,
     wchar_t       wszDestPath     [MAX_PATH * 2 + 1] = { };
     wcsncpy_s   ( wszDestPath,     MAX_PATH * 2,
                   wszDestination, _TRUNCATE) ;
-    PathAppendW ( wszDestPath, file.name.c_str () );
 
+    PathAppendW          (wszDestPath, file.name.c_str ());
     SK_CreateDirectories (wszDestPath);
 
     HANDLE hOutFile =

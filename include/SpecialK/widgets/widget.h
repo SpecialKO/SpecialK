@@ -51,6 +51,7 @@ struct SK_ImGui_WidgetRegistry
   SK_Widget* thread_profiler;
 
   SK_Widget* hdr_control;
+  SK_Widget* tobii;
 
   SK_Widget* cmd_console;
   SK_Widget* txt_editor;
@@ -98,13 +99,21 @@ public:
     SaveComplete,
   };
 
-  virtual void run    (void) { };
-  virtual void draw   (void) { };
-
+  virtual void run  (void) { };
+  virtual void draw (void) { };
 
   virtual void run_base    (void);
   virtual void draw_base   (void);
   virtual void config_base (void);
+
+  virtual bool keyboard ( BOOL Control, BOOL Shift, 
+                          BOOL Alt,     BYTE vkCode )
+  {
+    UNREFERENCED_PARAMETER (Control); UNREFERENCED_PARAMETER (Shift);
+    UNREFERENCED_PARAMETER (Alt);     UNREFERENCED_PARAMETER (vkCode);
+
+    return false;
+  };
 
 
   SK_Widget& setName         (const char* szName)       { name          = szName;        return *this; }

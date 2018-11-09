@@ -428,7 +428,16 @@ _CreateConfigParameter ( std::type_index type,
 
     if (pParam != nullptr)
     {
-      iSK_INI* pINI =
+      iSK_INI* pINI = nullptr;
+
+      if (             wszOldSectionName != nullptr &&
+          (! _wcsicmp (wszOldSectionName, L"Global/osd.ini") ) )
+      {
+        extern iSK_INI* SK_GetOSDConfig (void);
+          pINI = SK_GetOSDConfig ();
+      }
+
+      else pINI =
         SK_GetDLLConfig ();
 
       pParam->register_to_ini (

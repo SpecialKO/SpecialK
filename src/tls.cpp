@@ -36,7 +36,7 @@
 
 #include <concurrent_unordered_map.h>
 
-DWORD __SK_TLS_INDEX =
+volatile DWORD __SK_TLS_INDEX =
   TLS_OUT_OF_INDEXES;
 
 SK_TlsRecord*
@@ -47,7 +47,7 @@ SK_GetTLS (SK_TLS** ppTLS)
 
   pTLS =
     static_cast <SK_TLS *> (
-      FlsGetValue (__SK_TLS_INDEX)
+      FlsGetValue (ReadULongAcquire (&__SK_TLS_INDEX))
     );
 
   if (pTLS == nullptr)
@@ -56,95 +56,234 @@ SK_GetTLS (SK_TLS** ppTLS)
     if (GetLastError () == ERROR_SUCCESS)
     {
 #endif
-      InterlockedIncrement (&_SK_IgnoreTLSAlloc);
+      if ( FlsSetValue ( ReadULongAcquire (&__SK_TLS_INDEX),
+                           nullptr )
+         )
+      {
+        InterlockedIncrement (&_SK_IgnoreTLSAlloc);
+        try {
+          pTLS =
+            new SK_TLS (
+              ReadULongAcquire (&__SK_TLS_INDEX)
+            );
 
-      try {
-        pTLS =
-          new SK_TLS (__SK_TLS_INDEX);
+          FlsSetValue ( ReadULongAcquire (&__SK_TLS_INDEX),
+                          pTLS );
+        }
+
+        catch (std::bad_alloc&)
+        {
+          pTLS = nullptr;
+        }
+        InterlockedDecrement (&_SK_IgnoreTLSAlloc);
       }
-
-      catch (...)
-      { pTLS = nullptr; }
-
-      InterlockedDecrement (&_SK_IgnoreTLSAlloc);
 
       ////pTLS->scheduler.objects_waited =
       ////  new (std::unordered_map <HANDLE, SK_Sched_ThreadContext::wait_record_s>);
 
       SK_ReleaseAssert (pTLS != nullptr);
-
-      if ( ! FlsSetValue ( pTLS->context_record.dwTlsIdx,
-                           pTLS )
-         ) 
-      {
-        delete pTLS;
-        return nullptr;
-      }
 #ifdef _DEBUG
     }
 #endif
   }
 
-  return
-    &pTLS->context_record;
-}
+  if (pTLS != nullptr)
+  {
+    return
+      &pTLS->context_record;
+  }
 
-Concurrency::concurrent_unordered_map <DWORD, SK_TlsRecord *>
-__tls_map (128);
+  return nullptr;
+}
 
 Concurrency::concurrent_unordered_map <DWORD, SK_TlsRecord *>&
 SK_TLS_Map (void)
 {
+  static concurrency::concurrent_unordered_map <DWORD, SK_TlsRecord *>
+    __tls_map (64);
+
   return
     __tls_map;
 }
 
-void
+static const int RESOLVE_MAX = 8;
+
+
+struct SK_TLS_ThreadCache {
+  using         cache_record         =
+  typename std::pair <DWORD, SK_TLS *>;
+
+  //------------------------------------------//
+
+  cache_record last_resolve [RESOLVE_MAX] = { };
+  volatile LONG              resolve_idx  =  0;
+
+} static cache_ctx;
+
+
+SK_TlsRecord*
+SK_TLS_FindInCache (DWORD dwTid)
+{
+  UNREFERENCED_PARAMETER (dwTid);
+  ////auto midpoint =
+  ////  ReadAcquire (&cache_ctx.resolve_idx);
+  ////
+  ////for ( auto idx = midpoint ;
+  ////           idx < RESOLVE_MAX ;
+  ////         ++idx )
+  ////{
+  ////  auto record =
+  ////    cache_ctx.last_resolve [idx];
+  ////
+  ////  if ( record.first  == dwTid &&
+  ////       record.second != nullptr )
+  ////  {
+  ////    if (record.second->context_record.pTLS->debug.tid == dwTid) return
+  ////       &record.second->context_record;
+  ////  }
+  ////}
+  ////
+  ////for ( auto idx  = midpoint ;
+  ////           idx >= 0        ;
+  ////         --idx )
+  ////{
+  ////  auto record =
+  ////    cache_ctx.last_resolve [idx];
+  ////
+  ////  if ( record.first  == dwTid &&
+  ////       record.second != nullptr )
+  ////  {
+  ////    if (record.second->context_record.pTLS->debug.tid == dwTid) return
+  ////       &record.second->context_record;
+  ////  }
+  ////}
+
+  return nullptr;
+}
+
+bool
+SK_TLS_RemoveFromCache (DWORD dwTid)
+{
+  UNREFERENCED_PARAMETER (dwTid);
+
+  //auto midpoint =
+  //  ReadAcquire (&cache_ctx.resolve_idx);
+  //
+  //for ( auto idx = midpoint ;
+  //           idx < RESOLVE_MAX ;
+  //         ++idx )
+  //{
+  //  auto& record =
+  //    cache_ctx.last_resolve [idx];
+  //
+  //  if ( record.first  == dwTid &&
+  //       record.second != nullptr )
+  //  {
+  //    SK_TLS_ThreadCache::cache_record
+  //      swap_record = record;
+  //
+  //    if (swap_record.first == dwTid)
+  //    {
+  //      swap_record.first  = 0;
+  //      swap_record.second = nullptr;
+  //
+  //      cache_ctx.last_resolve [idx] = swap_record;
+  //    //std::swap (record, swap_record);
+  //
+  //      return true;
+  //    }
+  //  }
+  //}
+  //
+  //for ( auto idx  = midpoint ;
+  //           idx >= 0        ;
+  //         --idx )
+  //{
+  //  auto& record =
+  //    cache_ctx.last_resolve [idx];
+  //
+  //  if ( record.first  == dwTid &&
+  //       record.second != nullptr )
+  //  {
+  //    SK_TLS_ThreadCache::cache_record
+  //      swap_record = record;
+  //
+  //    if (swap_record.first == dwTid)
+  //    {
+  //      swap_record.first  = 0;
+  //      swap_record.second = nullptr;
+  //
+  //      cache_ctx.last_resolve [idx] = swap_record;
+  //    //std::swap (record, swap_record);
+  //
+  //      return true;
+  //    }
+  //  }
+  //}
+
+  //return false;
+
+  return true;
+}
+
+SK_TLS*
 SK_CleanupTLS (void)
 {
-  SK_TLS* pTLS;
+  SK_TLS* pTLS       = nullptr;
   auto    pTLSRecord =
     SK_GetTLS (&pTLS);
 
-  if ( pTLSRecord == nullptr || (! pTLS) )
-    return;
+  if ( pTLSRecord       == nullptr ||
+       pTLSRecord->pTLS == nullptr ||
+                   pTLS == nullptr )
+  {
+    return
+      nullptr;
+  }
 
-   const DWORD dwTid =
-     pTLS->debug.tid;
+  const DWORD dwTid =
+    pTLS->debug.tid;
 
-   if (pTLS->debug.mapped)
-   {   pTLS->debug.mapped = false;
+  if ( pTLS->context_record.pTLS     ==  pTLS &&
+       pTLS->context_record.dwTlsIdx != -1 )
+  {
+    SK_ReleaseAssert (SK_TLS_RemoveFromCache (dwTid) == true);
+  }
 
-     static auto& tls_map =
-       SK_TLS_Map ();
+  if (pTLS->debug.mapped)
+  {   pTLS->debug.mapped = false;
 
-     if (tls_map.count (dwTid))
-     {
-       auto& mapped =
-         tls_map.at (dwTid);
-       
-       mapped->pTLS     = nullptr;
-       mapped->dwTlsIdx = TLS_OUT_OF_INDEXES;
-     }
-   }
+    ////////auto& tls_map =
+    ////////  SK_TLS_Map ();
+    ////////
+    ////////auto it =
+    ////////  tls_map [dwTid];
+    ////////
+    ////////it->pTLS     = nullptr;
+    ////////it->dwTlsIdx = TLS_OUT_OF_INDEXES;
+  }
 
 #ifdef _DEBUG
-    size_t freed =
+  size_t freed =
 #endif
-    pTLS->Cleanup (
-      SK_TLS_CleanupReason_e::Unload
-    );
+  pTLS->Cleanup (
+    SK_TLS_CleanupReason_e::Unload
+  );
 
 #ifdef _DEBUG
-    SK_LOG0 ( ( L"Freed %zu bytes of temporary heap storage for tid=%x",
-                  freed, GetCurrentThreadId () ), L"TLS Memory" );
+  SK_LOG0 ( ( L"Freed %zu bytes of temporary heap storage for tid=%x",
+                freed, GetCurrentThreadId () ), L"TLS Memory" );
 #endif
 
-  FlsSetValue ( pTLSRecord->dwTlsIdx,
-                nullptr               );
+  if ( FlsSetValue ( ReadULongAcquire (&__SK_TLS_INDEX),
+                     nullptr ) )
+  {
+    return
+      pTLS;
+  }
 
-  delete
-    pTLS;
+  return
+    nullptr;
 }
 
 
@@ -166,41 +305,35 @@ SK_TLS_LogLeak ( const wchar_t* wszFunc,
 SK_TLS*
 SK_TLS_Bottom (void)
 {
-  const int RESOLVE_MAX = 32;
+  const DWORD dwTid       =
+    SK_GetCurrentThreadId ();
 
-  static std::pair <DWORD, SK_TLS*> last_resolve [RESOLVE_MAX];
-  static volatile LONG              resolve_idx = 0;
-
-  auto early_out =
-    last_resolve [ReadAcquire (&resolve_idx)];
-
-  const DWORD
-    dwTid = SK_GetCurrentThreadId ();
-
-  assert (dwTid == GetCurrentThreadId ());
-
-  if (early_out.first == dwTid)
-  {
-    return early_out.second;
-  }
-
-
-  auto _CacheResolution =
-    [&](LONG idx, SK_TLS* pTLS) ->
-    void
-    {
-      early_out =
-        std::make_pair (pTLS->debug.tid, pTLS);
-
-      std::swap (last_resolve [idx], early_out);
-
-      InterlockedExchange (&resolve_idx, idx);
-    };
+  ////SK_TlsRecord *pTlsRec =
+  ////  SK_TLS_FindInCache (dwTid);
+  ////
+  ////if ( pTlsRec                  != nullptr &&
+  ////     pTlsRec->pTLS            != nullptr &&
+  ////     pTlsRec->pTLS->debug.tid == dwTid )
+  ////{
+  ////  return
+  ////    pTlsRec->pTLS;
+  ////}
+  ////
+  ////
+  ////auto _CacheResolution =
+  ////  [&](LONG idx, SK_TLS* pTLS) ->
+  ////  void
+  ////  {
+  ////    SK_TLS_ThreadCache::cache_record cache =
+  ////      std::make_pair (pTLS->debug.tid, pTLS);
+  ////
+  ////    std::swap (cache_ctx.last_resolve [idx], cache);
+  ////  };
 
 
   InterlockedIncrement (&_SK_IgnoreTLSAlloc);
 
-  SK_TLS *pTLS;
+  SK_TLS *pTLS       = nullptr;
   auto    pTLSRecord =
     SK_GetTLS (&pTLS);
 
@@ -217,7 +350,9 @@ SK_TLS_Bottom (void)
 ////  }
 ////#endif
 
-  if ((pTLSRecord != nullptr) && (! pTLSRecord->pTLS->debug.mapped))
+  if ( (pTLSRecord          != nullptr) &&
+       (pTLSRecord->pTLS    != nullptr) &&
+     (! pTLSRecord->pTLS->debug.mapped) )
   {
     auto& tls_map =
       SK_TLS_Map ();
@@ -237,13 +372,27 @@ SK_TLS_Bottom (void)
 
   //SK_ReleaseAssert (pTLS != nullptr)
 
-  LONG idx =
-    ReadAcquire (&resolve_idx) + 1;
+  ////LONG idx = 0;
+  ////
+  ////if (pTLS != nullptr)
+  ////{
+  ////  while (InterlockedCompareExchange (&cache_ctx.resolve_idx, 0, RESOLVE_MAX) != RESOLVE_MAX)
+  ////  {
+  ////    idx = ReadAcquire (&cache_ctx.resolve_idx);
+  ////
+  ////    if (idx >= RESOLVE_MAX)
+  ////    {
+  ////      InterlockedExchange (&cache_ctx.resolve_idx, 0);
+  ////      continue;
+  ////    }
+  ////
+  ////    _CacheResolution (InterlockedIncrement (&cache_ctx.resolve_idx), pTLS);
+  ////    break;
+  ////  }
+  ////}
 
-  if (idx >= RESOLVE_MAX)
-    idx = 0;
-
-  _CacheResolution (idx, pTLS);
+  if (pTLSRecord == nullptr)
+    return nullptr;
 
   return
     pTLS;
@@ -253,23 +402,29 @@ _On_failure_ (_Ret_maybenull_)
 SK_TLS*
 SK_TLS_BottomEx (DWORD dwTid)
 {
-  const auto& tls_map =
+  auto& tls_map =
     SK_TLS_Map ();
 
-  const auto tls_slot =
-    tls_map.find (dwTid);
+  auto tls_slot =
+    tls_map [dwTid];
 
-  if (tls_slot != tls_map.cend ())
-  {
+  __try {
     // If out-of-indexes, then the thread was probably destroyed
-    if ( tls_slot->second != nullptr &&
-         tls_slot->second->dwTlsIdx  == __SK_TLS_INDEX )
+    if ( tls_slot                                !=     nullptr &&
+         tls_slot->pTLS                          !=     nullptr &&
+         tls_slot->pTLS->context_record.dwTlsIdx == ReadULongAcquire (&__SK_TLS_INDEX) )
     {
       return
         static_cast <SK_TLS *> (
-          tls_slot->second->pTLS
-        );
+          tls_slot->pTLS
+          );
     }
+  }
+  __except (EXCEPTION_EXECUTE_HANDLER)
+  {
+    SK_ReleaseAssert (! (L"Bad TLS"))
+
+    return nullptr;
   }
 
   //SK_ReleaseAssert (tls_slot != tls_map.end ())
@@ -301,13 +456,13 @@ SK_ModuleAddrMap::contains (LPCVOID pAddr, HMODULE* phMod)
   return false;
 }
 
-void 
+void
 SK_ModuleAddrMap::insert (LPCVOID pAddr, HMODULE hMod)
 {
   if (pResolved == nullptr)
     pResolved = new std::unordered_map <LPCVOID, HMODULE> ( );
 
-  std::unordered_map <LPCVOID, HMODULE> *pResolved_ = 
+  std::unordered_map <LPCVOID, HMODULE> *pResolved_ =
     ((std::unordered_map <LPCVOID, HMODULE> *)pResolved);
 
   (*pResolved_) [pAddr] = hMod;
@@ -765,6 +920,7 @@ SK_D3D11_ThreadContext::allocScreenshotMemory (size_t bytesNeeded)
         _aligned_malloc (bytesNeeded, 16);
 
       if (screenshot.buffer != nullptr)
+
       {
         screenshot.reserve = bytesNeeded;
       }
@@ -915,7 +1071,9 @@ SK_TLS::Cleanup (SK_TLS_CleanupReason_e reason)
 
   // Include the size of the TLS data structure on thread unload
   if (reason == Unload)
+  {
     freed += sizeof (SK_TLS);
+  }
 
   return freed;
 }

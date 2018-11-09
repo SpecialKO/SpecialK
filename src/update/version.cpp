@@ -39,7 +39,8 @@
 
 DWORD dwInetCtx;
 
-std::wstring __SK_LastProductTested = L"";
+         std::wstring __SK_LastProductTested    = L"";
+volatile DWORD        __SK_LastVersionCheckTime = 0UL;
 
 
 #include <SpecialK/core.h>
@@ -575,6 +576,9 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
 
   InterlockedExchange (&spinlock, 0);
 
+  if (bRet)
+    InterlockedExchange (&__SK_LastVersionCheckTime, timeGetTime ());
+
   return bRet;
 }
 
@@ -657,18 +661,32 @@ SK_Version_GetLocalInfo_V1 (const wchar_t* wszProduct)
 }
 
 
-std::wstring
+std::wstring&
 SK_Version_GetLastCheckTime_WStr (void)
 {
+  static DWORD        last_check  =   1;
+  static std::wstring cached_time = L"";
+
+  if (! cached_time.empty ())
+  {
+    if ( ReadULongAcquire (&__SK_LastVersionCheckTime) ==
+           last_check )
+    {
+      return
+        cached_time;
+    }
+  }
+
+
   WIN32_FIND_DATA FindFileData;
+  HANDLE            hFileBackup =
+    FindFirstFile (std::wstring (SK_Version_GetRepoIniPath ()).c_str (), &FindFileData);
 
-  HANDLE hFileBackup = FindFirstFile (std::wstring (SK_Version_GetRepoIniPath ()).c_str (), &FindFileData);
+  FILETIME   ftModified = { };
+  SYSTEMTIME stModified = { };
 
-  FILETIME   ftModified;
   FileTimeToLocalFileTime (&FindFileData.ftLastWriteTime, &ftModified);
-
-  SYSTEMTIME stModified;
-  FileTimeToSystemTime (&ftModified, &stModified);
+  FileTimeToSystemTime    (&ftModified,                   &stModified);
 
   FindClose (hFileBackup);
 
@@ -676,14 +694,22 @@ SK_Version_GetLastCheckTime_WStr (void)
 
   GetDateFormat (LOCALE_USER_DEFAULT, DATE_AUTOLAYOUT, &stModified, nullptr, wszFileTime, 512);
 
-  std::wstring date_time = wszFileTime;
+  std::wstring date_time (wszFileTime);
 
   GetTimeFormat (LOCALE_USER_DEFAULT, TIME_NOSECONDS, &stModified, nullptr, wszFileTime, 512);
 
-  date_time += L" ";
-  date_time += wszFileTime;
+  date_time.append (L" ");
+  date_time.append (wszFileTime);
 
-  return date_time;
+
+  last_check =
+    ReadULongAcquire (&__SK_LastVersionCheckTime);
+
+  cached_time =
+    std::move (date_time);
+
+  return
+    cached_time;
 }
 
 

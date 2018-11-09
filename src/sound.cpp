@@ -31,6 +31,8 @@ struct IUnknown;
 #include <SpecialK/log.h>
 #include <SpecialK/window.h>
 
+#include <SpecialK/diagnostics/modules.h>
+
 #include <unordered_map>
 #include <set>
 

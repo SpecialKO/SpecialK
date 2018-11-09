@@ -185,9 +185,9 @@ SK::ControlPanel::D3D9::Draw (void)
         if ((! selected) && (ImGui::IsItemHovered () || ImGui::IsItemFocused ()))
           ImGui::SetTooltip ("Click here to use custom textures.");
 
-        ImGui::TextColored (ImColor::HSV (std::min ( 0.4f * (float)tex_mgr.getHitCount  ()   / 
+        ImGui::TextColored (ImColor::HSV (std::min ( 0.4f * (float)tex_mgr.getHitCount  () /
                                                             (float)tex_mgr.getMissCount (), 0.4f ), 0.98f, 1.0f),
-                         "%.2f  Hit/Miss",                 (double)tex_mgr.getHitCount  () / 
+                         "%.2f  Hit/Miss",                 (double)tex_mgr.getHitCount  () /
                                                            (double)tex_mgr.getMissCount ()          ); ImGui::NextColumn ();
         ImGui::Text    ( "Driver: %#7zu MiB  ",                    tex_mgr.getByteSaved () >> 20ULL );
 
@@ -258,7 +258,7 @@ SK_ImGui_SummarizeD3D9Swapchain (IDirect3DSwapChain9 *pSwap9)
       ImGui::Separator       ();
 
       ImGui::BeginGroup      ();
-      ImGui::PushStyleColor  (ImGuiCol_Text, ImColor (0.785f, 0.785f, 0.785f));
+      ImGui::PushStyleColor  (ImGuiCol_Text, ImColor (0.685f, 0.685f, 0.685f));
       ImGui::TextUnformatted ("Color:");
       ImGui::TextUnformatted ("Depth/Stencil:");
       ImGui::TextUnformatted ("Resolution:");

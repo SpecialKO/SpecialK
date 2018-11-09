@@ -690,7 +690,7 @@ SK::D3D9::TextureWorkerThread::~TextureWorkerThread (void)
 {
   shutdown ();
 
-  WaitForSingleObject (thread_, INFINITE);
+  SK_WaitForSingleObject (thread_, INFINITE);
 
   CloseHandle (control_.shutdown);
   CloseHandle (control_.trim);
@@ -1086,7 +1086,7 @@ SK::D3D9::TextureManager::injectTexture (TexLoadRequest* load)
         if (streamed && size > (128 * 1024))
         {
           dwResult =
-            WaitForSingleObject ( decomp_semaphore, INFINITE );
+            SK_WaitForSingleObject ( decomp_semaphore, INFINITE );
         }
 
         switch (dwResult)
@@ -2226,7 +2226,7 @@ SK::D3D9::TextureManager::Init (void)
   tex_log.init (L"logs/textures.log", L"wt+,ccs=UTF-8");
 
   d3dx9_43_dll =
-    GetModuleHandle (L"D3DX9_43.DLL");
+    SK_GetModuleHandle (L"D3DX9_43.DLL");
 
   init = true;
 
@@ -3242,9 +3242,9 @@ SK::D3D9::TextureThreadPool::Spooler (LPVOID user)
   auto* pPool =
     static_cast <TextureThreadPool *> (user);
 
-  WaitForSingleObject (pPool->events_.jobs_added, INFINITE);
+  SK_WaitForSingleObject (pPool->events_.jobs_added, INFINITE);
 
-  while (WaitForSingleObject (pPool->events_.shutdown, 0) == WAIT_TIMEOUT)
+  while (SK_WaitForSingleObject (pPool->events_.shutdown, 0) == WAIT_TIMEOUT)
   {
     TexLoadRequest* pJob =
       pPool->getNextJob ();
@@ -3273,7 +3273,7 @@ SK::D3D9::TextureThreadPool::Spooler (LPVOID user)
       // All worker threads are busy, so wait...
       if (! started)
       {
-        WaitForSingleObject (pPool->events_.results_waiting, INFINITE);
+        SK_WaitForSingleObject (pPool->events_.results_waiting, INFINITE);
       }
 
       else
@@ -3284,7 +3284,7 @@ SK::D3D9::TextureThreadPool::Spooler (LPVOID user)
     }
 
     const int MAX_TIME_BETWEEN_TRIMS = 1500UL;
-    while ( WaitForSingleObject (
+    while ( SK_WaitForSingleObject (
               pPool->events_.jobs_added,
                 MAX_TIME_BETWEEN_TRIMS ) ==
                                WAIT_TIMEOUT )

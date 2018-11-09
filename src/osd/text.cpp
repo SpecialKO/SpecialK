@@ -659,7 +659,7 @@ SK_DrawOSD (void)
     }
 
 
-    bool gsync = 
+    bool gsync =
      ( sk::NVAPI::nv_hardware     && config.apis.NvAPI.gsync_status &&
        SK_GetCurrentRenderBackend ().gsync_state.capable            &&
        SK_GetCurrentRenderBackend ().gsync_state.active                );
@@ -669,7 +669,7 @@ SK_DrawOSD (void)
     {
       const char* format = "";
 
-      bool has_cpu_frametime = 
+      bool has_cpu_frametime =
         SK::Framerate::GetLimiter ()->get_limit () > 0.0 &&
                                    (! isTalesOfZestiria) &&
                  frame_history2->calcNumSamples () >   0;
@@ -678,7 +678,7 @@ SK_DrawOSD (void)
       {
         format =
           ( config.fps.frametime  ?
-              config.fps.advanced ? 
+              config.fps.advanced ?
                 has_cpu_frametime ?
                   "  %-7ws:  %#4.01f FPS, %#13.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)   <%4.01f FPS / %3.2f ms>" :
                   "  %-7ws:  %#4.01f FPS, %#13.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)"                           :
@@ -1561,7 +1561,7 @@ public:
 
    SE_Exception (unsigned int n) : nSE (n) {
    }
-  
+
   unsigned int getSeNumber (void) const {
     return nSE;
   }
@@ -1614,7 +1614,7 @@ void
 SE_Func (CEGUI::Renderer*& pRenderer, SK_TextOverlay& overlay, const CEGUI::Rectf& scrn)
 {
   __try {
-    overlay.geometry_ = 
+    overlay.geometry_ =
       &(pRenderer->createGeometryBuffer ());
 
     overlay.geometry_->setClippingRegion (scrn);
@@ -1739,8 +1739,24 @@ SK_TextOverlay::update (const char* szText)
     float   x, y;
     getPos (x, y);
 
-    char* text = 
-      SK_TLS_Bottom ()->osd.allocText (32768);
+    SK_TLS *pTLS =
+      SK_TLS_Bottom ();
+
+    char* text =
+      pTLS ? pTLS->osd.allocText (32768) :
+             nullptr;
+
+    if (text == nullptr)
+    {
+      static bool reported = false;
+
+      if (! reported)
+        SK_ReleaseAssert (text != nullptr);
+
+      SK_RunOnce (reported = true);
+
+      return 0.0f;
+    }
 
             *text = '\0';
     strncat (text, data_.text, 32767);
@@ -1770,8 +1786,6 @@ SK_TextOverlay::update (const char* szText)
 
           longest_line = std::max (extent, longest_line);
         }
-
-        char token [2] = "\n";
 
         if (has_tokens)
           line = strtok_ex (nullptr, token);
@@ -1854,8 +1868,6 @@ SK_TextOverlay::update (const char* szText)
       }
 
       baseline += spacing;
-
-      char token [2] = "\n";
 
       if (has_tokens)
         line = strtok_ex (nullptr, token);
@@ -2179,7 +2191,7 @@ SK_TextOverlayManager::OnVarChange (SK_IVariable* var, void* val)
   }
 
   else if ( var == io_.show  ||
-            var == gpu_.show || 
+            var == gpu_.show ||
             var == fps_.show )
   {
     *static_cast <bool *> (var->getValuePointer ()) = *static_cast <bool *> (val);

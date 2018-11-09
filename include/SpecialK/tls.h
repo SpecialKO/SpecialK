@@ -32,6 +32,10 @@ struct IUnknown;
 //#include <SpecialK/com_util.h>
 //#include <SpecialK/log.h>
 
+#include <vcruntime_exception.h>
+
+struct SK_MMCS_TaskEntry;
+
 struct ID3D11Buffer;
 struct ID3D11SamplerState;
 struct ID3D11DeviceContext;
@@ -94,9 +98,8 @@ struct SK_TlsRecord {
   SK_TLS *pTLS;
 };
 
-extern
 SK_TlsRecord* SK_GetTLS     (SK_TLS** ppTLS);
-void          SK_CleanupTLS (void);
+SK_TLS*       SK_CleanupTLS (void);
 
 
 template <typename _T>
@@ -120,7 +123,7 @@ public:
     }
 
     if (zero_fill && data != nullptr)
-      RtlZeroMemory (data, needed * sizeof (_T));
+      memset (data, 0, needed * sizeof (_T));
 
     return data;
   }
@@ -384,7 +387,7 @@ public:
                                                    = { };
 
   // Prevent recursion during hook installation
-  bool                      skip_d3d11_create_device = false;
+  BOOL                      skip_d3d11_create_device = FALSE;
 
   struct {
     uint8_t* buffer  = nullptr;
@@ -448,14 +451,19 @@ public:
   RAWINPUTDEVICE* devices     = nullptr;
   size_t          num_devices = 0UL;
 
+  HRAWINPUT       last_input  = nullptr;
+
   size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload);
 };
+
+#include <SpecialK/input/input.h>
 
 class SK_Input_ThreadContext
 {
 public:
-  BOOL hid                 = FALSE;
-  BOOL ctx_init_thread     = FALSE;
+  BOOL                      hid             = FALSE;
+  BOOL                      ctx_init_thread = FALSE;
+  SK_ImGui_InputLanguage_s  input_language;
 };
 
 
@@ -465,6 +473,8 @@ public:
   int  getThreadPriority (bool nocache = false);
 
   LONG GUI                 = -1;
+  HWND active              = (HWND)-1;
+  
 
   int  thread_prio         =  0;
 
@@ -562,6 +572,9 @@ public:
   volatile LONG64 bytes_read        = 0ULL;
   volatile LONG64 bytes_written     = 0ULL;
 
+           BOOL   ignore_reads      = FALSE;
+           BOOL   ignore_writes     = FALSE;
+
            HANDLE last_file_read    = INVALID_HANDLE_VALUE;
            HANDLE last_file_written = INVALID_HANDLE_VALUE;
 };
@@ -582,6 +595,8 @@ public:
   DWORD_PTR     affinity_mask = (DWORD_PTR)-1;
   bool          lock_affinity = false;
   bool          background_io = false;
+  SK_MMCS_TaskEntry*
+                mmcs_task     = nullptr;
 
   ULONG         sleep0_count  = 0UL;
   ULONG         last_frame    = 0UL;
@@ -616,11 +631,12 @@ public:
 class SK_TLS
 {
 public:
-  SK_TLS                    (LONG idx) {
+  SK_TLS                    (DWORD idx) {
     context_record.dwTlsIdx = idx;
     context_record.pTLS     = this;
 
-    debug.tls_idx = idx;
+    debug.tid               = GetCurrentThreadId ();
+    debug.tls_idx           = idx;
   }
 
   SK_TlsRecord              context_record = { };
@@ -667,8 +683,8 @@ public:
     EXCEPTION_RECORD last_exc      = {   };
     wchar_t          name    [256] = {   };
     HANDLE           handle        = INVALID_HANDLE_VALUE;
-    DWORD            tls_idx       =     0;
-    DWORD            tid           = GetCurrentThreadId ();
+    DWORD            tls_idx;//    =     0;
+    DWORD            tid;//        = GetCurrentThreadId ();
     ULONG            last_frame    = static_cast <ULONG>(-1);
     volatile LONG    exceptions    =     0;
     bool             mapped        = false;

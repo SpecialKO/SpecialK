@@ -185,21 +185,18 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
   CComQIPtr <IDXGISwapChain>      pSwapChain (rb.swapchain);
   CComQIPtr <IDXGISwapChain3>     pSwap3     (pSwapChain);
   CComQIPtr <ID3D11Device>        pDevice    (rb.device);
-
-                                               __SK_ImGui_D3D11_DrawDeferred = false;
-  CComQIPtr <ID3D11DeviceContext> pDevCtx    ( __SK_ImGui_D3D11_DrawDeferred ? rb.d3d11.deferred_ctx :
-                                                                               rb.d3d11.immediate_ctx );
+  CComQIPtr <ID3D11DeviceContext> pDevCtx    (rb.d3d11.immediate_ctx);
 
   CComPtr   <ID3D11Texture2D>     pBackBuffer = nullptr;
 
                     UINT currentBuffer = 0;
-  if (pSwap3 != nullptr) currentBuffer = pSwap3->GetCurrentBackBufferIndex ();
+//if (pSwap3 != nullptr) currentBuffer = pSwap3->GetCurrentBackBufferIndex ();
 
   
-  if (rb.d3d11.interop.backbuffer_tex2D != nullptr)
-    pBackBuffer = rb.d3d11.interop.backbuffer_tex2D;
-  else
-    pSwapChain->GetBuffer (currentBuffer, IID_PPV_ARGS (&pBackBuffer));
+  pSwapChain->GetBuffer (currentBuffer, IID_PPV_ARGS (&pBackBuffer));
+
+  if (! pBackBuffer)
+    return;
 
 
   D3D11_TEXTURE2D_DESC   backbuffer_desc = { };
@@ -228,7 +225,7 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
     desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
     desc.MiscFlags      = 0;
 
-    if (pDevice->CreateBuffer (&desc, nullptr, &g_pVB) < 0)
+    if (pDevice->CreateBuffer (&desc, nullptr, &g_pVB) < 0 || (! g_pVB))
       return;
   }
 
@@ -247,7 +244,7 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
     desc.BindFlags      = D3D11_BIND_INDEX_BUFFER;
     desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 
-    if (pDevice->CreateBuffer (&desc, nullptr, &g_pIB) < 0)
+    if (pDevice->CreateBuffer (&desc, nullptr, &g_pIB) < 0 || (! g_pIB))
       return;
   }
 
@@ -364,10 +361,8 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
       //  //  break;
       //
       //  default:
-          luma = __SK_HDR_Luma;
-          exp  = __SK_HDR_Exp;
-          //break;
-      //}
+      luma = __SK_HDR_Luma;
+      exp  = __SK_HDR_Exp;
 
       SK_RenderBackend::scan_out_s::SK_HDR_TRANSFER_FUNC eotf =
         rb.scanout.getEOTF ();
@@ -398,6 +393,7 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
 
     pDevCtx->Unmap (g_pPixelConstantBuffer, 0);
   }
+
 
   CComPtr <ID3D11RenderTargetView> pRenderTargetView = nullptr;
 
@@ -442,9 +438,24 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
       pDevice->CreateRenderTargetView (pBackBuffer, &rtdesc, &pRenderTargetView);
     } break;
 
+    case DXGI_FORMAT_R10G10B10A2_UNORM:
+    {
+      D3D11_RENDER_TARGET_VIEW_DESC rtdesc
+        = { };
+
+      rtdesc.Format        = DXGI_FORMAT_R10G10B10A2_UNORM;
+      rtdesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+
+      pDevice->CreateRenderTargetView (pBackBuffer, &rtdesc, &pRenderTargetView);
+    } break;
+
     default:
      pDevice->CreateRenderTargetView (pBackBuffer, nullptr, &pRenderTargetView);
   }
+
+  if (! pRenderTargetView)
+    return;
+
 
   pDevCtx->OMSetRenderTargets ( 1,
                                   &pRenderTargetView.p,
@@ -543,7 +554,7 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
     vtx_offset += cmd_list->VtxBuffer.Size;
   }
 
-
+#if 0
   __SK_ImGui_D3D11_DrawDeferred = false;
   if (__SK_ImGui_D3D11_DrawDeferred)
   {
@@ -563,6 +574,7 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
     else
       pDevCtx->Flush ();
   }
+#endif
 }
 
 #include <SpecialK/config.h>
@@ -1128,13 +1140,13 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
                                                                               \
       float3 RemoveSRGBCurve (float3 x)                                       \
       {                                                                       \
-      	/* Approximately pow(x, 2.2)*/                                        \
-      	return x < 0.04045 ? x / 12.92 : pow((x + 0.055) / 1.055, 2.4);       \
+        /* Approximately pow(x, 2.2)*/                                        \
+        return x < 0.04045 ? x / 12.92 : pow((x + 0.055) / 1.055, 2.4);       \
       }                                                                       \
                                                                               \
       float3 ApplyREC709Curve (float3 x)                                      \
       {                                                                       \
-      	return x < 0.0181 ? 4.5 * x : 1.0993 * pow(x, 0.45) - 0.0993;         \
+        return x < 0.0181 ? 4.5 * x : 1.0993 * pow(x, 0.45) - 0.0993;         \
       }                                                                       \
       float Luma (float3 color)                                               \
       {                                                                       \
@@ -1252,8 +1264,8 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
                                                                  \
     float3 RemoveSRGBCurve(float3 x)                             \
     {                                                            \
-    	/* Approximately pow(x, 2.2)*/                             \
-    	return x < 0.04045 ? x / 12.92 :                           \
+      /* Approximately pow(x, 2.2)*/                             \
+      return x < 0.04045 ? x / 12.92 :                           \
                       pow((x + 0.055) / 1.055, 2.4);             \
     }                                                            \
                                                                  \
@@ -1288,8 +1300,8 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
                                                                  \
     float3 RemoveSRGBCurve(float3 x)                             \
     {                                                            \
-    	/* Approximately pow(x, 2.2)*/                             \
-    	return x < 0.04045 ? x / 12.92 :                           \
+      /* Approximately pow(x, 2.2)*/                             \
+      return x < 0.04045 ? x / 12.92 :                           \
                       pow((x + 0.055) / 1.055, 2.4);             \
     }                                                            \
                                                                  \
@@ -1606,11 +1618,19 @@ ImGui_ImplDX11_NewFrame (void)
 {
   if (! SK_GetCurrentRenderBackend ().device)
     return;
+  
+  ImGuiIO& io (ImGui::GetIO ());
 
   if (! g_pFontSampler_clamp)
     ImGui_ImplDX11_CreateDeviceObjects ();
-  
-  ImGuiIO& io (ImGui::GetIO ());
+
+  if (io.Fonts->Fonts.empty ())
+  {
+    ImGui_ImplDX11_CreateFontsTexture ();
+
+    if (io.Fonts->Fonts.empty ())
+      return;
+  }
 
   // Setup display size (every frame to accommodate for window resizing)
   //io.DisplaySize =

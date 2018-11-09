@@ -464,7 +464,7 @@ enum class WaitReason
 };
 
 enum class ThreadState
-{                  
+{
   //Aborted          = 256,
   //AbortRequested   = 128,
   //Background       = 4,
@@ -480,7 +480,7 @@ enum class ThreadState
 };
 #pragma pack(pop)
 
-float __SK_Thread_RebalanceEveryNSeconds = 1.25f;
+float __SK_Thread_RebalanceEveryNSeconds = 12.5f;
 
 struct SKWG_Thread_Entry
 {
@@ -531,7 +531,7 @@ ProcessInformation ( PDWORD    pdData,
   if (NtQuerySystemInformation == nullptr)
   {
     HMODULE hModNtDLL =
-      GetModuleHandleW (L"Ntdll.dll");
+      SK_GetModuleHandleW (L"Ntdll.dll");
 
     if (! hModNtDLL) hModNtDLL = SK_Modules.LoadLibrary (L"Ntdll.dll");
 
@@ -632,7 +632,7 @@ SK_ImGui_RebalanceThreadButton (void)
   if (! rebalance)
   {
     ImGui::SameLine ();
-  
+
     if (ImGui::Button ("Rebalance Threads"))
     {
       SK_Thread_RebalanceThreads ();
@@ -820,11 +820,11 @@ SK_ImGui_ThreadCallstack (HANDLE hThread, LARGE_INTEGER userTime, LARGE_INTEGER 
 
   if (
 #ifndef _WIN64
-       last_ctx.Eip        != thread_ctx.Eip || 
+       last_ctx.Eip        != thread_ctx.Eip ||
 #else
-       last_ctx.Rip        != thread_ctx.Rip || 
+       last_ctx.Rip        != thread_ctx.Rip ||
 #endif
-     /*lastUser.QuadPart   != userTime.QuadPart   || 
+     /*lastUser.QuadPart   != userTime.QuadPart   ||
        lastKernel.QuadPart != kernelTime.QuadPart || */
        lastThreadId        != GetThreadId (hThread) )
   {
@@ -1041,31 +1041,31 @@ public:
     SK_RunOnce (
       k32SetThreadInformation =
         (SetThreadInformation_pfn)GetProcAddress (
-          GetModuleHandle (L"kernel32"),
-                            "SetThreadInformation"
+          SK_GetModuleHandle (L"kernel32"),
+                               "SetThreadInformation"
         )
     );
 
     SK_RunOnce (
       k32GetThreadInformation =
         (GetThreadInformation_pfn)GetProcAddress (
-          GetModuleHandle (L"kernel32"),
-                            "GetThreadInformation"
+          SK_GetModuleHandle (L"kernel32"),
+                               "GetThreadInformation"
         )
     );
 
     SK_RunOnce (
       NtQueryInformationProcess =
-          (NtQueryInformationProcess_pfn)GetProcAddress ( GetModuleHandle (L"NtDll.dll"),
-                                                            "NtQueryInformationProcess" )
+          (NtQueryInformationProcess_pfn)GetProcAddress ( SK_GetModuleHandle (L"NtDll.dll"),
+                                                                               "NtQueryInformationProcess" )
     );
 
 
     static float last_rebalance = 0.0f;
 
     if ( __SK_Thread_RebalanceEveryNSeconds > 0.0f &&
-         ( timeGetTime () / 1000 ) >
-           (last_rebalance + __SK_Thread_RebalanceEveryNSeconds) )
+         ( (float)timeGetTime () / 1000.0f ) >
+                 (last_rebalance + __SK_Thread_RebalanceEveryNSeconds) )
     {
       SK_Thread_RebalanceThreads ();
     }
@@ -1080,25 +1080,56 @@ public:
 
 
     static std::vector        <SKWG_Thread_Entry *> rebalance_list;
-    static std::unordered_set <SKWG_Thread_Entry *> blacklist;
+    static std::unordered_set <DWORD>               blacklist;
 
     if (rebalance && rebalance_list.empty ())
     {
-      last_rebalance = timeGetTime () / 1000.0f;
+      last_rebalance =
+        static_cast <float> (timeGetTime ()) /
+                               1000.0f;
 
       for ( auto& it : SKWG_Ordered_Threads )
       {
-        if (it.second == nullptr || blacklist.count (it.second))
+        if (                  it.second         == nullptr ||
+                              it.second->exited == true    ||
+             blacklist.count (it.second->dwTid)               )
+        {
           continue;
+        }
+
+        if ( it.second->self_titled == false &&
+            (it.second->name.find (L"nvwgf2umx.dll") != std::wstring::npos ||
+             it.second->name.find (L"NVAPI_Thunk")   != std::wstring::npos   ) )
+        {
+          HANDLE hThreadOrig = it.second->hThread;
+
+          if (it.second->hThread == INVALID_HANDLE_VALUE)
+          {
+            it.second->hThread =
+              OpenThread (THREAD_ALL_ACCESS, FALSE, it.second->dwTid);
+          }
+
+//#define SK_DisableThreadPriorityBoost(thread) SetThreadPriorityBoost ((thread), TRUE)
+        //SK_DisableThreadPriorityBoost (it.second->hThread);
+
+          if (it.second->hThread != hThreadOrig)
+          {
+            CloseHandle (it.second->hThread);
+                         it.second->hThread = INVALID_HANDLE_VALUE;
+          }
+        }
 
         SK_TLS* pTLS =
           SK_TLS_BottomEx (it.second->dwTid);
 
         if (! pTLS)
         {
-          blacklist.emplace (it.second);
+          blacklist.emplace (it.second->dwTid);
           continue;
         }
+
+        else if (blacklist.count (it.second->dwTid))
+                 blacklist.erase (it.second->dwTid);
 
         rebalance_list.push_back (it.second);
       }
@@ -1139,7 +1170,7 @@ public:
               OpenThread (THREAD_ALL_ACCESS, FALSE, it->dwTid);
           }
 
-          DWORD pnum = 
+          DWORD pnum =
             SetThreadIdealProcessor (it->hThread, MAXIMUM_PROCESSORS);
 
           DWORD dwExitCode = 0;
@@ -1225,16 +1256,16 @@ public:
       reinterpret_cast <PSYSTEM_PROCESS_INFORMATION> (
         pTLS->local_scratch.NtQuerySystemInformation.data
       );
-  
+
     if (pInfo != nullptr && nts == STATUS_SUCCESS)
     {
       int i = 0;
 
       const DWORD dwPID = GetCurrentProcessId (),
                   dwTID = GetCurrentThreadId  ();
-  
+
       SYSTEM_PROCESS_INFORMATION* pProc = pInfo;
-  
+
       do
       {
         if ((DWORD)((uintptr_t)pProc->UniqueProcessId & 0xFFFFFFFFU) == dwPID)
@@ -1245,7 +1276,7 @@ public:
             ((BYTE *)pProc + pProc->dNext);
       } while (pProc->dNext != 0);
 
-        
+
       if ((DWORD)((uintptr_t)pProc->UniqueProcessId & 0xFFFFFFFFU) == dwPID)
       {
         int threads =
@@ -1282,6 +1313,58 @@ public:
             SKWG_Threads.insert (
               std::make_pair ( dwLocalTID, ptEntry )
             );
+
+
+            if ( config.render.framerate.enable_mmcss &&
+                 SK_GetCurrentGameID () == SK_GAME_ID::AssassinsCreed_Odyssey )
+            {
+              extern SK_MMCS_TaskEntry*
+              SK_MMCS_GetTaskForThreadIDEx ( DWORD dwTid, const char* name,
+                                                          const char* class0,
+                                                          const char* class1 );
+
+              if (! ptEntry->name.empty ())
+              {
+                std::string utf8_name =
+                  SK_WideCharToUTF8 (ptEntry->name);
+
+                if (ptEntry->name._Equal (L"AsyncFileCompletionThread"))
+                {
+                  SK_MMCS_TaskEntry* task_me =
+                    SK_MMCS_GetTaskForThreadIDEx (ptEntry->dwTid, utf8_name.c_str (), "Audio", "Capture");
+
+                  if (task_me != nullptr)
+                  {
+                    task_me->setMaxCharacteristics ("Audio", "Capture");
+                    task_me->setPriority           (AVRT_PRIORITY_HIGH);
+                  }
+                }
+
+                if (ptEntry->name._Equal (L"Loading Thread"))
+                {
+                  SK_MMCS_TaskEntry* task_me =
+                    SK_MMCS_GetTaskForThreadIDEx (ptEntry->dwTid, utf8_name.c_str (), "Playback", "Distribution");
+
+                  if (task_me != nullptr)
+                  {
+                    task_me->setMaxCharacteristics ("Playback", "Distribution");
+                    task_me->setPriority           (AVRT_PRIORITY_HIGH);
+                  }
+                }
+
+                if (ptEntry->name._Equal (L"EngineWindowThread"))
+                {
+                  SK_MMCS_TaskEntry* task_me =
+                    SK_MMCS_GetTaskForThreadIDEx (ptEntry->dwTid, utf8_name.c_str (), "Playback", "Window Manager");
+
+                  if (task_me != nullptr)
+                  {
+                    task_me->setMaxCharacteristics ("Playback", "Window Manager");
+                    task_me->setPriority           (AVRT_PRIORITY_NORMAL);
+                  }
+                }
+              }
+            }
           }
 
           SKWG_Thread_Entry* ptEnt =
@@ -1291,7 +1374,7 @@ public:
             pProc->aThreads [i];
 
           ptEnt->wait_reason =
-            static_cast <WaitReason> 
+            static_cast <WaitReason>
                 (thread.WaitReason);
           ptEnt->thread_state =
             static_cast <ThreadState>
@@ -1533,59 +1616,174 @@ public:
 
     //ImGui::BeginChild ("Thread_List",   ImVec2 (0,0), false, ImGuiWindowFlags_NavFlattened | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_HorizontalScrollbar);
 
-    ImGui::BeginGroup ();
-
-    ImGui::Checkbox ("Show Finished", &show_exited_threads);
-    ImGui::SameLine ();
-    ImGui::Checkbox ("Hide Inactive", &hide_inactive);
-    ImGui::SameLine ();
-    ImGui::Checkbox ("Reset Stats Every 30 Seconds", &reset_stats);
-    ImGui::SameLine ();
-    if (ImGui::Button ("Reset Performance Counters"))
-      clear_counters = true;
-    
-    SK_ImGui_RebalanceThreadButton ();
-
-    ImGui::SameLine ();
-
-    ImGui::Checkbox ("Show Callstack Analysis", &show_callstack);
-
-    if (ImGui::IsItemHovered ()) ImGui::SetTooltip ("This feature is experimental and may cause hitching while debug symbols are loaded.");
-
-    ImGui::Separator ();
-
-    ImGui::EndGroup ();
-
     extern std::vector <SK_MMCS_TaskEntry*>
     SK_MMCS_GetTasks (void);
 
     const auto& tasks =
       SK_MMCS_GetTasks ();
 
-    ImGui::BeginGroup ();
-    for ( auto& task : tasks )
+    if ( tasks.size () > 0 &&
+         ImGui::CollapsingHeader ("Multi-Media Class Tasks", ImGuiTreeNodeFlags_DefaultOpen) )
     {
-      ImGui::Text (" * MMCS Task:  %s ", task->name );
-    } ImGui::EndGroup ();
-    ImGui::SameLine   ();
-    ImGui::BeginGroup ();
-    for ( auto& task : tasks )
+      float fSpacingMax = 0.0f;
+
+      for ( auto& task : tasks )
+      {
+        fSpacingMax =
+          std::fmaxf ( ImGui::CalcTextSize (task->name).x,
+                         fSpacingMax );
+      }
+
+        ImGui::Columns (2);//(4);
+      for ( auto& task : tasks ) {
+        ImGui::PushID  (task->dwTid);
+
+        static const float const_spacing =
+          ImGui::CalcTextSize ("[SK] ").x;
+
+      ImGui::SetColumnOffset ( 0, 0.0f   );
+      ImGui::SetColumnOffset ( 1, fSpacingMax +
+                           const_spacing );
+
+      ImGui::Spacing    ( ); ImGui::SameLine ();
+      ImGui::Text       ("%s",     task->name );
+      ImGui::NextColumn ( );
+
+      int prio =
+        int (task->priority + 2);
+
+      if (ImGui::Combo ("Priority", &prio, "Very Low\0Low\0Normal\0High\0Critical\0\0"))
+      {
+        task->change.priority =
+          AVRT_PRIORITY (prio - 2);
+
+        strncpy (task->change.task0, task->task0, 64);
+        strncpy (task->change.task1, task->task1, 64);
+
+        task->change.flush ();
+      }
+      else if (! ReadAcquire (&task->change.pending))
+        task->change.priority = task->priority;
+
+      //ImGui::NextColumn ( );
+      //
+      //static
+      //  std::unordered_map <std::string, int>
+      //    __task_map =
+      //   {
+      //     { "Audio",                 0 },
+      //     { "Capture",               1 },
+      //     { "DisplayPostProcessing", 2 },
+      //     { "Distribution",          3 },
+      //     { "Games",                 4 },
+      //     { "Playback",              5 },
+      //     { "Pro Audio",             6 },
+      //     { "Window Manager",        7 }
+      //   };
+      //
+      //static
+      //  std::unordered_map <int, std::string>
+      //    __task_rev_map =
+      //   {
+      //     { 0, "Audio"                 },
+      //     { 1, "Capture"               },
+      //     { 2, "DisplayPostProcessing" },
+      //     { 3, "Distribution"          },
+      //     { 4, "Games"                 },
+      //     { 5, "Playback"              },
+      //     { 6, "Pro Audio"             },
+      //     { 7, "Window Manager"        }
+      //   };
+
+      //int task_id0 =
+      //  ReadAcquire (&task->change.pending)     ?
+      //    __task_map.count (task->change.task0) ?
+      //          __task_map [task->change.task0] :
+      //          __task_map ["Games"]            :
+      //    __task_map.count (task->task0) ?
+      //          __task_map [task->task0] :
+      //          __task_map ["Games"];
+
+      //if ( ImGui::Combo ( "Task0", &task_id0, "Audio\0"
+      //                                        "Capture\0"
+      //                                        "DisplayPostProcessing\0"
+      //                                        "Distribution\0"
+      //                                        "Games\0"
+      //                                        "Playback\0"
+      //                                        "Pro Audio\0"
+      //                                        "Window Manager\0\0" ) )
+      //{
+      //  strncpy ( task->change.task0,
+      //          __task_rev_map [task_id0].c_str (),
+      //            63 );
+      //
+      //  task->change.flush ();
+      //}
+      //else if (! ReadAcquire (&task->change.pending))
+      //  strncpy (task->change.task0, task->task0, 64);
+
+      //ImGui::NextColumn ();
+
+      //int task_id1 =
+      //  ReadAcquire (&task->change.pending)     ?
+      //    __task_map.count (task->change.task1) ?
+      //          __task_map [task->change.task1] :
+      //          __task_map ["Games"]            :
+      //    __task_map.count (task->task1) ?
+      //          __task_map [task->task1] :
+      //          __task_map ["Games"];
+      //
+      //if ( ImGui::Combo ( "Task1", &task_id1, "Audio\0"
+      //                                        "Capture\0"
+      //                                        "DisplayPostProcessing\0"
+      //                                        "Distribution\0"
+      //                                        "Games\0"
+      //                                        "Playback\0"
+      //                                        "Pro Audio\0"
+      //                                        "Window Manager\0\0" ) )
+      //{
+      //  strncpy ( task->change.task1,
+      //           __task_rev_map [task_id1].c_str (),
+      //           63 );
+      //
+      //  task->change.flush ();
+      //}
+      //else if (! ReadAcquire (&task->change.pending))
+      //  strncpy (task->change.task1, task->task1, 64);
+
+        ImGui::PopID      ( );
+        ImGui::NextColumn ( );
+      } ImGui::Columns    (1);
+    }
+
+    if ( tasks.size () == 0 ||
+         ImGui::CollapsingHeader ("Normal Win32 Threads", ImGuiTreeNodeFlags_DefaultOpen) )
     {
-      ULONG responsiveness = 0UL;
+      ImGui::BeginGroup ();
 
-      if ( AvQuerySystemResponsiveness ( task->hTask,
-                                             &responsiveness ) )
-      { ImGui::Text (" Responsiveness: %lu",  responsiveness); }
+      ImGui::Checkbox ("Show Finished", &show_exited_threads);
+      ImGui::SameLine ();
+      ImGui::Checkbox ("Hide Inactive", &hide_inactive);
+      ImGui::SameLine ();
+      ImGui::Checkbox ("Reset Stats Every 30 Seconds", &reset_stats);
+      ImGui::SameLine ();
+      if (ImGui::Button ("Reset Performance Counters"))
+        clear_counters = true;
 
-      else
-      { ImGui::TextUnformatted (" Responsiveness: <Invalid>"); }
-    } ImGui::EndGroup ();
+      SK_ImGui_RebalanceThreadButton ();
 
-    ImGui::Separator  ();
+      ImGui::SameLine ();
+
+      ImGui::Checkbox ("Show Callstack Analysis", &show_callstack);
+
+      if (ImGui::IsItemHovered ()) ImGui::SetTooltip ("This feature is experimental and may cause hitching while debug symbols are loaded.");
+
+      ImGui::Separator ();
+
+      ImGui::EndGroup ();
 
     ImGui::BeginGroup ();
   //ImGui::BeginChildFrame (ImGui::GetID ("Thread_List2"), ImVec2 (0,0), ImGuiWindowFlags_NavFlattened | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_HorizontalScrollbar);
-
     if (ImGui::BeginPopup ("ThreadInspectPopup"))
     {
       CHandle hSelectedThread;
@@ -1648,7 +1846,7 @@ public:
 
                 while (true)
                 {
-                  WaitForSingleObjectEx (hRecoveryEvent, INFINITE, FALSE);
+                  SK_WaitForSingleObject (hRecoveryEvent, INFINITE);
 
                   extern volatile LONG __SK_DLL_Ending;
 
@@ -1723,7 +1921,7 @@ public:
 
             bool ideal = (i == j);
 
-            float c_scale = 
+            float c_scale =
               pTLS->scheduler.lock_affinity ? 0.5f : 1.0f;
 
             ImGui::TextColored ( ideal    ? ImColor (0.5f   * c_scale, 1.0f   * c_scale,   0.5f * c_scale):
@@ -1825,7 +2023,7 @@ public:
         //    ThreadPowerThrottling, &pthrottle,
         //                    sizeof (pthrottle) );
         //  {
-        //    bool throttle = 
+        //    bool throttle =
         //      ( pthrottle.StateMask == THREAD_POWER_THROTTLING_EXECUTION_SPEED );
         //
         //    if (ImGui::Checkbox ("Enable Power Throttling", &throttle))
@@ -2008,11 +2206,11 @@ public:
       else
       {
         NTSTATUS  ntStatus;
-        DWORD_PTR pdwStartAddress; 
+        DWORD_PTR pdwStartAddress;
 
         static NtQueryInformationThread_pfn NtQueryInformationThread =
-          (NtQueryInformationThread_pfn)GetProcAddress ( GetModuleHandle (L"NtDll.dll"),
-                                                           "NtQueryInformationThread" );
+          (NtQueryInformationThread_pfn)GetProcAddress ( SK_GetModuleHandle (L"NtDll.dll"),
+                                                                              "NtQueryInformationThread" );
 
         HANDLE hThread = it.second->hThread;
 
@@ -2363,6 +2561,7 @@ public:
           clear_counters )
     {
       dwLastSnap = dwNow;
+    }
     }
   }
 

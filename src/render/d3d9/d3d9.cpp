@@ -189,7 +189,7 @@ static
 std::vector <sk_hook_cache_record_s *> local_d3d9_records =
   {  &LocalHook_D3D9BeginScene,           &LocalHook_D3D9EndScene,
      //&LocalHook_D3D9Reset,                &LocalHook_D3D9ResetEx,
-       
+
      &LocalHook_D3D9Present,
      &LocalHook_D3D9PresentEx,
      &LocalHook_D3D9PresentSwap,          &LocalHook_D3D9CreateAdditionalSwapChain,
@@ -772,11 +772,11 @@ ResetCEGUI_D3D9 (IDirect3DDevice9* pDev)
       std::string locale_orig (
         szLocale != nullptr ? szLocale : ""
       );
-      
+
       if (! locale_orig.empty ())
         setlocale (LC_ALL, "C");
 
-      if (GetModuleHandle (L"CEGUIDirect3D9Renderer-0.dll"))
+      if (SK_GetModuleHandle (L"CEGUIDirect3D9Renderer-0.dll"))
       {
         try {
           cegD3D9 = dynamic_cast <CEGUI::Direct3D9Renderer *> (
@@ -855,13 +855,13 @@ SK_HookD3D9 (void)
   {
     // XXX: Kind of a hack, we may need to implicitly load-up D3D9.DLL so
     //        we can wait for VBlank in OpenGL..
-    if (! GetModuleHandle (L"d3d9.dll"))
+    if (! SK_GetModuleHandle (L"d3d9.dll"))
       SK_Modules.LoadLibraryLL (L"d3d9.dll");
 
 
     HMODULE hBackend =
       (SK_GetDLLRole () & DLL_ROLE::D3D9) ? backend_dll :
-                                     GetModuleHandle (L"d3d9.dll");
+                                  SK_GetModuleHandle (L"d3d9.dll");
 
     SK_LOG0 ( (L"Importing Direct3DCreate9{Ex}..."), L"   D3D9   ");
     SK_LOG0 ( (L"================================"), L"   D3D9   ");
@@ -974,7 +974,7 @@ SK_HookD3D9 (void)
 auto SK_UnpackD3DX9 =
 [](void) -> void
 {
-  HMODULE hModSelf = 
+  HMODULE hModSelf =
     SK_GetDLL ();
 
   HRSRC res =
@@ -1074,8 +1074,8 @@ SK::D3D9::Shutdown (void)
   // The texture manager built-in to SK is derived from these ...
   //   until those projects are modified to use THIS texture manager,
   //     they need special treatment.
-  if ( GetModuleHandle (L"tzfix.dll") == nullptr &&
-       GetModuleHandle (L"tsfix.dll") == nullptr )
+  if ( SK_GetModuleHandle (L"tzfix.dll") == nullptr &&
+       SK_GetModuleHandle (L"tsfix.dll") == nullptr )
   {
     if (tex_mgr.init)
       tex_mgr.Shutdown ();
@@ -1125,9 +1125,9 @@ SK_D3D9_FixUpBehaviorFlags (DWORD& BehaviorFlags)
   if (config.render.d3d9.force_impure)
     BehaviorFlags &= ~D3DCREATE_PUREDEVICE;
 
-  if ( GetModuleHandle (L"tbfix.dll") ||
-       GetModuleHandle (L"tzfix.dll") ||
-       GetModuleHandle (L"tsfix.dll") )
+  if ( SK_GetModuleHandle (L"tbfix.dll") ||
+       SK_GetModuleHandle (L"tzfix.dll") ||
+       SK_GetModuleHandle (L"tsfix.dll") )
   {
     BehaviorFlags |= D3DCREATE_MULTITHREADED;
   }
@@ -1469,23 +1469,27 @@ SK_D3D9_Present_GrandCentral ( sk_d3d9_swap_dispatch_s* dispatch )
     SK_D3D9_ShouldProcessPresentCall (dispatch->Source);
 
 
+
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+
   if (process || trigger_reset != reset_stage_e::Clear)
   {
-    if ( SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D9   ||
-         SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D9Ex ||
-         SK_GetCurrentRenderBackend ().api == SK_RenderAPI::Reserved )
+    if ( rb.api == SK_RenderAPI::D3D9   ||
+         rb.api == SK_RenderAPI::D3D9Ex ||
+         rb.api == SK_RenderAPI::Reserved )
     {
-      SK_GetCurrentRenderBackend ().device    = dispatch->pDevice;
-      SK_GetCurrentRenderBackend ().swapchain = dispatch->pSwapChain;
+      rb.releaseOwnedResources ();
+
+      rb.device    = dispatch->pDevice;
+      rb.swapchain = dispatch->pSwapChain;
     }
 
 #if 0
     SetThreadIdealProcessor (GetCurrentThread (),       6);
     SetThreadAffinityMask   (GetCurrentThread (), (1 << 7) | (1 << 6));//config.render.framerate.pin_render_thread);
 #endif
-
-    SK_RenderBackend& rb =
-      SK_GetCurrentRenderBackend ();
 
 
 #if 0
@@ -1507,9 +1511,14 @@ SK_D3D9_Present_GrandCentral ( sk_d3d9_swap_dispatch_s* dispatch )
 #endif
 
 
-    CComPtr <IDirect3DSurface9> pSurf = nullptr;
+    if (rb.surface.d3d9 != nullptr)
+    {
+      rb.surface.d3d9->Release ();
+      rb.surface.d3d9  = nullptr;
+      rb.surface.nvapi = 0;
+    }
 
-    if (SUCCEEDED (pSwapChain->GetBackBuffer (0, D3DBACKBUFFER_TYPE_MONO, &pSurf.p)))
+    if (SUCCEEDED (pSwapChain->GetBackBuffer (0, D3DBACKBUFFER_TYPE_MONO, &rb.surface.d3d9)))
     {
       D3DPRESENT_PARAMETERS              pparams = { };
       pSwapChain->GetPresentParameters (&pparams);
@@ -1530,10 +1539,16 @@ SK_D3D9_Present_GrandCentral ( sk_d3d9_swap_dispatch_s* dispatch )
       // Update G-Sync; doing this here prevents trying to do this on frames where
       //   the swapchain was resized, which would deadlock the software.
       //
-      if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status)
+      if ( sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status &&
+           ( (config.fps.show && config.osd.show) || SK_ImGui_Visible ) )
       {
-        NvAPI_D3D9_GetSurfaceHandle (pSurf, &rb.surface);
-        rb.gsync_state.update ();
+        if ( NVAPI_OK ==
+               NvAPI_D3D9_GetSurfaceHandle ( rb.surface.d3d9,
+                                            &rb.surface.nvapi )
+           )
+        {
+          rb.gsync_state.update ();
+        }
       }
     }
 
@@ -2175,7 +2190,7 @@ D3D9Reset_Post ( IDirect3DDevice9      *This,
     trigger_reset       = reset_stage_e::Clear;
     request_mode_change = mode_change_request_e::None;
 
-    if ( SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D9   || 
+    if ( SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D9   ||
          SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D9Ex ||
          SK_GetCurrentRenderBackend ().api == SK_RenderAPI::Reserved )
     {
@@ -2693,7 +2708,7 @@ D3D9CreateVertexBuffer_Override
   _In_  HANDLE                  *pSharedHandle )
 {
   static bool ffxiii =
-    GetModuleHandle (L"ffxiiiimg.exe") != nullptr;
+    SK_GetModuleHandle (L"ffxiiiimg.exe") != nullptr;
 
   if (ffxiii)
   {
@@ -3317,7 +3332,7 @@ SK_SetPresentParamsD3D9Ex ( IDirect3DDevice9       *pDevice,
     dll_log.Log (L"Using wrapper for SetPresentParams!");
 #endif
     // Filter out devices used only for video playback
-    if ( rb.api == SK_RenderAPI::D3D9   || 
+    if ( rb.api == SK_RenderAPI::D3D9   ||
          rb.api == SK_RenderAPI::D3D9Ex ||
          rb.api == SK_RenderAPI::Reserved )
     {
@@ -4429,7 +4444,7 @@ D3D9CreateDeviceEx_Override ( IDirect3D9Ex           *This,
 
   if (! SK_D3D9_IsDummyD3D9Device (pPresentationParameters))
   {
-    SK_SetPresentParamsD3D9Ex      ( *ppReturnedDeviceInterface, 
+    SK_SetPresentParamsD3D9Ex      ( *ppReturnedDeviceInterface,
                                        pPresentationParameters,
                                          &pModeEx );
     SK_D3D9_HookDeviceAndSwapchain ( *ppReturnedDeviceInterface );
@@ -4503,15 +4518,15 @@ D3D9CreateDevice_Override ( IDirect3D9*            This,
   {
     if (config.display.force_fullscreen   &&   hFocusWindow)
       pPresentationParameters->hDeviceWindow = hFocusWindow;
-  
-  
+
+
     SK_D3D9_SetFPSTarget       (pPresentationParameters);
     SK_D3D9_FixUpBehaviorFlags (BehaviorFlags);
-  
+
     SK_SetPresentParamsD3D9    ( nullptr,
                                    pPresentationParameters );
-  
-  
+
+
     if (config.display.force_fullscreen && (! hFocusWindow))
       hFocusWindow = pPresentationParameters->hDeviceWindow;
     //if (config.display.force_windowed)
@@ -4752,7 +4767,7 @@ Direct3DCreate9 (UINT SDKVersion)
   // Disable D3D9EX whenever GeDoSaTo is present
   if (force_d3d9ex)
   {
-    if (GetModuleHandle (L"GeDoSaTo.dll"))
+    if (SK_GetModuleHandle (L"GeDoSaTo.dll"))
     {
       dll_log.Log ( L"[CompatHack] <!> Disabling D3D9Ex optimizations "
                                        "because GeDoSaTo.dll is present!" );
@@ -4839,7 +4854,7 @@ SK_D3D9_UpdateRenderStats (IDirect3DSwapChain9* pSwapChain, IDirect3DDevice9* pD
 
   CComPtr <IDirect3DDevice9> dev = pDevice;
 
-  if (  pDevice    != nullptr || 
+  if (  pDevice    != nullptr ||
        (pSwapChain != nullptr && SUCCEEDED (pSwapChain->GetDevice (&dev.p))) )
   {
     if (pipeline_stats.query.object != nullptr)
@@ -4969,11 +4984,11 @@ HookD3D9 (LPVOID user)
 
     SK_AutoCOMInit auto_com;
     {
-      SK_TLS_Bottom ()->d3d9.ctx_init_thread = true;
+      pTLS->d3d9.ctx_init_thread = true;
 
       HWND                 hwnd  = nullptr;
       CComPtr <IDirect3D9> pD3D9 =
-        Direct3DCreate9_Import (D3D_SDK_VERSION);
+         Direct3DCreate9_Import (D3D_SDK_VERSION);
 
       pTLS->d3d9.ctx_init_thread = false;
 
@@ -8222,7 +8237,7 @@ EnumConstant ( SK::D3D9::ShaderTracker           *pShader,
     if (constant_desc.DefaultValue != nullptr)
     {
       memcpy ( constant.Data, constant_desc.DefaultValue,
-                 std::min ( static_cast <size_t> (constant_desc.Bytes), 
+                 std::min ( static_cast <size_t> (constant_desc.Bytes),
                               sizeof (float) * 4 )
              );
     }
@@ -8392,7 +8407,7 @@ SK_D3D9_FormatToDXGI (D3DFORMAT format)
     case D3DFMT_YUY2:           return DXGI_FORMAT_YUY2;
     case D3DFMT_G8R8_G8B8:      return DXGI_FORMAT_G8R8_G8B8_UNORM;
 
-      
+
 
     case D3DFMT_DXT1:          return DXGI_FORMAT_BC1_UNORM;
     case D3DFMT_DXT2:          return DXGI_FORMAT_BC2_UNORM;
@@ -8433,8 +8448,8 @@ class SK_D3D9_Screenshot
 public:
   explicit SK_D3D9_Screenshot (SK_D3D9_Screenshot&& rkMove)
   {
-    pDev                     = rkMove.pDev; 
-    pSwapChain               = rkMove.pSwapChain;   
+    pDev                     = rkMove.pDev;
+    pSwapChain               = rkMove.pSwapChain;
     pBackbufferSurface       = rkMove.pBackbufferSurface;
     pSurfScreenshot          = rkMove.pSurfScreenshot;
     ulCommandIssuedOnFrame   = rkMove.ulCommandIssuedOnFrame;
@@ -8481,7 +8496,7 @@ public:
             return;
 
           D3DSURFACE_DESC                            desc = { };
-          HRESULT hr = pBackbufferSurface->GetDesc (&desc); 
+          HRESULT hr = pBackbufferSurface->GetDesc (&desc);
 
           if (FAILED (hr)) return;
 
@@ -8509,7 +8524,7 @@ public:
               outstanding_screenshots.emplace (pSurfScreenshot);
 
               return;
-            } 
+            }
           }
         }
       }
@@ -8562,14 +8577,14 @@ public:
 
         D3DLOCKED_RECT finished_copy = { };
         UINT           PackedDstPitch;
-    
+
         if ( SUCCEEDED ( pSurfScreenshot->LockRect ( &finished_copy,
                                                        nullptr, 0x0 )
                        )
            )
         {
           PackedDstPitch = finished_copy.Pitch;
-    
+
           if ( framebuffer.PixelBuffer.AllocateBytes ( framebuffer.Height *
                                                          PackedDstPitch
                                                      )
@@ -8577,43 +8592,43 @@ public:
           {
             *pWidth  = framebuffer.Width;
             *pHeight = framebuffer.Height;
-    
+
             uint8_t* pSrc =  (uint8_t *)finished_copy.pBits;
             uint8_t* pDst = framebuffer.PixelBuffer.m_pData;
-    
+
             for ( UINT i = 0; i < framebuffer.Height; ++i )
             {
               memcpy ( pDst, pSrc, finished_copy.Pitch );
-              
+
               // Eliminate pre-multiplied alpha problems (the stupid way)
               for ( UINT j = 3 ; j < PackedDstPitch ; j += 4 )
               {
                 pDst [j] = 255UL;
               }
-    
+
               pSrc += finished_copy.Pitch;
               pDst +=         PackedDstPitch;
             }
 
             *pPitch = PackedDstPitch;
           }
-    
+
           SK_LOG0 ( ( L"Screenshot Readback Complete after %li frames",
                         SK_GetFramesDrawn () - ulCommandIssuedOnFrame ),
                       L"D3D11SShot" );
-    
+
 
           HRESULT hr =
             pSurfScreenshot->UnlockRect ();
 
           if (hr != S_OK) assert (false);
-    
+
           *ppData = framebuffer.PixelBuffer.m_pData;
-    
+
           return true;
         }
       }
-    
+
       return false;
     };
 
@@ -8848,12 +8863,12 @@ SK_D3D9_ProcessScreenshotQueue (int stage = 2)
 #else
                 {
                   using namespace DirectX;
-                  
+
                   DXGI_FORMAT dxgi_format =
                     SK_D3D9_FormatToDXGI (pop_off->getInternalFormat ());
 
                   Image raw_img = { };
-                  
+
                   ComputePitch (
                     dxgi_format,
                       Width, Height,
@@ -8867,9 +8882,9 @@ SK_D3D9_ProcessScreenshotQueue (int stage = 2)
 
 
                     ScratchImage thumbnailImage;
-                  
+
                     Resize ( raw_img, 200, (size_t)(200 * aspect), TEX_FILTER_TRIANGLE, thumbnailImage );
-                  
+
                     SaveToWICFile ( *thumbnailImage.GetImages (), WIC_FLAGS_NONE,
                                       GetWICCodec (WIC_CODEC_JPEG),
                                         wszAbsolutePathToThumbnail );
@@ -8880,7 +8895,7 @@ SK_D3D9_ProcessScreenshotQueue (int stage = 2)
                                                              nullptr,//SK_WideCharToUTF8 (wszAbsolutePathToThumbnail).c_str (),
                                                                Width, Height, true );
 
-                  SK_LOG0 ( ( L"Finished Steam Screenshot Import for Handle: '%x'", 
+                  SK_LOG0 ( ( L"Finished Steam Screenshot Import for Handle: '%x'",
                               screenshot ), L"SteamSShot" );
 
                   // Remove the temporary files...

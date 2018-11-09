@@ -23,6 +23,7 @@
 #define __SK__THREAD_H__
 
 #include <Windows.h>
+#include <avrt.h>
 
 
 
@@ -59,7 +60,7 @@ protected:
 class SK_Thread_CriticalSection
 {
 public:
-  SK_Thread_CriticalSection ( CRITICAL_SECTION* pCS ) 
+  SK_Thread_CriticalSection ( CRITICAL_SECTION* pCS )
   {
     cs_ = pCS;
   };
@@ -120,7 +121,7 @@ public:
     Leave ();
   }
 
-  bool try_result (void) 
+  bool try_result (void)
   {
     return acquired_;
   }
@@ -160,6 +161,22 @@ private:
 
 
 
+
+
+DWORD
+WINAPI
+SK_WaitForSingleObject ( _In_ HANDLE hHandle,
+                         _In_ DWORD  dwMilliseconds );
+
+// The underlying Nt kernel wait function has usec granularity,
+//   this is a cheat that satisfies WAIT_OBJECT_n semantics rather
+//     than the complicated NTSTATUS stuff going on under the hood.
+DWORD
+WINAPI
+SK_WaitForSingleObject_Micro ( _In_ HANDLE        hHandle,
+                               _In_ LARGE_INTEGER liMicroseconds );
+
+
 __forceinline
 static void
 SK_Thread_SpinUntilFlagged (volatile LONG* pFlag, LONG _SpinMax = 75L)
@@ -172,7 +189,7 @@ SK_Thread_SpinUntilFlagged (volatile LONG* pFlag, LONG _SpinMax = 75L)
     if (ReadAcquire (pFlag) == 1)
       break;
 
-    MsgWaitForMultipleObjectsEx (0, nullptr, 4UL, QS_ALLINPUT, MWMO_INPUTAVAILABLE);
+    SleepEx (2UL, TRUE);
   }
 }
 
@@ -189,7 +206,7 @@ SK_Thread_SpinUntilAtomicMin (volatile LONG* pVar, LONG count, LONG _SpinMax = 7
     if (ReadAcquire (pVar) >= count)
       break;
 
-    MsgWaitForMultipleObjectsEx (0, nullptr, 4UL, QS_ALLINPUT, MWMO_INPUTAVAILABLE);
+    SleepEx (2UL, TRUE);
   }
 }
 
@@ -241,12 +258,84 @@ extern "C" bool SK_Thread_InitDebugExtras (void);
 extern "C" SetThreadAffinityMask_pfn SetThreadAffinityMask_Original;
 
 
+extern DWORD SK_GetRenderThreadID (void);
+
 struct SK_MMCS_TaskEntry {
-  DWORD       dwTid     = 0;
-  DWORD       dwTaskIdx = 0;                    // MMCSS Task Idx
-  HANDLE      hTask     = INVALID_HANDLE_VALUE; // MMCSS Priority Boost Handle
-  char        name [64] = { };
+  DWORD         dwTid      = 0;
+  DWORD         dwTaskIdx  = 0;                    // MMCSS Task Idx
+  HANDLE        hTask      = INVALID_HANDLE_VALUE; // MMCSS Priority Boost Handle
+  DWORD         dwFrames   = 0;
+  AVRT_PRIORITY priority   = AVRT_PRIORITY_NORMAL;
+  char          name  [64] = { };
+  char          task0 [64] = { };
+  char          task1 [64] = { };
+
+  struct {
+    volatile LONG pending    = FALSE;
+    AVRT_PRIORITY priority   = AVRT_PRIORITY_NORMAL;
+    char          task0 [64] = { };
+    char          task1 [64] = { };
+
+    void flush (void) {
+      InterlockedExchange (&pending, TRUE);
+    }
+  } change;
+
+  BOOL          setPriority (AVRT_PRIORITY prio)
+  {
+    if (AvSetMmThreadPriority (hTask, prio))
+    {
+      priority = prio;
+      return TRUE;
+    }
+
+    return FALSE;
+  }
+
+  HANDLE        setMaxCharacteristics ( const char* first_task,
+                                        const char* second_task )
+  {
+    hTask =
+      AvSetMmMaxThreadCharacteristicsA (first_task, second_task, &dwTaskIdx);
+
+    if (hTask != 0)
+    {
+      strncpy (task0, first_task,  63);
+      strncpy (task1, second_task, 63);
+    }
+
+    else
+      hTask = INVALID_HANDLE_VALUE;
+
+    return hTask;
+  }
+
+  BOOL disassociateWithTask (void)
+  {
+    return TRUE;
+
+    return
+      AvRevertMmThreadCharacteristics (hTask);
+  }
+
+  HANDLE reassociateWithTask (void)
+  {
+    return hTask;
+
+    hTask =
+      AvSetMmMaxThreadCharacteristicsA (task0, task1, &dwTaskIdx);
+
+    if (hTask != 0)
+    {
+      AvSetMmThreadPriority (hTask, priority);
+    }
+
+    return hTask;
+  }
 } static nul_task_ref;
+
+size_t
+SK_MMCS_GetTaskCount (void);
 
 extern
 SK_MMCS_TaskEntry*
@@ -269,22 +358,26 @@ SK_GetCurrentThreadId (void)
   ];
 }
 
-class          SK_TLS;
-extern DWORD __SK_TLS_INDEX;
+class SK_TLS;
 
 static
 __forceinline
 SK_TLS*
 SK_FAST_GetTLS (void)
 {
-  if (__SK_TLS_INDEX == TLS_OUT_OF_INDEXES)
+  extern volatile DWORD __SK_TLS_INDEX;
+
+  DWORD tls_idx =
+    ReadULongAcquire (&__SK_TLS_INDEX);
+
+  if (tls_idx == TLS_OUT_OF_INDEXES)
     return nullptr;
 
   return *(SK_TLS **)((uintptr_t *)NtCurrentTeb ()) [
 #ifdef _WIN64
-    0x290 + __SK_TLS_INDEX
+    0x290 + tls_idx
 #else
-    0x384 + __SK_TLS_INDEX
+    0x384 + tls_idx
 #endif
   ];
 }

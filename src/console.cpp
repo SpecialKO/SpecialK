@@ -198,7 +198,7 @@ SK_ImGui_KeyPress (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode)
 
   static const SHORT SK_ImGui_ToggleKeys [4] = {
     VK_BACK,              //Primary button (backspace)
-  
+
     // Modifier Keys
     VK_CONTROL, VK_SHIFT, // Ctrl + Shift
     0
@@ -413,16 +413,18 @@ SK_HandleConsoleKey (bool keyDown, BYTE vkCode, LPARAM lParam)
         unsigned char key_str [2];
                       key_str [1] = '\0';
 
+        auto& language =
+          SK_TLS_Bottom ()->input_core.input_language;
 
-        SK_ImGui_InputLanguage.update ();
+        language.update ();
 
 
         if (1 == ToAsciiEx ( vkCode,
                               scanCode,
                               keys_,
    reinterpret_cast <LPWORD> (key_str),
-                              0,
-                              SK_ImGui_InputLanguage.keybd_layout ) &&
+                              0x04,
+                              language.keybd_layout ) &&
              isprint ( *key_str ) )
         {
           strncat (text, reinterpret_cast <char *> (key_str), 1);

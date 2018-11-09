@@ -52,7 +52,7 @@ struct sk_hook_target_s
 
 #ifdef _XSTRING_
   std::wstring serialize_ini   (void);
-  DWORD        deserialize_ini (const std::wstring& serial_data);
+  std::wstring deserialize_ini (const std::wstring& serial_data);
 #endif
 };
 

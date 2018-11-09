@@ -53,7 +53,7 @@ DEFINE_GUID(CLSID_DirectInput,        0x25E609E0,0xB259,0x11CF,0xBF,0xC7,0x44,0x
 DEFINE_GUID(CLSID_DirectInputDevice,  0x25E609E1,0xB259,0x11CF,0xBF,0xC7,0x44,0x45,0x53,0x54,0x00,0x00);
 
 DEFINE_GUID(CLSID_DirectInput8,       0x25E609E4,0xB259,0x11CF,0xBF,0xC7,0x44,0x45,0x53,0x54,0x00,0x00);
-DEFINE_GUID(CLSID_DirectInputDevice8,	0x25E609E5,0xB259,0x11CF,0xBF,0xC7,0x44,0x45,0x53,0x54,0x00,0x00);
+DEFINE_GUID(CLSID_DirectInputDevice8, 0x25E609E5,0xB259,0x11CF,0xBF,0xC7,0x44,0x45,0x53,0x54,0x00,0x00);
 
 DEFINE_GUID(CLSID_DirectDraw,         0xD7B70EE0,0x4340,0x11CF,0xB0,0x63,0x00,0x20,0xAF,0xC2,0xCD,0x35);
 
@@ -231,7 +231,7 @@ SK_WMI_ServerThread (LPVOID lpUser)
   HRESULT hr;
 
   if (FAILED (hr = CoCreateInstance (
-                     CLSID_WbemLocator, 
+                     CLSID_WbemLocator,
                      nullptr,
                      CLSCTX_INPROC_SERVER,
                      IID_IWbemLocator,
@@ -348,9 +348,9 @@ SK_WMI_Init (void)
 
 #if 0
   CoCreateInstance_Original =
-    (CoCreateInstance_pfn)GetProcAddress   (GetModuleHandleW (L"ole32.dll"), "CoCreateInstance");
+    (CoCreateInstance_pfn)GetProcAddress   (SK_GetModuleHandleW (L"ole32.dll"), "CoCreateInstance");
   CoCreateInstanceEx_Original =
-    (CoCreateInstanceEx_pfn)GetProcAddress (GetModuleHandleW (L"ole32.dll"), "CoCreateInstanceEx");
+    (CoCreateInstanceEx_pfn)GetProcAddress (SK_GetModuleHandleW (L"ole32.dll"), "CoCreateInstanceEx");
 #else
   SK_CreateDLLHook2 (      wszCOMBase,
                             "CoCreateInstance",
@@ -362,7 +362,7 @@ SK_WMI_Init (void)
                              CoCreateInstanceEx_Detour,
     static_cast_p2p <void> (&CoCreateInstanceEx_Original) );
 #endif
-  
+
 
   COM::base.wmi.Lock ();
 

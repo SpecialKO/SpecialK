@@ -71,7 +71,7 @@
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>SpecialK</RootNamespace>
     <TargetPlatformVersion>8.1</TargetPlatformVersion>
-    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
     <ProjectName />
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -350,8 +350,8 @@
     <IntDir>$(SolutionDir)build\$(Configuration)\Win32\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <TargetName>dxgi</TargetName>
-    <OutDir>C:\Program Files (x86)\Steam\steamapps\common\DRAGON QUEST XI\Game\Binaries\Win64\</OutDir>
+    <TargetName>SpecialK64</TargetName>
+    <OutDir>C:\Users\amcol\Documents\My Mods\SpecialK\</OutDir>
     <IncludePath>$(SolutionDir)include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\depends\include;$(SolutionDir)\depends\build\x64;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Include;$(SolutionDir)include\SpecialK;$(WindowsSdk_71A_IncludePath);$(UniversalCRT_IncludePath)</IncludePath>
     <LibraryPath>$(LibraryPath);$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;$(SolutionDir)\depends\lib;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Lib\x64;$(WindowsSdk_71A_LibraryPath_x64)</LibraryPath>
     <CodeAnalysisRuleSet>SpecialK.ruleset</CodeAnalysisRuleSet>
@@ -475,7 +475,7 @@
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <LargeAddressAware>true</LargeAddressAware>
       <DataExecutionPrevention>true</DataExecutionPrevention>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;comctl32.dll;wininet.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;comctl32.dll;tobii_stream_engine_sk32.dll;wininet.dll</DelayLoadDLLs>
       <EntryPointSymbol>
       </EntryPointSymbol>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
@@ -487,7 +487,7 @@
       <ForceSymbolReferences>
       </ForceSymbolReferences>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
       <GenerateMapFile>true</GenerateMapFile>
       <MapExports>true</MapExports>
       <LinkErrorReporting>NoErrorReport</LinkErrorReporting>
@@ -564,7 +564,7 @@
       <GenerateDebugInformation>DebugFastLink</GenerateDebugInformation>
       <OutputFile>C:\Users\amcol\Documents\My Mods\SpecialK\SpecialK64.dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;comctl32.dll;wininet.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;comctl32.dll;tobii_stream_engine_sk64.dll;wininet.dll</DelayLoadDLLs>
       <OptimizeReferences>false</OptimizeReferences>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <EntryPointSymbol>
@@ -580,7 +580,7 @@
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
       <ForceSymbolReferences>
       </ForceSymbolReferences>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <GenerateMapFile>true</GenerateMapFile>
       <MapExports>true</MapExports>
@@ -608,10 +608,10 @@
       <WarningLevel>Level4</WarningLevel>
       <PrecompiledHeader>
       </PrecompiledHeader>
-      <Optimization>MaxSpeed</Optimization>
+      <Optimization>Full</Optimization>
       <PreprocessorDefinitions>SK_BUILD_DLL=1;SK_EXPORTS;WINVER=_WIN32_WINNT_WIN7;_WIN32_WINNT=_WIN32_WINNT_WIN7;NOMINMAX;_UNICODE;UNICODE;WIN32;NDEBUG;LIB;_WIN7_PLATFORM_UPDATE;_WIN32_WINNT=0x0601;_CRT_STDIO_ARBITRARY_WIDE_SPECIFIERS;SK_BUILD_DLL=1;SK_EXPORTS;_USRDLL;_WINDOWS;DIRECTINPUT_VERSION=0x0800;GLEW_STATIC;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;_CRT_NON_CONFORMING_SWPRINTFS;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;%(PreprocessorDefinitions);_STL_CONCRT_SUPPORT</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <CallingConvention>Cdecl</CallingConvention>
       <EnablePREfast>false</EnablePREfast>
@@ -632,29 +632,29 @@
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ExceptionHandling>Async</ExceptionHandling>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
-      <IntrinsicFunctions>false</IntrinsicFunctions>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
       <StringPooling>true</StringPooling>
       <OmitFramePointers>false</OmitFramePointers>
       <MinimalRebuild>false</MinimalRebuild>
-      <StructMemberAlignment>Default</StructMemberAlignment>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED</UndefinePreprocessorDefinitions>
-      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
+      <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
       <SDLCheck>false</SDLCheck>
-      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <EnableModules>false</EnableModules>
-      <AdditionalOptions> /Zc:implicitNoexcept- %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>
+      </AdditionalOptions>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <OpenMPSupport>false</OpenMPSupport>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
+      <StructMemberAlignment>Default</StructMemberAlignment>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DataExecutionPrevention>true</DataExecutionPrevention>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;comctl32.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;comctl32.dll;tobii_stream_engine_sk32.dll;</DelayLoadDLLs>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
@@ -667,14 +667,12 @@
       <AssemblyDebug>false</AssemblyDebug>
       <SectionAlignment>
       </SectionAlignment>
-      <CreateHotPatchableImage>ItaniumImage</CreateHotPatchableImage>
       <SetChecksum>true</SetChecksum>
       <BaseAddress>
       </BaseAddress>
       <ForceSymbolReferences>
       </ForceSymbolReferences>
       <Profile>true</Profile>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <OptimizeReferences>true</OptimizeReferences>
@@ -754,8 +752,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DataExecutionPrevention>false</DataExecutionPrevention>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;comctl32.dll;wininet.dll</DelayLoadDLLs>
+      <DataExecutionPrevention>true</DataExecutionPrevention>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;comctl32.dll;tobii_stream_engine_sk32.dll;wininet.dll</DelayLoadDLLs>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
@@ -778,13 +776,11 @@
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
       <ForceSymbolReferences>
       </ForceSymbolReferences>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <Profile>true</Profile>
       <IgnoreSpecificDefaultLibraries>msvcrt</IgnoreSpecificDefaultLibraries>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <SupportUnloadOfDelayLoadedDLL>false</SupportUnloadOfDelayLoadedDLL>
-      <SupportNobindOfDelayLoadedDLL>false</SupportNobindOfDelayLoadedDLL>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -854,8 +850,8 @@
       <OptimizeReferences>true</OptimizeReferences>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DataExecutionPrevention>false</DataExecutionPrevention>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;comctl32.dll;wininet.dll</DelayLoadDLLs>
+      <DataExecutionPrevention>true</DataExecutionPrevention>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;comctl32.dll;tobii_stream_engine_sk32.dll;wininet.dll</DelayLoadDLLs>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
@@ -875,11 +871,9 @@
       <LinkTimeCodeGeneration>UseFastLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <ForceSymbolReferences>
       </ForceSymbolReferences>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <Profile>true</Profile>
-      <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
-      <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -946,8 +940,8 @@
       <OptimizeReferences>true</OptimizeReferences>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DataExecutionPrevention>false</DataExecutionPrevention>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;comctl32.dll;wininet.dll</DelayLoadDLLs>
+      <DataExecutionPrevention>true</DataExecutionPrevention>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;comctl32.dll;tobii_stream_engine_sk32.dll;wininet.dll</DelayLoadDLLs>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
@@ -967,11 +961,9 @@
       <LinkTimeCodeGeneration>UseFastLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <ForceSymbolReferences>
       </ForceSymbolReferences>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <Profile>true</Profile>
-      <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
-      <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1040,8 +1032,8 @@
       <OptimizeReferences>true</OptimizeReferences>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DataExecutionPrevention>false</DataExecutionPrevention>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;comctl32.dll;wininet.dll</DelayLoadDLLs>
+      <DataExecutionPrevention>true</DataExecutionPrevention>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;comctl32.dll;tobii_stream_engine_sk32.dll;wininet.dll</DelayLoadDLLs>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
@@ -1060,11 +1052,9 @@
       <LinkTimeCodeGeneration>UseFastLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <ForceSymbolReferences>
       </ForceSymbolReferences>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <Profile>true</Profile>
-      <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
-      <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1132,8 +1122,8 @@ Exit 0</Command>
       <OptimizeReferences>true</OptimizeReferences>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DataExecutionPrevention>false</DataExecutionPrevention>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;comctl32.dll;wininet.dll</DelayLoadDLLs>
+      <DataExecutionPrevention>true</DataExecutionPrevention>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;comctl32.dll;tobii_stream_engine_sk32.dll;wininet.dll</DelayLoadDLLs>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
@@ -1153,10 +1143,8 @@ Exit 0</Command>
       <ForceSymbolReferences>
       </ForceSymbolReferences>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
       <Profile>true</Profile>
-      <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
-      <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1224,8 +1212,8 @@ Exit 0</Command>
       <OptimizeReferences>true</OptimizeReferences>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DataExecutionPrevention>false</DataExecutionPrevention>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;comctl32.dll;wininet.dll</DelayLoadDLLs>
+      <DataExecutionPrevention>true</DataExecutionPrevention>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;comctl32.dll;tobii_stream_engine_sk32.dll;wininet.dll</DelayLoadDLLs>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
@@ -1244,11 +1232,9 @@ Exit 0</Command>
       <LinkTimeCodeGeneration>UseFastLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <ForceSymbolReferences>
       </ForceSymbolReferences>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <Profile>true</Profile>
-      <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
-      <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1275,10 +1261,10 @@ Exit 0</Command>
       <PreprocessorDefinitions>SK_BUILD_DLL=1;SK_EXPORTS;WINVER=_WIN32_WINNT_WIN7;_WIN32_WINNT=_WIN32_WINNT_WIN7;NOMINMAX;_UNICODE;UNICODE;_WIN64;WIN32;NDEBUG;_LIB;_WIN32_WINNT=0x0601;_CRT_STDIO_ARBITRARY_WIDE_SPECIFIERS;SK_BUILD_DLL=1;SK_EXPORTS;_USRDLL;_WINDOWS;DIRECTINPUT_VERSION=0x0800;GLEW_STATIC;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;_CRT_NON_CONFORMING_SWPRINTFS;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;%(PreprocessorDefinitions);_STL_CONCRT_SUPPORT</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
-      <IntrinsicFunctions>false</IntrinsicFunctions>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <Optimization>MaxSpeed</Optimization>
+      <Optimization>Full</Optimization>
       <ControlFlowGuard>false</ControlFlowGuard>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
@@ -1293,12 +1279,11 @@ Exit 0</Command>
       <AssemblerOutput>NoListing</AssemblerOutput>
       <OmitFramePointers>false</OmitFramePointers>
       <MinimalRebuild>false</MinimalRebuild>
-      <StructMemberAlignment>Default</StructMemberAlignment>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <UndefinePreprocessorDefinitions>ISOLATION_AWARE_ENABLED</UndefinePreprocessorDefinitions>
-      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
-      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <AdditionalOptions>%(AdditionalOptions)</AdditionalOptions>
+      <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
+      <AdditionalOptions>
+      </AdditionalOptions>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <ExceptionHandling>Async</ExceptionHandling>
       <DisableLanguageExtensions>
@@ -1308,6 +1293,8 @@ Exit 0</Command>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
       <CreateHotpatchableImage>true</CreateHotpatchableImage>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
+      <StructMemberAlignment>Default</StructMemberAlignment>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -1316,15 +1303,14 @@ Exit 0</Command>
       <AssemblyDebug>false</AssemblyDebug>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
-      <DataExecutionPrevention>true</DataExecutionPrevention>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;comctl32.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;comctl32.dll;tobii_stream_engine_sk64.dll;</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
       <EntryPointSymbol>
       </EntryPointSymbol>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;psapi.lib;legacy_stdio_definitions.lib;mmdevapi.lib;d3dcompiler.lib;%(AdditionalDependencies);imm32.lib;wininet.lib;userenv.lib;version.lib</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;psapi.lib;legacy_stdio_definitions.lib;mmdevapi.lib;d3dcompiler.lib;%(AdditionalDependencies);imm32.lib;wininet.lib;userenv.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>
       </AdditionalLibraryDirectories>
       <ImportLibrary />
@@ -1336,11 +1322,9 @@ Exit 0</Command>
       <ForceSymbolReferences>
       </ForceSymbolReferences>
       <Profile>true</Profile>
-      <RandomizedBaseAddress>true</RandomizedBaseAddress>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <OptimizeReferences>true</OptimizeReferences>
-      <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1418,9 +1402,9 @@ Exit 0</Command>
       <AssemblyDebug>true</AssemblyDebug>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
-      <DataExecutionPrevention>false</DataExecutionPrevention>
+      <DataExecutionPrevention>true</DataExecutionPrevention>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;comctl32.dll;wininet.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;comctl32.dll;tobii_stream_engine_sk64.dll;wininet.dll</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
       <EntryPointSymbol>
@@ -1442,13 +1426,11 @@ Exit 0</Command>
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
       <ForceSymbolReferences>
       </ForceSymbolReferences>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <Profile>true</Profile>
       <IgnoreSpecificDefaultLibraries>msvcrt</IgnoreSpecificDefaultLibraries>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
-      <SupportUnloadOfDelayLoadedDLL>false</SupportUnloadOfDelayLoadedDLL>
-      <SupportNobindOfDelayLoadedDLL>false</SupportNobindOfDelayLoadedDLL>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1517,9 +1499,9 @@ Exit 0</Command>
       <AssemblyDebug>true</AssemblyDebug>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
-      <DataExecutionPrevention>false</DataExecutionPrevention>
+      <DataExecutionPrevention>true</DataExecutionPrevention>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;comctl32.dll;wininet.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;comctl32.dll;tobii_stream_engine_sk64.dll;wininet.dll</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
@@ -1537,11 +1519,9 @@ Exit 0</Command>
       <LinkTimeCodeGeneration>UseFastLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <ForceSymbolReferences>
       </ForceSymbolReferences>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <Profile>true</Profile>
-      <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
-      <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1606,9 +1586,9 @@ Exit 0</Command>
       <AssemblyDebug>true</AssemblyDebug>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
-      <DataExecutionPrevention>false</DataExecutionPrevention>
+      <DataExecutionPrevention>true</DataExecutionPrevention>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;comctl32.dll;wininet.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;comctl32.dll;tobii_stream_engine_sk64.dll;wininet.dll</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
@@ -1626,11 +1606,9 @@ Exit 0</Command>
       <LinkTimeCodeGeneration>UseFastLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <ForceSymbolReferences>
       </ForceSymbolReferences>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <Profile>true</Profile>
-      <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
-      <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1695,9 +1673,9 @@ Exit 0</Command>
       <AssemblyDebug>true</AssemblyDebug>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
-      <DataExecutionPrevention>false</DataExecutionPrevention>
+      <DataExecutionPrevention>true</DataExecutionPrevention>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;comctl32.dll;wininet.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;comctl32.dll;tobii_stream_engine_sk64.dll;wininet.dll</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
@@ -1715,11 +1693,9 @@ Exit 0</Command>
       <LinkTimeCodeGeneration>UseFastLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <ForceSymbolReferences>
       </ForceSymbolReferences>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <Profile>true</Profile>
-      <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
-      <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1780,9 +1756,9 @@ Exit 0</Command>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
-      <DataExecutionPrevention>false</DataExecutionPrevention>
+      <DataExecutionPrevention>true</DataExecutionPrevention>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;comctl32.dll;wininet.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;comctl32.dll;tobii_stream_engine_sk64.dll;wininet.dll</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
@@ -1803,11 +1779,9 @@ Exit 0</Command>
       <LinkTimeCodeGeneration>UseFastLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <ForceSymbolReferences>
       </ForceSymbolReferences>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <Profile>true</Profile>
-      <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
-      <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1875,9 +1849,9 @@ Exit 0</Command>
       <AssemblyDebug>true</AssemblyDebug>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
-      <DataExecutionPrevention>false</DataExecutionPrevention>
+      <DataExecutionPrevention>true</DataExecutionPrevention>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;comctl32.dll;wininet.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;comctl32.dll;tobii_stream_engine_sk64.dll;wininet.dll</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
@@ -1895,11 +1869,9 @@ Exit 0</Command>
       <LinkTimeCodeGeneration>UseFastLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <ForceSymbolReferences>
       </ForceSymbolReferences>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <Profile>true</Profile>
-      <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
-      <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1942,6 +1914,7 @@ Exit 0</Command>
     <Text Include="resource\licenses\pcre_cpp.txt" />
     <Text Include="resource\licenses\SpecialK.txt" />
     <Text Include="resource\licenses\stb.txt" />
+    <Text Include="resource\licenses\tobii.txt" />
     <Text Include="resource\licenses\Vulkan.txt" />
     <Text Include="resource\licenses\zlib.txt" />
   </ItemGroup>
@@ -2081,6 +2054,7 @@ Exit 0</Command>
     <ClInclude Include="include\SpecialK\utility.h" />
     <ClInclude Include="include\SpecialK\render\vk\vulkan_backend.h" />
     <ClInclude Include="include\SpecialK\DLL_VERSION.H" />
+    <ClInclude Include="include\SpecialK\utility\bidirectional_map.h" />
     <ClInclude Include="include\SpecialK\widgets\widget.h" />
     <ClInclude Include="include\SpecialK\window.h" />
     <ClInclude Include="include\stb\rect_pack.h" />
@@ -2995,6 +2969,7 @@ Exit 0</Command>
     <ClCompile Include="src\widgets\gpu_widget.cpp" />
     <ClCompile Include="src\widgets\hdr.cpp" />
     <ClCompile Include="src\widgets\threads.cpp" />
+    <ClCompile Include="src\widgets\tobii.cpp" />
     <ClCompile Include="src\widgets\volume_control.cpp" />
     <ClCompile Include="src\widgets\widget.cpp" />
     <ClCompile Include="src\window.cpp">
@@ -3205,6 +3180,7 @@ Exit 0</Command>
     <None Include="injector64.dll" />
     <None Include="installer.dll" />
     <None Include="installer64.dll" />
+    <None Include="packages.config" />
     <None Include="README.md" />
     <None Include="resource\cursors\ovr_horz.cur" />
     <None Include="resource\cursors\ovr_ptr.cur" />
@@ -3246,6 +3222,26 @@ Exit 0</Command>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">true</ExcludedFromBuild>
     </None>
+    <None Include="resource\packages\tobii_stream_engine_sk32.7z">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TSFix|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TBFix|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='FAR|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Rel_Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="resource\packages\tobii_stream_engine_sk64.7z">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TSFix|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TBFix|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='FAR|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Rel_Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TZFix|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='UnX|Win32'">true</ExcludedFromBuild>
+    </None>
     <None Include="resource\packages\WinRing0_32.7z">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
@@ -3269,6 +3265,9 @@ Exit 0</Command>
       <FileType>Document</FileType>
     </None>
     <None Include="SpecialK.ruleset" />
+    <None Include="Tobii\API-Reference.pdf" />
+    <None Include="Tobii\SDK-License_en.pdf" />
+    <None Include="Tobii\SDK-License_zh.pdf" />
     <None Include="TODO" />
     <None Include="version.ini" />
     <None Include="SpecialK.def" />
@@ -3532,6 +3531,7 @@ Exit 0</Command>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="resource\shaders\HDR\HDR10\Rec2020_PQ_10bit-fixed.hlsl">
       <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</EnableDebuggingInformation>
@@ -3630,6 +3630,9 @@ Exit 0</Command>
       </ObjectFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">
       </ObjectFileOutput>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</DeploymentContent>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="resource\shaders\HDR\scRGB\Rec709_Linear_16bit-fp.hlsl">
       <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</EnableDebuggingInformation>
@@ -3744,6 +3747,8 @@ Exit 0</Command>
       </ObjectFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">
       </ObjectFileOutput>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="resource\shaders\HDR\vs_colorutil.hlsl">
       <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</EnableDebuggingInformation>
@@ -3858,9 +3863,18 @@ Exit 0</Command>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Rel_Debug|x64'">false</DeploymentContent>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='TZFix|x64'">false</DeploymentContent>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='UnX|x64'">false</DeploymentContent>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </FxCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
+    <Import Project="packages\Tobii.StreamEngine.Native.2.2.2.363\build\Tobii.StreamEngine.Native.targets" Condition="Exists('packages\Tobii.StreamEngine.Native.2.2.2.363\build\Tobii.StreamEngine.Native.targets')" />
   </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('packages\Tobii.StreamEngine.Native.2.2.2.363\build\Tobii.StreamEngine.Native.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Tobii.StreamEngine.Native.2.2.2.363\build\Tobii.StreamEngine.Native.targets'))" />
+  </Target>
 </Project>

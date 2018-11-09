@@ -125,4 +125,39 @@ void
 };
 
 
+
+extern "C++"
+{
+  template <class T>
+  void
+  SK_COM_SafeRelease (T **ppT)
+  {
+    if (*ppT != nullptr)
+    {
+      IUnknown_AtomicRelease (
+        reinterpret_cast <void **> (ppT)
+      );
+    }
+  }
+  
+  template <class T>
+  bool
+  SK_COM_PromoteInterface ( T        **ppT,
+                            IUnknown  *pPolymorph )
+  {
+    if (pPolymorph == nullptr)
+      return false;
+  
+    SK_COM_SafeRelease (ppT);
+                       *ppT =
+     reinterpret_cast <T *> (
+       pPolymorph
+     );
+  
+    return
+      ( *ppT == reinterpret_cast <T *> (pPolymorph) );
+  }
+}
+
+
 SK_INCLUDE_END (COM_UTIL)

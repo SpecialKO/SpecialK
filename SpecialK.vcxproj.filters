@@ -223,6 +223,9 @@
     <Filter Include="Resource Files\Shaders\HDR">
       <UniqueIdentifier>{ff3a579f-6b54-4b41-be2b-40f55a33d374}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Tobii">
+      <UniqueIdentifier>{5c1eb938-d54a-4f55-a3cd-8db762fba7c3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="depends\DirectXTex\DDS.h">
@@ -645,6 +648,9 @@
     <ClInclude Include="include\imgui\backends\imgui_d3d12.h">
       <Filter>Header Files\ImGui</Filter>
     </ClInclude>
+    <ClInclude Include="include\SpecialK\utility\bidirectional_map.h">
+      <Filter>Header Files\Utility</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core.cpp">
@@ -802,9 +808,6 @@
     </ClCompile>
     <ClCompile Include="src\steam\CSteamWorks.cpp">
       <Filter>Source Files\Steam</Filter>
-    </ClCompile>
-    <ClCompile Include="src\performance\io_monitor.cpp">
-      <Filter>Source Files\Stats</Filter>
     </ClCompile>
     <ClCompile Include="src\performance\gpu_monitor.cpp">
       <Filter>Source Files\Stats</Filter>
@@ -974,9 +977,6 @@
     <ClCompile Include="src\thread.cpp">
       <Filter>Source Files\Diagnostics</Filter>
     </ClCompile>
-    <ClCompile Include="src\osd\popup.cpp">
-      <Filter>Source Files\Plugins</Filter>
-    </ClCompile>
     <ClCompile Include="src\nvapi.cpp">
       <Filter>Source Files\Stats</Filter>
     </ClCompile>
@@ -1003,6 +1003,15 @@
     </ClCompile>
     <ClCompile Include="src\plugins\monster_hunter_world.cpp">
       <Filter>Source Files\Plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="src\widgets\tobii.cpp">
+      <Filter>Source Files\Widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="src\osd\popup.cpp">
+      <Filter>Source Files\OSD</Filter>
+    </ClCompile>
+    <ClCompile Include="src\performance\io_monitor.cpp">
+      <Filter>Source Files\Update</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1070,9 +1079,6 @@
       <Filter>Header Files\gsl</Filter>
     </None>
     <None Include="SpecialK.ruleset" />
-    <None Include="SpecialK.def">
-      <Filter>Header Files\Config</Filter>
-    </None>
     <None Include="depends\lib\CEGUI\Win32\CEGUIBase-0.exp" />
     <None Include="depends\lib\CEGUI\Win32\CEGUICommonDialogs-0.exp" />
     <None Include="depends\lib\CEGUI\Win32\CEGUICoreWindowRendererSet.exp" />
@@ -1095,6 +1101,59 @@
     <None Include="depends\lib\DirectXTex\x64\DirectXTex.pdb" />
     <None Include="installer.dll" />
     <None Include="installer64.dll" />
+    <None Include="Tobii\SDK-License_zh.pdf">
+      <Filter>Tobii</Filter>
+    </None>
+    <None Include="Tobii\SDK-License_en.pdf">
+      <Filter>Tobii</Filter>
+    </None>
+    <None Include="Tobii\API-Reference.pdf">
+      <Filter>Tobii</Filter>
+    </None>
+    <None Include="packages.config" />
+    <None Include="resource\packages\tobii_stream_engine_sk32.7z">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="resource\packages\tobii_stream_engine_sk64.7z">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="SpecialK.def">
+      <Filter>Header Files\Config\DLL Export Definitions</Filter>
+    </None>
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource\Resource.rc">
@@ -1180,6 +1239,9 @@
     <Text Include="resource\licenses\OpenLibSys.txt">
       <Filter>Resource Files</Filter>
     </Text>
+    <Text Include="resource\licenses\tobii.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
   </ItemGroup>
   <ItemGroup>
     <Library Include="depends\lib\CEGUI\Win32\CEGUIBase-0.lib" />
@@ -1220,11 +1282,11 @@
     <FxCompile Include="resource\shaders\HDR\HDR10\Rec2020_PQ_10bit-fixed.hlsl">
       <Filter>Resource Files\Shaders\HDR</Filter>
     </FxCompile>
-    <FxCompile Include="resource\shaders\HDR\vs_colorutil.hlsl">
-      <Filter>Resource Files\Shaders\HDR</Filter>
-    </FxCompile>
     <FxCompile Include="resource\shaders\cs_histogram.hlsl">
       <Filter>Resource Files\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="resource\shaders\HDR\vs_colorutil.hlsl">
+      <Filter>Resource Files\Shaders\HDR</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

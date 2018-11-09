@@ -53,16 +53,21 @@ SHORT WINAPI SK_GetAsyncKeyState (int vKey);
 
 struct sk_imgui_cursor_s
 {
-  HCURSOR orig_img   =      nullptr;
-  POINT   orig_pos   =  { 0, 0 };
-  bool    orig_vis   =     false;
-                       
-  HCURSOR img        =      nullptr;
-  POINT   pos        =  { 0, 0 };
-                       
-  bool    visible    =     false;
-  bool    idle       =     false; // Hasn't moved
-  DWORD   last_move  =  MAXDWORD;
+  HWND    child_input  =   HWND_DESKTOP;
+  RECT    child_client = { 0, 0, 0, 0 };
+  RECT    child_rect   = { 0, 0, 0, 0 };
+
+  HCURSOR orig_img     =        nullptr;
+  POINT   orig_pos     =       { 0, 0 };
+  bool    orig_vis     =          false;
+                              
+  HCURSOR img          =        nullptr;
+  POINT   pos          =       { 0, 0 };
+                              
+  bool    visible      =          false;
+  bool    idle         =          false; // Hasn't moved
+  DWORD   last_move    =       MAXDWORD;
+  DWORD   refs_added   =              0;
 
   void    showSystemCursor (bool system = true);
   void    showImGuiCursor  (void);
@@ -263,11 +268,13 @@ class SK_Input_PadBindFactory
 
 struct SK_ImGui_InputLanguage_s
 {
-bool changed;
-HKL  keybd_layout;
+  // Cause the keybd_layout to be populated the
+  //   first time update (...) is called
+  bool changed = true; // ^^^^ Default = true
+  HKL  keybd_layout;
 
-void update (void);
-} extern SK_ImGui_InputLanguage;
+  void update (void);
+};
 
 bool
 SK_ImGui_HandlesMessage (LPMSG lpMsg, bool remove, bool peek);
@@ -281,9 +288,11 @@ using keybd_event_pfn = void (WINAPI *)(
 );
 
 using SetCursor_pfn = HCURSOR (WINAPI *)(HCURSOR hCursor);
+using GetCursor_pfn = HCURSOR (WINAPI *)(VOID);
 
 extern keybd_event_pfn keybd_event_Original;
 extern SetCursor_pfn   SetCursor_Original;
+extern GetCursor_pfn   GetCursor_Original;
 
 #include <cstdint>
 

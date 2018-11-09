@@ -100,7 +100,7 @@ SK_Version_ForceUpdateNextLaunch (const wchar_t* wszProduct);
 bool
 SK_Version_SwitchBranches       (const wchar_t* wszProduct, const char* szBranch);
 
-std::wstring SK_Version_GetLastCheckTime_WStr (void);
+std::wstring& SK_Version_GetLastCheckTime_WStr (void);
 
 
 #endif /* __SK__Update_Version_H__ */

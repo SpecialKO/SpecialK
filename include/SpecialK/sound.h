@@ -390,10 +390,21 @@ public:
         else if (state == AudioSessionStateInactive)
           inactive_sessions_.data.emplace (pSession);
 
-        active_sessions_.view =
-          std::vector <SK_WASAPI_AudioSession *> ( active_sessions_.data.begin (), active_sessions_.data.end () );
-        inactive_sessions_.view =
-          std::vector <SK_WASAPI_AudioSession *> ( inactive_sessions_.data.begin (), inactive_sessions_.data.end () );
+        if (! active_sessions_.data.empty ())
+        {
+          active_sessions_.view =
+            std::vector <SK_WASAPI_AudioSession *> ( active_sessions_.data.begin (), active_sessions_.data.end () );
+        }
+        else
+          active_sessions_.view.clear ();
+
+        if (! inactive_sessions_.data.empty ())
+        {
+          inactive_sessions_.view =
+            std::vector <SK_WASAPI_AudioSession *> ( inactive_sessions_.data.begin (), inactive_sessions_.data.end () );
+        }
+        else
+          inactive_sessions_.view.clear ();
       }
     }
 
@@ -498,10 +509,22 @@ public:
           else if (state == AudioSessionStateInactive)
             inactive_sessions_.data.emplace (pSession);
 
-          active_sessions_.view =
-            std::vector <SK_WASAPI_AudioSession *> ( active_sessions_.data.begin (), active_sessions_.data.end () );
-          inactive_sessions_.view =
-            std::vector <SK_WASAPI_AudioSession *> ( inactive_sessions_.data.begin (), inactive_sessions_.data.end () );
+
+          if (! active_sessions_.data.empty ())
+          {
+            active_sessions_.view =
+              std::vector <SK_WASAPI_AudioSession *> ( active_sessions_.data.begin (), active_sessions_.data.end () );
+          }
+          else
+            active_sessions_.view.clear ();
+
+          if (! inactive_sessions_.data.empty ())
+          {
+            inactive_sessions_.view =
+              std::vector <SK_WASAPI_AudioSession *> ( inactive_sessions_.data.begin (), inactive_sessions_.data.end () );
+          }
+          else
+            inactive_sessions_.view.clear ();
         }
       }
     }
@@ -518,28 +541,39 @@ protected:
     {
       case AudioSessionStateExpired:
         if (inactive_sessions_.data.count (pSession))
-          inactive_sessions_.data.erase (pSession);
+            inactive_sessions_.data.erase (pSession);
         else if (active_sessions_.data.count (pSession))
-          active_sessions_.data.erase (pSession);
+                 active_sessions_.data.erase (pSession);
         break;
 
       case AudioSessionStateActive:
-        if (inactive_sessions_.data.count (pSession))
-          inactive_sessions_.data.erase (pSession);
-        active_sessions_.data.emplace (pSession);
+        if (inactive_sessions_.data.count   (pSession))
+            inactive_sessions_.data.erase   (pSession);
+              active_sessions_.data.emplace (pSession);
         break;
 
       case AudioSessionStateInactive:
         if (active_sessions_.data.count (pSession))
-          active_sessions_.data.erase (pSession);
+            active_sessions_.data.erase (pSession);
         inactive_sessions_.data.emplace (pSession);
         break;
     }
 
-    active_sessions_.view =
-      std::vector <SK_WASAPI_AudioSession *> ( active_sessions_.data.begin (), active_sessions_.data.end () );
-    inactive_sessions_.view =
-      std::vector <SK_WASAPI_AudioSession *> ( inactive_sessions_.data.begin (), inactive_sessions_.data.end () );
+    if (! active_sessions_.data.empty ())
+    {
+      active_sessions_.view =
+        std::vector <SK_WASAPI_AudioSession *> ( active_sessions_.data.begin (), active_sessions_.data.end () );
+    }
+    else
+      active_sessions_.view.clear ();
+
+    if (! inactive_sessions_.data.empty ())
+    {
+      inactive_sessions_.view =
+        std::vector <SK_WASAPI_AudioSession *> ( inactive_sessions_.data.begin (), inactive_sessions_.data.end () );
+    }
+    else
+      inactive_sessions_.view.clear ();
   }
 
   void RemoveSession (SK_WASAPI_AudioSession* pSession)

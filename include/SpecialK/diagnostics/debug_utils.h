@@ -54,6 +54,85 @@ using OutputDebugStringA_pfn = void (WINAPI *)(LPCSTR  lpOutputString);
 using OutputDebugStringW_pfn = void (WINAPI *)(LPCWSTR lpOutputString);
 
 
+
+#define _IMAGEHLP_SOURCE_
+#include <DbgHelp.h>
+
+using SymGetSearchPathW_pfn = BOOL (IMAGEAPI *)( _In_  HANDLE hProcess,
+                                                 _Out_ PWSTR  SearchPath,
+                                                 _In_  DWORD  SearchPathLength );
+
+using SymSetSearchPathW_pfn = BOOL (IMAGEAPI *)( _In_     HANDLE hProcess,
+                                                 _In_opt_ PCWSTR SearchPath );
+
+using SymRefreshModuleList_pfn = BOOL (IMAGEAPI *)(HANDLE hProcess);
+
+using StackWalk64_pfn = BOOL (IMAGEAPI *)(_In_     DWORD                            MachineType,
+                                          _In_     HANDLE                           hProcess,
+                                          _In_     HANDLE                           hThread,
+                                          _Inout_  LPSTACKFRAME64                   StackFrame,
+                                          _Inout_  PVOID                            ContextRecord,
+                                          _In_opt_ PREAD_PROCESS_MEMORY_ROUTINE64   ReadMemoryRoutine,
+                                          _In_opt_ PFUNCTION_TABLE_ACCESS_ROUTINE64 FunctionTableAccessRoutine,
+                                          _In_opt_ PGET_MODULE_BASE_ROUTINE64       GetModuleBaseRoutine,
+                                          _In_opt_ PTRANSLATE_ADDRESS_ROUTINE64     TranslateAddress);
+
+using StackWalk_pfn = BOOL (IMAGEAPI *)(_In_     DWORD                          MachineType,
+                                        _In_     HANDLE                         hProcess,
+                                        _In_     HANDLE                         hThread,
+                                        _Inout_  LPSTACKFRAME                   StackFrame,
+                                        _Inout_  PVOID                          ContextRecord,
+                                        _In_opt_ PREAD_PROCESS_MEMORY_ROUTINE   ReadMemoryRoutine,
+                                        _In_opt_ PFUNCTION_TABLE_ACCESS_ROUTINE FunctionTableAccessRoutine,
+                                        _In_opt_ PGET_MODULE_BASE_ROUTINE       GetModuleBaseRoutine,
+                                        _In_opt_ PTRANSLATE_ADDRESS_ROUTINE     TranslateAddress);
+
+using SymSetOptions_pfn      = DWORD (IMAGEAPI *)  (_In_ DWORD SymOptions);
+using SymGetModuleBase64_pfn = DWORD64 (IMAGEAPI *)(_In_ HANDLE  hProcess,
+                                                    _In_ DWORD64 qwAddr);
+
+using SymGetModuleBase_pfn     = DWORD (IMAGEAPI *)(_In_ HANDLE  hProcess,
+                                                    _In_ DWORD   dwAddr);
+using SymGetLineFromAddr64_pfn = BOOL (IMAGEAPI *)( _In_  HANDLE           hProcess,
+                                                    _In_  DWORD64          qwAddr,
+                                                    _Out_ PDWORD           pdwDisplacement,
+                                                    _Out_ PIMAGEHLP_LINE64 Line64 );
+
+using SymGetLineFromAddr_pfn = BOOL (IMAGEAPI *)( _In_  HANDLE         hProcess,
+                                                  _In_  DWORD          dwAddr,
+                                                  _Out_ PDWORD         pdwDisplacement,
+                                                  _Out_ PIMAGEHLP_LINE Line );
+using SymUnloadModule_pfn   = BOOL (IMAGEAPI *)( _In_ HANDLE hProcess,
+                                                 _In_ DWORD  BaseOfDll );
+using SymUnloadModule64_pfn = BOOL (IMAGEAPI *)( _In_ HANDLE  hProcess,
+                                                 _In_ DWORD64 BaseOfDll );
+
+
+using SymFromAddr_pfn   = BOOL (IMAGEAPI *)( _In_      HANDLE       hProcess,
+                                             _In_      DWORD64      Address,
+                                             _Out_opt_ PDWORD64     Displacement,
+                                             _Inout_   PSYMBOL_INFO Symbol );
+
+using SymInitialize_pfn = BOOL (IMAGEAPI *)( _In_     HANDLE hProcess,
+                                             _In_opt_ PCSTR  UserSearchPath,
+                                             _In_     BOOL   fInvadeProcess );
+using SymCleanup_pfn    = BOOL (IMAGEAPI *)( _In_ HANDLE hProcess );
+                        
+
+using SymLoadModule_pfn   = DWORD (IMAGEAPI *)( _In_     HANDLE hProcess,
+                                                _In_opt_ HANDLE hFile,
+                                                _In_opt_ PCSTR  ImageName,
+                                                _In_opt_ PCSTR  ModuleName,
+                                                _In_     DWORD  BaseOfDll,
+                                                _In_     DWORD  SizeOfDll );
+using SymLoadModule64_pfn = DWORD64 (IMAGEAPI *)( _In_     HANDLE  hProcess,
+                                                  _In_opt_ HANDLE  hFile,
+                                                  _In_opt_ PCSTR   ImageName,
+                                                  _In_opt_ PCSTR   ModuleName,
+                                                  _In_     DWORD64 BaseOfDll,
+                                                  _In_     DWORD   SizeOfDll );
+
+
 std::wstring SK_Thread_GetName (DWORD  dwTid);
 std::wstring SK_Thread_GetName (HANDLE hThread);
 

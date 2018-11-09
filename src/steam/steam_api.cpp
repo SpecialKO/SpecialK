@@ -45,6 +45,8 @@ struct IUnknown;
 #include <SpecialK/osd/text.h>
 #include <SpecialK/render/backend.h>
 
+#include <imgui/imgui.h>
+
 #include <SpecialK/tls.h>
 
 #include <array>
@@ -287,7 +289,7 @@ SK_Steam_RecursiveFileScrub ( std::wstring  directory,  unsigned int& files,
         }
       }
 
-      else if ( (fd.dwFileAttributes ^ FILE_ATTRIBUTE_DIRECTORY) & 
+      else if ( (fd.dwFileAttributes ^ FILE_ATTRIBUTE_DIRECTORY) &
                FILE_ATTRIBUTE_DIRECTORY    )
       {
         if (! erase)
@@ -514,7 +516,7 @@ SK_Steam_GetDLLPath ( wchar_t* wszDestBuf,
 
   // Then get the base install directory from Steam (if we can).
   else if (config.steam.appid != 0)
-  { wcsncpy_s ( wszExecutablePath, MAX_PATH * 2, 
+  { wcsncpy_s ( wszExecutablePath, MAX_PATH * 2,
                SK_Steam_FindInstallPath (config.steam.appid),
                _TRUNCATE );
   }
@@ -569,7 +571,7 @@ SK_Steam_PreHookCore (void)
 
   const wchar_t* wszSteamLib =
     SK_RunLHIfBitness ( 64, L"steam_api64.dll",
-                       L"steam_api.dll"    );
+                            L"steam_api.dll"    );
 
   if (! SK_Modules.LoadLibrary (wszSteamLib))
   {
@@ -706,7 +708,7 @@ SK_Steam_ScreenshotManager::OnScreenshotRequest ( ScreenshotRequested_t *pParam 
     //if (SK_GetCurrentRenderBackend ().framebuffer_flags == 0x00)
     {
       SK_D3D11_CaptureSteamScreenshot ( config.steam.screenshots.show_osd_by_default ?
-                                       SK::ScreenshotStage::EndOfFrame : 
+                                       SK::ScreenshotStage::EndOfFrame :
                                        SK::ScreenshotStage::BeforeOSD );
 
       return;
@@ -944,7 +946,7 @@ public:
     //   it's also going to see this event... make a note of that when
     //     tracking its believed overlay state.
     if (SK::SteamAPI::IsOverlayAware ())
-      SK::SteamAPI::overlay_state = (pParam->m_bActive != 0);
+        SK::SteamAPI::overlay_state = (pParam->m_bActive != 0);
 
 
     // If we want to use this as our own, then don't let the Steam overlay
@@ -968,6 +970,47 @@ public:
 
     if (wasActive != active_)
     {
+      ImGuiIO& io =
+        ImGui::GetIO ();
+
+      static bool capture_keys  = io.WantCaptureKeyboard;
+      static bool capture_text  = io.WantTextInput;
+      static bool capture_mouse = io.WantCaptureMouse;
+      static bool nav_active    = io.NavActive;
+
+      // When the overlay activates, stop blocking
+      //   input !!
+      if (! wasActive)
+      {
+        capture_keys  =
+          io.WantCaptureKeyboard;
+          io.WantCaptureKeyboard = false;
+
+        capture_text  =
+          io.WantTextInput;
+          io.WantTextInput       = false;
+
+        capture_mouse =
+          io.WantCaptureMouse;
+          io.WantCaptureMouse    = false;
+
+        nav_active    =
+          io.NavActive;
+          io.NavActive           = false;
+
+         ImGui::SetWindowFocus (nullptr);
+      }
+
+      else
+      {
+        io.WantCaptureKeyboard = SK_ImGui_Visible ? capture_keys  : false;
+        io.WantCaptureMouse    = SK_ImGui_Visible ? capture_mouse : false;
+        io.NavActive           = SK_ImGui_Visible ? nav_active    : false;
+
+        ImGui::SetWindowFocus (nullptr);
+        io.WantTextInput       = false;//capture_text;
+      }
+
       if (active_) SK::Framerate::GetLimiter ()->suspend ();
       else         SK::Framerate::GetLimiter ()->resume  ();
     }
@@ -1446,7 +1489,7 @@ void
 SK_SteamAPIContext::Shutdown (void)
 {
   if (InterlockedDecrement (&__SK_Steam_init) == 1)
-  { 
+  {
     if (client_)
     {
 #if 0
@@ -2300,13 +2343,13 @@ public:
     }
 
     if ( config.cegui.enable && config.steam.achievements.popup.show &&
-        config.cegui.frames_drawn > 0 &&
-        achievement != nullptr )
+         config.cegui.frames_drawn > 0 &&
+         achievement != nullptr )
     {
       CEGUI::System* pSys = CEGUI::System::getDllSingletonPtr ();
 
       if ( pSys                 != nullptr &&
-          pSys->getRenderer () != nullptr )
+           pSys->getRenderer () != nullptr )
       {
         if (steam_popup_cs != nullptr)
             steam_popup_cs->lock ();
@@ -2353,7 +2396,11 @@ public:
 
   int drawPopups (void)
   {
-    if (! (config.cegui.enable && config.cegui.frames_drawn > 0)) return 0;
+    if (! ( config.cegui.enable &&
+            config.cegui.frames_drawn > 0))
+    {
+      return 0;
+    }
 
 
     int drawn = 0;
@@ -2578,7 +2625,7 @@ public:
         if (removed || created || take_screenshot > 0)
         {
           SK_TextOverlayManager::getInstance ()->drawAllOverlays     (0.0f, 0.0f, true);
-          CEGUI::System::getDllSingleton   ().renderAllGUIContexts ();
+            CEGUI::System::getDllSingleton   ().renderAllGUIContexts ();
         }
 
         // Popup is in the final location, so now is when screenshots
@@ -2789,7 +2836,7 @@ public:
     FILE *fWAV = nullptr;
 
     if ( (!  psn) &&
-         (! xbox) && 
+         (! xbox) &&
          (!   dt) && (fWAV = _wfopen (wszFileName, L"rb")) != nullptr )
     {
       SK_StripUserNameFromPathW (wszFileName);
@@ -3313,7 +3360,8 @@ SK_Steam_DrawOSD (void)
   if (steam_achievements != nullptr)
   {
     //SteamAPI_RunCallbacks_Original ();
-    return steam_achievements->drawPopups ();
+    return
+      steam_achievements->drawPopups ();
   }
 
   return 0;
@@ -3390,7 +3438,7 @@ SteamAPI_RunCallbacks_Detour (void)
     // Handle situations where Steam was initialized earlier than
     //   expected...
     void SK_SteamAPI_InitManagers (void);
-    SK_SteamAPI_InitManagers (    );
+         SK_SteamAPI_InitManagers (    );
 
     strcpy ( steam_ctx.var_strings.popup_origin,
             SK_Steam_PopupOriginToStr (
@@ -3407,14 +3455,12 @@ SteamAPI_RunCallbacks_Detour (void)
     if (! steam_ctx.UserStats ())
     {
       if (SteamAPI_InitSafe_Original != nullptr)
-        SteamAPI_InitSafe_Detour ();
+          SteamAPI_InitSafe_Detour ();
     }
 
     __try
     {
       SK_Steam_SetNotifyCorner ();
-
-      SteamAPI_RunCallbacks_Original ();
 
       ISteamUserStats* pStats =
         steam_ctx.UserStats ();
@@ -3422,50 +3468,71 @@ SteamAPI_RunCallbacks_Detour (void)
       if (pStats && (steam_achievements != nullptr))
       {
         pStats->RequestGlobalAchievementPercentages ();
-        SteamAPI_RunCallbacks_Original ();
-      }
-    }
-
-    __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION )  ?
-              EXCEPTION_EXECUTE_HANDLER :
-              EXCEPTION_CONTINUE_SEARCH )
-    {
-      failure = true;
-      steam_log.Log (L" Caught a Structured Exception while running Steam Callbacks!");
-    }
-  }
-
-  __try
-  {
-    if (! ReadAcquire (&__SK_DLL_Ending))
-    {
-      DWORD dwNow = timeGetTime ();
-
-      static DWORD
-        dwLastOnlineStateCheck = 0UL;
-      if (dwLastOnlineStateCheck < dwNow - 666UL)
-      {
-        if ( config.steam.online_status       != -1 && 
-            SK::SteamAPI::GetPersonaState () != config.steam.online_status )
-        {
-          SK::SteamAPI::SetPersonaState ((EPersonaState)config.steam.online_status);
-        }
-
-        dwLastOnlineStateCheck = dwNow;
       }
 
       SteamAPI_RunCallbacks_Original ();
     }
+
+    __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION )  ?
+                              EXCEPTION_EXECUTE_HANDLER :
+                              EXCEPTION_CONTINUE_SEARCH )
+    {
+      failure = true;
+      steam_log.Log (L" Caught a Structured Exception while running Steam Callbacks!");
+    }
+
+    steam_mutex->unlock ();
+
+    return;
   }
 
-  __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION )  ?
-            EXCEPTION_EXECUTE_HANDLER :
-            EXCEPTION_CONTINUE_SEARCH )
+  if (! ReadAcquire (&__SK_DLL_Ending))
   {
-    if (! failure)
+    static bool try_me = true;
+
+    __try
     {
-      steam_log.Log (L" Caught a Structured Exception while running Steam Callbacks!");
-      failure = true;
+      if (try_me)
+      {
+        DWORD dwNow = timeGetTime ();
+
+        static DWORD
+          dwLastOnlineStateCheck = 0UL;
+        if (dwLastOnlineStateCheck < dwNow - 666UL)
+        {
+          if ( config.steam.online_status      != -1 &&
+              SK::SteamAPI::GetPersonaState () != config.steam.online_status )
+          {
+            SK::SteamAPI::SetPersonaState ((EPersonaState)config.steam.online_status);
+          }
+
+          dwLastOnlineStateCheck = dwNow;
+        }
+      }
+    }
+
+    __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION )  ?
+                              EXCEPTION_EXECUTE_HANDLER :
+                              EXCEPTION_CONTINUE_SEARCH )
+    {
+      try_me = false;
+    }
+
+
+    __try
+    {
+      SteamAPI_RunCallbacks_Original ();
+    }
+
+    __except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION )  ?
+                              EXCEPTION_EXECUTE_HANDLER :
+                              EXCEPTION_CONTINUE_SEARCH )
+    {
+      if (! failure)
+      {
+        steam_log.Log (L" Caught a Structured Exception while running Steam Callbacks!");
+        failure = true;
+      }
     }
   }
 
@@ -3531,7 +3598,8 @@ SteamAPI_PumpThread (LPVOID user)
   bool   start_immediately = (user != nullptr);
   double callback_freq     =  0.0;
 
-  if (SK_GetCurrentGameID () == SK_GAME_ID::MonsterHunterWorld)
+  if ( SK_GetCurrentGameID () == SK_GAME_ID::MonsterHunterWorld ||
+       SK_GetCurrentGameID () == SK_GAME_ID::JustCause3 )
     start_immediately = true;
 
   if (! start_immediately)
@@ -3977,7 +4045,7 @@ SK_Steam_ScrubRedistributables (int& total_files, bool erase)
                   _ConstructPath ( directory, fd.cFileName ),
                   L"_CommonRedist"
                 ).data (),
-                  files, liSize, 
+                  files, liSize,
                   L"*", L"installscript.vdf",
                   params.erase );
               }
@@ -4371,7 +4439,7 @@ SteamAPI_Init_Detour (void)
   {
     if (1 == InterlockedIncrement (&__SK_Steam_init))
     {
-      static const wchar_t* steam_dll_str = 
+      static const wchar_t* steam_dll_str =
         SK_RunLHIfBitness ( 64, L"steam_api64.dll",
                            L"steam_api.dll" );
 
@@ -4721,7 +4789,7 @@ SK_SteamAPI_GetNumPossibleAchievements (void)
   static std::pair <size_t,bool> possible =
   { 0, false };
 
-  if ( possible.second    == false   && 
+  if ( possible.second    == false   &&
       steam_achievements != nullptr    )
   {
     steam_achievements->getAchievements (&possible.first);
@@ -5271,7 +5339,7 @@ SK_Steam_PiratesAhoy (void)
           //
           //   The actual DLL used is pulled from the IAT during init, but I am too lazy to bother doing
           //     this the right way ;)
-          snprintf ( szRelSteamAPI, MAX_PATH * 2 - 1, 
+          snprintf ( szRelSteamAPI, MAX_PATH * 2 - 1,
                     "%ws", SK_Steam_GetDLLPath () );
 
           check_file =
@@ -5433,7 +5501,7 @@ SK_SteamAPIContext::OnFileDetailsDone ( FileDetailsResult_t* pParam,
           switch (pParam->m_eResult)
           {
             case k_EResultOK:
-            {    
+            {
               uint64_t size =
                 SK_File_GetSize (wszFileName);
 
@@ -5889,11 +5957,11 @@ SK_SteamAPIContext::InitSteamAPI (HMODULE hSteamDLL)
 
   //
   // Obsolete now, but will remain here for historical purposes.
-  // 
+  //
   //   I've nothing to hide, these users were not people I held personal grudges against, but rather
   //     that hijacked my support thread before I was able to moderate them.
-  //   
-  // 
+  //
+  //
   //if ( aid ==  64655118 || aid == 183437803 )
   //{
   //  SK_MessageBox ( L"You are not authorized to use this software",
@@ -6097,7 +6165,7 @@ SK_Steam_KickStart (const wchar_t* wszLibPath)
   {
     static const wchar_t* wszSteamDLL =
       SK_RunLHIfBitness ( 64, LR"(PlugIns\ThirdParty\Steamworks\steam_api64.dll)",
-                         LR"(PlugIns\ThirdParty\Steamworks\steam_api.dll)" );
+                              LR"(PlugIns\ThirdParty\Steamworks\steam_api.dll)" );
 
     if (! GetModuleHandle (wszSteamDLL))
     {
@@ -6282,7 +6350,7 @@ public:
 class IClientEngine_005_Min
 {
 public:
-  virtual HSteamPipe              CreateSteamPipe       (void)                                                                 = 0; 
+  virtual HSteamPipe              CreateSteamPipe       (void)                                                                 = 0;
   virtual bool                    BReleaseSteamPipe     (HSteamPipe   hSteamPipe)                                              = 0;
   virtual HSteamUser              CreateGlobalUser      (HSteamPipe* phSteamPipe)                                              = 0;
   virtual HSteamUser              ConnectToGlobalUser   (HSteamPipe   hSteamPipe)                                              = 0;

@@ -149,7 +149,7 @@ DirectInput8Create ( HINSTANCE hinst,
 
   dll_log.Log ( L"[ DInput 8 ] [!] %s (%08" PRIxPTR L"h, %lu, {...}, ppvOut="
                                      L"%08" PRIxPTR L"h, %08" PRIxPTR L"h)"
-                                     L"                               -- %s",
+                                     L"                             -- %s",
                   L"DirectInput8Create",
                     (uintptr_t)hinst,             dwVersion, /*,*/
                     (uintptr_t)ppvOut, (uintptr_t)punkOuter,
@@ -292,7 +292,7 @@ UNREFERENCED_PARAMETER (user);
 
     // OpenGL
     //
-    if (gl || GetModuleHandle (L"OpenGL32.dll"))
+    if (gl || SK_GetModuleHandle (L"OpenGL32.dll"))
       SK_BootOpenGL ();
 
 
@@ -304,17 +304,17 @@ UNREFERENCED_PARAMETER (user);
 
     // D3D9
     //
-    if (d3d9 || GetModuleHandle (L"d3d9.dll"))
+    if (d3d9 || SK_GetModuleHandle (L"d3d9.dll"))
       SK_BootD3D9 ();
 
 
     // D3D11
     //
-    if (d3d11 || GetModuleHandle (L"d3d11.dll"))
+    if (d3d11 || SK_GetModuleHandle (L"d3d11.dll"))
       SK_BootDXGI ();
 
     // Alternate form (or D3D12, but we don't care about that right now)
-    else if (dxgi || GetModuleHandle (L"dxgi.dll"))
+    else if (dxgi || SK_GetModuleHandle (L"dxgi.dll"))
       SK_BootDXGI ();
 
 
@@ -340,7 +340,7 @@ DEFINE_GUID(CLSID_DirectInput,        0x25E609E0,0xB259,0x11CF,0xBF,0xC7,0x44,0x
 DEFINE_GUID(CLSID_DirectInputDevice,  0x25E609E1,0xB259,0x11CF,0xBF,0xC7,0x44,0x45,0x53,0x54,0x00,0x00);
 
 DEFINE_GUID(CLSID_DirectInput8,       0x25E609E4,0xB259,0x11CF,0xBF,0xC7,0x44,0x45,0x53,0x54,0x00,0x00);
-DEFINE_GUID(CLSID_DirectInputDevice8,	0x25E609E5,0xB259,0x11CF,0xBF,0xC7,0x44,0x45,0x53,0x54,0x00,0x00);
+DEFINE_GUID(CLSID_DirectInputDevice8, 0x25E609E5,0xB259,0x11CF,0xBF,0xC7,0x44,0x45,0x53,0x54,0x00,0x00);
 
 HRESULT
 WINAPI

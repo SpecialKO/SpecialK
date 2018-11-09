@@ -110,6 +110,10 @@ extern void     __stdcall SK_FAR_ControlPanel  (void);
 
        bool               SK_DXGI_FullStateCache = false;
 
+
+int __SK_FramerateLimitApplicationSite = 4;
+
+
 std::wstring
 SK_NvAPI_GetGPUInfoStr (void);
 
@@ -129,20 +133,20 @@ LoadFileInResource ( int          name,
 
   if (rc != nullptr)
   {
-    HGLOBAL rcData = 
+    HGLOBAL rcData =
       LoadResource (handle, rc);
-    
+
     if (rcData != nullptr)
     {
       size =
         SizeofResource (handle, rc);
-    
+
       data =
         static_cast <const char *>(
           LockResource (rcData)
         );
     }
-  } 
+  }
 }
 
 extern void __stdcall SK_ImGui_DrawEULA (LPVOID reserved);
@@ -209,14 +213,14 @@ namespace SK_ImGui
 
       if (! glyph)
         continue;
-    
+
       window->DrawList->PrimReserve (6, 4);
       window->DrawList->PrimQuadUV  (
               ImVec2   ( pos.x + glyph->Y0 , pos.y - glyph->X0 ),
               ImVec2   ( pos.x + glyph->Y0 , pos.y - glyph->X1 ),
               ImVec2   ( pos.x + glyph->Y1 , pos.y - glyph->X1 ),
               ImVec2   ( pos.x + glyph->Y1 , pos.y - glyph->X0 ),
-    
+
                 ImVec2 (         glyph->U0,         glyph->V0 ),
                 ImVec2 (         glyph->U1,         glyph->V0 ),
                 ImVec2 (         glyph->U1,         glyph->V1 ),
@@ -351,7 +355,7 @@ SK_ImGui_PopNav (void)
   nav_usable   = stack_top.nav_usable;
   io.NavActive = stack_top.io_NavActive;
   io.NavUsable = stack_top.io_NavUsable;
-  
+
   SK_ImGui_NavStack.pop ();
 }
 
@@ -509,7 +513,7 @@ SK_ImGui_ControlPanelTitle (void)
 
   {
     // TEMP HACK
-    static HMODULE hModTBFix = GetModuleHandle (L"tbfix.dll");
+    static HMODULE hModTBFix = SK_GetModuleHandle (L"tbfix.dll");
 
     static std::wstring title = L"";
                         title.clear ();
@@ -610,7 +614,7 @@ public:
 SK_ImGui_FrameHistory SK_ImGui_Frames;
 
 
-#pragma optimize( "", off ) 
+#pragma optimize( "", off )
 __declspec (noinline)
 IMGUI_API
 void
@@ -621,7 +625,7 @@ SK_PlugIn_ControlPanelWidget (void)
   int x = rand ();
   ++x;
 }
-#pragma optimize( "", on ) 
+#pragma optimize( "", on )
 
 void
 DisplayModeMenu (bool windowed)
@@ -861,7 +865,7 @@ SK_ImGui_DrawGraph_FramePacing (void)
   }
 
   static       char szAvg [512] = { };
-  static const bool ffx = GetModuleHandle (L"UnX.dll") != nullptr;
+  static const bool ffx = SK_GetModuleHandle (L"UnX.dll") != nullptr;
 
   float target_frametime = ( target_fps == 0.0f ) ?
                               ( 1000.0f / (ffx ? 30.0f : 60.0f) ) :
@@ -878,7 +882,7 @@ SK_ImGui_DrawGraph_FramePacing (void)
       target_frametime = 33.333333f;
 
     // Menus: 60 FPS
-    else 
+    else
       target_frametime = 16.666667f;
   }
 
@@ -894,7 +898,7 @@ SK_ImGui_DrawGraph_FramePacing (void)
                     min, max, max - min,
                       1000.0f / (sum / frames), (max - min) / (1000.0f / (sum / frames)) );
 
-  ImGui::PushStyleColor ( ImGuiCol_PlotLines, 
+  ImGui::PushStyleColor ( ImGuiCol_PlotLines,
                             ImColor::HSV ( 0.31f - 0.31f *
                      std::min ( 1.0f, (max - min) / (2.0f * target_frametime) ),
                                              0.86f,
@@ -1031,7 +1035,7 @@ SK_ImGui_ControlPanel (void)
 
         SK_RenderBackend& rb = SK_GetCurrentRenderBackend ();
 
-        bool supports_texture_mods = 
+        bool supports_texture_mods =
         //( static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D9)  ) ||
           ( static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D11) );
 
@@ -1108,7 +1112,7 @@ SK_ImGui_ControlPanel (void)
         {
           if (ImGui::MenuItem ("Uninstall Wrapper DLL for this game"))
           {
-            wrappable = 
+            wrappable =
               SK_Inject_SwitchToGlobalInjector ();
           }
         }
@@ -1395,7 +1399,7 @@ SK_ImGui_ControlPanel (void)
 
             ImGui::PushFont (ImGui::GetIO ().Fonts->Fonts [SK_IMGUI_FIXED_FONT]);
             //ImGui::BulletText   ("%lu injections since restart", count);
-            
+
 
             std::vector <SK_InjectionRecord_s*> records (
               ReadAcquire (&SK_InjectionRecord_s::count)
@@ -1575,8 +1579,8 @@ SK_ImGui_ControlPanel (void)
 
 
 
-  static HMODULE hModTBFix = GetModuleHandle (L"tbfix.dll");
-  static HMODULE hModTZFix = GetModuleHandle (L"tzfix.dll");
+  static HMODULE hModTBFix = SK_GetModuleHandle (L"tbfix.dll");
+  static HMODULE hModTZFix = SK_GetModuleHandle (L"tzfix.dll");
 
   static bool show_test_window = false;
 
@@ -1613,7 +1617,7 @@ SK_ImGui_ControlPanel (void)
 
     // Range-restrict for sanity!
     config.imgui.scale = std::max (1.0f, std::min (5.0f, config.imgui.scale));
-  
+
     io.FontGlobalScale = config.imgui.scale;
     first_frame        = false;
   }
@@ -1635,7 +1639,7 @@ SK_ImGui_ControlPanel (void)
   extern bool nav_usable;
 
   if (nav_usable)
-    ImGui::PushStyleColor ( ImGuiCol_Text, ImColor::HSV ( (float)(current_time % 2800) / 2800.0f, 
+    ImGui::PushStyleColor ( ImGuiCol_Text, ImColor::HSV ( (float)(current_time % 2800) / 2800.0f,
                                             (0.5f + (sin ((float)(current_time % 500)  / 500.0f)) * 0.5f) / 2.0f,
                                              1.0f ) );
   else
@@ -1666,13 +1670,13 @@ SK_ImGui_ControlPanel (void)
     // Translation layers (D3D8->11 / DDraw->11 / D3D11On12)
     auto api_mask = static_cast <int> (rb.api);
 
-    if ( (api_mask &  static_cast <int> (SK_RenderAPI::D3D12))      != 0x0 && 
+    if ( (api_mask &  static_cast <int> (SK_RenderAPI::D3D12))      != 0x0 &&
           api_mask != static_cast <int> (SK_RenderAPI::D3D12) )
     {
       lstrcatA (szAPIName,   "On12");
     }
 
-    else if ( (api_mask &  static_cast <int> (SK_RenderAPI::D3D11)) != 0x0 && 
+    else if ( (api_mask &  static_cast <int> (SK_RenderAPI::D3D11)) != 0x0 &&
                api_mask != static_cast <int> (SK_RenderAPI::D3D11) )
     {
       lstrcatA (szAPIName, u8"→11" );
@@ -1712,7 +1716,7 @@ SK_ImGui_ControlPanel (void)
          sRGB                                                                            ||
          hdr_out )
     {
-      snprintf ( szResolution, 63, "   %ux%u", 
+      snprintf ( szResolution, 63, "   %ux%u",
                    static_cast <UINT> (io.DisplayFramebufferScale.x),
                    static_cast <UINT> (io.DisplayFramebufferScale.y) );
 
@@ -1806,7 +1810,7 @@ SK_ImGui_ControlPanel (void)
       snprintf ( szResolution, 63, "   %ix%i",
                                      device_x,
                                        device_y );
-    
+
       if (ImGui::MenuItem (" Device Resolution    ", szResolution))
       {
         config.window.res.override.x = device_x;
@@ -1818,7 +1822,7 @@ SK_ImGui_ControlPanel (void)
 
     if (! config.window.res.override.isZero ())
     {
-      snprintf ( szResolution, 63, "   %lux%lu", 
+      snprintf ( szResolution, 63, "   %lux%lu",
                                      config.window.res.override.x,
                                        config.window.res.override.y );
 
@@ -1867,7 +1871,6 @@ SK_ImGui_ControlPanel (void)
         ImGui::SetTooltip ("The NVIDIA driver API does not report this status in OpenGL.");
       }
     }
-
 
     static bool original_bypass = config.nvidia.bugs.fix_10bit_gsync;
 
@@ -1975,7 +1978,7 @@ SK_ImGui_ControlPanel (void)
       } break;
 
       case SK_GAME_ID::NiNoKuni2:
-      { 
+      {
         extern bool SK_NNK2_PlugInCfg (void);
                     SK_NNK2_PlugInCfg ();
       } break;
@@ -2008,6 +2011,12 @@ SK_ImGui_ControlPanel (void)
         extern bool SK_SM_PlugInCfg (void);
                     SK_SM_PlugInCfg ();
       } break;
+
+      case SK_GAME_ID::AssassinsCreed_Odyssey:
+      {
+        extern bool SK_ACO_PlugInCfg (void);
+                    SK_ACO_PlugInCfg ();
+      } break;
     };
 #endif
 
@@ -2019,7 +2028,7 @@ SK_ImGui_ControlPanel (void)
   {
     ImGui::PushItemWidth (ImGui::GetWindowWidth () * 0.666f);
 
-    if ( ImGui::CollapsingHeader ("Framerate Limiter", ImGuiTreeNodeFlags_CollapsingHeader | 
+    if ( ImGui::CollapsingHeader ("Framerate Limiter", ImGuiTreeNodeFlags_CollapsingHeader |
                                                        ImGuiTreeNodeFlags_DefaultOpen ) )
     {
       SK_ImGui_DrawGraph_FramePacing ();
@@ -2122,7 +2131,7 @@ SK_ImGui_ControlPanel (void)
             //  ImGui::SameLine       ();
 
             ImGui::SliderFloat ( "Target Framerate Tolerance", &config.render.framerate.limiter_tolerance, 0.925f, 4.0f);
-            
+
             if (ImGui::IsItemHovered ())
             {
               ImGui::BeginTooltip   ();
@@ -2210,6 +2219,19 @@ SK_ImGui_ControlPanel (void)
               ImGui::EndTooltip   ();
             }
 
+            ImGui::SameLine ();
+
+            extern float
+                target_fps;
+            if (target_fps > 0.000001f)
+            {
+              ImGui::SliderInt ("When to apply framerate limit", &__SK_FramerateLimitApplicationSite, 0, 4);
+
+              if (ImGui::IsItemHovered ())
+                ImGui::SetTooltip ("Changing this setting may produce more stable framerates.");
+            }
+
+#if 0
             ImGui::Checkbox      ("Busy-Wait Limiter",        &config.render.framerate.busy_wait_limiter);
 
             if (ImGui::IsItemHovered ())
@@ -2248,7 +2270,7 @@ SK_ImGui_ControlPanel (void)
 
             if (! config.render.framerate.busy_wait_limiter)
             {
-              float sleep_duration = 
+              float sleep_duration =
                 ( 10.0f / target_fps ) * config.render.framerate.max_sleep_percent;
 
               ImGui::SameLine    (                                                                     );
@@ -2266,6 +2288,7 @@ SK_ImGui_ControlPanel (void)
               ImGui::SliderFloat ( "Sleep Duration", &config.render.framerate.max_sleep_percent, 0.01f,
                                    99.9f, SK_FormatString ( "%4.1f ms", sleep_duration ).c_str ()      );
             }
+#endif
           }
 
           ImGui::EndGroup ();
@@ -2311,6 +2334,7 @@ SK_ImGui_ControlPanel (void)
     bool pipeline      = SK_ImGui_Widgets.d3d11_pipeline->isVisible  ();
     bool threads       = SK_ImGui_Widgets.thread_profiler->isVisible ();
     bool hdr           = SK_ImGui_Widgets.hdr_control->isVisible     ();
+    bool tobii         = SK_ImGui_Widgets.tobii->isVisible           ();
 
     ImGui::TreePush ("");
 
@@ -2366,6 +2390,13 @@ SK_ImGui_ControlPanel (void)
           SK_ImGui_Widgets.hdr_control->setVisible (hdr).setActive (hdr);
         }
       }
+    }
+
+    ImGui::SameLine ();
+
+    if (ImGui::Checkbox ("Tobii Eyetracker", &tobii))
+    {
+      SK_ImGui_Widgets.tobii->setVisible (tobii).setActive (tobii);
     }
 
     ImGui::SameLine ();
@@ -2452,6 +2483,7 @@ SK_ImGui_InstallOpenCloseCallback (SK_ImGui_OpenCloseCallback_pfn fn, void* user
 
 
 extern SK_D3D11_TexCacheResidency_s SK_D3D11_TexCacheResidency;
+extern bool                         SK_Tobii_IsCursorVisible (void);
 
 
 static bool keep_open;
@@ -2522,10 +2554,10 @@ SK_ImGui_StageNextFrame (void)
   else if (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D11))
   {
     d3d11 = true;
-  
+
     ImGui_ImplDX11_NewFrame ();
   }
-  
+
   else if (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D12))
   {
     d3d12 = true;
@@ -2546,11 +2578,11 @@ SK_ImGui_StageNextFrame (void)
   // TODO: Generalize this!
   //if ( SK_GetCurrentGameID () == SK_GAME_ID::MonsterHunterWorld ||
   //     SK_GetCurrentGameID () == SK_GAME_ID::DragonQuestXI )
+  CComQIPtr <IDXGISwapChain> pSwapChain (
+    rb.swapchain
+  );
+  if (pSwapChain != nullptr)
   {
-    CComQIPtr <IDXGISwapChain> pSwapChain (
-      rb.swapchain
-    );
-
     DXGI_SWAP_CHAIN_DESC  desc = {};
     pSwapChain->GetDesc (&desc);
 
@@ -2667,7 +2699,8 @@ SK_ImGui_StageNextFrame (void)
           SK_ImGui_Widgets.cpu_monitor,
             SK_ImGui_Widgets.d3d11_pipeline,
               SK_ImGui_Widgets.thread_profiler,
-                SK_ImGui_Widgets.hdr_control
+                SK_ImGui_Widgets.hdr_control,
+                  SK_ImGui_Widgets.tobii
   };
 
   if (init_widgets)
@@ -2693,7 +2726,7 @@ SK_ImGui_StageNextFrame (void)
   if (SK_ImGui_Visible)
   {
     SK_ControlPanel_Activated = true;
-    keep_open = SK_ImGui_ControlPanel ();
+    keep_open                 = SK_ImGui_ControlPanel ();
   }
 
 
@@ -2702,8 +2735,20 @@ SK_ImGui_StageNextFrame (void)
     if (widget->isActive ())
       widget->run_base ();
 
-    if (widget->isVisible ())
+    else if (widget == SK_ImGui_Widgets.hdr_control ||
+             widget == SK_ImGui_Widgets.thread_profiler)
+    {
+      widget->setActive (true);
+    }
+
+    if ( widget->isVisible () ||
+         // Tobii widget needs to be drawn to show its cursor
+         ( widget == SK_ImGui_Widgets.tobii &&
+           SK_Tobii_IsCursorVisible ()         )
+       )
+    {
       widget->draw_base ();
+    }
   }
 
 
@@ -2818,7 +2863,7 @@ SK_ImGui_StageNextFrame (void)
                            current_branch.release.description.c_str ()
                          );
       ImGui::TreePop     ();
-      
+
       ImGui::EndChildFrame ();
     }
 
@@ -2839,10 +2884,10 @@ SK_ImGui_StageNextFrame (void)
     ImGui::TextColored     ( ImColor::HSV (.16f, 1.f, 1.f),  R"('Select + Start' (PlayStation))"); ImGui::SameLine ();
     ImGui::TextUnformatted (                                  "or ");                              ImGui::SameLine ();
     ImGui::TextColored     ( ImColor::HSV (.16f, 1.f, 1.f),  R"('Back + Start' (Xbox))");          ImGui::SameLine ();
-    
+
     ImGui::TextUnformatted (                                  "to open Special K's "
                                                               "configuration menu. ");
-    
+
     ImGui::End             ( );
     ImGui::PopStyleColor   (2);
   }
@@ -2905,7 +2950,7 @@ SK_ImGui_StageNextFrame (void)
       }
 
       ImGui::SetNextWindowSize  (ImVec2 (font.size * 35, font.size_multiline * (7.25f + extra_lines)), ImGuiSetCond_Always);
-      
+
       ImGui::Begin            ("###Widget_TexCacheD3D11", nullptr, ImGuiWindowFlags_NoTitleBar         | ImGuiWindowFlags_NoResize         |
                                                                    ImGuiWindowFlags_NoScrollbar        | ImGuiWindowFlags_AlwaysAutoResize |
                                                                    ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus );
@@ -3008,8 +3053,10 @@ SK_ImGui_StageNextFrame (void)
 
     POINT screen_pos = SK_ImGui_Cursor.pos;
 
-    if (GetCursor () != nullptr)
-      SK_ImGui_Cursor.orig_img = GetCursor ();
+    HCURSOR hCur = GetCursor ();
+
+    if (hCur != nullptr)
+      SK_ImGui_Cursor.orig_img = hCur;
 
     SK_ImGui_Cursor.LocalToScreen (&screen_pos);
     SK_SetCursorPos ( screen_pos.x,
@@ -3029,7 +3076,7 @@ SK_ImGui_StageNextFrame (void)
 //
 __declspec (dllexport)
 DWORD
-SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags, 
+SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
                                               LPVOID lpUser )
 {
   UNREFERENCED_PARAMETER (dwFlags);
@@ -3053,7 +3100,7 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
   bool d3d12 = false;
   bool gl    = false;
 
-  SK_RenderBackend& rb =
+  static auto& rb =
     SK_GetCurrentRenderBackend ();
 
   if (rb.api == SK_RenderAPI::OpenGL)
@@ -3091,7 +3138,7 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
   else if (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D12))
   {
     d3d12 = true;
-      
+
     ImGui::Render ();
   }
 
@@ -3110,7 +3157,13 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
 
   SK_ImGui_Cursor.update ();
 
+  //// The only reason this might be used is to reset the window's
+  ////   class cursor. SK_ImGui_Cursor.update (...) doesn't reposition
+  ////                   the cursor.
+#define FIXME
+#ifndef FIXME
   SK_SetCursorPos (orig_pos.x, orig_pos.y);
+#endif
 
   imgui_finished_frames++;
 
@@ -3165,7 +3218,7 @@ SK_ImGui_Toggle (void)
   auto EnableEULAIfPirate = [&](void) ->
   bool
   {
-    bool pirate = ( SK_SteamAPI_AppID    () != 0 && 
+    bool pirate = ( SK_SteamAPI_AppID    () != 0 &&
                     SK_Steam_PiratesAhoy () != 0x0 );
     if (pirate)
     {
@@ -3194,8 +3247,8 @@ SK_ImGui_Toggle (void)
       ImGui::SetNextWindowFocus ();
 
 
-    static HMODULE hModTBFix = GetModuleHandle (L"tbfix.dll");
-    static HMODULE hModTZFix = GetModuleHandle (L"tzfix.dll");
+    static HMODULE hModTBFix = SK_GetModuleHandle (L"tbfix.dll");
+    static HMODULE hModTZFix = SK_GetModuleHandle (L"tzfix.dll");
 
     // Turns the hardware cursor on/off as needed
     ImGui_ToggleCursor ();
