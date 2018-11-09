@@ -146,8 +146,11 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
 
   static HRAWINPUT last_input = nullptr;
 
-  bool already_processed = (last_input == hRawInput && uiCommand == RID_INPUT);
-       last_input        =  ((! self) && uiCommand == RID_INPUT) ? hRawInput : nullptr;
+  bool already_processed =
+    ( last_input == hRawInput && uiCommand == RID_INPUT );
+
+  if ((! self) && uiCommand == RID_INPUT)
+    last_input = hRawInput;
 
 
   if (self && (! already_processed))
@@ -295,7 +298,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
     {
       case RIM_TYPEMOUSE:
       {
-        if ((! already_processed) || self)
+        if (/*(! already_processed) || */self)
         {
           if (SK_ImGui_IsMouseRelevant () && config.input.mouse.add_relative_motion)
           {
@@ -339,28 +342,31 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
 
       case RIM_TYPEKEYBOARD:
       {
-        USHORT VKey =
-          ((RAWINPUT *)pData)->data.keyboard.VKey;
-
-        // VKeys 0-7 aren't on the keyboard :)
-        if (VKey & 0xFFF8) // Valid Keys:  8 - 65535
+        if (self)
         {
-          if (! (((RAWINPUT *)pData)->data.keyboard.Flags & RI_KEY_BREAK))
+          USHORT VKey =
+            ((RAWINPUT *)pData)->data.keyboard.VKey;
+
+          // VKeys 0-7 aren't on the keyboard :)
+          if (VKey & 0xFFF8) // Valid Keys:  8 - 65535
           {
+            if (! (((RAWINPUT *)pData)->data.keyboard.Flags & RI_KEY_BREAK))
+            {
+              if (foreground)
+                ImGui::GetIO ().KeysDown [VKey & 0xFF] = true;
+            }
+
+            if ( ((RAWINPUT *)pData)->data.keyboard.Message == WM_KEYDOWN)
+            {
+              if (foreground && (! self))
+                ImGui::GetIO ().KeysDown [VKey & 0xFF] = true;
+            }
+
             if (foreground)
-              ImGui::GetIO ().KeysDown [VKey & 0xFF] = true;
-          }
-
-          if ( ((RAWINPUT *)pData)->data.keyboard.Message == WM_KEYDOWN)
-          {
-            if (foreground && (! self))
-              ImGui::GetIO ().KeysDown [VKey & 0xFF] = true;
-          }
-
-          if (foreground)
-          {
-            if ( ((RAWINPUT *)pData)->data.keyboard.Message == WM_CHAR)
-              ImGui::GetIO ().AddInputCharacter (VKey);
+            {
+              if ( ((RAWINPUT *)pData)->data.keyboard.Message == WM_CHAR)
+                ImGui::GetIO ().AddInputCharacter (VKey);
+            }
           }
         }
       } break;

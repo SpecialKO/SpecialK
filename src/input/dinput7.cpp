@@ -1315,15 +1315,15 @@ SK_Input_PreHookDI7 (void)
     SK_TestImports (GetModuleHandle (nullptr), tests, 2);
 
     if (tests [1].used || GetModuleHandle (L"dinput8.dll"))
-    {
-      SK_Modules.LoadLibraryLL (L"dinput8.dll");
+    {            SK_Modules.LoadLibraryLL (L"dinput8.dll");
 
       if (SK_GetDLLRole () != DLL_ROLE::DInput8)
         SK_Input_PreHookDI8 ();
     }
 
     if (tests [0].used || GetModuleHandle (L"dinput.dll"))
-    {
+   {             SK_Modules.LoadLibraryLL (L"dinput.dll");
+
       //if (SK_GetDLLRole () != DLL_ROLE::DInput7)
         SK_Input_HookDI7 ();
     }

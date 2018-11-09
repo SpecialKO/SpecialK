@@ -526,7 +526,8 @@ extern float SK_ImGui_PulseNav_Strength;
 #endif
 
       static LARGE_INTEGER
-        liLastPoll [2] = { };
+        liLastPoll [2] = { 0LL,
+                           0LL };
       static UINT
         uiLastErr  [2] = { JOYERR_NOERROR,
                            JOYERR_NOERROR };
@@ -534,11 +535,11 @@ extern float SK_ImGui_PulseNav_Strength;
       auto GamepadDebug = [&](UINT idx) ->
       void
       {
-        // Only 2 joysticks (possibly fewer if the driver's b0rked)
-        if ( idx >= joyGetNumDevs () )
-        {
-          return;
-        }
+        //// Only 2 joysticks (possibly fewer if the driver's b0rked)
+        //if ( idx >= joyGetNumDevs () )
+        //{
+        //  return;
+        //}
 
         // Throttle polling on errors => once every 750 ms
         //
@@ -579,7 +580,10 @@ extern float SK_ImGui_PulseNav_Strength;
 
         std::stringstream buttons;
 
-        for ( unsigned int i = 0, j = 0; i < joy_caps.wMaxButtons; i++ )
+        for ( unsigned int i = 0,
+                           j = 0                                    ;
+                           i < std::min (16U, joy_caps.wMaxButtons) ;
+                         ++i )
         {
           if (joy_ex.dwButtons & (1 << i))
           {
@@ -596,17 +600,17 @@ extern float SK_ImGui_PulseNav_Strength;
         ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.45f, 0.45f, 0.80f));
         ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.53f, 0.53f, 0.80f));
 
-        bool expanded = ImGui::CollapsingHeader (SK_FormatString ("%ws###JOYSTICK_DEBUG_%lu", joy_caps.szPname, idx).c_str ());
+        bool expanded = ImGui::CollapsingHeader (SK_FormatString ("%ws##JOYSTICK_DEBUG", joy_caps.szPname).c_str ());
 
         ImGui::Combo    ("Gamepad Type", &config.input.gamepad.predefined_layout, "PlayStation 4\0Steam\0\0", 2);
-
+        
         if (ImGui::IsItemHovered ())
         {
           ImGui::SetTooltip ("This setting is only used if XInput or DirectInput are not working.");
         }
-
+        
         ImGui::SameLine ();
-
+        
         ImGui::Checkbox    ("Use DirectInput instead of XInput", &config.input.gamepad.native_ps4);
 
         if (expanded)
@@ -652,7 +656,9 @@ extern float SK_ImGui_PulseNav_Strength;
                                            static_cast <float> (joy_caps.wVmax),
                                            static_cast <float> (joy_ex.dwVpos) } };
 
-          for (UINT axis = 0; axis < joy_caps.wMaxAxes; axis++)
+          for ( UINT axis = 0                                ;
+                     axis < std::min (6U, joy_caps.wMaxAxes) ;
+                   ++axis )
           {
             auto  const range  = static_cast <float>  (axes [axis].max - axes [axis].min);
             float const center = static_cast <float> ((axes [axis].max + axes [axis].min)) / 2.0f;
@@ -678,8 +684,26 @@ extern float SK_ImGui_PulseNav_Strength;
 
       ImGui::Separator       ( );
 
-      GamepadDebug (JOYSTICKID1);
-      GamepadDebug (JOYSTICKID2);
+      static bool winmm =
+        ((uintptr_t)GetModuleHandleW (L"Winmm.dll") > 0);
+
+      if (winmm)
+      {
+        static DWORD dwLastCheck = timeGetTime   ();
+        static UINT  dwLastCount = joyGetNumDevs ();
+
+        const DWORD _CHECK_INTERVAL = 500UL;
+
+        UINT count =
+          ( dwLastCheck < (current_tick - _CHECK_INTERVAL) ) ?
+                       joyGetNumDevs () : dwLastCount;
+
+        if (dwLastCheck < (current_tick - _CHECK_INTERVAL))
+            dwLastCount = count;
+
+        if (  count > 0) { GamepadDebug (JOYSTICKID1);
+          if (count > 1)   GamepadDebug (JOYSTICKID2); }
+      }
 
       ImGui::TreePop         ( );
     }
