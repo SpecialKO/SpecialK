@@ -1622,12 +1622,8 @@ SK_SteamAPIContext::OnVarChange (SK_IVariable* var, void* val)
     return true;
   }
 
-  if (! known)
-  {
-    dll_log.Log ( L"[SteammAPI] UNKNOWN Variable Changed (%p --> %p)",
-                 var,
-                 val );
-  }
+  dll_log.Log ( L"[SteammAPI] UNKNOWN Variable Changed (%p --> %p)",
+                var, val );
 
   return false;
 }
@@ -5235,10 +5231,14 @@ SK_SteamUser_BLoggedOn (void)
 //  >> TBFix, for example, will throw up a HUGE positive LOD bias causing blurry textures if
 //       the framerate limit restriction is bypassed with a simple hex edit.
 //
-//  Please refrain from simply binary-editing one of my distributions, if you have the skill to
-//    circumvent DRM it should be obvious that I intend every one of my measures to be plainly
-//      visible and should take you thirty-seconds to figure out and remove the correct way.
+//  Please refrain from simply binary-editing (because it violates license terms) my
+//    distributions, if you have the skill to circumvent DRM it should be obvious that I
+//      intend every one of my measures to be plainly visible and should take you
+//        thirty-seconds to figure out and remove the correct way.
 //
+//     You have various other responsibilities if you want to distribute this for cracked
+//       software such as replacing any hard-coded memory addresses, etc. and I will not
+//         offer any assistance, so do not come to me for support in any form.
 //
 //
 //  "Proper" (lol) Redistribution for Illegal Purposes (which I do not condone) follows:
@@ -5270,12 +5270,6 @@ SK_SteamUser_BLoggedOn (void)
 //    >> I remove fixes for stuff that the publisher has already fixed, you get nothing from
 //         following my update schedule when your executable has its own set of problems that
 //           are not addressed by new versions of the software.
-//
-//
-//  The feature that deletes files is for the benefit of people who "upgrade" from pirated to
-//  legit and swear up and down they are continuing to be detected as a pirate. Don't click that
-//  button unless you are a legitimate user who upgraded and has remnant illegal files lingering.
-//
 //
 //-----------------------------------------------------------------------------------------------
 //    Remove my name from any forked work, and stop making your community look like a bunch of

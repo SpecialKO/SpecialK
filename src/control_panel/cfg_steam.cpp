@@ -719,53 +719,14 @@ SK::ControlPanel::Steam::Draw (void)
 
       ImGui::PopStyleColor (3);
 
-      bool valid = (! config.steam.silent);
-
-      valid = valid && (! SK_Steam_PiratesAhoy ());
+      bool valid =
+        (! config.steam.silent) &&
+        (! SK_Steam_PiratesAhoy ());
       
       if (valid)
-      {
-        bool publisher_is_stupid = false;
-      
-        if (config.steam.spoof_BLoggedOn)
-        {
-          const auto status =
-            static_cast <int> (SK_SteamUser_BLoggedOn ());
-      
-          if (status & static_cast <int> (SK_SteamUser_LoggedOn_e::Spoofing))
-          {
-            publisher_is_stupid = true;
-      
-            ImGui::PushStyleColor (ImGuiCol_TextDisabled,  ImColor::HSV (0.074f, 1.f, 1.f));
-            ImGui::MenuItem       ("This game's publisher may consider you a pirate! :(", "", nullptr, false);
-            ImGui::PopStyleColor  ();
-          }
-        }
-      
-        if (! publisher_is_stupid)
-          ImGui::MenuItem ("I am not a pirate!", "", &valid, false);
-      }
-      
+        ImGui::MenuItem ("SteamAPI Valid",   "", &valid, false);
       else
-      {
-        ImGui::MenuItem (u8"I am probably a pirate moron™", "", &valid, false);
-        {
-          // Delete the CPY config, and push user back onto legitimate install,
-          //   to prevent repeated pirate detection.
-          //
-          //  If stupid user presses this button for any other reason, that is
-          //    their own problem. Crackers should make a better attempt to
-          //      randomize their easily detectable hackjobs.
-          if (GetFileAttributes (L"CPY.ini") != INVALID_FILE_ATTRIBUTES)
-          {
-            DeleteFileW (L"CPY.ini");
-            
-            MoveFileW   (L"steam_api64.dll",   L"CPY.ini");
-            MoveFileW   (L"steamclient64.dll", L"steam_api64.dll");
-            MoveFileW   (L"CPY.ini",           L"steamclient64.dll");
-          }
-        }
-      }
+        ImGui::MenuItem ("SteamAPI Invalid", "", &valid, false);
 
       ImGui::PopStyleColor (3);
       ImGui::TreePop       ( );
