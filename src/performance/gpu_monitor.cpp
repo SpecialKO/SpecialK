@@ -560,8 +560,8 @@ SK_PollGPU (void)
 
   if (! InterlockedCompareExchange (&init, TRUE, FALSE))
   {
-    hShutdownEvent = CreateEvent    (nullptr, FALSE, FALSE, nullptr);
-    hPollEvent     = CreateEvent    (nullptr, FALSE, TRUE,  nullptr);
+    hShutdownEvent = SK_CreateEvent    (nullptr, FALSE, FALSE, nullptr);
+    hPollEvent     = SK_CreateEvent    (nullptr, FALSE, TRUE,  nullptr);
     hPollThread    = SK_Thread_CreateEx ( SK_GPUPollingThread );
   }
 

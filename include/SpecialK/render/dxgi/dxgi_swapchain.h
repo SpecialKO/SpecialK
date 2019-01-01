@@ -19147,19 +19147,19 @@ struct IWrapDXGISwapChain : IDXGISwapChain4
     CComQIPtr <IDXGISwapChain4> pSwap4 (this);
   }
 
-  IWrapDXGISwapChain ( ID3D12Device   *pDevice12,
-                       IDXGISwapChain *pSwapChain ) :
-    pReal  (pSwapChain),
-    pDev12 ( pDevice12),
-    ver_   (    0     )
-  {
-                                  pSwapChain->AddRef  (),
-    InterlockedExchange  (&refs_, pSwapChain->Release ());
-    InterlockedIncrement (&SK_DXGI_LiveWrappedSwapChains);
-
-    //// Immediately try to upgrade
-    CComQIPtr <IDXGISwapChain4> pSwap4 (this);
-  }
+  //IWrapDXGISwapChain ( ID3D12Device   *pDevice12,
+  //                     IDXGISwapChain *pSwapChain ) :
+  //  pReal  (pSwapChain),
+  //  pDev12 ( pDevice12),
+  //  ver_   (    0     )
+  //{
+  //                                pSwapChain->AddRef  (),
+  //  InterlockedExchange  (&refs_, pSwapChain->Release ());
+  //  InterlockedIncrement (&SK_DXGI_LiveWrappedSwapChains);
+  //
+  //  //// Immediately try to upgrade
+  //  CComQIPtr <IDXGISwapChain4> pSwap4 (this);
+  //}
 
 
 
@@ -19243,7 +19243,7 @@ struct IWrapDXGISwapChain : IDXGISwapChain4
   volatile LONG   refs_ = 1;
   IDXGISwapChain *pReal;
   ID3D11Device   *pDev;
-  ID3D12Device   *pDev12;
+//ID3D12Device   *pDev12;
   unsigned int    ver_;
 };
 

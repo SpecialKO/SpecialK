@@ -116,7 +116,7 @@ __inline
 SK_Thread_HybridSpinlock*
 SK_DLL_LoaderLockGuard (void)
 {
-  static SK_Thread_HybridSpinlock  static_loader (512);
+  static SK_Thread_HybridSpinlock  static_loader (15);
   static SK_Thread_HybridSpinlock* loader_lock;
 
   static volatile LONG               __init  =  0;
@@ -267,9 +267,9 @@ class skModuleRegistry
 public:
   skModuleRegistry (void)
   {
-    _known_module_bases.reserve (64);
-    _known_module_names.reserve (64);
-    _loaded_libraries.reserve   (64);
+    _known_module_bases.reserve (96);
+    _known_module_names.reserve (96);
+    _loaded_libraries.reserve   (96);
   }
 
   static constexpr HMODULE INVALID_MODULE = nullptr;
@@ -367,7 +367,7 @@ private:
       return INVALID_MODULE;
 
     const auto& it =
-      _known_module_names.find ( std::wstring (wszLibrary) );
+      _known_module_names.find ( wszLibrary );
 
     if ( it != _known_module_names.cend () )
     {
@@ -380,10 +380,6 @@ private:
 
   bool _RegisterLibrary (HMODULE hMod, const wchar_t *wszLibrary)
   {
-    std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (
-                    *SK_DLL_LoaderLockGuard ()
-    );
-
     MODULEINFO mod_info = { };
 
     //BOOL bHasValidInfo =
@@ -391,11 +387,18 @@ private:
         GetCurrentProcess (), hMod, &mod_info, sizeof MODULEINFO
       );
 
+    std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (
+      *SK_DLL_LoaderLockGuard ()
+    );
+
     //assert (bHasValidInfo); // WTF?
+
+    if (_loaded_libraries.count (hMod))
+      return false;
 
     return
       _loaded_libraries.emplace (hMod,
-        skWin32Module (hMod, mod_info, wszLibrary)
+                  skWin32Module (hMod, mod_info, wszLibrary)
       ).second;
   }
 

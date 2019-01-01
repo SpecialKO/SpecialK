@@ -105,7 +105,7 @@ sk::ParameterInt::set_value_str (const wchar_t *str)
 }
 
 void
-sk::ParameterInt::set_value_str (std::wstring& str)
+sk::ParameterInt::set_value_str (const std::wstring& str)
 {
   set_value_str (str.c_str ());
 }
@@ -126,7 +126,7 @@ sk::ParameterInt::store_str (const wchar_t *str)
 }
 
 void
-sk::ParameterInt::store_str (std::wstring& str)
+sk::ParameterInt::store_str (const std::wstring& str)
 {
   store_str (str.c_str ());
 }
@@ -174,7 +174,7 @@ sk::ParameterInt64::set_value_str (const wchar_t* str)
 }
 
 void
-sk::ParameterInt64::set_value_str (std::wstring& str)
+sk::ParameterInt64::set_value_str (const std::wstring& str)
 {
   set_value_str (str.c_str ());
 }
@@ -195,7 +195,7 @@ sk::ParameterInt64::store_str (const wchar_t *str)
 }
 
 void
-sk::ParameterInt64::store_str (std::wstring& str)
+sk::ParameterInt64::store_str (const std::wstring& str)
 {
   store_str (str.c_str ());
 }
@@ -314,7 +314,7 @@ sk::ParameterBool::set_value_str (const wchar_t *str)
 }
 
 void
-sk::ParameterBool::set_value_str (std::wstring& str)
+sk::ParameterBool::set_value_str (const std::wstring& str)
 {
   size_t len = str.length ();
 
@@ -384,7 +384,7 @@ sk::ParameterBool::store_str (const wchar_t *str)
 }
 
 void
-sk::ParameterBool::store_str (std::wstring& str)
+sk::ParameterBool::store_str (const std::wstring& str)
 {
   store_str (str.c_str ());
 }
@@ -437,7 +437,7 @@ sk::ParameterFloat::set_value_str (const wchar_t *str)
 }
 
 void
-sk::ParameterFloat::set_value_str (std::wstring& str)
+sk::ParameterFloat::set_value_str (const std::wstring& str)
 {
   set_value_str (str.c_str ());
 }
@@ -458,7 +458,7 @@ sk::ParameterFloat::store_str (const wchar_t *str)
 }
 
 void
-sk::ParameterFloat::store_str (std::wstring& str)
+sk::ParameterFloat::store_str (const std::wstring& str)
 {
   store_str (str.c_str ());
 }
@@ -514,7 +514,7 @@ sk::ParameterStringW::set_value_str (const wchar_t *str)
 }
 
 void
-sk::ParameterStringW::set_value_str (std::wstring& str)
+sk::ParameterStringW::set_value_str (const std::wstring& str)
 {
   value = str;
 }
@@ -534,7 +534,7 @@ sk::ParameterStringW::store_str (const wchar_t *str)
 }
 
 void
-sk::ParameterStringW::store_str (std::wstring& str)
+sk::ParameterStringW::store_str (const std::wstring& str)
 {
   store_str (str.c_str ());
 }
@@ -587,7 +587,7 @@ sk::ParameterVec2f::set_value_str (const wchar_t *str)
 }
 
 void
-sk::ParameterVec2f::set_value_str (std::wstring& str)
+sk::ParameterVec2f::set_value_str (const std::wstring& str)
 {
   set_value_str (str.c_str ());
 }
@@ -608,7 +608,7 @@ sk::ParameterVec2f::store_str (const wchar_t *str)
 }
 
 void
-sk::ParameterVec2f::store_str (std::wstring& str)
+sk::ParameterVec2f::store_str (const std::wstring& str)
 {
   store_str (str.c_str ());
 }

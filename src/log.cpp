@@ -167,13 +167,13 @@ SK_FlushLog (iSK_Logger* pLog)
   if ( INVALID_HANDLE_VALUE ==
          InterlockedCompareExchangePointer (
            &hFlushThread,
-             reinterpret_cast <PVOID> (-1),
+             reinterpret_cast <PVOID> (-2),
                INVALID_HANDLE_VALUE
          )
      )
   {
     hFlushReq =
-      CreateEvent ( nullptr, TRUE, TRUE,
+      SK_CreateEvent ( nullptr, TRUE, TRUE,
         SK_FormatStringW ( LR"(Local\SK_LogFlush_pid%x)",
                       GetCurrentProcessId () ).c_str ()
                   );

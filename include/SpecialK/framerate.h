@@ -295,7 +295,7 @@ SK_QueryPerformanceCounter (_Out_ LARGE_INTEGER *lpPerformanceCount);
 using  Sleep_pfn                   = void (WINAPI *)(      DWORD          dwMilliseconds);
 extern Sleep_pfn Sleep_Original;
 
-extern LARGE_INTEGER& SK_GetPerfFreq (void);
+extern LARGE_INTEGER  SK_GetPerfFreq (void);
 extern LARGE_INTEGER  SK_QueryPerf   (void);
 
 static auto SK_CurrentPerf =

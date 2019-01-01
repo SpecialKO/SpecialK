@@ -756,19 +756,19 @@ SK_RenderBackend_V2::releaseOwnedResources (void)
     d3d11.deferred_ctx  = nullptr;
     d3d11.immediate_ctx = nullptr;
 
-    auto& rb =
+    static auto& rb =
       SK_GetCurrentRenderBackend ();
 
-    extern ID3D12DescriptorHeap* g_pd3dSrvDescHeap;
-
-    if (g_pd3dSrvDescHeap != nullptr)
-    {
-      extern void ImGui_ImplDX12_Shutdown (void);
-                  ImGui_ImplDX12_Shutdown (    );
-
-      g_pd3dSrvDescHeap->Release ();
-      g_pd3dSrvDescHeap = nullptr;
-    }
+    ////extern ID3D12DescriptorHeap* g_pd3dSrvDescHeap;
+    ////
+    ////if (g_pd3dSrvDescHeap != nullptr)
+    ////{
+    ////  extern void ImGui_ImplDX12_Shutdown (void);
+    ////              ImGui_ImplDX12_Shutdown (    );
+    ////
+    ////  g_pd3dSrvDescHeap->Release ();
+    ////  g_pd3dSrvDescHeap = nullptr;
+    ////}
 
     if (rb.api != SK_RenderAPI::D3D11On12)
     {

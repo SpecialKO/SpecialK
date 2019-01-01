@@ -9311,7 +9311,7 @@ ImGui_ImplDX12_CreateFontsTexture (void)
     IM_ASSERT (SUCCEEDED (hr));
 
     HANDLE hEvent =
-      CreateEvent (0, 0, 0, 0);
+      SK_CreateEvent (0, 0, 0, 0);
 
     IM_ASSERT (hEvent != nullptr);
 

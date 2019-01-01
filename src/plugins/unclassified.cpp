@@ -194,13 +194,77 @@ SleepConditionVariableCS_Detour (
 }
 #endif
 
+#include <SpecialK/hooks.h>
+#include <SpecialK/tls.h>
+#include <SpecialK/log.h>
+
+typedef DWORD (WINAPI *GetEnvironmentVariableA_pfn)(
+  LPCSTR lpName,
+  LPCSTR lpBuffer,
+  DWORD  nSize
+);
+
+GetEnvironmentVariableA_pfn
+GetEnvironmentVariableA_Original = nullptr;
+
+DWORD
+WINAPI
+GetEnvironmentVariableA_Detour ( LPCSTR lpName,
+                                 LPSTR  lpBuffer,
+                                 DWORD  nSize )
+{
+  if (_stricmp (lpName, "USERPROFILE") == 0)
+  {
+    char     szDocs [MAX_PATH + 1] = { };
+    strcpy ( szDocs,
+               SK_WideCharToUTF8 (SK_GetDocumentsDir ()).c_str () );
+
+    PathRemoveFileSpecA (szDocs);
+
+    if (lpBuffer != nullptr)
+    {
+      strncpy (lpBuffer, szDocs, nSize);
+
+      //dll_log.Log ( L"GetEnvornmentVariableA (%hs) = %hs",
+      //                lpName, lpBuffer );
+    }
+
+    return
+      (DWORD)strlen (szDocs);
+  }
+
+  return
+    GetEnvironmentVariableA_Original (lpName, lpBuffer, nSize);
+}
+
+static
+std::unordered_set <uint32_t>
+  __SK_FFXV_UI_Pix_Shaders =
+  {
+    0x224cc7df, 0x7182460b,
+    0xe9716459, 0xe7015770,
+    0xf15a90ab
+  };
+
+void
+SK_FFXV_InitPlugin (void)
+{
+  for (                 auto& it : __SK_FFXV_UI_Pix_Shaders)
+    SK_D3D11_DeclHUDShader   (it,        ID3D11PixelShader);
+
+  SK_CreateDLLHook2 (      L"kernel32",
+                            "GetEnvironmentVariableA",
+                             GetEnvironmentVariableA_Detour,
+    static_cast_p2p <void> (&GetEnvironmentVariableA_Original) );
+}
 
 void
 SK_FFXV_Thread::setup (HANDLE __hThread)
 {
   HANDLE hThreadCopy;
 
-  if (! DuplicateHandle ( GetCurrentProcess (), __hThread, GetCurrentProcess (), &hThreadCopy, THREAD_ALL_ACCESS, FALSE, 0 ))
+  if (! DuplicateHandle ( GetCurrentProcess (), __hThread,
+                          GetCurrentProcess (), &hThreadCopy, THREAD_ALL_ACCESS, FALSE, 0 ))
     return;
 
   hThread = hThreadCopy;

@@ -59,8 +59,9 @@
 SK_TextOverlayManager*
 SK_TextOverlayManager::getInstance (void)
 {
-  return ( pSelf == nullptr ? (pSelf = new SK_TextOverlayManager ()) :
-                               pSelf );
+  return
+    ( pSelf == nullptr ? (pSelf = new SK_TextOverlayManager ()) :
+                          pSelf );
 }
 
 SK_TextOverlayManager* SK_TextOverlayManager::pSelf = nullptr;
@@ -131,17 +132,20 @@ SK_TextOverlayManager::SK_TextOverlayManager (void)
 SK_TextOverlay*
 SK_TextOverlayManager::createTextOverlay (const char *szAppName)
 {
-  SK_AutoCriticalSection auto_crit (&cs_);
-
   std::string app_name (szAppName);
 
-  if (overlays_.count (app_name))
   {
-    SK_TextOverlay* overlay =
-      overlays_ [app_name];
+    SK_AutoCriticalSection auto_crit (&cs_);
 
-    return overlay;
+    if (overlays_.count (app_name))
+    {
+      SK_TextOverlay* overlay =
+        overlays_ [app_name];
+
+      return overlay;
+    }
   }
+
 
   auto* overlay =
     new SK_TextOverlay (szAppName);
@@ -149,6 +153,9 @@ SK_TextOverlayManager::createTextOverlay (const char *szAppName)
   overlay->setPos   ( static_cast <float> (config.osd.pos_x),
                         static_cast <float> (config.osd.pos_y) );
   overlay->setScale ( config.osd.scale );
+
+
+  SK_AutoCriticalSection auto_crit2 (&cs_);
 
   overlays_ [app_name] = overlay;
 
@@ -158,9 +165,9 @@ SK_TextOverlayManager::createTextOverlay (const char *szAppName)
 bool
 SK_TextOverlayManager::removeTextOverlay (const char* szAppName)
 {
-  SK_AutoCriticalSection auto_crit (&cs_);
-
   std::string app_name (szAppName);
+
+  SK_AutoCriticalSection auto_crit (&cs_);
 
   if (overlays_.count (app_name))
   {
@@ -175,13 +182,14 @@ SK_TextOverlayManager::removeTextOverlay (const char* szAppName)
 SK_TextOverlay*
 SK_TextOverlayManager::getTextOverlay (const char* szAppName)
 {
-  SK_AutoCriticalSection auto_crit (&cs_);
-
   std::string app_name (szAppName);
+
+  SK_AutoCriticalSection auto_crit (&cs_);
 
   if (overlays_.count (app_name))
   {
-    SK_TextOverlay* overlay = overlays_ [app_name];
+    SK_TextOverlay* overlay =
+      overlays_ [app_name];
 
     return overlay;
   }
@@ -210,7 +218,8 @@ SK_TextOverlay::SK_TextOverlay (const char* szAppName)
 
 SK_TextOverlay::~SK_TextOverlay (void)
 {
-  SK_TextOverlayManager::getInstance ()->removeTextOverlay (data_.name);
+  SK_TextOverlayManager::getInstance ()->
+                   removeTextOverlay (data_.name);
 
   if (data_.text != nullptr)
   {
@@ -1419,14 +1428,16 @@ SK_UpdateOSD (LPCSTR lpText, LPVOID pMapAddr, LPCSTR lpAppName)
     lpAppName = "Special K";
 
   SK_TextOverlay* pOverlay =
-    SK_TextOverlayManager::getInstance ()->getTextOverlay (lpAppName);
+    SK_TextOverlayManager::getInstance    ()->
+                           getTextOverlay (lpAppName);
 
 #define IMPLICIT_CREATION
 #ifdef IMPLICIT_CREATION
   if (pOverlay == nullptr)
   {
     pOverlay =
-      SK_TextOverlayManager::getInstance ()->createTextOverlay (lpAppName);
+      SK_TextOverlayManager::getInstance       ()->
+                             createTextOverlay (lpAppName);
   }
 #endif
 
@@ -1460,7 +1471,8 @@ SK_SetOSDPos (int x, int y, LPCSTR lpAppName)
     return;
 
   SK_TextOverlay* overlay =
-    SK_TextOverlayManager::getInstance ()->getTextOverlay (lpAppName);
+    SK_TextOverlayManager::getInstance ()->
+                           getTextOverlay (lpAppName);
 
   if (overlay != nullptr)
   {
@@ -1742,6 +1754,8 @@ SK_TextOverlay::update (const char* szText)
     SK_TLS *pTLS =
       SK_TLS_Bottom ();
 
+    SK_ReleaseAssert (pTLS != nullptr);
+
     char* text =
       pTLS ? pTLS->osd.allocText (32768) :
              nullptr;
@@ -1751,9 +1765,12 @@ SK_TextOverlay::update (const char* szText)
       static bool reported = false;
 
       if (! reported)
-        SK_ReleaseAssert (text != nullptr);
+      {
+        SK_ReleaseAssert ( "Something strange in the neighborhood" &&
+                             text != nullptr );
 
-      SK_RunOnce (reported = true);
+        SK_RunOnce (reported = true);
+      }
 
       return 0.0f;
     }
@@ -1805,7 +1822,9 @@ SK_TextOverlay::update (const char* szText)
         line = strtok_ex (text, token);
     }
 
-    CEGUI::System::getDllSingleton ().getDefaultGUIContext ().removeGeometryBuffer (CEGUI::RQ_UNDERLAY, *geometry_);
+    CEGUI::System::getDllSingleton ().
+              getDefaultGUIContext ().
+              removeGeometryBuffer (CEGUI::RQ_UNDERLAY, *geometry_);
     geometry_->reset ();
 
     CEGUI::ColourRect foreground (
@@ -1875,14 +1894,18 @@ SK_TextOverlay::update (const char* szText)
         line = nullptr;
     }
 
-    CEGUI::System::getDllSingleton ().getDefaultGUIContext ().addGeometryBuffer    (CEGUI::RQ_UNDERLAY, *geometry_);
+    CEGUI::System::getDllSingleton ().
+              getDefaultGUIContext ().
+              addGeometryBuffer    (CEGUI::RQ_UNDERLAY, *geometry_);
 
-    data_.extent = baseline;
-    return data_.extent;
+      data_.extent = baseline;
+    return
+      data_.extent;
   }
 
-  data_.extent = 0.0f;
-  return data_.extent;
+    data_.extent = 0.0f;
+  return
+    data_.extent;
 }
 
 float
@@ -2129,13 +2152,22 @@ SK_TextOverlayManager::OnVarChange (SK_IVariable* var, void* val)
   if (var == pos_.x || var == pos_.y || var == scale_)
   {
     if (var == pos_.x)
-      config.osd.pos_x = *static_cast <signed int *> (val);
+    {
+      config.osd.pos_x =
+        *static_cast <signed int *> (val);
+    }
 
     else if (var == pos_.y)
-      config.osd.pos_y = *static_cast <signed int *> (val);
+    {
+      config.osd.pos_y =
+        *static_cast <signed int *> (val);
+    }
 
     else if (var == scale_)
-      config.osd.scale = *static_cast <float *> (val);
+    {
+      config.osd.scale =
+        *static_cast <float *> (val);
+    }
 
 
     SK_AutoCriticalSection auto_crit (&cs_);
@@ -2170,7 +2202,8 @@ SK_TextOverlayManager::OnVarChange (SK_IVariable* var, void* val)
        var == disk_.show ||
        var == pagefile_.show )
   {
-    *static_cast <bool *> (var->getValuePointer ()) = *static_cast <bool *> (val);
+    *static_cast <bool *> (var->getValuePointer ()) =
+    *static_cast <bool *> (val);
 
     if (*static_cast <bool *> (val))
       SK_StartPerfMonThreads ( );
@@ -2180,9 +2213,12 @@ SK_TextOverlayManager::OnVarChange (SK_IVariable* var, void* val)
 
   else if (var == sli_.show)
   {
-    if (nvapi_init && sk::NVAPI::nv_hardware && sk::NVAPI::CountSLIGPUs () > 1)
+    if (            nvapi_init  &&
+         sk::NVAPI::nv_hardware &&
+         sk::NVAPI::CountSLIGPUs () > 1 )
     {
-      *static_cast <bool *> (var->getValuePointer ()) = *static_cast <bool *> (val);
+      *static_cast <bool *> (var->getValuePointer ()) =
+      *static_cast <bool *> (val);
 
       return true;
     }
@@ -2194,14 +2230,16 @@ SK_TextOverlayManager::OnVarChange (SK_IVariable* var, void* val)
             var == gpu_.show ||
             var == fps_.show )
   {
-    *static_cast <bool *> (var->getValuePointer ()) = *static_cast <bool *> (val);
+    *static_cast <bool *> (var->getValuePointer ()) =
+    *static_cast <bool *> (val);
 
     return true;
   }
 
   else if (var == osd_.show)
   {
-    *static_cast <bool *> (var->getValuePointer ()) = *static_cast <bool *> (val);
+    *static_cast <bool *> (var->getValuePointer ()) =
+    *static_cast <bool *> (val);
 
     if (*static_cast <bool *> (val))
       SK_InstallOSD ();

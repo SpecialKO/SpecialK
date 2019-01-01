@@ -76,6 +76,9 @@ ControllerIndex (ControllerHandle_t handle)
 bool
 ControllerPresent (ControllerIndex_t index)
 {
+  if (steam_controllers.empty ())
+    return false;
+
   return (steam_controllers.count (index) && steam_input [index].connected);
 }
 

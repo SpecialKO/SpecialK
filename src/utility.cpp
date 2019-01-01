@@ -71,6 +71,32 @@ SK_UTF8ToWideChar (const std::string& in)
   return out;
 }
 
+bool
+SK_COM_TestInit (void)
+{
+  CHandle  hToken (INVALID_HANDLE_VALUE);
+  wchar_t* str    = nullptr;
+
+  if (! OpenProcessToken (
+          SK_GetCurrentProcess (), TOKEN_QUERY | TOKEN_IMPERSONATE |
+                                   TOKEN_READ, &hToken.m_h )
+     )
+  {
+    return false;
+  }
+
+  HRESULT hr =
+    SHGetKnownFolderPath (FOLDERID_Documents, 0, hToken, &str);
+
+  if (SUCCEEDED (hr))
+  {
+    CoTaskMemFree (str);
+
+    return true;
+  }
+
+  return false;
+}
 std::wstring&
 SK_GetDocumentsDir (void)
 {
@@ -102,6 +128,8 @@ SK_GetDocumentsDir (void)
       InterlockedIncrement (&__init);
       return dir;
     }
+
+    SK_AutoCOMInit need_com;
 
     HRESULT hr =
       SHGetKnownFolderPath (FOLDERID_Documents, 0, hToken, &str);
@@ -148,6 +176,8 @@ SK_GetRoamingDir (void)
     return dir;
   }
 
+  SK_AutoCOMInit need_com;
+
   HRESULT hr =
     SHGetKnownFolderPath (FOLDERID_RoamingAppData, 0, hToken, &str);
 
@@ -191,6 +221,8 @@ SK_GetFontsDir (void)
 
       return dir;
     }
+
+    SK_AutoCOMInit need_com;
 
     HRESULT hr =
       SHGetKnownFolderPath (FOLDERID_Fonts, 0, hToken, &str);
@@ -339,7 +371,6 @@ SK_CreateDirectories ( const wchar_t* wszPath )
   return
     SK_CreateDirectoriesEx (wszPath, false);// true);
 }
-
 std::wstring
 SK_EvalEnvironmentVars (const wchar_t* wszEvaluateMe)
 {
@@ -1503,8 +1534,8 @@ SK_IsDLLSpecialK (const wchar_t* wszName)
   if (dwSize < 128)
     return false;
 
-  (++dwSize) *=
-    sizeof (wchar_t);
+  dwSize =
+ (dwSize + 1) * sizeof (wchar_t);
 
   SK_TLS *pTLS =
     ReadAcquire (&__SK_DLL_Attached) ?
@@ -3221,7 +3252,7 @@ SK_DeferCommands (const char** szCommands, int count)
 {
   static          concurrency::concurrent_queue <std::string> cmds;
   static          HANDLE                                      hNewCmds =
-    CreateEvent (nullptr, FALSE, FALSE, L"DeferredCmdEvent");
+    SK_CreateEvent (nullptr, FALSE, FALSE, L"DeferredCmdEvent");
   static volatile HANDLE                                      hCommandThread = nullptr;
 
   for (int i = 0; i < count; i++)

@@ -745,131 +745,6 @@ NtUserRegisterRawInputDevices_Detour (
                   ( L"RawInput is being tracked on hWnd=%x - { (%s), '%s' }",
                       pDevices [i].hwndTarget, wszWindowClass, wszWindowTitle ),
                         __SK_SUBSYSTEM__ );
-
-        //if (pDevices [i].hwndTarget)
-        //{
-        //  dll_log.Log (L"Need RawInput Buttplug on HWND: %x", pDevices [i].hwndTarget);
-        //
-        //  static volatile HANDLE hFixTheDamnRawInputThread = INVALID_HANDLE_VALUE;
-        //
-        //  if ( InterlockedCompareExchangePointer (&hFixTheDamnRawInputThread, 0, INVALID_HANDLE_VALUE) ==
-        //         INVALID_HANDLE_VALUE )
-        //  {
-        //    hFixTheDamnRawInputThread =
-        //      SK_Thread_CreateEx ([](LPVOID hWndToHijack) -> DWORD
-        //    {
-        //      SetCurrentThreadDescription (L"[SK] RawInput Butt Plug");
-        //      SetThreadPriority           (SK_GetCurrentThread (), THREAD_PRIORITY_NORMAL);
-        //
-        //      DWORD dwPid          = 0;
-        //      DWORD dwThreadId     =
-        //        GetCurrentThreadId  ();
-        //      DWORD dwOrigThreadId =
-        //        GetWindowThreadProcessId ((HWND)hWndToHijack, &dwPid);
-        //
-        //      IsGUIThread       (TRUE);
-        //      AttachThreadInput (dwThreadId, dwOrigThreadId, true);
-        //      SetActiveWindow   ((HWND) hWndToHijack);
-        //      SetFocus          ((HWND) hWndToHijack);
-        //
-        //      MSG msg = { };
-        //      msg.message = WM_INPUT;
-        //
-        //      using NtUserPeekMessage_pfn =
-        //        BOOL (WINAPI *)(
-        //          _Out_    LPMSG lpMsg,
-        //          _In_opt_ HWND  hWnd,
-        //          _In_     UINT  wMsgFilterMin,
-        //          _In_     UINT  wMsgFilterMax,
-        //          _In_     UINT  wRemoveMsg
-        //        );
-        //
-        //      extern NtUserPeekMessage_pfn PeekMessageA_Original;
-        //      extern NtUserPeekMessage_pfn PeekMessageW_Original;
-        //
-        //      auto PeekFunc =
-        //          IsWindowUnicode ((HWND) hWndToHijack) ? PeekMessageW :
-        //                                                  PeekMessageA;
-        //
-        //      do
-        //      {
-        //        msg = { };
-        //
-        //        if (PeekFunc (&msg, 0, WM_INPUT, WM_INPUT, PM_REMOVE))
-        //        {
-        //          dll_log.Log (L"Test?");
-        //
-        //          bool mouse    = false,
-        //               keyboard = false,
-        //               gamepad  = false;
-        //
-        //          UINT
-        //            SK_Input_ClassifyRawInput (HRAWINPUT lParam, bool& mouse, bool& keyboard, bool& gamepad);
-        //
-        //          UINT dwSize =
-        //            SK_Input_ClassifyRawInput ( (HRAWINPUT)msg.lParam,
-        //                                          mouse,
-        //                                            keyboard,
-        //                                              gamepad );
-        //
-        //          if (dwSize > 0)
-        //          {
-        //            dll_log.Log (L" >> Pass");
-        //            //if ((mouse    && SK_ImGui_WantMouseCapture    ()) ||
-        //            //    (keyboard && SK_ImGui_WantKeyboardCapture ()) ||
-        //            //    (gamepad  && SK_ImGui_WantGamepadCapture  ()))
-        //            {
-        //              UINT
-        //                WINAPI
-        //                SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
-        //                                           _In_      UINT      uiCommand,
-        //                                           _Out_opt_ LPVOID    pData,
-        //                                           _Inout_   PUINT     pcbSize,
-        //                                           _In_      UINT      cbSizeHeader,
-        //                                                     BOOL      self );
-        //
-        //              LPBYTE lpb =
-        //                SK_TLS_Bottom ()->raw_input.allocData (dwSize);
-        //
-        //              GetRawInputData_Original ((HRAWINPUT) msg.lParam, RID_INPUT, &lpb, &dwSize, sizeof (RAWINPUTHEADER));
-        //
-        //              //if ( SK_ImGui_ProcessRawInput ( (HRAWINPUT)msg.lParam, RID_INPUT,
-        //              //                                                  lpb, &dwSize,
-        //              //                              sizeof (RAWINPUTHEADER), TRUE) > 0 )
-        //              //{
-        //              //  ///wParam       =
-        //              //  ///  ( ( wParam & ~0xFF )
-        //              //  ///             |  RIM_INPUTSINK );
-        //
-        //                DefRawInputProc ((PRAWINPUT *)&lpb, 1, sizeof (RAWINPUTHEADER));
-        //
-        //                dll_log.Log ( L"Boom!!!  { Mouse: %x, Keyboard: %x, Gamepad: %x }",
-        //                             mouse, keyboard, gamepad );
-        //              //}
-        //            }
-        //          }
-        //        }
-        //      } while (msg.message != WM_QUIT);
-        //
-        //      SK_Thread_CloseSelf ();
-        //
-        //      return 0;
-        //    }, nullptr,
-        //                          (LPVOID)pDevices [i].hwndTarget );
-        //  }
-        //  //SK_GetCurrentRenderBackend ().windows.setFocus (pDevices [i].hwndTarget);
-        ////if ( InterlockedCompareExchangePointer ( (volatile LPVOID *)&game_window.hWnd,
-        ////                                           pDevices [i].hwndTarget,
-        ////                                             nullptr ) == nullptr )
-        ////{
-        ////  //extern HWND hWndRender;
-        ////  //hWndRender = game_window.hWnd;
-        ////  //SK_InstallWindowHook (game_window.hWnd);
-        ////  //
-        ////  //SK_LOG0 ( (L" # Installed window hook early due to RawInput registration."),
-        ////  //           __SK_SUBSYSTEM__ );
-        ////}
-        //}
       }
     }
 
@@ -1813,6 +1688,9 @@ SetCursorPos_Detour (_In_ int x, _In_ int y)
 {
   SK_LOG_FIRST_CALL
 
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
   // Game WANTED to change its position, so remember that.
   SK_ImGui_Cursor.orig_pos.x = x;
   SK_ImGui_Cursor.orig_pos.y = y;
@@ -1821,7 +1699,7 @@ SetCursorPos_Detour (_In_ int x, _In_ int y)
 
   // Don't let the game continue moving the cursor while
   //   Alt+Tabbed out
-  if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) &&
+  if ((! rb.fullscreen_exclusive) &&
       config.window.background_render && (! game_window.active))
     return TRUE;
 
@@ -1929,6 +1807,9 @@ NtUserGetAsyncKeyState_Detour (_In_ int vKey)
 {
   SK_LOG_FIRST_CALL
 
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
 #define SK_ConsumeVKey(vKey) { SK_GetAsyncKeyState(vKey); return 0; }
 
   // Block keyboard input to the game while the console is active
@@ -1936,7 +1817,7 @@ NtUserGetAsyncKeyState_Detour (_In_ int vKey)
     SK_ConsumeVKey (vKey);
 
   bool fullscreen =
-    ( SK_GetFramesDrawn () && SK_GetCurrentRenderBackend ().fullscreen_exclusive );
+    ( SK_GetFramesDrawn () && rb.fullscreen_exclusive );
 
   // Block keyboard input to the game while it's in the background
   if ((! fullscreen) &&
@@ -1976,6 +1857,9 @@ NtUserGetKeyState_Detour (_In_ int nVirtKey)
 {
   SK_LOG_FIRST_CALL
 
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
 #define SK_ConsumeVirtKey(nVirtKey) { SK_GetKeyState (nVirtKey); return 0; }
 
   // Block keyboard input to the game while the console is active
@@ -1983,7 +1867,7 @@ NtUserGetKeyState_Detour (_In_ int nVirtKey)
     SK_ConsumeVirtKey (nVirtKey);
 
   bool fullscreen =
-    ( SK_GetFramesDrawn () && SK_GetCurrentRenderBackend ().fullscreen_exclusive );
+    ( SK_GetFramesDrawn () && rb.fullscreen_exclusive );
 
   // Block keyboard input to the game while it's in the background
   if ((! fullscreen) &&
@@ -2256,16 +2140,21 @@ void SK_Input_Init (void);
 // Parts of the Win32 API that are safe to hook from DLL Main
 void SK_Input_PreInit (void)
 {
-#if 0
-  SK_CreateUser32Hook (      "NtUserGetRawInputData",
-                              NtUserGetRawInputData_Detour,
-     static_cast_p2p <void> (      &GetRawInputData_Original) );
-#else
-  SK_CreateDLLHook2 (       L"user32",
-                             "GetRawInputData",
-                        NtUserGetRawInputData_Detour,
-     static_cast_p2p <void> (&GetRawInputData_Original) );
-#endif
+  if (SK_GetProcAddress (L"Win32U", "NtUserGetRawInputData") != nullptr)
+  {
+    SK_CreateDLLHook2 (       L"Win32U",
+                        "NtUserGetRawInputData",
+                         NtUserGetRawInputData_Detour,
+      static_cast_p2p <void> (&GetRawInputData_Original) );
+  }
+
+  else
+  {
+    SK_CreateDLLHook2 (       L"user32",
+                               "GetRawInputData",
+                          NtUserGetRawInputData_Detour,
+       static_cast_p2p <void> (&GetRawInputData_Original) );
+  }
 
 #if 1
   SK_CreateUser32Hook (      "NtUserGetAsyncKeyState",

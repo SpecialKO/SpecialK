@@ -159,7 +159,7 @@ ImGui_ImplDX11_RenderDrawLists (ImDrawData* draw_data)
   ImGuiIO& io =
     ImGui::GetIO ();
 
-  SK_RenderBackend& rb =
+  static auto& rb =
     SK_GetCurrentRenderBackend ();
 
 
@@ -610,7 +610,7 @@ ImGui_ImplDX11_CreateFontsTexture (void)
     init = true;
   }
 
-  SK_RenderBackend& rb =
+  static auto& rb =
     SK_GetCurrentRenderBackend ();
 
   CComQIPtr <ID3D11Device> pDev (rb.device);
@@ -839,7 +839,7 @@ ImGui_ImplDX11_CreateDeviceObjects (void)
 
   ImGui_ImplDX11_InvalidateDeviceObjects ();
 
-  SK_RenderBackend& rb =
+  static auto& rb =
     SK_GetCurrentRenderBackend ();
 
   CComQIPtr <ID3D11Device> pDev (rb.device);
@@ -1589,8 +1589,11 @@ ImGui_ImplDX11_Init ( IDXGISwapChain* pSwapChain,
   io.RenderDrawListsFn = ImGui_ImplDX11_RenderDrawLists;
   io.ImeWindowHandle   = g_hWnd;
 
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
   return
-    SK_GetCurrentRenderBackend ().device != nullptr;
+    rb.device != nullptr;
 }
 
 void
@@ -1616,7 +1619,10 @@ SK_ImGui_PollGamepad (void);
 void
 ImGui_ImplDX11_NewFrame (void)
 {
-  if (! SK_GetCurrentRenderBackend ().device)
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  if (! rb.device)
     return;
   
   ImGuiIO& io (ImGui::GetIO ());
@@ -1687,7 +1693,7 @@ ImGui_ImplDX11_Resize ( IDXGISwapChain *This,
   UNREFERENCED_PARAMETER (Height);
   UNREFERENCED_PARAMETER (This);
 
-  SK_RenderBackend& rb =
+  static auto& rb =
     SK_GetCurrentRenderBackend ();
 
   if (! rb.device)

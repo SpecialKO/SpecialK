@@ -466,7 +466,8 @@ SK_Steam_GetDLLPath ( wchar_t* wszDestBuf,
   // Already have a working DLL
   if (SK_Modules.LoadLibrary (dll_file))
   {
-    wcsncpy_s (wszDestBuf, max_size, dll_file, _TRUNCATE);
+    wcsncpy_s (wszDestBuf, std::min (max_size, (size_t)MAX_PATH), dll_file, _TRUNCATE);
+
     return true;
   }
 
@@ -818,7 +819,7 @@ SK_Steam_ScreenshotManager::init (void)
       if (hSigReady [i] == INVALID_HANDLE_VALUE)
       {
         hSigReady [i] =
-          CreateEventW (nullptr, FALSE, FALSE, nullptr);
+          SK_CreateEvent (nullptr, FALSE, FALSE, nullptr);
       }
     }
   }
@@ -3770,17 +3771,17 @@ SK_SteamAPI_AppID (void)
 const wchar_t*
 SK_GetSteamDir (void)
 {
-  DWORD   len         = MAX_PATH;
-  static wchar_t wszSteamPath [MAX_PATH + 2];
-
-  LSTATUS status =
+  static
+    wchar_t wszSteamPath [MAX_PATH + 2] = { };
+  DWORD     len    =      MAX_PATH;
+  LSTATUS   status =
     RegGetValueW ( HKEY_CURRENT_USER,
-                  LR"(SOFTWARE\Valve\Steam\)",
-                  L"SteamPath",
-                  RRF_RT_REG_SZ,
-                  nullptr,
-                  wszSteamPath,
-                  (LPDWORD)&len );
+                     LR"(SOFTWARE\Valve\Steam\)",
+                                      L"SteamPath",
+                       RRF_RT_REG_SZ,
+                         nullptr,
+                           wszSteamPath,
+                             (LPDWORD)&len );
 
   if (status == ERROR_SUCCESS)
     return wszSteamPath;
@@ -3792,6 +3793,7 @@ int
 SK_Steam_GetLibraries (steam_library_t** ppLibraries)
 {
 #define MAX_STEAM_LIBRARIES 16
+
   static bool            scanned_libs = false;
   static int             steam_libs   = 0;
   static steam_library_t steam_lib_paths [MAX_STEAM_LIBRARIES] = { };
@@ -3812,22 +3814,20 @@ SK_Steam_GetLibraries (steam_library_t** ppLibraries)
 
       CHandle hLibFolders (
         CreateFileW ( wszLibraryFolders,
-        GENERIC_READ,
-        FILE_SHARE_READ | FILE_SHARE_WRITE,
-        nullptr,
-        OPEN_EXISTING,
-        GetFileAttributesW (wszLibraryFolders),
-        nullptr )
+                        GENERIC_READ,
+                        FILE_SHARE_READ | FILE_SHARE_WRITE,
+                          nullptr,        OPEN_EXISTING,
+                            GetFileAttributesW (wszLibraryFolders),
+                              nullptr
+                    )
       );
 
       if (hLibFolders != INVALID_HANDLE_VALUE)
       {
-        DWORD  dwSize     = 0,
-          dwSizeHigh = 0,
-          dwRead     = 0;
-
-        dwSize =
-          GetFileSize (hLibFolders, &dwSizeHigh);
+        DWORD dwSizeHigh = 0,
+              dwRead     = 0,
+              dwSize     =
+         GetFileSize (hLibFolders, &dwSizeHigh);
 
         SK_TLS *pTLS =
           SK_TLS_Bottom ();
@@ -3857,7 +3857,9 @@ SK_Steam_GetLibraries (steam_library_t** ppLibraries)
 
               for (DWORD j = i; j < dwSize; j++,i++)
               {
-                if (data [j] == '"' && lib_start == nullptr && j < dwSize - 1)
+                if (data [j] == '"' && lib_start == nullptr
+                                    && 
+                          j < dwSize - 1)
                 {
                   lib_start =
                     &data [j + 1];
@@ -3883,9 +3885,8 @@ SK_Steam_GetLibraries (steam_library_t** ppLibraries)
 
       // Finally, add the default Steam library
       wcsncpy_s ( (wchar_t *)steam_lib_paths [steam_libs++],
-                 MAX_PATH * 2,
-                 wszSteamPath,
-                 _TRUNCATE );
+                                               MAX_PATH * 2,
+                          wszSteamPath,       _TRUNCATE );
     }
 
     scanned_libs = true;
@@ -3910,33 +3911,31 @@ SK_UseManifestToGetAppName (uint32_t appid)
       wchar_t wszManifest [MAX_PATH * 2 + 1] = { };
 
       wsprintf ( wszManifest,
-                LR"(%s\steamapps\appmanifest_%u.acf)",
-                (wchar_t *)steam_lib_paths [i],
-                appid );
+                   LR"(%s\steamapps\appmanifest_%u.acf)",
+               (wchar_t *)steam_lib_paths [i],
+                            appid );
 
       CHandle hManifest (
         CreateFileW ( wszManifest,
-        GENERIC_READ,
-        FILE_SHARE_READ | FILE_SHARE_WRITE,
-        nullptr,
-        OPEN_EXISTING,
-        GetFileAttributesW (wszManifest),
-        nullptr )
+                        GENERIC_READ,
+                        FILE_SHARE_READ | FILE_SHARE_WRITE,
+                          nullptr,        OPEN_EXISTING,
+                            GetFileAttributesW (wszManifest),
+                              nullptr
+                    )
       );
 
       if (hManifest != INVALID_HANDLE_VALUE)
       {
-        DWORD  dwSize     = 0,
-          dwSizeHigh = 0,
-          dwRead     = 0;
-
-        dwSize =
-          GetFileSize (hManifest, &dwSizeHigh);
+        DWORD dwSizeHigh = 0,
+              dwRead     = 0,
+              dwSize     =
+         GetFileSize (hManifest, &dwSizeHigh);
 
         auto szManifestData =
           std::make_unique <char []> (
             std::size_t (dwSize + 1)
-            );
+          );
         auto manifest_data =
           szManifestData.get ();
 
@@ -3945,10 +3944,10 @@ SK_UseManifestToGetAppName (uint32_t appid)
 
         bool bRead =
           ReadFile ( hManifest,
-                    manifest_data,
-                    dwSize,
-                    &dwRead,
-                    nullptr );
+                       manifest_data,
+                         dwSize,
+                        &dwRead,
+                           nullptr );
 
         if (! (bRead && dwRead))
         {
@@ -3964,12 +3963,12 @@ SK_UseManifestToGetAppName (uint32_t appid)
 
           // Make sure everything is lowercase
           memcpy (szAppName, R"("name")", 6);
+          sscanf (szAppName,
+                             R"("name" "%512[^"]")",
+                                szGameName );
 
-          sscanf ( szAppName,
-                  R"("name" "%512[^"]")",
-                  szGameName );
-
-          return szGameName;
+          return
+            szGameName;
         }
       }
     }
@@ -3989,8 +3988,9 @@ SK_Steam_ScrubRedistributables (int& total_files, bool erase)
     return size;
 
   if ( INVALID_HANDLE_VALUE ==
-      InterlockedCompareExchangePointer ( &hThread, (LPVOID)1,
-      INVALID_HANDLE_VALUE ) )
+         InterlockedCompareExchangePointer ( &hThread, (LPVOID)1,
+           INVALID_HANDLE_VALUE            )
+     )
   {
     struct scrub_params_s {
       int   &total_files;
@@ -4008,7 +4008,7 @@ SK_Steam_ScrubRedistributables (int& total_files, bool erase)
 
       SetCurrentThreadDescription (          L"[SK] Steam Redistributable File Cleanup" );
       SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_LOWEST |
-                                   THREAD_MODE_BACKGROUND_BEGIN );
+                                                            THREAD_MODE_BACKGROUND_BEGIN );
       SetThreadPriorityBoost      ( SK_GetCurrentThread (), TRUE                         );
 
       unsigned int      files =  0 ;
@@ -4033,7 +4033,7 @@ SK_Steam_ScrubRedistributables (int& total_files, bool erase)
             do
             {
               if (          (fd.dwFileAttributes  & FILE_ATTRIBUTE_DIRECTORY) &&
-                (_wcsicmp (fd.cFileName, L"." )                != 0)        &&
+                  (_wcsicmp (fd.cFileName, L"." )                != 0)        &&
                   (_wcsicmp (fd.cFileName, L"..")                != 0)        &&
                   (_wcsicmp (fd.cFileName, L"Steamworks Shared") != 0) )
               {
@@ -4113,8 +4113,8 @@ using SK_Steam_Callback_pfn = void (__cdecl *)(CCallbackBase* This, void* pvPara
 //
 void
 SK_Steam_InvokeOverlayActivationCallback ( SK_Steam_Callback_pfn CallbackFn,
-                                          CCallbackBase*        pClosure,
-                                          bool                  active )
+                                           CCallbackBase*        pClosure,
+                                           bool                  active )
 {
   __try
   {
@@ -5443,7 +5443,7 @@ SK_SteamAPIContext::OnFileDetailsDone ( FileDetailsResult_t* pParam,
       INVALID_HANDLE_VALUE )
   {
     InterlockedExchangePointer ( (void **)&hSigNewSteamFileDetails,
-                                CreateEventW ( nullptr, FALSE, true, nullptr ) );
+                                   SK_CreateEvent ( nullptr, FALSE, true, nullptr ) );
 
     //
     // Hashing Denuvo games can take a very long time, and we do not need

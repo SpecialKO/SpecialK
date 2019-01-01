@@ -270,6 +270,12 @@ SK_CleanupTLS (void)
     SK_TLS_CleanupReason_e::Unload
   );
 
+  if (pTLS->debug.handle != INVALID_HANDLE_VALUE)
+  {
+    CloseHandle (pTLS->debug.handle);
+                 pTLS->debug.handle = INVALID_HANDLE_VALUE;
+  }
+
 #ifdef _DEBUG
   SK_LOG0 ( ( L"Freed %zu bytes of temporary heap storage for tid=%x",
                 freed, GetCurrentThreadId () ), L"TLS Memory" );
@@ -305,9 +311,6 @@ SK_TLS_LogLeak ( const wchar_t* wszFunc,
 SK_TLS*
 SK_TLS_Bottom (void)
 {
-  const DWORD dwTid       =
-    SK_GetCurrentThreadId ();
-
   ////SK_TlsRecord *pTlsRec =
   ////  SK_TLS_FindInCache (dwTid);
   ////

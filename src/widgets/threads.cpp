@@ -526,25 +526,28 @@ std::map <LONGLONG, SKWG_Thread_Entry*> SKWG_Ordered_Threads;
 
 PSYSTEM_PROCESS_INFORMATION
 ProcessInformation ( PDWORD    pdData,
-                     PNTSTATUS pns )
+                     PNTSTATUS pns,
+                     SK_TLS*   pTLS )
 {
   if (NtQuerySystemInformation == nullptr)
   {
-    HMODULE hModNtDLL =
-      SK_GetModuleHandleW (L"Ntdll.dll");
-
-    if (! hModNtDLL) hModNtDLL = SK_Modules.LoadLibrary (L"Ntdll.dll");
+    if (! SK_GetModuleHandleW (L"NtDll"))
+       SK_Modules.LoadLibrary (L"NtDll");
 
     NtQuerySystemInformation =
       (NtQuerySystemInformation_pfn)
-      GetProcAddress (hModNtDLL, "NtQuerySystemInformation");
+        SK_GetProcAddress (L"NtDll",
+                            "NtQuerySystemInformation");
   }
 
   if (! NtQuerySystemInformation)
     return nullptr;
 
-  SK_TLS* pTLS =
-    SK_TLS_Bottom ();
+  if (! pTLS)
+  {
+    pTLS =
+      SK_TLS_Bottom ();
+  }
 
   if (! pTLS) return nullptr;
 
@@ -552,8 +555,8 @@ ProcessInformation ( PDWORD    pdData,
   DWORD                        dData = 0;
   NTSTATUS                        ns = STATUS_INVALID_PARAMETER;
 
-  if (pTLS->local_scratch.NtQuerySystemInformation.len  < 4096)
-      pTLS->local_scratch.NtQuerySystemInformation.alloc (4096, true);
+  if (pTLS->local_scratch.NtQuerySystemInformation.len  < 16384)
+      pTLS->local_scratch.NtQuerySystemInformation.alloc (16384, true);
 
   void* pspi = nullptr;
 
@@ -572,12 +575,14 @@ ProcessInformation ( PDWORD    pdData,
     dSize =
       pTLS->local_scratch.NtQuerySystemInformation.len;
 
-    pspi  = pTLS->local_scratch.NtQuerySystemInformation.data;
+    pspi =
+      pTLS->local_scratch.NtQuerySystemInformation.data;
 
-    ns = NtQuerySystemInformation ( SystemProcessInformation,
-                                      (PSYSTEM_PROCESS_INFORMATION)pspi,
-                                        (DWORD)dSize,
-                                          &dData );
+    ns =
+      NtQuerySystemInformation ( SystemProcessInformation,
+                                   (PSYSTEM_PROCESS_INFORMATION)pspi,
+                                     (DWORD)dSize,
+                                       &dData );
 
     if (ns != STATUS_SUCCESS)
     {
@@ -591,7 +596,8 @@ ProcessInformation ( PDWORD    pdData,
   if (pdData != nullptr) *pdData = dData;
   if (pns    != nullptr) *pns    = ns;
 
-  return (PSYSTEM_PROCESS_INFORMATION)pspi;
+  return
+    (PSYSTEM_PROCESS_INFORMATION)pspi;
 }
 
 #include <process.h>
@@ -1040,24 +1046,26 @@ public:
   {
     SK_RunOnce (
       k32SetThreadInformation =
-        (SetThreadInformation_pfn)GetProcAddress (
-          SK_GetModuleHandle (L"kernel32"),
-                               "SetThreadInformation"
+        (SetThreadInformation_pfn)SK_GetProcAddress (
+          L"kernel32",
+           "SetThreadInformation"
         )
     );
 
     SK_RunOnce (
       k32GetThreadInformation =
-        (GetThreadInformation_pfn)GetProcAddress (
-          SK_GetModuleHandle (L"kernel32"),
-                               "GetThreadInformation"
+        (GetThreadInformation_pfn)SK_GetProcAddress (
+          L"kernel32",
+           "GetThreadInformation"
         )
     );
 
     SK_RunOnce (
       NtQueryInformationProcess =
-          (NtQueryInformationProcess_pfn)GetProcAddress ( SK_GetModuleHandle (L"NtDll.dll"),
-                                                                               "NtQueryInformationProcess" )
+        (NtQueryInformationProcess_pfn)SK_GetProcAddress (
+          L"NtDll",
+           "NtQueryInformationProcess"
+        )
     );
 
 
@@ -1162,7 +1170,8 @@ public:
           if (! pTLS)
             continue;
 
-          HANDLE hThreadOrig = it->hThread;
+          HANDLE hThreadOrig =
+            it->hThread;
 
           if (it->hThread == INVALID_HANDLE_VALUE)
           {
@@ -1170,12 +1179,10 @@ public:
               OpenThread (THREAD_ALL_ACCESS, FALSE, it->dwTid);
           }
 
-          DWORD pnum =
-            SetThreadIdealProcessor (it->hThread, MAXIMUM_PROCESSORS);
-
           DWORD dwExitCode = 0;
-
-          GetExitCodeThread (it->hThread, &dwExitCode);
+          DWORD pnum       =
+            SetThreadIdealProcessor (it->hThread, MAXIMUM_PROCESSORS);
+          GetExitCodeThread         (it->hThread, &dwExitCode);
 
           if ( pnum != (DWORD)-1 && dwExitCode == STILL_ACTIVE )
           {
@@ -1234,23 +1241,39 @@ public:
 
 
     // Snapshotting is _slow_, so only do it when a thread has been created...
-    extern volatile LONG lLastThreadCreate;
-    static          LONG lLastThreadRefresh = -69;
+    extern volatile LONG  lLastThreadCreate;
+    static          LONG  lLastThreadRefresh   =  -69;
+              const DWORD _UPDATE_INTERVAL1_MS =   25; // Refresh no more than once every 25 ms
+              const DWORD _UPDATE_INTERVAL2_MS = 5000; // Refresh at least once every 5 seconds
+    static          DWORD dwLastTime           =    0;
 
-    LONG last =
+    LONG  last  =
       ReadAcquire (&lLastThreadCreate);
+    DWORD dwNow = timeGetTime ();
 
-    if ((last == lLastThreadRefresh) && (! visible))
+    // If true, no new threads have been created since we
+    //   last enumerated our list.
+    if (last == lLastThreadRefresh)
     {
-      return;
+      if (dwLastTime > dwNow - _UPDATE_INTERVAL2_MS)
+      {
+        if (! visible)
+          return;
+
+        if (dwLastTime + _UPDATE_INTERVAL1_MS > dwNow)
+          return;
+      }
     }
 
-    NTSTATUS nts = STATUS_INVALID_PARAMETER;
-
-    ProcessInformation (nullptr, &nts);
+    dwLastTime = dwNow;
 
     SK_TLS* pTLS =
       SK_TLS_Bottom ();
+
+    NTSTATUS nts =
+      STATUS_INVALID_PARAMETER;
+
+    ProcessInformation (nullptr, &nts, pTLS);
 
     PSYSTEM_PROCESS_INFORMATION pInfo =
       reinterpret_cast <PSYSTEM_PROCESS_INFORMATION> (
@@ -1433,10 +1456,10 @@ public:
             ReadAcquire64 (&pTLS->memory.heap_bytes)       )
         {
           ImGui::BeginGroup   ();
-          if (ReadAcquire64 (&pTLS->memory.local_bytes))   ImGui::Text ("Local Memory:\t");
-          if (ReadAcquire64 (&pTLS->memory.global_bytes))  ImGui::Text ("Global Memory:\t");
-          if (ReadAcquire64 (&pTLS->memory.heap_bytes))    ImGui::Text ("Heap Memory:\t");
-          if (ReadAcquire64 (&pTLS->memory.virtual_bytes)) ImGui::Text ("Virtual Memory:\t");
+          if (ReadAcquire64 (&pTLS->memory.local_bytes))   ImGui::TextUnformatted ("Local Memory:\t");
+          if (ReadAcquire64 (&pTLS->memory.global_bytes))  ImGui::TextUnformatted ("Global Memory:\t");
+          if (ReadAcquire64 (&pTLS->memory.heap_bytes))    ImGui::TextUnformatted ("Heap Memory:\t");
+          if (ReadAcquire64 (&pTLS->memory.virtual_bytes)) ImGui::TextUnformatted ("Virtual Memory:\t");
           ImGui::EndGroup     ();
 
           ImGui::SameLine     ();
@@ -1451,10 +1474,10 @@ public:
           ImGui::SameLine     ();
 
           ImGui::BeginGroup   ();
-          if (ReadAcquire64 (&pTLS->memory.local_bytes))   ImGui::Text ("\t(Lifetime)");
-          if (ReadAcquire64 (&pTLS->memory.global_bytes))  ImGui::Text ("\t(Lifetime)");
-          if (ReadAcquire64 (&pTLS->memory.heap_bytes))    ImGui::Text ("\t(Lifetime)");
-          if (ReadAcquire64 (&pTLS->memory.virtual_bytes)) ImGui::Text ("\t(In-Use Now)");
+          if (ReadAcquire64 (&pTLS->memory.local_bytes))   ImGui::TextUnformatted ("\t(Lifetime)");
+          if (ReadAcquire64 (&pTLS->memory.global_bytes))  ImGui::TextUnformatted ("\t(Lifetime)");
+          if (ReadAcquire64 (&pTLS->memory.heap_bytes))    ImGui::TextUnformatted ("\t(Lifetime)");
+          if (ReadAcquire64 (&pTLS->memory.virtual_bytes)) ImGui::TextUnformatted ("\t(In-Use Now)");
           ImGui::EndGroup     ();
         }
 
@@ -1464,8 +1487,8 @@ public:
           ImGui::Separator ();
 
           ImGui::BeginGroup ();
-          if (ReadAcquire64 (&pTLS->disk.bytes_read))    ImGui::Text ("File Reads:\t\t\t");
-          if (ReadAcquire64 (&pTLS->disk.bytes_written)) ImGui::Text ("File Writes:\t\t\t");
+          if (ReadAcquire64 (&pTLS->disk.bytes_read))    ImGui::TextUnformatted ("File Reads:\t\t\t");
+          if (ReadAcquire64 (&pTLS->disk.bytes_written)) ImGui::TextUnformatted ("File Writes:\t\t\t");
           ImGui::EndGroup   ();
 
           ImGui::SameLine   ();
@@ -1482,8 +1505,8 @@ public:
           ImGui::Separator ();
 
           ImGui::BeginGroup ();
-          if (ReadAcquire64 (&pTLS->net.bytes_sent))     ImGui::Text ("Network Sent:\t");
-          if (ReadAcquire64 (&pTLS->net.bytes_received)) ImGui::Text ("Network Received:\t");
+          if (ReadAcquire64 (&pTLS->net.bytes_sent))     ImGui::TextUnformatted ("Network Sent:\t");
+          if (ReadAcquire64 (&pTLS->net.bytes_received)) ImGui::TextUnformatted ("Network Received:\t");
           ImGui::EndGroup   ();
 
           ImGui::SameLine   ();
@@ -1501,7 +1524,8 @@ public:
           ImGui::Separator  ();
 
           ImGui::BeginGroup ();
-          ImGui::Text       ("Steam Callbacks:\t");
+          ImGui::TextUnformatted
+                            ("Steam Callbacks:\t");
           ImGui::EndGroup   ();
 
           ImGui::SameLine   ();
@@ -1515,17 +1539,17 @@ public:
 
         if (exceptions > 0)
         {
-          ImGui::Separator  ();
+          ImGui::Separator       ();
 
-          ImGui::BeginGroup ();
-          ImGui::Text       ("Exceptions Raised:");
-          ImGui::EndGroup   ();
+          ImGui::BeginGroup      ();
+          ImGui::TextUnformatted ("Exceptions Raised:");
+          ImGui::EndGroup        ();
 
-          ImGui::SameLine   ();
+          ImGui::SameLine        ();
 
-          ImGui::BeginGroup ();
-          ImGui::Text       ("\t%i", exceptions);
-          ImGui::EndGroup   ();
+          ImGui::BeginGroup      ();
+          ImGui::Text            ("\t%i", exceptions);
+          ImGui::EndGroup        ();
         }
 
         if (pTLS->win32.error_state.code != NO_ERROR)
@@ -1533,7 +1557,8 @@ public:
           ImGui::Separator  ();
 
           ImGui::BeginGroup ();
-          ImGui::Text       ("Win32 Error Code:");
+          ImGui::TextUnformatted
+                            ("Win32 Error Code:");
           ImGui::EndGroup   ();
 
           ImGui::SameLine   ();
@@ -1645,9 +1670,9 @@ public:
       ImGui::SetColumnOffset ( 1, fSpacingMax +
                            const_spacing );
 
-      ImGui::Spacing    ( ); ImGui::SameLine ();
-      ImGui::Text       ("%s",     task->name );
-      ImGui::NextColumn ( );
+      ImGui::Spacing         ( ); ImGui::SameLine ();
+      ImGui::TextUnformatted (task->name);
+      ImGui::NextColumn      ( );
 
       int prio =
         int (task->priority + 2);
@@ -1837,7 +1862,7 @@ public:
             if (hThreadRecovery == INVALID_HANDLE_VALUE)
             {
               hRecoveryEvent  =
-              CreateEvent  (nullptr, FALSE, TRUE, nullptr);
+              SK_CreateEvent  (nullptr, FALSE, TRUE, nullptr);
               hThreadRecovery =
               SK_Thread_CreateEx ([](LPVOID user) -> DWORD
               {
@@ -2262,7 +2287,7 @@ public:
           }
         }
 
-        ImGui::Text ("");
+        ImGui::TextUnformatted ("");
       }
 
       ImGui::PopStyleColor ();
@@ -2455,7 +2480,7 @@ public:
       if (it.second->runtimes.percent_kernel >= 0.001)
         ImGui::Text ("%6.2f%% Kernel", it.second->runtimes.percent_kernel);
       else
-        ImGui::Text ("-");
+        ImGui::TextUnformatted ("-");
 
       if (it.second->runtimes.percent_kernel == p_kmax)
         ImGui::PopStyleColor ();
@@ -2476,7 +2501,7 @@ public:
       if (it.second->runtimes.percent_user >= 0.001)
         ImGui::Text ("%6.2f%% User", it.second->runtimes.percent_user);
       else
-        ImGui::Text ("-");
+        ImGui::TextUnformatted ("-");
 
       if (it.second->runtimes.percent_user == p_umax)
         ImGui::PopStyleColor ();
@@ -2500,7 +2525,7 @@ public:
       }
 
       else
-        ImGui::Text ("");
+        ImGui::TextUnformatted ("");
 
       if (ImGui::IsItemHovered ()) ThreadMemTooltip (it.second->dwTid);
     }
@@ -2528,7 +2553,7 @@ public:
         ImGui::TextColored (ImColor (1.0f, 0.090196f, 0.364706f), "Waiting I/O");
       }
       else if (dwNow > dwLastWaiting + WAIT_GRACE)
-        ImGui::Text ("");
+        ImGui::TextUnformatted ("");
       else
         // Alpha: 0  ==>  Hide this text, it's for padding only.
         ImGui::TextColored (ImColor (1.0f, 0.090196f, 0.364706f, 0.0f), "Waiting I/O");
@@ -2538,7 +2563,7 @@ public:
       if (it.second->power_throttle)
         ImGui::TextColored (ImColor (0.090196f, 1.0f, 0.364706f), "Power-Throttle");
       else
-        ImGui::Text ("");
+        ImGui::TextUnformatted ("");
 
       if (ImGui::IsItemHovered ()) ThreadMemTooltip (it.second->dwTid);
     }

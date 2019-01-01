@@ -168,22 +168,22 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
                      hRawInput : pRawCtx->last_input );
 
 
-  //if (self && (! already_processed))
-  //{
-  //  if (SK_ImGui_WantMouseCapture ())
-  //    SK_RawInput_EnableLegacyMouse  (true);
-  //  else
-  //    SK_RawInput_RestoreLegacyMouse ();
-  //}
-
- SK_RawInput_EnableLegacyMouse  (true);
-
-  // Keep this on ALWAYS to fix Steam Overlay in Skyrim SE
+  ////if (self && (! already_processed))
+  ////{
+  ////  if (SK_ImGui_WantMouseCapture ())
+  ////    SK_RawInput_EnableLegacyMouse  (true);
+  ////  else
+  ////    SK_RawInput_RestoreLegacyMouse ();
+  ////}
   //
-  //if (SK_ImGui_WantKeyboardCapture ())
-    SK_RawInput_EnableLegacyKeyboard (true);
-  //else
-  //  SK_RawInput_RestoreLegacyKeyboard ();
+  //SK_RawInput_EnableLegacyMouse  (true);
+  //
+  //// Keep this on ALWAYS to fix Steam Overlay in Skyrim SE
+  ////
+  ////if (SK_ImGui_WantKeyboardCapture ())
+  //  SK_RawInput_EnableLegacyKeyboard (true);
+  ////else
+  ////  SK_RawInput_RestoreLegacyKeyboard ();
 
   int size =
     SK_GetRawInputData (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader);
@@ -1040,7 +1040,7 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
   {
     SK_LOG0 ( (L"Handling WM_DISPLAYCHANGE"), L"Window Mgr");
 
-    auto& rb =
+    static auto& rb =
       SK_GetCurrentRenderBackend ();
 
     if ( ((int)rb.api & (int)SK_RenderAPI::D3D11) ||
@@ -1476,7 +1476,8 @@ SK_ImGui_PollGamepad_EndFrame (void)
 
   if (ControllerPresent (config.input.gamepad.steam.ui_slot))
   {
-    state = *steam_input [config.input.gamepad.steam.ui_slot].to_xi;
+    state =
+      *steam_input [config.input.gamepad.steam.ui_slot].to_xi;
   }
 
   if ( api_bridge ||
@@ -1620,7 +1621,8 @@ SK_ImGui_PollGamepad (void)
 
   if (ControllerPresent (config.input.gamepad.steam.ui_slot))
   {
-    state = *steam_input [config.input.gamepad.steam.ui_slot].to_xi;
+    state =
+      *steam_input [config.input.gamepad.steam.ui_slot].to_xi;
   }
 
   if ( ( api_bridge ||

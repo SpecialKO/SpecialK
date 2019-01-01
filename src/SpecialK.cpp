@@ -82,6 +82,9 @@ volatile          long __SK_HookContextOwner = FALSE;
 
 extern volatile  DWORD __SK_TLS_INDEX;
 
+        volatile LONG  lLastThreadCreate     = 0;
+
+
 class SK_DLL_Bootstrapper
 {
   using BootstrapEntryPoint_pfn = bool (*)(void);
@@ -113,7 +116,8 @@ std::unordered_map <DLL_ROLE, SK_DLL_Bootstrapper>
 skWin32Module&
 skModuleRegistry::HostApp (HMODULE hModToSet)
 {
-  static skWin32Module hModApp;
+  static skWin32Module hModApp =
+    skWin32Module::Uninitialized;
 
   if ( hModApp   == skWin32Module::Uninitialized &&
        hModToSet != skWin32Module::Uninitialized    )
@@ -122,13 +126,15 @@ skModuleRegistry::HostApp (HMODULE hModToSet)
       hModToSet;
   }
 
-  return hModApp;
+  return
+    hModApp;
 }
 
 skWin32Module&
 skModuleRegistry::Self (HMODULE hModToSet)
 {
-  static skWin32Module hModSelf;
+  static skWin32Module hModSelf =
+    skWin32Module::Uninitialized;
 
   if ( hModSelf  == skWin32Module::Uninitialized &&
        hModToSet != skWin32Module::Uninitialized    )
@@ -137,7 +143,8 @@ skModuleRegistry::Self (HMODULE hModToSet)
       hModToSet;
   }
 
-  return hModSelf;
+  return
+    hModSelf;
 }
 
   HMODULE
@@ -166,12 +173,24 @@ extern NtUserCallNextHookEx_pfn NtUserCallNextHookEx;
 
 #include <cwctype>
 
+extern bool SK_COM_TestInit (void);
+
 // If the process doesn't have integrity to manipulate the UI, we have no
 //   real interest in it and can eliminate tons of compat. issues by bailing
 //     out now!
 BOOL
 SK_KeepAway (void)
 {
+//#define SK_NAIVE
+#ifdef SK_NAIVE
+  return FALSE;
+#endif
+
+  if (! SK_COM_TestInit ())
+    return TRUE;
+
+#define SK_PARANOID
+#ifdef SK_PARANOID
   BOOL  bNotAUserInteractiveApplication = FALSE;
   DWORD dwIntegrityLevel                = std::numeric_limits <DWORD>::max ();
 
@@ -191,6 +210,7 @@ SK_KeepAway (void)
 
   if (bNotAUserInteractiveApplication)
     return TRUE;
+#endif
 
   // If user-interactive, check against an internal blacklist
   #include <SpecialK/injection/blacklist.h>
@@ -237,12 +257,26 @@ DllMain ( HMODULE hModule,
         skModuleRegistry::Self   (hModule);
 
       else
-        return FALSE;
+        return TRUE;
+
+      InterlockedExchange (
+        &__SK_TLS_INDEX,
+          FlsAlloc (nullptr)
+      );
+
+      SK_TLS *pTLS =
+        SK_TLS_Bottom ();
+
+      if (pTLS)
+          pTLS->debug.in_DllMain = true;
 
 
       auto EarlyOut =
       [&](BOOL bRet = TRUE)
       {
+        if (pTLS)
+            pTLS->debug.in_DllMain = false;
+
         if (! bRet)
         {
           FlsFree (
@@ -250,8 +284,9 @@ DllMain ( HMODULE hModule,
           );
         }
 
-        return TRUE;
-        //return bRet;
+        bRet = TRUE;
+
+        return bRet;
       };
 
 
@@ -262,24 +297,18 @@ DllMain ( HMODULE hModule,
       {
         SK_EstablishRootPath ();
 
-        return EarlyOut (TRUE);
+        return
+          EarlyOut (TRUE);
       }
-
-
-      InterlockedExchange (
-        &__SK_TLS_INDEX,
-          FlsAlloc (nullptr)
-      );
 
 
       // Keep this DLL out of anything that doesn't handle User Interfaces,
       //   everyone will be much happier that way =P
       if (SK_KeepAway ())
       {
-        return EarlyOut (FALSE);
+        return
+          EarlyOut (FALSE);
       }
-
-
 
       // We reserve the right to deny attaching the DLL, this will generally
       //   happen if a game does not opt-in to system wide injection.
@@ -289,27 +318,20 @@ DllMain ( HMODULE hModule,
       //   re-inject itself constantly; just return TRUE here.
       else if (SK_GetDLLRole () == DLL_ROLE::INVALID)   return EarlyOut (FALSE);
 
-
-
-      skModuleRegistry::HostApp (GetModuleHandle (nullptr));
-
-
-      // Setup unhooked function pointers
-      SK_PreInitLoadLibrary ();
-
       if (! SK_Attach (SK_GetDLLRole ()))               return EarlyOut (FALSE);
 
 
       InterlockedIncrement (&__SK_DLL_Refs);
 
+
       // If we got this far, it's because this is an injection target
       //
-      //   Must hold a reference to this DLL so that removing the CBT hook does
+      //   Must hold a reference to this DLL so that removing the global hook does
       //     not crash the game.
-      if (SK_IsInjected ())
-      {
-        SK_Inject_AcquireProcess ();
-      }
+      SK_Inject_AcquireProcess ();
+
+      if (pTLS)
+          pTLS->debug.in_DllMain = false;
 
       return TRUE;
     } break;
@@ -321,7 +343,7 @@ DllMain ( HMODULE hModule,
 
       if (! InterlockedCompareExchange (&__SK_DLL_Ending, TRUE, FALSE))
       {
-        // If the DLL being unloaded is the source of a CBT hook, then
+        // If the DLL being unloaded is the source of a global hook, then
         //   shut that down before detaching the DLL.
         if (ReadAcquire (&__SK_HookContextOwner))
         {
@@ -375,6 +397,8 @@ DllMain ( HMODULE hModule,
 
     case DLL_THREAD_ATTACH:
     {
+      InterlockedIncrement (&lLastThreadCreate);
+
       if (ReadAcquire (&__SK_DLL_Attached))
       {
         InterlockedIncrement (&__SK_Threads_Attached);
@@ -383,7 +407,9 @@ DllMain ( HMODULE hModule,
           SK_TLS_Bottom ();
 
         if (pTLS != nullptr)
+        {
             pTLS->debug.mapped = true;
+        }
       }
     }
     break;
@@ -391,6 +417,8 @@ DllMain ( HMODULE hModule,
 
     case DLL_THREAD_DETACH:
     {
+      InterlockedIncrement (&lLastThreadCreate);
+
       if (ReadAcquire (&__SK_DLL_Attached))
       {
         //SK_TLS *pOldTLS =
@@ -564,7 +592,8 @@ _SKM_AutoBootLastKnownAPI (SK_RenderAPI last_known)
     }
   }
 
-  return auto_boot_viable;
+  return
+    auto_boot_viable;
 }
 
 
@@ -748,7 +777,8 @@ SK_EstablishDllRole (skWin32Module&& module)
       //
       if ( (! SK_IsHostAppSKIM ()) && SK_TryLocalWrapperFirst ( local_dlls ) )
       {
-        return SK_DontInject ();
+        return
+          SK_DontInject ();
       }
 
 
@@ -856,7 +886,8 @@ SK_EstablishDllRole (skWin32Module&& module)
 #endif
         if (SK_TryLocalWrapperFirst ({ L"dinput8.dll" }))
         {
-          return SK_DontInject ();
+          return
+            SK_DontInject ();
         }
 
         else if (config.apis.dxgi.d3d11.hook && (dxgi || d3d11))
@@ -935,7 +966,8 @@ SK_EstablishDllRole (skWin32Module&& module)
     }
   }
 
-  return (SK_GetDLLRole () != DLL_ROLE::INVALID);
+  return
+    (SK_GetDLLRole () != DLL_ROLE::INVALID);
 }
 
 
@@ -966,6 +998,8 @@ SK_Attach (DLL_ROLE role)
   {
     if (! InterlockedCompareExchange (&__SK_DLL_Attached, TRUE, FALSE))
     {
+      skModuleRegistry::HostApp (GetModuleHandle (nullptr));
+
       const auto& bootstrap =
         __SK_DLL_Bootstraps.at (role);
 
@@ -979,21 +1013,29 @@ SK_Attach (DLL_ROLE role)
       if (GetFileAttributesW (L"SpecialK.WaitForDebugger") != INVALID_FILE_ATTRIBUTES)
       {
         while (! SK_IsDebuggerPresent ())
-          SleepEx (500, FALSE);
+          SleepEx (50, FALSE);
       }
 
       try {
-        budget_mutex = new SK_Thread_HybridSpinlock (  400);
-        init_mutex   = new SK_Thread_HybridSpinlock (  750);
-        steam_mutex  = new SK_Thread_HybridSpinlock (    3);
-        wmi_cs       = new SK_Thread_HybridSpinlock ( 1280);
-        cs_dbghelp   = new SK_Thread_HybridSpinlock (  384);
-
-        steam_callback_cs = new SK_Thread_HybridSpinlock (256UL);
-        steam_popup_cs    = new SK_Thread_HybridSpinlock (512UL);
-        steam_init_cs     = new SK_Thread_HybridSpinlock (128UL);
-
         _time64 (&__SK_DLL_AttachTime);
+
+        cs_dbghelp =
+          new SK_Thread_HybridSpinlock (16384);
+        budget_mutex =
+          new SK_Thread_HybridSpinlock (  100);
+        init_mutex   =
+          new SK_Thread_HybridSpinlock ( 2150);
+        steam_mutex  =
+          new SK_Thread_HybridSpinlock (    3);
+        wmi_cs       =
+          new SK_Thread_HybridSpinlock (  128);
+
+        steam_callback_cs =
+          new SK_Thread_HybridSpinlock (256UL);
+        steam_popup_cs    =
+          new SK_Thread_HybridSpinlock (512UL);
+        steam_init_cs     =
+          new SK_Thread_HybridSpinlock (128UL);
 
         __crc32_init ();
 
@@ -1008,19 +1050,19 @@ SK_Attach (DLL_ROLE role)
         }
       }
 
-      catch (...) {}
+      catch (...) {
+        SK_CleanupMutex (&budget_mutex); SK_CleanupMutex (&init_mutex);
+        SK_CleanupMutex (&wmi_cs);       SK_CleanupMutex (&steam_mutex);
 
-      SK_CleanupMutex (&budget_mutex); SK_CleanupMutex (&init_mutex);
-      SK_CleanupMutex (&cs_dbghelp);   SK_CleanupMutex (&wmi_cs);
-      SK_CleanupMutex (&steam_mutex);
-
-      SK_CleanupMutex (&steam_callback_cs); SK_CleanupMutex (&steam_popup_cs);
-      SK_CleanupMutex (&steam_init_cs);
+        SK_CleanupMutex (&steam_callback_cs); SK_CleanupMutex (&steam_popup_cs);
+        SK_CleanupMutex (&steam_init_cs);
+      }
     }
   }
 
 
-  return SK_DontInject ();
+  return
+    SK_DontInject ();
 }
 
 
@@ -1029,6 +1071,13 @@ BOOL
 __stdcall
 SK_Detach (DLL_ROLE role)
 {
+  SK_CleanupMutex (&budget_mutex);      SK_CleanupMutex (&init_mutex);
+  SK_CleanupMutex (&cs_dbghelp);        SK_CleanupMutex (&wmi_cs);
+  SK_CleanupMutex (&steam_mutex);
+
+  SK_CleanupMutex (&steam_callback_cs); SK_CleanupMutex (&steam_popup_cs);
+  SK_CleanupMutex (&steam_init_cs);
+
   ULONG local_refs =
     InterlockedDecrement (&__SK_DLL_Refs);
 
@@ -1044,13 +1093,6 @@ SK_Detach (DLL_ROLE role)
     if ( __SK_DLL_Bootstraps.count (role) &&
          __SK_DLL_Bootstraps.at    (role).shutdown () )
     {
-      SK_CleanupMutex (&budget_mutex); SK_CleanupMutex (&init_mutex);
-      SK_CleanupMutex (&cs_dbghelp);   SK_CleanupMutex (&wmi_cs);
-      SK_CleanupMutex (&steam_mutex);
-
-      SK_CleanupMutex (&steam_callback_cs); SK_CleanupMutex (&steam_popup_cs);
-      SK_CleanupMutex (&steam_init_cs);
-
       return TRUE;
     }
   }

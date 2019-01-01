@@ -929,9 +929,6 @@
     <ClCompile Include="src\hash.cpp">
       <Filter>Source Files\Utility</Filter>
     </ClCompile>
-    <ClCompile Include="src\diagnostics\cpu.cpp">
-      <Filter>Source Files\Stats</Filter>
-    </ClCompile>
     <ClCompile Include="src\com_util.cpp">
       <Filter>Source Files\Core</Filter>
     </ClCompile>
@@ -1012,6 +1009,9 @@
     </ClCompile>
     <ClCompile Include="src\performance\io_monitor.cpp">
       <Filter>Source Files\Update</Filter>
+    </ClCompile>
+    <ClCompile Include="src\diagnostics\cpu.cpp">
+      <Filter>Source Files\Diagnostics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1144,6 +1144,14 @@
     <None Include="SpecialK.def">
       <Filter>Header Files\Config\DLL Export Definitions</Filter>
     </None>
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
+    <None Include="@(NativeLibs)" />
     <None Include="@(NativeLibs)" />
     <None Include="@(NativeLibs)" />
     <None Include="@(NativeLibs)" />

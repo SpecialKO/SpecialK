@@ -8767,7 +8767,7 @@ SK_D3D9_ProcessScreenshotQueue (int stage = 2)
     if (InterlockedCompareExchangePointer (&hSignalScreenshot, 0, INVALID_HANDLE_VALUE) == INVALID_HANDLE_VALUE)
     {
       InterlockedExchangePointer ( (void **)&hSignalScreenshot,
-                                     CreateEventW (nullptr, FALSE, TRUE, nullptr) );
+                                     SK_CreateEvent (nullptr, FALSE, TRUE, nullptr) );
 
       SK_Thread_Create ([](LPVOID) -> DWORD
       {

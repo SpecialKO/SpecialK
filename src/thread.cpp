@@ -447,12 +447,11 @@ SK_Thread_CreateEx ( LPTHREAD_START_ROUTINE lpStartFunc,
                      const wchar_t*       /*lpThreadName*/,
                      LPVOID                 lpUserParams )
 {
-  SK_ThreadBaseParams *params;
-
-  params =
-    static_cast <SK_ThreadBaseParams *> (
-      SK_LocalAlloc ( LPTR, sizeof (SK_ThreadBaseParams) )
-    );
+  SK_ThreadBaseParams
+    *params =
+      static_cast <SK_ThreadBaseParams *> (
+        SK_LocalAlloc ( LPTR, sizeof (SK_ThreadBaseParams) )
+      );
 
   assert (params != nullptr);
 
@@ -499,11 +498,11 @@ SK_Thread_CloseSelf (void)
   SK_TLS *pTLS       = ReadAcquire (&__SK_DLL_Attached) ?
     SK_TLS_Bottom () : nullptr;
 
-  HANDLE hCopyAndSwapHandle =
-    INVALID_HANDLE_VALUE;
-
   if (pTLS != nullptr)
   {
+    HANDLE hCopyAndSwapHandle =
+      INVALID_HANDLE_VALUE;
+
     std::swap   (pTLS->debug.handle, hCopyAndSwapHandle);
 
     if (! CloseHandle (hCopyAndSwapHandle))
@@ -524,12 +523,11 @@ SK_Thread_CloseSelf (void)
 #include <avrt.h>
 
 static
+concurrency::concurrent_unordered_map <DWORD, SK_MMCS_TaskEntry *> task_map;
+
 concurrency::concurrent_unordered_map <DWORD, SK_MMCS_TaskEntry *>&
 SK_MMCS_GetTaskMap (void)
 {
-  static
-    concurrency::concurrent_unordered_map <DWORD, SK_MMCS_TaskEntry *> task_map;
-
   return
     task_map;
 }
@@ -537,9 +535,6 @@ SK_MMCS_GetTaskMap (void)
 size_t
 SK_MMCS_GetTaskCount (void)
 {
-  const auto& task_map =
-    SK_MMCS_GetTaskMap ();
-
   return
     task_map.size ();
 }
@@ -547,9 +542,6 @@ SK_MMCS_GetTaskCount (void)
 std::vector <SK_MMCS_TaskEntry *>
 SK_MMCS_GetTasks (void)
 {
-  const auto& task_map =
-    SK_MMCS_GetTaskMap ();
-
   std::vector <SK_MMCS_TaskEntry *> tasks;
 
   for ( auto& task : task_map )
@@ -564,9 +556,6 @@ SK_MMCS_GetTaskForThreadIDEx ( DWORD dwTid, const char* name,
                                             const char* task1,
                                             const char* task2 )
 {
-  auto& task_map =
-   SK_MMCS_GetTaskMap ();
-
   SK_MMCS_TaskEntry* task_me =
     nullptr;
 

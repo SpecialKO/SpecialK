@@ -134,7 +134,9 @@ SK_TaskBoxWithConfirm ( wchar_t* wszMainInstruction,
   // TODO
   UNREFERENCED_PARAMETER (wszConfirmation);
 
+#ifdef _HAS_TIMER
   const bool timer = true;
+#endif
 
   int              nButtonPressed = 0;
   TASKDIALOGCONFIG task_config    = {0};
@@ -163,7 +165,9 @@ SK_TaskBoxWithConfirm ( wchar_t* wszMainInstruction,
   if (verify != nullptr && *verify)
     task_config.dwFlags |= TDF_VERIFICATION_FLAG_CHECKED;
 
+#ifdef _HAS_TIMER
   if (timer)
+#endif
     task_config.dwFlags |= TDF_CALLBACK_TIMER;
 
   HRESULT hr =
@@ -189,7 +193,9 @@ SK_TaskBoxWithConfirmEx ( wchar_t* wszMainInstruction,
 {
   UNREFERENCED_PARAMETER (wszConfirmation);
 
+#ifdef _HAS_TIMER
   const bool timer = true;
+#endif
 
   int              nButtonPressed =   0;
   TASKDIALOGCONFIG task_config    = {   };
@@ -227,7 +233,9 @@ SK_TaskBoxWithConfirmEx ( wchar_t* wszMainInstruction,
   if (verify != nullptr && *verify)
     task_config.dwFlags |= TDF_VERIFICATION_FLAG_CHECKED;
 
+#ifdef _HAS_TIMER
   if (timer)
+#endif
     task_config.dwFlags |= TDF_CALLBACK_TIMER;
 
   HRESULT hr =

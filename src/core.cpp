@@ -106,7 +106,7 @@ extern iSK_Logger game_debug;
 extern void SK_Input_PreInit (void);
 
 volatile HANDLE hInitThread    = { INVALID_HANDLE_VALUE };
-volatile LONG   dwInitThreadId = 0;
+volatile DWORD  dwInitThreadId = 0;
 
 NV_GET_CURRENT_SLI_STATE sli_state;
 BOOL                     nvapi_init  = FALSE;
@@ -734,13 +734,20 @@ WaitForInit (void)
   if (ReadAcquire (&__SK_Init) == 1)
     return;
 
-  LONG dwThreadId =
-    (LONG)GetCurrentThreadId ();
+  DWORD dwThreadId =
+    GetCurrentThreadId ();
 
   while (ReadPointerAcquire (&hInitThread) != INVALID_HANDLE_VALUE)
   {
-    if ( ReadAcquire (&dwInitThreadId) == dwThreadId )
+    DWORD dwInitTid =
+      ReadULongAcquire (&dwInitThreadId);
+
+    if ( dwInitTid                == dwThreadId ||
+         dwInitTid                == 0          ||
+         ReadAcquire (&__SK_Init) == 1L )
+    {
       break;
+    }
 
     for (int i = 0; i < _SpinMax && (ReadPointerAcquire (&hInitThread) != INVALID_HANDLE_VALUE); i++)
       ;
@@ -748,15 +755,17 @@ WaitForInit (void)
     if ( ReadPointerAcquire (&hInitThread) == INVALID_HANDLE_VALUE )
       break;
 
-    if ( WAIT_OBJECT_0 ==
-           MsgWaitForMultipleObjectsEx (1, const_cast <HANDLE *>(&hInitThread), 16UL, QS_ALLINPUT, MWMO_INPUTAVAILABLE) )
-      break;
+    DWORD dwWaitStatus =
+      MsgWaitForMultipleObjectsEx (1, const_cast <HANDLE *>(&hInitThread), 16UL, QS_ALLINPUT, MWMO_INPUTAVAILABLE);
+
+    if ( dwWaitStatus == WAIT_OBJECT_0 ||
+         dwWaitStatus == WAIT_ABANDONED ) break;
   }
 
 
   if (! InterlockedCompareExchange (&__SK_Init, TRUE, FALSE))
   {
-    if ( ReadAcquire        (&dwInitThreadId) != dwThreadId &&
+    if ( ReadULongAcquire   (&dwInitThreadId) != dwThreadId &&
          ReadPointerAcquire (&hInitThread)    != INVALID_HANDLE_VALUE )
     {
       bool local_install = false;
@@ -1087,6 +1096,8 @@ DllThread (LPVOID user)
     static_cast <init_params_s *> (user);
 
   SK_InitCore ( params->backend, params->callback );
+
+  InterlockedExchange (&dwInitThreadId, 0);
 
   return 0;
 }
@@ -1772,9 +1783,12 @@ SK_StartupCore (const wchar_t* backend, void* callback)
                                           __DATE__ );
 
 
-      init_.start_time = SK_QueryPerf ();
+      init_.start_time =
+        SK_QueryPerf ();
 
 
+      // Setup unhooked function pointers
+      SK_PreInitLoadLibrary     ();
       SK_MinHook_Init           ();
       SK_Thread_InitDebugExtras ();
       SK_CPU_InstallHooks       ();
@@ -1828,8 +1842,8 @@ SK_StartupCore (const wchar_t* backend, void* callback)
       SK_InitCompatBlacklist ();
 
       //// Do this from the startup thread [these functions queue, but don't apply]
+      SK_Input_PreInit    (); // Hook only symbols in user32 and kernel32
       SK_HookWinAPI       ();
-      SK_Input_PreInit    (); // Hook only symbols in user32 and kernel32z
 
 
       // For the global injector, when not started by SKIM, check its version
@@ -1928,33 +1942,41 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     //
     SK_Steam_InitCommandConsoleVariables  ();
 
-    // Lazy-load SteamAPI into a process that doesn't use it; this brings
-    //   a number of general-purpose benefits (such as battery charge monitoring).
-    ///bool kick_start = config.steam.force_load_steamapi;
-    ///
-    ///if ((! SK_Steam_TestImports (GetModuleHandle (nullptr))))
-    ///{
-    ///  // Implicitly kick-start anything in SteamApps\common that does not import
-    ///  //   SteamAPI...
-    ///  if ((! kick_start) && config.steam.auto_inject)
-    ///  {
-    ///    if (StrStrIW (SK_GetHostPath (), LR"(SteamApps\common)") != nullptr)
-    ///    {
-    ///      extern const wchar_t*
-    ///      SK_Steam_GetDLLPath (void);
-    ///
-    ///      // Only do this if the game doesn't have a copy of the DLL lying around somewhere,
-    ///      //   because if we init Special K's SteamAPI DLL, the game's will fail to init and
-    ///      //     the game won't be happy about that!
-    ///      kick_start = (! SK_Modules.LoadLibrary (SK_Steam_GetDLLPath ())) || config.steam.force_load_steamapi;
-    ///    }
-    ///  }
-    ///
-    ///  if (kick_start)
-    ///    SK_Steam_KickStart ();
-    ///}
-    ///
-    ///SK_Steam_PreHookCore ();
+    //// It is not permissable to modify steam_api64.dll in this game
+    //                                     (Denuvo will crash)
+    //
+    if (SK_GetCurrentGameID () != SK_GAME_ID::MonsterHunterWorld)
+    {
+      ///// Lazy-load SteamAPI into a process that doesn't use it; this brings
+      /////   a number of general-purpose benefits (such as battery charge monitoring).
+      bool kick_start = config.steam.force_load_steamapi;
+      
+      if ((! SK_Steam_TestImports (GetModuleHandle (nullptr))))
+      {
+        // Implicitly kick-start anything in SteamApps\common that does not import
+        //   SteamAPI...
+        if ((! kick_start) && config.steam.auto_inject)
+        {
+          if (StrStrIW (SK_GetHostPath (), LR"(SteamApps\common)") != nullptr)
+          {
+            extern const wchar_t*
+            SK_Steam_GetDLLPath (void);
+      
+            // Only do this if the game doesn't have a copy of the DLL lying around somewhere,
+            //   because if we init Special K's SteamAPI DLL, the game's will fail to init and
+            //     the game won't be happy about that!
+            kick_start =
+              (! SK_Modules.LoadLibrary (SK_Steam_GetDLLPath ())) ||
+                    config.steam.force_load_steamapi;
+          }
+        }
+      
+        if (kick_start)
+          SK_Steam_KickStart ();
+      }
+
+      SK_Steam_PreHookCore ();
+    }
   }
 
   if (__SK_bypass)
@@ -2103,6 +2125,12 @@ BACKEND_INIT:
         extern void
         SK_SM_PlugInInit (void);
         SK_SM_PlugInInit (    );
+        break;
+
+      case SK_GAME_ID::FinalFantasyXV:
+        extern void
+        SK_FFXV_InitPlugin (void);
+        SK_FFXV_InitPlugin (    );
         break;
     }
 
@@ -2514,12 +2542,15 @@ static volatile LONG CEGUI_Init = FALSE;
 void
 SetupCEGUI (SK_RenderAPI& LastKnownAPI)
 {
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
 #ifdef _DEBUG
 return;
 #endif
 
-  if ( (SK_GetCurrentRenderBackend ().api != SK_RenderAPI::Reserved) &&
-        SK_GetCurrentRenderBackend ().api == LastKnownAPI            &&
+  if ( (rb.api != SK_RenderAPI::Reserved) &&
+        rb.api == LastKnownAPI            &&
        ( (! InterlockedCompareExchange (&CEGUI_Init, TRUE, FALSE)) ) )
   {
     bool local = false;
@@ -2535,7 +2566,7 @@ return;
       }
     }
 
-    InterlockedIncrement (&SK_GetCurrentRenderBackend ().frames_drawn);
+    InterlockedIncrement (&rb.frames_drawn);
 
     // Brutally stupid hack for brutally stupid OS (Windows 7)
     //
@@ -2685,7 +2716,7 @@ return;
         {
           fclose (fTest);
 
-          if (SK_GetCurrentRenderBackend ().api == SK_RenderAPI::OpenGL)
+          if (rb.api == SK_RenderAPI::OpenGL)
           {
             if (config.apis.OpenGL.hook)
             {
@@ -2694,8 +2725,8 @@ return;
             }
           }
 
-          if ( SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D9 ||
-               SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D9Ex )
+          if ( rb.api == SK_RenderAPI::D3D9 ||
+               rb.api == SK_RenderAPI::D3D9Ex )
           {
             if (config.apis.d3d9.hook || config.apis.d3d9ex.hook)
             {
@@ -2774,6 +2805,9 @@ SK_BeginBufferSwap (void)
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
+  static const auto&
+    game_id = SK_GetCurrentGameID ();
+
   if ( (int)rb.api        &
        (int)SK_RenderAPI::D3D11 )
   {
@@ -2784,10 +2818,11 @@ SK_BeginBufferSwap (void)
   if (       __SK_FramerateLimitApplicationSite == 0)
     SK::Framerate::GetLimiter ()->wait ();
 
-  rb.present_staging.begin_overlays.time =
-    SK_QueryPerf ();
+  rb.present_staging.begin_overlays.time.QuadPart =
+    SK_QueryPerf ().QuadPart;
 
-  static SK_RenderAPI LastKnownAPI = SK_RenderAPI::Reserved;
+  static SK_RenderAPI LastKnownAPI =
+    SK_RenderAPI::Reserved;
 
   assert ( SK_BufferFlinger.dwTid == 0 ||
            SK_BufferFlinger.dwTid == GetCurrentThreadId () );
@@ -2804,7 +2839,7 @@ SK_BeginBufferSwap (void)
           task->dwTid      == GetCurrentThreadId () &&
           task->dwFrames++ == 0 )
      {
-       if (SK_GetCurrentGameID () != SK_GAME_ID::AssassinsCreed_Odyssey)
+       if (game_id != SK_GAME_ID::AssassinsCreed_Odyssey)
          task->setPriority (AVRT_PRIORITY_CRITICAL);
        else
          task->setPriority (AVRT_PRIORITY_LOW);
@@ -2819,7 +2854,7 @@ SK_BeginBufferSwap (void)
   }
 
 
-  switch (SK_GetCurrentGameID ())
+  switch (game_id)
   {
     case SK_GAME_ID::Yakuza0:
     {
@@ -2836,8 +2871,6 @@ SK_BeginBufferSwap (void)
   {
     SK_ImGui_LoadFonts ();
   }
-
-
 
   ULONG frames_drawn =
     SK_GetFramesDrawn ();
@@ -2988,7 +3021,7 @@ SK_BeginBufferSwap (void)
 
 
   LastKnownAPI =
-    SK_GetCurrentRenderBackend ().api;
+    rb.api;
 
 
   rb.present_staging.submit.time =
@@ -3110,8 +3143,11 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
   static SK_RenderAPI LastKnownAPI =
          SK_RenderAPI::Reserved;
 
-  SK_RenderBackend& rb =
+  static auto& rb =
     SK_GetCurrentRenderBackend ();
+
+  static const auto&
+    game_id = SK_GetCurrentGameID ();
 
   assert ( ReadAcquire (&rb.thread) == (LONG)GetCurrentThreadId () ||
            LastKnownAPI             ==       SK_RenderAPI::Reserved );
@@ -3248,7 +3284,7 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
   if ( static_cast <int> (rb.api)  &
        static_cast <int> (SK_RenderAPI::D3D12) )
   {
-        BOOL fullscreen = FALSE;
+    BOOL fullscreen = FALSE;
 
     CComPtr                          <IDXGISwapChain>   pSwapChain = nullptr;
     if (rb.swapchain)
@@ -3268,7 +3304,7 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
   }
 
 
-  switch (SK_GetCurrentGameID ())
+  switch (game_id)
   {
     case SK_GAME_ID::Shenmue:
       extern volatile LONG  __SK_SHENMUE_FinishedButNotPresented;
@@ -3305,7 +3341,10 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
   }
 
 
-  if (SK_GetCurrentGameID () == SK_GAME_ID::FinalFantasyXV)
+  static const bool bFFXV =
+    (game_id == SK_GAME_ID::FinalFantasyXV);
+
+  if (bFFXV)
   {
     void SK_FFXV_SetupThreadPriorities (void);
          SK_FFXV_SetupThreadPriorities ();
@@ -3390,3 +3429,20 @@ SK_ImGui_WidgetRegistry SK_ImGui_Widgets;
 #else
 #pragma comment (lib, R"(depends\lib\DirectXTex\Win32\DirectXTex.lib)")
 #endif
+
+
+HANDLE
+WINAPI
+SK_CreateEvent (
+  _In_opt_ LPSECURITY_ATTRIBUTES lpEventAttributes,
+  _In_     BOOL                  bManualReset,
+  _In_     BOOL                  bInitialState,
+  _In_opt_ LPCWSTR               lpName )
+{
+  //SK_LOG_CALL ("CreateEventW");
+
+  return
+    CreateEventW (
+      lpEventAttributes, bManualReset, bInitialState, lpName
+    );
+}

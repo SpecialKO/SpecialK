@@ -246,8 +246,7 @@ SK::ControlPanel::D3D11::Draw (void)
 
       bool tracking = false;
 
-      if (           szThreadLocalStr != nullptr &&
-          ( ReadAcquire (&SK_D3D11_DrawTrackingReqs) > 0 ||
+      if ( ( ReadAcquire (&SK_D3D11_DrawTrackingReqs) > 0 ||
             SK_ReShade_DrawCallback.fn != nullptr  )        )
       {
         tracking = true;
@@ -431,8 +430,6 @@ SK::ControlPanel::D3D11::Draw (void)
 
     if (ImGui::CollapsingHeader ("Texture Management"))
     {
-      static bool orig_cache = config.textures.d3d11.cache;
-
       ImGui::TreePush ("");
       ImGui::Checkbox ("Enable Texture Caching", &config.textures.d3d11.cache); 
 
@@ -440,6 +437,8 @@ SK::ControlPanel::D3D11::Draw (void)
       {
         ImGui::BeginTooltip    ();
         ImGui::TextUnformatted ("Reduces Driver Memory Management Overhead in Games that Stream Textures");
+
+        static bool orig_cache = config.textures.d3d11.cache;
 
         if (orig_cache)
         {
@@ -689,7 +688,7 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
 
     if (SUCCEEDED (pSwapDXGI->GetDesc (&swap_desc)))
     {
-      SK_RenderBackend& rb =
+      static SK_RenderBackend& rb =
         SK_GetCurrentRenderBackend ();
 
       CComPtr <ID3D11DeviceContext>   pDevCtx;

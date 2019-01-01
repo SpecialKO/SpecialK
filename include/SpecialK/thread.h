@@ -312,16 +312,12 @@ struct SK_MMCS_TaskEntry {
 
   BOOL disassociateWithTask (void)
   {
-    return TRUE;
-
     return
       AvRevertMmThreadCharacteristics (hTask);
   }
 
   HANDLE reassociateWithTask (void)
   {
-    return hTask;
-
     hTask =
       AvSetMmMaxThreadCharacteristicsA (task0, task1, &dwTaskIdx);
 

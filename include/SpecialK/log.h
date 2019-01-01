@@ -289,4 +289,14 @@ SK_SummarizeCaller (LPVOID lpReturnAddr = _ReturnAddress ());
 #define SK_LOG4(expr,src) SK_LOG(expr,4,src)
 
 
+extern
+HANDLE
+WINAPI
+SK_CreateEvent (
+  _In_opt_ LPSECURITY_ATTRIBUTES lpEventAttributes,
+  _In_     BOOL                  bManualReset,
+  _In_     BOOL                  bInitialState,
+  _In_opt_ LPCWSTR               lpName );
+
+
 #endif /* __SK__LOG_H__ */

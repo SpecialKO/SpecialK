@@ -630,7 +630,7 @@ SK_PlugIn_ControlPanelWidget (void)
 void
 DisplayModeMenu (bool windowed)
 {
-  SK_RenderBackend& rb =
+  static SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   enum {
@@ -1033,7 +1033,8 @@ SK_ImGui_ControlPanel (void)
         }
 
 
-        SK_RenderBackend& rb = SK_GetCurrentRenderBackend ();
+        static SK_RenderBackend& rb =
+          SK_GetCurrentRenderBackend ();
 
         bool supports_texture_mods =
         //( static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D9)  ) ||
@@ -1661,7 +1662,7 @@ SK_ImGui_ControlPanel (void)
     }
   }
 
-  SK_RenderBackend& rb =
+  static SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
           char szAPIName [32] = { };
@@ -1837,8 +1838,6 @@ SK_ImGui_ControlPanel (void)
     }
 
 
-    bool show_10bit_gsync_option = config.nvidia.bugs.fix_10bit_gsync;
-
     if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status)
     {
       char szGSyncStatus [128] = { };
@@ -1849,11 +1848,6 @@ SK_ImGui_ControlPanel (void)
         if (rb.gsync_state.active)
         {
           strcat (szGSyncStatus, "Active");
-
-          if (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_RGB10A2)
-          {
-            show_10bit_gsync_option = true;
-          }
         }
         else
           strcat (szGSyncStatus, "Inactive");
@@ -1869,32 +1863,6 @@ SK_ImGui_ControlPanel (void)
       if (rb.api == SK_RenderAPI::OpenGL && ImGui::IsItemHovered ())
       {
         ImGui::SetTooltip ("The NVIDIA driver API does not report this status in OpenGL.");
-      }
-    }
-
-    static bool original_bypass = config.nvidia.bugs.fix_10bit_gsync;
-
-    if (show_10bit_gsync_option || original_bypass)
-    {
-      if (ImGui::Checkbox ("Workaround G-Sync + 10-bit Color", &config.nvidia.bugs.fix_10bit_gsync))
-      {
-        config.window.borderless             = config.nvidia.bugs.fix_10bit_gsync;
-        config.window.fullscreen             = config.nvidia.bugs.fix_10bit_gsync;
-        config.render.framerate.flip_discard = config.nvidia.bugs.fix_10bit_gsync;
-      }
-
-      if (ImGui::IsItemHovered ())
-      {
-        ImGui::SetTooltip ("Fix red/green color banding by rendering to an 8-bit Flip Model (advanced window mode) swapchain");
-      }
-
-      if (original_bypass != config.nvidia.bugs.fix_10bit_gsync)
-      {
-        ImGui::SameLine ();
-
-        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.3f, .8f, .9f));
-        ImGui::BulletText     ("Game Restart Required");
-        ImGui::PopStyleColor  ();
       }
     }
 
@@ -2534,7 +2502,7 @@ SK_ImGui_StageNextFrame (void)
   bool d3d12 = false;
   bool gl    = false;
 
-  SK_RenderBackend& rb =
+  static SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   if (rb.api == SK_RenderAPI::OpenGL)
@@ -3115,7 +3083,7 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
     d3d9 = true;
 
     CComQIPtr <IDirect3DDevice9> pDev (
-      SK_GetCurrentRenderBackend ().device
+      rb.device
     );
 
     if ( SUCCEEDED (
@@ -3208,7 +3176,7 @@ SK_ImGui_Toggle (void)
   bool d3d9  = false;
   bool gl    = false;
 
-  SK_RenderBackend& rb =
+  static SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   if (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D9) )  d3d9  = true;

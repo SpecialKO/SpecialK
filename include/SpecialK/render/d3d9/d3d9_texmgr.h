@@ -500,13 +500,13 @@ public:
     TextureThreadPool (void)/// 
     {
       events_.jobs_added =
-        CreateEvent (nullptr, TRUE, FALSE, nullptr);
+        SK_CreateEvent (nullptr, TRUE, FALSE, nullptr);
   
       events_.results_waiting =
-        CreateEvent (nullptr, TRUE, FALSE, nullptr);
+        SK_CreateEvent (nullptr, TRUE, FALSE, nullptr);
   
       events_.shutdown =
-        CreateEvent (nullptr, FALSE, FALSE, nullptr);
+        SK_CreateEvent (nullptr, FALSE, FALSE, nullptr);
   
       InitializeCriticalSectionAndSpinCount (&cs_jobs,     100UL);
       InitializeCriticalSectionAndSpinCount (&cs_results, 1000UL);

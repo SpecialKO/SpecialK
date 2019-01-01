@@ -39,7 +39,7 @@ SK::ControlPanel::Compatibility::Draw (void)
 {
   if ( ImGui::CollapsingHeader ("Compatibility Settings###SK_CPL") )
   {
-    SK_RenderBackend& rb =
+    static SK_RenderBackend& rb =
       SK_GetCurrentRenderBackend ();
 
     ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.02f, 0.68f, 0.90f, 0.45f));

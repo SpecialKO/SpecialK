@@ -57,9 +57,10 @@ public:
     //type_      = std::type_index (typeid (iParameter));
   }
 
-  virtual std::wstring get_value_str (void)               = 0;
-  virtual void         set_value_str (const wchar_t *str) = 0;
-  virtual void         set_value_str (std::wstring&  str) = 0;
+  virtual std::wstring get_value_str (void)                     = 0;
+  virtual void         set_value_str (const wchar_t *str)       = 0;
+//virtual void         set_value_str (      std::wstring&  str) = 0;
+  virtual void         set_value_str (const std::wstring&  str) = 0;
 
   // Read value from INI
   bool load (void);
@@ -90,18 +91,17 @@ class Parameter : public iParameter {
 public:
   typedef _T           value_type;
 
-  virtual std::wstring get_value_str (void)               = 0;
-  virtual value_type   get_value     (void)               = 0;
+  virtual std::wstring get_value_str (void)                    = 0;
+  virtual value_type   get_value     (void)                    = 0;
 
-  virtual void         set_value     (value_type     val) = 0;
-  virtual void         set_value_str (const wchar_t* str) = 0;
-  virtual void         set_value_str (std::wstring&  str) = 0;
+  virtual void         set_value     (      value_type    val) = 0;
+  virtual void         set_value_str (const wchar_t*      str) = 0;
+  virtual void         set_value_str (const std::wstring& str) = 0;
 
-  virtual void         store         (value_type     val) = 0;
-  virtual void         store_str     (const wchar_t* str) = 0;
-  virtual void         store_str     (std::wstring&  str) = 0;
-
-  virtual bool         load          (value_type&    ref) = 0;
+  virtual void         store         (      value_type    val) = 0;
+  virtual void         store_str     (const wchar_t*      str) = 0;
+  virtual void         store_str     (const std::wstring& str) = 0;
+  virtual bool         load          (      value_type&   ref) = 0;
 
 protected:
           value_type   value = { };
@@ -115,52 +115,52 @@ public:
     type_ = std::type_index (typeid (int));
   }
 
-  virtual std::wstring get_value_str (void)               override;
-  virtual int          get_value     (void)               override;
+  virtual std::wstring get_value_str (void)                     override;
+  virtual int          get_value     (void)                     override;
 
-  virtual void         set_value     (int            val) override;
-  virtual void         set_value_str (const wchar_t *str) override;
-  virtual void         set_value_str (std::wstring&  str) override;
+  virtual void         set_value     (      int            val) override;
+  virtual void         set_value_str (const wchar_t       *str) override;
+  virtual void         set_value_str (const std::wstring&  str) override;
 
-  virtual void         store         (int            val) override;
-  virtual void         store_str     (const wchar_t *str) override;
-  virtual void         store_str     (std::wstring&  str) override;
+  virtual void         store         (      int            val) override;
+  virtual void         store_str     (const wchar_t       *str) override;
+  virtual void         store_str     (const std::wstring&  str) override;
 
-  virtual bool         load          (int&           ref) override;
+  virtual bool         load          (      int&           ref) override;
 };
 
 class ParameterInt64 : public Parameter <int64_t>
 {
 public:
-  virtual std::wstring get_value_str (void)               override;
-  virtual int64_t      get_value     (void)               override;
+  virtual std::wstring get_value_str (void)                     override;
+  virtual int64_t      get_value     (void)                     override;
 
-  virtual void         set_value     (int64_t        val) override;
-  virtual void         set_value_str (const wchar_t *str) override;
-  virtual void         set_value_str (std::wstring&  str) override;
+  virtual void         set_value     (      int64_t        val) override;
+  virtual void         set_value_str (const wchar_t       *str) override;
+  virtual void         set_value_str (const std::wstring&  str) override;
 
-  virtual void         store         (int64_t        val) override;
-  virtual void         store_str     (const wchar_t *str) override;
-  virtual void         store_str     (std::wstring&  str) override;
+  virtual void         store         (      int64_t        val) override;
+  virtual void         store_str     (const wchar_t       *str) override;
+  virtual void         store_str     (const std::wstring&  str) override;
 
-  virtual bool         load          (int64_t&       ref) override;
+  virtual bool         load          (      int64_t&       ref) override;
 };
 
 class ParameterBool : public Parameter <bool>
 {
 public:
-  virtual std::wstring get_value_str (void)               override;
-  virtual bool         get_value     (void)               override;
+  virtual std::wstring get_value_str (void)                    override;
+  virtual bool         get_value     (void)                    override;
 
-  virtual void         set_value     (bool           val) override;
-  virtual void         set_value_str (const wchar_t* str) override;
-  virtual void         set_value_str (std::wstring&  str) override;
+  virtual void         set_value     (      bool          val) override;
+  virtual void         set_value_str (const wchar_t*      str) override;
+  virtual void         set_value_str (const std::wstring& str) override;
 
-  virtual void         store         (bool           val) override;
-  virtual void         store_str     (const wchar_t* str) override;
-  virtual void         store_str     (std::wstring&  str) override;
+  virtual void         store         (      bool          val) override;
+  virtual void         store_str     (const wchar_t*      str) override;
+  virtual void         store_str     (const std::wstring& str) override;
 
-  virtual bool         load          (bool&          ref) override;
+  virtual bool         load          (      bool&         ref) override;
 
   enum boolean_term_t {
     TrueFalse   = 0,
@@ -176,36 +176,36 @@ protected:
 class ParameterFloat : public Parameter <float>
 {
 public:
-  virtual std::wstring get_value_str (void)               override;
-  virtual float        get_value     (void)               override;
+  virtual std::wstring get_value_str (void)                     override;
+  virtual float        get_value     (void)                     override;
 
-  virtual void         set_value     (float          val) override;
-  virtual void         set_value_str (const wchar_t *str) override;
-  virtual void         set_value_str (std::wstring&  str) override;
+  virtual void         set_value     (      float          val) override;
+  virtual void         set_value_str (const wchar_t       *str) override;
+  virtual void         set_value_str (const std::wstring&  str) override;
 
-  virtual void         store         (float          val) override;
-  virtual void         store_str     (const wchar_t *str) override;
-  virtual void         store_str     (std::wstring&  str) override;
+  virtual void         store         (      float          val) override;
+  virtual void         store_str     (const wchar_t       *str) override;
+  virtual void         store_str     (const std::wstring&  str) override;
 
-  virtual bool         load          (float&         ref) override;
+  virtual bool         load          (      float&         ref) override;
 };
 
 class ParameterStringW : public Parameter <std::wstring>
 {
 public:
-  virtual std::wstring get_value_str (void)               override;
-  virtual std::wstring get_value     (void)               override;
+  virtual std::wstring get_value_str (void)                     override;
+  virtual std::wstring get_value     (void)                     override;
 
-  virtual void         set_value     (std::wstring   str) override;
-  virtual void         set_value     (const wchar_t *str);
-  virtual void         set_value_str (const wchar_t *str) override;
-  virtual void         set_value_str (std::wstring&  str) override;
+  virtual void         set_value     (       std::wstring  str) override;
+  virtual void         set_value     (const wchar_t       *str);
+  virtual void         set_value_str (const wchar_t       *str) override;
+  virtual void         set_value_str (const std::wstring&  str) override;
 
-  virtual void         store         (std::wstring   val) override;
-  virtual void         store_str     (const wchar_t *str) override;
-  virtual void         store_str     (std::wstring&  str) override;
+  virtual void         store         (      std::wstring   val) override;
+  virtual void         store_str     (const wchar_t       *str) override;
+  virtual void         store_str     (const std::wstring&  str) override;
 
-  virtual bool         load          (std::wstring&  ref) override;
+  virtual bool         load          (      std::wstring&  ref) override;
 
          std::wstring& get_value_ref (void);
 };
@@ -216,15 +216,15 @@ public:
   virtual std::wstring get_value_str (void)              override;
   virtual ImVec2       get_value     (void)              override;
 
-  virtual void         set_value     (ImVec2         val) override;
-  virtual void         set_value_str (const wchar_t *str) override;
-  virtual void         set_value_str (std::wstring&  str) override;
+  virtual void         set_value     (      ImVec2         val) override;
+  virtual void         set_value_str (const wchar_t       *str) override;
+  virtual void         set_value_str (const std::wstring&  str) override;
 
-  virtual void         store         (ImVec2         val) override;
-  virtual void         store_str     (const wchar_t *str) override;
-  virtual void         store_str     (std::wstring&  str) override;
+  virtual void         store         (      ImVec2         val) override;
+  virtual void         store_str     (const wchar_t       *str) override;
+  virtual void         store_str     (const std::wstring&  str) override;
 
-  virtual bool         load          (ImVec2&        ref) override;
+  virtual bool         load          (      ImVec2&        ref) override;
 };
 
 class ParameterFactory {

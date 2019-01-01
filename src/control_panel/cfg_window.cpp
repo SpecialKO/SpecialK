@@ -33,6 +33,9 @@
 bool
 SK::ControlPanel::Window::Draw (void)
 {
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
   if ( ImGui::CollapsingHeader ("Window Management") )
   {
     ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.02f, 0.68f, 0.90f, 0.45f));
@@ -40,7 +43,7 @@ SK::ControlPanel::Window::Draw (void)
     ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.14f, 0.78f, 0.87f, 0.80f));
     ImGui::TreePush       ("");
 
-    if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) && ImGui::CollapsingHeader ("Style and Position", ImGuiTreeNodeFlags_DefaultOpen))
+    if ((! rb.fullscreen_exclusive) && ImGui::CollapsingHeader ("Style and Position", ImGuiTreeNodeFlags_DefaultOpen))
     {
       ImGui::TreePush ("");
 
@@ -170,7 +173,7 @@ SK::ControlPanel::Window::Draw (void)
         bool moved = false;
 
         HMONITOR hMonitor =
-          MonitorFromWindow ( SK_GetCurrentRenderBackend ().windows.device,
+          MonitorFromWindow ( rb.windows.device,
                                 MONITOR_DEFAULTTONEAREST );
 
         MONITORINFO mi  = { };
@@ -370,7 +373,7 @@ SK::ControlPanel::Window::Draw (void)
       if (ImGui::IsItemHovered ())
         ImGui::SetTooltip ("Mute the Game when Another Window has Input Focus");
 
-      if (! SK_GetCurrentRenderBackend ().fullscreen_exclusive)
+      if (! rb.fullscreen_exclusive)
       {
         ImGui::SameLine ();
 

@@ -271,7 +271,7 @@ public:
   {
     static bool first_widget_run = true;
 
-    auto& rb =
+    static auto& rb =
       SK_GetCurrentRenderBackend ();
 
     if ( __SK_HDR_10BitSwap ||
@@ -362,7 +362,7 @@ public:
     if (! ImGui::GetFont ())
       return;
 
-    auto& rb =
+    static auto& rb =
       SK_GetCurrentRenderBackend ();
 
 
@@ -1085,7 +1085,7 @@ SK_ImGui_DrawGamut (void)
   ImDrawList* draw_list =
     ImGui::GetWindowDrawList ();
   
-  const SK_RenderBackend& rb =
+  static const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   struct color_triangle_s {

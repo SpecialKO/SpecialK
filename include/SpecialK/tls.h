@@ -31,6 +31,7 @@ struct IUnknown;
 #include <cassert>
 //#include <SpecialK/com_util.h>
 //#include <SpecialK/log.h>
+#include <SpecialK/thread.h>
 
 #include <vcruntime_exception.h>
 
@@ -617,11 +618,11 @@ public:
 
   struct most_recent_wait_s
   {
-    HANDLE        handle;
-    LARGE_INTEGER start;
-    LARGE_INTEGER last_wait;
-    LONG          sequence;
-    BOOL          preemptive;
+    HANDLE        handle      = INVALID_HANDLE_VALUE;
+    LARGE_INTEGER start       = LARGE_INTEGER { 0LL, 0LL };
+    LARGE_INTEGER last_wait   = LARGE_INTEGER { 0LL, 0LL };
+    LONG          sequence    =                      0UL;
+    BOOL          preemptive  =                    FALSE;
 
     float getRate (void);
   } mru_wait;
@@ -634,6 +635,16 @@ public:
   SK_TLS                    (DWORD idx) {
     context_record.dwTlsIdx = idx;
     context_record.pTLS     = this;
+
+    if (! DuplicateHandle ( SK_GetCurrentProcess (), SK_GetCurrentThread  (),
+                            SK_GetCurrentProcess (), &debug.handle,
+                            THREAD_ALL_ACCESS,       FALSE,
+                            0
+                          )
+       )
+    {
+      debug.handle = INVALID_HANDLE_VALUE;
+    }
 
     debug.tid               = GetCurrentThreadId ();
     debug.tls_idx           = idx;
@@ -683,8 +694,8 @@ public:
     EXCEPTION_RECORD last_exc      = {   };
     wchar_t          name    [256] = {   };
     HANDLE           handle        = INVALID_HANDLE_VALUE;
-    DWORD            tls_idx;//    =     0;
-    DWORD            tid;//        = GetCurrentThreadId ();
+    DWORD            tls_idx       =     0;
+    DWORD            tid           =     0;
     ULONG            last_frame    = static_cast <ULONG>(-1);
     volatile LONG    exceptions    =     0;
     bool             mapped        = false;

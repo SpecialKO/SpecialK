@@ -674,11 +674,11 @@ SK::D3D9::TextureWorkerThread::TextureWorkerThread (SK::D3D9::TextureThreadPool*
   job_  = nullptr;
 
   control_.start =
-    CreateEvent (nullptr, FALSE, FALSE, nullptr);
+    SK_CreateEvent (nullptr, FALSE, FALSE, nullptr);
   control_.trim =
-    CreateEvent (nullptr, FALSE, FALSE, nullptr);
+    SK_CreateEvent (nullptr, FALSE, FALSE, nullptr);
   control_.shutdown =
-    CreateEvent (nullptr, FALSE, FALSE, nullptr);
+    SK_CreateEvent (nullptr, FALSE, FALSE, nullptr);
 
   thread_id_ = 
     GetThreadId ( ( thread_ =

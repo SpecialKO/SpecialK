@@ -155,9 +155,10 @@ SK_Inject_InitShutdownEvent (void)
     dwHookPID          = GetCurrentProcessId ();
 
     //hShutdownSignal =
-    //  CreateEvent ( nullptr, FALSE, FALSE,
-    //                SK_RunLHIfBitness ( 32, LR"(Local\SK_Injection_Terminate32)",
-    //                                        LR"(Local\SK_Injection_Terminate64)") );
+    //  SK_CreateEvent ( nullptr, FALSE, FhShutdown
+    //                  ALSE,
+    //                     SK_RunLHIfBitness ( 32, LR"(Local\SK_Injection_Terminate32)",
+    //                                             LR"(Local\SK_Injection_Terminate64)") );
   }
 }
 
@@ -394,12 +395,10 @@ SKX_InstallCBTHook (void)
     SK_Inject_InitShutdownEvent ();
 
     if (SK_GetHostAppUtil ().isInjectionTool ())
-      InterlockedIncrement (&injected_procs);
+      InterlockedIncrementRelease (&injected_procs);
 
-    // Shell hooks don't work very well, they run into problems with
-    //   hooking XInput -- CBT is more reliable, but slower.
-    InterlockedExchangePointer ( (PVOID *)&hHookCBT,
-      SetWindowsHookEx (WH_CBT, CBTProc, hMod, 0)
+    InterlockedExchangePointerAcquire ( (PVOID *)&hHookCBT,
+      SetWindowsHookEx (WH_CALLWNDPROC, CBTProc, hMod, 0)
     );
   }
 }
@@ -435,9 +434,9 @@ SKX_RemoveCBTHook (void)
 
   //HANDLE
   //  hShutdownCopy =
-  //    CreateEvent ( nullptr, FALSE, FALSE,
-  //                    SK_RunLHIfBitness ( 32, LR"(Local\SK_Injection_Terminate32)",
-  //                                            LR"(Local\SK_Injection_Terminate64)") );
+  //    SK_CreateEvent ( nullptr, FALSE, FALSE,
+  //                       SK_RunLHIfBitness ( 32, LR"(Local\SK_Injection_Terminate32)",
+  //                                               LR"(Local\SK_Injection_Terminate64)") );
   //if (hShutdownCopy != INVALID_HANDLE_VALUE)
   //{
   //  SetEvent    (hShutdownCopy);

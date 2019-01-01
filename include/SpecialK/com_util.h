@@ -39,15 +39,16 @@ public:
   SK_AutoCOMInit (DWORD dwCoInit = COINIT_MULTITHREADED) :
            init_flags_ (dwCoInit)
   {
-    _assert_not_dllmain ();
+    if (_assert_not_dllmain ())
+    {
+      const HRESULT hr =
+        CoInitializeEx (nullptr, init_flags_);
 
-    const HRESULT hr =
-      CoInitializeEx (nullptr, init_flags_);
-
-    if (SUCCEEDED (hr))
-      success_ = true;
-    else
-      init_flags_ = ~init_flags_;
+      if (SUCCEEDED (hr))
+        success_ = true;
+      else
+        init_flags_ = ~init_flags_;
+    }
   }
 
   ~SK_AutoCOMInit (void)

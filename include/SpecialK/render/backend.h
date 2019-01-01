@@ -232,7 +232,7 @@ public:
 
   struct                 {
     struct sub_event     {
-      LARGE_INTEGER time;
+      LARGE_INTEGER time = LARGE_INTEGER { 0LL, 0LL };
     } submit,
       begin_overlays, 
       begin_cegui,   end_cegui,
@@ -270,9 +270,9 @@ public:
     CComPtr <ID3D11On12Device>    wrapper_dev   = nullptr;
 
     struct {
-      UINT                             buffer_idx;
-      CComPtr <ID3D11Texture2D>        backbuffer_tex2D;
-      CComPtr <ID3D11RenderTargetView> backbuffer_rtv;
+      UINT                             buffer_idx       = UINT_MAX;
+      CComPtr <ID3D11Texture2D>        backbuffer_tex2D = nullptr;
+      CComPtr <ID3D11RenderTargetView> backbuffer_rtv   = nullptr;
     } interop;
     
   } d3d11;

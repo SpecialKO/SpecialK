@@ -425,7 +425,7 @@ SK_MonitorCPU (LPVOID user_param)
   const double update = config.cpu.interval;
 
   cpu.hShutdownSignal =
-    CreateEvent ( nullptr, FALSE, FALSE, L"CPUMon Shutdown Signal" );
+    SK_CreateEvent ( nullptr, FALSE, FALSE, L"CPUMon Shutdown Signal" );
 
   SK_TLS *pTLS =
         SK_TLS_Bottom ();
@@ -610,7 +610,7 @@ SK_MonitorDisk (LPVOID user)
   disk.dwNumReturned = 0;
   disk.dwNumObjects  = 0;
 
-  disk.hShutdownSignal = CreateEvent (nullptr, FALSE, FALSE, L"DiskMon Shutdown Signal");
+  disk.hShutdownSignal = SK_CreateEvent (nullptr, FALSE, FALSE, L"DiskMon Shutdown Signal");
 
   COM::base.wmi.Unlock ();
 
@@ -1031,7 +1031,7 @@ SK_MonitorPagefile (LPVOID user)
   pagefile.pConfig->Release ();
   pagefile.pConfig = nullptr;
 
-  pagefile.hShutdownSignal = CreateEvent (nullptr, FALSE, FALSE, L"Pagefile Monitor Shutdown Signal");
+  pagefile.hShutdownSignal = SK_CreateEvent (nullptr, FALSE, FALSE, L"Pagefile Monitor Shutdown Signal");
 
   COM::base.wmi.Unlock ();
 
@@ -1487,7 +1487,7 @@ SK_MonitorProcess (LPVOID user)
   proc.lID = 1;
 
   proc.hShutdownSignal =
-    CreateEvent (nullptr, FALSE, FALSE, L"ProcMon Shutdown Signal");
+    SK_CreateEvent (nullptr, FALSE, FALSE, L"ProcMon Shutdown Signal");
 
   COM::base.wmi.Unlock ();
 

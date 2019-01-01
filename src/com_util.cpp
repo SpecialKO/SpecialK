@@ -377,7 +377,7 @@ SK_WMI_Init (void)
                                                                               == INVALID_HANDLE_VALUE )
   {
     COM::base.wmi.hShutdownServer =
-      CreateEvent (nullptr, TRUE, FALSE, L"WMI Shutdown");
+      SK_CreateEvent (nullptr, TRUE, FALSE, L"WMI Shutdown");
 
     InterlockedExchangePointer (&COM::base.wmi.hServerThread,
       (HANDLE)
@@ -448,5 +448,12 @@ SK_AutoCOMInit::_assert_not_dllmain (void)
 {
   SK_ASSERT_NOT_DLLMAIN_THREAD ();
 
-  return (! SK_TLS_Bottom ()->debug.in_DllMain);
+  SK_TLS *pTLS =
+    SK_TLS_Bottom ();
+
+  if (pTLS)
+    return (! pTLS->debug.in_DllMain);
+
+  // If we have no TLS, assume it's because we're in DLL main
+  return true;
 }

@@ -169,13 +169,14 @@ SK_CPU_CountPhysicalCores (void)
        (SYSTEM_LOGICAL_PROCESSOR_INFORMATION *)
                 new uint8_t [dwNeededBytes] { };
 
-      DWORD dwOffset = 0;
-
-      if (GetLogicalProcessorInformation_Original (pLogProcInfo, &dwNeededBytes))
+      if (pLogProcInfo != nullptr)
       {
+        if (GetLogicalProcessorInformation_Original (pLogProcInfo, &dwNeededBytes))
+        {
         PSYSTEM_LOGICAL_PROCESSOR_INFORMATION lpi =
           pLogProcInfo;
 
+        DWORD  dwOffset = 0;
         while (dwOffset + sizeof (SYSTEM_LOGICAL_PROCESSOR_INFORMATION) <= dwNeededBytes)
         {
           switch (lpi->Relationship) 
@@ -194,7 +195,8 @@ SK_CPU_CountPhysicalCores (void)
         }
       }
 
-      delete [] pLogProcInfo;
+        delete [] pLogProcInfo;
+      }
     }
   }
 

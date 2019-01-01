@@ -412,8 +412,13 @@ SK::ControlPanel::Steam::Draw (void)
         {
           ImGui::Checkbox ("Include Special K OSD in Screenshots", &config.steam.screenshots.show_osd_by_default);
 
+          static auto& rb =
+            SK_GetCurrentRenderBackend ();
+
           png_changed =
-          ImGui::Checkbox ("Keep Lossless .PNG Screenshots",       &config.steam.screenshots.png_compress       );
+            ImGui::Checkbox ( rb.isHDRCapable () ? "Keep HDR .JXR Screenshots     " :
+                                                   "Keep Lossless .PNG Screenshots",
+                                                                   &config.steam.screenshots.png_compress       );
         }
 
         if ( ( screenshot_manager != nullptr &&

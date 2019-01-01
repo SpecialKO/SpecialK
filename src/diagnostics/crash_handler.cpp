@@ -81,23 +81,13 @@ extern volatile LONG __SK_Init;
 void
 SK_SymSetOpts (void)
 {
-  SK_Thread_HybridSpinlock* lock =
-    (ReadAcquire (&__SK_Init) != 0) ? cs_dbghelp
-                                    : nullptr;
-
-  if (lock)
-      lock->lock ();
-
-  ////std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
   SymSetSearchPathW ( GetCurrentProcess (), SK_GetDebugSymbolPath () );
   SymSetOptions     ( SYMOPT_LOAD_LINES           | SYMOPT_NO_PROMPTS        |
                       SYMOPT_UNDNAME              | SYMOPT_DEFERRED_LOADS    |
                       SYMOPT_OMAP_FIND_NEAREST    | SYMOPT_FAVOR_COMPRESSED  |
                       SYMOPT_FAIL_CRITICAL_ERRORS | SYMOPT_NO_UNQUALIFIED_LOADS);
-
-  if (lock)
-      lock->unlock ();
 }
 
 
@@ -404,8 +394,6 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
-
-  bool&             last_chance = pTLS->debug.last_chance;
 
   CONTEXT&          last_ctx    = pTLS->debug.last_ctx;
   EXCEPTION_RECORD& last_exc    = pTLS->debug.last_exc;
@@ -920,17 +908,15 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
       SK_TerminateProcess (0xdeadbeef);
     }
 
-    last_chance = true;
+    bool& last_chance = pTLS->debug.last_chance;
+          last_chance = true;
 
     WIN32_FIND_DATA fd     = {                  };
     HANDLE          hFind  = INVALID_HANDLE_VALUE;
-    size_t          files  =   0UL;
-    LARGE_INTEGER   liSize = { 0ULL };
 
-    wchar_t wszFindPattern [MAX_PATH * 2] = { };
-
+    wchar_t   wszFindPattern [MAX_PATH * 2] = { };
     lstrcatW (wszFindPattern, SK_GetConfigPath ());
-    lstrcatW (wszFindPattern, L"logs\\*.log");
+    lstrcatW (wszFindPattern,    LR"(logs\*.log)");
 
     hFind =
       FindFirstFileW (wszFindPattern, &fd);
@@ -942,10 +928,10 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
       wchar_t wszTime    [MAX_PATH + 2] = { };
 
       lstrcatW (wszBaseDir, SK_GetConfigPath ( ));
-      lstrcatW (wszBaseDir, L"logs\\");
+      lstrcatW (wszBaseDir, LR"(logs\)");
 
       wcscpy   (wszOutDir, wszBaseDir);
-      lstrcatW (wszOutDir, L"crash\\");
+      lstrcatW (wszOutDir, LR"(crash\)");
 
              time_t now = { };
       struct tm     now_tm;
@@ -961,6 +947,8 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
 
       wchar_t wszOrigPath [MAX_PATH * 2 + 1] = { };
       wchar_t wszDestPath [MAX_PATH * 2 + 1] = { };
+
+      size_t files = 0UL;
 
       do
       {
@@ -1211,17 +1199,9 @@ void
 WINAPI
 SK_SymRefreshModuleList ( HANDLE hProc )
 {
-  SK_Thread_HybridSpinlock* lock =
-    (ReadAcquire (&__SK_Init) != 0) ? cs_dbghelp
-                                    : nullptr;
-
-  if (lock)
-      lock->lock ();
+  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
   SymRefreshModuleList (hProc);
-
-  if (lock)
-      lock->unlock ();
 }
 
 using SteamAPI_SetBreakpadAppID_pfn = void (__cdecl *)( uint32_t unAppID );
@@ -1294,12 +1274,7 @@ CrashHandler::InitSyms (void)
   static volatile LONG               init = 0L;
   if (! InterlockedCompareExchange (&init, 1, 0))
   {
-    SK_Thread_HybridSpinlock* lock =
-      (ReadAcquire (&__SK_Init) != 0) ? cs_dbghelp
-                                      : nullptr;
-
-    if (lock != nullptr)
-        lock->lock ();
+    std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
     SymCleanup (SK_GetCurrentProcess ());
 
@@ -1308,7 +1283,7 @@ CrashHandler::InitSyms (void)
         nullptr,
           FALSE );
 
-    SK_SymSetOpts ();
+    SK_RunOnce (SK_SymSetOpts ());
 
     SymRefreshModuleList (SK_GetCurrentProcess ());
 
@@ -1319,8 +1294,5 @@ CrashHandler::InitSyms (void)
     ///  if (! config.steam.silent)
     ///    SK_BypassSteamCrashHandler ();
     ///}
-
-    if (lock)
-        lock->unlock ();
   }
 }

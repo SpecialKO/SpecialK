@@ -143,8 +143,11 @@ iSK_INI::iSK_INI (const wchar_t* filename)
 
       for (int i = 0; i < size; i += 2)
       {
-        *wszSwapMe++ =
-           _byteswap_ushort (*wszSwapMe);
+        unsigned short swapped =
+          _byteswap_ushort (*wszSwapMe);
+
+        (*wszSwapMe) = swapped;
+        ++wszSwapMe;
       }
 
       ++wszData; // Skip the BOM
@@ -1215,8 +1218,12 @@ iSK_INI::import_file (const wchar_t* fname)
 
       for (int i = 0; i < size; i += 2)
       {
-        *wszSwapMe++ =
-           _byteswap_ushort (*wszSwapMe);
+        unsigned short swapped =
+          _byteswap_ushort (*wszSwapMe);
+
+        (*wszSwapMe) = swapped;
+
+        ++wszSwapMe;
       }
 
       ++wszImportData; // Skip the BOM

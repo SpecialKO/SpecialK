@@ -634,7 +634,6 @@ SKX_SetPluginName            = SKX_SetPluginName              ; No more C++ stri
 RunDLL_ElevateMe             = RunDLL_ElevateMe               PRIVATE
 RunDLL_RestartGame           = RunDLL_RestartGame             PRIVATE
 RunDLL_InjectionManager      = RunDLL_InjectionManager        PRIVATE
-RunDLL_D3D12Test             = RunDLL_D3D12Test               PRIVATE
 
 
 SKX_InstallCBTHook           = SKX_InstallCBTHook
