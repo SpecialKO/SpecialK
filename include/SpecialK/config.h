@@ -478,7 +478,7 @@ struct sk_config_t
       bool    override          = false;
     } sli;
     struct {
-      bool    fix_10bit_gsync   = false;
+    //bool    fix_10bit_gsync   = false;
     } bugs;
   } nvidia;
 
@@ -793,7 +793,8 @@ enum class SK_GAME_ID
   UNKNOWN_GAME               = 0xffff
 };
 
-SK_GAME_ID
+__forceinline
+const SK_GAME_ID&
 __stdcall
 SK_GetCurrentGameID (void);
 

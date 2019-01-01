@@ -59,7 +59,8 @@ sk::ParameterFactory g_ParameterFactory;
 
 static std::unordered_map <std::wstring, SK_GAME_ID> games;
 
-SK_GAME_ID
+__forceinline
+const SK_GAME_ID&
 __stdcall
 SK_GetCurrentGameID (void)
 {
@@ -77,7 +78,12 @@ SK_GetCurrentGameID (void)
     if (current_game == SK_GAME_ID::UNKNOWN_GAME)
     {
       if ( StrStrIW ( SK_GetHostApp (), L"ffxv" ) )
+      {
         current_game = SK_GAME_ID::FinalFantasyXV;
+
+        extern void SK_FFXV_InitPlugin (void);
+                    SK_FFXV_InitPlugin ();
+      }
     }
   }
 
@@ -287,7 +293,7 @@ struct {
 
   struct
   {
-    sk::ParameterBool*    fix_10bit_gsync;
+  //sk::ParameterBool*    fix_10bit_gsync;
   } bugs;
 } nvidia;
 
@@ -795,7 +801,7 @@ auto DeclKeybind =
     ConfigEntry (input.cursor.no_warp_ui,                L"Prevent Games from Warping Cursor while Config UI is Open", dll_ini,         L"Input.Cursor",          L"NoWarpUI"),
     ConfigEntry (input.cursor.no_warp_visible,           L"Prevent Games from Warping Cursor while Cursor is Visible", dll_ini,         L"Input.Cursor",          L"NoWarpVisibleGameCursor"),
 
-    ConfigEntry (input.gamepad.disabled_to_game,         L"Disable ALL Gamepad Input (acrossall APIs)",                dll_ini,         L"Input.Gamepad",         L"DisabledToGame"),
+    ConfigEntry (input.gamepad.disabled_to_game,         L"Disable ALL Gamepad Input (across all APIs)",               dll_ini,         L"Input.Gamepad",         L"DisabledToGame"),
     ConfigEntry (input.gamepad.disable_ps4_hid,          L"Disable PS4 HID Interface (prevent double-input)",          dll_ini,         L"Input.Gamepad",         L"DisablePS4HID"),
     ConfigEntry (input.gamepad.haptic_ui,                L"Give tactile feedback on gamepads when navigating the UI",  dll_ini,         L"Input.Gamepad",         L"AllowHapticUI"),
     ConfigEntry (input.gamepad.hook_dinput8,             L"Install hooks for DirectInput 8",                           dll_ini,         L"Input.Gamepad",         L"EnableDirectInput8"),
@@ -814,6 +820,7 @@ auto DeclKeybind =
 
     // Thread Monitoring
     //////////////////////////////////////////////////////////////////////////
+
     ConfigEntry (threads.enable_mem_alloc_trace,         L"Trace per-Thread Memory Allocation in Threads Widget",      dll_ini,         L"Threads.Analyze",       L"MemoryAllocation"),
     ConfigEntry (threads.enable_file_io_trace,           L"Trace per-Thread File I/O Activity in Threads Widget",      dll_ini,         L"Threads.Analyze",       L"FileActivity"),
 
@@ -958,7 +965,7 @@ auto DeclKeybind =
     ConfigEntry (render.dxgi.msaa_samples,               L"Override ON-SCREEN Multisample Antialiasing Level;-1=None", dll_ini,         L"Render.DXGI",           L"OverrideMSAA"),
     ConfigEntry (render.dxgi.skip_present_test,          L"Nix the swapchain present flag: DXGI_PRESENT_TEST to "
                                                          L"workaround bad third-party software that doesn't handle it"
-                                                         L" incorrectly.",                                             dll_ini,         L"Render.DXGI",           L"SkipSwapChainPresentTest"),
+                                                         L" correctly.",                                               dll_ini,         L"Render.DXGI",           L"SkipSwapChainPresentTest"),
 
 
     ConfigEntry (texture.d3d11.cache,                    L"Cache Textures",                                            dll_ini,         L"Textures.D3D11",        L"Cache"),
@@ -973,8 +980,8 @@ auto DeclKeybind =
     ConfigEntry (texture.cache.max_entries,              L"Maximum Cached Textures",                                   dll_ini,         L"Textures.Cache",        L"MaxEntries"),
     ConfigEntry (texture.cache.min_evict,                L"Minimum Textures to Evict",                                 dll_ini,         L"Textures.Cache",        L"MinEvict"),
     ConfigEntry (texture.cache.max_evict,                L"Maximum Textures to Evict",                                 dll_ini,         L"Textures.Cache",        L"MaxEvict"),
-    ConfigEntry (texture.cache.min_size,                 L"Minimum Textures to Evict",                                 dll_ini,         L"Textures.Cache",        L"MinSizeInMiB"),
-    ConfigEntry (texture.cache.max_size,                 L"Maximum Textures to Evict",                                 dll_ini,         L"Textures.Cache",        L"MaxSizeInMiB"),
+    ConfigEntry (texture.cache.min_size,                 L"Minimum Data Size to Evict",                                dll_ini,         L"Textures.Cache",        L"MinSizeInMiB"),
+    ConfigEntry (texture.cache.max_size,                 L"Maximum Data Size to Evict",                                dll_ini,         L"Textures.Cache",        L"MaxSizeInMiB"),
 
     ConfigEntry (texture.cache.ignore_non_mipped,        L"Ignore textures without mipmaps?",                          dll_ini,         L"Textures.Cache",        L"IgnoreNonMipmapped"),
     ConfigEntry (texture.cache.allow_staging,            L"Enable texture caching/dumping/injecting staged textures",  dll_ini,         L"Textures.Cache",        L"AllowStaging"),
@@ -988,10 +995,6 @@ auto DeclKeybind =
     ConfigEntry (nvidia.sli.num_gpus,                    L"SLI GPU Count",                                             dll_ini,         L"NVIDIA.SLI",            L"NumberOfGPUs"),
     ConfigEntry (nvidia.sli.mode,                        L"SLI Mode",                                                  dll_ini,         L"NVIDIA.SLI",            L"Mode"),
     ConfigEntry (nvidia.sli.override,                    L"Override Driver Defaults",                                  dll_ini,         L"NVIDIA.SLI",            L"Override"),
-
-    // Never had much luck getting NVIDIA to fix any bug or even acknowledge they received a bug report, so... they get their own INI section!
-    ConfigEntry (nvidia.bugs.fix_10bit_gsync,            L"Fix red/green contouring artifacts in games that use 10-bit"
-                                                         L"color.",                                                    dll_ini,         L"NVIDIA.Bugs",           L"Fix10BitGSync"),
 
     ConfigEntry (amd.adl.disable,                        L"Disable AMD's ADL library",                                 dll_ini,         L"AMD.ADL",               L"Disable"),
 
@@ -1039,7 +1042,7 @@ auto DeclKeybind =
     ConfigEntry (steam.social.online_status,             L"Always apply a social state (defined by EPersonaState) at"
                                                          L" application start",                                        dll_ini,         L"Steam.Social",          L"OnlineStatus"),
     ConfigEntry (steam.system.dll_path,                  L"Path to a known-working SteamAPI dll for this game.",       dll_ini,         L"Steam.System",          L"SteamPipeDLL"),
-    ConfigEntry (steam.callbacks.throttle,               L"-1=Unlimited, 0-oo=Upper bound limit to SteaAPI rate",      dll_ini,         L"Steam.System",          L"CallbackThrottle"),
+    ConfigEntry (steam.callbacks.throttle,               L"-1=Unlimited, 0-oo=Upper bound limit to SteamAPI rate",     dll_ini,         L"Steam.System",          L"CallbackThrottle"),
 
     // This option is per-game, since it has potential compatibility issues...
     ConfigEntry (steam.screenshots.smart_capture,        L"Enhanced screenshot speed and HUD options; D3D11-only.",    dll_ini,         L"Steam.Screenshots",     L"EnableSmartCapture"),
@@ -2012,8 +2015,6 @@ auto DeclKeybind =
   nvidia.sli.mode->load                     (config.nvidia.sli.mode);
   nvidia.sli.num_gpus->load                 (config.nvidia.sli.num_gpus);
   nvidia.sli.override->load                 (config.nvidia.sli.override);
-
-  nvidia.bugs.fix_10bit_gsync->load         (config.nvidia.bugs.fix_10bit_gsync);
 
   render.framerate.wait_for_vblank->load    (config.render.framerate.wait_for_vblank);
   render.framerate.buffer_count->load       (config.render.framerate.buffer_count);
@@ -3127,8 +3128,6 @@ SK_SaveConfig ( std::wstring name,
     nvidia.sli.mode->store                    (config.nvidia.sli.mode);
     nvidia.sli.num_gpus->store                (config.nvidia.sli.num_gpus);
     nvidia.sli.override->store                (config.nvidia.sli.override);
-
-    nvidia.bugs.fix_10bit_gsync->store        (config.nvidia.bugs.fix_10bit_gsync);
 
     if (  SK_IsInjected ()                       ||
         ( SK_GetDLLRole () & DLL_ROLE::DInput8 ) ||
