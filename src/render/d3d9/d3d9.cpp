@@ -490,9 +490,9 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
 
 
 
-  InterlockedIncrement (&__cegui_frames_drawn);
+  InterlockedIncrementAcquire (&__cegui_frames_drawn);
 
-  if (InterlockedCompareExchange (&__gui_reset, FALSE, TRUE))
+  if (InterlockedCompareExchangeRelease (&__gui_reset, FALSE, TRUE))
   {
     if ((uintptr_t)cegD3D9 > 1)
     {
@@ -723,7 +723,7 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
 void
 SK_CEGUI_QueueResetD3D9 (void)
 {
-  InterlockedExchange (&__gui_reset, TRUE);
+  InterlockedExchangeAcquire (&__gui_reset, TRUE);
 }
 
 
@@ -851,7 +851,7 @@ SK_HookD3D9 (void)
 {
   static volatile LONG hooked = FALSE;
 
-  if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
+  if (! InterlockedCompareExchangeAcquire (&hooked, TRUE, FALSE))
   {
     // XXX: Kind of a hack, we may need to implicitly load-up D3D9.DLL so
     //        we can wait for VBlank in OpenGL..
@@ -962,7 +962,7 @@ SK_HookD3D9 (void)
     SK_RunLHIfBitness ( 64, SK_LoadPlugIns64 (),
                             SK_LoadPlugIns32 () );
 
-    InterlockedIncrement (&hooked);
+    InterlockedIncrementRelease (&hooked);
   }
 
   SK_Thread_SpinUntilAtomicMin (&hooked, 2);
@@ -3809,8 +3809,8 @@ SK_D3D9_HookDeviceAndSwapchain (
   // 118 CreateQuery
 
 
-  static volatile LONG               __hooked      = FALSE;
-  if (! InterlockedCompareExchange (&__hooked, TRUE, FALSE))
+  static volatile LONG                      __hooked      = FALSE;
+  if (! InterlockedCompareExchangeAcquire (&__hooked, TRUE, FALSE))
   {
     if (! LocalHook_D3D9TestCooperativeLevel.active)
     {
@@ -4197,7 +4197,7 @@ SK_D3D9_HookDeviceAndSwapchain (
 
     pDevice->Release ();
 
-    InterlockedIncrement (&__hooked);
+    InterlockedIncrementRelease (&__hooked);
   }
 
   SK_Thread_SpinUntilAtomicMin (&__hooked, 2);
@@ -4977,7 +4977,7 @@ HookD3D9 (LPVOID user)
 
   static volatile LONG __hooked = FALSE;
 
-  if (! InterlockedCompareExchange (&__hooked, TRUE, FALSE))
+  if (! InterlockedCompareExchangeAcquire (&__hooked, TRUE, FALSE))
   {
     SK_TLS* pTLS =
       SK_TLS_Bottom ();
@@ -5157,11 +5157,11 @@ HookD3D9 (LPVOID user)
           }
         }
 
-        InterlockedExchange  (&__d3d9_ready, TRUE);
+        WriteRelease (&__d3d9_ready, TRUE);
       }
     }
 
-    InterlockedIncrement (&__hooked);
+    InterlockedIncrementRelease (&__hooked);
   }
 
   SK_Thread_SpinUntilAtomicMin (&__hooked, 2);
@@ -8078,7 +8078,7 @@ SK_D3D9_ShouldSkipRenderPass (D3DPRIMITIVETYPE /*PrimitiveType*/, UINT/* Primiti
 
   if (tracking_vs)
   {
-    InterlockedIncrement (&tracked_vs.num_draws);
+    InterlockedIncrementAcquire (&tracked_vs.num_draws);
 
     for (auto& current_texture : tracked_vs.current_textures)
     {
@@ -8112,7 +8112,7 @@ SK_D3D9_ShouldSkipRenderPass (D3DPRIMITIVETYPE /*PrimitiveType*/, UINT/* Primiti
   {
     SK_AutoCriticalSection auto_cs (&cs_ps);
 
-    InterlockedIncrement (&tracked_ps.num_draws);
+    InterlockedIncrementAcquire (&tracked_ps.num_draws);
 
     for ( auto& current_texture : tracked_ps.current_textures )
     {
@@ -8340,7 +8340,7 @@ SK_D3D9_QuickHook (void)
 
   static volatile LONG quick_hooked = FALSE;
 
-  if (! InterlockedCompareExchange (&quick_hooked, TRUE, FALSE))
+  if (! InterlockedCompareExchangeAcquire (&quick_hooked, TRUE, FALSE))
   {
     sk_hook_cache_enablement_s state =
       SK_Hook_PreCacheModule ( L"D3D9",
@@ -8363,7 +8363,7 @@ SK_D3D9_QuickHook (void)
       }
     }
 
-    InterlockedIncrement (&quick_hooked);
+    InterlockedIncrementRelease (&quick_hooked);
   }
 
   SK_Thread_SpinUntilAtomicMin (&quick_hooked, 2);

@@ -264,7 +264,7 @@ SK_HookDDraw (void)
 {
   static volatile LONG hooked = FALSE;
 
-  if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
+  if (! InterlockedCompareExchangeAcquire (&hooked, TRUE, FALSE))
   {
     SK_TLS_Bottom ()->ddraw.ctx_init_thread = true;
 
@@ -405,7 +405,7 @@ SK_HookDDraw (void)
     SK_BootDXGI         ();
     SK_ApplyQueuedHooks ();
 
-    InterlockedIncrement (&hooked);
+    InterlockedIncrementRelease (&hooked);
   }
 
   SK_Thread_SpinUntilAtomicMin (&hooked, 2);

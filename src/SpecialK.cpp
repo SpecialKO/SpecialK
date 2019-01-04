@@ -259,7 +259,7 @@ DllMain ( HMODULE hModule,
       else
         return TRUE;
 
-      InterlockedExchange (
+      WriteULongRelease (
         &__SK_TLS_INDEX,
           FlsAlloc (nullptr)
       );
@@ -321,7 +321,7 @@ DllMain ( HMODULE hModule,
       if (! SK_Attach (SK_GetDLLRole ()))               return EarlyOut (FALSE);
 
 
-      InterlockedIncrement (&__SK_DLL_Refs);
+      InterlockedIncrementRelease (&__SK_DLL_Refs);
 
 
       // If we got this far, it's because this is an injection target
@@ -341,7 +341,7 @@ DllMain ( HMODULE hModule,
     {
       SK_Thread_ScopedPriority prio_boost (THREAD_PRIORITY_HIGHEST);
 
-      if (! InterlockedCompareExchange (&__SK_DLL_Ending, TRUE, FALSE))
+      if (! InterlockedCompareExchangeRelease (&__SK_DLL_Ending, TRUE, FALSE))
       {
         // If the DLL being unloaded is the source of a global hook, then
         //   shut that down before detaching the DLL.
@@ -372,7 +372,9 @@ DllMain ( HMODULE hModule,
         if ( tls_slot != nullptr &&
              tls_slot->dwTlsIdx  == ReadULongAcquire (&__SK_TLS_INDEX) )
         {
-          FlsFree (tls_slot->dwTlsIdx);
+          FlsFree (
+              tls_slot->dwTlsIdx
+          );
 
           if (        pTLS != nullptr )
                delete pTLS;
@@ -381,10 +383,13 @@ DllMain ( HMODULE hModule,
 
       else
       {
-        FlsFree (ReadULongAcquire (&__SK_TLS_INDEX));
+        FlsFree (
+          InterlockedCompareExchangeRelease ( &__SK_TLS_INDEX, TLS_OUT_OF_INDEXES,
+                     ReadULongAcquire      (  &__SK_TLS_INDEX                      )
+                                            ) 
+                );
       }
 
-      InterlockedExchange (&__SK_TLS_INDEX, TLS_OUT_OF_INDEXES);
 #ifdef DEBUG
       else {
       //Sanity FAILURE: Attempt to detach something that was not properly attached?!
@@ -397,11 +402,11 @@ DllMain ( HMODULE hModule,
 
     case DLL_THREAD_ATTACH:
     {
-      InterlockedIncrement (&lLastThreadCreate);
+      InterlockedIncrementAcquire (&lLastThreadCreate);
 
       if (ReadAcquire (&__SK_DLL_Attached))
       {
-        InterlockedIncrement (&__SK_Threads_Attached);
+        InterlockedIncrementAcquire (&__SK_Threads_Attached);
 
         SK_TLS *pTLS =
           SK_TLS_Bottom ();
@@ -417,7 +422,7 @@ DllMain ( HMODULE hModule,
 
     case DLL_THREAD_DETACH:
     {
-      InterlockedIncrement (&lLastThreadCreate);
+      InterlockedIncrementRelease (&lLastThreadCreate);
 
       if (ReadAcquire (&__SK_DLL_Attached))
       {
@@ -493,15 +498,16 @@ SK_DontInject (void)
   _HasLocalDll = true;
 
   LONG idx_to_free =
-    ReadULongAcquire (&__SK_TLS_INDEX);
+    InterlockedCompareExchangeRelease ( &__SK_TLS_INDEX, TLS_OUT_OF_INDEXES,
+                      ReadULongAcquire (&__SK_TLS_INDEX) );
 
   if (idx_to_free != TLS_OUT_OF_INDEXES)
   {
     FlsFree (idx_to_free);
   }
 
-  SK_SetDLLRole       (DLL_ROLE::INVALID);
-  InterlockedExchange (&__SK_DLL_Attached, FALSE);
+  SK_SetDLLRole              (DLL_ROLE::INVALID);
+  InterlockedExchangeAcquire (&__SK_DLL_Attached, FALSE);
 
   return FALSE;
 }
@@ -996,7 +1002,7 @@ SK_Attach (DLL_ROLE role)
 {
   if (__SK_DLL_Bootstraps.count (role))
   {
-    if (! InterlockedCompareExchange (&__SK_DLL_Attached, TRUE, FALSE))
+    if (! InterlockedCompareExchangeAcquire (&__SK_DLL_Attached, TRUE, FALSE))
     {
       skModuleRegistry::HostApp (GetModuleHandle (nullptr));
 
@@ -1039,10 +1045,11 @@ SK_Attach (DLL_ROLE role)
 
         __crc32_init ();
 
-        InterlockedCompareExchange (
+        InterlockedCompareExchangeAcquire (
           &__SK_DLL_Attached,
             bootstrap.start (),
-              TRUE );
+              TRUE
+        );
 
         if (ReadAcquire (&__SK_DLL_Attached))
         {
@@ -1079,10 +1086,10 @@ SK_Detach (DLL_ROLE role)
   SK_CleanupMutex (&steam_init_cs);
 
   ULONG local_refs =
-    InterlockedDecrement (&__SK_DLL_Refs);
+    InterlockedDecrementRelease (&__SK_DLL_Refs);
 
   if ( local_refs == 0 &&
-         InterlockedCompareExchange (
+         InterlockedCompareExchangeRelease (
                     &__SK_DLL_Attached,
                       FALSE,
                         TRUE        )

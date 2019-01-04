@@ -112,7 +112,7 @@ SK_GetDocumentsDir (void)
       return dir;
   }
 
-  if (! InterlockedCompareExchange (&__init, 1, 0))
+  if (! InterlockedCompareExchangeAcquire (&__init, 1, 0))
   {
     CHandle  hToken (INVALID_HANDLE_VALUE);
     wchar_t* str    = nullptr;
@@ -138,7 +138,7 @@ SK_GetDocumentsDir (void)
       ( SUCCEEDED (hr) ? str : std::move (L"UNKNOWN") );
     if (SUCCEEDED (hr))
     {
-      InterlockedIncrement (&__init);
+      InterlockedIncrementRelease (&__init);
 
       CoTaskMemFree (str);
       return dir;
@@ -148,7 +148,7 @@ SK_GetDocumentsDir (void)
                   hr ),
                 L" SpecialK " );
 
-    InterlockedIncrement (&__init);
+    InterlockedIncrementRelease (&__init);
   }
 
   SK_Thread_SpinUntilAtomicMin (&__init, 2);
@@ -2207,7 +2207,7 @@ SK_GetBlacklistFilename (void)
   static volatile
     LONG init = FALSE;
 
-  if (! InterlockedCompareExchange (&init, TRUE, FALSE))
+  if (! InterlockedCompareExchangeAcquire (&init, TRUE, FALSE))
   {
     lstrcatW (host_proc.wszBlacklist, SK_GetHostPath ());
     lstrcatW (host_proc.wszBlacklist, L"\\SpecialK.deny.");
@@ -2217,7 +2217,7 @@ SK_GetBlacklistFilename (void)
 
     host_proc.blacklist = true;
 
-    InterlockedIncrement (&init);
+    InterlockedIncrementRelease  (&init);
   } SK_Thread_SpinUntilAtomicMin (&init, 2);
 
   return
@@ -2233,7 +2233,7 @@ SK_GetHostApp (void)
   static volatile
     LONG init = FALSE;
 
-  if (! InterlockedCompareExchange (&init, TRUE, FALSE))
+  if (! InterlockedCompareExchangeAcquire (&init, TRUE, FALSE))
   {
     DWORD   dwProcessSize =  MAX_PATH * 2;
     wchar_t wszProcessName [ MAX_PATH * 2 + 1 ] = { };
@@ -2282,7 +2282,7 @@ SK_GetHostApp (void)
 
     host_proc.app = true;
 
-    InterlockedIncrement (&init);
+    InterlockedIncrementRelease (&init);
   }
  
   else
@@ -2301,7 +2301,7 @@ SK_GetFullyQualifiedApp (void)
   static volatile
     LONG init = FALSE;
 
-  if (! InterlockedCompareExchange (&init, TRUE, FALSE))
+  if (! InterlockedCompareExchangeAcquire (&init, TRUE, FALSE))
   {
     DWORD   dwProcessSize =  MAX_PATH * 2;
     wchar_t wszProcessName [ MAX_PATH * 2 + 1 ] = { };
@@ -2313,7 +2313,7 @@ SK_GetFullyQualifiedApp (void)
 
     host_proc.full_name = true;
 
-    InterlockedIncrement (&init);
+    InterlockedIncrementRelease (&init);
   }
 
   else
@@ -2335,7 +2335,7 @@ SK_GetHostPath (void)
   static volatile
     LONG init = FALSE;
 
-  if (! InterlockedCompareExchange (&init, TRUE, FALSE))
+  if (! InterlockedCompareExchangeAcquire (&init, TRUE, FALSE))
   {
     wchar_t     wszProcessName [ MAX_PATH * 2 + 1 ] = { };
     wcsncpy_s ( wszProcessName,  MAX_PATH * 2,
@@ -2356,7 +2356,7 @@ SK_GetHostPath (void)
 
     host_proc.path = true;
 
-    InterlockedIncrement (&init);
+    InterlockedIncrementRelease (&init);
   }
 
   else
@@ -2376,7 +2376,7 @@ SK_GetSystemDirectory (void)
   static volatile
     LONG init = FALSE;
 
-  if (! InterlockedCompareExchange (&init, TRUE, FALSE))
+  if (! InterlockedCompareExchangeAcquire (&init, TRUE, FALSE))
   {
 #ifdef _WIN64
     GetSystemDirectory (host_proc.wszSystemDir, MAX_PATH);
@@ -2394,7 +2394,7 @@ SK_GetSystemDirectory (void)
 
     host_proc.sys_dir = true;
 
-    InterlockedIncrement (&init);
+    InterlockedIncrementRelease (&init);
   }
 
   else

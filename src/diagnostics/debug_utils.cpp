@@ -114,7 +114,7 @@ SK_Debug_LoadHelper (void)
   static          HMODULE hModDbgHelp  = nullptr;
   static volatile LONG    __init       = 0;
 
-  if (! InterlockedCompareExchange (&__init, 1, 0))
+  if (! InterlockedCompareExchangeAcquire (&__init, 1, 0))
   {
     wchar_t wszSystemDbgHelp [MAX_PATH * 2 + 1] = { };
 
@@ -124,7 +124,7 @@ SK_Debug_LoadHelper (void)
     hModDbgHelp =
       SK_Modules.LoadLibrary (wszSystemDbgHelp);
 
-    InterlockedIncrement (&__init);
+    InterlockedIncrementRelease (&__init);
   }
 
   SK_Thread_SpinUntilAtomicMin (&__init, 2);
@@ -2104,7 +2104,7 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
 
   static volatile LONG __init = 0;
 
-  if (! InterlockedCompareExchange (&__init, 1, 0))
+  if (! InterlockedCompareExchangeAcquire (&__init, 1, 0))
   {
     SK_CreateDLLHook2 (      L"kernel32",
                               "IsDebuggerPresent",
@@ -2228,7 +2228,7 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
     ///SK_ApplyQueuedHooks ();
     //#endif
 
-    InterlockedIncrement (&__init);
+    InterlockedIncrementRelease (&__init);
   }
 
   SK_Thread_SpinUntilAtomicMin (&__init, 2);
@@ -2767,7 +2767,7 @@ SK_DbgHlp_Init (void)
 {
   static volatile LONG __init = 0;
 
-  if (! InterlockedCompareExchange (&__init, 1, 0))
+  if (! InterlockedCompareExchangeAcquire (&__init, 1, 0))
   {
     SymGetSearchPathW_Imp =
       (SymGetSearchPathW_pfn)
@@ -2837,7 +2837,7 @@ SK_DbgHlp_Init (void)
       (SymLoadModule64_pfn)
       GetProcAddress ( SK_Debug_LoadHelper (), "SymLoadModule64" );
 
-    InterlockedIncrement (&__init);
+    InterlockedIncrementRelease (&__init);
   }
 
   SK_Thread_SpinUntilAtomicMin (&__init, 2);

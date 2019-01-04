@@ -109,7 +109,7 @@ SK_HookD3D8 (void)
 {
   static volatile LONG hooked = FALSE;
 
-  if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
+  if (! InterlockedCompareExchangeAcquire (&hooked, TRUE, FALSE))
   {
     HMODULE hBackend = 
       (SK_GetDLLRole () & DLL_ROLE::D3D8) ? backend_dll :
@@ -173,7 +173,7 @@ SK_HookD3D8 (void)
     SK_RunLHIfBitness ( 64, SK_LoadPlugIns64 (),
                             SK_LoadPlugIns32 () );
 
-    InterlockedIncrement (&hooked);
+    InterlockedIncrementRelease (&hooked);
   }
 
   SK_Thread_SpinUntilAtomicMin (&hooked, 2);

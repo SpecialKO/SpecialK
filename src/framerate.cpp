@@ -1650,7 +1650,7 @@ SK::Framerate::GetLimiter (void)
   static          Limiter *limiter = nullptr;
   static volatile LONG     init    = 0;
 
-  if (! InterlockedCompareExchange (&init, 1, 0))
+  if (! InterlockedCompareExchangeAcquire (&init, 1, 0))
   {
     limiter =
       new Limiter (config.render.framerate.target_fps);
@@ -1658,9 +1658,9 @@ SK::Framerate::GetLimiter (void)
     SK_ReleaseAssert (limiter != nullptr)
 
     if (limiter != nullptr)
-      InterlockedIncrement (&init);
+      InterlockedIncrementRelease (&init);
     else
-      InterlockedDecrement (&init);
+      InterlockedDecrementRelease (&init);
   }
 
   else

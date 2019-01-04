@@ -529,8 +529,8 @@ __crc32_init (void)
                                               size_t      );
                        appendfunc_pfn pfnToSet = nullptr;
 
-  if ( InterlockedCompareExchange (&__crc32c_init, 1, 0)
-                                                         == 0 )
+  if ( InterlockedCompareExchangeAcquire (&__crc32c_init, 1, 0)
+                                                          == 0 )
   {
     if (crc32c_hw_available ())
     {
@@ -553,7 +553,7 @@ __crc32_init (void)
     append_func =
       pfnToSet;
 
-    InterlockedIncrement (&__crc32c_init);
+    InterlockedIncrementRelease (&__crc32c_init);
   }
 
   SK_Thread_SpinUntilAtomicMin (&__crc32c_init, 2);

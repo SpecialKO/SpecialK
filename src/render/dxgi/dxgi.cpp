@@ -7582,7 +7582,7 @@ SK_HookDXGI (void)
 
   static volatile LONG hooked = FALSE;
 
-  if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
+  if (! InterlockedCompareExchangeAcquire (&hooked, TRUE, FALSE))
   {
 ////#ifdef _WIN64
 ////    if (! config.apis.dxgi.d3d11.hook)
@@ -7736,7 +7736,7 @@ SK_HookDXGI (void)
 
     SK_DXGI_BeginHooking ();
 
-    InterlockedIncrement (&hooked);
+    InterlockedIncrementRelease (&hooked);
   }
 
   SK_Thread_SpinUntilAtomicMin (&hooked, 2);
@@ -8220,7 +8220,7 @@ SK_DXGI_HookSwapChain (IDXGISwapChain* pSwapChain)
 
   static volatile LONG hooked = FALSE;
 
-  if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
+  if (! InterlockedCompareExchangeAcquire (&hooked, TRUE, FALSE))
   {
     if (! LocalHook_IDXGISwapChain_SetFullscreenState.active)
     {
@@ -8372,7 +8372,7 @@ SK_DXGI_HookSwapChain (IDXGISwapChain* pSwapChain)
       }
     }
 
-    InterlockedIncrement (&hooked);
+    InterlockedIncrementRelease (&hooked);
   }
 
   SK_Thread_SpinUntilAtomicMin (&hooked, 2);
@@ -8384,7 +8384,7 @@ SK_DXGI_HookFactory (IDXGIFactory* pFactory)
 {
   static volatile LONG hooked = FALSE;
 
-  if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
+  if (! InterlockedCompareExchangeAcquire (&hooked, TRUE, FALSE))
   {
     //int iver = SK_GetDXGIFactoryInterfaceVer (pFactory);
 
@@ -8521,7 +8521,7 @@ SK_DXGI_HookFactory (IDXGIFactory* pFactory)
 
     // 28 CheckFeatureSupport
 
-    InterlockedIncrement (&hooked);
+    InterlockedIncrementRelease (&hooked);
   }
 
   SK_Thread_SpinUntilAtomicMin (&hooked, 2);
@@ -8597,7 +8597,7 @@ HookDXGI (LPVOID user)
 
   static volatile LONG __hooked = FALSE;
 
-  if (! InterlockedCompareExchange (&__hooked, TRUE, FALSE))
+  if (! InterlockedCompareExchangeAcquire (&__hooked, TRUE, FALSE))
   {
     pTLS->d3d11.ctx_init_thread = true;
 
@@ -8808,7 +8808,7 @@ HookDXGI (LPVOID user)
 
     SK_Win32_CleanupDummyWindow (desc.OutputWindow);
 
-    InterlockedIncrement (&__hooked);
+    InterlockedIncrementRelease (&__hooked);
   }
 
   SK_Thread_SpinUntilAtomicMin (&__hooked, 2);
@@ -8930,8 +8930,8 @@ SK::DXGI::StartBudgetThread ( IDXGIAdapter** ppAdapter )
                         L"[ DXGI 1.4 ]   "
                         L"$ Spawning Memory Budget Change Thread..: " );
 
-      InterlockedExchange ( &budget_thread.ready,
-                              FALSE );
+      WriteRelease ( &budget_thread.ready,
+                       FALSE );
 
       budget_thread.pAdapter = pAdapter3;
       budget_thread.tid      = 0;
@@ -9585,7 +9585,7 @@ SK_DXGI_QuickHook (void)
 
   static volatile LONG quick_hooked = FALSE;
 
-  if (! InterlockedCompareExchange (&quick_hooked, TRUE, FALSE))
+  if (! InterlockedCompareExchangeAcquire (&quick_hooked, TRUE, FALSE))
   {
     SK_D3D11_QuickHook    ();
 
@@ -9608,7 +9608,7 @@ SK_DXGI_QuickHook (void)
       }
     }
 
-    InterlockedIncrement (&quick_hooked);
+    InterlockedIncrementRelease (&quick_hooked);
   }
 
   //if (GetModuleHandle (L"d3d11.dll") != nullptr)

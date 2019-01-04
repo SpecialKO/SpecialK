@@ -169,7 +169,7 @@ SK_BootD3D9 (void)
 
   static volatile LONG __booted = FALSE;
 
-  if (! InterlockedCompareExchange (&__booted, TRUE, FALSE))
+  if (! InterlockedCompareExchangeAcquire (&__booted, TRUE, FALSE))
   {
     pTLS->d3d9.ctx_init_thread = true;
 
@@ -199,7 +199,7 @@ SK_BootD3D9 (void)
 
     SK_HookD3D9    ();
 
-    InterlockedIncrement (&__booted);
+    InterlockedIncrementRelease (&__booted);
   }
 
   SK_Thread_SpinUntilAtomicMin (&__booted, 2);
@@ -236,7 +236,7 @@ SK_BootD3D8 (void)
 
   static volatile LONG __booted = FALSE;
 
-  if (! InterlockedCompareExchange (&__booted, TRUE, FALSE))
+  if (! InterlockedCompareExchangeAcquire (&__booted, TRUE, FALSE))
   {
     dll_log.Log (L"[API Detect]  <!> [ Bootstrapping Direct3D 8 (d3d8.dll) ] <!>");
 
@@ -248,7 +248,7 @@ SK_BootD3D8 (void)
 
     SK_HookD3D8 ();
 
-    InterlockedIncrement (&__booted);
+    InterlockedIncrementRelease (&__booted);
   }
 
   SK_Thread_SpinUntilAtomicMin (&__booted, 2);
@@ -285,7 +285,7 @@ SK_BootDDraw (void)
 
   static volatile LONG __booted = FALSE;
 
-  if (! InterlockedCompareExchange (&__booted, TRUE, FALSE))
+  if (! InterlockedCompareExchangeAcquire (&__booted, TRUE, FALSE))
   {
     dll_log.Log (L"[API Detect]  <!> [ Bootstrapping DirectDraw (ddraw.dll) ] <!>");
 
@@ -297,7 +297,7 @@ SK_BootDDraw (void)
 
     SK_HookDDraw ();
 
-    InterlockedIncrement (&__booted);
+    InterlockedIncrementRelease (&__booted);
   }
 
   SK_Thread_SpinUntilAtomicMin (&__booted, 2);
@@ -350,7 +350,7 @@ SK_BootDXGI (void)
 
   static volatile LONG __booted = FALSE;
 
-  if (! InterlockedCompareExchange (&__booted, TRUE, FALSE))
+  if (! InterlockedCompareExchangeAcquire (&__booted, TRUE, FALSE))
   {
     dll_log.Log (L"[API Detect]  <!> [    Bootstrapping DXGI (dxgi.dll)    ] <!>");
 
@@ -363,7 +363,7 @@ SK_BootDXGI (void)
 
     SK_HookDXGI ();
 
-    InterlockedIncrement (&__booted);
+    InterlockedIncrementRelease (&__booted);
   }
 
   SK_Thread_SpinUntilAtomicMin (&__booted, 2);
@@ -406,7 +406,7 @@ SK_BootOpenGL (void)
 #ifndef SK_BUILD__INSTALLER
   static volatile LONG __booted = FALSE;
 
-  if (! InterlockedCompareExchange (&__booted, TRUE, FALSE))
+  if (! InterlockedCompareExchangeAcquire (&__booted, TRUE, FALSE))
   {
     pTLS->gl.ctx_init_thread = true;
 
@@ -421,7 +421,7 @@ SK_BootOpenGL (void)
 
     SK_HookGL ();
 
-    InterlockedIncrement (&__booted);
+    InterlockedIncrementRelease (&__booted);
   }
 #endif
 

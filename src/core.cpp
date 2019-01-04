@@ -731,7 +731,7 @@ WaitForInit (void)
 {
   const auto _SpinMax = 32;
 
-  if (ReadAcquire (&__SK_Init) == 1)
+  if (ReadAcquire (&__SK_Init) == TRUE)
     return;
 
   DWORD dwThreadId =
@@ -744,7 +744,7 @@ WaitForInit (void)
 
     if ( dwInitTid                == dwThreadId ||
          dwInitTid                == 0          ||
-         ReadAcquire (&__SK_Init) == 1L )
+         ReadAcquire (&__SK_Init) == TRUE )
     {
       break;
     }
@@ -763,7 +763,7 @@ WaitForInit (void)
   }
 
 
-  if (! InterlockedCompareExchange (&__SK_Init, TRUE, FALSE))
+  if (! InterlockedCompareExchangeAcquire (&__SK_Init, TRUE, FALSE))
   {
     if ( ReadULongAcquire   (&dwInitThreadId) != dwThreadId &&
          ReadPointerAcquire (&hInitThread)    != INVALID_HANDLE_VALUE )
@@ -821,7 +821,7 @@ WaitForInit (void)
         }
       }
 
-      InterlockedExchange (&dwInitThreadId, 0);
+      WriteULongRelease (&dwInitThreadId, 0);
 
       CloseHandle (
         reinterpret_cast <HANDLE> (
@@ -1086,7 +1086,7 @@ DWORD
 WINAPI
 DllThread (LPVOID user)
 {
-  InterlockedExchange (&dwInitThreadId, GetCurrentThreadId ());
+  WriteULongNoFence (&dwInitThreadId, GetCurrentThreadId ());
 
   SetCurrentThreadDescription (                 L"[SK] Primary Initialization Thread" );
   SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_HIGHEST       );
@@ -1097,7 +1097,7 @@ DllThread (LPVOID user)
 
   SK_InitCore ( params->backend, params->callback );
 
-  InterlockedExchange (&dwInitThreadId, 0);
+  WriteULongRelease (&dwInitThreadId, 0);
 
   return 0;
 }
@@ -1480,7 +1480,7 @@ SK_GetDebugSymbolPath (void)
 
     PathRemoveFileSpec (wszDbgSymbols);
 
-    InterlockedIncrement (&__init);
+    InterlockedIncrementRelease (&__init);
   }
 
   SK_Thread_SpinUntilAtomicMin (&__init, 2);
@@ -1660,10 +1660,57 @@ extern void SK_CPU_InstallHooks (void);
 
 BOOL __SK_DisableQuickHook = FALSE;
 
+void
+SK_DisableDPIScaling (void)
+{
+  DWORD   dwProcessSize = MAX_PATH;
+  wchar_t wszProcessName [MAX_PATH + 2] = { };
+
+  HANDLE hProc =
+   SK_GetCurrentProcess ();
+
+  QueryFullProcessImageName (
+    hProc, 0,
+      wszProcessName, &dwProcessSize
+  );
+
+  const wchar_t* wszKey        =
+    LR"(Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers)";
+  DWORD          dwDisposition = 0x00;
+  HKEY           hKey          = nullptr;
+
+  LSTATUS status =
+    RegCreateKeyExW ( HKEY_CURRENT_USER,
+                        wszKey,      0,
+                          nullptr, 0x0,
+                          KEY_READ | KEY_WRITE,
+                             nullptr,
+                               &hKey,
+                                 &dwDisposition );
+
+  if ( status == ERROR_SUCCESS &&
+       hKey   != nullptr          )
+  {
+    RegSetValueExW (
+      hKey, wszProcessName,
+        0, REG_SZ,
+          (BYTE *)L"~ HIGHDPIAWARE",
+             16 * sizeof (wchar_t) );
+
+    RegFlushKey (hKey);
+    RegCloseKey (hKey);
+  }
+}
+
 bool
 __stdcall
 SK_StartupCore (const wchar_t* backend, void* callback)
 {
+  ////if ( IsProcessDPIAware () )
+  ////{
+  ////  SK_DisableDPIScaling ();
+  ////}
+
   HMODULE hModK32 =
     SK_GetModuleHandleW (L"kernel32");
 
@@ -1758,8 +1805,8 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   if ( (! __SK_bypass) && (GetAsyncKeyState (VK_SHIFT  ) & 0x8000) != 0 &&
                           (GetAsyncKeyState (VK_CONTROL) & 0x8000) != 0 )
   {
-    InterlockedExchange (&__SK_Init, -1);
-    __SK_bypass = true;
+    WriteRelease (&__SK_Init, -1);
+                   __SK_bypass = true;
 
     SK_BypassInject ();
   }
@@ -2405,7 +2452,7 @@ SK_ShutdownCore (const wchar_t* backend)
   if (config.system.handle_crashes)
     SK::Diagnostics::CrashHandler::Shutdown ();
 
-  InterlockedExchange (&__SK_Init, FALSE);
+  WriteRelease (&__SK_Init, -2);
 
   return true;
 }
@@ -3152,7 +3199,7 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
   assert ( ReadAcquire (&rb.thread) == (LONG)GetCurrentThreadId () ||
            LastKnownAPI             ==       SK_RenderAPI::Reserved );
 
-  InterlockedExchange (&rb.thread, GetCurrentThreadId ());
+  WriteRelease (&rb.thread, GetCurrentThreadId ());
 
   if (device != nullptr && LastKnownAPI != rb.api)
   {
@@ -3308,7 +3355,7 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
   {
     case SK_GAME_ID::Shenmue:
       extern volatile LONG  __SK_SHENMUE_FinishedButNotPresented;
-      InterlockedExchange (&__SK_SHENMUE_FinishedButNotPresented, 0L);
+      WriteRelease        (&__SK_SHENMUE_FinishedButNotPresented, 0L);
       break;
   }
 
@@ -3322,7 +3369,7 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
 
   SK_Input_PollKeyboard ();
 
-  InterlockedIncrement (&SK_GetCurrentRenderBackend ().frames_drawn);
+  InterlockedIncrementAcquire (&SK_GetCurrentRenderBackend ().frames_drawn);
 
 
   if (config.sli.show && device != nullptr)

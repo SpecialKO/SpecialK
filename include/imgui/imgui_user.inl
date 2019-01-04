@@ -110,7 +110,7 @@ SK_ImGui_LoadFonts (void)
 
     io.Fonts->AddFontDefault ();
 
-    InterlockedIncrement (&init);
+    InterlockedIncrementRelease (&init);
   }
 
   SK_Thread_SpinUntilAtomicMin (&init, 2);

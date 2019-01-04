@@ -285,7 +285,7 @@ SK_Input_HookHID (void)
     if (SK_GetFramesDrawn () > 1)
       SK_ApplyQueuedHooks ();
 
-    InterlockedIncrement (&hooked);
+    InterlockedIncrementRelease (&hooked);
   }
 
   SK_Thread_SpinUntilAtomicMin (&hooked, 2);

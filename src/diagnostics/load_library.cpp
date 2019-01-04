@@ -1203,10 +1203,10 @@ SK_ThreadWalkModules (enum_working_set_s* pWorkingSet)
   static volatile LONG    init           = FALSE;
   static CRITICAL_SECTION cs_thread_walk = { };
 
-  if (! InterlockedCompareExchange (&init, 1, 0))
+  if (! InterlockedCompareExchangeAcquire (&init, 1, 0))
   {
     InitializeCriticalSectionAndSpinCount (&cs_thread_walk, 32);
-    InterlockedIncrement                  (&init);
+    InterlockedIncrementRelease           (&init);
   }
 
   SK_Thread_SpinUntilAtomicMin (&init, 2);
@@ -3005,10 +3005,10 @@ SK_ThreadWalkModules (enum_working_set_s* pWorkingSet)
   static volatile LONG    init           = FALSE;
   static CRITICAL_SECTION cs_thread_walk = { };
 
-  if (! InterlockedCompareExchange (&init, 1, 0))
+  if (! InterlockedCompareExchangeAcquire (&init, 1, 0))
   {
     InitializeCriticalSectionAndSpinCount (&cs_thread_walk, 32);
-    InterlockedIncrement                  (&init);
+    InterlockedIncrementRelease           (&init);
   }
 
   SK_Thread_SpinUntilAtomicMin (&init, 2);

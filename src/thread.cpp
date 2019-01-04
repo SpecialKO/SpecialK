@@ -301,7 +301,7 @@ SK_Thread_InitDebugExtras (void)
 {
   static volatile LONG run_once = FALSE;
 
-  if (! InterlockedCompareExchange (&run_once, 1, 0))
+  if (! InterlockedCompareExchangeAcquire (&run_once, 1, 0))
   {
     // Only available in Windows 10
     //
@@ -320,7 +320,7 @@ SK_Thread_InitDebugExtras (void)
     if (GetThreadDescription == nullptr)
       GetThreadDescription = &GetThreadDescription_NOP;
 
-    InterlockedIncrement (&run_once);
+    InterlockedIncrementRelease (&run_once);
   }
 
   else

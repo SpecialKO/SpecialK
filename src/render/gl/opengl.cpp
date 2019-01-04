@@ -2484,7 +2484,7 @@ SK_HookGL (void)
   SK_TLS* pTLS =
    SK_TLS_Bottom ();
 
-  if (! InterlockedCompareExchange (&SK_GL_initialized, TRUE, FALSE))
+  if (! InterlockedCompareExchangeAcquire (&SK_GL_initialized, TRUE, FALSE))
   {
     const wchar_t* wszBackendDLL (L"OpenGL32.dll");
 
@@ -2946,8 +2946,8 @@ SK_HookGL (void)
     if (SK_GetFramesDrawn () > 1)
       SK_ApplyQueuedHooks ();
 
-    InterlockedExchange  (&__gl_ready, TRUE);
-    InterlockedIncrement (&SK_GL_initialized);
+    WriteRelease                (&__gl_ready,  TRUE);
+    InterlockedIncrementRelease (&SK_GL_initialized);
   }
 
   SK_Thread_SpinUntilAtomicMin (&SK_GL_initialized, 2);

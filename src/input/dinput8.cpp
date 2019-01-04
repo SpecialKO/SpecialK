@@ -1417,7 +1417,7 @@ SK_Input_HookDI8 (void)
         SK_Input_HookDI7 ();
       }
 
-      InterlockedIncrement (&hooked);
+      InterlockedIncrementRelease (&hooked);
     }
 
     SK_Thread_SpinUntilAtomicMin (&hooked, 2);

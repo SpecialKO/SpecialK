@@ -629,7 +629,7 @@ static volatile LONG   rebalance_queue     = 0;
 void
 SK_Thread_RebalanceThreads (void)
 {
-  InterlockedIncrement (&rebalance_queue);
+  InterlockedIncrementRelease (&rebalance_queue);
 }
 
 void
@@ -1072,8 +1072,8 @@ public:
     static float last_rebalance = 0.0f;
 
     if ( __SK_Thread_RebalanceEveryNSeconds > 0.0f &&
-         ( (float)timeGetTime () / 1000.0f ) >
-                 (last_rebalance + __SK_Thread_RebalanceEveryNSeconds) )
+        ( (float)timeGetTime () / 1000.0f ) >
+                (last_rebalance + __SK_Thread_RebalanceEveryNSeconds) )
     {
       SK_Thread_RebalanceThreads ();
     }
@@ -1081,7 +1081,7 @@ public:
 
     if ((! rebalance) && ReadAcquire (&rebalance_queue) > 0)
     {
-      InterlockedDecrement (&rebalance_queue);
+      InterlockedDecrementRelease (&rebalance_queue);
       rebalance     = true;
       rebalance_idx = 0;
     }

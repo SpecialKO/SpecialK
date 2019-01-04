@@ -664,50 +664,18 @@ SK_DS3_SetActiveWindow (
 
 
 
-void
-SK_DisableDPIScaling (void)
-{
-  DWORD   dwProcessSize = MAX_PATH;
-  wchar_t wszProcessName [MAX_PATH + 1];
-
-  HANDLE hProc =
-   GetCurrentProcess ();
-
-  QueryFullProcessImageName (hProc, 0, wszProcessName, &dwProcessSize);
-
-  DWORD dwDisposition = 0x00;
-  HKEY  key           = nullptr;
-
-  wchar_t wszKey [1024];
-  lstrcpyW (wszKey, L"Software\\Microsoft\\Windows NT\\CurrentVersion\\AppCompatFlags\\Layers");
-
-  LSTATUS status =
-    RegCreateKeyExW ( HKEY_CURRENT_USER,
-                        wszKey,
-                          0, NULL, 0x00L,
-                            KEY_READ | KEY_WRITE,
-                               nullptr, &key, &dwDisposition );
-
-  if (status == ERROR_SUCCESS && key != nullptr) {
-    const wchar_t* wszKillDPI = L"~ HIGHDPIAWARE";
-
-    RegSetValueExW (key, wszProcessName,  0, REG_SZ, (BYTE *)wszKillDPI, sizeof (wchar_t) * (lstrlenW (wszKillDPI) + 1));
-
-    RegFlushKey (key);
-    RegCloseKey (key);
-  }
-}
+extern void SK_DisableDPIScaling (void);
 
 void
 SK_DS3_InitPlugin (void)
 {
-  SK_DisableDPIScaling ();
-
   ds3_state.Width  = ds3_cfg.render.res_x;
   ds3_state.Height = ds3_cfg.render.res_y;
 
   if (ds3_prefs == nullptr)
   {
+    SK_DisableDPIScaling ();
+
     // Make the graphics config file read-only while running
     DWORD    dwConfigAttribs;
     uint32_t dwLen                = MAX_PATH;

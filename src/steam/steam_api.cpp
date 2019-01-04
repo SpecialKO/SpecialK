@@ -4648,15 +4648,15 @@ SK_HookSteamAPI (void)
     };
 
     if ( config.steam.force_load_steamapi ||
-        config.steam.init_delay      > 0 ||
-        (! ( matches =
-        SK_RecursiveFileSearchEx (
-        SK_GetHostPath (), L".dll", pattern,
-        { {wszSteamAPI,           false},
-        {config.steam.dll_path, false} }
-        )
-        ).empty ()
-        )
+         config.steam.init_delay      > 0 ||
+           (! ( matches =
+                  SK_RecursiveFileSearchEx (
+                    SK_GetHostPath (), L".dll", pattern,
+                       { {wszSteamAPI,           false},
+                         {config.steam.dll_path, false} }
+                  )
+              ).empty ()
+           )
         )
     {
       //dll_log.Log (L"Found SteamAPI DLL: %s", (matches.begin ())->c_str ());
@@ -4664,7 +4664,7 @@ SK_HookSteamAPI (void)
       SK_Thread_Create (SteamAPI_Delay_Init);
     }
 
-    InterlockedIncrement (&__SteamAPI_hook);
+    InterlockedIncrementRelease (&__SteamAPI_hook);
   }
 
   SK_Thread_SpinUntilAtomicMin (&__SteamAPI_hook, 2);

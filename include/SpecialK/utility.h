@@ -200,15 +200,19 @@ SK_GetBitness (void)
   return 32;
 }
 
-#define SK_RunOnce(x)    { static volatile LONG first = TRUE; if (InterlockedCompareExchange (&first, FALSE, TRUE)) { (x); } }
+#define SK_RunOnce(x)    { static volatile LONG __skro_first = TRUE; \
+               if (InterlockedCompareExchange (&__skro_first, FALSE, TRUE)) { (x); } }
 
 #define SK_RunIf32Bit(x)         { SK_GetBitness () == 32  ? (x) :  0; }
 #define SK_RunIf64Bit(x)         { SK_GetBitness () == 64  ? (x) :  0; }
 #define SK_RunLHIfBitness(b,l,r)   SK_GetBitness () == (b) ? (l) : (r)
 
 
-#define SK_LOG_FIRST_CALL { static bool called = false; if (! called) { SK_LOG0 ( (L"[!] > First Call: %34hs", __FUNCTION__),      __SK_SUBSYSTEM__); \
-                                                                        SK_LOG1 ( (L"    <*> %s", SK_SummarizeCaller ().c_str ()), __SK_SUBSYSTEM__); called = true; } }
+#define SK_LOG_FIRST_CALL { bool called = false;                                      \
+                     SK_RunOnce (called = true);                                      \
+                             if (called) {                                            \
+        SK_LOG0 ( (L"[!] > First Call: %34hs", __FUNCTION__),      __SK_SUBSYSTEM__); \
+        SK_LOG1 ( (L"    <*> %s", SK_SummarizeCaller ().c_str ()), __SK_SUBSYSTEM__); } }
 
 
 #define SK_ReleaseAssertEx(_expr,_msg,_file,_line)            \

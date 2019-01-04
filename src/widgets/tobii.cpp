@@ -336,12 +336,11 @@ public:
 
   void run (void) override
   {
-    static bool first = true;
+           bool first = false;
+    SK_RunOnce (first = true);
 
     if (first)
     {
-      first = false;
-
       _SK_Tobii_ShowGazeCursor =
         _CreateConfigParameterBool ( SK_TOBII_SECTION,
                                     L"ShowGazeCursor", gaze_cursor.draw,
@@ -720,16 +719,16 @@ SK_Tobii_Startup ( tobii_api_t*&    api,
 
   SK_ReleaseAssert (error == TOBII_ERROR_NO_ERROR)
 
-    if (error != TOBII_ERROR_NO_ERROR)
-    {
-      tobii_api_destroy (api);
-      FreeLibrary       (hModTobii);
+  if (error != TOBII_ERROR_NO_ERROR)
+  {
+    tobii_api_destroy (api);
+    FreeLibrary       (hModTobii);
 
-      api       = nullptr;
-      hModTobii = nullptr;
+    api       = nullptr;
+    hModTobii = nullptr;
 
-      return;
-    }
+    return;
+  }
 
   error =
     tobii_gaze_point_subscribe ( device,
@@ -738,18 +737,18 @@ SK_Tobii_Startup ( tobii_api_t*&    api,
 
   SK_ReleaseAssert (error == TOBII_ERROR_NO_ERROR)
 
-    if (error != TOBII_ERROR_NO_ERROR)
-    {
-      tobii_device_destroy (device);
-      tobii_api_destroy    (api);
-      FreeLibrary          (hModTobii);
+  if (error != TOBII_ERROR_NO_ERROR)
+  {
+    tobii_device_destroy (device);
+    tobii_api_destroy    (api);
+    FreeLibrary          (hModTobii);
 
-      device    = nullptr;
-      api       = nullptr;
-      hModTobii = nullptr;
+    device    = nullptr;
+    api       = nullptr;
+    hModTobii = nullptr;
 
-      return;
-    }
+    return;
+  }
 
   has_tobii  = true;
   tobii_lost = false;

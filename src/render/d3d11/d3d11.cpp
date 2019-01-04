@@ -1335,25 +1335,29 @@ struct resample_dispatch_s
 LONG
 SK_D3D11_Resampler_GetActiveJobCount (void)
 {
-  return ReadAcquire (&SK_D3D11_TextureResampler.stats.textures_resampling);
+  return
+    ReadAcquire (&SK_D3D11_TextureResampler.stats.textures_resampling);
 }
 
 LONG
 SK_D3D11_Resampler_GetWaitingJobCount (void)
 {
-  return ReadAcquire (&SK_D3D11_TextureResampler.stats.textures_waiting);
+  return
+    ReadAcquire (&SK_D3D11_TextureResampler.stats.textures_waiting);
 }
 
 LONG
 SK_D3D11_Resampler_GetRetiredCount (void)
 {
-  return ReadAcquire (&SK_D3D11_TextureResampler.stats.textures_resampled);
+  return
+    ReadAcquire (&SK_D3D11_TextureResampler.stats.textures_resampled);
 }
 
 LONG
 SK_D3D11_Resampler_GetErrorCount (void)
 {
-  return ReadAcquire (&SK_D3D11_TextureResampler.stats.error_count);
+  return
+    ReadAcquire (&SK_D3D11_TextureResampler.stats.error_count);
 }
 
 volatile LONG  __d3d11_ready    = FALSE;
@@ -1372,7 +1376,7 @@ void WaitForInitD3D11 (void)
   if (SK_TLS_Bottom ()->d3d11.ctx_init_thread)
     return;
 
-  if (! ReadAcquire (&__d3d11_ready))
+  if (!            ReadAcquire (&__d3d11_ready))
     SK_Thread_SpinUntilFlagged (&__d3d11_ready);
 }
 
@@ -8940,7 +8944,7 @@ SK_D3D11_TexMgr::refTexture2D ( ID3D11Texture2D*      pTex,
 
   static volatile LONG init = FALSE;
 
-  if (! InterlockedCompareExchange (&init, TRUE, FALSE))
+  if (! InterlockedCompareExchangeAcquire (&init, TRUE, FALSE))
   {
     DXGI_VIRTUAL_HOOK ( &pTex, 2, "IUnknown::Release",
                         IUnknown_Release,
@@ -8953,7 +8957,7 @@ SK_D3D11_TexMgr::refTexture2D ( ID3D11Texture2D*      pTex,
 
     SK_ApplyQueuedHooks ();
 
-    InterlockedIncrement (&init);
+    InterlockedIncrementRelease (&init);
   }
 
   SK_Thread_SpinUntilAtomicMin (&init, 2);
@@ -13164,7 +13168,7 @@ SK_D3D11_InitTextures (void)
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
 
-  if (! InterlockedCompareExchange (&SK_D3D11_tex_init, TRUE, FALSE))
+  if (! InterlockedCompareExchangeAcquire (&SK_D3D11_tex_init, TRUE, FALSE))
   {
     pTLS->d3d11.ctx_init_thread = true;
 
@@ -13275,7 +13279,7 @@ SK_D3D11_InitTextures (void)
                   SK_Okami_LoadConfig ();
     }
 
-    InterlockedIncrement (&SK_D3D11_tex_init);
+    InterlockedIncrementRelease (&SK_D3D11_tex_init);
   }
 
   if (pTLS->d3d11.ctx_init_thread)
@@ -13352,7 +13356,7 @@ SK_D3D11_Init (void)
 {
   BOOL success = FALSE;
 
-  if (! InterlockedCompareExchange (&SK_D3D11_initialized, TRUE, FALSE))
+  if (! InterlockedCompareExchangeAcquire (&SK_D3D11_initialized, TRUE, FALSE))
   {
     HMODULE hBackend =
       ( (SK_GetDLLRole () & DLL_ROLE::D3D11) ) ? backend_dll :
@@ -13494,7 +13498,7 @@ SK_D3D11_Init (void)
              ( LocalHook_D3D11CreateDeviceAndSwapChain.active ||
                MH_OK == MH_QueueEnableHook (pfnD3D11CreateDeviceAndSwapChain) ) )
         {
-          InterlockedIncrement (&SK_D3D11_initialized);
+          InterlockedIncrementRelease (&SK_D3D11_initialized);
           success = TRUE;//(MH_OK == SK_ApplyQueuedHooks ());
         }
       }

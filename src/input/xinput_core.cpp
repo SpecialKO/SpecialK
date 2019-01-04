@@ -1011,7 +1011,7 @@ SK_Input_HookXInput1_4 (void)
 
   static volatile LONG hooked = FALSE;
 
-  if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
+  if (! InterlockedCompareExchangeAcquire (&hooked, TRUE, FALSE))
   {
     if (ReadPointerAcquire ((LPVOID *)&xinput_ctx.primary_hook) == nullptr)
       pTLS->input_core.ctx_init_thread = TRUE;
@@ -1040,7 +1040,7 @@ SK_Input_HookXInput1_4 (void)
         InterlockedExchangePointer ((LPVOID *)&xinput_ctx.primary_hook, &xinput_ctx.XInput1_4);
     }
 
-    InterlockedIncrement (&hooked);
+    InterlockedIncrementRelease (&hooked);
   }
 
   if (! pTLS->input_core.ctx_init_thread)
@@ -1056,9 +1056,10 @@ SK_Input_HookXInput1_3 (void)
   static volatile LONG hooked = FALSE;
 
 
-  SK_TLS* pTLS = SK_TLS_Bottom ();
+  SK_TLS* pTLS =
+    SK_TLS_Bottom ();
 
-  if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
+  if (! InterlockedCompareExchangeAcquire (&hooked, TRUE, FALSE))
   {
     if (ReadPointerAcquire ((LPVOID *)&xinput_ctx.primary_hook) == nullptr)
       pTLS->input_core.ctx_init_thread = TRUE;
@@ -1087,7 +1088,7 @@ SK_Input_HookXInput1_3 (void)
         InterlockedExchangePointer ((LPVOID *)&xinput_ctx.primary_hook, &xinput_ctx.XInput1_3);
     }
 
-    InterlockedIncrement (&hooked);
+    InterlockedIncrementRelease (&hooked);
   }
 
   if (!pTLS->input_core.ctx_init_thread)
@@ -1105,7 +1106,7 @@ SK_Input_HookXInput9_1_0 (void)
   SK_TLS *pTLS =
     SK_TLS_Bottom ();
 
-  if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
+  if (! InterlockedCompareExchangeAcquire (&hooked, TRUE, FALSE))
   {
     if (ReadPointerAcquire ((LPVOID *)&xinput_ctx.primary_hook) == nullptr)
       pTLS->input_core.ctx_init_thread = TRUE;
@@ -1133,7 +1134,7 @@ SK_Input_HookXInput9_1_0 (void)
         InterlockedExchangePointer ((LPVOID *)&xinput_ctx.primary_hook, &xinput_ctx.XInput9_1_0);
     }
 
-    InterlockedIncrement (&hooked);
+    InterlockedIncrementRelease (&hooked);
   }
 
   if (! pTLS->input_core.ctx_init_thread)

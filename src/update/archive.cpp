@@ -46,14 +46,22 @@ bool config_files_changed = false;
 static ISzAlloc      g_Alloc  = { SzAlloc, SzFree };
 static volatile LONG crc_init = 0;
 
+
+void
+SK_7Z_TableInit (void)
+{
+  if (! InterlockedCompareExchangeAcquire
+                                 (&crc_init, 1, 0) )
+  { CrcGenerateTable             (               );
+    InterlockedIncrementRelease  (&crc_init      );
+  } SK_Thread_SpinUntilAtomicMin (&crc_init, 2   );
+}
+
 void
 SK_Get7ZFileContents (                 const wchar_t* wszArchive,
                        std::vector <sk_file_entry_s>& entries     )
 {
-  if (! InterlockedCompareExchange (&crc_init, 1, 0))
-  { CrcGenerateTable     (         );
-    InterlockedIncrement (&crc_init);
-  } SK_Thread_SpinUntilAtomicMin (&crc_init, 2);
+  SK_7Z_TableInit ();
 
   CFileInStream arc_stream       = { };
   CLookToRead   look_stream      = { };
@@ -121,11 +129,7 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
                   bool                      backup,
                   SK_7Z_DECOMP_PROGRESS_PFN callback )
 {
-  if (! InterlockedCompareExchange (&crc_init, 1, 0))
-  { CrcGenerateTable     (         );
-    InterlockedIncrement (&crc_init);
-  } SK_Thread_SpinUntilAtomicMin (&crc_init, 2);
-
+  SK_7Z_TableInit ();
 
   // Don't back stuff up if we're installing :P
   if (SK_IsHostAppSKIM ())
@@ -465,10 +469,7 @@ SK_Decompress7zEx ( const wchar_t*            wszArchive,
                     const wchar_t*            wszDestination,
                     SK_7Z_DECOMP_PROGRESS_PFN callback )
 {
-  if (! InterlockedCompareExchange (&crc_init, 1, 0))
-  { CrcGenerateTable     (         );
-    InterlockedIncrement (&crc_init);
-  } SK_Thread_SpinUntilAtomicMin (&crc_init, 2);
+  SK_7Z_TableInit ();
 
   std::vector <sk_file_entry_s>     files;
   SK_Get7ZFileContents (wszArchive, files);

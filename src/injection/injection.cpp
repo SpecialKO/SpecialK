@@ -422,7 +422,7 @@ SKX_RemoveCBTHook (void)
                          whitelist_count = 0;
     RtlSecureZeroMemory (whitelist_patterns, sizeof (whitelist_patterns));
 
-    InterlockedExchange        (&__SK_HookContextOwner, FALSE);
+    WriteRelease               (&__SK_HookContextOwner, FALSE);
     InterlockedExchangePointer ( reinterpret_cast <LPVOID *> (
                                        const_cast < HHOOK *> (&hHookCBT)
                                  ), nullptr );

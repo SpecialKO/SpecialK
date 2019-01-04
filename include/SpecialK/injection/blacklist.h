@@ -70,6 +70,8 @@ std::unordered_set <std::wstring> __blacklist = {
 
   L"nvcontainer.exe",
   L"nvdisplay.container.exe",
+  L"nvtelemetrycontainer.exe",
+  L"nvidia web helper.exe",
   
   L"gameserver.exe",// Sacred   game server
   L"s2gs.exe",      // Sacred 2 game server
@@ -105,10 +107,10 @@ std::unordered_set <std::wstring> __blacklist = {
 
   L"conhost.exe", L"svchost.exe",
 
-  L"explorer.exe",
+  //L"explorer.exe",
   L"scriptedsandbox.exe",
   L"scriptedsandbox64.exe",
-  L"nvidia web helper.exe",
+  L"applicationframehost.exe"
 };
 
 //// DLL must go in, but not be initialized...
