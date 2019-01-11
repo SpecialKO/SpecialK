@@ -447,6 +447,14 @@ SK_MonitorCPU (LPVOID user_param)
                                        ( DWORD (update * 1000.0) ),
                                          QS_ALLEVENTS, 0x0       );
 
+    extern void SK_CPU_UpdateAllSensors (void);
+                SK_CPU_UpdateAllSensors ();
+
+    ////void
+    ////SK_CPU_UpdatePackageSensors (int package);
+    ////
+    ////SK_CPU_UpdatePackageSensors (0);
+
     // Only poll WMI while the data view is visible
     if (! (config.cpu.show || SK_ImGui_Widgets.cpu_monitor->isActive ()))
       continue;
