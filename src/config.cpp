@@ -1356,6 +1356,7 @@ auto DeclKeybind =
   games.emplace ( L"Ys7.exe",                                SK_GAME_ID::YS_Seven                     );
   games.emplace ( L"TOS.exe",                                SK_GAME_ID::Tales_of_Symphonia           );
   games.emplace ( L"Tales of Zestiria.exe",                  SK_GAME_ID::Tales_of_Zestiria            );
+  games.emplace ( L"TOV_DE.exe",                             SK_GAME_ID::Tales_of_Vesperia            );
   games.emplace ( L"Life is Strange - Before the Storm.exe", SK_GAME_ID::LifeIsStrange_BeforeTheStorm );
   games.emplace ( L"EoCApp.exe",                             SK_GAME_ID::DivinityOriginalSin          );
   games.emplace ( L"Hob.exe",                                SK_GAME_ID::Hob                          );
@@ -1845,6 +1846,12 @@ auto DeclKeybind =
         config.steam.auto_inject          = true;
         config.steam.auto_pump_callbacks  = true;
         config.steam.silent               = true;
+      } break;
+
+      case SK_GAME_ID::Tales_of_Vesperia:
+      {
+        config.textures.d3d11.uncompressed_mips = true;
+        config.textures.d3d11.cache_gen_mips    = true;
       } break;
 
       case SK_GAME_ID::MonsterHunterWorld:

@@ -1985,6 +1985,12 @@ SK_ImGui_ControlPanel (void)
         extern bool SK_ACO_PlugInCfg (void);
                     SK_ACO_PlugInCfg ();
       } break;
+
+      case SK_GAME_ID::Tales_of_Vesperia:
+      {
+        extern bool SK_TVFix_PlugInCfg (void);
+                    SK_TVFix_PlugInCfg ();
+      } break;
     };
 #endif
 
