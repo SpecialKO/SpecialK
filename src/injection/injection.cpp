@@ -189,7 +189,7 @@ SK_Inject_ValidateProcesses (void)
 {
   for (volatile LONG& hooked_pid : g_sHookedPIDs)
   {
-    CHandle hProc (
+    SK_AutoHandle hProc (
       OpenProcess ( PROCESS_QUERY_INFORMATION, FALSE,
                       ReadAcquire (&hooked_pid) )
                   );
@@ -359,7 +359,7 @@ CBTProc ( _In_ int    nCode,
 BOOL
 SK_TerminatePID ( DWORD dwProcessId, UINT uExitCode )
 {
-  CHandle hProcess (
+  SK_AutoHandle hProcess (
     OpenProcess ( PROCESS_TERMINATE, FALSE, dwProcessId )
   );
 
@@ -398,7 +398,7 @@ SKX_InstallCBTHook (void)
       InterlockedIncrementRelease (&injected_procs);
 
     InterlockedExchangePointerAcquire ( (PVOID *)&hHookCBT,
-      SetWindowsHookEx (WH_CALLWNDPROC, CBTProc, hMod, 0)
+      SetWindowsHookEx (WH_CALLWNDPROCRET, CBTProc, hMod, 0)
     );
   }
 }
@@ -943,7 +943,7 @@ SK_ExitRemoteProcess (const wchar_t* wszProcName, UINT uExitCode = 0x0)
 
 
   PROCESSENTRY32 pe32      = { };
-  CHandle hProcSnap          (
+  SK_AutoHandle  hProcSnap   (
     CreateToolhelp32Snapshot (TH32CS_SNAPPROCESS, 0) );
 
   if (hProcSnap == INVALID_HANDLE_VALUE)

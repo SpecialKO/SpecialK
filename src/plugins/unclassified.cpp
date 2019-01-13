@@ -323,7 +323,7 @@ SK_FFXV_SetupThreadPriorities (void)
 
   if (sk_ffxv_swapchain.hThread == 0)
   {
-    CHandle hThread (
+    SK_AutoHandle hThread (
       OpenThread ( THREAD_ALL_ACCESS, FALSE, GetCurrentThreadId () )
     );
 
@@ -1075,6 +1075,22 @@ SK_ACO_PlugInCfg (void)
     if (changed)
       SK_SaveConfig ();
 
+    ImGui::TreePop  (  );
+  }
+
+  return true;
+}
+
+
+bool __SK_TVFix_NoRenderSleep = true;
+
+bool
+SK_TVFix_PlugInCfg (void)
+{
+  if (ImGui::CollapsingHeader ("Tales of Vesperia Definitive Edition", ImGuiTreeNodeFlags_DefaultOpen))
+  {
+    ImGui::TreePush ("");
+    ImGui::Checkbox ("Fix Microstutter", &__SK_TVFix_NoRenderSleep);
     ImGui::TreePop  (  );
   }
 

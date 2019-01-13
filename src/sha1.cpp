@@ -345,7 +345,7 @@ SHA1_File (
   DWORD dwFileAttribs =
     GetFileAttributes (wszFile);
 
-  CHandle hFile (
+  SK_AutoHandle hFile (
     CreateFile ( wszFile,
                    GENERIC_READ,
                      FILE_SHARE_READ |

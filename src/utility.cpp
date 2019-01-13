@@ -74,8 +74,8 @@ SK_UTF8ToWideChar (const std::string& in)
 bool
 SK_COM_TestInit (void)
 {
-  CHandle  hToken (INVALID_HANDLE_VALUE);
-  wchar_t* str    = nullptr;
+  SK_AutoHandle hToken (INVALID_HANDLE_VALUE);
+  wchar_t*      str    = nullptr;
 
   if (! OpenProcessToken (
           SK_GetCurrentProcess (), TOKEN_QUERY | TOKEN_IMPERSONATE |
@@ -114,8 +114,8 @@ SK_GetDocumentsDir (void)
 
   if (! InterlockedCompareExchangeAcquire (&__init, 1, 0))
   {
-    CHandle  hToken (INVALID_HANDLE_VALUE);
-    wchar_t* str    = nullptr;
+    SK_AutoHandle hToken (INVALID_HANDLE_VALUE);
+    wchar_t*      str    = nullptr;
 
     if (! OpenProcessToken (
             SK_GetCurrentProcess (), TOKEN_QUERY | TOKEN_IMPERSONATE |
@@ -166,8 +166,8 @@ SK_GetRoamingDir (void)
   if (! dir.empty ())
     return dir;
 
-  CHandle  hToken (INVALID_HANDLE_VALUE);
-  wchar_t* str    = nullptr;
+  SK_AutoHandle hToken (INVALID_HANDLE_VALUE);
+  wchar_t*      str    = nullptr;
 
   if (! OpenProcessToken (SK_GetCurrentProcess (), TOKEN_QUERY | TOKEN_IMPERSONATE |
                                                    TOKEN_READ, &hToken.m_h))
@@ -209,8 +209,8 @@ SK_GetFontsDir (void)
 
   if (! InterlockedCompareExchange (&__init, 1, 0))
   {
-    CHandle  hToken (INVALID_HANDLE_VALUE);
-    wchar_t* str    = nullptr;
+    SK_AutoHandle hToken (INVALID_HANDLE_VALUE);
+    wchar_t*      str    = nullptr;
 
     if (! OpenProcessToken (SK_GetCurrentProcess (), TOKEN_QUERY | TOKEN_IMPERSONATE |
                                                      TOKEN_READ, &hToken.m_h ) )
@@ -276,7 +276,7 @@ SK_GetDocumentsDir (wchar_t* buf, uint32_t* pdwLen)
 bool
 SK_GetUserProfileDir (wchar_t* buf, uint32_t* pdwLen)
 {
-  CHandle hToken;
+  SK_AutoHandle hToken (INVALID_HANDLE_VALUE);
 
   if (! OpenProcessToken (SK_GetCurrentProcess (), TOKEN_READ, &hToken.m_h))
     return false;
@@ -473,14 +473,15 @@ SK_File_MoveNoFail ( const wchar_t* wszOld, const wchar_t* wszNew )
   // Preserve file times
   if (hOldFind != INVALID_HANDLE_VALUE)
   {
-    CHandle hNewFile ( CreateFile ( wszNew,
-                                      GENERIC_READ      | GENERIC_WRITE,
-                                        FILE_SHARE_READ | FILE_SHARE_WRITE |
-                                                          FILE_SHARE_DELETE,
-                                          nullptr,
-                                            OPEN_EXISTING,
-                                              GetFileAttributes (wszNew),
-                                                nullptr ) );
+    SK_AutoHandle hNewFile (
+      CreateFile ( wszNew,
+                     GENERIC_READ      | GENERIC_WRITE,
+                       FILE_SHARE_READ | FILE_SHARE_WRITE |
+                                         FILE_SHARE_DELETE,
+                         nullptr,
+                           OPEN_EXISTING,
+                             GetFileAttributes (wszNew),
+                               nullptr ) );
 
     FindClose         (hOldFind);
     SetFileTime       ( hNewFile,
@@ -506,7 +507,7 @@ SK_File_FullCopy ( const wchar_t* from,
   HANDLE          hFrom =
     FindFirstFile (from, &FromFileData);
 
-  CHandle hTo (
+  SK_AutoHandle hTo (
     CreateFile ( to,
                    GENERIC_READ      | GENERIC_WRITE,
                      FILE_SHARE_READ | FILE_SHARE_WRITE |
@@ -582,8 +583,8 @@ SK_File_SetNormalAttribs (const wchar_t *file)
 bool
 SK_IsAdmin (void)
 {
-  bool    bRet = false;
-  CHandle hToken;
+  bool          bRet = false;
+  SK_AutoHandle hToken (INVALID_HANDLE_VALUE);
 
   if ( OpenProcessToken ( SK_GetCurrentProcess (),
                             TOKEN_QUERY,
@@ -615,7 +616,7 @@ SK_IsProcessRunning (const wchar_t* wszProcName)
 {
   PROCESSENTRY32 pe32 = { };
 
-  CHandle hProcSnap (
+  SK_AutoHandle hProcSnap (
     CreateToolhelp32Snapshot ( TH32CS_SNAPPROCESS,
                                  0 )
   );
@@ -966,7 +967,7 @@ FindProcessByName (const wchar_t* wszName)
 {
   PROCESSENTRY32 pe32 = { };
 
-  CHandle hProcessSnap (
+  SK_AutoHandle hProcessSnap (
     CreateToolhelp32Snapshot (TH32CS_SNAPPROCESS, 0)
   );
 
@@ -1087,7 +1088,7 @@ SK_SuspendAllOtherThreads (void)
 {
   std::queue <DWORD> threads;
 
-  CHandle hSnap (
+  SK_AutoHandle hSnap (
     CreateToolhelp32Snapshot (TH32CS_SNAPTHREAD, 0)
   );
 
@@ -1109,7 +1110,7 @@ SK_SuspendAllOtherThreads (void)
           if ( tent.th32ThreadID       != GetCurrentThreadId  () &&
                tent.th32OwnerProcessID == GetCurrentProcessId () )
           {
-            CHandle hThread (
+            SK_AutoHandle hThread (
               OpenThread (THREAD_SUSPEND_RESUME, FALSE, tent.th32ThreadID)
             );
 
@@ -1138,7 +1139,7 @@ SK_SuspendAllThreadsExcept (std::set <DWORD>& exempt_tids)
 {
   std::queue <DWORD> threads;
 
-  CHandle hSnap (
+  SK_AutoHandle hSnap (
     CreateToolhelp32Snapshot (TH32CS_SNAPTHREAD, 0)
   );
 
@@ -1161,7 +1162,7 @@ SK_SuspendAllThreadsExcept (std::set <DWORD>& exempt_tids)
                                      tent.th32ThreadID       != GetCurrentThreadId  () &&
                                      tent.th32OwnerProcessID == GetCurrentProcessId () )
           {
-            CHandle hThread (
+            SK_AutoHandle hThread (
               OpenThread (THREAD_SUSPEND_RESUME, FALSE, tent.th32ThreadID)
             );
 
@@ -1192,7 +1193,7 @@ SK_ResumeThreads (std::queue <DWORD> threads)
   {
     DWORD tid = threads.front ();
 
-    CHandle hThread (
+    SK_AutoHandle hThread (
       OpenThread (THREAD_SUSPEND_RESUME, FALSE, tid)
     );
 
@@ -2545,7 +2546,7 @@ SK_Generate8Dot3 (const wchar_t* wszLongFileName)
     ModifyPrivilege (SE_RESTORE_NAME, TRUE);
     ModifyPrivilege (SE_BACKUP_NAME,  TRUE);
 
-    CHandle hFile (
+    SK_AutoHandle hFile (
       CreateFileW ( wszFileName,
                       GENERIC_WRITE      | DELETE,
                         FILE_SHARE_WRITE | FILE_SHARE_DELETE,

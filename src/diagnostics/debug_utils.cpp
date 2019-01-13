@@ -23,12 +23,12 @@
 
 #include <SpecialK/diagnostics/debug_utils.h>
 
+#include <SpecialK/utility.h>
 #include <SpecialK/config.h>
 #include <SpecialK/core.h>
 #include <SpecialK/hooks.h>
 #include <SpecialK/log.h>
 #include <SpecialK/resource.h>
-#include <SpecialK/utility.h>
 #include <SpecialK/thread.h>
 
 #include <avrt.h>
@@ -1728,7 +1728,7 @@ SK_Exception_HandleThreadName (
 
       if (SK_GetCurrentGameID () == SK_GAME_ID::FinalFantasyXV)
       {
-        CHandle hThread ( OpenThread ( THREAD_ALL_ACCESS, FALSE, dwTid ) );
+        SK_AutoHandle hThread ( OpenThread ( THREAD_ALL_ACCESS, FALSE, dwTid ) );
 
         if ((! sk_ffxv_vsync.hThread) && StrStrIA (info->szName, "VSync"))
         {
@@ -1748,9 +1748,11 @@ SK_Exception_HandleThreadName (
         extern SK_MMCS_TaskEntry*
           SK_MMCS_GetTaskForThreadIDEx ( DWORD dwTid, const char* name, const char* class0, const char* class1 );
 
-        CHandle hThread ( OpenThread ( THREAD_ALL_ACCESS,
-                         FALSE,
-                         dwTid ) );
+        SK_AutoHandle hThread (
+          OpenThread ( THREAD_ALL_ACCESS,
+                       FALSE,
+                       dwTid
+                     )        );
 
         if (! strcmp (info->szName, "AsyncFileCompletionThread"))
         {

@@ -312,7 +312,7 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
 
   if (GetFileAttributes (SK_Version_GetRepoIniPath ().c_str ()) != INVALID_FILE_ATTRIBUTES)
   {
-    CHandle hVersionConfig (
+    SK_AutoHandle hVersionConfig (
       CreateFile ( SK_Version_GetRepoIniPath ().c_str (),
                      GENERIC_READ,
                        FILE_SHARE_READ  |
@@ -488,7 +488,7 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
       if (dwAttribs == INVALID_FILE_ATTRIBUTES)
           dwAttribs = FILE_ATTRIBUTE_NORMAL;
 
-      CHandle hVersionFile (
+      SK_AutoHandle hVersionFile (
         CreateFileW ( SK_Version_GetRepoIniPath ().c_str (),
                         GENERIC_WRITE,
                           FILE_SHARE_READ | FILE_SHARE_WRITE,

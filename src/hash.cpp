@@ -54,7 +54,7 @@ SK_File_GetHash_32 (       sk_hash_algo                 algorithm,
       DWORD dwFileAttribs =
         GetFileAttributes (wszFile);
 
-      CHandle hFile (
+      SK_AutoHandle hFile (
         CreateFile ( wszFile,
                        GENERIC_READ,
                          FILE_SHARE_READ |

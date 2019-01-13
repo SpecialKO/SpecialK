@@ -276,8 +276,8 @@ GetCurrentThreadDescription (_Out_  PWSTR  *threadDescription)
     return E_NOTIMPL;
   }
 
-  HRESULT  hr         = E_UNEXPECTED;
-  CHandle hRealHandle (   nullptr  );
+  HRESULT       hr         = E_UNEXPECTED;
+  SK_AutoHandle hRealHandle (   nullptr  );
 
   if ( DuplicateHandle ( SK_GetCurrentProcess (),
                          SK_GetCurrentThread  (),
@@ -366,8 +366,46 @@ SetThreadAffinityMask_Detour (
   _In_ HANDLE    hThread,
   _In_ DWORD_PTR dwThreadAffinityMask )
 {
+  static SYSTEM_INFO
+    sysinfo = { };
+
+  if (sysinfo.dwNumberOfProcessors == 0)
+  {
+    SK_GetSystemInfo (&sysinfo);
+  }
+
+  //if ( //(int)hThread != -2 &&
+  //    ( dwThreadAffinityMask ==  0x1 ||
+  //      dwThreadAffinityMask == (0x1ULL << (sysinfo.dwNumberOfProcessors-1) ) ) )
+  //{
+  //  dll_log.Log (L"Bingo!! (hThread=%p, Mask=%x) -- %s", hThread, dwThreadAffinityMask, SK_SummarizeCaller ().c_str ());
+  //
+  //  DWORD_PTR dwRet_ =
+  //    SetThreadAffinityMask_Original (
+  //      hThread,
+  //        (DWORD_PTR)-1 );
+  //  SetThreadAffinityMask_Original (
+  //      hThread,
+  //        dwRet_ );
+  //
+  //  return dwRet_;
+  //}
+
+
   DWORD_PTR dwRet = 0;
-  DWORD     dwTid = GetThreadId (hThread);
+  DWORD     dwTid = ( hThread ==
+    SK_GetCurrentThread (              ) ) ?
+            GetCurrentThreadId (       )   :
+                   GetThreadId (hThread);
+
+  if (dwTid == 0)
+  {
+    return
+      SetThreadAffinityMask_Original (
+        hThread,
+          dwThreadAffinityMask );
+  }
+
   SK_TLS*   pTLS  =
     (dwTid == GetCurrentThreadId ()) ?
       SK_TLS_Bottom   (     )        :

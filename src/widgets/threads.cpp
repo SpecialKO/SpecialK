@@ -1576,7 +1576,7 @@ public:
 
         if (show_callstack)
         {
-          CHandle hThreadStack (
+          SK_AutoHandle hThreadStack (
             OpenThread ( THREAD_ALL_ACCESS, false, dwSelectedTid )
           );
 
@@ -1811,8 +1811,7 @@ public:
   //ImGui::BeginChildFrame (ImGui::GetID ("Thread_List2"), ImVec2 (0,0), ImGuiWindowFlags_NavFlattened | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_HorizontalScrollbar);
     if (ImGui::BeginPopup ("ThreadInspectPopup"))
     {
-      CHandle hSelectedThread;
-              hSelectedThread.m_h = INVALID_HANDLE_VALUE;
+      SK_AutoHandle hSelectedThread (INVALID_HANDLE_VALUE);
 
       if (dwSelectedTid != 0)
       {
@@ -1881,7 +1880,7 @@ public:
                   DWORD dwTid =
                     *((suspend_params_s *)user)->pdwTid;
 
-                  CHandle hThread__ (
+                  SK_AutoHandle hThread__ (
                     OpenThread ( THREAD_SUSPEND_RESUME,
                                    FALSE,
                                      dwTid )

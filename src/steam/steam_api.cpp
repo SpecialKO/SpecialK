@@ -381,7 +381,7 @@ SK_Steam_FindInstallPath (uint32_t appid)
                 (wchar_t *)steam_lib_paths [i],
                 appid );
 
-      CHandle hManifest (
+      SK_AutoHandle hManifest (
         CreateFileW ( wszManifest,
                       GENERIC_READ,
                         FILE_SHARE_READ |
@@ -3683,7 +3683,7 @@ SK_Steam_KillPump (void)
 {
   if (ReadAcquire (&__SK_DLL_Ending)) return;
 
-  CHandle hOriginal (
+  SK_AutoHandle hOriginal (
     reinterpret_cast <HANDLE>
     (InterlockedExchangePointer ((void **)&hSteamPump, nullptr))
   );
@@ -3812,7 +3812,7 @@ SK_Steam_GetLibraries (steam_library_t** ppLibraries)
       lstrcpyW (wszLibraryFolders, wszSteamPath);
       lstrcatW (wszLibraryFolders, LR"(\steamapps\libraryfolders.vdf)");
 
-      CHandle hLibFolders (
+      SK_AutoHandle hLibFolders (
         CreateFileW ( wszLibraryFolders,
                         GENERIC_READ,
                         FILE_SHARE_READ | FILE_SHARE_WRITE,
@@ -3915,7 +3915,7 @@ SK_UseManifestToGetAppName (uint32_t appid)
                (wchar_t *)steam_lib_paths [i],
                             appid );
 
-      CHandle hManifest (
+      SK_AutoHandle hManifest (
         CreateFileW ( wszManifest,
                         GENERIC_READ,
                         FILE_SHARE_READ | FILE_SHARE_WRITE,

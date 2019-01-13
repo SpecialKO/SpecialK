@@ -180,6 +180,32 @@ PSID SK_Win32_GetTokenSid     (_TOKEN_INFORMATION_CLASS tic );
 PSID SK_Win32_ReleaseTokenSid (PSID                     pSid);
 
 
+#ifdef _WINGDI_
+#undef _WINGDI_
+#endif
+
+#include <atlbase.h>
+
+class SK_AutoHandle : public CHandle
+{
+  // Signed handles are invalid, since handles are pointers and
+  //   the signed half of the address space is only for kernel
+
+public:
+   SK_AutoHandle (HANDLE hHandle) : CHandle (hHandle) { };
+  ~SK_AutoHandle (void)
+  {
+    // We cannot close these handles because technically they
+    //   were never opened (by usermode code).
+    if (m_h < 0)
+        m_h = 0;
+
+    // Signed handles are often special cases
+    //   such as -2 = Current Thread, -1 = Current Process
+  }
+};
+
+
 
 extern void WINAPI  SK_ExitProcess      (      UINT      uExitCode  );
 extern void WINAPI  SK_ExitThread       (      DWORD     dwExitCode );
