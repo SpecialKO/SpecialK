@@ -281,6 +281,18 @@ struct SK_MMCS_TaskEntry {
     }
   } change;
 
+  void queuePriority (AVRT_PRIORITY prio)
+  {
+    change.priority =
+      prio;
+
+    // Will cause this to take affect the next time
+    //   the thread is rescheduled. AVRT priority can
+    //     only be changed for a thread by running the
+    //       code to change priority _on_ that thread.
+    change.flush ();
+  }
+
   BOOL          setPriority (AVRT_PRIORITY prio)
   {
     if (AvSetMmThreadPriority (hTask, prio))

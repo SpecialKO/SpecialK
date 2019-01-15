@@ -141,10 +141,14 @@ struct cpu_perf_t : WMI_refresh_thread_t
 
                     total_delta_all.QuadPart =
                   ( total_delta_run.QuadPart + total_delta_idle.QuadPart );
-                                     
-      double rational_cpu_load =
-        ( 100.0 - (static_cast <double> (dt_cpu.IdleTime.QuadPart)/
-                   static_cast <double> (total_delta_run.QuadPart)) * 100.0 );
+                           
+      long double rational_cpu_load =
+        std::min   (100.0l,
+          std::max (  0.0l,
+            ( 100.0l - (static_cast <long double> (dt_cpu.IdleTime.QuadPart)/
+                        static_cast <long double> (total_delta_run.QuadPart)) * 100.0l )
+          )
+        );
 
       InterlockedExchange (
         &percent_load,      static_cast < LONG > (rational_cpu_load)
@@ -155,8 +159,8 @@ struct cpu_perf_t : WMI_refresh_thread_t
 
       InterlockedExchange (
         &percent_kernel,    static_cast < LONG >
-                          ((static_cast <double> (dt_cpu.KernelTime.QuadPart)/
-                            static_cast <double> ( total_delta_run.QuadPart )) * rational_cpu_load)
+                          ((static_cast <long double> (dt_cpu.KernelTime.QuadPart)/
+                            static_cast <long double> ( total_delta_run.QuadPart )) * rational_cpu_load)
       );
       InterlockedExchange (
         &percent_user  ,    static_cast < LONG >
@@ -165,8 +169,8 @@ struct cpu_perf_t : WMI_refresh_thread_t
       );
       InterlockedExchange (
         &percent_interrupt, static_cast < LONG >
-                          ((static_cast <double> ( dt_cpu.InterruptTime.QuadPart )/
-                            static_cast <double> (    total_delta_run.QuadPart   )) * rational_cpu_load)
+                          ((static_cast <long double> ( dt_cpu.InterruptTime.QuadPart )/
+                            static_cast <long double> (    total_delta_run.QuadPart   )) * rational_cpu_load)
       );
 
       return total_delta_all;

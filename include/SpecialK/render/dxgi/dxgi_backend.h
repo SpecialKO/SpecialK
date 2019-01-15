@@ -574,14 +574,44 @@ extern SK_D3D11_TexMgr_Singleton __SK_Singleton_D3D11_Textures (void);
 #define SK_D3D11_Textures __SK_Singleton_D3D11_Textures()
 
 
+interface ID3D11DeviceContext2;
+interface ID3D11DeviceContext3;
+
 typedef HRESULT (STDMETHODCALLTYPE *D3D11Dev_CreateDeferredContext_pfn)( 
   _In_            ID3D11Device         *This,
   _In_            UINT                  ContextFlags,
   _Out_opt_       ID3D11DeviceContext **ppDeferredContext
 );
+typedef HRESULT (STDMETHODCALLTYPE *D3D11Dev_CreateDeferredContext1_pfn)( 
+  _In_            ID3D11Device          *This,
+  _In_            UINT                   ContextFlags,
+  _Out_opt_       ID3D11DeviceContext1 **ppDeferredContext
+);
+typedef HRESULT (STDMETHODCALLTYPE *D3D11Dev_CreateDeferredContext2_pfn)( 
+  _In_            ID3D11Device          *This,
+  _In_            UINT                   ContextFlags,
+  _Out_opt_       ID3D11DeviceContext2 **ppDeferredContext
+);
+typedef HRESULT (STDMETHODCALLTYPE *D3D11Dev_CreateDeferredContext3_pfn)( 
+  _In_            ID3D11Device          *This,
+  _In_            UINT                   ContextFlags,
+  _Out_opt_       ID3D11DeviceContext3 **ppDeferredContext
+);
 typedef void (STDMETHODCALLTYPE *D3D11Dev_GetImmediateContext_pfn)( 
   _In_            ID3D11Device         *This,
   _Out_           ID3D11DeviceContext **ppImmediateContext
+);
+typedef void (STDMETHODCALLTYPE *D3D11Dev_GetImmediateContext1_pfn)( 
+  _In_            ID3D11Device          *This,
+  _Out_           ID3D11DeviceContext1 **ppImmediateContext
+);
+typedef void (STDMETHODCALLTYPE *D3D11Dev_GetImmediateContext2_pfn)( 
+  _In_            ID3D11Device          *This,
+  _Out_           ID3D11DeviceContext2 **ppImmediateContext
+);
+typedef void (STDMETHODCALLTYPE *D3D11Dev_GetImmediateContext3_pfn)( 
+  _In_            ID3D11Device          *This,
+  _Out_           ID3D11DeviceContext3 **ppImmediateContext
 );
 typedef HRESULT (WINAPI *D3D11Dev_CreateSamplerState_pfn)(
   _In_            ID3D11Device        *This,
@@ -814,7 +844,13 @@ extern D3D11Dev_CreateDomainShader_pfn                    D3D11Dev_CreateDomainS
 extern D3D11Dev_CreateComputeShader_pfn                   D3D11Dev_CreateComputeShader_Original;
 
 extern D3D11Dev_CreateDeferredContext_pfn                 D3D11Dev_CreateDeferredContext_Original;
+extern D3D11Dev_CreateDeferredContext1_pfn                D3D11Dev_CreateDeferredContext1_Original;
+extern D3D11Dev_CreateDeferredContext2_pfn                D3D11Dev_CreateDeferredContext2_Original;
+extern D3D11Dev_CreateDeferredContext3_pfn                D3D11Dev_CreateDeferredContext3_Original;
 extern D3D11Dev_GetImmediateContext_pfn                   D3D11Dev_GetImmediateContext_Original;
+extern D3D11Dev_GetImmediateContext1_pfn                  D3D11Dev_GetImmediateContext1_Original;
+extern D3D11Dev_GetImmediateContext2_pfn                  D3D11Dev_GetImmediateContext2_Original;
+extern D3D11Dev_GetImmediateContext3_pfn                  D3D11Dev_GetImmediateContext3_Original;
 
 extern D3D11_RSSetScissorRects_pfn                        D3D11_RSSetScissorRects_Original;
 extern D3D11_RSSetViewports_pfn                           D3D11_RSSetViewports_Original;
