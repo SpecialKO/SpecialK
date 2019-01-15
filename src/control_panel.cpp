@@ -2104,7 +2104,7 @@ SK_ImGui_ControlPanel (void)
             //  ImGui::Text           ("  Lower = Stricter, but setting");
             //  ImGui::SameLine       ();
 
-            ImGui::SliderFloat ( "Target Framerate Tolerance", &config.render.framerate.limiter_tolerance, 0.925f, 4.0f);
+            ImGui::SliderFloat ( "Target Framerate Tolerance", &config.render.framerate.limiter_tolerance, 0.01f, 1.0f);
 
             if (ImGui::IsItemHovered ())
             {

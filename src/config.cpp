@@ -1850,6 +1850,10 @@ auto DeclKeybind =
 
       case SK_GAME_ID::Tales_of_Vesperia:
       {
+        config.render.framerate.limiter_tolerance
+                                                = 0.02f;
+        config.window.treat_fg_as_active        = true;
+        config.input.ui.use_hw_cursor           = false;
         config.textures.d3d11.uncompressed_mips = true;
         config.textures.d3d11.cache_gen_mips    = true;
       } break;
@@ -2005,9 +2009,9 @@ auto DeclKeybind =
   render.framerate.override_cpu_count->load (config.render.framerate.override_num_cpus);
 
 
-  // Range-restrict this to prevent the user from destroying performance
-  if (config.render.framerate.limiter_tolerance < 0.925f)
-    config.render.framerate.limiter_tolerance = 0.925f;
+  //// Range-restrict this to prevent the user from destroying performance
+  //if (config.render.framerate.limiter_tolerance < 0.925f)
+  //  config.render.framerate.limiter_tolerance = 0.925f;
 
 
   render.osd.draw_in_vidcap->load           (config.render.osd. draw_in_vidcap);
