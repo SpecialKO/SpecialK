@@ -3447,7 +3447,6 @@ bool
 SK_EarlyDispatchMessage (LPMSG lpMsg, bool remove, bool peek = false)
 {
   //LRESULT lRet = 0;
-
   if (      lpMsg       != nullptr && lpMsg->message <= 0xFFFF &&
            (lpMsg->hwnd != 0       || game_window.hWnd == 0)   &&
              SK_ImGui_HandlesMessage (lpMsg, remove, peek)        )
@@ -3891,15 +3890,11 @@ GetForegroundWindow_Detour (void)
 {
   SK_LOG_FIRST_CALL
 
-    if ( config.window.background_render &&
-         config.window.treat_fg_as_active )
-    {
-      if ( SK_GetForegroundWindow () != game_window.hWnd &&
-                 SK_GetCallingDLL () == GetModuleHandle (nullptr) )
-      {
-        return game_window.hWnd;
-      }
-    }
+  if ( config.window.background_render &&
+       config.window.treat_fg_as_active )
+  {
+    return game_window.hWnd;
+  }
 
   return
     SK_GetForegroundWindow ();
@@ -4413,6 +4408,16 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     } break;
 
 
+  //case WM_SETFOCUS:
+    case WM_KILLFOCUS:
+      if ((! SK_GetCurrentRenderBackend ().fullscreen_exclusive) && config.window.background_render)
+      {
+        // Blocking this message helps with many games that mute audio in the background
+        return
+          game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+      }
+      break;
+
     // Ignore (and physically remove) this event from the message queue if background_render = true
     case WM_MOUSEACTIVATE:
     {
@@ -4461,7 +4466,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
           {
             if (last_active == false)
               SK_LOG3 ( ( L"Application Activated (Non-Client)" ),
-                       L"Window Mgr" );
+                          L"Window Mgr" );
 
             ActivateWindow (hWnd, true);
           }
@@ -4470,7 +4475,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
           {
             if (last_active == true)
               SK_LOG3 ( ( L"Application Deactivated (Non-Client)" ),
-                       L"Window Mgr" );
+                          L"Window Mgr" );
 
             ActivateWindow (hWnd, false);
 
@@ -4478,7 +4483,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
             //   when the game loses focus, so do not simply pass this through to the
             //     default window procedure.
             if ( (! SK_GetCurrentRenderBackend ().fullscreen_exclusive) &&
-                config.window.background_render
+                    config.window.background_render
                 )
             {
               game_window.CallProc (
@@ -4507,8 +4512,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
           //   when the game loses focus, so do not simply pass this through to the
           //     default window procedure.
           if ( (! SK_GetCurrentRenderBackend ().fullscreen_exclusive) &&
-              config.window.background_render
-              )
+                  config.window.background_render
+             )
           {
             game_window.CallProc (
               hWnd,

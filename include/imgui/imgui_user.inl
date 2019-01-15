@@ -1104,6 +1104,8 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
 
           if (config.input.keyboard.catch_alt_f4)
             return 0;
+
+          return 1;
         } break;
 
       case SC_KEYMENU:
@@ -1124,10 +1126,10 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
           }
           
           else
-          {
             return
               DefWindowProcW (hWnd, msg, wParam, lParam);
-          }
+
+          return 1;
         }
         break;
 
@@ -1136,6 +1138,9 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
         if (config.window.disable_screensaver)
           return 0;
         break;
+
+      default:
+        return 1;
     }
   }
 
